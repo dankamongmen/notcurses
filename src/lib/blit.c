@@ -609,29 +609,32 @@ sex_solver(const uint32_t rgbas[6], uint64_t* channels, bool blendcolors){
     int insum = 0;
     for(unsigned mask = 1 ; mask < 64 ; mask <<= 1u){
       if(partitions[glyph] & mask){
-        rsum0 += ncpixel_r(rgbas[glyph]);
-        gsum0 += ncpixel_g(rgbas[glyph]);
-        bsum0 += ncpixel_b(rgbas[glyph]);
+        rsum0 += ncpixel_r(rgbas[mask]);
+        gsum0 += ncpixel_g(rgbas[mask]);
+        bsum0 += ncpixel_b(rgbas[mask]);
         ++insum;
       }else{
-        rsum1 += ncpixel_r(rgbas[glyph]);
-        gsum1 += ncpixel_g(rgbas[glyph]);
-        bsum1 += ncpixel_b(rgbas[glyph]);
+        rsum1 += ncpixel_r(rgbas[mask]);
+        gsum1 += ncpixel_g(rgbas[mask]);
+        bsum1 += ncpixel_b(rgbas[mask]);
       }
     }
+//fprintf(stderr, "sum0: %u/%u/%u sum1: %u/%u/%u insum: %d\n", rsum0, gsum0, bsum0, rsum1, gsum1, bsum1, insum);
     uint32_t l0 = generalerp(rsum0, gsum0, bsum0, insum);
     uint32_t l1 = generalerp(rsum1, gsum1, bsum1, 6 - insum);
     uint32_t totaldiff = 0;
     for(unsigned mask = 1 ; mask < 64 ; mask <<= 1u){
+      unsigned r, g, b;
       if(partitions[glyph] & mask){
-        totaldiff += rgb_diff(ncpixel_r(rgbas[glyph]), ncpixel_g(rgbas[glyph]), ncpixel_b(rgbas[glyph]),
-                              ncpixel_r(l0), ncpixel_g(l0), ncpixel_b(l0));
+        channel_rgb8(l0, &r, &g, &b);
       }else{
-        totaldiff += rgb_diff(ncpixel_r(rgbas[glyph]), ncpixel_g(rgbas[glyph]), ncpixel_b(rgbas[glyph]),
-                              ncpixel_r(l1), ncpixel_g(l1), ncpixel_b(l1));
+        channel_rgb8(l1, &r, &g, &b);
       }
+      totaldiff += rgb_diff(ncpixel_r(rgbas[mask]), ncpixel_g(rgbas[mask]),
+                            ncpixel_b(rgbas[mask]), r, g, b);
+//fprintf(stderr, "mask: %u totaldiff: %u insum: %d (%08x / %08x)\n", mask, totaldiff, insum, l0, l1);
     }
-fprintf(stderr, "%zu totaldiff: %u best: %u\n", glyph, totaldiff, mindiff);
+//fprintf(stderr, "bits: %u %zu totaldiff: %u best: %u (%d)\n", partitions[glyph], glyph, totaldiff, mindiff, best);
     if(totaldiff < mindiff){
       mindiff = totaldiff;
       best = glyph;
@@ -652,12 +655,13 @@ fprintf(stderr, "%zu totaldiff: %u best: %u\n", glyph, totaldiff, mindiff);
       break;
     }
   }
-  assert(best >= 0 && best < 63);
+//fprintf(stderr, "solved for best: %d (%u)\n", best, mindiff);
+  assert(best >= 0 && best < 64);
   if(blendcolors){
     channels_set_fg_alpha(channels, CELL_ALPHA_BLEND);
     channels_set_bg_alpha(channels, CELL_ALPHA_BLEND);
   }
-  return sex[63 - best];
+  return sex[64 - best];
 }
 
 // sextant check for transparency. returns an EGC if we found transparent pixels
@@ -809,11 +813,11 @@ sextant_blit(ncplane* nc, int placey, int placex, int linesize,
       const uint32_t rgbas[6] = {
         rgbbase_l1, rgbbase_r1, rgbbase_l2, rgbbase_r2, rgbbase_l3, rgbbase_r3,
       };
-fprintf(stderr, "strans check: %d/%d\n%08x %08x\n%08x %08x\n%08x %08x\n", y, x, rgbas[0], rgbas[1], rgbas[2], rgbas[3], rgbas[4], rgbas[5]);
+//fprintf(stderr, "strans check: %d/%d\n%08x %08x\n%08x %08x\n%08x %08x\n", y, x, rgbas[0], rgbas[1], rgbas[2], rgbas[3], rgbas[4], rgbas[5]);
       const char* egc = strans_check(&c->channels, blendcolors, diffs, rgbas);
-fprintf(stderr, "strans EGC: %s channels: %016lx\n", egc, c->channels);
+//fprintf(stderr, "strans EGC: %s channels: %016lx\n", egc, c->channels);
       egc = sex_solver(rgbas, &c->channels, blendcolors);
-fprintf(stderr, "sex EGC: %s channels: %016lx\n", egc, c->channels);
+//fprintf(stderr, "sex EGC: %s channels: %016lx\n", egc, c->channels);
       if(*egc){
         if(pool_blit_direct(&nc->pool, c, egc, strlen(egc), 1) <= 0){
           return -1;
