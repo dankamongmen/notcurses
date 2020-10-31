@@ -445,13 +445,21 @@ quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
 }
 
 static const char* sex[64] = {
- "█", "🬻", "🬺", "🬹", "🬸", "🬷", "🬶", "🬵", "🬴", "🬳", "🬲", // 10
- "🬱", "🬰", "🬯", "🬮", "🬭", "🬬", "🬫", "🬪", "🬩", "🬨", "▐", // 21
- "🬧", "🬦", "🬥", "🬤", "🬣", "🬢", "🬡", "🬠", "🬟", // 30
- "🬞", "🬝", "🬜", "🬛", "🬚", "🬙", "🬘", "🬗", "🬖", "🬕", // 40
- "🬔", "▌", "🬓", "🬒", "🬑", "🬐", "🬏", "🬎", "🬍", "🬌", // 50
- "🬋", "🬊", "🬉", "🬈", "🬇", "🬆", "🬅", "🬄", "🬃", "🬂", // 60
- "🬁", "🬀", " ",
+" ", "🬀", "🬁", "🬃", "🬇", "🬏", "🬞", "🬂",
+
+ "🬄", "🬈", "🬐", "🬟", "🬅", "🬉", "🬑", "🬠",
+
+ "🬋", "🬓", "🬢", "🬖", "🬦", "🬭", "🬆", "🬊",
+
+ "🬒", "🬡", "🬌", "▌", "🬣", "🬗", "🬧", "🬍",
+
+ "█", "🬻", "🬺", "🬸", "🬴", "🬬", "🬝", "🬹",
+
+ "🬷", "🬳", "🬫", "🬜", "🬶", "🬲", "🬪", "🬛",
+
+ "🬰", "🬨", "🬙", "🬥", "🬕", "🬎", "🬵", "🬱",
+
+ "🬩", "🬚", "🬯", "▐", "🬘", "🬤", "🬔", "🬮",
 };
 
 // take a sum over channels, and the sample count, write back lerped channel
@@ -490,6 +498,7 @@ sex_solver(const uint32_t rgbas[6], uint64_t* channels, bool blendcolors){
   // differences, and see if it's the new minimum.
   int best = -1;
   uint32_t mindiff = UINT_MAX;
+//fprintf(stderr, "%06x %06x\n%06x %06x\n%06x %06x\n", rgbas[0], rgbas[1], rgbas[2], rgbas[3], rgbas[4], rgbas[5]);
   for(size_t glyph = 0 ; glyph < sizeof(partitions) / sizeof(*partitions) ; ++glyph){
     unsigned rsum0 = 0, rsum1 = 0;
     unsigned gsum0 = 0, gsum1 = 0;
@@ -522,37 +531,37 @@ sex_solver(const uint32_t rgbas[6], uint64_t* channels, bool blendcolors){
                             ncpixel_b(rgbas[mask]), r, g, b);
 //fprintf(stderr, "mask: %u totaldiff: %u insum: %d (%08x / %08x)\n", mask, totaldiff, insum, l0, l1);
     }
-fprintf(stderr, "bits: %u %zu totaldiff: %u best: %u (%d)\n", partitions[glyph], glyph, totaldiff, mindiff, best);
+//fprintf(stderr, "bits: %u %zu totaldiff: %u best: %u (%d)\n", partitions[glyph], glyph, totaldiff, mindiff, best);
     if(totaldiff < mindiff){
       mindiff = totaldiff;
       best = glyph;
-      // we want the foreground to be whichever has more associated pixels. if
-      // l1 has more associated pixels, we consider the solution inverted, and
-      // we ought choose the glyph's inverse (except space, where we invert
-      // fg/bg, as space is more efficient than full block).
-      if(glyph == 0){
-        channels_set_fchannel(channels, l1);
-        channels_set_bchannel(channels, l0);
-      }else{
-        best += 32;
-        channels_set_fchannel(channels, l0);
-        channels_set_bchannel(channels, l1);
-      }
+      channels_set_fchannel(channels, l0);
+      channels_set_bchannel(channels, l1);
     }
     if(totaldiff == 0){ // can't beat that!
       break;
     }
   }
-fprintf(stderr, "solved for best: %d (%u)\n", best, mindiff);
+//fprintf(stderr, "solved for best: %d (%u)\n", best, mindiff);
   assert(best >= 0 && best < 64);
   if(blendcolors){
     channels_set_fg_alpha(channels, CELL_ALPHA_BLEND);
     channels_set_bg_alpha(channels, CELL_ALPHA_BLEND);
   }
-  return sex[63 - best];
+  return sex[best];
 }
 
 /*
+static const char* sex[64] = {
+ "█", "🬻", "🬺", "🬹", "🬸", "🬷", "🬶", "🬵", "🬴", "🬳", "🬲", // 10
+ "🬱", "🬰", "🬯", "🬮", "🬭", "🬬", "🬫", "🬪", "🬩", "🬨", "▐", // 21
+ "🬧", "🬦", "🬥", "🬤", "🬣", "🬢", "🬡", "🬠", "🬟", // 30
+ "🬞", "🬝", "🬜", "🬛", "🬚", "🬙", "🬘", "🬗", "🬖", "🬕", // 40
+ "🬔", "▌", "🬓", "🬒", "🬑", "🬐", "🬏", "🬎", "🬍", "🬌", // 50
+ "🬋", "🬊", "🬉", "🬈", "🬇", "🬆", "🬅", "🬄", "🬃", "🬂", // 60
+ "🬁", "🬀", " ",
+};
+
 // returns true iff the pixel is transparent. otherwise, the r/g/b values are
 // accumulated into rsum/gsum/bsum, and npopcnt is increased.
 static inline bool
@@ -805,7 +814,7 @@ sextant_blit(ncplane* nc, int placey, int placex, int linesize,
       c->channels = 0;
       c->stylemask = 0;
       const char* egc = sex_solver(rgbas, &c->channels, blendcolors);
-fprintf(stderr, "sex EGC: %s channels: %016lx\n", egc, c->channels);
+//fprintf(stderr, "sex EGC: %s channels: %016lx\n", egc, c->channels);
       if(*egc){
         if(pool_blit_direct(&nc->pool, c, egc, strlen(egc), 1) <= 0){
           return -1;
