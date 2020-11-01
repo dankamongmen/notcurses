@@ -14,8 +14,8 @@ notcurses-view - Render images and video to a terminal
 
 **notcurses-view** uses a multimedia-enabled notcurses to render images
 and videos to a terminal. By default, **stretch**-type scaling is used to
-fill the rendering area, and the **quadblitter** blitter is used for a
-2x2→1 mapping from pixels to cells.
+fill the rendering area, and the **sexblitter** blitter is used for a
+3x2→1 mapping from pixels to cells.
 
 # OPTIONS
 

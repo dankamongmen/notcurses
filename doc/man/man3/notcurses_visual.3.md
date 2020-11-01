@@ -186,6 +186,11 @@ visual and the specified blitter.
 
 **ncvisual_geom** returns non-zero if the **blitter** is invalid.
 
+**ncvisual_default_blitter** returns the blitter selected by **NCBLIT_DEFAULT**
+in the specified configuration. If UTF8 is not enabled, this will always be
+**NCBLIT_1x1**. Otherwise, if **NCSCALE_STRETCH** is in use, this will be
+**NCBLIT_3x2**; if the scaling is any other value, **NCBLIT_2x1** will be used.
+
 # NOTES
 
 Multimedia decoding requires that Notcurses be built with either FFmpeg or
