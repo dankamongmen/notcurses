@@ -8,7 +8,7 @@ ncls - List paths with rendering of multimedia
 
 # SYNOPSIS
 
-**ncls** [**-h**] [**-d**] [**-l**] [**-R**] [ paths ]
+**ncls** [**-h**] [**-d**] [**-l**] [**-L**] [**-R**] [ paths ]
 
 # DESCRIPTION
 
@@ -20,6 +20,8 @@ ncls - List paths with rendering of multimedia
 **-d**: list directories themselves, not their contents.
 
 **-l**: use a long listing format.
+
+**-L**: when showing file information for a symbolic link, show information for  the file the link references rather than for the link itself.
 
 **-R**: list subdirectories recursively.
 
