@@ -348,6 +348,9 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, float timescale,
     if(frame == 1 && ts){
       usets = true;
     }
+    if(activevopts.n){
+      ncplane_erase(activevopts.n); // new frame could be partially transparent
+    }
     if((newn = ncvisual_render(nc, ncv, &activevopts)) == NULL){
       if(activevopts.n != vopts->n){
         ncplane_destroy(activevopts.n);
