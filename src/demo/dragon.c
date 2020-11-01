@@ -56,7 +56,7 @@ int dragon_demo(struct notcurses* nc){
   // system is X -> X+YF+, Y -> -FX-Y, where F is forward, - is turn left, and
   // + is turn right.
   const char LINDENSTART[] = "FX";
-  dimy *= 2;
+  dimy *= 3;
   dimx *= 2;
   int dxstart, dystart;
   if(dimy > dimx){
@@ -96,7 +96,7 @@ int dragon_demo(struct notcurses* nc){
     }
     struct ncvisual_options vopts = {
       .n = n,
-      .blitter = NCBLIT_2x2,
+      .blitter = NCBLIT_3x2,
       .y = 1,
     };
     if(ncvisual_render(nc, ncv, &vopts) == NULL){
