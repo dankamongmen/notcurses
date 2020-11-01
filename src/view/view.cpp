@@ -48,6 +48,7 @@ struct marshal {
   struct ncplane* subtitle_plane;
   int framecount;
   bool quiet;
+  ncblitter_e blitter; // can be changed while streaming, must propagate out
 };
 
 // frame count is in the curry. original time is kept in n's userptr.
@@ -70,14 +71,13 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
   struct timespec now;
   clock_gettime(CLOCK_MONOTONIC, &now);
   intmax_t ns = timespec_to_ns(&now) - timespec_to_ns(start);
-  auto blitter = vopts->blitter;
-  if(blitter == NCBLIT_DEFAULT){
-    blitter = ncvisual_default_blitter(notcurses_canutf8(nc), vopts->scaling);
-    vopts->blitter = blitter;
+  marsh->blitter = vopts->blitter;
+  if(marsh->blitter == NCBLIT_DEFAULT){
+    marsh->blitter = ncvisual_default_blitter(notcurses_canutf8(nc), vopts->scaling);
   }
   if(!marsh->quiet){
     stdn->printf(0, NCAlign::Left, "frame %06d\u2026 (%s)", marsh->framecount,
-                 notcurses_str_blitter(blitter));
+                 notcurses_str_blitter(marsh->blitter));
   }
   char* subtitle = ncvisual_subtitle(ncv);
   if(subtitle){
@@ -145,7 +145,8 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
     if(keyp == NCKey::Resize){
       return 0;
     }else if(keyp >= '0' && keyp <= '8'){ // FIXME eliminate ctrl/alt
-      vopts->blitter = static_cast<ncblitter_e>(keyp - '0');
+      marsh->blitter = static_cast<ncblitter_e>(keyp - '0');
+      vopts->blitter = marsh->blitter;
       continue;
     }
     return 1;
@@ -280,12 +281,16 @@ auto main(int argc, char** argv) -> int {
       vopts.blitter = blitter;
       do{
         struct marshal marsh = {
-          .subtitle_plane = nullptr, .framecount = 0, .quiet = quiet,
+          .subtitle_plane = nullptr,
+          .framecount = 0,
+          .quiet = quiet,
+          .blitter = vopts.blitter,
         };
         r = ncv->stream(&vopts, timescale, perframe, &marsh);
         free(stdn->get_userptr());
         stdn->set_userptr(nullptr);
         if(r == 0){
+          vopts.blitter = marsh.blitter;
           if(!loop){
             stdn->printf(0, NCAlign::Center, "press any key to advance");
             if(!nc.render()){
@@ -300,7 +305,7 @@ auto main(int argc, char** argv) -> int {
               break;
             }else if(ie >= '0' && ie <= '8'){
               --i; // rerun same input with the new blitter
-              blitter = static_cast<ncblitter_e>(ie - '0');
+              vopts.blitter = static_cast<ncblitter_e>(ie - '0');
             }else if(ie == NCKey::Resize){
               --i; // rerun with the new size
               if(!nc.refresh(&dimy, &dimx)){
