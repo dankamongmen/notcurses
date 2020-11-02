@@ -115,8 +115,8 @@ it can be acquired with **ncvisual_subtitle**.
 **ncvisual_from_rgba** and **ncvisual_from_bgra** both require a number of
 **rows**, a number of image columns **cols**, and a virtual row length of
 **rowstride** / 4 columns. The input data must provide 32 bits per pixel, and
-thus must be at least **rowstride** * **rows** bytes, of which a **cols** *
-**rows** * 4-byte subset is used. It is not possible to **mmap(2)** an image
+thus must be at least **rowstride** * **rows** bytes, of which a
+**cols** * **rows** * 4-byte subset is used. It is not possible to **mmap(2)** an image
 file and use it directly--decompressed, decoded data is necessary. The
 resulting plane will be ceil(**rows**/2) rows, and **cols** columns.
 **ncvisual_from_plane** requires specification of a rectangle via **begy**,
