@@ -3156,7 +3156,7 @@ ncvisual_default_blitter(bool utf8, ncscale_e scale){
     // it's not the general default because it doesn't preserve aspect ratio.
     // NCSCALE_STRETCH throws away aspect ratio, and can safely use NCBLIT_3x2.
     if(scale == NCSCALE_STRETCH){
-      return NCBLIT_3x2;
+      return NCBLIT_2x2;
     }
     return NCBLIT_2x1;
   }
