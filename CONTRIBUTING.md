@@ -11,7 +11,7 @@ New features should have unit tests. It is appreciated if bugfixes have
 unit tests, as well. Wrappers in a new language absolutely must have at
 least some superficial tests (it is not necessary to deeply test the
 underlying functionality in each language). Adding a wrapper implies that
-you're prepare to maintain that wrapper; if you can't maintain it, the wrapper
+you're prepared to maintain that wrapper; if you can't maintain it, the wrapper
 will likely be removed.
 
 Escape sequences available from terminfo must not be hard-coded. Routines must
