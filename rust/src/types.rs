@@ -226,6 +226,42 @@ pub const ALIGN_RIGHT: Align = nc::ncalign_e_NCALIGN_RIGHT;
 pub const ALIGN_CENTER: Align = nc::ncalign_e_NCALIGN_CENTER;
 
 ///
+pub type Blitter = nc::ncblitter_e;
+/// space, compatible with ASCII
+pub const BLIT_1x1: Blitter = nc::ncblitter_e_NCBLIT_1x1;
+/// halves + 1x1 (space)
+/// ▄▀
+pub const BLIT_2x1: Blitter = nc::ncblitter_e_NCBLIT_2x1;
+/// quadrants + 2x1
+/// ▗▐ ▖▀▟▌▙
+pub const BLIT_2x2: Blitter = nc::ncblitter_e_NCBLIT_2x2;
+/// sextants (NOT 2x2)
+/// 🬀🬁🬂🬃🬄🬅🬆🬇🬈🬉🬊🬋🬌🬍🬎🬏🬐🬑🬒🬓🬔🬕🬖🬗🬘🬙🬚🬛🬜🬝🬞🬟🬠🬡🬢🬣🬤🬥🬦🬧🬨🬩🬪🬫🬬🬭🬮🬯🬰🬱🬲🬳🬴🬵🬶🬷🬸🬹🬺🬻
+pub const BLIT_3x2: Blitter = nc::ncblitter_e_NCBLIT_3x2;
+/// four vertical levels
+/// █▆▄▂
+pub const BLIT_4x1: Blitter = nc::ncblitter_e_NCBLIT_4x1;
+/// eight vertical levels
+/// █▇▆▅▄▃▂▁
+pub const BLIT_8x1: Blitter = nc::ncblitter_e_NCBLIT_8x1;
+/// 4 rows, 2 cols (braille)
+/// ⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿
+pub const BLIT_BRAILLE: Blitter = nc::ncblitter_e_NCBLIT_BRAILLE;
+/// automatic pick
+pub const BLIT_DEFAULT: Blitter = nc::ncblitter_e_NCBLIT_DEFAULT;
+/// 6 rows, 1 col (RGB), spotty support among terminals
+pub const BLIT_SIXEL: Blitter = nc::ncblitter_e_NCBLIT_SIXEL;
+
+///
+pub type Scale = nc::ncscale_e;
+/// Maintain original size
+pub const SCALE_NONE: Scale = nc::ncscale_e_NCSCALE_NONE;
+/// Maintain aspect ratio
+pub const SCALE_SCALE: Scale = nc::ncscale_e_NCSCALE_SCALE;
+/// Throw away aspect ratio
+pub const SCALE_STRECH: Scale = nc::ncscale_e_NCSCALE_STRETCH;
+
+///
 pub type DirectMode = nc::ncdirect;
 
 ///
