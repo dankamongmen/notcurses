@@ -30,7 +30,7 @@ pub fn palette256_set_rgb(
     green: Color,
     blue: Color,
 ) {
-    nc::channel_set_rgb(&mut palette.chans[idx as usize], red, green, blue)
+    nc::channel_set_rgb8(&mut palette.chans[idx as usize], red, green, blue)
 }
 
 /// Same as `palette256_set_rgb()` but set an assembled 24 bit channel at once.
@@ -50,7 +50,7 @@ pub fn palette256_get_rgb(
     green: &mut Color,
     blue: &mut Color,
 ) -> Channel {
-    nc::channel_rgb(palette.chans[idx as usize], red, green, blue)
+    nc::channel_rgb8(palette.chans[idx as usize], red, green, blue)
 }
 
 #[cfg(test)]

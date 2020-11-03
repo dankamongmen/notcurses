@@ -81,7 +81,7 @@ pub fn channel_b(channel: Channel) -> Color {
 
 /// Extract the three 8-bit R/G/B components from a 32-bit channel.
 #[inline]
-pub fn channel_rgb(channel: Channel, r: &mut Color, g: &mut Color, b: &mut Color) -> Channel {
+pub fn channel_rgb8(channel: Channel, r: &mut Color, g: &mut Color, b: &mut Color) -> Channel {
     *r = channel_r(channel);
     *g = channel_g(channel);
     *b = channel_b(channel);
@@ -91,12 +91,12 @@ pub fn channel_rgb(channel: Channel, r: &mut Color, g: &mut Color, b: &mut Color
 /// Set the three 8-bit components of a 32-bit channel, and mark it as not using
 /// the default color. Retain the other bits unchanged.
 #[inline]
-pub fn channel_set_rgb(channel: &mut Channel, r: Color, g: Color, b: Color) {
+pub fn channel_set_rgb8(channel: &mut Channel, r: Color, g: Color, b: Color) {
     let rgb: Rgb = (r as Channel) << 16 | (g as Channel) << 8 | (b as Channel);
     *channel = (*channel & !nc::CELL_BG_RGB_MASK) | nc::CELL_BGDEFAULT_MASK | rgb;
 }
 
-/// Same as channel_set_rgb(), but provide an assembled, packed 24 bits of rgb.
+/// Same as channel_set_rgb8(), but provide an assembled, packed 24 bits of rgb.
 // TODO: TEST
 #[inline]
 pub fn channel_set(channel: &mut Channel, rgb: Rgb) {
@@ -214,7 +214,7 @@ pub fn channels_fg_rgb8(
     g: &mut Color,
     b: &mut Color,
 ) -> Channel {
-    channel_rgb(channels_fchannel(channels), r, g, b)
+    channel_rgb8(channels_fchannel(channels), r, g, b)
 }
 
 /// Extract 24 bits of background RGB from 'channels', split into subchannels.
@@ -226,7 +226,7 @@ pub fn channels_bg_rgb8(
     g: &mut Color,
     b: &mut Color,
 ) -> Channel {
-    channel_rgb(channels_bchannel(channels), r, g, b)
+    channel_rgb8(channels_bchannel(channels), r, g, b)
 }
 
 /// Set the r, g, and b channels for the foreground component of this 64-bit
@@ -235,7 +235,7 @@ pub fn channels_bg_rgb8(
 #[inline]
 pub fn channels_set_fg_rgb8(channels: &mut ChannelPair, r: Color, g: Color, b: Color) {
     let mut channel = channels_fchannel(*channels);
-    channel_set_rgb(&mut channel, r, g, b);
+    channel_set_rgb8(&mut channel, r, g, b);
     *channels = (channel as u64) << 32 | *channels & 0xffffffff_u64;
 }
 
@@ -254,7 +254,7 @@ pub fn channels_set_fg_rgb(channels: &mut ChannelPair, rgb: Rgb) {
 #[inline]
 pub fn channels_set_bg_rgb8(channels: &mut ChannelPair, r: Color, g: Color, b: Color) {
     let mut channel = channels_bchannel(*channels);
-    channel_set_rgb(&mut channel, r, g, b);
+    channel_set_rgb8(&mut channel, r, g, b);
     channels_set_bchannel(channels, channel);
 }
 
@@ -365,21 +365,21 @@ mod test {
     }
     #[test]
     #[serial]
-    fn channel_rgb() {
+    fn channel_rgb8() {
         let c: Channel = 0x112233;
         let mut r = 0;
         let mut g = 0;
         let mut b = 0;
-        super::channel_rgb(c, &mut r, &mut g, &mut b);
+        super::channel_rgb8(c, &mut r, &mut g, &mut b);
         assert_eq!(r, 0x11);
         assert_eq!(g, 0x22);
         assert_eq!(b, 0x33);
     }
     #[test]
     #[serial]
-    fn channel_set_rgb() {
+    fn channel_set_rgb8() {
         let mut c: Channel = 0x000000;
-        super::channel_set_rgb(&mut c, 0x11, 0x22, 0x33);
+        super::channel_set_rgb8(&mut c, 0x11, 0x22, 0x33);
         assert_eq!(super::channel_r(c), 0x11);
         assert_eq!(super::channel_g(c), 0x22);
         assert_eq!(super::channel_b(c), 0x33);
