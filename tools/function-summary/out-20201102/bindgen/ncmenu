@@ -1,5 +1,6 @@
 ncmenu_create
 ncmenu_destroy
+ncmenu_item_set_status
 ncmenu_mouse_selected
 ncmenu_nextitem
 ncmenu_nextsection

@@ -1,5 +1,6 @@
 ncvisual_at_yx
 ncvisual_decode
+ncvisual_decode_loop
 ncvisual_destroy
 ncvisual_from_bgra
 ncvisual_from_file

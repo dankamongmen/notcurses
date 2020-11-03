@@ -7,4 +7,4 @@ ncpixel_set_a
 ncpixel_set_b
 ncpixel_set_g
 ncpixel_set_r
-ncpixel_set_rgb
+ncpixel_set_rgb8

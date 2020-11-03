@@ -1,6 +1,6 @@
-ncdirect_bg
 ncdirect_bg_default
 ncdirect_bg_palindex
+ncdirect_bg_rgb
 ncdirect_box
 ncdirect_canopen_images
 ncdirect_canutf8
@@ -18,12 +18,14 @@ ncdirect_cursor_yx
 ncdirect_dim_x
 ncdirect_dim_y
 ncdirect_double_box
-ncdirect_fg
 ncdirect_fg_default
 ncdirect_fg_palindex
+ncdirect_fg_rgb
 ncdirect_flush
+ncdirect_getc
 ncdirect_hline_interp
 ncdirect_init
+ncdirect_inputready_fd
 ncdirect_palette_size
 ncdirect_printf_aligned
 ncdirect_putstr
