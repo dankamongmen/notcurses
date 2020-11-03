@@ -1,6 +1,7 @@
-// functions already exported by bindgen : 35
+// functions already exported by bindgen : 36
 // ------------------------------------------
 // notcurses_at_yx
+// notcurses_bottom
 // notcurses_canchangecolor
 // notcurses_canfade
 // notcurses_canopen_images
@@ -23,10 +24,11 @@
 // notcurses_palette_size
 // notcurses_refresh
 // notcurses_render
+// notcurses_render_to_buffer
 // notcurses_render_to_file
+// notcurses_stats
 // notcurses_stats_alloc
 // notcurses_stats_reset
-// notcurses_stats
 // notcurses_stdplane
 // notcurses_stdplane_const
 // notcurses_stop
@@ -34,24 +36,26 @@
 // notcurses_str_scalemode
 // notcurses_supported_styles
 // notcurses_top
+// notcurses_ucs32_to_utf8
 // notcurses_version
 // notcurses_version_components
 //
-// static inline functions to reimplement: 4
-// ----------------------------------------- (done / (x) wont / remaining)
-// (+) implement : 4 / 0 / 1
-// (#) unit tests: 0 / 0 / 5
+// static inline functions total: 6
+// ----------------------------------------- (done / remaining)
+// (+) implement : 5 / 1
+// (#) unit tests: 0 / 6
 // -----------------------------------------
-//+notcurses_align
-//+notcurses_getc_blocking
-//+notcurses_getc_nblock
-//+notcurses_stddim_yx
-//+notcurses_term_dim_yx
+//+ notcurses_align
+//+ notcurses_getc_blocking
+//+ notcurses_getc_nblock
+//+ notcurses_stddim_yx
+//  notcurses_stddim_yx_const
+//+ notcurses_term_dim_yx
 
 use core::ptr::null;
 
 use crate as nc;
-use nc::types::{Align, Input, FullMode, Plane, ALIGN_CENTER, ALIGN_LEFT};
+use nc::types::{Align, FullMode, Input, Plane, ALIGN_CENTER, ALIGN_LEFT};
 
 /// return the offset into 'availcols' at which 'cols' ought be output given the requirements of 'align'
 // TODO: TEST
@@ -116,6 +120,11 @@ pub fn notcurses_term_dim_yx(nc: &FullMode, rows: &mut i32, cols: &mut i32) {
         nc::ncplane_dim_yx(nc::notcurses_stdplane_const(nc), rows, cols);
     }
 }
+
+// TODO
+// pub unsafe fn notcurses_start() -> *mut FullMode {
+//     nc::notcurses_init(core::ptr::null(), libc_stdout())
+// }
 
 #[cfg(test)]
 mod test {

@@ -1,8 +1,8 @@
-// functions already exported by bindgen : 30
+// functions already exported by bindgen : 38
 // ------------------------------------------
-// ncdirect_bg
 // ncdirect_bg_default
 // ncdirect_bg_palindex
+// ncdirect_bg_rgb
 // ncdirect_box
 // ncdirect_canopen_images
 // ncdirect_canutf8
@@ -20,11 +20,14 @@
 // ncdirect_dim_x
 // ncdirect_dim_y
 // ncdirect_double_box
-// ncdirect_fg
 // ncdirect_fg_default
 // ncdirect_fg_palindex
+// ncdirect_fg_rgb
+// ncdirect_flush
+// ncdirect_getc
 // ncdirect_hline_interp
-// ncdirect_init
+// ncdirect_init                // wrapped at start()
+// ncdirect_inputready_fd
 // ncdirect_palette_size
 // ncdirect_printf_aligned
 // ncdirect_putstr
@@ -35,7 +38,6 @@
 // ncdirect_styles_on
 // ncdirect_styles_set
 // ncdirect_vline_interp
-//
 
 use crate as nc;
 use nc::types::DirectMode;
@@ -48,22 +50,10 @@ extern "C" {
 ///
 /// Initialize a direct-mode notcurses context on the tty.
 ///
-/// Direct mode supportes a limited subset of notcurses routines,
-/// and neither supports nor requires notcurses_render().
-/// This can be used to add color and styling to text in the standard output paradigm.
+/// Direct mode supports a limited subset of notcurses routines,
+/// and neither supports nor requires notcurses_render(). This can be
+/// used to add color and styling to text in the standard output paradigm.
 /// Returns NULL on error, including any failure initializing terminfo.
 pub unsafe fn ncdirect_start() -> *mut DirectMode {
     nc::ncdirect_init(core::ptr::null(), libc_stdout(), 0)
-}
-
-#[cfg(test)]
-mod test {
-    // use super::nc;
-    // use serial_test::serial;
-    /*
-    #[test]
-    #[serial]
-    fn () {
-    }
-    */
 }

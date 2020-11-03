@@ -1,4 +1,4 @@
-// ---------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // - The channel components are u8 instead of u32.
 //   Because of type enforcing, some runtime checks are now unnecessary.
 //
@@ -9,53 +9,56 @@
 //   - `channel_set_rgb_clipped()`
 //   - `channels_set_fg_rgb8_clipped()`
 //   - `channels_set_bg_rgb8_clipped()`
-// ---------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 //
 // functions already exported by bindgen : 0
 // ------------------------------------------
 //
-// static inline functions to reimplement: 37
-// ------------------------------------------ (done / (x) wont / remaining)
-// (+) implement : 34 / 3 /  0
-// (#) unit tests: 14 / 3 / 20
+// static inline functions total: 39
+// ------------------------------------------ (implement / remaining)
+// (X) wont:  3
+// (+) done: 34 /  2
+// (#) test: 14 / 22
 // ------------------------------------------
-//#channel_alpha
-//#channel_b
-//#channel_default_p
-//#channel_g
-//+channel_palindex_p
-//#channel_r
-//#channel_rgb
-//#channels_bchannel
-//+channels_bg_alpha
-//+channels_bg_default_p
-//+channels_bg_palindex_p
-//+channels_bg_rgb
-//+channels_bg_rgb8
-//#channels_combine
-//+channel_set
-//#channel_set_alpha
-//#channel_set_default
-//#channel_set_rgb
-//xchannel_set_rgb_clipped
-//#channels_fchannel
-//+channels_fg_alpha
-//+channels_fg_default_p
-//+channels_fg_palindex_p
-//+channels_fg_rgb
-//+channels_fg_rgb8
-//#channels_set_bchannel
-//+channels_set_bg_alpha
-//+channels_set_bg_default
-//+channels_set_bg_rgb
-//+channels_set_bg_rgb8
-//xchannels_set_bg_rgb8_clipped
-//#channels_set_fchannel
-//+channels_set_fg_alpha
-//+channels_set_fg_default
-//+channels_set_fg_rgb
-//+channels_set_fg_rgb8
-//xchannels_set_fg_rgb8_clipped
+//# channel_alpha
+//# channel_b
+//# channel_default_p
+//# channel_g
+//+ channel_palindex_p
+//# channel_r
+//# channel_rgb8
+//# channels_bchannel
+//+ channels_bg_alpha
+//+ channels_bg_default_p
+//+ channels_bg_palindex_p
+//+ channels_bg_rgb
+//+ channels_bg_rgb8
+//# channels_combine
+//+ channel_set
+//# channel_set_alpha
+//# channel_set_default
+//# channel_set_rgb8
+//X channel_set_rgb_clipped
+//# channels_fchannel
+//+ channels_fg_alpha
+//+ channels_fg_default_p
+//+ channels_fg_palindex_p
+//+ channels_fg_rgb
+//+ channels_fg_rgb8
+//# channels_set_bchannel
+//+ channels_set_bg_alpha
+//+ channels_set_bg_default
+//  channels_set_bg_palindex
+//+ channels_set_bg_rgb
+//+ channels_set_bg_rgb8
+//X channels_set_bg_rgb8_clipped
+//# channels_set_fchannel
+//+ channels_set_fg_alpha
+//+ channels_set_fg_default
+//  channels_set_fg_palindex
+//+ channels_set_fg_rgb
+//+ channels_set_fg_rgb8
+//X channels_set_fg_rgb8_clipped
 
 use crate as nc;
 

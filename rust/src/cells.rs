@@ -1,59 +1,60 @@
 // functions already exported by bindgen : 6
 // -----------------------------------------
-// - cell_duplicate
-// - cell_extended_gcluster
-// - cell_load
-// - cell_release
-// - cells_double_box
-// - cells_rounded_box
+// cell_duplicate
+// cell_extended_gcluster
+// cell_load
+// cell_release
+// cells_double_box
+// cells_rounded_box
 //
-// static inline functions to reimplement: 42
-// ------------------------------------------ (done / (x) wont / remaining)
-// (+) implement : 40 / 2 /  0
-// (#) unit tests:  0 / 2 / 40
+// static inline functions total: 42
+// ------------------------------------------ (implement / remaining)
+// (X) wont:  2
+// (+) done: 40 /  0
+// (#) test:  0 / 40
 // ------------------------------------------
-//+cell_bchannel
-//+cell_bg_alpha
-//+cell_bg_default_p
-//+cell_bg_palindex
-//+cell_bg_palindex_p
-//+cell_bg_rgb
-//+cell_bg_rgb8
-//+cellcmp
-//+cell_double_wide_p
-//+cell_extract
-//+cell_fchannel
-//+cell_fg_alpha
-//+cell_fg_default_p
-//+cell_fg_palindex
-//+cell_fg_palindex_p
-//+cell_fg_rgb
-//+cell_fg_rgb8
-//+cell_init
-//+cell_load_simple
-//+cell_prime
-//+cell_set_bchannel
-//+cell_set_bg_alpha
-//+cell_set_bg_default
-//+cell_set_bg_palindex
-//+cell_set_bg_rgb
-//+cell_set_bg_rgb8
-//xcell_set_bg_rgb8_clipped   // unneeded
-//+cell_set_fchannel
-//+cell_set_fg_alpha
-//+cell_set_fg_default
-//+cell_set_fg_palindex
-//+cell_set_fg_rgb
-//+cell_set_fg_rgb8
-//xcell_set_fg_rgb8_clipped   // unneeded
-//+cells_load_box
-//+cell_strdup
-//+cell_styles
-//+cell_styles_off
-//+cell_styles_on
-//+cell_styles_set
-//+cell_wide_left_p
-//+cell_wide_right_p
+//+ cell_bchannel
+//+ cell_bg_alpha
+//+ cell_bg_default_p
+//+ cell_bg_palindex
+//+ cell_bg_palindex_p
+//+ cell_bg_rgb
+//+ cell_bg_rgb8
+//+ cellcmp
+//+ cell_double_wide_p
+//+ cell_extract
+//+ cell_fchannel
+//+ cell_fg_alpha
+//+ cell_fg_default_p
+//+ cell_fg_palindex
+//+ cell_fg_palindex_p
+//+ cell_fg_rgb
+//+ cell_fg_rgb8
+//+ cell_init
+//+ cell_load_simple
+//+ cell_prime
+//+ cell_set_bchannel
+//+ cell_set_bg_alpha
+//+ cell_set_bg_default
+//+ cell_set_bg_palindex
+//+ cell_set_bg_rgb
+//+ cell_set_bg_rgb8
+//X cell_set_bg_rgb8_clipped   // unneeded
+//+ cell_set_fchannel
+//+ cell_set_fg_alpha
+//+ cell_set_fg_default
+//+ cell_set_fg_palindex
+//+ cell_set_fg_rgb
+//+ cell_set_fg_rgb8
+//X cell_set_fg_rgb8_clipped   // unneeded
+//+ cells_load_box
+//+ cell_strdup
+//+ cell_styles
+//+ cell_styles_off
+//+ cell_styles_on
+//+ cell_styles_set
+//+ cell_wide_left_p
+//+ cell_wide_right_p
 
 use crate as nc;
 use nc::types::{

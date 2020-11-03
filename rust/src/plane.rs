@@ -1,8 +1,7 @@
-// functions already exported by bindgen : 94
+// functions already exported by bindgen : 97
 // ------------------------------------------
 // ncplane_above
 // ncplane_at_cursor
-// ncplane_attr
 // ncplane_at_yx
 // ncplane_base
 // ncplane_below
@@ -35,8 +34,11 @@
 // ncplane_move_bottom
 // ncplane_move_top
 // ncplane_move_yx
+// ncplane_new
 // ncplane_notcurses
 // ncplane_notcurses_const
+// ncplane_off_styles
+// ncplane_on_styles
 // ncplane_parent
 // ncplane_parent_const
 // ncplane_polyfill_yx
@@ -60,7 +62,6 @@
 // ncplane_rgba
 // ncplane_rotate_ccw
 // ncplane_rotate_cw
-// ncplane_set_attr
 // ncplane_set_base
 // ncplane_set_base_cell
 // ncplane_set_bchannel
@@ -79,8 +80,10 @@
 // ncplane_set_fg_rgb8
 // ncplane_set_fg_rgb8_clipped
 // ncplane_set_scrolling
+// ncplane_set_styles
 // ncplane_set_userptr
 // ncplane_stain
+// ncplane_styles
 // ncplane_styles_off
 // ncplane_styles_on
 // ncplane_styles_set
@@ -95,57 +98,54 @@
 // ncplane_y
 // ncplane_yx
 //
-// NOTE: functions removed:
-// ncplane_styles (duplicates ncplane_attr)
-//
-// static inline functions to reimplement: 41
-// ------------------------------------------ (done / (x) wont / remaining)
-// (+) implement: 34 / 7 /  0
-// (#) unit test:  0 / 7 / 34
+// static inline functions total: 42
+// ------------------------------------------ (implement / remaining)
+// (X) wont:  8
+// (+) done: 32 / 2
+// (#) test:  0 / 34
 // ------------------------------------------
-//+ncplane_align
-//+ncplane_at_cursor_cell
-//+ncplane_at_yx_cell
-//+ncplane_bchannel
-//+ncplane_bg_alpha
-//+ncplane_bg_default_p
-//+ncplane_bg_rgb
-//+ncplane_bg_rgb8
-//+ncplane_box_sized
-//+ncplane_dim_x
-//+ncplane_dim_y
-//+ncplane_double_box
-//+ncplane_double_box_sized
-//+ncplane_fchannel
-//+ncplane_fg <<<<
-//+ncplane_fg_alpha
-//+ncplane_fg_default_p
-//+ncplane_fg_rgb
-//+ncplane_fg_rgb8
-//+ncplane_gradient_sized     // u64|u32 https://github.com/dankamongmen/notcurses/issues/920
-//+ncplane_hline
-//+ncplane_perimeter
-//+ncplane_perimeter_double
-//+ncplane_perimeter_rounded
-//+ncplane_putc
-// ncplane_putchar
-// ncplane_putchar_yx
-//+ncplane_putegc
-//+ncplane_putnstr
-//+ncplane_putstr
-//xncplane_putwc                // I don't think these will be needed from Rust. See:
-//xncplane_putwc_stained
-//xncplane_putwc_yx             // https://locka99.gitbooks.io/a-guide-to-porting-c-to-rust/content/features_of_rust/strings.html
-//xncplane_putwegc              //
-//xncplane_putwegc_yx           //
-//xncplane_putwstr              //
-//xncplane_putwstr_aligned      //
-//xncplane_putwstr_yx           //
-//+ncplane_resize_simple
-//+ncplane_rounded_box
-//+ncplane_rounded_box_sized
-//+ncplane_vline
-//+ncplane_vprintf
+//+ ncplane_align
+//+ ncplane_at_cursor_cell
+//+ ncplane_at_yx_cell
+//+ ncplane_bchannel
+//+ ncplane_bg_alpha
+//+ ncplane_bg_default_p
+//+ ncplane_bg_rgb
+//+ ncplane_bg_rgb8
+//+ ncplane_box_sized
+//+ ncplane_dim_x
+//+ ncplane_dim_y
+//+ ncplane_double_box
+//+ ncplane_double_box_sized
+//+ ncplane_fchannel
+//+ ncplane_fg_alpha
+//+ ncplane_fg_default_p
+//+ ncplane_fg_rgb
+//+ ncplane_fg_rgb8
+//+ ncplane_gradient_sized       // u64|u32 https://github.com/dankamongmen/notcurses/issues/920
+//+ ncplane_hline
+//+ ncplane_perimeter
+//+ ncplane_perimeter_double
+//+ ncplane_perimeter_rounded
+//+ ncplane_putc
+//  ncplane_putchar
+//  ncplane_putchar_yx
+//+ ncplane_putegc
+//+ ncplane_putnstr
+//+ ncplane_putstr
+//X ncplane_putwc                // I don't think these will be needed from Rust. See:
+//X ncplane_putwc_stained
+//X ncplane_putwc_yx             // https://locka99.gitbooks.io/a-guide-to-porting-c-to-rust/content/features_of_rust/strings.html
+//X ncplane_putwegc              //
+//X ncplane_putwegc_yx           //
+//X ncplane_putwstr              //
+//X ncplane_putwstr_aligned      //
+//X ncplane_putwstr_yx           //
+//+ ncplane_resize_simple
+//+ ncplane_rounded_box
+//+ ncplane_rounded_box_sized
+//+ ncplane_vline
+//+ ncplane_vprintf
 //
 // NOTE: TODO: Still remains all the ncplane_printf* functions/macros (at the end)
 

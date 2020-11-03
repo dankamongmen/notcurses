@@ -11,21 +11,21 @@
 // functions already exported by bindgen : 0
 // -----------------------------------------
 //
-// static inline functions to reimplement: 10
-// ------------------------------------------ (done / (x) wont / remaining)
-// (+) implement : 10 /  0 /  0
-// (#) unit tests:  0 /  0 / 10
+// static inline functions total: 10
+// ------------------------------------------ (done / remaining)
+// (+) implement : 10 /  0
+// (#) unit tests:  0 / 10
 // ------------------------------------------
-//+ncpixel
-//+ncpixel_a
-//+ncpixel_b
-//+ncpixel_g
-//+ncpixel_r
-//+ncpixel_set_a
-//+ncpixel_set_b
-//+ncpixel_set_g
-//+ncpixel_set_r
-//+ncpixel_set_rgb
+//+ ncpixel
+//+ ncpixel_a
+//+ ncpixel_b
+//+ ncpixel_g
+//+ ncpixel_r
+//+ ncpixel_set_a
+//+ ncpixel_set_b
+//+ ncpixel_set_g
+//+ ncpixel_set_r
+//+ ncpixel_set_rgb
 
 use crate as nc;
 use nc::types::{Color, Pixel};
