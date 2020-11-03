@@ -34,3 +34,15 @@ contexts. On a typical exit, the user must destroy these contexts.
 Notcurses does not strictly require a terminal device for input or output; it
 can be freely redirected to arbitrary character devices or files. When not
 connected to a terminal device, many escapes will not be generated.
+
+Whether using fullscreen or direct mode, there are a few technical minutia
+almost every Notcurses program will want to do early on:
+
+* Call `setlocale()` to modify the program's POSIX locale, usually based
+  on the `LANG` environment variable. This is necessary to place the program
+  in UTF-8 mode, which is necessary for optimal Notcurses operation [^Unless
+  the `INHIBIT_SETLOCALE` flag is used, Notcurses will handle this for you
+  if you don't do it, but it's ideally done as one of the very first steps of
+  your program.].
+* Mask out `SIGWINCH`, especially if you intend to create any threads. This is
+  necessary to ensure WINdow CHange notifications go to the desired thread.
