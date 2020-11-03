@@ -259,7 +259,7 @@ pub const SCALE_NONE: Scale = nc::ncscale_e_NCSCALE_NONE;
 /// Maintain aspect ratio
 pub const SCALE_SCALE: Scale = nc::ncscale_e_NCSCALE_SCALE;
 /// Throw away aspect ratio
-pub const SCALE_STRECH: Scale = nc::ncscale_e_NCSCALE_STRETCH;
+pub const SCALE_STRETCH: Scale = nc::ncscale_e_NCSCALE_STRETCH;
 
 ///
 pub type DirectMode = nc::ncdirect;

@@ -20,7 +20,7 @@
 //
 // static inline functions total: 1
 // ------------------------------------------ (done / remaining)
-// (+) done: 0 / 1
+// (+) done: 1 / 0
 // (#) test: 0 / 1
 // ------------------------------------------
 // ncvisual_default_blitter
@@ -40,5 +40,5 @@ pub fn ncvisual_default_blitter(utf8: bool, scale: Scale) -> Blitter {
         }
         return BLIT_2x1;
     }
-    BLIT_1x1;
+    BLIT_1x1
 }

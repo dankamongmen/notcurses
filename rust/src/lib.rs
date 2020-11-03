@@ -24,6 +24,7 @@ mod nc;
 mod palette;
 mod pixel;
 mod plane;
+mod visual;
 mod types;
 pub use cells::*;
 pub use channel::*;
@@ -34,6 +35,7 @@ pub use nc::*;
 pub use palette::*;
 pub use pixel::*;
 pub use plane::*;
+pub use visual::*;
 pub use types::*;
 
 // TODO: move tests out
