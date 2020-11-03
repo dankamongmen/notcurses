@@ -18,25 +18,27 @@ mod macros;
 mod cells;
 mod channel;
 mod direct;
+mod input;
 mod key;
 mod keycodes;
 mod nc;
 mod palette;
 mod pixel;
 mod plane;
-mod visual;
 mod types;
+mod visual;
 pub use cells::*;
 pub use channel::*;
 pub use direct::*;
+pub use input::*;
 pub use key::*;
 pub use keycodes::*;
 pub use nc::*;
 pub use palette::*;
 pub use pixel::*;
 pub use plane::*;
-pub use visual::*;
 pub use types::*;
+pub use visual::*;
 
 // TODO: move tests out
 #[cfg(test)]

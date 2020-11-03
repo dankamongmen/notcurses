@@ -15,7 +15,7 @@ use nc::types::Input;
 /// comparison for equality (excepting seqnum).
 ///
 /// Returns true if the two are data-equivalent.
-pub fn ncinput_equal_p(input1: Input, input2: Input) -> bool {
+pub fn ncinput_equal_p(n1: Input, n2: Input) -> bool {
     if n1.id != n2.id {
         return false;
     }
@@ -25,3 +25,31 @@ pub fn ncinput_equal_p(input1: Input, input2: Input) -> bool {
     // do not check seqnum
     true
 }
+
+impl Input {
+    pub fn new() -> Input {
+        Input {
+            id: 0,
+            y: 0,
+            x: 0,
+            alt: false,
+            shift: false,
+            ctrl: false,
+            seqnum: 0,
+        }
+    }
+}
+
+/*
+#[cfg(test)]
+mod test {
+    use super::nc;
+    use serial_test::serial;
+
+    #[test]
+    #[serial]
+    fn ncinput_equal_p() {
+        assert!();
+    }
+}
+*/
