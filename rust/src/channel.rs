@@ -100,7 +100,6 @@ pub fn channel_set_rgb8(channel: &mut Channel, r: Color, g: Color, b: Color) {
 }
 
 /// Same as channel_set_rgb8(), but provide an assembled, packed 24 bits of rgb.
-// TODO: TEST
 #[inline]
 pub fn channel_set(channel: &mut Channel, rgb: Rgb) {
     *channel = (*channel & !nc::CELL_BG_RGB_MASK) | nc::CELL_BGDEFAULT_MASK | (rgb & 0x00ffffff);
@@ -125,14 +124,12 @@ pub fn channel_set_alpha(channel: &mut Channel, alpha: AlphaBits) {
 }
 
 /// Is this channel using the "default color" rather than RGB/palette-indexed?
-// TODO: TEST
 #[inline]
 pub fn channel_default_p(channel: Channel) -> bool {
     (channel & nc::CELL_BGDEFAULT_MASK) == 0
 }
 
 /// Is this channel using palette-indexed color rather than RGB?
-// TODO: TEST
 #[inline]
 pub fn channel_palindex_p(channel: Channel) -> bool {
     !channel_default_p(channel) && (channel & nc::CELL_BG_PALETTE) == 0
@@ -181,35 +178,30 @@ pub fn channels_combine(fchannel: Channel, bchannel: Channel) -> ChannelPair {
 }
 
 /// Extract 24 bits of foreground RGB from 'channels', shifted to LSBs.
-// TODO: TEST
 #[inline]
 pub fn channels_fg_rgb(channels: ChannelPair) -> Channel {
     channels_fchannel(channels) & nc::CELL_BG_RGB_MASK
 }
 
 /// Extract 24 bits of background RGB from 'channels', shifted to LSBs.
-// TODO: TEST
 #[inline]
 pub fn channels_bg_rgb(channels: ChannelPair) -> Channel {
     channels_bchannel(channels) & nc::CELL_BG_RGB_MASK
 }
 
 /// Extract 2 bits of foreground alpha from 'channels', shifted to LSBs.
-// TODO: TEST
 #[inline]
 pub fn channels_fg_alpha(channels: ChannelPair) -> AlphaBits {
     channel_alpha(channels_fchannel(channels))
 }
 
 /// Extract 2 bits of background alpha from 'channels', shifted to LSBs.
-// TODO: TEST
 #[inline]
 pub fn channels_bg_alpha(channels: ChannelPair) -> AlphaBits {
     channel_alpha(channels_bchannel(channels))
 }
 
 /// Extract 24 bits of foreground RGB from 'channels', split into subchannels.
-// TODO: TEST
 #[inline]
 pub fn channels_fg_rgb8(
     channels: ChannelPair,
@@ -221,7 +213,6 @@ pub fn channels_fg_rgb8(
 }
 
 /// Extract 24 bits of background RGB from 'channels', split into subchannels.
-// TODO: TEST
 #[inline]
 pub fn channels_bg_rgb8(
     channels: ChannelPair,
@@ -234,7 +225,6 @@ pub fn channels_bg_rgb8(
 
 /// Set the r, g, and b channels for the foreground component of this 64-bit
 /// 'channels' variable, and mark it as not using the default color.
-// TODO: TEST
 #[inline]
 pub fn channels_set_fg_rgb8(channels: &mut ChannelPair, r: Color, g: Color, b: Color) {
     let mut channel = channels_fchannel(*channels);
@@ -243,7 +233,6 @@ pub fn channels_set_fg_rgb8(channels: &mut ChannelPair, r: Color, g: Color, b: C
 }
 
 /// Same as channels_set_fg_rgb8 but set an assembled 24 bit channel at once.
-// TODO: TEST
 #[inline]
 pub fn channels_set_fg_rgb(channels: &mut ChannelPair, rgb: Rgb) {
     let mut channel = channels_fchannel(*channels);
@@ -253,7 +242,6 @@ pub fn channels_set_fg_rgb(channels: &mut ChannelPair, rgb: Rgb) {
 
 /// Set the r, g, and b channels for the background component of this 64-bit
 /// 'channels' variable, and mark it as not using the default color.
-// TODO: TEST
 #[inline]
 pub fn channels_set_bg_rgb8(channels: &mut ChannelPair, r: Color, g: Color, b: Color) {
     let mut channel = channels_bchannel(*channels);
@@ -262,7 +250,6 @@ pub fn channels_set_bg_rgb8(channels: &mut ChannelPair, r: Color, g: Color, b: C
 }
 
 /// Same as channels_set_bg_rgb8 but set an assembled 24 bit channel at once.
-// TODO: TEST
 #[inline]
 pub fn channels_set_bg_rgb(channels: &mut ChannelPair, rgb: Rgb) {
     let mut channel = channels_bchannel(*channels);
@@ -271,7 +258,6 @@ pub fn channels_set_bg_rgb(channels: &mut ChannelPair, rgb: Rgb) {
 }
 
 /// Set the 2-bit alpha component of the foreground channel.
-// TODO: TEST
 #[inline]
 pub fn channels_set_fg_alpha(channels: &mut ChannelPair, alpha: AlphaBits) {
     let mut channel = channels_fchannel(*channels);
@@ -280,7 +266,6 @@ pub fn channels_set_fg_alpha(channels: &mut ChannelPair, alpha: AlphaBits) {
 }
 
 /// Set the 2-bit alpha component of the background channel.
-// TODO: TEST
 #[inline]
 pub fn channels_set_bg_alpha(channels: &mut ChannelPair, alpha: AlphaBits) {
     let mut alpha_clean = alpha;
@@ -294,14 +279,12 @@ pub fn channels_set_bg_alpha(channels: &mut ChannelPair, alpha: AlphaBits) {
 }
 
 /// Is the foreground using the "default foreground color"?
-// TODO: TEST
 #[inline]
 pub fn channels_fg_default_p(channels: ChannelPair) -> bool {
     channel_default_p(channels_fchannel(channels))
 }
 
 /// Is the foreground using indexed palette color?
-// TODO: TEST
 #[inline]
 pub fn channels_fg_palindex_p(channels: ChannelPair) -> bool {
     channel_palindex_p(channels_fchannel(channels))
@@ -310,21 +293,18 @@ pub fn channels_fg_palindex_p(channels: ChannelPair) -> bool {
 /// Is the background using the "default background color"? The "default
 /// background color" must generally be used to take advantage of
 /// terminal-effected transparency.
-// TODO: TEST
 #[inline]
 pub fn channels_bg_default_p(channels: ChannelPair) -> bool {
     channel_default_p(channels_bchannel(channels))
 }
 
 /// Is the background using indexed palette color?
-// TODO: TEST
 #[inline]
 pub fn channels_bg_palindex_p(channels: ChannelPair) -> bool {
     channel_palindex_p(channels_bchannel(channels))
 }
 
 /// Mark the foreground channel as using its default color.
-// TODO: TEST
 #[inline]
 pub fn channels_set_fg_default(channels: &mut ChannelPair) -> ChannelPair {
     let mut channel = channels_fchannel(*channels);
@@ -334,7 +314,6 @@ pub fn channels_set_fg_default(channels: &mut ChannelPair) -> ChannelPair {
 }
 
 /// Mark the background channel as using its default color.
-// TODO: TEST
 #[inline]
 pub fn channels_set_bg_default(channels: &mut ChannelPair) -> ChannelPair {
     let mut channel = channels_bchannel(*channels);

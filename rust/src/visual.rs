@@ -42,3 +42,15 @@ pub fn ncvisual_default_blitter(utf8: bool, scale: Scale) -> Blitter {
     }
     BLIT_1x1
 }
+
+#[cfg(test)]
+mod test {
+    // use super::nc;
+    // use serial_test::serial;
+    /*
+    #[test]
+    #[serial]
+    fn () {
+    }
+    */
+}

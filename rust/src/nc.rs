@@ -58,7 +58,6 @@ use crate as nc;
 use nc::types::{Align, FullMode, Input, Plane, ALIGN_CENTER, ALIGN_LEFT};
 
 /// return the offset into 'availcols' at which 'cols' ought be output given the requirements of 'align'
-// TODO: TEST
 #[inline]
 pub fn notcurses_align(availcols: i32, align: Align, cols: i32) -> i32 {
     if align == ALIGN_LEFT {
@@ -75,7 +74,6 @@ pub fn notcurses_align(availcols: i32, align: Align, cols: i32) -> i32 {
 
 /// 'input' may be NULL if the caller is uninterested in event details.
 /// If no event is ready, returns 0.
-// TODO: TEST
 #[inline]
 pub fn notcurses_getc_nblock(nc: &mut FullMode, input: &mut Input) -> nc::char32_t {
     unsafe {
@@ -91,7 +89,6 @@ pub fn notcurses_getc_nblock(nc: &mut FullMode, input: &mut Input) -> nc::char32
 
 /// 'input' may be NULL if the caller is uninterested in event details.
 /// Blocks until an event is processed or a signal is received.
-// TODO: TEST
 #[inline]
 pub fn notcurses_getc_nblocking(nc: &mut FullMode, input: &mut Input) -> nc::char32_t {
     unsafe {
@@ -102,7 +99,6 @@ pub fn notcurses_getc_nblocking(nc: &mut FullMode, input: &mut Input) -> nc::cha
 }
 
 /// notcurses_stdplane(), plus free bonus dimensions written to non-NULL y/x!
-// TODO: TEST
 #[inline]
 pub fn notcurses_stddim_yx(nc: &mut FullMode, y: &mut i32, x: &mut i32) -> Plane {
     unsafe {
@@ -113,7 +109,6 @@ pub fn notcurses_stddim_yx(nc: &mut FullMode, y: &mut i32, x: &mut i32) -> Plane
 }
 
 /// Return our current idea of the terminal dimensions in rows and cols.
-// TODO: TEST
 #[inline]
 pub fn notcurses_term_dim_yx(nc: &FullMode, rows: &mut i32, cols: &mut i32) {
     unsafe {
