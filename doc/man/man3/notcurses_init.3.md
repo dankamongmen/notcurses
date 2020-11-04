@@ -106,7 +106,7 @@ zero. The following flags are defined:
 
 * **NCOPTION_INHIBIT_SETLOCALE**: Unless this flag is set, **notcurses_init**
     will call **setlocale(LC_ALL, NULL)**. If the result is either "**C**" or
-    "**POSIX**", it will print a diagnostic to **stder**, and then call
+    "**POSIX**", it will print a diagnostic to **stderr**, and then call
     **setlocale(LC_ALL, "").** This will attempt to set the locale based off
     the **LANG** environment variable. Your program should call **setlocale(3)**
     itself, usually as one of the first lines.

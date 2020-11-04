@@ -295,7 +295,7 @@ instance. Use `ncdirect_init()` to create a direct mode context:
 struct ncdirect; // minimal state for a terminal
 
 // Initialize a direct-mode Notcurses context on the connected terminal at 'fp'.
-// 'fp' must be a tty. You'll usually want stdout. Direct mode supportes a
+// 'fp' must be a tty. You'll usually want stdout. Direct mode supports a
 // limited subset of Notcurses routines which directly affect 'fp', and neither
 // supports nor requires notcurses_render(). This can be used to add color and
 // styling to text in the standard output paradigm. 'flags' is a bitmask over
