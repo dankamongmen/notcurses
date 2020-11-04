@@ -40,20 +40,31 @@
 // ncdirect_vline_interp
 
 use crate as nc;
-use nc::types::DirectMode;
+use nc::types::{DirectMode, DirectModeFlags};
 
 extern "C" {
     fn libc_stdout() -> *mut nc::_IO_FILE;
 }
 
-/// A simple ncdirect_init() wrapper
+/// A simple ncdirect_init() wrapper using the default options.
 ///
 /// Initialize a direct-mode notcurses context on the tty.
 ///
 /// Direct mode supports a limited subset of notcurses routines,
 /// and neither supports nor requires notcurses_render(). This can be
 /// used to add color and styling to text in the standard output paradigm.
+///
 /// Returns NULL on error, including any failure initializing terminfo.
-pub unsafe fn ncdirect_start() -> *mut DirectMode {
-    nc::ncdirect_init(core::ptr::null(), libc_stdout(), 0)
+pub unsafe fn ncdirect_new() -> *mut DirectMode {
+    ncdirect_with_flags(0)
+}
+
+/// A simple ncdirect_init() wrapper with optional flags.
+///
+/// `flags` is a bitmask over:
+/// - NCDIRECT_OPTION_INHIBIT_CBREAK
+/// - NCDIRECT_OPTION_INHIBIT_SETLOCALE
+///
+pub unsafe fn ncdirect_with_flags(flags: DirectModeFlags) -> *mut DirectMode {
+    nc::ncdirect_init(core::ptr::null(), libc_stdout(), flags)
 }

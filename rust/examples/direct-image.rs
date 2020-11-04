@@ -4,7 +4,7 @@ use libnotcurses_sys as nc;
 
 fn main() {
     unsafe {
-        let ncd = nc::ncdirect_start();
+        let ncd = nc::ncdirect_new();
 
         render_image(&mut *ncd, nc::ncblitter_e_NCBLIT_1x1);
         render_image(&mut *ncd, nc::ncblitter_e_NCBLIT_2x1);

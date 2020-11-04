@@ -195,6 +195,7 @@ pub type EGCBackstop = u8;
 ///
 pub type StyleMask = u16;
 
+/// Type alias of ncplane
 // Plane: fundamental drawing surface. unites a:
 //
 // - CellMatrix
@@ -219,53 +220,86 @@ pub type Palette = nc::palette256;
 ///
 pub type IntResult = i32;
 
-///
+
+/// Type alias of ncalign_e
 pub type Align = nc::ncalign_e;
 pub const ALIGN_LEFT: Align = nc::ncalign_e_NCALIGN_LEFT;
 pub const ALIGN_RIGHT: Align = nc::ncalign_e_NCALIGN_RIGHT;
 pub const ALIGN_CENTER: Align = nc::ncalign_e_NCALIGN_CENTER;
 
-///
+
+/// Type alias of ncblitter_e
 pub type Blitter = nc::ncblitter_e;
+
 /// space, compatible with ASCII
 pub const BLIT_1x1: Blitter = nc::ncblitter_e_NCBLIT_1x1;
+
 /// halves + 1x1 (space)
 /// ▄▀
 pub const BLIT_2x1: Blitter = nc::ncblitter_e_NCBLIT_2x1;
+
 /// quadrants + 2x1
 /// ▗▐ ▖▀▟▌▙
 pub const BLIT_2x2: Blitter = nc::ncblitter_e_NCBLIT_2x2;
+
 /// sextants (NOT 2x2)
 /// 🬀🬁🬂🬃🬄🬅🬆🬇🬈🬉🬊🬋🬌🬍🬎🬏🬐🬑🬒🬓🬔🬕🬖🬗🬘🬙🬚🬛🬜🬝🬞🬟🬠🬡🬢🬣🬤🬥🬦🬧🬨🬩🬪🬫🬬🬭🬮🬯🬰🬱🬲🬳🬴🬵🬶🬷🬸🬹🬺🬻
 pub const BLIT_3x2: Blitter = nc::ncblitter_e_NCBLIT_3x2;
+
 /// four vertical levels
 /// █▆▄▂
 pub const BLIT_4x1: Blitter = nc::ncblitter_e_NCBLIT_4x1;
+
 /// eight vertical levels
 /// █▇▆▅▄▃▂▁
 pub const BLIT_8x1: Blitter = nc::ncblitter_e_NCBLIT_8x1;
+
 /// 4 rows, 2 cols (braille)
 /// ⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿
 pub const BLIT_BRAILLE: Blitter = nc::ncblitter_e_NCBLIT_BRAILLE;
-/// automatic pick
+
+/// the blitter is automatically chosen
 pub const BLIT_DEFAULT: Blitter = nc::ncblitter_e_NCBLIT_DEFAULT;
+
 /// 6 rows, 1 col (RGB), spotty support among terminals
 pub const BLIT_SIXEL: Blitter = nc::ncblitter_e_NCBLIT_SIXEL;
 
-///
+
+/// Type alias of ncscale_e
 pub type Scale = nc::ncscale_e;
+
 /// Maintain original size
 pub const SCALE_NONE: Scale = nc::ncscale_e_NCSCALE_NONE;
+
 /// Maintain aspect ratio
 pub const SCALE_SCALE: Scale = nc::ncscale_e_NCSCALE_SCALE;
+
 /// Throw away aspect ratio
 pub const SCALE_STRETCH: Scale = nc::ncscale_e_NCSCALE_STRETCH;
 
-///
+
+/// Type alias of ncdirect (direct mode)
 pub type DirectMode = nc::ncdirect;
 
+
+/// Type alias of
+pub type DirectModeFlags = u64;
+
+/// Avoids placing the terminal into cbreak mode (disabling echo and line buffering)
+pub const DIRECTMODE_INHIBIT_CBREAK: DirectModeFlags = nc::NCDIRECT_OPTION_INHIBIT_CBREAK as DirectModeFlags;
+
+/// Avoids calling setlocale(LC_ALL, NULL).
 ///
+/// If the result is either "C" or "POSIX", it will print a diagnostic to stderr,
+/// and then call setlocale(LC_ALL, ""). This will attempt to set the locale based
+/// off the LANG environment variable. Your program should call setlocale(3) itself,
+/// usually as one of the first lines.
+pub const DIRECTMODE_INHIBIT_SETLOCALE: DirectModeFlags = nc::NCDIRECT_OPTION_INHIBIT_SETLOCALE as DirectModeFlags;
+
+
+/// Type alias of notcurses (full mode)
 pub type FullMode = nc::notcurses;
 
-///
+
+/// Type alias of ncinput
 pub type Input = nc::ncinput;
