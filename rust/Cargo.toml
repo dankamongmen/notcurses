@@ -19,19 +19,19 @@ categories = [
 keywords = ["tui", "cli", "terminal", "ncurses", "ffi"]
 
 [dependencies]
-libc = {version = "0.2.76", default-features = false}
+libc = {version = "0.2.80", default-features = false}
 cty = "0.2.1"
-cstr_core = "0.2.1"
-libc-print = "0.1.13"
+cstr_core = "0.2.2"
+libc-print = "0.1.14"
 
 [build-dependencies]
-bindgen = ">= 0.52.0"
+bindgen = ">= 0.55.1"
 cc = "1.0"
-pkg-config = "0.3.18"
+pkg-config = "0.3.19"
 
 [dev-dependencies]
-serial_test = ">= 0.4.0"
-serial_test_derive = ">= 0.4.0"
+serial_test = ">= 0.5.0"
+serial_test_derive = ">= 0.5.0"
 
 [lib]
 doctest = false
