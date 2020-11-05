@@ -2989,9 +2989,10 @@ typedef struct ncplot_options {
   uint64_t flags;      // bitfield over NCPLOT_OPTION_*
 } ncplot_options;
 
-// Use the provided plane 'n' for plotting according to the options 'opts'.
-// The plot will make free use of the entirety of the plane.
-// for domain autodiscovery, set miny == maxy == 0.
+// Use the provided plane 'n' for plotting according to the options 'opts'. The
+// plot will make free use of the entirety of the plane. For domain
+// autodiscovery, set miny == maxy == 0. ncuplot holds uint64_ts, while
+// ncdplot holds doubles.
 API struct ncuplot* ncuplot_create(struct ncplane* n, const ncplot_options* opts,
                                    uint64_t miny, uint64_t maxy)
   __attribute__ ((nonnull (1)));
