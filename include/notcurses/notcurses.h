@@ -905,19 +905,19 @@ typedef struct ncinput {
 
 // compare two ncinput structs for data equality. we can't just use memcmp()
 // due to potential padding in the struct (especially wrt bools) and seqnum.
-static inline int
+static inline bool
 ncinput_equal_p(const struct ncinput* n1, const struct ncinput* n2){
   if(n1->id != n2->id){
-    return 0;
+    return false;
   }
   if(n1->y != n2->y || n1->x != n2->x){
-    return 0;
+    return false;
   }
   if(n1->alt != n2->alt || n1->shift != n2->shift || n1->ctrl != n2->ctrl){
-    return 0;
+    return false;
   }
   // do not check seqnum!
-  return 1;
+  return true;
 }
 
 // See ppoll(2) for more detail. Provide a NULL 'ts' to block at length, a 'ts'
