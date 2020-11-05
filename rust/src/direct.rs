@@ -26,7 +26,7 @@
 // ncdirect_flush
 // ncdirect_getc
 // ncdirect_hline_interp
-// ncdirect_init                // wrapped at start()
+// ncdirect_init                // wrapped at _new() & _with_flags()
 // ncdirect_inputready_fd
 // ncdirect_palette_size
 // ncdirect_printf_aligned
@@ -40,7 +40,7 @@
 // ncdirect_vline_interp
 
 use crate as nc;
-use nc::types::{DirectMode, DirectModeFlags};
+use nc::types::{NcDirect, NcDirectFlags};
 
 extern "C" {
     fn libc_stdout() -> *mut nc::_IO_FILE;
@@ -55,7 +55,7 @@ extern "C" {
 /// used to add color and styling to text in the standard output paradigm.
 ///
 /// Returns NULL on error, including any failure initializing terminfo.
-pub unsafe fn ncdirect_new() -> *mut DirectMode {
+pub unsafe fn ncdirect_new() -> *mut NcDirect {
     ncdirect_with_flags(0)
 }
 
@@ -65,6 +65,6 @@ pub unsafe fn ncdirect_new() -> *mut DirectMode {
 /// - NCDIRECT_OPTION_INHIBIT_CBREAK
 /// - NCDIRECT_OPTION_INHIBIT_SETLOCALE
 ///
-pub unsafe fn ncdirect_with_flags(flags: DirectModeFlags) -> *mut DirectMode {
+pub unsafe fn ncdirect_with_flags(flags: NcDirectFlags) -> *mut NcDirect {
     nc::ncdirect_init(core::ptr::null(), libc_stdout(), flags)
 }

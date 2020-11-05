@@ -26,21 +26,21 @@
 // ncvisual_default_blitter
 
 use crate as nc;
-use nc::types::{BLIT_1x1, BLIT_2x1, BLIT_2x2, Blitter, Scale, SCALE_STRETCH};
+use nc::types::{NCBLIT_1x1, NCBLIT_2x1, NCBLIT_2x2, NcBlitter, Scale, NCSCALE_STRETCH};
 
 /// Returns the best default blitter available
 ///
 /// NCBLIT_3x2 is better image quality, especially for large images, but
 /// it's not the general default because it doesn't preserve aspect ratio.
 /// NCSCALE_STRETCH throws away aspect ratio, and can safely use NCBLIT_3x2.
-pub fn ncvisual_default_blitter(utf8: bool, scale: Scale) -> Blitter {
+pub fn ncvisual_default_blitter(utf8: bool, scale: Scale) -> NcBlitter {
     if utf8 {
-        if scale == SCALE_STRETCH {
-            return BLIT_2x2;
+        if scale == NCSCALE_STRETCH {
+            return NCBLIT_2x2;
         }
-        return BLIT_2x1;
+        return NCBLIT_2x1;
     }
-    BLIT_1x1
+    NCBLIT_1x1
 }
 
 #[cfg(test)]

@@ -58,7 +58,7 @@
 
 use crate as nc;
 use nc::types::{
-    AlphaBits, Cell, CellGcluster, Channel, ChannelPair, Color, IntResult, PaletteIndex, Plane,
+    AlphaBits, Cell, CellGcluster, Channel, ChannelPair, Color, IntResult, NcPlane, PaletteIndex,
     StyleMask, EGC,
 };
 
@@ -99,7 +99,7 @@ pub unsafe fn cell_prime(
 ///
 #[allow(unused_unsafe)]
 pub unsafe fn cells_load_box(
-    plane: &mut Plane,
+    plane: &mut NcPlane,
     style: StyleMask,
     channels: ChannelPair,
     ul: &mut Cell,
@@ -242,7 +242,7 @@ pub fn cell_wide_left_p(cell: &Cell) -> bool {
 /// copy the UTF8-encoded EGC out of the cell, whether simple or complex. the
 /// result is not tied to the ncplane, and persists across erases / destruction.
 #[inline]
-pub fn cell_strdup(plane: &Plane, cell: &Cell) -> EGC {
+pub fn cell_strdup(plane: &NcPlane, cell: &Cell) -> EGC {
     core::char::from_u32(
         unsafe { libc::strdup(nc::cell_extended_gcluster(plane, cell)) } as i32 as u32,
     )
@@ -257,7 +257,7 @@ pub fn cell_strdup(plane: &Plane, cell: &Cell) -> EGC {
 /// Extract the three elements of a cell.
 #[inline]
 pub fn cell_extract(
-    plane: &Plane,
+    plane: &NcPlane,
     cell: &Cell,
     stylemask: &mut StyleMask,
     channels: &mut ChannelPair,
@@ -276,7 +276,7 @@ pub fn cell_extract(
 /// be the same. Only the expanded EGC must be equal. The EGC must be bit-equal;
 /// it would probably be better to test whether they're Unicode-equal FIXME.
 #[inline]
-pub fn cellcmp(plane1: &Plane, cell1: &Cell, plane2: &Plane, cell2: &Cell) -> bool {
+pub fn cellcmp(plane1: &NcPlane, cell1: &Cell, plane2: &NcPlane, cell2: &Cell) -> bool {
     if cell1.stylemask != cell2.stylemask {
         return true;
     }
@@ -294,7 +294,7 @@ pub fn cellcmp(plane1: &Plane, cell1: &Cell, plane2: &Plane, cell2: &Cell) -> bo
 ///
 // NOTE: remove casting for CELL_WIEDASIAN_MASK when fixed: https://github.com/rust-lang/rust-bindgen/issues/1875
 #[inline]
-pub fn cell_load_simple(plane: &mut Plane, cell: &mut Cell, ch: EGC) -> i32 {
+pub fn cell_load_simple(plane: &mut NcPlane, cell: &mut Cell, ch: EGC) -> i32 {
     unsafe {
         nc::cell_release(plane, cell);
     }

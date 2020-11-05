@@ -21,19 +21,20 @@ mod direct;
 mod input;
 mod key;
 mod keycodes;
-mod nc;
+mod notcurses;
 mod palette;
 mod pixel;
 mod plane;
-mod types;
+pub mod types; // re-exportable
 mod visual;
+
 pub use cells::*;
 pub use channel::*;
 pub use direct::*;
 pub use input::*;
 pub use key::*;
 pub use keycodes::*;
-pub use nc::*;
+pub use notcurses::*;
 pub use palette::*;
 pub use pixel::*;
 pub use plane::*;

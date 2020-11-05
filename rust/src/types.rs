@@ -1,5 +1,10 @@
 //! The notcurses types are defined and/or explained here
 //!
+//! Existing types are wrapped to make them follow the Rust API Guidelines
+//! and to enforce type check whenever possible
+//!
+//! See: [Rust API Guidelines](https://rust-lang.github.io/api-guidelines/naming.html)
+
 use crate as nc;
 
 /// RGB: 24 bits broken into 3x 8bpp channels.
@@ -202,7 +207,7 @@ pub type StyleMask = u16;
 // - EGCPool
 //
 // type in C: ncplane (struct)
-pub type Plane = nc::ncplane;
+pub type NcPlane = nc::ncplane;
 
 // EGCPool: contiguous region chopped up into NUL-terminated UTF8 EGCs, one per plane
 //
@@ -211,82 +216,80 @@ pub type Plane = nc::ncplane;
 // CellMatrix: rectilinear array of Cells
 // one -- fb per plane, and transients show up ?
 
+/// Typle alias of palette256
+pub type Palette = nc::palette256;
+
 /// 8-bit value used for indexing into a palette
 ///
 pub type PaletteIndex = u8;
-pub type Palette = nc::palette256;
 
 /// 32-bit signed value used to return errors, when value < 0, (usually -1)
 ///
 pub type IntResult = i32;
 
-
 /// Type alias of ncalign_e
-pub type Align = nc::ncalign_e;
-pub const ALIGN_LEFT: Align = nc::ncalign_e_NCALIGN_LEFT;
-pub const ALIGN_RIGHT: Align = nc::ncalign_e_NCALIGN_RIGHT;
-pub const ALIGN_CENTER: Align = nc::ncalign_e_NCALIGN_CENTER;
-
+pub type NcAlign = nc::ncalign_e;
+pub const NCALIGN_LEFT: NcAlign = nc::ncalign_e_NCALIGN_LEFT;
+pub const NCALIGN_RIGHT: NcAlign = nc::ncalign_e_NCALIGN_RIGHT;
+pub const NCALIGN_CENTER: NcAlign = nc::ncalign_e_NCALIGN_CENTER;
 
 /// Type alias of ncblitter_e
-pub type Blitter = nc::ncblitter_e;
+pub type NcBlitter = nc::ncblitter_e;
 
 /// space, compatible with ASCII
-pub const BLIT_1x1: Blitter = nc::ncblitter_e_NCBLIT_1x1;
+pub const NCBLIT_1x1: NcBlitter = nc::ncblitter_e_NCBLIT_1x1;
 
 /// halves + 1x1 (space)
 /// ▄▀
-pub const BLIT_2x1: Blitter = nc::ncblitter_e_NCBLIT_2x1;
+pub const NCBLIT_2x1: NcBlitter = nc::ncblitter_e_NCBLIT_2x1;
 
 /// quadrants + 2x1
 /// ▗▐ ▖▀▟▌▙
-pub const BLIT_2x2: Blitter = nc::ncblitter_e_NCBLIT_2x2;
+pub const NCBLIT_2x2: NcBlitter = nc::ncblitter_e_NCBLIT_2x2;
 
 /// sextants (NOT 2x2)
 /// 🬀🬁🬂🬃🬄🬅🬆🬇🬈🬉🬊🬋🬌🬍🬎🬏🬐🬑🬒🬓🬔🬕🬖🬗🬘🬙🬚🬛🬜🬝🬞🬟🬠🬡🬢🬣🬤🬥🬦🬧🬨🬩🬪🬫🬬🬭🬮🬯🬰🬱🬲🬳🬴🬵🬶🬷🬸🬹🬺🬻
-pub const BLIT_3x2: Blitter = nc::ncblitter_e_NCBLIT_3x2;
+pub const NCBLIT_3x2: NcBlitter = nc::ncblitter_e_NCBLIT_3x2;
 
 /// four vertical levels
 /// █▆▄▂
-pub const BLIT_4x1: Blitter = nc::ncblitter_e_NCBLIT_4x1;
+pub const NCBLIT_4x1: NcBlitter = nc::ncblitter_e_NCBLIT_4x1;
 
 /// eight vertical levels
 /// █▇▆▅▄▃▂▁
-pub const BLIT_8x1: Blitter = nc::ncblitter_e_NCBLIT_8x1;
+pub const NCBLIT_8x1: NcBlitter = nc::ncblitter_e_NCBLIT_8x1;
 
 /// 4 rows, 2 cols (braille)
 /// ⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿
-pub const BLIT_BRAILLE: Blitter = nc::ncblitter_e_NCBLIT_BRAILLE;
+pub const NCBLIT_BRAILLE: NcBlitter = nc::ncblitter_e_NCBLIT_BRAILLE;
 
 /// the blitter is automatically chosen
-pub const BLIT_DEFAULT: Blitter = nc::ncblitter_e_NCBLIT_DEFAULT;
+pub const NCBLIT_DEFAULT: NcBlitter = nc::ncblitter_e_NCBLIT_DEFAULT;
 
 /// 6 rows, 1 col (RGB), spotty support among terminals
-pub const BLIT_SIXEL: Blitter = nc::ncblitter_e_NCBLIT_SIXEL;
-
+pub const NCBLIT_SIXEL: NcBlitter = nc::ncblitter_e_NCBLIT_SIXEL;
 
 /// Type alias of ncscale_e
 pub type Scale = nc::ncscale_e;
 
 /// Maintain original size
-pub const SCALE_NONE: Scale = nc::ncscale_e_NCSCALE_NONE;
+pub const NCSCALE_NONE: Scale = nc::ncscale_e_NCSCALE_NONE;
 
 /// Maintain aspect ratio
-pub const SCALE_SCALE: Scale = nc::ncscale_e_NCSCALE_SCALE;
+pub const NCSCALE_SCALE: Scale = nc::ncscale_e_NCSCALE_SCALE;
 
 /// Throw away aspect ratio
-pub const SCALE_STRETCH: Scale = nc::ncscale_e_NCSCALE_STRETCH;
-
+pub const NCSCALE_STRETCH: Scale = nc::ncscale_e_NCSCALE_STRETCH;
 
 /// Type alias of ncdirect (direct mode)
-pub type DirectMode = nc::ncdirect;
-
+pub type NcDirect = nc::ncdirect;
 
 /// Type alias of
-pub type DirectModeFlags = u64;
+pub type NcDirectFlags = u64;
 
 /// Avoids placing the terminal into cbreak mode (disabling echo and line buffering)
-pub const DIRECTMODE_INHIBIT_CBREAK: DirectModeFlags = nc::NCDIRECT_OPTION_INHIBIT_CBREAK as DirectModeFlags;
+pub const NCDIRECT_INHIBIT_CBREAK: NcDirectFlags =
+    nc::NCDIRECT_OPTION_INHIBIT_CBREAK as NcDirectFlags;
 
 /// Avoids calling setlocale(LC_ALL, NULL).
 ///
@@ -294,12 +297,11 @@ pub const DIRECTMODE_INHIBIT_CBREAK: DirectModeFlags = nc::NCDIRECT_OPTION_INHIB
 /// and then call setlocale(LC_ALL, ""). This will attempt to set the locale based
 /// off the LANG environment variable. Your program should call setlocale(3) itself,
 /// usually as one of the first lines.
-pub const DIRECTMODE_INHIBIT_SETLOCALE: DirectModeFlags = nc::NCDIRECT_OPTION_INHIBIT_SETLOCALE as DirectModeFlags;
-
+pub const NCDIRECT_INHIBIT_SETLOCALE: NcDirectFlags =
+    nc::NCDIRECT_OPTION_INHIBIT_SETLOCALE as NcDirectFlags;
 
 /// Type alias of notcurses (full mode)
-pub type FullMode = nc::notcurses;
-
+pub type Notcurses = nc::bindings::notcurses;
 
 /// Type alias of ncinput
 pub type Input = nc::ncinput;
