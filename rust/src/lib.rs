@@ -5,11 +5,7 @@
 #![allow(clippy::too_many_arguments)]
 
 // Include the bindgen bindings
-// see https://github.com/rust-lang/rust-bindgen/issues/1470
-#[allow(clippy::all)]
-mod bindings {
-    include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
-}
+mod bindings;
 pub use bindings::*;
 
 #[macro_use]
