@@ -270,16 +270,16 @@ pub const NCBLIT_DEFAULT: NcBlitter = nc::ncblitter_e_NCBLIT_DEFAULT;
 pub const NCBLIT_SIXEL: NcBlitter = nc::ncblitter_e_NCBLIT_SIXEL;
 
 /// Type alias of ncscale_e
-pub type Scale = nc::ncscale_e;
+pub type NcScale = nc::ncscale_e;
 
 /// Maintain original size
-pub const NCSCALE_NONE: Scale = nc::ncscale_e_NCSCALE_NONE;
+pub const NCSCALE_NONE: NcScale = nc::ncscale_e_NCSCALE_NONE;
 
 /// Maintain aspect ratio
-pub const NCSCALE_SCALE: Scale = nc::ncscale_e_NCSCALE_SCALE;
+pub const NCSCALE_SCALE: NcScale = nc::ncscale_e_NCSCALE_SCALE;
 
 /// Throw away aspect ratio
-pub const NCSCALE_STRETCH: Scale = nc::ncscale_e_NCSCALE_STRETCH;
+pub const NCSCALE_STRETCH: NcScale = nc::ncscale_e_NCSCALE_STRETCH;
 
 /// Type alias of ncdirect (direct mode)
 pub type NcDirect = nc::ncdirect;
@@ -304,4 +304,4 @@ pub const NCDIRECT_INHIBIT_SETLOCALE: NcDirectFlags =
 pub type Notcurses = nc::bindings::notcurses;
 
 /// Type alias of ncinput
-pub type Input = nc::ncinput;
+pub type NcInput = nc::ncinput;

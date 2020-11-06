@@ -56,6 +56,8 @@
 //+ cell_wide_left_p
 //+ cell_wide_right_p
 
+use libc::strcmp;
+
 use crate as nc;
 use nc::types::{
     AlphaBits, Cell, CellGcluster, Channel, ChannelPair, Color, IntResult, NcPlane, PaletteIndex,
@@ -284,7 +286,7 @@ pub fn cellcmp(plane1: &NcPlane, cell1: &Cell, plane2: &NcPlane, cell2: &Cell) -
         return true;
     }
     unsafe {
-        nc::strcmp(
+        strcmp(
             nc::cell_extended_gcluster(plane1, cell1),
             nc::cell_extended_gcluster(plane2, cell2),
         ) != 0

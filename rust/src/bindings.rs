@@ -1,6 +1,8 @@
+//! bindgen generated bindings
+//!
 //
 // WARNING: DO NOT EXECUTE RUSTFMT ON THIS FILE.
-// Custom formatting is important for maintenance.
+// Custom formatting permits easier maintenance.
 //
 
 #![allow(dead_code)]
@@ -11,14 +13,13 @@ mod bindings {
     include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 }
 
-// Miscellaneous type definitions and constants -------------------------------------------
+// Miscellaneous ---------------------------------------------------------------
 pub use bindings::{
+    // structs
     __va_list_tag,
     _IO_FILE,
-    char32_t, // TODO: remove & use u32
-    free,
-    size_t,
-    strcmp,
+
+    // functions
     timespec,
 };
 
@@ -607,5 +608,3 @@ pub use bindings::{
     sigprocmask,
     sigsuspend,
 };
-
-

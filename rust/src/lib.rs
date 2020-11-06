@@ -4,9 +4,11 @@
 #![no_std]
 #![allow(clippy::too_many_arguments)]
 
-// Include the bindgen bindings
-mod bindings;
+pub mod bindings;
+pub mod types;
+
 pub use bindings::*;
+pub use types::*;
 
 #[macro_use]
 mod macros;
@@ -21,7 +23,6 @@ mod notcurses;
 mod palette;
 mod pixel;
 mod plane;
-pub mod types; // re-exportable
 mod visual;
 
 pub use cells::*;
@@ -34,7 +35,6 @@ pub use notcurses::*;
 pub use palette::*;
 pub use pixel::*;
 pub use plane::*;
-pub use types::*;
 pub use visual::*;
 
 // TODO: move tests out

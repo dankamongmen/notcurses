@@ -55,7 +55,9 @@
 use core::ptr::null;
 
 use crate as nc;
-use nc::types::{Input, NcAlign, NcPlane, Notcurses, NCALIGN_CENTER, NCALIGN_LEFT};
+use nc::types::{NcAlign, NcInput, NcPlane, Notcurses, NCALIGN_CENTER, NCALIGN_LEFT};
+
+use nc::timespec; // NOTE: can't use libc::timespec with notcurses_getc(()
 
 /// return the offset into 'availcols' at which 'cols' ought be output given the requirements of 'align'
 #[inline]
@@ -75,26 +77,26 @@ pub fn notcurses_align(availcols: i32, align: NcAlign, cols: i32) -> i32 {
 /// 'input' may be NULL if the caller is uninterested in event details.
 /// If no event is ready, returns 0.
 #[inline]
-pub fn notcurses_getc_nblock(nc: &mut Notcurses, input: &mut Input) -> nc::char32_t {
+pub fn notcurses_getc_nblock(nc: &mut Notcurses, input: &mut NcInput) -> char {
     unsafe {
         let mut sigmask = nc::sigset_t { __val: [0; 16] };
         nc::sigfillset(&mut sigmask);
-        let ts = nc::timespec {
+        let ts = timespec {
             tv_sec: 0,
             tv_nsec: 0,
         };
-        nc::notcurses_getc(nc, &ts, &mut sigmask, input)
+        core::char::from_u32_unchecked(nc::notcurses_getc(nc, &ts, &mut sigmask, input))
     }
 }
 
 /// 'input' may be NULL if the caller is uninterested in event details.
 /// Blocks until an event is processed or a signal is received.
 #[inline]
-pub fn notcurses_getc_nblocking(nc: &mut Notcurses, input: &mut Input) -> nc::char32_t {
+pub fn notcurses_getc_nblocking(nc: &mut Notcurses, input: &mut NcInput) -> char {
     unsafe {
         let mut sigmask = nc::sigset_t { __val: [0; 16] };
         nc::sigemptyset(&mut sigmask);
-        nc::notcurses_getc(nc, null(), &mut sigmask, input)
+        core::char::from_u32_unchecked(nc::notcurses_getc(nc, null(), &mut sigmask, input))
     }
 }
 
@@ -117,7 +119,7 @@ pub fn notcurses_term_dim_yx(nc: &Notcurses, rows: &mut i32, cols: &mut i32) {
 }
 
 // TODO
-// pub unsafe fn notcurses_start() -> *mut Notcurses {
+// pub unsafe fn notcurses_new() -> *mut Notcurses {
 //     nc::notcurses_init(core::ptr::null(), libc_stdout())
 // }
 

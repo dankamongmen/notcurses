@@ -153,6 +153,7 @@ use core::ffi::c_void;
 use core::ptr::null_mut;
 
 use cstr_core::CString;
+use libc::free;
 
 use crate as nc;
 use nc::types::{
@@ -181,7 +182,7 @@ pub fn nplane_at_cursor_cell(plane: &mut NcPlane, cell: &mut Cell) -> IntResult 
     let result: IntResult = unsafe { nc::cell_load(plane, cell, egc) };
     if result < 0 {
         unsafe {
-            nc::free(&mut egc as *mut _ as *mut c_void);
+            free(&mut egc as *mut _ as *mut c_void);
         }
     }
     result
@@ -200,7 +201,7 @@ pub fn ncplane_at_yx_cell(plane: &mut NcPlane, y: i32, x: i32, cell: &mut Cell) 
     let result: IntResult = unsafe { nc::cell_load(plane, cell, egc) };
     cell.channels = channels;
     unsafe {
-        nc::free(&mut egc as *mut _ as *mut c_void);
+        free(&mut egc as *mut _ as *mut c_void);
     }
     result
 }
@@ -480,7 +481,7 @@ pub fn ncplane_putstr(plane: &mut NcPlane, gclustarr: &[u8]) -> IntResult {
 
 ///
 #[inline]
-pub fn ncplane_putnstr(plane: &mut NcPlane, size: nc::size_t, gclustarr: &[u8]) -> IntResult {
+pub fn ncplane_putnstr(plane: &mut NcPlane, size: u64, gclustarr: &[u8]) -> IntResult {
     unsafe {
         nc::ncplane_putnstr_yx(
             plane,

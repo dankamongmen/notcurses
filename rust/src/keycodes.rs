@@ -4,7 +4,7 @@
 //  - https://github.com/rust-lang/rust-bindgen/issues/316
 //  - https://github.com/jethrogb/rust-cexpr/pull/15
 
-pub const fn suppuabize(w: u32) -> u32 {
+const fn suppuabize(w: u32) -> u32 {
     w + 0x100000
 }
 
