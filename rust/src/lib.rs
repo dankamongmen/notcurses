@@ -7,7 +7,9 @@
 pub mod bindings;
 pub mod types;
 
+#[doc(inline)]
 pub use bindings::*;
+#[doc(inline)]
 pub use types::*;
 
 #[macro_use]

@@ -1,20 +1,21 @@
-//! bindgen generated bindings
+//! Curated re-exports of the bindgen generated bindings,
+//!
+//! The full list of bindings is under the bindgen submodule
 //!
 //
 // WARNING: DO NOT EXECUTE RUSTFMT ON THIS FILE.
 // Custom formatting permits easier maintenance.
 //
 
-#![allow(dead_code)]
-
 // [clippy & bindgen](https://github.com/rust-lang/rust-bindgen/issues/1470)
 #[allow(clippy::all)]
-pub mod bindings {
+pub mod bindgen {
     include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 }
 
 // Miscellaneous ---------------------------------------------------------------
-pub use bindings::{
+#[doc(inline)]
+pub use bindgen::{
     // structs
     _IO_FILE,
     __va_list_tag,
@@ -24,7 +25,8 @@ pub use bindings::{
 };
 
 // align -----------------------------------------------------------------------
-pub use bindings::{
+#[doc(inline)]
+pub use bindgen::{
     // type definitions
     ncalign_e,
 
@@ -36,7 +38,8 @@ pub use bindings::{
 };
 
 // ncblit  ---------------------------------------------------------------------
-pub use bindings::{
+#[doc(inline)]
+pub use bindgen::{
     // type definitions
     ncblitter_e,
 
@@ -53,7 +56,8 @@ pub use bindings::{
 };
 
 // cell ------------------------------------------------------------------------
-pub use bindings::{
+#[doc(inline)]
+pub use bindgen::{
     // structs
     cell,
 
@@ -83,13 +87,15 @@ pub use bindings::{
 };
 
 // channel ---------------------------------------------------------------------
-pub use bindings::{
+#[doc(inline)]
+pub use bindgen::{
     // constants
     CHANNEL_ALPHA_MASK
 };
 
 // ncbox -----------------------------------------------------------------------
-pub use bindings::{
+#[doc(inline)]
+pub use bindgen::{
     // constants
     NCBOXCORNER_MASK,
     NCBOXCORNER_SHIFT,
@@ -104,7 +110,8 @@ pub use bindings::{
 };
 
 // ncdirect --------------------------------------------------------------------
-pub use bindings::{
+#[doc(inline)]
+pub use bindgen::{
     // structs
     ncdirect,
 
@@ -155,7 +162,8 @@ pub use bindings::{
 
 
 // ncfadectx -------------------------------------------------------------------
-pub use bindings::{
+#[doc(inline)]
+pub use bindgen::{
     // structs
     ncfadectx,
 
@@ -166,13 +174,15 @@ pub use bindings::{
 };
 
 // ncinput ---------------------------------------------------------------------
-pub use bindings::{
+#[doc(inline)]
+pub use bindgen::{
     // structs
     ncinput,
 };
 
 // ncloglevel ------------------------------------------------------------------
-pub use bindings::{
+#[doc(inline)]
+pub use bindgen::{
     // type definitions
     ncloglevel_e,
 
@@ -189,7 +199,8 @@ pub use bindings::{
 };
 
 // ncfdplane -------------------------------------------------------------------
-pub use bindings::{
+#[doc(inline)]
+pub use bindgen::{
     // structs
     ncfdplane,
     ncfdplane_options,
@@ -201,7 +212,8 @@ pub use bindings::{
 };
 
 // ncmenu ----------------------------------------------------------------------
-pub use bindings::{
+#[doc(inline)]
+pub use bindgen::{
     ncmenu,
     ncmenu_item,
     ncmenu_options,
@@ -228,13 +240,15 @@ pub use bindings::{
 };
 
 // ncmetric
-pub use bindings::{
+#[doc(inline)]
+pub use bindgen::{
     // structs
     ncmetric
 };
 
 // ncmultiselector
-pub use bindings::{
+#[doc(inline)]
+pub use bindgen::{
     // structs
     ncmultiselector,
     ncmselector_item,
@@ -249,7 +263,8 @@ pub use bindings::{
 };
 
 // ncplane
-pub use bindings::{
+#[doc(inline)]
+pub use bindgen::{
     ncplane,
 
     // functions
@@ -356,7 +371,8 @@ pub use bindings::{
 };
 
 // ncplot
-pub use bindings::{
+#[doc(inline)]
+pub use bindgen::{
     // structs
     ncdplot, // f64
     ncuplot, // u64
@@ -386,7 +402,8 @@ pub use bindings::{
 };
 
 // ncreader
-pub use bindings::{
+#[doc(inline)]
+pub use bindgen::{
     ncreader,
     ncreader_options,
 
@@ -411,7 +428,8 @@ pub use bindings::{
 };
 
 // ncreel
-pub use bindings::{
+#[doc(inline)]
+pub use bindgen::{
     ncreel,
     ncreel_options,
 
@@ -434,7 +452,8 @@ pub use bindings::{
 };
 
 // ncscale
-pub use bindings::{
+#[doc(inline)]
+pub use bindgen::{
     // type definitions
     ncscale_e,
 
@@ -445,7 +464,8 @@ pub use bindings::{
 };
 
 // ncselector ------------------------------------------------------------------
-pub use bindings::{
+#[doc(inline)]
+pub use bindgen::{
     // structs
     ncselector,
     ncselector_item,
@@ -464,13 +484,15 @@ pub use bindings::{
 };
 
 // ncstats ---------------------------------------------------------------------
-pub use bindings::{
+#[doc(inline)]
+pub use bindgen::{
     // structs
     ncstats,
 };
 
 // ncstyle ---------------------------------------------------------------------
-pub use bindings::{
+#[doc(inline)]
+pub use bindgen::{
     // constants
     NCSTYLE_BLINK,
     NCSTYLE_BOLD,
@@ -486,7 +508,8 @@ pub use bindings::{
 };
 
 // nctablet --------------------------------------------------------------------
-pub use bindings::{
+#[doc(inline)]
+pub use bindgen::{
     // structs
     nctablet,
 
@@ -497,7 +520,8 @@ pub use bindings::{
 };
 
 // ncvisual --------------------------------------------------------------------
-pub use bindings::{
+#[doc(inline)]
+pub use bindgen::{
     // structs
     ncvisual,
     ncvisual_options,
@@ -523,7 +547,8 @@ pub use bindings::{
 };
 
 // notcurses -------------------------------------------------------------------
-pub use bindings::{
+#[doc(inline)]
+pub use bindgen::{
     // structs
     notcurses,
     notcurses_options,
@@ -580,7 +605,8 @@ pub use bindings::{
 };
 
 // palette ---------------------------------------------------------------------
-pub use bindings::{
+#[doc(inline)]
+pub use bindgen::{
     // structs
     palette256,
 
@@ -594,7 +620,8 @@ pub use bindings::{
 };
 
 // sig -------------------------------------------------------------------------
-pub use bindings::{
+#[doc(inline)]
+pub use bindgen::{
     // type definitions
     sigset_t,
 
