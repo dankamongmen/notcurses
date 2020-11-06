@@ -10,69 +10,69 @@ ncdirect_init - minimal notcurses instances for styling text
 
 **#include <notcurses/direct.h>**
 
-**struct ncdirect* ncdirect_init(const char* termtype, FILE* fp, uint64_t flags);**
+**struct ncdirect* ncdirect_init(const char* ***termtype***, FILE* ***fp***, uint64_t ***flags***);**
 
-**unsigned ncdirect_palette_size(const struct ncdirect* nc);**
+**unsigned ncdirect_palette_size(const struct ncdirect* ***nc***);**
 
-**int ncdirect_bg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b);**
+**int ncdirect_bg_rgb8(struct ncdirect* ***nc***, unsigned ***r***, unsigned ***g***, unsigned ***b***);**
 
-**int ncdirect_fg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b);**
+**int ncdirect_fg_rgb8(struct ncdirect* ***nc***, unsigned ***r***, unsigned ***g***, unsigned ***b***);**
 
-**int ncdirect_fg_rgb(struct ncdirect* nc, unsigned rgb);**
+**int ncdirect_fg_rgb(struct ncdirect* ***nc***, unsigned ***rgb***);**
 
-**int ncdirect_bg_rgb(struct ncdirect* nc, unsigned rgb);**
+**int ncdirect_bg_rgb(struct ncdirect* ***nc***, unsigned ***rgb***);**
 
-**int ncdirect_fg_default(struct ncdirect* nc);**
+**int ncdirect_fg_default(struct ncdirect* ***nc***);**
 
-**int ncdirect_bg_default(struct ncdirect* nc);**
+**int ncdirect_bg_default(struct ncdirect* ***nc***);**
 
-**int ncdirect_dim_x(const struct ncdirect* nc);**
+**int ncdirect_dim_x(const struct ncdirect* ***nc***);**
 
-**int ncdirect_dim_y(const struct ncdirect* nc);**
+**int ncdirect_dim_y(const struct ncdirect* ***nc***);**
 
-**int ncdirect_styles_set(struct ncdirect* n, unsigned stylebits);**
+**int ncdirect_styles_set(struct ncdirect* ***n***, unsigned ***stylebits***);**
 
-**int ncdirect_styles_on(struct ncdirect* n, unsigned stylebits);**
+**int ncdirect_styles_on(struct ncdirect* ***n***, unsigned ***stylebits***);**
 
-**int ncdirect_styles_off(struct ncdirect* n, unsigned stylebits);**
+**int ncdirect_styles_off(struct ncdirect* ***n***, unsigned ***stylebits***);**
 
-**int ncdirect_clear(struct ncdirect* nc)**
+**int ncdirect_clear(struct ncdirect* ***nc***)**
 
-**int ncdirect_stop(struct ncdirect* nc);**
+**int ncdirect_stop(struct ncdirect* ***nc***);**
 
-**int ncdirect_cursor_move_yx(struct ncdirect* n, int y, int x);**
+**int ncdirect_cursor_move_yx(struct ncdirect* ***n***, int ***y***, int ***x***);**
 
-**int ncdirect_cursor_enable(struct ncdirect* nc);**
+**int ncdirect_cursor_enable(struct ncdirect* ***nc***);**
 
-**int ncdirect_cursor_disable(struct ncdirect* nc);**
+**int ncdirect_cursor_disable(struct ncdirect* ***nc***);**
 
-**int ncdirect_cursor_up(struct ncdirect* nc, int num);**
+**int ncdirect_cursor_up(struct ncdirect* ***nc***, int ***num***);**
 
-**int ncdirect_cursor_left(struct ncdirect* nc, int num);**
+**int ncdirect_cursor_left(struct ncdirect* ***nc***, int ***num***);**
 
-**int ncdirect_cursor_right(struct ncdirect* nc, int num);**
+**int ncdirect_cursor_right(struct ncdirect* ***nc***, int ***num***);**
 
-**int ncdirect_cursor_down(struct ncdirect* nc, int num);**
+**int ncdirect_cursor_down(struct ncdirect* ***nc***, int ***num***);**
 
-**int ncdirect_putstr(struct ncdirect* nc, uint64_t channels, const char* utf8);**
+**int ncdirect_putstr(struct ncdirect* ***nc***, uint64_t ***channels***, const char* ***utf8***);**
 
-**int ncdirect_printf_aligned(struct ncdirect* n, int y, ncalign_e align, const char* fmt, ...);**
+**int ncdirect_printf_aligned(struct ncdirect* ***n***, int ***y***, ncalign_e ***align***, const char* ***fmt***, ***...***);**
 
-**bool ncdirect_canopen_images(const struct ncdirect* n);**
+**bool ncdirect_canopen_images(const struct ncdirect* ***n***);**
 
-**bool ncdirect_canutf8(const struct ncdirect* n);**
+**bool ncdirect_canutf8(const struct ncdirect* ***n***);**
 
-**int ncdirect_hline_interp(struct ncdirect* n, const char* egc, int len, uint64_t h1, uint64_t h2);**
+**int ncdirect_hline_interp(struct ncdirect* ***n***, const char* ***egc***, int ***len***, uint64_t ***h1***, uint64_t ***h2***);**
 
-**int ncdirect_vline_interp(struct ncdirect* n, const char* egc, int len, uint64_t h1, uint64_t h2);**
+**int ncdirect_vline_interp(struct ncdirect* ***n***, const char* ***egc***, int ***len***, uint64_t ***h1***, uint64_t ***h2***);**
 
-**int ncdirect_box(struct ncdirect* n, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, const wchar_t* wchars, int ylen, int xlen, unsigned ctlword);**
+**int ncdirect_box(struct ncdirect* ***n***, uint64_t ***ul***, uint64_t ***ur***, uint64_t ***ll***, uint64_t ***lr***, const wchar_t* ***wchars***, int ***ylen***, int ***xlen***, unsigned ***ctlword***);**
 
-**int ncdirect_rounded_box(struct ncdirect* n, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ylen, int xlen, unsigned ctlword);**
+**int ncdirect_rounded_box(struct ncdirect* ***n***, uint64_t ***ul***, uint64_t ***ur***, uint64_t ***ll***, uint64_t ***lr***, int ***ylen***, int ***xlen***, unsigned ***ctlword***);**
 
-**int ncdirect_double_box(struct ncdirect* n, uint64_t ul, uint64_t ur, uint64_t ll, uint64_t lr, int ylen, int xlen, unsigned ctlword);**
+**int ncdirect_double_box(struct ncdirect* ***n***, uint64_t ***ul***, uint64_t ***ur***, uint64_t ***ll***, uint64_t ***lr***, int ***ylen***, int ***xlen***, unsigned ***ctlword***);**
 
-**int ncdirect_render_image(struct ncdirect* n, const char* filename, ncblitter_e blitter, ncscale_e scale);**
+**int ncdirect_render_image(struct ncdirect* ***n***, const char* ***filename***, ncblitter_e ***blitter***, ncscale_e ***scale***);**
 
 # DESCRIPTION
 
