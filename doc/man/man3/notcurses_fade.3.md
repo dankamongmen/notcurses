@@ -20,23 +20,23 @@ struct ncfadectx;
 typedef int (*fadecb)(struct notcurses* nc, struct ncplane* ncp, const struct timespec*, void* curry);
 ```
 
-**bool notcurses_canfade(const struct notcurses* nc);**
+**bool notcurses_canfade(const struct notcurses* ***nc***);**
 
-**int ncplane_fadeout(struct ncplane* n, const struct timespec* ts, fadecb fader, void* curry);**
+**int ncplane_fadeout(struct ncplane* ***n***, const struct timespec* ***ts***, fadecb ***fader***, void* ***curry***);**
 
-**int ncplane_fadein(struct ncplane* n, const struct timespec* ts, fadecb fader, void* curry);**
+**int ncplane_fadein(struct ncplane* ***n***, const struct timespec* ***ts***, fadecb ***fader***, void* ***curry***);**
 
-**int ncplane_pulse(struct ncplane* n, const struct timespec* ts, fadecb fader, void* curry);**
+**int ncplane_pulse(struct ncplane* ***n***, const struct timespec* ***ts***, fadecb ***fader***, void* ***curry***);**
 
-**struct ncfadectx* ncfadectx_setup(struct ncplane* n);**
+**struct ncfadectx* ncfadectx_setup(struct ncplane* ***n***);**
 
-**int ncfadectx_iterations(const struct ncfadectx* nctx);**
+**int ncfadectx_iterations(const struct ncfadectx* ***nctx***);**
 
-**int ncplane_fadeout_iteration(struct ncplane* n, struct ncfadectx* nctx, int iter, fadecb fader, void* curry);**
+**int ncplane_fadeout_iteration(struct ncplane* ***n***, struct ncfadectx* ***nctx***, int ***iter***, fadecb ***fader***, void* ***curry***);**
 
-**int ncplane_fadein_iteration(struct ncplane* n, struct ncfadectx* nctx, int iter, fadecb fader, void* curry);**
+**int ncplane_fadein_iteration(struct ncplane* ***n***, struct ncfadectx* ***nctx***, int ***iter***, fadecb ***fader***, void* ***curry***);**
 
-**void ncfadectx_free(struct ncfadectx* nctx);**
+**void ncfadectx_free(struct ncfadectx* ***nctx***);**
 
 # DESCRIPTION
 
