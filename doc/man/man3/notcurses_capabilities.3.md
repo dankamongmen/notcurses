@@ -10,23 +10,23 @@ notcurses_capabilities - runtime capability detection
 
 **#include <notcurses/notcurses.h>**
 
-**unsigned notcurses_supported_styles(const struct notcurses* nc);**
+**unsigned notcurses_supported_styles(const struct notcurses* ***nc***);**
 
-**unsigned notcurses_palette_size(const struct notcurses* nc);**
+**unsigned notcurses_palette_size(const struct notcurses* ***nc***);**
 
-**bool notcurses_cantruecolor(const struct notcurses* nc);**
+**bool notcurses_cantruecolor(const struct notcurses* ***nc***);**
 
-**bool notcurses_canfade(const struct notcurses* nc);**
+**bool notcurses_canfade(const struct notcurses* ***nc***);**
 
-**bool notcurses_canchangecolor(const struct notcurses* nc);**
+**bool notcurses_canchangecolor(const struct notcurses* ***nc***);**
 
-**bool notcurses_canopen_images(const struct notcurses* nc);**
+**bool notcurses_canopen_images(const struct notcurses* ***nc***);**
 
-**bool notcurses_canopen_videos(const struct notcurses* nc);**
+**bool notcurses_canopen_videos(const struct notcurses* ***nc***);**
 
-**bool notcurses_canutf8(const struct notcurses* nc);**
+**bool notcurses_canutf8(const struct notcurses* ***nc***);**
 
-**bool notcurses_cansixel(const struct notcurses* nc);**
+**bool notcurses_cansixel(const struct notcurses* ***nc***);**
 
 # DESCRIPTION
 
