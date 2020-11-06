@@ -1794,13 +1794,13 @@ API int ncplane_mergedown(const struct ncplane* RESTRICT src,
 API void ncplane_erase(struct ncplane* n);
 
 // Extract the 32-bit background channel from a cell.
-static inline unsigned
+static inline uint32_t
 cell_bchannel(const cell* cl){
   return channels_bchannel(cl->channels);
 }
 
 // Extract the 32-bit foreground channel from a cell.
-static inline unsigned
+static inline uint32_t
 cell_fchannel(const cell* cl){
   return channels_fchannel(cl->channels);
 }
@@ -1818,37 +1818,37 @@ cell_set_fchannel(cell* cl, uint32_t channel){
 }
 
 // Extract 24 bits of foreground RGB from 'cell', shifted to LSBs.
-static inline unsigned
+static inline uint32_t
 cell_fg_rgb(const cell* cl){
   return channels_fg_rgb(cl->channels);
 }
 
 // Extract 24 bits of background RGB from 'cell', shifted to LSBs.
-static inline unsigned
+static inline uint32_t
 cell_bg_rgb(const cell* cl){
   return channels_bg_rgb(cl->channels);
 }
 
 // Extract 2 bits of foreground alpha from 'cell', shifted to LSBs.
-static inline unsigned
+static inline uint32_t
 cell_fg_alpha(const cell* cl){
   return channels_fg_alpha(cl->channels);
 }
 
 // Extract 2 bits of background alpha from 'cell', shifted to LSBs.
-static inline unsigned
+static inline uint32_t
 cell_bg_alpha(const cell* cl){
   return channels_bg_alpha(cl->channels);
 }
 
 // Extract 24 bits of foreground RGB from 'cell', split into components.
-static inline unsigned
+static inline uint32_t
 cell_fg_rgb8(const cell* cl, unsigned* r, unsigned* g, unsigned* b){
   return channels_fg_rgb8(cl->channels, r, g, b);
 }
 
 // Extract 24 bits of background RGB from 'cell', split into components.
-static inline unsigned
+static inline uint32_t
 cell_bg_rgb8(const cell* cl, unsigned* r, unsigned* g, unsigned* b){
   return channels_bg_rgb8(cl->channels, r, g, b);
 }
@@ -1879,7 +1879,7 @@ cell_set_fg_palindex(cell* cl, int idx){
   return channels_set_fg_palindex(&cl->channels, idx);
 }
 
-static inline unsigned
+static inline uint32_t
 cell_fg_palindex(const cell* cl){
   return (cl->channels & 0xff00000000ull) >> 32u;
 }
@@ -1911,7 +1911,7 @@ cell_set_bg_palindex(cell* cl, int idx){
   return channels_set_bg_palindex(&cl->channels, idx);
 }
 
-static inline unsigned
+static inline uint32_t
 cell_bg_palindex(const cell* cl){
   return (cl->channels & 0xff);
 }
@@ -1941,13 +1941,13 @@ cell_bg_palindex_p(const cell* cl){
 }
 
 // Extract the 32-bit working background channel from an ncplane.
-static inline unsigned
+static inline uint32_t
 ncplane_bchannel(const struct ncplane* n){
   return channels_bchannel(ncplane_channels(n));
 }
 
 // Extract the 32-bit working foreground channel from an ncplane.
-static inline unsigned
+static inline uint32_t
 ncplane_fchannel(const struct ncplane* n){
   return channels_fchannel(ncplane_channels(n));
 }
@@ -1973,19 +1973,19 @@ API void ncplane_styles_off(struct ncplane* n, unsigned stylebits)
   __attribute__ ((deprecated));
 
 // Extract 24 bits of working foreground RGB from an ncplane, shifted to LSBs.
-static inline unsigned
+static inline uint32_t
 ncplane_fg_rgb(const struct ncplane* n){
   return channels_fg_rgb(ncplane_channels(n));
 }
 
 // Extract 24 bits of working background RGB from an ncplane, shifted to LSBs.
-static inline unsigned
+static inline uint32_t
 ncplane_bg_rgb(const struct ncplane* n){
   return channels_bg_rgb(ncplane_channels(n));
 }
 
 // Extract 2 bits of foreground alpha from 'struct ncplane', shifted to LSBs.
-static inline unsigned
+static inline uint32_t
 ncplane_fg_alpha(const struct ncplane* n){
   return channels_fg_alpha(ncplane_channels(n));
 }
@@ -1997,7 +1997,7 @@ ncplane_fg_default_p(const struct ncplane* n){
 }
 
 // Extract 2 bits of background alpha from 'struct ncplane', shifted to LSBs.
-static inline unsigned
+static inline uint32_t
 ncplane_bg_alpha(const struct ncplane* n){
   return channels_bg_alpha(ncplane_channels(n));
 }
@@ -2009,13 +2009,13 @@ ncplane_bg_default_p(const struct ncplane* n){
 }
 
 // Extract 24 bits of foreground RGB from 'n', split into components.
-static inline unsigned
+static inline uint32_t
 ncplane_fg_rgb8(const struct ncplane* n, unsigned* r, unsigned* g, unsigned* b){
   return channels_fg_rgb8(ncplane_channels(n), r, g, b);
 }
 
 // Extract 24 bits of background RGB from 'n', split into components.
-static inline unsigned
+static inline uint32_t
 ncplane_bg_rgb8(const struct ncplane* n, unsigned* r, unsigned* g, unsigned* b){
   return channels_bg_rgb8(ncplane_channels(n), r, g, b);
 }
@@ -2038,8 +2038,8 @@ API void ncplane_set_bg_rgb8_clipped(struct ncplane* n, int r, int g, int b);
 API void ncplane_set_fg_rgb8_clipped(struct ncplane* n, int r, int g, int b);
 
 // Same, but with rgb assembled into a channel (i.e. lower 24 bits).
-API int ncplane_set_fg_rgb(struct ncplane* n, unsigned channel);
-API int ncplane_set_bg_rgb(struct ncplane* n, unsigned channel);
+API int ncplane_set_fg_rgb(struct ncplane* n, uint32_t channel);
+API int ncplane_set_bg_rgb(struct ncplane* n, uint32_t channel);
 
 // Use the default color for the foreground/background.
 API void ncplane_set_fg_default(struct ncplane* n);
