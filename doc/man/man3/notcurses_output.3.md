@@ -10,71 +10,71 @@ notcurses_output - output to ncplanes
 
 **#include <notcurses/notcurses.h>**
 
-**static inline int ncplane_putc(struct ncplane* n, const cell* c);**
+**static inline int ncplane_putc(struct ncplane* ***n***, const cell* ***c***);**
 
-**int ncplane_putc_yx(struct ncplane* n, int y, int x, const cell* c);**
+**int ncplane_putc_yx(struct ncplane* ***n***, int ***y***, int ***x***, const cell* ***c***);**
 
-**static inline int ncplane_putchar(struct ncplane* n, char c);**
+**static inline int ncplane_putchar(struct ncplane* ***n***, char ***c***);**
 
-**static inline int ncplane_putchar_yx(struct ncplane* n, int y, int x, char c);**
+**static inline int ncplane_putchar_yx(struct ncplane* ***n***, int ***y***, int ***x***, char ***c***);**
 
-**int ncplane_putchar_stained(struct ncplane* n, char c);**
+**int ncplane_putchar_stained(struct ncplane* ***n***, char ***c***);**
 
-**static inline int ncplane_putwc(struct ncplane* n, wchar_t w);**
+**static inline int ncplane_putwc(struct ncplane* ***n***, wchar_t ***w***);**
 
-**int ncplane_putwc_yx(struct ncplane* n, int y, int x, wchar_t w);**
+**int ncplane_putwc_yx(struct ncplane* ***n***, int ***y***, int ***x***, wchar_t ***w***);**
 
-**static inline int ncplane_putwc_stained(struct ncplane* n, wchar_t w);**
+**static inline int ncplane_putwc_stained(struct ncplane* ***n***, wchar_t ***w***);**
 
-**static inline int ncplane_putegc(struct ncplane* n, const char* gclust, int* sbytes);**
+**static inline int ncplane_putegc(struct ncplane* ***n***, const char* ***gclust***, int* ***sbytes***);**
 
-**int ncplane_putegc_yx(struct ncplane* n, int y, int x, const char* gclust, int* sbytes);**
+**int ncplane_putegc_yx(struct ncplane* ***n***, int ***y***, int ***x***, const char* ***gclust***, int* ***sbytes***);**
 
-**int ncplane_putegc_stained(struct ncplane* n, const char* gclust, int* sbytes);**
+**int ncplane_putegc_stained(struct ncplane* ***n***, const char* ***gclust***, int* ***sbytes***);**
 
-**static inline int ncplane_putwegc(struct ncplane* n, const wchar_t* gclust, int* sbytes);**
+**static inline int ncplane_putwegc(struct ncplane* ***n***, const wchar_t* ***gclust***, int* ***sbytes***);**
 
-**static inline int ncplane_putwegc_yx(struct ncplane* n, int y, int x, const wchar_t* gclust, int* sbytes);**
+**static inline int ncplane_putwegc_yx(struct ncplane* ***n***, int ***y***, int ***x***, const wchar_t* ***gclust***, int* ***sbytes***);**
 
-**int ncplane_putwegc_stained(struct ncplane* n, const wchar_t* gclust, int* sbytes);**
+**int ncplane_putwegc_stained(struct ncplane* ***n***, const wchar_t* ***gclust***, int* ***sbytes***);**
 
-**int ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclustarr);**
+**int ncplane_putstr_yx(struct ncplane* ***n***, int ***y***, int ***x***, const char* ***gclustarr***);**
 
-**static inline int ncplane_putstr(struct ncplane* n, const char* gclustarr);**
+**static inline int ncplane_putstr(struct ncplane* ***n***, const char* ***gclustarr***);**
 
-**int ncplane_putstr_aligned(struct ncplane* n, int y, ncalign_e align, const char* s);**
+**int ncplane_putstr_aligned(struct ncplane* ***n***, int ***y***, ncalign_e ***align***, const char* ***s***);**
 
-**int ncplane_putstr_stained(struct ncplane* n, const char* s);**
+**int ncplane_putstr_stained(struct ncplane* ***n***, const char* ***s***);**
 
-**static inline int ncplane_putwstr(struct ncplane* n, const wchar_t* gclustarr);**
+**static inline int ncplane_putwstr(struct ncplane* ***n***, const wchar_t* ***gclustarr***);**
 
-**int ncplane_putwstr_yx(struct ncplane* n, int y, int x, const wchar_t* gclustarr);**
+**int ncplane_putwstr_yx(struct ncplane* ***n***, int ***y***, int ***x***, const wchar_t* ***gclustarr***);**
 
-**static inline int ncplane_putwstr_aligned(struct ncplane* n, int y, ncalign_e align, const wchar_t* gclustarr);**
+**static inline int ncplane_putwstr_aligned(struct ncplane* ***n***, int ***y***, ncalign_e ***align***, const wchar_t* ***gclustarr***);**
 
-**int ncplane_putwstr_stained(struct ncplane* n, const wchar_t* gclustarr);**
+**int ncplane_putwstr_stained(struct ncplane* ***n***, const wchar_t* ***gclustarr***);**
 
-**static inline int ncplane_putnstr(struct ncplane* n, size_t s, const char* gclustarr);**
+**static inline int ncplane_putnstr(struct ncplane* ***n***, size_t ***s***, const char* ***gclustarr***);**
 
-**int ncplane_putnstr_yx(struct ncplane* n, int y, int x, size_t s, const char* gclusters);**
+**int ncplane_putnstr_yx(struct ncplane* ***n***, int ***y***, int ***x***, size_t ***s***, const char* ***gclusters***);**
 
-**int ncplane_putnstr_aligned(struct ncplane* n, int y, ncalign_e align, size_t s, const char* s);**
+**int ncplane_putnstr_aligned(struct ncplane* ***n***, int ***y***, ncalign_e ***align***, size_t ***s***, const char* ***s***);**
 
-**int ncplane_vprintf_aligned(struct ncplane* n, int y, ncalign_e align, const char* format, va_list ap);**
+**int ncplane_vprintf_aligned(struct ncplane* ***n***, int ***y***, ncalign_e ***align***, const char* ***format***, va_list ***ap***);**
 
-**int ncplane_vprintf_yx(struct ncplane* n, int y, int x, const char* format, va_list ap);**
+**int ncplane_vprintf_yx(struct ncplane* ***n***, int ***y***, int ***x***, const char* ***format***, va_list ***ap***);**
 
-**static inline int ncplane_vprintf(struct ncplane* n, const char* format, va_list ap);**
+**static inline int ncplane_vprintf(struct ncplane* ***n***, const char* ***format***, va_list ***ap***);**
 
-**static inline int ncplane_printf(struct ncplane* n, const char* format, ...);**
+**static inline int ncplane_printf(struct ncplane* ***n***, const char* ***format***, ***...***);**
 
-**static inline int ncplane_printf_yx(struct ncplane* n, int y, int x, const char* format, ...);**
+**static inline int ncplane_printf_yx(struct ncplane* ***n***, int ***y***, int ***x***, const char* ***format***, ***...***);**
 
-**static inline int ncplane_printf_aligned(struct ncplane* n, int y, ncalign_e align, const char* format, ...);**
+**static inline int ncplane_printf_aligned(struct ncplane* ***n***, int ***y***, ncalign_e ***align***, const char* ***format***, ***...***);**
 
-**int ncplane_cursor_move_yx(struct ncplane* n, int y, int x);**
+**int ncplane_cursor_move_yx(struct ncplane* ***n***, int ***y***, int ***x***);**
 
-**int ncplane_puttext(struct ncplane* n, int y, ncalign_e align, const char* text, size_t* bytes);**
+**int ncplane_puttext(struct ncplane* ***n***, int ***y***, ncalign_e ***align***, const char* ***text***, size_t* ***bytes***);**
 
 # DESCRIPTION
 

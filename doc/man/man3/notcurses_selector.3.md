@@ -40,23 +40,23 @@ typedef struct ncselector_options {
 } ncselector_options;
 ```
 
-**struct ncselector* ncselector_create(struct ncplane* n, const ncselector_options* opts);**
+**struct ncselector* ncselector_create(struct ncplane* ***n***, const ncselector_options* ***opts***);**
 
-**int ncselector_additem(struct ncselector* n, const struct ncselector_item* item);**
+**int ncselector_additem(struct ncselector* ***n***, const struct ncselector_item* ***item***);**
 
-**int ncselector_delitem(struct ncselector* n, const char* item);**
+**int ncselector_delitem(struct ncselector* ***n***, const char* ***item***);**
 
-**const char* ncselector_selected(const struct ncselector* n);**
+**const char* ncselector_selected(const struct ncselector* ***n***);**
 
-**struct ncplane* ncselector_plane(struct ncselector* n);**
+**struct ncplane* ncselector_plane(struct ncselector* ***n***);**
 
-**const char* ncselector_previtem(struct ncselector* n);**
+**const char* ncselector_previtem(struct ncselector* ***n***);**
 
-**const char* ncselector_nextitem(struct ncselector* n);**
+**const char* ncselector_nextitem(struct ncselector* ***n***);**
 
-**bool ncselector_offer_input(struct ncselector* n, const struct ncinput* nc);**
+**bool ncselector_offer_input(struct ncselector* ***n***, const struct ncinput* ***nc***);**
 
-**void ncselector_destroy(struct ncselector* n, char\*\* item);**
+**void ncselector_destroy(struct ncselector* ***n***, char\*\* ***item***);**
 
 # DESCRIPTION
 

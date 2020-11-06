@@ -28,27 +28,27 @@ typedef struct ncreader_options {
 } ncreader_options;
 ```
 
-**struct ncreader* ncreader_create(struct notcurses* nc, const ncreader_options* opts);**
+**struct ncreader* ncreader_create(struct notcurses* ***nc***, const ncreader_options* ***opts***);**
 
-**int ncreader_clear(struct ncreader* n);**
+**int ncreader_clear(struct ncreader* ***n***);**
 
-**struct ncplane* ncreader_plane(struct ncreader* n);**
+**struct ncplane* ncreader_plane(struct ncreader* ***n***);**
 
-**int ncreader_move_left(struct ncreader* n);**
+**int ncreader_move_left(struct ncreader* ***n***);**
 
-**int ncreader_move_right(struct ncreader* n);**
+**int ncreader_move_right(struct ncreader* ***n***);**
 
-**int ncreader_move_up(struct ncreader* n);**
+**int ncreader_move_up(struct ncreader* ***n***);**
 
-**int ncreader_move_down(struct ncreader* n);**
+**int ncreader_move_down(struct ncreader* ***n***);**
 
-**int ncreader_write_egc(struct ncreader* n, const char* egc);**
+**int ncreader_write_egc(struct ncreader* ***n***, const char* ***egc***);**
 
-**bool ncreader_offer_input(struct ncreader* n, const struct ncinput* ni);**
+**bool ncreader_offer_input(struct ncreader* ***n***, const struct ncinput* ***ni***);**
 
-**char* ncreader_contents(const struct ncreader* n);**
+**char* ncreader_contents(const struct ncreader* ***n***);**
 
-**void ncreader_destroy(struct ncreader* n, char** contents);**
+**void ncreader_destroy(struct ncreader* ***n***, char** ***contents***);**
 
 # DESCRIPTION
 

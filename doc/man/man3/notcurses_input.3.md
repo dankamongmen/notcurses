@@ -25,21 +25,21 @@ typedef struct ncinput {
 } ncinput;
 ```
 
-**bool nckey_mouse_p(char32_t r);**
+**bool nckey_mouse_p(char32_t ***r***);**
 
-**char32_t notcurses_getc(struct notcurses* n, const struct timespec* ts, sigset_t* sigmask, ncinput* ni);**
+**char32_t notcurses_getc(struct notcurses* ***n***, const struct timespec* ***ts***, sigset_t* ***sigmask***, ncinput* ***ni***);**
 
-**char32_t notcurses_getc_nblock(struct notcurses* n, ncinput* ni);**
+**char32_t notcurses_getc_nblock(struct notcurses* ***n***, ncinput* ***ni***);**
 
-**char32_t notcurses_getc_blocking(struct notcurses* n, ncinput* ni);**
+**char32_t notcurses_getc_blocking(struct notcurses* ***n***, ncinput* ***ni***);**
 
-**int notcurses_mouse_enable(struct notcurses* n);**
+**int notcurses_mouse_enable(struct notcurses* ***n***);**
 
-**int notcurses_mouse_disable(struct notcurses* n);**
+**int notcurses_mouse_disable(struct notcurses* ***n***);**
 
-**int notcurses_inputready_fd(struct notcurses* n);**
+**int notcurses_inputready_fd(struct notcurses* ***n***);**
 
-**static inline bool ncinput_equal_p(const struct ncinput* n1, const struct ncinput* n2);**
+**static inline bool ncinput_equal_p(const struct ncinput* ***n1***, const struct ncinput* ***n2***);**
 
 # DESCRIPTION
 

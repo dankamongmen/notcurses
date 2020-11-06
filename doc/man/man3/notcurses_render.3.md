@@ -10,13 +10,13 @@ notcurses_render - sync the physical display to the virtual ncplanes
 
 **#include <notcurses/notcurses.h>**
 
-**int notcurses_render(struct notcurses* nc);**
+**int notcurses_render(struct notcurses* ***nc***);**
 
-**char* notcurses_at_yx(struct notcurses* nc, int yoff, int xoff, uint16_t* styles, uint64_t* channels);**
+**char* notcurses_at_yx(struct notcurses* ***nc***, int ***yoff***, int ***xoff***, uint16_t* ***styles***, uint64_t* ***channels***);**
 
-**int notcurses_render_to_file(struct notcurses* nc, FILE* fp);**
+**int notcurses_render_to_file(struct notcurses* ***nc***, FILE* ***fp***);**
 
-**int notcurses_render_to_buffer(struct notcurses* nc, char** buf, size_t* buflen);**
+**int notcurses_render_to_buffer(struct notcurses* ***nc***, char** ***buf***, size_t* ***buflen***);**
 
 # DESCRIPTION
 

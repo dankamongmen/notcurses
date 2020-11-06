@@ -39,11 +39,11 @@ typedef struct ncstats {
 } ncstats;
 ```
 
-**ncstats* notcurses_stats_alloc(struct notcurses* nc);**
+**ncstats* notcurses_stats_alloc(struct notcurses* ***nc***);**
 
-**void notcurses_stats(struct notcurses* nc, ncstats* stats);**
+**void notcurses_stats(struct notcurses* ***nc***, ncstats* ***stats***);**
 
-**void notcurses_stats_reset(struct notcurses* nc, ncstats* stats);**
+**void notcurses_stats_reset(struct notcurses* ***nc***, ncstats* ***stats***);**
 
 # DESCRIPTION
 

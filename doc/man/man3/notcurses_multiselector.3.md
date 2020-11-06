@@ -41,15 +41,15 @@ typedef struct ncmultiselector_options {
 } ncmultiselector_options;
 ```
 
-**struct ncmultiselector* ncmultiselector_create(struct ncplane* n, const ncmultiselector_options* opts);**
+**struct ncmultiselector* ncmultiselector_create(struct ncplane* ***n***, const ncmultiselector_options* ***opts***);**
 
-**int ncmultiselector_selected(bool* selected, unsigned n);**
+**int ncmultiselector_selected(bool* ***selected***, unsigned ***n***);**
 
-**struct ncplane* ncmultiselector_plane(struct ncmultiselector* n);**
+**struct ncplane* ncmultiselector_plane(struct ncmultiselector* ***n***);**
 
-**bool ncmultiselector_offer_input(struct ncmultiselector* n, const struct ncinput* nc);**
+**bool ncmultiselector_offer_input(struct ncmultiselector* ***n***, const struct ncinput* ***nc***);**
 
-**void ncmultiselector_destroy(struct ncmultiselector* n);**
+**void ncmultiselector_destroy(struct ncmultiselector* ***n***);**
 
 # DESCRIPTION
 

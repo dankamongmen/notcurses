@@ -17,21 +17,21 @@ typedef struct palette256 {
 } palette256;
 ```
 
-**bool notcurses_cantruecolor(const struct notcurses* nc);**
+**bool notcurses_cantruecolor(const struct notcurses* ***nc***);**
 
-**palette256* palette256_new(struct notcurses* nc);**
+**palette256* palette256_new(struct notcurses* ***nc***);**
 
-**int palette256_use(struct notcurses* nc, const palette256* p);**
+**int palette256_use(struct notcurses* ***nc***, const palette256* ***p***);**
 
-**int palette256_set_rgb8(palette256* p, int idx, int r, int g, int b);**
+**int palette256_set_rgb8(palette256* ***p***, int ***idx***, int ***r***, int ***g***, int ***b***);**
 
-**int palette256_set(palette256* p, int idx, unsigned rgb);**
+**int palette256_set(palette256* ***p***, int ***idx***, unsigned ***rgb***);**
 
-**int palette256_get_rgb8(const palette256* p, int idx, int* restrict r, int* restrict g, int* restrict b);**
+**int palette256_get_rgb8(const palette256* ***p***, int ***idx***, int* restrict ***r***, int* restrict ***g***, int* restrict ***b***);**
 
-**void palette256_free(palette256* p);**
+**void palette256_free(palette256* ***p***);**
 
-**bool notcurses_canchangecolors(const struct notcurses* nc);**
+**bool notcurses_canchangecolors(const struct notcurses* ***nc***);**
 
 # DESCRIPTION
 

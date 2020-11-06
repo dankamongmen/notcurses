@@ -23,21 +23,11 @@ notcurses_metric - fixed-width numeric output with metric suffixes
 #define BPREFIXFMT(x) NCMETRICFWIDTH((x), BPREFIXCOLUMNS), (x)
 ```
 
-**const char* ncmetric(uintmax_t val, uintmax_t decimal, char* buf, int omitdec, unsigned mult, int uprefix);**
+**const char* ncmetric(uintmax_t ***val***, uintmax_t ***decimal***, char* ***buf***, int ***omitdec***, unsigned ***mult***, int ***uprefix***);**
 
-```c
-// Mega, kilo, gigafoo. Use PREFIXSTRLEN + 1.
-static inline const char*
-qprefix(uintmax_t val, uintmax_t decimal, char* buf, int omitdec){
-  return ncmetric(val, decimal, buf, omitdec, 1000, '\0');
-}
+**static inline const char* qprefix(uintmax_t ***val***, uintmax_t ***decimal***, char* ***buf***, int ***omitdec***);**
 
-// Mibi, kebi, gibibytes. Use BPREFIXSTRLEN + 1.
-static inline const char*
-bprefix(uintmax_t val, uintmax_t decimal, char* buf, int omitdec){
-  return ncmetric(val, decimal, buf, omitdec, 1024, 'i');
-}
-```
+**static inline const char* bprefix(uintmax_t ***val***, uintmax_t ***decimal***, char* ***buf***, int ***omitdec***);**
 
 # DESCRIPTION
 

@@ -34,31 +34,31 @@ typedef struct ncreel_options {
 } ncreel_options;
 ```
 
-**struct ncreel* ncreel_create(struct ncplane* nc, const ncreel_options* popts);**
+**struct ncreel* ncreel_create(struct ncplane* ***nc***, const ncreel_options* ***popts***);**
 
-**struct ncplane* ncreel_plane(struct ncreel* nr);**
+**struct ncplane* ncreel_plane(struct ncreel* ***nr***);**
 
-**typedef int (*tabletcb)(struct nctablet* t, bool cliptop);**
+**typedef int (*tabletcb)(struct nctablet* ***t***, bool ***cliptop***);**
 
-**struct nctablet* ncreel_add(struct ncreel* nr, struct nctablet* after, struct nctablet* before, tabletcb cb, void* opaque);**
+**struct nctablet* ncreel_add(struct ncreel* ***nr***, struct nctablet* ***after***, struct nctablet* ***before***, tabletcb ***cb***, void* ***opaque***);**
 
-**int ncreel_tabletcount(const struct ncreel* nr);**
+**int ncreel_tabletcount(const struct ncreel* ***nr***);**
 
-**int ncreel_del(struct ncreel* nr, struct nctablet* t);**
+**int ncreel_del(struct ncreel* ***nr***, struct nctablet* ***t***);**
 
-**int ncreel_redraw(struct ncreel* nr);**
+**int ncreel_redraw(struct ncreel* ***nr***);**
 
-**struct nctablet* ncreel_focused(struct ncreel* nr);**
+**struct nctablet* ncreel_focused(struct ncreel* ***nr***);**
 
-**struct nctablet* ncreel_next(struct ncreel* nr);**
+**struct nctablet* ncreel_next(struct ncreel* ***nr***);**
 
-**struct nctablet* ncreel_prev(struct ncreel* nr);**
+**struct nctablet* ncreel_prev(struct ncreel* ***nr***);**
 
-**void ncreel_destroy(struct ncreel* nr);**
+**void ncreel_destroy(struct ncreel* ***nr***);**
 
-**void* nctablet_userptr(struct nctablet* t);**
+**void* nctablet_userptr(struct nctablet* ***t***);**
 
-**struct ncplane* nctablet_plane(struct nctablet* t);**
+**struct ncplane* nctablet_plane(struct nctablet* ***t***);**
 
 # DESCRIPTION
 

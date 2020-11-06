@@ -28,149 +28,149 @@ typedef struct ncplane_options {
 } ncplane_options;
 ```
 
-**struct ncplane* ncplane_create(struct ncplane* n, const ncplane_options* nopts);**
+**struct ncplane* ncplane_create(struct ncplane* ***n***, const ncplane_options* ***nopts***);**
 
-**struct ncplane* notcurses_top(struct notcurses* n);**
+**struct ncplane* notcurses_top(struct notcurses* ***n***);**
 
-**struct ncplane* notcurses_bottom(struct notcurses* n);**
+**struct ncplane* notcurses_bottom(struct notcurses* ***n***);**
 
-**struct ncplane* ncplane_reparent(struct ncplane* n, struct ncplane* newparent);**
+**struct ncplane* ncplane_reparent(struct ncplane* ***n***, struct ncplane* ***newparent***);**
 
-**struct ncplane* ncplane_dup(struct ncplane* n, void* opaque);**
+**struct ncplane* ncplane_dup(struct ncplane* ***n***, void* ***opaque***);**
 
-**int ncplane_resize(struct ncplane* n, int keepy, int keepx, int keepleny, int keeplenx, int yoff, int xoff, int ylen, int xlen);**
+**int ncplane_resize(struct ncplane* ***n***, int ***keepy***, int ***keepx***, int ***keepleny***, int ***keeplenx***, int ***yoff***, int ***xoff***, int ***ylen***, int ***xlen***);**
 
-**int ncplane_move_yx(struct ncplane* n, int y, int x);**
+**int ncplane_move_yx(struct ncplane* ***n***, int ***y***, int ***x***);**
 
-**void ncplane_yx(const struct ncplane* n, int* restrict y, int* restrict x);**
+**void ncplane_yx(const struct ncplane* ***n***, int* restrict ***y***, int* restrict ***x***);**
 
-**int ncplane_y(const struct ncplane* n);**
+**int ncplane_y(const struct ncplane* ***n***);**
 
-**int ncplane_x(const struct ncplane* n);**
+**int ncplane_x(const struct ncplane* ***n***);**
 
-**struct ncplane* ncplane_parent(struct ncplane* n);**
+**struct ncplane* ncplane_parent(struct ncplane* ***n***);**
 
-**const struct ncplane* ncplane_parent_const(const struct ncplane* n);**
+**const struct ncplane* ncplane_parent_const(const struct ncplane* ***n***);**
 
-**int ncplane_set_base_cell(struct ncplane* ncp, const cell* c);**
+**int ncplane_set_base_cell(struct ncplane* ***ncp***, const cell* ***c***);**
 
-**int ncplane_set_base(struct ncplane* ncp, const char* egc, uint32_t stylemask, uint64_t channels);**
+**int ncplane_set_base(struct ncplane* ***ncp***, const char* ***egc***, uint32_t ***stylemask***, uint64_t ***channels***);**
 
-**int ncplane_base(struct ncplane* ncp, cell* c);**
+**int ncplane_base(struct ncplane* ***ncp***, cell* ***c***);**
 
-**int ncplane_move_top(struct ncplane* n);**
+**int ncplane_move_top(struct ncplane* ***n***);**
 
-**int ncplane_move_bottom(struct ncplane* n);**
+**int ncplane_move_bottom(struct ncplane* ***n***);**
 
-**int ncplane_move_above(struct ncplane* restrict n, struct ncplane* restrict above);**
+**int ncplane_move_above(struct ncplane* restrict ***n***, struct ncplane* restrict ***above***);**
 
-**int ncplane_move_below(struct ncplane* restrict n, struct ncplane* restrict below);**
+**int ncplane_move_below(struct ncplane* restrict ***n***, struct ncplane* restrict ***below***);**
 
-**struct ncplane* ncplane_below(struct ncplane* n);**
+**struct ncplane* ncplane_below(struct ncplane* ***n***);**
 
-**struct ncplane* ncplane_above(struct ncplane* n);**
+**struct ncplane* ncplane_above(struct ncplane* ***n***);**
 
-**char* ncplane_at_cursor(struct ncplane* n, uint16_t* stylemask, uint64_t* channels);**
+**char* ncplane_at_cursor(struct ncplane* ***n***, uint16_t* ***stylemask***, uint64_t* ***channels***);**
 
-**int ncplane_at_cursor_cell(struct ncplane* n, cell* c);**
+**int ncplane_at_cursor_cell(struct ncplane* ***n***, cell* ***c***);**
 
-**char* ncplane_at_yx(const struct ncplane* n, int y, int x, uint16_t* stylemask, uint64_t* channels);**
+**char* ncplane_at_yx(const struct ncplane* ***n***, int ***y***, int ***x***, uint16_t* ***stylemask***, uint64_t* ***channels***);**
 
-**int ncplane_at_yx_cell(struct ncplane* n, int y, int x, cell* c);**
+**int ncplane_at_yx_cell(struct ncplane* ***n***, int ***y***, int ***x***, cell* ***c***);**
 
-**uint32_t* ncplane_rgba(const struct ncplane* nc, int begy, int begx, int leny, int lenx);**
+**uint32_t* ncplane_rgba(const struct ncplane* ***nc***, int ***begy***, int ***begx***, int ***leny***, int ***lenx***);**
 
-**char* ncplane_contents(const struct ncplane* nc, int begy, int begx, int leny, int lenx);**
+**char* ncplane_contents(const struct ncplane* ***nc***, int ***begy***, int ***begx***, int ***leny***, int ***lenx***);**
 
-**void* ncplane_set_userptr(struct ncplane* n, void* opaque);**
+**void* ncplane_set_userptr(struct ncplane* ***n***, void* ***opaque***);**
 
-**void* ncplane_userptr(struct ncplane* n);**
+**void* ncplane_userptr(struct ncplane* ***n***);**
 
-**void ncplane_dim_yx(const struct ncplane* n, int* restrict rows, int* restrict cols);**
+**void ncplane_dim_yx(const struct ncplane* ***n***, int* restrict ***rows***, int* restrict ***cols***);**
 
-**static inline int ncplane_dim_y(const struct ncplane* n);**
+**static inline int ncplane_dim_y(const struct ncplane* ***n***);**
 
-**static inline int ncplane_dim_x(const struct ncplane* n);**
+**static inline int ncplane_dim_x(const struct ncplane* ***n***);**
 
-**void ncplane_cursor_yx(const struct ncplane* n, int* restrict y, int* restrict x);**
+**void ncplane_cursor_yx(const struct ncplane* ***n***, int* restrict ***y***, int* restrict ***x***);**
 
-**void ncplane_translate(const struct ncplane* src, const struct ncplane* dst, int* restrict y, int* restrict x);**
+**void ncplane_translate(const struct ncplane* ***src***, const struct ncplane* ***dst***, int* restrict ***y***, int* restrict ***x***);**
 
-**bool ncplane_translate_abs(const struct ncplane* n, int* restrict y, int* restrict x);**
+**bool ncplane_translate_abs(const struct ncplane* ***n***, int* restrict ***y***, int* restrict ***x***);**
 
-**uint64_t ncplane_channels(const struct ncplane* n);**
+**uint64_t ncplane_channels(const struct ncplane* ***n***);**
 
-**void ncplane_set_channels(struct ncplane* nc, uint64_t channels);**
+**void ncplane_set_channels(struct ncplane* ***nc***, uint64_t ***channels***);**
 
-**static inline unsigned ncplane_bchannel(struct ncplane* nc);**
+**static inline unsigned ncplane_bchannel(struct ncplane* ***nc***);**
 
-**static inline unsigned ncplane_fchannel(struct ncplane* nc);**
+**static inline unsigned ncplane_fchannel(struct ncplane* ***nc***);**
 
-**static inline unsigned ncplane_fg_rgb8(struct ncplane* nc);**
+**static inline unsigned ncplane_fg_rgb8(struct ncplane* ***nc***);**
 
-**static inline unsigned ncplane_bg_rgb8(struct ncplane* nc);**
+**static inline unsigned ncplane_bg_rgb8(struct ncplane* ***nc***);**
 
-**static inline unsigned ncplane_fg_alpha(struct ncplane* nc);**
+**static inline unsigned ncplane_fg_alpha(struct ncplane* ***nc***);**
 
-**static inline unsigned ncplane_bg_alpha(struct ncplane* nc);**
+**static inline unsigned ncplane_bg_alpha(struct ncplane* ***nc***);**
 
-**static inline unsigned ncplane_fg_rgb8(struct ncplane* n, unsigned* r, unsigned* g, unsigned* b);**
+**static inline unsigned ncplane_fg_rgb8(struct ncplane* ***n***, unsigned* ***r***, unsigned* ***g***, unsigned* ***b***);**
 
-**static inline unsigned ncplane_bg_rgb8(struct ncplane* n, unsigned* r, unsigned* g, unsigned* b);**
+**static inline unsigned ncplane_bg_rgb8(struct ncplane* ***n***, unsigned* ***r***, unsigned* ***g***, unsigned* ***b***);**
 
-**int ncplane_set_fg_rgb8(struct ncplane* n, int r, int g, int b);**
+**int ncplane_set_fg_rgb8(struct ncplane* ***n***, int ***r***, int ***g***, int ***b***);**
 
-**int ncplane_set_bg_rgb8(struct ncplane* n, int r, int g, int b);**
+**int ncplane_set_bg_rgb8(struct ncplane* ***n***, int ***r***, int ***g***, int ***b***);**
 
-**void ncplane_set_fg_rgb8_clipped(struct ncplane* n, int r, int g, int b);**
+**void ncplane_set_fg_rgb8_clipped(struct ncplane* ***n***, int ***r***, int ***g***, int ***b***);**
 
-**void ncplane_set_bg_rgb8_clipped(struct ncplane* n, int r, int g, int b);**
+**void ncplane_set_bg_rgb8_clipped(struct ncplane* ***n***, int ***r***, int ***g***, int ***b***);**
 
-**int ncplane_set_fg_rgb8(struct ncplane* n, uint32_t channel);**
+**int ncplane_set_fg_rgb8(struct ncplane* ***n***, uint32_t ***channel***);**
 
-**int ncplane_set_bg_rgb8(struct ncplane* n, uint32_t channel);**
+**int ncplane_set_bg_rgb8(struct ncplane* ***n***, uint32_t ***channel***);**
 
-**void ncplane_set_fg_default(struct ncplane* n);**
+**void ncplane_set_fg_default(struct ncplane* ***n***);**
 
-**void ncplane_set_bg_default(struct ncplane* n);**
+**void ncplane_set_bg_default(struct ncplane* ***n***);**
 
-**int ncplane_set_fg_alpha(struct ncplane* n, unsigned alpha);**
+**int ncplane_set_fg_alpha(struct ncplane* ***n***, unsigned ***alpha***);**
 
-**int ncplane_set_bg_alpha(struct ncplane* n, unsigned alpha);**
+**int ncplane_set_bg_alpha(struct ncplane* ***n***, unsigned ***alpha***);**
 
-**int ncplane_set_fg_palindex(struct ncplane* n, int idx);**
+**int ncplane_set_fg_palindex(struct ncplane* ***n***, int ***idx***);**
 
-**int ncplane_set_bg_palindex(struct ncplane* n, int idx);**
+**int ncplane_set_bg_palindex(struct ncplane* ***n***, int ***idx***);**
 
-**uint16_t ncplane_styles(const struct ncplane* n);**
+**uint16_t ncplane_styles(const struct ncplane* ***n***);**
 
-**void ncplane_set_styles(struct ncplane* n, unsigned stylebits);**
+**void ncplane_set_styles(struct ncplane* ***n***, unsigned ***stylebits***);**
 
-**void ncplane_on_styles(struct ncplane* n, unsigned stylebits);**
+**void ncplane_on_styles(struct ncplane* ***n***, unsigned ***stylebits***);**
 
-**void ncplane_off_styles(struct ncplane* n, unsigned stylebits);**
+**void ncplane_off_styles(struct ncplane* ***n***, unsigned ***stylebits***);**
 
-**void ncplane_greyscale(struct ncplane* n);**
+**void ncplane_greyscale(struct ncplane* ***n***);**
 
-**int ncplane_blit_bgrx(struct ncplane* nc, int placey, int placex, int linesize, ncblitter_e blitter, const unsigned char* data, int begy, int begx, int leny, int lenx);**
+**int ncplane_blit_bgrx(struct ncplane* ***nc***, int ***placey***, int ***placex***, int ***linesize***, ncblitter_e ***blitter***, const unsigned char* ***data***, int ***begy***, int ***begx***, int ***leny***, int ***lenx***);**
 
-**int ncplane_blit_rgba(struct ncplane* nc, int placey, int placex, int linesize, ncblitter_e blitter, const unsigned char* data, int begy, int begx, int leny, int lenx);**
+**int ncplane_blit_rgba(struct ncplane* ***nc***, int ***placey***, int ***placex***, int ***linesize***, ncblitter_e ***blitter***, const unsigned char* ***data***, int ***begy***, int ***begx***, int ***leny***, int ***lenx***);**
 
-**int ncplane_destroy(struct ncplane* ncp);**
+**int ncplane_destroy(struct ncplane* ***ncp***);**
 
-**void notcurses_drop_planes(struct notcurses* nc);**
+**void notcurses_drop_planes(struct notcurses* ***nc***);**
 
-**int ncplane_mergedown(const struct ncplane* src, struct ncplane* dst, int begsrcy, int begsrcx, int leny, int lenx, int dsty, int dstx);**
+**int ncplane_mergedown(const struct ncplane* ***src***, struct ncplane* ***dst***, int ***begsrcy***, int ***begsrcx***, int ***leny***, int ***lenx***, int ***dsty***, int ***dstx***);**
 
-**int ncplane_mergedown_simple(const struct ncplane* restrict src, struct ncplane* restrict dst);**
+**int ncplane_mergedown_simple(const struct ncplane* restrict ***src***, struct ncplane* restrict ***dst***);**
 
-**void ncplane_erase(struct ncplane* n);**
+**void ncplane_erase(struct ncplane* ***n***);**
 
-**bool ncplane_set_scrolling(struct ncplane* n, bool scrollp);**
+**bool ncplane_set_scrolling(struct ncplane* ***n***, bool ***scrollp***);**
 
-**int ncplane_rotate_cw(struct ncplane* n);**
+**int ncplane_rotate_cw(struct ncplane* ***n***);**
 
-**int ncplane_rotate_ccw(struct ncplane* n);**
+**int ncplane_rotate_ccw(struct ncplane* ***n***);**
 
 ## DESCRIPTION
 

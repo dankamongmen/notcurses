@@ -39,29 +39,29 @@ typedef struct ncplot_options {
 } ncplot_options;
 ```
 
-**struct ncuplot* ncuplot_create(struct ncplane* n, const ncplot_options* opts, uint64_t miny, uint64_t maxy);**
+**struct ncuplot* ncuplot_create(struct ncplane* ***n***, const ncplot_options* ***opts***, uint64_t ***miny***, uint64_t ***maxy***);**
 
-**struct ncdplot* ncdplot_create(struct ncplane* n, const ncplot_options* opts, double miny, double maxy);**
+**struct ncdplot* ncdplot_create(struct ncplane* ***n***, const ncplot_options* ***opts***, double ***miny***, double ***maxy***);**
 
-**struct ncplane* ncuplot_plane(struct ncuplot* n);**
+**struct ncplane* ncuplot_plane(struct ncuplot* ***n***);**
 
-**struct ncplane* ncdplot_plane(struct ncdplot* n);**
+**struct ncplane* ncdplot_plane(struct ncdplot* ***n***);**
 
-**int ncuplot_add_sample(struct ncuplot* n, uint64_t x, uint64_t y);**
+**int ncuplot_add_sample(struct ncuplot* ***n***, uint64_t ***x***, uint64_t ***y***);**
 
-**int ncdplot_add_sample(struct ncdplot* n, uint64_t x, double y);**
+**int ncdplot_add_sample(struct ncdplot* ***n***, uint64_t ***x***, double ***y***);**
 
-**int ncuplot_set_sample(struct ncuplot* n, uint64_t x, uint64_t y);**
+**int ncuplot_set_sample(struct ncuplot* ***n***, uint64_t ***x***, uint64_t ***y***);**
 
-**int ncdplot_set_sample(struct ncdplot* n, uint64_t x, double y);**
+**int ncdplot_set_sample(struct ncdplot* ***n***, uint64_t ***x***, double ***y***);**
 
-**int ncuplot_sample(const struct ncuplot* n, uint64_t x, uint64_t* y);**
+**int ncuplot_sample(const struct ncuplot* ***n***, uint64_t ***x***, uint64_t* ***y***);**
 
-**int ncdplot_sample(const struct ncdplot* n, uint64_t x, double* y);**
+**int ncdplot_sample(const struct ncdplot* ***n***, uint64_t ***x***, double* ***y***);**
 
-**void ncuplot_destroy(struct ncuplot* n);**
+**void ncuplot_destroy(struct ncuplot* ***n***);**
 
-**void ncdplot_destroy(struct ncdplot* n);**
+**void ncdplot_destroy(struct ncdplot* ***n***);**
 
 # DESCRIPTION
 
