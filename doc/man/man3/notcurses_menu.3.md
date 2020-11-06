@@ -33,7 +33,7 @@ typedef struct ncmenu_options {
   int sectioncount;         // must be positive
   uint64_t headerchannels;  // styling for header
   uint64_t sectionchannels; // styling for sections
-  unsigned flags;           // bitfield on NCMENU_OPTION_*
+  uint64_t flags;           // bitfield on NCMENU_OPTION_*
 } ncmenu_options;
 ```
 

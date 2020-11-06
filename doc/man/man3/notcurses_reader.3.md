@@ -24,7 +24,7 @@ struct notcurses;
 typedef struct ncreader_options {
   uint64_t tchannels; // channels used for input
   uint32_t tattrword; // attributes used for input
-  unsigned flags;     // bitfield over NCREADER_OPTION_*
+  uint64_t flags;     // bitfield over NCREADER_OPTION_*
 } ncreader_options;
 ```
 

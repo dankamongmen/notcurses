@@ -30,7 +30,7 @@ typedef struct ncreel_options {
   unsigned tabletmask; // bitfield for tablet borders
   uint64_t tabletchan; // tablet border styling channel
   uint64_t focusedchan;// focused tablet border styling channel
-  unsigned flags;      // bitfield over NCREEL_OPTION_*
+  uint64_t flags;      // bitfield over NCREEL_OPTION_*
 } ncreel_options;
 ```
 
