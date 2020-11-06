@@ -9,15 +9,15 @@
 
 // [clippy & bindgen](https://github.com/rust-lang/rust-bindgen/issues/1470)
 #[allow(clippy::all)]
-mod bindings {
+pub mod bindings {
     include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 }
 
 // Miscellaneous ---------------------------------------------------------------
 pub use bindings::{
     // structs
-    __va_list_tag,
     _IO_FILE,
+    __va_list_tag,
 
     // functions
     timespec,
@@ -357,8 +357,9 @@ pub use bindings::{
 
 // ncplot
 pub use bindings::{
-    ncdplot,
-    ncuplot,
+    // structs
+    ncdplot, // f64
+    ncuplot, // u64
     ncplot_options,
 
     // functions
@@ -434,7 +435,7 @@ pub use bindings::{
 
 // ncscale
 pub use bindings::{
-    // type
+    // type definitions
     ncscale_e,
 
     // constants
@@ -597,8 +598,10 @@ pub use bindings::{
     // type definitions
     sigset_t,
 
-    // functions
+    // structs
     sigaction,
+
+    // functions
     sigaddset,
     sigdelset,
     sigemptyset,
