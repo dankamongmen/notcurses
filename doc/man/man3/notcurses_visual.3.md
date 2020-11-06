@@ -34,7 +34,7 @@ typedef enum {
 struct ncvisual_options {
   struct ncplane* n;
   ncscale_e scaling;
-  int y, x;
+  int ***y***, x;
   int begy, begx; // origin of rendered section
   int leny, lenx; // size of rendered section
   ncblitter_e blitter; // glyph set to use
@@ -44,55 +44,55 @@ struct ncvisual_options {
 typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 ```
 
-**bool notcurses_canopen_images(const struct notcurses* nc);**
+**bool notcurses_canopen_images(const struct notcurses* ***nc***);**
 
-**bool notcurses_canopen_videos(const struct notcurses* nc);**
+**bool notcurses_canopen_videos(const struct notcurses* ***nc***);**
 
-**bool notcurses_cansixel(const struct notcurses* nc);**
+**bool notcurses_cansixel(const struct notcurses* ***nc***);**
 
-**struct ncvisual* ncvisual_from_file(const char* file);**
+**struct ncvisual* ncvisual_from_file(const char* ***file***);**
 
-**struct ncvisual* ncvisual_from_rgba(const void* rgba, int rows, int rowstride, int cols);**
+**struct ncvisual* ncvisual_from_rgba(const void* ***rgba***, int ***rows***, int ***rowstride***, int ***cols***);**
 
-**struct ncvisual* ncvisual_from_bgra(const void* bgra, int rows, int rowstride, int cols);**
+**struct ncvisual* ncvisual_from_bgra(const void* ***bgra***, int ***rows***, int ***rowstride***, int ***cols***);**
 
-**struct ncvisual* ncvisual_from_plane(struct ncplane* n, ncblitter_e blit, int begy, int begx, int leny, int lenx);**
+**struct ncvisual* ncvisual_from_plane(struct ncplane* ***n***, ncblitter_e ***blit***, int ***begy***, int ***begx***, int ***leny***, int ***lenx***);**
 
-**int ncvisual_geom(const struct notcurses* nc, const struct ncvisual* n, const struct ncvisual_options* vopts, int* y, int* x, int* toy, int* tox);**
+**int ncvisual_geom(const struct notcurses* ***nc***, const struct ncvisual* ***n***, const struct ncvisual_options* ***vopts***, int* ***y***, int* ***x***, int* ***toy***, int* ***tox***);**
 
-**void ncvisual_destroy(struct ncvisual* ncv);**
+**void ncvisual_destroy(struct ncvisual* ***ncv***);**
 
-**int ncvisual_decode(struct ncvisual* nc);**
+**int ncvisual_decode(struct ncvisual* ***ncv***);**
 
-**int ncvisual_decode_loop(struct ncvisual* nc);**
+**int ncvisual_decode_loop(struct ncvisual* ***ncv***);**
 
-**struct ncplane* ncvisual_render(struct notcurses* nc, struct ncvisual* ncv, const struct ncvisual_options* vopts);**
+**struct ncplane* ncvisual_render(struct notcurses* ***nc***, struct ncvisual* ***ncv***, const struct ncvisual_options* ***vopts***);**
 
-**int ncvisual_simple_streamer(struct ncplane* n, struct ncvisual* ncv, const struct timespec* disptime, void* curry);**
+**int ncvisual_simple_streamer(struct ncplane* ***n***, struct ncvisual* ***ncv***, const struct timespec* ***disptime***, void* ***curry***);**
 
-**int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, float timescale, streamcb streamer, const struct ncvisual_options* vopts, void* curry);**
+**int ncvisual_stream(struct notcurses* ***nc***, struct ncvisual* ***ncv***, float ***timescale***, streamcb ***streamer***, const struct ncvisual_options* ***vopts***, void* ***curry***);**
 
-**int ncvisual_rotate(struct ncvisual* n, double rads);**
+**int ncvisual_rotate(struct ncvisual* ***n***, double ***rads***);**
 
-**int ncvisual_resize(struct ncvisual* n, int rows, int cols);**
+**int ncvisual_resize(struct ncvisual* ***n***, int ***rows***, int ***cols***);**
 
-**int ncvisual_polyfill_yx(struct ncvisual* n, int y, int x, uint32_t rgba);**
+**int ncvisual_polyfill_yx(struct ncvisual* ***n***, int ***y***, int ***x***, uint32_t ***rgba***);**
 
-**int ncvisual_at_yx(const struct ncvisual* n, int y, int x, uint32_t* pixel);**
+**int ncvisual_at_yx(const struct ncvisual* ***n***, int ***y***, int ***x***, uint32_t* ***pixel***);**
 
-**int ncvisual_set_yx(const struct ncvisual* n, int y, int x, uint32_t pixel);**
+**int ncvisual_set_yx(const struct ncvisual* ***n***, int ***y***, int ***x***, uint32_t ***pixel***);**
 
-**char* ncvisual_subtitle(const struct ncvisual* ncv);**
+**char* ncvisual_subtitle(const struct ncvisual* ***ncv***);**
 
-**int notcurses_lex_scalemode(const char* op, ncscale_e* scalemode);**
+**int notcurses_lex_scalemode(const char* ***op***, ncscale_e* ***scaling***);**
 
-**const char* notcurses_str_scalemode(ncscale_e scalemode);**
+**const char* notcurses_str_scalemode(ncscale_e ***scaling***);**
 
-**int notcurses_lex_blitter(const char* op, ncblitter_e* blitter);**
+**int notcurses_lex_blitter(const char* ***op***, ncblitter_e* ***blitter***);**
 
-**const char* notcurses_str_blitter(ncblitter_e blitter);**
+**const char* notcurses_str_blitter(ncblitter_e ***blitter***);**
 
-**ncblitter_e ncvisual_default_blitter(bool utf8, ncscale_e scaling);**
+**ncblitter_e ncvisual_default_blitter(bool ***utf8***, ncscale_e ***scaling***);**
 
 # DESCRIPTION
 
