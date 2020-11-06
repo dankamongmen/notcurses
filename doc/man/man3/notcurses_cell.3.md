@@ -41,80 +41,80 @@ typedef struct cell {
 #define CELL_ALPHA_OPAQUE       0x00000000ull
 ```
 
-**void cell_init(cell* c);**
+**void cell_init(cell* ***c***);**
 
-**int cell_load(struct ncplane* n, cell* c, const char* gcluster);**
+**int cell_load(struct ncplane* ***n***, cell* ***c***, const char* ***gcluster***);**
 
-**int cell_prime(struct ncplane* n, cell* c, const char* gcluster,
-                 uint32_t stylemask, uint64_t channels);**
+**int cell_prime(struct ncplane* ***n***, cell* ***c***, const char* ***gcluster***,
+                 uint32_t ***stylemask***, uint64_t ***channels***);**
 
-**int cell_duplicate(struct ncplane* n, cell* targ, const cell* c);**
+**int cell_duplicate(struct ncplane* ***n***, cell* ***targ***, const cell* ***c***);**
 
-**void cell_release(struct ncplane* n, cell* c);**
+**void cell_release(struct ncplane* ***n***, cell* ***c***);**
 
-**void cell_styles_set(cell* c, unsigned stylebits);**
+**void cell_styles_set(cell* ***c***, unsigned ***stylebits***);**
 
-**unsigned cell_styles(const cell* c);**
+**unsigned cell_styles(const cell* ***c***);**
 
-**void cell_styles_on(cell* c, unsigned stylebits);**
+**void cell_styles_on(cell* ***c***, unsigned ***stylebits***);**
 
-**void cell_styles_off(cell* c, unsigned stylebits);**
+**void cell_styles_off(cell* ***c***, unsigned ***stylebits***);**
 
-**void cell_set_fg_default(cell* c);**
+**void cell_set_fg_default(cell* ***c***);**
 
-**void cell_set_bg_default(cell* c);**
+**void cell_set_bg_default(cell* ***c***);**
 
-**int cell_set_fg_alpha(cell* c, unsigned alpha);**
+**int cell_set_fg_alpha(cell* ***c***, unsigned ***alpha***);**
 
-**int cell_set_bg_alpha(cell* c, unsigned alpha);**
+**int cell_set_bg_alpha(cell* ***c***, unsigned ***alpha***);**
 
-**bool cell_double_wide_p(const cell* c);**
+**bool cell_double_wide_p(const cell* ***c***);**
 
-**const char* cell_extended_gcluster(const struct ncplane* n, const cell* c);**
+**const char* cell_extended_gcluster(const struct ncplane* ***n***, const cell* ***c***);**
 
-**char* cell_strdup(const struct ncplane* n, const cell* c);**
+**char* cell_strdup(const struct ncplane* ***n***, const cell* ***c***);**
 
-**int cell_load_simple(struct ncplane* n, cell* c, char ch);**
+**int cell_load_simple(struct ncplane* ***n***, cell* ***c***, char ***ch***);**
 
-**char* cell_extract(const struct ncplane* n, const cell* c, uint16_t* stylemask, uint64_t* channels);**
+**char* cell_extract(const struct ncplane* ***n***, const cell* ***c***, uint16_t* ***stylemask***, uint64_t* ***channels***);**
 
-**uint32_t cell_bchannel(const cell* cl);**
+**uint32_t cell_bchannel(const cell* ***c***);**
 
-**uint32_t cell_fchannel(const cell* cl);**
+**uint32_t cell_fchannel(const cell* ***c***);**
 
-**uint64_t cell_set_bchannel(cell* cl, uint32_t channel);**
+**uint64_t cell_set_bchannel(cell* ***c***, uint32_t ***channel***);**
 
-**uint64_t cell_set_fchannel(cell* cl, uint32_t channel);**
+**uint64_t cell_set_fchannel(cell* ***c***, uint32_t ***channel***);**
 
-**uint32_t cell_fg_rgb(const cell* cl);**
+**uint32_t cell_fg_rgb(const cell* ***c***);**
 
-**uint32_t cell_bg_rgb(const cell* cl);**
+**uint32_t cell_bg_rgb(const cell* ***c***);**
 
-**unsigned cell_fg_alpha(const cell* cl);**
+**unsigned cell_fg_alpha(const cell* ***c***);**
 
-**unsigned cell_bg_alpha(const cell* cl);**
+**unsigned cell_bg_alpha(const cell* ***c***);**
 
-**unsigned cell_fg_rgb8(const cell* cl, unsigned* r, unsigned* g, unsigned* b);**
+**unsigned cell_fg_rgb8(const cell* ***c***, unsigned* ***r***, unsigned* ***g***, unsigned* ***b***);**
 
-**unsigned cell_bg_rgb8(const cell* cl, unsigned* r, unsigned* g, unsigned* b);**
+**unsigned cell_bg_rgb8(const cell* ***c***, unsigned* ***r***, unsigned* ***g***, unsigned* ***b***);**
 
-**int cell_set_fg_rgb8(cell* cl, int r, int g, int b);**
+**int cell_set_fg_rgb8(cell* ***c***, int ***r***, int ***g***, int ***b***);**
 
-**int cell_set_bg_rgb8(cell* cl, int r, int g, int b);**
+**int cell_set_bg_rgb8(cell* ***c***, int ***r***, int ***g***, int ***b***);**
 
-**void cell_set_fg_rgb8_clipped(cell* cl, int r, int g, int b);**
+**void cell_set_fg_rgb8_clipped(cell* ***c***, int ***r***, int ***g***, int ***b***);**
 
-**void cell_set_bg_rgb8_clipped(cell* cl, int r, int g, int b);**
+**void cell_set_bg_rgb8_clipped(cell* ***c***, int ***r***, int ***g***, int ***b***);**
 
-**int cell_set_fg_rgb(cell* c, uint32_t channel);**
+**int cell_set_fg_rgb(cell* ***c***, uint32_t ***channel***);**
 
-**int cell_set_bg_rgb(cell* c, uint32_t channel);**
+**int cell_set_bg_rgb(cell* ***c***, uint32_t ***channel***);**
 
-**bool cell_fg_default_p(const cell* cl);**
+**bool cell_fg_default_p(const cell* ***c***);**
 
-**bool cell_bg_default_p(const cell* cl);**
+**bool cell_bg_default_p(const cell* ***c***);**
 
-**int ncstrwidth(const char* text)**;
+**int ncstrwidth(const char* ***text***)**;
 
 # DESCRIPTION
 

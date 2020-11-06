@@ -19,67 +19,65 @@ notcurses_channels - operations on notcurses channels
   (((uint32_t)r << 16u) + ((uint32_t)g << 8u) + (b) + CELL_BGDEFAULT_MASK)
 ```
 
-**unsigned channel_r(unsigned channel);**
+**uint32_t channel_r(uint32_t ***channel***);**
 
-**unsigned channel_g(unsigned channel);**
+**uint32_t channel_g(uint32_t ***channel***);**
 
-**unsigned channel_b(unsigned channel);**
+**uint32_t channel_b(uint32_t ***channel***);**
 
-**unsigned channel_rgb8(unsigned channel, unsigned* restrict r, unsigned* restrict g, unsigned* restrict b);**
+**uint32_t channel_rgb8(uint32_t channel, uint32_t* restrict ***r***, uint32_t* restrict ***g***, uint32_t* restrict ***b***);**
 
-**int channel_set_rgb8(unsigned* channel, int r, int g, int b);**
+**int channel_set_rgb8(uint32_t* channel, int ***r***, int ***g***, int ***b***);**
 
-**int channel_set(unsigned* channel, unsigned rgb);**
+**int channel_set(uint32_t* channel, uint32_t rg***b***);**
 
-**unsigned channel_alpha(unsigned channel);**
+**uint32_t channel_alpha(uint32_t ***channel***);**
 
-**int channel_set_alpha(unsigned* channel, int alpha);**
+**int channel_set_alpha(uint32_t* ***channel***, unsigned ***alpha***);**
 
-**bool channel_default_p(unsigned channel);**
+**bool channel_default_p(uint32_t ***channel***);**
 
-**unsigned channel_set_default(unsigned* channel);**
+**uint32_t channel_set_default(uint32_t* ***channel***);**
 
-**unsigned channels_bchannel(uint64_t channels);**
+**unsigned channels_bchannel(uint64_t ***channels***);**
 
-**unsigned channels_fchannel(uint64_t channels);**
+**unsigned channels_fchannel(uint64_t ***channels***);**
 
-**uint64_t channels_set_bchannel(uint64_t* channels, uint32_t channel);**
+**uint64_t channels_set_bchannel(uint64_t* ***channels***, uint32_t ***channel***);**
 
-**uint64_t channels_set_fchannel(uint64_t* channels, uint32_t channel);**
+**uint64_t channels_set_fchannel(uint64_t* ***channels***, uint32_t ***channel***);**
 
-**unsigned channels_fg_rgb(uint64_t channels);**
+**unsigned channels_fg_rgb(uint64_t ***channels***);**
 
-**unsigned channels_bg_rgb(uint64_t channels);**
+**unsigned channels_bg_rgb(uint64_t ***channels***);**
 
-**unsigned channels_fg_alpha(uint64_t channels);**
+**unsigned channels_fg_alpha(uint64_t ***channels***);**
 
-**unsigned channels_bg_alpha(uint64_t channels);**
+**unsigned channels_bg_alpha(uint64_t ***channels***);**
 
-**unsigned channels_fg_rgb8(uint64_t channels, unsigned* r, unsigned* g, unsigned* b);**
+**unsigned channels_fg_rgb8(uint64_t ***channels***, unsigned* ***r***, unsigned* ***g***, unsigned* ***b***);**
 
-**unsigned channels_bg_rgb8(uint64_t channels, unsigned* r, unsigned* g, unsigned* b);**
+**unsigned channels_bg_rgb8(uint64_t ***channels***, unsigned* ***r***, unsigned* ***g***, unsigned* ***b***);**
 
-**int channels_set_fg_rgb8(uint64_t* channels, int r, int g, int b);**
+**int channels_set_fg_rgb8(uint64_t* ***channels***, int ***r***, int ***g***, int ***b***);**
 
-**int channels_set_bg_rgb8(uint64_t* channels, int r, int g, int b);**
+**int channels_set_bg_rgb8(uint64_t* ***channels***, int ***r***, int ***g***, int ***b***);**
 
-**int channels_set_fg_rgb(uint64_t* channels, unsigned rgb);**
+**int channels_set_fg_rgb(uint64_t* ***channels***, unsigned ***rgb***);**
 
-**int channels_set_bg_rgb(uint64_t* channels, unsigned rgb);**
+**int channels_set_bg_rgb(uint64_t* ***channels***, unsigned ***rgb***);**
 
-**int channels_set_fg_alpha(uint64_t* channels, int alpha);**
+**int channels_set_fg_alpha(uint64_t* ***channels***, int ***alpha***);**
 
-**int channels_set_bg_alpha(uint64_t* channels, int alpha);**
+**int channels_set_bg_alpha(uint64_t* ***channels***, int ***alpha***);**
 
-**bool channels_fg_default_p(uint64_t channels);**
+**bool channels_fg_default_p(uint64_t ***channels***);**
 
-**bool channels_bg_default_p(uint64_t channels);**
+**bool channels_bg_default_p(uint64_t ***channels***);**
 
-**uint64_t channels_set_fg_default(uint64_t* channels);**
+**uint64_t channels_set_fg_default(uint64_t* ***channels***);**
 
-**uint64_t channels_set_bg_default(uint64_t* channels);**
-
-**unsigned channels_blend(unsigned c1, unsigned c2, unsigned blends);**
+**uint64_t channels_set_bg_default(uint64_t* ***channels***);**
 
 # DESCRIPTION
 
