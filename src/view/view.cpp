@@ -148,6 +148,18 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
       marsh->blitter = static_cast<ncblitter_e>(keyp - '0');
       vopts->blitter = marsh->blitter;
       continue;
+    }else if(keyp == NCKey::Up){
+      // FIXME
+      continue;
+    }else if(keyp == NCKey::Down){
+      // FIXME
+      continue;
+    }else if(keyp == NCKey::Right){
+      // FIXME
+      continue;
+    }else if(keyp == NCKey::Left){
+      // FIXME
+      continue;
     }
     return 1;
   }while(gotinput);
