@@ -39,11 +39,14 @@
 // ncdirect_styles_set
 // ncdirect_vline_interp
 
-use crate as nc;
-use nc::types::{NcDirect, NcDirectFlags};
+use crate::{
+    bindgen::_IO_FILE,
+    ncdirect_init,
+    types::{NcDirect, NcDirectFlags},
+};
 
 extern "C" {
-    fn libc_stdout() -> *mut nc::_IO_FILE;
+    fn libc_stdout() -> *mut _IO_FILE;
 }
 
 /// A simple ncdirect_init() wrapper using the default options.
@@ -66,5 +69,5 @@ pub unsafe fn ncdirect_new() -> *mut NcDirect {
 /// - NCDIRECT_OPTION_INHIBIT_SETLOCALE
 ///
 pub unsafe fn ncdirect_with_flags(flags: NcDirectFlags) -> *mut NcDirect {
-    nc::ncdirect_init(core::ptr::null(), libc_stdout(), flags)
+    ncdirect_init(core::ptr::null(), libc_stdout(), flags)
 }

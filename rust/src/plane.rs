@@ -155,10 +155,19 @@ use core::ptr::null_mut;
 use cstr_core::CString;
 use libc::free;
 
-use crate as nc;
-use nc::types::{
-    AlphaBits, Cell, Channel, ChannelPair, Color, EGCBackstop, IntResult, NcAlign, NcPlane,
-    StyleMask,
+use crate::{
+    bindgen::__va_list_tag,
+    cell_load, cell_release, cells_double_box, cells_rounded_box, channels_bchannel,
+    channels_bg_alpha, channels_bg_default_p, channels_bg_rgb, channels_bg_rgb8, channels_fchannel,
+    channels_fg_alpha, channels_fg_default_p, channels_fg_rgb, channels_fg_rgb8, ncplane_at_cursor,
+    ncplane_at_yx, ncplane_box, ncplane_channels, ncplane_cursor_move_yx, ncplane_cursor_yx,
+    ncplane_dim_yx, ncplane_gradient, ncplane_hline_interp, ncplane_putc_yx, ncplane_putegc_yx,
+    ncplane_putnstr_yx, ncplane_putstr_yx, ncplane_resize, ncplane_vline_interp,
+    ncplane_vprintf_yx, notcurses_align,
+    types::{
+        AlphaBits, Cell, Channel, Channels, Color, EgcBackstop, IntResult, NcAlign, NcPlane,
+        StyleMask,
+    },
 };
 
 /// Return the column at which 'cols' columns ought start in order to be aligned
@@ -168,18 +177,18 @@ use nc::types::{
 // NOTE: [leave cols as i32](https://github.com/dankamongmen/notcurses/issues/904)
 #[inline]
 pub fn ncplane_align(plane: &NcPlane, align: NcAlign, cols: i32) -> i32 {
-    nc::notcurses_align(nc::ncplane_dim_x(plane), align, cols)
+    notcurses_align(ncplane_dim_x(plane), align, cols)
 }
 
 /// Retrieve the current contents of the cell under the cursor into 'cell'.
 /// This cell is invalidated if the associated plane is destroyed.
 #[inline]
 pub fn nplane_at_cursor_cell(plane: &mut NcPlane, cell: &mut Cell) -> IntResult {
-    let mut egc = unsafe { nc::ncplane_at_cursor(plane, &mut cell.stylemask, &mut cell.channels) };
+    let mut egc = unsafe { ncplane_at_cursor(plane, &mut cell.stylemask, &mut cell.channels) };
     if egc.is_null() {
         return -1;
     }
-    let result: IntResult = unsafe { nc::cell_load(plane, cell, egc) };
+    let result: IntResult = unsafe { cell_load(plane, cell, egc) };
     if result < 0 {
         unsafe {
             free(&mut egc as *mut _ as *mut c_void);
@@ -192,13 +201,12 @@ pub fn nplane_at_cursor_cell(plane: &mut NcPlane, cell: &mut Cell) -> IntResult 
 /// This cell is invalidated if the associated plane is destroyed.
 #[inline]
 pub fn ncplane_at_yx_cell(plane: &mut NcPlane, y: i32, x: i32, cell: &mut Cell) -> IntResult {
-    let mut egc =
-        unsafe { nc::ncplane_at_yx(plane, y, x, &mut cell.stylemask, &mut cell.channels) };
+    let mut egc = unsafe { ncplane_at_yx(plane, y, x, &mut cell.stylemask, &mut cell.channels) };
     if egc.is_null() {
         return -1;
     }
     let channels = cell.channels; // need to preserve wide flag
-    let result: IntResult = unsafe { nc::cell_load(plane, cell, egc) };
+    let result: IntResult = unsafe { cell_load(plane, cell, egc) };
     cell.channels = channels;
     unsafe {
         free(&mut egc as *mut _ as *mut c_void);
@@ -224,8 +232,8 @@ pub fn ncplane_box_sized(
 ) -> IntResult {
     let (mut y, mut x) = (0, 0);
     unsafe {
-        nc::ncplane_cursor_yx(plane, &mut y, &mut x);
-        nc::ncplane_box(
+        ncplane_cursor_yx(plane, &mut y, &mut x);
+        ncplane_box(
             plane,
             ul,
             ur,
@@ -245,7 +253,7 @@ pub fn ncplane_box_sized(
 pub fn ncplane_dim_x(plane: &NcPlane) -> i32 {
     unsafe {
         let mut x = 0;
-        nc::ncplane_dim_yx(plane, null_mut(), &mut x);
+        ncplane_dim_yx(plane, null_mut(), &mut x);
         x
     }
 }
@@ -255,7 +263,7 @@ pub fn ncplane_dim_x(plane: &NcPlane) -> i32 {
 pub fn ncplane_dim_y(plane: &NcPlane) -> i32 {
     unsafe {
         let mut y = 0;
-        nc::ncplane_dim_yx(plane, &mut y, null_mut());
+        ncplane_dim_yx(plane, &mut y, null_mut());
         y
     }
 }
@@ -265,7 +273,7 @@ pub fn ncplane_dim_y(plane: &NcPlane) -> i32 {
 pub fn ncplane_double_box(
     plane: &mut NcPlane,
     stylemask: StyleMask,
-    channels: ChannelPair,
+    channels: Channels,
     ystop: i32,
     xstop: i32,
     ctlword: u32,
@@ -281,7 +289,7 @@ pub fn ncplane_double_box(
     let mut vl = cell_trivial_initializer![];
 
     unsafe {
-        ret = nc::cells_double_box(
+        ret = cells_double_box(
             plane,
             stylemask as u32,
             channels,
@@ -293,15 +301,15 @@ pub fn ncplane_double_box(
             &mut vl,
         );
         if ret == 0 {
-            ret = nc::ncplane_box(plane, &ul, &ur, &ll, &lr, &hl, &vl, ystop, xstop, ctlword);
+            ret = ncplane_box(plane, &ul, &ur, &ll, &lr, &hl, &vl, ystop, xstop, ctlword);
         }
 
-        nc::cell_release(plane, &mut ul);
-        nc::cell_release(plane, &mut ur);
-        nc::cell_release(plane, &mut ll);
-        nc::cell_release(plane, &mut lr);
-        nc::cell_release(plane, &mut hl);
-        nc::cell_release(plane, &mut vl);
+        cell_release(plane, &mut ul);
+        cell_release(plane, &mut ur);
+        cell_release(plane, &mut ll);
+        cell_release(plane, &mut lr);
+        cell_release(plane, &mut hl);
+        cell_release(plane, &mut vl);
     }
     ret
 }
@@ -311,14 +319,14 @@ pub fn ncplane_double_box(
 pub fn ncplane_double_box_sized(
     plane: &mut NcPlane,
     stylemask: StyleMask,
-    channels: ChannelPair,
+    channels: Channels,
     ylen: i32,
     xlen: i32,
     ctlword: u32,
 ) -> IntResult {
     let (mut y, mut x) = (0, 0);
     unsafe {
-        nc::ncplane_cursor_yx(plane, &mut y, &mut x);
+        ncplane_cursor_yx(plane, &mut y, &mut x);
     }
     ncplane_double_box(
         plane,
@@ -333,7 +341,7 @@ pub fn ncplane_double_box_sized(
 /// On error, return the negative number of cells drawn.
 #[inline]
 pub fn ncplane_hline(plane: &mut NcPlane, cell: &Cell, len: i32) -> i32 {
-    unsafe { nc::ncplane_hline_interp(plane, cell, len, cell.channels, cell.channels) }
+    unsafe { ncplane_hline_interp(plane, cell, len, cell.channels, cell.channels) }
 }
 
 ///
@@ -349,9 +357,9 @@ pub fn ncplane_perimeter(
     ctlword: u32,
 ) -> IntResult {
     unsafe {
-        nc::ncplane_cursor_move_yx(plane, 0, 0);
+        ncplane_cursor_move_yx(plane, 0, 0);
         let (mut dimy, mut dimx) = (0, 0);
-        nc::ncplane_dim_yx(plane, &mut dimy, &mut dimx);
+        ncplane_dim_yx(plane, &mut dimy, &mut dimx);
         ncplane_box_sized(plane, ul, ur, ll, lr, hline, vline, dimy, dimx, ctlword)
     }
 }
@@ -361,15 +369,15 @@ pub fn ncplane_perimeter(
 pub fn ncplane_perimeter_double(
     plane: &mut NcPlane,
     stylemask: StyleMask,
-    channels: ChannelPair,
+    channels: Channels,
     ctlword: u32,
 ) -> IntResult {
-    if unsafe { nc::ncplane_cursor_move_yx(plane, 0, 0) } != 0 {
+    if unsafe { ncplane_cursor_move_yx(plane, 0, 0) } != 0 {
         return -1;
     }
     let (mut dimy, mut dimx) = (0, 0);
     unsafe {
-        nc::ncplane_dim_yx(plane, &mut dimy, &mut dimx);
+        ncplane_dim_yx(plane, &mut dimy, &mut dimx);
     }
     let mut ul = cell_trivial_initializer![];
     let mut ur = cell_trivial_initializer![];
@@ -378,7 +386,7 @@ pub fn ncplane_perimeter_double(
     let mut hl = cell_trivial_initializer![];
     let mut vl = cell_trivial_initializer![];
     if unsafe {
-        nc::cells_double_box(
+        cells_double_box(
             plane,
             stylemask as u32,
             channels,
@@ -395,12 +403,12 @@ pub fn ncplane_perimeter_double(
     }
     let ret = ncplane_box_sized(plane, &ul, &ur, &ll, &lr, &hl, &vl, dimy, dimx, ctlword);
     unsafe {
-        nc::cell_release(plane, &mut ul);
-        nc::cell_release(plane, &mut ur);
-        nc::cell_release(plane, &mut ll);
-        nc::cell_release(plane, &mut lr);
-        nc::cell_release(plane, &mut hl);
-        nc::cell_release(plane, &mut vl);
+        cell_release(plane, &mut ul);
+        cell_release(plane, &mut ur);
+        cell_release(plane, &mut ll);
+        cell_release(plane, &mut lr);
+        cell_release(plane, &mut hl);
+        cell_release(plane, &mut vl);
     }
     ret
 }
@@ -410,15 +418,15 @@ pub fn ncplane_perimeter_double(
 pub fn ncplane_perimeter_rounded(
     plane: &mut NcPlane,
     stylemask: StyleMask,
-    channels: ChannelPair,
+    channels: Channels,
     ctlword: u32,
 ) -> IntResult {
-    if unsafe { nc::ncplane_cursor_move_yx(plane, 0, 0) } != 0 {
+    if unsafe { ncplane_cursor_move_yx(plane, 0, 0) } != 0 {
         return -1;
     }
     let (mut dimy, mut dimx) = (0, 0);
     unsafe {
-        nc::ncplane_dim_yx(plane, &mut dimy, &mut dimx);
+        ncplane_dim_yx(plane, &mut dimy, &mut dimx);
     }
     let mut ul = cell_trivial_initializer![];
     let mut ur = cell_trivial_initializer![];
@@ -427,7 +435,7 @@ pub fn ncplane_perimeter_rounded(
     let mut hl = cell_trivial_initializer![];
     let mut vl = cell_trivial_initializer![];
     if unsafe {
-        nc::cells_rounded_box(
+        cells_rounded_box(
             plane,
             stylemask as u32,
             channels,
@@ -444,12 +452,12 @@ pub fn ncplane_perimeter_rounded(
     }
     let ret = ncplane_box_sized(plane, &ul, &ur, &ll, &lr, &hl, &vl, dimy, dimx, ctlword);
     unsafe {
-        nc::cell_release(plane, &mut ul);
-        nc::cell_release(plane, &mut ur);
-        nc::cell_release(plane, &mut ll);
-        nc::cell_release(plane, &mut lr);
-        nc::cell_release(plane, &mut hl);
-        nc::cell_release(plane, &mut vl);
+        cell_release(plane, &mut ul);
+        cell_release(plane, &mut ur);
+        cell_release(plane, &mut ll);
+        cell_release(plane, &mut lr);
+        cell_release(plane, &mut hl);
+        cell_release(plane, &mut vl);
     }
     ret
 }
@@ -457,20 +465,20 @@ pub fn ncplane_perimeter_rounded(
 /// Call ncplane_putc_yx() for the current cursor location.
 #[inline]
 pub fn ncplane_putc(plane: &mut NcPlane, cell: &Cell) -> IntResult {
-    unsafe { nc::ncplane_putc_yx(plane, -1, -1, cell) }
+    unsafe { ncplane_putc_yx(plane, -1, -1, cell) }
 }
 
 /// Call ncplane_putegc() at the current cursor location.
 #[inline]
 pub fn ncplane_putegc(plane: &mut NcPlane, gcluster: i8, sbytes: &mut i32) -> IntResult {
-    unsafe { nc::ncplane_putegc_yx(plane, -1, -1, &gcluster, sbytes) }
+    unsafe { ncplane_putegc_yx(plane, -1, -1, &gcluster, sbytes) }
 }
 
 ///
 #[inline]
 pub fn ncplane_putstr(plane: &mut NcPlane, gclustarr: &[u8]) -> IntResult {
     unsafe {
-        nc::ncplane_putstr_yx(
+        ncplane_putstr_yx(
             plane,
             -1,
             -1,
@@ -483,7 +491,7 @@ pub fn ncplane_putstr(plane: &mut NcPlane, gclustarr: &[u8]) -> IntResult {
 #[inline]
 pub fn ncplane_putnstr(plane: &mut NcPlane, size: u64, gclustarr: &[u8]) -> IntResult {
     unsafe {
-        nc::ncplane_putnstr_yx(
+        ncplane_putnstr_yx(
             plane,
             -1,
             -1,
@@ -499,7 +507,7 @@ pub fn ncplane_putnstr(plane: &mut NcPlane, size: u64, gclustarr: &[u8]) -> IntR
 pub fn ncplane_resize_simple(plane: &mut NcPlane, ylen: i32, xlen: i32) -> IntResult {
     let (mut oldy, mut oldx) = (0, 0);
     unsafe {
-        nc::ncplane_dim_yx(plane, &mut oldy, &mut oldx);
+        ncplane_dim_yx(plane, &mut oldy, &mut oldx);
     }
     let keepleny = {
         if oldy > ylen {
@@ -515,21 +523,21 @@ pub fn ncplane_resize_simple(plane: &mut NcPlane, ylen: i32, xlen: i32) -> IntRe
             oldx
         }
     };
-    unsafe { nc::ncplane_resize(plane, 0, 0, keepleny, keeplenx, 0, 0, ylen, xlen) }
+    unsafe { ncplane_resize(plane, 0, 0, keepleny, keeplenx, 0, 0, ylen, xlen) }
 }
 
 ///
 /// On error, return the negative number of cells drawn.
 #[inline]
 pub fn ncplane_vline(plane: &mut NcPlane, cell: &Cell, len: i32) -> i32 {
-    unsafe { nc::ncplane_vline_interp(plane, cell, len, cell.channels, cell.channels) }
+    unsafe { ncplane_vline_interp(plane, cell, len, cell.channels, cell.channels) }
 }
 
 ///
 #[inline]
-pub fn ncplane_vprintf(plane: &mut NcPlane, format: &str, ap: &mut nc::__va_list_tag) -> IntResult {
+pub fn ncplane_vprintf(plane: &mut NcPlane, format: &str, ap: &mut __va_list_tag) -> IntResult {
     unsafe {
-        nc::ncplane_vprintf_yx(
+        ncplane_vprintf_yx(
             plane,
             -1,
             -1,
@@ -560,8 +568,8 @@ pub fn ncplane_gradient_sized(
     }
     let (mut y, mut x) = (0, 0);
     unsafe {
-        nc::ncplane_cursor_yx(plane, &mut y, &mut x);
-        nc::ncplane_gradient(
+        ncplane_cursor_yx(plane, &mut y, &mut x);
+        ncplane_gradient(
             plane,
             CString::new(egc).expect("Bad EGC").as_ptr(),
             stylemask as u32,
@@ -578,49 +586,49 @@ pub fn ncplane_gradient_sized(
 /// Extract the 32-bit working foreground channel from an ncplane.
 #[inline]
 pub fn ncplane_fchannel(plane: &NcPlane) -> Channel {
-    nc::channels_fchannel(unsafe { nc::ncplane_channels(plane) })
+    channels_fchannel(unsafe { ncplane_channels(plane) })
 }
 
 /// Extract the 32-bit working background channel from an ncplane.
 #[inline]
 pub fn ncplane_bchannel(plane: &NcPlane) -> Channel {
-    nc::channels_bchannel(unsafe { nc::ncplane_channels(plane) })
+    channels_bchannel(unsafe { ncplane_channels(plane) })
 }
 
 /// Extract 24 bits of working foreground RGB from an ncplane, shifted to LSBs.
 #[inline]
 pub fn ncplane_fg_rgb(plane: &NcPlane) -> Channel {
-    nc::channels_fg_rgb(unsafe { nc::ncplane_channels(plane) })
+    channels_fg_rgb(unsafe { ncplane_channels(plane) })
 }
 
 /// Extract 24 bits of working background RGB from an ncplane, shifted to LSBs.
 #[inline]
 pub fn ncplane_bg_rgb(plane: &NcPlane) -> Channel {
-    nc::channels_bg_rgb(unsafe { nc::ncplane_channels(plane) })
+    channels_bg_rgb(unsafe { ncplane_channels(plane) })
 }
 
 /// Extract 2 bits of foreground alpha from 'struct ncplane', shifted to LSBs.
 #[inline]
 pub fn ncplane_fg_alpha(plane: &NcPlane) -> AlphaBits {
-    nc::channels_fg_alpha(unsafe { nc::ncplane_channels(plane) })
+    channels_fg_alpha(unsafe { ncplane_channels(plane) })
 }
 
 /// Extract 2 bits of background alpha from 'struct ncplane', shifted to LSBs.
 #[inline]
 pub fn ncplane_bg_alpha(plane: &NcPlane) -> AlphaBits {
-    nc::channels_bg_alpha(unsafe { nc::ncplane_channels(plane) })
+    channels_bg_alpha(unsafe { ncplane_channels(plane) })
 }
 
 /// Is the plane's foreground using the "default foreground color"?
 #[inline]
 pub fn ncplane_fg_default_p(plane: &NcPlane) -> bool {
-    nc::channels_fg_default_p(unsafe { nc::ncplane_channels(plane) })
+    channels_fg_default_p(unsafe { ncplane_channels(plane) })
 }
 
 /// Is the plane's background using the "default background color"?
 #[inline]
 pub fn ncplane_bg_default_p(plane: &NcPlane) -> bool {
-    nc::channels_bg_default_p(unsafe { nc::ncplane_channels(plane) })
+    channels_bg_default_p(unsafe { ncplane_channels(plane) })
 }
 
 /// Extract 24 bits of foreground RGB from a plane, split into components.
@@ -631,7 +639,7 @@ pub fn ncplane_fg_rgb8(
     green: &mut Color,
     blue: &mut Color,
 ) -> Channel {
-    nc::channels_fg_rgb8(unsafe { nc::ncplane_channels(plane) }, red, green, blue)
+    channels_fg_rgb8(unsafe { ncplane_channels(plane) }, red, green, blue)
 }
 
 /// Extract 24 bits of background RGB from a plane, split into components.
@@ -642,7 +650,7 @@ pub fn ncplane_bg_rgb8(
     green: &mut Color,
     blue: &mut Color,
 ) -> Channel {
-    nc::channels_bg_rgb8(unsafe { nc::ncplane_channels(plane) }, red, green, blue)
+    channels_bg_rgb8(unsafe { ncplane_channels(plane) }, red, green, blue)
 }
 
 ///
@@ -650,7 +658,7 @@ pub fn ncplane_bg_rgb8(
 pub fn ncplane_rounded_box(
     plane: &mut NcPlane,
     stylemask: StyleMask,
-    channels: ChannelPair,
+    channels: Channels,
     ystop: i32,
     xstop: i32,
     ctlword: u32,
@@ -666,7 +674,7 @@ pub fn ncplane_rounded_box(
     let mut vl = cell_trivial_initializer![];
 
     unsafe {
-        ret = nc::cells_rounded_box(
+        ret = cells_rounded_box(
             plane,
             stylemask as u32,
             channels,
@@ -678,15 +686,15 @@ pub fn ncplane_rounded_box(
             &mut vl,
         );
         if ret == 0 {
-            ret = nc::ncplane_box(plane, &ul, &ur, &ll, &lr, &hl, &vl, ystop, xstop, ctlword);
+            ret = ncplane_box(plane, &ul, &ur, &ll, &lr, &hl, &vl, ystop, xstop, ctlword);
         }
 
-        nc::cell_release(plane, &mut ul);
-        nc::cell_release(plane, &mut ur);
-        nc::cell_release(plane, &mut ll);
-        nc::cell_release(plane, &mut lr);
-        nc::cell_release(plane, &mut hl);
-        nc::cell_release(plane, &mut vl);
+        cell_release(plane, &mut ul);
+        cell_release(plane, &mut ur);
+        cell_release(plane, &mut ll);
+        cell_release(plane, &mut lr);
+        cell_release(plane, &mut hl);
+        cell_release(plane, &mut vl);
     }
     ret
 }
@@ -696,14 +704,14 @@ pub fn ncplane_rounded_box(
 pub fn ncplane_rounded_box_sized(
     plane: &mut NcPlane,
     stylemask: StyleMask,
-    channels: ChannelPair,
+    channels: Channels,
     ylen: i32,
     xlen: i32,
     ctlword: u32,
 ) -> IntResult {
     let (mut y, mut x) = (0, 0);
     unsafe {
-        nc::ncplane_cursor_yx(plane, &mut y, &mut x);
+        ncplane_cursor_yx(plane, &mut y, &mut x);
     }
     ncplane_rounded_box(
         plane,

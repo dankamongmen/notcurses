@@ -1,6 +1,7 @@
-//! Curated re-exports of the bindgen generated bindings,
+//! Curated re-exports of the `bindgen` bindings
 //!
-//! The full list of bindings is under the bindgen submodule
+//! The full list of bindings is under the
+//! [`bindgen`](../bindgen/index.html) submodule
 //!
 //
 // WARNING: DO NOT EXECUTE RUSTFMT ON THIS FILE.
@@ -10,57 +11,43 @@
 // [clippy & bindgen](https://github.com/rust-lang/rust-bindgen/issues/1470)
 #[allow(clippy::all)]
 pub mod bindgen {
+    //! Automatically generated Rust FFI bindings
+    //!
+    //! All of the notcurses functions and some of the constants are reexported
+    //! by the [`bindings`](../bindings/index.html) module.
+    //! While the structs, enums and some other constants are type aliased in
+    //! the [`types`](../types/index.html) module, in order to follow the
+    //! Rust API Guidelines as much as possible.
+    //!
     include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 }
 
 // Miscellaneous ---------------------------------------------------------------
+
 #[doc(inline)]
 pub use bindgen::{
     // structs
     _IO_FILE,
     __va_list_tag,
-
-    // functions
     timespec,
 };
 
-// align -----------------------------------------------------------------------
-#[doc(inline)]
-pub use bindgen::{
-    // type definitions
-    ncalign_e,
+// blitset ---------------------------------------------------------------------
 
-    // constants
-    ncalign_e_NCALIGN_CENTER,
-    ncalign_e_NCALIGN_LEFT,
-    ncalign_e_NCALIGN_RIGHT,
-    ncalign_e_NCALIGN_UNALIGNED,
-};
-
-// ncblit  ---------------------------------------------------------------------
-#[doc(inline)]
-pub use bindgen::{
-    // type definitions
-    ncblitter_e,
-
-    // constants
-    ncblitter_e_NCBLIT_1x1,
-    ncblitter_e_NCBLIT_2x1,
-    ncblitter_e_NCBLIT_2x2,
-    ncblitter_e_NCBLIT_3x2,
-    ncblitter_e_NCBLIT_4x1,
-    ncblitter_e_NCBLIT_8x1,
-    ncblitter_e_NCBLIT_BRAILLE,
-    ncblitter_e_NCBLIT_DEFAULT,
-    ncblitter_e_NCBLIT_SIXEL,
+pub(crate) use bindgen::{
+    // structs
+    blitset
 };
 
 // cell ------------------------------------------------------------------------
-#[doc(inline)]
-pub use bindgen::{
+
+pub(crate) use bindgen::{
     // structs
     cell,
+};
 
+#[doc(inline)]
+pub use bindgen::{
     // functions
     cell_duplicate,
     cell_extended_gcluster,
@@ -87,13 +74,46 @@ pub use bindgen::{
 };
 
 // channel ---------------------------------------------------------------------
+
 #[doc(inline)]
 pub use bindgen::{
     // constants
     CHANNEL_ALPHA_MASK
 };
 
+// ncalign ---------------------------------------------------------------------
+
+pub(crate) use bindgen::{
+    // type definitions
+    ncalign_e,
+
+    // constants
+    ncalign_e_NCALIGN_CENTER,
+    ncalign_e_NCALIGN_LEFT,
+    ncalign_e_NCALIGN_RIGHT,
+    ncalign_e_NCALIGN_UNALIGNED,
+};
+
+// ncblitter -------------------------------------------------------------------
+
+pub(crate) use bindgen::{
+    // type definitions
+    ncblitter_e,
+
+    // constants
+    ncblitter_e_NCBLIT_1x1,
+    ncblitter_e_NCBLIT_2x1,
+    ncblitter_e_NCBLIT_2x2,
+    ncblitter_e_NCBLIT_3x2,
+    ncblitter_e_NCBLIT_4x1,
+    ncblitter_e_NCBLIT_8x1,
+    ncblitter_e_NCBLIT_BRAILLE,
+    ncblitter_e_NCBLIT_DEFAULT,
+    ncblitter_e_NCBLIT_SIXEL,
+};
+
 // ncbox -----------------------------------------------------------------------
+
 #[doc(inline)]
 pub use bindgen::{
     // constants
@@ -110,11 +130,14 @@ pub use bindgen::{
 };
 
 // ncdirect --------------------------------------------------------------------
-#[doc(inline)]
-pub use bindgen::{
+
+pub(crate) use bindgen::{
     // structs
     ncdirect,
+};
 
+#[doc(inline)]
+pub use bindgen::{
     // functions
     ncdirect_bg_default,
     ncdirect_bg_palindex,
@@ -162,11 +185,14 @@ pub use bindgen::{
 
 
 // ncfadectx -------------------------------------------------------------------
-#[doc(inline)]
-pub use bindgen::{
+
+pub(crate) use bindgen::{
     // structs
     ncfadectx,
+};
 
+#[doc(inline)]
+pub use bindgen::{
     // functions
     ncfadectx_free,
     ncfadectx_iterations,
@@ -174,15 +200,15 @@ pub use bindgen::{
 };
 
 // ncinput ---------------------------------------------------------------------
-#[doc(inline)]
-pub use bindgen::{
+
+pub(crate) use bindgen::{
     // structs
     ncinput,
 };
 
 // ncloglevel ------------------------------------------------------------------
-#[doc(inline)]
-pub use bindgen::{
+
+pub(crate) use bindgen::{
     // type definitions
     ncloglevel_e,
 
@@ -199,12 +225,15 @@ pub use bindgen::{
 };
 
 // ncfdplane -------------------------------------------------------------------
-#[doc(inline)]
-pub use bindgen::{
+
+pub(crate) use bindgen::{
     // structs
     ncfdplane,
     ncfdplane_options,
+};
 
+#[doc(inline)]
+pub use bindgen::{
     // functions
     ncfdplane_create,
     ncfdplane_destroy,
@@ -212,13 +241,17 @@ pub use bindgen::{
 };
 
 // ncmenu ----------------------------------------------------------------------
-#[doc(inline)]
-pub use bindgen::{
+
+pub(crate) use bindgen::{
+    // structs
     ncmenu,
     ncmenu_item,
     ncmenu_options,
     ncmenu_section,
+};
 
+#[doc(inline)]
+pub use bindgen::{
     // functions
     ncmenu_create,
     ncmenu_destroy,
@@ -239,21 +272,25 @@ pub use bindgen::{
     NCMENU_OPTION_HIDING,
 };
 
-// ncmetric
+// ncmetric --------------------------------------------------------------------
+
 #[doc(inline)]
 pub use bindgen::{
     // structs
     ncmetric
 };
 
-// ncmultiselector
-#[doc(inline)]
-pub use bindgen::{
+// ncmultiselector -------------------------------------------------------------
+
+pub(crate) use bindgen::{
     // structs
     ncmultiselector,
     ncmselector_item,
     ncmultiselector_options,
+};
 
+#[doc(inline)]
+pub use bindgen::{
     // functions
     ncmultiselector_create,
     ncmultiselector_destroy,
@@ -262,11 +299,15 @@ pub use bindgen::{
     ncmultiselector_selected,
 };
 
-// ncplane
+// ncplane ---------------------------------------------------------------------
+
+pub(crate) use bindgen::{
+    // structs
+    ncplane,
+};
+
 #[doc(inline)]
 pub use bindgen::{
-    ncplane,
-
     // functions
     ncplane_above,
     ncplane_at_cursor,
@@ -370,14 +411,17 @@ pub use bindgen::{
     NCPLANE_OPTION_HORALIGNED,
 };
 
-// ncplot
-#[doc(inline)]
-pub use bindgen::{
+// ncplot ----------------------------------------------------------------------
+
+pub(crate) use bindgen::{
     // structs
     ncdplot, // f64
     ncuplot, // u64
     ncplot_options,
+};
 
+#[doc(inline)]
+pub use bindgen::{
     // functions
     ncdplot_add_sample,
     ncdplot_create,
@@ -401,12 +445,16 @@ pub use bindgen::{
     NCPLOT_OPTION_VERTICALI,
 };
 
-// ncreader
-#[doc(inline)]
-pub use bindgen::{
+// ncreader --------------------------------------------------------------------
+
+pub(crate) use bindgen::{
+    // structs
     ncreader,
     ncreader_options,
+};
 
+#[doc(inline)]
+pub use bindgen::{
     // functions
     ncreader_clear,
     ncreader_contents,
@@ -427,12 +475,16 @@ pub use bindgen::{
     NCREADER_OPTION_VERSCROLL,
 };
 
-// ncreel
-#[doc(inline)]
-pub use bindgen::{
+// ncreel ----------------------------------------------------------------------
+
+pub(crate) use bindgen::{
+    // structs
     ncreel,
     ncreel_options,
+};
 
+#[doc(inline)]
+pub use bindgen::{
     // functions
     ncreel_add,
     ncreel_create,
@@ -451,9 +503,9 @@ pub use bindgen::{
     NCREEL_OPTION_INFINITESCROLL,
 };
 
-// ncscale
-#[doc(inline)]
-pub use bindgen::{
+// ncscale ---------------------------------------------------------------------
+
+pub(crate) use bindgen::{
     // type definitions
     ncscale_e,
 
@@ -464,13 +516,16 @@ pub use bindgen::{
 };
 
 // ncselector ------------------------------------------------------------------
-#[doc(inline)]
-pub use bindgen::{
+
+pub(crate) use bindgen::{
     // structs
     ncselector,
     ncselector_item,
     ncselector_options,
+};
 
+#[doc(inline)]
+pub use bindgen::{
     // functions
     ncselector_additem,
     ncselector_create,
@@ -484,13 +539,14 @@ pub use bindgen::{
 };
 
 // ncstats ---------------------------------------------------------------------
-#[doc(inline)]
-pub use bindgen::{
+
+pub(crate) use bindgen::{
     // structs
     ncstats,
 };
 
 // ncstyle ---------------------------------------------------------------------
+
 #[doc(inline)]
 pub use bindgen::{
     // constants
@@ -508,11 +564,14 @@ pub use bindgen::{
 };
 
 // nctablet --------------------------------------------------------------------
-#[doc(inline)]
-pub use bindgen::{
+
+pub(crate) use bindgen::{
     // structs
     nctablet,
+};
 
+#[doc(inline)]
+pub use bindgen::{
     // functions
     nctablet_ncplane,
     nctablet_plane,
@@ -520,12 +579,15 @@ pub use bindgen::{
 };
 
 // ncvisual --------------------------------------------------------------------
-#[doc(inline)]
-pub use bindgen::{
+
+pub(crate) use bindgen::{
     // structs
     ncvisual,
     ncvisual_options,
+};
 
+#[doc(inline)]
+pub use bindgen::{
     // functions
     ncvisual_at_yx,
     ncvisual_decode,
@@ -547,12 +609,15 @@ pub use bindgen::{
 };
 
 // notcurses -------------------------------------------------------------------
-#[doc(inline)]
-pub use bindgen::{
+
+pub(crate) use bindgen::{
     // structs
     notcurses,
     notcurses_options,
+};
 
+#[doc(inline)]
+pub use bindgen::{
     // functions
     notcurses_at_yx,
     notcurses_bottom,
@@ -605,11 +670,14 @@ pub use bindgen::{
 };
 
 // palette ---------------------------------------------------------------------
-#[doc(inline)]
-pub use bindgen::{
+
+pub(crate) use bindgen::{
     // structs
     palette256,
+};
 
+#[doc(inline)]
+pub use bindgen::{
     // functions
     palette256_free,
     palette256_new,
@@ -620,13 +688,14 @@ pub use bindgen::{
 };
 
 // sig -------------------------------------------------------------------------
+
 #[doc(inline)]
 pub use bindgen::{
     // type definitions
     sigset_t,
 
     // structs
-    sigaction,
+    //sigaction,
 
     // functions
     sigaddset,

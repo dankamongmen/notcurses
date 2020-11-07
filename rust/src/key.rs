@@ -9,7 +9,7 @@
 //+ nckey_mouse_p
 //+ nckey_supppuab_p
 
-use crate as nc;
+use crate::{NCKEY_BUTTON1, NCKEY_RELEASE};
 
 /// Is this u32 a Supplementary Private Use Area-B codepoint?
 ///
@@ -24,7 +24,7 @@ pub fn nckey_supppuab_p(w: u32) -> bool {
 /// Is the event a synthesized mouse event?
 #[inline]
 pub fn nckey_mouse_p(r: u32) -> bool {
-    r >= nc::NCKEY_BUTTON1 && r <= nc::NCKEY_RELEASE
+    r >= NCKEY_BUTTON1 && r <= NCKEY_RELEASE
 }
 
 #[cfg(test)]

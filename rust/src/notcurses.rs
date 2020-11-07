@@ -54,10 +54,18 @@
 
 use core::ptr::null;
 
-use crate as nc;
-use nc::types::{NcAlign, NcInput, NcPlane, Notcurses, NCALIGN_CENTER, NCALIGN_LEFT};
-
-use nc::timespec; // NOTE: can't use libc::timespec with notcurses_getc(()
+use crate::{
+    // NOTE: can't use libc::timespec nor libc::sigset_t
+    // with notcurses_getc(()
+    bindings::{sigemptyset, sigfillset, sigset_t, timespec},
+    ncplane_dim_yx,
+    notcurses_getc,
+    notcurses_stdplane,
+    notcurses_stdplane_const,
+    types::{NcAlign, NcInput, NcPlane, Notcurses},
+    NCALIGN_CENTER,
+    NCALIGN_LEFT,
+};
 
 /// return the offset into 'availcols' at which 'cols' ought be output given the requirements of 'align'
 #[inline]
@@ -76,16 +84,17 @@ pub fn notcurses_align(availcols: i32, align: NcAlign, cols: i32) -> i32 {
 
 /// 'input' may be NULL if the caller is uninterested in event details.
 /// If no event is ready, returns 0.
+// TODO: use pakr-signals
 #[inline]
 pub fn notcurses_getc_nblock(nc: &mut Notcurses, input: &mut NcInput) -> char {
     unsafe {
-        let mut sigmask = nc::sigset_t { __val: [0; 16] };
-        nc::sigfillset(&mut sigmask);
+        let mut sigmask = sigset_t { __val: [0; 16] };
+        sigfillset(&mut sigmask);
         let ts = timespec {
             tv_sec: 0,
             tv_nsec: 0,
         };
-        core::char::from_u32_unchecked(nc::notcurses_getc(nc, &ts, &mut sigmask, input))
+        core::char::from_u32_unchecked(notcurses_getc(nc, &ts, &mut sigmask, input))
     }
 }
 
@@ -94,9 +103,9 @@ pub fn notcurses_getc_nblock(nc: &mut Notcurses, input: &mut NcInput) -> char {
 #[inline]
 pub fn notcurses_getc_nblocking(nc: &mut Notcurses, input: &mut NcInput) -> char {
     unsafe {
-        let mut sigmask = nc::sigset_t { __val: [0; 16] };
-        nc::sigemptyset(&mut sigmask);
-        core::char::from_u32_unchecked(nc::notcurses_getc(nc, null(), &mut sigmask, input))
+        let mut sigmask = sigset_t { __val: [0; 16] };
+        sigemptyset(&mut sigmask);
+        core::char::from_u32_unchecked(notcurses_getc(nc, null(), &mut sigmask, input))
     }
 }
 
@@ -104,8 +113,8 @@ pub fn notcurses_getc_nblocking(nc: &mut Notcurses, input: &mut NcInput) -> char
 #[inline]
 pub fn notcurses_stddim_yx(nc: &mut Notcurses, y: &mut i32, x: &mut i32) -> NcPlane {
     unsafe {
-        let s = nc::notcurses_stdplane(nc);
-        nc::ncplane_dim_yx(s, y, x);
+        let s = notcurses_stdplane(nc);
+        ncplane_dim_yx(s, y, x);
         *s
     }
 }
@@ -114,13 +123,13 @@ pub fn notcurses_stddim_yx(nc: &mut Notcurses, y: &mut i32, x: &mut i32) -> NcPl
 #[inline]
 pub fn notcurses_term_dim_yx(nc: &Notcurses, rows: &mut i32, cols: &mut i32) {
     unsafe {
-        nc::ncplane_dim_yx(nc::notcurses_stdplane_const(nc), rows, cols);
+        ncplane_dim_yx(notcurses_stdplane_const(nc), rows, cols);
     }
 }
 
 // TODO
 // pub unsafe fn notcurses_new() -> *mut Notcurses {
-//     nc::notcurses_init(core::ptr::null(), libc_stdout())
+//     notcurses_init(core::ptr::null(), libc_stdout())
 // }
 
 #[cfg(test)]
