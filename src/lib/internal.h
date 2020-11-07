@@ -70,15 +70,20 @@ typedef struct ncplane {
   int x, y;              // current cursor location within this plane
   // ncplane_yx() etc. use coordinates relative to the plane to which this
   // plane is bound, but absx/absy are always relative to the terminal origin.
-  // they must thus be translated by any such function.
+  // they must thus be translated by any function which moves a parent plane.
   int absx, absy;        // origin of the plane relative to the screen
   int lenx, leny;        // size of the plane, [0..len{x,y}) is addressable
+  // a notcurses context is made up of stacks, each rooted by a plane which is
+  // bound to no other plane. the main stack is rooted by the standard plane,
+  // and is the only stack which is rendered. each stack has its own z-axis.
   struct ncplane* above; // plane above us, NULL if we're on top
   struct ncplane* below; // plane below us, NULL if we're on bottom
   struct ncplane* bnext; // next in the bound list of plane to which we are bound
   struct ncplane** bprev;// link to us iff we're bound, NULL otherwise
   struct ncplane* blist; // head of list of bound planes
-  struct ncplane* boundto; // plane to which we are bound, if any
+  // a root plane is bound to itself. every other plane has a path to its
+  // stack's root via boundto. the standard plane is always bound to itself.
+  struct ncplane* boundto;
   egcpool pool;          // attached storage pool for UTF-8 EGCs
   uint64_t channels;     // works the same way as cells
   void* userptr;         // slot for the user to stick some opaque pointer
