@@ -8,6 +8,10 @@ rearrangements of Notcurses.
     returned number of cells written, but since these are not directly
     callable by the user, this ought not lead to any user-visible changes.
   * Added (k)eller demo to `notcurses-demo`.
+  * `ncreader` now supports Alt+'b' to move one word back, Alt+'f' to move one
+    word forward, Ctrl+'A' to move to the beginning of the line, and Ctrl+'E'
+    to move to the end of the line (when `NCREADER_OPTION_NOCMDKEYS` is not
+    used).
 
 * 2.0.2 (2020-10-25)
   * Add `ncvisual_decode_loop()`, which returns to the first frame upon

@@ -122,7 +122,7 @@ int ncreader_move_right(ncreader* n){
 //fprintf(stderr, "moving right: tcurs: %dx%d vcurs: %dx%d xproj: %d\n", y, textx, y, viewx, n->xproject);
   if(textx >= n->textarea->lenx - 1){
     // are we on the last column of the textarea? if so, we must also be on
-    // the first column of the viewarea. try to move up.
+    // the first column of the viewarea. try to move down.
     if(y >= n->textarea->leny - 1){
       return -1; // no move possible
     }
@@ -227,12 +227,43 @@ ncreader_ctrl_input(ncreader* n, const ncinput* ni){
     case 'F':
       ncreader_move_right(n);
       break;
-    case 'A':
+    case 'A': // cursor to beginning of line
+      while(n->textarea->x){
+        if(ncreader_move_left(n)){
+          break;
+        }
+      }
+      break;
+    case 'E': // cursor to end of line
+      while(n->textarea->x < ncplane_dim_x(n->textarea) - 1){
+        if(ncreader_move_right(n)){
+          break;
+        }
+      }
       break;
     default:
       return false; // pass on all other ctrls
   }
   return true;
+}
+
+static bool
+is_egc_wordbreak(ncplane* textarea){
+  char* egc = ncplane_at_yx(textarea, textarea->y, textarea->x, NULL, NULL);
+  if(egc == NULL){
+    return true;
+  }
+  wchar_t w;
+  mbstate_t mbstate = {0};
+  size_t s = mbrtowc(&w, egc, MB_CUR_MAX, &mbstate);
+  free(egc);
+  if(s == (size_t)-1 || s == (size_t)-2){
+    return true;
+  }
+  if(iswordbreak(w)){
+    return true;
+  }
+  return false;
 }
 
 static bool
@@ -243,23 +274,20 @@ ncreader_alt_input(ncreader* n, const ncinput* ni){
         if(ncreader_move_left(n)){
           break;
         }
-        char* egc = ncplane_at_yx(n->textarea, n->textarea->y, n->textarea->x, NULL, NULL);
-        if(egc == NULL){
+        if(is_egc_wordbreak(n->textarea)){
           break;
-        }
-        wchar_t w;
-        mbstate_t mbstate = {0};
-        size_t s = mbrtowc(&w, egc, MB_CUR_MAX, &mbstate);
-        free(egc);
-        if(s != (size_t)-1 && s != (size_t)-2){
-          if(iswordbreak(w)){
-            break;
-          }
         }
       }
       break;
-    case 'f': // forward one word (past end cell) FIXME
-      ncreader_move_right(n);
+    case 'f': // forward one word (past end cell)
+      while(n->textarea->x < ncplane_dim_x(n->textarea) - 1){
+        if(ncreader_move_right(n)){
+          break;
+        }
+        if(is_egc_wordbreak(n->textarea)){
+          break;
+        }
+      }
       break;
     default:
       return false;
