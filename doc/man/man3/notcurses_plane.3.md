@@ -197,9 +197,10 @@ another, x and y coordinates are relative to the plane to which it is bound,
 and if this latter plane moves, all its bound planes move along with it. When a
 plane is destroyed, all planes bound to it (directly or transitively) are
 destroyed. **ncplane_reparent** detaches the plane **n** from any plane to
-which it is bound, and binds it to **newparent** if **newparent** is not
-**NULL**. All planes bound to **n** move along with it during a reparenting
-operation.
+which it is bound, and binds it to **newparent**. The standard plane cannot be
+reparented. If **newparent** is **NULL**, the plane becomes the root plane of a
+new, unrendered stack. All planes bound to **n** move along with it during a
+reparenting operation.
 
 **ncplane_destroy** destroys a particular ncplane, after which it must not be
 used again. **notcurses_drop_planes** destroys all ncplanes other than the
