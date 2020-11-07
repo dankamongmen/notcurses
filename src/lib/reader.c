@@ -215,12 +215,47 @@ int ncreader_write_egc(ncreader* n, const char* egc){
 }
 
 static bool
+do_backspace(ncreader* n){
+  int x = n->textarea->x;
+  int y = n->textarea->y;
+  if(n->textarea->x == 0){
+    if(n->textarea->y){
+      y = n->textarea->y - 1;
+      x = n->textarea->lenx - 1;
+    }
+  }else{
+    --x;
+  }
+  ncplane_putegc_yx(n->textarea, y, x, "", NULL);
+  ncplane_cursor_move_yx(n->textarea, y, x);
+  ncplane_cursor_move_yx(n->ncp, n->ncp->y, n->ncp->x - 1);
+  ncreader_redraw(n);
+  return true;
+}
+
+static bool
+is_egc_wordbreak(ncplane* textarea){
+  char* egc = ncplane_at_yx(textarea, textarea->y, textarea->x, NULL, NULL);
+fprintf(stderr, "TAKING A LOKO AT [%s]\n", egc);
+  if(egc == NULL){
+    return true;
+  }
+  wchar_t w;
+  mbstate_t mbstate = {0};
+  size_t s = mbrtowc(&w, egc, MB_CUR_MAX, &mbstate);
+  free(egc);
+  if(s == (size_t)-1 || s == (size_t)-2){
+    return true;
+  }
+  if(iswordbreak(w)){
+    return true;
+  }
+  return false;
+}
+
+static bool
 ncreader_ctrl_input(ncreader* n, const ncinput* ni){
   switch(ni->id){
-    case 'U':
-      ncplane_erase(n->ncp); // homes the cursor
-      ncplane_erase(n->textarea);
-      break;
     case 'B':
       ncreader_move_left(n);
       break;
@@ -241,29 +276,29 @@ ncreader_ctrl_input(ncreader* n, const ncinput* ni){
         }
       }
       break;
+    case 'U': // clear line before cursor
+      while(n->textarea->x){
+        do_backspace(n);
+      }
+      break;
+    case 'W': // clear word before cursor
+      while(n->textarea->x){
+        if(ncreader_move_left(n)){
+          break;
+        }
+        if(is_egc_wordbreak(n->textarea)){
+          break;
+        }
+        if(ncreader_move_right(n)){
+          break;
+        }
+        do_backspace(n);
+      }
+      break;
     default:
       return false; // pass on all other ctrls
   }
   return true;
-}
-
-static bool
-is_egc_wordbreak(ncplane* textarea){
-  char* egc = ncplane_at_yx(textarea, textarea->y, textarea->x, NULL, NULL);
-  if(egc == NULL){
-    return true;
-  }
-  wchar_t w;
-  mbstate_t mbstate = {0};
-  size_t s = mbrtowc(&w, egc, MB_CUR_MAX, &mbstate);
-  free(egc);
-  if(s == (size_t)-1 || s == (size_t)-2){
-    return true;
-  }
-  if(iswordbreak(w)){
-    return true;
-  }
-  return false;
 }
 
 static bool
@@ -300,8 +335,6 @@ ncreader_alt_input(ncreader* n, const ncinput* ni){
 //  * anything with Ctrl, except 'U' (which clears all input)
 //  * anything synthesized, save arrow keys and backspace
 bool ncreader_offer_input(ncreader* n, const ncinput* ni){
-  int x = n->textarea->x;
-  int y = n->textarea->y;
   if(ni->ctrl && !n->no_cmd_keys){
     return ncreader_ctrl_input(n, ni);
   }else if(ni->alt && !n->no_cmd_keys){
@@ -311,19 +344,7 @@ bool ncreader_offer_input(ncreader* n, const ncinput* ni){
     return false;
   }
   if(ni->id == NCKEY_BACKSPACE){
-    if(n->textarea->x == 0){
-      if(n->textarea->y){
-        y = n->textarea->y - 1;
-        x = n->textarea->lenx - 1;
-      }
-    }else{
-      --x;
-    }
-    ncplane_putegc_yx(n->textarea, y, x, "", NULL);
-    ncplane_cursor_move_yx(n->textarea, y, x);
-    ncplane_cursor_move_yx(n->ncp, n->ncp->y, n->ncp->x - 1);
-    ncreader_redraw(n);
-    return true;
+    return do_backspace(n);
   }
   // FIXME deal with multicolumn EGCs -- probably extract these and make them
   // general ncplane_cursor_{left, right, up, down}()

@@ -9,9 +9,10 @@ rearrangements of Notcurses.
     callable by the user, this ought not lead to any user-visible changes.
   * Added (k)eller demo to `notcurses-demo`.
   * `ncreader` now supports Alt+'b' to move one word back, Alt+'f' to move one
-    word forward, Ctrl+'A' to move to the beginning of the line, and Ctrl+'E'
-    to move to the end of the line (when `NCREADER_OPTION_NOCMDKEYS` is not
-    used).
+    word forward, Ctrl+'A' to move to the beginning of the line, Ctrl+'E' to
+    move to the end of the line, Ctrl+'U' to clear the line before the cursor,
+    and Ctrl+'W' to clear the word before the cursor (when
+    `NCREADER_OPTION_NOCMDKEYS` has not been specified).
 
 * 2.0.2 (2020-10-25)
   * Add `ncvisual_decode_loop()`, which returns to the first frame upon
