@@ -61,6 +61,13 @@ handle_dir(const char* p, const struct stat* st, bool longlisting,
 }
 
 static int
+handle_deref(const char* p, const struct stat* st, bool longlisting,
+             bool recursedirs, bool directories){
+  // FIXME dereference and rerun on target
+  return 0;
+}
+
+static int
 handle_path(const char* p, bool longlisting, bool recursedirs,
             bool directories, bool dereflinks, bool toplevel){
   struct stat st;
@@ -71,12 +78,11 @@ handle_path(const char* p, bool longlisting, bool recursedirs,
   if((st.st_mode & S_IFMT) == S_IFDIR){
     return handle_dir(p, &st, longlisting, recursedirs, directories, toplevel);
   }else if((st.st_mode & S_IFMT) == S_IFLNK){
-    // FIXME deal with dereflinks
-    return handle_inode(p, &st, longlisting);
-  }else{
-    return handle_inode(p, &st, longlisting);
+    if(toplevel && dereflinks){
+      return handle_deref(p, &st, longlisting, recursedirs, directories);
+    }
   }
-  return 0;
+  return handle_inode(p, &st, longlisting);
 }
 
 static int
