@@ -1,8 +1,9 @@
 #include <cstdlib>
 #include <iostream>
+#include <dirent.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <unistd.h>
 #include <ncpp/NotCurses.hh>
 
 static void
@@ -17,9 +18,14 @@ usage(std::ostream& os, const char* name, int code){
   exit(code);
 }
 
+static int
+handle_path(const char* p, bool longlisting, bool recursedirs,
+            bool directories, bool dereflinks, bool toplevel);
+
 // handle a single inode of arbitrary type
 static int
 handle_inode(const char* p, const struct stat* st, bool longlisting){
+  std::cout << p << std::endl; // FIXME handle symlink (dereflinks)
   return 0;
 }
 
@@ -32,33 +38,43 @@ handle_dir(const char* p, const struct stat* st, bool longlisting,
   if(directories){
     return handle_inode(p, st, longlisting);
   }
-  std::cout << "DIRECTORY: " << p << std::endl; // FIXME handle directory (recursedirs, directories)
+  if(!recursedirs && !toplevel){
+    return 0;
+  }
+  DIR* dir = opendir(p);
+  if(dir == NULL){
+    std::cerr << "Error opening " << p << ": " << strerror(errno) << std::endl;
+    return -1;
+  }
+  struct dirent* dent;
+  int r = 0;
+  while(errno = 0, (dent = readdir(dir))){
+    r |= handle_path(dent->d_name, longlisting, recursedirs, directories, false, false);
+  }
+  if(errno){
+    std::cerr << "Error reading from " << p << ": " << strerror(errno) << std::endl;
+    closedir(dir);
+    return -1;
+  }
+  closedir(dir);
   return 0;
-}
-
-// handle a directory path *listed on the command line*.
-static inline int
-handle_cmdline_dir(const char* p, const struct stat* st, bool longlisting,
-                   bool recursedirs, bool directories){
-  return handle_dir(p, st, longlisting, recursedirs, directories, true);
 }
 
 static int
 handle_path(const char* p, bool longlisting, bool recursedirs,
-            bool directories, bool dereflinks){
+            bool directories, bool dereflinks, bool toplevel){
   struct stat st;
   if(stat(p, &st)){
     std::cerr << "Error running stat(" << p << "): " << strerror(errno) << std::endl;
     return -1;
   }
   if((st.st_mode & S_IFMT) == S_IFDIR){
-    return handle_cmdline_dir(p, &st, longlisting, recursedirs, directories);
+    return handle_dir(p, &st, longlisting, recursedirs, directories, toplevel);
   }else if((st.st_mode & S_IFMT) == S_IFLNK){
-    std::cout << p << std::endl; // FIXME handle symlink (dereflinks)
-  }else if((st.st_mode & S_IFMT) == S_IFREG){
-    std::cout << p << std::endl; // FIXME handle normal file
+    // FIXME deal with dereflinks
+    return handle_inode(p, &st, longlisting);
   }else{
-    // FIXME handle weirdo
+    return handle_inode(p, &st, longlisting);
   }
   return 0;
 }
@@ -68,7 +84,7 @@ list_paths(const char* const * argv, bool longlisting, bool recursedirs,
            bool directories, bool dereflinks){
   int ret = 0;
   while(*argv){
-    ret |= handle_path(*argv, longlisting, recursedirs, directories, dereflinks);
+    ret |= handle_path(*argv, longlisting, recursedirs, directories, dereflinks, true);
     ++argv;
   }
   return ret;
