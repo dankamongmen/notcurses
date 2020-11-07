@@ -3136,7 +3136,7 @@ struct blitset {
   ncblitter_e geom;
   int width;
   int height;
-  // the EGCs which form the various levels of a given geometry. if the geometry
+  // the EGCs which form the various levels of a given plotset. if the geometry
   // is wide, things are arranged with the rightmost side increasing most
   // quickly, i.e. it can be indexed as height arrays of 1 + height glyphs. i.e.
   // the first five braille EGCs are all 0 on the left, [0..4] on the right.
