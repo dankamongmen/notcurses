@@ -1,6 +1,6 @@
 # notcurses
 
-Python bindings for the C [https://github.com/dankamongmen/notcurses Notcurses]
+Python bindings for the C [Notcurses](https://github.com/dankamongmen/notcurses)
 library. Notcurses is a blingful library for building complex, vibrant textual
 user interfaces (TUIs) on modern terminal emulators, of which these Python
 bindings offer nowhere near complete coverage.

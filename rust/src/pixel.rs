@@ -27,8 +27,7 @@
 //+ ncpixel_set_r
 //+ ncpixel_set_rgb
 
-use crate as nc;
-use nc::types::{Color, Pixel};
+use crate::types::{Color, Pixel};
 
 // Pixel Structure:
 //

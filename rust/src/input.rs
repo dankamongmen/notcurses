@@ -8,8 +8,7 @@
 // ------------------------------------------
 //+ ncinput_equal_p
 
-use crate as nc;
-use nc::types::NcInput;
+use crate::types::NcInput;
 
 /// Compare two ncinput structs for data equality by doing a field-by-field
 /// comparison for equality (excepting seqnum).

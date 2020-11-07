@@ -17,8 +17,10 @@
 //+ palette256_set
 //+ palette256_set_rgb
 
-use crate as nc;
-use nc::types::{Channel, Color, Palette, PaletteIndex, Rgb};
+use crate::{
+    channel_rgb8, channel_set, channel_set_rgb8,
+    types::{Channel, Color, Palette, PaletteIndex, Rgb},
+};
 
 /// Set the different color components of an entry inside a palette store.
 #[inline]
@@ -29,13 +31,13 @@ pub fn palette256_set_rgb(
     green: Color,
     blue: Color,
 ) {
-    nc::channel_set_rgb8(&mut palette.chans[idx as usize], red, green, blue)
+    channel_set_rgb8(&mut palette.chans[idx as usize], red, green, blue)
 }
 
 /// Same as `palette256_set_rgb()` but set an assembled 24 bit channel at once.
 #[inline]
 pub fn palette256_set(palette: &mut Palette, idx: PaletteIndex, rgb: Rgb) {
-    nc::channel_set(&mut palette.chans[idx as usize], rgb);
+    channel_set(&mut palette.chans[idx as usize], rgb);
 }
 
 /// Extract the three 8-bit R/G/B components from an entry inside a palette store.
@@ -47,7 +49,7 @@ pub fn palette256_get_rgb(
     green: &mut Color,
     blue: &mut Color,
 ) -> Channel {
-    nc::channel_rgb8(palette.chans[idx as usize], red, green, blue)
+    channel_rgb8(palette.chans[idx as usize], red, green, blue)
 }
 
 #[cfg(test)]

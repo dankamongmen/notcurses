@@ -23,7 +23,7 @@ fn get_notcurses_version() {
 fn create_notcurses_context() {
     unsafe {
         let _ = libc::setlocale(libc::LC_ALL, CString::new("").unwrap().as_ptr());
-        let opts = nc::notcurses_options {
+        let opts = nc::NotcursesOptions {
             loglevel: 0,
             termtype: null(),
             renderfp: null_mut(),
