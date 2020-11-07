@@ -59,7 +59,7 @@ auto main(int argc, const char** argv) -> int {
       ncplane_dim_yx(tplane, &tgeomy, &tgeomx);
       ncplane_dim_yx(ncp, &vgeomy, &vgeomx);
       (*n)->printf(0, 0, "Scroll: %lc Cursor: %03d/%03d Viewgeom: %03d/%03d Textgeom: %03d/%03d",
-                  horscroll ? L'✔' : L'🗴', ncpy, ncpx, vgeomy, vgeomx, tgeomy, tgeomx);
+                   horscroll ? L'✔' : L'🗴', ncpy, ncpx, vgeomy, vgeomx, tgeomy, tgeomx);
       nc.render();
     }
   }

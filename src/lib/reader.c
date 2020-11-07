@@ -227,6 +227,8 @@ ncreader_ctrl_input(ncreader* n, const ncinput* ni){
     case 'F':
       ncreader_move_right(n);
       break;
+    case 'A':
+      break;
     default:
       return false; // pass on all other ctrls
   }
@@ -236,10 +238,27 @@ ncreader_ctrl_input(ncreader* n, const ncinput* ni){
 static bool
 ncreader_alt_input(ncreader* n, const ncinput* ni){
   switch(ni->id){
-    case 'B': // back one word (to first cell) FIXME
-      ncreader_move_left(n);
+    case 'b': // back one word (to first cell), but not to previous line
+      while(n->textarea->x){
+        if(ncreader_move_left(n)){
+          break;
+        }
+        char* egc = ncplane_at_yx(n->textarea, n->textarea->y, n->textarea->x, NULL, NULL);
+        if(egc == NULL){
+          break;
+        }
+        wchar_t w;
+        mbstate_t mbstate = {0};
+        size_t s = mbrtowc(&w, egc, MB_CUR_MAX, &mbstate);
+        free(egc);
+        if(s != (size_t)-1 && s != (size_t)-2){
+          if(iswordbreak(w)){
+            break;
+          }
+        }
+      }
       break;
-    case 'F': // forward one word (past end cell) FIXME
+    case 'f': // forward one word (past end cell) FIXME
       ncreader_move_right(n);
       break;
     default:
@@ -255,13 +274,13 @@ ncreader_alt_input(ncreader* n, const ncinput* ni){
 bool ncreader_offer_input(ncreader* n, const ncinput* ni){
   int x = n->textarea->x;
   int y = n->textarea->y;
-  if(ni->alt){ // pass on all alts
-    return false;
-  }
   if(ni->ctrl && !n->no_cmd_keys){
     return ncreader_ctrl_input(n, ni);
   }else if(ni->alt && !n->no_cmd_keys){
     return ncreader_alt_input(n, ni);
+  }
+  if(ni->alt || ni->ctrl){ // pass on all alts/ctrls if no_cmd_keys is set
+    return false;
   }
   if(ni->id == NCKEY_BACKSPACE){
     if(n->textarea->x == 0){
