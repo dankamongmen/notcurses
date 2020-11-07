@@ -2047,11 +2047,18 @@ int ncplane_resize_realign(ncplane* n){
   return ncplane_move_yx(n, ncplane_y(n), xpos);
 }
 
+// The standard plane cannot be reparented; we return NULL in that case.
+// If provided a NULL |newparent|, we are moving |n| to its own stack. If |n|
+// is already root of its own stack in this case, we return NULL. If |n| is
+// already bound to |newparent|, this is a no-op, and we return |n|.
 ncplane* ncplane_reparent(ncplane* n, ncplane* newparent){
   if(n == n->nc->stdplane){
     return NULL; // can't reparent standard plane
   }
-  if(newparent == NULL){
+  if(n->boundto == n && newparent == NULL){
+    return NULL; // can't make new stack out of a stack's root
+  }
+  if(newparent == NULL){ // FIXME make a new stack
     newparent = n->nc->stdplane;
   }
   if(n->boundto == newparent){

@@ -28,8 +28,10 @@ render (see notcurses_stats(3)), and screen geometry is refreshed (similarly to
 **notcurses_refresh**) *following* the render.
 
 While **notcurses_render** is called, you **must not call any other functions
-on the same notcurses context**, with the one exception of **notcurses_getc**
-(and its input-related helpers; see **notcurses_input(3)**.).
+modifying the same notcurses context**, with the exceptions of:
+
+* **notcurses_getc** (and its input-related helpers; see **notcurses_input(3)**)
+* Functions operating only on off-stack **ncplane**s
 
 **notcurses_render_to_buffer** performs the render and raster processes of
 **notcurses_render**, but does not write the resulting buffer to the
