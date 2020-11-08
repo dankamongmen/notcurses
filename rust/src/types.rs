@@ -21,13 +21,11 @@ pub type Rgb = u32;
 
 // Color
 //
-/// 8 bpp channel
+/// 8 bits representing a R/G/B color or alpha channel
 ///
 /// ```txt
 /// CCCCCCCC (1 Byte)
 /// ```
-///
-/// Used both for R/G/B color and 8 bit alpha
 ///
 /// `type in C: no data type`
 ///
@@ -36,7 +34,7 @@ pub type Color = u8;
 // Channel
 //
 /// 32 bits of context-dependent info
-/// containing RGB + 2 bits of alpha + crap
+/// containing RGB + 2 bits of alpha + extra
 ///
 /// ```txt
 /// ~~AA~~~~ RRRRRRRR GGGGGGGG BBBBBBBB
@@ -68,16 +66,19 @@ pub type AlphaBits = u32;
 
 // Channels
 //
-/// 64 bits containing a foreground and background channel
+/// 64 bits containing a foreground and background [`Channel`](type.Channel.html)
 ///
 /// ```txt
 /// ~~AA~~~~|RRRRRRRR|GGGGGGGG|BBBBBBBB|~~AA~~~~|RRRRRRRR|GGGGGGGG|BBBBBBBB
 /// ↑↑↑↑↑↑↑↑↑↑↑↑ foreground ↑↑↑↑↑↑↑↑↑↑↑|↑↑↑↑↑↑↑↑↑↑↑↑ background ↑↑↑↑↑↑↑↑↑↑↑
+/// ```
 ///
-/// Detailed info (specially on the context-dependent bits on the 4th byte;
+/// Detailed info (specially on the context-dependent bits on each
+/// `Channel`'s 4th byte):
 ///
+/// ```txt
 ///                             ~foreground channel~
-/// part of a wide glyph:                                ↓bits view↓               ↓hex view↓
+/// part of a wide glyph:                                ↓bits view↓               ↓hex mask↓
 /// 1······· ········ ········ ········ ········ ········ ········ ········  =  8······· ········
 ///
 /// foreground is *not* "default color":
@@ -99,7 +100,7 @@ pub type AlphaBits = u32;
 /// ········ 11111111 11111111 11111111 ········ ········ ········ ········  =  ··FFFFFF ········
 ///
 ///                             ~background channel~
-/// reserved, must be 0:                                 ↓bits view↓               ↓hex view↓
+/// reserved, must be 0:                                 ↓bits view↓               ↓hex mask↓
 /// ········ ········ ········ ········ 0······· ········ ········ ········  =  ········ 8·······
 ///
 /// background is *not* "default color":
@@ -128,48 +129,63 @@ pub type AlphaBits = u32;
 ///
 pub type Channels = u64;
 
-// Pixel (RGBA)
+// NcPixel (RGBA)
 /// 32 bits broken into RGB + 8-bit alpha
 ///
 /// ```txt
 /// AAAAAAAA GGGGGGGG BBBBBBBB RRRRRRRR
 /// ```
 ///
-/// ncpixel has 8 bits of alpha,  more or less linear, contributing
-/// directly to the usual alpha blending equation
+/// NcPixel has 8 bits of alpha,  more or less linear, contributing
+/// directly to the usual alpha blending equation.
 ///
-/// we map the 8 bits of alpha to 2 bits of alpha via a level function:
+/// We map the 8 bits of alpha to 2 bits of alpha via a level function:
 /// https://nick-black.com/dankwiki/index.php?title=Notcurses#Transparency.2FContrasting
 ///
 /// `type in C: ncpixel (uint32_t)`
 ///
-// NOTE: the order of the colors is different than channel. Why.
-pub type Pixel = u32;
+// NOTE: the order of the colors is different than Channel.
+pub type NcPixel = u32;
 
 // Cell
-/// A coordinate on an [`NcPlane`](type.NcPlane.html)
+/// A coordinate on an [`NcPlane`](type.NcPlane.html) storing 128 bits of data
 ///
 /// ```txt
-/// Cell: 128 bits tying together a:
+/// Cell: 128 bits structure comprised of the following 5 elements:
 ///
-/// 1. GCluster, 32b, either or:
-/// UUUUUUUU UUUUUUUU UUUUUUUU UUUUUUUU
-/// 00000001 IIIIIIII IIIIIIII IIIIIIII
+/// GCLUSTER GCLUSTER GCLUSTER GCLUSTER  1. Egc
+/// 00000000 ~~~~~~~~ 11111111 11111111  2. EgcBackstop + 3. reserved + 4. StyleMask
+/// ~~AA~~~~ RRRRRRRR GGGGGGGG BBBBBBBB  5. Channels
+/// ~~AA~~~~ RRRRRRRR GGGGGGGG BBBBBBBB  |
 ///
-/// 2. GCluster backstop, 8b, (zero)
+/// 1. (32b) Extended Grapheme Cluster, presented either as:
+///
+///     1.1. An Egc of up to 4 bytes:
+///     UUUUUUUU UUUUUUUU UUUUUUUU UUUUUUUU
+///
+///     1.2. A `0x01` in the first byte, plus 3 bytes with a 24b address to an egcpool:
+///     00000001 IIIIIIII IIIIIIII IIIIIIII
+///
+/// 2. (8b) Backstop (zero)
 /// 00000000
 ///
-/// 3. reserved, 8b (ought to be zero)
+/// 3. (8b) reserved (ought to be zero)
 /// ~~~~~~~~
 ///
-/// 4. Stylemask, 16b
+/// 4. (16b) StyleMask
 /// 11111111 11111111
 ///
-/// 5. Channels (64b)
-/// ~~AA~~~~|RRRRRRRR|GGGGGGGG|BBBBBBBB|~~AA~~~~|RRRRRRRR|GGGGGGGG|BBBBBBBB
+/// 5. (64b) Channels
+/// ~~AA~~~~ RRRRRRRR GGGGGGGG BBBBBBBB|~~AA~~~~ RRRRRRRR GGGGGGGG BBBBBBBB
 /// ```
 ///
-/// A Cell corresponds to a single character cell on some plane, which can be occupied by a single grapheme cluster (some root spacing glyph, along with possible combining characters, which might span multiple columns). At any cell, we can have a theoretically arbitrarily long UTF-8 string, a foreground color, a background color, and an attribute set. Valid grapheme cluster contents include:
+/// A Cell corresponds to a single character cell on some plane, which can be
+/// occupied by a single grapheme cluster (some root spacing glyph, along with
+/// possible combining characters, which might span multiple columns). At any
+/// cell, we can have a theoretically arbitrarily long UTF-8 string, a
+/// foreground color, a background color, and an attribute set.
+///
+/// Valid grapheme cluster contents include:
 ///
 /// - A NUL terminator,
 /// - A single control character, followed by a NUL terminator,
@@ -189,15 +205,23 @@ pub type Pixel = u32;
 ///
 /// We implement some small alpha compositing. Foreground and background both
 /// have two bits of inverted alpha. The actual grapheme written to a cell is
-/// the topmost non-zero grapheme. If its alpha is 00, its foreground color is
-/// used unchanged. If its alpha is 10, its foreground color is derived entirely
-/// from cells underneath it. Otherwise, the result will be a composite.
+/// the topmost non-zero grapheme.
+///
+/// - If its alpha is 00 (CELL_ALPHA_OPAQUE) its foreground color is used unchanged.
+///
+/// - If its alpha is 10 (CELL_ALPHA_TRANSPARENT) its foreground color is derived
+///   entirely from cells underneath it.
+///
+/// - Otherwise, the result will be a composite (CELL_ALPHA_BLEND).
+///
 /// Likewise for the background. If the bottom of a coordinate's zbuffer is
 /// reached with a cumulative alpha of zero, the default is used. In this way,
 /// a terminal configured with transparent background can be supported through
-/// multiple occluding ncplanes. A foreground alpha of 11 requests high-contrast
-/// text (relative to the computed background). A background alpha of 11 is
-/// currently forbidden.
+/// multiple occluding ncplanes.
+///
+/// A foreground alpha of 11 (CELL_ALPHA_HIGHCONTRAST) requests high-contrast
+/// text (relative to the computed background).
+/// A background alpha of 11 is currently forbidden.
 ///
 /// Default color takes precedence over palette or RGB, and cannot be used with
 /// transparency. Indexed palette takes precedence over RGB. It cannot
@@ -211,7 +235,7 @@ pub type Cell = crate::cell;
 
 // Egc
 //
-/// 32-bit Char, Extended Grapheme Cluster
+/// 32-bit Char (Extended Grapheme Cluster)
 ///
 /// This 32 bit char, together with the associated plane's associated egcpool,
 /// completely define this cell's `Egc`. Unless the `Egc` requires more than
@@ -242,23 +266,24 @@ pub type Cell = crate::cell;
 /// in a cell, and therefore it must not be allowed through the API.
 ///
 /// -----
-/// NOTE that even if the `Egc` is <= 4 bytes and inlined, is still interpreted
+/// NOTE that even if the `Egc` is <= 4 bytes and inlined, is still interpreted as
 /// a NUL-terminated char * (technically, &cell->gcluster is treated as a char*).
 /// If it is more than 4 bytes, cell->gcluster has a first byte of 0x01,
 /// and the remaining 24 bits are an index into the plane's egcpool,
 /// which is carved into NUL-terminated chunks of arbitrary length.
 ///
-/// `type in C: gcluster (uint32_t)`
+/// `type in C: uint32_t`
 ///
-// WIP towards a safe abstraction for Cell & functions receiving
 pub type Egc = char;
-// pub type EgcPool<'a> = &'a[u8];
 
-pub type CellGcluster = u32; // the type cell.gcluster expects the EGB to be
-
-/// Egc BackStop
+// EgcBackStop
+/// 8 bits always at zero, part of the [`Cell`](type.Cell.html) struct
 ///
-/// `type in C: cell.gcluster_backstop`
+/// ```txt
+/// 00000000
+/// ```
+///
+/// `type in C: uint_8t`
 ///
 pub type EgcBackstop = u8;
 
@@ -270,7 +295,7 @@ pub type EgcBackstop = u8;
 /// 11111111 11111111
 /// ```
 ///
-/// `type in C:  stylemask (uint16_t)`
+/// `type in C:  uint16_t`
 ///
 pub type StyleMask = u16;
 
@@ -285,7 +310,21 @@ pub type StyleMask = u16;
 /// `type in C: ncplane (struct)`
 pub type NcPlane = crate::ncplane;
 
+/// Options struct for [`NcPlane`](type.NcPlane.html)
+pub type NcPlaneOptions = crate::ncplane_options;
+
+/// The `horiz` union field of [`NcPlaneOptions`](type.NcPlaneOptions)
+///
+/// It contains the fields:
+///
+/// - x: i32
+/// - align: NcAlign (u32)
+///
+pub type NcPlaneOptionHoriz = crate::ncplane_options__bindgen_ty_1;
+
 /// I/O wrapper to dump file descriptor to [`NcPlane`](type.NcPlane.html)
+///
+/// `type in C: ncfdplane (struct)`
 pub type NcFdPlane = crate::ncfdplane;
 
 /// Options struct for [`NcFdPlane`](type.NcFdPlane.html)
@@ -293,15 +332,6 @@ pub type NcFdPlane = crate::ncfdplane;
 /// `type in C: ncplane_options (struct)`
 pub type NcFdPlaneOptions = crate::ncfdplane_options;
 
-// EGCPool:
-//
-// Contiguous region chopped up into NUL-terminated UTF8 EGCs, one per plane
-//
-// `type in C: egcpool (struct)`
-// TODO
-
-// CellMatrix: rectilinear array of Cells
-// one -- fb per plane, and transients show up ?
 
 /// Palette structure consisting of an array of 256 [`Channel`](type.Channel.html)s
 ///
@@ -313,7 +343,7 @@ pub type NcFdPlaneOptions = crate::ncfdplane_options;
 /// `type in C: ncpalette256 (struct)`
 pub type Palette = crate::palette256;
 
-/// 8-bit value used for indexing into a palette
+/// 8-bit value used for indexing into a [`Palette`](type.Palette.html)
 ///
 pub type PaletteIndex = u8;
 
@@ -437,7 +467,7 @@ pub const NCDIRECT_OPTION_INHIBIT_CBREAK: NcDirectFlags =
 pub const NCDIRECT_OPTION_INHIBIT_SETLOCALE: NcDirectFlags =
     crate::bindings::NCDIRECT_OPTION_INHIBIT_SETLOCALE as NcDirectFlags;
 
-/// TUI library for modern terminal emulators
+/// The main struct of the (full mode) TUI library
 ///
 /// Notcurses builds atop the terminfo abstraction layer to
 /// provide reasonably portable vivid character displays.
@@ -451,19 +481,65 @@ pub type NcFadeCtx = crate::ncfadectx;
 
 // Widgets
 
+/// `type in C: ncmenu (struct)`
 pub type NcMenu = crate::ncmenu;
 pub type NcMenuItem = crate::ncmenu_item;
 pub type NcMenuOptions = crate::ncmenu_options;
 pub type NcMenuSection = crate::ncmenu_section;
 
+/// Provides a freeform input in a (possibly multiline) region
+///
+/// Supports optional readline keybindings (opt out using
+/// NCREADER_OPTION_NOCMDKEYS flag)
+///
+/// Takes ownership of its [`NcPlane`](type.NcPlane.html), destroying it on any
+/// error (`ncreader_destroy`() otherwise destroys the ncplane).
+//
+/// `type in C: ncreader (struct)`
 pub type NcReader = crate::ncreader;
+
+/// Options struct for [`NcReader`](type.NcReader.html)
+///
+/// `type in C: ncreader_options (struct)`
 pub type NcReaderOptions = crate::ncreader_options;
 
+/// Make the terminal cursor visible across the lifetime of the ncreader, and
+/// have the ncreader manage the cursor's placement.
+pub const NCREADER_OPTION_CURSOR: u32 = crate::bindings::NCREADER_OPTION_CURSOR;
+/// Enable horizontal scrolling. Virtual lines can then grow arbitrarily long.
+pub const NCREADER_OPTION_HORSCROLL: u32 = crate::bindings::NCREADER_OPTION_HORSCROLL;
+/// Disable all editing shortcuts. By default, emacs-style keys are available.
+pub const NCREADER_OPTION_NOCMDKEYS: u32 = crate::bindings::NCREADER_OPTION_NOCMDKEYS;
+/// Enable vertical scrolling. You can then use arbitrarily many virtual lines.
+pub const NCREADER_OPTION_VERSCROLL: u32 = crate::bindings::NCREADER_OPTION_VERSCROLL;
+
+/// A wheel with `NcTablet`s on the outside, projected onto the 2d rendering
+/// area, we see some portion of the `NcReel`, and zero or more `NcTablet`s.
+///
+/// An `NcReel` is a `Notcurses` region devoted to displaying zero or more
+/// line-oriented, contained `NcTablet`s between which the user may navigate.
+///
+/// If at least one `NcTablet`s exists, there is a "focused tablet".
+/// As much of the focused tablet as is possible is always displayed.
+///
+/// If there is space left over, other tablets are included in the display.
+/// Tablets can come and go at any time, and can grow or shrink at any time.
+///
 pub type NcReel = crate::ncreel;
+
+/// Options struct for [`NcReel`](type.NcReel.html)
 pub type NcReelOptions = crate::ncreel_options;
 
+///
+pub type NcTablet = crate::nctablet;
+
+/// A histogram, bound to an [`NcPlane`](type.NcPlane.html) (uses non-negative `f64`s)
 pub type NcPlotF64 = crate::ncdplot;
+
+/// A histogram, bound to an [`NcPlane`](type.NcPlane.html) (uses `u64`s)
 pub type NcPlotU64 = crate::ncuplot;
+
+/// Options struct for [`NcPlotF64`](type.NcPlotF64.html) or [`NcPlotU64`](type.NcPlotU64.html)
 pub type NcPlotOptions = crate::ncplot_options;
 
 pub type NcSelector = crate::ncselector;
@@ -471,8 +547,6 @@ pub type NcSelectorItem = crate::ncselector_item;
 pub type NcSelectorOptions = crate::ncselector_options;
 
 pub type NcStats = crate::ncstats;
-
-pub type NcTablet = crate::nctablet;
 
 pub type NcMultiSelector = crate::ncmultiselector;
 pub type NcMultiSelectorItem = crate::ncmselector_item;

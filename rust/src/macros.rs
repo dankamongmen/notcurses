@@ -16,7 +16,7 @@ macro_rules! cell_initializer {
 }
 
 #[macro_export]
-macro_rules! cell_simple_initializer {
+macro_rules! cell_char_initializer {
     ( $c:expr ) => {
         cell_initializer![$c, 0, 0]
     };
@@ -25,6 +25,6 @@ macro_rules! cell_simple_initializer {
 #[macro_export]
 macro_rules! cell_trivial_initializer {
     ( ) => {
-        cell_simple_initializer![0]
+        cell_char_initializer![0]
     };
 }

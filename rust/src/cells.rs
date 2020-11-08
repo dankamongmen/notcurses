@@ -31,7 +31,7 @@
 //+ cell_fg_rgb
 //+ cell_fg_rgb8
 //+ cell_init
-//+ cell_load_simple
+//+ cell_load_char
 //+ cell_prime
 //+ cell_set_bchannel
 //+ cell_set_bg_alpha
@@ -66,7 +66,7 @@ use crate::{
     channels_set_bg_default, channels_set_bg_rgb, channels_set_bg_rgb8, channels_set_fchannel,
     channels_set_fg_alpha, channels_set_fg_default, channels_set_fg_rgb, channels_set_fg_rgb8,
     types::{
-        AlphaBits, Cell, CellGcluster, Channel, Channels, Color, Egc, IntResult, NcPlane,
+        AlphaBits, Cell, Channel, Channels, Color, Egc, IntResult, NcPlane,
         PaletteIndex, StyleMask,
     },
     CELL_ALPHA_OPAQUE, CELL_BGDEFAULT_MASK, CELL_BG_PALETTE, CELL_FGDEFAULT_MASK, CELL_FG_PALETTE,
@@ -235,7 +235,7 @@ pub fn cell_set_bg_alpha(cell: &mut Cell, alpha: AlphaBits) {
 // NOTE: remove casting when fixed: https://github.com/rust-lang/rust-bindgen/issues/1875
 #[inline]
 pub fn cell_double_wide_p(cell: &Cell) -> bool {
-    (cell.channels & CELL_WIDEASIAN_MASK as u64) != 0
+    (cell.channels & CELL_WIDEASIAN_MASK as Channels) != 0
 }
 
 /// Is this the right half of a wide character?
@@ -301,14 +301,14 @@ pub fn cellcmp(plane1: &NcPlane, cell1: &Cell, plane2: &NcPlane, cell2: &Cell) -
 }
 
 ///
-// NOTE: remove casting for CELL_WIEDASIAN_MASK when fixed: https://github.com/rust-lang/rust-bindgen/issues/1875
+// NOTE: remove casting for CELL_WIDEASIAN_MASK when fixed: https://github.com/rust-lang/rust-bindgen/issues/1875
 #[inline]
-pub fn cell_load_simple(plane: &mut NcPlane, cell: &mut Cell, ch: Egc) -> i32 {
+pub fn cell_load_char(plane: &mut NcPlane, cell: &mut Cell, ch: Egc) -> i32 {
     unsafe {
         cell_release(plane, cell);
     }
-    cell.channels &= !(CELL_WIDEASIAN_MASK as u64 | CELL_NOBACKGROUND_MASK);
-    cell.gcluster = ch as CellGcluster;
+    cell.channels &= !(CELL_WIDEASIAN_MASK as Channels | CELL_NOBACKGROUND_MASK);
+    cell.gcluster = ch as u32;
     1
 }
 
@@ -394,14 +394,14 @@ pub fn cell_set_fg_palindex(cell: &mut Cell, index: PaletteIndex) {
     cell.channels |= CELL_FGDEFAULT_MASK;
     cell.channels |= CELL_FG_PALETTE;
     cell_set_fg_alpha(cell, CELL_ALPHA_OPAQUE);
-    cell.channels &= 0xff000000ffffffff_u64;
-    cell.channels |= (index as u64) << 32;
+    cell.channels &= 0xff000000ffffffff as Channels;
+    cell.channels |= (index as Channels) << 32;
 }
 
 ///
 #[inline]
 pub fn cell_fg_palindex(cell: &Cell) -> PaletteIndex {
-    ((cell.channels & 0xff00000000_u64) >> 32) as PaletteIndex
+    ((cell.channels & 0xff00000000 as Channels) >> 32) as PaletteIndex
 }
 
 /// Set the r, g, and b cell for the background component of this 64-bit
@@ -425,11 +425,11 @@ pub fn cell_set_bg_rgb(cell: &mut Cell, channel: Channel) {
 // NOTE: this function now can't fail
 #[inline]
 pub fn cell_set_bg_palindex(cell: &mut Cell, index: PaletteIndex) {
-    cell.channels |= CELL_BGDEFAULT_MASK as u64;
-    cell.channels |= CELL_BG_PALETTE as u64;
+    cell.channels |= CELL_BGDEFAULT_MASK as Channels;
+    cell.channels |= CELL_BG_PALETTE as Channels;
     cell_set_bg_alpha(cell, CELL_ALPHA_OPAQUE);
     cell.channels &= 0xffffffffff000000;
-    cell.channels |= index as u64;
+    cell.channels |= index as Channels;
 }
 
 ///

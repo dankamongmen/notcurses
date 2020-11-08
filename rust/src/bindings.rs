@@ -134,6 +134,10 @@ pub use bindgen::{
 pub(crate) use bindgen::{
     // structs
     ncdirect,
+
+    // constants
+    NCDIRECT_OPTION_INHIBIT_CBREAK,
+    NCDIRECT_OPTION_INHIBIT_SETLOCALE,
 };
 
 #[doc(inline)]
@@ -177,10 +181,6 @@ pub use bindgen::{
     ncdirect_styles_on,
     ncdirect_styles_set,
     ncdirect_vline_interp,
-
-    // constants
-    NCDIRECT_OPTION_INHIBIT_CBREAK,
-    NCDIRECT_OPTION_INHIBIT_SETLOCALE,
 };
 
 
@@ -304,6 +304,10 @@ pub use bindgen::{
 pub(crate) use bindgen::{
     // structs
     ncplane,
+    ncplane_options,
+
+    // unions
+    ncplane_options__bindgen_ty_1, // horiz field of ncplane
 };
 
 #[doc(inline)]
@@ -451,6 +455,12 @@ pub(crate) use bindgen::{
     // structs
     ncreader,
     ncreader_options,
+
+    // constants
+    NCREADER_OPTION_CURSOR,
+    NCREADER_OPTION_HORSCROLL,
+    NCREADER_OPTION_NOCMDKEYS,
+    NCREADER_OPTION_VERSCROLL,
 };
 
 #[doc(inline)]
@@ -467,12 +477,6 @@ pub use bindgen::{
     ncreader_offer_input,
     ncreader_plane,
     ncreader_write_egc,
-
-    // constants
-    NCREADER_OPTION_CURSOR,
-    NCREADER_OPTION_HORSCROLL,
-    NCREADER_OPTION_NOCMDKEYS,
-    NCREADER_OPTION_VERSCROLL,
 };
 
 // ncreel ----------------------------------------------------------------------
