@@ -1,5 +1,4 @@
 #[allow(unused_imports)]
-
 use crate::Cell;
 
 #[macro_export]

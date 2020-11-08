@@ -7,7 +7,7 @@ use libnotcurses_sys as nc;
 
 fn main() {
     unsafe {
-        let ncd = nc::ncdirect_new();
+        let ncd = nc::NcDirect::new();
 
         let cols = nc::ncdirect_dim_x(ncd);
         let rows = nc::ncdirect_dim_y(ncd);

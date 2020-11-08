@@ -332,7 +332,6 @@ pub type NcFdPlane = crate::ncfdplane;
 /// `type in C: ncplane_options (struct)`
 pub type NcFdPlaneOptions = crate::ncfdplane_options;
 
-
 /// Palette structure consisting of an array of 256 [`Channel`](type.Channel.html)s
 ///
 /// Some terminals only support 256 colors, but allow the full
@@ -475,9 +474,55 @@ pub type Notcurses = crate::bindings::notcurses;
 /// Options struct for [`Notcurses`](type.Notcurses.html)
 pub type NotcursesOptions = crate::bindings::notcurses_options;
 
+/// Do not call setlocale()
+///
+/// notcurses_init() will call setlocale() to inspect the current locale. If
+/// that locale is "C" or "POSIX", it will call setlocale(LC_ALL, "") to set
+/// the locale according to the LANG environment variable. Ideally, this will
+/// result in UTF8 being enabled, even if the client app didn't call
+/// setlocale() itself. Unless you're certain that you're invoking setlocale()
+/// prior to notcurses_init(), you should not set this bit. Even if you are
+/// invoking setlocale(), this behavior shouldn't be an issue unless you're
+/// doing something weird (setting a locale not based on LANG).
+pub const NCOPTION_INHIBIT_SETLOCALE: u64 = crate::bindings::NCOPTION_INHIBIT_SETLOCALE as u64;
+/// Do not enter alternate mode.
+///
+/// If smcup/rmcup capabilities are indicated, Notcurses defaults to making use
+/// of the "alternate screen". This flag inhibits use of smcup/rmcup.
+pub const NCOPTION_NO_ALTERNATE_SCREEN: u64 = crate::bindings::NCOPTION_NO_ALTERNATE_SCREEN as u64;
+/// Do not modify the font.
+///
+/// Notcurses might attempt to change the font slightly, to support certain
+/// glyphs (especially on the Linux console). If this is set, no such
+/// modifications will be made. Note that font changes will not affect anything
+/// but the virtual console/terminal in which Notcurses is running.
+pub const NCOPTION_NO_FONT_CHANGES: u64 = crate::bindings::NCOPTION_NO_FONT_CHANGES as u64;
+/// Do not handle SIG{ING, SEGV, ABRT, QUIT}
+///
+/// We typically install a signal handler for SIG{INT, SEGV, ABRT, QUIT} that
+/// restores the screen, and then calls the old signal handler. Set to inhibit
+/// registration of these signal handlers.
+pub const NCOPTION_NO_QUIT_SIGHANDLERS: u64 = crate::bindings::NCOPTION_NO_QUIT_SIGHANDLERS as u64;
+/// Do not handle SIGWINCH
+///
+/// We typically install a signal handler for SIGWINCH that generates a resize
+/// event in the notcurses_getc() queue. Set to inhibit this handler
+pub const NCOPTION_NO_WINCH_SIGHANDLER: u64 = crate::bindings::NCOPTION_NO_WINCH_SIGHANDLER as u64;
+/// Do not print banners
+///
+/// Notcurses typically prints version info in notcurses_init() and performance
+/// info in notcurses_stop(). This inhibits that output.
+pub const NCOPTION_SUPPRESS_BANNERS: u64 = crate::bindings::NCOPTION_SUPPRESS_BANNERS as u64;
+/// Test for Sixel support
+///
+/// Checking for Sixel support requires writing an escape, and then reading an
+/// inline reply from the terminal. Since this can interact poorly with actual
+/// user input, it's not done unless Sixel will actually be used. Set this flag
+/// to unconditionally test for Sixel support in notcurses_init().
+pub const NCOPTION_VERIFY_SIXEL: u64 = crate::bindings::NCOPTION_VERIFY_SIXEL as u64;
+
 /// Context for a palette fade operation
 pub type NcFadeCtx = crate::ncfadectx;
-
 
 // Widgets
 

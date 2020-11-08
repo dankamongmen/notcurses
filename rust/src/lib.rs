@@ -26,6 +26,7 @@ mod palette;
 mod pixel;
 mod plane;
 mod visual;
+mod widgets;
 
 pub use cells::*;
 pub use channel::*;
@@ -38,3 +39,4 @@ pub use palette::*;
 pub use pixel::*;
 pub use plane::*;
 pub use visual::*;
+pub use widgets::*;

@@ -27,7 +27,6 @@ pub mod bindgen {
 #[doc(inline)]
 pub use bindgen::{
     // structs
-    _IO_FILE,
     __va_list_tag,
     timespec,
 };
@@ -618,6 +617,15 @@ pub(crate) use bindgen::{
     // structs
     notcurses,
     notcurses_options,
+
+    // constants
+    NCOPTION_INHIBIT_SETLOCALE,
+    NCOPTION_NO_ALTERNATE_SCREEN,
+    NCOPTION_NO_FONT_CHANGES,
+    NCOPTION_NO_QUIT_SIGHANDLERS,
+    NCOPTION_NO_WINCH_SIGHANDLER,
+    NCOPTION_SUPPRESS_BANNERS,
+    NCOPTION_VERIFY_SIXEL,
 };
 
 #[doc(inline)]
@@ -662,15 +670,6 @@ pub use bindgen::{
     notcurses_ucs32_to_utf8,
     notcurses_version,
     notcurses_version_components,
-
-    // constants
-    NCOPTION_INHIBIT_SETLOCALE,
-    NCOPTION_NO_ALTERNATE_SCREEN,
-    NCOPTION_NO_FONT_CHANGES,
-    NCOPTION_NO_QUIT_SIGHANDLERS,
-    NCOPTION_NO_WINCH_SIGHANDLER,
-    NCOPTION_SUPPRESS_BANNERS,
-    NCOPTION_VERIFY_SIXEL,
 };
 
 // palette ---------------------------------------------------------------------

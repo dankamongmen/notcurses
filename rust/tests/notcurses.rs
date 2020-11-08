@@ -31,7 +31,7 @@ fn create_notcurses_context() {
             margin_r: 0,
             margin_b: 0,
             margin_l: 0,
-            flags: (nc::NCOPTION_NO_ALTERNATE_SCREEN | nc::NCOPTION_INHIBIT_SETLOCALE) as u64,
+            flags: (nc::types::NCOPTION_NO_ALTERNATE_SCREEN | nc::types::NCOPTION_INHIBIT_SETLOCALE),
         };
         let nc = nc::notcurses_init(&opts, null_mut());
         nc::notcurses_stop(nc);
