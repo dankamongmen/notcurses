@@ -833,6 +833,9 @@ int ncblit_bgrx(const void* data, int linesize, const struct ncvisual_options* v
   if(vopts->flags > NCVISUAL_OPTION_BLEND){
     return -1;
   }
+  if(linesize <= 0 || (size_t)linesize < vopts->lenx * sizeof(uint32_t)){
+    return -1;
+  }
   struct ncplane* nc = vopts->n;
   if(nc == NULL){
     return -1;
@@ -870,6 +873,9 @@ int ncblit_bgrx(const void* data, int linesize, const struct ncvisual_options* v
 
 int ncblit_rgba(const void* data, int linesize, const struct ncvisual_options* vopts){
   if(vopts->flags > NCVISUAL_OPTION_BLEND){
+    return -1;
+  }
+  if(linesize <= 0 || (size_t)linesize < vopts->lenx * sizeof(uint32_t)){
     return -1;
   }
   struct ncplane* nc = vopts->n;

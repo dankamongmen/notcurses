@@ -59,14 +59,12 @@ auto bgra_to_rgba(const void* data, int rows, int rowstride, int cols) -> void* 
   if(rowstride % 4){ // must be a multiple of 4 bytes
     return nullptr;
   }
-//fprintf(stderr, "ROWS: %d\n", rows);
   auto ret = static_cast<uint32_t*>(malloc(rowstride * rows));
   if(ret){
     for(int y = 0 ; y < rows ; ++y){
       for(int x = 0 ; x < cols ; ++x){
         const uint32_t* src = (const uint32_t*)data + (rowstride / 4) * y + x;
         uint32_t* dst = ret + (rowstride / 4) * y + x;
-//fprintf(stderr, "SRC: %x DST: %x\n", *src, *dst);
         *dst = ((*src & 0xff00u) << 16u) | (*src & 0xff00ffu) | ((*src & 0xff000000) >> 16u);
 //fprintf(stderr, "y: %d x: %d SRC: %x DST: %x\n", y, x, *src, *dst);
       }
