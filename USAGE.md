@@ -640,7 +640,7 @@ but is the primary drawing surface of notcurses—there is no object
 corresponding to a bare NCURSES `WINDOW`.
 
 An `ncplane` can be created aligned relative to an existing `ncplane`
-(including the standard plane) using `NCPLANE_OPTION_ALIGNED`.
+(including the standard plane) using `NCPLANE_OPTION_HORALIGNED`.
 
 When an `ncplane` is no longer needed, free it with
 `ncplane_destroy()`. To quickly reset the `ncplane`, use `ncplane_erase()`.
