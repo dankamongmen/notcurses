@@ -25,7 +25,7 @@ def read(fname):
 
 setup(
     name="notcurses",
-    version="2.0.2",
+    version="2.0.3",
     packages=['notcurses'],
     scripts=['notcurses-pydemo', 'notcurses-direct-pydemo'],
     package_dir={'': 'src'},
