@@ -63,9 +63,10 @@ use crate::{
     notcurses_init,
     notcurses_stdplane,
     notcurses_stdplane_const,
-    types::{NcAlign, NcInput, NcLogLevel, NcPlane, Notcurses, NotcursesOptions},
-    NCALIGN_CENTER,
-    NCALIGN_LEFT,
+    types::{
+        NcAlign, NcInput, NcLogLevel, NcPlane, Notcurses, NotcursesOptions, NCALIGN_CENTER,
+        NCALIGN_LEFT, NCOPTION_SUPPRESS_BANNERS,
+    },
 };
 
 impl NotcursesOptions {
@@ -104,9 +105,16 @@ impl NotcursesOptions {
     ///
     /// - flags
     ///
-    ///   General flags; see NCOPTION_*. This is expressed as a bitfield so that
-    ///   future options can be added without reshaping the struct.
+    ///   General flags; This is expressed as a bitfield so that future options
+    ///   can be added without reshaping the struct.
     ///   Undefined bits must be set to 0.
+    ///
+    ///   - [`NCOPTION_INHIBIT_SETLOCALE`](type.NCOPTION_INHIBIT_SETLOCALE.html)
+    ///   - [`NCOPTION_NO_ALTERNATE_SCREEN`](type.NCOPTION_NO_ALTERNATE_SCREEN.html)
+    ///   - [`NCOPTION_NO_FONT_CHANGES`](type.NCOPTION_NO_FONT_CHANGES.html)
+    ///   - [`NCOPTION_NO_QUIT_SIGHANDLERS`](type.NCOPTION_NO_QUIT_SIGHANDLERS.html)
+    ///   - [`NCOPTION_NO_WINCH_SIGHANDLER`](type.NCOPTION_NO_WINCH_SIGHANDLER.html)
+    ///   - [`NCOPTION_SUPPRESS_BANNERS`](type.NCOPTION_SUPPRESS_BANNERS.html)
     ///
     pub fn with_all_options(
         loglevel: NcLogLevel,
@@ -130,13 +138,19 @@ impl NotcursesOptions {
 }
 
 impl Notcurses {
-    /// `Notcurses` simple constructor
+    /// `Notcurses` simple constructor with clean output
     pub unsafe fn new<'a>() -> &'a mut Notcurses {
+        let options = NotcursesOptions::with_flags(NCOPTION_SUPPRESS_BANNERS);
+        &mut *notcurses_init(&options, null_mut())
+    }
+
+    /// `Notcurses` simple constructor, showing banners
+    pub unsafe fn with_banners<'a>() -> &'a mut Notcurses {
         &mut *notcurses_init(&NotcursesOptions::new(), null_mut())
     }
 
     /// `Notcurses` constructor with options
-    pub unsafe fn with_options(options: &NotcursesOptions) -> &mut Notcurses {
+    pub unsafe fn with_options<'a>(options: &NotcursesOptions) -> &'a mut Notcurses {
         &mut *notcurses_init(options, null_mut())
     }
 }

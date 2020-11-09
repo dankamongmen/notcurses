@@ -3,6 +3,8 @@ d = "doc --no-deps"
 do = "doc --no-deps --open"
 
 re = "run --example"
+rqe = "run --quiet --example "
+req = "rqe"
 
 # TEST
 # fix IO errors: https://github.com/dankamongmen/notcurses/issues/766

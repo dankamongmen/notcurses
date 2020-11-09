@@ -1,5 +1,4 @@
 #[allow(unused_imports)]
-
 use crate::Cell;
 
 // Cell ------------------------------------------------------------------------
@@ -60,4 +59,3 @@ macro_rules! cell_trivial_initializer {
 // #define PREFIXFMT(x) NCMETRICFWIDTH((x), PREFIXCOLUMNS), (x)
 // #define IPREFIXFMT(x) NCMETRIXFWIDTH((x), IPREFIXCOLUMNS), (x)
 // #define BPREFIXFMT(x) NCMETRICFWIDTH((x), BPREFIXCOLUMNS), (x)
-
