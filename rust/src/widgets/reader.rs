@@ -20,13 +20,8 @@ use crate::{
     types::{NcPlane, NcReader, NcReaderOptions},
 };
 
-/// `NcReader` constructor (wraps `ncreader_create`)
-///
-/// NcReader provides freeform input in a (possibly multiline) region, supporting
-/// optional readline keybindings. takes ownership of its plane, destroying it
-/// on any error (ncreader_destroy() otherwise destroys the ncplane).
 impl NcReader {
-    /// Simple `NcReader` constructor
+    /// `NcReader` simple constructor
     pub unsafe fn new<'a>(plane: &mut NcPlane) -> &'a mut Self {
         Self::with_options(plane, &NcReaderOptions::new())
     }

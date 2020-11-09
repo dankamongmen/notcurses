@@ -60,10 +60,9 @@
 //+ channels_set_fg_rgb8
 //X channels_set_fg_rgb8_clipped
 
-use crate::{
-    types::{AlphaBits, Channel, Channels, Color, Rgb},
-    CELL_ALPHA_HIGHCONTRAST, CELL_ALPHA_OPAQUE, CELL_BGDEFAULT_MASK, CELL_BG_PALETTE,
-    CELL_BG_RGB_MASK, CHANNEL_ALPHA_MASK,
+use crate::types::{
+    AlphaBits, Channel, Channels, Color, Rgb, CELL_ALPHA_HIGHCONTRAST, CELL_ALPHA_OPAQUE,
+    CELL_BGDEFAULT_MASK, CELL_BG_PALETTE, CELL_BG_RGB_MASK, CHANNEL_ALPHA_MASK,
 };
 
 /// Extract the 8-bit red component from a 32-bit channel.
@@ -327,7 +326,7 @@ pub fn channels_set_bg_default(channels: &mut Channels) -> Channels {
 #[cfg(test)]
 mod test {
     use super::{Channel, Channels};
-    use crate::{
+    use crate::types::{
         CELL_ALPHA_BLEND, CELL_ALPHA_HIGHCONTRAST, CELL_ALPHA_OPAQUE, CELL_ALPHA_TRANSPARENT,
     };
     use serial_test::serial;

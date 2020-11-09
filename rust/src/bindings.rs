@@ -43,17 +43,6 @@ pub(crate) use bindgen::{
 pub(crate) use bindgen::{
     // structs
     cell,
-};
-
-#[doc(inline)]
-pub use bindgen::{
-    // functions
-    cell_duplicate,
-    cell_extended_gcluster,
-    cell_load,
-    cell_release,
-    cells_double_box,
-    cells_rounded_box,
 
     // constants
     CELL_ALPHA_BLEND,
@@ -72,10 +61,20 @@ pub use bindgen::{
     CELL_WIDEASIAN_MASK,
 };
 
-// channel ---------------------------------------------------------------------
-
 #[doc(inline)]
 pub use bindgen::{
+    // functions
+    cell_duplicate,
+    cell_extended_gcluster,
+    cell_load,
+    cell_release,
+    cells_double_box,
+    cells_rounded_box,
+};
+
+// channel ---------------------------------------------------------------------
+
+pub(crate) use bindgen::{
     // constants
     CHANNEL_ALPHA_MASK
 };
@@ -247,6 +246,10 @@ pub(crate) use bindgen::{
     ncmenu_item,
     ncmenu_options,
     ncmenu_section,
+
+    // constants
+    NCMENU_OPTION_BOTTOM,
+    NCMENU_OPTION_HIDING,
 };
 
 #[doc(inline)]
@@ -265,10 +268,6 @@ pub use bindgen::{
     ncmenu_rollup,
     ncmenu_selected,
     ncmenu_unroll,
-
-    // constants
-    NCMENU_OPTION_BOTTOM,
-    NCMENU_OPTION_HIDING,
 };
 
 // ncmetric --------------------------------------------------------------------
@@ -307,6 +306,9 @@ pub(crate) use bindgen::{
 
     // unions
     ncplane_options__bindgen_ty_1, // horiz field of ncplane
+
+    // constants
+    NCPLANE_OPTION_HORALIGNED,
 };
 
 #[doc(inline)]
@@ -409,9 +411,6 @@ pub use bindgen::{
     ncplane_x,
     ncplane_y,
     ncplane_yx,
-
-    // constants
-    NCPLANE_OPTION_HORALIGNED,
 };
 
 // ncplot ----------------------------------------------------------------------
@@ -421,6 +420,13 @@ pub(crate) use bindgen::{
     ncdplot, // f64
     ncuplot, // u64
     ncplot_options,
+
+    // constants
+    NCPLOT_OPTION_DETECTMAXONLY,
+    NCPLOT_OPTION_EXPONENTIALD,
+    NCPLOT_OPTION_LABELTICKSD,
+    NCPLOT_OPTION_NODEGRADE,
+    NCPLOT_OPTION_VERTICALI,
 };
 
 #[doc(inline)]
@@ -439,13 +445,6 @@ pub use bindgen::{
     ncuplot_plane,
     ncuplot_sample,
     ncuplot_set_sample,
-
-    // constants
-    NCPLOT_OPTION_DETECTMAXONLY,
-    NCPLOT_OPTION_EXPONENTIALD,
-    NCPLOT_OPTION_LABELTICKSD,
-    NCPLOT_OPTION_NODEGRADE,
-    NCPLOT_OPTION_VERTICALI,
 };
 
 // ncreader --------------------------------------------------------------------
@@ -484,6 +483,10 @@ pub(crate) use bindgen::{
     // structs
     ncreel,
     ncreel_options,
+
+    // constants
+    NCREEL_OPTION_CIRCULAR,
+    NCREEL_OPTION_INFINITESCROLL,
 };
 
 #[doc(inline)]
@@ -500,10 +503,6 @@ pub use bindgen::{
     ncreel_prev,
     ncreel_redraw,
     ncreel_tabletcount,
-
-    // constants
-    NCREEL_OPTION_CIRCULAR,
-    NCREEL_OPTION_INFINITESCROLL,
 };
 
 // ncscale ---------------------------------------------------------------------

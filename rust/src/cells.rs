@@ -66,10 +66,11 @@ use crate::{
     channels_set_bg_default, channels_set_bg_rgb, channels_set_bg_rgb8, channels_set_fchannel,
     channels_set_fg_alpha, channels_set_fg_default, channels_set_fg_rgb, channels_set_fg_rgb8,
     types::{
-        AlphaBits, Cell, Channel, Channels, Color, Egc, IntResult, NcPlane, PaletteIndex, StyleMask,
+        AlphaBits, Cell, Channel, Channels, Color, Egc, IntResult, NcPlane, PaletteIndex,
+        StyleMask, CELL_ALPHA_OPAQUE, CELL_BGDEFAULT_MASK, CELL_BG_PALETTE, CELL_FGDEFAULT_MASK,
+        CELL_FG_PALETTE, CELL_NOBACKGROUND_MASK, CELL_WIDEASIAN_MASK,
     },
-    CELL_ALPHA_OPAQUE, CELL_BGDEFAULT_MASK, CELL_BG_PALETTE, CELL_FGDEFAULT_MASK, CELL_FG_PALETTE,
-    CELL_NOBACKGROUND_MASK, CELL_WIDEASIAN_MASK, NCSTYLE_MASK,
+    NCSTYLE_MASK,
 };
 
 /// cell_load(), plus blast the styling with 'style' and 'channels'.
