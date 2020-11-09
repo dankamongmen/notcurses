@@ -105,3 +105,9 @@ pub const NCSCALE_STRETCH: NcScale = crate::ncscale_e_NCSCALE_STRETCH;
 pub type NcVisual = crate::ncvisual;
 /// Options struct for [`NcVisual`](type.NcVisual.html)
 pub type NcVisualOptions = crate::ncvisual_options;
+
+/// Use [`CELL_ALPHA_BLEND`](constant.CELL_ALPHA_BLEND.html) with visual
+pub const NCVISUAL_OPTION_BLEND: u32 = crate::bindings::NCVISUAL_OPTION_BLEND;
+
+/// Fail rather than degrade
+pub const NCVISUAL_OPTION_NODEGRADE: u32 = crate::bindings::NCVISUAL_OPTION_NODEGRADE;

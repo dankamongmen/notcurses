@@ -29,6 +29,9 @@ pub use bindgen::{
     // structs
     __va_list_tag,
     timespec,
+
+    // functions
+    ncstrwidth,
 };
 
 // blitset ---------------------------------------------------------------------
@@ -271,6 +274,16 @@ pub use bindgen::{
 };
 
 // ncmetric --------------------------------------------------------------------
+
+pub(crate) use bindgen::{
+    // constants
+    PREFIXCOLUMNS,
+    PREFIXSTRLEN,
+    BPREFIXCOLUMNS,
+    BPREFIXSTRLEN,
+    IPREFIXCOLUMNS,
+    IPREFIXSTRLEN,
+};
 
 #[doc(inline)]
 pub use bindgen::{
@@ -586,6 +599,10 @@ pub(crate) use bindgen::{
     // structs
     ncvisual,
     ncvisual_options,
+
+    // constants
+    NCVISUAL_OPTION_BLEND,
+    NCVISUAL_OPTION_NODEGRADE,
 };
 
 #[doc(inline)]

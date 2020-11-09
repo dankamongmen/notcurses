@@ -3,14 +3,19 @@
 //! These types wrap the ones used in the C library, including structs,
 //! constants, and primitives when used as parameters or return values.
 //!
-//! This is in order to enforce type checking when possible and also to follow
-//! the [Rust API Guidelines](https://rust-lang.github.io/api-guidelines/naming.html)
+//! This is in order to:
+//!
+//! - Enforce type checking.
+//! - Follow the
+//! [Rust API Guidelines](https://rust-lang.github.io/api-guidelines/naming.html).
+//! - Add or improve the doc-comments to the type.
+//! - Add constructors to the type aliased structures.
 //!
 #![allow(dead_code)]
 
 mod cell;
 mod channel;
-mod colors;
+mod misc;
 mod plane;
 mod terminal;
 mod widgets;
@@ -21,14 +26,19 @@ pub use cell::{
     CELL_BG_PALETTE, CELL_BG_RGB_MASK, CELL_FGDEFAULT_MASK, CELL_FG_ALPHA_MASK, CELL_FG_PALETTE,
     CELL_FG_RGB_MASK, CELL_NOBACKGROUND_MASK, CELL_WIDEASIAN_MASK,
 };
-pub use channel::{AlphaBits, Channel, Channels, CHANNEL_ALPHA_MASK};
-pub use colors::{BlitSet, Color, NcFadeCtx, NcPixel, Palette, PaletteIndex, Rgb};
+pub use channel::{
+    AlphaBits, BlitSet, Channel, Channels, Color, NcFadeCtx, NcPixel, Palette, PaletteIndex, Rgb,
+    CHANNEL_ALPHA_MASK,
+};
+pub use misc::{
+    IntResult, PREFIXCOLUMNS, BPREFIXCOLUMNS, IPREFIXCOLUMNS, PREFIXSTRLEN, BPREFIXSTRLEN, IPREFIXSTRLEN
+};
 pub use plane::{
     NCBLIT_1x1, NCBLIT_2x1, NCBLIT_2x2, NCBLIT_3x2, NCBLIT_4x1, NCBLIT_8x1, NcAlign, NcBlitter,
     NcFdPlane, NcFdPlaneOptions, NcPlane, NcPlaneOptionHoriz, NcPlaneOptions, NcScale, NcVisual,
     NcVisualOptions, NCALIGN_CENTER, NCALIGN_LEFT, NCALIGN_RIGHT, NCALIGN_UNALIGNED,
     NCBLIT_BRAILLE, NCBLIT_DEFAULT, NCBLIT_SIXEL, NCPLANE_OPTION_HORALIGNED, NCSCALE_NONE,
-    NCSCALE_SCALE, NCSCALE_STRETCH,
+    NCSCALE_SCALE, NCSCALE_STRETCH, NCVISUAL_OPTION_BLEND, NCVISUAL_OPTION_NODEGRADE,
 };
 pub use terminal::{
     NcDirect, NcDirectFlags, NcInput, NcLogLevel, Notcurses, NotcursesOptions,
@@ -46,6 +56,3 @@ pub use widgets::{
     NCREADER_OPTION_NOCMDKEYS, NCREADER_OPTION_VERSCROLL, NCREEL_OPTION_CIRCULAR,
     NCREEL_OPTION_INFINITESCROLL,
 };
-
-/// `i32` value used to return errors, when value < 0, (usually -1)
-pub type IntResult = i32;
