@@ -1,6 +1,9 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 2.0.4 (2020-11-10)
+  * Fixed unit tests for non UTF-8 case, brown bagger, alas.
+
 * 2.0.3 (2020-11-09)
   * Add `NCBLIT_3x2` aka the SEXBLITTER, making use of Unicode 13's sextant
     glyphs. `notcurses_lex_blitter()` now recognizes `sexblitter`.
