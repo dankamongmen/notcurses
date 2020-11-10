@@ -1,5 +1,5 @@
 //! Miscellaneous types and constants
-//! 
+//!
 
 // error handling --------------------------------------------------------------
 
