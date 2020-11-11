@@ -23,14 +23,14 @@ int main(int argc, char** argv){
   // FIXME not all work yet; this subset does
   const int blitters[] = {
     NCBLIT_DEFAULT, // let the ncvisual pick
-    NCBLIT_1x1,     // full block                █
-    NCBLIT_2x1,     // full/(upper|left) blocks  ▄█
-    // NCBLIT_1x1x4,   // shaded full blocks        ▓▒░█
-    NCBLIT_2x2,     // quadrants                 ▗▐ ▖▄▟▌▙█
-    // NCBLIT_4x1,     // four vert/horz levels     █▆▄▂ / ▎▌▊█
-    NCBLIT_BRAILLE, // 4 rows, 2 cols (braille)  ⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿
-    // NCBLIT_8x1,     // eight vert/horz levels    █▇▆▅▄▃▂▁ / ▏▎▍▌▋▊▉█
-   // NCBLIT_SIXEL,   // 6 rows, 1 col (RGB), spotty support among terminals
+    NCBLIT_1x1,     // full block
+    NCBLIT_2x1,     // full/(upper|left) blocks
+    NCBLIT_2x2,     // quadrants
+    NCBLIT_3x2,     // sextants
+    // NCBLIT_4x1,     // four vert/horz levels
+    NCBLIT_BRAILLE, // 4 rows, 2 cols (braille)
+    // NCBLIT_8x1,     // eight vert/horz levels
+    // NCBLIT_SIXEL,   // not yet implemented
     -1,
   };
   for(const int* blitter = blitters ; *blitter >= 0 ; ++blitter){
