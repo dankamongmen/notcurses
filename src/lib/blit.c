@@ -830,50 +830,21 @@ const char* notcurses_str_blitter(ncblitter_e blitter){
 }
 
 int ncblit_bgrx(const void* data, int linesize, const struct ncvisual_options* vopts){
-  if(vopts->flags > NCVISUAL_OPTION_BLEND){
+  if(vopts->leny <= 0 || vopts->lenx <= 0){
     return -1;
   }
-  if(linesize <= 0 || (size_t)linesize < vopts->lenx * sizeof(uint32_t)){
-    return -1;
-  }
-  struct ncplane* nc = vopts->n;
-  if(nc == NULL){
-    return -1;
-  }
-  int lenx = vopts->lenx;
-  int leny = vopts->leny;
-  int begy = vopts->begy;
-  int begx = vopts->begx;
-//fprintf(stderr, "render %dx%d+%dx%d %p\n", begy, begx, leny, lenx, ncv->data);
-  if(begy < 0 || begx < 0 || lenx < -1 || leny < -1){
-    return -1;
-  }
-  ncblitter_e blitter;
-  if(!vopts || vopts->blitter == NCBLIT_DEFAULT){
-    blitter = ncvisual_default_blitter(nc, NCSCALE_NONE);
-  }else{
-    blitter = vopts->blitter;
-  }
-  const bool degrade = !(vopts->flags & NCVISUAL_OPTION_NODEGRADE);
-  const struct blitset* bset = lookup_blitset(notcurses_canutf8(nc->nc),
-                                              blitter, degrade);
-  if(bset == NULL){
-    return -1;
-  }
-  const bool blend = (vopts->flags & NCVISUAL_OPTION_BLEND);
-  void* rdata = bgra_to_rgba(data, leny, linesize, lenx);
+  void* rdata = bgra_to_rgba(data, vopts->leny, linesize, vopts->lenx);
   if(rdata == NULL){
     return -1;
   }
-  int r = bset->blit(nc, vopts->y, vopts->x, linesize, rdata, begy, begx,
-                     leny, lenx, blend);
+  int r = ncblit_rgba(rdata, linesize, vopts);
   free(rdata);
   return r;
 }
 
 int ncblit_rgba(const void* data, int linesize, const struct ncvisual_options* vopts){
   if(vopts->flags > NCVISUAL_OPTION_BLEND){
-    return -1;
+    fprintf(stderr, "Warning: unknown ncvisual options %016lx\n", vopts->flags);
   }
   if(linesize <= 0 || (size_t)linesize < vopts->lenx * sizeof(uint32_t)){
     return -1;

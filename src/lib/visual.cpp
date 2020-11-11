@@ -65,8 +65,10 @@ auto bgra_to_rgba(const void* data, int rows, int rowstride, int cols) -> void* 
       for(int x = 0 ; x < cols ; ++x){
         const uint32_t* src = (const uint32_t*)data + (rowstride / 4) * y + x;
         uint32_t* dst = ret + (rowstride / 4) * y + x;
-        *dst = ((*src & 0xff00u) << 16u) | (*src & 0xff00ffu) | ((*src & 0xff000000) >> 16u);
-//fprintf(stderr, "y: %d x: %d SRC: %x DST: %x\n", y, x, *src, *dst);
+        ncpixel_set_a(dst, 0xff);
+        ncpixel_set_r(dst, ncpixel_b(*src));
+        ncpixel_set_g(dst, ncpixel_g(*src));
+        ncpixel_set_b(dst, ncpixel_r(*src));
       }
     }
   }
@@ -362,7 +364,7 @@ auto ncvisual_from_bgra(const void* bgra, int rows, int rowstride,
 auto ncvisual_render(notcurses* nc, ncvisual* ncv,
                      const struct ncvisual_options* vopts) -> ncplane* {
   if(vopts && vopts->flags > NCVISUAL_OPTION_BLEND){
-    return nullptr;
+    fprintf(stderr, "Warning: unknown ncvisual options %016lx\n", vopts->flags);
   }
   int lenx = vopts ? vopts->lenx : 0;
   int leny = vopts ? vopts->leny : 0;
