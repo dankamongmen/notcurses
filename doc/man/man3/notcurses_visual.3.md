@@ -25,7 +25,7 @@ typedef enum {
   NCBLIT_4x1,     // four vertical levels
   NCBLIT_BRAILLE, // 4 rows, 2 cols (braille)
   NCBLIT_8x1,     // eight vertical levels
-  NCBLIT_SIXEL,   // 6 rows, 1 col (RGB)
+  NCBLIT_SIXEL,   // not yet implemented
 } ncblitter_e;
 
 #define NCVISUAL_OPTION_NODEGRADE 0x0001
@@ -154,7 +154,7 @@ The different **ncblitter_e** values select from among available glyph sets:
 * **NCBLIT_4x1**: Adds ¼ and ¾ blocks (▂▆) to **NCBLIT_2x1**.
 * **NCBLIT_BRAILLE**: 4 rows and 2 columns of braille (⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿).
 * **NCBLIT_8x1**: Adds ⅛, ⅜, ⅝, and ⅞ blocks (▇▅▃▁) to **NCBLIT_4x1**.
-* **NCBLIT_SIXEL**: Sixel, a 6-by-1 RGB pixel arrangement.
+* **NCBLIT_SIXEL**: Not yet implemented.
 
 **NCBLIT_4x1** and **NCBLIT_8x1** are intended for use with plots, and are
 not really applicable for general visuals.
@@ -205,7 +205,8 @@ radians for **rads**, but this will change soon.
 **NCBLIT_SIXEL** is not yet implemented, and is only infrequently supported
 among terminals.
 
-Some fonts are lacking the Braille characters necessary for **NCBLIT_BRAILLE**.
+Bad font support can ruin **NCBLIT_2x2**, **NCBLIT_3x2**, **NCBLIT_4x1**,
+**NCBLIT_BRAILLE**, and **NCBLIT_8x1**.
 
 # SEE ALSO
 

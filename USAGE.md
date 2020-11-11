@@ -2679,7 +2679,7 @@ typedef enum {
   NCBLIT_4x1,     // four vertical levels     █▆▄▂
   NCBLIT_BRAILLE, // 4 rows, 2 cols (braille) ⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿
   NCBLIT_8x1,     // eight vertical levels    █▇▆▅▄▃▂▁
-  NCBLIT_SIXEL,   // 6 rows, 1 col (RGB), spotty support among terminals
+  NCBLIT_SIXEL,   // not yet implemented
 } ncblitter_e;
 
 // Lex a blitter.
