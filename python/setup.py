@@ -2,7 +2,6 @@ from setuptools import setup
 from setuptools.command.install import install
 import os
 import sys
-import pypandoc
 
 class ManPageGenerator(install):
     def run(self):
@@ -19,6 +18,16 @@ class ManPageGenerator(install):
         self.distribution.data_files.append(ipage)
         print("data_files: ", self.distribution.data_files)
         super().run()
+
+try:
+    import pypandoc
+except ImportError:
+    print("warning: pypandoc module not found, won't generate man pages")
+    manpageinstaller=dict()
+else:
+    manpageinstaller=dict(
+        install=ManPageGenerator,
+    )
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
@@ -41,7 +50,7 @@ setup(
     long_description_content_type="text/markdown",
     data_files=[],
     install_requires=["cffi>=1.0.0"],
-    setup_requires=["cffi>=1.0.0"],
+    setup_requires=["cffi>=1.0.0", "pypandoc>=1.5"],
     cffi_modules=["src/notcurses/build_notcurses.py:ffibuild"],
     # see https://pypi.org/pypi?%3Aaction=list_classifiers
     classifiers=[
@@ -52,7 +61,5 @@ setup(
         'Programming Language :: Python',
     ],
     include_package_data=True,
-    cmdclass=dict(
-        install=ManPageGenerator,
-    )
+    cmdclass=manpageinstaller
 )
