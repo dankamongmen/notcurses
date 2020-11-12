@@ -304,7 +304,7 @@ auto main(int argc, char** argv) -> int {
         if(r == 0){
           vopts.blitter = marsh.blitter;
           if(!loop){
-            stdn->printf(0, NCAlign::Center, "press any key to advance");
+            stdn->printf(0, NCAlign::Center, "press key to advance");
             if(!nc.render()){
               failed = true;
               break;
@@ -314,10 +314,10 @@ auto main(int argc, char** argv) -> int {
               failed = true;
               break;
             }else if(ie == 'q'){
-              break;
+              goto done;
             }else if(ie >= '0' && ie <= '8'){
               --i; // rerun same input with the new blitter
-              vopts.blitter = static_cast<ncblitter_e>(ie - '0');
+              vopts.blitter = blitter = static_cast<ncblitter_e>(ie - '0');
             }else if(ie == NCKey::Resize){
               --i; // rerun with the new size
               if(!nc.refresh(&dimy, &dimx)){
@@ -337,6 +337,7 @@ auto main(int argc, char** argv) -> int {
       }
     }
   }
+done:
   if(!nc.stop()){
     return EXIT_FAILURE;
   }
