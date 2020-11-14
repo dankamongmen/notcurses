@@ -1,6 +1,34 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 2.0.5 (not yet released)
+  * As promised, `ncplane_new()` has been marked as deprecated. It will be
+    removed in 3.0. Use the strictly more powerful `ncplane_create()` instead,
+    with its self-documenting `struct ncplane_options` argument. So long as
+    the arguments to `ncplane_new()` do not have side-effects, calls can be
+    mechanically translated to their `ncplane_create()` equivalents.
+  * A single `struct notcurses` now supports multiple *planepiles* or simply
+    *piles*. Planepiles do not exist as a type (any `ncplane` bound to itself
+    is the root of a pile; the standard plane is always bound to itself, and
+    thus there always exists a *standard pile*), but as a concept. A pile is
+    made up of some root plane, and all planes recursively bound to that root.
+    Multiple threads can freely operate on distinct piles, even rendering them
+    concurrently (into distinct memory, obviously). A pile ceases to exist when
+    all its planes are destroyed, or when its root plane is reparented into
+    another pile. It is an error to call `ncplane_destroy()` on a root plane to
+    which other planes are bound; `ncplane_genocide()` must be employed in this
+    case. It remains impossible to reparent or destroy the standard plane.
+  * A `NULL` `ncplane` can now be passed to `ncplane_create()` as its first
+    argument; the created `ncplane` will root its own new pile. Similarly,
+    `ncplane_reparent()` can now be provided the same `ncplane` for both
+    arguments; the `ncplane` will root its own new pile (unless it already did,
+    in which case this is a no-op). Planes outside the standard pile *are not
+    rendered in a call to `notcurses_render()`*. An `ncplane` can be reparented
+    into any existing pile.
+  * `notcurses_render_pile()` has been added to render a particular pile.
+    `notcurses_render()` now calls `notcurses_render_pile()` with the
+    standard plane.
+
 * 2.0.4 (2020-11-10)
   * Fixed unit tests for non UTF-8 case, brown bagger, alas.
 
