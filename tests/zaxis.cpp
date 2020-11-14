@@ -26,7 +26,14 @@ TEST_CASE("ZAxis") {
 
   // you can't place a plane above or below itself, stdplane or otherwise
   SUBCASE("NoMoveSelf") {
-    struct ncplane* np = ncplane_new(n_, 2, 2, 0, 0, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 0,
+      .horiz = { .x = 0, },
+      .rows = 2,
+      .cols = 2,
+      nullptr, nullptr, nullptr, 0,
+    };
+    struct ncplane* np = ncplane_create(n_, &nopts);
     REQUIRE(np);
     CHECK(ncplane_move_below(n_, n_));
     CHECK(ncplane_move_above(n_, n_));
@@ -36,7 +43,14 @@ TEST_CASE("ZAxis") {
 
   // new planes ought be on the top
   SUBCASE("NewPlaneOnTop") {
-    struct ncplane* np = ncplane_new(n_, 2, 2, 0, 0, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 0,
+      .horiz = { .x = 0, },
+      .rows = 2,
+      .cols = 2,
+      nullptr, nullptr, nullptr, 0,
+    };
+    struct ncplane* np = ncplane_create(n_, &nopts);
     REQUIRE(np);
     struct ncplane* top = notcurses_top(nc_);
     CHECK(np == top);
@@ -46,7 +60,14 @@ TEST_CASE("ZAxis") {
 
   // "move" top plane to top. everything ought remain the same.
   SUBCASE("TopToTop") {
-    struct ncplane* np = ncplane_new(n_, 2, 2, 0, 0, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 0,
+      .horiz = { .x = 0, },
+      .rows = 2,
+      .cols = 2,
+      nullptr, nullptr, nullptr, 0,
+    };
+    struct ncplane* np = ncplane_create(n_, &nopts);
     REQUIRE(np);
     struct ncplane* top = notcurses_top(nc_);
     CHECK(np == top);
@@ -62,7 +83,14 @@ TEST_CASE("ZAxis") {
 
   // move top plane to bottom, and verify enumeration
   SUBCASE("TopToBottom") {
-    struct ncplane* np = ncplane_new(n_, 2, 2, 0, 0, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 0,
+      .horiz = { .x = 0, },
+      .rows = 2,
+      .cols = 2,
+      nullptr, nullptr, nullptr, 0,
+    };
+    struct ncplane* np = ncplane_create(n_, &nopts);
     REQUIRE(np);
     struct ncplane* top = notcurses_top(nc_);
     CHECK(np == top);
@@ -87,7 +115,14 @@ TEST_CASE("ZAxis") {
     REQUIRE(1 == ncplane_at_cursor_cell(n_, &cat));
     REQUIRE(cell_simple_p(&cat));
     REQUIRE(0 == strcmp("x", cell_extended_gcluster(n_, &c)));
-    struct ncplane* n2 = ncplane_new(n_, 2, 2, 0, 0, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 0,
+      .horiz = { .x = 0, },
+      .rows = 2,
+      .cols = 2,
+      nullptr, nullptr, nullptr, 0,
+    };
+    struct ncplane* n2 = ncplane_create(n_, &nopts);
     REQUIRE(1 == cell_load(n2, &c, "y"));
     REQUIRE(!cell_set_fg_rgb8(&c, 0, 0xff, 0));
     REQUIRE(1 == ncplane_putc(n2, &c));
@@ -95,7 +130,7 @@ TEST_CASE("ZAxis") {
     REQUIRE(!ncplane_cursor_move_yx(n2, 0, 0));
     REQUIRE(1 == ncplane_at_cursor_cell(n2, &cat));
     REQUIRE(0 == strcmp("y", cell_extended_gcluster(n_, &c)));
-    struct ncplane* n3 = ncplane_new(n_, 2, 2, 0, 0, nullptr, nullptr);
+    struct ncplane* n3 = ncplane_create(n_, &nopts);
     REQUIRE(1 == cell_load(n3, &c, "z"));
     REQUIRE(!cell_set_fg_rgb8(&c, 0, 0, 0xff));
     REQUIRE(1 == ncplane_putc(n3, &c));
@@ -111,7 +146,14 @@ TEST_CASE("ZAxis") {
   }
 
   SUBCASE("DropPlanes") {
-    auto p = ncplane_new(n_, 1, 1, 1, 1, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 1,
+      .horiz = { .x = 1, },
+      .rows = 1,
+      .cols = 1,
+      nullptr, nullptr, nullptr, 0,
+    };
+    auto p = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != p);
     CHECK(notcurses_top(nc_) == p);
     CHECK(0 == notcurses_render(nc_));
