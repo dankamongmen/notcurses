@@ -193,8 +193,8 @@ int main(int argc, char** argv){
     return EXIT_FAILURE;
   }
   notcurses_options ncopts{};
-  ncreel_options nopts{};
-  parse_args(argc, argv, &ncopts, &nopts);
+  ncreel_options ropts{};
+  parse_args(argc, argv, &ncopts, &ropts);
   auto nc = notcurses_init(&ncopts, NULL);
   if(nc == nullptr){
     return EXIT_FAILURE;
@@ -205,11 +205,21 @@ int main(int argc, char** argv){
   if(ncplane_putstr_aligned(nstd, 0, NCALIGN_CENTER, "(a)dd (d)el (+/-) change lines (q)uit") <= 0){
     return -1;
   }
-  n = ncplane_new(nstd, dimy - 1, dimx, 1, 0, nullptr, "reel");
+  struct ncplane_options nopts = {
+    .y = 1,
+    .horiz = { .x = 0, },
+    .rows = dimy - 1,
+    .cols = dimx,
+    .userptr = nullptr,
+    .name = "reel",
+    .resizecb = nullptr,
+    .flags = 0,
+  };
+  n = ncplane_create(nstd, &nopts);
   if(!n){
     return -1;
   }
-  int r = runreels(nc, n, &nopts);
+  int r = runreels(nc, n, &ropts);
   if(notcurses_stop(nc)){
     return EXIT_FAILURE;
   }

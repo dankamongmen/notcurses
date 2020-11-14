@@ -34,7 +34,17 @@ TEST_CASE("Fills") {
 
   SUBCASE("PolyfillOnGlyph") {
     cell c = CELL_CHAR_INITIALIZER('+');
-    struct ncplane* pfn = ncplane_new(n_, 4, 4, 0, 0, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 0,
+      .horiz = { .x = 0, },
+      .rows = 4,
+      .cols = 4,
+      .userptr = nullptr,
+      .name = nullptr,
+      .resizecb = nullptr,
+      .flags = 0,
+    };
+    struct ncplane* pfn = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != pfn);
     CHECK(16 == ncplane_polyfill_yx(pfn, 0, 0, &c));
     CHECK(0 == notcurses_render(nc_));
@@ -56,7 +66,17 @@ TEST_CASE("Fills") {
 
   SUBCASE("PolyfillEmptyPlane") {
     cell c = CELL_CHAR_INITIALIZER('+');
-    struct ncplane* pfn = ncplane_new(n_, 20, 20, 0, 0, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 0,
+      .horiz = { .x = 0, },
+      .rows = 20,
+      .cols = 20,
+      .userptr = nullptr,
+      .name = nullptr,
+      .resizecb = nullptr,
+      .flags = 0,
+    };
+    struct ncplane* pfn = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != pfn);
     CHECK(400 == ncplane_polyfill_yx(pfn, 0, 0, &c));
     CHECK(0 == notcurses_render(nc_));
@@ -65,7 +85,17 @@ TEST_CASE("Fills") {
 
   SUBCASE("PolyfillWalledPlane") {
     cell c = CELL_CHAR_INITIALIZER('+');
-    struct ncplane* pfn = ncplane_new(n_, 4, 4, 0, 0, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 0,
+      .horiz = { .x = 0, },
+      .rows = 4,
+      .cols = 4,
+      .userptr = nullptr,
+      .name = nullptr,
+      .resizecb = nullptr,
+      .flags = 0,
+    };
+    struct ncplane* pfn = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != pfn);
     CHECK(0 < ncplane_putc_yx(pfn, 0, 1, &c));
     CHECK(0 < ncplane_putc_yx(pfn, 1, 1, &c));
@@ -326,7 +356,17 @@ TEST_CASE("Fills") {
   }
 
   SUBCASE("MergeDownASCII") {
-    auto p1 = ncplane_new(n_, 1, 10, 0, 0, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 0,
+      .horiz = { .x = 0, },
+      .rows = 1,
+      .cols = 10,
+      .userptr = nullptr,
+      .name = nullptr,
+      .resizecb = nullptr,
+      .flags = 0,
+    };
+    struct ncplane* p1 = ncplane_create(n_, &nopts);
     REQUIRE(p1);
     // make sure glyphs replace nulls
     CHECK(0 < ncplane_putstr(p1, "0123456789"));
@@ -348,7 +388,7 @@ TEST_CASE("Fills") {
       CHECK(0 == cellcmp(n_, &cbase, p1, &cp));
     }
     // make sure nulls do not replace glyphs
-    auto p2 = ncplane_new(n_, 1, 10, 0, 0, nullptr, nullptr);
+    auto p2 = ncplane_create(n_, &nopts);
     CHECK(0 == ncplane_mergedown_simple(p2, n_));
     ncplane_destroy(p2);
     for(int i = 0 ; i < 10 ; ++i){
@@ -360,7 +400,17 @@ TEST_CASE("Fills") {
   }
 
   SUBCASE("MergeDownUni") {
-    auto p1 = ncplane_new(n_, 1, 10, 0, 0, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 0,
+      .horiz = { .x = 0, },
+      .rows = 1,
+      .cols = 10,
+      .userptr = nullptr,
+      .name = nullptr,
+      .resizecb = nullptr,
+      .flags = 0,
+    };
+    auto p1 = ncplane_create(n_, &nopts);
     REQUIRE(p1);
     // make sure glyphs replace nulls
     CHECK(0 < ncplane_putstr(p1, "█▀▄▌▐🞵🞶🞷🞸🞹"));
@@ -374,7 +424,7 @@ TEST_CASE("Fills") {
     }
     ncplane_destroy(p1);
     CHECK(0 == notcurses_render(nc_));
-    auto p3 = ncplane_new(n_, 1, 10, 0, 0, nullptr, nullptr);
+    auto p3 = ncplane_create(n_, &nopts);
     CHECK(0 == ncplane_cursor_move_yx(p3, 0, 0));
     // make sure glyphs replace glyps
     CHECK(0 < ncplane_putstr(p3, "🞵🞶🞷🞸🞹█▀▄▌▐"));
@@ -387,7 +437,7 @@ TEST_CASE("Fills") {
     }
     CHECK(0 == notcurses_render(nc_));
     // make sure nulls do not replace glyphs
-    auto p2 = ncplane_new(n_, 1, 10, 0, 0, nullptr, nullptr);
+    auto p2 = ncplane_create(n_, &nopts);
     CHECK(0 == ncplane_mergedown_simple(p2, nullptr));
     ncplane_destroy(p2);
     for(int i = 0 ; i < 10 ; ++i){
@@ -404,7 +454,17 @@ TEST_CASE("Fills") {
   SUBCASE("MergeDownSmallPlane") {
     constexpr int DIMX = 10;
     constexpr int DIMY = 10;
-    auto p1 = ncplane_new(n_, DIMY, DIMX, 2, 2, nullptr, nullptr);        // dst, 10x10
+    struct ncplane_options nopts = {
+      .y = 0,
+      .horiz = { .x = 0, },
+      .rows = 2,
+      .cols = 2,
+      .userptr = nullptr,
+      .name = nullptr,
+      .resizecb = nullptr,
+      .flags = 0,
+    };
+    struct ncplane* p1 = ncplane_create(n_, &nopts);
     REQUIRE(p1);
     cell c1 = CELL_TRIVIAL_INITIALIZER;
     CHECK(0 < cell_load(p1, &c1, "█"));
@@ -412,7 +472,17 @@ TEST_CASE("Fills") {
     CHECK(0 == cell_set_fg_rgb(&c1, 0x0000ff));
     CHECK(0 < ncplane_polyfill_yx(p1, 0, 0, &c1));
     CHECK(0 == notcurses_render(nc_));
-    auto p2 = ncplane_new(n_, DIMY / 2, DIMX / 2, 3, 3, nullptr, nullptr);  // src, 5x5
+    struct ncplane_options n2opts = {
+      .y = 3,
+      .horiz = { .x = 3, },
+      .rows = DIMY / 2,
+      .cols = DIMX / 2,
+      .userptr = nullptr,
+      .name = nullptr,
+      .resizecb = nullptr,
+      .flags = 0,
+    };
+    auto p2 = ncplane_create(n_, &n2opts);
     REQUIRE(p2);
     cell c2 = CELL_TRIVIAL_INITIALIZER;
     CHECK(0 < cell_load(p2, &c2, "🞶"));
@@ -443,7 +513,17 @@ TEST_CASE("Fills") {
   SUBCASE("MergeDownSmallPlaneUni") {
     constexpr int DIMX = 10;
     constexpr int DIMY = 10;
-    auto p1 = ncplane_new(n_, DIMY, DIMX, 2, 2, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 0,
+      .horiz = { .x = 0, },
+      .rows = 2,
+      .cols = 2,
+      .userptr = nullptr,
+      .name = nullptr,
+      .resizecb = nullptr,
+      .flags = 0,
+    };
+    struct ncplane* p1 = ncplane_create(n_, &nopts);
     REQUIRE(p1);
     uint64_t ul = 0, ur = 0, bl = 0, br = 0;
     channels_set_fg_rgb(&ur, 0xff0000);
@@ -451,7 +531,17 @@ TEST_CASE("Fills") {
     channels_set_fg_rgb(&br, 0x0000ff);
     ncplane_highgradient_sized(p1, ul, ur, bl, br, DIMY, DIMX);
     CHECK(0 == notcurses_render(nc_));
-    auto p2 = ncplane_new(n_, DIMY / 2, DIMX / 2, 3, 3, nullptr, nullptr);
+    struct ncplane_options n2opts = {
+      .y = 3,
+      .horiz = { .x = 3, },
+      .rows = DIMY / 2,
+      .cols = DIMX / 2,
+      .userptr = nullptr,
+      .name = nullptr,
+      .resizecb = nullptr,
+      .flags = 0,
+    };
+    auto p2 = ncplane_create(n_, &n2opts);
     REQUIRE(p2);
     ncplane_highgradient_sized(p2, br, bl, ur, ul, DIMY / 2, DIMX / 2);
     CHECK(0 == ncplane_mergedown_simple(p2, p1));
