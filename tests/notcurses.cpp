@@ -71,8 +71,17 @@ TEST_CASE("NotcursesBase") {
     for(int y = 0 ; y < maxy ; ++y){
       for(int x = 0 ; x < maxx ; ++x){
         const auto idx = y * maxx + x;
-        planes[idx] = ncplane_new(notcurses_stdplane(nc_), 1, 1, y, x,
-                                  &planesecrets[idx], nullptr);
+        struct ncplane_options nopts = {
+          .y = y,
+          .horiz = { .x = x, },
+          .rows = 1,
+          .cols = 1,
+          .userptr = &planesecrets[idx],
+          .name = nullptr,
+          .resizecb = nullptr,
+          .flags = 0,
+        };
+        planes[idx] = ncplane_create(notcurses_stdplane(nc_), &nopts);
         REQUIRE(planes[idx]);
       }
     }
