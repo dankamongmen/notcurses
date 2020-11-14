@@ -69,14 +69,21 @@ namespace ncpp
 		explicit Plane (int rows, int cols, int yoff, int xoff, void *opaque = nullptr, NotCurses *ncinst = nullptr)
 			: Root (ncinst)
 		{
-			plane = ncplane_new (
+			struct ncplane_options nopts = {
+				.y = yoff,
+				.horiz = {
+				  .x = xoff,
+				},
+				.rows = rows,
+				.cols = cols,
+				.userptr = opaque,
+				.name = nullptr,
+				.resizecb = nullptr,
+				.flags = 0,
+			};
+			plane = ncplane_create (
 				notcurses_stdplane(get_notcurses ()),
-				rows,
-				cols,
-				yoff,
-				xoff,
-				opaque,
-				nullptr
+				&nopts
 			);
 
 			if (plane == nullptr)
@@ -1165,14 +1172,21 @@ namespace ncpp
 	private:
 		ncplane* create_plane (const Plane &n, int rows, int cols, int yoff, int xoff, void *opaque)
 		{
-			ncplane *ret = ncplane_new (
+			struct ncplane_options nopts = {
+				.y = yoff,
+				.horiz = {
+					.x = xoff,
+				},
+				.rows = rows,
+				.cols = cols,
+				.userptr = opaque,
+				.name = nullptr,
+				.resizecb = nullptr,
+				.flags = 0,
+			};
+			ncplane *ret = ncplane_create (
 				n.plane,
-				rows,
-				cols,
-				yoff,
-				xoff,
-				opaque,
-				nullptr
+				&nopts
 			);
 
 			if (ret == nullptr)
