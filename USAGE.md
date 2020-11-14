@@ -662,7 +662,7 @@ typedef struct ncplane_options {
   uint64_t flags;   // closure over NCPLANE_OPTION_*
 } ncplane_options;
 
-// Create a new ncplane bound to plane 'n', at THE OFFset 'y'x'x' (relative to
+// Create a new ncplane bound to plane 'n', at the offset 'y'x'x' (relative to
 // the origin of 'n') and the specified size. The number of 'rows' and 'cols'
 // must both be positive. This plane is initially at the top of the z-buffer,
 // as if ncplane_move_top() had been called on it. The void* 'userptr' can be
