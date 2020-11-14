@@ -290,7 +290,17 @@ TEST_CASE("Reels") {
     notcurses_term_dim_yx(nc_, &dimy, &dimx);
     uint64_t channels = 0;
     channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
-    auto ncp = ncplane_new(n_, dimy, dimx, 0, 0, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 0,
+      .horiz = { .x = 0, },
+      .rows = dimy,
+      .cols = dimx,
+      .userptr = nullptr,
+      .name = nullptr,
+      .resizecb = nullptr,
+      .flags = 0,
+    };
+    auto ncp = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != ncp);
     CHECK(0 == ncplane_set_base(ncp, "", 0, channels));
     struct ncreel* nr = ncreel_create(n_, &r);
