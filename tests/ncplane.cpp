@@ -373,7 +373,15 @@ TEST_CASE("NCPlane") {
     int x, y;
     void* sentinel = &x;
     notcurses_term_dim_yx(nc_, &y, &x);
-    struct ncplane* ncp = ncplane_new(n_, y, x, 0, 0, sentinel, nullptr);
+    struct ncplane_options nopts = {
+      .y = 0,
+      .horiz = { .x = 0, },
+      .rows = y,
+      .cols = x,
+      .userptr = sentinel,
+      nullptr, nullptr, 0,
+    };
+    struct ncplane* ncp = ncplane_create(n_, &nopts);
     REQUIRE(ncp);
     CHECK(&x == ncplane_userptr(ncp));
     CHECK(sentinel == ncplane_set_userptr(ncp, nullptr));
@@ -389,7 +397,14 @@ TEST_CASE("NCPlane") {
   SUBCASE("NewPlaneSameSize") {
     int x, y;
     notcurses_term_dim_yx(nc_, &y, &x);
-    struct ncplane* ncp = ncplane_new(n_, y, x, 0, 0, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 0,
+      .horiz = { .x = 0, },
+      .rows = y,
+      .cols = x,
+      nullptr, nullptr, nullptr, 0,
+    };
+    struct ncplane* ncp = ncplane_create(n_, &nopts);
     REQUIRE(ncp);
     int px, py;
     ncplane_dim_yx(ncp, &py, &px);
@@ -406,7 +421,14 @@ TEST_CASE("NCPlane") {
     int maxx, maxy;
     int x = 0, y = 0;
     notcurses_term_dim_yx(nc_, &maxy, &maxx);
-    struct ncplane* newp = ncplane_new(n_, maxy, maxx, y, x, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = y,
+      .horiz = { .x = x, },
+      .rows = maxy,
+      .cols = maxx,
+      nullptr, nullptr, nullptr, 0,
+    };
+    struct ncplane* newp = ncplane_create(n_, &nopts);
     REQUIRE(newp);
     CHECK(0 == notcurses_render(nc_));
     while(y > 4 && x > 4){
@@ -445,7 +467,14 @@ TEST_CASE("NCPlane") {
     notcurses_term_dim_yx(nc_, &dimy, &dimx);
     x = dimx / 2 - 1;
     y = dimy / 2 - 1;
-    struct ncplane* newp = ncplane_new(n_, maxy, maxx, y, x, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = y,
+      .horiz = { .x = x, },
+      .rows = maxy,
+      .cols = maxx,
+      nullptr, nullptr, nullptr, 0,
+    };
+    struct ncplane* newp = ncplane_create(n_, &nopts);
     REQUIRE(newp);
     while(dimx - maxx > 4 && dimy - maxy > 4){
       maxx += 2;
@@ -680,7 +709,14 @@ TEST_CASE("NCPlane") {
     cell ul{}, ll{}, lr{}, ur{}, hl{}, vl{};
     int y, x;
     ncplane_yx(n_, &y, &x);
-    struct ncplane* ncp = ncplane_new(n_, 2, 2, y, ncols - 3, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = y,
+      .horiz = { .x = ncols - 3, },
+      .rows = 2,
+      .cols = 2,
+      nullptr, nullptr, nullptr, 0,
+    };
+    struct ncplane* ncp = ncplane_create(n_, &nopts);
     REQUIRE(ncp);
     REQUIRE(0 == cells_rounded_box(ncp, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl));
     CHECK(0 == ncplane_box(ncp, &ul, &ur, &ll, &lr, &hl, &vl, y + 1, x + 1, 0));
@@ -694,7 +730,14 @@ TEST_CASE("NCPlane") {
     cell ul{}, ll{}, lr{}, ur{}, hl{}, vl{};
     int y, x;
     ncplane_yx(n_, &y, &x);
-    struct ncplane* ncp = ncplane_new(n_, 2, 2, y, x, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = y,
+      .horiz = { .x = x, },
+      .rows = 2,
+      .cols = 2,
+      nullptr, nullptr, nullptr, 0,
+    };
+    struct ncplane* ncp = ncplane_create(n_, &nopts);
     REQUIRE(ncp);
     REQUIRE(0 == cells_rounded_box(ncp, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl));
     CHECK(0 == ncplane_box(ncp, &ul, &ur, &ll, &lr, &hl, &vl, y + 1, x + 1, 0));
@@ -741,7 +784,14 @@ TEST_CASE("NCPlane") {
   SUBCASE("MouseEvent") {
     int dimy, dimx;
     notcurses_stddim_yx(nc_, &dimy, &dimx);
-    struct ncplane* n = ncplane_new(n_, 2, 2, 1, 1, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 1,
+      .horiz = { .x = 1, },
+      .rows = 2,
+      .cols = 2,
+      nullptr, nullptr, nullptr, 0,
+    };
+    struct ncplane* n = ncplane_create(n_, &nopts);
     REQUIRE(n);
     ncinput ni{};
     ni.id = NCKEY_RELEASE;
@@ -763,9 +813,16 @@ TEST_CASE("NCPlane") {
   }
 
   SUBCASE("BoundPlaneMoves") {
-    struct ncplane* ndom = ncplane_new(n_, 2, 2, 1, 1, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 1,
+      .horiz = { .x = 1, },
+      .rows = 2,
+      .cols = 2,
+      nullptr, nullptr, nullptr, 0,
+    };
+    struct ncplane* ndom = ncplane_create(n_, &nopts);
     REQUIRE(ndom);
-    struct ncplane* nsub = ncplane_new(ndom, 2, 2, 1, 1, nullptr, nullptr);
+    struct ncplane* nsub = ncplane_create(n_, &nopts);
     REQUIRE(nsub);
     int absy, absx;
     ncplane_yx(nsub, &absy, &absx);
@@ -779,9 +836,16 @@ TEST_CASE("NCPlane") {
   }
 
   SUBCASE("BoundToPlaneMoves") { // bound plane ought move along with plane
-    struct ncplane* ndom = ncplane_new(n_, 2, 2, 1, 1, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 1,
+      .horiz = { .x = 1, },
+      .rows = 2,
+      .cols = 2,
+      nullptr, nullptr, nullptr, 0,
+    };
+    struct ncplane* ndom = ncplane_create(n_, &nopts);
     REQUIRE(ndom);
-    struct ncplane* nsub = ncplane_new(ndom, 2, 2, 1, 1, nullptr, nullptr);
+    struct ncplane* nsub = ncplane_create(n_, &nopts);
     REQUIRE(nsub);
     int absy, absx;
     ncplane_yx(nsub, &absy, &absx);
@@ -795,9 +859,16 @@ TEST_CASE("NCPlane") {
   }
 
   SUBCASE("UnboundPlaneMoves") { // unbound plane no longer gets pulled along
-    struct ncplane* ndom = ncplane_new(n_, 2, 2, 1, 1, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 1,
+      .horiz = { .x = 1, },
+      .rows = 2,
+      .cols = 2,
+      nullptr, nullptr, nullptr, 0,
+    };
+    struct ncplane* ndom = ncplane_create(n_, &nopts);
     REQUIRE(ndom);
-    struct ncplane* nsub = ncplane_new(ndom, 2, 2, 1, 1, nullptr, nullptr);
+    struct ncplane* nsub = ncplane_create(ndom, &nopts);
     REQUIRE(nsub);
     int absy, absx;
     CHECK(0 == notcurses_render(nc_));
@@ -815,7 +886,14 @@ TEST_CASE("NCPlane") {
   }
 
   SUBCASE("NoReparentStdPlane") {
-    struct ncplane* ndom = ncplane_new(n_, 2, 2, 1, 1, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 1,
+      .horiz = { .x = 1, },
+      .rows = 2,
+      .cols = 2,
+      nullptr, nullptr, nullptr, 0,
+    };
+    struct ncplane* ndom = ncplane_create(n_, &nopts);
     REQUIRE(ndom);
     CHECK(!ncplane_reparent(n_, ndom)); // can't reparent standard plane
     CHECK(ncplane_reparent(ndom, n_)); // *can* reparent *to* standard plane

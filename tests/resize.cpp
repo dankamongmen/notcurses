@@ -23,7 +23,14 @@ TEST_CASE("Resize") {
   SUBCASE("ResizeShrink") {
     int y = dimy;
     int x = dimx;
-    struct ncplane* testn = ncplane_new(n_, y, x, 0, 0, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 0,
+      .horiz = { .x = 0 },
+      .rows = y,
+      .cols = x,
+      nullptr, nullptr, nullptr, 0,
+    };
+    struct ncplane* testn = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != testn);
     REQUIRE(0 < ncplane_gradient_sized(testn, "V", 0, ul, ur, ll, lr, y, x));
     CHECK(0 == notcurses_render(nc_));
@@ -40,7 +47,14 @@ TEST_CASE("Resize") {
   SUBCASE("ResizeEnlarge") {
     int y = 2;
     int x = 2;
-    struct ncplane* testn = ncplane_new(n_, y, x, 0, 0, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 0,
+      .horiz = { .x = 0 },
+      .rows = y,
+      .cols = x,
+      nullptr, nullptr, nullptr, 0,
+    };
+    struct ncplane* testn = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != testn);
     REQUIRE(0 < ncplane_gradient_sized(testn, "V", 0, ul, ur, ll, lr, y, x));
     CHECK(0 == notcurses_render(nc_));

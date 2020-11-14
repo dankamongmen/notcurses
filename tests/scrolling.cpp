@@ -19,7 +19,14 @@ TEST_CASE("Scrolling") {
   }
 
   SUBCASE("ScrollingStr") {
-    struct ncplane* n = ncplane_new(n_, 2, 20, 1, 1, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 1,
+      .horiz = { .x = 1, },
+      .rows = 2,
+      .cols = 20,
+      nullptr, nullptr, nullptr, 0,
+    };
+    struct ncplane* n = ncplane_create(n_, &nopts);
     REQUIRE(n);
     // verify that the new plane was started without scrolling
     CHECK(!ncplane_set_scrolling(n, false));
@@ -41,7 +48,14 @@ TEST_CASE("Scrolling") {
   // even when scrolling is enabled, you aren't allowed to move the cursor
   // off-plane, or initiate output there
   SUBCASE("NoScrollingManually") {
-    struct ncplane* n = ncplane_new(n_, 2, 20, 1, 1, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 1,
+      .horiz = { .x = 1, },
+      .rows = 2,
+      .cols = 20,
+      nullptr, nullptr, nullptr, 0,
+    };
+    struct ncplane* n = ncplane_create(n_, &nopts);
     REQUIRE(n);
     CHECK(!ncplane_set_scrolling(n, true)); // enable scrolling
     CHECK(0 > ncplane_cursor_move_yx(n, 0, 20));
@@ -55,7 +69,14 @@ TEST_CASE("Scrolling") {
   // verify that two strings, each the length of the plane, can be output when
   // scrolling is enabled (the second ought get an error without scrolling)
   SUBCASE("ScrollingSplitStr") {
-    struct ncplane* n = ncplane_new(n_, 2, 20, 1, 1, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 1,
+      .horiz = { .x = 1, },
+      .rows = 2,
+      .cols = 20,
+      nullptr, nullptr, nullptr, 0,
+    };
+    struct ncplane* n = ncplane_create(n_, &nopts);
     REQUIRE(n);
     CHECK(20 == ncplane_putstr(n, "01234567890123456789"));
     int y, x;
@@ -75,7 +96,14 @@ TEST_CASE("Scrolling") {
   // scrolling is enabled (it ought be an error without scrolling)
   SUBCASE("ScrollingEGC") {
     const char* out = "0123456789012345678901234567890123456789";
-    struct ncplane* n = ncplane_new(n_, 2, 20, 1, 1, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 1,
+      .horiz = { .x = 1, },
+      .rows = 2,
+      .cols = 20,
+      nullptr, nullptr, nullptr, 0,
+    };
+    struct ncplane* n = ncplane_create(n_, &nopts);
     REQUIRE(n);
     // verify that the new plane was started without scrolling
     CHECK(!ncplane_set_scrolling(n, false));
@@ -107,7 +135,14 @@ TEST_CASE("Scrolling") {
   // ensure that if we draw a box on a scrolling plane, it stops at the right
   // side, as opposed to scrolling and making a horrible mess
   SUBCASE("ScrollingBoxen") {
-    struct ncplane* n = ncplane_new(n_, 4, 20, 1, 1, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 1,
+      .horiz = { .x = 1, },
+      .rows = 4,
+      .cols = 20,
+      nullptr, nullptr, nullptr, 0,
+    };
+    struct ncplane* n = ncplane_create(n_, &nopts);
     REQUIRE(n);
     // verify that the new plane was started without scrolling
     CHECK(!ncplane_set_scrolling(n, true));
@@ -124,7 +159,14 @@ TEST_CASE("Scrolling") {
     const char* out = "0123456789012345678901234567890123456789";
     const char* onext = "ABCDEFGHIJKLMNOPQRST";
     const char* next2 = "UVWXYZabcd";
-    struct ncplane* n = ncplane_new(n_, 2, 20, 1, 1, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 1,
+      .horiz = { .x = 1, },
+      .rows = 2,
+      .cols = 20,
+      nullptr, nullptr, nullptr, 0,
+    };
+    struct ncplane* n = ncplane_create(n_, &nopts);
     REQUIRE(n);
     // verify that the new plane was started without scrolling
     CHECK(!ncplane_set_scrolling(n, true));
@@ -177,7 +219,14 @@ TEST_CASE("Scrolling") {
     //const char* next2 = "KLMNOPQRST";
     //const char* next3 = "UVWXYZ";
     CHECK(0 == notcurses_render(nc_));
-    struct ncplane* n = ncplane_new(n_, 2, 20, 1, 1, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 1,
+      .horiz = { .x = 1, },
+      .rows = 2,
+      .cols = 20,
+      nullptr, nullptr, nullptr, 0,
+    };
+    struct ncplane* n = ncplane_create(n_, &nopts);
     REQUIRE(n);
     // verify that the new plane was started without scrolling
     CHECK(!ncplane_set_scrolling(n, true));
