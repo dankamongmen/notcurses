@@ -457,8 +457,15 @@ ncplane* ncplane_dup(const ncplane* n, void* opaque){
   const struct notcurses* nc = ncplane_notcurses_const(n);
   const int placey = n->absy - nc->margin_t;
   const int placex = n->absx - nc->margin_l;
-  ncplane* newn = ncplane_new(n->boundto, dimy, dimx,
-                              placey, placex, opaque, n->name);
+  struct ncplane_options nopts = {
+    .y = placey,
+    .horiz.x = placex,
+    .rows = dimy,
+    .cols = dimx,
+    .userptr = opaque,
+    .name = n->name,
+  };
+  ncplane* newn = ncplane_create(n->boundto, &nopts);
   if(newn){
     if(egcpool_dup(&newn->pool, &n->pool)){
       ncplane_destroy(newn);
