@@ -12,7 +12,17 @@ TEST_CASE("TextLayout") {
   const char str[] = "this is going to be broken up";
 
   SUBCASE("LayoutLeft") {
-    auto sp = ncplane_new(n_, 2, 20, 0, 0, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 0,
+      .horiz = { .x = 0, },
+      .rows = 2,
+      .cols = 20,
+      .userptr = nullptr,
+      .name = nullptr,
+      .resizecb = nullptr,
+      .flags = 0,
+    };
+    auto sp = ncplane_create(n_, &nopts);
     REQUIRE(sp);
     size_t bytes;
     CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_LEFT, str, &bytes));
@@ -26,7 +36,17 @@ TEST_CASE("TextLayout") {
   }
 
   SUBCASE("LayoutRight") {
-    auto sp = ncplane_new(n_, 2, 20, 0, 0, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 0,
+      .horiz = { .x = 0, },
+      .rows = 2,
+      .cols = 20,
+      .userptr = nullptr,
+      .name = nullptr,
+      .resizecb = nullptr,
+      .flags = 0,
+    };
+    auto sp = ncplane_create(n_, &nopts);
     REQUIRE(sp);
     size_t bytes;
     CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_RIGHT, str, &bytes));
@@ -40,7 +60,17 @@ TEST_CASE("TextLayout") {
   }
 
   SUBCASE("LayoutCenter") {
-    auto sp = ncplane_new(n_, 2, 20, 0, 0, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 0,
+      .horiz = { .x = 0, },
+      .rows = 2,
+      .cols = 20,
+      .userptr = nullptr,
+      .name = nullptr,
+      .resizecb = nullptr,
+      .flags = 0,
+    };
+    auto sp = ncplane_create(n_, &nopts);
     REQUIRE(sp);
     size_t bytes;
     CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_CENTER, str, &bytes));
@@ -55,7 +85,17 @@ TEST_CASE("TextLayout") {
 
   // lay out text where a word ends on the boundary
   SUBCASE("LayoutOnBoundary") {
-    auto sp = ncplane_new(n_, 3, 10, 0, 0, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 0,
+      .horiz = { .x = 0, },
+      .rows = 3,
+      .cols = 10,
+      .userptr = nullptr,
+      .name = nullptr,
+      .resizecb = nullptr,
+      .flags = 0,
+    };
+    auto sp = ncplane_create(n_, &nopts);
     REQUIRE(sp);
     size_t bytes;
     const char boundstr[] = "my nuclear arms";
@@ -71,7 +111,17 @@ TEST_CASE("TextLayout") {
 
   // lay out text where a word crosses the boundary
   SUBCASE("LayoutCrossBoundary") {
-    auto sp = ncplane_new(n_, 3, 10, 0, 0, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 0,
+      .horiz = { .x = 0, },
+      .rows = 3,
+      .cols = 10,
+      .userptr = nullptr,
+      .name = nullptr,
+      .resizecb = nullptr,
+      .flags = 0,
+    };
+    auto sp = ncplane_create(n_, &nopts);
     REQUIRE(sp);
     size_t bytes;
     const char boundstr[] = "my grasping arms";
@@ -87,7 +137,17 @@ TEST_CASE("TextLayout") {
 
   // ensure we're honoring newlines
   SUBCASE("LayoutNewlines") {
-    auto sp = ncplane_new(n_, 5, 5, 0, 0, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 0,
+      .horiz = { .x = 0, },
+      .rows = 5,
+      .cols = 5,
+      .userptr = nullptr,
+      .name = nullptr,
+      .resizecb = nullptr,
+      .flags = 0,
+    };
+    auto sp = ncplane_create(n_, &nopts);
     REQUIRE(sp);
     size_t bytes;
     const char boundstr[] = "a\nb\nc\nd\ne";
@@ -103,7 +163,17 @@ TEST_CASE("TextLayout") {
 
   // ensure we're honoring newlines at the start/end of rows
   SUBCASE("LayoutNewlinesAtBorders") {
-    auto sp = ncplane_new(n_, 5, 3, 0, 0, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 0,
+      .horiz = { .x = 0, },
+      .rows = 5,
+      .cols = 3,
+      .userptr = nullptr,
+      .name = nullptr,
+      .resizecb = nullptr,
+      .flags = 0,
+    };
+    auto sp = ncplane_create(n_, &nopts);
     REQUIRE(sp);
     const char boundstr[] = "ab\ncde\nfgh";
     size_t bytes;
@@ -120,7 +190,17 @@ TEST_CASE("TextLayout") {
   // lay out text where a wide word crosses the boundary
   SUBCASE("LayoutCrossBoundaryWide") {
     if(enforce_utf8()){
-      auto sp = ncplane_new(n_, 2, 7, 0, 0, nullptr, nullptr);
+      struct ncplane_options nopts = {
+        .y = 0,
+        .horiz = { .x = 0, },
+        .rows = 2,
+        .cols = 7,
+        .userptr = nullptr,
+        .name = nullptr,
+        .resizecb = nullptr,
+        .flags = 0,
+      };
+      auto sp = ncplane_create(n_, &nopts);
       REQUIRE(sp);
       size_t bytes;
       const char boundstr[] = "a 血的神";
@@ -138,7 +218,17 @@ TEST_CASE("TextLayout") {
   // a long word (one requiring a split no matter what) ought not force the
   // next line, but instead be printed where it starts
   SUBCASE("LayoutTransPlanar") {
-    auto sp = ncplane_new(n_, 3, 10, 0, 0, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 0,
+      .horiz = { .x = 0, },
+      .rows = 3,
+      .cols = 10,
+      .userptr = nullptr,
+      .name = nullptr,
+      .resizecb = nullptr,
+      .flags = 0,
+    };
+    auto sp = ncplane_create(n_, &nopts);
     REQUIRE(sp);
     size_t bytes;
     const char boundstr[] = "my thermonuclear arms";
@@ -156,7 +246,17 @@ TEST_CASE("TextLayout") {
   // next line, but instead be printed where it starts
   SUBCASE("LayoutTransPlanarWide") {
     if(enforce_utf8()){
-      auto sp = ncplane_new(n_, 3, 10, 0, 0, nullptr, nullptr);
+      struct ncplane_options nopts = {
+        .y = 0,
+        .horiz = { .x = 0, },
+        .rows = 3,
+        .cols = 10,
+        .userptr = nullptr,
+        .name = nullptr,
+        .resizecb = nullptr,
+        .flags = 0,
+      };
+      auto sp = ncplane_create(n_, &nopts);
       REQUIRE(sp);
       size_t bytes;
       const char boundstr[] = "1 我能吞下玻璃";
@@ -172,7 +272,17 @@ TEST_CASE("TextLayout") {
   }
 
   SUBCASE("LayoutLeadingSpaces") {
-    auto sp = ncplane_new(n_, 3, 18, 0, 0, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 0,
+      .horiz = { .x = 0, },
+      .rows = 3,
+      .cols = 18,
+      .userptr = nullptr,
+      .name = nullptr,
+      .resizecb = nullptr,
+      .flags = 0,
+    };
+    auto sp = ncplane_create(n_, &nopts);
     REQUIRE(sp);
     size_t bytes;
     const char boundstr[] = "  \t\n my thermonuclear arms";
@@ -188,7 +298,17 @@ TEST_CASE("TextLayout") {
 
   // create a plane of two rows, and fill exactly one with one word
   SUBCASE("LayoutFills1DPlane") {
-    auto sp = ncplane_new(n_, 2, 15, 0, 0, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 0,
+      .horiz = { .x = 0, },
+      .rows = 2,
+      .cols = 15,
+      .userptr = nullptr,
+      .name = nullptr,
+      .resizecb = nullptr,
+      .flags = 0,
+    };
+    auto sp = ncplane_create(n_, &nopts);
     REQUIRE(sp);
     size_t bytes;
     const char boundstr[] = "quarkgluonfart ";
@@ -204,7 +324,17 @@ TEST_CASE("TextLayout") {
 
   // create a plane of two rows, and fill exactly one with words
   SUBCASE("LayoutFills1DPlaneWords") {
-    auto sp = ncplane_new(n_, 2, 17, 0, 0, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 0,
+      .horiz = { .x = 0, },
+      .rows = 2,
+      .cols = 17,
+      .userptr = nullptr,
+      .name = nullptr,
+      .resizecb = nullptr,
+      .flags = 0,
+    };
+    auto sp = ncplane_create(n_, &nopts);
     REQUIRE(sp);
     size_t bytes;
     const char boundstr[] = "quark gluon fart ";
@@ -220,7 +350,17 @@ TEST_CASE("TextLayout") {
 
   // create a plane of two rows, and exactly fill the first line
   SUBCASE("LayoutFillsSingleLine") {
-    auto sp = ncplane_new(n_, 2, 13, 0, 0, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 0,
+      .horiz = { .x = 0, },
+      .rows = 2,
+      .cols = 13,
+      .userptr = nullptr,
+      .name = nullptr,
+      .resizecb = nullptr,
+      .flags = 0,
+    };
+    auto sp = ncplane_create(n_, &nopts);
     REQUIRE(sp);
     size_t bytes;
     const char boundstr[] = "quantum balls";
@@ -236,7 +376,17 @@ TEST_CASE("TextLayout") {
 
   // create a plane of three rows, and exactly fill two with regular ol' words
   SUBCASE("LayoutFillsPlane") {
-    auto sp = ncplane_new(n_, 3, 14, 0, 0, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 0,
+      .horiz = { .x = 0, },
+      .rows = 3,
+      .cols = 14,
+      .userptr = nullptr,
+      .name = nullptr,
+      .resizecb = nullptr,
+      .flags = 0,
+    };
+    auto sp = ncplane_create(n_, &nopts);
     REQUIRE(sp);
     size_t bytes;
     const char boundstr[] = "quantum balls scratchy no?! ";
@@ -252,7 +402,17 @@ TEST_CASE("TextLayout") {
 
   // create a plane of three rows, and exactly fill two, with no spaces
   SUBCASE("LayoutFillsPlaneNoSpaces") {
-    auto sp = ncplane_new(n_, 3, 6, 0, 0, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 0,
+      .horiz = { .x = 0, },
+      .rows = 3,
+      .cols = 6,
+      .userptr = nullptr,
+      .name = nullptr,
+      .resizecb = nullptr,
+      .flags = 0,
+    };
+    auto sp = ncplane_create(n_, &nopts);
     REQUIRE(sp);
     size_t bytes;
     const char boundstr[] = "0123456789AB";
@@ -269,7 +429,17 @@ TEST_CASE("TextLayout") {
   // create a plane of three rows, and exactly fill two with wide chars
   SUBCASE("LayoutFillsPlaneWide") {
     if(enforce_utf8()){
-      auto sp = ncplane_new(n_, 3, 7, 0, 0, nullptr, nullptr);
+      struct ncplane_options nopts = {
+        .y = 0,
+        .horiz = { .x = 0, },
+        .rows = 3,
+        .cols = 7,
+        .userptr = nullptr,
+        .name = nullptr,
+        .resizecb = nullptr,
+        .flags = 0,
+      };
+      auto sp = ncplane_create(n_, &nopts);
       REQUIRE(sp);
       size_t bytes;
       const char boundstr[] = "我能吞 下玻璃 ";
@@ -287,7 +457,17 @@ TEST_CASE("TextLayout") {
   // if we don't have scrolling enabled, puttext() with more text than will
   // fit on the plane ought return error, but print what it can.
   SUBCASE("LayoutLongNoScroll") {
-    auto sp = ncplane_new(n_, 2, 14, 0, 0, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 0,
+      .horiz = { .x = 0, },
+      .rows = 2,
+      .cols = 14,
+      .userptr = nullptr,
+      .name = nullptr,
+      .resizecb = nullptr,
+      .flags = 0,
+    };
+    auto sp = ncplane_create(n_, &nopts);
     REQUIRE(sp);
     size_t bytes;
     const char boundstr[] = "quantum balls scratchy no?! truly! arrrrp";
@@ -303,7 +483,17 @@ TEST_CASE("TextLayout") {
   }
 
   SUBCASE("LayoutLongScroll") {
-    auto sp = ncplane_new(n_, 2, 13, 0, 0, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 0,
+      .horiz = { .x = 0, },
+      .rows = 2,
+      .cols = 13,
+      .userptr = nullptr,
+      .name = nullptr,
+      .resizecb = nullptr,
+      .flags = 0,
+    };
+    auto sp = ncplane_create(n_, &nopts);
     REQUIRE(sp);
     ncplane_set_scrolling(sp, true);
     size_t bytes;
@@ -327,7 +517,17 @@ TEST_CASE("TextLayout") {
       "neque ac ipsum viverra, vestibulum hendrerit leo consequat. Integer "
       "velit, pharetra sed nisl quis, porttitor ornare purus. Cras ac "
       "sollicitudin dolor, eget elementum dolor. Quisque lobortis sagittis.";
-    auto sp = ncplane_new(n_, READER_ROWS, READER_COLS, 0, 0, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 0,
+      .horiz = { .x = 0, },
+      .rows = READER_ROWS,
+      .cols = READER_COLS,
+      .userptr = nullptr,
+      .name = nullptr,
+      .resizecb = nullptr,
+      .flags = 0,
+    };
+    auto sp = ncplane_create(n_, &nopts);
     REQUIRE(sp);
     size_t bytes;
     ncplane_home(sp);
@@ -351,7 +551,17 @@ TEST_CASE("TextLayout") {
       "NCFdplane streams a file descriptor, while NCSubproc spawns a subprocess and streams its output. "
       "A variety of plots are supported, and menus can be placed along the top and/or bottom of any plane.\n\n"
       "Widgets can be controlled with the keyboard and/or mouse. They are implemented atop ncplanes, and these planes can be manipulated like all others.";
-    auto sp = ncplane_new(n_, READER_ROWS, READER_COLS, 0, 0, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 0,
+      .horiz = { .x = 0, },
+      .rows = READER_ROWS,
+      .cols = READER_COLS,
+      .userptr = nullptr,
+      .name = nullptr,
+      .resizecb = nullptr,
+      .flags = 0,
+    };
+    auto sp = ncplane_create(n_, &nopts);
     REQUIRE(sp);
     ncplane_set_scrolling(sp, true);
     size_t bytes;
@@ -378,7 +588,17 @@ TEST_CASE("TextLayout") {
       "NCFdplane streams a file descriptor, while NCSubproc spawns a subprocess and streams its output. "
       "A variety of plots are supported, and menus can be placed along the top and/or bottom of any plane.\n\n"
       "Widgets can be controlled with the keyboard and/or mouse. They are implemented atop ncplanes, and these planes can be manipulated like all others.";
-    auto sp = ncplane_new(n_, READER_ROWS, READER_COLS, 0, 0, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 0,
+      .horiz = { .x = 0, },
+      .rows = READER_ROWS,
+      .cols = READER_COLS,
+      .userptr = nullptr,
+      .name = nullptr,
+      .resizecb = nullptr,
+      .flags = 0,
+    };
+    auto sp = ncplane_create(n_, &nopts);
     REQUIRE(sp);
     size_t bytes;
     ncplane_home(sp);
