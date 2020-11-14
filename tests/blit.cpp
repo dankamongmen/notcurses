@@ -14,7 +14,19 @@ TEST_CASE("Blitting") {
       0xffffffff, 0xff0088ff, 0xffff8800, 0xff88ff00,
       0xffff0088, 0xff8800ff, 0Xff00ff88, 0xff000000,
     };
-    auto ncp = ncplane_new(n_, 2, 4, 0, 0, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 0,
+      .horiz = {
+        .x = 0,
+      },
+      .rows = 2,
+      .cols = 4,
+      .userptr = nullptr,
+      .name = nullptr,
+      .resizecb = nullptr,
+      .flags = 0,
+    };
+    auto ncp = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != ncp);
     struct ncvisual_options vopts = {
       .n = ncp,
@@ -52,7 +64,19 @@ TEST_CASE("Blitting") {
       0xffffffff, 0xff0088ff, 0xffff8800, 0xff88ff00, 0x00000000,
       0xffff0088, 0xff8800ff, 0xff00ff88, 0xff000000, 0x00000000,
     };
-    auto ncp = ncplane_new(n_, 2, 4, 0, 0, nullptr, nullptr);
+    struct ncplane_options nopts = {
+      .y = 0,
+      .horiz = {
+        .x = 0,
+      },
+      .rows = 2,
+      .cols = 4,
+      .userptr = nullptr,
+      .name = nullptr,
+      .resizecb = nullptr,
+      .flags = 0,
+    };
+    auto ncp = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != ncp);
     struct ncvisual_options vopts = {
       .n = ncp,
