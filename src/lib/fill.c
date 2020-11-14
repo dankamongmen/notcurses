@@ -487,7 +487,15 @@ rotate_plane(ncplane* n){
   }
   const int newy = dimx / 2;
   const int newx = dimy * 2;
-  ncplane* newp = ncplane_new(n, newy, newx, absy, absx, n->userptr, "copy");
+  struct ncplane_options nopts = {
+    .y = absy,
+    .horiz.x = absx,
+    .rows = newy,
+    .cols = newx,
+    .userptr = n->userptr,
+    .name = "copy",
+  };
+  ncplane* newp = ncplane_create(n, &nopts);
   return newp;
 }
 

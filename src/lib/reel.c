@@ -258,7 +258,14 @@ ncreel_draw_tablet(const ncreel* nr, nctablet* t, int frontiertop,
     return -1;
   }
 //fprintf(stderr, "p tplacement: %p base %d/%d len %d/%d frontiery %d %d dir %d\n", t, begy, begx, leny, lenx, frontiertop, frontierbottom, direction);
-  ncplane* fp = ncplane_new(nr->p, leny, lenx, begy, begx, NULL, "tab");
+  struct ncplane_options nopts = {
+    .y = begy,
+    .horiz.x = begx,
+    .rows = leny,
+    .cols = lenx,
+    .name = "tab",
+  };
+  ncplane* fp = ncplane_create(nr->p, &nopts);
   if((t->p = fp) == NULL){
 //fprintf(stderr, "failure creating border plane %d %d %d %d\n", leny, lenx, begy, begx);
     return -1;
@@ -278,7 +285,14 @@ ncreel_draw_tablet(const ncreel* nr, nctablet* t, int frontiertop,
   }
   if(cbleny - cby + 1 > 0){
 //fprintf(stderr, "cbp placement %dx%d @ %dx%d\n", cbleny, cblenx, cby, cbx);
-    t->cbp = ncplane_new(t->p, cbleny, cblenx, cby, cbx, NULL, "tdat");
+    struct ncplane_options dnopts = {
+      .y = cby,
+      .horiz.x = cbx,
+      .rows = cbleny,
+      .cols = cblenx,
+      .name = "tdat",
+    };
+    t->cbp = ncplane_create(t->p, &dnopts);
     if(t->cbp == NULL){
 //fprintf(stderr, "failure creating data plane %d %d %d %d\n", cbleny, cblenx, cby, cbx);
       ncplane_destroy(t->p);
