@@ -425,7 +425,10 @@ auto ncvisual_render(notcurses* nc, ncvisual* ncv,
       },
       .rows = disprows / encoding_y_scale(bset),
       .cols = dispcols / encoding_x_scale(bset),
+      .userptr = nullptr,
       .name = "vis",
+      .resizecb = nullptr,
+      .flags = 0,
     };
     if((n = ncplane_create(notcurses_stdplane(nc), &nopts)) == nullptr){
       return nullptr;
