@@ -455,10 +455,10 @@ TEST_CASE("Fills") {
     constexpr int DIMX = 10;
     constexpr int DIMY = 10;
     struct ncplane_options nopts = {
-      .y = 0,
-      .horiz = { .x = 0, },
-      .rows = 2,
-      .cols = 2,
+      .y = 2,
+      .horiz = { .x = 2, },
+      .rows = DIMY,
+      .cols = DIMX,
       .userptr = nullptr,
       .name = nullptr,
       .resizecb = nullptr,
@@ -514,10 +514,10 @@ TEST_CASE("Fills") {
     constexpr int DIMX = 10;
     constexpr int DIMY = 10;
     struct ncplane_options nopts = {
-      .y = 0,
-      .horiz = { .x = 0, },
-      .rows = 2,
-      .cols = 2,
+      .y = 2,
+      .horiz = { .x = 2, },
+      .rows = DIMY,
+      .cols = DIMX,
       .userptr = nullptr,
       .name = nullptr,
       .resizecb = nullptr,
