@@ -106,7 +106,17 @@ int main(void){
 
   ncplane_set_fg_rgb(n, 0x40f040);
   ncplane_putstr_aligned(n, 0, NCALIGN_RIGHT, "multiselect widget demo");
-  struct ncplane* mseln = ncplane_new(n, 1, 1, 3, 0, NULL, NULL);
+  struct ncplane_options nopts = {
+    .y = 3,
+    .horiz = { .x = 0, },
+    .rows = 1,
+    .cols = 1,
+    .userptr = NULL,
+    .name = NULL,
+    .resizecb = NULL,
+    .flags = 0,
+  };
+  struct ncplane* mseln = ncplane_create(n, &nopts);
   if(mseln == NULL){
     goto err;
   }
@@ -115,14 +125,14 @@ int main(void){
   run_mselect(nc, ns);
 
   sopts.title = "short round title";
-  mseln = ncplane_new(n, 1, 1, 3, 0, NULL, NULL);
+  mseln = ncplane_create(n, &nopts);
   ncplane_set_base(mseln, "", 0, bgchannels);
   ns = ncmultiselector_create(mseln, &sopts);
   run_mselect(nc, ns);
 
   sopts.title = "short round title";
   sopts.secondary = "now this secondary is also very, very, very outlandishly long, you see";
-  mseln = ncplane_new(n, 1, 1, 3, 0, NULL, NULL);
+  mseln = ncplane_create(n, &nopts);
   ncplane_set_base(mseln, "", 0, bgchannels);
   ns = ncmultiselector_create(mseln, &sopts);
   run_mselect(nc, ns);
@@ -130,7 +140,7 @@ int main(void){
   sopts.title = "the whole world is watching";
   sopts.secondary = NULL;
   sopts.footer = "now this FOOTERFOOTER is also very, very, very outlandishly long, you see";
-  mseln = ncplane_new(n, 1, 1, 3, 0, NULL, NULL);
+  mseln = ncplane_create(n, &nopts);
   ncplane_set_base(mseln, "", 0, bgchannels);
   ns = ncmultiselector_create(mseln, &sopts);
   run_mselect(nc, ns);
@@ -138,7 +148,7 @@ int main(void){
   sopts.title = "chomps";
   sopts.secondary = NULL;
   sopts.footer = NULL;
-  mseln = ncplane_new(n, 1, 1, 3, 0, NULL, NULL);
+  mseln = ncplane_create(n, &nopts);
   ncplane_set_base(mseln, "", 0, bgchannels);
   ns = ncmultiselector_create(mseln, &sopts);
   run_mselect(nc, ns);
