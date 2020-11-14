@@ -84,8 +84,14 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
     if(!marsh->subtitle_plane){
       int dimx, dimy;
       ncplane_dim_yx(vopts->n, &dimy, &dimx);
-      marsh->subtitle_plane = ncplane_new(notcurses_stdplane(nc), 1, dimx,
-                                          dimy - 1, 0, nullptr, "subt");
+      struct ncplane_options nopts = {
+        .y = dimy - 1,
+        .horiz = { .x = 0, },
+        .rows = 1,
+        .cols = dimx,
+        nullptr, "subt", nullptr, 0,
+      };
+      marsh->subtitle_plane = ncplane_create(notcurses_stdplane(nc), &nopts);
       uint64_t channels = 0;
       channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
       channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
@@ -256,14 +262,14 @@ auto main(int argc, char** argv) -> int {
   }
   float timescale;
   ncscale_e scalemode;
-  notcurses_options nopts{};
+  notcurses_options ncopts{};
   ncblitter_e blitter = NCBLIT_DEFAULT;
   bool quiet = false;
   bool loop = false;
-  auto nonopt = handle_opts(argc, argv, nopts, &quiet, &timescale, &scalemode,
+  auto nonopt = handle_opts(argc, argv, ncopts, &quiet, &timescale, &scalemode,
                             &blitter, &loop);
-  nopts.flags |= NCOPTION_INHIBIT_SETLOCALE;
-  NotCurses nc{nopts};
+  ncopts.flags |= NCOPTION_INHIBIT_SETLOCALE;
+  NotCurses nc{ncopts};
   if(!nc.can_open_images()){
     nc.stop();
     std::cerr << "Notcurses was compiled without multimedia support\n";
@@ -283,7 +289,7 @@ auto main(int argc, char** argv) -> int {
         failed = true;
         break;
       }
-      if(!(nopts.flags & NCOPTION_NO_ALTERNATE_SCREEN)){
+      if(!(ncopts.flags & NCOPTION_NO_ALTERNATE_SCREEN)){
         stdn->erase();
       }
       struct ncvisual_options vopts{};
