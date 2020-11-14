@@ -17,8 +17,7 @@ notcurses - TUI library for modern terminal emulators
 Notcurses builds atop the **terminfo(5)** abstraction layer to provide
 reasonably portable vivid character displays. It is an intellectual descendant
 of **ncurses(3NCURSES)**, but goes beyond that library (and the X/Open Curses
-API it implements). Notcurses is capable of subregion fades, 24bpp TrueColor,
-transparency, multimedia, and safe multithreaded use.
+API thus implemented).
 
 A program wishing to use Notcurses will need to link it, ideally using the
 output of **pkg-config --libs notcurses** (see **pkg-config(1)**). It is
@@ -27,8 +26,7 @@ using CMake, a support file is provided, and can be accessed as **Notcurses**
 (see **cmake(1)**).
 
 **notcurses_init(3)** can then be used to initialize a Notcurses instance for a
-given **FILE** (usually **stdout**), after calling **setlocale(3)** to prepare a
-UTF-8 locale (see [Construction][]).
+given **FILE** (usually **stdout**, usually attached to a terminal).
 
 ## Construction
 
