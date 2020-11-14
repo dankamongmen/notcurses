@@ -24,7 +24,17 @@ TEST_CASE("Geometry") {
       { 0, 0, 0, 0, }
     }, *t;
     for(t = tests ; !t->leny ; ++t){
-      auto n = ncplane_new(n_, t->leny, t->lenx, 0, 0, nullptr, nullptr);
+      struct ncplane_options nopts = {
+        .y = 0,
+        .horiz = { .x = 0, },
+        .rows = t->leny,
+        .cols = t->lenx,
+        .userptr = nullptr,
+        .name = nullptr,
+        .resizecb = nullptr,
+        .flags = 0,
+      };
+      auto n = ncplane_create(n_, &nopts);
       REQUIRE(n);
       cell tl = CELL_TRIVIAL_INITIALIZER; cell tr = CELL_TRIVIAL_INITIALIZER;
       cell bl = CELL_TRIVIAL_INITIALIZER; cell br = CELL_TRIVIAL_INITIALIZER;
@@ -60,7 +70,17 @@ TEST_CASE("Geometry") {
       { 0, 0, 10, 20, 0, 0, }
     }, *t;
     for(t = tests ; !t->leny ; ++t){
-      auto n = ncplane_new(n_, t->leny, t->lenx, t->absy, t->absx, nullptr, nullptr);
+      struct ncplane_options nopts = {
+        .y = t->absy,
+        .horiz = { .x = t->absx, },
+        .rows = t->leny,
+        .cols = t->lenx,
+        .userptr = nullptr,
+        .name = nullptr,
+        .resizecb = nullptr,
+        .flags = 0,
+      };
+      auto n = ncplane_create(n_, &nopts);
       REQUIRE(n);
       cell tl = CELL_TRIVIAL_INITIALIZER; cell tr = CELL_TRIVIAL_INITIALIZER;
       cell bl = CELL_TRIVIAL_INITIALIZER; cell br = CELL_TRIVIAL_INITIALIZER;
