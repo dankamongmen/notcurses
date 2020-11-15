@@ -14,11 +14,8 @@ notcurses_plane - operations on ncplanes
 #define NCPLANE_OPTION_HORALIGNED 0x0001ull
 
 typedef struct ncplane_options {
-  int y;            // placement relative to parent plane
-  union {
-    int x;
-    ncalign_e align;
-  } horiz;          // placement relative to parent plane
+  int y;            // vertical placement relative to parent plane
+  int x;            // horizontal placement relative to parent plane
   int rows;         // number of rows, must be positive
   int cols;         // number of columns, must be positive
   void* userptr;    // user curry, may be NULL
@@ -259,8 +256,8 @@ plane when scrolling is enabled).
 
 # RETURN VALUES
 
-**ncplane_new**, **ncplane_bound**, **ncplane_aligned**, and **ncplane_dup**
-all return a new **struct ncplane** on success, or **NULL** on failure.
+**ncplane_create** and **ncplane_dup** return a new **struct ncplane** on
+success, or **NULL** on failure.
 
 **ncplane_userptr** returns the configured user pointer for the ncplane, and
 cannot fail.
