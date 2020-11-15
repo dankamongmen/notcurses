@@ -169,9 +169,13 @@ int sliding_puzzle_demo(struct notcurses* nc){
   for(cy = 0 ; cy < CHUNKS_VERT ; ++cy){
     for(cx = 0 ; cx < CHUNKS_HORZ ; ++cx){
       const int idx = cy * CHUNKS_HORZ + cx;
-      chunks[idx] =
-        ncplane_new(n, chunky, chunkx, cy * chunky + wastey + 1,
-                    cx * chunkx + wastex + 1, NULL, NULL);
+      struct ncplane_options nopts = {
+        .y = cy * chunky + wastey + 1,
+        .x = cx * chunkx + wastex + 1,
+        .rows = chunky,
+        .cols = chunkx,
+      };
+      chunks[idx] = ncplane_create(n, &nopts);
       if(chunks[idx] == NULL){
         goto done;
       }

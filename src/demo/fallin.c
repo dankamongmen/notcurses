@@ -128,7 +128,13 @@ int fallin_demo(struct notcurses* nc){
       if(y + newy >= dimy){
         newy = dimy - y;
       }
-      struct ncplane* n = ncplane_new(stdn, newy, newx, y, x, NULL, NULL);
+      struct ncplane_options nopts = {
+        .y = y,
+        .x = x,
+        .rows = newy,
+        .cols = newx,
+      };
+      struct ncplane* n = ncplane_create(stdn, &nopts);
       if(n == NULL){
         goto err;
       }

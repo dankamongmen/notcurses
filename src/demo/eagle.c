@@ -81,7 +81,11 @@ zoom_map(struct notcurses* nc, const char* map, int* ret){
   while(vheight > truey || vwidth > truex){
     *ret = -1;
     ncplane_destroy(zncp);
-    if((zncp = ncplane_new(n, truey, truex, 0, 0, NULL, NULL)) == NULL){
+    struct ncplane_options nopts = {
+      .rows = truey,
+      .cols = truex,
+    };
+    if((zncp = ncplane_create(n, &nopts)) == NULL){
       ncvisual_destroy(ncv);
       return NULL;
     }
@@ -162,7 +166,13 @@ eagles(struct notcurses* nc, struct ncplane* n){
   for(size_t i = 0 ; i < sizeof(e) / sizeof(*e) ; ++i){
     e[i].xoff = 0;
     e[i].yoff = random() % ((truey - height) / 2);
-    e[i].n = ncplane_new(n, height, width, e[i].yoff, e[i].xoff, NULL, NULL);
+    struct ncplane_options nopts = {
+      .y = e[i].yoff,
+      .x = e[i].xoff,
+      .rows = height,
+      .cols = width,
+    };
+    e[i].n = ncplane_create(n, &nopts);
     if(e[i].n == NULL){
       return -1;
     }
