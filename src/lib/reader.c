@@ -18,7 +18,7 @@ ncreader* ncreader_create(ncplane* n, const ncreader_options* opts){
   // to the upper left of the true origin
   struct ncplane_options nopts = {
     .y = -ncplane_dim_y(n),
-    .horiz.x = -ncplane_dim_x(n),
+    .x = -ncplane_dim_x(n),
     .rows = ncplane_dim_y(n),
     .cols = ncplane_dim_x(n),
     .name = "text",

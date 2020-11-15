@@ -28,16 +28,25 @@ auto main(int argc, const char** argv) -> int {
   }else if(argc > 2){
     usage(argv[0], EXIT_FAILURE);
   }
-  notcurses_options nopts{};
-  nopts.flags = NCOPTION_INHIBIT_SETLOCALE;
-  NotCurses nc(nopts);
+  notcurses_options ncopts{};
+  ncopts.flags = NCOPTION_INHIBIT_SETLOCALE;
+  NotCurses nc(ncopts);
   int dimy, dimx;
   auto n = std::make_unique<Plane *>(nc.get_stdplane(&dimy, &dimx));
   nc.get_term_dim(&dimy, &dimx);
   ncreader_options opts{};
   opts.flags = NCREADER_OPTION_CURSOR | (horscroll ? NCREADER_OPTION_HORSCROLL : 0);
   // can't use Plane until we have move constructor for Reader
-  struct ncplane* rp = ncplane_new(**n, dimy / 8, dimx / 2, 2, 2, nullptr, "read");
+  struct ncplane_options nopts = {
+    .y = 2,
+    .x = 2,
+    .rows = dimy / 8,
+    .cols = dimx / 2,
+    .userptr = nullptr,
+    .name = "read",
+    nullptr, 0,
+  };
+  struct ncplane* rp = ncplane_create(**n, &nopts);
   ncplane_set_base(rp, "░", 0, 0);
   auto nr = ncreader_create(rp, &opts);
   if(nr == nullptr){
@@ -68,7 +77,7 @@ auto main(int argc, const char** argv) -> int {
   ncreader_destroy(nr, &contents);
   //nc.stop();
   if(contents){
-    printf("\n input: %s\n", contents);
+    fprintf(stderr, "\n input: %s\n", contents);
   }
   return EXIT_SUCCESS;
 }

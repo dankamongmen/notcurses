@@ -77,7 +77,14 @@ multiselector_demo(struct ncplane* n, struct ncplane* under, int y){
   uint64_t bgchannels = CHANNELS_RGB_INITIALIZER(0, 0x40, 0, 0, 0x40, 0);
   channels_set_fg_alpha(&bgchannels, CELL_ALPHA_BLEND);
   channels_set_bg_alpha(&bgchannels, CELL_ALPHA_BLEND);
-  struct ncplane* mseln = ncplane_new(n, 1, 1, y, 0, NULL, NULL);
+  struct ncplane_options nopts = {
+    .y = y,
+    .x = 0,
+    .rows = 1,
+    .cols = 1,
+    NULL, NULL, NULL, 0,
+  };
+  struct ncplane* mseln = ncplane_create(n, &nopts);
   if(mseln == NULL){
     return NULL;
   }
@@ -107,7 +114,14 @@ selector_demo(struct ncplane* n, struct ncplane* under, int dimx, int y){
   uint64_t bgchannels = CHANNELS_RGB_INITIALIZER(0, 0, 0x40, 0, 0, 0x40);
   channels_set_fg_alpha(&bgchannels, CELL_ALPHA_BLEND);
   channels_set_bg_alpha(&bgchannels, CELL_ALPHA_BLEND);
-  struct ncplane* seln = ncplane_new(n, 1, 1, y, dimx, NULL, NULL);
+  struct ncplane_options nopts = {
+    .y = y,
+    .x = dimx,
+    .rows = 1,
+    .cols = 1,
+    NULL, NULL, NULL, 0,
+  };
+  struct ncplane* seln = ncplane_create(n, &nopts);
   if(seln == NULL){
     return NULL;
   }
@@ -369,7 +383,7 @@ reader_demo(struct notcurses* nc){
   struct ncplane* std = notcurses_stddim_yx(nc, &dimy, &dimx);
   const int READER_COLS = 64;
   const int READER_ROWS = 8;
-  ncreader_options nopts = {
+  ncreader_options ropts = {
     .tchannels = CHANNELS_RGB_INITIALIZER(0xa0, 0xe0, 0xe0, 0, 0, 0),
   };
   uint64_t echannels = CHANNELS_RGB_INITIALIZER(0x20, 0xe0, 0xe0, 0, 0, 0);
@@ -377,9 +391,20 @@ reader_demo(struct notcurses* nc){
   const int x = ncplane_align(std, NCALIGN_CENTER, READER_COLS);
   struct ncselector* selector = NULL;
   struct ncmultiselector* mselector = NULL;
-  struct ncplane* rp = ncplane_new(std, READER_ROWS, READER_COLS, dimy, x, NULL, "read");
+  struct ncreader* reader = NULL;
+  struct ncplane_options nopts = {
+    .y = dimy,
+    .x = x,
+    .rows = READER_ROWS,
+    .cols = READER_COLS,
+    NULL, "read", NULL, 0,
+  };
+  struct ncplane* rp = ncplane_create(std, &nopts);
+  if(rp == NULL){
+    goto done;
+  }
   ncplane_set_base(rp, " ", 0, echannels);
-  struct ncreader* reader = ncreader_create(rp, &nopts);
+  reader = ncreader_create(rp, &ropts);
   if(reader == NULL){
     goto done;
   }

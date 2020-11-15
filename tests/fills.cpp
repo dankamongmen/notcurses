@@ -36,7 +36,7 @@ TEST_CASE("Fills") {
     cell c = CELL_CHAR_INITIALIZER('+');
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = 4,
       .cols = 4,
       .userptr = nullptr,
@@ -68,7 +68,7 @@ TEST_CASE("Fills") {
     cell c = CELL_CHAR_INITIALIZER('+');
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = 20,
       .cols = 20,
       .userptr = nullptr,
@@ -87,7 +87,7 @@ TEST_CASE("Fills") {
     cell c = CELL_CHAR_INITIALIZER('+');
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = 4,
       .cols = 4,
       .userptr = nullptr,
@@ -358,7 +358,7 @@ TEST_CASE("Fills") {
   SUBCASE("MergeDownASCII") {
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = 1,
       .cols = 10,
       .userptr = nullptr,
@@ -402,7 +402,7 @@ TEST_CASE("Fills") {
   SUBCASE("MergeDownUni") {
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = 1,
       .cols = 10,
       .userptr = nullptr,
@@ -456,7 +456,7 @@ TEST_CASE("Fills") {
     constexpr int DIMY = 10;
     struct ncplane_options nopts = {
       .y = 2,
-      .horiz = { .x = 2, },
+      .x = 2,
       .rows = DIMY,
       .cols = DIMX,
       .userptr = nullptr,
@@ -474,7 +474,7 @@ TEST_CASE("Fills") {
     CHECK(0 == notcurses_render(nc_));
     struct ncplane_options n2opts = {
       .y = 3,
-      .horiz = { .x = 3, },
+      .x = 3,
       .rows = DIMY / 2,
       .cols = DIMX / 2,
       .userptr = nullptr,
@@ -515,7 +515,7 @@ TEST_CASE("Fills") {
     constexpr int DIMY = 10;
     struct ncplane_options nopts = {
       .y = 2,
-      .horiz = { .x = 2, },
+      .x = 2,
       .rows = DIMY,
       .cols = DIMX,
       .userptr = nullptr,
@@ -533,7 +533,7 @@ TEST_CASE("Fills") {
     CHECK(0 == notcurses_render(nc_));
     struct ncplane_options n2opts = {
       .y = 3,
-      .horiz = { .x = 3, },
+      .x = 3,
       .rows = DIMY / 2,
       .cols = DIMX / 2,
       .userptr = nullptr,

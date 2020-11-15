@@ -323,7 +323,7 @@ ncmenu* ncmenu_create(ncplane* n, const ncmenu_options* opts){
       }
       struct ncplane_options nopts = {
         .y = ret->bottom ? dimy - totalheight : 0,
-        .horiz.x = 0,
+        .x = 0,
         .rows = totalheight,
         .cols = totalwidth,
         .name = "menu",

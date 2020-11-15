@@ -108,7 +108,7 @@ int main(void){
   ncplane_putstr_aligned(n, 0, NCALIGN_RIGHT, "multiselect widget demo");
   struct ncplane_options nopts = {
     .y = 3,
-    .horiz = { .x = 0, },
+    .x = 0,
     .rows = 1,
     .cols = 1,
     .userptr = NULL,

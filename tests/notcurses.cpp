@@ -73,7 +73,7 @@ TEST_CASE("NotcursesBase") {
         const auto idx = y * maxx + x;
         struct ncplane_options nopts = {
           .y = y,
-          .horiz = { .x = x, },
+          .x = x,
           .rows = 1,
           .cols = 1,
           .userptr = &planesecrets[idx],

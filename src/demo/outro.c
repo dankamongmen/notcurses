@@ -115,9 +115,7 @@ outro_message(struct notcurses* nc, int* rows, int* cols){
     .rows = 5,
     .cols = strlen(str1) + 4,
     .y = ystart,
-    .horiz = {
-      .align = NCALIGN_CENTER,
-    },
+    .x = NCALIGN_CENTER,
     .flags = NCPLANE_OPTION_HORALIGNED,
   };
   struct ncplane* non = ncplane_create(notcurses_stdplane(nc), &nopts);

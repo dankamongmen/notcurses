@@ -183,9 +183,7 @@ int unicodeblocks_demo(struct notcurses* nc){
   ns_to_timespec(nstotal / 5, &subdelay);
   ncplane_options nopts = {
     .y = 2,
-    .horiz = {
-      .align = NCALIGN_CENTER,
-    },
+    .x = NCALIGN_CENTER,
     .rows = 2,
     .cols = (CHUNKSIZE * 2) - 2,
     .flags = NCPLANE_OPTION_HORALIGNED,

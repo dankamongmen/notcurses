@@ -16,9 +16,7 @@ TEST_CASE("Blitting") {
     };
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = {
-        .x = 0,
-      },
+      .x = 0,
       .rows = 2,
       .cols = 4,
       .userptr = nullptr,
@@ -66,9 +64,7 @@ TEST_CASE("Blitting") {
     };
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = {
-        .x = 0,
-      },
+      .x = 0,
       .rows = 2,
       .cols = 4,
       .userptr = nullptr,

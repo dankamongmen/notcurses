@@ -32,9 +32,7 @@ legend(struct notcurses* nc, const char* msg){
     .rows = 3,
     .cols = strlen(msg) + 4,
     .y = 3,
-    .horiz = {
-      .align = NCALIGN_CENTER,
-    },
+    .x = NCALIGN_CENTER,
     .flags = NCPLANE_OPTION_HORALIGNED,
   };
   struct ncplane* n = ncplane_create(notcurses_stdplane(nc), &nopts);

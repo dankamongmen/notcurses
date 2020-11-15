@@ -292,7 +292,7 @@ TEST_CASE("Reels") {
     channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = dimy,
       .cols = dimx,
       .userptr = nullptr,

@@ -71,9 +71,7 @@ namespace ncpp
 		{
 			struct ncplane_options nopts = {
 				.y = yoff,
-				.horiz = {
-				  .x = xoff,
-				},
+				.x = xoff,
 				.rows = rows,
 				.cols = cols,
 				.userptr = opaque,
@@ -1174,9 +1172,7 @@ namespace ncpp
 		{
 			struct ncplane_options nopts = {
 				.y = yoff,
-				.horiz = {
-					.x = xoff,
-				},
+			  .x = xoff,
 				.rows = rows,
 				.cols = cols,
 				.userptr = opaque,

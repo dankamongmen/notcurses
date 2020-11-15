@@ -375,7 +375,7 @@ TEST_CASE("NCPlane") {
     notcurses_term_dim_yx(nc_, &y, &x);
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = y,
       .cols = x,
       .userptr = sentinel,
@@ -399,7 +399,7 @@ TEST_CASE("NCPlane") {
     notcurses_term_dim_yx(nc_, &y, &x);
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = y,
       .cols = x,
       nullptr, nullptr, nullptr, 0,
@@ -423,7 +423,7 @@ TEST_CASE("NCPlane") {
     notcurses_term_dim_yx(nc_, &maxy, &maxx);
     struct ncplane_options nopts = {
       .y = y,
-      .horiz = { .x = x, },
+      .x = x,
       .rows = maxy,
       .cols = maxx,
       nullptr, nullptr, nullptr, 0,
@@ -469,7 +469,7 @@ TEST_CASE("NCPlane") {
     y = dimy / 2 - 1;
     struct ncplane_options nopts = {
       .y = y,
-      .horiz = { .x = x, },
+      .x = x,
       .rows = maxy,
       .cols = maxx,
       nullptr, nullptr, nullptr, 0,
@@ -711,7 +711,7 @@ TEST_CASE("NCPlane") {
     ncplane_yx(n_, &y, &x);
     struct ncplane_options nopts = {
       .y = y,
-      .horiz = { .x = ncols - 3, },
+      .x = ncols - 3,
       .rows = 2,
       .cols = 2,
       nullptr, nullptr, nullptr, 0,
@@ -732,7 +732,7 @@ TEST_CASE("NCPlane") {
     ncplane_yx(n_, &y, &x);
     struct ncplane_options nopts = {
       .y = y,
-      .horiz = { .x = x, },
+      .x = x,
       .rows = 2,
       .cols = 2,
       nullptr, nullptr, nullptr, 0,
@@ -786,7 +786,7 @@ TEST_CASE("NCPlane") {
     notcurses_stddim_yx(nc_, &dimy, &dimx);
     struct ncplane_options nopts = {
       .y = 1,
-      .horiz = { .x = 1, },
+      .x = 1,
       .rows = 2,
       .cols = 2,
       nullptr, nullptr, nullptr, 0,
@@ -815,7 +815,7 @@ TEST_CASE("NCPlane") {
   SUBCASE("BoundPlaneMoves") {
     struct ncplane_options nopts = {
       .y = 1,
-      .horiz = { .x = 1, },
+      .x = 1,
       .rows = 2,
       .cols = 2,
       nullptr, nullptr, nullptr, 0,
@@ -838,7 +838,7 @@ TEST_CASE("NCPlane") {
   SUBCASE("BoundToPlaneMoves") { // bound plane ought move along with plane
     struct ncplane_options nopts = {
       .y = 1,
-      .horiz = { .x = 1, },
+      .x = 1,
       .rows = 2,
       .cols = 2,
       nullptr, nullptr, nullptr, 0,
@@ -861,7 +861,7 @@ TEST_CASE("NCPlane") {
   SUBCASE("UnboundPlaneMoves") { // unbound plane no longer gets pulled along
     struct ncplane_options nopts = {
       .y = 1,
-      .horiz = { .x = 1, },
+      .x = 1,
       .rows = 2,
       .cols = 2,
       nullptr, nullptr, nullptr, 0,
@@ -888,7 +888,7 @@ TEST_CASE("NCPlane") {
   SUBCASE("NoReparentStdPlane") {
     struct ncplane_options nopts = {
       .y = 1,
-      .horiz = { .x = 1, },
+      .x = 1,
       .rows = 2,
       .cols = 2,
       nullptr, nullptr, nullptr, 0,

@@ -207,7 +207,7 @@ int main(int argc, char** argv){
   }
   struct ncplane_options nopts = {
     .y = 1,
-    .horiz = { .x = 0, },
+    .x = 0,
     .rows = dimy - 1,
     .cols = dimx,
     .userptr = nullptr,

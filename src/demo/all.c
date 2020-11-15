@@ -102,9 +102,7 @@ int allglyphs_demo(struct notcurses* nc){
   const int planey = (dimy - height) / 2 + 1;
   ncplane_options nopts = {
     .y = planey,
-    .horiz = {
-      .align = NCALIGN_CENTER,
-    },
+    .x = NCALIGN_CENTER,
     .rows = height,
     .cols = width,
     .flags = NCPLANE_OPTION_HORALIGNED,

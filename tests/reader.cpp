@@ -16,7 +16,7 @@ TEST_CASE("Readers") {
     ncreader_options opts{};
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = dimy / 2,
       .cols = dimx / 2,
       .userptr = nullptr,
