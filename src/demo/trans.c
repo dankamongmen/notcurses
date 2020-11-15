@@ -108,7 +108,13 @@ slidepanel(struct notcurses* nc, struct ncplane* stdn){
   struct ncplane* l;
 
   // First we just create a plane with no styling and no glyphs.
-  struct ncplane* n = ncplane_new(stdn, ny, nx, yoff, xoff, NULL, NULL);
+  struct ncplane_options nopts = {
+    .y = yoff,
+    .x = xoff,
+    .rows = ny,
+    .cols = nx,
+  };
+  struct ncplane* n = ncplane_create(stdn, &nopts);
 
   // Zero-initialized channels use the default color, opaquely. Since we have
   // no glyph, we should show underlying glyphs in the default colors. The
