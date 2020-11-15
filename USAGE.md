@@ -650,10 +650,7 @@ When an `ncplane` is no longer needed, free it with
 
 typedef struct ncplane_options {
   int y;            // vertical placement relative to parent plane
-  union {
-    int x;
-    ncalign_e align;
-  } horiz;          // horizontal placement relative to parent plane
+  int x;            // horizontal placement relative to parent plane
   int rows;         // number of rows, must be positive
   int cols;         // number of columns, must be positive
   void* userptr;    // user curry, may be NULL
