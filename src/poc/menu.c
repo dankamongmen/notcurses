@@ -8,9 +8,7 @@ static int
 run_menu(struct notcurses* nc, struct ncmenu* ncm){
   ncplane_options nopts = {
     .y = 10,
-    .horiz = {
-      .align = NCALIGN_CENTER,
-    },
+    .x = NCALIGN_CENTER,
     .rows = 3,
     .cols = 40,
     .flags = NCPLANE_OPTION_HORALIGNED,

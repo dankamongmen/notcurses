@@ -224,7 +224,7 @@ TEST_CASE("Wide") {
   SUBCASE("BoxedWideGlyph") {
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = 3,
       .cols = 4,
       .userptr = nullptr,
@@ -348,7 +348,7 @@ TEST_CASE("Wide") {
 
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 1, },
+      .x = 1,
       .rows = 1,
       .cols = 2,
       .userptr = nullptr,
@@ -395,7 +395,7 @@ TEST_CASE("Wide") {
   SUBCASE("OverWide") {
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = 3,
       .cols = 4,
       .userptr = nullptr,
@@ -444,7 +444,7 @@ TEST_CASE("Wide") {
     // start the 1x4 top plane at 0, 4
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 4, },
+      .x = 4,
       .rows = 1,
       .cols = 4,
       .userptr = nullptr,
@@ -628,7 +628,7 @@ TEST_CASE("Wide") {
     // start the 1x4 top plane at 0, 4
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 4, },
+      .x = 4,
       .rows = 1,
       .cols = 4,
       .userptr = nullptr,
@@ -783,7 +783,7 @@ TEST_CASE("Wide") {
     // start the 1x4 top plane at 0, 4
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 4, },
+      .x = 4,
       .rows = 1,
       .cols = 4,
       .userptr = nullptr,
@@ -977,7 +977,7 @@ TEST_CASE("Wide") {
   SUBCASE("HigherGlyphAbides") {
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = 1,
       .cols = 1,
       .userptr = nullptr,

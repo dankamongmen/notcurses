@@ -260,7 +260,7 @@ ncreel_draw_tablet(const ncreel* nr, nctablet* t, int frontiertop,
 //fprintf(stderr, "p tplacement: %p base %d/%d len %d/%d frontiery %d %d dir %d\n", t, begy, begx, leny, lenx, frontiertop, frontierbottom, direction);
   struct ncplane_options nopts = {
     .y = begy,
-    .horiz.x = begx,
+    .x = begx,
     .rows = leny,
     .cols = lenx,
     .name = "tab",
@@ -287,7 +287,7 @@ ncreel_draw_tablet(const ncreel* nr, nctablet* t, int frontiertop,
 //fprintf(stderr, "cbp placement %dx%d @ %dx%d\n", cbleny, cblenx, cby, cbx);
     struct ncplane_options dnopts = {
       .y = cby,
-      .horiz.x = cbx,
+      .x = cbx,
       .rows = cbleny,
       .cols = cblenx,
       .name = "tdat",

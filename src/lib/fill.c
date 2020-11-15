@@ -489,7 +489,7 @@ rotate_plane(ncplane* n){
   const int newx = dimy * 2;
   struct ncplane_options nopts = {
     .y = absy,
-    .horiz.x = absx,
+    .x = absx,
     .rows = newy,
     .cols = newx,
     .userptr = n->userptr,

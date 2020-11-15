@@ -15,7 +15,7 @@ TEST_CASE("Selectors") {
     struct ncselector_options opts{};
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = 1,
       .cols = 1,
       nullptr, nullptr, nullptr, 0,
@@ -39,7 +39,7 @@ TEST_CASE("Selectors") {
     opts.title = strdup("hey hey whaddya say");
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = 1,
       .cols = 1,
       nullptr, nullptr, nullptr, 0,
@@ -62,7 +62,7 @@ TEST_CASE("Selectors") {
     opts.secondary = strdup("this is not a title, but it's not *not* a title");
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = 1,
       .cols = 1,
       nullptr, nullptr, nullptr, 0,
@@ -85,7 +85,7 @@ TEST_CASE("Selectors") {
     opts.footer = strdup("i am a lone footer, little old footer");
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = 1,
       .cols = 1,
       nullptr, nullptr, nullptr, 0,
@@ -114,7 +114,7 @@ TEST_CASE("Selectors") {
     opts.items = items;
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = 1,
       .cols = 1,
       nullptr, nullptr, nullptr, 0,
@@ -136,7 +136,7 @@ TEST_CASE("Selectors") {
     struct ncselector_options opts{};
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = 1,
       .cols = 1,
       nullptr, nullptr, nullptr, 0,
@@ -167,7 +167,7 @@ TEST_CASE("Selectors") {
     opts.items = items;
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = 1,
       .cols = 1,
       nullptr, nullptr, nullptr, 0,
@@ -213,7 +213,7 @@ TEST_CASE("Selectors") {
     opts.items = items;
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = 1,
       .cols = 1,
       nullptr, nullptr, nullptr, 0,
@@ -264,7 +264,7 @@ TEST_CASE("Selectors") {
     opts.items = items;
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = 1,
       .cols = 1,
       nullptr, nullptr, nullptr, 0,

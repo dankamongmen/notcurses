@@ -86,7 +86,7 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
       ncplane_dim_yx(vopts->n, &dimy, &dimx);
       struct ncplane_options nopts = {
         .y = dimy - 1,
-        .horiz = { .x = 0, },
+        .x = 0,
         .rows = 1,
         .cols = dimx,
         nullptr, "subt", nullptr, 0,

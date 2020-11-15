@@ -14,7 +14,7 @@ TEST_CASE("TextLayout") {
   SUBCASE("LayoutLeft") {
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = 2,
       .cols = 20,
       .userptr = nullptr,
@@ -38,7 +38,7 @@ TEST_CASE("TextLayout") {
   SUBCASE("LayoutRight") {
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = 2,
       .cols = 20,
       .userptr = nullptr,
@@ -62,7 +62,7 @@ TEST_CASE("TextLayout") {
   SUBCASE("LayoutCenter") {
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = 2,
       .cols = 20,
       .userptr = nullptr,
@@ -87,7 +87,7 @@ TEST_CASE("TextLayout") {
   SUBCASE("LayoutOnBoundary") {
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = 3,
       .cols = 10,
       .userptr = nullptr,
@@ -113,7 +113,7 @@ TEST_CASE("TextLayout") {
   SUBCASE("LayoutCrossBoundary") {
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = 3,
       .cols = 10,
       .userptr = nullptr,
@@ -139,7 +139,7 @@ TEST_CASE("TextLayout") {
   SUBCASE("LayoutNewlines") {
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = 5,
       .cols = 5,
       .userptr = nullptr,
@@ -165,7 +165,7 @@ TEST_CASE("TextLayout") {
   SUBCASE("LayoutNewlinesAtBorders") {
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = 5,
       .cols = 3,
       .userptr = nullptr,
@@ -192,7 +192,7 @@ TEST_CASE("TextLayout") {
     if(enforce_utf8()){
       struct ncplane_options nopts = {
         .y = 0,
-        .horiz = { .x = 0, },
+        .x = 0,
         .rows = 2,
         .cols = 7,
         .userptr = nullptr,
@@ -220,7 +220,7 @@ TEST_CASE("TextLayout") {
   SUBCASE("LayoutTransPlanar") {
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = 3,
       .cols = 10,
       .userptr = nullptr,
@@ -248,7 +248,7 @@ TEST_CASE("TextLayout") {
     if(enforce_utf8()){
       struct ncplane_options nopts = {
         .y = 0,
-        .horiz = { .x = 0, },
+        .x = 0,
         .rows = 3,
         .cols = 10,
         .userptr = nullptr,
@@ -274,7 +274,7 @@ TEST_CASE("TextLayout") {
   SUBCASE("LayoutLeadingSpaces") {
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = 3,
       .cols = 18,
       .userptr = nullptr,
@@ -300,7 +300,7 @@ TEST_CASE("TextLayout") {
   SUBCASE("LayoutFills1DPlane") {
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = 2,
       .cols = 15,
       .userptr = nullptr,
@@ -326,7 +326,7 @@ TEST_CASE("TextLayout") {
   SUBCASE("LayoutFills1DPlaneWords") {
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = 2,
       .cols = 17,
       .userptr = nullptr,
@@ -352,7 +352,7 @@ TEST_CASE("TextLayout") {
   SUBCASE("LayoutFillsSingleLine") {
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = 2,
       .cols = 13,
       .userptr = nullptr,
@@ -378,7 +378,7 @@ TEST_CASE("TextLayout") {
   SUBCASE("LayoutFillsPlane") {
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = 3,
       .cols = 14,
       .userptr = nullptr,
@@ -404,7 +404,7 @@ TEST_CASE("TextLayout") {
   SUBCASE("LayoutFillsPlaneNoSpaces") {
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = 3,
       .cols = 6,
       .userptr = nullptr,
@@ -431,7 +431,7 @@ TEST_CASE("TextLayout") {
     if(enforce_utf8()){
       struct ncplane_options nopts = {
         .y = 0,
-        .horiz = { .x = 0, },
+        .x = 0,
         .rows = 3,
         .cols = 7,
         .userptr = nullptr,
@@ -459,7 +459,7 @@ TEST_CASE("TextLayout") {
   SUBCASE("LayoutLongNoScroll") {
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = 2,
       .cols = 14,
       .userptr = nullptr,
@@ -485,7 +485,7 @@ TEST_CASE("TextLayout") {
   SUBCASE("LayoutLongScroll") {
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = 2,
       .cols = 13,
       .userptr = nullptr,
@@ -519,7 +519,7 @@ TEST_CASE("TextLayout") {
       "sollicitudin dolor, eget elementum dolor. Quisque lobortis sagittis.";
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = READER_ROWS,
       .cols = READER_COLS,
       .userptr = nullptr,
@@ -553,7 +553,7 @@ TEST_CASE("TextLayout") {
       "Widgets can be controlled with the keyboard and/or mouse. They are implemented atop ncplanes, and these planes can be manipulated like all others.";
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = READER_ROWS,
       .cols = READER_COLS,
       .userptr = nullptr,
@@ -590,7 +590,7 @@ TEST_CASE("TextLayout") {
       "Widgets can be controlled with the keyboard and/or mouse. They are implemented atop ncplanes, and these planes can be manipulated like all others.";
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = READER_ROWS,
       .cols = READER_COLS,
       .userptr = nullptr,

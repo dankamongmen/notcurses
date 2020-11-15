@@ -52,7 +52,7 @@ TEST_CASE("Rotate") {
   SUBCASE("RotateTransparentCW") {
     struct ncplane_options nopts = {
       .y = dimy / 2,
-      .horiz = { .x = dimx / 2, },
+      .x = dimx / 2,
       .rows = 8,
       .cols = 16,
       .userptr = nullptr,
@@ -86,7 +86,7 @@ TEST_CASE("Rotate") {
     // should be a square, and should remain a square through rotations
     struct ncplane_options nopts = {
       .y = dimy / 2,
-      .horiz = { .x = dimx / 2, },
+      .x = dimx / 2,
       .rows = 8,
       .cols = 16,
       .userptr = nullptr,
@@ -104,7 +104,7 @@ TEST_CASE("Rotate") {
     // should be a square, and should remain a square through rotations
     struct ncplane_options nopts = {
       .y = dimy / 2,
-      .horiz = { .x = dimx / 2, },
+      .x = dimx / 2,
       .rows = 8,
       .cols = 32,
       .userptr = nullptr,
@@ -122,7 +122,7 @@ TEST_CASE("Rotate") {
     // should be a square, and should remain a square through rotations
     struct ncplane_options nopts = {
       .y = dimy / 2,
-      .horiz = { .x = dimx / 2, },
+      .x = dimx / 2,
       .rows = 8,
       .cols = 16,
       .userptr = nullptr,
@@ -140,7 +140,7 @@ TEST_CASE("Rotate") {
     // should be a square, and should remain a square through rotations
     struct ncplane_options nopts = {
       .y = dimy / 2,
-      .horiz = { .x = dimx / 2, },
+      .x = dimx / 2,
       .rows = 8,
       .cols = 32,
       .userptr = nullptr,

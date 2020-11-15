@@ -2,6 +2,9 @@ This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
 * 2.0.5 (not yet released)
+  * The `horiz` union of `ncplane_options` has been discarded; the `int x`
+    within has been promoted. This union brought no actual type safety, and was
+    annoying for callers to deal with otherwise. Sorry for the inconvenience.
   * As promised, `ncplane_new()` has been marked as deprecated. It will be
     removed in 3.0. Use the strictly more powerful `ncplane_create()` instead,
     with its self-documenting `struct ncplane_options` argument. So long as

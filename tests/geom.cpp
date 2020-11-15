@@ -26,7 +26,7 @@ TEST_CASE("Geometry") {
     for(t = tests ; !t->leny ; ++t){
       struct ncplane_options nopts = {
         .y = 0,
-        .horiz = { .x = 0, },
+        .x = 0,
         .rows = t->leny,
         .cols = t->lenx,
         .userptr = nullptr,
@@ -72,7 +72,7 @@ TEST_CASE("Geometry") {
     for(t = tests ; !t->leny ; ++t){
       struct ncplane_options nopts = {
         .y = t->absy,
-        .horiz = { .x = t->absx, },
+        .x = t->absx,
         .rows = t->leny,
         .cols = t->lenx,
         .userptr = nullptr,

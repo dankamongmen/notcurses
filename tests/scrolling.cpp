@@ -21,7 +21,7 @@ TEST_CASE("Scrolling") {
   SUBCASE("ScrollingStr") {
     struct ncplane_options nopts = {
       .y = 1,
-      .horiz = { .x = 1, },
+      .x = 1,
       .rows = 2,
       .cols = 20,
       nullptr, nullptr, nullptr, 0,
@@ -50,7 +50,7 @@ TEST_CASE("Scrolling") {
   SUBCASE("NoScrollingManually") {
     struct ncplane_options nopts = {
       .y = 1,
-      .horiz = { .x = 1, },
+      .x = 1,
       .rows = 2,
       .cols = 20,
       nullptr, nullptr, nullptr, 0,
@@ -71,7 +71,7 @@ TEST_CASE("Scrolling") {
   SUBCASE("ScrollingSplitStr") {
     struct ncplane_options nopts = {
       .y = 1,
-      .horiz = { .x = 1, },
+      .x = 1,
       .rows = 2,
       .cols = 20,
       nullptr, nullptr, nullptr, 0,
@@ -98,7 +98,7 @@ TEST_CASE("Scrolling") {
     const char* out = "0123456789012345678901234567890123456789";
     struct ncplane_options nopts = {
       .y = 1,
-      .horiz = { .x = 1, },
+      .x = 1,
       .rows = 2,
       .cols = 20,
       nullptr, nullptr, nullptr, 0,
@@ -137,7 +137,7 @@ TEST_CASE("Scrolling") {
   SUBCASE("ScrollingBoxen") {
     struct ncplane_options nopts = {
       .y = 1,
-      .horiz = { .x = 1, },
+      .x = 1,
       .rows = 4,
       .cols = 20,
       nullptr, nullptr, nullptr, 0,
@@ -161,7 +161,7 @@ TEST_CASE("Scrolling") {
     const char* next2 = "UVWXYZabcd";
     struct ncplane_options nopts = {
       .y = 1,
-      .horiz = { .x = 1, },
+      .x = 1,
       .rows = 2,
       .cols = 20,
       nullptr, nullptr, nullptr, 0,
@@ -221,7 +221,7 @@ TEST_CASE("Scrolling") {
     CHECK(0 == notcurses_render(nc_));
     struct ncplane_options nopts = {
       .y = 1,
-      .horiz = { .x = 1, },
+      .x = 1,
       .rows = 2,
       .cols = 20,
       nullptr, nullptr, nullptr, 0,

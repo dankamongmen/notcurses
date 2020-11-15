@@ -323,10 +323,10 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n, const ncplane_options* 
   p->align = NCALIGN_UNALIGNED;
   if( (p->boundto = n) ){
     if(nopts->flags & NCPLANE_OPTION_HORALIGNED){
-      p->absx = ncplane_align(n, nopts->horiz.align, nopts->cols);
-      p->align = nopts->horiz.align;
+      p->absx = ncplane_align(n, nopts->x, nopts->cols);
+      p->align = nopts->x;
     }else{
-      p->absx = nopts->horiz.x;
+      p->absx = nopts->x;
     }
     p->absx += n->absx;
     p->absy = nopts->y + n->absy;
@@ -338,7 +338,7 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n, const ncplane_options* 
   }else{ // new standard plane
     assert(!(nopts->flags & NCPLANE_OPTION_HORALIGNED));
     assert(0 == nopts->y);
-    assert(0 == nopts->horiz.x);
+    assert(0 == nopts->x);
     p->absx = (nc ? nc->margin_l : 0);
     p->absy = (nc ? nc->margin_t : 0);
     p->bnext = NULL;
@@ -375,9 +375,7 @@ static ncplane*
 create_initial_ncplane(notcurses* nc, int dimy, int dimx){
   ncplane_options nopts = {
     .y = 0,
-    .horiz = {
-      .x = 0,
-    },
+    .x = 0,
     .rows = dimy - (nc->margin_t + nc->margin_b),
     .cols = dimx - (nc->margin_l + nc->margin_r),
     .name = "std",
@@ -400,9 +398,7 @@ ncplane* ncplane_create(ncplane* n, const ncplane_options* nopts){
 struct ncplane* ncplane_new(struct ncplane* n, int rows, int cols, int y, int x, void* opaque, const char* name){
   ncplane_options nopts = {
     .y = y,
-    .horiz = {
-      .x = x,
-    },
+    .x = x,
     .rows = rows,
     .cols = cols,
     .userptr = opaque,
@@ -459,7 +455,7 @@ ncplane* ncplane_dup(const ncplane* n, void* opaque){
   const int placex = n->absx - nc->margin_l;
   struct ncplane_options nopts = {
     .y = placey,
-    .horiz.x = placex,
+    .x = placex,
     .rows = dimy,
     .cols = dimx,
     .userptr = opaque,

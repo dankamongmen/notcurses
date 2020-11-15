@@ -95,9 +95,7 @@ debug_toggle(struct notcurses* nc){
   }
   ncplane_options nopts = {
     .y = 3,
-    .horiz = {
-      .align = NCALIGN_CENTER,
-    },
+    .x = NCALIGN_CENTER,
     .rows = count_debug_lines(output, outputlen) + 1,
     .cols = dimx + 1, // so we don't break lines before the true boundary
     .flags = NCPLANE_OPTION_HORALIGNED,
@@ -138,9 +136,7 @@ about_toggle(struct notcurses* nc){
   notcurses_term_dim_yx(nc, &dimy, NULL);
   ncplane_options nopts = {
     .y = 3,
-    .horiz = {
-      .align = NCALIGN_CENTER,
-    },
+    .x = NCALIGN_CENTER,
     .rows = ABOUT_ROWS,
     .cols = ABOUT_COLS,
     .flags = NCPLANE_OPTION_HORALIGNED,
@@ -395,8 +391,17 @@ struct ncplane* hud_create(struct notcurses* nc){
   int dimx, dimy;
   notcurses_term_dim_yx(nc, &dimy, &dimx);
   int yoffset = dimy - HUD_ROWS;
-  struct ncplane* n = ncplane_new(notcurses_stdplane(nc), HUD_ROWS, HUD_COLS,
-                                  yoffset, 7, NULL, "hud");
+  struct ncplane_options nopts = {
+    .y = yoffset,
+    .x = 7,
+    .rows = HUD_ROWS,
+    .cols = HUD_COLS,
+    .userptr = NULL,
+    .name = "hud",
+    .resizecb = NULL,
+    .flags = 0,
+  };
+  struct ncplane* n = ncplane_create(notcurses_stdplane(nc), &nopts);
   if(n == NULL){
     return NULL;
   }
@@ -608,9 +613,7 @@ int fpsgraph_init(struct notcurses* nc){
   struct ncplane* stdn = notcurses_stddim_yx(nc, &dimy, &dimx);
   ncplane_options nopts = {
     .y = dimy - PLOTHEIGHT,
-    .horiz = {
-      .align = NCALIGN_CENTER,
-    },
+    .x = NCALIGN_CENTER,
     .rows = PLOTHEIGHT,
     .cols = dimx,
     .userptr = NULL,

@@ -25,7 +25,7 @@ TEST_CASE("Resize") {
     int x = dimx;
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0 },
+      .x = 0,
       .rows = y,
       .cols = x,
       nullptr, nullptr, nullptr, 0,
@@ -49,7 +49,7 @@ TEST_CASE("Resize") {
     int x = 2;
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0 },
+      .x = 0,
       .rows = y,
       .cols = x,
       nullptr, nullptr, nullptr, 0,

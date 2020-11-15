@@ -3393,9 +3393,7 @@ static struct ncplane*
 mojiplane(struct ncplane* title, int y, int rows, const char* summary){
   ncplane_options nopts = {
     .y = y,
-    .horiz = {
-      .align = NCALIGN_CENTER,
-    },
+    .x = NCALIGN_CENTER,
     .rows = rows,
     .cols = planewidth,
     .flags = NCPLANE_OPTION_HORALIGNED,
@@ -3559,9 +3557,7 @@ struct ncplane*
 maketitle(struct ncplane* std){
   ncplane_options nopts = {
     .y = 2,
-    .horiz = {
-      .align = NCALIGN_CENTER,
-    },
+    .x = NCALIGN_CENTER,
     .rows = 3,
     .cols = 74,
     .flags = NCPLANE_OPTION_HORALIGNED,

@@ -28,7 +28,7 @@ TEST_CASE("ZAxis") {
   SUBCASE("NoMoveSelf") {
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = 2,
       .cols = 2,
       nullptr, nullptr, nullptr, 0,
@@ -45,7 +45,7 @@ TEST_CASE("ZAxis") {
   SUBCASE("NewPlaneOnTop") {
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = 2,
       .cols = 2,
       nullptr, nullptr, nullptr, 0,
@@ -62,7 +62,7 @@ TEST_CASE("ZAxis") {
   SUBCASE("TopToTop") {
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = 2,
       .cols = 2,
       nullptr, nullptr, nullptr, 0,
@@ -85,7 +85,7 @@ TEST_CASE("ZAxis") {
   SUBCASE("TopToBottom") {
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = 2,
       .cols = 2,
       nullptr, nullptr, nullptr, 0,
@@ -117,7 +117,7 @@ TEST_CASE("ZAxis") {
     REQUIRE(0 == strcmp("x", cell_extended_gcluster(n_, &c)));
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = 2,
       .cols = 2,
       nullptr, nullptr, nullptr, 0,
@@ -148,7 +148,7 @@ TEST_CASE("ZAxis") {
   SUBCASE("DropPlanes") {
     struct ncplane_options nopts = {
       .y = 1,
-      .horiz = { .x = 1, },
+      .x = 1,
       .rows = 1,
       .cols = 1,
       nullptr, nullptr, nullptr, 0,

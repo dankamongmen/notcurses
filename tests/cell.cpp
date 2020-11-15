@@ -154,7 +154,7 @@ TEST_CASE("Cell") {
     CHECK(0 == cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT));
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = 1,
       .cols = 1,
       .userptr = nullptr,
@@ -193,7 +193,7 @@ TEST_CASE("Cell") {
     CHECK(0 == cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT));
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = 1,
       .cols = 1,
       .userptr = nullptr,
@@ -232,7 +232,7 @@ TEST_CASE("Cell") {
     CHECK(0 == cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT));
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = 1,
       .cols = 1,
       .userptr = nullptr,
@@ -271,7 +271,7 @@ TEST_CASE("Cell") {
     CHECK(0 == cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT));
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = 1,
       .cols = 1,
       .userptr = nullptr,
@@ -311,7 +311,7 @@ TEST_CASE("Cell") {
     CHECK(0 == cell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT));
     struct ncplane_options nopts = {
       .y = 0,
-      .horiz = { .x = 0, },
+      .x = 0,
       .rows = 1,
       .cols = 1,
       .userptr = nullptr,
