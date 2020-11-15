@@ -1,102 +1,102 @@
 // functions already exported by bindgen : 97
 // ------------------------------------------
-// ncplane_above
-// ncplane_at_cursor
-// ncplane_at_yx
-// ncplane_base
-// ncplane_below
-// ncplane_box
-// ncplane_center_abs
-// ncplane_channels
-// ncplane_contents
-// ncplane_create
-// ncplane_cursor_move_yx
-// ncplane_cursor_yx
-// ncplane_destroy
-// ncplane_dim_yx
-// ncplane_dup
-// ncplane_erase
-// ncplane_fadein
-// ncplane_fadein_iteration
-// ncplane_fadeout
-// ncplane_fadeout_iteration
-// ncplane_format
-// ncplane_gradient
-// ncplane_greyscale
-// ncplane_highgradient
-// ncplane_highgradient_sized
-// ncplane_hline_interp
-// ncplane_home
-// ncplane_mergedown
-// ncplane_mergedown_simple
-// ncplane_move_above
-// ncplane_move_below
-// ncplane_move_bottom
-// ncplane_move_top
-// ncplane_move_yx
-// ncplane_new
-// ncplane_notcurses
-// ncplane_notcurses_const
-// ncplane_off_styles
-// ncplane_on_styles
-// ncplane_parent
-// ncplane_parent_const
-// ncplane_polyfill_yx
-// ncplane_pulse
-// ncplane_putchar_stained
-// ncplane_putc_yx
-// ncplane_putegc_stained
-// ncplane_putegc_yx
-// ncplane_putnstr_aligned
-// ncplane_putnstr_yx
-// ncplane_putstr_aligned
-// ncplane_putstr_stained
-// ncplane_putstr_yx
-// ncplane_puttext
-// ncplane_putwegc_stained
-// ncplane_putwstr_stained
-// ncplane_qrcode
-// ncplane_reparent
-// ncplane_resize
-// ncplane_resize_realign
-// ncplane_rgba
-// ncplane_rotate_ccw
-// ncplane_rotate_cw
-// ncplane_set_base
-// ncplane_set_base_cell
-// ncplane_set_bchannel
-// ncplane_set_bg_alpha
-// ncplane_set_bg_default
-// ncplane_set_bg_palindex
-// ncplane_set_bg_rgb
-// ncplane_set_bg_rgb8
-// ncplane_set_bg_rgb8_clipped
-// ncplane_set_channels
-// ncplane_set_fchannel
-// ncplane_set_fg_alpha
-// ncplane_set_fg_default
-// ncplane_set_fg_palindex
-// ncplane_set_fg_rgb
-// ncplane_set_fg_rgb8
-// ncplane_set_fg_rgb8_clipped
-// ncplane_set_scrolling
-// ncplane_set_styles
-// ncplane_set_userptr
-// ncplane_stain
-// ncplane_styles
-// ncplane_styles_off
-// ncplane_styles_on
-// ncplane_styles_set
-// ncplane_translate
-// ncplane_translate_abs
-// ncplane_userptr
-// ncplane_vline_interp
-// ncplane_vprintf_aligned
-// ncplane_vprintf_stained
-// ncplane_vprintf_yx
-// ncplane_x
-// ncplane_y
-// ncplane_yx
+//  ncplane_above
+//  ncplane_at_cursor
+//  ncplane_at_yx
+//  ncplane_base
+//  ncplane_below
+//  ncplane_box
+//  ncplane_center_abs
+//  ncplane_channels
+//  ncplane_contents
+//  ncplane_create
+//  ncplane_cursor_move_yx
+//  ncplane_cursor_yx
+//  ncplane_destroy
+//  ncplane_dim_yx
+//  ncplane_dup
+//  ncplane_erase
+//  ncplane_fadein
+//  ncplane_fadein_iteration
+//  ncplane_fadeout
+//  ncplane_fadeout_iteration
+//  ncplane_format
+//  ncplane_gradient
+//  ncplane_greyscale
+//  ncplane_highgradient
+//  ncplane_highgradient_sized
+//  ncplane_hline_interp
+//  ncplane_home
+//  ncplane_mergedown
+//  ncplane_mergedown_simple
+//  ncplane_move_above
+//  ncplane_move_below
+//  ncplane_move_bottom
+//  ncplane_move_top
+//  ncplane_move_yx
+//  ncplane_new
+//  ncplane_notcurses
+//  ncplane_notcurses_const
+//  ncplane_off_styles
+//  ncplane_on_styles
+//  ncplane_parent
+//  ncplane_parent_const
+//  ncplane_polyfill_yx
+//  ncplane_pulse
+//  ncplane_putchar_stained
+//  ncplane_putc_yx
+//  ncplane_putegc_stained
+//  ncplane_putegc_yx
+//  ncplane_putnstr_aligned
+//  ncplane_putnstr_yx
+//  ncplane_putstr_aligned
+//  ncplane_putstr_stained
+//  ncplane_putstr_yx
+//  ncplane_puttext
+//  ncplane_putwegc_stained
+//  ncplane_putwstr_stained
+//  ncplane_qrcode
+//  ncplane_reparent
+//  ncplane_resize
+//  ncplane_resize_realign
+//  ncplane_rgba
+//  ncplane_rotate_ccw
+//  ncplane_rotate_cw
+//  ncplane_set_base
+//  ncplane_set_base_cell
+//  ncplane_set_bchannel
+//  ncplane_set_bg_alpha
+//  ncplane_set_bg_default
+//  ncplane_set_bg_palindex
+//  ncplane_set_bg_rgb
+//  ncplane_set_bg_rgb8
+//  ncplane_set_bg_rgb8_clipped
+//  ncplane_set_channels
+//  ncplane_set_fchannel
+//  ncplane_set_fg_alpha
+//  ncplane_set_fg_default
+//  ncplane_set_fg_palindex
+//  ncplane_set_fg_rgb
+//  ncplane_set_fg_rgb8
+//  ncplane_set_fg_rgb8_clipped
+//  ncplane_set_scrolling
+//  ncplane_set_styles
+//  ncplane_set_userptr
+//  ncplane_stain
+//  ncplane_styles
+//  ncplane_styles_off
+//  ncplane_styles_on
+//  ncplane_styles_set
+//  ncplane_translate
+//  ncplane_translate_abs
+//  ncplane_userptr
+//  ncplane_vline_interp
+//  ncplane_vprintf_aligned
+//  ncplane_vprintf_stained
+//  ncplane_vprintf_yx
+//  ncplane_x
+//  ncplane_y
+//  ncplane_yx
 //
 // static inline functions total: 42
 // ------------------------------------------ (implement / remaining)
@@ -149,8 +149,10 @@
 //
 // NOTE: TODO: Still remains all the ncplane_printf* functions/macros (at the end)
 
-use core::ffi::c_void;
-use core::ptr::null_mut;
+use core::{
+    ffi::c_void,
+    ptr::{null, null_mut},
+};
 
 use cstr_core::CString;
 use libc::free;
@@ -163,12 +165,57 @@ use crate::{
     ncplane_at_yx, ncplane_box, ncplane_channels, ncplane_cursor_move_yx, ncplane_cursor_yx,
     ncplane_dim_yx, ncplane_gradient, ncplane_hline_interp, ncplane_putc_yx, ncplane_putegc_yx,
     ncplane_putnstr_yx, ncplane_putstr_yx, ncplane_resize, ncplane_vline_interp,
-    ncplane_vprintf_yx, notcurses_align,
+    ncplane_vprintf_yx, notcurses_align, ncplane_create,
     types::{
         AlphaBits, Cell, Channel, Channels, Color, EgcBackstop, IntResult, NcAlign, NcPlane,
-        StyleMask,
+        StyleMask, NcPlaneOptions, NcPlaneOptionHoriz, NcHoriz, NCPLANE_OPTION_HORALIGNED,
     },
 };
+
+// Constructors ----------------------------------------------------------------
+
+impl NcPlaneOptions {
+    /// `NcPlaneOptions` simple constructor with horizontal x
+    pub fn new(y: i32, x: i32, rows: u32, cols: u32) -> Self {
+        Self::with_all_options(y, NcHoriz::x(x), rows, cols, 0)
+    }
+
+    /// `NcPlaneOptions` simple constructor with horizontal alignment
+    pub fn new_halign(y: i32, align: NcAlign, rows: u32, cols: u32) -> Self {
+        Self::with_all_options(y, NcHoriz::align(align), rows, cols, NCPLANE_OPTION_HORALIGNED)
+    }
+
+    /// `NcplaneOptions` constructor
+    pub fn with_all_options(y: i32, horiz: NcHoriz, rows: u32, cols: u32, flags: u64) -> Self {
+        NcPlaneOptions {
+                y,
+                horiz: {
+                    match horiz {
+                        NcHoriz::x(data) => NcPlaneOptionHoriz {x: data},
+                        NcHoriz::align(data) => NcPlaneOptionHoriz {align: data},
+                    }
+
+                },
+                rows: rows as i32,
+                cols: cols as i32,
+                userptr: null_mut(),
+                name: null(),
+                resizecb: None,
+                flags,
+        }
+    }
+}
+
+impl NcPlane {
+
+    /// `NcPlane` constructor
+    pub unsafe fn new<'a>(bound_to: &mut NcPlane, options: &NcPlaneOptions) -> &'a mut NcPlane {
+        &mut *ncplane_create(bound_to, options)
+    }
+}
+
+
+// Static Functions ------------------------------------------------------------
 
 /// Return the column at which 'cols' columns ought start in order to be aligned
 /// according to 'align' within ncplane 'n'. Returns INT_MAX on invalid 'align'.

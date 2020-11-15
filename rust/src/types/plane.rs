@@ -13,7 +13,7 @@ pub type NcPlane = crate::ncplane;
 pub type NcPlaneOptions = crate::ncplane_options;
 
 /// Horizontal alignment relative to the parent plane. Use 'align' instead of 'x'.
-pub const NCPLANE_OPTION_HORALIGNED: u32 = crate::bindings::NCPLANE_OPTION_HORALIGNED;
+pub const NCPLANE_OPTION_HORALIGNED: u64 = crate::bindings::NCPLANE_OPTION_HORALIGNED as u64;
 
 /// The `horiz` union field of [`NcPlaneOptions`](type.NcPlaneOptions)
 ///
@@ -23,6 +23,12 @@ pub const NCPLANE_OPTION_HORALIGNED: u32 = crate::bindings::NCPLANE_OPTION_HORAL
 /// - align: NcAlign (u32)
 ///
 pub type NcPlaneOptionHoriz = crate::ncplane_options__bindgen_ty_1;
+
+/// This enum is a wrapper over the C `horiz` union, for the `NcPlaneOption` constructor
+pub enum NcHoriz {
+    x(i32),
+    align(NcAlign),
+}
 
 /// I/O wrapper to dump file descriptor to [`NcPlane`](type.NcPlane.html)
 ///

@@ -36,8 +36,8 @@ pub use misc::{
 };
 pub use plane::{
     NCBLIT_1x1, NCBLIT_2x1, NCBLIT_2x2, NCBLIT_3x2, NCBLIT_4x1, NCBLIT_8x1, NcAlign, NcBlitter,
-    NcFdPlane, NcFdPlaneOptions, NcPlane, NcPlaneOptionHoriz, NcPlaneOptions, NcScale, NcVisual,
-    NcVisualOptions, NCALIGN_CENTER, NCALIGN_LEFT, NCALIGN_RIGHT, NCALIGN_UNALIGNED,
+    NcFdPlane, NcFdPlaneOptions, NcHoriz, NcPlane, NcPlaneOptionHoriz, NcPlaneOptions, NcScale,
+    NcVisual, NcVisualOptions, NCALIGN_CENTER, NCALIGN_LEFT, NCALIGN_RIGHT, NCALIGN_UNALIGNED,
     NCBLIT_BRAILLE, NCBLIT_DEFAULT, NCBLIT_SIXEL, NCPLANE_OPTION_HORALIGNED, NCSCALE_NONE,
     NCSCALE_SCALE, NCSCALE_STRETCH, NCVISUAL_OPTION_BLEND, NCVISUAL_OPTION_NODEGRADE,
 };
