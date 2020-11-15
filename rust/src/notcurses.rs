@@ -1,44 +1,44 @@
 // functions already exported by bindgen : 36
 // ------------------------------------------
-// notcurses_at_yx
-// notcurses_bottom
-// notcurses_canchangecolor
-// notcurses_canfade
-// notcurses_canopen_images
-// notcurses_canopen_videos
-// notcurses_cansixel
-// notcurses_cantruecolor
-// notcurses_canutf8
-// notcurses_cursor_disable
-// notcurses_cursor_enable
-// notcurses_debug
-// notcurses_drop_planes
-// notcurses_getc
-// notcurses_init
-// notcurses_inputready_fd
-// notcurses_lex_blitter
-// notcurses_lex_margins
-// notcurses_lex_scalemode
-// notcurses_mouse_disable
-// notcurses_mouse_enable
-// notcurses_palette_size
-// notcurses_refresh
-// notcurses_render
-// notcurses_render_to_buffer
-// notcurses_render_to_file
-// notcurses_stats
-// notcurses_stats_alloc
-// notcurses_stats_reset
-// notcurses_stdplane
-// notcurses_stdplane_const
-// notcurses_stop
-// notcurses_str_blitter
-// notcurses_str_scalemode
-// notcurses_supported_styles
-// notcurses_top
-// notcurses_ucs32_to_utf8
-// notcurses_version
-// notcurses_version_components
+//  notcurses_at_yx
+//  notcurses_bottom
+//# notcurses_canchangecolor
+//# notcurses_canfade
+//# notcurses_canopen_images
+//# notcurses_canopen_videos
+//# notcurses_cansixel
+//# notcurses_cantruecolor
+//# notcurses_canutf8
+//  notcurses_cursor_disable
+//  notcurses_cursor_enable
+//  notcurses_debug
+//  notcurses_drop_planes
+//  notcurses_getc
+//# notcurses_init
+//  notcurses_inputready_fd
+//  notcurses_lex_blitter
+//  notcurses_lex_margins
+//  notcurses_lex_scalemode
+//  notcurses_mouse_disable
+//  notcurses_mouse_enable
+//  notcurses_palette_size
+//  notcurses_refresh
+//  notcurses_render
+//  notcurses_render_to_buffer
+//  notcurses_render_to_file
+//  notcurses_stats
+//  notcurses_stats_alloc
+//  notcurses_stats_reset
+//  notcurses_stdplane
+//  notcurses_stdplane_const
+//# notcurses_stop
+//  notcurses_str_blitter
+//  notcurses_str_scalemode
+//  notcurses_supported_styles
+//  notcurses_top
+//  notcurses_ucs32_to_utf8
+//  notcurses_version
+//  notcurses_version_components
 //
 // static inline functions total: 6
 // ----------------------------------------- (done / remaining)
@@ -217,12 +217,146 @@ pub fn notcurses_term_dim_yx(nc: &Notcurses, rows: &mut i32, cols: &mut i32) {
 
 #[cfg(test)]
 mod test {
-    // use super::nc;
-    // use serial_test::serial;
+    use libc_print::*;
+    use serial_test::serial;
+
+    use crate::{notcurses_stop, Notcurses};
+
     /*
     #[test]
     #[serial]
     fn () {
     }
     */
+
+    // Test the bindgen functions ----------------------------------------------
+
+    #[test]
+    #[serial]
+    #[ignore]
+    // FIXME: always return null
+    fn notcurses_at_yx() {
+        unsafe {
+            let nc = Notcurses::new();
+            let mut sm = 0;
+            let mut ch = 0;
+            let res = crate::notcurses_at_yx(nc, 0, 0, &mut sm, &mut ch);
+            notcurses_stop(nc);
+            assert![!res.is_null()];
+
+            //libc_print!("[{}] ", res);
+        }
+    }
+
+    // TODO: a multiplatform way of dealing with C FILE
+    //
+    // links:
+    // https://www.reddit.com/r/rust/comments/8sfjp6/converting_between_file_and_stdfsfile/
+    // https://stackoverflow.com/questions/38360996/how-do-i-access-fields-of-a-mut-libcfile
+    #[test]
+    #[serial]
+    // FIXME: need a solution to deal with _IO_FILE from Rust
+    #[ignore]
+    fn notcurses_debug() {
+        unsafe {
+            let nc = Notcurses::new();
+
+            // https://doc.rust-lang.org/stable/std/primitive.pointer.html
+            let mut _p: *mut i8 = &mut 0;
+            let mut _size: *mut usize = &mut 0;
+
+            // https://docs.rs/libc/0.2.80/libc/fn.open_memstream.html
+            let mut file = libc::open_memstream(&mut _p, _size)
+                as *mut _ as *mut crate::bindgen::_IO_FILE;
+
+            crate::notcurses_debug(nc, file);
+            notcurses_stop(nc);
+
+            // as _IO_FILE struct;
+            let mut debug0 = *file;
+            libc_println!("{:#?}", debug0);
+
+            // as enum libc::FILE
+            let mut debug1 = file as *mut _ as *mut libc::FILE;
+            libc_println!("{:#?}", debug1);
+        }
+    }
+
+    #[test]
+    #[serial]
+    fn notcurses_canchangecolor() {
+        unsafe {
+            let nc = Notcurses::new();
+            let res = crate::notcurses_canchangecolor(nc);
+            notcurses_stop(nc);
+            libc_print!("[{}] ", res);
+        }
+    }
+
+    #[test]
+    #[serial]
+    fn notcurses_canfade() {
+        unsafe {
+            let nc = Notcurses::new();
+            let res = crate::notcurses_canfade(nc);
+            notcurses_stop(nc);
+            libc_print!("[{}] ", res);
+        }
+    }
+
+    #[test]
+    #[serial]
+    fn notcurses_canopen_images() {
+        unsafe {
+            let nc = Notcurses::new();
+            let res = crate::notcurses_canopen_images(nc);
+            notcurses_stop(nc);
+            libc_print!("[{}] ", res);
+        }
+    }
+
+    #[test]
+    #[serial]
+    fn notcurses_canopen_videos() {
+        unsafe {
+            let nc = Notcurses::new();
+            let res = crate::notcurses_canopen_videos(nc);
+            notcurses_stop(nc);
+            libc_print!("[{}] ", res);
+        }
+    }
+
+    #[test]
+    #[serial]
+    fn notcurses_cansixel() {
+        unsafe {
+            let nc = Notcurses::new();
+            let res = crate::notcurses_cansixel(nc);
+            notcurses_stop(nc);
+            libc_print!("[{}] ", res);
+        }
+    }
+
+    #[test]
+    #[serial]
+    fn notcurses_cantruecolor() {
+        unsafe {
+            let nc = Notcurses::new();
+            let res = crate::notcurses_cantruecolor(nc);
+            notcurses_stop(nc);
+            libc_print!("[{}] ", res);
+        }
+    }
+
+    #[test]
+    #[serial]
+    fn notcurses_canutf8() {
+        unsafe {
+            let nc = Notcurses::new();
+            let res = crate::notcurses_canutf8(nc);
+            notcurses_stop(nc);
+            libc_print!("[{}] ", res);
+        }
+    }
+
 }
