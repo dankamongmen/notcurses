@@ -81,7 +81,12 @@ videothread(void* vnc){
   }
   ncfadectx_free(samoactx);
   ncplane_destroy(vopts.n);
-  struct ncplane* apiap = ncplane_new(ncp, 1, cols, 1, 0, NULL, NULL);
+  struct ncplane_options nopts = {
+    .y = 1,
+    .rows = 1,
+    .cols = cols,
+  };
+  struct ncplane* apiap = ncplane_create(ncp, &nopts);
   if(apiap == NULL){
     ncfadectx_free(samoactx);
     ncplane_destroy(vopts.n);
