@@ -217,7 +217,6 @@ pub fn notcurses_term_dim_yx(nc: &Notcurses, rows: &mut i32, cols: &mut i32) {
 
 #[cfg(test)]
 mod test {
-    use libc_print::*;
     use serial_test::serial;
 
     use crate::{notcurses_stop, Notcurses};
@@ -244,7 +243,7 @@ mod test {
             notcurses_stop(nc);
             assert![!res.is_null()];
 
-            //libc_print!("[{}] ", res);
+            //print!("[{}] ", res);
         }
     }
 
@@ -274,11 +273,11 @@ mod test {
 
             // as _IO_FILE struct;
             let mut debug0 = *file;
-            libc_println!("{:#?}", debug0);
+            println!("{:#?}", debug0);
 
             // as enum libc::FILE
             let mut debug1 = file as *mut _ as *mut libc::FILE;
-            libc_println!("{:#?}", debug1);
+            println!("{:#?}", debug1);
         }
     }
 
@@ -289,7 +288,7 @@ mod test {
             let nc = Notcurses::new();
             let res = crate::notcurses_canchangecolor(nc);
             notcurses_stop(nc);
-            libc_print!("[{}] ", res);
+            print!("[{}] ", res);
         }
     }
 
@@ -300,7 +299,7 @@ mod test {
             let nc = Notcurses::new();
             let res = crate::notcurses_canfade(nc);
             notcurses_stop(nc);
-            libc_print!("[{}] ", res);
+            print!("[{}] ", res);
         }
     }
 
@@ -311,7 +310,7 @@ mod test {
             let nc = Notcurses::new();
             let res = crate::notcurses_canopen_images(nc);
             notcurses_stop(nc);
-            libc_print!("[{}] ", res);
+            print!("[{}] ", res);
         }
     }
 
@@ -322,7 +321,7 @@ mod test {
             let nc = Notcurses::new();
             let res = crate::notcurses_canopen_videos(nc);
             notcurses_stop(nc);
-            libc_print!("[{}] ", res);
+            print!("[{}] ", res);
         }
     }
 
@@ -333,7 +332,7 @@ mod test {
             let nc = Notcurses::new();
             let res = crate::notcurses_cansixel(nc);
             notcurses_stop(nc);
-            libc_print!("[{}] ", res);
+            print!("[{}] ", res);
         }
     }
 
@@ -344,7 +343,7 @@ mod test {
             let nc = Notcurses::new();
             let res = crate::notcurses_cantruecolor(nc);
             notcurses_stop(nc);
-            libc_print!("[{}] ", res);
+            print!("[{}] ", res);
         }
     }
 
@@ -355,7 +354,7 @@ mod test {
             let nc = Notcurses::new();
             let res = crate::notcurses_canutf8(nc);
             notcurses_stop(nc);
-            libc_print!("[{}] ", res);
+            print!("[{}] ", res);
         }
     }
 

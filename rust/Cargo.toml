@@ -21,8 +21,6 @@ keywords = ["tui", "cli", "terminal", "ncurses", "ffi"]
 [dependencies]
 libc = {version = "0.2.80", default-features = false}
 cty = "0.2.1"
-cstr_core = "0.2.2"
-libc-print = "0.1.14"
 
 [build-dependencies]
 bindgen = ">= 0.55.1"

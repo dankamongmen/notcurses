@@ -1,7 +1,7 @@
 use std::thread::sleep;
 use std::time::Duration;
 
-use cstr_core::CString;
+use std::ffi::CString;
 
 use libnotcurses_sys as nc;
 

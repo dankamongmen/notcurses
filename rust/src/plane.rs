@@ -153,8 +153,7 @@ use core::{
     ffi::c_void,
     ptr::{null, null_mut},
 };
-
-use cstr_core::CString;
+use std::ffi::CString;
 use libc::free;
 
 use crate::{

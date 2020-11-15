@@ -1,7 +1,6 @@
 use core::ptr::{null, null_mut};
-use cstr_core::{CStr, CString};
+use std::ffi::{CStr, CString};
 
-use libc_print::*;
 use serial_test::serial; // serialize tests w/ nc::notcurses_init()
 
 use libnotcurses_sys as nc;
@@ -15,7 +14,7 @@ fn get_notcurses_version() {
         CStr::from_ptr(s)
     };
     let r_str = c_str.to_str().unwrap();
-    libc_println!("rust-bound notcurses v{}", r_str);
+    println!("rust-bound notcurses v{}", r_str);
 }
 
 #[test]

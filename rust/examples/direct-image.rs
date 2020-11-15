@@ -1,4 +1,4 @@
-use cstr_core::CString;
+use std::ffi::CString;
 
 use libnotcurses_sys as nc;
 
