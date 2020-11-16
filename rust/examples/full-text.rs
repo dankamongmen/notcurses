@@ -1,18 +1,31 @@
-//use std::ffi::Cstring;
+use std::thread::sleep;
+use std::time::Duration;
+use std::ffi::CString;
 
-use libnotcurses_sys as nc;
+/// utility macro: sleep for $s seconds
+macro_rules! sleep {
+    ($s:expr) => {
+        sleep(Duration::new($s, 0));
+    };
+}
+
+/// utility macro: convert the String $s to *mut CString
+macro_rules! cstring {
+    ($s:expr) => {
+        CString::new($s).unwrap().as_ptr();
+    }
+}
+
+use libnotcurses_sys::*;
 
 fn main() {
-
     unsafe {
-        // let options = nc::NotcursesOptions::new();
-        // let app = nc::Notcurses::with_options(&options);
+        let nc = Notcurses::new();
 
-        let app = nc::Notcurses::new();
+        println!("WIP");
+        sleep![2];
 
-
-
-        nc::notcurses_stop(app);
+        notcurses_stop(nc);
     }
 }
 

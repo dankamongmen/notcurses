@@ -1,42 +1,60 @@
+//! Example 'direct-cursor'
+//!
+//! Explore cursor functions in direct mode
+//!
+
 use std::thread::sleep;
 use std::time::Duration;
-
 use std::ffi::CString;
 
-use libnotcurses_sys as nc;
+/// utility macro: sleep for $s seconds
+macro_rules! sleep {
+    ($s:expr) => {
+        sleep(Duration::new($s, 0));
+    };
+}
+
+/// utility macro: convert the String $s to *mut CString
+macro_rules! cstring {
+    ($s:expr) => {
+        CString::new($s).unwrap().as_ptr();
+    }
+}
+
+use libnotcurses_sys::*;
 
 fn main() {
     unsafe {
-        let ncd = nc::NcDirect::new();
+        let ncd = NcDirect::new();
 
-        let cols = nc::ncdirect_dim_x(ncd);
-        let rows = nc::ncdirect_dim_y(ncd);
+        let cols = ncdirect_dim_x(ncd);
+        let rows = ncdirect_dim_y(ncd);
         println!("terminal size (rows, cols): {}, {}", rows, cols);
 
         // show current coordinates
-        let (mut cy, mut cx) = (0,0);
-        nc::ncdirect_cursor_yx(ncd, &mut cy, &mut cx);
-        nc::ncdirect_putstr(ncd, 0, CString::new(format!("({},{})\n", cy, cx)).unwrap().as_ptr());
+        let (mut cy, mut cx) = (0, 0);
+        ncdirect_cursor_yx(ncd, &mut cy, &mut cx);
+        ncdirect_putstr(ncd, 0, cstring![format!(" ({},{})\n", cy, cx)],
+        );
 
-        // Write HELLO WORLD in steps
+        sleep![1];
 
-        sleep(Duration::new(1, 0));
+        ncdirect_putstr(ncd, 0, cstring!["HELLO"]);
+        ncdirect_flush(ncd);
 
-        nc::ncdirect_putstr(ncd, 0, CString::new("HELLO").unwrap().as_ptr());
-        nc::ncdirect_flush(ncd);
+        sleep![1];
 
-        sleep(Duration::new(1, 0));
+        ncdirect_putstr(ncd, 0, cstring!["HELLO"]);
+        ncdirect_flush(ncd);
 
-        nc::ncdirect_putstr(ncd, 0, CString::new(" WORLD").unwrap().as_ptr());
-        nc::ncdirect_flush(ncd);
-
-        sleep(Duration::new(1, 0));
+        sleep![2];
 
         // show current coordinates
-        nc::ncdirect_cursor_yx(ncd, &mut cy, &mut cx);
-        nc::ncdirect_putstr(ncd, 0, CString::new(format!(" ({},{})\n", cy, cx)).unwrap().as_ptr());
+        ncdirect_cursor_yx(ncd, &mut cy, &mut cx);
+        ncdirect_putstr( ncd, 0, cstring![format!(" ({},{})\n", cy, cx)],
+        );
 
-        sleep(Duration::new(1, 0));
-        nc::ncdirect_stop(ncd);
+        sleep![1];
+        ncdirect_stop(ncd);
     }
 }
