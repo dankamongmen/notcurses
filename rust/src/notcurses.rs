@@ -65,7 +65,7 @@ use crate::{
     notcurses_stdplane_const,
     types::{
         NcAlign, NcInput, NcLogLevel, NcPlane, Notcurses, NotcursesOptions, NCALIGN_CENTER,
-        NCALIGN_LEFT, NCOPTION_SUPPRESS_BANNERS,
+        NCALIGN_LEFT, NCOPTION_SUPPRESS_BANNERS, NCOPTION_NO_ALTERNATE_SCREEN,
     },
 };
 
@@ -147,6 +147,19 @@ impl Notcurses {
     /// `Notcurses` simple constructor, showing banners
     pub unsafe fn with_banners<'a>() -> &'a mut Notcurses {
         &mut *notcurses_init(&NotcursesOptions::new(), null_mut())
+    }
+
+    /// `Notcurses` simple constructor without an alternate screen
+    pub unsafe fn without_altscreen<'a>() -> &'a mut Notcurses {
+        let options = NotcursesOptions::with_flags(NCOPTION_NO_ALTERNATE_SCREEN);
+        &mut *notcurses_init(&options, null_mut())
+    }
+
+    /// `Notcurses` simple constructor without an alternate screen
+    pub unsafe fn without_altscreen_nor_banners<'a>() -> &'a mut Notcurses {
+        let options = NotcursesOptions::with_flags(
+            NCOPTION_NO_ALTERNATE_SCREEN | NCOPTION_SUPPRESS_BANNERS);
+        &mut *notcurses_init(&options, null_mut())
     }
 
     /// `Notcurses` constructor with options
