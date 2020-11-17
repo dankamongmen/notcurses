@@ -5,10 +5,7 @@
 
 use core::ptr::{null_mut, NonNull};
 
-use std::{
-    // ffi::CString,
-    io::{Error, ErrorKind, Read, Seek, SeekFrom},
-};
+use std::io::{Error, ErrorKind, Read, Seek, SeekFrom};
 
 pub use libc::{
     c_long, c_void, fclose, feof, fread, fseek, ftell, FILE as LIBC_FILE, SEEK_CUR, SEEK_END,
@@ -56,7 +53,7 @@ fn get_error<T>() -> Result<T, Error> {
     Err(Error::last_os_error())
 }
 
-/// A wrapper struct around libc::FILE for 
+/// A wrapper struct around libc::FILE
 ///
 /// The notcurses FILE type `NC_FILE` is imported through bindgen as a struct,
 /// while the equivalent Rust libc::FILE (`LIBC_FILE`) is an opaque enum.
@@ -236,16 +233,14 @@ impl Read for NcFile {
         }
 
         let result = std::str::from_utf8(&buffer);
-    
+
         if let Ok(strslice) = result {
             *strbuf = strslice.to_string();
             Ok(bytes_read)
         } else {
             get_error()
         }
-
     }
-
 
     /// Reads exactly the number of bytes required to fill buf.
     ///
@@ -328,12 +323,3 @@ impl Drop for NcFile {
         };
     }
 }
-
-
-// /// A utility function that creates a "buffer" of len bytes.
-// // TODO: NcBuffer::new(size) .expand()?
-// pub fn buffer(len: usize) -> Vec<u8> {
-//     vec![0u8; len]
-// }
-
-

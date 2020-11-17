@@ -361,7 +361,6 @@ pub use bindgen::{
     ncplane_move_bottom,
     ncplane_move_top,
     ncplane_move_yx,
-    ncplane_new,
     ncplane_notcurses,
     ncplane_notcurses_const,
     ncplane_off_styles,
@@ -588,7 +587,6 @@ pub(crate) use bindgen::{
 #[doc(inline)]
 pub use bindgen::{
     // functions
-    nctablet_ncplane,
     nctablet_plane,
     nctablet_userptr,
 };

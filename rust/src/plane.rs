@@ -153,21 +153,21 @@ use core::{
     ffi::c_void,
     ptr::{null, null_mut},
 };
-use std::ffi::CString;
 use libc::free;
+use std::ffi::CString;
 
 use crate::{
     bindgen::__va_list_tag,
     cell_load, cell_release, cells_double_box, cells_rounded_box, channels_bchannel,
     channels_bg_alpha, channels_bg_default_p, channels_bg_rgb, channels_bg_rgb8, channels_fchannel,
     channels_fg_alpha, channels_fg_default_p, channels_fg_rgb, channels_fg_rgb8, ncplane_at_cursor,
-    ncplane_at_yx, ncplane_box, ncplane_channels, ncplane_cursor_move_yx, ncplane_cursor_yx,
-    ncplane_dim_yx, ncplane_gradient, ncplane_hline_interp, ncplane_putc_yx, ncplane_putegc_yx,
-    ncplane_putnstr_yx, ncplane_putstr_yx, ncplane_resize, ncplane_vline_interp,
-    ncplane_vprintf_yx, notcurses_align, ncplane_create,
+    ncplane_at_yx, ncplane_box, ncplane_channels, ncplane_create, ncplane_cursor_move_yx,
+    ncplane_cursor_yx, ncplane_dim_yx, ncplane_gradient, ncplane_hline_interp, ncplane_putc_yx,
+    ncplane_putegc_yx, ncplane_putnstr_yx, ncplane_putstr_yx, ncplane_resize, ncplane_vline_interp,
+    ncplane_vprintf_yx, notcurses_align,
     types::{
-        AlphaBits, Cell, Channel, Channels, Color, EgcBackstop, IntResult, NcAlign, NcPlane,
-        StyleMask, NcPlaneOptions, NcPlaneOptionHoriz, NcHoriz, NCPLANE_OPTION_HORALIGNED,
+        AlphaBits, Cell, Channel, Channels, Color, EgcBackstop, IntResult, NcAlign, NcHoriz,
+        NcPlane, NcPlaneOptionHoriz, NcPlaneOptions, StyleMask, NCPLANE_OPTION_HORALIGNED,
     },
 };
 
@@ -181,38 +181,41 @@ impl NcPlaneOptions {
 
     /// `NcPlaneOptions` simple constructor with horizontal alignment
     pub fn new_halign(y: i32, align: NcAlign, rows: u32, cols: u32) -> Self {
-        Self::with_all_options(y, NcHoriz::align(align), rows, cols, NCPLANE_OPTION_HORALIGNED)
+        Self::with_all_options(
+            y,
+            NcHoriz::align(align),
+            rows,
+            cols,
+            NCPLANE_OPTION_HORALIGNED,
+        )
     }
 
     /// `NcplaneOptions` constructor
     pub fn with_all_options(y: i32, horiz: NcHoriz, rows: u32, cols: u32, flags: u64) -> Self {
         NcPlaneOptions {
-                y,
-                horiz: {
-                    match horiz {
-                        NcHoriz::x(data) => NcPlaneOptionHoriz {x: data},
-                        NcHoriz::align(data) => NcPlaneOptionHoriz {align: data},
-                    }
-
-                },
-                rows: rows as i32,
-                cols: cols as i32,
-                userptr: null_mut(),
-                name: null(),
-                resizecb: None,
-                flags,
+            y,
+            horiz: {
+                match horiz {
+                    NcHoriz::x(data) => NcPlaneOptionHoriz { x: data },
+                    NcHoriz::align(data) => NcPlaneOptionHoriz { align: data },
+                }
+            },
+            rows: rows as i32,
+            cols: cols as i32,
+            userptr: null_mut(),
+            name: null(),
+            resizecb: None,
+            flags,
         }
     }
 }
 
 impl NcPlane {
-
     /// `NcPlane` constructor
     pub unsafe fn new<'a>(bound_to: &mut NcPlane, options: &NcPlaneOptions) -> &'a mut NcPlane {
         &mut *ncplane_create(bound_to, options)
     }
 }
-
 
 // Static Functions ------------------------------------------------------------
 

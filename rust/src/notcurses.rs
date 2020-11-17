@@ -11,7 +11,7 @@
 //# notcurses_canutf8
 //  notcurses_cursor_disable
 //  notcurses_cursor_enable
-//  notcurses_debug
+//# notcurses_debug
 //  notcurses_drop_planes
 //  notcurses_getc
 //# notcurses_init
@@ -65,7 +65,7 @@ use crate::{
     notcurses_stdplane_const,
     types::{
         NcAlign, NcInput, NcLogLevel, NcPlane, Notcurses, NotcursesOptions, NCALIGN_CENTER,
-        NCALIGN_LEFT, NCOPTION_SUPPRESS_BANNERS, NCOPTION_NO_ALTERNATE_SCREEN,
+        NCALIGN_LEFT, NCOPTION_NO_ALTERNATE_SCREEN, NCOPTION_SUPPRESS_BANNERS,
     },
 };
 
@@ -157,8 +157,8 @@ impl Notcurses {
 
     /// `Notcurses` simple constructor without an alternate screen
     pub unsafe fn without_altscreen_nor_banners<'a>() -> &'a mut Notcurses {
-        let options = NotcursesOptions::with_flags(
-            NCOPTION_NO_ALTERNATE_SCREEN | NCOPTION_SUPPRESS_BANNERS);
+        let options =
+            NotcursesOptions::with_flags(NCOPTION_NO_ALTERNATE_SCREEN | NCOPTION_SUPPRESS_BANNERS);
         &mut *notcurses_init(&options, null_mut())
     }
 
@@ -234,7 +234,7 @@ mod test {
 
     use std::io::Read;
 
-    use crate::{notcurses_stop, Notcurses, NcFile};
+    use crate::{notcurses_stop, NcFile, Notcurses};
 
     /*
     #[test]
@@ -276,9 +276,10 @@ mod test {
             let mut string1 = String::new();
             let _result = file.read_to_string(&mut string1);
 
-            let string2 = " ************************** notcurses debug state *****************************";
+            let string2 =
+                " ************************** notcurses debug state *****************************";
 
-            assert_eq![&string1[0..string2.len()], &string2[..]]; 
+            assert_eq![&string1[0..string2.len()], &string2[..]];
         }
     }
 
@@ -358,5 +359,4 @@ mod test {
             print!("[{}] ", res);
         }
     }
-
 }
