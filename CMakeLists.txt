@@ -111,8 +111,11 @@ set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND qrcodegen)
 endif()
 find_library(LIBRT rt)
 
+# objects directly included into target objects (i.e. not exported by library)
+file(GLOB SHAREDSRCS CONFIGURE_DEPENDS src/shared/*.c)
+
 # libnotcurses (core shared library, core static library)
-file(GLOB NCSRCS CONFIGURE_DEPENDS src/lib/*.c src/lib/*.cpp)
+file(GLOB NCSRCS CONFIGURE_DEPENDS src/lib/*.c src/lib/*.cpp ${SHAREDSRCS})
 add_library(notcurses SHARED ${NCSRCS})
 if(${USE_STATIC})
 add_library(notcurses-static STATIC ${NCSRCS})
@@ -360,7 +363,7 @@ install(FILES ${NCPP_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ncpp)
 install(FILES ${NCPP_INTERNAL_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ncpp/internal)
 
 # notcurses-demo
-file(GLOB DEMOSRCS CONFIGURE_DEPENDS src/demo/*.c)
+file(GLOB DEMOSRCS CONFIGURE_DEPENDS src/demo/*.c ${SHAREDSRCS})
 add_executable(notcurses-demo ${DEMOSRCS})
 target_compile_definitions(notcurses-demo
   PRIVATE
@@ -388,7 +391,7 @@ if(USE_POC)
 file(GLOB POCSRCS CONFIGURE_DEPENDS src/poc/*.c src/poc/*.cpp)
 foreach(f ${POCSRCS})
   get_filename_component(fe "${f}" NAME_WE)
-  add_executable(${fe} ${f})
+  add_executable(${fe} ${f} ${SHAREDSRCS})
   target_include_directories(${fe}
     PRIVATE include "${TERMINFO_INCLUDE_DIRS}"
     "${PROJECT_BINARY_DIR}/include"
