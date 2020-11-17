@@ -232,7 +232,9 @@ pub fn notcurses_term_dim_yx(nc: &Notcurses, rows: &mut i32, cols: &mut i32) {
 mod test {
     use serial_test::serial;
 
-    use crate::{notcurses_stop, Notcurses};
+    use std::io::Read;
+
+    use crate::{notcurses_stop, Notcurses, NcFile};
 
     /*
     #[test]
@@ -260,37 +262,23 @@ mod test {
         }
     }
 
-    // TODO: a multiplatform way of dealing with C FILE
-    //
-    // links:
-    // https://www.reddit.com/r/rust/comments/8sfjp6/converting_between_file_and_stdfsfile/
-    // https://stackoverflow.com/questions/38360996/how-do-i-access-fields-of-a-mut-libcfile
     #[test]
     #[serial]
-    // FIXME: need a solution to deal with _IO_FILE from Rust
-    #[ignore]
     fn notcurses_debug() {
         unsafe {
             let nc = Notcurses::new();
-
-            // https://doc.rust-lang.org/stable/std/primitive.pointer.html
             let mut _p: *mut i8 = &mut 0;
             let mut _size: *mut usize = &mut 0;
-
-            // https://docs.rs/libc/0.2.80/libc/fn.open_memstream.html
-            let mut file = libc::open_memstream(&mut _p, _size)
-                as *mut _ as *mut crate::bindgen::_IO_FILE;
-
-            crate::notcurses_debug(nc, file);
+            let mut file = NcFile::from_libc(libc::open_memstream(&mut _p, _size));
+            crate::notcurses_debug(nc, file.as_nc_ptr());
             notcurses_stop(nc);
 
-            // as _IO_FILE struct;
-            let mut debug0 = *file;
-            println!("{:#?}", debug0);
+            let mut string1 = String::new();
+            let _result = file.read_to_string(&mut string1);
 
-            // as enum libc::FILE
-            let mut debug1 = file as *mut _ as *mut libc::FILE;
-            println!("{:#?}", debug1);
+            let string2 = " ************************** notcurses debug state *****************************";
+
+            assert_eq![&string1[0..string2.len()], &string2[..]]; 
         }
     }
 

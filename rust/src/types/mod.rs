@@ -15,6 +15,7 @@
 
 mod cell;
 mod channel;
+mod file;
 mod misc;
 mod plane;
 mod terminal;
@@ -30,6 +31,7 @@ pub use channel::{
     AlphaBits, BlitSet, Channel, Channels, Color, NcFadeCtx, NcPixel, Palette, PaletteIndex, Rgb,
     CHANNEL_ALPHA_MASK,
 };
+pub use file::{NcFile, LIBC_FILE, NC_FILE};
 pub use misc::{
     IntResult, BPREFIXCOLUMNS, BPREFIXSTRLEN, IPREFIXCOLUMNS, IPREFIXSTRLEN, PREFIXCOLUMNS,
     PREFIXSTRLEN,
