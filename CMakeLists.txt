@@ -416,7 +416,7 @@ if(USE_PANDOC)
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${me}
         DEPENDS ${m}
         COMMAND ${PANDOC}
-        ARGS --to man --standalone ${m} > ${CMAKE_CURRENT_BINARY_DIR}/${me}
+        ARGS --to man --standalone --from markdown-smart ${m} > ${CMAKE_CURRENT_BINARY_DIR}/${me}
         COMMENT "Building man page ${me}"
       )
       add_custom_target(${me}.man
@@ -428,7 +428,7 @@ if(USE_PANDOC)
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${me}.html
         DEPENDS ${m} ${ANALHTML}
         COMMAND ${PANDOC}
-        ARGS -H ${ANALHTML} --to html --standalone ${m} > ${CMAKE_CURRENT_BINARY_DIR}/${me}.html
+        ARGS -H ${ANALHTML} --to html --standalone --from markdown-smart ${m} > ${CMAKE_CURRENT_BINARY_DIR}/${me}.html
         COMMENT "Building HTML5 ${me}.html"
       )
       add_custom_target(${me}.html5
