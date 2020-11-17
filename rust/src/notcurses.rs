@@ -1,44 +1,44 @@
 // functions already exported by bindgen : 36
 // ------------------------------------------
-// notcurses_at_yx
-// notcurses_bottom
-// notcurses_canchangecolor
-// notcurses_canfade
-// notcurses_canopen_images
-// notcurses_canopen_videos
-// notcurses_cansixel
-// notcurses_cantruecolor
-// notcurses_canutf8
-// notcurses_cursor_disable
-// notcurses_cursor_enable
-// notcurses_debug
-// notcurses_drop_planes
-// notcurses_getc
-// notcurses_init
-// notcurses_inputready_fd
-// notcurses_lex_blitter
-// notcurses_lex_margins
-// notcurses_lex_scalemode
-// notcurses_mouse_disable
-// notcurses_mouse_enable
-// notcurses_palette_size
-// notcurses_refresh
-// notcurses_render
-// notcurses_render_to_buffer
-// notcurses_render_to_file
-// notcurses_stats
-// notcurses_stats_alloc
-// notcurses_stats_reset
-// notcurses_stdplane
-// notcurses_stdplane_const
-// notcurses_stop
-// notcurses_str_blitter
-// notcurses_str_scalemode
-// notcurses_supported_styles
-// notcurses_top
-// notcurses_ucs32_to_utf8
-// notcurses_version
-// notcurses_version_components
+//  notcurses_at_yx
+//  notcurses_bottom
+//# notcurses_canchangecolor
+//# notcurses_canfade
+//# notcurses_canopen_images
+//# notcurses_canopen_videos
+//# notcurses_cansixel
+//# notcurses_cantruecolor
+//# notcurses_canutf8
+//  notcurses_cursor_disable
+//  notcurses_cursor_enable
+//  notcurses_debug
+//  notcurses_drop_planes
+//  notcurses_getc
+//# notcurses_init
+//  notcurses_inputready_fd
+//  notcurses_lex_blitter
+//  notcurses_lex_margins
+//  notcurses_lex_scalemode
+//  notcurses_mouse_disable
+//  notcurses_mouse_enable
+//  notcurses_palette_size
+//  notcurses_refresh
+//  notcurses_render
+//  notcurses_render_to_buffer
+//  notcurses_render_to_file
+//  notcurses_stats
+//  notcurses_stats_alloc
+//  notcurses_stats_reset
+//  notcurses_stdplane
+//  notcurses_stdplane_const
+//# notcurses_stop
+//  notcurses_str_blitter
+//  notcurses_str_scalemode
+//  notcurses_supported_styles
+//  notcurses_top
+//  notcurses_ucs32_to_utf8
+//  notcurses_version
+//  notcurses_version_components
 //
 // static inline functions total: 6
 // ----------------------------------------- (done / remaining)
@@ -65,7 +65,7 @@ use crate::{
     notcurses_stdplane_const,
     types::{
         NcAlign, NcInput, NcLogLevel, NcPlane, Notcurses, NotcursesOptions, NCALIGN_CENTER,
-        NCALIGN_LEFT, NCOPTION_SUPPRESS_BANNERS,
+        NCALIGN_LEFT, NCOPTION_SUPPRESS_BANNERS, NCOPTION_NO_ALTERNATE_SCREEN,
     },
 };
 
@@ -149,6 +149,19 @@ impl Notcurses {
         &mut *notcurses_init(&NotcursesOptions::new(), null_mut())
     }
 
+    /// `Notcurses` simple constructor without an alternate screen
+    pub unsafe fn without_altscreen<'a>() -> &'a mut Notcurses {
+        let options = NotcursesOptions::with_flags(NCOPTION_NO_ALTERNATE_SCREEN);
+        &mut *notcurses_init(&options, null_mut())
+    }
+
+    /// `Notcurses` simple constructor without an alternate screen
+    pub unsafe fn without_altscreen_nor_banners<'a>() -> &'a mut Notcurses {
+        let options = NotcursesOptions::with_flags(
+            NCOPTION_NO_ALTERNATE_SCREEN | NCOPTION_SUPPRESS_BANNERS);
+        &mut *notcurses_init(&options, null_mut())
+    }
+
     /// `Notcurses` constructor with options
     pub unsafe fn with_options<'a>(options: &NotcursesOptions) -> &'a mut Notcurses {
         &mut *notcurses_init(options, null_mut())
@@ -217,12 +230,133 @@ pub fn notcurses_term_dim_yx(nc: &Notcurses, rows: &mut i32, cols: &mut i32) {
 
 #[cfg(test)]
 mod test {
-    // use super::nc;
-    // use serial_test::serial;
+    use serial_test::serial;
+
+    use std::io::Read;
+
+    use crate::{notcurses_stop, Notcurses, NcFile};
+
     /*
     #[test]
     #[serial]
     fn () {
     }
     */
+
+    // Test the bindgen functions ----------------------------------------------
+
+    #[test]
+    #[serial]
+    #[ignore]
+    // FIXME: always return null
+    fn notcurses_at_yx() {
+        unsafe {
+            let nc = Notcurses::new();
+            let mut sm = 0;
+            let mut ch = 0;
+            let res = crate::notcurses_at_yx(nc, 0, 0, &mut sm, &mut ch);
+            notcurses_stop(nc);
+            assert![!res.is_null()];
+
+            //print!("[{}] ", res);
+        }
+    }
+
+    #[test]
+    #[serial]
+    fn notcurses_debug() {
+        unsafe {
+            let nc = Notcurses::new();
+            let mut _p: *mut i8 = &mut 0;
+            let mut _size: *mut usize = &mut 0;
+            let mut file = NcFile::from_libc(libc::open_memstream(&mut _p, _size));
+            crate::notcurses_debug(nc, file.as_nc_ptr());
+            notcurses_stop(nc);
+
+            let mut string1 = String::new();
+            let _result = file.read_to_string(&mut string1);
+
+            let string2 = " ************************** notcurses debug state *****************************";
+
+            assert_eq![&string1[0..string2.len()], &string2[..]]; 
+        }
+    }
+
+    #[test]
+    #[serial]
+    fn notcurses_canchangecolor() {
+        unsafe {
+            let nc = Notcurses::new();
+            let res = crate::notcurses_canchangecolor(nc);
+            notcurses_stop(nc);
+            print!("[{}] ", res);
+        }
+    }
+
+    #[test]
+    #[serial]
+    fn notcurses_canfade() {
+        unsafe {
+            let nc = Notcurses::new();
+            let res = crate::notcurses_canfade(nc);
+            notcurses_stop(nc);
+            print!("[{}] ", res);
+        }
+    }
+
+    #[test]
+    #[serial]
+    fn notcurses_canopen_images() {
+        unsafe {
+            let nc = Notcurses::new();
+            let res = crate::notcurses_canopen_images(nc);
+            notcurses_stop(nc);
+            print!("[{}] ", res);
+        }
+    }
+
+    #[test]
+    #[serial]
+    fn notcurses_canopen_videos() {
+        unsafe {
+            let nc = Notcurses::new();
+            let res = crate::notcurses_canopen_videos(nc);
+            notcurses_stop(nc);
+            print!("[{}] ", res);
+        }
+    }
+
+    #[test]
+    #[serial]
+    fn notcurses_cansixel() {
+        unsafe {
+            let nc = Notcurses::new();
+            let res = crate::notcurses_cansixel(nc);
+            notcurses_stop(nc);
+            print!("[{}] ", res);
+        }
+    }
+
+    #[test]
+    #[serial]
+    fn notcurses_cantruecolor() {
+        unsafe {
+            let nc = Notcurses::new();
+            let res = crate::notcurses_cantruecolor(nc);
+            notcurses_stop(nc);
+            print!("[{}] ", res);
+        }
+    }
+
+    #[test]
+    #[serial]
+    fn notcurses_canutf8() {
+        unsafe {
+            let nc = Notcurses::new();
+            let res = crate::notcurses_canutf8(nc);
+            notcurses_stop(nc);
+            print!("[{}] ", res);
+        }
+    }
+
 }

@@ -14,7 +14,7 @@
 // ncmenu_selected
 // ncmenu_unroll
 
-use cstr_core::CString;
+use std::ffi::CString;
 
 use crate::{
     ncmenu_create,
