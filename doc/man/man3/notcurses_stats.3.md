@@ -19,9 +19,9 @@ typedef struct ncstats {
   int64_t render_max_bytes;  // max bytes emitted for a frame
   int64_t render_min_bytes;  // min bytes emitted for a frame
   uint64_t render_ns;        // nanoseconds spent in render+raster
-  int64_t render_max_ns;     // max ns spent in render+raster for a frame
-  int64_t render_min_ns;     // min ns spent in render+raster for a frame
-  uint64_t writeout_ns;      // nanoseconds spent writing frames to terminal
+  int64_t render_max_ns;     // max ns spent for a frame
+  int64_t render_min_ns;     // min ns spent for a frame
+  uint64_t writeout_ns;      // ns spent writing frames to terminal
   int64_t writeout_max_ns;   // max ns spent writing out a frame
   int64_t writeout_min_ns;   // min ns spent writing out a frame
   uint64_t cellelisions;     // cells elided entirely

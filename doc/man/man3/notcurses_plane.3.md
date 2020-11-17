@@ -14,16 +14,16 @@ notcurses_plane - operations on ncplanes
 #define NCPLANE_OPTION_HORALIGNED 0x0001ull
 
 typedef struct ncplane_options {
-  int y;            // vertical placement relative to parent plane
+  int y;            // placement relative to parent plane
   union {
     int x;
     ncalign_e align;
-  } horiz;          // horizontal placement relative to parent plane
+  } horiz;          // placement relative to parent plane
   int rows;         // number of rows, must be positive
   int cols;         // number of columns, must be positive
   void* userptr;    // user curry, may be NULL
   const char* name; // name (used only for debugging), may be NULL
-  int (*resizecb)(struct ncplane*); // callback when parent is resized
+  int (*resizecb)(struct ncplane*); // called on parent resize
   uint64_t flags;   // closure over NCPLANE_OPTION_*
 } ncplane_options;
 ```
