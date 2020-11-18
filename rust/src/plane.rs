@@ -175,7 +175,7 @@ use crate::{
 
 impl NcPlaneOptions {
     /// `NcPlaneOptions` simple constructor with horizontal x
-    pub fn new(y: i32, x: u32, rows: u32, cols: u32) -> Self {
+    pub fn new(y: i32, x: i32, rows: u32, cols: u32) -> Self {
         Self::with_all_options(y, x, rows, cols, 0)
     }
 
@@ -183,7 +183,7 @@ impl NcPlaneOptions {
     pub fn new_halign(y: i32, align: NcAlign, rows: u32, cols: u32) -> Self {
         Self::with_all_options(
             y,
-            align,
+            align as i32,
             rows,
             cols,
             NCPLANE_OPTION_HORALIGNED,
@@ -191,10 +191,10 @@ impl NcPlaneOptions {
     }
 
     /// `NcplaneOptions` constructor
-    pub fn with_all_options(y: i32, align: NcAlign, rows: u32, cols: u32, flags: u64) -> Self {
+    pub fn with_all_options(y: i32, x: i32, rows: u32, cols: u32, flags: u64) -> Self {
         NcPlaneOptions {
             y,
-            x: align as i32,
+            x,
             rows: rows as i32,
             cols: cols as i32,
             userptr: null_mut(),
