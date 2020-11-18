@@ -247,6 +247,17 @@ mod test {
 
     #[test]
     #[serial]
+    fn notcurses_init() {
+        unsafe {
+            let nc = Notcurses::new();
+            let res = crate::notcurses_canchangecolor(nc);
+            notcurses_stop(nc);
+            print!("[{}] ", res);
+        }
+    }
+
+    #[test]
+    #[serial]
     #[ignore]
     // FIXME: always return null
     fn notcurses_at_yx() {

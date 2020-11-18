@@ -39,7 +39,7 @@ steps:
     - python3 setup.py sdist build
     - cd ../rust
     - cargo build
-    - env TERM=xterm cargo t
+    - env TERM=xterm cargo t_all
 ---
 kind: pipeline
 type: docker
