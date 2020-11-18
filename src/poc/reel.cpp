@@ -113,15 +113,8 @@ void parse_args(int argc, char** argv, struct notcurses_options* opts,
   opts->flags |= NCOPTION_SUPPRESS_BANNERS;
 }
 
-int runreels(struct notcurses* nc, struct ncplane* n, ncreel_options* nopts){
-  if(ncplane_set_fg_rgb8(n, 0xb1, 0x1b, 0xb1)){
-    return -1;
-  }
-  channels_set_fg_rgb(&nopts->focusedchan, 0xffffff);
-  channels_set_bg_rgb(&nopts->focusedchan, 0x00c080);
-  channels_set_fg_rgb(&nopts->borderchan, 0x00c080);
-  auto nr = ncreel_create(n, nopts);
-  if(!nr || notcurses_render(nc)){
+int runreels(struct notcurses* nc, struct ncreel* nr){
+  if(notcurses_render(nc)){
     return -1;
   }
   int y, x;
@@ -188,6 +181,19 @@ int runreels(struct notcurses* nc, struct ncplane* n, ncreel_options* nopts){
   return -1;
 }
 
+static int
+resize_reel(struct ncplane* n){
+  const struct ncplane* p = ncplane_parent_const(n);
+  int py, px;
+  ncplane_dim_yx(p, &py, &px);
+  if(ncplane_resize(n, 0, 0, 0, 0, 0, 0, py - 1, px) < 0){
+    return -1;
+  }
+  auto nr = static_cast<struct ncreel*>(ncplane_userptr(n));
+  ncreel_redraw(nr);
+  return 0;
+}
+
 int main(int argc, char** argv){
   if(setlocale(LC_ALL, "") == nullptr){
     return EXIT_FAILURE;
@@ -207,19 +213,30 @@ int main(int argc, char** argv){
   }
   struct ncplane_options nopts = {
     .y = 1,
-    .x = 0,
+    .x = NCALIGN_CENTER,
     .rows = dimy - 1,
     .cols = dimx,
     .userptr = nullptr,
     .name = "reel",
-    .resizecb = nullptr,
-    .flags = 0,
+    .resizecb = resize_reel,
+    .flags = NCPLANE_OPTION_HORALIGNED,
   };
   n = ncplane_create(nstd, &nopts);
   if(!n){
     return -1;
   }
-  int r = runreels(nc, n, &ropts);
+  if(ncplane_set_fg_rgb8(n, 0xb1, 0x1b, 0xb1)){
+    return -1;
+  }
+  channels_set_fg_rgb(&ropts.focusedchan, 0xffffff);
+  channels_set_bg_rgb(&ropts.focusedchan, 0x00c080);
+  channels_set_fg_rgb(&ropts.borderchan, 0x00c080);
+  auto nr = ncreel_create(n, &ropts);
+  ncplane_set_userptr(n, nr);
+  if(!nr){
+    return -1;
+  }
+  int r = runreels(nc, nr);
   if(notcurses_stop(nc)){
     return EXIT_FAILURE;
   }
