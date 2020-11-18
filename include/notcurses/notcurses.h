@@ -2320,7 +2320,7 @@ API void ncvisual_destroy(struct ncvisual* ncv);
 API int ncvisual_decode(struct ncvisual* nc);
 
 // decode the next frame ala ncvisual_decode(), but if we have reached the end,
-// rewind to the first frame of the ncvisual. a subsequent `ncvisual_render()`
+// rewind to the first frame of the ncvisual. a subsequent 'ncvisual_render()'
 // will render the first frame, as if the ncvisual had been closed and reopened.
 // the return values remain the same as those of ncvisual_decode().
 API int ncvisual_decode_loop(struct ncvisual* nc);
