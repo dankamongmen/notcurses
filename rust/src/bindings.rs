@@ -317,9 +317,6 @@ pub(crate) use bindgen::{
     ncplane,
     ncplane_options,
 
-    // unions
-    ncplane_options__bindgen_ty_1, // horiz field of ncplane
-
     // constants
     NCPLANE_OPTION_HORALIGNED,
 };
