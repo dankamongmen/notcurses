@@ -10,6 +10,7 @@ rearrangements of Notcurses.
     self-documenting `struct ncplane_options` argument. So long as the
     arguments to `ncplane_new()` do not have side-effects, calls can be
     mechanically translated to their `ncplane_create()` equivalents.
+  * Added `nplane_set_resize()`.
 
 * 2.0.4 (2020-11-10)
   * Fixed unit tests for non UTF-8 case, brown bagger, alas.

@@ -670,6 +670,13 @@ struct ncplane* ncplane_create(struct ncplane* n, const ncplane_options* nopts);
 // and will be made a bound child of 'newparent', if 'newparent' is not NULL.
 struct ncplane* ncplane_reparent(struct ncplane* n, struct ncplane* newparent);
 
+// Replace the ncplane's existing resizecb with 'resizecb' (which may be NULL).
+void ncplane_set_resizecb(struct ncplane* n, int(*resizecb)(struct ncplane*));
+
+// Suitable for use as a 'resizecb'. This will realign the plane 'n' against its
+// parent, using the alignment specified at ncplane_create()-time.
+int ncplane_resize_realign(struct ncplane* n);
+
 // Get the plane to which the plane 'n' is bound, if any.
 struct ncplane* ncplane_parent(struct ncplane* n);
 const struct ncplane* ncplane_parent_const(const struct ncplane* n);
