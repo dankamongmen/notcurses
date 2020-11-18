@@ -11,7 +11,7 @@ steps:
     - mkdir build
     - cd build
     - cmake .. -DCMAKE_BUILD_TYPE=Release
-    - make
+    - make -j2
     - env TERM=xterm make test
     - make install
     - cd ../python
@@ -31,7 +31,7 @@ steps:
     - mkdir build
     - cd build
     - cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_MULTIMEDIA=none ..
-    - make
+    - make -j2
     - env TERM=xterm make test
     - make install
     - ldconfig
@@ -53,5 +53,5 @@ steps:
     - mkdir build
     - cd build
     - cmake -DCMAKE_BUILD_TYPE=Release -DUSE_MULTIMEDIA=oiio ..
-    - make
+    - make -j2
     - env TERM=xterm make test
