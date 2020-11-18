@@ -1056,6 +1056,9 @@ API int ncplane_resize_realign(struct ncplane* n);
 // Replace the ncplane's existing resizecb with 'resizecb' (which may be NULL).
 API void ncplane_set_resizecb(struct ncplane* n, int(*resizecb)(struct ncplane*));
 
+// Returns the ncplane's current resize callback.
+API int (*ncplane_resizecb(const struct ncplane* n))(struct ncplane*);
+
 // Plane 'n' will be unbound from its parent plane, if it is currently bound,
 // and will be made a bound child of 'newparent', if 'newparent' is not NULL.
 API struct ncplane* ncplane_reparent(struct ncplane* n, struct ncplane* newparent);

@@ -2040,6 +2040,10 @@ void ncplane_set_resizecb(ncplane* n, int(*resizecb)(ncplane*)){
   n->resizecb = resizecb;
 }
 
+int (*ncplane_resizecb(const ncplane* n))(ncplane*){
+  return n->resizecb;
+}
+
 int ncplane_resize_realign(ncplane* n){
   const ncplane* parent = ncplane_parent_const(n);
   if(parent == n){ // somehow got stdplane, should never get here

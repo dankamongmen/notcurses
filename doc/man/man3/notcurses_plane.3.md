@@ -37,6 +37,8 @@ typedef struct ncplane_options {
 
 **void ncplane_set_resizecb(struct ncplane* ***n***, int(*resizecb)(struct ncplane*));**
 
+**int (*ncplane_resizecb(const struct ncplane* ***n***))(struct ncplane*);**
+
 **struct ncplane* ncplane_dup(struct ncplane* ***n***, void* ***opaque***);**
 
 **int ncplane_resize(struct ncplane* ***n***, int ***keepy***, int ***keepx***, int ***keepleny***, int ***keeplenx***, int ***yoff***, int ***xoff***, int ***ylen***, int ***xlen***);**
