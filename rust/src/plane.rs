@@ -194,7 +194,7 @@ impl NcPlaneOptions {
     pub fn with_all_options(y: i32, align: NcAlign, rows: u32, cols: u32, flags: u64) -> Self {
         NcPlaneOptions {
             y,
-            align,
+            x: align as i32,
             rows: rows as i32,
             cols: cols as i32,
             userptr: null_mut(),
