@@ -351,6 +351,7 @@ ncmenu* ncmenu_create(ncplane* n, const ncmenu_options* opts){
     }
     free(ret);
   }
+  logerror(n->nc, "Error creating ncmenu");
   return NULL;
 }
 
