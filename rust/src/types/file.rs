@@ -8,11 +8,15 @@ use core::ptr::{null_mut, NonNull};
 use std::io::{Error, ErrorKind, Read, Seek, SeekFrom};
 
 pub use libc::{
-    c_long, c_void, fclose, feof, fread, fseek, ftell, FILE as LIBC_FILE, SEEK_CUR, SEEK_END,
+    c_long, c_void, fclose, feof, fread, fseek, ftell, SEEK_CUR, SEEK_END,
     SEEK_SET,
 };
 
-pub use crate::bindgen::_IO_FILE as NC_FILE;
+/// notcurses functions expects this type of *FILE (struct)
+pub type NC_FILE = crate::bindgen::_IO_FILE;
+
+/// the libc crate expects this type of *FILE (opaque enum)
+pub type LIBC_FILE = libc::FILE;
 
 /// Intended to be passed into the CFile::open method.
 /// It will open the file in a way that will allow reading and writing,

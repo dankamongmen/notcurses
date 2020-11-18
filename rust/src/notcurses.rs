@@ -250,9 +250,8 @@ mod test {
     fn notcurses_init() {
         unsafe {
             let nc = Notcurses::new();
-            let res = crate::notcurses_canchangecolor(nc);
+            assert![nc as *mut _ != core::ptr::null_mut()];
             notcurses_stop(nc);
-            print!("[{}] ", res);
         }
     }
 

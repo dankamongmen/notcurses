@@ -232,7 +232,7 @@ pub fn ncplane_align(plane: &NcPlane, align: NcAlign, cols: i32) -> i32 {
 /// Retrieve the current contents of the cell under the cursor into 'cell'.
 /// This cell is invalidated if the associated plane is destroyed.
 #[inline]
-pub fn nplane_at_cursor_cell(plane: &mut NcPlane, cell: &mut Cell) -> IntResult {
+pub fn ncplane_at_cursor_cell(plane: &mut NcPlane, cell: &mut Cell) -> IntResult {
     let mut egc = unsafe { ncplane_at_cursor(plane, &mut cell.stylemask, &mut cell.channels) };
     if egc.is_null() {
         return -1;

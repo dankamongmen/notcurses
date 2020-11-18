@@ -3,21 +3,17 @@
 //! Explore cursor functions in direct mode
 //!
 
-use std::thread::sleep;
-use std::time::Duration;
-use std::ffi::CString;
-
-/// utility macro: sleep for $s seconds
+// utility macro: sleep for $ms milliseconds
 macro_rules! sleep {
-    ($s:expr) => {
-        sleep(Duration::new($s, 0));
+    ($ms:expr) => {
+        std::thread::sleep(std::time::Duration::from_millis($ms));
     };
 }
 
-/// utility macro: convert the String $s to *mut CString
+// utility macro: convert the String $s to *mut CString
 macro_rules! cstring {
     ($s:expr) => {
-        CString::new($s).unwrap().as_ptr();
+        std::ffi::CString::new($s).unwrap().as_ptr();
     }
 }
 
@@ -31,30 +27,34 @@ fn main() {
         let rows = ncdirect_dim_y(ncd);
         println!("terminal size (rows, cols): {}, {}", rows, cols);
 
-        // show current coordinates
+        ncdirect_putstr(ncd, 0, cstring![format!("The current coordinates are")]);
+        ncdirect_flush(ncd);
+
+        for _n in 0..20 {
+            ncdirect_putstr(ncd, 0, cstring!("."));
+            ncdirect_flush(ncd);
+            sleep![50];
+        }
+
         let (mut cy, mut cx) = (0, 0);
         ncdirect_cursor_yx(ncd, &mut cy, &mut cx);
-        ncdirect_putstr(ncd, 0, cstring![format!(" ({},{})\n", cy, cx)],
-        );
+        ncdirect_putstr(ncd, 0, cstring![format!(" ({},{})\n", cy, cx)]);
+        sleep![1000];
 
-        sleep![1];
-
-        ncdirect_putstr(ncd, 0, cstring!["HELLO"]);
+        let sentence = vec!["And", "now", "I", "will", "clear", "the", "screen", ".", ".", "."];
+        for word in sentence {
+            ncdirect_putstr(ncd, 0, cstring!(format!["{} ", word]));
+            ncdirect_flush(ncd);
+            sleep![200];
+        }
+        sleep![300];
+        ncdirect_putstr(ncd, 0, cstring!("\nbye!\n\n"));
         ncdirect_flush(ncd);
+        sleep![600];
 
-        sleep![1];
+        ncdirect_clear(ncd);
+        sleep![1000];
 
-        ncdirect_putstr(ncd, 0, cstring!["HELLO"]);
-        ncdirect_flush(ncd);
-
-        sleep![2];
-
-        // show current coordinates
-        ncdirect_cursor_yx(ncd, &mut cy, &mut cx);
-        ncdirect_putstr( ncd, 0, cstring![format!(" ({},{})\n", cy, cx)],
-        );
-
-        sleep![1];
         ncdirect_stop(ncd);
     }
 }
