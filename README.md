@@ -23,6 +23,8 @@ free download, or [paperback purchase](https://amazon.com/dp/B086PNVNC9).
 
 i've not yet added many documented examples, but there are many small
 C/C++ programs available in [src/poc/](https://github.com/dankamongmen/notcurses/tree/master/src/poc).
+`notcurses-demo` covers most of the functionality of Notcurses, and can be
+found in [src/demo/](https://github.com/dankamongmen/notcurses/tree/master/src/demo).
 
 **If you're running Notcurses applications in a Docker, please consult
 "[Environment notes](#environment-notes)" below.** I track some
