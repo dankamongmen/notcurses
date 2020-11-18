@@ -166,8 +166,8 @@ use crate::{
     ncplane_putegc_yx, ncplane_putnstr_yx, ncplane_putstr_yx, ncplane_resize, ncplane_vline_interp,
     ncplane_vprintf_yx, notcurses_align,
     types::{
-        AlphaBits, Cell, Channel, Channels, Color, EgcBackstop, IntResult, NcAlign, NcHoriz,
-        NcPlane, NcPlaneOptionHoriz, NcPlaneOptions, StyleMask, NCPLANE_OPTION_HORALIGNED,
+        AlphaBits, Cell, Channel, Channels, Color, EgcBackstop, IntResult, NcAlign,
+        NcPlane, NcPlaneOptions, StyleMask, NCPLANE_OPTION_HORALIGNED,
     },
 };
 
@@ -175,15 +175,15 @@ use crate::{
 
 impl NcPlaneOptions {
     /// `NcPlaneOptions` simple constructor with horizontal x
-    pub fn new(y: i32, x: i32, rows: u32, cols: u32) -> Self {
-        Self::with_all_options(y, NcHoriz::x(x), rows, cols, 0)
+    pub fn new(y: i32, x: u32, rows: u32, cols: u32) -> Self {
+        Self::with_all_options(y, x, rows, cols, 0)
     }
 
     /// `NcPlaneOptions` simple constructor with horizontal alignment
     pub fn new_halign(y: i32, align: NcAlign, rows: u32, cols: u32) -> Self {
         Self::with_all_options(
             y,
-            NcHoriz::align(align),
+            align,
             rows,
             cols,
             NCPLANE_OPTION_HORALIGNED,
@@ -191,15 +191,10 @@ impl NcPlaneOptions {
     }
 
     /// `NcplaneOptions` constructor
-    pub fn with_all_options(y: i32, horiz: NcHoriz, rows: u32, cols: u32, flags: u64) -> Self {
+    pub fn with_all_options(y: i32, align: NcAlign, rows: u32, cols: u32, flags: u64) -> Self {
         NcPlaneOptions {
             y,
-            horiz: {
-                match horiz {
-                    NcHoriz::x(data) => NcPlaneOptionHoriz { x: data },
-                    NcHoriz::align(data) => NcPlaneOptionHoriz { align: data },
-                }
-            },
+            align,
             rows: rows as i32,
             cols: cols as i32,
             userptr: null_mut(),
