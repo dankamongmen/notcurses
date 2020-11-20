@@ -12,7 +12,7 @@
 /// - plus 2 bits of alpha
 /// - plus context-dependent info
 ///
-/// The context details are documented in [`Channels`](type.Channels.html)
+/// The context details are documented in [`Channels`]
 ///
 /// `type in C: channel (uint32_t)`
 ///
@@ -36,7 +36,7 @@ pub type AlphaBits = u32;
 
 // Channels
 //
-/// 64 bits containing a foreground and background [`Channel`](type.Channel.html)
+/// 64 bits containing a foreground and background [`Channel`]
 ///
 /// ```txt
 /// ~~AA~~~~|RRRRRRRR|GGGGGGGG|BBBBBBBB|~~AA~~~~|RRRRRRRR|GGGGGGGG|BBBBBBBB
@@ -141,7 +141,7 @@ pub type Color = u8;
 // NOTE: the order of the colors is different than in Channel.
 pub type NcPixel = u32;
 
-/// Palette structure consisting of an array of 256 [`Channel`](type.Channel.html)s
+/// Palette structure consisting of an array of 256 [`Channel`]s
 ///
 /// Some terminals only support 256 colors, but allow the full
 /// palette to be specified with arbitrary RGB colors. In all cases, it's more
@@ -152,14 +152,14 @@ pub type NcPixel = u32;
 ///
 pub type Palette = crate::palette256;
 
-/// 8-bit value used for indexing into a [`Palette`](type.Palette.html)
+/// 8-bit value used for indexing into a [`Palette`]
 ///
 pub type PaletteIndex = u8;
 
 /// Context for a palette fade operation
 pub type NcFadeCtx = crate::ncfadectx;
 
-/// the [`Egc`](type.Egc.html)s which form the various levels
+/// the [`Egc`]s which form the various levels
 /// of a given geometry.
 ///
 /// If the geometry is wide, things are arranged with the rightmost side

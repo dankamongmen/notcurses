@@ -97,7 +97,7 @@ pub unsafe fn cell_prime(
     unsafe { cell_load(plane, cell, gcluster as u32 as *const i8) }
 }
 
-/// load up six cells with the [Egc](type.Egc.html)s necessary to draw a box.
+/// load up six cells with the [Egc]s necessary to draw a box.
 ///
 /// returns 0 on success, -1 on error.
 ///

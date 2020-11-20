@@ -191,6 +191,9 @@ impl NcPlaneOptions {
     }
 
     /// `NcplaneOptions` constructor
+    ///
+    /// Note: If you use`NCPLANE_OPTION_HORALIGNED` flag, you must provide
+    /// the `NcAlign` value as the `x` parameter, casted to `i32`.
     pub fn with_all_options(y: i32, x: i32, rows: u32, cols: u32, flags: u64) -> Self {
         NcPlaneOptions {
             y,

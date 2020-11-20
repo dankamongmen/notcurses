@@ -1,8 +1,11 @@
 //! Curated re-exports of the `bindgen` bindings
 //!
 //! The full list of bindings is under the
-//! [`bindgen`](../bindgen/index.html) submodule
+//! [`bindgen`] submodule
 //!
+//! This module publicly re-exports bindgen generated functions and constants,
+//! while privately re-exporting other functions, constants and all structs
+//! in order to wrap them up or crate new aliases for them.
 //
 // WARNING: DO NOT EXECUTE RUSTFMT ON THIS FILE.
 // Custom formatting permits easier maintenance.
@@ -14,9 +17,9 @@ pub mod bindgen {
     //! Automatically generated Rust FFI bindings
     //!
     //! All of the notcurses functions and some of the constants are reexported
-    //! by the [`bindings`](../bindings/index.html) module.
+    //! by the [`bindings`] module.
     //! While the structs, enums and some other constants are type aliased in
-    //! the [`types`](../types/index.html) module, in order to follow the
+    //! the [`types`] module, in order to follow the
     //! Rust API Guidelines as much as possible.
     //!
     include!(concat!(env!("OUT_DIR"), "/bindings.rs"));

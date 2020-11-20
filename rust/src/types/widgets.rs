@@ -18,13 +18,13 @@
 /// `type in C: ncmenu (struct)`
 pub type NcMenu = crate::ncmenu;
 
-/// Options struct for [`NcMenu`](type.NcMenu.html)
+/// Options struct for [`NcMenu`]
 pub type NcMenuOptions = crate::ncmenu_options;
 
-/// Item for [`NcMenu`](type.NcMenu.html)
+/// Item for [`NcMenu`]
 pub type NcMenuItem = crate::ncmenu_item;
 
-/// Section for [`NcMenu`](type.NcMenu.html)
+/// Section for [`NcMenu`]
 pub type NcMenuSection = crate::ncmenu_section;
 
 /// Bottom row (as opposed to top row)
@@ -40,14 +40,14 @@ pub const NCMENU_OPTION_HIDING: u32 = crate::bindings::NCMENU_OPTION_HIDING;
 /// Supports optional readline keybindings (opt out using
 /// NCREADER_OPTION_NOCMDKEYS flag)
 ///
-/// Takes ownership of its [`NcPlane`](type.NcPlane.html), destroying it on any
+/// Takes ownership of its [`NcPlane`], destroying it on any
 /// error (`ncreader_destroy`() otherwise destroys the ncplane).
 ///
 /// `type in C: ncreader (struct)`
 ///
 pub type NcReader = crate::ncreader;
 
-/// Options struct for [`NcReader`](type.NcReader.html)
+/// Options struct for [`NcReader`]
 ///
 /// `type in C: ncreader_options (struct)`
 ///
@@ -83,10 +83,10 @@ pub const NCREADER_OPTION_VERSCROLL: u32 = crate::bindings::NCREADER_OPTION_VERS
 /// Tablets can come and go at any time, and can grow or shrink at any time.
 pub type NcReel = crate::ncreel;
 
-/// Options struct for [`NcReel`](type.NcReel.html)
+/// Options struct for [`NcReel`]
 pub type NcReelOptions = crate::ncreel_options;
 
-/// Visual tablet for [`NcReel`](type.NcReel.html)
+/// Visual tablet for [`NcReel`]
 pub type NcTablet = crate::nctablet;
 
 /// is navigation circular (does moving down from the last tablet move to the
@@ -100,15 +100,15 @@ pub const NCREEL_OPTION_INFINITESCROLL: u32 = crate::bindings::NCREEL_OPTION_INF
 
 // NcPlot ----------------------------------------------------------------------
 
-/// A histogram, bound to an [`NcPlane`](type.NcPlane.html)
+/// A histogram, bound to an [`NcPlane`]
 /// (uses non-negative `f64`s)
 pub type NcPlotF64 = crate::ncdplot;
 
-/// A histogram, bound to an [`NcPlane`](type.NcPlane.html) (uses `u64`s)
+/// A histogram, bound to an [`NcPlane`] (uses `u64`s)
 pub type NcPlotU64 = crate::ncuplot;
 
 /// Options struct for
-/// [`NcPlotF64`](type.NcPlotF64.html) or [`NcPlotU64`](type.NcPlotU64.html)
+/// [`NcPlotF64`] or [`NcPlotU64`]
 pub type NcPlotOptions = crate::ncplot_options;
 
 /// Use domain detection only for max
@@ -130,9 +130,9 @@ pub const NCPLOT_OPTION_VERTICALI: u32 = crate::bindings::NCPLOT_OPTION_VERTICAL
 
 /// high-level widget for selecting one item from a set
 pub type NcSelector = crate::ncselector;
-/// an item for [`NcSelector`](type.NcSelector.html)
+/// an item for [`NcSelector`]
 pub type NcSelectorItem = crate::ncselector_item;
-/// Options structur for [`NcSelector`](type.NcSelector.html)
+/// Options structur for [`NcSelector`]
 pub type NcSelectorOptions = crate::ncselector_options;
 
 // NcStats ---------------------------------------------------------------------
@@ -145,8 +145,8 @@ pub type NcStats = crate::ncstats;
 /// high-level widget for selecting items from a set
 pub type NcMultiSelector = crate::ncmultiselector;
 
-/// an item for [`NcMultiSelector`](type.NcMultiSelector.html)
+/// an item for [`NcMultiSelector`]
 pub type NcMultiSelectorItem = crate::ncmselector_item;
 
-/// Options structure for [`NcMultiSelector`](type.NcMultiSelector.html)
+/// Options structure for [`NcMultiSelector`]
 pub type NcMultiSelectorOptions = crate::ncmultiselector_options;

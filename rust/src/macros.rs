@@ -3,8 +3,8 @@ use crate::Cell;
 
 // Cell ------------------------------------------------------------------------
 
-/// Initializes a cell providing an [`Egc`](type.Egc.html),
-/// a [`StyleMask`](type.StyleMask.html) and [`Channels`](type.Channels.html)
+/// Initializes a cell providing an [`Egc`],
+/// a [`StyleMask`] and [`Channels`]
 #[macro_export]
 macro_rules! cell_initializer {
     ( $c:expr, $s:expr, $chan:expr  ) => {
@@ -18,7 +18,7 @@ macro_rules! cell_initializer {
     };
 }
 
-/// Initializes a cell providing just an [`Egc`](type.Egc.html),
+/// Initializes a cell providing just an [`Egc`],
 #[macro_export]
 macro_rules! cell_char_initializer {
     ( $c:expr ) => {

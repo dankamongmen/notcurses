@@ -9,18 +9,18 @@
 /// `type in C: ncplane (struct)`
 pub type NcPlane = crate::ncplane;
 
-/// Options struct for [`NcPlane`](type.NcPlane.html)
+/// Options struct for [`NcPlane`]
 pub type NcPlaneOptions = crate::ncplane_options;
 
 /// Horizontal alignment relative to the parent plane. Set alignment in 'x'.
 pub const NCPLANE_OPTION_HORALIGNED: u64 = crate::bindings::NCPLANE_OPTION_HORALIGNED as u64;
 
-/// I/O wrapper to dump file descriptor to [`NcPlane`](type.NcPlane.html)
+/// I/O wrapper to dump file descriptor to [`NcPlane`]
 ///
 /// `type in C: ncfdplane (struct)`
 pub type NcFdPlane = crate::ncfdplane;
 
-/// Options struct for [`NcFdPlane`](type.NcFdPlane.html)
+/// Options struct for [`NcFdPlane`]
 ///
 /// `type in C: ncplane_options (struct)`
 pub type NcFdPlaneOptions = crate::ncfdplane_options;
@@ -28,12 +28,16 @@ pub type NcFdPlaneOptions = crate::ncfdplane_options;
 /// Alignment within a plane or terminal.
 /// Left/right-justified, or centered.
 pub type NcAlign = crate::ncalign_e;
+
 /// Align an NcPlane or NcTerm
 pub const NCALIGN_LEFT: NcAlign = crate::ncalign_e_NCALIGN_LEFT;
+
 ///
 pub const NCALIGN_RIGHT: NcAlign = crate::ncalign_e_NCALIGN_RIGHT;
+
 ///
 pub const NCALIGN_CENTER: NcAlign = crate::ncalign_e_NCALIGN_CENTER;
+
 ///
 pub const NCALIGN_UNALIGNED: NcAlign = crate::ncalign_e_NCALIGN_UNALIGNED;
 
@@ -76,7 +80,7 @@ pub const NCBLIT_DEFAULT: NcBlitter = crate::ncblitter_e_NCBLIT_DEFAULT;
 /// not yet implemented
 pub const NCBLIT_SIXEL: NcBlitter = crate::ncblitter_e_NCBLIT_SIXEL;
 
-/// How to scale an [`NcVisual`](type.NcVisual.html) during rendering
+/// How to scale an [`NcVisual`] during rendering
 ///
 /// - NCSCALE_NONE will apply no scaling.
 /// - NCSCALE_SCALE scales a visual to the plane's size,
@@ -94,10 +98,10 @@ pub const NCSCALE_STRETCH: NcScale = crate::ncscale_e_NCSCALE_STRETCH;
 
 /// A visual bit of multimedia opened with LibAV|OIIO
 pub type NcVisual = crate::ncvisual;
-/// Options struct for [`NcVisual`](type.NcVisual.html)
+/// Options struct for [`NcVisual`]
 pub type NcVisualOptions = crate::ncvisual_options;
 
-/// Use [`CELL_ALPHA_BLEND`](constant.CELL_ALPHA_BLEND.html) with visual
+/// Use [`CELL_ALPHA_BLEND`] with visual
 pub const NCVISUAL_OPTION_BLEND: u32 = crate::bindings::NCVISUAL_OPTION_BLEND;
 
 /// Fail rather than degrade

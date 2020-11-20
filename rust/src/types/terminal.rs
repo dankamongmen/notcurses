@@ -5,7 +5,7 @@
 /// Minimal notcurses instances for styling text
 pub type NcDirect = crate::ncdirect;
 
-/// Flags (options) for [`NcDirect`](type.NcDirect.html)
+/// Flags (options) for [`NcDirect`]
 pub type NcDirectFlags = u64;
 
 /// Flag that avoids placing the terminal into cbreak mode
@@ -35,7 +35,7 @@ pub const NCDIRECT_OPTION_INHIBIT_SETLOCALE: NcDirectFlags =
 ///
 pub type Notcurses = crate::bindings::notcurses;
 
-/// Options struct for [`Notcurses`](type.Notcurses.html)
+/// Options struct for [`Notcurses`]
 pub type NotcursesOptions = crate::bindings::notcurses_options;
 
 /// Do not call setlocale()
@@ -93,7 +93,7 @@ pub const NCOPTION_VERIFY_SIXEL: u64 = crate::bindings::NCOPTION_VERIFY_SIXEL as
 
 // NcLogLevel ------------------------------------------------------------------
 
-/// Log level for [`NotcursesOptions`](type.NotcursesOptions.html)
+/// Log level for [`NotcursesOptions`]
 ///
 /// These log levels consciously map cleanly to those of libav; Notcurses itself
 /// does not use this full granularity. The log level does not affect the opening

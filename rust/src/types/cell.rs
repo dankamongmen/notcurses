@@ -1,5 +1,5 @@
 // Cell
-/// A coordinate on an [`NcPlane`](type.NcPlane.html) storing 128 bits of data
+/// A coordinate on an [`NcPlane`] storing 128 bits of data
 ///
 /// ```txt
 /// Cell: 128 bits structure comprised of the following 5 elements:
@@ -175,7 +175,7 @@ pub const CELL_WIDEASIAN_MASK: u64 = crate::bindings::CELL_WIDEASIAN_MASK as u64
 pub type Egc = char;
 
 // EgcBackStop
-/// An `u8` always at zero, part of the [`Cell`](type.Cell.html) struct
+/// An `u8` always at zero, part of the [`Cell`] struct
 ///
 /// ```txt
 /// 00000000
@@ -187,7 +187,7 @@ pub type EgcBackstop = u8;
 
 // StyleMask
 ///
-/// An `u16` of `NCSTYLE_*` boolean styling attributes:
+/// An `u16` of `NCSTYLE_*` boolean styling attributes
 ///
 /// ```txt
 /// 11111111 11111111

@@ -109,12 +109,12 @@ impl NotcursesOptions {
     ///   can be added without reshaping the struct.
     ///   Undefined bits must be set to 0.
     ///
-    ///   - [`NCOPTION_INHIBIT_SETLOCALE`](type.NCOPTION_INHIBIT_SETLOCALE.html)
-    ///   - [`NCOPTION_NO_ALTERNATE_SCREEN`](type.NCOPTION_NO_ALTERNATE_SCREEN.html)
-    ///   - [`NCOPTION_NO_FONT_CHANGES`](type.NCOPTION_NO_FONT_CHANGES.html)
-    ///   - [`NCOPTION_NO_QUIT_SIGHANDLERS`](type.NCOPTION_NO_QUIT_SIGHANDLERS.html)
-    ///   - [`NCOPTION_NO_WINCH_SIGHANDLER`](type.NCOPTION_NO_WINCH_SIGHANDLER.html)
-    ///   - [`NCOPTION_SUPPRESS_BANNERS`](type.NCOPTION_SUPPRESS_BANNERS.html)
+    ///   - [`NCOPTION_INHIBIT_SETLOCALE`]
+    ///   - [`NCOPTION_NO_ALTERNATE_SCREEN`]
+    ///   - [`NCOPTION_NO_FONT_CHANGES`]
+    ///   - [`NCOPTION_NO_QUIT_SIGHANDLERS`]
+    ///   - [`NCOPTION_NO_WINCH_SIGHANDLER`]
+    ///   - [`NCOPTION_SUPPRESS_BANNERS`]
     ///
     pub fn with_all_options(
         loglevel: NcLogLevel,
