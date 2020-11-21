@@ -274,9 +274,9 @@ int update_term_dimensions(int fd, int* rows, int* cols){
 void free_plane(ncplane* p){
   if(p){
     // ncdirect fakes an ncplane with no ->nc
-    if(p->nc){
-      --p->nc->stats.planes;
-      p->nc->stats.fbbytes -= sizeof(*p->fb) * p->leny * p->lenx;
+    if(ncplane_notcurses(p)){
+      --ncplane_notcurses(p)->stats.planes;
+      ncplane_notcurses(p)->stats.fbbytes -= sizeof(*p->fb) * p->leny * p->lenx;
     }
     egcpool_dump(&p->pool);
     free(p->name);
@@ -352,7 +352,7 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n, const ncplane_options* 
   cell_init(&p->basecell);
   p->userptr = nopts->userptr;
   p->above = NULL;
-  if( (p->nc = nc) ){ // every plane associated with a notcurses object
+  if( (p->nc = nc) ){ // every plane has a notcurses object
     if( (p->below = nc->top) ){ // always happens save initial plane
       nc->top->above = p;
     }else{
@@ -392,7 +392,7 @@ const ncplane* notcurses_stdplane_const(const notcurses* nc){
 }
 
 ncplane* ncplane_create(ncplane* n, const ncplane_options* nopts){
-  return ncplane_new_internal(n->nc, n, nopts);
+  return ncplane_new_internal(ncplane_notcurses(n), n, nopts);
 }
 
 struct ncplane* ncplane_new(struct ncplane* n, int rows, int cols, int y, int x, void* opaque, const char* name){
@@ -416,29 +416,29 @@ void ncplane_home(ncplane* n){
 
 inline int ncplane_cursor_move_yx(ncplane* n, int y, int x){
   if(x >= n->lenx){
-    logerror(n->nc, "Target x %d >= length %d\n", x, n->lenx);
+    logerror(ncplane_notcurses(n), "Target x %d >= length %d\n", x, n->lenx);
     return -1;
   }else if(x < 0){
     if(x < -1){
-      logerror(n->nc, "Negative target x %d\n", x);
+      logerror(ncplane_notcurses(n), "Negative target x %d\n", x);
       return -1;
     }
   }else{
     n->x = x;
   }
   if(y >= n->leny){
-    logerror(n->nc, "Target y %d >= height %d\n", y, n->leny);
+    logerror(ncplane_notcurses(n), "Target y %d >= height %d\n", y, n->leny);
     return -1;
   }else if(y < 0){
     if(y < -1){
-      logerror(n->nc, "Negative target y %d\n", y);
+      logerror(ncplane_notcurses(n), "Negative target y %d\n", y);
       return -1;
     }
   }else{
     n->y = y;
   }
   if(cursor_invalid_p(n)){
-    logerror(n->nc, "Invalid cursor following move (%d/%d)\n", n->y, n->x);
+    logerror(ncplane_notcurses(n), "Invalid cursor following move (%d/%d)\n", n->y, n->x);
     return -1;
   }
   return 0;
@@ -499,31 +499,31 @@ resize_children(ncplane* n){
 int ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
                             int keeplenx, int yoff, int xoff, int ylen, int xlen){
   if(keepleny < 0 || keeplenx < 0){ // can't retain negative size
-    logerror(n->nc, "Can't retain negative size %dx%d\n", keepleny, keeplenx);
+    logerror(ncplane_notcurses(n), "Can't retain negative size %dx%d\n", keepleny, keeplenx);
     return -1;
   }
   if((!keepleny && keeplenx) || (keepleny && !keeplenx)){ // both must be 0
-    logerror(n->nc, "Can't retain null dimension %dx%d\n", keepleny, keeplenx);
+    logerror(ncplane_notcurses(n), "Can't retain null dimension %dx%d\n", keepleny, keeplenx);
     return -1;
   }
   // can't be smaller than keep length + abs(offset from keep area)
   const int yprescribed = keepleny + (yoff < 0 ? -yoff : yoff);
   if(ylen < yprescribed){
-    logerror(n->nc, "Can't map in y dimension: %d < %d\n", ylen, yprescribed);
+    logerror(ncplane_notcurses(n), "Can't map in y dimension: %d < %d\n", ylen, yprescribed);
     return -1;
   }
   const int xprescribed = keeplenx + (xoff < 0 ? -xoff : xoff);
   if(xlen < xprescribed){
-    logerror(n->nc, "Can't map in x dimension: %d < %d\n", xlen, xprescribed);
+    logerror(ncplane_notcurses(n), "Can't map in x dimension: %d < %d\n", xlen, xprescribed);
     return -1;
   }
   if(ylen <= 0 || xlen <= 0){ // can't resize to trivial or negative size
-    logerror(n->nc, "Can't achieve meaningless size %dx%d\n", ylen, xlen);
+    logerror(ncplane_notcurses(n), "Can't achieve meaningless size %dx%d\n", ylen, xlen);
     return -1;
   }
   int rows, cols;
   ncplane_dim_yx(n, &rows, &cols);
-  loginfo(n->nc, "%dx%d @ %d/%d → %d/%d @ %d/%d (keeping %dx%d from %d/%d)\n", rows, cols, n->absy, n->absx, ylen, xlen, n->absy + keepy + yoff, n->absx + keepx + xoff, keepleny, keeplenx, keepy, keepx);
+  loginfo(ncplane_notcurses(n), "%dx%d @ %d/%d → %d/%d @ %d/%d (keeping %dx%d from %d/%d)\n", rows, cols, n->absy, n->absx, ylen, xlen, n->absy + keepy + yoff, n->absx + keepx + xoff, keepleny, keeplenx, keepy, keepx);
   // we're good to resize. we'll need alloc up a new framebuffer, and copy in
   // those elements we're retaining, zeroing out the rest. alternatively, if
   // we've shrunk, we will be filling the new structure.
@@ -542,8 +542,8 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
     n->x = xlen - 1;
   }
   cell* preserved = n->fb;
-  n->nc->stats.fbbytes -= sizeof(*preserved) * (rows * cols);
-  n->nc->stats.fbbytes += fbsize;
+  ncplane_notcurses(n)->stats.fbbytes -= sizeof(*preserved) * (rows * cols);
+  ncplane_notcurses(n)->stats.fbbytes += fbsize;
   n->fb = fb;
   const int oldabsy = n->absy;
   // go ahead and move. we can no longer fail at this point. but don't yet
@@ -601,7 +601,7 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
 
 int ncplane_resize(ncplane* n, int keepy, int keepx, int keepleny,
                    int keeplenx, int yoff, int xoff, int ylen, int xlen){
-  if(n == n->nc->stdplane){
+  if(n == ncplane_notcurses(n)->stdplane){
 //fprintf(stderr, "Can't resize standard plane\n");
     return -1;
   }
@@ -613,19 +613,19 @@ int ncplane_destroy(ncplane* ncp){
   if(ncp == NULL){
     return 0;
   }
-  if(ncp->nc->stdplane == ncp){
-    logerror(ncp->nc, "Won't destroy standard plane\n");
+  if(ncplane_notcurses(ncp)->stdplane == ncp){
+    logerror(ncplane_notcurses(ncp), "Won't destroy standard plane\n");
     return -1;
   }
   if(ncp->above){
     ncp->above->below = ncp->below;
   }else{
-    ncp->nc->top = ncp->below;
+    ncplane_notcurses(ncp)->top = ncp->below;
   }
   if(ncp->below){
     ncp->below->above = ncp->above;
   }else{
-    ncp->nc->bottom = ncp->above;
+    ncplane_notcurses(ncp)->bottom = ncp->above;
   }
   if(ncp->bprev){
     if( (*ncp->bprev = ncp->bnext) ){
@@ -649,8 +649,8 @@ int ncplane_genocide(ncplane *ncp){
   if(ncp == NULL){
     return 0;
   }
-  if(ncp->nc->stdplane == ncp){
-    logerror(ncp->nc, "Won't destroy standard plane\n");
+  if(ncplane_notcurses(ncp)->stdplane == ncp){
+    logerror(ncplane_notcurses(ncp), "Won't destroy standard plane\n");
     return -1;
   }
   int ret = 0;
@@ -1253,17 +1253,17 @@ int ncplane_move_above(ncplane* restrict n, ncplane* restrict above){
     if(n->below){
       n->below->above = n->above;
     }else{
-      n->nc->bottom = n->above;
+      ncplane_notcurses(n)->bottom = n->above;
     }
     if(n->above){
       n->above->below = n->below;
     }else{
-      n->nc->top = n->below;
+      ncplane_notcurses(n)->top = n->below;
     }
     if( (n->above = above->above) ){
       above->above->below = n;
     }else{
-      n->nc->top = n;
+      ncplane_notcurses(n)->top = n;
     }
     above->above = n;
     n->below = above;
@@ -1280,17 +1280,17 @@ int ncplane_move_below(ncplane* restrict n, ncplane* restrict below){
     if(n->below){
       n->below->above = n->above;
     }else{
-      n->nc->bottom = n->above;
+      ncplane_notcurses(n)->bottom = n->above;
     }
     if(n->above){
       n->above->below = n->below;
     }else{
-      n->nc->top = n->below;
+      ncplane_notcurses(n)->top = n->below;
     }
     if( (n->below = below->below) ){
       below->below->above = n;
     }else{
-      n->nc->bottom = n;
+      ncplane_notcurses(n)->bottom = n;
     }
     below->below = n;
     n->above = below;
@@ -1303,13 +1303,13 @@ void ncplane_move_top(ncplane* n){
     if( (n->above->below = n->below) ){
       n->below->above = n->above;
     }else{
-      n->nc->bottom = n->above;
+      ncplane_notcurses(n)->bottom = n->above;
     }
     n->above = NULL;
-    if( (n->below = n->nc->top) ){
+    if( (n->below = ncplane_notcurses(n)->top) ){
       n->below->above = n;
     }
-    n->nc->top = n;
+    ncplane_notcurses(n)->top = n;
   }
 }
 
@@ -1318,13 +1318,13 @@ void ncplane_move_bottom(ncplane* n){
     if( (n->below->above = n->above) ){
       n->above->below = n->below;
     }else{
-      n->nc->top = n->below;
+      ncplane_notcurses(n)->top = n->below;
     }
     n->below = NULL;
-    if( (n->above = n->nc->bottom) ){
+    if( (n->above = ncplane_notcurses(n)->bottom) ){
       n->above->below = n;
     }
-    n->nc->bottom = n;
+    ncplane_notcurses(n)->bottom = n;
   }
 }
 
@@ -1375,13 +1375,13 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
   // are specified, however, we must always try to print there.
   if(x != -1){
     if(x + cols > n->lenx){
-      logerror(n->nc, "Target x %d + %d cols >= length %d\n", x, cols, n->lenx);
+      logerror(ncplane_notcurses(n), "Target x %d + %d cols >= length %d\n", x, cols, n->lenx);
       ncplane_cursor_move_yx(n, y, x); // update cursor, though
       return -1;
     }
   }else if(y == -1 && n->x + cols > n->lenx){
     if(!n->scrolling){
-      logerror(n->nc, "No room to output [%.*s] %d/%d\n", bytes, egc, n->y, n->x);
+      logerror(ncplane_notcurses(n), "No room to output [%.*s] %d/%d\n", bytes, egc, n->y, n->x);
       return -1;
     }
     scroll_down(n);
@@ -1723,17 +1723,17 @@ int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
   ncplane_cursor_yx(n, &yoff, &xoff);
   // must be at least 2x2, with its upper-left corner at the current cursor
   if(ystop < yoff + 1){
-    logerror(n->nc, "ystop (%d) insufficient for yoff (%d)\n", ystop, yoff);
+    logerror(ncplane_notcurses(n), "ystop (%d) insufficient for yoff (%d)\n", ystop, yoff);
     return -1;
   }
   if(xstop < xoff + 1){
-    logerror(n->nc, "xstop (%d) insufficient for xoff (%d)\n", xstop, xoff);
+    logerror(ncplane_notcurses(n), "xstop (%d) insufficient for xoff (%d)\n", xstop, xoff);
     return -1;
   }
   ncplane_dim_yx(n, &ymax, &xmax);
   // must be within the ncplane
   if(xstop >= xmax || ystop >= ymax){
-    logerror(n->nc, "Boundary (%dx%d) beyond plane (%dx%d)\n", ystop, xstop, ymax, xmax);
+    logerror(ncplane_notcurses(n), "Boundary (%dx%d) beyond plane (%dx%d)\n", ystop, xstop, ymax, xmax);
     return -1;
   }
   unsigned edges;
@@ -1852,7 +1852,7 @@ move_bound_planes(ncplane* n, int dy, int dx){
 }
 
 int ncplane_move_yx(ncplane* n, int y, int x){
-  if(n == n->nc->stdplane){
+  if(n == ncplane_notcurses(n)->stdplane){
     return -1;
   }
   int dy, dx; // amount moved
@@ -2063,14 +2063,14 @@ int ncplane_resize_realign(ncplane* n){
 // is already root of its own stack in this case, we return NULL. If |n| is
 // already bound to |newparent|, this is a no-op, and we return |n|.
 ncplane* ncplane_reparent(ncplane* n, ncplane* newparent){
-  if(n == n->nc->stdplane){
+  if(n == ncplane_notcurses(n)->stdplane){
     return NULL; // can't reparent standard plane
   }
   if(n->boundto == n && newparent == NULL){
     return NULL; // can't make new stack out of a stack's root
   }
   if(newparent == NULL){ // FIXME make a new stack
-    newparent = n->nc->stdplane;
+    newparent = ncplane_notcurses(n)->stdplane;
   }
   if(n->boundto == newparent){
     return n;
@@ -2245,11 +2245,11 @@ uint32_t* ncplane_rgba(const ncplane* nc, ncblitter_e blit,
 // return a heap-allocated copy of the contents
 char* ncplane_contents(const ncplane* nc, int begy, int begx, int leny, int lenx){
   if(begy < 0 || begx < 0){
-    logerror(nc->nc, "Beginning coordinates (%d/%d) below 0\n", begy, begx);
+    logerror(ncplane_notcurses_const(nc), "Beginning coordinates (%d/%d) below 0\n", begy, begx);
     return NULL;
   }
   if(begx >= nc->lenx || begy >= nc->leny){
-    logerror(nc->nc, "Beginning coordinates (%d/%d) exceeded lengths (%d/%d)\n",
+    logerror(ncplane_notcurses_const(nc), "Beginning coordinates (%d/%d) exceeded lengths (%d/%d)\n",
              begy, begx, nc->leny, nc->lenx);
     return NULL;
   }
@@ -2260,11 +2260,11 @@ char* ncplane_contents(const ncplane* nc, int begy, int begx, int leny, int lenx
     leny = nc->leny - begy;
   }
   if(lenx < 0 || leny < 0){ // no need to draw zero-size object, exit
-    logerror(nc->nc, "Lengths (%d/%d) below 0\n", leny, lenx);
+    logerror(ncplane_notcurses_const(nc), "Lengths (%d/%d) below 0\n", leny, lenx);
     return NULL;
   }
   if(begx + lenx > nc->lenx || begy + leny > nc->leny){
-    logerror(nc->nc, "Ending coordinates (%d/%d) exceeded lengths (%d/%d)\n",
+    logerror(ncplane_notcurses_const(nc), "Ending coordinates (%d/%d) exceeded lengths (%d/%d)\n",
              begy + leny, begx + lenx, nc->leny, nc->lenx);
     return NULL;
   }
@@ -2307,7 +2307,7 @@ int cells_ascii_box(struct ncplane* n, uint32_t attr, uint64_t channels,
 
 int cells_double_box(struct ncplane* n, uint32_t attr, uint64_t channels,
                      cell* ul, cell* ur, cell* ll, cell* lr, cell* hl, cell* vl){
-  if(notcurses_canutf8(n->nc)){
+  if(notcurses_canutf8(ncplane_notcurses(n))){
     return cells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, "╔╗╚╝═║");
   }
   return cells_ascii_box(n, attr, channels, ul, ur, ll, lr, hl, vl);
@@ -2315,7 +2315,7 @@ int cells_double_box(struct ncplane* n, uint32_t attr, uint64_t channels,
 
 int cells_rounded_box(struct ncplane* n, uint32_t attr, uint64_t channels,
                       cell* ul, cell* ur, cell* ll, cell* lr, cell* hl, cell* vl){
-  if(notcurses_canutf8(n->nc)){
+  if(notcurses_canutf8(ncplane_notcurses(n))){
     return cells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, "╭╮╰╯─│");
   }
   return cells_ascii_box(n, attr, channels, ul, ur, ll, lr, hl, vl);

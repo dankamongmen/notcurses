@@ -21,7 +21,7 @@ class ncppplot {
      opts = &zeroed;
    }
    if(opts->flags > NCPLOT_OPTION_DETECTMAXONLY){
-     logwarn(n->nc, "Provided unsupported flags %016lx\n", opts->flags);
+     logwarn(ncplane_notcurses(n), "Provided unsupported flags %016lx\n", opts->flags);
    }
    //struct notcurses* nc = n->nc;
    // if miny == maxy (enabling domain detection), they both must be equal to 0

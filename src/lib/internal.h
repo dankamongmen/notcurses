@@ -377,12 +377,12 @@ mbstr_find_codepoint(const char* s, char32_t cp, int* col){
 
 static inline ncplane*
 ncplane_stdplane(ncplane* n){
-  return notcurses_stdplane(n->nc);
+  return notcurses_stdplane(ncplane_notcurses(n));
 }
 
 static inline const ncplane*
 ncplane_stdplane_const(const ncplane* n){
-  return notcurses_stdplane_const(n->nc);
+  return notcurses_stdplane_const(ncplane_notcurses_const(n));
 }
 
 // load all known special keys from terminfo, and build the input sequence trie
