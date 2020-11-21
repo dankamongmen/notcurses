@@ -25,7 +25,7 @@ name: ubuntu-focal
 
 steps:
 - name: ubuntu-build
-  image: dankamongmen/groovy:2020-10-25a
+  image: dankamongmen/groovy:2020-11-21a
   commands:
     - export LANG=en_US.UTF-8
     - mkdir build
