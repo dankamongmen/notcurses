@@ -140,9 +140,9 @@ int ncplane_fadein_iteration(ncplane* n, ncfadectx* nctx, int iter,
   sleepspec.tv_nsec = nextwake % NANOSECS_IN_SEC;
   int ret = 0;
   if(fader){
-    ret |= fader(n->nc, n, &sleepspec, curry);
+    ret |= fader(ncplane_notcurses(n), n, &sleepspec, curry);
   }else{
-    ret |= notcurses_render(n->nc);
+    ret |= notcurses_render(ncplane_notcurses(n));
     // clock_nanosleep() has no love for CLOCK_MONOTONIC_RAW, at least as
     // of Glibc 2.29 + Linux 5.3 (or FreeBSD 12) :/.
     clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &sleepspec, NULL);
@@ -220,9 +220,9 @@ int ncplane_fadeout_iteration(ncplane* n, ncfadectx* nctx, int iter,
   sleepspec.tv_nsec = nextwake % NANOSECS_IN_SEC;
   int ret;
   if(fader){
-    ret = fader(n->nc, n, &sleepspec, curry);
+    ret = fader(ncplane_notcurses(n), n, &sleepspec, curry);
   }else{
-    ret = notcurses_render(n->nc);
+    ret = notcurses_render(ncplane_notcurses(n));
     // clock_nanosleep() has no love for CLOCK_MONOTONIC_RAW, at least as
     // of Glibc 2.29 + Linux 5.3 (or FreeBSD 12) :/.
     clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &sleepspec, NULL);
@@ -232,7 +232,8 @@ int ncplane_fadeout_iteration(ncplane* n, ncfadectx* nctx, int iter,
 
 static ncfadectx* 
 ncfadectx_setup_internal(ncplane* n, const struct timespec* ts){
-  if(!n->nc->tcache.RGBflag && !n->nc->tcache.CCCflag){ // terminal can't fade
+  if(!ncplane_notcurses(n)->tcache.RGBflag &&
+     !ncplane_notcurses(n)->tcache.CCCflag){ // terminal can't fade
     return NULL;
   }
   ncfadectx* nctx = malloc(sizeof(*nctx));
@@ -286,9 +287,9 @@ int ncplane_fadein(ncplane* n, const struct timespec* ts, fadecb fader, void* cu
     struct timespec now;
     clock_gettime(CLOCK_MONOTONIC, &now);
     if(fader){
-      fader(n->nc, n, &now, curry);
+      fader(ncplane_notcurses(n), n, &now, curry);
     }else{
-      notcurses_render(n->nc);
+      notcurses_render(ncplane_notcurses(n));
     }
     return -1;
   }
@@ -300,7 +301,8 @@ int ncplane_fadein(ncplane* n, const struct timespec* ts, fadecb fader, void* cu
 int ncplane_pulse(ncplane* n, const struct timespec* ts, fadecb fader, void* curry){
   ncfadectx pp;
   int ret;
-  if(!n->nc->tcache.RGBflag && !n->nc->tcache.CCCflag){ // terminal can't fade
+  if(!ncplane_notcurses(n)->tcache.RGBflag &&
+     !ncplane_notcurses(n)->tcache.CCCflag){ // terminal can't fade
     return -1;
   }
   if(alloc_ncplane_palette(n, &pp, ts)){

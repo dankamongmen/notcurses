@@ -146,7 +146,7 @@ calc_highgradient(cell* c, uint32_t ul, uint32_t ur, uint32_t ll,
 
 int ncplane_highgradient(ncplane* n, uint32_t ul, uint32_t ur,
                          uint32_t ll, uint32_t lr, int ystop, int xstop){
-  if(!notcurses_canutf8(n->nc)){
+  if(!notcurses_canutf8(ncplane_notcurses(n))){
     return -1;
   }
   if(check_gradient_channel_args(ul, ur, ll, lr)){
@@ -207,7 +207,7 @@ int ncplane_gradient(ncplane* n, const char* egc, uint32_t stylemask,
                      uint64_t ul, uint64_t ur, uint64_t bl, uint64_t br,
                      int ystop, int xstop){
   if(check_gradient_args(ul, ur, bl, br)){
-    logerror(n->nc, "Illegal gradient inputs\n");
+    logerror(ncplane_notcurses(n), "Illegal gradient inputs\n");
     return -1;
   }
   if(egc == NULL){
@@ -217,11 +217,11 @@ int ncplane_gradient(ncplane* n, const char* egc, uint32_t stylemask,
   ncplane_cursor_yx(n, &yoff, &xoff);
   // must be at least 1x1, with its upper-left corner at the current cursor
   if(ystop < yoff){
-    logerror(n->nc, "Ystop %d < yoff %d\n", ystop, yoff);
+    logerror(ncplane_notcurses(n), "Ystop %d < yoff %d\n", ystop, yoff);
     return -1;
   }
   if(xstop < xoff){
-    logerror(n->nc, "Xstop %d < xoff %d\n", xstop, xoff);
+    logerror(ncplane_notcurses(n), "Xstop %d < xoff %d\n", xstop, xoff);
     return -1;
   }
   ncplane_dim_yx(n, &ymax, &xmax);
@@ -267,18 +267,18 @@ int ncplane_stain(ncplane* n, int ystop, int xstop,
                   uint64_t tl, uint64_t tr, uint64_t bl, uint64_t br){
   // Can't use default or palette-indexed colors in a gradient
   if(check_gradient_args(tl, tr, bl, br)){
-    logerror(n->nc, "Illegal staining inputs\n");
+    logerror(ncplane_notcurses(n), "Illegal staining inputs\n");
     return -1;
   }
   int yoff, xoff, ymax, xmax;
   ncplane_cursor_yx(n, &yoff, &xoff);
   // must be at least 1x1, with its upper-left corner at the current cursor
   if(ystop < yoff){
-    logerror(n->nc, "Ystop %d < yoff %d\n", ystop, yoff);
+    logerror(ncplane_notcurses(n), "Ystop %d < yoff %d\n", ystop, yoff);
     return -1;
   }
   if(xstop < xoff){
-    logerror(n->nc, "Xstop %d < xoff %d\n", xstop, xoff);
+    logerror(ncplane_notcurses(n), "Xstop %d < xoff %d\n", xstop, xoff);
     return -1;
   }
   ncplane_dim_yx(n, &ymax, &xmax);
@@ -345,7 +345,7 @@ rotate_channels(ncplane* src, const cell* c, uint32_t* fchan, uint32_t* bchan){
     *bchan = *fchan;
     return 0;
   }
-  logerror(src->nc, "Invalid EGC for rotation [%s]\n", egc);
+  logerror(ncplane_notcurses(src), "Invalid EGC for rotation [%s]\n", egc);
   return -1;
 }
 
@@ -640,10 +640,10 @@ int ncplane_qrcode(ncplane* n, ncblitter_e blitter, int* ymax, int* xmax,
           .n = n,
           .blitter = blitter,
         };
-        if(ncvisual_render(n->nc, ncv, &vopts) == n){
+        if(ncvisual_render(ncplane_notcurses(n), ncv, &vopts) == n){
           ret = square;
         }
-        ncvisual_geom(n->nc, ncv, &vopts, NULL, NULL, &yscale, &xscale);
+        ncvisual_geom(ncplane_notcurses(n), ncv, &vopts, NULL, NULL, &yscale, &xscale);
       }
       ncvisual_destroy(ncv);
     }

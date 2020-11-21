@@ -6,7 +6,7 @@ ncreader* ncreader_create(ncplane* n, const ncreader_options* opts){
     opts = &zeroed;
   }
   if(opts->flags > NCREADER_OPTION_CURSOR){
-    logwarn(n->nc, "Provided unsupported flags %016lx\n", opts->flags);
+    logwarn(ncplane_notcurses(n), "Provided unsupported flags %016lx\n", opts->flags);
   }
   ncreader* nr = malloc(sizeof(*nr));
   if(nr == NULL){
@@ -73,7 +73,7 @@ ncreader_redraw(ncreader* n){
       }
     }
   }
-  if(notcurses_cursor_enable(n->ncp->nc, n->ncp->absy + n->ncp->y, n->ncp->absx + n->ncp->x)){
+  if(notcurses_cursor_enable(ncplane_notcurses(n->ncp), n->ncp->absy + n->ncp->y, n->ncp->absx + n->ncp->x)){
     ret = -1;
   }
   return ret;
@@ -187,7 +187,7 @@ int ncreader_move_down(ncreader* n){
 int ncreader_write_egc(ncreader* n, const char* egc){
   const int cols = ncstrwidth(egc);
   if(cols < 0){
-    logerror(n->ncp->nc, "Fed illegal UTF-8 [%s]\n", egc);
+    logerror(ncplane_notcurses(n->ncp), "Fed illegal UTF-8 [%s]\n", egc);
     return -1;
   }
   if(n->textarea->x >= n->textarea->lenx - cols){
@@ -387,7 +387,7 @@ void ncreader_destroy(ncreader* n, char** contents){
       *contents = ncreader_contents(n);
     }
     if(n->manage_cursor){
-      notcurses_cursor_disable(n->ncp->nc);
+      notcurses_cursor_disable(ncplane_notcurses(n->ncp));
     }
     ncplane_destroy(n->textarea);
     ncplane_destroy(n->ncp);

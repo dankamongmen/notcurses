@@ -301,11 +301,11 @@ ncmenu* ncmenu_create(ncplane* n, const ncmenu_options* opts){
     opts = &zeroed;
   }
   if(opts->sectioncount <= 0 || !opts->sections){
-    logerror(n->nc, "Invalid %d-ary section information\n", opts->sectioncount);
+    logerror(ncplane_notcurses(n), "Invalid %d-ary section information\n", opts->sectioncount);
     return NULL;
   }
   if(opts->flags > NCMENU_OPTION_HIDING){
-    logwarn(n->nc, "Provided unsupported flags %016lx\n", opts->flags);
+    logwarn(ncplane_notcurses(n), "Provided unsupported flags %016lx\n", opts->flags);
   }
   int totalheight = 1;
   int totalwidth = 2; // start with two-character margin on the left
@@ -313,7 +313,7 @@ ncmenu* ncmenu_create(ncplane* n, const ncmenu_options* opts){
   ret->sectioncount = opts->sectioncount;
   ret->sections = NULL;
   int dimy, dimx;
-  ncplane_dim_yx(notcurses_stdplane(n->nc), &dimy, &dimx);
+  ncplane_dim_yx(notcurses_stdplane(ncplane_notcurses(n)), &dimy, &dimx);
   if(ret){
     ret->bottom = !!(opts->flags & NCMENU_OPTION_BOTTOM);
     if(dup_menu_sections(ret, opts, &totalwidth, &totalheight) == 0){
@@ -351,7 +351,7 @@ ncmenu* ncmenu_create(ncplane* n, const ncmenu_options* opts){
     }
     free(ret);
   }
-  logerror(n->nc, "Error creating ncmenu");
+  logerror(ncplane_notcurses(n), "Error creating ncmenu");
   return NULL;
 }
 
@@ -370,7 +370,7 @@ int ncmenu_unroll(ncmenu* n, int sectionidx){
     return -1;
   }
   if(sectionidx < 0 || sectionidx >= n->sectioncount){
-    logerror(n->ncp->nc, "Unrolled invalid sectionidx %d\n", sectionidx);
+    logerror(ncplane_notcurses(n->ncp), "Unrolled invalid sectionidx %d\n", sectionidx);
     return -1;
   }
   if(n->sections[sectionidx].enabled_item_count <= 0){

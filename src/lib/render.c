@@ -146,7 +146,7 @@ void cell_release(ncplane* n, cell* c){
 // Duplicate one cell onto another when they share a plane. Convenience wrapper.
 int cell_duplicate(ncplane* n, cell* targ, const cell* c){
   if(cell_duplicate_far(&n->pool, targ, n, c) < 0){
-    logerror(n->nc, "Failed duplicating cell");
+    logerror(ncplane_notcurses(n), "Failed duplicating cell");
     return -1;
   }
   return 0;
@@ -411,22 +411,22 @@ int ncplane_mergedown(const ncplane* restrict src, ncplane* restrict dst,
                       int dsty, int dstx){
 //fprintf(stderr, "Merging down %d/%d @ %d/%d to %d/%d\n", leny, lenx, begsrcy, begsrcx, dsty, dstx);
   if(dsty >= dst->leny || dstx >= dst->lenx){
-    logerror(dst->nc, "Dest origin %d/%d ≥ dest dimensions %d/%d\n",
+    logerror(ncplane_notcurses(dst), "Dest origin %d/%d ≥ dest dimensions %d/%d\n",
              dsty, dstx, dst->leny, dst->lenx);
     return -1;
   }
   if(dst->leny - leny < dsty || dst->lenx - lenx < dstx){
-    logerror(dst->nc, "Dest len %d/%d ≥ dest dimensions %d/%d\n",
+    logerror(ncplane_notcurses(dst), "Dest len %d/%d ≥ dest dimensions %d/%d\n",
              leny, lenx, dst->leny, dst->lenx);
     return -1;
   }
   if(begsrcy >= src->leny || begsrcx >= src->lenx){
-    logerror(dst->nc, "Source origin %d/%d ≥ source dimensions %d/%d\n",
+    logerror(ncplane_notcurses(dst), "Source origin %d/%d ≥ source dimensions %d/%d\n",
              begsrcy, begsrcx, src->leny, src->lenx);
     return -1;
   }
   if(src->leny - leny < begsrcy || src->lenx - lenx < begsrcx){
-    logerror(dst->nc, "Source len %d/%d ≥ source dimensions %d/%d\n",
+    logerror(ncplane_notcurses(dst), "Source len %d/%d ≥ source dimensions %d/%d\n",
              leny, lenx, src->leny, src->lenx);
     return -1;
   }
@@ -435,7 +435,7 @@ int ncplane_mergedown(const ncplane* restrict src, ncplane* restrict dst,
   const size_t crenderlen = sizeof(struct crender) * totalcells;
   struct crender* rvec = malloc(crenderlen);
   if(!rendfb || !rvec){
-    logerror(dst->nc, "Error allocating render state for %dx%d\n", leny, lenx);
+    logerror(ncplane_notcurses(dst), "Error allocating render state for %dx%d\n", leny, lenx);
     free(rendfb);
     free(rvec);
     return -1;
@@ -453,7 +453,7 @@ int ncplane_mergedown(const ncplane* restrict src, ncplane* restrict dst,
 }
 
 int ncplane_mergedown_simple(const ncplane* restrict src, ncplane* restrict dst){
-  notcurses* nc = src->nc;
+  const notcurses* nc = ncplane_notcurses_const(src);
   if(dst == NULL){
     dst = nc->stdplane;
   }

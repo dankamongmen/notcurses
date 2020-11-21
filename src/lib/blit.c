@@ -863,12 +863,13 @@ int ncblit_rgba(const void* data, int linesize, const struct ncvisual_options* v
   }
   ncblitter_e blitter;
   if(!vopts || vopts->blitter == NCBLIT_DEFAULT){
-    blitter = ncvisual_default_blitter(notcurses_canutf8(nc->nc), NCSCALE_NONE);
+    blitter = ncvisual_default_blitter(notcurses_canutf8(ncplane_notcurses(nc)),
+                                       NCSCALE_NONE);
   }else{
     blitter = vopts->blitter;
   }
   const bool degrade = !(vopts->flags & NCVISUAL_OPTION_NODEGRADE);
-  const struct blitset* bset = lookup_blitset(notcurses_canutf8(nc->nc),
+  const struct blitset* bset = lookup_blitset(notcurses_canutf8(ncplane_notcurses(nc)),
                                               blitter, degrade);
   if(bset == NULL){
     return -1;

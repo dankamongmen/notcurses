@@ -103,20 +103,20 @@ ncselector_draw(ncselector* n){
   ncplane_rounded_box_sized(n->ncp, 0, n->boxchannels, dimy - yoff, bodywidth, 0);
   if(n->title){
     n->ncp->channels = n->boxchannels;
-    if(notcurses_canutf8(n->ncp->nc)){
+    if(notcurses_canutf8(ncplane_notcurses(n->ncp))){
       ncplane_putegc_yx(n->ncp, 2, dimx - 1, "┤", NULL);
     }else{
       ncplane_putchar_yx(n->ncp, 2, dimx - 1, '|');
     }
     if(bodywidth < dimx){
-      if(notcurses_canutf8(n->ncp->nc)){
+      if(notcurses_canutf8(ncplane_notcurses(n->ncp))){
         ncplane_putegc_yx(n->ncp, 2, dimx - bodywidth, "┬", NULL);
       }else{
         ncplane_putchar_yx(n->ncp, 2, dimx - bodywidth, '-');
       }
     }
     if((n->titlecols + 4 != dimx) && n->titlecols > n->secondarycols){
-      if(notcurses_canutf8(n->ncp->nc)){
+      if(notcurses_canutf8(ncplane_notcurses(n->ncp))){
         ncplane_putegc_yx(n->ncp, 2, dimx - (n->titlecols + 4), "┴", NULL);
       }else{
         ncplane_putchar_yx(n->ncp, 2, dimx - (n->titlecols + 4), '-');
@@ -152,7 +152,7 @@ ncselector_draw(ncselector* n){
   if(n->maxdisplay && n->maxdisplay < n->itemcount){
     n->ncp->channels = n->descchannels;
     n->arrowx = bodyoffset + n->longop;
-    if(notcurses_canutf8(n->ncp->nc)){
+    if(notcurses_canutf8(ncplane_notcurses(n->ncp))){
       ncplane_putegc_yx(n->ncp, yoff, n->arrowx, "↑", NULL);
     }else{
       ncplane_putchar_yx(n->ncp, yoff, n->arrowx, '<');
@@ -195,7 +195,7 @@ ncselector_draw(ncselector* n){
   }
   if(n->maxdisplay && n->maxdisplay < n->itemcount){
     n->ncp->channels = n->descchannels;
-    if(notcurses_canutf8(n->ncp->nc)){
+    if(notcurses_canutf8(ncplane_notcurses(n->ncp))){
       ncplane_putegc_yx(n->ncp, yoff, n->arrowx, "↓", NULL);
     }else{
       ncplane_putchar_yx(n->ncp, yoff, n->arrowx, '>');
@@ -238,7 +238,7 @@ ncselector* ncselector_create(ncplane* n, const ncselector_options* opts){
   }
   unsigned itemcount = 0;
   if(opts->flags > 0){
-    logwarn(n->nc, "Provided unsupported flags %016lx\n", opts->flags);
+    logwarn(ncplane_notcurses(n), "Provided unsupported flags %016lx\n", opts->flags);
   }
   if(opts->items){
     for(const struct ncselector_item* i = opts->items ; i->option ; ++i){
@@ -653,7 +653,7 @@ ncmultiselector_draw(ncmultiselector* n){
     if(printidx == n->current){
       n->ncp->channels = (uint64_t)channels_bchannel(n->descchannels) << 32u | channels_fchannel(n->descchannels);
     }
-    if(notcurses_canutf8(n->ncp->nc)){
+    if(notcurses_canutf8(ncplane_notcurses(n->ncp))){
       ncplane_putegc_yx(n->ncp, yoff, bodyoffset, n->items[printidx].selected ? "☒" : "☐", NULL);
     }else{
       ncplane_putchar_yx(n->ncp, yoff, bodyoffset, n->items[printidx].selected ? 'X' : '-');
@@ -833,7 +833,7 @@ ncmultiselector* ncmultiselector_create(ncplane* n, const ncmultiselector_option
     opts = &zeroed;
   }
   if(opts->flags > 0){
-    logwarn(n->nc, "Provided unsupported flags %016lx\n", opts->flags);
+    logwarn(ncplane_notcurses(n), "Provided unsupported flags %016lx\n", opts->flags);
   }
   unsigned itemcount = 0;
   if(opts->items){

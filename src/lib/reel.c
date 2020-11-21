@@ -304,7 +304,7 @@ ncreel_draw_tablet(const ncreel* nr, nctablet* t, int frontiertop,
     int ll = t->cbfxn(t, direction == DIRECTION_DOWN);
 //fprintf(stderr, "RETURNRETURNRETURN %p %d (%d, %d, %d) DIR %d\n", t, ll, cby, cbleny, leny, direction);
     if(ll > cbleny){
-      logwarn(nr->p->nc, "Tablet callback returned %d lines, %d allowed\n", ll, cbleny);
+      logwarn(ncplane_notcurses(nr->p), "Tablet callback returned %d lines, %d allowed\n", ll, cbleny);
       ll = cbleny;
     }
     if(ll != cbleny){
@@ -668,7 +668,7 @@ int ncreel_redraw(ncreel* nr){
   if(focused){
 //fprintf(stderr, "drawing focused tablet %p dir: %d fulcrum: %d!\n", focused, nr->direction, fulcrum);
     if(ncreel_draw_tablet(nr, focused, fulcrum, fulcrum, DIRECTION_DOWN)){
-      logerror(nr->p->nc, "Error drawing tablet\n");
+      logerror(ncplane_notcurses(nr->p), "Error drawing tablet\n");
       return -1;
     }
 //fprintf(stderr, "drew focused tablet %p -> %p lastdir: %d!\n", focused, focused->p, nr->direction);
@@ -680,33 +680,33 @@ int ncreel_redraw(ncreel* nr){
     if(nr->direction == LASTDIRECTION_DOWN){
       otherend = draw_previous_tablets(nr, otherend, &frontiertop, frontierbottom);
       if(otherend == NULL){
-        logerror(nr->p->nc, "Error drawing higher tablets\n");
+        logerror(ncplane_notcurses(nr->p), "Error drawing higher tablets\n");
         return -1;
       }
       otherend = draw_following_tablets(nr, otherend, frontiertop, &frontierbottom);
     }else{ // DIRECTION_UP
       otherend = draw_previous_tablets(nr, otherend, &frontiertop, frontierbottom);
       if(otherend == NULL){
-        logerror(nr->p->nc, "Error drawing higher tablets\n");
+        logerror(ncplane_notcurses(nr->p), "Error drawing higher tablets\n");
         return -1;
       }
       otherend = draw_following_tablets(nr, otherend, frontiertop, &frontierbottom);
     }
     if(otherend == NULL){
-      logerror(nr->p->nc, "Error drawing following tablets\n");
+      logerror(ncplane_notcurses(nr->p), "Error drawing following tablets\n");
       return -1;
     }
-//notcurses_debug(nr->p->nc, stderr);
+//notcurses_debug(ncplane_notcurses(nr->p), stderr);
     if(tighten_reel(nr)){
-      logerror(nr->p->nc, "Error tightening reel\n");
+      logerror(ncplane_notcurses(nr->p), "Error tightening reel\n");
       return -1;
     }
-//notcurses_debug(nr->p->nc, stderr);
+//notcurses_debug(ncplane_notcurses(nr->p), stderr);
   }
   nr->vft = nr->tablets; // update the visually-focused tablet pointer
 //fprintf(stderr, "DONE ARRANGING\n");
   if(draw_ncreel_borders(nr)){
-    logerror(nr->p->nc, "Error drawing reel borders\n");
+    logerror(ncplane_notcurses(nr->p), "Error drawing reel borders\n");
     return -1; // enforces specified dimensional minima
   }
   return 0;
@@ -718,7 +718,7 @@ validate_ncreel_opts(ncplane* n, const ncreel_options* ropts){
     return false;
   }
   if(ropts->flags > NCREEL_OPTION_CIRCULAR){
-    logwarn(n->nc, "Provided unsupported flags %016lx\n", ropts->flags);
+    logwarn(ncplane_notcurses(n), "Provided unsupported flags %016lx\n", ropts->flags);
   }
   if(ropts->flags & NCREEL_OPTION_CIRCULAR){
     if(!(ropts->flags & NCREEL_OPTION_INFINITESCROLL)){
@@ -782,7 +782,7 @@ nctablet* ncreel_add(ncreel* nr, nctablet* after, nctablet *before,
   nctablet* t;
   if(after && before){
     if(after->prev != before || before->next != after){
-      logerror(nr->p->nc, "bad before (%p) / after (%p) spec\n", before, after);
+      logerror(ncplane_notcurses(nr->p), "bad before (%p) / after (%p) spec\n", before, after);
       return NULL;
     }
   }else if(!after && !before){
