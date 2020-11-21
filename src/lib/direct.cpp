@@ -467,12 +467,12 @@ int ncdirect_render_image(ncdirect* n, const char* file, ncalign_e align,
   if(ncdirect_dump_plane(n, faken, xoff)){
     return -1;
   }
+  ncdirect_fg_default(n);
+  ncdirect_bg_default(n);
   while(fflush(stdout) == EOF && errno == EAGAIN){
     ;
   }
   free_plane(faken);
-  ncdirect_fg_default(n);
-  ncdirect_bg_default(n);
   return 0;
 }
 
