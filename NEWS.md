@@ -5,11 +5,6 @@ rearrangements of Notcurses.
   * The `horiz` union of `ncplane_options` has been discarded; the `int x`
     within has been promoted. This union brought no actual type safety, and was
     annoying for callers to deal with otherwise. Sorry for the inconvenience.
-  * As promised, `ncplane_new()` has been marked as deprecated. You should use
-    the strictly more powerful `ncplane_create()` instead, with its
-    self-documenting `struct ncplane_options` argument. So long as the
-    arguments to `ncplane_new()` do not have side-effects, calls can be
-    mechanically translated to their `ncplane_create()` equivalents.
   * Added `ncplane_set_resizecb()` and `ncplane_resizecb()`.
 
 * 2.0.4 (2020-11-10)

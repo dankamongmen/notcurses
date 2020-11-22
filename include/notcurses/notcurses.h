@@ -1046,8 +1046,7 @@ API struct ncplane* ncplane_create(struct ncplane* n, const ncplane_options* nop
 
 // This function will be removed in 3.0 in favor of ncplane_create().
 // It persists in 2.0 only for backwards compatibility.
-API struct ncplane* ncplane_new(struct ncplane* n, int rows, int cols, int y, int x, void* opaque, const char* name)
-  __attribute__ ((deprecated));
+API struct ncplane* ncplane_new(struct ncplane* n, int rows, int cols, int y, int x, void* opaque, const char* name);
 
 // Suitable for use as a 'resizecb'. This will realign the plane 'n' against its
 // parent, using the alignment specified at ncplane_create()-time.
