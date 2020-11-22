@@ -46,16 +46,11 @@ struct esctrie;
 // and we can't go throwing C++ syntax into this header. so it goes.
 
 // A plane is memory for some rectilinear virtual window, plus current cursor
-// state for that window. A notcurses context describes a single terminal, and
-// has a z-order of planes (I see no advantage to maintaining a poset, and we
-// instead just use a list, top-to-bottom). Every cell on the terminal is part
-// of at least one plane, and at least one plane covers the entirety of the
-// terminal (this plane is created during initialization).
-//
-// Functions update these virtual planes over a series of API calls. Eventually,
-// notcurses_render() is called. We then do a depth buffer blit of updated
-// cells. A cell is updated if the topmost plane including that cell updates it,
-// not simply if any plane updates it.
+// state for that window, and part of a pile. Each pile has a total order along
+// its z-axis. Functions update these virtual planes over a series of API
+// calls. Eventually, notcurses_render() is called. We then do a depth buffer
+// blit of updated cells. A cell is updated if the topmost plane including that
+// cell updates it, not simply if any plane updates it.
 //
 // A plane may be partially or wholly offscreen--this might occur if the
 // screen is resized, for example. Offscreen portions will not be rendered.
@@ -63,7 +58,7 @@ struct esctrie;
 //
 // The framebuffer 'fb' is a set of rows. For scrolling, we interpret it as a
 // circular buffer of rows. 'logrow' is the index of the row at the logical top
-// of the plane.
+// of the plane. It only changes from 0 if the plane is scrollable.
 typedef struct ncplane {
   cell* fb;              // "framebuffer" of character cells
   int logrow;            // logical top row, starts at 0, add one for each scroll
@@ -89,7 +84,7 @@ typedef struct ncplane {
   void* userptr;         // slot for the user to stick some opaque pointer
   int (*resizecb)(struct ncplane*); // callback after parent is resized
   cell basecell;         // cell written anywhere that fb[i].gcluster == 0
-  struct notcurses* nc;  // notcurses object of which we are a part
+  struct ncpile* pile;   // pile of which we are a part
   char* name;            // used only for debugging
   ncalign_e align;       // relative to parent plane, for automatic realignment
   uint16_t stylemask;    // same deal as in a cell
@@ -303,23 +298,31 @@ typedef struct ncdirect {
   uint64_t flags;            // copied in ncdirect_init() from param
 } ncdirect;
 
-typedef struct notcurses {
+typedef struct ncpile {
   ncplane* top;     // topmost plane, never NULL
   ncplane* bottom;  // bottommost plane, never NULL 
-  ncplane* stdplane;// standard plane, covers screen
+  ncplane* root;    // first plane of the root set
+  struct notcurses* nc; // notcurses context
+  struct ncpile *prev, *next; // circular list
+} ncpile;
+
+// the standard pile can be reached through ->stdplane.
+typedef struct notcurses {
+  ncplane* stdplane; // standard plane, covers screen
 
   // the style state of the terminal is carried across render runs
   renderstate rstate;
 
   // we keep a copy of the last rendered frame. this facilitates O(1)
   // notcurses_at_yx() and O(1) damage detection (at the cost of some memory).
-  cell* lastframe;// last rendered framebuffer, NULL until first render
-  int lfdimx;     // dimensions of lastframe, unchanged by screen resize
-  int lfdimy;     // lfdimx/lfdimy are 0 until first render
-  egcpool pool;   // duplicate EGCs into this pool
+  cell* lastframe;// last rasterized framebuffer, NULL until first rasterization
+  egcpool pool;   // egcpool for lastframe
 
-  int cursory;    // desired cursor placement according to user. -1 is a don't-
-  int cursorx;    //  care, otherwise moved here after each render.
+  int lfdimx;     // dimensions of lastframe, unchanged by screen resize
+  int lfdimy;     // lfdimx/lfdimy are 0 until first rasterization
+
+  int cursory;    // desired cursor placement according to user.
+  int cursorx;    // -1 is don't-care, otherwise moved here after each render.
 
   ncstats stats;  // some statistics across the lifetime of the notcurses ctx
   ncstats stashstats; // cumulative stats, unaffected by notcurses_stats_reset()
@@ -333,6 +336,7 @@ typedef struct notcurses {
   FILE* renderfp; // debugging FILE* to which renderings are written
   tinfo tcache;   // terminfo cache
   struct termios tpreserved; // terminal state upon entry
+  pthread_mutex_t pilelock; // guards pile list
   bool suppress_banner; // from notcurses_options
 
   // desired margins (best-effort only), copied in from notcurses_options
@@ -373,6 +377,16 @@ mbstr_find_codepoint(const char* s, char32_t cp, int* col){
     bytes += r;
   }
   return -1;
+}
+
+static inline ncpile*
+ncplane_pile(ncplane* n){
+  return n->pile;
+}
+
+static inline const ncpile*
+ncplane_pile_const(const ncplane* n){
+  return n->pile;
 }
 
 static inline ncplane*

@@ -1039,7 +1039,7 @@ static int
 notcurses_render_internal(notcurses* nc, struct crender* rvec){
   int dimy, dimx;
   ncplane_dim_yx(nc->stdplane, &dimy, &dimx);
-  ncplane* p = nc->top;
+  ncplane* p = ncplane_pile(nc->stdplane)->top;
   while(p){
     paint(p, rvec, nc->stdplane->leny, nc->stdplane->lenx,
           nc->stdplane->absy, nc->stdplane->absx);

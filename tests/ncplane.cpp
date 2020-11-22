@@ -724,6 +724,7 @@ TEST_CASE("NCPlane") {
     // FIXME verify with ncplane_at_cursor_cell()
     CHECK(0 == ncplane_destroy(ncp));
   }
+
   SUBCASE("MoveToLowerRight") {
     int ncols, nrows;
     ncplane_dim_yx(n_, &nrows, &ncols);
