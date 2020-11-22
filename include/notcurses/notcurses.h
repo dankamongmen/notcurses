@@ -1026,6 +1026,9 @@ API char* notcurses_at_yx(struct notcurses* nc, int yoff, int xoff,
 // Horizontal alignment relative to the parent plane. Use 'align' instead of 'x'.
 #define NCPLANE_OPTION_HORALIGNED 0x0001ull
 
+// The new place will be the root of a new pile.
+#define NCPLANE_OPTION_NEWPILE 0x0002ull
+
 typedef struct ncplane_options {
   int y;            // vertical placement relative to parent plane
   int x;            // horizontal placement relative to parent plane
@@ -1062,8 +1065,13 @@ API int (*ncplane_resizecb(const struct ncplane* n))(struct ncplane*);
 // child of 'newparent'. It is an error if 'n' or 'newparent' are NULL. If
 // 'newparent' is equal to 'n', 'n' becomes the root of a new pile, unless 'n'
 // is already the root of a pile, in which case this is a no-op. Returns 'n'.
-// The standard plane cannot be reparented.
+// The standard plane cannot be reparented. Any planes bound to 'n' are
+// reparented to the previous parent of 'n'.
 API struct ncplane* ncplane_reparent(struct ncplane* n, struct ncplane* newparent);
+
+// The same as ncplane_reparent(), except any planes bound to 'n' come along
+// with it to its new destination. Their z-order is maintained.
+API struct ncplane* ncplane_reparent_family(struct ncplane* n, struct ncplane* newparent);
 
 // Duplicate an existing ncplane. The new plane will have the same geometry,
 // will duplicate all content, and will start with the same rendering state.

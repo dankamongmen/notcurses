@@ -647,6 +647,7 @@ When an `ncplane` is no longer needed, free it with
 
 ```c
 #define NCPLANE_OPTION_HORALIGNED 0x0001ull
+#define NCPLANE_OPTION_NEWPILE    0x0002ull
 
 typedef struct ncplane_options {
   int y;            // vertical placement relative to parent plane
@@ -666,9 +667,17 @@ typedef struct ncplane_options {
 // retrieved (and reset) later. A 'name' can be set, used in debugging.
 struct ncplane* ncplane_create(struct ncplane* n, const ncplane_options* nopts);
 
-// Plane 'n' will be unbound from its parent plane, if it is currently bound,
-// and will be made a bound child of 'newparent', if 'newparent' is not NULL.
+// Plane 'n' will be unbound from its parent plane, and will be made a bound
+// child of 'newparent'. It is an error if 'n' or 'newparent' are NULL. If
+// 'newparent' is equal to 'n', 'n' becomes the root of a new pile, unless 'n'
+// is already the root of a pile, in which case this is a no-op. Returns 'n'.
+// The standard plane cannot be reparented. Any planes bound to 'n' are
+// reparented to the previous parent of 'n'.
 struct ncplane* ncplane_reparent(struct ncplane* n, struct ncplane* newparent);
+
+// The same as ncplane_reparent(), except any planes bound to 'n' come along
+// with it to its new destination. Their z-order is maintained.
+struct ncplane* ncplane_reparent_family(struct ncplane* n, struct ncplane* newparent);
 
 // Replace the ncplane's existing resizecb with 'resizecb' (which may be NULL).
 void ncplane_set_resizecb(struct ncplane* n, int(*resizecb)(struct ncplane*));
