@@ -10,10 +10,10 @@ rearrangements of Notcurses.
       or more `ncplane`s, with a bindtree and a z-axis. Different piles can be
       mutated or rendered concurrently. There is no new user-visible type: a
       `struct notcurses` can be treated as a single pile.
-    * To create a new pile, use the new `NCPLANE_OPTION_NEWPILE` with
-      `ncplane_create()`. The returned plane will be the top, bottom, and root
-      of a new plane. Alternatively, use `ncplane_reparent()` or
-      `ncplane_reparent_family()` with a `NULL` destination.
+    * To create a new pile, pass a `NULL` `n` argument to `ncplane_create()`.
+      The returned plane will be the top, bottom, and root of a new plane.
+      Alternatively, use `ncplane_reparent()` or `ncplane_reparent_family()`
+      with a `NULL` destination.
 
 
 * 2.0.7 (2020-11-21)
