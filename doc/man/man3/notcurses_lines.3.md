@@ -1,6 +1,6 @@
 % notcurses_lines(3)
 % nick black <nickblack@linux.com>
-% v2.0.6
+% v2.0.7
 
 # NAME
 

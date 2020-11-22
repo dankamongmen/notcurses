@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 2.0.6 (2020-11-21)
+* 2.0.7 (2020-11-21)
   * The `horiz` union of `ncplane_options` has been discarded; the `int x`
     within has been promoted. This union brought no actual type safety, and was
     annoying for callers to deal with otherwise. Sorry for the inconvenience.
