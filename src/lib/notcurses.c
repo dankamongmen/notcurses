@@ -2063,8 +2063,19 @@ int ncplane_resize_realign(ncplane* n){
 // is already root of its own stack in this case, we return NULL. If |n| is
 // already bound to |newparent|, this is a no-op, and we return |n|.
 ncplane* ncplane_reparent(ncplane* n, ncplane* newparent){
-  if(n == ncplane_notcurses(n)->stdplane){
-    return NULL; // can't reparent standard plane
+  if(n == ncplane_notcurses(n)->stdplane || n == newparent){
+    return NULL; // can't reparent standard plane, can't reparent to self
+  }
+  if(n->boundto == n && newparent == NULL){
+    return NULL; // can't make new stack out of a stack's root
+  }
+  // FIXME take blist, add it to boundto
+  return ncplane_reparent_family(n, newparent);
+}
+
+ncplane* ncplane_reparent_family(ncplane* n, ncplane* newparent){
+  if(n == ncplane_notcurses(n)->stdplane || n == newparent){
+    return NULL; // can't reparent standard plane, can't reparent to self
   }
   if(n->boundto == n && newparent == NULL){
     return NULL; // can't make new stack out of a stack's root
