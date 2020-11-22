@@ -11,8 +11,8 @@ TEST_CASE("Blitting") {
 
   SUBCASE("BgraToRgba") {
     const uint32_t data[8] = {
-      0xffffffff, 0xff0088ff, 0xffff8800, 0xff88ff00,
-      0xffff0088, 0xff8800ff, 0Xff00ff88, 0xff000000,
+      ntole(0xffffffff), ntole(0xff0088ff), ntole(0xffff8800), ntole(0xff88ff00),
+      ntole(0xffff0088), ntole(0xff8800ff), ntole(0xff00ff88), ntole(0xff000000),
     };
     struct ncplane_options nopts = {
       .y = 0,
@@ -59,8 +59,8 @@ TEST_CASE("Blitting") {
 
   SUBCASE("BgraToRgbaWithStride") {
     const uint32_t data[10] = {
-      0xffffffff, 0xff0088ff, 0xffff8800, 0xff88ff00, 0x00000000,
-      0xffff0088, 0xff8800ff, 0xff00ff88, 0xff000000, 0x00000000,
+      ntole(0xffffffff), ntole(0xff0088ff), ntole(0xffff8800), ntole(0xff88ff00), ntole(0x00000000),
+      ntole(0xffff0088), ntole(0xff8800ff), ntole(0xff00ff88), ntole(0xff000000), ntole(0x00000000),
     };
     struct ncplane_options nopts = {
       .y = 0,
