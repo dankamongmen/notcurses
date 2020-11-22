@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# requires https://pypi.org/project/githubrelease/
+
 set -e
 
 usage() { echo "usage: `basename $0` oldversion newversion quip" ; }
