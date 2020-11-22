@@ -50,7 +50,7 @@ setup(
     long_description_content_type="text/markdown",
     data_files=[],
     install_requires=["cffi>=1.0.0"],
-    setup_requires=["cffi>=1.0.0", "pypandoc>=1.5"],
+    setup_requires=["cffi>=1.0.0", "pypandoc>=1.4"],
     cffi_modules=["src/notcurses/build_notcurses.py:ffibuild"],
     # see https://pypi.org/pypi?%3Aaction=list_classifiers
     classifiers=[
