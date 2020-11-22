@@ -1059,13 +1059,17 @@ API void ncplane_set_resizecb(struct ncplane* n, int(*resizecb)(struct ncplane*)
 // Returns the ncplane's current resize callback.
 API int (*ncplane_resizecb(const struct ncplane* n))(struct ncplane*);
 
-// Plane 'n' will be unbound from its parent plane, if it is currently bound,
-// and will be made a bound child of 'newparent', if 'newparent' is not NULL.
+// Plane 'n' will be unbound from its parent plane, and will be made a bound
+// child of 'newparent'. It is an error if 'n' or 'newparent' are NULL. If
+// 'newparent' is equal to 'n', 'n' becomes the root of a new pile, unless 'n'
+// is already the root of a pile, in which case this is a no-op. Returns 'n'.
+// The standard plane cannot be reparented.
 API struct ncplane* ncplane_reparent(struct ncplane* n, struct ncplane* newparent);
 
 // Duplicate an existing ncplane. The new plane will have the same geometry,
 // will duplicate all content, and will start with the same rendering state.
-// The new plane will be immediately above the old one on the z axis.
+// The new plane will be immediately above the old one on the z axis, and will
+// be bound to the same parent.
 API struct ncplane* ncplane_dup(const struct ncplane* n, void* opaque);
 
 // provided a coordinate relative to the origin of 'src', map it to the same
