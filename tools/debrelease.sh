@@ -15,6 +15,11 @@ gpg --sign --armor --detach-sign ../notcurses_$VERSION+dfsg.1.orig.tar.xz
 # FIXME this seems to upload to $VERSION.dfsg as opposed to $VERSION+dfsg?
 github-asset dankamongmen/notcurses upload v$VERSION ../notcurses_$VERSION+dfsg.1.orig.tar.xz ../notcurses_$VERSION+dfsg.1.orig.tar.xz.asc
 git commit -m "v$VERSION" -a
+
+echo
+echo "Go change the $VERSION.dfsg to $VERSION+dfsg before proceeding, dog"
+echo
+
 gbp import-orig ../notcurses_$VERSION+dfsg.1.orig.tar.xz
 git push --tags
 dpkg-buildpackage --build=source
