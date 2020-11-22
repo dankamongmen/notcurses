@@ -321,6 +321,25 @@ namespace ncpp
 			return reparent (const_cast<Plane*>(&newparent));
 		}
 
+		Plane* reparent_family (Plane *newparent = nullptr) const noexcept
+		{
+			ncplane *ret = ncplane_reparent_family (plane, newparent == nullptr ? nullptr : newparent->plane);
+			if (ret == nullptr)
+				return nullptr;
+
+			return map_plane (ret);
+		}
+
+		Plane* reparent_family (const Plane *newparent) const noexcept
+		{
+			return reparent_family (const_cast<Plane*>(newparent));
+		}
+
+		Plane* reparent_family (const Plane &newparent) const noexcept
+		{
+			return reparent_family (const_cast<Plane*>(&newparent));
+		}
+
 		void home () const noexcept
 		{
 			ncplane_home (plane);
