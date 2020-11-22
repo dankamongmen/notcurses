@@ -271,12 +271,28 @@ int update_term_dimensions(int fd, int* rows, int* cols){
   return 0;
 }
 
+// destroy an empty ncpile. only call with pilelock held.
+static void
+ncpile_destroy(ncpile* pile){
+  if(pile){
+    pile->prev->next = pile->next;
+    pile->next->prev = pile->prev;
+    free(pile);
+  }
+}
+
 void free_plane(ncplane* p){
   if(p){
-    // ncdirect fakes an ncplane with no ->nc
-    if(ncplane_notcurses(p)){
+    // ncdirect fakes an ncplane with no ->pile
+    if(ncplane_pile(p)){
       --ncplane_notcurses(p)->stats.planes;
       ncplane_notcurses(p)->stats.fbbytes -= sizeof(*p->fb) * p->leny * p->lenx;
+      if(p->above == NULL && p->below == NULL){
+        struct notcurses* nc = ncplane_notcurses(p);
+        pthread_mutex_lock(&nc->pilelock);
+        ncpile_destroy(ncplane_pile(p));
+        pthread_mutex_unlock(&nc->pilelock);
+      }
     }
     egcpool_dump(&p->pool);
     free(p->name);
@@ -285,17 +301,42 @@ void free_plane(ncplane* p){
   }
 }
 
+// create a new ncpile. only call with pilelock held.
+static ncpile*
+ncpile_create(notcurses* nc){
+  ncpile* ret = malloc(sizeof(*ret));
+  if(ret){
+    ret->nc = nc;
+    ret->top = NULL;
+    ret->bottom = NULL;
+    ret->root = NULL;
+    if(nc->stdplane){
+      ret->prev = ncplane_pile(nc->stdplane)->prev;
+      ncplane_pile(nc->stdplane)->prev->next = ret;
+      ret->next = ncplane_pile(nc->stdplane);
+      ncplane_pile(nc->stdplane)->prev = ret;
+    }else{
+      ret->prev = ret;
+      ret->next = ret;
+    }
+  }
+  return ret;
+}
+
 // create a new ncplane at the specified location (relative to the true screen,
 // having origin at 0,0), having the specified size, and put it at the top of
 // the planestack. its cursor starts at its origin; its style starts as null.
 // a plane may exceed the boundaries of the screen, but must have positive
-// size in both dimensions. bind the plane to 'n', which may be NULL. if bound
-// to a plane, this plane moves when that plane moves, and move targets are
-// relative to that plane.
-// there's a denormalized case we also must handle, that of the "fake" isolated
-// ncplane created by ncdirect for rendering visuals. in that case (and only in
-// that case), nc is NULL.
-ncplane* ncplane_new_internal(notcurses* nc, ncplane* n, const ncplane_options* nopts){
+// size in both dimensions. bind the plane to 'n', which may be NULL to create
+// a new pile. if bound to a plane instead, this plane moves when that plane
+// moves, and coordinates to move to are relative to that plane.
+// there are two denormalized case we also must handle, that of the "fake"
+// isolated ncplane created by ncdirect for rendering visuals. in that case
+// (and only in that case), nc is NULL (as is n). there's also creation of the
+// initial standard plane, in which case nc is not NULL, but nc->stdplane *is*
+// (as once more is n).
+ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
+                              const ncplane_options* nopts){
   if(nopts->flags > NCPLANE_OPTION_HORALIGNED){
     logwarn(nc, "Provided unsupported flags %016lx\n", nopts->flags);
   }
@@ -327,6 +368,7 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n, const ncplane_options* 
       p->align = nopts->x;
     }else{
       p->absx = nopts->x;
+      p->align = NCALIGN_UNALIGNED;
     }
     p->absx += n->absx;
     p->absy = nopts->y + n->absy;
@@ -335,8 +377,7 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n, const ncplane_options* 
     }
     p->bprev = &n->blist;
     *p->bprev = p;
-  }else{ // new standard plane
-    assert(!(nopts->flags & NCPLANE_OPTION_HORALIGNED));
+  }else{ // new root plane, new pile
     assert(0 == nopts->y);
     assert(0 == nopts->x);
     p->absx = (nc ? nc->margin_l : 0);
@@ -344,6 +385,8 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n, const ncplane_options* 
     p->bnext = NULL;
     p->bprev = NULL;
     p->boundto = p;
+    p->absx = nopts->x;
+    p->align = NCALIGN_UNALIGNED;
   }
   p->resizecb = nopts->resizecb;
   p->stylemask = 0;
@@ -352,17 +395,27 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n, const ncplane_options* 
   cell_init(&p->basecell);
   p->userptr = nopts->userptr;
   p->above = NULL;
-  if( (p->nc = nc) ){ // every plane has a notcurses object
-    if( (p->below = nc->top) ){ // always happens save initial plane
-      nc->top->above = p;
-    }else{
-      nc->bottom = p;
-    }
-    nc->top = p;
-    nc->stats.fbbytes += fbsize;
-    ++nc->stats.planes;
-  }else{ // fake ncplane backing ncdirect object
+  if(nc == NULL){ // fake ncplane backing ncdirect object
     p->below = NULL;
+  }else{
+    pthread_mutex_lock(&nc->pilelock);
+    ncpile* pile = n ? ncplane_pile(n) : NULL;
+    if( (p->pile = pile) ){ // existing pile
+      if( (p->below = pile->top) ){ // always happens save initial plane
+        pile->top->above = p;
+      }else{
+        pile->bottom = p;
+      }
+      pile->top = p;
+      nc->stats.fbbytes += fbsize;
+      ++nc->stats.planes;
+    }else{ // new pile
+      p->pile = ncpile_create(nc);
+      p->pile->top = p;
+      p->pile->bottom = p;
+      p->below = NULL;
+    }
+    pthread_mutex_unlock(&nc->pilelock);
   }
   loginfo(nc, "Created new %dx%d plane \"%s\" @ %dx%d\n",
           nopts->rows, nopts->cols, p->name, p->absy, p->absx);
@@ -392,6 +445,10 @@ const ncplane* notcurses_stdplane_const(const notcurses* nc){
 }
 
 ncplane* ncplane_create(ncplane* n, const ncplane_options* nopts){
+  if((nopts->flags & NCPLANE_OPTION_HORALIGNED) && !n){
+    logerror(ncplane_notcurses(n), "Can't align a root plane");
+    return NULL;
+  }
   return ncplane_new_internal(ncplane_notcurses(n), n, nopts);
 }
 
@@ -620,12 +677,12 @@ int ncplane_destroy(ncplane* ncp){
   if(ncp->above){
     ncp->above->below = ncp->below;
   }else{
-    ncplane_notcurses(ncp)->top = ncp->below;
+    ncplane_pile(ncp)->top = ncp->below;
   }
   if(ncp->below){
     ncp->below->above = ncp->above;
   }else{
-    ncplane_notcurses(ncp)->bottom = ncp->above;
+    ncplane_pile(ncp)->bottom = ncp->above;
   }
   if(ncp->bprev){
     if( (*ncp->bprev = ncp->bnext) ){
@@ -921,6 +978,11 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   if(outfp == NULL){
     outfp = stdout;
   }
+  if(pthread_mutex_init(&ret->pilelock, NULL)){
+    fprintf(stderr, "Couldn't initialize pile mutex\n");
+    free(ret);
+    return NULL;
+  }
   ret->margin_t = opts->margin_t;
   ret->margin_b = opts->margin_b;
   ret->margin_l = opts->margin_l;
@@ -1002,25 +1064,25 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     terminfostr(&ret->tcache.smcup, "smcup");
     terminfostr(&ret->tcache.rmcup, "rmcup");
   }
-  ret->bottom = ret->top = ret->stdplane = NULL;
   if(ncvisual_init(ffmpeg_log_level(ret->loglevel))){
     goto err;
   }
+  ret->stdplane = NULL;
   if((ret->stdplane = create_initial_ncplane(ret, dimy, dimx)) == NULL){
     goto err;
   }
   if(ret->ttyfd >= 0){
     if(ret->tcache.smkx && tty_emit("smkx", ret->tcache.smkx, ret->ttyfd)){
-      free_plane(ret->top);
+      free_plane(ret->stdplane);
       goto err;
     }
     if(ret->tcache.civis && tty_emit("civis", ret->tcache.civis, ret->ttyfd)){
-      free_plane(ret->top);
+      free_plane(ret->stdplane);
       goto err;
     }
   }
   if((ret->rstate.mstreamfp = open_memstream(&ret->rstate.mstream, &ret->rstate.mstrsize)) == NULL){
-    free_plane(ret->top);
+    free_plane(ret->stdplane);
     goto err;
   }
   ret->rstate.x = ret->rstate.y = -1;
@@ -1029,7 +1091,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   if(ret->ttyfd >= 0){
     if(ret->tcache.smcup){
       if(tty_emit("smcup", ret->tcache.smcup, ret->ttyfd)){
-        free_plane(ret->top);
+        free_plane(ret->stdplane);
         goto err;
       }
       // explicit clear even though smcup *might* clear
@@ -1048,6 +1110,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   return ret;
 
 err:
+  fprintf(stderr, "Alas, you will not be going to space today.\n");
   // FIXME looks like we have some memory leaks on this error path?
   tcsetattr(ret->ttyfd, TCSANOW, &ret->tpreserved);
   drop_signals(ret);
@@ -1055,8 +1118,10 @@ err:
   return NULL;
 }
 
-void notcurses_drop_planes(notcurses* nc){
-  ncplane* p = nc->top;
+// updates *pile to point at (*pile)->next, frees all but standard pile/plane
+static void
+ncpile_drop(notcurses* nc, ncpile** pile){
+  ncplane* p = (*pile)->top;
   while(p){
     ncplane* tmp = p->below;
     if(nc->stdplane != p){
@@ -1064,7 +1129,24 @@ void notcurses_drop_planes(notcurses* nc){
     }
     p = tmp;
   }
-  nc->top = nc->bottom = nc->stdplane;
+  ncpile* tmp = (*pile)->next;
+  if(*pile != ncplane_pile(nc->stdplane)){
+    ncpile_destroy(*pile);
+  }
+  *pile = tmp;
+}
+
+// drop all piles and all planes, save the standard plane and its pile
+void notcurses_drop_planes(notcurses* nc){
+  pthread_mutex_lock(&nc->pilelock);
+  ncpile* p = ncplane_pile(nc->stdplane);
+  ncpile* p0 = p;
+  do{
+    ncpile_drop(nc, &p);
+  }while(p0 != p);
+  pthread_mutex_unlock(&nc->pilelock);
+  ncplane_pile(nc->stdplane)->top = nc->stdplane;
+  ncplane_pile(nc->stdplane)->bottom = nc->stdplane;
   nc->stdplane->above = nc->stdplane->below = NULL;
 }
 
@@ -1072,10 +1154,9 @@ int notcurses_stop(notcurses* nc){
   int ret = 0;
   if(nc){
     ret |= notcurses_stop_minimal(nc);
-    while(nc->top){
-      ncplane* p = nc->top->below;
-      free_plane(nc->top);
-      nc->top = p;
+    if(nc->stdplane){
+      notcurses_drop_planes(nc);
+      free_plane(nc->stdplane);
     }
     if(nc->rstate.mstreamfp){
       fclose(nc->rstate.mstreamfp);
@@ -1135,6 +1216,7 @@ int notcurses_stop(notcurses* nc){
       }
     }
     del_curterm(cur_term);
+    ret |= pthread_mutex_destroy(&nc->pilelock);
     free(nc);
   }
   return ret;
@@ -1248,22 +1330,25 @@ int ncplane_move_above(ncplane* restrict n, ncplane* restrict above){
   if(n == above){
     return -1;
   }
+  if(ncplane_pile(n) != ncplane_pile(above)){ // can't move among piles
+    return -1;
+  }
   if(n->below != above){
     // splice out 'n'
     if(n->below){
       n->below->above = n->above;
     }else{
-      ncplane_notcurses(n)->bottom = n->above;
+      ncplane_pile(n)->bottom = n->above;
     }
     if(n->above){
       n->above->below = n->below;
     }else{
-      ncplane_notcurses(n)->top = n->below;
+      ncplane_pile(n)->top = n->below;
     }
     if( (n->above = above->above) ){
       above->above->below = n;
     }else{
-      ncplane_notcurses(n)->top = n;
+      ncplane_pile(n)->top = n;
     }
     above->above = n;
     n->below = above;
@@ -1276,21 +1361,24 @@ int ncplane_move_below(ncplane* restrict n, ncplane* restrict below){
   if(n == below){
     return -1;
   }
+  if(ncplane_pile(n) != ncplane_pile(below)){ // can't move among piles
+    return -1;
+  }
   if(n->above != below){
     if(n->below){
       n->below->above = n->above;
     }else{
-      ncplane_notcurses(n)->bottom = n->above;
+      ncplane_pile(n)->bottom = n->above;
     }
     if(n->above){
       n->above->below = n->below;
     }else{
-      ncplane_notcurses(n)->top = n->below;
+      ncplane_pile(n)->top = n->below;
     }
     if( (n->below = below->below) ){
       below->below->above = n;
     }else{
-      ncplane_notcurses(n)->bottom = n;
+      ncplane_pile(n)->bottom = n;
     }
     below->below = n;
     n->above = below;
@@ -1303,13 +1391,13 @@ void ncplane_move_top(ncplane* n){
     if( (n->above->below = n->below) ){
       n->below->above = n->above;
     }else{
-      ncplane_notcurses(n)->bottom = n->above;
+      ncplane_pile(n)->bottom = n->above;
     }
     n->above = NULL;
-    if( (n->below = ncplane_notcurses(n)->top) ){
+    if( (n->below = ncplane_pile(n)->top) ){
       n->below->above = n;
     }
-    ncplane_notcurses(n)->top = n;
+    ncplane_pile(n)->top = n;
   }
 }
 
@@ -1318,13 +1406,13 @@ void ncplane_move_bottom(ncplane* n){
     if( (n->below->above = n->above) ){
       n->above->below = n->below;
     }else{
-      ncplane_notcurses(n)->top = n->below;
+      ncplane_pile(n)->top = n->below;
     }
     n->below = NULL;
-    if( (n->above = ncplane_notcurses(n)->bottom) ){
+    if( (n->above = ncplane_pile(n)->bottom) ){
       n->above->below = n;
     }
-    ncplane_notcurses(n)->bottom = n;
+    ncplane_pile(n)->bottom = n;
   }
 }
 
@@ -1898,11 +1986,11 @@ void ncplane_erase(ncplane* n){
 }
 
 ncplane* notcurses_top(notcurses* n){
-  return n->top;
+  return ncplane_pile(n->stdplane)->top;
 }
 
 ncplane* notcurses_bottom(notcurses* n){
-  return n->bottom;
+  return ncplane_pile(n->stdplane)->bottom;
 }
 
 ncplane* ncplane_below(ncplane* n){
@@ -2021,11 +2109,11 @@ void ncplane_translate(const ncplane* src, const ncplane* dst,
 }
 
 notcurses* ncplane_notcurses(ncplane* n){
-  return n->nc;
+  return ncplane_pile(n)->nc;
 }
 
 const notcurses* ncplane_notcurses_const(const ncplane* n){
-  return n->nc;
+  return ncplane_pile_const(n)->nc;
 }
 
 ncplane* ncplane_parent(ncplane* n){
