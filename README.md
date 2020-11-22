@@ -35,6 +35,7 @@ found in [src/demo/](https://github.com/dankamongmen/notcurses/tree/master/src/d
 ![FreeBSD](https://img.shields.io/badge/-FreeBSD-grey?logo=freebsd)
 [![Build](https://drone.dsscaw.com:4443/api/badges/dankamongmen/notcurses/status.svg)](https://drone.dsscaw.com:4443/dankamongmen/notcurses)
 [![pypi_version](https://img.shields.io/pypi/v/notcurses?label=pypi)](https://pypi.org/project/notcurses)
+[![crates.io](https://img.shields.io/crates/v/libnotcurses-sys.svg)](https://crates.io/crates/libnotcurses-sys)
 [![Sponsor](https://img.shields.io/badge/-Sponsor-red?logo=github)](https://github.com/sponsors/dankamongmen)
 
 <a href="https://repology.org/project/notcurses/versions">
