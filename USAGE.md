@@ -647,7 +647,6 @@ When an `ncplane` is no longer needed, free it with
 
 ```c
 #define NCPLANE_OPTION_HORALIGNED 0x0001ull
-#define NCPLANE_OPTION_NEWPILE    0x0002ull
 
 typedef struct ncplane_options {
   int y;            // vertical placement relative to parent plane

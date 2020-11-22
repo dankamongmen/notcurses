@@ -12,7 +12,6 @@ notcurses_plane - operations on ncplanes
 
 ```c
 #define NCPLANE_OPTION_HORALIGNED 0x0001ull
-#define NCPLANE_OPTION_NEWPILE    0x0002ull
 
 typedef struct ncplane_options {
   int y;            // vertical placement relative to parent plane
@@ -256,11 +255,11 @@ bound to themselves). Multiple threads can concurrently operate on distinct
 piles, even changing one while rendering another.
 
 Each plane is part of one and only one pile. By default, a plane is part of the
-same pile containing that plane to which it is bound. If the
-**NCPLANE_OPTION_NEWPILE** flag is given to **ncplane_create**, the returned
-plane becomes the root plane, top, and bottom of a new pile. As a root plane,
-it is bound to itself. A new pile can also be created by reparenting a plane
-to itself, though if the plane is already a root plane, this is a no-op.
+same pile containing that plane to which it is bound. If the **n** argument
+provided to **ncplane_create** is **NULL**, the returned plane becomes the root
+plane, top, and bottom of a new pile. As a root plane, it is bound to itself. A
+new pile can also be created by reparenting a plane to itself, though if the
+plane is already a root plane, this is a no-op.
 
 When a plane is moved to a different pile (whether new or preexisting), any
 planes which were bound to it are rebound to its previous parent. If the plane
