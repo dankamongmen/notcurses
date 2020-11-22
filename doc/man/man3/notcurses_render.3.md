@@ -16,7 +16,7 @@ notcurses_render - sync the physical display to the virtual ncplanes
 
 **int notcurses_render_to_file(struct notcurses* ***nc***, FILE* ***fp***);**
 
-**int notcurses_render_to_buffer(struct notcurses* ***nc***, char** ***buf***, size_t* ***buflen***);**
+**int notcurses_render_to_buffer(struct notcurses* ***nc***, char\*\* ***buf***, size_t* ***buflen***);**
 
 # DESCRIPTION
 
