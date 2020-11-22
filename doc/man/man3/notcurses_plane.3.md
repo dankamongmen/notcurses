@@ -12,6 +12,7 @@ notcurses_plane - operations on ncplanes
 
 ```c
 #define NCPLANE_OPTION_HORALIGNED 0x0001ull
+#define NCPLANE_OPTION_NEWPILE    0x0002ull
 
 typedef struct ncplane_options {
   int y;            // vertical placement relative to parent plane
@@ -32,6 +33,8 @@ typedef struct ncplane_options {
 **struct ncplane* notcurses_bottom(struct notcurses* ***n***);**
 
 **struct ncplane* ncplane_reparent(struct ncplane* ***n***, struct ncplane* ***newparent***);**
+
+**struct ncplane* ncplane_reparent_family(struct ncplane* ***n***, struct ncplane* ***newparent***);**
 
 **int ncplane_resize_realign(struct ncplane* ***n***);**
 
@@ -199,11 +202,14 @@ New planes can be created with **ncplane_create**. If a plane is bound to
 another, x and y coordinates are relative to the plane to which it is bound,
 and if this latter plane moves, all its bound planes move along with it. When a
 plane is destroyed, all planes bound to it (directly or transitively) are
-destroyed. **ncplane_reparent** detaches the plane **n** from any plane to
-which it is bound, and binds it to **newparent**. The standard plane cannot be
-reparented. If **newparent** is **NULL**, the plane becomes the root plane of a
-new, unrendered stack. All planes bound to **n** move along with it during a
-reparenting operation.
+destroyed.
+
+**ncplane_reparent** detaches the plane **n** from any plane to which it is
+bound, and binds it to **newparent**. Its children are reparented to its
+previous parent. The standard plane cannot be reparented. If **newparent** is
+**NULL**, the plane becomes the root plane of a new, unrendered stack. When
+**ncplane_reparent_family** is used, all planes bound to **n** move along with
+it during a reparenting operation. See [Piles][] below.
 
 **ncplane_destroy** destroys a particular ncplane, after which it must not be
 used again. **notcurses_drop_planes** destroys all ncplanes other than the
@@ -239,6 +245,29 @@ Each child plane having a non-**NULL** **resizecb** will see that callback
 invoked following resizing of its parent's plane. If it returns non-zero, the
 resizing cascade terminates, returning non-zero. Otherwise, resizing proceeds
 recursively.
+
+## Piles
+
+A single **notcurses** context is made up of one or more piles. A pile is a
+set of one or more **ncplane**s, including the partial orderings made up of
+their binding and z-axis pointers. A pile has a top and bottom **ncplane**
+(this might be a single plane), and one or more root planes (planes which are
+bound to themselves). Multiple threads can concurrently operate on distinct
+piles, even changing one while rendering another.
+
+Each plane is part of one and only one pile. By default, a plane is part of the
+same pile containing that plane to which it is bound. If the
+**NCPLANE_OPTION_NEWPILE** flag is given to **ncplane_create**, the returned
+plane becomes the root plane, top, and bottom of a new pile. As a root plane,
+it is bound to itself. A new pile can also be created by reparenting a plane
+to itself, though if the plane is already a root plane, this is a no-op.
+
+When a plane is moved to a different pile (whether new or preexisting), any
+planes which were bound to it are rebound to its previous parent. If the plane
+was a root plane of some pile, any bound planes become root planes. The new
+plane is placed immediately atop its new parent on its new pile's z-axis.
+When `ncplane_reparent_family()` is used, all planes bound to the reparented
+plane are moved along with it. Their relative z-order is maintained.
 
 ## Scrolling
 
@@ -285,6 +314,9 @@ Functions returning **int** return 0 on success, and non-zero on error.
 All other functions cannot fail (and return **void**).
 
 # NOTES
+
+**ncplane_new** is defined as a deprecated wrapper around **ncplane_create**.
+It should not be used in new code.
 
 # SEE ALSO
 
