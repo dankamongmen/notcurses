@@ -17,7 +17,7 @@ vi NEWS.md
 git clean -f -d -x
 
 # bump version numbers wherever they occur (wherever we enumerate them, anyway)
-BUMP="CMakeLists.txt doc/Doxyfile doc/man/man*/* doc/man/index.html python/setup.py python/notcurses-pydemo.1.md rust/Cargo.toml rust/build/build.rs"
+BUMP="CMakeLists.txt doc/Doxyfile doc/man/man*/* doc/man/index.html cffi/setup.py cffi/notcurses-pydemo.1.md rust/Cargo.toml rust/build/build.rs"
 for i in $BUMP ; do
   sed -i -e "s/$OLDVERSION/$VERSION/g" $i
 done
@@ -59,7 +59,7 @@ cd "$BUILDDIR"
 sudo make install
 tar czvf notcurses-doc-$VERSION.tar.gz *.1 *.3 *.html
 github-asset dankamongmen/notcurses upload v$VERSION notcurses-doc-$VERSION.tar.gz
-cd ../python
+cd ../cffi
 python3 setup.py sdist
 python3 setup.py build
 twine upload -s -udankamongmen dist/*
