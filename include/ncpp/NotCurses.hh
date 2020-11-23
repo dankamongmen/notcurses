@@ -283,6 +283,11 @@ namespace ncpp
 			return error_guard (notcurses_align (availcols, align, cols), -INT_MAX);
 		}
 
+		ncstats* stats_alloc () const noexcept
+		{
+			return notcurses_stats_alloc (nc);
+		}
+
 		static bool ucs32_to_utf8 (const char32_t *ucs32, unsigned ucs32count, unsigned char *resultbuf, size_t buflen) NOEXCEPT_MAYBE
 		{
 			return error_guard (notcurses_ucs32_to_utf8 (ucs32, ucs32count, resultbuf, buflen), -1);

@@ -1146,6 +1146,11 @@ namespace ncpp
 			return plane != nullptr;
 		}
 
+		void set_resizecb (int(*resizecb)(struct ncplane*)) const noexcept
+		{
+			ncplane_set_resizecb (plane, resizecb);
+		}
+
 	protected:
 		explicit Plane (ncplane *_plane, bool _is_stdplane)
 			: Root (nullptr),
