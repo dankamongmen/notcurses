@@ -185,6 +185,7 @@ dup_menu_sections(ncmenu* ncm, const ncmenu_options* opts, int* totalwidth, int*
       ncm->sections[i].bodycols = 0;
       ncm->sections[i].itemselected = -1;
       ncm->sections[i].shortcut_offset = -1;
+      ncm->sections[i].enabled_item_count = 0;
     }
   }
   if(ncm->sectioncount == 1 && rightaligned){
