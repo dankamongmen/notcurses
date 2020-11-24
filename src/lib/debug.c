@@ -19,6 +19,9 @@ ncpile_debug(const ncpile* p, FILE* debugfp){
     if(n->above != prev){
       fprintf(stderr, " WARNING: expected ->above %p, got %p\n", prev, n->above);
     }
+    if(ncplane_pile_const(n) != p){
+      fprintf(stderr, " WARNING: expected pile %p, got %p\n", p, ncplane_pile_const(n));
+    }
     prev = n;
     n = n->below;
     ++planeidx;
