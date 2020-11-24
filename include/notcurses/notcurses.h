@@ -1276,9 +1276,7 @@ ncplane_at_cursor_cell(struct ncplane* n, cell* c){
     return -1;
   }
   int r = cell_load(n, c, egc);
-  if(r < 0){
-    free(egc);
-  }
+  free(egc);
   return r;
 }
 
