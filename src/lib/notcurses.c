@@ -946,6 +946,30 @@ int ncinputlayer_init(ncinputlayer* nilayer, FILE* infp){
   return 0;
 }
 
+// initialize a recursive mutex lock in a way that works on both glibc + musl
+int recursive_lock_init(pthread_mutex_t *lock){
+#ifndef __GLIBC__
+#define PTHREAD_MUTEX_RECURSIVE_NP PTHREAD_MUTEX_RECURSIVE
+#endif
+  pthread_mutexattr_t attr;
+  if(pthread_mutexattr_init(&attr)){
+    return -1;
+  }
+  if(pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE_NP)){
+    pthread_mutexattr_destroy(&attr);
+    return -1;
+  }
+  if(pthread_mutex_init(lock, &attr)){
+    pthread_mutexattr_destroy(&attr);
+    return -1;
+  }
+  pthread_mutexattr_destroy(&attr);
+  return 0;
+#ifndef __GLIBC__
+#undef PTHREAD_MUTEX_RECURSIVE_NP
+#endif
+}
+
 notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   notcurses_options defaultopts;
   memset(&defaultopts, 0, sizeof(defaultopts));
@@ -981,7 +1005,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   if(outfp == NULL){
     outfp = stdout;
   }
-  if(pthread_mutex_init(&ret->pilelock, NULL)){
+  if(recursive_lock_init(&ret->pilelock)){
     fprintf(stderr, "Couldn't initialize pile mutex\n");
     free(ret);
     return NULL;
