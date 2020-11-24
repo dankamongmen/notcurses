@@ -2,6 +2,7 @@
 
 static void
 ncpile_debug(const ncpile* p, FILE* debugfp){
+  fprintf(debugfp, "  -=+********************** %16p pile *************************+=-\n", p);
   const ncplane* n = p->top;
   const ncplane* prev = NULL;
   int planeidx = 0;
