@@ -229,12 +229,6 @@ char* ncplane_at_yx(const ncplane* n, int y, int x, uint16_t* stylemask, uint64_
   return ret;
 }
 
-cell* ncplane_cell_ref_yx(ncplane* n, int y, int x){
-  assert(y < n->leny);
-  assert(x < n->lenx);
-  return &n->fb[nfbcellidx(n, y, x)];
-}
-
 void ncplane_dim_yx(const ncplane* n, int* rows, int* cols){
   if(rows){
     *rows = n->leny;
@@ -363,7 +357,6 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
   p->name = strdup(nopts->name ? nopts->name : "");
   p->align = NCALIGN_UNALIGNED;
   if(!n){ // new root/standard plane
-    assert(!(nopts->flags & NCPLANE_OPTION_HORALIGNED));
     p->absy = nopts->y;
     p->absx = nopts->x;
     p->bnext = NULL;
