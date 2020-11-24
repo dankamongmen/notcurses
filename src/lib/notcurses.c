@@ -303,7 +303,6 @@ make_ncpile(notcurses* nc){
     ret->nc = nc;
     ret->top = NULL;
     ret->bottom = NULL;
-    ret->root = NULL;
     if(nc->stdplane){
       ret->prev = ncplane_pile(nc->stdplane)->prev;
       ncplane_pile(nc->stdplane)->prev->next = ret;
@@ -2160,7 +2159,20 @@ ncplane* ncplane_reparent(ncplane* n, ncplane* newparent){
   if(n->boundto == n && newparent == NULL){
     return NULL; // can't make new stack out of a stack's root
   }
-  // FIXME take blist, add it to boundto
+  if(n->boundto == n){ // children become new root planes
+    for(ncplane* child = n->blist ; child ; child = child->bnext){
+      child->boundto = child;
+    }
+  }else{
+    if(n->blist){
+      if( (n->blist->bnext = n->boundto->blist) ){
+        n->boundto->blist->bprev = &n->blist->bnext;
+      }
+      n->blist->bprev = &n->boundto->blist;
+      n->boundto->blist = n->blist;
+      n->blist = NULL;
+    }
+  }
   return ncplane_reparent_family(n, newparent);
 }
 
@@ -2186,6 +2198,8 @@ ncplane* ncplane_reparent_family(ncplane* n, ncplane* newparent){
   if(newparent == NULL){
     n->bnext = NULL;
     n->bprev = NULL;
+    n->boundto = n;
+    // FIXME need new pile
     return n;
   }
   if( (n->bnext = newparent->blist) ){

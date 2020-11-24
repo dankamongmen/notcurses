@@ -301,7 +301,6 @@ typedef struct ncdirect {
 typedef struct ncpile {
   ncplane* top;     // topmost plane, never NULL
   ncplane* bottom;  // bottommost plane, never NULL 
-  ncplane* root;    // first plane of the root set
   struct notcurses* nc; // notcurses context
   struct ncpile *prev, *next; // circular list
 } ncpile;
