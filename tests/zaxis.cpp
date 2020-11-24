@@ -31,7 +31,7 @@ TEST_CASE("ZAxis") {
       .x = 0,
       .rows = 2,
       .cols = 2,
-      nullptr, nullptr, nullptr, 0,
+      nullptr, nullptr, nullptr, 0, nullptr,
     };
     struct ncplane* np = ncplane_create(n_, &nopts);
     REQUIRE(np);
@@ -48,7 +48,7 @@ TEST_CASE("ZAxis") {
       .x = 0,
       .rows = 2,
       .cols = 2,
-      nullptr, nullptr, nullptr, 0,
+      nullptr, nullptr, nullptr, 0, nullptr,
     };
     struct ncplane* np = ncplane_create(n_, &nopts);
     REQUIRE(np);
@@ -65,7 +65,7 @@ TEST_CASE("ZAxis") {
       .x = 0,
       .rows = 2,
       .cols = 2,
-      nullptr, nullptr, nullptr, 0,
+      nullptr, nullptr, nullptr, 0, nullptr,
     };
     struct ncplane* np = ncplane_create(n_, &nopts);
     REQUIRE(np);
@@ -88,7 +88,7 @@ TEST_CASE("ZAxis") {
       .x = 0,
       .rows = 2,
       .cols = 2,
-      nullptr, nullptr, nullptr, 0,
+      nullptr, nullptr, nullptr, 0, nullptr,
     };
     struct ncplane* np = ncplane_create(n_, &nopts);
     REQUIRE(np);
@@ -120,7 +120,7 @@ TEST_CASE("ZAxis") {
       .x = 0,
       .rows = 2,
       .cols = 2,
-      nullptr, nullptr, nullptr, 0,
+      nullptr, nullptr, nullptr, 0, nullptr,
     };
     struct ncplane* n2 = ncplane_create(n_, &nopts);
     REQUIRE(1 == cell_load(n2, &c, "y"));
@@ -151,7 +151,7 @@ TEST_CASE("ZAxis") {
       .x = 1,
       .rows = 1,
       .cols = 1,
-      nullptr, nullptr, nullptr, 0,
+      nullptr, nullptr, nullptr, 0, nullptr,
     };
     auto p = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != p);

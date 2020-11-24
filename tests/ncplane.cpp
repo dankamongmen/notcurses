@@ -379,7 +379,7 @@ TEST_CASE("NCPlane") {
       .rows = y,
       .cols = x,
       .userptr = sentinel,
-      nullptr, nullptr, 0,
+      nullptr, nullptr, 0, nullptr,
     };
     struct ncplane* ncp = ncplane_create(n_, &nopts);
     REQUIRE(ncp);
@@ -402,7 +402,7 @@ TEST_CASE("NCPlane") {
       .x = 0,
       .rows = y,
       .cols = x,
-      nullptr, nullptr, nullptr, 0,
+      nullptr, nullptr, nullptr, 0, nullptr,
     };
     struct ncplane* ncp = ncplane_create(n_, &nopts);
     REQUIRE(ncp);
@@ -417,6 +417,39 @@ TEST_CASE("NCPlane") {
     CHECK(0 == ncplane_destroy(ncp));
   }
 
+  // create a new plane, the same size as the terminal, and verify that it
+  // occupies the same dimensions as the standard plane, but on another pile.
+  SUBCASE("NewPileSameSize") {
+    int x, y;
+    notcurses_term_dim_yx(nc_, &y, &x);
+    struct ncplane_options nopts = {
+      .y = 0,
+      .x = 0,
+      .rows = y,
+      .cols = x,
+      nullptr, nullptr, nullptr,
+      NCPLANE_OPTION_NEWPILE, nc_,
+    };
+    struct ncplane* ncp = ncplane_create(nullptr, &nopts);
+    REQUIRE(ncp);
+    int px, py;
+    ncplane_dim_yx(ncp, &py, &px);
+    CHECK(y == py);
+    CHECK(x == px);
+    int sx, sy;
+    ncplane_dim_yx(n_, &sy, &sx);
+    CHECK(sy == py);
+    CHECK(sx == px);
+    // ensure that the new plane is not on our zaxis
+    CHECK(notcurses_top(nc_) == n_);
+    CHECK(notcurses_bottom(nc_) == n_);
+    // ensure the new plane has null above and below, and is bound to itself
+    CHECK(ncplane_above(ncp) == nullptr);
+    CHECK(ncplane_below(ncp) == nullptr);
+    CHECK(ncplane_parent_const(ncp) == ncp);
+    CHECK(0 == ncplane_destroy(ncp));
+  }
+
   SUBCASE("ShrinkPlane") {
     int maxx, maxy;
     int x = 0, y = 0;
@@ -426,7 +459,7 @@ TEST_CASE("NCPlane") {
       .x = x,
       .rows = maxy,
       .cols = maxx,
-      nullptr, nullptr, nullptr, 0,
+      nullptr, nullptr, nullptr, 0, nullptr,
     };
     struct ncplane* newp = ncplane_create(n_, &nopts);
     REQUIRE(newp);
@@ -472,7 +505,7 @@ TEST_CASE("NCPlane") {
       .x = x,
       .rows = maxy,
       .cols = maxx,
-      nullptr, nullptr, nullptr, 0,
+      nullptr, nullptr, nullptr, 0, nullptr,
     };
     struct ncplane* newp = ncplane_create(n_, &nopts);
     REQUIRE(newp);
@@ -714,7 +747,7 @@ TEST_CASE("NCPlane") {
       .x = ncols - 3,
       .rows = 2,
       .cols = 2,
-      nullptr, nullptr, nullptr, 0,
+      nullptr, nullptr, nullptr, 0, nullptr,
     };
     struct ncplane* ncp = ncplane_create(n_, &nopts);
     REQUIRE(ncp);
@@ -736,7 +769,7 @@ TEST_CASE("NCPlane") {
       .x = x,
       .rows = 2,
       .cols = 2,
-      nullptr, nullptr, nullptr, 0,
+      nullptr, nullptr, nullptr, 0, nullptr,
     };
     struct ncplane* ncp = ncplane_create(n_, &nopts);
     REQUIRE(ncp);
@@ -790,7 +823,7 @@ TEST_CASE("NCPlane") {
       .x = 1,
       .rows = 2,
       .cols = 2,
-      nullptr, nullptr, nullptr, 0,
+      nullptr, nullptr, nullptr, 0, nullptr,
     };
     struct ncplane* n = ncplane_create(n_, &nopts);
     REQUIRE(n);
@@ -819,7 +852,7 @@ TEST_CASE("NCPlane") {
       .x = 1,
       .rows = 2,
       .cols = 2,
-      nullptr, nullptr, nullptr, 0,
+      nullptr, nullptr, nullptr, 0, nullptr,
     };
     struct ncplane* ndom = ncplane_create(n_, &nopts);
     REQUIRE(ndom);
@@ -842,7 +875,7 @@ TEST_CASE("NCPlane") {
       .x = 1,
       .rows = 2,
       .cols = 2,
-      nullptr, nullptr, nullptr, 0,
+      nullptr, nullptr, nullptr, 0, nullptr,
     };
     struct ncplane* ndom = ncplane_create(n_, &nopts);
     REQUIRE(ndom);
@@ -865,7 +898,7 @@ TEST_CASE("NCPlane") {
       .x = 1,
       .rows = 2,
       .cols = 2,
-      nullptr, nullptr, nullptr, 0,
+      nullptr, nullptr, nullptr, 0, nullptr,
     };
     struct ncplane* ndom = ncplane_create(n_, &nopts);
     REQUIRE(ndom);
@@ -892,7 +925,7 @@ TEST_CASE("NCPlane") {
       .x = 1,
       .rows = 2,
       .cols = 2,
-      nullptr, nullptr, nullptr, 0,
+      nullptr, nullptr, nullptr, 0, nullptr,
     };
     struct ncplane* ndom = ncplane_create(n_, &nopts);
     REQUIRE(ndom);

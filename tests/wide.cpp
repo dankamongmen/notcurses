@@ -231,6 +231,7 @@ TEST_CASE("Wide") {
       .name = nullptr,
       .resizecb = nullptr,
       .flags = 0,
+      .nc = nullptr,
     };
     struct ncplane* ncp = ncplane_create(n_, &nopts);
     REQUIRE(ncp);
@@ -355,6 +356,7 @@ TEST_CASE("Wide") {
       .name = nullptr,
       .resizecb = nullptr,
       .flags = 0,
+      .nc = nullptr,
     };
     struct ncplane* n = ncplane_create(n_, &nopts);
     REQUIRE(n);
@@ -402,6 +404,7 @@ TEST_CASE("Wide") {
       .name = nullptr,
       .resizecb = nullptr,
       .flags = 0,
+      .nc = nullptr,
     };
     struct ncplane* p = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != p);
@@ -451,6 +454,7 @@ TEST_CASE("Wide") {
       .name = nullptr,
       .resizecb = nullptr,
       .flags = 0,
+      .nc = nullptr,
     };
     struct ncplane* topp = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != topp);
@@ -635,6 +639,7 @@ TEST_CASE("Wide") {
       .name = nullptr,
       .resizecb = nullptr,
       .flags = 0,
+      .nc = nullptr,
     };
     struct ncplane* topp = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != topp);
@@ -790,6 +795,7 @@ TEST_CASE("Wide") {
       .name = nullptr,
       .resizecb = nullptr,
       .flags = 0,
+      .nc = nullptr,
     };
     struct ncplane* topp = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != topp);
@@ -984,6 +990,7 @@ TEST_CASE("Wide") {
       .name = nullptr,
       .resizecb = nullptr,
       .flags = 0,
+      .nc = nullptr,
     };
     auto high = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != high);

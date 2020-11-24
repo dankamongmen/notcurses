@@ -362,7 +362,15 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
   p->blist = NULL;
   p->name = strdup(nopts->name ? nopts->name : "");
   p->align = NCALIGN_UNALIGNED;
-  if( (p->boundto = n) ){
+  if(nopts->flags & NCPLANE_OPTION_NEWPILE){
+    assert(!(nopts->flags & NCPLANE_OPTION_HORALIGNED));
+    p->absy = nopts->y;
+    p->absx = nopts->x;
+    p->bnext = NULL;
+    p->bprev = NULL;
+    p->boundto = p;
+    p->align = NCALIGN_UNALIGNED;
+  }else{ // new root/standard plane
     if(nopts->flags & NCPLANE_OPTION_HORALIGNED){
       p->absx = ncplane_align(n, nopts->x, nopts->cols);
       p->align = nopts->x;
@@ -377,16 +385,7 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
     }
     p->bprev = &n->blist;
     *p->bprev = p;
-  }else{ // new root plane, new pile
-    assert(0 == nopts->y);
-    assert(0 == nopts->x);
-    p->absx = (nc ? nc->margin_l : 0);
-    p->absy = (nc ? nc->margin_t : 0);
-    p->bnext = NULL;
-    p->bprev = NULL;
-    p->boundto = p;
-    p->absx = nopts->x;
-    p->align = NCALIGN_UNALIGNED;
+    p->boundto = n;
   }
   p->resizecb = nopts->resizecb;
   p->stylemask = 0;
@@ -424,14 +423,16 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
 
 // create an ncplane of the specified dimensions, but do not yet place it in
 // the z-buffer. clear out all cells. this is for a wholly new context.
+// FIXME set up using resizecb rather than special-purpose from SIGWINCH
 static ncplane*
 create_initial_ncplane(notcurses* nc, int dimy, int dimx){
   ncplane_options nopts = {
-    .y = 0,
-    .x = 0,
+    .y = nc->margin_t,
+    .x = nc->margin_l,
     .rows = dimy - (nc->margin_t + nc->margin_b),
     .cols = dimx - (nc->margin_l + nc->margin_r),
     .name = "std",
+    .flags = NCPLANE_OPTION_NEWPILE,
   };
   return nc->stdplane = ncplane_new_internal(nc, NULL, &nopts);
 }
@@ -444,12 +445,19 @@ const ncplane* notcurses_stdplane_const(const notcurses* nc){
   return nc->stdplane;
 }
 
+// if n is NULL, nopts must supply nc together with NCPLANE_OPTIONS_NEWPILE
 ncplane* ncplane_create(ncplane* n, const ncplane_options* nopts){
-  if((nopts->flags & NCPLANE_OPTION_HORALIGNED) && !n){
-    logerror(ncplane_notcurses(n), "Can't align a root plane");
-    return NULL;
+  if(nopts->flags & NCPLANE_OPTION_NEWPILE){
+    if(nopts->flags & NCPLANE_OPTION_HORALIGNED){
+      logerror(ncplane_notcurses(n), "Can't align a root plane");
+      return NULL;
+    }
+  }else{
+    if(!n){
+      return NULL; // can't log, no n nor nc :/
+    }
   }
-  return ncplane_new_internal(ncplane_notcurses(n), n, nopts);
+  return ncplane_new_internal(n ? ncplane_notcurses(n) : nopts->nc, n, nopts);
 }
 
 struct ncplane* ncplane_new(struct ncplane* n, int rows, int cols, int y, int x, void* opaque, const char* name){
@@ -462,6 +470,7 @@ struct ncplane* ncplane_new(struct ncplane* n, int rows, int cols, int y, int x,
     .name = name,
     .resizecb = NULL,
     .flags = 0,
+    .nc = NULL,
   };
   return ncplane_create(n, &nopts);
 }
@@ -818,12 +827,22 @@ init_banner(const notcurses* nc){
     printf("\n notcurses %s by nick black et al", notcurses_version());
     term_fg_palindex(nc, stdout, nc->tcache.colors <= 256 ? 12 % nc->tcache.colors : 0x2080e0);
     printf("\n  %d rows %d cols (%sB) %zuB cells %d colors%s\n"
-           "  compiled with gcc-%s\n"
+           "  compiled with gcc-%s, %s-endian\n"
            "  terminfo from %s\n",
            nc->stdplane->leny, nc->stdplane->lenx,
            bprefix(nc->stats.fbbytes, 1, prefixbuf, 0), sizeof(cell),
            nc->tcache.colors, nc->tcache.RGBflag ? "+RGB" : "",
-           __VERSION__, curses_version());
+           __VERSION__,
+#ifdef __BYTE_ORDER__
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+           "little"
+#else
+           "big"
+#endif
+#else
+#error "No __BYTE_ORDER__ definition"
+#endif
+           , curses_version());
 #ifdef USE_FFMPEG
     printf("  avformat %u.%u.%u avutil %u.%u.%u swscale %u.%u.%u\n",
           LIBAVFORMAT_VERSION_MAJOR, LIBAVFORMAT_VERSION_MINOR, LIBAVFORMAT_VERSION_MICRO,

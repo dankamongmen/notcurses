@@ -1026,6 +1026,11 @@ API char* notcurses_at_yx(struct notcurses* nc, int yoff, int xoff,
 // Horizontal alignment relative to the parent plane. Use 'align' instead of 'x'.
 #define NCPLANE_OPTION_HORALIGNED 0x0001ull
 
+// Create a new pile with the newly-created plane at its root. The 'n' argument
+// ought be NULL, though this is not enforced. When this flag is provided, the
+// 'nc' field of the ncplane_options struct must be a valid notcurses context.
+#define NCPLANE_OPTION_NEWPILE    0x0002ull
+
 typedef struct ncplane_options {
   int y;            // vertical placement relative to parent plane
   int x;            // horizontal placement relative to parent plane
@@ -1035,6 +1040,7 @@ typedef struct ncplane_options {
   const char* name; // name (used only for debugging), may be NULL
   int (*resizecb)(struct ncplane*); // callback when parent is resized
   uint64_t flags;   // closure over NCPLANE_OPTION_*
+  struct notcurses* nc; // only needs to be set with NCPLANE_OPTION_NEWPILE
 } ncplane_options;
 
 // Create a new ncplane bound to plane 'n', at the offset 'y'x'x' (relative to
