@@ -577,7 +577,12 @@ pool_extended_gcluster(const egcpool* pool, const cell* c){
   return egcpool_extended_gcluster(pool, c);
 }
 
-cell* ncplane_cell_ref_yx(ncplane* n, int y, int x);
+static inline cell*
+ncplane_cell_ref_yx(ncplane* n, int y, int x){
+  assert(y < n->leny);
+  assert(x < n->lenx);
+  return &n->fb[nfbcellidx(n, y, x)];
+}
 
 static inline void
 cell_set_wide(cell* c){
