@@ -391,6 +391,7 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
   if(nc == NULL){ // fake ncplane backing ncdirect object
     p->above = NULL;
     p->below = NULL;
+    p->pile = NULL;
   }else{
     pthread_mutex_lock(&nc->pilelock);
     ncpile* pile = n ? ncplane_pile(n) : NULL;
@@ -2203,6 +2204,43 @@ ncplane* ncplane_reparent(ncplane* n, ncplane* newparent){
   return ncplane_reparent_family(n, newparent);
 }
 
+// unsplice self from the z-axis, and then unsplice all children, recursively.
+// to be called before unbinding 'n' from old pile.
+static void
+unsplice_zaxis_recursive(ncplane* n){
+  if(ncplane_pile(n)->top == n){
+    ncplane_pile(n)->top = n->below;
+  }else{
+    n->above->below = n->below;
+  }
+  if(ncplane_pile(n)->bottom == n){
+    ncplane_pile(n)->bottom = n->above;
+  }else{
+    n->below->above = n->above;
+  }
+  for(ncplane* child = n->blist ; child ; child = child->bnext){
+    unsplice_zaxis_recursive(child);
+  }
+}
+
+// recursively splice 'n' and children into the z-axis, above 'n->boundto'.
+// handles 'n' == 'n->boundto'. to be called after binding 'n' into new pile.
+static void
+splice_zaxis_recursive(ncplane* n){
+  if(n != n->boundto){
+    if((n->above = n->boundto->above) == NULL){
+      n->pile->top = n;
+    }else{
+      n->boundto->above->below = n;
+    }
+    n->below = n->boundto;
+    n->boundto->above = n;
+  }
+  for(ncplane* child = n->blist ; child ; child = child->bnext){
+    splice_zaxis_recursive(child);
+  }
+}
+
 ncplane* ncplane_reparent_family(ncplane* n, ncplane* newparent){
   if(n == ncplane_notcurses(n)->stdplane){
     return NULL; // can't reparent standard plane
@@ -2222,17 +2260,7 @@ ncplane* ncplane_reparent_family(ncplane* n, ncplane* newparent){
   }
   // if leaving a pile, extract n from the old zaxis
   if(n == newparent || ncplane_pile(n) != ncplane_pile(newparent)){
-    // FIXME need remove full family from z-axis, not just n!
-    if(ncplane_pile(n)->top == n){
-      ncplane_pile(n)->top = n->below;
-    }else{
-      n->above->below = n->below;
-    }
-    if(ncplane_pile(n)->bottom == n){
-      ncplane_pile(n)->bottom = n->above;
-    }else{
-      n->below->above = n->above;
-    }
+    unsplice_zaxis_recursive(n);
   }
   n->boundto = newparent;
   if(n == n->boundto){ // we're a new root plane
@@ -2244,6 +2272,7 @@ ncplane* ncplane_reparent_family(ncplane* n, ncplane* newparent){
     }
     make_ncpile(ncplane_notcurses(n), n);
     pthread_mutex_unlock(&ncplane_notcurses(n)->pilelock);
+    splice_zaxis_recursive(n);
   }else{ // establish ourselves as a sibling of new parent's children
     n->absx += n->boundto->absx;
     n->absy += n->boundto->absy;
@@ -2255,13 +2284,7 @@ ncplane* ncplane_reparent_family(ncplane* n, ncplane* newparent){
     // place it immediately above the new binding plane if crossing piles
     if(n->pile != ncplane_pile(n->boundto)){
       n->pile = ncplane_pile(n->boundto);
-      if((n->above = n->boundto->above) == NULL){
-        n->pile->top = n;
-      }else{
-        n->boundto->above->below = n;
-      }
-      n->below = n->boundto;
-      n->boundto->above = n;
+      splice_zaxis_recursive(n);
     }
   }
   return n;
