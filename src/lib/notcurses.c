@@ -24,9 +24,9 @@
 #define ESC "\x1b"
 
 void notcurses_version_components(int* major, int* minor, int* patch, int* tweak){
-  *major = atoi(NOTCURSES_VERSION_MAJOR);
-  *minor = atoi(NOTCURSES_VERSION_MINOR);
-  *patch = atoi(NOTCURSES_VERSION_PATCH);
+  *major = NOTCURSES_VERNUM_MAJOR;
+  *minor = NOTCURSES_VERNUM_MINOR;
+  *patch = NOTCURSES_VERNUM_PATCH;
   *tweak = atoi(NOTCURSES_VERSION_TWEAK);
 }
 
