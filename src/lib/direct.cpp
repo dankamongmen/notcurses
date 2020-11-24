@@ -451,6 +451,7 @@ int ncdirect_render_image(ncdirect* n, const char* file, ncalign_e align,
     .name = "direct",
     .resizecb = nullptr,
     .flags = 0,
+    .nc = nullptr,
   };
   struct ncplane* faken = ncplane_new_internal(nullptr, nullptr, &nopts);
   if(faken == nullptr){

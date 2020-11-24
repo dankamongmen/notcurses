@@ -161,6 +161,7 @@ TEST_CASE("Cell") {
       .name = nullptr,
       .resizecb = nullptr,
       .flags = 0,
+      .nc = nullptr,
     };
     auto np = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != np);
@@ -200,6 +201,7 @@ TEST_CASE("Cell") {
       .name = nullptr,
       .resizecb = nullptr,
       .flags = 0,
+      .nc = nullptr,
     };
     auto np = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != np);
@@ -239,6 +241,7 @@ TEST_CASE("Cell") {
       .name = nullptr,
       .resizecb = nullptr,
       .flags = 0,
+      .nc = nullptr,
     };
     auto np = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != np);
@@ -278,6 +281,7 @@ TEST_CASE("Cell") {
       .name = nullptr,
       .resizecb = nullptr,
       .flags = 0,
+      .nc = nullptr,
     };
     auto np = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != np);
@@ -318,6 +322,7 @@ TEST_CASE("Cell") {
       .name = nullptr,
       .resizecb = nullptr,
       .flags = 0,
+      .nc = nullptr,
     };
     auto np = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != np);

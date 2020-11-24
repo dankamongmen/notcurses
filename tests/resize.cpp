@@ -28,7 +28,7 @@ TEST_CASE("Resize") {
       .x = 0,
       .rows = y,
       .cols = x,
-      nullptr, nullptr, nullptr, 0,
+      nullptr, nullptr, nullptr, 0, nullptr,
     };
     struct ncplane* testn = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != testn);
@@ -52,7 +52,7 @@ TEST_CASE("Resize") {
       .x = 0,
       .rows = y,
       .cols = x,
-      nullptr, nullptr, nullptr, 0,
+      nullptr, nullptr, nullptr, 0, nullptr,
     };
     struct ncplane* testn = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != testn);
