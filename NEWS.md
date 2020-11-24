@@ -280,12 +280,6 @@ rearrangements of Notcurses.
 * 1.6.10 (2020-08-01)
   * The `egc` member of `ncreader_options` is now `const`.
 
-* 1.6.9 (2020-07-26)
-  * No user-visible changes.
-
-* 1.6.8 (2020-07-26)
-  * No user-visible changes.
-
 * 1.6.7 (2020-07-26)
   * GNU libunistring is now required to build/load Notcurses.
   * Added `ncmenu_mouse_selection()`. Escape now closes an unrolled menu
@@ -296,14 +290,8 @@ rearrangements of Notcurses.
     using setuptools. CMake no longer installs it.
   * Added `notcurses_lex_blitter()` and `notcurses_str_scalemode()`.
 
-* 1.6.5 (2020-07-19)
-  * No user-visible changes.
-
 * 1.6.4 (2020-07-19)
   * Added `notcurses_str_blitter()`.
-
-* 1.6.3 (2020-07-16)
-  * No user-visible changes.
 
 * 1.6.2 (2020-07-15)
   * The option `NCOPTION_NO_FONT_CHANGES` has been added. This will cause
@@ -464,9 +452,6 @@ rearrangements of Notcurses.
   * `qprefix()` and `bprefix()` now take a `uintmax_t` in place of an
     `unsigned`, to match `ncprefix`.
 
-* 1.4.1 (2020-05-11)
-  * No user-visible changes (fixed two unit tests).
-
 * 1.4.0 (2020-05-10)
   * `ncplane_content()` was added. It allows all non-null glyphs of a plane to
     be returned as a nul-terminated, heap-allocated string.
@@ -545,12 +530,6 @@ rearrangements of Notcurses.
     through use of `ncplane_set_scrolling(true)`, output past the end of the
     last line will now result in the top line of the plane being lost, all
     other lines moved up one, and the bottom line cleared.
-
-* 1.3.0 (2020-04-12)
-  * No user-visible changes
-
-* 1.2.9 (2020-04-11)
-  * No user-visible changes
 
 * 1.2.8 (2020-04-10)
   * `notcurses-tetris` now happily continues if it can't load its background.
