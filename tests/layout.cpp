@@ -21,7 +21,6 @@ TEST_CASE("TextLayout") {
       .name = nullptr,
       .resizecb = nullptr,
       .flags = 0,
-      .nc = nullptr,
     };
     auto sp = ncplane_create(n_, &nopts);
     REQUIRE(sp);
@@ -46,7 +45,6 @@ TEST_CASE("TextLayout") {
       .name = nullptr,
       .resizecb = nullptr,
       .flags = 0,
-      .nc = nullptr,
     };
     auto sp = ncplane_create(n_, &nopts);
     REQUIRE(sp);
@@ -71,7 +69,6 @@ TEST_CASE("TextLayout") {
       .name = nullptr,
       .resizecb = nullptr,
       .flags = 0,
-      .nc = nullptr,
     };
     auto sp = ncplane_create(n_, &nopts);
     REQUIRE(sp);
@@ -97,7 +94,6 @@ TEST_CASE("TextLayout") {
       .name = nullptr,
       .resizecb = nullptr,
       .flags = 0,
-      .nc = nullptr,
     };
     auto sp = ncplane_create(n_, &nopts);
     REQUIRE(sp);
@@ -124,7 +120,6 @@ TEST_CASE("TextLayout") {
       .name = nullptr,
       .resizecb = nullptr,
       .flags = 0,
-      .nc = nullptr,
     };
     auto sp = ncplane_create(n_, &nopts);
     REQUIRE(sp);
@@ -151,7 +146,6 @@ TEST_CASE("TextLayout") {
       .name = nullptr,
       .resizecb = nullptr,
       .flags = 0,
-      .nc = nullptr,
     };
     auto sp = ncplane_create(n_, &nopts);
     REQUIRE(sp);
@@ -178,7 +172,6 @@ TEST_CASE("TextLayout") {
       .name = nullptr,
       .resizecb = nullptr,
       .flags = 0,
-      .nc = nullptr,
     };
     auto sp = ncplane_create(n_, &nopts);
     REQUIRE(sp);
@@ -206,7 +199,6 @@ TEST_CASE("TextLayout") {
         .name = nullptr,
         .resizecb = nullptr,
         .flags = 0,
-        .nc = nullptr,
       };
       auto sp = ncplane_create(n_, &nopts);
       REQUIRE(sp);
@@ -235,7 +227,6 @@ TEST_CASE("TextLayout") {
       .name = nullptr,
       .resizecb = nullptr,
       .flags = 0,
-      .nc = nullptr,
     };
     auto sp = ncplane_create(n_, &nopts);
     REQUIRE(sp);
@@ -264,7 +255,6 @@ TEST_CASE("TextLayout") {
         .name = nullptr,
         .resizecb = nullptr,
         .flags = 0,
-        .nc = nullptr,
       };
       auto sp = ncplane_create(n_, &nopts);
       REQUIRE(sp);
@@ -291,7 +281,6 @@ TEST_CASE("TextLayout") {
       .name = nullptr,
       .resizecb = nullptr,
       .flags = 0,
-      .nc = nullptr,
     };
     auto sp = ncplane_create(n_, &nopts);
     REQUIRE(sp);
@@ -318,7 +307,6 @@ TEST_CASE("TextLayout") {
       .name = nullptr,
       .resizecb = nullptr,
       .flags = 0,
-      .nc = nullptr,
     };
     auto sp = ncplane_create(n_, &nopts);
     REQUIRE(sp);
@@ -345,7 +333,6 @@ TEST_CASE("TextLayout") {
       .name = nullptr,
       .resizecb = nullptr,
       .flags = 0,
-      .nc = nullptr,
     };
     auto sp = ncplane_create(n_, &nopts);
     REQUIRE(sp);
@@ -372,7 +359,6 @@ TEST_CASE("TextLayout") {
       .name = nullptr,
       .resizecb = nullptr,
       .flags = 0,
-      .nc = nullptr,
     };
     auto sp = ncplane_create(n_, &nopts);
     REQUIRE(sp);
@@ -399,7 +385,6 @@ TEST_CASE("TextLayout") {
       .name = nullptr,
       .resizecb = nullptr,
       .flags = 0,
-      .nc = nullptr,
     };
     auto sp = ncplane_create(n_, &nopts);
     REQUIRE(sp);
@@ -426,7 +411,6 @@ TEST_CASE("TextLayout") {
       .name = nullptr,
       .resizecb = nullptr,
       .flags = 0,
-      .nc = nullptr,
     };
     auto sp = ncplane_create(n_, &nopts);
     REQUIRE(sp);
@@ -454,7 +438,6 @@ TEST_CASE("TextLayout") {
         .name = nullptr,
         .resizecb = nullptr,
         .flags = 0,
-        .nc = nullptr,
       };
       auto sp = ncplane_create(n_, &nopts);
       REQUIRE(sp);
@@ -483,7 +466,6 @@ TEST_CASE("TextLayout") {
       .name = nullptr,
       .resizecb = nullptr,
       .flags = 0,
-      .nc = nullptr,
     };
     auto sp = ncplane_create(n_, &nopts);
     REQUIRE(sp);
@@ -510,7 +492,6 @@ TEST_CASE("TextLayout") {
       .name = nullptr,
       .resizecb = nullptr,
       .flags = 0,
-      .nc = nullptr,
     };
     auto sp = ncplane_create(n_, &nopts);
     REQUIRE(sp);
@@ -545,7 +526,6 @@ TEST_CASE("TextLayout") {
       .name = nullptr,
       .resizecb = nullptr,
       .flags = 0,
-      .nc = nullptr,
     };
     auto sp = ncplane_create(n_, &nopts);
     REQUIRE(sp);
@@ -580,7 +560,6 @@ TEST_CASE("TextLayout") {
       .name = nullptr,
       .resizecb = nullptr,
       .flags = 0,
-      .nc = nullptr,
     };
     auto sp = ncplane_create(n_, &nopts);
     REQUIRE(sp);
@@ -618,7 +597,6 @@ TEST_CASE("TextLayout") {
       .name = nullptr,
       .resizecb = nullptr,
       .flags = 0,
-      .nc = nullptr,
     };
     auto sp = ncplane_create(n_, &nopts);
     REQUIRE(sp);

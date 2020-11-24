@@ -59,7 +59,6 @@ TEST_CASE("Rotate") {
       .name = nullptr,
       .resizecb = nullptr,
       .flags = 0,
-      .nc = nullptr,
     };
     struct ncplane* testn = ncplane_create(n_, &nopts);
     uint64_t channels = 0;
@@ -94,7 +93,6 @@ TEST_CASE("Rotate") {
       .name = nullptr,
       .resizecb = nullptr,
       .flags = 0,
-      .nc = nullptr,
     };
     struct ncplane* testn = ncplane_create(n_, &nopts);
     REQUIRE(0 < ncplane_gradient_sized(testn, " ", 0, ul, ur, ll, lr, 8, 16));
@@ -113,7 +111,6 @@ TEST_CASE("Rotate") {
       .name = nullptr,
       .resizecb = nullptr,
       .flags = 0,
-      .nc = nullptr,
     };
     struct ncplane* testn = ncplane_create(n_, &nopts);
     REQUIRE(0 < ncplane_gradient_sized(testn, " ", 0, ul, ur, ll, lr, 8, 32));
@@ -132,7 +129,6 @@ TEST_CASE("Rotate") {
       .name = nullptr,
       .resizecb = nullptr,
       .flags = 0,
-      .nc = nullptr,
     };
     struct ncplane* testn = ncplane_create(n_, &nopts);
     REQUIRE(0 < ncplane_gradient_sized(testn, " ", 0, ul, ur, ll, lr, 8, 16));
@@ -151,7 +147,6 @@ TEST_CASE("Rotate") {
       .name = nullptr,
       .resizecb = nullptr,
       .flags = 0,
-      .nc = nullptr,
     };
     struct ncplane* testn = ncplane_create(n_, &nopts);
     REQUIRE(0 < ncplane_gradient_sized(testn, " ", 0, ul, ur, ll, lr, 8, 32));

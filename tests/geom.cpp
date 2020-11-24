@@ -33,7 +33,6 @@ TEST_CASE("Geometry") {
         .name = nullptr,
         .resizecb = nullptr,
         .flags = 0,
-        .nc = nullptr,
       };
       auto n = ncplane_create(n_, &nopts);
       REQUIRE(n);
@@ -80,7 +79,6 @@ TEST_CASE("Geometry") {
         .name = nullptr,
         .resizecb = nullptr,
         .flags = 0,
-        .nc = nullptr,
       };
       auto n = ncplane_create(n_, &nopts);
       REQUIRE(n);

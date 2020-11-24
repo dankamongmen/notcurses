@@ -220,7 +220,6 @@ int main(int argc, char** argv){
     .name = "reel",
     .resizecb = resize_reel,
     .flags = NCPLANE_OPTION_HORALIGNED,
-    .nc = nullptr,
   };
   n = ncplane_create(nstd, &nopts);
   if(!n){

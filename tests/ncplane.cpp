@@ -379,7 +379,7 @@ TEST_CASE("NCPlane") {
       .rows = y,
       .cols = x,
       .userptr = sentinel,
-      nullptr, nullptr, 0, nullptr,
+      nullptr, nullptr, 0,
     };
     struct ncplane* ncp = ncplane_create(n_, &nopts);
     REQUIRE(ncp);
@@ -402,7 +402,7 @@ TEST_CASE("NCPlane") {
       .x = 0,
       .rows = y,
       .cols = x,
-      nullptr, nullptr, nullptr, 0, nullptr,
+      nullptr, nullptr, nullptr, 0,
     };
     struct ncplane* ncp = ncplane_create(n_, &nopts);
     REQUIRE(ncp);
@@ -427,10 +427,9 @@ TEST_CASE("NCPlane") {
       .x = 0,
       .rows = y,
       .cols = x,
-      nullptr, nullptr, nullptr,
-      NCPLANE_OPTION_NEWPILE, nc_,
+      nullptr, nullptr, nullptr, 0,
     };
-    struct ncplane* ncp = ncplane_create(nullptr, &nopts);
+    struct ncplane* ncp = ncpile_create(nc_, &nopts);
     REQUIRE(ncp);
     int px, py;
     ncplane_dim_yx(ncp, &py, &px);
@@ -459,7 +458,7 @@ TEST_CASE("NCPlane") {
       .x = x,
       .rows = maxy,
       .cols = maxx,
-      nullptr, nullptr, nullptr, 0, nullptr,
+      nullptr, nullptr, nullptr, 0,
     };
     struct ncplane* newp = ncplane_create(n_, &nopts);
     REQUIRE(newp);
@@ -505,7 +504,7 @@ TEST_CASE("NCPlane") {
       .x = x,
       .rows = maxy,
       .cols = maxx,
-      nullptr, nullptr, nullptr, 0, nullptr,
+      nullptr, nullptr, nullptr, 0,
     };
     struct ncplane* newp = ncplane_create(n_, &nopts);
     REQUIRE(newp);
@@ -747,7 +746,7 @@ TEST_CASE("NCPlane") {
       .x = ncols - 3,
       .rows = 2,
       .cols = 2,
-      nullptr, nullptr, nullptr, 0, nullptr,
+      nullptr, nullptr, nullptr, 0,
     };
     struct ncplane* ncp = ncplane_create(n_, &nopts);
     REQUIRE(ncp);
@@ -769,7 +768,7 @@ TEST_CASE("NCPlane") {
       .x = x,
       .rows = 2,
       .cols = 2,
-      nullptr, nullptr, nullptr, 0, nullptr,
+      nullptr, nullptr, nullptr, 0,
     };
     struct ncplane* ncp = ncplane_create(n_, &nopts);
     REQUIRE(ncp);
@@ -823,7 +822,7 @@ TEST_CASE("NCPlane") {
       .x = 1,
       .rows = 2,
       .cols = 2,
-      nullptr, nullptr, nullptr, 0, nullptr,
+      nullptr, nullptr, nullptr, 0,
     };
     struct ncplane* n = ncplane_create(n_, &nopts);
     REQUIRE(n);
@@ -852,7 +851,7 @@ TEST_CASE("NCPlane") {
       .x = 1,
       .rows = 2,
       .cols = 2,
-      nullptr, nullptr, nullptr, 0, nullptr,
+      nullptr, nullptr, nullptr, 0,
     };
     struct ncplane* ndom = ncplane_create(n_, &nopts);
     REQUIRE(ndom);
@@ -875,7 +874,7 @@ TEST_CASE("NCPlane") {
       .x = 1,
       .rows = 2,
       .cols = 2,
-      nullptr, nullptr, nullptr, 0, nullptr,
+      nullptr, nullptr, nullptr, 0,
     };
     struct ncplane* ndom = ncplane_create(n_, &nopts);
     REQUIRE(ndom);
@@ -898,7 +897,7 @@ TEST_CASE("NCPlane") {
       .x = 1,
       .rows = 2,
       .cols = 2,
-      nullptr, nullptr, nullptr, 0, nullptr,
+      nullptr, nullptr, nullptr, 0,
     };
     struct ncplane* ndom = ncplane_create(n_, &nopts);
     REQUIRE(ndom);
@@ -925,7 +924,7 @@ TEST_CASE("NCPlane") {
       .x = 1,
       .rows = 2,
       .cols = 2,
-      nullptr, nullptr, nullptr, 0, nullptr,
+      nullptr, nullptr, nullptr, 0,
     };
     struct ncplane* ndom = ncplane_create(n_, &nopts);
     REQUIRE(ndom);

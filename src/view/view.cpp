@@ -89,7 +89,7 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
         .x = 0,
         .rows = 1,
         .cols = dimx,
-        nullptr, "subt", nullptr, 0, nullptr,
+        nullptr, "subt", nullptr, 0,
       };
       marsh->subtitle_plane = ncplane_create(notcurses_stdplane(nc), &nopts);
       uint64_t channels = 0;

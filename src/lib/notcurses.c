@@ -303,7 +303,7 @@ void free_plane(ncplane* p){
 
 // create a new ncpile. only call with pilelock held.
 static ncpile*
-ncpile_create(notcurses* nc){
+make_ncpile(notcurses* nc){
   ncpile* ret = malloc(sizeof(*ret));
   if(ret){
     ret->nc = nc;
@@ -362,7 +362,7 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
   p->blist = NULL;
   p->name = strdup(nopts->name ? nopts->name : "");
   p->align = NCALIGN_UNALIGNED;
-  if(nopts->flags & NCPLANE_OPTION_NEWPILE){
+  if(!n){ // new root/standard plane
     assert(!(nopts->flags & NCPLANE_OPTION_HORALIGNED));
     p->absy = nopts->y;
     p->absx = nopts->x;
@@ -370,7 +370,7 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
     p->bprev = NULL;
     p->boundto = p;
     p->align = NCALIGN_UNALIGNED;
-  }else{ // new root/standard plane
+  }else{ // bound to preexisting pile
     if(nopts->flags & NCPLANE_OPTION_HORALIGNED){
       p->absx = ncplane_align(n, nopts->x, nopts->cols);
       p->align = nopts->x;
@@ -409,7 +409,7 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
       nc->stats.fbbytes += fbsize;
       ++nc->stats.planes;
     }else{ // new pile
-      p->pile = ncpile_create(nc);
+      p->pile = make_ncpile(nc);
       p->pile->top = p;
       p->pile->bottom = p;
       p->below = NULL;
@@ -432,7 +432,6 @@ create_initial_ncplane(notcurses* nc, int dimy, int dimx){
     .rows = dimy - (nc->margin_t + nc->margin_b),
     .cols = dimx - (nc->margin_l + nc->margin_r),
     .name = "std",
-    .flags = NCPLANE_OPTION_NEWPILE,
   };
   return nc->stdplane = ncplane_new_internal(nc, NULL, &nopts);
 }
@@ -445,19 +444,12 @@ const ncplane* notcurses_stdplane_const(const notcurses* nc){
   return nc->stdplane;
 }
 
-// if n is NULL, nopts must supply nc together with NCPLANE_OPTIONS_NEWPILE
 ncplane* ncplane_create(ncplane* n, const ncplane_options* nopts){
-  if(nopts->flags & NCPLANE_OPTION_NEWPILE){
-    if(nopts->flags & NCPLANE_OPTION_HORALIGNED){
-      logerror(ncplane_notcurses(n), "Can't align a root plane");
-      return NULL;
-    }
-  }else{
-    if(!n){
-      return NULL; // can't log, no n nor nc :/
-    }
-  }
-  return ncplane_new_internal(n ? ncplane_notcurses(n) : nopts->nc, n, nopts);
+  return ncplane_new_internal(ncplane_notcurses(n), n, nopts);
+}
+
+ncplane* ncpile_create(notcurses* nc, const struct ncplane_options* nopts){
+  return ncplane_new_internal(nc, NULL, nopts);
 }
 
 struct ncplane* ncplane_new(struct ncplane* n, int rows, int cols, int y, int x, void* opaque, const char* name){
@@ -470,7 +462,6 @@ struct ncplane* ncplane_new(struct ncplane* n, int rows, int cols, int y, int x,
     .name = name,
     .resizecb = NULL,
     .flags = 0,
-    .nc = NULL,
   };
   return ncplane_create(n, &nopts);
 }

@@ -1026,11 +1026,6 @@ API char* notcurses_at_yx(struct notcurses* nc, int yoff, int xoff,
 // Horizontal alignment relative to the parent plane. Use 'align' instead of 'x'.
 #define NCPLANE_OPTION_HORALIGNED 0x0001ull
 
-// Create a new pile with the newly-created plane at its root. The 'n' argument
-// ought be NULL, though this is not enforced. When this flag is provided, the
-// 'nc' field of the ncplane_options struct must be a valid notcurses context.
-#define NCPLANE_OPTION_NEWPILE    0x0002ull
-
 typedef struct ncplane_options {
   int y;            // vertical placement relative to parent plane
   int x;            // horizontal placement relative to parent plane
@@ -1040,7 +1035,6 @@ typedef struct ncplane_options {
   const char* name; // name (used only for debugging), may be NULL
   int (*resizecb)(struct ncplane*); // callback when parent is resized
   uint64_t flags;   // closure over NCPLANE_OPTION_*
-  struct notcurses* nc; // only needs to be set with NCPLANE_OPTION_NEWPILE
 } ncplane_options;
 
 // Create a new ncplane bound to plane 'n', at the offset 'y'x'x' (relative to
@@ -1050,9 +1044,14 @@ typedef struct ncplane_options {
 // retrieved (and reset) later. A 'name' can be set, used in debugging.
 API struct ncplane* ncplane_create(struct ncplane* n, const ncplane_options* nopts);
 
+// Same as ncplane_create(), but creates a new pile. The returned plane will
+// be the top, bottom, and root of this new pile.
+API struct ncplane* ncpile_create(struct notcurses* nc, const ncplane_options* nopts);
+
 // This function will be removed in 3.0 in favor of ncplane_create().
 // It persists in 2.0 only for backwards compatibility.
-API struct ncplane* ncplane_new(struct ncplane* n, int rows, int cols, int y, int x, void* opaque, const char* name);
+API struct ncplane* ncplane_new(struct ncplane* n, int rows, int cols, int y, int x, void* opaque, const char* name)
+  __attribute__ ((deprecated));
 
 // Suitable for use as a 'resizecb'. This will realign the plane 'n' against its
 // parent, using the alignment specified at ncplane_create()-time.

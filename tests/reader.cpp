@@ -23,7 +23,6 @@ TEST_CASE("Readers") {
       .name = nullptr,
       .resizecb = nullptr,
       .flags = 0,
-      .nc = nullptr,
     };
     auto ncp = ncplane_create(notcurses_stdplane(nc_), &nopts);
     uint64_t echannels = CHANNELS_RGB_INITIALIZER(0xff, 0x44, 0xff, 0, 0, 0);
