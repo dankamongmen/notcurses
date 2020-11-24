@@ -4,6 +4,10 @@ rearrangements of Notcurses.
 * 2.0.8 (not yet released)
   * The MAJOR, MINOR, and PATH versions are now available as preprocessor
     numeric defines, fit for comparisons at the cpp level.
+  * Add new function `ncplane_reparent_family()`, which reparents a plane and
+    its bindtree (all planes bound to the plane, recursively).
+    `ncplane_reparent()` now reparents only the specified plane; any planes
+    bound to it are reparented to its old parent.
   * Move to a multipile model. For full details, consult
       https://groups.google.com/g/notcurses/c/knB4ojndv8A and
       https://github.com/dankamongmen/notcurses/issues/1078 and
@@ -16,6 +20,9 @@ rearrangements of Notcurses.
       `ncpile_create()`. The returned plane will be the top, bottom, and root
       of a new plane. Alternatively, use `ncplane_reparent()` or
       `ncplane_reparent_family()` with the source equal to the destination.
+    * Add new function `ncpile_render()`, which renders the pile containing the
+      specified plane to the specified buffer. Add new function
+      `notcurses_rasterize()` to rasterize the specified buffer to output.
 
 * 2.0.7 (2020-11-21)
   * The `horiz` union of `ncplane_options` has been discarded; the `int x`
