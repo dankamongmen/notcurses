@@ -551,6 +551,7 @@ TEST_CASE("NCPlane") {
     CHECK(0 == testcell.gcluster);
     CHECK(0 == testcell.stylemask);
     CHECK(0 == testcell.channels);
+    cell_release(n_, &testcell);
     int dimy, dimx;
     ncplane_dim_yx(n_, &dimy, &dimx);
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 1, dimx - strlen(STR2)));
@@ -588,6 +589,7 @@ TEST_CASE("NCPlane") {
     CHECK(0 == testcell.gcluster);
     CHECK(0 == testcell.stylemask);
     CHECK(0 == testcell.channels);
+    cell_release(n_, &testcell);
     int dimy, dimx;
     ncplane_dim_yx(n_, &dimy, &dimx);
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 1, dimx - mbstowcs(nullptr, STR2, 0)));
@@ -897,11 +899,14 @@ TEST_CASE("NCPlane") {
       .x = 1,
       .rows = 2,
       .cols = 2,
-      nullptr, nullptr, nullptr, 0,
+      nullptr, "ndom", nullptr, 0,
     };
     struct ncplane* ndom = ncplane_create(n_, &nopts);
+    CHECK(ncplane_pile(ndom) == ncplane_pile(n_));
     REQUIRE(ndom);
+    nopts.name = "sub";
     struct ncplane* nsub = ncplane_create(ndom, &nopts);
+    CHECK(ncplane_pile(nsub) == ncplane_pile(ndom));
     REQUIRE(nsub);
     int absy, absx;
     CHECK(0 == notcurses_render(nc_));
@@ -909,13 +914,14 @@ TEST_CASE("NCPlane") {
     CHECK(1 == absy); // actually at 2, 2
     CHECK(1 == absx);
     ncplane_reparent(nsub, nsub);
+    CHECK(ncplane_pile(nsub) != ncplane_pile(ndom));
     ncplane_yx(nsub, &absy, &absx);
-    CHECK(2 == absy); // now we recognize 2, 2
-    CHECK(2 == absx);
+    CHECK(1 == absy); // now truly at 1, 1
+    CHECK(1 == absx);
     CHECK(0 == ncplane_move_yx(ndom, 0, 0));
     ncplane_yx(nsub, &absy, &absx);
-    CHECK(2 == absy); // still at 2, 2
-    CHECK(2 == absx);
+    CHECK(1 == absy); // still at 1, 1
+    CHECK(1 == absx);
   }
 
   SUBCASE("NoReparentStdPlane") {
