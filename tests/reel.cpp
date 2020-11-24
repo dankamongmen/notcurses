@@ -299,7 +299,6 @@ TEST_CASE("Reels") {
       .name = nullptr,
       .resizecb = nullptr,
       .flags = 0,
-      .nc = nullptr,
     };
     auto ncp = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != ncp);

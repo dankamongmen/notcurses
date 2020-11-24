@@ -27,6 +27,8 @@ typedef struct ncplane_options {
 
 **struct ncplane* ncplane_create(struct ncplane* ***n***, const ncplane_options* ***nopts***);**
 
+**struct ncplane* ncpile_create(struct notcurses* ***n***, const ncplane_options* ***nopts***);**
+
 **struct ncplane* notcurses_top(struct notcurses* ***n***);**
 
 **struct ncplane* notcurses_bottom(struct notcurses* ***n***);**
@@ -255,8 +257,8 @@ bound to themselves). Multiple threads can concurrently operate on distinct
 piles, even changing one while rendering another.
 
 Each plane is part of one and only one pile. By default, a plane is part of the
-same pile containing that plane to which it is bound. If the **n** argument
-provided to **ncplane_create** is **NULL**, the returned plane becomes the root
+same pile containing that plane to which it is bound. If **ncpile_create** is
+used in the place of **ncplane_create**, the returned plane becomes the root
 plane, top, and bottom of a new pile. As a root plane, it is bound to itself. A
 new pile can also be created by reparenting a plane to itself, though if the
 plane is already a root plane, this is a no-op.

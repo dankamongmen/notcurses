@@ -18,7 +18,7 @@ TEST_CASE("Selectors") {
       .x = 0,
       .rows = 1,
       .cols = 1,
-      nullptr, nullptr, nullptr, 0, nullptr,
+      nullptr, nullptr, nullptr, 0,
     };
     struct ncplane* n = ncplane_create(n_, &nopts);
     struct ncselector* ncs = ncselector_create(n, &opts);
@@ -42,7 +42,7 @@ TEST_CASE("Selectors") {
       .x = 0,
       .rows = 1,
       .cols = 1,
-      nullptr, nullptr, nullptr, 0, nullptr,
+      nullptr, nullptr, nullptr, 0,
     };
     struct ncplane* n = ncplane_create(n_, &nopts);
     struct ncselector* ncs = ncselector_create(n, &opts);
@@ -65,7 +65,7 @@ TEST_CASE("Selectors") {
       .x = 0,
       .rows = 1,
       .cols = 1,
-      nullptr, nullptr, nullptr, 0, nullptr,
+      nullptr, nullptr, nullptr, 0,
     };
     struct ncplane* n = ncplane_create(n_, &nopts);
     struct ncselector* ncs = ncselector_create(n, &opts);
@@ -88,7 +88,7 @@ TEST_CASE("Selectors") {
       .x = 0,
       .rows = 1,
       .cols = 1,
-      nullptr, nullptr, nullptr, 0, nullptr,
+      nullptr, nullptr, nullptr, 0,
     };
     struct ncplane* n = ncplane_create(n_, &nopts);
     struct ncselector* ncs = ncselector_create(n, &opts);
@@ -117,7 +117,7 @@ TEST_CASE("Selectors") {
       .x = 0,
       .rows = 1,
       .cols = 1,
-      nullptr, nullptr, nullptr, 0, nullptr,
+      nullptr, nullptr, nullptr, 0,
     };
     struct ncplane* n = ncplane_create(n_, &nopts);
     struct ncselector* ncs = ncselector_create(n, &opts);
@@ -139,7 +139,7 @@ TEST_CASE("Selectors") {
       .x = 0,
       .rows = 1,
       .cols = 1,
-      nullptr, nullptr, nullptr, 0, nullptr,
+      nullptr, nullptr, nullptr, 0,
     };
     struct ncplane* n = ncplane_create(n_, &nopts);
     struct ncselector* ncs = ncselector_create(n, &opts);
@@ -170,7 +170,7 @@ TEST_CASE("Selectors") {
       .x = 0,
       .rows = 1,
       .cols = 1,
-      nullptr, nullptr, nullptr, 0, nullptr,
+      nullptr, nullptr, nullptr, 0,
     };
     struct ncplane* n = ncplane_create(n_, &nopts);
     struct ncselector* ncs = ncselector_create(n, &opts);
@@ -216,7 +216,7 @@ TEST_CASE("Selectors") {
       .x = 0,
       .rows = 1,
       .cols = 1,
-      nullptr, nullptr, nullptr, 0, nullptr,
+      nullptr, nullptr, nullptr, 0,
     };
     struct ncplane* n = ncplane_create(n_, &nopts);
     struct ncselector* ncs = ncselector_create(n, &opts);
@@ -267,7 +267,7 @@ TEST_CASE("Selectors") {
       .x = 0,
       .rows = 1,
       .cols = 1,
-      nullptr, nullptr, nullptr, 0, nullptr,
+      nullptr, nullptr, nullptr, 0,
     };
     struct ncplane* n = ncplane_create(n_, &nopts);
     struct ncselector* ncs = ncselector_create(n, &opts);

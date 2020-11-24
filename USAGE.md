@@ -631,6 +631,7 @@ In addition to its framebuffer--a rectilinear matrix of cells
 * a configured user curry (a `void*`),
 * its position relative to the visible plane,
 * its z-index, and
+* an optional resize callback,
 * a name (used only for debugging).
 
 If opaque, a `cell` on a higher `ncplane` completely obstructs a corresponding
