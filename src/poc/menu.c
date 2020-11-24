@@ -34,6 +34,15 @@ run_menu(struct notcurses* nc, struct ncmenu* ncm){
         ncmenu_destroy(ncm);
         ncplane_destroy(selplane);
         return 0;
+      }else if(keypress == NCKEY_ENTER){ // selected a menu item
+        const char* sel;
+        if( (sel = ncmenu_selected(ncm, &ni)) ){
+          if(strcmp(sel, "Quit") == 0){
+            ncmenu_destroy(ncm);
+            ncplane_destroy(selplane);
+            return 0;
+          }
+        }
       }
     }
     ncplane_erase(selplane);
@@ -71,7 +80,7 @@ int main(void){
     { .desc = "Open", .shortcut = { .id = 'o', .ctrl = true, }, },
     { .desc = "Close", .shortcut = { .id = 'c', .ctrl = true, }, },
     { .desc = NULL, },
-    { .desc = "Quit", .shortcut = { .id = 'q', .ctrl = true, }, },
+    { .desc = "Quit", .shortcut = { .id = 'q', }, },
   };
   struct ncmenu_item help_items[] = {
     { .desc = "About", .shortcut = { .id = 'a', .ctrl = true, }, },
