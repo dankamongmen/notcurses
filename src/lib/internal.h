@@ -73,8 +73,8 @@ typedef struct ncplane {
   // and is the only stack which is rendered. each stack has its own z-axis.
   struct ncplane* above; // plane above us, NULL if we're on top
   struct ncplane* below; // plane below us, NULL if we're on bottom
-  struct ncplane* bnext; // next in the bound list of plane to which we are bound
-  struct ncplane** bprev;// link to us iff we're bound, NULL otherwise
+  struct ncplane* bnext; // next in the blist iff we're bound, NULL otherwise
+  struct ncplane** bprev;// blist link to us iff we're bound, NULL otherwise
   struct ncplane* blist; // head of list of bound planes
   // a root plane is bound to itself. every other plane has a path to its
   // stack's root via boundto. the standard plane is always bound to itself.
