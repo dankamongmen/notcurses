@@ -1148,6 +1148,7 @@ err:
 // updates *pile to point at (*pile)->next, frees all but standard pile/plane
 static void
 ncpile_drop(notcurses* nc, ncpile** pile){
+  ncpile* next = (*pile)->next;
   ncplane* p = (*pile)->top;
   while(p){
     ncplane* tmp = p->below;
@@ -1156,11 +1157,7 @@ ncpile_drop(notcurses* nc, ncpile** pile){
     }
     p = tmp;
   }
-  ncpile* tmp = (*pile)->next;
-  if(*pile != ncplane_pile(nc->stdplane)){
-    ncpile_destroy(*pile);
-  }
-  *pile = tmp;
+  *pile = next;
 }
 
 // drop all piles and all planes, save the standard plane and its pile
@@ -1980,10 +1977,16 @@ int ncplane_move_yx(ncplane* n, int y, int x){
 }
 
 int ncplane_y(const ncplane* n){
+  if(n->boundto == n){
+    return n->absy - ncplane_notcurses_const(n)->margin_t;
+  }
   return n->absy - n->boundto->absy;
 }
 
 int ncplane_x(const ncplane* n){
+  if(n->boundto == n){
+    return n->absx - ncplane_notcurses_const(n)->margin_t;
+  }
   return n->absx - n->boundto->absx;
 }
 
@@ -2174,9 +2177,8 @@ int ncplane_resize_realign(ncplane* n){
 }
 
 // The standard plane cannot be reparented; we return NULL in that case.
-// If provided a NULL |newparent|, we are moving |n| to its own stack. If |n|
-// is already root of its own stack in this case, we return NULL. If |n| is
-// already bound to |newparent|, this is a no-op, and we return |n|.
+// If provided |newparent|==|n|, we are moving |n| to its own stack. If |n|
+// is already bound to |newparent|, this is a no-op, and we return |n|.
 ncplane* ncplane_reparent(ncplane* n, ncplane* newparent){
   if(n == ncplane_notcurses(n)->stdplane){
     return NULL; // can't reparent standard plane
@@ -2208,15 +2210,28 @@ ncplane* ncplane_reparent_family(ncplane* n, ncplane* newparent){
   if(n->boundto == newparent){ // no-op
     return n;
   }
-  // are we the sole member of our current pile? if so, destroy it.
-  if(n->boundto == n && n->blist == NULL && n->bprev == NULL){
-    pthread_mutex_lock(&ncplane_notcurses(n)->pilelock);
-    ncpile_destroy(ncplane_pile(n));
-    pthread_mutex_unlock(&ncplane_notcurses(n)->pilelock);
+  // if we are not a root plane, adjust our origin
+  if(n->boundto != n){
+    n->absx -= n->boundto->absx;
+    n->absy -= n->boundto->absy;
   }
   if(n->bprev){ // extract from sibling list
     if( (*n->bprev = n->bnext) ){
       n->bnext->bprev = n->bprev;
+    }
+  }
+  // if leaving a pile, extract n from the old zaxis
+  if(n == newparent || ncplane_pile(n) != ncplane_pile(newparent)){
+    // FIXME need remove full family from z-axis, not just n!
+    if(ncplane_pile(n)->top == n){
+      ncplane_pile(n)->top = n->below;
+    }else{
+      n->above->below = n->below;
+    }
+    if(ncplane_pile(n)->bottom == n){
+      ncplane_pile(n)->bottom = n->above;
+    }else{
+      n->below->above = n->above;
     }
   }
   n->boundto = newparent;
@@ -2224,14 +2239,30 @@ ncplane* ncplane_reparent_family(ncplane* n, ncplane* newparent){
     n->bnext = NULL;
     n->bprev = NULL;
     pthread_mutex_lock(&ncplane_notcurses(n)->pilelock);
+    if(ncplane_pile(n)->top == NULL){ // did we just empty our pile?
+      ncpile_destroy(ncplane_pile(n));
+    }
     make_ncpile(ncplane_notcurses(n), n);
     pthread_mutex_unlock(&ncplane_notcurses(n)->pilelock);
   }else{ // establish ourselves as a sibling of new parent's children
+    n->absx += n->boundto->absx;
+    n->absy += n->boundto->absy;
     if( (n->bnext = newparent->blist) ){
       n->bnext->bprev = &n->bnext;
     }
     n->bprev = &newparent->blist;
     newparent->blist = n;
+    // place it immediately above the new binding plane if crossing piles
+    if(n->pile != ncplane_pile(n->boundto)){
+      n->pile = ncplane_pile(n->boundto);
+      if((n->above = n->boundto->above) == NULL){
+        n->pile->top = n;
+      }else{
+        n->boundto->above->below = n;
+      }
+      n->below = n->boundto;
+      n->boundto->above = n;
+    }
   }
   return n;
 }
