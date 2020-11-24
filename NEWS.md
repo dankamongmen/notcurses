@@ -2,6 +2,8 @@ This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
 * 2.0.8 (not yet released)
+  * The MAJOR, MINOR, and PATH versions are now available as preprocessor
+    numeric defines, fit for comparisons at the cpp level.
   * Move to a multipile model. For full details, consult
       https://groups.google.com/g/notcurses/c/knB4ojndv8A and
       https://github.com/dankamongmen/notcurses/issues/1078 and
