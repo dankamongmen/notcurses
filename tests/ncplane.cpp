@@ -908,7 +908,7 @@ TEST_CASE("NCPlane") {
     ncplane_yx(nsub, &absy, &absx);
     CHECK(1 == absy); // actually at 2, 2
     CHECK(1 == absx);
-    ncplane_reparent(nsub, nullptr);
+    ncplane_reparent(nsub, nsub);
     ncplane_yx(nsub, &absy, &absx);
     CHECK(2 == absy); // now we recognize 2, 2
     CHECK(2 == absx);

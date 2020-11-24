@@ -297,12 +297,12 @@ void free_plane(ncplane* p){
 
 // create a new ncpile. only call with pilelock held.
 static ncpile*
-make_ncpile(notcurses* nc){
+make_ncpile(notcurses* nc, ncplane* n){
   ncpile* ret = malloc(sizeof(*ret));
   if(ret){
     ret->nc = nc;
-    ret->top = NULL;
-    ret->bottom = NULL;
+    ret->top = n;
+    ret->bottom = n;
     if(nc->stdplane){
       ret->prev = ncplane_pile(nc->stdplane)->prev;
       ncplane_pile(nc->stdplane)->prev->next = ret;
@@ -312,6 +312,9 @@ make_ncpile(notcurses* nc){
       ret->prev = ret;
       ret->next = ret;
     }
+    n->pile = ret;
+    n->above = NULL;
+    n->below = NULL;
   }
   return ret;
 }
@@ -385,27 +388,25 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
   egcpool_init(&p->pool);
   cell_init(&p->basecell);
   p->userptr = nopts->userptr;
-  p->above = NULL;
   if(nc == NULL){ // fake ncplane backing ncdirect object
+    p->above = NULL;
     p->below = NULL;
   }else{
     pthread_mutex_lock(&nc->pilelock);
     ncpile* pile = n ? ncplane_pile(n) : NULL;
     if( (p->pile = pile) ){ // existing pile
+      p->above = NULL;
       if( (p->below = pile->top) ){ // always happens save initial plane
         pile->top->above = p;
       }else{
         pile->bottom = p;
       }
       pile->top = p;
-      nc->stats.fbbytes += fbsize;
-      ++nc->stats.planes;
     }else{ // new pile
-      p->pile = make_ncpile(nc);
-      p->pile->top = p;
-      p->pile->bottom = p;
-      p->below = NULL;
+      make_ncpile(nc, p);
     }
+    nc->stats.fbbytes += fbsize;
+    ++nc->stats.planes;
     pthread_mutex_unlock(&nc->pilelock);
   }
   loginfo(nc, "Created new %dx%d plane \"%s\" @ %dx%d\n",
@@ -2153,17 +2154,17 @@ int ncplane_resize_realign(ncplane* n){
 // is already root of its own stack in this case, we return NULL. If |n| is
 // already bound to |newparent|, this is a no-op, and we return |n|.
 ncplane* ncplane_reparent(ncplane* n, ncplane* newparent){
-  if(n == ncplane_notcurses(n)->stdplane || n == newparent){
-    return NULL; // can't reparent standard plane, can't reparent to self
+  if(n == ncplane_notcurses(n)->stdplane){
+    return NULL; // can't reparent standard plane
   }
-  if(n->boundto == n && newparent == NULL){
-    return NULL; // can't make new stack out of a stack's root
+  if(n->boundto == newparent){
+    return n;
   }
   if(n->boundto == n){ // children become new root planes
     for(ncplane* child = n->blist ; child ; child = child->bnext){
       child->boundto = child;
     }
-  }else{
+  }else{ // children are rebound to current parent
     if(n->blist){
       if( (n->blist->bnext = n->boundto->blist) ){
         n->boundto->blist->bprev = &n->blist->bnext;
@@ -2177,36 +2178,37 @@ ncplane* ncplane_reparent(ncplane* n, ncplane* newparent){
 }
 
 ncplane* ncplane_reparent_family(ncplane* n, ncplane* newparent){
-  if(n == ncplane_notcurses(n)->stdplane || n == newparent){
-    return NULL; // can't reparent standard plane, can't reparent to self
+  if(n == ncplane_notcurses(n)->stdplane){
+    return NULL; // can't reparent standard plane
   }
-  if(n->boundto == n && newparent == NULL){
-    return NULL; // can't make new stack out of a stack's root
-  }
-  if(newparent == NULL){ // FIXME make a new stack
-    newparent = ncplane_notcurses(n)->stdplane;
-  }
-  if(n->boundto == newparent){
+  if(n->boundto == newparent){ // no-op
     return n;
   }
-  if(n->bprev){
+  // are we the sole member of our current pile? if so, destroy it.
+  if(n->boundto == n && n->blist == NULL && n->bprev == NULL){
+    pthread_mutex_lock(&ncplane_notcurses(n)->pilelock);
+    ncpile_destroy(ncplane_pile(n));
+    pthread_mutex_unlock(&ncplane_notcurses(n)->pilelock);
+  }
+  if(n->bprev){ // extract from sibling list
     if( (*n->bprev = n->bnext) ){
       n->bnext->bprev = n->bprev;
     }
   }
   n->boundto = newparent;
-  if(newparent == NULL){
+  if(n == n->boundto){ // we're a new root plane
     n->bnext = NULL;
     n->bprev = NULL;
-    n->boundto = n;
-    // FIXME need new pile
-    return n;
+    pthread_mutex_lock(&ncplane_notcurses(n)->pilelock);
+    make_ncpile(ncplane_notcurses(n), n);
+    pthread_mutex_unlock(&ncplane_notcurses(n)->pilelock);
+  }else{ // establish ourselves as a sibling of new parent's children
+    if( (n->bnext = newparent->blist) ){
+      n->bnext->bprev = &n->bnext;
+    }
+    n->bprev = &newparent->blist;
+    newparent->blist = n;
   }
-  if( (n->bnext = newparent->blist) ){
-    n->bnext->bprev = &n->bnext;
-  }
-  n->bprev = &newparent->blist;
-  newparent->blist = n;
   return n;
 }
 
