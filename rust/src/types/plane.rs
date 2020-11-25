@@ -32,16 +32,16 @@ pub type NcFdPlaneOptions = crate::ncfdplane_options;
 /// Left/right-justified, or centered.
 pub type NcAlign = crate::ncalign_e;
 
-/// Align an NcPlane or NcTerm
+/// Left alignment within an [`NcPlane`] or terminal.
 pub const NCALIGN_LEFT: NcAlign = crate::ncalign_e_NCALIGN_LEFT;
 
-///
+/// Right alignment within an [`NcPlane`] or terminal.
 pub const NCALIGN_RIGHT: NcAlign = crate::ncalign_e_NCALIGN_RIGHT;
 
-///
+/// Center alignment within an [`NcPlane`] or terminal.
 pub const NCALIGN_CENTER: NcAlign = crate::ncalign_e_NCALIGN_CENTER;
 
-///
+/// Do not align an [`NcPlane`] or terminal.
 pub const NCALIGN_UNALIGNED: NcAlign = crate::ncalign_e_NCALIGN_UNALIGNED;
 
 /// Blitter Mode (`NCBLIT_*`)
@@ -50,37 +50,37 @@ pub const NCALIGN_UNALIGNED: NcAlign = crate::ncalign_e_NCALIGN_UNALIGNED;
 /// background set to the desired foreground.
 pub type NcBlitter = crate::ncblitter_e;
 
-/// space, compatible with ASCII
+/// [`NcBlitter`] mode using: space, compatible with ASCII
 pub const NCBLIT_1x1: NcBlitter = crate::ncblitter_e_NCBLIT_1x1;
 
-/// halves + 1x1 (space)
+/// [`NcBlitter`] mode using: halves + 1x1 (space)
 /// ▄▀
 pub const NCBLIT_2x1: NcBlitter = crate::ncblitter_e_NCBLIT_2x1;
 
-/// quadrants + 2x1
+/// [`NcBlitter`] mode using: quadrants + 2x1
 /// ▗▐ ▖▀▟▌▙
 pub const NCBLIT_2x2: NcBlitter = crate::ncblitter_e_NCBLIT_2x2;
 
-/// sextants (NOT 2x2)
+/// [`NcBlitter`] mode using: sextants
 /// 🬀🬁🬂🬃🬄🬅🬆🬇🬈🬉🬊🬋🬌🬍🬎🬏🬐🬑🬒🬓🬔🬕🬖🬗🬘🬙🬚🬛🬜🬝🬞🬟🬠🬡🬢🬣🬤🬥🬦🬧🬨🬩🬪🬫🬬🬭🬮🬯🬰🬱🬲🬳🬴🬵🬶🬷🬸🬹🬺🬻
 pub const NCBLIT_3x2: NcBlitter = crate::ncblitter_e_NCBLIT_3x2;
 
-/// four vertical levels
+/// [`NcBlitter`] mode using: four vertical levels
 /// █▆▄▂
 pub const NCBLIT_4x1: NcBlitter = crate::ncblitter_e_NCBLIT_4x1;
 
-/// eight vertical levels
+/// [`NcBlitter`] mode using: eight vertical levels
 /// █▇▆▅▄▃▂▁
 pub const NCBLIT_8x1: NcBlitter = crate::ncblitter_e_NCBLIT_8x1;
 
-/// 4 rows, 2 cols (braille)
+/// [`NcBlitter`] mode using: 4 rows, 2 cols (braille)
 /// ⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿
 pub const NCBLIT_BRAILLE: NcBlitter = crate::ncblitter_e_NCBLIT_BRAILLE;
 
-/// the blitter is automatically chosen
+/// [`NcBlitter`] mode where the blitter is automatically chosen
 pub const NCBLIT_DEFAULT: NcBlitter = crate::ncblitter_e_NCBLIT_DEFAULT;
 
-/// not yet implemented
+/// [`NcBlitter`] mode (not yet implemented)
 pub const NCBLIT_SIXEL: NcBlitter = crate::ncblitter_e_NCBLIT_SIXEL;
 
 /// How to scale an [`NcVisual`] during rendering

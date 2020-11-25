@@ -105,7 +105,7 @@ pub const NCCELL_BGDEFAULT_MASK: u32 = crate::bindings::CELL_BGDEFAULT_MASK;
 /// Extract these bits to get the background alpha mask
 pub const NCCELL_BG_ALPHA_MASK: u32 = crate::bindings::CELL_BG_ALPHA_MASK;
 
-/// If this bit *and* CELL_BGDEFAULT_MASK are set, we're using a
+/// If this bit *and* [`CELL_BGDEFAULT_MASK`] are set, we're using a
 /// palette-indexed background color
 pub const NCCELL_BG_PALETTE: u32 = crate::bindings::CELL_BG_PALETTE;
 
@@ -118,7 +118,7 @@ pub const NCCELL_FGDEFAULT_MASK: u64 = crate::bindings::CELL_FGDEFAULT_MASK;
 /// Extract these bits to get the foreground alpha mask
 pub const NCCELL_FG_ALPHA_MASK: u64 = crate::bindings::CELL_FG_ALPHA_MASK;
 
-/// If this bit *and* CELL_BGDEFAULT_MASK are set, we're using a
+/// If this bit *and* [`CELL_BGDEFAULT_MASK`] are set, we're using a
 /// palette-indexed background color
 pub const NCCELL_FG_PALETTE: u64 = crate::bindings::CELL_FG_PALETTE;
 

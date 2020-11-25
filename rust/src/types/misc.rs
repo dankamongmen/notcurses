@@ -21,27 +21,27 @@ pub type NcTime = crate::bindings::timespec;
 //
 // to set up a printf()-style maximum field width,
 // you should use [IB]PREFIXFMT (see below).
-pub const PREFIXCOLUMNS: u32 = crate::bindings::PREFIXCOLUMNS;
+pub const NCMETRIC_PREFIXCOLUMNS: u32 = crate::bindings::PREFIXCOLUMNS;
 
 // The maximum number of columns used by a mult == 1000 (standard)
 // ncmetric() call.
-pub const BPREFIXCOLUMNS: u32 = crate::bindings::BPREFIXCOLUMNS;
+pub const NCMETRIC_BPREFIXCOLUMNS: u32 = crate::bindings::BPREFIXCOLUMNS;
 
 // IPREFIXCOLUMNS is the maximum number of columns used by a mult == 1024
 // (digital information) ncmetric().
-pub const IPREFIXCOLUMNS: u32 = crate::bindings::IPREFIXCOLUMNS;
+pub const NCMETRIC_IPREFIXCOLUMNS: u32 = crate::bindings::IPREFIXCOLUMNS;
 
 //
 // Does not include a '\0' (xxx.xxU)
-pub const PREFIXSTRLEN: u32 = crate::bindings::PREFIXSTRLEN;
+pub const NCMETRIC_PREFIXSTRLEN: u32 = crate::bindings::PREFIXSTRLEN;
 
 // The maximum number of columns used by a mult == 1024 call making use of
 // the 'i' suffix.
 // Does not include a '\0' (xxxx.xxUi), i == prefix
-pub const BPREFIXSTRLEN: u32 = crate::bindings::BPREFIXSTRLEN;
+pub const NCMETRIC_BPREFIXSTRLEN: u32 = crate::bindings::BPREFIXSTRLEN;
 
 // Does not include a '\0' (xxxx.xxU)
-pub const IPREFIXSTRLEN: u32 = crate::bindings::IPREFIXSTRLEN;
+pub const NCMETRIC_IPREFIXSTRLEN: u32 = crate::bindings::IPREFIXSTRLEN;
 
 // TODO:?
 // WCHAR_MAX_UTF8BYTES

@@ -713,11 +713,13 @@ pub use bindgen::{
 
 // sig -------------------------------------------------------------------------
 
-#[doc(inline)]
-pub use bindgen::{
+pub(crate) use bindgen::{
     // type definitions
     sigset_t,
+};
 
+#[doc(inline)]
+pub use bindgen::{
     // structs
     //sigaction,
 
