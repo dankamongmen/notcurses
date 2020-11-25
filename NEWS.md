@@ -22,7 +22,8 @@ rearrangements of Notcurses.
       `ncplane_reparent_family()` with the source equal to the destination.
     * Add new function `ncpile_render()`, which renders the pile containing the
       specified plane to the specified buffer. Add new function
-      `notcurses_rasterize()` to rasterize the specified buffer to output.
+      `ncpile_rasterize()` to rasterize the specified buffer to output.
+  * `notcurses_render_to_buffer()` has been deprecated. Use `ncpile_render()`.
 
 * 2.0.7 (2020-11-21)
   * The `horiz` union of `ncplane_options` has been discarded; the `int x`

@@ -841,16 +841,24 @@ API struct notcurses* notcurses_init(const notcurses_options* opts, FILE* fp);
 // Destroy a Notcurses context.
 API int notcurses_stop(struct notcurses* nc);
 
-// Make the physical screen match the virtual screen. Changes made to the
-// virtual screen (i.e. most other calls) will not be visible until after a
-// successful call to notcurses_render().
+// Renders the pile of which 'n' is a part. Rendering this pile again will blow
+// away the render. To actually write out the render, call ncpile_rasterize().
+API int ncpile_render(struct ncplane* n);
+
+// Make the physical screen match the last rendered frame from the pile of
+// which 'n' is a part. This is a blocking call. Don't call this before the
+// pile has been rendered (doing so will likely result in a blank screen).
+API int ncpile_rasterize(struct ncplane* n);
+
+// Renders and rasterizes the standard pile in one shot. Blocking call.
 API int notcurses_render(struct notcurses* nc);
 
 // Perform the rendering and rasterization portion of notcurses_render(), but
 // do not write the resulting buffer out to the terminal. Using this function,
 // the user can control the writeout process, and render a second frame while
 // writing another. The returned buffer must be freed by the caller.
-API int notcurses_render_to_buffer(struct notcurses* nc, char** buf, size_t* buflen);
+API int notcurses_render_to_buffer(struct notcurses* nc, char** buf, size_t* buflen)
+  __attribute__ ((deprecated));
 
 // Write the last rendered frame, in its entirety, to 'fp'. If
 // notcurses_render() has not yet been called, nothing will be written.
