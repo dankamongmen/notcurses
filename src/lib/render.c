@@ -904,6 +904,9 @@ notcurses_rasterize_inner(notcurses* nc, const struct crender* rvec, FILE* out){
 //fprintf(stderr, "damageidx: %ld\n", damageidx);
     }
   }
+  if(fflush(out)){
+    return -1;
+  }
   return nc->rstate.mstrsize;
 }
 
@@ -913,7 +916,7 @@ raster_and_write(notcurses* nc, const struct crender* rvec, FILE* out){
   if(notcurses_rasterize_inner(nc, rvec, out) < 0){
     return -1;
   }
-  int ret = fflush(out);
+  int ret = 0;
   //fflush(nc->ttyfp);
   if(blocking_write(fileno(nc->ttyfp), nc->rstate.mstream, nc->rstate.mstrsize)){
     ret = -1;
@@ -1036,40 +1039,50 @@ int notcurses_render_to_file(notcurses* nc, FILE* fp){
 // down the z-buffer, looking at intersections with ncplanes. This implies
 // locking down the EGC, the attributes, and the channels for each cell.
 static int
-notcurses_render_internal(notcurses* nc, struct crender* rvec){
-  ncplane* p = ncplane_pile(nc->stdplane)->top;
+ncpile_render_internal(ncplane* n, struct crender* rvec, int leny, int lenx,
+                       int absy, int absx){
+  ncplane* p = ncplane_pile(n)->top;
   while(p){
-    paint(p, rvec, nc->stdplane->leny, nc->stdplane->lenx,
-          nc->stdplane->absy, nc->stdplane->absx);
+    paint(p, rvec, leny, lenx, absy, absx);
     p = p->below;
   }
   return 0;
 }
 
-int notcurses_render(notcurses* nc){
+int ncpile_render(ncplane* n){
   struct timespec start, rasterdone;
   clock_gettime(CLOCK_MONOTONIC, &start);
   int dimy, dimx;
-  notcurses_resize(nc, &dimy, &dimx);
+  notcurses_resize(ncplane_notcurses(n), &dimy, &dimx);
   int bytes = -1;
-  const size_t crenderlen = sizeof(struct crender) * nc->stdplane->leny * nc->stdplane->lenx;
+  const size_t crenderlen = sizeof(struct crender) * dimy * dimx;
   struct crender* crender = malloc(crenderlen);
   init_rvec(crender, crenderlen / sizeof(struct crender));
-  if(notcurses_render_internal(nc, crender) == 0){
+  if(ncpile_render_internal(n, crender, dimy, dimx,
+                            notcurses_stdplane(ncplane_notcurses(n))->absy,
+                            notcurses_stdplane(ncplane_notcurses(n))->absx) == 0){
     clock_gettime(CLOCK_MONOTONIC, &rasterdone);
-    update_render_stats(&rasterdone, &start, &nc->stats);
-    postpaint(nc->lastframe, dimy, dimx, crender, &nc->pool);
-    bytes = notcurses_rasterize(nc, crender, nc->rstate.mstreamfp);
+    update_render_stats(&rasterdone, &start, &ncplane_notcurses(n)->stats);
+    // FIXME extract and move to ncpile_rasterize
+    postpaint(ncplane_notcurses(n)->lastframe, dimy, dimx, crender,
+              &ncplane_notcurses(n)->pool);
+    bytes = notcurses_rasterize(ncplane_notcurses(n), crender,
+                                ncplane_notcurses(n)->rstate.mstreamfp);
   }
-  update_render_bytes(&nc->stats, bytes);
+  // accepts -1 as an indication of failure
+  update_render_bytes(&ncplane_notcurses(n)->stats, bytes);
   free(crender);
   if(bytes < 0){
     return -1;
   }
   struct timespec writedone;
   clock_gettime(CLOCK_MONOTONIC, &writedone);
-  update_write_stats(&writedone, &rasterdone, &nc->stats);
+  update_write_stats(&writedone, &rasterdone, &ncplane_notcurses(n)->stats);
   return 0;
+}
+
+int notcurses_render(notcurses* nc){
+  return ncpile_render(notcurses_stdplane(nc));
 }
 
 // for now, we just run the top half of notcurses_render(), and copy out the
@@ -1081,10 +1094,10 @@ int notcurses_render_to_buffer(notcurses* nc, char** buf, size_t* buflen){
   int dimy, dimx;
   notcurses_resize(nc, &dimy, &dimx);
   int bytes = -1;
-  const size_t crenderlen = sizeof(struct crender) * nc->stdplane->leny * nc->stdplane->lenx;
+  const size_t crenderlen = sizeof(struct crender) * dimy * dimx;
   struct crender* crender = malloc(crenderlen);
   init_rvec(crender, crenderlen / sizeof(struct crender));
-  if(notcurses_render_internal(nc, crender) == 0){
+  if(ncpile_render_internal(nc->stdplane, crender, dimy, dimx, nc->stdplane->absy, nc->stdplane->absx) == 0){
     clock_gettime(CLOCK_MONOTONIC, &rasterdone);
     update_render_stats(&rasterdone, &start, &nc->stats);
     postpaint(nc->lastframe, dimy, dimx, crender, &nc->pool);
