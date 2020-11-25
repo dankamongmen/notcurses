@@ -857,8 +857,7 @@ API int notcurses_render(struct notcurses* nc);
 // do not write the resulting buffer out to the terminal. Using this function,
 // the user can control the writeout process, and render a second frame while
 // writing another. The returned buffer must be freed by the caller.
-API int notcurses_render_to_buffer(struct notcurses* nc, char** buf, size_t* buflen)
-  __attribute__ ((deprecated));
+API int notcurses_render_to_buffer(struct notcurses* nc, char** buf, size_t* buflen);
 
 // Write the last rendered frame, in its entirety, to 'fp'. If
 // notcurses_render() has not yet been called, nothing will be written.

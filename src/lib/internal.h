@@ -96,11 +96,11 @@ typedef struct ncplane {
 // current presentation state of the terminal. it is carried across render
 // instances. initialize everything to 0 on a terminal reset / startup.
 typedef struct renderstate {
-  // we assemble the encoded output in a POSIX memstream, and keep it around
-  // between uses. this could be a problem if it ever tremendously spiked, but
-  // that's a highly unlikely situation.
-  char* mstream;  // buffer for rendering memstream, see open_memstream(3)
-  FILE* mstreamfp;// FILE* for rendering memstream
+  // we assemble the encoded (rasterized) output in a POSIX memstream, and keep
+  // it around between uses. this could be a problem if it ever tremendously
+  // spiked, but that's a highly unlikely situation.
+  char* mstream;  // buffer for rasterizing memstream, see open_memstream(3)
+  FILE* mstreamfp;// FILE* for rasterizing memstream
   size_t mstrsize;// size of rendering memstream
 
   // the current cursor position. this is independent of whether the cursor is
@@ -298,20 +298,13 @@ typedef struct ncdirect {
   uint64_t flags;            // copied in ncdirect_init() from param
 } ncdirect;
 
-// A rendering context/result, suitable for reuse across many rendering
-// operations. A pile's planes are rendered down into a single virtual plane,
-// which can be (relative to the last rendered plane, common across the
-// notcurses context) rasterized to the actual terminal.
-typedef struct ncrender {
-  char* buf;
-  size_t buflen;
-} ncrender;
-
 typedef struct ncpile {
-  ncplane* top;     // topmost plane, never NULL
-  ncplane* bottom;  // bottommost plane, never NULL 
-  struct notcurses* nc; // notcurses context
+  ncplane* top;               // topmost plane, never NULL
+  ncplane* bottom;            // bottommost plane, never NULL
+  struct notcurses* nc;       // notcurses context
   struct ncpile *prev, *next; // circular list
+  size_t crenderlen;          // size of crender array in bytes
+  struct crender* crender;    // crender array
 } ncpile;
 
 // the standard pile can be reached through ->stdplane.
