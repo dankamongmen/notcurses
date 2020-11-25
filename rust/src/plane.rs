@@ -160,14 +160,14 @@ use crate::{
     bindgen::__va_list_tag,
     cell_load, cell_release, cells_double_box, cells_rounded_box, channels_bchannel,
     channels_bg_alpha, channels_bg_default_p, channels_bg_rgb, channels_bg_rgb8, channels_fchannel,
-    channels_fg_alpha, channels_fg_default_p, channels_fg_rgb, channels_fg_rgb8, ncplane_at_cursor,
-    ncplane_at_yx, ncplane_box, ncplane_channels, ncplane_create, ncplane_cursor_move_yx,
-    ncplane_cursor_yx, ncplane_dim_yx, ncplane_gradient, ncplane_hline_interp, ncplane_putc_yx,
-    ncplane_putegc_yx, ncplane_putnstr_yx, ncplane_putstr_yx, ncplane_resize, ncplane_vline_interp,
-    ncplane_vprintf_yx, notcurses_align,
+    channels_fg_alpha, channels_fg_default_p, channels_fg_rgb, channels_fg_rgb8, ncpile_create,
+    ncplane_at_cursor, ncplane_at_yx, ncplane_box, ncplane_channels, ncplane_create,
+    ncplane_cursor_move_yx, ncplane_cursor_yx, ncplane_dim_yx, ncplane_gradient,
+    ncplane_hline_interp, ncplane_putc_yx, ncplane_putegc_yx, ncplane_putnstr_yx,
+    ncplane_putstr_yx, ncplane_resize, ncplane_vline_interp, ncplane_vprintf_yx, notcurses_align,
     types::{
-        AlphaBits, Cell, Channel, Channels, Color, EgcBackstop, IntResult, NcAlign,
-        NcPlane, NcPlaneOptions, StyleMask, NCPLANE_OPTION_HORALIGNED,
+        AlphaBits, Cell, Channel, Channels, Color, EgcBackstop, IntResult, NcAlign, NcPlane,
+        NcPlaneOptions, Notcurses, StyleMask, NCPLANE_OPTION_HORALIGNED,
     },
 };
 
@@ -176,25 +176,19 @@ use crate::{
 impl NcPlaneOptions {
     /// `NcPlaneOptions` simple constructor with horizontal x
     pub fn new(y: i32, x: i32, rows: u32, cols: u32) -> Self {
-        Self::with_all_options(y, x, rows, cols, 0)
+        Self::with_flags(y, x, rows, cols, 0)
     }
 
     /// `NcPlaneOptions` simple constructor with horizontal alignment
     pub fn new_halign(y: i32, align: NcAlign, rows: u32, cols: u32) -> Self {
-        Self::with_all_options(
-            y,
-            align as i32,
-            rows,
-            cols,
-            NCPLANE_OPTION_HORALIGNED,
-        )
+        Self::with_flags(y, align as i32, rows, cols, NCPLANE_OPTION_HORALIGNED)
     }
 
     /// `NcplaneOptions` constructor
     ///
     /// Note: If you use`NCPLANE_OPTION_HORALIGNED` flag, you must provide
     /// the `NcAlign` value as the `x` parameter, casted to `i32`.
-    pub fn with_all_options(y: i32, x: i32, rows: u32, cols: u32, flags: u64) -> Self {
+    pub fn with_flags(y: i32, x: i32, rows: u32, cols: u32, flags: u64) -> Self {
         NcPlaneOptions {
             y,
             x,
@@ -212,6 +206,12 @@ impl NcPlane {
     /// `NcPlane` constructor
     pub unsafe fn new<'a>(bound_to: &mut NcPlane, options: &NcPlaneOptions) -> &'a mut NcPlane {
         &mut *ncplane_create(bound_to, options)
+    }
+
+    /// `NcPlane` constructor.
+    /// The returned plane will be the top, bottom, and root of this new pile.
+    pub unsafe fn new_pile<'a>(nc: &mut Notcurses, options: &NcPlaneOptions) -> &'a mut NcPlane {
+        &mut *ncpile_create(nc, options)
     }
 }
 

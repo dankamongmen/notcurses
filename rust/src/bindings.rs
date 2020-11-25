@@ -327,6 +327,7 @@ pub(crate) use bindgen::{
 #[doc(inline)]
 pub use bindgen::{
     // functions
+    ncpile_create,
     ncplane_above,
     ncplane_at_cursor,
     ncplane_at_yx,
@@ -383,8 +384,10 @@ pub use bindgen::{
     ncplane_putwstr_stained,
     ncplane_qrcode,
     ncplane_reparent,
+    ncplane_reparent_family,
     ncplane_resize,
     ncplane_resize_realign,
+    ncplane_resizecb,
     ncplane_rgba,
     ncplane_rotate_ccw,
     ncplane_rotate_cw,
