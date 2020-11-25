@@ -1037,15 +1037,12 @@ int notcurses_render_to_file(notcurses* nc, FILE* fp){
 // locking down the EGC, the attributes, and the channels for each cell.
 static int
 notcurses_render_internal(notcurses* nc, struct crender* rvec){
-  int dimy, dimx;
-  ncplane_dim_yx(nc->stdplane, &dimy, &dimx);
   ncplane* p = ncplane_pile(nc->stdplane)->top;
   while(p){
     paint(p, rvec, nc->stdplane->leny, nc->stdplane->lenx,
           nc->stdplane->absy, nc->stdplane->absx);
     p = p->below;
   }
-  postpaint(nc->lastframe, dimy, dimx, rvec, &nc->pool);
   return 0;
 }
 
@@ -1061,6 +1058,7 @@ int notcurses_render(notcurses* nc){
   if(notcurses_render_internal(nc, crender) == 0){
     clock_gettime(CLOCK_MONOTONIC, &rasterdone);
     update_render_stats(&rasterdone, &start, &nc->stats);
+    postpaint(nc->lastframe, dimy, dimx, crender, &nc->pool);
     bytes = notcurses_rasterize(nc, crender, nc->rstate.mstreamfp);
   }
   update_render_bytes(&nc->stats, bytes);
@@ -1089,6 +1087,7 @@ int notcurses_render_to_buffer(notcurses* nc, char** buf, size_t* buflen){
   if(notcurses_render_internal(nc, crender) == 0){
     clock_gettime(CLOCK_MONOTONIC, &rasterdone);
     update_render_stats(&rasterdone, &start, &nc->stats);
+    postpaint(nc->lastframe, dimy, dimx, crender, &nc->pool);
     bytes = notcurses_rasterize_inner(nc, crender, nc->rstate.mstreamfp);
   }
   update_render_bytes(&nc->stats, bytes);
