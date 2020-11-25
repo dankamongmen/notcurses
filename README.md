@@ -305,7 +305,7 @@ These are pretty obvious, implementation-wise.
   `"[language]_[Countrycode].UTF-8"`, i.e. `en_US.UTF-8`. The first part
   (`en_US`) ought exist as a directory or symlink in `/usr/share/locales`.
   This usually requires editing `/etc/locale.gen` and running `locale-gen`.
-  On Debian systems, this can be accomplished with `dpkg-reconfigure loclaes`,
+  On Debian systems, this can be accomplished with `dpkg-reconfigure locales`,
   and enabling the desired locale. The default locale is stored somewhere like
   `/etc/default/locale`.
 
