@@ -152,11 +152,10 @@ int cell_duplicate(ncplane* n, cell* targ, const cell* c){
   return 0;
 }
 
-// Extracellular state for a cell during the render process. This array is
-// passed along to rasterization, which uses only the 'damaged' bools. There
-// is one crender per rendered cell, and they are initialized to all zeroes.
+// Extracellular state for a cell during the render process. There is one
+// crender per rendered cell, and they are initialized to all zeroes.
 struct crender {
-  const ncplane *p;
+  const ncplane *p; // source of glyph for this cell
   cell c;
   unsigned fgblends;
   unsigned bgblends;
@@ -366,7 +365,7 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
 
 // it's not a pure memset(), because CELL_ALPHA_OPAQUE is the zero value, and
 // we need CELL_ALPHA_TRANSPARENT
-static void
+static inline void
 init_rvec(struct crender* rvec, int totalcells){
   memset(rvec, 0, sizeof(*rvec) * totalcells);
   for(int t = 0 ; t < totalcells ; ++t){
@@ -709,12 +708,12 @@ update_palette(notcurses* nc, FILE* out){
   return 0;
 }
 
-// sync the cursor to the specified location with as little overhead as
-// possible (with nothing, if already at the right location).
+// sync the drawing position to the specified location with as little overhead
+// as possible (with nothing, if already at the right location).
 // FIXME fall back to synthesized moves in the absence of capabilities (i.e.
 // textronix lacks cup; fake it with horiz+vert moves)
 static inline int
-stage_cursor(notcurses* nc, FILE* out, int y, int x){
+goto_location(notcurses* nc, FILE* out, int y, int x){
   int ret = 0;
   if(nc->rstate.y == y){ // only need move x
     const int xdiff = x - nc->rstate.x;
@@ -779,7 +778,7 @@ notcurses_rasterize_inner(notcurses* nc, const struct crender* rvec, FILE* out){
         }
       }else{
         ++nc->stats.cellemissions;
-        if(stage_cursor(nc, out, y, x)){
+        if(goto_location(nc, out, y, x)){
           return -1;
         }
         // set the style. this can change the color back to the default; if it
@@ -1038,7 +1037,7 @@ int notcurses_render_to_file(notcurses* nc, FILE* fp){
 // which cells were changed. We solve for each coordinate's cell by walking
 // down the z-buffer, looking at intersections with ncplanes. This implies
 // locking down the EGC, the attributes, and the channels for each cell.
-static int
+static void
 ncpile_render_internal(ncplane* n, struct crender* rvec, int leny, int lenx,
                        int absy, int absx){
   ncplane* p = ncplane_pile(n)->top;
@@ -1046,63 +1045,78 @@ ncpile_render_internal(ncplane* n, struct crender* rvec, int leny, int lenx,
     paint(p, rvec, leny, lenx, absy, absx);
     p = p->below;
   }
+}
+
+int ncpile_rasterize(ncplane* n){
+  struct timespec start, writedone;
+  clock_gettime(CLOCK_MONOTONIC, &start);
+  int dimy, dimx;
+  const struct ncpile* pile = ncplane_pile(n);
+  notcurses_resize(ncplane_notcurses(n), &dimy, &dimx);
+  postpaint(ncplane_notcurses(n)->lastframe, dimy, dimx, pile->crender,
+            &ncplane_notcurses(n)->pool);
+  int bytes = notcurses_rasterize(ncplane_notcurses(n), pile->crender,
+                                  ncplane_notcurses(n)->rstate.mstreamfp);
+  // accepts -1 as an indication of failure
+  update_render_bytes(&ncplane_notcurses(n)->stats, bytes);
+  if(bytes < 0){
+    return -1;
+  }
+  clock_gettime(CLOCK_MONOTONIC, &writedone);
+  update_write_stats(&writedone, &start, &ncplane_notcurses(n)->stats);
+  return 0;
+}
+
+// ensure the crender vector of 'n' is sufficiently large for 'dimy'x'dimx'
+static int
+engorge_crender_vector(ncpile* n, int dimy, int dimx){
+  const size_t crenderlen = sizeof(struct crender) * dimy * dimx;
+  if(crenderlen > n->crenderlen){
+    struct crender* tmp = realloc(n->crender, crenderlen);
+    if(tmp == NULL){
+      return -1;
+    }
+    n->crender = tmp;
+    n->crenderlen = crenderlen;
+  }
+  init_rvec(n->crender, crenderlen / sizeof(struct crender));
   return 0;
 }
 
 int ncpile_render(ncplane* n){
-  struct timespec start, rasterdone;
+  struct timespec start, renderdone;
   clock_gettime(CLOCK_MONOTONIC, &start);
   int dimy, dimx;
-  notcurses_resize(ncplane_notcurses(n), &dimy, &dimx);
-  int bytes = -1;
-  const size_t crenderlen = sizeof(struct crender) * dimy * dimx;
-  struct crender* crender = malloc(crenderlen);
-  init_rvec(crender, crenderlen / sizeof(struct crender));
-  if(ncpile_render_internal(n, crender, dimy, dimx,
-                            notcurses_stdplane(ncplane_notcurses(n))->absy,
-                            notcurses_stdplane(ncplane_notcurses(n))->absx) == 0){
-    clock_gettime(CLOCK_MONOTONIC, &rasterdone);
-    update_render_stats(&rasterdone, &start, &ncplane_notcurses(n)->stats);
-    // FIXME extract and move to ncpile_rasterize
-    postpaint(ncplane_notcurses(n)->lastframe, dimy, dimx, crender,
-              &ncplane_notcurses(n)->pool);
-    bytes = notcurses_rasterize(ncplane_notcurses(n), crender,
-                                ncplane_notcurses(n)->rstate.mstreamfp);
-  }
-  // accepts -1 as an indication of failure
-  update_render_bytes(&ncplane_notcurses(n)->stats, bytes);
-  free(crender);
-  if(bytes < 0){
+  // render against our current notion of screen geometry
+  ncplane_dim_yx(notcurses_stdplane(ncplane_notcurses(n)), &dimy, &dimx);
+  if(engorge_crender_vector(ncplane_pile(n), dimy, dimx)){
     return -1;
   }
-  struct timespec writedone;
-  clock_gettime(CLOCK_MONOTONIC, &writedone);
-  update_write_stats(&writedone, &rasterdone, &ncplane_notcurses(n)->stats);
+  ncpile_render_internal(n, ncplane_pile(n)->crender, dimy, dimx,
+                         notcurses_stdplane(ncplane_notcurses(n))->absy,
+                         notcurses_stdplane(ncplane_notcurses(n))->absx);
+  clock_gettime(CLOCK_MONOTONIC, &renderdone);
+  update_render_stats(&renderdone, &start, &ncplane_notcurses(n)->stats);
   return 0;
 }
 
 int notcurses_render(notcurses* nc){
-  return ncpile_render(notcurses_stdplane(nc));
+  struct ncplane* stdn = notcurses_stdplane(nc);
+  if(ncpile_render(stdn)){
+    return -1;
+  }
+  return(ncpile_rasterize(stdn));
 }
 
 // for now, we just run the top half of notcurses_render(), and copy out the
 // memstream from within rstate. we want to allocate our own here, and return
 // it, to avoid the copy, but we need feed the params through to do so FIXME.
 int notcurses_render_to_buffer(notcurses* nc, char** buf, size_t* buflen){
-  struct timespec start, rasterdone;
-  clock_gettime(CLOCK_MONOTONIC, &start);
-  int dimy, dimx;
-  notcurses_resize(nc, &dimy, &dimx);
-  int bytes = -1;
-  const size_t crenderlen = sizeof(struct crender) * dimy * dimx;
-  struct crender* crender = malloc(crenderlen);
-  init_rvec(crender, crenderlen / sizeof(struct crender));
-  if(ncpile_render_internal(nc->stdplane, crender, dimy, dimx, nc->stdplane->absy, nc->stdplane->absx) == 0){
-    clock_gettime(CLOCK_MONOTONIC, &rasterdone);
-    update_render_stats(&rasterdone, &start, &nc->stats);
-    postpaint(nc->lastframe, dimy, dimx, crender, &nc->pool);
-    bytes = notcurses_rasterize_inner(nc, crender, nc->rstate.mstreamfp);
+  struct ncplane* stdn = notcurses_stdplane(nc);
+  if(ncpile_render(stdn)){
+    return -1;
   }
+  int bytes = notcurses_rasterize_inner(nc, ncplane_pile(stdn)->crender, nc->rstate.mstreamfp);
   update_render_bytes(&nc->stats, bytes);
   if(bytes < 0){
     return -1;
@@ -1188,7 +1202,7 @@ int notcurses_cursor_enable(notcurses* nc, int y, int x){
   if(nc->ttyfd < 0 || !nc->tcache.cnorm){
     return -1;
   }
-  if(stage_cursor(nc, nc->ttyfp, y + nc->stdplane->absy, x + nc->stdplane->absx)){
+  if(goto_location(nc, nc->ttyfp, y + nc->stdplane->absy, x + nc->stdplane->absx)){
     return -1;
   }
   // if we were already positive, we're already visible, no need to write cnorm

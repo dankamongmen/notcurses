@@ -271,6 +271,7 @@ ncpile_destroy(ncpile* pile){
   if(pile){
     pile->prev->next = pile->next;
     pile->next->prev = pile->prev;
+    free(pile->crender);
     free(pile);
   }
 }
@@ -315,6 +316,8 @@ make_ncpile(notcurses* nc, ncplane* n){
     n->pile = ret;
     n->above = NULL;
     n->below = NULL;
+    ret->crenderlen = 0;
+    ret->crender = NULL;
   }
   return ret;
 }
