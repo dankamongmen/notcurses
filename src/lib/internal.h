@@ -298,6 +298,15 @@ typedef struct ncdirect {
   uint64_t flags;            // copied in ncdirect_init() from param
 } ncdirect;
 
+// A rendering context/result, suitable for reuse across many rendering
+// operations. A pile's planes are rendered down into a single virtual plane,
+// which can be (relative to the last rendered plane, common across the
+// notcurses context) rasterized to the actual terminal.
+typedef struct ncrender {
+  char* buf;
+  size_t buflen;
+} ncrender;
+
 typedef struct ncpile {
   ncplane* top;     // topmost plane, never NULL
   ncplane* bottom;  // bottommost plane, never NULL 
