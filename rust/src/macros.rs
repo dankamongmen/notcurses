@@ -1,16 +1,16 @@
 #[allow(unused_imports)]
-use crate::Cell;
+use crate::{NcCell, NcChannels, NcChar, NcStyleMask};
 
-// Cell ------------------------------------------------------------------------
+// NcCell ------------------------------------------------------------------------
 
-/// Initializes a cell providing an [`Egc`],
-/// a [`StyleMask`] and [`Channels`]
+/// Initializes a cell providing an [`NcChar`],
+/// a [`NcStyleMask`] and [`NcChannels`]
 #[macro_export]
 macro_rules! cell_initializer {
     ( $c:expr, $s:expr, $chan:expr  ) => {
-        Cell {
+        NcCell {
             gcluster: $c as u32,
-            gcluster_backstop: 0 as EgcBackstop,
+            gcluster_backstop: 0 as NcCharBackstop,
             reserved: 0,
             stylemask: $s,
             channels: $chan,
@@ -18,7 +18,7 @@ macro_rules! cell_initializer {
     };
 }
 
-/// Initializes a cell providing just an [`Egc`],
+/// Initializes a cell providing just an [`NcChar`],
 #[macro_export]
 macro_rules! cell_char_initializer {
     ( $c:expr ) => {

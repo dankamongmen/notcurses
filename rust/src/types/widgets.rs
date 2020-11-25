@@ -1,5 +1,8 @@
 //! Types for notcurses widgets
 
+#[allow(unused_imports)] // for docblocks
+use crate::NcPlane;
+
 // NcMenu ----------------------------------------------------------------------
 
 /// menus on the top or bottom rows

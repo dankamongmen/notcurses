@@ -27,7 +27,7 @@
 //+ ncpixel_set_r
 //+ ncpixel_set_rgb
 
-use crate::types::{Color, NcPixel};
+use crate::types::{NcColor, NcPixel};
 
 // NcPixel Structure:
 //
@@ -37,52 +37,52 @@ use crate::types::{Color, NcPixel};
 // 0x000000ff 8 bit Red
 
 /// Get an RGB pixel from RGB values
-pub fn ncpixel(r: Color, g: Color, b: Color) -> NcPixel {
+pub fn ncpixel(r: NcColor, g: NcColor, b: NcColor) -> NcPixel {
     0xff000000 as NcPixel | r as NcPixel | (b as NcPixel) << 8 | (g as NcPixel) << 16
 }
 
 /// Extract the 8-bit alpha component from a pixel
-pub fn ncpixel_a(pixel: NcPixel) -> Color {
-    ((pixel & 0xff000000) >> 24) as Color
+pub fn ncpixel_a(pixel: NcPixel) -> NcColor {
+    ((pixel & 0xff000000) >> 24) as NcColor
 }
 
 /// Extract the 8 bit green component from a pixel
-pub fn ncpixel_g(pixel: NcPixel) -> Color {
-    ((pixel & 0x00ff0000) >> 16) as Color
+pub fn ncpixel_g(pixel: NcPixel) -> NcColor {
+    ((pixel & 0x00ff0000) >> 16) as NcColor
 }
 
 /// Extract the 8 bit blue component from a pixel
-pub fn ncpixel_b(pixel: NcPixel) -> Color {
-    ((pixel & 0x0000ff00) >> 8) as Color
+pub fn ncpixel_b(pixel: NcPixel) -> NcColor {
+    ((pixel & 0x0000ff00) >> 8) as NcColor
 }
 
 /// Extract the 8 bit red component from a pixel
-pub fn ncpixel_r(pixel: NcPixel) -> Color {
-    (pixel & 0x000000ff) as Color
+pub fn ncpixel_r(pixel: NcPixel) -> NcColor {
+    (pixel & 0x000000ff) as NcColor
 }
 
 /// Set the 8-bit alpha component of a pixel
-pub fn ncpixel_set_a(pixel: &mut NcPixel, alpha: Color) {
+pub fn ncpixel_set_a(pixel: &mut NcPixel, alpha: NcColor) {
     *pixel = (*pixel & 0x00ffffff) | ((alpha as NcPixel) << 24);
 }
 
 /// Set the 8-bit green component of a pixel
-pub fn ncpixel_set_g(pixel: &mut NcPixel, green: Color) {
+pub fn ncpixel_set_g(pixel: &mut NcPixel, green: NcColor) {
     *pixel = (*pixel & 0xff00ffff) | ((green as NcPixel) << 16);
 }
 
 /// Set the 8-bit blue component of a pixel
-pub fn ncpixel_set_b(pixel: &mut NcPixel, blue: Color) {
+pub fn ncpixel_set_b(pixel: &mut NcPixel, blue: NcColor) {
     *pixel = (*pixel & 0xffff00ff) | ((blue as NcPixel) << 8);
 }
 
 /// Set the 8-bit red component of a pixel
-pub fn ncpixel_set_r(pixel: &mut NcPixel, red: Color) {
+pub fn ncpixel_set_r(pixel: &mut NcPixel, red: NcColor) {
     *pixel = (*pixel & 0xffffff00) | red as NcPixel;
 }
 
 /// set the RGB values of an RGB pixel
-pub fn ncpixel_set_rgb(pixel: &mut NcPixel, red: Color, green: Color, blue: Color) {
+pub fn ncpixel_set_rgb(pixel: &mut NcPixel, red: NcColor, green: NcColor, blue: NcColor) {
     ncpixel_set_r(pixel, red);
     ncpixel_set_g(pixel, green);
     ncpixel_set_b(pixel, blue);

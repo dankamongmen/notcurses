@@ -61,31 +61,37 @@
 //X channels_set_fg_rgb8_clipped
 
 use crate::types::{
-    AlphaBits, Channel, Channels, Color, Rgb, CELL_ALPHA_HIGHCONTRAST, CELL_ALPHA_OPAQUE,
-    CELL_BGDEFAULT_MASK, CELL_BG_PALETTE, CELL_BG_RGB_MASK, CHANNEL_ALPHA_MASK,
+    NcAlphaBits, NcChannel, NcChannels, NcColor, NcRgb, NCCELL_ALPHA_HIGHCONTRAST,
+    NCCELL_ALPHA_OPAQUE, NCCELL_BGDEFAULT_MASK, NCCELL_BG_PALETTE, NCCELL_BG_RGB_MASK,
+    NCCHANNEL_ALPHA_MASK,
 };
 
 /// Extract the 8-bit red component from a 32-bit channel.
 #[inline]
-pub fn channel_r(channel: Channel) -> Color {
-    ((channel & 0xff0000) >> 16) as Color
+pub fn channel_r(channel: NcChannel) -> NcColor {
+    ((channel & 0xff0000) >> 16) as NcColor
 }
 
 /// Extract the 8-bit green component from a 32-bit channel.
 #[inline]
-pub fn channel_g(channel: Channel) -> Color {
-    ((channel & 0x00ff00) >> 8) as Color
+pub fn channel_g(channel: NcChannel) -> NcColor {
+    ((channel & 0x00ff00) >> 8) as NcColor
 }
 
 /// Extract the 8-bit blue component from a 32-bit channel.
 #[inline]
-pub fn channel_b(channel: Channel) -> Color {
-    (channel & 0x0000ff) as Color
+pub fn channel_b(channel: NcChannel) -> NcColor {
+    (channel & 0x0000ff) as NcColor
 }
 
 /// Extract the three 8-bit R/G/B components from a 32-bit channel.
 #[inline]
-pub fn channel_rgb8(channel: Channel, r: &mut Color, g: &mut Color, b: &mut Color) -> Channel {
+pub fn channel_rgb8(
+    channel: NcChannel,
+    r: &mut NcColor,
+    g: &mut NcColor,
+    b: &mut NcColor,
+) -> NcChannel {
     *r = channel_r(channel);
     *g = channel_g(channel);
     *b = channel_b(channel);
@@ -95,84 +101,84 @@ pub fn channel_rgb8(channel: Channel, r: &mut Color, g: &mut Color, b: &mut Colo
 /// Set the three 8-bit components of a 32-bit channel, and mark it as not using
 /// the default color. Retain the other bits unchanged.
 #[inline]
-pub fn channel_set_rgb8(channel: &mut Channel, r: Color, g: Color, b: Color) {
-    let rgb: Rgb = (r as Channel) << 16 | (g as Channel) << 8 | (b as Channel);
-    *channel = (*channel & !CELL_BG_RGB_MASK) | CELL_BGDEFAULT_MASK | rgb;
+pub fn channel_set_rgb8(channel: &mut NcChannel, r: NcColor, g: NcColor, b: NcColor) {
+    let rgb: NcRgb = (r as NcChannel) << 16 | (g as NcChannel) << 8 | (b as NcChannel);
+    *channel = (*channel & !NCCELL_BG_RGB_MASK) | NCCELL_BGDEFAULT_MASK | rgb;
 }
 
 /// Same as channel_set_rgb8(), but provide an assembled, packed 24 bits of rgb.
 #[inline]
-pub fn channel_set(channel: &mut Channel, rgb: Rgb) {
-    *channel = (*channel & !CELL_BG_RGB_MASK) | CELL_BGDEFAULT_MASK | (rgb & 0x00ffffff);
+pub fn channel_set(channel: &mut NcChannel, rgb: NcRgb) {
+    *channel = (*channel & !NCCELL_BG_RGB_MASK) | NCCELL_BGDEFAULT_MASK | (rgb & 0x00ffffff);
 }
 
 /// Extract the 2-bit alpha component from a 32-bit channel.
 #[inline]
-pub fn channel_alpha(channel: Channel) -> AlphaBits {
-    channel & CHANNEL_ALPHA_MASK
+pub fn channel_alpha(channel: NcChannel) -> NcAlphaBits {
+    channel & NCCHANNEL_ALPHA_MASK
 }
 
 /// Set the 2-bit alpha component of the 32-bit channel.
 #[inline]
-pub fn channel_set_alpha(channel: &mut Channel, alpha: AlphaBits) {
-    let alpha_clean = alpha & CHANNEL_ALPHA_MASK;
-    *channel = alpha_clean | (*channel & !CHANNEL_ALPHA_MASK);
+pub fn channel_set_alpha(channel: &mut NcChannel, alpha: NcAlphaBits) {
+    let alpha_clean = alpha & NCCHANNEL_ALPHA_MASK;
+    *channel = alpha_clean | (*channel & !NCCHANNEL_ALPHA_MASK);
 
-    if alpha != CELL_ALPHA_OPAQUE {
+    if alpha != NCCELL_ALPHA_OPAQUE {
         // indicate that we are *not* using the default background color
-        *channel |= CELL_BGDEFAULT_MASK;
+        *channel |= NCCELL_BGDEFAULT_MASK;
     }
 }
 
 /// Is this channel using the "default color" rather than RGB/palette-indexed?
 #[inline]
-pub fn channel_default_p(channel: Channel) -> bool {
-    (channel & CELL_BGDEFAULT_MASK) == 0
+pub fn channel_default_p(channel: NcChannel) -> bool {
+    (channel & NCCELL_BGDEFAULT_MASK) == 0
 }
 
 /// Is this channel using palette-indexed color rather than RGB?
 #[inline]
-pub fn channel_palindex_p(channel: Channel) -> bool {
-    !channel_default_p(channel) && (channel & CELL_BG_PALETTE) == 0
+pub fn channel_palindex_p(channel: NcChannel) -> bool {
+    !channel_default_p(channel) && (channel & NCCELL_BG_PALETTE) == 0
 }
 
 /// Mark the channel as using its default color, which also marks it opaque.
 #[inline]
-pub fn channel_set_default(channel: &mut Channel) -> Channel {
-    *channel &= !(CELL_BGDEFAULT_MASK | CELL_ALPHA_HIGHCONTRAST); // < NOTE shouldn't be better CHANNEL_ALPHA_MASK?
+pub fn channel_set_default(channel: &mut NcChannel) -> NcChannel {
+    *channel &= !(NCCELL_BGDEFAULT_MASK | NCCELL_ALPHA_HIGHCONTRAST); // < NOTE shouldn't be better NCCHANNEL_ALPHA_MASK?
     *channel
 }
 
 /// Extract the 32-bit background channel from a channel pair.
 #[inline]
-pub fn channels_bchannel(channels: Channels) -> Channel {
-    (channels & 0xffffffff_u64) as Channel
+pub fn channels_bchannel(channels: NcChannels) -> NcChannel {
+    (channels & 0xffffffff_u64) as NcChannel
 }
 
 /// Extract the 32-bit foreground channel from a channel pair.
 #[inline]
-pub fn channels_fchannel(channels: Channels) -> Channel {
+pub fn channels_fchannel(channels: NcChannels) -> NcChannel {
     channels_bchannel(channels >> 32)
 }
 
 /// Set the 32-bit background channel of a channel pair.
 #[inline]
-pub fn channels_set_bchannel(channels: &mut Channels, bchannel: Channel) -> Channels {
+pub fn channels_set_bchannel(channels: &mut NcChannels, bchannel: NcChannel) -> NcChannels {
     *channels = (*channels & 0xffffffff00000000_u64) | bchannel as u64;
     *channels
 }
 
 /// Set the 32-bit foreground channel of a channel pair.
 #[inline]
-pub fn channels_set_fchannel(channels: &mut Channels, fchannel: Channel) -> Channels {
+pub fn channels_set_fchannel(channels: &mut NcChannels, fchannel: NcChannel) -> NcChannels {
     *channels = (*channels & 0xffffffff_u64) | (fchannel as u64) << 32;
     *channels
 }
 
 /// Combine two channels into a channel pair.
 #[inline]
-pub fn channels_combine(fchannel: Channel, bchannel: Channel) -> Channels {
-    let mut channels: Channels = 0;
+pub fn channels_combine(fchannel: NcChannel, bchannel: NcChannel) -> NcChannels {
+    let mut channels: NcChannels = 0;
     channels_set_fchannel(&mut channels, fchannel);
     channels_set_bchannel(&mut channels, bchannel);
     channels
@@ -180,54 +186,54 @@ pub fn channels_combine(fchannel: Channel, bchannel: Channel) -> Channels {
 
 /// Extract 24 bits of foreground RGB from 'channels', shifted to LSBs.
 #[inline]
-pub fn channels_fg_rgb(channels: Channels) -> Channel {
-    channels_fchannel(channels) & CELL_BG_RGB_MASK
+pub fn channels_fg_rgb(channels: NcChannels) -> NcChannel {
+    channels_fchannel(channels) & NCCELL_BG_RGB_MASK
 }
 
 /// Extract 24 bits of background RGB from 'channels', shifted to LSBs.
 #[inline]
-pub fn channels_bg_rgb(channels: Channels) -> Channel {
-    channels_bchannel(channels) & CELL_BG_RGB_MASK
+pub fn channels_bg_rgb(channels: NcChannels) -> NcChannel {
+    channels_bchannel(channels) & NCCELL_BG_RGB_MASK
 }
 
 /// Extract 2 bits of foreground alpha from 'channels', shifted to LSBs.
 #[inline]
-pub fn channels_fg_alpha(channels: Channels) -> AlphaBits {
+pub fn channels_fg_alpha(channels: NcChannels) -> NcAlphaBits {
     channel_alpha(channels_fchannel(channels))
 }
 
 /// Extract 2 bits of background alpha from 'channels', shifted to LSBs.
 #[inline]
-pub fn channels_bg_alpha(channels: Channels) -> AlphaBits {
+pub fn channels_bg_alpha(channels: NcChannels) -> NcAlphaBits {
     channel_alpha(channels_bchannel(channels))
 }
 
 /// Extract 24 bits of foreground RGB from 'channels', split into subchannels.
 #[inline]
 pub fn channels_fg_rgb8(
-    channels: Channels,
-    r: &mut Color,
-    g: &mut Color,
-    b: &mut Color,
-) -> Channel {
+    channels: NcChannels,
+    r: &mut NcColor,
+    g: &mut NcColor,
+    b: &mut NcColor,
+) -> NcChannel {
     channel_rgb8(channels_fchannel(channels), r, g, b)
 }
 
 /// Extract 24 bits of background RGB from 'channels', split into subchannels.
 #[inline]
 pub fn channels_bg_rgb8(
-    channels: Channels,
-    r: &mut Color,
-    g: &mut Color,
-    b: &mut Color,
-) -> Channel {
+    channels: NcChannels,
+    r: &mut NcColor,
+    g: &mut NcColor,
+    b: &mut NcColor,
+) -> NcChannel {
     channel_rgb8(channels_bchannel(channels), r, g, b)
 }
 
 /// Set the r, g, and b channels for the foreground component of this 64-bit
 /// 'channels' variable, and mark it as not using the default color.
 #[inline]
-pub fn channels_set_fg_rgb8(channels: &mut Channels, r: Color, g: Color, b: Color) {
+pub fn channels_set_fg_rgb8(channels: &mut NcChannels, r: NcColor, g: NcColor, b: NcColor) {
     let mut channel = channels_fchannel(*channels);
     channel_set_rgb8(&mut channel, r, g, b);
     *channels = (channel as u64) << 32 | *channels & 0xffffffff_u64;
@@ -235,7 +241,7 @@ pub fn channels_set_fg_rgb8(channels: &mut Channels, r: Color, g: Color, b: Colo
 
 /// Same as channels_set_fg_rgb8 but set an assembled 24 bit channel at once.
 #[inline]
-pub fn channels_set_fg_rgb(channels: &mut Channels, rgb: Rgb) {
+pub fn channels_set_fg_rgb(channels: &mut NcChannels, rgb: NcRgb) {
     let mut channel = channels_fchannel(*channels);
     channel_set(&mut channel, rgb);
     *channels = (channel as u64) << 32 | *channels & 0xffffffff_u64;
@@ -244,7 +250,7 @@ pub fn channels_set_fg_rgb(channels: &mut Channels, rgb: Rgb) {
 /// Set the r, g, and b channels for the background component of this 64-bit
 /// 'channels' variable, and mark it as not using the default color.
 #[inline]
-pub fn channels_set_bg_rgb8(channels: &mut Channels, r: Color, g: Color, b: Color) {
+pub fn channels_set_bg_rgb8(channels: &mut NcChannels, r: NcColor, g: NcColor, b: NcColor) {
     let mut channel = channels_bchannel(*channels);
     channel_set_rgb8(&mut channel, r, g, b);
     channels_set_bchannel(channels, channel);
@@ -252,7 +258,7 @@ pub fn channels_set_bg_rgb8(channels: &mut Channels, r: Color, g: Color, b: Colo
 
 /// Same as channels_set_bg_rgb8 but set an assembled 24 bit channel at once.
 #[inline]
-pub fn channels_set_bg_rgb(channels: &mut Channels, rgb: Rgb) {
+pub fn channels_set_bg_rgb(channels: &mut NcChannels, rgb: NcRgb) {
     let mut channel = channels_bchannel(*channels);
     channel_set(&mut channel, rgb);
     channels_set_bchannel(channels, channel);
@@ -260,19 +266,19 @@ pub fn channels_set_bg_rgb(channels: &mut Channels, rgb: Rgb) {
 
 /// Set the 2-bit alpha component of the foreground channel.
 #[inline]
-pub fn channels_set_fg_alpha(channels: &mut Channels, alpha: AlphaBits) {
+pub fn channels_set_fg_alpha(channels: &mut NcChannels, alpha: NcAlphaBits) {
     let mut channel = channels_fchannel(*channels);
     channel_set_alpha(&mut channel, alpha);
-    *channels = (channel as Channels) << 32 | *channels & 0xffffffff_u64;
+    *channels = (channel as NcChannels) << 32 | *channels & 0xffffffff_u64;
 }
 
 /// Set the 2-bit alpha component of the background channel.
 #[inline]
-pub fn channels_set_bg_alpha(channels: &mut Channels, alpha: AlphaBits) {
+pub fn channels_set_bg_alpha(channels: &mut NcChannels, alpha: NcAlphaBits) {
     let mut alpha_clean = alpha;
-    if alpha == CELL_ALPHA_HIGHCONTRAST {
+    if alpha == NCCELL_ALPHA_HIGHCONTRAST {
         // forbidden for background alpha, so makes it opaque
-        alpha_clean = CELL_ALPHA_OPAQUE;
+        alpha_clean = NCCELL_ALPHA_OPAQUE;
     }
     let mut channel = channels_bchannel(*channels);
     channel_set_alpha(&mut channel, alpha_clean);
@@ -281,13 +287,13 @@ pub fn channels_set_bg_alpha(channels: &mut Channels, alpha: AlphaBits) {
 
 /// Is the foreground using the "default foreground color"?
 #[inline]
-pub fn channels_fg_default_p(channels: Channels) -> bool {
+pub fn channels_fg_default_p(channels: NcChannels) -> bool {
     channel_default_p(channels_fchannel(channels))
 }
 
 /// Is the foreground using indexed palette color?
 #[inline]
-pub fn channels_fg_palindex_p(channels: Channels) -> bool {
+pub fn channels_fg_palindex_p(channels: NcChannels) -> bool {
     channel_palindex_p(channels_fchannel(channels))
 }
 
@@ -295,19 +301,19 @@ pub fn channels_fg_palindex_p(channels: Channels) -> bool {
 /// background color" must generally be used to take advantage of
 /// terminal-effected transparency.
 #[inline]
-pub fn channels_bg_default_p(channels: Channels) -> bool {
+pub fn channels_bg_default_p(channels: NcChannels) -> bool {
     channel_default_p(channels_bchannel(channels))
 }
 
 /// Is the background using indexed palette color?
 #[inline]
-pub fn channels_bg_palindex_p(channels: Channels) -> bool {
+pub fn channels_bg_palindex_p(channels: NcChannels) -> bool {
     channel_palindex_p(channels_bchannel(channels))
 }
 
 /// Mark the foreground channel as using its default color.
 #[inline]
-pub fn channels_set_fg_default(channels: &mut Channels) -> Channels {
+pub fn channels_set_fg_default(channels: &mut NcChannels) -> NcChannels {
     let mut channel = channels_fchannel(*channels);
     channel_set_default(&mut channel);
     *channels = (channel as u64) << 32 | *channels & 0xffffffff_u64;
@@ -316,7 +322,7 @@ pub fn channels_set_fg_default(channels: &mut Channels) -> Channels {
 
 /// Mark the background channel as using its default color.
 #[inline]
-pub fn channels_set_bg_default(channels: &mut Channels) -> Channels {
+pub fn channels_set_bg_default(channels: &mut NcChannels) -> NcChannels {
     let mut channel = channels_bchannel(*channels);
     channel_set_default(&mut channel);
     channels_set_bchannel(channels, channel);
@@ -325,34 +331,35 @@ pub fn channels_set_bg_default(channels: &mut Channels) -> Channels {
 
 #[cfg(test)]
 mod test {
-    use super::{Channel, Channels};
+    use super::{NcChannel, NcChannels};
     use crate::types::{
-        CELL_ALPHA_BLEND, CELL_ALPHA_HIGHCONTRAST, CELL_ALPHA_OPAQUE, CELL_ALPHA_TRANSPARENT,
+        NCCELL_ALPHA_BLEND, NCCELL_ALPHA_HIGHCONTRAST, NCCELL_ALPHA_OPAQUE,
+        NCCELL_ALPHA_TRANSPARENT,
     };
     use serial_test::serial;
 
     #[test]
     #[serial]
     fn channel_r() {
-        let c: Channel = 0x112233;
+        let c: NcChannel = 0x112233;
         assert_eq!(super::channel_r(c), 0x11);
     }
     #[test]
     #[serial]
     fn channel_g() {
-        let c: Channel = 0x112233;
+        let c: NcChannel = 0x112233;
         assert_eq!(super::channel_g(c), 0x22);
     }
     #[test]
     #[serial]
     fn channel_b() {
-        let c: Channel = 0x112233;
+        let c: NcChannel = 0x112233;
         assert_eq!(super::channel_b(c), 0x33);
     }
     #[test]
     #[serial]
     fn channel_rgb8() {
-        let c: Channel = 0x112233;
+        let c: NcChannel = 0x112233;
         let mut r = 0;
         let mut g = 0;
         let mut b = 0;
@@ -364,7 +371,7 @@ mod test {
     #[test]
     #[serial]
     fn channel_set_rgb8() {
-        let mut c: Channel = 0x000000;
+        let mut c: NcChannel = 0x000000;
         super::channel_set_rgb8(&mut c, 0x11, 0x22, 0x33);
         assert_eq!(super::channel_r(c), 0x11);
         assert_eq!(super::channel_g(c), 0x22);
@@ -373,33 +380,33 @@ mod test {
     #[test]
     #[serial]
     fn channel_alpha() {
-        let c: Channel = 0x112233 | CELL_ALPHA_TRANSPARENT;
-        assert_eq!(super::channel_alpha(c), CELL_ALPHA_TRANSPARENT);
+        let c: NcChannel = 0x112233 | NCCELL_ALPHA_TRANSPARENT;
+        assert_eq!(super::channel_alpha(c), NCCELL_ALPHA_TRANSPARENT);
     }
     #[test]
     #[serial]
     fn channel_set_alpha() {
-        let mut c: Channel = 0x112233;
-        super::channel_set_alpha(&mut c, CELL_ALPHA_HIGHCONTRAST);
-        assert_eq!(CELL_ALPHA_HIGHCONTRAST, super::channel_alpha(c));
+        let mut c: NcChannel = 0x112233;
+        super::channel_set_alpha(&mut c, NCCELL_ALPHA_HIGHCONTRAST);
+        assert_eq!(NCCELL_ALPHA_HIGHCONTRAST, super::channel_alpha(c));
 
-        super::channel_set_alpha(&mut c, CELL_ALPHA_TRANSPARENT);
-        assert_eq!(CELL_ALPHA_TRANSPARENT, super::channel_alpha(c));
+        super::channel_set_alpha(&mut c, NCCELL_ALPHA_TRANSPARENT);
+        assert_eq!(NCCELL_ALPHA_TRANSPARENT, super::channel_alpha(c));
 
-        super::channel_set_alpha(&mut c, CELL_ALPHA_BLEND);
-        assert_eq!(CELL_ALPHA_BLEND, super::channel_alpha(c));
+        super::channel_set_alpha(&mut c, NCCELL_ALPHA_BLEND);
+        assert_eq!(NCCELL_ALPHA_BLEND, super::channel_alpha(c));
 
-        super::channel_set_alpha(&mut c, CELL_ALPHA_OPAQUE);
-        assert_eq!(CELL_ALPHA_OPAQUE, super::channel_alpha(c));
-        // TODO: CHECK for CELL_BGDEFAULT_MASK
+        super::channel_set_alpha(&mut c, NCCELL_ALPHA_OPAQUE);
+        assert_eq!(NCCELL_ALPHA_OPAQUE, super::channel_alpha(c));
+        // TODO: CHECK for NCCELL_BGDEFAULT_MASK
     }
 
     #[test]
     #[serial]
     fn channel_set_default() {
-        const DEFAULT: Channel = 0x112233;
+        const DEFAULT: NcChannel = 0x112233;
 
-        let mut c: Channel = DEFAULT | CELL_ALPHA_TRANSPARENT;
+        let mut c: NcChannel = DEFAULT | NCCELL_ALPHA_TRANSPARENT;
         assert!(c != DEFAULT);
 
         super::channel_set_default(&mut c);
@@ -409,22 +416,22 @@ mod test {
     #[test]
     #[serial]
     fn channel_default_p() {
-        let mut c: Channel = 0x112233;
+        let mut c: NcChannel = 0x112233;
         assert_eq!(true, super::channel_default_p(c));
 
         // TODO FIXME: test for the false result
-        // let _ = super::channel_set_alpha(&mut c, CELL_ALPHA_TRANSPARENT);
+        // let _ = super::channel_set_alpha(&mut c, NCCELL_ALPHA_TRANSPARENT);
         // assert_eq!(false, super::channel_default_p(c));
 
-        let _ = super::channel_set_alpha(&mut c, CELL_ALPHA_OPAQUE);
+        let _ = super::channel_set_alpha(&mut c, NCCELL_ALPHA_OPAQUE);
         assert_eq!(true, super::channel_default_p(c));
     }
     #[test]
     #[serial]
     #[allow(non_snake_case)]
     fn channels_set_fchannel__channels_fchannel() {
-        let fc: Channel = 0x112233;
-        let mut cp: Channels = 0;
+        let fc: NcChannel = 0x112233;
+        let mut cp: NcChannels = 0;
         super::channels_set_fchannel(&mut cp, fc);
         assert_eq!(super::channels_fchannel(cp), fc);
     }
@@ -432,18 +439,18 @@ mod test {
     #[serial]
     #[allow(non_snake_case)]
     fn channels_set_bchannel__channels_bchannel() {
-        let bc: Channel = 0x112233;
-        let mut cp: Channels = 0;
+        let bc: NcChannel = 0x112233;
+        let mut cp: NcChannels = 0;
         super::channels_set_bchannel(&mut cp, bc);
         assert_eq!(super::channels_bchannel(cp), bc);
     }
     #[test]
     #[serial]
     fn channels_combine() {
-        let bc: Channel = 0x112233;
-        let fc: Channel = 0x445566;
-        let mut cp1: Channels = 0;
-        let mut _cp2: Channels = 0;
+        let bc: NcChannel = 0x112233;
+        let fc: NcChannel = 0x445566;
+        let mut cp1: NcChannels = 0;
+        let mut _cp2: NcChannels = 0;
         super::channels_set_bchannel(&mut cp1, bc);
         super::channels_set_fchannel(&mut cp1, fc);
         _cp2 = super::channels_combine(fc, bc);

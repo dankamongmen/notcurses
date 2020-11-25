@@ -27,11 +27,15 @@ pub mod bindgen {
 
 // Miscellaneous ---------------------------------------------------------------
 
+pub(crate) use bindgen::{
+    // structs
+    timespec,
+};
+
 #[doc(inline)]
 pub use bindgen::{
     // structs
     __va_list_tag,
-    timespec,
 
     // functions
     ncstrwidth,

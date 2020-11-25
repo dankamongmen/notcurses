@@ -7,16 +7,13 @@ use core::ptr::{null_mut, NonNull};
 
 use std::io::{Error, ErrorKind, Read, Seek, SeekFrom};
 
-pub use libc::{
-    c_long, c_void, fclose, feof, fread, fseek, ftell, SEEK_CUR, SEEK_END,
-    SEEK_SET,
-};
+pub use libc::{c_long, c_void, fclose, feof, fread, fseek, ftell, SEEK_CUR, SEEK_END, SEEK_SET};
 
 /// notcurses functions expects this type of *FILE (struct)
-pub type NC_FILE = crate::bindgen::_IO_FILE;
+pub type FILE_NC = crate::bindgen::_IO_FILE;
 
 /// the libc crate expects this type of *FILE (opaque enum)
-pub type LIBC_FILE = libc::FILE;
+pub type FILE_LIBC = libc::FILE;
 
 /// Intended to be passed into the CFile::open method.
 /// It will open the file in a way that will allow reading and writing,
@@ -59,27 +56,27 @@ fn get_error<T>() -> Result<T, Error> {
 
 /// A wrapper struct around libc::FILE
 ///
-/// The notcurses FILE type `NC_FILE` is imported through bindgen as a struct,
-/// while the equivalent Rust libc::FILE (`LIBC_FILE`) is an opaque enum.
+/// The notcurses FILE type `FILE_NC` is imported through bindgen as a struct,
+/// while the equivalent Rust libc::FILE (`FILE_LIBC`) is an opaque enum.
 /// Several methods are provided to convert back and forth between both types,
 /// to allow both rust libc operations and notcurses file operations on it.
 #[derive(Debug)]
 pub struct NcFile {
-    file_ptr: NonNull<LIBC_FILE>,
+    file_ptr: NonNull<FILE_LIBC>,
 }
 
 impl NcFile {
     // constructors --
 
     /// `NcFile` constructor from a file produced by notcurses
-    pub fn from_nc(file: *mut NC_FILE) -> Self {
+    pub fn from_nc(file: *mut FILE_NC) -> Self {
         NcFile {
             file_ptr: unsafe { NonNull::new_unchecked(NcFile::nc2libc(file)) },
         }
     }
 
     /// `NcFile` constructor from a file produced by the libc crate
-    pub fn from_libc(file: *mut LIBC_FILE) -> Self {
+    pub fn from_libc(file: *mut FILE_LIBC) -> Self {
         NcFile {
             file_ptr: unsafe { NonNull::new_unchecked(file) },
         }
@@ -89,13 +86,13 @@ impl NcFile {
 
     /// Returns the file pointer in the format expected by libc
     #[inline]
-    pub fn as_libc_ptr(&self) -> *mut LIBC_FILE {
+    pub fn as_libc_ptr(&self) -> *mut FILE_LIBC {
         self.file_ptr.as_ptr()
     }
 
     /// Returns the file pointer in the format expected by notcurses
     #[inline]
-    pub fn as_nc_ptr(&self) -> *mut NC_FILE {
+    pub fn as_nc_ptr(&self) -> *mut FILE_NC {
         Self::libc2nc(self.file_ptr.as_ptr())
     }
 
@@ -127,15 +124,15 @@ impl NcFile {
     /// Converts a file pointer from the struct notcurses uses to the
     /// opaque enum type libc expects
     #[inline]
-    fn nc2libc(file: *mut NC_FILE) -> *mut LIBC_FILE {
-        file as *mut _ as *mut LIBC_FILE
+    fn nc2libc(file: *mut FILE_NC) -> *mut FILE_LIBC {
+        file as *mut _ as *mut FILE_LIBC
     }
 
     /// Converts a file pointer from the libc opaque enum format to the struct
     /// expected by notcurses
     #[inline]
-    fn libc2nc(file: *mut LIBC_FILE) -> *mut NC_FILE {
-        file as *mut _ as *mut NC_FILE
+    fn libc2nc(file: *mut FILE_LIBC) -> *mut FILE_NC {
+        file as *mut _ as *mut FILE_NC
     }
 
     /// A utility function to expand a vector without increasing its capacity
@@ -316,7 +313,7 @@ impl Drop for NcFile {
             if !(self.as_libc_ptr()).is_null() {
                 let res = fclose(self.as_libc_ptr());
                 if res == 0 {
-                    self.file_ptr = NonNull::new_unchecked(null_mut::<LIBC_FILE>());
+                    self.file_ptr = NonNull::new_unchecked(null_mut::<FILE_LIBC>());
                     Ok(())
                 } else {
                     get_error()

@@ -1,4 +1,7 @@
-// Channel
+#[allow(unused_imports)] // for docblocks
+use crate::NcChar;
+
+// NcChannel
 //
 /// 32 bits of context-dependent info
 /// containing RGB + 2 bits of alpha + extra
@@ -12,19 +15,19 @@
 /// - plus 2 bits of alpha
 /// - plus context-dependent info
 ///
-/// The context details are documented in [`Channels`]
+/// The context details are documented in [`NcChannels`]
 ///
 /// `type in C: channel (uint32_t)`
 ///
-pub type Channel = u32;
+pub type NcChannel = u32;
 
 /// Extract these bits to get a channel's alpha value
-pub const CHANNEL_ALPHA_MASK: u32 = crate::bindings::CHANNEL_ALPHA_MASK;
+pub const NCCHANNEL_ALPHA_MASK: u32 = crate::bindings::CHANNEL_ALPHA_MASK;
 
-// AlphaBits
+// NcAlphaBits
 //
 /// 2 bits of alpha (surrounded by context dependent bits).
-/// It is part of a Channel.
+/// It is part of an [`NcChannel`].
 ///
 /// ```txt
 /// ~~AA~~~~ -------- -------- --------
@@ -32,11 +35,11 @@ pub const CHANNEL_ALPHA_MASK: u32 = crate::bindings::CHANNEL_ALPHA_MASK;
 ///
 /// `type in C: no data type`
 ///
-pub type AlphaBits = u32;
+pub type NcAlphaBits = u32;
 
-// Channels
+// NcChannels
 //
-/// 64 bits containing a foreground and background [`Channel`]
+/// 64 bits containing a foreground and background [`NcChannel`]
 ///
 /// ```txt
 /// ~~AA~~~~|RRRRRRRR|GGGGGGGG|BBBBBBBB|~~AA~~~~|RRRRRRRR|GGGGGGGG|BBBBBBBB
@@ -44,7 +47,7 @@ pub type AlphaBits = u32;
 /// ```
 ///
 /// Detailed info (specially on the context-dependent bits on each
-/// `Channel`'s 4th byte):
+/// `NcChannel`'s 4th byte):
 ///
 /// ```txt
 ///                             ~foreground channel~
@@ -97,9 +100,9 @@ pub type AlphaBits = u32;
 ///
 /// `type in C: channels (uint64_t)`
 ///
-pub type Channels = u64;
+pub type NcChannels = u64;
 
-// Rgb
+// NcRgb
 //
 /// 24 bits broken into 3x 8bpp channels.
 ///
@@ -109,9 +112,9 @@ pub type Channels = u64;
 ///
 /// `type in C: no data type`
 ///
-pub type Rgb = u32;
+pub type NcRgb = u32;
 
-// Color
+// NcColor
 //
 /// 8 bits representing a R/G/B color or alpha channel
 ///
@@ -121,7 +124,7 @@ pub type Rgb = u32;
 ///
 /// `type in C: no data type`
 ///
-pub type Color = u8;
+pub type NcColor = u8;
 
 // NcPixel (RGBA)
 /// 32 bits broken into RGB + 8-bit alpha
@@ -138,10 +141,10 @@ pub type Color = u8;
 ///
 /// `type in C: ncpixel (uint32_t)`
 ///
-// NOTE: the order of the colors is different than in Channel.
+// NOTE: the order of the colors is different than in NcChannel.
 pub type NcPixel = u32;
 
-/// Palette structure consisting of an array of 256 [`Channel`]s
+/// NcPalette structure consisting of an array of 256 [`NcChannel`]s
 ///
 /// Some terminals only support 256 colors, but allow the full
 /// palette to be specified with arbitrary RGB colors. In all cases, it's more
@@ -150,16 +153,16 @@ pub type NcPixel = u32;
 ///
 /// `type in C: ncpalette256 (struct)`
 ///
-pub type Palette = crate::palette256;
+pub type NcPalette = crate::palette256;
 
-/// 8-bit value used for indexing into a [`Palette`]
+/// 8-bit value used for indexing into a [`NcPalette`]
 ///
-pub type PaletteIndex = u8;
+pub type NcPaletteIndex = u8;
 
 /// Context for a palette fade operation
 pub type NcFadeCtx = crate::ncfadectx;
 
-/// the [`Egc`]s which form the various levels
+/// the [`NcChar`] which form the various levels
 /// of a given geometry.
 ///
 /// If the geometry is wide, things are arranged with the rightmost side
@@ -170,4 +173,4 @@ pub type NcFadeCtx = crate::ncfadectx;
 ///
 /// `type in C: blitset (struct)`
 ///
-pub type BlitSet = crate::blitset;
+pub type NcBlitSet = crate::blitset;

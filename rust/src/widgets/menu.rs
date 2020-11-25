@@ -18,7 +18,7 @@ use std::ffi::CString;
 
 use crate::{
     ncmenu_create,
-    types::{Channels, NcInput, NcMenu, NcMenuItem, NcMenuOptions, NcMenuSection, NcPlane},
+    types::{NcChannels, NcInput, NcMenu, NcMenuItem, NcMenuOptions, NcMenuSection, NcPlane},
 };
 
 impl NcMenu {
@@ -43,8 +43,8 @@ impl NcMenuOptions {
     pub fn with_options(
         sections: &mut [NcMenuSection],
         count: u32,
-        headerc: Channels,
-        sectionc: Channels,
+        headerc: NcChannels,
+        sectionc: NcChannels,
         flags: u64,
     ) -> Self {
         Self {

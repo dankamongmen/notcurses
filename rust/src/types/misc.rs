@@ -4,7 +4,11 @@
 // error handling --------------------------------------------------------------
 
 /// `i32` value used to return errors, when value < 0, (usually -1)
-pub type IntResult = i32;
+pub type NcResult = i32;
+
+// time -----------------------------------------------------------------------
+
+pub type NcTime = crate::bindings::timespec;
 
 // ncmetric --------------------------------------------------------------------
 

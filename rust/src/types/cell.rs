@@ -1,17 +1,20 @@
-// Cell
+#[allow(unused_imports)] // for docblocks
+use crate::NcPlane;
+
+// NcCell
 /// A coordinate on an [`NcPlane`] storing 128 bits of data
 ///
 /// ```txt
-/// Cell: 128 bits structure comprised of the following 5 elements:
+/// NcCell: 128 bits structure comprised of the following 5 elements:
 ///
-/// GCLUSTER GCLUSTER GCLUSTER GCLUSTER  1. Egc
-/// 00000000 ~~~~~~~~ 11111111 11111111  2. EgcBackstop + 3. reserved + 4. StyleMask
-/// ~~AA~~~~ RRRRRRRR GGGGGGGG BBBBBBBB  5. Channels
+/// GCLUSTER GCLUSTER GCLUSTER GCLUSTER  1. NcChar
+/// 00000000 ~~~~~~~~ 11111111 11111111  2. NcCharBackstop + 3. reserved + 4. NcStyleMask
+/// ~~AA~~~~ RRRRRRRR GGGGGGGG BBBBBBBB  5. NcChannels
 /// ~~AA~~~~ RRRRRRRR GGGGGGGG BBBBBBBB  |
 ///
 /// 1. (32b) Extended Grapheme Cluster, presented either as:
 ///
-///     1.1. An Egc of up to 4 bytes:
+///     1.1. An NcChar of up to 4 bytes:
 ///     UUUUUUUU UUUUUUUU UUUUUUUU UUUUUUUU
 ///
 ///     1.2. A `0x01` in the first byte, plus 3 bytes with a 24b address to an egcpool:
@@ -23,14 +26,14 @@
 /// 3. (8b) reserved (ought to be zero)
 /// ~~~~~~~~
 ///
-/// 4. (16b) StyleMask
+/// 4. (16b) NcStyleMask
 /// 11111111 11111111
 ///
-/// 5. (64b) Channels
+/// 5. (64b) NcChannels
 /// ~~AA~~~~ RRRRRRRR GGGGGGGG BBBBBBBB|~~AA~~~~ RRRRRRRR GGGGGGGG BBBBBBBB
 /// ```
 ///
-/// A Cell corresponds to a single character cell on some plane, which can be
+/// An NcCell corresponds to a single character cell on some plane, which can be
 /// occupied by a single grapheme cluster (some root spacing glyph, along with
 /// possible combining characters, which might span multiple columns). At any
 /// cell, we can have a theoretically arbitrarily long UTF-8 string, a
@@ -44,7 +47,7 @@
 ///   characters, followed by a NUL terminator.
 ///
 /// Multi-column characters can only have a single style/color throughout.
-/// wcwidth() is not reliable. It's just quoting whether or not the Egc
+/// wcwidth() is not reliable. It's just quoting whether or not the NcChar
 /// contains a "Wide Asian" double-width character.
 /// This is set for some things, like most emoji, and not set for
 /// other things, like cuneiform.
@@ -82,61 +85,61 @@
 ///
 /// `type in C: cell (struct)`
 ///
-pub type Cell = crate::cell;
+pub type NcCell = crate::cell;
 
 ///
-pub const CELL_ALPHA_BLEND: u32 = crate::bindings::CELL_ALPHA_BLEND;
+pub const NCCELL_ALPHA_BLEND: u32 = crate::bindings::CELL_ALPHA_BLEND;
 
 /// Background cannot be highcontrast, only foreground
-pub const CELL_ALPHA_HIGHCONTRAST: u32 = crate::bindings::CELL_ALPHA_HIGHCONTRAST;
+pub const NCCELL_ALPHA_HIGHCONTRAST: u32 = crate::bindings::CELL_ALPHA_HIGHCONTRAST;
 
 ///
-pub const CELL_ALPHA_OPAQUE: u32 = crate::bindings::CELL_ALPHA_OPAQUE;
+pub const NCCELL_ALPHA_OPAQUE: u32 = crate::bindings::CELL_ALPHA_OPAQUE;
 
 ///
-pub const CELL_ALPHA_TRANSPARENT: u32 = crate::bindings::CELL_ALPHA_TRANSPARENT;
+pub const NCCELL_ALPHA_TRANSPARENT: u32 = crate::bindings::CELL_ALPHA_TRANSPARENT;
 
 /// If this bit is set, we are *not* using the default background color
-pub const CELL_BGDEFAULT_MASK: u32 = crate::bindings::CELL_BGDEFAULT_MASK;
+pub const NCCELL_BGDEFAULT_MASK: u32 = crate::bindings::CELL_BGDEFAULT_MASK;
 
 /// Extract these bits to get the background alpha mask
-pub const CELL_BG_ALPHA_MASK: u32 = crate::bindings::CELL_BG_ALPHA_MASK;
+pub const NCCELL_BG_ALPHA_MASK: u32 = crate::bindings::CELL_BG_ALPHA_MASK;
 
 /// If this bit *and* CELL_BGDEFAULT_MASK are set, we're using a
 /// palette-indexed background color
-pub const CELL_BG_PALETTE: u32 = crate::bindings::CELL_BG_PALETTE;
+pub const NCCELL_BG_PALETTE: u32 = crate::bindings::CELL_BG_PALETTE;
 
 /// Extract these bits to get the background RGB value
-pub const CELL_BG_RGB_MASK: u32 = crate::bindings::CELL_BG_RGB_MASK;
+pub const NCCELL_BG_RGB_MASK: u32 = crate::bindings::CELL_BG_RGB_MASK;
 
 /// If this bit is set, we are *not* using the default foreground color
-pub const CELL_FGDEFAULT_MASK: u64 = crate::bindings::CELL_FGDEFAULT_MASK;
+pub const NCCELL_FGDEFAULT_MASK: u64 = crate::bindings::CELL_FGDEFAULT_MASK;
 
 /// Extract these bits to get the foreground alpha mask
-pub const CELL_FG_ALPHA_MASK: u64 = crate::bindings::CELL_FG_ALPHA_MASK;
+pub const NCCELL_FG_ALPHA_MASK: u64 = crate::bindings::CELL_FG_ALPHA_MASK;
 
 /// If this bit *and* CELL_BGDEFAULT_MASK are set, we're using a
 /// palette-indexed background color
-pub const CELL_FG_PALETTE: u64 = crate::bindings::CELL_FG_PALETTE;
+pub const NCCELL_FG_PALETTE: u64 = crate::bindings::CELL_FG_PALETTE;
 
 /// Extract these bits to get the foreground RGB value
-pub const CELL_FG_RGB_MASK: u64 = crate::bindings::CELL_FG_RGB_MASK;
+pub const NCCELL_FG_RGB_MASK: u64 = crate::bindings::CELL_FG_RGB_MASK;
 
 ///
-pub const CELL_NOBACKGROUND_MASK: u64 = crate::bindings::CELL_NOBACKGROUND_MASK;
+pub const NCCELL_NOBACKGROUND_MASK: u64 = crate::bindings::CELL_NOBACKGROUND_MASK;
 
 /// If this bit is set, the cell is part of a multicolumn glyph.
 ///
 /// Whether a cell is the left or right side of the glyph can be determined
 /// by checking whether ->gcluster is zero.
-pub const CELL_WIDEASIAN_MASK: u64 = crate::bindings::CELL_WIDEASIAN_MASK as u64;
+pub const NCCELL_WIDEASIAN_MASK: u64 = crate::bindings::CELL_WIDEASIAN_MASK as u64;
 
-// Egc
+// NcChar
 //
 /// Extended Grapheme Cluster. A 32-bit `Char` type
 ///
 /// This 32 bit char, together with the associated plane's associated egcpool,
-/// completely define this cell's `Egc`. Unless the `Egc` requires more than
+/// completely define this cell's `NcChar`. Unless the `NcChar` requires more than
 /// four bytes to encode as UTF-8, it will be inlined here:
 ///
 /// ```txt
@@ -150,8 +153,8 @@ pub const CELL_WIDEASIAN_MASK: u64 = crate::bindings::CELL_WIDEASIAN_MASK as u64
 /// byte of this struct (the GClusterBackStop field, see below) is
 /// guaranteed to be zero, as are any unused bytes in gcluster.
 ///
-/// A spilled Egc is indicated by the value `0x01iiiiii`. This cannot alias a
-/// true supra-ASCII Egc, because UTF-8 only encodes bytes <= 0x80 when they
+/// A spilled NcChar is indicated by the value `0x01iiiiii`. This cannot alias a
+/// true supra-ASCII NcChar, because UTF-8 only encodes bytes <= 0x80 when they
 /// are single-byte ASCII-derived values. The `iiiiii` is interpreted as a 24-bit
 /// index into the egcpool (which may thus be up to 16MB):
 ///
@@ -164,7 +167,7 @@ pub const CELL_WIDEASIAN_MASK: u64 = crate::bindings::CELL_WIDEASIAN_MASK as u64
 /// in a cell, and therefore it must not be allowed through the API.
 ///
 /// -----
-/// NOTE that even if the `Egc` is <= 4 bytes and inlined, is still interpreted as
+/// NOTE that even if the `NcChar` is <= 4 bytes and inlined, is still interpreted as
 /// a NUL-terminated char * (technically, &cell->gcluster is treated as a char*).
 /// If it is more than 4 bytes, cell->gcluster has a first byte of 0x01,
 /// and the remaining 24 bits are an index into the plane's egcpool,
@@ -172,10 +175,10 @@ pub const CELL_WIDEASIAN_MASK: u64 = crate::bindings::CELL_WIDEASIAN_MASK as u64
 ///
 /// `type in C: uint32_t`
 ///
-pub type Egc = char;
+pub type NcChar = char;
 
-// EgcBackStop
-/// An `u8` always at zero, part of the [`Cell`] struct
+// NcCharBackStop
+/// An `u8` always at zero, part of the [`NcCell`] struct
 ///
 /// ```txt
 /// 00000000
@@ -183,9 +186,9 @@ pub type Egc = char;
 ///
 /// `type in C: uint_8t`
 ///
-pub type EgcBackstop = u8;
+pub type NcCharBackstop = u8;
 
-// StyleMask
+// NcStyleMask
 ///
 /// An `u16` of `NCSTYLE_*` boolean styling attributes
 ///
@@ -195,4 +198,4 @@ pub type EgcBackstop = u8;
 ///
 /// `type in C:  uint16_t`
 ///
-pub type StyleMask = u16;
+pub type NcStyleMask = u16;

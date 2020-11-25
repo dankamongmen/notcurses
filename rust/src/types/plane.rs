@@ -1,3 +1,6 @@
+#[allow(unused_imports)] // for docblocks
+use crate::NCCELL_ALPHA_BLEND;
+
 // NcPlane
 /// Fundamental drawing surface.
 ///
@@ -101,7 +104,7 @@ pub type NcVisual = crate::ncvisual;
 /// Options struct for [`NcVisual`]
 pub type NcVisualOptions = crate::ncvisual_options;
 
-/// Use [`CELL_ALPHA_BLEND`] with visual
+/// Use [`NCCELL_ALPHA_BLEND`] with visual
 pub const NCVISUAL_OPTION_BLEND: u32 = crate::bindings::NCVISUAL_OPTION_BLEND;
 
 /// Fail rather than degrade
