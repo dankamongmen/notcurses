@@ -13,23 +13,21 @@ static bool inline_cancelled = false;
 
 auto testfdcb(struct ncfdplane* ncfd, const void* buf, size_t s, void* curry) -> int {
   struct ncplane* n = ncfdplane_plane(ncfd);
-  lock.lock();
+  std::lock_guard<std::mutex> lck(lock);
   if(ncplane_putnstr(n, s, static_cast<const char*>(buf)) <= 0){
-    lock.unlock();
     return -1;
   }
   notcurses_render(ncplane_notcurses(ncfdplane_plane(ncfd)));
-  lock.unlock();
   (void)curry;
   (void)s;
   return 0;
 }
 
 auto testfdeof(struct ncfdplane* n, int fderrno, void* curry) -> int {
+  std::unique_lock<std::mutex> lck(lock);
   bool* outofline_cancelled = static_cast<bool*>(curry);
-  lock.lock();
   *outofline_cancelled = true;
-  lock.unlock();
+  lck.unlock();
   cond.notify_one();
   (void)n;
   (void)fderrno;
@@ -37,10 +35,10 @@ auto testfdeof(struct ncfdplane* n, int fderrno, void* curry) -> int {
 }
 
 auto testfdeofdestroys(struct ncfdplane* n, int fderrno, void* curry) -> int {
-  lock.lock();
+  std::unique_lock<std::mutex> lck(lock);
   inline_cancelled = true;
   int ret = ncfdplane_destroy(n);
-  lock.unlock();
+  lck.unlock();
   cond.notify_one();
   (void)curry;
   (void)fderrno;
