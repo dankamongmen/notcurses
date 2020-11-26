@@ -23,6 +23,10 @@ rearrangements of Notcurses.
     * Add new function `ncpile_render()`, which renders the pile containing the
       specified plane to the specified buffer. Add new function
       `ncpile_rasterize()` to rasterize the specified buffer to output.
+  * Added `NCSTYLE_STRUCK` for strikethrough. Note that this is not supported
+    by terminfo, and we instead just hardcode the control sequence. Use at your
+    own risk! If your terminal doesn't support this control sequence, behavior
+    is undefined.
 
 * 2.0.7 (2020-11-21)
   * The `horiz` union of `ncplane_options` has been discarded; the `int x`

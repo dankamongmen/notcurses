@@ -1696,16 +1696,17 @@ int cell_duplicate(struct ncplane* n, cell* targ, const cell* c);
 // Release resources held by the cell 'c'.
 void cell_release(struct ncplane* n, cell* c);
 
-#define NCSTYLE_MASK      0xffff0000ul
-#define NCSTYLE_STANDOUT  0x00800000ul
-#define NCSTYLE_UNDERLINE 0x00400000ul
-#define NCSTYLE_REVERSE   0x00200000ul
-#define NCSTYLE_BLINK     0x00100000ul
-#define NCSTYLE_DIM       0x00080000ul
-#define NCSTYLE_BOLD      0x00040000ul
-#define NCSTYLE_INVIS     0x00020000ul
-#define NCSTYLE_PROTECT   0x00010000ul
-#define NCSTYLE_ITALIC    0x01000000ul
+#define NCSTYLE_MASK      0xfffful
+#define NCSTYLE_STANDOUT  0x0080ul
+#define NCSTYLE_UNDERLINE 0x0040ul
+#define NCSTYLE_REVERSE   0x0020ul
+#define NCSTYLE_BLINK     0x0010ul
+#define NCSTYLE_DIM       0x0008ul
+#define NCSTYLE_BOLD      0x0004ul
+#define NCSTYLE_INVIS     0x0002ul
+#define NCSTYLE_PROTECT   0x0001ul
+#define NCSTYLE_ITALIC    0x0100ul
+#define NCSTYLE_STRUCK    0x0200ul
 
 // copy the UTF8-encoded EGC out of the cell, whether simple or complex. the
 // result is not tied to the ncplane, and persists across erases / destruction.
