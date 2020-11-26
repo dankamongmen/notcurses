@@ -13,7 +13,7 @@ int main(void){
     return EXIT_FAILURE;
   }
   int e = 0;
-  for(unsigned i = 0 ; i < (NCSTYLE_ITALIC << 1u) ; ++i){
+  for(unsigned i = 0 ; i < (NCSTYLE_STRUCK << 1u) ; ++i){
     if(ncdirect_styles_set(nc, i)){
       ncdirect_stop(nc);
       return EXIT_FAILURE;

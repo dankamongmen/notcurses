@@ -237,14 +237,16 @@ typedef struct tinfo {
   char* cnorm;    // restore cursor to default state
   char* hpa;      // horizontal position adjusment (move cursor on row)
   char* vpa;      // vertical position adjustment (move cursor on column)
-  char* standout; // CELL_STYLE_STANDOUT
-  char* uline;    // CELL_STYLE_UNDERLINK
-  char* reverse;  // CELL_STYLE_REVERSE
-  char* blink;    // CELL_STYLE_BLINK
-  char* dim;      // CELL_STYLE_DIM
-  char* bold;     // CELL_STYLE_BOLD
-  char* italics;  // CELL_STYLE_ITALIC
-  char* italoff;  // CELL_STYLE_ITALIC (disable)
+  char* standout; // NCSTYLE_STANDOUT
+  char* uline;    // NCSTYLE_UNDERLINK
+  char* reverse;  // NCSTYLE_REVERSE
+  char* blink;    // NCSTYLE_BLINK
+  char* dim;      // NCSTYLE_DIM
+  char* bold;     // NCSTYLE_BOLD
+  char* italics;  // NCSTYLE_ITALIC
+  char* italoff;  // NCSTYLE_ITALIC (disable)
+  char* struck;   // NCSTYLE_STRUCK
+  char* struckoff;// NCSTYLE_STRUCK (disable)
   char* initc;    // set a palette entry's RGB value
   char* oc;       // restore original colors
   char* clearscr; // erase screen and home cursor

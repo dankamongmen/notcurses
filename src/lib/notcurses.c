@@ -1624,6 +1624,7 @@ unsigned notcurses_supported_styles(const notcurses* nc){
   styles |= nc->tcache.dim ? NCSTYLE_DIM : 0;
   styles |= nc->tcache.bold ? NCSTYLE_BOLD : 0;
   styles |= nc->tcache.italics ? NCSTYLE_ITALIC : 0;
+  styles |= nc->tcache.struck ? NCSTYLE_STRUCK : 0;
   return styles;
 }
 

@@ -615,6 +615,7 @@ API void cell_release(struct ncplane* n, cell* c);
 #define NCSTYLE_INVIS     0x0002u
 #define NCSTYLE_PROTECT   0x0001u
 #define NCSTYLE_ITALIC    0x0100u
+#define NCSTYLE_STRUCK    0x0200u
 #define NCSTYLE_NONE      0
 
 // Set the specified style bits for the cell 'c', whether they're actively

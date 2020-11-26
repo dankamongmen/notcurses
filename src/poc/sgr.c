@@ -50,7 +50,7 @@ int main(int argc, char** argv){
     --pivot;
   }
   int sgrcount = pivot + 1;
-  // generate all values
+  // generate all values, like a beast
   int cols = 0;
   while(pivot >= 0){
     int i;
