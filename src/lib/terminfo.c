@@ -130,6 +130,7 @@ int interrogate_terminfo(tinfo* ti){
     if(nocolor_stylemask & WA_ITALIC){
       ti->italics = NULL;
     }
+    // can't do anything about struck! :/
   }
   terminfostr(&ti->getm, "getm"); // get mouse events
   // Not all terminals support setting the fore/background independently
