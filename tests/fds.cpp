@@ -70,6 +70,7 @@ TEST_CASE("FdsAndSubprocs"
     while(!outofline_cancelled){
       cond.wait(lck);
     }
+    lck.unlock();
     CHECK(0 == ncfdplane_destroy(ncfdp));
     CHECK(0 == notcurses_render(nc_));
   }
@@ -88,6 +89,7 @@ TEST_CASE("FdsAndSubprocs"
     while(!inline_cancelled){
       cond.wait(lck);
     }
+    lck.unlock();
     CHECK(0 == notcurses_render(nc_));
   }
 
@@ -103,6 +105,7 @@ TEST_CASE("FdsAndSubprocs"
     while(!outofline_cancelled){
       cond.wait(lck);
     }
+    lck.unlock();
     CHECK(0 != ncsubproc_destroy(ncsubp));
     // FIXME we ought get indication of an error here! or via callback...
     CHECK(0 == notcurses_render(nc_));
@@ -120,6 +123,7 @@ TEST_CASE("FdsAndSubprocs"
     while(!outofline_cancelled){
       cond.wait(lck);
     }
+    lck.unlock();
     CHECK(0 == ncsubproc_destroy(ncsubp));
     CHECK(0 == notcurses_render(nc_));
   }
@@ -136,6 +140,7 @@ TEST_CASE("FdsAndSubprocs"
     while(!outofline_cancelled){
       cond.wait(lck);
     }
+    lck.unlock();
     CHECK(0 != ncsubproc_destroy(ncsubp));
     CHECK(0 == notcurses_render(nc_));
   }
