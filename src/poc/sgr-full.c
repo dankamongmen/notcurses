@@ -22,6 +22,8 @@ int main(void){
   ncplane_putstr_yx(n, y++, 0, "a ═ underline");
   ncplane_set_styles(n, NCSTYLE_BLINK);
   ncplane_putstr_yx(n, y++, 0, "a ═ blink");
+  ncplane_set_styles(n, NCSTYLE_STRUCK);
+  ncplane_putstr_yx(n, y++, 0, "a ═ strikethrough");
   ncplane_putstr_yx(n, y++, 0, "sleeping for 5s...");
   if(notcurses_render(nc)){
     goto err;
