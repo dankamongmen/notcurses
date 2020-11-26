@@ -23,7 +23,7 @@ libc = {version = "0.2.80", default-features = false}
 cty = "0.2.1"
 
 [build-dependencies]
-bindgen = ">= 0.55.1"
+bindgen = ">= 0.56"
 cc = "1.0"
 pkg-config = "0.3.19"
 

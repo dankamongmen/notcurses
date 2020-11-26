@@ -18,7 +18,6 @@ ncplane_fg_rgb
 ncplane_fg_rgb8
 ncplane_gradient_sized
 ncplane_hline
-ncplane_new
 ncplane_perimeter
 ncplane_perimeter_double
 ncplane_perimeter_rounded

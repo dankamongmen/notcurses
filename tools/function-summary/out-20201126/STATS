@@ -1,0 +1,35 @@
+GENERAL
+-------
+bindgen generated functions (bg): 583
+static inline functions (si): 157
+
+grouped by the following prefixes:
+cell channel ncblit ncdirect ncdplot ncfadectx ncfdplane nckey ncmenu ncmetric ncmultiselector ncpixel ncpile ncplane ncreader ncreel ncselector ncsubproc nctablet ncuplot ncvisual notcurses palette
+--------------------------
+            (bg, si)
+
+cell:       (6, 42)
+channel:    (0, 39)
+ncblit:     (2, 0)
+ncdirect:   (38, 0)
+ncdplot:    (6, 0)
+ncfadectx:  (3, 0)
+ncfdplane:  (3, 0)
+nckey:      (0, 2)
+ncmenu:     (13, 0)
+ncmetric:   (1, 0)
+ncmultiselec(5, 0)
+ncpixel:    (0, 10)
+ncpile:     (3, 0)
+ncplane:    (100, 42)
+ncreader:   (11, 0)
+ncreel:     (11, 0)
+ncselector: (9, 0)
+ncsubproc:  (5, 0)
+nctablet:   (3, 0)
+ncuplot:    (6, 0)
+ncvisual:   (17, 1)
+notcurses:  (39, 6)
+palette:    (3, 3)
+
+rest of the functions (bg/si):(4, 299)

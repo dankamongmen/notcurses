@@ -317,6 +317,16 @@ pub use bindgen::{
     ncmultiselector_selected,
 };
 
+// ncpile ----------------------------------------------------------------------
+
+#[doc(inline)]
+pub use bindgen::{
+    // functions
+    ncpile_create,
+    ncpile_render,
+    ncpile_rasterize,
+};
+
 // ncplane ---------------------------------------------------------------------
 
 pub(crate) use bindgen::{
@@ -331,7 +341,6 @@ pub(crate) use bindgen::{
 #[doc(inline)]
 pub use bindgen::{
     // functions
-    ncpile_create,
     ncplane_above,
     ncplane_at_cursor,
     ncplane_at_yx,

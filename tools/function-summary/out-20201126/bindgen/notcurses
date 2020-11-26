@@ -22,9 +22,11 @@ notcurses_mouse_enable
 notcurses_palette_size
 notcurses_refresh
 notcurses_render
+notcurses_render_to_buffer
 notcurses_render_to_file
-notcurses_reset_stats
 notcurses_stats
+notcurses_stats_alloc
+notcurses_stats_reset
 notcurses_stdplane
 notcurses_stdplane_const
 notcurses_stop

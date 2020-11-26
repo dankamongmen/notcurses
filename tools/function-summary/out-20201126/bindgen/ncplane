@@ -1,6 +1,5 @@
 ncplane_above
 ncplane_at_cursor
-ncplane_attr
 ncplane_at_yx
 ncplane_base
 ncplane_below
@@ -33,8 +32,11 @@ ncplane_move_below
 ncplane_move_bottom
 ncplane_move_top
 ncplane_move_yx
+ncplane_new
 ncplane_notcurses
 ncplane_notcurses_const
+ncplane_off_styles
+ncplane_on_styles
 ncplane_parent
 ncplane_parent_const
 ncplane_polyfill_yx
@@ -53,12 +55,13 @@ ncplane_putwegc_stained
 ncplane_putwstr_stained
 ncplane_qrcode
 ncplane_reparent
+ncplane_reparent_family
 ncplane_resize
+ncplane_resizecb
 ncplane_resize_realign
 ncplane_rgba
 ncplane_rotate_ccw
 ncplane_rotate_cw
-ncplane_set_attr
 ncplane_set_base
 ncplane_set_base_cell
 ncplane_set_bchannel
@@ -76,7 +79,9 @@ ncplane_set_fg_palindex
 ncplane_set_fg_rgb
 ncplane_set_fg_rgb8
 ncplane_set_fg_rgb8_clipped
+ncplane_set_resizecb
 ncplane_set_scrolling
+ncplane_set_styles
 ncplane_set_userptr
 ncplane_stain
 ncplane_styles

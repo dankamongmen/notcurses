@@ -2,4 +2,5 @@ notcurses_align
 notcurses_getc_blocking
 notcurses_getc_nblock
 notcurses_stddim_yx
+notcurses_stddim_yx_const
 notcurses_term_dim_yx

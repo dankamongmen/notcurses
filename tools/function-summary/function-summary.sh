@@ -16,11 +16,11 @@ PATH_SOURCE_FILE="../../include/notcurses/notcurses.h"
 
 # this is the path to the latest bindgen generated rust sources
 # TODO: retrieve it automatically, from the target folder, the most recently created/updated)
-PATH_BINDGEN_LATEST="bindgen_20201102.rs"
+PATH_BINDGEN_LATEST="bindgen_20201126.rs"
 
 # these are the main function prefixes used in notcurses (before the first `_`) for STATS_FILE
 # NOTE: updated manually
-PREFIX_LIST="cell channel ncblit ncdirect ncdplot ncfadectx ncfdplane nckey ncmenu ncmetric ncmultiselector ncpixel ncplane ncreader ncreel ncselector ncsubproc nctablet ncuplot ncvisual notcurses palette"
+PREFIX_LIST="cell channel ncblit ncdirect ncdplot ncfadectx ncfdplane nckey ncmenu ncmetric ncmultiselector ncpixel ncpile ncplane ncreader ncreel ncselector ncsubproc nctablet ncuplot ncvisual notcurses palette"
 
 
 OUTPUT_DIR="out-$(date +%Y%m%d)"

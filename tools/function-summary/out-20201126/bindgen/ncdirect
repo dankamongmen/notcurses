@@ -23,7 +23,6 @@ ncdirect_fg_palindex
 ncdirect_fg_rgb
 ncdirect_flush
 ncdirect_getc
-ncdirect_getc_nonblocking
 ncdirect_hline_interp
 ncdirect_init
 ncdirect_inputready_fd
