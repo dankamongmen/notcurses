@@ -21,6 +21,7 @@ namespace ncpp
 		Invis     = NCSTYLE_INVIS,
 		Protect   = NCSTYLE_PROTECT,
 		Italic    = NCSTYLE_ITALIC,
+		Struck    = NCSTYLE_STRUCK,
 	};
 
 	DECLARE_ENUM_FLAG_OPERATORS (CellStyle)
