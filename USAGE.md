@@ -166,6 +166,15 @@ Only upon a call to `notcurses_render` will the visible terminal display be
 updated to reflect the changes:
 
 ```c
+// Renders the pile of which 'n' is a part. Rendering this pile again will blow
+// away the render. To actually write out the render, call ncpile_rasterize().
+int ncpile_render(struct ncplane* n);
+
+// Make the physical screen match the last rendered frame from the pile of
+// which 'n' is a part. This is a blocking call. Don't call this before the
+// pile has been rendered (doing so will likely result in a blank screen).
+int ncpile_rasterize(struct ncplane* n);
+
 // Make the physical screen match the virtual screen. Changes made to the
 // virtual screen (i.e. most other calls) will not be visible until after a
 // successful call to notcurses_render().

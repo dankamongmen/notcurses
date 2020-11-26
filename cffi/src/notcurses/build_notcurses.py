@@ -53,6 +53,8 @@ void notcurses_version_components(int* major, int* minor, int* patch, int* tweak
 int notcurses_lex_margins(const char* op, notcurses_options* opts);
 int notcurses_stop(struct notcurses*);
 int notcurses_render(struct notcurses* nc);
+int ncpile_render(struct ncplane* n);
+int ncpile_rasterize(struct ncplane* n);
 int notcurses_render_to_buffer(struct notcurses* nc, char** buf, size_t* buflen);
 int notcurses_render_to_file(struct notcurses* nc, FILE* fp);
 struct ncplane* notcurses_stdplane(struct notcurses*);
