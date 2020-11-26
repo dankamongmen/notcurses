@@ -138,6 +138,8 @@ pub const NCCELL_WIDEASIAN_MASK: u64 = crate::bindings::CELL_WIDEASIAN_MASK as u
 //
 /// Extended Grapheme Cluster. A 32-bit `Char` type
 ///
+/// - https://unicode.org/reports/tr29/#Grapheme_Cluster_Boundaries
+///
 /// This 32 bit char, together with the associated plane's associated egcpool,
 /// completely define this cell's `NcChar`. Unless the `NcChar` requires more than
 /// four bytes to encode as UTF-8, it will be inlined here:

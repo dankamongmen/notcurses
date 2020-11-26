@@ -1,8 +1,9 @@
 //! `libnotcurses-sys` is an unsafe Rust wrapper for the notcurses C library
 //!
-//! It follows very closely the C API, adapted to the Rust API Guidelines.
+//! The API is mostly the original one, while following the Rust API Guidelines.
 //!
-//! For a higher lever API, safer and more idiomatic, take a look at
+//! For a safer wrapper with a more idiomatic API for Rust, you can use
+//! [](https://crates.io/crates/notcurses)
 //! [notcurses-rs](https://github.com/dankamongmen/notcurses-rs)
 //!
 //! ### notcurses C API docs:

@@ -143,9 +143,8 @@ pub unsafe fn cells_load_box(
                     gclu = unsafe { gclu.offset(ulen as isize) };
                     ulen = unsafe { cell_prime(plane, hl, gcluster, style, channels) };
 
-                    #[allow(unused_assignments)] // gclu is not read
                     if ulen > 0 {
-                        gclu = unsafe { gclu.offset(ulen as isize) };
+                        let _gclu = unsafe { gclu.offset(ulen as isize) };
                         ulen = unsafe { cell_prime(plane, vl, gcluster, style, channels) };
 
                         if ulen > 0 {
