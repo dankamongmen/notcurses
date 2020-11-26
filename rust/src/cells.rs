@@ -1,3 +1,5 @@
+//! NcCell constructors and cell_* static functions reimplementations
+
 // functions already exported by bindgen : 6
 // -----------------------------------------
 // cell_duplicate
@@ -66,12 +68,52 @@ use crate::{
     channels_set_bg_default, channels_set_bg_rgb, channels_set_bg_rgb8, channels_set_fchannel,
     channels_set_fg_alpha, channels_set_fg_default, channels_set_fg_rgb, channels_set_fg_rgb8,
     types::{
-        NcAlphaBits, NcCell, NcChannel, NcChannels, NcChar, NcColor, NcPaletteIndex, NcPlane,
+        NcAlphaBits, NcCell, NcChannel, NcChannels, NcChar, NcCharBackstop, NcColor, NcPaletteIndex, NcPlane,
         NcResult, NcStyleMask, NCCELL_ALPHA_OPAQUE, NCCELL_BGDEFAULT_MASK, NCCELL_BG_PALETTE,
         NCCELL_FGDEFAULT_MASK, NCCELL_FG_PALETTE, NCCELL_NOBACKGROUND_MASK, NCCELL_WIDEASIAN_MASK,
     },
     NCSTYLE_MASK,
 };
+
+// Constructors ----------------------------------------------------------------
+
+impl NcCell {
+    /// [`NcCell`] constructor expecting [`char`], [`NcStyleMask`] and [`NcChannels`]
+    ///
+    /// This is analogous to the [`cell_initializer`] macro
+    #[inline]
+    pub const fn new(ch: char, stylemask: NcStyleMask, channels: NcChannels) -> Self {
+        NcCell {
+            gcluster: ch as u32,
+            gcluster_backstop: 0 as NcCharBackstop,
+            reserved: 0,
+            stylemask,
+            channels,
+        }
+    }
+
+    /// [`NcCell`] simple constructor just expecting a [`char`]
+    ///
+    /// This is analogous to the [`cell_char_initializer`] macro
+    #[inline]
+    pub const fn with_char(ch: char) -> Self {
+        Self::new(
+            ch,
+            0 as NcStyleMask,
+            0 as NcChannels,
+        )
+    }
+
+    /// [`NcCell`] simple constructor for an empty cell
+    ///
+    /// This is analogous to the [`cell_trivial_initializer`] macro
+    #[inline]
+    pub const fn new_blank() -> Self {
+        Self::with_char(0 as char)
+    }
+}
+
+// Static Functions ------------------------------------------------------------
 
 /// cell_load(), plus blast the styling with 'style' and 'channels'.
 ///

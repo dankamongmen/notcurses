@@ -17,14 +17,18 @@ use libnotcurses_sys::*;
 fn main() {
     unsafe {
         let nc = Notcurses::new();
+
+        // use standard plane
         let stdplane = notcurses_stdplane(nc);
 
-        let c1 = cell_char_initializer!('A');
-        ncplane_putc(&mut *stdplane, &c1);
+        for ch in "Initializing cells...".chars() {
+            let cell = NcCell::with_char(ch);
+            sleep![60];
+            ncplane_putc(&mut *stdplane, &cell);
+            let _ = notcurses_render(nc);
+        }
+        sleep![900];
 
-        let _ = notcurses_render(nc);
-
-        sleep![1200];
         notcurses_stop(nc);
     }
 }

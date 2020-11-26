@@ -25,9 +25,6 @@ pub use bindings::*;
 #[doc(inline)]
 pub use types::*;
 
-#[macro_use]
-mod macros;
-
 mod cells;
 mod channel;
 mod direct;

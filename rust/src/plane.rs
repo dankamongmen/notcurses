@@ -1,3 +1,5 @@
+//! NcPlane constructors and ncplane_* static functions reimplementations
+
 // functions already exported by bindgen : 97
 // ------------------------------------------
 //  ncplane_above
@@ -166,7 +168,7 @@ use crate::{
     ncplane_hline_interp, ncplane_putc_yx, ncplane_putegc_yx, ncplane_putnstr_yx,
     ncplane_putstr_yx, ncplane_resize, ncplane_vline_interp, ncplane_vprintf_yx, notcurses_align,
     types::{
-        NcAlign, NcAlphaBits, NcCell, NcChannel, NcChannels, NcCharBackstop, NcColor, NcPlane,
+        NcAlign, NcAlphaBits, NcCell, NcChannel, NcChannels, NcColor, NcPlane,
         NcPlaneOptions, NcResult, NcStyleMask, Notcurses, NCPLANE_OPTION_HORALIGNED,
     },
 };
@@ -328,12 +330,12 @@ pub fn ncplane_double_box(
     #[allow(unused_assignments)]
     let mut ret = 0;
 
-    let mut ul = cell_trivial_initializer![];
-    let mut ur = cell_trivial_initializer![];
-    let mut ll = cell_trivial_initializer![];
-    let mut lr = cell_trivial_initializer![];
-    let mut hl = cell_trivial_initializer![];
-    let mut vl = cell_trivial_initializer![];
+    let mut ul = NcCell::new_blank();
+    let mut ur = NcCell::new_blank();
+    let mut ll = NcCell::new_blank();
+    let mut lr = NcCell::new_blank();
+    let mut hl = NcCell::new_blank();
+    let mut vl = NcCell::new_blank();
 
     unsafe {
         ret = cells_double_box(
@@ -426,12 +428,12 @@ pub fn ncplane_perimeter_double(
     unsafe {
         ncplane_dim_yx(plane, &mut dimy, &mut dimx);
     }
-    let mut ul = cell_trivial_initializer![];
-    let mut ur = cell_trivial_initializer![];
-    let mut ll = cell_trivial_initializer![];
-    let mut lr = cell_trivial_initializer![];
-    let mut hl = cell_trivial_initializer![];
-    let mut vl = cell_trivial_initializer![];
+    let mut ul = NcCell::new_blank();
+    let mut ur = NcCell::new_blank();
+    let mut ll = NcCell::new_blank();
+    let mut lr = NcCell::new_blank();
+    let mut hl = NcCell::new_blank();
+    let mut vl = NcCell::new_blank();
     if unsafe {
         cells_double_box(
             plane,
@@ -475,12 +477,12 @@ pub fn ncplane_perimeter_rounded(
     unsafe {
         ncplane_dim_yx(plane, &mut dimy, &mut dimx);
     }
-    let mut ul = cell_trivial_initializer![];
-    let mut ur = cell_trivial_initializer![];
-    let mut ll = cell_trivial_initializer![];
-    let mut lr = cell_trivial_initializer![];
-    let mut hl = cell_trivial_initializer![];
-    let mut vl = cell_trivial_initializer![];
+    let mut ul = NcCell::new_blank();
+    let mut ur = NcCell::new_blank();
+    let mut ll = NcCell::new_blank();
+    let mut lr = NcCell::new_blank();
+    let mut hl = NcCell::new_blank();
+    let mut vl = NcCell::new_blank();
     if unsafe {
         cells_rounded_box(
             plane,
@@ -713,12 +715,12 @@ pub fn ncplane_rounded_box(
     #[allow(unused_assignments)]
     let mut ret = 0;
 
-    let mut ul = cell_trivial_initializer![];
-    let mut ur = cell_trivial_initializer![];
-    let mut ll = cell_trivial_initializer![];
-    let mut lr = cell_trivial_initializer![];
-    let mut hl = cell_trivial_initializer![];
-    let mut vl = cell_trivial_initializer![];
+    let mut ul = NcCell::new_blank();
+    let mut ur = NcCell::new_blank();
+    let mut ll = NcCell::new_blank();
+    let mut lr = NcCell::new_blank();
+    let mut hl = NcCell::new_blank();
+    let mut vl = NcCell::new_blank();
 
     unsafe {
         ret = cells_rounded_box(
