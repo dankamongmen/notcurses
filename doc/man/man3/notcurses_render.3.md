@@ -10,6 +10,10 @@ notcurses_render - sync the physical display to the virtual ncplanes
 
 **#include <notcurses/notcurses.h>**
 
+**int ncpile_render(struct ncplane* n);**
+
+**int ncpile_rasterize(struct ncplane* n);**
+
 **int notcurses_render(struct notcurses* ***nc***);**
 
 **char* notcurses_at_yx(struct notcurses* ***nc***, int ***yoff***, int ***xoff***, uint16_t* ***styles***, uint64_t* ***channels***);**
@@ -20,12 +24,28 @@ notcurses_render - sync the physical display to the virtual ncplanes
 
 # DESCRIPTION
 
-**notcurses_render** syncs the physical display to the context's prepared
-ncplanes. It is necessary to call **notcurses_render** to generate any visible
-output; the various notcurses_output(3) calls only draw to the virtual
-ncplanes. Most of the notcurses statistics are updated as a result of a
-render (see notcurses_stats(3)), and screen geometry is refreshed (similarly to
-**notcurses_refresh**) *following* the render.
+Rendering reduces a pile of **ncplane**s to a single plane, proceeding from the
+top to the bottom along a pile's z-axis. The result is a matrix of **cell**s
+(see **notcurses_cell**). Rasterizing takes this matrix, together with the
+current state of the visual area, and produces a stream of optimized control
+sequences and EGCs for the terminal. By writing this stream to the terminal,
+the physical display is synced to some pile's planes.
+
+**ncpile_render** performs the first of these tasks for the pile of which **n**
+is a part. The output is maintained internally; calling **ncpile_render** again
+on the same pile will replace this state with a fresh render. Multiple piles
+can be concurrently rendered. **ncpile_rasterize** performs rasterization, and
+writes the result to the terminal. It is a blocking call, and only one
+rasterization operation may proceed at a time. It does not destroy the
+render output, and can be called multiple times on the same render.
+**notcurses_render** calls **ncpile_render** and **ncpile_rasterize** on the
+standard plane, for backwards compatibility. It is an exclusive blocking call.
+
+It is necessary to call **ncpile_rasterize** or **notcurses_render** to
+generate any visible output; the various notcurses_output(3) calls only draw to
+the virtual ncplanes. Most of the notcurses statistics are updated as a result
+of a render (see **notcurses_stats(3)**), and screen geometry is refreshed
+(similarly to **notcurses_refresh(3)**) *following* the render.
 
 While **notcurses_render** is called, you **must not call any other functions
 modifying the same pile**. Other piles may be freely accessed and modified.
