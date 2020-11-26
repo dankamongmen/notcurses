@@ -144,5 +144,9 @@ int interrogate_terminfo(tinfo* ti){
       return -1;
     }
   }
+  // some control sequences are unavailable from terminfo, and we must instead
+  // hardcode them :/. use at your own peril!
+  ti->struck = "\x1b[9m";
+  ti->struckoff = "\x1b[29m";
   return 0;
 }

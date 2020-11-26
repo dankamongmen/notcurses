@@ -643,10 +643,15 @@ int ncdirect_styles_on(ncdirect* n, unsigned stylebits){
   uint32_t stylemask = n->stylemask | stylebits;
   if(ncdirect_style_emit(n, n->tcache.sgr, stylemask, n->ttyfp) == 0){
     if(term_setstyle(n->ttyfp, n->stylemask, stylemask, NCSTYLE_ITALIC,
-                     n->tcache.italics, n->tcache.italoff) == 0){
-      n->stylemask = stylemask;
+                     n->tcache.italics, n->tcache.italoff)){
       return 0;
     }
+    if(term_setstyle(n->ttyfp, n->stylemask, stylemask, NCSTYLE_STRUCK,
+                     n->tcache.struck, n->tcache.struckoff)){
+      return -1;
+    }
+    n->stylemask = stylemask;
+    return 0;
   }
   return -1;
 }
@@ -656,10 +661,15 @@ int ncdirect_styles_off(ncdirect* n, unsigned stylebits){
   uint32_t stylemask = n->stylemask & ~stylebits;
   if(ncdirect_style_emit(n, n->tcache.sgr, stylemask, n->ttyfp) == 0){
     if(term_setstyle(n->ttyfp, n->stylemask, stylemask, NCSTYLE_ITALIC,
-                     n->tcache.italics, n->tcache.italoff) == 0){
-      n->stylemask = stylemask;
-      return 0;
+                     n->tcache.italics, n->tcache.italoff)){
+      return -1;
     }
+    if(term_setstyle(n->ttyfp, n->stylemask, stylemask, NCSTYLE_STRUCK,
+                     n->tcache.struck, n->tcache.struckoff)){
+      return -1;
+    }
+    n->stylemask = stylemask;
+    return 0;
   }
   return -1;
 }
@@ -669,10 +679,15 @@ int ncdirect_styles_set(ncdirect* n, unsigned stylebits){
   uint32_t stylemask = stylebits;
   if(ncdirect_style_emit(n, n->tcache.sgr, stylemask, n->ttyfp) == 0){
     if(term_setstyle(n->ttyfp, n->stylemask, stylemask, NCSTYLE_ITALIC,
-                     n->tcache.italics, n->tcache.italoff) == 0){
-      n->stylemask = stylemask;
-      return 0;
+                     n->tcache.italics, n->tcache.italoff)){
+      return -1;
     }
+    if(term_setstyle(n->ttyfp, n->stylemask, stylemask, NCSTYLE_STRUCK,
+                     n->tcache.struck, n->tcache.struckoff)){
+      return -1;
+    }
+    n->stylemask = stylemask;
+    return 0;
   }
   return -1;
 }
