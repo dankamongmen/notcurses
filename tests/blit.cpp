@@ -1,5 +1,4 @@
 #include "main.h"
-#include <vector>
 
 // FIXME broken on big-endian, need turn WARNs back to CHECKs
 // https://github.com/dankamongmen/notcurses/issues/1130
