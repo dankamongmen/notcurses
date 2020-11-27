@@ -1,7 +1,7 @@
 #ifndef NOTCURSES_VISUAL_DETAILS
 #define NOTCURSES_VISUAL_DETAILS
 
-#include "version.h"
+#include "builddef.h"
 #include "notcurses/notcurses.h"
 
 #ifdef USE_FFMPEG

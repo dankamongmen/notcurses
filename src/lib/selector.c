@@ -238,7 +238,7 @@ ncselector* ncselector_create(ncplane* n, const ncselector_options* opts){
   }
   unsigned itemcount = 0;
   if(opts->flags > 0){
-    logwarn(ncplane_notcurses(n), "Provided unsupported flags %016lx\n", opts->flags);
+    logwarn(ncplane_notcurses(n), "Provided unsupported flags %016jx\n", (uintmax_t)opts->flags);
   }
   if(opts->items){
     for(const struct ncselector_item* i = opts->items ; i->option ; ++i){
