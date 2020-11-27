@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 2.0.8 (not yet released)
+* 2.0.8 (2020-11-27)
   * The major, minor, and patch versions are now available as preprocessor
     numeric defines, fit for comparisons at the cpp level. The
     `NOTCURSES_VERSION_COMPARABLE` macro has been added, to form a comparable
