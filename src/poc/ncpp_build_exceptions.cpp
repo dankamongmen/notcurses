@@ -10,6 +10,7 @@
 #include <iostream>
 #include <ncpp/NotCurses.hh>
 #include <ncpp/Menu.hh>
+#include <ncpp/Pile.hh>
 #include <ncpp/Plane.hh>
 #include <ncpp/Reel.hh>
 #include <ncpp/MultiSelector.hh>
