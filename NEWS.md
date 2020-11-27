@@ -2,8 +2,12 @@ This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
 * 2.0.8 (not yet released)
-  * The MAJOR, MINOR, and PATH versions are now available as preprocessor
-    numeric defines, fit for comparisons at the cpp level.
+  * The major, minor, and patch versions are now available as preprocessor
+    numeric defines, fit for comparisons at the cpp level. The
+    `NOTCURSES_VERSION_COMPARABLE` macro has been added, to form a comparable
+    version ID from a provided major, minor, and patch level. The
+    `NOTCURSES_VERNUM_ORDERED` macro has been added, defined as a comparable
+    version ID for the current version of Notcurses.
   * Add new function `ncplane_reparent_family()`, which reparents a plane and
     its bindtree (all planes bound to the plane, recursively).
     `ncplane_reparent()` now reparents only the specified plane; any planes
@@ -33,9 +37,6 @@ rearrangements of Notcurses.
     within has been promoted. This union brought no actual type safety, and was
     annoying for callers to deal with otherwise. Sorry for the inconvenience.
   * Added `ncplane_set_resizecb()` and `ncplane_resizecb()`.
-
-* 2.0.4 (2020-11-10)
-  * Fixed unit tests for non UTF-8 case, brown bagger, alas.
 
 * 2.0.3 (2020-11-09)
   * Add `NCBLIT_3x2` aka the SEXBLITTER, making use of Unicode 13's sextant
