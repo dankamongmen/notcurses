@@ -24,11 +24,29 @@ int main(void){
   ncplane_putstr_yx(n, y++, 0, "a ═ blink");
   ncplane_set_styles(n, NCSTYLE_STRUCK);
   ncplane_putstr_yx(n, y++, 0, "a ═ strikethrough");
-  ncplane_putstr_yx(n, y++, 0, "sleeping for 5s...");
+  ncplane_set_styles(n, NCSTYLE_ITALIC | NCSTYLE_BOLD);
+  ncplane_putstr_yx(n, y++, 0, "a ═ italic bold");
+  ncplane_set_styles(n, NCSTYLE_ITALIC | NCSTYLE_REVERSE);
+  ncplane_putstr_yx(n, y++, 0, "a ═ italic reverse");
+  ncplane_set_styles(n, NCSTYLE_ITALIC | NCSTYLE_UNDERLINE);
+  ncplane_putstr_yx(n, y++, 0, "a ═ italic underline");
+  ncplane_set_styles(n, NCSTYLE_ITALIC | NCSTYLE_BLINK);
+  ncplane_putstr_yx(n, y++, 0, "a ═ italic blink");
+  ncplane_set_styles(n, NCSTYLE_ITALIC | NCSTYLE_STRUCK);
+  ncplane_putstr_yx(n, y++, 0, "a ═ italic struck");
+  ncplane_set_styles(n, NCSTYLE_STRUCK | NCSTYLE_BOLD);
+  ncplane_putstr_yx(n, y++, 0, "a ═ struck bold");
+  ncplane_set_styles(n, NCSTYLE_STRUCK | NCSTYLE_REVERSE);
+  ncplane_putstr_yx(n, y++, 0, "a ═ struck reverse");
+  ncplane_set_styles(n, NCSTYLE_STRUCK | NCSTYLE_UNDERLINE);
+  ncplane_putstr_yx(n, y++, 0, "a ═ struck underline");
+  ncplane_set_styles(n, NCSTYLE_STRUCK | NCSTYLE_BLINK);
+  ncplane_putstr_yx(n, y++, 0, "a ═ struck blink");
+  ncplane_putstr_yx(n, y++, 0, "sleeping for 15s...");
   if(notcurses_render(nc)){
     goto err;
   }
-  sleep(5);
+  sleep(15);
   if(notcurses_stop(nc)){
     return EXIT_FAILURE;
   }
