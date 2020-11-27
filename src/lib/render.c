@@ -528,10 +528,10 @@ int term_setstyle(FILE* out, unsigned cur, unsigned targ, unsigned stylebit,
 }
 
 // write any escape sequences necessary to set the desired style
-static int
+static inline int
 term_setstyles(FILE* out, uint32_t* curattr, const cell* c, bool* normalized,
                const char* sgr0, const char* sgr, const char* italics,
-               const char* italoff){
+               const char* italoff, const char* struck, const char* struckoff){
   *normalized = false;
   uint32_t cellattr = cell_styles(c);
   if(cellattr == *curattr){
@@ -559,8 +559,9 @@ term_setstyles(FILE* out, uint32_t* curattr, const cell* c, bool* normalized,
       ret = -1;
     }
   }
-  // sgr will blow away italics if they were set beforehand
+  // sgr will blow away italics/struck if they were set beforehand
   ret |= term_setstyle(out, *curattr, cellattr, NCSTYLE_ITALIC, italics, italoff);
+  ret |= term_setstyle(out, *curattr, cellattr, NCSTYLE_STRUCK, struck, struckoff);
   *curattr = cellattr;
   return ret;
 }
@@ -786,7 +787,8 @@ notcurses_rasterize_inner(notcurses* nc, const struct crender* rvec, FILE* out){
         bool normalized;
         if(term_setstyles(out, &nc->rstate.curattr, srccell, &normalized,
                           nc->tcache.sgr0, nc->tcache.sgr,
-                          nc->tcache.italics, nc->tcache.italoff)){
+                          nc->tcache.italics, nc->tcache.italoff,
+                          nc->tcache.struck, nc->tcache.struckoff)){
           return -1;
         }
         if(normalized){
