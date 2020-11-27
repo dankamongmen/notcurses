@@ -150,7 +150,7 @@ namespace ncpp
 			ncplane_center_abs (plane, y, x);
 		}
 
-		ncplane* to_ncplane () noexcept
+		ncplane* to_ncplane () const noexcept
 		{
 			return plane;
 		}
@@ -300,6 +300,16 @@ namespace ncpp
 		void get_yx (int &y, int &x) const noexcept
 		{
 			get_yx (&y, &x);
+		}
+
+		Plane* get_parent () const noexcept
+		{
+			ncplane *ret = ncplane_parent (plane);
+			if (ret == nullptr) {
+				return nullptr;
+			}
+
+			return map_plane (ret);
 		}
 
 		Plane* reparent (Plane *newparent = nullptr) const noexcept
@@ -1180,6 +1190,29 @@ namespace ncpp
 				throw invalid_argument ("_plane must be a valid pointer");
 		}
 
+		// This is used by child classes which cannot provide a valid ncplane* in their constructor when initializing
+		// the parent class (e.g. Pile)
+		Plane (NotCurses *ncinst = nullptr)
+			: Root (ncinst),
+			  plane (nullptr)
+		{}
+
+		// Can be used only once and only if plane == nullptr. Meant to be used by child classes which cannot provide a
+		// valid ncplane* in their constructor when initializing the parent class (e.g. Pile)
+		void set_plane (ncplane *_plane)
+		{
+			if (_plane == nullptr) {
+				throw invalid_argument ("_plane must be a valid pointer");
+			}
+
+			if (plane != nullptr) {
+				throw invalid_state_error ("Plane::set_plane can be called only once");
+			}
+
+			plane = _plane;
+			map_plane (plane, this);
+		}
+
 		void release_native_plane () noexcept
 		{
 			if (plane == nullptr)
@@ -1221,7 +1254,7 @@ namespace ncpp
 		{
 			ncplane_options nopts = {
 				yoff,
-				{ static_cast<ncalign_e>(align) },
+				static_cast<ncalign_e>(align),
 				rows,
 				cols,
 				opaque,
