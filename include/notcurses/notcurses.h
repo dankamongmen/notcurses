@@ -605,7 +605,7 @@ API int cell_duplicate(struct ncplane* n, cell* targ, const cell* c);
 // Release resources held by the cell 'c'.
 API void cell_release(struct ncplane* n, cell* c);
 
-#define NCSTYLE_MASK      0xffffu
+#define NCSTYLE_MASK      0x03ffu
 #define NCSTYLE_STANDOUT  0x0080u
 #define NCSTYLE_UNDERLINE 0x0040u
 #define NCSTYLE_REVERSE   0x0020u
