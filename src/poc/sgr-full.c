@@ -42,6 +42,12 @@ int main(void){
   ncplane_putstr_yx(n, y++, 0, "a ═ struck underline");
   ncplane_set_styles(n, NCSTYLE_STRUCK | NCSTYLE_BLINK);
   ncplane_putstr_yx(n, y++, 0, "a ═ struck blink");
+  ncplane_set_styles(n, NCSTYLE_BOLD | NCSTYLE_REVERSE);
+  ncplane_putstr_yx(n, y++, 0, "a ═ bold reverse");
+  ncplane_set_styles(n, NCSTYLE_BOLD | NCSTYLE_UNDERLINE);
+  ncplane_putstr_yx(n, y++, 0, "a ═ bold underline");
+  ncplane_set_styles(n, NCSTYLE_BOLD | NCSTYLE_BLINK);
+  ncplane_putstr_yx(n, y++, 0, "a ═ bold blink");
   ncplane_putstr_yx(n, y++, 0, "sleeping for 15s...");
   if(notcurses_render(nc)){
     goto err;

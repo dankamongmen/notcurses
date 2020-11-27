@@ -558,8 +558,9 @@ term_setstyles(FILE* out, uint32_t* curattr, const cell* c, bool* normalized,
                                      out, false) < 0){
       ret = -1;
     }
+    // sgr will blow away italics/struck if they were set beforehand
+    *curattr &= !(NCSTYLE_ITALIC | NCSTYLE_STRUCK);
   }
-  // sgr will blow away italics/struck if they were set beforehand
   ret |= term_setstyle(out, *curattr, cellattr, NCSTYLE_ITALIC, italics, italoff);
   ret |= term_setstyle(out, *curattr, cellattr, NCSTYLE_STRUCK, struck, struckoff);
   *curattr = cellattr;
