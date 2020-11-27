@@ -337,7 +337,7 @@ make_ncpile(notcurses* nc, ncplane* n){
 ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
                               const ncplane_options* nopts){
   if(nopts->flags > NCPLANE_OPTION_HORALIGNED){
-    logwarn(nc, "Provided unsupported flags %016lx\n", nopts->flags);
+    logwarn(nc, "Provided unsupported flags %016jx\n", (uintmax_t)nopts->flags);
   }
   if(nopts->rows <= 0 || nopts->cols <= 0){
     logerror(nc, "Won't create denormalized plane (r=%d, c=%d)\n",
@@ -985,7 +985,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     return NULL;
   }
   if(opts->flags >= (NCOPTION_NO_FONT_CHANGES << 1u)){
-    fprintf(stderr, "Warning: unknown Notcurses options %016lx\n", opts->flags);
+    fprintf(stderr, "Warning: unknown Notcurses options %016jx\n", (uintmax_t)opts->flags);
   }
   notcurses* ret = malloc(sizeof(*ret));
   if(ret == NULL){

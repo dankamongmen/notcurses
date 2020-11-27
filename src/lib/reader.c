@@ -6,7 +6,7 @@ ncreader* ncreader_create(ncplane* n, const ncreader_options* opts){
     opts = &zeroed;
   }
   if(opts->flags > NCREADER_OPTION_CURSOR){
-    logwarn(ncplane_notcurses(n), "Provided unsupported flags %016lx\n", opts->flags);
+    logwarn(ncplane_notcurses(n), "Provided unsupported flags %016jx\n", (uintmax_t)opts->flags);
   }
   ncreader* nr = malloc(sizeof(*nr));
   if(nr == NULL){

@@ -306,7 +306,7 @@ ncmenu* ncmenu_create(ncplane* n, const ncmenu_options* opts){
     return NULL;
   }
   if(opts->flags > NCMENU_OPTION_HIDING){
-    logwarn(ncplane_notcurses(n), "Provided unsupported flags %016lx\n", opts->flags);
+    logwarn(ncplane_notcurses(n), "Provided unsupported flags %016jx\n", (uintmax_t)opts->flags);
   }
   int totalheight = 1;
   int totalwidth = 2; // start with two-character margin on the left

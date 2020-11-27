@@ -844,7 +844,7 @@ int ncblit_bgrx(const void* data, int linesize, const struct ncvisual_options* v
 
 int ncblit_rgba(const void* data, int linesize, const struct ncvisual_options* vopts){
   if(vopts->flags > NCVISUAL_OPTION_BLEND){
-    fprintf(stderr, "Warning: unknown ncvisual options %016lx\n", vopts->flags);
+    fprintf(stderr, "Warning: unknown ncvisual options %016jx\n", (uintmax_t)vopts->flags);
   }
   if(linesize <= 0 || (size_t)linesize < vopts->lenx * sizeof(uint32_t)){
     return -1;

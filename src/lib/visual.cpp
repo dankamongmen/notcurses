@@ -364,7 +364,7 @@ auto ncvisual_from_bgra(const void* bgra, int rows, int rowstride,
 auto ncvisual_render(notcurses* nc, ncvisual* ncv,
                      const struct ncvisual_options* vopts) -> ncplane* {
   if(vopts && vopts->flags > NCVISUAL_OPTION_BLEND){
-    fprintf(stderr, "Warning: unknown ncvisual options %016lx\n", vopts->flags);
+    fprintf(stderr, "Warning: unknown ncvisual options %016jx\n", (uintmax_t)vopts->flags);
   }
   int lenx = vopts ? vopts->lenx : 0;
   int leny = vopts ? vopts->leny : 0;

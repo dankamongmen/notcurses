@@ -21,7 +21,7 @@ int main(int argc, char **argv){
           return EXIT_FAILURE;
         }
         int width = wcwidth(w);
-        printf("w(0x%05x): %d %lc\n", w, width, w);
+        printf("w(0x%05lx): %d %lc\n", (long)w, width, w);
         arg += conv;
       }
     }

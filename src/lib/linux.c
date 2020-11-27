@@ -458,11 +458,11 @@ program_block_drawing_chars(const notcurses* nc, struct consolefontdesc* cfd,
         }
       }
       if(candidate == 0){
-        logwarn(nc, "Ran out of replaceable glyphs for U+%04x\n", shimmers[s].w);
+        logwarn(nc, "Ran out of replaceable glyphs for U+%04lx\n", (long)shimmers[s].w);
         return -1;
       }
       if(shimmers[s].glyphfxn(cfd, candidate)){
-        logwarn(nc, "Error replacing glyph for U+%04x at %u\n", shimmers[s].w, candidate);
+        logwarn(nc, "Error replacing glyph for U+%04lx at %u\n", (long)shimmers[s].w, candidate);
         return -1;
       }
       if(add_to_map(nc, map, shimmers[s].w, candidate)){
