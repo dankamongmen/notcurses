@@ -14,19 +14,19 @@ digraph G {
       labelloc="b"
     }
     subgraph clusterZaxis {
-      label="Stacks represent distinct collections of planes. Only the main stack gets rendered."
+      label="Piles represent distinct collections of planes. Only the main pile gets rendered."
       style=filled;
       color="cadetblue:purple";
-      stackMain [ label="Main stack.\nContains standard plane.\nGets rendered." style="filled" fillcolor=darkseagreen1 shape=invtrapezium ]
-      stack1 [ label="Extracted\nstack 1" style="filled" fillcolor=darkolivegreen2 shape=invtrapezium ]
-      stack2 [ label="Extracted\nstack 2" style="filled" fillcolor=darkolivegreen2 shape=invtrapezium ]
-      { rank=same; stackMain stack1 stack2 }
+      pileMain [ label="Main pile.\nContains standard plane.\nGets rendered." style="filled" fillcolor=darkseagreen1 shape=invtrapezium ]
+      pile1 [ label="Extracted\npile 1" style="filled" fillcolor=darkolivegreen2 shape=invtrapezium ]
+      pile2 [ label="Extracted\npile 2" style="filled" fillcolor=darkolivegreen2 shape=invtrapezium ]
+      { rank=same; pileMain pile1 pile2 }
     }
-    stackMain -> LastFrame
+    pileMain -> LastFrame
     LastFrame -> RenderArea
     subgraph clusterPlanes {
       labelloc="b"
-      label="The planes of a stack are related two ways:\n1. Totally ordered along the stack's z-axis.\n2. Via a rooted n-ary tree of binding."
+      label="The planes of a pile are related two ways:\n1. Totally ordered along the pile's z-axis.\n2. Via a rooted n-ary tree of binding."
       style=filled;
       color="cadetblue:purple";
       planeStd [ label="Standard plane" shape=rectangle color="lightgreen" style=filled ]
@@ -36,13 +36,13 @@ digraph G {
       plane4 [ label="Plane 4" shape=rectangle color="green" style=filled ]
       plane5 [ label="Plane 5" shape=rectangle color="green" style=filled ]
       plane6 [ label="Plane 6" shape=rectangle color="green" style=filled ]
-      stackMain -> planeStd
+      pileMain -> planeStd
       planeStd -> plane1
       planeStd -> plane2
       plane1 -> plane3
-      stack1 -> plane4
+      pile1 -> plane4
       plane4 -> plane5
-      stack2 -> plane6
+      pile2 -> plane6
     }
     subgraph clusterMatrices {
       labelloc="b"
