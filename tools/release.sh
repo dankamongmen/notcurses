@@ -32,7 +32,7 @@ make -j
 make test
 ssh qemfd.net rm -rf /opt/notcurses/html
 scp -r html qemfd.net:/opt/notcurses/html
-scp *.html ../doc/man/index.html qemfd.net:/opt/notcurses/
+scp *.html ../doc/man/index.html model.png qemfd.net:/opt/notcurses/
 cd ..
 
 # if that all worked, commit, push, and tag

@@ -464,8 +464,7 @@ if(USE_DOXYGEN)
       COMMENT "Running doxygen"
     )
     add_custom_target(doxygen
-      ALL
-      DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/html/index.html"
+      ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/html/index.html"
     )
     set(MODELDOT ${CMAKE_CURRENT_SOURCE_DIR}/doc/model.dot)
     add_custom_command(
@@ -476,8 +475,7 @@ if(USE_DOXYGEN)
       COMMENT "Running dot"
     )
     add_custom_target(dot
-      ALL
-      DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/model.png"
+      ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/model.png"
     )
   endif()
 endif()
