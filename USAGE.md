@@ -1731,13 +1731,13 @@ cell_styles(const cell* c){
 // Add the specified styles (in the LSBs) to the cell's existing spec, whether
 // they're actively supported or not.
 static inline void
-cell_styles_on(cell* c, unsigned stylebits){
+cell_on_styles(cell* c, unsigned stylebits){
   c->stylemask |= (stylebits & NCSTYLE_MASK);
 }
 
 // Remove the specified styles (in the LSBs) from the cell's existing spec.
 static inline void
-cell_styles_off(cell* c, unsigned stylebits){
+cell_off_styles(cell* c, unsigned stylebits){
   c->stylemask &= ~(stylebits & NCSTYLE_MASK);
 }
 
