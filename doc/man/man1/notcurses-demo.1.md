@@ -75,7 +75,7 @@ At any time, press 'q' to quit. The demo is best run in at least an 80x45 termin
 **-V**: Print the program name and version, and exit with success.
 
 demospec: Select which demos to run, and what order to run them in. The
-default is **ixezcydthnbkgmarwuvlsfjqo**. See above for a list of demos.
+default is **ixezcydthnmbkgarwuvlsfjqo**. See above for a list of demos.
 
 Default margins are all 0, and thus the full screen will be rendered. Using
 **-m**, margins can be supplied. Provide a single number to set all four margins
