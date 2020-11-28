@@ -142,5 +142,5 @@ This function is difficult to understand.
 
 **localeconv(3)**,
 **notcurses(3)**,
-**notcurses_plane(3)**,
+**notcurses_output(3)**,
 **setlocale(3)**
