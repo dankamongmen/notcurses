@@ -448,7 +448,7 @@ if(USE_PANDOC)
   endif()
 endif()
 
-# Doxygen
+# Doxygen / diagrams
 if(USE_DOXYGEN)
   find_package(Doxygen REQUIRED dot dia)
   if(NOT ${DOXYGEN_FOUND})
@@ -466,6 +466,18 @@ if(USE_DOXYGEN)
     add_custom_target(doxygen
       ALL
       DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/html/index.html"
+    )
+    set(MODELDOT ${CMAKE_CURRENT_SOURCE_DIR}/doc/model.dot)
+    add_custom_command(
+      OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/model.png"
+      DEPENDS
+      COMMAND Doxygen::dot
+      ARGS -Tpng ${MODELDOT} -o "${CMAKE_CURRENT_BINARY_DIR}/model.png"
+      COMMENT "Running dot"
+    )
+    add_custom_target(dot
+      ALL
+      DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/model.png"
     )
   endif()
 endif()
