@@ -63,11 +63,11 @@ perframecb(struct ncvisual* ncv __attribute__ ((unused)),
            const struct timespec* tspec, void* vnewplane){
   struct notcurses* nc = ncplane_notcurses(vopts->n);
   static int frameno = 0;
-  int y, x;
+  int x;
   struct ncplane* n = vnewplane;
   assert(n);
-  ncplane_yx(n, &y, &x);
-  ncplane_move_yx(n, y, x - 1);
+  ncplane_yx(n, NULL, &x);
+  ncplane_move_yx(n, 1, x - 1);
   ++frameno;
   DEMO_RENDER(nc);
   clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, tspec, NULL);
