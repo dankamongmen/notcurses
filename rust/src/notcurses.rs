@@ -49,7 +49,7 @@
 //+ notcurses_getc_blocking
 //+ notcurses_getc_nblock
 //+ notcurses_stddim_yx
-//  notcurses_stddim_yx_const
+//+ notcurses_stddim_yx_const
 //+ notcurses_term_dim_yx
 
 use core::ptr::{null, null_mut};
@@ -58,11 +58,7 @@ use crate::{
     // NOTE: can't use libc::timespec nor libc::sigset_t
     // with notcurses_getc(()
     bindings::{sigemptyset, sigfillset, sigset_t, timespec},
-    ncplane_dim_yx,
-    notcurses_getc,
-    notcurses_init,
-    notcurses_stdplane,
-    notcurses_stdplane_const,
+    ncplane_dim_yx, notcurses_getc, notcurses_init, notcurses_stdplane, notcurses_stdplane_const,
     types::{
         NcAlign, NcInput, NcLogLevel, NcPlane, Notcurses, NotcursesOptions, NCALIGN_CENTER,
         NCALIGN_LEFT, NCOPTION_NO_ALTERNATE_SCREEN, NCOPTION_SUPPRESS_BANNERS,
@@ -220,11 +216,24 @@ pub fn notcurses_stddim_yx(nc: &mut Notcurses, y: &mut i32, x: &mut i32) -> NcPl
     }
 }
 
+/// notcurses_stdplane_const(), plus free bonus dimensions written to non-NULL y/x!
+#[inline]
+pub fn notcurses_stddim_yx_const(nc: &Notcurses, y: &mut i32, x: &mut i32) -> NcPlane {
+    unsafe {
+        let s = notcurses_stdplane_const(nc);
+        ncplane_dim_yx(s, y, x);
+        *s
+    }
+}
+
 /// Return our current idea of the terminal dimensions in rows and cols.
 #[inline]
-pub fn notcurses_term_dim_yx(nc: &Notcurses, rows: &mut i32, cols: &mut i32) {
+pub fn notcurses_term_dim_yx(nc: &Notcurses, rows: &mut u32, cols: &mut u32) {
     unsafe {
-        ncplane_dim_yx(notcurses_stdplane_const(nc), rows, cols);
+        let mut irows = *rows as i32;
+        let mut icols = *cols as i32;
+        ncplane_dim_yx(
+            notcurses_stdplane_const(nc), &mut irows, &mut icols);
     }
 }
 

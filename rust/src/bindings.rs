@@ -42,34 +42,34 @@ pub use bindgen::{
 };
 
 // blitset ---------------------------------------------------------------------
-
-pub(crate) use bindgen::{
-    // structs
-    blitset
-};
+//
+// already wrapped:
+//
+// // structs
+// blitset
 
 // cell ------------------------------------------------------------------------
-
-pub(crate) use bindgen::{
-    // structs
-    cell,
-
-    // constants
-    CELL_ALPHA_BLEND,
-    CELL_ALPHA_HIGHCONTRAST,
-    CELL_ALPHA_OPAQUE,
-    CELL_ALPHA_TRANSPARENT,
-    CELL_BGDEFAULT_MASK,
-    CELL_BG_ALPHA_MASK,
-    CELL_BG_PALETTE,
-    CELL_BG_RGB_MASK,
-    CELL_FGDEFAULT_MASK,
-    CELL_FG_ALPHA_MASK,
-    CELL_FG_PALETTE,
-    CELL_FG_RGB_MASK,
-    CELL_NOBACKGROUND_MASK,
-    CELL_WIDEASIAN_MASK,
-};
+//
+// already wrapped:
+//
+// // structs
+// cell,
+//
+// // constants
+// CELL_ALPHA_BLEND,
+// CELL_ALPHA_HIGHCONTRAST,
+// CELL_ALPHA_OPAQUE,
+// CELL_ALPHA_TRANSPARENT,
+// CELL_BGDEFAULT_MASK,
+// CELL_BG_ALPHA_MASK,
+// CELL_BG_PALETTE,
+// CELL_BG_RGB_MASK,
+// CELL_FGDEFAULT_MASK,
+// CELL_FG_ALPHA_MASK,
+// CELL_FG_PALETTE,
+// CELL_FG_RGB_MASK,
+// CELL_NOBACKGROUND_MASK,
+// CELL_WIDEASIAN_MASK,
 
 #[doc(inline)]
 pub use bindgen::{
@@ -83,42 +83,42 @@ pub use bindgen::{
 };
 
 // channel ---------------------------------------------------------------------
-
-pub(crate) use bindgen::{
-    // constants
-    CHANNEL_ALPHA_MASK
-};
+//
+// already wrapped:
+//
+// // constants
+// CHANNEL_ALPHA_MASK
 
 // ncalign ---------------------------------------------------------------------
-
-pub(crate) use bindgen::{
-    // type definitions
-    ncalign_e,
-
-    // constants
-    ncalign_e_NCALIGN_CENTER,
-    ncalign_e_NCALIGN_LEFT,
-    ncalign_e_NCALIGN_RIGHT,
-    ncalign_e_NCALIGN_UNALIGNED,
-};
+//
+// already wrapped:
+//
+// // type definitions
+// ncalign_e,
+//
+// // constants
+// ncalign_e_NCALIGN_CENTER,
+// ncalign_e_NCALIGN_LEFT,
+// ncalign_e_NCALIGN_RIGHT,
+// ncalign_e_NCALIGN_UNALIGNED,
 
 // ncblitter -------------------------------------------------------------------
-
-pub(crate) use bindgen::{
-    // type definitions
-    ncblitter_e,
-
-    // constants
-    ncblitter_e_NCBLIT_1x1,
-    ncblitter_e_NCBLIT_2x1,
-    ncblitter_e_NCBLIT_2x2,
-    ncblitter_e_NCBLIT_3x2,
-    ncblitter_e_NCBLIT_4x1,
-    ncblitter_e_NCBLIT_8x1,
-    ncblitter_e_NCBLIT_BRAILLE,
-    ncblitter_e_NCBLIT_DEFAULT,
-    ncblitter_e_NCBLIT_SIXEL,
-};
+//
+// already wrapped:
+//
+// // type definitions
+// ncblitter_e,
+//
+// // constants
+// ncblitter_e_NCBLIT_1x1,
+// ncblitter_e_NCBLIT_2x1,
+// ncblitter_e_NCBLIT_2x2,
+// ncblitter_e_NCBLIT_3x2,
+// ncblitter_e_NCBLIT_4x1,
+// ncblitter_e_NCBLIT_8x1,
+// ncblitter_e_NCBLIT_BRAILLE,
+// ncblitter_e_NCBLIT_DEFAULT,
+// ncblitter_e_NCBLIT_SIXEL,
 
 // ncbox -----------------------------------------------------------------------
 
@@ -138,15 +138,15 @@ pub use bindgen::{
 };
 
 // ncdirect --------------------------------------------------------------------
-
-pub(crate) use bindgen::{
-    // structs
-    ncdirect,
-
-    // constants
-    NCDIRECT_OPTION_INHIBIT_CBREAK,
-    NCDIRECT_OPTION_INHIBIT_SETLOCALE,
-};
+//
+// already wrapped:
+//
+// // structs
+// ncdirect,
+//
+// // constants
+// NCDIRECT_OPTION_INHIBIT_CBREAK,
+// NCDIRECT_OPTION_INHIBIT_SETLOCALE,
 
 #[doc(inline)]
 pub use bindgen::{
@@ -193,11 +193,11 @@ pub use bindgen::{
 
 
 // ncfadectx -------------------------------------------------------------------
-
-pub(crate) use bindgen::{
-    // structs
-    ncfadectx,
-};
+//
+// already wrapped:
+//
+// // structs
+// ncfadectx,
 
 #[doc(inline)]
 pub use bindgen::{
@@ -208,37 +208,37 @@ pub use bindgen::{
 };
 
 // ncinput ---------------------------------------------------------------------
-
-pub(crate) use bindgen::{
-    // structs
-    ncinput,
-};
+//
+// already wrapped:
+//
+// // structs
+// ncinput,
 
 // ncloglevel ------------------------------------------------------------------
-
-pub(crate) use bindgen::{
-    // type definitions
-    ncloglevel_e,
-
-    // constants
-    ncloglevel_e_NCLOGLEVEL_DEBUG,
-    ncloglevel_e_NCLOGLEVEL_ERROR,
-    ncloglevel_e_NCLOGLEVEL_FATAL,
-    ncloglevel_e_NCLOGLEVEL_INFO,
-    ncloglevel_e_NCLOGLEVEL_PANIC,
-    ncloglevel_e_NCLOGLEVEL_SILENT,
-    ncloglevel_e_NCLOGLEVEL_TRACE,
-    ncloglevel_e_NCLOGLEVEL_VERBOSE,
-    ncloglevel_e_NCLOGLEVEL_WARNING,
-};
+//
+// already wrapped:
+//
+// // type definitions
+// ncloglevel_e,
+//
+// // constants
+// ncloglevel_e_NCLOGLEVEL_DEBUG,
+// ncloglevel_e_NCLOGLEVEL_ERROR,
+// ncloglevel_e_NCLOGLEVEL_FATAL,
+// ncloglevel_e_NCLOGLEVEL_INFO,
+// ncloglevel_e_NCLOGLEVEL_PANIC,
+// ncloglevel_e_NCLOGLEVEL_SILENT,
+// ncloglevel_e_NCLOGLEVEL_TRACE,
+// ncloglevel_e_NCLOGLEVEL_VERBOSE,
+// ncloglevel_e_NCLOGLEVEL_WARNING,
 
 // ncfdplane -------------------------------------------------------------------
-
-pub(crate) use bindgen::{
-    // structs
-    ncfdplane,
-    ncfdplane_options,
-};
+//
+// already wrapped:
+//
+// // structs
+// ncfdplane,
+// ncfdplane_options,
 
 #[doc(inline)]
 pub use bindgen::{
@@ -249,18 +249,18 @@ pub use bindgen::{
 };
 
 // ncmenu ----------------------------------------------------------------------
-
-pub(crate) use bindgen::{
-    // structs
-    ncmenu,
-    ncmenu_item,
-    ncmenu_options,
-    ncmenu_section,
-
-    // constants
-    NCMENU_OPTION_BOTTOM,
-    NCMENU_OPTION_HIDING,
-};
+//
+// already wrapped:
+//
+// // structs
+// ncmenu,
+// ncmenu_item,
+// ncmenu_options,
+// ncmenu_section,
+//
+// // constants
+// NCMENU_OPTION_BOTTOM,
+// NCMENU_OPTION_HIDING,
 
 #[doc(inline)]
 pub use bindgen::{
@@ -281,16 +281,16 @@ pub use bindgen::{
 };
 
 // ncmetric --------------------------------------------------------------------
-
-pub(crate) use bindgen::{
-    // constants
-    PREFIXCOLUMNS,
-    PREFIXSTRLEN,
-    BPREFIXCOLUMNS,
-    BPREFIXSTRLEN,
-    IPREFIXCOLUMNS,
-    IPREFIXSTRLEN,
-};
+//
+// already wrapped:
+//
+// // constants
+// PREFIXCOLUMNS,
+// PREFIXSTRLEN,
+// BPREFIXCOLUMNS,
+// BPREFIXSTRLEN,
+// IPREFIXCOLUMNS,
+// IPREFIXSTRLEN,
 
 #[doc(inline)]
 pub use bindgen::{
@@ -299,13 +299,13 @@ pub use bindgen::{
 };
 
 // ncmultiselector -------------------------------------------------------------
-
-pub(crate) use bindgen::{
-    // structs
-    ncmultiselector,
-    ncmselector_item,
-    ncmultiselector_options,
-};
+//
+// already wrapped:
+//
+// // structs
+// ncmultiselector,
+// ncmselector_item,
+// ncmultiselector_options,
 
 #[doc(inline)]
 pub use bindgen::{
@@ -328,15 +328,15 @@ pub use bindgen::{
 };
 
 // ncplane ---------------------------------------------------------------------
-
-pub(crate) use bindgen::{
-    // structs
-    ncplane,
-    ncplane_options,
-
-    // constants
-    NCPLANE_OPTION_HORALIGNED,
-};
+//
+// already wrapped:
+//
+// // structs
+// ncplane,
+// ncplane_options,
+//
+// // constants
+// NCPLANE_OPTION_HORALIGNED,
 
 #[doc(inline)]
 pub use bindgen::{
@@ -442,20 +442,20 @@ pub use bindgen::{
 };
 
 // ncplot ----------------------------------------------------------------------
-
-pub(crate) use bindgen::{
-    // structs
-    ncdplot, // f64
-    ncuplot, // u64
-    ncplot_options,
-
-    // constants
-    NCPLOT_OPTION_DETECTMAXONLY,
-    NCPLOT_OPTION_EXPONENTIALD,
-    NCPLOT_OPTION_LABELTICKSD,
-    NCPLOT_OPTION_NODEGRADE,
-    NCPLOT_OPTION_VERTICALI,
-};
+//
+// already wrapped:
+//
+// // structs
+// ncdplot, // f64
+// ncuplot, // u64
+// ncplot_options,
+//
+// // constants
+// NCPLOT_OPTION_DETECTMAXONLY,
+// NCPLOT_OPTION_EXPONENTIALD,
+// NCPLOT_OPTION_LABELTICKSD,
+// NCPLOT_OPTION_NODEGRADE,
+// NCPLOT_OPTION_VERTICALI,
 
 #[doc(inline)]
 pub use bindgen::{
@@ -476,18 +476,18 @@ pub use bindgen::{
 };
 
 // ncreader --------------------------------------------------------------------
-
-pub(crate) use bindgen::{
-    // structs
-    ncreader,
-    ncreader_options,
-
-    // constants
-    NCREADER_OPTION_CURSOR,
-    NCREADER_OPTION_HORSCROLL,
-    NCREADER_OPTION_NOCMDKEYS,
-    NCREADER_OPTION_VERSCROLL,
-};
+//
+// already wrapped:
+//
+// // structs
+// ncreader,
+// ncreader_options,
+//
+// // constants
+// NCREADER_OPTION_CURSOR,
+// NCREADER_OPTION_HORSCROLL,
+// NCREADER_OPTION_NOCMDKEYS,
+// NCREADER_OPTION_VERSCROLL,
 
 #[doc(inline)]
 pub use bindgen::{
@@ -506,16 +506,16 @@ pub use bindgen::{
 };
 
 // ncreel ----------------------------------------------------------------------
-
-pub(crate) use bindgen::{
-    // structs
-    ncreel,
-    ncreel_options,
-
-    // constants
-    NCREEL_OPTION_CIRCULAR,
-    NCREEL_OPTION_INFINITESCROLL,
-};
+//
+// already wrapped:
+//
+// // structs
+// ncreel,
+// ncreel_options,
+//
+// // constants
+// NCREEL_OPTION_CIRCULAR,
+// NCREEL_OPTION_INFINITESCROLL,
 
 #[doc(inline)]
 pub use bindgen::{
@@ -534,25 +534,25 @@ pub use bindgen::{
 };
 
 // ncscale ---------------------------------------------------------------------
-
-pub(crate) use bindgen::{
-    // type definitions
-    ncscale_e,
-
-    // constants
-    ncscale_e_NCSCALE_NONE,
-    ncscale_e_NCSCALE_SCALE,
-    ncscale_e_NCSCALE_STRETCH,
-};
+//
+// already wrapped:
+//
+// // type definitions
+// ncscale_e,
+//
+// // constants
+// ncscale_e_NCSCALE_NONE,
+// ncscale_e_NCSCALE_SCALE,
+// ncscale_e_NCSCALE_STRETCH,
 
 // ncselector ------------------------------------------------------------------
-
-pub(crate) use bindgen::{
-    // structs
-    ncselector,
-    ncselector_item,
-    ncselector_options,
-};
+//
+// already wrapped:
+//
+// // structs
+// ncselector,
+// ncselector_item,
+// ncselector_options,
 
 #[doc(inline)]
 pub use bindgen::{
@@ -569,11 +569,11 @@ pub use bindgen::{
 };
 
 // ncstats ---------------------------------------------------------------------
-
-pub(crate) use bindgen::{
-    // structs
-    ncstats,
-};
+//
+// already wrapped:
+//
+// // structs
+// ncstats,
 
 // ncstyle ---------------------------------------------------------------------
 
@@ -595,11 +595,11 @@ pub use bindgen::{
 };
 
 // nctablet --------------------------------------------------------------------
-
-pub(crate) use bindgen::{
-    // structs
-    nctablet,
-};
+//
+// already wrapped:
+//
+// // structs
+// nctablet,
 
 #[doc(inline)]
 pub use bindgen::{
@@ -609,16 +609,16 @@ pub use bindgen::{
 };
 
 // ncvisual --------------------------------------------------------------------
-
-pub(crate) use bindgen::{
-    // structs
-    ncvisual,
-    ncvisual_options,
-
-    // constants
-    NCVISUAL_OPTION_BLEND,
-    NCVISUAL_OPTION_NODEGRADE,
-};
+//
+// already wrapped:
+//
+// // structs
+// ncvisual,
+// ncvisual_options,
+//
+// // constants
+// NCVISUAL_OPTION_BLEND,
+// NCVISUAL_OPTION_NODEGRADE,
 
 #[doc(inline)]
 pub use bindgen::{
@@ -643,21 +643,21 @@ pub use bindgen::{
 };
 
 // notcurses -------------------------------------------------------------------
-
-pub(crate) use bindgen::{
-    // structs
-    notcurses,
-    notcurses_options,
-
-    // constants
-    NCOPTION_INHIBIT_SETLOCALE,
-    NCOPTION_NO_ALTERNATE_SCREEN,
-    NCOPTION_NO_FONT_CHANGES,
-    NCOPTION_NO_QUIT_SIGHANDLERS,
-    NCOPTION_NO_WINCH_SIGHANDLER,
-    NCOPTION_SUPPRESS_BANNERS,
-    NCOPTION_VERIFY_SIXEL,
-};
+//
+// already wrapped:
+//
+// // structs
+// notcurses,
+// notcurses_options,
+//
+// // constants
+// NCOPTION_INHIBIT_SETLOCALE,
+// NCOPTION_NO_ALTERNATE_SCREEN,
+// NCOPTION_NO_FONT_CHANGES,
+// NCOPTION_NO_QUIT_SIGHANDLERS,
+// NCOPTION_NO_WINCH_SIGHANDLER,
+// NCOPTION_SUPPRESS_BANNERS,
+// NCOPTION_VERIFY_SIXEL,
 
 #[doc(inline)]
 pub use bindgen::{
@@ -704,11 +704,11 @@ pub use bindgen::{
 };
 
 // palette ---------------------------------------------------------------------
-
-pub(crate) use bindgen::{
-    // structs
-    palette256,
-};
+//
+// already wrapped:
+//
+// // structs
+// palette256,
 
 #[doc(inline)]
 pub use bindgen::{

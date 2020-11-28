@@ -3,7 +3,7 @@
 // NcDirect --------------------------------------------------------------------
 
 /// Minimal notcurses instances for styling text
-pub type NcDirect = crate::ncdirect;
+pub type NcDirect = crate::bindings::bindgen::ncdirect;
 
 /// Flags (options) for [`NcDirect`]
 pub type NcDirectFlags = u64;
@@ -12,7 +12,7 @@ pub type NcDirectFlags = u64;
 /// (disabling echo and line buffering)
 ///
 pub const NCDIRECT_OPTION_INHIBIT_CBREAK: NcDirectFlags =
-    crate::bindings::NCDIRECT_OPTION_INHIBIT_CBREAK as NcDirectFlags;
+    crate::bindings::bindgen::NCDIRECT_OPTION_INHIBIT_CBREAK as NcDirectFlags;
 
 /// Flag that avoids calling setlocale(LC_ALL, NULL)
 ///
@@ -24,7 +24,7 @@ pub const NCDIRECT_OPTION_INHIBIT_CBREAK: NcDirectFlags =
 /// itself, usually as one of the first lines.
 ///
 pub const NCDIRECT_OPTION_INHIBIT_SETLOCALE: NcDirectFlags =
-    crate::bindings::NCDIRECT_OPTION_INHIBIT_SETLOCALE as NcDirectFlags;
+    crate::bindings::bindgen::NCDIRECT_OPTION_INHIBIT_SETLOCALE as NcDirectFlags;
 
 // Notcurses -------------------------------------------------------------------
 
@@ -33,10 +33,10 @@ pub const NCDIRECT_OPTION_INHIBIT_SETLOCALE: NcDirectFlags =
 /// Notcurses builds atop the terminfo abstraction layer to
 /// provide reasonably portable vivid character displays.
 ///
-pub type Notcurses = crate::bindings::notcurses;
+pub type Notcurses = crate::bindings::bindgen::notcurses;
 
 /// Options struct for [`Notcurses`]
-pub type NotcursesOptions = crate::bindings::notcurses_options;
+pub type NotcursesOptions = crate::bindings::bindgen::notcurses_options;
 
 /// Do not call setlocale()
 ///
@@ -48,13 +48,15 @@ pub type NotcursesOptions = crate::bindings::notcurses_options;
 /// prior to notcurses_init(), you should not set this bit. Even if you are
 /// invoking setlocale(), this behavior shouldn't be an issue unless you're
 /// doing something weird (setting a locale not based on LANG).
-pub const NCOPTION_INHIBIT_SETLOCALE: u64 = crate::bindings::NCOPTION_INHIBIT_SETLOCALE as u64;
+pub const NCOPTION_INHIBIT_SETLOCALE: u64 =
+    crate::bindings::bindgen::NCOPTION_INHIBIT_SETLOCALE as u64;
 
 /// Do not enter alternate mode.
 ///
 /// If smcup/rmcup capabilities are indicated, Notcurses defaults to making use
 /// of the "alternate screen". This flag inhibits use of smcup/rmcup.
-pub const NCOPTION_NO_ALTERNATE_SCREEN: u64 = crate::bindings::NCOPTION_NO_ALTERNATE_SCREEN as u64;
+pub const NCOPTION_NO_ALTERNATE_SCREEN: u64 =
+    crate::bindings::bindgen::NCOPTION_NO_ALTERNATE_SCREEN as u64;
 
 /// Do not modify the font.
 ///
@@ -62,26 +64,29 @@ pub const NCOPTION_NO_ALTERNATE_SCREEN: u64 = crate::bindings::NCOPTION_NO_ALTER
 /// glyphs (especially on the Linux console). If this is set, no such
 /// modifications will be made. Note that font changes will not affect anything
 /// but the virtual console/terminal in which Notcurses is running.
-pub const NCOPTION_NO_FONT_CHANGES: u64 = crate::bindings::NCOPTION_NO_FONT_CHANGES as u64;
+pub const NCOPTION_NO_FONT_CHANGES: u64 = crate::bindings::bindgen::NCOPTION_NO_FONT_CHANGES as u64;
 
 /// Do not handle SIG{ING, SEGV, ABRT, QUIT}
 ///
 /// We typically install a signal handler for SIG{INT, SEGV, ABRT, QUIT} that
 /// restores the screen, and then calls the old signal handler. Set to inhibit
 /// registration of these signal handlers.
-pub const NCOPTION_NO_QUIT_SIGHANDLERS: u64 = crate::bindings::NCOPTION_NO_QUIT_SIGHANDLERS as u64;
+pub const NCOPTION_NO_QUIT_SIGHANDLERS: u64 =
+    crate::bindings::bindgen::NCOPTION_NO_QUIT_SIGHANDLERS as u64;
 
 /// Do not handle SIGWINCH
 ///
 /// We typically install a signal handler for SIGWINCH that generates a resize
 /// event in the notcurses_getc() queue. Set to inhibit this handler
-pub const NCOPTION_NO_WINCH_SIGHANDLER: u64 = crate::bindings::NCOPTION_NO_WINCH_SIGHANDLER as u64;
+pub const NCOPTION_NO_WINCH_SIGHANDLER: u64 =
+    crate::bindings::bindgen::NCOPTION_NO_WINCH_SIGHANDLER as u64;
 
 /// Do not print banners
 ///
 /// Notcurses typically prints version info in notcurses_init() and performance
 /// info in notcurses_stop(). This inhibits that output.
-pub const NCOPTION_SUPPRESS_BANNERS: u64 = crate::bindings::NCOPTION_SUPPRESS_BANNERS as u64;
+pub const NCOPTION_SUPPRESS_BANNERS: u64 =
+    crate::bindings::bindgen::NCOPTION_SUPPRESS_BANNERS as u64;
 
 /// Test for Sixel support
 ///
@@ -89,7 +94,7 @@ pub const NCOPTION_SUPPRESS_BANNERS: u64 = crate::bindings::NCOPTION_SUPPRESS_BA
 /// inline reply from the terminal. Since this can interact poorly with actual
 /// user input, it's not done unless Sixel will actually be used. Set this flag
 /// to unconditionally test for Sixel support in notcurses_init().
-pub const NCOPTION_VERIFY_SIXEL: u64 = crate::bindings::NCOPTION_VERIFY_SIXEL as u64;
+pub const NCOPTION_VERIFY_SIXEL: u64 = crate::bindings::bindgen::NCOPTION_VERIFY_SIXEL as u64;
 
 // NcLogLevel ------------------------------------------------------------------
 
@@ -101,34 +106,36 @@ pub const NCOPTION_VERIFY_SIXEL: u64 = crate::bindings::NCOPTION_VERIFY_SIXEL as
 /// `NCOPTION_SUPPRESS_BANNERS`.
 /// Note that if stderr is connected to the same terminal on which we're
 /// rendering, any kind of logging will disrupt the output.
-pub type NcLogLevel = crate::ncloglevel_e;
+pub type NcLogLevel = crate::bindings::bindgen::ncloglevel_e;
 
 /// this is honestly a bit much
-pub const NCLOGLEVEL_DEBUG: NcLogLevel = crate::ncloglevel_e_NCLOGLEVEL_DEBUG;
+pub const NCLOGLEVEL_DEBUG: NcLogLevel = crate::bindings::bindgen::ncloglevel_e_NCLOGLEVEL_DEBUG;
 
 /// we can't keep doin' this, but we can do other things
-pub const NCLOGLEVEL_ERROR: NcLogLevel = crate::ncloglevel_e_NCLOGLEVEL_ERROR;
+pub const NCLOGLEVEL_ERROR: NcLogLevel = crate::bindings::bindgen::ncloglevel_e_NCLOGLEVEL_ERROR;
 
 /// we're hanging around, but we've had a horrible fault
-pub const NCLOGLEVEL_FATAL: NcLogLevel = crate::ncloglevel_e_NCLOGLEVEL_FATAL;
+pub const NCLOGLEVEL_FATAL: NcLogLevel = crate::bindings::bindgen::ncloglevel_e_NCLOGLEVEL_FATAL;
 
 /// "detailed information
-pub const NCLOGLEVEL_INFO: NcLogLevel = crate::ncloglevel_e_NCLOGLEVEL_INFO;
+pub const NCLOGLEVEL_INFO: NcLogLevel = crate::bindings::bindgen::ncloglevel_e_NCLOGLEVEL_INFO;
 
 /// print diagnostics immediately related to crashing
-pub const NCLOGLEVEL_PANIC: NcLogLevel = crate::ncloglevel_e_NCLOGLEVEL_PANIC;
+pub const NCLOGLEVEL_PANIC: NcLogLevel = crate::bindings::bindgen::ncloglevel_e_NCLOGLEVEL_PANIC;
 
 /// default. print nothing once fullscreen service begins
-pub const NCLOGLEVEL_SILENT: NcLogLevel = crate::ncloglevel_e_NCLOGLEVEL_SILENT;
+pub const NCLOGLEVEL_SILENT: NcLogLevel = crate::bindings::bindgen::ncloglevel_e_NCLOGLEVEL_SILENT;
 
 /// there's probably a better way to do what you want
-pub const NCLOGLEVEL_TRACE: NcLogLevel = crate::ncloglevel_e_NCLOGLEVEL_TRACE;
+pub const NCLOGLEVEL_TRACE: NcLogLevel = crate::bindings::bindgen::ncloglevel_e_NCLOGLEVEL_TRACE;
 
 /// "detailed information
-pub const NCLOGLEVEL_VERBOSE: NcLogLevel = crate::ncloglevel_e_NCLOGLEVEL_VERBOSE;
+pub const NCLOGLEVEL_VERBOSE: NcLogLevel =
+    crate::bindings::bindgen::ncloglevel_e_NCLOGLEVEL_VERBOSE;
 
 /// you probably don't want what's happening to happen
-pub const NCLOGLEVEL_WARNING: NcLogLevel = crate::ncloglevel_e_NCLOGLEVEL_WARNING;
+pub const NCLOGLEVEL_WARNING: NcLogLevel =
+    crate::bindings::bindgen::ncloglevel_e_NCLOGLEVEL_WARNING;
 
 // NcInput ---------------------------------------------------------------------
 
@@ -138,4 +145,4 @@ pub const NCLOGLEVEL_WARNING: NcLogLevel = crate::ncloglevel_e_NCLOGLEVEL_WARNIN
 /// including synthesized events and mouse events.
 ///
 /// To exit, generate EOF (usually Ctrl+‘d’).
-pub type NcInput = crate::ncinput;
+pub type NcInput = crate::bindings::bindgen::ncinput;

@@ -167,6 +167,7 @@ use crate::{
     ncplane_cursor_move_yx, ncplane_cursor_yx, ncplane_dim_yx, ncplane_gradient,
     ncplane_hline_interp, ncplane_putc_yx, ncplane_putegc_yx, ncplane_putnstr_yx,
     ncplane_putstr_yx, ncplane_resize, ncplane_vline_interp, ncplane_vprintf_yx, notcurses_align,
+    notcurses_term_dim_yx,
     types::{
         NcAlign, NcAlphaBits, NcCell, NcChannel, NcChannels, NcColor, NcPlane,
         NcPlaneOptions, NcResult, NcStyleMask, Notcurses, NCPLANE_OPTION_HORALIGNED,
@@ -205,15 +206,26 @@ impl NcPlaneOptions {
 }
 
 impl NcPlane {
-    /// `NcPlane` constructor
-    pub unsafe fn new<'a>(bound_to: &mut NcPlane, options: &NcPlaneOptions) -> &'a mut NcPlane {
+
+    /// `NcPlane` constructor.
+    ///
+    /// The returned plane will be the top, bottom, and root of this new pile.
+    pub unsafe fn new<'a>(nc: &mut Notcurses, options: &NcPlaneOptions) -> &'a mut NcPlane {
+        &mut *ncpile_create(nc, options)
+    }
+
+    /// `NcPlane` constructor, bound to another plane
+    pub unsafe fn new_bound<'a>(bound_to: &mut NcPlane, options: &NcPlaneOptions) -> &'a mut NcPlane {
         &mut *ncplane_create(bound_to, options)
     }
 
-    /// `NcPlane` constructor.
+    /// `NcPlane` constructor, with the full size of the terminal.
+    ///
     /// The returned plane will be the top, bottom, and root of this new pile.
-    pub unsafe fn new_pile<'a>(nc: &mut Notcurses, options: &NcPlaneOptions) -> &'a mut NcPlane {
-        &mut *ncpile_create(nc, options)
+    pub unsafe fn new_termsize<'a>(nc: &mut Notcurses) -> &'a mut NcPlane {
+        let (mut trows, mut tcols) = (0,0);
+        notcurses_term_dim_yx(nc, &mut trows, &mut tcols);
+        &mut *ncpile_create(nc, &NcPlaneOptions::new(0, 0, trows as u32, tcols as u32))
     }
 }
 

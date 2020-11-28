@@ -85,54 +85,54 @@ use crate::NcPlane;
 ///
 /// `type in C: cell (struct)`
 ///
-pub type NcCell = crate::cell;
+pub type NcCell = crate::bindings::bindgen::cell;
 
 ///
-pub const NCCELL_ALPHA_BLEND: u32 = crate::bindings::CELL_ALPHA_BLEND;
+pub const NCCELL_ALPHA_BLEND: u32 = crate::bindings::bindgen::CELL_ALPHA_BLEND;
 
 /// Background cannot be highcontrast, only foreground
-pub const NCCELL_ALPHA_HIGHCONTRAST: u32 = crate::bindings::CELL_ALPHA_HIGHCONTRAST;
+pub const NCCELL_ALPHA_HIGHCONTRAST: u32 = crate::bindings::bindgen::CELL_ALPHA_HIGHCONTRAST;
 
 ///
-pub const NCCELL_ALPHA_OPAQUE: u32 = crate::bindings::CELL_ALPHA_OPAQUE;
+pub const NCCELL_ALPHA_OPAQUE: u32 = crate::bindings::bindgen::CELL_ALPHA_OPAQUE;
 
 ///
-pub const NCCELL_ALPHA_TRANSPARENT: u32 = crate::bindings::CELL_ALPHA_TRANSPARENT;
+pub const NCCELL_ALPHA_TRANSPARENT: u32 = crate::bindings::bindgen::CELL_ALPHA_TRANSPARENT;
 
 /// If this bit is set, we are *not* using the default background color
-pub const NCCELL_BGDEFAULT_MASK: u32 = crate::bindings::CELL_BGDEFAULT_MASK;
+pub const NCCELL_BGDEFAULT_MASK: u32 = crate::bindings::bindgen::CELL_BGDEFAULT_MASK;
 
 /// Extract these bits to get the background alpha mask
-pub const NCCELL_BG_ALPHA_MASK: u32 = crate::bindings::CELL_BG_ALPHA_MASK;
+pub const NCCELL_BG_ALPHA_MASK: u32 = crate::bindings::bindgen::CELL_BG_ALPHA_MASK;
 
 /// If this bit *and* [`CELL_BGDEFAULT_MASK`] are set, we're using a
 /// palette-indexed background color
-pub const NCCELL_BG_PALETTE: u32 = crate::bindings::CELL_BG_PALETTE;
+pub const NCCELL_BG_PALETTE: u32 = crate::bindings::bindgen::CELL_BG_PALETTE;
 
 /// Extract these bits to get the background RGB value
-pub const NCCELL_BG_RGB_MASK: u32 = crate::bindings::CELL_BG_RGB_MASK;
+pub const NCCELL_BG_RGB_MASK: u32 = crate::bindings::bindgen::CELL_BG_RGB_MASK;
 
 /// If this bit is set, we are *not* using the default foreground color
-pub const NCCELL_FGDEFAULT_MASK: u64 = crate::bindings::CELL_FGDEFAULT_MASK;
+pub const NCCELL_FGDEFAULT_MASK: u64 = crate::bindings::bindgen::CELL_FGDEFAULT_MASK;
 
 /// Extract these bits to get the foreground alpha mask
-pub const NCCELL_FG_ALPHA_MASK: u64 = crate::bindings::CELL_FG_ALPHA_MASK;
+pub const NCCELL_FG_ALPHA_MASK: u64 = crate::bindings::bindgen::CELL_FG_ALPHA_MASK;
 
 /// If this bit *and* [`CELL_BGDEFAULT_MASK`] are set, we're using a
 /// palette-indexed background color
-pub const NCCELL_FG_PALETTE: u64 = crate::bindings::CELL_FG_PALETTE;
+pub const NCCELL_FG_PALETTE: u64 = crate::bindings::bindgen::CELL_FG_PALETTE;
 
 /// Extract these bits to get the foreground RGB value
-pub const NCCELL_FG_RGB_MASK: u64 = crate::bindings::CELL_FG_RGB_MASK;
+pub const NCCELL_FG_RGB_MASK: u64 = crate::bindings::bindgen::CELL_FG_RGB_MASK;
 
 ///
-pub const NCCELL_NOBACKGROUND_MASK: u64 = crate::bindings::CELL_NOBACKGROUND_MASK;
+pub const NCCELL_NOBACKGROUND_MASK: u64 = crate::bindings::bindgen::CELL_NOBACKGROUND_MASK;
 
 /// If this bit is set, the cell is part of a multicolumn glyph.
 ///
 /// Whether a cell is the left or right side of the glyph can be determined
 /// by checking whether ->gcluster is zero.
-pub const NCCELL_WIDEASIAN_MASK: u64 = crate::bindings::CELL_WIDEASIAN_MASK as u64;
+pub const NCCELL_WIDEASIAN_MASK: u64 = crate::bindings::bindgen::CELL_WIDEASIAN_MASK as u64;
 
 // NcChar
 //

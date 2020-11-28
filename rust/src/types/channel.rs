@@ -22,7 +22,7 @@ use crate::NcChar;
 pub type NcChannel = u32;
 
 /// Extract these bits to get a channel's alpha value
-pub const NCCHANNEL_ALPHA_MASK: u32 = crate::bindings::CHANNEL_ALPHA_MASK;
+pub const NCCHANNEL_ALPHA_MASK: u32 = crate::bindings::bindgen::CHANNEL_ALPHA_MASK;
 
 // NcAlphaBits
 //
@@ -153,14 +153,14 @@ pub type NcPixel = u32;
 ///
 /// `type in C: ncpalette256 (struct)`
 ///
-pub type NcPalette = crate::palette256;
+pub type NcPalette = crate::bindings::bindgen::palette256;
 
 /// 8-bit value used for indexing into a [`NcPalette`]
 ///
 pub type NcPaletteIndex = u8;
 
 /// Context for a palette fade operation
-pub type NcFadeCtx = crate::ncfadectx;
+pub type NcFadeCtx = crate::bindings::bindgen::ncfadectx;
 
 /// the [`NcChar`] which form the various levels
 /// of a given geometry.
@@ -173,4 +173,4 @@ pub type NcFadeCtx = crate::ncfadectx;
 ///
 /// `type in C: blitset (struct)`
 ///
-pub type NcBlitSet = crate::blitset;
+pub type NcBlitSet = crate::bindings::bindgen::blitset;
