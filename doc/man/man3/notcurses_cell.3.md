@@ -56,9 +56,9 @@ typedef struct cell {
 
 **unsigned cell_styles(const cell* ***c***);**
 
-**void cell_styles_on(cell* ***c***, unsigned ***stylebits***);**
+**void cell_on_styles(cell* ***c***, unsigned ***stylebits***);**
 
-**void cell_styles_off(cell* ***c***, unsigned ***stylebits***);**
+**void cell_off_styles(cell* ***c***, unsigned ***stylebits***);**
 
 **void cell_set_fg_default(cell* ***c***);**
 
@@ -74,7 +74,7 @@ typedef struct cell {
 
 **char* cell_strdup(const struct ncplane* ***n***, const cell* ***c***);**
 
-**int cell_load_simple(struct ncplane* ***n***, cell* ***c***, char ***ch***);**
+**int cell_load_char(struct ncplane* ***n***, cell* ***c***, char ***ch***);**
 
 **char* cell_extract(const struct ncplane* ***n***, const cell* ***c***, uint16_t* ***stylemask***, uint64_t* ***channels***);**
 

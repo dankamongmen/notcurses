@@ -60,6 +60,20 @@ namespace ncpp
 			plane = create_plane (*n, rows, cols, yoff, xoff, opaque);
 		}
 
+		explicit Plane (Plane *n, ncplane_options const& nopts, NotCurses *ncinst = nullptr)
+			: Plane (static_cast<const Plane*>(n), nopts, ncinst)
+		{}
+
+		explicit Plane (const Plane *n, ncplane_options const& nopts, NotCurses *ncinst = nullptr)
+			: Root (ncinst)
+		{
+			if (n == nullptr) {
+				throw invalid_argument ("'n' must be a valid pointer");
+			}
+
+			plane = create_plane (*n, nopts);
+		}
+
 		explicit Plane (const Plane &n, int rows, int cols, int yoff, int xoff, void *opaque = nullptr)
 			: Root (nullptr)
 		{
@@ -69,7 +83,7 @@ namespace ncpp
 		explicit Plane (int rows, int cols, int yoff, int xoff, void *opaque = nullptr, NotCurses *ncinst = nullptr)
 			: Root (ncinst)
 		{
-			struct ncplane_options nopts = {
+			ncplane_options nopts = {
 				.y = yoff,
 				.x = xoff,
 				.rows = rows,
@@ -100,6 +114,16 @@ namespace ncpp
 			: Root (nullptr)
 		{
 			plane = create_plane (const_cast<Plane&>(n), rows, cols, yoff, align, opaque);
+		}
+
+		explicit Plane (Plane &n, ncplane_options const& nopts, NotCurses *ncinst = nullptr)
+			: Plane (static_cast<Plane const&>(n), nopts, ncinst)
+		{}
+
+		explicit Plane (Plane const& n, ncplane_options const& nopts, NotCurses *ncinst = nullptr)
+			: Root (ncinst)
+		{
+			plane = create_plane (n, nopts);
 		}
 
 		explicit Plane (Plane *n, int rows, int cols, int yoff, NCAlign align, void *opaque = nullptr)
@@ -1130,6 +1154,16 @@ namespace ncpp
 			return error_guard (ncplane_rotate_ccw (plane), -1);
 		}
 
+		char* strdup (Cell const& cell) const noexcept
+		{
+			return cell_strdup (plane, cell);
+		}
+
+		char* extract (Cell const& cell, uint16_t *stylemask = nullptr, uint64_t *channels = nullptr)
+		{
+			return cell_extract (plane, cell, stylemask, channels);
+		}
+
 		const char* get_extended_gcluster (Cell &cell) const noexcept
 		{
 			return cell_extended_gcluster (plane, cell);
@@ -1227,9 +1261,9 @@ namespace ncpp
 	private:
 		ncplane* create_plane (const Plane &n, int rows, int cols, int yoff, int xoff, void *opaque)
 		{
-			struct ncplane_options nopts = {
+			ncplane_options nopts = {
 				.y = yoff,
-			  .x = xoff,
+				.x = xoff,
 				.rows = rows,
 				.cols = cols,
 				.userptr = opaque,
@@ -1237,17 +1271,7 @@ namespace ncpp
 				.resizecb = nullptr,
 				.flags = 0,
 			};
-			ncplane *ret = ncplane_create (
-				n.plane,
-				&nopts
-			);
-
-			if (ret == nullptr)
-				throw init_error ("Notcurses failed to create a new plane");
-
-			map_plane (plane, this);
-
-			return ret;
+			return create_plane (n, nopts);
 		}
 
 		ncplane* create_plane (Plane &n, int rows, int cols, int yoff, NCAlign align, void *opaque)
@@ -1262,16 +1286,21 @@ namespace ncpp
 				nullptr,
 				0,
 			};
+			return create_plane (n, nopts);
+		}
+
+		ncplane* create_plane (const Plane &n, ncplane_options const& nopts)
+		{
 			ncplane *ret = ncplane_create (
 				n.plane,
 				&nopts
 			);
 
-			if (ret == nullptr)
+			if (ret == nullptr) {
 				throw init_error ("Notcurses failed to create an aligned plane");
+			}
 
 			map_plane (plane, this);
-
 			return ret;
 		}
 
