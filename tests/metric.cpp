@@ -67,6 +67,8 @@ TEST_CASE("Metric") {
     CHECK(!strcmp("1.00Ki", buf));
     impericize_ncmetric(4096, 1, buf, 1, 1000, '\0');
     CHECK(!strcmp("4.10K", buf));
+    impericize_ncmetric(4096, 1, buf, 0, 1024, 'i');
+    CHECK(!strcmp("4.00Ki", buf));
     impericize_ncmetric(4096, 1, buf, 1, 1024, 'i');
     CHECK(!strcmp("4Ki", buf));
   }
