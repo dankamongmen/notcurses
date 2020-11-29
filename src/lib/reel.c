@@ -1,6 +1,5 @@
 #include <errno.h>
 #include <unistd.h>
-#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include "internal.h"
@@ -171,11 +170,6 @@ draw_borders(ncplane* w, unsigned mask, uint64_t channel, direction_e direction)
 // any provided restrictions on visible window size.
 static int
 draw_ncreel_borders(const ncreel* nr){
-  int maxx, maxy;
-  ncplane_dim_yx(nr->p, &maxy, &maxx);
-  assert(maxy >= 0 && maxx >= 0);
-  --maxx; // last column we can safely write to
-  --maxy; // last line we can safely write to
   return draw_borders(nr->p, nr->ropts.bordermask, nr->ropts.borderchan,
                       DIRECTION_UP); // direction shouldn't matter for reel
 }
@@ -247,7 +241,6 @@ tablet_geom(const ncreel* nr, nctablet* t, int* begx, int* begy,
 static int
 ncreel_draw_tablet(const ncreel* nr, nctablet* t, int frontiertop,
                    int frontierbottom, direction_e direction){
-  assert(!t->p);
   if(t->p || t->cbp){
 //fprintf(stderr, "already drew %p: %p %p\n", t, t->p, t->cbp);
     return -1;
@@ -401,10 +394,6 @@ draw_previous_tablets(const ncreel* nr, nctablet* otherend,
 // actually exist. We do a pass at the end trimming any overhang.
 static int
 trim_reel_overhang(ncreel* r, nctablet* top, nctablet* bottom){
-  assert(top);
-  assert(top->p);
-  assert(bottom);
-  assert(bottom->p);
   int y;
   if(!top || !top->p || !bottom || !bottom->p){
     return -1;
