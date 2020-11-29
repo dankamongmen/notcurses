@@ -469,7 +469,7 @@ if(USE_DOXYGEN)
     set(MODELDOT ${CMAKE_CURRENT_SOURCE_DIR}/doc/model.dot)
     add_custom_command(
       OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/model.png"
-      DEPENDS
+      DEPENDS ${MODELDOT}
       COMMAND Doxygen::dot
       ARGS -Tpng ${MODELDOT} -o "${CMAKE_CURRENT_BINARY_DIR}/model.png"
       COMMENT "Running dot"

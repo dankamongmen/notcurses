@@ -55,10 +55,18 @@ digraph G {
       cMatrix1 [ label="{{Cellmatrix 1}|{EGCPool 1}}" shape=record style=filled ]
       cMatrix2 [ label="{{Cellmatrix 2}|{EGCPool 2}}" shape=record style=filled ]
       cMatrix3 [ label="{{Cellmatrix 3}|{EGCPool 3}}" shape=record style=filled ]
+      cMatrix4 [ label="{{Cellmatrix 4}|{EGCPool 4}}" shape=record style=filled ]
+      cMatrix5 [ label="{{Cellmatrix 5}|{EGCPool 5}}" shape=record style=filled ]
+      cMatrix6 [ label="{{Cellmatrix 6}|{EGCPool 6}}" shape=record style=filled ]
+      cMatrix7 [ label="{{Cellmatrix 7}|{EGCPool 7}}" shape=record style=filled ]
       plane1 -> cMatrix1
       plane2 -> cMatrix2
       plane3 -> cMatrix3
+      plane4 -> cMatrix4
+      plane5 -> cMatrix5
+      plane6 -> cMatrix6
       LastFrame -> cMatrix0
+      planeStd -> cMatrix7
     }
   }
 }
