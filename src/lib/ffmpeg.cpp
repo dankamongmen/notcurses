@@ -142,19 +142,20 @@ int ncvisual_decode(ncvisual* nc){
       }
     }while(nc->details.packet->stream_index != nc->details.stream_index);
     ++nc->details.packet_outstanding;
-    if(avcodec_send_packet(nc->details.codecctx, nc->details.packet) < 0){
-      //fprintf(stderr, "Error processing AVPacket (%s)\n", av_err2str(*ncerr));
-      return ncvisual_decode(nc);
+    int averr = avcodec_send_packet(nc->details.codecctx, nc->details.packet);
+    if(averr < 0){
+//fprintf(stderr, "Error processing AVPacket\n");
+      return averr2ncerr(averr);
     }
     --nc->details.packet_outstanding;
     av_packet_unref(nc->details.packet);
-    int averr = avcodec_receive_frame(nc->details.codecctx, nc->details.frame);
+    averr = avcodec_receive_frame(nc->details.codecctx, nc->details.frame);
     if(averr >= 0){
       have_frame = true;
     }else if(averr == AVERROR(EAGAIN) || averr == AVERROR_EOF){
       have_frame = false;
     }else if(averr < 0){
-      //fprintf(stderr, "Error decoding AVPacket (%s)\n", av_err2str(averr));
+//fprintf(stderr, "Error decoding AVPacket\n");
       return averr2ncerr(averr);
     }
   }while(!have_frame);
