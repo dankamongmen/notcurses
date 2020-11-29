@@ -639,7 +639,7 @@ pool_release(egcpool* pool, cell* c){
 // set the cell 'c' to point into the egcpool at location 'eoffset'
 static inline void
 set_gcluster_egc(cell* c, int eoffset){
-  c->gcluster = htole(0x01000000ul) + eoffset;
+  c->gcluster = htole(0x01000000ul) + htole(eoffset);
 }
 
 // Duplicate one cell onto another, possibly crossing ncplanes.
@@ -969,15 +969,13 @@ pool_blit_direct(egcpool* pool, cell* c, const char* gcluster, int bytes, int co
   }
   if(bytes <= 1){
     assert(cols < 2);
-    c->gcluster = 0;
-    ((unsigned char*)&c->gcluster)[0] = *gcluster;
+    c->gcluster = htole((uint32_t)*gcluster);
     return bytes;
   }
   if(bytes <= 4){
-    if(strcmp(gcluster, (const char*)&c->gcluster)){
-      c->gcluster = 0;
-      memcpy(&c->gcluster, gcluster, bytes);
-    }
+    c->gcluster = 0;
+    memcpy(&c->gcluster, gcluster, bytes);
+    c->gcluster = htole(c->gcluster);
     return bytes;
   }
   int eoffset = egcpool_stash(pool, gcluster, bytes);
