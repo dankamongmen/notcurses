@@ -3,11 +3,12 @@
 #include "main.h"
 
 TEST_CASE("Fills") {
-  if(!enforce_utf8()){
-    return;
-  }
   auto nc_ = testing_notcurses();
   if(!nc_){
+    return;
+  }
+  if(!notcurses_canutf8(nc_)){
+    CHECK(0 == notcurses_stop(nc_));
     return;
   }
   struct ncplane* n_ = notcurses_stdplane(nc_);

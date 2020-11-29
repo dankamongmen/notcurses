@@ -18,11 +18,12 @@ void BoxPermutationsRounded(struct notcurses* nc, struct ncplane* n, unsigned ed
 }
 
 TEST_CASE("NCPlane") {
-  if(!enforce_utf8()){
-    return;
-  }
   auto nc_ = testing_notcurses();
   if(!nc_){
+    return;
+  }
+  if(!notcurses_canutf8(nc_)){
+    CHECK(0 == notcurses_stop(nc_));
     return;
   }
   struct ncplane* n_ = notcurses_stdplane(nc_);
