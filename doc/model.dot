@@ -51,22 +51,14 @@ digraph G {
       label="A rectangular array of Cells, with one Cell per coordinate of the associated plane, backs each plane.\nThis is the plane's cell matrix. An EGCPool backs each cell matrix; they contain nul-terminated\nUTF8-encoded Extended Grapheme Clusters of arbitrary length."
       style=filled;
       color="cadetblue:purple";
-      cMatrix0 [ label="Cellmatrix 0" shape=rectangle style=filled ]
-      cMatrix1 [ label="Cellmatrix 1" shape=rectangle style=filled ]
-      cMatrix2 [ label="Cellmatrix 2" shape=rectangle style=filled ]
-      cMatrix3 [ label="Cellmatrix 3" shape=rectangle style=filled ]
+      cMatrix0 [ label="{{Cellmatrix 0}|{EGCPool 0}}" shape=record style=filled ]
+      cMatrix1 [ label="{{Cellmatrix 1}|{EGCPool 1}}" shape=record style=filled ]
+      cMatrix2 [ label="{{Cellmatrix 2}|{EGCPool 2}}" shape=record style=filled ]
+      cMatrix3 [ label="{{Cellmatrix 3}|{EGCPool 3}}" shape=record style=filled ]
       plane1 -> cMatrix1
       plane2 -> cMatrix2
       plane3 -> cMatrix3
       LastFrame -> cMatrix0
-      egcPool0 [ label="EGCPool 0" shape=rectangle style=filled ]
-      egcPool1 [ label="EGCPool 1" shape=rectangle style=filled ]
-      egcPool2 [ label="EGCPool 2" shape=rectangle style=filled ]
-      egcPool3 [ label="EGCPool 3" shape=rectangle style=filled ]
-      cMatrix0 -> egcPool0
-      cMatrix1 -> egcPool1
-      cMatrix2 -> egcPool2
-      cMatrix3 -> egcPool3
     }
   }
 }
