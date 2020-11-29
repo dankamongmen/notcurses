@@ -14,7 +14,7 @@
 #include <limits.h>
 #include <stdbool.h>
 // take host byte order and turn it into network (reverse on LE, no-op on BE),
-// then reverse that, guaranteeing LE.
+// then reverse that, guaranteeing LE. htole(x) == ltohe(x).
 #ifdef __linux__
 #include <byteswap.h>
 #define htole(x) (bswap_32(htonl(x)))
@@ -2456,7 +2456,7 @@ ncpixel_set_a(uint32_t* pixel, int a){
   if(a > 255 || a < 0){
     return -1;
   }
-  *pixel = (*pixel & 0x00fffffful) | (a << 24u);
+  *pixel = htole((htole(*pixel) & 0x00fffffful) | (a << 24u));
   return 0;
 }
 
@@ -2466,7 +2466,7 @@ ncpixel_set_r(uint32_t* pixel, int r){
   if(r > 255 || r < 0){
     return -1;
   }
-  *pixel = (*pixel & 0xffffff00ul) | r;
+  *pixel = htole((htole(*pixel) & 0xffffff00ul) | r);
   return 0;
 }
 
@@ -2476,7 +2476,7 @@ ncpixel_set_g(uint32_t* pixel, int g){
   if(g > 255 || g < 0){
     return -1;
   }
-  *pixel = (*pixel & 0xffff00fful) | (g << 8u);
+  *pixel = htole((htole(*pixel) & 0xffff00fful) | (g << 8u));
   return 0;
 }
 
@@ -2486,7 +2486,7 @@ ncpixel_set_b(uint32_t* pixel, int b){
   if(b > 255 || b < 0){
     return -1;
   }
-  *pixel = (*pixel & 0xff00fffful) | (b << 16u);
+  *pixel = htole((htole(*pixel) & 0xff00fffful) | (b << 16u));
   return 0;
 }
 
