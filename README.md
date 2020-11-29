@@ -421,6 +421,7 @@ to breaking under incorrect `TERM` values. If you're not using `xterm`, your
 
 ### History
 
+* 2020-11-23: "[Making terminals do things that were never intended](https://mdco2.mini.debconf.org/talks/6-notcurses-making-terminals-do-things-that-were-never-intended/)" is presented at [DebMiniConf #2](https://mdco2.mini.debconf.org/).
 * 2020-10-12: Notcurses [2.0.0 "stankonia"](https://github.com/dankamongmen/notcurses/releases/tag/v2.0.0).
   * A stable API! This API will be supported going forward.
 * 2020-08-30: Notcurses [1.7.0 "don't pull the bang out"](https://github.com/dankamongmen/notcurses/releases/tag/v1.7.0).
@@ -432,7 +433,6 @@ to breaking under incorrect `TERM` values. If you're not using `xterm`, your
 * 2020-05-09: Notcurses is [accepted into FreeBSD](https://github.com/dankamongmen/notcurses/issues/575).
 * 2020-04-19: Notcurses is [accepted into Debian](https://bugs.debian.org/950492).
 * 2020-04-12: Notcurses [1.3.0 "hypnotize"](https://github.com/dankamongmen/notcurses/releases/tag/v1.3.0).
-  * A new [hype video](https://vimeo.com/410787965) is never really publicized.
 * 2020-04-08: The Notcurses book [is published](https://amazon.com/dp/B086PNVNC9).
 * 2020-03-23: Notcurses is featured on [Linux World News](https://lwn.net/Articles/815811/).
 * 2020-02-17: Notcurses [1.2.0 "check the résumé, my record's impeccable"](https://github.com/dankamongmen/notcurses/releases/tag/v1.2.0).

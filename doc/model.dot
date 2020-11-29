@@ -14,15 +14,17 @@ digraph G {
       labelloc="b"
     }
     subgraph clusterZaxis {
-      label="Piles represent distinct collections of planes. Only the main pile gets rendered."
+      label="Piles represent distinct collections of planes. The main pile is rendered by old notcurses_render().\nncpile_render() and ncpile_rasterize() (version 2.1) work with different piles."
       style=filled;
       color="cadetblue:purple";
-      pileMain [ label="Main pile.\nContains standard plane.\nGets rendered." style="filled" fillcolor=darkseagreen1 shape=invtrapezium ]
+      pileMain [ label="Main pile.\nContains standard plane." style="filled" fillcolor=darkseagreen1 shape=invtrapezium ]
       pile1 [ label="Extracted\npile 1" style="filled" fillcolor=darkolivegreen2 shape=invtrapezium ]
       pile2 [ label="Extracted\npile 2" style="filled" fillcolor=darkolivegreen2 shape=invtrapezium ]
       { rank=same; pileMain pile1 pile2 }
     }
     pileMain -> LastFrame
+    pile1 -> LastFrame
+    pile2 -> LastFrame
     LastFrame -> RenderArea
     subgraph clusterPlanes {
       labelloc="b"
