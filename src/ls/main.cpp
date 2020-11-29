@@ -35,7 +35,8 @@ handle_path(int dirfd, std::filesystem::path& dir, const char* p, const lsContex
 // handle a single inode of arbitrary type
 static int
 handle_inode(std::filesystem::path& dir, const char* p, const struct stat* st, const lsContext& ctx){
-  std::cout << p << std::endl; // FIXME handle symlink (dereflinks)
+  (void)st; // FIXME handle symlink (dereflinks)
+  std::cout << p << std::endl;
   auto s = dir / p;
   ctx.nc.render_image(s.c_str(), NCALIGN_RIGHT, NCBLIT_3x2, NCSCALE_SCALE);
   return 0;
@@ -85,7 +86,9 @@ handle_dir(int dirfd, std::filesystem::path& pdir, const char* p, const struct s
 
 static int
 handle_deref(const char* p, const struct stat* st, const lsContext& ctx){
-  // FIXME dereference and rerun on target
+  (void)p;
+  (void)st;
+  (void)ctx; // FIXME dereference and rerun on target
   return 0;
 }
 

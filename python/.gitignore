@@ -1,0 +1,8 @@
+.mypy_cache
+.vscode
+*.pyc
+__pycache__
+build
+dev*
+strace*.txt
+notcurses/*.so
