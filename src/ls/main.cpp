@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <ncpp/NotCurses.hh>
+#include <ncpp/Direct.hh>
 
 static void
 usage(std::ostream& os, const char* name, int code){
@@ -20,6 +20,7 @@ usage(std::ostream& os, const char* name, int code){
 
 // context as configured on the command line
 struct lsContext {
+  ncpp::Direct nc;
   bool longlisting;
   bool recursedirs;
   bool directories;
@@ -33,6 +34,7 @@ handle_path(const char* p, const lsContext& ctx, bool toplevel);
 static int
 handle_inode(const char* p, const struct stat* st, const lsContext& ctx){
   std::cout << p << std::endl; // FIXME handle symlink (dereflinks)
+  ctx.nc.render_image(p, NCALIGN_RIGHT, NCBLIT_DEFAULT, NCSCALE_STRETCH);
   return 0;
 }
 
@@ -107,6 +109,7 @@ list_paths(const char* const * argv, const lsContext& ctx){
 
 int main(int argc, char* const * argv){
   lsContext ctx = {
+    .nc = ncpp::Direct(),
     .longlisting = false,
     .recursedirs = false,
     .directories = false,
