@@ -241,12 +241,12 @@ do_backspace(ncreader* n){
 static bool
 is_egc_wordbreak(ncplane* textarea){
   char* egc = ncplane_at_yx(textarea, textarea->y, textarea->x, NULL, NULL);
-fprintf(stderr, "TAKING A LOKO AT [%s]\n", egc);
   if(egc == NULL){
     return true;
   }
   wchar_t w;
-  mbstate_t mbstate = {0};
+  mbstate_t mbstate;
+  memset(&mbstate, 0, sizeof(mbstate));
   size_t s = mbrtowc(&w, egc, MB_CUR_MAX, &mbstate);
   free(egc);
   if(s == (size_t)-1 || s == (size_t)-2){
