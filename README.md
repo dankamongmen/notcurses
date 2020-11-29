@@ -423,7 +423,7 @@ to breaking under incorrect `TERM` values. If you're not using `xterm`, your
 
 * 2020-11-23: [Invited presentation](https://mdco2.mini.debconf.org/talks/6-notcurses-making-terminals-do-things-that-were-never-intended/) at [DebMiniConf #2](https://mdco2.mini.debconf.org/).
 * 2020-10-12: Notcurses [2.0.0 "stankonia"](https://github.com/dankamongmen/notcurses/releases/tag/v2.0.0).
-  * A stable API! This API will be supported going forward.
+  * A stable API! This API will be supported going forward. [Hype video](https://www.youtube.com/watch?v=cYhZ7myXyyg)!
 * 2020-08-30: Notcurses [1.7.0 "don't pull the bang out"](https://github.com/dankamongmen/notcurses/releases/tag/v1.7.0).
 * 2020-07-04: Notcurses [1.6.0 "aquemini"](https://github.com/dankamongmen/notcurses/releases/tag/v1.6.0).
 * 2020-07-03: Notcurses is [accepted into Alpine Edge](https://gitlab.alpinelinux.org/alpine/aports/-/merge_requests/9924).
