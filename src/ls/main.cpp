@@ -1,9 +1,11 @@
 #include <cstdlib>
+#include <fcntl.h>
 #include <iostream>
 #include <dirent.h>
 #include <unistd.h>
-#include <sys/types.h>
 #include <sys/stat.h>
+#include <filesystem>
+#include <sys/types.h>
 #include <ncpp/Direct.hh>
 
 static void
@@ -28,13 +30,14 @@ struct lsContext {
 };
 
 static int
-handle_path(const char* p, const lsContext& ctx, bool toplevel);
+handle_path(int dirfd, std::filesystem::path& dir, const char* p, const lsContext& ctx, bool toplevel);
 
 // handle a single inode of arbitrary type
 static int
-handle_inode(const char* p, const struct stat* st, const lsContext& ctx){
+handle_inode(std::filesystem::path& dir, const char* p, const struct stat* st, const lsContext& ctx){
   std::cout << p << std::endl; // FIXME handle symlink (dereflinks)
-  ctx.nc.render_image(p, NCALIGN_RIGHT, NCBLIT_DEFAULT, NCSCALE_STRETCH);
+  auto s = dir / p;
+  ctx.nc.render_image(s.c_str(), NCALIGN_RIGHT, NCBLIT_3x2, NCSCALE_SCALE);
   return 0;
 }
 
@@ -42,29 +45,41 @@ handle_inode(const char* p, const struct stat* st, const lsContext& ctx){
 // if |recursedirs| or |toplevel| is set, we will recurse, passing false as
 // toplevel (but preserving |recursedirs|).
 static int
-handle_dir(const char* p, const struct stat* st, const lsContext& ctx, bool toplevel){
+handle_dir(int dirfd, std::filesystem::path& pdir, const char* p, const struct stat* st, const lsContext& ctx, bool toplevel){
   if(ctx.directories){
-    return handle_inode(p, st, ctx);
+    return handle_inode(pdir, p, st, ctx);
   }
   if(!ctx.recursedirs && !toplevel){
+    return handle_inode(pdir, p, st, ctx);
+  }
+  if((strcmp(p, ".") == 0 || strcmp(p, "..") == 0) && !toplevel){
     return 0;
   }
-  DIR* dir = opendir(p);
+  int newdir = openat(dirfd, p, O_DIRECTORY | O_CLOEXEC);
+  if(newdir < 0){
+    std::cerr << "Error opening " << p << ": " << strerror(errno) << std::endl;
+    return -1;
+  }
+  DIR* dir = fdopendir(newdir);
+  auto subdir = pdir / p;
   if(dir == NULL){
     std::cerr << "Error opening " << p << ": " << strerror(errno) << std::endl;
+    close(newdir);
     return -1;
   }
   struct dirent* dent;
   int r = 0;
   while(errno = 0, (dent = readdir(dir))){
-    r |= handle_path(dent->d_name, ctx, false);
+    r |= handle_path(newdir, subdir, dent->d_name, ctx, false);
   }
   if(errno){
     std::cerr << "Error reading from " << p << ": " << strerror(errno) << std::endl;
     closedir(dir);
+    close(newdir);
     return -1;
   }
   closedir(dir);
+  close(newdir);
   return 0;
 }
 
@@ -74,36 +89,41 @@ handle_deref(const char* p, const struct stat* st, const lsContext& ctx){
   return 0;
 }
 
-// handle some path, either absolute or relative to the current directory.
-// toplevel is true iff the path was directly listed on the command line.
-// recursedirs, directories, longlisting, and dereflinks are all based off
-// command-line parameters.
+// handle some path |p|, either absolute or relative to |dirfd|. |toplevel| is
+// true iff the path was directly listed on the command line.
 static int
-handle_path(const char* p, const lsContext& ctx, bool toplevel){
+handle_path(int dirfd, std::filesystem::path& pdir, const char* p, const lsContext& ctx, bool toplevel){
   struct stat st;
-  if(stat(p, &st)){
-    std::cerr << "Error running stat(" << p << "): " << strerror(errno) << std::endl;
+  if(fstatat(dirfd, p, &st, AT_NO_AUTOMOUNT)){
+    std::cerr << "Error running fstatat(" << p << "): " << strerror(errno) << std::endl;
     return -1;
   }
   if((st.st_mode & S_IFMT) == S_IFDIR){
-    return handle_dir(p, &st, ctx, toplevel);
+    return handle_dir(dirfd, pdir, p, &st, ctx, toplevel);
   }else if((st.st_mode & S_IFMT) == S_IFLNK){
     if(toplevel && ctx.dereflinks){
       return handle_deref(p, &st, ctx);
     }
   }
-  return handle_inode(p, &st, ctx);
+  return handle_inode(pdir, p, &st, ctx);
 }
 
 // these are our command line arguments. they're the only paths for which
 // handle_path() gets toplevel == true.
 static int
 list_paths(const char* const * argv, const lsContext& ctx){
+  int dirfd = open(".", O_DIRECTORY | O_CLOEXEC);
+  if(dirfd < 0){
+    std::cerr << "Error opening current directory: " << strerror(errno) << std::endl;
+    return -1;
+  }
   int ret = 0;
   while(*argv){
-    ret |= handle_path(*argv, ctx, true);
+    std::filesystem::path s;
+    ret |= handle_path(dirfd, s, *argv, ctx, true);
     ++argv;
   }
+  close(dirfd);
   return ret;
 }
 
