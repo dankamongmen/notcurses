@@ -8,11 +8,12 @@ const char SCORPION[] = "\xf0\x9f\xa6\x82"; // U+1F982 SCORPION
 const char FROG[] = "\xf0\x9f\x90\xb8"; // U+1F438 FROG FACE
 
 TEST_CASE("Wide") {
-  if(!enforce_utf8()){
-    return;
-  }
   auto nc_ = testing_notcurses();
   REQUIRE(nullptr != nc_);
+  if(!notcurses_canutf8(nc_)){
+    CHECK(0 == notcurses_stop(nc_));
+    return;
+  }
   struct ncplane* n_ = notcurses_stdplane(nc_);
   REQUIRE(n_);
 

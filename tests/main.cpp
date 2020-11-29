@@ -28,17 +28,6 @@ auto find_data(const char* datum) -> char* {
   return strdup(p.c_str());
 }
 
-auto enforce_utf8() -> bool {
-  char* enc = nl_langinfo(CODESET);
-  if(!enc){
-    return false;
-  }
-  if(strcmp(enc, "UTF-8")){
-    return false;
-  }
-  return true;
-}
-
 static void
 handle_opts(const char** argv){
   bool inarg = false;

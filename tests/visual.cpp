@@ -272,7 +272,7 @@ TEST_CASE("Visual") {
 
   // write a checkerboard pattern and verify the NCBLIT_2x1 output
   SUBCASE("Dualblitter") {
-    if(enforce_utf8()){
+    if(notcurses_canutf8(nc_)){
       constexpr int DIMY = 10;
       constexpr int DIMX = 11; // odd number to get checkerboard effect
       auto rgba = new uint32_t[DIMY * DIMX];
@@ -312,7 +312,7 @@ TEST_CASE("Visual") {
 
   // write a checkerboard pattern and verify the NCBLIT_2x2 output
   SUBCASE("Quadblitter") {
-    if(enforce_utf8()){
+    if(notcurses_canutf8(nc_)){
       constexpr int DIMY = 10;
       constexpr int DIMX = 11; // odd number to get checkerboard effect
       auto rgba = new uint32_t[DIMY * DIMX];
@@ -352,7 +352,7 @@ TEST_CASE("Visual") {
 
   // close-in verification of each quadblitter output EGC 
   SUBCASE("QuadblitterEGCs") {
-    if(enforce_utf8()){
+    if(notcurses_canutf8(nc_)){
       // there are 16 configurations, each mapping four (2x2) pixels
       int DIMX = 32;
       int DIMY = 2;
@@ -426,7 +426,7 @@ TEST_CASE("Visual") {
 
   // quadblitter with all 4 colors equal ought generate space
   SUBCASE("Quadblitter4Same") {
-    if(enforce_utf8()){
+    if(notcurses_canutf8(nc_)){
       const uint32_t pixels[4] = { 0xff605040, 0xff605040, 0xff605040, 0xff605040 };
       auto ncv = ncvisual_from_rgba(pixels, 2, 2 * sizeof(*pixels), 2);
       REQUIRE(nullptr != ncv);
@@ -462,7 +462,7 @@ TEST_CASE("Visual") {
 
   // quadblitter with three pixels equal ought generate three-quarter block
   SUBCASE("Quadblitter3Same") {
-    if(enforce_utf8()){
+    if(notcurses_canutf8(nc_)){
       const uint32_t pixels[4][4] = {
         { 0xffcccccc, 0xff605040, 0xff605040, 0xff605040 },
         { 0xff605040, 0xffcccccc, 0xff605040, 0xff605040 },
@@ -505,7 +505,7 @@ TEST_CASE("Visual") {
 
   // quadblitter with two sets of two equal pixels
   SUBCASE("Quadblitter2Pairs") {
-    if(enforce_utf8()){
+    if(notcurses_canutf8(nc_)){
       const uint32_t pixels[6][4] = {
         { 0xffcccccc, 0xffcccccc, 0xff605040, 0xff605040 },
         { 0xffcccccc, 0xff605040, 0xffcccccc, 0xff605040 },
@@ -555,7 +555,7 @@ TEST_CASE("Visual") {
 
   // quadblitter with one pair plus two split
   SUBCASE("Quadblitter1Pair") {
-    if(enforce_utf8()){
+    if(notcurses_canutf8(nc_)){
       const uint32_t pixels[6][4] = {
         { 0xffcccccc, 0xff444444, 0xff605040, 0xff605040 },
         { 0xff444444, 0xff605040, 0xffcccccc, 0xff605040 },
@@ -605,7 +605,7 @@ TEST_CASE("Visual") {
 
   // quadblitter with one pair plus two split
   SUBCASE("QuadblitterAllDifferent") {
-    if(enforce_utf8()){
+    if(notcurses_canutf8(nc_)){
       const uint32_t pixels[6][4] = {
         { 0xffdddddd, 0xff000000, 0xff111111, 0xff222222 },
         { 0xff000000, 0xff111111, 0xffdddddd, 0xff222222 },

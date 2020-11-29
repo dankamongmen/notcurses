@@ -27,11 +27,12 @@ void RotateCCW(struct notcurses* nc, struct ncplane* n) {
 }
 
 TEST_CASE("Rotate") {
-  if(!enforce_utf8()){
-    return;
-  }
   auto nc_ = testing_notcurses();
   if(!nc_){
+    return;
+  }
+  if(!notcurses_canutf8(nc_)){
+    CHECK(0 == notcurses_stop(nc_));
     return;
   }
   int dimy, dimx;
