@@ -189,7 +189,7 @@ TEST_CASE("TextLayout") {
 
   // lay out text where a wide word crosses the boundary
   SUBCASE("LayoutCrossBoundaryWide") {
-    if(enforce_utf8()){
+    if(notcurses_canutf8(nc_)){
       struct ncplane_options nopts = {
         .y = 0,
         .x = 0,
@@ -245,7 +245,7 @@ TEST_CASE("TextLayout") {
   // a long word (one requiring a split no matter what) ought not force the
   // next line, but instead be printed where it starts
   SUBCASE("LayoutTransPlanarWide") {
-    if(enforce_utf8()){
+    if(notcurses_canutf8(nc_)){
       struct ncplane_options nopts = {
         .y = 0,
         .x = 0,
@@ -428,7 +428,7 @@ TEST_CASE("TextLayout") {
 
   // create a plane of three rows, and exactly fill two with wide chars
   SUBCASE("LayoutFillsPlaneWide") {
-    if(enforce_utf8()){
+    if(notcurses_canutf8(nc_)){
       struct ncplane_options nopts = {
         .y = 0,
         .x = 0,

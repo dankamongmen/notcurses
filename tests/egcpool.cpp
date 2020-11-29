@@ -12,9 +12,15 @@ TEST_CASE("EGCpool") {
     CHECK(!pool_.poolused);
   }
 
-  if(!enforce_utf8()){
+  auto nc_ = testing_notcurses();
+  if(!nc_){
     return;
   }
+  if(!notcurses_canutf8(nc_)){
+    CHECK(0 == notcurses_stop(nc_));
+    return;
+  }
+  CHECK(0 == notcurses_stop(nc_));
 
   SUBCASE("UTF8EGC") {
     const char* wstr = "☢";

@@ -421,8 +421,17 @@ TEST_CASE("Metric") {
   }
 
   SUBCASE("NegativePowersOfTen") {
+    auto nc_ = testing_notcurses();
+    if(!nc_){
+      return;
+    }
+    if(!notcurses_canutf8(nc_)){
+      CHECK(0 == notcurses_stop(nc_));
+      return;
+    }
+    CHECK(0 == notcurses_stop(nc_));
     const wchar_t* smallsuffixes;
-    if(enforce_utf8()){
+    if(notcurses_canutf8(nc_)){
       smallsuffixes = L"yzafpnµm";
     }else{
       smallsuffixes = L"yzafpnum";
