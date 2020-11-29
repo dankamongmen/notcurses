@@ -13,12 +13,14 @@
 #include <signal.h>
 #include <limits.h>
 #include <stdbool.h>
+// take host byte order and turn it into network (reverse on LE, no-op on BE),
+// then reverse that, guaranteeing LE.
 #ifdef __linux__
 #include <byteswap.h>
-#define ntole(x) (bswap_32(htonl(x)))
+#define htole(x) (bswap_32(htonl(x)))
 #else
 #include <sys/endian.h>
-#define ntole(x) (bswap32(htonl(x)))
+#define htole(x) (bswap32(htonl(x)))
 #endif
 #include <netinet/in.h>
 #include <notcurses/nckeys.h>
@@ -576,8 +578,8 @@ typedef struct cell {
 } cell;
 
 #define CELL_TRIVIAL_INITIALIZER { }
-#define CELL_CHAR_INITIALIZER(c) { .gcluster = (ntole(c)), .gcluster_backstop = 0, .reserved = 0, .stylemask = 0, .channels = 0, }
-#define CELL_INITIALIZER(c, s, chan) { .gcluster = (ntole(c)), .gcluster_backstop = 0, .reserved = 0, .stylemask = (s), .channels = (chan), }
+#define CELL_CHAR_INITIALIZER(c) { .gcluster = (htole(c)), .gcluster_backstop = 0, .reserved = 0, .stylemask = 0, .channels = 0, }
+#define CELL_INITIALIZER(c, s, chan) { .gcluster = (htole(c)), .gcluster_backstop = 0, .reserved = 0, .stylemask = (s), .channels = (chan), }
 
 static inline void
 cell_init(cell* c){
@@ -729,7 +731,7 @@ static inline int
 cell_load_char(struct ncplane* n, cell* c, char ch){
   cell_release(n, c);
   c->channels &= ~(CELL_WIDEASIAN_MASK | CELL_NOBACKGROUND_MASK);
-  c->gcluster = ntole((uint32_t)ch);
+  c->gcluster = htole((uint32_t)ch);
   return 1;
 }
 
@@ -2417,44 +2419,38 @@ API int ncblit_bgrx(const void* data, int linesize,
 // The ncpixel API facilitates direct management of the pixels within an
 // ncvisual (ncvisuals keep a backing store of 32-bit RGBA pixels, and render
 // them down to terminal graphics in ncvisual_render()).
-
-// Extract the 8-bit alpha component from a pixel
-static inline uint32_t
-ncpixel(int r, int g, int b){
-  if(r < 0) r = 0;
-  if(r > 255) r = 255;
-  if(g < 0) g = 0;
-  if(g > 255) g = 255;
-  if(b < 0) b = 0;
-  if(b > 255) b = 255;
-  return 0xff000000ul | r | (b << 8u) | (g << 16u);
-}
+//
+// Per libav, we "store as BGRA on little-endian, and ARGB on big-endian".
+// This is an RGBA *byte-order* scheme. libav emits bytes, not words. Those
+// bytes are R-G-B-A. When read as words, on little endian this will be ABGR,
+// and on big-endian this will be RGBA. force everything to LE ABGR, a no-op on
+// and thus favoring little-endian. Take that, big-endian mafia!
 
 // Extract the 8-bit alpha component from a pixel
 static inline unsigned
 ncpixel_a(uint32_t pixel){
-  return (pixel & 0xff000000ul) >> 24u;
+  return (htole(pixel) & 0xff000000ul) >> 24u;
 }
 
-// Extract the 8-bit red component from a pixel
+// Extract the 8-bit red component from an ABGR pixel
 static inline unsigned
 ncpixel_r(uint32_t pixel){
-  return (pixel & 0x000000fful);
+  return (htole(pixel) & 0x000000fful);
 }
 
-// Extract the 8-bit green component from a pixel
+// Extract the 8-bit green component from an ABGR pixel
 static inline unsigned
 ncpixel_g(uint32_t pixel){
-  return (pixel & 0x0000ff00ul) >> 8u;
+  return (htole(pixel) & 0x0000ff00ul) >> 8u;
 }
 
-// Extract the 8-bit blue component from a pixel
+// Extract the 8-bit blue component from an ABGR pixel
 static inline unsigned
 ncpixel_b(uint32_t pixel){
-  return (pixel & 0x00ff0000ul) >> 16u;
+  return (htole(pixel) & 0x00ff0000ul) >> 16u;
 }
 
-// Set the 8-bit alpha component of a pixel
+// Set the 8-bit alpha component of an ABGR pixel
 static inline int
 ncpixel_set_a(uint32_t* pixel, int a){
   if(a > 255 || a < 0){
@@ -2464,7 +2460,7 @@ ncpixel_set_a(uint32_t* pixel, int a){
   return 0;
 }
 
-// Set the 8-bit red component of a pixel
+// Set the 8-bit red component of an ABGR pixel
 static inline int
 ncpixel_set_r(uint32_t* pixel, int r){
   if(r > 255 || r < 0){
@@ -2474,7 +2470,7 @@ ncpixel_set_r(uint32_t* pixel, int r){
   return 0;
 }
 
-// Set the 8-bit green component of a pixel
+// Set the 8-bit green component of an ABGR pixel
 static inline int
 ncpixel_set_g(uint32_t* pixel, int g){
   if(g > 255 || g < 0){
@@ -2484,7 +2480,7 @@ ncpixel_set_g(uint32_t* pixel, int g){
   return 0;
 }
 
-// Set the 8-bit blue component of a pixel
+// Set the 8-bit blue component of an ABGR pixel
 static inline int
 ncpixel_set_b(uint32_t* pixel, int b){
   if(b > 255 || b < 0){
@@ -2492,6 +2488,23 @@ ncpixel_set_b(uint32_t* pixel, int b){
   }
   *pixel = (*pixel & 0xff00fffful) | (b << 16u);
   return 0;
+}
+
+// Construct a libav-compatible ABGR pixel, clipping at [0, 255).
+static inline uint32_t
+ncpixel(int r, int g, int b){
+  uint32_t pixel = 0;
+  ncpixel_set_a(&pixel, 0xff);
+  if(r < 0) r = 0;
+  if(r > 255) r = 255;
+  ncpixel_set_r(&pixel, r);
+  if(g < 0) g = 0;
+  if(g > 255) g = 255;
+  ncpixel_set_g(&pixel, g);
+  if(b < 0) b = 0;
+  if(b > 255) b = 255;
+  ncpixel_set_b(&pixel, b);
+  return pixel;
 }
 
 // set the RGB values of an RGB pixel
