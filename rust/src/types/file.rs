@@ -1,4 +1,4 @@
-//! Wrapper for libc::FILE, both as used by notcurses and the libc crate
+//! Wrapper for `libc::FILE`, both as used by notcurses and the libc crate
 //!
 //! The interface is largely based on the implementation of the
 //! [cfile-rs crate](https://github.com/jkarns275/cfile) by Joshua Karns
@@ -9,11 +9,13 @@ use std::io::{Error, ErrorKind, Read, Seek, SeekFrom};
 
 pub use libc::{c_long, c_void, fclose, feof, fread, fseek, ftell, SEEK_CUR, SEEK_END, SEEK_SET};
 
-/// notcurses functions expects this type of *FILE (struct)
+/// notcurses functions expects this type of `*FILE` (a struct)
 pub type FILE_NC = crate::bindgen::_IO_FILE;
 
-/// the libc crate expects this type of *FILE (opaque enum)
+/// the [`libc`] crate expects this type of `*FILE` (an opaque enum)
 pub type FILE_LIBC = libc::FILE;
+
+// TODO: the following static strings aren't made public
 
 /// Intended to be passed into the CFile::open method.
 /// It will open the file in a way that will allow reading and writing,
@@ -54,12 +56,14 @@ fn get_error<T>() -> Result<T, Error> {
     Err(Error::last_os_error())
 }
 
-/// A wrapper struct around libc::FILE
+/// A wrapper struct around `libc::FILE`
 ///
-/// The notcurses FILE type `FILE_NC` is imported through bindgen as a struct,
-/// while the equivalent Rust libc::FILE (`FILE_LIBC`) is an opaque enum.
+/// The notcurses `FILE` type [`FILE_NC`] is imported through bindgen as a struct,
+/// while the equivalent [`libc`] crate FILE ([`FILE_LIBC`]) is an opaque enum.
+///
 /// Several methods are provided to convert back and forth between both types,
-/// to allow both rust libc operations and notcurses file operations on it.
+/// in order to allow both rust libc operations and notcurses file operations
+/// over the same underlying `*FILE`.
 #[derive(Debug)]
 pub struct NcFile {
     file_ptr: NonNull<FILE_LIBC>,
@@ -84,7 +88,7 @@ impl NcFile {
 
     // methods --
 
-    /// Returns the file pointer in the format expected by libc
+    /// Returns the file pointer in the format expected by the [`libc`] crate
     #[inline]
     pub fn as_libc_ptr(&self) -> *mut FILE_LIBC {
         self.file_ptr.as_ptr()
@@ -98,8 +102,7 @@ impl NcFile {
 
     /// Returns the current position in the file.
     ///
-    /// # Errors
-    /// On error Error::Errno(errno) is returned.
+    /// On error `Error::Errno(errno)` is returned.
     pub fn current_pos(&self) -> Result<u64, Error> {
         unsafe {
             let pos = ftell(self.as_libc_ptr());
@@ -150,12 +153,11 @@ impl NcFile {
 impl Read for NcFile {
     /// Reads exactly the number of bytes required to fill buf.
     ///
-    /// # Errors
     /// If the end of the file is reached before buf is filled,
-    /// Err(EndOfFile(bytes_read)) will be returned.  The data that was read
+    /// `Err(EndOfFile(bytes_read))` will be returned.  The data that was read
     /// before that will still have been placed into buf.
     ///
-    /// Upon some other error, Err(Errno(errno)) will be returned.
+    /// Upon some other error, `Err(Errno(errno))` will be returned.
     fn read(&mut self, buf: &mut [u8]) -> Result<usize, Error> {
         unsafe {
             let result = fread(
@@ -184,9 +186,8 @@ impl Read for NcFile {
     /// Reads the entire file starting from the current_position
     /// expanding buf as needed.
     ///
-    /// On a successful read, this function will return Ok(bytes_read).
+    /// On a successful read, this function will return `Ok(bytes_read)`.
     ///
-    /// # Errors
     /// If an error occurs during reading, some varient of error will be returned.
     fn read_to_end(&mut self, buf: &mut Vec<u8>) -> Result<usize, Error> {
         let pos = self.current_pos();
@@ -217,9 +218,8 @@ impl Read for NcFile {
 
     /// Reads the entire file from the beginning and stores it in a string
     ///
-    /// On a successful read, this function will return Ok(bytes_read).
+    /// On a successful read, this function will return `Ok(bytes_read)`.
     ///
-    /// # Errors
     /// If an error occurs during reading, some varient of error will be returned.
     fn read_to_string(&mut self, strbuf: &mut String) -> Result<usize, Error> {
         let mut bytes_read = 0_usize;
@@ -245,12 +245,11 @@ impl Read for NcFile {
 
     /// Reads exactly the number of bytes required to fill buf.
     ///
-    /// # Errors
     /// If the end of the file is reached before buf is filled,
-    /// Err(EndOfFile(bytes_read)) will be returned. The data that was read
+    /// `Err(EndOfFile(bytes_read))` will be returned. The data that was read
     /// before that will still have been placed into buf.
     ///
-    /// Upon some other error, Err(Errno(errno)) will be returned.
+    /// Upon some other error, `Err(Errno(errno))` will be returned.
     fn read_exact(&mut self, buf: &mut [u8]) -> Result<(), Error> {
         unsafe {
             let result = fread(
@@ -274,7 +273,7 @@ impl Read for NcFile {
 }
 
 impl Seek for NcFile {
-    /// Changes the current position in the file using the SeekFrom enum.
+    /// Changes the current position in the file using the [`SeekFrom`] enum.
     ///
     /// To set relative to the beginning of the file (i.e. index is 0 + offset):
     /// ```ignore
@@ -288,8 +287,8 @@ impl Seek for NcFile {
     /// ```ignore
     /// SeekFrom::End(offset)
     /// ```
-    /// # Errors
-    /// On error Error::Errno(errno) is returned.
+    ///
+    /// On error `Error::Errno(errno)` is returned.
     fn seek(&mut self, pos: SeekFrom) -> Result<u64, Error> {
         unsafe {
             let result = match pos {

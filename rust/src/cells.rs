@@ -68,9 +68,10 @@ use crate::{
     channels_set_bg_default, channels_set_bg_rgb, channels_set_bg_rgb8, channels_set_fchannel,
     channels_set_fg_alpha, channels_set_fg_default, channels_set_fg_rgb, channels_set_fg_rgb8,
     types::{
-        NcAlphaBits, NcCell, NcChannel, NcChannels, NcChar, NcCharBackstop, NcColor, NcPaletteIndex, NcPlane,
-        NcResult, NcStyleMask, NCCELL_ALPHA_OPAQUE, NCCELL_BGDEFAULT_MASK, NCCELL_BG_PALETTE,
-        NCCELL_FGDEFAULT_MASK, NCCELL_FG_PALETTE, NCCELL_NOBACKGROUND_MASK, NCCELL_WIDEASIAN_MASK,
+        NcAlphaBits, NcCell, NcChannel, NcChannels, NcChar, NcCharBackstop, NcColor,
+        NcPaletteIndex, NcPlane, NcResult, NcStyleMask, NCCELL_ALPHA_OPAQUE, NCCELL_BGDEFAULT_MASK,
+        NCCELL_BG_PALETTE, NCCELL_FGDEFAULT_MASK, NCCELL_FG_PALETTE, NCCELL_NOBACKGROUND_MASK,
+        NCCELL_WIDEASIAN_MASK, NCRESULT_ERR, NCRESULT_OK,
     },
     NCSTYLE_MASK,
 };
@@ -97,11 +98,7 @@ impl NcCell {
     /// This is analogous to the [`cell_char_initializer`] macro
     #[inline]
     pub const fn with_char(ch: char) -> Self {
-        Self::new(
-            ch,
-            0 as NcStyleMask,
-            0 as NcChannels,
-        )
+        Self::new(ch, 0 as NcStyleMask, 0 as NcChannels)
     }
 
     /// [`NcCell`] simple constructor for an empty cell
@@ -190,7 +187,7 @@ pub unsafe fn cells_load_box(
                         ulen = unsafe { cell_prime(plane, vl, gcluster, style, channels) };
 
                         if ulen > 0 {
-                            return 0;
+                            return NCRESULT_OK;
                         }
                         unsafe {
                             cell_release(plane, hl);
@@ -212,7 +209,7 @@ pub unsafe fn cells_load_box(
             cell_release(plane, ul);
         }
     }
-    -1
+    NCRESULT_ERR
 }
 
 ///
@@ -321,10 +318,11 @@ pub fn cell_extract(
     cell_strdup(plane, cell)
 }
 
-/// Returns true if the two cells are distinct `NcChar`s, attributes, or channels.
+/// Returns true if the two cells are distinct [`NcChar`]s, attributes, or channels
+///
 /// The actual egcpool index needn't be the same--indeed, the planes needn't even
 /// be the same. Only the expanded NcChar must be equal. The NcChar must be bit-equal;
-/// it would probably be better to test whether they're Unicode-equal FIXME.
+// NOTE: FIXME: it would probably be better to test whether they're Unicode-equal
 #[inline]
 pub fn cellcmp(plane1: &NcPlane, cell1: &NcCell, plane2: &NcPlane, cell2: &NcCell) -> bool {
     if cell1.stylemask != cell2.stylemask {

@@ -145,7 +145,7 @@ pub fn channel_palindex_p(channel: NcChannel) -> bool {
 /// Mark the channel as using its default color, which also marks it opaque.
 #[inline]
 pub fn channel_set_default(channel: &mut NcChannel) -> NcChannel {
-    *channel &= !(NCCELL_BGDEFAULT_MASK | NCCELL_ALPHA_HIGHCONTRAST); // < NOTE shouldn't be better NCCHANNEL_ALPHA_MASK?
+    *channel &= !(NCCELL_BGDEFAULT_MASK | NCCELL_ALPHA_HIGHCONTRAST);
     *channel
 }
 
@@ -417,15 +417,15 @@ mod test {
     #[serial]
     fn channel_default_p() {
         let mut c: NcChannel = 0x112233;
-        assert_eq!(true, super::channel_default_p(c));
+        assert_eq!(true, crate::channel_default_p(c));
 
-        // TODO FIXME: test for the false result
-        // let _ = super::channel_set_alpha(&mut c, NCCELL_ALPHA_TRANSPARENT);
-        // assert_eq!(false, super::channel_default_p(c));
+        let _ = crate::channel_set_alpha(&mut c, NCCELL_ALPHA_OPAQUE);
+        assert_eq!(true, crate::channel_default_p(c));
 
-        let _ = super::channel_set_alpha(&mut c, NCCELL_ALPHA_OPAQUE);
-        assert_eq!(true, super::channel_default_p(c));
+        crate::channel_set(&mut c, 0x112233);
+        assert_eq!(false, super::channel_default_p(c));
     }
+
     #[test]
     #[serial]
     #[allow(non_snake_case)]
@@ -435,6 +435,7 @@ mod test {
         super::channels_set_fchannel(&mut cp, fc);
         assert_eq!(super::channels_fchannel(cp), fc);
     }
+
     #[test]
     #[serial]
     #[allow(non_snake_case)]
@@ -444,6 +445,7 @@ mod test {
         super::channels_set_bchannel(&mut cp, bc);
         assert_eq!(super::channels_bchannel(cp), bc);
     }
+
     #[test]
     #[serial]
     fn channels_combine() {

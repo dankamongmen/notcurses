@@ -1,7 +1,13 @@
-//! NcPlane constructors and ncplane_* static functions reimplementations
+//! [`NcPlane`] ncplane_* static functions reimplementations
 
-// functions already exported by bindgen : 97
+// functions already exported by bindgen : 103
+// ------------------------------------------ (implement / remaining)
+// (#) test: 13 / 90
 // ------------------------------------------
+//# ncpile_create
+//  ncpile_rasterize
+//  ncpile_render
+//
 //  ncplane_above
 //  ncplane_at_cursor
 //  ncplane_at_yx
@@ -9,15 +15,15 @@
 //  ncplane_below
 //  ncplane_box
 //  ncplane_center_abs
-//  ncplane_channels
+//# ncplane_channels
 //  ncplane_contents
 //  ncplane_create
-//  ncplane_cursor_move_yx
-//  ncplane_cursor_yx
+//# ncplane_cursor_move_yx
+//# ncplane_cursor_yx
 //  ncplane_destroy
-//  ncplane_dim_yx
+//# ncplane_dim_yx
 //  ncplane_dup
-//  ncplane_erase
+//# ncplane_erase
 //  ncplane_fadein
 //  ncplane_fadein_iteration
 //  ncplane_fadeout
@@ -28,7 +34,7 @@
 //  ncplane_highgradient
 //  ncplane_highgradient_sized
 //  ncplane_hline_interp
-//  ncplane_home
+//# ncplane_home
 //  ncplane_mergedown
 //  ncplane_mergedown_simple
 //  ncplane_move_above
@@ -37,8 +43,8 @@
 //  ncplane_move_top
 //  ncplane_move_yx
 //  ncplane_new
-//  ncplane_notcurses
-//  ncplane_notcurses_const
+//# ncplane_notcurses
+//# ncplane_notcurses_const
 //  ncplane_off_styles
 //  ncplane_on_styles
 //  ncplane_parent
@@ -59,28 +65,31 @@
 //  ncplane_putwstr_stained
 //  ncplane_qrcode
 //  ncplane_reparent
-//  ncplane_resize
+//  ncplane_reparent_family
+//# ncplane_resize
+//  ncplane_resizecb
 //  ncplane_resize_realign
 //  ncplane_rgba
 //  ncplane_rotate_ccw
 //  ncplane_rotate_cw
 //  ncplane_set_base
 //  ncplane_set_base_cell
-//  ncplane_set_bchannel
+//# ncplane_set_bchannel
 //  ncplane_set_bg_alpha
 //  ncplane_set_bg_default
 //  ncplane_set_bg_palindex
 //  ncplane_set_bg_rgb
 //  ncplane_set_bg_rgb8
 //  ncplane_set_bg_rgb8_clipped
-//  ncplane_set_channels
-//  ncplane_set_fchannel
+//# ncplane_set_channels
+//# ncplane_set_fchannel
 //  ncplane_set_fg_alpha
 //  ncplane_set_fg_default
 //  ncplane_set_fg_palindex
 //  ncplane_set_fg_rgb
 //  ncplane_set_fg_rgb8
 //  ncplane_set_fg_rgb8_clipped
+//  ncplane_set_resizecb
 //  ncplane_set_scrolling
 //  ncplane_set_styles
 //  ncplane_set_userptr
@@ -103,25 +112,25 @@
 // static inline functions total: 42
 // ------------------------------------------ (implement / remaining)
 // (X) wont:  8
-// (+) done: 32 / 2
-// (#) test:  0 / 34
+// (+) done: 34 / 0
+// (#) test:  5 / 29
 // ------------------------------------------
 //+ ncplane_align
 //+ ncplane_at_cursor_cell
 //+ ncplane_at_yx_cell
 //+ ncplane_bchannel
 //+ ncplane_bg_alpha
-//+ ncplane_bg_default_p
+//# ncplane_bg_default_p
 //+ ncplane_bg_rgb
 //+ ncplane_bg_rgb8
 //+ ncplane_box_sized
-//+ ncplane_dim_x
-//+ ncplane_dim_y
+//# ncplane_dim_x
+//# ncplane_dim_y
 //+ ncplane_double_box
 //+ ncplane_double_box_sized
 //+ ncplane_fchannel
 //+ ncplane_fg_alpha
-//+ ncplane_fg_default_p
+//# ncplane_fg_default_p
 //+ ncplane_fg_rgb
 //+ ncplane_fg_rgb8
 //+ ncplane_gradient_sized       // u64|u32 https://github.com/dankamongmen/notcurses/issues/920
@@ -130,8 +139,8 @@
 //+ ncplane_perimeter_double
 //+ ncplane_perimeter_rounded
 //+ ncplane_putc
-//  ncplane_putchar
-//  ncplane_putchar_yx
+//+ ncplane_putchar
+//+ ncplane_putchar_yx
 //+ ncplane_putegc
 //+ ncplane_putnstr
 //+ ncplane_putstr
@@ -143,7 +152,7 @@
 //X ncplane_putwstr              //
 //X ncplane_putwstr_aligned      //
 //X ncplane_putwstr_yx           //
-//+ ncplane_resize_simple
+//# ncplane_resize_simple
 //+ ncplane_rounded_box
 //+ ncplane_rounded_box_sized
 //+ ncplane_vline
@@ -151,10 +160,13 @@
 //
 // NOTE: TODO: Still remains all the ncplane_printf* functions/macros (at the end)
 
-use core::{
-    ffi::c_void,
-    ptr::{null, null_mut},
-};
+#[cfg(test)]
+mod tests;
+
+mod constructors;
+pub use constructors::*;
+
+use core::{ffi::c_void, ptr::null_mut};
 use libc::free;
 use std::ffi::CString;
 
@@ -162,72 +174,16 @@ use crate::{
     bindgen::__va_list_tag,
     cell_load, cell_release, cells_double_box, cells_rounded_box, channels_bchannel,
     channels_bg_alpha, channels_bg_default_p, channels_bg_rgb, channels_bg_rgb8, channels_fchannel,
-    channels_fg_alpha, channels_fg_default_p, channels_fg_rgb, channels_fg_rgb8, ncpile_create,
-    ncplane_at_cursor, ncplane_at_yx, ncplane_box, ncplane_channels, ncplane_create,
-    ncplane_cursor_move_yx, ncplane_cursor_yx, ncplane_dim_yx, ncplane_gradient,
-    ncplane_hline_interp, ncplane_putc_yx, ncplane_putegc_yx, ncplane_putnstr_yx,
-    ncplane_putstr_yx, ncplane_resize, ncplane_vline_interp, ncplane_vprintf_yx, notcurses_align,
-    notcurses_term_dim_yx,
+    channels_fg_alpha, channels_fg_default_p, channels_fg_rgb, channels_fg_rgb8, ncplane_at_cursor,
+    ncplane_at_yx, ncplane_box, ncplane_channels, ncplane_cursor_move_yx, ncplane_cursor_yx,
+    ncplane_dim_yx, ncplane_gradient, ncplane_hline_interp, ncplane_putc_yx, ncplane_putegc_yx,
+    ncplane_putnstr_yx, ncplane_putstr_yx, ncplane_resize, ncplane_styles, ncplane_vline_interp,
+    ncplane_vprintf_yx, notcurses_align,
     types::{
-        NcAlign, NcAlphaBits, NcCell, NcChannel, NcChannels, NcColor, NcPlane,
-        NcPlaneOptions, NcResult, NcStyleMask, Notcurses, NCPLANE_OPTION_HORALIGNED,
+        NcAlign, NcAlphaBits, NcCell, NcChannel, NcChannels, NcColor, NcPlane, NcResult,
+        NcStyleMask, NCRESULT_ERR, NCRESULT_OK,
     },
 };
-
-// Constructors ----------------------------------------------------------------
-
-impl NcPlaneOptions {
-    /// `NcPlaneOptions` simple constructor with horizontal x
-    pub fn new(y: i32, x: i32, rows: u32, cols: u32) -> Self {
-        Self::with_flags(y, x, rows, cols, 0)
-    }
-
-    /// `NcPlaneOptions` simple constructor with horizontal alignment
-    pub fn new_halign(y: i32, align: NcAlign, rows: u32, cols: u32) -> Self {
-        Self::with_flags(y, align as i32, rows, cols, NCPLANE_OPTION_HORALIGNED)
-    }
-
-    /// `NcplaneOptions` constructor
-    ///
-    /// Note: If you use`NCPLANE_OPTION_HORALIGNED` flag, you must provide
-    /// the `NcAlign` value as the `x` parameter, casted to `i32`.
-    pub fn with_flags(y: i32, x: i32, rows: u32, cols: u32, flags: u64) -> Self {
-        NcPlaneOptions {
-            y,
-            x,
-            rows: rows as i32,
-            cols: cols as i32,
-            userptr: null_mut(),
-            name: null(),
-            resizecb: None,
-            flags,
-        }
-    }
-}
-
-impl NcPlane {
-
-    /// `NcPlane` constructor.
-    ///
-    /// The returned plane will be the top, bottom, and root of this new pile.
-    pub unsafe fn new<'a>(nc: &mut Notcurses, options: &NcPlaneOptions) -> &'a mut NcPlane {
-        &mut *ncpile_create(nc, options)
-    }
-
-    /// `NcPlane` constructor, bound to another plane
-    pub unsafe fn new_bound<'a>(bound_to: &mut NcPlane, options: &NcPlaneOptions) -> &'a mut NcPlane {
-        &mut *ncplane_create(bound_to, options)
-    }
-
-    /// `NcPlane` constructor, with the full size of the terminal.
-    ///
-    /// The returned plane will be the top, bottom, and root of this new pile.
-    pub unsafe fn new_termsize<'a>(nc: &mut Notcurses) -> &'a mut NcPlane {
-        let (mut trows, mut tcols) = (0,0);
-        notcurses_term_dim_yx(nc, &mut trows, &mut tcols);
-        &mut *ncpile_create(nc, &NcPlaneOptions::new(0, 0, trows as u32, tcols as u32))
-    }
-}
 
 // Static Functions ------------------------------------------------------------
 
@@ -247,10 +203,10 @@ pub fn ncplane_align(plane: &NcPlane, align: NcAlign, cols: i32) -> i32 {
 pub fn ncplane_at_cursor_cell(plane: &mut NcPlane, cell: &mut NcCell) -> NcResult {
     let mut egc = unsafe { ncplane_at_cursor(plane, &mut cell.stylemask, &mut cell.channels) };
     if egc.is_null() {
-        return -1;
+        return NCRESULT_ERR;
     }
     let result: NcResult = unsafe { cell_load(plane, cell, egc) };
-    if result < 0 {
+    if result != NCRESULT_OK {
         unsafe {
             free(&mut egc as *mut _ as *mut c_void);
         }
@@ -264,7 +220,7 @@ pub fn ncplane_at_cursor_cell(plane: &mut NcPlane, cell: &mut NcCell) -> NcResul
 pub fn ncplane_at_yx_cell(plane: &mut NcPlane, y: i32, x: i32, cell: &mut NcCell) -> NcResult {
     let mut egc = unsafe { ncplane_at_yx(plane, y, x, &mut cell.stylemask, &mut cell.channels) };
     if egc.is_null() {
-        return -1;
+        return NCRESULT_ERR;
     }
     let channels = cell.channels; // need to preserve wide flag
     let result: NcResult = unsafe { cell_load(plane, cell, egc) };
@@ -340,7 +296,7 @@ pub fn ncplane_double_box(
     ctlword: u32,
 ) -> NcResult {
     #[allow(unused_assignments)]
-    let mut ret = 0;
+    let mut ret = NCRESULT_OK;
 
     let mut ul = NcCell::new_blank();
     let mut ur = NcCell::new_blank();
@@ -361,7 +317,7 @@ pub fn ncplane_double_box(
             &mut hl,
             &mut vl,
         );
-        if ret == 0 {
+        if ret == NCRESULT_OK {
             ret = ncplane_box(plane, &ul, &ur, &ll, &lr, &hl, &vl, ystop, xstop, ctlword);
         }
 
@@ -433,8 +389,8 @@ pub fn ncplane_perimeter_double(
     channels: NcChannels,
     ctlword: u32,
 ) -> NcResult {
-    if unsafe { ncplane_cursor_move_yx(plane, 0, 0) } != 0 {
-        return -1;
+    if unsafe { ncplane_cursor_move_yx(plane, 0, 0) } != NCRESULT_OK {
+        return NCRESULT_ERR;
     }
     let (mut dimy, mut dimx) = (0, 0);
     unsafe {
@@ -458,9 +414,9 @@ pub fn ncplane_perimeter_double(
             &mut hl,
             &mut vl,
         )
-    } != 0
+    } != NCRESULT_OK
     {
-        return -1;
+        return NCRESULT_ERR;
     }
     let ret = ncplane_box_sized(plane, &ul, &ur, &ll, &lr, &hl, &vl, dimy, dimx, ctlword);
     unsafe {
@@ -482,8 +438,8 @@ pub fn ncplane_perimeter_rounded(
     channels: NcChannels,
     ctlword: u32,
 ) -> NcResult {
-    if unsafe { ncplane_cursor_move_yx(plane, 0, 0) } != 0 {
-        return -1;
+    if unsafe { ncplane_cursor_move_yx(plane, 0, 0) } != NCRESULT_OK {
+        return NCRESULT_ERR;
     }
     let (mut dimy, mut dimx) = (0, 0);
     unsafe {
@@ -507,9 +463,9 @@ pub fn ncplane_perimeter_rounded(
             &mut hl,
             &mut vl,
         )
-    } != 0
+    } != NCRESULT_OK
     {
-        return -1;
+        return NCRESULT_ERR;
     }
     let ret = ncplane_box_sized(plane, &ul, &ur, &ll, &lr, &hl, &vl, dimy, dimx, ctlword);
     unsafe {
@@ -527,6 +483,27 @@ pub fn ncplane_perimeter_rounded(
 #[inline]
 pub fn ncplane_putc(plane: &mut NcPlane, cell: &NcCell) -> NcResult {
     unsafe { ncplane_putc_yx(plane, -1, -1, cell) }
+}
+
+/// Call ncplane_putchar_yx() at the current cursor location.
+#[inline]
+pub fn ncplane_putchar(plane: &mut NcPlane, c: char) -> NcResult {
+    ncplane_putchar_yx(plane, -1, -1, c)
+}
+
+/// Replace the EGC underneath us, but retain the styling. The current styling
+/// of the plane will not be changed.
+///
+/// Replace the cell at the specified coordinates with the provided 7-bit char
+/// 'c'. Advance the cursor by 1. On success, returns 1. On failure, returns -1.
+/// This works whether the underlying char is signed or unsigned.
+#[inline]
+// TODO: test char is < 8bit (currently 32bit)
+pub fn ncplane_putchar_yx(plane: &mut NcPlane, y: i32, x: i32, c: char) -> NcResult {
+    unsafe {
+        let ce = NcCell::new(c, ncplane_styles(plane), ncplane_channels(plane));
+        ncplane_putc_yx(plane, y, x, &ce)
+    }
 }
 
 /// Call ncplane_putegc() at the current cursor location.
@@ -625,7 +602,7 @@ pub fn ncplane_gradient_sized(
     xlen: i32,
 ) -> NcResult {
     if ylen < 1 || xlen < 1 {
-        return -1;
+        return NCRESULT_ERR;
     }
     let (mut y, mut x) = (0, 0);
     unsafe {
@@ -725,7 +702,7 @@ pub fn ncplane_rounded_box(
     ctlword: u32,
 ) -> NcResult {
     #[allow(unused_assignments)]
-    let mut ret = 0;
+    let mut ret = NCRESULT_OK;
 
     let mut ul = NcCell::new_blank();
     let mut ur = NcCell::new_blank();
@@ -746,10 +723,9 @@ pub fn ncplane_rounded_box(
             &mut hl,
             &mut vl,
         );
-        if ret == 0 {
+        if ret == NCRESULT_OK {
             ret = ncplane_box(plane, &ul, &ur, &ll, &lr, &hl, &vl, ystop, xstop, ctlword);
         }
-
         cell_release(plane, &mut ul);
         cell_release(plane, &mut ur);
         cell_release(plane, &mut ll);
@@ -836,15 +812,3 @@ pub fn ncplane_rounded_box_sized(
 //   va_end(va);
 //   return ret;
 // }
-
-#[cfg(test)]
-mod test {
-    // use super::nc;
-    // use serial_test::serial;
-    /*
-    #[test]
-    #[serial]
-    fn () {
-    }
-    */
-}
