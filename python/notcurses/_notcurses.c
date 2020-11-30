@@ -143,7 +143,6 @@ static PyTypeObject NcInputType = {
     .tp_new = PyType_GenericNew,
     .tp_members = NcInput_members,
     .tp_methods = NcInput_methods,
-    //.tp_alloc = PyType_GenericAlloc,
 };
 
 // Functions
@@ -565,7 +564,6 @@ _notcurses_context_get_std_plane(PyObject *self, PyObject *args)
     }
     struct ncplane *std_plane = notcurses_stdplane(notcurses_context_ref->notcurses_context_ptr);
     NcPlaneObject *ncplane_ref = PyObject_NEW(NcPlaneObject, &NcPlaneType);
-    //PyObject_INIT(&ncplane_ref, &NcPlaneType);
 
     if (ncplane_ref != NULL && std_plane != NULL)
     {
