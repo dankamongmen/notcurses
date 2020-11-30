@@ -203,33 +203,6 @@ highcontrast(uint32_t bchannel){
   return conrgb;
 }
 
-// adjust an otherwise locked-in cell if highcontrast has been requested. this
-// should be done at the end of rendering the cell, so that contrast is solved
-// against the real background.
-static inline void
-lock_in_highcontrast(cell* targc, struct crender* crender){
-  if(cell_fg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
-    cell_set_fg_default(targc);
-  }
-  if(cell_bg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
-    cell_set_bg_default(targc);
-  }
-  if(crender->highcontrast){
-    // highcontrast weighs the original at 1/4 and the contrast at 3/4
-    if(!cell_fg_default_p(targc)){
-      crender->fgblends = 3;
-      uint32_t fchan = cell_fchannel(targc);
-      uint32_t bchan = cell_bchannel(targc);
-      uint32_t hchan = channels_blend(highcontrast(bchan), fchan, &crender->fgblends);
-      cell_set_fchannel(targc, hchan);
-      hchan = channels_blend(hchan, crender->hcfg, &crender->hcfgblends);
-      cell_set_fchannel(targc, hchan);
-    }else{
-      cell_set_fg_rgb(targc, highcontrast(cell_bchannel(targc)));
-    }
-  }
-}
-
 // Paints a single ncplane 'p' into the provided scratch framebuffer 'fb' (we
 // can't always write directly into lastframe, because we need build state to
 // solve certain cells, and need compare their solved result to the last frame).
@@ -375,6 +348,37 @@ init_rvec(struct crender* rvec, int totalcells){
   }
 }
 
+// adjust an otherwise locked-in cell if highcontrast has been requested. this
+// should be done at the end of rendering the cell, so that contrast is solved
+// against the real background.
+static inline void
+lock_in_highcontrast(cell* targc, struct crender* crender){
+  if(cell_fg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
+    cell_set_fg_default(targc);
+  }
+  if(cell_bg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
+    cell_set_bg_default(targc);
+  }
+  if(crender->highcontrast){
+    // highcontrast weighs the original at 1/4 and the contrast at 3/4
+    if(!cell_fg_default_p(targc)){
+      crender->fgblends = 3;
+      uint32_t fchan = cell_fchannel(targc);
+      uint32_t bchan = cell_bchannel(targc);
+      uint32_t hchan = channels_blend(highcontrast(bchan), fchan, &crender->fgblends);
+      cell_set_fchannel(targc, hchan);
+      hchan = channels_blend(hchan, crender->hcfg, &crender->hcfgblends);
+      cell_set_fchannel(targc, hchan);
+    }else{
+      cell_set_fg_rgb(targc, highcontrast(cell_bchannel(targc)));
+    }
+  }
+}
+
+// iterate over the rendered frame, adjusting the foreground colors for any
+// cells marked CELL_ALPHA_HIGHCONTRAST, and clearing any cell covered by a
+// wide glyph to its left. FIXME why can't we do this as we go along? FIXME can
+// we not do the blend a single time here, if we track sums in paint()?
 static void
 postpaint(cell* lastframe, int dimy, int dimx, struct crender* rvec, egcpool* pool){
   for(int y = 0 ; y < dimy ; ++y){
@@ -405,6 +409,8 @@ postpaint(cell* lastframe, int dimy, int dimx, struct crender* rvec, egcpool* po
   }
 }
 
+// merging one plane down onto another is basically just performing a render
+// using only these two planes, with the result written to the lower plane.
 int ncplane_mergedown(const ncplane* restrict src, ncplane* restrict dst,
                       int begsrcy, int begsrcx, int leny, int lenx,
                       int dsty, int dstx){
