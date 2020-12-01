@@ -1,6 +1,6 @@
 % notcurses_cell(3)
 % nick black <nickblack@linux.com>
-% v2.0.8
+% v2.0.9
 
 # NAME
 
@@ -36,7 +36,7 @@ typedef struct cell {
 #define CELL_FG_PALETTE         (CELL_BG_PALETTE << 32u)
 #define CHANNEL_ALPHA_MASK      0x30000000ull
 #define CELL_ALPHA_HIGHCONTRAST 0x30000000ull
-#define CELL_ALPHA_TRANSPARENT  0x2.0.8000ull
+#define CELL_ALPHA_TRANSPARENT  0x2.0.9000ull
 #define CELL_ALPHA_BLEND        0x10000000ull
 #define CELL_ALPHA_OPAQUE       0x00000000ull
 ```

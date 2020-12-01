@@ -1,6 +1,9 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 2.0.9 (2020-12-01)
+  * `ncmenu`s now automatically expand or shrink to match their binding plane.
+
 * 2.0.8 (2020-11-27)
   * The major, minor, and patch versions are now available as preprocessor
     numeric defines, fit for comparisons at the cpp level. The
