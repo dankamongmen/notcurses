@@ -339,7 +339,7 @@ typedef struct notcurses {
   FILE* renderfp; // debugging FILE* to which renderings are written
   tinfo tcache;   // terminfo cache
   struct termios tpreserved; // terminal state upon entry
-  pthread_mutex_t pilelock; // guards pile list
+  pthread_mutex_t pilelock; // guards pile list, locks resize in render
   bool suppress_banner; // from notcurses_options
 
   // desired margins (best-effort only), copied in from notcurses_options
