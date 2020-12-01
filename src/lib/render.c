@@ -987,7 +987,7 @@ int notcurses_refresh(notcurses* nc, int* restrict dimy, int* restrict dimx){
   if(home_cursor(nc, true)){
     return -1;
   }
-  struct ncpile p;
+  ncpile p;
   p.dimy = nc->stdplane->leny;
   p.dimx = nc->stdplane->lenx;
   const int count = (nc->lfdimx > p.dimx ? nc->lfdimx : p.dimx) *
@@ -1018,7 +1018,7 @@ int notcurses_render_to_file(notcurses* nc, FILE* fp){
   if(out == NULL){
     return -1;
   }
-  struct ncpile p;
+  ncpile p;
   p.dimy = nc->stdplane->leny;
   p.dimx = nc->stdplane->lenx;
   const int count = (nc->lfdimx > p.dimx ? nc->lfdimx : p.dimx) *
@@ -1066,10 +1066,8 @@ ncpile_render_internal(ncplane* n, struct crender* rvec, int leny, int lenx,
 int ncpile_rasterize(ncplane* n){
   struct timespec start, writedone;
   clock_gettime(CLOCK_MONOTONIC, &start);
-  int dimy, dimx;
-  const struct ncpile* pile = ncplane_pile(n);
+  const ncpile* pile = ncplane_pile(n);
   struct notcurses* nc = ncplane_notcurses(n);
-  notcurses_resize(nc, &dimy, &dimx);
   const int miny = pile->dimy < nc->lfdimy ? pile->dimy : nc->lfdimy;
   const int minx = pile->dimx < nc->lfdimx ? pile->dimx : nc->lfdimx;
   postpaint(nc->lastframe, miny, minx, pile->crender, &nc->pool);
@@ -1102,12 +1100,14 @@ engorge_crender_vector(ncpile* n, int dimy, int dimx){
 }
 
 int ncpile_render(ncplane* n){
+  notcurses* nc = ncplane_notcurses(n);
+  int dimy, dimx;
+  // update our notion of screen geometry, and render against that
+  pthread_mutex_lock(&nc->pilelock);
+  notcurses_resize(nc, &dimy, &dimx);
+  pthread_mutex_unlock(&nc->pilelock);
   struct timespec start, renderdone;
   clock_gettime(CLOCK_MONOTONIC, &start);
-  int dimy, dimx;
-  struct notcurses* nc = ncplane_notcurses(n);
-  // render against our current notion of screen geometry
-  ncplane_dim_yx(notcurses_stdplane(nc), &dimy, &dimx);
   if(engorge_crender_vector(ncplane_pile(n), dimy, dimx)){
     return -1;
   }
@@ -1120,7 +1120,7 @@ int ncpile_render(ncplane* n){
 }
 
 int notcurses_render(notcurses* nc){
-  struct ncplane* stdn = notcurses_stdplane(nc);
+  ncplane* stdn = notcurses_stdplane(nc);
   if(ncpile_render(stdn)){
     return -1;
   }
@@ -1131,7 +1131,7 @@ int notcurses_render(notcurses* nc){
 // memstream from within rstate. we want to allocate our own here, and return
 // it, to avoid the copy, but we need feed the params through to do so FIXME.
 int notcurses_render_to_buffer(notcurses* nc, char** buf, size_t* buflen){
-  struct ncplane* stdn = notcurses_stdplane(nc);
+  ncplane* stdn = notcurses_stdplane(nc);
   if(ncpile_render(stdn)){
     return -1;
   }
