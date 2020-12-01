@@ -2,9 +2,8 @@
 #include <notcurses/notcurses.h>
 
 int main(void){
-  setlocale(LC_ALL, "");
   struct notcurses_options nops = {
-    .flags = NCOPTION_INHIBIT_SETLOCALE | NCOPTION_NO_ALTERNATE_SCREEN,
+    .flags = NCOPTION_NO_ALTERNATE_SCREEN,
   };
   struct notcurses* nc = notcurses_init(&nops, NULL);
   struct ncplane* n = notcurses_stdplane(nc);

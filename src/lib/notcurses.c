@@ -863,32 +863,38 @@ init_banner(const notcurses* nc){
   }
 }
 
-// it's critical that we're in a UTF-8 locale if at all possible. since the
+// it's critical that we're using UTF-8 encoding if at all possible. since the
 // client might not have called setlocale(2) (if they weren't reading the
-// directions...), go ahead and try calling it ourselves *iff* we're in the
-// default "C" or "POSIX" locale. this still requires the user to have a proper
-// LANG configured. either way, they're going to get a diagnostic (unless the
-// user has explicitly configured a LANG of "C" or "POSIX"). recommended
-// practice is for the client code to have called setlocale() themselves, and
-// set the NCOPTION_INHIBIT_SETLOCALE flag. if that flag is set, we take the
-// locale as we get it.
+// directions...), go ahead and try calling setlocale(LC_ALL, "") and then
+// setlocale(LC_CTYPE, "C.UTF-8") ourselves *iff* we're not using UTF-8 *and*
+// LANG is not explicitly set to "C" nor "POSIX". this still requires the user
+// to have a proper locale generated and available on disk. either way, they're
+// going to get a diagnostic (unless the user has explicitly configured a LANG
+// of "C" or "POSIX"). recommended practice is for the client code to have
+// called setlocale() themselves, and set the NCOPTION_INHIBIT_SETLOCALE flag.
+// if that flag is set, we take the locale and encoding as we get them.
 void init_lang(struct notcurses* nc){
-  const char* locale = setlocale(LC_ALL, "");
-  if(locale && (!strcmp(locale, "C") || !strcmp(locale, "POSIX"))){
-    const char* lang = getenv("LANG");
-    if(lang){
-      // if LANG was explicitly set to C/POSIX, roll with it
-      if(strcmp(locale, "C") && strcmp(locale, "POSIX")){
-        if(!locale){ // otherwise, generate diagnostic
-          logerror(nc, "Couldn't set locale based off LANG %s\n", lang);
-        }else{
-          loginfo(nc, "Set %s locale from LANG; client should call setlocale(2)!\n",
-                  lang ? lang : "???");
-        }
-      }
-    }else{
-      logwarn(nc, "No LANG environment variable was set, ick :/\n");
-    }
+  const char* encoding = nl_langinfo(CODESET);
+  if(encoding && !strcmp(encoding, "UTF-8")){
+    return; // already utf-8, great!
+  }
+  const char* lang = getenv("LANG");
+  // if LANG was explicitly set to C/POSIX, life sucks, roll with it
+  if(lang && (!strcmp(lang, "C") || !strcmp(lang, "POSIX"))){
+    loginfo(nc, "LANG was explicitly set to %s, not changing locale\n", lang);
+    return;
+  }
+  setlocale(LC_ALL, "");
+  encoding = nl_langinfo(CODESET);
+  if(encoding && !strcmp(encoding, "UTF-8")){
+    loginfo(nc, "Set locale from LANG; client should call setlocale(2)!\n");
+    return;
+  }
+  setlocale(LC_CTYPE, "C.UTF-8");
+  encoding = nl_langinfo(CODESET);
+  if(encoding && !strcmp(encoding, "UTF-8")){
+    loginfo(nc, "Forced UTF-8 encoding; client should call setlocale(2)!\n");
+    return;
   }
 }
 
@@ -996,7 +1002,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     init_lang(ret);
   }
   const char* encoding = nl_langinfo(CODESET);
-  if(encoding && strcmp(encoding, "UTF-8") == 0){
+  if(encoding && !strcmp(encoding, "UTF-8")){
     ret->utf8 = true;
   }else if(encoding && (!strcmp(encoding, "ANSI_X3.4-1968") || !strcmp(encoding, "US-ASCII"))){
     ret->utf8 = false;

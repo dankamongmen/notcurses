@@ -349,7 +349,6 @@ handle_opts(int argc, char** argv, notcurses_options* opts,
       usage(*argv, EXIT_FAILURE);
     }
   }
-  opts->flags |= NCOPTION_INHIBIT_SETLOCALE;
   const char* spec = argv[optind];
   return spec;
 }
@@ -513,10 +512,6 @@ scrub_stdplane(struct notcurses* nc){
 }
 
 int main(int argc, char** argv){
-  if(!setlocale(LC_ALL, "")){
-    fprintf(stderr, "Couldn't set locale based on user preferences\n");
-    return EXIT_FAILURE;
-  }
   sigset_t sigmask;
   // ensure SIGWINCH is delivered only to a thread doing input
   sigemptyset(&sigmask);
