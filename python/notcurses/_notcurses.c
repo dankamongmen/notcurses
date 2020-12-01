@@ -797,7 +797,7 @@ _nc_plane_create(PyObject *self, PyObject *args)
     }
     ncplane_options create_options = {
         .y = y_pos,
-        .horiz.x = x_pos,
+        .x = x_pos,
         .rows = rows_num,
         .cols = cols_num,
     };
