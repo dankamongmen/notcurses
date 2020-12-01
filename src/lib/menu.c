@@ -296,6 +296,18 @@ write_header(ncmenu* ncm){
   return 0;
 }
 
+static int
+resize_menu(ncplane* n){
+  const ncplane* parent = ncplane_parent_const(n);
+  int dimx = ncplane_dim_x(parent);
+  int dimy = ncplane_dim_y(n);
+  if(ncplane_resize_simple(n, dimy, dimx)){
+    return -1;
+  }
+  ncmenu* menu = ncplane_userptr(n);
+  return write_header(menu);
+}
+
 ncmenu* ncmenu_create(ncplane* n, const ncmenu_options* opts){
   ncmenu_options zeroed = {};
   if(!opts){
@@ -327,7 +339,9 @@ ncmenu* ncmenu_create(ncplane* n, const ncmenu_options* opts){
         .x = 0,
         .rows = totalheight,
         .cols = totalwidth,
+        .userptr = ret,
         .name = "menu",
+        .resizecb = resize_menu,
       };
       ret->ncp = ncplane_create(n, &nopts);
       if(ret->ncp){
