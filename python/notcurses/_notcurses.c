@@ -22,7 +22,7 @@ limitations under the License.
 
 typedef struct
 {
-    PyObject_HEAD;
+    PyObject_HEAD
     uint64_t ncchannels_ptr;
 } NcChannelsObject;
 
@@ -44,7 +44,7 @@ static PyTypeObject NcChannelsType = {
 
 typedef struct
 {
-    PyObject_HEAD;
+    PyObject_HEAD
     struct ncplane *ncplane_ptr;
 } NcPlaneObject;
 
@@ -66,7 +66,7 @@ static PyTypeObject NcPlaneType = {
 
 typedef struct
 {
-    PyObject_HEAD;
+    PyObject_HEAD
     struct notcurses_options options;
     struct notcurses *notcurses_context_ptr;
 } NotcursesContextObject;
@@ -88,7 +88,7 @@ static PyTypeObject NotcursesContextType = {
 
 typedef struct
 {
-    PyObject_HEAD;
+    PyObject_HEAD
     struct ncdirect *ncdirect_ptr;
 } NcDirectObject;
 
@@ -109,7 +109,7 @@ static PyTypeObject NcDirectType = {
 
 typedef struct
 {
-    PyObject_HEAD;
+    PyObject_HEAD
     long codepoint;
     int y_pos;
     int x_pos;
@@ -586,7 +586,7 @@ _notcurses_context_get_input_blocking(PyObject *Py_UNUSED(self), PyObject *args)
         PyErr_SetString(PyExc_RuntimeError, "Failed to parse _notcurses_context_get_input_blocking arguments");
         return NULL;
     }
-    struct ncinput nc_input_ptr = {};
+    struct ncinput nc_input_ptr = {0};
     char32_t code_point = notcurses_getc_blocking(notcurses_context_ref->notcurses_context_ptr, &nc_input_ptr);
     NcInputObject *nc_input_ref = PyObject_NEW(NcInputObject, &NcInputType);
     PyObject_INIT(nc_input_ref, &NcInputType);
