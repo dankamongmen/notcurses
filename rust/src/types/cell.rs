@@ -1,8 +1,27 @@
 #[allow(unused_imports)] // for docblocks
-use crate::NcPlane;
+use crate::{NcAlphaBits, NcChannel, NcPlane};
 
 // NcCell
 /// A coordinate on an [`NcPlane`] storing 128 bits of data
+///
+/// An `NcCell` corresponds to a single character cell on some [`NcPlane`],
+/// which can be occupied by a single [`NcChar`] grapheme cluster (some root
+/// spacing glyph, along with possible combining characters, which might span
+/// multiple columns).
+///
+/// At any `NcCell`, we can have a theoretically arbitrarily long UTF-8 string,
+/// a foreground color, a background color, and an [`NcStyleMask`] attribute set.
+///
+/// Valid grapheme cluster contents include:
+///
+/// - A NUL terminator,
+/// - A single [control character](https://en.wikipedia.org/wiki/Control_character),
+///   followed by a NUL terminator,
+/// - At most one [spacing
+/// character](https://en.wikipedia.org/wiki/Graphic_character#Spacing_character),
+///   followed by zero or more nonspacing characters, followed by a NUL terminator.
+///
+/// ## Diagram
 ///
 /// ```txt
 /// NcCell: 128 bits structure comprised of the following 5 elements:
@@ -33,21 +52,13 @@ use crate::NcPlane;
 /// ~~AA~~~~ RRRRRRRR GGGGGGGG BBBBBBBB|~~AA~~~~ RRRRRRRR GGGGGGGG BBBBBBBB
 /// ```
 ///
-/// An NcCell corresponds to a single character cell on some plane, which can be
-/// occupied by a single grapheme cluster (some root spacing glyph, along with
-/// possible combining characters, which might span multiple columns). At any
-/// cell, we can have a theoretically arbitrarily long UTF-8 string, a
-/// foreground color, a background color, and an attribute set.
+/// `type in C: cell (struct)`
 ///
-/// Valid grapheme cluster contents include:
-///
-/// - A NUL terminator,
-/// - A single control character, followed by a NUL terminator,
-/// - At most one spacing character, followed by zero or more nonspacing
-///   characters, followed by a NUL terminator.
+/// ## Size
 ///
 /// Multi-column characters can only have a single style/color throughout.
-/// wcwidth() is not reliable. It's just quoting whether or not the NcChar
+/// [`wcwidth()`](https://www.man7.org/linux/man-pages/man3/wcwidth.3.html)
+/// is not reliable. It's just quoting whether or not the [`NcChar`]
 /// contains a "Wide Asian" double-width character.
 /// This is set for some things, like most emoji, and not set for
 /// other things, like cuneiform.
@@ -57,97 +68,147 @@ use crate::NcPlane;
 /// Dynamic requirements (the egcpool) can add up to 16MB to an ncplane, but
 /// such large pools are unlikely in common use.
 ///
+/// ## Alpha Compositing
+///
 /// We implement some small alpha compositing. Foreground and background both
 /// have two bits of inverted alpha. The actual grapheme written to a cell is
 /// the topmost non-zero grapheme.
 ///
-/// - If its alpha is 00 (CELL_ALPHA_OPAQUE) its foreground color is used unchanged.
+/// - If its alpha is 00 ([`NCCELL_ALPHA_OPAQUE`]) its foreground color is used unchanged.
 ///
-/// - If its alpha is 10 (CELL_ALPHA_TRANSPARENT) its foreground color is derived
+/// - If its alpha is 10 ([`NCCELL_ALPHA_TRANSPARENT`]) its foreground color is derived
 ///   entirely from cells underneath it.
 ///
-/// - Otherwise, the result will be a composite (CELL_ALPHA_BLEND).
+/// - If its alpha is 01 ([`NCCELL_ALPHA_BLEND`]) the result will be a composite.
 ///
 /// Likewise for the background. If the bottom of a coordinate's zbuffer is
 /// reached with a cumulative alpha of zero, the default is used. In this way,
 /// a terminal configured with transparent background can be supported through
 /// multiple occluding ncplanes.
 ///
-/// A foreground alpha of 11 (CELL_ALPHA_HIGHCONTRAST) requests high-contrast
+/// A foreground alpha of 11 ([`NCCELL_ALPHA_HIGHCONTRAST`]) requests high-contrast
 /// text (relative to the computed background).
 /// A background alpha of 11 is currently forbidden.
 ///
-/// Default color takes precedence over palette or RGB, and cannot be used with
-/// transparency. Indexed palette takes precedence over RGB. It cannot
-/// meaningfully set transparency, but it can be mixed into a cascading color.
-/// RGB is used if neither default terminal colors nor palette indexing are in
-/// play, and fully supports all transparency options.
+/// ## Precedence
 ///
-/// `type in C: cell (struct)`
+/// - Default color takes precedence over palette or RGB, and cannot be used with
+///   transparency.
+/// - Indexed palette takes precedence over RGB. It cannot meaningfully set
+///   transparency, but it can be mixed into a cascading color.
+/// - RGB is used if neither default terminal colors nor palette indexing are in
+///   play, and fully supports all transparency options.
 ///
 pub type NcCell = crate::bindings::bindgen::cell;
 
-///
+/// [`NcAlphaBits`] bits indicating
+/// [`NcCell`]'s foreground or background color will be a composite between
+/// its color and the `NcCell`s' corresponding colors underneath it
 pub const NCCELL_ALPHA_BLEND: u32 = crate::bindings::bindgen::CELL_ALPHA_BLEND;
 
-/// Background cannot be highcontrast, only foreground
+/// [`NcAlphaBits`] bits indicating
+/// [`NcCell`]'s foreground color will be high-contrast (relative to the
+/// computed background). Background cannot be highcontrast
 pub const NCCELL_ALPHA_HIGHCONTRAST: u32 = crate::bindings::bindgen::CELL_ALPHA_HIGHCONTRAST;
 
-///
+/// [`NcAlphaBits`] bits indicating
+/// [`NcCell`]'s foreground or background color is used unchanged
 pub const NCCELL_ALPHA_OPAQUE: u32 = crate::bindings::bindgen::CELL_ALPHA_OPAQUE;
 
-///
+/// [`NcAlphaBits`] bits indicating
+/// [`NcCell`]'s foreground or background color is derived entirely from the
+/// `NcCell`s underneath it
 pub const NCCELL_ALPHA_TRANSPARENT: u32 = crate::bindings::bindgen::CELL_ALPHA_TRANSPARENT;
 
 /// If this bit is set, we are *not* using the default background color
+///
+/// See the detailed diagram at [`NcChannels`][crate::NcChannels]
+///
+/// NOTE: This can also be used against a single [`NcChannel`]
 pub const NCCELL_BGDEFAULT_MASK: u32 = crate::bindings::bindgen::CELL_BGDEFAULT_MASK;
 
 /// Extract these bits to get the background alpha mask
+/// ([`NcAlphaBits`])
+///
+/// See the detailed diagram at [`NcChannels`][crate::NcChannels]
+///
+/// NOTE: This can also be used against a single [`NcChannel`]
 pub const NCCELL_BG_ALPHA_MASK: u32 = crate::bindings::bindgen::CELL_BG_ALPHA_MASK;
 
-/// If this bit *and* [`CELL_BGDEFAULT_MASK`] are set, we're using a
+/// If this bit *and* [`NCCELL_BGDEFAULT_MASK`] are set, we're using a
 /// palette-indexed background color
+///
+/// See the detailed diagram at [`NcChannels`][crate::NcChannels]
+///
+/// NOTE: This can also be used against a single [`NcChannel`]
 pub const NCCELL_BG_PALETTE: u32 = crate::bindings::bindgen::CELL_BG_PALETTE;
 
-/// Extract these bits to get the background RGB value
+/// Extract these bits to get the background [`NcRgb`][crate::NcRgb] value
+///
+/// See the detailed diagram at [`NcChannels`][crate::NcChannels]
+///
+/// NOTE: This can also be used against a single [`NcChannel`]
 pub const NCCELL_BG_RGB_MASK: u32 = crate::bindings::bindgen::CELL_BG_RGB_MASK;
 
 /// If this bit is set, we are *not* using the default foreground color
+///
+/// See the detailed diagram at [`NcChannels`][crate::NcChannels]
+///
+/// NOTE: When working with a single [`NcChannel`] use [`NCCELL_BGDEFAULT_MASK`];
 pub const NCCELL_FGDEFAULT_MASK: u64 = crate::bindings::bindgen::CELL_FGDEFAULT_MASK;
 
 /// Extract these bits to get the foreground alpha mask
+/// ([`NcAlphaBits`])
+///
+/// See the detailed diagram at [`NcChannels`][crate::NcChannels]
+///
+/// NOTE: When working with a single [`NcChannel`] use [`NCCELL_BG_ALPHA_MASK`];
 pub const NCCELL_FG_ALPHA_MASK: u64 = crate::bindings::bindgen::CELL_FG_ALPHA_MASK;
 
-/// If this bit *and* [`CELL_BGDEFAULT_MASK`] are set, we're using a
+/// If this bit *and* [`NCCELL_BGDEFAULT_MASK`] are set, we're using a
 /// palette-indexed background color
+///
+/// See the detailed diagram at [`NcChannels`][crate::NcChannels]
+///
+/// NOTE: When working with a single [`NcChannel`] use [`NCCELL_BG_PALETTE`];
 pub const NCCELL_FG_PALETTE: u64 = crate::bindings::bindgen::CELL_FG_PALETTE;
 
-/// Extract these bits to get the foreground RGB value
+/// Extract these bits to get the foreground [`NcRgb`][crate::NcRgb] value
+///
+/// See the detailed diagram at [`NcChannels`][crate::NcChannels]
+///
+/// NOTE: When working with a single [`NcChannel`] use [`NCCELL_BG_RGB_MASK`];
 pub const NCCELL_FG_RGB_MASK: u64 = crate::bindings::bindgen::CELL_FG_RGB_MASK;
 
+/// Indicates the glyph is entirely foreground
 ///
+/// See the detailed diagram at [`NcChannels`][crate::NcChannels]
 pub const NCCELL_NOBACKGROUND_MASK: u64 = crate::bindings::bindgen::CELL_NOBACKGROUND_MASK;
 
 /// If this bit is set, the cell is part of a multicolumn glyph.
 ///
 /// Whether a cell is the left or right side of the glyph can be determined
 /// by checking whether ->gcluster is zero.
+///
+/// See the detailed diagram at [`NcChannels`][crate::NcChannels]
 pub const NCCELL_WIDEASIAN_MASK: u64 = crate::bindings::bindgen::CELL_WIDEASIAN_MASK as u64;
 
 // NcChar
 //
-/// Extended Grapheme Cluster. A 32-bit `Char` type
-///
-/// - https://unicode.org/reports/tr29/#Grapheme_Cluster_Boundaries
+/// Extended Grapheme Cluster. A 32-bit [`char`]-like type
 ///
 /// This 32 bit char, together with the associated plane's associated egcpool,
 /// completely define this cell's `NcChar`. Unless the `NcChar` requires more than
 /// four bytes to encode as UTF-8, it will be inlined here:
 ///
+/// ## Diagram 1
+///
 /// ```txt
 /// UUUUUUUU UUUUUUUU UUUUUUUU UUUUUUUU
 /// extended grapheme cluster <= 4bytes
 /// ```
+///
+/// `type in C: uint32_t`
 ///
 /// If more than four bytes are required, it will be spilled into the egcpool.
 /// In either case, there's a NUL-terminated string available without copying,
@@ -155,17 +216,20 @@ pub const NCCELL_WIDEASIAN_MASK: u64 = crate::bindings::bindgen::CELL_WIDEASIAN_
 /// byte of this struct (the GClusterBackStop field, see below) is
 /// guaranteed to be zero, as are any unused bytes in gcluster.
 ///
-/// A spilled NcChar is indicated by the value `0x01iiiiii`. This cannot alias a
+/// A spilled `NcChar` is indicated by the value `0x01iiiiii`. This cannot alias a
 /// true supra-ASCII NcChar, because UTF-8 only encodes bytes <= 0x80 when they
 /// are single-byte ASCII-derived values. The `iiiiii` is interpreted as a 24-bit
 /// index into the egcpool (which may thus be up to 16MB):
+///
+/// ## Diagram 2
 ///
 /// ```txt
 /// 00000001 iiiiiiii iiiiiiii iiiiiiii
 ///   sign     24bit index to egcpool
 /// ```
+/// `type in C: uint32_t`
 ///
-/// The cost of this scheme is that the character 0x01 (SOH) cannot be encoded
+/// The cost of this scheme is that the character 0x01 (`SOH`) cannot be encoded
 /// in a cell, and therefore it must not be allowed through the API.
 ///
 /// -----
@@ -175,12 +239,18 @@ pub const NCCELL_WIDEASIAN_MASK: u64 = crate::bindings::bindgen::CELL_WIDEASIAN_
 /// and the remaining 24 bits are an index into the plane's egcpool,
 /// which is carved into NUL-terminated chunks of arbitrary length.
 ///
-/// `type in C: uint32_t`
+/// ## Links
+///
+/// - [Grapheme Cluster
+/// Boundaries](https://unicode.org/reports/tr29/#Grapheme_Cluster_Boundaries)
+///
 ///
 pub type NcChar = char;
 
 // NcCharBackStop
 /// An `u8` always at zero, part of the [`NcCell`] struct
+///
+/// ## Diagram
 ///
 /// ```txt
 /// 00000000
@@ -192,7 +262,25 @@ pub type NcCharBackstop = u8;
 
 // NcStyleMask
 ///
-/// An `u16` of `NCSTYLE_*` boolean styling attributes
+/// An `u16` of `NCSTYLE_*` boolean styling attribute flags
+///
+/// ## Attributes
+///
+/// - [`NCSTYLE_BLINK`]
+/// - [`NCSTYLE_BOLD`]
+/// - [`NCSTYLE_DIM`]
+/// - [`NCSTYLE_INVIS`]
+/// - [`NCSTYLE_ITALIC`]
+/// - [`NCSTYLE_MASK`]
+/// - [`NCSTYLE_NONE`]
+/// - [`NCSTYLE_PROTECT`]
+/// - [`NCSTYLE_REVERSE`]
+/// - [`NCSTYLE_STANDOUT`]
+/// - [`NCSTYLE_STRUCK`]
+/// - [`NCSTYLE_UNDERLINE`]
+///
+///
+/// ## Diagram
 ///
 /// ```txt
 /// 11111111 11111111
@@ -201,3 +289,39 @@ pub type NcCharBackstop = u8;
 /// `type in C:  uint16_t`
 ///
 pub type NcStyleMask = u16;
+
+///
+pub const NCSTYLE_BLINK: u16 = crate::bindings::bindgen::NCSTYLE_BLINK as u16;
+
+///
+pub const NCSTYLE_BOLD: u16 = crate::bindings::bindgen::NCSTYLE_BOLD as u16;
+
+///
+pub const NCSTYLE_DIM: u16 = crate::bindings::bindgen::NCSTYLE_DIM as u16;
+
+///
+pub const NCSTYLE_INVIS: u16 = crate::bindings::bindgen::NCSTYLE_INVIS as u16;
+
+///
+pub const NCSTYLE_ITALIC: u16 = crate::bindings::bindgen::NCSTYLE_ITALIC as u16;
+
+///
+pub const NCSTYLE_MASK: u16 = crate::bindings::bindgen::NCSTYLE_MASK as u16;
+
+///
+pub const NCSTYLE_NONE: u16 = crate::bindings::bindgen::NCSTYLE_NONE as u16;
+
+///
+pub const NCSTYLE_PROTECT: u16 = crate::bindings::bindgen::NCSTYLE_PROTECT as u16;
+
+///
+pub const NCSTYLE_REVERSE: u16 = crate::bindings::bindgen::NCSTYLE_REVERSE as u16;
+
+///
+pub const NCSTYLE_STANDOUT: u16 = crate::bindings::bindgen::NCSTYLE_STANDOUT as u16;
+
+///
+pub const NCSTYLE_STRUCK: u16 = crate::bindings::bindgen::NCSTYLE_STRUCK as u16;
+
+///
+pub const NCSTYLE_UNDERLINE: u16 = crate::bindings::bindgen::NCSTYLE_UNDERLINE as u16;

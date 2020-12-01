@@ -1,3 +1,5 @@
+//! [`NcChannel`] & [`NcChannels`] `channel*_*` static_function reinmplementations
+
 // -----------------------------------------------------------------------------
 // - The channel components are u8 instead of u32.
 //   Because of type enforcing, some runtime checks are now unnecessary.
@@ -18,19 +20,19 @@
 // ------------------------------------------ (implement / remaining)
 // (X) wont:  3
 // (+) done: 34 /  2
-// (#) test: 14 / 22
+// (#) test: 19 / 17
 // ------------------------------------------
 //# channel_alpha
 //# channel_b
 //# channel_default_p
 //# channel_g
-//+ channel_palindex_p
+//# channel_palindex_p
 //# channel_r
 //# channel_rgb8
 //# channels_bchannel
 //+ channels_bg_alpha
 //+ channels_bg_default_p
-//+ channels_bg_palindex_p
+//# channels_bg_palindex_p
 //+ channels_bg_rgb
 //+ channels_bg_rgb8
 //# channels_combine
@@ -42,28 +44,31 @@
 //# channels_fchannel
 //+ channels_fg_alpha
 //+ channels_fg_default_p
-//+ channels_fg_palindex_p
+//# channels_fg_palindex_p
 //+ channels_fg_rgb
 //+ channels_fg_rgb8
 //# channels_set_bchannel
 //+ channels_set_bg_alpha
 //+ channels_set_bg_default
-//  channels_set_bg_palindex
+//# channels_set_bg_palindex
 //+ channels_set_bg_rgb
 //+ channels_set_bg_rgb8
 //X channels_set_bg_rgb8_clipped
 //# channels_set_fchannel
 //+ channels_set_fg_alpha
 //+ channels_set_fg_default
-//  channels_set_fg_palindex
+//# channels_set_fg_palindex
 //+ channels_set_fg_rgb
 //+ channels_set_fg_rgb8
 //X channels_set_fg_rgb8_clipped
 
+#[cfg(test)]
+mod tests;
+
 use crate::types::{
-    NcAlphaBits, NcChannel, NcChannels, NcColor, NcRgb, NCCELL_ALPHA_HIGHCONTRAST,
+    NcAlphaBits, NcChannel, NcChannels, NcColor, NcPaletteIndex, NcRgb, NCCELL_ALPHA_HIGHCONTRAST,
     NCCELL_ALPHA_OPAQUE, NCCELL_BGDEFAULT_MASK, NCCELL_BG_PALETTE, NCCELL_BG_RGB_MASK,
-    NCCHANNEL_ALPHA_MASK,
+    NCCELL_FGDEFAULT_MASK, NCCELL_FG_PALETTE, NCCHANNEL_ALPHA_MASK,
 };
 
 /// Extract the 8-bit red component from a 32-bit channel.
@@ -139,7 +144,7 @@ pub fn channel_default_p(channel: NcChannel) -> bool {
 /// Is this channel using palette-indexed color rather than RGB?
 #[inline]
 pub fn channel_palindex_p(channel: NcChannel) -> bool {
-    !channel_default_p(channel) && (channel & NCCELL_BG_PALETTE) == 0
+    !(channel_default_p(channel) && (channel & NCCELL_BG_PALETTE) == 0)
 }
 
 /// Mark the channel as using its default color, which also marks it opaque.
@@ -311,6 +316,28 @@ pub fn channels_bg_palindex_p(channels: NcChannels) -> bool {
     channel_palindex_p(channels_bchannel(channels))
 }
 
+/// Set the cell's background palette index, set the background palette index
+/// bit, set it background-opaque, and clear the background default color bit.
+#[inline]
+pub fn channels_set_bg_palindex(channels: &mut NcChannels, index: NcPaletteIndex) {
+    *channels |= NCCELL_BGDEFAULT_MASK as NcChannels;
+    *channels |= NCCELL_BG_PALETTE as NcChannels;
+    channels_set_bg_alpha(channels, NCCELL_ALPHA_OPAQUE);
+    *channels &= 0xffffffffff000000;
+    *channels |= index as NcChannels;
+}
+
+/// Set the cell's foreground palette index, set the foreground palette index
+/// bit, set it foreground-opaque, and clear the foreground default color bit.
+#[inline]
+pub fn channels_set_fg_palindex(channels: &mut NcChannels, index: NcPaletteIndex) {
+    *channels |= NCCELL_FGDEFAULT_MASK;
+    *channels |= NCCELL_FG_PALETTE as NcChannels;
+    channels_set_fg_alpha(channels, NCCELL_ALPHA_OPAQUE);
+    *channels &= 0xff000000ffffffff as NcChannels;
+    *channels |= (index as NcChannels) << 32;
+}
+
 /// Mark the foreground channel as using its default color.
 #[inline]
 pub fn channels_set_fg_default(channels: &mut NcChannels) -> NcChannels {
@@ -327,135 +354,4 @@ pub fn channels_set_bg_default(channels: &mut NcChannels) -> NcChannels {
     channel_set_default(&mut channel);
     channels_set_bchannel(channels, channel);
     *channels
-}
-
-#[cfg(test)]
-mod test {
-    use super::{NcChannel, NcChannels};
-    use crate::types::{
-        NCCELL_ALPHA_BLEND, NCCELL_ALPHA_HIGHCONTRAST, NCCELL_ALPHA_OPAQUE,
-        NCCELL_ALPHA_TRANSPARENT,
-    };
-    use serial_test::serial;
-
-    #[test]
-    #[serial]
-    fn channel_r() {
-        let c: NcChannel = 0x112233;
-        assert_eq!(super::channel_r(c), 0x11);
-    }
-    #[test]
-    #[serial]
-    fn channel_g() {
-        let c: NcChannel = 0x112233;
-        assert_eq!(super::channel_g(c), 0x22);
-    }
-    #[test]
-    #[serial]
-    fn channel_b() {
-        let c: NcChannel = 0x112233;
-        assert_eq!(super::channel_b(c), 0x33);
-    }
-    #[test]
-    #[serial]
-    fn channel_rgb8() {
-        let c: NcChannel = 0x112233;
-        let mut r = 0;
-        let mut g = 0;
-        let mut b = 0;
-        super::channel_rgb8(c, &mut r, &mut g, &mut b);
-        assert_eq!(r, 0x11);
-        assert_eq!(g, 0x22);
-        assert_eq!(b, 0x33);
-    }
-    #[test]
-    #[serial]
-    fn channel_set_rgb8() {
-        let mut c: NcChannel = 0x000000;
-        super::channel_set_rgb8(&mut c, 0x11, 0x22, 0x33);
-        assert_eq!(super::channel_r(c), 0x11);
-        assert_eq!(super::channel_g(c), 0x22);
-        assert_eq!(super::channel_b(c), 0x33);
-    }
-    #[test]
-    #[serial]
-    fn channel_alpha() {
-        let c: NcChannel = 0x112233 | NCCELL_ALPHA_TRANSPARENT;
-        assert_eq!(super::channel_alpha(c), NCCELL_ALPHA_TRANSPARENT);
-    }
-    #[test]
-    #[serial]
-    fn channel_set_alpha() {
-        let mut c: NcChannel = 0x112233;
-        super::channel_set_alpha(&mut c, NCCELL_ALPHA_HIGHCONTRAST);
-        assert_eq!(NCCELL_ALPHA_HIGHCONTRAST, super::channel_alpha(c));
-
-        super::channel_set_alpha(&mut c, NCCELL_ALPHA_TRANSPARENT);
-        assert_eq!(NCCELL_ALPHA_TRANSPARENT, super::channel_alpha(c));
-
-        super::channel_set_alpha(&mut c, NCCELL_ALPHA_BLEND);
-        assert_eq!(NCCELL_ALPHA_BLEND, super::channel_alpha(c));
-
-        super::channel_set_alpha(&mut c, NCCELL_ALPHA_OPAQUE);
-        assert_eq!(NCCELL_ALPHA_OPAQUE, super::channel_alpha(c));
-        // TODO: CHECK for NCCELL_BGDEFAULT_MASK
-    }
-
-    #[test]
-    #[serial]
-    fn channel_set_default() {
-        const DEFAULT: NcChannel = 0x112233;
-
-        let mut c: NcChannel = DEFAULT | NCCELL_ALPHA_TRANSPARENT;
-        assert!(c != DEFAULT);
-
-        super::channel_set_default(&mut c);
-        assert_eq!(c, DEFAULT);
-    }
-
-    #[test]
-    #[serial]
-    fn channel_default_p() {
-        let mut c: NcChannel = 0x112233;
-        assert_eq!(true, crate::channel_default_p(c));
-
-        let _ = crate::channel_set_alpha(&mut c, NCCELL_ALPHA_OPAQUE);
-        assert_eq!(true, crate::channel_default_p(c));
-
-        crate::channel_set(&mut c, 0x112233);
-        assert_eq!(false, super::channel_default_p(c));
-    }
-
-    #[test]
-    #[serial]
-    #[allow(non_snake_case)]
-    fn channels_set_fchannel__channels_fchannel() {
-        let fc: NcChannel = 0x112233;
-        let mut cp: NcChannels = 0;
-        super::channels_set_fchannel(&mut cp, fc);
-        assert_eq!(super::channels_fchannel(cp), fc);
-    }
-
-    #[test]
-    #[serial]
-    #[allow(non_snake_case)]
-    fn channels_set_bchannel__channels_bchannel() {
-        let bc: NcChannel = 0x112233;
-        let mut cp: NcChannels = 0;
-        super::channels_set_bchannel(&mut cp, bc);
-        assert_eq!(super::channels_bchannel(cp), bc);
-    }
-
-    #[test]
-    #[serial]
-    fn channels_combine() {
-        let bc: NcChannel = 0x112233;
-        let fc: NcChannel = 0x445566;
-        let mut cp1: NcChannels = 0;
-        let mut _cp2: NcChannels = 0;
-        super::channels_set_bchannel(&mut cp1, bc);
-        super::channels_set_fchannel(&mut cp1, fc);
-        _cp2 = super::channels_combine(fc, bc);
-        assert_eq!(cp1, _cp2);
-    }
 }

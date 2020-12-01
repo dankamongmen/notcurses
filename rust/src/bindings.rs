@@ -1,4 +1,4 @@
-//! Curated re-exports of the `bindgen` bindings
+//! Curated re-exports of the [`bindgen`] bindings
 //!
 //! The full list of bindings is under the
 //! [`bindgen`] submodule
@@ -17,9 +17,9 @@ pub mod bindgen {
     //! Automatically generated Rust FFI bindings
     //!
     //! All of the notcurses functions and some of the constants are reexported
-    //! by the [`bindings`] module.
+    //! by the [`bindings`][crate::bindings] module.
     //! While the structs, enums and some other constants are type aliased in
-    //! the [`types`] module, in order to follow the
+    //! the [`types`][crate::types] module, in order to follow the
     //! Rust API Guidelines as much as possible.
     //!
     include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
@@ -576,23 +576,22 @@ pub use bindgen::{
 // ncstats,
 
 // ncstyle ---------------------------------------------------------------------
-
-#[doc(inline)]
-pub use bindgen::{
-    // constants
-    NCSTYLE_BLINK,
-    NCSTYLE_BOLD,
-    NCSTYLE_DIM,
-    NCSTYLE_INVIS,
-    NCSTYLE_ITALIC,
-    NCSTYLE_MASK,
-    NCSTYLE_NONE,
-    NCSTYLE_PROTECT,
-    NCSTYLE_REVERSE,
-    NCSTYLE_STANDOUT,
-    NCSTYLE_STRUCK,
-    NCSTYLE_UNDERLINE,
-};
+//
+// already wrapped:
+//
+// // constants
+// NCSTYLE_BLINK,
+// NCSTYLE_BOLD,
+// NCSTYLE_DIM,
+// NCSTYLE_INVIS,
+// NCSTYLE_ITALIC,
+// NCSTYLE_MASK,
+// NCSTYLE_NONE,
+// NCSTYLE_PROTECT,
+// NCSTYLE_REVERSE,
+// NCSTYLE_STANDOUT,
+// NCSTYLE_STRUCK,
+// NCSTYLE_UNDERLINE,
 
 // nctablet --------------------------------------------------------------------
 //

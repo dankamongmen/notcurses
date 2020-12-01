@@ -80,6 +80,19 @@ pub const NCALIGN_UNALIGNED: NcAlign = crate::bindings::bindgen::ncalign_e_NCALI
 ///
 /// We never blit full blocks, but instead spaces (more efficient) with the
 /// background set to the desired foreground.
+///
+/// ## Modes
+///
+/// - [`NCBLIT_1x1`]
+/// - [`NCBLIT_2x1`]
+/// - [`NCBLIT_2x2`]
+/// - [`NCBLIT_3x2`]
+/// - [`NCBLIT_4x1`]
+/// - [`NCBLIT_8x1`]
+/// - [`NCBLIT_BRAILLE`]
+/// - [`NCBLIT_DEFAULT`]
+/// - [`NCBLIT_SIXEL`]
+///
 pub type NcBlitter = crate::bindings::bindgen::ncblitter_e;
 
 /// [`NcBlitter`] mode using: space, compatible with ASCII
