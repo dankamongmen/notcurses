@@ -305,7 +305,12 @@ resize_menu(ncplane* n){
     return -1;
   }
   ncmenu* menu = ncplane_userptr(n);
-  return write_header(menu);
+  int unrolled = menu->unrolledsection;
+  if(unrolled < 0){
+    return write_header(menu);
+  }
+  ncplane_erase(n); // "rolls up" section without resetting unrolledsection
+  return ncmenu_unroll(menu, unrolled);
 }
 
 ncmenu* ncmenu_create(ncplane* n, const ncmenu_options* opts){
