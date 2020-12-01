@@ -9,7 +9,7 @@
 // be copied from the old stdplane. Assumes that the screen is always anchored at
 // the same origin. Also syncs up lastframe.
 static int
-notcurses_resize(notcurses* n, int* restrict rows, int* restrict cols){
+notcurses_resize_internal(notcurses* n, int* restrict rows, int* restrict cols){
   int r, c;
   if(rows == NULL){
     rows = &r;
@@ -62,6 +62,14 @@ notcurses_resize(notcurses* n, int* restrict rows, int* restrict cols){
     return -1;
   }
   return 0;
+}
+
+static int
+notcurses_resize(notcurses* n, int* restrict rows, int* restrict cols){
+  pthread_mutex_lock(&n->pilelock);
+  int ret = notcurses_resize_internal(n, rows, cols);
+  pthread_mutex_unlock(&n->pilelock);
+  return ret;
 }
 
 static int
@@ -771,6 +779,7 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
   // we explicitly move the cursor at the beginning of each output line, so no
   // need to home it expliticly.
   update_palette(nc, out);
+  // FIXME need adapt this to piles
   for(y = nc->stdplane->absy ; y < nc->stdplane->leny + nc->stdplane->absy ; ++y){
     const int innery = y - nc->stdplane->absy;
     for(x = nc->stdplane->absx ; x < nc->stdplane->lenx + nc->stdplane->absx ; ++x){
@@ -1103,9 +1112,7 @@ int ncpile_render(ncplane* n){
   notcurses* nc = ncplane_notcurses(n);
   int dimy, dimx;
   // update our notion of screen geometry, and render against that
-  pthread_mutex_lock(&nc->pilelock);
   notcurses_resize(nc, &dimy, &dimx);
-  pthread_mutex_unlock(&nc->pilelock);
   struct timespec start, renderdone;
   clock_gettime(CLOCK_MONOTONIC, &start);
   if(engorge_crender_vector(ncplane_pile(n), dimy, dimx)){
