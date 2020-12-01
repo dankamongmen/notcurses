@@ -154,7 +154,7 @@ the C headers are C++-safe). It does not install the Python or Rust wrappers.
 To install the Python wrappers (after installing the core library), run:
 
 ```
-cd python
+cd cffi
 python setup.py build
 python setup.py install
 ```
@@ -190,13 +190,14 @@ but must be `Debug` for use of `USE_COVERAGE`.
 
 ## Included tools
 
-Six binaries are installed as part of notcurses:
+Seven binaries are installed as part of notcurses:
 * `notcurses-demo`: some demonstration code
 * `notcurses-view`: renders visual media (images/videos)
 * `notcurses-input`: decode and print keypresses
 * `notcurses-tester`: unit testing
 * `notcurses-tetris`: a tetris clone
 * `ncneofetch`: a [neofetch](https://github.com/dylanaraps/neofetch) ripoff
+* `ncls`: an `ls` that displays multimedia in the terminal
 
 To run `notcurses-demo` from a checkout, provide the `tests/` directory via
 the `-p` argument. Demos requiring data files will otherwise abort. The base
