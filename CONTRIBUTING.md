@@ -23,3 +23,9 @@ an ASCII equivalent if not present (or return an error).
 Run `make test` with your changes, and ensure all tests pass. Run
 `notcurses-demo` as well, if you changes are to the core library or the
 demo code.
+
+## C standard
+Notcurses targets the ISO C11 standard. This means you should avoid using
+GNU C extensions as they might not work outside GCC/Clang. To verify your code
+standard compliance on GCC and Clang you can complile with `-std=c11 -pedantic`
+command line arguments.
