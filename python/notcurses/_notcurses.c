@@ -590,7 +590,7 @@ _notcurses_context_get_input_blocking(PyObject *Py_UNUSED(self), PyObject *args)
     char32_t code_point = notcurses_getc_blocking(notcurses_context_ref->notcurses_context_ptr, &nc_input_ptr);
     NcInputObject *nc_input_ref = PyObject_NEW(NcInputObject, &NcInputType);
     PyObject_INIT(nc_input_ref, &NcInputType);
-    if (code_point != -1)
+    if (code_point != (char32_t)-1)
     {
 
         nc_input_ref->codepoint = (long)nc_input_ptr.id;
