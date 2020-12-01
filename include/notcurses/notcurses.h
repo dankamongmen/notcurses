@@ -577,7 +577,7 @@ typedef struct cell {
   uint64_t channels;          // + 8B == 16B
 } cell;
 
-#define CELL_TRIVIAL_INITIALIZER { }
+#define CELL_TRIVIAL_INITIALIZER {0}
 #define CELL_CHAR_INITIALIZER(c) { .gcluster = (htole(c)), .gcluster_backstop = 0, .reserved = 0, .stylemask = 0, .channels = 0, }
 #define CELL_INITIALIZER(c, s, chan) { .gcluster = (htole(c)), .gcluster_backstop = 0, .reserved = 0, .stylemask = (s), .channels = (chan), }
 
