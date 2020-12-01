@@ -761,7 +761,8 @@ goto_location(notcurses* nc, FILE* out, int y, int x){
 // lastframe has *not yet been written to the screen*, i.e. it's only about to
 // *become* the last frame rasterized.
 static int
-notcurses_rasterize_inner(notcurses* nc, const struct crender* rvec, FILE* out){
+notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
+  const struct crender* rvec = p->crender;
   int y, x;
   fseeko(out, 0, SEEK_SET);
   // we only need to emit a coordinate if it was damaged. the damagemap is a
@@ -920,8 +921,8 @@ notcurses_rasterize_inner(notcurses* nc, const struct crender* rvec, FILE* out){
 
 // rasterize the rendered frame, and blockingly write it out to the terminal.
 static int
-raster_and_write(notcurses* nc, const struct crender* rvec, FILE* out){
-  if(notcurses_rasterize_inner(nc, rvec, out) < 0){
+raster_and_write(notcurses* nc, const ncpile* p, FILE* out){
+  if(notcurses_rasterize_inner(nc, p, out) < 0){
     return -1;
   }
   int ret = 0;
@@ -944,13 +945,13 @@ raster_and_write(notcurses* nc, const struct crender* rvec, FILE* out){
 // during rasterization, we'll get grotesque flicker. 'out' is a memstream
 // used to collect a buffer.
 static inline int
-notcurses_rasterize(notcurses* nc, const struct crender* rvec, FILE* out){
+notcurses_rasterize(notcurses* nc, const ncpile* p, FILE* out){
   const int cursory = nc->cursory;
   const int cursorx = nc->cursorx;
   if(cursory >= 0){ // either both are good, or neither is
     notcurses_cursor_disable(nc);
   }
-  int ret = raster_and_write(nc, rvec, out);
+  int ret = raster_and_write(nc, p, out);
   if(cursory >= 0){
     notcurses_cursor_enable(nc, cursory, cursorx);
   }
@@ -986,18 +987,21 @@ int notcurses_refresh(notcurses* nc, int* restrict dimy, int* restrict dimx){
   if(home_cursor(nc, true)){
     return -1;
   }
-  const int count = (nc->lfdimx > nc->stdplane->lenx ? nc->lfdimx : nc->stdplane->lenx) *
-                    (nc->lfdimy > nc->stdplane->leny ? nc->lfdimy : nc->stdplane->leny);
-  struct crender* rvec = malloc(count * sizeof(*rvec));
-  if(rvec == NULL){
+  struct ncpile p;
+  p.dimy = nc->stdplane->leny;
+  p.dimx = nc->stdplane->lenx;
+  const int count = (nc->lfdimx > p.dimx ? nc->lfdimx : p.dimx) *
+                    (nc->lfdimy > p.dimy ? nc->lfdimy : p.dimy);
+  p.crender = malloc(count * sizeof(*p.crender));
+  if(p.crender == NULL){
     return -1;
   }
-  memset(rvec, 0, count * sizeof(*rvec));
+  memset(p.crender, 0, count * sizeof(*p.crender));
   for(int i = 0 ; i < count ; ++i){
-    rvec[i].damaged = true;
+    p.crender[i].damaged = true;
   }
-  int ret = notcurses_rasterize(nc, rvec, nc->rstate.mstreamfp);
-  free(rvec);
+  int ret = notcurses_rasterize(nc, &p, nc->rstate.mstreamfp);
+  free(p.crender);
   if(ret < 0){
     return -1;
   }
@@ -1014,20 +1018,23 @@ int notcurses_render_to_file(notcurses* nc, FILE* fp){
   if(out == NULL){
     return -1;
   }
-  const int count = (nc->lfdimx > nc->stdplane->lenx ? nc->lfdimx : nc->stdplane->lenx) *
-                    (nc->lfdimy > nc->stdplane->leny ? nc->lfdimy : nc->stdplane->leny);
-  struct crender* rvec = malloc(count * sizeof(*rvec));
-  if(rvec == NULL){
+  struct ncpile p;
+  p.dimy = nc->stdplane->leny;
+  p.dimx = nc->stdplane->lenx;
+  const int count = (nc->lfdimx > p.dimx ? nc->lfdimx : p.dimx) *
+                    (nc->lfdimy > p.dimy ? nc->lfdimy : p.dimy);
+  p.crender = malloc(count * sizeof(*p.crender));
+  if(p.crender == NULL){
     fclose(out);
     free(rastered);
     return -1;
   }
-  memset(rvec, 0, count * sizeof(*rvec));
+  memset(p.crender, 0, count * sizeof(*p.crender));
   for(int i = 0 ; i < count ; ++i){
-    rvec[i].damaged = true;
+    p.crender[i].damaged = true;
   }
-  int ret = raster_and_write(nc, rvec, out);
-  free(rvec);
+  int ret = raster_and_write(nc, &p, out);
+  free(p.crender);
   if(ret > 0){
     if(fprintf(fp, "%s", rastered) == ret){
       ret = 0;
@@ -1061,34 +1068,36 @@ int ncpile_rasterize(ncplane* n){
   clock_gettime(CLOCK_MONOTONIC, &start);
   int dimy, dimx;
   const struct ncpile* pile = ncplane_pile(n);
-  notcurses_resize(ncplane_notcurses(n), &dimy, &dimx);
-  postpaint(ncplane_notcurses(n)->lastframe, dimy, dimx, pile->crender,
-            &ncplane_notcurses(n)->pool);
-  int bytes = notcurses_rasterize(ncplane_notcurses(n), pile->crender,
-                                  ncplane_notcurses(n)->rstate.mstreamfp);
+  struct notcurses* nc = ncplane_notcurses(n);
+  notcurses_resize(nc, &dimy, &dimx);
+  const int miny = pile->dimy < nc->lfdimy ? pile->dimy : nc->lfdimy;
+  const int minx = pile->dimx < nc->lfdimx ? pile->dimx : nc->lfdimx;
+  postpaint(nc->lastframe, miny, minx, pile->crender, &nc->pool);
+  int bytes = notcurses_rasterize(nc, pile, nc->rstate.mstreamfp);
   // accepts -1 as an indication of failure
-  update_render_bytes(&ncplane_notcurses(n)->stats, bytes);
+  update_render_bytes(&nc->stats, bytes);
   if(bytes < 0){
     return -1;
   }
   clock_gettime(CLOCK_MONOTONIC, &writedone);
-  update_write_stats(&writedone, &start, &ncplane_notcurses(n)->stats);
+  update_write_stats(&writedone, &start, &nc->stats);
   return 0;
 }
 
 // ensure the crender vector of 'n' is sufficiently large for 'dimy'x'dimx'
 static int
 engorge_crender_vector(ncpile* n, int dimy, int dimx){
-  const size_t crenderlen = sizeof(struct crender) * dimy * dimx;
-  if(crenderlen > n->crenderlen){
-    struct crender* tmp = realloc(n->crender, crenderlen);
+  const int crenderlen = dimy * dimx;
+  if(crenderlen > n->dimy * n->dimx){
+    struct crender* tmp = realloc(n->crender, sizeof(*tmp) * crenderlen);
     if(tmp == NULL){
       return -1;
     }
     n->crender = tmp;
-    n->crenderlen = crenderlen;
+    n->dimy = dimy;
+    n->dimx = dimx;
   }
-  init_rvec(n->crender, crenderlen / sizeof(struct crender));
+  init_rvec(n->crender, crenderlen);
   return 0;
 }
 
@@ -1096,16 +1105,17 @@ int ncpile_render(ncplane* n){
   struct timespec start, renderdone;
   clock_gettime(CLOCK_MONOTONIC, &start);
   int dimy, dimx;
+  struct notcurses* nc = ncplane_notcurses(n);
   // render against our current notion of screen geometry
-  ncplane_dim_yx(notcurses_stdplane(ncplane_notcurses(n)), &dimy, &dimx);
+  ncplane_dim_yx(notcurses_stdplane(nc), &dimy, &dimx);
   if(engorge_crender_vector(ncplane_pile(n), dimy, dimx)){
     return -1;
   }
   ncpile_render_internal(n, ncplane_pile(n)->crender, dimy, dimx,
-                         notcurses_stdplane(ncplane_notcurses(n))->absy,
-                         notcurses_stdplane(ncplane_notcurses(n))->absx);
+                         notcurses_stdplane(nc)->absy,
+                         notcurses_stdplane(nc)->absx);
   clock_gettime(CLOCK_MONOTONIC, &renderdone);
-  update_render_stats(&renderdone, &start, &ncplane_notcurses(n)->stats);
+  update_render_stats(&renderdone, &start, &nc->stats);
   return 0;
 }
 
@@ -1125,7 +1135,7 @@ int notcurses_render_to_buffer(notcurses* nc, char** buf, size_t* buflen){
   if(ncpile_render(stdn)){
     return -1;
   }
-  int bytes = notcurses_rasterize_inner(nc, ncplane_pile(stdn)->crender, nc->rstate.mstreamfp);
+  int bytes = notcurses_rasterize_inner(nc, ncplane_pile(stdn), nc->rstate.mstreamfp);
   update_render_bytes(&nc->stats, bytes);
   if(bytes < 0){
     return -1;

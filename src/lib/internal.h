@@ -95,7 +95,7 @@ typedef struct ncplane {
 
 // current presentation state of the terminal. it is carried across render
 // instances. initialize everything to 0 on a terminal reset / startup.
-typedef struct renderstate {
+typedef struct rasterstate {
   // we assemble the encoded (rasterized) output in a POSIX memstream, and keep
   // it around between uses. this could be a problem if it ever tremendously
   // spiked, but that's a highly unlikely situation.
@@ -123,7 +123,7 @@ typedef struct renderstate {
   bool fgpalelidable;
   bool bgpalelidable;
   bool defaultelidable;
-} renderstate;
+} rasterstate;
 
 // Tablets are the toplevel entitites within an ncreel. Each corresponds to
 // a single, distinct ncplane.
@@ -305,8 +305,8 @@ typedef struct ncpile {
   ncplane* bottom;            // bottommost plane, never NULL
   struct notcurses* nc;       // notcurses context
   struct ncpile *prev, *next; // circular list
-  size_t crenderlen;          // size of crender array in bytes
-  struct crender* crender;    // crender array
+  int dimy, dimx;             // rows and cols at time of render
+  struct crender* crender;    // array (rows * cols crender objects)
 } ncpile;
 
 // the standard pile can be reached through ->stdplane.
@@ -314,7 +314,7 @@ typedef struct notcurses {
   ncplane* stdplane; // standard plane, covers screen
 
   // the style state of the terminal is carried across render runs
-  renderstate rstate;
+  rasterstate rstate;
 
   // we keep a copy of the last rendered frame. this facilitates O(1)
   // notcurses_at_yx() and O(1) damage detection (at the cost of some memory).

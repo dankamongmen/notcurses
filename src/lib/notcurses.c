@@ -316,7 +316,8 @@ make_ncpile(notcurses* nc, ncplane* n){
     n->pile = ret;
     n->above = NULL;
     n->below = NULL;
-    ret->crenderlen = 0;
+    ret->dimy = 0;
+    ret->dimx = 0;
     ret->crender = NULL;
   }
   return ret;
