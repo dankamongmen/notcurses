@@ -174,7 +174,7 @@ _ncdirect_init(PyObject *self, PyObject *args)
 */
 // NcDirect
 static PyObject *
-_nc_direct_init(PyObject *self, PyObject *args)
+_nc_direct_init(PyObject *Py_UNUSED(self), PyObject *args)
 {
     NcDirectObject *ncdirect_ref = NULL;
     if (!PyArg_ParseTuple(args, "O!", &NcDirectType, &ncdirect_ref))
@@ -196,7 +196,7 @@ _nc_direct_init(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-_nc_direct_stop(PyObject *self, PyObject *args)
+_nc_direct_stop(PyObject *Py_UNUSED(self), PyObject *args)
 {
     NcDirectObject *ncdirect_ref = NULL;
     if (!PyArg_ParseTuple(args, "O!", &NcDirectType, &ncdirect_ref))
@@ -217,7 +217,7 @@ _nc_direct_stop(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-_nc_direct_putstr(PyObject *self, PyObject *args)
+_nc_direct_putstr(PyObject *Py_UNUSED(self), PyObject *args)
 {
     NcDirectObject *ncdirect_ref = NULL;
     const char *string = NULL;
@@ -258,7 +258,7 @@ _nc_direct_putstr(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-_nc_direct_get_dim_x(PyObject *self, PyObject *args)
+_nc_direct_get_dim_x(PyObject *Py_UNUSED(self), PyObject *args)
 {
     NcDirectObject *ncdirect_ref = NULL;
     if (!PyArg_ParseTuple(args, "O!", &NcDirectType, &ncdirect_ref))
@@ -278,7 +278,7 @@ _nc_direct_get_dim_x(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-_nc_direct_get_dim_y(PyObject *self, PyObject *args)
+_nc_direct_get_dim_y(PyObject *Py_UNUSED(self), PyObject *args)
 {
     NcDirectObject *ncdirect_ref = NULL;
     if (!PyArg_ParseTuple(args, "O!", &NcDirectType, &ncdirect_ref))
@@ -298,7 +298,7 @@ _nc_direct_get_dim_y(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-_nc_direct_disable_cursor(PyObject *self, PyObject *args)
+_nc_direct_disable_cursor(PyObject *Py_UNUSED(self), PyObject *args)
 {
     NcDirectObject *ncdirect_ref = NULL;
     if (!PyArg_ParseTuple(args, "O!", &NcDirectType, &ncdirect_ref))
@@ -319,7 +319,7 @@ _nc_direct_disable_cursor(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-_nc_direct_enable_cursor(PyObject *self, PyObject *args)
+_nc_direct_enable_cursor(PyObject *Py_UNUSED(self), PyObject *args)
 {
     NcDirectObject *ncdirect_ref = NULL;
     if (!PyArg_ParseTuple(args, "O!", &NcDirectType, &ncdirect_ref))
@@ -341,7 +341,7 @@ _nc_direct_enable_cursor(PyObject *self, PyObject *args)
 // NcChannels
 
 static PyObject *
-_nc_channels_set_background_rgb(PyObject *self, PyObject *args)
+_nc_channels_set_background_rgb(PyObject *Py_UNUSED(self), PyObject *args)
 {
     NcChannelsObject *nchannels_ref = NULL;
     int red = 0;
@@ -371,7 +371,7 @@ _nc_channels_set_background_rgb(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-_nc_channels_set_foreground_rgb(PyObject *self, PyObject *args)
+_nc_channels_set_foreground_rgb(PyObject *Py_UNUSED(self), PyObject *args)
 {
     NcChannelsObject *nchannels_ref = NULL;
     int red = 0;
@@ -403,7 +403,7 @@ _nc_channels_set_foreground_rgb(PyObject *self, PyObject *args)
 // NotcursesContext
 
 static PyObject *
-_notcurses_context_init(PyObject *self, PyObject *args)
+_notcurses_context_init(PyObject *Py_UNUSED(self), PyObject *args)
 {
     NotcursesContextObject *notcurses_context_ref = NULL;
     if (!PyArg_ParseTuple(args, "O!", &NotcursesContextType, &notcurses_context_ref))
@@ -425,7 +425,7 @@ _notcurses_context_init(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-_notcurses_context_stop(PyObject *self, PyObject *args)
+_notcurses_context_stop(PyObject *Py_UNUSED(self), PyObject *args)
 {
     NotcursesContextObject *notcurses_context_ref = NULL;
     if (!PyArg_ParseTuple(args, "O!", &NotcursesContextType, &notcurses_context_ref))
@@ -446,7 +446,7 @@ _notcurses_context_stop(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-_notcurses_context_render(PyObject *self, PyObject *args)
+_notcurses_context_render(PyObject *Py_UNUSED(self), PyObject *args)
 {
     NotcursesContextObject *notcurses_context_ref = NULL;
     if (!PyArg_ParseTuple(args, "O!", &NotcursesContextType, &notcurses_context_ref))
@@ -467,7 +467,7 @@ _notcurses_context_render(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-_notcurses_context_mouse_disable(PyObject *self, PyObject *args)
+_notcurses_context_mouse_disable(PyObject *Py_UNUSED(self), PyObject *args)
 {
     NotcursesContextObject *notcurses_context_ref = NULL;
     if (!PyArg_ParseTuple(args, "O!", &NotcursesContextType, &notcurses_context_ref))
@@ -488,7 +488,7 @@ _notcurses_context_mouse_disable(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-_notcurses_context_mouse_enable(PyObject *self, PyObject *args)
+_notcurses_context_mouse_enable(PyObject *Py_UNUSED(self), PyObject *args)
 {
     NotcursesContextObject *notcurses_context_ref = NULL;
     if (!PyArg_ParseTuple(args, "O!", &NotcursesContextType, &notcurses_context_ref))
@@ -509,7 +509,7 @@ _notcurses_context_mouse_enable(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-_notcurses_context_cursor_disable(PyObject *self, PyObject *args)
+_notcurses_context_cursor_disable(PyObject *Py_UNUSED(self), PyObject *args)
 {
     NotcursesContextObject *notcurses_context_ref = NULL;
     if (!PyArg_ParseTuple(args, "O!", &NotcursesContextType, &notcurses_context_ref))
@@ -530,7 +530,7 @@ _notcurses_context_cursor_disable(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-_notcurses_context_cursor_enable(PyObject *self, PyObject *args)
+_notcurses_context_cursor_enable(PyObject *Py_UNUSED(self), PyObject *args)
 {
     NotcursesContextObject *notcurses_context_ref = NULL;
     int y = 0;
@@ -554,7 +554,7 @@ _notcurses_context_cursor_enable(PyObject *self, PyObject *args)
 }
 
 static NcPlaneObject *
-_notcurses_context_get_std_plane(PyObject *self, PyObject *args)
+_notcurses_context_get_std_plane(PyObject *Py_UNUSED(self), PyObject *args)
 {
     NotcursesContextObject *notcurses_context_ref = NULL;
     if (!PyArg_ParseTuple(args, "O!", &NotcursesContextType, &notcurses_context_ref))
@@ -578,7 +578,7 @@ _notcurses_context_get_std_plane(PyObject *self, PyObject *args)
 }
 
 static NcInputObject *
-_notcurses_context_get_input_blocking(PyObject *self, PyObject *args)
+_notcurses_context_get_input_blocking(PyObject *Py_UNUSED(self), PyObject *args)
 {
     NotcursesContextObject *notcurses_context_ref = NULL;
     if (!PyArg_ParseTuple(args, "O!", &NotcursesContextType, &notcurses_context_ref))
@@ -613,7 +613,7 @@ _notcurses_context_get_input_blocking(PyObject *self, PyObject *args)
 // NcPlane
 
 static PyObject *
-_nc_plane_set_background_rgb(PyObject *self, PyObject *args)
+_nc_plane_set_background_rgb(PyObject *Py_UNUSED(self), PyObject *args)
 {
     NcPlaneObject *nc_plane_ref = NULL;
     int red = 0;
@@ -643,7 +643,7 @@ _nc_plane_set_background_rgb(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-_nc_plane_set_foreground_rgb(PyObject *self, PyObject *args)
+_nc_plane_set_foreground_rgb(PyObject *Py_UNUSED(self), PyObject *args)
 {
     NcPlaneObject *nc_plane_ref = NULL;
     int red = 0;
@@ -673,7 +673,7 @@ _nc_plane_set_foreground_rgb(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-_nc_plane_putstr(PyObject *self, PyObject *args)
+_nc_plane_putstr(PyObject *Py_UNUSED(self), PyObject *args)
 {
     NcPlaneObject *nc_plane_ref = NULL;
     int y_pos = -1;
@@ -699,7 +699,7 @@ _nc_plane_putstr(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-_nc_plane_putstr_aligned(PyObject *self, PyObject *args)
+_nc_plane_putstr_aligned(PyObject *Py_UNUSED(self), PyObject *args)
 {
     NcPlaneObject *nc_plane_ref = NULL;
     int y_pos = -1;
@@ -719,7 +719,7 @@ _nc_plane_putstr_aligned(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-_nc_plane_dimensions_yx(PyObject *self, PyObject *args)
+_nc_plane_dimensions_yx(PyObject *Py_UNUSED(self), PyObject *args)
 {
     NcPlaneObject *nc_plane_ref = NULL;
     int y_dim = 0;
@@ -742,7 +742,7 @@ _nc_plane_dimensions_yx(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-_nc_plane_polyfill_yx(PyObject *self, PyObject *args)
+_nc_plane_polyfill_yx(PyObject *Py_UNUSED(self), PyObject *args)
 {
     NcPlaneObject *nc_plane_ref = NULL;
     int y_dim = -1;
@@ -770,7 +770,7 @@ _nc_plane_polyfill_yx(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-_nc_plane_erase(PyObject *self, PyObject *args)
+_nc_plane_erase(PyObject *Py_UNUSED(self), PyObject *args)
 {
     NcPlaneObject *nc_plane_ref = NULL;
     if (!PyArg_ParseTuple(args, "O!", &NcPlaneType, &nc_plane_ref))
@@ -783,7 +783,7 @@ _nc_plane_erase(PyObject *self, PyObject *args)
 }
 
 static NcPlaneObject *
-_nc_plane_create(PyObject *self, PyObject *args)
+_nc_plane_create(PyObject *Py_UNUSED(self), PyObject *args)
 {
     NcPlaneObject *nc_plane_parent = NULL;
     int y_pos, x_pos, rows_num, cols_num;
@@ -817,7 +817,7 @@ _nc_plane_create(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-get_notcurses_version_str(PyObject *self, PyObject *args)
+get_notcurses_version_str(PyObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
 {
     const char *verstion_str = notcurses_version();
     return PyUnicode_FromString(verstion_str);
