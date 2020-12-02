@@ -70,7 +70,12 @@ use crate::{
     notcurses_getc,
     notcurses_stdplane,
     notcurses_stdplane_const,
-    types::{NcAlign, NcInput, NcPlane, Notcurses, NCALIGN_CENTER, NCALIGN_LEFT},
+    NcAlign,
+    NcInput,
+    NcPlane,
+    Notcurses,
+    NCALIGN_CENTER,
+    NCALIGN_LEFT,
 };
 
 /// return the offset into 'availcols' at which 'cols' ought be output given the requirements of 'align'

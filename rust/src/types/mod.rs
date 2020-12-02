@@ -31,8 +31,8 @@ pub use cell::{
     NCSTYLE_UNDERLINE,
 };
 pub use channel::{
-    NcAlphaBits, NcBlitSet, NcChannel, NcChannels, NcColor, NcFadeCtx, NcPalette, NcPaletteIndex,
-    NcPixel, NcRgb, NCCHANNEL_ALPHA_MASK,
+    NcAlphaBits, NcBlitSet, NcChannel, NcChannelPair, NcColor, NcFadeCtx, NcPalette,
+    NcPaletteIndex, NcPixel, NcRgb, NCCHANNEL_ALPHA_MASK,
 };
 pub use file::{NcFile, FILE_LIBC, FILE_NC};
 pub use misc::{

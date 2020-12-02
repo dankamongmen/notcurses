@@ -21,10 +21,12 @@ fn channels() {
     assert_eq![0, crate::cell_fchannel(&c1)];
     assert_eq![0, crate::cell_bchannel(&c1)];
 
-    crate::cell_set_fchannel(&mut c1, 0x77112233);
-    assert_eq![0x77112233, crate::cell_fchannel(&c1)];
-    crate::cell_set_bchannel(&mut c1, 0x88445566);
-    assert_eq![0x88445566, crate::cell_bchannel(&c1)];
+    let mut channels = crate::cell_set_fchannel(&mut c1, 0xAA112233);
+    assert_eq![0xAA112233, crate::cell_fchannel(&c1)];
+    assert_eq![0xAA11223300000000, channels];
+    channels = crate::cell_set_bchannel(&mut c1, 0xBB445566);
+    assert_eq![0xBB445566, crate::cell_bchannel(&c1)];
+    assert_eq![0xAA112233BB445566, channels];
 
     let c2 = NcCell::new(' ', 0, 0x0011223300445566);
     assert_eq![0x112233, crate::cell_fchannel(&c2)];

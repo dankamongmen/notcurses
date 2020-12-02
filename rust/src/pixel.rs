@@ -27,7 +27,7 @@
 //+ ncpixel_set_r
 //+ ncpixel_set_rgb
 
-use crate::types::{NcColor, NcPixel};
+use crate::{NcColor, NcPixel};
 
 // NcPixel Structure:
 //

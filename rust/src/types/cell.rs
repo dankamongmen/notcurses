@@ -28,7 +28,7 @@ use crate::{NcAlphaBits, NcChannel, NcPlane};
 ///
 /// GCLUSTER GCLUSTER GCLUSTER GCLUSTER  1. NcChar
 /// 00000000 ~~~~~~~~ 11111111 11111111  2. NcCharBackstop + 3. reserved + 4. NcStyleMask
-/// ~~AA~~~~ RRRRRRRR GGGGGGGG BBBBBBBB  5. NcChannels
+/// ~~AA~~~~ RRRRRRRR GGGGGGGG BBBBBBBB  5. NcChannelPair
 /// ~~AA~~~~ RRRRRRRR GGGGGGGG BBBBBBBB  |
 ///
 /// 1. (32b) Extended Grapheme Cluster, presented either as:
@@ -48,7 +48,7 @@ use crate::{NcAlphaBits, NcChannel, NcPlane};
 /// 4. (16b) NcStyleMask
 /// 11111111 11111111
 ///
-/// 5. (64b) NcChannels
+/// 5. (64b) NcChannelPair
 /// ~~AA~~~~ RRRRRRRR GGGGGGGG BBBBBBBB|~~AA~~~~ RRRRRRRR GGGGGGGG BBBBBBBB
 /// ```
 ///
@@ -122,7 +122,7 @@ pub const NCCELL_ALPHA_TRANSPARENT: u32 = crate::bindings::bindgen::CELL_ALPHA_T
 
 /// If this bit is set, we are *not* using the default background color
 ///
-/// See the detailed diagram at [`NcChannels`][crate::NcChannels]
+/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
 ///
 /// NOTE: This can also be used against a single [`NcChannel`]
 pub const NCCELL_BGDEFAULT_MASK: u32 = crate::bindings::bindgen::CELL_BGDEFAULT_MASK;
@@ -130,7 +130,7 @@ pub const NCCELL_BGDEFAULT_MASK: u32 = crate::bindings::bindgen::CELL_BGDEFAULT_
 /// Extract these bits to get the background alpha mask
 /// ([`NcAlphaBits`])
 ///
-/// See the detailed diagram at [`NcChannels`][crate::NcChannels]
+/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
 ///
 /// NOTE: This can also be used against a single [`NcChannel`]
 pub const NCCELL_BG_ALPHA_MASK: u32 = crate::bindings::bindgen::CELL_BG_ALPHA_MASK;
@@ -138,21 +138,21 @@ pub const NCCELL_BG_ALPHA_MASK: u32 = crate::bindings::bindgen::CELL_BG_ALPHA_MA
 /// If this bit *and* [`NCCELL_BGDEFAULT_MASK`] are set, we're using a
 /// palette-indexed background color
 ///
-/// See the detailed diagram at [`NcChannels`][crate::NcChannels]
+/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
 ///
 /// NOTE: This can also be used against a single [`NcChannel`]
 pub const NCCELL_BG_PALETTE: u32 = crate::bindings::bindgen::CELL_BG_PALETTE;
 
 /// Extract these bits to get the background [`NcRgb`][crate::NcRgb] value
 ///
-/// See the detailed diagram at [`NcChannels`][crate::NcChannels]
+/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
 ///
 /// NOTE: This can also be used against a single [`NcChannel`]
 pub const NCCELL_BG_RGB_MASK: u32 = crate::bindings::bindgen::CELL_BG_RGB_MASK;
 
 /// If this bit is set, we are *not* using the default foreground color
 ///
-/// See the detailed diagram at [`NcChannels`][crate::NcChannels]
+/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
 ///
 /// NOTE: When working with a single [`NcChannel`] use [`NCCELL_BGDEFAULT_MASK`];
 pub const NCCELL_FGDEFAULT_MASK: u64 = crate::bindings::bindgen::CELL_FGDEFAULT_MASK;
@@ -160,29 +160,29 @@ pub const NCCELL_FGDEFAULT_MASK: u64 = crate::bindings::bindgen::CELL_FGDEFAULT_
 /// Extract these bits to get the foreground alpha mask
 /// ([`NcAlphaBits`])
 ///
-/// See the detailed diagram at [`NcChannels`][crate::NcChannels]
+/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
 ///
 /// NOTE: When working with a single [`NcChannel`] use [`NCCELL_BG_ALPHA_MASK`];
 pub const NCCELL_FG_ALPHA_MASK: u64 = crate::bindings::bindgen::CELL_FG_ALPHA_MASK;
 
-/// If this bit *and* [`NCCELL_BGDEFAULT_MASK`] are set, we're using a
+/// If this bit *and* [`NCCELL_FGDEFAULT_MASK`] are set, we're using a
 /// palette-indexed background color
 ///
-/// See the detailed diagram at [`NcChannels`][crate::NcChannels]
+/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
 ///
 /// NOTE: When working with a single [`NcChannel`] use [`NCCELL_BG_PALETTE`];
 pub const NCCELL_FG_PALETTE: u64 = crate::bindings::bindgen::CELL_FG_PALETTE;
 
 /// Extract these bits to get the foreground [`NcRgb`][crate::NcRgb] value
 ///
-/// See the detailed diagram at [`NcChannels`][crate::NcChannels]
+/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
 ///
 /// NOTE: When working with a single [`NcChannel`] use [`NCCELL_BG_RGB_MASK`];
 pub const NCCELL_FG_RGB_MASK: u64 = crate::bindings::bindgen::CELL_FG_RGB_MASK;
 
 /// Indicates the glyph is entirely foreground
 ///
-/// See the detailed diagram at [`NcChannels`][crate::NcChannels]
+/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
 pub const NCCELL_NOBACKGROUND_MASK: u64 = crate::bindings::bindgen::CELL_NOBACKGROUND_MASK;
 
 /// If this bit is set, the cell is part of a multicolumn glyph.
@@ -190,7 +190,7 @@ pub const NCCELL_NOBACKGROUND_MASK: u64 = crate::bindings::bindgen::CELL_NOBACKG
 /// Whether a cell is the left or right side of the glyph can be determined
 /// by checking whether ->gcluster is zero.
 ///
-/// See the detailed diagram at [`NcChannels`][crate::NcChannels]
+/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
 pub const NCCELL_WIDEASIAN_MASK: u64 = crate::bindings::bindgen::CELL_WIDEASIAN_MASK as u64;
 
 // NcChar

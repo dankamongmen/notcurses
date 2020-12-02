@@ -12,7 +12,7 @@ use crate::NcChar;
 ///   - 2 bits of [`NcAlphaBits`]
 ///   - 6 bits of context-dependent info
 ///
-/// The context details are documented in [`NcChannels`]
+/// The context details are documented in [`NcChannelPair`]
 ///
 /// ## Diagram
 ///
@@ -41,7 +41,7 @@ pub const NCCHANNEL_ALPHA_MASK: u32 = crate::bindings::bindgen::CHANNEL_ALPHA_MA
 ///
 pub type NcAlphaBits = u32;
 
-// NcChannels
+// NcChannelPair
 //
 /// 64 bits containing a foreground and background [`NcChannel`]
 ///
@@ -126,7 +126,7 @@ pub type NcAlphaBits = u32;
 /// - [`NCCELL_NOBACKGROUND_MASK`][crate::NCCELL_NOBACKGROUND_MASK]
 /// - [`NCCELL_WIDEASIAN_MASK`][crate::NCCELL_WIDEASIAN_MASK]
 ///
-pub type NcChannels = u64;
+pub type NcChannelPair = u64;
 
 // NcRgb
 //
@@ -177,7 +177,9 @@ pub type NcColor = u8;
 // NOTE: the order of the colors is different than in NcChannel.
 pub type NcPixel = u32;
 
-/// NcPalette structure consisting of an array of 256 [`NcChannel`]s
+/// NcPalette structure consisting of an array of 256 [`NcChannel`]s.
+///
+/// See also [NcPaletteIndex].
 ///
 /// Some terminals only support 256 colors, but allow the full
 /// palette to be specified with arbitrary RGB colors. In all cases, it's more

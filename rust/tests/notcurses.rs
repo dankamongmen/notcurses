@@ -30,7 +30,7 @@ fn create_notcurses_context() {
             margin_r: 0,
             margin_b: 0,
             margin_l: 0,
-            flags: (sys::types::NCOPTION_NO_ALTERNATE_SCREEN | sys::types::NCOPTION_INHIBIT_SETLOCALE | sys::types::NCOPTION_SUPPRESS_BANNERS),
+            flags: (sys::NCOPTION_NO_ALTERNATE_SCREEN | sys::NCOPTION_INHIBIT_SETLOCALE | sys::NCOPTION_SUPPRESS_BANNERS),
         };
         let nc = sys::notcurses_init(&opts, null_mut());
         sys::notcurses_stop(nc);
