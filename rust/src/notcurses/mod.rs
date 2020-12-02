@@ -57,15 +57,23 @@
 #[cfg(test)]
 mod tests;
 
+mod types;
+pub use types::{
+    NcLogLevel, Notcurses, NotcursesOptions, NCLOGLEVEL_DEBUG, NCLOGLEVEL_ERROR, NCLOGLEVEL_FATAL,
+    NCLOGLEVEL_INFO, NCLOGLEVEL_PANIC, NCLOGLEVEL_SILENT, NCLOGLEVEL_TRACE, NCLOGLEVEL_VERBOSE,
+    NCLOGLEVEL_WARNING, NCOPTION_INHIBIT_SETLOCALE, NCOPTION_NO_ALTERNATE_SCREEN,
+    NCOPTION_NO_FONT_CHANGES, NCOPTION_NO_QUIT_SIGHANDLERS, NCOPTION_NO_WINCH_SIGHANDLER,
+    NCOPTION_SUPPRESS_BANNERS, NCOPTION_VERIFY_SIXEL,
+};
+
 mod constructors;
 pub use constructors::*;
 
 use core::ptr::null;
 
 use crate::{
-    // NOTE: can't use libc::timespec nor libc::sigset_t
-    // with notcurses_getc(()
-    bindings::{sigemptyset, sigfillset, sigset_t, timespec},
+    // NOTE: can't use libc::sigset_t with notcurses_getc(()
+    bindings::{sigemptyset, sigfillset, sigset_t},
     ncplane_dim_yx,
     notcurses_getc,
     notcurses_stdplane,
@@ -73,7 +81,7 @@ use crate::{
     NcAlign,
     NcInput,
     NcPlane,
-    Notcurses,
+    NcTime,
     NCALIGN_CENTER,
     NCALIGN_LEFT,
 };
@@ -101,7 +109,7 @@ pub fn notcurses_getc_nblock(nc: &mut Notcurses, input: &mut NcInput) -> char {
     unsafe {
         let mut sigmask = sigset_t { __val: [0; 16] };
         sigfillset(&mut sigmask);
-        let ts = timespec {
+        let ts = NcTime {
             tv_sec: 0,
             tv_nsec: 0,
         };

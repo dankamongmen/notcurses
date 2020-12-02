@@ -8,7 +8,13 @@
 // ------------------------------------------
 //+ ncinput_equal_p
 
-use crate::NcInput;
+/// Reads and decodes input events
+///
+/// Reads from stdin and decodes the input to stdout,
+/// including synthesized events and mouse events.
+///
+/// To exit, generate EOF (usually Ctrl+‘d’).
+pub type NcInput = crate::bindings::bindgen::ncinput;
 
 /// Compare two ncinput structs for data equality by doing a field-by-field
 /// comparison for equality (excepting seqnum).
@@ -38,17 +44,3 @@ impl NcInput {
         }
     }
 }
-
-/*
-#[cfg(test)]
-mod test {
-    use super::nc;
-    use serial_test::serial;
-
-    #[test]
-    #[serial]
-    fn ncinput_equal_p() {
-        assert!();
-    }
-}
-*/

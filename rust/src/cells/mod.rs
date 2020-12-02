@@ -61,6 +61,17 @@
 #[cfg(test)]
 mod tests;
 
+mod types;
+pub use types::{
+    NcCell, NcChar, NcCharBackstop, NcStyleMask, NCCELL_ALPHA_BLEND, NCCELL_ALPHA_HIGHCONTRAST,
+    NCCELL_ALPHA_OPAQUE, NCCELL_ALPHA_TRANSPARENT, NCCELL_BGDEFAULT_MASK, NCCELL_BG_ALPHA_MASK,
+    NCCELL_BG_PALETTE, NCCELL_BG_RGB_MASK, NCCELL_FGDEFAULT_MASK, NCCELL_FG_ALPHA_MASK,
+    NCCELL_FG_PALETTE, NCCELL_FG_RGB_MASK, NCCELL_NOBACKGROUND_MASK, NCCELL_WIDEASIAN_MASK,
+    NCSTYLE_BLINK, NCSTYLE_BOLD, NCSTYLE_DIM, NCSTYLE_INVIS, NCSTYLE_ITALIC, NCSTYLE_MASK,
+    NCSTYLE_NONE, NCSTYLE_PROTECT, NCSTYLE_REVERSE, NCSTYLE_STANDOUT, NCSTYLE_STRUCK,
+    NCSTYLE_UNDERLINE,
+};
+
 mod constructors;
 pub use constructors::*;
 
@@ -73,10 +84,8 @@ use crate::{
     channels_fg_rgb, channels_fg_rgb8, channels_set_bchannel, channels_set_bg_alpha,
     channels_set_bg_default, channels_set_bg_rgb, channels_set_bg_rgb8, channels_set_fchannel,
     channels_set_fg_alpha, channels_set_fg_default, channels_set_fg_rgb, channels_set_fg_rgb8,
-    NcAlphaBits, NcCell, NcChannel, NcChannelPair, NcChar, NcColor, NcPaletteIndex, NcPlane,
-    NcResult, NcRgb, NcStyleMask, NCCELL_ALPHA_OPAQUE, NCCELL_BGDEFAULT_MASK, NCCELL_BG_PALETTE,
-    NCCELL_FGDEFAULT_MASK, NCCELL_FG_PALETTE, NCCELL_NOBACKGROUND_MASK, NCCELL_WIDEASIAN_MASK,
-    NCRESULT_ERR, NCRESULT_OK, NCSTYLE_MASK,
+    NcAlphaBits, NcChannel, NcChannelPair, NcColor, NcPaletteIndex, NcPlane, NcResult, NcRgb,
+    NCRESULT_ERR, NCRESULT_OK,
 };
 
 /// Same as [cell_load], plus blasts the styling with 'style' and 'channels'.

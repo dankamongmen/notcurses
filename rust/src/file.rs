@@ -7,12 +7,12 @@ use core::ptr::{null_mut, NonNull};
 
 use std::io::{Error, ErrorKind, Read, Seek, SeekFrom};
 
-pub use libc::{c_long, c_void, fclose, feof, fread, fseek, ftell, SEEK_CUR, SEEK_END, SEEK_SET};
+use libc::{c_long, c_void, fclose, feof, fread, fseek, ftell, SEEK_CUR, SEEK_END, SEEK_SET};
 
-/// notcurses functions expects this type of `*FILE` (a struct)
+/// See [NcFile]. Notcurses functions expects this type of `*FILE` (a struct)
 pub type FILE_NC = crate::bindgen::_IO_FILE;
 
-/// the [`libc`] crate expects this type of `*FILE` (an opaque enum)
+/// See [NcFile]. The [`libc`] crate expects this type of `*FILE` (an opaque enum)
 pub type FILE_LIBC = libc::FILE;
 
 // TODO: the following static strings aren't made public
@@ -58,10 +58,10 @@ fn get_error<T>() -> Result<T, Error> {
 
 /// A wrapper struct around `libc::FILE`
 ///
-/// The notcurses `FILE` type [`FILE_NC`] is imported through bindgen as a struct,
+/// The notcurses `FILE` type [`FILE_NC`] a struct imported through bindgen,
 /// while the equivalent [`libc`] crate FILE ([`FILE_LIBC`]) is an opaque enum.
 ///
-/// Several methods are provided to convert back and forth between both types,
+/// Several methods are provided to cast back and forth between both types,
 /// in order to allow both rust libc operations and notcurses file operations
 /// over the same underlying `*FILE`.
 #[derive(Debug)]

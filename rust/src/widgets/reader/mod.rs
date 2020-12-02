@@ -1,3 +1,5 @@
+//! `NcReader` widget
+
 // functions already exported by bindgen : 11
 // ------------------------------------------
 // ncreader_clear
@@ -15,10 +17,14 @@
 // static inline functions total: 0
 // -------------------------------------------
 
-use crate::{
-    ncreader_create,
-    types::{NcPlane, NcReader, NcReaderOptions},
+mod types;
+pub use types::{NcReader, NcReaderOptions};
+pub use types::{
+    NCREADER_OPTION_CURSOR, NCREADER_OPTION_HORSCROLL, NCREADER_OPTION_NOCMDKEYS,
+    NCREADER_OPTION_VERSCROLL,
 };
+
+use crate::{ncreader_create, NcPlane};
 
 impl NcReader {
     /// `NcReader` simple constructor

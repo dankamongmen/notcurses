@@ -8,18 +8,15 @@
 // [clippy & bindgen](https://github.com/rust-lang/rust-bindgen/issues/1470)
 #[allow(clippy::all)]
 pub mod bindgen {
-    //! Automatically generated Rust FFI bindings
+    //! Automatically generated Rust FFI bindings, for reference.
     //!
-    //! All of the notcurses functions and some of the constants are reexported
-    //! by the private `bindings` module, while the structs, enums and some
-    //! other constants are type aliased in the `types` private module.
+    //! All of the notcurses API functions are reexported to the public API
+    //! while the structs, enums and constants are type aliased or wrapped up.
     //!
     include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 }
 
 // Miscellaneous ---------------------------------------------------------------
-
-pub(crate) use bindgen::timespec;
 
 #[doc(inline)]
 pub use bindgen::{

@@ -163,6 +163,15 @@
 #[cfg(test)]
 mod tests;
 
+mod types;
+pub use types::{
+    NCBLIT_1x1, NCBLIT_2x1, NCBLIT_2x2, NCBLIT_3x2, NCBLIT_4x1, NCBLIT_8x1, NcAlign, NcBlitter,
+    NcFdPlane, NcFdPlaneOptions, NcPlane, NcPlaneOptions, NcScale, NcVisual, NcVisualOptions,
+    NCALIGN_CENTER, NCALIGN_LEFT, NCALIGN_RIGHT, NCALIGN_UNALIGNED, NCBLIT_BRAILLE, NCBLIT_DEFAULT,
+    NCBLIT_SIXEL, NCPLANE_OPTION_HORALIGNED, NCSCALE_NONE, NCSCALE_SCALE, NCSCALE_STRETCH,
+    NCVISUAL_OPTION_BLEND, NCVISUAL_OPTION_NODEGRADE,
+};
+
 mod constructors;
 pub use constructors::*;
 
@@ -177,8 +186,8 @@ use crate::{
     ncplane_at_cursor, ncplane_at_yx, ncplane_box, ncplane_channels, ncplane_cursor_move_yx,
     ncplane_cursor_yx, ncplane_dim_yx, ncplane_gradient, ncplane_hline_interp, ncplane_putc_yx,
     ncplane_putegc_yx, ncplane_putnstr_yx, ncplane_putstr_yx, ncplane_resize, ncplane_styles,
-    ncplane_vline_interp, ncplane_vprintf_yx, notcurses_align, NcAlign, NcAlphaBits, NcCell,
-    NcChannel, NcChannelPair, NcColor, NcPlane, NcResult, NcStyleMask, NCRESULT_ERR, NCRESULT_OK,
+    ncplane_vline_interp, ncplane_vprintf_yx, notcurses_align, NcAlphaBits, NcCell, NcChannel,
+    NcChannelPair, NcColor, NcResult, NcStyleMask, NCRESULT_ERR, NCRESULT_OK,
 };
 
 // Static Functions ------------------------------------------------------------

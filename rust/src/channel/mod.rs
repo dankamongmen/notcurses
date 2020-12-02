@@ -65,10 +65,15 @@
 #[cfg(test)]
 mod tests;
 
+mod types;
+pub use types::{
+    NcAlphaBits, NcBlitSet, NcChannel, NcChannelPair, NcColor, NcFadeCtx, NcPalette,
+    NcPaletteIndex, NcPixel, NcRgb, NCCHANNEL_ALPHA_MASK,
+};
+
 use crate::{
-    NcAlphaBits, NcChannel, NcChannelPair, NcColor, NcPaletteIndex, NcRgb,
     NCCELL_ALPHA_HIGHCONTRAST, NCCELL_ALPHA_OPAQUE, NCCELL_BGDEFAULT_MASK, NCCELL_BG_PALETTE,
-    NCCELL_BG_RGB_MASK, NCCELL_FGDEFAULT_MASK, NCCELL_FG_PALETTE, NCCHANNEL_ALPHA_MASK,
+    NCCELL_BG_RGB_MASK, NCCELL_FGDEFAULT_MASK, NCCELL_FG_PALETTE,
 };
 
 /// Extracts the [NcColor] 8-bit red component from a 32-bit [NcChannel].
