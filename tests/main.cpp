@@ -8,6 +8,7 @@
 #include <iostream>
 #include <climits>
 #include <termios.h>
+#include <sys/stat.h>
 #include <filesystem>
 #include <langinfo.h>
 
@@ -40,6 +41,25 @@ handle_opts(const char** argv){
     }
     ++argv;
   }
+}
+
+// check that the (provided or default) data directory exists, and has at
+// least one of our necessary files. otherwise, print a warning + return error.
+static int
+check_data_dir(){
+  auto p = find_data("changes.jpg");
+  if(!p){
+    std::cerr << "Coudln't find testing data! Supply directory with -p." << std::endl;
+    return -1;
+  }
+  struct stat s;
+  if(stat(p, &s)){
+    std::cerr << "Couldn't open " << p << ". Supply directory with -p." << std::endl;
+    free(p);
+    return -1;
+  }
+  free(p);
+  return 0;
 }
 
 // reset the terminal in the event of early exit (notcurses_init() presumably
@@ -108,6 +128,9 @@ auto main(int argc, const char **argv) -> int {
   context.setOption("no-breaks", true); // don't break in the debugger when assertions fail
   dt_removed args(argv);
   handle_opts(argv);
+  if(check_data_dir()){
+    return EXIT_FAILURE;
+  }
   int res = context.run(); // run
   if(context.shouldExit()){ // important - query flags (and --exit) rely on the user doing this
     return res;             // propagate the result of the tests
