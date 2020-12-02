@@ -20,12 +20,4 @@ TEST_CASE("Exceptions") {
     CHECK_THROWS_AS(nc.reset_stats(nullptr), invalid_argument);
   }
 
-  // ncpp only allows one notcurses object at a time (why?)
-  SUBCASE("OnlyOneNotCurses") {
-    NotCurses nc{ nopts };
-    std::unique_ptr<NotCurses> nc2;
-    // FIXME attempts to match ::init_error have failed thus far :/
-    CHECK_THROWS(nc2.reset(new NotCurses()));
-  }
-
 }
