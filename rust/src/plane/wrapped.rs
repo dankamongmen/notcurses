@@ -145,14 +145,22 @@ impl NcPlane {
         self.dim_yx().1
     }
 
+    /// Erase every NcCell in the NcPlane, resetting all attributes to normal,
+    /// all colors to the default color, and all cells to undrawn.
     ///
-    // FIXME segfaults
+    /// All cells associated with this ncplane are invalidated, and must not be
+    /// used after the call, excluding the base cell. The cursor is homed.
+    pub fn erase(&mut self) {
+        unsafe { ncplane_erase(self) }
+    }
+
+    ///
     pub fn putc_yx(&mut self, y: i32, x: i32, cell: &NcCell) -> NcResult {
         unsafe { ncplane_putc_yx(self, y, x, cell) }
     }
     
-    // ///
-    // pub fn putc(&mut self) -> NcResult {
-    //     unsafe { ncplane_putc(self) }
-    // }
+    ///
+    pub fn putc(&mut self, cell: &NcCell) -> NcResult {
+        ncplane_putc(self, cell)
+    }
 }

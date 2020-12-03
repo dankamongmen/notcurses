@@ -17,6 +17,7 @@
 #![allow(non_upper_case_globals, non_camel_case_types, non_snake_case)]
 #![allow(clippy::too_many_arguments)]
 
+
 mod bindings;
 #[doc(inline)]
 pub use bindings::*;
@@ -29,6 +30,7 @@ mod file;
 mod input;
 mod key;
 mod keycodes;
+mod macros;
 mod metric;
 mod notcurses;
 mod palette;
@@ -46,6 +48,7 @@ pub use file::*;
 pub use input::*;
 pub use key::*;
 pub use keycodes::*;
+pub use macros::*;
 pub use metric::*;
 pub use notcurses::*;
 pub use palette::*;

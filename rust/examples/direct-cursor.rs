@@ -3,20 +3,6 @@
 //! Explore cursor functions in direct mode
 //!
 
-// utility macro: sleep for $ms milliseconds
-macro_rules! sleep {
-    ($ms:expr) => {
-        std::thread::sleep(std::time::Duration::from_millis($ms));
-    };
-}
-
-// utility macro: convert the String $s to *mut CString
-macro_rules! cstring {
-    ($s:expr) => {
-        std::ffi::CString::new($s).unwrap().as_ptr();
-    }
-}
-
 use libnotcurses_sys::*;
 
 fn main() {

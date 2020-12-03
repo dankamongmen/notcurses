@@ -303,12 +303,12 @@ pub fn ncplane_double_box(
     #[allow(unused_assignments)]
     let mut ret = NCRESULT_OK;
 
-    let mut ul = NcCell::new_blank();
-    let mut ur = NcCell::new_blank();
-    let mut ll = NcCell::new_blank();
-    let mut lr = NcCell::new_blank();
-    let mut hl = NcCell::new_blank();
-    let mut vl = NcCell::new_blank();
+    let mut ul = NcCell::new();
+    let mut ur = NcCell::new();
+    let mut ll = NcCell::new();
+    let mut lr = NcCell::new();
+    let mut hl = NcCell::new();
+    let mut vl = NcCell::new();
 
     unsafe {
         ret = cells_double_box(
@@ -401,12 +401,12 @@ pub fn ncplane_perimeter_double(
     unsafe {
         ncplane_dim_yx(plane, &mut dimy, &mut dimx);
     }
-    let mut ul = NcCell::new_blank();
-    let mut ur = NcCell::new_blank();
-    let mut ll = NcCell::new_blank();
-    let mut lr = NcCell::new_blank();
-    let mut hl = NcCell::new_blank();
-    let mut vl = NcCell::new_blank();
+    let mut ul = NcCell::new();
+    let mut ur = NcCell::new();
+    let mut ll = NcCell::new();
+    let mut lr = NcCell::new();
+    let mut hl = NcCell::new();
+    let mut vl = NcCell::new();
     if unsafe {
         cells_double_box(
             plane,
@@ -450,12 +450,12 @@ pub fn ncplane_perimeter_rounded(
     unsafe {
         ncplane_dim_yx(plane, &mut dimy, &mut dimx);
     }
-    let mut ul = NcCell::new_blank();
-    let mut ur = NcCell::new_blank();
-    let mut ll = NcCell::new_blank();
-    let mut lr = NcCell::new_blank();
-    let mut hl = NcCell::new_blank();
-    let mut vl = NcCell::new_blank();
+    let mut ul = NcCell::new();
+    let mut ur = NcCell::new();
+    let mut ll = NcCell::new();
+    let mut lr = NcCell::new();
+    let mut hl = NcCell::new();
+    let mut vl = NcCell::new();
     if unsafe {
         cells_rounded_box(
             plane,
@@ -506,7 +506,7 @@ pub fn ncplane_putchar(plane: &mut NcPlane, c: char) -> NcResult {
 // TODO: test char is < 8bit (currently 32bit)
 pub fn ncplane_putchar_yx(plane: &mut NcPlane, y: i32, x: i32, c: char) -> NcResult {
     unsafe {
-        let ce = NcCell::new(c, ncplane_styles(plane), ncplane_channels(plane));
+        let ce = NcCell::with_all(c, ncplane_styles(plane), ncplane_channels(plane));
         ncplane_putc_yx(plane, y, x, &ce)
     }
 }
@@ -709,12 +709,12 @@ pub fn ncplane_rounded_box(
     #[allow(unused_assignments)]
     let mut ret = NCRESULT_OK;
 
-    let mut ul = NcCell::new_blank();
-    let mut ur = NcCell::new_blank();
-    let mut ll = NcCell::new_blank();
-    let mut lr = NcCell::new_blank();
-    let mut hl = NcCell::new_blank();
-    let mut vl = NcCell::new_blank();
+    let mut ul = NcCell::new();
+    let mut ur = NcCell::new();
+    let mut ll = NcCell::new();
+    let mut lr = NcCell::new();
+    let mut hl = NcCell::new();
+    let mut vl = NcCell::new();
 
     unsafe {
         ret = cells_rounded_box(

@@ -7,17 +7,17 @@ use serial_test::serial;
 #[test]
 #[serial]
 fn constructors() {
-    let _c1 = NcCell::new_blank();
+    let _c1 = NcCell::new();
 
-    let _c2 = NcCell::with_char('C');
+    let _c2 = NcCell::with_7bitchar('C');
 
-    let _c3 = NcCell::new('c', 0, 0);
+    let _c3 = NcCell::with_all('c', 0, 0);
 }
 
 #[test]
 #[serial]
 fn channels() {
-    let mut c1 = NcCell::new_blank();
+    let mut c1 = NcCell::new();
     assert_eq![0, crate::cell_fchannel(&c1)];
     assert_eq![0, crate::cell_bchannel(&c1)];
 
@@ -28,7 +28,7 @@ fn channels() {
     assert_eq![0xBB445566, crate::cell_bchannel(&c1)];
     assert_eq![0xAA112233BB445566, channels];
 
-    let c2 = NcCell::new(' ', 0, 0x0011223300445566);
+    let c2 = NcCell::with_all(' ', 0, 0x0011223300445566);
     assert_eq![0x112233, crate::cell_fchannel(&c2)];
     assert_eq![0x445566, crate::cell_bchannel(&c2)];
 }
@@ -38,7 +38,7 @@ fn channels() {
 fn rgb() {
     // rgb
 
-    let mut c1 = NcCell::new_blank();
+    let mut c1 = NcCell::new();
     assert_eq![0, crate::cell_fg_rgb(&c1)];
     assert_eq![0, crate::cell_bg_rgb(&c1)];
 
@@ -49,7 +49,7 @@ fn rgb() {
 
     // rgb8
 
-    let mut c2 = NcCell::new_blank();
+    let mut c2 = NcCell::new();
     let (mut r, mut g, mut b) = (0, 0, 0);
 
     crate::cell_set_fg_rgb8(&mut c2, 0x11, 0x22, 0x33);
@@ -66,7 +66,7 @@ fn rgb() {
 #[test]
 #[serial]
 fn alpha() {
-    let mut c1 = NcCell::new_blank();
+    let mut c1 = NcCell::new();
     assert_eq![0, crate::cell_fg_alpha(&c1)];
     assert_eq![0, crate::cell_bg_alpha(&c1)];
 
@@ -80,7 +80,7 @@ fn alpha() {
 #[test]
 #[serial]
 fn default() {
-    let mut c1 = NcCell::new_blank();
+    let mut c1 = NcCell::new();
     assert_eq![true, crate::cell_fg_default_p(&c1)];
     assert_eq![true, crate::cell_bg_default_p(&c1)];
 
@@ -116,7 +116,7 @@ fn default() {
 #[test]
 #[serial]
 fn palette() {
-    let mut c1 = NcCell::new_blank();
+    let mut c1 = NcCell::new();
     assert_eq![false, crate::cell_fg_palindex_p(&c1)];
     assert_eq![false, crate::cell_bg_palindex_p(&c1)];
     assert_eq![0, crate::cell_fg_palindex(&c1)];
