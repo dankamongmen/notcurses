@@ -1,6 +1,13 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 2.0.10 (not yet released)
+  * `ncpile_top()` and `ncpile_bottom()` have been added, returning the top
+    or bottommost plane, respectively, of the pile containing their argument.
+  * Added `cell_load_egc32()`, allowing a cell to be released and then reloaded
+    with a UTF-8 EGC of up to 4 bytes, passed as a `uint32_t` (as opposed to a
+    `const char *`).
+
 * 2.0.9 (2020-12-01)
   * `ncmenu`s now automatically expand or shrink to match their binding plane.
 
