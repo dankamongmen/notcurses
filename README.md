@@ -114,15 +114,15 @@ that fine library.
 
 * (build) A C11 and a C++17 compiler
 * (build) CMake 3.14.0+
-* (build+runtime) From NCURSES: terminfo 6.1+
-* (build+runtime) GNU libunistring 0.9.10+
+* (build+runtime) From [NCURSES](https://invisible-island.net/ncurses/announce.html): terminfo 6.1+
+* (build+runtime) GNU [libunistring](https://www.gnu.org/software/libunistring/) 0.9.10+
 * (OPTIONAL) (build+runtime) From QR-Code-generator: [libqrcodegen](https://github.com/nayuki/QR-Code-generator) 1.5.0+
 * (OPTIONAL) (build+runtime) From [FFmpeg](https://www.ffmpeg.org/): libswscale 5.0+, libavformat 57.0+, libavutil 56.0+
 * (OPTIONAL) (build+runtime) [OpenImageIO](https://github.com/OpenImageIO/oiio) 2.15.0+
 * (OPTIONAL) (testing) [Doctest](https://github.com/onqtam/doctest) 2.3.5+
 * (OPTIONAL) (documentation) [pandoc](https://pandoc.org/index.html) 1.19.2+
 * (OPTIONAL) (python bindings): Python 3.7+, [CFFI](https://pypi.org/project/cffi/) 1.13.2+, [pypandoc](https://pypi.org/project/pypandoc/) 1.5+
-* (OPTIONAL) (rust bindings): rust 1.40.0+, cargo 0.40.0+, [bindgen](https://crates.io/crates/bindgen) 0.53.0+
+* (OPTIONAL) (rust bindings): rust 1.40.0+, cargo 0.40.0+, [bindgen](https://crates.io/crates/bindgen) 0.55.1+, pkg-config 0.3.18+, cty 0.2.1+
 * (runtime) Linux 5.3+ or FreeBSD 11+
 
 ### Building

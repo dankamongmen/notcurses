@@ -1514,7 +1514,8 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
   if(ncplane_cursor_move_yx(n, y, x)){
     return -1;
   }
-  // FIXME don't we need to check here for wide character on edge?
+  // FIXME don't we need to check here for wide character on edge (though our
+  // docs currently claim that a wide char on edge is allowed...)?
   if(*egc == '\n'){
     if(n->scrolling){
       scroll_down(n);
