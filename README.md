@@ -276,7 +276,7 @@ and background indices into said table. That'll work for the duration of a
 porting effort, certainly.
 
 I have adapted two large (~5k lines of C UI code each) programs from NCURSES to
-notcurses, and found it a fairly painless process. It was helpful to introduce
+Notcurses, and found it a fairly painless process. It was helpful to introduce
 a shim layer, e.g. `compat_mvwprintw` for NCURSES's `mvwprintw`:
 
 ```c
@@ -326,20 +326,23 @@ These are pretty obvious, implementation-wise.
 
 ### TrueColor detection
 
-notcurses aims to use only information found in the terminal's terminfo entry to detect capabilities, TrueColor
-being one of them. Support for this is indicated by terminfo having a flag, added in NCURSES 6.1, named `RGB` set
-to `true`. However, as of today there are few and far between terminfo entries which have the capability in their
-database entry and so TrueColor won't be used in most cases. Terminal emulators have had for years a kludge to
-work around this limitation of terminfo in the form of the `COLORTERM` environment variable which, if set to either
-`truecolor` or `24bit` does the job of indicating the capability of sending the escapes 48 and 38 together with a
-tripartite RGB (0 ≤ c ≤ 255 for all three components) to specify fore- and background colors.
-Checking for `COLORTERM` admittedly goes against the goal stated at the top of this section but, for all practical
-purposes, makes the detection work quite well **today**.
+Notcurses primarily loads control sequences from `terminfo(5)`, using the
+database entry specified by the `TERM` environment variable. 24-bit "TrueColor"
+color support (or at least the ability to specify 3 8-bit channels as arguments
+to `setaf` and `setbf`) is indicated by the `rgb` terminfo capability. Many
+terminals with RGB support do not advertise the `rgb` capability. If you
+believe your terminal to support 24-bit TrueColor, this can be indicated by
+exporting the `COLORTERM` environment variable as `truecolor` or `24bit`.
+Note that some terminals accept a 24-bit specification, but map it down to
+fewer colors.
 
 ### Fonts
 
 Fonts end up being a whole thing, little of which is pleasant. I'll write this
 up someday **FIXME**.
+
+It is worth knowing that several terminals draw the block characters directly,
+rather than loading them from a font.
 
 ### FAQs
 
