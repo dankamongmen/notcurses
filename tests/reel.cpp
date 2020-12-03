@@ -73,7 +73,7 @@ int check_allborders(nctablet* t, bool drawfromtop) {
   ncplane_dim_yx(ncp, &rows, &cols);
   int srows, scols;
   ncplane_dim_yx(notcurses_stdplane(ncplane_notcurses(ncp)), &srows, &scols);
-  CHECK(srows == rows + 4);
+  CHECK(srows >= rows + 3);
   CHECK(scols == cols + 4);
   return 1;
 }
@@ -112,7 +112,7 @@ int check_norborders(nctablet* t, bool drawfromtop) {
   ncplane_dim_yx(ncp, &rows, &cols);
   int srows, scols;
   ncplane_dim_yx(notcurses_stdplane(ncplane_notcurses(ncp)), &srows, &scols);
-  CHECK(srows == rows + 2);
+  CHECK(srows >= rows + 1);
   CHECK(scols == cols + 2);
   return 1;
 }
