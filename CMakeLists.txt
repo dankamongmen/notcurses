@@ -605,6 +605,11 @@ install(TARGETS notcurses-tester DESTINATION bin)
 endif()
 endif()
 
+add_custom_target(demo
+  COMMAND ./notcurses-demo -p ${CMAKE_CURRENT_SOURCE_DIR}/data -c
+  DEPENDS notcurses-demo
+)
+
 # pkg-config support
 configure_file(tools/notcurses.pc.in
   ${CMAKE_CURRENT_BINARY_DIR}/notcurses.pc

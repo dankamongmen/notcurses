@@ -145,7 +145,7 @@ test failures, *please* file a bug including the output of
 
 (`make test` also runs `notcurses-tester`, but hides important output).
 
-To watch the bitchin' demo, run `./notcurses-demo -p ../data`. More details can
+To watch the bitchin' demo, run `make demo`. More details can
 be found on the `notcurses-demo(1)` man page.
 
 Install with `make install` following a successful build. This installs the C
