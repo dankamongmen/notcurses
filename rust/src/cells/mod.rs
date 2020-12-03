@@ -72,8 +72,8 @@ pub use types::{
     NCSTYLE_UNDERLINE,
 };
 
-mod constructors;
-pub use constructors::*;
+mod wrapped;
+pub use wrapped::*;
 
 use libc::strcmp;
 

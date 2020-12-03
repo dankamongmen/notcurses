@@ -172,8 +172,8 @@ pub use types::{
     NCVISUAL_OPTION_BLEND, NCVISUAL_OPTION_NODEGRADE,
 };
 
-mod constructors;
-pub use constructors::*;
+mod wrapped;
+pub use wrapped::*;
 
 use core::{ffi::c_void, ptr::null_mut};
 use libc::free;
@@ -519,13 +519,13 @@ pub fn ncplane_putegc(plane: &mut NcPlane, gcluster: i8, sbytes: &mut i32) -> Nc
 
 ///
 #[inline]
-pub fn ncplane_putstr(plane: &mut NcPlane, gclustarr: &[u8]) -> NcResult {
+pub fn ncplane_putstr(plane: &mut NcPlane, string: &str) -> NcResult {
     unsafe {
         ncplane_putstr_yx(
             plane,
             -1,
             -1,
-            CString::new(gclustarr).expect("Bad string").as_ptr(),
+            CString::new(string.as_bytes()).expect("Bad string").as_ptr(),
         )
     }
 }

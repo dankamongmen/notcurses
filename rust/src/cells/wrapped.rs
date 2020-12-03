@@ -3,8 +3,7 @@
 pub use crate::{NcCell, NcChannelPair, NcCharBackstop, NcStyleMask};
 
 impl NcCell {
-    /// [NcCell] constructor expecting [char], [NcStyleMask] and
-    /// [NcChannelPair]
+    /// New NcCell, expects a [char], [NcStyleMask] and [NcChannelPair].
     #[inline]
     pub const fn new(ch: char, stylemask: NcStyleMask, channels: NcChannelPair) -> Self {
         NcCell {
@@ -16,13 +15,13 @@ impl NcCell {
         }
     }
 
-    /// [NcCell] simple constructor just expecting a [char]
+    /// New NcCell, expects a [char].
     #[inline]
     pub const fn with_char(ch: char) -> Self {
         Self::new(ch, 0 as NcStyleMask, 0 as NcChannelPair)
     }
 
-    /// [NcCell] simple constructor for an empty cell
+    /// New NcCell, blank.
     #[inline]
     pub const fn new_blank() -> Self {
         Self::with_char(0 as char)

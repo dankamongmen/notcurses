@@ -49,5 +49,5 @@ pub use types::{
     NcDirect, NcDirectFlags, NCDIRECT_OPTION_INHIBIT_CBREAK, NCDIRECT_OPTION_INHIBIT_SETLOCALE,
 };
 
-mod constructors;
-pub use constructors::*;
+mod wrapped;
+pub use wrapped::*;

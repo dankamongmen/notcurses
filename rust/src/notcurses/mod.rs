@@ -14,7 +14,7 @@
 //  notcurses_cursor_disable
 //  notcurses_cursor_enable
 //# notcurses_debug
-//  notcurses_drop_planes
+//# notcurses_drop_planes
 //  notcurses_getc
 //# notcurses_init
 //  notcurses_inputready_fd
@@ -47,7 +47,7 @@
 // (+) implement : 6 / 0
 // (#) unit tests: 0 / 6
 // -----------------------------------------
-//+ notcurses_align
+//# notcurses_align
 //+ notcurses_getc_blocking
 //+ notcurses_getc_nblock
 //+ notcurses_stddim_yx
@@ -66,8 +66,8 @@ pub use types::{
     NCOPTION_SUPPRESS_BANNERS, NCOPTION_VERIFY_SIXEL,
 };
 
-mod constructors;
-pub use constructors::*;
+mod wrapped;
+pub use wrapped::*;
 
 use core::ptr::null;
 

@@ -7,6 +7,19 @@ use crate::{notcurses_stop, NcFile, Notcurses};
 
 #[test]
 #[serial]
+fn notcurses_align() {
+    unsafe {
+        let nc = Notcurses::new();
+        assert_eq![0, crate::notcurses_align(30, crate::NCALIGN_LEFT, 20)];
+        assert_eq![5, crate::notcurses_align(30, crate::NCALIGN_CENTER, 20)];
+        assert_eq![10, crate::notcurses_align(30, crate::NCALIGN_RIGHT, 20)];
+        assert_eq![10, crate::notcurses_align(30, crate::NCALIGN_UNALIGNED, 20)];
+        notcurses_stop(nc);
+    }
+}
+
+#[test]
+#[serial]
 fn notcurses_canchangecolor() {
     unsafe {
         let nc = Notcurses::new();
@@ -79,6 +92,22 @@ fn notcurses_canutf8() {
         let res = crate::notcurses_canutf8(nc);
         notcurses_stop(nc);
         print!("[{}] ", res);
+    }
+}
+
+#[test]
+#[serial]
+fn notcurses_drop_planes() {
+    unsafe {
+        let nc = Notcurses::new();
+        let stdplane = crate::notcurses_stdplane(nc);
+        let plane1 = crate::NcPlane::new_bound(&mut *stdplane, 0, 0, 10, 10);
+        let _plane2 = crate::NcPlane::new_bound(&mut *plane1, 0, 0, 10, 10);
+
+        crate::notcurses_drop_planes(nc);
+        // TODO: CHECK that planes are really dropped.
+
+        notcurses_stop(nc);
     }
 }
 
