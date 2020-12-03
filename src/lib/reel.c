@@ -113,16 +113,16 @@ typedef enum {
 //    * draw through edge
 
 static int
-draw_borders(ncplane* w, unsigned mask, uint64_t channel, direction_e direction){
+draw_borders(ncplane* n, unsigned mask, uint64_t channel, direction_e direction){
   int lenx, leny;
   int ret = 0;
-  ncplane_dim_yx(w, &leny, &lenx);
+  ncplane_dim_yx(n, &leny, &lenx);
   int maxx = lenx - 1;
   int maxy = leny - 1;
   cell ul, ur, ll, lr, hl, vl;
   cell_init(&ul); cell_init(&ur); cell_init(&hl);
   cell_init(&ll); cell_init(&lr); cell_init(&vl);
-  if(cells_rounded_box(w, 0, channel, &ul, &ur, &ll, &lr, &hl, &vl)){
+  if(cells_rounded_box(n, 0, channel, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
 //fprintf(stderr, "drawing borders %p ->%d/%d, mask: %04x\n", w, maxx, maxy, mask);
@@ -131,38 +131,38 @@ draw_borders(ncplane* w, unsigned mask, uint64_t channel, direction_e direction)
   int y = 0;
   if(y < maxy || direction == DIRECTION_DOWN || (mask & NCBOXMASK_BOTTOM)){
     if(!(mask & NCBOXMASK_TOP)){
-      ncplane_home(w);
-      ncplane_putc(w, &ul);
-      ncplane_hline(w, &hl, lenx - 2);
-      ncplane_putc(w, &ur);
+      ncplane_home(n);
+      ncplane_putc(n, &ul);
+      ncplane_hline(n, &hl, lenx - 2);
+      ncplane_putc(n, &ur);
       ++y;
     }
   }
   // draw the vertical sides, assuming they're not masked out. start wherever
   // we're left following the previous stanza, end based on maxhorizy.
-  const bool candrawbottom = y < maxy || direction == DIRECTION_UP || (mask & NCBOXMASK_TOP);
+  const bool candrawbottom = y <= maxy || direction == DIRECTION_UP || (mask & NCBOXMASK_TOP);
   const int maxhorizy = maxy - (candrawbottom && !(mask & NCBOXMASK_BOTTOM));
   while(y <= maxhorizy){
     if(!(mask & NCBOXMASK_LEFT)){
-      ret |= ncplane_cursor_move_yx(w, y, 0);
-      ncplane_putc(w, &vl);
+      ret |= ncplane_cursor_move_yx(n, y, 0);
+      ncplane_putc(n, &vl);
     }
     if(!(mask & NCBOXMASK_RIGHT)){
-      ret |= ncplane_cursor_move_yx(w, y, maxx);
-      ncplane_putc(w, &vl);
+      ret |= ncplane_cursor_move_yx(n, y, maxx);
+      ncplane_putc(n, &vl);
     }
     ++y;
   }
   if(candrawbottom){
     if(!(mask & NCBOXMASK_BOTTOM)){
-      ret |= ncplane_cursor_move_yx(w, maxy, 0);
-      ncplane_putc(w, &ll);
-      ncplane_hline(w, &hl, lenx - 2);
-      ncplane_putc(w, &lr);
+      ret |= ncplane_cursor_move_yx(n, maxy, 0);
+      ncplane_putc(n, &ll);
+      ncplane_hline(n, &hl, lenx - 2);
+      ncplane_putc(n, &lr);
     }
   }
-  cell_release(w, &ul); cell_release(w, &ur); cell_release(w, &hl);
-  cell_release(w, &ll); cell_release(w, &lr); cell_release(w, &vl);
+  cell_release(n, &ul); cell_release(n, &ur); cell_release(n, &hl);
+  cell_release(n, &ll); cell_release(n, &lr); cell_release(n, &vl);
   return ret;
 }
 
@@ -266,7 +266,8 @@ ncreel_draw_tablet(const ncreel* nr, nctablet* t, int frontiertop,
   // we allow the callback to use a bound plane that lives above our border
   // plane, thus preventing the callback from spilling over the tablet border.
   int cby = 0, cbx = 0, cbleny = leny, cblenx = lenx;
-  cbleny -= !(nr->ropts.tabletmask & NCBOXMASK_BOTTOM);
+  //cbleny -= !(nr->ropts.tabletmask & NCBOXMASK_BOTTOM);
+  // FIXME shouldn't this be instead "drop 1 if either is unmasked"?
   if(!(nr->ropts.tabletmask & NCBOXMASK_TOP)){
     --cbleny;
     ++cby;
@@ -302,14 +303,19 @@ ncreel_draw_tablet(const ncreel* nr, nctablet* t, int frontiertop,
     }
     if(ll != cbleny){
       int diff = cbleny - ll;
-//fprintf(stderr, "resizing data plane %d->%d\n", cbleny, leny - diff);
-      if(ll){
+//fprintf(stderr, "resizing data plane %d->%d\n", cbleny, ll);
+      if(ll){ // must be smaller than the space we provided; add back bottom
         ncplane_resize_simple(t->cbp, ll, cblenx);
       }else{
         ncplane_genocide(t->cbp);
         t->cbp = NULL;
       }
-      ncplane_resize_simple(t->p, leny - diff, lenx);
+      // resize the borderplane iff we got smaller
+      if(!(nr->ropts.tabletmask & NCBOXMASK_BOTTOM)){
+        ncplane_resize_simple(t->p, leny - diff + 1, lenx);
+      }else{
+        ncplane_resize_simple(t->p, leny - diff, lenx);
+      }
       // We needn't move the resized plane if drawing down, or the focused plane.
       // The focused tablet will have been resized properly above, but it might
       // be out of position (the focused tablet ought move as little as possible). 
@@ -325,11 +331,17 @@ ncreel_draw_tablet(const ncreel* nr, nctablet* t, int frontiertop,
         ncplane_move_yx(fp, begy + diff, begx);
 //fprintf(stderr, "MOVEDOWN from %d to %d\n", begy, begy + diff);
       }
+      cbleny = ll;
     }
   }
-  draw_borders(fp, nr->ropts.tabletmask,
-               nr->tablets == t ? nr->ropts.focusedchan : nr->ropts.tabletchan,
-               direction);
+  // we can't push the border plane beyond its true boundaries, or we'll mess
+  // up layout later. instead, add a bottommask iff leny <= cbleny + 1
+  unsigned mask = nr->ropts.tabletmask;
+  if(leny <= cbleny + !(mask & NCBOXMASK_TOP)){
+    mask |= NCBOXMASK_BOTTOM;
+  }
+  uint64_t channels = nr->tablets == t ? nr->ropts.focusedchan : nr->ropts.tabletchan;
+  draw_borders(fp, mask, channels, direction);
   return 0;
 }
 
