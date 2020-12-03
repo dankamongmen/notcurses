@@ -2,7 +2,7 @@
 
 * **What it is**: a library facilitating complex TUIs on modern terminal
     emulators, supporting vivid colors, multimedia, and Unicode to the maximum
-    degree possible. [Things](https://www.youtube.com/watch?v=b4lmMADP1lA) can
+    degree possible. [Things](https://www.youtube.com/watch?v=cYhZ7myXyyg) can
     be done with Notcurses that simply can't be done with NCURSES.
 
 * **What it is not**: a source-compatible X/Open Curses implementation, nor a
