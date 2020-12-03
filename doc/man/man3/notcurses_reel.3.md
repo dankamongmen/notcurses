@@ -62,11 +62,11 @@ typedef struct ncreel_options {
 
 # DESCRIPTION
 
-An **ncreel** is a widget for display and manipulation of hierarchal data,
+An **ncreel** is a widget for display and manipulation of hierarchical data,
 intended to make effective use of the display area while supporting keyboards,
 mice, and haptic interfaces. A series of **nctablet**s are ordered on a
-virtual cylinder; the tablets can grow and shrink freely, while moving among
-the tablets "spins" the cylinder. **ncreel**s support optional borders around
+virtual cylinder; the tablets can grow and shrink freely. Moving among the
+tablets "spins" the cylinder. **ncreel**s support optional borders around
 the reel and/or tablets.
 
 **ncreel_redraw** arranges the tablets, invoking the **tabletcb** defined by
@@ -82,7 +82,53 @@ change via **ncreel_next** and **ncreel_prev**. If **ncreel_del** is called on
 the focused tablet, and at least one other tablet remains, some tablet receives
 the focus.
 
+Calling functions which change the reel, including **ncreel_next**,
+**ncreel_prev**, **ncreel_del**, and **ncreel_add**, implicitly calls
+**ncreel_redraw**. This behavior **must not be relied upon**, as it is likely
+to go away.
+
+## LAYOUT
+
+When the user invokes **ncreel_redraw**, Notcurses can't assume it knows the
+size of any tablets--one or more might have changed since the last draw. Only
+after a callback does **ncreel_redraw** know how many rows a tablet will
+occupy.
+
+A redraw operation starts with the focused tablet. Its callback is invoked with
+a plane as large as the reel, i.e. the focused tablet can occupy the entire
+reel, to the exclusion of any other tablets. The focused tablet will be kept
+where it was, if possible; growth might force it to move. There is now one
+tablet locked into place, and zero, one, or two areas of empty space. Tablets
+are successively lain out in these spaces until the reel is filled.
+
+In general, if the reel is not full, tablets will be drawn towards the top, but
+this ought not be relied on.
+
+## THE TABLET CALLBACK
+
+The tablet callback (of type **tabletcb**) is called with an **ncplane** and a
+**bool**. The callback function ought not rely on the absolute position of the
+plane, as it might be moved. The **bool** indicates whether the plane ought be
+filled in from the bottom, or from the top (this is only meaningful if the
+plane is insufficiently large to contain all the tablet's available data). The
+callback ought not resize the plane (it will be resized following return). The
+callback must return the number of rows used (it is perfectly valid to use zero
+rows), or a negative number if there was an error.
+
+Returning more rows than the plane has available is an error.
+
 # RETURN VALUES
+
+**ncreel_focused**, **ncreel_prev**, and **ncreel_next** all return the focused
+tablet, unless no tablets exist, in which case they return **NULL**.
+
+**ncreel_add** returns the newly-added **nctablet**.
+
+## BUGS
+
+I can't decide whether to require the user to explicitly call **ncreel_redraw**.
+Doing so means changes can be batched up without a redraw, but it also makes
+things more complicated for both me and the user.
 
 # SEE ALSO
 
