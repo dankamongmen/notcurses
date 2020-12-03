@@ -29,7 +29,8 @@ int main(int argc, char **argv){
   }
   for(int i = 0 ; i < 128 ; ++i){
     wchar_t w = i;
-    printf("w(0x%02x): %d%c\t", i, wcwidth(w), iscntrl(i) ? '!' : ' ');
+    int width = wcwidth(w);
+    printf("w(0x%02x): %d%c\t", i, width, width < 0 ? '!' : ' ');
     if(i % 4 == 3){
       printf("\n");
     }
