@@ -730,8 +730,20 @@ cellcmp(const struct ncplane* n1, const cell* RESTRICT c1,
 static inline int
 cell_load_char(struct ncplane* n, cell* c, char ch){
   cell_release(n, c);
+  // FIXME don't allow non-printing garbage
   c->channels &= ~(CELL_WIDEASIAN_MASK | CELL_NOBACKGROUND_MASK);
   c->gcluster = htole((uint32_t)ch);
+  return 1;
+}
+
+// Load a UTF-8 encoded EGC of up to 4 bytes into the cell 'c'.
+static inline int
+cell_load_egc32(struct ncplane* n, cell* c, uint32_t egc){
+  cell_release(n, c);
+  // FIXME don't allow non-printing garbage, nor invalid forms
+  // FIXME this might well be a wide egc, augh
+  c->channels &= ~(CELL_WIDEASIAN_MASK | CELL_NOBACKGROUND_MASK);
+  c->gcluster = htole(egc);
   return 1;
 }
 
@@ -843,6 +855,12 @@ API struct notcurses* notcurses_init(const notcurses_options* opts, FILE* fp);
 
 // Destroy a Notcurses context.
 API int notcurses_stop(struct notcurses* nc);
+
+// Return the topmost plane of the pile containing 'n'.
+API struct ncplane* ncpile_top(struct ncplane* n);
+
+// Return the bottommost plane of the pile containing 'n'.
+API struct ncplane* ncpile_bottom(struct ncplane* n);
 
 // Renders the pile of which 'n' is a part. Rendering this pile again will blow
 // away the render. To actually write out the render, call ncpile_rasterize().
@@ -1068,6 +1086,7 @@ API struct ncplane* ncplane_new(struct ncplane* n, int rows, int cols, int y, in
 API int ncplane_resize_realign(struct ncplane* n);
 
 // Replace the ncplane's existing resizecb with 'resizecb' (which may be NULL).
+// The standard plane's resizecb may not be changed.
 API void ncplane_set_resizecb(struct ncplane* n, int(*resizecb)(struct ncplane*));
 
 // Returns the ncplane's current resize callback.
@@ -1088,7 +1107,8 @@ API struct ncplane* ncplane_reparent_family(struct ncplane* n, struct ncplane* n
 // Duplicate an existing ncplane. The new plane will have the same geometry,
 // will duplicate all content, and will start with the same rendering state.
 // The new plane will be immediately above the old one on the z axis, and will
-// be bound to the same parent.
+// be bound to the same parent. Bound planes are *not* duplicated; the new
+// plane is bound to the parent of 'n', but has no bound planes.
 API struct ncplane* ncplane_dup(const struct ncplane* n, void* opaque);
 
 // provided a coordinate relative to the origin of 'src', map it to the same
@@ -1812,10 +1832,10 @@ API int ncplane_mergedown(const struct ncplane* RESTRICT src,
                           int begsrcy, int begsrcx, int leny, int lenx,
                           int dsty, int dstx);
 
-// Erase every cell in the ncplane, resetting all attributes to normal, all
-// colors to the default color, and all cells to undrawn. All cells associated
-// with this ncplane is invalidated, and must not be used after the call,
-// *excluding* the base cell. The cursor is homed.
+// Erase every cell in the ncplane (each cell is initialized to the null glyph
+// and the default channels/styles). All cells associated with this ncplane are
+// invalidated, and must not be used after the call, *excluding* the base cell.
+// The cursor is homed. The plane's active attributes are unaffected.
 API void ncplane_erase(struct ncplane* n);
 
 // Extract the 32-bit background channel from a cell.

@@ -502,8 +502,6 @@ inline int ncplane_cursor_move_yx(ncplane* n, int y, int x){
 ncplane* ncplane_dup(const ncplane* n, void* opaque){
   int dimy = n->leny;
   int dimx = n->lenx;
-  uint16_t attr = ncplane_styles(n);
-  uint64_t chan = ncplane_channels(n);
   // if we're duping the standard plane, we need adjust for marginalia
   const struct notcurses* nc = ncplane_notcurses_const(n);
   const int placey = n->absy - nc->margin_t;
@@ -515,6 +513,8 @@ ncplane* ncplane_dup(const ncplane* n, void* opaque){
     .cols = dimx,
     .userptr = opaque,
     .name = n->name,
+    .resizecb = ncplane_resizecb(n),
+    .flags = 0,
   };
   ncplane* newn = ncplane_create(n->boundto, &nopts);
   if(newn){
@@ -526,8 +526,9 @@ ncplane* ncplane_dup(const ncplane* n, void* opaque){
         ncplane_destroy(newn);
         return NULL;
       }
-      newn->stylemask = attr;
-      newn->channels = chan;
+      newn->align = n->align;
+      newn->stylemask = ncplane_styles(n);
+      newn->channels = ncplane_channels(n);
       memmove(newn->fb, n->fb, sizeof(*n->fb) * dimx * dimy);
       // we dupd the egcpool, so just dup the goffset
       newn->basecell = n->basecell;
@@ -2036,6 +2037,14 @@ ncplane* notcurses_bottom(notcurses* n){
   return ncplane_pile(n->stdplane)->bottom;
 }
 
+ncplane* ncpile_top(ncplane* n){
+  return ncplane_pile(n)->top;
+}
+
+ncplane* ncpile_bottom(ncplane* n){
+  return ncplane_pile(n)->bottom;
+}
+
 ncplane* ncplane_below(ncplane* n){
   return n->below;
 }
@@ -2168,6 +2177,9 @@ const ncplane* ncplane_parent_const(const ncplane* n){
 }
 
 void ncplane_set_resizecb(ncplane* n, int(*resizecb)(ncplane*)){
+  if(n == notcurses_stdplane(ncplane_notcurses(n))){
+    return;
+  }
   n->resizecb = resizecb;
 }
 

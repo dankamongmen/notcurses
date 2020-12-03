@@ -33,6 +33,10 @@ typedef struct ncplane_options {
 
 **struct ncplane* notcurses_bottom(struct notcurses* ***n***);**
 
+**struct ncplane* ncpile_top(struct ncplane* ***n***);**
+
+**struct ncplane* ncpile_bottom(struct ncplane* ***n***);**
+
 **struct ncplane* ncplane_reparent(struct ncplane* ***n***, struct ncplane* ***newparent***);**
 
 **struct ncplane* ncplane_reparent_family(struct ncplane* ***n***, struct ncplane* ***newparent***);**
@@ -238,7 +242,7 @@ of the rendering region. Only those cells where **src** intersects with **dst**
 might see changes. It is an error to merge a plane onto itself.
 
 **ncplane_erase** zeroes out every cell of the plane, dumps the egcpool, and
-homes the cursor. The base cell is preserved.
+homes the cursor. The base cell is preserved, as are the active attributes.
 
 When a plane is resized (whether by **ncplane_resize**, **SIGWINCH**, or any
 other mechanism), a depth-first recursion is performed on its children.
@@ -303,6 +307,10 @@ plane is the bottommost plane, NULL is returned. It cannot fail.
 
 **ncplane_set_scrolling** returns **true** if scrolling was previously enabled,
 and **false** otherwise.
+
+**ncpile_top** and **ncpile_bottom** return the topmost and bottommost planes,
+respectively, of the pile containing their argument. **notcurses_top** and
+**notcurses_bottom** do the same for the standard pile.
 
 **ncplane_at_yx** and **ncplane_at_cursor** return a heap-allocated copy of the
 EGC at the relevant cell, or NULL if the cell is invalid. The caller should free

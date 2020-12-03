@@ -76,6 +76,8 @@ typedef struct cell {
 
 **int cell_load_char(struct ncplane* ***n***, cell* ***c***, char ***ch***);**
 
+**int cell_load_egc32(struct ncplane* ***n***, cell* ***c***, uint32_t ***egc***);**
+
 **char* cell_extract(const struct ncplane* ***n***, const cell* ***c***, uint16_t* ***stylemask***, uint64_t* ***channels***);**
 
 **uint32_t cell_bchannel(const cell* ***c***);**

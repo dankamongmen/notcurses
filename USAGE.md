@@ -884,6 +884,12 @@ struct ncplane* ncplane_below(struct ncplane* n);
 
 // Return the ncplane above this one, or NULL if this is at the stack's top.
 struct ncplane* ncplane_above(struct ncplane* n);
+
+// Return the topmost plane of the pile containing 'n'.
+struct ncplane* ncpile_top(struct ncplane* n);
+
+// Return the bottommost plane of the pile containing 'n'.
+struct ncplane* ncpile_bottom(struct ncplane* n);
 ```
 
 Each plane holds a user pointer which can be retrieved and set (or ignored). In
@@ -1747,11 +1753,21 @@ cell_double_wide_p(const cell* c){
   return (c->channels & CELL_WIDEASIAN_MASK);
 }
 
+// Load a 7-bit char 'ch' into the cell 'c'.
 static inline int
 cell_load_char(struct ncplane* n, cell* c, char ch){
   cell_release(n, c);
   c->channels &= ~(CELL_WIDEASIAN_MASK | CELL_NOBACKGROUND_MASK);
   c->gcluster = ch;
+  return 1;
+}
+
+// Load a UTF-8 encoded EGC of up to 4 bytes into the cell 'c'.
+static inline int
+cell_load_egc32(struct ncplane* n, cell* c, uint32_t egc){
+  cell_release(n, c);
+  c->channels &= ~(CELL_WIDEASIAN_MASK | CELL_NOBACKGROUND_MASK);
+  c->gcluster = htole(egc);
   return 1;
 }
 
