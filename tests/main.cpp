@@ -8,6 +8,7 @@
 #include <iostream>
 #include <climits>
 #include <termios.h>
+#include <sys/stat.h>
 #include <filesystem>
 #include <langinfo.h>
 
@@ -42,8 +43,27 @@ handle_opts(const char** argv){
   }
 }
 
+// check that the (provided or default) data directory exists, and has at
+// least one of our necessary files. otherwise, print a warning + return error.
+static int
+check_data_dir(){
+  auto p = find_data("changes.jpg");
+  if(!p){
+    std::cerr << "Coudln't find testing data! Supply directory with -p." << std::endl;
+    return -1;
+  }
+  struct stat s;
+  if(stat(p, &s)){
+    std::cerr << "Couldn't open " << p << ". Supply directory with -p." << std::endl;
+    free(p);
+    return -1;
+  }
+  free(p);
+  return 0;
+}
+
 // reset the terminal in the event of early exit (notcurses_init() presumably
-// ran, but we don't have the notcurses struct to destroy. so just do it raw.
+// ran, but we don't have the notcurses struct to destroy, so just do it raw).
 static void
 reset_terminal(){
   int fd = open("/dev/tty", O_RDWR|O_CLOEXEC);
@@ -103,22 +123,18 @@ auto main(int argc, const char **argv) -> int {
   std::cout << "Running with TERM=" << term << std::endl;
   doctest::Context context;
 
-  context.setOption("order-by", "name");            // sort the test cases by their name
-
+  context.setOption("order-by", "name"); // sort the test cases by their name
   context.applyCommandLine(argc, argv);
-
-  // overrides
-  context.setOption("no-breaks", true);             // don't break in the debugger when assertions fail
-
+  context.setOption("no-breaks", true); // don't break in the debugger when assertions fail
   dt_removed args(argv);
   handle_opts(argv);
-
+  if(check_data_dir()){
+    return EXIT_FAILURE;
+  }
   int res = context.run(); // run
-
   if(context.shouldExit()){ // important - query flags (and --exit) rely on the user doing this
     return res;             // propagate the result of the tests
   }
-
   // if we exited via REQUIRE(), we likely left the terminal in an invalid
   // state. go ahead and reset it manually.
   if(res){

@@ -1,0 +1,8 @@
+//! `NcPlot[F|U]64` widget
+
+mod types;
+pub use types::{NcPlotF64, NcPlotOptions, NcPlotU64};
+pub use types::{
+    NCPLOT_OPTION_DETECTMAXONLY, NCPLOT_OPTION_EXPONENTIALD, NCPLOT_OPTION_LABELTICKSD,
+    NCPLOT_OPTION_NODEGRADE, NCPLOT_OPTION_VERTICALI,
+};

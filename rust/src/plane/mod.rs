@@ -163,6 +163,15 @@
 #[cfg(test)]
 mod tests;
 
+mod types;
+pub use types::{
+    NCBLIT_1x1, NCBLIT_2x1, NCBLIT_2x2, NCBLIT_3x2, NCBLIT_4x1, NCBLIT_8x1, NcAlign, NcBlitter,
+    NcFdPlane, NcFdPlaneOptions, NcPlane, NcPlaneOptions, NcScale, NcVisual, NcVisualOptions,
+    NCALIGN_CENTER, NCALIGN_LEFT, NCALIGN_RIGHT, NCALIGN_UNALIGNED, NCBLIT_BRAILLE, NCBLIT_DEFAULT,
+    NCBLIT_SIXEL, NCPLANE_OPTION_HORALIGNED, NCSCALE_NONE, NCSCALE_SCALE, NCSCALE_STRETCH,
+    NCVISUAL_OPTION_BLEND, NCVISUAL_OPTION_NODEGRADE,
+};
+
 mod constructors;
 pub use constructors::*;
 
@@ -171,18 +180,14 @@ use libc::free;
 use std::ffi::CString;
 
 use crate::{
-    bindgen::__va_list_tag,
-    cell_load, cell_release, cells_double_box, cells_rounded_box, channels_bchannel,
-    channels_bg_alpha, channels_bg_default_p, channels_bg_rgb, channels_bg_rgb8, channels_fchannel,
-    channels_fg_alpha, channels_fg_default_p, channels_fg_rgb, channels_fg_rgb8, ncplane_at_cursor,
-    ncplane_at_yx, ncplane_box, ncplane_channels, ncplane_cursor_move_yx, ncplane_cursor_yx,
-    ncplane_dim_yx, ncplane_gradient, ncplane_hline_interp, ncplane_putc_yx, ncplane_putegc_yx,
-    ncplane_putnstr_yx, ncplane_putstr_yx, ncplane_resize, ncplane_styles, ncplane_vline_interp,
-    ncplane_vprintf_yx, notcurses_align,
-    types::{
-        NcAlign, NcAlphaBits, NcCell, NcChannel, NcChannels, NcColor, NcPlane, NcResult,
-        NcStyleMask, NCRESULT_ERR, NCRESULT_OK,
-    },
+    bindgen::__va_list_tag, cell_load, cell_release, cells_double_box, cells_rounded_box,
+    channels_bchannel, channels_bg_alpha, channels_bg_default_p, channels_bg_rgb, channels_bg_rgb8,
+    channels_fchannel, channels_fg_alpha, channels_fg_default_p, channels_fg_rgb, channels_fg_rgb8,
+    ncplane_at_cursor, ncplane_at_yx, ncplane_box, ncplane_channels, ncplane_cursor_move_yx,
+    ncplane_cursor_yx, ncplane_dim_yx, ncplane_gradient, ncplane_hline_interp, ncplane_putc_yx,
+    ncplane_putegc_yx, ncplane_putnstr_yx, ncplane_putstr_yx, ncplane_resize, ncplane_styles,
+    ncplane_vline_interp, ncplane_vprintf_yx, notcurses_align, NcAlphaBits, NcCell, NcChannel,
+    NcChannelPair, NcColor, NcResult, NcStyleMask, NCRESULT_ERR, NCRESULT_OK,
 };
 
 // Static Functions ------------------------------------------------------------
@@ -290,7 +295,7 @@ pub fn ncplane_dim_y(plane: &NcPlane) -> i32 {
 pub fn ncplane_double_box(
     plane: &mut NcPlane,
     stylemask: NcStyleMask,
-    channels: NcChannels,
+    channels: NcChannelPair,
     ystop: i32,
     xstop: i32,
     ctlword: u32,
@@ -336,7 +341,7 @@ pub fn ncplane_double_box(
 pub fn ncplane_double_box_sized(
     plane: &mut NcPlane,
     stylemask: NcStyleMask,
-    channels: NcChannels,
+    channels: NcChannelPair,
     ylen: i32,
     xlen: i32,
     ctlword: u32,
@@ -386,7 +391,7 @@ pub fn ncplane_perimeter(
 pub fn ncplane_perimeter_double(
     plane: &mut NcPlane,
     stylemask: NcStyleMask,
-    channels: NcChannels,
+    channels: NcChannelPair,
     ctlword: u32,
 ) -> NcResult {
     if unsafe { ncplane_cursor_move_yx(plane, 0, 0) } != NCRESULT_OK {
@@ -435,7 +440,7 @@ pub fn ncplane_perimeter_double(
 pub fn ncplane_perimeter_rounded(
     plane: &mut NcPlane,
     stylemask: NcStyleMask,
-    channels: NcChannels,
+    channels: NcChannelPair,
     ctlword: u32,
 ) -> NcResult {
     if unsafe { ncplane_cursor_move_yx(plane, 0, 0) } != NCRESULT_OK {
@@ -696,7 +701,7 @@ pub fn ncplane_bg_rgb8(
 pub fn ncplane_rounded_box(
     plane: &mut NcPlane,
     stylemask: NcStyleMask,
-    channels: NcChannels,
+    channels: NcChannelPair,
     ystop: i32,
     xstop: i32,
     ctlword: u32,
@@ -741,7 +746,7 @@ pub fn ncplane_rounded_box(
 pub fn ncplane_rounded_box_sized(
     plane: &mut NcPlane,
     stylemask: NcStyleMask,
-    channels: NcChannels,
+    channels: NcChannelPair,
     ylen: i32,
     xlen: i32,
     ctlword: u32,

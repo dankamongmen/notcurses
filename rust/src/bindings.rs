@@ -1,36 +1,22 @@
-//! Curated re-exports of the `bindgen` bindings
+//! A selection of the [bindgen] bindings intended to be used directly.
 //!
-//! The full list of bindings is under the
-//! [`bindgen`] submodule
+//! The full list of bindings is under the [bindgen] submodule
 //!
-//! This module publicly re-exports bindgen generated functions and constants,
-//! while privately re-exporting other functions, constants and all structs
-//! in order to wrap them up or crate new aliases for them.
-//
-// WARNING: DO NOT EXECUTE RUSTFMT ON THIS FILE.
-// Custom formatting permits easier maintenance.
-//
+//! This module publicly re-exports bindgen generated functions and constants
+//! for their direct usage.
 
 // [clippy & bindgen](https://github.com/rust-lang/rust-bindgen/issues/1470)
 #[allow(clippy::all)]
 pub mod bindgen {
-    //! Automatically generated Rust FFI bindings
+    //! Automatically generated Rust FFI bindings, for reference.
     //!
-    //! All of the notcurses functions and some of the constants are reexported
-    //! by the [`bindings`] module.
-    //! While the structs, enums and some other constants are type aliased in
-    //! the [`types`] module, in order to follow the
-    //! Rust API Guidelines as much as possible.
+    //! All of the notcurses API functions are reexported to the public API
+    //! while the structs, enums and constants are type aliased or wrapped up.
     //!
     include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 }
 
 // Miscellaneous ---------------------------------------------------------------
-
-pub(crate) use bindgen::{
-    // structs
-    timespec,
-};
 
 #[doc(inline)]
 pub use bindgen::{
@@ -191,7 +177,6 @@ pub use bindgen::{
     ncdirect_vline_interp,
 };
 
-
 // ncfadectx -------------------------------------------------------------------
 //
 // already wrapped:
@@ -293,10 +278,7 @@ pub use bindgen::{
 // IPREFIXSTRLEN,
 
 #[doc(inline)]
-pub use bindgen::{
-    // structs
-    ncmetric
-};
+pub use bindgen::ncmetric;
 
 // ncmultiselector -------------------------------------------------------------
 //
@@ -323,8 +305,8 @@ pub use bindgen::{
 pub use bindgen::{
     // functions
     ncpile_create,
-    ncpile_render,
     ncpile_rasterize,
+    ncpile_render,
 };
 
 // ncplane ---------------------------------------------------------------------
@@ -576,23 +558,22 @@ pub use bindgen::{
 // ncstats,
 
 // ncstyle ---------------------------------------------------------------------
-
-#[doc(inline)]
-pub use bindgen::{
-    // constants
-    NCSTYLE_BLINK,
-    NCSTYLE_BOLD,
-    NCSTYLE_DIM,
-    NCSTYLE_INVIS,
-    NCSTYLE_ITALIC,
-    NCSTYLE_MASK,
-    NCSTYLE_NONE,
-    NCSTYLE_PROTECT,
-    NCSTYLE_REVERSE,
-    NCSTYLE_STANDOUT,
-    NCSTYLE_STRUCK,
-    NCSTYLE_UNDERLINE,
-};
+//
+// already wrapped:
+//
+// // constants
+// NCSTYLE_BLINK,
+// NCSTYLE_BOLD,
+// NCSTYLE_DIM,
+// NCSTYLE_INVIS,
+// NCSTYLE_ITALIC,
+// NCSTYLE_MASK,
+// NCSTYLE_NONE,
+// NCSTYLE_PROTECT,
+// NCSTYLE_REVERSE,
+// NCSTYLE_STANDOUT,
+// NCSTYLE_STRUCK,
+// NCSTYLE_UNDERLINE,
 
 // nctablet --------------------------------------------------------------------
 //
@@ -723,10 +704,7 @@ pub use bindgen::{
 
 // sig -------------------------------------------------------------------------
 
-pub(crate) use bindgen::{
-    // type definitions
-    sigset_t,
-};
+pub(crate) use bindgen::sigset_t;
 
 #[doc(inline)]
 pub use bindgen::{

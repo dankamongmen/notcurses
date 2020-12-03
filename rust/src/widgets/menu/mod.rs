@@ -1,3 +1,5 @@
+//! `NcMenu` widget
+
 // functions already exported by bindgen : 13
 // ------------------------------------------
 // ncmenu_create
@@ -14,12 +16,13 @@
 // ncmenu_selected
 // ncmenu_unroll
 
+mod types;
+pub use types::{NcMenu, NcMenuItem, NcMenuOptions, NcMenuSection};
+pub use types::{NCMENU_OPTION_BOTTOM, NCMENU_OPTION_HIDING};
+
 use std::ffi::CString;
 
-use crate::{
-    ncmenu_create,
-    types::{NcChannels, NcInput, NcMenu, NcMenuItem, NcMenuOptions, NcMenuSection, NcPlane},
-};
+use crate::{ncmenu_create, NcChannelPair, NcInput, NcPlane};
 
 impl NcMenu {
     /// `NcMenu` simple constructor
@@ -43,8 +46,8 @@ impl NcMenuOptions {
     pub fn with_options(
         sections: &mut [NcMenuSection],
         count: u32,
-        headerc: NcChannels,
-        sectionc: NcChannels,
+        headerc: NcChannelPair,
+        sectionc: NcChannelPair,
         flags: u64,
     ) -> Self {
         Self {

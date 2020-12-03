@@ -18,8 +18,8 @@
 //+ palette256_set_rgb
 
 use crate::{
-    channel_rgb8, channel_set, channel_set_rgb8,
-    types::{NcChannel, NcColor, NcPalette, NcPaletteIndex, NcRgb},
+    channel_rgb8, channel_set, channel_set_rgb8, NcChannel, NcColor, NcPalette, NcPaletteIndex,
+    NcRgb,
 };
 
 /// Set the different color components of an entry inside a palette store.

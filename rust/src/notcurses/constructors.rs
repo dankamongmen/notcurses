@@ -47,11 +47,11 @@ impl NotcursesOptions {
     ///   can be added without reshaping the struct.
     ///   Undefined bits must be set to 0.
     ///
-    ///   - [`NCOPTION_INHIBIT_SETLOCALE`]
+    ///   - [`NCOPTION_INHIBIT_SETLOCALE`][crate::NCOPTION_INHIBIT_SETLOCALE]
     ///   - [`NCOPTION_NO_ALTERNATE_SCREEN`]
-    ///   - [`NCOPTION_NO_FONT_CHANGES`]
-    ///   - [`NCOPTION_NO_QUIT_SIGHANDLERS`]
-    ///   - [`NCOPTION_NO_WINCH_SIGHANDLER`]
+    ///   - [`NCOPTION_NO_FONT_CHANGES`][crate::NCOPTION_NO_FONT_CHANGES]
+    ///   - [`NCOPTION_NO_QUIT_SIGHANDLERS`][crate::NCOPTION_NO_QUIT_SIGHANDLERS]
+    ///   - [`NCOPTION_NO_WINCH_SIGHANDLER`][crate::NCOPTION_NO_WINCH_SIGHANDLER]
     ///   - [`NCOPTION_SUPPRESS_BANNERS`]
     ///
     pub fn with_all_options(

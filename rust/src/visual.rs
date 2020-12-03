@@ -25,7 +25,7 @@
 // ------------------------------------------
 // ncvisual_default_blitter
 
-use crate::types::{NCBLIT_1x1, NCBLIT_2x1, NCBLIT_2x2, NcBlitter, NcScale, NCSCALE_STRETCH};
+use crate::{NCBLIT_1x1, NCBLIT_2x1, NCBLIT_2x2, NcBlitter, NcScale, NCSCALE_STRETCH};
 
 /// Returns the best default blitter available
 ///

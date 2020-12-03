@@ -1061,7 +1061,8 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   if(setup_signals(ret,
                    (opts->flags & NCOPTION_NO_QUIT_SIGHANDLERS),
                    (opts->flags & NCOPTION_NO_WINCH_SIGHANDLER))){
-    goto err;
+    // don't treat failure here as an error. it screws up unit tests, and one
+    // day we'll need support multiple notcurses contexts. FIXME
   }
   int termerr;
   if(setupterm(opts->termtype, ret->ttyfd, &termerr) != OK){
