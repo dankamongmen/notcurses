@@ -53,6 +53,7 @@ auto main() -> int {
   auto nn = std::make_shared<Plane>(1, 2, 1, 16);
   nn->set_fg_rgb8(0xc0, 0x80, 0xc0);
   nn->set_bg_rgb8(0x20, 0x00, 0x20);
+  nn->set_base("", 0, CHANNELS_RGB_INITIALIZER(0xc0, 0x80, 0xc0, 0x20, 0, 0x20));
   nn->putstr("AB");
 
   n->set_fg_rgb8(0x80, 0xc0, 0x80);
