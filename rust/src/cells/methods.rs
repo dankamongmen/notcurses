@@ -1,10 +1,9 @@
 //! `NcCell` methods and associated functions.
 
-pub use crate::{
-    cell_load, cstring, NcCell, NcChannelPair, NcEgcBackstop, NcPlane, NcStyleMask, NCRESULT_ERR,
+use crate::{
+    cell_extract, cell_load, cstring, NcCell, NcChannelPair, NcEgc, NcEgcBackstop, NcPlane,
+    NcStyleMask, NCRESULT_ERR,
 };
-
-use crate::{cell_extract, NcEgc};
 
 /// # `NcCell` Constructors
 impl NcCell {

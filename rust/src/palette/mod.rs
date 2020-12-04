@@ -21,7 +21,7 @@
 // + palette256_set
 // + palette256_set_rgb
 
-pub mod reimplemented;
+mod reimplemented;
 pub use reimplemented::*;
 
 /// NcPalette structure consisting of an array of 256 [`NcChannel`]s.

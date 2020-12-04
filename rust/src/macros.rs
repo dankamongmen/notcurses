@@ -2,7 +2,7 @@
 
 // General Utility Macros ------------------------------------------------------
 
-/// Sleeps for $ms milliseconds
+/// Sleeps for $ms milliseconds.
 #[macro_export]
 macro_rules! sleep {
     ($ms:expr) => {
@@ -10,7 +10,7 @@ macro_rules! sleep {
     };
 }
 
-/// Converts an `&str` to `*mut CString`, for when `*const c_char` is needed.
+/// Converts `&str` to `*mut CString`, for when `*const c_char` is needed.
 #[macro_export]
 macro_rules! cstring {
     ($s:expr) => {
