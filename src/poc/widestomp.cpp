@@ -49,36 +49,44 @@ auto main() -> int {
   NotCurses nc(nopts);
   std::shared_ptr<Plane> n(nc.get_stdplane());
 
-  // first, a 2x1 with "AB"
-  auto nn = std::make_shared<Plane>(1, 2, 1, 16);
-  nn->set_fg_rgb8(0xc0, 0x80, 0xc0);
-  nn->set_bg_rgb8(0x20, 0x00, 0x20);
-  nn->set_base("", 0, CHANNELS_RGB_INITIALIZER(0xc0, 0x80, 0xc0, 0x20, 0, 0x20));
-  nn->putstr("AB");
+  {
+    // first, a 2x1 with "AB"
+    auto nn = std::make_shared<Plane>(1, 2, 1, 16);
+    nn->set_fg_rgb8(0xc0, 0x80, 0xc0);
+    nn->set_bg_rgb8(0x20, 0x00, 0x20);
+    nn->set_base("", 0, CHANNELS_RGB_INITIALIZER(0xc0, 0x80, 0xc0, 0x20, 0, 0x20));
+    nn->putstr("AB");
 
-  n->set_fg_rgb8(0x80, 0xc0, 0x80);
-  n->set_bg_rgb8(0x00, 0x40, 0x00);
-  n->putstr("\xe5\xbd\xa2\xe5\x85\xa8");
-  n->putstr(1, 0, "\xe5\xbd\xa2\xe5\x85\xa8");
-  n->putstr(2, 0, "\xe5\xbd\xa2\xe5\x85\xa8");
-  n->putstr(3, 0, "\xe5\xbd\xa2\xe5\x85\xa8");
-  n->putstr(4, 0, "abcdef");
-  n->putstr(5, 0, "abcdef");
-  n->putstr(6, 0, "abcdef");
-  n->putstr(7, 0, "abcdef");
-  nc.render();
-  sleep(1);
+    n->set_fg_rgb8(0x80, 0xc0, 0x80);
+    n->set_bg_rgb8(0x00, 0x40, 0x00);
+    n->putstr("\xe5\xbd\xa2\xe5\x85\xa8");
+    n->putstr(1, 0, "\xe5\xbd\xa2\xe5\x85\xa8");
+    n->putstr(2, 0, "\xe5\xbd\xa2\xe5\x85\xa8");
+    n->putstr(3, 0, "\xe5\xbd\xa2\xe5\x85\xa8");
+    n->putstr(4, 0, "abcdef");
+    n->putstr(5, 0, "abcdef");
+    n->putstr(6, 0, "abcdef");
+    n->putstr(7, 0, "abcdef");
+    nc.render();
+    sleep(1);
 
-  stomper(nc, nn);
-  if(nn->putstr(0, 0, "\xe5\xbd\xa1") <= 0){
-    return EXIT_FAILURE;
+    stomper(nc, nn);
+    if(nn->putstr(0, 0, "\xe5\xbd\xa1") <= 0){
+      return EXIT_FAILURE;
+    }
+    stomper(nc, nn);
+    nn->erase();
+    if(nn->putstr(0, 0, "r") <= 0){
+      return EXIT_FAILURE;
+    }
+    stomper(nc, nn);
   }
-  stomper(nc, nn);
-  nn->erase();
+
+  // now a 1x1 "*"
+  auto nn = std::make_shared<Plane>(1, 1, 1, 16);
   if(nn->putstr(0, 0, "r") <= 0){
     return EXIT_FAILURE;
   }
   stomper(nc, nn);
-
   return EXIT_SUCCESS;
 }
