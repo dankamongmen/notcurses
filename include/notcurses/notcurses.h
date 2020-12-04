@@ -729,22 +729,20 @@ cellcmp(const struct ncplane* n1, const cell* RESTRICT c1,
 // Load a 7-bit char 'ch' into the cell 'c'.
 static inline int
 cell_load_char(struct ncplane* n, cell* c, char ch){
-  cell_release(n, c);
-  // FIXME don't allow non-printing garbage
-  c->channels &= ~(CELL_WIDEASIAN_MASK | CELL_NOBACKGROUND_MASK);
-  c->gcluster = htole((uint32_t)ch);
-  return 1;
+  char gcluster[2];
+  gcluster[0] = ch;
+  gcluster[1] = '\0';
+  return cell_load(n, c, gcluster);
 }
 
 // Load a UTF-8 encoded EGC of up to 4 bytes into the cell 'c'.
 static inline int
 cell_load_egc32(struct ncplane* n, cell* c, uint32_t egc){
-  cell_release(n, c);
-  // FIXME don't allow non-printing garbage, nor invalid forms
-  // FIXME this might well be a wide egc, augh
-  c->channels &= ~(CELL_WIDEASIAN_MASK | CELL_NOBACKGROUND_MASK);
-  c->gcluster = htole(egc);
-  return 1;
+  char gcluster[sizeof(egc) + 1];
+  egc = htole(egc);
+  memcpy(gcluster, &egc, sizeof(egc));
+  gcluster[4] = '\0';
+  return cell_load(n, c, gcluster);
 }
 
 // These log levels consciously map cleanly to those of libav; Notcurses itself
@@ -1406,9 +1404,6 @@ ncplane_putc(struct ncplane* n, const cell* c){
   return ncplane_putc_yx(n, -1, -1, c);
 }
 
-// Replace the EGC underneath us, but retain the styling. The current styling
-// of the plane will not be changed.
-//
 // Replace the cell at the specified coordinates with the provided 7-bit char
 // 'c'. Advance the cursor by 1. On success, returns 1. On failure, returns -1.
 // This works whether the underlying char is signed or unsigned.

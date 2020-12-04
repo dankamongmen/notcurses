@@ -104,8 +104,8 @@ TEST_CASE("Wide") {
     }
   }
 
-  // Placing a wide char to the immediate left of any other char ought obliterate
-  // that cell.
+  // Placing a wide char to the immediate left of any other char ought
+  // obliterate that cell.
   SUBCASE("WideCharAnnihilatesRight") {
     const char* w = FROG;
     const char* wbashed = SCORPION;
