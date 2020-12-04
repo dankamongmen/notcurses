@@ -2,6 +2,7 @@
 
 use crate::{ncreader_create, NcPlane, NcReader, NcReaderOptions};
 
+/// # `NcReader` Constructors
 impl NcReader {
     /// `NcReader` simple constructor
     pub unsafe fn new<'a>(plane: &mut NcPlane) -> &'a mut Self {
@@ -14,6 +15,7 @@ impl NcReader {
     }
 }
 
+/// # `NcReaderOptions` Constructors
 impl NcReaderOptions {
     /// `NcReaderOptions` simple constructor
     pub fn new() -> Self {

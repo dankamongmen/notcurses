@@ -7,6 +7,7 @@ use crate::{
     NcPlane,
 };
 
+/// # `NcMenu` Constructors
 impl NcMenu {
     /// `NcMenu` simple constructor
     pub unsafe fn new<'a>(plane: &mut NcPlane) -> &'a mut Self {
@@ -19,6 +20,7 @@ impl NcMenu {
     }
 }
 
+/// # `NcMenuOptions` Constructors
 impl NcMenuOptions {
     /// `NcMenuOptions` simple constructor
     pub fn new() -> Self {
@@ -52,6 +54,7 @@ impl NcMenuOptions {
     }
 }
 
+/// # `NcMenuItem` Constructors
 impl NcMenuItem {
     /// `NcMenuItem` simple constructor
     pub fn new(mut desc: i8, shortcut: NcInput) -> Self {
@@ -65,6 +68,7 @@ impl NcMenuItem {
     }
 }
 
+/// # `NcMenuSection` Constructors
 impl NcMenuSection {
     /// `NcMenuSection` simple constructor
     pub fn new(name: &str, itemcount: i32, items: &mut [NcMenuItem], shortcut: NcInput) -> Self {
