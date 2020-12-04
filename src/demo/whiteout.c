@@ -34,7 +34,7 @@ mathplane(struct notcurses* nc){
   ncplane_set_bg_rgb(n, 0x0);
   if(n){
     ncplane_printf_aligned(n, 0, NCALIGN_RIGHT, "∮E⋅da=Q,n→∞,∑f(i)=∏g(i)╭╭╭       ╮╮╮");
-    ncplane_printf_aligned(n, 1, NCALIGN_RIGHT, "│││ 8πG   ││⎪");
+    ncplane_printf_aligned(n, 1, NCALIGN_RIGHT, "│││ 8πG   │││");
     ncplane_printf_aligned(n, 2, NCALIGN_RIGHT, "∀x∈ℝ:⌈x⌉=−⌊−x⌋,α∧¬β=¬(¬α∨β)│││ ───Tμν│││");
     ncplane_printf_aligned(n, 3, NCALIGN_RIGHT, "│││  c⁴   │││");
     ncplane_printf_aligned(n, 4, NCALIGN_RIGHT, "ℕ⊆ℕ₀⊂ℤ⊂ℚ⊂ℝ⊂ℂ(z̄=ℜ(z)−ℑ(z)⋅𝑖)⎨││       ││⎬");
@@ -462,7 +462,7 @@ int witherworm_demo(struct notcurses* nc){
     cell c;
     struct timespec screenend;
     clock_gettime(CLOCK_MONOTONIC, &screenend);
-    ns_to_timespec(timespec_to_ns(&screenend) + 2 * timespec_to_ns(&demodelay), &screenend);
+    ns_to_timespec(timespec_to_ns(&screenend) + timespec_to_ns(&demodelay), &screenend);
     do{ // (re)draw a screen
       const int start = starts[i];
       int step = steps[i];
@@ -572,7 +572,9 @@ int witherworm_demo(struct notcurses* nc){
         if( (err = worm_move(nc, &wctx, maxy, maxx)) ){
           break;
         }
-        key = demo_getc_nblock(nc, NULL);
+        struct timespec ts;
+        ns_to_timespec(timespec_to_ns(&demodelay) / 10000, &ts);
+        key = demo_getc(nc, &ts, NULL);
         clock_gettime(CLOCK_MONOTONIC, &cur);
         if(timespec_to_ns(&screenend) < timespec_to_ns(&cur)){
           break;
