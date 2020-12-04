@@ -544,6 +544,18 @@ typedef struct cell {
   // gcluster_backstop field, see below) is guaranteed to be zero, as are any
   // unused bytes in gcluster.
   //
+  // The gcluster + gcluster_backstop thus form a valid C string of between 0
+  // and 4 non-NUL bytes. Interpreting them in this fashion requires that
+  // gcluster be stored as a little-endian number (strings have no byte order).
+  // This gives rise to three simple rules:
+  //
+  //  * when storing to gcluster from a numeric, always use htole()
+  //  * when loading from gcluster for numeric use, always use htole()
+  //  * when referencing gcluster as a string, always use a pointer cast
+  //
+  // Uses of gcluster ought thus always have exactly one htole() or pointer
+  // cast associated with them, and we otherwise always work as host-endian.
+  //
   // A spilled EGC is indicated by the value 0x01XXXXXX. This cannot alias a
   // true supra-ASCII EGC, because UTF-8 only encodes bytes <= 0x80 when they
   // are single-byte ASCII-derived values. The XXXXXX is interpreted as a 24-bit
@@ -552,7 +564,7 @@ typedef struct cell {
   // The cost of this scheme is that the character 0x01 (SOH) cannot be encoded
   // in a cell, which is absolutely fine because what 70s horseshit is SOH? It
   // must not be allowed through the API, or havoc will result.
-  uint32_t gcluster;          // 4B → 4B
+  uint32_t gcluster;          // 4B → 4B little endian EGC
   uint8_t gcluster_backstop;  // 1B → 5B (8 bits of zero)
   uint8_t reserved;           // 1B → 6B (8 reserved bits, ought be zero)
   uint16_t stylemask;         // 2B → 8B (16 bits of NCSTYLE_* attributes)
@@ -578,6 +590,8 @@ typedef struct cell {
 } cell;
 
 #define CELL_TRIVIAL_INITIALIZER { .gcluster = 0, .gcluster_backstop = 0, .reserved = 0, .stylemask = 0, .channels = 0, }
+// do *not* load control characters nor invalid EGCs using these macros! there
+// is no way for us to protect against such misuse here. problems *will* ensue.
 #define CELL_CHAR_INITIALIZER(c) { .gcluster = (htole(c)), .gcluster_backstop = 0, .reserved = 0, .stylemask = 0, .channels = 0, }
 #define CELL_INITIALIZER(c, s, chan) { .gcluster = (htole(c)), .gcluster_backstop = 0, .reserved = 0, .stylemask = (s), .channels = (chan), }
 
