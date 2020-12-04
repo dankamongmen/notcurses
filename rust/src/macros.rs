@@ -1,5 +1,7 @@
 //! Macros
 
+// General Utility Macros ------------------------------------------------------
+
 /// Sleeps for $ms milliseconds
 #[macro_export]
 macro_rules! sleep {
@@ -13,5 +15,5 @@ macro_rules! sleep {
 macro_rules! cstring {
     ($s:expr) => {
         std::ffi::CString::new($s).unwrap().as_ptr();
-    }
+    };
 }

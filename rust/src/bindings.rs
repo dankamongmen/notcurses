@@ -304,9 +304,11 @@ pub use bindgen::{
 #[doc(inline)]
 pub use bindgen::{
     // functions
+    ncpile_bottom,
     ncpile_create,
     ncpile_rasterize,
     ncpile_render,
+    ncpile_top,
 };
 
 // ncplane ---------------------------------------------------------------------

@@ -1,21 +1,4 @@
-// -----------------------------------------------------------------------------
-// Now none of these functions can't fail and therefore don't return errors.
-// -----------------------------------------------------------------------------
-//
-// functions already exported by bindgen : 3
-// -----------------------------------------
-// palette256_free
-// palette256_new
-// palette256_use
-//
-// static inline functions total: 3
-// ----------------------------------------- (done / remaining)
-// (+) implement : 3 / 0
-// (#) unit tests: 0 / 3
-// -----------------------------------------
-//+ palette256_get_rgb
-//+ palette256_set
-//+ palette256_set_rgb
+//! `palette256_*` reimplemented functions.
 
 use crate::{
     channel_rgb8, channel_set, channel_set_rgb8, NcChannel, NcColor, NcPalette, NcPaletteIndex,
@@ -50,16 +33,4 @@ pub fn palette256_get_rgb(
     blue: &mut NcColor,
 ) -> NcChannel {
     channel_rgb8(palette.chans[idx as usize], red, green, blue)
-}
-
-#[cfg(test)]
-mod test {
-    // use super::nc;
-    // use serial_test::serial;
-    /*
-    #[test]
-    #[serial]
-    fn () {
-    }
-    */
 }

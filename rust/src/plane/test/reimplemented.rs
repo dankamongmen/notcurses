@@ -1,4 +1,4 @@
-//! [`NcPlane`] tests
+//! Test `ncplane_*` reimplemented functions.
 
 use crate::{notcurses_stop, NcPlane, NcPlaneOptions, Notcurses, NCRESULT_OK};
 use serial_test::serial;
@@ -233,3 +233,25 @@ fn ncplane_erase() {
         notcurses_stop(nc);
     }
 }
+
+// #[test]
+// #[serial]
+// fn ncplane_at_cursor() {
+//     unsafe {
+//         let nc = Notcurses::new();
+//         let plane = NcPlane::new(nc, 0, 0, 20, 20);
+//
+//         notcurses_stop(nc);
+//     }
+// }
+//
+// #[test]
+// #[serial]
+// fn ncplane_at_cursor_cell() {
+//     unsafe {
+//         let nc = Notcurses::new();
+//         let plane = NcPlane::new(nc, 0, 0, 20, 20);
+//
+//         notcurses_stop(nc);
+//     }
+// }

@@ -1,53 +1,48 @@
-//! `NcReader` widget
+//! `NcReader` widget.
 
 // functions already exported by bindgen : 11
 // ------------------------------------------
-// ncreader_clear
-// ncreader_contents
-// ncreader_create
-// ncreader_destroy
-// ncreader_move_down
-// ncreader_move_left
-// ncreader_move_right
-// ncreader_move_up
-// ncreader_offer_input
-// ncreader_plane
-// ncreader_write_egc
-//
-// static inline functions total: 0
-// -------------------------------------------
+//  ncreader_clear
+//  ncreader_contents
+//  ncreader_create
+//  ncreader_destroy
+//  ncreader_move_down
+//  ncreader_move_left
+//  ncreader_move_right
+//  ncreader_move_up
+//  ncreader_offer_input
+//  ncreader_plane
+//  ncreader_write_egc
 
-mod types;
-pub use types::{NcReader, NcReaderOptions};
-pub use types::{
-    NCREADER_OPTION_CURSOR, NCREADER_OPTION_HORSCROLL, NCREADER_OPTION_NOCMDKEYS,
-    NCREADER_OPTION_VERSCROLL,
-};
+mod methods;
 
-use crate::{ncreader_create, NcPlane};
+/// Provides a freeform input in a (possibly multiline) region
+///
+/// Supports optional readline keybindings (opt out using
+/// NCREADER_OPTION_NOCMDKEYS flag)
+///
+/// Takes ownership of its [`NcPlane`], destroying it on any
+/// error (`ncreader_destroy`() otherwise destroys the ncplane).
+///
+/// `type in C: ncreader (struct)`
+///
+pub type NcReader = crate::bindings::bindgen::ncreader;
 
-impl NcReader {
-    /// `NcReader` simple constructor
-    pub unsafe fn new<'a>(plane: &mut NcPlane) -> &'a mut Self {
-        Self::with_options(plane, &NcReaderOptions::new())
-    }
+/// Options struct for [`NcReader`]
+///
+/// `type in C: ncreader_options (struct)`
+///
+pub type NcReaderOptions = crate::bindings::bindgen::ncreader_options;
 
-    /// `NcReader` constructor with options
-    pub unsafe fn with_options<'a>(plane: &mut NcPlane, options: &NcReaderOptions) -> &'a mut Self {
-        &mut *ncreader_create(plane, options)
-    }
-}
+/// Make the terminal cursor visible across the lifetime of the ncreader, and
+/// have the ncreader manage the cursor's placement.
+pub const NCREADER_OPTION_CURSOR: u32 = crate::bindings::bindgen::NCREADER_OPTION_CURSOR;
 
-impl NcReaderOptions {
-    /// `NcReaderOptions` simple constructor
-    pub fn new() -> Self {
-        Self {
-            // channels used for input
-            tchannels: 0,
-            // attributes used for input
-            tattrword: 0,
-            // bitfield of NCREADER_OPTION_*
-            flags: 0,
-        }
-    }
-}
+/// Enable horizontal scrolling. Virtual lines can then grow arbitrarily long.
+pub const NCREADER_OPTION_HORSCROLL: u32 = crate::bindings::bindgen::NCREADER_OPTION_HORSCROLL;
+
+/// Disable all editing shortcuts. By default, emacs-style keys are available.
+pub const NCREADER_OPTION_NOCMDKEYS: u32 = crate::bindings::bindgen::NCREADER_OPTION_NOCMDKEYS;
+
+/// Enable vertical scrolling. You can then use arbitrarily many virtual lines.
+pub const NCREADER_OPTION_VERSCROLL: u32 = crate::bindings::bindgen::NCREADER_OPTION_VERSCROLL;

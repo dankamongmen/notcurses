@@ -1,4 +1,4 @@
-//! [`Notcurses`] tests
+//! Test `notcurses_*` reimplemented functions.
 
 use serial_test::serial;
 use std::io::Read;

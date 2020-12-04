@@ -1,4 +1,4 @@
-//! Handy [`NcPlane`] and [`NcPlaneOptions`] constructors
+//! `NcPlane*` methods and associated functions.
 
 use core::ptr::{null, null_mut};
 
@@ -10,7 +10,8 @@ use crate::{
 
 // for methods
 use crate::{
-    NcCell, NcResult, ncplane_cursor_yx, ncplane_dim_yx, ncplane_erase, ncplane_putc, ncplane_putc_yx,
+    ncpile_bottom, ncpile_top, ncplane_cursor_yx, ncplane_dim_yx, ncplane_erase, ncplane_putc,
+    ncplane_putc_yx, NcCell, NcResult,
 };
 
 /// # `NcPlaneOptions` Constructors
@@ -104,6 +105,11 @@ impl NcPlane {
 
 /// # `NcPlane` Methods
 impl NcPlane {
+    /// Returns the bottommost [NcPlane] of the pile that contains this [NnPlane].
+    pub fn bottom<'a>(&mut self) -> &'a mut NcPlane {
+        unsafe { &mut *ncpile_bottom(self) }
+    }
+
     /// Returns the current position of the cursor within the [NcPlane].
     ///
     /// Unlike [ncplane_cursor_yx] which uses `i32`, this uses [u32].
@@ -112,7 +118,7 @@ impl NcPlane {
     // FIXME: CHECK for NULL and return Some() or None.
     pub fn cursor_yx(&self) -> (u32, u32) {
         let (mut y, mut x) = (0, 0);
-        unsafe {ncplane_cursor_yx(self, &mut y, &mut x)};
+        unsafe { ncplane_cursor_yx(self, &mut y, &mut x) };
         (y as u32, x as u32)
     }
 
@@ -131,7 +137,7 @@ impl NcPlane {
     /// Unlike [ncplane_dim_yx] which uses `i32`, this uses [u32].
     pub fn dim_yx(&self) -> (u32, u32) {
         let (mut y, mut x) = (0, 0);
-        unsafe {ncplane_dim_yx(self, &mut y, &mut x)};
+        unsafe { ncplane_dim_yx(self, &mut y, &mut x) };
         (y as u32, x as u32)
     }
 
@@ -158,9 +164,14 @@ impl NcPlane {
     pub fn putc_yx(&mut self, y: i32, x: i32, cell: &NcCell) -> NcResult {
         unsafe { ncplane_putc_yx(self, y, x, cell) }
     }
-    
+
     ///
     pub fn putc(&mut self, cell: &NcCell) -> NcResult {
         ncplane_putc(self, cell)
+    }
+
+    /// Returns the topmost [NcPlane] of the pile that contains this [NnPlane].
+    pub fn top<'a>(&mut self) -> &'a mut NcPlane {
+        unsafe { &mut *ncpile_top(self) }
     }
 }

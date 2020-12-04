@@ -1,4 +1,4 @@
-//! [NcCell] `cell*_*` static functions reimplementations
+//! `NcCell`
 
 // functions already exported by bindgen : 6
 // -----------------------------------------
@@ -9,498 +9,384 @@
 // cells_double_box
 // cells_rounded_box
 //
-// static inline functions total: 42
-// ------------------------------------------ (implement / remaining)
+// functions manually reimplemented: 42
+// ------------------------------------------
 // (X) wont:  2
 // (+) done: 40 /  0
+// (W) wrap:  1 / 39
 // (#) test:  26 / 14
 // ------------------------------------------
-//# cell_bchannel
-//# cell_bg_alpha
-//# cell_bg_default_p
-//# cell_bg_palindex
-//# cell_bg_palindex_p
-//# cell_bg_rgb
-//# cell_bg_rgb8
-//+ cellcmp
-//+ cell_double_wide_p
-//+ cell_extract
-//# cell_fchannel
-//# cell_fg_alpha
-//# cell_fg_default_p
-//# cell_fg_palindex
-//# cell_fg_palindex_p
-//# cell_fg_rgb
-//# cell_fg_rgb8
-//+ cell_init
-//+ cell_load_char
-//+ cell_prime
-//# cell_set_bchannel
-//# cell_set_bg_alpha
-//# cell_set_bg_default
-//# cell_set_bg_palindex
-//# cell_set_bg_rgb
-//# cell_set_bg_rgb8
-//X cell_set_bg_rgb8_clipped   // unneeded
-//# cell_set_fchannel
-//# cell_set_fg_alpha
-//# cell_set_fg_default
-//# cell_set_fg_palindex
-//# cell_set_fg_rgb
-//# cell_set_fg_rgb8
-//X cell_set_fg_rgb8_clipped   // unneeded
-//+ cells_load_box
-//+ cell_strdup
-//+ cell_styles
-//+ cell_styles_off
-//+ cell_styles_on
-//+ cell_styles_set
-//+ cell_wide_left_p
-//+ cell_wide_right_p
+// # cell_bchannel
+// # cell_bg_alpha
+// # cell_bg_default_p
+// # cell_bg_palindex
+// # cell_bg_palindex_p
+// # cell_bg_rgb
+// # cell_bg_rgb8
+// + cellcmp
+// + cell_double_wide_p
+//W+ cell_extract
+// # cell_fchannel
+// # cell_fg_alpha
+// # cell_fg_default_p
+// # cell_fg_palindex
+// # cell_fg_palindex_p
+// # cell_fg_rgb
+// # cell_fg_rgb8
+// + cell_init
+// + cell_load_char
+// + cell_prime
+// # cell_set_bchannel
+// # cell_set_bg_alpha
+// # cell_set_bg_default
+// # cell_set_bg_palindex
+// # cell_set_bg_rgb
+// # cell_set_bg_rgb8
+// X cell_set_bg_rgb8_clipped   // unneeded
+// # cell_set_fchannel
+// # cell_set_fg_alpha
+// # cell_set_fg_default
+// # cell_set_fg_palindex
+// # cell_set_fg_rgb
+// # cell_set_fg_rgb8
+// X cell_set_fg_rgb8_clipped   // unneeded
+// + cells_load_box
+// + cell_strdup
+// + cell_styles
+// + cell_styles_off
+// + cell_styles_on
+// + cell_styles_set
+// + cell_wide_left_p
+// + cell_wide_right_p
 
 #[cfg(test)]
-mod tests;
+mod test;
 
-mod types;
-pub use types::{
-    NcCell, NcChar, NcCharBackstop, NcStyleMask, NCCELL_ALPHA_BLEND, NCCELL_ALPHA_HIGHCONTRAST,
-    NCCELL_ALPHA_OPAQUE, NCCELL_ALPHA_TRANSPARENT, NCCELL_BGDEFAULT_MASK, NCCELL_BG_ALPHA_MASK,
-    NCCELL_BG_PALETTE, NCCELL_BG_RGB_MASK, NCCELL_FGDEFAULT_MASK, NCCELL_FG_ALPHA_MASK,
-    NCCELL_FG_PALETTE, NCCELL_FG_RGB_MASK, NCCELL_NOBACKGROUND_MASK, NCCELL_WIDEASIAN_MASK,
-    NCSTYLE_BLINK, NCSTYLE_BOLD, NCSTYLE_DIM, NCSTYLE_INVIS, NCSTYLE_ITALIC, NCSTYLE_MASK,
-    NCSTYLE_NONE, NCSTYLE_PROTECT, NCSTYLE_REVERSE, NCSTYLE_STANDOUT, NCSTYLE_STRUCK,
-    NCSTYLE_UNDERLINE,
-};
+mod methods;
+mod reimplemented;
+pub use reimplemented::*;
 
-mod wrapped;
-pub use wrapped::*;
-
-use libc::strcmp;
-
-use crate::{
-    cell_extended_gcluster, cell_load, cell_release, channels_bchannel, channels_bg_alpha,
-    channels_bg_default_p, channels_bg_palindex_p, channels_bg_rgb, channels_bg_rgb8,
-    channels_fchannel, channels_fg_alpha, channels_fg_default_p, channels_fg_palindex_p,
-    channels_fg_rgb, channels_fg_rgb8, channels_set_bchannel, channels_set_bg_alpha,
-    channels_set_bg_default, channels_set_bg_rgb, channels_set_bg_rgb8, channels_set_fchannel,
-    channels_set_fg_alpha, channels_set_fg_default, channels_set_fg_rgb, channels_set_fg_rgb8,
-    NcAlphaBits, NcChannel, NcChannelPair, NcColor, NcPaletteIndex, NcPlane, NcResult, NcRgb,
-    NCRESULT_ERR, NCRESULT_OK,
-};
-
-/// Same as [cell_load], plus blasts the styling with 'style' and 'channels'.
+// NcCell
+/// A coordinate on an [`NcPlane`] storing 128 bits of data
 ///
-/// - Breaks the UTF-8 string in 'gcluster' down, setting up the cell 'cell'.
-/// - Returns the number of bytes copied out of 'gcluster', or -1 on failure.
-/// - The styling of the cell is left untouched, but any resources are released.
-/// - Blasts the styling with 'style' and 'channels'.
+/// An `NcCell` corresponds to a single character cell on some [`NcPlane`],
+/// which can be occupied by a single [`NcEgc`] grapheme cluster (some root
+/// spacing glyph, along with possible combining characters, which might span
+/// multiple columns).
 ///
-#[allow(unused_unsafe)]
-pub unsafe fn cell_prime(
-    plane: &mut NcPlane,
-    cell: &mut NcCell,
-    gcluster: NcChar,
-    style: NcStyleMask,
-    channels: NcChannelPair,
-) -> NcResult {
-    cell.stylemask = style;
-    cell.channels = channels;
-    unsafe { cell_load(plane, cell, gcluster as u32 as *const i8) }
-}
-
-/// Loads up six cells with the [NcChar]s necessary to draw a box.
+/// At any `NcCell`, we can have a theoretically arbitrarily long UTF-8 string,
+/// a foreground color, a background color, and an [`NcStyleMask`] attribute set.
 ///
-/// Returns [NCRESULT_OK] on success, [NCRESULT_ERR] on error.
+/// Valid grapheme cluster contents include:
 ///
-/// On error, any [NcCell]s this function might have loaded before the error
-/// are [cell_release]d. There must be at least six [NcChar]s in gcluster.
+/// - A NUL terminator,
+/// - A single [control character](https://en.wikipedia.org/wiki/Control_character),
+///   followed by a NUL terminator,
+/// - At most one [spacing
+/// character](https://en.wikipedia.org/wiki/Graphic_character#Spacing_character),
+///   followed by zero or more nonspacing characters, followed by a NUL terminator.
 ///
-#[allow(unused_unsafe)]
-pub unsafe fn cells_load_box(
-    plane: &mut NcPlane,
-    style: NcStyleMask,
-    channels: NcChannelPair,
-    ul: &mut NcCell,
-    ur: &mut NcCell,
-    ll: &mut NcCell,
-    lr: &mut NcCell,
-    hl: &mut NcCell,
-    vl: &mut NcCell,
-    gcluster: NcChar,
-) -> NcResult {
-    // mutable copy for pointer arithmetics:
-    let mut gclu = gcluster as u32 as *const i8;
-    let mut ulen: NcResult;
-
-    ulen = unsafe { cell_prime(plane, ul, gcluster, style, channels) };
-
-    if ulen > 0 {
-        gclu = unsafe { gclu.offset(ulen as isize) };
-        ulen = unsafe { cell_prime(plane, ur, gcluster, style, channels) };
-
-        if ulen > 0 {
-            gclu = unsafe { gclu.offset(ulen as isize) };
-            ulen = unsafe { cell_prime(plane, ll, gcluster, style, channels) };
-
-            if ulen > 0 {
-                gclu = unsafe { gclu.offset(ulen as isize) };
-                ulen = unsafe { cell_prime(plane, lr, gcluster, style, channels) };
-
-                if ulen > 0 {
-                    gclu = unsafe { gclu.offset(ulen as isize) };
-                    ulen = unsafe { cell_prime(plane, hl, gcluster, style, channels) };
-
-                    if ulen > 0 {
-                        let _gclu = unsafe { gclu.offset(ulen as isize) };
-                        ulen = unsafe { cell_prime(plane, vl, gcluster, style, channels) };
-
-                        if ulen > 0 {
-                            return NCRESULT_OK;
-                        }
-                        unsafe {
-                            cell_release(plane, hl);
-                        }
-                    }
-                    unsafe {
-                        cell_release(plane, lr);
-                    }
-                }
-                unsafe {
-                    cell_release(plane, ll);
-                }
-            }
-            unsafe {
-                cell_release(plane, ur);
-            }
-        }
-        unsafe {
-            cell_release(plane, ul);
-        }
-    }
-    NCRESULT_ERR
-}
-
-/// Initializes (zeroes out) an [NcCell].
-#[inline]
-pub fn cell_init(cell: &mut NcCell) {
-    *cell = unsafe { core::mem::zeroed() }
-}
-
-/// Sets *just* the specified [NcStyleMask] bits for an [NcCell],
-/// whether they're actively supported or not.
-#[inline]
-pub fn cell_styles_set(cell: &mut NcCell, stylebits: NcStyleMask) {
-    cell.stylemask = stylebits & NCSTYLE_MASK as u16;
-}
-
-/// Extracts the [NcStyleMask] bits from an [NcCell].
-#[inline]
-pub fn cell_styles(cell: &NcCell) -> NcStyleMask {
-    cell.stylemask
-}
-
-/// Adds the specified [NcStyleMask] bits to an [NcCell]'s existing spec.,
-/// whether they're actively supported or not.
-#[inline]
-pub fn cell_styles_on(cell: &mut NcCell, stylebits: NcStyleMask) {
-    cell.stylemask |= stylebits & NCSTYLE_MASK as u16;
-}
-
-/// Removes the specified [NcStyleMask] bits from an [NcCell]'s existing spec.
-#[inline]
-pub fn cell_styles_off(cell: &mut NcCell, stylebits: NcStyleMask) {
-    cell.stylemask &= !(stylebits & NCSTYLE_MASK as u16);
-}
-
-/// Indicates to use the "default color" for the **foreground** [NcChannel]
-/// of an [NcCell].
-#[inline]
-pub fn cell_set_fg_default(cell: &mut NcCell) {
-    channels_set_fg_default(&mut cell.channels);
-}
-
-/// Indicates to use the "default color" for the **background** [NcChannel]
-/// of an [NcCell].
-#[inline]
-pub fn cell_set_bg_default(cell: &mut NcCell) {
-    channels_set_bg_default(&mut cell.channels);
-}
-
-/// Sets the foreground [NcAlphaBits] of an [NcCell].
-#[inline]
-pub fn cell_set_fg_alpha(cell: &mut NcCell, alpha: NcAlphaBits) {
-    channels_set_fg_alpha(&mut cell.channels, alpha);
-}
-
-/// Sets the background [NcAlphaBits] of an [NcCell].
-#[inline]
-pub fn cell_set_bg_alpha(cell: &mut NcCell, alpha: NcAlphaBits) {
-    channels_set_bg_alpha(&mut cell.channels, alpha);
-}
-
-/// Does the [NcCell] contain an East Asian Wide codepoint?
-// NOTE: remove casting when fixed:
-// https://github.com/rust-lang/rust-bindgen/issues/1875
-#[inline]
-pub fn cell_double_wide_p(cell: &NcCell) -> bool {
-    (cell.channels & NCCELL_WIDEASIAN_MASK as NcChannelPair) != 0
-}
-
-/// Is this the right half of a wide character?
-#[inline]
-pub fn cell_wide_right_p(cell: &NcCell) -> bool {
-    cell_double_wide_p(cell) && cell.gcluster == 0
-}
-
-/// Is this the left half of a wide character?
-#[inline]
-pub fn cell_wide_left_p(cell: &NcCell) -> bool {
-    cell_double_wide_p(cell) && cell.gcluster != 0
-}
-
-/// Copies the UTF8-encoded [NcChar] out of the cell, whether simple
-/// or complex.
+/// ## Diagram
 ///
-/// The result is not tied to the [NcPlane], and persists
-/// across erases and destruction.
-#[inline]
-pub fn cell_strdup(plane: &NcPlane, cell: &NcCell) -> NcChar {
-    core::char::from_u32(unsafe { libc::strdup(cell_extended_gcluster(plane, cell)) } as i32 as u32)
-        .expect("wrong char")
-
-    // unsafer option B (maybe faster, TODO: bench)
-    // unsafe {
-    //     core::char::from_u32_unchecked(libc::strdup(cell_extended_gcluster(plane, cell)) as i32 as u32)
-    // }
-}
-
-/// Saves the [NcStyleMask] and [NcChannelPair] and returns the [NcChar]
-/// (the three elements of an [NcCell].
-#[inline]
-pub fn cell_extract(
-    plane: &NcPlane,
-    cell: &NcCell,
-    stylemask: &mut NcStyleMask,
-    channels: &mut NcChannelPair,
-) -> NcChar {
-    if *stylemask != 0 {
-        *stylemask = cell.stylemask;
-    }
-    if *channels != 0 {
-        *channels = cell.channels;
-    }
-    cell_strdup(plane, cell)
-}
-
-/// Returns true if the two cells are distinct [NcChar]s, attributes, or channels
+/// ```txt
+/// NcCell: 128 bits structure comprised of the following 5 elements:
 ///
-/// The actual egcpool index needn't be the same--indeed, the planes needn't even
-/// be the same. Only the expanded NcChar must be equal. The NcChar must be bit-equal;
-// NOTE: FIXME: it would probably be better to test whether they're Unicode-equal
-#[inline]
-pub fn cellcmp(plane1: &NcPlane, cell1: &NcCell, plane2: &NcPlane, cell2: &NcCell) -> bool {
-    if cell1.stylemask != cell2.stylemask {
-        return true;
-    }
-    if cell1.channels != cell2.channels {
-        return true;
-    }
-    unsafe {
-        strcmp(
-            cell_extended_gcluster(plane1, cell1),
-            cell_extended_gcluster(plane2, cell2),
-        ) != 0
-    }
-}
-
-/// Loads a 7-bit char into the [NcCell].
-// NOTE: remove casting for NCCELL_WIDEASIAN_MASK when fixed: https://github.com/rust-lang/rust-bindgen/issues/1875
-#[inline]
-pub fn cell_load_char(plane: &mut NcPlane, cell: &mut NcCell, ch: NcChar) -> i32 {
-    unsafe {
-        cell_release(plane, cell);
-    }
-    cell.channels &= !(NCCELL_WIDEASIAN_MASK as NcChannelPair | NCCELL_NOBACKGROUND_MASK);
-    cell.gcluster = ch as u32;
-    1
-}
-
-/// Extracts the 32-bit background [NcChannel] from an [NcCell].
-#[inline]
-pub fn cell_bchannel(cell: &NcCell) -> NcChannel {
-    channels_bchannel(cell.channels)
-}
-
-/// Extracts the 32-bit foreground [NcChannel] from an [NcCell].
-#[inline]
-pub fn cell_fchannel(cell: &NcCell) -> NcChannel {
-    channels_fchannel(cell.channels)
-}
-
-/// Sets the 32-bit background [NcChannel] of an [NcCell] and returns its new
-/// [NcChannelPair].
-#[inline]
-pub fn cell_set_bchannel(cell: &mut NcCell, channel: NcChannel) -> NcChannelPair {
-    channels_set_bchannel(&mut cell.channels, channel)
-}
-
-/// Sets the 32-bit foreground [NcChannel] of an [NcCell] and returns its new
-/// [NcChannelPair].
-#[inline]
-pub fn cell_set_fchannel(cell: &mut NcCell, channel: NcChannel) -> NcChannelPair {
-    channels_set_fchannel(&mut cell.channels, channel)
-}
-
-/// Extracts the foreground [NcRgb] 24-bit value from an [NcCell]
-/// (shifted to LSBs).
-#[inline]
-pub fn cell_fg_rgb(cell: &NcCell) -> NcRgb {
-    channels_fg_rgb(cell.channels)
-}
-
-/// Extracts the background [NcRgb] 24-bit value from an [NcCell]
-/// (shifted to LSBs).
-#[inline]
-pub fn cell_bg_rgb(cell: &NcCell) -> NcRgb {
-    channels_bg_rgb(cell.channels)
-}
-
-/// Extracts the foreground [NcAlphaBits] from an [NcCell] (shifted to LSBs).
-#[inline]
-pub fn cell_fg_alpha(cell: &NcCell) -> NcAlphaBits {
-    channels_fg_alpha(cell.channels)
-}
-
-/// Extracts the background [NcAlphaBits] from an [NcCell] (shifted to LSBs).
-#[inline]
-pub fn cell_bg_alpha(cell: &NcCell) -> NcAlphaBits {
-    channels_bg_alpha(cell.channels)
-}
-
-/// Extracts the foreground [NcRgb] 24-bit value from an [NcCell] and saves it
-/// split into three [NcColor] 8-bit components. Also returns the corresponding
-/// [NcChannel] (which can have some extra bits set).
-#[inline]
-pub fn cell_fg_rgb8(
-    cell: &NcCell,
-    red: &mut NcColor,
-    green: &mut NcColor,
-    blue: &mut NcColor,
-) -> NcChannel {
-    channels_fg_rgb8(cell.channels, red, green, blue)
-}
-
-/// Extracts the background [NcRgb] 24-bit value from an [NcCell] and saves it
-/// split into three [NcColor] 8-bit components. Also returns the corresponding
-/// [NcChannel] (which can have some extra bits set).
-#[inline]
-pub fn cell_bg_rgb8(
-    cell: &NcCell,
-    red: &mut NcColor,
-    green: &mut NcColor,
-    blue: &mut NcColor,
-) -> NcChannel {
-    channels_bg_rgb8(cell.channels, red, green, blue)
-}
-
-/// Sets the RGB [NcColor] components for the foreground [NcChannel] of an
-/// [NcCell], and marks it as not using the default color.
-#[inline]
-pub fn cell_set_fg_rgb8(cell: &mut NcCell, red: NcColor, green: NcColor, blue: NcColor) {
-    channels_set_fg_rgb8(&mut cell.channels, red, green, blue);
-}
-
-/// Sets the 24-bit [NcRgb] value for the foreground [NcChannel] of an
-/// [NcCell], and marks it as not using the default color.
-#[inline]
-pub fn cell_set_fg_rgb(cell: &mut NcCell, rgb: NcRgb) {
-    channels_set_fg_rgb(&mut cell.channels, rgb);
-}
-
-/// Sets an [NcCell]'s foreground [NcPaletteIndex].
+/// GCLUSTER GCLUSTER GCLUSTER GCLUSTER  1. NcEgc
+/// 00000000 ~~~~~~~~ 11111111 11111111  2. NcEgcBackstop + 3. reserved + 4. NcStyleMask
+/// ~~AA~~~~ RRRRRRRR GGGGGGGG BBBBBBBB  5. NcChannelPair
+/// ~~AA~~~~ RRRRRRRR GGGGGGGG BBBBBBBB  |
 ///
-/// Also sets [NCCELL_FG_PALETTE] and [NCCELL_ALPHA_OPAQUE],
-/// and clears out [NCCELL_FGDEFAULT_MASK].
+/// 1. (32b) Extended Grapheme Cluster, presented either as:
 ///
-// NOTE: unlike the original C function, this one can't fail
-#[inline]
-pub fn cell_set_fg_palindex(cell: &mut NcCell, index: NcPaletteIndex) {
-    cell.channels |= NCCELL_FGDEFAULT_MASK;
-    cell.channels |= NCCELL_FG_PALETTE;
-    cell_set_fg_alpha(cell, NCCELL_ALPHA_OPAQUE);
-    cell.channels &= 0xff000000ffffffff as NcChannelPair;
-    cell.channels |= (index as NcChannelPair) << 32;
-}
-
-/// Returns the [NcPaletteIndex] of the foreground [NcChannel] of the
-/// [NcCell]
-#[inline]
-pub fn cell_fg_palindex(cell: &NcCell) -> NcPaletteIndex {
-    ((cell.channels & 0xff00000000 as NcChannelPair) >> 32) as NcPaletteIndex
-}
-
-/// Sets the [NcColor] 8-bit RGB components of the background [NcChannel]
-/// of the [NcCell], and marks it as not using the "default color".
-#[inline]
-pub fn cell_set_bg_rgb8(cell: &mut NcCell, red: NcColor, green: NcColor, blue: NcColor) {
-    channels_set_bg_rgb8(&mut cell.channels, red, green, blue);
-}
-
-/// Sets the [NcRgb] 24-bit value for the background [NcChannel] of this
-/// [NcCell], and marks it as not using the default color.
-#[inline]
-pub fn cell_set_bg_rgb(cell: &mut NcCell, rgb: NcRgb) {
-    channels_set_bg_rgb(&mut cell.channels, rgb);
-}
-
-/// Sets an [NcCell]'s background [NcPaletteIndex].
+///     1.1. An NcEgc of up to 4 bytes:
+///     UUUUUUUU UUUUUUUU UUUUUUUU UUUUUUUU
 ///
-/// Also sets [NCCELL_BG_PALETTE] and [NCCELL_ALPHA_OPAQUE],
-/// and clears out [NCCELL_BGDEFAULT_MASK].
+///     1.2. A `0x01` in the first byte, plus 3 bytes with a 24b address to an egcpool:
+///     00000001 IIIIIIII IIIIIIII IIIIIIII
 ///
-// NOTE: unlike the original C function, this one can't fail
-#[inline]
-pub fn cell_set_bg_palindex(cell: &mut NcCell, index: NcPaletteIndex) {
-    cell.channels |= NCCELL_BGDEFAULT_MASK as NcChannelPair;
-    cell.channels |= NCCELL_BG_PALETTE as NcChannelPair;
-    cell_set_bg_alpha(cell, NCCELL_ALPHA_OPAQUE);
-    cell.channels &= 0xffffffffff000000;
-    cell.channels |= index as NcChannelPair;
-}
-
-/// Returns the [NcPaletteIndex] of the background [NcChannel] of the [NcCell]
-#[inline]
-pub fn cell_bg_palindex(cell: &NcCell) -> NcPaletteIndex {
-    (cell.channels & 0xff) as NcPaletteIndex
-}
-
-/// Is the foreground [NcChannel] of this [NcCell] using the
-/// "default foreground color"?
-#[inline]
-pub fn cell_fg_default_p(cell: &NcCell) -> bool {
-    channels_fg_default_p(cell.channels)
-}
-
-/// Is the foreground [NcChannel] of this [NcCell] using an
-/// [NcPaletteIndex] [indexed][NcPaletteIndex] [NcPalette][crate::NcPalette] color?
-#[inline]
-pub fn cell_fg_palindex_p(cell: &NcCell) -> bool {
-    channels_fg_palindex_p(cell.channels)
-}
-
-/// Is the background [NcChannel] of this [NcCell] using the
-/// "default background color"?
+/// 2. (8b) Backstop (zero)
+/// 00000000
 ///
-/// The "default background color" must generally be used to take advantage of
-/// terminal-effected transparency.
-#[inline]
-pub fn cell_bg_default_p(cell: &NcCell) -> bool {
-    channels_bg_default_p(cell.channels)
-}
+/// 3. (8b) reserved (ought to be zero)
+/// ~~~~~~~~
+///
+/// 4. (16b) NcStyleMask
+/// 11111111 11111111
+///
+/// 5. (64b) NcChannelPair
+/// ~~AA~~~~ RRRRRRRR GGGGGGGG BBBBBBBB|~~AA~~~~ RRRRRRRR GGGGGGGG BBBBBBBB
+/// ```
+///
+/// `type in C: cell (struct)`
+///
+/// ## Size
+///
+/// Multi-column characters can only have a single style/color throughout.
+/// [`wcwidth()`](https://www.man7.org/linux/man-pages/man3/wcwidth.3.html)
+/// is not reliable. It's just quoting whether or not the [`NcEgc`]
+/// contains a "Wide Asian" double-width character.
+/// This is set for some things, like most emoji, and not set for
+/// other things, like cuneiform.
+///
+/// Each cell occupies 16 static bytes (128 bits). The surface is thus ~1.6MB
+/// for a (pretty large) 500x200 terminal. At 80x43, it's less than 64KB.
+/// Dynamic requirements (the egcpool) can add up to 16MB to an ncplane, but
+/// such large pools are unlikely in common use.
+///
+/// ## Alpha Compositing
+///
+/// We implement some small alpha compositing. Foreground and background both
+/// have two bits of inverted alpha. The actual grapheme written to a cell is
+/// the topmost non-zero grapheme.
+///
+/// - If its alpha is 00 ([`NCCELL_ALPHA_OPAQUE`]) its foreground color is used unchanged.
+///
+/// - If its alpha is 10 ([`NCCELL_ALPHA_TRANSPARENT`]) its foreground color is derived
+///   entirely from cells underneath it.
+///
+/// - If its alpha is 01 ([`NCCELL_ALPHA_BLEND`]) the result will be a composite.
+///
+/// Likewise for the background. If the bottom of a coordinate's zbuffer is
+/// reached with a cumulative alpha of zero, the default is used. In this way,
+/// a terminal configured with transparent background can be supported through
+/// multiple occluding ncplanes.
+///
+/// A foreground alpha of 11 ([`NCCELL_ALPHA_HIGHCONTRAST`]) requests high-contrast
+/// text (relative to the computed background).
+/// A background alpha of 11 is currently forbidden.
+///
+/// ## Precedence
+///
+/// - Default color takes precedence over palette or RGB, and cannot be used with
+///   transparency.
+/// - Indexed palette takes precedence over RGB. It cannot meaningfully set
+///   transparency, but it can be mixed into a cascading color.
+/// - RGB is used if neither default terminal colors nor palette indexing are in
+///   play, and fully supports all transparency options.
+///
+pub type NcCell = crate::bindings::bindgen::cell;
 
-/// Is the background [NcChannel] of this [NcCell] using an
-/// [NcPaletteIndex] [indexed][NcPaletteIndex] [NcPalette][crate::NcPalette] color?
-#[inline]
-pub fn cell_bg_palindex_p(cell: &NcCell) -> bool {
-    channels_bg_palindex_p(cell.channels)
-}
+/// [`NcAlphaBits`] bits indicating
+/// [`NcCell`]'s foreground or background color will be a composite between
+/// its color and the `NcCell`s' corresponding colors underneath it
+pub const NCCELL_ALPHA_BLEND: u32 = crate::bindings::bindgen::CELL_ALPHA_BLEND;
+
+/// [`NcAlphaBits`] bits indicating
+/// [`NcCell`]'s foreground color will be high-contrast (relative to the
+/// computed background). Background cannot be highcontrast
+pub const NCCELL_ALPHA_HIGHCONTRAST: u32 = crate::bindings::bindgen::CELL_ALPHA_HIGHCONTRAST;
+
+/// [`NcAlphaBits`] bits indicating
+/// [`NcCell`]'s foreground or background color is used unchanged
+pub const NCCELL_ALPHA_OPAQUE: u32 = crate::bindings::bindgen::CELL_ALPHA_OPAQUE;
+
+/// [`NcAlphaBits`] bits indicating
+/// [`NcCell`]'s foreground or background color is derived entirely from the
+/// `NcCell`s underneath it
+pub const NCCELL_ALPHA_TRANSPARENT: u32 = crate::bindings::bindgen::CELL_ALPHA_TRANSPARENT;
+
+/// If this bit is set, we are *not* using the default background color
+///
+/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
+///
+/// NOTE: This can also be used against a single [`NcChannel`]
+pub const NCCELL_BGDEFAULT_MASK: u32 = crate::bindings::bindgen::CELL_BGDEFAULT_MASK;
+
+/// Extract these bits to get the background alpha mask
+/// ([`NcAlphaBits`])
+///
+/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
+///
+/// NOTE: This can also be used against a single [`NcChannel`]
+pub const NCCELL_BG_ALPHA_MASK: u32 = crate::bindings::bindgen::CELL_BG_ALPHA_MASK;
+
+/// If this bit *and* [`NCCELL_BGDEFAULT_MASK`] are set, we're using a
+/// palette-indexed background color
+///
+/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
+///
+/// NOTE: This can also be used against a single [`NcChannel`]
+pub const NCCELL_BG_PALETTE: u32 = crate::bindings::bindgen::CELL_BG_PALETTE;
+
+/// Extract these bits to get the background [`NcRgb`][crate::NcRgb] value
+///
+/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
+///
+/// NOTE: This can also be used against a single [`NcChannel`]
+pub const NCCELL_BG_RGB_MASK: u32 = crate::bindings::bindgen::CELL_BG_RGB_MASK;
+
+/// If this bit is set, we are *not* using the default foreground color
+///
+/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
+///
+/// NOTE: When working with a single [`NcChannel`] use [`NCCELL_BGDEFAULT_MASK`];
+pub const NCCELL_FGDEFAULT_MASK: u64 = crate::bindings::bindgen::CELL_FGDEFAULT_MASK;
+
+/// Extract these bits to get the foreground alpha mask
+/// ([`NcAlphaBits`])
+///
+/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
+///
+/// NOTE: When working with a single [`NcChannel`] use [`NCCELL_BG_ALPHA_MASK`];
+pub const NCCELL_FG_ALPHA_MASK: u64 = crate::bindings::bindgen::CELL_FG_ALPHA_MASK;
+
+/// If this bit *and* [`NCCELL_FGDEFAULT_MASK`] are set, we're using a
+/// palette-indexed background color
+///
+/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
+///
+/// NOTE: When working with a single [`NcChannel`] use [`NCCELL_BG_PALETTE`];
+pub const NCCELL_FG_PALETTE: u64 = crate::bindings::bindgen::CELL_FG_PALETTE;
+
+/// Extract these bits to get the foreground [`NcRgb`][crate::NcRgb] value
+///
+/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
+///
+/// NOTE: When working with a single [`NcChannel`] use [`NCCELL_BG_RGB_MASK`];
+pub const NCCELL_FG_RGB_MASK: u64 = crate::bindings::bindgen::CELL_FG_RGB_MASK;
+
+/// Indicates the glyph is entirely foreground
+///
+/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
+pub const NCCELL_NOBACKGROUND_MASK: u64 = crate::bindings::bindgen::CELL_NOBACKGROUND_MASK;
+
+/// If this bit is set, the cell is part of a multicolumn glyph.
+///
+/// Whether a cell is the left or right side of the glyph can be determined
+/// by checking whether ->gcluster is zero.
+///
+/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
+pub const NCCELL_WIDEASIAN_MASK: u64 = crate::bindings::bindgen::CELL_WIDEASIAN_MASK as u64;
+
+// NcEgc
+//
+/// Extended Grapheme Cluster. A 32-bit [`char`]-like type
+///
+/// This 32 bit char, together with the associated plane's associated egcpool,
+/// completely define this cell's `NcEgc`. Unless the `NcEgc` requires more than
+/// four bytes to encode as UTF-8, it will be inlined here:
+///
+/// ## Diagram 1
+///
+/// ```txt
+/// UUUUUUUU UUUUUUUU UUUUUUUU UUUUUUUU
+/// extended grapheme cluster <= 4bytes
+/// ```
+///
+/// `type in C: uint32_t`
+///
+/// If more than four bytes are required, it will be spilled into the egcpool.
+/// In either case, there's a NUL-terminated string available without copying,
+/// because (1) the egcpool is all NUL-terminated sequences and (2) the fifth
+/// byte of this struct (the GClusterBackStop field, see below) is
+/// guaranteed to be zero, as are any unused bytes in gcluster.
+///
+/// A spilled `NcEgc` is indicated by the value `0x01iiiiii`. This cannot alias a
+/// true supra-ASCII NcEgc, because UTF-8 only encodes bytes <= 0x80 when they
+/// are single-byte ASCII-derived values. The `iiiiii` is interpreted as a 24-bit
+/// index into the egcpool (which may thus be up to 16MB):
+///
+/// ## Diagram 2
+///
+/// ```txt
+/// 00000001 iiiiiiii iiiiiiii iiiiiiii
+///   sign     24bit index to egcpool
+/// ```
+/// `type in C: uint32_t`
+///
+/// The cost of this scheme is that the character 0x01 (`SOH`) cannot be encoded
+/// in a cell, and therefore it must not be allowed through the API.
+///
+/// -----
+/// NOTE that even if the `NcEgc` is <= 4 bytes and inlined, is still interpreted as
+/// a NUL-terminated char * (technically, &cell->gcluster is treated as a char*).
+/// If it is more than 4 bytes, cell->gcluster has a first byte of 0x01,
+/// and the remaining 24 bits are an index into the plane's egcpool,
+/// which is carved into NUL-terminated chunks of arbitrary length.
+///
+/// ## Links
+///
+/// - [Grapheme Cluster
+/// Boundaries](https://unicode.org/reports/tr29/#Grapheme_Cluster_Boundaries)
+///
+///
+pub type NcEgc = char;
+
+// NcEgcBackStop
+/// An `u8` always at zero, part of the [`NcCell`] struct
+///
+/// ## Diagram
+///
+/// ```txt
+/// 00000000
+/// ```
+///
+/// `type in C: uint_8t`
+///
+pub type NcEgcBackstop = u8;
+
+// NcStyleMask
+///
+/// An `u16` of `NCSTYLE_*` boolean styling attribute flags
+///
+/// ## Attributes
+///
+/// - [`NCSTYLE_BLINK`]
+/// - [`NCSTYLE_BOLD`]
+/// - [`NCSTYLE_DIM`]
+/// - [`NCSTYLE_INVIS`]
+/// - [`NCSTYLE_ITALIC`]
+/// - [`NCSTYLE_MASK`]
+/// - [`NCSTYLE_NONE`]
+/// - [`NCSTYLE_PROTECT`]
+/// - [`NCSTYLE_REVERSE`]
+/// - [`NCSTYLE_STANDOUT`]
+/// - [`NCSTYLE_STRUCK`]
+/// - [`NCSTYLE_UNDERLINE`]
+///
+///
+/// ## Diagram
+///
+/// ```txt
+/// 11111111 11111111
+/// ```
+///
+/// `type in C:  uint16_t`
+///
+pub type NcStyleMask = u16;
+
+///
+pub const NCSTYLE_BLINK: u16 = crate::bindings::bindgen::NCSTYLE_BLINK as u16;
+
+///
+pub const NCSTYLE_BOLD: u16 = crate::bindings::bindgen::NCSTYLE_BOLD as u16;
+
+///
+pub const NCSTYLE_DIM: u16 = crate::bindings::bindgen::NCSTYLE_DIM as u16;
+
+///
+pub const NCSTYLE_INVIS: u16 = crate::bindings::bindgen::NCSTYLE_INVIS as u16;
+
+///
+pub const NCSTYLE_ITALIC: u16 = crate::bindings::bindgen::NCSTYLE_ITALIC as u16;
+
+///
+pub const NCSTYLE_MASK: u16 = crate::bindings::bindgen::NCSTYLE_MASK as u16;
+
+///
+pub const NCSTYLE_NONE: u16 = crate::bindings::bindgen::NCSTYLE_NONE as u16;
+
+///
+pub const NCSTYLE_PROTECT: u16 = crate::bindings::bindgen::NCSTYLE_PROTECT as u16;
+
+///
+pub const NCSTYLE_REVERSE: u16 = crate::bindings::bindgen::NCSTYLE_REVERSE as u16;
+
+///
+pub const NCSTYLE_STANDOUT: u16 = crate::bindings::bindgen::NCSTYLE_STANDOUT as u16;
+
+///
+pub const NCSTYLE_STRUCK: u16 = crate::bindings::bindgen::NCSTYLE_STRUCK as u16;
+
+///
+pub const NCSTYLE_UNDERLINE: u16 = crate::bindings::bindgen::NCSTYLE_UNDERLINE as u16;

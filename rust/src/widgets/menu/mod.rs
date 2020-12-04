@@ -2,101 +2,49 @@
 
 // functions already exported by bindgen : 13
 // ------------------------------------------
-// ncmenu_create
-// ncmenu_destroy
-// ncmenu_item_set_status
-// ncmenu_mouse_selected
-// ncmenu_nextitem
-// ncmenu_nextsection
-// ncmenu_offer_input
-// ncmenu_plane
-// ncmenu_previtem
-// ncmenu_prevsection
-// ncmenu_rollup
-// ncmenu_selected
-// ncmenu_unroll
+//  ncmenu_create
+//  ncmenu_destroy
+//  ncmenu_item_set_status
+//  ncmenu_mouse_selected
+//  ncmenu_nextitem
+//  ncmenu_nextsection
+//  ncmenu_offer_input
+//  ncmenu_plane
+//  ncmenu_previtem
+//  ncmenu_prevsection
+//  ncmenu_rollup
+//  ncmenu_selected
+//  ncmenu_unroll
 
-mod types;
-pub use types::{NcMenu, NcMenuItem, NcMenuOptions, NcMenuSection};
-pub use types::{NCMENU_OPTION_BOTTOM, NCMENU_OPTION_HIDING};
+mod methods;
 
-use std::ffi::CString;
+/// menus on the top or bottom rows
+///
+/// A notcurses instance supports menu bars on the top or bottom row of the true
+/// screen.
+///
+/// A menu is composed of sections, which are in turn composed of items.
+/// Either no sections are visible, and the menu is rolled up, or exactly one
+/// section is unrolled.
+///
+/// `ncmenu_rollup` places an `NcMenu` in the rolled up state.
+/// `ncmenu_unroll` rolls up any unrolled section and unrolls the specified one.
+/// `ncmenu_destroy` removes a menu bar, and frees all associated resources.
+///
+/// `type in C: ncmenu (struct)`
+pub type NcMenu = crate::bindings::bindgen::ncmenu;
 
-use crate::{ncmenu_create, NcChannelPair, NcInput, NcPlane};
+/// Options struct for [`NcMenu`]
+pub type NcMenuOptions = crate::bindings::bindgen::ncmenu_options;
 
-impl NcMenu {
-    /// `NcMenu` simple constructor
-    pub unsafe fn new<'a>(plane: &mut NcPlane) -> &'a mut Self {
-        Self::with_options(plane, &NcMenuOptions::new())
-    }
+/// Item for [`NcMenu`]
+pub type NcMenuItem = crate::bindings::bindgen::ncmenu_item;
 
-    /// `NcMenu` constructor with options
-    pub unsafe fn with_options<'a>(plane: &mut NcPlane, options: &NcMenuOptions) -> &'a mut Self {
-        &mut *ncmenu_create(plane, options)
-    }
-}
+/// Section for [`NcMenu`]
+pub type NcMenuSection = crate::bindings::bindgen::ncmenu_section;
 
-impl NcMenuOptions {
-    /// `NcMenuOptions` simple constructor
-    pub fn new() -> Self {
-        Self::with_options(&mut [], 0, 0, 0, 0)
-    }
+/// Bottom row (as opposed to top row)
+pub const NCMENU_OPTION_BOTTOM: u32 = crate::bindings::bindgen::NCMENU_OPTION_BOTTOM;
 
-    /// `NcMenuOptions` width options
-    pub fn with_options(
-        sections: &mut [NcMenuSection],
-        count: u32,
-        headerc: NcChannelPair,
-        sectionc: NcChannelPair,
-        flags: u64,
-    ) -> Self {
-        Self {
-            // array of 'sectioncount' `MenuSection`s
-            sections: sections as *mut _ as *mut NcMenuSection, /// XXX TEST
-
-            // must be positive TODO
-            sectioncount: count as i32,
-
-            // styling for header
-            headerchannels: headerc,
-
-            // styling for sections
-            sectionchannels: sectionc,
-
-            // flag word of NCMENU_OPTION_*
-            flags: flags,
-        }
-    }
-}
-
-impl NcMenuItem {
-    /// `NcMenuItem` simple constructor
-    pub fn new(mut desc: i8, shortcut: NcInput) -> Self {
-        Self {
-            // utf-8 menu item, NULL for horizontal separator
-            desc: &mut desc,
-
-            // ´NcInput´ shortcut, all should be distinct
-            shortcut,
-        }
-    }
-}
-
-impl NcMenuSection {
-    /// `NcMenuSection` simple constructor
-    pub fn new(name: &str, itemcount: i32, items: &mut [NcMenuItem], shortcut: NcInput) -> Self {
-        Self {
-            // utf-8 name string
-            name: CString::new(name).expect("Bad string").as_ptr() as *mut i8,
-
-            //
-            itemcount,
-
-            // array of itemcount `NcMenuItem`s
-            items: items as *mut _ as *mut NcMenuItem,
-
-            // shortcut, will be underlined if present in name
-            shortcut,
-        }
-    }
-}
+/// Hide the menu when not unrolled
+pub const NCMENU_OPTION_HIDING: u32 = crate::bindings::bindgen::NCMENU_OPTION_HIDING;

@@ -1,13 +1,10 @@
-// functions already exported by bindgen : 0
+// functions manually reimplemented: 2
 // ------------------------------------------
-//
-// static inline functions total: 2
-// ------------------------------------------ (done / remaining)
 // (+) done: 2 / 0
 // (#) test: 0 / 2
 // ------------------------------------------
-//+ nckey_mouse_p
-//+ nckey_supppuab_p
+// + nckey_mouse_p
+// + nckey_supppuab_p
 
 use crate::{NCKEY_BUTTON1, NCKEY_RELEASE};
 
@@ -25,16 +22,4 @@ pub fn nckey_supppuab_p(w: u32) -> bool {
 #[inline]
 pub fn nckey_mouse_p(r: u32) -> bool {
     r >= NCKEY_BUTTON1 && r <= NCKEY_RELEASE
-}
-
-#[cfg(test)]
-mod test {
-    // use super::nc;
-    // use serial_test::serial;
-    /*
-    #[test]
-    #[serial]
-    fn () {
-    }
-    */
 }

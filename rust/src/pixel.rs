@@ -7,34 +7,42 @@
 //
 // - NOTE: None of the functions can't fail anymore and don't have to return an error.
 //
-//
-// functions already exported by bindgen : 0
-// -----------------------------------------
-//
-// static inline functions total: 10
-// ------------------------------------------ (done / remaining)
+// functions manually reimplemented: 10
+// ------------------------------------------
 // (+) implement : 10 /  0
 // (#) unit tests:  0 / 10
 // ------------------------------------------
-//+ ncpixel
-//+ ncpixel_a
-//+ ncpixel_b
-//+ ncpixel_g
-//+ ncpixel_r
-//+ ncpixel_set_a
-//+ ncpixel_set_b
-//+ ncpixel_set_g
-//+ ncpixel_set_r
-//+ ncpixel_set_rgb
+// + ncpixel
+// + ncpixel_a
+// + ncpixel_b
+// + ncpixel_g
+// + ncpixel_r
+// + ncpixel_set_a
+// + ncpixel_set_b
+// + ncpixel_set_g
+// + ncpixel_set_r
+// + ncpixel_set_rgb
 
-use crate::{NcColor, NcPixel};
+use crate::NcColor;
 
-// NcPixel Structure:
-//
-// 0xff000000 8 bit Alpha
-// 0x00ff0000 8 bit Green
-// 0x0000ff00 8 bit Blue
-// 0x000000ff 8 bit Red
+// NcPixel (RGBA)
+/// 32 bits broken into RGB + 8-bit alpha
+///
+/// NcPixel has 8 bits of alpha,  more or less linear, contributing
+/// directly to the usual alpha blending equation.
+///
+/// We map the 8 bits of alpha to 2 bits of alpha via a level function:
+/// https://nick-black.com/dankwiki/index.php?title=Notcurses#Transparency.2FContrasting
+///
+/// ## Diagram
+///
+/// ```txt
+/// AAAAAAAA GGGGGGGG BBBBBBBB RRRRRRRR
+/// ```
+/// `type in C: ncpixel (uint32_t)`
+///
+// NOTE: the order of the colors is different than in NcChannel.
+pub type NcPixel = u32;
 
 /// Get an RGB pixel from RGB values
 pub fn ncpixel(r: NcColor, g: NcColor, b: NcColor) -> NcPixel {
@@ -86,16 +94,4 @@ pub fn ncpixel_set_rgb(pixel: &mut NcPixel, red: NcColor, green: NcColor, blue: 
     ncpixel_set_r(pixel, red);
     ncpixel_set_g(pixel, green);
     ncpixel_set_b(pixel, blue);
-}
-
-#[cfg(test)]
-mod test {
-    // use super::nc;
-    // use serial_test::serial;
-    /*
-    #[test]
-    #[serial]
-    fn () {
-    }
-    */
 }

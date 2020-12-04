@@ -1,4 +1,4 @@
-//! Handy [`Notcurses`] and [`NotcursesOptions`] constructors
+//! `Notcurses*` methods and associated functions.
 
 use core::ptr::{null, null_mut};
 
@@ -7,7 +7,8 @@ use crate::{
     NCOPTION_SUPPRESS_BANNERS,
 };
 use crate::{
-    notcurses_stdplane, NcPlane, notcurses_stop, NcResult, notcurses_render,
+    notcurses_render, notcurses_stdplane, notcurses_stdplane_const, notcurses_stop, NcPlane,
+    NcResult,
 };
 
 /// # `NotcursesOptions` Constructors
@@ -113,21 +114,34 @@ impl Notcurses {
 
 /// # `Notcurses` methods
 impl Notcurses {
+    // reference, ... I need an NcPlane from this...
+    // pub fn stdplane_mut2(&mut self) -> *mut NcPlane {
+    //     unsafe { notcurses_stdplane(self) }
+    // }
 
-    /// 
-    pub fn stdplane_mut(&mut self) -> NcPlane {
-        unsafe { *notcurses_stdplane(self) }
-        //notcurses_stdplane_const //???
+    /// Returns a mutable reference to the standard [NcPlane] for this terminal.
+    ///
+    /// The standard plane always exists, and its origin is always at the
+    /// uppermost, leftmost cell.
+    pub fn stdplane_mut<'a>(&mut self) -> &'a mut NcPlane {
+        unsafe { &mut *notcurses_stdplane(self) }
     }
 
-    /// 
+    /// Returns a reference to the standard [NcPlane] for this terminal.
+    ///
+    /// The standard plane always exists, and its origin is always at the
+    /// uppermost, leftmost cell.
+    pub fn stdplane<'a>(&self) -> &'a NcPlane {
+        unsafe { &*notcurses_stdplane_const(self) }
+    }
+
+    ///
     pub fn stop(&mut self) -> NcResult {
         unsafe { notcurses_stop(self) }
     }
 
-    /// 
+    ///
     pub fn render(&mut self) -> NcResult {
         unsafe { notcurses_render(self) }
     }
-
 }

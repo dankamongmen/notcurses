@@ -1,159 +1,173 @@
+//! `Notcurses`
+
 // functions already exported by bindgen : 39
-// ----------------------------------------- (done / remaining)
+// ------------------------------------------
 // (#) unit tests: 10 / 29
 // ------------------------------------------
-//  notcurses_at_yx
-//  notcurses_bottom
-//# notcurses_canchangecolor
-//# notcurses_canfade
-//# notcurses_canopen_images
-//# notcurses_canopen_videos
-//# notcurses_cansixel
-//# notcurses_cantruecolor
-//# notcurses_canutf8
-//  notcurses_cursor_disable
-//  notcurses_cursor_enable
-//# notcurses_debug
-//# notcurses_drop_planes
-//  notcurses_getc
-//# notcurses_init
-//  notcurses_inputready_fd
-//  notcurses_lex_blitter
-//  notcurses_lex_margins
-//  notcurses_lex_scalemode
-//  notcurses_mouse_disable
-//  notcurses_mouse_enable
-//  notcurses_palette_size
-//  notcurses_refresh
-//  notcurses_render
-//  notcurses_render_to_buffer
-//  notcurses_render_to_file
-//  notcurses_stats
-//  notcurses_stats_alloc
-//  notcurses_stats_reset
-//  notcurses_stdplane
-//  notcurses_stdplane_const
-//# notcurses_stop
-//  notcurses_str_blitter
-//  notcurses_str_scalemode
-//  notcurses_supported_styles
-//  notcurses_top
-//  notcurses_ucs32_to_utf8
-//  notcurses_version
-//  notcurses_version_components
+//   notcurses_at_yx
+//   notcurses_bottom
+// # notcurses_canchangecolor
+// # notcurses_canfade
+// # notcurses_canopen_images
+// # notcurses_canopen_videos
+// # notcurses_cansixel
+// # notcurses_cantruecolor
+// # notcurses_canutf8
+//   notcurses_cursor_disable
+//   notcurses_cursor_enable
+// # notcurses_debug
+// # notcurses_drop_planes
+//   notcurses_getc
+// # notcurses_init
+//   notcurses_inputready_fd
+//   notcurses_lex_blitter
+//   notcurses_lex_margins
+//   notcurses_lex_scalemode
+//   notcurses_mouse_disable
+//   notcurses_mouse_enable
+//   notcurses_palette_size
+//   notcurses_refresh
+//   notcurses_render
+//   notcurses_render_to_buffer
+//   notcurses_render_to_file
+//   notcurses_stats
+//   notcurses_stats_alloc
+//   notcurses_stats_reset
+//   notcurses_stdplane
+//   notcurses_stdplane_const
+// # notcurses_stop
+//   notcurses_str_blitter
+//   notcurses_str_scalemode
+//   notcurses_supported_styles
+//   notcurses_top
+//   notcurses_ucs32_to_utf8
+//   notcurses_version
+//   notcurses_version_components
 //
-// static inline functions total: 6
-// ----------------------------------------- (done / remaining)
+// functions manually reimplemented: 6
+// -----------------------------------------
 // (+) implement : 6 / 0
 // (#) unit tests: 0 / 6
 // -----------------------------------------
-//# notcurses_align
-//+ notcurses_getc_blocking
-//+ notcurses_getc_nblock
-//+ notcurses_stddim_yx
-//+ notcurses_stddim_yx_const
-//+ notcurses_term_dim_yx
+// # notcurses_align
+// + notcurses_getc_blocking
+// + notcurses_getc_nblock
+// + notcurses_stddim_yx
+// + notcurses_stddim_yx_const
+// + notcurses_term_dim_yx
 
 #[cfg(test)]
-mod tests;
+mod test;
 
-mod types;
-pub use types::{
-    NcLogLevel, Notcurses, NotcursesOptions, NCLOGLEVEL_DEBUG, NCLOGLEVEL_ERROR, NCLOGLEVEL_FATAL,
-    NCLOGLEVEL_INFO, NCLOGLEVEL_PANIC, NCLOGLEVEL_SILENT, NCLOGLEVEL_TRACE, NCLOGLEVEL_VERBOSE,
-    NCLOGLEVEL_WARNING, NCOPTION_INHIBIT_SETLOCALE, NCOPTION_NO_ALTERNATE_SCREEN,
-    NCOPTION_NO_FONT_CHANGES, NCOPTION_NO_QUIT_SIGHANDLERS, NCOPTION_NO_WINCH_SIGHANDLER,
-    NCOPTION_SUPPRESS_BANNERS, NCOPTION_VERIFY_SIXEL,
-};
+mod methods;
+mod reimplemented;
+pub use reimplemented::*;
 
-mod wrapped;
-pub use wrapped::*;
+/// The main struct of the (full mode) TUI library
+///
+/// Notcurses builds atop the terminfo abstraction layer to
+/// provide reasonably portable vivid character displays.
+///
+pub type Notcurses = crate::bindings::bindgen::notcurses;
 
-use core::ptr::null;
+/// Options struct for [`Notcurses`]
+pub type NotcursesOptions = crate::bindings::bindgen::notcurses_options;
 
-use crate::{
-    // NOTE: can't use libc::sigset_t with notcurses_getc(()
-    bindings::{sigemptyset, sigfillset, sigset_t},
-    ncplane_dim_yx,
-    notcurses_getc,
-    notcurses_stdplane,
-    notcurses_stdplane_const,
-    NcAlign,
-    NcInput,
-    NcPlane,
-    NcTime,
-    NCALIGN_CENTER,
-    NCALIGN_LEFT,
-};
+/// Do not call setlocale()
+///
+/// notcurses_init() will call setlocale() to inspect the current locale. If
+/// that locale is "C" or "POSIX", it will call setlocale(LC_ALL, "") to set
+/// the locale according to the LANG environment variable. Ideally, this will
+/// result in UTF8 being enabled, even if the client app didn't call
+/// setlocale() itself. Unless you're certain that you're invoking setlocale()
+/// prior to notcurses_init(), you should not set this bit. Even if you are
+/// invoking setlocale(), this behavior shouldn't be an issue unless you're
+/// doing something weird (setting a locale not based on LANG).
+pub const NCOPTION_INHIBIT_SETLOCALE: u64 =
+    crate::bindings::bindgen::NCOPTION_INHIBIT_SETLOCALE as u64;
 
-/// return the offset into 'availcols' at which 'cols' ought be output given the requirements of 'align'
-#[inline]
-pub fn notcurses_align(availcols: i32, align: NcAlign, cols: i32) -> i32 {
-    if align == NCALIGN_LEFT {
-        return 0;
-    }
-    if cols > availcols {
-        return 0;
-    }
-    if align == NCALIGN_CENTER {
-        return (availcols - cols) / 2;
-    }
-    availcols - cols // NCALIGN_RIGHT
-}
+/// Do not enter alternate mode.
+///
+/// If smcup/rmcup capabilities are indicated, Notcurses defaults to making use
+/// of the "alternate screen". This flag inhibits use of smcup/rmcup.
+pub const NCOPTION_NO_ALTERNATE_SCREEN: u64 =
+    crate::bindings::bindgen::NCOPTION_NO_ALTERNATE_SCREEN as u64;
 
-/// 'input' may be NULL if the caller is uninterested in event details.
-/// If no event is ready, returns 0.
-// TODO: use pakr-signals
-#[inline]
-pub fn notcurses_getc_nblock(nc: &mut Notcurses, input: &mut NcInput) -> char {
-    unsafe {
-        let mut sigmask = sigset_t { __val: [0; 16] };
-        sigfillset(&mut sigmask);
-        let ts = NcTime {
-            tv_sec: 0,
-            tv_nsec: 0,
-        };
-        core::char::from_u32_unchecked(notcurses_getc(nc, &ts, &mut sigmask, input))
-    }
-}
+/// Do not modify the font.
+///
+/// Notcurses might attempt to change the font slightly, to support certain
+/// glyphs (especially on the Linux console). If this is set, no such
+/// modifications will be made. Note that font changes will not affect anything
+/// but the virtual console/terminal in which Notcurses is running.
+pub const NCOPTION_NO_FONT_CHANGES: u64 = crate::bindings::bindgen::NCOPTION_NO_FONT_CHANGES as u64;
 
-/// 'input' may be NULL if the caller is uninterested in event details.
-/// Blocks until an event is processed or a signal is received.
-#[inline]
-pub fn notcurses_getc_nblocking(nc: &mut Notcurses, input: &mut NcInput) -> char {
-    unsafe {
-        let mut sigmask = sigset_t { __val: [0; 16] };
-        sigemptyset(&mut sigmask);
-        core::char::from_u32_unchecked(notcurses_getc(nc, null(), &mut sigmask, input))
-    }
-}
+/// Do not handle SIG{ING, SEGV, ABRT, QUIT}
+///
+/// We typically install a signal handler for SIG{INT, SEGV, ABRT, QUIT} that
+/// restores the screen, and then calls the old signal handler. Set to inhibit
+/// registration of these signal handlers.
+pub const NCOPTION_NO_QUIT_SIGHANDLERS: u64 =
+    crate::bindings::bindgen::NCOPTION_NO_QUIT_SIGHANDLERS as u64;
 
-/// notcurses_stdplane(), plus free bonus dimensions written to non-NULL y/x!
-#[inline]
-pub fn notcurses_stddim_yx(nc: &mut Notcurses, y: &mut i32, x: &mut i32) -> NcPlane {
-    unsafe {
-        let s = notcurses_stdplane(nc);
-        ncplane_dim_yx(s, y, x);
-        *s
-    }
-}
+/// Do not handle SIGWINCH
+///
+/// We typically install a signal handler for SIGWINCH that generates a resize
+/// event in the notcurses_getc() queue. Set to inhibit this handler
+pub const NCOPTION_NO_WINCH_SIGHANDLER: u64 =
+    crate::bindings::bindgen::NCOPTION_NO_WINCH_SIGHANDLER as u64;
 
-/// notcurses_stdplane_const(), plus free bonus dimensions written to non-NULL y/x!
-#[inline]
-pub fn notcurses_stddim_yx_const(nc: &Notcurses, y: &mut i32, x: &mut i32) -> NcPlane {
-    unsafe {
-        let s = notcurses_stdplane_const(nc);
-        ncplane_dim_yx(s, y, x);
-        *s
-    }
-}
+/// Do not print banners
+///
+/// Notcurses typically prints version info in notcurses_init() and performance
+/// info in notcurses_stop(). This inhibits that output.
+pub const NCOPTION_SUPPRESS_BANNERS: u64 =
+    crate::bindings::bindgen::NCOPTION_SUPPRESS_BANNERS as u64;
 
-/// Return our current idea of the terminal dimensions in rows and cols.
-#[inline]
-pub fn notcurses_term_dim_yx(nc: &Notcurses, rows: &mut u32, cols: &mut u32) {
-    unsafe {
-        let mut irows = *rows as i32;
-        let mut icols = *cols as i32;
-        ncplane_dim_yx(notcurses_stdplane_const(nc), &mut irows, &mut icols);
-    }
-}
+/// Test for Sixel support
+///
+/// Checking for Sixel support requires writing an escape, and then reading an
+/// inline reply from the terminal. Since this can interact poorly with actual
+/// user input, it's not done unless Sixel will actually be used. Set this flag
+/// to unconditionally test for Sixel support in notcurses_init().
+pub const NCOPTION_VERIFY_SIXEL: u64 = crate::bindings::bindgen::NCOPTION_VERIFY_SIXEL as u64;
+
+// NcLogLevel ------------------------------------------------------------------
+
+/// Log level for [`NotcursesOptions`]
+///
+/// These log levels consciously map cleanly to those of libav; Notcurses itself
+/// does not use this full granularity. The log level does not affect the opening
+/// and closing banners, which can be disabled via the `NotcursesOptions`
+/// `NCOPTION_SUPPRESS_BANNERS`.
+/// Note that if stderr is connected to the same terminal on which we're
+/// rendering, any kind of logging will disrupt the output.
+pub type NcLogLevel = crate::bindings::bindgen::ncloglevel_e;
+
+/// this is honestly a bit much
+pub const NCLOGLEVEL_DEBUG: NcLogLevel = crate::bindings::bindgen::ncloglevel_e_NCLOGLEVEL_DEBUG;
+
+/// we can't keep doin' this, but we can do other things
+pub const NCLOGLEVEL_ERROR: NcLogLevel = crate::bindings::bindgen::ncloglevel_e_NCLOGLEVEL_ERROR;
+
+/// we're hanging around, but we've had a horrible fault
+pub const NCLOGLEVEL_FATAL: NcLogLevel = crate::bindings::bindgen::ncloglevel_e_NCLOGLEVEL_FATAL;
+
+/// "detailed information
+pub const NCLOGLEVEL_INFO: NcLogLevel = crate::bindings::bindgen::ncloglevel_e_NCLOGLEVEL_INFO;
+
+/// print diagnostics immediately related to crashing
+pub const NCLOGLEVEL_PANIC: NcLogLevel = crate::bindings::bindgen::ncloglevel_e_NCLOGLEVEL_PANIC;
+
+/// default. print nothing once fullscreen service begins
+pub const NCLOGLEVEL_SILENT: NcLogLevel = crate::bindings::bindgen::ncloglevel_e_NCLOGLEVEL_SILENT;
+
+/// there's probably a better way to do what you want
+pub const NCLOGLEVEL_TRACE: NcLogLevel = crate::bindings::bindgen::ncloglevel_e_NCLOGLEVEL_TRACE;
+
+/// "detailed information
+pub const NCLOGLEVEL_VERBOSE: NcLogLevel =
+    crate::bindings::bindgen::ncloglevel_e_NCLOGLEVEL_VERBOSE;
+
+/// you probably don't want what's happening to happen
+pub const NCLOGLEVEL_WARNING: NcLogLevel =
+    crate::bindings::bindgen::ncloglevel_e_NCLOGLEVEL_WARNING;

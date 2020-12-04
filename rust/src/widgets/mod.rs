@@ -1,5 +1,4 @@
 //! Widgets
-//!
 
 mod menu;
 mod multiselector;

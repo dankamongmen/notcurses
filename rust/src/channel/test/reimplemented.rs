@@ -1,11 +1,11 @@
-//! [`NcChannel`] & [`NcChannelPair`] tests
+//! Test `channel*_*` reimplemented functions.
+
+use serial_test::serial;
 
 use crate::{
     NcChannel, NcChannelPair, NCCELL_ALPHA_BLEND, NCCELL_ALPHA_HIGHCONTRAST, NCCELL_ALPHA_OPAQUE,
     NCCELL_ALPHA_TRANSPARENT,
 };
-
-use serial_test::serial;
 
 #[test]
 #[serial]

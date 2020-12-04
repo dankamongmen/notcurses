@@ -17,7 +17,6 @@
 #![allow(non_upper_case_globals, non_camel_case_types, non_snake_case)]
 #![allow(clippy::too_many_arguments)]
 
-
 mod bindings;
 #[doc(inline)]
 pub use bindings::*;
