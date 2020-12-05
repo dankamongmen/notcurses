@@ -2,17 +2,7 @@
 
 use core::ptr::{null, null_mut};
 
-// for constructors
-use crate::{
-    ncpile_create, ncplane_create, notcurses_term_dim_yx, NcAlign, NcPlane, NcPlaneOptions,
-    Notcurses, NCPLANE_OPTION_HORALIGNED,
-};
-
-// for methods
-use crate::{
-    ncpile_bottom, ncpile_top, ncplane_cursor_yx, ncplane_dim_yx, ncplane_erase, ncplane_putc,
-    ncplane_putc_yx, NcCell, NcResult,
-};
+use crate::{cstring, NcAlign, NcCell, NcPlane, NcPlaneOptions, NcResult, Notcurses};
 
 /// # `NcPlaneOptions` Constructors
 impl NcPlaneOptions {
@@ -23,7 +13,13 @@ impl NcPlaneOptions {
 
     /// New NcPlaneOptions with horizontal alignment.
     pub fn new_halign(y: i32, align: NcAlign, rows: u32, cols: u32) -> Self {
-        Self::with_flags(y, align as i32, rows, cols, NCPLANE_OPTION_HORALIGNED)
+        Self::with_flags(
+            y,
+            align as i32,
+            rows,
+            cols,
+            crate::NCPLANE_OPTION_HORALIGNED,
+        )
     }
 
     /// New NcPlaneOptions, with flags.
@@ -49,29 +45,20 @@ impl NcPlane {
     /// New NcPlane.
     ///
     /// The returned plane will be the top, bottom, and root of this new pile.
-    pub unsafe fn new<'a>(
-        nc: &mut Notcurses,
-        y: i32,
-        x: i32,
-        rows: u32,
-        cols: u32,
-    ) -> &'a mut NcPlane {
+    pub fn new<'a>(nc: &mut Notcurses, y: i32, x: i32, rows: u32, cols: u32) -> &'a mut NcPlane {
         let options = NcPlaneOptions::new(y, x, rows, cols);
-        &mut *ncpile_create(nc, &options)
+        unsafe { &mut *crate::ncpile_create(nc, &options) }
     }
 
     /// New NcPlane, expects an [NcPlaneOptions] struct.
     ///
     /// The returned plane will be the top, bottom, and root of this new pile.
-    pub unsafe fn with_options<'a>(
-        nc: &mut Notcurses,
-        options: &NcPlaneOptions,
-    ) -> &'a mut NcPlane {
-        &mut *ncpile_create(nc, options)
+    pub fn with_options<'a>(nc: &mut Notcurses, options: &NcPlaneOptions) -> &'a mut NcPlane {
+        unsafe { &mut *crate::ncpile_create(nc, options) }
     }
 
     /// New NcPlane, bound to another NcPlane.
-    pub unsafe fn new_bound<'a>(
+    pub fn new_bound<'a>(
         bound_to: &mut NcPlane,
         y: i32,
         x: i32,
@@ -79,36 +66,32 @@ impl NcPlane {
         cols: u32,
     ) -> &'a mut NcPlane {
         let options = NcPlaneOptions::new(y, x, rows, cols);
-        &mut *ncplane_create(bound_to, &options)
+        unsafe { &mut *crate::ncplane_create(bound_to, &options) }
     }
 
     /// New NcPlane, bound to another plane, expects an [NcPlaneOptions] struct.
     ///
     /// The returned plane will be the top, bottom, and root of this new pile.
-    pub unsafe fn with_options_bound<'a>(
-        nc: &mut Notcurses,
-        options: &NcPlaneOptions,
-    ) -> &'a mut NcPlane {
-        &mut *ncpile_create(nc, options)
+    pub fn with_options_bound<'a>(nc: &mut Notcurses, options: &NcPlaneOptions) -> &'a mut NcPlane {
+        unsafe { &mut *crate::ncpile_create(nc, options) }
     }
 
     /// New NcPlane, with the same dimensions of the terminal.
     ///
     /// The returned plane will be the top, bottom, and root of this new pile.
-    pub unsafe fn new_termsize<'a>(nc: &mut Notcurses) -> &'a mut NcPlane {
+    pub fn new_termsize<'a>(nc: &mut Notcurses) -> &'a mut NcPlane {
         let (mut trows, mut tcols) = (0, 0);
-        notcurses_term_dim_yx(nc, &mut trows, &mut tcols);
+        crate::notcurses_term_dim_yx(nc, &mut trows, &mut tcols);
         assert![(trows > 0) & (tcols > 0)];
-        &mut *ncpile_create(nc, &NcPlaneOptions::new(0, 0, trows as u32, tcols as u32))
+        unsafe {
+            &mut *crate::ncpile_create(nc, &NcPlaneOptions::new(0, 0, trows as u32, tcols as u32))
+        }
     }
 }
 
 /// # `NcPlane` Methods
 impl NcPlane {
-    /// Returns the bottommost [NcPlane] of the pile that contains this [NnPlane].
-    pub fn bottom<'a>(&mut self) -> &'a mut NcPlane {
-        unsafe { &mut *ncpile_bottom(self) }
-    }
+    // Cursor ------------------------------------------------------------------
 
     /// Returns the current position of the cursor within the [NcPlane].
     ///
@@ -116,28 +99,30 @@ impl NcPlane {
     //
     // NOTE: y and/or x may be NULL.
     // FIXME: CHECK for NULL and return Some() or None.
-    pub fn cursor_yx(&self) -> (u32, u32) {
+    pub fn cursor_yx(&self) -> (i32, i32) {
         let (mut y, mut x) = (0, 0);
-        unsafe { ncplane_cursor_yx(self, &mut y, &mut x) };
-        (y as u32, x as u32)
+        unsafe { crate::ncplane_cursor_yx(self, &mut y, &mut x) };
+        (y, x)
     }
 
     /// Returns the current row of the cursor within the [NcPlane].
-    pub fn cursor_y(&self) -> u32 {
+    pub fn cursor_y(&self) -> i32 {
         self.cursor_yx().0
     }
 
     /// Returns the current column of the cursor within the [NcPlane].
-    pub fn cursor_x(&self) -> u32 {
+    pub fn cursor_x(&self) -> i32 {
         self.cursor_yx().1
     }
+
+    // Size --------------------------------------------------------------------
 
     /// Return the dimensions of this [NcPlane].
     ///
     /// Unlike [ncplane_dim_yx] which uses `i32`, this uses [u32].
     pub fn dim_yx(&self) -> (u32, u32) {
         let (mut y, mut x) = (0, 0);
-        unsafe { ncplane_dim_yx(self, &mut y, &mut x) };
+        unsafe { crate::ncplane_dim_yx(self, &mut y, &mut x) };
         (y as u32, x as u32)
     }
 
@@ -157,21 +142,46 @@ impl NcPlane {
     /// All cells associated with this ncplane are invalidated, and must not be
     /// used after the call, excluding the base cell. The cursor is homed.
     pub fn erase(&mut self) {
-        unsafe { ncplane_erase(self) }
+        unsafe { crate::ncplane_erase(self) }
     }
+
+    // Write -------------------------------------------------------------------
 
     ///
     pub fn putc_yx(&mut self, y: i32, x: i32, cell: &NcCell) -> NcResult {
-        unsafe { ncplane_putc_yx(self, y, x, cell) }
+        unsafe { crate::ncplane_putc_yx(self, y, x, cell) }
     }
 
     ///
     pub fn putc(&mut self, cell: &NcCell) -> NcResult {
-        ncplane_putc(self, cell)
+        crate::ncplane_putc(self, cell)
+    }
+
+    ///
+    pub fn putstr(&mut self, string: &str) -> NcResult {
+        crate::ncplane_putstr(self, string)
+    }
+
+    ///
+    pub fn putstr_yx(&mut self, y: i32, x: i32, string: &str) -> NcResult {
+        unsafe { crate::ncplane_putstr_yx(self, y, x, cstring![string]) }
+    }
+
+    // Pile --------------------------------------------------------------------
+
+    /// Returns the bottommost [NcPlane] of the pile that contains this [NnPlane].
+    pub fn bottom<'a>(&mut self) -> &'a mut NcPlane {
+        unsafe { &mut *crate::ncpile_bottom(self) }
     }
 
     /// Returns the topmost [NcPlane] of the pile that contains this [NnPlane].
     pub fn top<'a>(&mut self) -> &'a mut NcPlane {
-        unsafe { &mut *ncpile_top(self) }
+        unsafe { &mut *crate::ncpile_top(self) }
+    }
+}
+
+impl Drop for NcPlane {
+    fn drop(&mut self) {
+        unsafe { crate::ncplane_destroy(self); }
     }
 }

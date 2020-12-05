@@ -1,5 +1,7 @@
 //! `NcReel` widget.
 
+// TODO: implement constructors & Drop
+
 /// A wheel with `NcTablet`s on the outside
 ///
 /// An `NcReel` is projected onto the 2d rendering area, showing some portion of

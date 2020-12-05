@@ -28,14 +28,10 @@ impl NcDirect {
     }
 }
 
-// NOTE: Explicitly implementing both `Drop` and `Copy` trait on a type is
-// currently disallowed (rustc --explain E0184)
-// See: https://github.com/rust-lang/rust/issues/20126
-//
-// impl Drop for NcDirect {
-//     fn drop(&mut self) {
-//         unsafe {
-//             ncdirect_stop(self);
-//         }
-//     }
-// }
+impl Drop for NcDirect {
+    fn drop(&mut self) {
+        unsafe {
+            crate::ncdirect_stop(self);
+        }
+    }
+}

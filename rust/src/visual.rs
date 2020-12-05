@@ -1,5 +1,7 @@
 //! `ncvisual`
 
+// TODO: implement constructors & Drop
+
 // functions already exported by bindgen : 17
 // -----------------------------------------
 // (#) test: 0 / 17

@@ -62,21 +62,21 @@ pub fn notcurses_getc_nblocking(nc: &mut Notcurses, input: &mut NcInput) -> char
 
 /// notcurses_stdplane(), plus free bonus dimensions written to non-NULL y/x!
 #[inline]
-pub fn notcurses_stddim_yx(nc: &mut Notcurses, y: &mut i32, x: &mut i32) -> NcPlane {
+pub fn notcurses_stddim_yx<'a>(nc: &mut Notcurses, y: &mut i32, x: &mut i32) -> &'a mut NcPlane {
     unsafe {
         let s = notcurses_stdplane(nc);
         ncplane_dim_yx(s, y, x);
-        *s
+        &mut *s
     }
 }
 
 /// notcurses_stdplane_const(), plus free bonus dimensions written to non-NULL y/x!
 #[inline]
-pub fn notcurses_stddim_yx_const(nc: &Notcurses, y: &mut i32, x: &mut i32) -> NcPlane {
+pub fn notcurses_stddim_yx_const<'a>(nc: &'a Notcurses, y: &mut i32, x: &mut i32) -> &'a NcPlane {
     unsafe {
         let s = notcurses_stdplane_const(nc);
         ncplane_dim_yx(s, y, x);
-        *s
+        &*s
     }
 }
 

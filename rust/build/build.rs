@@ -33,6 +33,19 @@ fn main() {
         // Remove warnings about improper_ctypes
         .blacklist_function("strtold")
         .blacklist_function("wcstold")
+        // Don't derive the Copy trait on types with destructors.
+        .no_copy("ncdirect")
+        .no_copy("ncdplot")
+        .no_copy("ncfdplane")
+        .no_copy("ncmenu")
+        .no_copy("ncmultiselector")
+        .no_copy("ncplane")
+        .no_copy("ncreader")
+        .no_copy("ncreel")
+        .no_copy("ncselector")
+        .no_copy("ncuplot")
+        .no_copy("ncvisual")
+        .no_copy("notcurses")
         // Tell cargo to invalidate the built crate whenever any of the
         // included header files changed.
         .parse_callbacks(Box::new(bindgen::CargoCallbacks));

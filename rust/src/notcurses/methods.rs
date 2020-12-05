@@ -3,12 +3,8 @@
 use core::ptr::{null, null_mut};
 
 use crate::{
-    notcurses_init, NcLogLevel, Notcurses, NotcursesOptions, NCOPTION_NO_ALTERNATE_SCREEN,
-    NCOPTION_SUPPRESS_BANNERS,
-};
-use crate::{
-    notcurses_render, notcurses_stdplane, notcurses_stdplane_const, notcurses_stop, NcPlane,
-    NcResult,
+    notcurses_init, NcLogLevel, NcPlane, NcResult, Notcurses, NotcursesOptions,
+    NCOPTION_NO_ALTERNATE_SCREEN, NCOPTION_SUPPRESS_BANNERS,
 };
 
 /// # `NotcursesOptions` Constructors
@@ -82,31 +78,31 @@ impl NotcursesOptions {
 
 /// # `Notcurses` Constructors
 impl Notcurses {
-    /// Simple constructor with clean output
+    /// Returns a Notcurses context (without banners).
     pub fn new<'a>() -> &'a mut Notcurses {
         let options = NotcursesOptions::with_flags(NCOPTION_SUPPRESS_BANNERS);
         unsafe { &mut *notcurses_init(&options, null_mut()) }
     }
 
-    /// Simple constructor, showing banners
+    /// Returns a Notcurses context, with banners.
     pub fn with_banners<'a>() -> &'a mut Notcurses {
         unsafe { &mut *notcurses_init(&NotcursesOptions::new(), null_mut()) }
     }
 
-    /// Simple constructor without an alternate screen
+    /// Returns a Notcurses context, without an alternate screen (nor banners).
     pub fn without_altscreen<'a>() -> &'a mut Notcurses {
-        let options = NotcursesOptions::with_flags(NCOPTION_NO_ALTERNATE_SCREEN);
-        unsafe { &mut *notcurses_init(&options, null_mut()) }
-    }
-
-    /// Simple constructor without an alternate screen
-    pub fn without_altscreen_nor_banners<'a>() -> &'a mut Notcurses {
         let options =
             NotcursesOptions::with_flags(NCOPTION_NO_ALTERNATE_SCREEN | NCOPTION_SUPPRESS_BANNERS);
         unsafe { &mut *notcurses_init(&options, null_mut()) }
     }
 
-    /// Constructor with all the options
+    /// Returns a Notcurses context, without an alternate screen, with banners.
+    pub fn without_altscreen_nor_banners<'a>() -> &'a mut Notcurses {
+        let options = NotcursesOptions::with_flags(NCOPTION_NO_ALTERNATE_SCREEN);
+        unsafe { &mut *notcurses_init(&options, null_mut()) }
+    }
+
+    /// Returns a Notcurses context, expects [NotcursesOptions].
     pub fn with_options<'a>(options: &NotcursesOptions) -> &'a mut Notcurses {
         unsafe { &mut *notcurses_init(options, null_mut()) }
     }
@@ -123,25 +119,38 @@ impl Notcurses {
     ///
     /// The standard plane always exists, and its origin is always at the
     /// uppermost, leftmost cell.
-    pub fn stdplane_mut<'a>(&mut self) -> &'a mut NcPlane {
-        unsafe { &mut *notcurses_stdplane(self) }
+    pub fn stdplane<'a>(&mut self) -> &'a mut NcPlane {
+        unsafe { &mut *crate::notcurses_stdplane(self) }
     }
 
     /// Returns a reference to the standard [NcPlane] for this terminal.
     ///
     /// The standard plane always exists, and its origin is always at the
     /// uppermost, leftmost cell.
-    pub fn stdplane<'a>(&self) -> &'a NcPlane {
-        unsafe { &*notcurses_stdplane_const(self) }
+    pub fn stdplane_const<'a>(&self) -> &'a NcPlane {
+        unsafe { &*crate::notcurses_stdplane_const(self) }
     }
 
-    ///
+    /// Destroy the Notcurses context.
     pub fn stop(&mut self) -> NcResult {
-        unsafe { notcurses_stop(self) }
+        unsafe { crate::notcurses_stop(self) }
     }
 
     ///
     pub fn render(&mut self) -> NcResult {
-        unsafe { notcurses_render(self) }
+        unsafe { crate::notcurses_render(self) }
     }
 }
+
+// Common Traits ---------------------------------------------------------------
+
+impl Drop for Notcurses {
+    fn drop(&mut self) {
+        unsafe {
+            crate::notcurses_stop(self);
+        }
+    }
+}
+
+// impl fmt::Display for Notcurses {
+// }
