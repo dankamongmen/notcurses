@@ -635,6 +635,7 @@ int fpsgraph_init(struct notcurses* nc){
   ncplot_options opts;
   memset(&opts, 0, sizeof(opts));
   opts.flags = NCPLOT_OPTION_LABELTICKSD | NCPLOT_OPTION_EXPONENTIALD;
+  opts.gridtype = NCBLIT_BRAILLE;
   opts.legendstyle = NCSTYLE_ITALIC;
   opts.title = "frames per second";
   channels_set_fg_rgb8(&opts.minchannels, 0x80, 0x80, 0xff);
