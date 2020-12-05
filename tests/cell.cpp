@@ -44,7 +44,7 @@ TEST_CASE("Cell") {
 
   SUBCASE("MultibyteWidth") {
     CHECK(0 == ncstrwidth(""));       // zero bytes, zero columns
-    CHECK(0 == ncstrwidth("\x7"));   // single byte, non-printable
+    CHECK(-1 == ncstrwidth("\x7"));   // single byte, non-printable
     CHECK(1 == ncstrwidth(" "));      // single byte, one column
     CHECK(5 == ncstrwidth("abcde"));  // single byte, one column
     CHECK(1 == ncstrwidth("µ"));      // two bytes, one column
@@ -342,6 +342,27 @@ TEST_CASE("Cell") {
     free(topegc);
     free(negc);
     free(egc);
+  }
+
+  SUBCASE("CellLoadCharPrinting") {
+    cell c = CELL_TRIVIAL_INITIALIZER;
+    CHECK(1 == cell_load_char(n_, &c, '*'));
+    CHECK(0 == strcmp(cell_extended_gcluster(n_, &c), "*"));
+  }
+
+  SUBCASE("CellLoadCharWhitespace") {
+    cell c = CELL_TRIVIAL_INITIALIZER;
+    CHECK(1 == cell_load_char(n_, &c, '\f'));
+    CHECK(1 == cell_load_char(n_, &c, '\n'));
+    CHECK(1 == cell_load_char(n_, &c, '\t'));
+    CHECK(1 == cell_load_char(n_, &c, ' '));
+  }
+
+  SUBCASE("CellLoadCharControl") {
+    cell c = CELL_TRIVIAL_INITIALIZER;
+    CHECK(0 == cell_load_char(n_, &c, '\0'));
+    CHECK(-1 == cell_load_char(n_, &c, 1));
+    CHECK(-1 == cell_load_char(n_, &c, '\b'));
   }
 
   // common teardown

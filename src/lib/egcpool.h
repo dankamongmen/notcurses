@@ -77,26 +77,24 @@ utf8_egc_len(const char* gcluster, int* colcount){
   wchar_t wc, prevw = 0;
   do{
     r = mbrtowc(&wc, gcluster, MB_CUR_MAX, &mbt);
-    if(r > 0){
-      if(prevw && uc_is_grapheme_break(prevw, wc)){
-        break; // starts a new EGC, exit and do not claim
-      }
-      int cols = wcwidth(wc);
-      if(cols < 0){
-        if(iswspace(wc)){ // newline or tab
-          return ret + 1;
-        }
-        ret += r;
-        break;
-      }
-      if(!*colcount){ // only count first printing char towards width
-        *colcount += cols;
-      }
-      ret += r;
-      gcluster += r;
-    }else if(r < 0){
+    if(r < 0){
       return -1;
     }
+    if(prevw && uc_is_grapheme_break(prevw, wc)){
+      break; // starts a new EGC, exit and do not claim
+    }
+    int cols = wcwidth(wc);
+    if(cols < 0){
+      if(iswspace(wc)){ // newline or tab
+        return ret + 1;
+      }
+      return -1;
+    }
+    if(!*colcount){ // only count first printing char towards width
+      *colcount += cols;
+    }
+    ret += r;
+    gcluster += r;
     prevw = wc;
   }while(r);
   return ret;

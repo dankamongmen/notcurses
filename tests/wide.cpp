@@ -933,14 +933,14 @@ TEST_CASE("Wide") {
   // Verify that we can use long (4-byte) UTF-encoded characters together with
   // styles without a problem (since the stylemask holds both styling bits and
   // the NUL backstop for long inlined UTF8).
-  // U+1F90C PINCHED FINGERS → UTF8(f0 9f a4 8c)
+  // U+1F427 PINCHED FINGERS → UTF8(f0 9f a4 8c)
   SUBCASE("ItalicEmoji") {
     cell c = CELL_TRIVIAL_INITIALIZER;
-    cell_load(n_, &c, "\U0001F90C");
-    CHECK(0x8ca49ff0lu == c.gcluster);
+    cell_load(n_, &c, "\U0001F427");
+    CHECK(0xa7909ff0 == htole(c.gcluster));
     cell_on_styles(&c, NCSTYLE_ITALIC);
     CHECK(4 == strlen(cell_extended_gcluster(n_, &c)));
-    CHECK(0 == strcmp("\U0001F90C", cell_extended_gcluster(n_, &c)));
+    CHECK(0 == strcmp("\U0001F427", cell_extended_gcluster(n_, &c)));
     CHECK(0 < ncplane_putc_yx(n_, 0, 0, &c));
     CHECK(0 == notcurses_render(nc_));
     uint16_t stylemask;
@@ -948,18 +948,18 @@ TEST_CASE("Wide") {
     auto egc = notcurses_at_yx(nc_, 0, 0, &stylemask, &channels);
     REQUIRE(nullptr != egc);
     CHECK(4 == strlen(egc));
-    CHECK(0 == strcmp("\U0001F90C", egc));
+    CHECK(0 == strcmp("\U0001F427", egc));
     free(egc);
     CHECK(NCSTYLE_ITALIC == stylemask);
   }
 
   SUBCASE("StyleMaxEmoji") {
     cell c = CELL_TRIVIAL_INITIALIZER;
-    cell_load(n_, &c, "\U0001F90C");
-    CHECK(0x8ca49ff0lu == c.gcluster);
+    cell_load(n_, &c, "\U0001F427");
+    CHECK(0xa7909ff0 == htole(c.gcluster));
     cell_on_styles(&c, NCSTYLE_MASK);
     CHECK(4 == strlen(cell_extended_gcluster(n_, &c)));
-    CHECK(0 == strcmp("\U0001F90C", cell_extended_gcluster(n_, &c)));
+    CHECK(0 == strcmp("\U0001F427", cell_extended_gcluster(n_, &c)));
     CHECK(0 < ncplane_putc_yx(n_, 0, 0, &c));
     CHECK(0 == notcurses_render(nc_));
     uint16_t stylemask;
@@ -967,7 +967,7 @@ TEST_CASE("Wide") {
     auto egc = notcurses_at_yx(nc_, 0, 0, &stylemask, &channels);
     REQUIRE(nullptr != egc);
     CHECK(4 == strlen(egc));
-    CHECK(0 == strcmp("\U0001F90C", egc));
+    CHECK(0 == strcmp("\U0001F427", egc));
     free(egc);
     CHECK(NCSTYLE_MASK == stylemask);
   }
