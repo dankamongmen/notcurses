@@ -159,11 +159,13 @@ reader_post(struct notcurses* nc, struct ncselector* selector, struct ncmultisel
       return ret;
     }
   }while(cur < targ);
+  struct timespec fadedelay;
+  ns_to_timespec(timespec_to_ns(&demodelay) * 2, &fadedelay);
   if(notcurses_canfade(nc)){
-    if(ncplane_fadeout(ncselector_plane(selector), &demodelay, demo_fader, NULL)){
+    if(ncplane_fadeout(ncselector_plane(selector), &fadedelay, demo_fader, NULL)){
       return -1;
     }
-    if(ncplane_fadeout(ncmultiselector_plane(mselector), &demodelay, demo_fader, NULL)){
+    if(ncplane_fadeout(ncmultiselector_plane(mselector), &fadedelay, demo_fader, NULL)){
       return -1;
     }
   }

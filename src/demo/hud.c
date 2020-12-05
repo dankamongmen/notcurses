@@ -512,8 +512,8 @@ demo_nanosleep_abstime_ns(struct notcurses* nc, uint64_t deadline){
   clock_gettime(CLOCK_MONOTONIC, &now);
   while(deadline > timespec_to_ns(&now)){
     fsleep.tv_sec = 0;
-    fsleep.tv_nsec = GIG / 10;
-    if(deadline - timespec_to_ns(&now) < GIG / 10){
+    fsleep.tv_nsec = GIG / 100;
+    if(deadline - timespec_to_ns(&now) < GIG / 100){
       fsleep.tv_nsec = deadline - timespec_to_ns(&now);
     }
     ncinput ni;
@@ -562,7 +562,7 @@ int demo_render(struct notcurses* nc){
     if(!plot_hidden){
       ncplane_move_top(ncuplot_plane(plot));
     }
-    uint64_t ns = (timespec_to_ns(&ts) - plottimestart) / GIG;
+    uint64_t ns = (timespec_to_ns(&ts) - plottimestart) / (GIG / 10);
     ncuplot_add_sample(plot, ns, 1);
   }
   if(menu){
@@ -636,8 +636,8 @@ int fpsgraph_init(struct notcurses* nc){
   memset(&opts, 0, sizeof(opts));
   opts.flags = NCPLOT_OPTION_LABELTICKSD | NCPLOT_OPTION_EXPONENTIALD;
   opts.gridtype = NCBLIT_BRAILLE;
-  opts.legendstyle = NCSTYLE_ITALIC;
-  opts.title = "frames per second";
+  opts.legendstyle = NCSTYLE_ITALIC | NCSTYLE_BOLD;
+  opts.title = "frames per decisecond";
   channels_set_fg_rgb8(&opts.minchannels, 0x80, 0x80, 0xff);
   channels_set_bg_rgb(&opts.minchannels, 0x201020);
   channels_set_bg_alpha(&opts.minchannels, CELL_ALPHA_BLEND);
