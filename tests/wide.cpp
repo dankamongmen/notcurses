@@ -132,8 +132,6 @@ TEST_CASE("Wide") {
     CHECK(0 == strcmp(cell_extended_gcluster(n_, &c), FROG));
     ncplane_at_yx_cell(n_, 1, 1, &c);
     CHECK(ncstrwidth(FROG) == 1 + cell_double_wide_p(&c)); //should be wide
-    ncplane_at_yx_cell(n_, 0, 2, &c);
-    CHECK(0 == strlen(cell_extended_gcluster(n_, &c)));
     CHECK(0 == notcurses_render(nc_)); // should be nothing
   }
 
