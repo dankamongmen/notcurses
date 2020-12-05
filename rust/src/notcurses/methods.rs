@@ -110,11 +110,6 @@ impl Notcurses {
 
 /// # `Notcurses` methods
 impl Notcurses {
-    // reference, ... I need an NcPlane from this...
-    // pub fn stdplane_mut2(&mut self) -> *mut NcPlane {
-    //     unsafe { notcurses_stdplane(self) }
-    // }
-
     /// Returns a mutable reference to the standard [NcPlane] for this terminal.
     ///
     /// The standard plane always exists, and its origin is always at the

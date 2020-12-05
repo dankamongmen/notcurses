@@ -4,10 +4,10 @@ use core::{ffi::c_void, ptr::null_mut};
 use libc::free;
 
 use crate::{
-    bindgen::__va_list_tag, cell_load, cell_release, cells_double_box, cells_rounded_box,
-    channels_bchannel, channels_bg_alpha, channels_bg_default_p, channels_bg_rgb, channels_bg_rgb8,
-    channels_fchannel, channels_fg_alpha, channels_fg_default_p, channels_fg_rgb, channels_fg_rgb8,
-    cstring, ncplane_at_cursor, ncplane_at_yx, ncplane_box, ncplane_channels,
+    cell_load, cell_release, cells_double_box, cells_rounded_box, channels_bchannel,
+    channels_bg_alpha, channels_bg_default_p, channels_bg_rgb, channels_bg_rgb8, channels_fchannel,
+    channels_fg_alpha, channels_fg_default_p, channels_fg_rgb, channels_fg_rgb8, cstring,
+    ffi::__va_list_tag, ncplane_at_cursor, ncplane_at_yx, ncplane_box, ncplane_channels,
     ncplane_cursor_move_yx, ncplane_cursor_yx, ncplane_dim_yx, ncplane_gradient,
     ncplane_hline_interp, ncplane_putc_yx, ncplane_putegc_yx, ncplane_putnstr_yx,
     ncplane_putstr_yx, ncplane_resize, ncplane_styles, ncplane_vline_interp, ncplane_vprintf_yx,

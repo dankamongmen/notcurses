@@ -91,7 +91,7 @@ pub use reimplemented::*;
 pub type NcChannel = u32;
 
 /// Extract these bits to get a channel's alpha value
-pub const NCCHANNEL_ALPHA_MASK: u32 = crate::bindings::bindgen::CHANNEL_ALPHA_MASK;
+pub const NCCHANNEL_ALPHA_MASK: u32 = crate::bindings::ffi::CHANNEL_ALPHA_MASK;
 
 // NcAlphaBits
 //
@@ -226,7 +226,7 @@ pub type NcRgb = u32;
 pub type NcColor = u8;
 
 /// Context for a palette fade operation
-pub type NcFadeCtx = crate::bindings::bindgen::ncfadectx;
+pub type NcFadeCtx = crate::bindings::ffi::ncfadectx;
 
 /// the [NcEgc][crate::NcEgc] which form the various levels of a given geometry.
 ///
@@ -238,4 +238,4 @@ pub type NcFadeCtx = crate::bindings::bindgen::ncfadectx;
 ///
 /// `type in C: blitset (struct)`
 ///
-pub type NcBlitSet = crate::bindings::bindgen::blitset;
+pub type NcBlitSet = crate::bindings::ffi::blitset;

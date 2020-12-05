@@ -35,7 +35,7 @@ pub use reimplemented::*;
 ///
 /// `type in C: ncpalette256 (struct)`
 ///
-pub type NcPalette = crate::bindings::bindgen::palette256;
+pub type NcPalette = crate::bindings::ffi::palette256;
 
 /// 8-bit value used for indexing into a [`NcPalette`]
 ///
