@@ -500,8 +500,8 @@ static int
 term_putc(FILE* out, const egcpool* e, const cell* c){
   if(cell_simple_p(c)){
 //fprintf(stderr, "[%.4s] %08x\n", (const char*)&c->gcluster, c->gcluster); }
-    // FIXME pretty sure we need 0xff000000llu + 24-rshift on big-endian, fuck
-    if(c->gcluster == 0 || iscntrl(c->gcluster & 0xffu)){
+    uint32_t firstbyte = htole(c->gcluster) & 0xff;
+    if(c->gcluster == 0 || iscntrl(firstbyte)){
       if(ncfputc(' ', out) == EOF){
         return -1;
       }
