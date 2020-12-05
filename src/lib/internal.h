@@ -983,11 +983,9 @@ pool_blit_direct(egcpool* pool, cell* c, const char* gcluster, int bytes, int co
 
 static inline int
 pool_load_direct(egcpool* pool, cell* c, const char* gcluster, int bytes, int cols){
-  if(bytes <= 1){
-    c->channels &= ~(CELL_WIDEASIAN_MASK | CELL_NOBACKGROUND_MASK);
-  }else if(cols < 2){
+  char* rtl = NULL;
+  if(cols < 2){
     c->channels &= ~CELL_WIDEASIAN_MASK;
-    // FIXME also shaded blocks! ░ etc. are there combined EGCs involving these?
     if(bytes == 3 && memcmp(gcluster, "\xe2\x96\x88", 4) == 0){
       c->channels |= CELL_NOBACKGROUND_MASK;
     }else{
@@ -997,7 +995,9 @@ pool_load_direct(egcpool* pool, cell* c, const char* gcluster, int bytes, int co
     c->channels |= CELL_WIDEASIAN_MASK;
     c->channels &= ~CELL_NOBACKGROUND_MASK;
   }
-  char* rtl = egc_rtl(gcluster, &bytes); // checks for RTL and adds U+200E if so
+  if(bytes >= 0){
+    rtl = egc_rtl(gcluster, &bytes); // checks for RTL and adds U+200E if so
+  }
   if(rtl){
     gcluster = rtl;
   }
