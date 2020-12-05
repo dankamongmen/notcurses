@@ -27,11 +27,3 @@ impl NcDirect {
         &mut *ncdirect_init(null(), null_mut(), flags)
     }
 }
-
-impl Drop for NcDirect {
-    fn drop(&mut self) {
-        unsafe {
-            crate::ncdirect_stop(self);
-        }
-    }
-}

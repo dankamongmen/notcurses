@@ -20,14 +20,6 @@ impl NcMenu {
     }
 }
 
-impl Drop for NcMenu {
-    fn drop(&mut self) {
-        unsafe {
-            crate::ncmenu_destroy(self);
-        }
-    }
-}
-
 /// # `NcMenuOptions` Constructors
 impl NcMenuOptions {
     /// `NcMenuOptions` simple constructor

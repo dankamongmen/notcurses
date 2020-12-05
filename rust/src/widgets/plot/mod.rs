@@ -1,7 +1,5 @@
 //! `NcPlot[F|U]64` widget.
 
-// TODO: implement constructors & Drop
-
 /// A histogram, bound to an [`NcPlane`][crate::NcPlane]
 /// (uses non-negative `f64`s)
 pub type NcPlotF64 = crate::bindings::bindgen::ncdplot;

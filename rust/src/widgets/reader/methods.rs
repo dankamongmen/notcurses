@@ -29,12 +29,3 @@ impl NcReader {
         &mut *ncreader_create(plane, options)
     }
 }
-
-impl Drop for NcReader {
-    /// Destroys the NcReader and its bound [NcPlane].
-    /// 
-    /// See the `destroy` method or `ncreader_destroy` for more options.
-    fn drop(&mut self) {
-        unsafe { crate::ncreader_destroy(self, core::ptr::null_mut()); }
-    }
-}

@@ -84,7 +84,7 @@ impl Notcurses {
         unsafe { &mut *notcurses_init(&options, null_mut()) }
     }
 
-    /// Returns a Notcurses context, with banners.
+    /// Returns a Notcurses context, with banners. The default in the C library.
     pub fn with_banners<'a>() -> &'a mut Notcurses {
         unsafe { &mut *notcurses_init(&NotcursesOptions::new(), null_mut()) }
     }
@@ -141,16 +141,3 @@ impl Notcurses {
         unsafe { crate::notcurses_render(self) }
     }
 }
-
-// Common Traits ---------------------------------------------------------------
-
-impl Drop for Notcurses {
-    fn drop(&mut self) {
-        unsafe {
-            crate::notcurses_stop(self);
-        }
-    }
-}
-
-// impl fmt::Display for Notcurses {
-// }

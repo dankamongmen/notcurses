@@ -179,9 +179,3 @@ impl NcPlane {
         unsafe { &mut *crate::ncpile_top(self) }
     }
 }
-
-impl Drop for NcPlane {
-    fn drop(&mut self) {
-        unsafe { crate::ncplane_destroy(self); }
-    }
-}

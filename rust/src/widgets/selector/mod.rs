@@ -1,7 +1,5 @@
 //! `NcSelector` widget.
 
-// TODO: implement constructors & Drop
-
 /// high-level widget for selecting one item from a set
 pub type NcSelector = crate::bindings::bindgen::ncselector;
 

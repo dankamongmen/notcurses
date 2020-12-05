@@ -1,6 +1,6 @@
 //! `ncvisual`
 
-// TODO: implement constructors & Drop
+// TODO: implement constructors
 
 // functions already exported by bindgen : 17
 // -----------------------------------------
