@@ -365,6 +365,14 @@ TEST_CASE("Cell") {
     CHECK(-1 == cell_load_char(n_, &c, '\b'));
   }
 
+  SUBCASE("CellLoadEGC32") {
+    cell c = CELL_TRIVIAL_INITIALIZER;
+    CHECK(0 == cell_load_egc32(n_, &c, 0));
+    CHECK(1 == cell_load_egc32(n_, &c, 0x65));   // U+0061 LATIN SMALL LETTER A
+    CHECK(2 == cell_load_egc32(n_, &c, 0xb5c2)); // U+00B5 MICRO SIGN
+    CHECK(4 == cell_load_egc32(n_, &c, 0x82a69ff0)); // U+1F982 SCORPION
+  }
+
   // common teardown
   CHECK(0 == notcurses_stop(nc_));
 }

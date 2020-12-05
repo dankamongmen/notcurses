@@ -740,7 +740,8 @@ cellcmp(const struct ncplane* n1, const cell* RESTRICT c1,
   return strcmp(cell_extended_gcluster(n1, c1), cell_extended_gcluster(n2, c2));
 }
 
-// Load a 7-bit char 'ch' into the cell 'c'.
+// Load a 7-bit char 'ch' into the cell 'c'. Returns the number of bytes used,
+// or -1 on error.
 static inline int
 cell_load_char(struct ncplane* n, cell* c, char ch){
   char gcluster[2];
@@ -749,7 +750,8 @@ cell_load_char(struct ncplane* n, cell* c, char ch){
   return cell_load(n, c, gcluster);
 }
 
-// Load a UTF-8 encoded EGC of up to 4 bytes into the cell 'c'.
+// Load a UTF-8 encoded EGC of up to 4 bytes into the cell 'c'. Returns the
+// number of bytes used, or -1 on error.
 static inline int
 cell_load_egc32(struct ncplane* n, cell* c, uint32_t egc){
   char gcluster[sizeof(egc) + 1];
