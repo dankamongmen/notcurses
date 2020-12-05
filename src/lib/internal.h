@@ -967,11 +967,6 @@ pool_blit_direct(egcpool* pool, cell* c, const char* gcluster, int bytes, int co
   if(bytes < 0 || cols < 0){
     return -1;
   }
-  if(bytes <= 1){
-    assert(cols < 2);
-    c->gcluster = htole((uint32_t)*gcluster);
-    return bytes;
-  }
   if(bytes <= 4){
     c->gcluster = 0;
     memcpy(&c->gcluster, gcluster, bytes);
