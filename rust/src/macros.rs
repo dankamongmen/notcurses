@@ -10,6 +10,17 @@ macro_rules! sleep {
     };
 }
 
+/// Renders the [Notcurses] object sleeps for $ms milliseconds.
+#[macro_export]
+macro_rules! rsleep {
+    ($nc: expr, $ms:expr) => {
+        unsafe {
+            crate::notcurses_render($nc);
+        }
+        std::thread::sleep(std::time::Duration::from_millis($ms));
+    };
+}
+
 /// Converts `&str` to `*mut CString`, for when `*const c_char` is needed.
 #[macro_export]
 macro_rules! cstring {

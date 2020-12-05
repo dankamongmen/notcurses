@@ -8,13 +8,13 @@ use crate::{
 
 // Alpha -----------------------------------------------------------------------
 
-/// Gets the [NcAlphaBits] 2-bit component from a 32-bit [NcChannel].
+/// Gets the [NcAlphaBits] from an [NcChannel].
 #[inline]
-pub fn channel_alpha(channel: NcChannel) -> NcAlphaBits {
+pub const fn channel_alpha(channel: NcChannel) -> NcAlphaBits {
     channel & NCCHANNEL_ALPHA_MASK
 }
 
-/// Sets the [NcAlphaBits] 2-bit component of a 32-bit [NcChannel].
+/// Sets the [NcAlphaBits] of an [NcChannel].
 #[inline]
 pub fn channel_set_alpha(channel: &mut NcChannel, alpha: NcAlphaBits) {
     let alpha_clean = alpha & NCCHANNEL_ALPHA_MASK;
@@ -28,13 +28,13 @@ pub fn channel_set_alpha(channel: &mut NcChannel, alpha: NcAlphaBits) {
 
 /// Gets the foreground [NcAlphabits] from an [NcChannelPair], shifted to LSBs.
 #[inline]
-pub fn channels_fg_alpha(channels: NcChannelPair) -> NcAlphaBits {
+pub const fn channels_fg_alpha(channels: NcChannelPair) -> NcAlphaBits {
     channel_alpha(channels_fchannel(channels))
 }
 
 /// Gets the background [NcAlphabits] from an [NcChannelPair], shifted to LSBs.
 #[inline]
-pub fn channels_bg_alpha(channels: NcChannelPair) -> NcAlphaBits {
+pub const fn channels_bg_alpha(channels: NcChannelPair) -> NcAlphaBits {
     channel_alpha(channels_bchannel(channels))
 }
 
@@ -61,26 +61,26 @@ pub fn channels_set_bg_alpha(channels: &mut NcChannelPair, alpha: NcAlphaBits) {
 
 // Channels --------------------------------------------------------------------
 
-/// Extracts the 32-bit background [NcChannel] from a [NcChannelPair].
+/// Extracts the background [NcChannel] from a [NcChannelPair].
 #[inline]
-pub fn channels_bchannel(channels: NcChannelPair) -> NcChannel {
+pub const fn channels_bchannel(channels: NcChannelPair) -> NcChannel {
     (channels & 0xffffffff_u64) as NcChannel
 }
 
-/// Extracts the 32-bit foreground [NcChannel] from an [NcChannelPair].
+/// Extracts the foreground [NcChannel] from an [NcChannelPair].
 #[inline]
-pub fn channels_fchannel(channels: NcChannelPair) -> NcChannel {
+pub const fn channels_fchannel(channels: NcChannelPair) -> NcChannel {
     channels_bchannel(channels >> 32)
 }
 
-/// Sets the 32-bit background [NcChannel] of an [NcChannelPair].
+/// Sets the background [NcChannel] of an [NcChannelPair].
 #[inline]
 pub fn channels_set_bchannel(channels: &mut NcChannelPair, bchannel: NcChannel) -> NcChannelPair {
     *channels = (*channels & 0xffffffff00000000_u64) | bchannel as u64;
     *channels
 }
 
-/// Sets the 32-bit foreground [NcChannel] of an [NcChannelPair].
+/// Sets the foreground [NcChannel] of an [NcChannelPair].
 #[inline]
 pub fn channels_set_fchannel(channels: &mut NcChannelPair, fchannel: NcChannel) -> NcChannelPair {
     *channels = (*channels & 0xffffffff_u64) | (fchannel as u64) << 32;
@@ -98,25 +98,49 @@ pub fn channels_combine(fchannel: NcChannel, bchannel: NcChannel) -> NcChannelPa
 
 // NcColor ---------------------------------------------------------------------
 
-/// Gets the red [NcColor] 8-bit component from a 32-bit [NcChannel].
+/// Gets the red [NcColor] from an [NcChannel].
 #[inline]
 pub const fn channel_r(channel: NcChannel) -> NcColor {
     ((channel & 0xff0000) >> 16) as NcColor
 }
 
-/// Gets the [NcColor] 8-bit component from a 32-bit [NcChannel].
-#[inline]
-pub const fn channel_b(channel: NcChannel) -> NcColor {
-    (channel & 0x0000ff) as NcColor
-}
-
-/// Gets the green [NcColor] 8-bit component from a 32-bit [NcChannel].
+/// Gets the green [NcColor] from an [NcChannel].
 #[inline]
 pub const fn channel_g(channel: NcChannel) -> NcColor {
     ((channel & 0x00ff00) >> 8) as NcColor
 }
 
-/// Gets the three [NcColor] 8-bit RGB components from a 32-bit [NcChannel].
+/// Gets the blue [NcColor] from an [NcChannel].
+#[inline]
+pub const fn channel_b(channel: NcChannel) -> NcColor {
+    (channel & 0x0000ff) as NcColor
+}
+
+/// Sets the red [NcColor] of an [NcChannel], and returns it.
+// Not in the C API.
+#[inline]
+pub fn channel_set_r(channel: &mut NcChannel, r: NcColor) -> NcChannel {
+    *channel = (r as NcChannel) << 16 | (*channel & 0xff00) | (*channel & 0xff);
+    *channel
+}
+
+/// Sets the green [NcColor] of an [NcChannel], and returns it.
+// Not in the C API.
+#[inline]
+pub fn channel_set_g(channel: &mut NcChannel, g: NcColor) -> NcChannel {
+    *channel = (*channel & 0xff0000) | (g as NcChannel) << 8 | (*channel & 0xff);
+    *channel
+}
+
+/// Sets the blue [NcColor] of an [NcChannel], and returns it.
+// Not in the C API.
+#[inline]
+pub fn channel_set_b(channel: &mut NcChannel, b: NcColor) -> NcChannel {
+    *channel = (*channel & 0xff0000) | (*channel & 0xff00) | (b as NcChannel);
+    *channel
+}
+
+/// Gets the three RGB [NcColor]s from an [NcChannel], and returns it.
 #[inline]
 pub fn channel_rgb8(
     channel: NcChannel,
@@ -130,17 +154,16 @@ pub fn channel_rgb8(
     channel
 }
 
-/// Sets the three [NcColor] 8-bit components of a 32-bit [NcChannel], and marks
-/// it as not using the "default color". Retain the other bits unchanged.
+/// Sets the three RGB [NcColor]s an [NcChannel], and marks it as not using the
+/// "default color", retaining the other bits unchanged.
 #[inline]
 pub fn channel_set_rgb8(channel: &mut NcChannel, r: NcColor, g: NcColor, b: NcColor) {
     let rgb: NcRgb = (r as NcChannel) << 16 | (g as NcChannel) << 8 | (b as NcChannel);
     *channel = (*channel & !NCCELL_BG_RGB_MASK) | NCCELL_BGDEFAULT_MASK | rgb;
 }
 
-/// Gets the foreground [NcRgb] 24-bit value from an [NcChannelPair], and
-/// saves it split into three [NcColor] 8-bit components. Also returns the
-/// corresponding [NcChannel] (which can have some extra bits set).
+/// Gets the three foreground RGB [NcColors] from an [NcChannelPair], and
+/// returns the foreground [NcChannel] (which can have some extra bits set).
 #[inline]
 pub fn channels_fg_rgb8(
     channels: NcChannelPair,
@@ -151,9 +174,8 @@ pub fn channels_fg_rgb8(
     channel_rgb8(channels_fchannel(channels), r, g, b)
 }
 
-/// Gets the background [NcRgb] 24-bit value from an [NcChannelPair], and
-/// saves it split into three [NcColor] 8-bit components. Also returns the
-/// corresponding [NcChannel] (which can have some extra bits set).
+/// Gets the three background RGB [NcColors] from an [NcChannelPair], and
+/// returns the background [NcChannel] (which can have some extra bits set).
 #[inline]
 pub fn channels_bg_rgb8(
     channels: NcChannelPair,
@@ -164,8 +186,8 @@ pub fn channels_bg_rgb8(
     channel_rgb8(channels_bchannel(channels), r, g, b)
 }
 
-/// Sets the RGB [NcColor] components for the foreground [NcChannel] of an
-/// [NcChannelPair] 64-bit variable, and marks it as not using the "default color".
+/// Sets the three foreground RGB [NcColor]s of an [NcChannelPair], and
+/// marks it as not using the "default color".
 #[inline]
 pub fn channels_set_fg_rgb8(channels: &mut NcChannelPair, r: NcColor, g: NcColor, b: NcColor) {
     let mut channel = channels_fchannel(*channels);
@@ -173,8 +195,8 @@ pub fn channels_set_fg_rgb8(channels: &mut NcChannelPair, r: NcColor, g: NcColor
     *channels = (channel as u64) << 32 | *channels & 0xffffffff_u64;
 }
 
-/// Sets the RGB [NcColor] components for the background [NcChannel] of an
-/// [NcChannelPair] 64-bit variable, and marks it as not using the "default color".
+/// Sets the three background RGB [NcColor]s of an [NcChannelPair], and
+/// marks it as not using the "default color".
 #[inline]
 pub fn channels_set_bg_rgb8(channels: &mut NcChannelPair, r: NcColor, g: NcColor, b: NcColor) {
     let mut channel = channels_bchannel(*channels);
@@ -184,29 +206,36 @@ pub fn channels_set_bg_rgb8(channels: &mut NcChannelPair, r: NcColor, g: NcColor
 
 // NcRgb -----------------------------------------------------------------------
 
-/// Gets the foreground [NcRgb] 24-bit value from an [NcChannelPair],
-/// shifted to LSBs.
+/// Gets the foreground [NcRgb] from an [NcChannelPair], shifted to LSBs.
 #[inline]
 pub fn channels_fg_rgb(channels: NcChannelPair) -> NcChannel {
     channels_fchannel(channels) & NCCELL_BG_RGB_MASK
 }
 
-/// Gets the background [NcRgb] 24-bit value from an [NcChannelPair],
-/// shifted to LSBs.
+/// Gets the background [NcRgb] from an [NcChannelPair], shifted to LSBs.
 #[inline]
 pub fn channels_bg_rgb(channels: NcChannelPair) -> NcChannel {
     channels_bchannel(channels) & NCCELL_BG_RGB_MASK
 }
 
-/// Sets the [NcRgb] 24-bit RGB value of a 32-bit [NcChannel], and marks it as
-/// not using the "default color". Retain the other bits unchanged.
+/// Gets the [NcRgb] of an [NcChannel].
+///
+/// This function basically removes the 4th byte of the NcChannel.
+// Not in the C API
+#[inline]
+pub const fn channel_rgb(channel: NcChannel) -> NcRgb {
+    channel & NCCELL_BG_RGB_MASK
+}
+
+/// Sets the [NcRgb] of an [NcChannel], and marks it
+/// as not using the "default color", retaining the other bits unchanged.
 #[inline]
 pub fn channel_set(channel: &mut NcChannel, rgb: NcRgb) {
     *channel = (*channel & !NCCELL_BG_RGB_MASK) | NCCELL_BGDEFAULT_MASK | (rgb & 0x00ffffff);
 }
 
-/// Sets the foreground [NcRgb] 24-bit value of an [NcChannelPair],
-/// and marks it as not using the "default color".
+/// Sets the foreground [NcRgb] of an [NcChannelPair],
+/// and marks it as not using the the "default color".
 #[inline]
 pub fn channels_set_fg_rgb(channels: &mut NcChannelPair, rgb: NcRgb) {
     let mut channel = channels_fchannel(*channels);
@@ -214,8 +243,8 @@ pub fn channels_set_fg_rgb(channels: &mut NcChannelPair, rgb: NcRgb) {
     *channels = (channel as u64) << 32 | *channels & 0xffffffff_u64;
 }
 
-/// Sets the background [NcRgb] 24-bit value of an [NcChannelPair],
-/// , and marks it as not using the "default color".
+/// Sets the foreground [NcRgb] of an [NcChannelPair],
+/// and marks it as not using the the "default color".
 #[inline]
 pub fn channels_set_bg_rgb(channels: &mut NcChannelPair, rgb: NcRgb) {
     let mut channel = channels_bchannel(*channels);
@@ -227,7 +256,7 @@ pub fn channels_set_bg_rgb(channels: &mut NcChannelPair, rgb: NcRgb) {
 
 /// Is this [NcChannel] using the "default color" rather than RGB/palette-indexed?
 #[inline]
-pub fn channel_default_p(channel: NcChannel) -> bool {
+pub const fn channel_default_p(channel: NcChannel) -> bool {
     (channel & NCCELL_BGDEFAULT_MASK) == 0
 }
 

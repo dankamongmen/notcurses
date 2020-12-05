@@ -16,44 +16,44 @@
 // functions manually reimplemented: 39
 // ------------------------------------------
 // (X) wont:  3
+// (W) wrap: 10 / 26
 // (+) done: 34 /  2
-// (W) wrap:  0 / 36
 // (#) test: 19 / 17
 // ------------------------------------------
-// # channel_alpha
-// # channel_b
+//W# channel_alpha
+//W# channel_b
 // # channel_default_p
-// # channel_g
+//W# channel_g
 // # channel_palindex_p
-// # channel_r
-// # channel_rgb8
+//W# channel_r
+//W# channel_rgb8
+// + channel_set
+// # channel_set_alpha
+// # channel_set_default
+//W# channel_set_rgb8
+// X channel_set_rgb_clipped ---
 // # channels_bchannel
-// + channels_bg_alpha
+//W+ channels_bg_alpha
 // + channels_bg_default_p
 // # channels_bg_palindex_p
 // + channels_bg_rgb
 // + channels_bg_rgb8
 // # channels_combine
-// + channel_set
-// # channel_set_alpha
-// # channel_set_default
-// # channel_set_rgb8
-// X channel_set_rgb_clipped
 // # channels_fchannel
-// + channels_fg_alpha
+//W+ channels_fg_alpha
 // + channels_fg_default_p
 // # channels_fg_palindex_p
 // + channels_fg_rgb
 // + channels_fg_rgb8
 // # channels_set_bchannel
-// + channels_set_bg_alpha
+//W+ channels_set_bg_alpha
 // + channels_set_bg_default
 // # channels_set_bg_palindex
 // + channels_set_bg_rgb
 // + channels_set_bg_rgb8
 // X channels_set_bg_rgb8_clipped
 // # channels_set_fchannel
-// + channels_set_fg_alpha
+//W+ channels_set_fg_alpha
 // + channels_set_fg_default
 // # channels_set_fg_palindex
 // + channels_set_fg_rgb
@@ -63,7 +63,9 @@
 #[cfg(test)]
 mod test;
 
+mod methods;
 mod reimplemented;
+pub use methods::{NcChannelMethods, NcChannelPairMethods};
 pub use reimplemented::*;
 
 // NcChannel

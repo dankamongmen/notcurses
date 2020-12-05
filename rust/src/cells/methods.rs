@@ -25,7 +25,7 @@ impl NcCell {
         Self::with_all(ch, 0 as NcStyleMask, 0 as NcChannelPair)
     }
 
-    /// New NcCell, expects an [NcPlane] and a utf-8 [char].
+    /// New NcCell, expects an [NcPlane] and a [char].
     #[inline]
     pub fn with_char(plane: &mut NcPlane, ch: char) -> Self {
         let mut cell = Self::new();

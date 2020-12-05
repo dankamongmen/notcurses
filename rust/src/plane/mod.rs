@@ -145,7 +145,7 @@
 // + ncplane_putchar_yx
 // + ncplane_putegc
 // + ncplane_putnstr
-// + ncplane_putstr
+//W+ ncplane_putstr
 // X ncplane_putwc                // I don't think these will be needed from Rust. See:
 // X ncplane_putwc_stained
 // X ncplane_putwc_yx             // https://locka99.gitbooks.io/a-guide-to-porting-c-to-rust/content/features_of_rust/strings.html

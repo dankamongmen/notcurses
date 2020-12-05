@@ -136,33 +136,71 @@ impl NcPlane {
         self.dim_yx().1
     }
 
-    /// Erase every NcCell in the NcPlane, resetting all attributes to normal,
+    /// Sets the scrolling behaviour of the plane, and
+    /// returns true if scrolling was previously enabled, of false, if disabled.
+    ///
+    /// All planes are created with scrolling disabled. Attempting to print past
+    /// the end of a line will stop at the plane boundary, and indicate an error.
+    ///
+    /// On a plane 10 columns wide and two rows high, printing "0123456789"
+    /// at the origin should succeed, but printing "01234567890" will by default
+    /// fail at the eleventh character. In either case, the cursor will be left
+    /// at location 0x10; it must be moved before further printing can take place. I
+    pub fn set_scrolling(&mut self, scroll: bool) -> bool {
+        unsafe { crate::ncplane_set_scrolling(self, scroll) }
+    }
+
+    // TODO: resize
+
+    // Write -------------------------------------------------------------------
+
+    /// Erases every NcCell in the NcPlane, resetting all attributes to normal,
     /// all colors to the default color, and all cells to undrawn.
     ///
-    /// All cells associated with this ncplane are invalidated, and must not be
+    /// All cells associated with this NcPlane are invalidated, and must not be
     /// used after the call, excluding the base cell. The cursor is homed.
     pub fn erase(&mut self) {
         unsafe { crate::ncplane_erase(self) }
     }
 
-    // Write -------------------------------------------------------------------
-
+    /// Replaces the NcCell at the specified coordinates with the provided NcCell,
+    /// advancing the cursor by its width (but not past the end of the plane).
     ///
+    /// The new NcCell must already be associated with the Plane.
+    /// On success, returns the number of columns the cursor was advanced.
+    /// On failure, -1 is returned.
     pub fn putc_yx(&mut self, y: i32, x: i32, cell: &NcCell) -> NcResult {
         unsafe { crate::ncplane_putc_yx(self, y, x, cell) }
     }
 
+    /// Replaces the NcCell at the current coordinates with the provided NcCell,
+    /// advancing the cursor by its width (but not past the end of the plane).
     ///
+    /// The new NcCell must already be associated with the Plane.
+    /// On success, returns the number of columns the cursor was advanced.
+    /// On failure, -1 is returned.
     pub fn putc(&mut self, cell: &NcCell) -> NcResult {
         crate::ncplane_putc(self, cell)
     }
 
-    ///
+    /// Writes a series of [NcEgc]s to the current location, using the current style.
     pub fn putstr(&mut self, string: &str) -> NcResult {
         crate::ncplane_putstr(self, string)
     }
 
+    // TODO: Stained Replace a string's worth of glyphs at the current cursor location, but retain the styling. The current styling of the plane will not be changed
+
+    /// Write a string, which is a series of [NcEgc]s, to the current location,
+    /// using the current style.
     ///
+    /// They will be interpreted as a series of columns (according to the
+    /// definition of `ncplane_putc()`).
+    ///
+    /// Advances the cursor by some positive number of columns (though not
+    /// beyond the end of the plane); this number is returned on success.
+    ///
+    /// On error, a non-positive number is returned, indicating the number of
+    /// columns which were written before the error.
     pub fn putstr_yx(&mut self, y: i32, x: i32, string: &str) -> NcResult {
         unsafe { crate::ncplane_putstr_yx(self, y, x, cstring![string]) }
     }
