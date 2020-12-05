@@ -2,17 +2,17 @@
 
 use core::{ffi::c_void, ptr::null_mut};
 use libc::free;
-use std::ffi::CString;
 
 use crate::{
     bindgen::__va_list_tag, cell_load, cell_release, cells_double_box, cells_rounded_box,
     channels_bchannel, channels_bg_alpha, channels_bg_default_p, channels_bg_rgb, channels_bg_rgb8,
     channels_fchannel, channels_fg_alpha, channels_fg_default_p, channels_fg_rgb, channels_fg_rgb8,
-    ncplane_at_cursor, ncplane_at_yx, ncplane_box, ncplane_channels, ncplane_cursor_move_yx,
-    ncplane_cursor_yx, ncplane_dim_yx, ncplane_gradient, ncplane_hline_interp, ncplane_putc_yx,
-    ncplane_putegc_yx, ncplane_putnstr_yx, ncplane_putstr_yx, ncplane_resize, ncplane_styles,
-    ncplane_vline_interp, ncplane_vprintf_yx, notcurses_align, NcAlign, NcAlphaBits, NcCell,
-    NcChannel, NcChannelPair, NcColor, NcPlane, NcResult, NcStyleMask, NCRESULT_ERR, NCRESULT_OK,
+    cstring, ncplane_at_cursor, ncplane_at_yx, ncplane_box, ncplane_channels,
+    ncplane_cursor_move_yx, ncplane_cursor_yx, ncplane_dim_yx, ncplane_gradient,
+    ncplane_hline_interp, ncplane_putc_yx, ncplane_putegc_yx, ncplane_putnstr_yx,
+    ncplane_putstr_yx, ncplane_resize, ncplane_styles, ncplane_vline_interp, ncplane_vprintf_yx,
+    notcurses_align, NcAlign, NcAlphaBits, NcCell, NcChannel, NcChannelPair, NcColor, NcPlane,
+    NcResult, NcStyleMask, NCRESULT_ERR, NCRESULT_OK,
 };
 
 // Alpha -----------------------------------------------------------------------
@@ -134,44 +134,19 @@ pub fn ncplane_putegc(plane: &mut NcPlane, gcluster: i8, sbytes: &mut i32) -> Nc
 ///
 #[inline]
 pub fn ncplane_putstr(plane: &mut NcPlane, string: &str) -> NcResult {
-    unsafe {
-        ncplane_putstr_yx(
-            plane,
-            -1,
-            -1,
-            CString::new(string.as_bytes())
-                .expect("Bad string")
-                .as_ptr(),
-        )
-    }
+    unsafe { ncplane_putstr_yx(plane, -1, -1, cstring![string]) }
 }
 
 ///
 #[inline]
 pub fn ncplane_putnstr(plane: &mut NcPlane, size: u64, gclustarr: &[u8]) -> NcResult {
-    unsafe {
-        ncplane_putnstr_yx(
-            plane,
-            -1,
-            -1,
-            size,
-            CString::new(gclustarr).expect("Bad string").as_ptr(),
-        )
-    }
+    unsafe { ncplane_putnstr_yx(plane, -1, -1, size, cstring![gclustarr]) }
 }
 
 /// The [NcPlane] equivalent of `vprintf(3)`.
 #[inline]
 pub fn ncplane_vprintf(plane: &mut NcPlane, format: &str, ap: &mut __va_list_tag) -> NcResult {
-    unsafe {
-        ncplane_vprintf_yx(
-            plane,
-            -1,
-            -1,
-            CString::new(format).expect("Bad string").as_ptr(),
-            ap,
-        )
-    }
+    unsafe { ncplane_vprintf_yx(plane, -1, -1, cstring![format], ap) }
 }
 
 // NcCell ----------------------------------------------------------------------
@@ -608,7 +583,7 @@ pub fn ncplane_gradient_sized(
         ncplane_cursor_yx(plane, &mut y, &mut x);
         ncplane_gradient(
             plane,
-            CString::new(egc).expect("Bad EGC").as_ptr(),
+            cstring![egc],
             stylemask as u32,
             ul,
             ur,

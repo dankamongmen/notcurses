@@ -1,10 +1,8 @@
 //! `NcMenu*` methods and associated functions.
 
-use std::ffi::CString;
-
 use crate::{
-    ncmenu_create, NcChannelPair, NcInput, NcMenu, NcMenuItem, NcMenuOptions, NcMenuSection,
-    NcPlane,
+    cstring, ncmenu_create, NcChannelPair, NcInput, NcMenu, NcMenuItem, NcMenuOptions,
+    NcMenuSection, NcPlane,
 };
 
 /// # `NcMenu` Constructors
@@ -74,7 +72,7 @@ impl NcMenuSection {
     pub fn new(name: &str, itemcount: i32, items: &mut [NcMenuItem], shortcut: NcInput) -> Self {
         Self {
             // utf-8 name string
-            name: CString::new(name).expect("Bad string").as_ptr() as *mut i8,
+            name: cstring![name] as *mut i8,
 
             //
             itemcount,
