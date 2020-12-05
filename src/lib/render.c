@@ -278,11 +278,11 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
           if(cell_double_wide_p(vis)){
             // are we on the last column of the real screen? if so, 0x20 us
             if(absx >= dstlenx - 1){
-              targc->gcluster = ' ';
+              targc->gcluster = htole(' ');
             // is the next cell occupied? if so, 0x20 us
             }else if(crender[1].c.gcluster){
 //fprintf(stderr, "NULLING out %d/%d (%d/%d) due to %u\n", y, x, absy, absx, crender[1].c.gcluster);
-              targc->gcluster = ' ';
+              targc->gcluster = htole(' ');
             }else{
               cell_set_wide(targc);
               targc->stylemask = vis->stylemask;
