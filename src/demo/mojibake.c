@@ -186,13 +186,13 @@ const char hand_fingers_open[] =
   "\U0001F596";
 const char hand_fingers_partial[] =
   "\U0001F44C"
-  "\U0001F90C"
   "\U0001F90F"
   "\u270C"
   "\U0001F91E"
   "\U0001F91F"
   "\U0001F918"
-  "\U0001F919";
+  "\U0001F919"
+  "\U0001F90C";
 const char hand_single_finger[] =
   "\U0001F448"
   "\U0001F449"
@@ -228,14 +228,14 @@ const char body_parts[] =
   "\U0001F9BB"
   "\U0001F443"
   "\U0001F9E0"
-  "\U0001FAC0"
-  "\U0001FAC1"
   "\U0001F9B7"
   "\U0001F9B4"
   "\U0001F440"
   "\U0001F441"
   "\U0001F445"
-  "\U0001F444";
+  "\U0001F444"
+  "\U0001FAC0"
+  "\U0001FAC1";
 const char person[] =
   "\U0001F476"
   "\U0001F9D2"
@@ -2309,17 +2309,17 @@ const char animal_bug[] =
   "\U0001F41B"
   "\U0001F41C"
   "\U0001F41D"
-  "\U0001FAB2"
   "\U0001F41E"
   "\U0001F997"
-  "\U0001FAB3"
   "\U0001F577"
   "\U0001F578"
   "\U0001F982"
   "\U0001F99F"
   "\U0001FAB0"
   "\U0001FAB1"
-  "\U0001F9A0";
+  "\U0001F9A0"
+  "\U0001FAB2"
+  "\U0001FAB3";
 const char plant_flower[] =
   "\U0001F490"
   "\U0001F338"
@@ -2999,9 +2999,7 @@ const char tool[] =
   "\U0001F5E1"
   "\U0001F52B"
   "\U0001F3F9"
-  "\U0001FA9A"
   "\U0001F527"
-  "\U0001FA9B"
   "\U0001F529"
   "\u2699"
   "\U0001F5DC"
@@ -3009,16 +3007,18 @@ const char tool[] =
   "\U0001F9AF"
   "\U0001F517"
   "\u26D3"
-  "\U0001FA9D"
   "\U0001F9F0"
   "\U0001F9F2"
-  "\U0001FA9C"
   "\u26CF"
   "\u2692"
-  "\U0001F6E0"
-  "\u2694"
   "\U0001FA83"
-  "\U0001F6E1";
+  "\U0001F6E1"
+  "\U0001FA9A"
+  "\U0001FA9B"
+  "\U0001FA9C"
+  "\U0001FA9D"
+  "\U0001F6E0"
+  "\u2694";
 const char science[] =
   "\u2697"
   "\U0001F9EA"
@@ -3039,10 +3039,8 @@ const char household[] =
   "\U0001F6CB"
   "\U0001FA91"
   "\U0001F6BD"
-  "\U0001FAA0"
   "\U0001F6BF"
   "\U0001F6C1"
-  "\U0001FAA4"
   "\U0001FA92"
   "\U0001F9F4"
   "\U0001F9F7"
@@ -3056,7 +3054,9 @@ const char household[] =
   "\U0001F6D7"
   "\U0001FA9E"
   "\U0001FA9F"
+  "\U0001FAA0"
   "\U0001FAA3"
+  "\U0001FAA4"
   "\U0001FAA5";
 const char other_object[] =
   "\U0001F6AC"
