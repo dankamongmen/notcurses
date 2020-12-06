@@ -32,6 +32,7 @@ typedef struct ncstats {
   uint64_t bgemissions;      // RGB bg emissions
   uint64_t defaultelisions;  // default color was emitted
   uint64_t defaultemissions; // default color was elided
+  uint64_t refreshes;        // refreshes (unoptimized redraws)
 
   // current state -- these can decrease
   uint64_t fbbytes;          // bytes devoted to framebuffers
@@ -83,6 +84,9 @@ any stat.
 **cellemissions** reflects the number of EGCs written to the terminal.
 **cellelisions** reflects the number of cells which were not written, due to
 damage detection.
+
+**refreshes** is the number of times **notcurses_refresh** has been
+successfully executed.
 
 **fbbytes** is the total number of bytes devoted to framebuffers throughout
 the **struct notcurses** context. **planes** is the number of planes in the

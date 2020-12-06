@@ -8,6 +8,7 @@ usage() { echo "usage: `basename $0` version" ; }
 
 VERSION="$1"
 
+rm -fv debian/files
 dch -v $VERSION+dfsg.1-1
 dch -r
 uscan --repack --compression xz --force

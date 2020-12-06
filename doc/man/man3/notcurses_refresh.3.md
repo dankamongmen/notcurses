@@ -50,6 +50,9 @@ Highest performance in a rendering loop would actually call for disabling
 Notcurses's **SIGWINCH** handling in the call to **notcurses_init**, so that no
 time is spent handling a signal you're not going to use.
 
+Each time **notcurses_refresh** is successfully executed, the **refreshes**
+stat is incremented by 1.
+
 # RETURN VALUES
 
 Returns 0 on success, and -1 on failure. The causes for failure include system
@@ -62,5 +65,6 @@ of these are particularly good things, and the most reasonable response to a
 **notcurses_init(3)**,
 **notcurses_input(3)**,
 **notcurses_render(3)**,
+**notcurses_stats(3)**,
 **termios(3)**,
 **signal(7)**

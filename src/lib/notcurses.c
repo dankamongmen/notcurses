@@ -766,6 +766,7 @@ stash_stats(notcurses* nc){
   nc->stashstats.bgemissions += nc->stats.bgemissions;
   nc->stashstats.defaultelisions += nc->stats.defaultelisions;
   nc->stashstats.defaultemissions += nc->stats.defaultemissions;
+  nc->stashstats.refreshes += nc->stats.refreshes;
   // fbbytes aren't stashed
   reset_stats(&nc->stats);
 }
@@ -1227,11 +1228,13 @@ int notcurses_stop(notcurses* nc){
                 nc->stashstats.render_bytes / (double)nc->stashstats.renders / 1024);
       }
       if(nc->stashstats.renders || nc->stashstats.failed_renders){
-        fprintf(stderr, "%.1f theoretical FPS, %ju failed render%s\n",
+        fprintf(stderr, "%.1f theoretical FPS, %ju failed render%s, %ju refresh%s\n",
                 nc->stashstats.renders ?
                   NANOSECS_IN_SEC * (double)nc->stashstats.renders / nc->stashstats.render_ns : 0.0,
                 nc->stashstats.failed_renders,
-                nc->stashstats.failed_renders == 1 ? "" : "s");
+                nc->stashstats.failed_renders == 1 ? "" : "s",
+                nc->stashstats.refreshes,
+                nc->stashstats.refreshes == 1 ? "" : "es");
         fprintf(stderr, "RGB emits:elides: def %ju:%ju fg %ju:%ju bg %ju:%ju\n",
                 nc->stashstats.defaultemissions,
                 nc->stashstats.defaultelisions,

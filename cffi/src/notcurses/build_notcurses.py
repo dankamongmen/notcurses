@@ -153,23 +153,24 @@ void ncplane_set_styles(struct ncplane* n, unsigned stylebits);
 void ncplane_on_styles(struct ncplane* n, unsigned stylebits);
 void ncplane_off_styles(struct ncplane* n, unsigned stylebits);
 typedef struct ncstats {
-  uint64_t renders;          // number of successful notcurses_render() runs
-  uint64_t failed_renders;   // number of aborted renders, should be 0
-  uint64_t render_bytes;     // bytes emitted to ttyfp
-  int64_t render_max_bytes;  // max bytes emitted for a frame
-  int64_t render_min_bytes;  // min bytes emitted for a frame
-  uint64_t render_ns;        // nanoseconds spent in notcurses_render()
-  int64_t render_max_ns;     // max ns spent in notcurses_render()
-  int64_t render_min_ns;     // min ns spent in successful notcurses_render()
-  uint64_t cellelisions;     // cells we elided entirely thanks to damage maps
-  uint64_t cellemissions;    // cells we emitted due to inferred damage
-  uint64_t fbbytes;          // total bytes devoted to all active framebuffers
-  uint64_t fgelisions;       // RGB fg elision count
-  uint64_t fgemissions;      // RGB fg emissions
-  uint64_t bgelisions;       // RGB bg elision count
-  uint64_t bgemissions;      // RGB bg emissions
-  uint64_t defaultelisions;  // default color was emitted
-  uint64_t defaultemissions; // default color was elided
+  uint64_t renders;
+  uint64_t failed_renders;
+  uint64_t render_bytes;
+  int64_t render_max_bytes;
+  int64_t render_min_bytes;
+  uint64_t render_ns;
+  int64_t render_max_ns;
+  int64_t render_min_ns;
+  uint64_t cellelisions;
+  uint64_t cellemissions;
+  uint64_t fbbytes;
+  uint64_t fgelisions;
+  uint64_t fgemissions;
+  uint64_t bgelisions;
+  uint64_t bgemissions;
+  uint64_t defaultelisions;
+  uint64_t defaultemissions;
+  uint64_t refreshes;
 } ncstats;
 ncstats* notcurses_stats_alloc(struct notcurses* nc);
 void notcurses_stats(struct notcurses* nc, ncstats* stats);

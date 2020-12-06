@@ -1013,6 +1013,7 @@ int notcurses_refresh(notcurses* nc, int* restrict dimy, int* restrict dimx){
   if(ret < 0){
     return -1;
   }
+  ++nc->stats.refreshes;
   return 0;
 }
 
