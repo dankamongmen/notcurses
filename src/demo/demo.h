@@ -89,6 +89,7 @@ demo_getc_blocking(struct notcurses* nc, ncinput* ni){
 
 /*-------------------------------time helpers----------------------------*/
 #define GIG 1000000000ul
+#define MAXSLEEP (GIG / 80) // nanoseconds
 
 static inline uint64_t
 timespec_to_ns(const struct timespec* ts){

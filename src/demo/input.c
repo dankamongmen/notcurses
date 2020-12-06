@@ -47,20 +47,22 @@ handle_mouse(const ncinput* ni){
 // absolute deadline, so convert it up.
 char32_t demo_getc(struct notcurses* nc, const struct timespec* ts, ncinput* ni){
   struct timespec now;
+  clock_gettime(CLOCK_REALTIME, &now);
   uint64_t ns;
-  struct timespec abstime;
   // yes, i'd like CLOCK_MONOTONIC too, but pthread_cond_timedwait() is based off
   // of crappy CLOCK_REALTIME :/
   // abstime shouldn't be further out than our maximum sleep time -- this can
   // lead to 0 frames output during the wait (happening now with zoo FIXME)
   if(ts){
-    clock_gettime(CLOCK_REALTIME, &now);
-    ns = timespec_to_ns(&now) + timespec_to_ns(ts);
-    ns_to_timespec(ns, &abstime);
+    ns = timespec_to_ns(ts);
   }else{
-    abstime.tv_sec = ~0;
-    abstime.tv_nsec = ~0;
+    ns = MAXSLEEP;
   }
+  if(ns > MAXSLEEP){
+    ns = MAXSLEEP;
+  }
+  struct timespec abstime;
+  ns_to_timespec(ns + timespec_to_ns(&now), &abstime);
   bool handoff = false; // does the input go back to the user?
   char32_t id;
   do{

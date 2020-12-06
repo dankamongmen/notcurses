@@ -26,6 +26,8 @@ static int plot_grab_y = -1;
 // position of the plot *when grab started*
 static int plot_pos_y;
 
+#define FPSHZ 10
+
 // how many columns for runtime?
 #define HUD_ROWS (3 + 2) // 2 for borders
 static const int HUD_COLS = 23 + 2; // 2 for borders
@@ -513,7 +515,7 @@ demo_nanosleep_abstime_ns(struct notcurses* nc, uint64_t deadline){
   clock_gettime(CLOCK_MONOTONIC, &now);
   while(deadline > timespec_to_ns(&now)){
     fsleep.tv_sec = 0;
-    fsleep.tv_nsec = GIG / 100;
+    fsleep.tv_nsec = MAXSLEEP;
     if(deadline - timespec_to_ns(&now) < GIG / 100){
       fsleep.tv_nsec = deadline - timespec_to_ns(&now);
     }
@@ -563,7 +565,7 @@ int demo_render(struct notcurses* nc){
     if(!plot_hidden){
       ncplane_move_top(ncuplot_plane(plot));
     }
-    uint64_t ns = (timespec_to_ns(&ts) - plottimestart) / (GIG / 10);
+    uint64_t ns = (timespec_to_ns(&ts) - plottimestart) / (GIG / FPSHZ);
     ncuplot_add_sample(plot, ns, 1);
   }
   if(menu){
