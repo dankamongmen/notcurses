@@ -294,30 +294,3 @@ pub const NCBLIT_DEFAULT: NcBlitter = crate::bindings::ffi::ncblitter_e_NCBLIT_D
 
 /// [`NcBlitter`] mode (not yet implemented)
 pub const NCBLIT_SIXEL: NcBlitter = crate::bindings::ffi::ncblitter_e_NCBLIT_SIXEL;
-
-/// How to scale an [`NcVisual`] during rendering
-///
-/// - NCSCALE_NONE will apply no scaling.
-/// - NCSCALE_SCALE scales a visual to the plane's size,
-///   maintaining aspect ratio.
-/// - NCSCALE_STRETCH stretches and scales the image in an
-///   attempt to fill the entirety of the plane.
-///
-pub type NcScale = crate::bindings::ffi::ncscale_e;
-/// Maintain original size
-pub const NCSCALE_NONE: NcScale = crate::bindings::ffi::ncscale_e_NCSCALE_NONE;
-/// Maintain aspect ratio
-pub const NCSCALE_SCALE: NcScale = crate::bindings::ffi::ncscale_e_NCSCALE_SCALE;
-/// Throw away aspect ratio
-pub const NCSCALE_STRETCH: NcScale = crate::bindings::ffi::ncscale_e_NCSCALE_STRETCH;
-
-/// A visual bit of multimedia opened with LibAV|OIIO
-pub type NcVisual = crate::bindings::ffi::ncvisual;
-/// Options struct for [`NcVisual`]
-pub type NcVisualOptions = crate::bindings::ffi::ncvisual_options;
-
-/// Use [`NCCELL_ALPHA_BLEND`] with visual
-pub const NCVISUAL_OPTION_BLEND: u32 = crate::bindings::ffi::NCVISUAL_OPTION_BLEND;
-
-/// Fail rather than degrade
-pub const NCVISUAL_OPTION_NODEGRADE: u32 = crate::bindings::ffi::NCVISUAL_OPTION_NODEGRADE;
