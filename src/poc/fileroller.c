@@ -42,7 +42,7 @@ int main(int argc, char** argv){
   }
   setlocale(LC_ALL, "");
   notcurses_options opts = {
-    .flags = NCOPTION_INHIBIT_SETLOCALE | NCOPTION_NO_ALTERNATE_SCREEN |
+    .flags = NCOPTION_INHIBIT_SETLOCALE |
               NCOPTION_SUPPRESS_BANNERS,
   };
   struct notcurses* nc = notcurses_init(&opts, NULL);
@@ -66,6 +66,10 @@ int main(int argc, char** argv){
       notcurses_stop(nc);
       return EXIT_FAILURE;
     }
+    ncplane_set_fg_rgb(n, 0x00bcaa);
+    ncplane_printf_aligned(n, -1, NCALIGN_CENTER, "press any key to continue (%s)", *argv);
+    notcurses_render(nc);
+    notcurses_getc(nc, NULL, NULL, NULL);
   }
 
 done:

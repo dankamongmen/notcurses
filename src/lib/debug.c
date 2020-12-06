@@ -2,7 +2,7 @@
 
 static void
 ncpile_debug(const ncpile* p, FILE* debugfp){
-  fprintf(debugfp, "  -=+********************** %16p pile *************************+=-\n", p);
+  fprintf(debugfp, "  ************************* %16p pile ****************************\n", p);
   const ncplane* n = p->top;
   const ncplane* prev = NULL;
   int planeidx = 0;
@@ -33,7 +33,7 @@ ncpile_debug(const ncpile* p, FILE* debugfp){
 
 void notcurses_debug(notcurses* nc, FILE* debugfp){
   const ncpile* p = ncplane_pile(nc->stdplane);
-  fprintf(debugfp, " ************************** notcurses debug state *****************************\n");
+  fprintf(debugfp, " -------------------------- notcurses debug state -----------------------------\n");
   const ncpile* p0 = p;
   do{
     ncpile_debug(p0, debugfp);
@@ -43,5 +43,5 @@ void notcurses_debug(notcurses* nc, FILE* debugfp){
       fprintf(stderr, "WARNING: expected ->prev %p, got %p\n", prev, p0->prev);
     }
   }while(p != p0);
-  fprintf(debugfp, " ******************************************************************************\n");
+  fprintf(debugfp, " ______________________________________________________________________________\n");
 }
