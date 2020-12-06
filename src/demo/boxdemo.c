@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include "demo.h"
 
+// FIXME smooth out this movement more
 static int
 reload_corners(struct ncplane* n, cell* ul, cell* ur, cell* ll, cell* lr){
   int dimy, dimx;
@@ -149,10 +150,9 @@ int box_demo(struct notcurses* nc){
     ++x;
   }
   DEMO_RENDER(nc);
-  int iters = 50;
+  int iters = 100;
   struct timespec iterdelay;
   ns_to_timespec(timespec_to_ns(&demodelay) * 3 / iters, &iterdelay);
-  nanosleep(&iterdelay, NULL);
   while(iters--){
     if(reload_corners(n, &ul, &ur, &ll, &lr)){
       return -1;

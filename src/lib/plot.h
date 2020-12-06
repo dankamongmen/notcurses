@@ -207,7 +207,7 @@ class ncppplot {
      // starting from the least-significant row, progress in the more significant
      // direction, drawing egcs from the grid specification, aborting early if
      // we can't draw anything in a given cell.
-     double intervalbase = miny;
+     T intervalbase = miny;
      const wchar_t* egc = bset->egcs;
      for(int y = 0 ; y < dimy ; ++y){
        uint64_t channels = 0;
