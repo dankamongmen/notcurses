@@ -137,14 +137,41 @@ TEST_CASE("Plot") {
     ncuplot_destroy(p);
   }
 
-  //  FIXME need some high-level rendering tests, one for each geometry
-
   SUBCASE("SimpleFloatPlot"){
     ncplot_options popts{};
     auto p = ncdplot_create(n_, &popts, 0, 0);
     REQUIRE(p);
     CHECK(n_ == ncdplot_plane(p));
     ncdplot_destroy(p);
+  }
+
+  SUBCASE("BraillePlot") {
+    ncplane_options nopts = {
+      .y = 1, .x = 1, .rows = 6, .cols = 50,
+      .userptr = nullptr, .name = "plot", .resizecb = nullptr, .flags = 0,
+    };
+    auto ncp = ncplane_create(n_, &nopts);
+    REQUIRE(ncp);
+    ncplane_set_base(ncp, " ", 0, CHANNELS_RGB_INITIALIZER(0x80, 0, 0, 0, 0, 0x80));
+    ncplot_options popts;
+    memset(&popts, 0, sizeof(popts));
+    popts.maxchannels = CHANNELS_RGB_INITIALIZER(0xff, 0xff, 0xff, 0, 0, 0);
+    popts.minchannels = CHANNELS_RGB_INITIALIZER(0, 0xff, 0, 0, 0, 0);
+    channels_set_bg_alpha(&popts.minchannels, CELL_ALPHA_BLEND);
+    channels_set_fg_alpha(&popts.minchannels, CELL_ALPHA_BLEND);
+    popts.title = "braille plot";
+    popts.gridtype = NCBLIT_BRAILLE;
+    auto p = ncuplot_create(ncp, &popts, 0, 0);
+    REQUIRE(p);
+    for(auto i = 0 ; i < 100 ; ++i){
+      ncuplot_add_sample(p, i, i);
+    }
+    notcurses_render(nc_);
+    uint64_t channels;
+    uint16_t smask;
+    // FIXME loop throughout plane, check all cells
+    auto egc = ncplane_at_yx(ncp, 5, 49, &smask, &channels);
+    CHECK(0 == strcmp(egc, "⣿"));
   }
 
   CHECK(0 == notcurses_stop(nc_));
