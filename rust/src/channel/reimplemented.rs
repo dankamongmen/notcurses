@@ -26,13 +26,13 @@ pub fn channel_set_alpha(channel: &mut NcChannel, alpha: NcAlphaBits) {
     }
 }
 
-/// Gets the foreground [NcAlphabits] from an [NcChannelPair], shifted to LSBs.
+/// Gets the foreground [NcAlphaBits] from an [NcChannelPair], shifted to LSBs.
 #[inline]
 pub const fn channels_fg_alpha(channels: NcChannelPair) -> NcAlphaBits {
     channel_alpha(channels_fchannel(channels))
 }
 
-/// Gets the background [NcAlphabits] from an [NcChannelPair], shifted to LSBs.
+/// Gets the background [NcAlphaBits] from an [NcChannelPair], shifted to LSBs.
 #[inline]
 pub const fn channels_bg_alpha(channels: NcChannelPair) -> NcAlphaBits {
     channel_alpha(channels_bchannel(channels))
@@ -162,7 +162,7 @@ pub fn channel_set_rgb8(channel: &mut NcChannel, r: NcColor, g: NcColor, b: NcCo
     *channel = (*channel & !NCCELL_BG_RGB_MASK) | NCCELL_BGDEFAULT_MASK | rgb;
 }
 
-/// Gets the three foreground RGB [NcColors] from an [NcChannelPair], and
+/// Gets the three foreground RGB [NcColor]s from an [NcChannelPair], and
 /// returns the foreground [NcChannel] (which can have some extra bits set).
 #[inline]
 pub fn channels_fg_rgb8(
@@ -174,7 +174,7 @@ pub fn channels_fg_rgb8(
     channel_rgb8(channels_fchannel(channels), r, g, b)
 }
 
-/// Gets the three background RGB [NcColors] from an [NcChannelPair], and
+/// Gets the three background RGB [NcColor]s from an [NcChannelPair], and
 /// returns the background [NcChannel] (which can have some extra bits set).
 #[inline]
 pub fn channels_bg_rgb8(
@@ -323,7 +323,7 @@ pub fn channels_bg_palindex_p(channels: NcChannelPair) -> bool {
     channel_palindex_p(channels_bchannel(channels))
 }
 
-/// Sets an [NcCell]'s foreground [NcPaletteIndex].
+/// Sets an [NcCell][crate::NcCell]'s foreground [NcPaletteIndex].
 ///
 /// Also sets [NCCELL_FG_PALETTE] and [NCCELL_ALPHA_OPAQUE],
 /// and clears out [NCCELL_FGDEFAULT_MASK].
@@ -336,7 +336,7 @@ pub fn channels_set_fg_palindex(channels: &mut NcChannelPair, index: NcPaletteIn
     *channels |= (index as NcChannelPair) << 32;
 }
 
-/// Sets an [NcCell]'s background [NcPaletteIndex].
+/// Sets an [NcCell][crate::NcCell]'s background [NcPaletteIndex].
 ///
 /// Also sets [NCCELL_BG_PALETTE] and [NCCELL_ALPHA_OPAQUE],
 /// and clears out [NCCELL_BGDEFAULT_MASK].

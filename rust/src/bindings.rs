@@ -8,10 +8,10 @@
 // [clippy & bindgen](https://github.com/rust-lang/rust-bindgen/issues/1470)
 #[allow(clippy::all)]
 pub mod ffi {
-    //! Automatically generated Rust FFI bindings, for reference.
+    //! Rust FFI bindings, automatically generated with bindgen.
     //!
-    //! All of the notcurses API functions are reexported to the public API
-    //! while the structs, enums and constants are type aliased or wrapped up.
+    //! Almost all of the notcurses API functions are reexported to the public
+    //! API, while structs, enums and constants are type aliased or wrapped up.
     //!
     include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 }

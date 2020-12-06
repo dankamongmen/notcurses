@@ -10,10 +10,10 @@ macro_rules! sleep {
     };
 }
 
-/// Renders the [Notcurses] object sleeps for $ms milliseconds.
+/// Renders the [Notcurses][crate::Notcurses] object sleeps for $ms milliseconds.
 #[macro_export]
 macro_rules! rsleep {
-    ($nc: expr, $ms:expr) => {
+    ($nc:expr, $ms:expr) => {
         unsafe {
             crate::notcurses_render($nc);
         }

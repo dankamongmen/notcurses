@@ -21,7 +21,7 @@ mod methods;
 /// Supports optional readline keybindings (opt out using
 /// NCREADER_OPTION_NOCMDKEYS flag)
 ///
-/// Takes ownership of its [`NcPlane`], destroying it on any
+/// Takes ownership of its [`NcPlane`][crate::NcPlane], destroying it on any
 /// error (`ncreader_destroy`() otherwise destroys the ncplane).
 ///
 /// `type in C: ncreader (struct)`

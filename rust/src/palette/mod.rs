@@ -24,7 +24,8 @@
 mod reimplemented;
 pub use reimplemented::*;
 
-/// NcPalette structure consisting of an array of 256 [`NcChannel`]s.
+/// NcPalette structure consisting of an array of 256
+/// [`NcChannel`][crate::NcChannel]s.
 ///
 /// See also [NcPaletteIndex].
 ///

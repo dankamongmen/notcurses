@@ -4,12 +4,12 @@
 /// See also [`NCRESULT_OK`] and [`NCRESULT_ERR`].
 pub type NcResult = i32;
 
-/// Value for no errors, for the bindgen functions that return [`NcResult`]
+/// ERROR value, for the functions that return an [`NcResult`]
 ///
 /// Meanwhile the static inline functions reimplemented in Rust return `bool`.
 pub const NCRESULT_OK: i32 = 0;
 
-/// Value for an error, for the bindgen functions that return [`NcResult`]
+/// OK value, for the functions that return [`NcResult`]
 ///
 /// Meanwhile the static inline functions reimplemented in Rust return `bool`.
 pub const NCRESULT_ERR: i32 = -1;

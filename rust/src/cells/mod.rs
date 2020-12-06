@@ -67,7 +67,7 @@ mod reimplemented;
 pub use reimplemented::*;
 
 // NcCell
-/// A coordinate on an [`NcPlane`] storing 128 bits of data
+/// A coordinate on an [`NcPlane`][crate::NcPlane] storing 128 bits of data
 ///
 /// An `NcCell` corresponds to a single character cell on some [`NcPlane`],
 /// which can be occupied by a single [`NcEgc`] grapheme cluster (some root
@@ -165,6 +165,9 @@ pub use reimplemented::*;
 ///   play, and fully supports all transparency options.
 ///
 pub type NcCell = crate::bindings::ffi::cell;
+
+#[allow(unused_imports)]
+use crate::{NcAlphaBits, NcChannel, NcPlane};
 
 /// [`NcAlphaBits`] bits indicating
 /// [`NcCell`]'s foreground or background color will be a composite between
