@@ -584,13 +584,15 @@ int main(int argc, char** argv){
     if(ext_demos(nc, spec, ignore_failures)){
       goto err;
     }
-    if(hud_destroy()){ // destroy here since notcurses_drop_planes will kill it
-      goto err;
+    if(restart_demos){
+      if(hud_destroy()){ // destroy here since notcurses_drop_planes will kill it
+        goto err;
+      }
+      if(fpsgraph_stop(nc)){
+        goto err;
+      }
+      about_destroy(nc);
     }
-    if(fpsgraph_stop(nc)){
-      goto err;
-    }
-    about_destroy(nc);
   }while(restart_demos);
   ncmenu_destroy(menu);
   if(stop_input()){
