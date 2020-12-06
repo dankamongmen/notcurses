@@ -550,6 +550,28 @@ endif()
 # Testing
 if(${BUILD_TESTING})
 #set(CMAKE_CTEST_ARGUMENTS "-V")
+if(${USE_DOCTEST})
+file(GLOB TESTSRCS CONFIGURE_DEPENDS tests/*.cpp)
+add_executable(notcurses-tester ${TESTSRCS})
+target_include_directories(notcurses-tester
+  PRIVATE
+    include
+    "${PROJECT_BINARY_DIR}/include"
+    src/lib
+)
+target_link_libraries(notcurses-tester
+  PRIVATE
+    unistring
+    notcurses++
+    "${TERMINFO_LIBRARIES}"
+)
+add_test(
+  NAME notcurses-tester
+  COMMAND notcurses-tester -p ${CMAKE_CURRENT_SOURCE_DIR}/data
+)
+set_tests_properties(notcurses-tester PROPERTIES RUN_SERIAL TRUE)
+install(TARGETS notcurses-tester DESTINATION bin)
+endif()
 enable_testing()
 # the accursed Ubuntu buildd sets "TERM=unknown" for unfathomable reasons
 if(DEFINED ENV{TERM} AND NOT $ENV{TERM} STREQUAL "unknown" AND USE_POC)
@@ -580,28 +602,6 @@ add_test(
 set_tests_properties(ncpp_build ncpp_build_exceptions rgb rgbbg
   PROPERTIES RUN_SERIAL TRUE
 )
-endif()
-if(${USE_DOCTEST})
-file(GLOB TESTSRCS CONFIGURE_DEPENDS tests/*.cpp)
-add_executable(notcurses-tester ${TESTSRCS})
-target_include_directories(notcurses-tester
-  PRIVATE
-    include
-    "${PROJECT_BINARY_DIR}/include"
-    src/lib
-)
-target_link_libraries(notcurses-tester
-  PRIVATE
-    unistring
-    notcurses++
-    "${TERMINFO_LIBRARIES}"
-)
-add_test(
-  NAME notcurses-tester
-  COMMAND notcurses-tester -p ${CMAKE_CURRENT_SOURCE_DIR}/data
-)
-set_tests_properties(notcurses-tester PROPERTIES RUN_SERIAL TRUE)
-install(TARGETS notcurses-tester DESTINATION bin)
 endif()
 endif()
 
