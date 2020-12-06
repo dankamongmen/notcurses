@@ -8,7 +8,7 @@
 #include <sys/types.h>
 #include <ncpp/Direct.hh>
 #ifndef __linux__
-#define AT_NO_AUTOMOUNT 0x800 // not defined on freebsd, harmless to pass
+#define AT_NO_AUTOMOUNT 0 // not defined on freebsd
 #endif
 
 static void
