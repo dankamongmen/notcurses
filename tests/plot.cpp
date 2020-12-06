@@ -246,7 +246,6 @@ TEST_CASE("Plot") {
       }
     }
     CHECK(0 == notcurses_render(nc_));
-sleep(10);
     ncuplot_destroy(p);
   }
 
