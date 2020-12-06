@@ -159,19 +159,121 @@ TEST_CASE("Plot") {
     popts.minchannels = CHANNELS_RGB_INITIALIZER(0, 0xff, 0, 0, 0, 0);
     channels_set_bg_alpha(&popts.minchannels, CELL_ALPHA_BLEND);
     channels_set_fg_alpha(&popts.minchannels, CELL_ALPHA_BLEND);
-    popts.title = "braille plot";
     popts.gridtype = NCBLIT_BRAILLE;
     auto p = ncuplot_create(ncp, &popts, 0, 0);
     REQUIRE(p);
     for(auto i = 0 ; i < 100 ; ++i){
-      ncuplot_add_sample(p, i, i);
+      CHECK(0 == ncuplot_add_sample(p, i, i));
     }
-    notcurses_render(nc_);
+    CHECK(0 == notcurses_render(nc_));
     uint64_t channels;
     uint16_t smask;
     // FIXME loop throughout plane, check all cells
     auto egc = ncplane_at_yx(ncp, 5, 49, &smask, &channels);
     CHECK(0 == strcmp(egc, "⣿"));
+    ncuplot_destroy(p);
+  }
+
+  SUBCASE("QuadPlot1Row") {
+    ncplane_options nopts = {
+      .y = 1, .x = 1, .rows = 1, .cols = 9,
+      .userptr = nullptr, .name = "plot", .resizecb = nullptr, .flags = 0,
+    };
+    auto ncp = ncplane_create(n_, &nopts);
+    REQUIRE(ncp);
+    ncplot_options popts;
+    memset(&popts, 0, sizeof(popts));
+    popts.maxchannels = CHANNELS_RGB_INITIALIZER(0xff, 0xff, 0xff, 0, 0, 0);
+    popts.minchannels = CHANNELS_RGB_INITIALIZER(0, 0xff, 0, 0, 0, 0);
+    channels_set_bg_alpha(&popts.minchannels, CELL_ALPHA_BLEND);
+    channels_set_fg_alpha(&popts.minchannels, CELL_ALPHA_BLEND);
+    popts.gridtype = NCBLIT_2x2;
+    auto p = ncuplot_create(ncp, &popts, 0, 0);
+    REQUIRE(p);
+    for(auto i = 0 ; i < 3 ; ++i){
+      for(auto j = 0 ; j < 3 ; ++j){
+        CHECK(0 == ncuplot_add_sample(p, i * 6 + j * 2, i));
+        CHECK(0 == ncuplot_add_sample(p, i * 6 + j * 2 + 1, j));
+      }
+    }
+    CHECK(0 == notcurses_render(nc_));
+    ncuplot_destroy(p);
+  }
+
+  SUBCASE("EighthsPlot1Row") {
+    ncplane_options nopts = {
+      .y = 1, .x = 1, .rows = 1, .cols = 9,
+      .userptr = nullptr, .name = "plot", .resizecb = nullptr, .flags = 0,
+    };
+    auto ncp = ncplane_create(n_, &nopts);
+    REQUIRE(ncp);
+    ncplot_options popts;
+    memset(&popts, 0, sizeof(popts));
+    popts.maxchannels = CHANNELS_RGB_INITIALIZER(0xff, 0xff, 0xff, 0, 0, 0);
+    popts.minchannels = CHANNELS_RGB_INITIALIZER(0, 0xff, 0, 0, 0, 0);
+    channels_set_bg_alpha(&popts.minchannels, CELL_ALPHA_BLEND);
+    channels_set_fg_alpha(&popts.minchannels, CELL_ALPHA_BLEND);
+    popts.gridtype = NCBLIT_8x1;
+    auto p = ncuplot_create(ncp, &popts, 0, 0);
+    REQUIRE(p);
+    for(auto i = 0 ; i < 9 ; ++i){
+      CHECK(0 == ncuplot_add_sample(p, i, i));
+    }
+    CHECK(0 == notcurses_render(nc_));
+    ncuplot_destroy(p);
+  }
+
+  SUBCASE("SextantPlot1Row") {
+    ncplane_options nopts = {
+      .y = 1, .x = 1, .rows = 1, .cols = 16,
+      .userptr = nullptr, .name = "plot", .resizecb = nullptr, .flags = 0,
+    };
+    auto ncp = ncplane_create(n_, &nopts);
+    REQUIRE(ncp);
+    ncplot_options popts;
+    memset(&popts, 0, sizeof(popts));
+    popts.maxchannels = CHANNELS_RGB_INITIALIZER(0xff, 0xff, 0xff, 0, 0, 0);
+    popts.minchannels = CHANNELS_RGB_INITIALIZER(0, 0xff, 0, 0, 0, 0);
+    channels_set_bg_alpha(&popts.minchannels, CELL_ALPHA_BLEND);
+    channels_set_fg_alpha(&popts.minchannels, CELL_ALPHA_BLEND);
+    popts.gridtype = NCBLIT_3x2;
+    auto p = ncuplot_create(ncp, &popts, 0, 0);
+    REQUIRE(p);
+    for(auto i = 0 ; i < 4 ; ++i){
+      for(auto j = 0 ; j < 4 ; ++j){
+        CHECK(0 == ncuplot_add_sample(p, i * 8 + j * 2, i));
+        CHECK(0 == ncuplot_add_sample(p, i * 8 + j * 2 + 1, j));
+      }
+    }
+    CHECK(0 == notcurses_render(nc_));
+sleep(10);
+    ncuplot_destroy(p);
+  }
+
+  SUBCASE("BraillePlot1Row") {
+    ncplane_options nopts = {
+      .y = 1, .x = 1, .rows = 1, .cols = 25,
+      .userptr = nullptr, .name = "plot", .resizecb = nullptr, .flags = 0,
+    };
+    auto ncp = ncplane_create(n_, &nopts);
+    REQUIRE(ncp);
+    ncplot_options popts;
+    memset(&popts, 0, sizeof(popts));
+    popts.maxchannels = CHANNELS_RGB_INITIALIZER(0xff, 0xff, 0xff, 0, 0, 0);
+    popts.minchannels = CHANNELS_RGB_INITIALIZER(0, 0xff, 0, 0, 0, 0);
+    channels_set_bg_alpha(&popts.minchannels, CELL_ALPHA_BLEND);
+    channels_set_fg_alpha(&popts.minchannels, CELL_ALPHA_BLEND);
+    popts.gridtype = NCBLIT_BRAILLE;
+    auto p = ncuplot_create(ncp, &popts, 0, 0);
+    REQUIRE(p);
+    for(auto i = 0 ; i < 5 ; ++i){
+      for(auto j = 0 ; j < 5 ; ++j){
+        CHECK(0 == ncuplot_add_sample(p, i * 10 + j * 2, i));
+        CHECK(0 == ncuplot_add_sample(p, i * 10 + j * 2 + 1, j));
+      }
+    }
+    CHECK(0 == notcurses_render(nc_));
+    ncuplot_destroy(p);
   }
 
   CHECK(0 == notcurses_stop(nc_));
