@@ -238,28 +238,28 @@ handle_getc(ncinputlayer* nc, int kpress, ncinput* ni, int leftmargin, int topma
   if(kpress < 0x80){
     return kpress;
   }
-  char cpoint[MB_CUR_MAX];
+  char cpoint[MB_CUR_MAX + 1];
+  memset(cpoint, 0, sizeof(cpoint));
   size_t cpointlen = 0;
   cpoint[cpointlen] = kpress;
-  // FIXME need to stop as soon as we have a full codepoint urk
-  while(++cpointlen < (size_t)MB_CUR_MAX - 1 && nc->inputbuf_occupied){
+  wchar_t w;
+  mbstate_t mbstate;
+  while(++cpointlen <= (size_t)MB_CUR_MAX && nc->inputbuf_occupied){
     int candidate = pop_input_keypress(nc);
     if(candidate < 0x80){
       unpop_keypress(nc, candidate);
     }
     cpoint[cpointlen] = candidate;
+//fprintf(stderr, "CANDIDATE: %d cpointlen: %zu cpoint: %d\n", candidate, cpointlen, cpoint[cpointlen]);
+    // FIXME how the hell does this work with 16-bit wchar_t?
+    memset(&mbstate, 0, sizeof(mbstate));
+    size_t r;
+    if((r = mbrtowc(&w, cpoint, cpointlen + 1, &mbstate)) != (size_t)-1 &&
+        r != (size_t)-2){
+      return w;
+    }
   }
-  cpoint[cpointlen] = '\0';
-  wchar_t w;
-  mbstate_t mbstate;
-  memset(&mbstate, 0, sizeof(mbstate));
-  // FIXME how the hell does this work with 16-bit wchar_t?
-  size_t r;
-  if((r = mbrtowc(&w, cpoint, cpointlen, &mbstate)) == (size_t)-1 ||
-      r == (size_t)-2){
-    return (wchar_t)-1;
-  }
-  return w;
+  return -1;
 }
 
 // blocks up through ts (infinite with NULL ts), returning number of events
