@@ -1,8 +1,11 @@
 //! `libnotcurses-sys` is a *close to the metal* Rust wrapper for the [notcurses
 //! C library](https://www.github.com/dankamongmen/notcurses/)
 //!
+//! The bindings are still incomplete, and a work in progress.
+//!
 //! There is also the [notcurses](https://crates.io/crates/notcurses) crate,
-//! for a more idiomatic wrapper, which should be safer and more higher level.
+//! for a safer, more idiomatic wrapper, and with higher level abstractions,
+//! but also still very much more incomplete.
 //!
 //! # Ways of using this library
 //!
@@ -78,9 +81,9 @@
 //! each context before it goes out of scope ([Notcurses], [NcDirect]), and
 //! should manually destroy [NcPlane]s, [NcMenu]s… when no longer needed.
 //!
-//! 2. Instead of handling errors with `Result` (as is customary in Rust),
+//! 2. Instead of handling errors with `Result` (as customary in Rust),
 //!   several functions return an [NcResult] with a value of [NCRESULT_ERR],
-//!   (as is customary in C), or [NCRESULT_OK].
+//!   (as customary in C), or [NCRESULT_OK].
 //!
 //! The [notcurses]() crate overcomes this limitations by using higher level
 //! abstractions, while pulling itself apart from the C API, in ways this
@@ -92,7 +95,9 @@
 //! - Renames types to enforce regularity and consistency. (e.g. [NcCell])
 //! - Has handy macros like [sleep], [rsleep] & [cstring].
 //!
-//! ## notcurses C API docs:
+//! ## The `notcurses` C API docs
+//!
+//! For reference:
 //!
 //! - [Doxygen Documentation](https://nick-black.com/notcurses/html/index.html)
 //! - [API reference (man pages)](https://nick-black.com/notcurses/)
