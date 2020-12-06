@@ -1,0 +1,106 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `src/widgets/menu/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script src="../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../libnotcurses_sys/index.html'><div class='logo-container rust-logo'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1"> 1</span>
+<span id="2"> 2</span>
+<span id="3"> 3</span>
+<span id="4"> 4</span>
+<span id="5"> 5</span>
+<span id="6"> 6</span>
+<span id="7"> 7</span>
+<span id="8"> 8</span>
+<span id="9"> 9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+</pre><div class="example-wrap"><pre class="rust ">
+<span class="doccomment">//! `NcMenu` widget</span>
+
+<span class="comment">// functions already exported by bindgen : 13</span>
+<span class="comment">// ------------------------------------------</span>
+<span class="comment">//  ncmenu_create</span>
+<span class="comment">//  ncmenu_destroy</span>
+<span class="comment">//  ncmenu_item_set_status</span>
+<span class="comment">//  ncmenu_mouse_selected</span>
+<span class="comment">//  ncmenu_nextitem</span>
+<span class="comment">//  ncmenu_nextsection</span>
+<span class="comment">//  ncmenu_offer_input</span>
+<span class="comment">//  ncmenu_plane</span>
+<span class="comment">//  ncmenu_previtem</span>
+<span class="comment">//  ncmenu_prevsection</span>
+<span class="comment">//  ncmenu_rollup</span>
+<span class="comment">//  ncmenu_selected</span>
+<span class="comment">//  ncmenu_unroll</span>
+
+<span class="kw">mod</span> <span class="ident">methods</span>;
+
+<span class="doccomment">/// menus on the top or bottom rows</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// A notcurses instance supports menu bars on the top or bottom row of the true</span>
+<span class="doccomment">/// screen.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// A menu is composed of sections, which are in turn composed of items.</span>
+<span class="doccomment">/// Either no sections are visible, and the menu is rolled up, or exactly one</span>
+<span class="doccomment">/// section is unrolled.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// `ncmenu_rollup` places an `NcMenu` in the rolled up state.</span>
+<span class="doccomment">/// `ncmenu_unroll` rolls up any unrolled section and unrolls the specified one.</span>
+<span class="doccomment">/// `ncmenu_destroy` removes a menu bar, and frees all associated resources.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// `type in C: ncmenu (struct)`</span>
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcMenu</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncmenu</span>;
+
+<span class="doccomment">/// Options struct for [`NcMenu`]</span>
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcMenuOptions</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncmenu_options</span>;
+
+<span class="doccomment">/// Item for [`NcMenu`]</span>
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcMenuItem</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncmenu_item</span>;
+
+<span class="doccomment">/// Section for [`NcMenu`]</span>
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcMenuSection</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncmenu_section</span>;
+
+<span class="doccomment">/// Bottom row (as opposed to top row)</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCMENU_OPTION_BOTTOM</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCMENU_OPTION_BOTTOM</span>;
+
+<span class="doccomment">/// Hide the menu when not unrolled</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCMENU_OPTION_HIDING</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCMENU_OPTION_HIDING</span>;
+</pre></div>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../../";window.currentCrate = "libnotcurses_sys";</script><script src="../../../../main.js"></script><script src="../../../../source-script.js"></script><script src="../../../../source-files.js"></script><script defer src="../../../../search-index.js"></script></body></html>

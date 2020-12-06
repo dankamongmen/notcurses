@@ -1,0 +1,40 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `NcEgc` type in crate `libnotcurses_sys`."><meta name="keywords" content="rust, rustlang, rust-lang, NcEgc"><title>libnotcurses_sys::NcEgc - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../ayu.css" disabled ><script src="../storage.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc type"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../libnotcurses_sys/index.html'><div class='logo-container rust-logo'><img src='../rust-logo.png' alt='logo'></div></a><p class='location'>Type Definition NcEgc</p><div class="sidebar-elems"><p class='location'><a href='index.html'>libnotcurses_sys</a></p><script>window.sidebarCurrent = {name: 'NcEgc', ty: 'type', relpath: ''};</script><script defer src="sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../settings.html"><img src="../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class='fqn'><span class='out-of-band'><span id='render-detail'><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class='inner'>&#x2212;</span>]</a></span><a class='srclink' href='../src/libnotcurses_sys/cells/mod.rs.html#316' title='goto source code'>[src]</a></span><span class='in-band'>Type Definition <a href='index.html'>libnotcurses_sys</a>::<wbr><a class="type" href=''>NcEgc</a></span></h1><pre class='rust typedef'>type NcEgc = <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>;</pre><div class='docblock'><p>Extended Grapheme Cluster. A 32-bit <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html" title="char"><code>char</code></a>-like type</p>
+<p>This 32 bit char, together with the associated plane's associated egcpool,
+completely define this cell's <code>NcEgc</code>. Unless the <code>NcEgc</code> requires more than
+four bytes to encode as UTF-8, it will be inlined here:</p>
+<h2 id="diagram-1" class="section-header"><a href="#diagram-1">Diagram 1</a></h2>
+<pre><code class="language-txt">UUUUUUUU UUUUUUUU UUUUUUUU UUUUUUUU
+extended grapheme cluster &lt;= 4bytes
+</code></pre>
+<p><code>type in C: uint32_t</code></p>
+<p>If more than four bytes are required, it will be spilled into the egcpool.
+In either case, there's a NUL-terminated string available without copying,
+because (1) the egcpool is all NUL-terminated sequences and (2) the fifth
+byte of this struct (the GClusterBackStop field, see below) is
+guaranteed to be zero, as are any unused bytes in gcluster.</p>
+<p>A spilled <code>NcEgc</code> is indicated by the value <code>0x01iiiiii</code>. This cannot alias a
+true supra-ASCII NcEgc, because UTF-8 only encodes bytes &lt;= 0x80 when they
+are single-byte ASCII-derived values. The <code>iiiiii</code> is interpreted as a 24-bit
+index into the egcpool (which may thus be up to 16MB):</p>
+<h2 id="diagram-2" class="section-header"><a href="#diagram-2">Diagram 2</a></h2>
+<pre><code class="language-txt">00000001 iiiiiiii iiiiiiii iiiiiiii
+  sign     24bit index to egcpool
+</code></pre>
+<p><code>type in C: uint32_t</code></p>
+<p>The cost of this scheme is that the character 0x01 (<code>SOH</code>) cannot be encoded
+in a cell, and therefore it must not be allowed through the API.</p>
+<hr />
+<p>NOTE that even if the <code>NcEgc</code> is &lt;= 4 bytes and inlined, is still interpreted as
+a NUL-terminated char * (technically, &amp;cell-&gt;gcluster is treated as a char*).
+If it is more than 4 bytes, cell-&gt;gcluster has a first byte of 0x01,
+and the remaining 24 bits are an index into the plane's egcpool,
+which is carved into NUL-terminated chunks of arbitrary length.</p>
+<h2 id="links" class="section-header"><a href="#links">Links</a></h2>
+<ul>
+<li><a href="https://unicode.org/reports/tr29/#Grapheme_Cluster_Boundaries">Grapheme Cluster
+Boundaries</a></li>
+</ul>
+</div></section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../";window.currentCrate = "libnotcurses_sys";</script><script src="../main.js"></script><script defer src="../search-index.js"></script></body></html>

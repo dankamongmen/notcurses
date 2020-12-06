@@ -1,0 +1,102 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `NcCell` type in crate `libnotcurses_sys`."><meta name="keywords" content="rust, rustlang, rust-lang, NcCell"><title>libnotcurses_sys::NcCell - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../ayu.css" disabled ><script src="../storage.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc type"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../libnotcurses_sys/index.html'><div class='logo-container rust-logo'><img src='../rust-logo.png' alt='logo'></div></a><p class='location'>Type Definition NcCell</p><div class="sidebar-elems"><div class="block items"><a class="sidebar-title" href="#implementations">Methods</a><div class="sidebar-links"><a href="#method.channels">channels</a><a href="#method.egc">egc</a><a href="#method.extract">extract</a><a href="#method.new">new</a><a href="#method.styles">styles</a><a href="#method.with_7bitchar">with_7bitchar</a><a href="#method.with_all">with_all</a><a href="#method.with_char">with_char</a><a href="#method.with_str">with_str</a></div></div><p class='location'><a href='index.html'>libnotcurses_sys</a></p><script>window.sidebarCurrent = {name: 'NcCell', ty: 'type', relpath: ''};</script><script defer src="sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../settings.html"><img src="../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class='fqn'><span class='out-of-band'><span id='render-detail'><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class='inner'>&#x2212;</span>]</a></span><a class='srclink' href='../src/libnotcurses_sys/cells/mod.rs.html#167' title='goto source code'>[src]</a></span><span class='in-band'>Type Definition <a href='index.html'>libnotcurses_sys</a>::<wbr><a class="type" href=''>NcCell</a></span></h1><pre class='rust typedef'>type NcCell = <a class="struct" href="../libnotcurses_sys/ffi/struct.cell.html" title="struct libnotcurses_sys::ffi::cell">cell</a>;</pre><div class='docblock'><p>A coordinate on an <a href="../libnotcurses_sys/type.NcPlane.html" title="crate::NcPlane"><code>NcPlane</code></a> storing 128 bits of data</p>
+<p>An <code>NcCell</code> corresponds to a single character cell on some <a href="../libnotcurses_sys/type.NcPlane.html" title="NcPlane"><code>NcPlane</code></a>,
+which can be occupied by a single <a href="../libnotcurses_sys/type.NcEgc.html" title="NcEgc"><code>NcEgc</code></a> grapheme cluster (some root
+spacing glyph, along with possible combining characters, which might span
+multiple columns).</p>
+<p>At any <code>NcCell</code>, we can have a theoretically arbitrarily long UTF-8 string,
+a foreground color, a background color, and an <a href="../libnotcurses_sys/type.NcStyleMask.html" title="NcStyleMask"><code>NcStyleMask</code></a> attribute set.</p>
+<p>Valid grapheme cluster contents include:</p>
+<ul>
+<li>A NUL terminator,</li>
+<li>A single <a href="https://en.wikipedia.org/wiki/Control_character">control character</a>,
+followed by a NUL terminator,</li>
+<li>At most one <a href="https://en.wikipedia.org/wiki/Graphic_character#Spacing_character">spacing
+character</a>,
+followed by zero or more nonspacing characters, followed by a NUL terminator.</li>
+</ul>
+<h2 id="diagram" class="section-header"><a href="#diagram">Diagram</a></h2>
+<pre><code class="language-txt">NcCell: 128 bits structure comprised of the following 5 elements:
+
+GCLUSTER GCLUSTER GCLUSTER GCLUSTER  1. NcEgc
+00000000 ~~~~~~~~ 11111111 11111111  2. NcEgcBackstop + 3. reserved + 4. NcStyleMask
+~~AA~~~~ RRRRRRRR GGGGGGGG BBBBBBBB  5. NcChannelPair
+~~AA~~~~ RRRRRRRR GGGGGGGG BBBBBBBB  |
+
+1. (32b) Extended Grapheme Cluster, presented either as:
+
+    1.1. An NcEgc of up to 4 bytes:
+    UUUUUUUU UUUUUUUU UUUUUUUU UUUUUUUU
+
+    1.2. A `0x01` in the first byte, plus 3 bytes with a 24b address to an egcpool:
+    00000001 IIIIIIII IIIIIIII IIIIIIII
+
+2. (8b) Backstop (zero)
+00000000
+
+3. (8b) reserved (ought to be zero)
+~~~~~~~~
+
+4. (16b) NcStyleMask
+11111111 11111111
+
+5. (64b) NcChannelPair
+~~AA~~~~ RRRRRRRR GGGGGGGG BBBBBBBB|~~AA~~~~ RRRRRRRR GGGGGGGG BBBBBBBB
+</code></pre>
+<p><code>type in C: cell (struct)</code></p>
+<h2 id="size" class="section-header"><a href="#size">Size</a></h2>
+<p>Multi-column characters can only have a single style/color throughout.
+<a href="https://www.man7.org/linux/man-pages/man3/wcwidth.3.html"><code>wcwidth()</code></a>
+is not reliable. It's just quoting whether or not the <a href="../libnotcurses_sys/type.NcEgc.html" title="NcEgc"><code>NcEgc</code></a>
+contains a &quot;Wide Asian&quot; double-width character.
+This is set for some things, like most emoji, and not set for
+other things, like cuneiform.</p>
+<p>Each cell occupies 16 static bytes (128 bits). The surface is thus ~1.6MB
+for a (pretty large) 500x200 terminal. At 80x43, it's less than 64KB.
+Dynamic requirements (the egcpool) can add up to 16MB to an ncplane, but
+such large pools are unlikely in common use.</p>
+<h2 id="alpha-compositing" class="section-header"><a href="#alpha-compositing">Alpha Compositing</a></h2>
+<p>We implement some small alpha compositing. Foreground and background both
+have two bits of inverted alpha. The actual grapheme written to a cell is
+the topmost non-zero grapheme.</p>
+<ul>
+<li>
+<p>If its alpha is 00 (<a href="../libnotcurses_sys/constant.NCCELL_ALPHA_OPAQUE.html" title="NCCELL_ALPHA_OPAQUE"><code>NCCELL_ALPHA_OPAQUE</code></a>) its foreground color is used unchanged.</p>
+</li>
+<li>
+<p>If its alpha is 10 (<a href="../libnotcurses_sys/constant.NCCELL_ALPHA_TRANSPARENT.html" title="NCCELL_ALPHA_TRANSPARENT"><code>NCCELL_ALPHA_TRANSPARENT</code></a>) its foreground color is derived
+entirely from cells underneath it.</p>
+</li>
+<li>
+<p>If its alpha is 01 (<a href="../libnotcurses_sys/constant.NCCELL_ALPHA_BLEND.html" title="NCCELL_ALPHA_BLEND"><code>NCCELL_ALPHA_BLEND</code></a>) the result will be a composite.</p>
+</li>
+</ul>
+<p>Likewise for the background. If the bottom of a coordinate's zbuffer is
+reached with a cumulative alpha of zero, the default is used. In this way,
+a terminal configured with transparent background can be supported through
+multiple occluding ncplanes.</p>
+<p>A foreground alpha of 11 (<a href="../libnotcurses_sys/constant.NCCELL_ALPHA_HIGHCONTRAST.html" title="NCCELL_ALPHA_HIGHCONTRAST"><code>NCCELL_ALPHA_HIGHCONTRAST</code></a>) requests high-contrast
+text (relative to the computed background).
+A background alpha of 11 is currently forbidden.</p>
+<h2 id="precedence" class="section-header"><a href="#precedence">Precedence</a></h2>
+<ul>
+<li>Default color takes precedence over palette or RGB, and cannot be used with
+transparency.</li>
+<li>Indexed palette takes precedence over RGB. It cannot meaningfully set
+transparency, but it can be mixed into a cascading color.</li>
+<li>RGB is used if neither default terminal colors nor palette indexing are in
+play, and fully supports all transparency options.</li>
+</ul>
+</div><h2 id='implementations' class='small-section-header'>Implementations<a href='#implementations' class='anchor'></a></h2><h3 id='impl' class='impl'><code class='in-band'>impl <a class="type" href="../libnotcurses_sys/type.NcCell.html" title="type libnotcurses_sys::NcCell">NcCell</a></code><a href='#impl' class='anchor'></a><a class='srclink' href='../src/libnotcurses_sys/cells/methods.rs.html#9-51' title='goto source code'>[src]</a></h3><div class='docblock'><h1 id="nccell-constructors" class="section-header"><a href="#nccell-constructors"><code>NcCell</code> Constructors</a></h1></div><div class='impl-items'><h4 id='method.with_all' class="method"><code>pub const fn <a href='#method.with_all' class='fnname'>with_all</a>(<br>&nbsp;&nbsp;&nbsp;&nbsp;ch: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;stylemask: <a class="type" href="../libnotcurses_sys/type.NcStyleMask.html" title="type libnotcurses_sys::NcStyleMask">NcStyleMask</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;channels: <a class="type" href="../libnotcurses_sys/type.NcChannelPair.html" title="type libnotcurses_sys::NcChannelPair">NcChannelPair</a><br>) -&gt; Self</code><a class='srclink' href='../src/libnotcurses_sys/cells/methods.rs.html#12-20' title='goto source code'>[src]</a></h4><div class='docblock'><p>New NcCell, expects a <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html" title="char">char</a>, <a href="../libnotcurses_sys/type.NcStyleMask.html" title="NcStyleMask">NcStyleMask</a> and <a href="../libnotcurses_sys/type.NcChannelPair.html" title="NcChannelPair">NcChannelPair</a>.</p>
+</div><h4 id='method.with_7bitchar' class="method"><code>pub const fn <a href='#method.with_7bitchar' class='fnname'>with_7bitchar</a>(ch: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; Self</code><a class='srclink' href='../src/libnotcurses_sys/cells/methods.rs.html#24-26' title='goto source code'>[src]</a></h4><div class='docblock'><p>New NcCell, expects a 7-bit <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html" title="char">char</a>.</p>
+</div><h4 id='method.with_char' class="method"><code>pub fn <a href='#method.with_char' class='fnname'>with_char</a>(plane: &amp;mut <a class="type" href="../libnotcurses_sys/type.NcPlane.html" title="type libnotcurses_sys::NcPlane">NcPlane</a>, ch: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; Self</code><a class='srclink' href='../src/libnotcurses_sys/cells/methods.rs.html#30-35' title='goto source code'>[src]</a></h4><div class='docblock'><p>New NcCell, expects an <a href="../libnotcurses_sys/type.NcPlane.html" title="NcPlane">NcPlane</a> and a <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html" title="char">char</a>.</p>
+</div><h4 id='method.with_str' class="method"><code>pub fn <a href='#method.with_str' class='fnname'>with_str</a>(plane: &amp;mut <a class="type" href="../libnotcurses_sys/type.NcPlane.html" title="type libnotcurses_sys::NcPlane">NcPlane</a>, string: &amp;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; Self</code><a class='srclink' href='../src/libnotcurses_sys/cells/methods.rs.html#39-44' title='goto source code'>[src]</a></h4><div class='docblock'><p>New NcCell, expects an <a href="../libnotcurses_sys/type.NcPlane.html" title="NcPlane">NcPlane</a> and a &amp;<a href="https://doc.rust-lang.org/nightly/std/primitive.str.html" title="str">str</a>.</p>
+</div><h4 id='method.new' class="method"><code>pub const fn <a href='#method.new' class='fnname'>new</a>() -&gt; Self</code><a class='srclink' href='../src/libnotcurses_sys/cells/methods.rs.html#48-50' title='goto source code'>[src]</a></h4><div class='docblock'><p>New NcCell, blank.</p>
+</div></div><h3 id='impl-1' class='impl'><code class='in-band'>impl <a class="type" href="../libnotcurses_sys/type.NcCell.html" title="type libnotcurses_sys::NcCell">NcCell</a></code><a href='#impl-1' class='anchor'></a><a class='srclink' href='../src/libnotcurses_sys/cells/methods.rs.html#54-86' title='goto source code'>[src]</a></h3><div class='docblock'><h1 id="nccell-methods" class="section-header"><a href="#nccell-methods"><code>NcCell</code> Methods</a></h1></div><div class='impl-items'><h4 id='method.extract' class="method"><code>pub fn <a href='#method.extract' class='fnname'>extract</a>(<br>&nbsp;&nbsp;&nbsp;&nbsp;&amp;mut self, <br>&nbsp;&nbsp;&nbsp;&nbsp;plane: &amp;mut <a class="type" href="../libnotcurses_sys/type.NcPlane.html" title="type libnotcurses_sys::NcPlane">NcPlane</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;styles: &amp;mut <a class="type" href="../libnotcurses_sys/type.NcStyleMask.html" title="type libnotcurses_sys::NcStyleMask">NcStyleMask</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;channels: &amp;mut <a class="type" href="../libnotcurses_sys/type.NcChannelPair.html" title="type libnotcurses_sys::NcChannelPair">NcChannelPair</a><br>) -&gt; <a class="type" href="../libnotcurses_sys/type.NcEgc.html" title="type libnotcurses_sys::NcEgc">NcEgc</a></code><a class='srclink' href='../src/libnotcurses_sys/cells/methods.rs.html#57-64' title='goto source code'>[src]</a></h4><div class='docblock'><p>Saves the <a href="../libnotcurses_sys/type.NcStyleMask.html" title="NcStyleMask">NcStyleMask</a> and the <a href="../libnotcurses_sys/type.NcChannelPair.html" title="NcChannelPair">NcChannelPair</a>, and returns the <a href="../libnotcurses_sys/type.NcEgc.html" title="NcEgc">NcEgc</a>
+(the three elements of an NcCell).</p>
+</div><h4 id='method.channels' class="method"><code>pub fn <a href='#method.channels' class='fnname'>channels</a>(&amp;mut self, plane: &amp;mut <a class="type" href="../libnotcurses_sys/type.NcPlane.html" title="type libnotcurses_sys::NcPlane">NcPlane</a>, channels: &amp;mut <a class="type" href="../libnotcurses_sys/type.NcChannelPair.html" title="type libnotcurses_sys::NcChannelPair">NcChannelPair</a>)</code><a class='srclink' href='../src/libnotcurses_sys/cells/methods.rs.html#68-71' title='goto source code'>[src]</a></h4><div class='docblock'><p>Saves the <a href="../libnotcurses_sys/type.NcChannelPair.html" title="NcChannelPair">NcChannelPair</a> of the NcCell.</p>
+</div><h4 id='method.styles' class="method"><code>pub fn <a href='#method.styles' class='fnname'>styles</a>(&amp;mut self, plane: &amp;mut <a class="type" href="../libnotcurses_sys/type.NcPlane.html" title="type libnotcurses_sys::NcPlane">NcPlane</a>, styles: &amp;mut <a class="type" href="../libnotcurses_sys/type.NcStyleMask.html" title="type libnotcurses_sys::NcStyleMask">NcStyleMask</a>)</code><a class='srclink' href='../src/libnotcurses_sys/cells/methods.rs.html#75-78' title='goto source code'>[src]</a></h4><div class='docblock'><p>Saves the <a href="../libnotcurses_sys/type.NcStyleMask.html" title="NcStyleMask">NcStyleMask</a> of the NcCell.</p>
+</div><h4 id='method.egc' class="method"><code>pub fn <a href='#method.egc' class='fnname'>egc</a>(&amp;mut self, plane: &amp;mut <a class="type" href="../libnotcurses_sys/type.NcPlane.html" title="type libnotcurses_sys::NcPlane">NcPlane</a>) -&gt; <a class="type" href="../libnotcurses_sys/type.NcEgc.html" title="type libnotcurses_sys::NcEgc">NcEgc</a></code><a class='srclink' href='../src/libnotcurses_sys/cells/methods.rs.html#82-85' title='goto source code'>[src]</a></h4><div class='docblock'><p>Returns the <a href="../libnotcurses_sys/type.NcEgc.html" title="NcEgc">NcEgc</a> of the NcCell.</p>
+</div></div></section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../";window.currentCrate = "libnotcurses_sys";</script><script src="../main.js"></script><script defer src="../search-index.js"></script></body></html>
