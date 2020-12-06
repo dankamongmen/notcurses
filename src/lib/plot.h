@@ -227,11 +227,9 @@ class ncppplot {
              double scaled = log(gvals[i] - miny) / log(interval);
              double sival = intervalbase ? log(intervalbase) / log(interval) : 0;
              egcidx = scaled - sival;
-//fprintf(stderr, "egcidx: %zu gvals: %u interval: %f scaled: %f sival: %f\n", egcidx, gvals[i], interval, scaled, sival);
            }else{
              egcidx = (gvals[i] - intervalbase) / interval;
            }
-//fprintf(stderr, "%d/%d ibase: %f ival: %f egcidx: %zu\n", dimy - y - 1, x, intervalbase, interval, egcidx);
            if(egcidx >= states){
              egcidx = states - 1;
              done = false;
@@ -246,8 +244,19 @@ class ncppplot {
        // we need handle ASCII differently, since it can't print full block.
        // in ASCII mode, egcidx != means swap colors and use space.
        if(sumidx){
+//fprintf(stderr, "dimy: %d y: %d x: %d sumidx: %zu egc[%zu]: %lc\n", dimy, y, x, sumidx, sumidx, egc[sumidx]);
          if(notcurses_canutf8(ncplane_notcurses(ncp))){
-           if(ncplane_putwc_yx(ncp, dimy - y - 1, x, egc[sumidx]) <= 0){
+           char utf8[MB_CUR_MAX + 1];
+           int bytes = wctomb(utf8, egc[sumidx]);
+           if(bytes < 0){
+             return -1;
+           }
+           utf8[bytes] = '\0';
+           cell* c = ncplane_cell_ref_yx(ncp, dimy - y - 1, x);
+           cell_set_bchannel(c, channels_bchannel(channels));
+           cell_set_fchannel(c, channels_fchannel(channels));
+           cell_set_styles(c, NCSTYLE_NONE);
+           if(pool_blit_direct(&ncp->pool, c, utf8, bytes, 1) <= 0){
              return -1;
            }
          }else{

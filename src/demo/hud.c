@@ -502,7 +502,7 @@ int hud_schedule(const char* demoname){
   return hud_print_finished(elems);
 }
 
-// wake up every 100ms and render a frame so the HUD doesn't appear locked up.
+// wake up every 10ms and render a frame so the HUD doesn't appear locked up.
 // provide an absolute deadline calculated via CLOCK_MONOTONIC.
 static int
 demo_nanosleep_abstime_ns(struct notcurses* nc, uint64_t deadline){
