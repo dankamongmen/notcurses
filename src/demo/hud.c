@@ -97,7 +97,8 @@ debug_toggle(struct notcurses* nc){
     .y = 3,
     .x = NCALIGN_CENTER,
     .rows = count_debug_lines(output, outputlen) + 1,
-    .cols = dimx + 1, // so we don't break lines before the true boundary
+    // 1 plus the max len of debug output so it can print against right border
+    .cols = 81,
     .flags = NCPLANE_OPTION_HORALIGNED,
   };
   struct ncplane* n = ncplane_create(notcurses_stdplane(nc), &nopts);
@@ -112,7 +113,7 @@ debug_toggle(struct notcurses* nc){
   ncplane_set_scrolling(n, true);
   ncplane_set_fg_rgb(n, 0x0a0a0a);
   ncplane_set_bg_rgb(n, 0xffffe5);
-  if(ncplane_puttext(n, 0, NCALIGN_CENTER, output, &outputlen) < 0){
+  if(ncplane_puttext(n, 0, NCALIGN_LEFT, output, &outputlen) < 0){
     free(output);
     ncplane_destroy(n);
     return;
