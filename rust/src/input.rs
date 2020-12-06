@@ -13,7 +13,7 @@
 /// including synthesized events and mouse events.
 ///
 /// To exit, generate EOF (usually Ctrl+‘d’).
-pub type NcInput = crate::bindings::bindgen::ncinput;
+pub type NcInput = crate::bindings::ffi::ncinput;
 
 /// Compares two ncinput structs for data equality by doing a field-by-field
 /// comparison for equality (excepting seqnum).

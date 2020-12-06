@@ -50,7 +50,7 @@ mod test;
 mod methods;
 
 /// Minimal notcurses instances for styling text
-pub type NcDirect = crate::bindings::bindgen::ncdirect;
+pub type NcDirect = crate::bindings::ffi::ncdirect;
 
 /// Flags (options) for [`NcDirect`]
 pub type NcDirectFlags = u64;
@@ -59,7 +59,7 @@ pub type NcDirectFlags = u64;
 /// (disabling echo and line buffering)
 ///
 pub const NCDIRECT_OPTION_INHIBIT_CBREAK: NcDirectFlags =
-    crate::bindings::bindgen::NCDIRECT_OPTION_INHIBIT_CBREAK as NcDirectFlags;
+    crate::bindings::ffi::NCDIRECT_OPTION_INHIBIT_CBREAK as NcDirectFlags;
 
 /// Flag that avoids calling setlocale(LC_ALL, NULL)
 ///
@@ -71,4 +71,4 @@ pub const NCDIRECT_OPTION_INHIBIT_CBREAK: NcDirectFlags =
 /// itself, usually as one of the first lines.
 ///
 pub const NCDIRECT_OPTION_INHIBIT_SETLOCALE: NcDirectFlags =
-    crate::bindings::bindgen::NCDIRECT_OPTION_INHIBIT_SETLOCALE as NcDirectFlags;
+    crate::bindings::ffi::NCDIRECT_OPTION_INHIBIT_SETLOCALE as NcDirectFlags;

@@ -3,7 +3,7 @@
 use crate::Notcurses;
 
 /// notcurses runtime statistics
-pub type NcStats = crate::bindings::bindgen::ncstats;
+pub type NcStats = crate::bindings::ffi::ncstats;
 
 /// # `NcStats` Methods.
 impl NcStats {

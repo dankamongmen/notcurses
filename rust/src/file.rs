@@ -10,7 +10,7 @@ use std::io::{Error, ErrorKind, Read, Seek, SeekFrom};
 use libc::{c_long, c_void, fclose, feof, fread, fseek, ftell, SEEK_CUR, SEEK_END, SEEK_SET};
 
 /// See [NcFile]. Notcurses functions expects this type of `*FILE` (a struct)
-pub type FILE_NC = crate::bindgen::_IO_FILE;
+pub type FILE_NC = crate::ffi::_IO_FILE;
 
 /// See [NcFile]. The [`libc`] crate expects this type of `*FILE` (an opaque enum)
 pub type FILE_LIBC = libc::FILE;

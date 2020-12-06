@@ -1,13 +1,13 @@
-//! A selection of the [bindgen] bindings intended to be used directly.
+//! A selection of the [ffi] bindings intended to be used directly.
 //!
-//! The full list of bindings is under the [bindgen] submodule
+//! The full list of bindings is under the [ffi] submodule.
 //!
-//! This module publicly re-exports bindgen generated functions and constants
-//! for their direct usage.
+//! The current module publicly re-exports bindgen generated structs, functions,
+//! and constants, for their direct usage.
 
 // [clippy & bindgen](https://github.com/rust-lang/rust-bindgen/issues/1470)
 #[allow(clippy::all)]
-pub mod bindgen {
+pub mod ffi {
     //! Automatically generated Rust FFI bindings, for reference.
     //!
     //! All of the notcurses API functions are reexported to the public API
@@ -19,7 +19,7 @@ pub mod bindgen {
 // Miscellaneous ---------------------------------------------------------------
 
 #[doc(inline)]
-pub use bindgen::{
+pub use ffi::{
     // structs
     __va_list_tag,
 
@@ -58,7 +58,7 @@ pub use bindgen::{
 // CELL_WIDEASIAN_MASK,
 
 #[doc(inline)]
-pub use bindgen::{
+pub use ffi::{
     // functions
     cell_duplicate,
     cell_extended_gcluster,
@@ -109,7 +109,7 @@ pub use bindgen::{
 // ncbox -----------------------------------------------------------------------
 
 #[doc(inline)]
-pub use bindgen::{
+pub use ffi::{
     // constants
     NCBOXCORNER_MASK,
     NCBOXCORNER_SHIFT,
@@ -135,7 +135,7 @@ pub use bindgen::{
 // NCDIRECT_OPTION_INHIBIT_SETLOCALE,
 
 #[doc(inline)]
-pub use bindgen::{
+pub use ffi::{
     // functions
     ncdirect_bg_default,
     ncdirect_bg_palindex,
@@ -185,7 +185,7 @@ pub use bindgen::{
 // ncfadectx,
 
 #[doc(inline)]
-pub use bindgen::{
+pub use ffi::{
     // functions
     ncfadectx_free,
     ncfadectx_iterations,
@@ -226,7 +226,7 @@ pub use bindgen::{
 // ncfdplane_options,
 
 #[doc(inline)]
-pub use bindgen::{
+pub use ffi::{
     // functions
     ncfdplane_create,
     ncfdplane_destroy,
@@ -248,7 +248,7 @@ pub use bindgen::{
 // NCMENU_OPTION_HIDING,
 
 #[doc(inline)]
-pub use bindgen::{
+pub use ffi::{
     // functions
     ncmenu_create,
     ncmenu_destroy,
@@ -278,7 +278,7 @@ pub use bindgen::{
 // IPREFIXSTRLEN,
 
 #[doc(inline)]
-pub use bindgen::ncmetric;
+pub use ffi::ncmetric;
 
 // ncmultiselector -------------------------------------------------------------
 //
@@ -290,7 +290,7 @@ pub use bindgen::ncmetric;
 // ncmultiselector_options,
 
 #[doc(inline)]
-pub use bindgen::{
+pub use ffi::{
     // functions
     ncmultiselector_create,
     ncmultiselector_destroy,
@@ -302,7 +302,7 @@ pub use bindgen::{
 // ncpile ----------------------------------------------------------------------
 
 #[doc(inline)]
-pub use bindgen::{
+pub use ffi::{
     // functions
     ncpile_bottom,
     ncpile_create,
@@ -323,7 +323,7 @@ pub use bindgen::{
 // NCPLANE_OPTION_HORALIGNED,
 
 #[doc(inline)]
-pub use bindgen::{
+pub use ffi::{
     // functions
     ncplane_above,
     ncplane_at_cursor,
@@ -442,7 +442,7 @@ pub use bindgen::{
 // NCPLOT_OPTION_VERTICALI,
 
 #[doc(inline)]
-pub use bindgen::{
+pub use ffi::{
     // functions
     ncdplot_add_sample,
     ncdplot_create,
@@ -474,7 +474,7 @@ pub use bindgen::{
 // NCREADER_OPTION_VERSCROLL,
 
 #[doc(inline)]
-pub use bindgen::{
+pub use ffi::{
     // functions
     ncreader_clear,
     ncreader_contents,
@@ -502,7 +502,7 @@ pub use bindgen::{
 // NCREEL_OPTION_INFINITESCROLL,
 
 #[doc(inline)]
-pub use bindgen::{
+pub use ffi::{
     // functions
     ncreel_add,
     ncreel_create,
@@ -539,7 +539,7 @@ pub use bindgen::{
 // ncselector_options,
 
 #[doc(inline)]
-pub use bindgen::{
+pub use ffi::{
     // functions
     ncselector_additem,
     ncselector_create,
@@ -585,7 +585,7 @@ pub use bindgen::{
 // nctablet,
 
 #[doc(inline)]
-pub use bindgen::{
+pub use ffi::{
     // functions
     nctablet_plane,
     nctablet_userptr,
@@ -604,7 +604,7 @@ pub use bindgen::{
 // NCVISUAL_OPTION_NODEGRADE,
 
 #[doc(inline)]
-pub use bindgen::{
+pub use ffi::{
     // functions
     ncvisual_at_yx,
     ncvisual_decode,
@@ -643,7 +643,7 @@ pub use bindgen::{
 // NCOPTION_VERIFY_SIXEL,
 
 #[doc(inline)]
-pub use bindgen::{
+pub use ffi::{
     // functions
     notcurses_at_yx,
     notcurses_bottom,
@@ -694,7 +694,7 @@ pub use bindgen::{
 // palette256,
 
 #[doc(inline)]
-pub use bindgen::{
+pub use ffi::{
     // functions
     palette256_free,
     palette256_new,
@@ -706,10 +706,10 @@ pub use bindgen::{
 
 // sig -------------------------------------------------------------------------
 
-pub(crate) use bindgen::sigset_t;
+pub(crate) use ffi::sigset_t;
 
 #[doc(inline)]
-pub use bindgen::{
+pub use ffi::{
     // structs
     //sigaction,
 
