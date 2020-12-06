@@ -1,3 +1,4 @@
+#define NCPP_EXCEPTIONS_PLEASE
 #include <cstdlib>
 #include <clocale>
 #include <memory>
@@ -60,13 +61,16 @@ auto main() -> int {
 "Misavekakaeglasheminosavekatemmi"
 "Hikiiaʻukeʻaiikeaniani;ʻaʻolenōlāaueʻeha"
 "Ekoʻanaekaiitekarahimeaʻāʻaʻehauhau"
-"ᐊᓕᒍᖅᓂᕆᔭᕌᖓᒃᑯᓱᕋᙱᑦᑐᓐᓇᖅᑐ";
+"ᐊᓕᒍᖅᓂᕆᔭᕌᖓᒃᑯᓱᕋᙱᑦᑐᓐᓇᖅᑐ"
+;
   std::unique_ptr<Plane> nstd(nc.get_stdplane());
   int y, dimy, dimx;
   nc.get_term_dim(&dimy, &dimx);
   nstd->set_scrolling(true);
   do{
-    nstd->putstr(c);
+    if(nstd->putstr(c) <= 0){
+      return EXIT_FAILURE;
+    }
     nstd->get_cursor_yx(&y, nullptr);
   }while(y < dimy - 1);
   const int HEIGHT = 9;

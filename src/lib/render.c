@@ -261,7 +261,7 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
       const cell* vis = &p->fb[nfbcellidx(p, y, x)];
       // if we never loaded any content into the cell (or obliterated it by
       // writing in a zero), use the plane's base cell.
-      if(vis->gcluster == 0 && !cell_wide_right_p(vis)){
+      if(vis->gcluster == 0 && !cell_double_wide_p(vis)){
         vis = &p->basecell;
       }
       // if we have no character in this cell, we continue to look for a
@@ -395,8 +395,7 @@ postpaint(cell* lastframe, int dimy, int dimx, struct crender* rvec, egcpool* po
       cell* targc = &crender->c;
       lock_in_highcontrast(targc, crender);
       cell* prevcell = &lastframe[fbcellidx(y, dimx, x)];
-//fprintf(stderr, "WROTE %u [%s] to %d/%d\n", targc->gcluster, cell_extended_gcluster(crender->p, targc), y, x);
-      if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc)){
+      if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc) > 0){
         crender->damaged = true;
         if(cell_wide_left_p(targc)){
           const ncplane* tmpp = crender->p;
@@ -408,7 +407,7 @@ postpaint(cell* lastframe, int dimy, int dimx, struct crender* rvec, egcpool* po
           targc->gcluster = 0;
           targc->channels = crender[-1].c.channels;
           targc->stylemask = crender[-1].c.stylemask;
-          if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc)){
+          if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc) > 0){
             crender->damaged = true;
           }
         }

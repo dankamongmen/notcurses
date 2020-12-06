@@ -1572,6 +1572,7 @@ int ncplane_putegc_yx(ncplane* n, int y, int x, const char* gclust, int* sbytes)
   if(sbytes){
     *sbytes = bytes;
   }
+//fprintf(stderr, "cols: %d wcs: %d\n", cols, bytes);
   return ncplane_put(n, y, x, gclust, cols, n->stylemask, n->channels, bytes);
 }
 

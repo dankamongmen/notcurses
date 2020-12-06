@@ -131,6 +131,11 @@ signals which would normally terminate the process. The new handlers will try
 to call **notcurses_stop(3)**, and then propagate the received signal to the
 previous action.
 
+# NOTES
+
+When using the C++ wrappers, **NCPP_EXCEPTIONS_PLEASE** can be defined in
+order to turn most error returns into exceptions.
+
 # SEE ALSO
 
 **ncurses(3NCURSES)**,

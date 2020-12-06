@@ -201,7 +201,7 @@ int sliding_puzzle_demo(struct notcurses* nc){
   }*/
   // shuffle up the chunks
   int i;
-  clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);
+  demo_nanosleep(nc, &ts);
   for(i = 0 ; i < 200 ; ++i){
     int i0 = random() % chunkcount;
     int i1 = random() % chunkcount;
