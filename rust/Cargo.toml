@@ -24,7 +24,6 @@ cty = "0.2.1"
 
 [build-dependencies]
 bindgen = ">= 0.55.1"
-cc = "1.0"
 pkg-config = ">= 0.3.18"
 
 [dev-dependencies]
