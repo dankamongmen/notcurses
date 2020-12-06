@@ -502,15 +502,14 @@ channels_set_bg_default(uint64_t* channels){
 // Existence is suffering, and thus wcwidth() is not reliable. It's just
 // quoting whether or not the EGC contains a "Wide Asian" double-width
 // character. This is set for some things, like most emoji, and not set for
-// other things, like cuneiform. Fucccccck. True display width is a *property
-// of the font*. Fuccccccccckkkkk. Among the longest Unicode codepoints is
+// other things, like cuneiform. True display width is a *function of the
+// font and terminal*. Among the longest Unicode codepoints is
 //
 //    U+FDFD ARABIC LIGATURE BISMILLAH AR-RAHMAN AR-RAHEEM ﷽
 //
-// wcwidth() rather optimistically claims this suicide bomber of a glyph to
-// occupy a single column, right before it explodes in your diner. BiDi text
-// is too complicated for me to even get into here. It sucks ass. Be assured
-// there are no easy answers. Allah, the All-Powerful, has fucked us again!
+// wcwidth() rather optimistically claims this most exalted glyph to occupy
+// a single column. BiDi text is too complicated for me to even get into here.
+// Be assured there are no easy answers; ours is indeed a disturbing Universe.
 //
 // Each cell occupies 16 static bytes (128 bits). The surface is thus ~1.6MB
 // for a (pretty large) 500x200 terminal. At 80x43, it's less than 64KB.
