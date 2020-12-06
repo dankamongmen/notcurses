@@ -50,18 +50,7 @@ notcurses_resize_internal(notcurses* n, int* restrict rows, int* restrict cols){
   if(*rows == oldrows && *cols == oldcols){
     return 0; // no change
   }
-  int keepy = *rows;
-  if(keepy > oldrows){
-    keepy = oldrows;
-  }
-  int keepx = *cols;
-  if(keepx > oldcols){
-    keepx = oldcols;
-  }
-  if(ncplane_resize_internal(n->stdplane, 0, 0, keepy, keepx, 0, 0, *rows, *cols)){
-    return -1;
-  }
-  return 0;
+  return n->stdplane->resizecb(n->stdplane);
 }
 
 static int

@@ -429,7 +429,10 @@ create_initial_ncplane(notcurses* nc, int dimy, int dimx){
     .x = nc->margin_l,
     .rows = dimy - (nc->margin_t + nc->margin_b),
     .cols = dimx - (nc->margin_l + nc->margin_r),
+    .userptr = NULL,
     .name = "std",
+    .resizecb = ncplane_resize_maximize,
+    .flags = 0,
   };
   return nc->stdplane = ncplane_new_internal(nc, NULL, &nopts);
 }
@@ -2190,6 +2193,12 @@ void ncplane_set_resizecb(ncplane* n, int(*resizecb)(ncplane*)){
 
 int (*ncplane_resizecb(const ncplane* n))(ncplane*){
   return n->resizecb;
+}
+
+int ncplane_resize_maximize(ncplane* n){
+  int rows, cols;
+  notcurses_term_dim_yx(ncplane_notcurses(n), &rows, &cols);
+  return ncplane_resize_simple(n, rows, cols);
 }
 
 int ncplane_resize_realign(ncplane* n){

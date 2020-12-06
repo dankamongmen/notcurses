@@ -1094,8 +1094,12 @@ API struct ncplane* ncpile_create(struct notcurses* nc, const ncplane_options* n
 API struct ncplane* ncplane_new(struct ncplane* n, int rows, int cols, int y, int x, void* opaque, const char* name)
   __attribute__ ((deprecated));
 
-// Suitable for use as a 'resizecb'. This will realign the plane 'n' against its
-// parent, using the alignment specified at ncplane_create()-time.
+// Suitable for use as a 'resizecb', this will resize the plane to the visual
+// region's size. It is used for the standard plane.
+API int ncplane_resize_maximize(struct ncplane* n);
+
+// Suitable for use as a 'resizecb'. This will realign the plane 'n' against
+// its parent, using the alignment specified at ncplane_create()-time.
 API int ncplane_resize_realign(struct ncplane* n);
 
 // Replace the ncplane's existing resizecb with 'resizecb' (which may be NULL).
