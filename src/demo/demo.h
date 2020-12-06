@@ -145,7 +145,7 @@ timespec_mul(const struct timespec* ts, unsigned multiplier, struct timespec* pr
 
 /*---------------------------------FPS plot-------------------------------*/
 int fpsgraph_init(struct notcurses* nc);
-int fpsgraph_stop(struct notcurses* nc);
+int fpsgraph_stop(void);
 int fpsplot_grab(int y);
 int fpsplot_release(void);
 /*----------------------------------HUD----------------------------------*/

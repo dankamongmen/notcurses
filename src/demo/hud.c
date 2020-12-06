@@ -659,11 +659,10 @@ int fpsgraph_init(struct notcurses* nc){
   return 0;
 }
 
-int fpsgraph_stop(struct notcurses* nc){
+int fpsgraph_stop(void){
   if(plot){
     ncuplot_destroy(plot);
     plot = NULL;
-    notcurses_render(nc);
   }
   return 0;
 }
