@@ -7,6 +7,9 @@
 #include <filesystem>
 #include <sys/types.h>
 #include <ncpp/Direct.hh>
+#ifndef __linux__
+#define AT_NO_AUTOMOUNT 0x800 // not defined on freebsd, harmless to pass
+#endif
 
 static void
 usage(std::ostream& os, const char* name, int code){
@@ -38,7 +41,7 @@ handle_inode(std::filesystem::path& dir, const char* p, const struct stat* st, c
   (void)st; // FIXME handle symlink (dereflinks)
   std::cout << p << std::endl;
   auto s = dir / p;
-  ctx.nc.render_image(s.c_str(), NCALIGN_RIGHT, NCBLIT_3x2, NCSCALE_SCALE);
+  ctx.nc.render_image(s.c_str(), NCALIGN_RIGHT, NCBLIT_DEFAULT, NCSCALE_SCALE);
   return 0;
 }
 
