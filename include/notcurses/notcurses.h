@@ -2770,9 +2770,6 @@ API void palette256_free(palette256* p);
 // Convert the plane's content to greyscale.
 API void ncplane_greyscale(struct ncplane* n);
 
-// selection widget -- an ncplane with a title header and a body section. the
-// body section supports infinite scrolling up and down. the widget looks like:
-//
 //                                 ╭──────────────────────────╮
 //                                 │This is the primary header│
 //   ╭──────────────────────this is the secondary header──────╮
@@ -2785,9 +2782,11 @@ API void ncplane_greyscale(struct ncplane* n);
 //   │ option6 Long text #6                                   │
 //   │        ↓                                               │
 //   ╰────────────────────────────────────here's the footer───╯
+
+// selection widget -- an ncplane with a title header and a body section. the
+// body section supports infinite scrolling up and down.
 //
 // At all times, exactly one item is selected.
-
 struct ncselector_item {
   char* option;
   char* desc;
@@ -2852,8 +2851,6 @@ struct ncmselector_item {
   bool selected;
 };
 
-// multiselection widget -- a selector supporting multiple selections.
-//
 //                                                   ╭───────────────────╮
 //                                                   │ short round title │
 //╭now this secondary is also very, very, very outlandishly long, you see┤
@@ -2870,6 +2867,8 @@ struct ncmselector_item {
 //│ ☐ Am241 Americium-241 (100kg)                                        │
 //│  ↓                                                                   │
 //╰────────────────────────press q to exit (there is sartrev("no exit"))─╯
+
+// multiselection widget -- a selector supporting multiple selections.
 //
 // Unlike the selector widget, zero to all of the items can be selected, but
 // also the widget does not support adding or removing items at runtime.
