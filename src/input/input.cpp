@@ -209,7 +209,7 @@ int input_demo(ncpp::NotCurses* nc) {
   ncpp::Plane pplane{PLOTHEIGHT, dimx, dimy - PLOTHEIGHT,  0, nullptr};
   struct ncplot_options popts{};
   // FIXME would be nice to switch over to exponential at some level
-  popts.flags = NCPLOT_OPTION_LABELTICKSD;
+  popts.flags = NCPLOT_OPTION_LABELTICKSD | NCPLOT_OPTION_PRINTSAMPLE;
   popts.minchannels = popts.maxchannels = 0;
   channels_set_fg_rgb8(&popts.minchannels, 0x40, 0x50, 0xb0);
   channels_set_fg_rgb8(&popts.maxchannels, 0x40, 0xff, 0xd0);

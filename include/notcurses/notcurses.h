@@ -3037,6 +3037,7 @@ API int ncmenu_destroy(struct ncmenu* n);
 #define NCPLOT_OPTION_VERTICALI     0x0004u // independent axis is vertical
 #define NCPLOT_OPTION_NODEGRADE     0x0008u // fail rather than degrade blitter
 #define NCPLOT_OPTION_DETECTMAXONLY 0x0010u // use domain detection only for max
+#define NCPLOT_OPTION_PRINTSAMPLE   0x0020u // print the most recent sample
 
 typedef struct ncplot_options {
   // channels for the maximum and minimum levels. linear or exponential

@@ -9,7 +9,7 @@ and the project is committed to backwards compatibility.
 * [Planes](#planes) ([Plane Channels API](#plane-channels-api))
 * [Cells](#cells) ([Cell Channels API](#cell-channels-api))
 * [Reels](#reels) ([ncreel Examples](#ncreel-examples))
-* [Widgets](#widgets) ([Readers](#readers))
+* [Widgets](#widgets) ([Plots](#plots)) ([Readers](#readers))
 * [Channels](#channels)
 * [Visuals](#visuals) ([QR codes](#qrcodes)) ([Multimedia](#multimedia)) ([Pixels](#pixels))
 * [Stats](#stats)
@@ -2329,6 +2329,10 @@ xxxxxxxxxxxxxxxx├─────────────┤xxxxxxxxxxxxxxxxxxx
 xxxxxxxxxxxxxxxx│Quit   Ctrl+q│xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 xxxxxxxxxxxxxxxx╰─────────────╯xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
+
+### Plots
+
+**FIXME**
 
 ### Readers
 

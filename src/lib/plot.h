@@ -13,25 +13,22 @@ class ncppplot {
  public:
 
  // these were all originally plain C, sorry for the non-idiomatic usage FIXME
- // ought admit nullptr opts FIXME
- // reenable logging once #703 is done
  static bool create(ncppplot<T>* ncpp, ncplane* n, const ncplot_options* opts, T miny, T maxy) {
    ncplot_options zeroed = {};
    if(!opts){
      opts = &zeroed;
    }
-   if(opts->flags > NCPLOT_OPTION_DETECTMAXONLY){
+   if(opts->flags > NCPLOT_OPTION_PRINTSAMPLE){
      logwarn(ncplane_notcurses(n), "Provided unsupported flags %016jx\n", (uintmax_t)opts->flags);
    }
-   //struct notcurses* nc = n->nc;
+   auto nc = ncplane_notcurses(n);
    // if miny == maxy (enabling domain detection), they both must be equal to 0
    if(miny == maxy && miny){
-     //logerror(nc, "Supplied non-zero domain detection param %d\n", miny);
      ncplane_destroy(n);
      return false;
    }
    if(opts->rangex < 0){
-     //logerror(nc, "Supplied negative independent range %d\n", opts->rangex);
+     logerror(nc, "Supplied negative independent range %d\n", opts->rangex);
      ncplane_destroy(n);
      return false;
    }
@@ -41,7 +38,7 @@ class ncppplot {
    }
    // DETECTMAXONLY can't be used without domain detection
    if(opts->flags & NCPLOT_OPTION_DETECTMAXONLY && (miny != maxy)){
-     //logerror(nc, "Supplied DETECTMAXONLY without domain detection");
+     logerror(nc, "Supplied DETECTMAXONLY without domain detection");
      ncplane_destroy(n);
      return false;
    }
@@ -105,6 +102,7 @@ class ncppplot {
    ncpp->vertical_indep = opts->flags & NCPLOT_OPTION_VERTICALI;
    ncpp->exponentiali = opts->flags & NCPLOT_OPTION_EXPONENTIALD;
    ncpp->detectonlymax = opts->flags & NCPLOT_OPTION_DETECTMAXONLY;
+   ncpp->printsample = opts->flags & NCPLOT_OPTION_PRINTSAMPLE;
    if( (ncpp->detectdomain = (miny == maxy)) ){
      ncpp->maxy = 0;
      ncpp->miny = std::numeric_limits<T>::max();
@@ -171,11 +169,11 @@ class ncppplot {
        }
      }
    }else if(!title.empty()){
-      uint64_t channels = 0;
-      calc_gradient_channels(&channels, minchannels, minchannels,
-                             maxchannels, maxchannels, dimy - 1, 0, dimy, dimx);
-      ncplane_set_channels(ncp, channels);
-      ncplane_printf_yx(ncp, 0, PREFIXCOLUMNS - title.length(), "%s", title.c_str());
+     uint64_t channels = 0;
+     calc_gradient_channels(&channels, minchannels, minchannels,
+                            maxchannels, maxchannels, dimy - 1, 0, dimy, dimx);
+     ncplane_set_channels(ncp, channels);
+     ncplane_printf_yx(ncp, 0, PREFIXCOLUMNS - title.length(), "%s", title.c_str());
    }
    ncplane_set_styles(ncp, NCSTYLE_NONE);
    if(finalx < startx){ // exit on pathologically narrow planes
@@ -209,6 +207,7 @@ class ncppplot {
      // we can't draw anything in a given cell.
      T intervalbase = miny;
      const wchar_t* egc = bset->egcs;
+     bool done = !bset->fill;
      for(int y = 0 ; y < dimy ; ++y){
        uint64_t channels = 0;
        calc_gradient_channels(&channels, minchannels, minchannels,
@@ -218,7 +217,6 @@ class ncppplot {
        // if we've got at least one interval's worth on the number of positions
        // times the number of intervals per position plus the starting offset,
        // we're going to print *something*
-       bool done = !bset->fill;
        for(int i = 0 ; i < scale ; ++i){
          sumidx *= states;
          if(intervalbase < gvals[i]){
@@ -238,13 +236,15 @@ class ncppplot {
          }else{
            egcidx = 0;
          }
+//fprintf(stderr, "y: %d i(scale): %d gvals[%d]: %ju egcidx: %zu sumidx: %zu interval: %f intervalbase: %ju\n", y, i, i, gvals[i], egcidx, sumidx, interval, intervalbase);
        }
        // if we're not UTF8, we can only arrive here via NCBLIT_1x1 (otherwise
        // we would have errored out during construction). even then, however,
        // we need handle ASCII differently, since it can't print full block.
-       // in ASCII mode, egcidx != means swap colors and use space.
+       // in ASCII mode, sumidx != 0 means swap colors and use space. in all
+       // modes, sumidx == 0 means don't do shit, since we erased earlier.
+//if(sumidx)fprintf(stderr, "dimy: %d y: %d x: %d sumidx: %zu egc[%zu]: %lc\n", dimy, y, x, sumidx, sumidx, egc[sumidx]);
        if(sumidx){
-//fprintf(stderr, "dimy: %d y: %d x: %d sumidx: %zu egc[%zu]: %lc\n", dimy, y, x, sumidx, sumidx, egc[sumidx]);
          if(notcurses_canutf8(ncplane_notcurses(ncp))){
            char utf8[MB_CUR_MAX + 1];
            int bytes = wctomb(utf8, egc[sumidx]);
@@ -283,6 +283,8 @@ class ncppplot {
        }
      }
    }
+   ncplane_set_styles(ncp, legendstyle);
+   ncplane_printf_aligned(ncp, dimy - 1, NCALIGN_RIGHT, "%ju", (uintmax_t)slots[slotstart]);
    ncplane_home(ncp);
    return 0;
  }
@@ -422,6 +424,7 @@ class ncppplot {
  bool exponentiali; // exponential independent axis
  bool detectdomain;   // is domain detection in effect (stretch the domain)?
  bool detectonlymax;  // domain detection applies only to max, not min
+ bool printsample; // print the most recent sample
 
 };
 

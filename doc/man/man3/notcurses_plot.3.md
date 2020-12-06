@@ -16,6 +16,7 @@ notcurses_plot - high level widget for plotting
 #define NCPLOT_OPTION_VERTICALI     0x0004u
 #define NCPLOT_OPTION_NODEGRADE     0x0008u
 #define NCPLOT_OPTION_DETECTMAXONLY 0x0010u
+#define NCPLOT_OPTION_PRINTSAMPLE   0x0020u
 
 typedef struct ncplot_options {
   // channels for the maximum and minimum levels.
@@ -83,9 +84,9 @@ contribute to the plot. Supplying an **x** below the current window is an
 error, and has no effect.
 
 More granular block glyphs means more resolution in your plots, but they can
-be difficult to differentiate at small text sizes. Quadrants and braille allow 
+be difficult to differentiate at small text sizes. Sextants and Braille allow 
 for more resolution on the independent variable. It can be difficult to predict
-how the braille glyphs will look in a given font.
+how the Braille glyphs will look in a given font.
 
 The same **ncplot_options** struct can be used with all ncplot types. The
 **flags** field is a bitmask composed of:
@@ -95,13 +96,20 @@ The same **ncplot_options** struct can be used with all ncplot types. The
 * **NCPLOT_OPTION_VERTICALI**: Vertical independent axis
 * **NCPLOT_OPTION_NODEGRADE**: Fail rather than degrade blitter
 * **NCPLOT_OPTION_DETECTMAXONLY**: Detect only max domain, not min
+* **NCPLOT_OPTION_PRINTSAMPLE**: Print the most recent sample
 
-If **NCPLOT_OPTION_LABELTICKSD** is supplied, the **legendstyle** field will be
-used to style the labels. It is otherwise ignored.
+If **NCPLOT_OPTION_LABELTICKSD** or **NCPLOT_OPTION_PRINTSAMPLE** is supplied,
+the **legendstyle** field will be used to style the labels. It is otherwise
+ignored.
+
+The **label** is printed in the upper left, immediately to the right of the
+topmost axis tick (if **NCPLOT_OPTION_LABELTICKSD** was used). The most
+recent sample is printed diagonally opposite from the label (if
+**NCPLOT_OPTION_PRINTSAMPLE** was used).
 
 # NOTES
 
-Neither **exponentially** not **vertical_indep** is yet implemented.
+**NCPLOT_OPTION_VERTICALI** is not yet implemented.
 
 # RETURN VALUES
 

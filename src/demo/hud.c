@@ -634,7 +634,8 @@ int fpsgraph_init(struct notcurses* nc){
   ncplane_set_base(newp, "", style, channels);
   ncplot_options opts;
   memset(&opts, 0, sizeof(opts));
-  opts.flags = NCPLOT_OPTION_LABELTICKSD | NCPLOT_OPTION_EXPONENTIALD;
+  opts.flags = NCPLOT_OPTION_LABELTICKSD |
+               NCPLOT_OPTION_EXPONENTIALD;
   opts.gridtype = NCBLIT_BRAILLE;
   opts.legendstyle = NCSTYLE_ITALIC | NCSTYLE_BOLD;
   opts.title = "frames per decisecond";
