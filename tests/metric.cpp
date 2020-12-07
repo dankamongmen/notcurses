@@ -425,11 +425,6 @@ TEST_CASE("Metric") {
     if(!nc_){
       return;
     }
-    if(!notcurses_canutf8(nc_)){
-      CHECK(0 == notcurses_stop(nc_));
-      return;
-    }
-    CHECK(0 == notcurses_stop(nc_));
     const wchar_t* smallsuffixes;
     if(notcurses_canutf8(nc_)){
       smallsuffixes = L"yzafpnµm";
@@ -456,6 +451,7 @@ TEST_CASE("Metric") {
     }while(++i < (wcslen(smallsuffixes) - 3) * 3);
     // If we ran through all our suffixes, that's a problem
     CHECK(wcslen(smallsuffixes) * 3 > i);
+    CHECK(0 == notcurses_stop(nc_));
   }
 
   // inspired by #929
