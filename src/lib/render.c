@@ -30,23 +30,23 @@ notcurses_resize_internal(ncplane* pp, int* restrict rows, int* restrict cols){
   if(*rows <= 0){
     *rows = 1;
   }
-  *cols -= n->margin_l + n->margin_r;
+  *cols -= nc->margin_l + nc->margin_r;
   if(*cols <= 0){
     *cols = 1;
   }
-  if(*rows != n->lfdimy || *cols != n->lfdimx){
-    n->lfdimy = *rows;
-    n->lfdimx = *cols;
-    const size_t size = sizeof(*n->lastframe) * (n->lfdimy * n->lfdimx);
-    cell* fb = realloc(n->lastframe, size);
+  if(*rows != nc->lfdimy || *cols != nc->lfdimx){
+    nc->lfdimy = *rows;
+    nc->lfdimx = *cols;
+    const size_t size = sizeof(*nc->lastframe) * (nc->lfdimy * nc->lfdimx);
+    cell* fb = realloc(nc->lastframe, size);
     if(fb == NULL){
       return -1;
     }
-    n->lastframe = fb;
+    nc->lastframe = fb;
     // FIXME more memset()tery than we need, both wasting work and wrecking
     // damage detection for the upcoming render
-    memset(n->lastframe, 0, size);
-    egcpool_dump(&n->pool);
+    memset(nc->lastframe, 0, size);
+    egcpool_dump(&nc->pool);
   }
 //fprintf(stderr, "r: %d or: %d c: %d oc: %d\n", *rows, oldrows, *cols, oldcols);
   if(*rows == oldrows && *cols == oldcols){
@@ -994,7 +994,7 @@ home_cursor(notcurses* nc, bool flush){
 }
 
 int notcurses_refresh(notcurses* nc, int* restrict dimy, int* restrict dimx){
-  if(notcurses_resize(nc, dimy, dimx)){
+  if(notcurses_resize(nc->stdplane, dimy, dimx)){
     return -1;
   }
   if(nc->lfdimx == 0 || nc->lfdimy == 0){
