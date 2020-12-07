@@ -21,8 +21,8 @@ the 128 elements of ASCII should check for UTF8 availability, and fall back to
 an ASCII equivalent if not present (or return an error).
 
 Run `make test` with your changes, and ensure all tests pass. Run
-`notcurses-demo` as well, if you changes are to the core library or the
-demo code.
+`notcurses-demo` as well, if your changes affect the core library (or the
+demo code).
 
 ## C standard
 Notcurses targets the ISO C11 standard. This means you should avoid using
