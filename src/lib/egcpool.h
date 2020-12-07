@@ -250,13 +250,13 @@ egcpool_dump(egcpool* pool){
 // unsafe results if called on a simple cell.
 static inline uint32_t
 cell_egc_idx(const cell* c){
-  return (htole(c->gcluster) & 0x00fffffflu);
+  return (htole(c->gcluster) & htole(0x00fffffflu));
 }
 
 // Is the cell simple (a UTF8-encoded EGC of four bytes or fewer)?
 static inline bool
 cell_simple_p(const cell* c){
-  return (htole(c->gcluster) & 0xff000000ul) != 0x01000000ul;
+  return (htole(c->gcluster) & htole(0xff000000ul)) != htole(0x01000000ul);
 }
 
 // only applies to complex cells, do not use on simple cells
