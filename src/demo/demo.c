@@ -439,7 +439,7 @@ summary_table(struct ncdirect* nc, const char* spec, bool canimage, bool canvide
       rescolor = 0x32CD32;
     }
     ncdirect_fg_rgb(nc, rescolor);
-    printf("%2zu", i);
+    printf("%2zu", i + 1);
     ncdirect_fg_rgb8(nc, 178, 102, 255);
     printf("│");
     ncdirect_fg_rgb(nc, rescolor);
