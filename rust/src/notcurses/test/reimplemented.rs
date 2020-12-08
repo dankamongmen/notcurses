@@ -153,7 +153,7 @@ fn notcurses_debug() {
         let _result = file.read_to_string(&mut string1);
 
         let string2 =
-            " ************************** notcurses debug state *****************************";
+            " -------------------------- notcurses debug state -----------------------------";
 
         assert_eq![&string1[0..string2.len()], &string2[..]];
     }
