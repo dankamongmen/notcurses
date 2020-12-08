@@ -51,8 +51,11 @@ notcurses_resize_internal(ncplane* n, int* restrict rows, int* restrict cols){
   if(*rows == oldrows && *cols == oldcols){
     return 0; // no change
   }
-  // FIXME call resizecb for each root plane of pile
-  return nc->stdplane->resizecb(nc->stdplane);
+  int ret = 0;
+  for(ncplane* rootn = pile->roots ; rootn ; rootn = rootn->bnext){
+    ret |= resize_callbacks_children(rootn);
+  }
+  return ret;
 }
 
 static int
