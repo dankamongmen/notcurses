@@ -12,7 +12,7 @@ TEST_CASE("Piles") {
   // create a plane bigger than the standard plane, and render it as a pile
   SUBCASE("SmallerPileRender") {
     struct ncplane_options nopts = {
-      1, 1, dimy - 2, dimx - 2, nullptr, "big", nullptr, 0,
+      1, 1, dimy - 2, dimx - 2, nullptr, "small", nullptr, 0,
     };
     auto np = ncpile_create(nc_, &nopts);
     REQUIRE(nullptr != np);
@@ -81,6 +81,82 @@ TEST_CASE("Piles") {
     CHECK(0 == strcmp(egc, "O"));
     free(egc);
     ncplane_destroy(np);
+  }
+
+  // create a new pile, and rotate subplanes through the root set
+  SUBCASE("ShufflePile") {
+    struct ncplane_options nopts = {
+      1, 1, dimy - 2, dimx - 2, nullptr, "new1", nullptr, 0,
+    };
+    auto n1 = ncpile_create(nc_, &nopts);
+    REQUIRE(nullptr != n1);
+    CHECK(n1 == ncplane_parent_const(n1));
+    nopts.name = "new2";
+    auto n2 = ncplane_create(n1, &nopts);
+    REQUIRE(nullptr != n2);
+    CHECK(n1 == ncplane_parent_const(n2));
+    nopts.name = "new3";
+    auto n3 = ncplane_create(n1, &nopts);
+    REQUIRE(nullptr != n3);
+    CHECK(n1 == ncplane_parent_const(n3));
+    CHECK(n3 == n1->blist);
+    CHECK(&n3->bnext == n2->bprev);
+    CHECK(n2 == *n2->bprev);
+    CHECK(nullptr == n2->bnext);
+    // we now have n1 -> { n3, n2 }
+    // now rotate n2 into the root plane, not touching n3: { n3, n2 } -> n1
+    CHECK(nullptr != ncplane_reparent(n1, n2));
+    CHECK(n2 == ncplane_parent_const(n2));
+    CHECK(n2 == ncplane_parent_const(n1));
+    CHECK(n3 == ncplane_parent_const(n3));
+    // now rotate n3 under n2, not touching n1: n2 -> { n1, n3 }
+    CHECK(nullptr != ncplane_reparent(n3, n2));
+    CHECK(n2 == ncplane_parent_const(n1));
+    CHECK(n2 == ncplane_parent_const(n3));
+    CHECK(n2 == ncplane_parent_const(n2));
+    // now rotate n2 under n3, not touching n1: { n1, n3 } -> n2
+    CHECK(nullptr != ncplane_reparent(n2, n3));
+    CHECK(n1 == ncplane_parent_const(n1));
+    CHECK(n3 == ncplane_parent_const(n3));
+    CHECK(n3 == ncplane_parent_const(n2));
+    // now rotate n3 under n1, not touching n2: n1 -> { n3, n2 } (start state)
+    CHECK(nullptr != ncplane_reparent(n3, n1));
+    CHECK(n1 == ncplane_parent_const(n1));
+    CHECK(n1 == ncplane_parent_const(n3));
+    // FIXME CHECK(n1 == ncplane_parent_const(n2));
+    ncplane_destroy(n3);
+    ncplane_destroy(n2);
+    ncplane_destroy(n1);
+  }
+
+  SUBCASE("ShufflePileFamilies") {
+    struct ncplane_options nopts = {
+      1, 1, dimy - 2, dimx - 2, nullptr, "new1", nullptr, 0,
+    };
+    auto n1 = ncpile_create(nc_, &nopts);
+    REQUIRE(nullptr != n1);
+    CHECK(n1 == ncplane_parent_const(n1));
+    nopts.name = "new2";
+    auto n2 = ncplane_create(n1, &nopts);
+    REQUIRE(nullptr != n2);
+    CHECK(n1 == ncplane_parent_const(n2));
+    nopts.name = "new3";
+    auto n3 = ncplane_create(n1, &nopts);
+    REQUIRE(nullptr != n3);
+    CHECK(n1 == ncplane_parent_const(n3));
+    CHECK(n3 == n1->blist);
+    CHECK(&n3->bnext == n2->bprev);
+    CHECK(n2 == *n2->bprev);
+    CHECK(nullptr == n2->bnext);
+    // we now have n1 -> { n3, n2 }
+    // rotate n1's family under n2: n2 -> n1 -> n3
+    CHECK(nullptr != ncplane_reparent_family(n1, n2));
+    // FIXME CHECK(n2 == ncplane_parent_const(n2));
+    CHECK(n2 == ncplane_parent_const(n1));
+    CHECK(n1 == ncplane_parent_const(n3));
+    ncplane_destroy(n3);
+    ncplane_destroy(n2);
+    ncplane_destroy(n1);
   }
 
   // common teardown

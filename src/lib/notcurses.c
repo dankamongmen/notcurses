@@ -2216,20 +2216,28 @@ ncplane* ncplane_reparent(ncplane* n, ncplane* newparent){
   if(n->boundto == newparent){
     return n;
   }
-  if(n->boundto == n){ // children become new root planes
-    for(ncplane* child = n->blist ; child ; child = child->bnext){
-      child->boundto = child;
-    }
-  }else{ // children are rebound to current parent
-    if(n->blist){
+  if(n->blist){
+    // FIXME these both look to throw away siblings following n->blist :/
+    if(n->boundto == n){ // children become new root planes
+      for(ncplane* child = n->blist ; child ; child = child->bnext){
+        child->boundto = child;
+      }
+      /* FIXME FIXME FIXME
+      n->blist->bnext = ncplane_pile(n)->root;
+      n->blist->bnext->bprev = &n->blist->bnext;
+      n->blist->bprev = &ncplane_pile(n)->root;
+      ncplane_pile(n)->root = n->blist;
+      */
+    }else{ // children are rebound to current parent
       if( (n->blist->bnext = n->boundto->blist) ){
         n->boundto->blist->bprev = &n->blist->bnext;
       }
       n->blist->bprev = &n->boundto->blist;
       n->boundto->blist = n->blist;
-      n->blist = NULL;
     }
+    n->blist = NULL;
   }
+//notcurses_debug(ncplane_notcurses(n), stderr);
   return ncplane_reparent_family(n, newparent);
 }
 
