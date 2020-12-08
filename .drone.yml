@@ -12,7 +12,7 @@ steps:
     - cd build
     - cmake .. -DCMAKE_BUILD_TYPE=Release
     - make -j2
-    - env TERM=xterm make test
+    - env TERM=xterm ctest -V
     - make install
     - cd ../cffi
     - LDFLAGS=-L/usr/local/lib CFLAGS=-I/usr/local/include python3 setup.py sdist build install
@@ -32,7 +32,7 @@ steps:
     - cd build
     - cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_MULTIMEDIA=none ..
     - make -j2
-    - env TERM=xterm make test
+    - env TERM=xterm ctest -V
     - make install
     - ldconfig
     - cd ../cffi
@@ -54,4 +54,4 @@ steps:
     - cd build
     - cmake -DCMAKE_BUILD_TYPE=Release -DUSE_MULTIMEDIA=oiio ..
     - make -j2
-    - env TERM=xterm make test
+    - env TERM=xterm ctest -V
