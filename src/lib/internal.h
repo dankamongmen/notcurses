@@ -954,6 +954,7 @@ egc_rtl(const char* egc, int* bytes){
   char* s = (char*)malloc(*bytes + sizeof(LTRMARK)); // cast for C++ callers
   memcpy(s, egc, *bytes);
   memcpy(s + *bytes, LTRMARK, sizeof(LTRMARK));
+  *bytes += strlen(LTRMARK);
   return s;
 }
 
