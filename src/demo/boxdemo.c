@@ -2,25 +2,24 @@
 #include <unistd.h>
 #include "demo.h"
 
-// FIXME smooth out this movement more
 static int
 reload_corners(struct ncplane* n, cell* ul, cell* ur, cell* ll, cell* lr){
   int dimy, dimx;
   ncplane_dim_yx(n, &dimy, &dimx);
   char* egc;
-  if( (egc = ncplane_at_yx(n, 1, dimx - 1, NULL, &ul->channels)) == NULL){
+  if( (egc = ncplane_at_yx(n, 1, dimx - 2, NULL, &ur->channels)) == NULL){
     return -1;
   }
   free(egc);
-  if( (egc = ncplane_at_yx(n, dimy - 1, dimx - 1, NULL, &ur->channels)) == NULL){
+  if( (egc = ncplane_at_yx(n, 2, 0, NULL, &ul->channels)) == NULL){
     return -1;
   }
   free(egc);
-  if( (egc = ncplane_at_yx(n, dimy - 1, 0, NULL, &lr->channels)) == NULL){
+  if( (egc = ncplane_at_yx(n, dimy - 2, dimx - 1, NULL, &lr->channels)) == NULL){
     return -1;
   }
   free(egc);
-  if( (egc = ncplane_at_yx(n, 1, 0, NULL, &ll->channels)) == NULL){
+  if( (egc = ncplane_at_yx(n, dimy - 1, 1, NULL, &ll->channels)) == NULL){
     return -1;
   }
   free(egc);
