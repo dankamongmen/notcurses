@@ -1,3 +1,4 @@
+#define NCPP_EXCEPTIONS_PLEASE
 #include <cstdlib>
 #include <fcntl.h>
 #include <iostream>
@@ -134,27 +135,24 @@ list_paths(const char* const * argv, const lsContext& ctx){
 }
 
 int main(int argc, char* const * argv){
-  lsContext ctx = {
-    .nc = ncpp::Direct(),
-    .longlisting = false,
-    .recursedirs = false,
-    .directories = false,
-    .dereflinks = false,
-  };
+  bool directories = false;
+  bool recursedirs = false;
+  bool longlisting = false;
+  bool dereflinks = false;
   int c;
   while((c = getopt(argc, argv, "dhlLR")) != -1){
     switch(c){
       case 'd':
-        ctx.directories = true;
+        directories = true;
         break;
       case 'l':
-        ctx.longlisting = true;
+        longlisting = true;
         break;
       case 'L':
-        ctx.dereflinks = true;
+        dereflinks = true;
         break;
       case 'R':
-        ctx.recursedirs = true;
+        recursedirs = true;
         break;
       case 'h':
         usage(std::cout, argv[0], EXIT_SUCCESS);
@@ -164,6 +162,13 @@ int main(int argc, char* const * argv){
         break;
     }
   }
+  lsContext ctx = {
+    .nc = ncpp::Direct(),
+    .longlisting = longlisting,
+    .recursedirs = recursedirs,
+    .directories = directories,
+    .dereflinks = dereflinks,
+  };
   static const char* const default_args[] = { ".", nullptr };
   list_paths(argv[optind] ? argv + optind : default_args, ctx);
   return EXIT_SUCCESS;
