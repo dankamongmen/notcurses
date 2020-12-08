@@ -20,11 +20,11 @@ TEST_CASE("Bidi") {
     uint64_t channels;
     auto egc = ncplane_at_yx(n_, 0, 0, &stylemask, &channels);
     REQUIRE(nullptr != egc);
-    CHECK(0 == strcmp(egc, "ה"));
+    CHECK(0 == strcmp(egc, "\xe2\x80\xadה"));
     free(egc);
     egc = ncplane_at_yx(n_, 0, 4, &stylemask, &channels);
     REQUIRE(nullptr != egc);
-    CHECK(0 == strcmp(egc, "ך"));
+    CHECK(0 == strcmp(egc, "\xe2\x80\xadך"));
     free(egc);
     // FIXME yes, we place this at 0,0 in our internal view...and yet it
     // is actually placed at the rightmost cell :/

@@ -950,10 +950,13 @@ egc_rtl(const char* egc, int* bytes){
   }
   // insert U+200E, "LEFT-TO-RIGHT MARK". This ought reset the text direction
   // after emitting a potentially RTL EGC.
-  const char LTRMARK[] = "\xe2\x80\x8e";
-  char* s = (char*)malloc(*bytes + sizeof(LTRMARK)); // cast for C++ callers
-  memcpy(s, egc, *bytes);
-  memcpy(s + *bytes, LTRMARK, sizeof(LTRMARK));
+  const char LTRMARK[] = "\xe2\x80\xad";
+  char* s = (char*)malloc(*bytes + strlen(LTRMARK) + 1); // cast for C++ callers
+  memcpy(s, LTRMARK, strlen(LTRMARK));
+  memcpy(s + strlen(LTRMARK), egc, *bytes);
+  s[strlen(LTRMARK) + *bytes] = '\0';
+//fprintf(stderr, "\nLTR: [%s] (\xe2\x80\xad%s) (%zu) (%d)\n", s, egc, strlen(s), *bytes);
+  *bytes += strlen(LTRMARK);
   return s;
 }
 
