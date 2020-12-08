@@ -250,7 +250,7 @@ egcpool_dump(egcpool* pool){
 // unsafe results if called on a simple cell.
 static inline uint32_t
 cell_egc_idx(const cell* c){
-  return (htole(c->gcluster) & htole(0x00fffffflu));
+  return (htole(c->gcluster) & htole(0x00fffffful));
 }
 
 // Is the cell simple (a UTF8-encoded EGC of four bytes or fewer)?

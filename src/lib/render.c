@@ -1086,12 +1086,13 @@ int ncpile_rasterize(ncplane* n){
   return 0;
 }
 
-// ensure the crender vector of 'n' is sufficiently large for 'dimy'x'dimx'
+// ensure the crender vector of 'n' is sufficiently large, having been
+// 'dimy'x'dimx', for 'n->dimy'x'n->dimx'
 static int
 engorge_crender_vector(ncpile* n, int dimy, int dimx){
-  const int crenderlen = dimy * dimx;
-  if(crenderlen < n->dimy * n->dimx){
-    struct crender* tmp = realloc(n->crender, sizeof(*tmp) * n->dimy * n->dimx);
+  const int crenderlen = n->dimy * n->dimx;
+  if(crenderlen > dimy * dimx){
+    struct crender* tmp = realloc(n->crender, sizeof(*tmp) * crenderlen);
     if(tmp == NULL){
       return -1;
     }
