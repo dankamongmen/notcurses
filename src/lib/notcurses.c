@@ -305,6 +305,7 @@ make_ncpile(notcurses* nc, ncplane* n){
     ret->top = n;
     ret->bottom = n;
     ret->roots = n;
+    n->bprev = &ret->roots;
     if(nc->stdplane){
       ret->prev = ncplane_pile(nc->stdplane)->prev;
       ncplane_pile(nc->stdplane)->prev->next = ret;
@@ -2302,8 +2303,7 @@ ncplane* ncplane_reparent_family(ncplane* n, ncplane* newparent){
   }
   n->boundto = newparent;
   if(n == n->boundto){ // we're a new root plane
-    n->bnext = NULL;
-    n->bprev = NULL;
+    n->bnext = NULL; // bprev is set in make_ncpile()
     pthread_mutex_lock(&ncplane_notcurses(n)->pilelock);
     if(ncplane_pile(n)->top == NULL){ // did we just empty our pile?
       ncpile_destroy(ncplane_pile(n));
