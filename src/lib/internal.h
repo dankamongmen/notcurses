@@ -1066,8 +1066,6 @@ int ncinputlayer_init(ncinputlayer* nilayer, FILE* infp);
 // FIXME absorb into ncinputlayer_init()
 int cbreak_mode(int ttyfd, const struct termios* tpreserved);
 
-int resize_callbacks_children(ncplane* n);
-
 #ifdef __cplusplus
 }
 #endif
