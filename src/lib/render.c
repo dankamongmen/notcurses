@@ -6,8 +6,8 @@
 #include "internal.h"
 
 // Check whether the terminal geometry has changed, and if so, copies what can
-// be copied from the old stdplane. Assumes that the screen is always anchored at
-// the same origin. Also syncs up lastframe.
+// be copied from the old lastframe. Assumes that the screen is always anchored
+// at the same origin.
 static int
 notcurses_resize_internal(ncplane* pp, int* restrict rows, int* restrict cols){
   notcurses* n = ncplane_notcurses(pp);
