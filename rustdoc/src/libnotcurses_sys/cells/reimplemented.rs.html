@@ -446,25 +446,6 @@
 <span id="443">443</span>
 <span id="444">444</span>
 <span id="445">445</span>
-<span id="446">446</span>
-<span id="447">447</span>
-<span id="448">448</span>
-<span id="449">449</span>
-<span id="450">450</span>
-<span id="451">451</span>
-<span id="452">452</span>
-<span id="453">453</span>
-<span id="454">454</span>
-<span id="455">455</span>
-<span id="456">456</span>
-<span id="457">457</span>
-<span id="458">458</span>
-<span id="459">459</span>
-<span id="460">460</span>
-<span id="461">461</span>
-<span id="462">462</span>
-<span id="463">463</span>
-<span id="464">464</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `cell*_*` reimplemented functions.</span>
 
@@ -757,26 +738,7 @@
     }
     <span class="ident">cell</span>.<span class="ident">channels</span> <span class="op">&amp;=</span> <span class="op">!</span>(<span class="ident">NCCELL_WIDEASIAN_MASK</span> <span class="kw">as</span> <span class="ident">NcChannelPair</span> <span class="op">|</span> <span class="ident">NCCELL_NOBACKGROUND_MASK</span>);
     <span class="ident">cell</span>.<span class="ident">gcluster</span> <span class="op">=</span> <span class="ident">ch</span> <span class="kw">as</span> <span class="ident">u32</span>;
-
-    <span class="comment">/* TODO new version:
-
-    char gcluster[2];
-    gcluster[0] = ch;
-    gcluster[1] = &#39;\0&#39;;
-    return cell_load(n, c, gcluster);
-    */</span>
 }
-
-<span class="comment">// TODO:</span>
-<span class="comment">// // Load a UTF-8 encoded EGC of up to 4 bytes into the cell &#39;c&#39;.</span>
-<span class="comment">// static inline int</span>
-<span class="comment">// cell_load_egc32(struct ncplane* n, cell* c, uint32_t egc){</span>
-<span class="comment">//     char gcluster[sizeof(egc) + 1];</span>
-<span class="comment">//     egc = htole(egc);</span>
-<span class="comment">//     memcpy(gcluster, &amp;egc, sizeof(egc));</span>
-<span class="comment">//     gcluster[4] = &#39;\0&#39;;</span>
-<span class="comment">//     return cell_load(n, c, gcluster);</span>
-<span class="comment">// }</span>
 
 <span class="doccomment">/// Copies the UTF8-encoded [NcEgc] out of the cell, whether simple or complex.</span>
 <span class="doccomment">///</span>

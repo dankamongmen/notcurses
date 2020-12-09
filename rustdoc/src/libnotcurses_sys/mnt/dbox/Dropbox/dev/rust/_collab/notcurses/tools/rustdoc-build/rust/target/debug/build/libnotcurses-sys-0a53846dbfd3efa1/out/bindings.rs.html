@@ -1,7 +1,7 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/tmp/target/debug/build/libnotcurses-sys-66bc632328b783e4/out/bindings.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bindings.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../../../../../ayu.css" disabled ><script src="../../../../../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../../../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../../../../../../favicon.svg">
-<link rel="alternate icon" type="image/png" href="../../../../../../../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../../../../../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../../../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../../../../../libnotcurses_sys/index.html'><div class='logo-container rust-logo'><img src='../../../../../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
-                <a id="settings-menu" href="../../../../../../../../settings.html"><img src="../../../../../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/mnt/dbox/Dropbox/dev/rust/_collab/notcurses/tools/rustdoc-build/rust/target/debug/build/libnotcurses-sys-0a53846dbfd3efa1/out/bindings.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bindings.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../../../../../../../../../../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../../../../../../../../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../../../../../../../../../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../../../../../../../../../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../../../../../../../../../../../../../../ayu.css" disabled ><script src="../../../../../../../../../../../../../../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../../../../../../../../../../../../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../../../../../../../../../../../../../../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../../../../../../../../../../../../../../../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../../../../../../../../../../../../../../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../../../../../../../../../../../../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../../../../../../../../../../../../../../libnotcurses_sys/index.html'><div class='logo-container rust-logo'><img src='../../../../../../../../../../../../../../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../../../../../../../../../../../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../../../../../../../../../../../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../../../../../../../../../../../../../../../../settings.html"><img src="../../../../../../../../../../../../../../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -8840,6 +8840,19 @@
 <span id="8837">8837</span>
 <span id="8838">8838</span>
 <span id="8839">8839</span>
+<span id="8840">8840</span>
+<span id="8841">8841</span>
+<span id="8842">8842</span>
+<span id="8843">8843</span>
+<span id="8844">8844</span>
+<span id="8845">8845</span>
+<span id="8846">8846</span>
+<span id="8847">8847</span>
+<span id="8848">8848</span>
+<span id="8849">8849</span>
+<span id="8850">8850</span>
+<span id="8851">8851</span>
+<span id="8852">8852</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">/* automatically generated by rust-bindgen 0.56.0 */</span>
 
@@ -9532,6 +9545,7 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCPLOT_OPTION_VERTICALI</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">4</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCPLOT_OPTION_NODEGRADE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">8</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCPLOT_OPTION_DETECTMAXONLY</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">16</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCPLOT_OPTION_PRINTSAMPLE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">32</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCREADER_OPTION_HORSCROLL</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCREADER_OPTION_VERSCROLL</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">2</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCREADER_OPTION_NOCMDKEYS</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">4</span>;
@@ -13562,15 +13576,14 @@
 <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; Existence is suffering, and thus wcwidth() is not reliable. It&#39;s just&quot;</span>]</span>
 <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; quoting whether or not the EGC contains a \&quot;Wide Asian\&quot; double-width&quot;</span>]</span>
 <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; character. This is set for some things, like most emoji, and not set for&quot;</span>]</span>
-<span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; other things, like cuneiform. Fucccccck. True display width is a *property&quot;</span>]</span>
-<span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; of the font*. Fuccccccccckkkkk. Among the longest Unicode codepoints is&quot;</span>]</span>
+<span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; other things, like cuneiform. True display width is a *function of the&quot;</span>]</span>
+<span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; font and terminal*. Among the longest Unicode codepoints is&quot;</span>]</span>
 <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;&quot;</span>]</span>
 <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;    U+FDFD ARABIC LIGATURE BISMILLAH AR-RAHMAN AR-RAHEEM ﷽&quot;</span>]</span>
 <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;&quot;</span>]</span>
-<span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; wcwidth() rather optimistically claims this suicide bomber of a glyph to&quot;</span>]</span>
-<span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; occupy a single column, right before it explodes in your diner. BiDi text&quot;</span>]</span>
-<span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; is too complicated for me to even get into here. It sucks ass. Be assured&quot;</span>]</span>
-<span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; there are no easy answers. Allah, the All-Powerful, has fucked us again!&quot;</span>]</span>
+<span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; wcwidth() rather optimistically claims this most exalted glyph to occupy&quot;</span>]</span>
+<span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; a single column. BiDi text is too complicated for me to even get into here.&quot;</span>]</span>
+<span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; Be assured there are no easy answers; ours is indeed a disturbing Universe.&quot;</span>]</span>
 <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;&quot;</span>]</span>
 <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; Each cell occupies 16 static bytes (128 bits). The surface is thus ~1.6MB&quot;</span>]</span>
 <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; for a (pretty large) 500x200 terminal. At 80x43, it&#39;s less than 64KB.&quot;</span>]</span>
@@ -14280,7 +14293,8 @@
 }
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
     <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; The same as ncplane_reparent(), except any planes bound to &#39;n&#39; come along&quot;</span>]</span>
-    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; with it to its new destination. Their z-order is maintained.&quot;</span>]</span>
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; with it to its new destination. Their z-order is maintained. If &#39;newparent&#39;&quot;</span>]</span>
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; is an ancestor of &#39;n&#39;, NULL is returned, and no changes are made.&quot;</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncplane_reparent_family</span>(<span class="ident">n</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ncplane</span>, <span class="ident">newparent</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ncplane</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ncplane</span>;
 }
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
@@ -14398,6 +14412,8 @@
     <span class="kw">pub</span> <span class="ident">defaultelisions</span>: <span class="ident">u64</span>,
     <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; default color was elided&quot;</span>]</span>
     <span class="kw">pub</span> <span class="ident">defaultemissions</span>: <span class="ident">u64</span>,
+    <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; refresh requests (non-optimized redraw)&quot;</span>]</span>
+    <span class="kw">pub</span> <span class="ident">refreshes</span>: <span class="ident">u64</span>,
     <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; total bytes devoted to all active framebuffers&quot;</span>]</span>
     <span class="kw">pub</span> <span class="ident">fbbytes</span>: <span class="ident">u64</span>,
     <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; number of planes currently in existence&quot;</span>]</span>
@@ -14407,7 +14423,7 @@
 <span class="kw">fn</span> <span class="ident">bindgen_test_layout_ncstats</span>() {
     <span class="macro">assert_eq</span><span class="macro">!</span>(
         ::<span class="ident">core</span>::<span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">ncstats</span><span class="op">&gt;</span>(),
-        <span class="number">168usize</span>,
+        <span class="number">176usize</span>,
         <span class="macro">concat</span><span class="macro">!</span>(<span class="string">&quot;Size of: &quot;</span>, <span class="macro">stringify</span><span class="macro">!</span>(<span class="ident">ncstats</span>))
     );
     <span class="macro">assert_eq</span><span class="macro">!</span>(
@@ -14606,8 +14622,18 @@
         )
     );
     <span class="macro">assert_eq</span><span class="macro">!</span>(
-        <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span>(<span class="kw-2">*</span>(::<span class="ident">core</span>::<span class="ident">ptr</span>::<span class="ident">null</span>::<span class="op">&lt;</span><span class="ident">ncstats</span><span class="op">&gt;</span>())).<span class="ident">fbbytes</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="ident">usize</span> },
+        <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span>(<span class="kw-2">*</span>(::<span class="ident">core</span>::<span class="ident">ptr</span>::<span class="ident">null</span>::<span class="op">&lt;</span><span class="ident">ncstats</span><span class="op">&gt;</span>())).<span class="ident">refreshes</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="ident">usize</span> },
         <span class="number">152usize</span>,
+        <span class="macro">concat</span><span class="macro">!</span>(
+            <span class="string">&quot;Offset of field: &quot;</span>,
+            <span class="macro">stringify</span><span class="macro">!</span>(<span class="ident">ncstats</span>),
+            <span class="string">&quot;::&quot;</span>,
+            <span class="macro">stringify</span><span class="macro">!</span>(<span class="ident">refreshes</span>)
+        )
+    );
+    <span class="macro">assert_eq</span><span class="macro">!</span>(
+        <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span>(<span class="kw-2">*</span>(::<span class="ident">core</span>::<span class="ident">ptr</span>::<span class="ident">null</span>::<span class="op">&lt;</span><span class="ident">ncstats</span><span class="op">&gt;</span>())).<span class="ident">fbbytes</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="ident">usize</span> },
+        <span class="number">160usize</span>,
         <span class="macro">concat</span><span class="macro">!</span>(
             <span class="string">&quot;Offset of field: &quot;</span>,
             <span class="macro">stringify</span><span class="macro">!</span>(<span class="ident">ncstats</span>),
@@ -14617,7 +14643,7 @@
     );
     <span class="macro">assert_eq</span><span class="macro">!</span>(
         <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span>(<span class="kw-2">*</span>(::<span class="ident">core</span>::<span class="ident">ptr</span>::<span class="ident">null</span>::<span class="op">&lt;</span><span class="ident">ncstats</span><span class="op">&gt;</span>())).<span class="ident">planes</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="ident">usize</span> },
-        <span class="number">160usize</span>,
+        <span class="number">168usize</span>,
         <span class="macro">concat</span><span class="macro">!</span>(
             <span class="string">&quot;Offset of field: &quot;</span>,
             <span class="macro">stringify</span><span class="macro">!</span>(<span class="ident">ncstats</span>),
@@ -17681,4 +17707,4 @@
     );
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../../../../../../";window.currentCrate = "libnotcurses_sys";</script><script src="../../../../../../../../main.js"></script><script src="../../../../../../../../source-script.js"></script><script src="../../../../../../../../source-files.js"></script><script defer src="../../../../../../../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../../../../../../../../../../../../../../../";window.currentCrate = "libnotcurses_sys";</script><script src="../../../../../../../../../../../../../../../../../main.js"></script><script src="../../../../../../../../../../../../../../../../../source-script.js"></script><script src="../../../../../../../../../../../../../../../../../source-files.js"></script><script defer src="../../../../../../../../../../../../../../../../../search-index.js"></script></body></html>

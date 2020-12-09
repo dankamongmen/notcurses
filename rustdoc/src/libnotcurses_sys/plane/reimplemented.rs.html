@@ -585,6 +585,18 @@
 <span id="582">582</span>
 <span id="583">583</span>
 <span id="584">584</span>
+<span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `ncplane_*` reimplemented functions.</span>
 
@@ -600,7 +612,7 @@
     <span class="ident">ncplane_hline_interp</span>, <span class="ident">ncplane_putc_yx</span>, <span class="ident">ncplane_putegc_yx</span>, <span class="ident">ncplane_putnstr_yx</span>,
     <span class="ident">ncplane_putstr_yx</span>, <span class="ident">ncplane_resize</span>, <span class="ident">ncplane_styles</span>, <span class="ident">ncplane_vline_interp</span>, <span class="ident">ncplane_vprintf_yx</span>,
     <span class="ident">notcurses_align</span>, <span class="ident">NcAlign</span>, <span class="ident">NcAlphaBits</span>, <span class="ident">NcCell</span>, <span class="ident">NcChannel</span>, <span class="ident">NcChannelPair</span>, <span class="ident">NcColor</span>, <span class="ident">NcPlane</span>,
-    <span class="ident">NcResult</span>, <span class="ident">NcRgb</span>, <span class="ident">NcStyleMask</span>, <span class="ident">NCRESULT_ERR</span>, <span class="ident">NCRESULT_OK</span>,
+    <span class="ident">NcResult</span>, <span class="ident">NcStyleMask</span>, <span class="ident">NCRESULT_ERR</span>, <span class="ident">NCRESULT_OK</span>,
 };
 
 <span class="comment">// Alpha -----------------------------------------------------------------------</span>
@@ -659,13 +671,13 @@
 
 <span class="doccomment">/// Gets the foreground [NcRgb] from an [NcPlane], shifted to LSBs.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncplane_fg_rgb</span>(<span class="ident">plane</span>: <span class="kw-2">&amp;</span><span class="ident">NcPlane</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcRgb</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncplane_fg_rgb</span>(<span class="ident">plane</span>: <span class="kw-2">&amp;</span><span class="ident">NcPlane</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannel</span> {
     <span class="ident">channels_fg_rgb</span>(<span class="kw">unsafe</span> { <span class="ident">ncplane_channels</span>(<span class="ident">plane</span>) })
 }
 
 <span class="doccomment">/// Gets the background [NcRgb] from an [NcPlane], shifted to LSBs.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncplane_bg_rgb</span>(<span class="ident">plane</span>: <span class="kw-2">&amp;</span><span class="ident">NcPlane</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcRgb</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncplane_bg_rgb</span>(<span class="ident">plane</span>: <span class="kw-2">&amp;</span><span class="ident">NcPlane</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannel</span> {
     <span class="ident">channels_bg_rgb</span>(<span class="kw">unsafe</span> { <span class="ident">ncplane_channels</span>(<span class="ident">plane</span>) })
 }
 
@@ -693,21 +705,33 @@
 
 <span class="doccomment">/// Calls ncplane_putchar_yx() at the current cursor location.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncplane_putchar</span>(<span class="ident">plane</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span>, <span class="ident">ch</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span> {
-    <span class="ident">ncplane_putchar_yx</span>(<span class="ident">plane</span>, <span class="op">-</span><span class="number">1</span>, <span class="op">-</span><span class="number">1</span>, <span class="ident">ch</span>)
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncplane_putchar</span>(<span class="ident">plane</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span>, <span class="ident">c</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span> {
+    <span class="ident">ncplane_putchar_yx</span>(<span class="ident">plane</span>, <span class="op">-</span><span class="number">1</span>, <span class="op">-</span><span class="number">1</span>, <span class="ident">c</span>)
 }
 
-<span class="doccomment">/// Replaces the [NcCell] at the specified coordinates with the provided char.</span>
-<span class="doccomment">/// Advances the cursor by 1.</span>
+<span class="doccomment">/// Replaces the [NcEgc] underneath us, but retain the styling.</span>
+<span class="doccomment">/// The current styling of the plane will not be changed.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Replace the [NcCell] at the specified coordinates with the provided 7-bit char.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Advance the cursor by 1. On success, returns 1. On failure, returns -1.</span>
+<span class="doccomment">/// This works whether the underlying char is signed or unsigned.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncplane_putchar_yx</span>(<span class="ident">plane</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span>, <span class="ident">y</span>: <span class="ident">i32</span>, <span class="ident">x</span>: <span class="ident">i32</span>, <span class="ident">ch</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span> {
+<span class="comment">// TODO: test char is &lt; 8bit (currently 32bit)</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncplane_putchar_yx</span>(<span class="ident">plane</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span>, <span class="ident">y</span>: <span class="ident">i32</span>, <span class="ident">x</span>: <span class="ident">i32</span>, <span class="ident">c</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span> {
     <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="ident">cell</span> <span class="op">=</span> <span class="ident">NcCell</span>::<span class="ident">with_all</span>(<span class="ident">ch</span>, <span class="ident">ncplane_styles</span>(<span class="ident">plane</span>), <span class="ident">ncplane_channels</span>(<span class="ident">plane</span>));
-        <span class="ident">ncplane_putc_yx</span>(<span class="ident">plane</span>, <span class="ident">y</span>, <span class="ident">x</span>, <span class="kw-2">&amp;</span><span class="ident">cell</span>)
+        <span class="kw">let</span> <span class="ident">ce</span> <span class="op">=</span> <span class="ident">NcCell</span>::<span class="ident">with_all</span>(<span class="ident">c</span>, <span class="ident">ncplane_styles</span>(<span class="ident">plane</span>), <span class="ident">ncplane_channels</span>(<span class="ident">plane</span>));
+        <span class="ident">ncplane_putc_yx</span>(<span class="ident">plane</span>, <span class="ident">y</span>, <span class="ident">x</span>, <span class="kw-2">&amp;</span><span class="ident">ce</span>)
     }
 }
 
-<span class="doccomment">/// Writes a series of [NcEgc][crate::NcEgc]s to the current location, using the current style.</span>
+<span class="doccomment">/// Calls `ncplane_putegc()` at the current cursor location.</span>
+<span class="attribute">#[<span class="ident">inline</span>]</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncplane_putegc</span>(<span class="ident">plane</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span>, <span class="ident">gcluster</span>: <span class="ident">i8</span>, <span class="ident">sbytes</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">i32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span> {
+    <span class="kw">unsafe</span> { <span class="ident">ncplane_putegc_yx</span>(<span class="ident">plane</span>, <span class="op">-</span><span class="number">1</span>, <span class="op">-</span><span class="number">1</span>, <span class="kw-2">&amp;</span><span class="ident">gcluster</span>, <span class="ident">sbytes</span>) }
+}
+
+<span class="doccomment">///</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncplane_putstr</span>(<span class="ident">plane</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span>, <span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span> {
     <span class="kw">unsafe</span> { <span class="ident">ncplane_putstr_yx</span>(<span class="ident">plane</span>, <span class="op">-</span><span class="number">1</span>, <span class="op">-</span><span class="number">1</span>, <span class="macro">cstring</span><span class="macro">!</span>[<span class="ident">string</span>]) }
