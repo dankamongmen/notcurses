@@ -971,7 +971,6 @@ pool_blit_direct(egcpool* pool, cell* c, const char* gcluster, int bytes, int co
   if(bytes <= 4){
     c->gcluster = 0;
     memcpy(&c->gcluster, gcluster, bytes);
-    c->gcluster = htole(c->gcluster);
     return bytes;
   }
   int eoffset = egcpool_stash(pool, gcluster, bytes);
