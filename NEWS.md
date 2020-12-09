@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 2.0.11 (not yet released)
+* 2.0.11 (2020-12-09)
   * Added `ncplane_descendant_p()` predicate.
  
 * 2.0.10 (2020-12-06)
