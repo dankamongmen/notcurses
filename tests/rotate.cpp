@@ -159,9 +159,9 @@ TEST_CASE("Rotate") {
   SUBCASE("RotateRGBACW") {
     int height = dimy / 2;
     int width = dimx / 2;
-    std::vector<uint32_t> rgba(width * height, 0xffbbccff);
+    std::vector<uint32_t> rgba(width * height, htole(0xffbbccff));
     for(int i = 0 ; i < height * width / 2 ; ++i){
-      CHECK(0xffbbccff == rgba[i]);
+      CHECK(htole(0xffbbccff) == rgba[i]);
     }
     auto ncv = ncvisual_from_rgba(rgba.data(), height, width * 4, width);
     REQUIRE(ncv);
@@ -172,7 +172,7 @@ TEST_CASE("Rotate") {
     REQUIRE(rgbaret);
     for(int i = 0 ; i < height * width / 2 ; ++i){
       if(rgbaret[i] & CELL_BG_RGB_MASK){
-        CHECK(rgbaret[i] == rgba[i]);
+        CHECK(htole(rgbaret[i]) == rgba[i]);
       }
     }
     free(rgbaret);
@@ -213,7 +213,7 @@ TEST_CASE("Rotate") {
   SUBCASE("RotateRGBACCW") {
     int height = dimy / 2;
     int width = dimx / 2;
-    std::vector<uint32_t> rgba(width * height, 0xffbbccff);
+    std::vector<uint32_t> rgba(width * height, htole(0xffbbccff));
     auto ncv = ncvisual_from_rgba(rgba.data(), height, width * 4, width);
     REQUIRE(ncv);
     ncvisual_options opts{};
@@ -223,7 +223,7 @@ TEST_CASE("Rotate") {
     REQUIRE(rgbaret);
     for(int i = 0 ; i < height * width / 2 ; ++i){
       if(rgbaret[i] & CELL_BG_RGB_MASK){
-        CHECK(rgbaret[i] == rgba[i]);
+        CHECK(htole(rgbaret[i]) == rgba[i]);
       }
     }
     free(rgbaret);
