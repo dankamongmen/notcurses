@@ -66,5 +66,9 @@ twine upload -s -udankamongmen dist/*
 cd ../rust
 cargo clean
 cargo publish
+
+cd ../tools/
+./rustdoc-update-gh-pages.sh
+
 cd "../$BUILDDIR"
 cat install_manifest.txt | sudo xargs rm
