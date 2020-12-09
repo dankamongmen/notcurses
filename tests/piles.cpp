@@ -148,12 +148,18 @@ TEST_CASE("Piles") {
     CHECK(&n3->bnext == n2->bprev);
     CHECK(n2 == *n2->bprev);
     CHECK(nullptr == n2->bnext);
-    // we now have n1 -> { n3, n2 }
-    // rotate n1's family under n2: n2 -> n1 -> n3
-    CHECK(nullptr != ncplane_reparent_family(n1, n2));
-    // FIXME CHECK(n2 == ncplane_parent_const(n2));
-    CHECK(n2 == ncplane_parent_const(n1));
-    CHECK(n1 == ncplane_parent_const(n3));
+    nopts.name = "new4";
+    auto n4 = ncplane_create(n2, &nopts);
+    REQUIRE(nullptr != n4);
+    CHECK(n2 == ncplane_parent_const(n4));
+    // we now have n1 -> { n3, n2 } -> n4
+    // n1 to any ought be refused
+    CHECK(nullptr == ncplane_reparent_family(n1, n2));
+    CHECK(nullptr == ncplane_reparent_family(n1, n3));
+    CHECK(nullptr == ncplane_reparent_family(n1, n4));
+    // n2 to n4 ought be refused
+    CHECK(nullptr == ncplane_reparent_family(n2, n4));
+    ncplane_destroy(n4);
     ncplane_destroy(n3);
     ncplane_destroy(n2);
     ncplane_destroy(n1);

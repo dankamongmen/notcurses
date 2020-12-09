@@ -2282,6 +2282,9 @@ ncplane* ncplane_reparent_family(ncplane* n, ncplane* newparent){
   if(n == ncplane_notcurses(n)->stdplane){
     return NULL; // can't reparent standard plane
   }
+  if(ncplane_descendant_p(newparent, n)){
+    return NULL;
+  }
   if(n->boundto == newparent){ // no-op
     return n;
   }

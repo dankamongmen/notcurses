@@ -1114,7 +1114,8 @@ API int (*ncplane_resizecb(const struct ncplane* n))(struct ncplane*);
 API struct ncplane* ncplane_reparent(struct ncplane* n, struct ncplane* newparent);
 
 // The same as ncplane_reparent(), except any planes bound to 'n' come along
-// with it to its new destination. Their z-order is maintained.
+// with it to its new destination. Their z-order is maintained. If 'newparent'
+// is an ancestor of 'n', NULL is returned, and no changes are made.
 API struct ncplane* ncplane_reparent_family(struct ncplane* n, struct ncplane* newparent);
 
 // Duplicate an existing ncplane. The new plane will have the same geometry,
@@ -1276,6 +1277,17 @@ API int ncplane_x(const struct ncplane* n);
 // Get the plane to which the plane 'n' is bound, if any.
 API struct ncplane* ncplane_parent(struct ncplane* n);
 API const struct ncplane* ncplane_parent_const(const struct ncplane* n);
+
+// Return non-zero iff 'n' is a proper descendent of 'ancestor'.
+static inline int
+ncplane_descendant_p(const struct ncplane* n, const struct ncplane* ancestor){
+  for(const struct ncplane* parent = ncplane_parent_const(n) ; parent != ancestor ; parent = ncplane_parent_const(parent)){
+    if(ncplane_parent_const(parent) == parent){ // reached a root plane
+      return 0;
+    }
+  }
+  return 1;
+}
 
 // Splice ncplane 'n' out of the z-buffer, and reinsert it at the top or bottom.
 API void ncplane_move_top(struct ncplane* n);

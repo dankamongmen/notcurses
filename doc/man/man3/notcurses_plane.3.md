@@ -41,6 +41,8 @@ typedef struct ncplane_options {
 
 **struct ncplane* ncplane_reparent_family(struct ncplane* ***n***, struct ncplane* ***newparent***);**
 
+**int ncplane_descendant_p(const struct ncplane* ***n***, const struct ncplane* ***ancestor***);**
+
 **int ncplane_resize_realign(struct ncplane* ***n***);**
 
 **void ncplane_set_resizecb(struct ncplane* ***n***, int(*resizecb)(struct ncplane*));**

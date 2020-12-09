@@ -1,6 +1,9 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 2.0.11 (not yet released)
+  * Added `ncplane_descendant_p()` predicate.
+ 
 * 2.0.10 (2020-12-06)
   * `ncpile_top()` and `ncpile_bottom()` have been added, returning the top
     or bottommost plane, respectively, of the pile containing their argument.
