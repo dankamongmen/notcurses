@@ -301,8 +301,8 @@ TEST_CASE("Visual") {
           uint64_t channels;
           char* egc = notcurses_at_yx(nc_, y, x, &stylemask, &channels);
           REQUIRE(nullptr != egc);
-          CHECK((rgba[y * 2 * DIMX + x] & 0xffffff) == channels_bg_rgb(channels));
-          CHECK((rgba[(y * 2 + 1) * DIMX + x] & 0xffffff) == channels_fg_rgb(channels));
+          CHECK((htole(rgba[y * 2 * DIMX + x]) & 0xffffff) == channels_bg_rgb(channels));
+          CHECK((htole(rgba[(y * 2 + 1) * DIMX + x]) & 0xffffff) == channels_fg_rgb(channels));
           free(egc);
         }
       }
