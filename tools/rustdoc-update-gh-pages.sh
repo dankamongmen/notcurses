@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 #
 # SCRIPT TO BUILD THE RUST DOCS FROM THE GITHUB REPO
 #
