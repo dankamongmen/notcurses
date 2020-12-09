@@ -119,11 +119,11 @@ TEST_CASE("Piles") {
     CHECK(n1 == ncplane_parent_const(n1));
     CHECK(n3 == ncplane_parent_const(n3));
     CHECK(n3 == ncplane_parent_const(n2));
-    // now rotate n3 under n1, not touching n2: n1 -> { n3, n2 } (start state)
+    // now rotate n3 under n1, not touching n2: { n1, n2 } -> n3 (start state)
     CHECK(nullptr != ncplane_reparent(n3, n1));
     CHECK(n1 == ncplane_parent_const(n1));
     CHECK(n1 == ncplane_parent_const(n3));
-    // FIXME CHECK(n1 == ncplane_parent_const(n2));
+    CHECK(n2 == ncplane_parent_const(n2));
     ncplane_destroy(n3);
     ncplane_destroy(n2);
     ncplane_destroy(n1);
