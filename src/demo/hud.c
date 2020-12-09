@@ -26,7 +26,7 @@ static int plot_grab_y = -1;
 // position of the plot *when grab started*
 static int plot_pos_y;
 
-#define FPSHZ 10
+#define FPSHZ 2
 
 // how many columns for runtime?
 #define HUD_ROWS (3 + 2) // 2 for borders
@@ -642,7 +642,7 @@ int fpsgraph_init(struct notcurses* nc){
                NCPLOT_OPTION_PRINTSAMPLE;
   opts.gridtype = NCBLIT_BRAILLE;
   opts.legendstyle = NCSTYLE_ITALIC | NCSTYLE_BOLD;
-  opts.title = "frames per decisecond";
+  opts.title = "frames per semisecond";
   channels_set_fg_rgb8(&opts.minchannels, 0x80, 0x80, 0xff);
   channels_set_bg_rgb(&opts.minchannels, 0x201020);
   channels_set_bg_alpha(&opts.minchannels, CELL_ALPHA_BLEND);

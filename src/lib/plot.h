@@ -286,7 +286,7 @@ class ncppplot {
    if(printsample){
      int lastslot = slotstart ? slotstart - 1 : slotcount - 1;
      ncplane_set_styles(ncp, legendstyle);
-     ncplane_printf_aligned(ncp, dimy - 1, NCALIGN_RIGHT, "%ju", (uintmax_t)slots[lastslot]);
+     ncplane_printf_aligned(ncp, 0, NCALIGN_RIGHT, "%ju", (uintmax_t)slots[lastslot]);
    }
    ncplane_home(ncp);
    return 0;
