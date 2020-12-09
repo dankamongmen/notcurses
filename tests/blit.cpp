@@ -1,7 +1,5 @@
 #include "main.h"
 
-// FIXME broken on big-endian, need turn WARNs back to CHECKs
-// https://github.com/dankamongmen/notcurses/issues/1130
 TEST_CASE("Blitting") {
   auto nc_ = testing_notcurses();
   REQUIRE(nullptr != nc_);
@@ -47,13 +45,13 @@ TEST_CASE("Blitting") {
         uint16_t stylemask;
         uint64_t channels;
         auto egc = ncplane_at_yx(ncp, y, x, &stylemask, &channels);
-        WARN(0 == strcmp(" ", egc));
+        CHECK(0 == strcmp(" ", egc));
         free(egc);
-        WARN(0 == stylemask);
-        uint32_t rgb = channels_bg_rgb(channels);
-        WARN(ncpixel_r(bgra) == ncpixel_r(rgb));
-        WARN(ncpixel_g(bgra) == ncpixel_g(rgb));
-        WARN(ncpixel_b(bgra) == ncpixel_b(rgb));
+        CHECK(0 == stylemask);
+        uint32_t rgb = htole(channels_bg_rgb(channels));
+        CHECK(ncpixel_r(bgra) == ncpixel_r(rgb));
+        CHECK(ncpixel_g(bgra) == ncpixel_g(rgb));
+        CHECK(ncpixel_b(bgra) == ncpixel_b(rgb));
       }
     }
     ncplane_destroy(ncp);
@@ -95,13 +93,13 @@ TEST_CASE("Blitting") {
         uint16_t stylemask;
         uint64_t channels;
         auto egc = ncplane_at_yx(ncp, y, x, &stylemask, &channels);
-        WARN(0 == strcmp(" ", egc));
+        CHECK(0 == strcmp(" ", egc));
         free(egc);
-        WARN(0 == stylemask);
-        uint32_t rgb = channels_bg_rgb(channels);
-        WARN(ncpixel_r(bgra) == ncpixel_r(rgb));
-        WARN(ncpixel_g(bgra) == ncpixel_g(rgb));
-        WARN(ncpixel_b(bgra) == ncpixel_b(rgb));
+        CHECK(0 == stylemask);
+        uint32_t rgb = htole(channels_bg_rgb(channels));
+        CHECK(ncpixel_r(bgra) == ncpixel_r(rgb));
+        CHECK(ncpixel_g(bgra) == ncpixel_g(rgb));
+        CHECK(ncpixel_b(bgra) == ncpixel_b(rgb));
       }
     }
     ncplane_destroy(ncp);
