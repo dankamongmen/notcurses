@@ -427,7 +427,7 @@ TEST_CASE("Visual") {
   // quadblitter with all 4 colors equal ought generate space
   SUBCASE("Quadblitter4Same") {
     if(notcurses_canutf8(nc_)){
-      const uint32_t pixels[4] = { 0xff605040, 0xff605040, 0xff605040, 0xff605040 };
+      const uint32_t pixels[4] = { htole(0xff605040), htole(0xff605040), htole(0xff605040), htole(0xff605040) };
       auto ncv = ncvisual_from_rgba(pixels, 2, 2 * sizeof(*pixels), 2);
       REQUIRE(nullptr != ncv);
       struct ncvisual_options vopts = {
@@ -464,10 +464,10 @@ TEST_CASE("Visual") {
   SUBCASE("Quadblitter3Same") {
     if(notcurses_canutf8(nc_)){
       const uint32_t pixels[4][4] = {
-        { 0xffcccccc, 0xff605040, 0xff605040, 0xff605040 },
-        { 0xff605040, 0xffcccccc, 0xff605040, 0xff605040 },
-        { 0xff605040, 0xff605040, 0xffcccccc, 0xff605040 },
-        { 0xff605040, 0xff605040, 0xff605040, 0xffcccccc } };
+        { htole(0xffcccccc), htole(0xff605040), htole(0xff605040), htole(0xff605040) },
+        { htole(0xff605040), htole(0xffcccccc), htole(0xff605040), htole(0xff605040) },
+        { htole(0xff605040), htole(0xff605040), htole(0xffcccccc), htole(0xff605040) },
+        { htole(0xff605040), htole(0xff605040), htole(0xff605040), htole(0xffcccccc) } };
       const char* egcs[] = { "▟", "▙", "▜", "▛" };
       for(int i = 0 ; i < 4 ; ++i){
         auto ncv = ncvisual_from_rgba(pixels[i], 2, 2 * sizeof(**pixels), 2);
@@ -507,12 +507,12 @@ TEST_CASE("Visual") {
   SUBCASE("Quadblitter2Pairs") {
     if(notcurses_canutf8(nc_)){
       const uint32_t pixels[6][4] = {
-        { 0xffcccccc, 0xffcccccc, 0xff605040, 0xff605040 },
-        { 0xffcccccc, 0xff605040, 0xffcccccc, 0xff605040 },
-        { 0xffcccccc, 0xff605040, 0xff605040, 0xffcccccc },
-        { 0xff605040, 0xffcccccc, 0xffcccccc, 0xff605040 },
-        { 0xff605040, 0xffcccccc, 0xff605040, 0xffcccccc },
-        { 0xff605040, 0xff605040, 0xffcccccc, 0xffcccccc } };
+        { htole(0xffcccccc), htole(0xffcccccc), htole(0xff605040), htole(0xff605040) },
+        { htole(0xffcccccc), htole(0xff605040), htole(0xffcccccc), htole(0xff605040) },
+        { htole(0xffcccccc), htole(0xff605040), htole(0xff605040), htole(0xffcccccc) },
+        { htole(0xff605040), htole(0xffcccccc), htole(0xffcccccc), htole(0xff605040) },
+        { htole(0xff605040), htole(0xffcccccc), htole(0xff605040), htole(0xffcccccc) },
+        { htole(0xff605040), htole(0xff605040), htole(0xffcccccc), htole(0xffcccccc) } };
       const char* egcs[] = { "▀", "▌", "▚", "▚", "▌", "▀" };
       for(size_t i = 0 ; i < sizeof(egcs) / sizeof(*egcs) ; ++i){
         auto ncv = ncvisual_from_rgba(pixels[i], 2, 2 * sizeof(**pixels), 2);
@@ -557,12 +557,12 @@ TEST_CASE("Visual") {
   SUBCASE("Quadblitter1Pair") {
     if(notcurses_canutf8(nc_)){
       const uint32_t pixels[6][4] = {
-        { 0xffcccccc, 0xff444444, 0xff605040, 0xff605040 },
-        { 0xff444444, 0xff605040, 0xffcccccc, 0xff605040 },
-        { 0xffcccccc, 0xff605040, 0xff605040, 0xff444444 },
-        { 0xff605040, 0xffcccccc, 0xff444444, 0xff605040 },
-        { 0xff605040, 0xffeeeeee, 0xff605040, 0xffcccccc },
-        { 0xff605040, 0xff605040, 0xffeeeeee, 0xffcccccc } };
+        { htole(0xffcccccc), htole(0xff444444), htole(0xff605040), htole(0xff605040) },
+        { htole(0xff444444), htole(0xff605040), htole(0xffcccccc), htole(0xff605040) },
+        { htole(0xffcccccc), htole(0xff605040), htole(0xff605040), htole(0xff444444) },
+        { htole(0xff605040), htole(0xffcccccc), htole(0xff444444), htole(0xff605040) },
+        { htole(0xff605040), htole(0xffeeeeee), htole(0xff605040), htole(0xffcccccc) },
+        { htole(0xff605040), htole(0xff605040), htole(0xffeeeeee), htole(0xffcccccc) } };
       const char* egcs[] = { "▟", "▜", "▟", "▙", "▌", "▀" };
       for(size_t i = 0 ; i < sizeof(egcs) / sizeof(*egcs) ; ++i){
         auto ncv = ncvisual_from_rgba(pixels[i], 2, 2 * sizeof(**pixels), 2);
@@ -607,11 +607,11 @@ TEST_CASE("Visual") {
   SUBCASE("QuadblitterAllDifferent") {
     if(notcurses_canutf8(nc_)){
       const uint32_t pixels[6][4] = {
-        { 0xffdddddd, 0xff000000, 0xff111111, 0xff222222 },
-        { 0xff000000, 0xff111111, 0xffdddddd, 0xff222222 },
-        { 0xff111111, 0xffdddddd, 0xff000000, 0xff222222 },
-        { 0xff000000, 0xffcccccc, 0xff222222, 0xffeeeeee },
-        { 0xff222222, 0xff000000, 0xffeeeeee, 0xffcccccc, } };
+        { htole(0xffdddddd), htole(0xff000000), htole(0xff111111), htole(0xff222222) },
+        { htole(0xff000000), htole(0xff111111), htole(0xffdddddd), htole(0xff222222) },
+        { htole(0xff111111), htole(0xffdddddd), htole(0xff000000), htole(0xff222222) },
+        { htole(0xff000000), htole(0xffcccccc), htole(0xff222222), htole(0xffeeeeee) },
+        { htole(0xff222222), htole(0xff000000), htole(0xffeeeeee), htole(0xffcccccc), } };
       const char* egcs[] = { "▟", "▜", "▙", "▌", "▀" };
       for(size_t i = 0 ; i < sizeof(egcs) / sizeof(*egcs) ; ++i){
         auto ncv = ncvisual_from_rgba(pixels[i], 2, 2 * sizeof(**pixels), 2);
