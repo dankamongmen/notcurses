@@ -124,7 +124,7 @@ TEST_CASE("Fills") {
     for(int y = 0 ; y < dimy ; ++y){
       for(int x = 0 ; x < dimx ; ++x){
         REQUIRE(0 <= ncplane_at_yx_cell(n_, y, x, &cl));
-        CHECK('M' == cl.gcluster);
+        CHECK(htole('M') == cl.gcluster);
         CHECK(0 == cl.stylemask);
         CHECK(channels == cl.channels);
       }
@@ -158,7 +158,7 @@ TEST_CASE("Fills") {
       lastxrgb = -1;
       for(int x = 0 ; x < dimx ; ++x){
         REQUIRE(0 <= ncplane_at_yx_cell(n_, y, x, &c));
-        CHECK('V' == c.gcluster);
+        CHECK(htole('V') == c.gcluster);
         CHECK(0 == c.stylemask);
         if(lastxrgb == (uint64_t)-1){
           if(lastyrgb == (uint64_t)-1){
@@ -277,7 +277,7 @@ TEST_CASE("Fills") {
         CHECK(1 == ncplane_at_yx_cell(n_, y, x, &d));
         CHECK(channels == d.channels);
         REQUIRE(cell_simple_p(&d));
-        CHECK('A' == d.gcluster);
+        CHECK(htole('A') == d.gcluster);
       }
     }
   }
@@ -298,7 +298,7 @@ TEST_CASE("Fills") {
     CHECK(1 == ncplane_at_yx_cell(n_, 0, 0, &d));
     CHECK(channels == d.channels);
     REQUIRE(cell_simple_p(&d));
-    CHECK('A' == d.gcluster);
+    CHECK(htole('A') == d.gcluster);
   }
 
   // 1d gradients over multiple cells
@@ -319,12 +319,12 @@ TEST_CASE("Fills") {
     CHECK(1 == ncplane_at_yx_cell(n_, 0, 0, &d));
     CHECK(chan1 == d.channels);
     REQUIRE(cell_simple_p(&d));
-    CHECK('A' == d.gcluster);
+    CHECK(htole('A') == d.gcluster);
     CHECK(0 == ncplane_cursor_move_yx(n_, 0, 0));
     REQUIRE(0 < ncplane_gradient(n_, "A", 0, chan2, chan1, chan2, chan1, 0, 3));
     CHECK(1 == ncplane_at_yx_cell(n_, 0, 0, &d));
     REQUIRE(cell_simple_p(&d));
-    CHECK('A' == d.gcluster);
+    CHECK(htole('A') == d.gcluster);
     CHECK(chan2 == d.channels);
   }
 
