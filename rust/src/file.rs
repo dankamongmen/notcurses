@@ -12,7 +12,8 @@ use libc::{c_long, c_void, fclose, feof, fread, fseek, ftell, SEEK_CUR, SEEK_END
 /// See [NcFile]. Notcurses functions expects this type of `*FILE` (a struct)
 pub type FILE_NC = crate::ffi::_IO_FILE;
 
-/// See [NcFile]. The [`libc`] crate expects this type of `*FILE` (an opaque enum)
+/// See [NcFile]. The [`libc`](https://docs.rs/libc/) crate expects this type
+/// of `*FILE` (an opaque enum)
 pub type FILE_LIBC = libc::FILE;
 
 // TODO: the following static strings aren't made public
@@ -56,10 +57,12 @@ fn get_error<T>() -> Result<T, Error> {
     Err(Error::last_os_error())
 }
 
-/// A wrapper struct around `libc::FILE`
+/// A wrapper struct around
+/// [`libc::FILE`](https://docs.rs/libc/0.2.80/libc/enum.FILE.html)
 ///
 /// The notcurses `FILE` type [`FILE_NC`] a struct imported through bindgen,
-/// while the equivalent [`libc`] crate FILE ([`FILE_LIBC`]) is an opaque enum.
+/// while the equivalent [`libc`][https://docs.rs/libc] crate FILE
+/// ([`FILE_LIBC`]) is an opaque enum.
 ///
 /// Several methods are provided to cast back and forth between both types,
 /// in order to allow both rust libc operations and notcurses file operations

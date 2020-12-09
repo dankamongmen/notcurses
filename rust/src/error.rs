@@ -5,11 +5,7 @@
 pub type NcResult = i32;
 
 /// ERROR value, for the functions that return an [`NcResult`]
-///
-/// Meanwhile the static inline functions reimplemented in Rust return `bool`.
 pub const NCRESULT_OK: i32 = 0;
 
 /// OK value, for the functions that return [`NcResult`]
-///
-/// Meanwhile the static inline functions reimplemented in Rust return `bool`.
 pub const NCRESULT_ERR: i32 = -1;
