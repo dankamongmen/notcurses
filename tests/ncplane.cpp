@@ -566,12 +566,12 @@ TEST_CASE("NCPlane") {
     REQUIRE(0 == ncplane_putstr(n_, STR3));
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
     REQUIRE(0 < ncplane_at_cursor_cell(n_, &testcell)); // want first char of STR1
-    CHECK(STR1[0] == testcell.gcluster);
+    CHECK(htole(STR1[0]) == testcell.gcluster);
     CHECK(0 == testcell.stylemask);
     CHECK(0 == testcell.channels);
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 1, dimx - 1));
     REQUIRE(0 < ncplane_at_cursor_cell(n_, &testcell)); // want last char of STR2
-    CHECK(STR2[strlen(STR2) - 1] == testcell.gcluster);
+    CHECK(htole(STR2[strlen(STR2) - 1]) == testcell.gcluster);
     CHECK(0 == testcell.stylemask);
     CHECK(0 == testcell.channels);
     // FIXME maybe check all cells?
@@ -639,13 +639,13 @@ TEST_CASE("NCPlane") {
     cell testcell = CELL_TRIVIAL_INITIALIZER;
     CHECK(0 == ncplane_cursor_move_yx(n_, y - 2, x - 1));
     REQUIRE(1 == ncplane_at_cursor_cell(n_, &testcell));
-    CHECK(testcell.gcluster == STR1[strlen(STR1) - 1]);
+    CHECK(testcell.gcluster == htole(STR1[strlen(STR1) - 1]));
     CHECK(0 == ncplane_cursor_move_yx(n_, y - 1, x - 1));
     REQUIRE(1 == ncplane_at_cursor_cell(n_, &testcell));
-    CHECK(testcell.gcluster == STR2[strlen(STR2) - 1]);
+    CHECK(testcell.gcluster == htole(STR2[strlen(STR2) - 1]));
     CHECK(0 == ncplane_cursor_move_yx(n_, y, x - 1));
     REQUIRE(1 == ncplane_at_cursor_cell(n_, &testcell));
-    CHECK(testcell.gcluster == STR3[strlen(STR3) - 1]);
+    CHECK(testcell.gcluster == htole(STR3[strlen(STR3) - 1]));
   }
 
   SUBCASE("BoxGradients") {
@@ -807,12 +807,12 @@ TEST_CASE("NCPlane") {
     uint64_t channels = 0;
     CHECK(1 == ncplane_at_yx_cell(n_, 0, 0, &c));
     CHECK(cell_simple_p(&c));
-    CHECK('C' == c.gcluster);
+    CHECK(htole('C') == c.gcluster);
     CHECK(0 == channels_set_fg_rgb(&channels, 0x444444));
     CHECK(channels == c.channels);
     CHECK(1 == ncplane_at_yx_cell(n_, 0, 1, &c));
     CHECK(cell_simple_p(&c));
-    CHECK('D' == c.gcluster);
+    CHECK(htole('D') == c.gcluster);
     CHECK(0 == channels_set_fg_rgb(&channels, 0x888888));
     CHECK(channels == c.channels);
     CHECK(0 == notcurses_render(nc_));
