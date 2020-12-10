@@ -2197,9 +2197,15 @@ int (*ncplane_resizecb(const ncplane* n))(ncplane*){
 }
 
 int ncplane_resize_maximize(ncplane* n){
-  int rows, cols;
-  notcurses_term_dim_yx(ncplane_notcurses(n), &rows, &cols);
-  return ncplane_resize_simple(n, rows, cols);
+  const ncpile* pile = ncplane_pile(n);
+  const int rows = pile->dimy;
+  const int cols = pile->dimx;
+  int oldy, oldx;
+  ncplane_dim_yx(n, &oldy, &oldx); // current dimensions of 'n'
+//fprintf(stderr, "CURRENT: %d/%d TERM: %d/%d\n", oldy, oldx, rows, cols);
+  int keepleny = oldy > rows ? rows : oldy;
+  int keeplenx = oldx > cols ? cols : oldx;
+  return ncplane_resize_internal(n, 0, 0, keepleny, keeplenx, 0, 0, rows, cols);
 }
 
 int ncplane_resize_realign(ncplane* n){

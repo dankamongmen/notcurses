@@ -64,14 +64,11 @@ notcurses_resize_internal(ncplane* pp, int* restrict rows, int* restrict cols){
     keepx = oldcols;
   }
   int ret = 0;
-notcurses_debug(n, stderr);
-// FIXME kill this
-  /*if(ncplane_resize_simple(n->stdplane, *rows, *cols)){
-    return -1;
-  }*/
-// FIXME restore this
+//notcurses_debug(n, stderr);
   for(ncplane* rootn = pile->roots ; rootn ; rootn = rootn->bnext){
-    ret |= resize_callbacks_children(rootn);
+    if(rootn->resizecb){
+      ret |= rootn->resizecb(rootn);
+    }
   }
   return ret;
 }
