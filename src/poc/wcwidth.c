@@ -12,6 +12,8 @@ int main(int argc, char **argv){
   if(argc > 1){
     while(*++argv){
       const char* arg = *argv;
+      int totalcols = 0;
+      int i = 0;
       while(*arg){
         mbstate_t mbs = {};
         wchar_t w;
@@ -21,9 +23,16 @@ int main(int argc, char **argv){
           return EXIT_FAILURE;
         }
         int width = wcwidth(w);
-        printf("w(0x%05lx): %d %lc\n", (long)w, width, w);
+        printf("w(0x%05lx): %d %lc\t", (long)w, width, w);
+        if(i++ % 4 == 3){
+          printf("\n");
+        }
+        if(width > 0){
+          totalcols += width;
+        }
         arg += conv;
       }
+      printf("\n Total width: %d\n\n", totalcols);
     }
     return EXIT_SUCCESS;
   }

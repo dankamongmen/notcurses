@@ -1,4 +1,3 @@
-#define NCPP_EXCEPTIONS_PLEASE
 #include <cstdlib>
 #include <clocale>
 #include <memory>
@@ -64,14 +63,23 @@ auto main() -> int {
 "ᐊᓕᒍᖅᓂᕆᔭᕌᖓᒃᑯᓱᕋᙱᑦᑐᓐᓇᖅᑐ"
 ;
   std::unique_ptr<Plane> nstd(nc.get_stdplane());
-  int y, dimy, dimx;
+  int y = 0, dimy, dimx, x = 0;
   nc.get_term_dim(&dimy, &dimx);
-  nstd->set_scrolling(true);
+  const char* cptr = c;
   do{
-    if(nstd->putstr(c) <= 0){
-      return EXIT_FAILURE;
+    nstd->cursor_move(y, x);
+    int xmove = nstd->putstr(cptr);
+    nstd->get_cursor_yx(&y, &x);
+    xmove = xmove < 0 ? -xmove : xmove;
+    cptr += xmove;
+fprintf(stderr, "XM: %d diff: %ju %d/%d\n", xmove, (uintmax_t)(cptr - c), y, x);
+    if(cptr - c >= (ptrdiff_t)strlen(c)){
+      cptr = c;
     }
-    nstd->get_cursor_yx(&y, nullptr);
+    if(x >= dimx - 1){
+      ++y;
+      x = 0;
+    }
   }while(y < dimy - 1);
   const int HEIGHT = 9;
   const int WIDTH = dimx;

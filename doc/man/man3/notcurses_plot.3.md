@@ -104,8 +104,8 @@ ignored.
 
 The **label** is printed in the upper left, immediately to the right of the
 topmost axis tick (if **NCPLOT_OPTION_LABELTICKSD** was used). The most
-recent sample is printed diagonally opposite from the label (if
-**NCPLOT_OPTION_PRINTSAMPLE** was used).
+recent sample is printed opposite from the label along the independent axis
+(if **NCPLOT_OPTION_PRINTSAMPLE** was used).
 
 # NOTES
 
