@@ -2211,6 +2211,9 @@ int ncplane_resize_realign(ncplane* n){
 // The standard plane cannot be reparented; we return NULL in that case.
 // If provided |newparent|==|n|, we are moving |n| to its own stack. If |n|
 // is already bound to |newparent|, this is a no-op, and we return |n|.
+// This is essentially a wrapper around ncplane_reparent_family() that first
+// reparents any children to the parent of 'n', or makes them root planes if
+// 'n' is a root plane.
 ncplane* ncplane_reparent(ncplane* n, ncplane* newparent){
   if(n == ncplane_notcurses(n)->stdplane){
     return NULL; // can't reparent standard plane
@@ -2219,23 +2222,22 @@ ncplane* ncplane_reparent(ncplane* n, ncplane* newparent){
     return n;
   }
   if(n->blist){
-    // FIXME these both look to throw away siblings following n->blist :/
     if(n->boundto == n){ // children become new root planes
       for(ncplane* child = n->blist ; child ; child = child->bnext){
         child->boundto = child;
       }
-      /* FIXME FIXME FIXME
-      n->blist->bnext = ncplane_pile(n)->root;
-      n->blist->bnext->bprev = &n->blist->bnext;
-      n->blist->bprev = &ncplane_pile(n)->root;
-      ncplane_pile(n)->root = n->blist;
-      */
-    }else{ // children are rebound to current parent
-      if( (n->blist->bnext = n->boundto->blist) ){
-        n->boundto->blist->bprev = &n->blist->bnext;
+      if( (n->blist->bnext = ncplane_pile(n)->roots) ){
+        n->blist->bnext->bprev = &n->blist->bnext;
       }
-      n->blist->bprev = &n->boundto->blist;
-      n->boundto->blist = n->blist;
+      n->blist->bprev = &ncplane_pile(n)->roots;
+      ncplane_pile(n)->roots = n->blist;
+    }else{ // children are rebound to current parent
+      ncplane** plink = &n->boundto->blist;
+      while(*plink){
+        plink = &(*plink)->bnext;
+      }
+      n->blist->bprev = plink;
+      *plink = n->blist;
     }
     n->blist = NULL;
   }
