@@ -9,7 +9,8 @@
 // be copied from the old stdplane. Assumes that the screen is always anchored at
 // the same origin. Also syncs up lastframe.
 static int
-notcurses_resize_internal(notcurses* n, int* restrict rows, int* restrict cols){
+notcurses_resize_internal(ncplane* pp, int* restrict rows, int* restrict cols){
+  notcurses* n = ncplane_notcurses(pp);
   int r, c;
   if(rows == NULL){
     rows = &r;
@@ -17,8 +18,9 @@ notcurses_resize_internal(notcurses* n, int* restrict rows, int* restrict cols){
   if(cols == NULL){
     cols = &c;
   }
-  int oldrows = n->stdplane->leny;
-  int oldcols = n->stdplane->lenx;
+  ncpile* pile = ncplane_pile(pp);
+  int oldrows = pile->dimy;
+  int oldcols = pile->dimx;
   *rows = oldrows;
   *cols = oldcols;
   if(update_term_dimensions(n->ttyfd, rows, cols)){
@@ -47,9 +49,12 @@ notcurses_resize_internal(notcurses* n, int* restrict rows, int* restrict cols){
     memset(n->lastframe, 0, size);
     egcpool_dump(&n->pool);
   }
+//fprintf(stderr, "r: %d or: %d c: %d oc: %d\n", *rows, oldrows, *cols, oldcols);
   if(*rows == oldrows && *cols == oldcols){
     return 0; // no change
   }
+  pile->dimy = *rows;
+  pile->dimx = *cols;
   int keepy = *rows;
   if(keepy > oldrows){
     keepy = oldrows;
@@ -58,16 +63,23 @@ notcurses_resize_internal(notcurses* n, int* restrict rows, int* restrict cols){
   if(keepx > oldcols){
     keepx = oldcols;
   }
-  if(ncplane_resize_internal(n->stdplane, 0, 0, keepy, keepx, 0, 0, *rows, *cols)){
+  int ret = 0;
+notcurses_debug(n, stderr);
+// FIXME kill this
+  /*if(ncplane_resize_simple(n->stdplane, *rows, *cols)){
     return -1;
+  }*/
+// FIXME restore this
+  for(ncplane* rootn = pile->roots ; rootn ; rootn = rootn->bnext){
+    ret |= resize_callbacks_children(rootn);
   }
-  return 0;
+  return ret;
 }
 
 static int
 notcurses_resize(notcurses* n, int* restrict rows, int* restrict cols){
   pthread_mutex_lock(&n->pilelock);
-  int ret = notcurses_resize_internal(n, rows, cols);
+  int ret = notcurses_resize_internal(notcurses_stdplane(n), rows, cols);
   pthread_mutex_unlock(&n->pilelock);
   return ret;
 }
@@ -778,10 +790,10 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
   // we explicitly move the cursor at the beginning of each output line, so no
   // need to home it expliticly.
   update_palette(nc, out);
-  // FIXME need adapt this to piles
-  for(y = nc->stdplane->absy ; y < nc->stdplane->leny + nc->stdplane->absy ; ++y){
+//fprintf(stderr, "pile %p ymax: %d xmax: %d\n", p, p->dimy + nc->stdplane->absy, p->dimx + nc->stdplane->absx);
+  for(y = nc->stdplane->absy ; y < p->dimy + nc->stdplane->absy ; ++y){
     const int innery = y - nc->stdplane->absy;
-    for(x = nc->stdplane->absx ; x < nc->stdplane->lenx + nc->stdplane->absx ; ++x){
+    for(x = nc->stdplane->absx ; x < p->dimx + nc->stdplane->absx ; ++x){
       const int innerx = x - nc->stdplane->absx;
       const size_t damageidx = innery * nc->lfdimx + innerx;
       unsigned r, g, b, br, bg, bb, palfg, palbg;
@@ -1091,34 +1103,41 @@ int ncpile_rasterize(ncplane* n){
   return 0;
 }
 
-// ensure the crender vector of 'n' is sufficiently large for 'dimy'x'dimx'
+// ensure the crender vector of 'n' is sufficiently large for
+// 'n'->dimy x 'n'->dimx, having previously been 'dimy'x'dimx', and initialize
+// the rvec afresh for a new render.
 static int
 engorge_crender_vector(ncpile* n, int dimy, int dimx){
-  const int crenderlen = dimy * dimx;
-  if(crenderlen > n->dimy * n->dimx){
+  const int crenderlen = n->dimy * n->dimx; // desired size
+  if(crenderlen <= 0){
+    return -1;
+  }
+//fprintf(stderr, "crlen: %d y: %d x:%d\n", crenderlen, dimy, dimx);
+  if(crenderlen > dimy * dimx){
     struct crender* tmp = realloc(n->crender, sizeof(*tmp) * crenderlen);
     if(tmp == NULL){
       return -1;
     }
     n->crender = tmp;
-    n->dimy = dimy;
-    n->dimx = dimx;
   }
   init_rvec(n->crender, crenderlen);
   return 0;
 }
 
 int ncpile_render(ncplane* n){
-  notcurses* nc = ncplane_notcurses(n);
-  int dimy, dimx;
-  // update our notion of screen geometry, and render against that
-  notcurses_resize(nc, &dimy, &dimx);
   struct timespec start, renderdone;
   clock_gettime(CLOCK_MONOTONIC, &start);
-  if(engorge_crender_vector(ncplane_pile(n), dimy, dimx)){
+  notcurses* nc = ncplane_notcurses(n);
+  ncpile* pile = ncplane_pile(n);
+  const int olddimy = pile->dimy;
+  const int olddimx = pile->dimx;
+  // update our notion of screen geometry, and render against that
+  notcurses_resize_internal(n, NULL, NULL);
+  if(engorge_crender_vector(pile, olddimy, olddimx)){
     return -1;
   }
-  ncpile_render_internal(n, ncplane_pile(n)->crender, dimy, dimx,
+  // FIXME notcurses_stdplane() doesn't belong here
+  ncpile_render_internal(n, pile->crender, pile->dimy, pile->dimx,
                          notcurses_stdplane(nc)->absy,
                          notcurses_stdplane(nc)->absx);
   clock_gettime(CLOCK_MONOTONIC, &renderdone);
