@@ -2325,7 +2325,8 @@ ncplane* ncplane_reparent_family(ncplane* n, ncplane* newparent){
   }
   n->boundto = newparent;
   if(n == n->boundto){ // we're a new root plane
-    n->bnext = NULL; // bprev is set in make_ncpile()
+    n->bnext = NULL;
+    n->bprev = NULL;
     pthread_mutex_lock(&ncplane_notcurses(n)->pilelock);
     if(ncplane_pile(n)->top == NULL){ // did we just empty our pile?
       ncpile_destroy(ncplane_pile(n));
