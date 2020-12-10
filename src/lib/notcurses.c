@@ -304,7 +304,9 @@ make_ncpile(notcurses* nc, ncplane* n){
     ret->nc = nc;
     ret->top = n;
     ret->bottom = n;
-    if(nc->stdplane){
+    ret->roots = n;
+    n->bprev = &ret->roots;
+    if(nc->stdplane){ // stdplane (and thus stdpile) has already been created
       ret->prev = ncplane_pile(nc->stdplane)->prev;
       ncplane_pile(nc->stdplane)->prev->next = ret;
       ret->next = ncplane_pile(nc->stdplane);

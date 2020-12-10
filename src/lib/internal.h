@@ -303,6 +303,7 @@ typedef struct ncdirect {
 typedef struct ncpile {
   ncplane* top;               // topmost plane, never NULL
   ncplane* bottom;            // bottommost plane, never NULL
+  ncplane* roots;             // head of root plane list
   struct notcurses* nc;       // notcurses context
   struct ncpile *prev, *next; // circular list
   int dimy, dimx;             // rows and cols at time of render
