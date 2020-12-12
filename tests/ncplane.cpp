@@ -622,7 +622,7 @@ TEST_CASE("NCPlane") {
     const char STR2[] = "not to mention dank";
     const char STR3[] = "da chronic lives";
     ncplane_set_styles(n_, NCSTYLE_BOLD);
-    REQUIRE(0 < ncplane_putstr(n_, STR1));
+    REQUIRE(0 < ncplane_putstr_yx(n_, 0, 0, STR1));
     int y, x;
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == ncplane_cursor_move_yx(n_, y + 1, x - strlen(STR2)));
