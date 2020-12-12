@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 2.0.12 (not yet released)
+* 2.0.12 (2020-12-12)
   * `ncplane_resize_maximize()` has been added, suitable for use as a
     `resizecb`. It resizes the plane to the visual area's size, and is
     the resizecb used by the standard plane.
