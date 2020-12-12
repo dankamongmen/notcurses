@@ -669,8 +669,10 @@ ncplane after resizing. 'ylen' must be greater than or equal to 'keepleny',
 and 'xlen' must be greater than or equal to 'keeplenx'. It is an error to
 attempt to resize the standard plane. If either of 'keepleny' or 'keeplenx'
 is non-zero, both must be non-zero.</p>
-</td></tr><tr class='module-item'><td><a class="fn" href="fn.ncplane_resize_realign.html" title='libnotcurses_sys::ffi::ncplane_resize_realign fn'>ncplane_resize_realign</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>Suitable for use as a 'resizecb'. This will realign the plane 'n' against its
-parent, using the alignment specified at ncplane_create()-time.</p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.ncplane_resize_maximize.html" title='libnotcurses_sys::ffi::ncplane_resize_maximize fn'>ncplane_resize_maximize</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>Suitable for use as a 'resizecb', this will resize the plane to the visual
+region's size. It is used for the standard plane.</p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.ncplane_resize_realign.html" title='libnotcurses_sys::ffi::ncplane_resize_realign fn'>ncplane_resize_realign</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>Suitable for use as a 'resizecb'. This will realign the plane 'n' against
+its parent, using the alignment specified at ncplane_create()-time.</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.ncplane_resizecb.html" title='libnotcurses_sys::ffi::ncplane_resizecb fn'>ncplane_resizecb</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>Returns the ncplane's current resize callback.</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.ncplane_rgba.html" title='libnotcurses_sys::ffi::ncplane_rgba fn'>ncplane_rgba</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>Create an RGBA flat array from the selected region of the ncplane 'nc'.
 Start at the plane's 'begy'x'begx' coordinate (which must lie on the
