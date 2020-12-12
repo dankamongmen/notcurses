@@ -515,7 +515,7 @@ TEST_CASE("NCPlane") {
       maxy += 2;
       --x;
       --y;
-      // REQUIRE(0 == ncplane_resize(newp, 1, 1, maxy, maxx, 1, 1, maxy, maxx));
+      REQUIRE(0 == ncplane_resize(newp, 1, 1, maxy - 1, maxx - 1, 1, 1, maxy, maxx));
       // FIXME check dims, pos
     }
     while(y < dimy){
@@ -523,7 +523,7 @@ TEST_CASE("NCPlane") {
       if(y){
         ++y;
       }
-      // REQUIRE(0 == ncplane_resize(newp, 1, 0, maxy, maxx, 1, 0, maxy, maxx));
+      REQUIRE(0 == ncplane_resize(newp, 1, 0, maxy - 1, maxx, 1, 0, maxy, maxx));
       // FIXME check dims, pos
     }
     while(x < dimx){
@@ -531,7 +531,7 @@ TEST_CASE("NCPlane") {
       if(x){
         ++x;
       }
-      // REQUIRE(0 == ncplane_resize(newp, 0, 1, maxy, maxx, 0, 1, maxy, maxx));
+      REQUIRE(0 == ncplane_resize(newp, 0, 1, maxy, maxx - 1, 0, 1, maxy, maxx));
       // FIXME check dims, pos
     }
     REQUIRE(0 == ncplane_resize(newp, 0, 0, 0, 0, 0, 0, dimy, dimx));
