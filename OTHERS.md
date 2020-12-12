@@ -25,6 +25,7 @@
 * [tview](https://github.com/rivo/tview) (Go)
 * [blessings](https://github.com/erikrose/blessings) (Python)
 * [urwid](https://github.com/urwid/urwid) (Python)
+* [terminedia](https://github.com/jsbueno/terminedia) (Python)
 
 ## Declarative
 
