@@ -43,8 +43,9 @@ API void notcurses_version_components(int* major, int* minor, int* patch, int* t
 struct notcurses; // Notcurses state for a given terminal, composed of ncplanes
 struct ncplane;   // a drawable Notcurses surface, composed of cells
 struct ncvisual;  // a visual bit of multimedia opened with LibAV|OIIO
-struct ncuplot;   // a histogram, bound to a plane (uint64_ts)
-struct ncdplot;   // a histogram, bound to a plane (non-negative doubles)
+struct ncuplot;   // uint64_t histogram
+struct ncdplot;   // double histogram
+struct ncprogbar; // progress bar
 struct ncfdplane; // i/o wrapper to dump file descriptor to plane
 struct ncsubproc; // ncfdplane wrapper with subprocess management
 struct ncselector;// widget supporting selecting 1 from a list of options
@@ -3017,6 +3018,59 @@ API bool ncmenu_offer_input(struct ncmenu* n, const struct ncinput* nc);
 
 // Destroy a menu created with ncmenu_create().
 API int ncmenu_destroy(struct ncmenu* n);
+
+// Progress bars. They proceed linearly in any of four directions. The entirety
+// of the plane will be used -- any border should be provided by the caller on
+// another plane. The plane will not be erased; text preloaded into the plane
+// will be consumed by the progress indicator. The bar is redrawn for each
+// provided progress report (a double between 0 and 1), and can regress with
+// lower values. The procession will take place along the longer dimension (at
+// the time of each redraw), with the horizontal length scaled by 2 for
+// purposes of comparison. I.e. for a plane of 20 rows and 50 columns, the
+// progress will be to the right (50 > 40) or left with OPTION_RETROGRADE.
+// If NCPROGBAR_OPTION_LOCK_ORIENTATION is provided, the initial orientation
+// is locked in, despite any resizes. It locks horizontal progression by
+// default; NCPROGBAR_OPTION_FORCE_VERTICAL locks vertical progression. These
+// are recommended if you provide custom EGCs.
+
+#define NCPROGBAR_OPTION_RETROGRADE        0x0001u // proceed left/down
+#define NCPROGBAR_OPTION_LOCK_ORIENTATION  0x0002u // lock in orientation
+#define NCPROGBAR_OPTION_FORCE_VERTICAL    0x0003u // lock in vert
+
+typedef struct ncprogbar_options {
+  // channels for the maximum and minimum points. linear interpolation will be
+  // applied across the domain between these two.
+  uint64_t maxchannels;
+  uint64_t minchannels;
+  // provide NULL for default (geometric) glyphs. otherwise, provide one or
+  // more EGCs to be used for the progress bar. the last EGC provided will be
+  // at the head of the progress. the first will be used for the entirety of
+  // the tail. i.e. "▃▅🭂🭍" might yield "▃▃▃▃▅🭂🭍". note that such a set of EGCs
+  // would not work well for a vertical progress bar.
+  const char egcs;
+  uint64_t flags;
+} ncprogbar_options;
+
+// Takes ownership of the ncplane 'n', which will be destroyed by
+// ncprogbar_destroy(). The progress bar is initially at 0%.
+API struct ncuplot* ncprogbar_create(struct ncplane* n, const ncprogbar_options* opts)
+  __attribute__ ((nonnull (1)));
+
+// Return a reference to the ncprogbar's underlying ncplane.
+API struct ncplane* ncprogbar_plane(struct ncprogbar* n)
+  __attribute__ ((nonnull (1)));
+
+// Set the progress bar's completion, a double 0 <= 'p' <= 1.
+API int ncprogbar_set_progress(struct ncprogbar* n, double p)
+  __attribute__ ((nonnull (1)));
+
+// Get the progress bar's completion, a double on [0, 1].
+API double ncprogbar_progress(const struct ncprogbar* n)
+  __attribute__ ((nonnull (1)));
+
+// Destroy the progress bar and its underlying ncplane.
+API void ncprogbar_destroy(struct ncprogbar* n)
+  __attribute__ ((nonnull (1)));
 
 // Plots. Given a rectilinear area, an ncplot can graph samples along some axis.
 // There is some underlying independent variable--this could be e.g. measurement
