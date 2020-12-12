@@ -68,23 +68,27 @@ typedef struct ncplane {
   // they must thus be translated by any function which moves a parent plane.
   int absx, absy;        // origin of the plane relative to the screen
   int lenx, leny;        // size of the plane, [0..len{x,y}) is addressable
-  // a notcurses context is made up of stacks, each rooted by a plane which is
-  // bound to no other plane. the main stack is rooted by the standard plane,
-  // and is the only stack which is rendered. each stack has its own z-axis.
-  struct ncplane* above; // plane above us, NULL if we're on top
-  struct ncplane* below; // plane below us, NULL if we're on bottom
-  struct ncplane* bnext; // next in the blist iff we're bound, NULL otherwise
-  struct ncplane** bprev;// blist link to us iff we're bound, NULL otherwise
-  struct ncplane* blist; // head of list of bound planes
-  // a root plane is bound to itself. every other plane has a path to its
-  // stack's root via boundto. the standard plane is always bound to itself.
-  struct ncplane* boundto;
   egcpool pool;          // attached storage pool for UTF-8 EGCs
   uint64_t channels;     // works the same way as cells
+
+  // a notcurses context is made up of piles, each rooted by one or more root
+  // planes. each pile has its own (totally ordered) z-axis.
+  struct ncpile* pile;   // pile of which we are a part
+  struct ncplane* above; // plane above us, NULL if we're on top
+  struct ncplane* below; // plane below us, NULL if we're on bottom
+
+  // every plane is bound to some other plane, unless it is a root plane of a
+  // pile. a pile has a set of one or more root planes, all of them siblings.
+  // root planes are bound to themselves. the standard plane is always a root
+  // plane (since it cannot be reparented). a path exists to a root plane.
+  struct ncplane* bnext;  // next in the blist
+  struct ncplane** bprev; // blist link back to us
+  struct ncplane* blist;  // head of list of bound planes
+  struct ncplane* boundto;// plane to which we are bound (ourself for roots)
+
   void* userptr;         // slot for the user to stick some opaque pointer
   int (*resizecb)(struct ncplane*); // callback after parent is resized
   cell basecell;         // cell written anywhere that fb[i].gcluster == 0
-  struct ncpile* pile;   // pile of which we are a part
   char* name;            // used only for debugging
   ncalign_e align;       // relative to parent plane, for automatic realignment
   uint16_t stylemask;    // same deal as in a cell
@@ -351,9 +355,11 @@ typedef struct notcurses {
 
 void sigwinch_handler(int signo);
 
-void init_lang(struct notcurses* nc); // nc may be NULL, only used for logging
+void init_lang(notcurses* nc); // nc may be NULL, only used for logging
 int terminfostr(char** gseq, const char* name);
 int interrogate_terminfo(tinfo* ti);
+
+int resize_callbacks_children(ncplane* n);
 
 // Search the provided multibyte (UTF8) string 's' for the provided unicode
 // codepoint 'cp'. If found, return the column offset of the EGC in which the
@@ -1059,8 +1065,6 @@ int ncinputlayer_init(ncinputlayer* nilayer, FILE* infp);
 
 // FIXME absorb into ncinputlayer_init()
 int cbreak_mode(int ttyfd, const struct termios* tpreserved);
-
-int resize_callbacks_children(ncplane* n);
 
 #ifdef __cplusplus
 }
