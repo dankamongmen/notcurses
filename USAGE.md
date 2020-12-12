@@ -9,7 +9,7 @@ and the project is committed to backwards compatibility.
 * [Planes](#planes) ([Plane Channels API](#plane-channels-api))
 * [Cells](#cells) ([Cell Channels API](#cell-channels-api))
 * [Reels](#reels) ([ncreel Examples](#ncreel-examples))
-* [Widgets](#widgets) ([Plots](#plots)) ([Readers](#readers))
+* [Widgets](#widgets) ([Plots](#plots)) ([Readers](#readers)) ([Progbars](#progbars))
 * [Channels](#channels)
 * [Visuals](#visuals) ([QR codes](#qrcodes)) ([Multimedia](#multimedia)) ([Pixels](#pixels))
 * [Stats](#stats)
@@ -2337,6 +2337,9 @@ xxxxxxxxxxxxxxxx╰─────────────╯xxxxxxxxxxxxxxxxxxx
 
 ### Readers
 
+ncreaders provide freeform input in a (possibly multiline) region, supporting
+optional readline keybindings.
+
 ```c
 typedef struct ncreader_options {
   uint64_t tchannels; // channels used for input
@@ -2344,9 +2347,8 @@ typedef struct ncreader_options {
   bool scroll; // allow more than the physical area's worth of input
 } ncreader_options;
 
-// ncreaders provide freeform input in a (possibly multiline) region, supporting
-// optional readline keybindings. takes ownership of 'n', destroying it on any
-// error (ncreader_destroy() otherwise destroys the ncplane).
+// takes ownership of 'n', destroying it on any error (ncreader_destroy()
+// otherwise destroys the ncplane).
 struct ncreader* ncreader_create(struct ncplane* n, const ncreader_options* opts);
 
 // empty the ncreader of any user input, and home the cursor.
@@ -2365,6 +2367,57 @@ char* ncreader_contents(const struct ncreader* n);
 // destroy the reader and its bound plane(s). if 'contents' is not NULL, the
 // UTF-8 input will be heap-duplicated and written to 'contents'.
 void ncreader_destroy(struct ncreader* n, char** contents);
+```
+
+### Progbars
+
+Progress bars proceed linearly in any of four directions. The entirety of the
+provided plane will be used -- any border should be provided by the caller on
+another plane. The plane will not be erased; text preloaded into the plane
+will be consumed by the progress indicator. The bar is redrawn for each
+provided progress report (a double between 0 and 1), and can regress with
+lower values. The procession will take place along the longer dimension (at
+the time of each redraw), with the horizontal length scaled by 2 for
+purposes of comparison. I.e. for a plane of 20 rows and 50 columns, the
+progress will be to the right (50 > 40) or left with `OPTION_RETROGRADE`.
+If `NCPROGBAR_OPTION_LOCK_ORIENTATION` is provided, the initial orientation
+is locked in, despite any resizes. It locks horizontal progression by
+default; `NCPROGBAR_OPTION_FORCE_VERTICAL` locks vertical progression. These
+are recommended if you provide custom EGCs.
+
+```
+// Takes ownership of the ncplane 'n', which will be destroyed by
+// ncprogbar_destroy(). The progress bar is initially at 0%.
+struct ncuplot* ncprogbar_create(struct ncplane* n, const ncprogbar_options* opts);
+
+// Return a reference to the ncprogbar's underlying ncplane.
+#define NCPROGBAR_OPTION_RETROGRADE        0x0001u // proceed left/down
+#define NCPROGBAR_OPTION_LOCK_ORIENTATION  0x0002u // lock in orientation
+#define NCPROGBAR_OPTION_FORCE_VERTICAL    0x0003u // lock in vert
+
+typedef struct ncprogbar_options {
+  // channels for the maximum and minimum points. linear interpolation will be
+  // applied across the domain between these two.
+  uint64_t maxchannels;
+  uint64_t minchannels;
+  // provide NULL for default (geometric) glyphs. otherwise, provide one or
+  // more EGCs to be used for the progress bar. the last EGC provided will be
+  // at the head of the progress. the first will be used for the entirety of
+  // the tail. i.e. "▃▅🭂🭍" might yield "▃▃▃▃▅🭂🭍". note that such a set of EGCs
+  // would not work well for a vertical progress bar.
+  const char egcs;
+  uint64_t flags;
+} ncprogbar_options;
+struct ncplane* ncprogbar_plane(struct ncprogbar* n);
+
+// Set the progress bar's completion, a double 0 <= 'p' <= 1.
+int ncprogbar_set_progress(struct ncprogbar* n, double p);
+
+// Get the progress bar's completion, a double on [0, 1].
+double ncprogbar_progress(const struct ncprogbar* n);
+
+// Destroy the progress bar and its underlying ncplane.
+void ncprogbar_destroy(struct ncprogbar* n);
 ```
 
 ## Channels
