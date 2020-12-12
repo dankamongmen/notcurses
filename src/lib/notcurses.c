@@ -933,7 +933,7 @@ get_tty_fd(notcurses* nc, FILE* ttyfp){
   if(fd < 0){
     fd = open("/dev/tty", O_RDWR | O_CLOEXEC);
     if(fd < 0){
-      logwarn(nc, "Error opening /dev/tty (%s)\n", strerror(errno));
+      loginfo(nc, "Error opening /dev/tty (%s)\n", strerror(errno));
     }
   }
   return fd;
