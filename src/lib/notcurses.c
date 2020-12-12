@@ -1093,7 +1093,6 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
             shortname_term ? shortname_term : "?",
             longname_term ? longname_term : "?");
   }
-  ret->truecols = dimx;
   if(interrogate_terminfo(&ret->tcache)){
     goto err;
   }

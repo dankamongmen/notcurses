@@ -618,7 +618,7 @@ int fpsgraph_init(struct notcurses* nc){
     .y = dimy - PLOTHEIGHT,
     .x = NCALIGN_CENTER,
     .rows = PLOTHEIGHT,
-    .cols = dimx,
+    .cols = dimx > 80 ? 80 : dimx,
     .userptr = NULL,
     .name = "fps",
     .resizecb = ncplane_resize_realign,

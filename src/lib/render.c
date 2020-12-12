@@ -26,7 +26,6 @@ notcurses_resize_internal(ncplane* pp, int* restrict rows, int* restrict cols){
   if(update_term_dimensions(n->ttyfd, rows, cols)){
     return -1;
   }
-  n->truecols = *cols;
   *rows -= n->margin_t + n->margin_b;
   if(*rows <= 0){
     *rows = 1;
