@@ -136,8 +136,6 @@ auto main(int argc, const char **argv) -> int {
   }
   // if we exited via REQUIRE(), we likely left the terminal in an invalid
   // state. go ahead and reset it manually.
-  if(res){
-    reset_terminal();
-  }
+  reset_terminal();
   return res; // the result from doctest is propagated here as well
 }

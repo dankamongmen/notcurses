@@ -327,6 +327,7 @@ TEST_CASE("Reels") {
       tabs[n] = ncreel_add(nr, nullptr, nullptr, cbfxn, &order[n]);
       REQUIRE(tabs[n]);
       CHECK(tabs[0] == nr->tablets);
+      REQUIRE(nctablet_plane(tabs[n]));
       CHECK_EQ(0, notcurses_render(nc_));
       CHECK(ncreel_validate(nr));
     }
