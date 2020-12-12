@@ -23,6 +23,12 @@
 
 #define ESC "\x1b"
 
+// there does not exist any true standard terminal size. with that said, we
+// need assume *something* for the case where we're not actually attached to
+// a terminal (mainly unit tests, but also daemon environments).
+static const int DEFAULT_ROWS = 24;
+static const int DEFAULT_COLS = 80;
+
 void notcurses_version_components(int* major, int* minor, int* patch, int* tweak){
   *major = NOTCURSES_VERNUM_MAJOR;
   *minor = NOTCURSES_VERNUM_MINOR;
@@ -239,10 +245,12 @@ void ncplane_dim_yx(const ncplane* n, int* rows, int* cols){
 }
 
 // anyone calling this needs ensure the ncplane's framebuffer is updated
-// to reflect changes in geometry.
+// to reflect changes in geometry. also called at startup for standard plane.
 int update_term_dimensions(int fd, int* rows, int* cols){
   // if we're not a real tty, we presumably haven't changed geometry, return
   if(fd < 0){
+    *rows = DEFAULT_ROWS;
+    *cols = DEFAULT_COLS;
     return 0;
   }
   struct winsize ws;
@@ -1063,6 +1071,8 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
       free(ret);
       return NULL;
     }
+  }else{
+    fprintf(stderr, "Defaulting to %dx%d (output is not to a terminal)\n", DEFAULT_ROWS, DEFAULT_COLS);
   }
   if(setup_signals(ret,
                    (opts->flags & NCOPTION_NO_QUIT_SIGHANDLERS),
@@ -1076,14 +1086,8 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     goto err;
   }
   int dimy, dimx;
-  if(ret->ttyfd >= 0){
-    if(update_term_dimensions(ret->ttyfd, &dimy, &dimx)){
-      goto err;
-    }
-  }else{
-    dimy = 24; // fuck it, lol
-    dimx = 80;
-    fprintf(stderr, "Defaulting to %dx%d (output is not to a terminal)\n", dimy, dimx);
+  if(update_term_dimensions(ret->ttyfd, &dimy, &dimx)){
+    goto err;
   }
   ret->suppress_banner = opts->flags & NCOPTION_SUPPRESS_BANNERS;
   char* shortname_term = termname();

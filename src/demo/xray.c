@@ -83,6 +83,7 @@ int xray_demo(struct notcurses* nc){
   struct ncplane_options nopts = {
     .rows = dimy,
     .cols = dimx,
+    .resizecb = ncplane_resize_maximize,
   };
   struct ncplane* n = ncplane_create(notcurses_stdplane(nc), &nopts);
   if(n == NULL){
