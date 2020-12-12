@@ -23,10 +23,10 @@ TEST_CASE("Cell") {
     CHECK(1 == cols);
     bytes = utf8_egc_len(" ி", &cols);
     CHECK(4 == bytes);
-    CHECK(1 == cols);
+    CHECK(2 == cols);
     bytes = utf8_egc_len(" ि", &cols);
     CHECK(4 == bytes);
-    CHECK(1 == cols);
+    CHECK(2 == cols);
     bytes = utf8_egc_len("◌̈", &cols);
     CHECK(5 == bytes);
     CHECK(1 == cols);

@@ -72,7 +72,7 @@ auto main() -> int {
     nstd->get_cursor_yx(&y, &x);
     xmove = xmove < 0 ? -xmove : xmove;
     cptr += xmove;
-fprintf(stderr, "XM: %d diff: %ju %d/%d\n", xmove, (uintmax_t)(cptr - c), y, x);
+//fprintf(stderr, "XM: %d diff: %ju %d/%d\n", xmove, (uintmax_t)(cptr - c), y, x);
     if(cptr - c >= (ptrdiff_t)strlen(c)){
       cptr = c;
     }
