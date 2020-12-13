@@ -76,6 +76,15 @@ int main(void){
     return EXIT_FAILURE;
   }
   ncprogbar_destroy(ncp);
+  ncp = pbar_make(nc, 0);
+  if(ncp == NULL){
+    notcurses_stop(nc);
+    return EXIT_FAILURE;
+  }
+  if(pbar_fill(nc, ncp)){
+    notcurses_stop(nc);
+    return EXIT_FAILURE;
+  }
   notcurses_stop(nc);
   return EXIT_SUCCESS;
 }
