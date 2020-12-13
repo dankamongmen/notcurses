@@ -33,15 +33,15 @@ mathplane(struct notcurses* nc){
   ncplane_set_fg_rgb(n, 0xd4af37); // metallic gold
   ncplane_set_bg_rgb(n, 0x0);
   if(n){
-    ncplane_printf_aligned(n, 0, NCALIGN_RIGHT, "∮E⋅da=Q,n→∞,∑f(i)=∏g(i)╭╭╭       ╮╮╮");
-    ncplane_printf_aligned(n, 1, NCALIGN_RIGHT, "│││ 8πG   │││");
-    ncplane_printf_aligned(n, 2, NCALIGN_RIGHT, "∀x∈ℝ:⌈x⌉=−⌊−x⌋,α∧¬β=¬(¬α∨β)│││ ───Tμν│││");
-    ncplane_printf_aligned(n, 3, NCALIGN_RIGHT, "│││  c⁴   │││");
-    ncplane_printf_aligned(n, 4, NCALIGN_RIGHT, "ℕ⊆ℕ₀⊂ℤ⊂ℚ⊂ℝ⊂ℂ(z̄=ℜ(z)−ℑ(z)⋅𝑖)⎨││       ││⎬");
-    ncplane_printf_aligned(n, 5, NCALIGN_RIGHT, "│││ ∞     │││");
-    ncplane_printf_aligned(n, 6, NCALIGN_RIGHT, "⊥<a≠b≡c≤d≪⊤⇒(⟦A⟧⇔⟪B⟫)│││ ⎲     │││");
-    ncplane_printf_aligned(n, 7, NCALIGN_RIGHT, "│││ ⎳aⁱ-bⁱ│││");
-    ncplane_printf_aligned(n, 8, NCALIGN_RIGHT, "2H₂+O₂⇌2H₂O,R=4.7kΩ,⌀200µm╰╰╰i=1    ╯╯╯");
+    ncplane_printf_aligned(n, 0, NCALIGN_RIGHT, "∮E⋅da=Q,n→∞,∑f(i)=∏g(i)⎧⎡⎛       ⎞⎤⎫");
+    ncplane_printf_aligned(n, 1, NCALIGN_RIGHT, "⎪⎢⎜ 8πG   ⎟⎥⎪");
+    ncplane_printf_aligned(n, 2, NCALIGN_RIGHT, "∀x∈ℝ:⌈x⌉=−⌊−x⌋,α∧¬β=¬(¬α∨β)⎪⎢⎜ ───Tμν⎟⎥⎪");
+    ncplane_printf_aligned(n, 3, NCALIGN_RIGHT, "⎪⎢⎜  c⁴   ⎟⎥⎪");
+    ncplane_printf_aligned(n, 4, NCALIGN_RIGHT, "ℕ⊆ℕ₀⊂ℤ⊂ℚ⊂ℝ⊂ℂ(z̄=ℜ(z)−ℑ(z)⋅𝑖)⎨⎢⎜       ⎟⎥⎬");
+    ncplane_printf_aligned(n, 5, NCALIGN_RIGHT, "⎪⎢⎜ ∞     ⎟⎥⎪");
+    ncplane_printf_aligned(n, 6, NCALIGN_RIGHT, "⊥<a≠b≡c≤d≪⊤⇒(⟦A⟧⇔⟪B⟫)⎪⎢⎜ ⎲     ⎟⎥⎪");
+    ncplane_printf_aligned(n, 7, NCALIGN_RIGHT, "⎪⎢⎜ ⎳aⁱ-bⁱ⎟⎥⎪");
+    ncplane_printf_aligned(n, 8, NCALIGN_RIGHT, "2H₂+O₂⇌2H₂O,R=4.7kΩ,⌀200µm⎩⎣⎝i=1    ⎠⎦⎭");
   }
   return n;
 }

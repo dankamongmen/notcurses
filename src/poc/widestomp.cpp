@@ -12,8 +12,8 @@ constexpr auto DELAY = 1;
 // dump two wide glyphs, then create a new plane and drop it atop them
 
 auto stomper(NotCurses& nc, std::shared_ptr<Plane>& nn) -> int {
+  // should knock out both wide glyphs
   nn->move(0, 1);
-
   nc.render();
   sleep(DELAY);
 
