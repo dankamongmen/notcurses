@@ -10,7 +10,7 @@ fader(struct notcurses* nc, struct ncplane* ncp, void* curry){
   int startx = (cols - (centercols - 2)) / 2;
   for(int x = startx ; x < startx + centercols - 2 ; ++x){
     ncplane_set_fg_rgb8(ncp, 0xd0, 0xf0, 0xd0);
-    if(ncplane_putwc_yx(ncp, rows - 11, x, x % 2 == *flipmode % 2 ? L'◪' : L'◩') <= 0){
+    if(ncplane_putwc_yx(ncp, rows - 10, x, x % 2 == *flipmode % 2 ? L'◪' : L'◩') <= 0){
       return -1;
     }
   }

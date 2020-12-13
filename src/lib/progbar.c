@@ -27,32 +27,43 @@ progbar_redraw(ncprogbar* n){
   int dimy, dimx;
   ncplane_dim_yx(ncprogbar_plane(n), &dimy, &dimx);
   const bool horizontal = dimx > dimy;
-  int range, delt;
+  int range, delt, pos;
   if(horizontal){
     range = dimx;
-    delt = -1;
+    delt = 1;
+    pos = 0;
   }else{
     range = dimy;
     delt = -1;
+    pos = range - 1;
   }
   ncplane_set_channels(ncprogbar_plane(n), n->channels);
   double progress = n->progress * range;
   if(n->retrograde){
-    progress = range - progress;
     delt *= -1;
-  }
-//fprintf(stderr, "progress: %g range: %d delt: %d\n", progress, range, delt);
-  while(progress > 0 && progress < range){
+    if(pos){
+      pos = 0;
+    }else{
+      pos = range - 1;
+    }
     if(horizontal){
-      if(ncplane_putegc_yx(ncprogbar_plane(n), 0, progress, "█", NULL) <= 0){
+      progress = range - progress;
+    }
+  }else if(!horizontal){
+    progress = range - progress;
+  }
+  while((delt < 0 && pos > progress) || (delt > 0 && pos < progress)){
+//fprintf(stderr, "progress: %g pos: %d range: %d delt: %d\n", progress, pos, range, delt);
+    if(horizontal){
+      if(ncplane_putegc_yx(ncprogbar_plane(n), 0, pos, "█", NULL) <= 0){
         return -1;
       }
     }else{
-      if(ncplane_putegc_yx(ncprogbar_plane(n), range - progress, 0, "█", NULL) <= 0){
+      if(ncplane_putegc_yx(ncprogbar_plane(n), pos, 0, "█", NULL) <= 0){
         return -1;
       }
     }
-    progress += delt;
+    pos += delt;
   }
   return 0;
 }
