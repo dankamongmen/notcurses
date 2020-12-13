@@ -123,9 +123,7 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
   ncplane_dim_yx(vopts->n, &oldy, &oldx);
   uint64_t absnow = timespec_to_ns(abstime);
   char32_t keyp;
-  bool gotinput;
-  do{
-    gotinput = false;
+  for( ; ; ){
     struct timespec interval;
     clock_gettime(CLOCK_MONOTONIC, &interval);
     uint64_t nsnow = timespec_to_ns(&interval);
@@ -138,7 +136,6 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
     if(keyp == (char32_t)-1){
       break;
     }
-    gotinput = true;
     if(keyp == ' '){
       if((keyp = nc.getc(true)) == (char32_t)-1){
         return -1;
@@ -168,7 +165,7 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
       continue;
     }
     return 1;
-  }while(gotinput);
+  }
   return 0;
 }
 
