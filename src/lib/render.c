@@ -303,6 +303,7 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
           cell_set_wide(targc);
           crender->p = p;
         }
+        targc->width = vis->width;
       }
 
       // Background color takes effect independently of whether we have a
@@ -609,9 +610,6 @@ static const char* const NUMBERS[] = {
 
 static inline int
 term_esc_rgb(FILE* out, bool foreground, unsigned r, unsigned g, unsigned b){
-  assert(r < 256);
-  assert(g < 256);
-  assert(b < 256);
   // The correct way to do this is using tiparm+tputs, but doing so (at least
   // as of terminfo 6.1.20191019) both emits ~3% more bytes for a run of 'rgb'
   // and gives rise to some inaccurate colors (possibly due to special handling
@@ -916,15 +914,12 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
           nc->rstate.defaultelidable = false;
           nc->rstate.bgpalelidable = false;
         }
-//fprintf(stderr, "RAST %08x [%s] to %d/%d %016lx\n", srccell->gcluster, pool_extended_gcluster(&nc->pool, srccell), y, x, srccell->channels);
+//fprintf(stderr, "RAST %08x [%s] to %d/%d cols: %u %016lx\n", srccell->gcluster, pool_extended_gcluster(&nc->pool, srccell), y, x, srccell->width + 1, srccell->channels);
         if(term_putc(out, &nc->pool, srccell)){
           return -1;
         }
-        ++nc->rstate.x;
-        if(cell_wide_left_p(srccell)){
-          ++nc->rstate.x;
-          ++x;
-        }
+        nc->rstate.x += srccell->width + 1;
+        x += srccell->width;
       }
 //fprintf(stderr, "damageidx: %ld\n", damageidx);
     }

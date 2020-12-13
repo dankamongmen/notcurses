@@ -586,8 +586,6 @@ pool_extended_gcluster(const egcpool* pool, const cell* c){
 
 static inline cell*
 ncplane_cell_ref_yx(ncplane* n, int y, int x){
-  assert(y < n->leny);
-  assert(x < n->lenx);
   return &n->fb[nfbcellidx(n, y, x)];
 }
 
@@ -652,11 +650,11 @@ cell_duplicate_far(egcpool* tpool, cell* targ, const ncplane* splane, const cell
   pool_release(tpool, targ);
   targ->stylemask = c->stylemask;
   targ->channels = c->channels;
+  targ->width = c->width;
   if(cell_simple_p(c)){
     targ->gcluster = c->gcluster;
     return 0;
   }
-  assert(splane);
   const char* egc = cell_extended_gcluster(splane, c);
   // FIXME we could eliminate this strlen() with a cell_extended_gcluster_len()
   // that returned the length, combined with O(1) length for inlined EGCs...
@@ -742,10 +740,6 @@ int ncvisual_bounding_box(const struct ncvisual* ncv, int* leny, int* lenx,
 static int
 calc_gradient_component(unsigned tl, unsigned tr, unsigned bl, unsigned br,
                         int y, int x, int ylen, int xlen){
-  assert(y >= 0);
-  assert(y < ylen);
-  assert(x >= 0);
-  assert(x < xlen);
   const int avm = (ylen - 1) - y;
   const int ahm = (xlen - 1) - x;
   if(xlen < 2){
@@ -988,6 +982,7 @@ pool_blit_direct(egcpool* pool, cell* c, const char* gcluster, int bytes, int co
 static inline int
 pool_load_direct(egcpool* pool, cell* c, const char* gcluster, int bytes, int cols){
   char* rtl = NULL;
+  c->width = cols - 1;
   if(cols < 2){
     c->channels &= ~CELL_WIDEASIAN_MASK;
     if(bytes == 3 && memcmp(gcluster, "\xe2\x96\x88", 4) == 0){
