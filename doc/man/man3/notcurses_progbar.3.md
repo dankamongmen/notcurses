@@ -11,6 +11,8 @@ notcurses_progbar - high level widget for progress bars
 **#include <notcurses/notcurses.h>**
 
 ```c
+struct ncprogbar;
+
 #define NCPROGBAR_OPTION_RETROGRADE        0x0001u // proceed left/down
 #define NCPROGBAR_OPTION_LOCK_ORIENTATION  0x0002u // lock in orientation
 #define NCPROGBAR_OPTION_FORCE_VERTICAL    0x0003u // lock in vert
@@ -23,7 +25,7 @@ typedef struct ncprogbar_options {
 } ncprogbar_options;
 ```
 
-**struct ncuplot* ncprogbar_create(struct ncplane* ***n***, const ncprogbar_options* ***opts***)**
+**struct ncprogbar* ncprogbar_create(struct ncplane* ***n***, const ncprogbar_options* ***opts***)**
 
 **struct ncplane* ncprogbar_plane(struct ncprogbar* ***n***)**
 
