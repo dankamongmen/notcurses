@@ -491,7 +491,7 @@
 <span class="doccomment">/// NcCell: 128 bits structure comprised of the following 5 elements:</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// GCLUSTER GCLUSTER GCLUSTER GCLUSTER  1. NcEgc</span>
-<span class="doccomment">/// 00000000 ~~~~~~~~ 11111111 11111111  2. NcEgcBackstop + 3. reserved + 4. NcStyleMask</span>
+<span class="doccomment">/// 00000000 ~~~~~~~~ 11111111 11111111  2. NcEgcBackstop + 3. width + 4. NcStyleMask</span>
 <span class="doccomment">/// ~~AA~~~~ RRRRRRRR GGGGGGGG BBBBBBBB  5. NcChannelPair</span>
 <span class="doccomment">/// ~~AA~~~~ RRRRRRRR GGGGGGGG BBBBBBBB  |</span>
 <span class="doccomment">///</span>
@@ -506,7 +506,7 @@
 <span class="doccomment">/// 2. (8b) Backstop (zero)</span>
 <span class="doccomment">/// 00000000</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// 3. (8b) reserved (ought to be zero)</span>
+<span class="doccomment">/// 3. (8b) width (biased 1)</span>
 <span class="doccomment">/// ~~~~~~~~</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// 4. (16b) NcStyleMask</span>
