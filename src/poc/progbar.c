@@ -16,7 +16,7 @@ pbar_fill(struct notcurses* nc, struct ncprogbar* pbar){
   const uint64_t deadline = startns + delay;
   do{
     uint64_t curns = ts_to_ns(&cur);
-    if(ncprogbar_set_progress(pbar, (curns - startns) / delay)){
+    if(ncprogbar_set_progress(pbar, (curns - startns) / (double)delay)){
       return -1;
     }
     notcurses_render(nc);

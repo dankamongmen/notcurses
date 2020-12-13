@@ -115,8 +115,7 @@ check_gradient_channel_args(uint32_t ul, uint32_t ur, uint32_t bl, uint32_t br){
 // - all foregrounds must have the same alpha
 // - all backgrounds must have the same alpha
 // - palette-indexed color must not be used
-static bool
-check_gradient_args(uint64_t ul, uint64_t ur, uint64_t bl, uint64_t br){
+bool check_gradient_args(uint64_t ul, uint64_t ur, uint64_t bl, uint64_t br){
   if(check_gradient_channel_args(channels_fchannel(ul), channels_fchannel(ur),
                                  channels_fchannel(bl), channels_fchannel(br))){
     return true;

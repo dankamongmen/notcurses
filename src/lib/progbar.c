@@ -9,6 +9,10 @@ ncprogbar* ncprogbar_create(ncplane* n, const ncprogbar_options* opts){
     default_opts.maxchannels = CHANNELS_RGB_INITIALIZER(0xe0, 0xee, 0xe0, 0, 0, 0);
     opts = &default_opts;
   }
+  if(check_gradient_args(opts->minchannels, opts->maxchannels, opts->minchannels, opts->maxchannels)){
+    logerror(ncplane_notcurses(n), "Illegal progbar colors\n");
+    return NULL;
+  }
   if(opts->flags > (NCPROGBAR_OPTION_FORCE_VERTICAL << 1u)){
     logwarn(ncplane_notcurses(n), "Invalid flags %016lx\n", opts->flags);
   }
@@ -55,13 +59,24 @@ progbar_redraw(ncprogbar* n){
   }else{ // PROGRESS_HORIZ
     direction = n->retrograde ? DIR_LEFT : DIR_RIGHT;
   }
-  int range;
-  if(direction == DIR_UP || direction == DIR_DOWN){
-    range = dimy;
-  }else{
+  const bool horizontal = (direction == DIR_LEFT || direction == DIR_RIGHT);
+  int delt, range;
+  if(horizontal){
     range = dimx;
+    delt = n->retrograde ? 1 : -1;
+  }else{
+    range = dimy;
+    delt = n->retrograde ? -1 : 1;
   }
-  // FIXME
+  double progress = n->progress * range;
+  if(n->retrograde){
+    progress = range - progress;
+  }
+  while(progress > 0 && progress < range){
+    // FIXME lerp min->max
+    ncplane_putchar_yx(ncprogbar_plane(n), 0, progress, 'X');
+    progress += delt;
+  }
   return 0;
 }
 
