@@ -59,7 +59,9 @@ progbar_redraw(ncprogbar* n){
   }
   while(progress > 0 && progress < range){
     // FIXME lerp min->max
-    ncplane_putchar_yx(ncprogbar_plane(n), 0, progress, 'X');
+    if(ncplane_putegc_yx(ncprogbar_plane(n), 0, progress, "█", NULL) <= 0){
+      return -1;
+    }
     progress += delt;
   }
   return 0;

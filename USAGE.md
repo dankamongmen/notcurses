@@ -2380,10 +2380,6 @@ lower values. The procession will take place along the longer dimension (at
 the time of each redraw), with the horizontal length scaled by 2 for
 purposes of comparison. I.e. for a plane of 20 rows and 50 columns, the
 progress will be to the right (50 > 40) or left with `OPTION_RETROGRADE`.
-If `NCPROGBAR_OPTION_LOCK_ORIENTATION` is provided, the initial orientation
-is locked in, despite any resizes. It locks horizontal progression by
-default; `NCPROGBAR_OPTION_FORCE_VERTICAL` locks vertical progression. These
-are recommended if you provide custom EGCs.
 
 ```
 // Takes ownership of the ncplane 'n', which will be destroyed by
@@ -2392,22 +2388,15 @@ struct ncprogbar* ncprogbar_create(struct ncplane* n, const ncprogbar_options* o
 
 // Return a reference to the ncprogbar's underlying ncplane.
 #define NCPROGBAR_OPTION_RETROGRADE        0x0001u // proceed left/down
-#define NCPROGBAR_OPTION_LOCK_ORIENTATION  0x0002u // lock in orientation
-#define NCPROGBAR_OPTION_FORCE_VERTICAL    0x0003u // lock in vert
 
 typedef struct ncprogbar_options {
   // channels for the maximum and minimum points. linear interpolation will be
   // applied across the domain between these two.
   uint64_t maxchannels;
   uint64_t minchannels;
-  // provide NULL for default (geometric) glyphs. otherwise, provide one or
-  // more EGCs to be used for the progress bar. the last EGC provided will be
-  // at the head of the progress. the first will be used for the entirety of
-  // the tail. i.e. "▃▅🭂🭍" might yield "▃▃▃▃▅🭂🭍". note that such a set of EGCs
-  // would not work well for a vertical progress bar.
-  const char egcs;
   uint64_t flags;
 } ncprogbar_options;
+
 struct ncplane* ncprogbar_plane(struct ncprogbar* n);
 
 // Set the progress bar's completion, a double 0 <= 'p' <= 1.
