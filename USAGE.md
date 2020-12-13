@@ -1790,7 +1790,7 @@ cells_load_box(struct ncplane* n, uint32_t style, uint64_t channels,
       if((ulen = cell_prime(n, ll, gclusters += ulen, style, channels)) > 0){
         if((ulen = cell_prime(n, lr, gclusters += ulen, style, channels)) > 0){
           if((ulen = cell_prime(n, hl, gclusters += ulen, style, channels)) > 0){
-            if((ulen = cell_prime(n, vl, gclusters += ulen, style, channels)) > 0){
+            if(cell_prime(n, vl, gclusters + ulen, style, channels) > 0){
               return 0;
             }
             cell_release(n, hl);

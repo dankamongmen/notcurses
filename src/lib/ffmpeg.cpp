@@ -267,7 +267,7 @@ ncvisual* ncvisual_from_file(const char* filename) {
       goto err;
     }
     // FIXME do we need avcodec_parameters_to_context() here?
-    if((averr = avcodec_open2(ncv->details.subtcodecctx, ncv->details.subtcodec, nullptr)) < 0){
+    if(avcodec_open2(ncv->details.subtcodecctx, ncv->details.subtcodec, nullptr) < 0){
       //fprintf(stderr, "Couldn't open codec for %s (%s)\n", filename, av_err2str(*averr));
       goto err;
     }
@@ -296,7 +296,7 @@ ncvisual* ncvisual_from_file(const char* filename) {
   if(avcodec_parameters_to_context(ncv->details.codecctx, st->codecpar) < 0){
     goto err;
   }
-  if((averr = avcodec_open2(ncv->details.codecctx, ncv->details.codec, nullptr)) < 0){
+  if(avcodec_open2(ncv->details.codecctx, ncv->details.codec, nullptr) < 0){
     //fprintf(stderr, "Couldn't open codec for %s (%s)\n", filename, av_err2str(*averr));
     goto err;
   }

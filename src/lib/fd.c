@@ -35,7 +35,6 @@ fdthread(ncfdplane* ncfp, int pidfd){
   struct pollfd pfds[2];
   memset(pfds, 0, sizeof(pfds));
   char* buf = malloc(BUFSIZ + 1);
-  int pevents;
   pfds[0].fd = ncfp->fd;
   pfds[0].events = NCPOLLEVENTS;
   const int fdcount = pidfd < 0 ? 1 : 2;
@@ -44,7 +43,7 @@ fdthread(ncfdplane* ncfp, int pidfd){
     pfds[1].events = NCPOLLEVENTS;
   }
   ssize_t r = 0;
-  while((pevents = poll(pfds, fdcount, -1)) >= 0 || errno == EINTR){
+  while(poll(pfds, fdcount, -1) >= 0 || errno == EINTR){
     if(pfds[0].revents){
       while((r = read(ncfp->fd, buf, BUFSIZ)) >= 0){
         if(r == 0){
