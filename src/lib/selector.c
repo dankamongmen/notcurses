@@ -247,8 +247,9 @@ ncselector* ncselector_create(ncplane* n, const ncselector_options* opts){
   }
   ncselector* ns = malloc(sizeof(*ns));
   if(ns == NULL){
-    goto freeitems;
+    return NULL;
   }
+  memset(ns, 0, sizeof(*ns));
   if(opts->defidx && opts->defidx >= itemcount){
     goto freeitems;
   }
@@ -842,6 +843,10 @@ ncmultiselector* ncmultiselector_create(ncplane* n, const ncmultiselector_option
     }
   }
   ncmultiselector* ns = malloc(sizeof(*ns));
+  if(ns == NULL){
+    return NULL;
+  }
+  memset(ns, 0, sizeof(*ns));
   ns->title = opts->title ? strdup(opts->title) : NULL;
   ns->titlecols = opts->title ? ncstrwidth(opts->title) : 0;
   ns->secondary = opts->secondary ? strdup(opts->secondary) : NULL;
