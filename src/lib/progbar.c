@@ -71,12 +71,16 @@ progbar_redraw(ncprogbar* n){
     const wchar_t egc = egcs[chunk >= eachcell ? 7 : (int)(chunk / (eachcell / 8))];
 //fprintf(stderr, "egc: %lc progress: %g pos: %d range: %d delt: %d chunk: %g\n", egc, progress, pos, range, delt, chunk);
     if(horizontal){
-      if(ncplane_putwc_yx(ncprogbar_plane(n), 0, pos, egc) <= 0){
-        return -1;
+      for(int freepos = 0 ; freepos < dimy ; ++freepos){
+        if(ncplane_putwc_yx(ncprogbar_plane(n), freepos, pos, egc) <= 0){
+          return -1;
+        }
       }
     }else{
-      if(ncplane_putwc_yx(ncprogbar_plane(n), pos, 0, egc) <= 0){
-        return -1;
+      for(int freepos = 0 ; freepos < dimx ; ++freepos){
+        if(ncplane_putwc_yx(ncprogbar_plane(n), pos, freepos, egc) <= 0){
+          return -1;
+        }
       }
     }
     pos += delt;
