@@ -543,8 +543,8 @@ bool is_linux_console(const notcurses* nc, unsigned no_font_changes){
   if(nc->ttyfd < 0){
     return false;
   }
-  int mode, r;
-  if( (r = ioctl(nc->ttyfd, KDGETMODE, &mode)) ){
+  int mode;
+  if(ioctl(nc->ttyfd, KDGETMODE, &mode)){
     logdebug(nc, "Not a Linux console, KDGETMODE failed\n");
     return false;
   }

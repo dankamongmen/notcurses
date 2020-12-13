@@ -54,14 +54,6 @@ notcurses_resize_internal(ncplane* pp, int* restrict rows, int* restrict cols){
   }
   pile->dimy = *rows;
   pile->dimx = *cols;
-  int keepy = *rows;
-  if(keepy > oldrows){
-    keepy = oldrows;
-  }
-  int keepx = *cols;
-  if(keepx > oldcols){
-    keepx = oldcols;
-  }
   int ret = 0;
 //notcurses_debug(n, stderr);
   for(ncplane* rootn = pile->roots ; rootn ; rootn = rootn->bnext){

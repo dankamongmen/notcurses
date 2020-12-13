@@ -388,8 +388,7 @@ ncinputlayer_prestamp(ncinputlayer* nc, const struct timespec *ts,
     return handle_queued_input(nc, ni, leftmargin, topmargin);
   }
   errno = 0;
-  int events;
-  if((events = block_on_input(nc->ttyinfp, ts, sigmask)) > 0){
+  if(block_on_input(nc->ttyinfp, ts, sigmask) > 0){
 //fprintf(stderr, "%d events from input!\n", events);
     return handle_ncinput(nc, ni, leftmargin, topmargin, sigmask);
   }
