@@ -425,6 +425,7 @@ to breaking under incorrect `TERM` values. If you're not using `xterm`, your
 
 ### History
 
+* 2020-12-13: Notcurses [2.1.0 "rubberband man"](https://github.com/dankamongmen/notcurses/releases/tag/v2.1.0).
 * 2020-11-23: [Invited presentation](https://mdco2.mini.debconf.org/talks/6-notcurses-making-terminals-do-things-that-were-never-intended/) at [DebMiniConf #2](https://mdco2.mini.debconf.org/).
 * 2020-10-12: Notcurses [2.0.0 "stankonia"](https://github.com/dankamongmen/notcurses/releases/tag/v2.0.0).
   * A stable API! This API will be supported going forward. [Hype video](https://www.youtube.com/watch?v=cYhZ7myXyyg)!
