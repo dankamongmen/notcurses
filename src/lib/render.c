@@ -294,16 +294,18 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
             }else{
               cell_set_wide(targc);
               targc->stylemask = vis->stylemask;
+              targc->width = vis->width;
             }
           }else{
             targc->stylemask = vis->stylemask;
+            targc->width = vis->width;
           }
           crender->p = p;
         }else if(cell_wide_right_p(vis)){
           cell_set_wide(targc);
           crender->p = p;
+          targc->width = vis->width;
         }
-        targc->width = vis->width;
       }
 
       // Background color takes effect independently of whether we have a
