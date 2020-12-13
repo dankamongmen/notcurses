@@ -3037,12 +3037,6 @@ typedef struct ncprogbar_options {
   // and max must either be RGB, or both default, and alphas must match.
   uint64_t maxchannels;
   uint64_t minchannels;
-  // provide NULL for default (geometric) glyphs. otherwise, provide one or
-  // more EGCs to be used for the progress bar. the last EGC provided will be
-  // at the head of the progress. the first will be used for the entirety of
-  // the tail. i.e. "▃▅🭂🭍" might yield "▃▃▃▃▅🭂🭍". note that such a set of EGCs
-  // would not work well for a vertical progress bar.
-  const char egcs;
   uint64_t flags;
 } ncprogbar_options;
 

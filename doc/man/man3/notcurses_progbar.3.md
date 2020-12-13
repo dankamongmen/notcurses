@@ -18,7 +18,6 @@ struct ncprogbar;
 typedef struct ncprogbar_options {
   uint64_t maxchannels;
   uint64_t minchannels;
-  const char egcs;
   uint64_t flags;
 } ncprogbar_options;
 ```
