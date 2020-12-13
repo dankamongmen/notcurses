@@ -65,11 +65,11 @@ typedef struct ncplane_options {
 
 **const struct ncplane* ncplane_parent_const(const struct ncplane* ***n***);**
 
-**int ncplane_set_base_cell(struct ncplane* ***ncp***, const cell* ***c***);**
+**int ncplane_set_base_cell(struct ncplane* ***ncp***, const nccell* ***c***);**
 
 **int ncplane_set_base(struct ncplane* ***ncp***, const char* ***egc***, uint32_t ***stylemask***, uint64_t ***channels***);**
 
-**int ncplane_base(struct ncplane* ***ncp***, cell* ***c***);**
+**int ncplane_base(struct ncplane* ***ncp***, nccell* ***c***);**
 
 **int ncplane_move_top(struct ncplane* ***n***);**
 
@@ -85,11 +85,11 @@ typedef struct ncplane_options {
 
 **char* ncplane_at_cursor(struct ncplane* ***n***, uint16_t* ***stylemask***, uint64_t* ***channels***);**
 
-**int ncplane_at_cursor_cell(struct ncplane* ***n***, cell* ***c***);**
+**int ncplane_at_cursor_cell(struct ncplane* ***n***, nccell* ***c***);**
 
 **char* ncplane_at_yx(const struct ncplane* ***n***, int ***y***, int ***x***, uint16_t* ***stylemask***, uint64_t* ***channels***);**
 
-**int ncplane_at_yx_cell(struct ncplane* ***n***, int ***y***, int ***x***, cell* ***c***);**
+**int ncplane_at_yx_cell(struct ncplane* ***n***, int ***y***, int ***x***, nccell* ***c***);**
 
 **uint32_t* ncplane_rgba(const struct ncplane* ***nc***, int ***begy***, int ***begx***, int ***leny***, int ***lenx***);**
 
@@ -189,11 +189,11 @@ typedef struct ncplane_options {
 
 Ncplanes are the fundamental drawing object of notcurses. All output functions
 take a **struct ncplane** as an argument. They can be any size, and placed
-anywhere. In addition to its framebuffer--a rectilinear matrix of cells
-(see **notcurses_cell(3)**)--an ncplane is defined by:
+anywhere. In addition to its framebuffer--a rectilinear matrix of **nccell**s
+(see **notcurses_nccell(3)**)--an ncplane is defined by:
 
-* a base cell, used for any cell on the plane without a glyph,
-* the egcpool backing its cells,
+* a base **nccell**, used for any cell on the plane without a glyph,
+* the egcpool backing its **nccell**s,
 * a current cursor location,
 * a current style, foreground channel, and background channel,
 * its geometry,
@@ -315,10 +315,10 @@ respectively, of the pile containing their argument. **notcurses_top** and
 **notcurses_bottom** do the same for the standard pile.
 
 **ncplane_at_yx** and **ncplane_at_cursor** return a heap-allocated copy of the
-EGC at the relevant cell, or NULL if the cell is invalid. The caller should free
+EGC at the relevant cell, or **NULL** if the cell is invalid. The caller should free
 this result. **ncplane_at_yx_cell** and **ncplane_at_cursor_cell** instead load
 these values into a **cell**, which is invalidated if the associated plane is
-destroyed. The caller should release this cell with **cell_release**.
+destroyed. The caller should release this **nccell** with **cell_release**.
 
 Functions returning **int** return 0 on success, and non-zero on error.
 
@@ -331,5 +331,5 @@ It should not be used in new code.
 
 # SEE ALSO
 
-**notcurses(3)**, **notcurses_cell(3)**, **notcurses_output(3)**,
+**notcurses(3)**, **notcurses_nccell(3)**, **notcurses_output(3)**,
 **notcurses_stdplane(3)**

@@ -146,8 +146,8 @@ int fallin_demo(struct notcurses* nc){
             ncplane_resize_simple(n, newy, newx);
             continue;
           }
-          cell c = CELL_TRIVIAL_INITIALIZER;
-          cell stdc = CELL_TRIVIAL_INITIALIZER;
+          nccell c = CELL_TRIVIAL_INITIALIZER;
+          nccell stdc = CELL_TRIVIAL_INITIALIZER;
           if(ncplane_at_yx_cell(stdn, usey, usex, &stdc) < 0){
             goto err;
           }

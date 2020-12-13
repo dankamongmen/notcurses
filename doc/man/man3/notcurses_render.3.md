@@ -25,8 +25,8 @@ notcurses_render - sync the physical display to the virtual ncplanes
 # DESCRIPTION
 
 Rendering reduces a pile of **ncplane**s to a single plane, proceeding from the
-top to the bottom along a pile's z-axis. The result is a matrix of **cell**s
-(see **notcurses_cell**). Rasterizing takes this matrix, together with the
+top to the bottom along a pile's z-axis. The result is a matrix of **nccell**s
+(see **notcurses_nccell**). Rasterizing takes this matrix, together with the
 current state of the visual area, and produces a stream of optimized control
 sequences and EGCs for the terminal. By writing this stream to the terminal,
 the physical display is synced to some pile's planes.
@@ -115,7 +115,7 @@ purposes of color blending.
 # SEE ALSO
 
 **notcurses(3)**,
-**notcurses_cell(3)**,
+**notcurses_nccell(3)**,
 **notcurses_input(3)**,
 **notcurses_output(3)**,
 **notcurses_plane(3)**,

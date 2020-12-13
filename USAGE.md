@@ -52,7 +52,7 @@ const char* notcurses_version(void);
 // library we loaded, not what we compile against.
 void notcurses_version_components(int* major, int* minor, int* patch, int* tweak);
 
-struct cell;      // a coordinate on an ncplane: an EGC plus styling
+struct nccell;    // a coordinate on an ncplane: an EGC plus styling
 struct ncplane;   // a drawable Notcurses surface, composed of cells
 struct notcurses; // Notcurses state for a given terminal, composed of ncplanes
 
@@ -629,11 +629,11 @@ Fundamental to Notcurses is a z-buffer of rectilinear virtual screens, known
 as `ncplane`s. An `ncplane` can be larger than the physical screen, or smaller,
 or the same size; it can be entirely contained within the physical screen, or
 overlap in part, or lie wholly beyond the boundaries, never to be rendered.
-In addition to its framebuffer--a rectilinear matrix of cells
+In addition to its framebuffer--a rectilinear matrix of `nccell`s
 (see [Cells](#cells))--an `ncplane` is defined by:
 
-* a base cell, used for any cell on the plane without a glyph,
-* the egcpool backing its cells,
+* a base `nccell`, used for any cell on the plane without a glyph,
+* the egcpool backing its `nccell`s,
 * a current cursor location,
 * a current style, foreground channel, and background channel,
 * its geometry,
@@ -643,7 +643,7 @@ In addition to its framebuffer--a rectilinear matrix of cells
 * an optional resize callback,
 * a name (used only for debugging).
 
-If opaque, a `cell` on a higher `ncplane` completely obstructs a corresponding
+If opaque, a `nccell` on a higher `ncplane` completely obstructs a corresponding
 `cell` from a lower `ncplane` from being seen. An `ncplane` corresponds loosely
 to an [NCURSES Panel](https://invisible-island.net/ncurses/ncurses-intro.html#panels),
 but is the primary drawing surface of notcurses—there is no object
@@ -847,7 +847,7 @@ void ncplane_off_styles(struct ncplane* n, unsigned stylebits);
 // Set the ncplane's base cell to this cell. It will be used for purposes of
 // rendering anywhere that the ncplane's gcluster is 0. Erasing the ncplane
 // does not reset the base cell; this function must be called with a zero 'c'.
-int ncplane_set_base_cell(struct ncplane* ncp, const cell* c);
+int ncplane_set_base_cell(struct ncplane* ncp, const nccell* c);
 
 // Set the ncplane's base cell to this cell. It will be used for purposes of
 // rendering anywhere that the ncplane's gcluster is 0. Erasing the ncplane
@@ -858,7 +858,7 @@ int ncplane_set_base(struct ncplane* ncp, const char* egc,
 
 // Extract the ncplane's base cell into 'c'. The reference is invalidated if
 // 'ncp' is destroyed.
-int ncplane_base(struct ncplane* ncp, cell* c);
+int ncplane_base(struct ncplane* ncp, nccell* c);
 ```
 
 `ncplane`s are completely ordered along an imaginary z-axis. Newly-created
@@ -904,7 +904,7 @@ char* ncplane_at_cursor(struct ncplane* n, uint16_t* styles, uint64_t* channels)
 
 // Retrieve the current contents of the cell under the cursor into 'c'. This
 // cell is invalidated if the associated plane is destroyed.
-int ncplane_at_cursor_cell(struct ncplane* n, cell* c);
+int ncplane_at_cursor_cell(struct ncplane* n, nccell* c);
 
 // Retrieve the current contents of the specified cell. The EGC is returned, or
 // NULL on error. This EGC must be free()d by the caller. The styles and
@@ -914,7 +914,7 @@ char* ncplane_at_yx(const struct ncplane* n, int y, int x,
 
 // Retrieve the current contents of the specified cell into 'c'. This cell is
 // invalidated if the associated plane is destroyed.
-int ncplane_at_yx_cell(struct ncplane* n, int y, int x, cell* c);
+int ncplane_at_yx_cell(struct ncplane* n, int y, int x, nccell* c);
 
 // Create an RGBA flat array from the selected region of the ncplane 'nc'.
 // Start at the plane's 'begy'x'begx' coordinate (which must lie on the
@@ -953,20 +953,20 @@ void ncplane_cursor_yx(const struct ncplane* n, int* restrict y, int* restrict x
 // and advance the cursor by the width of the cell (but not past the end of the
 // plane). On success, returns the number of columns the cursor was advanced.
 // On failure, -1 is returned.
-int ncplane_putc_yx(struct ncplane* n, int y, int x, const cell* c);
+int ncplane_putc_yx(struct ncplane* n, int y, int x, const nccell* c);
 
 // Call ncplane_putc_yx() for the current cursor location.
 static inline int
-ncplane_putc(struct ncplane* n, const cell* c){
+ncplane_putc(struct ncplane* n, const nccell* c){
   return ncplane_putc_yx(n, -1, -1, c);
 }
 
-// Replace the cell at the specified coordinates with the provided 7-bit char
+// Replace the nccell at the specified coordinates with the provided 7-bit char
 // 'c'. Advance the cursor by 1. On success, returns 1. On failure, returns -1.
 // This works whether the underlying char is signed or unsigned.
 static inline int
 ncplane_putchar_yx(struct ncplane* n, int y, int x, char c){
-  cell ce = CELL_INITIALIZER(c, ncplane_attr(n), ncplane_channels(n));
+  nccell ce = CELL_INITIALIZER(c, ncplane_attr(n), ncplane_channels(n));
   return ncplane_putc_yx(n, y, x, &ce);
 }
 
@@ -980,7 +980,7 @@ ncplane_putchar(struct ncplane* n, char c){
 // of the plane will not be changed.
 int ncplane_putchar_stained(struct ncplane* n, char c);
 
-// Replace the cell at the specified coordinates with the provided wide char
+// Replace the nccell at the specified coordinates with the provided wide char
 // 'w'. Advance the cursor by the character's width as reported by wcwidth().
 // On success, returns 1. On failure, returns -1.
 static inline int
@@ -1196,19 +1196,19 @@ on both sides. Boxes allow fairly detailed specification of how they're drawn.
 // lines), just as if ncplane_putc() was called at that spot. Return the
 // number of cells drawn on success. On error, return the negative number of
 // cells drawn.
-int ncplane_hline_interp(struct ncplane* n, const cell* c, int len,
+int ncplane_hline_interp(struct ncplane* n, const nccell* c, int len,
                          uint64_t c1, uint64_t c2);
 
 static inline int
-ncplane_hline(struct ncplane* n, const cell* c, int len){
+ncplane_hline(struct ncplane* n, const nccell* c, int len){
   return ncplane_hline_interp(n, c, len, c->channels, c->channels);
 }
 
-int ncplane_vline_interp(struct ncplane* n, const cell* c, int len,
+int ncplane_vline_interp(struct ncplane* n, const nccell* c, int len,
                          uint64_t c1, uint64_t c2);
 
 static inline int
-ncplane_vline(struct ncplane* n, const cell* c, int len){
+ncplane_vline(struct ncplane* n, const nccell* c, int len){
   return ncplane_vline_interp(n, c, len, c->channels, c->channels);
 }
 
@@ -1242,17 +1242,17 @@ ncplane_vline(struct ncplane* n, const cell* c, int len){
 #define NCBOXCORNER_MASK 0x0300
 #define NCBOXCORNER_SHIFT 8u
 
-int ncplane_box(struct ncplane* n, const cell* ul, const cell* ur,
-                const cell* ll, const cell* lr, const cell* hline,
+int ncplane_box(struct ncplane* n, const nccell* ul, const nccell* ur,
+                const nccell* ll, const nccell* lr, const nccell* hline,
                 const cell* vline, int ystop, int xstop, unsigned ctlword);
 
 // Draw a box with its upper-left corner at the current cursor position, having
 // dimensions 'ylen'x'xlen'. See ncplane_box() for more information. The
 // minimum box size is 2x2, and it cannot be drawn off-screen.
 static inline int
-ncplane_box_sized(struct ncplane* n, const cell* ul, const cell* ur,
-                  const cell* ll, const cell* lr, const cell* hline,
-                  const cell* vline, int ylen, int xlen, unsigned ctlword){
+ncplane_box_sized(struct ncplane* n, const nccell* ul, const nccell* ur,
+                  const nccell* ll, const nccell* lr, const nccell* hline,
+                  const nccell* vline, int ylen, int xlen, unsigned ctlword){
   int y, x;
   ncplane_cursor_yx(n, &y, &x);
   return ncplane_box(n, ul, ur, ll, lr, hline, vline, y + ylen - 1,
@@ -1260,9 +1260,9 @@ ncplane_box_sized(struct ncplane* n, const cell* ul, const cell* ur,
 }
 
 static inline int
-ncplane_perimeter(struct ncplane* n, const cell* ul, const cell* ur,
-                  const cell* ll, const cell* lr, const cell* hline,
-                  const cell* vline, unsigned ctlword){
+ncplane_perimeter(struct ncplane* n, const nccell* ul, const nccell* ur,
+                  const nccell* ll, const nccell* lr, const nccell* hline,
+                  const nccell* vline, unsigned ctlword){
   if(ncplane_cursor_move_yx(n, 0, 0)){
     return -1;
   }
@@ -1275,9 +1275,9 @@ static inline int
 ncplane_rounded_box(struct ncplane* n, uint32_t attr, uint64_t channels,
                     int ystop, int xstop, unsigned ctlword){
   int ret = 0;
-  cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
-  cell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
-  cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
+  nccell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
+  nccell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
+  nccell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
   if((ret = cells_rounded_box(n, attr, channels, &ul, &ur, &ll, &lr, &hl, &vl)) == 0){
     ret = ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, ystop, xstop, ctlword);
   }
@@ -1300,9 +1300,9 @@ static inline int
 ncplane_double_box(struct ncplane* n, uint32_t attr, uint64_t channels,
                    int ystop, int xstop, unsigned ctlword){
   int ret = 0;
-  cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
-  cell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
-  cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
+  nccell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
+  nccell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
+  nccell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
   if((ret = cells_double_box(n, attr, channels, &ul, &ur, &ll, &lr, &hl, &vl)) == 0){
     ret = ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, ystop, xstop, ctlword);
   }
@@ -1330,7 +1330,7 @@ Similarly, areas can be filled with a cell.
 // target. We do the same to all cardinally-connected cells having this same
 // fill target. Returns the number of cells polyfilled. An invalid initial y, x
 // is an error. Returns the number of cells filled, or -1 on error.
-int ncplane_polyfill_yx(struct ncplane* n, int y, int x, const cell* c);
+int ncplane_polyfill_yx(struct ncplane* n, int y, int x, const nccell* c);
 
 // Draw a gradient with its upper-left corner at the current cursor position,
 // stopping at 'ystop'x'xstop'. The glyph composed of 'egc' and 'styles' is
@@ -1545,15 +1545,16 @@ int ncplane_set_bg_palindex(struct ncplane* n, int idx);
 
 ## Cells
 
-Unlike the `notcurses` or `ncplane` objects, the definition of `cell` is
+Unlike the `notcurses` or `ncplane` objects, the definition of `nccell` is
 available to the user. It is somewhat ironic, then, that the user typically
-needn't (and shouldn't) use `cell`s directly. Use a `cell` when the EGC being
-output is used several times. In this case, time otherwise spent running
+needn't (and shouldn't) use `nccell`s directly. Use an `nccell` when the EGC
+being output is used several times. In this case, time otherwise spent running
 `cell_load()` (which tokenizes and verifies EGCs) can be saved. It can also be
-useful to use a `cell` when the same styling is used in a discontinuous manner.
+useful to use an `ncell` when the same styling is used in a discontinuous
+manner.
 
 ```c
-// A cell corresponds to a single character cell on some plane, which can be
+// An nccell corresponds to a single character cell on some plane, which can be
 // occupied by a single grapheme cluster (some root spacing glyph, along with
 // possible combining characters, which might span multiple columns). At any
 // cell, we can have a theoretically arbitrarily long UTF-8 string, a foreground
@@ -1567,7 +1568,7 @@ useful to use a `cell` when the same styling is used in a discontinuous manner.
 //
 // Multi-column characters can only have a single style/color throughout.
 //
-// Each cell occupies 16 static bytes (128 bits). The surface is thus ~1.6MB
+// Each nccell occupies 16 static bytes (128 bits). The surface is thus ~1.6MB
 // for a (pretty large) 500x200 terminal. At 80x43, it's less than 64KB.
 // Dynamic requirements can add up to 16MB to an ncplane, but such large pools
 // are unlikely in common use.
@@ -1589,9 +1590,9 @@ useful to use a `cell` when the same styling is used in a discontinuous manner.
 // meaningfully set transparency, but it can be mixed into a cascading color.
 // RGB is used if neither default terminal colors nor palette indexing are in
 // play, and fully supports all transparency options.
-typedef struct cell {
+typedef struct nccell {
   // These 32 bits, together with the associated plane's associated egcpool,
-  // completely define this cell's EGC. Unless the EGC requires more than four
+  // completely define this nccell's EGC. Unless the EGC requires more than four
   // bytes to encode as UTF-8, it will be inlined here. If more than four bytes
   // are required, it will be spilled into the egcpool. In either case, there's
   // a NUL-terminated string available without copying, because (1) the egcpool
@@ -1605,7 +1606,7 @@ typedef struct cell {
   // index into the egcpool. These pools may thus be up to 16MB.
   //
   // The cost of this scheme is that the character 0x01 (SOH) cannot be encoded
-  // in a cell, which is absolutely fine because what 70s horseshit is SOH? It
+  // in a nccell, which is absolutely fine because what 70s horseshit is SOH? It
   // must not be allowed through the API, or havoc will result.
   uint32_t gcluster;          // 4B → 4B
   uint8_t gcluster_backstop;  // 1B → 5B (8 bits of zero)
@@ -1630,7 +1631,7 @@ typedef struct cell {
   // best explained by color(3NCURSES). ours is the same concept. until the
   // "not default color" bit is set, any color you load will be ignored.
   uint64_t channels;          // + 8B == 16B
-} cell;
+} nccell;
 
 #define CELL_WIDEASIAN_MASK     0x8000000000000000ull
 #define CELL_BGDEFAULT_MASK     0x0000000040000000ull
@@ -1646,9 +1647,9 @@ typedef struct cell {
 #define CELL_ALPHA_OPAQUE       0x00000000ull
 ```
 
-`cell`s must be initialized with an initialization macro or `cell_init()`
+`nccell`s must be initialized with an initialization macro or `cell_init()`
 before any other use. `cell_init()` and `CELL_TRIVIAL_INITIALIZER` both
-simply zero out the `cell`.
+simply zero out the `nccell`.
 
 ```c
 #define CELL_TRIVIAL_INITIALIZER { }
@@ -1656,18 +1657,18 @@ simply zero out the `cell`.
 #define CELL_INITIALIZER(c, s, chan) { .gcluster = (c), .gcluster_backstop = 0, .reserved = 0, .stylemask = (s), .channels = (chan), }
 
 static inline void
-cell_init(cell* c){
+cell_init(nccell* c){
   memset(c, 0, sizeof(*c));
 }
 ```
 
-A `cell` has three fundamental elements:
+An `nccell` has three fundamental elements:
 
 * The EGC displayed at this coordinate, encoded in UTF-8. If the EGC is a
   single ASCII character (value less than 0x80), it is stored inline in
-  the `cell`'s `gcluster` field. Otherwise, `gcluster`'s top 24 bits
+  the `nccell`'s `gcluster` field. Otherwise, `gcluster`'s top 24 bits
   are a 128-biased offset into the associated `ncplane`'s egcpool. This
-  implies that `cell`s are associated with `ncplane`s once prepared.
+  implies that `nccell`s are associated with `ncplane`s once prepared.
 * The Curses-style attributes of the text.
 * The 52 bits of foreground and background RGBA (2x8/8/8/2), plus a few flags.
 
@@ -1675,19 +1676,19 @@ The EGC should be loaded using `cell_load()`. Either a single NUL-terminated
 EGC can be provided, or a string composed of multiple EGCs. In the latter case,
 the first EGC from the string is loaded. Remember, backing storage for the EGC
 is provided by the `ncplane` passed to `cell_load()`; if this `ncplane` is
-destroyed (or even erased), the `cell` cannot safely be used. If you're done
-using the `cell` before being done with the `ncplane`, call `cell_release()`
+destroyed (or even erased), the `nccell` cannot safely be used. If you're done
+using the `nccell` before being done with the `ncplane`, call `cell_release()`
 to free up the EGC resources.
 
 ```c
-// Breaks the UTF-8 string in 'gcluster' down, setting up the cell 'c'. Returns
-// the number of bytes copied out of 'gcluster', or -1 on failure. The styling
-// of the cell is left untouched, but any resources are released.
-int cell_load(struct ncplane* n, cell* c, const char* gcluster);
+// Breaks the UTF-8 string in 'gcluster' down, setting up the nccell 'c'.
+// Returns the number of bytes copied out of 'gcluster', or -1 on failure. The
+// styling of the cell is left untouched, but any resources are released.
+int cell_load(struct ncplane* n, nccell* c, const char* gcluster);
 
 // cell_load(), plus blast the styling with 'attr' and 'channels'.
 static inline int
-cell_prime(struct ncplane* n, cell* c, const char* gcluster,
+cell_prime(struct ncplane* n, nccell* c, const char* gcluster,
            uint32_t stylemask, uint64_t channels){
   c->stylemask = stylemask;
   c->channels = channels;
@@ -1697,10 +1698,10 @@ cell_prime(struct ncplane* n, cell* c, const char* gcluster,
 
 // Duplicate 'c' into 'targ'. Not intended for external use; exposed for the
 // benefit of unit tests.
-int cell_duplicate(struct ncplane* n, cell* targ, const cell* c);
+int cell_duplicate(struct ncplane* n, nccell* targ, const cell* c);
 
 // Release resources held by the cell 'c'.
-void cell_release(struct ncplane* n, cell* c);
+void cell_release(struct ncplane* n, nccell* c);
 
 #define NCSTYLE_MASK      0x03fful
 #define NCSTYLE_STANDOUT  0x0080ul
@@ -1717,45 +1718,45 @@ void cell_release(struct ncplane* n, cell* c);
 // copy the UTF8-encoded EGC out of the cell, whether simple or complex. the
 // result is not tied to the ncplane, and persists across erases / destruction.
 static inline char*
-cell_strdup(const struct ncplane* n, const cell* c){
+cell_strdup(const struct ncplane* n, const nccell* c){
   return strdup(cell_extended_gcluster(n, c));
 }
 
 // Set the specified style bits for the cell 'c', whether they're actively
 // supported or not. Only the lower 16 bits are meaningful.
 static inline void
-cell_styles_set(cell* c, unsigned stylebits){
+cell_styles_set(nccell* c, unsigned stylebits){
   c->stylemask = stylebits & NCSTYLE_MASK;
 }
 
 // Extract the style bits from the cell.
 static inline unsigned
-cell_styles(const cell* c){
+cell_styles(const nccell* c){
   return c->stylemask;
 }
 
 // Add the specified styles (in the LSBs) to the cell's existing spec, whether
 // they're actively supported or not.
 static inline void
-cell_on_styles(cell* c, unsigned stylebits){
+cell_on_styles(nccell* c, unsigned stylebits){
   c->stylemask |= (stylebits & NCSTYLE_MASK);
 }
 
 // Remove the specified styles (in the LSBs) from the cell's existing spec.
 static inline void
-cell_off_styles(cell* c, unsigned stylebits){
+cell_off_styles(nccell* c, unsigned stylebits){
   c->stylemask &= ~(stylebits & NCSTYLE_MASK);
 }
 
 // does the cell contain an East Asian Wide codepoint?
 static inline bool
-cell_double_wide_p(const cell* c){
+cell_double_wide_p(const nccell* c){
   return (c->channels & CELL_WIDEASIAN_MASK);
 }
 
 // Load a 7-bit char 'ch' into the cell 'c'.
 static inline int
-cell_load_char(struct ncplane* n, cell* c, char ch){
+cell_load_char(struct ncplane* n, nccell* c, char ch){
   cell_release(n, c);
   c->channels &= ~(CELL_WIDEASIAN_MASK | CELL_NOBACKGROUND_MASK);
   c->gcluster = ch;
@@ -1764,7 +1765,7 @@ cell_load_char(struct ncplane* n, cell* c, char ch){
 
 // Load a UTF-8 encoded EGC of up to 4 bytes into the cell 'c'.
 static inline int
-cell_load_egc32(struct ncplane* n, cell* c, uint32_t egc){
+cell_load_egc32(struct ncplane* n, nccell* c, uint32_t egc){
   cell_release(n, c);
   c->channels &= ~(CELL_WIDEASIAN_MASK | CELL_NOBACKGROUND_MASK);
   c->gcluster = htole(egc);
@@ -1773,7 +1774,7 @@ cell_load_egc32(struct ncplane* n, cell* c, uint32_t egc){
 
 // return a pointer to the NUL-terminated EGC referenced by 'c'. this pointer
 // is invalidated by any further operation on the plane 'n', so...watch out!
-const char* cell_extended_gcluster(const struct ncplane* n, const cell* c);
+const char* cell_extended_gcluster(const struct ncplane* n, const nccell* c);
 
 // load up six cells with the EGCs necessary to draw a box. returns 0 on
 // success, -1 on error. on error, any cells this function might
@@ -1781,8 +1782,8 @@ const char* cell_extended_gcluster(const struct ncplane* n, const cell* c);
 // six EGCs in gcluster.
 static inline int
 cells_load_box(struct ncplane* n, uint32_t style, uint64_t channels,
-               cell* ul, cell* ur, cell* ll, cell* lr,
-               cell* hl, cell* vl, const char* gclusters){
+               nccell* ul, nccell* ur, nccell* ll, nccell* lr,
+               nccell* hl, nccell* vl, const char* gclusters){
   int ulen;
   if((ulen = cell_prime(n, ul, gclusters, style, channels)) > 0){
     if((ulen = cell_prime(n, ur, gclusters += ulen, style, channels)) > 0){
@@ -1808,122 +1809,122 @@ cells_load_box(struct ncplane* n, uint32_t style, uint64_t channels,
 
 static inline int
 cells_rounded_box(struct ncplane* n, uint32_t attr, uint64_t channels,
-                  cell* ul, cell* ur, cell* ll, cell* lr, cell* hl, cell* vl){
+                  nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
   return cells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, "╭╮╰╯─│");
 }
 
 static inline int
 cells_double_box(struct ncplane* n, uint32_t attr, uint64_t channels,
-                 cell* ul, cell* ur, cell* ll, cell* lr, cell* hl, cell* vl){
+                 nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
   return cells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, "╔╗╚╝═║");
 }
 ```
 
 ### Cell channels API
 
-Helpers are provided to manipulate a `cell`'s `channels` member. They are all
-implemented in terms of the lower-level [Channels API](#channels).
+Helpers are provided to manipulate an `nccell`'s `channels` member. They are
+all implemented in terms of the lower-level [Channels API](#channels).
 
 ```c
 // Extract the 32-bit background channel from a cell.
 static inline uint32_t
-cell_bchannel(const cell* cl){
+cell_bchannel(const nccell* cl){
   return channels_bchannel(cl->channels);
 }
 
 // Extract the 32-bit foreground channel from a cell.
 static inline uint32_t
-cell_fchannel(const cell* cl){
+cell_fchannel(const nccell* cl){
   return channels_fchannel(cl->channels);
 }
 
-// Extract 24 bits of foreground RGB from 'cell', shifted to LSBs.
+// Extract 24 bits of foreground RGB from 'cl', shifted to LSBs.
 static inline uint32_t
-cell_fg_rgb(const cell* cl){
+cell_fg_rgb(const nccell* cl){
   return channels_fg_rgb(cl->channels);
 }
 
-// Extract 24 bits of background RGB from 'cell', shifted to LSBs.
+// Extract 24 bits of background RGB from 'cl', shifted to LSBs.
 static inline uint32_t
-cell_bg_rgb(const cell* cl){
+cell_bg_rgb(const nccell* cl){
   return channels_bg_rgb(cl->channels);
 }
 
-// Extract 2 bits of foreground alpha from 'cell', shifted to LSBs.
+// Extract 2 bits of foreground alpha from 'cl', shifted to LSBs.
 static inline unsigned
-cell_fg_alpha(const cell* cl){
+cell_fg_alpha(const nccell* cl){
   return channels_fg_alpha(cl->channels);
 }
 
-// Extract 2 bits of background alpha from 'cell', shifted to LSBs.
+// Extract 2 bits of background alpha from 'cl', shifted to LSBs.
 static inline unsigned
-cell_bg_alpha(const cell* cl){
+cell_bg_alpha(const nccell* cl){
   return channels_bg_alpha(cl->channels);
 }
 
-// Extract 24 bits of foreground RGB from 'cell', split into subcell.
+// Extract 24 bits of foreground RGB from 'cl', split into subcell.
 static inline uint32_t
-cell_fg_rgb8(const cell* cl, unsigned* r, unsigned* g, unsigned* b){
+cell_fg_rgb8(const nccell* cl, unsigned* r, unsigned* g, unsigned* b){
   return channels_fg_rgb8(cl->channels, r, g, b);
 }
 
-// Extract 24 bits of background RGB from 'cell', split into subcell.
+// Extract 24 bits of background RGB from 'cl', split into subcell.
 static inline uint32_t
-cell_bg_rgb8(const cell* cl, unsigned* r, unsigned* g, unsigned* b){
+cell_bg_rgb8(const nccell* cl, unsigned* r, unsigned* g, unsigned* b){
   return channels_bg_rgb8(cl->channels, r, g, b);
 }
 
 // Set the r, g, and b cell for the foreground component of this 64-bit
 // 'cell' variable, and mark it as not using the default color.
 static inline int
-cell_set_fg_rgb8(cell* cl, int r, int g, int b){
+cell_set_fg_rgb8(nccell* cl, int r, int g, int b){
   return channels_set_fg_rgb8(&cl->channels, r, g, b);
 }
 
 // Same, but clipped to [0..255].
 static inline void
-cell_set_fg_rgb8_clipped(cell* cl, int r, int g, int b){
+cell_set_fg_rgb8_clipped(nccell* cl, int r, int g, int b){
   channels_set_fg_rgb8_clipped(&cl->channels, r, g, b);
 }
 
 // Same, but with an assembled 24-bit RGB value.
 static inline int
-cell_set_fg_rgb(cell* c, uint32_t channel){
+cell_set_fg_rgb(nccell* c, uint32_t channel){
   return channels_set_fg_rgb(&c->channels, channel);
 }
 
 // Set the r, g, and b cell for the background component of this 64-bit
 // 'cell' variable, and mark it as not using the default color.
 static inline int
-cell_set_bg_rgb8(cell* cl, int r, int g, int b){
+cell_set_bg_rgb8(nccell* cl, int r, int g, int b){
   return channels_set_bg_rgb8(&cl->channels, r, g, b);
 }
 
 // Same, but clipped to [0..255].
 static inline void
-cell_set_bg_rgb8_clipped(cell* cl, int r, int g, int b){
+cell_set_bg_rgb8_clipped(nccell* cl, int r, int g, int b){
   channels_set_bg_rgb8_clipped(&cl->channels, r, g, b);
 }
 
 // Same, but with an assembled 24-bit RGB value.
 static inline int
-cell_set_bg_rgb(cell* c, uint32_t channel){
+cell_set_bg_rgb(nccell* c, uint32_t channel){
   return channels_set_bg_rgb(&c->channels, channel);
 }
 
 static inline int
-cell_set_fg_alpha(cell* c, unsigned alpha){
+cell_set_fg_alpha(nccell* c, unsigned alpha){
   return channels_set_fg_alpha(&c->channels, alpha);
 }
 
 static inline int
-cell_set_bg_alpha(cell* c, unsigned alpha){
+cell_set_bg_alpha(nccell* c, unsigned alpha){
   return channels_set_bg_alpha(&c->channels, alpha);
 }
 
 // Is the foreground using the "default foreground color"?
 static inline bool
-cell_fg_default_p(const cell* cl){
+cell_fg_default_p(const nccell* cl){
   return channels_fg_default_p(cl->channels);
 }
 
@@ -1931,19 +1932,19 @@ cell_fg_default_p(const cell* cl){
 // background color" must generally be used to take advantage of
 // terminal-effected transparency.
 static inline bool
-cell_bg_default_p(const cell* cl){
+cell_bg_default_p(const nccell* cl){
   return channels_bg_default_p(cl->channels);
 }
 
 // Use the default color for the foreground.
 static inline void
-cell_set_fg_default(cell* c){
+cell_set_fg_default(nccell* c){
   channels_set_fg_default(&c->channels);
 }
 
 // Use the default color for the background.
 static inline void
-cell_set_bg_default(cell* c){
+cell_set_bg_default(nccell* c){
   channels_set_bg_default(&c->channels);
 }
 
@@ -2373,13 +2374,13 @@ additionally provides 2 bits of alpha channel, a bit for selecting terminal
 default colors, and a bit to indicate whether it describes a Wide East Asian
 character. The remaining four bits are reserved. Typically two channels are
 bound together in a 64-bit unsigned integer (`uint64_t`), with eight bits
-currently going unused. There is such a double-channel in every `cell` and
+currently going unused. There is such a double-channel in every `nccell` and
 `ncplane` object.
 
-Usually, the higher-level `ncplane` and `cell` functionality ought be used. It
+Usually, the higher-level `ncplane` and `nccell` functionality ought be used. It
 will sometimes be necessary, however, to muck with channels at their lowest
 level. The channel API facilitates such muckery. All channel-related `ncplane`
-and `cell` functionality is implemented in terms of this API.
+and `nccell` functionality is implemented in terms of this API.
 
 ```c
 // Extract the 8-bit red component from a 32-bit channel.
@@ -2626,6 +2627,7 @@ graphics) plane using a variety of blitting methods:
 * Unicode upper- and lower-half blocks (▀ and ▄, respectively). 2:1 pixels
   map losslessly to 2:1 cells. The default blitting mode.
 * Unicode half blocks plus quadrants. 2x2 pixels map to 2:1 cells.
+* Unicode sextants. 3x2 pixels map to 2:1 cells.
 * Braille. 4:2 pixels map to 2:1 cells. Useful when only two colors are needed
   in a small area, due to high resolution.
 

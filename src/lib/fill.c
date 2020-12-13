@@ -3,7 +3,7 @@
 void ncplane_greyscale(ncplane *n){
   for(int y = 0 ; y < n->leny ; ++y){
     for(int x = 0 ; x < n->lenx ; ++x){
-      cell* c = &n->fb[nfbcellidx(n, y, x)];
+      nccell* c = &n->fb[nfbcellidx(n, y, x)];
       unsigned r, g, b;
       cell_fg_rgb8(c, &r, &g, &b);
       int gy = rgb_greyscale(r, g, b);
@@ -20,14 +20,14 @@ void ncplane_greyscale(ncplane *n){
 // success. so a return of 0 means there's no work to be done here, and N means
 // we did some work here, filling everything we could reach. out-of-plane is 0.
 static int
-ncplane_polyfill_recurse(ncplane* n, int y, int x, const cell* c, const char* filltarg){
+ncplane_polyfill_recurse(ncplane* n, int y, int x, const nccell* c, const char* filltarg){
   if(y >= n->leny || x >= n->lenx){
     return 0; // not fillable
   }
   if(y < 0 || x < 0){
     return 0; // not fillable
   }
-  cell* cur = &n->fb[nfbcellidx(n, y, x)];
+  nccell* cur = &n->fb[nfbcellidx(n, y, x)];
   const char* glust = cell_extended_gcluster(n, cur);
 //fprintf(stderr, "checking %d/%d (%s) for [%s]\n", y, x, glust, filltarg);
   if(strcmp(glust, filltarg)){
@@ -58,7 +58,7 @@ ncplane_polyfill_recurse(ncplane* n, int y, int x, const cell* c, const char* fi
 }
 
 // at the initial step only, invalid y, x is an error, so explicitly check.
-int ncplane_polyfill_yx(ncplane* n, int y, int x, const cell* c){
+int ncplane_polyfill_yx(ncplane* n, int y, int x, const nccell* c){
   int ret = -1;
   if(y < n->leny && x < n->lenx){
     if(y >= 0 && x >= 0){
@@ -68,7 +68,7 @@ int ncplane_polyfill_yx(ncplane* n, int y, int x, const cell* c){
       if(y < 0 || x < 0){
         return -1; // not fillable
       }
-      const cell* cur = &n->fb[nfbcellidx(n, y, x)];
+      const nccell* cur = &n->fb[nfbcellidx(n, y, x)];
       const char* targ = cell_extended_gcluster(n, cur);
       const char* fillegc = cell_extended_gcluster(n, c);
 //fprintf(stderr, "checking %d/%d (%s) for [%s]\n", y, x, targ, fillegc);
@@ -131,7 +131,7 @@ check_gradient_args(uint64_t ul, uint64_t ur, uint64_t bl, uint64_t br){
 // calculate both channels of a gradient at a particular point, knowing that
 // we're using double halfblocks, into `c`->channels.
 static inline void
-calc_highgradient(cell* c, uint32_t ul, uint32_t ur, uint32_t ll,
+calc_highgradient(nccell* c, uint32_t ul, uint32_t ur, uint32_t ll,
                   uint32_t lr, int y, int x, int ylen, int xlen){
   if(!channel_default_p(ul)){
     cell_set_fchannel(c, calc_gradient_channel(ul, ur, ll, lr,
@@ -176,7 +176,7 @@ int ncplane_highgradient(ncplane* n, uint32_t ul, uint32_t ur,
   int total = 0;
   for(int y = yoff ; y <= ystop ; ++y){
     for(int x = xoff ; x <= xstop ; ++x){
-      cell* targc = ncplane_cell_ref_yx(n, y, x);
+      nccell* targc = ncplane_cell_ref_yx(n, y, x);
       targc->channels = 0;
       if(cell_load(n, targc, "▀") < 0){
         return -1;
@@ -249,7 +249,7 @@ int ncplane_gradient(ncplane* n, const char* egc, uint32_t stylemask,
   int total = 0;
   for(int y = yoff ; y <= ystop ; ++y){
     for(int x = xoff ; x <= xstop ; ++x){
-      cell* targc = ncplane_cell_ref_yx(n, y, x);
+      nccell* targc = ncplane_cell_ref_yx(n, y, x);
       targc->channels = 0;
       if(cell_load(n, targc, egc) < 0){
         return -1;
@@ -291,7 +291,7 @@ int ncplane_stain(ncplane* n, int ystop, int xstop,
   int total = 0;
   for(int y = yoff ; y <= ystop ; ++y){
     for(int x = xoff ; x <= xstop ; ++x){
-      cell* targc = ncplane_cell_ref_yx(n, y, x);
+      nccell* targc = ncplane_cell_ref_yx(n, y, x);
       if(targc->gcluster){
         calc_gradient_channels(&targc->channels, tl, tr, bl, br,
                                y - yoff, x - xoff, ylen, xlen);
@@ -320,7 +320,7 @@ int ncplane_format(ncplane* n, int ystop, int xstop, uint32_t stylemask){
   int total = 0;
   for(int y = yoff ; y < ystop + 1 ; ++y){
     for(int x = xoff ; x < xstop + 1 ; ++x){
-      cell* targc = ncplane_cell_ref_yx(n, y, x);
+      nccell* targc = ncplane_cell_ref_yx(n, y, x);
       targc->stylemask = stylemask;
       ++total;
     }
@@ -331,7 +331,7 @@ int ncplane_format(ncplane* n, int ystop, int xstop, uint32_t stylemask){
 // if we're a half block, reverse the channels. if we're a space, set both to
 // the background. if we're a full block, set both to the foreground.
 static int
-rotate_channels(ncplane* src, const cell* c, uint32_t* fchan, uint32_t* bchan){
+rotate_channels(ncplane* src, const nccell* c, uint32_t* fchan, uint32_t* bchan){
   const char* egc = cell_extended_gcluster(src, c);
   if(egc[0] == ' ' || egc[0] == 0){
     *fchan = *bchan;
@@ -392,8 +392,8 @@ rotate_output(ncplane* dst, uint32_t tchan, uint32_t bchan){
 //   lower?) having the two channels as fore- and background.
 static int
 rotate_2x1_cw(ncplane* src, ncplane* dst, int srcy, int srcx, int dsty, int dstx){
-  cell c1 = CELL_TRIVIAL_INITIALIZER;
-  cell c2 = CELL_TRIVIAL_INITIALIZER;
+  nccell c1 = CELL_TRIVIAL_INITIALIZER;
+  nccell c2 = CELL_TRIVIAL_INITIALIZER;
   if(ncplane_at_yx_cell(src, srcy, srcx, &c1) < 0){
     return -1;
   }
@@ -433,8 +433,8 @@ rotate_2x1_cw(ncplane* src, ncplane* dst, int srcy, int srcx, int dsty, int dstx
 
 static int
 rotate_2x1_ccw(ncplane* src, ncplane* dst, int srcy, int srcx, int dsty, int dstx){
-  cell c1 = CELL_TRIVIAL_INITIALIZER;
-  cell c2 = CELL_TRIVIAL_INITIALIZER;
+  nccell c1 = CELL_TRIVIAL_INITIALIZER;
+  nccell c2 = CELL_TRIVIAL_INITIALIZER;
   if(ncplane_at_yx_cell(src, srcy, srcx, &c1) < 0){
     return -1;
   }
@@ -464,8 +464,8 @@ rotate_merge(ncplane* n, ncplane* newp){
   if(ret == 0){
     for(int y = 0 ; y < dimy ; ++y){
       for(int x = 0 ; x < dimx ; ++x){
-        const cell* src = &newp->fb[fbcellidx(y, dimx, x)];
-        cell* targ = &n->fb[fbcellidx(y, dimx, x)];
+        const nccell* src = &newp->fb[fbcellidx(y, dimx, x)];
+        nccell* targ = &n->fb[fbcellidx(y, dimx, x)];
         if(cell_duplicate_far(&n->pool, targ, newp, src) < 0){
           return -1;
         }

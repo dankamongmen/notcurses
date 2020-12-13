@@ -162,9 +162,9 @@ about_toggle(struct notcurses* nc){
     ncplane_printf_aligned(n, 4, NCALIGN_RIGHT, "restart Ctrl+R  ");
     ncplane_printf_aligned(n, 5, NCALIGN_CENTER, "q quit");
     ncplane_putstr_aligned(n, 7, NCALIGN_CENTER, "\u00a9 nick black <nickblack@linux.com>");
-    cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
-    cell lr = CELL_TRIVIAL_INITIALIZER, ll = CELL_TRIVIAL_INITIALIZER;
-    cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
+    nccell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
+    nccell lr = CELL_TRIVIAL_INITIALIZER, ll = CELL_TRIVIAL_INITIALIZER;
+    nccell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
     channels = 0;
     channels_set_fg_rgb(&channels, 0xc020c0);
     channels_set_bg_rgb(&channels, 0);
@@ -319,9 +319,9 @@ struct ncmenu* menu_create(struct notcurses* nc){
 static int
 hud_refresh(struct ncplane* n){
   ncplane_erase(n);
-  cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
-  cell lr = CELL_TRIVIAL_INITIALIZER, ll = CELL_TRIVIAL_INITIALIZER;
-  cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
+  nccell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
+  nccell lr = CELL_TRIVIAL_INITIALIZER, ll = CELL_TRIVIAL_INITIALIZER;
+  nccell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
   if(cells_rounded_box(n, NCSTYLE_NONE, 0, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
@@ -364,7 +364,7 @@ hud_print_finished(elem* list){
       break;
     }
     if(hud){
-      cell c = CELL_TRIVIAL_INITIALIZER;
+      nccell c = CELL_TRIVIAL_INITIALIZER;
       ncplane_base(hud, &c);
       ncplane_set_bg_rgb(hud, cell_bg_rgb(&c));
       ncplane_set_bg_alpha(hud, CELL_ALPHA_BLEND);
@@ -577,7 +577,7 @@ int demo_render(struct notcurses* nc){
     }
     uint64_t ns = timespec_to_ns(&ts) - elems->startns;
     ++elems->frames;
-    cell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = CELL_TRIVIAL_INITIALIZER;
     ncplane_base(hud, &c);
     ncplane_set_bg_rgb(hud, cell_bg_rgb(&c));
     ncplane_set_bg_alpha(hud, CELL_ALPHA_BLEND);

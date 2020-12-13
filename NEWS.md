@@ -1,6 +1,10 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 2.1.0 (not yet released)
+  * `cell` has been renamed `nccell`. The old name has been kept as an alias,
+    but ought be considered deprecated. It will be removed in Notcurses 3.0.
+
 * 2.0.12 (2020-12-12)
   * `ncplane_resize_maximize()` has been added, suitable for use as a
     `resizecb`. It resizes the plane to the visual area's size, and is

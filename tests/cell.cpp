@@ -36,7 +36,7 @@ TEST_CASE("Cell") {
   }
 
   SUBCASE("Loadchar") {
-    cell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = CELL_TRIVIAL_INITIALIZER;
     CHECK(1 == cell_load(n_, &c, " "));
     CHECK(cell_simple_p(&c));
     cell_release(n_, &c);
@@ -68,7 +68,7 @@ TEST_CASE("Cell") {
   }
 
   SUBCASE("SetItalic") {
-    cell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = CELL_TRIVIAL_INITIALIZER;
     int dimy, dimx;
     notcurses_term_dim_yx(nc_, &dimy, &dimx);
     cell_set_styles(&c, NCSTYLE_ITALIC);
@@ -81,7 +81,7 @@ TEST_CASE("Cell") {
   }
 
   SUBCASE("SetBold") {
-    cell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = CELL_TRIVIAL_INITIALIZER;
     int dimy, dimx;
     notcurses_term_dim_yx(nc_, &dimy, &dimx);
     cell_set_styles(&c, NCSTYLE_BOLD);
@@ -94,7 +94,7 @@ TEST_CASE("Cell") {
   }
 
   SUBCASE("SetUnderline") {
-    cell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = CELL_TRIVIAL_INITIALIZER;
     int dimy, dimx;
     notcurses_term_dim_yx(nc_, &dimy, &dimx);
     cell_set_styles(&c, NCSTYLE_UNDERLINE);
@@ -108,7 +108,7 @@ TEST_CASE("Cell") {
 
   /*SUBCASE("CellLoadTamil") {
     const char zerodeg[] = "\u0bb8\u0bc0\u0bb0\u0bc7\u0bb3\u0b95\u0bbf\u0b95\u0bbf\u0bb0\u0bbf";
-    cell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = CELL_TRIVIAL_INITIALIZER;
     size_t ulen = cell_load(n_, &c, zerodeg);
     // First have U+0BB8 TAMIL LETTER SA U+0BC0 TAMIL VOWEL SIGN II
     // // e0 ae b8 e0 af 80
@@ -121,7 +121,7 @@ TEST_CASE("Cell") {
   }*/
 
   SUBCASE("CellSetFGAlpha"){
-    cell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = CELL_TRIVIAL_INITIALIZER;
     CHECK(0 > cell_set_fg_alpha(&c, -1));
     CHECK(0 > cell_set_fg_alpha(&c, 4));
     CHECK(0 == cell_set_fg_alpha(&c, CELL_ALPHA_OPAQUE));
@@ -135,7 +135,7 @@ TEST_CASE("Cell") {
   }
 
   SUBCASE("CellSetBGAlpha"){
-    cell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = CELL_TRIVIAL_INITIALIZER;
     CHECK(0 > cell_set_bg_alpha(&c, -1));
     CHECK(0 > cell_set_bg_alpha(&c, 4));
     CHECK(0 == cell_set_bg_alpha(&c, CELL_ALPHA_OPAQUE));
@@ -149,7 +149,7 @@ TEST_CASE("Cell") {
 
   // white on a black background ought be unmolested for highcontrast
   SUBCASE("HighContrastWhiteOnBlackBackground"){
-    cell c = CELL_CHAR_INITIALIZER('+');
+    nccell c = CELL_CHAR_INITIALIZER('+');
     CHECK(0 == cell_set_fg_rgb8(&c, 0xff, 0xff, 0xff));
     CHECK(0 == cell_set_fg_alpha(&c, CELL_ALPHA_HIGHCONTRAST));
     CHECK(0 == cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT));
@@ -188,7 +188,7 @@ TEST_CASE("Cell") {
 
   // white on a white background ought be changed for highcontrast
   SUBCASE("HighContrastWhiteOnWhiteBackground"){
-    cell c = CELL_CHAR_INITIALIZER('+');
+    nccell c = CELL_CHAR_INITIALIZER('+');
     CHECK(0 == cell_set_fg_rgb8(&c, 0xff, 0xff, 0xff));
     CHECK(0 == cell_set_fg_alpha(&c, CELL_ALPHA_HIGHCONTRAST));
     CHECK(0 == cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT));
@@ -227,7 +227,7 @@ TEST_CASE("Cell") {
 
   // black on a black background must be changed for highcontrast
   SUBCASE("HighContrastBlackOnBlackBackground"){
-    cell c = CELL_CHAR_INITIALIZER('+');
+    nccell c = CELL_CHAR_INITIALIZER('+');
     CHECK(0 == cell_set_fg_rgb8(&c, 0x0, 0x0, 0x0));
     CHECK(0 == cell_set_fg_alpha(&c, CELL_ALPHA_HIGHCONTRAST));
     CHECK(0 == cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT));
@@ -266,7 +266,7 @@ TEST_CASE("Cell") {
 
   // black on a white background ought be unmolested for highcontrast
   SUBCASE("HighContrastBlackOnWhiteBackground"){
-    cell c = CELL_CHAR_INITIALIZER('+');
+    nccell c = CELL_CHAR_INITIALIZER('+');
     CHECK(0 == cell_set_fg_rgb8(&c, 0x0, 0x0, 0x0));
     CHECK(0 == cell_set_fg_alpha(&c, CELL_ALPHA_HIGHCONTRAST));
     CHECK(0 == cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT));
@@ -306,7 +306,7 @@ TEST_CASE("Cell") {
   // high contrast ought only be activated relevant to the background equal to
   // or below them, not above.
   SUBCASE("HighContrastBelowOnly"){
-    cell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = CELL_TRIVIAL_INITIALIZER;
     // top has a background of white
     CHECK(0 == cell_set_bg_rgb8(&c, 0xff, 0xff, 0xff));
     CHECK(0 == cell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT));
@@ -345,13 +345,13 @@ TEST_CASE("Cell") {
   }
 
   SUBCASE("CellLoadCharPrinting") {
-    cell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = CELL_TRIVIAL_INITIALIZER;
     CHECK(1 == cell_load_char(n_, &c, '*'));
     CHECK(0 == strcmp(cell_extended_gcluster(n_, &c), "*"));
   }
 
   SUBCASE("CellLoadCharWhitespace") {
-    cell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = CELL_TRIVIAL_INITIALIZER;
     CHECK(1 == cell_load_char(n_, &c, '\f'));
     CHECK(1 == cell_load_char(n_, &c, '\n'));
     CHECK(1 == cell_load_char(n_, &c, '\t'));
@@ -359,14 +359,14 @@ TEST_CASE("Cell") {
   }
 
   SUBCASE("CellLoadCharControl") {
-    cell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = CELL_TRIVIAL_INITIALIZER;
     CHECK(0 == cell_load_char(n_, &c, '\0'));
     CHECK(-1 == cell_load_char(n_, &c, 1));
     CHECK(-1 == cell_load_char(n_, &c, '\b'));
   }
 
   SUBCASE("CellLoadEGC32") {
-    cell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = CELL_TRIVIAL_INITIALIZER;
     CHECK(0 == cell_load_egc32(n_, &c, 0));
     CHECK(1 == cell_load_egc32(n_, &c, 0x65));   // U+0061 LATIN SMALL LETTER A
     CHECK(2 == cell_load_egc32(n_, &c, 0xb5c2)); // U+00B5 MICRO SIGN

@@ -65,8 +65,8 @@ ncreader_redraw(ncreader* n){
     const int texty = y;
     for(int x = 0 ; x < n->ncp->lenx ; ++x){
       const int textx = x + n->xproject;
-      const cell* src = &n->textarea->fb[nfbcellidx(n->textarea, texty, textx)];
-      cell* dst = &n->ncp->fb[nfbcellidx(n->ncp, y, x)];
+      const nccell* src = &n->textarea->fb[nfbcellidx(n->textarea, texty, textx)];
+      nccell* dst = &n->ncp->fb[nfbcellidx(n->ncp, y, x)];
 //fprintf(stderr, "projecting %d/%d [%s] to %d/%d [%s]\n", texty, textx, cell_extended_gcluster(n->textarea, src), y, x, cell_extended_gcluster(n->ncp, dst));
       if(cellcmp_and_dupfar(&n->ncp->pool, dst, n->textarea, src) < 0){
         ret = -1;

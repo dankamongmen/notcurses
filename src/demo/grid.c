@@ -3,7 +3,7 @@
 
 // clip and set
 static int
-ccell_set_fg_rgb8(cell* c, int r, int g, int b){
+ccell_set_fg_rgb8(nccell* c, int r, int g, int b){
   if(r < 0) r = 0;
   if(g < 0) g = 0;
   if(b < 0) b = 0;
@@ -11,7 +11,7 @@ ccell_set_fg_rgb8(cell* c, int r, int g, int b){
 }
 
 static int
-ccell_set_bg_rgb8(cell* c, int r, int g, int b){
+ccell_set_bg_rgb8(nccell* c, int r, int g, int b){
   if(r < 0) r = 0;
   if(g < 0) g = 0;
   if(b < 0) b = 0;
@@ -20,9 +20,9 @@ ccell_set_bg_rgb8(cell* c, int r, int g, int b){
 
 static void
 release_cells(struct ncplane* n,
-              cell* ul, cell* uc, cell* ur,
-              cell* cl, cell* cc, cell* cr,
-              cell* ll, cell* lc, cell* lr){
+              nccell* ul, nccell* uc, nccell* ur,
+              nccell* cl, nccell* cc, nccell* cr,
+              nccell* ll, nccell* lc, nccell* lr){
   cell_release(n, ul);
   cell_release(n, uc);
   cell_release(n, ur);
@@ -36,9 +36,9 @@ release_cells(struct ncplane* n,
 
 static int
 prep_cells2(struct ncplane* n,
-           cell* ul, cell* uc, cell* ur,
-           cell* cl, cell* cc, cell* cr,
-           cell* ll, cell* lc, cell* lr){
+           nccell* ul, nccell* uc, nccell* ur,
+           nccell* cl, nccell* cc, nccell* cr,
+           nccell* ll, nccell* lc, nccell* lr){
   cell_init(ul);
   cell_init(uc);
   cell_init(cl);
@@ -63,9 +63,9 @@ prep_cells2(struct ncplane* n,
 
 static int
 prep_cells(struct ncplane* n,
-           cell* ul, cell* uc, cell* ur,
-           cell* cl, cell* cc, cell* cr,
-           cell* ll, cell* lc, cell* lr){
+           nccell* ul, nccell* uc, nccell* ur,
+           nccell* cl, nccell* cc, nccell* cr,
+           nccell* ll, nccell* lc, nccell* lr){
   cell_init(ul);
   cell_init(uc);
   cell_init(cl);
@@ -89,7 +89,7 @@ prep_cells(struct ncplane* n,
 }
 
 static int
-bgnext(cell* c, int* r, int* g, int* b){
+bgnext(nccell* c, int* r, int* g, int* b){
   int ret = ccell_set_bg_rgb8(c, *r, *g, *b);
   if(*g % 2){
     if(--*b <= 0){
@@ -112,7 +112,7 @@ bgnext(cell* c, int* r, int* g, int* b){
 static int
 gridinv_demo(struct notcurses* nc, struct ncplane *n){
   ncplane_erase(n);
-  cell ul, ll, cl, cr, lc, lr, ur, uc, cc;
+  nccell ul, ll, cl, cr, lc, lr, ur, uc, cc;
   prep_cells2(n, &ul, &uc, &ur, &cl, &cc, &cr, &ll, &lc, &lr);
   for(int i = 0 ; i < 256 ; ++i){
     int maxx, maxy;
@@ -176,7 +176,7 @@ gridswitch_demo(struct notcurses* nc, struct ncplane *n){
   ncplane_erase(n);
   int ret = 0;
   int maxx, maxy;
-  cell ul, ll, cl, cr, lc, lr, ur, uc, cc;
+  nccell ul, ll, cl, cr, lc, lr, ur, uc, cc;
   prep_cells(n, &ul, &uc, &ur, &cl, &cc, &cr, &ll, &lc, &lr);
   for(int i = 0 ; i < 256 ; ++i){
     notcurses_term_dim_yx(nc, &maxy, &maxx);
@@ -249,9 +249,9 @@ int grid_demo(struct notcurses* nc){
   int y, x;
   struct ncplane* n = notcurses_stdplane(nc);
   ncplane_erase(n);
-  cell ul, uc, ur;
-  cell ll, lc, lr;
-  cell cl, cc, cr;
+  nccell ul, uc, ur;
+  nccell ll, lc, lr;
+  nccell cl, cc, cr;
   prep_cells(n, &ul, &uc, &ur, &cl, &cc, &cr, &ll, &lc, &lr);
 
   int ret = 0;

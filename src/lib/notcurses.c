@@ -597,8 +597,8 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
   // we've shrunk, we will be filling the new structure.
   int keptarea = keepleny * keeplenx;
   int newarea = ylen * xlen;
-  size_t fbsize = sizeof(cell) * newarea;
-  cell* fb = malloc(fbsize);
+  size_t fbsize = sizeof(nccell) * newarea;
+  nccell* fb = malloc(fbsize);
   if(fb == NULL){
     return -1;
   }
@@ -609,7 +609,7 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
   if(n->x >= xlen){
     n->x = xlen - 1;
   }
-  cell* preserved = n->fb;
+  nccell* preserved = n->fb;
   ncplane_notcurses(n)->stats.fbbytes -= sizeof(*preserved) * (rows * cols);
   ncplane_notcurses(n)->stats.fbbytes += fbsize;
   n->fb = fb;
@@ -833,7 +833,7 @@ init_banner(const notcurses* nc){
            "  compiled with gcc-%s, %s-endian\n"
            "  terminfo from %s\n",
            nc->stdplane->leny, nc->stdplane->lenx,
-           bprefix(nc->stats.fbbytes, 1, prefixbuf, 0), sizeof(cell),
+           bprefix(nc->stats.fbbytes, 1, prefixbuf, 0), sizeof(nccell),
            nc->tcache.colors, nc->tcache.RGBflag ? "+RGB" : "",
            __VERSION__,
 #ifdef __BYTE_ORDER__
@@ -1353,7 +1353,7 @@ int ncplane_set_bg_palindex(ncplane* n, int idx){
   return 0;
 }
 
-int ncplane_set_base_cell(ncplane* ncp, const cell* c){
+int ncplane_set_base_cell(ncplane* ncp, const nccell* c){
   return cell_duplicate(ncp, &ncp->basecell, c);
 }
 
@@ -1361,11 +1361,11 @@ int ncplane_set_base(ncplane* ncp, const char* egc, uint32_t stylemask, uint64_t
   return cell_prime(ncp, &ncp->basecell, egc, stylemask, channels);
 }
 
-int ncplane_base(ncplane* ncp, cell* c){
+int ncplane_base(ncplane* ncp, nccell* c){
   return cell_duplicate(ncp, c, &ncp->basecell);
 }
 
-const char* cell_extended_gcluster(const ncplane* n, const cell* c){
+const char* cell_extended_gcluster(const ncplane* n, const nccell* c){
   if(cell_simple_p(c)){
     return (const char*)&c->gcluster;
   }
@@ -1473,7 +1473,7 @@ void ncplane_cursor_yx(const ncplane* n, int* y, int* x){
 }
 
 static inline void
-cell_obliterate(ncplane* n, cell* c){
+cell_obliterate(ncplane* n, nccell* c){
   cell_release(n, c);
   cell_init(c);
 }
@@ -1483,7 +1483,7 @@ void scroll_down(ncplane* n){
   n->x = 0;
   if(n->y == n->leny - 1){
     n->logrow = (n->logrow + 1) % n->leny;
-    cell* row = n->fb + nfbcellidx(n, n->y, 0);
+    nccell* row = n->fb + nfbcellidx(n, n->y, 0);
     for(int clearx = 0 ; clearx < n->lenx ; ++clearx){
       cell_release(n, &row[clearx]);
     }
@@ -1493,7 +1493,7 @@ void scroll_down(ncplane* n){
   }
 }
 
-int cell_load(ncplane* n, cell* c, const char* gcluster){
+int cell_load(ncplane* n, nccell* c, const char* gcluster){
   return pool_load(&n->pool, c, gcluster);
 }
 
@@ -1537,10 +1537,10 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
   // that cell as wide). Any character placed atop one half of a wide character
   // obliterates the other half. Note that a wide char can thus obliterate two
   // wide chars, totalling four columns.
-  cell* targ = ncplane_cell_ref_yx(n, n->y, n->x);
+  nccell* targ = ncplane_cell_ref_yx(n, n->y, n->x);
   if(n->x > 0){
     if(cell_double_wide_p(targ)){ // replaced cell is half of a wide char
-      cell* sacrifice = targ->gcluster == 0 ?
+      nccell* sacrifice = targ->gcluster == 0 ?
         // right half will never be on the first column of a row
         &n->fb[nfbcellidx(n, n->y, n->x - 1)] :
         // left half will never be on the last column of a row
@@ -1555,7 +1555,7 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
   }
 //fprintf(stderr, "%08x %016lx %c %d %d\n", targ->gcluster, targ->channels, cell_double_wide_p(targ) ? 'D' : 'd', bytes, cols);
   if(cols > 1){ // must set our right wide, and check for further damage
-    cell* candidate = &n->fb[nfbcellidx(n, n->y, n->x + 1)];
+    nccell* candidate = &n->fb[nfbcellidx(n, n->y, n->x + 1)];
     if(cell_wide_left_p(candidate)){
       cell_obliterate(n, &n->fb[nfbcellidx(n, n->y, n->x + 2)]);
     }
@@ -1567,7 +1567,7 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
   return cols;
 }
 
-int ncplane_putc_yx(ncplane* n, int y, int x, const cell* c){
+int ncplane_putc_yx(ncplane* n, int y, int x, const nccell* c){
   const int cols = cell_double_wide_p(c) ? 2 : 1;
   const char* egc = cell_extended_gcluster(n, c);
   return ncplane_put(n, y, x, egc, cols, c->stylemask, c->channels, strlen(egc));
@@ -1589,7 +1589,7 @@ int ncplane_putegc_yx(ncplane* n, int y, int x, const char* gclust, int* sbytes)
 int ncplane_putchar_stained(ncplane* n, char c){
   uint64_t channels = n->channels;
   uint32_t stylemask = n->stylemask;
-  const cell* targ = &n->fb[nfbcellidx(n, n->y, n->x)];
+  const nccell* targ = &n->fb[nfbcellidx(n, n->y, n->x)];
   n->channels = targ->channels;
   n->stylemask = targ->stylemask;
   int ret = ncplane_putchar(n, c);
@@ -1601,7 +1601,7 @@ int ncplane_putchar_stained(ncplane* n, char c){
 int ncplane_putwegc_stained(ncplane* n, const wchar_t* gclust, int* sbytes){
   uint64_t channels = n->channels;
   uint32_t stylemask = n->stylemask;
-  const cell* targ = &n->fb[nfbcellidx(n, n->y, n->x)];
+  const nccell* targ = &n->fb[nfbcellidx(n, n->y, n->x)];
   n->channels = targ->channels;
   n->stylemask = targ->stylemask;
   int ret = ncplane_putwegc(n, gclust, sbytes);
@@ -1613,7 +1613,7 @@ int ncplane_putwegc_stained(ncplane* n, const wchar_t* gclust, int* sbytes){
 int ncplane_putegc_stained(ncplane* n, const char* gclust, int* sbytes){
   uint64_t channels = n->channels;
   uint32_t stylemask = n->stylemask;
-  const cell* targ = &n->fb[nfbcellidx(n, n->y, n->x)];
+  const nccell* targ = &n->fb[nfbcellidx(n, n->y, n->x)];
   n->channels = targ->channels;
   n->stylemask = targ->stylemask;
   int ret = ncplane_putegc(n, gclust, sbytes);
@@ -1622,11 +1622,11 @@ int ncplane_putegc_stained(ncplane* n, const char* gclust, int* sbytes){
   return ret;
 }
 
-int ncplane_cursor_at(const ncplane* n, cell* c, char** gclust){
+int ncplane_cursor_at(const ncplane* n, nccell* c, char** gclust){
   if(n->y == n->leny && n->x == n->lenx){
     return -1;
   }
-  const cell* src = &n->fb[nfbcellidx(n, n->y, n->x)];
+  const nccell* src = &n->fb[nfbcellidx(n, n->y, n->x)];
   memcpy(c, src, sizeof(*src));
   if(cell_simple_p(c)){
     *gclust = NULL;
@@ -1745,7 +1745,7 @@ int ncplane_vprintf_stained(struct ncplane* n, const char* format, va_list ap){
   return ret;
 }
 
-int ncplane_hline_interp(ncplane* n, const cell* c, int len,
+int ncplane_hline_interp(ncplane* n, const nccell* c, int len,
                          uint64_t c1, uint64_t c2){
   unsigned ur, ug, ub;
   int r1, g1, b1, r2, g2, b2;
@@ -1765,7 +1765,7 @@ int ncplane_hline_interp(ncplane* n, const cell* c, int len,
   int deltbg = bg2 - bg1;
   int deltbb = bb2 - bb1;
   int ret;
-  cell dupc = CELL_TRIVIAL_INITIALIZER;
+  nccell dupc = CELL_TRIVIAL_INITIALIZER;
   if(cell_duplicate(n, &dupc, c) < 0){
     return -1;
   }
@@ -1797,7 +1797,7 @@ int ncplane_hline_interp(ncplane* n, const cell* c, int len,
   return ret;
 }
 
-int ncplane_vline_interp(ncplane* n, const cell* c, int len,
+int ncplane_vline_interp(ncplane* n, const nccell* c, int len,
                          uint64_t c1, uint64_t c2){
   unsigned ur, ug, ub;
   int r1, g1, b1, r2, g2, b2;
@@ -1818,7 +1818,7 @@ int ncplane_vline_interp(ncplane* n, const cell* c, int len,
   int deltbb = (bb2 - bb1) / (len + 1);
   int ret, ypos, xpos;
   ncplane_cursor_yx(n, &ypos, &xpos);
-  cell dupc = CELL_TRIVIAL_INITIALIZER;
+  nccell dupc = CELL_TRIVIAL_INITIALIZER;
   if(cell_duplicate(n, &dupc, c) < 0){
     return -1;
   }
@@ -1853,9 +1853,9 @@ int ncplane_vline_interp(ncplane* n, const cell* c, int len,
   return ret;
 }
 
-int ncplane_box(ncplane* n, const cell* ul, const cell* ur,
-                const cell* ll, const cell* lr, const cell* hl,
-                const cell* vl, int ystop, int xstop,
+int ncplane_box(ncplane* n, const nccell* ul, const nccell* ur,
+                const nccell* ll, const nccell* lr, const nccell* hl,
+                const nccell* vl, int ystop, int xstop,
                 unsigned ctlword){
   int yoff, xoff, ymax, xmax;
   ncplane_cursor_yx(n, &yoff, &xoff);
@@ -2558,12 +2558,12 @@ char* ncplane_contents(const ncplane* nc, int begy, int begx, int leny, int lenx
 }
 
 int cells_ascii_box(struct ncplane* n, uint32_t attr, uint64_t channels,
-                    cell* ul, cell* ur, cell* ll, cell* lr, cell* hl, cell* vl){
+                    nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
   return cells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, "/\\\\/-|");
 }
 
 int cells_double_box(struct ncplane* n, uint32_t attr, uint64_t channels,
-                     cell* ul, cell* ur, cell* ll, cell* lr, cell* hl, cell* vl){
+                     nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
   if(notcurses_canutf8(ncplane_notcurses(n))){
     return cells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, "╔╗╚╝═║");
   }
@@ -2571,7 +2571,7 @@ int cells_double_box(struct ncplane* n, uint32_t attr, uint64_t channels,
 }
 
 int cells_rounded_box(struct ncplane* n, uint32_t attr, uint64_t channels,
-                      cell* ul, cell* ur, cell* ll, cell* lr, cell* hl, cell* vl){
+                      nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
   if(notcurses_canutf8(ncplane_notcurses(n))){
     return cells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, "╭╮╰╯─│");
   }

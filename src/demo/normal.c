@@ -157,7 +157,7 @@ int normal_demo(struct notcurses* nc){
   int r = -1;
   struct ncplane* nstd = notcurses_stddim_yx(nc, &dy, &dx);
   ncplane_erase(nstd);
-  cell c = CELL_TRIVIAL_INITIALIZER;
+  nccell c = CELL_TRIVIAL_INITIALIZER;
   cell_set_fg_rgb8(&c, 0x0, 0x0, 0x0);
   cell_set_bg_rgb8(&c, 0x0, 0x0, 0x0);
   ncplane_set_base_cell(nstd, &c);
