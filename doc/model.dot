@@ -1,72 +1,46 @@
 digraph G {
   subgraph clusterNotcurses {
-    labeljust="l";
     label = "Notcurses context (one per terminal)"
     style = filled;
     color = lightgrey;
-    compound = "true"
-    subgraph clusterRedner {
+    subgraph clusterPile0 {
+      //label="Piles represent distinct collections of planes. The main pile is rendered by old notcurses_render().\nncpile_render() and ncpile_rasterize() (version 2.1) work with different piles."
+      label="The standard pile contains the standard plane."
+      style=filled;
+      color="deepskyblue:darkslategray1";
+      planeS [ label="{{Standard plane}|{Cellmatrix}|{EGCPool}}" shape=record style=filled ]
+      plane1 [ label="{{Plane 1}|{Cellmatrix}|{EGCPool}}" shape=record style=filled ]
+    }
+    subgraph clusterPile1 {
+      label="Pile 1"
+      style=filled;
+      color="cadetblue:purple";
+      plane2 [ label="{{Plane 2}|{Cellmatrix}|{EGCPool}}" shape=record style=filled ]
+      plane3 [ label="{{Plane 3}|{Cellmatrix}|{EGCPool}}" shape=record style=filled ]
+      plane4 [ label="{{Plane 4}|{Cellmatrix}|{EGCPool}}" shape=record style=filled ]
+    }
+    subgraph clusterPile2 {
+      label="Pile 2"
+      style=filled;
+      color="cadetblue:purple";
+      plane5 [ label="{{Plane 5}|{Cellmatrix}|{EGCPool}}" shape=record style=filled ]
+      plane6 [ label="{{Plane 6}|{Cellmatrix}|{EGCPool}}" shape=record style=filled ]
+    }
+    subgraph clusterRaster {
       label="Rendering solves for the current frame. This\nframe is compared to the current state.\nDifferent cells are written to the terminal,\nand the current state is updated."
       style="filled"
-      color="cadetblue:purple"
-      LastFrame [ shape=rectangle label="Last rendered frame" style=filled color=yellow ]
-      RenderArea [ shape=rectangle label="Render area\n(via stdout)" style=filled color=yellow ]
-      labelloc="b"
+      color="darkgreen:forestgreen"
+      cMatrix0 [ label="{{Cellmatrix}|{EGCPool}}" shape=record style=filled ]
+      Rasterization [ shape=oval label="Rasterization" style=filled color=yellow ]
+      RenderArea [ shape=rectangle label="Render area\n(via FILE*)" style=filled color=yellow ]
+      Rasterization -> cMatrix0
+      Rasterization -> RenderArea
+      labelloc="b";
     }
-    subgraph clusterZaxis {
-      label="Piles represent distinct collections of planes. The main pile is rendered by old notcurses_render().\nncpile_render() and ncpile_rasterize() (version 2.1) work with different piles."
-      style=filled;
-      color="cadetblue:purple";
-      pileMain [ label="Main pile.\nContains standard plane." style="filled" fillcolor=darkseagreen1 shape=invtrapezium ]
-      pile1 [ label="Extracted\npile 1" style="filled" fillcolor=darkolivegreen2 shape=invtrapezium ]
-      pile2 [ label="Extracted\npile 2" style="filled" fillcolor=darkolivegreen2 shape=invtrapezium ]
-      { rank=same; pileMain pile1 pile2 }
-    }
-    pileMain -> LastFrame
-    pile1 -> LastFrame
-    pile2 -> LastFrame
-    LastFrame -> RenderArea
-    subgraph clusterPlanes {
-      labelloc="b"
-      label="The planes of a pile are related two ways:\n1. Totally ordered along the pile's z-axis.\n2. Via a rooted n-ary tree of binding."
-      style=filled;
-      color="cadetblue:purple";
-      planeStd [ label="Standard plane" shape=rectangle color="lightgreen" style=filled ]
-      plane1 [ label="Plane 1" shape=rectangle color="green" style=filled ]
-      plane2 [ label="Plane 2" shape=rectangle color="green" style=filled ]
-      plane3 [ label="Plane 3" shape=rectangle color="green" style=filled ]
-      plane4 [ label="Plane 4" shape=rectangle color="green" style=filled ]
-      plane5 [ label="Plane 5" shape=rectangle color="green" style=filled ]
-      plane6 [ label="Plane 6" shape=rectangle color="green" style=filled ]
-      pileMain -> planeStd
-      planeStd -> plane1
-      planeStd -> plane2
-      plane1 -> plane3
-      pile1 -> plane4
-      plane4 -> plane5
-      pile2 -> plane6
-    }
-    subgraph clusterMatrices {
-      labelloc="b"
-      label="A rectangular array of Cells, with one Cell per coordinate of the associated plane, backs each plane.\nThis is the plane's cell matrix. An EGCPool backs each cell matrix; they contain nul-terminated\nUTF8-encoded Extended Grapheme Clusters of arbitrary length."
-      style=filled;
-      color="cadetblue:purple";
-      cMatrix0 [ label="{{Cellmatrix 0}|{EGCPool 0}}" shape=record style=filled ]
-      cMatrix1 [ label="{{Cellmatrix 1}|{EGCPool 1}}" shape=record style=filled ]
-      cMatrix2 [ label="{{Cellmatrix 2}|{EGCPool 2}}" shape=record style=filled ]
-      cMatrix3 [ label="{{Cellmatrix 3}|{EGCPool 3}}" shape=record style=filled ]
-      cMatrix4 [ label="{{Cellmatrix 4}|{EGCPool 4}}" shape=record style=filled ]
-      cMatrix5 [ label="{{Cellmatrix 5}|{EGCPool 5}}" shape=record style=filled ]
-      cMatrix6 [ label="{{Cellmatrix 6}|{EGCPool 6}}" shape=record style=filled ]
-      cMatrix7 [ label="{{Cellmatrix 7}|{EGCPool 7}}" shape=record style=filled ]
-      plane1 -> cMatrix1
-      plane2 -> cMatrix2
-      plane3 -> cMatrix3
-      plane4 -> cMatrix4
-      plane5 -> cMatrix5
-      plane6 -> cMatrix6
-      LastFrame -> cMatrix0
-      planeStd -> cMatrix7
-    }
+    plane1 -> Rasterization [ltail=clusterPile0]
+    plane4 -> Rasterization [ltail=clusterPile1]
+    plane5 -> Rasterization [ltail=clusterPile2]
+      //label="The planes of a pile are related two ways:\n1. Totally ordered along the pile's z-axis.\n2. Via a rooted n-ary tree of binding."
+      //label="A rectangular array of Cells, with one Cell per coordinate of the associated plane, backs each plane.\nThis is the plane's cell matrix. An EGCPool backs each cell matrix; they contain nul-terminated\nUTF8-encoded Extended Grapheme Clusters of arbitrary length."
   }
 }
