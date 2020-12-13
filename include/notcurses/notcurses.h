@@ -565,7 +565,11 @@ typedef struct cell {
   // must not be allowed through the API, or havoc will result.
   uint32_t gcluster;          // 4B → 4B little endian EGC
   uint8_t gcluster_backstop;  // 1B → 5B (8 bits of zero)
-  uint8_t reserved;           // 1B → 6B (8 reserved bits, ought be zero)
+  // we store the column width minus 1 in this field. this is necessary to
+  // handle EGCs of more than 2 columns...for now. eventually, such an EGC will
+  // set more than one subsequent cell to WIDE_RIGHT, and this won't be
+  // necessary. it can then be used as a bytecount. see #1203. FIXME
+  uint8_t width;              // 1B → 6B (8 bits of EGC width, bias-1)
   uint16_t stylemask;         // 2B → 8B (16 bits of NCSTYLE_* attributes)
   // (channels & 0x8000000000000000ull): part of a wide glyph
   // (channels & 0x4000000000000000ull): foreground is *not* "default color"
@@ -588,11 +592,12 @@ typedef struct cell {
   uint64_t channels;          // + 8B == 16B
 } cell;
 
-#define CELL_TRIVIAL_INITIALIZER { .gcluster = 0, .gcluster_backstop = 0, .reserved = 0, .stylemask = 0, .channels = 0, }
-// do *not* load control characters nor invalid EGCs using these macros! there
-// is no way for us to protect against such misuse here. problems *will* ensue.
-#define CELL_CHAR_INITIALIZER(c) { .gcluster = (htole(c)), .gcluster_backstop = 0, .reserved = 0, .stylemask = 0, .channels = 0, }
-#define CELL_INITIALIZER(c, s, chan) { .gcluster = (htole(c)), .gcluster_backstop = 0, .reserved = 0, .stylemask = (s), .channels = (chan), }
+#define CELL_TRIVIAL_INITIALIZER { .gcluster = 0, .gcluster_backstop = 0, .width = 0, .stylemask = 0, .channels = 0, }
+// do *not* load control characters, wide EGCs, nor invalid EGCs using these
+// macros! there is no way for us to protect against such misuse here. problems
+// *will* ensue. similarly, do not set channel flags other than colors/alpha.
+#define CELL_CHAR_INITIALIZER(c) { .gcluster = (htole(c)), .gcluster_backstop = 0, .width = 0, .stylemask = 0, .channels = 0, }
+#define CELL_INITIALIZER(c, s, chan) { .gcluster = (htole(c)), .gcluster_backstop = 0, .width = 0, .stylemask = (s), .channels = (chan), }
 
 static inline void
 cell_init(cell* c){
