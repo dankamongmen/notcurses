@@ -2388,7 +2388,7 @@ are recommended if you provide custom EGCs.
 ```
 // Takes ownership of the ncplane 'n', which will be destroyed by
 // ncprogbar_destroy(). The progress bar is initially at 0%.
-struct ncuplot* ncprogbar_create(struct ncplane* n, const ncprogbar_options* opts);
+struct ncprogbar* ncprogbar_create(struct ncplane* n, const ncprogbar_options* opts);
 
 // Return a reference to the ncprogbar's underlying ncplane.
 #define NCPROGBAR_OPTION_RETROGRADE        0x0001u // proceed left/down

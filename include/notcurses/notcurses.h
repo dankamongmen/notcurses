@@ -3053,7 +3053,7 @@ typedef struct ncprogbar_options {
 
 // Takes ownership of the ncplane 'n', which will be destroyed by
 // ncprogbar_destroy(). The progress bar is initially at 0%.
-API struct ncuplot* ncprogbar_create(struct ncplane* n, const ncprogbar_options* opts)
+API struct ncprogbar* ncprogbar_create(struct ncplane* n, const ncprogbar_options* opts)
   __attribute__ ((nonnull (1)));
 
 // Return a reference to the ncprogbar's underlying ncplane.

@@ -221,6 +221,13 @@ typedef struct ncmenu {
   bool bottom;              // are we on the bottom (vs top)?
 } ncmenu;
 
+typedef struct ncprogbar {
+  ncplane* ncp;
+  double progress;          // on the range [0, 1]
+  uint64_t maxchannels;
+  uint64_t minchannels;
+} ncprogbar;
+
 // terminfo cache
 typedef struct tinfo {
   unsigned colors;// number of colors terminfo reported usable for this screen
