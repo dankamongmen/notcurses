@@ -28,14 +28,25 @@ progbar_redraw(ncprogbar* n){
   ncplane_dim_yx(ncprogbar_plane(n), &dimy, &dimx);
   const bool horizontal = dimx > dimy;
   int range, delt, pos;
+  const wchar_t* egcs;
   if(horizontal){
     range = dimx;
     delt = 1;
     pos = 0;
+    if(n->retrograde){
+      egcs = L"🮇🮇🮈▐🮉🮊🮋█";
+    }else{
+      egcs = L"▏▎▍▌▋▊▉█";
+    }
   }else{
     range = dimy;
     delt = -1;
     pos = range - 1;
+    if(n->retrograde){
+      egcs = L"▁▂▃▄▅▆▇█";
+    }else{
+      egcs = L"▔🮂🮃▀🮄🮅🮆█";
+    }
   }
   ncplane_set_channels(ncprogbar_plane(n), n->channels);
   double progress = n->progress * range;
@@ -52,18 +63,25 @@ progbar_redraw(ncprogbar* n){
   }else if(!horizontal){
     progress = range - progress;
   }
+  double eachcell = (1.0 / range); // how much each cell is worth
+  int covered = 0;
+  double cfloor = 0;
   while((delt < 0 && pos > progress) || (delt > 0 && pos < progress)){
-//fprintf(stderr, "progress: %g pos: %d range: %d delt: %d\n", progress, pos, range, delt);
+    double chunk = n->progress - cfloor;
+    const wchar_t egc = egcs[chunk >= eachcell ? 7 : (int)(chunk / (eachcell / 8))];
+//fprintf(stderr, "egc: %lc progress: %g pos: %d range: %d delt: %d chunk: %g\n", egc, progress, pos, range, delt, chunk);
     if(horizontal){
-      if(ncplane_putegc_yx(ncprogbar_plane(n), 0, pos, "█", NULL) <= 0){
+      if(ncplane_putwc_yx(ncprogbar_plane(n), 0, pos, egc) <= 0){
         return -1;
       }
     }else{
-      if(ncplane_putegc_yx(ncprogbar_plane(n), pos, 0, "█", NULL) <= 0){
+      if(ncplane_putwc_yx(ncprogbar_plane(n), pos, 0, egc) <= 0){
         return -1;
       }
     }
     pos += delt;
+    cfloor += eachcell;
+    ++covered;
   }
   return 0;
 }
