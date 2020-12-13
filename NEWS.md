@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 2.1.0 (not yet released)
+* 2.1.0 (2020-12-13)
   * `cell` has been renamed `nccell`. The old name has been kept as an alias,
     but ought be considered deprecated. It will be removed in Notcurses 3.0.
 
