@@ -92,7 +92,7 @@ pub use reimplemented::*;
 /// NcCell: 128 bits structure comprised of the following 5 elements:
 ///
 /// GCLUSTER GCLUSTER GCLUSTER GCLUSTER  1. NcEgc
-/// 00000000 ~~~~~~~~ 11111111 11111111  2. NcEgcBackstop + 3. reserved + 4. NcStyleMask
+/// 00000000 ~~~~~~~~ 11111111 11111111  2. NcEgcBackstop + 3. width + 4. NcStyleMask
 /// ~~AA~~~~ RRRRRRRR GGGGGGGG BBBBBBBB  5. NcChannelPair
 /// ~~AA~~~~ RRRRRRRR GGGGGGGG BBBBBBBB  |
 ///
@@ -107,7 +107,7 @@ pub use reimplemented::*;
 /// 2. (8b) Backstop (zero)
 /// 00000000
 ///
-/// 3. (8b) reserved (ought to be zero)
+/// 3. (8b) width (biased 1)
 /// ~~~~~~~~
 ///
 /// 4. (16b) NcStyleMask
