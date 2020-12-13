@@ -1,13 +1,16 @@
 #include "demo.h"
 
+static int centercols;
+
 static int
 fader(struct notcurses* nc, struct ncplane* ncp, void* curry){
   int* flipmode = curry;
   int rows, cols;
   ncplane_dim_yx(ncp, &rows, &cols);
-  for(int x = 5 ; x < cols - 6 ; ++x){
+  int startx = (cols - (centercols - 2)) / 2;
+  for(int x = startx ; x < startx + centercols - 2 ; ++x){
     ncplane_set_fg_rgb8(ncp, 0xd0, 0xf0, 0xd0);
-    if(ncplane_putwc_yx(ncp, rows - 5, x, x % 2 == *flipmode % 2 ? L'◪' : L'◩') <= 0){
+    if(ncplane_putwc_yx(ncp, rows - 11, x, x % 2 == *flipmode % 2 ? L'◪' : L'◩') <= 0){
       return -1;
     }
   }
@@ -63,7 +66,7 @@ int intro(struct notcurses* nc){
   channels_set_fg_rgb8(&cur, 200, 0, 200); channels_set_bg_rgb8(&cur, 0, 64, 0);
   channels_set_fg_rgb8(&cll, 200, 0, 200); channels_set_bg_rgb8(&cll, 0, 128, 0);
   channels_set_fg_rgb8(&clr, 200, 0, 200); channels_set_bg_rgb8(&clr, 0, 128, 0);
-  int centercols = cols > 80 ? 72 : cols - 8;
+  centercols = cols > 80 ? 72 : cols - 8;
   if(ncplane_cursor_move_yx(ncp, 5, (cols - centercols) / 2 + 1)){
     return -1;
   }
