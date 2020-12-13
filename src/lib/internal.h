@@ -226,6 +226,12 @@ typedef struct ncprogbar {
   double progress;          // on the range [0, 1]
   uint64_t maxchannels;
   uint64_t minchannels;
+  enum {                    // dynamic unless locked into one direction
+    PROGRESS_DYNAMIC,
+    PROGRESS_VERT,
+    PROGRESS_HORIZ,
+  } direction;
+  bool retrograde;
 } ncprogbar;
 
 // terminfo cache
