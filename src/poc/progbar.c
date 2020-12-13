@@ -6,7 +6,7 @@ ts_to_ns(const struct timespec* ts){
   return ts->tv_sec * 1000000000 + ts->tv_nsec;
 }
 
-static const uint64_t delay = 10000000000ull;
+static const uint64_t delay = 2 * 1000000000ull;
 
 static int
 pbar_fill(struct notcurses* nc, struct ncprogbar* pbar){
@@ -23,6 +23,43 @@ pbar_fill(struct notcurses* nc, struct ncprogbar* pbar){
     clock_gettime(CLOCK_MONOTONIC, &cur);
   }while(ts_to_ns(&cur) < deadline);
   return 0;
+}
+
+static struct ncprogbar*
+hbar_make(struct notcurses* nc, uint64_t flags){
+  int dimy, dimx;
+  struct ncplane* std = notcurses_stddim_yx(nc, &dimy, &dimx);
+  struct ncplane_options nopts = {
+    .y = 1,
+    .x = NCALIGN_CENTER,
+    .rows = dimy - 4,
+    .cols = 1,
+    .name = "pbar",
+    .flags = NCPLANE_OPTION_HORALIGNED,
+  };
+  struct ncplane* pbar = ncplane_create(std, &nopts);
+  if(pbar == NULL){
+    return NULL;
+  }
+  int posy, posx, pdimy, pdimx;
+  ncplane_yx(pbar, &posy, &posx);
+  ncplane_dim_yx(pbar, &pdimy, &pdimx);
+  ncplane_cursor_move_yx(std, posy - 1, posx - 1);
+  uint64_t channels = 0;
+  channels_set_fg_rgb8(&channels, 0, 0xde, 0xde);
+  if(ncplane_rounded_box(std, 0, channels, posy + pdimy, posx + pdimx, 0)){
+    ncplane_destroy(pbar);
+    return NULL;
+  }
+  struct ncprogbar_options popts = {
+    .flags = flags,
+  };
+  channels_set_fg_rgb8(&popts.channels, 0x80, 0x22, 0x22);
+  struct ncprogbar* ncp = ncprogbar_create(pbar, &popts);
+  if(ncp == NULL){
+    return NULL;
+  }
+  return ncp;
 }
 
 static struct ncprogbar*
@@ -86,6 +123,19 @@ int main(void){
     notcurses_stop(nc);
     return EXIT_FAILURE;
   }
+  ncprogbar_destroy(ncp);
+  ncp = hbar_make(nc, NCPROGBAR_OPTION_RETROGRADE);
+  if(pbar_fill(nc, ncp)){
+    notcurses_stop(nc);
+    return EXIT_FAILURE;
+  }
+  ncprogbar_destroy(ncp);
+  ncp = hbar_make(nc, 0);
+  if(pbar_fill(nc, ncp)){
+    notcurses_stop(nc);
+    return EXIT_FAILURE;
+  }
+  ncprogbar_destroy(ncp);
   notcurses_stop(nc);
   return EXIT_SUCCESS;
 }

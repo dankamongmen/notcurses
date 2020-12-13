@@ -29,8 +29,8 @@ pbar_make(struct notcurses* nc, int row){
   int dimx, dimy;
   struct ncplane* std = notcurses_stddim_yx(nc, &dimy, &dimx);
   struct ncplane_options nopts = {
-    .y = row < 0 ? 2 : row,
-    .x = row < 0 ? 2 : NCALIGN_CENTER,
+    .y = row < 0 ? 4 : row,
+    .x = row < 0 ? 1 : NCALIGN_CENTER,
     .rows = row < 0 ? dimy - 5 : 1,
     .cols = row < 0 ? 1 : dimx - 20,
     .name = "pbar",
@@ -268,10 +268,10 @@ int unicodeblocks_demo(struct notcurses* nc){
     if(ncplane_set_fg_rgb8(n, 0x40, 0xc0, 0x40)){
       return -1;
     }
-    if(ncplane_cursor_move_yx(n, 6 + BLOCKSIZE / CHUNKSIZE, 0)){
+    if(ncplane_cursor_move_yx(n, 6 + BLOCKSIZE / CHUNKSIZE, 3)){
       return -1;
     }
-    if(ncplane_printf(n, "%*.*s", maxx, maxx, "") <= 0){
+    if(ncplane_printf(n, "%*.*s", maxx - 6, maxx - 6, "") <= 0){
       return -1;
     }
     if(ncplane_printf_aligned(n, 6 + BLOCKSIZE / CHUNKSIZE, NCALIGN_CENTER, "%s", description) <= 0){

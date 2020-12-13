@@ -27,23 +27,30 @@ progbar_redraw(ncprogbar* n){
   int dimy, dimx;
   ncplane_dim_yx(ncprogbar_plane(n), &dimy, &dimx);
   const bool horizontal = dimx > dimy;
-  int delt, range;
+  int range, delt;
   if(horizontal){
     range = dimx;
     delt = -1;
   }else{
     range = dimy;
-    delt = 1;
+    delt = -1;
   }
+  ncplane_set_channels(ncprogbar_plane(n), n->channels);
   double progress = n->progress * range;
   if(n->retrograde){
     progress = range - progress;
     delt *= -1;
   }
-  ncplane_set_channels(ncprogbar_plane(n), n->channels);
+//fprintf(stderr, "progress: %g range: %d delt: %d\n", progress, range, delt);
   while(progress > 0 && progress < range){
-    if(ncplane_putegc_yx(ncprogbar_plane(n), 0, progress, "█", NULL) <= 0){
-      return -1;
+    if(horizontal){
+      if(ncplane_putegc_yx(ncprogbar_plane(n), 0, progress, "█", NULL) <= 0){
+        return -1;
+      }
+    }else{
+      if(ncplane_putegc_yx(ncprogbar_plane(n), range - progress, 0, "█", NULL) <= 0){
+        return -1;
+      }
     }
     progress += delt;
   }
@@ -51,6 +58,7 @@ progbar_redraw(ncprogbar* n){
 }
 
 int ncprogbar_set_progress(ncprogbar* n, double p){
+//fprintf(stderr, "PROGRESS: %g\n", p);
   if(p < 0 || p > 1){
     logerror(ncplane_notcurses(ncprogbar_plane(n)), "Invalid progress %g\n", p);
     return -1;
