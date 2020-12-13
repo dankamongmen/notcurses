@@ -48,7 +48,7 @@ mathplane(struct notcurses* nc){
 
 // the closer the coordinate is (lower distance), the more we lighten the cell
 static inline int
-lighten(struct ncplane* n, cell* c, int distance, int y, int x){
+lighten(struct ncplane* n, nccell* c, int distance, int y, int x){
   if(cell_wide_right_p(c)){ // not really a character
     return 0;
   }
@@ -62,14 +62,14 @@ lighten(struct ncplane* n, cell* c, int distance, int y, int x){
 }
 
 static inline int
-lightup_surrounding_cells(struct ncplane* n, cell* lightup, int y, int x){
+lightup_surrounding_cells(struct ncplane* n, nccell* lightup, int y, int x){
   lighten(n, lightup, 0, y, x);
   cell_release(n, lightup);
   return 0;
 }
 
 typedef struct worm {
-  cell lightup;
+  nccell lightup;
   int x, y;
   int prevx, prevy;
 } worm;
@@ -184,7 +184,7 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total,
   ncplane_putegc_yx(n, 4, 17, "┬", NULL);
   ncplane_putegc_yx(n, 5, 17, "│", NULL);
   ncplane_putegc_yx(n, 6, 17, "╰", NULL);
-  cell hl = CELL_TRIVIAL_INITIALIZER;
+  nccell hl = CELL_TRIVIAL_INITIALIZER;
   cell_load(n, &hl, "─");
   cell_set_fg_rgb8(&hl, 255, 255, 255);
   cell_set_bg_rgb8(&hl, 32, 64, 32);
@@ -459,7 +459,7 @@ int witherworm_demo(struct notcurses* nc){
   ncplane_erase(n);
   for(i = 0 ; i < screens ; ++i){
     wchar_t key = NCKEY_INVALID;
-    cell c;
+    nccell c;
     struct timespec screenend;
     clock_gettime(CLOCK_MONOTONIC, &screenend);
     ns_to_timespec(timespec_to_ns(&screenend) + timespec_to_ns(&demodelay), &screenend);

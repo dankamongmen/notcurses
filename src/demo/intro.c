@@ -36,12 +36,12 @@ int intro(struct notcurses* nc){
   if(ncplane_highgradient_sized(ncp, ccul, ccur, ccll, cclr, rows, cols) <= 0){
     return -1;
   }
-  cell c = CELL_TRIVIAL_INITIALIZER;
+  nccell c = CELL_TRIVIAL_INITIALIZER;
   cell_set_bg_rgb8(&c, 0x20, 0x20, 0x20);
   ncplane_set_base_cell(ncp, &c);
-  cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
-  cell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
-  cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
+  nccell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
+  nccell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
+  nccell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
   if(ncplane_cursor_move_yx(ncp, 1, 0)){
     return -1;
   }

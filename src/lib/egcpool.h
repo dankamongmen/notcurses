@@ -224,7 +224,6 @@ egcpool_check_validity(const egcpool* pool, int offset){
 static inline void
 egcpool_release(egcpool* pool, int offset){
   size_t freed = 1; // account for free(d) NUL terminator
-  assert(egcpool_check_validity(pool, offset));
   while(pool->pool[offset]){
     pool->pool[offset] = '\0';
     ++freed;
@@ -247,19 +246,19 @@ egcpool_dump(egcpool* pool){
 // get the offset into the egcpool for this cell's EGC. returns meaningless and
 // unsafe results if called on a simple cell.
 static inline uint32_t
-cell_egc_idx(const cell* c){
+cell_egc_idx(const nccell* c){
   return (htole(c->gcluster) & 0x00fffffflu);
 }
 
 // Is the cell simple (a UTF8-encoded EGC of four bytes or fewer)?
 static inline bool
-cell_simple_p(const cell* c){
+cell_simple_p(const nccell* c){
   return (htole(c->gcluster) & htole(0xff000000ul)) != htole(0x01000000ul);
 }
 
 // only applies to complex cells, do not use on simple cells
 __attribute__ ((__returns_nonnull__)) static inline const char*
-egcpool_extended_gcluster(const egcpool* pool, const cell* c) {
+egcpool_extended_gcluster(const egcpool* pool, const nccell* c) {
   assert(!cell_simple_p(c));
   uint32_t idx = cell_egc_idx(c);
   return pool->pool + idx;

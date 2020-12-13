@@ -73,21 +73,21 @@ is assumed to be 80x24 cells). Further ncplanes can be created with
 **ncplane_new(3)**. A total z-ordering always exists on the set of ncplanes,
 and new ncplanes are placed at the top of the z-buffer. Ncplanes can be larger,
 smaller, or the same size as the physical screen, and can be placed anywhere
-relative to it (including entirely off-screen). Ncplanes are made up of cells
-(see [Cells][] below). Information on ncplanes is available at
+relative to it (including entirely off-screen). Ncplanes are made up of
+`nccell`s (see [NcCells][] below). Information on ncplanes is available at
 **notcurses_plane(3)**.
 
-## Cells
+## NcCells
 
-Cells make up the framebuffers backing each ncplane, one cell per coordinate,
-one extended grapheme cluster (see **unicode(7)**) per cell. A cell consists of
-a gcluster (either a directly-encoded 7-bit ASCII character (see **ascii(7)**), or
-a 25-bit index into the ncplane's egcpool), a set of attributes, and two
-channels (one for the foreground, and one for the background—see
-**notcurses_channels(3)**). Information on cells is available at
-**notcurses_cell(3)**.
+`nccell`s make up the framebuffers backing each ncplane, one cell per
+coordinate, one extended grapheme cluster (see **unicode(7)**) per cell. An
+`nccell` consists of a gcluster (either a directly-encoded 7-bit ASCII
+character (see **ascii(7)**), or a 25-bit index into the ncplane's egcpool), a
+set of attributes, and two channels (one for the foreground, and one for the
+background—see **notcurses_channels(3)**). Information on cells is available at
+**notcurses_nccell(3)**.
 
-It is not usually necessary for users to interact directly with cells. They
+It is not usually necessary for users to interact directly with `nccell`s. They
 are typically encountered when retrieving data from ncplanes or the rendered
 scene (see e.g. **ncplane_at_yx(3)**), or to achieve peak performance when a
 particular EGC is heavily reused within a plane.
@@ -142,7 +142,7 @@ order to turn most error returns into exceptions.
 **notcurses-demo(1)**,
 **notcurses-input(1)**,
 **notcurses_capabilities(3)**,
-**notcurses_cell(3)**,
+**notcurses_nccell(3)**,
 **notcurses_channels(3)**,
 **notcurses_directmode(3)**,
 **notcurses_fade(3)**,

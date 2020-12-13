@@ -38,7 +38,7 @@ notcurses_resize_internal(ncplane* pp, int* restrict rows, int* restrict cols){
     n->lfdimy = *rows;
     n->lfdimx = *cols;
     const size_t size = sizeof(*n->lastframe) * (n->lfdimy * n->lfdimx);
-    cell* fb = realloc(n->lastframe, size);
+    nccell* fb = realloc(n->lastframe, size);
     if(fb == NULL){
       return -1;
     }
@@ -155,12 +155,12 @@ update_render_stats(const struct timespec* time1, const struct timespec* time0,
   }
 }
 
-void cell_release(ncplane* n, cell* c){
+void cell_release(ncplane* n, nccell* c){
   pool_release(&n->pool, c);
 }
 
 // Duplicate one cell onto another when they share a plane. Convenience wrapper.
-int cell_duplicate(ncplane* n, cell* targ, const cell* c){
+int cell_duplicate(ncplane* n, nccell* targ, const nccell* c){
   if(cell_duplicate_far(&n->pool, targ, n, c) < 0){
     logerror(ncplane_notcurses(n), "Failed duplicating cell");
     return -1;
@@ -172,7 +172,7 @@ int cell_duplicate(ncplane* n, cell* targ, const cell* c){
 // crender per rendered cell, and they are initialized to all zeroes.
 struct crender {
   const ncplane *p; // source of glyph for this cell
-  cell c;
+  nccell c;
   unsigned fgblends;
   unsigned bgblends;
   // we'll need recalculate the foreground relative to the solved background,
@@ -262,11 +262,11 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
         break;
       }
       struct crender* crender = &rvec[fbcellidx(absy, dstlenx, absx)];
-      cell* targc = &crender->c;
+      nccell* targc = &crender->c;
       if(cell_wide_right_p(targc)){
         continue;
       }
-      const cell* vis = &p->fb[nfbcellidx(p, y, x)];
+      const nccell* vis = &p->fb[nfbcellidx(p, y, x)];
       // if we never loaded any content into the cell (or obliterated it by
       // writing in a zero), use the plane's base cell.
       if(vis->gcluster == 0 && !cell_double_wide_p(vis)){
@@ -369,7 +369,7 @@ init_rvec(struct crender* rvec, int totalcells){
 // should be done at the end of rendering the cell, so that contrast is solved
 // against the real background.
 static inline void
-lock_in_highcontrast(cell* targc, struct crender* crender){
+lock_in_highcontrast(nccell* targc, struct crender* crender){
   if(cell_fg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
     cell_set_fg_default(targc);
   }
@@ -397,13 +397,13 @@ lock_in_highcontrast(cell* targc, struct crender* crender){
 // wide glyph to its left. FIXME why can't we do this as we go along? FIXME can
 // we not do the blend a single time here, if we track sums in paint()?
 static void
-postpaint(cell* lastframe, int dimy, int dimx, struct crender* rvec, egcpool* pool){
+postpaint(nccell* lastframe, int dimy, int dimx, struct crender* rvec, egcpool* pool){
   for(int y = 0 ; y < dimy ; ++y){
     for(int x = 0 ; x < dimx ; ++x){
       struct crender* crender = &rvec[fbcellidx(y, dimx, x)];
-      cell* targc = &crender->c;
+      nccell* targc = &crender->c;
       lock_in_highcontrast(targc, crender);
-      cell* prevcell = &lastframe[fbcellidx(y, dimx, x)];
+      nccell* prevcell = &lastframe[fbcellidx(y, dimx, x)];
       if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc) > 0){
         crender->damaged = true;
         if(cell_wide_left_p(targc)){
@@ -452,7 +452,7 @@ int ncplane_mergedown(const ncplane* restrict src, ncplane* restrict dst,
     return -1;
   }
   const int totalcells = dst->leny * dst->lenx;
-  cell* rendfb = calloc(sizeof(*rendfb), totalcells);
+  nccell* rendfb = calloc(sizeof(*rendfb), totalcells);
   const size_t crenderlen = sizeof(struct crender) * totalcells;
   struct crender* rvec = malloc(crenderlen);
   if(!rendfb || !rvec){
@@ -503,9 +503,9 @@ ncfputc(char c, FILE* out){
 #endif
 }
 
-// write the cell's UTF-8 extended grapheme cluster to the provided FILE*.
+// write the nccell's UTF-8 extended grapheme cluster to the provided FILE*.
 static int
-term_putc(FILE* out, const egcpool* e, const cell* c){
+term_putc(FILE* out, const egcpool* e, const nccell* c){
   if(cell_simple_p(c)){
 //fprintf(stderr, "[%.4s] %08x\n", (const char*)&c->gcluster, c->gcluster); }
     uint32_t firstbyte = htole(c->gcluster) & 0xff;
@@ -551,7 +551,7 @@ int term_setstyle(FILE* out, unsigned cur, unsigned targ, unsigned stylebit,
 
 // write any escape sequences necessary to set the desired style
 static inline int
-term_setstyles(FILE* out, uint32_t* curattr, const cell* c, bool* normalized,
+term_setstyles(FILE* out, uint32_t* curattr, const nccell* c, bool* normalized,
                const char* sgr0, const char* sgr, const char* italics,
                const char* italoff, const char* struck, const char* struckoff){
   *normalized = false;
@@ -791,7 +791,7 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
       const int innerx = x - nc->stdplane->absx;
       const size_t damageidx = innery * nc->lfdimx + innerx;
       unsigned r, g, b, br, bg, bb, palfg, palbg;
-      const cell* srccell = &nc->lastframe[damageidx];
+      const nccell* srccell = &nc->lastframe[damageidx];
       if(!rvec[damageidx].damaged){
         // no need to emit a cell; what we rendered appears to already be
         // here. no updates are performed to elision state nor lastframe.
@@ -1168,7 +1168,7 @@ int notcurses_render_to_buffer(notcurses* nc, char** buf, size_t* buflen){
 // copy the UTF8-encoded EGC out of the cell, whether simple or complex. the
 // result is not tied to the ncplane, and persists across erases / destruction.
 static inline char*
-pool_egc_copy(const egcpool* e, const cell* c){
+pool_egc_copy(const egcpool* e, const nccell* c){
   if(cell_simple_p(c)){
     return strdup((const char*)&c->gcluster);
   }
@@ -1180,7 +1180,7 @@ char* notcurses_at_yx(notcurses* nc, int yoff, int xoff, uint16_t* stylemask, ui
   if(nc->lastframe){
     if(yoff >= 0 && yoff < nc->lfdimy){
       if(xoff >= 0 || xoff < nc->lfdimx){
-        const cell* srccell = &nc->lastframe[yoff * nc->lfdimx + xoff];
+        const nccell* srccell = &nc->lastframe[yoff * nc->lfdimx + xoff];
         if(stylemask){
           *stylemask = srccell->stylemask;
         }

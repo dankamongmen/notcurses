@@ -252,7 +252,7 @@ class ncppplot {
              return -1;
            }
            utf8[bytes] = '\0';
-           cell* c = ncplane_cell_ref_yx(ncp, dimy - y - 1, x);
+           nccell* c = ncplane_cell_ref_yx(ncp, dimy - y - 1, x);
            cell_set_bchannel(c, channels_bchannel(channels));
            cell_set_fchannel(c, channels_fchannel(channels));
            cell_set_styles(c, NCSTYLE_NONE);

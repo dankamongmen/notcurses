@@ -350,7 +350,7 @@ infoplane(struct ncdirect* ncd, const fetched_info* fi){
   ncplane_printf_aligned(infop, 3, NCALIGN_RIGHT, "Shell: %s ", fi->shell);
   if(notcurses_cantruecolor(nc)){
     ncplane_printf_aligned(infop, 4, NCALIGN_LEFT, " RGB TERM: %s", fi->term);
-    cell c = CELL_CHAR_INITIALIZER('R');
+    nccell c = CELL_CHAR_INITIALIZER('R');
     cell_set_styles(&c, NCSTYLE_BOLD);
     cell_set_fg_rgb8(&c, 0xd0, 0, 0);
     ncplane_putc_yx(infop, 4, 1, &c);
@@ -369,9 +369,9 @@ infoplane(struct ncdirect* ncd, const fetched_info* fi){
   ncplane_printf_aligned(infop, 5, NCALIGN_RIGHT, "UID: %ju ", (uintmax_t)getuid());
   ncplane_set_styles(infop, NCSTYLE_ITALIC);
   ncplane_printf_aligned(infop, 6, NCALIGN_CENTER, "%s (%d cores)", fi->cpu_model, fi->core_count);
-  cell ul = CELL_TRIVIAL_INITIALIZER; cell ur = CELL_TRIVIAL_INITIALIZER;
-  cell ll = CELL_TRIVIAL_INITIALIZER; cell lr = CELL_TRIVIAL_INITIALIZER;
-  cell hl = CELL_TRIVIAL_INITIALIZER; cell vl = CELL_TRIVIAL_INITIALIZER;
+  nccell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
+  nccell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
+  nccell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
   if(cells_rounded_box(infop, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }

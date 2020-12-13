@@ -10,9 +10,9 @@ notcurses_output - output to ncplanes
 
 **#include <notcurses/notcurses.h>**
 
-**static inline int ncplane_putc(struct ncplane* ***n***, const cell* ***c***);**
+**static inline int ncplane_putc(struct ncplane* ***n***, const nccell* ***c***);**
 
-**int ncplane_putc_yx(struct ncplane* ***n***, int ***y***, int ***x***, const cell* ***c***);**
+**int ncplane_putc_yx(struct ncplane* ***n***, int ***y***, int ***x***, const nccell* ***c***);**
 
 **static inline int ncplane_putchar(struct ncplane* ***n***, char ***c***);**
 
@@ -81,7 +81,7 @@ notcurses_output - output to ncplanes
 These functions write EGCs (Extended Grapheme Clusters) to the specified
 **struct ncplane**s. The following inputs are supported:
 
-* **ncplane_putc()**: writes a single cell (see **notcurses_cell(3)**)
+* **ncplane_putc()**: writes a single **nccell** (see **notcurses_nccell(3)**)
 * **ncplane_putchar()**: writes a single 7-bit ASCII character
 * **ncplane_putwc()**: writes a single **wchar_t** (following UTF-8 conversion)
 * **ncplane_putwegc()**: writes a single EGC from an array of **wchar_t**
@@ -93,7 +93,7 @@ These functions write EGCs (Extended Grapheme Clusters) to the specified
 * **ncplane_puttext()**: multi-line, line-broken, aligned text
 
 All of these use the **ncplane**'s active styling, save **notcurses_putc()**,
-which uses the cell's styling. Functions accepting a single EGC expect a series
+which uses the **nccell**'s styling. Functions accepting a single EGC expect a series
 of **wchar_t** terminated by **L'\0'** or a series of UTF-8 **char** terminated
 by **'\0'**. The EGC must be well-formed, and must not contain any cluster
 breaks. For more information, consult [Unicode® Standard Annex #29](https://unicode.org/reports/tr29/).
@@ -134,7 +134,7 @@ EGCs.
 
 **fprintf(3)**
 **notcurses(3)**,
-**notcurses_cell(3)**,
+**notcurses_nccell(3)**,
 **notcurses_plane(3)**,
 **stdarg(3)**,
 **ascii(7)**,

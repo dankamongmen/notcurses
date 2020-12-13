@@ -41,7 +41,7 @@ TEST_CASE("Fade") {
   REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
   int dimy, dimx;
   ncplane_dim_yx(n_, &dimy, &dimx);
-  cell c = CELL_TRIVIAL_INITIALIZER;
+  nccell c = CELL_TRIVIAL_INITIALIZER;
   c.gcluster = '*';
   cell_set_fg_rgb8(&c, 0xff, 0xff, 0xff);
   unsigned rgb = 0xffffffu;

@@ -39,7 +39,7 @@ legend(struct notcurses* nc, const char* msg){
   if(n == NULL){
     return NULL;
   }
-  cell c = CELL_TRIVIAL_INITIALIZER;
+  nccell c = CELL_TRIVIAL_INITIALIZER;
   cell_set_fg_rgb8(&c, 0, 0, 0); // darken surrounding characters by half
   cell_set_fg_alpha(&c, CELL_ALPHA_BLEND);
   cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT); // don't touch background
@@ -120,7 +120,7 @@ slidepanel(struct notcurses* nc, struct ncplane* stdn){
   // no glyph, we should show underlying glyphs in the default colors. The
   // background default might be transparent, at the window level (i.e. a copy
   // of the underlying desktop).
-  cell c = CELL_CHAR_INITIALIZER(' ');
+  nccell c = CELL_CHAR_INITIALIZER(' ');
   struct timespec cur;
   ncplane_set_base_cell(n, &c);
   clock_gettime(CLOCK_MONOTONIC, &cur);

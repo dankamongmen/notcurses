@@ -106,8 +106,8 @@ TEST_CASE("ZAxis") {
   // verify that moving one above another, with no other changes, is reflected at
   // render time (requires explicit damage maintenance from move functionality).
   SUBCASE("ZAxisDamage") {
-    cell cat = CELL_TRIVIAL_INITIALIZER;
-    cell c = CELL_CHAR_INITIALIZER('x');
+    nccell cat = CELL_TRIVIAL_INITIALIZER;
+    nccell c = CELL_CHAR_INITIALIZER('x');
     REQUIRE(!cell_set_fg_rgb8(&c, 0xff, 0, 0));
     REQUIRE(1 == ncplane_putc(n_, &c));
     CHECK(!notcurses_render(nc_));

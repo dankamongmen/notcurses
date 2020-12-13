@@ -3,7 +3,7 @@
 #include "demo.h"
 
 static int
-reload_corners(struct ncplane* n, cell* ul, cell* ur, cell* ll, cell* lr){
+reload_corners(struct ncplane* n, nccell* ul, nccell* ur, nccell* ll, nccell* lr){
   int dimy, dimx;
   ncplane_dim_yx(n, &dimy, &dimx);
   char* egc;
@@ -82,9 +82,9 @@ int box_demo(struct notcurses* nc){
   int ylen, xlen;
   struct ncplane* n = notcurses_stddim_yx(nc, &ylen, &xlen);
   ncplane_erase(n);
-  cell ul = CELL_TRIVIAL_INITIALIZER, ll = CELL_TRIVIAL_INITIALIZER;
-  cell lr = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
-  cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
+  nccell ul = CELL_TRIVIAL_INITIALIZER, ll = CELL_TRIVIAL_INITIALIZER;
+  nccell lr = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
+  nccell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
   if(cells_double_box(n, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
@@ -92,7 +92,7 @@ int box_demo(struct notcurses* nc){
   const int targx = 7;
   const int targy = 7;
   int ytargbase = (ylen - targy) / 2;
-  cell c = CELL_CHAR_INITIALIZER(' ');
+  nccell c = CELL_CHAR_INITIALIZER(' ');
   cell_set_bg_default(&c);
   ncplane_set_base_cell(n, &c);
   cell_release(n, &c);

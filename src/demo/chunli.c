@@ -9,7 +9,7 @@ typedef struct chunli {
 } chunli;
 
 static int
-chunli_draw(struct notcurses* nc, const char* ext, int count, const cell* b){
+chunli_draw(struct notcurses* nc, const char* ext, int count, const nccell* b){
   chunli chuns[CHUNS];
   char file[20];
   int dimx, dimy;
@@ -51,7 +51,7 @@ int chunli_demo(struct notcurses* nc){
   timespec_div(&demodelay, 10, &iterdelay);
   int ret, dimx, dimy;
   notcurses_refresh(nc, &dimy, &dimx);
-  cell b = CELL_TRIVIAL_INITIALIZER;
+  nccell b = CELL_TRIVIAL_INITIALIZER;
   cell_set_fg_alpha(&b, CELL_ALPHA_TRANSPARENT);
   cell_set_bg_alpha(&b, CELL_ALPHA_TRANSPARENT);
   if( (ret = chunli_draw(nc, "bmp", CHUNS, &b)) ){

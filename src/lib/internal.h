@@ -60,7 +60,7 @@ struct esctrie;
 // circular buffer of rows. 'logrow' is the index of the row at the logical top
 // of the plane. It only changes from 0 if the plane is scrollable.
 typedef struct ncplane {
-  cell* fb;              // "framebuffer" of character cells
+  nccell* fb;            // "framebuffer" of character cells
   int logrow;            // logical top row, starts at 0, add one for each scroll
   int x, y;              // current cursor location within this plane
   // ncplane_yx() etc. use coordinates relative to the plane to which this
@@ -88,7 +88,7 @@ typedef struct ncplane {
 
   void* userptr;         // slot for the user to stick some opaque pointer
   int (*resizecb)(struct ncplane*); // callback after parent is resized
-  cell basecell;         // cell written anywhere that fb[i].gcluster == 0
+  nccell basecell;       // cell written anywhere that fb[i].gcluster == 0
   char* name;            // used only for debugging
   ncalign_e align;       // relative to parent plane, for automatic realignment
   uint16_t stylemask;    // same deal as in a cell
@@ -323,7 +323,7 @@ typedef struct notcurses {
 
   // we keep a copy of the last rendered frame. this facilitates O(1)
   // notcurses_at_yx() and O(1) damage detection (at the cost of some memory).
-  cell* lastframe;// last rasterized framebuffer, NULL until first rasterization
+  nccell* lastframe;// last rasterized framebuffer, NULL until first raster
   egcpool pool;   // egcpool for lastframe
 
   int lfdimx;     // dimensions of lastframe, unchanged by screen resize
@@ -577,20 +577,20 @@ term_fg_palindex(const notcurses* nc, FILE* out, unsigned pal){
 }
 
 static inline const char*
-pool_extended_gcluster(const egcpool* pool, const cell* c){
+pool_extended_gcluster(const egcpool* pool, const nccell* c){
   if(cell_simple_p(c)){
     return (const char*)&c->gcluster;
   }
   return egcpool_extended_gcluster(pool, c);
 }
 
-static inline cell*
+static inline nccell*
 ncplane_cell_ref_yx(ncplane* n, int y, int x){
   return &n->fb[nfbcellidx(n, y, x)];
 }
 
 static inline void
-cell_set_wide(cell* c){
+cell_set_wide(nccell* c){
   c->channels |= CELL_WIDEASIAN_MASK;
 }
 
@@ -609,7 +609,7 @@ ns_to_timespec(uint64_t ns, struct timespec* ts){
 }
 
 static inline void
-cell_debug(const egcpool* p, const cell* c){
+cell_debug(const egcpool* p, const nccell* c){
   fprintf(stderr, "gcluster: %u %s style: 0x%04x chan: 0x%016jx\n",
 				  c->gcluster, egcpool_extended_gcluster(p, c), c->stylemask, c->channels);
 }
@@ -622,7 +622,7 @@ plane_debug(const ncplane* n, bool details){
   if(details){
     for(int y = 0 ; y < 1 ; ++y){
       for(int x = 0 ; x < 10 ; ++x){
-        const cell* c = &n->fb[fbcellidx(y, dimx, x)];
+        const nccell* c = &n->fb[fbcellidx(y, dimx, x)];
         fprintf(stderr, "[%03d/%03d] ", y, x);
         cell_debug(&n->pool, c);
       }
@@ -631,22 +631,22 @@ plane_debug(const ncplane* n, bool details){
 }
 
 static inline void
-pool_release(egcpool* pool, cell* c){
+pool_release(egcpool* pool, nccell* c){
   if(!cell_simple_p(c)){
     egcpool_release(pool, cell_egc_idx(c));
   }
   c->gcluster = 0; // don't subject ourselves to double-release problems
 }
 
-// set the cell 'c' to point into the egcpool at location 'eoffset'
+// set the nccell 'c' to point into the egcpool at location 'eoffset'
 static inline void
-set_gcluster_egc(cell* c, int eoffset){
+set_gcluster_egc(nccell* c, int eoffset){
   c->gcluster = htole(0x01000000ul) + htole(eoffset);
 }
 
-// Duplicate one cell onto another, possibly crossing ncplanes.
+// Duplicate one nccell onto another, possibly crossing ncplanes.
 static inline int
-cell_duplicate_far(egcpool* tpool, cell* targ, const ncplane* splane, const cell* c){
+cell_duplicate_far(egcpool* tpool, nccell* targ, const ncplane* splane, const nccell* c){
   pool_release(tpool, targ);
   targ->stylemask = c->stylemask;
   targ->channels = c->channels;
@@ -878,7 +878,7 @@ box_corner_needs(unsigned ctlword){
 // True if the cell does not generate background pixels (i.e., the cell is a
 // solid or shaded block, or certain emoji).
 static inline bool
-cell_nobackground_p(const cell* c){
+cell_nobackground_p(const nccell* c){
   return c->channels & CELL_NOBACKGROUND_MASK;
 }
 
@@ -921,12 +921,12 @@ channels_blend(unsigned c1, unsigned c2, unsigned* blends){
 
 // do not pass palette-indexed channels!
 static inline uint64_t
-cell_blend_fchannel(cell* cl, unsigned channel, unsigned* blends){
+cell_blend_fchannel(nccell* cl, unsigned channel, unsigned* blends){
   return cell_set_fchannel(cl, channels_blend(cell_fchannel(cl), channel, blends));
 }
 
 static inline uint64_t
-cell_blend_bchannel(cell* cl, unsigned channel, unsigned* blends){
+cell_blend_bchannel(nccell* cl, unsigned channel, unsigned* blends){
   return cell_set_bchannel(cl, channels_blend(cell_bchannel(cl), channel, blends));
 }
 
@@ -961,7 +961,7 @@ egc_rtl(const char* egc, int* bytes){
 // CELL_WIDEASIAN_MASK and CELL_NOBACKGROUND_MASK ought be set however they're
 // going to be set.
 static inline int
-pool_blit_direct(egcpool* pool, cell* c, const char* gcluster, int bytes, int cols){
+pool_blit_direct(egcpool* pool, nccell* c, const char* gcluster, int bytes, int cols){
   pool_release(pool, c);
   if(bytes < 0 || cols < 0){
     return -1;
@@ -980,7 +980,7 @@ pool_blit_direct(egcpool* pool, cell* c, const char* gcluster, int bytes, int co
 }
 
 static inline int
-pool_load_direct(egcpool* pool, cell* c, const char* gcluster, int bytes, int cols){
+pool_load_direct(egcpool* pool, nccell* c, const char* gcluster, int bytes, int cols){
   char* rtl = NULL;
   c->width = cols - 1;
   if(cols < 2){
@@ -1006,12 +1006,12 @@ pool_load_direct(egcpool* pool, cell* c, const char* gcluster, int bytes, int co
 }
 
 static inline int
-cell_load_direct(ncplane* n, cell* c, const char* gcluster, int bytes, int cols){
+cell_load_direct(ncplane* n, nccell* c, const char* gcluster, int bytes, int cols){
   return pool_load_direct(&n->pool, c, gcluster, bytes, cols);
 }
 
 static inline int
-pool_load(egcpool* pool, cell* c, const char* gcluster){
+pool_load(egcpool* pool, nccell* c, const char* gcluster){
   int cols;
   int bytes = utf8_egc_len(gcluster, &cols);
   return pool_load_direct(pool, c, gcluster, bytes, cols);
@@ -1037,12 +1037,12 @@ iswordbreak(wchar_t wchar){
   return uc_is_general_category_withtable(wchar, mask);
 }
 
-// the heart of damage detection. compare two cells (from two different planes)
-// for equality. if they are equal, return 0. otherwise, dup the second onto
-// the first and return non-zero.
+// the heart of damage detection. compare two nccells (from two different
+// planes) for equality. if they are equal, return 0. otherwise, dup the second
+// onto the first and return non-zero.
 static inline int
-cellcmp_and_dupfar(egcpool* dampool, cell* damcell,
-                   const ncplane* srcplane, const cell* srccell){
+cellcmp_and_dupfar(egcpool* dampool, nccell* damcell,
+                   const ncplane* srcplane, const nccell* srccell){
   if(damcell->stylemask == srccell->stylemask){
     if(damcell->channels == srccell->channels){
       const char* srcegc = cell_extended_gcluster(srcplane, srccell);

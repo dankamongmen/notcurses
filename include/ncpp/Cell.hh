@@ -46,17 +46,17 @@ namespace ncpp
 			_cell = CELL_INITIALIZER (c, a, chan);
 		}
 
-		operator cell* () noexcept
+		operator nccell* () noexcept
 		{
 			return &_cell;
 		}
 
-		operator cell const* () const noexcept
+		operator nccell const* () const noexcept
 		{
 			return &_cell;
 		}
 
-		cell& get () noexcept
+		nccell& get () noexcept
 		{
 			return _cell;
 		}
@@ -222,7 +222,7 @@ namespace ncpp
 		}
 
 	private:
-		cell _cell;
+		nccell _cell;
 	};
 }
 

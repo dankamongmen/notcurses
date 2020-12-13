@@ -3526,7 +3526,7 @@ makegroup(struct ncplane* title, int y, const char* emoji, const char* name){
   if(n == NULL){
     return NULL;
   }
-  cell c = CELL_TRIVIAL_INITIALIZER;
+  nccell c = CELL_TRIVIAL_INITIALIZER;
   y = 1;
   int x = 1;
   while(*emoji){

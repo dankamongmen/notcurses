@@ -26609,7 +26609,7 @@ int jungle_demo(struct notcurses* nc){
   const int xoff = (dimx - ORIGWIDTH / xiter) / 2;
   const int yoff = (dimy - ORIGHEIGHT / yiter) / 4;
   ncplane_erase(n);
-  cell c = CELL_TRIVIAL_INITIALIZER;
+  nccell c = CELL_TRIVIAL_INITIALIZER;
   cell_load(n, &c, "\xe2\x96\x80"); // upper half block
   for(size_t y = 0 ; y < ORIGHEIGHT ; y += (yiter * 2)){
     if(ncplane_cursor_move_yx(n, yoff + y / (yiter * 2), xoff)){

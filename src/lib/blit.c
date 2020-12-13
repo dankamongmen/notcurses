@@ -63,7 +63,7 @@ tria_blit_ascii(ncplane* nc, int placey, int placex, int linesize,
     for(x = placex ; visx < (begx + lenx) && x < dimx ; ++x, ++visx){
       const unsigned char* rgbbase_up = dat + (linesize * visy) + (visx * bpp / CHAR_BIT);
 //fprintf(stderr, "[%04d/%04d] bpp: %d lsize: %d %02x %02x %02x %02x\n", y, x, bpp, linesize, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2], rgbbase_up[3]);
-      cell* c = ncplane_cell_ref_yx(nc, y, x);
+      nccell* c = ncplane_cell_ref_yx(nc, y, x);
       // use the default for the background, as that's the only way it's
       // effective in that case anyway
       c->channels = 0;
@@ -114,7 +114,7 @@ tria_blit(ncplane* nc, int placey, int placex, int linesize,
         rgbbase_down = dat + (linesize * (visy + 1)) + (visx * bpp / CHAR_BIT);
       }
 //fprintf(stderr, "[%04d/%04d] bpp: %d lsize: %d %02x %02x %02x %02x\n", y, x, bpp, linesize, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2], rgbbase_up[3]);
-      cell* c = ncplane_cell_ref_yx(nc, y, x);
+      nccell* c = ncplane_cell_ref_yx(nc, y, x);
       // use the default for the background, as that's the only way it's
       // effective in that case anyway
       c->channels = 0;
@@ -286,7 +286,7 @@ quadrant_solver(uint32_t tl, uint32_t tr, uint32_t bl, uint32_t br,
 // FIXME we ought be able to just build up a bitstring and use it as an index!
 // FIXME pass in rgbas as array of uint32_t ala sexblitter
 static inline const char*
-qtrans_check(cell* c, bool blendcolors,
+qtrans_check(nccell* c, bool blendcolors,
              const unsigned char* rgbbase_tl, const unsigned char* rgbbase_tr,
              const unsigned char* rgbbase_bl, const unsigned char* rgbbase_br){
   uint32_t tl = 0, tr = 0, bl = 0, br = 0;
@@ -411,7 +411,7 @@ quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
         rgbbase_bl = dat + (linesize * (visy + 1)) + (visx * bpp / CHAR_BIT);
       }
 //fprintf(stderr, "[%04d/%04d] bpp: %d lsize: %d %02x %02x %02x %02x\n", y, x, bpp, linesize, rgbbase_tl[0], rgbbase_tr[1], rgbbase_bl[2], rgbbase_br[3]);
-      cell* c = ncplane_cell_ref_yx(nc, y, x);
+      nccell* c = ncplane_cell_ref_yx(nc, y, x);
       c->channels = 0;
       c->stylemask = 0;
       const char* egc = qtrans_check(c, blendcolors, rgbbase_tl, rgbbase_tr, rgbbase_bl, rgbbase_br);
@@ -625,7 +625,7 @@ sextant_blit(ncplane* nc, int placey, int placex, int linesize,
           memcpy(&rgbas[4], (dat + (linesize * (visy + 2)) + (visx * bpp / CHAR_BIT)), sizeof(*rgbas));
         }
       }
-      cell* c = ncplane_cell_ref_yx(nc, y, x);
+      nccell* c = ncplane_cell_ref_yx(nc, y, x);
       c->channels = 0;
       c->stylemask = 0;
       const char* egc = sex_trans_check(rgbas, &c->channels, blendcolors);
@@ -742,7 +742,7 @@ braille_blit(ncplane* nc, int placey, int placex, int linesize,
         fold_rgb8(&r, &g, &b, rgbbase_r3, &blends);
       }
 //fprintf(stderr, "[%04d/%04d] bpp: %d lsize: %d %02x %02x %02x %02x\n", y, x, bpp, linesize, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2], rgbbase_up[3]);
-      cell* c = ncplane_cell_ref_yx(nc, y, x);
+      nccell* c = ncplane_cell_ref_yx(nc, y, x);
       // use the default for the background, as that's the only way it's
       // effective in that case anyway
       c->channels = 0;

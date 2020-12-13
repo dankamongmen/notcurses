@@ -24,9 +24,9 @@ static int
 draw_block(struct ncplane* nn, uint32_t blockstart){
   int dimx, dimy;
   ncplane_dim_yx(nn, &dimy, &dimx);
-  cell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
-  cell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
-  cell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
+  nccell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
+  nccell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
+  nccell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
   cells_rounded_box(nn, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl);
   cell_set_bg_alpha(&ul, CELL_ALPHA_TRANSPARENT);
   cell_set_bg_alpha(&ur, CELL_ALPHA_TRANSPARENT);

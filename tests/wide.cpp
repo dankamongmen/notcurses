@@ -72,7 +72,7 @@ TEST_CASE("Wide") {
     const char EGC2[] = "\u20a9"; // half-width won ₩
     const char EGC3[] = "\u212b"; // ambiguous angstrom Å
     const char EGC4[] = "\ufdfd"; // neutral yet huge bismillah ﷽
-    std::array<cell, 5> tcells;
+    std::array<nccell, 5> tcells;
     for(auto & tcell : tcells){
       cell_init(&tcell);
     }
@@ -88,7 +88,7 @@ TEST_CASE("Wide") {
     int x = 0;
     for(auto & tcell : tcells){
       CHECK(0 == ncplane_cursor_move_yx(n_, 0, x));
-      cell testcell = CELL_TRIVIAL_INITIALIZER;
+      nccell testcell = CELL_TRIVIAL_INITIALIZER;
       CHECK(0 < ncplane_at_cursor_cell(n_, &testcell));
       CHECK(!strcmp(cell_extended_gcluster(n_, &tcell), cell_extended_gcluster(n_, &testcell)));
       CHECK(0 == testcell.stylemask);
@@ -118,7 +118,7 @@ TEST_CASE("Wide") {
     CHECK(1 == y);
     CHECK(2 == x);
     CHECK(0 < ncplane_putegc_yx(n_, 0, 0, w, &sbytes));
-    cell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = CELL_TRIVIAL_INITIALIZER;
     CHECK(0 < cell_load(n_, &c, w));
     CHECK(0 < ncplane_putc_yx(n_, 1, 0, &c));
     cell_release(n_, &c);
@@ -149,7 +149,7 @@ TEST_CASE("Wide") {
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == y);
     CHECK(1 + cols2 == x);
-    cell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = CELL_TRIVIAL_INITIALIZER;
     ncplane_at_yx_cell(n_, 0, 0, &c);
     if(cols1 > 1){
       CHECK(0 == c.gcluster); // should be nothing
@@ -176,7 +176,7 @@ TEST_CASE("Wide") {
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == y);
     CHECK(3 == x);
-    cell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = CELL_TRIVIAL_INITIALIZER;
     ncplane_at_yx_cell(n_, 0, 0, &c);
     if(ncstrwidth(wbashedl) > 1){
       CHECK(0 == c.gcluster); // should be nothing
@@ -206,7 +206,7 @@ TEST_CASE("Wide") {
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == y);
     CHECK(3 == x);
-    cell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = CELL_TRIVIAL_INITIALIZER;
     ncplane_at_yx_cell(n_, 0, 0, &c);
     CHECK(0 == strcmp(cell_extended_gcluster(n_, &c), SNAKE));
     ncplane_at_yx_cell(n_, 0, 1, &c);
@@ -238,7 +238,7 @@ TEST_CASE("Wide") {
     CHECK(0 == ncplane_rounded_box_sized(ncp, 0, 0, 3, 4, 0));
     CHECK(ncstrwidth(SCORPION) == ncplane_putegc_yx(ncp, 1, 1, SCORPION, nullptr));
     CHECK(0 == notcurses_render(nc_));
-    cell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = CELL_TRIVIAL_INITIALIZER;
     CHECK(0 < ncplane_at_yx_cell(ncp, 1, 0, &c));
     CHECK(!strcmp(cell_extended_gcluster(ncp, &c), "│"));
     cell_release(ncp, &c);
@@ -258,7 +258,7 @@ TEST_CASE("Wide") {
 
   SUBCASE("RenderWides") {
     CHECK(0 <= ncplane_putstr(n_, "\xe5\xbd\xa2\xe5\x85\xa8"));
-    cell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = CELL_TRIVIAL_INITIALIZER;
     ncplane_at_yx_cell(n_, 0, 0, &c);
     CHECK(cell_double_wide_p(&c));
     ncplane_at_yx_cell(n_, 0, 1, &c);
@@ -285,7 +285,7 @@ TEST_CASE("Wide") {
   // If an ncplane is moved atop the right half of a wide glyph, the entire
   // glyph should be oblitrated.
   SUBCASE("PlaneStompsWideGlyph"){
-    cell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = CELL_TRIVIAL_INITIALIZER;
     char* egc;
 
     // print two wide glyphs on the standard plane
@@ -404,7 +404,7 @@ TEST_CASE("Wide") {
     };
     struct ncplane* p = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != p);
-    cell c = CELL_CHAR_INITIALIZER('X');
+    nccell c = CELL_CHAR_INITIALIZER('X');
     CHECK(0 == ncplane_perimeter(p, &c, &c, &c, &c, &c, &c, 0));
     ncplane_set_bg_rgb8(n_, 0x20, 0x20, 0x20);
     int sbytes;
@@ -424,7 +424,7 @@ TEST_CASE("Wide") {
     REQUIRE(nullptr != egc);
     CHECK(0 == strcmp(" ", egc));
     free(egc);
-    cell cl = CELL_TRIVIAL_INITIALIZER, cr = CELL_TRIVIAL_INITIALIZER;
+    nccell cl = CELL_TRIVIAL_INITIALIZER, cr = CELL_TRIVIAL_INITIALIZER;
     CHECK(3 == ncplane_at_yx_cell(n_, 1, 1, &cl));
     CHECK(0 == strcmp("六", cell_extended_gcluster(n_, &cl)));
     CHECK(0 == ncplane_at_yx_cell(n_, 1, 2, &cr));
@@ -935,7 +935,7 @@ TEST_CASE("Wide") {
   // the NUL backstop for long inlined UTF8).
   // U+1F427 PINCHED FINGERS → UTF8(f0 9f a4 8c)
   SUBCASE("ItalicEmoji") {
-    cell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = CELL_TRIVIAL_INITIALIZER;
     cell_load(n_, &c, "\U0001F427");
     CHECK(0xa7909ff0 == htole(c.gcluster));
     cell_on_styles(&c, NCSTYLE_ITALIC);
@@ -954,7 +954,7 @@ TEST_CASE("Wide") {
   }
 
   SUBCASE("StyleMaxEmoji") {
-    cell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = CELL_TRIVIAL_INITIALIZER;
     cell_load(n_, &c, "\U0001F427");
     CHECK(0xa7909ff0 == htole(c.gcluster));
     cell_on_styles(&c, NCSTYLE_MASK);
@@ -1010,7 +1010,7 @@ TEST_CASE("Wide") {
 
   // fill the screen with un-inlineable EGCs
   SUBCASE("OfflineEGCs") {
-    cell c = CELL_TRIVIAL_INITIALIZER;
+    nccell c = CELL_TRIVIAL_INITIALIZER;
     const char egc[] = "\U0001F471\u200D\u2640"; // all one EGC
     CHECK(0 < cell_load(n_, &c, egc));
     ncplane_set_scrolling(n_, true);

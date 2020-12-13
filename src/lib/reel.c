@@ -119,7 +119,7 @@ draw_borders(ncplane* n, unsigned mask, uint64_t channel, direction_e direction)
   ncplane_dim_yx(n, &leny, &lenx);
   int maxx = lenx - 1;
   int maxy = leny - 1;
-  cell ul, ur, ll, lr, hl, vl;
+  nccell ul, ur, ll, lr, hl, vl;
   cell_init(&ul); cell_init(&ur); cell_init(&hl);
   cell_init(&ll); cell_init(&lr); cell_init(&vl);
   if(cells_rounded_box(n, 0, channel, &ul, &ur, &ll, &lr, &hl, &vl)){
