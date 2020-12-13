@@ -3032,11 +3032,7 @@ API int ncmenu_destroy(struct ncmenu* n);
 #define NCPROGBAR_OPTION_RETROGRADE        0x0001u // proceed left/down
 
 typedef struct ncprogbar_options {
-  // channels for the maximum and minimum points. linear interpolation will be
-  // applied across the domain between these two. for both channels, both min
-  // and max must either be RGB, or both default, and alphas must match.
-  uint64_t maxchannels;
-  uint64_t minchannels;
+  uint64_t channels; // channels for the progress bar
   uint64_t flags;
 } ncprogbar_options;
 

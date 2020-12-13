@@ -54,6 +54,7 @@ pbar_make(struct notcurses* nc, uint64_t flags){
   struct ncprogbar_options popts = {
     .flags = flags,
   };
+  channels_set_fg_rgb8(&popts.channels, 0x80, 0x22, 0x22);
   struct ncprogbar* ncp = ncprogbar_create(pbar, &popts);
   if(ncp == NULL){
     return NULL;
