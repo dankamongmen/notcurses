@@ -11,8 +11,6 @@ visualize(struct notcurses* nc, struct ncvisual* ncv){
     NCBLIT_BRAILLE,
   };
   for(size_t i = 0 ; i < sizeof(bs) / sizeof(*bs) ; ++i){
-    struct timespec ts;
-    timespec_div(&demodelay, 2, &ts);
     struct ncvisual_options vopts = {
       .scaling = NCSCALE_STRETCH,
       .blitter = bs[i],
@@ -34,7 +32,7 @@ visualize(struct notcurses* nc, struct ncvisual* ncv){
     if(ret){
       return ret;
     }
-    ret = demo_nanosleep(nc, &ts);
+    ret = demo_nanosleep(nc, &demodelay);
     ncplane_destroy(n);
     if(ret){
       return ret;
@@ -47,7 +45,7 @@ int keller_demo(struct notcurses* nc){
   if(!notcurses_canopen_images(nc)){
     return 0;
   }
-  const char* files[] = { "covid19.jpg", "aidsrobots.jpeg", "warmech.bmp", "fonts.jpg", NULL, };
+  const char* files[] = { "covid19.jpg", "aidsrobots.jpeg", "worldmap.png", "fonts.jpg", NULL, };
   for(const char** file = files ; *file ; ++file){
     char* f = find_data(*file);
     if(f == NULL){
