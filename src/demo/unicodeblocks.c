@@ -11,13 +11,52 @@
 #define BLOCKSIZE 512 // show this many per page
 #define CHUNKSIZE 32  // show this many per line
 
+// idx/max: how far we are block-wise, and now many blocks we have total
 static int
-fade_block(struct notcurses* nc, struct ncplane* nn, const struct timespec* subdelay){
+fade_block(struct notcurses* nc, struct ncplane* nn, const struct timespec* subdelay,
+           struct ncprogbar* pbar, size_t idx, size_t max){
   //int ret = ncplane_fadein(nn, subdelay, demo_fader);
+  ncprogbar_set_progress(pbar, (double)idx / max);
   int ret = demo_render(nc);
   demo_nanosleep(nc, subdelay);
   ncplane_destroy(nn);
   return ret;
+}
+
+// negative row will result in vertical pbar on the left side
+static struct ncprogbar*
+pbar_make(struct notcurses* nc, int row){
+  int dimx, dimy;
+  struct ncplane* std = notcurses_stddim_yx(nc, &dimy, &dimx);
+  struct ncplane_options nopts = {
+    .y = row < 0 ? 2 : row,
+    .x = row < 0 ? 2 : NCALIGN_CENTER,
+    .rows = row < 0 ? dimy - 5 : 1,
+    .cols = row < 0 ? 1 : dimx - 20,
+    .name = "pbar",
+    .flags = row < 0 ? 0 : NCPLANE_OPTION_HORALIGNED,
+  };
+  struct ncplane* pbar = ncplane_create(std, &nopts);
+  if(pbar == NULL){
+    return NULL;
+  }
+  int posy, posx, pdimy, pdimx;
+  ncplane_yx(pbar, &posy, &posx);
+  ncplane_dim_yx(pbar, &pdimy, &pdimx);
+  ncplane_cursor_move_yx(std, posy - 1, posx - 1);
+  uint64_t channels = 0;
+  channels_set_fg_rgb8(&channels, 0, 0xde, 0xde);
+  if(ncplane_rounded_box(std, 0, channels, posy + pdimy, posx + pdimx, 0)){
+    ncplane_destroy(pbar);
+    return NULL;
+  }
+  struct ncprogbar_options popts = {0};
+  channels_set_fg_rgb8(&popts.channels, 0x80, 0x22, 0x22);
+  struct ncprogbar* ncp = ncprogbar_create(pbar, &popts);
+  if(ncp == NULL){
+    return NULL;
+  }
+  return ncp;
 }
 
 static int
@@ -176,6 +215,14 @@ int unicodeblocks_demo(struct notcurses* nc){
     return 0;
   }
   ncplane_greyscale(notcurses_stdplane(nc));
+  int pbarrow = 4 + BLOCKSIZE / CHUNKSIZE + 4;
+  if(pbarrow > maxy - 1){
+    pbarrow = -1;
+  }
+  struct ncprogbar* pbar = pbar_make(nc, pbarrow);
+  if(!pbar){
+    return -1;
+  }
   size_t sindex;
   // we don't want a full delay period for each one, urk...or do we?
   struct timespec subdelay;
@@ -212,7 +259,7 @@ int unicodeblocks_demo(struct notcurses* nc){
     nopts.rows = BLOCKSIZE / CHUNKSIZE + 2;
     nopts.cols = (CHUNKSIZE * 2) + 2;
     nopts.y = 4;
-    if((nn = ncplane_create(header, &nopts)) == NULL){
+    if((nn = ncplane_create(n, &nopts)) == NULL){
       return -1;
     }
     if(draw_block(nn, blockstart)){
@@ -231,12 +278,13 @@ int unicodeblocks_demo(struct notcurses* nc){
       return -1;
     }
     int err;
-    if( (err = fade_block(nc, nn, &subdelay)) ){ // destroys nn
+    if( (err = fade_block(nc, nn, &subdelay, pbar, sindex, sizeof(blocks) / sizeof(*blocks))) ){ // destroys nn
       return err;
     }
     // for a 32-bit wchar_t, we would want up through 24 bits of block ID. but
     // really, the vast majority of space is unused.
   }
   ncplane_destroy(header);
+  ncprogbar_destroy(pbar);
   return 0;
 }
