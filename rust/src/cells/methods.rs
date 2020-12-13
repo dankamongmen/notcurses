@@ -13,7 +13,7 @@ impl NcCell {
         NcCell {
             gcluster: ch as u32,
             gcluster_backstop: 0 as NcEgcBackstop,
-            reserved: 0,
+            width: 0,
             stylemask,
             channels,
         }
