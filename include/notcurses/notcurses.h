@@ -3028,14 +3028,8 @@ API int ncmenu_destroy(struct ncmenu* n);
 // the time of each redraw), with the horizontal length scaled by 2 for
 // purposes of comparison. I.e. for a plane of 20 rows and 50 columns, the
 // progress will be to the right (50 > 40) or left with OPTION_RETROGRADE.
-// If NCPROGBAR_OPTION_LOCK_ORIENTATION is provided, the initial orientation
-// is locked in, despite any resizes. It locks horizontal progression by
-// default; NCPROGBAR_OPTION_FORCE_VERTICAL locks vertical progression. These
-// are recommended if you provide custom EGCs.
 
 #define NCPROGBAR_OPTION_RETROGRADE        0x0001u // proceed left/down
-#define NCPROGBAR_OPTION_LOCK_ORIENTATION  0x0002u // lock in orientation
-#define NCPROGBAR_OPTION_FORCE_VERTICAL    0x0003u // lock in vert
 
 typedef struct ncprogbar_options {
   // channels for the maximum and minimum points. linear interpolation will be

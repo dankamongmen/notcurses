@@ -14,8 +14,6 @@ notcurses_progbar - high level widget for progress bars
 struct ncprogbar;
 
 #define NCPROGBAR_OPTION_RETROGRADE        0x0001u // proceed left/down
-#define NCPROGBAR_OPTION_LOCK_ORIENTATION  0x0002u // lock in orientation
-#define NCPROGBAR_OPTION_FORCE_VERTICAL    0x0003u // lock in vert
 
 typedef struct ncprogbar_options {
   uint64_t maxchannels;
@@ -40,11 +38,9 @@ typedef struct ncprogbar_options {
 These functions draw progress bars in any of four directions. The progress
 measure is a **double** between zero and one, inclusive, provided to
 **ncprogbar_set_progress**. This will be scaled to the size of the provided
-ncplane ***n***. By default, the axis of progression is the longer element
-of the plane's geometry, but it can be explicitly chosen with
-**NCPROGBAR_OPTION_LOCK_ORIENTATION** and **NCPROGBAR_OPTION_FORCE_VERTICAL**.
-Horizontal bars proceed to the right by default, and vertical bars proceed up.
-This can be changed with **NCPROGBAR_OPTION_RETROGRADE**.
+ncplane ***n***. The axis of progression is the longer element of the plane's
+geometry. Horizontal bars proceed to the right by default, and vertical bars
+proceed up. This can be changed with **NCPROGBAR_OPTION_RETROGRADE**.
 
 # NOTES
 

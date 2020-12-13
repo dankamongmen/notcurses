@@ -26,7 +26,7 @@ pbar_fill(struct notcurses* nc, struct ncprogbar* pbar){
 }
 
 static struct ncprogbar*
-pbar_make(struct notcurses* nc){
+pbar_make(struct notcurses* nc, uint64_t flags){
   int dimy, dimx;
   struct ncplane* std = notcurses_stddim_yx(nc, &dimy, &dimx);
   struct ncplane_options nopts = {
@@ -51,7 +51,10 @@ pbar_make(struct notcurses* nc){
     ncplane_destroy(pbar);
     return NULL;
   }
-  struct ncprogbar* ncp = ncprogbar_create(pbar, NULL);
+  struct ncprogbar_options popts = {
+    .flags = flags,
+  };
+  struct ncprogbar* ncp = ncprogbar_create(pbar, &popts);
   if(ncp == NULL){
     return NULL;
   }
@@ -63,7 +66,7 @@ int main(void){
   if(nc == NULL){
     return EXIT_FAILURE;
   }
-  struct ncprogbar* ncp = pbar_make(nc);
+  struct ncprogbar* ncp = pbar_make(nc, NCPROGBAR_OPTION_RETROGRADE);
   if(ncp == NULL){
     notcurses_stop(nc);
     return EXIT_FAILURE;
