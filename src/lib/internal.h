@@ -1074,6 +1074,17 @@ int ncinputlayer_init(ncinputlayer* nilayer, FILE* infp);
 // FIXME absorb into ncinputlayer_init()
 int cbreak_mode(int ttyfd, const struct termios* tpreserved);
 
+// Given the four channels arguments, verify that:
+//
+// - if any is default foreground, all are default foreground
+// - if any is default background, all are default background
+// - all foregrounds must have the same alpha
+// - all backgrounds must have the same alpha
+// - palette-indexed color must not be used
+//
+// If you only want to check n < 4 channels, just duplicate one.
+bool check_gradient_args(uint64_t ul, uint64_t ur, uint64_t bl, uint64_t br);
+
 #ifdef __cplusplus
 }
 #endif

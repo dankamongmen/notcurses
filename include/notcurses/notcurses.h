@@ -3039,7 +3039,8 @@ API int ncmenu_destroy(struct ncmenu* n);
 
 typedef struct ncprogbar_options {
   // channels for the maximum and minimum points. linear interpolation will be
-  // applied across the domain between these two.
+  // applied across the domain between these two. for both channels, both min
+  // and max must either be RGB, or both default, and alphas must match.
   uint64_t maxchannels;
   uint64_t minchannels;
   // provide NULL for default (geometric) glyphs. otherwise, provide one or
