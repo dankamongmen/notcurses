@@ -224,8 +224,7 @@ typedef struct ncmenu {
 typedef struct ncprogbar {
   ncplane* ncp;
   double progress;          // on the range [0, 1]
-  uint64_t maxchannels;
-  uint64_t minchannels;
+  uint64_t channels;        // channels for the drawn bar
   bool retrograde;
 } ncprogbar;
 
