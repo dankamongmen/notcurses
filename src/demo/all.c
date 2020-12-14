@@ -26,13 +26,17 @@ problematic_unicode(char32_t wc){
 // 16: SPUBP
 // works on a scrolling plane
 static int
-allglyphs(struct notcurses* nc, struct ncplane* column, int legendy){
+allglyphs(struct notcurses* nc, struct ncplane* column, int legendy,
+          struct ncprogbar* left, struct ncprogbar* right){
   // some of these cause major problems with Kitty, if not others, due to
   // heavy duty beating on freetype FIXME reenable when reasonable
   const int valid_planes[] = {
     0, 1,/* 2, 3, 14,*/
     /*15, 16,*/ -1
   };
+  // 64k characters (not all used) per valid plane
+  const double totalglyphs = 0x10000ul * (sizeof(valid_planes) / sizeof(*valid_planes) - 1);
+  double glyphsdone = 0;
   struct ncplane* std = notcurses_stdplane(nc);
   const int dimx = ncplane_dim_x(column);
   ncplane_set_base(column, " ", 0, 0);
@@ -40,6 +44,7 @@ allglyphs(struct notcurses* nc, struct ncplane* column, int legendy){
     for(long int c = 0 ; c < 0x10000l ; ++c){
       const char32_t wc = *plane * 0x10000l + c;
       wchar_t w[2] = { wc, L'\0', };
+      ++glyphsdone;
       if(problematic_unicode(wc)){
         continue;
       }
@@ -55,6 +60,8 @@ allglyphs(struct notcurses* nc, struct ncplane* column, int legendy){
             return -1;
           }
           ncplane_set_styles(std, NCSTYLE_NONE);
+          ncprogbar_set_progress(left, glyphsdone / totalglyphs);
+          ncprogbar_set_progress(right, glyphsdone / totalglyphs);
           DEMO_RENDER(nc);
           ncplane_set_fg_rgb8(column,
                              random() % 192 + 64,
@@ -65,6 +72,41 @@ allglyphs(struct notcurses* nc, struct ncplane* column, int legendy){
     }
   }
   DEMO_RENDER(nc);
+  return 0;
+}
+
+static int
+make_pbars(struct ncplane* column, struct ncprogbar** left, struct ncprogbar** right){
+  int dimy, dimx, coly, colx, colposy, colposx;
+  struct notcurses* nc = ncplane_notcurses(column);
+  notcurses_stddim_yx(nc, &dimy, &dimx);
+  ncplane_dim_yx(column, &coly, &colx);
+  ncplane_yx(column, &colposy, &colposx);
+  ncplane_options opts = {
+    .x = colposx / 4 * -3,
+    .rows = coly,
+    .cols = (dimx - colx) / 4,
+  };
+  struct ncplane* leftp = ncplane_create(column, &opts);
+  if(leftp == NULL){
+    return -1;
+  }
+  ncplane_set_base(leftp, " ", 0, CHANNELS_RGB_INITIALIZER(0xdd, 0xdd, 0xdd, 0x1b, 0x1b, 0x1b));
+  *left = ncprogbar_create(leftp, NULL);
+  if(*left == NULL){
+    return -1;
+  }
+  opts.x = colx + colposx / 4;
+  struct ncplane* rightp = ncplane_create(column, &opts);
+  if(rightp == NULL){
+    return -1;
+  }
+  ncplane_set_base(rightp, " ", 0, CHANNELS_RGB_INITIALIZER(0xdd, 0xdd, 0xdd, 0x1b, 0x1b, 0x1b));
+  *right = ncprogbar_create(rightp, NULL);
+  if(*right == NULL){
+    ncprogbar_destroy(*left);
+    return -1;
+  }
   return 0;
 }
 
@@ -111,13 +153,20 @@ int allglyphs_demo(struct notcurses* nc){
   if(column == NULL){
     return -1;
   }
+  struct ncprogbar *pbarleft, *pbarright;
+  if(make_pbars(column, &pbarleft, &pbarright)){
+    ncplane_destroy(column);
+    return -1;
+  }
   ncplane_set_scrolling(column, true);
-  int r = allglyphs(nc, column, planey - 2);
+  int r = allglyphs(nc, column, planey - 2, pbarleft, pbarright);
   ncplane_destroy(column);
   // reflash the gradient to eliminate the counter, setting stage for next demo
   ncplane_cursor_move_yx(n, 1, 0);
   if(ncplane_highgradient(n, tl, tr, bl, br, dimy - 1, dimx - 1) < 0){
     return -1;
   }
+  ncprogbar_destroy(pbarleft);
+  ncprogbar_destroy(pbarright);
   return r;
 }
