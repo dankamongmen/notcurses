@@ -8,7 +8,7 @@ ncls - List paths with rendering of multimedia
 
 # SYNOPSIS
 
-**ncls** [**-h**] [**-d**] [**-l**] [**-L**] [**-R**] [ paths ]
+**ncls** [**-h**] [**-d**] [**-l**] [**-L**] [**-R**] [**--align** ***type***] [ paths ]
 
 # DESCRIPTION
 
@@ -26,6 +26,8 @@ ncls - List paths with rendering of multimedia
 **-R**: list subdirectories recursively.
 
 **-h**: Print help information, and exit with success.
+
+**-a|--align** ***type***: Align images on **left**, **center**, or **right**.
 
 paths: Run on the specified paths. If none are supplied, run on the current
 directory.

@@ -1,6 +1,7 @@
 #define NCPP_EXCEPTIONS_PLEASE
 #include <cstdlib>
 #include <fcntl.h>
+#include <getopt.h>
 #include <iostream>
 #include <dirent.h>
 #include <unistd.h>
@@ -14,11 +15,12 @@
 
 static void
 usage(std::ostream& os, const char* name, int code){
-  os << "usage: " << name << " -h | [ -lR ] paths...\n";
+  os << "usage: " << name << " -h | [ -lLR ] [ --align type ] paths...\n";
   os << " -d: list directories themselves, not their contents\n";
   os << " -l: use a long listing format\n";
   os << " -L: dereference symlink arguments\n";
   os << " -R: list subdirectories recursively\n";
+  os << " -a|--align type: one of left, right, or center\n";
   os << " -h: print usage information\n";
   os << std::flush;
   exit(code);
@@ -31,6 +33,7 @@ struct lsContext {
   bool recursedirs;
   bool directories;
   bool dereflinks;
+  ncalign_e alignment;
 };
 
 static int
@@ -42,7 +45,7 @@ handle_inode(std::filesystem::path& dir, const char* p, const struct stat* st, c
   (void)st; // FIXME handle symlink (dereflinks)
   std::cout << p << std::endl;
   auto s = dir / p;
-  ctx.nc.render_image(s.c_str(), NCALIGN_RIGHT, NCBLIT_DEFAULT, NCSCALE_SCALE);
+  ctx.nc.render_image(s.c_str(), ctx.alignment, NCBLIT_DEFAULT, NCSCALE_SCALE);
   return 0;
 }
 
@@ -139,9 +142,26 @@ int main(int argc, char* const * argv){
   bool recursedirs = false;
   bool longlisting = false;
   bool dereflinks = false;
-  int c;
-  while((c = getopt(argc, argv, "dhlLR")) != -1){
+  ncalign_e alignment = NCALIGN_RIGHT;
+  const struct option opts[] = {
+    { "align", 1, NULL, 'a' },
+    { NULL, 0, NULL, 0 },
+  };
+  int c, lidx;
+  while((c = getopt_long(argc, argv, "a:dhlLR", opts, &lidx)) != -1){
     switch(c){
+      case 'a':
+        if(strcasecmp(optarg, "left") == 0){
+          alignment = NCALIGN_LEFT;
+        }else if(strcasecmp(optarg, "right") == 0){
+          alignment = NCALIGN_RIGHT;
+        }else if(strcasecmp(optarg, "center") == 0){
+          alignment = NCALIGN_CENTER;
+        }else{
+          std::cerr << "Unknown alignment type: " << optarg << "\n";
+          usage(std::cerr, argv[0], EXIT_FAILURE);
+        }
+        break;
       case 'd':
         directories = true;
         break;
@@ -168,6 +188,7 @@ int main(int argc, char* const * argv){
     .recursedirs = recursedirs,
     .directories = directories,
     .dereflinks = dereflinks,
+    .alignment = alignment,
   };
   static const char* const default_args[] = { ".", nullptr };
   list_paths(argv[optind] ? argv + optind : default_args, ctx);
