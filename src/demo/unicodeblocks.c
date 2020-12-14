@@ -32,7 +32,7 @@ pbar_make(struct notcurses* nc, int row){
     .y = row < 0 ? 4 : row,
     .x = row < 0 ? 1 : NCALIGN_CENTER,
     .rows = row < 0 ? dimy - 5 : 1,
-    .cols = row < 0 ? 1 : dimx - 20,
+    .cols = row < 0 ? 1 : 20,
     .name = "pbar",
     .flags = row < 0 ? 0 : NCPLANE_OPTION_HORALIGNED,
   };
