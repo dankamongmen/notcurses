@@ -48,7 +48,13 @@ progbar_redraw(ncprogbar* n){
       egcs = L"▔🮂🮃▀🮄🮅🮆█";
     }
   }
-  ncplane_set_channels(ncprogbar_plane(n), n->channels);
+  if(notcurses_canutf8(ncplane_notcurses(ncprogbar_plane(n)))){
+    ncplane_set_channels(ncprogbar_plane(n), n->channels);
+  }else{
+    // invert the channels, since we'll be using a space
+    ncplane_set_fchannel(ncprogbar_plane(n), channels_bchannel(n->channels));
+    ncplane_set_bchannel(ncprogbar_plane(n), channels_fchannel(n->channels));
+  }
   double progress = n->progress * range;
   if(n->retrograde){
     delt *= -1;
@@ -72,14 +78,26 @@ progbar_redraw(ncprogbar* n){
 //fprintf(stderr, "egc: %lc progress: %g pos: %d range: %d delt: %d chunk: %g\n", egc, progress, pos, range, delt, chunk);
     if(horizontal){
       for(int freepos = 0 ; freepos < dimy ; ++freepos){
-        if(ncplane_putwc_yx(ncprogbar_plane(n), freepos, pos, egc) <= 0){
-          return -1;
+        if(notcurses_canutf8(ncplane_notcurses(ncprogbar_plane(n)))){
+          if(ncplane_putwc_yx(ncprogbar_plane(n), freepos, pos, egc) <= 0){
+            return -1;
+          }
+        }else{
+          if(ncplane_putchar_yx(ncprogbar_plane(n), pos, freepos, ' ') <= 0){
+            return -1;
+          }
         }
       }
     }else{
       for(int freepos = 0 ; freepos < dimx ; ++freepos){
-        if(ncplane_putwc_yx(ncprogbar_plane(n), pos, freepos, egc) <= 0){
-          return -1;
+        if(notcurses_canutf8(ncplane_notcurses(ncprogbar_plane(n)))){
+          if(ncplane_putwc_yx(ncprogbar_plane(n), pos, freepos, egc) <= 0){
+            return -1;
+          }
+        }else{
+          if(ncplane_putchar_yx(ncprogbar_plane(n), pos, freepos, ' ') <= 0){
+            return -1;
+          }
         }
       }
     }
