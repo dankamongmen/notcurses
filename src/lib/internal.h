@@ -950,7 +950,8 @@ egc_rtl(const char* egc, int* bytes){
     return NULL;
   }
   const int bidic = uc_bidi_category(w);
-  if(bidic != UC_BIDI_R && bidic != UC_BIDI_RLE && bidic != UC_BIDI_RLO){
+//fprintf(stderr, "BIDI CAT (%lc): %d\n", w, bidic);
+  if(bidic != UC_BIDI_R && bidic != UC_BIDI_AL && bidic != UC_BIDI_RLE && bidic != UC_BIDI_RLO){
     return NULL;
   }
   // insert U+200E, "LEFT-TO-RIGHT MARK". This ought reset the text direction

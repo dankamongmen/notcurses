@@ -74,7 +74,7 @@ progbar_redraw(ncprogbar* n){
   while((delt < 0 && pos > progress) || (delt > 0 && pos < progress)){
     double chunk = n->progress - (covered * eachcell);
     const wchar_t egc = egcs[chunk >= eachcell ? 7 : (int)(chunk / (eachcell / 8))];
-fprintf(stderr, "nprog: %g egc: %lc progress: %g pos: %d range: %d delt: %d chunk: %g each: %g\n", n->progress, egc, progress, pos, range, delt, chunk, eachcell);
+//fprintf(stderr, "nprog: %g egc: %lc progress: %g pos: %d range: %d delt: %d chunk: %g each: %g\n", n->progress, egc, progress, pos, range, delt, chunk, eachcell);
     if(horizontal){
       for(int freepos = 0 ; freepos < dimy ; ++freepos){
         if(notcurses_canutf8(ncplane_notcurses(ncprogbar_plane(n)))){

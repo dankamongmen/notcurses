@@ -2,10 +2,10 @@
 #include <notcurses/notcurses.h>
 
 int main(void){
-  struct notcurses_options nopts = {
+  struct notcurses_options opts = {
     .flags = NCOPTION_NO_ALTERNATE_SCREEN,
   };
-  struct notcurses* nc = notcurses_init(&nopts, NULL);
+  struct notcurses* nc = notcurses_init(&opts, NULL);
   if(!nc){
     return EXIT_FAILURE;
   }
@@ -23,6 +23,28 @@ int main(void){
     notcurses_stop(nc);
     return EXIT_FAILURE;
   }
+  const char* brew = "םבעברஸீரோகிரிﻧﺎﻠﻘﺻﺮﻴﻧﻖﺻﺭﺎoshitﻠﺷﻮﻗﺎﻠﺴﻛﺮﻳﺓ";
+  const char *b = brew;
+  for(int y = dimy / 2 + 2 ; y < dimy ; ++y){
+    for(int x = 0 ; x < dimx ; ++x){
+      int bytes;
+      if(ncplane_putegc_yx(n, y, x, b, &bytes) <= 0){
+        break;
+      }
+      b += bytes;
+      if(!*b){
+        b = brew;
+      }
+    }
+  }
+  struct ncplane_options nopts = {
+    .y = dimy / 2 + 3,
+    .x = 8,
+    .rows = dimy - (dimy / 2 + 5),
+    .cols = dimx - 8 * 2,
+  };
+  struct ncplane* top = ncplane_create(n, &nopts);
+  ncplane_set_base(top, " ", 0, 0);
   if(notcurses_render(nc)){
     notcurses_stop(nc);
     return EXIT_FAILURE;
