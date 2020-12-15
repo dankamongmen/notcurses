@@ -8,11 +8,6 @@ problematic_unicode(char32_t wc){
   if(wc >= 0xd800 && wc <= 0xdfff){
     return 1;
   }
-  // these are broken in several terminals ㉈ ㉉ ㉊ ㉋ ㉌ ㉍ ㉎ ㉏
-  // https://github.com/dankamongmen/notcurses/issues/881
-  if(wc >= 0x3248 && wc <= 0x324f){
-    return 1;
-  }
   return 0;
 }
 
@@ -64,9 +59,9 @@ allglyphs(struct notcurses* nc, struct ncplane* column, int legendy,
           ncprogbar_set_progress(right, glyphsdone / totalglyphs);
           DEMO_RENDER(nc);
           ncplane_set_fg_rgb8(column,
-                             random() % 192 + 64,
-                             random() % 192 + 64,
-                             random() % 192 + 64);
+                              random() % 192 + 64,
+                              random() % 192 + 64,
+                              random() % 192 + 64);
 //struct timespec ts = { .tv_sec = 0, .tv_nsec = 100000000, };
 //nanosleep(&ts, NULL);
         }

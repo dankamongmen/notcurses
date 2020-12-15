@@ -43,9 +43,9 @@ progbar_redraw(ncprogbar* n){
     delt = -1;
     pos = range - 1;
     if(n->retrograde){
-      egcs = L"▁▂▃▄▅▆▇█";
-    }else{
       egcs = L"▔🮂🮃▀🮄🮅🮆█";
+    }else{
+      egcs = L"▁▂▃▄▅▆▇█";
     }
   }
   if(notcurses_canutf8(ncplane_notcurses(ncprogbar_plane(n)))){
@@ -70,10 +70,10 @@ progbar_redraw(ncprogbar* n){
     progress = range - progress;
   }
   double eachcell = (1.0 / range); // how much each cell is worth
-  int covered = 0;
-  while((delt < 0 && pos > progress) || (delt > 0 && pos < progress)){
-    double chunk = n->progress - (covered * eachcell);
-    const wchar_t egc = egcs[chunk >= eachcell ? 7 : (int)(chunk / (eachcell / 8))];
+  double chunk = n->progress;
+  while(chunk > 0){
+    const int egcidx = chunk >= eachcell ? 7 : (int)(chunk / (eachcell / 8));
+    const wchar_t egc = egcs[egcidx];
 //fprintf(stderr, "nprog: %g egc: %lc progress: %g pos: %d range: %d delt: %d chunk: %g each: %g\n", n->progress, egc, progress, pos, range, delt, chunk, eachcell);
     if(horizontal){
       for(int freepos = 0 ; freepos < dimy ; ++freepos){
@@ -101,7 +101,7 @@ progbar_redraw(ncprogbar* n){
       }
     }
     pos += delt;
-    ++covered;
+    chunk -= eachcell;
   }
   return 0;
 }
