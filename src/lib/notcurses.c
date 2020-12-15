@@ -934,6 +934,12 @@ get_tty_fd(notcurses* nc, FILE* ttyfp){
     fd = open("/dev/tty", O_RDWR | O_CLOEXEC);
     if(fd < 0){
       loginfo(nc, "Error opening /dev/tty (%s)\n", strerror(errno));
+    }else{
+      if(!isatty(fd)){
+        loginfo(nc, "File descriptor for /dev/tty (%d) is not actually a TTY\n", fd);
+        close(fd);
+        fd = -1;
+      }
     }
   }
   return fd;
