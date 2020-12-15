@@ -67,6 +67,8 @@ allglyphs(struct notcurses* nc, struct ncplane* column, int legendy,
                              random() % 192 + 64,
                              random() % 192 + 64,
                              random() % 192 + 64);
+          struct timespec ts = { .tv_sec = 0, .tv_nsec = 100000000, };
+          nanosleep(&ts, NULL);
         }
       }
     }

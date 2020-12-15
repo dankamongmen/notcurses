@@ -3054,8 +3054,7 @@ API double ncprogbar_progress(const struct ncprogbar* n)
   __attribute__ ((nonnull (1)));
 
 // Destroy the progress bar and its underlying ncplane.
-API void ncprogbar_destroy(struct ncprogbar* n)
-  __attribute__ ((nonnull (1)));
+API void ncprogbar_destroy(struct ncprogbar* n);
 
 // Plots. Given a rectilinear area, an ncplot can graph samples along some axis.
 // There is some underlying independent variable--this could be e.g. measurement
@@ -3132,19 +3131,29 @@ API struct ncdplot* ncdplot_create(struct ncplane* n, const ncplot_options* opts
   __attribute__ ((nonnull (1)));
 
 // Return a reference to the ncplot's underlying ncplane.
-API struct ncplane* ncuplot_plane(struct ncuplot* n);
-API struct ncplane* ncdplot_plane(struct ncdplot* n);
+API struct ncplane* ncuplot_plane(struct ncuplot* n)
+  __attribute__ ((nonnull (1)));
+
+API struct ncplane* ncdplot_plane(struct ncdplot* n)
+  __attribute__ ((nonnull (1)));
 
 // Add to or set the value corresponding to this x. If x is beyond the current
 // x window, the x window is advanced to include x, and values passing beyond
 // the window are lost. The first call will place the initial window. The plot
 // will be redrawn, but notcurses_render() is not called.
-API int ncuplot_add_sample(struct ncuplot* n, uint64_t x, uint64_t y);
-API int ncdplot_add_sample(struct ncdplot* n, uint64_t x, double y);
-API int ncuplot_set_sample(struct ncuplot* n, uint64_t x, uint64_t y);
-API int ncdplot_set_sample(struct ncdplot* n, uint64_t x, double y);
-API int ncuplot_sample(const struct ncuplot* n, uint64_t x, uint64_t* y);
-API int ncdplot_sample(const struct ncdplot* n, uint64_t x, double* y);
+API int ncuplot_add_sample(struct ncuplot* n, uint64_t x, uint64_t y)
+  __attribute__ ((nonnull (1)));
+API int ncdplot_add_sample(struct ncdplot* n, uint64_t x, double y)
+  __attribute__ ((nonnull (1)));
+API int ncuplot_set_sample(struct ncuplot* n, uint64_t x, uint64_t y)
+  __attribute__ ((nonnull (1)));
+API int ncdplot_set_sample(struct ncdplot* n, uint64_t x, double y)
+  __attribute__ ((nonnull (1)));
+
+API int ncuplot_sample(const struct ncuplot* n, uint64_t x, uint64_t* y)
+  __attribute__ ((nonnull (1)));
+API int ncdplot_sample(const struct ncdplot* n, uint64_t x, double* y)
+  __attribute__ ((nonnull (1)));
 
 API void ncuplot_destroy(struct ncuplot* n);
 API void ncdplot_destroy(struct ncdplot* n);
@@ -3169,7 +3178,8 @@ API struct ncfdplane* ncfdplane_create(struct ncplane* n, const ncfdplane_option
                           int fd, ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn)
   __attribute__ ((nonnull (1)));
 
-API struct ncplane* ncfdplane_plane(struct ncfdplane* n);
+API struct ncplane* ncfdplane_plane(struct ncfdplane* n)
+  __attribute__ ((nonnull (1)));
 
 API int ncfdplane_destroy(struct ncfdplane* n);
 
@@ -3195,7 +3205,8 @@ API struct ncsubproc* ncsubproc_createvpe(struct ncplane* n, const ncsubproc_opt
                        ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn)
   __attribute__ ((nonnull (1)));
 
-API struct ncplane* ncsubproc_plane(struct ncsubproc* n);
+API struct ncplane* ncsubproc_plane(struct ncsubproc* n)
+  __attribute__ ((nonnull (1)));
 
 API int ncsubproc_destroy(struct ncsubproc* n);
 
@@ -3230,36 +3241,46 @@ API struct ncreader* ncreader_create(struct ncplane* n, const ncreader_options* 
   __attribute__ ((nonnull (1)));
 
 // empty the ncreader of any user input, and home the cursor.
-API int ncreader_clear(struct ncreader* n);
+API int ncreader_clear(struct ncreader* n)
+  __attribute__ ((nonnull (1)));
 
-API struct ncplane* ncreader_plane(struct ncreader* n);
+API struct ncplane* ncreader_plane(struct ncreader* n)
+  __attribute__ ((nonnull (1)));
 
 // Offer the input to the ncreader. If it's relevant, this function returns
 // true, and the input ought not be processed further. Almost all inputs
 // are relevant to an ncreader, save synthesized ones.
-API bool ncreader_offer_input(struct ncreader* n, const struct ncinput* ni);
+API bool ncreader_offer_input(struct ncreader* n, const struct ncinput* ni)
+  __attribute__ ((nonnull (1, 2)));
 
 // Atttempt to move in the specified direction. Returns 0 if a move was
 // successfully executed, -1 otherwise. Scrolling is taken into account.
-API int ncreader_move_left(struct ncreader* n);
-API int ncreader_move_right(struct ncreader* n);
-API int ncreader_move_up(struct ncreader* n);
-API int ncreader_move_down(struct ncreader* n);
+API int ncreader_move_left(struct ncreader* n)
+  __attribute__ ((nonnull (1)));
+API int ncreader_move_right(struct ncreader* n)
+  __attribute__ ((nonnull (1)));
+API int ncreader_move_up(struct ncreader* n)
+  __attribute__ ((nonnull (1)));
+API int ncreader_move_down(struct ncreader* n)
+  __attribute__ ((nonnull (1)));
 
 // Destructively write the provided EGC to the current cursor location. Move
 // the cursor as necessary, scrolling if applicable.
-API int ncreader_write_egc(struct ncreader* n, const char* egc);
+API int ncreader_write_egc(struct ncreader* n, const char* egc)
+  __attribute__ ((nonnull (1, 2)));
 
 // return a heap-allocated copy of the current (UTF-8) contents.
-API char* ncreader_contents(const struct ncreader* n);
+API char* ncreader_contents(const struct ncreader* n)
+  __attribute__ ((nonnull (1)));
 
 // destroy the reader and its bound plane. if 'contents' is not NULL, the
 // UTF-8 input will be heap-duplicated and written to 'contents'.
 API void ncreader_destroy(struct ncreader* n, char** contents);
 
 // Dump selected Notcurses state to the supplied 'debugfp'. Output is freeform,
-// and subject to change. It includes geometry of all planes.
-API void notcurses_debug(struct notcurses* nc, FILE* debugfp);
+// and subject to change. It includes geometry of all planes, from all piles.
+API void notcurses_debug(struct notcurses* nc, FILE* debugfp)
+  __attribute__ ((nonnull (1, 2)));
 
 // a system for rendering RGBA pixels as text glyphs
 struct blitset {
