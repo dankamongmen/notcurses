@@ -53,6 +53,7 @@ steps:
     - cd ../cffi
     - python3 setup.py sdist build
     - cd ../rust
+    - rustc --version
     - cargo build
     - env TERM=xterm cargo t_all
 ---
