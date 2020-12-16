@@ -96,10 +96,12 @@ progbar_redraw(ncprogbar* n){
   }
   double eachcell = (1.0 / range); // how much each cell is worth
   double chunk = n->progress;
+  // FIXME set ncp properties for ascii case
+  // FIXME can just do the one line now, right?
   while(chunk > 0){
     const int egcidx = chunk >= eachcell ? 7 : (int)(chunk / (eachcell / 8));
     const char* egc = egcs + egcidx * 5;
-//fprintf(stderr, "nprog: %g egc: %lc progress: %g pos: %d range: %d delt: %d chunk: %g each: %g\n", n->progress, egc, progress, pos, range, delt, chunk, eachcell);
+//fprintf(stderr, "nprog: %g egc: %s progress: %g pos: %d range: %d delt: %d chunk: %g each: %g\n", n->progress, egc, progress, pos, range, delt, chunk, eachcell);
     if(horizontal){
       for(int freepos = 0 ; freepos < dimy ; ++freepos){
         if(notcurses_canutf8(ncplane_notcurses(ncp))){
@@ -107,6 +109,7 @@ progbar_redraw(ncprogbar* n){
           if(pool_blit_direct(&ncp->pool, c, egc, strlen(egc), 1) <= 0){
             return -1;
           }
+          cell_set_bchannel(c, 0);
         }else{
           if(ncplane_putchar_yx(ncp, freepos, pos, ' ') <= 0){
             return -1;
@@ -120,6 +123,7 @@ progbar_redraw(ncprogbar* n){
           if(pool_blit_direct(&ncp->pool, c, egc, strlen(egc), 1) <= 0){
             return -1;
           }
+          cell_set_bchannel(c, 0);
         }else{
           if(ncplane_putchar_yx(ncp, pos, freepos, ' ') <= 0){
             return -1;
@@ -129,6 +133,23 @@ progbar_redraw(ncprogbar* n){
     }
     pos += delt;
     chunk -= eachcell;
+  }
+  while(pos >= 0 && pos < range){
+    if(horizontal){
+      for(int freepos = 0 ; freepos < dimy ; ++freepos){
+        nccell* c = ncplane_cell_ref_yx(ncp, freepos, pos);
+fprintf(stderr, "ABOUT TO RELEASE: %s\n", cell_extended_gcluster(ncp, c));
+        cell_release(ncp, c);
+        cell_init(c);
+      }
+    }else{
+      for(int freepos = 0 ; freepos < dimx ; ++freepos){
+        nccell* c = ncplane_cell_ref_yx(ncp, pos, freepos);
+        cell_release(ncp, c);
+        cell_init(c);
+      }
+    }
+    pos += delt;
   }
   return 0;
 }
