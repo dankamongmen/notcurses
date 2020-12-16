@@ -10,14 +10,19 @@ macro_rules! sleep {
     };
 }
 
-/// Renders the [Notcurses][crate::Notcurses] object sleeps for $ms milliseconds.
+/// Renders the [Notcurses][crate::Notcurses] object, then sleeps for $ms
+/// milliseconds and returns the result of [notcurses_render].
 #[macro_export]
 macro_rules! rsleep {
     ($nc:expr, $ms:expr) => {
-        unsafe {
-            crate::notcurses_render($nc);
+        {
+            let mut res: NcResult = 0;
+            unsafe {
+                res = crate::notcurses_render($nc);
+            }
+            std::thread::sleep(std::time::Duration::from_millis($ms));
+            res
         }
-        std::thread::sleep(std::time::Duration::from_millis($ms));
     };
 }
 

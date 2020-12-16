@@ -11,15 +11,13 @@
 ///
 /// Reads from stdin and decodes the input to stdout,
 /// including synthesized events and mouse events.
-///
-/// To exit, generate EOF (usually Ctrl+‘d’).
 pub type NcInput = crate::bindings::ffi::ncinput;
 
 /// Compares two ncinput structs for data equality by doing a field-by-field
 /// comparison for equality (excepting seqnum).
 ///
 /// Returns true if the two are data-equivalent.
-pub fn ncinput_equal_p(n1: NcInput, n2: NcInput) -> bool {
+pub const fn ncinput_equal_p(n1: NcInput, n2: NcInput) -> bool {
     if n1.id != n2.id {
         return false;
     }
@@ -32,7 +30,7 @@ pub fn ncinput_equal_p(n1: NcInput, n2: NcInput) -> bool {
 
 /// New `NcInput`.
 impl NcInput {
-    pub fn new() -> NcInput {
+    pub const fn new() -> NcInput {
         NcInput {
             id: 0,
             y: 0,

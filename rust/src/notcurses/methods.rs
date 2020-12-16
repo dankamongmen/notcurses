@@ -103,6 +103,12 @@ impl Notcurses {
     }
 
     /// Returns a Notcurses context, expects [NotcursesOptions].
+    pub fn with_flags<'a>(flags: u64) -> &'a mut Notcurses {
+        let options = NotcursesOptions::with_flags(flags);
+        unsafe { &mut *notcurses_init(&options, null_mut()) }
+    }
+
+    /// Returns a Notcurses context, expects [NotcursesOptions].
     pub fn with_options<'a>(options: &NotcursesOptions) -> &'a mut Notcurses {
         unsafe { &mut *notcurses_init(options, null_mut()) }
     }

@@ -8,18 +8,18 @@
 
 use crate::{NCKEY_BUTTON1, NCKEY_RELEASE};
 
-/// Is this u32 a Supplementary Private Use Area-B codepoint?
+/// Is this [char] a Supplementary Private Use Area-B codepoint?
 ///
 /// Links:
 /// - https://en.wikipedia.org/wiki/Private_Use_Areas
 /// - https://codepoints.net/supplementary_private_use_area-b
 #[inline]
-pub fn nckey_supppuab_p(w: u32) -> bool {
-    w >= 0x100000 && w <= 0x10fffd
+pub fn nckey_supppuab_p(w: char) -> bool {
+    w as u32 >= 0x100000_u32 && w as u32 <= 0x10fffd_u32
 }
 
 /// Is the event a synthesized mouse event?
 #[inline]
-pub fn nckey_mouse_p(r: u32) -> bool {
+pub const fn nckey_mouse_p(r: char) -> bool {
     r >= NCKEY_BUTTON1 && r <= NCKEY_RELEASE
 }
