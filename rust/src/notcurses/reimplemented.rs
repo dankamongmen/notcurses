@@ -45,6 +45,7 @@ pub fn notcurses_getc_nblock(nc: &mut Notcurses, input: &mut NcInput) -> char {
             tv_sec: 0,
             tv_nsec: 0,
         };
+        // https://www.gnu.org/software/libc/manual/html_node/Signal-Sets.html
         core::char::from_u32_unchecked(notcurses_getc(nc, &ts, &mut sigmask, input))
     }
 }
