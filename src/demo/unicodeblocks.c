@@ -268,10 +268,10 @@ int unicodeblocks_demo(struct notcurses* nc){
     if(ncplane_set_fg_rgb8(n, 0x40, 0xc0, 0x40)){
       return -1;
     }
-    if(ncplane_cursor_move_yx(n, 6 + BLOCKSIZE / CHUNKSIZE, 3)){
+    if(ncplane_cursor_move_yx(n, 6 + BLOCKSIZE / CHUNKSIZE, 2)){
       return -1;
     }
-    if(ncplane_printf(n, "%*.*s", maxx - 6, maxx - 6, "") <= 0){
+    if(ncplane_printf(n, "%*.*s", maxx - 4, maxx - 4, "") <= 0){
       return -1;
     }
     if(ncplane_printf_aligned(n, 6 + BLOCKSIZE / CHUNKSIZE, NCALIGN_CENTER, "%s", description) <= 0){
