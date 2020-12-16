@@ -55,3 +55,18 @@ steps:
     - cmake -DCMAKE_BUILD_TYPE=Release -DUSE_MULTIMEDIA=oiio ..
     - make -j2
     - env TERM=xterm ctest -V
+---
+kind: pipeline
+type: docker
+name: alpine-edge
+
+steps:
+- name: alpine-edge
+  image: dankamongmen/edge_builder:2020-12-16a
+  commands:
+    - export LANG=en_US.UTF-8
+    - mkdir build
+    - cd build
+    - cmake -DCMAKE_BUILD_TYPE=Release ..
+    - make -j2
+    - env TERM=xterm ctest -V
