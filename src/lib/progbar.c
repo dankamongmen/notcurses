@@ -21,6 +21,22 @@ ncplane* ncprogbar_plane(ncprogbar* n){
   return n->ncp;
 }
 
+static const char right_egcs[8][5] = {
+  "🮇", "🮇", "🮈", "▐", "🮉", "🮊", "🮋", "█",
+};
+
+static const char left_egcs[8][5] = {
+  "▏", "▎", "▍", "▌", "▋", "▊", "▉", "█",
+};
+
+static const char down_egcs[8][5] = {
+  "▔", "🮂", "🮃", "▀", "🮄", "🮅", "🮆", "█",
+};
+
+static const char up_egcs[8][5] = {
+  "▁", "▂", "▃", "▄", "▅", "▆", "▇", "█",
+};
+
 static int
 progbar_redraw(ncprogbar* n){
   // get current dimensions; they might have changed
@@ -28,24 +44,24 @@ progbar_redraw(ncprogbar* n){
   ncplane_dim_yx(ncprogbar_plane(n), &dimy, &dimx);
   const bool horizontal = dimx > dimy;
   int range, delt, pos;
-  const wchar_t* egcs;
+  const char* egcs;
   if(horizontal){
     range = dimx;
     delt = 1;
     pos = 0;
     if(n->retrograde){
-      egcs = L"🮇🮇🮈▐🮉🮊🮋█";
+      egcs = *right_egcs;
     }else{
-      egcs = L"▏▎▍▌▋▊▉█";
+      egcs = *left_egcs;
     }
   }else{
     range = dimy;
     delt = -1;
     pos = range - 1;
     if(n->retrograde){
-      egcs = L"▔🮂🮃▀🮄🮅🮆█";
+      egcs = *down_egcs;
     }else{
-      egcs = L"▁▂▃▄▅▆▇█";
+      egcs = *up_egcs;
     }
   }
   if(notcurses_canutf8(ncplane_notcurses(ncprogbar_plane(n)))){
@@ -73,16 +89,17 @@ progbar_redraw(ncprogbar* n){
   double chunk = n->progress;
   while(chunk > 0){
     const int egcidx = chunk >= eachcell ? 7 : (int)(chunk / (eachcell / 8));
-    const wchar_t egc = egcs[egcidx];
+    const char* egc = egcs + egcidx * 5;
 //fprintf(stderr, "nprog: %g egc: %lc progress: %g pos: %d range: %d delt: %d chunk: %g each: %g\n", n->progress, egc, progress, pos, range, delt, chunk, eachcell);
     if(horizontal){
       for(int freepos = 0 ; freepos < dimy ; ++freepos){
         if(notcurses_canutf8(ncplane_notcurses(ncprogbar_plane(n)))){
-          if(ncplane_putwc_yx(ncprogbar_plane(n), freepos, pos, egc) <= 0){
+          nccell* c = ncplane_cell_ref_yx(ncprogbar_plane(n), freepos, pos);
+          if(pool_blit_direct(&ncprogbar_plane(n)->pool, c, egc, strlen(egc), 1) <= 0){
             return -1;
           }
         }else{
-          if(ncplane_putchar_yx(ncprogbar_plane(n), pos, freepos, ' ') <= 0){
+          if(ncplane_putchar_yx(ncprogbar_plane(n), freepos, pos, ' ') <= 0){
             return -1;
           }
         }
@@ -90,7 +107,8 @@ progbar_redraw(ncprogbar* n){
     }else{
       for(int freepos = 0 ; freepos < dimx ; ++freepos){
         if(notcurses_canutf8(ncplane_notcurses(ncprogbar_plane(n)))){
-          if(ncplane_putwc_yx(ncprogbar_plane(n), pos, freepos, egc) <= 0){
+          nccell* c = ncplane_cell_ref_yx(ncprogbar_plane(n), pos, freepos);
+          if(pool_blit_direct(&ncprogbar_plane(n)->pool, c, egc, strlen(egc), 1) <= 0){
             return -1;
           }
         }else{
