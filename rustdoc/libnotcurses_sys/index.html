@@ -104,7 +104,8 @@ library can not do.</p>
 <table><tr class='module-item'><td><a class="mod" href="ffi/index.html" title='libnotcurses_sys::ffi mod'>ffi</a></td><td class='docblock-short'><p>Rust FFI bindings, automatically generated with bindgen.</p>
 </td></tr></table><h2 id='macros' class='section-header'><a href="#macros">Macros</a></h2>
 <table><tr class='module-item'><td><a class="macro" href="macro.cstring.html" title='libnotcurses_sys::cstring macro'>cstring</a></td><td class='docblock-short'><p>Converts <code>&amp;str</code> to <code>*mut CString</code>, for when <code>*const c_char</code> is needed.</p>
-</td></tr><tr class='module-item'><td><a class="macro" href="macro.rsleep.html" title='libnotcurses_sys::rsleep macro'>rsleep</a></td><td class='docblock-short'><p>Renders the <a href="../libnotcurses_sys/type.Notcurses.html" title="crate::Notcurses">Notcurses</a> object sleeps for $ms milliseconds.</p>
+</td></tr><tr class='module-item'><td><a class="macro" href="macro.rsleep.html" title='libnotcurses_sys::rsleep macro'>rsleep</a></td><td class='docblock-short'><p>Renders the <a href="../libnotcurses_sys/type.Notcurses.html" title="crate::Notcurses">Notcurses</a> object, then sleeps for $ms
+milliseconds and returns the result of [notcurses_render].</p>
 </td></tr><tr class='module-item'><td><a class="macro" href="macro.sleep.html" title='libnotcurses_sys::sleep macro'>sleep</a></td><td class='docblock-short'><p>Sleeps for $ms milliseconds.</p>
 </td></tr></table><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
 <table><tr class='module-item'><td><a class="struct" href="struct.NcFile.html" title='libnotcurses_sys::NcFile struct'>NcFile</a></td><td class='docblock-short'><p>A wrapper struct around
@@ -415,7 +416,7 @@ ownership of the file descriptor, which will be closed in ncfdplane_destroy().</
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.ncfdplane_destroy.html" title='libnotcurses_sys::ncfdplane_destroy fn'>ncfdplane_destroy</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'></td></tr><tr class='module-item'><td><a class="fn" href="fn.ncfdplane_plane.html" title='libnotcurses_sys::ncfdplane_plane fn'>ncfdplane_plane</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'></td></tr><tr class='module-item'><td><a class="fn" href="fn.ncinput_equal_p.html" title='libnotcurses_sys::ncinput_equal_p fn'>ncinput_equal_p</a></td><td class='docblock-short'><p>Compares two ncinput structs for data equality by doing a field-by-field
 comparison for equality (excepting seqnum).</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.nckey_mouse_p.html" title='libnotcurses_sys::nckey_mouse_p fn'>nckey_mouse_p</a></td><td class='docblock-short'><p>Is the event a synthesized mouse event?</p>
-</td></tr><tr class='module-item'><td><a class="fn" href="fn.nckey_supppuab_p.html" title='libnotcurses_sys::nckey_supppuab_p fn'>nckey_supppuab_p</a></td><td class='docblock-short'><p>Is this u32 a Supplementary Private Use Area-B codepoint?</p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.nckey_supppuab_p.html" title='libnotcurses_sys::nckey_supppuab_p fn'>nckey_supppuab_p</a></td><td class='docblock-short'><p>Is this <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html" title="char">char</a> a Supplementary Private Use Area-B codepoint?</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.ncmenu_create.html" title='libnotcurses_sys::ncmenu_create fn'>ncmenu_create</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>Create a menu with the specified options. Menus are currently bound to an
 overall Notcurses object (as opposed to a particular plane), and are
 implemented as ncplanes kept atop other ncplanes.</p>
@@ -870,7 +871,7 @@ channels are written to 'stylemask' and 'channels', respectively.</p>
 'y', 'x'. Immediate effect (no need for a call to notcurses_render()).
 It is an error if 'y', 'x' lies outside the standard plane.</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.notcurses_debug.html" title='libnotcurses_sys::notcurses_debug fn'>notcurses_debug</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>Dump selected Notcurses state to the supplied 'debugfp'. Output is freeform,
-and subject to change. It includes geometry of all planes.</p>
+and subject to change. It includes geometry of all planes, from all piles.</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.notcurses_drop_planes.html" title='libnotcurses_sys::notcurses_drop_planes fn'>notcurses_drop_planes</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>Destroy all ncplanes other than the stdplane.</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.notcurses_getc.html" title='libnotcurses_sys::notcurses_getc fn'>notcurses_getc</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>See ppoll(2) for more detail. Provide a NULL 'ts' to block at length, a 'ts'
 of 0 for non-blocking operation, and otherwise a timespec to bound blocking.

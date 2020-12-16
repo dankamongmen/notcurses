@@ -37,19 +37,19 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">NCKEY_BUTTON1</span>, <span class="ident">NCKEY_RELEASE</span>};
 
-<span class="doccomment">/// Is this u32 a Supplementary Private Use Area-B codepoint?</span>
+<span class="doccomment">/// Is this [char] a Supplementary Private Use Area-B codepoint?</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Links:</span>
 <span class="doccomment">/// - https://en.wikipedia.org/wiki/Private_Use_Areas</span>
 <span class="doccomment">/// - https://codepoints.net/supplementary_private_use_area-b</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">nckey_supppuab_p</span>(<span class="ident">w</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-    <span class="ident">w</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0x100000</span> <span class="op">&amp;&amp;</span> <span class="ident">w</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0x10fffd</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">nckey_supppuab_p</span>(<span class="ident">w</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="ident">w</span> <span class="kw">as</span> <span class="ident">u32</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0x100000_u32</span> <span class="op">&amp;&amp;</span> <span class="ident">w</span> <span class="kw">as</span> <span class="ident">u32</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0x10fffd_u32</span>
 }
 
 <span class="doccomment">/// Is the event a synthesized mouse event?</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">nckey_mouse_p</span>(<span class="ident">r</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">nckey_mouse_p</span>(<span class="ident">r</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
     <span class="ident">r</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">NCKEY_BUTTON1</span> <span class="op">&amp;&amp;</span> <span class="ident">r</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">NCKEY_RELEASE</span>
 }
 </pre></div>
