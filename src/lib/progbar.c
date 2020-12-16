@@ -74,11 +74,10 @@ progbar_redraw(ncprogbar* n){
     ncplane_highgradient(ncp, n->ulchannel, n->urchannel,
                          n->blchannel, n->brchannel, dimy - 1, dimx - 1);
   }else{
-    // invert the channels, since we'll be using a space
-    /* FIXME
-    ncplane_set_fchannel(ncp, channels_bchannel(n->channels));
-    ncplane_set_bchannel(ncp, channels_fchannel(n->channels));
-    */
+    ncplane_gradient(ncp, " ", 0, n->ulchannel, n->urchannel,
+                     n->blchannel, n->brchannel, dimy - 1, dimx - 1);
+    //ncplane_set_fchannel(ncp, channels_bchannel(n->channels));
+    //ncplane_set_bchannel(ncp, channels_fchannel(n->channels));
   }
   double progress = n->progress * range;
   if(n->retrograde){
