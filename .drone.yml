@@ -14,10 +14,15 @@ steps:
     - make -j2
     - env TERM=xterm ctest
     - make install
+    - ldconfig
     - cd ../cffi
     - LDFLAGS=-L/usr/local/lib CFLAGS=-I/usr/local/include python3 setup.py sdist build install
     - env TERM=xterm LD_LIBRARY_PATH=/usr/local/lib ./notcurses-pydemo > /dev/null
     - env TERM=xterm LD_LIBRARY_PATH=/usr/local/lib ./notcurses-direct-pydemo > /dev/null
+    - cd ../rust
+    - rustc --version
+    - cargo build
+    - env TERM=xterm cargo t_all
 ---
 kind: pipeline
 type: docker
@@ -52,10 +57,6 @@ steps:
     - ldconfig
     - cd ../cffi
     - python3 setup.py sdist build
-    - cd ../rust
-    - rustc --version
-    - cargo build
-    - env TERM=xterm cargo t_all
 ---
 kind: pipeline
 type: docker
@@ -71,3 +72,9 @@ steps:
     - cmake -DCMAKE_BUILD_TYPE=Release -DUSE_MULTIMEDIA=oiio ..
     - make -j2
     - env TERM=xterm ctest
+    - make install
+    - ldconfig
+    - cd ../rust
+    - rustc --version
+    - cargo build
+    - env TERM=xterm cargo t_all
