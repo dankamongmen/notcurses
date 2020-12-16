@@ -11,9 +11,14 @@ ncprogbar* ncprogbar_create(ncplane* n, const ncprogbar_options* opts){
     logwarn(ncplane_notcurses(n), "Invalid flags %016lx\n", opts->flags);
   }
   ncprogbar* ret = malloc(sizeof(*ret));
-  ret->ncp = n;
-  ret->channels = opts->channels;
-  ret->retrograde = opts->flags & NCPROGBAR_OPTION_RETROGRADE;
+  if(ret){
+    ret->ncp = n;
+    ret->ulchannel = opts->ulchannel;
+    ret->urchannel = opts->urchannel;
+    ret->blchannel = opts->blchannel;
+    ret->brchannel = opts->brchannel;
+    ret->retrograde = opts->flags & NCPROGBAR_OPTION_RETROGRADE;
+  }
   return ret;
 }
 
@@ -39,9 +44,10 @@ static const char up_egcs[8][5] = {
 
 static int
 progbar_redraw(ncprogbar* n){
+  struct ncplane* ncp = ncprogbar_plane(n);
   // get current dimensions; they might have changed
   int dimy, dimx;
-  ncplane_dim_yx(ncprogbar_plane(n), &dimy, &dimx);
+  ncplane_dim_yx(ncp, &dimy, &dimx);
   const bool horizontal = dimx > dimy;
   int range, delt, pos;
   const char* egcs;
@@ -64,12 +70,15 @@ progbar_redraw(ncprogbar* n){
       egcs = *up_egcs;
     }
   }
-  if(notcurses_canutf8(ncplane_notcurses(ncprogbar_plane(n)))){
-    ncplane_set_channels(ncprogbar_plane(n), n->channels);
+  if(notcurses_canutf8(ncplane_notcurses(ncp))){
+    ncplane_highgradient(ncp, n->ulchannel, n->urchannel,
+                         n->blchannel, n->brchannel, dimy - 1, dimx - 1);
   }else{
     // invert the channels, since we'll be using a space
-    ncplane_set_fchannel(ncprogbar_plane(n), channels_bchannel(n->channels));
-    ncplane_set_bchannel(ncprogbar_plane(n), channels_fchannel(n->channels));
+    /* FIXME
+    ncplane_set_fchannel(ncp, channels_bchannel(n->channels));
+    ncplane_set_bchannel(ncp, channels_fchannel(n->channels));
+    */
   }
   double progress = n->progress * range;
   if(n->retrograde){
@@ -93,26 +102,26 @@ progbar_redraw(ncprogbar* n){
 //fprintf(stderr, "nprog: %g egc: %lc progress: %g pos: %d range: %d delt: %d chunk: %g each: %g\n", n->progress, egc, progress, pos, range, delt, chunk, eachcell);
     if(horizontal){
       for(int freepos = 0 ; freepos < dimy ; ++freepos){
-        if(notcurses_canutf8(ncplane_notcurses(ncprogbar_plane(n)))){
-          nccell* c = ncplane_cell_ref_yx(ncprogbar_plane(n), freepos, pos);
-          if(pool_blit_direct(&ncprogbar_plane(n)->pool, c, egc, strlen(egc), 1) <= 0){
+        if(notcurses_canutf8(ncplane_notcurses(ncp))){
+          nccell* c = ncplane_cell_ref_yx(ncp, freepos, pos);
+          if(pool_blit_direct(&ncp->pool, c, egc, strlen(egc), 1) <= 0){
             return -1;
           }
         }else{
-          if(ncplane_putchar_yx(ncprogbar_plane(n), freepos, pos, ' ') <= 0){
+          if(ncplane_putchar_yx(ncp, freepos, pos, ' ') <= 0){
             return -1;
           }
         }
       }
     }else{
       for(int freepos = 0 ; freepos < dimx ; ++freepos){
-        if(notcurses_canutf8(ncplane_notcurses(ncprogbar_plane(n)))){
-          nccell* c = ncplane_cell_ref_yx(ncprogbar_plane(n), pos, freepos);
-          if(pool_blit_direct(&ncprogbar_plane(n)->pool, c, egc, strlen(egc), 1) <= 0){
+        if(notcurses_canutf8(ncplane_notcurses(ncp))){
+          nccell* c = ncplane_cell_ref_yx(ncp, pos, freepos);
+          if(pool_blit_direct(&ncp->pool, c, egc, strlen(egc), 1) <= 0){
             return -1;
           }
         }else{
-          if(ncplane_putchar_yx(ncprogbar_plane(n), pos, freepos, ' ') <= 0){
+          if(ncplane_putchar_yx(ncp, pos, freepos, ' ') <= 0){
             return -1;
           }
         }
