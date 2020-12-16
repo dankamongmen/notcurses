@@ -1,8 +1,8 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 2.1.1 (not yet released)
-  * Progress bars via `ncprogbar`. Standard widget API.
+* 2.1.1 (2020-12-16)
+  * Progress bars via `ncprogbar`, using the standard widget API.
 
 * 2.1.0 (2020-12-13)
   * `cell` has been renamed `nccell`. The old name has been kept as an alias,
