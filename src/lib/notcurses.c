@@ -2257,12 +2257,16 @@ ncplane* ncplane_reparent(ncplane* n, ncplane* newparent){
       n->blist->bprev = &ncplane_pile(n)->roots;
       ncplane_pile(n)->roots = n->blist;
     }else{ // children are rebound to current parent
-      ncplane** plink = &n->boundto->blist;
-      while(*plink){
-        plink = &(*plink)->bnext;
+      ncplane* lastlink;
+      for(ncplane* child = n->blist ; child ; child = child->bnext){
+        child->boundto = n->boundto;
+        lastlink = child;
+      } // n->blist != NULL -> lastlink != NULL
+      if( (lastlink->bnext = n->boundto->blist) ){
+        lastlink->bnext->bprev = &lastlink->bnext;
       }
-      n->blist->bprev = plink;
-      *plink = n->blist;
+      n->blist->bprev = &n->boundto->blist;
+      n->boundto->blist = n->blist;
     }
     n->blist = NULL;
   }
