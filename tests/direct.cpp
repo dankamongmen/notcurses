@@ -28,6 +28,13 @@ TEST_CASE("DirectMode") {
     CHECK(0 == ncdirect_styles_off(nc_, NCSTYLE_UNDERLINE));
   }
 
+  SUBCASE("SetStruck") {
+    CHECK(0 == ncdirect_styles_set(nc_, NCSTYLE_STRUCK));
+    printf("DirectMode *struck*!\n");
+    fflush(stdout);
+    CHECK(0 == ncdirect_styles_off(nc_, NCSTYLE_STRUCK));
+  }
+
   CHECK(0 == ncdirect_stop(nc_));
 
   // make sure that we can pass undefined flags and still create the ncdirect
