@@ -570,6 +570,10 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
     logerror(ncplane_notcurses(n), "Can't retain negative size %dx%d\n", keepleny, keeplenx);
     return -1;
   }
+  if(keepy < 0 || keepx < 0){ // can't start at negative origin
+    logerror(ncplane_notcurses(n), "Can't retain negative offset %dx%d\n", keepy, keepx);
+    return -1;
+  }
   if((!keepleny && keeplenx) || (keepleny && !keeplenx)){ // both must be 0
     logerror(ncplane_notcurses(n), "Can't retain null dimension %dx%d\n", keepleny, keeplenx);
     return -1;
@@ -591,12 +595,12 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
   }
   int rows, cols;
   ncplane_dim_yx(n, &rows, &cols);
-  if(keepleny > rows){
-    logerror(ncplane_notcurses(n), "Can't keep %d rows from %d\n", keepleny, rows);
+  if(keepleny + keepy > rows){
+    logerror(ncplane_notcurses(n), "Can't keep %d@%d rows from %d\n", keepleny, keepy, rows);
     return -1;
   }
-  if(keeplenx > cols){
-    logerror(ncplane_notcurses(n), "Can't keep %d cols from %d\n", keeplenx, cols);
+  if(keeplenx + keepx > cols){
+    logerror(ncplane_notcurses(n), "Can't keep %d@%d cols from %d\n", keeplenx, keepx, cols);
     return -1;
   }
   loginfo(ncplane_notcurses(n), "%dx%d @ %d/%d → %d/%d @ %d/%d (keeping %dx%d from %d/%d)\n", rows, cols, n->absy, n->absx, ylen, xlen, n->absy + keepy + yoff, n->absx + keepx + xoff, keepleny, keeplenx, keepy, keepx);
