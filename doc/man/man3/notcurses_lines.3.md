@@ -81,5 +81,5 @@ current equivalent position, otherwise 0.
 # SEE ALSO
 
 **notcurses(3)**,
-**notcurses_nccell(3)**,
+**notcurses_cell(3)**,
 **notcurses_plane(3)**

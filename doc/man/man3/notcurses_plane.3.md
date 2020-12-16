@@ -190,7 +190,7 @@ typedef struct ncplane_options {
 Ncplanes are the fundamental drawing object of notcurses. All output functions
 take a **struct ncplane** as an argument. They can be any size, and placed
 anywhere. In addition to its framebuffer--a rectilinear matrix of **nccell**s
-(see **notcurses_nccell(3)**)--an ncplane is defined by:
+(see **notcurses_cell(3)**)--an ncplane is defined by:
 
 * a base **nccell**, used for any cell on the plane without a glyph,
 * the egcpool backing its **nccell**s,
@@ -331,5 +331,5 @@ It should not be used in new code.
 
 # SEE ALSO
 
-**notcurses(3)**, **notcurses_nccell(3)**, **notcurses_output(3)**,
+**notcurses(3)**, **notcurses_cell(3)**, **notcurses_output(3)**,
 **notcurses_stdplane(3)**

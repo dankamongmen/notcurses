@@ -619,7 +619,7 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
   // don't use ncplane_move_yx(), because we want to planebinding-invariant.
   n->absy += keepy + yoff;
   n->absx += keepx + xoff;
-//fprintf(stderr, "absx: %d keepx: %d xoff: %d\n", n->absx, keepx, xoff);
+fprintf(stderr, "absx: %d keepx: %d xoff: %d\n", n->absx, keepx, xoff);
   if(keptarea == 0){ // keep nothing, resize/move only
     // if we're keeping nothing, dump the old egcspool. otherwise, we go ahead
     // and keep it. perhaps we ought compact it?
@@ -637,7 +637,7 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
   for(int itery = 0 ; itery < ylen ; ++itery){
     int truey = itery + n->absy;
     int sourceoffy = truey - oldabsy;
-//fprintf(stderr, "sourceoffy: %d keepy: %d ylen: %d\n", sourceoffy, keepy, ylen);
+fprintf(stderr, "sourceoffy: %d keepy: %d ylen: %d\n", sourceoffy, keepy, ylen);
     // if we have nothing copied to this line, zero it out in one go
     if(sourceoffy < keepy || sourceoffy >= keepy + keepleny){
 //fprintf(stderr, "writing 0s to line %d of %d\n", itery, ylen);
@@ -652,7 +652,7 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
         copied += -xoff;
       }
       const int sourceidx = nfbcellidx(n, sourceoffy, keepx);
-//fprintf(stderr, "copying line %d (%d) to %d (%d)\n", sourceoffy, sourceidx, copyoff / xlen, copyoff);
+fprintf(stderr, "copying line %d (%d) to %d (%d)\n", sourceoffy, sourceidx, copyoff / xlen, copyoff);
       memcpy(fb + copyoff, preserved + sourceidx, sizeof(*fb) * keeplenx);
       copyoff += keeplenx;
       copied += keeplenx;

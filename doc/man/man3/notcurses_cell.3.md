@@ -1,10 +1,10 @@
-% notcurses_nccell(3)
+% notcurses_cell(3)
 % nick black <nickblack@linux.com>
 % v2.1.0
 
 # NAME
 
-notcurses_nccell - operations on notcurses cells
+notcurses_cell - operations on nccell objects
 
 # SYNOPSIS
 

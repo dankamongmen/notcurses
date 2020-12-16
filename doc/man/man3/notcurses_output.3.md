@@ -81,7 +81,7 @@ notcurses_output - output to ncplanes
 These functions write EGCs (Extended Grapheme Clusters) to the specified
 **struct ncplane**s. The following inputs are supported:
 
-* **ncplane_putc()**: writes a single **nccell** (see **notcurses_nccell(3)**)
+* **ncplane_putc()**: writes a single **nccell** (see **notcurses_cell(3)**)
 * **ncplane_putchar()**: writes a single 7-bit ASCII character
 * **ncplane_putwc()**: writes a single **wchar_t** (following UTF-8 conversion)
 * **ncplane_putwegc()**: writes a single EGC from an array of **wchar_t**
@@ -134,7 +134,7 @@ EGCs.
 
 **fprintf(3)**
 **notcurses(3)**,
-**notcurses_nccell(3)**,
+**notcurses_cell(3)**,
 **notcurses_plane(3)**,
 **stdarg(3)**,
 **ascii(7)**,

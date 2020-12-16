@@ -53,7 +53,7 @@ input, modified as requested.
 # SEE ALSO
 
 **notcurses(3)**,
-**notcurses_nccell(3)**,
+**notcurses_cell(3)**,
 **notcurses_channels(3)**,
 **notcurses_output(3)**,
 **notcurses_plane(3)**

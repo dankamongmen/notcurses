@@ -85,7 +85,7 @@ coordinate, one extended grapheme cluster (see **unicode(7)**) per cell. An
 character (see **ascii(7)**), or a 25-bit index into the ncplane's egcpool), a
 set of attributes, and two channels (one for the foreground, and one for the
 background—see **notcurses_channels(3)**). Information on cells is available at
-**notcurses_nccell(3)**.
+**notcurses_cell(3)**.
 
 It is not usually necessary for users to interact directly with `nccell`s. They
 are typically encountered when retrieving data from ncplanes or the rendered
@@ -143,7 +143,7 @@ order to turn most error returns into exceptions.
 **notcurses-demo(1)**,
 **notcurses-input(1)**,
 **notcurses_capabilities(3)**,
-**notcurses_nccell(3)**,
+**notcurses_cell(3)**,
 **notcurses_channels(3)**,
 **notcurses_directmode(3)**,
 **notcurses_fade(3)**,
