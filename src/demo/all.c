@@ -104,6 +104,7 @@ make_pbars(struct ncplane* column, struct ncprogbar** left, struct ncprogbar** r
     return -1;
   }
   ncplane_set_base(rightp, " ", 0, CHANNELS_RGB_INITIALIZER(0xdd, 0xdd, 0xdd, 0x1b, 0x1b, 0x1b));
+  popts.flags = NCPROGBAR_OPTION_RETROGRADE;
   *right = ncprogbar_create(rightp, &popts);
   if(*right == NULL){
     ncprogbar_destroy(*left);

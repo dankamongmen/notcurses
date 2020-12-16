@@ -51,14 +51,19 @@ progbar_redraw(ncprogbar* n){
   const bool horizontal = dimx > dimy;
   int range, delt, pos;
   const char* egcs;
+  uint32_t ul, ur, bl, br;
   if(horizontal){
     range = dimx;
     delt = 1;
     pos = 0;
     if(n->retrograde){
       egcs = *right_egcs;
+      ul = n->urchannel; ur = n->brchannel;
+      bl = n->ulchannel; br = n->blchannel;
     }else{
       egcs = *left_egcs;
+      ul = n->blchannel; ur = n->ulchannel;
+      bl = n->brchannel; br = n->urchannel;
     }
   }else{
     range = dimy;
@@ -66,19 +71,21 @@ progbar_redraw(ncprogbar* n){
     pos = range - 1;
     if(n->retrograde){
       egcs = *down_egcs;
+      ul = n->brchannel; ur = n->blchannel;
+      bl = n->urchannel; br = n->ulchannel;
     }else{
       egcs = *up_egcs;
+      ul = n->ulchannel; ur = n->urchannel;
+      bl = n->blchannel; br = n->brchannel;
     }
   }
   ncplane_home(ncp);
   if(notcurses_canutf8(ncplane_notcurses(ncp))){
-    if(ncplane_highgradient(ncp, n->ulchannel, n->urchannel,
-                            n->blchannel, n->brchannel, dimy - 1, dimx - 1) <= 0){
+    if(ncplane_highgradient(ncp, ul, ur, bl, br, dimy - 1, dimx - 1) <= 0){
       return -1;
     }
   }else{
-    if(ncplane_gradient(ncp, " ", 0, n->ulchannel, n->urchannel,
-                        n->blchannel, n->brchannel, dimy - 1, dimx - 1) <= 0){
+    if(ncplane_gradient(ncp, " ", 0, ul, ur, bl, br, dimy - 1, dimx - 1) <= 0){
       return -1;
     }
   }
