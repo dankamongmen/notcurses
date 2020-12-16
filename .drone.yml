@@ -30,7 +30,7 @@ steps:
     - export LANG=en_US.UTF-8
     - mkdir build
     - cd build
-    - cmake -DCMAKE_BUILD_TYPE=Release ..
+    - cmake -DCMAKE_BUILD_TYPE=Release -DUSE_QRCODEGEN=off -DUSE_PANDOC=off ..
     - make -j2
     - env TERM=xterm ctest
 ---
