@@ -33,7 +33,7 @@ hbar_make(struct notcurses* nc, uint64_t flags){
     .y = 1,
     .x = NCALIGN_CENTER,
     .rows = dimy - 4,
-    .cols = 1,
+    .cols = 5,
     .name = "pbar",
     .flags = NCPLANE_OPTION_HORALIGNED,
   };
@@ -54,7 +54,10 @@ hbar_make(struct notcurses* nc, uint64_t flags){
   struct ncprogbar_options popts = {
     .flags = flags,
   };
-  channels_set_fg_rgb8(&popts.channels, 0x80, 0x22, 0x22);
+  channel_set_rgb8(&popts.ulchannel, 0x80, 0x22, 0x22);
+  channel_set_rgb8(&popts.urchannel, 0x22, 0x22, 0x80);
+  channel_set_rgb8(&popts.blchannel, 0x22, 0x80, 0x22);
+  channel_set_rgb8(&popts.brchannel, 0x80, 0x22, 0x22);
   struct ncprogbar* ncp = ncprogbar_create(pbar, &popts);
   if(ncp == NULL){
     return NULL;
@@ -69,7 +72,7 @@ pbar_make(struct notcurses* nc, uint64_t flags){
   struct ncplane_options nopts = {
     .y = dimy / 2,
     .x = NCALIGN_CENTER,
-    .rows = 1,
+    .rows = 3,
     .cols = dimx - 20,
     .name = "pbar",
     .flags = NCPLANE_OPTION_HORALIGNED,
@@ -91,7 +94,10 @@ pbar_make(struct notcurses* nc, uint64_t flags){
   struct ncprogbar_options popts = {
     .flags = flags,
   };
-  channels_set_fg_rgb8(&popts.channels, 0x80, 0x22, 0x22);
+  channel_set_rgb8(&popts.ulchannel, 0x80, 0x22, 0x22);
+  channel_set_rgb8(&popts.urchannel, 0x22, 0x22, 0x80);
+  channel_set_rgb8(&popts.blchannel, 0x22, 0x80, 0x22);
+  channel_set_rgb8(&popts.brchannel, 0x80, 0x22, 0x22);
   struct ncprogbar* ncp = ncprogbar_create(pbar, &popts);
   if(ncp == NULL){
     return NULL;

@@ -3032,7 +3032,10 @@ API int ncmenu_destroy(struct ncmenu* n);
 #define NCPROGBAR_OPTION_RETROGRADE        0x0001u // proceed left/down
 
 typedef struct ncprogbar_options {
-  uint64_t channels; // channels for the progress bar
+  uint32_t ulchannel; // upper-left channel. in the context of a progress bar,
+  uint32_t urchannel; // "up" is the direction we are progressing towards, and
+  uint32_t blchannel; // "bottom" is the direction of origin. for monochromatic
+  uint32_t brchannel; // bar, all four channels ought be the same.
   uint64_t flags;
 } ncprogbar_options;
 
