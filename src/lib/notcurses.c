@@ -2246,11 +2246,13 @@ ncplane* ncplane_reparent(ncplane* n, ncplane* newparent){
   }
   if(n->blist){
     if(n->boundto == n){ // children become new root planes
+      ncplane* lastlink;
       for(ncplane* child = n->blist ; child ; child = child->bnext){
         child->boundto = child;
-      }
-      if( (n->blist->bnext = ncplane_pile(n)->roots) ){
-        n->blist->bnext->bprev = &n->blist->bnext;
+        lastlink = child;
+      } // n->blist != NULL -> lastlink != NULL
+      if( (lastlink->bnext = ncplane_pile(n)->roots) ){
+        lastlink->bnext->bprev = &lastlink->bnext;
       }
       n->blist->bprev = &ncplane_pile(n)->roots;
       ncplane_pile(n)->roots = n->blist;
