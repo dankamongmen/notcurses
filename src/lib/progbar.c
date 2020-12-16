@@ -98,46 +98,41 @@ progbar_redraw(ncprogbar* n){
   }
   double eachcell = (1.0 / range); // how much each cell is worth
   double chunk = n->progress;
-  // FIXME set ncp properties for ascii case
-  // FIXME can just do the one line now, right?
-  while(chunk > 0){
-    if(chunk < eachcell){
-      const int egcidx = (int)(chunk / (eachcell / 8));
-      const char* egc = egcs + egcidx * 5;
-  //fprintf(stderr, "nprog: %g egc: %s progress: %g pos: %d range: %d delt: %d chunk: %g each: %g\n", n->progress, egc, progress, pos, range, delt, chunk, eachcell);
-      if(horizontal){
-        for(int freepos = 0 ; freepos < dimy ; ++freepos){
-          if(notcurses_canutf8(ncplane_notcurses(ncp))){
-            nccell* c = ncplane_cell_ref_yx(ncp, freepos, pos);
-            if(pool_blit_direct(&ncp->pool, c, egc, strlen(egc), 1) <= 0){
-              return -1;
-            }
-            cell_set_bchannel(c, 0);
-          }else{
-            if(ncplane_putchar_yx(ncp, freepos, pos, ' ') <= 0){
-              return -1;
-            }
-          }
+  const int chunks = n->progress / eachcell;
+  chunk -= eachcell * chunks;
+  pos += delt * chunks;
+  const int egcidx = (int)(chunk / (eachcell / 8));
+  const char* egc = egcs + egcidx * 5;
+  if(horizontal){
+    for(int freepos = 0 ; freepos < dimy ; ++freepos){
+      if(notcurses_canutf8(ncplane_notcurses(ncp))){
+        nccell* c = ncplane_cell_ref_yx(ncp, freepos, pos);
+        if(pool_blit_direct(&ncp->pool, c, egc, strlen(egc), 1) <= 0){
+          return -1;
         }
+        cell_set_bchannel(c, 0);
       }else{
-        for(int freepos = 0 ; freepos < dimx ; ++freepos){
-          if(notcurses_canutf8(ncplane_notcurses(ncp))){
-            nccell* c = ncplane_cell_ref_yx(ncp, pos, freepos);
-            if(pool_blit_direct(&ncp->pool, c, egc, strlen(egc), 1) <= 0){
-              return -1;
-            }
-            cell_set_bchannel(c, 0);
-          }else{
-            if(ncplane_putchar_yx(ncp, pos, freepos, ' ') <= 0){
-              return -1;
-            }
-          }
+        if(ncplane_putchar_yx(ncp, freepos, pos, ' ') <= 0){
+          return -1;
         }
       }
     }
-    pos += delt;
-    chunk -= eachcell;
+  }else{
+    for(int freepos = 0 ; freepos < dimx ; ++freepos){
+      if(notcurses_canutf8(ncplane_notcurses(ncp))){
+        nccell* c = ncplane_cell_ref_yx(ncp, pos, freepos);
+        if(pool_blit_direct(&ncp->pool, c, egc, strlen(egc), 1) <= 0){
+          return -1;
+        }
+        cell_set_bchannel(c, 0);
+      }else{
+        if(ncplane_putchar_yx(ncp, pos, freepos, ' ') <= 0){
+          return -1;
+        }
+      }
+    }
   }
+  pos += delt;
   while(pos >= 0 && pos < range){
     if(horizontal){
       for(int freepos = 0 ; freepos < dimy ; ++freepos){
