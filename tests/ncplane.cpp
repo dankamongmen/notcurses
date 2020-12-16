@@ -940,6 +940,29 @@ TEST_CASE("NCPlane") {
     CHECK(ncplane_reparent(ndom, n_)); // *can* reparent *to* standard plane
   }
 
+  SUBCASE("ReparentDeep") {
+    struct ncplane_options nopts = {
+      .y = 1,
+      .x = 1,
+      .rows = 2,
+      .cols = 2,
+      nullptr, "new1", nullptr, 0,
+    };
+    auto n1 = ncplane_create(n_, &nopts);
+    REQUIRE(n1);
+    nopts.name = "new2";
+    auto n2 = ncplane_create(n1, &nopts);
+    REQUIRE(n2);
+    nopts.name = "new3";
+    auto n3 = ncplane_create(n2, &nopts);
+    REQUIRE(n3);
+    CHECK(ncplane_reparent(n1, n3));
+    CHECK(ncplane_reparent(n2, n3));
+    ncplane_destroy(n3);
+    ncplane_destroy(n2);
+    ncplane_destroy(n1);
+  }
+
   CHECK(0 == notcurses_stop(nc_));
 
 }
