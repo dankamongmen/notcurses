@@ -25,7 +25,7 @@ name: alpine-edge
 
 steps:
 - name: alpine-edge
-  image: dankamongmen/edge_builder:2020-12-16b
+  image: dankamongmen/edge_builder:2020-12-16d
   commands:
     - export LANG=en_US.UTF-8
     - mkdir build
