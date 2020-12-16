@@ -503,3 +503,7 @@ insignificant in comparison with ours. But the amazing growth of our
 techniques, the adaptability and precision they have attained, the ideas and
 habits they are creating, make it a certainty that _profound changes are
 impending in the ancient craft of the Beautiful_.” —Paul Valéry
+
+### Grotesque vanity and meaningless metrics
+
+[![stargazers over time](https://starcharts.herokuapp.com/dankamongmen/notcurses.svg)](https://starcharts.herokuapp.com/dankamongmen/notcurses)
