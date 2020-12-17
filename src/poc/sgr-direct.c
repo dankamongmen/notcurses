@@ -19,7 +19,7 @@ int main(void){
       return EXIT_FAILURE;
     }
     printf("%08x ", i);
-    if(++e % 6 == 0){
+    if(++e % 8 == 0){
       printf("\n");
     }
   }

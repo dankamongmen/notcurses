@@ -43,7 +43,7 @@ handle_path(int dirfd, std::filesystem::path& dir, const char* p, const lsContex
 static int
 handle_inode(std::filesystem::path& dir, const char* p, const struct stat* st, const lsContext& ctx){
   (void)st; // FIXME handle symlink (dereflinks)
-  std::cout << p << std::endl;
+  std::cout << p << '\n';
   auto s = dir / p;
   ctx.nc.render_image(s.c_str(), ctx.alignment, NCBLIT_DEFAULT, NCSCALE_SCALE);
   return 0;
