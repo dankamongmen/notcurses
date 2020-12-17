@@ -393,6 +393,11 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
       }
       free(egc);
     }
+    // yes, we want to reset colors and emit an explicit new line following
+    // each line of output; this is necessary if our output is lifted out and
+    // used in something e.g. paste(1).
+    // FIXME replace with a SGR clear
+    ncdirect_fg_default(n);
     ncdirect_bg_default(n);
     if(putc('\n', n->ttyfp) == EOF){
       return -1;
@@ -463,8 +468,6 @@ int ncdirect_render_image(ncdirect* n, const char* file, ncalign_e align,
   if(ncdirect_dump_plane(n, faken, xoff)){
     return -1;
   }
-  ncdirect_fg_default(n);
-  ncdirect_bg_default(n);
   int r = ncdirect_flush(n);
   free_plane(faken);
   return r;
@@ -613,6 +616,7 @@ ncdirect_style_emit(ncdirect* n, const char* sgr, unsigned stylebits, FILE* out)
   if(sgr == nullptr){
     return -1;
   }
+  // FIXME if these are all 0s, use sgr0 short form
   int r = term_emit("sgr", tiparm(sgr, stylebits & NCSTYLE_STANDOUT,
                                   stylebits & NCSTYLE_UNDERLINE,
                                   stylebits & NCSTYLE_REVERSE,
