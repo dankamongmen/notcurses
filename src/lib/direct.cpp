@@ -367,12 +367,10 @@ ncdirect_align(const struct ncdirect* n, ncalign_e align, int c){
 
 static int
 ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
-  const int totx = ncdirect_dim_x(n);
   const int toty = ncdirect_dim_y(n);
   int dimy, dimx;
   ncplane_dim_yx(np, &dimy, &dimx);
 //fprintf(stderr, "rasterizing %dx%d+%d\n", dimy, dimx, xoff);
-  assert(dimx + xoff <= totx);
   for(int y = 0 ; y < dimy ; ++y){
     if(xoff){
       if(ncdirect_cursor_move_yx(n, -1, xoff)){
@@ -395,11 +393,9 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
       }
       free(egc);
     }
-    if(dimx < totx){
-      ncdirect_bg_default(n);
-      if(putc('\n', n->ttyfp) == EOF){
-        return -1;
-      }
+    ncdirect_bg_default(n);
+    if(putc('\n', n->ttyfp) == EOF){
+      return -1;
     }
     if(y == toty){
       if(ncdirect_cursor_down(n, 1)){
