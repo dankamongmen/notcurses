@@ -11,5 +11,5 @@ fn constructors() {
 
     let _c2 = NcCell::with_7bitchar('C');
 
-    let _c3 = NcCell::with_all('c', 0, 0);
+    let _c3 = NcCell::with_all('c', 0, 0, 0);
 }
