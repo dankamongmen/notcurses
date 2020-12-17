@@ -5,7 +5,7 @@ name: debian-unstable
 
 steps:
 - name: debian-build
-  image: dankamongmen/unstable_builder:2020-11-26b
+  image: dankamongmen/unstable_builder:2020-12-16a
   commands:
     - export LANG=en_US.UTF-8
     - mkdir build
@@ -39,25 +39,25 @@ steps:
     - make -j2
     - env TERM=xterm ctest
 ---
-kind: pipeline
-type: docker
-name: ubuntu-focal
-
-steps:
-- name: ubuntu-build
-  image: dankamongmen/groovy:2020-11-21a
-  commands:
-    - export LANG=en_US.UTF-8
-    - mkdir build
-    - cd build
-    - cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_MULTIMEDIA=none ..
-    - make -j2
-    - env TERM=xterm ctest
-    - make install
-    - ldconfig
-    - cd ../cffi
-    - python3 setup.py sdist build
----
+#kind: pipeline
+#type: docker
+#name: ubuntu-focal
+#
+#steps:
+#- name: ubuntu-build
+#  image: dankamongmen/groovy:2020-11-21a
+#  commands:
+#    - export LANG=en_US.UTF-8
+#    - mkdir build
+#    - cd build
+#    - cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_MULTIMEDIA=none ..
+#    - make -j2
+#    - env TERM=xterm ctest
+#    - make install
+#    - ldconfig
+#    - cd ../cffi
+#    - python3 setup.py sdist build
+#---
 kind: pipeline
 type: docker
 name: fedora-rawhide
