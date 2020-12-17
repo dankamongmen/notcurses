@@ -274,6 +274,9 @@ ncreel_demo_core(struct notcurses* nc){
     renderret = demo_render(nc);
     pthread_mutex_unlock(&renderlock);
     if(renderret){
+      while(tctxs){
+        kill_tablet(&tctxs);
+      }
       ncreel_destroy(nr);
       return renderret;
     }
