@@ -102,16 +102,17 @@ pub const NCOPTION_NO_FONT_CHANGES: u64 = crate::bindings::ffi::NCOPTION_NO_FONT
 
 /// Do not handle SIG{ING, SEGV, ABRT, QUIT}
 ///
-/// We typically install a signal handler for SIG{INT, SEGV, ABRT, QUIT} that
-/// restores the screen, and then calls the old signal handler. Set to inhibit
-/// registration of these signal handlers.
+/// A signal handler will usually be installed for SIGINT, SIGQUIT, SIGSEGV,
+/// SIGTERM, and SIGABRT, cleaning up the terminal on such exceptions.
+/// With this flag, the handler will not be installed.
 pub const NCOPTION_NO_QUIT_SIGHANDLERS: u64 =
     crate::bindings::ffi::NCOPTION_NO_QUIT_SIGHANDLERS as u64;
 
 /// Do not handle SIGWINCH
 ///
-/// We typically install a signal handler for SIGWINCH that generates a resize
-/// event in the notcurses_getc() queue. Set to inhibit this handler
+/// A signal handler will usually be installed for SIGWINCH, resulting in
+/// NCKEY_RESIZE events being generated on input.
+/// With this flag, the handler will not be installed.
 pub const NCOPTION_NO_WINCH_SIGHANDLER: u64 =
     crate::bindings::ffi::NCOPTION_NO_WINCH_SIGHANDLER as u64;
 
