@@ -1187,16 +1187,25 @@ err:
 // updates *pile to point at (*pile)->next, frees all but standard pile/plane
 static void
 ncpile_drop(notcurses* nc, ncpile** pile){
+  bool sawstdplane = false;
   ncpile* next = (*pile)->next;
   ncplane* p = (*pile)->top;
   while(p){
     ncplane* tmp = p->below;
     if(nc->stdplane != p){
       free_plane(p);
+    }else{
+      sawstdplane = true;
     }
     p = tmp;
   }
   *pile = next;
+  if(sawstdplane){
+    ncplane_pile(nc->stdplane)->top = nc->stdplane;
+    ncplane_pile(nc->stdplane)->bottom = nc->stdplane;
+    nc->stdplane->above = nc->stdplane->below = NULL;
+    nc->stdplane->blist = NULL;
+  }
 }
 
 // drop all piles and all planes, save the standard plane and its pile
@@ -1208,9 +1217,6 @@ void notcurses_drop_planes(notcurses* nc){
     ncpile_drop(nc, &p);
   }while(p0 != p);
   pthread_mutex_unlock(&nc->pilelock);
-  ncplane_pile(nc->stdplane)->top = nc->stdplane;
-  ncplane_pile(nc->stdplane)->bottom = nc->stdplane;
-  nc->stdplane->above = nc->stdplane->below = NULL;
 }
 
 int notcurses_stop(notcurses* nc){
