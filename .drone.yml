@@ -64,7 +64,7 @@ name: fedora-rawhide
 
 steps:
 - name: fedora-rawhide
-  image: dankamongmen/fedora34:2020-11-17a
+  image: dankamongmen/fedora34:2020-12-16a
   commands:
     - export LANG=en_US.UTF-8
     - mkdir build
