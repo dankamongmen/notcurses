@@ -117,11 +117,10 @@ pub fn ncplane_putchar(plane: &mut NcPlane, c: char) -> NcResult {
 /// Advance the cursor by 1. On success, returns 1. On failure, returns -1.
 /// This works whether the underlying char is signed or unsigned.
 #[inline]
-// TODO: test char is < 8bit (currently 32bit)
-pub fn ncplane_putchar_yx(plane: &mut NcPlane, y: i32, x: i32, c: char) -> NcResult {
+pub fn ncplane_putchar_yx(plane: &mut NcPlane, y: i32, x: i32, ch: char) -> NcResult {
     unsafe {
-        let ce = NcCell::with_all(c, ncplane_styles(plane), ncplane_channels(plane));
-        ncplane_putc_yx(plane, y, x, &ce)
+        let cell = NcCell::with_all(ch, 0, ncplane_styles(plane), ncplane_channels(plane));
+        ncplane_putc_yx(plane, y, x, &cell)
     }
 }
 
