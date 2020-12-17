@@ -231,7 +231,7 @@ detect_cursor_inversion(ncdirect* n, int rows, int cols, int* y, int* x){
       return -1;
     }
   }
-  if(fflush(n->ttyfp) == EOF){
+  if(ncdirect_flush(n)){
     return -1;
   }
   int newy, newx;
@@ -469,11 +469,9 @@ int ncdirect_render_image(ncdirect* n, const char* file, ncalign_e align,
   }
   ncdirect_fg_default(n);
   ncdirect_bg_default(n);
-  while(fflush(stdout) == EOF && errno == EAGAIN){
-    ;
-  }
+  int r = ncdirect_flush(n);
   free_plane(faken);
-  return 0;
+  return r;
 }
 
 int ncdirect_fg_palindex(ncdirect* nc, int pidx){
@@ -955,8 +953,11 @@ bool ncdirect_canutf8(const ncdirect* n){
 }
 
 int ncdirect_flush(const ncdirect* nc){
-  if(fflush(nc->ttyfp) == EOF){
-    return -1;
+  int r;
+  while((r = fflush(nc->ttyfp)) == EOF){
+    if(errno != EAGAIN){
+      return -1;
+    }
   }
   return 0;
 }
