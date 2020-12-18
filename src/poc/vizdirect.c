@@ -16,6 +16,9 @@ int main(void){
     fprintf(stderr, "This notcurses was not build with multimedia support.\n");
     return EXIT_FAILURE;
   }
+  ncdirect_fg_rgb8(n, 0xff, 0, 0xff);
+  ncdirect_bg_rgb8(n, 0, 0xff, 0);
+  ncdirect_printf_aligned(n, -1, NCALIGN_CENTER, "let's play!");
   if(ncdirect_render_image(n, "../data/normal.png", NCALIGN_LEFT,
                            NCBLIT_DEFAULT, NCSCALE_STRETCH)){
     return EXIT_FAILURE;

@@ -371,6 +371,9 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
   int dimy, dimx;
   ncplane_dim_yx(np, &dimy, &dimx);
 //fprintf(stderr, "rasterizing %dx%d+%d\n", dimy, dimx, xoff);
+  // save the existing style and colors
+  bool fgdefault = n->fgdefault, bgdefault = n->bgdefault;
+  uint32_t fgrgb = n->fgrgb, bgrgb = n->bgrgb;
   for(int y = 0 ; y < dimy ; ++y){
     if(xoff){
       if(ncdirect_cursor_move_yx(n, -1, xoff)){
@@ -407,6 +410,17 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
         return -1;
       }
     }
+  }
+  // restore the previous colors
+  if(fgdefault){
+    ncdirect_fg_default(n);
+  }else{
+    ncdirect_fg_rgb(n, fgrgb);
+  }
+  if(bgdefault){
+    ncdirect_bg_default(n);
+  }else{
+    ncdirect_bg_rgb(n, bgrgb);
   }
   return 0;
 }
@@ -449,7 +463,7 @@ int ncdirect_render_image(ncdirect* n, const char* file, ncalign_e align,
     .rows = disprows / encoding_y_scale(bset),
     .cols = dispcols / encoding_x_scale(bset),
     .userptr = nullptr,
-    .name = "direct",
+    .name = "fake",
     .resizecb = nullptr,
     .flags = 0,
   };
