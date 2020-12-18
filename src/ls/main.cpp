@@ -35,6 +35,12 @@ struct job {
   std::string p;
 };
 
+std::mutex mtx;
+std::mutex outmtx;     // guards standard out
+std::queue<job> work;  // jobs available for workers
+bool keep_working;     // set false when we're done so threads die
+std::condition_variable cond;
+
 // context as configured on the command line
 struct lsContext {
   ncpp::Direct nc;
@@ -43,11 +49,6 @@ struct lsContext {
   bool directories;
   bool dereflinks;
   ncalign_e alignment;
-  std::mutex mutable mtx;
-  std::mutex mutable outmtx;     // guards standard out
-  std::condition_variable mutable cond;
-  std::queue<job> mutable work;  // jobs available for workers
-  bool keep_working;     // set false when we're done so threads die
 };
 
 int handle_path(int dirfd, std::filesystem::path& dir, const char* p, const lsContext& ctx, bool toplevel);
@@ -55,8 +56,10 @@ int handle_path(int dirfd, std::filesystem::path& dir, const char* p, const lsCo
 // handle a single inode of arbitrary type
 int handle_inode(std::filesystem::path& dir, const char* p, const struct stat* st, const lsContext& ctx){
   (void)st; // FIXME handle symlink (dereflinks)
-  std::lock_guard<std::mutex> lock(ctx.mtx);
-  ctx.work.emplace(job{dir, p});
+  (void)ctx; // FIXME handle symlink (dereflinks)
+  std::lock_guard<std::mutex> lock(mtx);
+  work.emplace(job{dir, p});
+  cond.notify_all();
   return 0;
 }
 
@@ -129,19 +132,19 @@ int handle_path(int dirfd, std::filesystem::path& pdir, const char* p, const lsC
 // return long-term return code
 void ncls_thread(const lsContext* ctx) {
   while(true){
-    std::unique_lock<std::mutex> lock(ctx->mtx);
-    ctx->cond.wait(lock);
-    bool keep_working = ctx->keep_working;
-    if(!ctx->work.empty()){
-      auto j = ctx->work.front();
-      ctx->work.pop();
-      ctx->mtx.unlock();
-      std::unique_lock<std::mutex> outlock(ctx->outmtx);
+    std::unique_lock<std::mutex> lock(mtx);
+    if(work.empty() && keep_working){
+      cond.wait(lock);
+    }
+    if(!work.empty()){
+      auto j = work.front();
+      work.pop();
+      mtx.unlock();
+      std::unique_lock<std::mutex> outlock(outmtx);
       std::cout << j.p << '\n';
       auto s = j.dir / j.p;
-      //ctx->nc.render_image(s.c_str(), ctx->alignment, NCBLIT_DEFAULT, NCSCALE_SCALE);
-    }
-    if(!keep_working){
+      ctx->nc.render_image(s.c_str(), ctx->alignment, NCBLIT_DEFAULT, NCSCALE_SCALE);
+    }else if(!keep_working){
       return;
     }
   }
@@ -222,20 +225,21 @@ int main(int argc, char* const * argv){
     directories,
     dereflinks,
     alignment,
-    {}, {}, {}, {},
-    true,
   };
+  keep_working = true;
   for(auto s = 0u ; s < procs ; ++s){
     threads.emplace_back(std::thread(ncls_thread, &ctx));
   }
   static const char* const default_args[] = { ".", nullptr };
   list_paths(argv[optind] ? argv + optind : default_args, ctx);
-  ctx.mtx.lock();
-  ctx.keep_working = false;
-  ctx.mtx.unlock();
-  ctx.cond.notify_all();
+  mtx.lock();
+  keep_working = false;
+  mtx.unlock();
+  cond.notify_all();
   for(auto &t : threads){
+//std::cerr << "Waiting on thread " << procs << std::endl;
     t.join();
+    --procs;
   }
   return EXIT_SUCCESS;
 }
