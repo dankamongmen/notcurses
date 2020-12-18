@@ -1,19 +1,19 @@
 #define NCPP_EXCEPTIONS_PLEASE
-#include <mutex>
 #include <queue>
 #include <thread>
 #include <vector>
+#include <atomic>
 #include <cstdlib>
 #include <fcntl.h>
 #include <getopt.h>
 #include <iostream>
 #include <dirent.h>
 #include <unistd.h>
+#include <pthread.h>
 #include <sys/stat.h>
 #include <filesystem>
 #include <sys/types.h>
 #include <ncpp/Direct.hh>
-#include <condition_variable>
 #ifndef __linux__
 #define AT_NO_AUTOMOUNT 0 // not defined on freebsd
 #endif
@@ -35,11 +35,11 @@ struct job {
   std::string p;
 };
 
-std::mutex mtx;
-std::mutex outmtx;     // guards standard out
+static pthread_mutex_t mtx = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t outmtx = PTHREAD_MUTEX_INITIALIZER; // guards standard out
+static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 std::queue<job> work;  // jobs available for workers
 bool keep_working;     // set false when we're done so threads die
-std::condition_variable cond;
 
 // context as configured on the command line
 struct lsContext {
@@ -57,9 +57,10 @@ int handle_path(int dirfd, std::filesystem::path& dir, const char* p, const lsCo
 int handle_inode(std::filesystem::path& dir, const char* p, const struct stat* st, const lsContext& ctx){
   (void)st; // FIXME handle symlink (dereflinks)
   (void)ctx; // FIXME handle symlink (dereflinks)
-  std::lock_guard<std::mutex> lock(mtx);
+  pthread_mutex_lock(&mtx);
   work.emplace(job{dir, p});
-  cond.notify_all();
+  pthread_mutex_unlock(&mtx);
+  pthread_cond_signal(&cond);
   return 0;
 }
 
@@ -132,19 +133,23 @@ int handle_path(int dirfd, std::filesystem::path& pdir, const char* p, const lsC
 // return long-term return code
 void ncls_thread(const lsContext* ctx) {
   while(true){
-    std::unique_lock<std::mutex> lock(mtx);
-    if(work.empty() && keep_working){
-      cond.wait(lock);
+    pthread_mutex_lock(&mtx);
+    while(work.empty() && keep_working){
+      pthread_cond_wait(&cond, &mtx);
     }
     if(!work.empty()){
-      auto j = work.front();
+      job j = work.front();
       work.pop();
-      mtx.unlock();
-      std::unique_lock<std::mutex> outlock(outmtx);
-      std::cout << j.p << '\n';
+      pthread_mutex_unlock(&mtx);
       auto s = j.dir / j.p;
-      ctx->nc.render_image(s.c_str(), ctx->alignment, NCBLIT_DEFAULT, NCSCALE_SCALE);
+      // FIXME render it
+      //ctx->nc.render_image(s.c_str(), ctx->alignment, NCBLIT_DEFAULT, NCSCALE_SCALE);
+      pthread_mutex_lock(&outmtx);
+      std::cout << j.p << '\n';
+      // FIXME raster it
+      pthread_mutex_unlock(&outmtx);
     }else if(!keep_working){
+      pthread_mutex_unlock(&mtx);
       return;
     }
   }
@@ -232,10 +237,8 @@ int main(int argc, char* const * argv){
   }
   static const char* const default_args[] = { ".", nullptr };
   list_paths(argv[optind] ? argv + optind : default_args, ctx);
-  mtx.lock();
   keep_working = false;
-  mtx.unlock();
-  cond.notify_all();
+  pthread_cond_broadcast(&cond);
   for(auto &t : threads){
 //std::cerr << "Waiting on thread " << procs << std::endl;
     t.join();
