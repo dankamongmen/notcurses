@@ -17,11 +17,12 @@ static void usage(std::ostream& os, const char* name, int exitcode)
   __attribute__ ((noreturn));
 
 void usage(std::ostream& o, const char* name, int exitcode){
-  o << "usage: " << name << " [ -h ] [ -q ] [ -m margins ] [ -l loglevel ] [ -d mult ] [ -s scaletype ] [ -k ] [ -L ] files" << '\n';
+  o << "usage: " << name << " [ -h ] [ -q ] [ -m margins ] [ -l loglevel ] [ -d mult ] [ -s scaletype ] [ -k ] [ -L ] [ -t seconds ] files" << '\n';
   o << " -h: display help and exit with success\n";
   o << " -q: be quiet (no frame/timing information along top of screen)\n";
   o << " -k: don't use the alternate screen\n";
   o << " -L: loop frames\n";
+  o << " -t seconds: delay t seconds after each file\n";
   o << " -l loglevel: integer between 0 and 9, goes to stderr'\n";
   o << " -s scaletype: one of 'none', 'scale', or 'stretch'\n";
   o << " -b blitter: 'ascii', 'halfblock', 'quadblitter', 'sexblitter', or 'braille'\n";
@@ -172,12 +173,13 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
 // can exit() directly. returns index in argv of first non-option param.
 auto handle_opts(int argc, char** argv, notcurses_options& opts, bool* quiet,
                  float* timescale, ncscale_e* scalemode, ncblitter_e* blitter,
-                 bool* loop)
+                 float* displaytime, bool* loop)
                  -> int {
   *timescale = 1.0;
   *scalemode = NCSCALE_STRETCH;
+  *displaytime = -1;
   int c;
-  while((c = getopt(argc, argv, "hql:d:s:b:m:kL")) != -1){
+  while((c = getopt(argc, argv, "hql:d:s:b:t:m:kL")) != -1){
     switch(c){
       case 'h':
         usage(std::cout, argv[0], EXIT_SUCCESS);
@@ -213,6 +215,17 @@ auto handle_opts(int argc, char** argv, notcurses_options& opts, bool* quiet,
         if(notcurses_lex_margins(optarg, &opts)){
           usage(std::cerr, argv[0], EXIT_FAILURE);
         }
+        break;
+      }case 't':{
+        std::stringstream ss;
+        ss << optarg;
+        float ts;
+        ss >> ts;
+        if(ts < 0){
+          std::cerr << "Invalid displaytime [" << optarg << "] (wanted (0..))\n";
+          usage(std::cerr, argv[0], EXIT_FAILURE);
+        }
+        *displaytime = ts;
         break;
       }case 'd':{
         std::stringstream ss;
@@ -257,14 +270,14 @@ auto main(int argc, char** argv) -> int {
     std::cerr << "Couldn't set locale based off LANG\n";
     return EXIT_FAILURE;
   }
-  float timescale;
+  float timescale, displaytime;
   ncscale_e scalemode;
   notcurses_options ncopts{};
   ncblitter_e blitter = NCBLIT_DEFAULT;
   bool quiet = false;
   bool loop = false;
   auto nonopt = handle_opts(argc, argv, ncopts, &quiet, &timescale, &scalemode,
-                            &blitter, &loop);
+                            &blitter, &displaytime, &loop);
   ncopts.flags |= NCOPTION_INHIBIT_SETLOCALE;
   NotCurses nc{ncopts};
   if(!nc.can_open_images()){

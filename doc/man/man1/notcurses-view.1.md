@@ -8,7 +8,7 @@ notcurses-view - Render images and video to a terminal
 
 # SYNOPSIS
 
-**notcurses-view** [**-h**] [**-q**] [**-d delaymult**] [**-l loglevel**] [**-s scalemode**] [**-k**] [**-L**] files
+**notcurses-view** [**-h**] [**-q**] [**-d** ***delaymult***] [**-l** ***loglevel***] [**-s** ***scalemode***] [**-k**] [**-L**] [**-t** ***seconds***] files
 
 # DESCRIPTION
 
@@ -19,13 +19,18 @@ fill the rendering area, and the **sexblitter** blitter is used for a
 
 # OPTIONS
 
-**-d delaymult**: Apply a rational multiplier to the framerate.
+**-d** ***delaymult***: Apply a non-negative rational multiplier to the delayscale.
+Only applies to multiframe media such as video and animated images.
 
-**-l loglevel**: Log everything (high log level) or nothing (log level 0) to stderr.
+**-t** ***seconds***: Delay **seconds** after each file. If this option is used,
+the "press any key to continue" prompt will not be displayed. **seconds** may
+be any non-negative number.
 
-**-s scalemode**: Scaling mode, one of **none**, **scale**, or **stretch**.
+**-l** ***loglevel***: Log everything (high log level) or nothing (log level 0) to stderr.
 
-**-b blitter**: Blitter, one of **ascii**, **halfblocks**, **quadblitter**,
+**-s** ***scalemode***: Scaling mode, one of **none**, **scale**, or **stretch**.
+
+**-b** ***blitter***: Blitter, one of **ascii**, **halfblocks**, **quadblitter**,
 **sexblitter**, or **braille**.
 
 **-m margins**: Define rendering margins (see below).
