@@ -223,6 +223,9 @@ int main(int argc, char* const * argv){
   if(procs <= 0){
     procs = 4;
   }
+  if(procs > 8){
+    procs = 8;
+  }
   std::vector<std::thread> threads;
   lsContext ctx = {
     ncpp::Direct(),

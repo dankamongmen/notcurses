@@ -411,7 +411,7 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
   return 0;
 }
 
-int ncdirect_raster_frame(ncdirect* n, struct ncplane* faken, ncalign_e align,
+int ncdirect_raster_frame(ncdirect* n, ncdirectv* faken, ncalign_e align,
                           ncblitter_e blitter, ncscale_e scale){
   auto bset = rgba_blitter_low(n->utf8, scale, true, blitter);
   if(!bset){
@@ -429,8 +429,8 @@ int ncdirect_raster_frame(ncdirect* n, struct ncplane* faken, ncalign_e align,
   return r;
 }
 
-struct ncplane* ncdirect_render_frame(ncdirect* n, const char* file,
-                                      ncblitter_e blitter, ncscale_e scale){
+ncdirectv* ncdirect_render_frame(ncdirect* n, const char* file,
+                                 ncblitter_e blitter, ncscale_e scale){
   struct ncvisual* ncv = ncvisual_from_file(file);
   if(ncv == nullptr){
     return nullptr;
