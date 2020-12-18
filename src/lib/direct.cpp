@@ -411,23 +411,42 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
   return 0;
 }
 
-int ncdirect_render_image(ncdirect* n, const char* file, ncalign_e align,
+int ncdirect_raster_frame(ncdirect* n, struct ncplane* faken, ncalign_e align,
                           ncblitter_e blitter, ncscale_e scale){
+  auto bset = rgba_blitter_low(n->utf8, scale, true, blitter);
+  if(!bset){
+    free_plane(faken);
+    return -1;
+  }
+  int lenx = ncplane_dim_x(faken);
+  int xoff = ncdirect_align(n, align, lenx / encoding_x_scale(bset));
+  if(ncdirect_dump_plane(n, faken, xoff)){
+    free_plane(faken);
+    return -1;
+  }
+  int r = ncdirect_flush(n);
+  free_plane(faken);
+  return r;
+}
+
+struct ncplane* ncdirect_render_frame(ncdirect* n, const char* file,
+                                      ncblitter_e blitter, ncscale_e scale){
   struct ncvisual* ncv = ncvisual_from_file(file);
   if(ncv == nullptr){
-    return -1;
+    return nullptr;
   }
 //fprintf(stderr, "OUR DATA: %p rows/cols: %d/%d\n", ncv->data, ncv->rows, ncv->cols);
   int leny = ncv->rows; // we allow it to freely scroll
   int lenx = ncv->cols;
   if(leny == 0 || lenx == 0){
     ncvisual_destroy(ncv);
-    return -1;
+    return nullptr;
   }
 //fprintf(stderr, "render %d/%d to %d+%dx%d scaling: %d\n", ncv->rows, ncv->cols, leny, lenx, scale);
   auto bset = rgba_blitter_low(n->utf8, scale, true, blitter);
   if(!bset){
-    return -1;
+    ncvisual_destroy(ncv);
+    return nullptr;
   }
   int disprows, dispcols;
   if(scale != NCSCALE_NONE){
@@ -455,22 +474,26 @@ int ncdirect_render_image(ncdirect* n, const char* file, ncalign_e align,
   };
   struct ncplane* faken = ncplane_new_internal(nullptr, nullptr, &nopts);
   if(faken == nullptr){
-    return -1;
+    ncvisual_destroy(ncv);
+    return nullptr;
   }
   if(ncvisual_blit(ncv, disprows, dispcols, faken, bset,
                    0, 0, 0, 0, leny, lenx, false)){
     ncvisual_destroy(ncv);
     free_plane(faken);
-    return -1;
+    return nullptr;
   }
   ncvisual_destroy(ncv);
-  int xoff = ncdirect_align(n, align, lenx / encoding_x_scale(bset));
-  if(ncdirect_dump_plane(n, faken, xoff)){
+  return faken;
+}
+
+int ncdirect_render_image(ncdirect* n, const char* file, ncalign_e align,
+                          ncblitter_e blitter, ncscale_e scale){
+  auto faken = ncdirect_render_frame(n, file, blitter, scale);
+  if(!faken){
     return -1;
   }
-  int r = ncdirect_flush(n);
-  free_plane(faken);
-  return r;
+  return ncdirect_raster_frame(n, faken, align, blitter, scale);
 }
 
 int ncdirect_fg_palindex(ncdirect* nc, int pidx){

@@ -142,11 +142,12 @@ void ncls_thread(const lsContext* ctx) {
       work.pop();
       pthread_mutex_unlock(&mtx);
       auto s = j.dir / j.p;
-      // FIXME render it
-      //ctx->nc.render_image(s.c_str(), ctx->alignment, NCBLIT_DEFAULT, NCSCALE_SCALE);
+      auto faken = ctx->nc.prep_image(s.c_str(), NCBLIT_DEFAULT, NCSCALE_SCALE);
       pthread_mutex_lock(&outmtx);
       std::cout << j.p << '\n';
-      // FIXME raster it
+      if(faken){
+        ctx->nc.raster_image(faken, ctx->alignment, NCBLIT_DEFAULT, NCSCALE_SCALE);
+      }
       pthread_mutex_unlock(&outmtx);
     }else if(!keep_working){
       pthread_mutex_unlock(&mtx);

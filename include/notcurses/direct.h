@@ -114,6 +114,16 @@ API int ncdirect_render_image(struct ncdirect* n, const char* filename,
                               ncalign_e align, ncblitter_e blitter,
                               ncscale_e scale);
 
+// Display an image using the specified blitter and scaling. The image may
+// be arbitrarily many rows -- the output will scroll -- but will only occupy
+// the column of the cursor, and those to the right.
+API struct ncplane* ncdirect_render_frame(struct ncdirect* n, const char* filename,
+                                          ncblitter_e blitter, ncscale_e scale);
+
+API int ncdirect_raster_frame(struct ncdirect* n, struct ncplane* faken,
+                              ncalign_e align, ncblitter_e blitter,
+                              ncscale_e scale);
+
 // Clear the screen.
 API int ncdirect_clear(struct ncdirect* nc);
 
