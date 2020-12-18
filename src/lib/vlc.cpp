@@ -1,8 +1,12 @@
 #include "builddef.h"
 #ifdef USE_VLC
-#include "ffmpeg.h"
+#include "vlc.h"
 #include "internal.h"
 #include "visual-details.h"
+#include <vlc/libvlc.h>
+#include <vlc/libvlc_media.h>
+
+static libvlc_instance_t* vlcctx;
 
 bool notcurses_canopen_images(const notcurses* nc __attribute__ ((unused))) {
   return true;
@@ -26,7 +30,16 @@ int ncvisual_resize(ncvisual* nc, int rows, int cols) {
 }
 
 ncvisual* ncvisual_from_file(const char* filename) {
-  return nullptr;
+  ncvisual* ret = new ncvisual;
+  if(ret == nullptr){
+    return nullptr;
+  }
+  ret->details.media = libvlc_media_new_path(vlcctx, filename);
+  if(ret->details.media == nullptr){
+    delete ret;
+    return nullptr;
+  }
+  return ret;
 }
 
 // iterate over the decoded frames, calling streamer() with curry for each.
@@ -50,7 +63,20 @@ int ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
   return -1;
 }
 
+const char* vlc_version() {
+  return libvlc_get_version();
+}
+
+auto ncvisual_details_seed(ncvisual* ncv) -> void {
+}
+
 int ncvisual_init(int loglevel) {
-  return -1;
+  const char * const argv[] = { NULL, };
+  libvlc_instance_t* vlc = libvlc_new(0, argv);
+  if(vlc == NULL){
+    return -1;
+  }
+  vlcctx = vlc;
+  return 0;
 }
 #endif

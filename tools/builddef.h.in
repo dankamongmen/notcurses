@@ -1,12 +1,14 @@
 // Populated by CMake; not installed
 #cmakedefine DFSG_BUILD
 #cmakedefine USE_QRCODEGEN
-// exclusive with USE_OIIO
+// exclusive with USE_OIIO, USE_VLC
 #cmakedefine USE_FFMPEG
-// exclusive with USE_FFMPEG
+// exclusive with USE_FFMPEG, USE_VLC
 #cmakedefine USE_OIIO
-// set if either USE_FFMPEG || USE_OIIO
-#if defined(USE_FFMPEG) || defined(USE_OIIO)
+// exclusive with USE_FFMPEG, USE_OIIO
+#cmakedefine USE_VLC
+// set if either USE_FFMPEG || USE_OIIO || USE_VLC
+#if defined(USE_FFMPEG) || defined(USE_OIIO) || defined(USE_VLC)
 #define NOTCURSES_USE_MULTIMEDIA
 #endif
 #define NOTCURSES_SHARE "@CMAKE_INSTALL_FULL_DATADIR@/notcurses"

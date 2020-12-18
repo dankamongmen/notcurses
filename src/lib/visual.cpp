@@ -567,8 +567,9 @@ auto ncvisual_polyfill_yx(ncvisual* n, int y, int x, uint32_t rgba) -> int {
   return ncvisual_polyfill_recurse(n, y, x, rgba, *pixel);
 }
 
-#ifndef USE_OIIO // built without ffmpeg or oiio
+#ifndef USE_OIIO // built without a multimedia backend
 #ifndef USE_FFMPEG
+#ifndef USE_VLC
 auto ncvisual_from_file(const char* filename) -> ncvisual* {
   (void)filename;
   return nullptr;
@@ -641,5 +642,6 @@ auto ncvisual_resize(ncvisual* nc, int rows, int cols) -> int {
   return -1;
 }
 
+#endif
 #endif
 #endif

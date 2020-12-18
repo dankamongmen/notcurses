@@ -18,6 +18,10 @@ extern "C" {
 #else
 #ifdef USE_OIIO
 const char* oiio_version(void);
+#else
+#ifdef USE_VLC
+const char* vlc_version(void);
+#endif
 #endif
 #endif
 

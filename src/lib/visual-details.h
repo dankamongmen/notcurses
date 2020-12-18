@@ -10,6 +10,9 @@
 #ifdef USE_OIIO
 #include "oiio.h"
 #else
+#ifdef USE_VLC
+#include "vlc.h"
+#else
 
 typedef struct ncvisual_details {
 } ncvisual_details;
@@ -23,6 +26,7 @@ static inline auto
 ncvisual_details_destroy(ncvisual_details* deets) -> void {
   (void)deets;
 }
+#endif
 #endif
 #endif
 

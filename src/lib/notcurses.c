@@ -879,8 +879,12 @@ init_banner(const notcurses* nc){
 #ifdef USE_OIIO
     printf("  openimageio %s\n", oiio_version());
 #else
+#ifdef USE_VLC
+    printf("  libVLC %s\n", vlc_version());
+#else
     term_fg_palindex(nc, stderr, nc->tcache.colors <= 88 ? 1 % nc->tcache.colors : 0xcb);
     fprintf(stderr, "\n Warning! Notcurses was built without multimedia support.\n");
+#endif
 #endif
 #endif
     fflush(stdout);
