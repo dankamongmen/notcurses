@@ -119,6 +119,7 @@ that fine library.
 * (OPTIONAL) (build+runtime) From QR-Code-generator: [libqrcodegen](https://github.com/nayuki/QR-Code-generator) 1.5.0+
 * (OPTIONAL) (build+runtime) From [FFmpeg](https://www.ffmpeg.org/): libswscale 5.0+, libavformat 57.0+, libavutil 56.0+
 * (OPTIONAL) (build+runtime) [OpenImageIO](https://github.com/OpenImageIO/oiio) 2.15.0+
+* (OPTIONAL) (build+runtime) [libVLC](https://www.videolan.org/vlc/libvlc.html) 3.0.9+
 * (OPTIONAL) (testing) [Doctest](https://github.com/onqtam/doctest) 2.3.5+
 * (OPTIONAL) (documentation) [pandoc](https://pandoc.org/index.html) 1.19.2+
 * (OPTIONAL) (python bindings): Python 3.7+, [CFFI](https://pypi.org/project/cffi/) 1.13.2+, [pypandoc](https://pypi.org/project/pypandoc/) 1.5+
@@ -135,8 +136,8 @@ that fine library.
 
 The default multimedia engine is FFmpeg. You can select a different engine
 using `USE_MULTIMEDIA`. Valid values are `ffmpeg`, `oiio` (for OpenImageIO),
-or `none`. Without a multimedia engine, Notcurses will be unable to decode
-images and videos.
+`vlc` (for libVLC), or `none`. Without a multimedia engine, Notcurses will be
+unable to decode images and videos.
 
 Run unit tests with `make test` following a successful build. If you have unit
 test failures, *please* file a bug including the output of
@@ -182,7 +183,7 @@ but must be `Debug` for use of `USE_COVERAGE`.
 * `USE_COVERAGE`: build coverage support (for developers, requires use of Clang)
 * `USE_DOCTEST`: build `notcurses-tester` with Doctest, requires `BUILD_TESTING`
 * `USE_DOXYGEN`: build interlinked HTML documentation with Doxygen
-* `USE_MULTIMEDIA`: `ffmpeg` for FFmpeg, `oiio` for OpenImageIO, `none` for none
+* `USE_MULTIMEDIA`: `ffmpeg` for FFmpeg, `oiio` for OpenImageIO, `vlc` for libVLC, `none` for none
 * `USE_PANDOC`: build man pages with pandoc
 * `USE_POC`: build small, uninstalled proof-of-concept binaries
 * `USE_QRCODEGEN`: build qrcode support via libqrcodegen
