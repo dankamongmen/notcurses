@@ -143,6 +143,16 @@ namespace ncpp
 			return ncdirect_render_image (direct, file, align, blitter, scale);
 		}
 
+		struct ncplane* prep_image (const char* file, ncblitter_e blitter, ncscale_e scale) const noexcept
+		{
+			return ncdirect_render_frame (direct, file, blitter, scale);
+		}
+
+		int raster_image (struct ncplane* faken, ncalign_e align, ncblitter_e blitter, ncscale_e scale) const noexcept
+		{
+			return ncdirect_raster_frame (direct, faken, align, blitter, scale);
+		}
+
 		bool putstr (uint64_t channels, const char* utf8) const NOEXCEPT_MAYBE
 		{
 			return error_guard (ncdirect_putstr (direct, channels, utf8), -1);

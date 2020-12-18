@@ -1,10 +1,15 @@
 #define NCPP_EXCEPTIONS_PLEASE
+#include <queue>
+#include <thread>
+#include <vector>
+#include <atomic>
 #include <cstdlib>
 #include <fcntl.h>
 #include <getopt.h>
 #include <iostream>
 #include <dirent.h>
 #include <unistd.h>
+#include <pthread.h>
 #include <sys/stat.h>
 #include <filesystem>
 #include <sys/types.h>
@@ -13,8 +18,7 @@
 #define AT_NO_AUTOMOUNT 0 // not defined on freebsd
 #endif
 
-static void
-usage(std::ostream& os, const char* name, int code){
+void usage(std::ostream& os, const char* name, int code){
   os << "usage: " << name << " -h | [ -lLR ] [ --align type ] paths...\n";
   os << " -d: list directories themselves, not their contents\n";
   os << " -l: use a long listing format\n";
@@ -26,6 +30,17 @@ usage(std::ostream& os, const char* name, int code){
   exit(code);
 }
 
+struct job {
+  std::filesystem::path dir;
+  std::string p;
+};
+
+static pthread_mutex_t mtx = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t outmtx = PTHREAD_MUTEX_INITIALIZER; // guards standard out
+static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
+std::queue<job> work;  // jobs available for workers
+bool keep_working;     // set false when we're done so threads die
+
 // context as configured on the command line
 struct lsContext {
   ncpp::Direct nc;
@@ -36,24 +51,23 @@ struct lsContext {
   ncalign_e alignment;
 };
 
-static int
-handle_path(int dirfd, std::filesystem::path& dir, const char* p, const lsContext& ctx, bool toplevel);
+int handle_path(int dirfd, std::filesystem::path& dir, const char* p, const lsContext& ctx, bool toplevel);
 
 // handle a single inode of arbitrary type
-static int
-handle_inode(std::filesystem::path& dir, const char* p, const struct stat* st, const lsContext& ctx){
+int handle_inode(std::filesystem::path& dir, const char* p, const struct stat* st, const lsContext& ctx){
   (void)st; // FIXME handle symlink (dereflinks)
-  std::cout << p << '\n';
-  auto s = dir / p;
-  ctx.nc.render_image(s.c_str(), ctx.alignment, NCBLIT_DEFAULT, NCSCALE_SCALE);
+  (void)ctx; // FIXME handle symlink (dereflinks)
+  pthread_mutex_lock(&mtx);
+  work.emplace(job{dir, p});
+  pthread_mutex_unlock(&mtx);
+  pthread_cond_signal(&cond);
   return 0;
 }
 
 // if |directories| is true, only print details of |p|, and return. otherwise,
 // if |recursedirs| or |toplevel| is set, we will recurse, passing false as
 // toplevel (but preserving |recursedirs|).
-static int
-handle_dir(int dirfd, std::filesystem::path& pdir, const char* p, const struct stat* st, const lsContext& ctx, bool toplevel){
+int handle_dir(int dirfd, std::filesystem::path& pdir, const char* p, const struct stat* st, const lsContext& ctx, bool toplevel){
   if(ctx.directories){
     return handle_inode(pdir, p, st, ctx);
   }
@@ -91,8 +105,7 @@ handle_dir(int dirfd, std::filesystem::path& pdir, const char* p, const struct s
   return 0;
 }
 
-static int
-handle_deref(const char* p, const struct stat* st, const lsContext& ctx){
+int handle_deref(const char* p, const struct stat* st, const lsContext& ctx){
   (void)p;
   (void)st;
   (void)ctx; // FIXME dereference and rerun on target
@@ -101,8 +114,7 @@ handle_deref(const char* p, const struct stat* st, const lsContext& ctx){
 
 // handle some path |p|, either absolute or relative to |dirfd|. |toplevel| is
 // true iff the path was directly listed on the command line.
-static int
-handle_path(int dirfd, std::filesystem::path& pdir, const char* p, const lsContext& ctx, bool toplevel){
+int handle_path(int dirfd, std::filesystem::path& pdir, const char* p, const lsContext& ctx, bool toplevel){
   struct stat st;
   if(fstatat(dirfd, p, &st, AT_NO_AUTOMOUNT)){
     std::cerr << "Error running fstatat(" << p << "): " << strerror(errno) << std::endl;
@@ -118,10 +130,35 @@ handle_path(int dirfd, std::filesystem::path& pdir, const char* p, const lsConte
   return handle_inode(pdir, p, &st, ctx);
 }
 
+// return long-term return code
+void ncls_thread(const lsContext* ctx) {
+  while(true){
+    pthread_mutex_lock(&mtx);
+    while(work.empty() && keep_working){
+      pthread_cond_wait(&cond, &mtx);
+    }
+    if(!work.empty()){
+      job j = work.front();
+      work.pop();
+      pthread_mutex_unlock(&mtx);
+      auto s = j.dir / j.p;
+      auto faken = ctx->nc.prep_image(s.c_str(), NCBLIT_DEFAULT, NCSCALE_SCALE);
+      pthread_mutex_lock(&outmtx);
+      std::cout << j.p << '\n';
+      if(faken){
+        ctx->nc.raster_image(faken, ctx->alignment, NCBLIT_DEFAULT, NCSCALE_SCALE);
+      }
+      pthread_mutex_unlock(&outmtx);
+    }else if(!keep_working){
+      pthread_mutex_unlock(&mtx);
+      return;
+    }
+  }
+}
+
 // these are our command line arguments. they're the only paths for which
 // handle_path() gets toplevel == true.
-static int
-list_paths(const char* const * argv, const lsContext& ctx){
+int list_paths(const char* const * argv, const lsContext& ctx){
   int dirfd = open(".", O_DIRECTORY | O_CLOEXEC);
   if(dirfd < 0){
     std::cerr << "Error opening current directory: " << strerror(errno) << std::endl;
@@ -182,15 +219,34 @@ int main(int argc, char* const * argv){
         break;
     }
   }
+  auto procs = std::thread::hardware_concurrency();
+  if(procs <= 0){
+    procs = 4;
+  }
+  if(procs > 8){
+    procs = 8;
+  }
+  std::vector<std::thread> threads;
   lsContext ctx = {
-    .nc = ncpp::Direct(),
-    .longlisting = longlisting,
-    .recursedirs = recursedirs,
-    .directories = directories,
-    .dereflinks = dereflinks,
-    .alignment = alignment,
+    ncpp::Direct(),
+    longlisting,
+    recursedirs,
+    directories,
+    dereflinks,
+    alignment,
   };
+  keep_working = true;
+  for(auto s = 0u ; s < procs ; ++s){
+    threads.emplace_back(std::thread(ncls_thread, &ctx));
+  }
   static const char* const default_args[] = { ".", nullptr };
   list_paths(argv[optind] ? argv + optind : default_args, ctx);
+  keep_working = false;
+  pthread_cond_broadcast(&cond);
+  for(auto &t : threads){
+//std::cerr << "Waiting on thread " << procs << std::endl;
+    t.join();
+    --procs;
+  }
   return EXIT_SUCCESS;
 }

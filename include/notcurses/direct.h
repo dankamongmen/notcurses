@@ -7,6 +7,8 @@
 extern "C" {
 #endif
 
+typedef struct ncplane ncdirectv;
+
 #define API __attribute__((visibility("default")))
 
 // ncdirect_init() will call setlocale() to inspect the current locale. If
@@ -109,7 +111,8 @@ API int ncdirect_cursor_pop(struct ncdirect* n);
 
 // Display an image using the specified blitter and scaling. The image may
 // be arbitrarily many rows -- the output will scroll -- but will only occupy
-// the column of the cursor, and those to the right.
+// the column of the cursor, and those to the right. The render/raster process
+// can be split by using ncdirect_render_frame() and ncdirect_raster_frame().
 API int ncdirect_render_image(struct ncdirect* n, const char* filename,
                               ncalign_e align, ncblitter_e blitter,
                               ncscale_e scale);
@@ -188,6 +191,20 @@ ncdirect_getc_blocking(struct ncdirect* n, ncinput* ni){
 
 // Release 'nc' and any associated resources. 0 on success, non-0 on failure.
 API int ncdirect_stop(struct ncdirect* nc);
+
+// Render an image using the specified blitter and scaling, but do not write
+// the result. The image may be arbitrarily many rows -- the output will scroll
+// -- but will only occupy the column of the cursor, and those to the right.
+// To actually write (and free) this, invoke ncdirect_raster_frame().
+API ncdirectv* ncdirect_render_frame(struct ncdirect* n, const char* filename,
+                                     ncblitter_e blitter, ncscale_e scale);
+
+// Takes the result of ncdirect_render_frame() and writes it to the output. The
+// 'align', 'blitter', and 'scale' arguments must be the same as those passed
+// to ncdirect_render_frame().
+API int ncdirect_raster_frame(struct ncdirect* n, ncdirectv* faken,
+                              ncalign_e align, ncblitter_e blitter,
+                              ncscale_e scale);
 
 #undef API
 
