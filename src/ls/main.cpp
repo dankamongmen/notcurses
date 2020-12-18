@@ -44,6 +44,7 @@ struct lsContext {
   bool dereflinks;
   ncalign_e alignment;
   std::mutex mutable mtx;
+  std::mutex mutable outmtx;     // guards standard out
   std::condition_variable mutable cond;
   std::queue<job> mutable work;  // jobs available for workers
   bool keep_working;     // set false when we're done so threads die
@@ -130,14 +131,17 @@ void ncls_thread(const lsContext* ctx) {
   while(true){
     std::unique_lock<std::mutex> lock(ctx->mtx);
     ctx->cond.wait(lock);
+    bool keep_working = ctx->keep_working;
     if(!ctx->work.empty()){
       auto j = ctx->work.front();
       ctx->work.pop();
+      ctx->mtx.unlock();
+      std::unique_lock<std::mutex> outlock(ctx->outmtx);
       std::cout << j.p << '\n';
       auto s = j.dir / j.p;
-      ctx->nc.render_image(s.c_str(), ctx->alignment, NCBLIT_DEFAULT, NCSCALE_SCALE);
+      //ctx->nc.render_image(s.c_str(), ctx->alignment, NCBLIT_DEFAULT, NCSCALE_SCALE);
     }
-    if(!ctx->keep_working){
+    if(!keep_working){
       return;
     }
   }
@@ -218,7 +222,7 @@ int main(int argc, char* const * argv){
     directories,
     dereflinks,
     alignment,
-    {}, {}, {},
+    {}, {}, {}, {},
     true,
   };
   for(auto s = 0u ; s < procs ; ++s){
