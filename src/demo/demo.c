@@ -349,6 +349,10 @@ handle_opts(int argc, char** argv, notcurses_options* opts,
       usage(*argv, EXIT_FAILURE);
     }
   }
+  if(optind < argc - 1){
+    fprintf(stderr, "Extra argument: %s\n", argv[optind + 1]);
+    usage(*argv, EXIT_FAILURE);
+  }
   const char* spec = argv[optind];
   return spec;
 }
