@@ -146,16 +146,15 @@ int fallin_demo(struct notcurses* nc){
             ncplane_resize_simple(n, newy, newx);
             continue;
           }
-          nccell c = CELL_TRIVIAL_INITIALIZER;
           nccell stdc = CELL_TRIVIAL_INITIALIZER;
           if(ncplane_at_yx_cell(stdn, usey, usex, &stdc) < 0){
             goto err;
           }
-          if(c.gcluster){
+          if(stdc.gcluster){
             if(ncplane_putc_yx(n, usey - y, usex - x, &stdc) < 0){
               // allow a fail if we were printing a wide char to the
               // last column of our plane
-              if(!cell_double_wide_p(&c) || usex + 1 < x + newx){
+              if(!cell_double_wide_p(&stdc) || usex + 1 < x + newx){
                 goto err;
               }
             }
