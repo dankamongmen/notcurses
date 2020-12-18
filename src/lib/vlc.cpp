@@ -17,26 +17,31 @@ bool notcurses_canopen_videos(const notcurses* nc __attribute__ ((unused))) {
 }
 
 auto ncvisual_subtitle(const ncvisual* ncv) -> char* {
+  (void)ncv; // FIXME
   return nullptr;
 }
 
 int ncvisual_decode(ncvisual* nc){
+  (void)nc; // FIXME
   return -1;
 }
 
 // resize frame to oframe, converting to RGBA (if necessary) along the way
 int ncvisual_resize(ncvisual* nc, int rows, int cols) {
+  (void)nc; // FIXME
+  (void)rows;
+  (void)cols;
   return -1;
 }
 
 ncvisual* ncvisual_from_file(const char* filename) {
-  ncvisual* ret = new ncvisual;
+  ncvisual* ret = ncvisual_create();
   if(ret == nullptr){
     return nullptr;
   }
   ret->details.media = libvlc_media_new_path(vlcctx, filename);
   if(ret->details.media == nullptr){
-    delete ret;
+    ncvisual_destroy(ret);
     return nullptr;
   }
   return ret;
@@ -49,7 +54,69 @@ ncvisual* ncvisual_from_file(const char* filename) {
 int ncvisual_stream(notcurses* nc, ncvisual* ncv, float timescale,
                     streamcb streamer, const struct ncvisual_options* vopts,
                     void* curry) {
-  return -1;
+  int frame = 1;
+  struct timespec begin; // time we started
+  clock_gettime(CLOCK_MONOTONIC, &begin);
+  uint64_t nsbegin = timespec_to_ns(&begin);
+  bool usets = false;
+  // each frame has a pkt_duration in milliseconds. keep the aggregate, in case
+  // we don't have PTS available.
+  uint64_t sum_duration = 0;
+  ncplane* newn = NULL;
+  ncvisual_options activevopts;
+  memcpy(&activevopts, vopts, sizeof(*vopts));
+  int ncerr;
+  do{
+    // FIXME do timing
+    if(activevopts.n){
+      ncplane_erase(activevopts.n); // new frame could be partially transparent
+    }
+    if((newn = ncvisual_render(nc, ncv, &activevopts)) == NULL){
+      if(activevopts.n != vopts->n){
+        ncplane_destroy(activevopts.n);
+      }
+      return -1;
+    }
+    if(activevopts.n != newn){
+      activevopts.n = newn;
+    }
+    ++frame;
+    double schedns = nsbegin;
+    /*
+    uint64_t duration = ncv->details.frame->pkt_duration * tbase * NANOSECS_IN_SEC;
+//fprintf(stderr, "use: %u dur: %ju ts: %ju cctx: %f fctx: %f\n", usets, duration, ts, av_q2d(ncv->details.codecctx->time_base), av_q2d(ncv->details.fmtctx->streams[ncv->stream_index]->time_base));
+    if(usets){
+      if(tbase == 0){
+        tbase = duration;
+      }
+      schedns += ts * (tbase * timescale) * NANOSECS_IN_SEC;
+    }else{
+      sum_duration += (duration * timescale);
+      schedns += sum_duration;
+    }
+    */
+    struct timespec abstime;
+    ns_to_timespec(schedns, &abstime);
+    int r;
+    if(streamer){
+      r = streamer(ncv, &activevopts, &abstime, curry);
+    }else{
+      r = ncvisual_simple_streamer(ncv, &activevopts, &abstime, curry);
+    }
+    if(r){
+      if(activevopts.n != vopts->n){
+        ncplane_destroy(activevopts.n);
+      }
+      return r;
+    }
+  }while((ncerr = ncvisual_decode(ncv)) == 0);
+  if(activevopts.n != vopts->n){
+    ncplane_destroy(activevopts.n);
+  }
+  if(ncerr == 1){ // 1 indicates reaching EOF
+    ncerr = 0;
+  }
+  return ncerr;
 }
 
 int ncvisual_decode_loop(ncvisual* ncv){
@@ -76,6 +143,7 @@ int ncvisual_init(int loglevel) {
   if(vlc == NULL){
     return -1;
   }
+  // FIXME set up libvlc logging?
   vlcctx = vlc;
   return 0;
 }
