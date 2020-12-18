@@ -235,6 +235,11 @@ char* ncplane_at_yx(const ncplane* n, int y, int x, uint16_t* stylemask, uint64_
   return ret;
 }
 
+int ncplane_at_yx_cell(struct ncplane* n, int y, int x, nccell* c){
+  nccell* targ = ncplane_cell_ref_yx(n, y, x);
+  return cell_duplicate(n, c, targ);
+}
+
 void ncplane_dim_yx(const ncplane* n, int* rows, int* cols){
   if(rows){
     *rows = n->leny;

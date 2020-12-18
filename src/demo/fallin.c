@@ -151,13 +151,8 @@ int fallin_demo(struct notcurses* nc){
           if(ncplane_at_yx_cell(stdn, usey, usex, &stdc) < 0){
             goto err;
           }
-          if(cell_prime(n, &c, cell_extended_gcluster(stdn, &stdc), stdc.stylemask, stdc.channels) < 0){
-            cell_release(stdn, &stdc);
-            goto err;
-          }
-          cell_release(stdn, &stdc);
           if(c.gcluster){
-            if(ncplane_putc_yx(n, usey - y, usex - x, &c) < 0){
+            if(ncplane_putc_yx(n, usey - y, usex - x, &stdc) < 0){
               // allow a fail if we were printing a wide char to the
               // last column of our plane
               if(!cell_double_wide_p(&c) || usex + 1 < x + newx){
@@ -166,7 +161,7 @@ int fallin_demo(struct notcurses* nc){
             }
           }
           usemap[usey * dimx + usex] = true;
-          cell_release(n, &c);
+          cell_release(n, &stdc);
         }
       }
       // shuffle the new ncplane into the array

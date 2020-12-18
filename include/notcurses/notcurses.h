@@ -1355,18 +1355,7 @@ API char* ncplane_at_yx(const struct ncplane* n, int y, int x,
 
 // Retrieve the current contents of the specified cell into 'c'. This cell is
 // invalidated if the associated plane is destroyed.
-static inline int
-ncplane_at_yx_cell(struct ncplane* n, int y, int x, nccell* c){
-  char* egc = ncplane_at_yx(n, y, x, &c->stylemask, &c->channels);
-  if(!egc){
-    return -1;
-  }
-  uint64_t channels = c->channels; // need to preserve wide flag
-  int r = cell_load(n, c, egc);
-  c->channels = channels;
-  free(egc);
-  return r;
-}
+API int ncplane_at_yx_cell(struct ncplane* n, int y, int x, nccell* c);
 
 // Create a flat string from the EGCs of the selected region of the ncplane
 // 'n'. Start at the plane's 'begy'x'begx' coordinate (which must lie on the
