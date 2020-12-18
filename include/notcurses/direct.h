@@ -20,7 +20,7 @@ extern "C" {
 #define NCDIRECT_OPTION_INHIBIT_SETLOCALE 0x0001ull
 
 // *Don't* place the terminal into cbreak mode (see tcgetattr(3)). By default,
-// echo and line buffering are turned off.
+// echo and input's line buffering are turned off.
 #define NCDIRECT_OPTION_INHIBIT_CBREAK    0x0002ull
 
 // Initialize a direct-mode Notcurses context on the connected terminal at 'fp'.
