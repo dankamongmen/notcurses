@@ -219,25 +219,30 @@ cursor_invalid_p(const ncplane* n){
 }
 
 char* ncplane_at_cursor(ncplane* n, uint16_t* stylemask, uint64_t* channels){
-  if(cursor_invalid_p(n)){
-    return NULL;
-  }
-  return cell_extract(n, &n->fb[nfbcellidx(n, n->y, n->x)], stylemask, channels);
+  return ncplane_at_yx(n, n->y, n->x, stylemask, channels);
 }
 
 char* ncplane_at_yx(const ncplane* n, int y, int x, uint16_t* stylemask, uint64_t* channels){
-  char* ret = NULL;
   if(y < n->leny && x < n->lenx){
     if(y >= 0 && x >= 0){
-      ret = cell_extract(n, &n->fb[nfbcellidx(n, y, x)], stylemask, channels);
+      return cell_extract(n, &n->fb[nfbcellidx(n, y, x)], stylemask, channels);
     }
   }
-  return ret;
+  return NULL;
 }
 
-int ncplane_at_yx_cell(struct ncplane* n, int y, int x, nccell* c){
-  nccell* targ = ncplane_cell_ref_yx(n, y, x);
-  return cell_duplicate(n, c, targ);
+int ncplane_at_cursor_cell(ncplane* n, nccell* c){
+  return ncplane_at_yx_cell(n, n->y, n->x, c);
+}
+
+int ncplane_at_yx_cell(ncplane* n, int y, int x, nccell* c){
+  if(y < n->leny && x < n->lenx){
+    if(y >= 0 && x >= 0){
+      nccell* targ = ncplane_cell_ref_yx(n, y, x);
+      return cell_duplicate(n, c, targ);
+    }
+  }
+  return -1;
 }
 
 void ncplane_dim_yx(const ncplane* n, int* rows, int* cols){

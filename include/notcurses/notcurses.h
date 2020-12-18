@@ -1336,16 +1336,7 @@ API char* ncplane_at_cursor(struct ncplane* n, uint16_t* stylemask, uint64_t* ch
 
 // Retrieve the current contents of the cell under the cursor into 'c'. This
 // cell is invalidated if the associated plane is destroyed.
-static inline int
-ncplane_at_cursor_cell(struct ncplane* n, nccell* c){
-  char* egc = ncplane_at_cursor(n, &c->stylemask, &c->channels);
-  if(!egc){
-    return -1;
-  }
-  int r = cell_load(n, c, egc);
-  free(egc);
-  return r;
-}
+API int ncplane_at_cursor_cell(struct ncplane* n, nccell* c);
 
 // Retrieve the current contents of the specified cell. The EGC is returned, or
 // NULL on error. This EGC must be free()d by the caller. The stylemask and
