@@ -14,16 +14,14 @@ macro_rules! sleep {
 /// milliseconds and returns the result of [notcurses_render].
 #[macro_export]
 macro_rules! rsleep {
-    ($nc:expr, $ms:expr) => {
-        {
-            let mut res: NcResult = 0;
-            unsafe {
-                res = crate::notcurses_render($nc);
-            }
-            std::thread::sleep(std::time::Duration::from_millis($ms));
-            res
+    ($nc:expr, $ms:expr) => {{
+        let mut res: NcResult = 0;
+        unsafe {
+            res = crate::notcurses_render($nc);
         }
-    };
+        std::thread::sleep(std::time::Duration::from_millis($ms));
+        res
+    }};
 }
 
 /// Converts `&str` to `*mut CString`, for when `*const c_char` is needed.

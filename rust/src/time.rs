@@ -1,6 +1,6 @@
 //! `NcTime`
 
 ///
-// only used for now with [`notcurses_getc_nblock`], which can't use
+// Expected by [`notcurses_getc`] & [`notcurses_getc_nblock`], that can't use
 // libc::timespec
 pub type NcTime = crate::bindings::ffi::timespec;

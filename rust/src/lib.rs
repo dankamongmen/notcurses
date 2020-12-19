@@ -114,6 +114,7 @@ pub use bindings::*;
 
 mod cells;
 mod channel;
+mod dimension;
 mod direct;
 mod error;
 mod file;
@@ -131,12 +132,13 @@ mod time;
 mod visual;
 mod widgets;
 
+pub use crate::input::*;
 pub use cells::*;
 pub use channel::*;
+pub use dimension::*;
 pub use direct::*;
 pub use error::*;
 pub use file::*;
-pub use input::*;
 pub use key::*;
 pub use keycodes::*;
 pub use macros::*;

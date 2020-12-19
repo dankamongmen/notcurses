@@ -2,12 +2,8 @@
 
 use std::mem::transmute;
 
-// NOTE: These defined macros can't be handled by bindgen yet, see:
-//  - https://github.com/rust-lang/rust-bindgen/issues/316
-//  - https://github.com/jethrogb/rust-cexpr/pull/15
-
-// Waiting for: https://github.com/rust-lang/rust/issues/53605
-//const fn suppuabize(w: u32) -> char {
+// NOTE: Waiting for: https://github.com/rust-lang/rust/issues/53605
+// const fn suppuabize(w: u32) -> char {
 const fn suppuabize(w: u32) -> u32 {
     // unsafe { transmute(w + 0x100000) }
     w + 0x100000
@@ -134,3 +130,7 @@ pub const NCKEY_RELEASE: char = unsafe { transmute(suppuabize(212)) };
 pub const NCKEY_SCROLL_UP: char = NCKEY_BUTTON4;
 pub const NCKEY_SCROLL_DOWN: char = NCKEY_BUTTON5;
 pub const NCKEY_RETURN: char = NCKEY_ENTER;
+
+// Aliases, from the 128 characters common to ASCII+UTF8
+pub const NCKEY_ESC: char = unsafe { transmute(0x1b) };
+pub const NCKEY_SPACE: char = unsafe { transmute(0x20) };

@@ -10,7 +10,9 @@ use crate::{
     notcurses_stdplane,
     notcurses_stdplane_const,
     NcAlign,
+    NcDimension,
     NcInput,
+    NcOffset,
     NcPlane,
     NcTime,
     Notcurses,
@@ -18,9 +20,10 @@ use crate::{
     NCALIGN_LEFT,
 };
 
-/// return the offset into 'availcols' at which 'cols' ought be output given the requirements of 'align'
+/// Returns the offset into 'availcols' at which 'cols' ought be output given
+/// the requirements of 'align'.
 #[inline]
-pub fn notcurses_align(availcols: i32, align: NcAlign, cols: i32) -> i32 {
+pub fn notcurses_align(availcols: NcDimension, align: NcAlign, cols: NcDimension) -> NcOffset {
     if align == NCALIGN_LEFT {
         return 0;
     }
@@ -28,14 +31,13 @@ pub fn notcurses_align(availcols: i32, align: NcAlign, cols: i32) -> i32 {
         return 0;
     }
     if align == NCALIGN_CENTER {
-        return (availcols - cols) / 2;
+        return ((availcols - cols) / 2) as NcOffset;
     }
-    availcols - cols // NCALIGN_RIGHT
+    (availcols - cols) as NcOffset // NCALIGN_RIGHT
 }
 
 /// 'input' may be NULL if the caller is uninterested in event details.
 /// If no event is ready, returns 0.
-// TODO: use pakr-signals
 #[inline]
 pub fn notcurses_getc_nblock(nc: &mut Notcurses, input: &mut NcInput) -> char {
     unsafe {
@@ -63,10 +65,14 @@ pub fn notcurses_getc_nblocking(nc: &mut Notcurses, input: &mut NcInput) -> char
 
 /// notcurses_stdplane(), plus free bonus dimensions written to non-NULL y/x!
 #[inline]
-pub fn notcurses_stddim_yx<'a>(nc: &mut Notcurses, y: &mut i32, x: &mut i32) -> &'a mut NcPlane {
+pub fn notcurses_stddim_yx<'a>(
+    nc: &mut Notcurses,
+    y: &mut NcDimension,
+    x: &mut NcDimension,
+) -> &'a mut NcPlane {
     unsafe {
         let s = notcurses_stdplane(nc);
-        ncplane_dim_yx(s, y, x);
+        ncplane_dim_yx(s, &mut (*y as i32), &mut (*x as i32));
         &mut *s
     }
 }
