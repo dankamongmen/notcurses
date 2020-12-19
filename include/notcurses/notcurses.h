@@ -621,7 +621,8 @@ cell_prime(struct ncplane* n, nccell* c, const char* gcluster,
   return ret;
 }
 
-// Duplicate 'c' into 'targ'; both must be/will be bound to 'n'.
+// Duplicate 'c' into 'targ'; both must be/will be bound to 'n'. Returns -1 on
+// failure, and 0 on success.
 API int cell_duplicate(struct ncplane* n, nccell* targ, const nccell* c);
 
 // Release resources held by the nccell 'c'.
@@ -1335,7 +1336,8 @@ API int ncplane_rotate_ccw(struct ncplane* n);
 API char* ncplane_at_cursor(struct ncplane* n, uint16_t* stylemask, uint64_t* channels);
 
 // Retrieve the current contents of the cell under the cursor into 'c'. This
-// cell is invalidated if the associated plane is destroyed.
+// cell is invalidated if the associated plane is destroyed. Returns the number
+// of bytes in the EGC, or -1 on error.
 API int ncplane_at_cursor_cell(struct ncplane* n, nccell* c);
 
 // Retrieve the current contents of the specified cell. The EGC is returned, or
@@ -1345,7 +1347,8 @@ API char* ncplane_at_yx(const struct ncplane* n, int y, int x,
                         uint16_t* stylemask, uint64_t* channels);
 
 // Retrieve the current contents of the specified cell into 'c'. This cell is
-// invalidated if the associated plane is destroyed.
+// invalidated if the associated plane is destroyed. Returns the number of
+// bytes in the EGC, or -1 on error.
 API int ncplane_at_yx_cell(struct ncplane* n, int y, int x, nccell* c);
 
 // Create a flat string from the EGCs of the selected region of the ncplane

@@ -239,7 +239,9 @@ int ncplane_at_yx_cell(ncplane* n, int y, int x, nccell* c){
   if(y < n->leny && x < n->lenx){
     if(y >= 0 && x >= 0){
       nccell* targ = ncplane_cell_ref_yx(n, y, x);
-      return cell_duplicate(n, c, targ);
+      if(cell_duplicate(n, c, targ) == 0){
+        return strlen(cell_extended_gcluster(n, targ));
+      }
     }
   }
   return -1;
