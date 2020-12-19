@@ -3,8 +3,8 @@
 use core::ptr::{null, null_mut};
 
 use crate::{
-    notcurses_init, NcLogLevel, NcPlane, NcResult, Notcurses, NotcursesOptions,
-    NCOPTION_NO_ALTERNATE_SCREEN, NCOPTION_SUPPRESS_BANNERS,
+    notcurses_init, sigset_t, NcInput, NcLogLevel, NcPlane, NcResult, NcTime, Notcurses,
+    NotcursesOptions, NCOPTION_NO_ALTERNATE_SCREEN, NCOPTION_SUPPRESS_BANNERS,
 };
 
 /// # `NotcursesOptions` Constructors
@@ -116,6 +116,26 @@ impl Notcurses {
 
 /// # `Notcurses` methods
 impl Notcurses {
+    ///
+    pub fn getc(&mut self, time: &NcTime, sigmask: &mut sigset_t, input: &mut NcInput) -> char {
+        unsafe { core::char::from_u32_unchecked(crate::notcurses_getc(self, time, sigmask, input)) }
+    }
+
+    ///
+    pub fn getc_nblock(&mut self, input: &mut NcInput) -> char {
+        crate::notcurses_getc_nblock(self, input)
+    }
+
+    ///
+    pub fn getc_nblocking(&mut self, input: &mut NcInput) -> char {
+        crate::notcurses_getc_nblocking(self, input)
+    }
+
+    ///
+    pub fn render(&mut self) -> NcResult {
+        unsafe { crate::notcurses_render(self) }
+    }
+
     /// Returns a mutable reference to the standard [NcPlane] for this terminal.
     ///
     /// The standard plane always exists, and its origin is always at the
@@ -135,10 +155,5 @@ impl Notcurses {
     /// Destroy the Notcurses context.
     pub fn stop(&mut self) -> NcResult {
         unsafe { crate::notcurses_stop(self) }
-    }
-
-    ///
-    pub fn render(&mut self) -> NcResult {
-        unsafe { crate::notcurses_render(self) }
     }
 }

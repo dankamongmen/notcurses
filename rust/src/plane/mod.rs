@@ -1,31 +1,32 @@
 //! `NcPlane`
 
 // functions already exported by bindgen : 105
-// ------------------------------------------
-// (#) 13 / 92 unit tests
-// (W) 1 wrapped as a method or function
-// ------------------------------------------
-//   ncpile_bottom
-// # ncpile_create
-//   ncpile_rasterize
-//   ncpile_render
-//   ncpile_top
-//   ncplane_above
-//   ncplane_at_cursor
-//   ncplane_at_yx
-//   ncplane_base
-//   ncplane_below
+// -------------------------------------------
+// (X) wont:  4
+// (#) test: 13
+// (W) wrap: 28
+// -------------------------------------------
+//W  ncpile_bottom
+//W# ncpile_create
+//W  ncpile_rasterize
+//W  ncpile_render
+//W  ncpile_top
+//W  ncplane_above
+//W  ncplane_at_cursor
+//W  ncplane_at_yx
+//W  ncplane_base
+//W  ncplane_below
 //   ncplane_box
 //   ncplane_center_abs
-// # ncplane_channels
-//   ncplane_contents
-//   ncplane_create
-// # ncplane_cursor_move_yx
+//W# ncplane_channels
+//W  ncplane_contents
+//W  ncplane_create
+//W# ncplane_cursor_move_yx
 //W# ncplane_cursor_yx
-//   ncplane_destroy
+//W  ncplane_destroy
 //W# ncplane_dim_yx
-//   ncplane_dup
-// # ncplane_erase
+//W  ncplane_dup
+//W# ncplane_erase
 //   ncplane_fadein
 //   ncplane_fadein_iteration
 //   ncplane_fadeout
@@ -36,41 +37,41 @@
 //   ncplane_highgradient
 //   ncplane_highgradient_sized
 //   ncplane_hline_interp
-// # ncplane_home
+//W# ncplane_home
 //   ncplane_mergedown
 //   ncplane_mergedown_simple
 //   ncplane_move_above
 //   ncplane_move_below
 //   ncplane_move_bottom
 //   ncplane_move_top
-//   ncplane_move_yx
+//W  ncplane_move_yx
 //   ncplane_new
-// # ncplane_notcurses
-// # ncplane_notcurses_const
+//W# ncplane_notcurses
+//W# ncplane_notcurses_const
 //   ncplane_off_styles
 //   ncplane_on_styles
-//   ncplane_parent
-//   ncplane_parent_const
+//W  ncplane_parent
+//W  ncplane_parent_const
 //   ncplane_polyfill_yx
 //   ncplane_pulse
 //   ncplane_putchar_stained
 //   ncplane_putc_yx
-//   ncplane_putegc_stained
-//   ncplane_putegc_yx
+// X ncplane_putegc_stained
+// X ncplane_putegc_yx
 //   ncplane_putnstr_aligned
 //   ncplane_putnstr_yx
 //   ncplane_putstr_aligned
 //   ncplane_putstr_stained
 //   ncplane_putstr_yx
 //   ncplane_puttext
-//   ncplane_putwegc_stained
-//   ncplane_putwstr_stained
+// X ncplane_putwegc_stained
+// X ncplane_putwstr_stained
 //   ncplane_qrcode
 //   ncplane_reparent
 //   ncplane_reparent_family
-// # ncplane_resize
-//   ncplane_resizecb
-//   ncplane_resize_realign
+//W# ncplane_resize
+//W  ncplane_resizecb
+//W  ncplane_resize_realign
 //   ncplane_rgba
 //   ncplane_rotate_ccw
 //   ncplane_rotate_cw
@@ -113,12 +114,13 @@
 //
 // functions manually reimplemented: 42
 // ------------------------------------------
-// (X) wont:  8
+// (X) wont:  9
 // (+) done: 34 / 0
-// (#) test:  5 / 29
+// (W) wrap:  5
+// (#) test:  5
 // ------------------------------------------
 // + ncplane_align
-// + ncplane_at_cursor_cell
+//W+ ncplane_at_cursor_cell
 // + ncplane_at_yx_cell
 // + ncplane_bchannel
 // + ncplane_bg_alpha
@@ -143,7 +145,7 @@
 // + ncplane_putc
 // + ncplane_putchar
 // + ncplane_putchar_yx
-// + ncplane_putegc
+// X ncplane_putegc
 // + ncplane_putnstr
 //W+ ncplane_putstr
 // X ncplane_putwc                // I don't think these will be needed from Rust. See:
@@ -154,7 +156,7 @@
 // X ncplane_putwstr              //
 // X ncplane_putwstr_aligned      //
 // X ncplane_putwstr_yx           //
-// # ncplane_resize_simple
+//W# ncplane_resize_simple
 // + ncplane_rounded_box
 // + ncplane_rounded_box_sized
 // + ncplane_vline

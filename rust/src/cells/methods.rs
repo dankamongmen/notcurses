@@ -9,7 +9,12 @@ use crate::{
 impl NcCell {
     /// New NcCell, expects a [char], [NcStyleMask] and [NcChannelPair].
     #[inline]
-    pub const fn with_all(ch: char, width: u8, stylemask: NcStyleMask, channels: NcChannelPair) -> Self {
+    pub const fn with_all(
+        ch: char,
+        width: u8,
+        stylemask: NcStyleMask,
+        channels: NcChannelPair,
+    ) -> Self {
         NcCell {
             gcluster: ch as u32,
             gcluster_backstop: 0 as NcEgcBackstop,
