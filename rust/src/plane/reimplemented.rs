@@ -11,8 +11,8 @@ use crate::{
     ncplane_cursor_move_yx, ncplane_cursor_yx, ncplane_dim_yx, ncplane_gradient,
     ncplane_hline_interp, ncplane_putc_yx, ncplane_putnstr_yx, ncplane_putstr_yx, ncplane_resize,
     ncplane_styles, ncplane_vline_interp, ncplane_vprintf_yx, notcurses_align, NcAlign,
-    NcAlphaBits, NcCell, NcChannel, NcChannelPair, NcColor, NcDimension, NcPlane, NcResult, NcRgb,
-    NcStyleMask, NCRESULT_ERR, NCRESULT_OK,
+    NcAlphaBits, NcBoxMask, NcCell, NcChannel, NcChannelPair, NcColor, NcDimension, NcOffset,
+    NcPlane, NcResult, NcRgb, NcStyleMask, NCRESULT_ERR, NCRESULT_OK,
 };
 
 // Alpha -----------------------------------------------------------------------
@@ -165,7 +165,7 @@ pub fn ncplane_at_cursor_cell(plane: &mut NcPlane, cell: &mut NcCell) -> NcResul
     result
 }
 
-/// Retrieves the current contents of the specified cell into 'cell'.
+/// Retrieves the current contents of the specified cell into `cell`.
 /// This cell is invalidated if the associated plane is destroyed.
 #[inline]
 pub fn ncplane_at_yx_cell(
@@ -259,10 +259,12 @@ pub fn ncplane_resize_simple(
     }
 }
 
-/// Returns the column at which 'cols' columns ought start in order to be aligned
-/// according to 'align' within ncplane 'n'. Returns INT_MAX on invalid 'align'.
+/// Returns the column at which `cols` columns ought start in order to be aligned
+/// according to `align` within this NcPlane.
+///
+/// Returns -[`NCRESULT_MAX`] if [NCALIGN_UNALIGNED] or invalid [NcAlign].
 #[inline]
-pub fn ncplane_align(plane: &NcPlane, align: NcAlign, cols: NcDimension) -> NcResult {
+pub fn ncplane_align(plane: &NcPlane, align: NcAlign, cols: NcDimension) -> NcOffset {
     notcurses_align(ncplane_dim_x(plane), align, cols)
 }
 
@@ -306,7 +308,7 @@ pub fn ncplane_perimeter(
     lr: &NcCell,
     hline: &NcCell,
     vline: &NcCell,
-    ctlword: u32,
+    boxmask: NcBoxMask,
 ) -> NcResult {
     unsafe {
         ncplane_cursor_move_yx(plane, 0, 0);
@@ -322,7 +324,7 @@ pub fn ncplane_perimeter(
             vline,
             dimy as NcDimension,
             dimx as NcDimension,
-            ctlword,
+            boxmask,
         )
     }
 }
@@ -333,7 +335,7 @@ pub fn ncplane_perimeter_double(
     plane: &mut NcPlane,
     stylemask: NcStyleMask,
     channels: NcChannelPair,
-    ctlword: u32,
+    boxmask: NcBoxMask,
 ) -> NcResult {
     if unsafe { ncplane_cursor_move_yx(plane, 0, 0) } != NCRESULT_OK {
         return NCRESULT_ERR;
@@ -374,7 +376,7 @@ pub fn ncplane_perimeter_double(
         &vl,
         dimy as NcDimension,
         dimx as NcDimension,
-        ctlword,
+        boxmask,
     );
     unsafe {
         cell_release(plane, &mut ul);
@@ -393,7 +395,7 @@ pub fn ncplane_perimeter_rounded(
     plane: &mut NcPlane,
     stylemask: NcStyleMask,
     channels: NcChannelPair,
-    ctlword: u32,
+    boxmask: NcBoxMask,
 ) -> NcResult {
     if unsafe { ncplane_cursor_move_yx(plane, 0, 0) } != NCRESULT_OK {
         return NCRESULT_ERR;
@@ -434,7 +436,7 @@ pub fn ncplane_perimeter_rounded(
         &vl,
         dimy as NcDimension,
         dimx as NcDimension,
-        ctlword,
+        boxmask,
     );
     unsafe {
         cell_release(plane, &mut ul);
@@ -450,7 +452,7 @@ pub fn ncplane_perimeter_rounded(
 // box -------------------------------------------------------------------------
 
 /// Draws a box with its upper-left corner at the current cursor position,
-/// having dimensions 'y_len' * 'x_len'. See ncplane_box() for more information. The
+/// having dimensions `y_len` * `x_len`. See ncplane_box() for more information. The
 /// minimum box size is 2x2, and it cannot be drawn off-screen.
 #[inline]
 pub fn ncplane_box_sized(
@@ -463,7 +465,7 @@ pub fn ncplane_box_sized(
     vline: &NcCell,
     y_len: NcDimension,
     x_len: NcDimension,
-    ctlword: u32,
+    boxmask: NcBoxMask,
 ) -> NcResult {
     let (mut y, mut x) = (0, 0);
     unsafe {
@@ -478,7 +480,7 @@ pub fn ncplane_box_sized(
             vline,
             y + y_len as i32 - 1,
             x + x_len as i32 - 1,
-            ctlword,
+            boxmask,
         )
     }
 }
@@ -491,7 +493,7 @@ pub fn ncplane_double_box(
     channels: NcChannelPair,
     ystop: NcDimension,
     xstop: NcDimension,
-    ctlword: u32,
+    boxmask: NcBoxMask,
 ) -> NcResult {
     #[allow(unused_assignments)]
     let mut ret = NCRESULT_OK;
@@ -526,7 +528,7 @@ pub fn ncplane_double_box(
                 &vl,
                 ystop as i32,
                 xstop as i32,
-                ctlword,
+                boxmask,
             );
         }
 
@@ -548,7 +550,7 @@ pub fn ncplane_double_box_sized(
     channels: NcChannelPair,
     y_len: NcDimension,
     x_len: NcDimension,
-    ctlword: u32,
+    boxmask: NcBoxMask,
 ) -> NcResult {
     let (mut y, mut x) = (0, 0);
     unsafe {
@@ -560,7 +562,7 @@ pub fn ncplane_double_box_sized(
         channels,
         y as NcDimension + y_len - 1,
         x as NcDimension + x_len - 1,
-        ctlword,
+        boxmask,
     )
 }
 
@@ -572,7 +574,7 @@ pub fn ncplane_rounded_box(
     channels: NcChannelPair,
     ystop: NcDimension,
     xstop: NcDimension,
-    ctlword: u32,
+    boxmask: NcBoxMask,
 ) -> NcResult {
     #[allow(unused_assignments)]
     let mut ret = NCRESULT_OK;
@@ -607,7 +609,7 @@ pub fn ncplane_rounded_box(
                 &vl,
                 ystop as i32,
                 xstop as i32,
-                ctlword,
+                boxmask,
             );
         }
         cell_release(plane, &mut ul);
@@ -628,7 +630,7 @@ pub fn ncplane_rounded_box_sized(
     channels: NcChannelPair,
     y_len: NcDimension,
     x_len: NcDimension,
-    ctlword: u32,
+    boxmask: NcBoxMask,
 ) -> NcResult {
     let (mut y, mut x) = (0, 0);
     unsafe {
@@ -640,14 +642,14 @@ pub fn ncplane_rounded_box_sized(
         channels,
         y as NcDimension + y_len - 1,
         x as NcDimension + x_len - 1,
-        ctlword,
+        boxmask,
     )
 }
 
 // gradient --------------------------------------------------------------------
 
 /// Draw a gradient with its upper-left corner at the current cursor position,
-/// having dimensions 'y_len' * 'x_len'. See ncplane_gradient for more information.
+/// having dimensions `y_len` * `x_len`. See ncplane_gradient for more information.
 /// static inline int
 // XXX receive cells as u32? See:
 // - https://github.com/dankamongmen/notcurses/issues/920

@@ -4,8 +4,8 @@ use core::ptr::{null, null_mut};
 use std::ffi::CStr;
 
 use crate::{
-    cstring, NcAlign, NcCell, NcChannelPair, NcDimension, NcEgc, NcOffset, NcPlane, NcPlaneOptions,
-    NcResult, NcStyleMask, Notcurses,
+    cstring, NcAlign, NcBoxMask, NcCell, NcChannelPair, NcDimension, NcEgc, NcOffset, NcPlane,
+    NcPlaneOptions, NcResult, NcStyleMask, Notcurses,
 };
 
 /// # `NcPlaneOptions` Constructors
@@ -137,7 +137,7 @@ impl NcPlane {
 impl NcPlane {
     // Cursor ------------------------------------------------------------------
 
-    /// Returns the current position of the cursor within the [NcPlane].
+    /// Returns the current position of the cursor within this NcPlane.
     ///
     // NOTE: y and/or x may be NULL.
     // maybe check for null and return Some() or None?
@@ -147,12 +147,12 @@ impl NcPlane {
         (y as NcDimension, x as NcDimension)
     }
 
-    /// Returns the current row of the cursor within the [NcPlane].
+    /// Returns the current row of the cursor within this NcPlane.
     pub fn cursor_y(&self) -> NcDimension {
         self.cursor_yx().0
     }
 
-    /// Returns the current column of the cursor within the [NcPlane].
+    /// Returns the current column of the cursor within this NcPlane.
     pub fn cursor_x(&self) -> NcDimension {
         self.cursor_yx().1
     }
@@ -191,14 +191,16 @@ impl NcPlane {
         }
     }
 
-    // Size --------------------------------------------------------------------
+    // Size & alignment --------------------------------------------------------
 
-    /// Returns the column at which 'cols' columns ought start in order to be aligned according to 'align' within ncplane 'n'. Returns INT_MAX on invalid 'align'. Undefined behavior on negative 'cols'.
+    /// Returns the column at which `cols` columns ought start in order to be
+    /// aligned according to `align` within this NcPlane.
+    /// Returns INT_MAX on invalid `align`.
     pub fn align(&mut self, align: NcAlign, cols: NcDimension) -> NcResult {
         crate::ncplane_align(self, align, cols)
     }
 
-    /// Return the dimensions of this [NcPlane].
+    /// Return the dimensions of this NcPlane.
     ///
     /// Unlike [ncplane_dim_yx][crate::ncplane_dim_yx] which uses `i32`,
     /// this uses [u32].
@@ -208,22 +210,22 @@ impl NcPlane {
         (y as NcDimension, x as NcDimension)
     }
 
-    /// Return the rows of this [NcPlane].
+    /// Return the rows of this NcPlane.
     pub fn dim_y(&self) -> NcDimension {
         self.dim_yx().0
     }
 
-    /// Return the columns of this [NcPlane].
+    /// Return the columns of this NcPlane.
     pub fn dim_x(&self) -> NcDimension {
         self.dim_yx().1
     }
 
-    /// Return the rows of this [NcPlane].
+    /// Return the rows of this NcPlane.
     pub fn rows(&self) -> NcDimension {
         self.dim_yx().0
     }
 
-    /// Return the cols of this [NcPlane].
+    /// Return the cols of this NcPlane.
     pub fn cols(&self) -> NcDimension {
         self.dim_yx().1
     }
@@ -244,20 +246,20 @@ impl NcPlane {
 
     /// Resizes the NcPlane.
     ///
-    /// The four parameters 'keep_y', 'keep_x', 'keep_len_y', and 'keep_len_x'
+    /// The four parameters `keep_y`, `keep_x`, `keep_len_y`, and `keep_len_x`
     /// defines a subset of the NcPlane to keep unchanged. This may be a section
     /// of size 0.
     ///
-    /// 'keep_x' and 'keep_y' are relative to the NcPlane. They must specify a
-    /// coordinate within the ncplane's totality. If either of 'keep_len_y' or
-    /// 'keep_len_x' is non-zero, both must be non-zero.
+    /// `keep_x` and `keep_y` are relative to the NcPlane. They must specify a
+    /// coordinate within the ncplane's totality. If either of `keep_len_y` or
+    /// `keep_len_x` is non-zero, both must be non-zero.
     ///
-    /// 'y_off' and 'x_off' are relative to 'keep_y' and 'keep_x', and place the
+    /// `y_off` and `x_off` are relative to `keep_y` and `keep_x`, and place the
     /// upper-left corner of the resized NcPlane.
     ///
-    /// 'y_len' and 'x_len' are the dimensions of the NcPlane after resizing.
-    /// 'y_len' must be greater than or equal to 'keep_len_y',
-    /// and 'x_len' must be greater than or equal to 'keeplenx'.
+    /// `y_len` and `x_len` are the dimensions of the NcPlane after resizing.
+    /// `y_len` must be greater than or equal to `keep_len_y`,
+    /// and `x_len` must be greater than or equal to `keeplenx`.
     ///
     /// It is an error to attempt to resize the standard plane.
     pub fn resize(
@@ -287,7 +289,7 @@ impl NcPlane {
     }
 
     /// Realigns this NcPlane against its parent, using the alignment specified
-    /// at creation time. Suitable for use as a 'resizecb'.
+    /// at creation time. Suitable for use as a `resizecb`.
     pub fn resize_realign(&mut self) -> NcResult {
         unsafe { crate::ncplane_resize_realign(self) }
     }
@@ -348,7 +350,7 @@ impl NcPlane {
         Some(egc)
     }
 
-    /// Extracts this NcPlane's base [NcCell] into 'cell'.
+    /// Extracts this NcPlane's base [NcCell] into `cell`.
     ///
     /// The reference is invalidated if the NcPlane is destroyed.
     pub fn base(&mut self, cell: &mut NcCell) -> NcResult {
@@ -363,10 +365,10 @@ impl NcPlane {
     /// Creates a flat string from the NcEgc's of the selected region of the
     /// NcPlane.
     ///
-    /// Starts at the plane's 'beg_y' * 'beg_x' coordinates (which must lie on
-    /// the plane), continuing for 'len_y' x 'len_x' cells.
+    /// Starts at the plane's `beg_y` * `beg_x` coordinates (which must lie on
+    /// the plane), continuing for `len_y` x `len_x` cells.
     ///
-    /// If either of 'through_y' or 'through_x' are true, then 'len_y' or 'len_x',
+    /// If either of `through_y` or `through_x` are true, then `len_y` or `len_x`,
     /// will ignored respectively, and will go through the boundary of the plane.
     pub fn contents(
         &self,
@@ -427,7 +429,7 @@ impl NcPlane {
         crate::ncplane_putc(self, cell)
     }
 
-    /// Calls ncplane_putchar_yx() at the current cursor location.
+    /// Calls [putchar_yx](type.NcPlane.html#method.putchar_yx) at the current cursor location.
     pub fn putchar(&mut self, ch: char) -> NcResult {
         crate::ncplane_putchar(self, ch)
     }
@@ -467,8 +469,7 @@ impl NcPlane {
     /// Write a string, which is a series of [NcEgc][crate::NcEgc]s, to the
     /// current location, using the current style.
     ///
-    /// They will be interpreted as a series of columns (according to the
-    /// definition of `ncplane_putc()`).
+    /// They will be interpreted as a series of columns.
     ///
     /// Advances the cursor by some positive number of columns (though not
     /// beyond the end of the plane); this number is returned on success.
@@ -483,12 +484,12 @@ impl NcPlane {
 
     // CHECK:
 
-    /// Returns the bottommost [NcPlane] of the pile that contains this [NcPlane].
+    /// Returns the bottommost NcPlane of the current pile.
     pub fn bottom<'a>(&mut self) -> &'a mut NcPlane {
         unsafe { &mut *crate::ncpile_bottom(self) }
     }
 
-    /// Returns the topmost [NcPlane] of the pile that contains this [NcPlane].
+    /// Returns the topmost NcPlane of the current pile.
     pub fn top<'a>(&mut self) -> &'a mut NcPlane {
         unsafe { &mut *crate::ncpile_top(self) }
     }
@@ -578,5 +579,103 @@ impl NcPlane {
     /// Gets an immutable reference to the [Notcurses] context of this NcPlane.
     pub fn notcurses_const<'a>(&mut self) -> &'a Notcurses {
         unsafe { &*crate::ncplane_notcurses_const(self) }
+    }
+
+    // Box, perimeter-----------------------------------------------------------
+
+    /// Draws a box with its upper-left corner at the current cursor position,
+    /// and its lower-right corner at `y_stop` * `x_stop`.
+    ///
+    /// The 6 cells provided are used to draw the upper-left, ur, ll, and lr corners,
+    /// then the horizontal and vertical lines.
+    ///
+    /// See [NcBoxMask] for information about the border and gradient masks,
+    /// and the drawing of corners.
+    ///
+    /// If the gradient bit is not set, the styling from the hline/vlline cells
+    /// is used for the horizontal and vertical lines, respectively.
+    ///
+    /// If the gradient bit is set, the color is linearly interpolated between
+    /// the two relevant corner cells.
+    pub fn r#box(
+        &mut self,
+        ul: &NcCell,
+        ur: &NcCell,
+        ll: &NcCell,
+        lr: &NcCell,
+        hline: &NcCell,
+        vline: &NcCell,
+        y_stop: NcDimension,
+        x_stop: NcDimension,
+        boxmask: NcBoxMask,
+    ) -> NcResult {
+        unsafe {
+            crate::ncplane_box(
+                self,
+                ul,
+                ur,
+                ll,
+                lr,
+                hline,
+                vline,
+                y_stop as i32,
+                x_stop as i32,
+                boxmask,
+            )
+        }
+    }
+
+    /// Draws a box with its upper-left corner at the current cursor position,
+    /// having dimensions `y_len` * `x_len`.
+    /// The minimum box size is 2x2, and it cannot be drawn off-screen.
+    ///
+    /// See the [`box`](type.NcPlane.html#method.box) method for more information.
+    pub fn box_sized(
+        &mut self,
+        ul: &NcCell,
+        ur: &NcCell,
+        ll: &NcCell,
+        lr: &NcCell,
+        hline: &NcCell,
+        vline: &NcCell,
+        y_len: NcDimension,
+        x_len: NcDimension,
+        boxmask: NcBoxMask,
+    ) -> NcResult {
+        crate::ncplane_box_sized(self, ul, ur, ll, lr, hline, vline, y_len, x_len, boxmask)
+    }
+
+    /// Draws the perimeter around this NcPlane.
+    pub fn perimeter(
+        &mut self,
+        ul: &NcCell,
+        ur: &NcCell,
+        ll: &NcCell,
+        lr: &NcCell,
+        hline: &NcCell,
+        vline: &NcCell,
+        boxmask: NcBoxMask,
+    ) -> NcResult {
+        crate::ncplane_perimeter(self, ul, ur, ll, lr, hline, vline, boxmask)
+    }
+
+    ///
+    pub fn perimeter_double(
+        &mut self,
+        stylemask: NcStyleMask,
+        channels: NcChannelPair,
+        boxmask: NcBoxMask,
+    ) -> NcResult {
+        crate::ncplane_perimeter_double(self, stylemask, channels, boxmask)
+    }
+
+    ///
+    pub fn perimeter_rounded(
+        &mut self,
+        stylemask: NcStyleMask,
+        channels: NcChannelPair,
+        boxmask: NcBoxMask,
+    ) -> NcResult {
+        crate::ncplane_perimeter_rounded(self, stylemask, channels, boxmask)
     }
 }

@@ -4,7 +4,7 @@
 // -------------------------------------------
 // (X) wont:  4
 // (#) test: 13
-// (W) wrap: 28
+// (W) wrap: 32
 // -------------------------------------------
 //W  ncpile_bottom
 //W# ncpile_create
@@ -16,7 +16,7 @@
 //W  ncplane_at_yx
 //W  ncplane_base
 //W  ncplane_below
-//   ncplane_box
+//W  ncplane_box
 //   ncplane_center_abs
 //W# ncplane_channels
 //W  ncplane_contents
@@ -139,9 +139,9 @@
 // + ncplane_fg_rgb8
 // + ncplane_gradient_sized       // u64|u32 https://github.com/dankamongmen/notcurses/issues/920
 // + ncplane_hline
-// + ncplane_perimeter
-// + ncplane_perimeter_double
-// + ncplane_perimeter_rounded
+//W+ ncplane_perimeter
+//W+ ncplane_perimeter_double
+//W+ ncplane_perimeter_rounded
 // + ncplane_putc
 // + ncplane_putchar
 // + ncplane_putchar_yx
@@ -228,22 +228,6 @@ pub type NcFdPlane = crate::bindings::ffi::ncfdplane;
 ///
 /// `type in C: ncplane_options (struct)`
 pub type NcFdPlaneOptions = crate::bindings::ffi::ncfdplane_options;
-
-/// Alignment within a plane or terminal.
-/// Left/right-justified, or centered.
-pub type NcAlign = crate::bindings::ffi::ncalign_e;
-
-/// Left alignment within an [`NcPlane`] or terminal.
-pub const NCALIGN_LEFT: NcAlign = crate::bindings::ffi::ncalign_e_NCALIGN_LEFT;
-
-/// Right alignment within an [`NcPlane`] or terminal.
-pub const NCALIGN_RIGHT: NcAlign = crate::bindings::ffi::ncalign_e_NCALIGN_RIGHT;
-
-/// Center alignment within an [`NcPlane`] or terminal.
-pub const NCALIGN_CENTER: NcAlign = crate::bindings::ffi::ncalign_e_NCALIGN_CENTER;
-
-/// Do not align an [`NcPlane`] or terminal.
-pub const NCALIGN_UNALIGNED: NcAlign = crate::bindings::ffi::ncalign_e_NCALIGN_UNALIGNED;
 
 /// Blitter Mode (`NCBLIT_*`)
 ///

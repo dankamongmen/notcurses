@@ -112,6 +112,7 @@ mod bindings;
 #[doc(inline)]
 pub use bindings::*;
 
+mod r#box;
 mod cells;
 mod channel;
 mod dimension;
@@ -147,6 +148,7 @@ pub use notcurses::*;
 pub use palette::*;
 pub use pixel::*;
 pub use plane::*;
+pub use r#box::*;
 pub use stats::*;
 pub use time::*;
 pub use visual::*;

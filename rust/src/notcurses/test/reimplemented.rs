@@ -3,7 +3,7 @@
 use serial_test::serial;
 use std::io::Read;
 
-use crate::{notcurses_stop, NcFile, Notcurses};
+use crate::{notcurses_stop, NcFile, Notcurses, NCRESULT_MAX};
 
 #[test]
 #[serial]
@@ -13,7 +13,10 @@ fn notcurses_align() {
         assert_eq![0, crate::notcurses_align(30, crate::NCALIGN_LEFT, 20)];
         assert_eq![5, crate::notcurses_align(30, crate::NCALIGN_CENTER, 20)];
         assert_eq![10, crate::notcurses_align(30, crate::NCALIGN_RIGHT, 20)];
-        assert_eq![10, crate::notcurses_align(30, crate::NCALIGN_UNALIGNED, 20)];
+        assert_eq![
+            -NCRESULT_MAX,
+            crate::notcurses_align(30, crate::NCALIGN_UNALIGNED, 20)
+        ];
         notcurses_stop(nc);
     }
 }

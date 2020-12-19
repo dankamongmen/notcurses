@@ -18,10 +18,14 @@ use crate::{
     Notcurses,
     NCALIGN_CENTER,
     NCALIGN_LEFT,
+    NCALIGN_RIGHT,
+    NCRESULT_MAX,
 };
 
 /// Returns the offset into 'availcols' at which 'cols' ought be output given
 /// the requirements of 'align'.
+///
+/// Returns -[`NCRESULT_MAX`] if [NCALIGN_UNALIGNED] or invalid [NcAlign].
 #[inline]
 pub fn notcurses_align(availcols: NcDimension, align: NcAlign, cols: NcDimension) -> NcOffset {
     if align == NCALIGN_LEFT {
@@ -33,7 +37,10 @@ pub fn notcurses_align(availcols: NcDimension, align: NcAlign, cols: NcDimension
     if align == NCALIGN_CENTER {
         return ((availcols - cols) / 2) as NcOffset;
     }
-    (availcols - cols) as NcOffset // NCALIGN_RIGHT
+    if align == NCALIGN_RIGHT {
+        return (availcols - cols) as NcOffset;
+    }
+    -NCRESULT_MAX // NCALIGN_UNALIGNED
 }
 
 /// 'input' may be NULL if the caller is uninterested in event details.

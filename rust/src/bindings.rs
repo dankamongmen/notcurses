@@ -108,20 +108,17 @@ pub use ffi::{
 
 // ncbox -----------------------------------------------------------------------
 
-#[doc(inline)]
-pub use ffi::{
-    // constants
-    NCBOXCORNER_MASK,
-    NCBOXCORNER_SHIFT,
-    NCBOXGRAD_BOTTOM,
-    NCBOXGRAD_LEFT,
-    NCBOXGRAD_RIGHT,
-    NCBOXGRAD_TOP,
-    NCBOXMASK_BOTTOM,
-    NCBOXMASK_LEFT,
-    NCBOXMASK_RIGHT,
-    NCBOXMASK_TOP,
-};
+// // constants
+// NCBOXCORNER_MASK,
+// NCBOXCORNER_SHIFT,
+// NCBOXGRAD_BOTTOM,
+// NCBOXGRAD_LEFT,
+// NCBOXGRAD_RIGHT,
+// NCBOXGRAD_TOP,
+// NCBOXMASK_BOTTOM,
+// NCBOXMASK_LEFT,
+// NCBOXMASK_RIGHT,
+// NCBOXMASK_TOP,
 
 // ncdirect --------------------------------------------------------------------
 //

@@ -119,7 +119,8 @@ pub type NcAlphaBits = u32;
 /// ## Default Color
 ///
 /// The "default color" is best explained by
-/// [color(3NCURSES)](https://manpages.debian.org/stretch/ncurses-doc/color.3ncurses.en.html).
+/// [color(3NCURSES)](https://manpages.debian.org/stretch/ncurses-doc/color.3ncurses.en.html)
+/// and [default_colors(3NCURSES)](https://manpages.debian.org/stretch/ncurses-doc/default_colors.3ncurses.en.html).
 /// Ours is the same concept.
 ///
 /// **Until the "not default color" bit is set, any color you load will be ignored.**
