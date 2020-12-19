@@ -168,9 +168,6 @@ pub use ffi::{
     ncdirect_render_image,
     ncdirect_rounded_box,
     ncdirect_stop,
-    ncdirect_styles_off,
-    ncdirect_styles_on,
-    ncdirect_styles_set,
     ncdirect_vline_interp,
 };
 
@@ -720,3 +717,10 @@ pub use ffi::{
     sigprocmask,
     sigsuspend,
 };
+
+// fade callback ---------------------------------------------------------------
+//
+// already wrapped:
+//
+// // types
+// fadecb

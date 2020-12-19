@@ -182,14 +182,14 @@ pub const NCLOGLEVEL_WARNING: NcLogLevel = crate::bindings::ffi::ncloglevel_e_NC
 /// - [NCALIGN_RIGHT]
 pub type NcAlign = crate::bindings::ffi::ncalign_e;
 
-/// Left alignment within an [`NcPlane`] or terminal.
+/// Left alignment within an [`NcPlane`][crate::NcPlane] or terminal.
 pub const NCALIGN_LEFT: NcAlign = crate::bindings::ffi::ncalign_e_NCALIGN_LEFT;
 
-/// Right alignment within an [`NcPlane`] or terminal.
+/// Right alignment within an [`NcPlane`][crate::NcPlane] or terminal.
 pub const NCALIGN_RIGHT: NcAlign = crate::bindings::ffi::ncalign_e_NCALIGN_RIGHT;
 
-/// Center alignment within an [`NcPlane`] or terminal.
+/// Center alignment within an [`NcPlane`][crate::NcPlane] or terminal.
 pub const NCALIGN_CENTER: NcAlign = crate::bindings::ffi::ncalign_e_NCALIGN_CENTER;
 
-/// Do not align an [`NcPlane`] or terminal.
+/// Do not align an [`NcPlane`][crate::NcPlane] or terminal.
 pub const NCALIGN_UNALIGNED: NcAlign = crate::bindings::ffi::ncalign_e_NCALIGN_UNALIGNED;

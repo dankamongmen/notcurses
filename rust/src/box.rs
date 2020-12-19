@@ -5,7 +5,8 @@
 /// NcBoxMax is defined in the least significant byte, where bits [3, 0] are
 /// are a border mask, and bits [7, 4] are a gradient mask.
 ///
-/// The drawing of the corners is defined in the second byte.
+/// The drawing of the corners is defined in the second byte,
+/// see [`NCBOXCORNER_MASK`].
 ///
 /// ## Diagram
 ///

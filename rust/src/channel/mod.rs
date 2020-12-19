@@ -226,9 +226,6 @@ pub type NcRgb = u32;
 ///
 pub type NcColor = u8;
 
-/// Context for a palette fade operation
-pub type NcFadeCtx = crate::bindings::ffi::ncfadectx;
-
 /// the [NcEgc][crate::NcEgc] which form the various levels of a given geometry.
 ///
 /// If the geometry is wide, things are arranged with the rightmost side

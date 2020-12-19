@@ -11,7 +11,7 @@ macro_rules! sleep {
 }
 
 /// Renders the [Notcurses][crate::Notcurses] object, then sleeps for $ms
-/// milliseconds and returns the result of [notcurses_render].
+/// milliseconds and returns the result of [notcurses_render][crate::notcurses_render].
 #[macro_export]
 macro_rules! rsleep {
     ($nc:expr, $ms:expr) => {{

@@ -1,10 +1,10 @@
 //! `NcPlane`
 
-// functions already exported by bindgen : 105
+// functions already exported by bindgen : 102
 // -------------------------------------------
 // (X) wont:  4
 // (#) test: 13
-// (W) wrap: 32
+// (W) wrap: 63
 // -------------------------------------------
 //W  ncpile_bottom
 //W# ncpile_create
@@ -17,7 +17,7 @@
 //W  ncplane_base
 //W  ncplane_below
 //W  ncplane_box
-//   ncplane_center_abs
+//W  ncplane_center_abs
 //W# ncplane_channels
 //W  ncplane_contents
 //W  ncplane_create
@@ -27,33 +27,32 @@
 //W# ncplane_dim_yx
 //W  ncplane_dup
 //W# ncplane_erase
-//   ncplane_fadein
-//   ncplane_fadein_iteration
-//   ncplane_fadeout
-//   ncplane_fadeout_iteration
-//   ncplane_format
+//W  ncplane_fadein
+//W  ncplane_fadein_iteration
+//W  ncplane_fadeout
+//W  ncplane_fadeout_iteration
+//W  ncplane_format
 //   ncplane_gradient
-//   ncplane_greyscale
+//W  ncplane_greyscale
 //   ncplane_highgradient
 //   ncplane_highgradient_sized
 //   ncplane_hline_interp
 //W# ncplane_home
-//   ncplane_mergedown
-//   ncplane_mergedown_simple
-//   ncplane_move_above
-//   ncplane_move_below
-//   ncplane_move_bottom
-//   ncplane_move_top
+//W  ncplane_mergedown
+//W  ncplane_mergedown_simple
+//W  ncplane_move_above
+//W  ncplane_move_below
+//W  ncplane_move_bottom
+//W  ncplane_move_top
 //W  ncplane_move_yx
-//   ncplane_new
 //W# ncplane_notcurses
 //W# ncplane_notcurses_const
-//   ncplane_off_styles
-//   ncplane_on_styles
+//W  ncplane_off_styles
+//W  ncplane_on_styles
 //W  ncplane_parent
 //W  ncplane_parent_const
 //   ncplane_polyfill_yx
-//   ncplane_pulse
+//W  ncplane_pulse
 //   ncplane_putchar_stained
 //   ncplane_putc_yx
 // X ncplane_putegc_stained
@@ -67,40 +66,37 @@
 // X ncplane_putwegc_stained
 // X ncplane_putwstr_stained
 //   ncplane_qrcode
-//   ncplane_reparent
-//   ncplane_reparent_family
+//W  ncplane_reparent
+//W  ncplane_reparent_family
 //W# ncplane_resize
 //W  ncplane_resizecb
 //W  ncplane_resize_realign
 //   ncplane_rgba
-//   ncplane_rotate_ccw
-//   ncplane_rotate_cw
+//W  ncplane_rotate_ccw
+//W  ncplane_rotate_cw
 //   ncplane_set_base
 //   ncplane_set_base_cell
-// # ncplane_set_bchannel
-//   ncplane_set_bg_alpha
+//W# ncplane_set_bchannel
+//W  ncplane_set_bg_alpha
 //   ncplane_set_bg_default
 //   ncplane_set_bg_palindex
 //   ncplane_set_bg_rgb
-//   ncplane_set_bg_rgb8
+//W  ncplane_set_bg_rgb8
 //   ncplane_set_bg_rgb8_clipped
-// # ncplane_set_channels
-// # ncplane_set_fchannel
-//   ncplane_set_fg_alpha
+//W# ncplane_set_channels
+//W# ncplane_set_fchannel
+//W  ncplane_set_fg_alpha
 //   ncplane_set_fg_default
 //   ncplane_set_fg_palindex
 //   ncplane_set_fg_rgb
-//   ncplane_set_fg_rgb8
+//W  ncplane_set_fg_rgb8
 //   ncplane_set_fg_rgb8_clipped
 //   ncplane_set_resizecb
 //   ncplane_set_scrolling
-//   ncplane_set_styles
+//W  ncplane_set_styles
 //   ncplane_set_userptr
 //   ncplane_stain
-//   ncplane_styles
-//   ncplane_styles_off
-//   ncplane_styles_on
-//   ncplane_styles_set
+//W  ncplane_styles
 //   ncplane_translate
 //   ncplane_translate_abs
 //   ncplane_userptr
@@ -108,35 +104,35 @@
 //   ncplane_vprintf_aligned
 //   ncplane_vprintf_stained
 //   ncplane_vprintf_yx
-//   ncplane_x
-//   ncplane_y
-//   ncplane_yx
+//W  ncplane_x
+//W  ncplane_y
+//W  ncplane_yx
 //
 // functions manually reimplemented: 42
 // ------------------------------------------
 // (X) wont:  9
 // (+) done: 34 / 0
-// (W) wrap:  5
+// (W) wrap: 20
 // (#) test:  5
 // ------------------------------------------
-// + ncplane_align
+//W+ ncplane_align
 //W+ ncplane_at_cursor_cell
-// + ncplane_at_yx_cell
-// + ncplane_bchannel
-// + ncplane_bg_alpha
-// # ncplane_bg_default_p
-// + ncplane_bg_rgb
-// + ncplane_bg_rgb8
+//W+ ncplane_at_yx_cell
+//W+ ncplane_bchannel
+//W+ ncplane_bg_alpha
+//W# ncplane_bg_default_p
+//W+ ncplane_bg_rgb
+//W+ ncplane_bg_rgb8
 // + ncplane_box_sized
 //W# ncplane_dim_x
 //W# ncplane_dim_y
 // + ncplane_double_box
 // + ncplane_double_box_sized
-// + ncplane_fchannel
-// + ncplane_fg_alpha
-// # ncplane_fg_default_p
-// + ncplane_fg_rgb
-// + ncplane_fg_rgb8
+//W+ ncplane_fchannel
+//W+ ncplane_fg_alpha
+//W# ncplane_fg_default_p
+//W+ ncplane_fg_rgb
+//W+ ncplane_fg_rgb8
 // + ncplane_gradient_sized       // u64|u32 https://github.com/dankamongmen/notcurses/issues/920
 // + ncplane_hline
 //W+ ncplane_perimeter
@@ -181,7 +177,7 @@ pub use reimplemented::*;
 /// `type in C: ncplane (struct)`
 ///
 ///
-/// ## Piles
+/// # Piles
 ///
 /// A single notcurses context is made up of one or more piles.
 ///
@@ -210,6 +206,25 @@ pub use reimplemented::*;
 /// planes. The new plane is placed immediately atop its new parent on its new
 /// pile's z-axis. When ncplane_reparent_family() is used, all planes bound to
 /// the reparented plane are moved along with it. Their relative z-order is maintained.
+///
+///
+/// # Methods & Associated Functions
+///
+/// - [Constructors & Destructors](#ncplane-constructors-and-destructors)
+///
+/// Methods:
+/// - [`NcAlphaBits`](#ncplane-methods-ncalphabits)
+/// - [`NcChannel` & `NcChannelPair`](#ncplane-methods-ncchannel)
+/// - [`NcColor`](#ncplane-methods-nccolor)
+/// - [`NcRgb`](#ncplane-methods-ncrgb)
+/// - [`NcStyleMask`](#ncplane-methods-ncstylemask)
+/// - [`NcCell`](#ncplane-methods-nccell)
+/// - [writing](#ncplane-methods-writing)
+/// - [cursor](#ncplane-methods-cursor)
+/// - [`NcPlane`, piles & `Notcurses` context](#ncplane-methods-ncplane-pile--notcurses-context)
+/// - [boxes & perimeters](#ncplane-methods-boxes--perimeters)
+/// - [Size, position & alignment](#ncplane-methods-size-position--alignment)
+/// - [fading, gradients & greyscale](#ncplane-methods-fading-gradients--greyscale)
 ///
 pub type NcPlane = crate::bindings::ffi::ncplane;
 

@@ -11,8 +11,8 @@ use crate::{
     ncplane_cursor_move_yx, ncplane_cursor_yx, ncplane_dim_yx, ncplane_gradient,
     ncplane_hline_interp, ncplane_putc_yx, ncplane_putnstr_yx, ncplane_putstr_yx, ncplane_resize,
     ncplane_styles, ncplane_vline_interp, ncplane_vprintf_yx, notcurses_align, NcAlign,
-    NcAlphaBits, NcBoxMask, NcCell, NcChannel, NcChannelPair, NcColor, NcDimension, NcOffset,
-    NcPlane, NcResult, NcRgb, NcStyleMask, NCRESULT_ERR, NCRESULT_OK,
+    NcAlphaBits, NcBoxMask, NcCell, NcChannel, NcChannelPair, NcColor, NcDimension, NcPlane,
+    NcResult, NcRgb, NcStyleMask, NCRESULT_ERR, NCRESULT_OK,
 };
 
 // Alpha -----------------------------------------------------------------------
@@ -46,6 +46,7 @@ pub fn ncplane_bchannel(plane: &NcPlane) -> NcChannel {
 // NcColor ---------------------------------------------------------------------
 
 /// Gets the foreground [NcColor] RGB components from an [NcPlane].
+/// and returns the background [NcChannel].
 #[inline]
 pub fn ncplane_fg_rgb8(
     plane: &NcPlane,
@@ -56,7 +57,8 @@ pub fn ncplane_fg_rgb8(
     channels_fg_rgb8(unsafe { ncplane_channels(plane) }, red, green, blue)
 }
 
-/// Gets the background [NcColor] RGB components from an [NcPlane].
+/// Gets the background [NcColor] RGB components from an [NcPlane],
+/// and returns the background [NcChannel].
 #[inline]
 pub fn ncplane_bg_rgb8(
     plane: &NcPlane,
@@ -262,9 +264,10 @@ pub fn ncplane_resize_simple(
 /// Returns the column at which `cols` columns ought start in order to be aligned
 /// according to `align` within this NcPlane.
 ///
-/// Returns -[`NCRESULT_MAX`] if [NCALIGN_UNALIGNED] or invalid [NcAlign].
+/// Returns -[`NCRESULT_MAX`][crate::NCRESULT_MAX] if
+/// [NCALIGN_UNALIGNED][crate::NCALIGN_UNALIGNED] or invalid [NcAlign].
 #[inline]
-pub fn ncplane_align(plane: &NcPlane, align: NcAlign, cols: NcDimension) -> NcOffset {
+pub fn ncplane_align(plane: &NcPlane, align: NcAlign, cols: NcDimension) -> NcResult {
     notcurses_align(ncplane_dim_x(plane), align, cols)
 }
 
