@@ -1367,8 +1367,9 @@ API void* ncplane_userptr(struct ncplane* n);
 API void ncplane_center_abs(const struct ncplane* n, int* RESTRICT y,
                             int* RESTRICT x);
 
-// return the offset into 'availcols' at which 'cols' ought be output given the
-// requirements of 'align'.
+// Return the offset into 'availcols' at which 'cols' ought be output given the
+// requirements of 'align'. Return -INT_MAX if unaligned or in case of invalid
+// 'align'. Undefined behavior on negative 'cols'.
 static inline int
 notcurses_align(int availcols, ncalign_e align, int cols){
   if(cols < 0){
@@ -1390,8 +1391,8 @@ notcurses_align(int availcols, ncalign_e align, int cols){
 }
 
 // Return the column at which 'c' cols ought start in order to be aligned
-// according to 'align' within ncplane 'n'. Returns INT_MAX on invalid 'align'.
-// Undefined behavior on negative 'c'.
+// according to 'align' within ncplane 'n'. Return -INT_MAX if unaligned
+// or in case of invalid 'align'. Undefined behavior on negative 'c'.
 static inline int
 ncplane_align(const struct ncplane* n, ncalign_e align, int c){
   return notcurses_align(ncplane_dim_x(n), align, c);
@@ -1452,7 +1453,7 @@ API int ncplane_putchar_stained(struct ncplane* n, char c);
 // written to 'sbytes' if non-NULL.
 API int ncplane_putegc_yx(struct ncplane* n, int y, int x, const char* gclust, int* sbytes);
 
-// Call ncplane_putegc() at the current cursor location.
+// Call ncplane_putegc_yx() at the current cursor location.
 static inline int
 ncplane_putegc(struct ncplane* n, const char* gclust, int* sbytes){
   return ncplane_putegc_yx(n, -1, -1, gclust, sbytes);
