@@ -2,9 +2,9 @@
 
 // functions already exported by bindgen : 102
 // -------------------------------------------
-// (X) wont:  4
+// (X) wont:  6
 // (#) test: 13
-// (W) wrap: 63
+// (W) wrap: 77
 // -------------------------------------------
 //W  ncpile_bottom
 //W# ncpile_create
@@ -32,10 +32,10 @@
 //W  ncplane_fadeout
 //W  ncplane_fadeout_iteration
 //W  ncplane_format
-//   ncplane_gradient
+//W  ncplane_gradient
 //W  ncplane_greyscale
-//   ncplane_highgradient
-//   ncplane_highgradient_sized
+//W  ncplane_highgradient
+//W  ncplane_highgradient_sized
 //   ncplane_hline_interp
 //W# ncplane_home
 //W  ncplane_mergedown
@@ -74,31 +74,31 @@
 //   ncplane_rgba
 //W  ncplane_rotate_ccw
 //W  ncplane_rotate_cw
-//   ncplane_set_base
-//   ncplane_set_base_cell
+//W  ncplane_set_base
+//W  ncplane_set_base_cell
 //W# ncplane_set_bchannel
 //W  ncplane_set_bg_alpha
-//   ncplane_set_bg_default
-//   ncplane_set_bg_palindex
-//   ncplane_set_bg_rgb
+//W  ncplane_set_bg_default
+//W  ncplane_set_bg_palindex
+//W  ncplane_set_bg_rgb
 //W  ncplane_set_bg_rgb8
-//   ncplane_set_bg_rgb8_clipped
+// X ncplane_set_bg_rgb8_clipped
 //W# ncplane_set_channels
 //W# ncplane_set_fchannel
 //W  ncplane_set_fg_alpha
-//   ncplane_set_fg_default
-//   ncplane_set_fg_palindex
-//   ncplane_set_fg_rgb
+//W  ncplane_set_fg_default
+//W  ncplane_set_fg_palindex
+//W  ncplane_set_fg_rgb
 //W  ncplane_set_fg_rgb8
-//   ncplane_set_fg_rgb8_clipped
-//   ncplane_set_resizecb
-//   ncplane_set_scrolling
+// X ncplane_set_fg_rgb8_clipped
+//W  ncplane_set_resizecb
+//W  ncplane_set_scrolling
 //W  ncplane_set_styles
 //   ncplane_set_userptr
-//   ncplane_stain
+//W  ncplane_stain
 //W  ncplane_styles
-//   ncplane_translate
-//   ncplane_translate_abs
+//W  ncplane_translate
+//W  ncplane_translate_abs
 //   ncplane_userptr
 //   ncplane_vline_interp
 //   ncplane_vprintf_aligned
@@ -112,7 +112,7 @@
 // ------------------------------------------
 // (X) wont:  9
 // (+) done: 34 / 0
-// (W) wrap: 20
+// (W) wrap: 24
 // (#) test:  5
 // ------------------------------------------
 //W+ ncplane_align
@@ -123,17 +123,17 @@
 //W# ncplane_bg_default_p
 //W+ ncplane_bg_rgb
 //W+ ncplane_bg_rgb8
-// + ncplane_box_sized
+//W+ ncplane_box_sized
 //W# ncplane_dim_x
 //W# ncplane_dim_y
-// + ncplane_double_box
-// + ncplane_double_box_sized
+//W+ ncplane_double_box
+//W+ ncplane_double_box_sized
 //W+ ncplane_fchannel
 //W+ ncplane_fg_alpha
 //W# ncplane_fg_default_p
 //W+ ncplane_fg_rgb
 //W+ ncplane_fg_rgb8
-// + ncplane_gradient_sized       // u64|u32 https://github.com/dankamongmen/notcurses/issues/920
+//W+ ncplane_gradient_sized
 // + ncplane_hline
 //W+ ncplane_perimeter
 //W+ ncplane_perimeter_double
@@ -144,14 +144,14 @@
 // X ncplane_putegc
 // + ncplane_putnstr
 //W+ ncplane_putstr
-// X ncplane_putwc                // I don't think these will be needed from Rust. See:
+// X ncplane_putwc
 // X ncplane_putwc_stained
-// X ncplane_putwc_yx             // https://locka99.gitbooks.io/a-guide-to-porting-c-to-rust/content/features_of_rust/strings.html
-// X ncplane_putwegc              //
-// X ncplane_putwegc_yx           //
-// X ncplane_putwstr              //
-// X ncplane_putwstr_aligned      //
-// X ncplane_putwstr_yx           //
+// X ncplane_putwc_yx
+// X ncplane_putwegc
+// X ncplane_putwegc_yx
+// X ncplane_putwstr
+// X ncplane_putwstr_aligned
+// X ncplane_putwstr_yx
 //W# ncplane_resize_simple
 // + ncplane_rounded_box
 // + ncplane_rounded_box_sized
@@ -215,13 +215,12 @@ pub use reimplemented::*;
 /// Methods:
 /// - [`NcAlphaBits`](#ncplane-methods-ncalphabits)
 /// - [`NcChannel` & `NcChannelPair`](#ncplane-methods-ncchannel)
-/// - [`NcColor`](#ncplane-methods-nccolor)
-/// - [`NcRgb`](#ncplane-methods-ncrgb)
-/// - [`NcStyleMask`](#ncplane-methods-ncstylemask)
-/// - [`NcCell`](#ncplane-methods-nccell)
+/// - [`NcColor`, `NcRgb` & default color](#ncplane-methods-nccolor-ncrgb--default-color)
+/// - [`NcStyleMask` & `NcPaletteIndex`](#ncplane-methods-ncstylemask--paletteindex)
+/// - [`NcCell` & `NcEgc`](#ncplane-methods-nccell--ncegc)
 /// - [writing](#ncplane-methods-writing)
 /// - [cursor](#ncplane-methods-cursor)
-/// - [`NcPlane`, piles & `Notcurses` context](#ncplane-methods-ncplane-pile--notcurses-context)
+/// - [`NcPlane` & `Notcurses`](#ncplane-methods-ncplane--notcurses)
 /// - [boxes & perimeters](#ncplane-methods-boxes--perimeters)
 /// - [Size, position & alignment](#ncplane-methods-size-position--alignment)
 /// - [fading, gradients & greyscale](#ncplane-methods-fading-gradients--greyscale)

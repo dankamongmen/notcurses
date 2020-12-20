@@ -5,20 +5,20 @@ use std::ffi::CStr;
 
 use crate::{
     cstring, NcAlign, NcAlphaBits, NcBoxMask, NcCell, NcChannel, NcChannelPair, NcColor,
-    NcDimension, NcEgc, NcFadeCb, NcOffset, NcPlane, NcPlaneOptions, NcResult, NcRgb, NcStyleMask,
-    NcTime, Notcurses,
+    NcDimension, NcEgc, NcFadeCb, NcOffset, NcPaletteIndex, NcPlane, NcPlaneOptions, NcResizeCb,
+    NcResult, NcRgb, NcStyleMask, NcTime, Notcurses,
 };
 
 /// # `NcPlaneOptions` Constructors
 impl NcPlaneOptions {
     /// New NcPlaneOptions using the horizontal x.
     pub fn new(y: NcOffset, x: NcOffset, rows: NcDimension, cols: NcDimension) -> Self {
-        Self::with_flags(y, x, rows, cols, 0)
+        Self::with_flags(y, x, rows, cols, None, 0)
     }
 
     /// New NcPlaneOptions with horizontal alignment.
     pub fn new_aligned(y: NcOffset, align: NcAlign, rows: NcDimension, cols: NcDimension) -> Self {
-        Self::with_flags_aligned(y, align, rows, cols, crate::NCPLANE_OPTION_HORALIGNED)
+        Self::with_flags_aligned(y, align, rows, cols, None, crate::NCPLANE_OPTION_HORALIGNED)
     }
 
     /// New NcPlaneOptions, with flags.
@@ -27,6 +27,7 @@ impl NcPlaneOptions {
         x: NcOffset,
         rows: NcDimension,
         cols: NcDimension,
+        resizecb: Option<NcResizeCb>,
         flags: u64,
     ) -> Self {
         NcPlaneOptions {
@@ -36,7 +37,7 @@ impl NcPlaneOptions {
             cols: cols as i32,
             userptr: null_mut(),
             name: null(),
-            resizecb: None,
+            resizecb: crate::ncresizecb_to_c(resizecb),
             flags,
         }
     }
@@ -50,6 +51,7 @@ impl NcPlaneOptions {
         align: NcAlign,
         rows: NcDimension,
         cols: NcDimension,
+        resizecb: Option<NcResizeCb>,
         flags: u64,
     ) -> Self {
         let flags = crate::NCPLANE_OPTION_HORALIGNED | flags;
@@ -60,7 +62,7 @@ impl NcPlaneOptions {
             cols: cols as i32,
             userptr: null_mut(),
             name: null(),
-            resizecb: None,
+            resizecb: crate::ncresizecb_to_c(resizecb),
             flags,
         }
     }
@@ -136,7 +138,7 @@ impl NcPlane {
 }
 
 // -----------------------------------------------------------------------------
-/// ## NcPlane methods: NcAlphaBits
+/// ## NcPlane methods: `NcAlphaBits`
 impl NcPlane {
     /// Gets the foreground [NcAlphaBits] from this NcPlane, shifted to LSBs.
     #[inline]
@@ -162,7 +164,7 @@ impl NcPlane {
 }
 
 // -----------------------------------------------------------------------------
-/// ## NcPlane methods: NcChannel
+/// ## NcPlane methods: `NcChannel`
 impl NcPlane {
     /// Gets the current [NcChannelPair] from this NcPlane.
     pub fn channels(&self) -> NcChannelPair {
@@ -197,23 +199,52 @@ impl NcPlane {
     pub fn set_bchannel(&mut self, channel: NcChannel) -> NcChannelPair {
         unsafe { crate::ncplane_set_bchannel(self, channel) }
     }
+
+    /// Sets the given [NcChannelPair]s throughout the specified region,
+    /// keeping content and attributes unchanged.
+    ///
+    /// Returns the number of cells set, or [NCRESULT_ER][crate::NCRESULT_ERR]
+    /// on failure.
+    pub fn stain(
+        &mut self,
+        y_stop: NcDimension,
+        x_stop: NcDimension,
+        ul: NcChannelPair,
+        ur: NcChannelPair,
+        ll: NcChannelPair,
+        lr: NcChannelPair,
+    ) -> NcResult {
+        unsafe { crate::ncplane_stain(self, y_stop as i32, x_stop as i32, ul, ur, ll, lr) }
+    }
 }
 
 // -----------------------------------------------------------------------------
-/// ## NcPlane methods: NcColor
+/// ## NcPlane methods: `NcColor`, `NcRgb` & default color
 impl NcPlane {
-    /// Gets the foreground [NcColor] RGB components from this NcPlane,
-    /// and returns the foreground [NcChannel].
+    /// Gets the foreground [NcColor] RGB components from this NcPlane.
     #[inline]
-    pub fn fg_rgb8(&self, red: &mut NcColor, green: &mut NcColor, blue: &mut NcColor) -> NcChannel {
-        crate::channels_fg_rgb8(unsafe { crate::ncplane_channels(self) }, red, green, blue)
+    pub fn fg_rgb8(&self) -> (NcColor, NcColor, NcColor) {
+        let (mut r, mut g, mut b) = (0, 0, 0);
+        let _ = crate::channels_fg_rgb8(
+            unsafe { crate::ncplane_channels(self) },
+            &mut r,
+            &mut g,
+            &mut b,
+        );
+        (r, g, b)
     }
 
-    /// Gets the background [NcColor] RGB components from this NcPlane,
-    /// and returns the background [NcChannel].
+    /// Gets the background [NcColor] RGB components from this NcPlane.
     #[inline]
-    pub fn bg_rgb8(&self, red: &mut NcColor, green: &mut NcColor, blue: &mut NcColor) -> NcChannel {
-        crate::channels_bg_rgb8(unsafe { crate::ncplane_channels(self) }, red, green, blue)
+    pub fn bg_rgb8(&self) -> (NcColor, NcColor, NcColor) {
+        let (mut r, mut g, mut b) = (0, 0, 0);
+        let _ = crate::channels_bg_rgb8(
+            unsafe { crate::ncplane_channels(self) },
+            &mut r,
+            &mut g,
+            &mut b,
+        );
+        (r, g, b)
     }
 
     /// Sets the foreground [NcColor] RGB components for this NcPlane.
@@ -245,11 +276,7 @@ impl NcPlane {
             let _ = crate::ncplane_set_bg_rgb8(self, red as i32, green as i32, blue as i32);
         }
     }
-}
 
-// -----------------------------------------------------------------------------
-/// ## NcPlane methods: NcRgb
-impl NcPlane {
     /// Gets the foreground [NcRgb] from this NcPlane, shifted to LSBs.
     #[inline]
     pub fn fg_rgb(&self) -> NcRgb {
@@ -262,7 +289,21 @@ impl NcPlane {
         crate::channels_bg_rgb(unsafe { crate::ncplane_channels(self) })
     }
 
-    // default
+    /// Sets the foreground [NcRgb] for this NcPlane.
+    #[inline]
+    pub fn set_fg_rgb(&mut self, rgb: NcRgb) {
+        unsafe {
+            crate::ncplane_set_fg_rgb(self, rgb);
+        }
+    }
+
+    /// Sets the backround [NcRgb] for this NcPlane.
+    #[inline]
+    pub fn set_bg_rgb(&mut self, rgb: NcRgb) {
+        unsafe {
+            crate::ncplane_set_bg_rgb(self, rgb);
+        }
+    }
 
     /// Is this NcPlane's foreground using the "default foreground color"?
     #[inline]
@@ -275,10 +316,26 @@ impl NcPlane {
     pub fn bg_default_p(&self) -> bool {
         crate::channels_bg_default_p(unsafe { crate::ncplane_channels(self) })
     }
+
+    /// Uses the default color for the foreground.
+    #[inline]
+    pub fn set_fg_default(&mut self) {
+        unsafe {
+            crate::ncplane_set_fg_default(self);
+        }
+    }
+
+    /// Uses the default color for the background.
+    #[inline]
+    pub fn set_bg_default(&mut self) {
+        unsafe {
+            crate::ncplane_set_bg_default(self);
+        }
+    }
 }
 
 // -----------------------------------------------------------------------------
-/// ## NcPlane methods: NcStyleMask
+/// ## NcPlane methods: `NcStyleMask` & `PaletteIndex`
 impl NcPlane {
     /// Sets the given style throughout the specified region, keeping content
     /// and channels unchanged.
@@ -296,9 +353,7 @@ impl NcPlane {
 
     /// Returns the current styling for this NcPlane.
     pub fn styles(&self) -> NcStyleMask {
-        unsafe {
-            crate::ncplane_styles(self)
-        }
+        unsafe { crate::ncplane_styles(self) }
     }
 
     /// Removes the specified styles from this NcPlane's existing spec.
@@ -315,16 +370,36 @@ impl NcPlane {
         }
     }
 
-    /// Adds the specified styles to this NcPlane's existing spec.
+    /// Sets just the specified styles for this NcPlane.
     pub fn set_styles(&mut self, stylemask: NcStyleMask) {
         unsafe {
             crate::ncplane_set_styles(self, stylemask as u32);
         }
     }
+
+    /// Sets this NcPlane's foreground [NcPaletteIndex].
+    ///
+    /// Also sets the foreground palette index bit, sets it foreground-opaque,
+    /// and clears the foreground default color bit.
+    pub fn set_fg_palindex(&mut self, palindex: NcPaletteIndex) {
+        unsafe {
+            crate::ncplane_set_fg_palindex(self, palindex as i32);
+        }
+    }
+
+    /// Sets this NcPlane's background [NcPaletteIndex].
+    ///
+    /// Also sets the background palette index bit, sets it background-opaque,
+    /// and clears the background default color bit.
+    pub fn set_bg_palindex(&mut self, palindex: NcPaletteIndex) {
+        unsafe {
+            crate::ncplane_set_bg_palindex(self, palindex as i32);
+        }
+    }
 }
 
 // -----------------------------------------------------------------------------
-/// ## NcPlane methods: NcCell
+/// ## NcPlane methods: `NcCell` & `NcEgc`
 impl NcPlane {
     /// Retrieves the current contents of the [NcCell] under the cursor,
     /// returning the [NcEgc] and writing out the [NcStyleMask] and the [NcChannelPair].
@@ -389,6 +464,37 @@ impl NcPlane {
         unsafe { crate::ncplane_base(self, cell) }
     }
 
+    /// Sets this NcPlane's base NcCell from its components.
+    ///
+    /// This function must be called with an empty `egc`.
+    /// `egc` must be a single extended grapheme cluster.
+    ///
+    /// It will be used for purposes of rendering anywhere that the NcPlane's
+    /// gcluster is 0.
+    ///
+    /// Erasing the NcPlane does not reset the base cell.
+    pub fn set_base(
+        &mut self,
+        egc: &NcEgc,
+        stylemask: NcStyleMask,
+        channels: NcChannelPair,
+    ) -> NcResult {
+        unsafe { crate::ncplane_set_base(self, &(*egc as i8), stylemask as u32, channels) }
+    }
+
+    /// Sets this NcPlane's base NcCell.
+    ///
+    /// This function must be called with a zero `cell`.
+    ///
+    /// It will be used for purposes of rendering anywhere that the NcPlane's
+    /// gcluster is 0.
+    ///
+    /// Erasing the NcPlane does not reset the base cell.
+    // FIXME: documentation: https://github.com/dankamongmen/notcurses/issues/1238
+    pub fn set_base_cell(&mut self, cell: &NcCell) -> NcResult {
+        unsafe { crate::ncplane_set_base_cell(self, cell) }
+    }
+
     /// Creates a flat string from the NcEgc's of the selected region of the
     /// NcPlane.
     ///
@@ -425,11 +531,7 @@ impl NcPlane {
             .into_owned()
         }
     }
-}
 
-// -----------------------------------------------------------------------------
-/// ## NcPlane methods: writing
-impl NcPlane {
     /// Erases every NcCell in this NcPlane, resetting all attributes to normal,
     /// all colors to the default color, and all cells to undrawn.
     ///
@@ -512,7 +614,7 @@ impl NcPlane {
 }
 
 // -----------------------------------------------------------------------------
-/// ## NcPlane methods: NcPlane, pile & Notcurses context
+/// ## NcPlane methods: `NcPlane` & `Notcurses`
 impl NcPlane {
     /// Duplicates this NcPlane.
     ///
@@ -580,7 +682,7 @@ impl NcPlane {
 
     /// Relocates this NcPlane above the `above` NcPlane, in the z-buffer.
     ///
-    /// Returns [`NCRESULT_ERR`][crate::NCRESULT_ERR] if the current plane is
+    /// Returns [NCRESULT_ERR][crate::NCRESULT_ERR] if the current plane is
     /// already in the desired location. Both planes must not be the same.
     pub fn move_above(&mut self, above: &mut NcPlane) -> NcResult {
         unsafe { crate::ncplane_move_above(self, above) }
@@ -588,7 +690,7 @@ impl NcPlane {
 
     /// Relocates this NcPlane below the `below` NcPlane, in the z-buffer.
     ///
-    /// Returns [`NCRESULT_ERR`][crate::NCRESULT_ERR] if the current plane is
+    /// Returns [NCRESULT_ERR][crate::NCRESULT_ERR] if the current plane is
     /// already in the desired location. Both planes must not be the same.
     pub fn move_below(&mut self, below: &mut NcPlane) -> NcResult {
         unsafe { crate::ncplane_move_below(self, below) }
@@ -728,7 +830,7 @@ impl NcPlane {
     }
 
     /// Gets an immutable reference to the [Notcurses] context of this NcPlane.
-    pub fn notcurses_const<'a>(&mut self) -> &'a Notcurses {
+    pub fn notcurses_const<'a>(&self) -> &'a Notcurses {
         unsafe { &*crate::ncplane_notcurses_const(self) }
     }
 }
@@ -736,6 +838,13 @@ impl NcPlane {
 // -----------------------------------------------------------------------------
 /// ## NcPlane methods: cursor
 impl NcPlane {
+    /// Moves the cursor to 0, 0.
+    pub fn home(&mut self) {
+        unsafe {
+            crate::ncplane_home(self);
+        }
+    }
+
     /// Returns the current position of the cursor within this NcPlane.
     ///
     // NOTE: y and/or x may be NULL.
@@ -782,13 +891,6 @@ impl NcPlane {
         let (y, x) = self.cursor_yx();
         self.cursor_move_yx(y, (x as NcOffset + cols) as NcDimension)
     }
-
-    /// Moves the cursor to 0, 0.
-    pub fn cursor_home(&mut self) {
-        unsafe {
-            crate::ncplane_home(self);
-        }
-    }
 }
 
 // -----------------------------------------------------------------------------
@@ -797,8 +899,8 @@ impl NcPlane {
     /// Returns the column at which `cols` columns ought start in order to be
     /// aligned according to `align` within this NcPlane.
     ///
-    /// Returns -[`NCRESULT_MAX`][crate::NCRESULT_MAX] if
-    /// [`NCALIGN_UNALIGNED`][crate::NCALIGN_UNALIGNED] or invalid [NcAlign].
+    /// Returns `-`[NCRESULT_MAX][crate::NCRESULT_MAX] if
+    /// [NCALIGN_UNALIGNED][crate::NCALIGN_UNALIGNED] or invalid [NcAlign].
     #[inline]
     pub fn align(&mut self, align: NcAlign, cols: NcDimension) -> NcResult {
         crate::ncplane_align(self, align, cols)
@@ -847,20 +949,6 @@ impl NcPlane {
         self.dim_yx().1
     }
 
-    /// Sets the scrolling behaviour of the plane, and
-    /// returns true if scrolling was previously enabled, of false, if disabled.
-    ///
-    /// All planes are created with scrolling disabled. Attempting to print past
-    /// the end of a line will stop at the plane boundary, and indicate an error.
-    ///
-    /// On a plane 10 columns wide and two rows high, printing "0123456789"
-    /// at the origin should succeed, but printing "01234567890" will by default
-    /// fail at the eleventh character. In either case, the cursor will be left
-    /// at location 0x10; it must be moved before further printing can take place. I
-    pub fn set_scrolling(&mut self, scroll: bool) -> bool {
-        unsafe { crate::ncplane_set_scrolling(self, scroll) }
-    }
-
     /// Resizes this NcPlane.
     ///
     /// The four parameters `keep_y`, `keep_x`, `keep_len_y`, and `keep_len_x`
@@ -906,7 +994,9 @@ impl NcPlane {
     }
 
     /// Realigns this NcPlane against its parent, using the alignment specified
-    /// at creation time. Suitable for use as a `resizecb`.
+    /// at creation time.
+    ///
+    /// Suitable for use as an [NcResizeCb].
     pub fn resize_realign(&mut self) -> NcResult {
         unsafe { crate::ncplane_resize_realign(self) }
     }
@@ -919,11 +1009,33 @@ impl NcPlane {
     }
 
     /// Returns this NcPlane's current resize callback.
-    pub fn resizecb(&self) -> Option<unsafe extern "C" fn(*mut NcPlane) -> NcResult> {
-        unsafe { crate::ncplane_resizecb(self) }
+    pub fn resizecb(&self) -> Option<NcResizeCb> {
+        unsafe { crate::ncresizecb_to_rust(crate::ncplane_resizecb(self)) }
     }
 
-    /// Gets the `y, x` origin of this NcPlane relative to the standard plane,
+    /// Replaces this NcPlane's existing resize callback (which may be [None]).
+    ///
+    /// The standard plane's resizecb may not be changed.
+    pub fn set_resizecb(&mut self, resizecb: Option<NcResizeCb>) {
+        unsafe { crate::ncplane_set_resizecb(self, crate::ncresizecb_to_c(resizecb)) }
+    }
+
+    /// Maps the provided coordinates relative to the origin of this NcPlane,
+    /// to the same absolute coordinates relative to the origin of `target`.
+    // TODO: API change, return the coordinates instead of using mutable references
+    pub fn translate(&self, target: &NcPlane, y: &mut NcDimension, x: &mut NcDimension) {
+        unsafe { crate::ncplane_translate(self, target, &mut (*y as i32), &mut (*x as i32)) }
+    }
+
+    /// If the provided absolute `y`/`x` coordinates are within this NcPlane
+    /// returns true, if not returns false.
+    ///
+    /// Either way, translates the absolute coordinates relative to this NcPlane.
+    pub fn translate_abs(&self, y: &mut NcDimension, x: &mut NcDimension) -> bool {
+        unsafe { crate::ncplane_translate_abs(self, &mut (*y as i32), &mut (*x as i32)) }
+    }
+
+    /// Gets the `y`, `x` origin of this NcPlane relative to the standard plane,
     /// or the NcPlane to which it is bound.
     // CHECK: negative offsets
     pub fn yx(&self) -> (NcOffset, NcOffset) {
@@ -942,6 +1054,20 @@ impl NcPlane {
     /// or the NcPlane to which it is bound.
     pub fn y(&self) -> NcOffset {
         unsafe { crate::ncplane_y(self) as NcOffset }
+    }
+
+    /// Sets the scrolling behaviour of the plane, and
+    /// returns true if scrolling was previously enabled, of false, if disabled.
+    ///
+    /// All planes are created with scrolling disabled. Attempting to print past
+    /// the end of a line will stop at the plane boundary, and indicate an error.
+    ///
+    /// On a plane 10 columns wide and two rows high, printing "0123456789"
+    /// at the origin should succeed, but printing "01234567890" will by default
+    /// fail at the eleventh character. In either case, the cursor will be left
+    /// at location 0x10; it must be moved before further printing can take place. I
+    pub fn set_scrolling(&mut self, scroll: bool) -> bool {
+        unsafe { crate::ncplane_set_scrolling(self, scroll) }
     }
 }
 
@@ -1009,6 +1135,32 @@ impl NcPlane {
         boxmask: NcBoxMask,
     ) -> NcResult {
         crate::ncplane_box_sized(self, ul, ur, ll, lr, hline, vline, y_len, x_len, boxmask)
+    }
+
+    ///
+    #[inline]
+    pub fn double_box(
+        &mut self,
+        stylemask: NcStyleMask,
+        channels: NcChannelPair,
+        y_stop: NcDimension,
+        x_stop: NcDimension,
+        boxmask: NcBoxMask,
+    ) -> NcResult {
+        crate::ncplane_double_box(self, stylemask, channels, y_stop, x_stop, boxmask)
+    }
+
+    ///
+    #[inline]
+    pub fn double_box_sized(
+        &mut self,
+        stylemask: NcStyleMask,
+        channels: NcChannelPair,
+        y_len: NcDimension,
+        x_len: NcDimension,
+        boxmask: NcBoxMask,
+    ) -> NcResult {
+        crate::ncplane_double_box(self, stylemask, channels, y_len, x_len, boxmask)
     }
 
     /// Draws the perimeter around this NcPlane.
@@ -1098,6 +1250,112 @@ impl NcPlane {
     /// specified colors.
     pub fn pulse(&mut self, time: &NcTime, fader: NcFadeCb) -> NcResult {
         unsafe { crate::ncplane_pulse(self, time, fader, null_mut()) }
+    }
+
+    /// Draws a gradient with its upper-left corner at the current cursor
+    /// position, stopping at `y_stop` * `xstop`.
+    ///
+    /// Returns the number of cells filled on success,
+    /// or [NCRESULT_ERR][crate::NCRESULT_ERR] on error.
+    ///
+    /// The glyph composed of `egc` and `stylemask` is used for all cells.
+    /// The channels specified by `ul`, `ur`, `ll`, and `lr` are composed into
+    /// foreground and background gradients.
+    ///
+    /// To do a vertical gradient, `ul` ought equal `ur` and `ll` ought equal
+    /// `lr`. To do a horizontal gradient, `ul` ought equal `ll` and `ur` ought
+    /// equal `ul`.
+    ///
+    /// To color everything the same, all four channels should be equivalent.
+    /// The resulting alpha values are equal to incoming alpha values.
+    ///
+    /// Palette-indexed color is not supported.
+    ///
+    /// Preconditions for gradient operations (error otherwise):
+    ///
+    /// all: only RGB colors, unless all four channels match as default
+    /// all: all alpha values must be the same
+    /// 1x1: all four colors must be the same
+    /// 1xN: both top and both bottom colors must be the same (vertical gradient)
+    /// Nx1: both left and both right colors must be the same (horizontal gradient)
+    // TODO: https://github.com/dankamongmen/notcurses/issues/1235
+    pub fn gradient(
+        &mut self,
+        egc: &NcEgc,
+        stylemask: NcStyleMask,
+        ul: NcChannel,
+        ur: NcChannel,
+        ll: NcChannel,
+        lr: NcChannel,
+        y_stop: NcDimension,
+        x_stop: NcDimension,
+    ) -> NcResult {
+        unsafe {
+            crate::ncplane_gradient(
+                self,
+                &(*egc as i8),
+                stylemask as u32,
+                ul as u64,
+                ur as u64,
+                ll as u64,
+                lr as u64,
+                y_stop as i32,
+                x_stop as i32,
+            )
+        }
+    }
+
+    /// Draw a gradient with its upper-left corner at the current cursor position,
+    /// having dimensions `y_len` * `x_len`. See ncplane_gradient for more information.
+    /// static inline int
+    #[inline]
+    pub fn ncplane_gradient_sized(
+        &mut self,
+        egc: &NcEgc,
+        stylemask: NcStyleMask,
+        ul: NcChannel,
+        ur: NcChannel,
+        ll: NcChannel,
+        lr: NcChannel,
+        y_len: NcDimension,
+        x_len: NcDimension,
+    ) -> NcResult {
+        crate::ncplane_gradient_sized(self, egc, stylemask, ul, ur, ll, lr, y_len, x_len)
+    }
+
+    /// Draws a high-resolution gradient using upper blocks and synced backgrounds.
+    ///
+    /// Returns the number of cells filled on success,
+    /// or [NCRESULT_ERR][crate::NCRESULT_ERR] on error.
+    ///
+    /// This doubles the number of vertical gradations, but restricts you to
+    /// half blocks (appearing to be full blocks).
+    pub fn highgradient(
+        &mut self,
+        ul: NcChannel,
+        ur: NcChannel,
+        ll: NcChannel,
+        lr: NcChannel,
+        y_stop: NcDimension,
+        x_stop: NcDimension,
+    ) -> NcResult {
+        unsafe { crate::ncplane_highgradient(self, ul, ur, ll, lr, y_stop as i32, x_stop as i32) }
+    }
+
+    /// [`gradent_sized`](type.NcPlane.html#method.gradient_sized)`()`
+    /// meets [`highgradient`](type.NcPlane.html#method.highgradient)`()`.
+    pub fn highgradient_sized(
+        &mut self,
+        ul: NcChannel,
+        ur: NcChannel,
+        ll: NcChannel,
+        lr: NcChannel,
+        y_stop: NcDimension,
+        x_stop: NcDimension,
+    ) -> NcResult {
+        unsafe {
+            crate::ncplane_highgradient_sized(self, ul, ur, ll, lr, y_stop as i32, x_stop as i32)
+        }
     }
 
     /// Converts this NcPlane's content to greyscale.

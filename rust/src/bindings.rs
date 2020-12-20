@@ -399,6 +399,7 @@ pub use ffi::{
     ncplane_set_fg_rgb,
     ncplane_set_fg_rgb8,
     ncplane_set_fg_rgb8_clipped,
+    ncplane_set_resizecb,
     ncplane_set_scrolling,
     ncplane_set_styles,
     ncplane_set_userptr,

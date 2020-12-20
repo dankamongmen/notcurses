@@ -11,7 +11,7 @@ use crate::{
     ncplane_cursor_move_yx, ncplane_cursor_yx, ncplane_dim_yx, ncplane_gradient,
     ncplane_hline_interp, ncplane_putc_yx, ncplane_putnstr_yx, ncplane_putstr_yx, ncplane_resize,
     ncplane_styles, ncplane_vline_interp, ncplane_vprintf_yx, notcurses_align, NcAlign,
-    NcAlphaBits, NcBoxMask, NcCell, NcChannel, NcChannelPair, NcColor, NcDimension, NcPlane,
+    NcAlphaBits, NcBoxMask, NcCell, NcChannel, NcChannelPair, NcColor, NcDimension, NcEgc, NcPlane,
     NcResult, NcRgb, NcStyleMask, NCRESULT_ERR, NCRESULT_OK,
 };
 
@@ -129,7 +129,7 @@ pub fn ncplane_putchar_yx(
     }
 }
 
-/// Writes a series of [NcEgc][crate::NcEgc]s to the current location, using the current style.
+/// Writes a series of [NcEgc]s to the current location, using the current style.
 #[inline]
 pub fn ncplane_putstr(plane: &mut NcPlane, string: &str) -> NcResult {
     unsafe { ncplane_putstr_yx(plane, -1, -1, cstring![string]) }
@@ -264,7 +264,7 @@ pub fn ncplane_resize_simple(
 /// Returns the column at which `cols` columns ought start in order to be aligned
 /// according to `align` within this NcPlane.
 ///
-/// Returns -[`NCRESULT_MAX`][crate::NCRESULT_MAX] if
+/// Returns `-`[`NCRESULT_MAX`][crate::NCRESULT_MAX] if
 /// [NCALIGN_UNALIGNED][crate::NCALIGN_UNALIGNED] or invalid [NcAlign].
 #[inline]
 pub fn ncplane_align(plane: &NcPlane, align: NcAlign, cols: NcDimension) -> NcResult {
@@ -494,8 +494,8 @@ pub fn ncplane_double_box(
     plane: &mut NcPlane,
     stylemask: NcStyleMask,
     channels: NcChannelPair,
-    ystop: NcDimension,
-    xstop: NcDimension,
+    y_stop: NcDimension,
+    x_stop: NcDimension,
     boxmask: NcBoxMask,
 ) -> NcResult {
     #[allow(unused_assignments)]
@@ -529,8 +529,8 @@ pub fn ncplane_double_box(
                 &lr,
                 &hl,
                 &vl,
-                ystop as i32,
-                xstop as i32,
+                y_stop as i32,
+                x_stop as i32,
                 boxmask,
             );
         }
@@ -575,8 +575,8 @@ pub fn ncplane_rounded_box(
     plane: &mut NcPlane,
     stylemask: NcStyleMask,
     channels: NcChannelPair,
-    ystop: NcDimension,
-    xstop: NcDimension,
+    y_stop: NcDimension,
+    x_stop: NcDimension,
     boxmask: NcBoxMask,
 ) -> NcResult {
     #[allow(unused_assignments)]
@@ -610,8 +610,8 @@ pub fn ncplane_rounded_box(
                 &lr,
                 &hl,
                 &vl,
-                ystop as i32,
-                xstop as i32,
+                y_stop as i32,
+                x_stop as i32,
                 boxmask,
             );
         }
@@ -654,18 +654,15 @@ pub fn ncplane_rounded_box_sized(
 /// Draw a gradient with its upper-left corner at the current cursor position,
 /// having dimensions `y_len` * `x_len`. See ncplane_gradient for more information.
 /// static inline int
-// XXX receive cells as u32? See:
-// - https://github.com/dankamongmen/notcurses/issues/920
-// - https://github.com/dankamongmen/notcurses/issues/904
 #[inline]
 pub fn ncplane_gradient_sized(
     plane: &mut NcPlane,
-    egc: &[u8],
+    egc: &NcEgc,
     stylemask: NcStyleMask,
-    ul: u64,
-    ur: u64,
-    ll: u64,
-    lr: u64,
+    ul: NcChannel,
+    ur: NcChannel,
+    ll: NcChannel,
+    lr: NcChannel,
     y_len: NcDimension,
     x_len: NcDimension,
 ) -> NcResult {
@@ -677,12 +674,12 @@ pub fn ncplane_gradient_sized(
         ncplane_cursor_yx(plane, &mut y, &mut x);
         ncplane_gradient(
             plane,
-            cstring![egc],
+            &(*egc as i8),
             stylemask as u32,
-            ul,
-            ur,
-            ll,
-            lr,
+            ul as u64,
+            ur as u64,
+            ll as u64,
+            lr as u64,
             y + y_len as i32 - 1,
             x + x_len as i32 - 1,
         )

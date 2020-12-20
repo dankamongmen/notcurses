@@ -9,11 +9,13 @@
 /// - [`NCRESULT_MAX`]
 pub type NcResult = i32;
 
-/// ERROR value, for the functions that return an [`NcResult`].
+/// OK value, for the functions that return [`NcResult`].
 pub const NCRESULT_OK: i32 = 0;
 
-/// OK value, for the functions that return [`NcResult`].
+/// ERROR value, for the functions that return an [`NcResult`].
 pub const NCRESULT_ERR: i32 = -1;
 
 /// MAX value, for the functions that return [`NcResult`].
+///
+/// Used in [ncplane_align]
 pub const NCRESULT_MAX: i32 = i32::MAX;
