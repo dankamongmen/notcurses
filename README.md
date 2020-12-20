@@ -369,7 +369,7 @@ to breaking under incorrect `TERM` values. If you're not using `xterm`, your
 
 * **Q:** Using the C++ wrapper, how can I ensure that the `NotCurses` destructor is run when I return from `main()`? **A:** As noted in the [C++ FAQ](https://isocpp.org/wiki/faq/dtors#artificial-block-to-control-lifetimes), wrap it in an artificial scope (this assumes your `NotCurses` is scoped to `main()`).
 
-* **Q:** How do I hide a plane I want to make visible later? **A:** Either move it above and to the left of the screen (preventing resizes from making it visible), or place it underneath another (opaque) plane (the latter performs better).
+* **Q:** How do I hide a plane I want to make visible later? **A:** In order of least to most performant: move it offscreen using `ncplane_move_yx()`, move it underneath an opaque plane with `ncplane_move_below()`, or move it off-pile with `ncplane_reparent()`.
 
 * **Q:** Why isn't there an `ncplane_box_yx()`? Do you hate orthogonality, you dullard? **A:** `ncplane_box()` and friends already have far too many arguments, you monster.
 
