@@ -320,26 +320,34 @@ auto main(int argc, char** argv) -> int {
         if(r == 0){
           vopts.blitter = marsh.blitter;
           if(!loop){
-            stdn->printf(0, NCAlign::Center, "press key to advance");
-            if(!nc.render()){
-              failed = true;
-              break;
-            }
-            char32_t ie = nc.getc(true);
-            if(ie == (char32_t)-1){
-              failed = true;
-              break;
-            }else if(ie == 'q'){
-              goto done;
-            }else if(ie >= '0' && ie <= '8'){
-              --i; // rerun same input with the new blitter
-              vopts.blitter = blitter = static_cast<ncblitter_e>(ie - '0');
-            }else if(ie == NCKey::Resize){
-              --i; // rerun with the new size
-              if(!nc.refresh(&dimy, &dimx)){
+            if(displaytime < 0){
+              stdn->printf(0, NCAlign::Center, "press key to advance");
+              if(!nc.render()){
                 failed = true;
                 break;
               }
+              char32_t ie = nc.getc(true);
+              if(ie == (char32_t)-1){
+                failed = true;
+                break;
+              }else if(ie == 'q'){
+                goto done;
+              }else if(ie >= '0' && ie <= '8'){
+                --i; // rerun same input with the new blitter
+                vopts.blitter = blitter = static_cast<ncblitter_e>(ie - '0');
+              }else if(ie == NCKey::Resize){
+                --i; // rerun with the new size
+                if(!nc.refresh(&dimy, &dimx)){
+                  failed = true;
+                  break;
+                }
+              }
+            }else{
+              // FIXME do we still want to honor keybindings when timing out?
+              struct timespec ts;
+              ts.tv_sec = displaytime;
+              ts.tv_nsec = (displaytime - ts.tv_sec) * NANOSECS_IN_SEC;
+              clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);
             }
           }else{
             ncv->decode_loop();
