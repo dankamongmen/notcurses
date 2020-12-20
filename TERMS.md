@@ -13,7 +13,7 @@ you're going to have a bad time.
 The following have been established on a Debian Unstable workstation.
 
 | Terminal | `ccc` | `bce` | Recommended environment | Notes |
-| -------- | ----- | ------ | ----- |
+| -------- | ----- | ----- | ----- | ----- |
 | Linux console | ✔ | ✔ |`TERM=linux` `COLORTERM=24bit` | 8 (512 glyph fonts) or 16 (256 glyph fonts) colors max, but RGB values are downsampled to a 256-index palette. See below. |
 | FBterm | | ? |`TERM=fbterm` | 256 colors, no RGB color. |
 | kmscon | | ? | `TERM=xterm-256color` | No RGB color AFAICT, nor any distinct terminfo entry. |
