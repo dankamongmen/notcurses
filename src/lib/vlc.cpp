@@ -1,10 +1,12 @@
 #include "builddef.h"
 #ifdef USE_VLC
+#include <vlc/libvlc.h>
+#include <vlc/libvlc_media.h>
+#include <vlc/libvlc_events.h>
+#include <vlc/libvlc_media_player.h>
 #include "vlc.h"
 #include "internal.h"
 #include "visual-details.h"
-#include <vlc/libvlc.h>
-#include <vlc/libvlc_media.h>
 
 static libvlc_instance_t* vlcctx;
 
@@ -34,6 +36,11 @@ int ncvisual_resize(ncvisual* nc, int rows, int cols) {
   return -1;
 }
 
+static void
+media_callback(const struct libvlc_event_t* p_event, void* p_data) {
+  fprintf(stderr, "CALLBACK!\n");
+}
+
 ncvisual* ncvisual_from_file(const char* filename) {
   ncvisual* ret = ncvisual_create();
   if(ret == nullptr){
@@ -44,6 +51,22 @@ ncvisual* ncvisual_from_file(const char* filename) {
     ncvisual_destroy(ret);
     return nullptr;
   }
+  ret->details.manager = libvlc_media_event_manager(ret->details.media);
+  if(ret->details.manager == nullptr){
+    ncvisual_destroy(ret);
+    return nullptr;
+  }
+  if(libvlc_event_attach(ret->details.manager, libvlc_MediaPlayerOpening,
+                         media_callback, nullptr)){
+    ncvisual_destroy(ret);
+    return nullptr;
+  }
+  ret->details.player = libvlc_media_player_new_from_media(ret->details.media);
+  if(!ret->details.player){
+    ncvisual_destroy(ret);
+    return nullptr;
+  }
+  libvlc_media_player_play(ret->details.player);
   return ret;
 }
 
