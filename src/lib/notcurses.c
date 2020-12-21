@@ -969,24 +969,6 @@ get_tty_fd(notcurses* nc, FILE* ttyfp){
   return fd;
 }
 
-int cbreak_mode(int ttyfd, const struct termios* tpreserved){
-  // assume it's not a true terminal (e.g. we might be redirected to a file)
-  struct termios modtermios;
-  memcpy(&modtermios, tpreserved, sizeof(modtermios));
-  // see termios(3). disabling ECHO and ICANON means input will not be echoed
-  // to the screen, input is made available without enter-based buffering, and
-  // line editing is disabled. since we have not gone into raw mode, ctrl+c
-  // etc. still have their typical effects. ICRNL maps return to 13 (Ctrl+M)
-  // instead of 10 (Ctrl+J).
-  modtermios.c_lflag &= (~ECHO & ~ICANON);
-  modtermios.c_iflag &= (~ICRNL);
-  if(tcsetattr(ttyfd, TCSANOW, &modtermios)){
-    fprintf(stderr, "Error disabling echo / canonical on %d (%s)\n", ttyfd, strerror(errno));
-    return -1;
-  }
-  return 0;
-}
-
 int ncinputlayer_init(ncinputlayer* nilayer, FILE* infp){
   setbuffer(infp, NULL, 0);
   nilayer->inputescapes = NULL;
