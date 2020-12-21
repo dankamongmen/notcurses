@@ -119,14 +119,13 @@ typedef struct rasterstate {
   unsigned lastbr; // background rgb, overloaded for palindexed bg
   unsigned lastbg;
   unsigned lastbb;
-  // we can elide a color escape iff the color has not changed between the two
-  // cells and the current cell uses no defaults, or if both the current and
-  // the last used both defaults.
+  // we elide a color escape iff the color has not changed between two cells
   bool fgelidable;
   bool bgelidable;
   bool fgpalelidable;
   bool bgpalelidable;
-  bool defaultelidable;
+  bool fgdefelidable;
+  bool bgdefelidable;
 } rasterstate;
 
 // Tablets are the toplevel entitites within an ncreel. Each corresponds to

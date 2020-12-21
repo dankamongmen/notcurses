@@ -756,6 +756,47 @@ goto_location(notcurses* nc, FILE* out, int y, int x){
   return ret;
 }
 
+// at least one of the foreground and background are the default. emit the
+// necessary return to default (if one is necessary), and update rstate.
+static inline int
+raster_defaults(notcurses* nc, bool fgdef, bool bgdef, FILE* out){
+  if(!nc->tcache.op){ // if we don't have op, we don't have fgop/bgop
+    return 0;
+  }
+  bool mustsetfg = fgdef && !nc->rstate.fgdefelidable;
+  bool mustsetbg = bgdef && !nc->rstate.bgdefelidable;
+  if(!mustsetfg && !mustsetbg){ // don't need emit anything
+    ++nc->stats.defaultelisions;
+    return 0;
+  }else if((mustsetfg && mustsetbg) || !nc->tcache.fgop){
+    if(term_emit("op", nc->tcache.op, out, false)){
+      return -1;
+    }
+    nc->rstate.fgdefelidable = true;
+    nc->rstate.bgdefelidable = true;
+    nc->rstate.fgelidable = false;
+    nc->rstate.bgelidable = false;
+    nc->rstate.fgpalelidable = false;
+    nc->rstate.bgpalelidable = false;
+  }else if(mustsetfg){
+    if(term_emit("fgop", nc->tcache.fgop, out, false)){
+      return -1;
+    }
+    nc->rstate.fgdefelidable = true;
+    nc->rstate.fgelidable = false;
+    nc->rstate.fgpalelidable = false;
+  }else{
+    if(term_emit("bgop", nc->tcache.bgop, out, false)){
+      return -1;
+    }
+    nc->rstate.bgdefelidable = true;
+    nc->rstate.bgelidable = false;
+    nc->rstate.bgpalelidable = false;
+  }
+  ++nc->stats.defaultemissions;
+  return 0;
+}
+
 // Producing the frame requires three steps:
 //  * render -- build up a flat framebuffer from a set of ncplanes
 //  * rasterize -- build up a UTF-8/ASCII stream of escapes and EGCs
@@ -808,7 +849,8 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
           return -1;
         }
         if(normalized){
-          nc->rstate.defaultelidable = true;
+          nc->rstate.fgdefelidable = true;
+          nc->rstate.bgdefelidable = true;
           nc->rstate.bgelidable = false;
           nc->rstate.fgelidable = false;
           nc->rstate.bgpalelidable = false;
@@ -826,22 +868,10 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
         //  * we are a no-background glyph, and the previous was default foreground
         bool nobackground = cell_nobackground_p(srccell);
         if((cell_fg_default_p(srccell)) || (!nobackground && cell_bg_default_p(srccell))){
-          if(!nc->rstate.defaultelidable){
-            ++nc->stats.defaultemissions;
-            if(nc->tcache.op){
-              if(term_emit("op", nc->tcache.op, out, false)){
-                return -1;
-              }
-            }
-          }else{
-            ++nc->stats.defaultelisions;
+          if(raster_defaults(nc, cell_fg_default_p(srccell),
+                             !nobackground && cell_bg_default_p(srccell), out)){
+            return -1;
           }
-          // if either is not default, this will get turned off
-          nc->rstate.defaultelidable = true;
-          nc->rstate.fgelidable = false;
-          nc->rstate.bgelidable = false;
-          nc->rstate.fgpalelidable = false;
-          nc->rstate.bgpalelidable = false;
         }
         // if our cell has a non-default foreground, we can elide the non-default
         // foreground set iff either:
@@ -860,7 +890,7 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
             nc->rstate.fgpalelidable = true;
           }
           nc->rstate.lastr = palfg;
-          nc->rstate.defaultelidable = false;
+          nc->rstate.fgdefelidable = false;
           nc->rstate.fgelidable = false;
         }else if(!cell_fg_default_p(srccell)){ // rgb foreground
           cell_fg_rgb8(srccell, &r, &g, &b);
@@ -874,7 +904,7 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
             nc->rstate.fgelidable = true;
           }
           nc->rstate.lastr = r; nc->rstate.lastg = g; nc->rstate.lastb = b;
-          nc->rstate.defaultelidable = false;
+          nc->rstate.fgdefelidable = false;
           nc->rstate.fgpalelidable = false;
         }
         if(nobackground){
@@ -891,7 +921,7 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
             nc->rstate.bgpalelidable = true;
           }
           nc->rstate.lastr = palbg;
-          nc->rstate.defaultelidable = false;
+          nc->rstate.bgdefelidable = false;
           nc->rstate.bgelidable = false;
         }else if(!cell_bg_default_p(srccell)){ // rgb background
           cell_bg_rgb8(srccell, &br, &bg, &bb);
@@ -905,7 +935,7 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
             nc->rstate.bgelidable = true;
           }
           nc->rstate.lastbr = br; nc->rstate.lastbg = bg; nc->rstate.lastbb = bb;
-          nc->rstate.defaultelidable = false;
+          nc->rstate.bgdefelidable = false;
           nc->rstate.bgpalelidable = false;
         }
 //fprintf(stderr, "RAST %08x [%s] to %d/%d cols: %u %016lx\n", srccell->gcluster, pool_extended_gcluster(&nc->pool, srccell), y, x, srccell->width + 1, srccell->channels);
