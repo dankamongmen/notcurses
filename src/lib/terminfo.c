@@ -149,5 +149,10 @@ int interrogate_terminfo(tinfo* ti){
   // hardcode them :/. use at your own peril!
   ti->struck = "\x1b[9m";
   ti->struckoff = "\x1b[29m";
+  // if op is defined as ansi 39 + ansi 49, make the split definitions available
+  if(ti->op && strcmp(ti->op, "\x1b[39;49m") == 0){
+    ti->fgop = "\x1b[39m";
+    ti->bgop = "\x1b[49m";
+  }
   return 0;
 }

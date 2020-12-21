@@ -236,6 +236,8 @@ typedef struct tinfo {
   char* setaf;    // set foreground color (ANSI)
   char* setab;    // set background color (ANSI)
   char* op;       // set foreground and background color to default
+  char* fgop;     // set foreground to default
+  char* bgop;     // set background to default
   char* cup;      // move cursor
   char* cuu;      // move N cells up
   char* cub;      // move N cells left
