@@ -28,9 +28,47 @@ int cbreak_mode(int ttyfd, const struct termios* tpreserved){
   // etc. still have their typical effects. ICRNL maps return to 13 (Ctrl+M)
   // instead of 10 (Ctrl+J).
   modtermios.c_lflag &= (~ECHO & ~ICANON);
-  modtermios.c_iflag &= (~ICRNL);
+  modtermios.c_iflag &= ~ICRNL;
   if(tcsetattr(ttyfd, TCSANOW, &modtermios)){
     fprintf(stderr, "Error disabling echo / canonical on %d (%s)\n", ttyfd, strerror(errno));
+    return -1;
+  }
+  return 0;
+}
+
+// Disable signals originating from the terminal's line discipline, i.e.
+// SIGINT (^C), SIGQUIT (^\), and SIGTSTP (^Z). They are enabled by default.
+int notcurses_linesigs_disable(notcurses* n){
+  if(n->ttyfd < 0){
+    return 0;
+  }
+  struct termios tios;
+  if(tcgetattr(n->ttyfd, &tios)){
+    logerror(n, "Couldn't preserve terminal state for %d (%s)\n", n->ttyfd, strerror(errno));
+    return -1;
+  }
+  tios.c_lflag &= ~ISIG;
+  if(tcsetattr(n->ttyfd, TCSANOW, &tios)){
+    logerror(n, "Error disabling signals on %d (%s)\n", n->ttyfd, strerror(errno));
+    return -1;
+  }
+  return 0;
+}
+
+// Restore signals originating from the terminal's line discipline, i.e.
+// SIGINT (^C), SIGQUIT (^\), and SIGTSTP (^Z), if disabled.
+int notcurses_linesigs_enable(notcurses* n){
+  if(n->ttyfd < 0){
+    return 0;
+  }
+  struct termios tios;
+  if(tcgetattr(n->ttyfd, &tios)){
+    logerror(n, "Couldn't preserve terminal state for %d (%s)\n", n->ttyfd, strerror(errno));
+    return -1;
+  }
+  tios.c_lflag |= ~ISIG;
+  if(tcsetattr(n->ttyfd, TCSANOW, &tios)){
+    logerror(n, "Error disabling signals on %d (%s)\n", n->ttyfd, strerror(errno));
     return -1;
   }
   return 0;

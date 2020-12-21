@@ -41,6 +41,10 @@ typedef struct ncinput {
 
 **static inline bool ncinput_equal_p(const struct ncinput* ***n1***, const struct ncinput* ***n2***);**
 
+**int notcurses_linesigs_disable(struct notcurses* ***n***);**
+
+**int notcurses_linesigs_enable(struct notcurses* ***n***);**
+
 # DESCRIPTION
 
 notcurses supports input from keyboards and mice, and any device that looks
@@ -72,6 +76,13 @@ be called without the possibility of blocking.
 **ncinput_equal_p** compares two **ncinput** structs for data equality (i.e.
 not considering padding or the **seqnum** field), returning **true** if they
 represent the same input (though not necessarily the same input event).
+
+**notcurses_linesigs_disable** disables conversion of inputs **INTR**, **QUIT**,
+**SUSP**, and **DSUSP** into **SIGINT**, **SIGQUIT**, and **SIGTSTP**. These
+conversions are enabled by default. **notcurses_linesigs_enable** undoes this
+action, but signals in the interim are permanently lost.
+
+**int notcurses_linesigs_enable(struct notcurses* ***n***);**
 
 ## Mice
 

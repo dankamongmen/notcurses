@@ -1012,6 +1012,14 @@ API int notcurses_mouse_enable(struct notcurses* n);
 // Disable mouse events. Any events in the input queue can still be delivered.
 API int notcurses_mouse_disable(struct notcurses* n);
 
+// Disable signals originating from the terminal's line discipline, i.e.
+// SIGINT (^C), SIGQUIT (^\), and SIGTSTP (^Z). They are enabled by default.
+API int notcurses_linesigs_disable(struct notcurses* n);
+
+// Restore signals originating from the terminal's line discipline, i.e.
+// SIGINT (^C), SIGQUIT (^\), and SIGTSTP (^Z), if disabled.
+API int notcurses_linesigs_enable(struct notcurses* n);
+
 // Refresh the physical screen to match what was last rendered (i.e., without
 // reflecting any changes since the last call to notcurses_render()). This is
 // primarily useful if the screen is externally corrupted, or if an

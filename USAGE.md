@@ -554,12 +554,6 @@ nckey_supppuab_p(char32_t w){
   return w >= 0x100000 && w <= 0x10fffd;
 }
 
-// Is the event a synthesized mouse event?
-static inline bool
-nckey_mouse_p(char32_t r){
-  return r >= NCKEY_BUTTON1 && r <= NCKEY_RELEASE;
-}
-
 // An input event. Cell coordinates are currently defined only for mouse events.
 typedef struct ncinput {
   char32_t id;     // identifier. Unicode codepoint or synthesized NCKEY event
@@ -601,6 +595,20 @@ notcurses_getc_blocking(struct notcurses* n, ncinput* ni){
 }
 ```
 
+By default, certain keys are mapped to signals by the terminal's line
+discipline. This can be disabled with `notcurses_linesigs_disable()`, and
+reenabled with `notcurses_linesigs_enable()`.
+
+```
+// Disable signals originating from the terminal's line discipline, i.e.
+// SIGINT (^C), SIGQUIT (^\), and SIGTSTP (^Z). They are enabled by default.
+int notcurses_linesigs_disable(struct notcurses* n);
+
+// Restore signals originating from the terminal's line discipline, i.e.
+// SIGINT (^C), SIGQUIT (^\), and SIGTSTP (^Z), if disabled.
+int notcurses_linesigs_enable(struct notcurses* n);
+```
+
 ## Mice
 
 notcurses supports mice, though only through brokers such as X or
@@ -616,6 +624,12 @@ int notcurses_mouse_enable(struct notcurses* n);
 
 // Disable mouse events. Any events in the input queue can still be delivered.
 int notcurses_mouse_disable(struct notcurses* n);
+
+// Is the event a synthesized mouse event?
+static inline bool
+nckey_mouse_p(char32_t r){
+  return r >= NCKEY_BUTTON1 && r <= NCKEY_RELEASE;
+}
 ```
 
 "Button-event tracking mode" implies the ability to detect mouse button

@@ -1,6 +1,9 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 2.1.2 (not yet released)
+  * Add `notcurses_linesigs_enable()` and `notcurses_linesigs_disable()`.
+
 * 2.1.1 (2020-12-16)
   * Progress bars via `ncprogbar`, using the standard widget API.
 
