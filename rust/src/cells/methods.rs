@@ -16,7 +16,7 @@ impl NcCell {
         channels: NcChannelPair,
     ) -> Self {
         NcCell {
-            gcluster: ch as u32,
+            gcluster: (ch as u32).to_le(),
             gcluster_backstop: 0 as NcEgcBackstop,
             width,
             stylemask,
