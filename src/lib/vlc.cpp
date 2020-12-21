@@ -23,9 +23,16 @@ auto ncvisual_subtitle(const ncvisual* ncv) -> char* {
   return nullptr;
 }
 
+static void
+media_callback(const struct libvlc_event_t* p_event, void* p_data) {
+  ncvisual* nc = static_cast<ncvisual*>(p_data);
+  fprintf(stderr, "CALLBACK! %p\n", nc);
+  libvlc_media_player_stop(nc->details.player);
+}
+
 int ncvisual_decode(ncvisual* nc){
-  (void)nc; // FIXME
-  return -1;
+  libvlc_media_player_play(nc->details.player); // FIXME retcode
+  return 0;
 }
 
 // resize frame to oframe, converting to RGBA (if necessary) along the way
@@ -34,11 +41,6 @@ int ncvisual_resize(ncvisual* nc, int rows, int cols) {
   (void)rows;
   (void)cols;
   return -1;
-}
-
-static void
-media_callback(const struct libvlc_event_t* p_event, void* p_data) {
-  fprintf(stderr, "CALLBACK!\n");
 }
 
 ncvisual* ncvisual_from_file(const char* filename) {
@@ -57,7 +59,7 @@ ncvisual* ncvisual_from_file(const char* filename) {
     return nullptr;
   }
   if(libvlc_event_attach(ret->details.manager, libvlc_MediaPlayerOpening,
-                         media_callback, nullptr)){
+                         media_callback, ret)){
     ncvisual_destroy(ret);
     return nullptr;
   }
@@ -66,7 +68,10 @@ ncvisual* ncvisual_from_file(const char* filename) {
     ncvisual_destroy(ret);
     return nullptr;
   }
-  libvlc_media_player_play(ret->details.player);
+  if(ncvisual_decode(ret)){
+    ncvisual_destroy(ret);
+    return nullptr;
+  }
   return ret;
 }
 
