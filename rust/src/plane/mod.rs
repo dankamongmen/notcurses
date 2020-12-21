@@ -218,7 +218,6 @@ pub use reimplemented::*;
 /// - [`NcColor`, `NcRgb` & default color](#ncplane-methods-nccolor-ncrgb--default-color)
 /// - [`NcStyleMask` & `NcPaletteIndex`](#ncplane-methods-ncstylemask--paletteindex)
 /// - [`NcCell` & `NcEgc`](#ncplane-methods-nccell--ncegc)
-/// - [writing](#ncplane-methods-writing)
 /// - [cursor](#ncplane-methods-cursor)
 /// - [`NcPlane` & `Notcurses`](#ncplane-methods-ncplane--notcurses)
 /// - [boxes & perimeters](#ncplane-methods-boxes--perimeters)

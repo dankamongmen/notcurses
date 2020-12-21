@@ -1,8 +1,9 @@
 //! `Notcurses`
 
-// functions already exported by bindgen : 39
+// functions already exported by bindgen : 41
 // ------------------------------------------
-// (#) unit tests: 10 / 29
+// (#) test: 10
+// (W) wrap:  8
 // ------------------------------------------
 //   notcurses_at_yx
 //   notcurses_bottom
@@ -17,25 +18,27 @@
 //   notcurses_cursor_enable
 // # notcurses_debug
 // # notcurses_drop_planes
-//   notcurses_getc
-// # notcurses_init
+//W  notcurses_getc
+//W# notcurses_init
 //   notcurses_inputready_fd
 //   notcurses_lex_blitter
 //   notcurses_lex_margins
 //   notcurses_lex_scalemode
+//W  notcurses_linesigs_disable
+//W  notcurses_linesigs_enable
 //   notcurses_mouse_disable
 //   notcurses_mouse_enable
 //   notcurses_palette_size
 //   notcurses_refresh
-//   notcurses_render
+//W  notcurses_render
 //   notcurses_render_to_buffer
 //   notcurses_render_to_file
 //   notcurses_stats
 //   notcurses_stats_alloc
 //   notcurses_stats_reset
-//   notcurses_stdplane
-//   notcurses_stdplane_const
-// # notcurses_stop
+//W  notcurses_stdplane
+//W  notcurses_stdplane_const
+//W# notcurses_stop
 //   notcurses_str_blitter
 //   notcurses_str_scalemode
 //   notcurses_supported_styles
@@ -46,12 +49,13 @@
 //
 // functions manually reimplemented: 6
 // -----------------------------------------
-// (+) implement : 6 / 0
-// (#) unit tests: 0 / 6
+// (+) done: 6 / 0
+// (#) test: 0
+// (W) wrap: 2
 // -----------------------------------------
 // # notcurses_align
-// + notcurses_getc_blocking
-// + notcurses_getc_nblock
+//W+ notcurses_getc_blocking
+//W+ notcurses_getc_nblock
 // + notcurses_stddim_yx
 // + notcurses_stddim_yx_const
 // + notcurses_term_dim_yx

@@ -659,6 +659,8 @@ pub use ffi::{
     notcurses_lex_blitter,
     notcurses_lex_margins,
     notcurses_lex_scalemode,
+    notcurses_linesigs_disable,
+    notcurses_linesigs_enable,
     notcurses_mouse_disable,
     notcurses_mouse_enable,
     notcurses_palette_size,
