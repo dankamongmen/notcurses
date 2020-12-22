@@ -8,7 +8,7 @@ use crate::{
 /// # `NcMenu` Constructors
 impl NcMenu {
     /// `NcMenu` simple constructor
-    pub fn new(plane: &mut NcPlane) -> &mut Self {
+    pub fn new<'a>(plane: &mut NcPlane) -> &'a mut Self {
         Self::with_options(plane, &NcMenuOptions::new())
     }
 

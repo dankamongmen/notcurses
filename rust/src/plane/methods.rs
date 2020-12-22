@@ -73,13 +73,13 @@ impl NcPlane {
     /// New NcPlane.
     ///
     /// The returned plane will be the top, bottom, and root of this new pile.
-    pub fn new(
+    pub fn new<'a>(
         nc: &mut Notcurses,
         y: NcOffset,
         x: NcOffset,
         rows: NcDimension,
         cols: NcDimension,
-    ) -> &mut NcPlane {
+    ) -> &'a mut NcPlane {
         let options = NcPlaneOptions::new(y, x, rows, cols);
         unsafe { &mut *crate::ncpile_create(nc, &options) }
     }
@@ -92,13 +92,13 @@ impl NcPlane {
     }
 
     /// New NcPlane, bound to another NcPlane.
-    pub fn new_bound(
+    pub fn new_bound<'a>(
         bound_to: &mut NcPlane,
         y: NcOffset,
         x: NcOffset,
         rows: NcDimension,
         cols: NcDimension,
-    ) -> &mut NcPlane {
+    ) -> &'a mut NcPlane {
         let options = NcPlaneOptions::new(y, x, rows, cols);
         unsafe { &mut *crate::ncplane_create(bound_to, &options) }
     }
