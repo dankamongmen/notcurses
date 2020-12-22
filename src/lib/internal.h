@@ -275,6 +275,12 @@ typedef struct tinfo {
   bool AMflag;    // "AM" flag for automatic movement to next line
   char* smcup;    // enter alternate mode
   char* rmcup;    // restore primary mode
+
+  // kitty interprets an RGB background that matches the default background
+  // color *as* the default background, meaning it'll be translucent if
+  // background_opaque is in use. detect this, and avoid the default if so.
+  // bg_collides_default is either 0x0000000 or 0x1RRGGBB.
+  uint32_t bg_collides_default;
 } tinfo;
 
 typedef struct ncinputlayer {
@@ -365,7 +371,7 @@ void sigwinch_handler(int signo);
 
 void init_lang(notcurses* nc); // nc may be NULL, only used for logging
 int terminfostr(char** gseq, const char* name);
-int interrogate_terminfo(tinfo* ti);
+int interrogate_terminfo(tinfo* ti, const char* termname);
 
 int resize_callbacks_children(ncplane* n);
 

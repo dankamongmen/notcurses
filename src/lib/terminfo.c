@@ -43,7 +43,31 @@ int terminfostr(char** gseq, const char* name){
   return 0;
 }
 
-int interrogate_terminfo(tinfo* ti){
+// Qui si convien lasciare ogne sospetto; ogne viltà convien che qui sia morta.
+static int
+apply_term_heuristics(tinfo* ti, const char* termname){
+  if(!termname){
+    // setupterm interprets a missing/empty TERM variable as the special value “unknown”.
+    termname = "unknown";
+  }
+  // some control sequences are unavailable from terminfo, and we must instead
+  // hardcode them :/. use at your own peril!
+  ti->struck = "\x1b[9m";
+  ti->struckoff = "\x1b[29m";
+  // kitty (https://sw.kovidgoyal.net/kitty/)
+  if(strstr(termname, "kitty")){
+    // see https://sw.kovidgoyal.net/kitty/protocol-extensions.html
+    // FIXME detect the actual default background color; this assumes it to
+    // be RGB(0, 0, 0) (the default). we could also just set it, i guess.
+    ti->bg_collides_default = 0x1000000;
+  }
+  return 0;
+}
+
+// termname is just the TERM environment variable. some details are not
+// exposed via terminfo, and we must make heuristic decisions based on
+// the detected terminal type, yuck :/.
+int interrogate_terminfo(tinfo* ti, const char* termname){
   memset(ti, 0, sizeof(*ti));
   ti->RGBflag = query_rgb();
   int colors = tigetnum("colors");
@@ -145,14 +169,13 @@ int interrogate_terminfo(tinfo* ti){
       return -1;
     }
   }
-  // some control sequences are unavailable from terminfo, and we must instead
-  // hardcode them :/. use at your own peril!
-  ti->struck = "\x1b[9m";
-  ti->struckoff = "\x1b[29m";
   // if op is defined as ansi 39 + ansi 49, make the split definitions available
   if(ti->op && strcmp(ti->op, "\x1b[39;49m") == 0){
     ti->fgop = "\x1b[39m";
     ti->bgop = "\x1b[49m";
+  }
+  if(apply_term_heuristics(ti, termname)){
+    return -1;
   }
   return 0;
 }

@@ -651,13 +651,20 @@ term_esc_rgb(FILE* out, bool foreground, unsigned r, unsigned g, unsigned b){
 
 static inline int
 term_bg_rgb8(bool RGBflag, const char* setab, int colors, FILE* out,
-             unsigned r, unsigned g, unsigned b){
+             unsigned r, unsigned g, unsigned b, uint32_t bg_collides_default){
   // We typically want to use tputs() and tiperm() to acquire and write the
   // escapes, as these take into account terminal-specific delays, padding,
   // etc. For the case of DirectColor, there is no suitable terminfo entry, but
   // we're also in that case working with hopefully more robust terminals.
   // If it doesn't work, eh, it doesn't work. Fuck the world; save yourself.
   if(RGBflag){
+    if(bg_collides_default){
+      if((r == (bg_collides_default & 0xff0000lu)) &&
+         (g == (bg_collides_default & 0xff00lu)) &&
+         (b == (bg_collides_default & 0xfflu))){
+        ++b; // what if it's 255 FIXME
+      }
+    }
     return term_esc_rgb(out, false, r, g, b);
   }else{
     if(setab == NULL){
@@ -928,7 +935,9 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
           if(nc->rstate.bgelidable && nc->rstate.lastbr == br && nc->rstate.lastbg == bg && nc->rstate.lastbb == bb){
             ++nc->stats.bgelisions;
           }else{
-            if(term_bg_rgb8(nc->tcache.RGBflag, nc->tcache.setab, nc->tcache.colors, out, br, bg, bb)){
+            if(term_bg_rgb8(nc->tcache.RGBflag, nc->tcache.setab,
+                            nc->tcache.colors, out, br, bg, bb,
+                            nc->tcache.bg_collides_default)){
               return -1;
             }
             ++nc->stats.bgemissions;
@@ -1224,7 +1233,8 @@ int ncdirect_bg_rgb(ncdirect* nc, unsigned rgb){
     return -1;
   }
   if(term_bg_rgb8(nc->tcache.RGBflag, nc->tcache.setab, nc->tcache.colors, nc->ttyfp,
-                  (rgb & 0xff0000u) >> 16u, (rgb & 0xff00u) >> 8u, rgb & 0xffu)){
+                  (rgb & 0xff0000u) >> 16u, (rgb & 0xff00u) >> 8u, rgb & 0xffu,
+                  nc->tcache.bg_collides_default)){
     return -1;
   }
   nc->bgdefault = false;
