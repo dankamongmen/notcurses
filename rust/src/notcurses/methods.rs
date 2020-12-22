@@ -4,9 +4,9 @@ use core::ptr::{null, null_mut};
 use std::ffi::CStr;
 
 use crate::{
-    notcurses_init, sigset_t, NcBlitter, NcChannelPair, NcDimension, NcEgc, NcInput, NcLogLevel, NcScale, NcFile, NcStats, cstring,
-    NcPlane, NcResult, NcStyleMask, NcTime, Notcurses, NotcursesOptions, NCRESULT_OK,
-    NCOPTION_NO_ALTERNATE_SCREEN, NCOPTION_SUPPRESS_BANNERS,
+    cstring, notcurses_init, sigset_t, NcBlitter, NcChannelPair, NcDimension, NcEgc, NcFile,
+    NcInput, NcLogLevel, NcPlane, NcResult, NcScale, NcStats, NcStyleMask, NcTime, Notcurses,
+    NotcursesOptions, NCOPTION_NO_ALTERNATE_SCREEN, NCOPTION_SUPPRESS_BANNERS, NCRESULT_OK,
 };
 
 /// # `NotcursesOptions` Constructors
@@ -132,7 +132,7 @@ impl Notcurses {
         stylemask: &mut NcStyleMask,
         channels: &mut NcChannelPair,
     ) -> Option<NcEgc> {
-        let egc = unsafe { crate::notcurses_at_yx(self, x as i32 , y as i32, stylemask, channels) };
+        let egc = unsafe { crate::notcurses_at_yx(self, x as i32, y as i32, stylemask, channels) };
         if egc.is_null() {
             return None;
         }
@@ -235,14 +235,18 @@ impl Notcurses {
     ///
     /// C style function: [notcurses_debug][crate::notcurses_debug]
     pub fn debug(&mut self, debugfp: &mut NcFile) {
-        unsafe { crate::notcurses_debug(self, debugfp.as_nc_ptr()); }
+        unsafe {
+            crate::notcurses_debug(self, debugfp.as_nc_ptr());
+        }
     }
 
     /// Destroys all [NcPlane]s other than the stdplane.
     ///
     /// C style function: [notcurses_drop_planes][crate::notcurses_drop_planes]
     pub fn drop_planes(&mut self) {
-        unsafe { crate::notcurses_drop_planes(self); }
+        unsafe {
+            crate::notcurses_drop_planes(self);
+        }
     }
 
     ///
@@ -411,7 +415,9 @@ impl Notcurses {
     ///
     /// C style function: [notcurses_stats][crate::notcurses_stats]
     pub fn stats(&mut self, stats: &mut NcStats) {
-        unsafe { crate::notcurses_stats(self, stats); }
+        unsafe {
+            crate::notcurses_stats(self, stats);
+        }
     }
 
     /// Allocates an ncstats object.
@@ -428,7 +434,9 @@ impl Notcurses {
     ///
     /// C style function: [notcurses_stats_reset][crate::notcurses_stats_reset]
     pub fn stats_reset(&mut self, stats: &mut NcStats) {
-        unsafe { crate::notcurses_stats_reset(self, stats); }
+        unsafe {
+            crate::notcurses_stats_reset(self, stats);
+        }
     }
 
     /// Returns a mutable reference to the standard [NcPlane] for this terminal.
@@ -489,9 +497,7 @@ impl Notcurses {
     ///
     /// C style function: [notcurses_supported_styles][crate::notcurses_supported_styles]
     pub fn supported_styles(&self) -> NcStyleMask {
-        unsafe {
-            crate::notcurses_supported_styles(self) as NcStyleMask
-        }
+        unsafe { crate::notcurses_supported_styles(self) as NcStyleMask }
     }
 
     /// Returns the topmost [NcPlane], of which there is always at least one.

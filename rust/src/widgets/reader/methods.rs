@@ -20,12 +20,12 @@ impl NcReaderOptions {
 /// # `NcReader` Constructors
 impl NcReader {
     /// `NcReader` simple constructor
-    pub unsafe fn new<'a>(plane: &mut NcPlane) -> &'a mut Self {
+    pub fn new(plane: &mut NcPlane) -> &mut Self {
         Self::with_options(plane, &NcReaderOptions::new())
     }
 
     /// `NcReader` constructor with options
-    pub unsafe fn with_options<'a>(plane: &mut NcPlane, options: &NcReaderOptions) -> &'a mut Self {
-        &mut *ncreader_create(plane, options)
+    pub fn with_options<'a>(plane: &mut NcPlane, options: &NcReaderOptions) -> &'a mut Self {
+        unsafe { &mut *ncreader_create(plane, options) }
     }
 }

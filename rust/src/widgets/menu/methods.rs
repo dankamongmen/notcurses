@@ -8,13 +8,13 @@ use crate::{
 /// # `NcMenu` Constructors
 impl NcMenu {
     /// `NcMenu` simple constructor
-    pub unsafe fn new<'a>(plane: &mut NcPlane) -> &'a mut Self {
+    pub fn new(plane: &mut NcPlane) -> &mut Self {
         Self::with_options(plane, &NcMenuOptions::new())
     }
 
     /// `NcMenu` constructor with options
-    pub unsafe fn with_options<'a>(plane: &mut NcPlane, options: &NcMenuOptions) -> &'a mut Self {
-        &mut *ncmenu_create(plane, options)
+    pub fn with_options<'a>(plane: &mut NcPlane, options: &NcMenuOptions) -> &'a mut Self {
+        unsafe { &mut *ncmenu_create(plane, options) }
     }
 }
 

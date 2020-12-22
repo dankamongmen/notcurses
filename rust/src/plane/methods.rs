@@ -73,13 +73,13 @@ impl NcPlane {
     /// New NcPlane.
     ///
     /// The returned plane will be the top, bottom, and root of this new pile.
-    pub fn new<'a>(
+    pub fn new(
         nc: &mut Notcurses,
         y: NcOffset,
         x: NcOffset,
         rows: NcDimension,
         cols: NcDimension,
-    ) -> &'a mut NcPlane {
+    ) -> &mut NcPlane {
         let options = NcPlaneOptions::new(y, x, rows, cols);
         unsafe { &mut *crate::ncpile_create(nc, &options) }
     }
@@ -92,13 +92,13 @@ impl NcPlane {
     }
 
     /// New NcPlane, bound to another NcPlane.
-    pub fn new_bound<'a>(
+    pub fn new_bound(
         bound_to: &mut NcPlane,
         y: NcOffset,
         x: NcOffset,
         rows: NcDimension,
         cols: NcDimension,
-    ) -> &'a mut NcPlane {
+    ) -> &mut NcPlane {
         let options = NcPlaneOptions::new(y, x, rows, cols);
         unsafe { &mut *crate::ncplane_create(bound_to, &options) }
     }
@@ -560,7 +560,7 @@ impl NcPlane {
         crate::ncplane_putc(self, cell)
     }
 
-    /// Calls [putchar_yx](type.NcPlane.html#method.putchar_yx) at the current cursor location.
+    /// Calls [putchar_yx][NcPlane#method.putchar_yx] at the current cursor location.
     pub fn putchar(&mut self, ch: char) -> NcResult {
         crate::ncplane_putchar(self, ch)
     }
@@ -574,6 +574,8 @@ impl NcPlane {
 
     /// Replaces the [NcEgc][crate::NcEgc], but retain the styling.
     /// The current styling of the plane will not be changed.
+    ///
+    /// C style function: [ncplane_putchar_yx][crate::ncplane_putchar_yx]
     pub fn putchar_yx(&mut self, y: NcDimension, x: NcDimension, ch: char) -> NcResult {
         crate::ncplane_putchar_yx(self, y, x, ch)
     }
@@ -586,6 +588,8 @@ impl NcPlane {
     ///
     /// On error, a non-positive number is returned, indicating the number of
     /// columns which were written before the error.
+    ///
+    /// C style function: [ncplane_putstr][crate::ncplane_putstr]
     #[inline]
     pub fn putstr(&mut self, string: &str) -> NcResult {
         crate::ncplane_putstr(self, string)
@@ -736,7 +740,8 @@ impl NcPlane {
     /// If `source` does not intersect, this plane will not be changed,
     /// but it is not an error.
     ///
-    /// See [`mergedown`](type.NcPlane.html#method.mergedown)
+    /// See [`mergedown`][NcPlane#method.mergedown]
+    ///
     /// for more information.
     //
     // TODO: maybe create a reversed method, and/or an associated function,
@@ -798,7 +803,7 @@ impl NcPlane {
         unsafe { &mut *crate::ncplane_reparent(self, newparent) }
     }
 
-    /// Like [`reparent`](type.NcPlane.html#method.reparent), except any bound
+    /// Like [`reparent`][NcPlane#method.reparent], except any bound
     /// planes comes along with this NcPlane to its new destination.
     ///
     /// Their z-order is maintained.
@@ -935,7 +940,7 @@ impl NcPlane {
 
     /// Return the rows of this NcPlane.
     ///
-    /// Alias of [dim_y](type.NcPlane.html#method.dim_y)
+    /// Alias of [dim_y][NcPlane#method.dim_y]
     #[inline]
     pub fn rows(&self) -> NcDimension {
         self.dim_yx().0
@@ -943,7 +948,7 @@ impl NcPlane {
 
     /// Return the cols of this NcPlane.
     ///
-    /// Alias of [dim_x](type.NcPlane.html#method.dim_x)
+    /// Alias of [dim_x][NcPlane#method.dim_x]
     #[inline]
     pub fn cols(&self) -> NcDimension {
         self.dim_yx().1
@@ -1022,21 +1027,29 @@ impl NcPlane {
 
     /// Maps the provided coordinates relative to the origin of this NcPlane,
     /// to the same absolute coordinates relative to the origin of `target`.
-    // TODO: API change, return the coordinates instead of using mutable references
+    ///
+    /// C style function: [ncplane_translate][crate::ncplane_translate]
+    //
+    // TODO: API change, return the coordinates as a tuple instead of being &mut
     pub fn translate(&self, target: &NcPlane, y: &mut NcDimension, x: &mut NcDimension) {
         unsafe { crate::ncplane_translate(self, target, &mut (*y as i32), &mut (*x as i32)) }
     }
 
-    /// If the provided absolute `y`/`x` coordinates are within this NcPlane
-    /// returns true, if not returns false.
+    /// Returns true if the provided absolute `y`/`x` coordinates are within
+    /// this NcPlane, or false otherwise.
     ///
     /// Either way, translates the absolute coordinates relative to this NcPlane.
+    ///
+    /// C style function: [ncplane_translate_abs][crate::ncplane_translate_abs]
+    //
+    // TODO: API change, return a tuple (y,x,bool)
     pub fn translate_abs(&self, y: &mut NcDimension, x: &mut NcDimension) -> bool {
         unsafe { crate::ncplane_translate_abs(self, &mut (*y as i32), &mut (*x as i32)) }
     }
 
     /// Gets the `y`, `x` origin of this NcPlane relative to the standard plane,
     /// or the NcPlane to which it is bound.
+    //
     // CHECK: negative offsets
     pub fn yx(&self) -> (NcOffset, NcOffset) {
         let (mut y, mut x) = (0, 0);
@@ -1120,7 +1133,7 @@ impl NcPlane {
     /// having dimensions `y_len` * `x_len`.
     /// The minimum box size is 2x2, and it cannot be drawn off-screen.
     ///
-    /// See the [`box`](type.NcPlane.html#method.box) method for more information.
+    /// See the [`box`][NcPlane#method.box] method for more information.
     #[inline]
     pub fn box_sized(
         &mut self,
@@ -1278,15 +1291,14 @@ impl NcPlane {
     /// 1x1: all four colors must be the same
     /// 1xN: both top and both bottom colors must be the same (vertical gradient)
     /// Nx1: both left and both right colors must be the same (horizontal gradient)
-    // TODO: https://github.com/dankamongmen/notcurses/issues/1235
     pub fn gradient(
         &mut self,
         egc: &NcEgc,
         stylemask: NcStyleMask,
-        ul: NcChannel,
-        ur: NcChannel,
-        ll: NcChannel,
-        lr: NcChannel,
+        ul: NcChannelPair,
+        ur: NcChannelPair,
+        ll: NcChannelPair,
+        lr: NcChannelPair,
         y_stop: NcDimension,
         x_stop: NcDimension,
     ) -> NcResult {
@@ -1295,10 +1307,10 @@ impl NcPlane {
                 self,
                 &(*egc as i8),
                 stylemask as u32,
-                ul as u64,
-                ur as u64,
-                ll as u64,
-                lr as u64,
+                ul,
+                ur,
+                ll,
+                lr,
                 y_stop as i32,
                 x_stop as i32,
             )
@@ -1306,10 +1318,13 @@ impl NcPlane {
     }
 
     /// Draw a gradient with its upper-left corner at the current cursor position,
-    /// having dimensions `y_len` * `x_len`. See ncplane_gradient for more information.
-    /// static inline int
+    /// having dimensions `y_len` * `x_len`.
+    ///
+    /// See [gradient][NcPlane#method.gradient] for more information.
+    ///
+    /// C style function: [ncplane_gradient_sized][crate::ncplane_gradient_sized]
     #[inline]
-    pub fn ncplane_gradient_sized(
+    pub fn gradient_sized(
         &mut self,
         egc: &NcEgc,
         stylemask: NcStyleMask,
@@ -1342,8 +1357,8 @@ impl NcPlane {
         unsafe { crate::ncplane_highgradient(self, ul, ur, ll, lr, y_stop as i32, x_stop as i32) }
     }
 
-    /// [`gradent_sized`](type.NcPlane.html#method.gradient_sized)`()`
-    /// meets [`highgradient`](type.NcPlane.html#method.highgradient)`()`.
+    /// [`gradient_sized`][NcPlane#method.gradient_sized]
+    /// meets [`highgradient`][NcPlane#method.highgradient].
     pub fn highgradient_sized(
         &mut self,
         ul: NcChannel,

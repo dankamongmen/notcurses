@@ -13,7 +13,7 @@ impl NcDirect {
     /// used to add color and styling to text in the standard output paradigm.
     //
     // Returns NULL on error, including any failure initializing terminfo.
-    pub unsafe fn new<'a>() -> &'a mut NcDirect {
+    pub fn new<'a>() -> &'a mut NcDirect {
         Self::with_flags(0)
     }
 
@@ -23,7 +23,7 @@ impl NcDirect {
     /// - NCDIRECT_OPTION_INHIBIT_CBREAK
     /// - NCDIRECT_OPTION_INHIBIT_SETLOCALE
     ///
-    pub unsafe fn with_flags<'a>(flags: NcDirectFlags) -> &'a mut NcDirect {
-        &mut *ncdirect_init(null(), null_mut(), flags)
+    pub fn with_flags<'a>(flags: NcDirectFlags) -> &'a mut NcDirect {
+        unsafe { &mut *ncdirect_init(null(), null_mut(), flags) }
     }
 }

@@ -359,8 +359,7 @@ pub fn cell_init(cell: &mut NcCell) {
 /// - The styling of the cell is left untouched, but any resources are released.
 /// - Blasts the styling with 'style' and 'channels'.
 ///
-#[allow(unused_unsafe)]
-pub unsafe fn cell_prime(
+pub fn cell_prime(
     plane: &mut NcPlane,
     cell: &mut NcCell,
     gcluster: NcEgc,
@@ -379,8 +378,7 @@ pub unsafe fn cell_prime(
 /// On error, any [NcCell]s this function might have loaded before the error
 /// are [cell_release]d. There must be at least six [NcEgc]s in gcluster.
 ///
-#[allow(unused_unsafe)]
-pub unsafe fn cells_load_box(
+pub fn cells_load_box(
     plane: &mut NcPlane,
     style: NcStyleMask,
     channels: NcChannelPair,
@@ -396,27 +394,27 @@ pub unsafe fn cells_load_box(
     let mut gclu = gcluster as u32 as *const i8;
     let mut ulen: NcResult;
 
-    ulen = unsafe { cell_prime(plane, ul, gcluster, style, channels) };
+    ulen = cell_prime(plane, ul, gcluster, style, channels);
 
     if ulen > 0 {
         gclu = unsafe { gclu.offset(ulen as isize) };
-        ulen = unsafe { cell_prime(plane, ur, gcluster, style, channels) };
+        ulen = cell_prime(plane, ur, gcluster, style, channels);
 
         if ulen > 0 {
             gclu = unsafe { gclu.offset(ulen as isize) };
-            ulen = unsafe { cell_prime(plane, ll, gcluster, style, channels) };
+            ulen = cell_prime(plane, ll, gcluster, style, channels);
 
             if ulen > 0 {
                 gclu = unsafe { gclu.offset(ulen as isize) };
-                ulen = unsafe { cell_prime(plane, lr, gcluster, style, channels) };
+                ulen = cell_prime(plane, lr, gcluster, style, channels);
 
                 if ulen > 0 {
                     gclu = unsafe { gclu.offset(ulen as isize) };
-                    ulen = unsafe { cell_prime(plane, hl, gcluster, style, channels) };
+                    ulen = cell_prime(plane, hl, gcluster, style, channels);
 
                     if ulen > 0 {
                         let _gclu = unsafe { gclu.offset(ulen as isize) };
-                        ulen = unsafe { cell_prime(plane, vl, gcluster, style, channels) };
+                        ulen = cell_prime(plane, vl, gcluster, style, channels);
 
                         if ulen > 0 {
                             return NCRESULT_OK;

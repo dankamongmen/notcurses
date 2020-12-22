@@ -292,4 +292,6 @@ pub const NCBLIT_BRAILLE: NcBlitter = crate::bindings::ffi::ncblitter_e_NCBLIT_B
 pub const NCBLIT_DEFAULT: NcBlitter = crate::bindings::ffi::ncblitter_e_NCBLIT_DEFAULT;
 
 /// [`NcBlitter`] mode (not yet implemented)
+///
+/// See [Sixel in Wikipedia](https://en.wikipedia.org/wiki/Sixel).
 pub const NCBLIT_SIXEL: NcBlitter = crate::bindings::ffi::ncblitter_e_NCBLIT_SIXEL;
