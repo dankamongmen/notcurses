@@ -1109,7 +1109,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
             shortname_term ? shortname_term : "?",
             longname_term ? longname_term : "?");
   }
-  if(interrogate_terminfo(&ret->tcache)){
+  if(interrogate_terminfo(&ret->tcache, shortname_term)){
     goto err;
   }
   reset_term_attributes(ret);

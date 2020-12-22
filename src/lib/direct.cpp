@@ -595,15 +595,17 @@ ncdirect* ncdirect_init(const char* termtype, FILE* outfp, uint64_t flags){
   if(ncinputlayer_init(&ret->input, stdin)){
     goto err;
   }
+  const char* shortname_term;
   int termerr;
   if(setupterm(termtype, ret->ctermfd, &termerr) != OK){
     fprintf(stderr, "Terminfo error %d (see terminfo(3ncurses))\n", termerr);
     goto err;
   }
+  shortname_term = termname();
   if(ncvisual_init(ffmpeg_log_level(NCLOGLEVEL_SILENT))){
     goto err;
   }
-  if(interrogate_terminfo(&ret->tcache)){
+  if(interrogate_terminfo(&ret->tcache, shortname_term)){
     goto err;
   }
   ret->fgdefault = ret->bgdefault = true;
