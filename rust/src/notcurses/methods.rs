@@ -131,6 +131,18 @@ impl Notcurses {
         crate::notcurses_getc_nblocking(self, input)
     }
 
+    /// Disables signals originating from the terminal's line discipline, i.e.
+    /// SIGINT (^C), SIGQUIT (^), and SIGTSTP (^Z). They are enabled by default.
+    pub fn linesigs_disable(&mut self) -> NcResult {
+        unsafe { crate::notcurses_linesigs_disable(self) }
+    }
+
+    /// Restores signals originating from the terminal's line discipline, i.e.
+    /// SIGINT (^C), SIGQUIT (^), and SIGTSTP (^Z), if disabled.
+    pub fn linesigs_enable(&mut self) -> NcResult {
+        unsafe { crate::notcurses_linesigs_enable(self) }
+    }
+
     ///
     pub fn render(&mut self) -> NcResult {
         unsafe { crate::notcurses_render(self) }
