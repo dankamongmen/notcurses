@@ -433,7 +433,7 @@ int ncdirect_raster_frame(ncdirect* n, ncdirectv* faken, ncalign_e align,
     return -1;
   }
   int lenx = ncplane_dim_x(faken);
-  int xoff = ncdirect_align(n, align, lenx / encoding_x_scale(bset));
+  int xoff = ncdirect_align(n, align, lenx);
   if(ncdirect_dump_plane(n, faken, xoff)){
     free_plane(faken);
     return -1;
@@ -649,19 +649,20 @@ int ncdirect_stop(ncdirect* nc){
 }
 
 static inline int
-ncdirect_style_emit(ncdirect* n, const char* sgr, unsigned stylebits, FILE* out){
-  if(sgr == nullptr){
-    return -1;
+ncdirect_style_emit(ncdirect* n, unsigned stylebits, FILE* out){
+  int r = -1;
+  if(stylebits == 0 && n->tcache.sgr0){
+    r = term_emit("sgr0", n->tcache.sgr0, n->ttyfp, false);
+  }else if(n->tcache.sgr){
+    r = term_emit("sgr", tiparm(n->tcache.sgr, stylebits & NCSTYLE_STANDOUT,
+                                stylebits & NCSTYLE_UNDERLINE,
+                                stylebits & NCSTYLE_REVERSE,
+                                stylebits & NCSTYLE_BLINK,
+                                stylebits & NCSTYLE_DIM,
+                                stylebits & NCSTYLE_BOLD,
+                                stylebits & NCSTYLE_INVIS,
+                                stylebits & NCSTYLE_PROTECT, 0), out, false);
   }
-  // FIXME if these are all 0s, use sgr0 short form
-  int r = term_emit("sgr", tiparm(sgr, stylebits & NCSTYLE_STANDOUT,
-                                  stylebits & NCSTYLE_UNDERLINE,
-                                  stylebits & NCSTYLE_REVERSE,
-                                  stylebits & NCSTYLE_BLINK,
-                                  stylebits & NCSTYLE_DIM,
-                                  stylebits & NCSTYLE_BOLD,
-                                  stylebits & NCSTYLE_INVIS,
-                                  stylebits & NCSTYLE_PROTECT, 0), out, false);
   // sgr resets colors, so set them back up if not defaults
   if(r == 0){
     if(!n->fgdefault){
@@ -676,7 +677,7 @@ ncdirect_style_emit(ncdirect* n, const char* sgr, unsigned stylebits, FILE* out)
 
 int ncdirect_styles_on(ncdirect* n, unsigned stylebits){
   uint32_t stylemask = n->stylemask | stylebits;
-  if(ncdirect_style_emit(n, n->tcache.sgr, stylemask, n->ttyfp) == 0){
+  if(ncdirect_style_emit(n, stylemask, n->ttyfp) == 0){
     if(term_setstyle(n->ttyfp, n->stylemask, stylemask, NCSTYLE_ITALIC,
                      n->tcache.italics, n->tcache.italoff)){
       return 0;
@@ -694,7 +695,7 @@ int ncdirect_styles_on(ncdirect* n, unsigned stylebits){
 // turn off any specified stylebits
 int ncdirect_styles_off(ncdirect* n, unsigned stylebits){
   uint32_t stylemask = n->stylemask & ~stylebits;
-  if(ncdirect_style_emit(n, n->tcache.sgr, stylemask, n->ttyfp) == 0){
+  if(ncdirect_style_emit(n, stylemask, n->ttyfp) == 0){
     if(term_setstyle(n->ttyfp, n->stylemask, stylemask, NCSTYLE_ITALIC,
                      n->tcache.italics, n->tcache.italoff)){
       return -1;
@@ -712,7 +713,7 @@ int ncdirect_styles_off(ncdirect* n, unsigned stylebits){
 // set the current stylebits to exactly those provided
 int ncdirect_styles_set(ncdirect* n, unsigned stylebits){
   uint32_t stylemask = stylebits;
-  if(ncdirect_style_emit(n, n->tcache.sgr, stylemask, n->ttyfp) == 0){
+  if(ncdirect_style_emit(n, stylemask, n->ttyfp) == 0){
     n->stylemask &= !(NCSTYLE_ITALIC | NCSTYLE_STRUCK); // sgr clears both
     if(term_setstyle(n->ttyfp, n->stylemask, stylemask, NCSTYLE_ITALIC,
                      n->tcache.italics, n->tcache.italoff)){
