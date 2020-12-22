@@ -263,6 +263,19 @@ impl Notcurses {
         crate::notcurses_getc_nblocking(self, input)
     }
 
+    /// Gets a file descriptor suitable for input event poll()ing.
+    ///
+    /// When this descriptor becomes available, you can call
+    /// [getc_nblock][Notcurses#method.getc_nblock](), and input ought be ready.
+    ///
+    /// This file descriptor is not necessarily the file descriptor associated
+    /// with stdin (but it might be!).
+    ///
+    /// C style function: [notcurses_inputready_fd][crate::notcurses_inputready_fd]
+    pub fn inputready_fd(&mut self) -> NcResult {
+        unsafe { crate::notcurses_inputready_fd(self) }
+    }
+
     /// Returns an [NcBlitter] from a string representation.
     ///
     /// C style function: [notcurses_lex_blitter][crate::notcurses_lex_blitter]
@@ -364,6 +377,24 @@ impl Notcurses {
     /// C style function: [notcurses_render][crate::notcurses_render]
     pub fn render(&mut self) -> NcResult {
         unsafe { crate::notcurses_render(self) }
+    }
+
+    /// Performs the rendering and rasterization portion of
+    /// [render][Notcurses#method.render] but do not write the resulting buffer
+    /// out to the terminal.
+    ///
+    /// Using this function, the user can control the writeout process,
+    /// and render a second frame while writing another.
+    ///
+    /// The returned buffer must be freed by the caller.
+    ///
+    /// C style function: [notcurses_render_to_buffer][crate::notcurses_render_to_buffer]
+    //
+    // CHECK that this works.
+    pub fn render_to_buffer(&mut self, buffer: &mut Vec<u8>) -> NcResult {
+        let mut len = buffer.len() as u64;
+        let mut buf = buffer.as_mut_ptr() as *mut i8;
+        unsafe { crate::notcurses_render_to_buffer(self, &mut buf, &mut len) }
     }
 
     /// Writes the last rendered frame, in its entirety, to 'fp'.
@@ -469,7 +500,6 @@ impl Notcurses {
     pub fn top<'a>(&'a mut self) -> &'a mut NcPlane {
         unsafe { &mut *crate::notcurses_top(self) }
     }
-
 
     /// Returns a human-readable string describing the running Notcurses version.
     ///

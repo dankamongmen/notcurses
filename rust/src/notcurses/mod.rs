@@ -3,7 +3,7 @@
 // functions already exported by bindgen : 41
 // ------------------------------------------
 // (#) test: 10
-// (W) wrap: 38
+// (W) wrap: 40 / 1
 // ------------------------------------------
 //W  notcurses_at_yx
 //W  notcurses_bottom
@@ -20,7 +20,7 @@
 //W# notcurses_drop_planes
 //W  notcurses_getc
 //W# notcurses_init
-//   notcurses_inputready_fd
+//W  notcurses_inputready_fd
 //W  notcurses_lex_blitter
 //W  notcurses_lex_margins
 //W  notcurses_lex_scalemode
@@ -31,7 +31,7 @@
 //W  notcurses_palette_size
 //W  notcurses_refresh
 //W  notcurses_render
-//   notcurses_render_to_buffer
+//W  notcurses_render_to_buffer
 //W  notcurses_render_to_file
 //W  notcurses_stats
 //W  notcurses_stats_alloc
@@ -43,7 +43,7 @@
 //W  notcurses_str_scalemode
 //W  notcurses_supported_styles
 //W  notcurses_top
-//   notcurses_ucs32_to_utf8
+//~  notcurses_ucs32_to_utf8 (not needed in rust)
 //W  notcurses_version
 //W  notcurses_version_components
 //
