@@ -59,22 +59,22 @@ steps:
     - rustc --version
     - cargo build
     - env TERM=xterm cargo t_all
-#---
-#kind: pipeline
-#type: docker
-#name: ubuntu-focal
-#
-#steps:
-#- name: ubuntu-build
-#  image: dankamongmen/groovy:2020-11-21a
-#  commands:
-#    - export LANG=en_US.UTF-8
-#    - mkdir build
-#    - cd build
-#    - cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_MULTIMEDIA=none ..
-#    - make -j2
-#    - env TERM=xterm ctest
-#    - make install
-#    - ldconfig
-#    - cd ../cffi
-#    - python3 setup.py sdist build
+---
+kind: pipeline
+type: docker
+name: ubuntu-focal
+
+steps:
+- name: ubuntu-build
+  image: dankamongmen/hirsute:2020-12-21a
+  commands:
+    - export LANG=en_US.UTF-8
+    - mkdir build
+    - cd build
+    - cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_MULTIMEDIA=none ..
+    - make -j2
+    - env TERM=xterm ctest
+    - make install
+    - ldconfig
+    - cd ../cffi
+    - python3 setup.py sdist build
