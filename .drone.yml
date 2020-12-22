@@ -69,6 +69,7 @@ steps:
   image: dankamongmen/hirsute:2020-12-21a
   commands:
     - export LANG=en_US.UTF-8
+    - apt-get -y install cmake
     - mkdir build
     - cd build
     - cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_MULTIMEDIA=none ..

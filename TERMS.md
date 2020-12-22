@@ -33,6 +33,21 @@ The following have been established on a Debian Unstable workstation.
 Note that `xfce4-terminal`, `gnome-terminal`, etc. are essentially skinning
 atop the common VTE ("Virtual TErminal") library.
 
+## Kitty
+
+Kitty has some interesting, atypical behaviors. Foremost among these is that
+an RGB background color equivalent to the configured default background color
+will be rendered as the default background. This means, for instance, that if
+the configured default background color is RGB(0, 0, 0), and is translucent,
+a background of RGB(0, 0, 0) will be translucent. To work around this, when
+`TERM` begins with "kitty", we detect the default background color, and when
+we would write this as RGB, we alter one of the colors by 1. See
+https://github.com/kovidgoyal/kitty/issues/3185 and
+https://github.com/dankamongmen/notcurses/issues/1117.
+
+Kitty is furthermore the only terminal I know to lack the `bce` capability, but
+Notcurses never relies on `bce` behavior.
+
 ## GNU screen
 
 GNU screen does have 24-bit color support, but only in the 5.X series. Note
