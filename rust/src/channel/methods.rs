@@ -2,7 +2,7 @@
 
 use crate::{NcAlphaBits, NcChannel, NcChannelPair, NcColor, NcRgb};
 
-/// Enables the methods of [NcChannel];
+/// Enables the [NcChannel] methods.
 pub trait NcChannelMethods {
     fn alpha(&self) -> NcAlphaBits;
     fn set_alpha(&mut self, alpha: NcAlphaBits);
@@ -22,7 +22,7 @@ pub trait NcChannelMethods {
     //
 }
 
-/// Enables the methods of [NcChannelPair];
+/// Enables the [NcChannelPair] methods.
 pub trait NcChannelPairMethods {
     fn fg_alpha(&self) -> NcAlphaBits;
     fn bg_alpha(&self) -> NcAlphaBits;

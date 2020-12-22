@@ -46,6 +46,8 @@ pub fn notcurses_align(availcols: NcDimension, align: NcAlign, cols: NcDimension
 
 /// 'input' may be NULL if the caller is uninterested in event details.
 /// If no event is ready, returns 0.
+///
+/// Rust method: [Notcurses.getc_nblock][Notcurses#method.getc_nblock]
 #[inline]
 pub fn notcurses_getc_nblock(nc: &mut Notcurses, input: &mut NcInput) -> char {
     unsafe {

@@ -3,49 +3,49 @@
 // functions already exported by bindgen : 41
 // ------------------------------------------
 // (#) test: 10
-// (W) wrap:  8
+// (W) wrap: 38
 // ------------------------------------------
-//   notcurses_at_yx
-//   notcurses_bottom
-// # notcurses_canchangecolor
-// # notcurses_canfade
-// # notcurses_canopen_images
-// # notcurses_canopen_videos
-// # notcurses_cansixel
-// # notcurses_cantruecolor
-// # notcurses_canutf8
-//   notcurses_cursor_disable
-//   notcurses_cursor_enable
-// # notcurses_debug
-// # notcurses_drop_planes
+//W  notcurses_at_yx
+//W  notcurses_bottom
+//W# notcurses_canchangecolor
+//W# notcurses_canfade
+//W# notcurses_canopen_images
+//W# notcurses_canopen_videos
+//W# notcurses_cansixel
+//W# notcurses_cantruecolor
+//W# notcurses_canutf8
+//W  notcurses_cursor_disable
+//W  notcurses_cursor_enable
+//W# notcurses_debug
+//W# notcurses_drop_planes
 //W  notcurses_getc
 //W# notcurses_init
 //   notcurses_inputready_fd
-//   notcurses_lex_blitter
-//   notcurses_lex_margins
-//   notcurses_lex_scalemode
+//W  notcurses_lex_blitter
+//W  notcurses_lex_margins
+//W  notcurses_lex_scalemode
 //W  notcurses_linesigs_disable
 //W  notcurses_linesigs_enable
-//   notcurses_mouse_disable
-//   notcurses_mouse_enable
-//   notcurses_palette_size
-//   notcurses_refresh
+//W  notcurses_mouse_disable
+//W  notcurses_mouse_enable
+//W  notcurses_palette_size
+//W  notcurses_refresh
 //W  notcurses_render
 //   notcurses_render_to_buffer
-//   notcurses_render_to_file
-//   notcurses_stats
-//   notcurses_stats_alloc
-//   notcurses_stats_reset
+//W  notcurses_render_to_file
+//W  notcurses_stats
+//W  notcurses_stats_alloc
+//W  notcurses_stats_reset
 //W  notcurses_stdplane
 //W  notcurses_stdplane_const
 //W# notcurses_stop
-//   notcurses_str_blitter
-//   notcurses_str_scalemode
-//   notcurses_supported_styles
-//   notcurses_top
+//W  notcurses_str_blitter
+//W  notcurses_str_scalemode
+//W  notcurses_supported_styles
+//W  notcurses_top
 //   notcurses_ucs32_to_utf8
-//   notcurses_version
-//   notcurses_version_components
+//W  notcurses_version
+//W  notcurses_version_components
 //
 // functions manually reimplemented: 6
 // -----------------------------------------
@@ -67,7 +67,7 @@ mod methods;
 mod reimplemented;
 pub use reimplemented::*;
 
-/// The main struct of the (full mode) TUI library
+/// The main struct of the TUI library (full mode)
 ///
 /// Notcurses builds atop the terminfo abstraction layer to
 /// provide reasonably portable vivid character displays.

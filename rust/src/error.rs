@@ -16,6 +16,4 @@ pub const NCRESULT_OK: i32 = 0;
 pub const NCRESULT_ERR: i32 = -1;
 
 /// MAX value, for the functions that return [`NcResult`].
-///
-/// Used in [ncplane_align]
 pub const NCRESULT_MAX: i32 = i32::MAX;
