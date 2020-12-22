@@ -3,6 +3,9 @@ rearrangements of Notcurses.
 
 * 2.1.2 (not yet released)
   * Add `notcurses_linesigs_enable()` and `notcurses_linesigs_disable()`.
+  * Divide `ncdirect_render_image()` into component `ncdirect_render_frame()`
+    and `ncdirect_raster_frame()` (the original remains), allowing multiple
+    threads to decode images concurrently.
 
 * 2.1.1 (2020-12-16)
   * Progress bars via `ncprogbar`, using the standard widget API.
