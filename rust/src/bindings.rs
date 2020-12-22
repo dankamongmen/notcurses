@@ -484,6 +484,27 @@ pub use ffi::{
     ncreader_write_egc,
 };
 
+// ncprogbar -------------------------------------------------------------------
+//
+// already wrapped:
+//
+// // structs
+// ncprogbar,
+// ncprogbar_options,
+//
+// // constants
+// NCPROGBAR_OPTION_RETROGRADE
+
+#[doc(inline)]
+pub use ffi::{
+    // functions
+    ncprogbar_create,
+    ncprogbar_destroy,
+    ncprogbar_plane,
+    ncprogbar_progress,
+    ncprogbar_set_progress,
+};
+
 // ncreel ----------------------------------------------------------------------
 //
 // already wrapped:
