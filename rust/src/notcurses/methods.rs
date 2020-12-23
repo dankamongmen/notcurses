@@ -124,7 +124,7 @@ impl Notcurses {
     ///
     /// This NcEgc must be freed by the caller.
     ///
-    /// C style function: [notcurses_at_yx][crate::notcurses_at_yx]
+    /// *C style function: [notcurses_at_yx()][crate::notcurses_at_yx].*
     pub fn at_yx(
         &mut self,
         y: NcDimension,
@@ -142,7 +142,7 @@ impl Notcurses {
 
     /// Returns the bottommost [NcPlane], of which there is always at least one.
     ///
-    /// C style function: [notcurses_bottom][crate::notcurses_bottom]
+    /// *C style function: [notcurses_bottom()][crate::notcurses_bottom].*
     pub fn bottom<'a>(&'a mut self) -> &'a mut NcPlane {
         unsafe { &mut *crate::notcurses_bottom(self) }
     }
@@ -151,7 +151,7 @@ impl Notcurses {
     ///
     /// Requires the "ccc" terminfo capability.
     ///
-    /// C style function: [notcurses_canchangecolor][crate::notcurses_canchangecolor]
+    /// *C style function: [notcurses_canchangecolor()][crate::notcurses_canchangecolor].*
     pub fn canchangecolor(&self) -> bool {
         unsafe { crate::notcurses_canchangecolor(self) }
     }
@@ -160,7 +160,7 @@ impl Notcurses {
     ///
     /// Fading requires either the "rgb" or "ccc" terminfo capability.
     ///
-    /// C style function: [notcurses_canfade][crate::notcurses_canfade]
+    /// *C style function: [notcurses_canfade()][crate::notcurses_canfade].*
     pub fn canfade(&self) -> bool {
         unsafe { crate::notcurses_canfade(self) }
     }
@@ -169,7 +169,7 @@ impl Notcurses {
     ///
     /// This requires being built against FFmpeg/OIIO.
     ///
-    /// C style function: [notcurses_canopen_images][crate::notcurses_canopen_images]
+    /// *C style function: [notcurses_canopen_images()][crate::notcurses_canopen_images].*
     pub fn canopen_images(&self) -> bool {
         unsafe { crate::notcurses_canopen_images(self) }
     }
@@ -178,7 +178,7 @@ impl Notcurses {
     ///
     /// This requires being built against FFmpeg.
     ///
-    /// C style function: [notcurses_canopen_videos][crate::notcurses_canopen_videos]
+    /// *C style function: [notcurses_canopen_videos()][crate::notcurses_canopen_videos].*
     pub fn canopen_videos(&self) -> bool {
         unsafe { crate::notcurses_canopen_videos(self) }
     }
@@ -187,7 +187,7 @@ impl Notcurses {
     ///
     /// See [NCBLIT_SIXEL][crate::NCBLIT_SIXEL].
     ///
-    /// C style function: [notcurses_cansixel][crate::notcurses_cansixel]
+    /// *C style function: [notcurses_cansixel()][crate::notcurses_cansixel].*
     pub fn cansixel(&self) -> bool {
         unsafe { crate::notcurses_cansixel(self) }
     }
@@ -195,7 +195,7 @@ impl Notcurses {
     /// Returns true if it's possible to directly specify RGB values per cell,
     /// or false if it's only possible to use palettes.
     ///
-    /// C style function: [notcurses_cantruecolor][crate::notcurses_cantruecolor]
+    /// *C style function: [notcurses_cantruecolor()][crate::notcurses_cantruecolor].*
     pub fn cantruecolor(&self) -> bool {
         unsafe { crate::notcurses_cantruecolor(self) }
     }
@@ -204,7 +204,7 @@ impl Notcurses {
     ///
     /// Requires `LANG` being set to a UTF-8 locale.
     ///
-    /// C style function: [notcurses_canutf8][crate::notcurses_canutf8]
+    /// *C style function: [notcurses_canutf8()][crate::notcurses_canutf8].*
     pub fn canutf8(&self) -> bool {
         unsafe { crate::notcurses_canutf8(self) }
     }
@@ -213,7 +213,7 @@ impl Notcurses {
     ///
     /// Immediate effect (no need for a call to notcurses_render()).
     ///
-    /// C style function: [notcurses_cursor_disable][crate::notcurses_cursor_disable]
+    /// *C style function: [notcurses_cursor_disable()][crate::notcurses_cursor_disable].*
     pub fn cursor_disable(&mut self) -> NcResult {
         unsafe { crate::notcurses_cursor_disable(self) }
     }
@@ -223,7 +223,7 @@ impl Notcurses {
     /// Immediate effect (no need for a call to notcurses_render()).
     /// It is an error if `y`, `x` lies outside the standard plane.
     ///
-    /// C style function: [notcurses_cursor_enable][crate::notcurses_cursor_enable]
+    /// *C style function: [notcurses_cursor_enable()][crate::notcurses_cursor_enable].*
     pub fn cursor_enable(&mut self, y: NcDimension, x: NcDimension) -> NcResult {
         unsafe { crate::notcurses_cursor_enable(self, y as i32, x as i32) }
     }
@@ -233,7 +233,7 @@ impl Notcurses {
     /// Output is freeform, and subject to change. It includes geometry of all
     /// planes, from all piles.
     ///
-    /// C style function: [notcurses_debug][crate::notcurses_debug]
+    /// *C style function: [notcurses_debug()][crate::notcurses_debug].*
     pub fn debug(&mut self, debugfp: &mut NcFile) {
         unsafe {
             crate::notcurses_debug(self, debugfp.as_nc_ptr());
@@ -242,7 +242,7 @@ impl Notcurses {
 
     /// Destroys all [NcPlane]s other than the stdplane.
     ///
-    /// C style function: [notcurses_drop_planes][crate::notcurses_drop_planes]
+    /// *C style function: [notcurses_drop_planes()][crate::notcurses_drop_planes].*
     pub fn drop_planes(&mut self) {
         unsafe {
             crate::notcurses_drop_planes(self);
@@ -250,19 +250,19 @@ impl Notcurses {
     }
 
     ///
-    /// C style function: [notcurses_getc][crate::notcurses_getc]
+    /// *C style function: [notcurses_getc()][crate::notcurses_getc].*
     pub fn getc(&mut self, time: &NcTime, sigmask: &mut sigset_t, input: &mut NcInput) -> char {
         unsafe { core::char::from_u32_unchecked(crate::notcurses_getc(self, time, sigmask, input)) }
     }
 
     ///
-    /// C style function: [notcurses_getc_nblock][crate::notcurses_getc_nblock]
+    /// *C style function: [notcurses_getc_nblock()][crate::notcurses_getc_nblock].*
     pub fn getc_nblock(&mut self, input: &mut NcInput) -> char {
         crate::notcurses_getc_nblock(self, input)
     }
 
     ///
-    /// C style function: [notcurses_getc_nblocking][crate::notcurses_getc_nblocking]
+    /// *C style function: [notcurses_getc_nblocking()][crate::notcurses_getc_nblocking].*
     pub fn getc_nblocking(&mut self, input: &mut NcInput) -> char {
         crate::notcurses_getc_nblocking(self, input)
     }
@@ -270,19 +270,19 @@ impl Notcurses {
     /// Gets a file descriptor suitable for input event poll()ing.
     ///
     /// When this descriptor becomes available, you can call
-    /// [getc_nblock][Notcurses#method.getc_nblock](), and input ought be ready.
+    /// [getc_nblock()][Notcurses#method.getc_nblock], and input ought be ready.
     ///
     /// This file descriptor is not necessarily the file descriptor associated
     /// with stdin (but it might be!).
     ///
-    /// C style function: [notcurses_inputready_fd][crate::notcurses_inputready_fd]
+    /// *C style function: [notcurses_inputready_fd()][crate::notcurses_inputready_fd].*
     pub fn inputready_fd(&mut self) -> NcResult {
         unsafe { crate::notcurses_inputready_fd(self) }
     }
 
     /// Returns an [NcBlitter] from a string representation.
     ///
-    /// C style function: [notcurses_lex_blitter][crate::notcurses_lex_blitter]
+    /// *C style function: [notcurses_lex_blitter()][crate::notcurses_lex_blitter].*
     pub fn lex_blitter(op: &str) -> Option<NcBlitter> {
         let mut blitter = 0;
         let res = unsafe { crate::notcurses_lex_blitter(cstring![op], &mut blitter) };
@@ -297,14 +297,14 @@ impl Notcurses {
     /// There can be either a single number, which will define all margins equally,
     /// or there can be four numbers separated by commas.
     ///
-    /// C style function: [notcurses_lex_margins][crate::notcurses_lex_margins]
+    /// *C style function: [notcurses_lex_margins()][crate::notcurses_lex_margins].*
     pub fn lex_margins(op: &str, options: &mut NotcursesOptions) -> NcResult {
         unsafe { crate::notcurses_lex_margins(cstring![op], options) }
     }
 
     /// Returns an [NcScale] from a string representation.
     ///
-    /// C style function: [notcurses_lex_scalemode][crate::notcurses_lex_scalemode]
+    /// *C style function: [notcurses_lex_scalemode()][crate::notcurses_lex_scalemode].*
     pub fn lex_scalemode(op: &str) -> Option<NcScale> {
         let mut scalemode = 0;
         let res = unsafe { crate::notcurses_lex_scalemode(cstring![op], &mut scalemode) };
@@ -317,7 +317,7 @@ impl Notcurses {
     /// Disables signals originating from the terminal's line discipline, i.e.
     /// SIGINT (^C), SIGQUIT (^), and SIGTSTP (^Z). They are enabled by default.
     ///
-    /// C style function: [notcurses_linesigs_disable][crate::notcurses_linesigs_disable]
+    /// *C style function: [notcurses_linesigs_disable()][crate::notcurses_linesigs_disable].*
     pub fn linesigs_disable(&mut self) -> NcResult {
         unsafe { crate::notcurses_linesigs_disable(self) }
     }
@@ -325,7 +325,7 @@ impl Notcurses {
     /// Restores signals originating from the terminal's line discipline, i.e.
     /// SIGINT (^C), SIGQUIT (^), and SIGTSTP (^Z), if disabled.
     ///
-    /// C style function: [notcurses_linesigs_enable][crate::notcurses_linesigs_enable]
+    /// *C style function: [notcurses_linesigs_enable()][crate::notcurses_linesigs_enable].*
     pub fn linesigs_enable(&mut self) -> NcResult {
         unsafe { crate::notcurses_linesigs_enable(self) }
     }
@@ -334,7 +334,7 @@ impl Notcurses {
     ///
     /// Any events in the input queue can still be delivered.
     ///
-    /// C style function: [notcurses_mouse_disable][crate::notcurses_mouse_disable]
+    /// *C style function: [notcurses_mouse_disable()][crate::notcurses_mouse_disable].*
     pub fn mouse_disable(&mut self) -> NcResult {
         unsafe { crate::notcurses_mouse_disable(self) }
     }
@@ -343,9 +343,9 @@ impl Notcurses {
     /// and UTF8-style extended coordinates.
     ///
     /// On success, [NCRESULT_OK] is returned, and mouse events will be
-    /// published to [getc][Notcurses#method.getc]().
+    /// published to [getc()][Notcurses#method.getc].
     ///
-    /// C style function: [notcurses_mouse_enable][crate::notcurses_mouse_enable]
+    /// *C style function: [notcurses_mouse_enable()][crate::notcurses_mouse_enable].*
     pub fn mouse_enable(&mut self) -> NcResult {
         unsafe { crate::notcurses_mouse_enable(self) }
     }
@@ -356,7 +356,7 @@ impl Notcurses {
     /// Note that several terminal emulators advertise more colors than they
     /// actually support, downsampling internally.
     ///
-    /// C style function: [notcurses_palette_size][crate::notcurses_palette_size]
+    /// *C style function: [notcurses_palette_size()][crate::notcurses_palette_size].*
     pub fn palette_size(&mut self) -> u32 {
         unsafe { crate::notcurses_palette_size(self) }
     }
@@ -369,7 +369,7 @@ impl Notcurses {
     /// [NCKEY_RESIZE][crate::NCKEY_RESIZE] event has been read and you're not
     /// yet ready to render.
     ///
-    /// C style function: [notcurses_refresh][crate::notcurses_refresh]
+    /// *C style function: [notcurses_refresh()][crate::notcurses_refresh].*
     //
     // TODO: try returning Result<(NcDimension, NcDimension), NcResult>
     pub fn refresh(&mut self, y: &mut NcDimension, x: &mut NcDimension) -> NcResult {
@@ -378,7 +378,7 @@ impl Notcurses {
 
     /// Renders and rasterizes the standard pile in one shot. Blocking call.
     ///
-    /// C style function: [notcurses_render][crate::notcurses_render]
+    /// *C style function: [notcurses_render()][crate::notcurses_render].*
     pub fn render(&mut self) -> NcResult {
         unsafe { crate::notcurses_render(self) }
     }
@@ -392,7 +392,7 @@ impl Notcurses {
     ///
     /// The returned buffer must be freed by the caller.
     ///
-    /// C style function: [notcurses_render_to_buffer][crate::notcurses_render_to_buffer]
+    /// *C style function: [notcurses_render_to_buffer()][crate::notcurses_render_to_buffer].*
     //
     // CHECK that this works.
     pub fn render_to_buffer(&mut self, buffer: &mut Vec<u8>) -> NcResult {
@@ -403,17 +403,17 @@ impl Notcurses {
 
     /// Writes the last rendered frame, in its entirety, to 'fp'.
     ///
-    /// If [render][Notcurses#method.render]() has not yet been called,
+    /// If [render()][Notcurses#method.render] has not yet been called,
     /// nothing will be written.
     ///
-    /// C style function: [notcurses_render_to_file][crate::notcurses_render_to_file]
+    /// *C style function: [notcurses_render_to_file()][crate::notcurses_render_to_file].*
     pub fn render_to_file(&mut self, fp: &mut NcFile) -> NcResult {
         unsafe { crate::notcurses_render_to_file(self, fp.as_nc_ptr()) }
     }
 
     /// Acquires an atomic snapshot of the Notcurses object's stats.
     ///
-    /// C style function: [notcurses_stats][crate::notcurses_stats]
+    /// *C style function: [notcurses_stats()][crate::notcurses_stats].*
     pub fn stats(&mut self, stats: &mut NcStats) {
         unsafe {
             crate::notcurses_stats(self, stats);
@@ -425,14 +425,14 @@ impl Notcurses {
     /// Use this rather than allocating your own, since future versions of
     /// Notcurses might enlarge this structure.
     ///
-    /// C style function: [notcurses_stats_alloc][crate::notcurses_stats_alloc]
+    /// *C style function: [notcurses_stats_alloc()][crate::notcurses_stats_alloc].*
     pub fn stats_alloc<'a>(&'a mut self) -> &'a mut NcStats {
         unsafe { &mut *crate::notcurses_stats_alloc(self) }
     }
 
     /// Resets all cumulative stats (immediate ones, such as fbbytes, are not reset).
     ///
-    /// C style function: [notcurses_stats_reset][crate::notcurses_stats_reset]
+    /// *C style function: [notcurses_stats_reset()][crate::notcurses_stats_reset].*
     pub fn stats_reset(&mut self, stats: &mut NcStats) {
         unsafe {
             crate::notcurses_stats_reset(self, stats);
@@ -444,7 +444,7 @@ impl Notcurses {
     /// The standard plane always exists, and its origin is always at the
     /// uppermost, leftmost cell.
     ///
-    /// C style function: [notcurses_stdplane][crate::notcurses_stdplane]
+    /// *C style function: [notcurses_stdplane()][crate::notcurses_stdplane].*
     pub fn stdplane<'a>(&mut self) -> &'a mut NcPlane {
         unsafe { &mut *crate::notcurses_stdplane(self) }
     }
@@ -454,21 +454,21 @@ impl Notcurses {
     /// The standard plane always exists, and its origin is always at the
     /// uppermost, leftmost cell.
     ///
-    /// C style function: [notcurses_stdplane_const][crate::notcurses_stdplane_const]
+    /// *C style function: [notcurses_stdplane_const()][crate::notcurses_stdplane_const].*
     pub fn stdplane_const<'a>(&self) -> &'a NcPlane {
         unsafe { &*crate::notcurses_stdplane_const(self) }
     }
 
     /// Destroys the Notcurses context.
     ///
-    /// C style function: [notcurses_stop][crate::notcurses_stop]
+    /// *C style function: [notcurses_stop()][crate::notcurses_stop].*
     pub fn stop(&mut self) -> NcResult {
         unsafe { crate::notcurses_stop(self) }
     }
 
     /// Gets the name of an [NcBlitter] blitter.
     ///
-    /// C style function: [notcurses_str_blitter][crate::notcurses_str_blitter]
+    /// *C style function: [notcurses_str_blitter()][crate::notcurses_str_blitter].*
     pub fn str_blitter(blitter: NcBlitter) -> String {
         unsafe {
             CStr::from_ptr(crate::notcurses_str_blitter(blitter))
@@ -479,7 +479,7 @@ impl Notcurses {
 
     /// Gets the name of an [NcScale] scaling mode.
     ///
-    /// C style function: [notcurses_str_scalemode][crate::notcurses_str_scalemode]
+    /// *C style function: [notcurses_str_scalemode()][crate::notcurses_str_scalemode].*
     pub fn str_scalemode(scalemode: NcScale) -> String {
         unsafe {
             CStr::from_ptr(crate::notcurses_str_scalemode(scalemode))
@@ -495,21 +495,21 @@ impl Notcurses {
     ///
     /// For more information, see the "ncv" capability in terminfo(5).
     ///
-    /// C style function: [notcurses_supported_styles][crate::notcurses_supported_styles]
+    /// *C style function: [notcurses_supported_styles()][crate::notcurses_supported_styles].*
     pub fn supported_styles(&self) -> NcStyleMask {
         unsafe { crate::notcurses_supported_styles(self) as NcStyleMask }
     }
 
     /// Returns the topmost [NcPlane], of which there is always at least one.
     ///
-    /// C style function: [notcurses_top][crate::notcurses_top]
+    /// *C style function: [notcurses_top()][crate::notcurses_top].*
     pub fn top<'a>(&'a mut self) -> &'a mut NcPlane {
         unsafe { &mut *crate::notcurses_top(self) }
     }
 
     /// Returns a human-readable string describing the running Notcurses version.
     ///
-    /// C style function: [notcurses_version][crate::notcurses_version]
+    /// *C style function: [notcurses_version()][crate::notcurses_version].*
     pub fn version() -> String {
         unsafe {
             CStr::from_ptr(crate::notcurses_version())
@@ -521,7 +521,7 @@ impl Notcurses {
     /// Returns the running Notcurses version components
     /// (major, minor, patch, tweak).
     ///
-    /// C style function: [notcurses_version_components][crate::notcurses_version_components]
+    /// *C style function: [notcurses_version_components()][crate::notcurses_version_components].*
     pub fn version_components() -> (u32, u32, u32, u32) {
         let (mut major, mut minor, mut patch, mut tweak) = (0, 0, 0, 0);
         unsafe {

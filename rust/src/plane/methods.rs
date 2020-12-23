@@ -6,7 +6,7 @@ use std::ffi::CStr;
 use crate::{
     cstring, NcAlign, NcAlphaBits, NcBoxMask, NcCell, NcChannel, NcChannelPair, NcColor,
     NcDimension, NcEgc, NcFadeCb, NcOffset, NcPaletteIndex, NcPlane, NcPlaneOptions, NcResizeCb,
-    NcResult, NcRgb, NcStyleMask, NcTime, Notcurses,
+    NcResult, NcRgb, NcStyleMask, NcTime, Notcurses, NCRESULT_OK,
 };
 
 /// # `NcPlaneOptions` Constructors
@@ -73,6 +73,8 @@ impl NcPlane {
     /// New NcPlane.
     ///
     /// The returned plane will be the top, bottom, and root of this new pile.
+    ///
+    /// *C style function: [ncpile_create()][crate::ncpile_create].*
     pub fn new<'a>(
         nc: &mut Notcurses,
         y: NcOffset,
@@ -87,11 +89,15 @@ impl NcPlane {
     /// New NcPlane, expects an [NcPlaneOptions] struct.
     ///
     /// The returned plane will be the top, bottom, and root of this new pile.
+    ///
+    /// *C style function: [ncpile_create()][crate::ncpile_create].*
     pub fn with_options<'a>(nc: &mut Notcurses, options: &NcPlaneOptions) -> &'a mut NcPlane {
         unsafe { &mut *crate::ncpile_create(nc, options) }
     }
 
     /// New NcPlane, bound to another NcPlane.
+    ///
+    /// *C style function: [ncplane_create()][crate::ncplane_create].*
     pub fn new_bound<'a>(
         bound_to: &mut NcPlane,
         y: NcOffset,
@@ -106,6 +112,8 @@ impl NcPlane {
     /// New NcPlane, bound to another plane, expects an [NcPlaneOptions] struct.
     ///
     /// The returned plane will be the top, bottom, and root of this new pile.
+    ///
+    /// *C style function: [ncplane_create()][crate::ncplane_create].*
     pub fn with_options_bound<'a>(
         bound_to: &mut NcPlane,
         options: &NcPlaneOptions,
@@ -116,6 +124,8 @@ impl NcPlane {
     /// New NcPlane, with the same dimensions of the terminal.
     ///
     /// The returned plane will be the top, bottom, and root of this new pile.
+    ///
+    /// *(No equivalent C style function)*
     pub fn new_termsize<'a>(nc: &mut Notcurses) -> &'a mut NcPlane {
         let (mut trows, mut tcols) = (0, 0);
         crate::notcurses_term_dim_yx(nc, &mut trows, &mut tcols);
@@ -132,6 +142,8 @@ impl NcPlane {
     ///
     /// None of its contents will be visible after the next render call.
     /// It is an error to attempt to destroy the standard plane.
+    ///
+    /// *C style function: [ncplane_destroy()][crate::ncplane_destroy].*
     pub fn destroy(&mut self) -> NcResult {
         unsafe { crate::ncplane_destroy(self) }
     }
@@ -141,23 +153,31 @@ impl NcPlane {
 /// ## NcPlane methods: `NcAlphaBits`
 impl NcPlane {
     /// Gets the foreground [NcAlphaBits] from this NcPlane, shifted to LSBs.
+    ///
+    /// *C style function: [ncplane_fg_alpha()][crate::ncplane_fg_alpha].*
     #[inline]
     pub fn fg_alpha(&self) -> NcAlphaBits {
         crate::channels_fg_alpha(unsafe { crate::ncplane_channels(self) })
     }
 
     /// Gets the background [NcAlphaBits] for this NcPlane, shifted to LSBs.
+    ///
+    /// *C style function: [ncplane_bg_alpha()][crate::ncplane_bg_alpha].*
     #[inline]
     pub fn bg_alpha(&self) -> NcAlphaBits {
         crate::channels_bg_alpha(unsafe { crate::ncplane_channels(self) })
     }
 
     /// Sets the foreground [NcAlphaBits] from this NcPlane.
+    ///
+    /// *C style function: [ncplane_set_fg_alpha()][crate::ncplane_set_fg_alpha].*
     pub fn set_fg_alpha(&mut self, alpha: NcAlphaBits) -> NcResult {
         unsafe { crate::ncplane_set_fg_alpha(self, alpha as i32) }
     }
 
     /// Sets the background [NcAlphaBits] for this NcPlane.
+    ///
+    /// *C style function: [ncplane_set_bg_alpha()][crate::ncplane_set_bg_alpha].*
     pub fn set_bg_alpha(&mut self, alpha: NcAlphaBits) -> NcResult {
         unsafe { crate::ncplane_set_bg_alpha(self, alpha as i32) }
     }
@@ -167,35 +187,47 @@ impl NcPlane {
 /// ## NcPlane methods: `NcChannel`
 impl NcPlane {
     /// Gets the current [NcChannelPair] from this NcPlane.
+    ///
+    /// *C style function: [ncplane_channels()][crate::ncplane_channels].*
     pub fn channels(&self) -> NcChannelPair {
         unsafe { crate::ncplane_channels(self) }
     }
 
     /// Gets the foreground [NcChannel] from an [NcPlane].
+    ///
+    /// *C style function: [ncplane_fchannel()][crate::ncplane_fchannel].*
     #[inline]
     pub fn fchannel(&self) -> NcChannel {
         crate::channels_fchannel(unsafe { crate::ncplane_channels(self) })
     }
 
     /// Gets the background [NcChannel] from an [NcPlane].
+    ///
+    /// *C style function: [ncplane_bchannel()][crate::ncplane_bchannel].*
     #[inline]
     pub fn bchannel(&self) -> NcChannel {
         crate::channels_bchannel(unsafe { crate::ncplane_channels(self) })
     }
 
     /// Sets the current [NcChannelPair] for this NcPlane.
+    ///
+    /// *C style function: [ncplane_set_channels()][crate::ncplane_set_channels].*
     pub fn set_channels(&mut self, channels: NcChannelPair) {
         unsafe { crate::ncplane_set_channels(self, channels) }
     }
 
     /// Sets the current foreground [NcChannel] for this NcPlane.
     /// Returns the updated [NcChannelPair].
+    ///
+    /// *C style function: [ncplane_set_fchannel()][crate::ncplane_set_fchannel].*
     pub fn set_fchannel(&mut self, channel: NcChannel) -> NcChannelPair {
         unsafe { crate::ncplane_set_fchannel(self, channel) }
     }
 
     /// Sets the current background [NcChannel] for this NcPlane.
     /// Returns the updated [NcChannelPair].
+    ///
+    /// *C style function: [ncplane_set_bchannel()][crate::ncplane_set_bchannel].*
     pub fn set_bchannel(&mut self, channel: NcChannel) -> NcChannelPair {
         unsafe { crate::ncplane_set_bchannel(self, channel) }
     }
@@ -205,6 +237,8 @@ impl NcPlane {
     ///
     /// Returns the number of cells set, or [NCRESULT_ER][crate::NCRESULT_ERR]
     /// on failure.
+    ///
+    /// *C style function: [ncplane_stain()][crate::ncplane_stain].*
     pub fn stain(
         &mut self,
         y_stop: NcDimension,
@@ -222,6 +256,8 @@ impl NcPlane {
 /// ## NcPlane methods: `NcColor`, `NcRgb` & default color
 impl NcPlane {
     /// Gets the foreground [NcColor] RGB components from this NcPlane.
+    ///
+    /// *C style function: [ncplane_fg_rgb8()][crate::ncplane_fg_rgb8].*
     #[inline]
     pub fn fg_rgb8(&self) -> (NcColor, NcColor, NcColor) {
         let (mut r, mut g, mut b) = (0, 0, 0);
@@ -235,6 +271,8 @@ impl NcPlane {
     }
 
     /// Gets the background [NcColor] RGB components from this NcPlane.
+    ///
+    /// *C style function: [ncplane_bg_rgb8()][crate::ncplane_bg_rgb8].*
     #[inline]
     pub fn bg_rgb8(&self) -> (NcColor, NcColor, NcColor) {
         let (mut r, mut g, mut b) = (0, 0, 0);
@@ -255,6 +293,8 @@ impl NcPlane {
     ///
     /// "HP-like" terminals require setting foreground and background at the same
     /// time using "color pairs"; Notcurses will manage color pairs transparently.
+    ///
+    /// *C style function: [ncplane_set_fg_rgb8()][crate::ncplane_set_fg_rgb8].*
     pub fn set_fg_rgb8(&mut self, red: NcColor, green: NcColor, blue: NcColor) {
         unsafe {
             // Can't fail because of type enforcing.
@@ -270,6 +310,8 @@ impl NcPlane {
     ///
     /// "HP-like" terminals require setting foreground and background at the same
     /// time using "color pairs"; Notcurses will manage color pairs transparently.
+    ///
+    /// *C style function: [ncplane_set_bg_rgb8()][crate::ncplane_set_bg_rgb8].*
     pub fn set_bg_rgb8(&mut self, red: NcColor, green: NcColor, blue: NcColor) {
         unsafe {
             // Can't fail because of type enforcing.
@@ -278,18 +320,24 @@ impl NcPlane {
     }
 
     /// Gets the foreground [NcRgb] from this NcPlane, shifted to LSBs.
+    ///
+    /// *C style function: [ncplane_fg_rgb()][crate::ncplane_fg_rgb].*
     #[inline]
     pub fn fg_rgb(&self) -> NcRgb {
         crate::channels_fg_rgb(unsafe { crate::ncplane_channels(self) })
     }
 
     /// Gets the background [NcRgb] from this NcPlane, shifted to LSBs.
+    ///
+    /// *C style function: [ncplane_bg_rgb()][crate::ncplane_bg_rgb].*
     #[inline]
     pub fn bg_rgb(&self) -> NcRgb {
         crate::channels_bg_rgb(unsafe { crate::ncplane_channels(self) })
     }
 
     /// Sets the foreground [NcRgb] for this NcPlane.
+    ///
+    /// *C style function: [ncplane_set_fg_rgb()][crate::ncplane_set_fg_rgb].*
     #[inline]
     pub fn set_fg_rgb(&mut self, rgb: NcRgb) {
         unsafe {
@@ -298,6 +346,8 @@ impl NcPlane {
     }
 
     /// Sets the backround [NcRgb] for this NcPlane.
+    ///
+    /// *C style function: [ncplane_set_bg_rgb()][crate::ncplane_set_bg_rgb].*
     #[inline]
     pub fn set_bg_rgb(&mut self, rgb: NcRgb) {
         unsafe {
@@ -306,18 +356,24 @@ impl NcPlane {
     }
 
     /// Is this NcPlane's foreground using the "default foreground color"?
+    ///
+    /// *C style function: [ncplane_fg_default_p()][crate::ncplane_fg_default_p].*
     #[inline]
     pub fn fg_default_p(&self) -> bool {
         crate::channels_fg_default_p(unsafe { crate::ncplane_channels(self) })
     }
 
     /// Is this NcPlane's background using the "default background color"?
+    ///
+    /// *C style function: [ncplane_bg_default_p()][crate::ncplane_bg_default_p].*
     #[inline]
     pub fn bg_default_p(&self) -> bool {
         crate::channels_bg_default_p(unsafe { crate::ncplane_channels(self) })
     }
 
     /// Uses the default color for the foreground.
+    ///
+    /// *C style function: [ncplane_set_fg_default()][crate::ncplane_set_fg_default].*
     #[inline]
     pub fn set_fg_default(&mut self) {
         unsafe {
@@ -326,6 +382,8 @@ impl NcPlane {
     }
 
     /// Uses the default color for the background.
+    ///
+    /// *C style function: [ncplane_set_bg_default()][crate::ncplane_set_bg_default].*
     #[inline]
     pub fn set_bg_default(&mut self) {
         unsafe {
@@ -342,6 +400,8 @@ impl NcPlane {
     ///
     /// Returns the number of cells set, or [NCRESULT_ERR][crate::NCRESULT_ERR]
     /// on failure.
+    ///
+    /// *C style function: [ncplane_format()][crate::ncplane_format].*
     pub fn format(
         &mut self,
         y_stop: NcDimension,
@@ -352,11 +412,15 @@ impl NcPlane {
     }
 
     /// Returns the current styling for this NcPlane.
+    ///
+    /// *C style function: [ncplane_styles()][crate::ncplane_styles].*
     pub fn styles(&self) -> NcStyleMask {
         unsafe { crate::ncplane_styles(self) }
     }
 
     /// Removes the specified styles from this NcPlane's existing spec.
+    ///
+    /// *C style function: [ncplane_off_styles()][crate::ncplane_off_styles].*
     pub fn off_styles(&mut self, stylemask: NcStyleMask) {
         unsafe {
             crate::ncplane_off_styles(self, stylemask as u32);
@@ -364,6 +428,8 @@ impl NcPlane {
     }
 
     /// Adds the specified styles to this NcPlane's existing spec.
+    ///
+    /// *C style function: [ncplane_on_styles()][crate::ncplane_on_styles].*
     pub fn on_styles(&mut self, stylemask: NcStyleMask) {
         unsafe {
             crate::ncplane_on_styles(self, stylemask as u32);
@@ -371,6 +437,8 @@ impl NcPlane {
     }
 
     /// Sets just the specified styles for this NcPlane.
+    ///
+    /// *C style function: [ncplane_set_styles()][crate::ncplane_set_styles].*
     pub fn set_styles(&mut self, stylemask: NcStyleMask) {
         unsafe {
             crate::ncplane_set_styles(self, stylemask as u32);
@@ -381,6 +449,8 @@ impl NcPlane {
     ///
     /// Also sets the foreground palette index bit, sets it foreground-opaque,
     /// and clears the foreground default color bit.
+    ///
+    /// *C style function: [ncplane_set_fg_palindex()][crate::ncplane_set_fg_palindex].*
     pub fn set_fg_palindex(&mut self, palindex: NcPaletteIndex) {
         unsafe {
             crate::ncplane_set_fg_palindex(self, palindex as i32);
@@ -391,6 +461,8 @@ impl NcPlane {
     ///
     /// Also sets the background palette index bit, sets it background-opaque,
     /// and clears the background default color bit.
+    ///
+    /// *C style function: [ncplane_set_bg_palindex()][crate::ncplane_set_bg_palindex].*
     pub fn set_bg_palindex(&mut self, palindex: NcPaletteIndex) {
         unsafe {
             crate::ncplane_set_bg_palindex(self, palindex as i32);
@@ -405,6 +477,8 @@ impl NcPlane {
     /// returning the [NcEgc] and writing out the [NcStyleMask] and the [NcChannelPair].
     ///
     /// This NcEgc must be freed by the caller.
+    ///
+    /// *C style function: [ncplane_at_cursor()][crate::ncplane_at_cursor].*
     pub fn at_cursor(
         &mut self,
         stylemask: &mut NcStyleMask,
@@ -421,6 +495,8 @@ impl NcPlane {
     /// Retrieves the current contents of the [NcCell] under the cursor.
     ///
     /// This NcCell is invalidated if the associated NcPlane is destroyed.
+    ///
+    /// *C style function: [ncplane_at_cursor_cell()][crate::ncplane_at_cursor_cell].*
     #[inline]
     pub fn at_cursor_cell(&mut self, cell: &mut NcCell) -> NcResult {
         crate::ncplane_at_cursor_cell(self, cell)
@@ -430,6 +506,8 @@ impl NcPlane {
     /// [NcEgc] and writing out the [NcStyleMask] and the [NcChannelPair].
     ///
     /// This NcEgc must be freed by the caller.
+    ///
+    /// *C style function: [ncplane_at_yx()][crate::ncplane_at_yx].*
     pub fn at_yx(
         &mut self,
         y: NcDimension,
@@ -447,6 +525,8 @@ impl NcPlane {
 
     /// Retrieves the current contents of the specified [NcCell] into `cell`.
     /// This cell is invalidated if the associated plane is destroyed.
+    ///
+    /// *C style function: [ncplane_at_yx_cell()][crate::ncplane_at_yx_cell].*
     #[inline]
     pub fn ncplane_at_yx_cell(
         &mut self,
@@ -460,6 +540,8 @@ impl NcPlane {
     /// Extracts this NcPlane's base [NcCell] into `cell`.
     ///
     /// The reference is invalidated if this NcPlane is destroyed.
+    ///
+    /// *C style function: [ncplane_base()][crate::ncplane_base].*
     pub fn base(&mut self, cell: &mut NcCell) -> NcResult {
         unsafe { crate::ncplane_base(self, cell) }
     }
@@ -473,6 +555,8 @@ impl NcPlane {
     /// gcluster is 0.
     ///
     /// Erasing the NcPlane does not reset the base cell.
+    ///
+    /// *C style function: [ncplane_set_base()][crate::ncplane_set_base].*
     pub fn set_base(
         &mut self,
         egc: &NcEgc,
@@ -490,6 +574,9 @@ impl NcPlane {
     /// gcluster is 0.
     ///
     /// Erasing the NcPlane does not reset the base cell.
+    ///
+    /// *C style function: [ncplane_set_base_cell()][crate::ncplane_set_base_cell].*
+    //
     // FIXME: documentation: https://github.com/dankamongmen/notcurses/issues/1238
     pub fn set_base_cell(&mut self, cell: &NcCell) -> NcResult {
         unsafe { crate::ncplane_set_base_cell(self, cell) }
@@ -503,6 +590,8 @@ impl NcPlane {
     ///
     /// If either `through_y` or `through_x` are true, then `len_y` or `len_x`,
     /// will be respectively ignored, and will go through the boundary of the plane.
+    ///
+    /// *C style function: [ncplane_contents()][crate::ncplane_contents].*
     pub fn contents(
         &self,
         beg_y: NcDimension,
@@ -537,6 +626,8 @@ impl NcPlane {
     ///
     /// All cells associated with this NcPlane are invalidated, and must not be
     /// used after the call, excluding the base cell. The cursor is homed.
+    ///
+    /// *C style function: [ncplane_erase()][crate::ncplane_erase].*
     pub fn erase(&mut self) {
         unsafe { crate::ncplane_erase(self) }
     }
@@ -547,6 +638,8 @@ impl NcPlane {
     /// The new NcCell must already be associated with the Plane.
     /// On success, returns the number of columns the cursor was advanced.
     /// On failure, -1 is returned.
+    ///
+    /// *C style function: [ncplane_putc_yx()][crate::ncplane_putc_yx].*
     pub fn putc_yx(&mut self, y: NcDimension, x: NcDimension, cell: &NcCell) -> NcResult {
         unsafe { crate::ncplane_putc_yx(self, y as i32, x as i32, cell) }
     }
@@ -556,11 +649,15 @@ impl NcPlane {
     ///
     /// The new NcCell must already be associated with the Plane.
     /// On success, returns the number of columns the cursor was advanced.
+    ///
+    /// *C style function: [ncplane_putc()][crate::ncplane_putc].*
     pub fn putc(&mut self, cell: &NcCell) -> NcResult {
         crate::ncplane_putc(self, cell)
     }
 
     /// Calls [putchar_yx][NcPlane#method.putchar_yx] at the current cursor location.
+    ///
+    /// *C style function: [ncplane_putchar()][crate::ncplane_putchar].*
     pub fn putchar(&mut self, ch: char) -> NcResult {
         crate::ncplane_putchar(self, ch)
     }
@@ -575,7 +672,7 @@ impl NcPlane {
     /// Replaces the [NcEgc][crate::NcEgc], but retain the styling.
     /// The current styling of the plane will not be changed.
     ///
-    /// C style function: [ncplane_putchar_yx][crate::ncplane_putchar_yx]
+    /// *C style function: [ncplane_putchar_yx()][crate::ncplane_putchar_yx].*
     pub fn putchar_yx(&mut self, y: NcDimension, x: NcDimension, ch: char) -> NcResult {
         crate::ncplane_putchar_yx(self, y, x, ch)
     }
@@ -589,15 +686,34 @@ impl NcPlane {
     /// On error, a non-positive number is returned, indicating the number of
     /// columns which were written before the error.
     ///
-    /// C style function: [ncplane_putstr][crate::ncplane_putstr]
+    /// *C style function: [ncplane_putstr()][crate::ncplane_putstr].*
     #[inline]
     pub fn putstr(&mut self, string: &str) -> NcResult {
         crate::ncplane_putstr(self, string)
     }
 
+    /// Same as [putstr][NcPlane#method.putstr], but it also tries to move the
+    /// cursor to the beginning of the next row.
+    ///
+    /// *(No equivalent C style function)*
+    pub fn putstrln(&mut self, string: &str) -> NcResult {
+        let res = crate::ncplane_putstr(self, string);
+        if res < NCRESULT_OK {
+            return res;
+        }
+
+        let (mut y, mut _x) = (0, 0);
+        unsafe {
+            crate::ncplane_cursor_yx(self, &mut y, &mut _x);
+            crate::ncplane_cursor_move_yx(self, y as i32 + 1, 0)
+        }
+    }
+
     /// Writes a series of [NcEgc][crate::NcEgc]s to the current location, but
     /// retain the styling.
     /// The current styling of the plane will not be changed.
+    ///
+    /// *C style function: [ncplane_putstr_stained()][crate::ncplane_putstr_stained].*
     pub fn putstr_stained(&mut self, string: &str) -> NcResult {
         unsafe { crate::ncplane_putstr_stained(self, cstring![string]) }
     }
@@ -612,6 +728,8 @@ impl NcPlane {
     ///
     /// On error, a non-positive number is returned, indicating the number of
     /// columns which were written before the error.
+    ///
+    /// *C style function: [ncplane_putstr_yx()][crate::ncplane_putstr_yx].*
     pub fn putstr_yx(&mut self, y: NcDimension, x: NcDimension, string: &str) -> NcResult {
         unsafe { crate::ncplane_putstr_yx(self, y as i32, x as i32, cstring![string]) }
     }
@@ -628,22 +746,31 @@ impl NcPlane {
     /// The new plane will be immediately above the old one on the z axis,
     /// and will be bound to the same parent. Bound planes are not duplicated;
     /// the new plane is bound to the current parent, but has no bound planes.
+    ///
+    /// *C style function: [ncplane_dup()][crate::ncplane_dup].*
+    //
     // TODO: deal with the opaque field.
     pub fn dup<'a>(&'a mut self) -> &'a mut NcPlane {
         unsafe { &mut *crate::ncplane_dup(self, null_mut()) }
     }
 
     /// Returns the topmost NcPlane of the current pile.
+    ///
+    /// *C style function: [ncplane_top()][crate::ncplane_top].*
     pub fn top<'a>(&mut self) -> &'a mut NcPlane {
         unsafe { &mut *crate::ncpile_top(self) }
     }
 
     /// Returns the bottommost NcPlane of the current pile.
+    ///
+    /// *C style function: [ncplane_bottom()][crate::ncplane_bottom].*
     pub fn bottom<'a>(&mut self) -> &'a mut NcPlane {
         unsafe { &mut *crate::ncpile_bottom(self) }
     }
 
     /// Relocates this NcPlane at the top of the z-buffer.
+    ///
+    /// *C style function: [ncplane_move_top()][crate::ncplane_move_top].*
     pub fn move_top(&mut self) {
         unsafe {
             crate::ncplane_move_top(self);
@@ -651,6 +778,8 @@ impl NcPlane {
     }
 
     /// Relocates this NcPlane at the bottom of the z-buffer.
+    ///
+    /// *C style function: [ncplane_move_bottom()][crate::ncplane_move_bottom].*
     pub fn move_bottom(&mut self) {
         unsafe {
             crate::ncplane_move_bottom(self);
@@ -661,12 +790,17 @@ impl NcPlane {
     /// which it is bound.
     ///
     /// It is an error to attempt to move the standard plane.
+    ///
+    /// *C style function: [ncplane_move_yx()][crate::ncplane_move_yx].*
+    //
     // CHECK: whether a negative offset is valid
     pub fn move_yx(&mut self, y: NcOffset, x: NcOffset) -> NcResult {
         unsafe { crate::ncplane_move_yx(self, y, x) }
     }
 
     /// Returns the NcPlane above this one, or None if already at the top.
+    ///
+    /// *C style function: [ncplane_above()][crate::ncplane_above].*
     pub fn above<'a>(&'a mut self) -> Option<&'a mut NcPlane> {
         let plane = unsafe { crate::ncplane_above(self) };
         if plane.is_null() {
@@ -676,6 +810,8 @@ impl NcPlane {
     }
 
     /// Returns the NcPlane below this one, or None if already at the bottom.
+    ///
+    /// *C style function: [ncplane_below()][crate::ncplane_below].*
     pub fn below<'a>(&'a mut self) -> Option<&'a mut NcPlane> {
         let plane = unsafe { crate::ncplane_below(self) };
         if plane.is_null() {
@@ -688,6 +824,8 @@ impl NcPlane {
     ///
     /// Returns [NCRESULT_ERR][crate::NCRESULT_ERR] if the current plane is
     /// already in the desired location. Both planes must not be the same.
+    ///
+    /// *C style function: [ncplane_move_above()][crate::ncplane_move_above].*
     pub fn move_above(&mut self, above: &mut NcPlane) -> NcResult {
         unsafe { crate::ncplane_move_above(self, above) }
     }
@@ -696,6 +834,8 @@ impl NcPlane {
     ///
     /// Returns [NCRESULT_ERR][crate::NCRESULT_ERR] if the current plane is
     /// already in the desired location. Both planes must not be the same.
+    ///
+    /// *C style function: [ncplane_move_below()][crate::ncplane_move_below].*
     pub fn move_below(&mut self, below: &mut NcPlane) -> NcResult {
         unsafe { crate::ncplane_move_below(self, below) }
     }
@@ -711,6 +851,8 @@ impl NcPlane {
     /// subregion is not entirely contained within 'dst'.
     ///
     /// Behavior is undefined if both NcPlanes are equivalent.
+    ///
+    /// *C style function: [ncplane_mergedown()][crate::ncplane_mergedown].*
     pub fn mergedown(
         &mut self,
         source: &NcPlane,
@@ -741,8 +883,9 @@ impl NcPlane {
     /// but it is not an error.
     ///
     /// See [`mergedown`][NcPlane#method.mergedown]
-    ///
     /// for more information.
+    ///
+    /// *C style function: [ncplane_mergedown_simple()][crate::ncplane_mergedown_simple].*
     //
     // TODO: maybe create a reversed method, and/or an associated function,
     // for `mergedown` too.
@@ -750,30 +893,9 @@ impl NcPlane {
         unsafe { crate::ncplane_mergedown_simple(source, self) }
     }
 
-    /// Rotate the plane π/2 radians clockwise.
-    ///
-    /// This cannot be performed on arbitrary planes, because glyphs cannot be
-    /// arbitrarily rotated.
-    ///
-    /// The glyphs which can be rotated are limited: line-drawing characters,
-    /// spaces, half blocks, and full blocks.
-    ///
-    /// The plane must have an even number of columns.
-    ///
-    /// Use the ncvisual rotation for a more flexible approach.
-    pub fn rotate_cw(&mut self) -> NcResult {
-        unsafe { crate::ncplane_rotate_cw(self) }
-    }
-
-    /// Rotate the plane π/2 radians counter-clockwise.
-    ///
-    /// See [`routate_cw`](type.NcPlane.html#method.rotate_cw)
-    /// for more information.
-    pub fn rotate_ccw(&mut self) -> NcResult {
-        unsafe { crate::ncplane_rotate_ccw(self) }
-    }
-
     /// Gets the parent to which this NcPlane is bound, if any.
+    ///
+    /// *C style function: [ncplane_parent()][crate::ncplane_parent].*
     //
     // TODO: CHECK: what happens when it's bound to itself.
     // pub fn parent<'a>(&'a mut self) -> Option<&'a mut NcPlane> {
@@ -782,6 +904,8 @@ impl NcPlane {
     }
 
     /// Gets the parent to which this NcPlane is bound, if any.
+    ///
+    /// *C style function: [ncplane_parent_const()][crate::ncplane_parent_const].*
     //
     // TODO: CHECK: what happens when it's bound to itself.
     // pub fn parent<'a>(&'a mut self) -> Option<&'a mut NcPlane> {
@@ -799,6 +923,8 @@ impl NcPlane {
     /// no-op.
     ///
     /// The standard plane cannot be reparented.
+    ///
+    /// *C style function: [ncplane_reparent()][crate::ncplane_reparent].*
     pub fn reparent<'a>(&'a mut self, newparent: &'a mut NcPlane) -> &'a mut NcPlane {
         unsafe { &mut *crate::ncplane_reparent(self, newparent) }
     }
@@ -808,6 +934,8 @@ impl NcPlane {
     ///
     /// Their z-order is maintained.
     ///
+    /// *C style function: [ncplane_reparent_family()][crate::ncplane_reparent_family].*
+    //
     // TODO:CHECK: If 'newparent' is an ancestor, NULL is returned & no changes're made.
     pub fn reparent_family<'a>(&'a mut self, newparent: &'a mut NcPlane) -> &'a mut NcPlane {
         unsafe { &mut *crate::ncplane_reparent_family(self, newparent) }
@@ -818,6 +946,8 @@ impl NcPlane {
     ///
     /// This is a blocking call. Don't call this before the pile has been
     /// rendered (doing so will likely result in a blank screen).
+    ///
+    /// *C style function: [ncpile_rasterize()][crate::ncpile_rasterize].*
     pub fn rasterize<'a>(&mut self) -> NcResult {
         unsafe { crate::ncpile_rasterize(self) }
     }
@@ -825,16 +955,22 @@ impl NcPlane {
     /// Renders the pile of which this NcPlane is a part.
     /// Rendering this pile again will blow away the render.
     /// To actually write out the render, call ncpile_rasterize().
+    ///
+    /// *C style function: [ncpile_render()][crate::ncpile_render].*
     pub fn render<'a>(&mut self) -> NcResult {
         unsafe { crate::ncpile_render(self) }
     }
 
     /// Gets a mutable reference to the [Notcurses] context of this NcPlane.
+    ///
+    /// *C style function: [ncplane_notcurses()][crate::ncplane_notcurses].*
     pub fn notcurses<'a>(&mut self) -> &'a mut Notcurses {
         unsafe { &mut *crate::ncplane_notcurses(self) }
     }
 
     /// Gets an immutable reference to the [Notcurses] context of this NcPlane.
+    ///
+    /// *C style function: [ncplane_notcurses_const()][crate::ncplane_notcurses_const].*
     pub fn notcurses_const<'a>(&self) -> &'a Notcurses {
         unsafe { &*crate::ncplane_notcurses_const(self) }
     }
@@ -844,6 +980,8 @@ impl NcPlane {
 /// ## NcPlane methods: cursor
 impl NcPlane {
     /// Moves the cursor to 0, 0.
+    ///
+    /// *C style function: [ncplane_home()][crate::ncplane_home].*
     pub fn home(&mut self) {
         unsafe {
             crate::ncplane_home(self);
@@ -852,6 +990,8 @@ impl NcPlane {
 
     /// Returns the current position of the cursor within this NcPlane.
     ///
+    /// *C style function: [ncplane_cursor_yx()][crate::ncplane_cursor_yx].*
+    //
     // NOTE: y and/or x may be NULL.
     // maybe check for null and return Some() or None?
     pub fn cursor_yx(&self) -> (NcDimension, NcDimension) {
@@ -861,11 +1001,15 @@ impl NcPlane {
     }
 
     /// Returns the current row of the cursor within this NcPlane.
+    ///
+    /// *C style function: [ncplane_cursor_y()][crate::ncplane_cursor_y].*
     pub fn cursor_y(&self) -> NcDimension {
         self.cursor_yx().0
     }
 
     /// Returns the current column of the cursor within this NcPlane.
+    ///
+    /// *C style function: [ncplane_cursor_x()][crate::ncplane_cursor_x].*
     pub fn cursor_x(&self) -> NcDimension {
         self.cursor_yx().1
     }
@@ -876,13 +1020,33 @@ impl NcPlane {
     ///
     /// Parameters exceeding the plane's dimensions will result in an error,
     /// and the cursor position will remain unchanged.
+    ///
+    /// *C style function: [ncplane_cursor_move_yx()][crate::ncplane_cursor_move_yx].*
     pub fn cursor_move_yx(&mut self, y: NcDimension, x: NcDimension) -> NcResult {
+        unsafe { crate::ncplane_cursor_move_yx(self, y as i32, x as i32) }
+    }
+
+    /// Moves the cursor to the specified row within this NcPlane.
+    ///
+    /// *(No equivalent C style function)*
+    pub fn cursor_move_y(&mut self, y: NcDimension) -> NcResult {
+        let x = self.cursor_x();
+        unsafe { crate::ncplane_cursor_move_yx(self, y as i32, x as i32) }
+    }
+
+    /// Moves the cursor to the specified column within this NcPlane.
+    ///
+    /// *(No equivalent C style function)*
+    pub fn cursor_move_x(&mut self, x: NcDimension) -> NcResult {
+        let y = self.cursor_y();
         unsafe { crate::ncplane_cursor_move_yx(self, y as i32, x as i32) }
     }
 
     /// Moves the cursor the number of rows specified (forward or backwards).
     ///
     /// It will error if the target row exceeds the plane dimensions.
+    ///
+    /// *(No equivalent C style function)*
     pub fn cursor_move_rows(&mut self, rows: NcOffset) -> NcResult {
         let (y, x) = self.cursor_yx();
         self.cursor_move_yx((y as NcOffset + rows) as NcDimension, x)
@@ -891,7 +1055,8 @@ impl NcPlane {
     /// Moves the cursor the number of columns specified (forward or backwards).
     ///
     /// It will error if the target column exceeds the plane dimensions.
-    // TODO: maybe in this case it can improve
+    ///
+    /// *(No equivalent C style function)*
     pub fn cursor_move_cols(&mut self, cols: NcOffset) -> NcResult {
         let (y, x) = self.cursor_yx();
         self.cursor_move_yx(y, (x as NcOffset + cols) as NcDimension)
@@ -906,12 +1071,17 @@ impl NcPlane {
     ///
     /// Returns `-`[NCRESULT_MAX][crate::NCRESULT_MAX] if
     /// [NCALIGN_UNALIGNED][crate::NCALIGN_UNALIGNED] or invalid [NcAlign].
+    ///
+    /// *C style function: [ncplane_align()][crate::ncplane_align].*
     #[inline]
     pub fn align(&mut self, align: NcAlign, cols: NcDimension) -> NcResult {
         crate::ncplane_align(self, align, cols)
     }
 
     ///
+    ///
+    /// *C style function: [ncplane_center_abs()][crate::ncplane_center_abs].*
+    //
     // TODO: doc.
     pub fn center_abs(&self, y: &mut NcDimension, x: &mut NcDimension) {
         unsafe {
@@ -920,6 +1090,8 @@ impl NcPlane {
     }
 
     /// Returns the dimensions of this NcPlane.
+    ///
+    /// *C style function: [ncplane_dim_yx()][crate::ncplane_dim_yx].*
     pub fn dim_yx(&self) -> (NcDimension, NcDimension) {
         let (mut y, mut x) = (0, 0);
         unsafe { crate::ncplane_dim_yx(self, &mut y, &mut x) };
@@ -927,12 +1099,16 @@ impl NcPlane {
     }
 
     /// Return the rows of this NcPlane.
+    ///
+    /// *C style function: [ncplane_dim_y()][crate::ncplane_dim_y].*
     #[inline]
     pub fn dim_y(&self) -> NcDimension {
         self.dim_yx().0
     }
 
     /// Return the columns of this NcPlane.
+    ///
+    /// *C style function: [ncplane_dim_x()][crate::ncplane_dim_x].*
     #[inline]
     pub fn dim_x(&self) -> NcDimension {
         self.dim_yx().1
@@ -941,6 +1117,8 @@ impl NcPlane {
     /// Return the rows of this NcPlane.
     ///
     /// Alias of [dim_y][NcPlane#method.dim_y]
+    ///
+    /// *C style function: [ncplane_dim_y()][crate::ncplane_dim_y].*
     #[inline]
     pub fn rows(&self) -> NcDimension {
         self.dim_yx().0
@@ -949,6 +1127,8 @@ impl NcPlane {
     /// Return the cols of this NcPlane.
     ///
     /// Alias of [dim_x][NcPlane#method.dim_x]
+    ///
+    /// *C style function: [ncplane_dim_x()][crate::ncplane_dim_x].*
     #[inline]
     pub fn cols(&self) -> NcDimension {
         self.dim_yx().1
@@ -972,6 +1152,8 @@ impl NcPlane {
     /// and `x_len` must be greater than or equal to `keeplenx`.
     ///
     /// It is an error to attempt to resize the standard plane.
+    ///
+    /// *C style function: [ncplane_resize()][crate::ncplane_resize].*
     pub fn resize(
         &mut self,
         keep_y: NcDimension,
@@ -1002,18 +1184,24 @@ impl NcPlane {
     /// at creation time.
     ///
     /// Suitable for use as an [NcResizeCb].
+    ///
+    /// *C style function: [ncplane_resize_align()][crate::ncplane_resize_align].*
     pub fn resize_realign(&mut self) -> NcResult {
         unsafe { crate::ncplane_resize_realign(self) }
     }
 
     /// Resizes this NcPlane, retaining what data we can (everything, unless we're
     /// shrinking in some dimension). Keeps the origin where it is.
+    ///
+    /// *C style function: [ncplane_resize_simple()][crate::ncplane_resize_simple].*
     #[inline]
     pub fn resize_simple(&mut self, y_len: NcDimension, x_len: NcDimension) -> NcResult {
         crate::ncplane_resize_simple(self, y_len as u32, x_len as u32)
     }
 
     /// Returns this NcPlane's current resize callback.
+    ///
+    /// *C style function: [ncplane_resizecb()][crate::ncplane_resizecb].*
     pub fn resizecb(&self) -> Option<NcResizeCb> {
         unsafe { crate::ncresizecb_to_rust(crate::ncplane_resizecb(self)) }
     }
@@ -1021,14 +1209,43 @@ impl NcPlane {
     /// Replaces this NcPlane's existing resize callback (which may be [None]).
     ///
     /// The standard plane's resizecb may not be changed.
+    ///
+    /// *C style function: [ncplane_set_resizecb()][crate::ncplane_set_resizecb].*
     pub fn set_resizecb(&mut self, resizecb: Option<NcResizeCb>) {
         unsafe { crate::ncplane_set_resizecb(self, crate::ncresizecb_to_c(resizecb)) }
+    }
+
+    /// Rotate the plane π/2 radians clockwise.
+    ///
+    /// This cannot be performed on arbitrary planes, because glyphs cannot be
+    /// arbitrarily rotated.
+    ///
+    /// The glyphs which can be rotated are limited: line-drawing characters,
+    /// spaces, half blocks, and full blocks.
+    ///
+    /// The plane must have an even number of columns.
+    ///
+    /// Use the ncvisual rotation for a more flexible approach.
+    ///
+    /// *C style function: [ncplane_rotate_cw()][crate::ncplane_rotate_cw].*
+    pub fn rotate_cw(&mut self) -> NcResult {
+        unsafe { crate::ncplane_rotate_cw(self) }
+    }
+
+    /// Rotate the plane π/2 radians counter-clockwise.
+    ///
+    /// See [`rotate_cw`][NcPlane#method.rotate_cw]
+    /// for more information.
+    ///
+    /// *C style function: [ncplane_rotate_ccw()][crate::ncplane_rotate_ccw].*
+    pub fn rotate_ccw(&mut self) -> NcResult {
+        unsafe { crate::ncplane_rotate_ccw(self) }
     }
 
     /// Maps the provided coordinates relative to the origin of this NcPlane,
     /// to the same absolute coordinates relative to the origin of `target`.
     ///
-    /// C style function: [ncplane_translate][crate::ncplane_translate]
+    /// *C style function: [ncplane_translate()][crate::ncplane_translate].*
     //
     // TODO: API change, return the coordinates as a tuple instead of being &mut
     pub fn translate(&self, target: &NcPlane, y: &mut NcDimension, x: &mut NcDimension) {
@@ -1040,7 +1257,7 @@ impl NcPlane {
     ///
     /// Either way, translates the absolute coordinates relative to this NcPlane.
     ///
-    /// C style function: [ncplane_translate_abs][crate::ncplane_translate_abs]
+    /// *C style function: [ncplane_translate_abs()][crate::ncplane_translate_abs].*
     //
     // TODO: API change, return a tuple (y,x,bool)
     pub fn translate_abs(&self, y: &mut NcDimension, x: &mut NcDimension) -> bool {
@@ -1049,6 +1266,8 @@ impl NcPlane {
 
     /// Gets the `y`, `x` origin of this NcPlane relative to the standard plane,
     /// or the NcPlane to which it is bound.
+    ///
+    /// *C style function: [ncplane_yx()][crate::ncplane_yx].*
     //
     // CHECK: negative offsets
     pub fn yx(&self) -> (NcOffset, NcOffset) {
@@ -1059,12 +1278,16 @@ impl NcPlane {
 
     /// Gets the `x` origin of this NcPlane relative to the standard plane,
     /// or the NcPlane to which it is bound.
+    ///
+    /// *C style function: [ncplane_x()][crate::ncplane_x].*
     pub fn x(&self) -> NcOffset {
         unsafe { crate::ncplane_x(self) as NcOffset }
     }
 
     /// Gets the `y` origin of this NcPlane relative to the standard plane,
     /// or the NcPlane to which it is bound.
+    ///
+    /// *C style function: [ncplane_y()][crate::ncplane_y].*
     pub fn y(&self) -> NcOffset {
         unsafe { crate::ncplane_y(self) as NcOffset }
     }
@@ -1079,6 +1302,8 @@ impl NcPlane {
     /// at the origin should succeed, but printing "01234567890" will by default
     /// fail at the eleventh character. In either case, the cursor will be left
     /// at location 0x10; it must be moved before further printing can take place. I
+    ///
+    /// *C style function: [ncplane_set_scrolling()][crate::ncplane_set_scrolling].*
     pub fn set_scrolling(&mut self, scroll: bool) -> bool {
         unsafe { crate::ncplane_set_scrolling(self, scroll) }
     }
@@ -1101,6 +1326,8 @@ impl NcPlane {
     ///
     /// If the gradient bit is set, the color is linearly interpolated between
     /// the two relevant corner cells.
+    ///
+    /// *C style function: [ncplane_box()][crate::ncplane_box].*
     pub fn r#box(
         &mut self,
         ul: &NcCell,
@@ -1134,6 +1361,8 @@ impl NcPlane {
     /// The minimum box size is 2x2, and it cannot be drawn off-screen.
     ///
     /// See the [`box`][NcPlane#method.box] method for more information.
+    ///
+    /// *C style function: [ncplane_box_sized()][crate::ncplane_box_sized].*
     #[inline]
     pub fn box_sized(
         &mut self,
@@ -1151,6 +1380,8 @@ impl NcPlane {
     }
 
     ///
+    ///
+    /// *C style function: [ncplane_double_box()][crate::ncplane_double_box].*
     #[inline]
     pub fn double_box(
         &mut self,
@@ -1164,6 +1395,8 @@ impl NcPlane {
     }
 
     ///
+    ///
+    /// *C style function: [ncplane_double_box_sized()][crate::ncplane_double_box_sized].*
     #[inline]
     pub fn double_box_sized(
         &mut self,
@@ -1177,6 +1410,8 @@ impl NcPlane {
     }
 
     /// Draws the perimeter around this NcPlane.
+    ///
+    /// *C style function: [ncplane_perimeter()][crate::ncplane_perimeter].*
     #[inline]
     pub fn perimeter(
         &mut self,
@@ -1192,6 +1427,8 @@ impl NcPlane {
     }
 
     ///
+    ///
+    /// *C style function: [ncplane_perimeter_double()][crate::ncplane_perimeter_double].*
     #[inline]
     pub fn perimeter_double(
         &mut self,
@@ -1203,6 +1440,8 @@ impl NcPlane {
     }
 
     ///
+    ///
+    /// *C style function: [ncplane_perimeter_rounded()][crate::ncplane_perimeter_rounded].*
     #[inline]
     pub fn perimeter_rounded(
         &mut self,
@@ -1226,12 +1465,16 @@ impl NcPlane {
     ///
     /// When it's done, the NcPlane will have reached the target levels,
     /// starting from zeroes.
+    ///
+    /// *C style function: [ncplane_fadein()][crate::ncplane_fadein].*
     pub fn fadein(&mut self, time: &NcTime, fader: NcFadeCb) -> NcResult {
         unsafe { crate::ncplane_fadein(self, time, fader, null_mut()) }
     }
 
     /// Fades in through 'iter' iterations,
     /// where 'iter' < 'ncfadectx_iterations(nctx)'.
+    ///
+    /// *C style function: [ncplane_fadein_iteration()][crate::ncplane_fadein_iteration].*
     pub fn fadein_iteration(&mut self, time: &NcTime, fader: NcFadeCb) -> NcResult {
         unsafe { crate::ncplane_fadein(self, time, fader, null_mut()) }
     }
@@ -1242,12 +1485,16 @@ impl NcPlane {
     /// Requires a terminal which supports truecolor, or at least palette
     /// modification (if the terminal uses a palette, our ability to fade planes
     /// is limited, and affected by the complexity of the rest of the screen).
+    ///
+    /// *C style function: [ncplane_fadeout()][crate::ncplane_fadeout].*
     pub fn fadeout(&mut self, time: &NcTime, fader: NcFadeCb) -> NcResult {
         unsafe { crate::ncplane_fadeout(self, time, fader, null_mut()) }
     }
 
     /// Fades out through 'iter' iterations,
     /// where 'iter' < 'ncfadectx_iterations(nctx)'.
+    ///
+    /// *C style function: [ncplane_fadeout_iteration()][crate::ncplane_fadeout_iteration].*
     pub fn fadeout_iteration(&mut self, time: &NcTime, fader: NcFadeCb) -> NcResult {
         unsafe { crate::ncplane_fadeout(self, time, fader, null_mut()) }
     }
@@ -1261,6 +1508,8 @@ impl NcPlane {
     /// Proper use involves preparing (but not rendering) the NcPlane,
     /// then calling this method, which will fade in from black to the
     /// specified colors.
+    ///
+    /// *C style function: [ncplane_pulse()][crate::ncplane_pulse].*
     pub fn pulse(&mut self, time: &NcTime, fader: NcFadeCb) -> NcResult {
         unsafe { crate::ncplane_pulse(self, time, fader, null_mut()) }
     }
@@ -1291,6 +1540,8 @@ impl NcPlane {
     /// 1x1: all four colors must be the same
     /// 1xN: both top and both bottom colors must be the same (vertical gradient)
     /// Nx1: both left and both right colors must be the same (horizontal gradient)
+    ///
+    /// *C style function: [ncplane_gradient()][crate::ncplane_gradient].*
     pub fn gradient(
         &mut self,
         egc: &NcEgc,
@@ -1322,7 +1573,7 @@ impl NcPlane {
     ///
     /// See [gradient][NcPlane#method.gradient] for more information.
     ///
-    /// C style function: [ncplane_gradient_sized][crate::ncplane_gradient_sized]
+    /// *C style function: [ncplane_gradient_sized()][crate::ncplane_gradient_sized].*
     #[inline]
     pub fn gradient_sized(
         &mut self,
@@ -1345,6 +1596,8 @@ impl NcPlane {
     ///
     /// This doubles the number of vertical gradations, but restricts you to
     /// half blocks (appearing to be full blocks).
+    ///
+    /// *C style function: [ncplane_highgradient()][crate::ncplane_highgradient].*
     pub fn highgradient(
         &mut self,
         ul: NcChannel,
@@ -1359,6 +1612,8 @@ impl NcPlane {
 
     /// [`gradient_sized`][NcPlane#method.gradient_sized]
     /// meets [`highgradient`][NcPlane#method.highgradient].
+    ///
+    /// *C style function: [ncplane_highgradient_sized()][crate::ncplane_highgradient_sized].*
     pub fn highgradient_sized(
         &mut self,
         ul: NcChannel,
@@ -1374,6 +1629,8 @@ impl NcPlane {
     }
 
     /// Converts this NcPlane's content to greyscale.
+    ///
+    /// *C style function: [ncplane_greyscale()][crate::ncplane_greyscale].*
     pub fn greyscale(&mut self) {
         unsafe {
             crate::ncplane_greyscale(self);

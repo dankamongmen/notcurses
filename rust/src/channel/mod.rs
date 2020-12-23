@@ -16,20 +16,20 @@
 // functions manually reimplemented: 39
 // ------------------------------------------
 // (X) wont:  3
-// (W) wrap: 10 / 26
-// (+) done: 34 /  2
-// (#) test: 19 / 17
+// (+) done: 36 / 0
+// (#) test: 19
+// (W) wrap: 13
 // ------------------------------------------
 //W# channel_alpha
 //W# channel_b
-// # channel_default_p
+//W# channel_default_p
 //W# channel_g
 // # channel_palindex_p
 //W# channel_r
 //W# channel_rgb8
 // + channel_set
-// # channel_set_alpha
-// # channel_set_default
+//W# channel_set_alpha
+//W# channel_set_default
 //W# channel_set_rgb8
 // X channel_set_rgb_clipped ---
 // # channels_bchannel

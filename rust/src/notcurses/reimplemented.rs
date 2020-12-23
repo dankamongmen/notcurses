@@ -47,7 +47,7 @@ pub fn notcurses_align(availcols: NcDimension, align: NcAlign, cols: NcDimension
 /// 'input' may be NULL if the caller is uninterested in event details.
 /// If no event is ready, returns 0.
 ///
-/// Rust method: [Notcurses.getc_nblock][Notcurses#method.getc_nblock]
+/// *Method: Notcurses.[getc_nblock()][Notcurses#method.getc_nblock].*
 #[inline]
 pub fn notcurses_getc_nblock(nc: &mut Notcurses, input: &mut NcInput) -> char {
     unsafe {
@@ -64,6 +64,8 @@ pub fn notcurses_getc_nblock(nc: &mut Notcurses, input: &mut NcInput) -> char {
 
 /// 'input' may be NULL if the caller is uninterested in event details.
 /// Blocks until an event is processed or a signal is received.
+///
+/// *Method: Notcurses.[getc_nblocking()][Notcurses#method.getc_nblocking].*
 #[inline]
 pub fn notcurses_getc_nblocking(nc: &mut Notcurses, input: &mut NcInput) -> char {
     unsafe {
@@ -74,6 +76,8 @@ pub fn notcurses_getc_nblocking(nc: &mut Notcurses, input: &mut NcInput) -> char
 }
 
 /// notcurses_stdplane(), plus free bonus dimensions written to non-NULL y/x!
+///
+/// *Method: Notcurses.[getc_stddim_yx()][Notcurses#method.stddim_yx].*
 #[inline]
 pub fn notcurses_stddim_yx<'a>(
     nc: &mut Notcurses,
@@ -88,6 +92,8 @@ pub fn notcurses_stddim_yx<'a>(
 }
 
 /// notcurses_stdplane_const(), plus free bonus dimensions written to non-NULL y/x!
+///
+/// *Method: Notcurses.[getc_stddim_yx_const()][Notcurses#method.stddim_yx_const].*
 #[inline]
 pub fn notcurses_stddim_yx_const<'a>(nc: &'a Notcurses, y: &mut i32, x: &mut i32) -> &'a NcPlane {
     unsafe {
@@ -98,6 +104,8 @@ pub fn notcurses_stddim_yx_const<'a>(nc: &'a Notcurses, y: &mut i32, x: &mut i32
 }
 
 /// Return our current idea of the terminal dimensions in rows and cols.
+///
+/// *Method: Notcurses.[getc_term_yx()][Notcurses#method.term_yx].*
 #[inline]
 pub fn notcurses_term_dim_yx(nc: &Notcurses, rows: &mut u32, cols: &mut u32) {
     unsafe {

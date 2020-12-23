@@ -28,14 +28,14 @@ impl NcProgBar {
 
     /// New NcProgBar. Expects an [NcProgBarOptions] struct.
     ///
-    /// C style function: [ncprogbar_create][crate::ncprogbar_create]
+    /// *C style function: [ncprogbar_create()][crate::ncprogbar_create].*
     pub fn with_options<'a>(plane: &mut NcPlane, options: &NcProgBarOptions) -> &'a mut Self {
         unsafe { &mut *crate::ncprogbar_create(plane, options) }
     }
 
     /// Destroy the progress bar and its underlying ncplane.
     ///
-    /// C style function: [ncprogbar_destroy][crate::ncprogbar_destroy]
+    /// *C style function: [ncprogbar_destroy()][crate::ncprogbar_destroy].*
     pub fn destroy(&mut self) {
         unsafe {
             crate::ncprogbar_destroy(self);
@@ -44,14 +44,14 @@ impl NcProgBar {
 
     /// Return a reference to the ncprogbar's underlying ncplane.
     ///
-    /// C style function: [ncprogbar_plane][crate::ncprogbar_plane]
+    /// *C style function: [ncprogbar_plane()][crate::ncprogbar_plane].*
     pub fn plane<'a>(&'a mut self) -> &'a mut NcPlane {
         unsafe { &mut *crate::ncprogbar_plane(self) }
     }
 
     /// Get the progress bar's completion, an [f64] on [0, 1].
     ///
-    /// C style function: [ncprogbar_progress][crate::ncprogbar_progress]
+    /// *C style function: [ncprogbar_progress()][crate::ncprogbar_progress].*
     pub fn progress(&self) -> f64 {
         unsafe { crate::ncprogbar_progress(self) }
     }
@@ -60,7 +60,7 @@ impl NcProgBar {
     ///
     /// Returns [NCRESULT_ERR][crate::NCRESULT_ERR] if progress is < 0 || > 1.
     ///
-    /// C style function: [ncprogbar_set_progress][crate::ncprogbar_set_progress]
+    /// *C style function: [ncprogbar_set_progress()][crate::ncprogbar_set_progress].*
     pub fn set_progress(&mut self, progress: f64) -> NcResult {
         unsafe { crate::ncprogbar_set_progress(self, progress) }
     }
