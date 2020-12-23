@@ -756,14 +756,14 @@ impl NcPlane {
 
     /// Returns the topmost NcPlane of the current pile.
     ///
-    /// *C style function: [ncplane_top()][crate::ncplane_top].*
+    /// *C style function: [ncpile_top()][crate::ncpile_top].*
     pub fn top<'a>(&mut self) -> &'a mut NcPlane {
         unsafe { &mut *crate::ncpile_top(self) }
     }
 
     /// Returns the bottommost NcPlane of the current pile.
     ///
-    /// *C style function: [ncplane_bottom()][crate::ncplane_bottom].*
+    /// *C style function: [ncpile_bottom()][crate::ncpile_bottom].*
     pub fn bottom<'a>(&mut self) -> &'a mut NcPlane {
         unsafe { &mut *crate::ncpile_bottom(self) }
     }
@@ -1002,14 +1002,14 @@ impl NcPlane {
 
     /// Returns the current row of the cursor within this NcPlane.
     ///
-    /// *C style function: [ncplane_cursor_y()][crate::ncplane_cursor_y].*
+    /// *(No equivalent C style function)*
     pub fn cursor_y(&self) -> NcDimension {
         self.cursor_yx().0
     }
 
     /// Returns the current column of the cursor within this NcPlane.
     ///
-    /// *C style function: [ncplane_cursor_x()][crate::ncplane_cursor_x].*
+    /// *(No equivalent C style function)*
     pub fn cursor_x(&self) -> NcDimension {
         self.cursor_yx().1
     }
@@ -1185,7 +1185,9 @@ impl NcPlane {
     ///
     /// Suitable for use as an [NcResizeCb].
     ///
-    /// *C style function: [ncplane_resize_align()][crate::ncplane_resize_align].*
+    /// *C style function: [ncplane_resize_realign()][crate::ncplane_resize_realign].*
+    //
+    // TODO: suitable for use as an NcResizeCb?
     pub fn resize_realign(&mut self) -> NcResult {
         unsafe { crate::ncplane_resize_realign(self) }
     }

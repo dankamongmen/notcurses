@@ -6,22 +6,26 @@
 //
 // functions already exported by bindgen : 3
 // -----------------------------------------
-// (#) unit tests: 0 / 3
+// (#) test: 0
+// (W) wrap: 3 / 0
 // -----------------------------------------
-//  palette256_free
-//  palette256_new
-//  palette256_use
+//W  palette256_free
+//W  palette256_new
+//W  palette256_use
 //
 // functions manually reimplemented: 3
 // -----------------------------------------
-// (+) implement : 3 / 0
-// (#) unit tests: 0 / 3
+// (+) done: 3 / 0
+// (#) test: 0
+// (W) wrap: 3 / 0
 // -----------------------------------------
-// + palette256_get_rgb
-// + palette256_set
-// + palette256_set_rgb
+//W+ palette256_get_rgb
+//W+ palette256_set
+//W+ palette256_set_rgb
 
+mod methods;
 mod reimplemented;
+pub use methods::*;
 pub use reimplemented::*;
 
 /// NcPalette structure consisting of an array of 256

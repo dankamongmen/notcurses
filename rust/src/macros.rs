@@ -2,7 +2,7 @@
 
 // General Utility Macros ------------------------------------------------------
 
-/// Sleeps for $ms milliseconds.
+/// Sleeps for `$ms` milliseconds.
 #[macro_export]
 macro_rules! sleep {
     ($ms:expr) => {
@@ -10,7 +10,7 @@ macro_rules! sleep {
     };
 }
 
-/// Renders the [Notcurses][crate::Notcurses] object, then sleeps for $ms
+/// Renders the [Notcurses][crate::Notcurses] object, then sleeps for `$ms`
 /// milliseconds and returns the result of [notcurses_render][crate::notcurses_render].
 #[macro_export]
 macro_rules! rsleep {

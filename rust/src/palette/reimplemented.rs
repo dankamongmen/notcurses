@@ -1,36 +1,41 @@
 //! `palette256_*` reimplemented functions.
 
-use crate::{
-    channel_rgb8, channel_set, channel_set_rgb8, NcChannel, NcColor, NcPalette, NcPaletteIndex,
-    NcRgb,
-};
+use crate::{NcChannel, NcColor, NcPalette, NcPaletteIndex, NcRgb};
 
-/// Set the different color components of an entry inside a palette store.
-#[inline]
-pub fn palette256_set_rgb(
-    palette: &mut NcPalette,
-    idx: NcPaletteIndex,
-    red: NcColor,
-    green: NcColor,
-    blue: NcColor,
-) {
-    channel_set_rgb8(&mut palette.chans[idx as usize], red, green, blue)
-}
-
-/// Same as `palette256_set_rgb()` but set an assembled 24 bit channel at once.
-#[inline]
-pub fn palette256_set(palette: &mut NcPalette, idx: NcPaletteIndex, rgb: NcRgb) {
-    channel_set(&mut palette.chans[idx as usize], rgb);
-}
-
-/// Extract the three 8-bit R/G/B components from an entry inside a palette store.
+/// Extracts the [NcColor] RGB components from an [NcChannel] entry inside
+/// an [NcPalette], and returns the NcChannel.
+///
+/// *Method: NcPalette.[get_rgb()][NcPalette#method.get_rgb].*
+/// *Method: NcPalette.[get_rgb8()][NcPalette#method.get_rgb8].*
 #[inline]
 pub fn palette256_get_rgb(
     palette: &NcPalette,
-    idx: NcPaletteIndex,
+    index: NcPaletteIndex,
     red: &mut NcColor,
     green: &mut NcColor,
     blue: &mut NcColor,
 ) -> NcChannel {
-    channel_rgb8(palette.chans[idx as usize], red, green, blue)
+    crate::channel_rgb8(palette.chans[index as usize], red, green, blue)
+}
+
+/// Sets the [NcRgb] value of the [NcChannel] entry inside an [NcPalette].
+///
+/// *Method: NcPalette.[set()][NcPalette#method.set].*
+#[inline]
+pub fn palette256_set(palette: &mut NcPalette, index: NcPaletteIndex, rgb: NcRgb) {
+    crate::channel_set(&mut palette.chans[index as usize], rgb);
+}
+
+/// Sets the [NcColor] components of the [NcChannel] entry inside an [NcPalette].
+///
+/// *Method: NcPalette.[set_rgb()][NcPalette#method.set_rgb].*
+#[inline]
+pub fn palette256_set_rgb(
+    palette: &mut NcPalette,
+    index: NcPaletteIndex,
+    red: NcColor,
+    green: NcColor,
+    blue: NcColor,
+) {
+    crate::channel_set_rgb8(&mut palette.chans[index as usize], red, green, blue)
 }
