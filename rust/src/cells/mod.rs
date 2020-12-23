@@ -13,42 +13,42 @@
 // ------------------------------------------
 // (X) wont:  2
 // (+) done: 40 /  0
-// (W) wrap:  1 / 39
-// (#) test:  26 / 14
+// (W) wrap: 27
+// (#) test: 26
 // ------------------------------------------
-// # cell_bchannel
-// # cell_bg_alpha
-// # cell_bg_default_p
-// # cell_bg_palindex
-// # cell_bg_palindex_p
-// # cell_bg_rgb
-// # cell_bg_rgb8
+//W# cell_bchannel
+//W# cell_bg_alpha
+//W# cell_bg_default_p
+//W# cell_bg_palindex
+//W# cell_bg_palindex_p
+//W# cell_bg_rgb
+//W# cell_bg_rgb8
 // + cellcmp
 // + cell_double_wide_p
 //W+ cell_extract
-// # cell_fchannel
-// # cell_fg_alpha
-// # cell_fg_default_p
-// # cell_fg_palindex
-// # cell_fg_palindex_p
-// # cell_fg_rgb
-// # cell_fg_rgb8
+//W# cell_fchannel
+//W# cell_fg_alpha
+//W# cell_fg_default_p
+//W# cell_fg_palindex
+//W# cell_fg_palindex_p
+//W# cell_fg_rgb
+//W# cell_fg_rgb8
 // + cell_init
 // + cell_load_char
 // + cell_prime
-// # cell_set_bchannel
-// # cell_set_bg_alpha
-// # cell_set_bg_default
-// # cell_set_bg_palindex
-// # cell_set_bg_rgb
-// # cell_set_bg_rgb8
+//W# cell_set_bchannel
+//W# cell_set_bg_alpha
+//W# cell_set_bg_default
+//W# cell_set_bg_palindex
+//W# cell_set_bg_rgb
+//W# cell_set_bg_rgb8
 // X cell_set_bg_rgb8_clipped   // unneeded
-// # cell_set_fchannel
-// # cell_set_fg_alpha
-// # cell_set_fg_default
-// # cell_set_fg_palindex
-// # cell_set_fg_rgb
-// # cell_set_fg_rgb8
+//W# cell_set_fchannel
+//W# cell_set_fg_alpha
+//W# cell_set_fg_default
+//W# cell_set_fg_palindex
+//W# cell_set_fg_rgb
+//W# cell_set_fg_rgb8
 // X cell_set_fg_rgb8_clipped   // unneeded
 // + cells_load_box
 // + cell_strdup
@@ -67,7 +67,7 @@ mod reimplemented;
 pub use reimplemented::*;
 
 // NcCell
-/// A coordinate on an [`NcPlane`][crate::NcPlane] storing 128 bits of data
+/// A coordinate on an [`NcPlane`][crate::NcPlane] storing 128 bits of data.
 ///
 /// An `NcCell` corresponds to a single character cell on some [`NcPlane`],
 /// which can be occupied by a single [`NcEgc`] grapheme cluster (some root

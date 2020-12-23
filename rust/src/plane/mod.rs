@@ -55,16 +55,16 @@
 //W  ncplane_pulse
 //   ncplane_putchar_stained
 //   ncplane_putc_yx
-// X ncplane_putegc_stained
-// X ncplane_putegc_yx
+// X ncplane_putegc_stained            // unneeded
+// X ncplane_putegc_yx                 // unneeded
 //   ncplane_putnstr_aligned
 //   ncplane_putnstr_yx
 //   ncplane_putstr_aligned
 //   ncplane_putstr_stained
 //   ncplane_putstr_yx
 //   ncplane_puttext
-// X ncplane_putwegc_stained
-// X ncplane_putwstr_stained
+// X ncplane_putwegc_stained           // unneeded
+// X ncplane_putwstr_stained           // unneeded
 //   ncplane_qrcode
 //W  ncplane_reparent
 //W  ncplane_reparent_family
@@ -82,7 +82,7 @@
 //W  ncplane_set_bg_palindex
 //W  ncplane_set_bg_rgb
 //W  ncplane_set_bg_rgb8
-// X ncplane_set_bg_rgb8_clipped
+// X ncplane_set_bg_rgb8_clipped       // unneeded
 //W# ncplane_set_channels
 //W# ncplane_set_fchannel
 //W  ncplane_set_fg_alpha
@@ -90,7 +90,7 @@
 //W  ncplane_set_fg_palindex
 //W  ncplane_set_fg_rgb
 //W  ncplane_set_fg_rgb8
-// X ncplane_set_fg_rgb8_clipped
+// X ncplane_set_fg_rgb8_clipped       // unneeded
 //W  ncplane_set_resizecb
 //W  ncplane_set_scrolling
 //W  ncplane_set_styles
@@ -108,7 +108,7 @@
 //W  ncplane_y
 //W  ncplane_yx
 //
-// functions manually reimplemented: 42
+// functions manually reimplemented: 41
 // ------------------------------------------
 // (X) wont:  9
 // (+) done: 34 / 0
@@ -141,17 +141,17 @@
 // + ncplane_putc
 // + ncplane_putchar
 // + ncplane_putchar_yx
-// X ncplane_putegc
+// X ncplane_putegc                    // unneeded
 // + ncplane_putnstr
 //W+ ncplane_putstr
-// X ncplane_putwc
-// X ncplane_putwc_stained
-// X ncplane_putwc_yx
-// X ncplane_putwegc
-// X ncplane_putwegc_yx
-// X ncplane_putwstr
-// X ncplane_putwstr_aligned
-// X ncplane_putwstr_yx
+// X ncplane_putwc                     // unneeded
+// X ncplane_putwc_stained             // unneeded
+// X ncplane_putwc_yx                  // unneeded
+// X ncplane_putwegc                   // unneeded
+// X ncplane_putwegc_yx                // unneeded
+// X ncplane_putwstr                   // unneeded
+// X ncplane_putwstr_aligned           // unneeded
+// X ncplane_putwstr_yx                // unneeded
 //W# ncplane_resize_simple
 // + ncplane_rounded_box
 // + ncplane_rounded_box_sized
