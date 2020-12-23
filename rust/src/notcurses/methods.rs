@@ -500,6 +500,13 @@ impl Notcurses {
         unsafe { crate::notcurses_supported_styles(self) as NcStyleMask }
     }
 
+    /// Returns our current idea of the terminal dimensions in rows and cols.
+    ///
+    /// *C style function: [notcurses_supported_styles()][crate::notcurses_supported_styles].*
+    pub fn term_dim_yx(&self) -> (NcDimension, NcDimension) {
+        crate::notcurses_term_dim_yx(self)
+    }
+
     /// Returns the topmost [NcPlane], of which there is always at least one.
     ///
     /// *C style function: [notcurses_top()][crate::notcurses_top].*

@@ -127,8 +127,7 @@ impl NcPlane {
     ///
     /// *(No equivalent C style function)*
     pub fn new_termsize<'a>(nc: &mut Notcurses) -> &'a mut NcPlane {
-        let (mut trows, mut tcols) = (0, 0);
-        crate::notcurses_term_dim_yx(nc, &mut trows, &mut tcols);
+        let (trows, tcols) = crate::notcurses_term_dim_yx(nc);
         assert![(trows > 0) & (tcols > 0)];
         unsafe {
             &mut *crate::ncpile_create(

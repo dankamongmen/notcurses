@@ -3,24 +3,12 @@
 use core::ptr::null;
 
 use crate::{
-    // NOTE: can't use libc::sigset_t with notcurses_getc(()
-    bindings::{sigemptyset, sigfillset, sigset_t},
-    ncplane_dim_yx,
-    notcurses_getc,
-    notcurses_stdplane,
-    notcurses_stdplane_const,
-    NcAlign,
-    NcDimension,
-    NcInput,
-    NcOffset,
-    NcPlane,
-    NcTime,
-    Notcurses,
-    NCALIGN_CENTER,
-    NCALIGN_LEFT,
-    NCALIGN_RIGHT,
-    NCRESULT_MAX,
+    NcAlign, NcDimension, NcInput, NcOffset, NcPlane, NcTime, Notcurses, NCALIGN_CENTER,
+    NCALIGN_LEFT, NCALIGN_RIGHT, NCRESULT_MAX,
 };
+
+// can't use libc::sigset_t with notcurses_getc(()
+use crate::bindings::{sigemptyset, sigfillset, sigset_t};
 
 /// Returns the offset into 'availcols' at which 'cols' ought be output given
 /// the requirements of 'align'.
@@ -58,7 +46,7 @@ pub fn notcurses_getc_nblock(nc: &mut Notcurses, input: &mut NcInput) -> char {
             tv_nsec: 0,
         };
         // https://www.gnu.org/software/libc/manual/html_node/Signal-Sets.html
-        core::char::from_u32_unchecked(notcurses_getc(nc, &ts, &mut sigmask, input))
+        core::char::from_u32_unchecked(crate::notcurses_getc(nc, &ts, &mut sigmask, input))
     }
 }
 
@@ -71,7 +59,7 @@ pub fn notcurses_getc_nblocking(nc: &mut Notcurses, input: &mut NcInput) -> char
     unsafe {
         let mut sigmask = sigset_t { __val: [0; 16] };
         sigemptyset(&mut sigmask);
-        core::char::from_u32_unchecked(notcurses_getc(nc, null(), &mut sigmask, input))
+        core::char::from_u32_unchecked(crate::notcurses_getc(nc, null(), &mut sigmask, input))
     }
 }
 
@@ -85,8 +73,8 @@ pub fn notcurses_stddim_yx<'a>(
     x: &mut NcDimension,
 ) -> &'a mut NcPlane {
     unsafe {
-        let s = notcurses_stdplane(nc);
-        ncplane_dim_yx(s, &mut (*y as i32), &mut (*x as i32));
+        let s = crate::notcurses_stdplane(nc);
+        crate::ncplane_dim_yx(s, &mut (*y as i32), &mut (*x as i32));
         &mut *s
     }
 }
@@ -97,20 +85,20 @@ pub fn notcurses_stddim_yx<'a>(
 #[inline]
 pub fn notcurses_stddim_yx_const<'a>(nc: &'a Notcurses, y: &mut i32, x: &mut i32) -> &'a NcPlane {
     unsafe {
-        let s = notcurses_stdplane_const(nc);
-        ncplane_dim_yx(s, y, x);
+        let s = crate::notcurses_stdplane_const(nc);
+        crate::ncplane_dim_yx(s, y, x);
         &*s
     }
 }
 
-/// Return our current idea of the terminal dimensions in rows and cols.
+/// Returns our current idea of the terminal dimensions in rows and cols.
 ///
 /// *Method: Notcurses.[getc_term_yx()][Notcurses#method.term_yx].*
 #[inline]
-pub fn notcurses_term_dim_yx(nc: &Notcurses, rows: &mut u32, cols: &mut u32) {
+pub fn notcurses_term_dim_yx(nc: &Notcurses) -> (NcDimension, NcDimension) {
+    let (mut y, mut x) = (0, 0);
     unsafe {
-        let mut irows = *rows as i32;
-        let mut icols = *cols as i32;
-        ncplane_dim_yx(notcurses_stdplane_const(nc), &mut irows, &mut icols);
+        crate::ncplane_dim_yx(crate::notcurses_stdplane_const(nc), &mut y, &mut x);
     }
+    (y as NcDimension, x as NcDimension)
 }
