@@ -18,9 +18,7 @@ fn channels() {
     assert_eq![0xBB445566, crate::cell_bchannel(&c1)];
     assert_eq![0xAA112233BB445566, channels];
 
-    let c2 = NcCell::with_all(' ', 0, 0, 0x0011223300445566);
-    assert_eq![0x112233, crate::cell_fchannel(&c2)];
-    assert_eq![0x445566, crate::cell_bchannel(&c2)];
+    let c2 = NcCell::with_7bitchar('@');
 }
 
 #[test]
