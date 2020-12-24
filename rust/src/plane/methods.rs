@@ -9,7 +9,7 @@ use crate::{
     NcResult, NcRgb, NcStyleMask, NcTime, Notcurses, NCRESULT_OK,
 };
 
-/// # `NcPlaneOptions` Constructors
+/// # NcPlaneOptions Constructors
 impl NcPlaneOptions {
     /// New NcPlaneOptions using the horizontal x.
     pub fn new(y: NcOffset, x: NcOffset, rows: NcDimension, cols: NcDimension) -> Self {
@@ -1380,7 +1380,7 @@ impl NcPlane {
         crate::ncplane_box_sized(self, ul, ur, ll, lr, hline, vline, y_len, x_len, boxmask)
     }
 
-    ///
+    /// NcPlane.[box()][NcPlane#method.box] with the double box-drawing characters.
     ///
     /// *C style function: [ncplane_double_box()][crate::ncplane_double_box].*
     #[inline]

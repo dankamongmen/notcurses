@@ -3,12 +3,9 @@
 use core::ptr::null;
 
 use crate::{
-    NcAlign, NcDimension, NcInput, NcOffset, NcPlane, NcTime, Notcurses, NCALIGN_CENTER,
-    NCALIGN_LEFT, NCALIGN_RIGHT, NCRESULT_MAX,
+    NcAlign, NcDimension, NcInput, NcOffset, NcPlane, NcSignalSet, NcTime, Notcurses,
+    NCALIGN_CENTER, NCALIGN_LEFT, NCALIGN_RIGHT, NCRESULT_MAX,
 };
-
-// can't use libc::sigset_t with notcurses_getc(()
-use crate::bindings::{sigemptyset, sigfillset, sigset_t};
 
 /// Returns the offset into `availcols` at which `cols` ought be output given
 /// the requirements of `align`.
@@ -43,8 +40,8 @@ pub fn notcurses_align(availcols: NcDimension, align: NcAlign, cols: NcDimension
 #[inline]
 pub fn notcurses_getc_nblock(nc: &mut Notcurses, input: &mut NcInput) -> char {
     unsafe {
-        let mut sigmask = sigset_t { __val: [0; 16] };
-        sigfillset(&mut sigmask);
+        let mut sigmask = NcSignalSet::new();
+        sigmask.fillset();
         let ts = NcTime {
             tv_sec: 0,
             tv_nsec: 0,
@@ -61,8 +58,8 @@ pub fn notcurses_getc_nblock(nc: &mut Notcurses, input: &mut NcInput) -> char {
 #[inline]
 pub fn notcurses_getc_nblocking(nc: &mut Notcurses, input: &mut NcInput) -> char {
     unsafe {
-        let mut sigmask = sigset_t { __val: [0; 16] };
-        sigemptyset(&mut sigmask);
+        let mut sigmask = NcSignalSet::new();
+        sigmask.emptyset();
         core::char::from_u32_unchecked(crate::notcurses_getc(nc, null(), &mut sigmask, input))
     }
 }

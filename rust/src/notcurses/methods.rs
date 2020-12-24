@@ -4,10 +4,10 @@ use core::ptr::{null, null_mut};
 use std::ffi::CStr;
 
 use crate::{
-    cstring, notcurses_init, sigset_t, NcAlign, NcBlitter, NcChannelPair, NcDimension, NcEgc,
-    NcFile, NcInput, NcLogLevel, NcPlane, NcResult, NcScale, NcStats, NcStyleMask, NcTime,
+    cstring, notcurses_init, NcAlign, NcBlitter, NcChannelPair, NcDimension, NcEgc, NcFile,
+    NcInput, NcLogLevel, NcPlane, NcResult, NcScale, NcSignalSet, NcStats, NcStyleMask, NcTime,
     Notcurses, NotcursesOptions, NCOPTION_NO_ALTERNATE_SCREEN, NCOPTION_SUPPRESS_BANNERS,
-    NCRESULT_OK,
+    NCRESULT_ERR, NCRESULT_OK,
 };
 
 /// # `NotcursesOptions` Constructors
@@ -261,10 +261,52 @@ impl Notcurses {
         }
     }
 
+    /// Returns a [char] representing a single unicode point.
+    ///
+    /// If an event is processed, the return value is the `id` field from that
+    /// event.
+    ///
+    /// Provide a None `time` to block at length, a `time` of 0 for non-blocking
+    /// operation, and otherwise a timespec to bound blocking.
+    ///
+    /// Signals in sigmask (less several we handle internally) will be atomically
+    /// masked and unmasked per [ppoll(2)](https://linux.die.net/man/2/ppoll).
+    ///
+    /// `*sigmask` should generally contain all signals.
     ///
     /// *C style function: [notcurses_getc()][crate::notcurses_getc].*
-    pub fn getc(&mut self, time: &NcTime, sigmask: &mut sigset_t, input: &mut NcInput) -> char {
-        unsafe { core::char::from_u32_unchecked(crate::notcurses_getc(self, time, sigmask, input)) }
+    pub fn getc(
+        &mut self,
+        time: Option<NcTime>,
+        sigmask: Option<&mut NcSignalSet>,
+        input: Option<&mut NcInput>,
+    ) -> Option<char> {
+        let ntime;
+        if let Some(time) = time {
+            ntime = &time as *const _;
+        } else {
+            ntime = null();
+        }
+
+        let nsigmask;
+        if let Some(sigmask) = sigmask {
+            nsigmask = sigmask as *mut _;
+        } else {
+            nsigmask = null_mut() as *mut _;
+        }
+        let ninput;
+        if let Some(input) = input {
+            ninput = input as *mut _;
+        } else {
+            ninput = null_mut();
+        }
+        let c = unsafe {
+            core::char::from_u32_unchecked(crate::notcurses_getc(self, ntime, nsigmask, ninput))
+        };
+        if c as u32 as i32 == NCRESULT_ERR {
+            return None;
+        }
+        Some(c)
     }
 
     ///
@@ -464,7 +506,7 @@ impl Notcurses {
         crate::notcurses_stddim_yx(nc, y, x)
     }
 
-    /// [stdplane_const()][#method.stdplane_const], plus free
+    /// [stdplane_const()][Notcurses#method.stdplane_const], plus free
     /// bonus dimensions written to non-NULL y/x!
     ///
     /// *C style function: [notcurses_stddim_yx()][crate::notcurses_stddim_yx].*

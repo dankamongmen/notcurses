@@ -2,52 +2,66 @@
 
 // functions already exported by bindgen : 38
 // ------------------------------------------
-// (W) wrap: 1 / 37
-// (#) test: 0 / 38
+// (X) wont:  1
+// (#) test:  0
+// (W) wrap: 37 / 0
 // ------------------------------------------
-//  ncdirect_bg_default
-//  ncdirect_bg_palindex
-//  ncdirect_bg_rgb
-//  ncdirect_box
-//  ncdirect_canopen_images
-//  ncdirect_canutf8
-//  ncdirect_clear
-//  ncdirect_cursor_disable
-//  ncdirect_cursor_down
-//  ncdirect_cursor_enable
-//  ncdirect_cursor_left
-//  ncdirect_cursor_move_yx
-//  ncdirect_cursor_pop
-//  ncdirect_cursor_push
-//  ncdirect_cursor_right
-//  ncdirect_cursor_up
-//  ncdirect_cursor_yx
-//  ncdirect_dim_x
-//  ncdirect_dim_y
-//  ncdirect_double_box
-//  ncdirect_fg_default
-//  ncdirect_fg_palindex
-//  ncdirect_fg_rgb
-//  ncdirect_flush
-//  ncdirect_getc
-//  ncdirect_hline_interp
-//W ncdirect_init
-//  ncdirect_inputready_fd
-//  ncdirect_palette_size
-//  ncdirect_printf_aligned
-//  ncdirect_putstr
-//  ncdirect_render_image
-//  ncdirect_rounded_box
-//  ncdirect_stop
-//  ncdirect_styles_off
-//  ncdirect_styles_on
-//  ncdirect_styles_set
-//  ncdirect_vline_interp
+//W  ncdirect_bg_default
+//W  ncdirect_bg_palindex
+//W  ncdirect_bg_rgb
+//W  ncdirect_box
+//W  ncdirect_canopen_images
+//W  ncdirect_canutf8
+//W  ncdirect_clear
+//W  ncdirect_cursor_disable
+//W  ncdirect_cursor_down
+//W  ncdirect_cursor_enable
+//W  ncdirect_cursor_left
+//W  ncdirect_cursor_move_yx
+//W  ncdirect_cursor_pop
+//W  ncdirect_cursor_push
+//W  ncdirect_cursor_right
+//W  ncdirect_cursor_up
+//W  ncdirect_cursor_yx
+//W  ncdirect_dim_x
+//W  ncdirect_dim_y
+//W  ncdirect_double_box
+//W  ncdirect_fg_default
+//W  ncdirect_fg_palindex
+//W  ncdirect_fg_rgb
+//W  ncdirect_flush
+//W  ncdirect_getc
+//W  ncdirect_hline_interp
+//W  ncdirect_init
+//W  ncdirect_inputready_fd
+//W  ncdirect_palette_size
+// X ncdirect_printf_aligned
+//W  ncdirect_putstr
+//W  ncdirect_render_image
+//W  ncdirect_rounded_box
+//W  ncdirect_stop
+//W  ncdirect_styles_off
+//W  ncdirect_styles_on
+//W  ncdirect_styles_set
+//W  ncdirect_vline_interp
+//
+// functions manually reimplemented: 4
+// ------------------------------------------
+// (+) done: 4 / 0
+// (W) wrap: 4 / 0
+// (#) test: 0
+// ------------------------------------------
+//W+ ncdirect_bg_rgb8
+//W+ ncdirect_fg_rgb8
+//W+ ncdirect_getc_nblock
+//W+ ncdirect_getc_nblocking
 
 #[cfg(test)]
 mod test;
 
 mod methods;
+mod reimplemented;
+pub use reimplemented::*;
 
 /// Minimal notcurses instances for styling text
 pub type NcDirect = crate::bindings::ffi::ncdirect;
