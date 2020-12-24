@@ -61,6 +61,8 @@ fn main() {
     } else {
         ret = NCRESULT_ERR - 10;
     }
-    //println!("ret={}", ret); // DEBUG
-    ncd.stop()
+
+    // println!("ret={}", ret); // DEBUG
+
+    ncd.stop();
 }
