@@ -296,15 +296,24 @@ impl NcDirect {
     /// Gets the current number of rows.
     ///
     /// *C style function: [ncdirect_dim_y()][crate::ncdirect_dim_y].*
-    pub fn cursor_dim_y(&self) -> NcDimension {
+    pub fn dim_y(&self) -> NcDimension {
         unsafe { crate::ncdirect_dim_y(self) as NcDimension }
     }
 
     /// Gets the current number of columns.
     ///
     /// *C style function: [ncdirect_dim_x()][crate::ncdirect_dim_x].*
-    pub fn cursor_dim_x(&self) -> NcDimension {
+    pub fn dim_x(&self) -> NcDimension {
         unsafe { crate::ncdirect_dim_x(self) as NcDimension }
+    }
+
+    /// Gets the current number of rows and columns.
+    ///
+    /// *C style function: [ncdirect_dim_y()][crate::ncdirect_dim_y].*
+    pub fn dim_yx(&self) -> (NcDimension, NcDimension) {
+        let y = unsafe { crate::ncdirect_dim_y(self) as NcDimension };
+        let x = unsafe { crate::ncdirect_dim_x(self) as NcDimension };
+        (y, x)
     }
 }
 

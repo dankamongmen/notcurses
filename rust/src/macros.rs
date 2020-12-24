@@ -38,4 +38,7 @@ macro_rules! printf {
     ($s:expr) => {
         unsafe { libc::printf(cstring![$s]) }
     };
+    ($s:expr $(, $opt:expr)*) => {
+        unsafe { libc::printf(cstring![$s], $($opt),*) }
+    };
 }
