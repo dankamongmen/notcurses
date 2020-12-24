@@ -137,7 +137,7 @@ impl NcDirect {
     ///
     /// *C style function: [ncdirect_bg_rgb()][crate::ncdirect_bg_rgb].*
     pub fn bg_rgb8(&mut self, red: NcColor, green: NcColor, blue: NcColor) -> NcResult {
-        crate::ncdirect_fg_rgb8(self, red, green, blue)
+        crate::ncdirect_bg_rgb8(self, red, green, blue)
     }
 
     /// Removes the specified styles.

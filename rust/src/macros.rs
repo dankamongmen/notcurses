@@ -31,3 +31,11 @@ macro_rules! cstring {
         std::ffi::CString::new($s).unwrap().as_ptr();
     };
 }
+
+/// Simple wrapper around [libc::printf].
+#[macro_export]
+macro_rules! printf {
+    ($s:expr) => {
+        unsafe { libc::printf(cstring![$s]) }
+    };
+}
