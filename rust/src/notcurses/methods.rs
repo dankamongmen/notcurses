@@ -118,6 +118,18 @@ impl Notcurses {
 
 /// # `Notcurses` methods
 impl Notcurses {
+    //
+    // /// Returns the offset into 'availcols' at which 'cols' ought be output given
+    // /// the requirements of `align`.
+    // ///
+    // /// Returns -NCRESULT_MAX if NCALIGN_UNALIGNED or invalid NcAlign.
+    //
+    // ///
+    // /// *C style function: [notcurses_at_yx()][crate::notcurses_at_yx].*
+    // pub fn canchangecolor(&self) -> bool {
+    //     unsafe { crate::notcurses_canchangecolor(self) }
+    // }
+
     /// Retrieves the current contents of the specified [NcCell][crate::NcCell]
     /// as last rendered, returning the [NcEgc] (or None on error) and writing
     /// out the [NcStyleMask] and the [NcChannelPair].

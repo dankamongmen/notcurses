@@ -9,7 +9,7 @@ use crate::{
 impl NcCell {
     /// New NcCell, expects a 7-bit [char].
     #[inline]
-    pub const fn with_7bitchar(ch: char) -> Self {
+    pub const fn with_char7b(ch: char) -> Self {
         NcCell {
             gcluster: (ch as u32).to_le(),
             gcluster_backstop: 0 as NcEgcBackstop,
@@ -21,7 +21,7 @@ impl NcCell {
 
     /// New NcCell, expects an [NcPlane] and a [char].
     #[inline]
-    pub fn with_char(plane: &mut NcPlane, ch: char) -> Self {
+    pub fn with_char(ch: char, plane: &mut NcPlane) -> Self {
         let mut cell = Self::new();
         let result = unsafe { cell_load(plane, &mut cell, cstring![ch.to_string()]) };
         debug_assert_ne![NCRESULT_ERR, result];
@@ -40,7 +40,7 @@ impl NcCell {
     /// New empty NcCell.
     #[inline]
     pub const fn new() -> Self {
-        Self::with_7bitchar(0 as char)
+        Self::with_char7b(0 as char)
     }
 }
 

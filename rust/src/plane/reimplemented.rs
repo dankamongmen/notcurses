@@ -128,7 +128,7 @@ pub fn ncplane_putc(plane: &mut NcPlane, cell: &NcCell) -> NcResult {
 #[inline]
 pub fn ncplane_putchar(plane: &mut NcPlane, ch: char) -> NcResult {
     unsafe {
-        let cell = NcCell::with_char(plane, ch);
+        let cell = NcCell::with_char(ch, plane);
         crate::ncplane_putc_yx(plane, -1, -1, &cell)
     }
 }
@@ -145,7 +145,7 @@ pub fn ncplane_putchar_yx(
     ch: char,
 ) -> NcResult {
     unsafe {
-        let cell = NcCell::with_char(plane, ch);
+        let cell = NcCell::with_char(ch, plane);
         crate::ncplane_putc_yx(plane, y as i32, x as i32, &cell)
     }
 }

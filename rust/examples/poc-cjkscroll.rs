@@ -8,7 +8,7 @@ fn main() {
     let plane = nc.stdplane();
     plane.set_scrolling(true);
 
-    let mut wc = '\u{4e00}'; // '一';
+    let mut wc = '\u{4e00}'; // 一
 
     loop {
         sleep![1];

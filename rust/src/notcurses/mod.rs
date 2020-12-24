@@ -53,7 +53,7 @@
 // (#) test: 0
 // (W) wrap: 2
 // -----------------------------------------
-// # notcurses_align
+//W# notcurses_align
 //W+ notcurses_getc_blocking
 //W+ notcurses_getc_nblock
 // + notcurses_stddim_yx
