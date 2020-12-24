@@ -51,14 +51,14 @@
 // -----------------------------------------
 // (+) done: 6 / 0
 // (#) test: 0
-// (W) wrap: 2
+// (W) wrap: 4 / 0
 // -----------------------------------------
 //W# notcurses_align
 //W+ notcurses_getc_blocking
 //W+ notcurses_getc_nblock
-// + notcurses_stddim_yx
-// + notcurses_stddim_yx_const
-// + notcurses_term_dim_yx
+//W+ notcurses_stddim_yx
+//W+ notcurses_stddim_yx_const
+//W+ notcurses_term_dim_yx
 
 #[cfg(test)]
 mod test;

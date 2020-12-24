@@ -4,9 +4,10 @@ use core::ptr::{null, null_mut};
 use std::ffi::CStr;
 
 use crate::{
-    cstring, notcurses_init, sigset_t, NcBlitter, NcChannelPair, NcDimension, NcEgc, NcFile,
-    NcInput, NcLogLevel, NcPlane, NcResult, NcScale, NcStats, NcStyleMask, NcTime, Notcurses,
-    NotcursesOptions, NCOPTION_NO_ALTERNATE_SCREEN, NCOPTION_SUPPRESS_BANNERS, NCRESULT_OK,
+    cstring, notcurses_init, sigset_t, NcAlign, NcBlitter, NcChannelPair, NcDimension, NcEgc,
+    NcFile, NcInput, NcLogLevel, NcPlane, NcResult, NcScale, NcStats, NcStyleMask, NcTime,
+    Notcurses, NotcursesOptions, NCOPTION_NO_ALTERNATE_SCREEN, NCOPTION_SUPPRESS_BANNERS,
+    NCRESULT_OK,
 };
 
 /// # `NotcursesOptions` Constructors
@@ -118,17 +119,16 @@ impl Notcurses {
 
 /// # `Notcurses` methods
 impl Notcurses {
-    //
-    // /// Returns the offset into 'availcols' at which 'cols' ought be output given
-    // /// the requirements of `align`.
-    // ///
-    // /// Returns -NCRESULT_MAX if NCALIGN_UNALIGNED or invalid NcAlign.
-    //
-    // ///
-    // /// *C style function: [notcurses_at_yx()][crate::notcurses_at_yx].*
-    // pub fn canchangecolor(&self) -> bool {
-    //     unsafe { crate::notcurses_canchangecolor(self) }
-    // }
+    /// Returns the offset into `availcols` at which `cols` ought be output given
+    /// the requirements of `align`.
+    ///
+    /// Returns `-`[`NCRESULT_MAX`][crate::NCRESULT_MAX] if
+    /// [NCALIGN_UNALIGNED][crate::NCALIGN_UNALIGNED] or invalid [NcAlign].
+    ///
+    /// *C style function: [notcurses_align()][crate::notcurses_align].*
+    pub fn align(availcols: NcDimension, align: NcAlign, cols: NcDimension) -> NcResult {
+        crate::notcurses_align(availcols, align, cols)
+    }
 
     /// Retrieves the current contents of the specified [NcCell][crate::NcCell]
     /// as last rendered, returning the [NcEgc] (or None on error) and writing
@@ -449,6 +449,32 @@ impl Notcurses {
         unsafe {
             crate::notcurses_stats_reset(self, stats);
         }
+    }
+
+    /// [notcurses_stdplane()][crate::notcurses_stdplane], plus free bonus
+    /// dimensions written to non-NULL y/x!
+    ///
+    /// *C style function: [notcurses_stddim_yx()][crate::notcurses_stddim_yx].*
+    #[inline]
+    pub fn stddim_yx<'a>(
+        nc: &'a mut Notcurses,
+        y: &mut NcDimension,
+        x: &mut NcDimension,
+    ) -> &'a mut NcPlane {
+        crate::notcurses_stddim_yx(nc, y, x)
+    }
+
+    /// [stdplane_const()][#method.stdplane_const], plus free
+    /// bonus dimensions written to non-NULL y/x!
+    ///
+    /// *C style function: [notcurses_stddim_yx()][crate::notcurses_stddim_yx].*
+    #[inline]
+    pub fn stddim_yx_const<'a>(
+        nc: &'a Notcurses,
+        y: &mut NcDimension,
+        x: &mut NcDimension,
+    ) -> &'a NcPlane {
+        crate::notcurses_stddim_yx_const(nc, y, x)
     }
 
     /// Returns a mutable reference to the standard [NcPlane] for this terminal.

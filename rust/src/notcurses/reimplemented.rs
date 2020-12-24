@@ -10,11 +10,13 @@ use crate::{
 // can't use libc::sigset_t with notcurses_getc(()
 use crate::bindings::{sigemptyset, sigfillset, sigset_t};
 
-/// Returns the offset into 'availcols' at which 'cols' ought be output given
-/// the requirements of 'align'.
+/// Returns the offset into `availcols` at which `cols` ought be output given
+/// the requirements of `align`.
 ///
-/// Returns -[`NCRESULT_MAX`] if [NCALIGN_UNALIGNED][crate::NCALIGN_UNALIGNED]
+/// Returns `-`[`NCRESULT_MAX`] if [NCALIGN_UNALIGNED][crate::NCALIGN_UNALIGNED]
 /// or invalid [NcAlign].
+///
+/// *Method: Notcurses.[align()][Notcurses#method.align].*
 #[inline]
 pub fn notcurses_align(availcols: NcDimension, align: NcAlign, cols: NcDimension) -> NcOffset {
     if align == NCALIGN_LEFT {
@@ -32,10 +34,12 @@ pub fn notcurses_align(availcols: NcDimension, align: NcAlign, cols: NcDimension
     -NCRESULT_MAX // NCALIGN_UNALIGNED
 }
 
-/// 'input' may be NULL if the caller is uninterested in event details.
+///
 /// If no event is ready, returns 0.
 ///
 /// *Method: Notcurses.[getc_nblock()][Notcurses#method.getc_nblock].*
+//
+// `input` may be NULL if the caller is uninterested in event details.
 #[inline]
 pub fn notcurses_getc_nblock(nc: &mut Notcurses, input: &mut NcInput) -> char {
     unsafe {
@@ -63,12 +67,13 @@ pub fn notcurses_getc_nblocking(nc: &mut Notcurses, input: &mut NcInput) -> char
     }
 }
 
-/// notcurses_stdplane(), plus free bonus dimensions written to non-NULL y/x!
+/// [notcurses_stdplane()][crate::notcurses_stdplane], plus free bonus
+/// dimensions written to non-NULL y/x!
 ///
 /// *Method: Notcurses.[getc_stddim_yx()][Notcurses#method.stddim_yx].*
 #[inline]
 pub fn notcurses_stddim_yx<'a>(
-    nc: &mut Notcurses,
+    nc: &'a mut Notcurses,
     y: &mut NcDimension,
     x: &mut NcDimension,
 ) -> &'a mut NcPlane {
@@ -79,14 +84,19 @@ pub fn notcurses_stddim_yx<'a>(
     }
 }
 
-/// notcurses_stdplane_const(), plus free bonus dimensions written to non-NULL y/x!
+/// [notcurses_stdplane_const()][crate::notcurses_stdplane_const], plus free
+/// bonus dimensions written to non-NULL y/x!
 ///
 /// *Method: Notcurses.[getc_stddim_yx_const()][Notcurses#method.stddim_yx_const].*
 #[inline]
-pub fn notcurses_stddim_yx_const<'a>(nc: &'a Notcurses, y: &mut i32, x: &mut i32) -> &'a NcPlane {
+pub fn notcurses_stddim_yx_const<'a>(
+    nc: &'a Notcurses,
+    y: &mut NcDimension,
+    x: &mut NcDimension,
+) -> &'a NcPlane {
     unsafe {
         let s = crate::notcurses_stdplane_const(nc);
-        crate::ncplane_dim_yx(s, y, x);
+        crate::ncplane_dim_yx(s, &mut (*y as i32), &mut (*x as i32));
         &*s
     }
 }
