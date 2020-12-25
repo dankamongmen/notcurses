@@ -64,6 +64,14 @@ apply_term_heuristics(tinfo* ti, const char* termname){
   return 0;
 }
 
+// there are some capabilities that we want, but can work around. if the
+// logging level is set to "warn" or higher, go ahead and complain.
+void warn_terminfo(const notcurses* nc, const tinfo* ti){
+  if(!ti->hpa){
+    logwarn(nc, "No horizontal position absolute capability");
+  }
+}
+
 // termname is just the TERM environment variable. some details are not
 // exposed via terminfo, and we must make heuristic decisions based on
 // the detected terminal type, yuck :/.

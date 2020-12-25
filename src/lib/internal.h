@@ -373,6 +373,9 @@ void init_lang(notcurses* nc); // nc may be NULL, only used for logging
 int terminfostr(char** gseq, const char* name);
 int interrogate_terminfo(tinfo* ti, const char* termname);
 
+// if there were missing elements we wanted from terminfo, bitch about them here
+void warn_terminfo(const notcurses* nc, const tinfo* ti);
+
 int resize_callbacks_children(ncplane* n);
 
 // Search the provided multibyte (UTF8) string 's' for the provided unicode

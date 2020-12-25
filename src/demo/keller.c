@@ -45,7 +45,7 @@ int keller_demo(struct notcurses* nc){
   if(!notcurses_canopen_images(nc)){
     return 0;
   }
-  const char* files[] = { "covid19.jpg", "aidsrobots.jpeg", "worldmap.png", "fonts.jpg", NULL, };
+  const char* files[] = { "covid19.jpg", "aidsrobots.jpeg", "atma.png", "fonts.jpg", NULL, };
   for(const char** file = files ; *file ; ++file){
     char* f = find_data(*file);
     if(f == NULL){

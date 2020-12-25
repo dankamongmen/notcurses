@@ -11,6 +11,8 @@ int main(void){
   }
   int dimy, dimx;
   struct ncplane* n = notcurses_stddim_yx(nc, &dimy, &dimx);
+  ncplane_printf_yx(n, dimy / 2 - 2, 0, "ࡢ‎ࡣ‎ࡤ‎ࡥ‎ࡦ‎ࡧ‎ࡨ‎ࡩ‎ࡪ‎ࢠ‎ࢡ‎ࢢ‎ࢣ‎ࢤ‎ࢥ‎ࢦ‎ࢧ‎ࢨ‎ࢩ‎ࢪ‎ࢫ‎ࢬ‎ࢭ‎ࢮ‎ࢯ‎ࢰ‎ࢱ‎ࢲ‎ࢳ‎ࢴ‎ࢶ‎ࢷ‎ࢸ‎ࢹ‎ࢺ‎ࢻ‎ࢼ‎ࢽ‎࣢ः");
+  ncplane_printf_yx(n, dimy / 2 - 1, 0, "࠲‎࠳‎࠴‎࠵‎࠶‎࠷‎࠸‎࠹‎࠺‎࠻‎࠼‎࠽‎࠾‎ࡀ‎ࡁ‎ࡂ‎ࡃ‎ࡄ‎ࡅ‎ࡆ‎ࡇ‎ࡈ‎ࡉ‎ࡊ‎ࡋ‎ࡌ‎ࡍ‎ࡎ‎ࡏ‎ࡐ‎ࡑ‎ࡒ‎ࡓ‎ࡔ‎ࡕ‎ࡖ‎ࡗ‎ࡘ‎࡞‎ࡡ");
   // no matter how the following string is displayed, the first hebrew
   // character is מ (mem), followed by י (yod), ל (lamed), etc.
   if(ncplane_printf_aligned(n, dimy / 2, NCALIGN_CENTER,

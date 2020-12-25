@@ -1112,6 +1112,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   if(interrogate_terminfo(&ret->tcache, shortname_term)){
     goto err;
   }
+  warn_terminfo(ret, &ret->tcache);
   reset_term_attributes(ret);
   if(ncinputlayer_init(&ret->input, stdin)){
     goto err;

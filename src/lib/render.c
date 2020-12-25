@@ -731,31 +731,30 @@ update_palette(notcurses* nc, FILE* out){
 }
 
 // sync the drawing position to the specified location with as little overhead
-// as possible (with nothing, if already at the right location).
+// as possible (with nothing, if already at the right location). we prefer
+// absolute horizontal moves (hpa) to relative ones, in the rare event that
+// our understanding of our horizontal location is faulty.
 // FIXME fall back to synthesized moves in the absence of capabilities (i.e.
 // textronix lacks cup; fake it with horiz+vert moves)
 static inline int
 goto_location(notcurses* nc, FILE* out, int y, int x){
   int ret = 0;
-  if(nc->rstate.y == y){ // only need move x
-    const int xdiff = x - nc->rstate.x;
-    if(xdiff > 0){
-      if(xdiff == 1 && nc->tcache.cuf1){
-        ret = term_emit("cuf1", tiparm(nc->tcache.cuf1), out, false);
-        nc->rstate.x = x;
-        return ret;
-      }else if(nc->tcache.cuf){
-        ret = term_emit("cuf", tiparm(nc->tcache.cuf, xdiff), out, false);
-        nc->rstate.x = x;
-        return ret;
-      }
-    }else if(xdiff == 0){
-      return 0; // no move needed
+  // if we don't have hpa, force a cup even if we're only 1 char away. the only
+  // terminal i know supporting cup sans hpa is vt100, and vt100 can suck it.
+  // you can't use cuf for backwards moves anyway; again, vt100 can suck it.
+  if(nc->rstate.y == y && nc->tcache.hpa){ // only need move x
+    if(nc->rstate.x == x){ // needn't move shit
+      return 0;
     }
-    // cub1/cub tend to be destructive in my experiments :/
+    if(x == nc->rstate.x + 1 && nc->tcache.cuf1){
+      ret = term_emit("cuf1", tiparm(nc->tcache.cuf1), out, false);
+    }else{
+      ret = term_emit("hpa", tiparm(nc->tcache.hpa, x), out, false);
+    }
+  }else{
+    // cup is required, no need to check for existence
+    ret = term_emit("cup", tiparm(nc->tcache.cup, y, x), out, false);
   }
-  // cup is required, no need to check for existence
-  ret = term_emit("cup", tiparm(nc->tcache.cup, y, x), out, false);
   if(ret == 0){
     nc->rstate.x = x;
     nc->rstate.y = y;
