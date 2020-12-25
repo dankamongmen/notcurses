@@ -114,11 +114,6 @@ namespace ncpp
 			return error_guard (ncvisual_set_yx (visual, y, x, pixel), -1);
 		}
 
-		static ncblitter_e get_default_blitter (bool utf8, ncscale_e scale) noexcept
-		{
-			return ncvisual_default_blitter (utf8, scale);
-		}
-
 	private:
 		void common_init (ncplane *plane, const char *file)
 		{

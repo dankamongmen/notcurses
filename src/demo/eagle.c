@@ -42,7 +42,7 @@ zoom_map(struct notcurses* nc, const char* map, int* ret){
   // but *do* explicitly supply NCBLIT_2x2 since we're not scaling.
   struct ncvisual_options vopts = {
     .y = 1,
-    .blitter = NCBLIT_2x2,
+    .blitter = ncvisual_media_defblitter(nc, NCSCALE_NONE),
   };
   if(ncvisual_geom(nc, ncv, &vopts, &vheight, &vwidth, &yscale, &xscale)){
     ncvisual_destroy(ncv);

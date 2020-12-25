@@ -427,7 +427,7 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
 
 int ncdirect_raster_frame(ncdirect* n, ncdirectv* faken, ncalign_e align,
                           ncblitter_e blitter, ncscale_e scale){
-  auto bset = rgba_blitter_low(n->utf8, scale, true, blitter);
+  auto bset = rgba_blitter_low(n->utf8, n->tcache.sextants, scale, true, blitter);
   if(!bset){
     free_plane(faken);
     return -1;
@@ -457,7 +457,7 @@ ncdirectv* ncdirect_render_frame(ncdirect* n, const char* file,
     return nullptr;
   }
 //fprintf(stderr, "render %d/%d to %d+%dx%d scaling: %d\n", ncv->rows, ncv->cols, leny, lenx, scale);
-  auto bset = rgba_blitter_low(n->utf8, scale, true, blitter);
+  auto bset = rgba_blitter_low(n->utf8, n->tcache.sextants, scale, true, blitter);
   if(!bset){
     ncvisual_destroy(ncv);
     return nullptr;

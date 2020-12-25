@@ -293,6 +293,11 @@ namespace ncpp
 			return error_guard (notcurses_ucs32_to_utf8 (ucs32, ucs32count, resultbuf, buflen), -1);
 		}
 
+		ncblitter_e get_media_defblitter (ncscale_e scale) noexcept
+		{
+			return ncvisual_media_defblitter (nc, scale);
+		}
+
 		Plane* get_stdplane () noexcept
 		{
 			return new Plane (notcurses_stdplane (nc), true);

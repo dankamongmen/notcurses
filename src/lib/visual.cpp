@@ -15,7 +15,7 @@ auto ncvisual_geom(const notcurses* nc, const ncvisual* n,
   const ncscale_e scale = vopts ? vopts->scaling : NCSCALE_NONE;
   ncblitter_e blitter;
   if(!vopts || vopts->blitter == NCBLIT_DEFAULT){
-    blitter = ncvisual_default_blitter(nc, scale);
+    blitter = ncvisual_media_defblitter(nc, scale);
   }else{
     blitter = vopts->blitter;
   }

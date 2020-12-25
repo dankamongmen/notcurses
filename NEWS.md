@@ -6,6 +6,12 @@ rearrangements of Notcurses.
   * Divide `ncdirect_render_image()` into component `ncdirect_render_frame()`
     and `ncdirect_raster_frame()` (the original remains), allowing multiple
     threads to decode images concurrently.
+  * Sextants are now considered supported for certain values of `TERM`.
+  * `ncvisual_default_blitter()` has been deprecated in favor of the new
+    function `ncvisual_media_defblitter()`. This function's opaque logic
+    accepts a `struct notcurses *`, providing some future-proofing against
+    blitter changes. This function is necessary to get `NCBLIT_3x2` from
+    `NCBLIT_DEFAULT`.
 
 * 2.1.1 (2020-12-16)
   * Progress bars via `ncprogbar`, using the standard widget API.

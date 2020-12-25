@@ -95,8 +95,6 @@ typedef struct ncplane {
   bool scrolling;        // is scrolling enabled? always disabled by default
 } ncplane;
 
-#include "blitset.h"
-
 // current presentation state of the terminal. it is carried across render
 // instances. initialize everything to 0 on a terminal reset / startup.
 typedef struct rasterstate {
@@ -281,6 +279,7 @@ typedef struct tinfo {
   // background_opaque is in use. detect this, and avoid the default if so.
   // bg_collides_default is either 0x0000000 or 0x1RRGGBB.
   uint32_t bg_collides_default;
+  bool sextants;  // do we have Unicode 13 sextant support?
 } tinfo;
 
 typedef struct ncinputlayer {
@@ -366,6 +365,13 @@ typedef struct notcurses {
   bool utf8;      // are we using utf-8 encoding, as hoped?
   bool libsixel;  // do we have Sixel support?
 } notcurses;
+
+static inline bool
+notcurses_cansextant(const notcurses* nc){
+  return nc->tcache.sextants;
+}
+
+#include "blitset.h"
 
 void sigwinch_handler(int signo);
 

@@ -3296,19 +3296,36 @@ struct blitset {
 
 API extern const struct blitset notcurses_blitters[];
 
+// replaced by ncvisual_media_defblitter(). this original version never returns
+// NCBLIT_3x2.
+static inline ncblitter_e
+ncvisual_default_blitter(bool utf8, ncscale_e scale)
+  __attribute__ ((deprecated));
+
 static inline ncblitter_e
 ncvisual_default_blitter(bool utf8, ncscale_e scale){
   if(utf8){
-    // NCBLIT_3x2 is better image quality, especially for large images, but
-    // it's not the general default because it doesn't preserve aspect ratio.
-    // NCSCALE_STRETCH throws away aspect ratio, and can safely use NCBLIT_3x2.
+    // NCBLIT_3x2/NCBLIT_2x2 are better image quality, especially for large
+    // images, but it's not the general default because it doesn't preserve
+    // aspect ratio (as does NCBLIT_2x1). NCSCALE_STRETCH throws away aspect
+    // ratio, and can safely use NCBLIT_3x2/2x2.
     if(scale == NCSCALE_STRETCH){
-      return NCBLIT_2x2;
+      return NCBLIT_3x2;
     }
     return NCBLIT_2x1;
   }
   return NCBLIT_1x1;
 }
+
+// Get the default *media* (not plot) blitter for this environment when using
+// the specified scaling method. Currently, this means:
+//  - if lacking UTF-8, NCBLIT_1x1
+//  - otherwise, if not NCSCALE_STRETCH, NCBLIT_2x1
+//  - otherwise, if sextants are not known to be good, NCBLIT_2x2
+//  - otherwise NCBLIT_3x2
+// NCBLIT_2x2 and NCBLIT_3x2 both distort the original aspect ratio, thus
+// NCBLIT_2x1 is used outside of NCSCALE_STRETCH.
+API ncblitter_e ncvisual_media_defblitter(const struct notcurses* nc, ncscale_e scale);
 
 #undef API
 

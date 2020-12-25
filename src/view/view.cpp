@@ -74,7 +74,7 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
   intmax_t ns = timespec_to_ns(&now) - timespec_to_ns(start);
   marsh->blitter = vopts->blitter;
   if(marsh->blitter == NCBLIT_DEFAULT){
-    marsh->blitter = ncvisual_default_blitter(notcurses_canutf8(nc), vopts->scaling);
+    marsh->blitter = ncvisual_media_defblitter(nc, vopts->scaling);
   }
   if(!marsh->quiet){
     stdn->printf(0, NCAlign::Left, "frame %06d\u2026 (%s)", marsh->framecount,

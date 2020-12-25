@@ -863,8 +863,7 @@ int ncblit_rgba(const void* data, int linesize, const struct ncvisual_options* v
   }
   ncblitter_e blitter;
   if(!vopts || vopts->blitter == NCBLIT_DEFAULT){
-    blitter = ncvisual_default_blitter(notcurses_canutf8(ncplane_notcurses(nc)),
-                                       NCSCALE_NONE);
+    blitter = ncvisual_media_defblitter(ncplane_notcurses(nc), NCSCALE_NONE);
   }else{
     blitter = vopts->blitter;
   }
@@ -884,4 +883,8 @@ int rgba_blit_dispatch(ncplane* nc, const struct blitset* bset, int placey,
                        int begx, int leny, int lenx, bool blendcolors){
   return bset->blit(nc, placey, placex, linesize, data, begy, begx,
                     leny, lenx, blendcolors);
+}
+
+ncblitter_e ncvisual_media_defblitter(const notcurses* nc, ncscale_e scale){
+  return rgba_blitter_default(nc->utf8, scale, nc->tcache.sextants);
 }
