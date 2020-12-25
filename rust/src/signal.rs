@@ -1,6 +1,6 @@
 //! `NcSigSet`
 
-use crate::NcResult;
+use crate::NcIntResult;
 
 /// A wrapper over
 /// [sigset_t](https://www.gnu.org/software/libc/manual/html_node/Signal-Sets.html).
@@ -16,22 +16,22 @@ impl NcSignalSet {
     }
 
     /// Adds `signum` to this set.
-    pub fn addset(&mut self, signum: i32) -> NcResult {
+    pub fn addset(&mut self, signum: i32) -> NcIntResult {
         unsafe { crate::bindings::ffi::sigaddset(self, signum) }
     }
 
     /// Removes `signum` from this set.
-    pub fn delset(&mut self, signum: i32) -> NcResult {
+    pub fn delset(&mut self, signum: i32) -> NcIntResult {
         unsafe { crate::bindings::ffi::sigdelset(self, signum) }
     }
 
     /// Clears all signals from this set.
-    pub fn emptyset(&mut self) -> NcResult {
+    pub fn emptyset(&mut self) -> NcIntResult {
         unsafe { crate::bindings::ffi::sigemptyset(self) }
     }
 
     /// Sets all signals in this set.
-    pub fn fillset(&mut self) -> NcResult {
+    pub fn fillset(&mut self) -> NcIntResult {
         unsafe { crate::bindings::ffi::sigfillset(self) }
     }
 
@@ -44,20 +44,20 @@ impl NcSignalSet {
     }
 
     /// Puts in this set all signals that are blocked and waiting to be delivered.
-    pub fn pending(&mut self) -> NcResult {
+    pub fn pending(&mut self) -> NcIntResult {
         unsafe { crate::bindings::ffi::sigpending(self) }
     }
 
     /// Gets and/or changes the set of blocked signals.
     //
     // https://linux.die.net/man/2/sigprocmask
-    pub fn procmask(how: i32, set: &NcSignalSet, old_set: &mut NcSignalSet) -> NcResult {
+    pub fn procmask(how: i32, set: &NcSignalSet, old_set: &mut NcSignalSet) -> NcIntResult {
         unsafe { crate::bindings::ffi::sigprocmask(how, set, old_set) }
     }
 
     /// Changes the set of blocked signals to the ones in this set,
     /// waits until a signal arrives, and restores the set of blocked signals.
-    pub fn suspend(&self) -> NcResult {
+    pub fn suspend(&self) -> NcIntResult {
         unsafe { crate::bindings::ffi::sigsuspend(self) }
     }
 }

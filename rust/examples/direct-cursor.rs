@@ -5,7 +5,7 @@
 
 use libnotcurses_sys::*;
 
-fn main() {
+fn main() -> NcResult<()> {
     unsafe {
         let ncd = NcDirect::new();
 
@@ -13,34 +13,35 @@ fn main() {
         let rows = ncdirect_dim_y(ncd);
         println!("terminal size (rows, cols): {}, {}", rows, cols);
 
-        ncdirect_putstr(ncd, 0, cstring![format!("The current coordinates are")]);
-        ncdirect_flush(ncd);
+        ncd.putstr(0, "The current coordinates are")?;
+        ncd.flush()?;
 
         for _n in 0..20 {
-            ncdirect_putstr(ncd, 0, cstring!("."));
-            ncdirect_flush(ncd);
+            ncd.putstr(0, ".")?;
+            ncd.flush()?;
             sleep![50];
         }
 
-        let (mut cy, mut cx) = (0, 0);
-        ncdirect_cursor_yx(ncd, &mut cy, &mut cx);
-        ncdirect_putstr(ncd, 0, cstring![format!(" ({},{})\n", cy, cx)]);
+        if let Some((cy, cx)) = ncd.cursor_yx() {
+            ncd.putstr(0, &format!(" ({},{})\n", cy, cx))?;
+        }
         sleep![1000];
 
         let sentence = vec!["And", "now", "I", "will", "clear", "the", "screen", ".", ".", "."];
         for word in sentence {
-            ncdirect_putstr(ncd, 0, cstring!(format!["{} ", word]));
-            ncdirect_flush(ncd);
+            ncd.putstr(0, &format!["{} ", word])?;
+            ncd.flush()?;
             sleep![200];
         }
         sleep![300];
-        ncdirect_putstr(ncd, 0, cstring!("\nbye!\n\n"));
-        ncdirect_flush(ncd);
+        ncd.putstr(0, "\nbye!\n\n")?;
+        ncd.flush()?;
         sleep![600];
 
-        ncdirect_clear(ncd);
+        ncd.clear()?;
         sleep![1000];
 
-        ncdirect_stop(ncd);
+        ncd.stop()?;
     }
+    Ok(())
 }

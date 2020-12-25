@@ -15,7 +15,7 @@ macro_rules! sleep {
 #[macro_export]
 macro_rules! rsleep {
     ($nc:expr, $ms:expr) => {{
-        let mut res: NcResult = 0;
+        let mut res: crate::NcIntResult = 0;
         unsafe {
             res = crate::notcurses_render($nc);
         }
@@ -40,5 +40,29 @@ macro_rules! printf {
     };
     ($s:expr $(, $opt:expr)*) => {
         unsafe { libc::printf(cstring![$s], $($opt),*) }
+    };
+}
+
+/// Returns Ok(`$ok`) if `$res` >= [NCRESULT_OK][crate::NCRESULT_OK],
+/// otherwise returns
+/// Err([NcError][crate::NcError]::[new][crate::NcError#method.new](`$res`, `$msg`)).
+///
+/// `$ok` & `$msg` are optional. By default they will be the unit
+/// type `()`, and an empty `&str` `""`, respectively.
+///
+#[macro_export]
+macro_rules! error {
+    ($res:expr, $ok:expr, $msg:expr) => {
+        if $res >= crate::NCRESULT_OK {
+            return Ok($ok);
+        } else {
+            return Err(crate::NcError::new($res, $msg));
+        }
+    };
+    ($res:expr, $ok:expr) => {
+        error![$res, $ok, ""];
+    };
+    ($res:expr) => {
+        error![$res, (), ""];
     };
 }

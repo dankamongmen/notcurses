@@ -2,7 +2,7 @@
 
 use core::ptr::null;
 
-use crate::{NcColor, NcDirect, NcInput, NcResult, NcRgb, NcSignalSet, NcTime};
+use crate::{NcColor, NcDirect, NcInput, NcIntResult, NcRgb, NcSignalSet, NcTime};
 
 ///
 /// If no event is ready, returns 0.
@@ -42,7 +42,7 @@ pub fn ncdirect_fg_rgb8(
     red: NcColor,
     green: NcColor,
     blue: NcColor,
-) -> NcResult {
+) -> NcIntResult {
     let rgb = (red as NcRgb) << 16 | (green as NcRgb) << 8 | blue as NcRgb;
     unsafe { crate::ncdirect_fg_rgb(ncd, rgb) }
 }
@@ -56,7 +56,7 @@ pub fn ncdirect_bg_rgb8(
     red: NcColor,
     green: NcColor,
     blue: NcColor,
-) -> NcResult {
+) -> NcIntResult {
     let rgb = (red as NcRgb) << 16 | (green as NcRgb) << 8 | blue as NcRgb;
     unsafe { crate::ncdirect_bg_rgb(ncd, rgb) }
 }

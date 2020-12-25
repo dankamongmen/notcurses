@@ -1,15 +1,15 @@
 //! `NcResizeCb`
 
-use crate::{NcPlane, NcResult};
+use crate::{NcIntResult, NcPlane};
 
 /// A callback function called when an [NcPlane] is resized.
 ///
 /// See also [ncresizecb_to_rust] & [ncresizecb_to_c].
 ///
-pub type NcResizeCb = fn(&mut NcPlane) -> NcResult;
+pub type NcResizeCb = fn(&mut NcPlane) -> NcIntResult;
 
 /// The unsafe version of [NcResizeCb] expected by the notcurses C API.
-pub type NcResizeCbUnsafe = unsafe extern "C" fn(*mut NcPlane) -> NcResult;
+pub type NcResizeCbUnsafe = unsafe extern "C" fn(*mut NcPlane) -> NcIntResult;
 
 /// Converts [NcResizeCbUnsafe] to [NcResizeCb].
 pub fn ncresizecb_to_rust(resizecb: Option<NcResizeCbUnsafe>) -> Option<NcResizeCb> {

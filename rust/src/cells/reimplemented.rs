@@ -3,8 +3,8 @@
 use libc::strcmp;
 
 use crate::{
-    cell_release, NcAlphaBits, NcCell, NcChannel, NcChannelPair, NcColor, NcEgc, NcPaletteIndex,
-    NcPlane, NcResult, NcRgb, NcStyleMask, NCCELL_ALPHA_OPAQUE, NCCELL_BGDEFAULT_MASK,
+    cell_release, NcAlphaBits, NcCell, NcChannel, NcChannelPair, NcColor, NcEgc, NcIntResult,
+    NcPaletteIndex, NcPlane, NcRgb, NcStyleMask, NCCELL_ALPHA_OPAQUE, NCCELL_BGDEFAULT_MASK,
     NCCELL_BG_PALETTE, NCCELL_FGDEFAULT_MASK, NCCELL_FG_PALETTE, NCCELL_NOBACKGROUND_MASK,
     NCCELL_WIDEASIAN_MASK, NCRESULT_ERR, NCRESULT_OK, NCSTYLE_MASK,
 };
@@ -462,7 +462,7 @@ pub fn cell_prime(
     gcluster: NcEgc,
     style: NcStyleMask,
     channels: NcChannelPair,
-) -> NcResult {
+) -> NcIntResult {
     cell.stylemask = style;
     cell.channels = channels;
     unsafe { crate::cell_load(plane, cell, gcluster as u32 as *const i8) }
@@ -487,10 +487,10 @@ pub fn cells_load_box(
     hl: &mut NcCell,
     vl: &mut NcCell,
     gcluster: NcEgc,
-) -> NcResult {
+) -> NcIntResult {
     // mutable copy for pointer arithmetics:
     let mut gclu = gcluster as u32 as *const i8;
-    let mut ulen: NcResult;
+    let mut ulen: NcIntResult;
 
     ulen = cell_prime(plane, ul, gcluster, style, channels);
 

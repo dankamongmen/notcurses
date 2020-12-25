@@ -75,25 +75,24 @@
 //! ## Limitations of this library
 //!
 //! There are several common patterns in Rust that this library doesn't employ,
-//! and focuses instead on remaining at a very close distance to the C API.
+//! and focuses instead on remaining at a closer distance to the C API.
 //!
 //! 1. There are no Drop trait implementations, therefore you must manually stop
 //! each context before it goes out of scope ([Notcurses], [NcDirect]), and
 //! should manually destroy [NcPlane]s, [NcMenu]s… when no longer needed.
 //!
-//! 2. Instead of handling errors with `Result` (as customary in Rust),
-//!   several functions return an [NcResult] with a value of [NCRESULT_ERR],
-//!   (as customary in C), or [NCRESULT_OK].
+//! 2. The C style functions handle errors by the means of returning an i32 value
+//! aliased to [NcIntResult]. But the Rust style methods handle errors more
+//! idiomatically using [NcResult] and [NcError].
 //!
-//! The [notcurses]() crate overcomes this limitations by using higher level
-//! abstractions, while pulling itself apart from the C API, in ways this
+//! The [notcurses]() crate will use higher level abstractions in ways this
 //! library can not do.
 //!
 //! ### Things this library does do
 //!
 //! - Type aliases every underlying C type to leverage type checking.
 //! - Renames types to enforce regularity and consistency. (e.g. [NcCell])
-//! - Has handy macros like [sleep], [rsleep] & [cstring].
+//! - Has handy macros for common tasks like [sleep], [cstring] & [error].
 //!
 //! ## The `notcurses` C API docs
 //!

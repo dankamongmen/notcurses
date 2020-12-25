@@ -13,4 +13,5 @@ fn constructors() {
     let _n0 = Notcurses::new();
     let _p0 = NcPlane::new(_n0, 0, 0, 10, 10);
     let _c3 = NcCell::with_char('௵', _p0);
+    _n0.stop();
 }

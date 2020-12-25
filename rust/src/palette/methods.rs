@@ -1,6 +1,6 @@
 //! `NcPalette` methods and associated functions.
 
-use crate::{NcChannel, NcColor, NcPalette, NcPaletteIndex, NcResult, NcRgb, Notcurses};
+use crate::{NcChannel, NcColor, NcIntResult, NcPalette, NcPaletteIndex, NcRgb, Notcurses};
 
 impl NcPalette {
     /// New NcPalette.
@@ -22,7 +22,7 @@ impl NcPalette {
     /// Attempts to configure the terminal with this NcPalette.
     ///
     /// *C style function: [palette256_use()][crate::palette256_use].*
-    pub fn r#use(&self, nc: &mut Notcurses) -> NcResult {
+    pub fn r#use(&self, nc: &mut Notcurses) -> NcIntResult {
         unsafe { crate::palette256_use(nc, self) }
     }
 

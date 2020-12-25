@@ -5,7 +5,7 @@ use std::ffi::CStr;
 
 use crate::{
     cstring, notcurses_init, NcAlign, NcBlitter, NcChannelPair, NcDimension, NcEgc, NcFile,
-    NcInput, NcLogLevel, NcPlane, NcResult, NcScale, NcSignalSet, NcStats, NcStyleMask, NcTime,
+    NcInput, NcIntResult, NcLogLevel, NcPlane, NcScale, NcSignalSet, NcStats, NcStyleMask, NcTime,
     Notcurses, NotcursesOptions, NCOPTION_NO_ALTERNATE_SCREEN, NCOPTION_SUPPRESS_BANNERS,
     NCRESULT_ERR, NCRESULT_OK,
 };
@@ -126,7 +126,7 @@ impl Notcurses {
     /// [NCALIGN_UNALIGNED][crate::NCALIGN_UNALIGNED] or invalid [NcAlign].
     ///
     /// *C style function: [notcurses_align()][crate::notcurses_align].*
-    pub fn align(availcols: NcDimension, align: NcAlign, cols: NcDimension) -> NcResult {
+    pub fn align(availcols: NcDimension, align: NcAlign, cols: NcDimension) -> NcIntResult {
         crate::notcurses_align(availcols, align, cols)
     }
 
@@ -226,7 +226,7 @@ impl Notcurses {
     /// Immediate effect (no need for a call to notcurses_render()).
     ///
     /// *C style function: [notcurses_cursor_disable()][crate::notcurses_cursor_disable].*
-    pub fn cursor_disable(&mut self) -> NcResult {
+    pub fn cursor_disable(&mut self) -> NcIntResult {
         unsafe { crate::notcurses_cursor_disable(self) }
     }
 
@@ -236,7 +236,7 @@ impl Notcurses {
     /// It is an error if `y`, `x` lies outside the standard plane.
     ///
     /// *C style function: [notcurses_cursor_enable()][crate::notcurses_cursor_enable].*
-    pub fn cursor_enable(&mut self, y: NcDimension, x: NcDimension) -> NcResult {
+    pub fn cursor_enable(&mut self, y: NcDimension, x: NcDimension) -> NcIntResult {
         unsafe { crate::notcurses_cursor_enable(self, y as i32, x as i32) }
     }
 
@@ -330,7 +330,7 @@ impl Notcurses {
     /// with stdin (but it might be!).
     ///
     /// *C style function: [notcurses_inputready_fd()][crate::notcurses_inputready_fd].*
-    pub fn inputready_fd(&mut self) -> NcResult {
+    pub fn inputready_fd(&mut self) -> NcIntResult {
         unsafe { crate::notcurses_inputready_fd(self) }
     }
 
@@ -352,7 +352,7 @@ impl Notcurses {
     /// or there can be four numbers separated by commas.
     ///
     /// *C style function: [notcurses_lex_margins()][crate::notcurses_lex_margins].*
-    pub fn lex_margins(op: &str, options: &mut NotcursesOptions) -> NcResult {
+    pub fn lex_margins(op: &str, options: &mut NotcursesOptions) -> NcIntResult {
         unsafe { crate::notcurses_lex_margins(cstring![op], options) }
     }
 
@@ -372,7 +372,7 @@ impl Notcurses {
     /// SIGINT (^C), SIGQUIT (^), and SIGTSTP (^Z). They are enabled by default.
     ///
     /// *C style function: [notcurses_linesigs_disable()][crate::notcurses_linesigs_disable].*
-    pub fn linesigs_disable(&mut self) -> NcResult {
+    pub fn linesigs_disable(&mut self) -> NcIntResult {
         unsafe { crate::notcurses_linesigs_disable(self) }
     }
 
@@ -380,7 +380,7 @@ impl Notcurses {
     /// SIGINT (^C), SIGQUIT (^), and SIGTSTP (^Z), if disabled.
     ///
     /// *C style function: [notcurses_linesigs_enable()][crate::notcurses_linesigs_enable].*
-    pub fn linesigs_enable(&mut self) -> NcResult {
+    pub fn linesigs_enable(&mut self) -> NcIntResult {
         unsafe { crate::notcurses_linesigs_enable(self) }
     }
 
@@ -389,7 +389,7 @@ impl Notcurses {
     /// Any events in the input queue can still be delivered.
     ///
     /// *C style function: [notcurses_mouse_disable()][crate::notcurses_mouse_disable].*
-    pub fn mouse_disable(&mut self) -> NcResult {
+    pub fn mouse_disable(&mut self) -> NcIntResult {
         unsafe { crate::notcurses_mouse_disable(self) }
     }
 
@@ -400,7 +400,7 @@ impl Notcurses {
     /// published to [getc()][Notcurses#method.getc].
     ///
     /// *C style function: [notcurses_mouse_enable()][crate::notcurses_mouse_enable].*
-    pub fn mouse_enable(&mut self) -> NcResult {
+    pub fn mouse_enable(&mut self) -> NcIntResult {
         unsafe { crate::notcurses_mouse_enable(self) }
     }
 
@@ -425,15 +425,15 @@ impl Notcurses {
     ///
     /// *C style function: [notcurses_refresh()][crate::notcurses_refresh].*
     //
-    // TODO: try returning Result<(NcDimension, NcDimension), NcResult>
-    pub fn refresh(&mut self, y: &mut NcDimension, x: &mut NcDimension) -> NcResult {
+    // TODO: try returning Result<(NcDimension, NcDimension), NcIntResult>
+    pub fn refresh(&mut self, y: &mut NcDimension, x: &mut NcDimension) -> NcIntResult {
         unsafe { crate::notcurses_refresh(self, &mut (*y as i32), &mut (*x as i32)) }
     }
 
     /// Renders and rasterizes the standard pile in one shot. Blocking call.
     ///
     /// *C style function: [notcurses_render()][crate::notcurses_render].*
-    pub fn render(&mut self) -> NcResult {
+    pub fn render(&mut self) -> NcIntResult {
         unsafe { crate::notcurses_render(self) }
     }
 
@@ -449,7 +449,7 @@ impl Notcurses {
     /// *C style function: [notcurses_render_to_buffer()][crate::notcurses_render_to_buffer].*
     //
     // CHECK that this works.
-    pub fn render_to_buffer(&mut self, buffer: &mut Vec<u8>) -> NcResult {
+    pub fn render_to_buffer(&mut self, buffer: &mut Vec<u8>) -> NcIntResult {
         let mut len = buffer.len() as u64;
         let mut buf = buffer.as_mut_ptr() as *mut i8;
         unsafe { crate::notcurses_render_to_buffer(self, &mut buf, &mut len) }
@@ -461,7 +461,7 @@ impl Notcurses {
     /// nothing will be written.
     ///
     /// *C style function: [notcurses_render_to_file()][crate::notcurses_render_to_file].*
-    pub fn render_to_file(&mut self, fp: &mut NcFile) -> NcResult {
+    pub fn render_to_file(&mut self, fp: &mut NcFile) -> NcIntResult {
         unsafe { crate::notcurses_render_to_file(self, fp.as_nc_ptr()) }
     }
 
@@ -542,7 +542,7 @@ impl Notcurses {
     /// Destroys the Notcurses context.
     ///
     /// *C style function: [notcurses_stop()][crate::notcurses_stop].*
-    pub fn stop(&mut self) -> NcResult {
+    pub fn stop(&mut self) -> NcIntResult {
         unsafe { crate::notcurses_stop(self) }
     }
 

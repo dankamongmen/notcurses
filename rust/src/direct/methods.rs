@@ -4,9 +4,9 @@ use core::ptr::{null, null_mut};
 
 use crate::ffi::sigset_t;
 use crate::{
-    cstring, NcAlign, NcBlitter, NcChannelPair, NcColor, NcDimension, NcDirect, NcDirectFlags,
-    NcEgc, NcInput, NcPaletteIndex, NcResult, NcRgb, NcScale, NcStyleMask, NcTime, NCRESULT_ERR,
-    NCRESULT_OK,
+    cstring, error, NcAlign, NcBlitter, NcChannelPair, NcColor, NcDimension, NcDirect,
+    NcDirectFlags, NcEgc, NcError, NcInput, NcPaletteIndex, NcResult, NcRgb, NcScale, NcStyleMask,
+    NcTime, NCRESULT_ERR, NCRESULT_OK,
 };
 
 /// # `NcDirect` constructors and destructors
@@ -41,8 +41,12 @@ impl NcDirect {
     /// Releases this NcDirect and any associated resources.
     ///
     /// *C style function: [ncdirect_stop()][crate::ncdirect_stop].*
-    pub fn stop(&mut self) -> NcResult {
-        unsafe { crate::ncdirect_stop(self) }
+    pub fn stop(&mut self) -> NcResult<()> {
+        let res = unsafe { crate::ncdirect_stop(self) };
+        if res == NCRESULT_OK {
+            return Ok(());
+        }
+        Err(NcError::new(res, ""))
     }
 }
 
@@ -51,15 +55,15 @@ impl NcDirect {
     /// Clears the screen.
     ///
     /// *C style function: [ncdirect_clear()][crate::ncdirect_clear].*
-    pub fn clear(&mut self) -> NcResult {
-        unsafe { crate::ncdirect_clear(self) }
+    pub fn clear(&mut self) -> NcResult<()> {
+        error![unsafe { crate::ncdirect_clear(self) }]
     }
 
     /// Forces a flush.
     ///
     /// *C style function: [ncdirect_flush()][crate::ncdirect_flush].*
-    pub fn flush(&self) -> NcResult {
-        unsafe { crate::ncdirect_flush(self) }
+    pub fn flush(&self) -> NcResult<()> {
+        error![unsafe { crate::ncdirect_flush(self) }]
     }
 
     /// Displays an image using the specified blitter and scaling.
@@ -80,8 +84,10 @@ impl NcDirect {
         align: NcAlign,
         blitter: NcBlitter,
         scale: NcScale,
-    ) -> NcResult {
-        unsafe { crate::ncdirect_render_image(self, cstring![filename], align, blitter, scale) }
+    ) -> NcResult<()> {
+        error![unsafe {
+            crate::ncdirect_render_image(self, cstring![filename], align, blitter, scale)
+        }]
     }
 }
 
@@ -90,89 +96,94 @@ impl NcDirect {
     /// Sets the foreground [NcPaletteIndex].
     ///
     /// *C style function: [ncdirect_fg_palindex()][crate::ncdirect_fg_palindex].*
-    pub fn fg_palindex(&mut self, index: NcPaletteIndex) -> NcResult {
-        unsafe { crate::ncdirect_fg_palindex(self, index as i32) }
+    pub fn fg_palindex(&mut self, index: NcPaletteIndex) -> NcResult<()> {
+        error![unsafe { crate::ncdirect_fg_palindex(self, index as i32) }]
     }
 
     /// Sets the background [NcPaletteIndex].
     ///
     /// *C style function: [ncdirect_bg_palindex()][crate::ncdirect_bg_palindex].*
-    pub fn bg_palindex(&mut self, index: NcPaletteIndex) -> NcResult {
-        unsafe { crate::ncdirect_bg_palindex(self, index as i32) }
+    pub fn bg_palindex(&mut self, index: NcPaletteIndex) -> NcResult<()> {
+        error![unsafe { crate::ncdirect_bg_palindex(self, index as i32) }]
     }
 
-    /// Returns the number of simultaneous colors claimed to be supported,
-    /// or 1 if there is no color support.
+    /// Returns the number of simultaneous colors claimed to be supported.
     ///
     /// Note that several terminal emulators advertise more colors than they
     /// actually support, downsampling internally.
     ///
     /// *C style function: [ncdirect_palette_size()][crate::ncdirect_palette_size].*
-    pub fn palette_size(&self) -> u32 {
-        unsafe { crate::ncdirect_palette_size(self) }
+    pub fn palette_size(&self) -> NcResult<u32> {
+        let res = unsafe { crate::ncdirect_palette_size(self) };
+        if res == 1 {
+            return Err(NcError::new(1, "No color support"));
+        }
+        Ok(res)
     }
 
     /// Sets the foreground [NcRgb].
     ///
     /// *C style function: [ncdirect_fg_rgb()][crate::ncdirect_fg_rgb].*
-    pub fn fg_rgb(&mut self, rgb: NcRgb) -> NcResult {
-        unsafe { crate::ncdirect_fg_rgb(self, rgb) }
+    pub fn fg_rgb(&mut self, rgb: NcRgb) -> NcResult<()> {
+        error![unsafe { crate::ncdirect_fg_rgb(self, rgb) }]
     }
 
     /// Sets the background [NcRgb].
     ///
     /// *C style function: [ncdirect_bg_rgb()][crate::ncdirect_bg_rgb].*
-    pub fn bg_rgb(&mut self, rgb: NcRgb) -> NcResult {
-        unsafe { crate::ncdirect_bg_rgb(self, rgb) }
+    pub fn bg_rgb(&mut self, rgb: NcRgb) -> NcResult<()> {
+        error![unsafe { crate::ncdirect_bg_rgb(self, rgb) }]
     }
 
     /// Sets the foreground [NcColor] components.
     ///
     /// *C style function: [ncdirect_fg_rgb8()][crate::ncdirect_fg_rgb8].*
-    pub fn fg_rgb8(&mut self, red: NcColor, green: NcColor, blue: NcColor) -> NcResult {
-        crate::ncdirect_fg_rgb8(self, red, green, blue)
+    pub fn fg_rgb8(&mut self, red: NcColor, green: NcColor, blue: NcColor) -> NcResult<()> {
+        error![crate::ncdirect_fg_rgb8(self, red, green, blue)]
     }
 
     /// Sets the background [NcColor] components.
     ///
     /// *C style function: [ncdirect_bg_rgb()][crate::ncdirect_bg_rgb].*
-    pub fn bg_rgb8(&mut self, red: NcColor, green: NcColor, blue: NcColor) -> NcResult {
-        crate::ncdirect_bg_rgb8(self, red, green, blue)
+    pub fn bg_rgb8(&mut self, red: NcColor, green: NcColor, blue: NcColor) -> NcResult<()> {
+        let res = crate::ncdirect_bg_rgb8(self, red, green, blue);
+        error![res]
     }
 
     /// Removes the specified styles.
     ///
     /// *C style function: [ncdirect_styles_off()][crate::ncdirect_styles_off].*
-    pub fn styles_off(&mut self, stylebits: NcStyleMask) -> NcResult {
-        unsafe { crate::ncdirect_styles_off(self, stylebits.into()) }
+    pub fn styles_off(&mut self, stylebits: NcStyleMask) -> NcResult<()> {
+        let res = unsafe { crate::ncdirect_styles_off(self, stylebits.into()) };
+        error![res]
     }
 
     /// Adds the specified styles.
     ///
     /// *C style function: [ncdirect_styles_on()][crate::ncdirect_styles_on].*
-    pub fn styles_on(&mut self, stylebits: NcStyleMask) -> NcResult {
-        unsafe { crate::ncdirect_styles_on(self, stylebits.into()) }
+    pub fn styles_on(&mut self, stylebits: NcStyleMask) -> NcResult<()> {
+        error![unsafe { crate::ncdirect_styles_on(self, stylebits.into()) }]
     }
 
     /// Sets just the specified styles.
     ///
     /// *C style function: [ncdirect_styles_set()][crate::ncdirect_styles_set].*
-    pub fn styles_set(&mut self, stylebits: NcStyleMask) -> NcResult {
-        unsafe { crate::ncdirect_styles_set(self, stylebits.into()) }
+    pub fn styles_set(&mut self, stylebits: NcStyleMask) -> NcResult<()> {
+        error![unsafe { crate::ncdirect_styles_set(self, stylebits.into()) }]
     }
 
     /// Indicates to use the "default color" for the foreground.
     ///
     /// *C style function: [ncdirect_fg_default()][crate::ncdirect_fg_default].*
-    pub fn fg_default(&mut self) -> NcResult {
-        unsafe { crate::ncdirect_fg_default(self) }
+    pub fn fg_default(&mut self) -> NcResult<()> {
+        error![unsafe { crate::ncdirect_fg_default(self) }]
     }
 
     /// Indicates to use the "default color" for the background.
     ///
     /// *C style function: [ncdirect_bg_default()][crate::ncdirect_bg_default].*
-    pub fn bg_default(&mut self) -> NcResult {
-        unsafe { crate::ncdirect_bg_default(self) }
+    pub fn bg_default(&mut self) -> NcResult<()> {
+        error![unsafe { crate::ncdirect_bg_default(self) }]
     }
 }
 
@@ -199,64 +210,80 @@ impl NcDirect {
     /// Disables the terminal's cursor, if supported.
     ///
     /// *C style function: [ncdirect_cursor_disable()][crate::ncdirect_cursor_disable].*
-    pub fn cursor_disable(&mut self) -> NcResult {
-        unsafe { crate::ncdirect_cursor_disable(self) }
+    pub fn cursor_disable(&mut self) -> NcResult<()> {
+        error![unsafe { crate::ncdirect_cursor_disable(self) }]
     }
 
     /// Enables the terminal's cursor, if supported.
     ///
     /// *C style function: [ncdirect_cursor_enable()][crate::ncdirect_cursor_enable].*
-    pub fn cursor_enable(&mut self) -> NcResult {
-        unsafe { crate::ncdirect_cursor_enable(self) }
+    pub fn cursor_enable(&mut self) -> NcResult<()> {
+        error![unsafe { crate::ncdirect_cursor_enable(self) }]
     }
 
     /// Moves the cursor down, `num` rows.
     ///
     /// *C style function: [ncdirect_cursor_down()][crate::ncdirect_cursor_down].*
-    pub fn cursor_down(&mut self, num: NcDimension) -> NcResult {
-        unsafe { crate::ncdirect_cursor_down(self, num as i32) }
+    pub fn cursor_down(&mut self, num: NcDimension) -> NcResult<()> {
+        let res = unsafe { crate::ncdirect_cursor_down(self, num as i32) };
+        if res == NCRESULT_OK {
+            return Ok(());
+        }
+        Err(NcError::new(res, ""))
     }
 
     /// Moves the cursor left, `num` columns.
     ///
     /// *C style function: [ncdirect_cursor_left()][crate::ncdirect_cursor_left].*
-    pub fn cursor_left(&mut self, num: NcDimension) -> NcResult {
-        unsafe { crate::ncdirect_cursor_left(self, num as i32) }
+    pub fn cursor_left(&mut self, num: NcDimension) -> NcResult<()> {
+        let res = unsafe { crate::ncdirect_cursor_left(self, num as i32) };
+        if res == NCRESULT_OK {
+            return Ok(());
+        }
+        Err(NcError::new(res, ""))
     }
 
     /// Moves the cursor right, `num` columns.
     ///
     /// *C style function: [ncdirect_cursor_right()][crate::ncdirect_cursor_right].*
-    pub fn cursor_right(&mut self, num: NcDimension) -> NcResult {
-        unsafe { crate::ncdirect_cursor_right(self, num as i32) }
+    pub fn cursor_right(&mut self, num: NcDimension) -> NcResult<()> {
+        let res = unsafe { crate::ncdirect_cursor_right(self, num as i32) };
+        if res == NCRESULT_OK {
+            return Ok(());
+        }
+        Err(NcError::new(res, ""))
     }
 
     /// Moves the cursor up, `num` rows.
     ///
     /// *C style function: [ncdirect_cursor_up()][crate::ncdirect_cursor_up].*
-    pub fn cursor_up(&mut self, num: NcDimension) -> NcResult {
-        unsafe { crate::ncdirect_cursor_up(self, num as i32) }
+    pub fn cursor_up(&mut self, num: NcDimension) -> NcResult<()> {
+        let res = unsafe { crate::ncdirect_cursor_up(self, num as i32) };
+        if res == NCRESULT_OK {
+            return Ok(());
+        }
+        Err(NcError::new(res, ""))
     }
 
     /// Moves the cursor in direct mode to the specified row, column.
     ///
     /// *C style function: [ncdirect_cursor_move_yx()][crate::ncdirect_cursor_move_yx].*
-    pub fn cursor_move_yx(&mut self, y: NcDimension, x: NcDimension) -> NcResult {
-        unsafe { crate::ncdirect_cursor_move_yx(self, y as i32, x as i32) }
+    pub fn cursor_move_yx(&mut self, y: NcDimension, x: NcDimension) -> NcResult<()> {
+        error![unsafe { crate::ncdirect_cursor_move_yx(self, y as i32, x as i32) }]
     }
 
     /// Moves the cursor in direct mode to the specified row.
     ///
     /// *(No equivalent C style function)*
-    pub fn cursor_move_y(&mut self, y: NcDimension) -> NcResult {
-        unsafe { crate::ncdirect_cursor_move_yx(self, y as i32, -1) }
+    pub fn cursor_move_y(&mut self, y: NcDimension) -> NcResult<()> {
+        error![unsafe { crate::ncdirect_cursor_move_yx(self, y as i32, -1) }]
     }
 
     /// Moves the cursor in direct mode to the specified column.
     ///
     /// *(No equivalent C style function)*
-    pub fn cursor_move_x(&mut self, x: NcDimension) -> NcResult {
-        unsafe { crate::ncdirect_cursor_move_yx(self, -1, x as i32) }
+    pub fn cursor_move_x(&mut self, x: NcDimension) -> NcResult<()> {
+        error![unsafe { crate::ncdirect_cursor_move_yx(self, -1, x as i32) }]
     }
 
     /// Gets the cursor position, when supported.
@@ -280,8 +307,8 @@ impl NcDirect {
     /// The depth of this stack, and indeed its existence, is terminal-dependent.
     ///
     /// *C style function: [ncdirect_cursor_push()][crate::ncdirect_cursor_push].*
-    pub fn cursor_push(&mut self) -> NcResult {
-        unsafe { crate::ncdirect_cursor_push(self) }
+    pub fn cursor_push(&mut self) -> NcResult<()> {
+        error![unsafe { crate::ncdirect_cursor_push(self) }]
     }
 
     /// Pops the cursor location from the terminal's stack.
@@ -289,8 +316,8 @@ impl NcDirect {
     /// The depth of this stack, and indeed its existence, is terminal-dependent.
     ///
     /// *C style function: [ncdirect_cursor_pop()][crate::ncdirect_cursor_pop].*
-    pub fn cursor_pop(&mut self) -> NcResult {
-        unsafe { crate::ncdirect_cursor_pop(self) }
+    pub fn cursor_pop(&mut self) -> NcResult<()> {
+        error![unsafe { crate::ncdirect_cursor_pop(self) }]
     }
 
     /// Gets the current number of rows.
@@ -390,18 +417,19 @@ impl NcDirect {
     /// with stdin (but it might be!).
     ///
     /// *C style function: [ncdirect_inputready_fd()][crate::ncdirect_inputready_fd].*
-    pub fn inputready_fd(&mut self) -> NcResult {
-        unsafe { crate::ncdirect_inputready_fd(self) }
+    pub fn inputready_fd(&mut self) -> NcResult<()> {
+        error![unsafe { crate::ncdirect_inputready_fd(self) }]
     }
 
-    /// Outputs the `string` according to the `channels`.
+    /// Outputs the `string` according to the `channels`, and
+    /// returns the total number of characters written on success.
     ///
     /// Note that it does not explicitly flush output buffers, so it will not
     /// necessarily be immediately visible.
     ///
     /// *C style function: [ncdirect_putstr()][crate::ncdirect_putstr].*
-    pub fn putstr(&mut self, channels: NcChannelPair, string: &str) -> NcResult {
-        unsafe { crate::ncdirect_putstr(self, channels, cstring![string]) }
+    pub fn putstr(&mut self, channels: NcChannelPair, string: &str) -> NcResult<()> {
+        error![unsafe { crate::ncdirect_putstr(self, channels, cstring![string]) }]
     }
 
     /// Draws a box with its upper-left corner at the current cursor position,
@@ -425,8 +453,8 @@ impl NcDirect {
         y_len: NcDimension,
         x_len: NcDimension,
         ctlword: u32,
-    ) -> NcResult {
-        unsafe {
+    ) -> NcResult<()> {
+        error![unsafe {
             let wchars = core::mem::transmute(wchars);
             crate::ncdirect_box(
                 self,
@@ -439,7 +467,7 @@ impl NcDirect {
                 x_len as i32,
                 ctlword,
             )
-        }
+        }]
     }
 
     /// NcDirect.[box()][NcDirect#method.box] with the double box-drawing characters.
@@ -454,10 +482,10 @@ impl NcDirect {
         y_len: NcDimension,
         x_len: NcDimension,
         ctlword: u32,
-    ) -> NcResult {
-        unsafe {
+    ) -> NcResult<()> {
+        error![unsafe {
             crate::ncdirect_double_box(self, ul, ur, ll, lr, y_len as i32, x_len as i32, ctlword)
-        }
+        }]
     }
 
     /// NcDirect.[box()][NcDirect#method.box] with the rounded box-drawing characters.
@@ -472,10 +500,10 @@ impl NcDirect {
         y_len: NcDimension,
         x_len: NcDimension,
         ctlword: u32,
-    ) -> NcResult {
-        unsafe {
+    ) -> NcResult<()> {
+        error![unsafe {
             crate::ncdirect_rounded_box(self, ul, ur, ll, lr, y_len as i32, x_len as i32, ctlword)
-        }
+        }]
     }
     /// Draws horizontal lines using the specified [NcChannelPair]s, interpolating
     /// between them as we go.
@@ -495,8 +523,8 @@ impl NcDirect {
         len: NcDimension,
         h1: NcChannelPair,
         h2: NcChannelPair,
-    ) -> NcResult {
-        unsafe { crate::ncdirect_hline_interp(self, &(*egc as i8), len as i32, h1, h2) }
+    ) -> NcResult<()> {
+        error![unsafe { crate::ncdirect_hline_interp(self, &(*egc as i8), len as i32, h1, h2) }]
     }
 
     /// Draws horizontal lines using the specified [NcChannelPair]s, interpolating
@@ -517,7 +545,7 @@ impl NcDirect {
         len: NcDimension,
         h1: NcChannelPair,
         h2: NcChannelPair,
-    ) -> NcResult {
-        unsafe { crate::ncdirect_vline_interp(self, &(*egc as i8), len as i32, h1, h2) }
+    ) -> NcResult<()> {
+        error![unsafe { crate::ncdirect_vline_interp(self, &(*egc as i8), len as i32, h1, h2) }]
     }
 }

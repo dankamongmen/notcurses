@@ -2,7 +2,7 @@
 
 use libnotcurses_sys::*;
 
-fn main() {
+fn main() -> NcResult<()> {
     let ncd = NcDirect::new();
 
     let dimy = ncd.dim_y();
@@ -12,20 +12,19 @@ fn main() {
             printf!("X");
         }
     }
-    ncd.flush();
+    ncd.flush()?;
 
-    let mut ret = 0;
-    ret |= ncd.fg_rgb(0xff8080);
-    ret |= ncd.styles_on(NCSTYLE_STANDOUT);
+    ncd.fg_rgb(0xff8080)?;
+    ncd.styles_on(NCSTYLE_STANDOUT)?;
     printf!(" erp erp \n");
-    ret |= ncd.fg_rgb(0x80ff80);
+    ncd.fg_rgb(0x80ff80)?;
     printf!(" erp erp \n");
-    ret |= ncd.styles_off(NCSTYLE_STANDOUT);
+    ncd.styles_off(NCSTYLE_STANDOUT)?;
     printf!(" erp erp \n");
-    ret |= ncd.fg_rgb(0xff8080);
+    ncd.fg_rgb(0xff8080)?;
     printf!(" erp erp \n");
-    ret |= ncd.cursor_right(dimx / 2);
-    ret |= ncd.cursor_up(dimy / 2);
+    ncd.cursor_right(dimx / 2)?;
+    ncd.cursor_up(dimy / 2)?;
     printf!(" erperperp! \n");
 
     let (mut y, x);
@@ -34,14 +33,12 @@ fn main() {
         y = _y;
         x = _x;
         printf!("\n\tRead cursor position: y: %d x: %d\n", y, x);
+
         y += 2;
         while y > 3 {
-            ret = NCRESULT_ERR;
             let up = if y >= 3 { 3 } else { y };
-            if ncd.cursor_up(up) == NCRESULT_ERR {
-                break;
-            }
-            ncd.flush();
+            ncd.cursor_up(up)?;
+            ncd.flush()?;
             y -= up;
 
             let newy;
@@ -50,19 +47,18 @@ fn main() {
             } else {
                 break;
             }
+
             if newy != y {
                 eprintln!("Expected {}, got {}", y, newy);
                 break;
             }
             printf!("\n\tRead cursor position: y: %d x: %d\n", newy, x);
             y += 2;
-            ret = NCRESULT_OK;
         }
     } else {
-        ret = NCRESULT_ERR - 10;
+        return Err(NcError::new(-10, "Couldn't read cursor position."));
     }
 
-    // println!("ret={}", ret); // DEBUG
-
-    ncd.stop();
+    ncd.stop()?;
+    Ok(())
 }
