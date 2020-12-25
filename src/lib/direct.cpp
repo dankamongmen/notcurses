@@ -471,10 +471,10 @@ ncdirectv* ncdirect_render_frame(ncdirect* n, const char* file,
     return nullptr;
   }
   int disprows, dispcols;
-  if(scale != NCSCALE_NONE){
+  if(scale != NCSCALE_NONE && scale != NCSCALE_NONE_HIRES){
     dispcols = ncdirect_dim_x(n) * encoding_x_scale(bset);
     disprows = ncdirect_dim_y(n) * encoding_y_scale(bset);
-    if(scale == NCSCALE_SCALE){
+    if(scale == NCSCALE_SCALE || scale == NCSCALE_SCALE_HIRES){
       scale_visual(ncv, &disprows, &dispcols);
     }
   }else{
