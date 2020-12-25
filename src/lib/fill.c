@@ -177,7 +177,7 @@ int ncplane_highgradient(ncplane* n, uint32_t ul, uint32_t ur,
     for(int x = xoff ; x <= xstop ; ++x){
       nccell* targc = ncplane_cell_ref_yx(n, y, x);
       targc->channels = 0;
-      if(cell_load(n, targc, "▀") < 0){
+      if(pool_blit_direct(&n->pool, targc, "▀", strlen("▀"), 1) <= 0){
         return -1;
       }
       calc_highgradient(targc, ul, ur, ll, lr, y - yoff, x - xoff, ylen, xlen);
