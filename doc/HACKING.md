@@ -38,6 +38,24 @@ Virtual `y` is useful for only two things:
  
 Thus we usually keep `y` logical.
 
+## Right-to-left text
+
+We want to fully support Unicode and international text. But what does it mean
+to use right-to-left text with a fullscreen, random-access application? In
+particular, what happens in the case where we've written the right-to-left
+string SHRDLU (which ought appear as ULDRHS) to a plane, starting at (0, 0),
+and then we place say a U+1F982 SCORPION (🦂) at (0, 2)? Ought this yield
+UL🦂HS, or ought it instead yield HS🦂UL? If the original string had been
+SH🦂LU, it would have been displayed by most terminals as HS🦂UL, due to
+treating it as a right-to-left segment, a left-to-right segment, and finally a
+right-to-left segment. Alternatively, it might have been displayed as UL🦂HS,
+especially if aligned on the right. It's difficult to know. So, we instead
+force text direction by appending U+200E LEFT-TO-RIGHT MARK to any EGCs we
+believe to provoke right-to-left. The user is thus solely responsible for
+managing right-to-left presentation.
+
+I hate everything about this terrible, fragile, wasteful "solution".
+
 ## Rendering/rasterizing/writeout, and resizing
 
 The scope of rendering is a pile. The scope of rasterization is a pile, the
@@ -46,7 +64,7 @@ rasterizations are illegal and an error. Concurrent rendering of different
 piles is explicitly supported.
 
 In Notcurses prior to 2.1.0, there was only one pile. Rendering and rasterizing
-were a single process, `notcurses_render()`. Since this proceeded end-to-end,
+were a single function, `notcurses_render()`. Since this proceeded end-to-end,
 and didn't need worry about concurrency, it could perform an optimal strategy:
 
 * Check for a resize, resizing the last frame and standard plane if appropriate
@@ -54,7 +72,7 @@ and didn't need worry about concurrency, it could perform an optimal strategy:
 * Rasterize the (single) render, carrying through plenty of state from render
 * Write out the (single) rasterization
 
-It is a fundamental fact that we cannot guarantee proper writeout, since the
+It is an ineluctable fact that we cannot guarantee proper writeout, since the
 terminal can be resized in the middle of a writeout, and the signal is
 both unreliable and asynchronous. Receipt of the SIGWINCH signal is async with
 regards to the actual geometry change; processing of the signal is async with
