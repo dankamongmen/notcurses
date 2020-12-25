@@ -92,7 +92,7 @@ typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 
 **const char* notcurses_str_blitter(ncblitter_e ***blitter***);**
 
-**ncblitter_e ncvisual_default_blitter(bool ***utf8***, ncscale_e ***scaling***);**
+**ncblitter_e ncvisual_media_defblitter(const struct notcurses ***nc***, ncscale_e ***scaling***);**
 
 # DESCRIPTION
 
@@ -186,10 +186,12 @@ visual and the specified blitter.
 
 **ncvisual_geom** returns non-zero if the **blitter** is invalid.
 
-**ncvisual_default_blitter** returns the blitter selected by **NCBLIT_DEFAULT**
+**ncvisual_media_defblitter** returns the blitter selected by **NCBLIT_DEFAULT**
 in the specified configuration. If UTF8 is not enabled, this will always be
-**NCBLIT_1x1**. Otherwise, if **NCSCALE_STRETCH** is in use, this will be
-**NCBLIT_3x2**; if the scaling is any other value, **NCBLIT_2x1** will be used.
+**NCBLIT_1x1**. If ***scale*** is **NCSCALE_NONE** or **NCSCALE_SCALE**, the
+aspect-preserving **NCBLIT_2x1** will be returned. If sextants are available
+(see **notcurses_cansextant**), this will be **NCBLIT_3x2**, or otherwise
+**NCBLIT_2x2**.
 
 # NOTES
 
@@ -211,5 +213,6 @@ Bad font support can ruin **NCBLIT_2x2**, **NCBLIT_3x2**, **NCBLIT_4x1**,
 # SEE ALSO
 
 **notcurses(3)**,
+**notcurses_capabilities(3)**,
 **notcurses_plane(3)**,
 **utf-8(7)**
