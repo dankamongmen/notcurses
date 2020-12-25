@@ -54,12 +54,14 @@ apply_term_heuristics(tinfo* ti, const char* termname){
   // hardcode them :/. use at your own peril!
   ti->struck = "\x1b[9m";
   ti->struckoff = "\x1b[29m";
-  // kitty (https://sw.kovidgoyal.net/kitty/)
-  if(strstr(termname, "kitty")){
+  if(strstr(termname, "kitty")){ // kitty (https://sw.kovidgoyal.net/kitty/)
     // see https://sw.kovidgoyal.net/kitty/protocol-extensions.html
     // FIXME detect the actual default background color; this assumes it to
     // be RGB(0, 0, 0) (the default). we could also just set it, i guess.
     ti->bg_collides_default = 0x1000000;
+    ti->sextants = true; // work since bugfix in 0.19.3
+  }else if(strstr(termname, "vte") || strstr(termname, "gnome")){
+    ti->sextants = true; // VTE has long enjoyed good sextant support
   }
   return 0;
 }
