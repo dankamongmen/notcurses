@@ -13,12 +13,13 @@
 //! ```rust
 //! use libnotcurses_sys::*;
 //!
-//! fn main() {
-//!     let nc = Notcurses::without_altscreen();
+//! fn main() -> NcResult<()> {
+//!     let nc = Notcurses::without_altscreen()?;
 //!     let plane = nc.stdplane();
 //!     plane.putstr("hello world");
 //!     nc.render();
-//!     nc.stop();
+//!     nc.stop()?;
+//!     Ok(())
 //! }
 //! ```
 //!
@@ -37,8 +38,8 @@
 //!
 //! fn main() {
 //!     let options = NotcursesOptions::with_flags(NCOPTION_NO_ALTERNATE_SCREEN);
-//!     let nc = Notcurses::with_options(&options);
 //!     unsafe {
+//!         let nc = notcurses_init(&options, core::ptr::null_mut());
 //!         let plane = notcurses_stdplane(nc);
 //!         ncplane_putstr(&mut *plane, "hello world");
 //!         notcurses_render(nc);

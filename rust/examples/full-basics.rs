@@ -1,8 +1,8 @@
 use libnotcurses_sys::*;
 
-fn main() {
+fn main() -> NcResult<()> {
     unsafe {
-        let nc = Notcurses::new();
+        let nc = Notcurses::new()?;
         let stdplane = notcurses_stdplane(nc);
 
         for ch in "Initializing cells...".chars() {
@@ -15,4 +15,5 @@ fn main() {
 
         notcurses_stop(nc);
     }
+    Ok(())
 }

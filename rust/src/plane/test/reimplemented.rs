@@ -1,31 +1,14 @@
 //! Test `ncplane_*` reimplemented functions.
 
-use crate::{notcurses_stop, NcPlane, NcPlaneOptions, Notcurses, NCRESULT_OK};
+use crate::{ncplane_new_test, notcurses_init_test, notcurses_stop, NCRESULT_OK};
 use serial_test::serial;
-
-#[test]
-#[serial]
-fn ncplane_options() {
-    let _po = NcPlaneOptions::new(0, 0, 20, 20);
-}
-
-#[test]
-#[serial]
-fn ncpile_create() {
-    let po = NcPlaneOptions::new(0, 0, 20, 20);
-    unsafe {
-        let nc = Notcurses::new();
-        let _p = NcPlane::with_options(nc, &po);
-        notcurses_stop(nc);
-    }
-}
 
 #[test]
 #[serial]
 fn ncplane_notcurses() {
     unsafe {
-        let nc = Notcurses::new();
-        let plane = NcPlane::new(nc, 0, 0, 20, 20);
+        let nc = notcurses_init_test();
+        let plane = ncplane_new_test(nc, 0, 0, 20, 20);
 
         let nc2 = crate::ncplane_notcurses(plane);
         assert_eq![nc as *mut _, nc2];
@@ -41,8 +24,8 @@ fn ncplane_notcurses() {
 #[serial]
 fn ncplane_cursor() {
     unsafe {
-        let nc = Notcurses::new();
-        let plane = NcPlane::new(nc, 0, 0, 20, 20);
+        let nc = notcurses_init_test();
+        let plane = ncplane_new_test(nc, 0, 0, 20, 20);
 
         let (mut y, mut x) = (0, 0);
         crate::ncplane_cursor_yx(plane, &mut y, &mut x);
@@ -74,8 +57,8 @@ fn ncplane_cursor() {
 #[serial]
 fn ncplane_channels() {
     unsafe {
-        let nc = Notcurses::new();
-        let plane = NcPlane::new(nc, 0, 0, 20, 20);
+        let nc = notcurses_init_test();
+        let plane = ncplane_new_test(nc, 0, 0, 20, 20);
 
         let channels = crate::ncplane_channels(plane);
         assert_eq![channels, 0];
@@ -91,8 +74,8 @@ fn ncplane_channels() {
 #[serial]
 fn ncplane_fchannel() {
     unsafe {
-        let nc = Notcurses::new();
-        let plane = NcPlane::new(nc, 0, 0, 20, 20);
+        let nc = notcurses_init_test();
+        let plane = ncplane_new_test(nc, 0, 0, 20, 20);
 
         crate::ncplane_set_channels(plane, 0x1122334455667788);
         let channels = crate::ncplane_channels(plane);
@@ -110,8 +93,8 @@ fn ncplane_fchannel() {
 #[serial]
 fn ncplane_bchannel() {
     unsafe {
-        let nc = Notcurses::new();
-        let plane = NcPlane::new(nc, 0, 0, 20, 20);
+        let nc = notcurses_init_test();
+        let plane = ncplane_new_test(nc, 0, 0, 20, 20);
 
         crate::ncplane_set_channels(plane, 0x1122334455667788);
         let channels = crate::ncplane_channels(plane);
@@ -132,8 +115,8 @@ fn ncplane_bchannel() {
 #[serial]
 fn ncplane_rgb() {
     unsafe {
-        let nc = Notcurses::new();
-        let plane = NcPlane::new(nc, 0, 0, 20, 20);
+        let nc = notcurses_init_test();
+        let plane = ncplane_new_test(nc, 0, 0, 20, 20);
 
         crate::ncplane_set_fg_rgb(plane, 0x112233);
         assert_eq![0x112233, crate::ncplane_fg_rgb(plane)];
@@ -146,8 +129,8 @@ fn ncplane_rgb() {
 #[serial]
 fn ncplane_default() {
     unsafe {
-        let nc = Notcurses::new();
-        let plane = NcPlane::new(nc, 0, 0, 20, 20);
+        let nc = notcurses_init_test();
+        let plane = ncplane_new_test(nc, 0, 0, 20, 20);
         assert_eq![true, crate::ncplane_bg_default_p(plane)];
         assert_eq![true, crate::ncplane_fg_default_p(plane)];
 
@@ -169,8 +152,8 @@ fn ncplane_default() {
 #[serial]
 fn ncplane_dimensions() {
     unsafe {
-        let nc = Notcurses::new();
-        let plane = NcPlane::new(nc, 0, 0, 10, 20);
+        let nc = notcurses_init_test();
+        let plane = ncplane_new_test(nc, 0, 0, 10, 20);
 
         let (mut y, mut x) = (0, 0);
         crate::ncplane_dim_yx(plane, &mut y, &mut x);
@@ -187,8 +170,8 @@ fn ncplane_dimensions() {
 #[serial]
 fn ncplane_resize() {
     unsafe {
-        let nc = Notcurses::new();
-        let plane = NcPlane::new(nc, 0, 0, 20, 20);
+        let nc = notcurses_init_test();
+        let plane = ncplane_new_test(nc, 0, 0, 20, 20);
 
         let res = crate::ncplane_resize_simple(plane, 40, 40);
         assert_eq![NCRESULT_OK, res];
@@ -216,8 +199,8 @@ fn ncplane_resize() {
 // The base cell is preserved.
 fn ncplane_erase() {
     unsafe {
-        let nc = Notcurses::new();
-        let plane = NcPlane::new(nc, 0, 0, 20, 20);
+        let nc = notcurses_init_test();
+        let plane = ncplane_new_test(nc, 0, 0, 20, 20);
 
         crate::ncplane_set_bg_rgb(plane, 0x112233);
         crate::ncplane_set_fg_rgb(plane, 0x445566);
@@ -238,8 +221,8 @@ fn ncplane_erase() {
 // #[serial]
 // fn ncplane_at_cursor() {
 //     unsafe {
-//         let nc = Notcurses::new();
-//         let plane = NcPlane::new(nc, 0, 0, 20, 20);
+//         let nc = notcurses_init_test();
+//         let plane = ncplane_new_test(nc, 0, 0, 20, 20);
 //
 //         notcurses_stop(nc);
 //     }
@@ -249,8 +232,8 @@ fn ncplane_erase() {
 // #[serial]
 // fn ncplane_at_cursor_cell() {
 //     unsafe {
-//         let nc = Notcurses::new();
-//         let plane = NcPlane::new(nc, 0, 0, 20, 20);
+//         let nc = notcurses_init_test();
+//         let plane = ncplane_new_test(nc, 0, 0, 20, 20);
 //
 //         notcurses_stop(nc);
 //     }

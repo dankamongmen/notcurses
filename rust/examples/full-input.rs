@@ -5,12 +5,12 @@
 
 use libnotcurses_sys::*;
 
-fn main() {
+fn main() -> NcResult<()> {
     let nc = Notcurses::with_flags(
         NCOPTION_SUPPRESS_BANNERS
         | NCOPTION_NO_WINCH_SIGHANDLER
         | NCOPTION_NO_QUIT_SIGHANDLERS
-        );
+        )?;
 
     // doesn't seem to be necessary:
     // let ready = unsafe { notcurses_inputready_fd(nc) };
@@ -38,5 +38,6 @@ fn main() {
     println!("\nExiting...");
 
     rsleep![nc, 1000];
-    nc.stop();
+    nc.stop()?;
+    Ok(())
 }

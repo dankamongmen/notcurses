@@ -2,9 +2,9 @@
 
 use libnotcurses_sys::*;
 
-fn main() {
+fn main() -> NcResult<()> {
 
-    let nc = Notcurses::new();
+    let nc = Notcurses::new()?;
     let plane = nc.stdplane();
     plane.set_scrolling(true);
 
@@ -27,5 +27,6 @@ fn main() {
             break;
         }
     }
-    nc.stop();
+    nc.stop()?;
+    Ok(())
 }

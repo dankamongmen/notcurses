@@ -22,9 +22,8 @@ fn main() -> NcResult<()> {
             sleep![50];
         }
 
-        if let Some((cy, cx)) = ncd.cursor_yx() {
-            ncd.putstr(0, &format!(" ({},{})\n", cy, cx))?;
-        }
+        let (cy, cx) = ncd.cursor_yx()?;
+        ncd.putstr(0, &format!(" ({},{})\n", cy, cx))?;
         sleep![1000];
 
         let sentence = vec!["And", "now", "I", "will", "clear", "the", "screen", ".", ".", "."];

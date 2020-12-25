@@ -4,26 +4,31 @@ use core::ptr::{null, null_mut};
 use std::ffi::CStr;
 
 use crate::{
-    cstring, notcurses_init, NcAlign, NcBlitter, NcChannelPair, NcDimension, NcEgc, NcFile,
-    NcInput, NcIntResult, NcLogLevel, NcPlane, NcScale, NcSignalSet, NcStats, NcStyleMask, NcTime,
-    Notcurses, NotcursesOptions, NCOPTION_NO_ALTERNATE_SCREEN, NCOPTION_SUPPRESS_BANNERS,
-    NCRESULT_ERR, NCRESULT_OK,
+    cstring, error, notcurses_init, NcAlign, NcBlitter, NcChannelPair, NcDimension, NcEgc, NcError,
+    NcFile, NcInput, NcIntResult, NcLogLevel, NcPlane, NcResult, NcScale, NcSignalSet, NcStats,
+    NcStyleMask, NcTime, Notcurses, NotcursesOptions, NCOPTION_NO_ALTERNATE_SCREEN,
+    NCOPTION_SUPPRESS_BANNERS, NCRESULT_ERR, NCRESULT_OK,
 };
 
 /// # `NotcursesOptions` Constructors
 impl NotcursesOptions {
     /// New NotcursesOptions.
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self::with_all_options(0, 0, 0, 0, 0, 0)
     }
 
     /// New NotcursesOptions, with margins.
-    pub fn with_margins(top: i32, right: i32, bottom: i32, left: i32) -> Self {
+    pub const fn with_margins(
+        top: NcDimension,
+        right: NcDimension,
+        bottom: NcDimension,
+        left: NcDimension,
+    ) -> Self {
         Self::with_all_options(0, top, right, bottom, left, 0)
     }
 
     /// New NotcursesOptions, with flags.
-    pub fn with_flags(flags: u64) -> Self {
+    pub const fn with_flags(flags: u64) -> Self {
         Self::with_all_options(0, 0, 0, 0, 0, flags)
     }
 
@@ -58,22 +63,22 @@ impl NotcursesOptions {
     ///   - [`NCOPTION_NO_WINCH_SIGHANDLER`][crate::NCOPTION_NO_WINCH_SIGHANDLER]
     ///   - [`NCOPTION_SUPPRESS_BANNERS`]
     ///
-    pub fn with_all_options(
+    pub const fn with_all_options(
         loglevel: NcLogLevel,
-        margin_t: i32,
-        margin_r: i32,
-        margin_b: i32,
-        margin_l: i32,
+        margin_t: NcDimension,
+        margin_r: NcDimension,
+        margin_b: NcDimension,
+        margin_l: NcDimension,
         flags: u64,
     ) -> Self {
         Self {
             termtype: null(),
             renderfp: null_mut(),
             loglevel,
-            margin_t,
-            margin_r,
-            margin_b,
-            margin_l,
+            margin_t: margin_t as i32,
+            margin_r: margin_r as i32,
+            margin_b: margin_b as i32,
+            margin_l: margin_l as i32,
             flags,
         }
     }
@@ -82,38 +87,37 @@ impl NotcursesOptions {
 /// # `Notcurses` Constructors
 impl Notcurses {
     /// Returns a Notcurses context (without banners).
-    pub fn new<'a>() -> &'a mut Notcurses {
-        let options = NotcursesOptions::with_flags(NCOPTION_SUPPRESS_BANNERS);
-        unsafe { &mut *notcurses_init(&options, null_mut()) }
+    pub fn new<'a>() -> NcResult<&'a mut Notcurses> {
+        Self::with_flags(NCOPTION_SUPPRESS_BANNERS)
     }
 
     /// Returns a Notcurses context, with banners. The default in the C library.
-    pub fn with_banners<'a>() -> &'a mut Notcurses {
-        unsafe { &mut *notcurses_init(&NotcursesOptions::new(), null_mut()) }
+    pub fn with_banners<'a>() -> NcResult<&'a mut Notcurses> {
+        Self::with_flags(0)
     }
 
     /// Returns a Notcurses context, without an alternate screen (nor banners).
-    pub fn without_altscreen<'a>() -> &'a mut Notcurses {
-        let options =
-            NotcursesOptions::with_flags(NCOPTION_NO_ALTERNATE_SCREEN | NCOPTION_SUPPRESS_BANNERS);
-        unsafe { &mut *notcurses_init(&options, null_mut()) }
+    pub fn without_altscreen<'a>() -> NcResult<&'a mut Notcurses> {
+        Self::with_flags(NCOPTION_NO_ALTERNATE_SCREEN | NCOPTION_SUPPRESS_BANNERS)
     }
 
     /// Returns a Notcurses context, without an alternate screen, with banners.
-    pub fn without_altscreen_nor_banners<'a>() -> &'a mut Notcurses {
-        let options = NotcursesOptions::with_flags(NCOPTION_NO_ALTERNATE_SCREEN);
-        unsafe { &mut *notcurses_init(&options, null_mut()) }
+    pub fn without_altscreen_nor_banners<'a>() -> NcResult<&'a mut Notcurses> {
+        Self::with_flags(NCOPTION_NO_ALTERNATE_SCREEN)
     }
 
     /// Returns a Notcurses context, expects [NotcursesOptions].
-    pub fn with_flags<'a>(flags: u64) -> &'a mut Notcurses {
-        let options = NotcursesOptions::with_flags(flags);
-        unsafe { &mut *notcurses_init(&options, null_mut()) }
+    pub fn with_flags<'a>(flags: u64) -> NcResult<&'a mut Notcurses> {
+        Self::with_options(NotcursesOptions::with_flags(flags))
     }
 
     /// Returns a Notcurses context, expects [NotcursesOptions].
-    pub fn with_options<'a>(options: &NotcursesOptions) -> &'a mut Notcurses {
-        unsafe { &mut *notcurses_init(options, null_mut()) }
+    pub fn with_options<'a>(options: NotcursesOptions) -> NcResult<&'a mut Notcurses> {
+        let res = unsafe { notcurses_init(&options, null_mut()) };
+        if res == null_mut() {
+            return Err(NcError::with_msg(NCRESULT_ERR, "Initializing Notcurses"));
+        }
+        Ok(unsafe { &mut *res })
     }
 }
 
@@ -542,8 +546,8 @@ impl Notcurses {
     /// Destroys the Notcurses context.
     ///
     /// *C style function: [notcurses_stop()][crate::notcurses_stop].*
-    pub fn stop(&mut self) -> NcIntResult {
-        unsafe { crate::notcurses_stop(self) }
+    pub fn stop(&mut self) -> NcResult<()> {
+        error![unsafe { crate::notcurses_stop(self) }]
     }
 
     /// Gets the name of an [NcBlitter] blitter.

@@ -29,7 +29,7 @@ fn main() -> NcResult<()> {
 
     let (mut y, x);
 
-    if let Some((_y, _x)) = ncd.cursor_yx() {
+    if let Ok((_y, _x)) = ncd.cursor_yx() {
         y = _y;
         x = _x;
         printf!("\n\tRead cursor position: y: %d x: %d\n", y, x);
@@ -42,7 +42,7 @@ fn main() -> NcResult<()> {
             y -= up;
 
             let newy;
-            if let Some((_y, _)) = ncd.cursor_yx() {
+            if let Ok((_y, _)) = ncd.cursor_yx() {
                 newy = _y;
             } else {
                 break;

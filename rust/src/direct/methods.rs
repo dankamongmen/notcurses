@@ -6,7 +6,7 @@ use crate::ffi::sigset_t;
 use crate::{
     cstring, error, NcAlign, NcBlitter, NcChannelPair, NcColor, NcDimension, NcDirect,
     NcDirectFlags, NcEgc, NcError, NcInput, NcPaletteIndex, NcResult, NcRgb, NcScale, NcStyleMask,
-    NcTime, NCRESULT_ERR, NCRESULT_OK,
+    NcTime, NCRESULT_ERR,
 };
 
 /// # `NcDirect` constructors and destructors
@@ -35,7 +35,7 @@ impl NcDirect {
     pub fn with_flags<'a>(flags: NcDirectFlags) -> NcResult<&'a mut NcDirect> {
         let res = unsafe { crate::ncdirect_init(null(), null_mut(), flags) };
         if res == null_mut() {
-            return Err(NcError::new(NCRESULT_ERR));
+            return Err(NcError::with_msg(NCRESULT_ERR, "Initializing NcDirect"));
         }
         Ok(unsafe { &mut *res })
     }
@@ -272,16 +272,15 @@ impl NcDirect {
     ///
     /// This requires writing to the terminal, and then reading from it.
     /// If the terminal doesn't reply, or doesn't reply in a way we understand,
-    /// the results might be deleterious.
+    /// the results might be detrimental.
     ///
     /// *C style function: [ncdirect_cursor_yx()][crate::ncdirect_cursor_yx].*
-    pub fn cursor_yx(&mut self) -> Option<(NcDimension, NcDimension)> {
+    pub fn cursor_yx(&mut self) -> NcResult<(NcDimension, NcDimension)> {
         let (mut y, mut x) = (0, 0);
-        let res = unsafe { crate::ncdirect_cursor_yx(self, &mut y, &mut x) };
-        if res == NCRESULT_OK {
-            return Some((y as NcDimension, x as NcDimension));
-        }
-        None
+        error![
+            unsafe { crate::ncdirect_cursor_yx(self, &mut y, &mut x) },
+            (y as NcDimension, x as NcDimension)
+        ]
     }
 
     /// Pushes the cursor location to the terminal's stack.

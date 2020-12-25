@@ -63,8 +63,12 @@
 #[cfg(test)]
 mod test;
 
+mod helpers;
 mod methods;
 mod reimplemented;
+
+#[allow(unused_imports)]
+pub(crate) use helpers::*;
 pub use reimplemented::*;
 
 /// The main struct of the TUI library (full mode)
