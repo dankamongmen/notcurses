@@ -21,9 +21,7 @@ impl NcDirect {
     /// color and styling to text in the standard output paradigm.
     ///
     /// *C style function: [ncdirect_init()][crate::ncdirect_init].*
-    //
-    // TODO: Returns NULL on error, including any failure initializing terminfo.
-    pub fn new<'a>() -> &'a mut NcDirect {
+    pub fn new<'a>() -> NcResult<&'a mut NcDirect> {
         Self::with_flags(0)
     }
 
@@ -34,19 +32,19 @@ impl NcDirect {
     /// - [NCDIRECT_OPTION_INHIBIT_SETLOCALE][crate::NCDIRECT_OPTION_INHIBIT_SETLOCALE]
     ///
     /// *C style function: [ncdirect_init()][crate::ncdirect_init].*
-    pub fn with_flags<'a>(flags: NcDirectFlags) -> &'a mut NcDirect {
-        unsafe { &mut *crate::ncdirect_init(null(), null_mut(), flags) }
+    pub fn with_flags<'a>(flags: NcDirectFlags) -> NcResult<&'a mut NcDirect> {
+        let res = unsafe { crate::ncdirect_init(null(), null_mut(), flags) };
+        if res == null_mut() {
+            return Err(NcError::new(NCRESULT_ERR));
+        }
+        Ok(unsafe { &mut *res })
     }
 
     /// Releases this NcDirect and any associated resources.
     ///
     /// *C style function: [ncdirect_stop()][crate::ncdirect_stop].*
     pub fn stop(&mut self) -> NcResult<()> {
-        let res = unsafe { crate::ncdirect_stop(self) };
-        if res == NCRESULT_OK {
-            return Ok(());
-        }
-        Err(NcError::new(res, ""))
+        error![unsafe { crate::ncdirect_stop(self) }]
     }
 }
 
@@ -116,7 +114,7 @@ impl NcDirect {
     pub fn palette_size(&self) -> NcResult<u32> {
         let res = unsafe { crate::ncdirect_palette_size(self) };
         if res == 1 {
-            return Err(NcError::new(1, "No color support"));
+            return Err(NcError::with_msg(1, "No color support"));
         }
         Ok(res)
     }
@@ -225,44 +223,28 @@ impl NcDirect {
     ///
     /// *C style function: [ncdirect_cursor_down()][crate::ncdirect_cursor_down].*
     pub fn cursor_down(&mut self, num: NcDimension) -> NcResult<()> {
-        let res = unsafe { crate::ncdirect_cursor_down(self, num as i32) };
-        if res == NCRESULT_OK {
-            return Ok(());
-        }
-        Err(NcError::new(res, ""))
+        error![unsafe { crate::ncdirect_cursor_down(self, num as i32) }]
     }
 
     /// Moves the cursor left, `num` columns.
     ///
     /// *C style function: [ncdirect_cursor_left()][crate::ncdirect_cursor_left].*
     pub fn cursor_left(&mut self, num: NcDimension) -> NcResult<()> {
-        let res = unsafe { crate::ncdirect_cursor_left(self, num as i32) };
-        if res == NCRESULT_OK {
-            return Ok(());
-        }
-        Err(NcError::new(res, ""))
+        error![unsafe { crate::ncdirect_cursor_left(self, num as i32) }]
     }
 
     /// Moves the cursor right, `num` columns.
     ///
     /// *C style function: [ncdirect_cursor_right()][crate::ncdirect_cursor_right].*
     pub fn cursor_right(&mut self, num: NcDimension) -> NcResult<()> {
-        let res = unsafe { crate::ncdirect_cursor_right(self, num as i32) };
-        if res == NCRESULT_OK {
-            return Ok(());
-        }
-        Err(NcError::new(res, ""))
+        error![unsafe { crate::ncdirect_cursor_right(self, num as i32) }]
     }
 
     /// Moves the cursor up, `num` rows.
     ///
     /// *C style function: [ncdirect_cursor_up()][crate::ncdirect_cursor_up].*
     pub fn cursor_up(&mut self, num: NcDimension) -> NcResult<()> {
-        let res = unsafe { crate::ncdirect_cursor_up(self, num as i32) };
-        if res == NCRESULT_OK {
-            return Ok(());
-        }
-        Err(NcError::new(res, ""))
+        error![unsafe { crate::ncdirect_cursor_up(self, num as i32) }]
     }
 
     /// Moves the cursor in direct mode to the specified row, column.
@@ -367,7 +349,7 @@ impl NcDirect {
         time: Option<NcTime>,
         sigmask: Option<&mut sigset_t>,
         input: Option<&mut NcInput>,
-    ) -> Option<char> {
+    ) -> NcResult<char> {
         let ntime;
         if let Some(time) = time {
             ntime = &time as *const _;
@@ -391,9 +373,9 @@ impl NcDirect {
             core::char::from_u32_unchecked(crate::ncdirect_getc(self, ntime, nsigmask, ninput))
         };
         if c as u32 as i32 == NCRESULT_ERR {
-            return None;
+            return Err(NcError::new(NCRESULT_ERR));
         }
-        Some(c)
+        Ok(c)
     }
 
     ///

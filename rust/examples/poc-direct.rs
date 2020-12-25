@@ -3,7 +3,7 @@
 use libnotcurses_sys::*;
 
 fn main() -> NcResult<()> {
-    let ncd = NcDirect::new();
+    let ncd = NcDirect::new()?;
 
     let dimy = ncd.dim_y();
     let dimx = ncd.dim_x();
@@ -56,7 +56,7 @@ fn main() -> NcResult<()> {
             y += 2;
         }
     } else {
-        return Err(NcError::new(-10, "Couldn't read cursor position."));
+        return Err(NcError::with_msg(-10, "Couldn't read cursor position."));
     }
 
     ncd.stop()?;

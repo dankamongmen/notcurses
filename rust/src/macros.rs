@@ -56,7 +56,7 @@ macro_rules! error {
         if $res >= crate::NCRESULT_OK {
             return Ok($ok);
         } else {
-            return Err(crate::NcError::new($res, $msg));
+            return Err(crate::NcError::with_msg($res, $msg));
         }
     };
     ($res:expr, $ok:expr) => {
