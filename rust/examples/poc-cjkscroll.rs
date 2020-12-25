@@ -23,9 +23,7 @@ fn main() -> NcResult<()> {
             wc = '\u{4e00}';
         }
 
-        if nc.render() == NCRESULT_ERR {
-            break;
-        }
+        nc.render()?;
     }
     nc.stop()?;
     Ok(())

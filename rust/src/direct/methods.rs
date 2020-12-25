@@ -5,8 +5,8 @@ use core::ptr::{null, null_mut};
 use crate::ffi::sigset_t;
 use crate::{
     cstring, error, NcAlign, NcBlitter, NcChannelPair, NcColor, NcDimension, NcDirect,
-    NcDirectFlags, NcEgc, NcError, NcInput, NcPaletteIndex, NcResult, NcRgb, NcScale, NcStyleMask,
-    NcTime, NCRESULT_ERR,
+    NcDirectFlags, NcEgc, NcError, NcInput, NcPaletteIndex, NcPlane, NcResult, NcRgb, NcScale,
+    NcStyleMask, NcTime, NCRESULT_ERR,
 };
 
 /// # `NcDirect` constructors and destructors
@@ -48,7 +48,7 @@ impl NcDirect {
     }
 }
 
-/// ## NcDirect methods: clear, flush, render_image
+/// ## NcDirect methods: clear, flush, render
 impl NcDirect {
     /// Clears the screen.
     ///
@@ -64,18 +64,63 @@ impl NcDirect {
         error![unsafe { crate::ncdirect_flush(self) }]
     }
 
+    /// Takes the result of [render_frame()][NcDirect#method.render_frame]
+    /// and writes it to the output.
+    ///
+    /// The `align`, `blitter`, and `scale` arguments must be the same as those
+    /// passed to render_frame().
+    ///
+    /// *C style function: [ncdirect_render_image()][crate::ncdirect_render_image].*
+    pub fn raster_frame(
+        &mut self,
+        faken: &mut NcPlane,
+        align: NcAlign,
+        blitter: NcBlitter,
+        scale: NcScale,
+    ) -> NcResult<()> {
+        error![
+            unsafe { crate::ncdirect_raster_frame(self, faken, align, blitter, scale) },
+            (),
+            "Rastering frame"
+        ]
+    }
+
+    /// Renders an image using the specified blitter and scaling,
+    /// but do not write the result.
+    ///
+    /// The image may be arbitrarily many rows -- the output will scroll --
+    /// but will only occupy the column of the cursor, and those to the right.
+    ///
+    /// To actually write (and free) this, invoke ncdirect_raster_frame().
+    /// and writes it to the output.
+    ///
+    /// The `align`, `blitter`, and `scale` arguments must be the same as those
+    /// passed to render_frame().
+    ///
+    /// *C style function: [ncdirect_render_image()][crate::ncdirect_render_image].*
+    pub fn render_frame<'a>(
+        &mut self,
+        filename: &str,
+        blitter: NcBlitter,
+        scale: NcScale,
+    ) -> NcResult<&'a mut NcPlane> {
+        let res = unsafe { crate::ncdirect_render_frame(self, cstring![filename], blitter, scale) };
+        if res == null_mut() {
+            return Err(NcError::with_msg(NCRESULT_ERR, "Rendering frame"));
+        }
+        Ok(unsafe { &mut *res })
+    }
+
     /// Displays an image using the specified blitter and scaling.
     ///
     /// The image may be arbitrarily many rows -- the output will scroll -- but
     /// will only occupy the column of the cursor, and those to the right.
     ///
+    /// The render/raster process can be split by using
+    /// [render_frame()][#method.render_frame] and
+    /// [raster_frame()][#method.raster_frame].
     ///
     /// *C style function: [ncdirect_render_image()][crate::ncdirect_render_image].*
-    //
-    // TODO:
-    // The render/raster process can be split by using
-    // [render_frame()][#method.render_frame] and
-    // [raster_frame()][#method.raster_frame].
     pub fn render_image(
         &mut self,
         filename: &str,

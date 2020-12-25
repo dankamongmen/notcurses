@@ -37,6 +37,8 @@
 //W  ncdirect_palette_size
 // X ncdirect_printf_aligned
 //W  ncdirect_putstr
+//W  ncdirect_raster_frame
+//W  ncdirect_render_frame
 //W  ncdirect_render_image
 //W  ncdirect_rounded_box
 //W  ncdirect_stop
