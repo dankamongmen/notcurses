@@ -165,6 +165,8 @@ pub use ffi::{
     ncdirect_palette_size,
     ncdirect_printf_aligned,
     ncdirect_putstr,
+    ncdirect_raster_frame,
+    ncdirect_render_frame,
     ncdirect_render_image,
     ncdirect_rounded_box,
     ncdirect_stop,

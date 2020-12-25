@@ -70,7 +70,7 @@ impl NcDirect {
     /// The `align`, `blitter`, and `scale` arguments must be the same as those
     /// passed to render_frame().
     ///
-    /// *C style function: [ncdirect_render_image()][crate::ncdirect_render_image].*
+    /// *C style function: [ncdirect_raster_frame()][crate::ncdirect_raster_frame].*
     pub fn raster_frame(
         &mut self,
         faken: &mut NcPlane,
@@ -97,7 +97,7 @@ impl NcDirect {
     /// The `align`, `blitter`, and `scale` arguments must be the same as those
     /// passed to render_frame().
     ///
-    /// *C style function: [ncdirect_render_image()][crate::ncdirect_render_image].*
+    /// *C style function: [ncdirect_render_frame()][crate::ncdirect_render_frame].*
     pub fn render_frame<'a>(
         &mut self,
         filename: &str,
