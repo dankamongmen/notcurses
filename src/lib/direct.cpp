@@ -387,8 +387,16 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
       if(egc == nullptr){
         return -1;
       }
-      ncdirect_fg_rgb(n, channels_fg_rgb(channels));
-      ncdirect_bg_rgb(n, channels_bg_rgb(channels));
+      if(channels_fg_alpha(channels) == CELL_ALPHA_TRANSPARENT){
+        ncdirect_fg_default(n);
+      }else{
+        ncdirect_fg_rgb(n, channels_fg_rgb(channels));
+      }
+      if(channels_bg_alpha(channels) == CELL_ALPHA_TRANSPARENT){
+        ncdirect_bg_default(n);
+      }else{
+        ncdirect_bg_rgb(n, channels_bg_rgb(channels));
+      }
 //fprintf(stderr, "%03d/%03d [%s] (%03dx%03d)\n", y, x, egc, dimy, dimx);
       if(fprintf(n->ttyfp, "%s", strlen(egc) == 0 ? " " : egc) < 0){
         free(egc);
