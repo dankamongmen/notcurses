@@ -2111,6 +2111,10 @@ bool notcurses_canutf8(const notcurses* nc){
   return nc->utf8;
 }
 
+bool notcurses_cansextant(const notcurses* nc){
+  return nc->tcache.sextants && nc->utf8;
+}
+
 bool notcurses_canfade(const notcurses* nc){
   return nc->tcache.CCCflag || nc->tcache.RGBflag;
 }
@@ -2403,6 +2407,10 @@ lex_long(const char* op, int* i, char** endptr){
 int notcurses_lex_scalemode(const char* op, ncscale_e* scalemode){
   if(strcasecmp(op, "stretch") == 0){
     *scalemode = NCSCALE_STRETCH;
+  }else if(strcasecmp(op, "scalehi") == 0){
+    *scalemode = NCSCALE_SCALE_HIRES;
+  }else if(strcasecmp(op, "hires") == 0){
+    *scalemode = NCSCALE_NONE_HIRES;
   }else if(strcasecmp(op, "scale") == 0){
     *scalemode = NCSCALE_SCALE;
   }else if(strcasecmp(op, "none") == 0){
@@ -2420,6 +2428,10 @@ const char* notcurses_str_scalemode(ncscale_e scalemode){
     return "scale";
   }else if(scalemode == NCSCALE_NONE){
     return "none";
+  }else if(scalemode == NCSCALE_NONE_HIRES){
+    return "hires";
+  }else if(scalemode == NCSCALE_SCALE_HIRES){
+    return "scalehi";
   }
   return NULL;
 }

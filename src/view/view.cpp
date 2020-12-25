@@ -24,7 +24,7 @@ void usage(std::ostream& o, const char* name, int exitcode){
   o << " -L: loop frames\n";
   o << " -t seconds: delay t seconds after each file\n";
   o << " -l loglevel: integer between 0 and 9, goes to stderr'\n";
-  o << " -s scaletype: one of 'none', 'scale', or 'stretch'\n";
+  o << " -s scaletype: one of 'none', 'hires', 'scale', 'scalehi', or 'stretch'\n";
   o << " -b blitter: 'ascii', 'halfblock', 'quadblitter', 'sexblitter', or 'braille'\n";
   o << " -m margins: margin, or 4 comma-separated margins\n";
   o << " -d mult: non-negative floating point scale for frame time" << std::endl;
@@ -189,7 +189,7 @@ auto handle_opts(int argc, char** argv, notcurses_options& opts, bool* quiet,
         break;
       case 's':
         if(notcurses_lex_scalemode(optarg, scalemode)){
-          std::cerr << "Scaling type should be one of stretch, scale, none (got "
+          std::cerr << "Scaling type should be one of stretch, scale, scalehi, hires, none (got "
                     << optarg << ")" << std::endl;
           usage(std::cerr, argv[0], EXIT_FAILURE);
         }

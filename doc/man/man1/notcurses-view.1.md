@@ -28,7 +28,7 @@ be any non-negative number.
 
 **-l** ***loglevel***: Log everything (high log level) or nothing (log level 0) to stderr.
 
-**-s** ***scalemode***: Scaling mode, one of **none**, **scale**, or **stretch**.
+**-s** ***scalemode***: Scaling mode, one of **none**, **hires**, **scale**, **scalehi**, or **stretch**.
 
 **-b** ***blitter***: Blitter, one of **ascii**, **halfblocks**, **quadblitter**,
 **sexblitter**, or **braille**.

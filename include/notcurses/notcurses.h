@@ -78,11 +78,15 @@ typedef enum {
 // How to scale an ncvisual during rendering. NCSCALE_NONE will apply no
 // scaling. NCSCALE_SCALE scales a visual to the plane's size, maintaining
 // aspect ratio. NCSCALE_STRETCH stretches and scales the image in an
-// attempt to fill the entirety of the plane.
+// attempt to fill the entirety of the plane. NCSCALE_NONE_HIRES and
+// NCSCALE_SCALE_HIRES behave like their counterparts, but admit blitters
+// which don't preserve aspect ratio.
 typedef enum {
   NCSCALE_NONE,
   NCSCALE_SCALE,
   NCSCALE_STRETCH,
+  NCSCALE_NONE_HIRES,
+  NCSCALE_SCALE_HIRES,
 } ncscale_e;
 
 // Returns the number of columns occupied by a multibyte (UTF-8) string, or
@@ -1192,6 +1196,9 @@ API bool notcurses_canopen_videos(const struct notcurses* nc);
 
 // Is our encoding UTF-8? Requires LANG being set to a UTF8 locale.
 API bool notcurses_canutf8(const struct notcurses* nc);
+
+// Can we reliably use Unicode 13 sextants?
+API bool notcurses_cansextant(const struct notcurses* nc);
 
 // Can we blit to Sixel?
 API bool notcurses_cansixel(const struct notcurses* nc);
