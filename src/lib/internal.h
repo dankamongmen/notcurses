@@ -366,11 +366,6 @@ typedef struct notcurses {
   bool libsixel;  // do we have Sixel support?
 } notcurses;
 
-static inline bool
-notcurses_cansextant(const notcurses* nc){
-  return nc->tcache.sextants;
-}
-
 #include "blitset.h"
 
 void sigwinch_handler(int signo);

@@ -44,7 +44,7 @@ rgba_blitter_default(bool utf8, ncscale_e scale, bool sextants){
   if(!utf8){
     return NCBLIT_1x1;
   }
-  if(scale != NCSCALE_STRETCH){
+  if(scale == NCSCALE_NONE || scale == NCSCALE_SCALE){
     return NCBLIT_2x1;
   }
   if(!sextants){

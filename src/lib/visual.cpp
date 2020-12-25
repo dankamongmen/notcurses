@@ -33,16 +33,16 @@ auto ncvisual_geom(const notcurses* nc, const ncvisual* n,
     x = &fauxx;
   }
   if(n){
-    if(scale == NCSCALE_NONE){
-      *y = n->rows;
-      *x = n->cols;
+    if(scale == NCSCALE_NONE || scale == NCSCALE_NONE_HIRES){
+      *y = n->rows * encoding_y_scale(bset);
+      *x = n->cols * encoding_x_scale(bset);
     }else{
       int rows = vopts->n ? ncplane_dim_y(vopts->n) : ncplane_dim_y(nc->stdplane);
       int cols = vopts->n ? ncplane_dim_x(vopts->n) : ncplane_dim_x(nc->stdplane);
       *y = rows * encoding_y_scale(bset);
       *x = cols * encoding_x_scale(bset);
     }
-    if(scale == NCSCALE_SCALE){
+    if(scale == NCSCALE_SCALE || scale == NCSCALE_SCALE_HIRES){
       scale_visual(n, y, x);
     }
   }
@@ -413,7 +413,7 @@ auto ncvisual_render(notcurses* nc, ncvisual* ncv,
       notcurses_term_dim_yx(nc, &disprows, &dispcols);
       dispcols *= encoding_x_scale(bset);
       disprows *= encoding_y_scale(bset);
-      if(vopts->scaling == NCSCALE_SCALE){
+      if(vopts->scaling == NCSCALE_SCALE || vopts->scaling == NCSCALE_SCALE_HIRES){
         scale_visual(ncv, &disprows, &dispcols);
       }
     }
@@ -434,16 +434,16 @@ auto ncvisual_render(notcurses* nc, ncvisual* ncv,
     placey = 0;
     placex = 0;
   }else{
-    if(!vopts || vopts->scaling == NCSCALE_NONE){
-      dispcols = ncv->cols;
-      disprows = ncv->rows;
+    if(!vopts || vopts->scaling == NCSCALE_NONE || vopts->scaling == NCSCALE_NONE_HIRES){
+      dispcols = ncv->cols * encoding_x_scale(bset);
+      disprows = ncv->rows * encoding_y_scale(bset);
     }else{
       ncplane_dim_yx(n, &disprows, &dispcols);
       dispcols *= encoding_x_scale(bset);
       disprows *= encoding_y_scale(bset);
       disprows -= placey;
       dispcols -= placex;
-      if(vopts->scaling == NCSCALE_SCALE){
+      if(vopts->scaling == NCSCALE_SCALE || vopts->scaling == NCSCALE_SCALE_HIRES){
         scale_visual(ncv, &disprows, &dispcols);
       }
     }
