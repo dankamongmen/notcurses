@@ -42,7 +42,7 @@ zoom_map(struct notcurses* nc, const char* map, int* ret){
   // but *do* explicitly supply NCBLIT_2x2 since we're not scaling.
   struct ncvisual_options vopts = {
     .y = 1,
-    .blitter = ncvisual_media_defblitter(nc, NCSCALE_NONE_HIRES),
+    .blitter = NCBLIT_2x2,
   };
   if(ncvisual_geom(nc, ncv, &vopts, &vheight, &vwidth, &yscale, &xscale)){
     ncvisual_destroy(ncv);
@@ -52,8 +52,8 @@ zoom_map(struct notcurses* nc, const char* map, int* ret){
   // we start at the lower left corner of the outzoomed map
   int placey, placex; // dimensions of true display
   notcurses_term_dim_yx(nc, &placey, &placex);
-  float delty = 3;
-  float deltx = 3;
+  float delty = 2 + yscale;
+  float deltx = 2 + xscale;
   float truey = placey;
   float truex = placex;
   if(truey > truex){

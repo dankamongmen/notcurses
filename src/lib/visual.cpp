@@ -34,7 +34,7 @@ auto ncvisual_geom(const notcurses* nc, const ncvisual* n,
   }
   if(n){
     if(scale == NCSCALE_NONE || scale == NCSCALE_NONE_HIRES){
-      *y = n->rows * encoding_y_scale(bset);
+      *y = n->rows;
       *x = n->cols * encoding_x_scale(bset);
     }else{
       int rows = vopts->n ? ncplane_dim_y(vopts->n) : ncplane_dim_y(nc->stdplane);
@@ -406,9 +406,9 @@ auto ncvisual_render(notcurses* nc, ncvisual* ncv,
   ncplane* n = nullptr;
 //fprintf(stderr, "INPUT N: %p\n", vopts ? vopts->n : nullptr);
   if((n = (vopts ? vopts->n : nullptr)) == nullptr){ // create plane
-    if(!vopts || vopts->scaling == NCSCALE_NONE){
-      dispcols = ncv->cols;
-      disprows = ncv->rows;
+    if(!vopts || vopts->scaling == NCSCALE_NONE || vopts->scaling == NCSCALE_NONE_HIRES){
+      dispcols = ncv->cols * encoding_x_scale(bset);
+      disprows = ncv->rows * encoding_y_scale(bset);
     }else{
       notcurses_term_dim_yx(nc, &disprows, &dispcols);
       dispcols *= encoding_x_scale(bset);
