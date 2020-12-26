@@ -687,6 +687,8 @@ pub use ffi::{
     notcurses_lex_scalemode,
     notcurses_linesigs_disable,
     notcurses_linesigs_enable,
+    // Waiting for: https://github.com/dankamongmen/notcurses/issues/1114
+    // notcurses_media_defblitter,
     notcurses_mouse_disable,
     notcurses_mouse_enable,
     notcurses_palette_size,

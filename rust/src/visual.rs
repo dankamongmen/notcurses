@@ -65,6 +65,11 @@ pub const NCVISUAL_OPTION_NODEGRADE: u32 = crate::bindings::ffi::NCVISUAL_OPTION
 /// NCBLIT_3x2 is better image quality, especially for large images, but
 /// it's not the general default because it doesn't preserve aspect ratio.
 /// NCSCALE_STRETCH throws away aspect ratio, and can safely use NCBLIT_3x2.
+#[deprecated(
+    since = "2.1.2",
+    note = "please use `notcurses_media_defblitter` instead"
+)]
+// Waiting for: https://github.com/dankamongmen/notcurses/issues/1114
 pub fn ncvisual_default_blitter(utf8: bool, scale: NcScale) -> NcBlitter {
     if utf8 {
         if scale == NCSCALE_STRETCH {
