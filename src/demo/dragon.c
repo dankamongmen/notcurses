@@ -96,8 +96,8 @@ int dragon_demo(struct notcurses* nc){
     }
     struct ncvisual_options vopts = {
       .n = n,
-      .blitter = NCBLIT_3x2,
       .y = 1,
+      .scaling = NCSCALE_STRETCH,
     };
     if(ncvisual_render(nc, ncv, &vopts) == NULL){
       ncvisual_destroy(ncv);
