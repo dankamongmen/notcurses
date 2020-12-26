@@ -1,10 +1,9 @@
 //! `NcPlane*` methods and associated functions.
 
 use core::ptr::{null, null_mut};
-use std::ffi::CStr;
 
 use crate::{
-    cstring, NcAlign, NcAlphaBits, NcBoxMask, NcCell, NcChannel, NcChannelPair, NcColor,
+    cstring, rstring, NcAlign, NcAlphaBits, NcBoxMask, NcCell, NcChannel, NcChannelPair, NcColor,
     NcDimension, NcEgc, NcFadeCb, NcIntResult, NcOffset, NcPaletteIndex, NcPlane, NcPlaneOptions,
     NcResizeCb, NcRgb, NcStyleMask, NcTime, Notcurses, NCRESULT_OK,
 };
@@ -607,17 +606,14 @@ impl NcPlane {
         if through_x {
             len_x = -1;
         }
-        unsafe {
-            CStr::from_ptr(crate::ncplane_contents(
-                self,
-                beg_y as i32,
-                beg_x as i32,
-                len_y,
-                len_x,
-            ))
-            .to_string_lossy()
-            .into_owned()
-        }
+        rstring![crate::ncplane_contents(
+            self,
+            beg_y as i32,
+            beg_x as i32,
+            len_y,
+            len_x
+        )]
+        .to_string()
     }
 
     /// Erases every NcCell in this NcPlane, resetting all attributes to normal,

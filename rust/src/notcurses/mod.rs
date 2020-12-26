@@ -44,7 +44,7 @@
 //W  notcurses_supported_styles
 //W  notcurses_top
 //~  notcurses_ucs32_to_utf8 (not needed in rust)
-//W  notcurses_version
+//W# notcurses_version
 //W  notcurses_version_components
 //
 // functions manually reimplemented: 6

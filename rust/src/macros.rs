@@ -4,9 +4,7 @@
 
 #[allow(unused_imports)]
 // enjoy briefer doc comments
-use crate::{
-    notcurses_render, NcError, NcResult, Notcurses, NCRESULT_ERR, NCRESULT_OK, NcDirect,
-};
+use crate::{notcurses_render, NcDirect, NcError, NcResult, Notcurses, NCRESULT_ERR, NCRESULT_OK};
 
 // Sleep, Render & Flush Macros ------------------------------------------------
 
@@ -76,6 +74,16 @@ macro_rules! fsleep {
 macro_rules! cstring {
     ($s:expr) => {
         std::ffi::CString::new($s).unwrap().as_ptr();
+    };
+}
+
+/// Converts a `*const c_char` into an `&str`.
+#[macro_export]
+macro_rules! rstring {
+    ($s:expr) => {
+        unsafe { std::ffi::CStr::from_ptr($s).to_str().unwrap() }
+        // possible alternative
+        // unsafe { std::ffi::CStr::from_ptr($s).to_string_lossy() }
     };
 }
 

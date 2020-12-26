@@ -161,3 +161,12 @@ fn notcurses_debug() {
         assert_eq![&string1[0..string2.len()], &string2[..]];
     }
 }
+
+#[test]
+#[serial]
+// TODO test version_components
+fn notcurses_version() {
+    let c_str = unsafe { crate::notcurses_version() };
+    assert!(!c_str.is_null());
+    print!("v{} ", crate::rstring![c_str]);
+}

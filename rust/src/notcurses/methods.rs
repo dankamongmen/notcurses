@@ -1,13 +1,12 @@
 //! `Notcurses*` methods and associated functions.
 
 use core::ptr::{null, null_mut};
-use std::ffi::CStr;
 
 use crate::{
-    cstring, error, notcurses_init, NcAlign, NcBlitter, NcChannelPair, NcDimension, NcEgc, NcError,
-    NcFile, NcInput, NcLogLevel, NcPlane, NcResult, NcScale, NcSignalSet, NcStats, NcStyleMask,
-    NcTime, Notcurses, NotcursesOptions, NCOPTION_NO_ALTERNATE_SCREEN, NCOPTION_SUPPRESS_BANNERS,
-    NCRESULT_ERR,
+    cstring, error, notcurses_init, rstring, NcAlign, NcBlitter, NcChannelPair, NcDimension, NcEgc,
+    NcError, NcFile, NcInput, NcLogLevel, NcPlane, NcResult, NcScale, NcSignalSet, NcStats,
+    NcStyleMask, NcTime, Notcurses, NotcursesOptions, NCOPTION_NO_ALTERNATE_SCREEN,
+    NCOPTION_SUPPRESS_BANNERS, NCRESULT_ERR,
 };
 
 /// # `NotcursesOptions` Constructors
@@ -554,22 +553,14 @@ impl Notcurses {
     ///
     /// *C style function: [notcurses_str_blitter()][crate::notcurses_str_blitter].*
     pub fn str_blitter(blitter: NcBlitter) -> String {
-        unsafe {
-            CStr::from_ptr(crate::notcurses_str_blitter(blitter))
-                .to_string_lossy()
-                .into_owned()
-        }
+        rstring![crate::notcurses_str_blitter(blitter)].to_string()
     }
 
     /// Gets the name of an [NcScale] scaling mode.
     ///
     /// *C style function: [notcurses_str_scalemode()][crate::notcurses_str_scalemode].*
     pub fn str_scalemode(scalemode: NcScale) -> String {
-        unsafe {
-            CStr::from_ptr(crate::notcurses_str_scalemode(scalemode))
-                .to_string_lossy()
-                .into_owned()
-        }
+        rstring![crate::notcurses_str_scalemode(scalemode)].to_string()
     }
 
     /// Returns an [NcStyleMask] with the supported curses-style attributes.
@@ -602,11 +593,7 @@ impl Notcurses {
     ///
     /// *C style function: [notcurses_version()][crate::notcurses_version].*
     pub fn version() -> String {
-        unsafe {
-            CStr::from_ptr(crate::notcurses_version())
-                .to_string_lossy()
-                .into_owned()
-        }
+        rstring![crate::notcurses_version()].to_string()
     }
 
     /// Returns the running Notcurses version components
