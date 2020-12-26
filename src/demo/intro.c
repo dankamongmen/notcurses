@@ -7,10 +7,16 @@ fader(struct notcurses* nc, struct ncplane* ncp, void* curry){
   int* flipmode = curry;
   int rows, cols;
   ncplane_dim_yx(ncp, &rows, &cols);
+  const bool smallscreen = rows < 26;
+  const int row1 = rows - 10 + smallscreen;
+  const int row2 = 6 - smallscreen; // box always starts on 4; don't stomp riser
   int startx = (cols - (centercols - 2)) / 2;
+  ncplane_set_fg_rgb8(ncp, 0xd0, 0xf0, 0xd0);
   for(int x = startx ; x < startx + centercols - 2 ; ++x){
-    ncplane_set_fg_rgb8(ncp, 0xd0, 0xf0, 0xd0);
-    if(ncplane_putwc_yx(ncp, rows - 10, x, x % 2 == *flipmode % 2 ? L'◪' : L'◩') <= 0){
+    if(ncplane_putwc_yx(ncp, row1, x, x % 2 != *flipmode % 2 ? L'◪' : L'◩') <= 0){
+      return -1;
+    }
+    if(ncplane_putwc_yx(ncp, row2, x, x % 2 == *flipmode % 2 ? L'◪' : L'◩') <= 0){
       return -1;
     }
   }
