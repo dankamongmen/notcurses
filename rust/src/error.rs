@@ -25,14 +25,14 @@ pub const NCRESULT_MAX: i32 = i32::MAX;
 /// The error type for the Rust methods API.
 #[derive(Debug, Clone, Default)]
 pub struct NcError {
-    /// [NcIntError].
+    /// [NcIntResult].
     pub int: i32,
     pub msg: String,
 }
 
 impl fmt::Display for NcError {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        write!(f, "NcIntError: {}. {}", self.int, self.msg)
+        write!(f, "NcError {}: {}", self.int, self.msg)
     }
 }
 

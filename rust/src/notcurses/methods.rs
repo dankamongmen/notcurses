@@ -398,8 +398,7 @@ impl Notcurses {
     /// Enable the mouse in "button-event tracking" mode with focus detection
     /// and UTF8-style extended coordinates.
     ///
-    /// On success, [NCRESULT_OK] is returned, and mouse events will be
-    /// published to [getc()][Notcurses#method.getc].
+    /// On success, mouse events will be published to [getc()][Notcurses#method.getc].
     ///
     /// *C style function: [notcurses_mouse_enable()][crate::notcurses_mouse_enable].*
     pub fn mouse_enable(&mut self) -> NcResult<()> {
