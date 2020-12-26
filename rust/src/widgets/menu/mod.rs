@@ -2,28 +2,33 @@
 
 // functions already exported by bindgen : 13
 // ------------------------------------------
-//  ncmenu_create
-//  ncmenu_destroy
-//  ncmenu_item_set_status
-//  ncmenu_mouse_selected
-//  ncmenu_nextitem
-//  ncmenu_nextsection
-//  ncmenu_offer_input
-//  ncmenu_plane
-//  ncmenu_previtem
-//  ncmenu_prevsection
-//  ncmenu_rollup
-//  ncmenu_selected
-//  ncmenu_unroll
+// (#) test:  0
+// (W) wrap: 13
+// ------------------------------------------
+//W ncmenu_create
+//W ncmenu_destroy
+//W ncmenu_item_set_status
+//W ncmenu_mouse_selected
+//W ncmenu_nextitem
+//W ncmenu_nextsection
+//W ncmenu_offer_input
+//W ncmenu_plane
+//W ncmenu_previtem
+//W ncmenu_prevsection
+//W ncmenu_rollup
+//W ncmenu_selected
+//W ncmenu_unroll
 
 mod methods;
 
 /// menus on the top or bottom rows
 ///
-/// A notcurses instance supports menu bars on the top or bottom row of the true
-/// screen.
+/// A [Notcurses][crate::Notcurses] instance supports menu bars
+/// on the top or bottom row of the true screen.
 ///
-/// A menu is composed of sections, which are in turn composed of items.
+/// An NcMenu is composed of [NcMenuSection]s, which are in turn composed of
+/// [NcMenuItem]s.
+///
 /// Either no sections are visible, and the menu is rolled up, or exactly one
 /// section is unrolled.
 ///

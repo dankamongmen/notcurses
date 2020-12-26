@@ -138,13 +138,14 @@ macro_rules! error {
 macro_rules! error_ptr {
     ($ptr:expr, $msg:expr) => {
         if $ptr != core::ptr::null_mut() {
+            #[allow(unused_unsafe)]
             return Ok(unsafe { &mut *$ptr });
         } else {
             return Err(crate::NcError::with_msg(crate::NCRESULT_ERR, $msg));
         }
     };
     ($ptr:expr) => {
-        error![$ptr, (), ""];
+        error_ptr![$ptr, ""];
     };
 }
 
@@ -160,6 +161,7 @@ macro_rules! error_ptr {
 macro_rules! error_str {
     ($str:expr, $msg:expr) => {
         if $str != core::ptr::null_mut() {
+            #[allow(unused_unsafe)]
             return Ok(unsafe { (&*$str).to_string() });
         } else {
             return Err(crate::NcError::with_msg(crate::NCRESULT_ERR, $msg));
