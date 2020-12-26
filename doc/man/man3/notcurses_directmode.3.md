@@ -1,6 +1,6 @@
 % ncdirect_init(3)
 % nick black <nickblack@linux.com>
-% v2.1.1
+% v2.1.2
 
 # NAME
 

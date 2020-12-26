@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 2.1.2 (not yet released)
+* 2.1.2 (2020-12-25)
   * Add `notcurses_linesigs_enable()` and `notcurses_linesigs_disable()`.
   * Divide `ncdirect_render_image()` into component `ncdirect_render_frame()`
     and `ncdirect_raster_frame()` (the original remains), allowing multiple
