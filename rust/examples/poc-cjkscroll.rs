@@ -11,7 +11,7 @@ fn main() -> NcResult<()> {
     let mut wc = '\u{4e00}'; // 一
 
     loop {
-        sleep![1];
+        sleep![0, 0, 50];
 
         if plane.putchar(wc) == NCRESULT_ERR {
             break;

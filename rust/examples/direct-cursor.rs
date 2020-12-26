@@ -6,41 +6,35 @@
 use libnotcurses_sys::*;
 
 fn main() -> NcResult<()> {
-    unsafe {
-        let ncd = NcDirect::new()?;
+    let ncd = NcDirect::new()?;
 
-        let cols = ncdirect_dim_x(ncd);
-        let rows = ncdirect_dim_y(ncd);
-        println!("terminal size (rows, cols): {}, {}", rows, cols);
+    let cols = ncd.dim_x();
+    let rows = ncd.dim_y();
+    println!("terminal size (rows, cols): {}, {}", rows, cols);
 
-        ncd.putstr(0, "The current coordinates are")?;
-        ncd.flush()?;
+    ncd.putstr(0, "The current coordinates are")?;
 
-        for _n in 0..20 {
-            ncd.putstr(0, ".")?;
-            ncd.flush()?;
-            sleep![50];
-        }
-
-        let (cy, cx) = ncd.cursor_yx()?;
-        ncd.putstr(0, &format!(" ({},{})\n", cy, cx))?;
-        sleep![1000];
-
-        let sentence = vec!["And", "now", "I", "will", "clear", "the", "screen", ".", ".", "."];
-        for word in sentence {
-            ncd.putstr(0, &format!["{} ", word])?;
-            ncd.flush()?;
-            sleep![200];
-        }
-        sleep![300];
-        ncd.putstr(0, "\nbye!\n\n")?;
-        ncd.flush()?;
-        sleep![600];
-
-        ncd.clear()?;
-        sleep![1000];
-
-        ncd.stop()?;
+    for _n in 0..40 {
+        fsleep![ncd, 0, 30];
+        ncd.putstr(0, ".")?;
     }
+
+    let (cy, cx) = ncd.cursor_yx()?;
+    ncd.putstr(0, &format!(" ({},{})\n", cy, cx))?;
+    sleep![1];
+
+    let sentence = vec!["And", "now", "I", "will", "clear", "the", "screen", ".", ".", "."];
+    for word in sentence {
+        ncd.putstr(0, &format!["{} ", word])?;
+        fsleep![ncd, 0, 150];
+    }
+    sleep![0, 300];
+    ncd.putstr(0, "\nbye!\n\n")?;
+    fsleep![ncd, 0, 600];
+
+    ncd.clear()?;
+    sleep![1];
+
+    ncd.stop()?;
     Ok(())
 }

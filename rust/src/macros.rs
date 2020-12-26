@@ -4,46 +4,74 @@
 
 #[allow(unused_imports)]
 // enjoy briefer doc comments
-use crate::{NcError, NCRESULT_ERR, NCRESULT_OK};
+use crate::{
+    notcurses_render, NcError, NcResult, Notcurses, NCRESULT_ERR, NCRESULT_OK, NcDirect,
+};
 
-// General Utility Macros ------------------------------------------------------
+// Sleep, Render & Flush Macros ------------------------------------------------
 
-/// Sleeps for `$ms` milliseconds.
+/// Sleeps for `$ns` seconds + `$ms` milliseconds
+/// + `$us` microseconds + `$ns` nanoseconds
 #[macro_export]
 macro_rules! sleep {
-    ($ms:expr) => {
-        std::thread::sleep(std::time::Duration::from_millis($ms));
+    ($s:expr) => {
+        std::thread::sleep(std::time::Duration::from_secs($s));
+    };
+
+    ($s:expr, $ms:expr) => {
+        std::thread::sleep(std::time::Duration::from_millis($s * 1000 + $ms));
+    };
+    ($s:expr, $ms:expr, $us:expr) => {
+        std::thread::sleep(std::time::Duration::from_micros(
+            $s * 1_000_000 + $ms * 1_000 + $us,
+        ));
+    };
+    ($s:expr, $ms:expr, $us:expr, $ns:expr) => {
+        std::thread::sleep(std::time::Duration::from_nanos(
+            $s * 1_000_000_000 + $ms * 1_000_000 + $us * 1_000 + $ns,
+        ));
     };
 }
 
-/// Renders the `$nc` [Notcurses][crate::Notcurses] object,
-/// then sleeps for `$ms` milliseconds.
+/// Notcurses.[render()][Notcurses#method.render]? plus [sleep]!(`sleep_args`).
+///
+/// Renders the `$nc` [Notcurses] object and, if there's no error,
+/// calls the sleep macro with the rest of the arguments.
+///
+/// Returns [NcResult].
 #[macro_export]
 macro_rules! rsleep {
-    ($nc:expr, $ms:expr) => {{
+    ($nc:expr, $( $sleep_args:expr),+ ) => {
         // Rust style, with methods & NcResult
-        crate::$nc.render();
-        std::thread::sleep(std::time::Duration::from_millis($ms));
-    }};
+        Notcurses::render($nc)?;
+        sleep![$( $sleep_args ),+];
+    };
+    ($nc:expr, $( $sleep_args:expr),+ ,) => {
+        rsleep![$nc, $( $sleep_args ),* ]
+    };
 }
 
-/// Renders the `$nc` [Notcurses][crate::Notcurses] object,
-/// then sleeps for `$ms` milliseconds and returns the result of
-/// [notcurses_render][crate::notcurses_render].
+/// NcDirect.[flush()][NcDirect#method.flush]? plus [sleep]!(`sleep_args`).
+///
+/// Flushes the `$ncd` [NcDirect] object and, if there's no error,
+/// calls the sleep macro with the rest of the arguments.
+///
+/// Returns [NcResult].
 #[macro_export]
-macro_rules! rsleep_c {
-    ($nc:expr, $ms:expr) => {{
-        // C style, with functions & NcIntResult
-        let mut res: crate::NcIntResult = 0;
-        unsafe {
-            res = crate::notcurses_render($nc);
-        }
-        std::thread::sleep(std::time::Duration::from_millis($ms));
-        res
-    }};
+macro_rules! fsleep {
+    ($ncd:expr, $( $sleep_args:expr),+ ) => {
+        // Rust style, with methods & NcResult
+        NcDirect::flush($ncd)?;
+        sleep![$( $sleep_args ),+];
+    };
+    ($ncd:expr, $( $sleep_args:expr),+ ,) => {
+        rsleep![$ncd, $( $sleep_args ),* ]
+    };
 }
 
-/// Converts `&str` to `*mut CString`, for when `*const c_char` is needed.
+// General Utility Macros ------------------------------------------------------
+
+/// Converts an `&str` into `*mut CString`, for when a `*const c_char` is needed.
 #[macro_export]
 macro_rules! cstring {
     ($s:expr) => {
@@ -51,7 +79,7 @@ macro_rules! cstring {
     };
 }
 
-/// Simple wrapper around [libc::printf].
+/// Wrapper around [libc::printf].
 #[macro_export]
 macro_rules! printf {
     ($s:expr) => {
@@ -112,7 +140,7 @@ macro_rules! error_ptr {
     };
 }
 
-/// Returns an Ok([`String`]) from a `*const` pointer to a C string,
+/// Returns an Ok(String) from a `*const` pointer to a C string,
 /// or an Err([NcError]) if the pointer is null.
 ///
 /// In other words:

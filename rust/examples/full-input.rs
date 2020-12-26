@@ -27,7 +27,7 @@ fn main() -> NcResult<()> {
             println!("'{0}' ({1:x})\n{2:?}", key, key as u32, input);
         }
 
-        rsleep![nc, 100];
+        rsleep![nc, 0, 10];
 
         match key {
             NCKEY_F01 => break,
@@ -37,7 +37,7 @@ fn main() -> NcResult<()> {
 
     println!("\nExiting...");
 
-    rsleep![nc, 1000];
+    rsleep![nc, 1, 500];
     nc.stop()?;
     Ok(())
 }
