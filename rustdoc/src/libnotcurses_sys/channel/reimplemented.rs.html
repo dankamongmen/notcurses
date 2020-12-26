@@ -351,6 +351,90 @@
 <span id="348">348</span>
 <span id="349">349</span>
 <span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `channel*_*` reimplemented functions.</span>
 
@@ -363,12 +447,16 @@
 <span class="comment">// Alpha -----------------------------------------------------------------------</span>
 
 <span class="doccomment">/// Gets the [NcAlphaBits] from an [NcChannel].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *Method: NcChannel.[alpha()][NcChannel#method.alpha]*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">channel_alpha</span>(<span class="ident">channel</span>: <span class="ident">NcChannel</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcAlphaBits</span> {
     <span class="ident">channel</span> <span class="op">&amp;</span> <span class="ident">NCCHANNEL_ALPHA_MASK</span>
 }
 
 <span class="doccomment">/// Sets the [NcAlphaBits] of an [NcChannel].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *Method: NcChannel.[set_alpha()][NcChannel#method.set_alpha]*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channel_set_alpha</span>(<span class="ident">channel</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcChannel</span>, <span class="ident">alpha</span>: <span class="ident">NcAlphaBits</span>) {
     <span class="kw">let</span> <span class="ident">alpha_clean</span> <span class="op">=</span> <span class="ident">alpha</span> <span class="op">&amp;</span> <span class="ident">NCCHANNEL_ALPHA_MASK</span>;
@@ -381,18 +469,24 @@
 }
 
 <span class="doccomment">/// Gets the foreground [NcAlphaBits] from an [NcChannelPair], shifted to LSBs.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *Method: NcChannelPair.[fg_alpha()][NcChannelPair#method.fg_alpha]*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">channels_fg_alpha</span>(<span class="ident">channels</span>: <span class="ident">NcChannelPair</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcAlphaBits</span> {
     <span class="ident">channel_alpha</span>(<span class="ident">channels_fchannel</span>(<span class="ident">channels</span>))
 }
 
 <span class="doccomment">/// Gets the background [NcAlphaBits] from an [NcChannelPair], shifted to LSBs.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *Method: NcChannelPair.[bg_alpha()][NcChannelPair#method.bg_alpha]*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">channels_bg_alpha</span>(<span class="ident">channels</span>: <span class="ident">NcChannelPair</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcAlphaBits</span> {
     <span class="ident">channel_alpha</span>(<span class="ident">channels_bchannel</span>(<span class="ident">channels</span>))
 }
 
 <span class="doccomment">/// Sets the [NcAlphaBits] of the foreground [NcChannel] of an [NcChannelPair].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *Method: NcChannelPair.[set_fg_alpha()][NcChannelPair#method.set_fg_alpha]*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channels_set_fg_alpha</span>(<span class="ident">channels</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcChannelPair</span>, <span class="ident">alpha</span>: <span class="ident">NcAlphaBits</span>) {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">channel</span> <span class="op">=</span> <span class="ident">channels_fchannel</span>(<span class="kw-2">*</span><span class="ident">channels</span>);
@@ -401,6 +495,8 @@
 }
 
 <span class="doccomment">/// Sets the [NcAlphaBits] of the background [NcChannel] of an [NcChannelPair].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *Method: NcChannelPair.[set_bg_alpha()][NcChannelPair#method.set_bg_alpha]*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channels_set_bg_alpha</span>(<span class="ident">channels</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcChannelPair</span>, <span class="ident">alpha</span>: <span class="ident">NcAlphaBits</span>) {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">alpha_clean</span> <span class="op">=</span> <span class="ident">alpha</span>;
@@ -416,18 +512,24 @@
 <span class="comment">// Channels --------------------------------------------------------------------</span>
 
 <span class="doccomment">/// Extracts the background [NcChannel] from a [NcChannelPair].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *Method: NcChannelPair.[bchannel()][NcChannelPair#method.bchannel]*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">channels_bchannel</span>(<span class="ident">channels</span>: <span class="ident">NcChannelPair</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannel</span> {
     (<span class="ident">channels</span> <span class="op">&amp;</span> <span class="number">0xffffffff_u64</span>) <span class="kw">as</span> <span class="ident">NcChannel</span>
 }
 
 <span class="doccomment">/// Extracts the foreground [NcChannel] from an [NcChannelPair].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *Method: NcChannelPair.[fchannel()][NcChannelPair#method.fchannel]*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">channels_fchannel</span>(<span class="ident">channels</span>: <span class="ident">NcChannelPair</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannel</span> {
     <span class="ident">channels_bchannel</span>(<span class="ident">channels</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">32</span>)
 }
 
 <span class="doccomment">/// Sets the background [NcChannel] of an [NcChannelPair].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *Method: NcChannelPair.[set_bchannel()][NcChannelPair#method.set_bchannel]*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channels_set_bchannel</span>(<span class="ident">channels</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcChannelPair</span>, <span class="ident">bchannel</span>: <span class="ident">NcChannel</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannelPair</span> {
     <span class="kw-2">*</span><span class="ident">channels</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">channels</span> <span class="op">&amp;</span> <span class="number">0xffffffff00000000_u64</span>) <span class="op">|</span> <span class="ident">bchannel</span> <span class="kw">as</span> <span class="ident">u64</span>;
@@ -435,6 +537,8 @@
 }
 
 <span class="doccomment">/// Sets the foreground [NcChannel] of an [NcChannelPair].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *Method: NcChannelPair.[set_fchannel()][NcChannelPair#method.set_fchannel]*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channels_set_fchannel</span>(<span class="ident">channels</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcChannelPair</span>, <span class="ident">fchannel</span>: <span class="ident">NcChannel</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannelPair</span> {
     <span class="kw-2">*</span><span class="ident">channels</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">channels</span> <span class="op">&amp;</span> <span class="number">0xffffffff_u64</span>) <span class="op">|</span> (<span class="ident">fchannel</span> <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">32</span>;
@@ -442,6 +546,8 @@
 }
 
 <span class="doccomment">/// Combines two [NcChannel]s into a [NcChannelPair].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *Method: NcChannelPair.[combine()][NcChannelPair#method.combine]*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channels_combine</span>(<span class="ident">fchannel</span>: <span class="ident">NcChannel</span>, <span class="ident">bchannel</span>: <span class="ident">NcChannel</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannelPair</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">channels</span>: <span class="ident">NcChannelPair</span> <span class="op">=</span> <span class="number">0</span>;
@@ -453,24 +559,33 @@
 <span class="comment">// NcColor ---------------------------------------------------------------------</span>
 
 <span class="doccomment">/// Gets the red [NcColor] from an [NcChannel].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *Method: NcChannel.[r()][NcChannel#method.r]*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">channel_r</span>(<span class="ident">channel</span>: <span class="ident">NcChannel</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcColor</span> {
     ((<span class="ident">channel</span> <span class="op">&amp;</span> <span class="number">0xff0000</span>) <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">16</span>) <span class="kw">as</span> <span class="ident">NcColor</span>
 }
 
 <span class="doccomment">/// Gets the green [NcColor] from an [NcChannel].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *Method: NcChannel.[g()][NcChannel#method.g]*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">channel_g</span>(<span class="ident">channel</span>: <span class="ident">NcChannel</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcColor</span> {
     ((<span class="ident">channel</span> <span class="op">&amp;</span> <span class="number">0x00ff00</span>) <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">8</span>) <span class="kw">as</span> <span class="ident">NcColor</span>
 }
 
 <span class="doccomment">/// Gets the blue [NcColor] from an [NcChannel].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *Method: NcChannel.[b()][NcChannel#method.b]*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">channel_b</span>(<span class="ident">channel</span>: <span class="ident">NcChannel</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcColor</span> {
     (<span class="ident">channel</span> <span class="op">&amp;</span> <span class="number">0x0000ff</span>) <span class="kw">as</span> <span class="ident">NcColor</span>
 }
 
 <span class="doccomment">/// Sets the red [NcColor] of an [NcChannel], and returns it.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *Method: NcChannel.[set_r()][NcChannel#method.set_r]*</span>
+<span class="comment">//</span>
 <span class="comment">// Not in the C API.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channel_set_r</span>(<span class="ident">channel</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcChannel</span>, <span class="ident">r</span>: <span class="ident">NcColor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannel</span> {
@@ -479,6 +594,9 @@
 }
 
 <span class="doccomment">/// Sets the green [NcColor] of an [NcChannel], and returns it.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *Method: NcChannel.[set_g()][NcChannel#method.set_g]*</span>
+<span class="comment">//</span>
 <span class="comment">// Not in the C API.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channel_set_g</span>(<span class="ident">channel</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcChannel</span>, <span class="ident">g</span>: <span class="ident">NcColor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannel</span> {
@@ -487,6 +605,9 @@
 }
 
 <span class="doccomment">/// Sets the blue [NcColor] of an [NcChannel], and returns it.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *Method: NcChannel.[set_b()][NcChannel#method.set_b]*</span>
+<span class="comment">//</span>
 <span class="comment">// Not in the C API.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channel_set_b</span>(<span class="ident">channel</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcChannel</span>, <span class="ident">b</span>: <span class="ident">NcColor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannel</span> {
@@ -495,6 +616,8 @@
 }
 
 <span class="doccomment">/// Gets the three RGB [NcColor]s from an [NcChannel], and returns it.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *Method: NcChannel.[rgb8()][NcChannel#method.rgb8]*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channel_rgb8</span>(
     <span class="ident">channel</span>: <span class="ident">NcChannel</span>,
@@ -510,6 +633,8 @@
 
 <span class="doccomment">/// Sets the three RGB [NcColor]s an [NcChannel], and marks it as not using the</span>
 <span class="doccomment">/// &quot;default color&quot;, retaining the other bits unchanged.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *Method: NcChannel.[set_rgb8()][NcChannel#method.set_rgb8]*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channel_set_rgb8</span>(<span class="ident">channel</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcChannel</span>, <span class="ident">r</span>: <span class="ident">NcColor</span>, <span class="ident">g</span>: <span class="ident">NcColor</span>, <span class="ident">b</span>: <span class="ident">NcColor</span>) {
     <span class="kw">let</span> <span class="ident">rgb</span>: <span class="ident">NcRgb</span> <span class="op">=</span> (<span class="ident">r</span> <span class="kw">as</span> <span class="ident">NcChannel</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">16</span> <span class="op">|</span> (<span class="ident">g</span> <span class="kw">as</span> <span class="ident">NcChannel</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span> <span class="op">|</span> (<span class="ident">b</span> <span class="kw">as</span> <span class="ident">NcChannel</span>);
@@ -518,6 +643,8 @@
 
 <span class="doccomment">/// Gets the three foreground RGB [NcColor]s from an [NcChannelPair], and</span>
 <span class="doccomment">/// returns the foreground [NcChannel] (which can have some extra bits set).</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *Method: NcChannelPair.[fg_rgb8()][NcChannelPair#method.fg_rgb8]*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channels_fg_rgb8</span>(
     <span class="ident">channels</span>: <span class="ident">NcChannelPair</span>,
@@ -530,6 +657,8 @@
 
 <span class="doccomment">/// Gets the three background RGB [NcColor]s from an [NcChannelPair], and</span>
 <span class="doccomment">/// returns the background [NcChannel] (which can have some extra bits set).</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *Method: NcChannelPair.[bg_rgb8()][NcChannelPair#method.bg_rgb8]*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channels_bg_rgb8</span>(
     <span class="ident">channels</span>: <span class="ident">NcChannelPair</span>,
@@ -542,6 +671,8 @@
 
 <span class="doccomment">/// Sets the three foreground RGB [NcColor]s of an [NcChannelPair], and</span>
 <span class="doccomment">/// marks it as not using the &quot;default color&quot;.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *Method: NcChannelPair.[set_fg_rgb8()][NcChannelPair#method.set_fg_rgb8]*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channels_set_fg_rgb8</span>(<span class="ident">channels</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcChannelPair</span>, <span class="ident">r</span>: <span class="ident">NcColor</span>, <span class="ident">g</span>: <span class="ident">NcColor</span>, <span class="ident">b</span>: <span class="ident">NcColor</span>) {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">channel</span> <span class="op">=</span> <span class="ident">channels_fchannel</span>(<span class="kw-2">*</span><span class="ident">channels</span>);
@@ -551,6 +682,8 @@
 
 <span class="doccomment">/// Sets the three background RGB [NcColor]s of an [NcChannelPair], and</span>
 <span class="doccomment">/// marks it as not using the &quot;default color&quot;.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *Method: NcChannelPair.[set_bg_rgb8()][NcChannelPair#method.set_bg_rgb8]*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channels_set_bg_rgb8</span>(<span class="ident">channels</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcChannelPair</span>, <span class="ident">r</span>: <span class="ident">NcColor</span>, <span class="ident">g</span>: <span class="ident">NcColor</span>, <span class="ident">b</span>: <span class="ident">NcColor</span>) {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">channel</span> <span class="op">=</span> <span class="ident">channels_bchannel</span>(<span class="kw-2">*</span><span class="ident">channels</span>);
@@ -561,12 +694,16 @@
 <span class="comment">// NcRgb -----------------------------------------------------------------------</span>
 
 <span class="doccomment">/// Gets the foreground [NcRgb] from an [NcChannelPair], shifted to LSBs.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *Method: NcChannelPair.[fg_rgb()][NcChannelPair#method.fg_rgb]*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channels_fg_rgb</span>(<span class="ident">channels</span>: <span class="ident">NcChannelPair</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannel</span> {
     <span class="ident">channels_fchannel</span>(<span class="ident">channels</span>) <span class="op">&amp;</span> <span class="ident">NCCELL_BG_RGB_MASK</span>
 }
 
 <span class="doccomment">/// Gets the background [NcRgb] from an [NcChannelPair], shifted to LSBs.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *Method: NcChannelPair.[bg_rgb()][NcChannelPair#method.bg_rgb]*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channels_bg_rgb</span>(<span class="ident">channels</span>: <span class="ident">NcChannelPair</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannel</span> {
     <span class="ident">channels_bchannel</span>(<span class="ident">channels</span>) <span class="op">&amp;</span> <span class="ident">NCCELL_BG_RGB_MASK</span>
@@ -575,6 +712,9 @@
 <span class="doccomment">/// Gets the [NcRgb] of an [NcChannel].</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// This function basically removes the 4th byte of the NcChannel.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *Method: NcChannel.[rgb()][NcChannel#method.rgb]*</span>
+<span class="comment">//</span>
 <span class="comment">// Not in the C API</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">channel_rgb</span>(<span class="ident">channel</span>: <span class="ident">NcChannel</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcRgb</span> {
@@ -583,6 +723,8 @@
 
 <span class="doccomment">/// Sets the [NcRgb] of an [NcChannel], and marks it</span>
 <span class="doccomment">/// as not using the &quot;default color&quot;, retaining the other bits unchanged.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *Method: NcChannel.[set()][NcChannel#method.set]*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channel_set</span>(<span class="ident">channel</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcChannel</span>, <span class="ident">rgb</span>: <span class="ident">NcRgb</span>) {
     <span class="kw-2">*</span><span class="ident">channel</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">channel</span> <span class="op">&amp;</span> <span class="op">!</span><span class="ident">NCCELL_BG_RGB_MASK</span>) <span class="op">|</span> <span class="ident">NCCELL_BGDEFAULT_MASK</span> <span class="op">|</span> (<span class="ident">rgb</span> <span class="op">&amp;</span> <span class="number">0x00ffffff</span>);
@@ -590,6 +732,8 @@
 
 <span class="doccomment">/// Sets the foreground [NcRgb] of an [NcChannelPair],</span>
 <span class="doccomment">/// and marks it as not using the the &quot;default color&quot;.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *Method: NcChannelPair.[set_fg_rgb()][NcChannelPair#method.set_fg_rgb]*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channels_set_fg_rgb</span>(<span class="ident">channels</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcChannelPair</span>, <span class="ident">rgb</span>: <span class="ident">NcRgb</span>) {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">channel</span> <span class="op">=</span> <span class="ident">channels_fchannel</span>(<span class="kw-2">*</span><span class="ident">channels</span>);
@@ -599,6 +743,8 @@
 
 <span class="doccomment">/// Sets the foreground [NcRgb] of an [NcChannelPair],</span>
 <span class="doccomment">/// and marks it as not using the the &quot;default color&quot;.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *Method: NcChannelPair.[set_bg_rgb()][NcChannelPair#method.set_bg_rgb]*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channels_set_bg_rgb</span>(<span class="ident">channels</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcChannelPair</span>, <span class="ident">rgb</span>: <span class="ident">NcRgb</span>) {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">channel</span> <span class="op">=</span> <span class="ident">channels_bchannel</span>(<span class="kw-2">*</span><span class="ident">channels</span>);
@@ -609,12 +755,16 @@
 <span class="comment">// Default ---------------------------------------------------------------------</span>
 
 <span class="doccomment">/// Is this [NcChannel] using the &quot;default color&quot; rather than RGB/palette-indexed?</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *Method: NcChannel.[default_p()][NcChannel#method.default_p]*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">channel_default_p</span>(<span class="ident">channel</span>: <span class="ident">NcChannel</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
     (<span class="ident">channel</span> <span class="op">&amp;</span> <span class="ident">NCCELL_BGDEFAULT_MASK</span>) <span class="op">=</span><span class="op">=</span> <span class="number">0</span>
 }
 
 <span class="doccomment">/// Marks an [NcChannel] as using its &quot;default color&quot;, which also marks it opaque.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *Method: NcChannel.[set_default()][NcChannel#method.set_default]*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channel_set_default</span>(<span class="ident">channel</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcChannel</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannel</span> {
     <span class="kw-2">*</span><span class="ident">channel</span> <span class="op">&amp;=</span> <span class="op">!</span>(<span class="ident">NCCELL_BGDEFAULT_MASK</span> <span class="op">|</span> <span class="ident">NCCELL_ALPHA_HIGHCONTRAST</span>);
@@ -622,6 +772,8 @@
 }
 
 <span class="doccomment">/// Is the foreground of an [NcChannelPair] using the &quot;default foreground color&quot;?</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *Method: NcChannelPair.[fg_default_p()][NcChannelPair#method.fg_default_p]*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channels_fg_default_p</span>(<span class="ident">channels</span>: <span class="ident">NcChannelPair</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
     <span class="ident">channel_default_p</span>(<span class="ident">channels_fchannel</span>(<span class="ident">channels</span>))
@@ -630,6 +782,8 @@
 <span class="doccomment">/// Is the background using the &quot;default background color&quot;? The &quot;default</span>
 <span class="doccomment">/// background color&quot; must generally be used to take advantage of</span>
 <span class="doccomment">/// terminal-effected transparency.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *Method: NcChannelPair.[bg_default_p()][NcChannelPair#method.bg_default_p]*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channels_bg_default_p</span>(<span class="ident">channels</span>: <span class="ident">NcChannelPair</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
     <span class="ident">channel_default_p</span>(<span class="ident">channels_bchannel</span>(<span class="ident">channels</span>))
@@ -637,6 +791,8 @@
 
 <span class="doccomment">/// Marks the foreground of an [NcChannelPair] as using its &quot;default color&quot;,</span>
 <span class="doccomment">/// and returns the new [NcChannelPair].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *Method: NcChannelPair.[set_fg_default()][NcChannelPair#method.set_fg_default]*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channels_set_fg_default</span>(<span class="ident">channels</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcChannelPair</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannelPair</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">channel</span> <span class="op">=</span> <span class="ident">channels_fchannel</span>(<span class="kw-2">*</span><span class="ident">channels</span>);
@@ -647,6 +803,8 @@
 
 <span class="doccomment">/// Marks the background of an [NcChannelPair] as using its &quot;default color&quot;,</span>
 <span class="doccomment">/// and returns the new [NcChannelPair].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *Method: NcChannelPair.[set_bg_default()][NcChannelPair#method.set_bg_default]*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channels_set_bg_default</span>(<span class="ident">channels</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcChannelPair</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannelPair</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">channel</span> <span class="op">=</span> <span class="ident">channels_bchannel</span>(<span class="kw-2">*</span><span class="ident">channels</span>);
@@ -658,6 +816,8 @@
 <span class="comment">// Palette ---------------------------------------------------------------------</span>
 
 <span class="doccomment">/// Is this [NcChannel] using palette-indexed color rather than RGB?</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *Method: NcChannel.[palindex_p()][NcChannel#method.palindex_p]*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channel_palindex_p</span>(<span class="ident">channel</span>: <span class="ident">NcChannel</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
     <span class="op">!</span>(<span class="ident">channel_default_p</span>(<span class="ident">channel</span>) <span class="op">&amp;&amp;</span> (<span class="ident">channel</span> <span class="op">&amp;</span> <span class="ident">NCCELL_BG_PALETTE</span>) <span class="op">=</span><span class="op">=</span> <span class="number">0</span>)
@@ -665,6 +825,8 @@
 
 <span class="doccomment">/// Is the foreground of an [NcChannelPair] using an [indexed][NcPaletteIndex]</span>
 <span class="doccomment">/// [NcPalette][crate::NcPalette] color?</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *Method: NcChannelPair.[fg_palindex_p()][NcChannelPair#method.fg_palindex_p]*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channels_fg_palindex_p</span>(<span class="ident">channels</span>: <span class="ident">NcChannelPair</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
     <span class="ident">channel_palindex_p</span>(<span class="ident">channels_fchannel</span>(<span class="ident">channels</span>))
@@ -672,6 +834,8 @@
 
 <span class="doccomment">/// Is the background of an [NcChannelPair] using an [indexed][NcPaletteIndex]</span>
 <span class="doccomment">/// [NcPalette][crate::NcPalette] color?</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *Method: NcChannelPair.[bg_palindex_p()][NcChannelPair#method.bg_palindex_p]*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channels_bg_palindex_p</span>(<span class="ident">channels</span>: <span class="ident">NcChannelPair</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
     <span class="ident">channel_palindex_p</span>(<span class="ident">channels_bchannel</span>(<span class="ident">channels</span>))
@@ -681,6 +845,8 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Also sets [NCCELL_FG_PALETTE] and [NCCELL_ALPHA_OPAQUE],</span>
 <span class="doccomment">/// and clears out [NCCELL_FGDEFAULT_MASK].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *Method: NcChannelPair.[set_fg_palindex()][NcChannelPair#method.set_fg_palindex]*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channels_set_fg_palindex</span>(<span class="ident">channels</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcChannelPair</span>, <span class="ident">index</span>: <span class="ident">NcPaletteIndex</span>) {
     <span class="kw-2">*</span><span class="ident">channels</span> <span class="op">|</span><span class="op">=</span> <span class="ident">NCCELL_FGDEFAULT_MASK</span>;
@@ -694,6 +860,8 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Also sets [NCCELL_BG_PALETTE] and [NCCELL_ALPHA_OPAQUE],</span>
 <span class="doccomment">/// and clears out [NCCELL_BGDEFAULT_MASK].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *Method: NcChannelPair.[set_bg_palindex()][NcChannelPair#method.set_bg_palindex]*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channels_set_bg_palindex</span>(<span class="ident">channels</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcChannelPair</span>, <span class="ident">index</span>: <span class="ident">NcPaletteIndex</span>) {
     <span class="kw-2">*</span><span class="ident">channels</span> <span class="op">|</span><span class="op">=</span> <span class="ident">NCCELL_BGDEFAULT_MASK</span> <span class="kw">as</span> <span class="ident">NcChannelPair</span>;

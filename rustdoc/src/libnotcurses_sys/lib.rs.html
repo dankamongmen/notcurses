@@ -152,6 +152,12 @@
 <span id="149">149</span>
 <span id="150">150</span>
 <span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `libnotcurses-sys` is a *close to the metal* Rust wrapper for the [notcurses</span>
 <span class="doccomment">//! C library](https://www.github.com/dankamongmen/notcurses/)</span>
@@ -168,12 +174,13 @@
 <span class="doccomment">//! ```rust</span>
 <span class="doccomment">//! use libnotcurses_sys::*;</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! fn main() {</span>
-<span class="doccomment">//!     let nc = Notcurses::without_altscreen();</span>
+<span class="doccomment">//! fn main() -&gt; NcResult&lt;()&gt; {</span>
+<span class="doccomment">//!     let nc = Notcurses::without_altscreen()?;</span>
 <span class="doccomment">//!     let plane = nc.stdplane();</span>
 <span class="doccomment">//!     plane.putstr(&quot;hello world&quot;);</span>
 <span class="doccomment">//!     nc.render();</span>
-<span class="doccomment">//!     nc.stop();</span>
+<span class="doccomment">//!     nc.stop()?;</span>
+<span class="doccomment">//!     Ok(())</span>
 <span class="doccomment">//! }</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
@@ -192,8 +199,8 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! fn main() {</span>
 <span class="doccomment">//!     let options = NotcursesOptions::with_flags(NCOPTION_NO_ALTERNATE_SCREEN);</span>
-<span class="doccomment">//!     let nc = Notcurses::with_options(&amp;options);</span>
 <span class="doccomment">//!     unsafe {</span>
+<span class="doccomment">//!         let nc = notcurses_init(&amp;options, core::ptr::null_mut());</span>
 <span class="doccomment">//!         let plane = notcurses_stdplane(nc);</span>
 <span class="doccomment">//!         ncplane_putstr(&amp;mut *plane, &quot;hello world&quot;);</span>
 <span class="doccomment">//!         notcurses_render(nc);</span>
@@ -230,25 +237,24 @@
 <span class="doccomment">//! ## Limitations of this library</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! There are several common patterns in Rust that this library doesn&#39;t employ,</span>
-<span class="doccomment">//! and focuses instead on remaining at a very close distance to the C API.</span>
+<span class="doccomment">//! and focuses instead on remaining at a closer distance to the C API.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! 1. There are no Drop trait implementations, therefore you must manually stop</span>
 <span class="doccomment">//! each context before it goes out of scope ([Notcurses], [NcDirect]), and</span>
 <span class="doccomment">//! should manually destroy [NcPlane]s, [NcMenu]s… when no longer needed.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! 2. Instead of handling errors with `Result` (as customary in Rust),</span>
-<span class="doccomment">//!   several functions return an [NcResult] with a value of [NCRESULT_ERR],</span>
-<span class="doccomment">//!   (as customary in C), or [NCRESULT_OK].</span>
+<span class="doccomment">//! 2. The C style functions handle errors by the means of returning an i32 value</span>
+<span class="doccomment">//! aliased to [NcIntResult]. But the Rust style methods handle errors more</span>
+<span class="doccomment">//! idiomatically using [NcResult] and [NcError].</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! The [notcurses]() crate overcomes this limitations by using higher level</span>
-<span class="doccomment">//! abstractions, while pulling itself apart from the C API, in ways this</span>
+<span class="doccomment">//! The [notcurses]() crate will use higher level abstractions in ways this</span>
 <span class="doccomment">//! library can not do.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ### Things this library does do</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! - Type aliases every underlying C type to leverage type checking.</span>
 <span class="doccomment">//! - Renames types to enforce regularity and consistency. (e.g. [NcCell])</span>
-<span class="doccomment">//! - Has handy macros like [sleep], [rsleep] &amp; [cstring].</span>
+<span class="doccomment">//! - Has handy macros for common tasks like [sleep!], [cstring!] &amp; [error!].</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ## The `notcurses` C API docs</span>
 <span class="doccomment">//!</span>
@@ -267,39 +273,45 @@
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">bindings</span>::<span class="kw-2">*</span>;
 
+<span class="kw">mod</span> <span class="ident">r#box</span>;
 <span class="kw">mod</span> <span class="ident">cells</span>;
 <span class="kw">mod</span> <span class="ident">channel</span>;
+<span class="kw">mod</span> <span class="ident">dimension</span>;
 <span class="kw">mod</span> <span class="ident">direct</span>;
 <span class="kw">mod</span> <span class="ident">error</span>;
+<span class="kw">mod</span> <span class="ident">fade</span>;
 <span class="kw">mod</span> <span class="ident">file</span>;
 <span class="kw">mod</span> <span class="ident">input</span>;
-<span class="kw">mod</span> <span class="ident">key</span>;
-<span class="kw">mod</span> <span class="ident">keycodes</span>;
 <span class="kw">mod</span> <span class="ident">macros</span>;
 <span class="kw">mod</span> <span class="ident">metric</span>;
 <span class="kw">mod</span> <span class="ident">notcurses</span>;
 <span class="kw">mod</span> <span class="ident">palette</span>;
 <span class="kw">mod</span> <span class="ident">pixel</span>;
 <span class="kw">mod</span> <span class="ident">plane</span>;
+<span class="kw">mod</span> <span class="ident">resizecb</span>;
+<span class="kw">mod</span> <span class="ident">signal</span>;
 <span class="kw">mod</span> <span class="ident">stats</span>;
 <span class="kw">mod</span> <span class="ident">time</span>;
 <span class="kw">mod</span> <span class="ident">visual</span>;
 <span class="kw">mod</span> <span class="ident">widgets</span>;
 
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">input</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">cells</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">channel</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">dimension</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">direct</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">error</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">fade</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">file</span>::<span class="kw-2">*</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">input</span>::<span class="kw-2">*</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">key</span>::<span class="kw-2">*</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">keycodes</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">macros</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">metric</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">notcurses</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">palette</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">pixel</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">plane</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">r#box</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">resizecb</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">signal</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">stats</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">time</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">visual</span>::<span class="kw-2">*</span>;

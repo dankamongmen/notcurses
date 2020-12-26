@@ -170,73 +170,115 @@
 <span id="167">167</span>
 <span id="168">168</span>
 <span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `Notcurses`</span>
 
-<span class="comment">// functions already exported by bindgen : 39</span>
+<span class="comment">// functions already exported by bindgen : 41</span>
 <span class="comment">// ------------------------------------------</span>
-<span class="comment">// (#) unit tests: 10 / 29</span>
+<span class="comment">// (#) test: 10</span>
+<span class="comment">// (W) wrap: 40 / 1</span>
 <span class="comment">// ------------------------------------------</span>
-<span class="comment">//   notcurses_at_yx</span>
-<span class="comment">//   notcurses_bottom</span>
-<span class="comment">// # notcurses_canchangecolor</span>
-<span class="comment">// # notcurses_canfade</span>
-<span class="comment">// # notcurses_canopen_images</span>
-<span class="comment">// # notcurses_canopen_videos</span>
-<span class="comment">// # notcurses_cansixel</span>
-<span class="comment">// # notcurses_cantruecolor</span>
-<span class="comment">// # notcurses_canutf8</span>
-<span class="comment">//   notcurses_cursor_disable</span>
-<span class="comment">//   notcurses_cursor_enable</span>
-<span class="comment">// # notcurses_debug</span>
-<span class="comment">// # notcurses_drop_planes</span>
-<span class="comment">//   notcurses_getc</span>
-<span class="comment">// # notcurses_init</span>
-<span class="comment">//   notcurses_inputready_fd</span>
-<span class="comment">//   notcurses_lex_blitter</span>
-<span class="comment">//   notcurses_lex_margins</span>
-<span class="comment">//   notcurses_lex_scalemode</span>
-<span class="comment">//   notcurses_mouse_disable</span>
-<span class="comment">//   notcurses_mouse_enable</span>
-<span class="comment">//   notcurses_palette_size</span>
-<span class="comment">//   notcurses_refresh</span>
-<span class="comment">//   notcurses_render</span>
-<span class="comment">//   notcurses_render_to_buffer</span>
-<span class="comment">//   notcurses_render_to_file</span>
-<span class="comment">//   notcurses_stats</span>
-<span class="comment">//   notcurses_stats_alloc</span>
-<span class="comment">//   notcurses_stats_reset</span>
-<span class="comment">//   notcurses_stdplane</span>
-<span class="comment">//   notcurses_stdplane_const</span>
-<span class="comment">// # notcurses_stop</span>
-<span class="comment">//   notcurses_str_blitter</span>
-<span class="comment">//   notcurses_str_scalemode</span>
-<span class="comment">//   notcurses_supported_styles</span>
-<span class="comment">//   notcurses_top</span>
-<span class="comment">//   notcurses_ucs32_to_utf8</span>
-<span class="comment">//   notcurses_version</span>
-<span class="comment">//   notcurses_version_components</span>
+<span class="comment">//W  notcurses_at_yx</span>
+<span class="comment">//W  notcurses_bottom</span>
+<span class="comment">//W# notcurses_canchangecolor</span>
+<span class="comment">//W# notcurses_canfade</span>
+<span class="comment">//W# notcurses_canopen_images</span>
+<span class="comment">//W# notcurses_canopen_videos</span>
+<span class="comment">//W# notcurses_cansixel</span>
+<span class="comment">//W# notcurses_cantruecolor</span>
+<span class="comment">//W# notcurses_canutf8</span>
+<span class="comment">//W  notcurses_cursor_disable</span>
+<span class="comment">//W  notcurses_cursor_enable</span>
+<span class="comment">//W# notcurses_debug</span>
+<span class="comment">//W# notcurses_drop_planes</span>
+<span class="comment">//W  notcurses_getc</span>
+<span class="comment">//W# notcurses_init</span>
+<span class="comment">//W  notcurses_inputready_fd</span>
+<span class="comment">//W  notcurses_lex_blitter</span>
+<span class="comment">//W  notcurses_lex_margins</span>
+<span class="comment">//W  notcurses_lex_scalemode</span>
+<span class="comment">//W  notcurses_linesigs_disable</span>
+<span class="comment">//W  notcurses_linesigs_enable</span>
+<span class="comment">//W  notcurses_mouse_disable</span>
+<span class="comment">//W  notcurses_mouse_enable</span>
+<span class="comment">//W  notcurses_palette_size</span>
+<span class="comment">//W  notcurses_refresh</span>
+<span class="comment">//W  notcurses_render</span>
+<span class="comment">//W  notcurses_render_to_buffer</span>
+<span class="comment">//W  notcurses_render_to_file</span>
+<span class="comment">//W  notcurses_stats</span>
+<span class="comment">//W  notcurses_stats_alloc</span>
+<span class="comment">//W  notcurses_stats_reset</span>
+<span class="comment">//W  notcurses_stdplane</span>
+<span class="comment">//W  notcurses_stdplane_const</span>
+<span class="comment">//W# notcurses_stop</span>
+<span class="comment">//W  notcurses_str_blitter</span>
+<span class="comment">//W  notcurses_str_scalemode</span>
+<span class="comment">//W  notcurses_supported_styles</span>
+<span class="comment">//W  notcurses_top</span>
+<span class="comment">//~  notcurses_ucs32_to_utf8 (not needed in rust)</span>
+<span class="comment">//W# notcurses_version</span>
+<span class="comment">//W  notcurses_version_components</span>
 <span class="comment">//</span>
 <span class="comment">// functions manually reimplemented: 6</span>
 <span class="comment">// -----------------------------------------</span>
-<span class="comment">// (+) implement : 6 / 0</span>
-<span class="comment">// (#) unit tests: 0 / 6</span>
+<span class="comment">// (+) done: 6 / 0</span>
+<span class="comment">// (#) test: 0</span>
+<span class="comment">// (W) wrap: 4 / 0</span>
 <span class="comment">// -----------------------------------------</span>
-<span class="comment">// # notcurses_align</span>
-<span class="comment">// + notcurses_getc_blocking</span>
-<span class="comment">// + notcurses_getc_nblock</span>
-<span class="comment">// + notcurses_stddim_yx</span>
-<span class="comment">// + notcurses_stddim_yx_const</span>
-<span class="comment">// + notcurses_term_dim_yx</span>
+<span class="comment">//W# notcurses_align</span>
+<span class="comment">//W+ notcurses_getc_blocking</span>
+<span class="comment">//W+ notcurses_getc_nblock</span>
+<span class="comment">//W+ notcurses_stddim_yx</span>
+<span class="comment">//W+ notcurses_stddim_yx_const</span>
+<span class="comment">//W+ notcurses_term_dim_yx</span>
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">test</span>;
 
+<span class="kw">mod</span> <span class="ident">helpers</span>;
 <span class="kw">mod</span> <span class="ident">methods</span>;
 <span class="kw">mod</span> <span class="ident">reimplemented</span>;
+
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_imports</span>)]</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">helpers</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">reimplemented</span>::<span class="kw-2">*</span>;
 
-<span class="doccomment">/// The main struct of the (full mode) TUI library</span>
+<span class="doccomment">/// The main struct of the TUI library (full mode)</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Notcurses builds atop the terminfo abstraction layer to</span>
 <span class="doccomment">/// provide reasonably portable vivid character displays.</span>
@@ -275,16 +317,17 @@
 
 <span class="doccomment">/// Do not handle SIG{ING, SEGV, ABRT, QUIT}</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// We typically install a signal handler for SIG{INT, SEGV, ABRT, QUIT} that</span>
-<span class="doccomment">/// restores the screen, and then calls the old signal handler. Set to inhibit</span>
-<span class="doccomment">/// registration of these signal handlers.</span>
+<span class="doccomment">/// A signal handler will usually be installed for SIGINT, SIGQUIT, SIGSEGV,</span>
+<span class="doccomment">/// SIGTERM, and SIGABRT, cleaning up the terminal on such exceptions.</span>
+<span class="doccomment">/// With this flag, the handler will not be installed.</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCOPTION_NO_QUIT_SIGHANDLERS</span>: <span class="ident">u64</span> <span class="op">=</span>
     <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCOPTION_NO_QUIT_SIGHANDLERS</span> <span class="kw">as</span> <span class="ident">u64</span>;
 
 <span class="doccomment">/// Do not handle SIGWINCH</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// We typically install a signal handler for SIGWINCH that generates a resize</span>
-<span class="doccomment">/// event in the notcurses_getc() queue. Set to inhibit this handler</span>
+<span class="doccomment">/// A signal handler will usually be installed for SIGWINCH, resulting in</span>
+<span class="doccomment">/// NCKEY_RESIZE events being generated on input.</span>
+<span class="doccomment">/// With this flag, the handler will not be installed.</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCOPTION_NO_WINCH_SIGHANDLER</span>: <span class="ident">u64</span> <span class="op">=</span>
     <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCOPTION_NO_WINCH_SIGHANDLER</span> <span class="kw">as</span> <span class="ident">u64</span>;
 
@@ -340,5 +383,30 @@
 
 <span class="doccomment">/// you probably don&#39;t want what&#39;s happening to happen</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCLOGLEVEL_WARNING</span>: <span class="ident">NcLogLevel</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncloglevel_e_NCLOGLEVEL_WARNING</span>;
+
+<span class="comment">// NcAlign -- ------------------------------------------------------------------</span>
+
+<span class="doccomment">/// Alignment within a plane or terminal.</span>
+<span class="doccomment">/// Left/right-justified, or centered.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ## Defined constants</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// - [NCALIGN_UNALIGNED]</span>
+<span class="doccomment">/// - [NCALIGN_LEFT]</span>
+<span class="doccomment">/// - [NCALIGN_CENTER]</span>
+<span class="doccomment">/// - [NCALIGN_RIGHT]</span>
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcAlign</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncalign_e</span>;
+
+<span class="doccomment">/// Left alignment within an [`NcPlane`][crate::NcPlane] or terminal.</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALIGN_LEFT</span>: <span class="ident">NcAlign</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncalign_e_NCALIGN_LEFT</span>;
+
+<span class="doccomment">/// Right alignment within an [`NcPlane`][crate::NcPlane] or terminal.</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALIGN_RIGHT</span>: <span class="ident">NcAlign</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncalign_e_NCALIGN_RIGHT</span>;
+
+<span class="doccomment">/// Center alignment within an [`NcPlane`][crate::NcPlane] or terminal.</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALIGN_CENTER</span>: <span class="ident">NcAlign</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncalign_e_NCALIGN_CENTER</span>;
+
+<span class="doccomment">/// Do not align an [`NcPlane`][crate::NcPlane] or terminal.</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALIGN_UNALIGNED</span>: <span class="ident">NcAlign</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncalign_e_NCALIGN_UNALIGNED</span>;
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "libnotcurses_sys";</script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>

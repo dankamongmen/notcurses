@@ -297,164 +297,167 @@
 <span id="294">294</span>
 <span id="295">295</span>
 <span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcPlane`</span>
 
-<span class="comment">// functions already exported by bindgen : 105</span>
-<span class="comment">// ------------------------------------------</span>
-<span class="comment">// (#) 13 / 92 unit tests</span>
-<span class="comment">// (W) 1 wrapped as a method or function</span>
-<span class="comment">// ------------------------------------------</span>
-<span class="comment">//   ncpile_bottom</span>
-<span class="comment">// # ncpile_create</span>
-<span class="comment">//   ncpile_rasterize</span>
-<span class="comment">//   ncpile_render</span>
-<span class="comment">//   ncpile_top</span>
-<span class="comment">//   ncplane_above</span>
-<span class="comment">//   ncplane_at_cursor</span>
-<span class="comment">//   ncplane_at_yx</span>
-<span class="comment">//   ncplane_base</span>
-<span class="comment">//   ncplane_below</span>
-<span class="comment">//   ncplane_box</span>
-<span class="comment">//   ncplane_center_abs</span>
-<span class="comment">// # ncplane_channels</span>
-<span class="comment">//   ncplane_contents</span>
-<span class="comment">//   ncplane_create</span>
-<span class="comment">// # ncplane_cursor_move_yx</span>
+<span class="comment">// functions already exported by bindgen : 102</span>
+<span class="comment">// -------------------------------------------</span>
+<span class="comment">// (X) wont:  6</span>
+<span class="comment">// (#) test: 13</span>
+<span class="comment">// (W) wrap: 77</span>
+<span class="comment">// -------------------------------------------</span>
+<span class="comment">//W  ncpile_bottom</span>
+<span class="comment">//W# ncpile_create</span>
+<span class="comment">//W  ncpile_rasterize</span>
+<span class="comment">//W  ncpile_render</span>
+<span class="comment">//W  ncpile_top</span>
+<span class="comment">//W  ncplane_above</span>
+<span class="comment">//W  ncplane_at_cursor</span>
+<span class="comment">//W  ncplane_at_yx</span>
+<span class="comment">//W  ncplane_base</span>
+<span class="comment">//W  ncplane_below</span>
+<span class="comment">//W  ncplane_box</span>
+<span class="comment">//W  ncplane_center_abs</span>
+<span class="comment">//W# ncplane_channels</span>
+<span class="comment">//W  ncplane_contents</span>
+<span class="comment">//W  ncplane_create</span>
+<span class="comment">//W# ncplane_cursor_move_yx</span>
 <span class="comment">//W# ncplane_cursor_yx</span>
-<span class="comment">//   ncplane_destroy</span>
+<span class="comment">//W  ncplane_destroy</span>
 <span class="comment">//W# ncplane_dim_yx</span>
-<span class="comment">//   ncplane_dup</span>
-<span class="comment">// # ncplane_erase</span>
-<span class="comment">//   ncplane_fadein</span>
-<span class="comment">//   ncplane_fadein_iteration</span>
-<span class="comment">//   ncplane_fadeout</span>
-<span class="comment">//   ncplane_fadeout_iteration</span>
-<span class="comment">//   ncplane_format</span>
-<span class="comment">//   ncplane_gradient</span>
-<span class="comment">//   ncplane_greyscale</span>
-<span class="comment">//   ncplane_highgradient</span>
-<span class="comment">//   ncplane_highgradient_sized</span>
+<span class="comment">//W  ncplane_dup</span>
+<span class="comment">//W# ncplane_erase</span>
+<span class="comment">//W  ncplane_fadein</span>
+<span class="comment">//W  ncplane_fadein_iteration</span>
+<span class="comment">//W  ncplane_fadeout</span>
+<span class="comment">//W  ncplane_fadeout_iteration</span>
+<span class="comment">//W  ncplane_format</span>
+<span class="comment">//W  ncplane_gradient</span>
+<span class="comment">//W  ncplane_greyscale</span>
+<span class="comment">//W  ncplane_highgradient</span>
+<span class="comment">//W  ncplane_highgradient_sized</span>
 <span class="comment">//   ncplane_hline_interp</span>
-<span class="comment">// # ncplane_home</span>
-<span class="comment">//   ncplane_mergedown</span>
-<span class="comment">//   ncplane_mergedown_simple</span>
-<span class="comment">//   ncplane_move_above</span>
-<span class="comment">//   ncplane_move_below</span>
-<span class="comment">//   ncplane_move_bottom</span>
-<span class="comment">//   ncplane_move_top</span>
-<span class="comment">//   ncplane_move_yx</span>
-<span class="comment">//   ncplane_new</span>
-<span class="comment">// # ncplane_notcurses</span>
-<span class="comment">// # ncplane_notcurses_const</span>
-<span class="comment">//   ncplane_off_styles</span>
-<span class="comment">//   ncplane_on_styles</span>
-<span class="comment">//   ncplane_parent</span>
-<span class="comment">//   ncplane_parent_const</span>
+<span class="comment">//W# ncplane_home</span>
+<span class="comment">//W  ncplane_mergedown</span>
+<span class="comment">//W  ncplane_mergedown_simple</span>
+<span class="comment">//W  ncplane_move_above</span>
+<span class="comment">//W  ncplane_move_below</span>
+<span class="comment">//W  ncplane_move_bottom</span>
+<span class="comment">//W  ncplane_move_top</span>
+<span class="comment">//W  ncplane_move_yx</span>
+<span class="comment">//W# ncplane_notcurses</span>
+<span class="comment">//W# ncplane_notcurses_const</span>
+<span class="comment">//W  ncplane_off_styles</span>
+<span class="comment">//W  ncplane_on_styles</span>
+<span class="comment">//W  ncplane_parent</span>
+<span class="comment">//W  ncplane_parent_const</span>
 <span class="comment">//   ncplane_polyfill_yx</span>
-<span class="comment">//   ncplane_pulse</span>
+<span class="comment">//W  ncplane_pulse</span>
 <span class="comment">//   ncplane_putchar_stained</span>
 <span class="comment">//   ncplane_putc_yx</span>
-<span class="comment">//   ncplane_putegc_stained</span>
-<span class="comment">//   ncplane_putegc_yx</span>
+<span class="comment">// X ncplane_putegc_stained            // unneeded</span>
+<span class="comment">// X ncplane_putegc_yx                 // unneeded</span>
 <span class="comment">//   ncplane_putnstr_aligned</span>
 <span class="comment">//   ncplane_putnstr_yx</span>
 <span class="comment">//   ncplane_putstr_aligned</span>
 <span class="comment">//   ncplane_putstr_stained</span>
 <span class="comment">//   ncplane_putstr_yx</span>
 <span class="comment">//   ncplane_puttext</span>
-<span class="comment">//   ncplane_putwegc_stained</span>
-<span class="comment">//   ncplane_putwstr_stained</span>
+<span class="comment">// X ncplane_putwegc_stained           // unneeded</span>
+<span class="comment">// X ncplane_putwstr_stained           // unneeded</span>
 <span class="comment">//   ncplane_qrcode</span>
-<span class="comment">//   ncplane_reparent</span>
-<span class="comment">//   ncplane_reparent_family</span>
-<span class="comment">// # ncplane_resize</span>
-<span class="comment">//   ncplane_resizecb</span>
-<span class="comment">//   ncplane_resize_realign</span>
+<span class="comment">//W  ncplane_reparent</span>
+<span class="comment">//W  ncplane_reparent_family</span>
+<span class="comment">//W# ncplane_resize</span>
+<span class="comment">//W  ncplane_resizecb</span>
+<span class="comment">//W  ncplane_resize_realign</span>
 <span class="comment">//   ncplane_rgba</span>
-<span class="comment">//   ncplane_rotate_ccw</span>
-<span class="comment">//   ncplane_rotate_cw</span>
-<span class="comment">//   ncplane_set_base</span>
-<span class="comment">//   ncplane_set_base_cell</span>
-<span class="comment">// # ncplane_set_bchannel</span>
-<span class="comment">//   ncplane_set_bg_alpha</span>
-<span class="comment">//   ncplane_set_bg_default</span>
-<span class="comment">//   ncplane_set_bg_palindex</span>
-<span class="comment">//   ncplane_set_bg_rgb</span>
-<span class="comment">//   ncplane_set_bg_rgb8</span>
-<span class="comment">//   ncplane_set_bg_rgb8_clipped</span>
-<span class="comment">// # ncplane_set_channels</span>
-<span class="comment">// # ncplane_set_fchannel</span>
-<span class="comment">//   ncplane_set_fg_alpha</span>
-<span class="comment">//   ncplane_set_fg_default</span>
-<span class="comment">//   ncplane_set_fg_palindex</span>
-<span class="comment">//   ncplane_set_fg_rgb</span>
-<span class="comment">//   ncplane_set_fg_rgb8</span>
-<span class="comment">//   ncplane_set_fg_rgb8_clipped</span>
-<span class="comment">//   ncplane_set_resizecb</span>
-<span class="comment">//   ncplane_set_scrolling</span>
-<span class="comment">//   ncplane_set_styles</span>
+<span class="comment">//W  ncplane_rotate_ccw</span>
+<span class="comment">//W  ncplane_rotate_cw</span>
+<span class="comment">//W  ncplane_set_base</span>
+<span class="comment">//W  ncplane_set_base_cell</span>
+<span class="comment">//W# ncplane_set_bchannel</span>
+<span class="comment">//W  ncplane_set_bg_alpha</span>
+<span class="comment">//W  ncplane_set_bg_default</span>
+<span class="comment">//W  ncplane_set_bg_palindex</span>
+<span class="comment">//W  ncplane_set_bg_rgb</span>
+<span class="comment">//W  ncplane_set_bg_rgb8</span>
+<span class="comment">// X ncplane_set_bg_rgb8_clipped       // unneeded</span>
+<span class="comment">//W# ncplane_set_channels</span>
+<span class="comment">//W# ncplane_set_fchannel</span>
+<span class="comment">//W  ncplane_set_fg_alpha</span>
+<span class="comment">//W  ncplane_set_fg_default</span>
+<span class="comment">//W  ncplane_set_fg_palindex</span>
+<span class="comment">//W  ncplane_set_fg_rgb</span>
+<span class="comment">//W  ncplane_set_fg_rgb8</span>
+<span class="comment">// X ncplane_set_fg_rgb8_clipped       // unneeded</span>
+<span class="comment">//W  ncplane_set_resizecb</span>
+<span class="comment">//W  ncplane_set_scrolling</span>
+<span class="comment">//W  ncplane_set_styles</span>
 <span class="comment">//   ncplane_set_userptr</span>
-<span class="comment">//   ncplane_stain</span>
-<span class="comment">//   ncplane_styles</span>
-<span class="comment">//   ncplane_styles_off</span>
-<span class="comment">//   ncplane_styles_on</span>
-<span class="comment">//   ncplane_styles_set</span>
-<span class="comment">//   ncplane_translate</span>
-<span class="comment">//   ncplane_translate_abs</span>
+<span class="comment">//W  ncplane_stain</span>
+<span class="comment">//W  ncplane_styles</span>
+<span class="comment">//W  ncplane_translate</span>
+<span class="comment">//W  ncplane_translate_abs</span>
 <span class="comment">//   ncplane_userptr</span>
 <span class="comment">//   ncplane_vline_interp</span>
 <span class="comment">//   ncplane_vprintf_aligned</span>
 <span class="comment">//   ncplane_vprintf_stained</span>
 <span class="comment">//   ncplane_vprintf_yx</span>
-<span class="comment">//   ncplane_x</span>
-<span class="comment">//   ncplane_y</span>
-<span class="comment">//   ncplane_yx</span>
+<span class="comment">//W  ncplane_x</span>
+<span class="comment">//W  ncplane_y</span>
+<span class="comment">//W  ncplane_yx</span>
 <span class="comment">//</span>
-<span class="comment">// functions manually reimplemented: 42</span>
+<span class="comment">// functions manually reimplemented: 41</span>
 <span class="comment">// ------------------------------------------</span>
-<span class="comment">// (X) wont:  8</span>
+<span class="comment">// (X) wont:  9</span>
 <span class="comment">// (+) done: 34 / 0</span>
-<span class="comment">// (#) test:  5 / 29</span>
+<span class="comment">// (W) wrap: 24</span>
+<span class="comment">// (#) test:  5</span>
 <span class="comment">// ------------------------------------------</span>
-<span class="comment">// + ncplane_align</span>
-<span class="comment">// + ncplane_at_cursor_cell</span>
-<span class="comment">// + ncplane_at_yx_cell</span>
-<span class="comment">// + ncplane_bchannel</span>
-<span class="comment">// + ncplane_bg_alpha</span>
-<span class="comment">// # ncplane_bg_default_p</span>
-<span class="comment">// + ncplane_bg_rgb</span>
-<span class="comment">// + ncplane_bg_rgb8</span>
-<span class="comment">// + ncplane_box_sized</span>
+<span class="comment">//W+ ncplane_align</span>
+<span class="comment">//W+ ncplane_at_cursor_cell</span>
+<span class="comment">//W+ ncplane_at_yx_cell</span>
+<span class="comment">//W+ ncplane_bchannel</span>
+<span class="comment">//W+ ncplane_bg_alpha</span>
+<span class="comment">//W# ncplane_bg_default_p</span>
+<span class="comment">//W+ ncplane_bg_rgb</span>
+<span class="comment">//W+ ncplane_bg_rgb8</span>
+<span class="comment">//W+ ncplane_box_sized</span>
 <span class="comment">//W# ncplane_dim_x</span>
 <span class="comment">//W# ncplane_dim_y</span>
-<span class="comment">// + ncplane_double_box</span>
-<span class="comment">// + ncplane_double_box_sized</span>
-<span class="comment">// + ncplane_fchannel</span>
-<span class="comment">// + ncplane_fg_alpha</span>
-<span class="comment">// # ncplane_fg_default_p</span>
-<span class="comment">// + ncplane_fg_rgb</span>
-<span class="comment">// + ncplane_fg_rgb8</span>
-<span class="comment">// + ncplane_gradient_sized       // u64|u32 https://github.com/dankamongmen/notcurses/issues/920</span>
+<span class="comment">//W+ ncplane_double_box</span>
+<span class="comment">//W+ ncplane_double_box_sized</span>
+<span class="comment">//W+ ncplane_fchannel</span>
+<span class="comment">//W+ ncplane_fg_alpha</span>
+<span class="comment">//W# ncplane_fg_default_p</span>
+<span class="comment">//W+ ncplane_fg_rgb</span>
+<span class="comment">//W+ ncplane_fg_rgb8</span>
+<span class="comment">//W+ ncplane_gradient_sized</span>
 <span class="comment">// + ncplane_hline</span>
-<span class="comment">// + ncplane_perimeter</span>
-<span class="comment">// + ncplane_perimeter_double</span>
-<span class="comment">// + ncplane_perimeter_rounded</span>
+<span class="comment">//W+ ncplane_perimeter</span>
+<span class="comment">//W+ ncplane_perimeter_double</span>
+<span class="comment">//W+ ncplane_perimeter_rounded</span>
 <span class="comment">// + ncplane_putc</span>
 <span class="comment">// + ncplane_putchar</span>
 <span class="comment">// + ncplane_putchar_yx</span>
-<span class="comment">// + ncplane_putegc</span>
+<span class="comment">// X ncplane_putegc                    // unneeded</span>
 <span class="comment">// + ncplane_putnstr</span>
 <span class="comment">//W+ ncplane_putstr</span>
-<span class="comment">// X ncplane_putwc                // I don&#39;t think these will be needed from Rust. See:</span>
-<span class="comment">// X ncplane_putwc_stained</span>
-<span class="comment">// X ncplane_putwc_yx             // https://locka99.gitbooks.io/a-guide-to-porting-c-to-rust/content/features_of_rust/strings.html</span>
-<span class="comment">// X ncplane_putwegc              //</span>
-<span class="comment">// X ncplane_putwegc_yx           //</span>
-<span class="comment">// X ncplane_putwstr              //</span>
-<span class="comment">// X ncplane_putwstr_aligned      //</span>
-<span class="comment">// X ncplane_putwstr_yx           //</span>
-<span class="comment">// # ncplane_resize_simple</span>
+<span class="comment">// X ncplane_putwc                     // unneeded</span>
+<span class="comment">// X ncplane_putwc_stained             // unneeded</span>
+<span class="comment">// X ncplane_putwc_yx                  // unneeded</span>
+<span class="comment">// X ncplane_putwegc                   // unneeded</span>
+<span class="comment">// X ncplane_putwegc_yx                // unneeded</span>
+<span class="comment">// X ncplane_putwstr                   // unneeded</span>
+<span class="comment">// X ncplane_putwstr_aligned           // unneeded</span>
+<span class="comment">// X ncplane_putwstr_yx                // unneeded</span>
+<span class="comment">//W# ncplane_resize_simple</span>
 <span class="comment">// + ncplane_rounded_box</span>
 <span class="comment">// + ncplane_rounded_box_sized</span>
 <span class="comment">// + ncplane_vline</span>
@@ -465,8 +468,12 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">test</span>;
 
+<span class="kw">mod</span> <span class="ident">helpers</span>;
 <span class="kw">mod</span> <span class="ident">methods</span>;
 <span class="kw">mod</span> <span class="ident">reimplemented</span>;
+
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_imports</span>)]</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">helpers</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">reimplemented</span>::<span class="kw-2">*</span>;
 
 <span class="comment">// NcPlane</span>
@@ -479,7 +486,7 @@
 <span class="doccomment">/// `type in C: ncplane (struct)`</span>
 <span class="doccomment">///</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// ## Piles</span>
+<span class="doccomment">/// # Piles</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// A single notcurses context is made up of one or more piles.</span>
 <span class="doccomment">///</span>
@@ -509,6 +516,23 @@
 <span class="doccomment">/// pile&#39;s z-axis. When ncplane_reparent_family() is used, all planes bound to</span>
 <span class="doccomment">/// the reparented plane are moved along with it. Their relative z-order is maintained.</span>
 <span class="doccomment">///</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// # Methods &amp; Associated Functions</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// - [Constructors &amp; Destructors](#ncplane-constructors-and-destructors)</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Methods:</span>
+<span class="doccomment">/// - [`NcAlphaBits`](#ncplane-methods-ncalphabits)</span>
+<span class="doccomment">/// - [`NcChannel` &amp; `NcChannelPair`](#ncplane-methods-ncchannel)</span>
+<span class="doccomment">/// - [`NcColor`, `NcRgb` &amp; default color](#ncplane-methods-nccolor-ncrgb--default-color)</span>
+<span class="doccomment">/// - [`NcStyleMask` &amp; `NcPaletteIndex`](#ncplane-methods-ncstylemask--paletteindex)</span>
+<span class="doccomment">/// - [`NcCell` &amp; `NcEgc`](#ncplane-methods-nccell--ncegc)</span>
+<span class="doccomment">/// - [cursor](#ncplane-methods-cursor)</span>
+<span class="doccomment">/// - [`NcPlane` &amp; `Notcurses`](#ncplane-methods-ncplane--notcurses)</span>
+<span class="doccomment">/// - [boxes &amp; perimeters](#ncplane-methods-boxes--perimeters)</span>
+<span class="doccomment">/// - [Size, position &amp; alignment](#ncplane-methods-size-position--alignment)</span>
+<span class="doccomment">/// - [fading, gradients &amp; greyscale](#ncplane-methods-fading-gradients--greyscale)</span>
+<span class="doccomment">///</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcPlane</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncplane</span>;
 
 <span class="doccomment">/// Options struct for [`NcPlane`]</span>
@@ -526,22 +550,6 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// `type in C: ncplane_options (struct)`</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcFdPlaneOptions</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncfdplane_options</span>;
-
-<span class="doccomment">/// Alignment within a plane or terminal.</span>
-<span class="doccomment">/// Left/right-justified, or centered.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcAlign</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncalign_e</span>;
-
-<span class="doccomment">/// Left alignment within an [`NcPlane`] or terminal.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALIGN_LEFT</span>: <span class="ident">NcAlign</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncalign_e_NCALIGN_LEFT</span>;
-
-<span class="doccomment">/// Right alignment within an [`NcPlane`] or terminal.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALIGN_RIGHT</span>: <span class="ident">NcAlign</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncalign_e_NCALIGN_RIGHT</span>;
-
-<span class="doccomment">/// Center alignment within an [`NcPlane`] or terminal.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALIGN_CENTER</span>: <span class="ident">NcAlign</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncalign_e_NCALIGN_CENTER</span>;
-
-<span class="doccomment">/// Do not align an [`NcPlane`] or terminal.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALIGN_UNALIGNED</span>: <span class="ident">NcAlign</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncalign_e_NCALIGN_UNALIGNED</span>;
 
 <span class="doccomment">/// Blitter Mode (`NCBLIT_*`)</span>
 <span class="doccomment">///</span>
@@ -593,6 +601,8 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCBLIT_DEFAULT</span>: <span class="ident">NcBlitter</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncblitter_e_NCBLIT_DEFAULT</span>;
 
 <span class="doccomment">/// [`NcBlitter`] mode (not yet implemented)</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// See [Sixel in Wikipedia](https://en.wikipedia.org/wiki/Sixel).</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCBLIT_SIXEL</span>: <span class="ident">NcBlitter</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncblitter_e_NCBLIT_SIXEL</span>;
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "libnotcurses_sys";</script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>

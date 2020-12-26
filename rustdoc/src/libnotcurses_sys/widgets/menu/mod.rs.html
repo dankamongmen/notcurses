@@ -51,33 +51,43 @@
 <span id="48">48</span>
 <span id="49">49</span>
 <span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcMenu` widget</span>
 
 <span class="comment">// functions already exported by bindgen : 13</span>
 <span class="comment">// ------------------------------------------</span>
-<span class="comment">//  ncmenu_create</span>
-<span class="comment">//  ncmenu_destroy</span>
-<span class="comment">//  ncmenu_item_set_status</span>
-<span class="comment">//  ncmenu_mouse_selected</span>
-<span class="comment">//  ncmenu_nextitem</span>
-<span class="comment">//  ncmenu_nextsection</span>
-<span class="comment">//  ncmenu_offer_input</span>
-<span class="comment">//  ncmenu_plane</span>
-<span class="comment">//  ncmenu_previtem</span>
-<span class="comment">//  ncmenu_prevsection</span>
-<span class="comment">//  ncmenu_rollup</span>
-<span class="comment">//  ncmenu_selected</span>
-<span class="comment">//  ncmenu_unroll</span>
+<span class="comment">// (#) test:  0</span>
+<span class="comment">// (W) wrap: 13</span>
+<span class="comment">// ------------------------------------------</span>
+<span class="comment">//W ncmenu_create</span>
+<span class="comment">//W ncmenu_destroy</span>
+<span class="comment">//W ncmenu_item_set_status</span>
+<span class="comment">//W ncmenu_mouse_selected</span>
+<span class="comment">//W ncmenu_nextitem</span>
+<span class="comment">//W ncmenu_nextsection</span>
+<span class="comment">//W ncmenu_offer_input</span>
+<span class="comment">//W ncmenu_plane</span>
+<span class="comment">//W ncmenu_previtem</span>
+<span class="comment">//W ncmenu_prevsection</span>
+<span class="comment">//W ncmenu_rollup</span>
+<span class="comment">//W ncmenu_selected</span>
+<span class="comment">//W ncmenu_unroll</span>
 
 <span class="kw">mod</span> <span class="ident">methods</span>;
 
 <span class="doccomment">/// menus on the top or bottom rows</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// A notcurses instance supports menu bars on the top or bottom row of the true</span>
-<span class="doccomment">/// screen.</span>
+<span class="doccomment">/// A [Notcurses][crate::Notcurses] instance supports menu bars</span>
+<span class="doccomment">/// on the top or bottom row of the true screen.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// A menu is composed of sections, which are in turn composed of items.</span>
+<span class="doccomment">/// An NcMenu is composed of [NcMenuSection]s, which are in turn composed of</span>
+<span class="doccomment">/// [NcMenuItem]s.</span>
+<span class="doccomment">///</span>
 <span class="doccomment">/// Either no sections are visible, and the menu is rolled up, or exactly one</span>
 <span class="doccomment">/// section is unrolled.</span>
 <span class="doccomment">///</span>

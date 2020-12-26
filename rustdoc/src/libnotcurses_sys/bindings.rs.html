@@ -726,6 +726,36 @@
 <span id="723">723</span>
 <span id="724">724</span>
 <span id="725">725</span>
+<span id="726">726</span>
+<span id="727">727</span>
+<span id="728">728</span>
+<span id="729">729</span>
+<span id="730">730</span>
+<span id="731">731</span>
+<span id="732">732</span>
+<span id="733">733</span>
+<span id="734">734</span>
+<span id="735">735</span>
+<span id="736">736</span>
+<span id="737">737</span>
+<span id="738">738</span>
+<span id="739">739</span>
+<span id="740">740</span>
+<span id="741">741</span>
+<span id="742">742</span>
+<span id="743">743</span>
+<span id="744">744</span>
+<span id="745">745</span>
+<span id="746">746</span>
+<span id="747">747</span>
+<span id="748">748</span>
+<span id="749">749</span>
+<span id="750">750</span>
+<span id="751">751</span>
+<span id="752">752</span>
+<span id="753">753</span>
+<span id="754">754</span>
+<span id="755">755</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! A selection of the [ffi] bindings intended to be used directly.</span>
 <span class="doccomment">//!</span>
@@ -837,20 +867,17 @@
 
 <span class="comment">// ncbox -----------------------------------------------------------------------</span>
 
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">ffi</span>::{
-    <span class="comment">// constants</span>
-    <span class="ident">NCBOXCORNER_MASK</span>,
-    <span class="ident">NCBOXCORNER_SHIFT</span>,
-    <span class="ident">NCBOXGRAD_BOTTOM</span>,
-    <span class="ident">NCBOXGRAD_LEFT</span>,
-    <span class="ident">NCBOXGRAD_RIGHT</span>,
-    <span class="ident">NCBOXGRAD_TOP</span>,
-    <span class="ident">NCBOXMASK_BOTTOM</span>,
-    <span class="ident">NCBOXMASK_LEFT</span>,
-    <span class="ident">NCBOXMASK_RIGHT</span>,
-    <span class="ident">NCBOXMASK_TOP</span>,
-};
+<span class="comment">// // constants</span>
+<span class="comment">// NCBOXCORNER_MASK,</span>
+<span class="comment">// NCBOXCORNER_SHIFT,</span>
+<span class="comment">// NCBOXGRAD_BOTTOM,</span>
+<span class="comment">// NCBOXGRAD_LEFT,</span>
+<span class="comment">// NCBOXGRAD_RIGHT,</span>
+<span class="comment">// NCBOXGRAD_TOP,</span>
+<span class="comment">// NCBOXMASK_BOTTOM,</span>
+<span class="comment">// NCBOXMASK_LEFT,</span>
+<span class="comment">// NCBOXMASK_RIGHT,</span>
+<span class="comment">// NCBOXMASK_TOP,</span>
 
 <span class="comment">// ncdirect --------------------------------------------------------------------</span>
 <span class="comment">//</span>
@@ -897,6 +924,8 @@
     <span class="ident">ncdirect_palette_size</span>,
     <span class="ident">ncdirect_printf_aligned</span>,
     <span class="ident">ncdirect_putstr</span>,
+    <span class="ident">ncdirect_raster_frame</span>,
+    <span class="ident">ncdirect_render_frame</span>,
     <span class="ident">ncdirect_render_image</span>,
     <span class="ident">ncdirect_rounded_box</span>,
     <span class="ident">ncdirect_stop</span>,
@@ -1134,6 +1163,7 @@
     <span class="ident">ncplane_set_fg_rgb</span>,
     <span class="ident">ncplane_set_fg_rgb8</span>,
     <span class="ident">ncplane_set_fg_rgb8_clipped</span>,
+    <span class="ident">ncplane_set_resizecb</span>,
     <span class="ident">ncplane_set_scrolling</span>,
     <span class="ident">ncplane_set_styles</span>,
     <span class="ident">ncplane_set_userptr</span>,
@@ -1216,6 +1246,27 @@
     <span class="ident">ncreader_offer_input</span>,
     <span class="ident">ncreader_plane</span>,
     <span class="ident">ncreader_write_egc</span>,
+};
+
+<span class="comment">// ncprogbar -------------------------------------------------------------------</span>
+<span class="comment">//</span>
+<span class="comment">// already wrapped:</span>
+<span class="comment">//</span>
+<span class="comment">// // structs</span>
+<span class="comment">// ncprogbar,</span>
+<span class="comment">// ncprogbar_options,</span>
+<span class="comment">//</span>
+<span class="comment">// // constants</span>
+<span class="comment">// NCPROGBAR_OPTION_RETROGRADE</span>
+
+<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">ffi</span>::{
+    <span class="comment">// functions</span>
+    <span class="ident">ncprogbar_create</span>,
+    <span class="ident">ncprogbar_destroy</span>,
+    <span class="ident">ncprogbar_plane</span>,
+    <span class="ident">ncprogbar_progress</span>,
+    <span class="ident">ncprogbar_set_progress</span>,
 };
 
 <span class="comment">// ncreel ----------------------------------------------------------------------</span>
@@ -1393,6 +1444,10 @@
     <span class="ident">notcurses_lex_blitter</span>,
     <span class="ident">notcurses_lex_margins</span>,
     <span class="ident">notcurses_lex_scalemode</span>,
+    <span class="ident">notcurses_linesigs_disable</span>,
+    <span class="ident">notcurses_linesigs_enable</span>,
+    <span class="comment">// Waiting for: https://github.com/dankamongmen/notcurses/issues/1114</span>
+    <span class="comment">// notcurses_media_defblitter,</span>
     <span class="ident">notcurses_mouse_disable</span>,
     <span class="ident">notcurses_mouse_enable</span>,
     <span class="ident">notcurses_palette_size</span>,
@@ -1434,23 +1489,28 @@
 };
 
 <span class="comment">// sig -------------------------------------------------------------------------</span>
+<span class="comment">//</span>
+<span class="comment">// already wrapped:</span>
+<span class="comment">//</span>
+<span class="comment">// // structs</span>
+<span class="comment">// sigset_t,</span>
+<span class="comment">// sigaction,</span>
+<span class="comment">//</span>
+<span class="comment">// // functions</span>
+<span class="comment">// sigaddset,</span>
+<span class="comment">// sigdelset,</span>
+<span class="comment">// sigemptyset,</span>
+<span class="comment">// sigfillset,</span>
+<span class="comment">// sigismember,</span>
+<span class="comment">// sigpending,</span>
+<span class="comment">// sigprocmask,</span>
+<span class="comment">// sigsuspend,</span>
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">ffi</span>::<span class="ident">sigset_t</span>;
-
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">ffi</span>::{
-    <span class="comment">// structs</span>
-    <span class="comment">//sigaction,</span>
-
-    <span class="comment">// functions</span>
-    <span class="ident">sigaddset</span>,
-    <span class="ident">sigdelset</span>,
-    <span class="ident">sigemptyset</span>,
-    <span class="ident">sigfillset</span>,
-    <span class="ident">sigismember</span>,
-    <span class="ident">sigpending</span>,
-    <span class="ident">sigprocmask</span>,
-    <span class="ident">sigsuspend</span>,
-};
+<span class="comment">// fade callback ---------------------------------------------------------------</span>
+<span class="comment">//</span>
+<span class="comment">// already wrapped:</span>
+<span class="comment">//</span>
+<span class="comment">// // types</span>
+<span class="comment">// fadecb</span>
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "libnotcurses_sys";</script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>

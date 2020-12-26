@@ -44,6 +44,10 @@
 <span id="41">41</span>
 <span id="42">42</span>
 <span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcPalette*`</span>
 
@@ -53,22 +57,26 @@
 <span class="comment">//</span>
 <span class="comment">// functions already exported by bindgen : 3</span>
 <span class="comment">// -----------------------------------------</span>
-<span class="comment">// (#) unit tests: 0 / 3</span>
+<span class="comment">// (#) test: 0</span>
+<span class="comment">// (W) wrap: 3 / 0</span>
 <span class="comment">// -----------------------------------------</span>
-<span class="comment">//  palette256_free</span>
-<span class="comment">//  palette256_new</span>
-<span class="comment">//  palette256_use</span>
+<span class="comment">//W  palette256_free</span>
+<span class="comment">//W  palette256_new</span>
+<span class="comment">//W  palette256_use</span>
 <span class="comment">//</span>
 <span class="comment">// functions manually reimplemented: 3</span>
 <span class="comment">// -----------------------------------------</span>
-<span class="comment">// (+) implement : 3 / 0</span>
-<span class="comment">// (#) unit tests: 0 / 3</span>
+<span class="comment">// (+) done: 3 / 0</span>
+<span class="comment">// (#) test: 0</span>
+<span class="comment">// (W) wrap: 3 / 0</span>
 <span class="comment">// -----------------------------------------</span>
-<span class="comment">// + palette256_get_rgb</span>
-<span class="comment">// + palette256_set</span>
-<span class="comment">// + palette256_set_rgb</span>
+<span class="comment">//W+ palette256_get_rgb</span>
+<span class="comment">//W+ palette256_set</span>
+<span class="comment">//W+ palette256_set_rgb</span>
 
+<span class="kw">mod</span> <span class="ident">methods</span>;
 <span class="kw">mod</span> <span class="ident">reimplemented</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">methods</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">reimplemented</span>::<span class="kw-2">*</span>;
 
 <span class="doccomment">/// NcPalette structure consisting of an array of 256</span>

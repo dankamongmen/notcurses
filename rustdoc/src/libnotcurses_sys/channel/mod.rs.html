@@ -240,8 +240,6 @@
 <span id="237">237</span>
 <span id="238">238</span>
 <span id="239">239</span>
-<span id="240">240</span>
-<span id="241">241</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcChannel*`</span>
 
@@ -261,20 +259,20 @@
 <span class="comment">// functions manually reimplemented: 39</span>
 <span class="comment">// ------------------------------------------</span>
 <span class="comment">// (X) wont:  3</span>
-<span class="comment">// (W) wrap: 10 / 26</span>
-<span class="comment">// (+) done: 34 /  2</span>
-<span class="comment">// (#) test: 19 / 17</span>
+<span class="comment">// (+) done: 36 / 0</span>
+<span class="comment">// (#) test: 19</span>
+<span class="comment">// (W) wrap: 13</span>
 <span class="comment">// ------------------------------------------</span>
 <span class="comment">//W# channel_alpha</span>
 <span class="comment">//W# channel_b</span>
-<span class="comment">// # channel_default_p</span>
+<span class="comment">//W# channel_default_p</span>
 <span class="comment">//W# channel_g</span>
 <span class="comment">// # channel_palindex_p</span>
 <span class="comment">//W# channel_r</span>
 <span class="comment">//W# channel_rgb8</span>
 <span class="comment">// + channel_set</span>
-<span class="comment">// # channel_set_alpha</span>
-<span class="comment">// # channel_set_default</span>
+<span class="comment">//W# channel_set_alpha</span>
+<span class="comment">//W# channel_set_default</span>
 <span class="comment">//W# channel_set_rgb8</span>
 <span class="comment">// X channel_set_rgb_clipped ---</span>
 <span class="comment">// # channels_bchannel</span>
@@ -364,7 +362,8 @@
 <span class="doccomment">/// ## Default Color</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// The &quot;default color&quot; is best explained by</span>
-<span class="doccomment">/// [color(3NCURSES)](https://manpages.debian.org/stretch/ncurses-doc/color.3ncurses.en.html).</span>
+<span class="doccomment">/// [color(3NCURSES)](https://manpages.debian.org/stretch/ncurses-doc/color.3ncurses.en.html)</span>
+<span class="doccomment">/// and [default_colors(3NCURSES)](https://manpages.debian.org/stretch/ncurses-doc/default_colors.3ncurses.en.html).</span>
 <span class="doccomment">/// Ours is the same concept.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// **Until the &quot;not default color&quot; bit is set, any color you load will be ignored.**</span>
@@ -469,9 +468,6 @@
 <span class="doccomment">/// `type in C: no data type`</span>
 <span class="doccomment">///</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcColor</span> <span class="op">=</span> <span class="ident">u8</span>;
-
-<span class="doccomment">/// Context for a palette fade operation</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcFadeCtx</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncfadectx</span>;
 
 <span class="doccomment">/// the [NcEgc][crate::NcEgc] which form the various levels of a given geometry.</span>
 <span class="doccomment">///</span>
