@@ -67,13 +67,21 @@ macro_rules! fsleep {
     };
 }
 
-// General Utility Macros ------------------------------------------------------
+// String & Print Macros -------------------------------------------------------
 
-/// Converts an `&str` into `*mut CString`, for when a `*const c_char` is needed.
+/// Converts an `&str` into `*const c_char`.
 #[macro_export]
 macro_rules! cstring {
     ($s:expr) => {
         std::ffi::CString::new($s).unwrap().as_ptr();
+    };
+}
+
+/// Converts an `&str` into `*mut c_char`.
+#[macro_export]
+macro_rules! cstring_mut {
+    ($s:expr) => {
+        std::ffi::CString::new($s).unwrap().into_raw();
     };
 }
 
@@ -126,16 +134,39 @@ macro_rules! error {
     };
 }
 
-/// Returns an Ok(&mut T) from a `*mut T` pointer,
+/// Returns an Ok(&T) from a `*const T` pointer,
 /// or an Err([NcError]) if the pointer is null.
 ///
 /// In other words:
-/// Returns Ok(&mut *`$ptr`) if `$ptr` != `null()`, otherwise returns
+/// Returns Ok(&*`$ptr`) if `$ptr` != `null()`, otherwise returns
 /// Err([NcError]]::[new][NcError#method.new]([NCRESULT_ERR], `$msg`)).
 ///
 /// `$msg` is optional. By default it will be an empty `&str` `""`.
 #[macro_export]
-macro_rules! error_ptr {
+macro_rules! error_ref {
+    ($ptr:expr, $msg:expr) => {
+        if $ptr != core::ptr::null() {
+            #[allow(unused_unsafe)]
+            return Ok(unsafe { &*$ptr });
+        } else {
+            return Err(crate::NcError::with_msg(crate::NCRESULT_ERR, $msg));
+        }
+    };
+    ($ptr:expr) => {
+        error_ref![$ptr, ""];
+    };
+}
+
+/// Returns an Ok(&mut T) from a `*mut T` pointer,
+/// or an Err([NcError]) if the pointer is null.
+///
+/// In other words:
+/// Returns Ok(&mut *`$ptr`) if `$ptr` != `null_mut()`, otherwise returns
+/// Err([NcError]]::[new][NcError#method.new]([NCRESULT_ERR], `$msg`)).
+///
+/// `$msg` is optional. By default it will be an empty `&str` `""`.
+#[macro_export]
+macro_rules! error_ref_mut {
     ($ptr:expr, $msg:expr) => {
         if $ptr != core::ptr::null_mut() {
             #[allow(unused_unsafe)]
@@ -145,7 +176,7 @@ macro_rules! error_ptr {
         }
     };
     ($ptr:expr) => {
-        error_ptr![$ptr, ""];
+        error_ref_mut![$ptr, ""];
     };
 }
 

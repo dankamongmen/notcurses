@@ -11,7 +11,7 @@ fn constructors() -> crate::NcResult<()> {
     let _c2 = NcCell::with_char7b('C');
 
     let nc = Notcurses::new()?;
-    let plane = NcPlane::new(nc, 0, 0, 10, 10);
+    let plane = NcPlane::new(nc, 0, 0, 10, 10)?;
     let _c3 = NcCell::with_char('௵', plane);
     nc.stop()?;
     Ok(())

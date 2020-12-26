@@ -15,7 +15,7 @@
 //!
 //! fn main() -> NcResult<()> {
 //!     let nc = Notcurses::without_altscreen()?;
-//!     let plane = nc.stdplane();
+//!     let plane = nc.stdplane()?;
 //!     plane.putstr("hello world");
 //!     nc.render();
 //!     nc.stop()?;

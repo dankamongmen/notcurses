@@ -3,7 +3,7 @@
 use core::ptr::{null, null_mut};
 
 use crate::{
-    cstring, error, error_ptr, rstring, NcAlign, NcAlphaBits, NcBoxMask, NcCell, NcChannel,
+    cstring, error, error_ref_mut, rstring, NcAlign, NcAlphaBits, NcBoxMask, NcCell, NcChannel,
     NcChannelPair, NcColor, NcDimension, NcEgc, NcFadeCb, NcOffset, NcPaletteIndex, NcPlane,
     NcPlaneOptions, NcResizeCb, NcResult, NcRgb, NcStyleMask, NcTime, Notcurses,
 };
@@ -80,9 +80,8 @@ impl NcPlane {
         x: NcOffset,
         rows: NcDimension,
         cols: NcDimension,
-    ) -> &'a mut NcPlane {
-        let options = NcPlaneOptions::new(y, x, rows, cols);
-        unsafe { &mut *crate::ncpile_create(nc, &options) }
+    ) -> NcResult<&'a mut NcPlane> {
+        Self::with_options(nc, NcPlaneOptions::new(y, x, rows, cols))
     }
 
     /// New NcPlane, expects an [NcPlaneOptions] struct.
@@ -90,8 +89,11 @@ impl NcPlane {
     /// The returned plane will be the top, bottom, and root of this new pile.
     ///
     /// *C style function: [ncpile_create()][crate::ncpile_create].*
-    pub fn with_options<'a>(nc: &mut Notcurses, options: NcPlaneOptions) -> &'a mut NcPlane {
-        unsafe { &mut *crate::ncpile_create(nc, &options) }
+    pub fn with_options<'a>(
+        nc: &mut Notcurses,
+        options: NcPlaneOptions,
+    ) -> NcResult<&'a mut NcPlane> {
+        error_ref_mut![unsafe { crate::ncpile_create(nc, &options) }]
     }
 
     /// New NcPlane, bound to another NcPlane.
@@ -104,8 +106,7 @@ impl NcPlane {
         rows: NcDimension,
         cols: NcDimension,
     ) -> NcResult<&'a mut NcPlane> {
-        let options = NcPlaneOptions::new(y, x, rows, cols);
-        error_ptr![unsafe { crate::ncplane_create(bound_to, &options) }]
+        Self::with_options_bound(bound_to, NcPlaneOptions::new(y, x, rows, cols))
     }
 
     /// New NcPlane, bound to another plane, expects an [NcPlaneOptions] struct.
@@ -117,7 +118,7 @@ impl NcPlane {
         bound_to: &mut NcPlane,
         options: NcPlaneOptions,
     ) -> NcResult<&'a mut NcPlane> {
-        error_ptr![unsafe { crate::ncplane_create(bound_to, &options) }]
+        error_ref_mut![unsafe { crate::ncplane_create(bound_to, &options) }]
     }
 
     /// New NcPlane, with the same dimensions of the terminal.
@@ -125,15 +126,13 @@ impl NcPlane {
     /// The returned plane will be the top, bottom, and root of this new pile.
     ///
     /// *(No equivalent C style function)*
-    pub fn new_termsize<'a>(nc: &mut Notcurses) -> &'a mut NcPlane {
+    pub fn new_termsize<'a>(nc: &mut Notcurses) -> NcResult<&'a mut NcPlane> {
         let (trows, tcols) = crate::notcurses_term_dim_yx(nc);
         assert![(trows > 0) & (tcols > 0)];
-        unsafe {
-            &mut *crate::ncpile_create(
-                nc,
-                &NcPlaneOptions::new(0, 0, trows as NcDimension, tcols as NcDimension),
-            )
-        }
+        Self::with_options(
+            nc,
+            NcPlaneOptions::new(0, 0, trows as NcDimension, tcols as NcDimension),
+        )
     }
 
     /// Destroys this NcPlane.
@@ -996,7 +995,7 @@ impl NcPlane {
     ///
     /// *C style function: [ncplane_notcurses()][crate::ncplane_notcurses].*
     pub fn notcurses<'a>(&mut self) -> NcResult<&'a mut Notcurses> {
-        error_ptr![unsafe { crate::ncplane_notcurses(self) }]
+        error_ref_mut![unsafe { crate::ncplane_notcurses(self) }]
     }
 
     /// Gets an immutable reference to the [Notcurses] context of this NcPlane.

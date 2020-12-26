@@ -32,9 +32,12 @@ mod methods;
 /// Either no sections are visible, and the menu is rolled up, or exactly one
 /// section is unrolled.
 ///
-/// `ncmenu_rollup` places an `NcMenu` in the rolled up state.
-/// `ncmenu_unroll` rolls up any unrolled section and unrolls the specified one.
-/// `ncmenu_destroy` removes a menu bar, and frees all associated resources.
+/// - [rollup()][NcMenu#method.rollup]
+///     places an `NcMenu` in the rolled up state.
+/// - [unroll()][NcMenu#method.]
+///     rolls up any unrolled section and unrolls the specified one.
+/// - [destroy()][NcMenu#method.destroy]
+///     removes a menu bar, and frees all associated resources.
 ///
 /// `type in C: ncmenu (struct)`
 pub type NcMenu = crate::bindings::ffi::ncmenu;

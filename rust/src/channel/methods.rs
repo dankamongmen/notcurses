@@ -31,6 +31,8 @@ pub trait NcChannelPairMethods {
     fn bg_alpha(&self) -> NcAlphaBits;
     fn set_fg_alpha(&mut self, alpha: NcAlphaBits);
     fn set_bg_alpha(&mut self, alpha: NcAlphaBits);
+    fn set_fg_rgb(&mut self, alpha: NcAlphaBits);
+    fn set_bg_rgb(&mut self, alpha: NcAlphaBits);
 }
 
 // NcChannel -------------------------------------------------------------------
@@ -186,5 +188,19 @@ impl NcChannelPairMethods for NcChannelPair {
     /// *C style function: [channels_set_bg_alpha()][crate::channels_set_bg_alpha].*
     fn set_bg_alpha(&mut self, alpha: NcAlphaBits) {
         crate::channels_set_bg_alpha(self, alpha)
+    }
+
+    /// Sets the foreground [NcRgb].
+    ///
+    /// *C style function: [channels_set_fg_rgb()][crate::channels_set_fg_rgb].*
+    fn set_fg_rgb(&mut self, rgb: NcRgb) {
+        crate::channels_set_fg_rgb(self, rgb)
+    }
+
+    /// Sets the background [NcRgb].
+    ///
+    /// *C style function: [channels_set_bg_rgb()][crate::channels_set_bg_rgb].*
+    fn set_bg_rgb(&mut self, rgb: NcRgb) {
+        crate::channels_set_bg_rgb(self, rgb)
     }
 }

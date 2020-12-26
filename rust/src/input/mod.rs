@@ -9,6 +9,8 @@
 // + nckey_mouse_p
 // + nckey_supppuab_p
 
+use crate::NcDimension;
+
 mod keycodes;
 pub use keycodes::*;
 
@@ -50,7 +52,8 @@ pub const fn ncinput_equal_p(n1: NcInput, n2: NcInput) -> bool {
 
 /// New NcInput.
 impl NcInput {
-    pub const fn new() -> NcInput {
+    /// New empty NcInput.
+    pub const fn new_empty() -> NcInput {
         NcInput {
             id: 0,
             y: 0,
@@ -60,6 +63,54 @@ impl NcInput {
             ctrl: false,
             seqnum: 0,
         }
+    }
+
+    /// New NcInput, expecting all the arguments.
+    pub const fn with_all_args(
+        id: char,
+        x: Option<NcDimension>,
+        y: Option<NcDimension>,
+        alt: bool,
+        shift: bool,
+        ctrl: bool,
+        seqnum: u64,
+    ) -> NcInput {
+        let (ix, iy);
+        if let Some(x) = x {
+            ix = x as i32
+        } else {
+            ix = -1
+        };
+        if let Some(y) = y {
+            iy = y as i32
+        } else {
+            iy = -1
+        };
+
+        NcInput {
+            id: id as u32,
+            y: ix,
+            x: iy,
+            alt,
+            shift,
+            ctrl,
+            seqnum,
+        }
+    }
+
+    /// New NcInput with alt key.
+    pub const fn with_alt(id: char) -> NcInput {
+        Self::with_all_args(id, None, None, true, false, false, 0)
+    }
+
+    /// New NcInput with shift key.
+    pub const fn with_shift(id: char) -> NcInput {
+        Self::with_all_args(id, None, None, false, true, false, 0)
+    }
+
+    /// New NcInput with ctrl key.
+    pub const fn with_ctrl(id: char) -> NcInput {
+        Self::with_all_args(id, None, None, false, false, true, 0)
     }
 }
 

@@ -1,6 +1,6 @@
 //! `NcReader*` methods and associated functions.
 
-use crate::{error_ptr, ncreader_create, NcPlane, NcReader, NcReaderOptions, NcResult};
+use crate::{error_ref_mut, ncreader_create, NcPlane, NcReader, NcReaderOptions, NcResult};
 
 /// # `NcReaderOptions` Constructors
 impl NcReaderOptions {
@@ -29,6 +29,6 @@ impl NcReader {
         plane: &mut NcPlane,
         options: NcReaderOptions,
     ) -> NcResult<&'a mut Self> {
-        error_ptr![unsafe { ncreader_create(plane, &options) }]
+        error_ref_mut![unsafe { ncreader_create(plane, &options) }]
     }
 }

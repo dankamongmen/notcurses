@@ -49,14 +49,14 @@
 //W+ channels_set_bg_alpha
 // + channels_set_bg_default
 // # channels_set_bg_palindex
-// + channels_set_bg_rgb
+//W+ channels_set_bg_rgb
 // + channels_set_bg_rgb8
 // X channels_set_bg_rgb8_clipped
 // # channels_set_fchannel
 //W+ channels_set_fg_alpha
 // + channels_set_fg_default
 // # channels_set_fg_palindex
-// + channels_set_fg_rgb
+//W+ channels_set_fg_rgb
 // + channels_set_fg_rgb8
 // X channels_set_fg_rgb8_clipped
 

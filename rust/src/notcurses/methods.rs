@@ -3,10 +3,10 @@
 use core::ptr::{null, null_mut};
 
 use crate::{
-    cstring, error, notcurses_init, rstring, NcAlign, NcBlitter, NcChannelPair, NcDimension, NcEgc,
-    NcError, NcFile, NcInput, NcLogLevel, NcPlane, NcResult, NcScale, NcSignalSet, NcStats,
-    NcStyleMask, NcTime, Notcurses, NotcursesOptions, NCOPTION_NO_ALTERNATE_SCREEN,
-    NCOPTION_SUPPRESS_BANNERS, NCRESULT_ERR,
+    cstring, error, error_ref_mut, notcurses_init, rstring, NcAlign, NcBlitter, NcChannelPair,
+    NcDimension, NcEgc, NcError, NcFile, NcInput, NcLogLevel, NcPlane, NcResult, NcScale,
+    NcSignalSet, NcStats, NcStyleMask, NcTime, Notcurses, NotcursesOptions,
+    NCOPTION_NO_ALTERNATE_SCREEN, NCOPTION_SUPPRESS_BANNERS, NCRESULT_ERR,
 };
 
 /// # `NotcursesOptions` Constructors
@@ -502,11 +502,11 @@ impl Notcurses {
     /// *C style function: [notcurses_stddim_yx()][crate::notcurses_stddim_yx].*
     #[inline]
     pub fn stddim_yx<'a>(
-        nc: &'a mut Notcurses,
+        &'a mut self,
         y: &mut NcDimension,
         x: &mut NcDimension,
-    ) -> &'a mut NcPlane {
-        crate::notcurses_stddim_yx(nc, y, x)
+    ) -> NcResult<&'a mut NcPlane> {
+        crate::notcurses_stddim_yx(self, y, x)
     }
 
     /// [stdplane_const()][Notcurses#method.stdplane_const], plus free
@@ -515,11 +515,11 @@ impl Notcurses {
     /// *C style function: [notcurses_stddim_yx()][crate::notcurses_stddim_yx].*
     #[inline]
     pub fn stddim_yx_const<'a>(
-        nc: &'a Notcurses,
+        &'a self,
         y: &mut NcDimension,
         x: &mut NcDimension,
-    ) -> &'a NcPlane {
-        crate::notcurses_stddim_yx_const(nc, y, x)
+    ) -> NcResult<&'a NcPlane> {
+        crate::notcurses_stddim_yx_const(self, y, x)
     }
 
     /// Returns a mutable reference to the standard [NcPlane] for this terminal.
@@ -528,8 +528,8 @@ impl Notcurses {
     /// uppermost, leftmost cell.
     ///
     /// *C style function: [notcurses_stdplane()][crate::notcurses_stdplane].*
-    pub fn stdplane<'a>(&mut self) -> &'a mut NcPlane {
-        unsafe { &mut *crate::notcurses_stdplane(self) }
+    pub fn stdplane<'a>(&mut self) -> NcResult<&'a mut NcPlane> {
+        error_ref_mut![unsafe { crate::notcurses_stdplane(self) }]
     }
 
     /// Returns a reference to the standard [NcPlane] for this terminal.

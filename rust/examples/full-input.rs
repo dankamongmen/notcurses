@@ -18,7 +18,7 @@ fn main() -> NcResult<()> {
 
     println!("Exit with F1\n");
 
-    let mut input = NcInput::new();
+    let mut input = NcInput::new_empty();
 
     loop {
         let key = notcurses_getc_nblock(nc, &mut input);

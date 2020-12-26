@@ -1,10 +1,10 @@
 //! `notcurses_*` reimplemented functions.
 
-use core::ptr::null;
+use core::ptr::{null, null_mut};
 
 use crate::{
-    NcAlign, NcDimension, NcInput, NcOffset, NcPlane, NcSignalSet, NcTime, Notcurses,
-    NCALIGN_CENTER, NCALIGN_LEFT, NCALIGN_RIGHT, NCRESULT_MAX,
+    NcAlign, NcDimension, NcError, NcInput, NcOffset, NcPlane, NcResult, NcSignalSet, NcTime,
+    Notcurses, NCALIGN_CENTER, NCALIGN_LEFT, NCALIGN_RIGHT, NCRESULT_ERR, NCRESULT_MAX,
 };
 
 /// Returns the offset into `availcols` at which `cols` ought be output given
@@ -73,12 +73,15 @@ pub fn notcurses_stddim_yx<'a>(
     nc: &'a mut Notcurses,
     y: &mut NcDimension,
     x: &mut NcDimension,
-) -> &'a mut NcPlane {
+) -> NcResult<&'a mut NcPlane> {
     unsafe {
-        let s = crate::notcurses_stdplane(nc);
-        crate::ncplane_dim_yx(s, &mut (*y as i32), &mut (*x as i32));
-        &mut *s
+        let sp = crate::notcurses_stdplane(nc);
+        if sp != null_mut() {
+            crate::ncplane_dim_yx(sp, &mut (*y as i32), &mut (*x as i32));
+            return Ok(&mut *sp);
+        }
     }
+    Err(NcError::new(NCRESULT_ERR))
 }
 
 /// [notcurses_stdplane_const()][crate::notcurses_stdplane_const], plus free
@@ -90,12 +93,15 @@ pub fn notcurses_stddim_yx_const<'a>(
     nc: &'a Notcurses,
     y: &mut NcDimension,
     x: &mut NcDimension,
-) -> &'a NcPlane {
+) -> NcResult<&'a NcPlane> {
     unsafe {
-        let s = crate::notcurses_stdplane_const(nc);
-        crate::ncplane_dim_yx(s, &mut (*y as i32), &mut (*x as i32));
-        &*s
+        let sp = crate::notcurses_stdplane_const(nc);
+        if sp != null() {
+            crate::ncplane_dim_yx(sp, &mut (*y as i32), &mut (*x as i32));
+            return Ok(&*sp);
+        }
     }
+    Err(NcError::new(NCRESULT_ERR))
 }
 
 /// Returns our current idea of the terminal dimensions in rows and cols.
