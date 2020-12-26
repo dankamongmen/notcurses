@@ -1,11 +1,11 @@
 //! `NcReader*` methods and associated functions.
 
-use crate::{ncreader_create, NcPlane, NcReader, NcReaderOptions};
+use crate::{error_ptr, ncreader_create, NcPlane, NcReader, NcReaderOptions, NcResult};
 
 /// # `NcReaderOptions` Constructors
 impl NcReaderOptions {
     /// `NcReaderOptions` simple constructor
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self {
             // channels used for input
             tchannels: 0,
@@ -20,12 +20,15 @@ impl NcReaderOptions {
 /// # `NcReader` Constructors
 impl NcReader {
     /// `NcReader` simple constructor
-    pub fn new<'a>(plane: &mut NcPlane) -> &'a mut Self {
-        Self::with_options(plane, &NcReaderOptions::new())
+    pub fn new<'a>(plane: &mut NcPlane) -> NcResult<&'a mut Self> {
+        Self::with_options(plane, NcReaderOptions::new())
     }
 
     /// `NcReader` constructor with options
-    pub fn with_options<'a>(plane: &mut NcPlane, options: &NcReaderOptions) -> &'a mut Self {
-        unsafe { &mut *ncreader_create(plane, options) }
+    pub fn with_options<'a>(
+        plane: &mut NcPlane,
+        options: NcReaderOptions,
+    ) -> NcResult<&'a mut Self> {
+        error_ptr![unsafe { ncreader_create(plane, &options) }]
     }
 }

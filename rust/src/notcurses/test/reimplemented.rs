@@ -104,8 +104,8 @@ fn notcurses_drop_planes() {
     unsafe {
         let nc = notcurses_init_test();
         let stdplane = crate::notcurses_stdplane(nc);
-        let plane1 = crate::NcPlane::new_bound(&mut *stdplane, 0, 0, 10, 10);
-        let _plane2 = crate::NcPlane::new_bound(&mut *plane1, 0, 0, 10, 10);
+        let plane1 = crate::ncplane_new_bound_test(&mut *stdplane, 0, 0, 10, 10);
+        let _plane2 = crate::ncplane_new_bound_test(plane1, 0, 0, 10, 10);
 
         crate::notcurses_drop_planes(nc);
         // TODO: CHECK that planes are really dropped.

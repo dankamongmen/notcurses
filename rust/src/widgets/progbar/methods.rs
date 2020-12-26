@@ -1,6 +1,6 @@
 //! `NcProgBar` & `NcProgBarOptions` methods and associated functions.
 
-use crate::{NcIntResult, NcPlane, NcProgBar, NcProgBarOptions};
+use crate::{error, NcPlane, NcProgBar, NcProgBarOptions, NcResult};
 
 /// # `NcProgBarOptions` Methods
 impl NcProgBarOptions {
@@ -61,7 +61,7 @@ impl NcProgBar {
     /// Returns [NCRESULT_ERR][crate::NCRESULT_ERR] if progress is < 0 || > 1.
     ///
     /// *C style function: [ncprogbar_set_progress()][crate::ncprogbar_set_progress].*
-    pub fn set_progress(&mut self, progress: f64) -> NcIntResult {
-        unsafe { crate::ncprogbar_set_progress(self, progress) }
+    pub fn set_progress(&mut self, progress: f64) -> NcResult<()> {
+        error![unsafe { crate::ncprogbar_set_progress(self, progress) }]
     }
 }

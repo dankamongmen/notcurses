@@ -24,10 +24,7 @@ impl NcMenu {
     ///
     /// *C style function: [ncmenu_create()][crate::ncmenu_create].*
     pub fn with_options<'a>(plane: &mut NcPlane, options: NcMenuOptions) -> NcResult<&'a mut Self> {
-        error_ptr![
-            unsafe { ncmenu_create(plane, &options) },
-            "Creating NcMenu"
-        ]
+        error_ptr![unsafe { ncmenu_create(plane, &options) }, "Creating NcMenu"]
     }
 
     /// Destroys an NcMenu created with [create()][NcMenu#method.create].
@@ -65,7 +62,7 @@ impl NcMenu {
     /// *C style function: [ncmenu_mouse_selected()][crate::ncmenu_mouse_selected].*
     pub fn ncmenu_mouse_selected(
         &self,
-        click: &NcInput,
+        click: NcInput,
         shortcut: Option<&mut NcInput>,
     ) -> NcResult<String> {
         let ninput;
@@ -75,7 +72,7 @@ impl NcMenu {
             ninput = null_mut();
         }
         error_str![
-            unsafe { crate::ncmenu_mouse_selected(self, click, ninput) },
+            unsafe { crate::ncmenu_mouse_selected(self, &click, ninput) },
             "Getting NcMenuItem description"
         ]
     }
@@ -133,7 +130,7 @@ impl NcMenu {
     ///
     /// *C style function: [ncmenu_previtem()][crate::ncmenu_previtem].*
     pub fn ncmenu_previtem(&mut self) -> NcResult<()> {
-        error![unsafe{ crate::ncmenu_previtem(self) }]
+        error![unsafe { crate::ncmenu_previtem(self) }]
     }
 
     /// Unrolls the previous section (relative to current unrolled).
@@ -142,7 +139,7 @@ impl NcMenu {
     ///
     /// *C style function: [ncmenu_prevsection()][crate::ncmenu_prevsection].*
     pub fn ncmenu_prevsection(&mut self) -> NcResult<()> {
-        error![unsafe{ crate::ncmenu_prevsection(self) }]
+        error![unsafe { crate::ncmenu_prevsection(self) }]
     }
 
     /// Rolls up any unrolled [NcMenuSection],
@@ -150,7 +147,7 @@ impl NcMenu {
     ///
     /// *C style function: [ncmenu_rollup()][crate::ncmenu_rollup].*
     pub fn ncmenu_rollup(&mut self) -> NcResult<()> {
-        error![unsafe{ crate::ncmenu_rollup(self) }]
+        error![unsafe { crate::ncmenu_rollup(self) }]
     }
 
     /// Returns the selected item description,
@@ -160,10 +157,7 @@ impl NcMenu {
     /// it will be filled in with that shortcut--this can allow faster matching.
     ///
     /// *C style function: [ncmenu_selected()][crate::ncmenu_selected].*
-    pub fn ncmenu_selected(
-        &mut self,
-        shortcut: Option<&mut NcInput>,
-    ) -> NcResult<String> {
+    pub fn ncmenu_selected(&mut self, shortcut: Option<&mut NcInput>) -> NcResult<String> {
         let ninput;
         if let Some(i) = shortcut {
             ninput = i as *mut _;
@@ -181,7 +175,7 @@ impl NcMenu {
     ///
     /// *C style function: [ncmenu_unroll()][crate::ncmenu_unroll].*
     pub fn ncmenu_unroll(&mut self, sectionindex: u32) -> NcResult<()> {
-        error![unsafe{ crate::ncmenu_unroll(self, sectionindex as i32) }]
+        error![unsafe { crate::ncmenu_unroll(self, sectionindex as i32) }]
     }
 }
 

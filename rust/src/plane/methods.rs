@@ -3,9 +3,9 @@
 use core::ptr::{null, null_mut};
 
 use crate::{
-    cstring, rstring, NcAlign, NcAlphaBits, NcBoxMask, NcCell, NcChannel, NcChannelPair, NcColor,
-    NcDimension, NcEgc, NcFadeCb, NcIntResult, NcOffset, NcPaletteIndex, NcPlane, NcPlaneOptions,
-    NcResizeCb, NcRgb, NcStyleMask, NcTime, Notcurses, NCRESULT_OK,
+    cstring, error, error_ptr, rstring, NcAlign, NcAlphaBits, NcBoxMask, NcCell, NcChannel,
+    NcChannelPair, NcColor, NcDimension, NcEgc, NcFadeCb, NcOffset, NcPaletteIndex, NcPlane,
+    NcPlaneOptions, NcResizeCb, NcResult, NcRgb, NcStyleMask, NcTime, Notcurses,
 };
 
 /// # NcPlaneOptions Constructors
@@ -90,8 +90,8 @@ impl NcPlane {
     /// The returned plane will be the top, bottom, and root of this new pile.
     ///
     /// *C style function: [ncpile_create()][crate::ncpile_create].*
-    pub fn with_options<'a>(nc: &mut Notcurses, options: &NcPlaneOptions) -> &'a mut NcPlane {
-        unsafe { &mut *crate::ncpile_create(nc, options) }
+    pub fn with_options<'a>(nc: &mut Notcurses, options: NcPlaneOptions) -> &'a mut NcPlane {
+        unsafe { &mut *crate::ncpile_create(nc, &options) }
     }
 
     /// New NcPlane, bound to another NcPlane.
@@ -103,9 +103,9 @@ impl NcPlane {
         x: NcOffset,
         rows: NcDimension,
         cols: NcDimension,
-    ) -> &'a mut NcPlane {
+    ) -> NcResult<&'a mut NcPlane> {
         let options = NcPlaneOptions::new(y, x, rows, cols);
-        unsafe { &mut *crate::ncplane_create(bound_to, &options) }
+        error_ptr![unsafe { crate::ncplane_create(bound_to, &options) }]
     }
 
     /// New NcPlane, bound to another plane, expects an [NcPlaneOptions] struct.
@@ -115,9 +115,9 @@ impl NcPlane {
     /// *C style function: [ncplane_create()][crate::ncplane_create].*
     pub fn with_options_bound<'a>(
         bound_to: &mut NcPlane,
-        options: &NcPlaneOptions,
-    ) -> &'a mut NcPlane {
-        unsafe { &mut *crate::ncplane_create(bound_to, options) }
+        options: NcPlaneOptions,
+    ) -> NcResult<&'a mut NcPlane> {
+        error_ptr![unsafe { crate::ncplane_create(bound_to, &options) }]
     }
 
     /// New NcPlane, with the same dimensions of the terminal.
@@ -142,8 +142,8 @@ impl NcPlane {
     /// It is an error to attempt to destroy the standard plane.
     ///
     /// *C style function: [ncplane_destroy()][crate::ncplane_destroy].*
-    pub fn destroy(&mut self) -> NcIntResult {
-        unsafe { crate::ncplane_destroy(self) }
+    pub fn destroy(&mut self) -> NcResult<()> {
+        error![unsafe { crate::ncplane_destroy(self) }]
     }
 }
 
@@ -169,15 +169,15 @@ impl NcPlane {
     /// Sets the foreground [NcAlphaBits] from this NcPlane.
     ///
     /// *C style function: [ncplane_set_fg_alpha()][crate::ncplane_set_fg_alpha].*
-    pub fn set_fg_alpha(&mut self, alpha: NcAlphaBits) -> NcIntResult {
-        unsafe { crate::ncplane_set_fg_alpha(self, alpha as i32) }
+    pub fn set_fg_alpha(&mut self, alpha: NcAlphaBits) -> NcResult<()> {
+        error![unsafe { crate::ncplane_set_fg_alpha(self, alpha as i32) }]
     }
 
     /// Sets the background [NcAlphaBits] for this NcPlane.
     ///
     /// *C style function: [ncplane_set_bg_alpha()][crate::ncplane_set_bg_alpha].*
-    pub fn set_bg_alpha(&mut self, alpha: NcAlphaBits) -> NcIntResult {
-        unsafe { crate::ncplane_set_bg_alpha(self, alpha as i32) }
+    pub fn set_bg_alpha(&mut self, alpha: NcAlphaBits) -> NcResult<()> {
+        error![unsafe { crate::ncplane_set_bg_alpha(self, alpha as i32) }]
     }
 }
 
@@ -233,7 +233,7 @@ impl NcPlane {
     /// Sets the given [NcChannelPair]s throughout the specified region,
     /// keeping content and attributes unchanged.
     ///
-    /// Returns the number of cells set, or [NCRESULT_ER][crate::NCRESULT_ERR]
+    /// Returns the number of cells set, or [NCRESULT_ERR][crate::NCRESULT_ERR]
     /// on failure.
     ///
     /// *C style function: [ncplane_stain()][crate::ncplane_stain].*
@@ -245,8 +245,10 @@ impl NcPlane {
         ur: NcChannelPair,
         ll: NcChannelPair,
         lr: NcChannelPair,
-    ) -> NcIntResult {
-        unsafe { crate::ncplane_stain(self, y_stop as i32, x_stop as i32, ul, ur, ll, lr) }
+    ) -> NcResult<NcDimension> {
+        let res =
+            unsafe { crate::ncplane_stain(self, y_stop as i32, x_stop as i32, ul, ur, ll, lr) };
+        error![res, res as NcDimension];
     }
 }
 
@@ -405,8 +407,10 @@ impl NcPlane {
         y_stop: NcDimension,
         x_stop: NcDimension,
         stylemask: NcStyleMask,
-    ) -> NcIntResult {
-        unsafe { crate::ncplane_format(self, y_stop as i32, x_stop as i32, stylemask as u32) }
+    ) -> NcResult<NcDimension> {
+        let res =
+            unsafe { crate::ncplane_format(self, y_stop as i32, x_stop as i32, stylemask as u32) };
+        error![res, res as NcDimension]
     }
 
     /// Returns the current styling for this NcPlane.
@@ -496,8 +500,8 @@ impl NcPlane {
     ///
     /// *C style function: [ncplane_at_cursor_cell()][crate::ncplane_at_cursor_cell].*
     #[inline]
-    pub fn at_cursor_cell(&mut self, cell: &mut NcCell) -> NcIntResult {
-        crate::ncplane_at_cursor_cell(self, cell)
+    pub fn at_cursor_cell(&mut self, cell: &mut NcCell) -> NcResult<()> {
+        error![crate::ncplane_at_cursor_cell(self, cell)]
     }
 
     /// Retrieves the current contents of the specified [NcCell], returning the
@@ -531,8 +535,8 @@ impl NcPlane {
         y: NcDimension,
         x: NcDimension,
         cell: &mut NcCell,
-    ) -> NcIntResult {
-        crate::ncplane_at_yx_cell(self, y, x, cell)
+    ) -> NcResult<()> {
+        error![crate::ncplane_at_yx_cell(self, y, x, cell)]
     }
 
     /// Extracts this NcPlane's base [NcCell] into `cell`.
@@ -540,8 +544,8 @@ impl NcPlane {
     /// The reference is invalidated if this NcPlane is destroyed.
     ///
     /// *C style function: [ncplane_base()][crate::ncplane_base].*
-    pub fn base(&mut self, cell: &mut NcCell) -> NcIntResult {
-        unsafe { crate::ncplane_base(self, cell) }
+    pub fn base(&mut self, cell: &mut NcCell) -> NcResult<()> {
+        error![unsafe { crate::ncplane_base(self, cell) }]
     }
 
     /// Sets this NcPlane's base NcCell from its components.
@@ -560,8 +564,8 @@ impl NcPlane {
         egc: &NcEgc,
         stylemask: NcStyleMask,
         channels: NcChannelPair,
-    ) -> NcIntResult {
-        unsafe { crate::ncplane_set_base(self, &(*egc as i8), stylemask as u32, channels) }
+    ) -> NcResult<()> {
+        error![unsafe { crate::ncplane_set_base(self, &(*egc as i8), stylemask as u32, channels) }]
     }
 
     /// Sets this NcPlane's base NcCell.
@@ -576,8 +580,8 @@ impl NcPlane {
     /// *C style function: [ncplane_set_base_cell()][crate::ncplane_set_base_cell].*
     //
     // FIXME: documentation: https://github.com/dankamongmen/notcurses/issues/1238
-    pub fn set_base_cell(&mut self, cell: &NcCell) -> NcIntResult {
-        unsafe { crate::ncplane_set_base_cell(self, cell) }
+    pub fn set_base_cell(&mut self, cell: &NcCell) -> NcResult<()> {
+        error![unsafe { crate::ncplane_set_base_cell(self, cell) }]
     }
 
     /// Creates a flat string from the NcEgc's of the selected region of the
@@ -632,11 +636,16 @@ impl NcPlane {
     ///
     /// The new NcCell must already be associated with the Plane.
     /// On success, returns the number of columns the cursor was advanced.
-    /// On failure, -1 is returned.
     ///
     /// *C style function: [ncplane_putc_yx()][crate::ncplane_putc_yx].*
-    pub fn putc_yx(&mut self, y: NcDimension, x: NcDimension, cell: &NcCell) -> NcIntResult {
-        unsafe { crate::ncplane_putc_yx(self, y as i32, x as i32, cell) }
+    pub fn putc_yx(
+        &mut self,
+        y: NcDimension,
+        x: NcDimension,
+        cell: &NcCell,
+    ) -> NcResult<NcDimension> {
+        let res = unsafe { crate::ncplane_putc_yx(self, y as i32, x as i32, cell) };
+        error![res, res as NcDimension]
     }
 
     /// Replaces the NcCell at the current coordinates with the provided NcCell,
@@ -646,30 +655,43 @@ impl NcPlane {
     /// On success, returns the number of columns the cursor was advanced.
     ///
     /// *C style function: [ncplane_putc()][crate::ncplane_putc].*
-    pub fn putc(&mut self, cell: &NcCell) -> NcIntResult {
-        crate::ncplane_putc(self, cell)
+    pub fn putc(&mut self, cell: &NcCell) -> NcResult<NcDimension> {
+        let res = crate::ncplane_putc(self, cell);
+        error![res, res as NcDimension]
     }
 
     /// Calls [putchar_yx][NcPlane#method.putchar_yx] at the current cursor location.
     ///
+    /// On success, returns the number of columns the cursor was advanced.
+    ///
     /// *C style function: [ncplane_putchar()][crate::ncplane_putchar].*
-    pub fn putchar(&mut self, ch: char) -> NcIntResult {
-        crate::ncplane_putchar(self, ch)
+    pub fn putchar(&mut self, ch: char) -> NcResult<NcDimension> {
+        let res = crate::ncplane_putchar(self, ch);
+        error![res, res as NcDimension]
     }
 
     // TODO: call put_egc
     // /// Replaces the [NcEgc][crate::NcEgc] to the current location, but retain
     // /// the styling. The current styling of the plane will not be changed.
-    // pub fn putchar_stained(&mut self, y: NcDimension, x: NcDimension, ch: char) -> NcIntResult {
-    //     crate::ncplane_putchar_stained(self, ch)
+    // pub fn putchar_stained(&mut self, y: NcDimension, x: NcDimension, ch: char) ->
+    // NcResult<NcDimension> {
+    //     error![crate::ncplane_putchar_stained(self, ch)]
     // }
 
     /// Replaces the [NcEgc][crate::NcEgc], but retain the styling.
     /// The current styling of the plane will not be changed.
     ///
+    /// On success, returns the number of columns the cursor was advanced.
+    ///
     /// *C style function: [ncplane_putchar_yx()][crate::ncplane_putchar_yx].*
-    pub fn putchar_yx(&mut self, y: NcDimension, x: NcDimension, ch: char) -> NcIntResult {
-        crate::ncplane_putchar_yx(self, y, x, ch)
+    pub fn putchar_yx(
+        &mut self,
+        y: NcDimension,
+        x: NcDimension,
+        ch: char,
+    ) -> NcResult<NcDimension> {
+        let res = crate::ncplane_putchar_yx(self, y, x, ch);
+        error![res, res as NcDimension]
     }
 
     /// Writes a series of [NcEgc][crate::NcEgc]s to the current location,
@@ -683,34 +705,42 @@ impl NcPlane {
     ///
     /// *C style function: [ncplane_putstr()][crate::ncplane_putstr].*
     #[inline]
-    pub fn putstr(&mut self, string: &str) -> NcIntResult {
-        crate::ncplane_putstr(self, string)
+    pub fn putstr(&mut self, string: &str) -> NcResult<NcDimension> {
+        let res = crate::ncplane_putstr(self, string);
+        error![res, res as NcDimension]
     }
 
     /// Same as [putstr][NcPlane#method.putstr], but it also tries to move the
     /// cursor to the beginning of the next row.
     ///
+    /// Advances the cursor by some positive number of columns (though not beyond
+    /// the end of the plane); this number is returned on success.
+    ///
+    /// On error, a non-positive number is returned, indicating the number of
+    /// columns which were written before the error.
+    ///
     /// *(No equivalent C style function)*
-    pub fn putstrln(&mut self, string: &str) -> NcIntResult {
-        let res = crate::ncplane_putstr(self, string);
-        if res < NCRESULT_OK {
-            return res;
-        }
-
-        let (mut y, mut _x) = (0, 0);
-        unsafe {
-            crate::ncplane_cursor_yx(self, &mut y, &mut _x);
-            crate::ncplane_cursor_move_yx(self, y as i32 + 1, 0)
-        }
+    pub fn putstrln(&mut self, string: &str) -> NcResult<NcDimension> {
+        let cols = self.putstr(string)?;
+        let (y, _x) = self.cursor_yx();
+        self.cursor_move_yx(y + 1, 0)?;
+        return Ok(cols);
     }
 
     /// Writes a series of [NcEgc][crate::NcEgc]s to the current location, but
     /// retain the styling.
     /// The current styling of the plane will not be changed.
     ///
+    /// Advances the cursor by some positive number of columns (though not beyond
+    /// the end of the plane); this number is returned on success.
+    ///
+    /// On error, a non-positive number is returned, indicating the number of
+    /// columns which were written before the error.
+    ///
     /// *C style function: [ncplane_putstr_stained()][crate::ncplane_putstr_stained].*
-    pub fn putstr_stained(&mut self, string: &str) -> NcIntResult {
-        unsafe { crate::ncplane_putstr_stained(self, cstring![string]) }
+    pub fn putstr_stained(&mut self, string: &str) -> NcResult<NcDimension> {
+        let res = unsafe { crate::ncplane_putstr_stained(self, cstring![string]) };
+        error![res, res as NcDimension]
     }
 
     /// Write a string, which is a series of [NcEgc][crate::NcEgc]s, to the
@@ -725,8 +755,14 @@ impl NcPlane {
     /// columns which were written before the error.
     ///
     /// *C style function: [ncplane_putstr_yx()][crate::ncplane_putstr_yx].*
-    pub fn putstr_yx(&mut self, y: NcDimension, x: NcDimension, string: &str) -> NcIntResult {
-        unsafe { crate::ncplane_putstr_yx(self, y as i32, x as i32, cstring![string]) }
+    pub fn putstr_yx(
+        &mut self,
+        y: NcDimension,
+        x: NcDimension,
+        string: &str,
+    ) -> NcResult<NcDimension> {
+        let res = unsafe { crate::ncplane_putstr_yx(self, y as i32, x as i32, cstring![string]) };
+        error![res, res as NcDimension]
     }
 }
 
@@ -789,8 +825,8 @@ impl NcPlane {
     /// *C style function: [ncplane_move_yx()][crate::ncplane_move_yx].*
     //
     // CHECK: whether a negative offset is valid
-    pub fn move_yx(&mut self, y: NcOffset, x: NcOffset) -> NcIntResult {
-        unsafe { crate::ncplane_move_yx(self, y, x) }
+    pub fn move_yx(&mut self, y: NcOffset, x: NcOffset) -> NcResult<()> {
+        error![unsafe { crate::ncplane_move_yx(self, y, x) }]
     }
 
     /// Returns the NcPlane above this one, or None if already at the top.
@@ -821,8 +857,8 @@ impl NcPlane {
     /// already in the desired location. Both planes must not be the same.
     ///
     /// *C style function: [ncplane_move_above()][crate::ncplane_move_above].*
-    pub fn move_above(&mut self, above: &mut NcPlane) -> NcIntResult {
-        unsafe { crate::ncplane_move_above(self, above) }
+    pub fn move_above(&mut self, above: &mut NcPlane) -> NcResult<()> {
+        error![unsafe { crate::ncplane_move_above(self, above) }]
     }
 
     /// Relocates this NcPlane below the `below` NcPlane, in the z-buffer.
@@ -831,8 +867,8 @@ impl NcPlane {
     /// already in the desired location. Both planes must not be the same.
     ///
     /// *C style function: [ncplane_move_below()][crate::ncplane_move_below].*
-    pub fn move_below(&mut self, below: &mut NcPlane) -> NcIntResult {
-        unsafe { crate::ncplane_move_below(self, below) }
+    pub fn move_below(&mut self, below: &mut NcPlane) -> NcResult<()> {
+        error![unsafe { crate::ncplane_move_below(self, below) }]
     }
 
     /// Merges `source` down onto this NcPlane.
@@ -857,8 +893,8 @@ impl NcPlane {
         len_x: NcDimension,
         target_y: NcDimension,
         target_x: NcDimension,
-    ) -> NcIntResult {
-        unsafe {
+    ) -> NcResult<()> {
+        error![unsafe {
             crate::ncplane_mergedown(
                 source,
                 self,
@@ -869,7 +905,7 @@ impl NcPlane {
                 target_y as i32,
                 target_x as i32,
             )
-        }
+        }]
     }
 
     /// Merges `source` down onto this NcPlane.
@@ -884,8 +920,8 @@ impl NcPlane {
     //
     // TODO: maybe create a reversed method, and/or an associated function,
     // for `mergedown` too.
-    pub fn mergedown_simple(&mut self, source: &NcPlane) -> NcIntResult {
-        unsafe { crate::ncplane_mergedown_simple(source, self) }
+    pub fn mergedown_simple(&mut self, source: &NcPlane) -> NcResult<()> {
+        error![unsafe { crate::ncplane_mergedown_simple(source, self) }]
     }
 
     /// Gets the parent to which this NcPlane is bound, if any.
@@ -943,8 +979,8 @@ impl NcPlane {
     /// rendered (doing so will likely result in a blank screen).
     ///
     /// *C style function: [ncpile_rasterize()][crate::ncpile_rasterize].*
-    pub fn rasterize<'a>(&mut self) -> NcIntResult {
-        unsafe { crate::ncpile_rasterize(self) }
+    pub fn rasterize<'a>(&mut self) -> NcResult<()> {
+        error![unsafe { crate::ncpile_rasterize(self) }]
     }
 
     /// Renders the pile of which this NcPlane is a part.
@@ -952,15 +988,15 @@ impl NcPlane {
     /// To actually write out the render, call ncpile_rasterize().
     ///
     /// *C style function: [ncpile_render()][crate::ncpile_render].*
-    pub fn render<'a>(&mut self) -> NcIntResult {
-        unsafe { crate::ncpile_render(self) }
+    pub fn render<'a>(&mut self) -> NcResult<()> {
+        error![unsafe { crate::ncpile_render(self) }]
     }
 
     /// Gets a mutable reference to the [Notcurses] context of this NcPlane.
     ///
     /// *C style function: [ncplane_notcurses()][crate::ncplane_notcurses].*
-    pub fn notcurses<'a>(&mut self) -> &'a mut Notcurses {
-        unsafe { &mut *crate::ncplane_notcurses(self) }
+    pub fn notcurses<'a>(&mut self) -> NcResult<&'a mut Notcurses> {
+        error_ptr![unsafe { crate::ncplane_notcurses(self) }]
     }
 
     /// Gets an immutable reference to the [Notcurses] context of this NcPlane.
@@ -988,7 +1024,7 @@ impl NcPlane {
     /// *C style function: [ncplane_cursor_yx()][crate::ncplane_cursor_yx].*
     //
     // NOTE: y and/or x may be NULL.
-    // maybe check for null and return Some() or None?
+    // check for null and return NcResult
     pub fn cursor_yx(&self) -> (NcDimension, NcDimension) {
         let (mut y, mut x) = (0, 0);
         unsafe { crate::ncplane_cursor_yx(self, &mut y, &mut x) };
@@ -1017,24 +1053,24 @@ impl NcPlane {
     /// and the cursor position will remain unchanged.
     ///
     /// *C style function: [ncplane_cursor_move_yx()][crate::ncplane_cursor_move_yx].*
-    pub fn cursor_move_yx(&mut self, y: NcDimension, x: NcDimension) -> NcIntResult {
-        unsafe { crate::ncplane_cursor_move_yx(self, y as i32, x as i32) }
+    pub fn cursor_move_yx(&mut self, y: NcDimension, x: NcDimension) -> NcResult<()> {
+        error![unsafe { crate::ncplane_cursor_move_yx(self, y as i32, x as i32) }]
     }
 
     /// Moves the cursor to the specified row within this NcPlane.
     ///
     /// *(No equivalent C style function)*
-    pub fn cursor_move_y(&mut self, y: NcDimension) -> NcIntResult {
+    pub fn cursor_move_y(&mut self, y: NcDimension) -> NcResult<()> {
         let x = self.cursor_x();
-        unsafe { crate::ncplane_cursor_move_yx(self, y as i32, x as i32) }
+        error![unsafe { crate::ncplane_cursor_move_yx(self, y as i32, x as i32) }]
     }
 
     /// Moves the cursor to the specified column within this NcPlane.
     ///
     /// *(No equivalent C style function)*
-    pub fn cursor_move_x(&mut self, x: NcDimension) -> NcIntResult {
+    pub fn cursor_move_x(&mut self, x: NcDimension) -> NcResult<()> {
         let y = self.cursor_y();
-        unsafe { crate::ncplane_cursor_move_yx(self, y as i32, x as i32) }
+        error![unsafe { crate::ncplane_cursor_move_yx(self, y as i32, x as i32) }]
     }
 
     /// Moves the cursor the number of rows specified (forward or backwards).
@@ -1042,7 +1078,7 @@ impl NcPlane {
     /// It will error if the target row exceeds the plane dimensions.
     ///
     /// *(No equivalent C style function)*
-    pub fn cursor_move_rows(&mut self, rows: NcOffset) -> NcIntResult {
+    pub fn cursor_move_rows(&mut self, rows: NcOffset) -> NcResult<()> {
         let (y, x) = self.cursor_yx();
         self.cursor_move_yx((y as NcOffset + rows) as NcDimension, x)
     }
@@ -1052,7 +1088,7 @@ impl NcPlane {
     /// It will error if the target column exceeds the plane dimensions.
     ///
     /// *(No equivalent C style function)*
-    pub fn cursor_move_cols(&mut self, cols: NcOffset) -> NcIntResult {
+    pub fn cursor_move_cols(&mut self, cols: NcOffset) -> NcResult<()> {
         let (y, x) = self.cursor_yx();
         self.cursor_move_yx(y, (x as NcOffset + cols) as NcDimension)
     }
@@ -1069,8 +1105,8 @@ impl NcPlane {
     ///
     /// *C style function: [ncplane_align()][crate::ncplane_align].*
     #[inline]
-    pub fn align(&mut self, align: NcAlign, cols: NcDimension) -> NcIntResult {
-        crate::ncplane_align(self, align, cols)
+    pub fn align(&mut self, align: NcAlign, cols: NcDimension) -> NcResult<()> {
+        error![crate::ncplane_align(self, align, cols)]
     }
 
     ///
@@ -1159,8 +1195,8 @@ impl NcPlane {
         x_off: NcOffset,
         y_len: NcDimension,
         x_len: NcDimension,
-    ) -> NcIntResult {
-        unsafe {
+    ) -> NcResult<()> {
+        error![unsafe {
             crate::ncplane_resize(
                 self,
                 keep_y as i32,
@@ -1172,7 +1208,7 @@ impl NcPlane {
                 y_len as i32,
                 x_len as i32,
             )
-        }
+        }]
     }
 
     /// Realigns this NcPlane against its parent, using the alignment specified
@@ -1183,8 +1219,8 @@ impl NcPlane {
     /// *C style function: [ncplane_resize_realign()][crate::ncplane_resize_realign].*
     //
     // TODO: suitable for use as an NcResizeCb?
-    pub fn resize_realign(&mut self) -> NcIntResult {
-        unsafe { crate::ncplane_resize_realign(self) }
+    pub fn resize_realign(&mut self) -> NcResult<()> {
+        error![unsafe { crate::ncplane_resize_realign(self) }]
     }
 
     /// Resizes this NcPlane, retaining what data we can (everything, unless we're
@@ -1192,8 +1228,12 @@ impl NcPlane {
     ///
     /// *C style function: [ncplane_resize_simple()][crate::ncplane_resize_simple].*
     #[inline]
-    pub fn resize_simple(&mut self, y_len: NcDimension, x_len: NcDimension) -> NcIntResult {
-        crate::ncplane_resize_simple(self, y_len as u32, x_len as u32)
+    pub fn resize_simple(&mut self, y_len: NcDimension, x_len: NcDimension) -> NcResult<()> {
+        error![crate::ncplane_resize_simple(
+            self,
+            y_len as u32,
+            x_len as u32
+        )]
     }
 
     /// Returns this NcPlane's current resize callback.
@@ -1225,8 +1265,8 @@ impl NcPlane {
     /// Use the ncvisual rotation for a more flexible approach.
     ///
     /// *C style function: [ncplane_rotate_cw()][crate::ncplane_rotate_cw].*
-    pub fn rotate_cw(&mut self) -> NcIntResult {
-        unsafe { crate::ncplane_rotate_cw(self) }
+    pub fn rotate_cw(&mut self) -> NcResult<()> {
+        error![unsafe { crate::ncplane_rotate_cw(self) }]
     }
 
     /// Rotate the plane π/2 radians counter-clockwise.
@@ -1235,8 +1275,8 @@ impl NcPlane {
     /// for more information.
     ///
     /// *C style function: [ncplane_rotate_ccw()][crate::ncplane_rotate_ccw].*
-    pub fn rotate_ccw(&mut self) -> NcIntResult {
-        unsafe { crate::ncplane_rotate_ccw(self) }
+    pub fn rotate_ccw(&mut self) -> NcResult<()> {
+        error![unsafe { crate::ncplane_rotate_ccw(self) }]
     }
 
     /// Maps the provided coordinates relative to the origin of this NcPlane,
@@ -1336,8 +1376,8 @@ impl NcPlane {
         y_stop: NcDimension,
         x_stop: NcDimension,
         boxmask: NcBoxMask,
-    ) -> NcIntResult {
-        unsafe {
+    ) -> NcResult<()> {
+        error![unsafe {
             crate::ncplane_box(
                 self,
                 ul,
@@ -1350,7 +1390,7 @@ impl NcPlane {
                 x_stop as i32,
                 boxmask,
             )
-        }
+        }]
     }
 
     /// Draws a box with its upper-left corner at the current cursor position,
@@ -1372,8 +1412,10 @@ impl NcPlane {
         y_len: NcDimension,
         x_len: NcDimension,
         boxmask: NcBoxMask,
-    ) -> NcIntResult {
-        crate::ncplane_box_sized(self, ul, ur, ll, lr, hline, vline, y_len, x_len, boxmask)
+    ) -> NcResult<()> {
+        error![crate::ncplane_box_sized(
+            self, ul, ur, ll, lr, hline, vline, y_len, x_len, boxmask
+        )]
     }
 
     /// NcPlane.[box()][NcPlane#method.box] with the double box-drawing characters.
@@ -1387,8 +1429,10 @@ impl NcPlane {
         y_stop: NcDimension,
         x_stop: NcDimension,
         boxmask: NcBoxMask,
-    ) -> NcIntResult {
-        crate::ncplane_double_box(self, stylemask, channels, y_stop, x_stop, boxmask)
+    ) -> NcResult<()> {
+        error![crate::ncplane_double_box(
+            self, stylemask, channels, y_stop, x_stop, boxmask
+        )]
     }
 
     ///
@@ -1402,8 +1446,10 @@ impl NcPlane {
         y_len: NcDimension,
         x_len: NcDimension,
         boxmask: NcBoxMask,
-    ) -> NcIntResult {
-        crate::ncplane_double_box(self, stylemask, channels, y_len, x_len, boxmask)
+    ) -> NcResult<()> {
+        error![crate::ncplane_double_box(
+            self, stylemask, channels, y_len, x_len, boxmask
+        )]
     }
 
     /// Draws the perimeter around this NcPlane.
@@ -1419,8 +1465,10 @@ impl NcPlane {
         hline: &NcCell,
         vline: &NcCell,
         boxmask: NcBoxMask,
-    ) -> NcIntResult {
-        crate::ncplane_perimeter(self, ul, ur, ll, lr, hline, vline, boxmask)
+    ) -> NcResult<()> {
+        error![crate::ncplane_perimeter(
+            self, ul, ur, ll, lr, hline, vline, boxmask
+        )]
     }
 
     ///
@@ -1432,8 +1480,10 @@ impl NcPlane {
         stylemask: NcStyleMask,
         channels: NcChannelPair,
         boxmask: NcBoxMask,
-    ) -> NcIntResult {
-        crate::ncplane_perimeter_double(self, stylemask, channels, boxmask)
+    ) -> NcResult<()> {
+        error![crate::ncplane_perimeter_double(
+            self, stylemask, channels, boxmask
+        )]
     }
 
     ///
@@ -1445,8 +1495,10 @@ impl NcPlane {
         stylemask: NcStyleMask,
         channels: NcChannelPair,
         boxmask: NcBoxMask,
-    ) -> NcIntResult {
-        crate::ncplane_perimeter_rounded(self, stylemask, channels, boxmask)
+    ) -> NcResult<()> {
+        error![crate::ncplane_perimeter_rounded(
+            self, stylemask, channels, boxmask
+        )]
     }
 }
 
@@ -1464,16 +1516,16 @@ impl NcPlane {
     /// starting from zeroes.
     ///
     /// *C style function: [ncplane_fadein()][crate::ncplane_fadein].*
-    pub fn fadein(&mut self, time: &NcTime, fader: NcFadeCb) -> NcIntResult {
-        unsafe { crate::ncplane_fadein(self, time, fader, null_mut()) }
+    pub fn fadein(&mut self, time: &NcTime, fader: NcFadeCb) -> NcResult<()> {
+        error![unsafe { crate::ncplane_fadein(self, time, fader, null_mut()) }]
     }
 
     /// Fades in through 'iter' iterations,
     /// where 'iter' < 'ncfadectx_iterations(nctx)'.
     ///
     /// *C style function: [ncplane_fadein_iteration()][crate::ncplane_fadein_iteration].*
-    pub fn fadein_iteration(&mut self, time: &NcTime, fader: NcFadeCb) -> NcIntResult {
-        unsafe { crate::ncplane_fadein(self, time, fader, null_mut()) }
+    pub fn fadein_iteration(&mut self, time: &NcTime, fader: NcFadeCb) -> NcResult<()> {
+        error![unsafe { crate::ncplane_fadein(self, time, fader, null_mut()) }]
     }
 
     /// Fades this NcPlane out, over the specified time, calling 'fader' at
@@ -1484,16 +1536,16 @@ impl NcPlane {
     /// is limited, and affected by the complexity of the rest of the screen).
     ///
     /// *C style function: [ncplane_fadeout()][crate::ncplane_fadeout].*
-    pub fn fadeout(&mut self, time: &NcTime, fader: NcFadeCb) -> NcIntResult {
-        unsafe { crate::ncplane_fadeout(self, time, fader, null_mut()) }
+    pub fn fadeout(&mut self, time: &NcTime, fader: NcFadeCb) -> NcResult<()> {
+        error![unsafe { crate::ncplane_fadeout(self, time, fader, null_mut()) }]
     }
 
     /// Fades out through 'iter' iterations,
     /// where 'iter' < 'ncfadectx_iterations(nctx)'.
     ///
     /// *C style function: [ncplane_fadeout_iteration()][crate::ncplane_fadeout_iteration].*
-    pub fn fadeout_iteration(&mut self, time: &NcTime, fader: NcFadeCb) -> NcIntResult {
-        unsafe { crate::ncplane_fadeout(self, time, fader, null_mut()) }
+    pub fn fadeout_iteration(&mut self, time: &NcTime, fader: NcFadeCb) -> NcResult<()> {
+        error![unsafe { crate::ncplane_fadeout(self, time, fader, null_mut()) }]
     }
 
     /// Pulses this NcPlane in and out until the callback returns non-zero,
@@ -1507,8 +1559,8 @@ impl NcPlane {
     /// specified colors.
     ///
     /// *C style function: [ncplane_pulse()][crate::ncplane_pulse].*
-    pub fn pulse(&mut self, time: &NcTime, fader: NcFadeCb) -> NcIntResult {
-        unsafe { crate::ncplane_pulse(self, time, fader, null_mut()) }
+    pub fn pulse(&mut self, time: &NcTime, fader: NcFadeCb) -> NcResult<()> {
+        error![unsafe { crate::ncplane_pulse(self, time, fader, null_mut()) }]
     }
 
     /// Draws a gradient with its upper-left corner at the current cursor
@@ -1549,8 +1601,8 @@ impl NcPlane {
         lr: NcChannelPair,
         y_stop: NcDimension,
         x_stop: NcDimension,
-    ) -> NcIntResult {
-        unsafe {
+    ) -> NcResult<NcDimension> {
+        let res = unsafe {
             crate::ncplane_gradient(
                 self,
                 &(*egc as i8),
@@ -1562,7 +1614,8 @@ impl NcPlane {
                 y_stop as i32,
                 x_stop as i32,
             )
-        }
+        };
+        error![res, res as NcDimension]
     }
 
     /// Draw a gradient with its upper-left corner at the current cursor position,
@@ -1582,8 +1635,9 @@ impl NcPlane {
         lr: NcChannel,
         y_len: NcDimension,
         x_len: NcDimension,
-    ) -> NcIntResult {
-        crate::ncplane_gradient_sized(self, egc, stylemask, ul, ur, ll, lr, y_len, x_len)
+    ) -> NcResult<NcDimension> {
+        let res = crate::ncplane_gradient_sized(self, egc, stylemask, ul, ur, ll, lr, y_len, x_len);
+        error![res, res as NcDimension]
     }
 
     /// Draws a high-resolution gradient using upper blocks and synced backgrounds.
@@ -1603,8 +1657,11 @@ impl NcPlane {
         lr: NcChannel,
         y_stop: NcDimension,
         x_stop: NcDimension,
-    ) -> NcIntResult {
-        unsafe { crate::ncplane_highgradient(self, ul, ur, ll, lr, y_stop as i32, x_stop as i32) }
+    ) -> NcResult<NcDimension> {
+        let res = unsafe {
+            crate::ncplane_highgradient(self, ul, ur, ll, lr, y_stop as i32, x_stop as i32)
+        };
+        error![res, res as NcDimension]
     }
 
     /// [`gradient_sized`][NcPlane#method.gradient_sized]
@@ -1619,10 +1676,11 @@ impl NcPlane {
         lr: NcChannel,
         y_stop: NcDimension,
         x_stop: NcDimension,
-    ) -> NcIntResult {
-        unsafe {
+    ) -> NcResult<NcDimension> {
+        let res = unsafe {
             crate::ncplane_highgradient_sized(self, ul, ur, ll, lr, y_stop as i32, x_stop as i32)
-        }
+        };
+        error![res, res as NcDimension]
     }
 
     /// Converts this NcPlane's content to greyscale.

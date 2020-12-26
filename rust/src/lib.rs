@@ -93,7 +93,7 @@
 //!
 //! - Type aliases every underlying C type to leverage type checking.
 //! - Renames types to enforce regularity and consistency. (e.g. [NcCell])
-//! - Has handy macros for common tasks like [sleep], [cstring] & [error].
+//! - Has handy macros for common tasks like [sleep!], [cstring!] & [error!].
 //!
 //! ## The `notcurses` C API docs
 //!

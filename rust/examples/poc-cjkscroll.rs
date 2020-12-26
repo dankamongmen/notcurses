@@ -11,20 +11,12 @@ fn main() -> NcResult<()> {
     let mut wc = '\u{4e00}'; // 一
 
     loop {
-        sleep![0, 0, 50];
-
-        if plane.putchar(wc) == NCRESULT_ERR {
-            break;
-        }
-
+        plane.putchar(wc)?;
         wc = core::char::from_u32(wc as u32 + 1).expect("invalid char");
 
         if wc == '\u{9fa5}' { // 龣
             wc = '\u{4e00}';
         }
-
-        nc.render()?;
+        rsleep![nc, 0, 0, 50];
     }
-    nc.stop()?;
-    Ok(())
 }
