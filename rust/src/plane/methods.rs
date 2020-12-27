@@ -3,9 +3,10 @@
 use core::ptr::{null, null_mut};
 
 use crate::{
-    cstring, error, error_ref_mut, rstring, NcAlign, NcAlphaBits, NcBoxMask, NcCell, NcChannel,
-    NcChannelPair, NcColor, NcDimension, NcEgc, NcFadeCb, NcOffset, NcPaletteIndex, NcPlane,
-    NcPlaneOptions, NcResizeCb, NcResult, NcRgb, NcStyleMask, NcTime, Notcurses,
+    cstring, error, error_ref, error_ref_mut, rstring, NcAlign, NcAlphaBits, NcBoxMask, NcCell,
+    NcChannel, NcChannelPair, NcColor, NcDimension, NcEgc, NcFadeCb, NcOffset, NcPaletteIndex,
+    NcPlane, NcPlaneOptions, NcResizeCb, NcResult, NcRgb, NcStyleMask, NcTime, Notcurses,
+    NCRESULT_ERR,
 };
 
 /// # NcPlaneOptions Constructors
@@ -232,7 +233,7 @@ impl NcPlane {
     /// Sets the given [NcChannelPair]s throughout the specified region,
     /// keeping content and attributes unchanged.
     ///
-    /// Returns the number of cells set, or [NCRESULT_ERR][crate::NCRESULT_ERR]
+    /// Returns the number of cells set, or [NCRESULT_ERR]
     /// on failure.
     ///
     /// *C style function: [ncplane_stain()][crate::ncplane_stain].*
@@ -397,7 +398,7 @@ impl NcPlane {
     /// Sets the given style throughout the specified region, keeping content
     /// and channels unchanged.
     ///
-    /// Returns the number of cells set, or [NCRESULT_ERR][crate::NCRESULT_ERR]
+    /// Returns the number of cells set, or [NCRESULT_ERR]
     /// on failure.
     ///
     /// *C style function: [ncplane_format()][crate::ncplane_format].*
@@ -484,13 +485,13 @@ impl NcPlane {
         &mut self,
         stylemask: &mut NcStyleMask,
         channels: &mut NcChannelPair,
-    ) -> Option<NcEgc> {
+    ) -> NcResult<NcEgc> {
         let egc = unsafe { crate::ncplane_at_cursor(self, stylemask, channels) };
         if egc.is_null() {
-            return None;
+            return Err(crate::NcError::new(NCRESULT_ERR));
         }
         let egc = core::char::from_u32(unsafe { *egc } as u32).expect("wrong char");
-        Some(egc)
+        Ok(egc)
     }
 
     /// Retrieves the current contents of the [NcCell] under the cursor
@@ -517,13 +518,13 @@ impl NcPlane {
         x: NcDimension,
         stylemask: &mut NcStyleMask,
         channels: &mut NcChannelPair,
-    ) -> Option<NcEgc> {
+    ) -> NcResult<NcEgc> {
         let egc = unsafe { crate::ncplane_at_yx(self, y as i32, x as i32, stylemask, channels) };
         if egc.is_null() {
-            return None;
+            return Err(crate::NcError::new(NCRESULT_ERR));
         }
         let egc = core::char::from_u32(unsafe { *egc } as u32).expect("wrong char");
-        Some(egc)
+        Ok(egc)
     }
 
     /// Retrieves the current contents of the specified [NcCell] into `cell`.
@@ -836,28 +837,20 @@ impl NcPlane {
     /// Returns the NcPlane above this one, or None if already at the top.
     ///
     /// *C style function: [ncplane_above()][crate::ncplane_above].*
-    pub fn above<'a>(&'a mut self) -> Option<&'a mut NcPlane> {
-        let plane = unsafe { crate::ncplane_above(self) };
-        if plane.is_null() {
-            return None;
-        }
-        Some(unsafe { &mut *plane })
+    pub fn above<'a>(&'a mut self) -> NcResult<&'a mut NcPlane> {
+        error_ref_mut![unsafe { crate::ncplane_above(self) }]
     }
 
     /// Returns the NcPlane below this one, or None if already at the bottom.
     ///
     /// *C style function: [ncplane_below()][crate::ncplane_below].*
-    pub fn below<'a>(&'a mut self) -> Option<&'a mut NcPlane> {
-        let plane = unsafe { crate::ncplane_below(self) };
-        if plane.is_null() {
-            return None;
-        }
-        Some(unsafe { &mut *plane })
+    pub fn below<'a>(&'a mut self) -> NcResult<&'a mut NcPlane> {
+        error_ref_mut![unsafe { crate::ncplane_below(self) }]
     }
 
     /// Relocates this NcPlane above the `above` NcPlane, in the z-buffer.
     ///
-    /// Returns [NCRESULT_ERR][crate::NCRESULT_ERR] if the current plane is
+    /// Returns [NCRESULT_ERR] if the current plane is
     /// already in the desired location. Both planes must not be the same.
     ///
     /// *C style function: [ncplane_move_above()][crate::ncplane_move_above].*
@@ -867,7 +860,7 @@ impl NcPlane {
 
     /// Relocates this NcPlane below the `below` NcPlane, in the z-buffer.
     ///
-    /// Returns [NCRESULT_ERR][crate::NCRESULT_ERR] if the current plane is
+    /// Returns [NCRESULT_ERR] if the current plane is
     /// already in the desired location. Both planes must not be the same.
     ///
     /// *C style function: [ncplane_move_below()][crate::ncplane_move_below].*
@@ -933,9 +926,8 @@ impl NcPlane {
     /// *C style function: [ncplane_parent()][crate::ncplane_parent].*
     //
     // TODO: CHECK: what happens when it's bound to itself.
-    // pub fn parent<'a>(&'a mut self) -> Option<&'a mut NcPlane> {
-    pub fn parent<'a>(&'a mut self) -> &'a mut NcPlane {
-        unsafe { &mut *crate::ncplane_parent(self) }
+    pub fn parent<'a>(&'a mut self) -> NcResult<&'a mut NcPlane> {
+        error_ref_mut![unsafe { crate::ncplane_parent(self) }]
     }
 
     /// Gets the parent to which this NcPlane is bound, if any.
@@ -943,9 +935,8 @@ impl NcPlane {
     /// *C style function: [ncplane_parent_const()][crate::ncplane_parent_const].*
     //
     // TODO: CHECK: what happens when it's bound to itself.
-    // pub fn parent<'a>(&'a mut self) -> Option<&'a mut NcPlane> {
-    pub fn parent_const<'a>(&'a self) -> &'a NcPlane {
-        unsafe { &*crate::ncplane_parent_const(self) }
+    pub fn parent_const<'a>(&'a self) -> NcResult<&'a NcPlane> {
+        error_ref![unsafe { crate::ncplane_parent_const(self) }]
     }
 
     /// Unbounds this NcPlane from its parent, makes it a bound child of
@@ -960,8 +951,8 @@ impl NcPlane {
     /// The standard plane cannot be reparented.
     ///
     /// *C style function: [ncplane_reparent()][crate::ncplane_reparent].*
-    pub fn reparent<'a>(&'a mut self, newparent: &'a mut NcPlane) -> &'a mut NcPlane {
-        unsafe { &mut *crate::ncplane_reparent(self, newparent) }
+    pub fn reparent<'a>(&mut self, newparent: &'a mut NcPlane) -> NcResult<&'a mut NcPlane> {
+        error_ref_mut![unsafe { crate::ncplane_reparent(self, newparent) }]
     }
 
     /// Like [`reparent`][NcPlane#method.reparent], except any bound
@@ -972,8 +963,8 @@ impl NcPlane {
     /// *C style function: [ncplane_reparent_family()][crate::ncplane_reparent_family].*
     //
     // TODO:CHECK: If 'newparent' is an ancestor, NULL is returned & no changes're made.
-    pub fn reparent_family<'a>(&'a mut self, newparent: &'a mut NcPlane) -> &'a mut NcPlane {
-        unsafe { &mut *crate::ncplane_reparent_family(self, newparent) }
+    pub fn reparent_family<'a>(&mut self, newparent: &'a mut NcPlane) -> NcResult<&'a mut NcPlane> {
+        error_ref_mut![unsafe { crate::ncplane_reparent_family(self, newparent) }]
     }
 
     /// Makes the physical screen match the last rendered frame from the pile of
@@ -1006,8 +997,8 @@ impl NcPlane {
     /// Gets an immutable reference to the [Notcurses] context of this NcPlane.
     ///
     /// *C style function: [ncplane_notcurses_const()][crate::ncplane_notcurses_const].*
-    pub fn notcurses_const<'a>(&self) -> &'a Notcurses {
-        unsafe { &*crate::ncplane_notcurses_const(self) }
+    pub fn notcurses_const<'a>(&self) -> NcResult<&'a Notcurses> {
+        error_ref![unsafe { crate::ncplane_notcurses_const(self) }]
     }
 }
 
@@ -1571,7 +1562,7 @@ impl NcPlane {
     /// position, stopping at `y_stop` * `xstop`.
     ///
     /// Returns the number of cells filled on success,
-    /// or [NCRESULT_ERR][crate::NCRESULT_ERR] on error.
+    /// or [NCRESULT_ERR] on error.
     ///
     /// The glyph composed of `egc` and `stylemask` is used for all cells.
     /// The channels specified by `ul`, `ur`, `ll`, and `lr` are composed into
@@ -1647,7 +1638,7 @@ impl NcPlane {
     /// Draws a high-resolution gradient using upper blocks and synced backgrounds.
     ///
     /// Returns the number of cells filled on success,
-    /// or [NCRESULT_ERR][crate::NCRESULT_ERR] on error.
+    /// or [NCRESULT_ERR] on error.
     ///
     /// This doubles the number of vertical gradations, but restricts you to
     /// half blocks (appearing to be full blocks).

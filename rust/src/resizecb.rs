@@ -22,6 +22,8 @@ pub fn ncresizecb_to_rust(resizecb: Option<NcResizeCbUnsafe>) -> Option<NcResize
 
 /// Converts [NcResizeCb] to [NcResizeCbUnsafe].
 ///
+// waiting for https://github.com/rust-lang/rust/issues/53605
+// to make this function const, and then NcPlaneOptions constructors.
 pub fn ncresizecb_to_c(resizecb: Option<NcResizeCb>) -> Option<NcResizeCbUnsafe> {
     if let Some(cb) = resizecb {
         return Some(unsafe { core::mem::transmute(cb) });
