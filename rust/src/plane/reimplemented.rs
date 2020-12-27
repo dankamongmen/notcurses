@@ -1,7 +1,6 @@
 //! `ncplane_*` reimplemented functions.
 
-use core::{ffi::c_void, ptr::null_mut};
-use libc::free;
+use core::ptr::null_mut;
 
 use crate::ffi::__va_list_tag;
 use crate::{
@@ -172,61 +171,6 @@ pub fn ncplane_putnstr(plane: &mut NcPlane, size: u64, gclustarr: &[u8]) -> NcIn
 #[inline]
 pub fn ncplane_vprintf(plane: &mut NcPlane, format: &str, ap: &mut __va_list_tag) -> NcIntResult {
     unsafe { crate::ncplane_vprintf_yx(plane, -1, -1, cstring![format], ap) }
-}
-
-// NcCell ----------------------------------------------------------------------
-
-/// Retrieves the current contents of the [NcCell] under the cursor.
-///
-/// This NcCell is invalidated if the associated NcPlane is destroyed.
-///
-/// *Method: NcPlane.[at_cursor_cell()][NcPlane#method.at_cursor_cell].*
-#[inline]
-pub fn ncplane_at_cursor_cell(plane: &mut NcPlane, cell: &mut NcCell) -> NcIntResult {
-    let mut egc =
-        unsafe { crate::ncplane_at_cursor(plane, &mut cell.stylemask, &mut cell.channels) };
-    if egc.is_null() {
-        return NCRESULT_ERR;
-    }
-    let result: NcIntResult = unsafe { crate::cell_load(plane, cell, egc) };
-    if result != NCRESULT_OK {
-        unsafe {
-            free(&mut egc as *mut _ as *mut c_void);
-        }
-    }
-    result
-}
-
-/// Retrieves the current contents of the specified cell into `cell`.
-/// This cell is invalidated if the associated plane is destroyed.
-///
-/// *Method: NcPlane.[at_yx_cell()][NcPlane#method.at_yx_cell].*
-#[inline]
-pub fn ncplane_at_yx_cell(
-    plane: &mut NcPlane,
-    y: NcDimension,
-    x: NcDimension,
-    cell: &mut NcCell,
-) -> NcIntResult {
-    let mut egc = unsafe {
-        crate::ncplane_at_yx(
-            plane,
-            y as i32,
-            x as i32,
-            &mut cell.stylemask,
-            &mut cell.channels,
-        )
-    };
-    if egc.is_null() {
-        return NCRESULT_ERR;
-    }
-    let channels = cell.channels; // need to preserve wide flag
-    let result: NcIntResult = unsafe { crate::cell_load(plane, cell, egc) };
-    cell.channels = channels;
-    unsafe {
-        free(&mut egc as *mut _ as *mut c_void);
-    }
-    result
 }
 
 // size & alignment ------------------------------------------------------------

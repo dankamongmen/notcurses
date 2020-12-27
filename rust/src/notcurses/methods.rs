@@ -211,6 +211,13 @@ impl Notcurses {
         unsafe { crate::notcurses_cansixel(self) }
     }
 
+    /// Returns true if we can reliably use Unicode 13 sextants.
+    ///
+    /// *C style function: [notcurses_cansextant()][crate::notcurses_cansextant].*
+    pub fn cansextant(&self) -> bool {
+        unsafe { crate::notcurses_cansextant(self) }
+    }
+
     /// Returns true if it's possible to directly specify RGB values per cell,
     /// or false if it's only possible to use palettes.
     ///

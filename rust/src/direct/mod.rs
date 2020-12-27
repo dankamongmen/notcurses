@@ -1,10 +1,10 @@
 //! `NcDirect`
 
-// functions already exported by bindgen : 38
+// functions already exported by bindgen : 40
 // ------------------------------------------
 // (X) wont:  1
 // (#) test:  0
-// (W) wrap: 37 / 0
+// (W) wrap: 39 / 0
 // ------------------------------------------
 //W  ncdirect_bg_default
 //W  ncdirect_bg_palindex

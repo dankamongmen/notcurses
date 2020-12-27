@@ -289,7 +289,7 @@ pub const fn cell_styles(cell: &NcCell) -> NcStyleMask {
 ///
 /// *Method: NcCell.[styles_on()][NcCell#method.styles_on].*
 #[inline]
-pub fn cell_styles_on(cell: &mut NcCell, stylebits: NcStyleMask) {
+pub fn cell_on_styles(cell: &mut NcCell, stylebits: NcStyleMask) {
     cell.stylemask |= stylebits & NCSTYLE_MASK as u16;
 }
 
@@ -297,7 +297,7 @@ pub fn cell_styles_on(cell: &mut NcCell, stylebits: NcStyleMask) {
 ///
 /// *Method: NcCell.[styles_off()][NcCell#method.styles_off].*
 #[inline]
-pub fn cell_styles_off(cell: &mut NcCell, stylebits: NcStyleMask) {
+pub fn cell_off_styles(cell: &mut NcCell, stylebits: NcStyleMask) {
     cell.stylemask &= !(stylebits & NCSTYLE_MASK as u16);
 }
 
@@ -306,7 +306,7 @@ pub fn cell_styles_off(cell: &mut NcCell, stylebits: NcStyleMask) {
 ///
 /// *Method: NcCell.[styles_set()][NcCell#method.styles_set].*
 #[inline]
-pub fn cell_styles_set(cell: &mut NcCell, stylebits: NcStyleMask) {
+pub fn cell_set_styles(cell: &mut NcCell, stylebits: NcStyleMask) {
     cell.stylemask = stylebits & NCSTYLE_MASK as u16;
 }
 

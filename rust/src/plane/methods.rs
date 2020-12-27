@@ -493,14 +493,16 @@ impl NcPlane {
         Some(egc)
     }
 
-    /// Retrieves the current contents of the [NcCell] under the cursor.
+    /// Retrieves the current contents of the [NcCell] under the cursor
+    /// into `cell`. Returns the number of bytes in the [NcEgc].
     ///
     /// This NcCell is invalidated if the associated NcPlane is destroyed.
     ///
     /// *C style function: [ncplane_at_cursor_cell()][crate::ncplane_at_cursor_cell].*
     #[inline]
-    pub fn at_cursor_cell(&mut self, cell: &mut NcCell) -> NcResult<()> {
-        error![crate::ncplane_at_cursor_cell(self, cell)]
+    pub fn at_cursor_cell(&mut self, cell: &mut NcCell) -> NcResult<u32> {
+        let bytes = unsafe { crate::ncplane_at_cursor_cell(self, cell) };
+        error![bytes, bytes as u32]
     }
 
     /// Retrieves the current contents of the specified [NcCell], returning the
@@ -525,7 +527,9 @@ impl NcPlane {
     }
 
     /// Retrieves the current contents of the specified [NcCell] into `cell`.
-    /// This cell is invalidated if the associated plane is destroyed.
+    /// Returns the number of bytes in the [NcEgc].
+    ///
+    /// This NcCell is invalidated if the associated plane is destroyed.
     ///
     /// *C style function: [ncplane_at_yx_cell()][crate::ncplane_at_yx_cell].*
     #[inline]
@@ -534,8 +538,9 @@ impl NcPlane {
         y: NcDimension,
         x: NcDimension,
         cell: &mut NcCell,
-    ) -> NcResult<()> {
-        error![crate::ncplane_at_yx_cell(self, y, x, cell)]
+    ) -> NcResult<u32> {
+        let bytes = unsafe { crate::ncplane_at_yx_cell(self, y as i32, x as i32, cell) };
+        error![bytes, bytes as u32]
     }
 
     /// Extracts this NcPlane's base [NcCell] into `cell`.

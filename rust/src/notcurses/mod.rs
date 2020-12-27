@@ -1,9 +1,9 @@
 //! `Notcurses`
 
-// functions already exported by bindgen : 41
+// functions already exported by bindgen : 42
 // ------------------------------------------
 // (#) test: 10
-// (W) wrap: 40 / 1
+// (W) wrap: 41 / 1
 // ------------------------------------------
 //W  notcurses_at_yx
 //W  notcurses_bottom
@@ -12,6 +12,7 @@
 //W# notcurses_canopen_images
 //W# notcurses_canopen_videos
 //W# notcurses_cansixel
+//W# notcurses_cansextant
 //W# notcurses_cantruecolor
 //W# notcurses_canutf8
 //W  notcurses_cursor_disable

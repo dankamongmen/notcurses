@@ -78,6 +78,17 @@ fn notcurses_cansixel() {
 
 #[test]
 #[serial]
+fn notcurses_cansextant() {
+    unsafe {
+        let nc = notcurses_init_test();
+        let res = crate::notcurses_cansextant(nc);
+        notcurses_stop(nc);
+        print!("[{}] ", res);
+    }
+}
+
+#[test]
+#[serial]
 fn notcurses_cantruecolor() {
     unsafe {
         let nc = notcurses_init_test();

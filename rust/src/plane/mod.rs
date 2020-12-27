@@ -1,10 +1,11 @@
 //! `NcPlane`
 
-// functions already exported by bindgen : 102
-// -------------------------------------------
+// functions already exported by bindgen : 108 (5 + 103)
+// -----------------------------------------------------
 // (X) wont:  6
+// (D) depr:  4
 // (#) test: 13
-// (W) wrap: 77
+// (W) wrap: 77 of 98
 // -------------------------------------------
 //W  ncpile_bottom
 //W# ncpile_create
@@ -13,7 +14,9 @@
 //W  ncpile_top
 //W  ncplane_above
 //W  ncplane_at_cursor
+//W  ncplane_at_cursor_cell
 //W  ncplane_at_yx
+//W  ncplane_at_yx_cell
 //W  ncplane_base
 //W  ncplane_below
 //W  ncplane_box
@@ -45,6 +48,7 @@
 //W  ncplane_move_bottom
 //W  ncplane_move_top
 //W  ncplane_move_yx
+// X ncplane_new                       // deprecated
 //W# ncplane_notcurses
 //W# ncplane_notcurses_const
 //W  ncplane_off_styles
@@ -70,6 +74,7 @@
 //W  ncplane_reparent_family
 //W# ncplane_resize
 //W  ncplane_resizecb
+//   ncplane_resize_maximize
 //W  ncplane_resize_realign
 //   ncplane_rgba
 //W  ncplane_rotate_ccw
@@ -97,6 +102,9 @@
 //   ncplane_set_userptr
 //W  ncplane_stain
 //W  ncplane_styles
+// X ncplane_styles_off                // deprecated
+// X ncplane_styles_on                 // deprecated
+// X ncplane_styles_set                // deprecated
 //W  ncplane_translate
 //W  ncplane_translate_abs
 //   ncplane_userptr
@@ -108,16 +116,14 @@
 //W  ncplane_y
 //W  ncplane_yx
 //
-// functions manually reimplemented: 41
+// functions manually reimplemented: 39
 // ------------------------------------------
 // (X) wont:  9
-// (+) done: 34 / 0
+// (+) done: 32 / 0
 // (W) wrap: 24
 // (#) test:  5
 // ------------------------------------------
 //W+ ncplane_align
-//W+ ncplane_at_cursor_cell
-//W+ ncplane_at_yx_cell
 //W+ ncplane_bchannel
 //W+ ncplane_bg_alpha
 //W# ncplane_bg_default_p

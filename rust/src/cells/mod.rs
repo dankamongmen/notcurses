@@ -9,10 +9,10 @@
 // cells_double_box
 // cells_rounded_box
 //
-// functions manually reimplemented: 42
+// functions manually reimplemented: 43
 // ------------------------------------------
 // (X) wont:  2
-// (+) done: 40 /  0
+// (+) done: 40
 // (W) wrap: 27
 // (#) test: 26
 // ------------------------------------------
@@ -35,6 +35,9 @@
 //W# cell_fg_rgb8
 // + cell_init
 // + cell_load_char
+//   cell_load_egc32
+// + cell_off_styles
+// + cell_on_styles
 // + cell_prime
 //W# cell_set_bchannel
 //W# cell_set_bg_alpha
@@ -50,12 +53,10 @@
 //W# cell_set_fg_rgb
 //W# cell_set_fg_rgb8
 // X cell_set_fg_rgb8_clipped   // unneeded
+// + cell_set_styles
 // + cells_load_box
 // + cell_strdup
 // + cell_styles
-// + cell_styles_off
-// + cell_styles_on
-// + cell_styles_set
 // + cell_wide_left_p
 // + cell_wide_right_p
 
