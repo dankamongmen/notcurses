@@ -17,6 +17,7 @@ cell_fg_rgb
 cell_fg_rgb8
 cell_init
 cell_load_char
+cell_load_egc32
 cell_off_styles
 cell_on_styles
 cell_prime

@@ -1,12 +1,11 @@
 ncplane_align
-ncplane_at_cursor_cell
-ncplane_at_yx_cell
 ncplane_bchannel
 ncplane_bg_alpha
 ncplane_bg_default_p
 ncplane_bg_rgb
 ncplane_bg_rgb8
 ncplane_box_sized
+ncplane_descendant_p
 ncplane_dim_x
 ncplane_dim_y
 ncplane_double_box

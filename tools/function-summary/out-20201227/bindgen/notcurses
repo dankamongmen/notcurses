@@ -4,6 +4,7 @@ notcurses_canchangecolor
 notcurses_canfade
 notcurses_canopen_images
 notcurses_canopen_videos
+notcurses_cansextant
 notcurses_cansixel
 notcurses_cantruecolor
 notcurses_canutf8
@@ -17,6 +18,8 @@ notcurses_inputready_fd
 notcurses_lex_blitter
 notcurses_lex_margins
 notcurses_lex_scalemode
+notcurses_linesigs_disable
+notcurses_linesigs_enable
 notcurses_mouse_disable
 notcurses_mouse_enable
 notcurses_palette_size
