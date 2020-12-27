@@ -97,12 +97,12 @@ impl Notcurses {
 
     /// Returns a Notcurses context, without an alternate screen (nor banners).
     pub fn without_altscreen<'a>() -> NcResult<&'a mut Notcurses> {
-        Self::with_flags(NCOPTION_NO_ALTERNATE_SCREEN | NCOPTION_SUPPRESS_BANNERS)
+        Self::with_flags(NCOPTION_NO_ALTERNATE_SCREEN)
     }
 
     /// Returns a Notcurses context, without an alternate screen, with banners.
     pub fn without_altscreen_nor_banners<'a>() -> NcResult<&'a mut Notcurses> {
-        Self::with_flags(NCOPTION_NO_ALTERNATE_SCREEN)
+        Self::with_flags(NCOPTION_NO_ALTERNATE_SCREEN | NCOPTION_SUPPRESS_BANNERS)
     }
 
     /// Returns a Notcurses context, expects [NotcursesOptions].
@@ -113,10 +113,14 @@ impl Notcurses {
     /// Returns a Notcurses context, expects [NotcursesOptions].
     pub fn with_options<'a>(options: NotcursesOptions) -> NcResult<&'a mut Notcurses> {
         let res = unsafe { notcurses_init(&options, null_mut()) };
-        if res == null_mut() {
-            return Err(NcError::with_msg(NCRESULT_ERR, "Initializing Notcurses"));
-        }
-        Ok(unsafe { &mut *res })
+        error_ref_mut![res, "Initializing Notcurses"]
+    }
+
+    /// Returns a Notcurses context. Expects [NcLogLevel] and flags.
+    pub fn with_debug<'a>(loglevel: NcLogLevel, flags: u64) -> NcResult<&'a mut Notcurses> {
+        Self::with_options(NotcursesOptions::with_all_options(
+            loglevel, 0, 0, 0, 0, flags,
+        ))
     }
 }
 

@@ -34,7 +34,7 @@ mod methods;
 ///
 /// - [rollup()][NcMenu#method.rollup]
 ///     places an `NcMenu` in the rolled up state.
-/// - [unroll()][NcMenu#method.]
+/// - [unroll()][NcMenu#method.unroll]
 ///     rolls up any unrolled section and unrolls the specified one.
 /// - [destroy()][NcMenu#method.destroy]
 ///     removes a menu bar, and frees all associated resources.

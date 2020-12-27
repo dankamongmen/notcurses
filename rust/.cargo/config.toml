@@ -3,6 +3,8 @@ d = "doc --no-deps"
 do = "doc --no-deps --open"
 
 re = "run --example"
+rre = "run --release --example"
+
 rqe = "run --quiet --example "
 req = "rqe"
 

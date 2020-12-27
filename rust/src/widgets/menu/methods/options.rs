@@ -2,35 +2,35 @@ use crate::{NcChannelPair, NcMenuOptions, NcMenuSection};
 
 /// # `NcMenuOptions` constructors
 impl NcMenuOptions {
-    /// New NcMenuOptions.
-    pub fn new(sections: Vec<NcMenuSection>) -> Self {
+    /// New NcMenuOptions for [NcMenu][crate::NcMenu].
+    ///
+    /// `sections` must contain at least 1 [NcMenuSection].
+    pub fn new(sections: &mut [NcMenuSection]) -> Self {
         Self::with_all_args(sections, 0, 0, 0)
     }
 
-    /// New empty NcMenuOptions.
-    pub fn new_empty() -> Self {
-        Self::with_all_args(vec![], 0, 0, 0)
-    }
-
-    /// New NcMenuOptions with width options.
+    /// New NcMenuOptions for [NcMenu][crate::NcMenu], with all args.
+    ///
+    /// `sections` must contain at least 1 [NcMenuSection].
     pub fn with_all_args(
-        mut sections: Vec<NcMenuSection>,
-        headerc: NcChannelPair,
-        sectionc: NcChannelPair,
+        sections: &mut [NcMenuSection],
+        style_header: NcChannelPair,
+        style_sections: NcChannelPair,
         flags: u64,
     ) -> Self {
+        assert![sections.len() > 0];
         Self {
             // array of 'sectioncount' `MenuSection`s
-            sections: sections.as_mut_ptr() as *mut NcMenuSection,
+            sections: sections.as_mut_ptr(),
 
             //
             sectioncount: sections.len() as i32,
 
             // styling for header
-            headerchannels: headerc,
+            headerchannels: style_header,
 
             // styling for sections
-            sectionchannels: sectionc,
+            sectionchannels: style_sections,
 
             // flag word of NCMENU_OPTION_*
             flags: flags,

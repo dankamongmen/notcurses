@@ -560,11 +560,11 @@ impl NcPlane {
     /// *C style function: [ncplane_set_base()][crate::ncplane_set_base].*
     pub fn set_base(
         &mut self,
-        egc: &NcEgc,
+        egc: NcEgc,
         stylemask: NcStyleMask,
         channels: NcChannelPair,
     ) -> NcResult<()> {
-        error![unsafe { crate::ncplane_set_base(self, &(*egc as i8), stylemask as u32, channels) }]
+        error![unsafe { crate::ncplane_set_base(self, &(egc as i8), stylemask as u32, channels) }]
     }
 
     /// Sets this NcPlane's base NcCell.

@@ -7,13 +7,6 @@ use crate::{
 
 /// # `NcMenu` constructors & destructors
 impl NcMenu {
-    /// New NcMenu.
-    ///
-    /// *C style function: [ncmenu_create()][crate::ncmenu_create].*
-    pub fn new_empty<'a>(plane: &mut NcPlane) -> NcResult<&'a mut Self> {
-        Self::new(plane, NcMenuOptions::new_empty())
-    }
-
     /// Creates an [NcMenu] with the specified options.
     ///
     /// Menus are currently bound to an overall [Notcurses][crate::Notcurses]
@@ -28,7 +21,7 @@ impl NcMenu {
     /// Destroys an NcMenu created with [create()][NcMenu#method.create].
     ///
     /// *C style function: [ncmenu_destroy()][crate::ncmenu_destroy].*
-    pub fn ncmenu_destroy(&mut self) -> NcResult<()> {
+    pub fn destroy(&mut self) -> NcResult<()> {
         error![unsafe { crate::ncmenu_destroy(self) }]
     }
 }
@@ -38,12 +31,7 @@ impl NcMenu {
     /// Disables or enables an [NcMenuItem][crate::NcMenuItem].
     ///
     /// *C style function: [ncmenu_item_set_status()][crate::ncmenu_item_set_status].*
-    pub fn ncmenu_item_set_status(
-        &mut self,
-        section: &str,
-        item: &str,
-        enabled: bool,
-    ) -> NcResult<()> {
+    pub fn item_set_status(&mut self, section: &str, item: &str, enabled: bool) -> NcResult<()> {
         error![unsafe {
             crate::ncmenu_item_set_status(self, cstring![section], cstring![item], enabled)
         }]
@@ -59,7 +47,7 @@ impl NcMenu {
     /// it will be filled in with that shortcut.
     ///
     /// *C style function: [ncmenu_mouse_selected()][crate::ncmenu_mouse_selected].*
-    pub fn ncmenu_mouse_selected(
+    pub fn mouse_selected(
         &self,
         click: NcInput,
         shortcut: Option<&mut NcInput>,
@@ -81,7 +69,7 @@ impl NcMenu {
     /// If no section is unrolled, the first section will be unrolled.
     ///
     /// *C style function: [ncmenu_nextitem()][crate::ncmenu_nextitem].*
-    pub fn ncmenu_nextitem(&mut self) -> NcResult<()> {
+    pub fn nextitem(&mut self) -> NcResult<()> {
         error![unsafe { crate::ncmenu_nextitem(self) }]
     }
 
@@ -90,7 +78,7 @@ impl NcMenu {
     /// If no section is unrolled, the first section will be unrolled.
     ///
     /// *C style function: [ncmenu_nextsection()][crate::ncmenu_nextsection].*
-    pub fn ncmenu_nextsection(&mut self) -> NcResult<()> {
+    pub fn nextsection(&mut self) -> NcResult<()> {
         error![unsafe { crate::ncmenu_nextsection(self) }]
     }
 
@@ -109,14 +97,14 @@ impl NcMenu {
     /// - escape on an unrolled menu (the menu is rolled up)
     ///
     /// *C style function: [ncmenu_offer_input()][crate::ncmenu_offer_input].*
-    pub fn ncmenu_offer_input(&mut self, input: NcInput) -> bool {
+    pub fn offer_input(&mut self, input: NcInput) -> bool {
         unsafe { crate::ncmenu_offer_input(self, &input) }
     }
 
     /// Returns the [NcPlane] backing this NcMenu.
     ///
     /// *C style function: [ncmenu_plane()][crate::ncmenu_plane].*
-    pub fn ncmenu_plane(&mut self) -> NcResult<&NcPlane> {
+    pub fn plane(&mut self) -> NcResult<&NcPlane> {
         error_ref_mut![
             unsafe { crate::ncmenu_plane(self) },
             "Getting the backing NcPlane"
@@ -128,7 +116,7 @@ impl NcMenu {
     /// If no section is unrolled, the first section will be unrolled.
     ///
     /// *C style function: [ncmenu_previtem()][crate::ncmenu_previtem].*
-    pub fn ncmenu_previtem(&mut self) -> NcResult<()> {
+    pub fn previtem(&mut self) -> NcResult<()> {
         error![unsafe { crate::ncmenu_previtem(self) }]
     }
 
@@ -137,7 +125,7 @@ impl NcMenu {
     /// If no section is unrolled, the first section will be unrolled.
     ///
     /// *C style function: [ncmenu_prevsection()][crate::ncmenu_prevsection].*
-    pub fn ncmenu_prevsection(&mut self) -> NcResult<()> {
+    pub fn prevsection(&mut self) -> NcResult<()> {
         error![unsafe { crate::ncmenu_prevsection(self) }]
     }
 
@@ -145,7 +133,7 @@ impl NcMenu {
     /// and hides this NcMenu if using hiding.
     ///
     /// *C style function: [ncmenu_rollup()][crate::ncmenu_rollup].*
-    pub fn ncmenu_rollup(&mut self) -> NcResult<()> {
+    pub fn rollup(&mut self) -> NcResult<()> {
         error![unsafe { crate::ncmenu_rollup(self) }]
     }
 
@@ -156,7 +144,7 @@ impl NcMenu {
     /// it will be filled in with that shortcut--this can allow faster matching.
     ///
     /// *C style function: [ncmenu_selected()][crate::ncmenu_selected].*
-    pub fn ncmenu_selected(&mut self, shortcut: Option<&mut NcInput>) -> NcResult<String> {
+    pub fn selected(&mut self, shortcut: Option<&mut NcInput>) -> NcResult<String> {
         let ninput;
         if let Some(i) = shortcut {
             ninput = i as *mut _;
@@ -174,7 +162,7 @@ impl NcMenu {
     /// and rolling up any NcMenuSection that is already unrolled.
     ///
     /// *C style function: [ncmenu_unroll()][crate::ncmenu_unroll].*
-    pub fn ncmenu_unroll(&mut self, sectionindex: u32) -> NcResult<()> {
+    pub fn unroll(&mut self, sectionindex: u32) -> NcResult<()> {
         error![unsafe { crate::ncmenu_unroll(self, sectionindex as i32) }]
     }
 }
