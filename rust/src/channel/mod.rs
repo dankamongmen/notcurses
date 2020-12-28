@@ -18,47 +18,47 @@
 // (X) wont:  3
 // (+) done: 36 / 0
 // (#) test: 19
-// (W) wrap: 13
+// (W) wrap: 36
 // ------------------------------------------
 //W# channel_alpha
 //W# channel_b
 //W# channel_default_p
 //W# channel_g
-// # channel_palindex_p
+//W# channel_palindex_p
 //W# channel_r
 //W# channel_rgb8
-// + channel_set
+//W+ channel_set
 //W# channel_set_alpha
 //W# channel_set_default
 //W# channel_set_rgb8
-// X channel_set_rgb_clipped ---
-// # channels_bchannel
+// X channel_set_rgb_clipped         // not needed
+//W# channels_bchannel
 //W+ channels_bg_alpha
-// + channels_bg_default_p
-// # channels_bg_palindex_p
-// + channels_bg_rgb
-// + channels_bg_rgb8
-// # channels_combine
-// # channels_fchannel
+//W+ channels_bg_default_p
+//W# channels_bg_palindex_p
+//W+ channels_bg_rgb
+//W+ channels_bg_rgb8
+//W# channels_combine
+//W# channels_fchannel
 //W+ channels_fg_alpha
-// + channels_fg_default_p
-// # channels_fg_palindex_p
-// + channels_fg_rgb
-// + channels_fg_rgb8
-// # channels_set_bchannel
+//W+ channels_fg_default_p
+//W# channels_fg_palindex_p
+//W+ channels_fg_rgb
+//W+ channels_fg_rgb8
+//W# channels_set_bchannel
 //W+ channels_set_bg_alpha
-// + channels_set_bg_default
-// # channels_set_bg_palindex
+//W+ channels_set_bg_default
+//W# channels_set_bg_palindex
 //W+ channels_set_bg_rgb
-// + channels_set_bg_rgb8
-// X channels_set_bg_rgb8_clipped
-// # channels_set_fchannel
+//W+ channels_set_bg_rgb8
+// X channels_set_bg_rgb8_clipped    // not needed
+//W# channels_set_fchannel
 //W+ channels_set_fg_alpha
-// + channels_set_fg_default
-// # channels_set_fg_palindex
+//W+ channels_set_fg_default
+//W# channels_set_fg_palindex
 //W+ channels_set_fg_rgb
-// + channels_set_fg_rgb8
-// X channels_set_fg_rgb8_clipped
+//W+ channels_set_fg_rgb8
+// X channels_set_fg_rgb8_clipped    // not needed
 
 #[cfg(test)]
 mod test;
