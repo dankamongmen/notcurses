@@ -1,6 +1,6 @@
 #include "main.h"
 
-TEST_CASE("NotcursesInput") {
+TEST_CASE("Input") {
   auto nc_ = testing_notcurses();
   if(!nc_){
     return;

@@ -17,7 +17,7 @@ void BoxPermutationsRounded(struct notcurses* nc, struct ncplane* n, unsigned ed
   CHECK(0 == notcurses_render(nc));
 }
 
-TEST_CASE("NCPlane") {
+TEST_CASE("Plane") {
   auto nc_ = testing_notcurses();
   if(!nc_){
     return;

@@ -2,7 +2,7 @@
 #include <cstring>
 #include <iostream>
 
-TEST_CASE("MenuTest") {
+TEST_CASE("Menu") {
   auto nc_ = testing_notcurses();
   if(!nc_){
     return;
