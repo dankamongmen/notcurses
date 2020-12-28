@@ -120,7 +120,7 @@ generated.
 
 # RETURN VALUES
 
-On error, the **_getc** family of functions returns **(char32_t)-1**. The cause of the error may be determined
+On error, the **getc** family of functions return **(char32_t)-1**. The cause of the error may be determined
 using **errno(3)**. Unless the error was a temporary one (especially e.g. **EINTR**),
 **notcurses_getc** probably cannot be usefully called forthwith. On a
 timeout, 0 is returned. Otherwise, the UCS-32 value of a Unicode codepoint, or
