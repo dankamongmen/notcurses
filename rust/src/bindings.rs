@@ -162,6 +162,8 @@ pub use ffi::{
     ncdirect_hline_interp,
     ncdirect_init,
     ncdirect_inputready_fd,
+    ncdirect_off_styles,
+    ncdirect_on_styles,
     ncdirect_palette_size,
     ncdirect_printf_aligned,
     ncdirect_putstr,
@@ -169,10 +171,8 @@ pub use ffi::{
     ncdirect_render_frame,
     ncdirect_render_image,
     ncdirect_rounded_box,
+    ncdirect_set_styles,
     ncdirect_stop,
-    ncdirect_styles_off,
-    ncdirect_styles_on,
-    ncdirect_styles_set,
     ncdirect_vline_interp,
 };
 

@@ -4,9 +4,9 @@ use core::ptr::{null, null_mut};
 
 use crate::ffi::sigset_t;
 use crate::{
-    cstring, error, NcAlign, NcBlitter, NcChannelPair, NcColor, NcDimension, NcDirect,
-    NcDirectFlags, NcEgc, NcError, NcInput, NcPaletteIndex, NcPlane, NcResult, NcRgb, NcScale,
-    NcStyleMask, NcTime, NCRESULT_ERR,
+    cstring, error, error_ref_mut, NcAlign, NcBlitter, NcChannelPair, NcColor, NcDimension,
+    NcDirect, NcDirectFlags, NcEgc, NcError, NcInput, NcPaletteIndex, NcPlane, NcResult, NcRgb,
+    NcScale, NcStyleMask, NcTime, NCRESULT_ERR,
 };
 
 /// # `NcDirect` constructors and destructors
@@ -34,10 +34,7 @@ impl NcDirect {
     /// *C style function: [ncdirect_init()][crate::ncdirect_init].*
     pub fn with_flags<'a>(flags: NcDirectFlags) -> NcResult<&'a mut NcDirect> {
         let res = unsafe { crate::ncdirect_init(null(), null_mut(), flags) };
-        if res == null_mut() {
-            return Err(NcError::with_msg(NCRESULT_ERR, "Initializing NcDirect"));
-        }
-        Ok(unsafe { &mut *res })
+        error_ref_mut![res, "Initializing NcDirect"]
     }
 
     /// Releases this NcDirect and any associated resources.
@@ -71,15 +68,9 @@ impl NcDirect {
     /// passed to render_frame().
     ///
     /// *C style function: [ncdirect_raster_frame()][crate::ncdirect_raster_frame].*
-    pub fn raster_frame(
-        &mut self,
-        faken: &mut NcPlane,
-        align: NcAlign,
-        blitter: NcBlitter,
-        scale: NcScale,
-    ) -> NcResult<()> {
+    pub fn raster_frame(&mut self, faken: &mut NcPlane, align: NcAlign) -> NcResult<()> {
         error![
-            unsafe { crate::ncdirect_raster_frame(self, faken, align, blitter, scale) },
+            unsafe { crate::ncdirect_raster_frame(self, faken, align) },
             (),
             "Rastering frame"
         ]
@@ -105,10 +96,7 @@ impl NcDirect {
         scale: NcScale,
     ) -> NcResult<&'a mut NcPlane> {
         let res = unsafe { crate::ncdirect_render_frame(self, cstring![filename], blitter, scale) };
-        if res == null_mut() {
-            return Err(NcError::with_msg(NCRESULT_ERR, "Rendering frame"));
-        }
-        Ok(unsafe { &mut *res })
+        error_ref_mut![res, "Rendering frame"]
     }
 
     /// Displays an image using the specified blitter and scaling.
@@ -189,30 +177,29 @@ impl NcDirect {
     ///
     /// *C style function: [ncdirect_bg_rgb()][crate::ncdirect_bg_rgb].*
     pub fn bg_rgb8(&mut self, red: NcColor, green: NcColor, blue: NcColor) -> NcResult<()> {
-        let res = crate::ncdirect_bg_rgb8(self, red, green, blue);
-        error![res]
+        error![crate::ncdirect_bg_rgb8(self, red, green, blue)]
     }
 
     /// Removes the specified styles.
     ///
-    /// *C style function: [ncdirect_styles_off()][crate::ncdirect_styles_off].*
+    /// *C style function: [ncdirect_off_styles()][crate::ncdirect_off_styles].*
     pub fn styles_off(&mut self, stylebits: NcStyleMask) -> NcResult<()> {
-        let res = unsafe { crate::ncdirect_styles_off(self, stylebits.into()) };
+        let res = unsafe { crate::ncdirect_off_styles(self, stylebits.into()) };
         error![res]
     }
 
     /// Adds the specified styles.
     ///
-    /// *C style function: [ncdirect_styles_on()][crate::ncdirect_styles_on].*
+    /// *C style function: [ncdirect_on_styles()][crate::ncdirect_on_styles].*
     pub fn styles_on(&mut self, stylebits: NcStyleMask) -> NcResult<()> {
-        error![unsafe { crate::ncdirect_styles_on(self, stylebits.into()) }]
+        error![unsafe { crate::ncdirect_on_styles(self, stylebits.into()) }]
     }
 
     /// Sets just the specified styles.
     ///
-    /// *C style function: [ncdirect_styles_set()][crate::ncdirect_styles_set].*
+    /// *C style function: [ncdirect_set_styles()][crate::ncdirect_set_styles].*
     pub fn styles_set(&mut self, stylebits: NcStyleMask) -> NcResult<()> {
-        error![unsafe { crate::ncdirect_styles_set(self, stylebits.into()) }]
+        error![unsafe { crate::ncdirect_set_styles(self, stylebits.into()) }]
     }
 
     /// Indicates to use the "default color" for the foreground.
