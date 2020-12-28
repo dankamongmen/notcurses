@@ -1,8 +1,8 @@
 //! `NcDirect`
 
-// functions already exported by bindgen : 40
+// functions already exported by bindgen : 43
 // ------------------------------------------
-// (X) wont:  1
+// (X) wont:  4
 // (#) test:  0
 // (W) wrap: 39 / 0
 // ------------------------------------------
@@ -34,6 +34,8 @@
 //W  ncdirect_hline_interp
 //W  ncdirect_init
 //W  ncdirect_inputready_fd
+//W  ncplane_on_styles
+//W  ncplane_off_styles
 //W  ncdirect_palette_size
 // X ncdirect_printf_aligned
 //W  ncdirect_putstr
@@ -41,10 +43,11 @@
 //W  ncdirect_render_frame
 //W  ncdirect_render_image
 //W  ncdirect_rounded_box
+//W  ncplane_set_styles
 //W  ncdirect_stop
-//W  ncdirect_styles_off
-//W  ncdirect_styles_on
-//W  ncdirect_styles_set
+// X ncdirect_styles_off     // deprecated
+// X ncdirect_styles_on      // deprecated
+// X ncdirect_styles_set     // deprecated
 //W  ncdirect_vline_interp
 //
 // functions manually reimplemented: 4
