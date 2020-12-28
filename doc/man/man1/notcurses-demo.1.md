@@ -34,7 +34,7 @@ The demonstrations include (see NOTES below):
 * (j)ungle—low-bandwidth color cycling reveals ancient ruins
 * (k)eller—the miracle of sight, and painting with Braille
 * (l)uigi—a dashing Apennine plumber in a world of fire
-* (m)ojibake—a selection of market-price emoji
+* (m)ojibake—today's fresh catch of emoji (market price)
 * (n)ormal—a normal map of a friend, with effects
 * (o)utro—a message of hope from the library's author
 * (q)rcode—quick response codes (from ISO/IEC 18004:2015)
