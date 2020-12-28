@@ -107,7 +107,7 @@ pub fn channels_set_fchannel(channels: &mut NcChannelPair, fchannel: NcChannel) 
     *channels
 }
 
-/// Combines two [NcChannel]s into a [NcChannelPair].
+/// Combines two [NcChannel]s into an [NcChannelPair].
 ///
 /// *Method: NcChannelPair.[combine()][NcChannelPair#method.combine]*
 #[inline]
@@ -234,23 +234,39 @@ pub fn channels_bg_rgb8(
 /// Sets the three foreground RGB [NcColor]s of an [NcChannelPair], and
 /// marks it as not using the "default color".
 ///
+/// Unlike the original C API, it also returns the new NcChannelPair.
+///
 /// *Method: NcChannelPair.[set_fg_rgb8()][NcChannelPair#method.set_fg_rgb8]*
 #[inline]
-pub fn channels_set_fg_rgb8(channels: &mut NcChannelPair, r: NcColor, g: NcColor, b: NcColor) {
+pub fn channels_set_fg_rgb8(
+    channels: &mut NcChannelPair,
+    r: NcColor,
+    g: NcColor,
+    b: NcColor,
+) -> NcChannelPair {
     let mut channel = channels_fchannel(*channels);
     channel_set_rgb8(&mut channel, r, g, b);
     *channels = (channel as u64) << 32 | *channels & 0xffffffff_u64;
+    *channels
 }
 
 /// Sets the three background RGB [NcColor]s of an [NcChannelPair], and
 /// marks it as not using the "default color".
 ///
+/// Unlike the original C API, it also returns the new NcChannelPair.
+///
 /// *Method: NcChannelPair.[set_bg_rgb8()][NcChannelPair#method.set_bg_rgb8]*
 #[inline]
-pub fn channels_set_bg_rgb8(channels: &mut NcChannelPair, r: NcColor, g: NcColor, b: NcColor) {
+pub fn channels_set_bg_rgb8(
+    channels: &mut NcChannelPair,
+    r: NcColor,
+    g: NcColor,
+    b: NcColor,
+) -> NcChannelPair {
     let mut channel = channels_bchannel(*channels);
     channel_set_rgb8(&mut channel, r, g, b);
     channels_set_bchannel(channels, channel);
+    *channels
 }
 
 // NcRgb -----------------------------------------------------------------------
@@ -259,7 +275,7 @@ pub fn channels_set_bg_rgb8(channels: &mut NcChannelPair, r: NcColor, g: NcColor
 ///
 /// *Method: NcChannelPair.[fg_rgb()][NcChannelPair#method.fg_rgb]*
 #[inline]
-pub fn channels_fg_rgb(channels: NcChannelPair) -> NcChannel {
+pub fn channels_fg_rgb(channels: NcChannelPair) -> NcRgb {
     channels_fchannel(channels) & NCCELL_BG_RGB_MASK
 }
 
@@ -267,7 +283,7 @@ pub fn channels_fg_rgb(channels: NcChannelPair) -> NcChannel {
 ///
 /// *Method: NcChannelPair.[bg_rgb()][NcChannelPair#method.bg_rgb]*
 #[inline]
-pub fn channels_bg_rgb(channels: NcChannelPair) -> NcChannel {
+pub fn channels_bg_rgb(channels: NcChannelPair) -> NcRgb {
     channels_bchannel(channels) & NCCELL_BG_RGB_MASK
 }
 
@@ -341,8 +357,9 @@ pub fn channels_fg_default_p(channels: NcChannelPair) -> bool {
     channel_default_p(channels_fchannel(channels))
 }
 
-/// Is the background using the "default background color"? The "default
-/// background color" must generally be used to take advantage of
+/// Is the background using the "default background color"?
+///
+/// The "default background color" must generally be used to take advantage of
 /// terminal-effected transparency.
 ///
 /// *Method: NcChannelPair.[bg_default_p()][NcChannelPair#method.bg_default_p]*
@@ -403,10 +420,8 @@ pub fn channels_bg_palindex_p(channels: NcChannelPair) -> bool {
     channel_palindex_p(channels_bchannel(channels))
 }
 
-/// Sets an [NcCell][crate::NcCell]'s foreground [NcPaletteIndex].
-///
-/// Also sets [NCCELL_FG_PALETTE] and [NCCELL_ALPHA_OPAQUE],
-/// and clears out [NCCELL_FGDEFAULT_MASK].
+/// Sets the foreground of an [NcChannelPair] as using an
+/// [indexed][NcPaletteIndex] [NcPalette][crate::NcPalette] color.
 ///
 /// *Method: NcChannelPair.[set_fg_palindex()][NcChannelPair#method.set_fg_palindex]*
 #[inline]
@@ -418,10 +433,8 @@ pub fn channels_set_fg_palindex(channels: &mut NcChannelPair, index: NcPaletteIn
     *channels |= (index as NcChannelPair) << 32;
 }
 
-/// Sets an [NcCell][crate::NcCell]'s background [NcPaletteIndex].
-///
-/// Also sets [NCCELL_BG_PALETTE] and [NCCELL_ALPHA_OPAQUE],
-/// and clears out [NCCELL_BGDEFAULT_MASK].
+/// Sets the background of an [NcChannelPair] as using an
+/// [indexed][NcPaletteIndex] [NcPalette][crate::NcPalette] color.
 ///
 /// *Method: NcChannelPair.[set_bg_palindex()][NcChannelPair#method.set_bg_palindex]*
 #[inline]

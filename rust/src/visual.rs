@@ -51,7 +51,7 @@ pub const NCSCALE_NONE_HIRES: NcScale = crate::bindings::ffi::ncscale_e_NCSCALE_
 
 /// Maintain aspect ratio, admitting high-resolution blitters
 /// that don't preserve aspect ratio.
-pub const NCSCALE_NONE_HIRES: NcScale = crate::bindings::ffi::ncscale_e_NCSCALE_NONE_HIRES;
+pub const NCSCALE_SCALE_HIRES: NcScale = crate::bindings::ffi::ncscale_e_NCSCALE_SCALE_HIRES;
 
 /// A visual bit of multimedia opened with LibAV|OIIO
 pub type NcVisual = crate::bindings::ffi::ncvisual;
