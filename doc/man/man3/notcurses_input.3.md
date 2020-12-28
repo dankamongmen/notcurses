@@ -55,8 +55,8 @@ mapped into the [Supplementary Private Use Area-B](https://unicode.org/charts/PD
 Unicode characters are returned directly as UCS-32, one codepoint at a time.
 
 notcurses takes its keyboard input from **stdin**, which will be placed into
-non-blocking mode for the duration of operation. The terminal is put into raw
-mode (see **cfmakeraw(3)**), and thus keys are received without line-buffering.
+non-blocking mode for the duration of operation. The terminal is put into
+non-canonical mode (see **termios(3)**), and thus keys are received without line-buffering.
 notcurses maintains its own buffer of input characters, which it will attempt
 to fill whenever it reads.
 
@@ -81,8 +81,6 @@ represent the same input (though not necessarily the same input event).
 **SUSP**, and **DSUSP** into **SIGINT**, **SIGQUIT**, and **SIGTSTP**. These
 conversions are enabled by default. **notcurses_linesigs_enable** undoes this
 action, but signals in the interim are permanently lost.
-
-**int notcurses_linesigs_enable(struct notcurses* ***n***);**
 
 ## Mice
 
@@ -170,7 +168,6 @@ registers as **NCKEY_ENTER**. This will likely change in the future.
 # SEE ALSO
 
 **poll(2)**,
-**cfmakeraw(3)**,
 **notcurses(3)**,
 **notcurses_refresh(3)**,
 **notcurses_render(3)**,
