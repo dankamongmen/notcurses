@@ -26,20 +26,22 @@ ncplane* ncprogbar_plane(ncprogbar* n){
   return n->ncp;
 }
 
+// we never explicitly draw full blocks, as any such cell is already
+// handled (and at higher resolution) by the high-res gradient.
 static const char right_egcs[8][5] = {
-  "🮇", "🮇", "🮈", "▐", "🮉", "🮊", "🮋", "█",
+  " ", "🮇", "🮇", "🮈", "▐", "🮉", "🮊", "🮋",
 };
 
 static const char left_egcs[8][5] = {
-  "▏", "▎", "▍", "▌", "▋", "▊", "▉", "█",
+  " ", "▏", "▎", "▍", "▌", "▋", "▊", "▉",
 };
 
 static const char down_egcs[8][5] = {
-  "▔", "🮂", "🮃", "▀", "🮄", "🮅", "🮆", "█",
+  " ", "▔", "🮂", "🮃", "▀", "🮄", "🮅", "🮆",
 };
 
 static const char up_egcs[8][5] = {
-  "▁", "▂", "▃", "▄", "▅", "▆", "▇", "█",
+  " ", "▁", "▂", "▃", "▄", "▅", "▆", "▇",
 };
 
 static int
