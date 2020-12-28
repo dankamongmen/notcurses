@@ -14,7 +14,7 @@ int main(void){
   }
   int e = 0;
   for(unsigned i = 0 ; i < (NCSTYLE_STRUCK << 1u) ; ++i){
-    if(ncdirect_styles_set(nc, i)){
+    if(ncdirect_set_styles(nc, i)){
       ncdirect_stop(nc);
       return EXIT_FAILURE;
     }

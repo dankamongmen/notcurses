@@ -618,7 +618,7 @@ ncdirect* ncdirect_init(const char* termtype, FILE* outfp, uint64_t flags){
   }
   ret->fgdefault = ret->bgdefault = true;
   ret->fgrgb = ret->bgrgb = 0;
-  ncdirect_styles_set(ret, 0);
+  ncdirect_set_styles(ret, 0);
   return ret;
 
 err:
@@ -685,7 +685,12 @@ ncdirect_style_emit(ncdirect* n, unsigned stylebits, FILE* out){
   return r;
 }
 
+// turn on any specified stylebits
 int ncdirect_styles_on(ncdirect* n, unsigned stylebits){
+  return ncdirect_on_styles(n, stylebits);
+}
+
+int ncdirect_on_styles(ncdirect* n, unsigned stylebits){
   uint32_t stylemask = n->stylemask | stylebits;
   if(ncdirect_style_emit(n, stylemask, n->ttyfp) == 0){
     if(term_setstyle(n->ttyfp, n->stylemask, stylemask, NCSTYLE_ITALIC,
@@ -702,8 +707,12 @@ int ncdirect_styles_on(ncdirect* n, unsigned stylebits){
   return -1;
 }
 
-// turn off any specified stylebits
 int ncdirect_styles_off(ncdirect* n, unsigned stylebits){
+  return ncdirect_off_styles(n, stylebits);
+}
+
+// turn off any specified stylebits
+int ncdirect_off_styles(ncdirect* n, unsigned stylebits){
   uint32_t stylemask = n->stylemask & ~stylebits;
   if(ncdirect_style_emit(n, stylemask, n->ttyfp) == 0){
     if(term_setstyle(n->ttyfp, n->stylemask, stylemask, NCSTYLE_ITALIC,
@@ -720,8 +729,12 @@ int ncdirect_styles_off(ncdirect* n, unsigned stylebits){
   return -1;
 }
 
-// set the current stylebits to exactly those provided
 int ncdirect_styles_set(ncdirect* n, unsigned stylebits){
+  return ncdirect_set_styles(n, stylebits);
+}
+
+// set the current stylebits to exactly those provided
+int ncdirect_set_styles(ncdirect* n, unsigned stylebits){
   uint32_t stylemask = stylebits;
   if(ncdirect_style_emit(n, stylemask, n->ttyfp) == 0){
     n->stylemask &= !(NCSTYLE_ITALIC | NCSTYLE_STRUCK); // sgr clears both

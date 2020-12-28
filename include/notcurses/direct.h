@@ -86,9 +86,17 @@ API int ncdirect_dim_x(const struct ncdirect* nc);
 API int ncdirect_dim_y(const struct ncdirect* nc);
 
 // ncplane_styles_*() analogues
-API int ncdirect_styles_set(struct ncdirect* n, unsigned stylebits);
-API int ncdirect_styles_on(struct ncdirect* n, unsigned stylebits);
-API int ncdirect_styles_off(struct ncdirect* n, unsigned stylebits);
+API int ncdirect_set_styles(struct ncdirect* n, unsigned stylebits);
+API int ncdirect_on_styles(struct ncdirect* n, unsigned stylebits);
+API int ncdirect_off_styles(struct ncdirect* n, unsigned stylebits);
+
+// Deprecated forms of above.
+API int ncdirect_styles_set(struct ncdirect* n, unsigned stylebits)
+  __attribute__ ((deprecated));
+API int ncdirect_styles_on(struct ncdirect* n, unsigned stylebits)
+  __attribute__ ((deprecated));
+API int ncdirect_styles_off(struct ncdirect* n, unsigned stylebits)
+  __attribute__ ((deprecated));
 
 // Move the cursor in direct mode. -1 to retain current location on that axis.
 API int ncdirect_cursor_move_yx(struct ncdirect* n, int y, int x);

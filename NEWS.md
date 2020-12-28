@@ -1,6 +1,10 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 2.1.3 (not yet released)
+  * `ncdirect_styles_{set, on, off}()` have been deprecated in favor of
+    `ncdirect_{set, on, off}_styles()`, to match `ncplane_` equivalents.
+
 * 2.1.2 (2020-12-25)
   * Add `notcurses_linesigs_enable()` and `notcurses_linesigs_disable()`.
   * Divide `ncdirect_render_image()` into component `ncdirect_render_frame()`

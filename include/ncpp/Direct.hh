@@ -90,17 +90,17 @@ namespace ncpp
 
 		void styles_set (CellStyle stylebits) const noexcept
 		{
-			ncdirect_styles_set (direct, static_cast<unsigned>(stylebits));
+			ncdirect_set_styles (direct, static_cast<unsigned>(stylebits));
 		}
 
 		void styles_on (CellStyle stylebits) const noexcept
 		{
-			ncdirect_styles_on (direct, static_cast<unsigned>(stylebits));
+			ncdirect_on_styles (direct, static_cast<unsigned>(stylebits));
 		}
 
 		void styles_off (CellStyle stylebits) const noexcept
 		{
-			ncdirect_styles_off (direct, static_cast<unsigned>(stylebits));
+			ncdirect_off_styles (direct, static_cast<unsigned>(stylebits));
 		}
 
 		bool cursor_move_yx (int y, int x) const NOEXCEPT_MAYBE
