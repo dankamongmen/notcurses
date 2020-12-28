@@ -457,11 +457,11 @@ TEST_CASE("Metric") {
   // inspired by #929
   SUBCASE("BigMult") {
     char qbuf[IPREFIXSTRLEN + 1];
-    CHECK(nullptr != qprefix(1115614, 1000, qbuf, '\0'));
+    CHECK(nullptr != impericize_ncmetric(1115614, 1000, qbuf, 0, 1000, '\0'));
     CHECK(0 == strcmp("1.11K", qbuf));
-    CHECK(nullptr != iprefix(372688, 1024, qbuf, '\0'));
+    CHECK(nullptr != impericize_ncmetric(372688, 1024, qbuf, 0, 1024, '\0'));
     CHECK(0 == strcmp("363.95", qbuf));
-    CHECK(nullptr != iprefix(372688, 1, qbuf, '\0'));
+    CHECK(nullptr != impericize_ncmetric(372688, 1, qbuf, 0, 1024, '\0'));
     CHECK(0 == strcmp("363.95K", qbuf));
   }
 

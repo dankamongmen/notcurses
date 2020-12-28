@@ -269,7 +269,7 @@ drawpalette(struct ncdirect* nc){
       if(y * 64 + truex >= psize){
         break;
       }
-      if(ncdirect_bg_palindex(nc, y * 64 + truex)){
+      if(ncdirect_set_bg_palindex(nc, y * 64 + truex)){
         return -1;
       }
       if(putchar(' ') == EOF){
