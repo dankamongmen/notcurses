@@ -64,6 +64,9 @@ int yield_demo(struct notcurses* nc){
         ncvisual_destroy(wmv);
         return -1;
       }
+      // it's possible that nothing changed (pfilled == 0), but render anyway
+      // so that it never looks like we locked up
+      DEMO_RENDER(nc);
     }while(pfilled == 0);
     tfilled += pfilled;
     if(ncvisual_render(nc, wmv, &vopts) == NULL){
