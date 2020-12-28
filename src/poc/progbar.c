@@ -15,12 +15,16 @@ pbar_fill(struct notcurses* nc, struct ncprogbar* pbar){
   const uint64_t startns = ts_to_ns(&cur);
   const uint64_t deadline = startns + delay;
   do{
+    clock_gettime(CLOCK_MONOTONIC, &cur);
     uint64_t curns = ts_to_ns(&cur);
-    if(ncprogbar_set_progress(pbar, (curns - startns) / (double)delay)){
+    double p = (curns - startns) / (double)delay;
+    if(p > 1.0){
+      p = 1;
+    }
+    if(ncprogbar_set_progress(pbar, p)){
       return -1;
     }
     notcurses_render(nc);
-    clock_gettime(CLOCK_MONOTONIC, &cur);
   }while(ts_to_ns(&cur) < deadline);
   return 0;
 }
@@ -130,6 +134,7 @@ int main(void){
     return EXIT_FAILURE;
   }
   ncprogbar_destroy(ncp);
+  ncplane_erase(notcurses_stdplane(nc));
   ncp = hbar_make(nc, NCPROGBAR_OPTION_RETROGRADE);
   if(pbar_fill(nc, ncp)){
     notcurses_stop(nc);
