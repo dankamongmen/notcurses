@@ -148,9 +148,9 @@ namespace ncpp
 			return ncdirect_render_frame (direct, file, blitter, scale);
 		}
 
-		int raster_image (ncdirectv* faken, ncalign_e align, ncblitter_e blitter, ncscale_e scale) const noexcept
+		int raster_image (ncdirectv* faken, ncalign_e align) const noexcept
 		{
-			return ncdirect_raster_frame (direct, faken, align, blitter, scale);
+			return ncdirect_raster_frame (direct, faken, align);
 		}
 
 		bool putstr (uint64_t channels, const char* utf8) const NOEXCEPT_MAYBE

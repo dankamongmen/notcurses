@@ -433,21 +433,15 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
   return 0;
 }
 
-int ncdirect_raster_frame(ncdirect* n, ncdirectv* faken, ncalign_e align,
-                          ncblitter_e blitter, ncscale_e scale){
-  auto bset = rgba_blitter_low(n->utf8, n->tcache.sextants, scale, true, blitter);
-  if(!bset){
-    free_plane(faken);
-    return -1;
-  }
-  int lenx = ncplane_dim_x(faken);
+int ncdirect_raster_frame(ncdirect* n, ncdirectv* ncdv, ncalign_e align){
+  int lenx = ncplane_dim_x(ncdv);
   int xoff = ncdirect_align(n, align, lenx);
-  if(ncdirect_dump_plane(n, faken, xoff)){
-    free_plane(faken);
+  if(ncdirect_dump_plane(n, ncdv, xoff)){
+    free_plane(ncdv);
     return -1;
   }
   int r = ncdirect_flush(n);
-  free_plane(faken);
+  free_plane(ncdv);
   return r;
 }
 
@@ -494,19 +488,19 @@ ncdirectv* ncdirect_render_frame(ncdirect* n, const char* file,
     .resizecb = nullptr,
     .flags = 0,
   };
-  struct ncplane* faken = ncplane_new_internal(nullptr, nullptr, &nopts);
-  if(faken == nullptr){
+  auto ncdv = ncplane_new_internal(nullptr, nullptr, &nopts);
+  if(!ncdv){
     ncvisual_destroy(ncv);
     return nullptr;
   }
-  if(ncvisual_blit(ncv, disprows, dispcols, faken, bset,
+  if(ncvisual_blit(ncv, disprows, dispcols, ncdv, bset,
                    0, 0, 0, 0, leny, lenx, false)){
     ncvisual_destroy(ncv);
-    free_plane(faken);
+    free_plane(ncdv);
     return nullptr;
   }
   ncvisual_destroy(ncv);
-  return faken;
+  return ncdv;
 }
 
 int ncdirect_render_image(ncdirect* n, const char* file, ncalign_e align,
@@ -515,7 +509,7 @@ int ncdirect_render_image(ncdirect* n, const char* file, ncalign_e align,
   if(!faken){
     return -1;
   }
-  return ncdirect_raster_frame(n, faken, align, blitter, scale);
+  return ncdirect_raster_frame(n, faken, align);
 }
 
 int ncdirect_fg_palindex(ncdirect* nc, int pidx){
