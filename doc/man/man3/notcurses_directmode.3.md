@@ -26,6 +26,10 @@ ncdirect_init - minimal notcurses instances for styling text
 
 **int ncdirect_set_bg_default(struct ncdirect* ***nc***);**
 
+**int ncdirect_set_fg_palindex(struct ncdirect* ***nc***, int ***pidx***);**
+
+**int ncdirect_set_bg_palindex(struct ncdirect* ***nc***, int ***pidx***);**
+
 **int ncdirect_dim_x(const struct ncdirect* ***nc***);**
 
 **int ncdirect_dim_y(const struct ncdirect* ***nc***);**

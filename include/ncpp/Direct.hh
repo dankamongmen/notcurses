@@ -50,7 +50,7 @@ namespace ncpp
 
 		bool fg_palindex (int pidx) const NOEXCEPT_MAYBE
 		{
-			return error_guard (ncdirect_fg_palindex (direct, pidx), -1);
+			return error_guard (ncdirect_set_fg_palindex (direct, pidx), -1);
 		}
 
 		bool set_bg_default () const NOEXCEPT_MAYBE
@@ -70,7 +70,7 @@ namespace ncpp
 
 		bool bg_palindex (int pidx) const NOEXCEPT_MAYBE
 		{
-			return error_guard (ncdirect_bg_palindex (direct, pidx), -1);
+			return error_guard (ncdirect_set_bg_palindex (direct, pidx), -1);
 		}
 
 		int get_dim_x () const NOEXCEPT_MAYBE

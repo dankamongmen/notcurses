@@ -55,8 +55,24 @@ API int ncdirect_fg_rgb(struct ncdirect* nc, unsigned rgb)
 API int ncdirect_bg_rgb(struct ncdirect* nc, unsigned rgb)
   __attribute__ ((deprecated));
 
-API int ncdirect_fg_palindex(struct ncdirect* nc, int pidx);
-API int ncdirect_bg_palindex(struct ncdirect* nc, int pidx);
+API int ncdirect_set_fg_palindex(struct ncdirect* nc, int pidx);
+API int ncdirect_set_bg_palindex(struct ncdirect* nc, int pidx);
+
+static inline int
+ncdirect_fg_palindex(struct ncdirect* nc, int pidx){
+  return ncdirect_set_fg_palindex(nc, pidx);
+}
+
+static inline int
+ncdirect_bg_palindex(struct ncdirect* nc, int pidx){
+  return ncdirect_set_bg_palindex(nc, pidx);
+}
+
+API int ncdirect_fg_palindex(struct ncdirect* nc, int pidx)
+  __attribute__ ((deprecated));
+
+API int ncdirect_bg_palindex(struct ncdirect* nc, int pidx)
+  __attribute__ ((deprecated));
 
 // Returns the number of simultaneous colors claimed to be supported, or 1 if
 // there is no color support. Note that several terminal emulators advertise

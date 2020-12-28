@@ -529,11 +529,12 @@ int ncdirect_render_image(ncdirect* n, const char* file, ncalign_e align,
   return ncdirect_raster_frame(n, faken, align);
 }
 
-int ncdirect_fg_palindex(ncdirect* nc, int pidx){
+// FIXME need to update channels
+int ncdirect_set_fg_palindex(ncdirect* nc, int pidx){
   return term_emit("setaf", tiparm(nc->tcache.setaf, pidx), nc->ttyfp, false);
 }
 
-int ncdirect_bg_palindex(ncdirect* nc, int pidx){
+int ncdirect_set_bg_palindex(ncdirect* nc, int pidx){
   return term_emit("setab", tiparm(nc->tcache.setab, pidx), nc->ttyfp, false);
 }
 
