@@ -23,10 +23,10 @@ TEST_CASE("ProgressBar") {
       .resizecb = nullptr,
       .flags = 0,
     };
-    const char* egcs[] = { " ", "▁", "▂", "▃", "▄", "▅", "▆", "▇", "█" };
+    const char* egcs[] = { " ", "▁", "▂", "▃", "▄", "▅", "▆", "▇", "▀" };
     auto n = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != n);
-    auto pbar = ncprogbar_create(n, NULL);
+    auto pbar = ncprogbar_create(n, nullptr);
     for(int i = 0 ; i < 9 ; ++i){
       double p = i / 8.0;
       CHECK(0 == ncprogbar_set_progress(pbar, p));
@@ -41,5 +41,40 @@ TEST_CASE("ProgressBar") {
     ncprogbar_destroy(pbar);
   }
   
+  SUBCASE("SingleCellDown") {
+    struct ncplane_options nopts = {
+      .y = 0,
+      .x = 0,
+      .rows = 1,
+      .cols = 1,
+      .userptr = nullptr,
+      .name = "pbar",
+      .resizecb = nullptr,
+      .flags = 0,
+    };
+    const char* egcs[] = { " ", "▔", "🮂", "🮃", "▀", "🮄", "🮅", "🮆", "▀"};
+    auto n = ncplane_create(n_, &nopts);
+    REQUIRE(nullptr != n);
+    struct ncprogbar_options popts = {
+      .ulchannel = 0,
+      .urchannel = 0,
+      .blchannel = 0,
+      .brchannel = 0,
+      .flags = NCPROGBAR_OPTION_RETROGRADE,
+    };
+    auto pbar = ncprogbar_create(n, &popts);
+    for(int i = 0 ; i < 9 ; ++i){
+      double p = i / 8.0;
+      CHECK(0 == ncprogbar_set_progress(pbar, p));
+      CHECK(0 == notcurses_render(nc_));
+      uint16_t smask;
+      uint64_t channels;
+      char* egc = notcurses_at_yx(nc_, 0, 0, &smask, &channels);
+      REQUIRE(nullptr != egc);
+      CHECK(0 == strcmp(egc, egcs[i]));
+      free(egc);
+    }
+    ncprogbar_destroy(pbar);
+  }
   CHECK(0 == notcurses_stop(nc_));
 }
