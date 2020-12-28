@@ -281,7 +281,7 @@ int unicodeblocks_demo(struct notcurses* nc){
       return -1;
     }
     int err;
-    if( (err = fade_block(nc, nn, &subdelay, pbar, sindex, sizeof(blocks) / sizeof(*blocks))) ){ // destroys nn
+    if( (err = fade_block(nc, nn, &subdelay, pbar, sindex + 1, sizeof(blocks) / sizeof(*blocks))) ){ // destroys nn
       return err;
     }
     // for a 32-bit wchar_t, we would want up through 24 bits of block ID. but
