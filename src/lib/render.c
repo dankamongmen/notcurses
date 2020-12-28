@@ -1241,8 +1241,7 @@ int ncdirect_bg_rgb(ncdirect* nc, unsigned rgb){
                   nc->tcache.bg_collides_default)){
     return -1;
   }
-  nc->bgdefault = false;
-  nc->bgrgb = rgb;
+  channels_set_bg_rgb(&nc->channels, rgb);
   return 0;
 }
 
@@ -1254,8 +1253,7 @@ int ncdirect_fg_rgb(ncdirect* nc, unsigned rgb){
                   (rgb & 0xff0000u) >> 16u, (rgb & 0xff00u) >> 8u, rgb & 0xffu)){
     return -1;
   }
-  nc->fgdefault = false;
-  nc->fgrgb = rgb;
+  channels_set_fg_rgb(&nc->channels, rgb);
   return 0;
 }
 

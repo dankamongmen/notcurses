@@ -276,7 +276,7 @@ drawpalette(struct ncdirect* nc){
         return -1;
       }
     }
-    if(ncdirect_bg_default(nc)){
+    if(ncdirect_set_bg_default(nc)){
       return -1;
     }
     if(putchar('\n') == EOF){

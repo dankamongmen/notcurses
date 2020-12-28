@@ -9,16 +9,31 @@
 #include "notcurses/direct.h"
 #include "internal.h"
 
+static inline uint64_t
+ncdirect_channels(const ncdirect* nc){
+  return nc->channels;
+}
+
+static inline bool
+ncdirect_fg_default_p(const struct ncdirect* nc){
+  return channels_fg_default_p(ncdirect_channels(nc));
+}
+
+static inline bool
+ncdirect_bg_default_p(const struct ncdirect* nc){
+  return channels_bg_default_p(ncdirect_channels(nc));
+}
+
 int ncdirect_putstr(ncdirect* nc, uint64_t channels, const char* utf8){
   if(channels_fg_default_p(channels)){
-    if(ncdirect_fg_default(nc)){
+    if(ncdirect_fg_default_p(nc)){
       return -1;
     }
   }else if(ncdirect_fg_rgb(nc, channels_fg_rgb(channels))){
     return -1;
   }
   if(channels_bg_default_p(channels)){
-    if(ncdirect_bg_default(nc)){
+    if(ncdirect_set_bg_default(nc)){
       return -1;
     }
   }else if(ncdirect_bg_rgb(nc, channels_bg_rgb(channels))){
@@ -372,8 +387,10 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
   ncplane_dim_yx(np, &dimy, &dimx);
 //fprintf(stderr, "rasterizing %dx%d+%d\n", dimy, dimx, xoff);
   // save the existing style and colors
-  bool fgdefault = n->fgdefault, bgdefault = n->bgdefault;
-  uint32_t fgrgb = n->fgrgb, bgrgb = n->bgrgb;
+  const bool fgdefault = ncdirect_fg_default_p(n);
+  const bool bgdefault = ncdirect_bg_default_p(n);
+  const uint32_t fgrgb = channels_fg_rgb(n->channels);
+  const uint32_t bgrgb = channels_bg_rgb(n->channels);
   for(int y = 0 ; y < dimy ; ++y){
     if(xoff){
       if(ncdirect_cursor_move_yx(n, -1, xoff)){
@@ -388,12 +405,12 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
         return -1;
       }
       if(channels_fg_alpha(channels) == CELL_ALPHA_TRANSPARENT){
-        ncdirect_fg_default(n);
+        ncdirect_set_fg_default(n);
       }else{
         ncdirect_fg_rgb(n, channels_fg_rgb(channels));
       }
       if(channels_bg_alpha(channels) == CELL_ALPHA_TRANSPARENT){
-        ncdirect_bg_default(n);
+        ncdirect_set_bg_default(n);
       }else{
         ncdirect_bg_rgb(n, channels_bg_rgb(channels));
       }
@@ -408,8 +425,8 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
     // each line of output; this is necessary if our output is lifted out and
     // used in something e.g. paste(1).
     // FIXME replace with a SGR clear
-    ncdirect_fg_default(n);
-    ncdirect_bg_default(n);
+    ncdirect_set_fg_default(n);
+    ncdirect_set_bg_default(n);
     if(putc('\n', n->ttyfp) == EOF){
       return -1;
     }
@@ -421,12 +438,12 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
   }
   // restore the previous colors
   if(fgdefault){
-    ncdirect_fg_default(n);
+    ncdirect_set_fg_default(n);
   }else{
     ncdirect_fg_rgb(n, fgrgb);
   }
   if(bgdefault){
-    ncdirect_bg_default(n);
+    ncdirect_set_bg_default(n);
   }else{
     ncdirect_bg_rgb(n, bgrgb);
   }
@@ -610,8 +627,7 @@ ncdirect* ncdirect_init(const char* termtype, FILE* outfp, uint64_t flags){
   if(interrogate_terminfo(&ret->tcache, shortname_term)){
     goto err;
   }
-  ret->fgdefault = ret->bgdefault = true;
-  ret->fgrgb = ret->bgrgb = 0;
+  ret->channels = 0;
   ncdirect_set_styles(ret, 0);
   return ret;
 
@@ -669,11 +685,12 @@ ncdirect_style_emit(ncdirect* n, unsigned stylebits, FILE* out){
   }
   // sgr resets colors, so set them back up if not defaults
   if(r == 0){
-    if(!n->fgdefault){
-      r |= ncdirect_fg_rgb(n, n->fgrgb);
+    // FIXME need to handle palette-indexed colors
+    if(!ncdirect_fg_default_p(n)){
+      r |= ncdirect_fg_rgb(n, channels_fg_rgb(n->channels));
     }
-    if(!n->bgdefault){
-      r |= ncdirect_bg_rgb(n, n->bgrgb);
+    if(!ncdirect_bg_default_p(n)){
+      r |= ncdirect_bg_rgb(n, channels_bg_rgb(n->channels));
     }
   }
   return r;
@@ -750,26 +767,42 @@ unsigned ncdirect_palette_size(const ncdirect* nc){
   return nc->tcache.colors;
 }
 
-int ncdirect_fg_default(ncdirect* nc){
-  if(term_emit("op", nc->tcache.op, nc->ttyfp, false) == 0){
-    nc->fgdefault = true;
-    if(nc->bgdefault){
-      return 0;
-    }
-    return ncdirect_bg_rgb(nc, nc->bgrgb);
+int ncdirect_set_fg_default(ncdirect* nc){
+  if(ncdirect_fg_default_p(nc)){
+    return 0;
   }
-  return -1;
+  if(nc->tcache.fgop){
+    if(term_emit("fgop", nc->tcache.fgop, nc->ttyfp, false)){
+      return -1;
+    }
+  }else if(term_emit("op", nc->tcache.op, nc->ttyfp, false) == 0){
+    if(!ncdirect_bg_default_p(nc)){
+      if(ncdirect_bg_rgb(nc, channels_bg_rgb(nc->channels))){
+        return -1;
+      }
+    }
+  }
+  channels_set_fg_default(&nc->channels);
+  return 0;
 }
 
-int ncdirect_bg_default(ncdirect* nc){
-  if(term_emit("op", nc->tcache.op, nc->ttyfp, false) == 0){
-    nc->bgdefault = true;
-    if(nc->fgdefault){
-      return 0;
-    }
-    return ncdirect_fg_rgb(nc, nc->fgrgb);
+int ncdirect_set_bg_default(ncdirect* nc){
+  if(ncdirect_bg_default_p(nc)){
+    return 0;
   }
-  return -1;
+  if(nc->tcache.bgop){
+    if(term_emit("bgop", nc->tcache.bgop, nc->ttyfp, false)){
+      return -1;
+    }
+  }else if(term_emit("op", nc->tcache.op, nc->ttyfp, false) == 0){
+    if(!ncdirect_fg_default_p(nc)){
+      if(ncdirect_fg_rgb(nc, channels_fg_rgb(nc->channels))){
+        return -1;
+      }
+    }
+  }
+  channels_set_bg_default(&nc->channels);
+  return 0;
 }
 
 int ncdirect_hline_interp(ncdirect* n, const char* egc, int len,

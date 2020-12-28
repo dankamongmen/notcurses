@@ -35,7 +35,7 @@ namespace ncpp
 
 		bool set_fg_default () const NOEXCEPT_MAYBE
 		{
-			return error_guard (ncdirect_fg_default (direct), -1);
+			return error_guard (ncdirect_set_fg_default (direct), -1);
 		}
 
 		bool set_fg_rgb (unsigned rgb) const NOEXCEPT_MAYBE
@@ -55,7 +55,7 @@ namespace ncpp
 
 		bool set_bg_default () const NOEXCEPT_MAYBE
 		{
-			return error_guard (ncdirect_bg_default (direct), -1);
+			return error_guard (ncdirect_set_bg_default (direct), -1);
 		}
 
 		bool set_bg_rgb (unsigned rgb) const NOEXCEPT_MAYBE

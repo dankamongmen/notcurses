@@ -5,6 +5,8 @@ rearrangements of Notcurses.
   * `ncdirect_styles_{set, on, off}()` have been deprecated in favor of
     `ncdirect_{set, on, off}_styles()`, to match `ncplane_` equivalents.
   * `ncdirect_raster_frame()` no longer requires `blitter` nor `scale`.
+  * `ncdirect_{fg, bg}_default()` have been deprecated in favor of
+    `ncdirect_set_{fg, bg}_default()`, to match `ncplane`.
 
 * 2.1.2 (2020-12-25)
   * Add `notcurses_linesigs_enable()` and `notcurses_linesigs_disable()`.

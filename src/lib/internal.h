@@ -304,10 +304,9 @@ typedef struct ncdirect {
   FILE* ttyfp;               // FILE* for output tty
   int ctermfd;               // fd for controlling terminal
   tinfo tcache;              // terminfo cache
-  unsigned fgrgb, bgrgb;     // last RGB values of foreground/background
+  uint64_t channels;         // current channels
   uint16_t stylemask;        // current styles
   ncinputlayer input;        // input layer; we're in cbreak mode
-  bool fgdefault, bgdefault; // are FG/BG currently using default colors?
   bool utf8;                 // are we using utf-8 encoding, as hoped?
   struct termios tpreserved; // terminal state upon entry
   // some terminals (e.g. kmscon) return cursor coordinates inverted from the

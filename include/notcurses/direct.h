@@ -78,8 +78,14 @@ ncdirect_fg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b){
   return ncdirect_fg_rgb(nc, (r << 16u) + (g << 8u) + b);
 }
 
-API int ncdirect_fg_default(struct ncdirect* nc);
-API int ncdirect_bg_default(struct ncdirect* nc);
+API int ncdirect_set_fg_default(struct ncdirect* nc);
+API int ncdirect_set_bg_default(struct ncdirect* nc);
+
+API int ncdirect_fg_default(struct ncdirect* nc)
+  __attribute__ ((deprecated));
+
+API int ncdirect_bg_default(struct ncdirect* nc)
+  __attribute__ ((deprecated));
 
 // Get the current number of columns/rows.
 API int ncdirect_dim_x(const struct ncdirect* nc);

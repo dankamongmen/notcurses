@@ -15,8 +15,8 @@ int main(void){
     if(ncdirect_hline_interp(n, "-", i, c1, c2) < i){
       return EXIT_FAILURE;
     }
-    ncdirect_fg_default(n);
-    ncdirect_bg_default(n);
+    ncdirect_set_fg_default(n);
+    ncdirect_set_bg_default(n);
     putchar('\n');
   }
   for(int i = 0 ; i < 15 ; ++i){
@@ -26,8 +26,8 @@ int main(void){
     if(ncdirect_vline_interp(n, "|", i, c1, c2) < i){
       return EXIT_FAILURE;
     }
-    ncdirect_fg_default(n);
-    ncdirect_bg_default(n);
+    ncdirect_set_fg_default(n);
+    ncdirect_set_bg_default(n);
     if(i < 14){
       if(ncdirect_cursor_up(n, i)){
         return EXIT_FAILURE;
