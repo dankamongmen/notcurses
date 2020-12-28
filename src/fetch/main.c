@@ -22,7 +22,8 @@ typedef struct fetched_info {
   char* username;              // we borrow a reference
   char hostname[_POSIX_HOST_NAME_MAX];
   const distro_info* distro;
-  char* distro_pretty;
+  char* logo;                  // strdup() from /etc/os-release
+  char* distro_pretty;         // strdup() from /etc/os-release
   char* kernel;                // strdup(uname(2)->name)
   char* kernver;               // strdup(uname(2)->version);
   char* desktop;               // getenv("XDG_CURRENT_DESKTOP")
@@ -145,11 +146,12 @@ linux_ncneofetch(fetched_info* fi){
   while(fgets(buf, sizeof(buf), osinfo)){
 #define PRETTY "PRETTY_NAME=\""
 #define ID "ID=" // no quotes on this one
+#define LOGO "LOGO=" // nor here
     if(strncmp(buf, ID, strlen(ID)) == 0){
       char* nl = strchr(buf + strlen(ID), '\n');
       if(nl){
         *nl = '\0';
-        distro = buf + strlen(ID);
+        distro = strdup(buf + strlen(ID));
         break;
       }
     }else if(!fi->distro_pretty && strncmp(buf, PRETTY, strlen(PRETTY)) == 0){
@@ -157,6 +159,13 @@ linux_ncneofetch(fetched_info* fi){
       if(nl){
         *nl = '\0';
         fi->distro_pretty = strdup(buf + strlen(PRETTY));
+      }
+    }else if(!fi->logo && strncmp(buf, LOGO, strlen(LOGO)) == 0){
+      char* nl = strchr(buf + strlen(LOGO), '"');
+      if(nl){
+        *nl = '\0';
+        // FIXME need directory (https://specifications.freedesktop.org/icon-theme-spec/latest/ar01s03.html)
+        fi->logo = strdup(buf + strlen(LOGO));
       }
     }
   }
@@ -175,6 +184,7 @@ linux_ncneofetch(fetched_info* fi){
   if(dinfo->name == NULL){
     dinfo = NULL;
   }
+  free(distro);
   return dinfo;
 }
 
@@ -419,6 +429,7 @@ display_thread(void* vmarshal){
   struct marshal* m = vmarshal;
   drawpalette(m->nc);
   if(m->dinfo){
+    // FIXME check for logo in fetched_info
     if(m->dinfo->logofile){
       if(ncdirect_render_image(m->nc, m->dinfo->logofile, NCALIGN_CENTER,
                                NCBLIT_2x2, NCSCALE_SCALE)){
