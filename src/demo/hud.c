@@ -396,7 +396,7 @@ struct ncplane* hud_create(struct notcurses* nc){
   int yoffset = dimy - HUD_ROWS;
   struct ncplane_options nopts = {
     .y = yoffset,
-    .x = 7,
+    .x = 9,
     .rows = HUD_ROWS,
     .cols = HUD_COLS,
     .userptr = NULL,
