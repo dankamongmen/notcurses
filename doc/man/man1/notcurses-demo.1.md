@@ -110,7 +110,9 @@ The following keypresses are recognized (and are also available from the menu):
 * **H**: Toggle the HUD. The HUD shows the most recent and current demos'
          runtime and number of rendered frames. It can be grabbed and moved
          with the mouse.
+* **P**: Toggle the FPS graph.
 * **Ctrl-R**: Restart the demo.
+* **Alt-d**: Toggle a window with debugging information.
 * **q**: Quit.
 
 Benchmarking should be performed using **-c** to get a well-defined PRNG seed.
