@@ -37,8 +37,23 @@ API struct ncdirect* ncdirect_init(const char* termtype, FILE* fp, uint64_t flag
 // Direct mode. This API can be used to colorize and stylize output generated
 // outside of notcurses, without ever calling notcurses_render(). These should
 // not be intermixed with standard Notcurses rendering.
-API int ncdirect_fg_rgb(struct ncdirect* nc, unsigned rgb);
-API int ncdirect_bg_rgb(struct ncdirect* nc, unsigned rgb);
+API int ncdirect_set_fg_rgb(struct ncdirect* nc, unsigned rgb);
+API int ncdirect_set_bg_rgb(struct ncdirect* nc, unsigned rgb);
+
+static inline int
+ncdirect_fg_rgb(struct ncdirect* nc, unsigned rgb){
+  return ncdirect_set_fg_rgb(nc, rgb);
+}
+
+static inline int
+ncdirect_bg_rgb(struct ncdirect* nc, unsigned rgb){
+  return ncdirect_set_bg_rgb(nc, rgb);
+}
+
+API int ncdirect_fg_rgb(struct ncdirect* nc, unsigned rgb)
+  __attribute__ ((deprecated));
+API int ncdirect_bg_rgb(struct ncdirect* nc, unsigned rgb)
+  __attribute__ ((deprecated));
 
 API int ncdirect_fg_palindex(struct ncdirect* nc, int pidx);
 API int ncdirect_bg_palindex(struct ncdirect* nc, int pidx);
@@ -63,20 +78,38 @@ API int ncdirect_printf_aligned(struct ncdirect* n, int y, ncalign_e align,
 API int ncdirect_flush(const struct ncdirect* nc);
 
 static inline int
-ncdirect_bg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b){
+ncdirect_set_bg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b){
   if(r > 255 || g > 255 || b > 255){
     return -1;
   }
-  return ncdirect_bg_rgb(nc, (r << 16u) + (g << 8u) + b);
+  return ncdirect_set_bg_rgb(nc, (r << 16u) + (g << 8u) + b);
+}
+
+static inline int
+ncdirect_set_fg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b){
+  if(r > 255 || g > 255 || b > 255){
+    return -1;
+  }
+  return ncdirect_set_fg_rgb(nc, (r << 16u) + (g << 8u) + b);
 }
 
 static inline int
 ncdirect_fg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b){
-  if(r > 255 || g > 255 || b > 255){
-    return -1;
-  }
-  return ncdirect_fg_rgb(nc, (r << 16u) + (g << 8u) + b);
+  return ncdirect_set_fg_rgb8(nc, r, g, b);
 }
+
+static inline int
+ncdirect_bg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b){
+  return ncdirect_set_bg_rgb8(nc, r, g, b);
+}
+
+static inline int
+ncdirect_fg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b)
+  __attribute__ ((deprecated));
+
+static inline int
+ncdirect_bg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b)
+  __attribute__ ((deprecated));
 
 API int ncdirect_set_fg_default(struct ncdirect* nc);
 API int ncdirect_set_bg_default(struct ncdirect* nc);

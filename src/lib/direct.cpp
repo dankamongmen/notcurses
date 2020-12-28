@@ -29,14 +29,14 @@ int ncdirect_putstr(ncdirect* nc, uint64_t channels, const char* utf8){
     if(ncdirect_fg_default_p(nc)){
       return -1;
     }
-  }else if(ncdirect_fg_rgb(nc, channels_fg_rgb(channels))){
+  }else if(ncdirect_set_fg_rgb(nc, channels_fg_rgb(channels))){
     return -1;
   }
   if(channels_bg_default_p(channels)){
     if(ncdirect_set_bg_default(nc)){
       return -1;
     }
-  }else if(ncdirect_bg_rgb(nc, channels_bg_rgb(channels))){
+  }else if(ncdirect_set_bg_rgb(nc, channels_bg_rgb(channels))){
     return -1;
   }
   return fprintf(nc->ttyfp, "%s", utf8);
@@ -407,12 +407,12 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
       if(channels_fg_alpha(channels) == CELL_ALPHA_TRANSPARENT){
         ncdirect_set_fg_default(n);
       }else{
-        ncdirect_fg_rgb(n, channels_fg_rgb(channels));
+        ncdirect_set_fg_rgb(n, channels_fg_rgb(channels));
       }
       if(channels_bg_alpha(channels) == CELL_ALPHA_TRANSPARENT){
         ncdirect_set_bg_default(n);
       }else{
-        ncdirect_bg_rgb(n, channels_bg_rgb(channels));
+        ncdirect_set_bg_rgb(n, channels_bg_rgb(channels));
       }
 //fprintf(stderr, "%03d/%03d [%s] (%03dx%03d)\n", y, x, egc, dimy, dimx);
       if(fprintf(n->ttyfp, "%s", strlen(egc) == 0 ? " " : egc) < 0){
@@ -440,12 +440,12 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
   if(fgdefault){
     ncdirect_set_fg_default(n);
   }else{
-    ncdirect_fg_rgb(n, fgrgb);
+    ncdirect_set_fg_rgb(n, fgrgb);
   }
   if(bgdefault){
     ncdirect_set_bg_default(n);
   }else{
-    ncdirect_bg_rgb(n, bgrgb);
+    ncdirect_set_bg_rgb(n, bgrgb);
   }
   return 0;
 }
@@ -687,10 +687,10 @@ ncdirect_style_emit(ncdirect* n, unsigned stylebits, FILE* out){
   if(r == 0){
     // FIXME need to handle palette-indexed colors
     if(!ncdirect_fg_default_p(n)){
-      r |= ncdirect_fg_rgb(n, channels_fg_rgb(n->channels));
+      r |= ncdirect_set_fg_rgb(n, channels_fg_rgb(n->channels));
     }
     if(!ncdirect_bg_default_p(n)){
-      r |= ncdirect_bg_rgb(n, channels_bg_rgb(n->channels));
+      r |= ncdirect_set_bg_rgb(n, channels_bg_rgb(n->channels));
     }
   }
   return r;
@@ -777,7 +777,7 @@ int ncdirect_set_fg_default(ncdirect* nc){
     }
   }else if(term_emit("op", nc->tcache.op, nc->ttyfp, false) == 0){
     if(!ncdirect_bg_default_p(nc)){
-      if(ncdirect_bg_rgb(nc, channels_bg_rgb(nc->channels))){
+      if(ncdirect_set_bg_rgb(nc, channels_bg_rgb(nc->channels))){
         return -1;
       }
     }
@@ -796,7 +796,7 @@ int ncdirect_set_bg_default(ncdirect* nc){
     }
   }else if(term_emit("op", nc->tcache.op, nc->ttyfp, false) == 0){
     if(!ncdirect_fg_default_p(nc)){
-      if(ncdirect_fg_rgb(nc, channels_fg_rgb(nc->channels))){
+      if(ncdirect_set_fg_rgb(nc, channels_fg_rgb(nc->channels))){
         return -1;
       }
     }
@@ -840,10 +840,10 @@ int ncdirect_hline_interp(ncdirect* n, const char* egc, int len,
     int bg = (deltbg * ret) / len + bg1;
     int bb = (deltbb * ret) / len + bb1;
     if(!fgdef){
-      ncdirect_fg_rgb8(n, r, g, b);
+      ncdirect_set_fg_rgb8(n, r, g, b);
     }
     if(!bgdef){
-      ncdirect_bg_rgb8(n, br, bg, bb);
+      ncdirect_set_bg_rgb8(n, br, bg, bb);
     }
     if(fprintf(n->ttyfp, "%s", egc) < 0){
       break;
@@ -918,8 +918,8 @@ int ncdirect_box(ncdirect* n, uint64_t ul, uint64_t ur,
   unsigned edges;
   edges = !(ctlword & NCBOXMASK_TOP) + !(ctlword & NCBOXMASK_LEFT);
   if(edges >= box_corner_needs(ctlword)){
-    ncdirect_fg_rgb(n, channels_fg_rgb(ul));
-    ncdirect_bg_rgb(n, channels_bg_rgb(ul));
+    ncdirect_set_fg_rgb(n, channels_fg_rgb(ul));
+    ncdirect_set_bg_rgb(n, channels_bg_rgb(ul));
     if(fprintf(n->ttyfp, "%lc", wchars[0]) < 0){
       return -1;
     }
@@ -948,8 +948,8 @@ int ncdirect_box(ncdirect* n, uint64_t ul, uint64_t ur,
   }
   edges = !(ctlword & NCBOXMASK_TOP) + !(ctlword & NCBOXMASK_RIGHT);
   if(edges >= box_corner_needs(ctlword)){
-    ncdirect_fg_rgb(n, channels_fg_rgb(ur));
-    ncdirect_bg_rgb(n, channels_bg_rgb(ur));
+    ncdirect_set_fg_rgb(n, channels_fg_rgb(ur));
+    ncdirect_set_bg_rgb(n, channels_bg_rgb(ur));
     if(fprintf(n->ttyfp, "%lc", wchars[1]) < 0){
       return -1;
     }
@@ -982,8 +982,8 @@ int ncdirect_box(ncdirect* n, uint64_t ul, uint64_t ur,
   // bottom line
   edges = !(ctlword & NCBOXMASK_BOTTOM) + !(ctlword & NCBOXMASK_LEFT);
   if(edges >= box_corner_needs(ctlword)){
-    ncdirect_fg_rgb(n, channels_fg_rgb(ll));
-    ncdirect_bg_rgb(n, channels_bg_rgb(ll));
+    ncdirect_set_fg_rgb(n, channels_fg_rgb(ll));
+    ncdirect_set_bg_rgb(n, channels_bg_rgb(ll));
     if(fprintf(n->ttyfp, "%lc", wchars[2]) < 0){
       return -1;
     }
@@ -1001,8 +1001,8 @@ int ncdirect_box(ncdirect* n, uint64_t ul, uint64_t ur,
   }
   edges = !(ctlword & NCBOXMASK_BOTTOM) + !(ctlword & NCBOXMASK_RIGHT);
   if(edges >= box_corner_needs(ctlword)){
-    ncdirect_fg_rgb(n, channels_fg_rgb(lr));
-    ncdirect_bg_rgb(n, channels_bg_rgb(lr));
+    ncdirect_set_fg_rgb(n, channels_fg_rgb(lr));
+    ncdirect_set_bg_rgb(n, channels_bg_rgb(lr));
     if(fprintf(n->ttyfp, "%lc", wchars[3]) < 0){
       return -1;
     }

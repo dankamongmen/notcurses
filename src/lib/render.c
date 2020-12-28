@@ -1232,7 +1232,7 @@ char* notcurses_at_yx(notcurses* nc, int yoff, int xoff, uint16_t* stylemask, ui
   return egc;
 }
 
-int ncdirect_bg_rgb(ncdirect* nc, unsigned rgb){
+int ncdirect_set_bg_rgb(ncdirect* nc, unsigned rgb){
   if(rgb > 0xffffffu){
     return -1;
   }
@@ -1245,7 +1245,7 @@ int ncdirect_bg_rgb(ncdirect* nc, unsigned rgb){
   return 0;
 }
 
-int ncdirect_fg_rgb(ncdirect* nc, unsigned rgb){
+int ncdirect_set_fg_rgb(ncdirect* nc, unsigned rgb){
   if(rgb > 0xffffffu){
     return -1;
   }

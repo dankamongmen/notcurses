@@ -11,7 +11,7 @@ print_b(struct ncdirect* nc, int r, int g, int total){
   if(b > 255){
     return 0;
   }
-  int ret = ncdirect_fg_rgb8(nc, r, g, b);
+  int ret = ncdirect_set_fg_rgb8(nc, r, g, b);
   if(ret){
     return -1;
   }

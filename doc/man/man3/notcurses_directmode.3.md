@@ -14,17 +14,17 @@ ncdirect_init - minimal notcurses instances for styling text
 
 **unsigned ncdirect_palette_size(const struct ncdirect* ***nc***);**
 
-**int ncdirect_bg_rgb8(struct ncdirect* ***nc***, unsigned ***r***, unsigned ***g***, unsigned ***b***);**
+**int ncdirect_set_bg_rgb8(struct ncdirect* ***nc***, unsigned ***r***, unsigned ***g***, unsigned ***b***);**
 
-**int ncdirect_fg_rgb8(struct ncdirect* ***nc***, unsigned ***r***, unsigned ***g***, unsigned ***b***);**
+**int ncdirect_set_fg_rgb8(struct ncdirect* ***nc***, unsigned ***r***, unsigned ***g***, unsigned ***b***);**
 
-**int ncdirect_fg_rgb(struct ncdirect* ***nc***, unsigned ***rgb***);**
+**int ncdirect_set_fg_rgb(struct ncdirect* ***nc***, unsigned ***rgb***);**
 
-**int ncdirect_bg_rgb(struct ncdirect* ***nc***, unsigned ***rgb***);**
+**int ncdirect_set_bg_rgb(struct ncdirect* ***nc***, unsigned ***rgb***);**
 
-**int ncdirect_fg_default(struct ncdirect* ***nc***);**
+**int ncdirect_set_fg_default(struct ncdirect* ***nc***);**
 
-**int ncdirect_bg_default(struct ncdirect* ***nc***);**
+**int ncdirect_set_bg_default(struct ncdirect* ***nc***);**
 
 **int ncdirect_dim_x(const struct ncdirect* ***nc***);**
 
