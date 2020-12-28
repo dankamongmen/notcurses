@@ -68,6 +68,7 @@ allglyphs(struct notcurses* nc, struct ncplane* column, int legendy,
       }
     }
   }
+  ncprogbar_set_progress(left, glyphsdone / totalglyphs);
   ncprogbar_set_progress(right, glyphsdone / totalglyphs);
   DEMO_RENDER(nc);
   return 0;

@@ -108,6 +108,16 @@ progbar_redraw(ncprogbar* n){
   const int chunks = n->progress / eachcell;
   chunk -= eachcell * chunks;
   pos += delt * chunks;
+  if(pos >= range){
+    return 0;
+  }
+  if(pos < 0){
+    return 0;
+  }
+  // at this point, we have a gradient across the entirety of the progress
+  // bar. we're going to first update the active frontier, which might need
+  // to cut down from a full block to a partial block. we'll then null out
+  // anything beyond the frontier.
   const int egcidx = (int)(chunk / (eachcell / 8));
   const char* egc = egcs + egcidx * 5;
   if(horizontal){
@@ -139,6 +149,7 @@ progbar_redraw(ncprogbar* n){
       }
     }
   }
+  // we now clear out all cells beyond the frontier.
   pos += delt;
   while(pos >= 0 && pos < range){
     if(horizontal){
