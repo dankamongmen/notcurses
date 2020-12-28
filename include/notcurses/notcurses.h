@@ -1205,8 +1205,10 @@ API bool notcurses_cansixel(const struct notcurses* nc);
 
 typedef struct ncstats {
   // purely increasing stats
-  uint64_t renders;          // number of successful notcurses_render() runs
-  uint64_t failed_renders;   // number of aborted renders, should be 0
+  uint64_t renders;          // successful ncpile_render() runs
+  uint64_t writeouts;        // successful ncpile_rasterize() runs
+  uint64_t failed_renders;   // aborted renders, should be 0
+  uint64_t failed_writeouts; // aborted writes
   uint64_t render_bytes;     // bytes emitted to ttyfp
   int64_t render_max_bytes;  // max bytes emitted for a frame
   int64_t render_min_bytes;  // min bytes emitted for a frame

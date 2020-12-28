@@ -2955,8 +2955,10 @@ Cumulative stats can be reset at any time.
 ```c
 typedef struct ncstats {
   // purely increasing stats
-  uint64_t renders;          // number of successful notcurses_render() runs
-  uint64_t failed_renders;   // number of aborted renders, should be 0
+  uint64_t renders;          // successful ncpile_render() runs
+  uint64_t writeouts;        // successful ncpile_rasterize() runs
+  uint64_t failed_renders;   // aborted renders, should be 0
+  uint64_t failed_writeouts; // aborted writes
   uint64_t render_bytes;     // bytes emitted to ttyfp
   int64_t render_max_bytes;  // max bytes emitted for a frame
   int64_t render_min_bytes;  // min bytes emitted for a frame
@@ -2974,7 +2976,7 @@ typedef struct ncstats {
   uint64_t bgemissions;      // RGB bg emissions
   uint64_t defaultelisions;  // default color was emitted
   uint64_t defaultemissions; // default color was elided
-  uint64_t refreshes;        // refreshes (suboptimal redraws)
+  uint64_t refreshes;        // refresh requests (non-optimized redraw)
 
   // current state -- these can decrease
   uint64_t fbbytes;          // total bytes devoted to all active framebuffers

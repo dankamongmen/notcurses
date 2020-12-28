@@ -772,6 +772,7 @@ reset_stats(ncstats* stats){
   memset(stats, 0, sizeof(*stats));
   stats->render_min_ns = 1ull << 62u;
   stats->render_min_bytes = 1ull << 62u;
+  stats->writeout_min_ns = 1ull << 62u;
   stats->fbbytes = fbbytes;
 }
 
@@ -780,7 +781,10 @@ static void
 stash_stats(notcurses* nc){
   nc->stashstats.renders += nc->stats.renders;
   nc->stashstats.render_ns += nc->stats.render_ns;
+  nc->stashstats.writeouts += nc->stats.writeouts;
+  nc->stashstats.writeout_ns += nc->stats.writeout_ns;
   nc->stashstats.failed_renders += nc->stats.failed_renders;
+  nc->stashstats.failed_writeouts += nc->stats.failed_writeouts;
   nc->stashstats.render_bytes += nc->stats.render_bytes;
   if(nc->stashstats.render_max_bytes < nc->stats.render_max_bytes){
     nc->stashstats.render_max_bytes = nc->stats.render_max_bytes;
@@ -793,6 +797,12 @@ stash_stats(notcurses* nc){
   }
   if(nc->stashstats.render_min_ns > nc->stats.render_min_ns){
     nc->stashstats.render_min_ns = nc->stats.render_min_ns;
+  }
+  if(nc->stashstats.writeout_max_ns < nc->stats.writeout_max_ns){
+    nc->stashstats.writeout_max_ns = nc->stats.writeout_max_ns;
+  }
+  if(nc->stashstats.writeout_min_ns > nc->stats.writeout_min_ns){
+    nc->stashstats.writeout_min_ns = nc->stats.writeout_min_ns;
   }
   nc->stashstats.cellelisions += nc->stats.cellelisions;
   nc->stashstats.cellemissions += nc->stats.cellemissions;
@@ -1246,6 +1256,14 @@ int notcurses_stop(notcurses* nc){
         fprintf(stderr, "\n%ju render%s, %ss total (%ss min, %ss max, %ss avg)\n",
                 nc->stashstats.renders, nc->stashstats.renders == 1 ? "" : "s",
                 totalbuf, minbuf, maxbuf, avgbuf);
+        qprefix(nc->stashstats.writeout_ns, NANOSECS_IN_SEC, totalbuf, 0);
+        qprefix(nc->stashstats.writeout_min_ns, NANOSECS_IN_SEC, minbuf, 0);
+        qprefix(nc->stashstats.writeout_max_ns, NANOSECS_IN_SEC, maxbuf, 0);
+        qprefix(nc->stashstats.writeouts ? nc->stashstats.writeout_ns / nc->stashstats.writeouts : 0,
+                NANOSECS_IN_SEC, avgbuf, 0);
+        fprintf(stderr, "%ju write%s, %ss total (%ss min, %ss max, %ss avg)\n",
+                nc->stashstats.writeouts, nc->stashstats.writeouts == 1 ? "" : "s",
+                totalbuf, minbuf, maxbuf, avgbuf);
         bprefix(nc->stashstats.render_bytes, 1, totalbuf, 0),
         bprefix(nc->stashstats.render_min_bytes, 1, minbuf, 0),
         bprefix(nc->stashstats.render_max_bytes, 1, maxbuf, 0),
@@ -1268,17 +1286,16 @@ int notcurses_stop(notcurses* nc){
                 nc->stashstats.fgelisions,
                 nc->stashstats.bgemissions,
                 nc->stashstats.bgelisions);
-        fprintf(stderr, " Elide rates: %.2f%% %.2f%% %.2f%%\n",
+        fprintf(stderr, "Cell emits:elides: %ju/%ju (%.2f%%) %.2f%% %.2f%% %.2f%%\n",
+                nc->stashstats.cellemissions, nc->stashstats.cellelisions,
+                (nc->stashstats.cellemissions + nc->stashstats.cellelisions) == 0 ? 0 :
+                (nc->stashstats.cellelisions * 100.0) / (nc->stashstats.cellemissions + nc->stashstats.cellelisions),
                 (nc->stashstats.defaultemissions + nc->stashstats.defaultelisions) == 0 ? 0 :
                 (nc->stashstats.defaultelisions * 100.0) / (nc->stashstats.defaultemissions + nc->stashstats.defaultelisions),
                 (nc->stashstats.fgemissions + nc->stashstats.fgelisions) == 0 ? 0 :
                 (nc->stashstats.fgelisions * 100.0) / (nc->stashstats.fgemissions + nc->stashstats.fgelisions),
                 (nc->stashstats.bgemissions + nc->stashstats.bgelisions) == 0 ? 0 :
                 (nc->stashstats.bgelisions * 100.0) / (nc->stashstats.bgemissions + nc->stashstats.bgelisions));
-        fprintf(stderr, "Cell emits:elides: %ju/%ju (%.2f%%)\n",
-                nc->stashstats.cellemissions, nc->stashstats.cellelisions,
-                (nc->stashstats.cellemissions + nc->stashstats.cellelisions) == 0 ? 0 :
-                (nc->stashstats.cellelisions * 100.0) / (nc->stashstats.cellemissions + nc->stashstats.cellelisions));
       }
     }
     del_curterm(cur_term);

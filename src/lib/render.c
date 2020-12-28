@@ -100,16 +100,21 @@ blocking_write(int fd, const char* buf, size_t buflen){
 // update timings for writeout. only call on success.
 static void
 update_write_stats(const struct timespec* time1, const struct timespec* time0,
-                   ncstats* stats){
-  const int64_t elapsed = timespec_to_ns(time1) - timespec_to_ns(time0);
-  if(elapsed > 0){ // don't count clearly incorrect information, egads
-    stats->writeout_ns += elapsed;
-    if(elapsed > stats->writeout_max_ns){
-      stats->writeout_max_ns = elapsed;
+                   ncstats* stats, int bytes){
+  if(bytes >= 0){
+    const int64_t elapsed = timespec_to_ns(time1) - timespec_to_ns(time0);
+    if(elapsed > 0){ // don't count clearly incorrect information, egads
+      ++stats->writeouts;
+      stats->writeout_ns += elapsed;
+      if(elapsed > stats->writeout_max_ns){
+        stats->writeout_max_ns = elapsed;
+      }
+      if(elapsed < stats->writeout_min_ns){
+        stats->writeout_min_ns = elapsed;
+      }
     }
-    if(elapsed < stats->writeout_min_ns){
-      stats->writeout_min_ns = elapsed;
-    }
+  }else{
+    ++stats->failed_writeouts;
   }
 }
 
@@ -1118,11 +1123,11 @@ int ncpile_rasterize(ncplane* n){
   int bytes = notcurses_rasterize(nc, pile, nc->rstate.mstreamfp);
   // accepts -1 as an indication of failure
   update_render_bytes(&nc->stats, bytes);
+  clock_gettime(CLOCK_MONOTONIC, &writedone);
+  update_write_stats(&writedone, &start, &nc->stats, bytes);
   if(bytes < 0){
     return -1;
   }
-  clock_gettime(CLOCK_MONOTONIC, &writedone);
-  update_write_stats(&writedone, &start, &nc->stats);
   return 0;
 }
 
