@@ -68,7 +68,7 @@ steps:
 - name: ubuntu-build
   image: dankamongmen/hirsute:2020-12-21b
   commands:
-    - export LANG=en_US.UTF-8
+    - export LANG=es_ES.UTF-8
     - mkdir build
     - cd build
     - cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_MULTIMEDIA=none ..
