@@ -44,7 +44,7 @@ pub fn ncdirect_fg_rgb8(
     blue: NcColor,
 ) -> NcIntResult {
     let rgb = (red as NcRgb) << 16 | (green as NcRgb) << 8 | blue as NcRgb;
-    unsafe { crate::ncdirect_fg_rgb(ncd, rgb) }
+    unsafe { crate::ncdirect_set_fg_rgb(ncd, rgb) }
 }
 
 /// Sets the background [NcColor] components.
@@ -58,5 +58,5 @@ pub fn ncdirect_bg_rgb8(
     blue: NcColor,
 ) -> NcIntResult {
     let rgb = (red as NcRgb) << 16 | (green as NcRgb) << 8 | blue as NcRgb;
-    unsafe { crate::ncdirect_bg_rgb(ncd, rgb) }
+    unsafe { crate::ncdirect_set_bg_rgb(ncd, rgb) }
 }

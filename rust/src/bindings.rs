@@ -134,9 +134,6 @@ pub use ffi::{
 #[doc(inline)]
 pub use ffi::{
     // functions
-    ncdirect_bg_default,
-    ncdirect_bg_palindex,
-    ncdirect_bg_rgb,
     ncdirect_box,
     ncdirect_canopen_images,
     ncdirect_canutf8,
@@ -154,9 +151,6 @@ pub use ffi::{
     ncdirect_dim_x,
     ncdirect_dim_y,
     ncdirect_double_box,
-    ncdirect_fg_default,
-    ncdirect_fg_palindex,
-    ncdirect_fg_rgb,
     ncdirect_flush,
     ncdirect_getc,
     ncdirect_hline_interp,
@@ -171,6 +165,12 @@ pub use ffi::{
     ncdirect_render_frame,
     ncdirect_render_image,
     ncdirect_rounded_box,
+    ncdirect_set_bg_default,
+    ncdirect_set_bg_palindex,
+    ncdirect_set_bg_rgb,
+    ncdirect_set_fg_default,
+    ncdirect_set_fg_palindex,
+    ncdirect_set_fg_rgb,
     ncdirect_set_styles,
     ncdirect_stop,
     ncdirect_vline_interp,

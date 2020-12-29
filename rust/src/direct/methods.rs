@@ -128,14 +128,14 @@ impl NcDirect {
     ///
     /// *C style function: [ncdirect_fg_palindex()][crate::ncdirect_fg_palindex].*
     pub fn fg_palindex(&mut self, index: NcPaletteIndex) -> NcResult<()> {
-        error![unsafe { crate::ncdirect_fg_palindex(self, index as i32) }]
+        error![unsafe { crate::ncdirect_set_fg_palindex(self, index as i32) }]
     }
 
     /// Sets the background [NcPaletteIndex].
     ///
     /// *C style function: [ncdirect_bg_palindex()][crate::ncdirect_bg_palindex].*
     pub fn bg_palindex(&mut self, index: NcPaletteIndex) -> NcResult<()> {
-        error![unsafe { crate::ncdirect_bg_palindex(self, index as i32) }]
+        error![unsafe { crate::ncdirect_set_bg_palindex(self, index as i32) }]
     }
 
     /// Returns the number of simultaneous colors claimed to be supported.
@@ -156,14 +156,14 @@ impl NcDirect {
     ///
     /// *C style function: [ncdirect_fg_rgb()][crate::ncdirect_fg_rgb].*
     pub fn fg_rgb(&mut self, rgb: NcRgb) -> NcResult<()> {
-        error![unsafe { crate::ncdirect_fg_rgb(self, rgb) }]
+        error![unsafe { crate::ncdirect_set_fg_rgb(self, rgb) }]
     }
 
     /// Sets the background [NcRgb].
     ///
     /// *C style function: [ncdirect_bg_rgb()][crate::ncdirect_bg_rgb].*
     pub fn bg_rgb(&mut self, rgb: NcRgb) -> NcResult<()> {
-        error![unsafe { crate::ncdirect_bg_rgb(self, rgb) }]
+        error![unsafe { crate::ncdirect_set_bg_rgb(self, rgb) }]
     }
 
     /// Sets the foreground [NcColor] components.
@@ -206,14 +206,14 @@ impl NcDirect {
     ///
     /// *C style function: [ncdirect_fg_default()][crate::ncdirect_fg_default].*
     pub fn fg_default(&mut self) -> NcResult<()> {
-        error![unsafe { crate::ncdirect_fg_default(self) }]
+        error![unsafe { crate::ncdirect_set_fg_default(self) }]
     }
 
     /// Indicates to use the "default color" for the background.
     ///
     /// *C style function: [ncdirect_bg_default()][crate::ncdirect_bg_default].*
     pub fn bg_default(&mut self) -> NcResult<()> {
-        error![unsafe { crate::ncdirect_bg_default(self) }]
+        error![unsafe { crate::ncdirect_set_bg_default(self) }]
     }
 }
 
