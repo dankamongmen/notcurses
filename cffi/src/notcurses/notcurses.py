@@ -178,19 +178,19 @@ class Ncdirect:
         lib.ncdirect_stop(self.nc)
 
     def setFgRGB8(self, r, g, b):
-        if lib.ncdirect_fg_rgb8(self.nc, r, g, b):
+        if lib.ncdirect_set_fg_rgb8(self.nc, r, g, b):
             raise ValueError("Bad foreground RGB")
 
     def setBgRGB8(self, r, g, b):
-        if lib.ncdirect_bg_rgb8(self.nc, r, g, b):
+        if lib.ncdirect_set_bg_rgb8(self.nc, r, g, b):
             raise ValueError("Bad background RGB")
 
     def setFg(self, rgb):
-        if lib.ncdirect_fg_rgb(self.nc, rgb):
+        if lib.ncdirect_set_fg_rgb(self.nc, rgb):
             raise ValueError("Bad foreground RGB")
 
     def setBg(self, rgb):
-        if lib.ncdirect_bg_rgb(self.nc, rgb):
+        if lib.ncdirect_set_bg_rgb(self.nc, rgb):
             raise ValueError("Bad background RGB")
 
     def cursorEnable(self):
