@@ -182,6 +182,7 @@ int main(int argc, char* const * argv){
   ncalign_e alignment = NCALIGN_RIGHT;
   const struct option opts[] = {
     { "align", 1, NULL, 'a' },
+    { "help", 0, NULL, 'h' },
     { NULL, 0, NULL, 0 },
   };
   int c, lidx;
