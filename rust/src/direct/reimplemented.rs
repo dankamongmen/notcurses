@@ -35,9 +35,9 @@ pub fn ncdirect_getc_nblocking(nc: &mut NcDirect, input: &mut NcInput) -> char {
 
 /// Sets the foreground [NcColor] components.
 ///
-/// *Method: NcDirect.[fg_rgb8()][NcDirect#method.getc_fg_rgb8].*
+/// *Method: NcDirect.[set_fg_rgb8()][NcDirect#method.set_fg_rgb8].*
 #[inline]
-pub fn ncdirect_fg_rgb8(
+pub fn ncdirect_set_fg_rgb8(
     ncd: &mut NcDirect,
     red: NcColor,
     green: NcColor,
@@ -49,9 +49,9 @@ pub fn ncdirect_fg_rgb8(
 
 /// Sets the background [NcColor] components.
 ///
-/// *Method: NcDirect.[bg_rgb8()][NcDirect#method.getc_bg_rgb8].*
+/// *Method: NcDirect.[set_bg_rgb8()][NcDirect#method.set_bg_rgb8].*
 #[inline]
-pub fn ncdirect_bg_rgb8(
+pub fn ncdirect_set_bg_rgb8(
     ncd: &mut NcDirect,
     red: NcColor,
     green: NcColor,

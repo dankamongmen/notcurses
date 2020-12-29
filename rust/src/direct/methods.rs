@@ -126,15 +126,15 @@ impl NcDirect {
 impl NcDirect {
     /// Sets the foreground [NcPaletteIndex].
     ///
-    /// *C style function: [ncdirect_fg_palindex()][crate::ncdirect_fg_palindex].*
-    pub fn fg_palindex(&mut self, index: NcPaletteIndex) -> NcResult<()> {
+    /// *C style function: [ncdirect_set_fg_palindex()][crate::ncdirect_set_fg_palindex].*
+    pub fn set_fg_palindex(&mut self, index: NcPaletteIndex) -> NcResult<()> {
         error![unsafe { crate::ncdirect_set_fg_palindex(self, index as i32) }]
     }
 
     /// Sets the background [NcPaletteIndex].
     ///
-    /// *C style function: [ncdirect_bg_palindex()][crate::ncdirect_bg_palindex].*
-    pub fn bg_palindex(&mut self, index: NcPaletteIndex) -> NcResult<()> {
+    /// *C style function: [ncdirect_set_bg_palindex()][crate::ncdirect_set_bg_palindex].*
+    pub fn set_bg_palindex(&mut self, index: NcPaletteIndex) -> NcResult<()> {
         error![unsafe { crate::ncdirect_set_bg_palindex(self, index as i32) }]
     }
 
@@ -154,30 +154,30 @@ impl NcDirect {
 
     /// Sets the foreground [NcRgb].
     ///
-    /// *C style function: [ncdirect_fg_rgb()][crate::ncdirect_fg_rgb].*
-    pub fn fg_rgb(&mut self, rgb: NcRgb) -> NcResult<()> {
+    /// *C style function: [ncdirect_set_fg_rgb()][crate::ncdirect_set_fg_rgb].*
+    pub fn set_fg_rgb(&mut self, rgb: NcRgb) -> NcResult<()> {
         error![unsafe { crate::ncdirect_set_fg_rgb(self, rgb) }]
     }
 
     /// Sets the background [NcRgb].
     ///
-    /// *C style function: [ncdirect_bg_rgb()][crate::ncdirect_bg_rgb].*
-    pub fn bg_rgb(&mut self, rgb: NcRgb) -> NcResult<()> {
+    /// *C style function: [ncdirect_set_bg_rgb()][crate::ncdirect_set_bg_rgb].*
+    pub fn set_bg_rgb(&mut self, rgb: NcRgb) -> NcResult<()> {
         error![unsafe { crate::ncdirect_set_bg_rgb(self, rgb) }]
     }
 
     /// Sets the foreground [NcColor] components.
     ///
-    /// *C style function: [ncdirect_fg_rgb8()][crate::ncdirect_fg_rgb8].*
-    pub fn fg_rgb8(&mut self, red: NcColor, green: NcColor, blue: NcColor) -> NcResult<()> {
-        error![crate::ncdirect_fg_rgb8(self, red, green, blue)]
+    /// *C style function: [ncdirect_set_fg_rgb8()][crate::ncdirect_set_fg_rgb8].*
+    pub fn set_fg_rgb8(&mut self, red: NcColor, green: NcColor, blue: NcColor) -> NcResult<()> {
+        error![crate::ncdirect_set_fg_rgb8(self, red, green, blue)]
     }
 
     /// Sets the background [NcColor] components.
     ///
-    /// *C style function: [ncdirect_bg_rgb()][crate::ncdirect_bg_rgb].*
-    pub fn bg_rgb8(&mut self, red: NcColor, green: NcColor, blue: NcColor) -> NcResult<()> {
-        error![crate::ncdirect_bg_rgb8(self, red, green, blue)]
+    /// *C style function: [ncdirect_set_bg_rgb()][crate::ncdirect_set_bg_rgb].*
+    pub fn set_bg_rgb8(&mut self, red: NcColor, green: NcColor, blue: NcColor) -> NcResult<()> {
+        error![crate::ncdirect_set_bg_rgb8(self, red, green, blue)]
     }
 
     /// Removes the specified styles.
@@ -204,15 +204,15 @@ impl NcDirect {
 
     /// Indicates to use the "default color" for the foreground.
     ///
-    /// *C style function: [ncdirect_fg_default()][crate::ncdirect_fg_default].*
-    pub fn fg_default(&mut self) -> NcResult<()> {
+    /// *C style function: [ncdirect_set_fg_default()][crate::ncdirect_set_fg_default].*
+    pub fn set_fg_default(&mut self) -> NcResult<()> {
         error![unsafe { crate::ncdirect_set_fg_default(self) }]
     }
 
     /// Indicates to use the "default color" for the background.
     ///
-    /// *C style function: [ncdirect_bg_default()][crate::ncdirect_bg_default].*
-    pub fn bg_default(&mut self) -> NcResult<()> {
+    /// *C style function: [ncdirect_set_bg_default()][crate::ncdirect_set_bg_default].*
+    pub fn set_bg_default(&mut self) -> NcResult<()> {
         error![unsafe { crate::ncdirect_set_bg_default(self) }]
     }
 }

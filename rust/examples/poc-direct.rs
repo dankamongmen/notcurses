@@ -14,14 +14,14 @@ fn main() -> NcResult<()> {
     }
     ncd.flush()?;
 
-    ncd.fg_rgb(0xff8080)?;
+    ncd.set_fg_rgb(0xff8080)?;
     ncd.styles_on(NCSTYLE_STANDOUT)?;
     printf!(" erp erp \n");
-    ncd.fg_rgb(0x80ff80)?;
+    ncd.set_fg_rgb(0x80ff80)?;
     printf!(" erp erp \n");
     ncd.styles_off(NCSTYLE_STANDOUT)?;
     printf!(" erp erp \n");
-    ncd.fg_rgb(0xff8080)?;
+    ncd.set_fg_rgb(0xff8080)?;
     printf!(" erp erp \n");
     ncd.cursor_right(dimx / 2)?;
     ncd.cursor_up(dimy / 2)?;
