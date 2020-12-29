@@ -2,18 +2,21 @@
 
 // functions already exported by bindgen : 6
 // -----------------------------------------
-// cell_duplicate
-// cell_extended_gcluster
-// cell_load
-// cell_release
-// cells_double_box
-// cells_rounded_box
+// (W) wrap: 4
+// (#) test: 0
+// ------------------------------------------
+//W  cell_duplicate
+//…  cell_extended_gcluster
+//…  cell_load
+//W  cell_release
+//W  cells_double_box
+//W  cells_rounded_box
 //
 // functions manually reimplemented: 43
 // ------------------------------------------
 // (X) wont:  2
-// (+) done: 40
-// (W) wrap: 27
+// (+) done: 38
+// (W) wrap: 40
 // (#) test: 26
 // ------------------------------------------
 //W# cell_bchannel
@@ -23,8 +26,8 @@
 //W# cell_bg_palindex_p
 //W# cell_bg_rgb
 //W# cell_bg_rgb8
-// + cellcmp
-// + cell_double_wide_p
+//W+ cellcmp
+//W+ cell_double_wide_p
 //W+ cell_extract
 //W# cell_fchannel
 //W# cell_fg_alpha
@@ -33,12 +36,12 @@
 //W# cell_fg_palindex_p
 //W# cell_fg_rgb
 //W# cell_fg_rgb8
-// + cell_init
-// + cell_load_char
+//W+ cell_init
+//…… cell_load_char
 //   cell_load_egc32
-// + cell_off_styles
-// + cell_on_styles
-// + cell_prime
+//W+ cell_off_styles
+//W+ cell_on_styles
+//W+ cell_prime
 //W# cell_set_bchannel
 //W# cell_set_bg_alpha
 //W# cell_set_bg_default
@@ -53,12 +56,12 @@
 //W# cell_set_fg_rgb
 //W# cell_set_fg_rgb8
 // X cell_set_fg_rgb8_clipped   // unneeded
-// + cell_set_styles
-// + cells_load_box
-// + cell_strdup
-// + cell_styles
-// + cell_wide_left_p
-// + cell_wide_right_p
+//W+ cell_set_styles
+//W+ cells_load_box
+//W+ cell_strdup
+//W+ cell_styles
+//W+ cell_wide_left_p
+//W+ cell_wide_right_p
 
 #[cfg(test)]
 mod test;
@@ -70,10 +73,23 @@ pub use reimplemented::*;
 // NcCell
 /// A coordinate on an [`NcPlane`][crate::NcPlane] storing 128 bits of data.
 ///
-/// An `NcCell` corresponds to a single character cell on some [`NcPlane`],
+/// # Methods & Associated Functions
+///
+/// - [Constructors & Destructors](#nccell-constructors-and-destructors)
+///
+/// - [bg|fg `NcChannel`s manipulation](#nccell-methods-bgfg-ncchannels-manipulation)
+/// - [Other components](#nccell-methods-other-components)
+/// - [Text](#nccell-methods-text)
+///
+/// # Description
+///
+/// An `NcCell` corresponds to a single character cell on some NcPlane`,
 /// which can be occupied by a single [`NcEgc`] grapheme cluster (some root
 /// spacing glyph, along with possible combining characters, which might span
 /// multiple columns).
+///
+/// An NcCell is bounded to an NcPlane, but the cell doesn't know which plane it is.
+/// The extended grapheme information
 ///
 /// At any `NcCell`, we can have a theoretically arbitrarily long UTF-8 string,
 /// a foreground color, a background color, and an [`NcStyleMask`] attribute set.
@@ -119,6 +135,8 @@ pub use reimplemented::*;
 /// ```
 ///
 /// `type in C: cell (struct)`
+///
+/// # More NcCell Information
 ///
 /// ## Size
 ///

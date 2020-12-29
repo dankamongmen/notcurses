@@ -220,7 +220,7 @@ pub use reimplemented::*;
 ///
 /// # Methods & Associated Functions
 ///
-/// - [Constructors & Destructors](#ncplane-constructors-and-destructors)
+/// - [Constructors & Destructors](#ncplane-constructors--destructors)
 ///
 /// Methods:
 /// - [`NcAlphaBits`](#ncplane-methods-ncalphabits)

@@ -375,9 +375,10 @@ pub fn cell_load_char(plane: &mut NcPlane, cell: &mut NcCell, ch: NcEgc) /* -> i
 //     return cell_load(n, c, gcluster);
 // }
 
-/// Copies the UTF8-encoded [NcEgc] out of the cell, whether simple or complex.
+/// Copies the UTF8-encoded [NcEgc] out of the [NcCell], whether simple or complex.
 ///
-/// The result is not tied to the [NcPlane], and persists across erases and destruction.
+/// The result is not tied to the [NcPlane],
+/// and persists across erases and destruction.
 ///
 /// *Method: NcCell.[strdup()][NcCell#method.strdup].*
 #[inline]
@@ -473,7 +474,7 @@ pub fn cell_prime(
 /// Returns [NCRESULT_OK] on success, [NCRESULT_ERR] on error.
 ///
 /// On error, any [NcCell]s this function might have loaded before the error
-/// are [cell_release]d. There must be at least six [NcEgc]s in gcluster.
+/// are [cell_release]d. There must be at least six [NcEgc]s in `gcluster`.
 ///
 /// *Method: NcCell.[load_box()][NcCell#method.load_box].*
 pub fn cells_load_box(

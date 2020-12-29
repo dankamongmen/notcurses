@@ -68,7 +68,7 @@ impl NcPlaneOptions {
     }
 }
 
-/// # NcPlane constructors and destructors
+/// # NcPlane constructors & destructors
 impl NcPlane {
     /// New NcPlane.
     ///
@@ -1466,7 +1466,8 @@ impl NcPlane {
         )]
     }
 
-    ///
+    /// NcPlane.[perimeter()][NcDirect#method.perimeter] with the double box-drawing characters.
+
     ///
     /// *C style function: [ncplane_perimeter_double()][crate::ncplane_perimeter_double].*
     #[inline]
@@ -1481,6 +1482,7 @@ impl NcPlane {
         )]
     }
 
+    /// NcPlane.[perimeter()][NcDirect#method.perimeter] with the rounded box-drawing characters.
     ///
     ///
     /// *C style function: [ncplane_perimeter_rounded()][crate::ncplane_perimeter_rounded].*
