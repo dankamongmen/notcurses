@@ -3,8 +3,10 @@
 use libnotcurses_sys::*;
 
 fn main() -> NcResult<()> {
+    // DEBUG
+    let nc = Notcurses::with_debug(NCLOGLEVEL_DEBUG, NCOPTION_NO_ALTERNATE_SCREEN)?;
     //let nc = Notcurses::new()?;
-    let nc = Notcurses::new()?;
+
     nc.mouse_enable()?;
 
     //let demo_items = vec![
@@ -20,9 +22,7 @@ fn main() -> NcResult<()> {
         NcMenuItem::new("Quit", NcInput::with_ctrl('q')),
     ];
 
-    let mut help_items = [
-        NcMenuItem::new("About", NcInput::with_ctrl('a')),
-    ];
+    let mut help_items = [NcMenuItem::new("About", NcInput::with_ctrl('a'))];
 
     let mut sections = [
         NcMenuSection::new("Schwarzgerät", &mut demo_items, NcInput::with_alt('ä')),
@@ -37,8 +37,8 @@ fn main() -> NcResult<()> {
     mopts.section_channels_mut().set_fg_rgb(0xb0d700);
     mopts.section_channels_mut().set_bg_rgb(0x002000);
 
-    let (mut dimy, mut dimx) = (0, 0);
-    let plane = nc.stddim_yx(&mut dimy, &mut dimx)?;
+    let plane = nc.stdplane()?;
+    let (dim_y, _dim_x) = plane.dim_yx();
     let top = NcMenu::new(plane, mopts)?;
     top.item_set_status("Schwarzgerät", "Disabled", false)?;
     top.item_set_status("Schwarzgerät", "Restart", false)?;
@@ -48,8 +48,19 @@ fn main() -> NcResult<()> {
     channels.set_fg_rgb(0x000088);
     plane.set_base('x', 0, channels)?;
 
-    //nc.render()?;
+    // FIXME sometimes fails and sometimes does not.
+    nc.render()?;
+    sleep![1]; // DEBUG
 
+    plane.set_fg_rgb(0x00dddd);
+    plane.putstr_aligned(
+        dim_y - 1,
+        NCALIGN_RIGHT,
+        " -=+ menu poc. press q to exit +=-",
+    )?;
+
+
+    top.destroy()?; // DEBUG
     nc.stop()?;
     Ok(())
 }
@@ -57,5 +68,20 @@ fn main() -> NcResult<()> {
 // fn run_menu(nc: &mut Notcurses, menu: &mut NcMenu) -> NcResult<()> {
 //     let nopts = NcPlaneOptions::new_aligned(10, NCALIGN_CENTER, 3, 40);
 //     let selplane = NcPlane::with_options(nc, nopts)?;
+//
+//     //...
+//
+//     let mut ni = NcInput::new();
+//     let mut keypress = u32;
+//
+//     loop {
+//         keypress = nc.getc_blocking(Some(&mut ni));
+//         if keypress as u32 == -1 { break; }
+//
+//         if !ncm
+//     }
+//
+//     //...
+//
 //     Ok(())
 // }

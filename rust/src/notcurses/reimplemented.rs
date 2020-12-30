@@ -55,12 +55,19 @@ pub fn notcurses_getc_nblock(nc: &mut Notcurses, input: &mut NcInput) -> char {
 /// Blocks until an event is processed or a signal is received.
 ///
 /// *Method: Notcurses.[getc_nblocking()][Notcurses#method.getc_nblocking].*
+// TODO: Option<input>
 #[inline]
-pub fn notcurses_getc_nblocking(nc: &mut Notcurses, input: &mut NcInput) -> char {
+pub fn notcurses_getc_nblocking(nc: &mut Notcurses, input: Option<&mut NcInput>) -> char {
+    let input_ptr;
+    if let Some(i) = input {
+        input_ptr = i as *mut _;
+    } else {
+        input_ptr = null_mut();
+    }
     unsafe {
         let mut sigmask = NcSignalSet::new();
         sigmask.emptyset();
-        core::char::from_u32_unchecked(crate::notcurses_getc(nc, null(), &mut sigmask, input))
+        core::char::from_u32_unchecked(crate::notcurses_getc(nc, null(), &mut sigmask, input_ptr))
     }
 }
 

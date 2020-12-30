@@ -88,8 +88,8 @@ pub use reimplemented::*;
 /// spacing glyph, along with possible combining characters, which might span
 /// multiple columns).
 ///
-/// An NcCell is bounded to an NcPlane, but the cell doesn't know which plane it is.
-/// The extended grapheme information
+/// An NcCell is bounded to an NcPlane, but the cell doesn't store anything
+/// about the plane.
 ///
 /// At any `NcCell`, we can have a theoretically arbitrarily long UTF-8 string,
 /// a foreground color, a background color, and an [`NcStyleMask`] attribute set.

@@ -331,7 +331,7 @@ impl Notcurses {
 
     ///
     /// *C style function: [notcurses_getc_nblocking()][crate::notcurses_getc_nblocking].*
-    pub fn getc_nblocking(&mut self, input: &mut NcInput) -> char {
+    pub fn getc_nblocking(&mut self, input: Option<&mut NcInput>) -> char {
         crate::notcurses_getc_nblocking(self, input)
     }
 
@@ -507,31 +507,31 @@ impl Notcurses {
         }
     }
 
-    /// [notcurses_stdplane()][crate::notcurses_stdplane], plus free bonus
-    /// dimensions written to non-NULL y/x!
-    ///
-    /// *C style function: [notcurses_stddim_yx()][crate::notcurses_stddim_yx].*
-    #[inline]
-    pub fn stddim_yx<'a>(
-        &'a mut self,
-        y: &mut NcDimension,
-        x: &mut NcDimension,
-    ) -> NcResult<&'a mut NcPlane> {
-        crate::notcurses_stddim_yx(self, y, x)
-    }
+    // /// [notcurses_stdplane()][crate::notcurses_stdplane], plus free bonus
+    // /// dimensions written to non-NULL y/x!
+    // ///
+    // /// *C style function: [notcurses_stddim_yx()][crate::notcurses_stddim_yx].*
+    // #[inline]
+    // pub fn stddim_yx<'a>(
+    //     &'a mut self,
+    //     y: &mut NcDimension,
+    //     x: &mut NcDimension,
+    // ) -> NcResult<&'a mut NcPlane> {
+    //     crate::notcurses_stddim_yx(self, y, x)
+    // }
 
-    /// [stdplane_const()][Notcurses#method.stdplane_const], plus free
-    /// bonus dimensions written to non-NULL y/x!
-    ///
-    /// *C style function: [notcurses_stddim_yx()][crate::notcurses_stddim_yx].*
-    #[inline]
-    pub fn stddim_yx_const<'a>(
-        &'a self,
-        y: &mut NcDimension,
-        x: &mut NcDimension,
-    ) -> NcResult<&'a NcPlane> {
-        crate::notcurses_stddim_yx_const(self, y, x)
-    }
+    // /// [stdplane_const()][Notcurses#method.stdplane_const], plus free
+    // /// bonus dimensions written to non-NULL y/x!
+    // ///
+    // /// *C style function: [notcurses_stddim_yx()][crate::notcurses_stddim_yx].*
+    // #[inline]
+    // pub fn stddim_yx_const<'a>(
+    //     &'a self,
+    //     y: &mut NcDimension,
+    //     x: &mut NcDimension,
+    // ) -> NcResult<&'a NcPlane> {
+    //     crate::notcurses_stddim_yx_const(self, y, x)
+    // }
 
     /// Returns a mutable reference to the standard [NcPlane] for this terminal.
     ///

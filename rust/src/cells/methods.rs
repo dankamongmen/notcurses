@@ -433,7 +433,8 @@ impl NcCell {
     /// Loads up six cells with the [NcEgc]s necessary to draw a box.
     ///
     /// On error, any [NcCell]s this function might have loaded before the error
-    /// are [cell_release]d. There must be at least six [NcEgc]s in `gcluster`.
+    /// are [release][NcCell#method.release]d.
+    /// There must be at least six [NcEgc]s in `gcluster`.
     ///
     /// *C style function: [cells_load_box()][crate::cells_load_box].*
     pub fn load_box(
@@ -454,7 +455,7 @@ impl NcCell {
     }
 
     /// NcCell.[load_box()][NcCell#method.box] with the double box-drawing characters.
-    /// 
+    ///
     /// *C style function: [cells_double_box()][crate::cells_double_box].*
     pub fn double_box(
         plane: &mut NcPlane,

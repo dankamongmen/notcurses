@@ -5,7 +5,7 @@
 // (X) wont:  6
 // (D) depr:  4
 // (#) test: 13
-// (W) wrap: 77 of 98
+// (W) wrap: 79 of 98
 // -------------------------------------------
 //W  ncpile_bottom
 //W# ncpile_create
@@ -63,9 +63,9 @@
 // X ncplane_putegc_yx                 // unneeded
 //   ncplane_putnstr_aligned
 //   ncplane_putnstr_yx
-//   ncplane_putstr_aligned
-//   ncplane_putstr_stained
-//   ncplane_putstr_yx
+//W  ncplane_putstr_aligned
+//W  ncplane_putstr_stained
+//W  ncplane_putstr_yx
 //   ncplane_puttext
 // X ncplane_putwegc_stained           // unneeded
 // X ncplane_putwstr_stained           // unneeded

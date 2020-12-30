@@ -732,6 +732,19 @@ impl NcPlane {
         return Ok(cols);
     }
 
+    /// Same as [putstr_yx()][NcPlane#method.putstr_yx] but [NcAlign]ed on x.
+    ///
+    /// *C style function: [ncplane_putstr_aligned()][crate::ncplane_putstr_aligned].*
+    pub fn putstr_aligned(
+        &mut self,
+        y: NcDimension,
+        align: NcAlign,
+        string: &str,
+    ) -> NcResult<NcDimension> {
+        let res = unsafe { crate::ncplane_putstr_aligned(self, y as i32, align, cstring![string]) };
+        error![res, res as NcDimension]
+    }
+
     /// Writes a series of [NcEgc][crate::NcEgc]s to the current location, but
     /// retain the styling.
     /// The current styling of the plane will not be changed.
@@ -1466,7 +1479,7 @@ impl NcPlane {
         )]
     }
 
-    /// NcPlane.[perimeter()][NcDirect#method.perimeter] with the double box-drawing characters.
+    /// NcPlane.[perimeter()][NcPlane#method.perimeter] with the double box-drawing characters.
 
     ///
     /// *C style function: [ncplane_perimeter_double()][crate::ncplane_perimeter_double].*
@@ -1482,7 +1495,7 @@ impl NcPlane {
         )]
     }
 
-    /// NcPlane.[perimeter()][NcDirect#method.perimeter] with the rounded box-drawing characters.
+    /// NcPlane.[perimeter()][NcPlane#method.perimeter] with the rounded box-drawing characters.
     ///
     ///
     /// *C style function: [ncplane_perimeter_rounded()][crate::ncplane_perimeter_rounded].*

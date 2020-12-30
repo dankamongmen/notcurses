@@ -51,14 +51,14 @@
 // functions manually reimplemented: 6
 // -----------------------------------------
 // (+) done: 6 / 0
-// (#) test: 0
+// (#) test: 1
 // (W) wrap: 4 / 0
 // -----------------------------------------
 //W# notcurses_align
-//W+ notcurses_getc_blocking
 //W+ notcurses_getc_nblock
-//W+ notcurses_stddim_yx
-//W+ notcurses_stddim_yx_const
+//W+ notcurses_getc_nblocking
+//~+ notcurses_stddim_yx           // multiple mutable references errors
+//~+ notcurses_stddim_yx_const     //
 //W+ notcurses_term_dim_yx
 
 #[cfg(test)]
