@@ -391,35 +391,46 @@ lock_in_highcontrast(nccell* targc, struct crender* crender){
   }
 }
 
+static inline void
+postpaint_cell(nccell* lastframe, int dimx, struct crender* crender,
+               egcpool* pool, int y, int x){
+  nccell* targc = &crender->c;
+  lock_in_highcontrast(targc, crender);
+  nccell* prevcell = &lastframe[fbcellidx(y, dimx, x)];
+  if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc) > 0){
+    crender->damaged = true;
+    if(cell_wide_left_p(targc)){
+      const ncplane* tmpp = crender->p;
+      ++crender;
+      crender->p = tmpp;
+      ++x;
+      ++prevcell;
+      ++targc;
+      targc->gcluster = 0;
+      targc->channels = crender[-1].c.channels;
+      targc->stylemask = crender[-1].c.stylemask;
+      if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc) > 0){
+        crender->damaged = true;
+      }
+    }
+  }
+}
+
 // iterate over the rendered frame, adjusting the foreground colors for any
 // cells marked CELL_ALPHA_HIGHCONTRAST, and clearing any cell covered by a
-// wide glyph to its left. FIXME why can't we do this as we go along? FIXME can
-// we not do the blend a single time here, if we track sums in paint()?
+// wide glyph to its left.
+//
+// FIXME this cannot be performed at render time (we don't yet know the
+//       lastframe, and thus can't compute damage), but we *could* unite it
+//       with rasterization--factor out the single cell iteration...
+// FIXME can we not do the blend a single time here, if we track sums in
+//       paint()? tried this before and didn't get a win...
 static void
 postpaint(nccell* lastframe, int dimy, int dimx, struct crender* rvec, egcpool* pool){
   for(int y = 0 ; y < dimy ; ++y){
     for(int x = 0 ; x < dimx ; ++x){
       struct crender* crender = &rvec[fbcellidx(y, dimx, x)];
-      nccell* targc = &crender->c;
-      lock_in_highcontrast(targc, crender);
-      nccell* prevcell = &lastframe[fbcellidx(y, dimx, x)];
-      if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc) > 0){
-        crender->damaged = true;
-        if(cell_wide_left_p(targc)){
-          const ncplane* tmpp = crender->p;
-          ++crender;
-          crender->p = tmpp;
-          ++x;
-          ++prevcell;
-          ++targc;
-          targc->gcluster = 0;
-          targc->channels = crender[-1].c.channels;
-          targc->stylemask = crender[-1].c.stylemask;
-          if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc) > 0){
-            crender->damaged = true;
-          }
-        }
-      }
+      postpaint_cell(lastframe, dimx, crender, pool, y, x);
     }
   }
 }
@@ -821,7 +832,7 @@ raster_defaults(notcurses* nc, bool fgdef, bool bgdef, FILE* out){
 // *become* the last frame rasterized.
 static int
 notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
-  const struct crender* rvec = p->crender;
+  struct crender* rvec = p->crender;
   int y, x;
   fseeko(out, 0, SEEK_SET);
   // we only need to emit a coordinate if it was damaged. the damagemap is a
@@ -838,6 +849,7 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
       const size_t damageidx = innery * nc->lfdimx + innerx;
       unsigned r, g, b, br, bg, bb, palfg, palbg;
       const nccell* srccell = &nc->lastframe[damageidx];
+      postpaint_cell(nc->lastframe, p->dimx, &rvec[damageidx], &nc->pool, y, x);
       if(!rvec[damageidx].damaged){
         // no need to emit a cell; what we rendered appears to already be
         // here. no updates are performed to elision state nor lastframe.
@@ -1117,9 +1129,6 @@ int ncpile_rasterize(ncplane* n){
   clock_gettime(CLOCK_MONOTONIC, &start);
   const ncpile* pile = ncplane_pile(n);
   struct notcurses* nc = ncplane_notcurses(n);
-  const int miny = pile->dimy < nc->lfdimy ? pile->dimy : nc->lfdimy;
-  const int minx = pile->dimx < nc->lfdimx ? pile->dimx : nc->lfdimx;
-  postpaint(nc->lastframe, miny, minx, pile->crender, &nc->pool);
   int bytes = notcurses_rasterize(nc, pile, nc->rstate.mstreamfp);
   // accepts -1 as an indication of failure
   update_render_bytes(&nc->stats, bytes);
