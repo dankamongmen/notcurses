@@ -40,39 +40,40 @@ API struct ncdirect* ncdirect_init(const char* termtype, FILE* fp, uint64_t flag
 API int ncdirect_set_fg_rgb(struct ncdirect* nc, unsigned rgb);
 API int ncdirect_set_bg_rgb(struct ncdirect* nc, unsigned rgb);
 
+static inline int ncdirect_fg_rgb(struct ncdirect* nc, unsigned rgb)
+  __attribute__ ((deprecated));
+
 static inline int
 ncdirect_fg_rgb(struct ncdirect* nc, unsigned rgb){
   return ncdirect_set_fg_rgb(nc, rgb);
 }
+
+static inline int ncdirect_bg_rgb(struct ncdirect* nc, unsigned rgb)
+  __attribute__ ((deprecated));
 
 static inline int
 ncdirect_bg_rgb(struct ncdirect* nc, unsigned rgb){
   return ncdirect_set_bg_rgb(nc, rgb);
 }
 
-API int ncdirect_fg_rgb(struct ncdirect* nc, unsigned rgb)
-  __attribute__ ((deprecated));
-API int ncdirect_bg_rgb(struct ncdirect* nc, unsigned rgb)
-  __attribute__ ((deprecated));
-
 API int ncdirect_set_fg_palindex(struct ncdirect* nc, int pidx);
 API int ncdirect_set_bg_palindex(struct ncdirect* nc, int pidx);
+
+static inline int ncdirect_fg_palindex(struct ncdirect* nc, int pidx)
+  __attribute__ ((deprecated));
 
 static inline int
 ncdirect_fg_palindex(struct ncdirect* nc, int pidx){
   return ncdirect_set_fg_palindex(nc, pidx);
 }
 
+static inline int ncdirect_bg_palindex(struct ncdirect* nc, int pidx)
+  __attribute__ ((deprecated));
+
 static inline int
 ncdirect_bg_palindex(struct ncdirect* nc, int pidx){
   return ncdirect_set_bg_palindex(nc, pidx);
 }
-
-API int ncdirect_fg_palindex(struct ncdirect* nc, int pidx)
-  __attribute__ ((deprecated));
-
-API int ncdirect_bg_palindex(struct ncdirect* nc, int pidx)
-  __attribute__ ((deprecated));
 
 // Returns the number of simultaneous colors claimed to be supported, or 1 if
 // there is no color support. Note that several terminal emulators advertise
@@ -110,31 +111,41 @@ ncdirect_set_fg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b){
 }
 
 static inline int
+ncdirect_fg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b)
+  __attribute__ ((deprecated));
+
+static inline int
 ncdirect_fg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b){
   return ncdirect_set_fg_rgb8(nc, r, g, b);
 }
+
+static inline int
+ncdirect_bg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b)
+  __attribute__ ((deprecated));
 
 static inline int
 ncdirect_bg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b){
   return ncdirect_set_bg_rgb8(nc, r, g, b);
 }
 
-static inline int
-ncdirect_fg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b)
-  __attribute__ ((deprecated));
-
-static inline int
-ncdirect_bg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b)
-  __attribute__ ((deprecated));
-
 API int ncdirect_set_fg_default(struct ncdirect* nc);
 API int ncdirect_set_bg_default(struct ncdirect* nc);
 
-API int ncdirect_fg_default(struct ncdirect* nc)
+static inline int ncdirect_fg_default(struct ncdirect* nc)
   __attribute__ ((deprecated));
 
-API int ncdirect_bg_default(struct ncdirect* nc)
+static inline int
+ncdirect_fg_default(struct ncdirect* nc){
+  return ncdirect_set_fg_default(nc);
+}
+
+static inline int ncdirect_bg_default(struct ncdirect* nc)
   __attribute__ ((deprecated));
+
+static inline int
+ncdirect_bg_default(struct ncdirect* nc){
+  return ncdirect_set_bg_default(nc);
+}
 
 // Get the current number of columns/rows.
 API int ncdirect_dim_x(const struct ncdirect* nc);
