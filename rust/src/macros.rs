@@ -119,18 +119,18 @@ macro_rules! printf {
 /// type `()`, and an empty `&str` `""`, respectively.
 #[macro_export]
 macro_rules! error {
-    ($res:expr, $ok:expr, $msg:expr) => {
+    ($res:expr, $msg:expr, $ok:expr) => {
         if $res >= crate::NCRESULT_OK {
             return Ok($ok);
         } else {
             return Err(crate::NcError::with_msg($res, $msg));
         }
     };
-    ($res:expr, $ok:expr) => {
-        error![$res, $ok, ""];
+    ($res:expr, $msg:expr) => {
+        error![$res, $msg, ()];
     };
     ($res:expr) => {
-        error![$res, (), ""];
+        error![$res, "", ()];
     };
 }
 

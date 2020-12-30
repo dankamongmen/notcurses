@@ -113,7 +113,7 @@ impl Notcurses {
     /// Returns a Notcurses context, expects [NotcursesOptions].
     pub fn with_options<'a>(options: NotcursesOptions) -> NcResult<&'a mut Notcurses> {
         let res = unsafe { notcurses_init(&options, null_mut()) };
-        error_ref_mut![res, "Initializing Notcurses"]
+        error_ref_mut![res, "Notcurses.with_options()"]
     }
 
     /// Returns a Notcurses context. Expects [NcLogLevel] and flags.
@@ -355,7 +355,7 @@ impl Notcurses {
         let mut blitter = 0;
         error![
             unsafe { crate::notcurses_lex_blitter(cstring![op], &mut blitter) },
-            blitter, "Invalid blitter name"
+            "Invalid blitter name", blitter
         ]
     }
 
@@ -376,7 +376,7 @@ impl Notcurses {
         let mut scalemode = 0;
         error![
             unsafe { crate::notcurses_lex_scalemode(cstring![op], &mut scalemode) },
-            scalemode
+            "", scalemode
         ]
     }
 
@@ -412,7 +412,10 @@ impl Notcurses {
     ///
     /// *C style function: [notcurses_mouse_enable()][crate::notcurses_mouse_enable].*
     pub fn mouse_enable(&mut self) -> NcResult<()> {
-        error![unsafe { crate::notcurses_mouse_enable(self) }]
+        error![
+            unsafe { crate::notcurses_mouse_enable(self) },
+            "Notcurses.mouse_enable()"
+        ]
     }
 
     /// Returns the number of simultaneous colors claimed to be supported,
@@ -440,6 +443,7 @@ impl Notcurses {
         let (mut y, mut x) = (0, 0);
         error![
             unsafe { crate::notcurses_refresh(self, &mut y, &mut x) },
+            "",
             (y as NcDimension, x as NcDimension)
         ]
     }
@@ -448,7 +452,10 @@ impl Notcurses {
     ///
     /// *C style function: [notcurses_render()][crate::notcurses_render].*
     pub fn render(&mut self) -> NcResult<()> {
-        error![unsafe { crate::notcurses_render(self) }]
+        error![
+            unsafe { crate::notcurses_render(self) },
+            "Notcurses.render()"
+        ]
     }
 
     /// Performs the rendering and rasterization portion of
@@ -540,7 +547,10 @@ impl Notcurses {
     ///
     /// *C style function: [notcurses_stdplane()][crate::notcurses_stdplane].*
     pub fn stdplane<'a>(&mut self) -> NcResult<&'a mut NcPlane> {
-        error_ref_mut![unsafe { crate::notcurses_stdplane(self) }]
+        error_ref_mut![
+            unsafe { crate::notcurses_stdplane(self) },
+            "Notcurses.stdplane()"
+        ]
     }
 
     /// Returns a reference to the standard [NcPlane] for this terminal.

@@ -32,9 +32,15 @@ impl NcMenu {
     ///
     /// *C style function: [ncmenu_item_set_status()][crate::ncmenu_item_set_status].*
     pub fn item_set_status(&mut self, section: &str, item: &str, enabled: bool) -> NcResult<()> {
-        error![unsafe {
-            crate::ncmenu_item_set_status(self, cstring![section], cstring![item], enabled)
-        }]
+        error![
+            unsafe {
+                crate::ncmenu_item_set_status(self, cstring![section], cstring![item], enabled)
+            },
+            &format!(
+                ".item_set_status({:?}, {:?}, {:?}, {})",
+                self, section, item, enabled
+            )
+        ]
     }
 
     /// Returns the [NcMenuItem][crate::NcMenuItem] description

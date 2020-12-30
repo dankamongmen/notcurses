@@ -76,7 +76,7 @@ impl NcCell {
         channels: NcChannelPair,
     ) -> NcResult<u32> {
         let bytes = crate::cell_prime(plane, cell, gcluster, style, channels);
-        error![bytes, bytes as u32]
+        error![bytes, "", bytes as u32]
     }
 
     /// Duplicate this NcCell into another one.

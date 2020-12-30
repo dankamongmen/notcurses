@@ -71,7 +71,6 @@ impl NcDirect {
     pub fn raster_frame(&mut self, faken: &mut NcPlane, align: NcAlign) -> NcResult<()> {
         error![
             unsafe { crate::ncdirect_raster_frame(self, faken, align) },
-            (),
             "Rastering frame"
         ]
     }
@@ -311,6 +310,7 @@ impl NcDirect {
         let (mut y, mut x) = (0, 0);
         error![
             unsafe { crate::ncdirect_cursor_yx(self, &mut y, &mut x) },
+            "",
             (y as NcDimension, x as NcDimension)
         ]
     }
