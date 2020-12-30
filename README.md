@@ -66,14 +66,9 @@ terminal functionality such as unindexed 24-bit color ("TrueColor", not to be
 confused with the 8-bit indexed 24-bit "extended color" of NCURSES).
 For some necessary background, consult Thomas E. Dickey's
 superb and authoritative [NCURSES FAQ](https://invisible-island.net/ncurses/ncurses.faq.html#xterm_16MegaColors).
-As such, Notcurses is not a drop-in Curses replacement. It is almost certainly
-less portable, and definitely tested on less hardware. Sorry about that.
-Ultimately, I hope to properly support all terminals *supporting the features
-necessary for complex TUIs*. I would argue that teletypes etc. are
-fundamentally unsuitable. Most operating systems seem reasonable targets, but I
-only have Linux and FreeBSD available for testing.
+As such, Notcurses is not a drop-in Curses replacement.
 
-Whenever possible, Notcurses makes use of the Terminfo library shipped with
+Wherever possible, Notcurses makes use of the Terminfo library shipped with
 NCURSES, benefiting greatly from its portability and thoroughness.
 
 Notcurses opens up advanced functionality for the interactive user on
