@@ -51,8 +51,8 @@ pub type NcMenuItem = crate::bindings::ffi::ncmenu_item;
 /// Section for [`NcMenu`]
 pub type NcMenuSection = crate::bindings::ffi::ncmenu_section;
 
-/// Bottom row (as opposed to top row)
-pub const NCMENU_OPTION_BOTTOM: u32 = crate::bindings::ffi::NCMENU_OPTION_BOTTOM;
+/// [NcMenuOptions] flag: Bottom row (as opposed to top row).
+pub const NCMENU_OPTION_BOTTOM: u64 = crate::bindings::ffi::NCMENU_OPTION_BOTTOM as u64;
 
-/// Hide the menu when not unrolled
-pub const NCMENU_OPTION_HIDING: u32 = crate::bindings::ffi::NCMENU_OPTION_HIDING;
+/// [NcMenuOptions] flag: Hide the menu when not unrolled
+pub const NCMENU_OPTION_HIDING: u64 = crate::bindings::ffi::NCMENU_OPTION_HIDING as u64;

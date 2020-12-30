@@ -55,8 +55,8 @@
 // (W) wrap: 4 / 0
 // -----------------------------------------
 //W# notcurses_align
+//W+ notcurses_getc_blocking
 //W+ notcurses_getc_nblock
-//W+ notcurses_getc_nblocking
 //~+ notcurses_stddim_yx           // multiple mutable references errors
 //~+ notcurses_stddim_yx_const     //
 //W+ notcurses_term_dim_yx

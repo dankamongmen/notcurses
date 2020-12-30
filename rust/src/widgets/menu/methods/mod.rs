@@ -27,7 +27,7 @@ impl NcMenuItem {
     pub fn new_empty() -> Self {
         Self {
             desc: null_mut(),
-            shortcut: NcInput::new_empty(),
+            shortcut: NcInput::new(),
         }
     }
 }
@@ -50,6 +50,17 @@ impl NcMenuSection {
 
             // shortcut, will be underlined if present in name
             shortcut,
+        }
+    }
+
+    /// New NcMenuSection separator for [NcMenu][crate::NcMenu].
+    ///
+    pub fn new_separator() -> Self {
+        Self {
+            name: null_mut(),
+            items: null_mut(),
+            itemcount: 0,
+            shortcut: NcInput::new(),
         }
     }
 }

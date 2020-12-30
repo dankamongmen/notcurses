@@ -53,7 +53,7 @@ pub const fn ncinput_equal_p(n1: NcInput, n2: NcInput) -> bool {
 /// New NcInput.
 impl NcInput {
     /// New empty NcInput.
-    pub const fn new_empty() -> NcInput {
+    pub const fn new() -> NcInput {
         NcInput {
             id: 0,
             y: 0,

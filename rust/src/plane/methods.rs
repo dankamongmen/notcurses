@@ -119,7 +119,10 @@ impl NcPlane {
         bound_to: &mut NcPlane,
         options: NcPlaneOptions,
     ) -> NcResult<&'a mut NcPlane> {
-        error_ref_mut![unsafe { crate::ncplane_create(bound_to, &options) }]
+        error_ref_mut![
+            unsafe { crate::ncplane_create(bound_to, &options) },
+            &format!["NcPlane::with_options({:?}, {:?})", bound_to, options]
+        ]
     }
 
     /// New NcPlane, with the same dimensions of the terminal.
@@ -572,7 +575,10 @@ impl NcPlane {
     ) -> NcResult<()> {
         error![
             unsafe { crate::ncplane_set_base(self, &(egc as i8), stylemask as u32, channels) },
-            &format!("NcPlane.set_base({}, {}, {})", egc, stylemask, channels)
+            &format!(
+                "NcPlane.set_base({:?}, {:0x}, {:0x})",
+                egc as i32, stylemask, channels
+            )
         ]
     }
 

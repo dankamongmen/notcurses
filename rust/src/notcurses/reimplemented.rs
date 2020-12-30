@@ -51,13 +51,15 @@ pub fn notcurses_getc_nblock(nc: &mut Notcurses, input: &mut NcInput) -> char {
     }
 }
 
-/// 'input' may be NULL if the caller is uninterested in event details.
 /// Blocks until an event is processed or a signal is received.
 ///
-/// *Method: Notcurses.[getc_nblocking()][Notcurses#method.getc_nblocking].*
-// TODO: Option<input>
+/// Optionally writes the event details in `input`.
+///
+/// In case of an invalid read (including on EOF) *-1 as char* is returned.
+///
+/// *Method: Notcurses.[getc_blocking()][Notcurses#method.getc_blocking].*
 #[inline]
-pub fn notcurses_getc_nblocking(nc: &mut Notcurses, input: Option<&mut NcInput>) -> char {
+pub fn notcurses_getc_blocking(nc: &mut Notcurses, input: Option<&mut NcInput>) -> char {
     let input_ptr;
     if let Some(i) = input {
         input_ptr = i as *mut _;

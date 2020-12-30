@@ -323,16 +323,41 @@ impl Notcurses {
         Ok(c)
     }
 
+    /// If no event is ready, returns 0.
     ///
     /// *C style function: [notcurses_getc_nblock()][crate::notcurses_getc_nblock].*
     pub fn getc_nblock(&mut self, input: &mut NcInput) -> char {
         crate::notcurses_getc_nblock(self, input)
     }
 
+    /// Blocks until a codepoint or special key is read,
+    /// or until interrupted by a signal.
     ///
-    /// *C style function: [notcurses_getc_nblocking()][crate::notcurses_getc_nblocking].*
-    pub fn getc_nblocking(&mut self, input: Option<&mut NcInput>) -> char {
-        crate::notcurses_getc_nblocking(self, input)
+    /// In the case of a valid read, a 32-bit Unicode codepoint is returned.
+    ///
+    /// Optionally writes the event details in `input`.
+    ///
+    /// *C style function: [notcurses_getc_blocking()][crate::notcurses_getc_blocking].*
+    pub fn getc_blocking(&mut self, input: Option<&mut NcInput>) -> NcResult<char> {
+        let input_txt;
+        if cfg!(debug_assertions) {
+            input_txt = format!("{:?}", input);
+        } else {
+            input_txt = String::from("");
+        }
+
+        let res = crate::notcurses_getc_blocking(self, input);
+
+        // An invalid read is indicated with -1
+        if res as u32 as i32 != -1 {
+            return Ok(res);
+        } else {
+            error![
+                -1,
+                &format!("Notcurses.getc_blocking({:?})", input_txt),
+                res
+            ]
+        }
     }
 
     /// Gets a file descriptor suitable for input event poll()ing.

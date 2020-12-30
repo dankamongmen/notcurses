@@ -199,6 +199,6 @@ macro_rules! error_str {
         }
     };
     ($str:expr) => {
-        error![$str, (), ""];
+        error_str![$str, ""];
     };
 }
