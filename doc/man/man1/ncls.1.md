@@ -8,7 +8,7 @@ ncls - List paths with rendering of multimedia
 
 # SYNOPSIS
 
-**ncls** [**-h**|**--help**] [**-d**] [**-l**] [**-L**] [**-R**] [**-a|**--align** ***type***] [ paths ]
+**ncls** [**-h**|**--help**] [**-V**|**--version**] [**-d**] [**-l**] [**-L**] [**-R**] [**-a|**--align** ***type***] [ paths ]
 
 # DESCRIPTION
 
@@ -24,6 +24,8 @@ ncls - List paths with rendering of multimedia
 **-L**: when showing file information for a symbolic link, show information for  the file the link references rather than for the link itself.
 
 **-R**: list subdirectories recursively.
+
+**-V**|**--version**: Print version information, and exit with success.
 
 **-h**|**--help**: Print help information, and exit with success.
 

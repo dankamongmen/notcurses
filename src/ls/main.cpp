@@ -19,13 +19,14 @@
 #endif
 
 void usage(std::ostream& os, const char* name, int code){
-  os << "usage: " << name << " -h | [ -lLR ] [ --align type ] paths...\n";
+  os << "usage: " << name << " -h | -V | [ -lLR ] [ --align type ] paths...\n";
   os << " -d: list directories themselves, not their contents\n";
   os << " -l: use a long listing format\n";
   os << " -L: dereference symlink arguments\n";
   os << " -R: list subdirectories recursively\n";
   os << " -a|--align type: one of left, right, or center\n";
   os << " -h: print usage information\n";
+  os << " -V: print version information\n";
   os << std::flush;
   exit(code);
 }
@@ -84,7 +85,7 @@ int handle_dir(int dirfd, std::filesystem::path& pdir, const char* p, const stru
   }
   DIR* dir = fdopendir(newdir);
   auto subdir = pdir / p;
-  if(dir == NULL){
+  if(dir == nullptr){
     std::cerr << "Error opening " << p << ": " << strerror(errno) << std::endl;
     close(newdir);
     return -1;
@@ -181,13 +182,17 @@ int main(int argc, char* const * argv){
   bool dereflinks = false;
   ncalign_e alignment = NCALIGN_RIGHT;
   const struct option opts[] = {
-    { "align", 1, NULL, 'a' },
-    { "help", 0, NULL, 'h' },
-    { NULL, 0, NULL, 0 },
+    { "align", 1, nullptr, 'a' },
+    { "help", 0, nullptr, 'h' },
+    { "version", 0, nullptr, 'V' },
+    { nullptr, 0, nullptr, 0 },
   };
   int c, lidx;
-  while((c = getopt_long(argc, argv, "a:dhlLR", opts, &lidx)) != -1){
+  while((c = getopt_long(argc, argv, "Va:dhlLR", opts, &lidx)) != -1){
     switch(c){
+      case 'V':
+        printf("ncls version %s\n", notcurses_version());
+        exit(EXIT_SUCCESS);
       case 'a':
         if(strcasecmp(optarg, "left") == 0){
           alignment = NCALIGN_LEFT;
