@@ -48,7 +48,8 @@ The demonstrations include (see NOTES below):
 * (y)ield—the best laid schemes o' mice an'men gang aft agley
 * (z)oo—see the marvelous widgets of the notcurses world
 
-At any time, press 'q' to quit. The demo is best run in at least an 80x45 terminal.
+At any time, press 'q' to quit. The demo is best run in at least an 80x45
+terminal, and will refuse to run in anything smaller than 80x24.
 
 # OPTIONS
 
