@@ -179,11 +179,14 @@ auto handle_opts(int argc, char** argv, notcurses_options& opts, bool* quiet,
   *scalemode = NCSCALE_STRETCH;
   *displaytime = -1;
   int c;
-  while((c = getopt(argc, argv, "hql:d:s:b:t:m:kL")) != -1){
+  while((c = getopt(argc, argv, "Vhql:d:s:b:t:m:kL")) != -1){
     switch(c){
       case 'h':
         usage(std::cout, argv[0], EXIT_SUCCESS);
         break;
+      case 'V':
+        printf("notcurses-view version %s\n", notcurses_version());
+        exit(EXIT_SUCCESS);
       case 'q':
         *quiet = true;
         break;
