@@ -139,8 +139,8 @@ usage(const char* exe, int status){
   fprintf(out, "\n\n");
   if(n) ncdirect_set_fg_rgb8(n, 0xff, 0xff, 0xff);
   const char* optexpo[] = {
-    "-h", "this message",
-    "-V", "print program name and version",
+    "-h|--help", "this message",
+    "-V|--version", "print program name and version",
     "-i", "ignore failures, keep going",
     "-k", "keep screen; do not switch to alternate",
     "-d", "delay multiplier (non-negative float)",
@@ -254,6 +254,7 @@ handle_opts(int argc, char** argv, notcurses_options* opts,
   memset(opts, 0, sizeof(*opts));
   const struct option longopts[] = {
     { .name = "help", .has_arg = 0, .flag = NULL, .val = 'h', },
+    { .name = "version", .has_arg = 0, .flag = NULL, .val = 'V', },
     { .name = NULL, .has_arg = 0, .flag = NULL, .val = 0, },
   };
   int lidx;

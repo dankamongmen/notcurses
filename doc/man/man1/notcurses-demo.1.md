@@ -10,7 +10,7 @@ notcurses-demo - Show off some notcurses features
 
 **notcurses-demo** [**-h**|**--help**] [**-p** ***path***] [**-d** ***delaymult***]
  [**-l** ***loglevel***] [**-f** ***renderfile***] [**-J** ***jsonfile***] [**-m** ***margins***]
- [**-ikVc**] ***demospec***
+ [**-V**|**--version**] [**-ikc**] ***demospec***
 
 # DESCRIPTION
 
@@ -71,9 +71,9 @@ terminal, and will refuse to run in anything smaller than 80x24.
 
 **-i**: Continue after a failing demo.
 
-**-h**: Print a usage message, and exit with success.
+**-h**|**--help**: Print a usage message, and exit with success.
 
-**-V**: Print the program name and version, and exit with success.
+**-V**|**--version**: Print the program name and version, and exit with success.
 
 ***demospec***: Select which demos to run, and what order to run them in. The
 default is **ixezcydthnmbkgarwuvlsfjqo**. See above for a list of demos.
