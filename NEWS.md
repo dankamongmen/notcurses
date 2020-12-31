@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 2.1.3 (not yet released)
+* 2.1.3 (2020-12-31)
   * `ncdirect_styles_{set, on, off}()` have been deprecated in favor of
     `ncdirect_{set, on, off}_styles()`, to match `ncplane_` equivalents.
   * `ncdirect_raster_frame()` no longer requires `blitter` nor `scale`.
