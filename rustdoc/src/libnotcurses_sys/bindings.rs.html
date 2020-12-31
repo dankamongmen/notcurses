@@ -756,6 +756,9 @@
 <span id="753">753</span>
 <span id="754">754</span>
 <span id="755">755</span>
+<span id="756">756</span>
+<span id="757">757</span>
+<span id="758">758</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! A selection of the [ffi] bindings intended to be used directly.</span>
 <span class="doccomment">//!</span>
@@ -893,9 +896,6 @@
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">ffi</span>::{
     <span class="comment">// functions</span>
-    <span class="ident">ncdirect_bg_default</span>,
-    <span class="ident">ncdirect_bg_palindex</span>,
-    <span class="ident">ncdirect_bg_rgb</span>,
     <span class="ident">ncdirect_box</span>,
     <span class="ident">ncdirect_canopen_images</span>,
     <span class="ident">ncdirect_canutf8</span>,
@@ -913,14 +913,13 @@
     <span class="ident">ncdirect_dim_x</span>,
     <span class="ident">ncdirect_dim_y</span>,
     <span class="ident">ncdirect_double_box</span>,
-    <span class="ident">ncdirect_fg_default</span>,
-    <span class="ident">ncdirect_fg_palindex</span>,
-    <span class="ident">ncdirect_fg_rgb</span>,
     <span class="ident">ncdirect_flush</span>,
     <span class="ident">ncdirect_getc</span>,
     <span class="ident">ncdirect_hline_interp</span>,
     <span class="ident">ncdirect_init</span>,
     <span class="ident">ncdirect_inputready_fd</span>,
+    <span class="ident">ncdirect_off_styles</span>,
+    <span class="ident">ncdirect_on_styles</span>,
     <span class="ident">ncdirect_palette_size</span>,
     <span class="ident">ncdirect_printf_aligned</span>,
     <span class="ident">ncdirect_putstr</span>,
@@ -928,10 +927,14 @@
     <span class="ident">ncdirect_render_frame</span>,
     <span class="ident">ncdirect_render_image</span>,
     <span class="ident">ncdirect_rounded_box</span>,
+    <span class="ident">ncdirect_set_bg_default</span>,
+    <span class="ident">ncdirect_set_bg_palindex</span>,
+    <span class="ident">ncdirect_set_bg_rgb</span>,
+    <span class="ident">ncdirect_set_fg_default</span>,
+    <span class="ident">ncdirect_set_fg_palindex</span>,
+    <span class="ident">ncdirect_set_fg_rgb</span>,
+    <span class="ident">ncdirect_set_styles</span>,
     <span class="ident">ncdirect_stop</span>,
-    <span class="ident">ncdirect_styles_off</span>,
-    <span class="ident">ncdirect_styles_on</span>,
-    <span class="ident">ncdirect_styles_set</span>,
     <span class="ident">ncdirect_vline_interp</span>,
 };
 
@@ -1085,7 +1088,9 @@
     <span class="comment">// functions</span>
     <span class="ident">ncplane_above</span>,
     <span class="ident">ncplane_at_cursor</span>,
+    <span class="ident">ncplane_at_cursor_cell</span>,
     <span class="ident">ncplane_at_yx</span>,
+    <span class="ident">ncplane_at_yx_cell</span>,
     <span class="ident">ncplane_base</span>,
     <span class="ident">ncplane_below</span>,
     <span class="ident">ncplane_box</span>,
@@ -1141,6 +1146,7 @@
     <span class="ident">ncplane_reparent</span>,
     <span class="ident">ncplane_reparent_family</span>,
     <span class="ident">ncplane_resize</span>,
+    <span class="ident">ncplane_resize_maximize</span>,
     <span class="ident">ncplane_resize_realign</span>,
     <span class="ident">ncplane_resizecb</span>,
     <span class="ident">ncplane_rgba</span>,
@@ -1395,6 +1401,7 @@
     <span class="ident">ncvisual_from_plane</span>,
     <span class="ident">ncvisual_from_rgba</span>,
     <span class="ident">ncvisual_geom</span>,
+    <span class="ident">ncvisual_media_defblitter</span>,
     <span class="ident">ncvisual_polyfill_yx</span>,
     <span class="ident">ncvisual_render</span>,
     <span class="ident">ncvisual_resize</span>,
@@ -1431,6 +1438,7 @@
     <span class="ident">notcurses_canfade</span>,
     <span class="ident">notcurses_canopen_images</span>,
     <span class="ident">notcurses_canopen_videos</span>,
+    <span class="ident">notcurses_cansextant</span>,
     <span class="ident">notcurses_cansixel</span>,
     <span class="ident">notcurses_cantruecolor</span>,
     <span class="ident">notcurses_canutf8</span>,
@@ -1446,8 +1454,6 @@
     <span class="ident">notcurses_lex_scalemode</span>,
     <span class="ident">notcurses_linesigs_disable</span>,
     <span class="ident">notcurses_linesigs_enable</span>,
-    <span class="comment">// Waiting for: https://github.com/dankamongmen/notcurses/issues/1114</span>
-    <span class="comment">// notcurses_media_defblitter,</span>
     <span class="ident">notcurses_mouse_disable</span>,
     <span class="ident">notcurses_mouse_enable</span>,
     <span class="ident">notcurses_palette_size</span>,

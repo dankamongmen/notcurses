@@ -435,6 +435,19 @@
 <span id="432">432</span>
 <span id="433">433</span>
 <span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `channel*_*` reimplemented functions.</span>
 
@@ -545,7 +558,7 @@
     <span class="kw-2">*</span><span class="ident">channels</span>
 }
 
-<span class="doccomment">/// Combines two [NcChannel]s into a [NcChannelPair].</span>
+<span class="doccomment">/// Combines two [NcChannel]s into an [NcChannelPair].</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// *Method: NcChannelPair.[combine()][NcChannelPair#method.combine]*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -672,23 +685,39 @@
 <span class="doccomment">/// Sets the three foreground RGB [NcColor]s of an [NcChannelPair], and</span>
 <span class="doccomment">/// marks it as not using the &quot;default color&quot;.</span>
 <span class="doccomment">///</span>
+<span class="doccomment">/// Unlike the original C API, it also returns the new NcChannelPair.</span>
+<span class="doccomment">///</span>
 <span class="doccomment">/// *Method: NcChannelPair.[set_fg_rgb8()][NcChannelPair#method.set_fg_rgb8]*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channels_set_fg_rgb8</span>(<span class="ident">channels</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcChannelPair</span>, <span class="ident">r</span>: <span class="ident">NcColor</span>, <span class="ident">g</span>: <span class="ident">NcColor</span>, <span class="ident">b</span>: <span class="ident">NcColor</span>) {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channels_set_fg_rgb8</span>(
+    <span class="ident">channels</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcChannelPair</span>,
+    <span class="ident">r</span>: <span class="ident">NcColor</span>,
+    <span class="ident">g</span>: <span class="ident">NcColor</span>,
+    <span class="ident">b</span>: <span class="ident">NcColor</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannelPair</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">channel</span> <span class="op">=</span> <span class="ident">channels_fchannel</span>(<span class="kw-2">*</span><span class="ident">channels</span>);
     <span class="ident">channel_set_rgb8</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">channel</span>, <span class="ident">r</span>, <span class="ident">g</span>, <span class="ident">b</span>);
     <span class="kw-2">*</span><span class="ident">channels</span> <span class="op">=</span> (<span class="ident">channel</span> <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">32</span> <span class="op">|</span> <span class="kw-2">*</span><span class="ident">channels</span> <span class="op">&amp;</span> <span class="number">0xffffffff_u64</span>;
+    <span class="kw-2">*</span><span class="ident">channels</span>
 }
 
 <span class="doccomment">/// Sets the three background RGB [NcColor]s of an [NcChannelPair], and</span>
 <span class="doccomment">/// marks it as not using the &quot;default color&quot;.</span>
 <span class="doccomment">///</span>
+<span class="doccomment">/// Unlike the original C API, it also returns the new NcChannelPair.</span>
+<span class="doccomment">///</span>
 <span class="doccomment">/// *Method: NcChannelPair.[set_bg_rgb8()][NcChannelPair#method.set_bg_rgb8]*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channels_set_bg_rgb8</span>(<span class="ident">channels</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcChannelPair</span>, <span class="ident">r</span>: <span class="ident">NcColor</span>, <span class="ident">g</span>: <span class="ident">NcColor</span>, <span class="ident">b</span>: <span class="ident">NcColor</span>) {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channels_set_bg_rgb8</span>(
+    <span class="ident">channels</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcChannelPair</span>,
+    <span class="ident">r</span>: <span class="ident">NcColor</span>,
+    <span class="ident">g</span>: <span class="ident">NcColor</span>,
+    <span class="ident">b</span>: <span class="ident">NcColor</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannelPair</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">channel</span> <span class="op">=</span> <span class="ident">channels_bchannel</span>(<span class="kw-2">*</span><span class="ident">channels</span>);
     <span class="ident">channel_set_rgb8</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">channel</span>, <span class="ident">r</span>, <span class="ident">g</span>, <span class="ident">b</span>);
     <span class="ident">channels_set_bchannel</span>(<span class="ident">channels</span>, <span class="ident">channel</span>);
+    <span class="kw-2">*</span><span class="ident">channels</span>
 }
 
 <span class="comment">// NcRgb -----------------------------------------------------------------------</span>
@@ -697,7 +726,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// *Method: NcChannelPair.[fg_rgb()][NcChannelPair#method.fg_rgb]*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channels_fg_rgb</span>(<span class="ident">channels</span>: <span class="ident">NcChannelPair</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannel</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channels_fg_rgb</span>(<span class="ident">channels</span>: <span class="ident">NcChannelPair</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcRgb</span> {
     <span class="ident">channels_fchannel</span>(<span class="ident">channels</span>) <span class="op">&amp;</span> <span class="ident">NCCELL_BG_RGB_MASK</span>
 }
 
@@ -705,7 +734,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// *Method: NcChannelPair.[bg_rgb()][NcChannelPair#method.bg_rgb]*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channels_bg_rgb</span>(<span class="ident">channels</span>: <span class="ident">NcChannelPair</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannel</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channels_bg_rgb</span>(<span class="ident">channels</span>: <span class="ident">NcChannelPair</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcRgb</span> {
     <span class="ident">channels_bchannel</span>(<span class="ident">channels</span>) <span class="op">&amp;</span> <span class="ident">NCCELL_BG_RGB_MASK</span>
 }
 
@@ -779,8 +808,9 @@
     <span class="ident">channel_default_p</span>(<span class="ident">channels_fchannel</span>(<span class="ident">channels</span>))
 }
 
-<span class="doccomment">/// Is the background using the &quot;default background color&quot;? The &quot;default</span>
-<span class="doccomment">/// background color&quot; must generally be used to take advantage of</span>
+<span class="doccomment">/// Is the background using the &quot;default background color&quot;?</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// The &quot;default background color&quot; must generally be used to take advantage of</span>
 <span class="doccomment">/// terminal-effected transparency.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// *Method: NcChannelPair.[bg_default_p()][NcChannelPair#method.bg_default_p]*</span>
@@ -841,10 +871,8 @@
     <span class="ident">channel_palindex_p</span>(<span class="ident">channels_bchannel</span>(<span class="ident">channels</span>))
 }
 
-<span class="doccomment">/// Sets an [NcCell][crate::NcCell]&#39;s foreground [NcPaletteIndex].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Also sets [NCCELL_FG_PALETTE] and [NCCELL_ALPHA_OPAQUE],</span>
-<span class="doccomment">/// and clears out [NCCELL_FGDEFAULT_MASK].</span>
+<span class="doccomment">/// Sets the foreground of an [NcChannelPair] as using an</span>
+<span class="doccomment">/// [indexed][NcPaletteIndex] [NcPalette][crate::NcPalette] color.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// *Method: NcChannelPair.[set_fg_palindex()][NcChannelPair#method.set_fg_palindex]*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -856,10 +884,8 @@
     <span class="kw-2">*</span><span class="ident">channels</span> <span class="op">|</span><span class="op">=</span> (<span class="ident">index</span> <span class="kw">as</span> <span class="ident">NcChannelPair</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">32</span>;
 }
 
-<span class="doccomment">/// Sets an [NcCell][crate::NcCell]&#39;s background [NcPaletteIndex].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Also sets [NCCELL_BG_PALETTE] and [NCCELL_ALPHA_OPAQUE],</span>
-<span class="doccomment">/// and clears out [NCCELL_BGDEFAULT_MASK].</span>
+<span class="doccomment">/// Sets the background of an [NcChannelPair] as using an</span>
+<span class="doccomment">/// [indexed][NcPaletteIndex] [NcPalette][crate::NcPalette] color.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// *Method: NcChannelPair.[set_bg_palindex()][NcChannelPair#method.set_bg_palindex]*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>

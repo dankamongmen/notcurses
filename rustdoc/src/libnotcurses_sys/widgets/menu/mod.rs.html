@@ -56,6 +56,9 @@
 <span id="53">53</span>
 <span id="54">54</span>
 <span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcMenu` widget</span>
 
@@ -91,9 +94,12 @@
 <span class="doccomment">/// Either no sections are visible, and the menu is rolled up, or exactly one</span>
 <span class="doccomment">/// section is unrolled.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// `ncmenu_rollup` places an `NcMenu` in the rolled up state.</span>
-<span class="doccomment">/// `ncmenu_unroll` rolls up any unrolled section and unrolls the specified one.</span>
-<span class="doccomment">/// `ncmenu_destroy` removes a menu bar, and frees all associated resources.</span>
+<span class="doccomment">/// - [rollup()][NcMenu#method.rollup]</span>
+<span class="doccomment">///     places an `NcMenu` in the rolled up state.</span>
+<span class="doccomment">/// - [unroll()][NcMenu#method.unroll]</span>
+<span class="doccomment">///     rolls up any unrolled section and unrolls the specified one.</span>
+<span class="doccomment">/// - [destroy()][NcMenu#method.destroy]</span>
+<span class="doccomment">///     removes a menu bar, and frees all associated resources.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// `type in C: ncmenu (struct)`</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcMenu</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncmenu</span>;
@@ -107,10 +113,10 @@
 <span class="doccomment">/// Section for [`NcMenu`]</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcMenuSection</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncmenu_section</span>;
 
-<span class="doccomment">/// Bottom row (as opposed to top row)</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCMENU_OPTION_BOTTOM</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCMENU_OPTION_BOTTOM</span>;
+<span class="doccomment">/// [NcMenuOptions] flag: Bottom row (as opposed to top row).</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCMENU_OPTION_BOTTOM</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCMENU_OPTION_BOTTOM</span> <span class="kw">as</span> <span class="ident">u64</span>;
 
-<span class="doccomment">/// Hide the menu when not unrolled</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCMENU_OPTION_HIDING</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCMENU_OPTION_HIDING</span>;
+<span class="doccomment">/// [NcMenuOptions] flag: Hide the menu when not unrolled</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCMENU_OPTION_HIDING</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCMENU_OPTION_HIDING</span> <span class="kw">as</span> <span class="ident">u64</span>;
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../../";window.currentCrate = "libnotcurses_sys";</script><script src="../../../../main.js"></script><script src="../../../../source-script.js"></script><script src="../../../../source-files.js"></script><script defer src="../../../../search-index.js"></script></body></html>

@@ -38,7 +38,7 @@
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcReader*` methods and associated functions.</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">error_ptr</span>, <span class="ident">ncreader_create</span>, <span class="ident">NcPlane</span>, <span class="ident">NcReader</span>, <span class="ident">NcReaderOptions</span>, <span class="ident">NcResult</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">error_ref_mut</span>, <span class="ident">ncreader_create</span>, <span class="ident">NcPlane</span>, <span class="ident">NcReader</span>, <span class="ident">NcReaderOptions</span>, <span class="ident">NcResult</span>};
 
 <span class="doccomment">/// # `NcReaderOptions` Constructors</span>
 <span class="kw">impl</span> <span class="ident">NcReaderOptions</span> {
@@ -67,7 +67,7 @@
         <span class="ident">plane</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span>,
         <span class="ident">options</span>: <span class="ident">NcReaderOptions</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="macro">error_ptr</span><span class="macro">!</span>[<span class="kw">unsafe</span> { <span class="ident">ncreader_create</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="ident">options</span>) }]
+        <span class="macro">error_ref_mut</span><span class="macro">!</span>[<span class="kw">unsafe</span> { <span class="ident">ncreader_create</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="ident">options</span>) }]
     }
 }
 </pre></div>

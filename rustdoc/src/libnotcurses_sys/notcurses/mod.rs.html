@@ -204,13 +204,14 @@
 <span id="201">201</span>
 <span id="202">202</span>
 <span id="203">203</span>
+<span id="204">204</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `Notcurses`</span>
 
-<span class="comment">// functions already exported by bindgen : 41</span>
+<span class="comment">// functions already exported by bindgen : 42</span>
 <span class="comment">// ------------------------------------------</span>
 <span class="comment">// (#) test: 10</span>
-<span class="comment">// (W) wrap: 40 / 1</span>
+<span class="comment">// (W) wrap: 41 / 1</span>
 <span class="comment">// ------------------------------------------</span>
 <span class="comment">//W  notcurses_at_yx</span>
 <span class="comment">//W  notcurses_bottom</span>
@@ -219,6 +220,7 @@
 <span class="comment">//W# notcurses_canopen_images</span>
 <span class="comment">//W# notcurses_canopen_videos</span>
 <span class="comment">//W# notcurses_cansixel</span>
+<span class="comment">//W# notcurses_cansextant</span>
 <span class="comment">//W# notcurses_cantruecolor</span>
 <span class="comment">//W# notcurses_canutf8</span>
 <span class="comment">//W  notcurses_cursor_disable</span>
@@ -257,14 +259,14 @@
 <span class="comment">// functions manually reimplemented: 6</span>
 <span class="comment">// -----------------------------------------</span>
 <span class="comment">// (+) done: 6 / 0</span>
-<span class="comment">// (#) test: 0</span>
+<span class="comment">// (#) test: 1</span>
 <span class="comment">// (W) wrap: 4 / 0</span>
 <span class="comment">// -----------------------------------------</span>
 <span class="comment">//W# notcurses_align</span>
 <span class="comment">//W+ notcurses_getc_blocking</span>
 <span class="comment">//W+ notcurses_getc_nblock</span>
-<span class="comment">//W+ notcurses_stddim_yx</span>
-<span class="comment">//W+ notcurses_stddim_yx_const</span>
+<span class="comment">//~+ notcurses_stddim_yx           // multiple mutable references errors</span>
+<span class="comment">//~+ notcurses_stddim_yx_const     //</span>
 <span class="comment">//W+ notcurses_term_dim_yx</span>
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>

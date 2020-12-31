@@ -145,28 +145,11 @@
 <span id="142">142</span>
 <span id="143">143</span>
 <span id="144">144</span>
-<span id="145">145</span>
-<span id="146">146</span>
-<span id="147">147</span>
-<span id="148">148</span>
-<span id="149">149</span>
-<span id="150">150</span>
-<span id="151">151</span>
-<span id="152">152</span>
-<span id="153">153</span>
-<span id="154">154</span>
-<span id="155">155</span>
-<span id="156">156</span>
-<span id="157">157</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `libnotcurses-sys` is a *close to the metal* Rust wrapper for the [notcurses</span>
 <span class="doccomment">//! C library](https://www.github.com/dankamongmen/notcurses/)</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The bindings are still incomplete, and a work in progress.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! There is also the [notcurses](https://crates.io/crates/notcurses) crate,</span>
-<span class="doccomment">//! for a safer, more idiomatic wrapper, and with higher level abstractions,</span>
-<span class="doccomment">//! but also still very much more incomplete.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! # Ways of using this library</span>
 <span class="doccomment">//!</span>
@@ -176,9 +159,9 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! fn main() -&gt; NcResult&lt;()&gt; {</span>
 <span class="doccomment">//!     let nc = Notcurses::without_altscreen()?;</span>
-<span class="doccomment">//!     let plane = nc.stdplane();</span>
-<span class="doccomment">//!     plane.putstr(&quot;hello world&quot;);</span>
-<span class="doccomment">//!     nc.render();</span>
+<span class="doccomment">//!     let plane = nc.stdplane()?;</span>
+<span class="doccomment">//!     plane.putstr(&quot;hello world&quot;)?;</span>
+<span class="doccomment">//!     nc.render()?;</span>
 <span class="doccomment">//!     nc.stop()?;</span>
 <span class="doccomment">//!     Ok(())</span>
 <span class="doccomment">//! }</span>
@@ -234,10 +217,7 @@
 <span class="doccomment">//! }</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ```</span>
-<span class="doccomment">//! ## Limitations of this library</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! There are several common patterns in Rust that this library doesn&#39;t employ,</span>
-<span class="doccomment">//! and focuses instead on remaining at a closer distance to the C API.</span>
+<span class="doccomment">//! ## About this library</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! 1. There are no Drop trait implementations, therefore you must manually stop</span>
 <span class="doccomment">//! each context before it goes out of scope ([Notcurses], [NcDirect]), and</span>
@@ -247,14 +227,8 @@
 <span class="doccomment">//! aliased to [NcIntResult]. But the Rust style methods handle errors more</span>
 <span class="doccomment">//! idiomatically using [NcResult] and [NcError].</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! The [notcurses]() crate will use higher level abstractions in ways this</span>
-<span class="doccomment">//! library can not do.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! ### Things this library does do</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! - Type aliases every underlying C type to leverage type checking.</span>
-<span class="doccomment">//! - Renames types to enforce regularity and consistency. (e.g. [NcCell])</span>
-<span class="doccomment">//! - Has handy macros for common tasks like [sleep!], [cstring!] &amp; [error!].</span>
+<span class="doccomment">//! [Macros][#macros] are</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ## The `notcurses` C API docs</span>
 <span class="doccomment">//!</span>

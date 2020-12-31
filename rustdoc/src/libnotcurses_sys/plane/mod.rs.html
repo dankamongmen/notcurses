@@ -302,14 +302,21 @@
 <span id="299">299</span>
 <span id="300">300</span>
 <span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcPlane`</span>
 
-<span class="comment">// functions already exported by bindgen : 102</span>
-<span class="comment">// -------------------------------------------</span>
+<span class="comment">// functions already exported by bindgen : 108 (5 + 103)</span>
+<span class="comment">// -----------------------------------------------------</span>
 <span class="comment">// (X) wont:  6</span>
+<span class="comment">// (D) depr:  4</span>
 <span class="comment">// (#) test: 13</span>
-<span class="comment">// (W) wrap: 77</span>
+<span class="comment">// (W) wrap: 79 of 98</span>
 <span class="comment">// -------------------------------------------</span>
 <span class="comment">//W  ncpile_bottom</span>
 <span class="comment">//W# ncpile_create</span>
@@ -318,7 +325,9 @@
 <span class="comment">//W  ncpile_top</span>
 <span class="comment">//W  ncplane_above</span>
 <span class="comment">//W  ncplane_at_cursor</span>
+<span class="comment">//W  ncplane_at_cursor_cell</span>
 <span class="comment">//W  ncplane_at_yx</span>
+<span class="comment">//W  ncplane_at_yx_cell</span>
 <span class="comment">//W  ncplane_base</span>
 <span class="comment">//W  ncplane_below</span>
 <span class="comment">//W  ncplane_box</span>
@@ -350,6 +359,7 @@
 <span class="comment">//W  ncplane_move_bottom</span>
 <span class="comment">//W  ncplane_move_top</span>
 <span class="comment">//W  ncplane_move_yx</span>
+<span class="comment">// X ncplane_new                       // deprecated</span>
 <span class="comment">//W# ncplane_notcurses</span>
 <span class="comment">//W# ncplane_notcurses_const</span>
 <span class="comment">//W  ncplane_off_styles</span>
@@ -364,9 +374,9 @@
 <span class="comment">// X ncplane_putegc_yx                 // unneeded</span>
 <span class="comment">//   ncplane_putnstr_aligned</span>
 <span class="comment">//   ncplane_putnstr_yx</span>
-<span class="comment">//   ncplane_putstr_aligned</span>
-<span class="comment">//   ncplane_putstr_stained</span>
-<span class="comment">//   ncplane_putstr_yx</span>
+<span class="comment">//W  ncplane_putstr_aligned</span>
+<span class="comment">//W  ncplane_putstr_stained</span>
+<span class="comment">//W  ncplane_putstr_yx</span>
 <span class="comment">//   ncplane_puttext</span>
 <span class="comment">// X ncplane_putwegc_stained           // unneeded</span>
 <span class="comment">// X ncplane_putwstr_stained           // unneeded</span>
@@ -375,6 +385,7 @@
 <span class="comment">//W  ncplane_reparent_family</span>
 <span class="comment">//W# ncplane_resize</span>
 <span class="comment">//W  ncplane_resizecb</span>
+<span class="comment">//   ncplane_resize_maximize</span>
 <span class="comment">//W  ncplane_resize_realign</span>
 <span class="comment">//   ncplane_rgba</span>
 <span class="comment">//W  ncplane_rotate_ccw</span>
@@ -402,6 +413,9 @@
 <span class="comment">//   ncplane_set_userptr</span>
 <span class="comment">//W  ncplane_stain</span>
 <span class="comment">//W  ncplane_styles</span>
+<span class="comment">// X ncplane_styles_off                // deprecated</span>
+<span class="comment">// X ncplane_styles_on                 // deprecated</span>
+<span class="comment">// X ncplane_styles_set                // deprecated</span>
 <span class="comment">//W  ncplane_translate</span>
 <span class="comment">//W  ncplane_translate_abs</span>
 <span class="comment">//   ncplane_userptr</span>
@@ -413,16 +427,14 @@
 <span class="comment">//W  ncplane_y</span>
 <span class="comment">//W  ncplane_yx</span>
 <span class="comment">//</span>
-<span class="comment">// functions manually reimplemented: 41</span>
+<span class="comment">// functions manually reimplemented: 39</span>
 <span class="comment">// ------------------------------------------</span>
 <span class="comment">// (X) wont:  9</span>
-<span class="comment">// (+) done: 34 / 0</span>
+<span class="comment">// (+) done: 32 / 0</span>
 <span class="comment">// (W) wrap: 24</span>
 <span class="comment">// (#) test:  5</span>
 <span class="comment">// ------------------------------------------</span>
 <span class="comment">//W+ ncplane_align</span>
-<span class="comment">//W+ ncplane_at_cursor_cell</span>
-<span class="comment">//W+ ncplane_at_yx_cell</span>
 <span class="comment">//W+ ncplane_bchannel</span>
 <span class="comment">//W+ ncplane_bg_alpha</span>
 <span class="comment">//W# ncplane_bg_default_p</span>
@@ -519,7 +531,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Methods &amp; Associated Functions</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// - [Constructors &amp; Destructors](#ncplane-constructors-and-destructors)</span>
+<span class="doccomment">/// - [Constructors &amp; Destructors](#ncplane-constructors--destructors)</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Methods:</span>
 <span class="doccomment">/// - [`NcAlphaBits`](#ncplane-methods-ncalphabits)</span>

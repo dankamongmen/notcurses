@@ -542,6 +542,7 @@
 <span id="539">539</span>
 <span id="540">540</span>
 <span id="541">541</span>
+<span id="542">542</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `cell*_*` reimplemented functions.</span>
 
@@ -834,7 +835,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// *Method: NcCell.[styles_on()][NcCell#method.styles_on].*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cell_styles_on</span>(<span class="ident">cell</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcCell</span>, <span class="ident">stylebits</span>: <span class="ident">NcStyleMask</span>) {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cell_on_styles</span>(<span class="ident">cell</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcCell</span>, <span class="ident">stylebits</span>: <span class="ident">NcStyleMask</span>) {
     <span class="ident">cell</span>.<span class="ident">stylemask</span> <span class="op">|</span><span class="op">=</span> <span class="ident">stylebits</span> <span class="op">&amp;</span> <span class="ident">NCSTYLE_MASK</span> <span class="kw">as</span> <span class="ident">u16</span>;
 }
 
@@ -842,7 +843,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// *Method: NcCell.[styles_off()][NcCell#method.styles_off].*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cell_styles_off</span>(<span class="ident">cell</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcCell</span>, <span class="ident">stylebits</span>: <span class="ident">NcStyleMask</span>) {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cell_off_styles</span>(<span class="ident">cell</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcCell</span>, <span class="ident">stylebits</span>: <span class="ident">NcStyleMask</span>) {
     <span class="ident">cell</span>.<span class="ident">stylemask</span> <span class="op">&amp;=</span> <span class="op">!</span>(<span class="ident">stylebits</span> <span class="op">&amp;</span> <span class="ident">NCSTYLE_MASK</span> <span class="kw">as</span> <span class="ident">u16</span>);
 }
 
@@ -851,7 +852,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// *Method: NcCell.[styles_set()][NcCell#method.styles_set].*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cell_styles_set</span>(<span class="ident">cell</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcCell</span>, <span class="ident">stylebits</span>: <span class="ident">NcStyleMask</span>) {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cell_set_styles</span>(<span class="ident">cell</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcCell</span>, <span class="ident">stylebits</span>: <span class="ident">NcStyleMask</span>) {
     <span class="ident">cell</span>.<span class="ident">stylemask</span> <span class="op">=</span> <span class="ident">stylebits</span> <span class="op">&amp;</span> <span class="ident">NCSTYLE_MASK</span> <span class="kw">as</span> <span class="ident">u16</span>;
 }
 
@@ -920,9 +921,10 @@
 <span class="comment">//     return cell_load(n, c, gcluster);</span>
 <span class="comment">// }</span>
 
-<span class="doccomment">/// Copies the UTF8-encoded [NcEgc] out of the cell, whether simple or complex.</span>
+<span class="doccomment">/// Copies the UTF8-encoded [NcEgc] out of the [NcCell], whether simple or complex.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// The result is not tied to the [NcPlane], and persists across erases and destruction.</span>
+<span class="doccomment">/// The result is not tied to the [NcPlane],</span>
+<span class="doccomment">/// and persists across erases and destruction.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// *Method: NcCell.[strdup()][NcCell#method.strdup].*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -1018,7 +1020,7 @@
 <span class="doccomment">/// Returns [NCRESULT_OK] on success, [NCRESULT_ERR] on error.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// On error, any [NcCell]s this function might have loaded before the error</span>
-<span class="doccomment">/// are [cell_release]d. There must be at least six [NcEgc]s in gcluster.</span>
+<span class="doccomment">/// are [cell_release]d. There must be at least six [NcEgc]s in `gcluster`.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// *Method: NcCell.[load_box()][NcCell#method.load_box].*</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cells_load_box</span>(

@@ -174,14 +174,47 @@
 <span id="171">171</span>
 <span id="172">172</span>
 <span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Macros</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! NOTE: Use full paths everywhere. Don&#39;t assume anything will be in scope.</span>
+<span class="comment">//</span>
+<span class="comment">// NOTE: Use full paths everywhere. Don&#39;t assume anything will be in scope.</span>
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_imports</span>)]</span>
 <span class="comment">// enjoy briefer doc comments</span>
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">notcurses_render</span>, <span class="ident">NcDirect</span>, <span class="ident">NcError</span>, <span class="ident">NcResult</span>, <span class="ident">Notcurses</span>, <span class="ident">NCRESULT_ERR</span>, <span class="ident">NCRESULT_OK</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">NcDirect</span>, <span class="ident">NcError</span>, <span class="ident">NcResult</span>, <span class="ident">Notcurses</span>, <span class="ident">NCRESULT_ERR</span>, <span class="ident">NCRESULT_OK</span>};
 
 <span class="comment">// Sleep, Render &amp; Flush Macros ------------------------------------------------</span>
 
@@ -208,7 +241,7 @@
     };
 }
 
-<span class="doccomment">/// Notcurses.[render()][Notcurses#method.render]? plus [sleep]!(`sleep_args`).</span>
+<span class="doccomment">/// Notcurses.[render][Notcurses#method.render]\(`nc`\)? plus [sleep]!(`sleep_args`).</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Renders the `$nc` [Notcurses] object and, if there&#39;s no error,</span>
 <span class="doccomment">/// calls the sleep macro with the rest of the arguments.</span>
@@ -226,7 +259,7 @@
     };
 }
 
-<span class="doccomment">/// NcDirect.[flush()][NcDirect#method.flush]? plus [sleep]!(`sleep_args`).</span>
+<span class="doccomment">/// NcDirect.[flush][NcDirect#method.flush]\(`ncd`\)? plus [sleep]!(`sleep_args`).</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Flushes the `$ncd` [NcDirect] object and, if there&#39;s no error,</span>
 <span class="doccomment">/// calls the sleep macro with the rest of the arguments.</span>
@@ -244,13 +277,21 @@
     };
 }
 
-<span class="comment">// General Utility Macros ------------------------------------------------------</span>
+<span class="comment">// String &amp; Print Macros -------------------------------------------------------</span>
 
-<span class="doccomment">/// Converts an `&amp;str` into `*mut CString`, for when a `*const c_char` is needed.</span>
+<span class="doccomment">/// Converts an `&amp;str` into `*const c_char`.</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">cstring</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="ident">std</span>::<span class="ident">ffi</span>::<span class="ident">CString</span>::<span class="ident">new</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>).<span class="ident">unwrap</span>().<span class="ident">as_ptr</span>();
+    };
+}
+
+<span class="doccomment">/// Converts an `&amp;str` into `*mut c_char`.</span>
+<span class="attribute">#[<span class="ident">macro_export</span>]</span>
+<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">cstring_mut</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">std</span>::<span class="ident">ffi</span>::<span class="ident">CString</span>::<span class="ident">new</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>).<span class="ident">unwrap</span>().<span class="ident">into_raw</span>();
     };
 }
 
@@ -288,18 +329,41 @@
 <span class="doccomment">/// type `()`, and an empty `&amp;str` `&quot;&quot;`, respectively.</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">error</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ok</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">msg</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">msg</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ok</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span> <span class="op">&gt;</span><span class="op">=</span> <span class="kw">crate</span>::<span class="ident">NCRESULT_OK</span> {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ok</span>);
         } <span class="kw">else</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="kw">crate</span>::<span class="ident">NcError</span>::<span class="ident">with_msg</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">msg</span>));
         }
     };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ok</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="macro">error</span><span class="macro">!</span>[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ok</span>, <span class="string">&quot;&quot;</span>];
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">msg</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="macro">error</span><span class="macro">!</span>[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">msg</span>, ()];
     };
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="macro">error</span><span class="macro">!</span>[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>, (), <span class="string">&quot;&quot;</span>];
+        <span class="macro">error</span><span class="macro">!</span>[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>, <span class="string">&quot;&quot;</span>, ()];
+    };
+}
+
+<span class="doccomment">/// Returns an Ok(&amp;T) from a `*const T` pointer,</span>
+<span class="doccomment">/// or an Err([NcError]) if the pointer is null.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// In other words:</span>
+<span class="doccomment">/// Returns Ok(&amp;*`$ptr`) if `$ptr` != `null()`, otherwise returns</span>
+<span class="doccomment">/// Err([NcError]]::[new][NcError#method.new]([NCRESULT_ERR], `$msg`)).</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// `$msg` is optional. By default it will be an empty `&amp;str` `&quot;&quot;`.</span>
+<span class="attribute">#[<span class="ident">macro_export</span>]</span>
+<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">error_ref</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ptr</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">msg</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ptr</span> <span class="op">!</span><span class="op">=</span> <span class="ident">core</span>::<span class="ident">ptr</span>::<span class="ident">null</span>() {
+            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_unsafe</span>)]</span>
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">ptr</span> });
+        } <span class="kw">else</span> {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="kw">crate</span>::<span class="ident">NcError</span>::<span class="ident">with_msg</span>(<span class="kw">crate</span>::<span class="ident">NCRESULT_ERR</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">msg</span>));
+        }
+    };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ptr</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="macro">error_ref</span><span class="macro">!</span>[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ptr</span>, <span class="string">&quot;&quot;</span>];
     };
 }
 
@@ -307,12 +371,12 @@
 <span class="doccomment">/// or an Err([NcError]) if the pointer is null.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// In other words:</span>
-<span class="doccomment">/// Returns Ok(&amp;mut *`$ptr`) if `$ptr` != `null()`, otherwise returns</span>
+<span class="doccomment">/// Returns Ok(&amp;mut *`$ptr`) if `$ptr` != `null_mut()`, otherwise returns</span>
 <span class="doccomment">/// Err([NcError]]::[new][NcError#method.new]([NCRESULT_ERR], `$msg`)).</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// `$msg` is optional. By default it will be an empty `&amp;str` `&quot;&quot;`.</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">error_ptr</span> {
+<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">error_ref_mut</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ptr</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">msg</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ptr</span> <span class="op">!</span><span class="op">=</span> <span class="ident">core</span>::<span class="ident">ptr</span>::<span class="ident">null_mut</span>() {
             <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_unsafe</span>)]</span>
@@ -322,7 +386,7 @@
         }
     };
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ptr</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="macro">error_ptr</span><span class="macro">!</span>[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ptr</span>, <span class="string">&quot;&quot;</span>];
+        <span class="macro">error_ref_mut</span><span class="macro">!</span>[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ptr</span>, <span class="string">&quot;&quot;</span>];
     };
 }
 
@@ -345,7 +409,7 @@
         }
     };
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">str</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="macro">error</span><span class="macro">!</span>[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">str</span>, (), <span class="string">&quot;&quot;</span>];
+        <span class="macro">error_str</span><span class="macro">!</span>[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">str</span>, <span class="string">&quot;&quot;</span>];
     };
 }
 </pre></div>

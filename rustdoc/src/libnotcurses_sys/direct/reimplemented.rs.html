@@ -101,30 +101,30 @@
 
 <span class="doccomment">/// Sets the foreground [NcColor] components.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// *Method: NcDirect.[fg_rgb8()][NcDirect#method.getc_fg_rgb8].*</span>
+<span class="doccomment">/// *Method: NcDirect.[set_fg_rgb8()][NcDirect#method.set_fg_rgb8].*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncdirect_fg_rgb8</span>(
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncdirect_set_fg_rgb8</span>(
     <span class="ident">ncd</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcDirect</span>,
     <span class="ident">red</span>: <span class="ident">NcColor</span>,
     <span class="ident">green</span>: <span class="ident">NcColor</span>,
     <span class="ident">blue</span>: <span class="ident">NcColor</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcIntResult</span> {
     <span class="kw">let</span> <span class="ident">rgb</span> <span class="op">=</span> (<span class="ident">red</span> <span class="kw">as</span> <span class="ident">NcRgb</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">16</span> <span class="op">|</span> (<span class="ident">green</span> <span class="kw">as</span> <span class="ident">NcRgb</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span> <span class="op">|</span> <span class="ident">blue</span> <span class="kw">as</span> <span class="ident">NcRgb</span>;
-    <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirect_fg_rgb</span>(<span class="ident">ncd</span>, <span class="ident">rgb</span>) }
+    <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirect_set_fg_rgb</span>(<span class="ident">ncd</span>, <span class="ident">rgb</span>) }
 }
 
 <span class="doccomment">/// Sets the background [NcColor] components.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// *Method: NcDirect.[bg_rgb8()][NcDirect#method.getc_bg_rgb8].*</span>
+<span class="doccomment">/// *Method: NcDirect.[set_bg_rgb8()][NcDirect#method.set_bg_rgb8].*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncdirect_bg_rgb8</span>(
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncdirect_set_bg_rgb8</span>(
     <span class="ident">ncd</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcDirect</span>,
     <span class="ident">red</span>: <span class="ident">NcColor</span>,
     <span class="ident">green</span>: <span class="ident">NcColor</span>,
     <span class="ident">blue</span>: <span class="ident">NcColor</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcIntResult</span> {
     <span class="kw">let</span> <span class="ident">rgb</span> <span class="op">=</span> (<span class="ident">red</span> <span class="kw">as</span> <span class="ident">NcRgb</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">16</span> <span class="op">|</span> (<span class="ident">green</span> <span class="kw">as</span> <span class="ident">NcRgb</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span> <span class="op">|</span> <span class="ident">blue</span> <span class="kw">as</span> <span class="ident">NcRgb</span>;
-    <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirect_bg_rgb</span>(<span class="ident">ncd</span>, <span class="ident">rgb</span>) }
+    <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirect_set_bg_rgb</span>(<span class="ident">ncd</span>, <span class="ident">rgb</span>) }
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "libnotcurses_sys";</script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>
