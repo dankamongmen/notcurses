@@ -146,21 +146,30 @@ int fallin_demo(struct notcurses* nc){
             ncplane_resize_simple(n, newy, newx);
             continue;
           }
-          nccell stdc = CELL_TRIVIAL_INITIALIZER;
-          if(ncplane_at_yx_cell(stdn, usey, usex, &stdc) < 0){
+          cell c = CELL_TRIVIAL_INITIALIZER;
+          uint16_t smask;
+          uint64_t channels;
+          char* egc = ncplane_at_yx(stdn, usey, usex, &smask, &channels);
+          if(egc == NULL){
             goto err;
           }
-          if(stdc.gcluster){
-            if(ncplane_putc_yx(n, usey - y, usex - x, &stdc) < 0){
+          if(*egc){
+            if(cell_prime(n, &c, egc, smask, channels) <= 0){
+              free(egc);
+              goto err;
+            }
+            free(egc);
+            if(ncplane_putc_yx(n, usey - y, usex - x, &c) < 0){
               // allow a fail if we were printing a wide char to the
               // last column of our plane
-              if(!cell_double_wide_p(&stdc) || usex + 1 < x + newx){
+              if(!cell_double_wide_p(&c) || usex + 1 < x + newx){
+                cell_release(n, &c);
                 goto err;
               }
             }
           }
           usemap[usey * dimx + usex] = true;
-          cell_release(n, &stdc);
+          cell_release(n, &c);
         }
       }
       // shuffle the new ncplane into the array
