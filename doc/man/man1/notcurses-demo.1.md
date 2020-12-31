@@ -8,9 +8,9 @@ notcurses-demo - Show off some notcurses features
 
 # SYNOPSIS
 
-**notcurses-demo** [**-h|--help**] [**-p path**] [**-d delaymult**]
- [**-l loglevel**] [**-f renderfile**] [**-J jsonfile**] [**-m margins**]
- [**-ikVc**] demospec
+**notcurses-demo** [**-h**|**--help**] [**-p** ***path***] [**-d** ***delaymult***]
+ [**-l** ***loglevel***] [**-f** ***renderfile***] [**-J** ***jsonfile***] [**-m** ***margins***]
+ [**-ikVc**] ***demospec***
 
 # DESCRIPTION
 
@@ -22,48 +22,48 @@ a way that is going to prevent notcurses from working in other applications.
 
 The demonstrations include (see NOTES below):
 
-* (a)llglyph—scroll the glyphs of your font
-* (b)oxes—pulsating boxes with a transparent center
-* (c)hunli—the strongest woman in the world
-* (d)ragon—the Harter-Heighway dragon curve
-* (e)agle—they took some time off my life, back in the day
-* (f)allin'—the screen falls apart under heavy blows
-* (g)rid—a gradient of color lain atop a great grid
-* (h)ighcon—high contrast text atop various colors
-* (i)ntro—a setting of tone
-* (j)ungle—low-bandwidth color cycling reveals ancient ruins
-* (k)eller—the miracle of sight, and painting with Braille
-* (l)uigi—a dashing Apennine plumber in a world of fire
-* (m)ojibake—today's fresh catch of emoji (market price)
-* (n)ormal—a normal map of a friend, with effects
-* (o)utro—a message of hope from the library's author
-* (q)rcode—quick response codes (from ISO/IEC 18004:2015)
-* (r)eel—demonstration of the ncreel high-level widget
-* (s)liders—a missing-piece puzzle made up of colorful blocks
-* (t)rans—an exploration of various transparencies
-* (u)niblocks—a series of blocks detailing Unicode pages
-* (v)iew—images and a video are rendered as text
-* (w)hiteout—a great Nothing slowly robs the world of color
-* (x)ray—stimulate a logo with energy
-* (y)ield—the best laid schemes o' mice an'men gang aft agley
-* (z)oo—see the marvelous widgets of the notcurses world
+* (***a***)llglyph—scroll the glyphs of your font
+* (***b***)oxes—pulsating boxes with a transparent center
+* (***c***)hunli—the strongest woman in the world
+* (***d***)ragon—the Harter-Heighway dragon curve
+* (***e***)agle—they took some time off my life, back in the day
+* (***f***)allin'—the screen falls apart under heavy blows
+* (***g***)rid—a gradient of color lain atop a great grid
+* (***h***)ighcon—high contrast text atop various colors
+* (***i***)ntro—a setting of tone
+* (***j***)ungle—low-bandwidth color cycling reveals ancient ruins
+* (***k***)eller—the miracle of sight, and painting with Braille
+* (***l***)uigi—a dashing Apennine plumber in a world of fire
+* (***m***)ojibake—today's fresh catch of emoji (market price)
+* (***n***)ormal—a normal map of a friend, with effects
+* (***o***)utro—a message of hope from the library's author
+* (***q***)rcode—quick response codes (from ISO/IEC 18004:2015)
+* (***r***)eel—demonstration of the ncreel high-level widget
+* (***s***)liders—a missing-piece puzzle made up of colorful blocks
+* (***t***)rans—an exploration of various transparencies
+* (***u***)niblocks—a series of blocks detailing Unicode pages
+* (***v***)iew—images and a video are rendered as text
+* (***w***)hiteout—a great Nothing slowly robs the world of color
+* (***x***)ray—stimulate a logo with energy
+* (***y***)ield—the best laid schemes o' mice an'men gang aft agley
+* (***z***)oo—see the marvelous widgets of the notcurses world
 
 At any time, press 'q' to quit. The demo is best run in at least an 80x45
 terminal, and will refuse to run in anything smaller than 80x24.
 
 # OPTIONS
 
-**-p path**: Look in the specified **path** for data files.
+**-p** ***path***: Look in the specified ***path*** for data files.
 
-**-d delaymult**: Apply a non-negative rational multiplier to the standard delay of 1s.
+**-d** ***delaymult***: Apply a non-negative rational multiplier to the standard delay of 1s.
 
-**-l loglevel**: Log everything (log level 8) or nothing (log level 0) to stderr.
+**-l** ***loglevel***: Log everything (log level 8) or nothing (log level 0) to stderr.
 
-**-f renderfile**: Render each frame to **renderfile** in addition to the screen.
+**-f** ***renderfile***: Render each frame to ***renderfile*** in addition to the screen.
 
-**-J jsonfile**: Emit JSON summary of run to **jsonfile**.
+**-J** ***jsonfile***: Emit JSON summary of run to ***jsonfile***.
 
-**-m margins**: Define rendering margins (see below).
+**-m** ***margins***: Define rendering margins (see below).
 
 **-k**: Inhibit use of the alternate screen. Necessary if you want the output left on your terminal after the program exits.
 
@@ -75,7 +75,7 @@ terminal, and will refuse to run in anything smaller than 80x24.
 
 **-V**: Print the program name and version, and exit with success.
 
-demospec: Select which demos to run, and what order to run them in. The
+***demospec***: Select which demos to run, and what order to run them in. The
 default is **ixezcydthnmbkgarwuvlsfjqo**. See above for a list of demos.
 
 Default margins are all 0, and thus the full screen will be rendered. Using
