@@ -3,10 +3,6 @@
 //!
 //! The bindings are still incomplete, and a work in progress.
 //!
-//! There is also the [notcurses](https://crates.io/crates/notcurses) crate,
-//! for a safer, more idiomatic wrapper, and with higher level abstractions,
-//! but also still very much more incomplete.
-//!
 //! # Ways of using this library
 //!
 //! The *rusty* way is to use the provided methods and constructors:
@@ -16,8 +12,8 @@
 //! fn main() -> NcResult<()> {
 //!     let nc = Notcurses::without_altscreen()?;
 //!     let plane = nc.stdplane()?;
-//!     plane.putstr("hello world");
-//!     nc.render();
+//!     plane.putstr("hello world")?;
+//!     nc.render()?;
 //!     nc.stop()?;
 //!     Ok(())
 //! }
@@ -73,10 +69,7 @@
 //! }
 //!
 //! ```
-//! ## Limitations of this library
-//!
-//! There are several common patterns in Rust that this library doesn't employ,
-//! and focuses instead on remaining at a closer distance to the C API.
+//! ## About this library
 //!
 //! 1. There are no Drop trait implementations, therefore you must manually stop
 //! each context before it goes out of scope ([Notcurses], [NcDirect]), and
@@ -86,14 +79,8 @@
 //! aliased to [NcIntResult]. But the Rust style methods handle errors more
 //! idiomatically using [NcResult] and [NcError].
 //!
-//! The [notcurses]() crate will use higher level abstractions in ways this
-//! library can not do.
 //!
-//! ### Things this library does do
-//!
-//! - Type aliases every underlying C type to leverage type checking.
-//! - Renames types to enforce regularity and consistency. (e.g. [NcCell])
-//! - Has handy macros for common tasks like [sleep!], [cstring!] & [error!].
+//! [Macros][#macros] are
 //!
 //! ## The `notcurses` C API docs
 //!

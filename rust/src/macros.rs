@@ -1,10 +1,11 @@
 //! Macros
 //!
-//! NOTE: Use full paths everywhere. Don't assume anything will be in scope.
+//
+// NOTE: Use full paths everywhere. Don't assume anything will be in scope.
 
 #[allow(unused_imports)]
 // enjoy briefer doc comments
-use crate::{notcurses_render, NcDirect, NcError, NcResult, Notcurses, NCRESULT_ERR, NCRESULT_OK};
+use crate::{NcDirect, NcError, NcResult, Notcurses, NCRESULT_ERR, NCRESULT_OK};
 
 // Sleep, Render & Flush Macros ------------------------------------------------
 
@@ -31,7 +32,7 @@ macro_rules! sleep {
     };
 }
 
-/// Notcurses.[render()][Notcurses#method.render]? plus [sleep]!(`sleep_args`).
+/// Notcurses.[render][Notcurses#method.render]\(`nc`\)? plus [sleep]!(`sleep_args`).
 ///
 /// Renders the `$nc` [Notcurses] object and, if there's no error,
 /// calls the sleep macro with the rest of the arguments.
@@ -49,7 +50,7 @@ macro_rules! rsleep {
     };
 }
 
-/// NcDirect.[flush()][NcDirect#method.flush]? plus [sleep]!(`sleep_args`).
+/// NcDirect.[flush][NcDirect#method.flush]\(`ncd`\)? plus [sleep]!(`sleep_args`).
 ///
 /// Flushes the `$ncd` [NcDirect] object and, if there's no error,
 /// calls the sleep macro with the rest of the arguments.
