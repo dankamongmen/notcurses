@@ -3,7 +3,7 @@
 use libc::strcmp;
 
 use crate::{
-    cell_release, NcAlphaBits, NcCell, NcChannel, NcChannelPair, NcColor, NcEgc, NcIntResult,
+    cstring, cell_release, NcAlphaBits, NcCell, NcChannel, NcChannelPair, NcColor, NcEgc, NcIntResult,
     NcPaletteIndex, NcPlane, NcRgb, NcStyleMask, NCCELL_ALPHA_OPAQUE, NCCELL_BGDEFAULT_MASK,
     NCCELL_BG_PALETTE, NCCELL_FGDEFAULT_MASK, NCCELL_FG_PALETTE, NCCELL_NOBACKGROUND_MASK,
     NCCELL_WIDEASIAN_MASK, NCRESULT_ERR, NCRESULT_OK, NCSTYLE_MASK,
@@ -460,18 +460,18 @@ pub fn cell_init(cell: &mut NcCell) {
 pub fn cell_prime(
     plane: &mut NcPlane,
     cell: &mut NcCell,
-    gcluster: NcEgc,
+    gcluster: &str,
     style: NcStyleMask,
     channels: NcChannelPair,
 ) -> NcIntResult {
     cell.stylemask = style;
     cell.channels = channels;
-    unsafe { crate::cell_load(plane, cell, gcluster as u32 as *const i8) }
+    unsafe { crate::cell_load(plane, cell, cstring![gcluster]) }
 }
 
 /// Loads up six cells with the [NcEgc]s necessary to draw a box.
 ///
-/// Returns [NCRESULT_OK] on success, [NCRESULT_ERR] on error.
+/// Returns [NCRESULT_OK] on success or [NCRESULT_ERR] on error.
 ///
 /// On error, any [NcCell]s this function might have loaded before the error
 /// are [cell_release]d. There must be at least six [NcEgc]s in `gcluster`.
@@ -487,10 +487,11 @@ pub fn cells_load_box(
     lr: &mut NcCell,
     hl: &mut NcCell,
     vl: &mut NcCell,
-    gcluster: NcEgc,
+    gcluster: &str,
 ) -> NcIntResult {
-    // mutable copy for pointer arithmetics:
-    let mut gclu = gcluster as u32 as *const i8;
+    // TODO: CHECK: mutable copy for pointer arithmetics:
+    let mut gclu = cstring![gcluster];
+
     let mut ulen: NcIntResult;
 
     ulen = cell_prime(plane, ul, gcluster, style, channels);

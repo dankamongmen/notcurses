@@ -71,7 +71,7 @@ impl NcCell {
     pub fn prime(
         plane: &mut NcPlane,
         cell: &mut NcCell,
-        gcluster: NcEgc,
+        gcluster: &str,
         style: NcStyleMask,
         channels: NcChannelPair,
     ) -> NcResult<u32> {
@@ -447,7 +447,7 @@ impl NcCell {
         lr: &mut NcCell,
         hl: &mut NcCell,
         vl: &mut NcCell,
-        gcluster: NcEgc,
+        gcluster: &str,
     ) -> NcResult<()> {
         error![crate::cells_load_box(
             plane, style, channels, ul, ur, ll, lr, hl, vl, gcluster
