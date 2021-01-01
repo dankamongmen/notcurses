@@ -53,7 +53,7 @@ pub const fn ncinput_equal_p(n1: NcInput, n2: NcInput) -> bool {
 /// New NcInput.
 impl NcInput {
     /// New empty NcInput.
-    pub const fn new() -> NcInput {
+    pub const fn new_empty() -> NcInput {
         NcInput {
             id: 0,
             y: 0,
@@ -63,6 +63,26 @@ impl NcInput {
             ctrl: false,
             seqnum: 0,
         }
+    }
+
+    /// New NcInput.
+    pub const fn new(id: char) -> NcInput {
+        Self::with_all_args(id, None, None, false, false, false, 0)
+    }
+
+    /// New NcInput with alt key.
+    pub const fn with_alt(id: char) -> NcInput {
+        Self::with_all_args(id, None, None, true, false, false, 0)
+    }
+
+    /// New NcInput with shift key.
+    pub const fn with_shift(id: char) -> NcInput {
+        Self::with_all_args(id, None, None, false, true, false, 0)
+    }
+
+    /// New NcInput with ctrl key.
+    pub const fn with_ctrl(id: char) -> NcInput {
+        Self::with_all_args(id, None, None, false, false, true, 0)
     }
 
     /// New NcInput, expecting all the arguments.
@@ -96,21 +116,6 @@ impl NcInput {
             ctrl,
             seqnum,
         }
-    }
-
-    /// New NcInput with alt key.
-    pub const fn with_alt(id: char) -> NcInput {
-        Self::with_all_args(id, None, None, true, false, false, 0)
-    }
-
-    /// New NcInput with shift key.
-    pub const fn with_shift(id: char) -> NcInput {
-        Self::with_all_args(id, None, None, false, true, false, 0)
-    }
-
-    /// New NcInput with ctrl key.
-    pub const fn with_ctrl(id: char) -> NcInput {
-        Self::with_all_args(id, None, None, false, false, true, 0)
     }
 }
 

@@ -27,7 +27,7 @@ impl NcMenuItem {
     pub fn new_empty() -> Self {
         Self {
             desc: null_mut(),
-            shortcut: NcInput::new(),
+            shortcut: NcInput::new_empty(),
         }
     }
 }
@@ -60,7 +60,7 @@ impl NcMenuSection {
             name: null_mut(),
             items: null_mut(),
             itemcount: 0,
-            shortcut: NcInput::new(),
+            shortcut: NcInput::new_empty(),
         }
     }
 }

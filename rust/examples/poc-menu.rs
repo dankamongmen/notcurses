@@ -79,7 +79,7 @@ fn run_menu(nc: &mut Notcurses, menu: &mut NcMenu) -> NcResult<()> {
     channels.set_bg_rgb(0x88aa00);
     selplane.set_base(' ', 0, channels)?;
 
-    let mut ni = NcInput::new();
+    let mut ni = NcInput::new_empty();
     let mut keypress: char;
 
     // FIXME: screen updates one keypress later.
@@ -102,11 +102,15 @@ fn run_menu(nc: &mut Notcurses, menu: &mut NcMenu) -> NcResult<()> {
                 }
             }
         }
-        selplane.erase();
-        // let mut selni = NcInput::new();
-        // BUG FIXME:
-        // let selitem = menu.selected(Some(&mut selni))?;
-        // selplane.putstr_aligned(1, NCALIGN_CENTER, &selitem)?;
+
+        let mut selni = NcInput::new_empty();
+        // if let Some(selitem) = menu.selected(Some(&mut selni)) {
+        //     selplane.putstr_aligned(1, NCALIGN_CENTER, &selitem)?;
+        // } else {
+        //     // DEBUG
+        //     selplane.putstr_aligned(1, NCALIGN_CENTER, "nothing opened")?;
+        // }
+
         nc.render()?;
     }
 }
