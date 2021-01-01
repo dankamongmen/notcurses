@@ -3,9 +3,13 @@
 //! Explore cursor functions in direct mode
 //!
 
+use rand::{thread_rng, Rng};
+
 use libnotcurses_sys::*;
 
 fn main() -> NcResult<()> {
+    let mut rng = thread_rng();
+
     let ncd = NcDirect::new()?;
 
     let cols = ncd.dim_x();
@@ -14,12 +18,22 @@ fn main() -> NcResult<()> {
 
     let mut channels = NcChannelPair::combine(
         NcChannel::with_rgb(0xAA2244),
-        NcChannel::with_rgb(0x114433),
+        NcChannel::with_rgb(0x112233),
         );
     ncd.putstr(channels, "The current coordinates are")?;
 
     for _n in 0..40 {
         fsleep![ncd, 0, 30];
+        channels.set_fg_rgb8(
+            rng.gen_range(0x66..=0xEE),
+            rng.gen_range(0x66..=0xEE),
+            rng.gen_range(0x66..=0xEE),
+        );
+        channels.set_bg_rgb8(
+            rng.gen_range(0..=0x9),
+            rng.gen_range(0..=0x9),
+            rng.gen_range(0..=0x9),
+        );
         ncd.putstr(channels, ".")?;
     }
 
@@ -29,16 +43,18 @@ fn main() -> NcResult<()> {
 
     let sentence = vec!["And", "now", "I", "will", "clear", "the", "screen", ".", ".", "."];
     for word in sentence {
-        ncd.putstr(0, &format!["{} ", word])?;
+        channels.set_fg_rgb(channels.fg_rgb().wrapping_sub(0x050505));
+        channels.set_bg_rgb(channels.bg_rgb().wrapping_add(0x090909));
+        ncd.putstr(channels, &format!["{} ", word])?;
         fsleep![ncd, 0, 150];
     }
     sleep![0, 300];
-    ncd.putstr(0, "\nbye!\n\n")?;
+    channels.set_fg_rgb(0xFFFFFF);
+    channels.set_bg_default();
+    ncd.putstr(channels, "\nbye!\n\n")?;
     fsleep![ncd, 0, 600];
-
     ncd.clear()?;
-    sleep![1];
-
+    sleep![2];
     ncd.stop()?;
     Ok(())
 }
