@@ -4,6 +4,18 @@ use crate::{NcAlphaBits, NcChannel, NcChannelPair, NcColor, NcPaletteIndex, NcRg
 
 /// Enables the [NcChannel] methods.
 pub trait NcChannelMethods {
+    // constructors
+    fn new() -> Self;
+    fn with_default() -> Self;
+    fn with_rgb(rgb: NcRgb) -> Self;
+    fn with_rgb_alpha(rgb: NcRgb, alpha: NcAlphaBits) -> Self;
+    fn with_rgb8(r: NcColor, g: NcColor, b: NcColor) -> Self;
+    fn with_rgb8_alpha(r: NcColor, g: NcColor, b: NcColor, alpha: NcAlphaBits) -> Self;
+
+    // methods
+    fn fcombine(&self, bchannel: NcChannel) -> NcChannelPair;
+    fn bcombine(&self, fchannel: NcChannel) -> NcChannelPair;
+
     fn alpha(&self) -> NcAlphaBits;
     fn set_alpha(&mut self, alpha: NcAlphaBits);
 
@@ -25,13 +37,16 @@ pub trait NcChannelMethods {
     fn set_default(&mut self) -> NcChannel;
 
     fn palindex_p(&self) -> bool;
-
-    fn fcombine(&self, bchannel: NcChannel) -> NcChannelPair;
-    fn bcombine(&self, fchannel: NcChannel) -> NcChannelPair;
 }
 
 /// Enables the [NcChannelPair] methods.
 pub trait NcChannelPairMethods {
+    // constructors
+    // …
+
+    // methods
+    fn combine(fchannel: NcChannel, bchannel: NcChannel) -> NcChannelPair;
+
     fn fchannel(&self) -> NcChannel;
     fn bchannel(&self) -> NcChannel;
     fn set_fchannel(&mut self, fchannel: NcChannel) -> NcChannelPair;
@@ -73,14 +88,54 @@ pub trait NcChannelPairMethods {
     fn bg_palindex_p(&self) -> bool;
     fn set_fg_palindex(&mut self, index: NcPaletteIndex);
     fn set_bg_palindex(&mut self, index: NcPaletteIndex);
-
-    fn combine(fchannel: NcChannel, bchannel: NcChannel) -> NcChannelPair;
 }
 
 // NcChannel -------------------------------------------------------------------
 
 /// # `NcChannel` Methods
 impl NcChannelMethods for NcChannel {
+    // Constructors
+
+    /// New NcChannel, set to black and NOT using the default color.
+    fn new() -> Self {
+        0 as NcChannel | crate::NCCELL_BGDEFAULT_MASK
+    }
+
+    /// New NcChannel, set to black but using the default color.
+    fn with_default() -> Self {
+        0 as NcChannel
+    }
+
+    /// New NcChannel, expects [NcRgb].
+    fn with_rgb(rgb: NcRgb) -> Self {
+        let mut channel = 0;
+        crate::channel_set(&mut channel, rgb);
+        channel
+    }
+
+    /// New NcChannel, expects [NcRgb] & [NcAlphaBits].
+    fn with_rgb_alpha(rgb: NcRgb, alpha: NcAlphaBits) -> Self {
+        let mut channel = 0;
+        crate::channel_set(&mut channel, rgb);
+        crate::channel_set_alpha(&mut channel, alpha);
+        channel
+    }
+
+    /// New NcChannel, expects three RGB [NcColor] components.
+    fn with_rgb8(r: NcColor, g: NcColor, b: NcColor) -> Self {
+        let mut channel = 0;
+        crate::channel_set_rgb8(&mut channel, r, g, b);
+        channel
+    }
+
+    /// New NcChannel, expects three RGB [NcColor] components.
+    fn with_rgb8_alpha(r: NcColor, g: NcColor, b: NcColor, alpha: NcAlphaBits) -> Self {
+        let mut channel = 0;
+        crate::channel_set_rgb8(&mut channel, r, g, b);
+        crate::channel_set_alpha(&mut channel, alpha);
+        channel
+    }
+
     // Combine
 
     /// Combines this [NcChannel] as foreground, with another as background
@@ -245,6 +300,15 @@ impl NcChannelMethods for NcChannel {
 
 /// # `NcChannelPair` Methods
 impl NcChannelPairMethods for NcChannelPair {
+    // Combine
+
+    /// Combines two [NcChannel]s into an [NcChannelPair].
+    ///
+    /// *C style function: [channels_combine()][crate::channels_combine].*
+    fn combine(fchannel: NcChannel, bchannel: NcChannel) -> NcChannelPair {
+        crate::channels_combine(fchannel, bchannel)
+    }
+
     // NcChannel
 
     /// Extracts the foreground [NcChannel].
@@ -528,14 +592,5 @@ impl NcChannelPairMethods for NcChannelPair {
     /// *C style function: [channels_set_bg_palindex()][crate::channels_set_bg_palindex].*
     fn set_bg_palindex(&mut self, index: NcPaletteIndex) {
         crate::channels_set_bg_palindex(self, index)
-    }
-
-    // Combine
-
-    /// Combines two [NcChannel]s into an [NcChannelPair].
-    ///
-    /// *C style function: [channels_combine()][crate::channels_combine].*
-    fn combine(fchannel: NcChannel, bchannel: NcChannel) -> NcChannelPair {
-        crate::channels_combine(fchannel, bchannel)
     }
 }
