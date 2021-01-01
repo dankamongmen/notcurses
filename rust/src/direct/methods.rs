@@ -416,9 +416,9 @@ impl NcDirect {
     }
 
     ///
-    /// *C style function: [ncdirect_getc_nblocking()][crate::ncdirect_getc_nblocking].*
-    pub fn getc_nblocking(&mut self, input: &mut NcInput) -> char {
-        crate::ncdirect_getc_nblocking(self, input)
+    /// *C style function: [ncdirect_getc_blocking()][crate::ncdirect_getc_blocking].*
+    pub fn getc_blocking(&mut self, input: &mut NcInput) -> char {
+        crate::ncdirect_getc_blocking(self, input)
     }
 
     /// Get a file descriptor suitable for input event poll()ing.

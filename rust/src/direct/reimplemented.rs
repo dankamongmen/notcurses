@@ -4,6 +4,20 @@ use core::ptr::null;
 
 use crate::{NcColor, NcDirect, NcInput, NcIntResult, NcRgb, NcSignalSet, NcTime};
 
+/// 'input' may be NULL if the caller is uninterested in event details.
+/// Blocks until an event is processed or a signal is received.
+///
+/// *Method: NcDirect.[getc_blocking()][NcDirect#method.getc_blocking].*
+// TODO: use from_u32 & return Option.
+#[inline]
+pub fn ncdirect_getc_blocking(nc: &mut NcDirect, input: &mut NcInput) -> char {
+    unsafe {
+        let mut sigmask = NcSignalSet::new();
+        sigmask.emptyset();
+        core::char::from_u32_unchecked(crate::ncdirect_getc(nc, null(), &mut sigmask, input))
+    }
+}
+
 ///
 /// If no event is ready, returns 0.
 ///
@@ -17,19 +31,6 @@ pub fn ncdirect_getc_nblock(nc: &mut NcDirect, input: &mut NcInput) -> char {
         sigmask.fillset();
         let ts = NcTime::new();
         core::char::from_u32_unchecked(crate::ncdirect_getc(nc, &ts, &mut sigmask, input))
-    }
-}
-
-/// 'input' may be NULL if the caller is uninterested in event details.
-/// Blocks until an event is processed or a signal is received.
-///
-/// *Method: NcDirect.[getc_nblocking()][NcDirect#method.getc_nblocking].*
-#[inline]
-pub fn ncdirect_getc_nblocking(nc: &mut NcDirect, input: &mut NcInput) -> char {
-    unsafe {
-        let mut sigmask = NcSignalSet::new();
-        sigmask.emptyset();
-        core::char::from_u32_unchecked(crate::ncdirect_getc(nc, null(), &mut sigmask, input))
     }
 }
 
