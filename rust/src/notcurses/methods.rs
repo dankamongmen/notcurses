@@ -85,38 +85,40 @@ impl NotcursesOptions {
 
 /// # `Notcurses` Constructors
 impl Notcurses {
-    /// Returns a Notcurses context (without banners).
+    /// New Notcurses (without banners).
     pub fn new<'a>() -> NcResult<&'a mut Notcurses> {
         Self::with_flags(NCOPTION_SUPPRESS_BANNERS)
     }
 
-    /// Returns a Notcurses context, with banners. The default in the C library.
+    /// New Notcurses, with banners.
+    ///
+    /// This is the default in the C library.
     pub fn with_banners<'a>() -> NcResult<&'a mut Notcurses> {
         Self::with_flags(0)
     }
 
-    /// Returns a Notcurses context, without an alternate screen (nor banners).
+    /// New Notcurses, without an alternate screen (nor banners).
     pub fn without_altscreen<'a>() -> NcResult<&'a mut Notcurses> {
         Self::with_flags(NCOPTION_NO_ALTERNATE_SCREEN)
     }
 
-    /// Returns a Notcurses context, without an alternate screen, with banners.
+    /// New Notcurses, without an alternate screen, with banners.
     pub fn without_altscreen_nor_banners<'a>() -> NcResult<&'a mut Notcurses> {
         Self::with_flags(NCOPTION_NO_ALTERNATE_SCREEN | NCOPTION_SUPPRESS_BANNERS)
     }
 
-    /// Returns a Notcurses context, expects [NotcursesOptions].
+    /// New Notcurses, expects `NCOPTION_*` flags.
     pub fn with_flags<'a>(flags: u64) -> NcResult<&'a mut Notcurses> {
         Self::with_options(NotcursesOptions::with_flags(flags))
     }
 
-    /// Returns a Notcurses context, expects [NotcursesOptions].
+    /// New Notcurses, expects [NotcursesOptions].
     pub fn with_options<'a>(options: NotcursesOptions) -> NcResult<&'a mut Notcurses> {
         let res = unsafe { notcurses_init(&options, null_mut()) };
         error_ref_mut![res, "Notcurses.with_options()"]
     }
 
-    /// Returns a Notcurses context. Expects [NcLogLevel] and flags.
+    /// New Notcurses, expects [NcLogLevel] and flags.
     pub fn with_debug<'a>(loglevel: NcLogLevel, flags: u64) -> NcResult<&'a mut Notcurses> {
         Self::with_options(NotcursesOptions::with_all_options(
             loglevel, 0, 0, 0, 0, flags,

@@ -24,7 +24,8 @@ fn main() -> NcResult<()> {
         NcMenuSection::new("Schwarzgerät", &mut demo_items, NcInput::with_alt('ä')),
         NcMenuSection::new("File", &mut file_items, NcInput::with_alt('f')),
         NcMenuSection::new_separator(),
-        NcMenuSection::new("Help", &mut help_items, NcInput::with_alt('h')),
+        // DEBUG: remove alt modifier for now.
+        NcMenuSection::new("Help", &mut help_items, NcInput::new('h')),
     ];
 
     let mut mopts = NcMenuOptions::new(&mut sections);
@@ -33,33 +34,39 @@ fn main() -> NcResult<()> {
     mopts.section_channels_mut().set_fg_rgb(0xb0d700);
     mopts.section_channels_mut().set_bg_rgb(0x002000);
 
-    let plane = nc.stdplane()?;
-    let (dim_y, _dim_x) = plane.dim_yx();
-    let menu_top = NcMenu::new(plane, mopts)?;
+    let stdplane = nc.stdplane()?;
+    let (dim_y, _dim_x) = stdplane.dim_yx();
+
+    let menu_top = NcMenu::new(stdplane, mopts)?;
     menu_top.item_set_status("Schwarzgerät", "Disabled", false)?;
     menu_top.item_set_status("Schwarzgerät", "Restart", false)?;
 
     let mut channels: NcChannelPair = 0;
     channels.set_fg_rgb(0x88aa00);
     channels.set_bg_rgb(0x000088);
-    plane.set_base('x', 0, channels)?;
+    stdplane.set_base("x", 0, channels)?;
 
     nc.render()?;
 
-    plane.set_fg_rgb(0x00dddd);
-    plane.putstr_aligned(
+    stdplane.set_fg_rgb(0x00dddd);
+    stdplane.putstr_aligned(
         dim_y - 1,
         NCALIGN_RIGHT,
         " -=+ menu poc. press q to exit +=-",
     )?;
+
     run_menu(nc, menu_top)?;
 
-    plane.erase();
+    stdplane.erase(); // is this needed?
+
+    // BUG FIXME: this doesn't show over the menu (at row 0)
+    stdplane.putstr_aligned(0, NCALIGN_RIGHT, " -=+ menu poc. press q to exit +=-")?;
+    stdplane.putstr_aligned(1, NCALIGN_CENTER, " -=+ menu poc. press q to exit +=-")?;
+    stdplane.putstr_aligned(2, NCALIGN_LEFT, " -=+ menu poc. press q to exit +=-")?;
 
     mopts.flags |= NCMENU_OPTION_BOTTOM;
-    let menu_bottom = NcMenu::new(plane, mopts)?;
-    // FIXME:
-    plane.putstr_aligned(1, NCALIGN_RIGHT, " -=+ menu poc. press q to exit +=-")?;
+    let menu_bottom = NcMenu::new(stdplane, mopts)?;
+
     run_menu(nc, menu_bottom)?;
 
     nc.stop()?;
@@ -71,46 +78,58 @@ fn run_menu(nc: &mut Notcurses, menu: &mut NcMenu) -> NcResult<()> {
     let planeopts = NcPlaneOptions::new_aligned(10, NCALIGN_CENTER, 3, 40);
     let stdplane = nc.stdplane()?;
     let selplane = NcPlane::with_options_bound(stdplane, planeopts)?;
-
     selplane.set_fg_rgb(0);
     selplane.set_bg_rgb(0xdddddd);
     let mut channels = 0;
     channels.set_fg_rgb(0x000088);
     channels.set_bg_rgb(0x88aa00);
-    selplane.set_base(' ', 0, channels)?;
+    selplane.set_base(" ", 0, channels)?;
 
     let mut ni = NcInput::new_empty();
     let mut keypress: char;
+    nc.render()?;
 
-    // FIXME: screen updates one keypress later.
     loop {
+        stdplane.erase();
+        selplane.erase();
+
         keypress = nc.getc_blocking(Some(&mut ni))?;
 
+        // DEBUG
+        stdplane.putstr_yx(2, 0, &format!["{:?}", ni])?;
+        nc.render()?;
+
+        // BUG FIXME: always returns false:
         if !menu.offer_input(ni) {
-            if keypress == 'q' {
-                menu.destroy()?;
-                selplane.destroy()?;
-                return Ok(());
-            } else if keypress == NCKEY_ENTER {
-                // selected a menu item
-                // BUG FIXME:
-                let sel = menu.selected(Some(&mut ni))?;
-                if sel == "Quit" {
+            match keypress {
+                'q' => {
                     menu.destroy()?;
                     selplane.destroy()?;
                     return Ok(());
+                },
+                NCKEY_ENTER => {
+                    if let Some(selection) = menu.selected(Some(&mut ni)) {
+                        match selection.as_ref() {
+                            "Quit" => {
+                                menu.destroy()?;
+                                selplane.destroy()?;
+                                return Ok(());
+                            }
+                            _ => ()
+                        }
+                    }
                 }
+                _ => ()
             }
         }
 
         let mut selni = NcInput::new_empty();
-        // if let Some(selitem) = menu.selected(Some(&mut selni)) {
-        //     selplane.putstr_aligned(1, NCALIGN_CENTER, &selitem)?;
-        // } else {
-        //     // DEBUG
-        //     selplane.putstr_aligned(1, NCALIGN_CENTER, "nothing opened")?;
-        // }
-
+        if let Some(selitem) = menu.selected(Some(&mut selni)) {
+            selplane.putstr_aligned(1, NCALIGN_CENTER, &selitem)?;
+        } else {
+            // DEBUG
+            selplane.putstr_aligned(1, NCALIGN_CENTER, "nothing opened")?;
+        }
         nc.render()?;
     }
 }

@@ -4,9 +4,9 @@ use core::ptr::{null, null_mut};
 
 use crate::{
     cstring, error, error_ref, error_ref_mut, rstring, NcAlign, NcAlphaBits, NcBoxMask, NcCell,
-    NcChannel, NcChannelPair, NcColor, NcDimension, NcEgc, NcFadeCb, NcOffset, NcPaletteIndex,
-    NcPlane, NcPlaneOptions, NcResizeCb, NcResult, NcRgb, NcStyleMask, NcTime, Notcurses,
-    NCRESULT_ERR,
+    NcChannel, NcChannelPair, NcColor, NcDimension, NcEgc, NcError, NcFadeCb, NcOffset,
+    NcPaletteIndex, NcPlane, NcPlaneOptions, NcResizeCb, NcResult, NcRgb, NcStyleMask, NcTime,
+    Notcurses, NCRESULT_ERR,
 };
 
 /// # NcPlaneOptions Constructors
@@ -491,7 +491,7 @@ impl NcPlane {
     ) -> NcResult<NcEgc> {
         let egc = unsafe { crate::ncplane_at_cursor(self, stylemask, channels) };
         if egc.is_null() {
-            return Err(crate::NcError::new(NCRESULT_ERR));
+            return Err(NcError::new(NCRESULT_ERR));
         }
         let egc = core::char::from_u32(unsafe { *egc } as u32).expect("wrong char");
         Ok(egc)
@@ -524,7 +524,7 @@ impl NcPlane {
     ) -> NcResult<NcEgc> {
         let egc = unsafe { crate::ncplane_at_yx(self, y as i32, x as i32, stylemask, channels) };
         if egc.is_null() {
-            return Err(crate::NcError::new(NCRESULT_ERR));
+            return Err(NcError::new(NCRESULT_ERR));
         }
         let egc = core::char::from_u32(unsafe { *egc } as u32).expect("wrong char");
         Ok(egc)
@@ -556,7 +556,7 @@ impl NcPlane {
         error![unsafe { crate::ncplane_base(self, cell) }]
     }
 
-    /// Sets this NcPlane's base NcCell from its components.
+    /// Sets this NcPlane's base [NcCell] from its components.
     ///
     /// This function must be called with an empty `egc`.
     /// `egc` must be a single extended grapheme cluster.
@@ -567,18 +567,28 @@ impl NcPlane {
     /// Erasing the NcPlane does not reset the base cell.
     ///
     /// *C style function: [ncplane_set_base()][crate::ncplane_set_base].*
+    // call stack:
+    // - ncplane_set_base calls cell_prime:
+    //      return cell_prime(ncp, &ncp->basecell, egc, stylemask, channels);
+    // - cell_prime calls notcurses.c/cell_load:
+    //      return cell_load(n, c, gcluster);
+    // - cell-load calls internal.h/pool load:
+    //      return pool_load(&n->pool, c, gcluster);
     pub fn set_base(
         &mut self,
-        egc: NcEgc,
+        egc: &str,
         stylemask: NcStyleMask,
         channels: NcChannelPair,
-    ) -> NcResult<()> {
+    ) -> NcResult<u32> {
+        let res =
+            unsafe { crate::ncplane_set_base(self, cstring![egc], stylemask as u32, channels) };
         error![
-            unsafe { crate::ncplane_set_base(self, &(egc as i8), stylemask as u32, channels) },
+            res,
             &format!(
                 "NcPlane.set_base({:?}, {:0x}, {:0x})",
-                egc as i32, stylemask, channels
-            )
+                egc, stylemask, channels
+            ),
+            res as u32
         ]
     }
 
@@ -642,7 +652,9 @@ impl NcPlane {
     ///
     /// *C style function: [ncplane_erase()][crate::ncplane_erase].*
     pub fn erase(&mut self) {
-        unsafe { crate::ncplane_erase(self) }
+        unsafe {
+            crate::ncplane_erase(self);
+        }
     }
 
     /// Replaces the NcCell at the specified coordinates with the provided NcCell,

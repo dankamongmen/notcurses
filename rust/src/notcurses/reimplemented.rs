@@ -36,7 +36,7 @@ pub fn notcurses_align(availcols: NcDimension, align: NcAlign, cols: NcDimension
 ///
 /// *Method: Notcurses.[getc_nblock()][Notcurses#method.getc_nblock].*
 //
-// `input` may be NULL if the caller is uninterested in event details.
+// TODO: use from_u32 & return Option.
 #[inline]
 pub fn notcurses_getc_nblock(nc: &mut Notcurses, input: &mut NcInput) -> char {
     unsafe {
@@ -46,7 +46,6 @@ pub fn notcurses_getc_nblock(nc: &mut Notcurses, input: &mut NcInput) -> char {
             tv_sec: 0,
             tv_nsec: 0,
         };
-        // https://www.gnu.org/software/libc/manual/html_node/Signal-Sets.html
         core::char::from_u32_unchecked(crate::notcurses_getc(nc, &ts, &mut sigmask, input))
     }
 }

@@ -143,24 +143,24 @@ impl NcMenu {
         error![unsafe { crate::ncmenu_rollup(self) }]
     }
 
-    /// Returns the selected item description,
-    /// or an error if no section is unrolled.
+    /// Returns the selected item description, if there's an unrolled section.
     ///
     /// If `shortcut` is provided, and the selected item has a shortcut,
     /// it will be filled in with that shortcut--this can allow faster matching.
     ///
     /// *C style function: [ncmenu_selected()][crate::ncmenu_selected].*
-    pub fn selected(&mut self, shortcut: Option<&mut NcInput>) -> NcResult<String> {
+    pub fn selected(&mut self, shortcut: Option<&mut NcInput>) -> Option<String> {
         let ninput;
         if let Some(i) = shortcut {
             ninput = i as *mut _;
         } else {
             ninput = null_mut();
         }
-        error_str![
-            unsafe { crate::ncmenu_selected(self, ninput) },
-            "Getting the selected NcMenuItem description"
-        ]
+        let res = unsafe { crate::ncmenu_selected(self, ninput) };
+        if res != null_mut() {
+            return Some(unsafe { (&*res).to_string() });
+        }
+        None
     }
 
     /// Unrolls the specified [NcMenuSection][crate::NcMenuSection],
