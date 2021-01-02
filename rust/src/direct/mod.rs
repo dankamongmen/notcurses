@@ -66,9 +66,14 @@ mod test;
 
 mod methods;
 mod reimplemented;
-pub use reimplemented::*;
+mod wrapper;
 
-/// Minimal notcurses instances for styling text
+pub use reimplemented::*;
+pub use wrapper::*;
+
+/// Minimal notcurses instance for styling text.
+///
+/// This is the internal type safely wrapped by [Direct].
 pub type NcDirect = crate::bindings::ffi::ncdirect;
 
 /// Flags (options) for [`NcDirect`]

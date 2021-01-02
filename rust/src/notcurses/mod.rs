@@ -78,7 +78,6 @@ pub use wrapper::*;
 /// provide reasonably portable vivid character displays.
 ///
 /// This is the internal type safely wrapped by [Notcurses].
-///
 pub type NcNotcurses = crate::bindings::ffi::notcurses;
 
 /// Options struct for [`NcNotcurses`]

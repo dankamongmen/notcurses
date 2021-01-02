@@ -10,18 +10,18 @@ use libnotcurses_sys::*;
 fn main() -> NcResult<()> {
     let mut rng = thread_rng();
 
-    let ncd = NcDirect::new()?;
+    let mut dm = DirectMode::new()?;
 
-    let cols = ncd.dim_x();
-    let rows = ncd.dim_y();
+    let cols = dm.dim_x();
+    let rows = dm.dim_y();
     println!("terminal size (rows, cols): {}, {}", rows, cols);
 
     let mut channels =
         NcChannelPair::combine(NcChannel::with_rgb(0xAA2244), NcChannel::with_rgb(0x112233));
-    ncd.putstr(channels, "The current coordinates are")?;
+    dm.putstr(channels, "The current coordinates are")?;
 
     for _n in 0..40 {
-        fsleep![ncd, 0, 30];
+        fsleep![&mut dm, 0, 30];
         channels.set_fg_rgb8(
             rng.gen_range(0x66..=0xEE),
             rng.gen_range(0x66..=0xEE),
@@ -32,11 +32,11 @@ fn main() -> NcResult<()> {
             rng.gen_range(0..=0x9),
             rng.gen_range(0..=0x9),
         );
-        ncd.putstr(channels, ".")?;
+        dm.putstr(channels, ".")?;
     }
 
-    let (cy, cx) = ncd.cursor_yx()?;
-    ncd.putstr(channels, &format!(" ({},{})\n", cy, cx))?;
+    let (cy, cx) = dm.cursor_yx()?;
+    dm.putstr(channels, &format!(" ({},{})\n", cy, cx))?;
     sleep![1];
 
     let sentence = vec![
@@ -45,16 +45,14 @@ fn main() -> NcResult<()> {
     for word in sentence {
         channels.set_fg_rgb(channels.fg_rgb().wrapping_sub(0x050505));
         channels.set_bg_rgb(channels.bg_rgb().wrapping_add(0x090909));
-        ncd.putstr(channels, &format!["{} ", word])?;
-        fsleep![ncd, 0, 150];
+        dm.putstr(channels, &format!["{} ", word])?;
+        fsleep![&mut dm, 0, 150];
     }
     sleep![0, 300];
     channels.set_fg_rgb(0xFFFFFF);
     channels.set_bg_default();
-    ncd.putstr(channels, "\nbye!\n\n")?;
-    fsleep![ncd, 0, 600];
-    ncd.clear()?;
-    sleep![2];
-    ncd.stop()?;
+    dm.putstr(channels, "\nbye!\n\n")?;
+    fsleep![&mut dm, 0, 600];
+    dm.clear()?;
     Ok(())
 }

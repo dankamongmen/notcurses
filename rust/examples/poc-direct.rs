@@ -3,33 +3,33 @@
 use libnotcurses_sys::*;
 
 fn main() -> NcResult<()> {
-    let ncd = NcDirect::new()?;
+    let mut dm = DirectMode::new()?;
 
-    let dimy = ncd.dim_y();
-    let dimx = ncd.dim_x();
+    let dimy = dm.dim_y();
+    let dimx = dm.dim_x();
     for _ in 0..dimy {
         for _ in 0..dimx {
             printf!("X");
         }
     }
-    ncd.flush()?;
+    dm.flush()?;
 
-    ncd.set_fg_rgb(0xff8080)?;
-    ncd.styles_on(NCSTYLE_STANDOUT)?;
+    dm.set_fg_rgb(0xff8080)?;
+    dm.styles_on(NCSTYLE_STANDOUT)?;
     printf!(" erp erp \n");
-    ncd.set_fg_rgb(0x80ff80)?;
+    dm.set_fg_rgb(0x80ff80)?;
     printf!(" erp erp \n");
-    ncd.styles_off(NCSTYLE_STANDOUT)?;
+    dm.styles_off(NCSTYLE_STANDOUT)?;
     printf!(" erp erp \n");
-    ncd.set_fg_rgb(0xff8080)?;
+    dm.set_fg_rgb(0xff8080)?;
     printf!(" erp erp \n");
-    ncd.cursor_right(dimx / 2)?;
-    ncd.cursor_up(dimy / 2)?;
+    dm.cursor_right(dimx / 2)?;
+    dm.cursor_up(dimy / 2)?;
     printf!(" erperperp! \n");
 
     let (mut y, x);
 
-    if let Ok((_y, _x)) = ncd.cursor_yx() {
+    if let Ok((_y, _x)) = dm.cursor_yx() {
         y = _y;
         x = _x;
         printf!("\n\tRead cursor position: y: %d x: %d\n", y, x);
@@ -37,12 +37,12 @@ fn main() -> NcResult<()> {
         y += 2;
         while y > 3 {
             let up = if y >= 3 { 3 } else { y };
-            ncd.cursor_up(up)?;
-            ncd.flush()?;
+            dm.cursor_up(up)?;
+            dm.flush()?;
             y -= up;
 
             let newy;
-            if let Ok((_y, _)) = ncd.cursor_yx() {
+            if let Ok((_y, _)) = dm.cursor_yx() {
                 newy = _y;
             } else {
                 break;
@@ -59,6 +59,5 @@ fn main() -> NcResult<()> {
         return Err(NcError::with_msg(-10, "Couldn't read cursor position."));
     }
 
-    ncd.stop()?;
     Ok(())
 }
