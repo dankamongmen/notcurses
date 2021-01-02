@@ -391,6 +391,9 @@ lock_in_highcontrast(nccell* targc, struct crender* crender){
   }
 }
 
+// Postpaint a single cell (multiple if it is a multicolumn EGC). This means
+// checking for and locking in high-contrast, checking for damage, and updating
+// 'lastframe' for any cells which are damaged.
 static inline void
 postpaint_cell(nccell* lastframe, int dimx, struct crender* crender,
                egcpool* pool, int y, int x){
@@ -415,6 +418,7 @@ postpaint_cell(nccell* lastframe, int dimx, struct crender* crender,
     }
   }
 }
+
 
 // iterate over the rendered frame, adjusting the foreground colors for any
 // cells marked CELL_ALPHA_HIGHCONTRAST, and clearing any cell covered by a
@@ -832,7 +836,7 @@ raster_defaults(notcurses* nc, bool fgdef, bool bgdef, FILE* out){
 // *become* the last frame rasterized.
 static int
 notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
-  struct crender* rvec = p->crender;
+  const struct crender* rvec = p->crender;
   int y, x;
   fseeko(out, 0, SEEK_SET);
   // we only need to emit a coordinate if it was damaged. the damagemap is a
@@ -849,7 +853,6 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
       const size_t damageidx = innery * nc->lfdimx + innerx;
       unsigned r, g, b, br, bg, bb, palfg, palbg;
       const nccell* srccell = &nc->lastframe[damageidx];
-      postpaint_cell(nc->lastframe, p->dimx, &rvec[damageidx], &nc->pool, y, x);
       if(!rvec[damageidx].damaged){
         // no need to emit a cell; what we rendered appears to already be
         // here. no updates are performed to elision state nor lastframe.
@@ -1129,6 +1132,9 @@ int ncpile_rasterize(ncplane* n){
   clock_gettime(CLOCK_MONOTONIC, &start);
   const ncpile* pile = ncplane_pile(n);
   struct notcurses* nc = ncplane_notcurses(n);
+  const int miny = pile->dimy < nc->lfdimy ? pile->dimy : nc->lfdimy;
+  const int minx = pile->dimx < nc->lfdimx ? pile->dimx : nc->lfdimx;
+  postpaint(nc->lastframe, miny, minx, pile->crender, &nc->pool);
   int bytes = notcurses_rasterize(nc, pile, nc->rstate.mstreamfp);
   // accepts -1 as an indication of failure
   update_render_bytes(&nc->stats, bytes);
