@@ -3,8 +3,8 @@
 use core::ptr::{null, null_mut};
 
 use crate::{
-    NcAlign, NcDimension, NcError, NcInput, NcOffset, NcPlane, NcResult, NcSignalSet, NcTime,
-    Notcurses, NCALIGN_CENTER, NCALIGN_LEFT, NCALIGN_RIGHT, NCRESULT_ERR, NCRESULT_MAX,
+    NcAlign, NcDimension, NcError, NcInput, NcNotcurses, NcOffset, NcPlane, NcResult, NcSignalSet,
+    NcTime, NCALIGN_CENTER, NCALIGN_LEFT, NCALIGN_RIGHT, NCRESULT_ERR, NCRESULT_MAX,
 };
 
 /// Returns the offset into `availcols` at which `cols` ought be output given
@@ -13,7 +13,7 @@ use crate::{
 /// Returns `-`[`NCRESULT_MAX`] if [NCALIGN_UNALIGNED][crate::NCALIGN_UNALIGNED]
 /// or invalid [NcAlign].
 ///
-/// *Method: Notcurses.[align()][Notcurses#method.align].*
+/// *Method: NcNotcurses.[align()][NcNotcurses#method.align].*
 #[inline]
 pub fn notcurses_align(availcols: NcDimension, align: NcAlign, cols: NcDimension) -> NcOffset {
     if align == NCALIGN_LEFT {
@@ -34,11 +34,11 @@ pub fn notcurses_align(availcols: NcDimension, align: NcAlign, cols: NcDimension
 ///
 /// If no event is ready, returns 0.
 ///
-/// *Method: Notcurses.[getc_nblock()][Notcurses#method.getc_nblock].*
+/// *Method: NcNotcurses.[getc_nblock()][NcNotcurses#method.getc_nblock].*
 //
 // TODO: use from_u32 & return Option.
 #[inline]
-pub fn notcurses_getc_nblock(nc: &mut Notcurses, input: &mut NcInput) -> char {
+pub fn notcurses_getc_nblock(nc: &mut NcNotcurses, input: &mut NcInput) -> char {
     unsafe {
         let mut sigmask = NcSignalSet::new();
         sigmask.fillset();
@@ -56,9 +56,9 @@ pub fn notcurses_getc_nblock(nc: &mut Notcurses, input: &mut NcInput) -> char {
 ///
 /// In case of an invalid read (including on EOF) *-1 as char* is returned.
 ///
-/// *Method: Notcurses.[getc_blocking()][Notcurses#method.getc_blocking].*
+/// *Method: NcNotcurses.[getc_blocking()][NcNotcurses#method.getc_blocking].*
 #[inline]
-pub fn notcurses_getc_blocking(nc: &mut Notcurses, input: Option<&mut NcInput>) -> char {
+pub fn notcurses_getc_blocking(nc: &mut NcNotcurses, input: Option<&mut NcInput>) -> char {
     let input_ptr;
     if let Some(i) = input {
         input_ptr = i as *mut _;
@@ -75,10 +75,10 @@ pub fn notcurses_getc_blocking(nc: &mut Notcurses, input: Option<&mut NcInput>) 
 /// [notcurses_stdplane()][crate::notcurses_stdplane], plus free bonus
 /// dimensions written to non-NULL y/x!
 ///
-/// *Method: Notcurses.[getc_stddim_yx()][Notcurses#method.stddim_yx].*
+/// *Method: NcNotcurses.[getc_stddim_yx()][NcNotcurses#method.stddim_yx].*
 #[inline]
 pub fn notcurses_stddim_yx<'a>(
-    nc: &'a mut Notcurses,
+    nc: &'a mut NcNotcurses,
     y: &mut NcDimension,
     x: &mut NcDimension,
 ) -> NcResult<&'a mut NcPlane> {
@@ -95,10 +95,10 @@ pub fn notcurses_stddim_yx<'a>(
 /// [notcurses_stdplane_const()][crate::notcurses_stdplane_const], plus free
 /// bonus dimensions written to non-NULL y/x!
 ///
-/// *Method: Notcurses.[getc_stddim_yx_const()][Notcurses#method.stddim_yx_const].*
+/// *Method: NcNotcurses.[getc_stddim_yx_const()][NcNotcurses#method.stddim_yx_const].*
 #[inline]
 pub fn notcurses_stddim_yx_const<'a>(
-    nc: &'a Notcurses,
+    nc: &'a NcNotcurses,
     y: &mut NcDimension,
     x: &mut NcDimension,
 ) -> NcResult<&'a NcPlane> {
@@ -114,9 +114,9 @@ pub fn notcurses_stddim_yx_const<'a>(
 
 /// Returns our current idea of the terminal dimensions in rows and cols.
 ///
-/// *Method: Notcurses.[getc_term_yx()][Notcurses#method.term_yx].*
+/// *Method: NcNotcurses.[getc_term_yx()][NcNotcurses#method.term_yx].*
 #[inline]
-pub fn notcurses_term_dim_yx(nc: &Notcurses) -> (NcDimension, NcDimension) {
+pub fn notcurses_term_dim_yx(nc: &NcNotcurses) -> (NcDimension, NcDimension) {
     let (mut y, mut x) = (0, 0);
     unsafe {
         crate::ncplane_dim_yx(crate::notcurses_stdplane_const(nc), &mut y, &mut x);

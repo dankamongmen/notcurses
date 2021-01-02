@@ -1,50 +1,52 @@
-//! `libnotcurses-sys` is a *close to the metal* Rust wrapper for the [notcurses
+//! `libnotcurses-sys` is a Rust wrapper for the [notcurses
 //! C library](https://www.github.com/dankamongmen/notcurses/)
 //!
-//! The bindings are still incomplete, and a work in progress.
+//! *This is a work in progress.*
 //!
-//! # Ways of using this library
+//! # How to use this library
 //!
-//! The *rusty* way is to use the provided methods and constructors:
+//! Since this library is built with several layers of zero-overhead
+//! abstractions over the FFI functions, there are multiple ways to use it.
+//!
+//! But basically there are two ways:
+//!
+//! ## 1. The Rust way
+//!
+//! Use the safely wrapped types, their methods and constructors:
+//!
 //! ```rust
 //! use libnotcurses_sys::*;
 //!
 //! fn main() -> NcResult<()> {
-//!     let nc = Notcurses::without_altscreen()?;
+//!     let mut nc = Notcurses::with_flags(NCOPTION_NO_ALTERNATE_SCREEN)?;
 //!     let plane = nc.stdplane()?;
 //!     plane.putstr("hello world")?;
 //!     nc.render()?;
-//!     nc.stop()?;
 //!     Ok(())
 //! }
 //! ```
+//! Specifically, and for example:
 //!
-//! You can also use the C API functions directly over the constructed types.
+//! [`Notcurses`] is the safe wrapper over [`NcNotcurses`], which is the
+//! `&mut` reference over the raw `*mut` pointer received from FFI.
 //!
-//! Note that some of the functions will be unsafe. And you may also need
-//! to (de)reference mutable pointers.
-//! This is mainly due to the interaction between the manually reimplemented
-//! static inline functions that uses (mutable) references, and the C API
-//! functions automatically wrapped by bindgen that uses (mutable) raw pointers.
+//! Notcurses implements the [Drop], [AsRef], [AsMut], [Deref][std::ops::Deref]
+//! & [DerefMut][std::ops::DerefMut] traits.
 //!
-//! There are plans to manually wrap all the C API functions, in order to
-//! achieve better ergonomics and consistent syntax.
-//! ```rust
-//! use libnotcurses_sys::*;
+//! Most methods are directly implemented for NcNotcurses,
+//! and automatically available also from Notcurses.
 //!
-//! fn main() {
-//!     let options = NotcursesOptions::with_flags(NCOPTION_NO_ALTERNATE_SCREEN);
-//!     unsafe {
-//!         let nc = notcurses_init(&options, core::ptr::null_mut());
-//!         let plane = notcurses_stdplane(nc);
-//!         ncplane_putstr(&mut *plane, "hello world");
-//!         notcurses_render(nc);
-//!         notcurses_stop(nc);
-//!     }
-//! }
-//! ```
+//! The destructor ([notcurses_stop()]) is called automatically at the end
+//! of its scope, so you don't ever have to call it by hand.
 //!
-//! You can also use it even more closely to the C API if you wish:
+//! The Rust style methods manage errors by means of returning an
+//! [`NcResult`]`<T, `[`NcError`]`>`, for painless handling.
+//!
+//! ## 2. The C way
+//!
+//! You can also use the C API functions directly in a very similar way
+//! as the underlying C library is used.
+//!
 //! ```rust
 //! use core::ptr::{null, null_mut};
 //! use libnotcurses_sys::*;
@@ -60,6 +62,7 @@
 //!         margin_l: 0,
 //!         flags: NCOPTION_NO_ALTERNATE_SCREEN,
 //!     };
+//!     // NOTE: there's missing manual checking of return values for errors.
 //!     unsafe {
 //!         let nc = notcurses_init(&options, null_mut());
 //!         let plane = notcurses_stdplane(nc);
@@ -69,18 +72,10 @@
 //! }
 //!
 //! ```
-//! ## About this library
+//! It requires the use of unsafe.
 //!
-//! 1. There are no Drop trait implementations, therefore you must manually stop
-//! each context before it goes out of scope ([Notcurses], [NcDirect]), and
-//! should manually destroy [NcPlane]s, [NcMenu]s… when no longer needed.
-//!
-//! 2. The C style functions handle errors by the means of returning an i32 value
-//! aliased to [NcIntResult]. But the Rust style methods handle errors more
-//! idiomatically using [NcResult] and [NcError].
-//!
-//!
-//! [Macros][#macros] are
+//! The C style functions handle errors by the means of returning an i32 value
+//! aliased to [NcIntResult].
 //!
 //! ## The `notcurses` C API docs
 //!

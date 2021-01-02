@@ -1,22 +1,22 @@
-//! `Notcurses*` methods and associated functions.
+//! `NcNotcurses*` methods and associated functions.
 
 use core::ptr::{null, null_mut};
 
 use crate::{
     cstring, error, error_ref_mut, notcurses_init, rstring, NcAlign, NcBlitter, NcChannelPair,
-    NcDimension, NcEgc, NcError, NcFile, NcInput, NcLogLevel, NcPlane, NcResult, NcScale,
-    NcSignalSet, NcStats, NcStyleMask, NcTime, Notcurses, NotcursesOptions,
+    NcDimension, NcEgc, NcError, NcFile, NcInput, NcLogLevel, NcNotcurses, NcNotcursesOptions,
+    NcPlane, NcResult, NcScale, NcSignalSet, NcStats, NcStyleMask, NcTime,
     NCOPTION_NO_ALTERNATE_SCREEN, NCOPTION_SUPPRESS_BANNERS, NCRESULT_ERR,
 };
 
-/// # `NotcursesOptions` Constructors
-impl NotcursesOptions {
-    /// New NotcursesOptions.
+/// # `NcNotcursesOptions` Constructors
+impl NcNotcursesOptions {
+    /// New NcNotcursesOptions.
     pub const fn new() -> Self {
         Self::with_all_options(0, 0, 0, 0, 0, 0)
     }
 
-    /// New NotcursesOptions, with margins.
+    /// New NcNotcursesOptions, with margins.
     pub const fn with_margins(
         top: NcDimension,
         right: NcDimension,
@@ -26,12 +26,12 @@ impl NotcursesOptions {
         Self::with_all_options(0, top, right, bottom, left, 0)
     }
 
-    /// New NotcursesOptions, with flags.
+    /// New NcNotcursesOptions, with flags.
     pub const fn with_flags(flags: u64) -> Self {
         Self::with_all_options(0, 0, 0, 0, 0, flags)
     }
 
-    /// New NotcursesOptions, with all the options.
+    /// New NcNotcursesOptions, with all the options.
     ///
     /// ## Arguments
     ///
@@ -83,51 +83,46 @@ impl NotcursesOptions {
     }
 }
 
-/// # `Notcurses` Constructors
-impl Notcurses {
-    /// New Notcurses (without banners).
-    pub fn new<'a>() -> NcResult<&'a mut Notcurses> {
+/// # `NcNotcurses` Constructors
+impl NcNotcurses {
+    /// New NcNotcurses (without banners).
+    pub fn new<'a>() -> NcResult<&'a mut NcNotcurses> {
         Self::with_flags(NCOPTION_SUPPRESS_BANNERS)
     }
 
-    /// New Notcurses, with banners.
+    /// New NcNotcurses, with banners.
     ///
     /// This is the default in the C library.
-    pub fn with_banners<'a>() -> NcResult<&'a mut Notcurses> {
+    pub fn with_banners<'a>() -> NcResult<&'a mut NcNotcurses> {
         Self::with_flags(0)
     }
 
-    /// New Notcurses, without an alternate screen (nor banners).
-    pub fn without_altscreen<'a>() -> NcResult<&'a mut Notcurses> {
-        Self::with_flags(NCOPTION_NO_ALTERNATE_SCREEN)
-    }
-
-    /// New Notcurses, without an alternate screen, with banners.
-    pub fn without_altscreen_nor_banners<'a>() -> NcResult<&'a mut Notcurses> {
+    /// New NcNotcurses, without an alternate screen (nor banners).
+    pub fn without_altscreen<'a>() -> NcResult<&'a mut NcNotcurses> {
         Self::with_flags(NCOPTION_NO_ALTERNATE_SCREEN | NCOPTION_SUPPRESS_BANNERS)
     }
 
-    /// New Notcurses, expects `NCOPTION_*` flags.
-    pub fn with_flags<'a>(flags: u64) -> NcResult<&'a mut Notcurses> {
-        Self::with_options(NotcursesOptions::with_flags(flags))
+    /// New NcNotcurses, expects `NCOPTION_*` flags.
+    pub fn with_flags<'a>(flags: u64) -> NcResult<&'a mut NcNotcurses> {
+        Self::with_options(NcNotcursesOptions::with_flags(flags))
     }
 
-    /// New Notcurses, expects [NotcursesOptions].
-    pub fn with_options<'a>(options: NotcursesOptions) -> NcResult<&'a mut Notcurses> {
+    /// New NcNotcurses, expects [NcNotcursesOptions].
+    pub fn with_options<'a>(options: NcNotcursesOptions) -> NcResult<&'a mut NcNotcurses> {
         let res = unsafe { notcurses_init(&options, null_mut()) };
-        error_ref_mut![res, "Notcurses.with_options()"]
+        error_ref_mut![res, "NcNotcurses.with_options()"]
     }
 
-    /// New Notcurses, expects [NcLogLevel] and flags.
-    pub fn with_debug<'a>(loglevel: NcLogLevel, flags: u64) -> NcResult<&'a mut Notcurses> {
-        Self::with_options(NotcursesOptions::with_all_options(
+    /// New NcNotcurses, expects [NcLogLevel] and flags.
+    pub fn with_debug<'a>(loglevel: NcLogLevel, flags: u64) -> NcResult<&'a mut NcNotcurses> {
+        Self::with_options(NcNotcursesOptions::with_all_options(
             loglevel, 0, 0, 0, 0, flags,
         ))
     }
 }
 
-/// # `Notcurses` methods
-impl Notcurses {
+/// # `NcNotcurses` methods
+impl NcNotcurses {
     /// Returns the offset into `availcols` at which `cols` ought be output given
     /// the requirements of `align`.
     ///
@@ -135,6 +130,8 @@ impl Notcurses {
     /// [NCALIGN_UNALIGNED][crate::NCALIGN_UNALIGNED] or invalid [NcAlign].
     ///
     /// *C style function: [notcurses_align()][crate::notcurses_align].*
+    //
+    // TODO: handle error rightfully.
     pub fn align(availcols: NcDimension, align: NcAlign, cols: NcDimension) -> NcResult<()> {
         error![crate::notcurses_align(availcols, align, cols)]
     }
@@ -256,7 +253,7 @@ impl Notcurses {
         error![unsafe { crate::notcurses_cursor_enable(self, y as i32, x as i32) }]
     }
 
-    /// Dumps Notcurses state to the supplied `debugfp`.
+    /// Dumps NcNotcurses state to the supplied `debugfp`.
     ///
     /// Output is freeform, and subject to change. It includes geometry of all
     /// planes, from all piles.
@@ -356,7 +353,7 @@ impl Notcurses {
         } else {
             error![
                 -1,
-                &format!("Notcurses.getc_blocking({:?})", input_txt),
+                &format!("NcNotcurses.getc_blocking({:?})", input_txt),
                 res
             ]
         }
@@ -365,7 +362,7 @@ impl Notcurses {
     /// Gets a file descriptor suitable for input event poll()ing.
     ///
     /// When this descriptor becomes available, you can call
-    /// [getc_nblock()][Notcurses#method.getc_nblock], and input ought be ready.
+    /// [getc_nblock()][NcNotcurses#method.getc_nblock], and input ought be ready.
     ///
     /// This file descriptor is not necessarily the file descriptor associated
     /// with stdin (but it might be!).
@@ -386,13 +383,13 @@ impl Notcurses {
         ]
     }
 
-    /// Lexes a margin argument according to the standard Notcurses definition.
+    /// Lexes a margin argument according to the standard NcNotcurses definition.
     ///
     /// There can be either a single number, which will define all margins equally,
     /// or there can be four numbers separated by commas.
     ///
     /// *C style function: [notcurses_lex_margins()][crate::notcurses_lex_margins].*
-    pub fn lex_margins(op: &str, options: &mut NotcursesOptions) -> NcResult<()> {
+    pub fn lex_margins(op: &str, options: &mut NcNotcursesOptions) -> NcResult<()> {
         error![unsafe { crate::notcurses_lex_margins(cstring![op], options) }]
     }
 
@@ -435,13 +432,13 @@ impl Notcurses {
     /// Enable the mouse in "button-event tracking" mode with focus detection
     /// and UTF8-style extended coordinates.
     ///
-    /// On success, mouse events will be published to [getc()][Notcurses#method.getc].
+    /// On success, mouse events will be published to [getc()][NcNotcurses#method.getc].
     ///
     /// *C style function: [notcurses_mouse_enable()][crate::notcurses_mouse_enable].*
     pub fn mouse_enable(&mut self) -> NcResult<()> {
         error![
             unsafe { crate::notcurses_mouse_enable(self) },
-            "Notcurses.mouse_enable()"
+            "NcNotcurses.mouse_enable()"
         ]
     }
 
@@ -458,7 +455,7 @@ impl Notcurses {
 
     /// Refreshes the physical screen to match what was last rendered (i.e.,
     /// without reflecting any changes since the last call to
-    /// [render][crate::Notcurses#method.render]).
+    /// [render][crate::NcNotcurses#method.render]).
     ///
     /// This is primarily useful if the screen is externally corrupted, or if an
     /// [NCKEY_RESIZE][crate::NCKEY_RESIZE] event has been read and you're not
@@ -481,12 +478,12 @@ impl Notcurses {
     pub fn render(&mut self) -> NcResult<()> {
         error![
             unsafe { crate::notcurses_render(self) },
-            "Notcurses.render()"
+            "NcNotcurses.render()"
         ]
     }
 
     /// Performs the rendering and rasterization portion of
-    /// [render][Notcurses#method.render] but do not write the resulting buffer
+    /// [render][NcNotcurses#method.render] but do not write the resulting buffer
     /// out to the terminal.
     ///
     /// Using this function, the user can control the writeout process,
@@ -505,7 +502,7 @@ impl Notcurses {
 
     /// Writes the last rendered frame, in its entirety, to 'fp'.
     ///
-    /// If [render()][Notcurses#method.render] has not yet been called,
+    /// If [render()][NcNotcurses#method.render] has not yet been called,
     /// nothing will be written.
     ///
     /// *C style function: [notcurses_render_to_file()][crate::notcurses_render_to_file].*
@@ -513,7 +510,7 @@ impl Notcurses {
         error![unsafe { crate::notcurses_render_to_file(self, fp.as_nc_ptr()) }]
     }
 
-    /// Acquires an atomic snapshot of the Notcurses object's stats.
+    /// Acquires an atomic snapshot of the NcNotcurses object's stats.
     ///
     /// *C style function: [notcurses_stats()][crate::notcurses_stats].*
     pub fn stats(&mut self, stats: &mut NcStats) {
@@ -525,7 +522,7 @@ impl Notcurses {
     /// Allocates an ncstats object.
     ///
     /// Use this rather than allocating your own, since future versions of
-    /// Notcurses might enlarge this structure.
+    /// NcNotcurses might enlarge this structure.
     ///
     /// *C style function: [notcurses_stats_alloc()][crate::notcurses_stats_alloc].*
     pub fn stats_alloc<'a>(&'a mut self) -> &'a mut NcStats {
@@ -554,7 +551,7 @@ impl Notcurses {
     //     crate::notcurses_stddim_yx(self, y, x)
     // }
 
-    // /// [stdplane_const()][Notcurses#method.stdplane_const], plus free
+    // /// [stdplane_const()][NcNotcurses#method.stdplane_const], plus free
     // /// bonus dimensions written to non-NULL y/x!
     // ///
     // /// *C style function: [notcurses_stddim_yx()][crate::notcurses_stddim_yx].*
@@ -576,7 +573,7 @@ impl Notcurses {
     pub fn stdplane<'a>(&mut self) -> NcResult<&'a mut NcPlane> {
         error_ref_mut![
             unsafe { crate::notcurses_stdplane(self) },
-            "Notcurses.stdplane()"
+            "NcNotcurses.stdplane()"
         ]
     }
 
@@ -590,7 +587,7 @@ impl Notcurses {
         unsafe { &*crate::notcurses_stdplane_const(self) }
     }
 
-    /// Destroys the Notcurses context.
+    /// Destroys the NcNotcurses context.
     ///
     /// *C style function: [notcurses_stop()][crate::notcurses_stop].*
     pub fn stop(&mut self) -> NcResult<()> {
@@ -637,14 +634,14 @@ impl Notcurses {
         unsafe { &mut *crate::notcurses_top(self) }
     }
 
-    /// Returns a human-readable string describing the running Notcurses version.
+    /// Returns a human-readable string describing the running notcurses version.
     ///
     /// *C style function: [notcurses_version()][crate::notcurses_version].*
     pub fn version() -> String {
         rstring![crate::notcurses_version()].to_string()
     }
 
-    /// Returns the running Notcurses version components
+    /// Returns the running NcNotcurses version components
     /// (major, minor, patch, tweak).
     ///
     /// *C style function: [notcurses_version_components()][crate::notcurses_version_components].*

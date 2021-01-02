@@ -4,8 +4,8 @@
 //!
 //! NOTE: This example uses the C style with functions.
 
-use libnotcurses_sys::*;
 use core::ptr::{null, null_mut};
+use libnotcurses_sys::*;
 
 fn main() {
     unsafe {
@@ -29,8 +29,10 @@ fn render_image(ncd: &mut NcDirect, blit: NcBlitter) {
             NCSCALE_NONE,
         ) != 0
         {
-            panic!("ERROR: ncdirect_render_image(). Make sure you \
-                are running this example from the examples folder");
+            panic!(
+                "ERROR: ncdirect_render_image(). Make sure you \
+                are running this example from the examples folder"
+            );
         }
     }
 }

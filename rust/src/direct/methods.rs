@@ -164,7 +164,10 @@ impl NcDirect {
     pub fn palette_size(&self) -> NcResult<u32> {
         let res = unsafe { crate::ncdirect_palette_size(self) };
         if res == 1 {
-            return Err(NcError::with_msg(1, "No color support ← NcDirect.palette_size()"));
+            return Err(NcError::with_msg(
+                1,
+                "No color support ← NcDirect.palette_size()",
+            ));
         }
         Ok(res)
     }
@@ -550,8 +553,10 @@ impl NcDirect {
                     ctlword,
                 )
             },
-            &format!("NcDirect.box({:0X}, {:0X}, {:0X}, {:0X}, {:?}, {}, {}, {})",
-                ul, ur, ll, lr, wchars, y_len, x_len, ctlword)
+            &format!(
+                "NcDirect.box({:0X}, {:0X}, {:0X}, {:0X}, {:?}, {}, {}, {})",
+                ul, ur, ll, lr, wchars, y_len, x_len, ctlword
+            )
         ]
     }
 

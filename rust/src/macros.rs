@@ -5,7 +5,7 @@
 
 #[allow(unused_imports)]
 // enjoy briefer doc comments
-use crate::{NcDirect, NcError, NcResult, Notcurses, NCRESULT_ERR, NCRESULT_OK};
+use crate::{NcDirect, NcError, NcNotcurses, NcResult, NCRESULT_ERR, NCRESULT_OK};
 
 // Sleep, Render & Flush Macros ------------------------------------------------
 
@@ -32,9 +32,9 @@ macro_rules! sleep {
     };
 }
 
-/// Notcurses.[render][Notcurses#method.render]\(`nc`\)? plus [sleep]!(`sleep_args`).
+/// NcNotcurses.[render][NcNotcurses#method.render]\(`nc`\)? plus [sleep]!(`sleep_args`).
 ///
-/// Renders the `$nc` [Notcurses] object and, if there's no error,
+/// Renders the `$nc` [NcNotcurses] object and, if there's no error,
 /// calls the sleep macro with the rest of the arguments.
 ///
 /// Returns [NcResult].
@@ -42,7 +42,7 @@ macro_rules! sleep {
 macro_rules! rsleep {
     ($nc:expr, $( $sleep_args:expr),+ ) => {
         // Rust style, with methods & NcResult
-        Notcurses::render($nc)?;
+        NcNotcurses::render($nc)?;
         sleep![$( $sleep_args ),+];
     };
     ($nc:expr, $( $sleep_args:expr),+ ,) => {
@@ -91,7 +91,7 @@ macro_rules! cstring_mut {
 macro_rules! rstring {
     ($s:expr) => {
         unsafe { std::ffi::CStr::from_ptr($s).to_str().unwrap() }
-        // possible alternative
+        // possible alternative:
         // unsafe { std::ffi::CStr::from_ptr($s).to_string_lossy() }
     };
 }
@@ -201,5 +201,16 @@ macro_rules! error_str {
     };
     ($str:expr) => {
         error_str![$str, ""];
+    };
+}
+
+/// Returns an NcResult<Self { raw: T }> from an NcResult<T>.
+#[macro_export]
+macro_rules! raw_wrap {
+    ($res:expr) => {
+        match $res {
+            Ok(raw) => return Ok(Self { raw }),
+            Err(e) => return Err(e),
+        }
     };
 }

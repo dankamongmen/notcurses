@@ -3,8 +3,7 @@
 use libnotcurses_sys::*;
 
 fn main() -> NcResult<()> {
-
-    let nc = Notcurses::new()?;
+    let mut nc = Notcurses::new()?;
     let plane = nc.stdplane()?;
     plane.set_scrolling(true);
 
@@ -14,9 +13,10 @@ fn main() -> NcResult<()> {
         plane.putchar(wc)?;
         wc = core::char::from_u32(wc as u32 + 1).expect("invalid char");
 
-        if wc == '\u{9fa5}' { // 龣
+        // 龣
+        if wc == '\u{9fa5}' {
             wc = '\u{4e00}';
         }
-        rsleep![nc, 0, 0, 50];
+        rsleep![&mut nc, 0, 0, 30];
     }
 }

@@ -16,10 +16,8 @@ fn main() -> NcResult<()> {
     let rows = ncd.dim_y();
     println!("terminal size (rows, cols): {}, {}", rows, cols);
 
-    let mut channels = NcChannelPair::combine(
-        NcChannel::with_rgb(0xAA2244),
-        NcChannel::with_rgb(0x112233),
-        );
+    let mut channels =
+        NcChannelPair::combine(NcChannel::with_rgb(0xAA2244), NcChannel::with_rgb(0x112233));
     ncd.putstr(channels, "The current coordinates are")?;
 
     for _n in 0..40 {
@@ -41,7 +39,9 @@ fn main() -> NcResult<()> {
     ncd.putstr(channels, &format!(" ({},{})\n", cy, cx))?;
     sleep![1];
 
-    let sentence = vec!["And", "now", "I", "will", "clear", "the", "screen", ".", ".", "."];
+    let sentence = vec![
+        "And", "now", "I", "will", "clear", "the", "screen", ".", ".", ".",
+    ];
     for word in sentence {
         channels.set_fg_rgb(channels.fg_rgb().wrapping_sub(0x050505));
         channels.set_bg_rgb(channels.bg_rgb().wrapping_add(0x090909));

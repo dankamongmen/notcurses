@@ -3,7 +3,7 @@
 use libnotcurses_sys::*;
 
 fn main() -> NcResult<()> {
-    let nc = Notcurses::new()?;
+    let mut nc = Notcurses::new()?;
     nc.mouse_enable()?;
 
     let mut demo_items = [
@@ -55,7 +55,7 @@ fn main() -> NcResult<()> {
         " -=+ menu poc. press q to exit +=-",
     )?;
 
-    run_menu(nc, menu_top)?;
+    run_menu(&mut nc, menu_top)?;
 
     stdplane.erase(); // is this needed?
 
@@ -67,9 +67,8 @@ fn main() -> NcResult<()> {
     mopts.flags |= NCMENU_OPTION_BOTTOM;
     let menu_bottom = NcMenu::new(stdplane, mopts)?;
 
-    run_menu(nc, menu_bottom)?;
+    run_menu(&mut nc, menu_bottom)?;
 
-    nc.stop()?;
     Ok(())
 }
 
@@ -106,7 +105,7 @@ fn run_menu(nc: &mut Notcurses, menu: &mut NcMenu) -> NcResult<()> {
                     menu.destroy()?;
                     selplane.destroy()?;
                     return Ok(());
-                },
+                }
                 NCKEY_ENTER => {
                     if let Some(selection) = menu.selected(Some(&mut ni)) {
                         match selection.as_ref() {
@@ -115,11 +114,11 @@ fn run_menu(nc: &mut Notcurses, menu: &mut NcMenu) -> NcResult<()> {
                                 selplane.destroy()?;
                                 return Ok(());
                             }
-                            _ => ()
+                            _ => (),
                         }
                     }
                 }
-                _ => ()
+                _ => (),
             }
         }
 
