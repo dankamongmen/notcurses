@@ -673,8 +673,6 @@ cell_duplicate_far(egcpool* tpool, nccell* targ, const ncplane* splane, const nc
     return 0;
   }
   const char* egc = cell_extended_gcluster(splane, c);
-  // FIXME we could eliminate this strlen() with a cell_extended_gcluster_len()
-  // that returned the length, combined with O(1) length for inlined EGCs...
   size_t ulen = strlen(egc);
   int eoffset = egcpool_stash(tpool, egc, ulen);
   if(eoffset < 0){
