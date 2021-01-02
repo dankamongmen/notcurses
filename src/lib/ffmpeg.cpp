@@ -128,7 +128,7 @@ int ncvisual_decode(ncvisual* nc){
       int averr;
       if((averr = av_read_frame(nc->details.fmtctx, nc->details.packet)) < 0){
         /*if(averr != AVERROR_EOF){
-          fprintf(stderr, "Error reading frame info (%s)\n", av_err2str(*averr));
+          fprintf(stderr, "Error reading frame info (%s)\n", av_err2str(averr));
         }*/
         return averr2ncerr(averr);
       }
