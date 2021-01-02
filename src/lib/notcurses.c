@@ -1390,6 +1390,9 @@ int ncplane_set_bg_palindex(ncplane* n, int idx){
 }
 
 int ncplane_set_base_cell(ncplane* ncp, const nccell* c){
+  if(cell_wide_right_p(c)){
+    return -1;
+  }
   return cell_duplicate(ncp, &ncp->basecell, c);
 }
 

@@ -1276,15 +1276,15 @@ ncplane_resize_simple(struct ncplane* n, int ylen, int xlen){
 // the standard plane.
 API int ncplane_destroy(struct ncplane* n);
 
-// Set the ncplane's base nccell to this nccell. It will be used for purposes
-// of rendering anywhere that the ncplane's gcluster is 0. Erasing the ncplane
-// does not reset the base cell; this function must be called with a zero 'c'.
+// Set the ncplane's base nccell to 'c'. The base cell is used for purposes of
+// rendering anywhere that the ncplane's gcluster is 0. Note that the base cell
+// is not affected by ncplane_erase(). 'c' must not be a secondary cell from a
+// multicolumn EGC.
 API int ncplane_set_base_cell(struct ncplane* n, const nccell* c);
 
-// Set the ncplane's base nccell to this cell. It will be used for purposes of
-// rendering anywhere that the ncplane's gcluster is 0. Erasing the ncplane
-// does not reset the base cell; this function must be called with an empty
-// 'egc'. 'egc' must be a single extended grapheme cluster.
+// Set the ncplane's base nccell. It will be used for purposes of rendering
+// anywhere that the ncplane's gcluster is 0. Note that the base cell is not
+// affected by ncplane_erase(). 'egc' must be an extended grapheme cluster.
 API int ncplane_set_base(struct ncplane* n, const char* egc,
                          uint32_t stylemask, uint64_t channels);
 
