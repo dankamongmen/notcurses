@@ -135,6 +135,23 @@ fetch_x_props(fetched_info* fi){
   return 0;
 }
 
+// Given a filename, check for its existence in the directories specified by
+// https://specifications.freedesktop.org/icon-theme-spec/latest/ar01s03.html.
+// Returns NULL if no such file can be found. Return value is heap-allocated.
+static char *
+get_xdg_logo(const char *spec){
+  char logopath[PATH_MAX + 1]; // FIXME
+  int s = snprintf(logopath, sizeof(logopath) - 1, "%s/%s", "/usr/share/pixmaps/", spec);
+  if(s < 0 || (size_t)s >= sizeof(logopath)){
+    return NULL;
+  }
+  if(access(logopath, F_OK) == 0){
+    return strdup(logopath);
+  }
+  return NULL;
+}
+
+// FIXME deal more forgivingly with quotation marks
 static const distro_info*
 linux_ncneofetch(fetched_info* fi){
   FILE* osinfo = fopen("/etc/os-release", "re");
@@ -152,7 +169,6 @@ linux_ncneofetch(fetched_info* fi){
       if(nl){
         *nl = '\0';
         distro = strdup(buf + strlen(ID));
-        break;
       }
     }else if(!fi->distro_pretty && strncmp(buf, PRETTY, strlen(PRETTY)) == 0){
       char* nl = strchr(buf + strlen(PRETTY), '"');
@@ -164,11 +180,11 @@ linux_ncneofetch(fetched_info* fi){
       char* nl = strchr(buf + strlen(LOGO), '"');
       if(nl){
         *nl = '\0';
-        // FIXME need directory (https://specifications.freedesktop.org/icon-theme-spec/latest/ar01s03.html)
-        fi->logo = strdup(buf + strlen(LOGO));
+        fi->logo = get_xdg_logo(buf + strlen(LOGO));
       }
     }
   }
+#undef LOGO
 #undef ID
 #undef PRETTY
   fclose(osinfo);
@@ -318,13 +334,8 @@ place_infoplane(struct ncdirect* ncd, int planeheight){
 }
 
 static int
-infoplane(struct ncdirect* ncd, const fetched_info* fi){
-  const int planeheight = 8;
+infoplane_notcurses(struct notcurses* nc, const fetched_info* fi, int planeheight){
   const int planewidth = 60;
-  struct notcurses* nc = place_infoplane(ncd, planeheight);
-  if(nc == NULL){
-    return -1;
-  }
   int dimy;
   struct ncplane* std = notcurses_stddim_yx(nc, &dimy, NULL);
   struct ncplane_options nopts = {
@@ -413,10 +424,19 @@ infoplane(struct ncdirect* ncd, const fetched_info* fi){
   if(notcurses_render(nc)){
     return -1;
   }
-  if(notcurses_stop(nc)){
+  return 0;
+}
+
+static int
+infoplane(struct ncdirect* ncd, const fetched_info* fi){
+  const int planeheight = 8;
+  struct notcurses* nc = place_infoplane(ncd, planeheight);
+  if(nc == NULL){
     return -1;
   }
-  return 0;
+  int r = infoplane_notcurses(nc, fi, planeheight);
+  r |= notcurses_stop(nc);
+  return r;
 }
 
 struct marshal {
