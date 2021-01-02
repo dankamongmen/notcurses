@@ -858,17 +858,17 @@ void ncplane_on_styles(struct ncplane* n, unsigned stylebits);
 // Remove the specified styles from the ncplane's existing spec.
 void ncplane_off_styles(struct ncplane* n, unsigned stylebits);
 
-// Set the ncplane's base cell to this cell. It will be used for purposes of
-// rendering anywhere that the ncplane's gcluster is 0. Erasing the ncplane
-// does not reset the base cell; this function must be called with a zero 'c'.
-int ncplane_set_base_cell(struct ncplane* ncp, const nccell* c);
+// Set the ncplane's base nccell to 'c'. The base cell is used for purposes of
+// rendering anywhere that the ncplane's gcluster is 0. Note that the base cell
+// is not affected by ncplane_erase(). 'c' must not be a secondary cell from a
+// multicolumn EGC.
+int ncplane_set_base_cell(struct ncplane* n, const nccell* c);
 
-// Set the ncplane's base cell to this cell. It will be used for purposes of
-// rendering anywhere that the ncplane's gcluster is 0. Erasing the ncplane
-// does not reset the base cell; this function must be called with an empty
-// 'egc'. 'egc' must be a single extended grapheme cluster.
-int ncplane_set_base(struct ncplane* ncp, const char* egc,
-                     uint32_t styles, uint64_t channels);
+// Set the ncplane's base nccell. It will be used for purposes of rendering
+// anywhere that the ncplane's gcluster is 0. Note that the base cell is not
+// affected by ncplane_erase(). 'egc' must be an extended grapheme cluster.
+int ncplane_set_base(struct ncplane* n, const char* egc,
+                     uint32_t stylemask, uint64_t channels);
 
 // Extract the ncplane's base cell into 'c'. The reference is invalidated if
 // 'ncp' is destroyed.

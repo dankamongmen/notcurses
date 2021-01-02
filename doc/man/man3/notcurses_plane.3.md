@@ -253,6 +253,21 @@ invoked following resizing of its parent's plane. If it returns non-zero, the
 resizing cascade terminates, returning non-zero. Otherwise, resizing proceeds
 recursively.
 
+## Base cells
+
+Each plane has a base cell, initialized to all zeroes. When rendering, the
+cells of the plane are examined in turn. Each cell has three independent
+rendering elements--its EGC, its foreground channel, and its background
+channel. Any default channel is replaced with the corresponding channel from
+that plane's base cell. **ncplane_erase** has no effect on the base cell.
+Calling **ncplane_erase** on a plane whose base cell is a purple 'A' results
+(for rendering purposes) in a plane made up entirely of purple 'A's.
+
+**ncplane_set_base_cell** uses the **nccell** ***c*** (which must be bound to
+the **ncplane** ***ncp***, and must be the first **nccell** of a multicolumn
+sequence) to set the base cell. **ncplane_set_base** does the same with
+***egc***, ***stylemask***, and ***channels***.
+
 ## Piles
 
 A single **notcurses** context is made up of one or more piles. A pile is a
