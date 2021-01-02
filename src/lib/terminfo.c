@@ -50,10 +50,6 @@ apply_term_heuristics(tinfo* ti, const char* termname){
     // setupterm interprets a missing/empty TERM variable as the special value “unknown”.
     termname = "unknown";
   }
-  // some control sequences are unavailable from terminfo, and we must instead
-  // hardcode them :/. use at your own peril!
-  ti->struck = "\x1b[9m";
-  ti->struckoff = "\x1b[29m";
   if(strstr(termname, "kitty")){ // kitty (https://sw.kovidgoyal.net/kitty/)
     // see https://sw.kovidgoyal.net/kitty/protocol-extensions.html
     // FIXME detect the actual default background color; this assumes it to
@@ -172,6 +168,8 @@ int interrogate_terminfo(tinfo* ti, const char* termname){
   terminfostr(&ti->setab, "setab"); // set background color
   terminfostr(&ti->smkx, "smkx");   // enable keypad transmit
   terminfostr(&ti->rmkx, "rmkx");   // disable keypad transmit
+  terminfostr(&ti->struck, "smxx"); // strikeout
+  terminfostr(&ti->struckoff, "rmxx"); // cancel strikeout
   // if the keypad neen't be explicitly enabled, smkx is not present
   if(ti->smkx){
     if(putp(tiparm(ti->smkx)) != OK){
