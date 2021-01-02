@@ -18,7 +18,7 @@
 //! use libnotcurses_sys::*;
 //!
 //! fn main() -> NcResult<()> {
-//!     let mut nc = Notcurses::with_flags(NCOPTION_NO_ALTERNATE_SCREEN)?;
+//!     let mut nc = FullMode::with_flags(NCOPTION_NO_ALTERNATE_SCREEN)?;
 //!     let plane = nc.stdplane()?;
 //!     plane.putstr("hello world")?;
 //!     nc.render()?;
@@ -27,14 +27,14 @@
 //! ```
 //! Specifically, and for example:
 //!
-//! [`Notcurses`] is the safe wrapper over [`NcNotcurses`], which is the
+//! [`FullMode`] is the safe wrapper over [`NcNotcurses`], which is the
 //! `&mut` reference over the raw `*mut` pointer received from FFI.
 //!
-//! Notcurses implements the [Drop], [AsRef], [AsMut], [Deref][std::ops::Deref]
+//! FullMode implements the [Drop], [AsRef], [AsMut], [Deref][std::ops::Deref]
 //! & [DerefMut][std::ops::DerefMut] traits.
 //!
 //! Most methods are directly implemented for NcNotcurses,
-//! and automatically available also from Notcurses.
+//! and automatically available also from FullMode.
 //!
 //! The destructor ([notcurses_stop()]) is called automatically at the end
 //! of its scope, so you don't ever have to call it by hand.

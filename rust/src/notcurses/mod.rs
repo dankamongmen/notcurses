@@ -77,7 +77,7 @@ pub use wrapper::*;
 /// NcNotcurses builds atop the terminfo abstraction layer to
 /// provide reasonably portable vivid character displays.
 ///
-/// This is the internal type safely wrapped by [Notcurses].
+/// This is the internal type safely wrapped by [FullMode].
 pub type NcNotcurses = crate::bindings::ffi::notcurses;
 
 /// Options struct for [`NcNotcurses`]

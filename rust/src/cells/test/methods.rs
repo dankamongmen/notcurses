@@ -1,6 +1,6 @@
 //! Test `NcCell` methods and associated functions.
 
-use crate::{NcCell, NcPlane, Notcurses};
+use crate::{NcCell, NcPlane, FullMode};
 
 use serial_test::serial;
 
@@ -10,7 +10,7 @@ fn constructors() -> crate::NcResult<()> {
     let _c1 = NcCell::new();
     let _c2 = NcCell::with_char7b('C');
 
-    let mut nc = Notcurses::new()?;
+    let mut nc = FullMode::new()?;
     let plane = NcPlane::new(&mut nc, 0, 0, 10, 10)?;
     let _c3 = NcCell::with_char('௵', plane);
     Ok(())

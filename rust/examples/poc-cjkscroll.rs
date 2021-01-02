@@ -3,7 +3,7 @@
 use libnotcurses_sys::*;
 
 fn main() -> NcResult<()> {
-    let mut nc = Notcurses::new()?;
+    let mut nc = FullMode::new()?;
     let plane = nc.stdplane()?;
     plane.set_scrolling(true);
 

@@ -73,7 +73,7 @@ pub use wrapper::*;
 
 /// Minimal notcurses instance for styling text.
 ///
-/// This is the internal type safely wrapped by [Direct].
+/// This is the internal type safely wrapped by [DirectMode].
 pub type NcDirect = crate::bindings::ffi::ncdirect;
 
 /// Flags (options) for [`NcDirect`]

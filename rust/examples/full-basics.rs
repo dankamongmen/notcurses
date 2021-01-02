@@ -1,7 +1,7 @@
 use libnotcurses_sys::*;
 
 fn main() -> NcResult<()> {
-    let mut nc = Notcurses::new()?;
+    let mut nc = FullMode::new()?;
     let stdplane = nc.stdplane()?;
 
     for ch in "Initializing cells...".chars() {
