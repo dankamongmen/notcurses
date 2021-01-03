@@ -1593,16 +1593,18 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
     return -1;
   }
 //fprintf(stderr, "%08x %016lx %c %d %d\n", targ->gcluster, targ->channels, cell_double_wide_p(targ) ? 'D' : 'd', bytes, cols);
-  if(cols > 1){ // must set our right wide, and check for further damage
-    nccell* candidate = &n->fb[nfbcellidx(n, n->y, n->x + 1)];
+  // must set our right hand sides wide, and check for further damage
+  ++n->x;
+  for(int i = 1 ; i < cols ; ++i){
+    nccell* candidate = &n->fb[nfbcellidx(n, n->y, n->x)];
     if(cell_wide_left_p(candidate)){
-      cell_obliterate(n, &n->fb[nfbcellidx(n, n->y, n->x + 2)]);
+      cell_obliterate(n, &n->fb[nfbcellidx(n, n->y, n->x + 1)]);
     }
     cell_release(n, candidate);
     candidate->channels = targ->channels;
     candidate->stylemask = targ->stylemask;
+    ++n->x;
   }
-  n->x += cols;
   return cols;
 }
 

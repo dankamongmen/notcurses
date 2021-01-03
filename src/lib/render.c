@@ -402,18 +402,22 @@ postpaint_cell(nccell* lastframe, int dimx, struct crender* crender,
   nccell* prevcell = &lastframe[fbcellidx(y, dimx, x)];
   if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc) > 0){
     crender->damaged = true;
+    assert(!cell_wide_right_p(targc));
     if(cell_wide_left_p(targc)){
-      const ncplane* tmpp = crender->p;
-      ++crender;
-      crender->p = tmpp;
-      ++x;
-      ++prevcell;
-      ++targc;
-      targc->gcluster = 0;
-      targc->channels = crender[-1].c.channels;
-      targc->stylemask = crender[-1].c.stylemask;
-      if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc) > 0){
-        crender->damaged = true;
+      const int width = targc->width;
+      for(int i = 1 ; i < width ; ++i){
+        const ncplane* tmpp = crender->p;
+        ++crender;
+        crender->p = tmpp;
+        ++x;
+        ++prevcell;
+        ++targc;
+        targc->gcluster = 0;
+        targc->channels = crender[-1].c.channels;
+        targc->stylemask = crender[-1].c.stylemask;
+        if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc) > 0){
+          crender->damaged = true;
+        }
       }
     }
   }
