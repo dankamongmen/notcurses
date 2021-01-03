@@ -192,7 +192,6 @@ pub type NcAlphaBits = u32;
 /// - [`NCCELL_FG_PALETTE`][crate::NCCELL_FG_PALETTE]
 /// - [`NCCELL_FG_RGB_MASK`][crate::NCCELL_FG_RGB_MASK]
 /// - [`NCCELL_NOBACKGROUND_MASK`][crate::NCCELL_NOBACKGROUND_MASK]
-/// - [`NCCELL_WIDEASIAN_MASK`][crate::NCCELL_WIDEASIAN_MASK]
 ///
 pub type NcChannelPair = u64;
 

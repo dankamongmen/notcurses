@@ -406,7 +406,7 @@ impl NcCell {
         crate::cell_strdup(plane, self)
     }
 
-    /// Does this NcCell contain an East Asian Wide codepoint?
+    /// Does this NcCell contain a wide codepoint?
     ///
     /// *C style function: [cell_double_wide_p()][crate::cell_double_wide_p].*
     pub fn double_wide_p(&self) -> bool {
@@ -420,7 +420,7 @@ impl NcCell {
         crate::cell_wide_right_p(self)
     }
 
-    /// Is this the right half of a wide character?
+    /// Is this the right side of a wide character?
     ///
     /// *C style function: [cell_wide_right_p()][crate::cell_wide_right_p].*
     pub fn wide_right_p(&self) -> bool {
