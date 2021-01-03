@@ -232,6 +232,11 @@ channel_alpha(unsigned channel){
   return channel & CHANNEL_ALPHA_MASK;
 }
 
+static inline unsigned
+channel_palindex(uint32_t channel){
+  return channel & 0xff;
+}
+
 // Set the 2-bit alpha component of the 32-bit channel.
 static inline int
 channel_set_alpha(unsigned* channel, unsigned alpha){
@@ -293,6 +298,16 @@ channels_combine(uint32_t fchan, uint32_t bchan){
   channels_set_fchannel(&channels, fchan);
   channels_set_bchannel(&channels, bchan);
   return channels;
+}
+
+static inline unsigned
+channels_fg_palindex(uint64_t channels){
+  return channel_palindex(channels_fchannel(channels));
+}
+
+static inline unsigned
+channels_bg_palindex(uint64_t channels){
+  return channel_palindex(channels_bchannel(channels));
 }
 
 // Extract 24 bits of foreground RGB from 'channels', shifted to LSBs.
@@ -1961,7 +1976,7 @@ cell_set_fg_palindex(nccell* cl, int idx){
 
 static inline uint32_t
 cell_fg_palindex(const nccell* cl){
-  return (cl->channels & 0xff00000000ull) >> 32u;
+  return channels_fg_palindex(cl->channels);
 }
 
 // Set the r, g, and b cell for the background component of this 64-bit
@@ -1993,7 +2008,7 @@ cell_set_bg_palindex(nccell* cl, int idx){
 
 static inline uint32_t
 cell_bg_palindex(const nccell* cl){
-  return (cl->channels & 0xff);
+  return channels_bg_palindex(cl->channels);
 }
 
 // Is the foreground using the "default foreground color"?

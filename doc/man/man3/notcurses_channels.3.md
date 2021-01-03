@@ -25,11 +25,13 @@ notcurses_channels - operations on notcurses channels
 
 **uint32_t channel_b(uint32_t ***channel***);**
 
-**uint32_t channel_rgb8(uint32_t channel, uint32_t* restrict ***r***, uint32_t* restrict ***g***, uint32_t* restrict ***b***);**
+**uint32_t channel_rgb8(uint32_t ***channel***, uint32_t* restrict ***r***, uint32_t* restrict ***g***, uint32_t* restrict ***b***);**
 
-**int channel_set_rgb8(uint32_t* channel, int ***r***, int ***g***, int ***b***);**
+**unsigned channel_palindex(uint32_t ***channel***);**
 
-**int channel_set(uint32_t* channel, uint32_t rg***b***);**
+**int channel_set_rgb8(uint32_t* ***channel***, int ***r***, int ***g***, int ***b***);**
+
+**int channel_set(uint32_t* ***channel***, uint32_t rg***b***);**
 
 **uint32_t channel_alpha(uint32_t ***channel***);**
 
@@ -54,6 +56,10 @@ notcurses_channels - operations on notcurses channels
 **unsigned channels_fg_alpha(uint64_t ***channels***);**
 
 **unsigned channels_bg_alpha(uint64_t ***channels***);**
+
+**unsigned channels_fg_palindex(uint64_t ***channels***);**
+
+**unsigned channels_bg_palindex(uint64_t ***channels***);**
 
 **unsigned channels_fg_rgb8(uint64_t ***channels***, unsigned* ***r***, unsigned* ***g***, unsigned* ***b***);**
 
