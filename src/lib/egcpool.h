@@ -11,7 +11,6 @@
 #include <string.h>
 #include <unigbrk.h>
 #include <stdbool.h>
-#include "ncwidth.h"
 #include "notcurses/notcurses.h"
 
 #ifdef __cplusplus
@@ -67,7 +66,7 @@ egcpool_grow(egcpool* pool, size_t len){
 // any NUL terminator. Neither the number of bytes nor columns is necessarily
 // equal to the number of decoded code points. Such are the ways of Unicode.
 // uc_is_grapheme_break() wants UTF-32, which is fine, because we need wchar_t
-// to use ncwidth() anyway FIXME except this doesn't work with 16-bit wchar_t!
+// to use wcwidth() anyway FIXME except this doesn't work with 16-bit wchar_t!
 static inline int
 utf8_egc_len(const char* gcluster, int* colcount){
   size_t ret = 0;
@@ -84,7 +83,7 @@ utf8_egc_len(const char* gcluster, int* colcount){
     if(prevw && uc_is_grapheme_break(prevw, wc)){
       break; // starts a new EGC, exit and do not claim
     }
-    int cols = ncwidth(wc);
+    int cols = wcwidth(wc);
     if(cols < 0){
       if(iswspace(wc)){ // newline or tab
         return ret + 1;

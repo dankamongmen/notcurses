@@ -397,7 +397,7 @@ mbstr_find_codepoint(const char* s, char32_t cp, int* col){
     if(towlower(cp) == towlower(w)){
       return bytes;
     }
-    *col += ncwidth(w);
+    *col += wcwidth(w);
     bytes += r;
   }
   return -1;
