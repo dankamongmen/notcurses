@@ -24,10 +24,13 @@ ncdirect_bg_default_p(const struct ncdirect* nc){
   return channels_bg_default_p(ncdirect_channels(nc));
 }
 
-// FIXME handle palette-indexed color
 int ncdirect_putstr(ncdirect* nc, uint64_t channels, const char* utf8){
   if(channels_fg_default_p(channels)){
     if(ncdirect_set_fg_default(nc)){
+      return -1;
+    }
+  }else if(channels_fg_palindex_p(channels)){
+    if(ncdirect_set_fg_palindex(nc, channels_fg_palindex(channels))){
       return -1;
     }
   }else if(ncdirect_set_fg_rgb(nc, channels_fg_rgb(channels))){
@@ -35,6 +38,10 @@ int ncdirect_putstr(ncdirect* nc, uint64_t channels, const char* utf8){
   }
   if(channels_bg_default_p(channels)){
     if(ncdirect_set_bg_default(nc)){
+      return -1;
+    }
+  }else if(channels_bg_palindex_p(channels)){
+    if(ncdirect_set_bg_palindex(nc, channels_bg_palindex(channels))){
       return -1;
     }
   }else if(ncdirect_set_bg_rgb(nc, channels_bg_rgb(channels))){
