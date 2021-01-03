@@ -529,12 +529,17 @@ int ncdirect_render_image(ncdirect* n, const char* file, ncalign_e align,
   return ncdirect_raster_frame(n, faken, align);
 }
 
-// FIXME need to update channels
 int ncdirect_set_fg_palindex(ncdirect* nc, int pidx){
+  if(channels_set_fg_palindex(&nc->channels, pidx) < 0){
+    return -1;
+  }
   return term_emit("setaf", tiparm(nc->tcache.setaf, pidx), nc->ttyfp, false);
 }
 
 int ncdirect_set_bg_palindex(ncdirect* nc, int pidx){
+  if(channels_set_bg_palindex(&nc->channels, pidx) < 0){
+    return -1;
+  }
   return term_emit("setab", tiparm(nc->tcache.setab, pidx), nc->ttyfp, false);
 }
 

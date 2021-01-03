@@ -112,7 +112,7 @@ int fallin_demo(struct notcurses* nc){
   //  * newy/newx: actual geometry of current brick
   //  * usey/usex: 
   ncplane_greyscale(stdn);
-  for(int y = 0 ; y < dimy ; ++y){
+  for(int y = 1 ; y < dimy ; ++y){
     int x = 0;
     while(x < dimx){
       if(usemap[y * dimx + x]){ // skip if we've already been copied
