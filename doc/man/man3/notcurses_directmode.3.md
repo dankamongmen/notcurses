@@ -8,7 +8,13 @@ ncdirect_init - minimal notcurses instances for styling text
 
 # SYNOPSIS
 
-**#include <notcurses/direct.h>**
+```c
+#include <notcurses/direct.h>
+
+#define NCDIRECT_OPTION_INHIBIT_SETLOCALE   0x0001ull
+#define NCDIRECT_OPTION_INHIBIT_CBREAK      0x0002ull
+#define NCDIRECT_OPTION_NO_QUIT_SIGHANDLERS 0x0008ull
+```
 
 **struct ncdirect* ncdirect_init(const char* ***termtype***, FILE* ***fp***, uint64_t ***flags***);**
 
@@ -100,6 +106,11 @@ The following flags are defined:
 * **NCDIRECT_OPTION_INHIBIT_CBREAK**: Unless this flag is set, **ncdirect_init**
     will place the terminal into cbreak mode (i.e. disabling echo and line
     buffering; see **tcgetattr(3)**).
+
+* **NCDIRECT_OPTION_NO_QUIT_SIGHANDLERS**: A signal handler will usually be
+    installed for **SIGINT**, **SIGQUIT**, **SIGSEGV**, **SIGTERM**, and
+    **SIGABRT**, cleaning up the terminal on such exceptions. With this flag,
+    the handler will not be installed.
 
 An appropriate **terminfo(5)** entry must exist for the terminal. This entry is
 usually selected using the value of the **TERM** environment variable (see

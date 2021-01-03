@@ -25,6 +25,11 @@ typedef struct ncplane ncdirectv;
 // echo and input's line buffering are turned off.
 #define NCDIRECT_OPTION_INHIBIT_CBREAK    0x0002ull
 
+// We typically install a signal handler for SIG{INT, SEGV, ABRT, QUIT} that
+// restores the screen, and then calls the old signal handler. Set to inhibit
+// registration of these signal handlers. Chosen to match fullscreen mode.
+#define NCDIRECT_NO_QUIT_SIGHANDLERS      0x0008ull
+
 // Initialize a direct-mode Notcurses context on the connected terminal at 'fp'.
 // 'fp' must be a tty. You'll usually want stdout. Direct mode supports a
 // limited subset of Notcurses routines which directly affect 'fp', and neither

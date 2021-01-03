@@ -1,6 +1,12 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 2.1.4 (not yet released):
+  * direct mode now supports `NCDIRECT_OPTION_NO_QUIT_SIGHANDLERS`, and by
+    default installs signal handlers similar to those of fullscreen mode.
+    They will attempt to reset the terminal, and propagate the signal.
+  * Add `channels_fg_palindex()` and `channels_bg_palindex()`.
+
 * 2.1.3 (2020-12-31)
   * `ncdirect_styles_{set, on, off}()` have been deprecated in favor of
     `ncdirect_{set, on, off}_styles()`, to match `ncplane_` equivalents.
