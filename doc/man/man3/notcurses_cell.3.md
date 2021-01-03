@@ -27,7 +27,6 @@ typedef struct nccell {
 #define CELL_INITIALIZER(c, s, chan) \
  { .gcluster = (c), .stylemask = (s), .channels = (chan), }
 
-#define CELL_WIDEASIAN_MASK     0x8000000080000000ull
 #define CELL_BGDEFAULT_MASK     0x0000000040000000ull
 #define CELL_FGDEFAULT_MASK     (CELL_BGDEFAULT_MASK << 32u)
 #define CELL_BG_RGB_MASK        0x0000000000ffffffull

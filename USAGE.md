@@ -1647,7 +1647,6 @@ typedef struct nccell {
   uint64_t channels;          // + 8B == 16B
 } nccell;
 
-#define CELL_WIDEASIAN_MASK     0x8000000000000000ull
 #define CELL_BGDEFAULT_MASK     0x0000000040000000ull
 #define CELL_FGDEFAULT_MASK     (CELL_BGDEFAULT_MASK << 32u)
 #define CELL_BG_RGB_MASK        0x0000000000ffffffull
@@ -1762,28 +1761,31 @@ cell_off_styles(nccell* c, unsigned stylebits){
   c->stylemask &= ~(stylebits & NCSTYLE_MASK);
 }
 
-// does the cell contain an East Asian Wide codepoint?
+// Is the cell part of a multicolumn element?
 static inline bool
 cell_double_wide_p(const nccell* c){
-  return (c->channels & CELL_WIDEASIAN_MASK);
+  return (c->width >= 2);
 }
 
-// Load a 7-bit char 'ch' into the cell 'c'.
+// Load a 7-bit char 'ch' into the nccell 'c'. Returns the number of bytes
+// used, or -1 on error.
 static inline int
 cell_load_char(struct ncplane* n, nccell* c, char ch){
-  cell_release(n, c);
-  c->channels &= ~(CELL_WIDEASIAN_MASK | CELL_NOBACKGROUND_MASK);
-  c->gcluster = ch;
-  return 1;
+  char gcluster[2];
+  gcluster[0] = ch;
+  gcluster[1] = '\0';
+  return cell_load(n, c, gcluster);
 }
 
-// Load a UTF-8 encoded EGC of up to 4 bytes into the cell 'c'.
+// Load a UTF-8 encoded EGC of up to 4 bytes into the nccell 'c'. Returns the
+// number of bytes used, or -1 on error.
 static inline int
 cell_load_egc32(struct ncplane* n, nccell* c, uint32_t egc){
-  cell_release(n, c);
-  c->channels &= ~(CELL_WIDEASIAN_MASK | CELL_NOBACKGROUND_MASK);
-  c->gcluster = htole(egc);
-  return 1;
+  char gcluster[sizeof(egc) + 1];
+  egc = htole(egc);
+  memcpy(gcluster, &egc, sizeof(egc));
+  gcluster[4] = '\0';
+  return cell_load(n, c, gcluster);
 }
 
 // return a pointer to the NUL-terminated EGC referenced by 'c'. this pointer
