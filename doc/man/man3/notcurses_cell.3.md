@@ -15,7 +15,7 @@ notcurses_cell - operations on nccell objects
 typedef struct nccell {
   uint32_t gcluster;          // 4B → 4B
   uint8_t gcluster_backstop;  // 1B → 5B (8 bits of zero)
-  uint8_t reserved;           // 1B → 6B (8 reserved bits, ought be zero)
+  uint8_t width;              // 1B → 6B (8 bits of column width)
   uint16_t stylemask;         // 2B → 8B (16 bits of NCSTYLE_* attributes)
   uint64_t channels;
 } nccell;
