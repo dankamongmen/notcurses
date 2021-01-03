@@ -344,7 +344,6 @@ pub const fn cell_wide_left_p(cell: &NcCell) -> bool {
 /// *Method: NcCell.[load_char()][NcCell#method.load_char].*
 //
 // NOTE: Unlike the original C function this doesn't return anything.
-// REMINDER: remove casting for NCCELL_WIDEASIAN_MASK when fixed:
 // Waiting for: https://github.com/rust-lang/rust-bindgen/issues/1875
 #[inline]
 pub fn cell_load_char(plane: &mut NcPlane, cell: &mut NcCell, ch: NcEgc) /* -> i32 */
@@ -352,8 +351,6 @@ pub fn cell_load_char(plane: &mut NcPlane, cell: &mut NcCell, ch: NcEgc) /* -> i
     unsafe {
         crate::cell_release(plane, cell);
     }
-    cell.channels &= !(NCCELL_WIDEASIAN_MASK as NcChannelPair | NCCELL_NOBACKGROUND_MASK);
-    cell.gcluster = ch as u32;
 
     /* TODO new version:
 
