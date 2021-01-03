@@ -396,10 +396,10 @@ lock_in_highcontrast(nccell* targc, struct crender* crender){
 // 'lastframe' for any cells which are damaged.
 static inline void
 postpaint_cell(nccell* lastframe, int dimx, struct crender* crender,
-               egcpool* pool, int y, int x){
+               egcpool* pool, int y, int* x){
   nccell* targc = &crender->c;
   lock_in_highcontrast(targc, crender);
-  nccell* prevcell = &lastframe[fbcellidx(y, dimx, x)];
+  nccell* prevcell = &lastframe[fbcellidx(y, dimx, *x)];
   if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc) > 0){
     crender->damaged = true;
     assert(!cell_wide_right_p(targc));
@@ -409,7 +409,7 @@ postpaint_cell(nccell* lastframe, int dimx, struct crender* crender,
         const ncplane* tmpp = crender->p;
         ++crender;
         crender->p = tmpp;
-        ++x;
+        ++*x;
         ++prevcell;
         ++targc;
         targc->gcluster = 0;
@@ -438,7 +438,7 @@ postpaint(nccell* lastframe, int dimy, int dimx, struct crender* rvec, egcpool* 
   for(int y = 0 ; y < dimy ; ++y){
     for(int x = 0 ; x < dimx ; ++x){
       struct crender* crender = &rvec[fbcellidx(y, dimx, x)];
-      postpaint_cell(lastframe, dimx, crender, pool, y, x);
+      postpaint_cell(lastframe, dimx, crender, pool, y, &x);
     }
   }
 }
