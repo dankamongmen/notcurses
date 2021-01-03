@@ -592,8 +592,33 @@ int get_controlling_tty(FILE* ttyfp){
   return open(cbuf, O_RDWR | O_CLOEXEC);
 }
 
+static int
+ncdirect_stop_minimal(void* vnc){
+  ncdirect* nc = static_cast<ncdirect*>(vnc);
+  int ret = 0;
+  if(nc->tcache.op && term_emit("op", nc->tcache.op, nc->ttyfp, true)){
+    ret = -1;
+  }
+  if(nc->tcache.sgr0 && term_emit("sgr0", nc->tcache.sgr0, nc->ttyfp, true)){
+    ret = -1;
+  }
+  if(nc->tcache.oc && term_emit("oc", nc->tcache.oc, nc->ttyfp, true)){
+    ret = -1;
+  }
+  if(nc->ctermfd >= 0){
+    if(nc->tcache.cnorm && tty_emit("cnorm", nc->tcache.cnorm, nc->ctermfd)){
+      ret = -1;
+    }
+    if(!(nc->flags & NCDIRECT_OPTION_INHIBIT_CBREAK)){
+      ret |= tcsetattr(nc->ctermfd, TCSANOW, &nc->tpreserved);
+    }
+    ret |= close(nc->ctermfd);
+  }
+  return ret;
+}
+
 ncdirect* ncdirect_init(const char* termtype, FILE* outfp, uint64_t flags){
-  if(flags > (NCDIRECT_OPTION_INHIBIT_CBREAK << 1)){ // allow them through with warning
+  if(flags > (NCDIRECT_OPTION_NO_QUIT_SIGHANDLERS << 1)){ // allow them through with warning
     logwarn((struct notcurses*)NULL, "Passed unsupported flags 0x%016jx\n", (uintmax_t)flags);
   }
   if(outfp == nullptr){
@@ -612,6 +637,11 @@ ncdirect* ncdirect_init(const char* termtype, FILE* outfp, uint64_t flags){
   const char* encoding = nl_langinfo(CODESET);
   if(encoding && strcmp(encoding, "UTF-8") == 0){
     ret->utf8 = true;
+  }
+  if(setup_signals(ret, (flags & NCDIRECT_OPTION_NO_QUIT_SIGHANDLERS),
+                   true, ncdirect_stop_minimal)){
+    delete ret;
+    return nullptr;
   }
   // we don't need a controlling tty for everything we do; allow a failure here
   if((ret->ctermfd = get_controlling_tty(ret->ttyfp)) >= 0){
@@ -658,24 +688,7 @@ err:
 int ncdirect_stop(ncdirect* nc){
   int ret = 0;
   if(nc){
-    if(nc->tcache.op && term_emit("op", nc->tcache.op, nc->ttyfp, true)){
-      ret = -1;
-    }
-    if(nc->tcache.sgr0 && term_emit("sgr0", nc->tcache.sgr0, nc->ttyfp, true)){
-      ret = -1;
-    }
-    if(nc->tcache.oc && term_emit("oc", nc->tcache.oc, nc->ttyfp, true)){
-      ret = -1;
-    }
-    if(nc->ctermfd >= 0){
-      if(nc->tcache.cnorm && tty_emit("cnorm", nc->tcache.cnorm, nc->ctermfd)){
-        ret = -1;
-      }
-      if(!(nc->flags & NCDIRECT_OPTION_INHIBIT_CBREAK)){
-        ret |= tcsetattr(nc->ctermfd, TCSANOW, &nc->tpreserved);
-      }
-      ret |= close(nc->ctermfd);
-    }
+    ret |= ncdirect_stop_minimal(nc);
     input_free_esctrie(&nc->input.inputescapes);
     delete(nc);
   }
