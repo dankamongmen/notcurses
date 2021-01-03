@@ -1526,6 +1526,7 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
     cell_release(n, candidate);
     candidate->channels = targ->channels;
     candidate->stylemask = targ->stylemask;
+    candidate->width = targ->width;
     ++n->x;
   }
   return cols;

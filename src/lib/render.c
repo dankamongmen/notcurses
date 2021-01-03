@@ -284,12 +284,13 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
             // are we on the last column of the real screen? if so, 0x20 us
             if(absx >= dstlenx - 1){
               targc->gcluster = htole(' ');
+              targc->width = 1;
             // is the next cell occupied? if so, 0x20 us
             }else if(crender[1].c.gcluster){
 //fprintf(stderr, "NULLING out %d/%d (%d/%d) due to %u\n", y, x, absy, absx, crender[1].c.gcluster);
               targc->gcluster = htole(' ');
+              targc->width = 1;
             }else{
-              cell_set_wide(targc);
               targc->stylemask = vis->stylemask;
               targc->width = vis->width;
             }
@@ -299,9 +300,8 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
           }
           crender->p = p;
         }else if(cell_wide_right_p(vis)){
-          cell_set_wide(targc);
           crender->p = p;
-          targc->width = vis->width;
+          targc->width = 0;
         }
       }
 
@@ -403,21 +403,19 @@ postpaint_cell(nccell* lastframe, int dimx, struct crender* crender,
   if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc) > 0){
     crender->damaged = true;
     assert(!cell_wide_right_p(targc));
-    if(cell_wide_left_p(targc)){
-      const int width = targc->width;
-      for(int i = 1 ; i < width ; ++i){
-        const ncplane* tmpp = crender->p;
-        ++crender;
-        crender->p = tmpp;
-        ++*x;
-        ++prevcell;
-        ++targc;
-        targc->gcluster = 0;
-        targc->channels = crender[-1].c.channels;
-        targc->stylemask = crender[-1].c.stylemask;
-        if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc) > 0){
-          crender->damaged = true;
-        }
+    const int width = targc->width;
+    for(int i = 1 ; i < width ; ++i){
+      const ncplane* tmpp = crender->p;
+      ++crender;
+      crender->p = tmpp;
+      ++*x;
+      ++prevcell;
+      targc = &crender->c;
+      targc->gcluster = 0;
+      targc->channels = crender[-i].c.channels;
+      targc->stylemask = crender[-i].c.stylemask;
+      if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc) > 0){
+        crender->damaged = true;
       }
     }
   }
@@ -970,12 +968,15 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
           nc->rstate.bgdefelidable = false;
           nc->rstate.bgpalelidable = false;
         }
-//fprintf(stderr, "RAST %08x [%s] to %d/%d cols: %u %016lx\n", srccell->gcluster, pool_extended_gcluster(&nc->pool, srccell), y, x, srccell->width + 1, srccell->channels);
+//fprintf(stderr, "RAST %08x [%s] to %d/%d cols: %u %016lx\n", srccell->gcluster, pool_extended_gcluster(&nc->pool, srccell), y, x, srccell->width, srccell->channels);
         if(term_putc(out, &nc->pool, srccell)){
           return -1;
         }
-        nc->rstate.x += srccell->width + 1;
-        x += srccell->width;
+        ++nc->rstate.x;
+        if(srccell->width >= 2){
+          x += srccell->width - 1;
+          nc->rstate.x += srccell->width - 1;
+        }
       }
 //fprintf(stderr, "damageidx: %ld\n", damageidx);
     }

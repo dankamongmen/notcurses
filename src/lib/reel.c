@@ -821,7 +821,7 @@ nctablet* ncreel_add(ncreel* nr, nctablet* after, nctablet *before,
 }
 
 int ncreel_del(ncreel* nr, struct nctablet* t){
-  if(nr == NULL || t == NULL){
+  if(t == NULL){
     return -1;
   }
   t->prev->next = t->next;

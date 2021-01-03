@@ -95,7 +95,7 @@ TEST_CASE("Wide") {
       wchar_t w;
       CHECK(0 < mbtowc(&w, cell_extended_gcluster(n_, &tcell), MB_CUR_MAX));
       if(wcwidth(w) == 2){
-        CHECK(1 == testcell.width);
+        CHECK(2 == testcell.width);
         ++x;
       }else{
         CHECK(0 == testcell.channels);
@@ -257,7 +257,7 @@ TEST_CASE("Wide") {
   }
 
   SUBCASE("RenderWides") {
-    CHECK(0 <= ncplane_putstr(n_, "\xe5\xbd\xa2\xe5\x85\xa8"));
+    CHECK(0 <= ncplane_putstr(n_, "\u5f62\u5168"));
     nccell c = CELL_TRIVIAL_INITIALIZER;
     ncplane_at_yx_cell(n_, 0, 0, &c);
     CHECK(cell_double_wide_p(&c));
@@ -270,16 +270,19 @@ TEST_CASE("Wide") {
     ncplane_at_yx_cell(n_, 0, 4, &c);
     CHECK(!cell_double_wide_p(&c));
     CHECK(0 == notcurses_render(nc_));
-    notcurses_at_yx(nc_, 0, 0, &c.stylemask, &c.channels);
-    CHECK(0 != (c.channels & 0x8000000080000000ull));
-    notcurses_at_yx(nc_, 0, 1, &c.stylemask, &c.channels);
-    CHECK(0 != (c.channels & 0x8000000080000000ull));
-    notcurses_at_yx(nc_, 0, 2, &c.stylemask, &c.channels);
-    CHECK(0 != (c.channels & 0x8000000080000000ull));
-    notcurses_at_yx(nc_, 0, 3, &c.stylemask, &c.channels);
-    CHECK(0 != (c.channels & 0x8000000080000000ull));
-    notcurses_at_yx(nc_, 0, 4, &c.stylemask, &c.channels);
-    CHECK(!(c.channels & 0x8000000080000000ull));
+    auto egc = notcurses_at_yx(nc_, 0, 0, &c.stylemask, &c.channels);
+    REQUIRE(nullptr != egc);
+    CHECK(0 == strcmp("\u5f62", egc));
+    egc = notcurses_at_yx(nc_, 0, 1, &c.stylemask, &c.channels);
+    REQUIRE(nullptr != egc);
+    CHECK(0 == strcmp("", egc));
+    egc = notcurses_at_yx(nc_, 0, 2, &c.stylemask, &c.channels);
+    REQUIRE(nullptr != egc);
+    CHECK(0 == strcmp("\u5168", egc));
+    egc = notcurses_at_yx(nc_, 0, 3, &c.stylemask, &c.channels);
+    REQUIRE(nullptr != egc);
+    egc = notcurses_at_yx(nc_, 0, 4, &c.stylemask, &c.channels);
+    REQUIRE(nullptr != egc);
   }
 
   // If an ncplane is moved atop the right half of a wide glyph, the entire

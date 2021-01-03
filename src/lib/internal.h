@@ -606,11 +606,6 @@ ncplane_cell_ref_yx(ncplane* n, int y, int x){
   return &n->fb[nfbcellidx(n, y, x)];
 }
 
-static inline void
-cell_set_wide(nccell* c){
-  c->channels |= CELL_WIDEASIAN_MASK;
-}
-
 #define NANOSECS_IN_SEC 1000000000
 
 static inline uint64_t
@@ -998,16 +993,10 @@ pool_blit_direct(egcpool* pool, nccell* c, const char* gcluster, int bytes, int 
 static inline int
 pool_load_direct(egcpool* pool, nccell* c, const char* gcluster, int bytes, int cols){
   char* rtl = NULL;
-  c->width = cols - 1;
-  if(cols < 2){
-    c->channels &= ~CELL_WIDEASIAN_MASK;
-    if(bytes == 3 && memcmp(gcluster, "\xe2\x96\x88", 4) == 0){
-      c->channels |= CELL_NOBACKGROUND_MASK;
-    }else{
-      c->channels &= ~CELL_NOBACKGROUND_MASK;
-    }
+  c->width = cols;
+  if(bytes == 3 && memcmp(gcluster, "\xe2\x96\x88", 4) == 0){
+    c->channels |= CELL_NOBACKGROUND_MASK;
   }else{
-    c->channels |= CELL_WIDEASIAN_MASK;
     c->channels &= ~CELL_NOBACKGROUND_MASK;
   }
   if(bytes >= 0){

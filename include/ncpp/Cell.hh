@@ -15,7 +15,6 @@ namespace ncpp
 	class NCPP_API_EXPORT Cell : public Root
 	{
 	public:
-		static constexpr uint64_t WideAsianMask = CELL_WIDEASIAN_MASK;
 		static constexpr uint64_t FGDefaultMask = CELL_FGDEFAULT_MASK;
 		static constexpr uint64_t FGRGBMask     = CELL_FG_RGB_MASK;
 		static constexpr uint64_t BGDefaultMask = CELL_BGDEFAULT_MASK;

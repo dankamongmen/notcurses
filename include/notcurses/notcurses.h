@@ -109,10 +109,6 @@ API int notcurses_ucs32_to_utf8(const char32_t* ucs32, unsigned ucs32count,
 #define CELL_ALPHA_BLEND        0x10000000ull
 #define CELL_ALPHA_OPAQUE       0x00000000ull
 
-// if this bit is set, the cell is part of a multicolumn glyph. whether a
-// cell is the left or right side of the glyph can be determined by checking
-// whether ->gcluster is zero.
-#define CELL_WIDEASIAN_MASK     0x8000000000000000ull
 #define CELL_NOBACKGROUND_MASK  0x0400000000000000ull
 // if this bit is set, we are *not* using the default background color
 #define CELL_BGDEFAULT_MASK     0x0000000040000000ull
@@ -584,13 +580,16 @@ typedef struct nccell {
   // It must not be allowed through the API, or havoc will result.
   uint32_t gcluster;          // 4B → 4B little endian EGC
   uint8_t gcluster_backstop;  // 1B → 5B (8 bits of zero)
-  // we store the column width minus 1 in this field. this is necessary to
-  // handle EGCs of more than 2 columns...for now. eventually, such an EGC will
-  // set more than one subsequent cell to WIDE_RIGHT, and this won't be
-  // necessary. it can then be used as a bytecount. see #1203. FIXME
-  uint8_t width;              // 1B → 6B (8 bits of EGC width, bias-1)
+  // we store the column width in this field. for a multicolumn EGC of N
+  // columns, there will be N nccells, and each has a width of N...for now.
+  // eventually, such an EGC will set more than one subsequent cell to
+  // WIDE_RIGHT, and this won't be necessary. it can then be used as a
+  // bytecount. see #1203. FIXME iff width >= 2, the cell is part of a
+  // multicolumn glyph. whether a cell is the left or right side of the glyph
+  // can be determined by checking whether ->gcluster is zero.
+  uint8_t width;              // 1B → 6B (8 bits of EGC column width)
   uint16_t stylemask;         // 2B → 8B (16 bits of NCSTYLE_* attributes)
-  // (channels & 0x8000000000000000ull): part of a wide glyph
+  // (channels & 0x8000000000000000ull): reserved, must be 0
   // (channels & 0x4000000000000000ull): foreground is *not* "default color"
   // (channels & 0x3000000000000000ull): foreground alpha (2 bits)
   // (channels & 0x0800000000000000ull): foreground uses palette index
@@ -614,11 +613,11 @@ typedef struct nccell {
 typedef nccell cell; // FIXME backwards-compat, remove in 3.0
 
 #define CELL_TRIVIAL_INITIALIZER { .gcluster = 0, .gcluster_backstop = 0, .width = 0, .stylemask = 0, .channels = 0, }
-// do *not* load control characters, wide EGCs, nor invalid EGCs using these
-// macros! there is no way for us to protect against such misuse here. problems
-// *will* ensue. similarly, do not set channel flags other than colors/alpha.
-#define CELL_CHAR_INITIALIZER(c) { .gcluster = (htole(c)), .gcluster_backstop = 0, .width = 0, .stylemask = 0, .channels = 0, }
-#define CELL_INITIALIZER(c, s, chan) { .gcluster = (htole(c)), .gcluster_backstop = 0, .width = 0, .stylemask = (s), .channels = (chan), }
+// do *not* load invalid EGCs using these macros! there is no way for us to
+// protect against such misuse here. problems *will* ensue. similarly, do not
+// set channel flags other than colors/alpha.
+#define CELL_CHAR_INITIALIZER(c) { .gcluster = (htole(c)), .gcluster_backstop = 0, .width = (uint8_t)wcwidth(c), .stylemask = 0, .channels = 0, }
+#define CELL_INITIALIZER(c, s, chan) { .gcluster = (htole(c)), .gcluster_backstop = 0, .width = (uint8_t)wcwidth(c), .stylemask = (s), .channels = (chan), }
 
 static inline void
 cell_init(nccell* c){
@@ -708,10 +707,10 @@ cell_set_bg_alpha(nccell* c, int alpha){
   return channels_set_bg_alpha(&c->channels, alpha);
 }
 
-// Does the nccell contain an East Asian Wide codepoint?
+// Is the cell part of a multicolumn element?
 static inline bool
 cell_double_wide_p(const nccell* c){
-  return (c->channels & CELL_WIDEASIAN_MASK);
+  return (c->width >= 2);
 }
 
 // Is this the right half of a wide character?
@@ -2422,16 +2421,20 @@ API int ncvisual_rotate(struct ncvisual* n, double rads);
 
 // Resize the visual so that it is 'rows' X 'columns'. This is a lossy
 // transformation, unless the size is unchanged.
-API int ncvisual_resize(struct ncvisual* n, int rows, int cols);
+API int ncvisual_resize(struct ncvisual* n, int rows, int cols)
+  __attribute__ ((nonnull (1)));
 
 // Polyfill at the specified location within the ncvisual 'n', using 'rgba'.
-API int ncvisual_polyfill_yx(struct ncvisual* n, int y, int x, uint32_t rgba);
+API int ncvisual_polyfill_yx(struct ncvisual* n, int y, int x, uint32_t rgba)
+  __attribute__ ((nonnull (1)));
 
 // Get the specified pixel from the specified ncvisual.
-API int ncvisual_at_yx(const struct ncvisual* n, int y, int x, uint32_t* pixel);
+API int ncvisual_at_yx(const struct ncvisual* n, int y, int x, uint32_t* pixel)
+  __attribute__ ((nonnull (1, 4)));
 
 // Set the specified pixel in the specified ncvisual.
-API int ncvisual_set_yx(const struct ncvisual* n, int y, int x, uint32_t pixel);
+API int ncvisual_set_yx(const struct ncvisual* n, int y, int x, uint32_t pixel)
+  __attribute__ ((nonnull (1)));
 
 // Render the decoded frame to the specified ncplane (if one is not provided,
 // one will be created, having the exact size necessary to display the visual.
@@ -2629,7 +2632,8 @@ API struct ncreel* ncreel_create(struct ncplane* n, const ncreel_options* popts)
   __attribute__ ((nonnull (1)));
 
 // Returns the ncplane on which this ncreel lives.
-API struct ncplane* ncreel_plane(struct ncreel* pr);
+API struct ncplane* ncreel_plane(struct ncreel* pr)
+  __attribute__ ((nonnull (1)));
 
 // Tablet draw callback, provided a tablet (from which the ncplane and userptr
 // may be extracted), and a bool indicating whether output ought be drawn from
@@ -2646,19 +2650,23 @@ typedef int (*tabletcb)(struct nctablet* t, bool drawfromtop);
 // it is not valid, or there is any other error, NULL will be returned.
 API struct nctablet* ncreel_add(struct ncreel* nr, struct nctablet* after,
                                 struct nctablet* before, tabletcb cb,
-                                void* opaque);
+                                void* opaque)
+  __attribute__ ((nonnull (1)));
 
 // Return the number of nctablets in the ncreel 'nr'.
-API int ncreel_tabletcount(const struct ncreel* nr);
+API int ncreel_tabletcount(const struct ncreel* nr)
+  __attribute__ ((nonnull (1)));
 
 // Delete the tablet specified by t from the ncreel 'nr'. Returns -1 if the
 // tablet cannot be found.
-API int ncreel_del(struct ncreel* nr, struct nctablet* t);
+API int ncreel_del(struct ncreel* nr, struct nctablet* t)
+  __attribute__ ((nonnull (1)));
 
 // Redraw the ncreel 'nr' in its entirety. The reel will be cleared, and
 // tablets will be lain out, using the focused tablet as a fulcrum. Tablet
 // drawing callbacks will be invoked for each visible tablet.
-API int ncreel_redraw(struct ncreel* nr);
+API int ncreel_redraw(struct ncreel* nr)
+  __attribute__ ((nonnull (1)));
 
 // Offer input 'ni' to the ncreel 'nr'. If it's relevant, this function returns
 // true, and the input ought not be processed further. If it's irrelevant to
@@ -2666,17 +2674,21 @@ API int ncreel_redraw(struct ncreel* nr);
 //  * a mouse click on a tablet (focuses tablet)
 //  * a mouse scrollwheel event (rolls reel)
 //  * up, down, pgup, or pgdown (navigates among items)
-API bool ncreel_offer_input(struct ncreel* nr, const struct ncinput* ni);
+API bool ncreel_offer_input(struct ncreel* nr, const struct ncinput* ni)
+  __attribute__ ((nonnull (1)));
 
 // Return the focused tablet, if any tablets are present. This is not a copy;
 // be careful to use it only for the duration of a critical section.
-API struct nctablet* ncreel_focused(struct ncreel* nr);
+API struct nctablet* ncreel_focused(struct ncreel* nr)
+  __attribute__ ((nonnull (1)));
 
 // Change focus to the next tablet, if one exists
-API struct nctablet* ncreel_next(struct ncreel* nr);
+API struct nctablet* ncreel_next(struct ncreel* nr)
+  __attribute__ ((nonnull (1)));
 
 // Change focus to the previous tablet, if one exists
-API struct nctablet* ncreel_prev(struct ncreel* nr);
+API struct nctablet* ncreel_prev(struct ncreel* nr)
+  __attribute__ ((nonnull (1)));
 
 // Destroy an ncreel allocated with ncreel_create().
 API void ncreel_destroy(struct ncreel* nr);
@@ -2713,7 +2725,8 @@ API struct ncplane* nctablet_ncplane(struct nctablet* t)
 //
 // You are encouraged to consult notcurses_metric(3).
 API const char* ncmetric(uintmax_t val, uintmax_t decimal, char* buf,
-                         int omitdec, uintmax_t mult, int uprefix);
+                         int omitdec, uintmax_t mult, int uprefix)
+  __attribute__ ((nonnull (3)));
 
 // The number of columns is one fewer, as the STRLEN expressions must leave
 // an extra byte open in case 'µ' (U+00B5, 0xC2 0xB5) shows up. PREFIXCOLUMNS
