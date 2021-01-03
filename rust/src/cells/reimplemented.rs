@@ -6,7 +6,7 @@ use crate::{
     cell_release, cstring, NcAlphaBits, NcCell, NcChannel, NcChannelPair, NcColor, NcEgc,
     NcIntResult, NcPaletteIndex, NcPlane, NcRgb, NcStyleMask, NCCELL_ALPHA_OPAQUE,
     NCCELL_BGDEFAULT_MASK, NCCELL_BG_PALETTE, NCCELL_FGDEFAULT_MASK, NCCELL_FG_PALETTE,
-    NCCELL_NOBACKGROUND_MASK, NCRESULT_ERR, NCRESULT_OK, NCSTYLE_MASK,
+    NCRESULT_ERR, NCRESULT_OK, NCSTYLE_MASK,
 };
 
 // Alpha -----------------------------------------------------------------------
