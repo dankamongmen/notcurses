@@ -770,11 +770,12 @@ impl NcPlane {
     /// Writes a series of [NcEgc][crate::NcEgc]s to the current location,
     /// using the current style.
     ///
-    /// Advances the cursor by some positive number of columns (though not beyond
-    /// the end of the plane); this number is returned on success.
+    /// Advances the cursor by some positive number of columns
+    /// (though not beyond the end of the plane),
+    /// and this number is returned on success.
     ///
-    /// On error, a non-positive number is returned, indicating the number of
-    /// columns which were written before the error.
+    /// On error, a non-positive number is returned, indicating
+    /// the number of columns which were written before the error.
     ///
     /// *C style function: [ncplane_putstr()][crate::ncplane_putstr].*
     #[inline]

@@ -32,7 +32,7 @@ macro_rules! sleep {
     };
 }
 
-/// Notcurses.[render][Notcurses#method.render]\(`nc`\)? plus [sleep]!(`sleep_args`).
+/// [`Notcurses.render`][Notcurses#method.render]\(`$nc`\)? plus [`sleep!`]`[$sleep_args]`.
 ///
 /// Renders the `$nc` [Notcurses] object and, if there's no error,
 /// calls the sleep macro with the rest of the arguments.
@@ -50,7 +50,7 @@ macro_rules! rsleep {
     };
 }
 
-/// NcDirect.[flush][NcDirect#method.flush]\(`ncd`\)? plus [sleep]!(`sleep_args`).
+/// [`NcDirect.flush`][NcDirect#method.flush]\(`$ncd`\)? plus [`sleep!`]`[$sleep_args]`.
 ///
 /// Flushes the `$ncd` [NcDirect] object and, if there's no error,
 /// calls the sleep macro with the rest of the arguments.
@@ -109,8 +109,8 @@ macro_rules! printf {
 
 // Error Wrappers Macros -------------------------------------------------------
 
-/// Returns an Ok(<`$ok`>),
-/// or an Err([NcError]) if `$res` < [NCRESULT_OK].
+/// Returns an `Ok($ok)`,
+/// or an `Err(`[`NcError`]`)` if `$res` < [`NCRESULT_OK`].
 ///
 /// In other words:
 /// Returns Ok(`$ok`) if `$res` >= [NCRESULT_OK], otherwise returns
@@ -135,8 +135,8 @@ macro_rules! error {
     };
 }
 
-/// Returns an Ok(&T) from a `*const T` pointer,
-/// or an Err([NcError]) if the pointer is null.
+/// Returns an `Ok(&T)` from a `*const T` pointer,
+/// or an `Err(`[`NcError`]`)` if the pointer is null.
 ///
 /// In other words:
 /// Returns Ok(&*`$ptr`) if `$ptr` != `null()`, otherwise returns
@@ -158,8 +158,8 @@ macro_rules! error_ref {
     };
 }
 
-/// Returns an Ok(&mut T) from a `*mut T` pointer,
-/// or an Err([NcError]) if the pointer is null.
+/// Returns an `Ok(&mut T)` from a `*mut T` pointer,
+/// or an `Err(`[`NcError`]`)` if the pointer is null.
 ///
 /// In other words:
 /// Returns Ok(&mut *`$ptr`) if `$ptr` != `null_mut()`, otherwise returns
@@ -181,8 +181,8 @@ macro_rules! error_ref_mut {
     };
 }
 
-/// Returns an Ok(String) from a `*const` pointer to a C string,
-/// or an Err([NcError]) if the pointer is null.
+/// Returns an `Ok(String)` from a `*const` pointer to a C string,
+/// or an `Err(`[`NcError`]`)` if the pointer is null.
 ///
 /// In other words:
 /// Returns Ok((&*`$str`).to_string()) if `$str` != `null()`, otherwise returns
@@ -204,7 +204,7 @@ macro_rules! error_str {
     };
 }
 
-/// Returns an NcResult<Self { raw: T }> from an NcResult<T>.
+/// Returns an [`NcResult`]`<Self { raw: T }>` from an [`NcResult`]`<T>`.
 #[macro_export]
 macro_rules! raw_wrap {
     ($res:expr) => {

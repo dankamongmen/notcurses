@@ -3,16 +3,20 @@
 //!
 //! *This is a work in progress.*
 //!
+//! This library is built with several layers of zero-overhead abstractions
+//! over the C functions and pointers accessed through FFI.
+//!
 //! # How to use this library
 //!
-//! This library is built with several layers of zero-overhead abstractions
-//! over the FFI functions and pointers.
-//!
-//! There are basically two ways:
+//! There are basically two ways: The [**Rust way**](#1-the-rust-way),
+//! and the [**C way**](#2-the-c-way). (Or a mix of both).
 //!
 //! ## 1. The Rust way
 //!
-//! Is preferible to use the safely wrapped types, with methods and constructors:
+//! Where you use the safely wrapped types, with its methods and constructors,
+//! and painless error handling, like this:
+//!
+//! ### Example
 //!
 //! ```rust
 //! use libnotcurses_sys::*;
@@ -25,33 +29,52 @@
 //!     Ok(())
 //! }
 //! ```
-//! Specifically:
 //!
-//! [`FullMode`] and [`DirectMode`] are safe wrappers over [`Notcurses`]
-//! and [`NcDirectMode`][NcDirectMode], respectively.
+//! Specifically [`FullMode`] and [`DirectMode`] are safe wrappers
+//! over [`Notcurses`] and [`NcDirect`], respectively.
 //!
-//! FullMode and DirectMode both implement the [Drop], [AsRef], [AsMut],
+//! `FullMode` and `DirectMode` both implement the [Drop], [AsRef], [AsMut],
 //! [Deref][std::ops::Deref] and [DerefMut][std::ops::DerefMut] traits.
-//!
-//! Most methods are directly implemented for Notcurses and NcDirect,
-//! are also automatically made available to FullMode & DirectMode,
-//! minus some function overrides, like their destructors,
-//! plus the associated functions that had to be recreated.
 //!
 //! Their destructors are called automatically at the end of their scope.
 //!
-//! Error handling is painless using [`NcResult`] as the return type.
+//! Methods are directly implemented for `Notcurses` and `NcDirect`, and
+//! are made automatically available to `FullMode` & `DirectMode`,
+//! minus some function overrides, like their destructors,
+//! plus the static methods that have to be recreated.
 //!
-//! The rest of the objects allocated by notcurses, like NcPlane, NcMenu…
-//! don't implement Drop, and have to be `*_destroy()`ed manually.
+//! The rest of the types that allocate, like [`NcPlane`], [`NcMenu`], [`NcReader`]…
+//! have no higher level wrapping struct, they don't implement Drop,
+//! so they have to be `*.destroy()`ed manually.
+//!
+//! But they do implement methods and use [`NcResult`] as the return type,
+//! for handling errors in the way we are used to in Rust.
+//!
+//! For the types that don't allocate, most are based on primitives like `i32`,
+//! `u32`, `u64`… without a name in the C library. In Rust they are type aliased
+//! (e.g.: [`NcChannel`], [`NcChannelPair`], [`NcRgb`], [`NcColor`]…), to
+//! leverage type checking, and they implement methods through [traits](#traits)
+//! (e.g. [`NcChannelMethods`] must be in scope to use the `NcChannel` methods.
+//!
 //!
 //! ## 2. The C way
 //!
-//! You can also use the C API functions directly in a very similar way
-//! as the underlying C library is used.
+//! You can always use the C API functions directly if you prefer,
+//! in a very similar way as the C library is used.
+//!
+//! It requires the use of unsafe, since most functions are wrapped directly
+//! by `bindgen` marked as such.
+//!
+//! Error handling is done this way by checking the returned [`NcIntResult`],
+//! or in case of receiving a pointer, by comparing it
+//! to [null_mut()][core::ptr::null_mut].
+//!
+//! ### Example
 //!
 //! ```rust
 //! use core::ptr::{null, null_mut};
+//! use std::process::exit;
+//!
 //! use libnotcurses_sys::*;
 //!
 //! fn main() {
@@ -65,30 +88,33 @@
 //!         margin_l: 0,
 //!         flags: NCOPTION_NO_ALTERNATE_SCREEN,
 //!     };
-//!     // NOTE: there's missing manual checking of return values for errors.
 //!     unsafe {
 //!         let nc = notcurses_init(&options, null_mut());
+//!         if nc == null_mut() {
+//!             exit(1);
+//!         }
 //!         let plane = notcurses_stdplane(nc);
-//!         ncplane_putstr(&mut *plane, "hello world");
-//!         notcurses_stop(nc);
+//!         let cols = ncplane_putstr(&mut *plane, "hello world");
+//!         if cols < NCRESULT_OK {
+//!             notcurses_stop(nc);
+//!             exit(cols.abs());
+//!         }
+//!         if notcurses_stop(nc) < NCRESULT_OK {
+//!             exit(2);
+//!         }
 //!     }
 //! }
 //!
 //! ```
-//! It requires the use of unsafe.
 //!
-//! Error handling requires to check the returned [NcIntResult],
-//! or in case of a pointer, comparing it to [null_mut()][core::ptr::null_mut].
+//! ### The `notcurses` C API docs
 //!
-//! ## The `notcurses` C API docs
-//!
-//! For reference:
-//!
-//! - [Doxygen Documentation](https://nick-black.com/notcurses/html/index.html)
-//! - [API reference (man pages)](https://nick-black.com/notcurses/)
-//! - [Wiki](https://nick-black.com/dankwiki/index.php/Notcurses)
+//! - [API reference (man pages)](https://notcurses.com/)
+//! - [Wiki Page](https://nick-black.com/dankwiki/index.php/Notcurses)
 //! - [The Book Guide (pdf)](https://nick-black.com/htp-notcurses.pdf)
 //! - [USAGE.md](https://github.com/dankamongmen/notcurses/blob/master/USAGE.md)
+//! - [HACKING.md](https://github.com/dankamongmen/notcurses/blob/master/doc/HACKING.md)
+//! - [Doxygen Documentation](https://nick-black.com/notcurses/html/index.html)
 //!
 #![allow(non_upper_case_globals, non_camel_case_types, non_snake_case)]
 #![allow(clippy::too_many_arguments)]

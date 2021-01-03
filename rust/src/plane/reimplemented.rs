@@ -151,6 +151,13 @@ pub fn ncplane_putchar_yx(
 
 /// Writes a series of [NcEgc]s to the current location, using the current style.
 ///
+/// Advances the cursor by some positive number of columns
+/// (though not beyond the end of the plane),
+/// and this number is returned on success.
+///
+/// On error, a non-positive number is returned, indicating
+/// the number of columns which were written before the error.
+///
 /// *Method: NcPlane.[putstr()][NcPlane#method.putstr].*
 #[inline]
 pub fn ncplane_putstr(plane: &mut NcPlane, string: &str) -> NcIntResult {

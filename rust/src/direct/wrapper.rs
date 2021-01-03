@@ -6,10 +6,7 @@ use crate::{
     raw_wrap, NcDirect, NcResult
 };
 
-/// Minimal notcurses instance for styling text.
-///
-/// Safely wraps an [NcDirect],
-/// and implements Drop, AsRef, AsMut, Deref & DerefMut around it.
+/// Safe wrapper around [NcDirect], minimal notcurses instance for styling text.
 pub struct DirectMode<'a> {
     pub(crate) raw: &'a mut NcDirect,
 }

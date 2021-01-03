@@ -7,10 +7,7 @@ use crate::{
     NcResult, NcScale,
 };
 
-/// The main struct of the TUI library (full mode).
-///
-/// Safely wraps an [Notcurses],
-/// and implements Drop, AsRef, AsMut, Deref & DerefMut around it.
+/// Safe wrapper around [Notcurses], the main struct of the TUI library.
 pub struct FullMode<'a> {
     pub(crate) raw: &'a mut Notcurses,
 }

@@ -18,7 +18,7 @@ impl NcMenu {
         error_ref_mut![unsafe { ncmenu_create(plane, &options) }, "Creating NcMenu"]
     }
 
-    /// Destroys an NcMenu created with [create()][NcMenu#method.create].
+    /// Destroys an NcMenu created with [new()][NcMenu#method.new].
     ///
     /// *C style function: [ncmenu_destroy()][crate::ncmenu_destroy].*
     pub fn destroy(&mut self) -> NcResult<()> {
