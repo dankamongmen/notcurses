@@ -64,6 +64,18 @@ are mapped into Unicode's
 Information on input is available at **notcurses_input(3)**. The included tool
 **notcurses-input(1)** can be used to test input decoding.
 
+## Ncpiles
+
+A given **notcurses** context is made up of one or more piles. Piles provide
+distinct rendering contexts: a thread can be rendering or mutating one pile,
+while another thread concurrently renders or mutates another pile. A pile is
+made up of planes, totally ordered on a z-axis. In addition to the z-ordering,
+the planes of a pile are bound in a forest (a set of directed, acyclic graphs).
+Those planes which are not bound to some other plane constitute the root planes
+of a pile. A pile is destroyed when all its planes are destroyed, or moved to
+other piles. Since the standard plane (see below) always exists, and cannot be
+moved to another pile, one pile always exists, known as the standard pile.
+
 ## Ncplanes
 
 Following initialization, a single ncplane exists, the "standard plane" (see
@@ -108,19 +120,25 @@ A few high-level widgets are included, all built atop ncplanes:
 ## Threads
 
 Notcurses explicitly supports use in multithreaded environments, but it does
-not itself perform any locking. It is safe to output to multiple distinct
-ncplanes at the same time. It is safe to output to ncplanes while adding or
-deleting some other ncplane. It is **not** safe for multiple threads to output to
-the same ncplane. It is **not** safe to add, delete, or reorder ncplanes
-from multiple threads, and it is never safe to invoke **notcurses_render**
-while any other thread is touching that **notcurses** object (aside from input
-functions; read on).
+not itself perform any locking.
+
+* Only one pile's rendered frame can be rasterized at a time, and it is **not**
+  safe to concurrently render that pile. It is safe to rasterize a frame while
+  rendering some other pile.
+* It is otherwise always safe to operate concurrently on distinct piles.
+* It is not safe to render a pile while concurrently modifying that pile.
+* It is safe to output to multiple distinct ncplanes at the same time, even
+  within the same pile.
+* It is safe to output to ncplanes while adding or deleting some other ncplane.
+* It is **not** safe for multiple threads to output to the same ncplane.
+* It is **not** safe to add, delete, or reorder ncplanes within a single pile
+  from multiple threads.
 
 Only one thread may call **notcurses_getc** or any other input-related thread
 at a time, but it **is** safe to call for input while another thread renders.
 
 Since multiple threads can concurrently manipulate distinct ncplanes, peak
-performance sometimes requires dividing the screen into several planes, and
+performance might require dividing the screen into several planes, and
 manipulating them from multiple threads.
 
 ## Destruction
