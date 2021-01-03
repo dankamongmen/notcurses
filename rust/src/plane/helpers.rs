@@ -1,9 +1,9 @@
-use crate::{NcDimension, NcNotcurses, NcOffset, NcPlane, NcPlaneOptions};
+use crate::{NcDimension, Notcurses, NcOffset, NcPlane, NcPlaneOptions};
 
 /// Helper function for a new NcPlane on C style tests.
 #[allow(dead_code)]
 pub(crate) unsafe fn ncplane_new_test<'a>(
-    nc: &mut NcNotcurses,
+    nc: &mut Notcurses,
     y: NcOffset,
     x: NcOffset,
     rows: NcDimension,

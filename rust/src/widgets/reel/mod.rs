@@ -1,12 +1,13 @@
 //! `NcReel` widget.
 
-/// A wheel with `NcTablet`s on the outside
+/// A wheel with [`NcTablet`]s on the outside.
 ///
 /// An `NcReel` is projected onto the 2d rendering area, showing some portion of
 /// the `NcReel`, and zero or more `NcTablet`s.
 ///
-/// An `NcReel` is a `Notcurses` region devoted to displaying zero or more
-/// line-oriented, contained `NcTablet`s between which the user may navigate.
+/// An `NcReel` is a [`FullMode`][crate::FullMode] region devoted to displaying
+/// zero or more line-oriented, contained [`NcTablet`]s
+/// between which the user may navigate.
 ///
 /// If at least one `NcTablet`s exists, there is a "focused tablet".
 /// As much of the focused tablet as is possible is always displayed.

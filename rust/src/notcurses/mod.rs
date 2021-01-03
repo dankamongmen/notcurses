@@ -1,4 +1,4 @@
-//! `NcNotcurses`
+//! `Notcurses`
 
 // functions already exported by bindgen : 42
 // ------------------------------------------
@@ -74,14 +74,14 @@ pub(crate) use helpers::*;
 pub use reimplemented::*;
 pub use wrapper::*;
 
-/// NcNotcurses builds atop the terminfo abstraction layer to
+/// Notcurses builds atop the terminfo abstraction layer to
 /// provide reasonably portable vivid character displays.
 ///
 /// This is the internal type safely wrapped by [FullMode].
-pub type NcNotcurses = crate::bindings::ffi::notcurses;
+pub type Notcurses = crate::bindings::ffi::notcurses;
 
-/// Options struct for [`NcNotcurses`]
-pub type NcNotcursesOptions = crate::bindings::ffi::notcurses_options;
+/// Options struct for [`Notcurses`]
+pub type NotcursesOptions = crate::bindings::ffi::notcurses_options;
 
 /// Do not call setlocale()
 ///
@@ -97,17 +97,17 @@ pub const NCOPTION_INHIBIT_SETLOCALE: u64 = crate::bindings::ffi::NCOPTION_INHIB
 
 /// Do not enter alternate mode.
 ///
-/// If smcup/rmcup capabilities are indicated, NcNotcurses defaults to making use
+/// If smcup/rmcup capabilities are indicated, Notcurses defaults to making use
 /// of the "alternate screen". This flag inhibits use of smcup/rmcup.
 pub const NCOPTION_NO_ALTERNATE_SCREEN: u64 =
     crate::bindings::ffi::NCOPTION_NO_ALTERNATE_SCREEN as u64;
 
 /// Do not modify the font.
 ///
-/// NcNotcurses might attempt to change the font slightly, to support certain
+/// Notcurses might attempt to change the font slightly, to support certain
 /// glyphs (especially on the Linux console). If this is set, no such
 /// modifications will be made. Note that font changes will not affect anything
-/// but the virtual console/terminal in which NcNotcurses is running.
+/// but the virtual console/terminal in which Notcurses is running.
 pub const NCOPTION_NO_FONT_CHANGES: u64 = crate::bindings::ffi::NCOPTION_NO_FONT_CHANGES as u64;
 
 /// Do not handle SIG{ING, SEGV, ABRT, QUIT}
@@ -128,7 +128,7 @@ pub const NCOPTION_NO_WINCH_SIGHANDLER: u64 =
 
 /// Do not print banners
 ///
-/// NcNotcurses typically prints version info in notcurses_init() and performance
+/// Notcurses typically prints version info in notcurses_init() and performance
 /// info in notcurses_stop(). This inhibits that output.
 pub const NCOPTION_SUPPRESS_BANNERS: u64 = crate::bindings::ffi::NCOPTION_SUPPRESS_BANNERS as u64;
 
@@ -142,11 +142,11 @@ pub const NCOPTION_VERIFY_SIXEL: u64 = crate::bindings::ffi::NCOPTION_VERIFY_SIX
 
 // NcLogLevel ------------------------------------------------------------------
 
-/// Log level for [`NcNotcursesOptions`]
+/// Log level for [`NotcursesOptions`]
 ///
-/// These log levels consciously map cleanly to those of libav; NcNotcurses itself
+/// These log levels consciously map cleanly to those of libav; Notcurses itself
 /// does not use this full granularity. The log level does not affect the opening
-/// and closing banners, which can be disabled via the `NcNotcursesOptions`
+/// and closing banners, which can be disabled via the `NotcursesOptions`
 /// `NCOPTION_SUPPRESS_BANNERS`.
 /// Note that if stderr is connected to the same terminal on which we're
 /// rendering, any kind of logging will disrupt the output.

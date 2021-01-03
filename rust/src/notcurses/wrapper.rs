@@ -3,32 +3,32 @@
 use std::ops::{Deref, DerefMut};
 
 use crate::{
-    raw_wrap, NcAlign, NcBlitter, NcDimension, NcLogLevel, NcNotcurses, NcNotcursesOptions,
+    raw_wrap, NcAlign, NcBlitter, NcDimension, NcLogLevel, Notcurses, NotcursesOptions,
     NcResult, NcScale,
 };
 
 /// The main struct of the TUI library (full mode).
 ///
-/// Safely wraps an [NcNotcurses],
+/// Safely wraps an [Notcurses],
 /// and implements Drop, AsRef, AsMut, Deref & DerefMut around it.
 pub struct FullMode<'a> {
-    raw: &'a mut NcNotcurses,
+    pub(crate) raw: &'a mut Notcurses,
 }
 
-impl<'a> AsRef<NcNotcurses> for FullMode<'a> {
-    fn as_ref(&self) -> &NcNotcurses {
+impl<'a> AsRef<Notcurses> for FullMode<'a> {
+    fn as_ref(&self) -> &Notcurses {
         self.raw
     }
 }
 
-impl<'a> AsMut<NcNotcurses> for FullMode<'a> {
-    fn as_mut(&mut self) -> &mut NcNotcurses {
+impl<'a> AsMut<Notcurses> for FullMode<'a> {
+    fn as_mut(&mut self) -> &mut Notcurses {
         self.raw
     }
 }
 
 impl<'a> Deref for FullMode<'a> {
-    type Target = NcNotcurses;
+    type Target = Notcurses;
 
     fn deref(&self) -> &Self::Target {
         self.as_ref()
@@ -48,38 +48,38 @@ impl<'a> Drop for FullMode<'a> {
     }
 }
 
-/// # Constructors and methods overriden from NcNotcurses
+/// # Constructors and methods overriden from Notcurses
 impl<'a> FullMode<'a> {
     // wrap constructors
 
     /// New FullMode (without banners).
     pub fn new() -> NcResult<Self> {
-        raw_wrap![NcNotcurses::new()]
+        raw_wrap![Notcurses::new()]
     }
 
     /// New FullMode, without banners.
     pub fn with_banners() -> NcResult<Self> {
-        raw_wrap![NcNotcurses::with_banners()]
+        raw_wrap![Notcurses::with_banners()]
     }
 
     /// New FullMode, without an alternate screen (nor banners).
     pub fn without_altscreen() -> NcResult<Self> {
-        raw_wrap![NcNotcurses::without_altscreen()]
+        raw_wrap![Notcurses::without_altscreen()]
     }
 
     /// New FullMode, expects `NCOPTION_*` flags.
     pub fn with_flags(flags: u64) -> NcResult<Self> {
-        raw_wrap![NcNotcurses::with_flags(flags)]
+        raw_wrap![Notcurses::with_flags(flags)]
     }
 
-    /// New FullMode, expects [NcNotcursesOptions].
-    pub fn with_options(options: NcNotcursesOptions) -> NcResult<Self> {
-        raw_wrap![NcNotcurses::with_options(options)]
+    /// New FullMode, expects [NotcursesOptions].
+    pub fn with_options(options: NotcursesOptions) -> NcResult<Self> {
+        raw_wrap![Notcurses::with_options(options)]
     }
 
     /// New FullMode, expects [NcLogLevel] and flags.
     pub fn with_debug(loglevel: NcLogLevel, flags: u64) -> NcResult<Self> {
-        raw_wrap![NcNotcurses::with_debug(loglevel, flags)]
+        raw_wrap![Notcurses::with_debug(loglevel, flags)]
     }
 
     // disable destructor
@@ -95,46 +95,46 @@ impl<'a> FullMode<'a> {
     /// Returns the offset into `availcols` at which `cols` ought be output given
     /// the requirements of `align`.
     pub fn align(availcols: NcDimension, align: NcAlign, cols: NcDimension) -> NcResult<()> {
-        NcNotcurses::align(availcols, align, cols)
+        Notcurses::align(availcols, align, cols)
     }
 
     /// Gets the name of an [NcBlitter] blitter.
     pub fn str_blitter(blitter: NcBlitter) -> String {
-        NcNotcurses::str_blitter(blitter)
+        Notcurses::str_blitter(blitter)
     }
 
     /// Gets the name of an [NcScale] scaling mode.
     pub fn str_scalemode(scalemode: NcScale) -> String {
-        NcNotcurses::str_scalemode(scalemode)
+        Notcurses::str_scalemode(scalemode)
     }
 
     /// Returns an [NcBlitter] from a string representation.
     pub fn lex_blitter(op: &str) -> NcResult<NcBlitter> {
-        NcNotcurses::lex_blitter(op)
+        Notcurses::lex_blitter(op)
     }
 
-    /// Lexes a margin argument according to the standard NcNotcurses definition.
+    /// Lexes a margin argument according to the standard Notcurses definition.
     ///
     /// There can be either a single number, which will define all margins equally,
     /// or there can be four numbers separated by commas.
     ///
-    pub fn lex_margins(op: &str, options: &mut NcNotcursesOptions) -> NcResult<()> {
-        NcNotcurses::lex_margins(op, options)
+    pub fn lex_margins(op: &str, options: &mut NotcursesOptions) -> NcResult<()> {
+        Notcurses::lex_margins(op, options)
     }
 
     /// Returns an [NcScale] from a string representation.
     pub fn lex_scalemode(op: &str) -> NcResult<NcScale> {
-        NcNotcurses::lex_scalemode(op)
+        Notcurses::lex_scalemode(op)
     }
 
     /// Returns a human-readable string describing the running FullMode version.
     pub fn version() -> String {
-        NcNotcurses::version()
+        Notcurses::version()
     }
 
-    /// Returns the running NcNotcurses version components
+    /// Returns the running Notcurses version components
     /// (major, minor, patch, tweak).
     pub fn version_components() -> (u32, u32, u32, u32) {
-        NcNotcurses::version_components()
+        Notcurses::version_components()
     }
 }

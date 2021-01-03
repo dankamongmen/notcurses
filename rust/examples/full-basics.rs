@@ -2,7 +2,7 @@ use libnotcurses_sys::*;
 
 fn main() -> NcResult<()> {
     let mut nc = FullMode::new()?;
-    let stdplane = nc.stdplane()?;
+    let stdplane = nc.stdplane();
 
     for ch in "Initializing cells...".chars() {
         let cell = NcCell::with_char7b(ch);

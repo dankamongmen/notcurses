@@ -34,7 +34,7 @@ fn main() -> NcResult<()> {
     mopts.section_channels_mut().set_fg_rgb(0xb0d700);
     mopts.section_channels_mut().set_bg_rgb(0x002000);
 
-    let stdplane = nc.stdplane()?;
+    let stdplane = nc.stdplane();
     let (dim_y, _dim_x) = stdplane.dim_yx();
 
     let menu_top = NcMenu::new(stdplane, mopts)?;
@@ -75,7 +75,7 @@ fn main() -> NcResult<()> {
 fn run_menu(nc: &mut FullMode, menu: &mut NcMenu) -> NcResult<()> {
     // yellow rectangle
     let planeopts = NcPlaneOptions::new_aligned(10, NCALIGN_CENTER, 3, 40);
-    let stdplane = nc.stdplane()?;
+    let stdplane = nc.stdplane();
     let selplane = NcPlane::with_options_bound(stdplane, planeopts)?;
     selplane.set_fg_rgb(0);
     selplane.set_bg_rgb(0xdddddd);

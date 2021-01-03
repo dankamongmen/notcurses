@@ -5,7 +5,7 @@
 
 #[allow(unused_imports)]
 // enjoy briefer doc comments
-use crate::{NcDirect, NcError, NcNotcurses, NcResult, NCRESULT_ERR, NCRESULT_OK};
+use crate::{NcDirect, NcError, Notcurses, NcResult, NCRESULT_ERR, NCRESULT_OK};
 
 // Sleep, Render & Flush Macros ------------------------------------------------
 
@@ -32,9 +32,9 @@ macro_rules! sleep {
     };
 }
 
-/// NcNotcurses.[render][NcNotcurses#method.render]\(`nc`\)? plus [sleep]!(`sleep_args`).
+/// Notcurses.[render][Notcurses#method.render]\(`nc`\)? plus [sleep]!(`sleep_args`).
 ///
-/// Renders the `$nc` [NcNotcurses] object and, if there's no error,
+/// Renders the `$nc` [Notcurses] object and, if there's no error,
 /// calls the sleep macro with the rest of the arguments.
 ///
 /// Returns [NcResult].
@@ -42,7 +42,7 @@ macro_rules! sleep {
 macro_rules! rsleep {
     ($nc:expr, $( $sleep_args:expr),+ ) => {
         // Rust style, with methods & NcResult
-        NcNotcurses::render($nc)?;
+        Notcurses::render($nc)?;
         sleep![$( $sleep_args ),+];
     };
     ($nc:expr, $( $sleep_args:expr),+ ,) => {

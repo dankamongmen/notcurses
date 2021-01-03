@@ -5,42 +5,45 @@
 //!
 //! # How to use this library
 //!
-//! Since this library is built with several layers of zero-overhead
-//! abstractions over the FFI functions, there are multiple ways to use it.
+//! This library is built with several layers of zero-overhead abstractions
+//! over the FFI functions and pointers.
 //!
-//! But basically there are two ways:
+//! There are basically two ways:
 //!
 //! ## 1. The Rust way
 //!
-//! Use the safely wrapped types, their methods and constructors:
+//! Is preferible to use the safely wrapped types, with methods and constructors:
 //!
 //! ```rust
 //! use libnotcurses_sys::*;
 //!
 //! fn main() -> NcResult<()> {
 //!     let mut nc = FullMode::with_flags(NCOPTION_NO_ALTERNATE_SCREEN)?;
-//!     let plane = nc.stdplane()?;
+//!     let plane = nc.stdplane();
 //!     plane.putstr("hello world")?;
 //!     nc.render()?;
 //!     Ok(())
 //! }
 //! ```
-//! Specifically, and for example:
+//! Specifically:
 //!
-//! [`FullMode`] is the safe wrapper over [`NcNotcurses`], which is the
-//! `&mut` reference over the raw `*mut` pointer received from FFI.
+//! [`FullMode`] and [`DirectMode`] are safe wrappers over [`Notcurses`]
+//! and [`NcDirectMode`][NcDirectMode], respectively.
 //!
-//! FullMode implements the [Drop], [AsRef], [AsMut], [Deref][std::ops::Deref]
-//! & [DerefMut][std::ops::DerefMut] traits.
+//! FullMode and DirectMode both implement the [Drop], [AsRef], [AsMut],
+//! [Deref][std::ops::Deref] and [DerefMut][std::ops::DerefMut] traits.
 //!
-//! Most methods are directly implemented for NcNotcurses,
-//! and automatically available also from FullMode.
+//! Most methods are directly implemented for Notcurses and NcDirect,
+//! are also automatically made available to FullMode & DirectMode,
+//! minus some function overrides, like their destructors,
+//! plus the associated functions that had to be recreated.
 //!
-//! The destructor ([notcurses_stop()]) is called automatically at the end
-//! of its scope, so you don't ever have to call it by hand.
+//! Their destructors are called automatically at the end of their scope.
 //!
-//! The Rust style methods manage errors by means of returning an
-//! [`NcResult`]`<T, `[`NcError`]`>`, for painless handling.
+//! Error handling is painless using [`NcResult`] as the return type.
+//!
+//! The rest of the objects allocated by notcurses, like NcPlane, NcMenu…
+//! don't implement Drop, and have to be `*_destroy()`ed manually.
 //!
 //! ## 2. The C way
 //!
@@ -74,8 +77,8 @@
 //! ```
 //! It requires the use of unsafe.
 //!
-//! The C style functions handle errors by the means of returning an i32 value
-//! aliased to [NcIntResult].
+//! Error handling requires to check the returned [NcIntResult],
+//! or in case of a pointer, comparing it to [null_mut()][core::ptr::null_mut].
 //!
 //! ## The `notcurses` C API docs
 //!

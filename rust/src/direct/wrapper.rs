@@ -11,7 +11,7 @@ use crate::{
 /// Safely wraps an [NcDirect],
 /// and implements Drop, AsRef, AsMut, Deref & DerefMut around it.
 pub struct DirectMode<'a> {
-    raw: &'a mut NcDirect,
+    pub(crate) raw: &'a mut NcDirect,
 }
 
 impl<'a> AsRef<NcDirect> for DirectMode<'a> {

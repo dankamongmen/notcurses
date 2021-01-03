@@ -11,7 +11,7 @@
 
 use std::ffi::c_void;
 
-use crate::{NcIntResult, NcNotcurses, NcPlane, NcTime};
+use crate::{NcIntResult, Notcurses, NcPlane, NcTime};
 
 /// Called for each fade iteration on the NcPlane.
 ///
@@ -20,7 +20,7 @@ use crate::{NcIntResult, NcNotcurses, NcPlane, NcTime};
 ///
 /// The recommended absolute display time target is passed in 'tspec'.
 pub type NcFadeCb = Option<
-    unsafe extern "C" fn(*mut NcNotcurses, *mut NcPlane, *const NcTime, *mut c_void) -> NcIntResult,
+    unsafe extern "C" fn(*mut Notcurses, *mut NcPlane, *const NcTime, *mut c_void) -> NcIntResult,
 >;
 
 /// Context for a palette fade operation
