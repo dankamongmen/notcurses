@@ -58,8 +58,7 @@ reset_term_attributes(notcurses* nc){
 static int
 notcurses_stop_minimal(void* vnc){
   notcurses* nc = vnc;
-  int ret = 0;
-  drop_signals(nc);
+  int ret = drop_signals(nc);
   // be sure to write the restoration sequences *prior* to running rmcup, as
   // they apply to the screen (alternate or otherwise) we're actually using.
   ret |= reset_term_attributes(nc);

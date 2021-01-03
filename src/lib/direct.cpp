@@ -595,7 +595,7 @@ int get_controlling_tty(FILE* ttyfp){
 static int
 ncdirect_stop_minimal(void* vnc){
   ncdirect* nc = static_cast<ncdirect*>(vnc);
-  int ret = 0;
+  int ret = drop_signals(nc);
   if(nc->tcache.op && term_emit("op", nc->tcache.op, nc->ttyfp, true)){
     ret = -1;
   }
@@ -681,6 +681,7 @@ err:
       tcsetattr(ret->ctermfd, TCSANOW, &ret->tpreserved);
     }
   }
+  drop_signals(ret);
   delete(ret);
   return nullptr;
 }
