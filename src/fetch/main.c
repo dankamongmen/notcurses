@@ -163,7 +163,8 @@ linux_ncneofetch(fetched_info* fi){
   while(fgets(buf, sizeof(buf), osinfo)){
 #define PRETTY "PRETTY_NAME=\""
 #define ID "ID=" // no quotes on this one
-#define LOGO "LOGO=" // nor here
+#define LOGOQ "LOGO=\""
+#define LOGO "LOGO=" // handle LOGO sans quotes
     if(strncmp(buf, ID, strlen(ID)) == 0){
       char* nl = strchr(buf + strlen(ID), '\n');
       if(nl){
@@ -176,8 +177,14 @@ linux_ncneofetch(fetched_info* fi){
         *nl = '\0';
         fi->distro_pretty = strdup(buf + strlen(PRETTY));
       }
+    }else if(!fi->logo && strncmp(buf, LOGOQ, strlen(LOGOQ)) == 0){
+      char* nl = strchr(buf + strlen(LOGOQ), '"');
+      if(nl){
+        *nl = '\0';
+        fi->logo = get_xdg_logo(buf + strlen(LOGOQ));
+      }
     }else if(!fi->logo && strncmp(buf, LOGO, strlen(LOGO)) == 0){
-      char* nl = strchr(buf + strlen(LOGO), '"');
+      char* nl = strchr(buf + strlen(LOGO), '\n');
       if(nl){
         *nl = '\0';
         fi->logo = get_xdg_logo(buf + strlen(LOGO));
@@ -185,6 +192,7 @@ linux_ncneofetch(fetched_info* fi){
     }
   }
 #undef LOGO
+#undef LOGOQ
 #undef ID
 #undef PRETTY
   fclose(osinfo);
@@ -442,17 +450,22 @@ infoplane(struct ncdirect* ncd, const fetched_info* fi){
 struct marshal {
   struct ncdirect* nc;
   const distro_info* dinfo;
+  const char* logo; // read from /etc/os-release, may be NULL
 };
 
 static void*
 display_thread(void* vmarshal){
   struct marshal* m = vmarshal;
   drawpalette(m->nc);
-  if(m->dinfo){
-    // FIXME check for logo in fetched_info
+  if(m->logo){
+    if(ncdirect_render_image(m->nc, m->logo, NCALIGN_CENTER,
+                             NCBLIT_DEFAULT, NCSCALE_SCALE_HIRES)){
+      return NULL;
+    }
+  }else if(m->dinfo){
     if(m->dinfo->logofile){
       if(ncdirect_render_image(m->nc, m->dinfo->logofile, NCALIGN_CENTER,
-                               NCBLIT_2x2, NCSCALE_SCALE)){
+                               NCBLIT_DEFAULT, NCSCALE_SCALE_HIRES)){
         return NULL;
       }
     }
@@ -479,6 +492,7 @@ ncneofetch(struct ncdirect* nc){
   struct marshal display_marshal = {
     .nc = nc,
     .dinfo = fi.distro,
+    .logo = fi.logo,
   };
   pthread_t tid;
   const bool launched = !pthread_create(&tid, NULL, display_thread, &display_marshal);
