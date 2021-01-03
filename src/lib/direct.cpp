@@ -24,9 +24,10 @@ ncdirect_bg_default_p(const struct ncdirect* nc){
   return channels_bg_default_p(ncdirect_channels(nc));
 }
 
+// FIXME handle palette-indexed color
 int ncdirect_putstr(ncdirect* nc, uint64_t channels, const char* utf8){
   if(channels_fg_default_p(channels)){
-    if(ncdirect_fg_default_p(nc)){
+    if(ncdirect_set_fg_default(nc)){
       return -1;
     }
   }else if(ncdirect_set_fg_rgb(nc, channels_fg_rgb(channels))){
