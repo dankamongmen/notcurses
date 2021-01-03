@@ -6,7 +6,7 @@ use crate::{
     cell_release, cstring, NcAlphaBits, NcCell, NcChannel, NcChannelPair, NcColor, NcEgc,
     NcIntResult, NcPaletteIndex, NcPlane, NcRgb, NcStyleMask, NCCELL_ALPHA_OPAQUE,
     NCCELL_BGDEFAULT_MASK, NCCELL_BG_PALETTE, NCCELL_FGDEFAULT_MASK, NCCELL_FG_PALETTE,
-    NCCELL_NOBACKGROUND_MASK, NCCELL_WIDEASIAN_MASK, NCRESULT_ERR, NCRESULT_OK, NCSTYLE_MASK,
+    NCCELL_NOBACKGROUND_MASK, NCRESULT_ERR, NCRESULT_OK, NCSTYLE_MASK,
 };
 
 // Alpha -----------------------------------------------------------------------
@@ -320,7 +320,7 @@ pub fn cell_set_styles(cell: &mut NcCell, stylebits: NcStyleMask) {
 // Waiting for: https://github.com/rust-lang/rust-bindgen/issues/1875
 #[inline]
 pub const fn cell_double_wide_p(cell: &NcCell) -> bool {
-    (cell.channels & NCCELL_WIDEASIAN_MASK as NcChannelPair) != 0
+    cell.width > 0
 }
 
 /// Is this the right half of a wide character?

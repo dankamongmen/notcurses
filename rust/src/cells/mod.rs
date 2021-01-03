@@ -272,14 +272,6 @@ pub const NCCELL_FG_RGB_MASK: u64 = crate::bindings::ffi::CELL_FG_RGB_MASK;
 /// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
 pub const NCCELL_NOBACKGROUND_MASK: u64 = crate::bindings::ffi::CELL_NOBACKGROUND_MASK;
 
-/// If this bit is set, the cell is part of a multicolumn glyph.
-///
-/// Whether a cell is the left or right side of the glyph can be determined
-/// by checking whether ->gcluster is zero.
-///
-/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
-pub const NCCELL_WIDEASIAN_MASK: u64 = crate::bindings::ffi::CELL_WIDEASIAN_MASK as u64;
-
 // NcEgc
 //
 /// Extended Grapheme Cluster. A 32-bit [`char`]-like type

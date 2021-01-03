@@ -55,7 +55,6 @@ pub use ffi::{
 // CELL_FG_PALETTE,
 // CELL_FG_RGB_MASK,
 // CELL_NOBACKGROUND_MASK,
-// CELL_WIDEASIAN_MASK,
 
 #[doc(inline)]
 pub use ffi::{
