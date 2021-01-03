@@ -73,7 +73,7 @@ steps:
     - cd build
     - cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_MULTIMEDIA=none ..
     - make -j2
-    - env TERM=xterm ctest
+    - env TERM=xterm ctest -V
     - make install
     - ldconfig
     - cd ../cffi
