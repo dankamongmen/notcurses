@@ -1088,6 +1088,10 @@ int cbreak_mode(int ttyfd, const struct termios* tpreserved);
 // If you only want to check n < 4 channels, just duplicate one.
 bool check_gradient_args(uint64_t ul, uint64_t ur, uint64_t bl, uint64_t br);
 
+int setup_signals(void* nc, bool no_quit_sigs, bool no_winch_sig,
+                  int(*handler)(void*));
+int drop_signals(void* nc);
+
 #ifdef __cplusplus
 }
 #endif

@@ -13,11 +13,9 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <unistr.h>
-#include <signal.h>
 #include <locale.h>
 #include <uniwbrk.h>
 #include <langinfo.h>
-#include <stdatomic.h>
 #include <sys/ioctl.h>
 #include <notcurses/direct.h>
 
@@ -34,21 +32,6 @@ void notcurses_version_components(int* major, int* minor, int* patch, int* tweak
   *minor = NOTCURSES_VERNUM_MINOR;
   *patch = NOTCURSES_VERNUM_PATCH;
   *tweak = atoi(NOTCURSES_VERSION_TWEAK);
-}
-
-// only one notcurses object can be the target of signal handlers, due to their
-// process-wide nature.
-static notcurses* _Atomic signal_nc = ATOMIC_VAR_INIT(NULL); // ugh
-static void (*signal_sa_handler)(int); // stashed signal handler we replaced
-
-static int
-drop_signals(notcurses* nc){
-  notcurses* old = nc;
-  if(!atomic_compare_exchange_strong(&signal_nc, &old, NULL)){
-    fprintf(stderr, "Couldn't drop signals: %p != %p\n", old, nc);
-    return -1;
-  }
-  return 0;
 }
 
 // reset the current colors, styles, and palette. called on startup (to purge
@@ -73,7 +56,8 @@ reset_term_attributes(notcurses* nc){
 // the end of the line for fatal signal handlers. notcurses_stop() will go on
 // to tear down and account for internal structures.
 static int
-notcurses_stop_minimal(notcurses* nc){
+notcurses_stop_minimal(void* vnc){
+  notcurses* nc = vnc;
   int ret = 0;
   drop_signals(nc);
   // be sure to write the restoration sequences *prior* to running rmcup, as
@@ -91,66 +75,6 @@ notcurses_stop_minimal(notcurses* nc){
     ret |= tcsetattr(nc->ttyfd, TCSANOW, &nc->tpreserved);
   }
   return ret;
-}
-
-// this wildly unsafe handler will attempt to restore the screen upon receipt
-// of SIG{INT, SEGV, ABRT, QUIT, TERM}. godspeed you, black emperor!
-static void
-fatal_handler(int signo){
-  notcurses* nc = atomic_load(&signal_nc);
-  if(nc){
-    notcurses_stop_minimal(nc);
-    if(signal_sa_handler){
-      signal_sa_handler(signo);
-    }
-    raise(signo);
-  }
-}
-
-static int
-setup_signals(notcurses* nc, bool no_quit_sigs, bool no_winch_sig){
-  notcurses* expected = NULL;
-  struct sigaction oldact;
-  struct sigaction sa;
-
-  if(!atomic_compare_exchange_strong(&signal_nc, &expected, nc)){
-    fprintf(stderr, "%p is already registered for signals\n", expected);
-    return -1;
-  }
-  if(!no_winch_sig){
-    memset(&sa, 0, sizeof(sa));
-    sa.sa_handler = sigwinch_handler;
-    if(sigaction(SIGWINCH, &sa, NULL)){
-      atomic_store(&signal_nc, NULL);
-      fprintf(stderr, "Error installing SIGWINCH handler (%s)\n",
-              strerror(errno));
-      return -1;
-    }
-  }
-  if(!no_quit_sigs){
-    memset(&sa, 0, sizeof(sa));
-    sa.sa_handler = fatal_handler;
-    sigaddset(&sa.sa_mask, SIGINT);
-    sigaddset(&sa.sa_mask, SIGQUIT);
-    sigaddset(&sa.sa_mask, SIGSEGV);
-    sigaddset(&sa.sa_mask, SIGABRT);
-    sigaddset(&sa.sa_mask, SIGTERM);
-    sa.sa_flags = SA_RESETHAND; // don't try twice
-    int ret = 0;
-    ret |= sigaction(SIGINT, &sa, &oldact);
-    ret |= sigaction(SIGQUIT, &sa, &oldact);
-    ret |= sigaction(SIGSEGV, &sa, &oldact);
-    ret |= sigaction(SIGABRT, &sa, &oldact);
-    ret |= sigaction(SIGTERM, &sa, &oldact);
-    if(ret){
-      atomic_store(&signal_nc, NULL);
-      fprintf(stderr, "Error installing fatal signal handlers (%s)\n",
-              strerror(errno));
-      return -1;
-    }
-    signal_sa_handler = oldact.sa_handler;
-  }
-  return 0;
 }
 
 // make a heap-allocated wchar_t expansion of the multibyte string at s
@@ -1096,9 +1020,9 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
   }else{
     fprintf(stderr, "Defaulting to %dx%d (output is not to a terminal)\n", DEFAULT_ROWS, DEFAULT_COLS);
   }
-  if(setup_signals(ret,
-                   (opts->flags & NCOPTION_NO_QUIT_SIGHANDLERS),
-                   (opts->flags & NCOPTION_NO_WINCH_SIGHANDLER))){
+  if(setup_signals(ret, (opts->flags & NCOPTION_NO_QUIT_SIGHANDLERS),
+                   (opts->flags & NCOPTION_NO_WINCH_SIGHANDLER),
+                   notcurses_stop_minimal)){
     // don't treat failure here as an error. it screws up unit tests, and one
     // day we'll need support multiple notcurses contexts. FIXME
   }

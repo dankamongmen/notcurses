@@ -48,7 +48,7 @@ TEST_CASE("Cell") {
     CHECK(1 == ncstrwidth(" "));      // single byte, one column
     CHECK(5 == ncstrwidth("abcde"));  // single byte, one column
     CHECK(1 == ncstrwidth("µ"));      // two bytes, one column
-    CHECK(1 <= ncstrwidth("\xf0\x9f\xa6\xb2"));     // four bytes, two columns
+    CHECK(1 <= ncstrwidth("\U0001f982"));     // four bytes, two columns
     CHECK(3 <= ncstrwidth("平仮名")); // nine bytes, six columns
     CHECK(1 == ncstrwidth("\ufdfd")); // three bytes, ? columns, wcwidth() returns 1
   }
