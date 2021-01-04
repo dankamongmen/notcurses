@@ -10,6 +10,7 @@ extern "C" {
 
 #include <poll.h>
 #include <term.h>
+#include <ncurses.h>
 #include <time.h>
 #include <poll.h>
 #include <stdio.h>
@@ -33,6 +34,10 @@ extern "C" {
 
 #define API __attribute__((visibility("default")))
 #define ALLOC __attribute__((malloc)) __attribute__((warn_unused_result))
+
+#if defined(__APPLE__)
+#include "macos-compat.h"
+#endif
 
 struct sixelmap;
 struct ncvisual_details;
@@ -1198,6 +1203,10 @@ term_emit(const char* seq, FILE* out, bool flush){
   }
   return flush ? ncflush(out) : 0;
 }
+
+#if defined(__APPLE__)
+char* tiparm(const char *cm, ...);
+#endif
 
 static inline int
 term_bg_palindex(const notcurses* nc, FILE* out, unsigned pal){

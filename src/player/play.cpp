@@ -12,6 +12,7 @@
 #include <ncpp/Visual.hh>
 #include <ncpp/NotCurses.hh>
 #include "compat/compat.h"
+#include "../lib/macos-compat.h"
 
 using namespace ncpp;
 

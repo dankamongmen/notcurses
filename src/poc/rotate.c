@@ -7,6 +7,10 @@
 #include <notcurses/notcurses.h>
 #include "compat/compat.h"
 
+#if defined(__APPLE__)
+#include "../lib/macos-compat.h"
+#endif
+
 int main(int argc, char** argv){
   struct timespec ts = {
     .tv_sec = 0,

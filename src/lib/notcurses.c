@@ -1017,6 +1017,9 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   if(outfp == NULL){
     outfp = stdout;
   }
+#if defined(__APPLE__)
+  macos_init ();
+#endif
   notcurses_options defaultopts = { };
   if(!opts){
     opts = &defaultopts;

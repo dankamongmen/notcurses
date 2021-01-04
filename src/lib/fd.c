@@ -392,6 +392,8 @@ ncsubproc* ncsubproc_createvpe(ncplane* n, const ncsubproc_options* opts,
   if(ret->pid == 0){
 #ifdef __linux__
     execvpe(bin, arg, env);
+#elif defined(__APPLE__)
+    execve(bin, arg, env);
 #else
     exect(bin, arg, env);
 #endif

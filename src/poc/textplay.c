@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <notcurses/notcurses.h>
+#include "../lib/macos-compat.h"
 
 #define GIG 1000000000ull
 static const uint32_t LOWCOLOR = 0x004080;

@@ -24,9 +24,11 @@ ns_to_timespec(uint64_t ns, struct timespec* ts){
 // compatibility wrappers for code available only on certain operating systems.
 // this file is not installed, but only consumed during compilation. if we're
 // on an operating system which implements a given function, it won't be built.
+#ifndef __APPLE__
 int clock_nanosleep(clockid_t clockid, int flags,
                     const struct timespec *request,
                     struct timespec *remain);
+#endif
 
 #ifdef __cplusplus
 }

@@ -1,5 +1,6 @@
 #include <pthread.h>
 #include "demo.h"
+#include "../lib/macos-compat.h"
 
 static int y;
 static int targy;

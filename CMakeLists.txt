@@ -15,6 +15,12 @@ include(GNUInstallDirs)
 include(CMakeDependentOption)
 include(FeatureSummary)
 
+if(APPLE)
+  set(QRCODEGEN_OPTION_DEFAULT OFF)
+else()
+  set(QRCODEGEN_OPTION_DEFAULT ON)
+endif()
+
 ###################### USER-SELECTABLE OPTIONS ###########################
 # BUILD_TESTING is defined by CTest
 option(DFSG_BUILD "DFSG build (no non-free media/code)" OFF)
@@ -76,6 +82,51 @@ add_compile_options(-Wall -Wextra -W -Wshadow -Wformat -Wno-nonnull-compare
 message(STATUS "Requested multimedia engine: ${USE_MULTIMEDIA}")
 message(STATUS "Requested build mode: ${CMAKE_BUILD_TYPE}")
 
+if(APPLE)
+  macro(_get_brew_prefix BREW_RECIPE_NAME VAR)
+    execute_process(
+      COMMAND "${BREW}" --prefix ${BREW_RECIPE_NAME}
+      OUTPUT_VARIABLE MAC_${VAR}_PREFIX
+      RESULT_VARIABLE MAC_${VAR}_RESULT
+    )
+
+    string(STRIP "${MAC_${VAR}_PREFIX}" MAC_${VAR}_PREFIX)
+  endmacro()
+
+  # ncurses version shipped with the latest macOS SDK is a fossilware version of 5.7 (A.D. 2008)
+  # We need 6.1, we need to take it from brew (for instance) and we need to be
+  # sneaky since the newer versions must not disrupt the fossilware installed with
+  # the SDK
+
+  # We support homebrew (https://brew.sh/) for now since I don't use anything else
+  find_program(BREW brew REQUIRED)
+
+  # We set up the environment so that pkg-config below can find ncurses
+  _get_brew_prefix(ncurses NCURSES)
+  if(NOT MAC_NCURSES_RESULT EQUAL 0)
+     message(FATAL_ERROR "Notcurses require ncurses >= 6.1 to be installed with homebrew: brew install ncurses")
+  endif()
+  set(ENV{PKG_CONFIG_PATH} "${MAC_NCURSES_PREFIX}/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
+
+  # We set up the environment so that pkg-config below can find readline
+  _get_brew_prefix(readline READLINE)
+  if(NOT MAC_READLINE_RESULT EQUAL 0)
+    message(FATAL_ERROR "Notcurses require readline >= 8.0 to be installed with homebrew: brew install readline")
+  endif()
+  set(ENV{PKG_CONFIG_PATH} "${MAC_READLINE_PREFIX}/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
+
+  # We set up the environment so that libunistring can be found
+  _get_brew_prefix(libunistring UNISTRING)
+  if(NOT MAC_UNISTRING_RESULT EQUAL 0)
+     message(FATAL_ERROR "Notcurses require libunistring to be installed with homebrew: brew install libunistring")
+  endif()
+  set(LIBUNISTRING_LIBRARY_DIRS "${MAC_UNISTRING_PREFIX}/lib")
+  set(LIBUNISTRING_INCLUDE_DIRS "${MAC_UNISTRING_PREFIX}/include")
+  set(CMAKE_REQUIRED_INCLUDES "${LIBUNISTRING_INCLUDE_DIRS}")
+
+  set(MACOS_COMPAT_SRC src/lib/macos-compat.c)
+endif()
+
 find_package(PkgConfig REQUIRED)
 # don't use REQUIRED with subsequent find_package() operations; we use
 # feature_summary + set_package_properties to fail in one fell swoop.
@@ -128,7 +179,7 @@ if(NOT "${HAVE_QRCODEGEN_H}")
 endif()
 set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND qrcodegen)
 endif()
-if (NOT MSYS)
+if (NOT APPLE AND NOT MSYS)
   find_library(LIBM m)
   find_library(LIBRT rt)
 endif()
@@ -140,7 +191,7 @@ file(GLOB COMPATSRC CONFIGURE_DEPENDS src/compat/compat.c)
 ############################################################################
 # libnotcurses-core (core shared library, core static library)
 file(GLOB NCCORESRCS CONFIGURE_DEPENDS src/lib/*.c src/lib/*.cpp)
-add_library(notcurses-core SHARED ${NCCORESRCS} ${COMPATSRC})
+add_library(notcurses-core SHARED ${NCCORESRCS} ${COMPATSRC} ${MACOS_COMPAT_SRC})
 if(${USE_STATIC})
 add_library(notcurses-core-static STATIC ${NCCORESRCS})
 else()
@@ -219,7 +270,7 @@ endif()
 ############################################################################
 # libnotcurses (multimedia shared library+static library)
 file(GLOB NCSRCS CONFIGURE_DEPENDS src/media/*.c src/media/*.cpp)
-add_library(notcurses SHARED ${NCSRCS} ${COMPATSRC})
+add_library(notcurses SHARED ${NCSRCS} ${COMPATSRC} ${MACOS_COMPAT_SRC})
 if(${USE_STATIC})
 add_library(notcurses-static STATIC ${NCSRCS})
 else()
@@ -365,6 +416,7 @@ set(NCPP_INCLUDE_DIRS
   include
     "${PROJECT_BINARY_DIR}/include"
     "${TERMINFO_INCLUDE_DIRS}"
+    "${READLINE_INCLUDE_DIRS}"
   )
 
 target_include_directories(notcurses++
@@ -442,7 +494,7 @@ if(USE_POC)
 file(GLOB POCSRCS CONFIGURE_DEPENDS src/poc/*.c)
 foreach(f ${POCSRCS})
   get_filename_component(fe "${f}" NAME_WE)
-  add_executable(${fe} ${f} ${COMPATSRC})
+  add_executable(${fe} ${f} ${COMPATSRC} ${MACOS_COMPAT_SRC})
   target_include_directories(${fe}
     PRIVATE include src "${TERMINFO_INCLUDE_DIRS}"
     "${PROJECT_BINARY_DIR}/include"
@@ -457,7 +509,7 @@ endforeach()
 file(GLOB POCPPSRCS CONFIGURE_DEPENDS src/pocpp/*.cpp)
 foreach(f ${POCPPSRCS})
   get_filename_component(fe "${f}" NAME_WE)
-  add_executable(${fe} ${f} ${COMPATSRC})
+  add_executable(${fe} ${f} ${COMPATSRC} ${MACOS_COMPAT_SRC})
   target_include_directories(${fe}
     PRIVATE include src "${TERMINFO_INCLUDE_DIRS}"
     "${PROJECT_BINARY_DIR}/include"
@@ -474,7 +526,7 @@ endif()
 ############################################################################
 # notcurses-demo
 file(GLOB DEMOSRCS CONFIGURE_DEPENDS src/demo/*.c)
-add_executable(notcurses-demo ${DEMOSRCS} ${COMPATSRC})
+add_executable(notcurses-demo ${DEMOSRCS} ${COMPATSRC} ${MACOS_COMPAT_SRC})
 target_compile_definitions(notcurses-demo
   PRIVATE
     _GNU_SOURCE
@@ -584,7 +636,7 @@ tarGET_Link_libraries(ncls
 ############################################################################
 # ncplayer
 file(GLOB PLAYERSRCS CONFIGURE_DEPENDS src/player/*.cpp)
-add_executable(ncplayer ${PLAYERSRCS} ${COMPATSRC})
+add_executable(ncplayer ${PLAYERSRCS} ${COMPATSRC} ${MACOS_COMPAT_SRC})
 target_include_directories(ncplayer
   PRIVATE
     include
@@ -611,6 +663,7 @@ target_include_directories(notcurses-tester
     src
     "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
+    "${TERMINFO_INCLUDE_DIRS}"
     src/lib
 )
 target_link_libraries(notcurses-tester
@@ -618,7 +671,15 @@ target_link_libraries(notcurses-tester
     notcurses++
     "${unistring}"
     "${TERMINFO_LIBRARIES}"
+    doctest::doctest
 )
+if(APPLE)
+  target_link_directories(notcurses-tester
+    PRIVATE
+      "${TERMINFO_LIBRARY_DIRS}"
+      "${READLINE_LIBRARY_DIRS}"
+  )
+endif()
 add_test(
   NAME notcurses-tester
   COMMAND notcurses-tester -p ${CMAKE_CURRENT_SOURCE_DIR}/data --abort-after=1

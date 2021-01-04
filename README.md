@@ -119,6 +119,19 @@ may well be possible to use still older versions. Let me know of any successes!
 * (OPTIONAL) (rust bindings): rust 1.47.0+, [bindgen](https://crates.io/crates/bindgen) 0.55.1+, pkg-config 0.3.18+, cty 0.2.1+
 * (runtime) Linux 5.3+, FreeBSD 11+, or DragonFly BSD 5.9+
 
+### macOS prerequisites
+
+Currently, Notcurses supports only Homebrew (https://brew.sh) for installation
+of extra packages not available in the macOS SDK.  Names below represent
+the Homebrew recipe name, to be installed with `brew install $NAME`.
+
+* doctest
+* ffmpeg
+* pandoc
+* pkg-config
+* libunistring
+* readline
+
 [Here's more information](INSTALL.md) on building and installation.
 
 ## Included tools

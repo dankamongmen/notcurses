@@ -11,6 +11,9 @@
 #include <version.h>
 #include "compat/compat.h"
 
+#if defined(__APPLE__)
+#include "../lib/macos-compat.h"
+#endif
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -2,7 +2,15 @@
 #define NOTCURSES_NOTCURSES
 
 #include <time.h>
+#if !defined(__APPLE__)
+// Apple clang supports C11, but it does not have uchar.h
 #include <uchar.h>
+#else
+#ifndef __cplusplus
+#include <stdint.h>
+typedef uint32_t char32_t;
+#endif // __cplusplus
+#endif
 #include <ctype.h>
 #include <wchar.h>
 #include <stdio.h>
@@ -18,6 +26,9 @@
 #if defined(__linux__) || defined(__gnu_hurd__)
 #include <byteswap.h>
 #define htole(x) (__bswap_32(htonl(x)))
+#elif defined(__APPLE__)
+#include <libkern/OSByteOrder.h>
+#define htole(x) OSSwapHostToLittleInt32((x))
 #else
 #include <sys/endian.h>
 #define htole(x) (bswap32(htonl(x)))
