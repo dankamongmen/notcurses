@@ -17,7 +17,7 @@ notcurses - TUI library for modern terminal emulators
 Notcurses builds atop the **terminfo(5)** abstraction layer to provide
 reasonably portable vivid character displays. It is an intellectual descendant
 of **ncurses(3NCURSES)**, but goes beyond that library (and the X/Open Curses
-API thus implemented).
+API it implements).
 
 A program wishing to use Notcurses will need to link it, ideally using the
 output of **pkg-config --libs notcurses** (see **pkg-config(1)**). It is
@@ -45,7 +45,7 @@ for the actual terminal must be available.
 **ncdirect_init(3)** makes available a very restricted subset of
 Notcurses functionality. This subset is intended to be interleaved with user-
 generated output, and is limited to coloring and styling. Direct mode is
-documented in **notcurses_directmode(3)**
+documented in **notcurses_directmode(3)**.
 
 ## Output
 
