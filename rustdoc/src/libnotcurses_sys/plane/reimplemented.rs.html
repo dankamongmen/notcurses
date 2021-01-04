@@ -698,6 +698,13 @@
 <span id="695">695</span>
 <span id="696">696</span>
 <span id="697">697</span>
+<span id="698">698</span>
+<span id="699">699</span>
+<span id="700">700</span>
+<span id="701">701</span>
+<span id="702">702</span>
+<span id="703">703</span>
+<span id="704">704</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `ncplane_*` reimplemented functions.</span>
 
@@ -851,6 +858,13 @@
 }
 
 <span class="doccomment">/// Writes a series of [NcEgc]s to the current location, using the current style.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Advances the cursor by some positive number of columns</span>
+<span class="doccomment">/// (though not beyond the end of the plane),</span>
+<span class="doccomment">/// and this number is returned on success.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// On error, a non-positive number is returned, indicating</span>
+<span class="doccomment">/// the number of columns which were written before the error.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// *Method: NcPlane.[putstr()][NcPlane#method.putstr].*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>

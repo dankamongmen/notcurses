@@ -206,6 +206,17 @@
 <span id="203">203</span>
 <span id="204">204</span>
 <span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Macros</span>
 <span class="doccomment">//!</span>
@@ -214,7 +225,7 @@
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_imports</span>)]</span>
 <span class="comment">// enjoy briefer doc comments</span>
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">NcDirect</span>, <span class="ident">NcError</span>, <span class="ident">NcResult</span>, <span class="ident">Notcurses</span>, <span class="ident">NCRESULT_ERR</span>, <span class="ident">NCRESULT_OK</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">NcDirect</span>, <span class="ident">NcError</span>, <span class="ident">Notcurses</span>, <span class="ident">NcResult</span>, <span class="ident">NCRESULT_ERR</span>, <span class="ident">NCRESULT_OK</span>};
 
 <span class="comment">// Sleep, Render &amp; Flush Macros ------------------------------------------------</span>
 
@@ -241,7 +252,7 @@
     };
 }
 
-<span class="doccomment">/// Notcurses.[render][Notcurses#method.render]\(`nc`\)? plus [sleep]!(`sleep_args`).</span>
+<span class="doccomment">/// [`Notcurses.render`][Notcurses#method.render]\(`$nc`\)? plus [`sleep!`]`[$sleep_args]`.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Renders the `$nc` [Notcurses] object and, if there&#39;s no error,</span>
 <span class="doccomment">/// calls the sleep macro with the rest of the arguments.</span>
@@ -259,7 +270,7 @@
     };
 }
 
-<span class="doccomment">/// NcDirect.[flush][NcDirect#method.flush]\(`ncd`\)? plus [sleep]!(`sleep_args`).</span>
+<span class="doccomment">/// [`NcDirect.flush`][NcDirect#method.flush]\(`$ncd`\)? plus [`sleep!`]`[$sleep_args]`.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Flushes the `$ncd` [NcDirect] object and, if there&#39;s no error,</span>
 <span class="doccomment">/// calls the sleep macro with the rest of the arguments.</span>
@@ -300,7 +311,7 @@
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">rstring</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> { <span class="ident">std</span>::<span class="ident">ffi</span>::<span class="ident">CStr</span>::<span class="ident">from_ptr</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>).<span class="ident">to_str</span>().<span class="ident">unwrap</span>() }
-        <span class="comment">// possible alternative</span>
+        <span class="comment">// possible alternative:</span>
         <span class="comment">// unsafe { std::ffi::CStr::from_ptr($s).to_string_lossy() }</span>
     };
 }
@@ -318,8 +329,8 @@
 
 <span class="comment">// Error Wrappers Macros -------------------------------------------------------</span>
 
-<span class="doccomment">/// Returns an Ok(&lt;`$ok`&gt;),</span>
-<span class="doccomment">/// or an Err([NcError]) if `$res` &lt; [NCRESULT_OK].</span>
+<span class="doccomment">/// Returns an `Ok($ok)`,</span>
+<span class="doccomment">/// or an `Err(`[`NcError`]`)` if `$res` &lt; [`NCRESULT_OK`].</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// In other words:</span>
 <span class="doccomment">/// Returns Ok(`$ok`) if `$res` &gt;= [NCRESULT_OK], otherwise returns</span>
@@ -344,8 +355,8 @@
     };
 }
 
-<span class="doccomment">/// Returns an Ok(&amp;T) from a `*const T` pointer,</span>
-<span class="doccomment">/// or an Err([NcError]) if the pointer is null.</span>
+<span class="doccomment">/// Returns an `Ok(&amp;T)` from a `*const T` pointer,</span>
+<span class="doccomment">/// or an `Err(`[`NcError`]`)` if the pointer is null.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// In other words:</span>
 <span class="doccomment">/// Returns Ok(&amp;*`$ptr`) if `$ptr` != `null()`, otherwise returns</span>
@@ -367,8 +378,8 @@
     };
 }
 
-<span class="doccomment">/// Returns an Ok(&amp;mut T) from a `*mut T` pointer,</span>
-<span class="doccomment">/// or an Err([NcError]) if the pointer is null.</span>
+<span class="doccomment">/// Returns an `Ok(&amp;mut T)` from a `*mut T` pointer,</span>
+<span class="doccomment">/// or an `Err(`[`NcError`]`)` if the pointer is null.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// In other words:</span>
 <span class="doccomment">/// Returns Ok(&amp;mut *`$ptr`) if `$ptr` != `null_mut()`, otherwise returns</span>
@@ -390,8 +401,8 @@
     };
 }
 
-<span class="doccomment">/// Returns an Ok(String) from a `*const` pointer to a C string,</span>
-<span class="doccomment">/// or an Err([NcError]) if the pointer is null.</span>
+<span class="doccomment">/// Returns an `Ok(String)` from a `*const` pointer to a C string,</span>
+<span class="doccomment">/// or an `Err(`[`NcError`]`)` if the pointer is null.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// In other words:</span>
 <span class="doccomment">/// Returns Ok((&amp;*`$str`).to_string()) if `$str` != `null()`, otherwise returns</span>
@@ -410,6 +421,17 @@
     };
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">str</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="macro">error_str</span><span class="macro">!</span>[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">str</span>, <span class="string">&quot;&quot;</span>];
+    };
+}
+
+<span class="doccomment">/// Returns an [`NcResult`]`&lt;Self { raw: T }&gt;` from an [`NcResult`]`&lt;T&gt;`.</span>
+<span class="attribute">#[<span class="ident">macro_export</span>]</span>
+<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">raw_wrap</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">raw</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span> { <span class="ident">raw</span> }),
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>),
+        }
     };
 }
 </pre></div>

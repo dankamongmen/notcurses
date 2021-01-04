@@ -542,6 +542,61 @@
 <span id="539">539</span>
 <span id="540">540</span>
 <span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
+<span id="560">560</span>
+<span id="561">561</span>
+<span id="562">562</span>
+<span id="563">563</span>
+<span id="564">564</span>
+<span id="565">565</span>
+<span id="566">566</span>
+<span id="567">567</span>
+<span id="568">568</span>
+<span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
+<span id="573">573</span>
+<span id="574">574</span>
+<span id="575">575</span>
+<span id="576">576</span>
+<span id="577">577</span>
+<span id="578">578</span>
+<span id="579">579</span>
+<span id="580">580</span>
+<span id="581">581</span>
+<span id="582">582</span>
+<span id="583">583</span>
+<span id="584">584</span>
+<span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcChannel*` methods and associated functions.</span>
 
@@ -549,6 +604,18 @@
 
 <span class="doccomment">/// Enables the [NcChannel] methods.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">NcChannelMethods</span> {
+    <span class="comment">// constructors</span>
+    <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">with_default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">with_rgb</span>(<span class="ident">rgb</span>: <span class="ident">NcRgb</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">with_rgb_alpha</span>(<span class="ident">rgb</span>: <span class="ident">NcRgb</span>, <span class="ident">alpha</span>: <span class="ident">NcAlphaBits</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">with_rgb8</span>(<span class="ident">r</span>: <span class="ident">NcColor</span>, <span class="ident">g</span>: <span class="ident">NcColor</span>, <span class="ident">b</span>: <span class="ident">NcColor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">with_rgb8_alpha</span>(<span class="ident">r</span>: <span class="ident">NcColor</span>, <span class="ident">g</span>: <span class="ident">NcColor</span>, <span class="ident">b</span>: <span class="ident">NcColor</span>, <span class="ident">alpha</span>: <span class="ident">NcAlphaBits</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+
+    <span class="comment">// methods</span>
+    <span class="kw">fn</span> <span class="ident">fcombine</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bchannel</span>: <span class="ident">NcChannel</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannelPair</span>;
+    <span class="kw">fn</span> <span class="ident">bcombine</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fchannel</span>: <span class="ident">NcChannel</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannelPair</span>;
+
     <span class="kw">fn</span> <span class="ident">alpha</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcAlphaBits</span>;
     <span class="kw">fn</span> <span class="ident">set_alpha</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">alpha</span>: <span class="ident">NcAlphaBits</span>);
 
@@ -570,13 +637,16 @@
     <span class="kw">fn</span> <span class="ident">set_default</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannel</span>;
 
     <span class="kw">fn</span> <span class="ident">palindex_p</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
-
-    <span class="kw">fn</span> <span class="ident">fcombine</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bchannel</span>: <span class="ident">NcChannel</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannelPair</span>;
-    <span class="kw">fn</span> <span class="ident">bcombine</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fchannel</span>: <span class="ident">NcChannel</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannelPair</span>;
 }
 
 <span class="doccomment">/// Enables the [NcChannelPair] methods.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">NcChannelPairMethods</span> {
+    <span class="comment">// constructors</span>
+    <span class="comment">// …</span>
+
+    <span class="comment">// methods</span>
+    <span class="kw">fn</span> <span class="ident">combine</span>(<span class="ident">fchannel</span>: <span class="ident">NcChannel</span>, <span class="ident">bchannel</span>: <span class="ident">NcChannel</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannelPair</span>;
+
     <span class="kw">fn</span> <span class="ident">fchannel</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannel</span>;
     <span class="kw">fn</span> <span class="ident">bchannel</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannel</span>;
     <span class="kw">fn</span> <span class="ident">set_fchannel</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">fchannel</span>: <span class="ident">NcChannel</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannelPair</span>;
@@ -618,14 +688,54 @@
     <span class="kw">fn</span> <span class="ident">bg_palindex_p</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
     <span class="kw">fn</span> <span class="ident">set_fg_palindex</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">NcPaletteIndex</span>);
     <span class="kw">fn</span> <span class="ident">set_bg_palindex</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">NcPaletteIndex</span>);
-
-    <span class="kw">fn</span> <span class="ident">combine</span>(<span class="ident">fchannel</span>: <span class="ident">NcChannel</span>, <span class="ident">bchannel</span>: <span class="ident">NcChannel</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannelPair</span>;
 }
 
 <span class="comment">// NcChannel -------------------------------------------------------------------</span>
 
 <span class="doccomment">/// # `NcChannel` Methods</span>
 <span class="kw">impl</span> <span class="ident">NcChannelMethods</span> <span class="kw">for</span> <span class="ident">NcChannel</span> {
+    <span class="comment">// Constructors</span>
+
+    <span class="doccomment">/// New NcChannel, set to black and NOT using the default color.</span>
+    <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="number">0</span> <span class="kw">as</span> <span class="ident">NcChannel</span> <span class="op">|</span> <span class="kw">crate</span>::<span class="ident">NCCELL_BGDEFAULT_MASK</span>
+    }
+
+    <span class="doccomment">/// New NcChannel, set to black but using the default color.</span>
+    <span class="kw">fn</span> <span class="ident">with_default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="number">0</span> <span class="kw">as</span> <span class="ident">NcChannel</span>
+    }
+
+    <span class="doccomment">/// New NcChannel, expects [NcRgb].</span>
+    <span class="kw">fn</span> <span class="ident">with_rgb</span>(<span class="ident">rgb</span>: <span class="ident">NcRgb</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">channel</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="kw">crate</span>::<span class="ident">channel_set</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">channel</span>, <span class="ident">rgb</span>);
+        <span class="ident">channel</span>
+    }
+
+    <span class="doccomment">/// New NcChannel, expects [NcRgb] &amp; [NcAlphaBits].</span>
+    <span class="kw">fn</span> <span class="ident">with_rgb_alpha</span>(<span class="ident">rgb</span>: <span class="ident">NcRgb</span>, <span class="ident">alpha</span>: <span class="ident">NcAlphaBits</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">channel</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="kw">crate</span>::<span class="ident">channel_set</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">channel</span>, <span class="ident">rgb</span>);
+        <span class="kw">crate</span>::<span class="ident">channel_set_alpha</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">channel</span>, <span class="ident">alpha</span>);
+        <span class="ident">channel</span>
+    }
+
+    <span class="doccomment">/// New NcChannel, expects three RGB [NcColor] components.</span>
+    <span class="kw">fn</span> <span class="ident">with_rgb8</span>(<span class="ident">r</span>: <span class="ident">NcColor</span>, <span class="ident">g</span>: <span class="ident">NcColor</span>, <span class="ident">b</span>: <span class="ident">NcColor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">channel</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="kw">crate</span>::<span class="ident">channel_set_rgb8</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">channel</span>, <span class="ident">r</span>, <span class="ident">g</span>, <span class="ident">b</span>);
+        <span class="ident">channel</span>
+    }
+
+    <span class="doccomment">/// New NcChannel, expects three RGB [NcColor] components.</span>
+    <span class="kw">fn</span> <span class="ident">with_rgb8_alpha</span>(<span class="ident">r</span>: <span class="ident">NcColor</span>, <span class="ident">g</span>: <span class="ident">NcColor</span>, <span class="ident">b</span>: <span class="ident">NcColor</span>, <span class="ident">alpha</span>: <span class="ident">NcAlphaBits</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">channel</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="kw">crate</span>::<span class="ident">channel_set_rgb8</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">channel</span>, <span class="ident">r</span>, <span class="ident">g</span>, <span class="ident">b</span>);
+        <span class="kw">crate</span>::<span class="ident">channel_set_alpha</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">channel</span>, <span class="ident">alpha</span>);
+        <span class="ident">channel</span>
+    }
+
     <span class="comment">// Combine</span>
 
     <span class="doccomment">/// Combines this [NcChannel] as foreground, with another as background</span>
@@ -790,6 +900,15 @@
 
 <span class="doccomment">/// # `NcChannelPair` Methods</span>
 <span class="kw">impl</span> <span class="ident">NcChannelPairMethods</span> <span class="kw">for</span> <span class="ident">NcChannelPair</span> {
+    <span class="comment">// Combine</span>
+
+    <span class="doccomment">/// Combines two [NcChannel]s into an [NcChannelPair].</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// *C style function: [channels_combine()][crate::channels_combine].*</span>
+    <span class="kw">fn</span> <span class="ident">combine</span>(<span class="ident">fchannel</span>: <span class="ident">NcChannel</span>, <span class="ident">bchannel</span>: <span class="ident">NcChannel</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannelPair</span> {
+        <span class="kw">crate</span>::<span class="ident">channels_combine</span>(<span class="ident">fchannel</span>, <span class="ident">bchannel</span>)
+    }
+
     <span class="comment">// NcChannel</span>
 
     <span class="doccomment">/// Extracts the foreground [NcChannel].</span>
@@ -1073,15 +1192,6 @@
     <span class="doccomment">/// *C style function: [channels_set_bg_palindex()][crate::channels_set_bg_palindex].*</span>
     <span class="kw">fn</span> <span class="ident">set_bg_palindex</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">NcPaletteIndex</span>) {
         <span class="kw">crate</span>::<span class="ident">channels_set_bg_palindex</span>(<span class="self">self</span>, <span class="ident">index</span>)
-    }
-
-    <span class="comment">// Combine</span>
-
-    <span class="doccomment">/// Combines two [NcChannel]s into an [NcChannelPair].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [channels_combine()][crate::channels_combine].*</span>
-    <span class="kw">fn</span> <span class="ident">combine</span>(<span class="ident">fchannel</span>: <span class="ident">NcChannel</span>, <span class="ident">bchannel</span>: <span class="ident">NcChannel</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannelPair</span> {
-        <span class="kw">crate</span>::<span class="ident">channels_combine</span>(<span class="ident">fchannel</span>, <span class="ident">bchannel</span>)
     }
 }
 </pre></div>

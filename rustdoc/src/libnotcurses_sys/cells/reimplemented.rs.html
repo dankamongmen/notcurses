@@ -541,18 +541,16 @@
 <span id="538">538</span>
 <span id="539">539</span>
 <span id="540">540</span>
-<span id="541">541</span>
-<span id="542">542</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `cell*_*` reimplemented functions.</span>
 
 <span class="kw">use</span> <span class="ident">libc</span>::<span class="ident">strcmp</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">cell_release</span>, <span class="ident">NcAlphaBits</span>, <span class="ident">NcCell</span>, <span class="ident">NcChannel</span>, <span class="ident">NcChannelPair</span>, <span class="ident">NcColor</span>, <span class="ident">NcEgc</span>, <span class="ident">NcIntResult</span>,
-    <span class="ident">NcPaletteIndex</span>, <span class="ident">NcPlane</span>, <span class="ident">NcRgb</span>, <span class="ident">NcStyleMask</span>, <span class="ident">NCCELL_ALPHA_OPAQUE</span>, <span class="ident">NCCELL_BGDEFAULT_MASK</span>,
-    <span class="ident">NCCELL_BG_PALETTE</span>, <span class="ident">NCCELL_FGDEFAULT_MASK</span>, <span class="ident">NCCELL_FG_PALETTE</span>, <span class="ident">NCCELL_NOBACKGROUND_MASK</span>,
-    <span class="ident">NCCELL_WIDEASIAN_MASK</span>, <span class="ident">NCRESULT_ERR</span>, <span class="ident">NCRESULT_OK</span>, <span class="ident">NCSTYLE_MASK</span>,
+    <span class="ident">cell_release</span>, <span class="ident">cstring</span>, <span class="ident">NcAlphaBits</span>, <span class="ident">NcCell</span>, <span class="ident">NcChannel</span>, <span class="ident">NcChannelPair</span>, <span class="ident">NcColor</span>, <span class="ident">NcEgc</span>,
+    <span class="ident">NcIntResult</span>, <span class="ident">NcPaletteIndex</span>, <span class="ident">NcPlane</span>, <span class="ident">NcRgb</span>, <span class="ident">NcStyleMask</span>, <span class="ident">NCCELL_ALPHA_OPAQUE</span>,
+    <span class="ident">NCCELL_BGDEFAULT_MASK</span>, <span class="ident">NCCELL_BG_PALETTE</span>, <span class="ident">NCCELL_FGDEFAULT_MASK</span>, <span class="ident">NCCELL_FG_PALETTE</span>,
+    <span class="ident">NCRESULT_ERR</span>, <span class="ident">NCRESULT_OK</span>, <span class="ident">NCSTYLE_MASK</span>,
 };
 
 <span class="comment">// Alpha -----------------------------------------------------------------------</span>
@@ -866,7 +864,7 @@
 <span class="comment">// Waiting for: https://github.com/rust-lang/rust-bindgen/issues/1875</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">cell_double_wide_p</span>(<span class="ident">cell</span>: <span class="kw-2">&amp;</span><span class="ident">NcCell</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-    (<span class="ident">cell</span>.<span class="ident">channels</span> <span class="op">&amp;</span> <span class="ident">NCCELL_WIDEASIAN_MASK</span> <span class="kw">as</span> <span class="ident">NcChannelPair</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>
+    <span class="ident">cell</span>.<span class="ident">width</span> <span class="op">&gt;</span> <span class="number">0</span>
 }
 
 <span class="doccomment">/// Is this the right half of a wide character?</span>
@@ -890,7 +888,6 @@
 <span class="doccomment">/// *Method: NcCell.[load_char()][NcCell#method.load_char].*</span>
 <span class="comment">//</span>
 <span class="comment">// NOTE: Unlike the original C function this doesn&#39;t return anything.</span>
-<span class="comment">// REMINDER: remove casting for NCCELL_WIDEASIAN_MASK when fixed:</span>
 <span class="comment">// Waiting for: https://github.com/rust-lang/rust-bindgen/issues/1875</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cell_load_char</span>(<span class="ident">plane</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span>, <span class="ident">cell</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcCell</span>, <span class="ident">ch</span>: <span class="ident">NcEgc</span>) <span class="comment">/* -&gt; i32 */</span>
@@ -898,8 +895,6 @@
     <span class="kw">unsafe</span> {
         <span class="kw">crate</span>::<span class="ident">cell_release</span>(<span class="ident">plane</span>, <span class="ident">cell</span>);
     }
-    <span class="ident">cell</span>.<span class="ident">channels</span> <span class="op">&amp;=</span> <span class="op">!</span>(<span class="ident">NCCELL_WIDEASIAN_MASK</span> <span class="kw">as</span> <span class="ident">NcChannelPair</span> <span class="op">|</span> <span class="ident">NCCELL_NOBACKGROUND_MASK</span>);
-    <span class="ident">cell</span>.<span class="ident">gcluster</span> <span class="op">=</span> <span class="ident">ch</span> <span class="kw">as</span> <span class="ident">u32</span>;
 
     <span class="comment">/* TODO new version:
 
@@ -1006,18 +1001,18 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cell_prime</span>(
     <span class="ident">plane</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span>,
     <span class="ident">cell</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcCell</span>,
-    <span class="ident">gcluster</span>: <span class="ident">NcEgc</span>,
+    <span class="ident">gcluster</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">style</span>: <span class="ident">NcStyleMask</span>,
     <span class="ident">channels</span>: <span class="ident">NcChannelPair</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcIntResult</span> {
     <span class="ident">cell</span>.<span class="ident">stylemask</span> <span class="op">=</span> <span class="ident">style</span>;
     <span class="ident">cell</span>.<span class="ident">channels</span> <span class="op">=</span> <span class="ident">channels</span>;
-    <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">cell_load</span>(<span class="ident">plane</span>, <span class="ident">cell</span>, <span class="ident">gcluster</span> <span class="kw">as</span> <span class="ident">u32</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">i8</span>) }
+    <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">cell_load</span>(<span class="ident">plane</span>, <span class="ident">cell</span>, <span class="macro">cstring</span><span class="macro">!</span>[<span class="ident">gcluster</span>]) }
 }
 
 <span class="doccomment">/// Loads up six cells with the [NcEgc]s necessary to draw a box.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// Returns [NCRESULT_OK] on success, [NCRESULT_ERR] on error.</span>
+<span class="doccomment">/// Returns [NCRESULT_OK] on success or [NCRESULT_ERR] on error.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// On error, any [NcCell]s this function might have loaded before the error</span>
 <span class="doccomment">/// are [cell_release]d. There must be at least six [NcEgc]s in `gcluster`.</span>
@@ -1033,10 +1028,11 @@
     <span class="ident">lr</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcCell</span>,
     <span class="ident">hl</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcCell</span>,
     <span class="ident">vl</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcCell</span>,
-    <span class="ident">gcluster</span>: <span class="ident">NcEgc</span>,
+    <span class="ident">gcluster</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcIntResult</span> {
-    <span class="comment">// mutable copy for pointer arithmetics:</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">gclu</span> <span class="op">=</span> <span class="ident">gcluster</span> <span class="kw">as</span> <span class="ident">u32</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">i8</span>;
+    <span class="comment">// TODO: CHECK: mutable copy for pointer arithmetics:</span>
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">gclu</span> <span class="op">=</span> <span class="macro">cstring</span><span class="macro">!</span>[<span class="ident">gcluster</span>];
+
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ulen</span>: <span class="ident">NcIntResult</span>;
 
     <span class="ident">ulen</span> <span class="op">=</span> <span class="ident">cell_prime</span>(<span class="ident">plane</span>, <span class="ident">ul</span>, <span class="ident">gcluster</span>, <span class="ident">style</span>, <span class="ident">channels</span>);

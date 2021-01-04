@@ -94,6 +94,11 @@
 <span id="91">91</span>
 <span id="92">92</span>
 <span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcDirect`</span>
 
@@ -163,9 +168,14 @@
 
 <span class="kw">mod</span> <span class="ident">methods</span>;
 <span class="kw">mod</span> <span class="ident">reimplemented</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">reimplemented</span>::<span class="kw-2">*</span>;
+<span class="kw">mod</span> <span class="ident">wrapper</span>;
 
-<span class="doccomment">/// Minimal notcurses instances for styling text</span>
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">reimplemented</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">wrapper</span>::<span class="kw-2">*</span>;
+
+<span class="doccomment">/// Minimal notcurses instance for styling text.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// This is the internal type safely wrapped by [DirectMode].</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcDirect</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncdirect</span>;
 
 <span class="doccomment">/// Flags (options) for [`NcDirect`]</span>

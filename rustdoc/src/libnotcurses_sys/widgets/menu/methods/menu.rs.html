@@ -187,7 +187,7 @@
 <span class="kw">impl</span> <span class="ident">NcMenu</span> {
     <span class="doccomment">/// Creates an [NcMenu] with the specified options.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Menus are currently bound to an overall [Notcurses][crate::Notcurses]</span>
+    <span class="doccomment">/// Menus are currently bound to an overall [FullMode][crate::FullMode]</span>
     <span class="doccomment">/// object (as opposed to a particular plane), and are implemented as</span>
     <span class="doccomment">/// [NcPlane]s kept atop other NcPlanes.</span>
     <span class="doccomment">///</span>
@@ -196,7 +196,7 @@
         <span class="macro">error_ref_mut</span><span class="macro">!</span>[<span class="kw">unsafe</span> { <span class="ident">ncmenu_create</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="ident">options</span>) }, <span class="string">&quot;Creating NcMenu&quot;</span>]
     }
 
-    <span class="doccomment">/// Destroys an NcMenu created with [create()][NcMenu#method.create].</span>
+    <span class="doccomment">/// Destroys an NcMenu created with [new()][NcMenu#method.new].</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncmenu_destroy()][crate::ncmenu_destroy].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">destroy</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
@@ -321,24 +321,24 @@
         <span class="macro">error</span><span class="macro">!</span>[<span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncmenu_rollup</span>(<span class="self">self</span>) }]
     }
 
-    <span class="doccomment">/// Returns the selected item description,</span>
-    <span class="doccomment">/// or an error if no section is unrolled.</span>
+    <span class="doccomment">/// Returns the selected item description, if there&#39;s an unrolled section.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// If `shortcut` is provided, and the selected item has a shortcut,</span>
     <span class="doccomment">/// it will be filled in with that shortcut--this can allow faster matching.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncmenu_selected()][crate::ncmenu_selected].*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">selected</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">shortcut</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcInput</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">selected</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">shortcut</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcInput</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">ninput</span>;
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">i</span>) <span class="op">=</span> <span class="ident">shortcut</span> {
             <span class="ident">ninput</span> <span class="op">=</span> <span class="ident">i</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span>;
         } <span class="kw">else</span> {
             <span class="ident">ninput</span> <span class="op">=</span> <span class="ident">null_mut</span>();
         }
-        <span class="macro">error_str</span><span class="macro">!</span>[
-            <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncmenu_selected</span>(<span class="self">self</span>, <span class="ident">ninput</span>) },
-            <span class="string">&quot;Getting the selected NcMenuItem description&quot;</span>
-        ]
+        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncmenu_selected</span>(<span class="self">self</span>, <span class="ident">ninput</span>) };
+        <span class="kw">if</span> <span class="ident">res</span> <span class="op">!</span><span class="op">=</span> <span class="ident">null_mut</span>() {
+            <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="kw">unsafe</span> { (<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">res</span>).<span class="ident">to_string</span>() });
+        }
+        <span class="prelude-val">None</span>
     }
 
     <span class="doccomment">/// Unrolls the specified [NcMenuSection][crate::NcMenuSection],</span>

@@ -6,7 +6,7 @@
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ncd</span>:<span class="ident">expr</span>, $( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sleep_args</span>:<span class="ident">expr</span>),<span class="op">+</span> ) <span class="op">=</span><span class="op">&gt;</span> { ... };
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ncd</span>:<span class="ident">expr</span>, $( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sleep_args</span>:<span class="ident">expr</span>),<span class="op">+</span> ,) <span class="op">=</span><span class="op">&gt;</span> { ... };
 }</pre></div>
-</div><div class='docblock'><p>NcDirect.<a href="../libnotcurses_sys/type.NcDirect.html#method.flush" title="NcDirect">flush</a>(<code>ncd</code>)? plus <a href="../libnotcurses_sys/macro.sleep.html" title="sleep">sleep</a>!(<code>sleep_args</code>).</p>
+</div><div class='docblock'><p><a href="../libnotcurses_sys/type.NcDirect.html#method.flush" title="NcDirect"><code>NcDirect.flush</code></a>(<code>$ncd</code>)? plus <a href="../libnotcurses_sys/macro.sleep.html" title="sleep!"><code>sleep!</code></a><code>[$sleep_args]</code>.</p>
 <p>Flushes the <code>$ncd</code> <a href="../libnotcurses_sys/type.NcDirect.html" title="NcDirect">NcDirect</a> object and, if there's no error,
 calls the sleep macro with the rest of the arguments.</p>
 <p>Returns <a href="../libnotcurses_sys/type.NcResult.html" title="NcResult">NcResult</a>.</p>

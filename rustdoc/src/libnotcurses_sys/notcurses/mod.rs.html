@@ -205,6 +205,7 @@
 <span id="202">202</span>
 <span id="203">203</span>
 <span id="204">204</span>
+<span id="205">205</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `Notcurses`</span>
 
@@ -275,16 +276,17 @@
 <span class="kw">mod</span> <span class="ident">helpers</span>;
 <span class="kw">mod</span> <span class="ident">methods</span>;
 <span class="kw">mod</span> <span class="ident">reimplemented</span>;
+<span class="kw">mod</span> <span class="ident">wrapper</span>;
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_imports</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">helpers</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">reimplemented</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">wrapper</span>::<span class="kw-2">*</span>;
 
-<span class="doccomment">/// The main struct of the TUI library (full mode)</span>
-<span class="doccomment">///</span>
 <span class="doccomment">/// Notcurses builds atop the terminfo abstraction layer to</span>
 <span class="doccomment">/// provide reasonably portable vivid character displays.</span>
 <span class="doccomment">///</span>
+<span class="doccomment">/// This is the internal type safely wrapped by [FullMode].</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Notcurses</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">notcurses</span>;
 
 <span class="doccomment">/// Options struct for [`Notcurses`]</span>

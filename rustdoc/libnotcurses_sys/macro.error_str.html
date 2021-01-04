@@ -6,8 +6,8 @@
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">str</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">msg</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> { ... };
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">str</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> { ... };
 }</pre></div>
-</div><div class='docblock'><p>Returns an Ok(String) from a <code>*const</code> pointer to a C string,
-or an Err(<a href="../libnotcurses_sys/struct.NcError.html" title="NcError">NcError</a>) if the pointer is null.</p>
+</div><div class='docblock'><p>Returns an <code>Ok(String)</code> from a <code>*const</code> pointer to a C string,
+or an <code>Err(</code><a href="../libnotcurses_sys/struct.NcError.html" title="NcError"><code>NcError</code></a><code>)</code> if the pointer is null.</p>
 <p>In other words:
 Returns Ok((&amp;*<code>$str</code>).to_string()) if <code>$str</code> != <code>null()</code>, otherwise returns
 Err(<a href="../libnotcurses_sys/struct.NcError.html" title="NcError">NcError</a>]::<a href="../libnotcurses_sys/struct.NcError.html#method.new" title="NcError">new</a>(<a href="../libnotcurses_sys/constant.NCRESULT_ERR.html" title="NCRESULT_ERR">NCRESULT_ERR</a>, <code>$msg</code>)).</p>
