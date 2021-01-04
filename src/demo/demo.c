@@ -535,6 +535,7 @@ int main(int argc, char** argv){
     int nameidx = spec[i] - 'a';
     if(nameidx < 0 || nameidx > 25 || !demos[nameidx].name){
       fprintf(stderr, "Invalid demo specification: %c\n", spec[i]);
+      usage(*argv, EXIT_FAILURE);
       return EXIT_FAILURE;
     }
   }
