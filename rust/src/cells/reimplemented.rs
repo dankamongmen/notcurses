@@ -6,7 +6,7 @@ use crate::{
     cell_release, cstring, NcAlphaBits, NcCell, NcChannel, NcChannelPair, NcColor, NcEgc,
     NcIntResult, NcPaletteIndex, NcPlane, NcRgb, NcStyleMask, NCCELL_ALPHA_OPAQUE,
     NCCELL_BGDEFAULT_MASK, NCCELL_BG_PALETTE, NCCELL_FGDEFAULT_MASK, NCCELL_FG_PALETTE,
-    NCCELL_NOBACKGROUND_MASK, NCCELL_WIDEASIAN_MASK, NCRESULT_ERR, NCRESULT_OK, NCSTYLE_MASK,
+    NCRESULT_ERR, NCRESULT_OK, NCSTYLE_MASK,
 };
 
 // Alpha -----------------------------------------------------------------------
@@ -320,7 +320,7 @@ pub fn cell_set_styles(cell: &mut NcCell, stylebits: NcStyleMask) {
 // Waiting for: https://github.com/rust-lang/rust-bindgen/issues/1875
 #[inline]
 pub const fn cell_double_wide_p(cell: &NcCell) -> bool {
-    (cell.channels & NCCELL_WIDEASIAN_MASK as NcChannelPair) != 0
+    cell.width > 0
 }
 
 /// Is this the right half of a wide character?
@@ -344,7 +344,6 @@ pub const fn cell_wide_left_p(cell: &NcCell) -> bool {
 /// *Method: NcCell.[load_char()][NcCell#method.load_char].*
 //
 // NOTE: Unlike the original C function this doesn't return anything.
-// REMINDER: remove casting for NCCELL_WIDEASIAN_MASK when fixed:
 // Waiting for: https://github.com/rust-lang/rust-bindgen/issues/1875
 #[inline]
 pub fn cell_load_char(plane: &mut NcPlane, cell: &mut NcCell, ch: NcEgc) /* -> i32 */
@@ -352,8 +351,6 @@ pub fn cell_load_char(plane: &mut NcPlane, cell: &mut NcCell, ch: NcEgc) /* -> i
     unsafe {
         crate::cell_release(plane, cell);
     }
-    cell.channels &= !(NCCELL_WIDEASIAN_MASK as NcChannelPair | NCCELL_NOBACKGROUND_MASK);
-    cell.gcluster = ch as u32;
 
     /* TODO new version:
 

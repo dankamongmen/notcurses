@@ -1606,7 +1606,7 @@ manner.
 // play, and fully supports all transparency options.
 typedef struct nccell {
   // These 32 bits, together with the associated plane's associated egcpool,
-  // completely define this nccell's EGC. Unless the EGC requires more than four
+  // completely define this cell's EGC. Unless the EGC requires more than four
   // bytes to encode as UTF-8, it will be inlined here. If more than four bytes
   // are required, it will be spilled into the egcpool. In either case, there's
   // a NUL-terminated string available without copying, because (1) the egcpool
@@ -1614,19 +1614,38 @@ typedef struct nccell {
   // gcluster_backstop field, see below) is guaranteed to be zero, as are any
   // unused bytes in gcluster.
   //
+  // The gcluster + gcluster_backstop thus form a valid C string of between 0
+  // and 4 non-NUL bytes. Interpreting them in this fashion requires that
+  // gcluster be stored as a little-endian number (strings have no byte order).
+  // This gives rise to three simple rules:
+  //
+  //  * when storing to gcluster from a numeric, always use htole()
+  //  * when loading from gcluster for numeric use, always use htole()
+  //  * when referencing gcluster as a string, always use a pointer cast
+  //
+  // Uses of gcluster ought thus always have exactly one htole() or pointer
+  // cast associated with them, and we otherwise always work as host-endian.
+  //
   // A spilled EGC is indicated by the value 0x01XXXXXX. This cannot alias a
   // true supra-ASCII EGC, because UTF-8 only encodes bytes <= 0x80 when they
   // are single-byte ASCII-derived values. The XXXXXX is interpreted as a 24-bit
   // index into the egcpool. These pools may thus be up to 16MB.
   //
   // The cost of this scheme is that the character 0x01 (SOH) cannot be encoded
-  // in a nccell, which is absolutely fine because what 70s horseshit is SOH? It
-  // must not be allowed through the API, or havoc will result.
-  uint32_t gcluster;          // 4B → 4B
+  // in a nccell, which is absolutely fine because what 70s horseshit is SOH?
+  // It must not be allowed through the API, or havoc will result.
+  uint32_t gcluster;          // 4B → 4B little endian EGC
   uint8_t gcluster_backstop;  // 1B → 5B (8 bits of zero)
-  uint8_t reserved;           // 1B → 6B (8 reserved bits, ought be zero)
+  // we store the column width in this field. for a multicolumn EGC of N
+  // columns, there will be N nccells, and each has a width of N...for now.
+  // eventually, such an EGC will set more than one subsequent cell to
+  // WIDE_RIGHT, and this won't be necessary. it can then be used as a
+  // bytecount. see #1203. FIXME iff width >= 2, the cell is part of a
+  // multicolumn glyph. whether a cell is the left or right side of the glyph
+  // can be determined by checking whether ->gcluster is zero.
+  uint8_t width;              // 1B → 6B (8 bits of EGC column width)
   uint16_t stylemask;         // 2B → 8B (16 bits of NCSTYLE_* attributes)
-  // (channels & 0x8000000000000000ull): part of a wide glyph
+  // (channels & 0x8000000000000000ull): reserved, must be 0
   // (channels & 0x4000000000000000ull): foreground is *not* "default color"
   // (channels & 0x3000000000000000ull): foreground alpha (2 bits)
   // (channels & 0x0800000000000000ull): foreground uses palette index
@@ -1647,7 +1666,6 @@ typedef struct nccell {
   uint64_t channels;          // + 8B == 16B
 } nccell;
 
-#define CELL_WIDEASIAN_MASK     0x8000000000000000ull
 #define CELL_BGDEFAULT_MASK     0x0000000040000000ull
 #define CELL_FGDEFAULT_MASK     (CELL_BGDEFAULT_MASK << 32u)
 #define CELL_BG_RGB_MASK        0x0000000000ffffffull
@@ -1762,28 +1780,31 @@ cell_off_styles(nccell* c, unsigned stylebits){
   c->stylemask &= ~(stylebits & NCSTYLE_MASK);
 }
 
-// does the cell contain an East Asian Wide codepoint?
+// Is the cell part of a multicolumn element?
 static inline bool
 cell_double_wide_p(const nccell* c){
-  return (c->channels & CELL_WIDEASIAN_MASK);
+  return (c->width >= 2);
 }
 
-// Load a 7-bit char 'ch' into the cell 'c'.
+// Load a 7-bit char 'ch' into the nccell 'c'. Returns the number of bytes
+// used, or -1 on error.
 static inline int
 cell_load_char(struct ncplane* n, nccell* c, char ch){
-  cell_release(n, c);
-  c->channels &= ~(CELL_WIDEASIAN_MASK | CELL_NOBACKGROUND_MASK);
-  c->gcluster = ch;
-  return 1;
+  char gcluster[2];
+  gcluster[0] = ch;
+  gcluster[1] = '\0';
+  return cell_load(n, c, gcluster);
 }
 
-// Load a UTF-8 encoded EGC of up to 4 bytes into the cell 'c'.
+// Load a UTF-8 encoded EGC of up to 4 bytes into the nccell 'c'. Returns the
+// number of bytes used, or -1 on error.
 static inline int
 cell_load_egc32(struct ncplane* n, nccell* c, uint32_t egc){
-  cell_release(n, c);
-  c->channels &= ~(CELL_WIDEASIAN_MASK | CELL_NOBACKGROUND_MASK);
-  c->gcluster = htole(egc);
-  return 1;
+  char gcluster[sizeof(egc) + 1];
+  egc = htole(egc);
+  memcpy(gcluster, &egc, sizeof(egc));
+  gcluster[4] = '\0';
+  return cell_load(n, c, gcluster);
 }
 
 // return a pointer to the NUL-terminated EGC referenced by 'c'. this pointer
