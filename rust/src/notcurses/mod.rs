@@ -1,65 +1,78 @@
 //! `Notcurses`
 
-// functions already exported by bindgen : 42
-// ------------------------------------------
-// (#) test: 10
-// (W) wrap: 41 / 1
-// ------------------------------------------
-//W  notcurses_at_yx
-//W  notcurses_bottom
-//W# notcurses_canchangecolor
-//W# notcurses_canfade
-//W# notcurses_canopen_images
-//W# notcurses_canopen_videos
-//W# notcurses_cansixel
-//W# notcurses_cansextant
-//W# notcurses_cantruecolor
-//W# notcurses_canutf8
-//W  notcurses_cursor_disable
-//W  notcurses_cursor_enable
-//W# notcurses_debug
-//W# notcurses_drop_planes
-//W  notcurses_getc
-//W# notcurses_init
-//W  notcurses_inputready_fd
-//W  notcurses_lex_blitter
-//W  notcurses_lex_margins
-//W  notcurses_lex_scalemode
-//W  notcurses_linesigs_disable
-//W  notcurses_linesigs_enable
-//W  notcurses_mouse_disable
-//W  notcurses_mouse_enable
-//W  notcurses_palette_size
-//W  notcurses_refresh
-//W  notcurses_render
-//W  notcurses_render_to_buffer
-//W  notcurses_render_to_file
-//W  notcurses_stats
-//W  notcurses_stats_alloc
-//W  notcurses_stats_reset
-//W  notcurses_stdplane
-//W  notcurses_stdplane_const
-//W# notcurses_stop
-//W  notcurses_str_blitter
-//W  notcurses_str_scalemode
-//W  notcurses_supported_styles
-//W  notcurses_top
-//~  notcurses_ucs32_to_utf8 (not needed in rust)
-//W# notcurses_version
-//W  notcurses_version_components
+// --- -------------------------------------------------------------------------
+// col 0:
+// --------------
+//          1  X: wont do
+//          2  ~: WIP
 //
-// functions manually reimplemented: 6
-// -----------------------------------------
-// (+) done: 6 / 0
-// (#) test: 1
-// (W) wrap: 4 / 0
-// -----------------------------------------
-//W# notcurses_align
-//W+ notcurses_getc_blocking
-//W+ notcurses_getc_nblock
-//~+ notcurses_stddim_yx           // multiple mutable references errors
-//~+ notcurses_stddim_yx_const     //
-//W+ notcurses_term_dim_yx
+// col 1:  48
+// --------------
+//         42  f: ffi function imported by bindgen
+//             F: ffi function wrapped safely
+//          6  r: static function reimplemented in Rust
+//
+// col 2:  45
+// --------------
+//         38  m: impl as a `Notcurses` method
+//          7  M: impl for the `FullMode` wrapper struct too
+//
+// col 3:  14
+// --------------
+//         14  t: tests done for the ffi or reimplemented funtion
+//             T: tests done also for the m method
+//             Ŧ: tests done also for the M method wrapper struct
+// --- -------------------------------------------------------------------------
+//
+// fm  notcurses_at_yx
+// fm  notcurses_bottom
+// fmt notcurses_canchangecolor
+// fmt notcurses_canfade
+// fmt notcurses_canopen_images
+// fmt notcurses_canopen_videos
+// fmt notcurses_cansixel
+// fmt notcurses_cansextant
+// fmt notcurses_cantruecolor
+// fmt notcurses_canutf8
+// fm  notcurses_cursor_disable
+// fm  notcurses_cursor_enable
+// fmt notcurses_debug
+// fmt notcurses_drop_planes
+// fm  notcurses_getc
+// fMt notcurses_init
+// fm  notcurses_inputready_fd
+// fM  notcurses_lex_blitter
+// fM  notcurses_lex_margins
+// fM  notcurses_lex_scalemode
+// fm  notcurses_linesigs_disable
+// fm  notcurses_linesigs_enable
+// fm  notcurses_mouse_disable
+// fm  notcurses_mouse_enable
+// fm  notcurses_palette_size
+// fm  notcurses_refresh
+// fm  notcurses_render
+// fm  notcurses_render_to_buffer
+// fm  notcurses_render_to_file
+// fm  notcurses_stats
+// fm  notcurses_stats_alloc
+// fm  notcurses_stats_reset
+// fm  notcurses_stdplane
+// fm  notcurses_stdplane_const
+// fMt notcurses_stop
+// fM  notcurses_str_blitter
+// fM  notcurses_str_scalemode
+// fm  notcurses_supported_styles
+// fm  notcurses_top
+//X    notcurses_ucs32_to_utf8 (not needed in rust)
+// fMt notcurses_version
+// fM  notcurses_version_components
+//
+// rMt notcurses_align
+// rm  notcurses_getc_blocking
+// rm  notcurses_getc_nblock
+//~r   notcurses_stddim_yx           // multiple mutable references errors
+//~r   notcurses_stddim_yx_const     //
+// rm  notcurses_term_dim_yx
 
 #[cfg(test)]
 mod test;

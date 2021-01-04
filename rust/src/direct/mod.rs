@@ -1,65 +1,77 @@
 //! `NcDirect`
 
-// functions already exported by bindgen : 43
-// ------------------------------------------
-// (X) wont:  4
-// (#) test:  0
-// (W) wrap: 39 / 0
-// ------------------------------------------
-//W  ncdirect_bg_default
-//W  ncdirect_bg_palindex
-//W  ncdirect_bg_rgb
-//W  ncdirect_box
-//W  ncdirect_canopen_images
-//W  ncdirect_canutf8
-//W  ncdirect_clear
-//W  ncdirect_cursor_disable
-//W  ncdirect_cursor_down
-//W  ncdirect_cursor_enable
-//W  ncdirect_cursor_left
-//W  ncdirect_cursor_move_yx
-//W  ncdirect_cursor_pop
-//W  ncdirect_cursor_push
-//W  ncdirect_cursor_right
-//W  ncdirect_cursor_up
-//W  ncdirect_cursor_yx
-//W  ncdirect_dim_x
-//W  ncdirect_dim_y
-//W  ncdirect_double_box
-//W  ncdirect_fg_default
-//W  ncdirect_fg_palindex
-//W  ncdirect_fg_rgb
-//W  ncdirect_flush
-//W  ncdirect_getc
-//W  ncdirect_hline_interp
-//W  ncdirect_init
-//W  ncdirect_inputready_fd
-//W  ncplane_on_styles
-//W  ncplane_off_styles
-//W  ncdirect_palette_size
-// X ncdirect_printf_aligned
-//W  ncdirect_putstr
-//W  ncdirect_raster_frame
-//W  ncdirect_render_frame
-//W  ncdirect_render_image
-//W  ncdirect_rounded_box
-//W  ncplane_set_styles
-//W  ncdirect_stop
-// X ncdirect_styles_off     // deprecated
-// X ncdirect_styles_on      // deprecated
-// X ncdirect_styles_set     // deprecated
-//W  ncdirect_vline_interp
+// --- ---------------------------------------------------------
+// col 0:
+// --------------
+//          4  X: wont do
+//             ~: WIP
 //
-// functions manually reimplemented: 4
-// ------------------------------------------
-// (+) done: 4 / 0
-// (W) wrap: 4 / 0
-// (#) test: 0
-// ------------------------------------------
-//W+ ncdirect_bg_rgb8
-//W+ ncdirect_fg_rgb8
-//W+ ncdirect_getc_nblock
-//W+ ncdirect_getc_nblocking
+// col 1: 43
+// --------------
+//         39  f: ffi function imported by bindgen
+//             F: ffi function wrapped safely
+//          4  r: static function reimplemented in Rust
+//
+// col 2: 43
+// --------------
+//         41  m: impl as an `NcDirect` method
+//          2  M: impl for the `DirectMode` wrapper struct too
+//
+// col 3:
+// --------------
+//             t: tests done for the ffi or reimplemented funtion
+//             T: tests done also for the m method
+//             Ŧ: tests done also for the M method wrapper struct
+// --- ---------------------------------------------------------
+//
+// fm  ncdirect_bg_default
+// fm  ncdirect_bg_palindex
+// fm  ncdirect_bg_rgb
+// fm  ncdirect_box
+// fm  ncdirect_canopen_images
+// fm  ncdirect_canutf8
+// fm  ncdirect_clear
+// fm  ncdirect_cursor_disable
+// fm  ncdirect_cursor_down
+// fm  ncdirect_cursor_enable
+// fm  ncdirect_cursor_left
+// fm  ncdirect_cursor_move_yx
+// fm  ncdirect_cursor_pop
+// fm  ncdirect_cursor_push
+// fm  ncdirect_cursor_right
+// fm  ncdirect_cursor_up
+// fm  ncdirect_cursor_yx
+// fm  ncdirect_dim_x
+// fm  ncdirect_dim_y
+// fm  ncdirect_double_box
+// fm  ncdirect_fg_default
+// fm  ncdirect_fg_palindex
+// fm  ncdirect_fg_rgb
+// fm  ncdirect_flush
+// fm  ncdirect_getc
+// fm  ncdirect_hline_interp
+// fM  ncdirect_init
+// fm  ncdirect_inputready_fd
+// fm  ncplane_on_styles
+// fm  ncplane_off_styles
+// fm  ncdirect_palette_size
+//X    ncdirect_printf_aligned
+// fm  ncdirect_putstr
+// fm  ncdirect_raster_frame
+// fm  ncdirect_render_frame
+// fm  ncdirect_render_image
+// fm  ncdirect_rounded_box
+// fm  ncplane_set_styles
+// fM  ncdirect_stop
+//X    ncdirect_styles_off     // deprecated
+//X    ncdirect_styles_on      // deprecated
+//X    ncdirect_styles_set     // deprecated
+// fm  ncdirect_vline_interp
+//
+// rm ncdirect_bg_rgb8
+// rm ncdirect_fg_rgb8
+// rm ncdirect_getc_nblock
+// rm ncdirect_getc_nblocking
 
 #[cfg(test)]
 mod test;
