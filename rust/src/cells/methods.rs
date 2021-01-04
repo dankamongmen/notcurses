@@ -43,21 +43,23 @@ impl NcCell {
         Self::with_char7b(0 as char)
     }
 
-    // TODO: it's not clear what it does
-    //
-    // /// Breaks the UTF-8 string in `gcluster` down, setting up this NcCell,
-    // /// and returns the number of bytes copied out of `gcluster`.
-    // ///
-    // /// The styling of the cell is left untouched, but any resources are released.
-    // /// *C style function: [cell_load()][crate::cell_load].*
-    // pub fn load(
-    //     plane: &mut NcPlane,
-    //     cell: &mut NcCell,
-    //     gcluster: NcEgc,
-    // ) -> NcResult<u32> {
-    //     let bytes = unsafe { crate::cell_load(plane, cell, gcluster as u32 as *const i8)};
-    //     error![bytes, bytes as u32]
-    // }
+    /// Breaks the UTF-8 string in `egc` down, setting up this NcCell,
+    /// and returns the number of bytes copied out of `egc`.
+    ///
+    /// The styling of the cell is left untouched, but any resources are released.
+    /// *C style function: [cell_load()][crate::cell_load].*
+    pub fn load(
+        plane: &mut NcPlane,
+        cell: &mut NcCell,
+        egc: &str,
+    ) -> NcResult<u32> {
+        let bytes = unsafe { crate::cell_load(plane, cell, cstring![egc])};
+        error![
+            bytes,
+            &format!["NcCell.load(NcPlane, NcCell, {:?})", egc],
+            bytes as u32
+        ]
+    }
 
     /// Same as [load][NcCell#method.load], plus blasts the styling with
     /// `style` and `channels`.
@@ -330,8 +332,8 @@ impl NcCell {
         crate::cellcmp(plane1, cell1, plane2, cell2)
     }
 
-    /// Saves the [NcStyleMask] and the [NcChannelPair], and returns the [NcEgc]
-    /// (the three elements of an NcCell).
+    /// Saves the [NcStyleMask] and the [NcChannelPair], and returns the [NcEgc].
+    /// (These are the three elements of an NcCell).
     ///
     /// *C style function: [cell_fg_alpha()][crate::cell_fg_alpha].*
     pub fn extract(

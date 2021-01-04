@@ -315,9 +315,6 @@ pub fn cell_set_styles(cell: &mut NcCell, stylebits: NcStyleMask) {
 /// Does the [NcCell] contain an East Asian Wide codepoint?
 ///
 /// *Method: NcCell.[double_wide_p()][NcCell#method.double_wide_p].*
-//
-// REMAINDER: remove casting when fixed:
-// Waiting for: https://github.com/rust-lang/rust-bindgen/issues/1875
 #[inline]
 pub const fn cell_double_wide_p(cell: &NcCell) -> bool {
     cell.width > 0
@@ -339,37 +336,45 @@ pub const fn cell_wide_left_p(cell: &NcCell) -> bool {
     cell_double_wide_p(cell) && cell.gcluster != 0
 }
 
-/// Loads a 7-bit char into the [NcCell].
-///
-/// *Method: NcCell.[load_char()][NcCell#method.load_char].*
-//
-// NOTE: Unlike the original C function this doesn't return anything.
-// Waiting for: https://github.com/rust-lang/rust-bindgen/issues/1875
-#[inline]
-pub fn cell_load_char(plane: &mut NcPlane, cell: &mut NcCell, ch: NcEgc) /* -> i32 */
-{
-    unsafe {
-        crate::cell_release(plane, cell);
-    }
+// /// Loads a 7-bit [NcEgc] character into the [NcCell].
+// ///
+// /// *Method: NcCell.[load_char()][NcCell#method.load_char].*
+// //
+// // TODO:CHECK is this necessary at all?
+// #[inline]
+// pub fn cell_load_char(plane: &mut NcPlane, cell: &mut NcCell, ch: NcEgc) /* -> i32 */
+// {
+//     let _ = unsafe { crate::cell_load(plane, cell, ch) };
+// }
+// cell_load_char(struct ncplane* n, nccell* c, char ch){
+//   char gcluster[2];
+//   gcluster[0] = ch;
+//   gcluster[1] = '\0';
+//   let _ = cell_load(n, c, gcluster);
+// }
 
-    /* TODO new version:
-
-    char gcluster[2];
-    gcluster[0] = ch;
-    gcluster[1] = '\0';
-    return cell_load(n, c, gcluster);
-    */
-}
-
-// TODO:
-// // Load a UTF-8 encoded EGC of up to 4 bytes into the cell `c`.
-// static inline int
-// cell_load_egc32(struct ncplane* n, cell* c, uint32_t egc){
+// /// Loads a UTF-8 grapheme cluster of up to 4 bytes into the cell `c`.
+// ///
+// /// *Method: NcCell.[load_egc32()][NcCell#method.load_egc32].*
+// //
+// // TODO
+// #[inline]
+// pub fn cell_load_egc32(plane: &mut NcPlane, cell: &mut NcCell, egc: &str) -> NcIntResult {
 //     char gcluster[sizeof(egc) + 1];
 //     egc = egc.to_le();
 //     memcpy(gcluster, &egc, sizeof(egc));
 //     gcluster[4] = '\0';
 //     return cell_load(n, c, gcluster);
+// }
+// // Load a UTF-8 encoded EGC of up to 4 bytes into the nccell 'c'. Returns the
+// // number of bytes used, or -1 on error.
+// static inline int
+// cell_load_egc32(struct ncplane* n, nccell* c, uint32_t egc){
+//   char gcluster[sizeof(egc) + 1];
+//   egc = htole(egc);
+//   memcpy(gcluster, &egc, sizeof(egc));
+//   gcluster[4] = '\0';
+//   return cell_load(n, c, gcluster);
 // }
 
 /// Copies the UTF8-encoded [NcEgc] out of the [NcCell], whether simple or complex.
@@ -385,7 +390,7 @@ pub fn cell_strdup(plane: &NcPlane, cell: &NcCell) -> NcEgc {
     )
     .expect("wrong char")
 
-    // Unsafer option B (maybe faster, TODO: bench):
+    // Unsafer option B (maybe faster, TODO:BENCH):
     // unsafe {
     //     core::char::from_u32_unchecked(libc::strdup(cell_extended_gcluster(plane, cell)) as i32 as u32)
     // }

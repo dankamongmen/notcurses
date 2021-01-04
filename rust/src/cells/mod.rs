@@ -124,8 +124,8 @@ pub use reimplemented::*;
 /// 2. (8b) Backstop (zero)
 /// 00000000
 ///
-/// 3. (8b) width (biased 1)
-/// ~~~~~~~~
+/// 3. (8b) column width
+/// WWWWWWWW
 ///
 /// 4. (16b) NcStyleMask
 /// 11111111 11111111
@@ -182,6 +182,18 @@ pub use reimplemented::*;
 ///   transparency, but it can be mixed into a cascading color.
 /// - RGB is used if neither default terminal colors nor palette indexing are in
 ///   play, and fully supports all transparency options.
+///
+/// ## Column width *(WIP)*
+///
+/// See [USAGE.md](https://github.com/dankamongmen/notcurses/blob/master/USAGE.md)
+///
+/// We store the column width in this field. for a multicolumn EGC of N
+/// columns, there will be N nccells, and each has a width of N...for now.
+/// eventually, such an EGC will set more than one subsequent cell to
+/// WIDE_RIGHT, and this won't be necessary. it can then be used as a
+/// bytecount. see #1203. FIXME iff width >= 2, the cell is part of a
+/// multicolumn glyph. whether a cell is the left or right side of the glyph
+/// can be determined by checking whether ->gcluster is zero.
 ///
 pub type NcCell = crate::bindings::ffi::cell;
 
@@ -324,6 +336,9 @@ pub const NCCELL_NOBACKGROUND_MASK: u64 = crate::bindings::ffi::CELL_NOBACKGROUN
 /// Boundaries](https://unicode.org/reports/tr29/#Grapheme_Cluster_Boundaries)
 ///
 ///
+// TODO: there should be two types at least:
+// - an utf-8 string len 1 of type &str.
+// - a unicode codepoint of type char.
 pub type NcEgc = char;
 
 // NcEgcBackStop

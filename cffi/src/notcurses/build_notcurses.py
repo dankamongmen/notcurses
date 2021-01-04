@@ -26,7 +26,7 @@ int notcurses_inputready_fd(struct notcurses* n);
 typedef struct cell {
   uint32_t gcluster;          // 4B → 4B
   uint8_t gcluster_backstop;  // 1B → 5B (8 bits of zero)
-  uint8_t width;              // 1B → 6B (8 bits, width biased-1)
+  uint8_t width;              // 1B → 6B (8 bits, width)
   uint16_t stylemask;         // 2B → 8B (16 bits of NCSTYLE_* attributes)
   uint64_t channels;          // + 8b == 16b
 } cell;
