@@ -211,11 +211,11 @@ and if this latter plane moves, all its bound planes move along with it. When a
 plane is destroyed, all planes bound to it (directly or transitively) are
 destroyed.
 
-**ncplane_reparent** detaches the plane **n** from any plane to which it is
-bound, and binds it to **newparent**. Its children are reparented to its
-previous parent. The standard plane cannot be reparented. If **newparent** is
+**ncplane_reparent** detaches the plane ***n*** from any plane to which it is
+bound, and binds it to ***newparent***. Its children are reparented to its
+previous parent. The standard plane cannot be reparented. If ***newparent*** is
 **NULL**, the plane becomes the root plane of a new, unrendered stack. When
-**ncplane_reparent_family** is used, all planes bound to **n** move along with
+**ncplane_reparent_family** is used, all planes bound to ***n*** move along with
 it during a reparenting operation. See [Piles][] below.
 
 **ncplane_destroy** destroys a particular ncplane, after which it must not be
@@ -231,16 +231,16 @@ work with a single ncplane. A reading function is any which accepts a **const
 struct ncplane**.
 
 **ncplane_translate** translates coordinates expressed relative to the plane
-**src**, and writes the coordinates of that cell relative to **dst**. The cell
-need not intersect with **dst**, though this will yield coordinates which are
-invalid for writing or reading on **dst**. If **dst** is **NULL**, it is taken
+***src***, and writes the coordinates of that cell relative to ***dst***. The cell
+need not intersect with ***dst***, though this will yield coordinates which are
+invalid for writing or reading on ***dst***. If ***dst*** is **NULL**, it is taken
 to refer to the standard plane. **ncplane_translate_abs** takes coordinates
 expressed relative to the standard plane, and returns coordinates relative to
-**dst**, returning **false** if the coordinates are invalid for **dst**.
+***dst***, returning **false** if the coordinates are invalid for ***dst***.
 
-**ncplane_mergedown** writes to **dst** the frame that would be rendered if only
-**src** and **dst** existed on the z-axis, ad **dst** represented the entirety
-of the rendering region. Only those cells where **src** intersects with **dst**
+**ncplane_mergedown** writes to ***dst*** the frame that would be rendered if only
+***src*** and ***dst*** existed on the z-axis, ad ***dst*** represented the entirety
+of the rendering region. Only those cells where ***src*** intersects with ***dst***
 might see changes. It is an error to merge a plane onto itself.
 
 **ncplane_erase** zeroes out every cell of the plane, dumps the egcpool, and
@@ -332,7 +332,7 @@ respectively, of the pile containing their argument. **notcurses_top** and
 **ncplane_at_yx** and **ncplane_at_cursor** return a heap-allocated copy of the
 EGC at the relevant cell, or **NULL** if the cell is invalid. The caller should free
 this result. **ncplane_at_yx_cell** and **ncplane_at_cursor_cell** instead load
-these values into a **cell**, which is invalidated if the associated plane is
+these values into an **nccell**, which is invalidated if the associated plane is
 destroyed. The caller should release this **nccell** with **cell_release**.
 
 Functions returning **int** return 0 on success, and non-zero on error.

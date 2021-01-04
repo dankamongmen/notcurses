@@ -53,7 +53,7 @@ typedef struct notcurses_options {
 # DESCRIPTION
 
 **notcurses_init** prepares the terminal for cursor-addressable (multiline)
-mode. The **FILE** provided as **fp** must be writable and attached to a
+mode. The **FILE** provided as ***fp*** must be writable and attached to a
 terminal, or **NULL**. If it is **NULL**, **/dev/tty** will be opened. The
 **struct notcurses_option** passed as ***opts*** controls behavior. Only one
 instance should be associated with a given terminal at a time, though it is no
