@@ -23,7 +23,7 @@ typedef enum {
   NCLOGLEVEL_SILENT,  // default. print nothing once fullscreen service begins
   NCLOGLEVEL_PANIC,   // print diagnostics immediately related to crashing
   NCLOGLEVEL_FATAL,   // we're hanging around, but we've had a horrible fault
-  NCLOGLEVEL_ERROR,   // we can't keep doin' this, but we can do other things
+  NCLOGLEVEL_ERROR,   // we can't keep doing this, but we can do other things
   NCLOGLEVEL_WARNING, // you probably don't want what's happening to happen
   NCLOGLEVEL_INFO,    // "standard information"
   NCLOGLEVEL_VERBOSE, // "detailed information"
@@ -55,7 +55,7 @@ typedef struct notcurses_options {
 **notcurses_init** prepares the terminal for cursor-addressable (multiline)
 mode. The **FILE** provided as **fp** must be writable and attached to a
 terminal, or **NULL**. If it is **NULL**, **/dev/tty** will be opened. The
-**struct notcurses_option** passed as **opts** controls behavior. Only one
+**struct notcurses_option** passed as ***opts*** controls behavior. Only one
 instance should be associated with a given terminal at a time, though it is no
 problem to have multiple instances in a given process.
 
@@ -73,7 +73,7 @@ display capabilities, and/or display errors. notcurses natively targets
 
 If the terminal advertises support for an "alternate screen" via the **smcup**
 terminfo capability, notcurses will employ it by default. This can be prevented
-by setting **NCOPTION_NO_ALTERNATE_SCREEN** in **flags**. Users tend to have
+by setting **NCOPTION_NO_ALTERNATE_SCREEN** in ***flags***. Users tend to have
 strong opinions regarding the alternate screen, so it's often useful to expose
 this via a command-line option.
 
@@ -146,7 +146,7 @@ result in process termination (see **signal(7)**). These signal handlers call
 the signal to any previously-configured handler. These handlers are disabled
 upon entry to **notcurses_stop(3)**.
 
-To prevent signal handler registration, set **no_quit_sighandlers** to **true**.
+To prevent signal handler registration, provide **NCOPTION_NO_QUIT_SIGHANDLERS**.
 No means is provided to selectively register fatal signal handlers. If this is
 done, the caller ought be sure to effect similar functionality themselves.
 
