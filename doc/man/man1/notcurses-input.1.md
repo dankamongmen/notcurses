@@ -1,6 +1,6 @@
 % notcurses-input(1)
 % nick black <nickblack@linux.com>
-% v2.1.3
+% v2.1.4
 
 # NAME
 

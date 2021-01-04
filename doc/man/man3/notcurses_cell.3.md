@@ -1,6 +1,6 @@
 % notcurses_cell(3)
 % nick black <nickblack@linux.com>
-% v2.1.3
+% v2.1.4
 
 # NAME
 
@@ -35,7 +35,7 @@ typedef struct nccell {
 #define CELL_FG_PALETTE         (CELL_BG_PALETTE << 32u)
 #define CHANNEL_ALPHA_MASK      0x30000000ull
 #define CELL_ALPHA_HIGHCONTRAST 0x30000000ull
-#define CELL_ALPHA_TRANSPARENT  0x2.1.3000ull
+#define CELL_ALPHA_TRANSPARENT  0x2.1.4000ull
 #define CELL_ALPHA_BLEND        0x10000000ull
 #define CELL_ALPHA_OPAQUE       0x00000000ull
 ```
@@ -154,7 +154,7 @@ inputs, and 0 otherwise.
 
 # NOTES
 
-**cell** was renamed to **nccell** in Notcurses 2.1.3, so as not to bleed such
+**cell** was renamed to **nccell** in Notcurses 2.1.4, so as not to bleed such
 a common term into the (single, global) C namespace. **cell** will be retained
 as an alias until Notcurses 3.0.
 
