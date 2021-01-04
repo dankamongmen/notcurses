@@ -11,6 +11,10 @@
 #include <ncpp/Visual.hh>
 #include <ncpp/NotCurses.hh>
 
+#if defined(__APPLE__)
+#include "../lib/macos-compat.h"
+#endif
+
 using namespace ncpp;
 
 static void usage(std::ostream& os, const char* name, int exitcode)

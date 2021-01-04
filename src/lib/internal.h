@@ -22,6 +22,7 @@ const char* oiio_version(void);
 #endif
 
 #include <term.h>
+#include <ncurses.h>
 #include <time.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -39,6 +40,10 @@ const char* oiio_version(void);
 #include <netinet/in.h>
 #include "notcurses/notcurses.h"
 #include "egcpool.h"
+
+#if defined(__APPLE__)
+#include "macos-compat.h"
+#endif
 
 struct esctrie;
 
@@ -622,7 +627,7 @@ ns_to_timespec(uint64_t ns, struct timespec* ts){
 
 static inline void
 cell_debug(const egcpool* p, const nccell* c){
-  fprintf(stderr, "gcluster: %u %s style: 0x%04x chan: 0x%016jx\n",
+  fprintf(stderr, "gcluster: %u %s style: 0x%04x chan: 0x%016llx\n",
 				  c->gcluster, egcpool_extended_gcluster(p, c), c->stylemask, c->channels);
 }
 

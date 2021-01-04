@@ -4,6 +4,10 @@
 #include <locale.h>
 #include <notcurses/notcurses.h>
 
+#if defined(__APPLE__)
+#include "../lib/macos-compat.h"
+#endif
+
 static int
 rotate_grad(struct notcurses* nc){
   struct timespec ts = {

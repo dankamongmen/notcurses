@@ -383,6 +383,8 @@ ncsubproc* ncsubproc_createvpe(ncplane* n, const ncsubproc_options* opts,
   if(ret->pid == 0){
 #ifdef __FreeBSD__
     exect(bin, arg, env);
+#elif defined(__APPLE__)
+    execve(bin, arg, env);
 #else
     execvpe(bin, arg, env);
 #endif

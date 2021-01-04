@@ -10,6 +10,10 @@
 #include <builddef.h>
 #include <version.h>
 
+#if defined(__APPLE__)
+#include "../lib/macos-compat.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif

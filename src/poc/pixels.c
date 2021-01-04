@@ -1,6 +1,10 @@
 #include <locale.h>
 #include <notcurses/notcurses.h>
 
+#if defined(__APPLE__)
+#include "../lib/macos-compat.h"
+#endif
+
 int main(void){
   setlocale(LC_ALL, "");
   struct notcurses_options opts = {
