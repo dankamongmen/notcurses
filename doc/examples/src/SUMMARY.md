@@ -2,7 +2,7 @@
 
 - [Basics](./basics.md)
 - [Direct mode](./directmode.md)
-- [Fullscreen mode](./fullscreen.md)
+- [Rendered mode](./rendered.md)
 - [Writing text](./writetext.md)
 - [Colors](./colors.md)
 - [Drawing boxes](./boxes.md)
