@@ -1,4 +1,5 @@
 build/
+doc/examples/book
 obj-x86_64-linux-gnu
 python/.eggs/
 python/build/
