@@ -1,4 +1,4 @@
-# Chapter 1
+# Basics
 
 Notcurses is a library for terminal applications—programs which do not require
 a GUI environment, and write output as cells rather than pixels. Within a GUI
