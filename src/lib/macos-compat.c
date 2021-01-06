@@ -1,4 +1,6 @@
 #include <fcntl.h>
+#include <pthread.h>
+#include <signal.h>
 #include <unistd.h>
 #include <time.h>
 
@@ -75,7 +77,24 @@ int pipe2 (int pipefd[2], int flags)
   return set_fd_flags (pipefd[1], flags);
 }
 
+static pthread_mutex_t ppoll_lock;
+
 int ppoll (struct pollfd *fds, nfds_t nfds, const struct timespec *tmo_p, const sigset_t *sigmask)
 {
-  return 0;
+  pthread_mutex_lock (&ppoll_lock);
+
+  sigset_t origmask;
+  int timeout = (tmo_p == NULL) ? -1 : (tmo_p->tv_sec * 1000 + tmo_p->tv_nsec / 1000000);
+  pthread_sigmask (SIG_SETMASK, sigmask, &origmask);
+  int ret= poll (fds, nfds, timeout);
+  pthread_sigmask (SIG_SETMASK, &origmask, NULL);
+
+  pthread_mutex_unlock (&ppoll_lock);
+
+  return ret;
+}
+
+void macos_init ()
+{
+  pthread_mutex_init (&ppoll_lock, NULL);
 }

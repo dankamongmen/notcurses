@@ -941,6 +941,9 @@ int recursive_lock_init(pthread_mutex_t *lock){
 }
 
 notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
+#if defined(__APPLE__)
+  macos_init ();
+#endif
   notcurses_options defaultopts;
   memset(&defaultopts, 0, sizeof(defaultopts));
   if(!opts){
