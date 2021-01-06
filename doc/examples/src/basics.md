@@ -4,7 +4,7 @@ Notcurses is a library for terminal applications—programs which do not require
 a GUI environment, and write output as cells rather than pixels. Within a GUI
 environment, such programs run in a *terminal emulator*; they can also run
 on a *virtual console*, a *pseudoterminal* (such as those used by `ssh`), or
-even a true hardware terminal. It is inspired by the X/Open Curses
+even a true hardware terminal. It is inspired by the [X/Open CURSES](https://publications.opengroup.org/c094)
 specification, though it is (by necessity) not source-compatible with that API.
 
 Terminal applications emit a stream of *code points*. Code points index into
