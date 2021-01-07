@@ -1,9 +1,9 @@
 # Notcurses: blingful TUIs and character graphics
 
 * **What it is**: a library facilitating complex TUIs on modern terminal
-    emulators, supporting vivid colors, multimedia, and Unicode to the maximum
-    degree possible. [Things](https://www.youtube.com/watch?v=cYhZ7myXyyg) can
-    be done with Notcurses that simply can't be done with NCURSES.
+    emulators, supporting vivid colors, multimedia, threads, and Unicode to the
+    maximum degree possible. [Things](https://www.youtube.com/watch?v=cYhZ7myXyyg) can be done with
+    Notcurses that simply can't be done with NCURSES.
 
 * **What it is not**: a source-compatible X/Open Curses implementation, nor a
     replacement for NCURSES on existing systems.
@@ -180,7 +180,7 @@ but must be `Debug` for use of `USE_COVERAGE`.
 
 ## Included tools
 
-Seven binaries are installed as part of notcurses:
+Seven binaries are installed as part of Notcurses:
 * `notcurses-demo`: some demonstration code
 * `notcurses-view`: renders visual media (images/videos)
 * `notcurses-input`: decode and print keypresses
@@ -211,7 +211,7 @@ some design decisions might surprise NCURSES programmers:
   and all drawable surfaces are ordered along the z axis. There is no
   equivalent to `update_panels()`.
 * Scrolling is disabled by default, and cannot be globally enabled.
-* The Curses `cchar_t` has a fixed-size array of `wchar_t`. The notcurses
+* The Curses `cchar_t` has a fixed-size array of `wchar_t`. The Notcurses
   `cell` instead supports a UTF-8 encoded extended grapheme cluster of
   arbitrary length. The only supported encodings are ASCII via `ANSI_X3.4-1968`
   and Unicode via `UTF-8`.
@@ -222,7 +222,7 @@ some design decisions might surprise NCURSES programmers:
   but indexed palettes are supported.
 * There is no distinct "pad" concept (these are NCURSES `WINDOW`s created with
   the `newpad()` function). All drawable surfaces can exceed the display size.
-* Multiple threads can freely call into notcurses, so long as they're not
+* Multiple threads can freely call into Notcurses, so long as they're not
   accessing the same data. In particular, it is always safe to concurrently
   mutate different `ncplane`s in different threads.
 * NCURSES has thread-ignorant and thread-semi-safe versions, trace-enabled and
@@ -251,10 +251,10 @@ to implement".
 
 Do you really want to do such a thing? NCURSES and the Curses API it implements
 are far more portable and better-tested than Notcurses is ever likely to be.
-Will your program really benefit from notcurses's advanced features? If not,
+Will your program really benefit from Notcurses's advanced features? If not,
 it's probably best left as it is.
 
-Otherwise, most NCURSES concepts have clear partners in notcurses. Any functions
+Otherwise, most NCURSES concepts have clear partners in Notcurses. Any functions
 making implicit use of `stdscr` ought be replaced with their explicit
 equivalents. `stdscr` ought then be replaced with the result of
 `notcurses_stdplane()` (the standard plane). `PANEL`s become `ncplane`s; the
@@ -288,8 +288,10 @@ These are pretty obvious, implementation-wise.
 ## Environment notes
 
 * If your `TERM` variable is wrong, or that terminfo definition is out-of-date,
-  you're going to have a very bad time. Use *only* the `TERM` values
-  appropriate for your terminal.
+  you're going to have a very bad time. Use *only* `TERM` values appropriate
+  for your terminal. If this variable is undefined, or Notcurses can't load the
+  specified Terminfo entry, it will refuse to start, and you will
+  [not be going to space today](https://xkcd.com/1133/).
 
 * Ensure your `LANG` environment variable is set to a UTF8-encoded locale, and
   that this locale has been generated. This usually means
@@ -302,14 +304,8 @@ These are pretty obvious, implementation-wise.
 
 * If your terminal has an option about default interpretation of "ambiguous-width
   characters" (this is actually a technical term from Unicode), ensure it is
-  set to **Wide**, not narrow. If that doesn't work, ensure it is set to
-  **Narrow**, heh.
-
-* If you can disable BiDi in your terminal, do so while running notcurses
-  applications, until I have that handled better. Notcurses doesn't recognize
-  the BiDi state machine transitions, and thus merrily continues writing
-  left-to-right. Likewise, ultra-wide glyphs will have interesting effects.
-  ﷽!
+  set to **Wide**, not narrow (if that doesn't work, ensure it is set to
+  **Narrow**, heh).
 
 * The unit tests assume dimensions of at least 80x24. They might work in a
   smaller terminal. They might not. Don't file bugs on it.
@@ -385,6 +381,8 @@ to breaking under incorrect `TERM` values. If you're not using `xterm`, your
 
 * **Q:** Given that the glyph channel is initialized as transparent for a plane, shouldn't the foreground and background be initialized as transparent, also? **A:** Probably (they are instead initialized to default opaque). This would change some of the most longstanding behavior of Notcurses, though, so it isn't happening.
 
+* **Q:** Why does my right-to-left text appear left-to-right? **A:** Notcurses doesn't honor the BiDi state machine, and in fact forces left-to-right with BiDi codes. Likewise, ultra-wide glyphs will have interesting effects. ﷽!
+
 ## Supplemental material
 
 ### Useful links
@@ -439,7 +437,7 @@ to breaking under incorrect `TERM` values. If you're not using `xterm`, your
 * 2019-12-18: Notcurses [0.9.0 "You dig in! You dig out! You get out!"](https://github.com/dankamongmen/notcurses/releases/tag/v0.9.0),
     and also the first contributor besides myself (@grendello). Last major pre-GA release.
 * 2019-12-05: Notcurses [0.4.0 "TRAP MUSIC ALL NIGHT LONG"](https://github.com/dankamongmen/notcurses/releases/tag/v0.4.0),
-    the first generally usable notcurses.
+    the first generally usable Notcurses.
   * I prepare a [demo](https://www.youtube.com/watch?v=eEv2YRyiEVM), and release it on YouTube.
 * November 2019: I begin work on [Outcurses](https://github.com/dankamongmen/ncreels).
     Outcurses is a collection of routines atop NCURSES, including ncreels.
@@ -474,7 +472,7 @@ to breaking under incorrect `TERM` values. If you're not using `xterm`, your
     with support, and pointed out the useful memstream functionality of
     POSIX, eliminating the need for me to cons up something similar.
 * I one night read the entirety of Lexi Summer Hale's [essays](http://xn--rpa.cc/irl/index.html),
-    and woke up intending to write notcurses.
+    and began implementing her vision the next morning.
 * NES art was lifted from [The Spriters Resource](https://www.spriters-resource.com/nes/)
     and [NES Sprite](http://nes-sprite.resampled.ru/), the kind of sites that
     make the Internet great. It probably violates any number of copyrights. C'est la vie.
