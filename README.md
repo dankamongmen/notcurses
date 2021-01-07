@@ -61,10 +61,7 @@ found in [src/demo/](https://github.com/dankamongmen/notcurses/tree/master/src/d
 ## Introduction
 
 Notcurses abandons the X/Open Curses API bundled as part of the Single UNIX
-Specification. The latter shows its age, and seems not capable of making use of
-terminal functionality such as unindexed 24-bit color ("TrueColor", not to be
-confused with the 8-bit indexed 24-bit "extended color" of NCURSES).
-For some necessary background, consult Thomas E. Dickey's
+Specification. For some necessary background, consult Thomas E. Dickey's
 superb and authoritative [NCURSES FAQ](https://invisible-island.net/ncurses/ncurses.faq.html#xterm_16MegaColors).
 As such, Notcurses is not a drop-in Curses replacement.
 
@@ -99,11 +96,9 @@ Why use this non-standard library?
   as "a restatement of MIT-X11").
 
 Much of the above can be had with NCURSES, but they're not what NCURSES was
-*designed* for. The most fundamental advantage in my mind, though, is
-that Notcurses is of the multithreaded era. On the other hand, if you're
-targeting industrial or critical applications, or wish to benefit from the
-time-tested reliability and portability of Curses, you should by all means use
-that fine library.
+*designed* for. On the other hand, if you're targeting industrial or critical
+applications, or wish to benefit from its time-tested reliability and
+portability, you should by all means use that fine library.
 
 ## Requirements
 
