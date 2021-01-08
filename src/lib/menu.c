@@ -322,7 +322,7 @@ ncmenu* ncmenu_create(ncplane* n, const ncmenu_options* opts){
     logerror(ncplane_notcurses(n), "Invalid %d-ary section information\n", opts->sectioncount);
     return NULL;
   }
-  if(opts->flags > NCMENU_OPTION_HIDING){
+  if(opts->flags >= (NCMENU_OPTION_HIDING << 1u)){
     logwarn(ncplane_notcurses(n), "Provided unsupported flags %016jx\n", (uintmax_t)opts->flags);
   }
   int totalheight = 1;

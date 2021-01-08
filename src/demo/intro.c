@@ -101,11 +101,11 @@ int intro(struct notcurses* nc){
   if(ncplane_set_bg_rgb8(ncp, 0, 40, 0)){
     return -1;
   }
-  if(ncplane_putstr_aligned(ncp, rows / 2 - 4, NCALIGN_CENTER, s1) != (int)strlen(s1)){
+  if(ncplane_putstr_aligned(ncp, rows / 2 - 4, NCALIGN_CENTER, s1) < 0){
     return -1;
   }
   ncplane_on_styles(ncp, NCSTYLE_ITALIC | NCSTYLE_BOLD);
-  if(ncplane_putstr_aligned(ncp, rows / 2 - 3, NCALIGN_CENTER, str) != (int)strlen(str)){
+  if(ncplane_putstr_aligned(ncp, rows / 2 - 3, NCALIGN_CENTER, str) < 0){
     return -1;
   }
   ncplane_off_styles(ncp, NCSTYLE_ITALIC);

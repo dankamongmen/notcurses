@@ -282,7 +282,7 @@ make_ncpile(notcurses* nc, ncplane* n){
 // (as once more is n).
 ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
                               const ncplane_options* nopts){
-  if(nopts->flags > NCPLANE_OPTION_HORALIGNED){
+  if(nopts->flags >= (NCPLANE_OPTION_HORALIGNED << 1u)){
     logwarn(nc, "Provided unsupported flags %016jx\n", (uintmax_t)nopts->flags);
   }
   if(nopts->rows <= 0 || nopts->cols <= 0){

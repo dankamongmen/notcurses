@@ -18,7 +18,7 @@ class ncppplot {
    if(!opts){
      opts = &zeroed;
    }
-   if(opts->flags > NCPLOT_OPTION_PRINTSAMPLE){
+   if(opts->flags >= (NCPLOT_OPTION_PRINTSAMPLE << 1u)){
      logwarn(ncplane_notcurses(n), "Provided unsupported flags %016jx\n", (uintmax_t)opts->flags);
    }
    auto nc = ncplane_notcurses(n);
