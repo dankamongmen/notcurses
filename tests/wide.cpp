@@ -296,11 +296,11 @@ TEST_CASE("Wide") {
     ncplane_yx(n_, &y, &x);
     CHECK(0 == y);
     CHECK(0 == x);
-    CHECK(3 == ncplane_putstr(n_, "\xe5\x85\xa8"));
+    CHECK(2 == ncplane_putstr(n_, "\xe5\x85\xa8")); // \u5168 (全)
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == y);
     CHECK(2 == x);
-    CHECK(3 == ncplane_putstr(n_, "\xe5\xbd\xa2"));
+    CHECK(2 == ncplane_putstr(n_, "\xe5\xbd\xa2")); // \u5f62 (形)
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == y);
     CHECK(4 == x);
@@ -458,7 +458,7 @@ TEST_CASE("Wide") {
     REQUIRE(nullptr != topp);
     CHECK(0 == ncplane_set_bg_rgb8(topp, 0, 0xff, 0));
     CHECK(4 == ncplane_putstr(topp, "abcd"));
-    CHECK(12 == ncplane_putstr(n_, "六六六六"));
+    CHECK(8 == ncplane_putstr(n_, "六六六六"));
     CHECK(0 == notcurses_render(nc_));
     uint16_t stylemask;
     uint64_t channels;
@@ -611,9 +611,9 @@ TEST_CASE("Wide") {
     struct ncplane* topp = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != topp);
     CHECK(0 == ncplane_set_bg_rgb8(topp, 0, 0xff, 0));
-    CHECK(6 == ncplane_putstr(topp, "次次"));
+    CHECK(4 == ncplane_putstr(topp, "次次"));
     CHECK(0 == ncplane_cursor_move_yx(n_, 0, 0));
-    CHECK(12 == ncplane_putstr(n_, "六六六六"));
+    CHECK(8 == ncplane_putstr(n_, "六六六六"));
     CHECK(0 == notcurses_render(nc_));
     uint16_t stylemask;
     uint64_t channels;
@@ -766,7 +766,7 @@ TEST_CASE("Wide") {
     struct ncplane* topp = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != topp);
     CHECK(0 == ncplane_set_bg_rgb8(topp, 0, 0xff, 0));
-    CHECK(6 == ncplane_putstr(topp, "次次"));
+    CHECK(4 == ncplane_putstr(topp, "次次"));
     CHECK(8 == ncplane_putstr(n_, "abcdefgh"));
     CHECK(0 == notcurses_render(nc_));
     uint16_t stylemask;
@@ -1010,7 +1010,8 @@ TEST_CASE("Wide") {
   }
 
   SUBCASE("Putwcstained") {
-    wchar_t w = L'\u2658';
+    ncplane_home(n_);
+    wchar_t w = L'\u2658'; // white chess knight (♘)
     CHECK(0 == ncplane_set_fg_rgb(n_, 0xff00ff));
     CHECK(0 < ncplane_putwc(n_, w));
     CHECK(0 == ncplane_set_fg_rgb(n_, 0x00ff00));

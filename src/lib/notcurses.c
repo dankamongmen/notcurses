@@ -2600,7 +2600,7 @@ int ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclusters){
     y = -1;
     x = -1;
     gclusters += wcs;
-    ret += wcs;
+    ret += cols;
   }
   return ret;
 }
@@ -2618,7 +2618,7 @@ int ncplane_putstr_stained(struct ncplane* n, const char* gclusters){
       break;
     }
     gclusters += wcs;
-    ret += wcs;
+    ret += cols;
   }
   return ret;
 }
@@ -2649,11 +2649,12 @@ int ncplane_putnstr_aligned(struct ncplane* n, int y, ncalign_e align, size_t s,
 
 int ncplane_putnstr_yx(struct ncplane* n, int y, int x, size_t s, const char* gclusters){
   int ret = 0;
+  int offset = 0;
 //fprintf(stderr, "PUT %zu at %d/%d [%.*s]\n", s, y, x, (int)s, gclusters);
   // FIXME speed up this blissfully naive solution
-  while((size_t)ret < s && *gclusters){
+  while((size_t)offset < s && gclusters[offset]){
     int wcs;
-    int cols = ncplane_putegc_yx(n, y, x, gclusters, &wcs);
+    int cols = ncplane_putegc_yx(n, y, x, gclusters + offset, &wcs);
     if(cols < 0){
       return -ret;
     }
@@ -2664,8 +2665,8 @@ int ncplane_putnstr_yx(struct ncplane* n, int y, int x, size_t s, const char* gc
     // print, so that scrolling is taken into account
     y = -1;
     x = -1;
-    gclusters += wcs;
-    ret += wcs;
+    offset += wcs;
+    ret += cols;
   }
   return ret;
 }

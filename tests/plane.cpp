@@ -132,7 +132,7 @@ TEST_CASE("Plane") {
   SUBCASE("EmitStr") {
     const char s[] = "Σιβυλλα τι θελεις; respondebat illa: αποθανειν θελω.";
     int wrote = ncplane_putstr(n_, s);
-    CHECK(strlen(s) == wrote);
+    CHECK(ncstrwidth(s) == wrote);
     int x, y;
     ncplane_cursor_yx(n_, &y, &x);
     CHECK(0 == y);
