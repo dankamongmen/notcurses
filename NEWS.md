@@ -1,6 +1,11 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 2.1.5 (not yet released):
+  * `ncplane_putstr_yx()`, `ncplane_putstr_stained()`, and
+    `ncplane_putnstr_yx()` now return the number of columns output, as
+    long documented (they were mistakenly returning the number of bytes).
+
 * 2.1.4 (2021-01-03):
   * Direct mode now supports `NCDIRECT_OPTION_NO_QUIT_SIGHANDLERS`, and by
     default installs signal handlers similar to those of fullscreen mode.

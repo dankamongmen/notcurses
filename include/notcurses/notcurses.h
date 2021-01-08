@@ -1606,7 +1606,7 @@ ncplane_putwstr(struct ncplane* n, const wchar_t* gclustarr){
 
 // Replace the cell at the specified coordinates with the provided wide char
 // 'w'. Advance the cursor by the character's width as reported by wcwidth().
-// On success, returns 1. On failure, returns -1.
+// On success, returns the number of columns written. On failure, returns -1.
 static inline int
 ncplane_putwc_yx(struct ncplane* n, int y, int x, wchar_t w){
   wchar_t warr[2] = { w, L'\0' };
