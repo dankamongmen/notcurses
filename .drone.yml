@@ -30,7 +30,7 @@ name: alpine-edge
 
 steps:
 - name: alpine-edge
-  image: dankamongmen/edge_builder:2020-12-16d
+  image: dankamongmen/edge_builder:2021-01-08a
   commands:
     - export LANG=en_US.UTF-8
     - mkdir build
@@ -45,7 +45,7 @@ name: fedora-rawhide
 
 steps:
 - name: fedora-rawhide
-  image: dankamongmen/fedora34:2020-12-16a
+  image: dankamongmen/fedora34:2021-01-08b
   commands:
     - export LANG=en_US.UTF-8
     - mkdir build
