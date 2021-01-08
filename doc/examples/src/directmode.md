@@ -27,8 +27,10 @@ The cursor is not moved by initialization. If your program was invoked as
 on the first column of the line following your command prompt, exactly where
 a program like `ls` would start its output.
 
-**example initializing+releasing ncdirect, printing some colored text**
-**picture of output**
+```c
+{{#include directmode-helloworld.c}}
+```
+![](directmode-helloworld.png)
 
 The terminal will scroll on output just like it normally does, and if you have
 a scrollback buffer, any output you generate will be present there. Remember:
