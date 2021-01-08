@@ -77,6 +77,9 @@ set_package_properties(Threads PROPERTIES TYPE REQUIRED)
 pkg_search_module(TERMINFO REQUIRED tinfo>=6.1 ncursesw>=6.1)
 set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND terminfo)
 set_package_properties(terminfo PROPERTIES TYPE REQUIRED)
+pkg_search_module(READLINE REQUIRED readline>=8.0)
+set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND readline)
+set_package_properties(readline PROPERTIES TYPE REQUIRED)
 if(${USE_FFMPEG})
 pkg_check_modules(AVCODEC REQUIRED libavcodec>=57.0)
 pkg_check_modules(AVFORMAT REQUIRED libavformat>=57.0)
@@ -139,16 +142,19 @@ target_include_directories(notcurses
     include
     "${PROJECT_BINARY_DIR}/include"
     "${TERMINFO_INCLUDE_DIRS}"
+    "${READLINE_INCLUDE_DIRS}"
 )
 target_include_directories(notcurses-static
   PRIVATE
     include
     "${PROJECT_BINARY_DIR}/include"
     "${TERMINFO_STATIC_INCLUDE_DIRS}"
+    "${READLINE_STATIC_INCLUDE_DIRS}"
 )
 target_link_libraries(notcurses
   PRIVATE
     "${TERMINFO_LIBRARIES}"
+    "${READLINE_LIBRARIES}"
     "${LIBRT}"
     unistring
   PUBLIC
@@ -157,6 +163,7 @@ target_link_libraries(notcurses
 target_link_libraries(notcurses-static
   PRIVATE
     "${TERMINFO_STATIC_LIBRARIES}"
+    "${READLINE_STATIC_LIBRARIES}"
     "${LIBRT}"
     unistring
   PUBLIC
@@ -165,10 +172,12 @@ target_link_libraries(notcurses-static
 target_link_directories(notcurses
   PRIVATE
     "${TERMINFO_LIBRARY_DIRS}"
+    "${READLINE_LIBRARY_DIRS}"
 )
 target_link_directories(notcurses-static
   PRIVATE
     "${TERMINFO_STATIC_LIBRARY_DIRS}"
+    "${READLINE_STATIC_LIBRARY_DIRS}"
 )
 
 if(${USE_QRCODEGEN})

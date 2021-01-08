@@ -25,6 +25,11 @@ typedef struct ncplane ncdirectv;
 // echo and input's line buffering are turned off.
 #define NCDIRECT_OPTION_INHIBIT_CBREAK      0x0002ull
 
+// We typically initialize the GNU Readline library in a way that works with
+// ncdirect. If you intend no use of GNU Readline, this flag will inhibit any
+// such setup/teardown.
+#define NCDIRECT_OPTION_NO_READLINE         0x0004ull
+
 // We typically install a signal handler for SIG{INT, SEGV, ABRT, QUIT} that
 // restores the screen, and then calls the old signal handler. Set to inhibit
 // registration of these signal handlers. Chosen to match fullscreen mode.

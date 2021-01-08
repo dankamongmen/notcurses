@@ -13,6 +13,7 @@ ncdirect_init - minimal notcurses instances for styling text
 
 #define NCDIRECT_OPTION_INHIBIT_SETLOCALE   0x0001ull
 #define NCDIRECT_OPTION_INHIBIT_CBREAK      0x0002ull
+#define NCDIRECT_OPTION_NO_READLINE         0x0004ull
 #define NCDIRECT_OPTION_NO_QUIT_SIGHANDLERS 0x0008ull
 ```
 
@@ -107,6 +108,10 @@ The following flags are defined:
     will place the terminal into cbreak mode (i.e. disabling echo and line
     buffering; see **tcgetattr(3)**).
 
+* **NCDIRECT_OPTION_NO_READLINE**: Unless this flag is set, **ncdirect_init**
+    will initialize GNU Readline so that it can be safely used together with
+    direct mode. With this flag, no calls are made to GNU Readline.
+
 * **NCDIRECT_OPTION_NO_QUIT_SIGHANDLERS**: A signal handler will usually be
     installed for **SIGINT**, **SIGQUIT**, **SIGSEGV**, **SIGTERM**, and
     **SIGABRT**, cleaning up the terminal on such exceptions. With this flag,
@@ -150,7 +155,8 @@ All other functions return 0 on success, and non-zero on error.
 # SEE ALSO
 
 **getenv(3)**,
-**termios(3)**,
+**readline(3)**
 **notcurses(3)**,
 **notcurses_plane(3)**,
-**terminfo(5)**
+**terminfo(5)**,
+**termios(3)**

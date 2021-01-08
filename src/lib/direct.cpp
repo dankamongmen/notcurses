@@ -4,6 +4,7 @@
 #include <cstring>
 #include <unistd.h>
 #include <termios.h>
+#include <readline/readline.h>
 #include "version.h"
 #include "visual-details.h"
 #include "notcurses/direct.h"
@@ -614,6 +615,9 @@ ncdirect_stop_minimal(void* vnc){
     }
     ret |= close(nc->ctermfd);
   }
+  if(!(nc->flags & NCDIRECT_OPTION_NO_READLINE)){
+    rl_deprep_terminal();
+  }
   return ret;
 }
 
@@ -673,6 +677,11 @@ ncdirect* ncdirect_init(const char* termtype, FILE* outfp, uint64_t flags){
   }
   ret->channels = 0;
   ncdirect_set_styles(ret, 0);
+  if(!(flags & NCDIRECT_OPTION_NO_READLINE)){
+    rl_outstream = outfp;
+    rl_instream = stdin;
+    rl_prep_terminal(1); // 1 == read 8-bit input
+  }
   return ret;
 
 err:
