@@ -4,9 +4,9 @@ use core::ptr::{null, null_mut};
 
 use crate::{
     cstring, error, error_ref_mut, notcurses_init, rstring, NcAlign, NcBlitter, NcChannelPair,
-    NcDimension, NcEgc, NcError, NcFile, NcInput, NcLogLevel, Notcurses, NotcursesOptions,
-    NcPlane, NcResult, NcScale, NcSignalSet, NcStats, NcStyleMask, NcTime,
-    NCOPTION_NO_ALTERNATE_SCREEN, NCOPTION_SUPPRESS_BANNERS, NCRESULT_ERR,
+    NcDim, NcEgc, NcError, NcFile, NcInput, NcLogLevel, NcPlane, NcResult, NcScale, NcSignalSet,
+    NcStats, NcStyleMask, NcTime, Notcurses, NotcursesOptions, NCOPTION_NO_ALTERNATE_SCREEN,
+    NCOPTION_SUPPRESS_BANNERS, NCRESULT_ERR,
 };
 
 /// # `NotcursesOptions` Constructors
@@ -17,12 +17,7 @@ impl NotcursesOptions {
     }
 
     /// New NotcursesOptions, with margins.
-    pub const fn with_margins(
-        top: NcDimension,
-        right: NcDimension,
-        bottom: NcDimension,
-        left: NcDimension,
-    ) -> Self {
+    pub const fn with_margins(top: NcDim, right: NcDim, bottom: NcDim, left: NcDim) -> Self {
         Self::with_all_options(0, top, right, bottom, left, 0)
     }
 
@@ -64,10 +59,10 @@ impl NotcursesOptions {
     ///
     pub const fn with_all_options(
         loglevel: NcLogLevel,
-        margin_t: NcDimension,
-        margin_r: NcDimension,
-        margin_b: NcDimension,
-        margin_l: NcDimension,
+        margin_t: NcDim,
+        margin_r: NcDim,
+        margin_b: NcDim,
+        margin_l: NcDim,
         flags: u64,
     ) -> Self {
         Self {
@@ -132,7 +127,7 @@ impl Notcurses {
     /// *C style function: [notcurses_align()][crate::notcurses_align].*
     //
     // TODO: handle error rightfully.
-    pub fn align(availcols: NcDimension, align: NcAlign, cols: NcDimension) -> NcResult<()> {
+    pub fn align(availcols: NcDim, align: NcAlign, cols: NcDim) -> NcResult<()> {
         error![crate::notcurses_align(availcols, align, cols)]
     }
 
@@ -145,8 +140,8 @@ impl Notcurses {
     /// *C style function: [notcurses_at_yx()][crate::notcurses_at_yx].*
     pub fn at_yx(
         &mut self,
-        y: NcDimension,
-        x: NcDimension,
+        y: NcDim,
+        x: NcDim,
         stylemask: &mut NcStyleMask,
         channels: &mut NcChannelPair,
     ) -> Option<NcEgc> {
@@ -249,7 +244,7 @@ impl Notcurses {
     /// It is an error if `y`, `x` lies outside the standard plane.
     ///
     /// *C style function: [notcurses_cursor_enable()][crate::notcurses_cursor_enable].*
-    pub fn cursor_enable(&mut self, y: NcDimension, x: NcDimension) -> NcResult<()> {
+    pub fn cursor_enable(&mut self, y: NcDim, x: NcDim) -> NcResult<()> {
         error![unsafe { crate::notcurses_cursor_enable(self, y as i32, x as i32) }]
     }
 
@@ -463,12 +458,12 @@ impl Notcurses {
     ///
     /// *C style function: [notcurses_refresh()][crate::notcurses_refresh].*
     //
-    pub fn refresh(&mut self) -> NcResult<(NcDimension, NcDimension)> {
+    pub fn refresh(&mut self) -> NcResult<(NcDim, NcDim)> {
         let (mut y, mut x) = (0, 0);
         error![
             unsafe { crate::notcurses_refresh(self, &mut y, &mut x) },
             "",
-            (y as NcDimension, x as NcDimension)
+            (y as NcDim, x as NcDim)
         ]
     }
 
@@ -547,8 +542,8 @@ impl Notcurses {
     // #[inline]
     // pub fn stddim_yx<'a>(
     //     &'a mut self,
-    //     y: &mut NcDimension,
-    //     x: &mut NcDimension,
+    //     y: &mut NcDim,
+    //     x: &mut NcDim,
     // ) -> NcResult<&'a mut NcPlane> {
     //     crate::notcurses_stddim_yx(self, y, x)
     // }
@@ -560,8 +555,8 @@ impl Notcurses {
     // #[inline]
     // pub fn stddim_yx_const<'a>(
     //     &'a self,
-    //     y: &mut NcDimension,
-    //     x: &mut NcDimension,
+    //     y: &mut NcDim,
+    //     x: &mut NcDim,
     // ) -> NcResult<&'a NcPlane> {
     //     crate::notcurses_stddim_yx_const(self, y, x)
     // }
@@ -573,7 +568,7 @@ impl Notcurses {
     ///
     /// *C style function: [notcurses_stdplane()][crate::notcurses_stdplane].*
     pub fn stdplane<'a>(&mut self) -> &'a mut NcPlane {
-            unsafe { &mut *crate::notcurses_stdplane(self) }
+        unsafe { &mut *crate::notcurses_stdplane(self) }
     }
 
     /// Returns a reference to the standard [NcPlane] for this terminal.
@@ -622,7 +617,7 @@ impl Notcurses {
     /// Returns our current idea of the terminal dimensions in rows and cols.
     ///
     /// *C style function: [notcurses_supported_styles()][crate::notcurses_supported_styles].*
-    pub fn term_dim_yx(&self) -> (NcDimension, NcDimension) {
+    pub fn term_dim_yx(&self) -> (NcDim, NcDim) {
         crate::notcurses_term_dim_yx(self)
     }
 

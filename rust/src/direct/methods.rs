@@ -4,9 +4,9 @@ use core::ptr::{null, null_mut};
 
 use crate::ffi::sigset_t;
 use crate::{
-    cstring, error, error_ref_mut, NcAlign, NcBlitter, NcChannelPair, NcColor, NcDimension,
-    NcDirect, NcDirectFlags, NcEgc, NcError, NcInput, NcPaletteIndex, NcPlane, NcResult, NcRgb,
-    NcScale, NcStyleMask, NcTime, NCRESULT_ERR,
+    cstring, error, error_ref_mut, NcAlign, NcBlitter, NcChannelPair, NcColor, NcDim, NcDirect,
+    NcDirectFlags, NcEgc, NcError, NcInput, NcPaletteIndex, NcPlane, NcResult, NcRgb, NcScale,
+    NcStyleMask, NcTime, NCRESULT_ERR,
 };
 
 /// # `NcDirect` constructors and destructors
@@ -306,7 +306,7 @@ impl NcDirect {
     /// Moves the cursor down, `num` rows.
     ///
     /// *C style function: [ncdirect_cursor_down()][crate::ncdirect_cursor_down].*
-    pub fn cursor_down(&mut self, num: NcDimension) -> NcResult<()> {
+    pub fn cursor_down(&mut self, num: NcDim) -> NcResult<()> {
         error![
             unsafe { crate::ncdirect_cursor_down(self, num as i32) },
             &format!("NcDirect.cursor_down({})", num)
@@ -316,7 +316,7 @@ impl NcDirect {
     /// Moves the cursor left, `num` columns.
     ///
     /// *C style function: [ncdirect_cursor_left()][crate::ncdirect_cursor_left].*
-    pub fn cursor_left(&mut self, num: NcDimension) -> NcResult<()> {
+    pub fn cursor_left(&mut self, num: NcDim) -> NcResult<()> {
         error![
             unsafe { crate::ncdirect_cursor_left(self, num as i32) },
             &format!("NcDirect.cursor_left({})", num)
@@ -326,7 +326,7 @@ impl NcDirect {
     /// Moves the cursor right, `num` columns.
     ///
     /// *C style function: [ncdirect_cursor_right()][crate::ncdirect_cursor_right].*
-    pub fn cursor_right(&mut self, num: NcDimension) -> NcResult<()> {
+    pub fn cursor_right(&mut self, num: NcDim) -> NcResult<()> {
         error![
             unsafe { crate::ncdirect_cursor_right(self, num as i32) },
             &format!("NcDirect.cursor_right({})", num)
@@ -336,7 +336,7 @@ impl NcDirect {
     /// Moves the cursor up, `num` rows.
     ///
     /// *C style function: [ncdirect_cursor_up()][crate::ncdirect_cursor_up].*
-    pub fn cursor_up(&mut self, num: NcDimension) -> NcResult<()> {
+    pub fn cursor_up(&mut self, num: NcDim) -> NcResult<()> {
         error![
             unsafe { crate::ncdirect_cursor_up(self, num as i32) },
             &format!("NcDirect.cursor_up({})", num)
@@ -346,21 +346,21 @@ impl NcDirect {
     /// Moves the cursor in direct mode to the specified row, column.
     ///
     /// *C style function: [ncdirect_cursor_move_yx()][crate::ncdirect_cursor_move_yx].*
-    pub fn cursor_move_yx(&mut self, y: NcDimension, x: NcDimension) -> NcResult<()> {
+    pub fn cursor_move_yx(&mut self, y: NcDim, x: NcDim) -> NcResult<()> {
         error![unsafe { crate::ncdirect_cursor_move_yx(self, y as i32, x as i32) }]
     }
 
     /// Moves the cursor in direct mode to the specified row.
     ///
     /// *(No equivalent C style function)*
-    pub fn cursor_move_y(&mut self, y: NcDimension) -> NcResult<()> {
+    pub fn cursor_move_y(&mut self, y: NcDim) -> NcResult<()> {
         error![unsafe { crate::ncdirect_cursor_move_yx(self, y as i32, -1) }]
     }
 
     /// Moves the cursor in direct mode to the specified column.
     ///
     /// *(No equivalent C style function)*
-    pub fn cursor_move_x(&mut self, x: NcDimension) -> NcResult<()> {
+    pub fn cursor_move_x(&mut self, x: NcDim) -> NcResult<()> {
         error![unsafe { crate::ncdirect_cursor_move_yx(self, -1, x as i32) }]
     }
 
@@ -371,12 +371,12 @@ impl NcDirect {
     /// the results might be detrimental.
     ///
     /// *C style function: [ncdirect_cursor_yx()][crate::ncdirect_cursor_yx].*
-    pub fn cursor_yx(&mut self) -> NcResult<(NcDimension, NcDimension)> {
+    pub fn cursor_yx(&mut self) -> NcResult<(NcDim, NcDim)> {
         let (mut y, mut x) = (0, 0);
         error![
             unsafe { crate::ncdirect_cursor_yx(self, &mut y, &mut x) },
             "",
-            (y as NcDimension, x as NcDimension)
+            (y as NcDim, x as NcDim)
         ]
     }
 
@@ -401,23 +401,23 @@ impl NcDirect {
     /// Gets the current number of rows.
     ///
     /// *C style function: [ncdirect_dim_y()][crate::ncdirect_dim_y].*
-    pub fn dim_y(&self) -> NcDimension {
-        unsafe { crate::ncdirect_dim_y(self) as NcDimension }
+    pub fn dim_y(&self) -> NcDim {
+        unsafe { crate::ncdirect_dim_y(self) as NcDim }
     }
 
     /// Gets the current number of columns.
     ///
     /// *C style function: [ncdirect_dim_x()][crate::ncdirect_dim_x].*
-    pub fn dim_x(&self) -> NcDimension {
-        unsafe { crate::ncdirect_dim_x(self) as NcDimension }
+    pub fn dim_x(&self) -> NcDim {
+        unsafe { crate::ncdirect_dim_x(self) as NcDim }
     }
 
     /// Gets the current number of rows and columns.
     ///
     /// *C style function: [ncdirect_dim_y()][crate::ncdirect_dim_y].*
-    pub fn dim_yx(&self) -> (NcDimension, NcDimension) {
-        let y = unsafe { crate::ncdirect_dim_y(self) as NcDimension };
-        let x = unsafe { crate::ncdirect_dim_x(self) as NcDimension };
+    pub fn dim_yx(&self) -> (NcDim, NcDim) {
+        let y = unsafe { crate::ncdirect_dim_y(self) as NcDim };
+        let x = unsafe { crate::ncdirect_dim_x(self) as NcDim };
         (y, x)
     }
 }
@@ -534,8 +534,8 @@ impl NcDirect {
         ll: NcChannelPair,
         lr: NcChannelPair,
         wchars: &[char; 6],
-        y_len: NcDimension,
-        x_len: NcDimension,
+        y_len: NcDim,
+        x_len: NcDim,
         ctlword: u32,
     ) -> NcResult<()> {
         error![
@@ -569,8 +569,8 @@ impl NcDirect {
         ur: NcChannelPair,
         ll: NcChannelPair,
         lr: NcChannelPair,
-        y_len: NcDimension,
-        x_len: NcDimension,
+        y_len: NcDim,
+        x_len: NcDim,
         ctlword: u32,
     ) -> NcResult<()> {
         error![unsafe {
@@ -587,8 +587,8 @@ impl NcDirect {
         ur: NcChannelPair,
         ll: NcChannelPair,
         lr: NcChannelPair,
-        y_len: NcDimension,
-        x_len: NcDimension,
+        y_len: NcDim,
+        x_len: NcDim,
         ctlword: u32,
     ) -> NcResult<()> {
         error![unsafe {
@@ -610,7 +610,7 @@ impl NcDirect {
     pub fn hline_interp(
         &mut self,
         egc: &NcEgc,
-        len: NcDimension,
+        len: NcDim,
         h1: NcChannelPair,
         h2: NcChannelPair,
     ) -> NcResult<()> {
@@ -632,7 +632,7 @@ impl NcDirect {
     pub fn vline_interp(
         &mut self,
         egc: &NcEgc,
-        len: NcDimension,
+        len: NcDim,
         h1: NcChannelPair,
         h2: NcChannelPair,
     ) -> NcResult<()> {

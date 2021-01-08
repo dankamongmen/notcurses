@@ -3,8 +3,8 @@
 use core::ptr::{null, null_mut};
 
 use crate::{
-    NcAlign, NcDimension, NcError, NcInput, Notcurses, NcOffset, NcPlane, NcResult, NcSignalSet,
-    NcTime, NCALIGN_CENTER, NCALIGN_LEFT, NCALIGN_RIGHT, NCRESULT_ERR, NCRESULT_MAX,
+    NcAlign, NcDim, NcError, NcInput, NcOffset, NcPlane, NcResult, NcSignalSet, NcTime, Notcurses,
+    NCALIGN_CENTER, NCALIGN_LEFT, NCALIGN_RIGHT, NCRESULT_ERR, NCRESULT_MAX,
 };
 
 /// Returns the offset into `availcols` at which `cols` ought be output given
@@ -15,7 +15,7 @@ use crate::{
 ///
 /// *Method: Notcurses.[align()][Notcurses#method.align].*
 #[inline]
-pub fn notcurses_align(availcols: NcDimension, align: NcAlign, cols: NcDimension) -> NcOffset {
+pub fn notcurses_align(availcols: NcDim, align: NcAlign, cols: NcDim) -> NcOffset {
     if align == NCALIGN_LEFT {
         return 0;
     }
@@ -79,8 +79,8 @@ pub fn notcurses_getc_blocking(nc: &mut Notcurses, input: Option<&mut NcInput>) 
 #[inline]
 pub fn notcurses_stddim_yx<'a>(
     nc: &'a mut Notcurses,
-    y: &mut NcDimension,
-    x: &mut NcDimension,
+    y: &mut NcDim,
+    x: &mut NcDim,
 ) -> NcResult<&'a mut NcPlane> {
     unsafe {
         let sp = crate::notcurses_stdplane(nc);
@@ -99,8 +99,8 @@ pub fn notcurses_stddim_yx<'a>(
 #[inline]
 pub fn notcurses_stddim_yx_const<'a>(
     nc: &'a Notcurses,
-    y: &mut NcDimension,
-    x: &mut NcDimension,
+    y: &mut NcDim,
+    x: &mut NcDim,
 ) -> NcResult<&'a NcPlane> {
     unsafe {
         let sp = crate::notcurses_stdplane_const(nc);
@@ -116,10 +116,10 @@ pub fn notcurses_stddim_yx_const<'a>(
 ///
 /// *Method: Notcurses.[getc_term_yx()][Notcurses#method.term_yx].*
 #[inline]
-pub fn notcurses_term_dim_yx(nc: &Notcurses) -> (NcDimension, NcDimension) {
+pub fn notcurses_term_dim_yx(nc: &Notcurses) -> (NcDim, NcDim) {
     let (mut y, mut x) = (0, 0);
     unsafe {
         crate::ncplane_dim_yx(crate::notcurses_stdplane_const(nc), &mut y, &mut x);
     }
-    (y as NcDimension, x as NcDimension)
+    (y as NcDim, x as NcDim)
 }

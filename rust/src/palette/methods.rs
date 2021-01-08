@@ -1,6 +1,6 @@
 //! `NcPalette` methods and associated functions.
 
-use crate::{error, NcChannel, NcColor, Notcurses, NcPalette, NcPaletteIndex, NcResult, NcRgb};
+use crate::{error, NcChannel, NcColor, NcPalette, NcPaletteIndex, NcResult, NcRgb, Notcurses};
 
 impl NcPalette {
     /// New NcPalette.

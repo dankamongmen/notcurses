@@ -11,7 +11,7 @@
 
 use std::ffi::c_void;
 
-use crate::{NcIntResult, Notcurses, NcPlane, NcTime};
+use crate::{NcIntResult, NcPlane, NcTime, Notcurses};
 
 /// Called for each fade iteration on the NcPlane.
 ///

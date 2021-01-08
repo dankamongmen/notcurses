@@ -2,9 +2,7 @@
 
 use std::ops::{Deref, DerefMut};
 
-use crate::{
-    raw_wrap, NcDirect, NcResult
-};
+use crate::{raw_wrap, NcDirect, NcResult};
 
 /// Safe wrapper around [NcDirect], minimal notcurses instance for styling text.
 pub struct DirectMode<'a> {

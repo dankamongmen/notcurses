@@ -9,7 +9,7 @@
 // + nckey_mouse_p
 // + nckey_supppuab_p
 
-use crate::NcDimension;
+use crate::NcDim;
 
 mod keycodes;
 pub use keycodes::*;
@@ -88,8 +88,8 @@ impl NcInput {
     /// New NcInput, expecting all the arguments.
     pub const fn with_all_args(
         id: char,
-        x: Option<NcDimension>,
-        y: Option<NcDimension>,
+        x: Option<NcDim>,
+        y: Option<NcDim>,
         alt: bool,
         shift: bool,
         ctrl: bool,

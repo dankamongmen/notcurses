@@ -48,12 +48,8 @@ impl NcCell {
     ///
     /// The styling of the cell is left untouched, but any resources are released.
     /// *C style function: [cell_load()][crate::cell_load].*
-    pub fn load(
-        plane: &mut NcPlane,
-        cell: &mut NcCell,
-        egc: &str,
-    ) -> NcResult<u32> {
-        let bytes = unsafe { crate::cell_load(plane, cell, cstring![egc])};
+    pub fn load(plane: &mut NcPlane, cell: &mut NcCell, egc: &str) -> NcResult<u32> {
+        let bytes = unsafe { crate::cell_load(plane, cell, cstring![egc]) };
         error![
             bytes,
             &format!["NcCell.load(NcPlane, NcCell, {:?})", egc],

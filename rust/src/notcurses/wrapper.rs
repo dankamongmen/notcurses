@@ -3,8 +3,7 @@
 use std::ops::{Deref, DerefMut};
 
 use crate::{
-    raw_wrap, NcAlign, NcBlitter, NcDimension, NcLogLevel, Notcurses, NotcursesOptions,
-    NcResult, NcScale,
+    raw_wrap, NcAlign, NcBlitter, NcDim, NcLogLevel, NcResult, NcScale, Notcurses, NotcursesOptions,
 };
 
 /// Safe wrapper around [Notcurses], the main struct of the TUI library.
@@ -91,7 +90,7 @@ impl<'a> FullMode<'a> {
 
     /// Returns the offset into `availcols` at which `cols` ought be output given
     /// the requirements of `align`.
-    pub fn align(availcols: NcDimension, align: NcAlign, cols: NcDimension) -> NcResult<()> {
+    pub fn align(availcols: NcDim, align: NcAlign, cols: NcDim) -> NcResult<()> {
         Notcurses::align(availcols, align, cols)
     }
 

@@ -1,7 +1,7 @@
-//! `NcDimension`, `NcOffset`
+//! `NcDim`, `NcOffset`
 
-/// A dimension in rows or columns. Can't be negative.
-pub type NcDimension = u32;
+/// Represents a dimension in rows or columns. Can't be negative.
+pub type NcDim = u32;
 
-/// An offset in rows or columns. Can be negative.
+/// Represents an offset in rows or columns. Can be negative.
 pub type NcOffset = i32;
