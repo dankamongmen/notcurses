@@ -129,6 +129,7 @@ pub use ffi::{
 // // constants
 // NCDIRECT_OPTION_INHIBIT_CBREAK,
 // NCDIRECT_OPTION_INHIBIT_SETLOCALE,
+// NCDIRECT_OPTION_NO_QUIT_SIGHANDLERS,
 
 #[doc(inline)]
 pub use ffi::{

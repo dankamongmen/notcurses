@@ -108,3 +108,8 @@ pub const NCDIRECT_OPTION_INHIBIT_CBREAK: NcDirectFlags =
 ///
 pub const NCDIRECT_OPTION_INHIBIT_SETLOCALE: NcDirectFlags =
     crate::bindings::ffi::NCDIRECT_OPTION_INHIBIT_SETLOCALE as NcDirectFlags;
+
+/// Flag that inhibits registration of the SIGINT, SIGSEGV, SIGABRT & SIGQUIT
+/// signal handlers.
+pub const NCDIRECT_OPTION_NO_QUIT_SIGHANDLERS: NcDirectFlags =
+    crate::bindings::ffi::NCDIRECT_OPTION_NO_QUIT_SIGHANDLERS as NcDirectFlags;
