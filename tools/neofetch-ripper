@@ -76,7 +76,7 @@ while IFS= read -r line ; do
 			PRESERVE=""
 		else
 			if [ -n "$PRESERVE" ] ; then
-				/bin/echo -E -n "$line\n" | sed -e 's/"/\\"/g'
+				/bin/echo -E -n "$line\n" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g'
 			fi
 		fi
 	fi
