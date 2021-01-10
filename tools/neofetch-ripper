@@ -33,6 +33,9 @@ while IFS= read -r line ; do
 	if [ -z "$STARTED" ] ; then
 		if [ "$line" = 'get_distro_ascii() {' ] ; then
 			STARTED="$LINE"
+			echo "#include \"ncart.h\""
+			echo "#include <stdlib.h>"
+			echo "#include <string.h>"
 			echo "// Output of \"`basename $0` $1\""
 			echo "// Generated on `date -u`"
 			echo "// Copyright Dylan Araps under an MIT License"
@@ -79,8 +82,29 @@ while IFS= read -r line ; do
 	fi
 done < "$1"
 
-# if DONE is defined, we ran to completion. yay!
-if [ -n "$DONE" ] ; then exit 0 ; fi
+# if DONE is defined, we ran to completion. yay! emit a table providing
+# access to these strings via key comparison.
+if [ -n "$DONE" ] ; then
+	echo
+	echo "struct neofetch_art { const char* oskey; const char* ncart; };"
+	echo
+	echo "const struct neofetch_art ncarts[] = {"
+	for k in "${!KEYSSEEN[@]}" ; do
+		echo "  { \"$k\", $k },"
+	done
+	echo "  { NULL, NULL }"
+	echo "};"
+	echo
+	echo "const char* get_neofetch_art(const char* oskey){"
+	echo "  for(const struct neofetch_art* nfa = ncarts ; nfa->oskey ; ++nfa){"
+	echo "    if(strcmp(nfa->oskey, oskey) == 0){"
+	echo "      return nfa->ncart;"
+	echo "    }"
+	echo "  }"
+	echo "  return NULL;"
+	echo "}"
+	exit 0
+fi
 
 # unsurprisingly, this incredibly brittle code has broken. crap!
 if [ -z "$STARTED" ] ; then
