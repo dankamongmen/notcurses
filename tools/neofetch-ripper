@@ -1,0 +1,73 @@
+#!/bin/sh
+
+# Shamelessly extract ASCII distro logos from neofetch
+# (https://github.com/dylanaraps/neofetch)
+# and convert them into C string constants.
+
+# Takes a single argument: path to neofetch binary
+
+set -e
+
+usage () { echo "usage: `basename $0` path-to-neofetch" ; }
+
+[ $# -eq 1 ] || { usage >&2 ; return 1 ; }
+
+# Obviously, we're very sensitive to the exact contents of the neofetch
+# script. We rely on:
+#
+# ...arbitrary text...
+# ^get_distro_ascii() {$
+
+# We set STARTED to non-empty upon hitting "get_distro_ascii()"
+STARTED=""
+# We set LOGOSTARTED to the line where the current logo starts, and unset it
+# upon the logo's termination (discovered via ^EOF$).
+LOGOSTARTED=""
+LINE=0
+LOGOS=0
+while IFS= read -r line ; do
+	LINE=$((LINE + 1))
+	if [ -z "$STARTED" ] ; then
+		if [ "$line" = 'get_distro_ascii() {' ] ; then
+			STARTED="$LINE"
+			echo "// Found get_distro_ascii at line $LINE"
+		fi
+	elif [ -z "$NAME" ] ; then
+		NAME=`echo "$line" | sed -n -e 's/.*"\([^|]*\)"\*\?)$/\1/p'`
+		if [ -n "$NAME" ] ; then
+			echo "// Logo #$LOGOS: $NAME..."
+			NAME=`echo $NAME | tr \  _`
+    elif [ "$line" = "}" ] ; then # are we done with get_distro_ascii()?
+	  	DONE="$LINE"
+	  	echo "// Closed get_distro_ascii at line $LINE"
+		  break
+		fi
+  elif [ -z "$LOGOSTARTED" ]; then
+		if echo "$line" | grep '^ *read -rd ' > /dev/null ; then
+	    LOGOS=$((LOGOS + 1))        # found the start of a new logo!
+	    LOGOSTARTED="$LINE"
+			echo -n "static const char $NAME[] = \""
+		fi
+  elif [ -n "$LOGOSTARTED" ]; then
+		if [ "$line" = "EOF" ] ; then
+			echo "\";"
+		 	echo "// $NAME: $((LINE - LOGOSTARTED)) lines, done at line $LINE."
+			LOGOSTARTED=""
+			NAME=""
+		else
+			# FIXME otherwise, logo content, write it somewhere
+			/bin/echo -E -n "$line\n"
+	  fi
+	fi
+done < "$1"
+
+# if DONE is defined, we ran to completion. yay!
+if [ -n "$DONE" ] ; then exit 0 ; fi
+
+# unsurprisingly, this incredibly brittle code has broken. crap!
+if [ -z "$STARTED" ] ; then
+	echo "Failed; never found get_distro_ascii(). Alas..." >&2
+else
+	echo "Failed; never closed out get_distro_ascii(). Hrmm..." >&2
+fi
+exit 1
