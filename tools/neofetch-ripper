@@ -40,18 +40,18 @@ while IFS= read -r line ; do
 		if [ -n "$NAME" ] ; then
 			echo "// Logo #$LOGOS: $NAME..."
 			NAME=`echo $NAME | tr \  _`
-    elif [ "$line" = "}" ] ; then # are we done with get_distro_ascii()?
+	  elif [ "$line" = "}" ] ; then # are we done with get_distro_ascii()?
 	  	DONE="$LINE"
 	  	echo "// Closed get_distro_ascii at line $LINE"
 		  break
 		fi
-  elif [ -z "$LOGOSTARTED" ]; then
+	elif [ -z "$LOGOSTARTED" ]; then
 		if echo "$line" | grep '^ *read -rd ' > /dev/null ; then
 	    LOGOS=$((LOGOS + 1))        # found the start of a new logo!
 	    LOGOSTARTED="$LINE"
 			echo -n "static const char $NAME[] = \""
 		fi
-  elif [ -n "$LOGOSTARTED" ]; then
+	elif [ -n "$LOGOSTARTED" ]; then
 		if [ "$line" = "EOF" ] ; then
 			echo "\";"
 		 	echo "// $NAME: $((LINE - LOGOSTARTED)) lines, done at line $LINE."
