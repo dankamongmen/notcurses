@@ -597,6 +597,9 @@ static int
 ncdirect_stop_minimal(void* vnc){
   ncdirect* nc = static_cast<ncdirect*>(vnc);
   int ret = drop_signals(nc);
+  if(!(nc->flags & NCDIRECT_OPTION_NO_READLINE)){
+    rl_deprep_terminal();
+  }
   if(nc->tcache.op && term_emit("op", nc->tcache.op, nc->ttyfp, true)){
     ret = -1;
   }
@@ -614,9 +617,6 @@ ncdirect_stop_minimal(void* vnc){
       ret |= tcsetattr(nc->ctermfd, TCSANOW, &nc->tpreserved);
     }
     ret |= close(nc->ctermfd);
-  }
-  if(!(nc->flags & NCDIRECT_OPTION_NO_READLINE)){
-    rl_deprep_terminal();
   }
   return ret;
 }
