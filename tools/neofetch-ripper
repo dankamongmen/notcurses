@@ -1,8 +1,9 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 # Shamelessly extract ASCII distro logos from neofetch
 # (https://github.com/dylanaraps/neofetch)
 # and convert them into C string constants.
+# Requires bash for associative arrays, bleh.
 
 # Takes a single argument: path to neofetch binary
 
@@ -25,6 +26,8 @@ STARTED=""
 LOGOSTARTED=""
 LINE=0
 LOGOS=0
+# don't emit the same key more than once, or we'll get multiple definitions
+declare -A KEYSSEEN
 while IFS= read -r line ; do
 	LINE=$((LINE + 1))
 	if [ -z "$STARTED" ] ; then
@@ -39,28 +42,40 @@ while IFS= read -r line ; do
 		NAME=`echo "$line" | sed -n -e 's/.*"\([^|]*\)"\*\?)$/\1/p'`
 		if [ -n "$NAME" ] ; then
 			echo "// Logo #$LOGOS: $NAME..."
-			NAME=`echo $NAME | tr \  _`
-	  elif [ "$line" = "}" ] ; then # are we done with get_distro_ascii()?
-	  	DONE="$LINE"
-	  	echo "// Closed get_distro_ascii at line $LINE"
-		  break
+			NAME=`echo $NAME | sed -e 's/\\\\/\\\\\\\\/g' | tr \  _ | tr / _ | tr -- - _`
+			if [ -z "${KEYSSEEN[$NAME]}" ] ; then
+				KEYSSEEN[$NAME]="$LINE"
+				PRESERVE="$NAME"
+			else
+				echo "Warning, found duplicate name $NAME" >&2
+			fi
+		elif [ "$line" = "}" ] ; then # are we done with get_distro_ascii()?
+			DONE="$LINE"
+			echo "// Closed get_distro_ascii at line $LINE"
+			break
 		fi
 	elif [ -z "$LOGOSTARTED" ]; then
 		if echo "$line" | grep '^ *read -rd ' > /dev/null ; then
-	    LOGOS=$((LOGOS + 1))        # found the start of a new logo!
-	    LOGOSTARTED="$LINE"
-			echo -n "static const char $NAME[] = \""
+			LOGOS=$((LOGOS + 1))				# found the start of a new logo!
+			LOGOSTARTED="$LINE"
+			if [ -n "$PRESERVE" ] ; then
+				echo -n "static const char $NAME[] = \""
+			fi
 		fi
 	elif [ -n "$LOGOSTARTED" ]; then
 		if [ "$line" = "EOF" ] ; then
-			echo "\";"
-		 	echo "// $NAME: $((LINE - LOGOSTARTED)) lines, done at line $LINE."
+			if [ -n "$PRESERVE" ] ; then
+				echo "\";"
+				echo "// $NAME: $((LINE - LOGOSTARTED)) lines, done at line $LINE."
+			fi
 			LOGOSTARTED=""
 			NAME=""
+			PRESERVE=""
 		else
-			# FIXME otherwise, logo content, write it somewhere
-			/bin/echo -E -n "$line\n"
-	  fi
+			if [ -n "$PRESERVE" ] ; then
+				/bin/echo -E -n "$line\n" | sed -e 's/"/\\"/g'
+			fi
+		fi
 	fi
 done < "$1"
 
