@@ -374,8 +374,8 @@ hud_print_finished(elem* list){
       if(ncplane_printf_yx(hud, line, 1, "%d", e->frames) < 0){
         return -1;
       }
-      if(ncplane_printf_yx(hud, line, 7, "%ju.%03jus", e->totalns / GIG,
-                           (e->totalns % GIG) / 1000000) < 0){
+      if(ncplane_printf_yx(hud, line, 7, "%ju.%03jus", e->totalns / NANOSECS_IN_SEC,
+                           (e->totalns % NANOSECS_IN_SEC) / 1000000) < 0){
         return -1;
       }
       if(ncplane_putstr_yx(hud, line, 16, e->name) < 0){
@@ -516,7 +516,7 @@ demo_nanosleep_abstime_ns(struct notcurses* nc, uint64_t deadline){
   while(deadline > timespec_to_ns(&now)){
     fsleep.tv_sec = 0;
     fsleep.tv_nsec = MAXSLEEP;
-    if(deadline - timespec_to_ns(&now) < GIG / 100){
+    if(deadline - timespec_to_ns(&now) < NANOSECS_IN_SEC / 100){
       fsleep.tv_nsec = deadline - timespec_to_ns(&now);
     }
     ncinput ni;
@@ -565,7 +565,7 @@ int demo_render(struct notcurses* nc){
     if(!plot_hidden){
       ncplane_move_top(ncuplot_plane(plot));
     }
-    uint64_t ns = (timespec_to_ns(&ts) - plottimestart) / (GIG / FPSHZ);
+    uint64_t ns = (timespec_to_ns(&ts) - plottimestart) / (NANOSECS_IN_SEC / FPSHZ);
     ncuplot_add_sample(plot, ns, 1);
   }
   if(menu){
@@ -588,8 +588,8 @@ int demo_render(struct notcurses* nc){
     if(ncplane_printf_yx(hud, 1, 1, "%d", elems->frames) < 0){
       return -1;
     }
-    if(ncplane_printf_yx(hud, 1, 7, "%ju.%03jus", ns / GIG,
-                         (ns % GIG) / 1000000) < 0){
+    if(ncplane_printf_yx(hud, 1, 7, "%ju.%03jus", ns / NANOSECS_IN_SEC,
+                         (ns % NANOSECS_IN_SEC) / 1000000) < 0){
       return -1;
     }
     if(ncplane_putstr_yx(hud, 1, 16, elems->name) < 0){

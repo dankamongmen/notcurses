@@ -10,6 +10,7 @@
 #include <iostream>
 #include <ncpp/Visual.hh>
 #include <ncpp/NotCurses.hh>
+#include "compat/compat.h"
 
 using namespace ncpp;
 
@@ -29,20 +30,6 @@ void usage(std::ostream& o, const char* name, int exitcode){
   o << " -m margins: margin, or 4 comma-separated margins\n";
   o << " -d mult: non-negative floating point scale for frame time" << std::endl;
   exit(exitcode);
-}
-
-constexpr auto NANOSECS_IN_SEC = 1000000000ll;
-
-static inline auto
-timespec_to_ns(const struct timespec* ts) -> uint64_t {
-  return ts->tv_sec * NANOSECS_IN_SEC + ts->tv_nsec;
-}
-
-static inline struct timespec*
-ns_to_timespec(uint64_t ns, struct timespec* ts){
-  ts->tv_sec = ns / NANOSECS_IN_SEC;
-  ts->tv_nsec = ns % NANOSECS_IN_SEC;
-  return ts;
 }
 
 struct marshal {

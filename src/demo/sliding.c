@@ -59,7 +59,7 @@ play(struct notcurses* nc, struct ncplane** chunks){
   int lastdir = -1;
   for(m = 0 ; m < MOVES ; ++m){
     clock_gettime(CLOCK_MONOTONIC, &cur);
-    uint64_t now = cur.tv_sec * GIG + cur.tv_nsec;
+    uint64_t now = cur.tv_sec * NANOSECS_IN_SEC + cur.tv_nsec;
     if(now >= deadline_ns){
       break;
     }
@@ -189,7 +189,7 @@ int sliding_puzzle_demo(struct notcurses* nc){
     goto done;
   }
   DEMO_RENDER(nc);
-  struct timespec ts = { .tv_sec = 0, .tv_nsec = GIG, };
+  struct timespec ts = { .tv_sec = 0, .tv_nsec = NANOSECS_IN_SEC, };
   // fade out each of the chunks in succession
   /*for(cy = 0 ; cy < CHUNKS_VERT ; ++cy){
     for(cx = 0 ; cx < CHUNKS_HORZ ; ++cx){

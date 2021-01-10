@@ -1,5 +1,6 @@
 #include <locale.h>
 #include <notcurses/notcurses.h>
+#include "compat/compat.h"
 
 int main(void){
   setlocale(LC_ALL, "");

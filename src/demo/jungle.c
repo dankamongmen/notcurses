@@ -26634,7 +26634,7 @@ int jungle_demo(struct notcurses* nc){
   free(buf);
   clock_gettime(CLOCK_MONOTONIC_RAW, &start);
   int iter = 0;
-  int64_t iterns = GIG / 30;
+  int64_t iterns = NANOSECS_IN_SEC / 30;
   int64_t nsrunning;
   do{
     DEMO_RENDER(nc);

@@ -210,7 +210,7 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total,
   ncplane_printf_yx(n, 1, 4, " %03dx%03d (%d/%d) ", maxx, maxy, num + 1, total);
   ncplane_off_styles(n, NCSTYLE_ITALIC);
   ncplane_set_fg_rgb8(n, 224, 128, 224);
-  ncplane_putstr_yx(n, 3, 1, "   🔥 unicode 13, resize awareness, 24b truecolor…🔥   ");
+  ncplane_putstr_yx(n, 3, 1, " 🎆🔥 unicode 13, resize awareness, 24b truecolor…🔥🎆 ");
   ncplane_set_fg_rgb8(n, 255, 255, 255);
   return 0;
 }
@@ -555,8 +555,8 @@ int witherworm_demo(struct notcurses* nc){
         uint64_t delay = timespec_to_ns(&demodelay);
         delay /= screens;
         struct timespec tv;
-        if(delay > GIG){
-          ns_to_timespec(GIG, &tv);
+        if(delay > NANOSECS_IN_SEC){
+          ns_to_timespec(NANOSECS_IN_SEC, &tv);
         }else{
           ns_to_timespec(delay, &tv);
         }

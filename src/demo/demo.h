@@ -9,6 +9,7 @@
 #include <notcurses/notcurses.h>
 #include <builddef.h>
 #include <version.h>
+#include "compat/compat.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -88,20 +89,7 @@ demo_getc_blocking(struct notcurses* nc, ncinput* ni){
 /*----------------------------- end demo input API -------------------------*/
 
 /*-------------------------------time helpers----------------------------*/
-#define GIG 1000000000ul
-#define MAXSLEEP (GIG / 80) // nanoseconds
-
-static inline uint64_t
-timespec_to_ns(const struct timespec* ts){
-  return ts->tv_sec * GIG + ts->tv_nsec;
-}
-
-static inline struct timespec*
-ns_to_timespec(uint64_t ns, struct timespec* ts){
-  ts->tv_sec = ns / GIG;
-  ts->tv_nsec = ns % GIG;
-  return ts;
-}
+#define MAXSLEEP (NANOSECS_IN_SEC / 80) // nanoseconds
 
 static inline int64_t
 timespec_subtract_ns(const struct timespec* time1, const struct timespec* time0){
@@ -130,8 +118,8 @@ static inline void
 timespec_div(const struct timespec* ts, unsigned divisor, struct timespec* quots){
   uint64_t ns = timespec_to_ns(ts);
   ns /= divisor;
-  quots->tv_nsec = ns % GIG;
-  quots->tv_sec = ns / GIG;
+  quots->tv_nsec = ns % NANOSECS_IN_SEC;
+  quots->tv_sec = ns / NANOSECS_IN_SEC;
 }
 
 // divide the provided timespec 'ts' by 'multiplier' into 'product'
@@ -139,8 +127,8 @@ static inline void
 timespec_mul(const struct timespec* ts, unsigned multiplier, struct timespec* product){
   uint64_t ns = timespec_to_ns(ts);
   ns *= multiplier;
-  product->tv_nsec = ns % GIG;
-  product->tv_sec = ns / GIG;
+  product->tv_nsec = ns % NANOSECS_IN_SEC;
+  product->tv_sec = ns / NANOSECS_IN_SEC;
 }
 /*-------------------------------time helpers----------------------------*/
 

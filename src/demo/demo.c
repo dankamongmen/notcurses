@@ -332,9 +332,9 @@ handle_opts(int argc, char** argv, notcurses_options* opts,
           usage(*argv, EXIT_FAILURE);
         }
         delaymultiplier = f;
-        uint64_t ns = f * GIG;
-        demodelay.tv_sec = ns / GIG;
-        demodelay.tv_nsec = ns % GIG;
+        uint64_t ns = f * NANOSECS_IN_SEC;
+        demodelay.tv_sec = ns / NANOSECS_IN_SEC;
+        demodelay.tv_nsec = ns % NANOSECS_IN_SEC;
         break;
       }default:
         usage(*argv, EXIT_FAILURE);
@@ -424,15 +424,15 @@ summary_table(struct ncdirect* nc, const char* spec, bool canimage, bool canvide
   uint64_t nsdelta = 0;
   for(size_t i = 0 ; i < strlen(spec) ; ++i){
     nsdelta += results[i].timens;
-    qprefix(results[i].timens, GIG, timebuf, 0);
-    qprefix(results[i].stats.render_ns, GIG, rtimebuf, 0);
+    qprefix(results[i].timens, NANOSECS_IN_SEC, timebuf, 0);
+    qprefix(results[i].stats.render_ns, NANOSECS_IN_SEC, rtimebuf, 0);
     bprefix(results[i].stats.render_bytes, 1, totalbuf, 0);
     if(results[i].stats.renders){
-      qprefix((uintmax_t)results[i].stats.renders * GIG * 1000 /
+      qprefix((uintmax_t)results[i].stats.renders * NANOSECS_IN_SEC * 1000 /
               (results[i].stats.render_ns + results[i].stats.writeout_ns),
               1000, tfpsbuf, 0);
     }else{
-      qprefix(0, GIG, tfpsbuf, 0);
+      qprefix(0, NANOSECS_IN_SEC, tfpsbuf, 0);
     }
     uint32_t rescolor;
     if(results[i].result < 0){
@@ -455,7 +455,7 @@ summary_table(struct ncdirect* nc, const char* spec, bool canimage, bool canvide
            PREFIXFMT(timebuf), (uintmax_t)(results[i].stats.renders),
            BPREFIXFMT(totalbuf), PREFIXFMT(rtimebuf),
            results[i].timens ?
-            results[i].stats.renders / ((double)results[i].timens / GIG) : 0.0,
+            results[i].stats.renders / ((double)results[i].timens / NANOSECS_IN_SEC) : 0.0,
            (uintmax_t)(results[i].timens ?
             results[i].stats.render_ns * 100 / results[i].timens : 0),
            (uintmax_t)(results[i].timens ?
@@ -473,16 +473,16 @@ summary_table(struct ncdirect* nc, const char* spec, bool canimage, bool canvide
     totalrenderns += results[i].stats.render_ns;
     totalwriteoutns += results[i].stats.writeout_ns;
   }
-  qprefix(nsdelta, GIG, timebuf, 0);
+  qprefix(nsdelta, NANOSECS_IN_SEC, timebuf, 0);
   bprefix(totalbytes, 1, totalbuf, 0);
-  qprefix(totalrenderns, GIG, rtimebuf, 0);
+  qprefix(totalrenderns, NANOSECS_IN_SEC, rtimebuf, 0);
   table_segment(nc, "", "══╧════════╧════════╪═══════╪═════════╪═════════╪═══════╪══╧══╧═══════╝\n");
   printf("            ");
   table_printf(nc, "│", "%*ss", PREFIXFMT(timebuf));
   table_printf(nc, "│", "%7lu", totalframes);
   table_printf(nc, "│", "%*s", BPREFIXFMT(totalbuf));
   table_printf(nc, "│", " %*ss", PREFIXFMT(rtimebuf));
-  table_printf(nc, "│", "%7.1f", nsdelta ? totalframes / ((double)nsdelta / GIG) : 0);
+  table_printf(nc, "│", "%7.1f", nsdelta ? totalframes / ((double)nsdelta / NANOSECS_IN_SEC) : 0);
   printf("\n");
   ncdirect_set_fg_rgb8(nc, 0xff, 0xb0, 0xb0);
   fflush(stdout); // in case we print to stderr below, we want color from above

@@ -5,6 +5,7 @@
 #include <cassert>
 #include <unistd.h>
 #include <notcurses/notcurses.h>
+#include "compat/compat.h"
 
 int main(int argc, char** argv){
   struct timespec ts = {

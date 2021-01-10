@@ -115,9 +115,11 @@ set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND qrcodegen)
 endif()
 find_library(LIBRT rt)
 
+file(GLOB COMPATSRC CONFIGURE_DEPENDS src/compat/compat.c)
+
 # libnotcurses (core shared library, core static library)
 file(GLOB NCSRCS CONFIGURE_DEPENDS src/lib/*.c src/lib/*.cpp)
-add_library(notcurses SHARED ${NCSRCS})
+add_library(notcurses SHARED ${NCSRCS} ${COMPATSRC})
 if(${USE_STATIC})
 add_library(notcurses-static STATIC ${NCSRCS})
 else()
@@ -140,6 +142,7 @@ set_target_properties(notcurses-static PROPERTIES
 target_include_directories(notcurses
   PRIVATE
     include
+    src
     "${PROJECT_BINARY_DIR}/include"
     "${TERMINFO_INCLUDE_DIRS}"
     "${READLINE_INCLUDE_DIRS}"
@@ -147,6 +150,7 @@ target_include_directories(notcurses
 target_include_directories(notcurses-static
   PRIVATE
     include
+    src
     "${PROJECT_BINARY_DIR}/include"
     "${TERMINFO_STATIC_INCLUDE_DIRS}"
     "${READLINE_STATIC_INCLUDE_DIRS}"
@@ -379,6 +383,7 @@ target_compile_definitions(notcurses-demo
 target_include_directories(notcurses-demo
   PRIVATE
     include
+    src
     "${PROJECT_BINARY_DIR}/include"
   PUBLIC
     "${AVCODEC_INCLUDE_DIRS}"
@@ -400,7 +405,7 @@ foreach(f ${POCSRCS})
   get_filename_component(fe "${f}" NAME_WE)
   add_executable(${fe} ${f})
   target_include_directories(${fe}
-    PRIVATE include "${TERMINFO_INCLUDE_DIRS}"
+    PRIVATE include src "${TERMINFO_INCLUDE_DIRS}"
     "${PROJECT_BINARY_DIR}/include"
   )
   target_link_libraries(${fe}
@@ -548,6 +553,7 @@ add_executable(notcurses-view ${VIEWSRCS})
 target_include_directories(notcurses-view
   PRIVATE
     include
+    src
     "${PROJECT_BINARY_DIR}/include"
 )
 target_link_libraries(notcurses-view
@@ -565,6 +571,7 @@ add_executable(notcurses-tester ${TESTSRCS})
 target_include_directories(notcurses-tester
   PRIVATE
     include
+    src
     "${PROJECT_BINARY_DIR}/include"
     src/lib
 )

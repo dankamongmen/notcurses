@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <locale.h>
 #include <notcurses/notcurses.h>
+#include "compat/compat.h"
 
 static int
 rotate_grad(struct notcurses* nc){

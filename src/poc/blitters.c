@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <locale.h>
 #include <notcurses/notcurses.h>
+#include "compat/compat.h"
 
 int main(int argc, char** argv){
   if(setlocale(LC_ALL, "") == NULL){
