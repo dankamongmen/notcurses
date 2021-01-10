@@ -30,6 +30,9 @@ while IFS= read -r line ; do
 	if [ -z "$STARTED" ] ; then
 		if [ "$line" = 'get_distro_ascii() {' ] ; then
 			STARTED="$LINE"
+			echo "// Output of \"`basename $0` $1\""
+			echo "// Generated on `date -u`"
+			echo "// Copyright Dylan Araps under an MIT License"
 			echo "// Found get_distro_ascii at line $LINE"
 		fi
 	elif [ -z "$NAME" ] ; then
