@@ -2,12 +2,12 @@ This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
 * 2.1.5 (not yet released):
+  * Notcurses **now depends on GNU Readline at build and runtime**, entirely
+    for the benefit of direct mode, which now prepares GNU Readline for safe
+    use (unless the new `NCDIRECT_OPTIONS_NO_READLINE` is used).
   * `ncplane_putstr_yx()`, `ncplane_putstr_stained()`, and
     `ncplane_putnstr_yx()` now return the number of columns output, as
     long documented (they were mistakenly returning the number of bytes).
-  * Notcurses now depends on GNU Readline at build and runtime, entirely
-    for the benefit of direct mode, which now prepares GNU Readline for safe
-    use (unless the new `NCDIRECT_OPTIONS_NO_READLINE` is used).
 
 * 2.1.4 (2021-01-03):
   * Direct mode now supports `NCDIRECT_OPTION_NO_QUIT_SIGHANDLERS`, and by

@@ -69,8 +69,6 @@ notcurses_stop_minimal(void* vnc){
     if(nc->tcache.cnorm && tty_emit("cnorm", nc->tcache.cnorm, nc->ttyfd)){
       ret = -1;
     }
-  }
-  if(nc->ttyfd >= 0){
     ret |= tcsetattr(nc->ttyfd, TCSANOW, &nc->tpreserved);
   }
   return ret;

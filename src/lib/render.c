@@ -263,18 +263,62 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
       if(cell_wide_right_p(targc)){
         continue;
       }
-      const nccell* vis = &p->fb[nfbcellidx(p, y, x)];
+      // Background color takes effect independently of whether we have a
+      // glyph. If we've already locked in the background, it has no effect.
+      // If it's transparent, it has no effect. Otherwise, update the
+      // background channel and balpha.
+      // Evaluate the background first, in case we have HIGHCONTRAST fg text.
+      if(cell_bg_alpha(targc) > CELL_ALPHA_OPAQUE){
+        const nccell* vis = &p->fb[nfbcellidx(p, y, x)];
+        if(cell_bg_default_p(vis)){
+          vis = &p->basecell;
+        }
+        if(cell_bg_palindex_p(vis)){
+          if(cell_bg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
+            cell_set_bg_palindex(targc, cell_bg_palindex(vis));
+          }
+        }else{
+          cell_blend_bchannel(targc, cell_bchannel(vis), &crender->bgblends);
+        }
+      }
+
+      if(cell_fg_alpha(targc) > CELL_ALPHA_OPAQUE){
+        const nccell* vis = &p->fb[nfbcellidx(p, y, x)];
+        if(cell_fg_default_p(vis)){
+          vis = &p->basecell;
+        }
+        if(cell_fg_palindex_p(vis)){
+          if(cell_fg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
+            cell_set_fg_palindex(targc, cell_fg_palindex(vis));
+          }
+        }else{
+          if(cell_fg_alpha(vis) == CELL_ALPHA_HIGHCONTRAST){
+            crender->highcontrast = true;
+            crender->hcfgblends = crender->fgblends;
+            crender->hcfg = cell_fchannel(targc);
+          }
+          cell_blend_fchannel(targc, cell_fchannel(vis), &crender->fgblends);
+          // crender->highcontrast can only be true if we just set it, since we're
+          // about to set targc opaque based on crender->highcontrast (and this
+          // entire stanza is conditional on targc not being CELL_ALPHA_OPAQUE).
+          if(crender->highcontrast){
+            cell_set_fg_alpha(targc, CELL_ALPHA_OPAQUE);
+          }
+        }
+      }
+
       // if we never loaded any content into the cell (or obliterated it by
       // writing in a zero), use the plane's base cell.
-      if(vis->gcluster == 0 && !cell_double_wide_p(vis)){
-        vis = &p->basecell;
-      }
       // if we have no character in this cell, we continue to look for a
       // character, but our foreground color will still be used unless it's
       // been set to transparent. if that foreground color is transparent, we
       // still use a character we find here, but its color will come entirely
       // from cells underneath us.
       if(!crender->p){
+        const nccell* vis = &p->fb[nfbcellidx(p, y, x)];
+        if(vis->gcluster == 0 && !cell_double_wide_p(vis)){
+          vis = &p->basecell;
+        }
         // if the following is true, we're a real glyph, and not the right-hand
         // side of a wide glyph (nor the null codepoint).
         if( (targc->gcluster = vis->gcluster) ){ // index copy only
@@ -302,50 +346,6 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
         }else if(cell_wide_right_p(vis)){
           crender->p = p;
           targc->width = 0;
-        }
-      }
-
-      // Background color takes effect independently of whether we have a
-      // glyph. If we've already locked in the background, it has no effect.
-      // If it's transparent, it has no effect. Otherwise, update the
-      // background channel and balpha.
-      // Evaluate the background first, in case we have HIGHCONTRAST fg text.
-      if(cell_bg_alpha(targc) > CELL_ALPHA_OPAQUE){
-        vis = &p->fb[nfbcellidx(p, y, x)];
-        if(cell_bg_default_p(vis)){
-          vis = &p->basecell;
-        }
-        if(cell_bg_palindex_p(vis)){
-          if(cell_bg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
-            cell_set_bg_palindex(targc, cell_bg_palindex(vis));
-          }
-        }else{
-          cell_blend_bchannel(targc, cell_bchannel(vis), &crender->bgblends);
-        }
-      }
-
-      if(cell_fg_alpha(targc) > CELL_ALPHA_OPAQUE){
-        vis = &p->fb[nfbcellidx(p, y, x)];
-        if(cell_fg_default_p(vis)){
-          vis = &p->basecell;
-        }
-        if(cell_fg_palindex_p(vis)){
-          if(cell_fg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
-            cell_set_fg_palindex(targc, cell_fg_palindex(vis));
-          }
-        }else{
-          if(cell_fg_alpha(vis) == CELL_ALPHA_HIGHCONTRAST){
-            crender->highcontrast = true;
-            crender->hcfgblends = crender->fgblends;
-            crender->hcfg = cell_fchannel(targc);
-          }
-          cell_blend_fchannel(targc, cell_fchannel(vis), &crender->fgblends);
-          // crender->highcontrast can only be true if we just set it, since we're
-          // about to set targc opaque based on crender->highcontrast (and this
-          // entire stanza is conditional on targc not being CELL_ALPHA_OPAQUE).
-          if(crender->highcontrast){
-            cell_set_fg_alpha(targc, CELL_ALPHA_OPAQUE);
-          }
         }
       }
     }
