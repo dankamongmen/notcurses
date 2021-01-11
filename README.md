@@ -345,6 +345,8 @@ value is correct for your terminal. `intro` does a palette fade, which is prone
 to breaking under incorrect `TERM` values. If you're not using `xterm`, your
 `TERM` should not be `xterm`!
 
+* **Q:** Can I have Notcurses without this huge multimedia stack? **A:** Yes! Build with `-DUSE_MULTIMEDIA=none`.
+
 * **Q:** In `xterm`, Alt doesn't work as expected. **A:** Check out the `eightBitInput` resource of `xterm`. Add `XTerm*eightBitInput: false` to your `$HOME/.Xresources`, and run `xrdb -a $HOME/.Xresources`.
 
 * **Q:** Notcurses looks like absolute crap in `screen`. **A:** `screen` doesn't support RGB colors (at least as of 4.08.00); if you have `COLORTERM` defined, you'll have a bad time. If you have a `screen` that was compiled with `--enable-colors256`, try exporting `TERM=screen-256color` as opposed to `TERM=screen`.
