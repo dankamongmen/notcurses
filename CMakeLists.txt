@@ -262,6 +262,8 @@ target_compile_definitions(notcurses-static
 set(PKGCONFIG_DIR "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
 set(PKGCONFIG_DIR "${CMAKE_INSTALL_PREFIX}/libdata/pkgconfig")
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL "DragonFly")
+set(PKGCONFIG_DIR "${CMAKE_INSTALL_PREFIX}/libdata/pkgconfig")
 endif()
 
 # libnotcurses++
@@ -375,7 +377,7 @@ install(FILES ${NCPP_INTERNAL_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/n
 
 # notcurses-demo
 file(GLOB DEMOSRCS CONFIGURE_DEPENDS src/demo/*.c)
-add_executable(notcurses-demo ${DEMOSRCS})
+add_executable(notcurses-demo ${DEMOSRCS} ${COMPATSRC})
 target_compile_definitions(notcurses-demo
   PRIVATE
     _GNU_SOURCE
@@ -549,7 +551,7 @@ target_link_libraries(notcurses-tetris
 # notcurses-view
 if(${USE_FFMPEG} OR ${USE_OIIO})
 file(GLOB VIEWSRCS CONFIGURE_DEPENDS src/view/*.cpp)
-add_executable(notcurses-view ${VIEWSRCS})
+add_executable(notcurses-view ${VIEWSRCS} ${COMPATSRC})
 target_include_directories(notcurses-view
   PRIVATE
     include

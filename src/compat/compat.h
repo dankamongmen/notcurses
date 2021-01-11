@@ -1,6 +1,10 @@
 #ifndef NOTCURSES_COMPAT
 #define NOTCURSES_COMPAT
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <time.h>
 
 #define NANOSECS_IN_SEC 1000000000ul
@@ -23,5 +27,9 @@ ns_to_timespec(uint64_t ns, struct timespec* ts){
 int clock_nanosleep(clockid_t clockid, int flags,
                     const struct timespec *request,
                     struct timespec *remain);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

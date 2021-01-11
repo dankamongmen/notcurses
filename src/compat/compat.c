@@ -1,6 +1,8 @@
 #ifndef __linux__
 #ifndef __FreeBSD__
 #include <time.h>
+#include <stdint.h>
+#include "compat/compat.h"
 // clock_nanosleep is unavailable on DragonFly BSD and Mac OS X
 int clock_nanosleep(clockid_t clockid, int flags, const struct timespec *request,
                     struct timespec *remain){
@@ -9,7 +11,7 @@ int clock_nanosleep(clockid_t clockid, int flags, const struct timespec *request
     return -1;
   }
   uint64_t nowns = timespec_to_ns(&now);
-  uint64_t targns = timespec_to_ns(&request);
+  uint64_t targns = timespec_to_ns(request);
   if(flags != TIMER_ABSTIME){
     targns += nowns;
   }
