@@ -82,22 +82,30 @@ fetch_cpu_info(fetched_info* fi){
   }
   char buf[BUFSIZ];
   while(fgets(buf, sizeof(buf), cpuinfo)){
-#define CORE "core id\t"
+#define CORE "core id"
 // model name doesn't appear on all architectures, so fall back to vendor_id
-#define TAG "model name\t"
-#define VEND "vendor_id\t"
+#define TAG "model name"
+#define VEND "vendor_id"
     if(strncmp(buf, TAG, strlen(TAG)) == 0){
       // model name trumps vendor_id
       free(fi->cpu_model);
-      char* nl = strchr(buf + strlen(TAG), '\n');
-      *nl = '\0';
-      fi->cpu_model = strdup(buf + strlen(TAG));
+      char* start = strchr(buf + strlen(TAG), ':');
+      if(start){
+        ++start;
+        char* nl = strchr(start, '\n');
+        *nl = '\0';
+        fi->cpu_model = strdup(start);
+      }
     }else if(strncmp(buf, VEND, strlen(VEND)) == 0){
       // vendor_id ought only be used in the absence of model name
       if(fi->cpu_model == NULL){
-        char* nl = strchr(buf + strlen(VEND), '\n');
-        *nl = '\0';
-        fi->cpu_model = strdup(buf + strlen(VEND));
+        char* start = strchr(buf + strlen(VEND), ':');
+        if(start){
+          ++start;
+          char* nl = strchr(start, '\n');
+          *nl = '\0';
+          fi->cpu_model = strdup(start);
+        }
       }
     }else if(strncmp(buf, CORE, strlen(CORE)) == 0){
       ++fi->core_count;
@@ -378,7 +386,7 @@ place_infoplane(struct ncdirect* ncd, int planeheight){
 
 static int
 infoplane_notcurses(struct notcurses* nc, const fetched_info* fi, int planeheight){
-  const int planewidth = 60;
+  const int planewidth = 72;
   int dimy;
   struct ncplane* std = notcurses_stddim_yx(nc, &dimy, NULL);
   struct ncplane_options nopts = {
