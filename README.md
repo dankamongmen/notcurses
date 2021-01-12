@@ -8,12 +8,14 @@
 * **What it is not**: a source-compatible X/Open Curses implementation, nor a
     replacement for NCURSES on existing systems.
 
-birthed screaming into this world by [nick black](https://nick-black.com/dankwiki/index.php/Hack_on) (<nickblack@linux.com>).
-C++ wrappers by [marek habersack](http://twistedcode.net/blog/) (<grendel@twistedcode.net>). the Notcurses API
-is stable as of version 2.0.
 <p align="center">
 <a href="https://www.youtube.com/watch?v=cYhZ7myXyyg"><img src="https://img.youtube.com/vi/cYhZ7myXyyg/0.jpg" alt="setting the standard (hype video)"/></a>
 </p>
+
+birthed screaming into this world by [nick black](https://nick-black.com/dankwiki/index.php/Hack_on) (<nickblack@linux.com>).
+C++ wrappers by [marek habersack](http://twistedcode.net/blog/) (<grendel@twistedcode.net>). the Notcurses API
+is stable as of version 2.0.
+
 for more information, see [dankwiki](https://nick-black.com/dankwiki/index.php/Notcurses)
 and the [man pages](https://notcurses.com/notcurses). there's also a reference
 [in this repo](USAGE.md). in addition, there is
