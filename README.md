@@ -117,7 +117,7 @@ may well be possible to use still older versions. Let me know of any successes!
 * (OPTIONAL) (documentation) [pandoc](https://pandoc.org/index.html) 1.19.2+
 * (OPTIONAL) (python bindings): Python 3.7+, [CFFI](https://pypi.org/project/cffi/) 1.13.2+, [pypandoc](https://pypi.org/project/pypandoc/) 1.5+
 * (OPTIONAL) (rust bindings): rust 1.47.0+, [bindgen](https://crates.io/crates/bindgen) 0.55.1+, pkg-config 0.3.18+, cty 0.2.1+
-* (runtime) Linux 5.3+ or FreeBSD 11+
+* (runtime) Linux 5.3+, FreeBSD 11+, or DragonFly BSD 5.9+
 
 ### Building
 
@@ -369,7 +369,7 @@ to breaking under incorrect `TERM` values. If you're not using `xterm`, your
 
 * **Q:** The name is dumb. **A:** That's not a question?
 
-* **Q:** I'm not finding qrcodegen on FreeBSD, despite having installed `graphics/qr-code-generator`. **A:** Try `cmake -DCMAKE_REQUIRED_INCLUDES=/usr/local/include`. This is passed by `bsd.port.mk`.
+* **Q:** I'm not finding qrcodegen on BSD, despite having installed `graphics/qr-code-generator`. **A:** Try `cmake -DCMAKE_REQUIRED_INCLUDES=/usr/local/include`. This is passed by `bsd.port.mk`.
 
 * **Q:** Do you support [musl](https://musl.libc.org/)? **A:** I try to! You'll need at least 1.20.
 
@@ -419,6 +419,7 @@ to breaking under incorrect `TERM` values. If you're not using `xterm`, your
 
 ### History
 
+* 2021-01-11: Notcurses is [accepted into DragonFly BSD](https://github.com/dankamongmen/notcurses/issues/1121).
 * 2020-12-13: Notcurses [2.1.0 "rubberband man"](https://github.com/dankamongmen/notcurses/releases/tag/v2.1.0).
 * 2020-11-23: [Invited presentation](https://mdco2.mini.debconf.org/talks/6-notcurses-making-terminals-do-things-that-were-never-intended/) at [DebMiniConf #2](https://mdco2.mini.debconf.org/).
 * 2020-10-12: Notcurses [2.0.0 "stankonia"](https://github.com/dankamongmen/notcurses/releases/tag/v2.0.0).

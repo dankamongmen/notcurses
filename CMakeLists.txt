@@ -405,7 +405,7 @@ if(USE_POC)
 file(GLOB POCSRCS CONFIGURE_DEPENDS src/poc/*.c src/poc/*.cpp)
 foreach(f ${POCSRCS})
   get_filename_component(fe "${f}" NAME_WE)
-  add_executable(${fe} ${f})
+  add_executable(${fe} ${f} ${COMPATSRC})
   target_include_directories(${fe}
     PRIVATE include src "${TERMINFO_INCLUDE_DIRS}"
     "${PROJECT_BINARY_DIR}/include"
