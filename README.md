@@ -11,7 +11,9 @@
 birthed screaming into this world by [nick black](https://nick-black.com/dankwiki/index.php/Hack_on) (<nickblack@linux.com>).
 C++ wrappers by [marek habersack](http://twistedcode.net/blog/) (<grendel@twistedcode.net>). the Notcurses API
 is stable as of version 2.0.
-
+<p align="center">
+<a href="https://www.youtube.com/watch?v=cYhZ7myXyyg"><img src="https://img.youtube.com/vi/cYhZ7myXyyg/0.jpg" alt="setting the standard (hype video)"/></a>
+</p>
 for more information, see [dankwiki](https://nick-black.com/dankwiki/index.php/Notcurses)
 and the [man pages](https://notcurses.com/notcurses). there's also a reference
 [in this repo](USAGE.md). in addition, there is
@@ -419,6 +421,7 @@ to breaking under incorrect `TERM` values. If you're not using `xterm`, your
 
 ### History
 
+* 2021-02-06: FOSDEM 2021 presentation.
 * 2021-01-11: Notcurses is [accepted into DragonFly BSD](https://github.com/dankamongmen/notcurses/issues/1121).
 * 2020-12-13: Notcurses [2.1.0 "rubberband man"](https://github.com/dankamongmen/notcurses/releases/tag/v2.1.0).
 * 2020-11-23: [Invited presentation](https://mdco2.mini.debconf.org/talks/6-notcurses-making-terminals-do-things-that-were-never-intended/) at [DebMiniConf #2](https://mdco2.mini.debconf.org/).
