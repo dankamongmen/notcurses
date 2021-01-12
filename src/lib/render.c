@@ -769,7 +769,7 @@ goto_location(notcurses* nc, FILE* out, int y, int x){
       return 0;
     }
     if(x == nc->rstate.x + 1 && nc->tcache.cuf1){
-      ret = term_emit("cuf1", tiparm(nc->tcache.cuf1), out, false);
+      ret = term_emit("cuf1", nc->tcache.cuf1, out, false);
     }else{
       ret = term_emit("hpa", tiparm(nc->tcache.hpa, x), out, false);
     }
