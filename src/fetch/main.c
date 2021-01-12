@@ -513,9 +513,6 @@ neologo_present(const char* nlogo){
     }else{
       linelen = strlen(cur);
     }
-    if(linelen > maxlinelen){
-      maxlinelen = linelen;
-    }
     char** tmpl;
     if((tmpl = realloc(lines, sizeof(*lines) * (linecount + 1))) == NULL){
       free(lines);
@@ -523,6 +520,10 @@ neologo_present(const char* nlogo){
     }
     lines = tmpl;
     lines[linecount++] = strndup(cur, linelen);
+    size_t collen = ncstrwidth(lines[linecount - 1]);
+    if(collen > maxlinelen){
+      maxlinelen = collen;
+    }
   }
   const int leftpad = (80 - maxlinelen) / 2;
   for(int i = 0 ; i < linecount ; ++i){
