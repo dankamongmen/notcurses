@@ -932,7 +932,7 @@ const struct neofetch_art ncarts[] = {
 
 const char* get_neofetch_art(const char* oskey){
   for(const struct neofetch_art* nfa = ncarts ; nfa->oskey ; ++nfa){
-    if(strcmp(nfa->oskey, oskey) == 0){
+    if(strcasecmp(nfa->oskey, oskey) == 0){
       return nfa->ncart;
     }
   }

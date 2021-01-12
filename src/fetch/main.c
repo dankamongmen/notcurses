@@ -12,6 +12,7 @@
 #include <sys/utsname.h>
 #include <notcurses/direct.h>
 #include <notcurses/notcurses.h>
+#include "ncart.h"
 
 typedef struct distro_info {
   const char* name;            // must match 'lsb_release -i'
@@ -33,6 +34,8 @@ typedef struct fetched_info {
   int dimy, dimx;              // extracted from xrandr
   char* cpu_model;             // FIXME don't handle hetero setups yet
   int core_count;
+  // if there is no other logo found, fall back to a logo filched from neofetch
+  const char* neologo;         // text with color substitution templates
 } fetched_info;
 
 static void
@@ -219,6 +222,9 @@ linux_ncneofetch(fetched_info* fi){
     }
   }
   if(dinfo->name == NULL){
+    if(fi->logo == NULL){
+      fi->neologo = get_neofetch_art(distro);
+    }
     dinfo = NULL;
   }
   free(distro);
@@ -286,16 +292,18 @@ freebsd_ncneofetch(fetched_info* fi){
     .name = "FreeBSD",
     .logofile = NULL, // FIXME
   };
+  fi->neologo = get_neofetch_art("freebsd");
   fi->distro_pretty = NULL;
   return &fbsd;
 }
 
 static const distro_info*
 dragonfly_ncneofetch(fetched_info* fi){
-  static const distro_info fbsd = {
+  static distro_info fbsd = {
     .name = "DragonFly BSD",
     .logofile = NULL, // FIXME
   };
+  fi->neologo = get_neofetch_art("dragonfly");
   fi->distro_pretty = NULL;
   return &fbsd;
 }
@@ -476,7 +484,8 @@ infoplane(struct ncdirect* ncd, const fetched_info* fi){
 struct marshal {
   struct ncdirect* nc;
   const distro_info* dinfo;
-  const char* logo; // read from /etc/os-release, may be NULL
+  const char* logo; // read from /etc/os-release (or builtin), may be NULL
+  const char* neologo; // fallback from neofetch, text with color sub templates
 };
 
 static void*
@@ -495,6 +504,8 @@ display_thread(void* vmarshal){
         return NULL;
       }
     }
+  }else if(m->neologo){
+    printf(m->neologo);
   }
   return NULL;
 }
@@ -522,6 +533,7 @@ ncneofetch(struct ncdirect* nc){
     .nc = nc,
     .dinfo = fi.distro,
     .logo = fi.logo,
+    .neologo = fi.neologo,
   };
   pthread_t tid;
   const bool launched = !pthread_create(&tid, NULL, display_thread, &display_marshal);

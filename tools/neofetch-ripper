@@ -97,7 +97,7 @@ if [ -n "$DONE" ] ; then
 	echo
 	echo "const char* get_neofetch_art(const char* oskey){"
 	echo "  for(const struct neofetch_art* nfa = ncarts ; nfa->oskey ; ++nfa){"
-	echo "    if(strcmp(nfa->oskey, oskey) == 0){"
+	echo "    if(strcasecmp(nfa->oskey, oskey) == 0){"
 	echo "      return nfa->ncart;"
 	echo "    }"
 	echo "  }"
