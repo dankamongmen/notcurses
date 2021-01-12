@@ -381,10 +381,10 @@ ncsubproc* ncsubproc_createvpe(ncplane* n, const ncsubproc_options* opts,
   memset(ret, 0, sizeof(*ret));
   ret->pid = launch_pipe_process(&fd, &ret->pidfd);
   if(ret->pid == 0){
-#ifdef __FreeBSD__
-    exect(bin, arg, env);
-#else
+#ifdef __linux__
     execvpe(bin, arg, env);
+#else
+    exect(bin, arg, env);
 #endif
 //fprintf(stderr, "Error execv()ing %s\n", bin);
     exit(EXIT_FAILURE);
