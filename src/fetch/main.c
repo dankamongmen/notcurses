@@ -78,16 +78,29 @@ fetch_cpu_info(fetched_info* fi){
   }
   char buf[BUFSIZ];
   while(fgets(buf, sizeof(buf), cpuinfo)){
-#define TAG "model name\t:"
+#define CORE "core id\t"
+// model name doesn't appear on all architectures, so fall back to vendor_id
+#define TAG "model name\t"
+#define VEND "vendor_id\t"
     if(strncmp(buf, TAG, strlen(TAG)) == 0){
+      // model name trumps vendor_id
+      free(fi->cpu_model);
+      char* nl = strchr(buf + strlen(TAG), '\n');
+      *nl = '\0';
+      fi->cpu_model = strdup(buf + strlen(TAG));
+    }else if(strncmp(buf, VEND, strlen(VEND)) == 0){
+      // vendor_id ought only be used in the absence of model name
       if(fi->cpu_model == NULL){
-        char* nl = strchr(buf + strlen(TAG), '\n');
+        char* nl = strchr(buf + strlen(VEND), '\n');
         *nl = '\0';
-        fi->cpu_model = strdup(buf + strlen(TAG));
+        fi->cpu_model = strdup(buf + strlen(VEND));
       }
+    }else if(strncmp(buf, CORE, strlen(CORE)) == 0){
       ++fi->core_count;
     }
+#undef VEND
 #undef TAG
+#undef CORE
   }
   return 0;
 }
