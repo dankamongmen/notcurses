@@ -500,7 +500,7 @@ struct marshal {
 // present a neofetch-style logo. we want to substitute colors for ${cN} inline
 // sequences, and center the logo.
 static int
-neologo_present(const char* nlogo){
+neologo_present(struct ncdirect* nc, const char* nlogo){
   // find the maximum line length in columns by iterating over the logo
   size_t maxlinelen = 0;
   size_t linelen; // length in bytes, including newline
@@ -531,6 +531,8 @@ neologo_present(const char* nlogo){
     free(lines[i]);
   }
   free(lines);
+  ncdirect_set_fg_rgb(nc, 0xba55d3);
+  ncdirect_printf_aligned(nc, -1, NCALIGN_CENTER, "(no image file is known for your distro)");
   return 0;
 }
 
@@ -551,7 +553,7 @@ display_thread(void* vmarshal){
       }
     }
   }else if(m->neologo){
-    if(neologo_present(m->neologo)){
+    if(neologo_present(m->nc, m->neologo)){
       return NULL;
     }
   }
