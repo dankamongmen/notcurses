@@ -103,7 +103,10 @@ draw_block(struct ncplane* nn, uint32_t blockstart){
     for(z = 0 ; z < CHUNKSIZE ; ++z){
       wchar_t w = blockstart + chunk * CHUNKSIZE + z;
       char utf8arr[MB_CUR_MAX * 3 + 5];
-      if(wcwidth(w) >= 1 && iswgraph(w)){
+      // problematic characters FIXME (see TERMS.md)
+      if(w == 0x070f || w == 0x08e2 || w == 0x06dd){
+        strcpy(utf8arr, "  ");
+      }else if(wcwidth(w) >= 1 && iswgraph(w)){
         mbstate_t ps;
         memset(&ps, 0, sizeof(ps));
         int bwc = wcrtomb(utf8arr, w, &ps);
