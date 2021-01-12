@@ -243,6 +243,7 @@ unix_gethostname(fetched_info* fi){
 typedef enum {
   NCNEO_LINUX,
   NCNEO_FREEBSD,
+  NCNEO_DRAGONFLY,
   NCNEO_UNKNOWN,
 } ncneo_kernel_e;
 
@@ -259,6 +260,8 @@ get_kernel(fetched_info* fi){
     return NCNEO_LINUX;
   }else if(strcmp(uts.sysname, "FreeBSD") == 0){
     return NCNEO_FREEBSD;
+  }else if(strcmp(uts.sysname, "DragonFly") == 0){
+    return NCNEO_DRAGONFLY;
   }
   fprintf(stderr, "Unknown operating system via uname: %s\n", uts.sysname);
   return NCNEO_UNKNOWN;
@@ -268,6 +271,16 @@ static const distro_info*
 freebsd_ncneofetch(fetched_info* fi){
   static const distro_info fbsd = {
     .name = "FreeBSD",
+    .logofile = NULL, // FIXME
+  };
+  fi->distro_pretty = NULL;
+  return &fbsd;
+}
+
+static const distro_info*
+dragonfly_ncneofetch(fetched_info* fi){
+  static const distro_info fbsd = {
+    .name = "DragonFly BSD",
     .logofile = NULL, // FIXME
   };
   fi->distro_pretty = NULL;
@@ -483,6 +496,9 @@ ncneofetch(struct ncdirect* nc){
       break;
     case NCNEO_FREEBSD:
       fi.distro = freebsd_ncneofetch(&fi);
+      break;
+    case NCNEO_DRAGONFLY:
+      fi.distro = dragonfly_ncneofetch(&fi);
       break;
     case NCNEO_UNKNOWN:
       break;
