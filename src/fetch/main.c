@@ -1,6 +1,7 @@
 #include <pwd.h>
 #include <errno.h>
 #include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 #include <locale.h>
 #include <pthread.h>
@@ -488,6 +489,42 @@ struct marshal {
   const char* neologo; // fallback from neofetch, text with color sub templates
 };
 
+// present a neofetch-style logo. we want to substitute colors for ${cN} inline
+// sequences, and center the logo.
+static int
+neologo_present(const char* nlogo){
+  // find the maximum line length in columns by iterating over the logo
+  size_t maxlinelen = 0;
+  size_t linelen; // length in bytes, including newline
+  char** lines = NULL;
+  int linecount = 0;
+  for(const char* cur = nlogo ; *cur ; cur += linelen){
+    const char* nl = strchr(cur, '\n');
+    if(nl){
+      linelen = (nl + 1) - cur;
+    }else{
+      linelen = strlen(cur);
+    }
+    if(linelen > maxlinelen){
+      maxlinelen = linelen;
+    }
+    char** tmpl;
+    if((tmpl = realloc(lines, sizeof(*lines) * (linecount + 1))) == NULL){
+      free(lines);
+      return -1;
+    }
+    lines = tmpl;
+    lines[linecount++] = strndup(cur, linelen);
+  }
+  const int leftpad = (80 - maxlinelen) / 2;
+  for(int i = 0 ; i < linecount ; ++i){
+    printf("%*.*s%s", leftpad, leftpad, "", lines[i]);
+    free(lines[i]);
+  }
+  free(lines);
+  return 0;
+}
+
 static void*
 display_thread(void* vmarshal){
   struct marshal* m = vmarshal;
@@ -505,7 +542,9 @@ display_thread(void* vmarshal){
       }
     }
   }else if(m->neologo){
-    printf(m->neologo);
+    if(neologo_present(m->neologo)){
+      return NULL;
+    }
   }
   return NULL;
 }

@@ -35,7 +35,7 @@ while IFS= read -r line ; do
 			STARTED="$LINE"
 			echo "#include \"ncart.h\""
 			echo "#include <stdlib.h>"
-			echo "#include <string.h>"
+			echo "#include <strings.h>"
 			echo "// Output of \"`basename $0` $1\""
 			echo "// Generated on `date -u`"
 			echo "// Copyright Dylan Araps under an MIT License"
@@ -76,7 +76,8 @@ while IFS= read -r line ; do
 			PRESERVE=""
 		else
 			if [ -n "$PRESERVE" ] ; then
-				/bin/echo -E -n "$line\n" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g'
+				# FIXME don't eliminate the color templating once we carry colors
+				/bin/echo -E -n "$line" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/${c.}//g' && /bin/echo -E -n '\n'
 			fi
 		fi
 	fi
