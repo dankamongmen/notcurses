@@ -189,9 +189,9 @@ int sliding_puzzle_demo(struct notcurses* nc){
     goto done;
   }
   DEMO_RENDER(nc);
-  struct timespec ts = { .tv_sec = 0, .tv_nsec = NANOSECS_IN_SEC, };
+  /*struct timespec ts = { .tv_sec = 0, .tv_nsec = NANOSECS_IN_SEC, };
   // fade out each of the chunks in succession
-  /*for(cy = 0 ; cy < CHUNKS_VERT ; ++cy){
+  for(cy = 0 ; cy < CHUNKS_VERT ; ++cy){
     for(cx = 0 ; cx < CHUNKS_HORZ ; ++cx){
       const int idx = cy * CHUNKS_HORZ + cx;
       if(ncplane_fadeout(chunks[idx], &ts)){
@@ -201,7 +201,7 @@ int sliding_puzzle_demo(struct notcurses* nc){
   }*/
   // shuffle up the chunks
   int i;
-  demo_nanosleep(nc, &ts);
+  demo_nanosleep(nc, &demodelay);
   for(i = 0 ; i < 200 ; ++i){
     int i0 = random() % chunkcount;
     int i1 = random() % chunkcount;
