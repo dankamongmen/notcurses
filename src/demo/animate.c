@@ -5,10 +5,30 @@
 // cells, each iterating through the N_c states in a round. the string emerges
 // from the center of the screen, moving in a spiral. it then does a loop around
 // the columns, and returns back to its hole.
+//
 // so, each iteration, start at the head of the chain, and move one forward.
 // work back along the path, moving back through the string. if we reach the
 // end of the string, clear the cell behind it. eventually, we'll clear the
 // entirety of the string, and we're done.
+//
+// path: we know what phase we're in based on the location of the head. within
+// the side columns, we're spiraling. beyond them, we're circling. the geometry
+// of the circle is dictated by being one beyond the columns everywhere. the
+// geometry of the spiral is dictated by distance from the center.
+//
+// we'll start with just one cycle to prove the path, then add the rest in.
+static const char* cycles[] = {
+  "🞯🞰🞱🞲🞳🞴",   // 6 five-point asterisks
+  "🞵🞶🞷🞸🞹🞺",   // 6 six-point asterisks
+  "🞻🞼🞽🞾🞿",    // 5 eight-point asterisks
+  "◧◩⬒⬔◨◪⬓⬕", // 8 half-black squares
+  "◐◓◑◒",     // 4 half-black circles
+  "◢◣◤◥",     // 4 black triangles
+  "◰◳◲◱",     // 4 white squares with quadrants
+  "◴◷◶◵",     // 4 white circles with quadrants
+  NULL,
+};
+
 static int
 animate(struct notcurses* nc, struct ncprogbar* left, struct ncprogbar* right){
   (void)nc; // FIXME
