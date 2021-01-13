@@ -74,7 +74,7 @@ static struct {
   int (*fxn)(struct notcurses*);
   bool dfsg_disabled;             // disabled for DFSG builds
 } demos[26] = {
-  { "allglyph", allglyphs_demo, false, },
+  { "animate", animate_demo, false, },
   { "box", box_demo, false, },
   { "chunli", chunli_demo, true, },
   { "dragon", dragon_demo, false, },

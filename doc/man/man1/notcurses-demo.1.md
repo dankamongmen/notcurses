@@ -22,7 +22,7 @@ a way that is going to prevent notcurses from working in other applications.
 
 The demonstrations include (see NOTES below):
 
-* (***a***)llglyph—scroll the glyphs of your font
+* (***a***)nimate—explore cycles within Unicode
 * (***b***)oxes—pulsating boxes with a transparent center
 * (***c***)hunli—the strongest woman in the world
 * (***d***)ragon—the Harter-Heighway dragon curve
@@ -121,7 +121,7 @@ JSON output via **-J** will probably be useful.
 
 # BUGS
 
-Certain demos (especially **mojibake** and **allglyph**) heavily exercise the
+Certain demos (especially **mojibake** and **uniblocks**) heavily exercise the
 font rendering stack. If your font or rendering engine draws glyphs with width
 different from that reported by the standard library's **wcwidth(3)**,
 Notcurses will have an incorrect notion of cursor placement, leading to
