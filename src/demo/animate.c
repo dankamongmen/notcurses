@@ -29,6 +29,12 @@ static const char* cycles[] = {
   NULL,
 };
 
+static enum {
+  PHASE_SPIRAL,
+  PHASE_CIRCLE,
+  PHASE_CLOSE,
+} phase;
+
 // get the new head position, given the old head position
 static void
 get_next_head(struct ncplane* std, struct ncplane* left, struct ncplane* right,
@@ -40,14 +46,28 @@ get_next_head(struct ncplane* std, struct ncplane* left, struct ncplane* right,
   ncplane_abs_yx(left, &brow, &rlcol);
   rlcol += ncplane_dim_x(left) - 1;
   brow += ncplane_dim_y(left) - 1;
-ncplane_printf_aligned(std, 2, NCALIGN_LEFT, "t: %d b: %d", trow, brow);
+ncplane_printf_aligned(std, 2, NCALIGN_LEFT, "t: %d b: %d p: %d", trow, brow, phase);
 ncplane_printf_aligned(std, 3, NCALIGN_LEFT, "lr: %d rl: %d", lrcol, rlcol);
+  // if we're ending, we either remain where we are, or move down
+  if(phase == PHASE_CLOSE){
+    if(*heady < ncplane_dim_y(std) / 2){
+      ++*heady;
+    }
+    return;
+  }
   // we're above the columns. head left, unless we're at top left, in which
-  // case we head down.
+  // case we head down, or if we're in PHASE_CIRCLE and at the top center,
+  // in which case move into PHASE_CLOSE.
   if(*heady == trow - 2){
+    if(*headx == ncplane_dim_x(std) / 2 && phase == PHASE_CIRCLE){
+      phase = PHASE_CLOSE;
+      ++*heady;
+      return;
+    }
     if(*headx == rlcol - ncplane_dim_x(left) - 2){
       ++*heady;
     }else{
+      phase = PHASE_CIRCLE;
       --*headx;
     }
   // we're to the left of the columns. head down, until bottom left.
@@ -98,13 +118,15 @@ ncplane_printf_aligned(std, 4, NCALIGN_LEFT, "%dx%d   ", heady, headx);
     get_next_head(std, ncprogbar_plane(left), ncprogbar_plane(right), &heady, &headx);
     DEMO_RENDER(nc);
     demo_nanosleep(nc, &demodelay);
+
 { // FIXME REMOVE THIS BLOCK; temporary while validating movement algorithm
   int topr;
   ncplane_abs_yx(ncprogbar_plane(left), &topr, NULL);
-  if(heady == topr - 2 && headx == dimx / 2 + 1){
+  if(heady == dimy / 2 && headx == dimx / 2 && phase == PHASE_CLOSE){
     break;
   }
 }
+
   }
   return 0;
 }
