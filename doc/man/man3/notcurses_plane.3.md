@@ -61,6 +61,8 @@ typedef struct ncplane_options {
 
 **int ncplane_x(const struct ncplane* ***n***);**
 
+**void ncplane_abs_yx(const struct ncplane* ***n***, int* ***y***, int* ***x***);**
+
 **struct ncplane* ncplane_parent(struct ncplane* ***n***);**
 
 **const struct ncplane* ncplane_parent_const(const struct ncplane* ***n***);**
@@ -229,6 +231,12 @@ as rendering is not taking place, however, multiple threads may safely output
 to multiple ncplanes. So long as all threads are readers, multiple threads may
 work with a single ncplane. A reading function is any which accepts a **const
 struct ncplane**.
+
+**ncplane_yx** returns the coordinates of the specified plane's origin, relative
+to the plane to which it is bound. Either or both of ***y*** and ***x*** may
+be **NULL**. **ncplane_y** and **ncplane_x** allow a single component of this
+location to be retrieved. **ncplane_abs_yx** returns the coordinates of the
+specified plane's origin relative to its pile.
 
 **ncplane_translate** translates coordinates expressed relative to the plane
 ***src***, and writes the coordinates of that cell relative to ***dst***. The cell

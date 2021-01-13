@@ -1164,7 +1164,7 @@ API struct ncplane* ncplane_reparent_family(struct ncplane* n, struct ncplane* n
 API struct ncplane* ncplane_dup(const struct ncplane* n, void* opaque);
 
 // provided a coordinate relative to the origin of 'src', map it to the same
-// absolute coordinate relative to thte origin of 'dst'. either or both of 'y'
+// absolute coordinate relative to the origin of 'dst'. either or both of 'y'
 // and 'x' may be NULL. if 'dst' is NULL, it is taken to be the standard plane.
 API void ncplane_translate(const struct ncplane* src, const struct ncplane* dst,
                            int* RESTRICT y, int* RESTRICT x);
@@ -1311,11 +1311,15 @@ API int ncplane_base(struct ncplane* n, nccell* c);
 // standard plane.
 API int ncplane_move_yx(struct ncplane* n, int y, int x);
 
-// Get the origin of this plane relative to the standard plane, or the plane to
-// which it is bound (if it is bound to a plane).
+// Get the origin of plane 'n' relative to its bound plane, or pile (if 'n' is
+// a root plane). To get absolute coordinates, use ncplane_abs_yx().
 API void ncplane_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
 API int ncplane_y(const struct ncplane* n);
 API int ncplane_x(const struct ncplane* n);
+
+// Get the origin of plane 'n' relative to its pile. This is O(N) on the
+// binding depth of 'n'. Either or both of 'x' and y' may be NULL.
+API void ncplane_abs_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
 
 // Get the plane to which the plane 'n' is bound, if any.
 API struct ncplane* ncplane_parent(struct ncplane* n);

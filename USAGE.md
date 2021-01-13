@@ -802,11 +802,15 @@ ncplane_resize_simple(struct ncplane* n, int ylen, int xlen){
 // standard plane.
 int ncplane_move_yx(struct ncplane* n, int y, int x);
 
-// Get the origin of this plane relative to the standard plane, or the plane to
-// which it is bound (if it is bound to a plane).
+// Get the origin of plane 'n' relative to its bound plane, or its pile (if
+// 'n' is a root plane).
 void ncplane_yx(const struct ncplane* n, int* restrict y, int* restrict x);
 int ncplane_y(const struct ncplane* n);
 int ncplane_x(const struct ncplane* n);
+
+// Get the origin of plane 'n' relative to its pile. This is O(N) on the
+// binding depth of 'n'. Either or both of 'x' and y' may be NULL.
+void ncplane_abs_yx(const struct ncplane* n, int* y, int* x);
 
 // Return the dimensions of this ncplane.
 void ncplane_dim_yx(struct ncplane* n, int* restrict rows, int* restrict cols);
@@ -826,7 +830,7 @@ ncplane_dim_x(const struct ncplane* n){
 }
 
 // provided a coordinate relative to the origin of 'src', map it to the same
-// absolute coordinate relative to thte origin of 'dst'. either or both of 'y'
+// absolute coordinate relative to the origin of 'dst'. either or both of 'y'
 // and 'x' may be NULL. if 'dst' is NULL, it is taken to be the standard plane.
 void ncplane_translate(const struct ncplane* src, const struct ncplane* dst,
                        int* restrict y, int* restrict x);

@@ -8,6 +8,9 @@ rearrangements of Notcurses.
   * `ncplane_putstr_yx()`, `ncplane_putstr_stained()`, and
     `ncplane_putnstr_yx()` now return the number of columns output, as
     long documented (they were mistakenly returning the number of bytes).
+  * `ncplane_abs_yx()` has been added, returning the absolute coordinates of
+    the plane's origin (i.e. coordinates relative to its pile). This call is
+    O(N) on the binding depth of the plane in question.
 
 * 2.1.4 (2021-01-03):
   * Direct mode now supports `NCDIRECT_OPTION_NO_QUIT_SIGHANDLERS`, and by
