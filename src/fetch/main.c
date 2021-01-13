@@ -9,6 +9,8 @@
 #include <sys/types.h>
 #ifdef __linux__
 #include <sys/sysinfo.h>
+#else
+#include <sys/sysctl.h>
 #endif
 #include <sys/utsname.h>
 #include <notcurses/direct.h>
@@ -72,6 +74,28 @@ static distro_info distros[] = {
     .logofile = NULL,
   },
 };
+
+static int
+fetch_bsd_cpuinfo(fetched_info* fi){
+#ifdef __linux__
+  (void)fi;
+#else
+  size_t len = sizeof(fi->core_count);
+  int mib[2] = { CTL_HW, HW_NCPU };
+  if(sysctl(mib, sizeof(mib) / sizeof(*mib), &fi->core_count, &len, NULL, 0)){
+    fprintf(stderr, "Coudln't acquire CTL_HW+HW_NCPU sysctl (%s)\n", strerror(errno));
+    return -1;
+  }
+  mib[1] = HW_MODEL;
+  size_t modellen = 80; // FIXME?
+  fi->cpu_model = malloc(modellen);
+  if(sysctl(mib, sizeof(mib) / sizeof(*mib), fi->cpu_model, &modellen, NULL, 0)){
+    fprintf(stderr, "Coudln't acquire CTL_HW+HW_MODEL sysctl (%s)\n", strerror(errno));
+    return -1;
+  }
+#endif
+  return 0;
+}
 
 static int
 fetch_cpu_info(fetched_info* fi){
@@ -589,7 +613,11 @@ ncneofetch(struct ncdirect* nc){
   unix_getusername(&fi);
   fetch_env_vars(&fi);
   fetch_x_props(&fi);
-  fetch_cpu_info(&fi);
+  if(kern == NCNEO_LINUX){
+    fetch_cpu_info(&fi);
+  }else{
+    fetch_bsd_cpuinfo(&fi);
+  }
   if(launched){
     pthread_join(tid, NULL);
   }
