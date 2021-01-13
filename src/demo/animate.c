@@ -29,11 +29,83 @@ static const char* cycles[] = {
   NULL,
 };
 
+// get the new head position, given the old head position
+static void
+get_next_head(struct ncplane* std, struct ncplane* left, struct ncplane* right,
+              int* heady, int* headx){
+  int lrcol; // left column of right progbar
+  int rlcol; // right column of left progbar
+  int trow, brow; // top and bottom
+  ncplane_abs_yx(right, &trow, &lrcol);
+  ncplane_abs_yx(left, &brow, &rlcol);
+  rlcol += ncplane_dim_x(left) - 1;
+  brow += ncplane_dim_y(left) - 1;
+ncplane_printf_aligned(std, 2, NCALIGN_LEFT, "t: %d b: %d", trow, brow);
+ncplane_printf_aligned(std, 3, NCALIGN_LEFT, "lr: %d rl: %d", lrcol, rlcol);
+  // we're above the columns. head left, unless we're at top left, in which
+  // case we head down.
+  if(*heady == trow - 2){
+    if(*headx == rlcol - ncplane_dim_x(left) - 2){
+      ++*heady;
+    }else{
+      --*headx;
+    }
+  // we're to the left of the columns. head down, until bottom left.
+  }else if(*headx == rlcol - ncplane_dim_x(left) - 2){
+    if(*heady == brow + 2){
+      ++*headx;
+    }else{
+      ++*heady;
+    }
+  // we're below the columns. head right, until bottom right.
+  }else if(*heady == brow + 2){
+    if(*headx == lrcol + ncplane_dim_x(right) + 1){
+      --*heady;
+    }else{
+      ++*headx;
+    }
+  // we're to the right of the columns. head up, until top right.
+  }else if(*headx == lrcol + ncplane_dim_x(right) + 2){
+    if(*heady == trow - 2){
+      --*headx;
+    }else{
+      --*heady;
+    }
+  }else{
+    // we're within the spiral phase. head up for now (FIXME no spiral yet)
+    --*heady;
+  }
+}
+
 static int
 animate(struct notcurses* nc, struct ncprogbar* left, struct ncprogbar* right){
-  (void)nc; // FIXME
-  (void)left;
-  (void)right;
+  int dimy, dimx;
+  struct ncplane* std = notcurses_stddim_yx(nc, &dimy, &dimx);
+  int endy = -1;
+  int endx = -1;
+  int headx = dimx / 2;
+  int heady = dimy / 2;
+  // headx and heady start at their final locations, but endy and endx start at
+  // -1. headx and heady will not return to their starting location until the
+  // string begins to disappear. endx and endy won't be defined until the
+  // entire string has emerged, and won't equal heady/headx until the entire
+  // string has been consumed.
+  (void)cycles; // FIXME
+ncplane_set_fg_rgb(std, 0xffffff);
+  while(endy != heady || endx != headx){
+ncplane_printf_aligned(std, 4, NCALIGN_LEFT, "%dx%d   ", heady, headx);
+    ncplane_putchar_yx(std, heady, headx, 'x');
+    get_next_head(std, ncprogbar_plane(left), ncprogbar_plane(right), &heady, &headx);
+    DEMO_RENDER(nc);
+    demo_nanosleep(nc, &demodelay);
+{ // FIXME REMOVE THIS BLOCK; temporary while validating movement algorithm
+  int topr;
+  ncplane_abs_yx(ncprogbar_plane(left), &topr, NULL);
+  if(heady == topr - 2 && headx == dimx / 2 + 1){
+    break;
+  }
+}
+  }
   return 0;
 }
 
