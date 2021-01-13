@@ -2147,6 +2147,19 @@ const notcurses* ncplane_notcurses_const(const ncplane* n){
   return ncplane_pile_const(n)->nc;
 }
 
+static void
+ncplane_abs_yx_recurse(const ncplane* n, int* RESTRICT y, int* RESTRICT x){
+  if(n->boundto != n){
+    ncplane_translate(n, n->boundto, y, x);
+    ncplane_abs_yx_recurse(n->boundto, y, x);
+  }
+}
+
+void ncplane_abs_yx(const ncplane* n, int* RESTRICT y, int* RESTRICT x){
+  ncplane_yx(n, y, x);
+  ncplane_abs_yx_recurse(n->boundto, y, x);
+}
+
 ncplane* ncplane_parent(ncplane* n){
   return n->boundto;
 }
