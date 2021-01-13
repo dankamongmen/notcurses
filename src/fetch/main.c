@@ -301,7 +301,7 @@ freebsd_ncneofetch(fetched_info* fi){
     .name = "FreeBSD",
     .logofile = NULL, // FIXME
   };
-  fi->neologo = get_neofetch_art("freebsd");
+  fi->neologo = get_neofetch_art("BSD"); // use big daemon logo
   fi->distro_pretty = NULL;
   return &fbsd;
 }
