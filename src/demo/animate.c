@@ -46,12 +46,12 @@ get_next_head(struct ncplane* std, struct ncplane* left, struct ncplane* right,
   ncplane_abs_yx(left, &brow, &rlcol);
   rlcol += ncplane_dim_x(left) - 1;
   brow += ncplane_dim_y(left) - 1;
-ncplane_printf_aligned(std, 2, NCALIGN_LEFT, "t: %d b: %d p: %d", trow, brow, phase);
-ncplane_printf_aligned(std, 3, NCALIGN_LEFT, "lr: %d rl: %d", lrcol, rlcol);
   // if we're ending, we either remain where we are, or move down
   if(phase == PHASE_CLOSE){
     if(*heady < ncplane_dim_y(std) / 2){
       ++*heady;
+    }else{
+      --*headx; // done
     }
     return;
   }
@@ -59,17 +59,19 @@ ncplane_printf_aligned(std, 3, NCALIGN_LEFT, "lr: %d rl: %d", lrcol, rlcol);
   // case we head down, or if we're in PHASE_CIRCLE and at the top center,
   // in which case move into PHASE_CLOSE.
   if(*heady == trow - 2){
-    if(*headx == ncplane_dim_x(std) / 2 && phase == PHASE_CIRCLE){
+    if(*headx == ncplane_dim_x(std) / 2 + 1 && phase == PHASE_CIRCLE){
       phase = PHASE_CLOSE;
       ++*heady;
       return;
     }
     if(*headx == rlcol - ncplane_dim_x(left) - 2){
-      ++*heady;
-    }else{
-      phase = PHASE_CIRCLE;
-      --*headx;
+      ++*heady; // turn the corner
+      return;
     }
+    if(*headx == ncplane_dim_x(std) / 2){
+      phase = PHASE_CIRCLE;
+    }
+    --*headx;
   // we're to the left of the columns. head down, until bottom left.
   }else if(*headx == rlcol - ncplane_dim_x(left) - 2){
     if(*heady == brow + 2){
@@ -92,8 +94,45 @@ ncplane_printf_aligned(std, 3, NCALIGN_LEFT, "lr: %d rl: %d", lrcol, rlcol);
       --*heady;
     }
   }else{
-    // we're within the spiral phase. head up for now (FIXME no spiral yet)
-    --*heady;
+    // in the spiral cycle. it's a counterclockwise spiral, come out the bottom,
+    // calculate distances from the center in both directions. if the absolute
+    // values are equal, turn counterclockwise, *unless* xdist is positive and
+    // ydist is negative. in that case, we're coming down the left side, and
+    // need go down one further, only then turning right. that case is xdist is
+    // positive, ydist is negative, and xdist + ydist == -1. otherwise, continue
+    // moving counterclockwise (right if |ydist|>|xdist| and negative y, left
+    // if |ydist|>|xdist| and positive y, etc.)
+    int ydist = ncplane_dim_y(std) / 2 - *heady;
+    int xdist = ncplane_dim_x(std) / 2 - *headx;
+    if(ydist == 0 && xdist == 0){
+      ++*heady; // move down
+    }else if(abs(ydist) == abs(xdist)){ // corner
+      if(ydist < 0 && xdist > 0){ // lower-left, move down
+        ++*heady; // move down
+      }else if(ydist < 0 && xdist < 0){ // lower-right, move up
+        --*heady;
+      }else if(xdist > 0){ // upper-left, move down
+        ++*heady;
+      }else{ // upper-right, love left
+        --*headx;
+      }
+    }else if(ydist < 0 && xdist > 0 && ydist + xdist == -1){ // new iteration
+      ++*headx;
+    }else{
+      if(abs(ydist) > abs(xdist)){
+        if(ydist < 0){
+          ++*headx;
+        }else{
+          --*headx;
+        }
+      }else{
+        if(xdist < 0){
+          --*heady;
+        }else{
+          ++*heady;
+        }
+      }
+    }
   }
 }
 
@@ -101,33 +140,24 @@ static int
 animate(struct notcurses* nc, struct ncprogbar* left, struct ncprogbar* right){
   int dimy, dimx;
   struct ncplane* std = notcurses_stddim_yx(nc, &dimy, &dimx);
-  int endy = -1;
-  int endx = -1;
   int headx = dimx / 2;
   int heady = dimy / 2;
-  // headx and heady start at their final locations, but endy and endx start at
-  // -1. headx and heady will not return to their starting location until the
-  // string begins to disappear. endx and endy won't be defined until the
-  // entire string has emerged, and won't equal heady/headx until the entire
-  // string has been consumed.
+  int endy = heady;
+  int endx = headx;
+  // headx and heady start at their final locations, as do endy and endx.
+  // headx and heady will not return to their starting location until the
+  // string begins to disappear. endx and endy won't equal heady/headx until
+  // the entire string has been consumed.
   (void)cycles; // FIXME
-ncplane_set_fg_rgb(std, 0xffffff);
-  while(endy != heady || endx != headx){
-ncplane_printf_aligned(std, 4, NCALIGN_LEFT, "%dx%d   ", heady, headx);
+  ncplane_set_fg_rgb(std, 0xffffff);
+  struct timespec delay;
+  timespec_div(&demodelay, 150, &delay);
+  do{
     ncplane_putchar_yx(std, heady, headx, 'x');
     get_next_head(std, ncprogbar_plane(left), ncprogbar_plane(right), &heady, &headx);
     DEMO_RENDER(nc);
-    demo_nanosleep(nc, &demodelay);
-
-{ // FIXME REMOVE THIS BLOCK; temporary while validating movement algorithm
-  int topr;
-  ncplane_abs_yx(ncprogbar_plane(left), &topr, NULL);
-  if(heady == dimy / 2 && headx == dimx / 2 && phase == PHASE_CLOSE){
-    break;
-  }
-}
-
-  }
+    demo_nanosleep(nc, &delay);
+  }while(endy != heady || endx != headx);
   return 0;
 }
 
