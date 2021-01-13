@@ -545,12 +545,10 @@ display_thread(void* vmarshal){
                              NCBLIT_DEFAULT, NCSCALE_SCALE_HIRES)){
       return NULL;
     }
-  }else if(m->dinfo){
-    if(m->dinfo->logofile){
-      if(ncdirect_render_image(m->nc, m->dinfo->logofile, NCALIGN_CENTER,
-                               NCBLIT_DEFAULT, NCSCALE_SCALE_HIRES)){
-        return NULL;
-      }
+  }else if(m->dinfo && m->dinfo->logofile){
+    if(ncdirect_render_image(m->nc, m->dinfo->logofile, NCALIGN_CENTER,
+                             NCBLIT_DEFAULT, NCSCALE_SCALE_HIRES)){
+      return NULL;
     }
   }else if(m->neologo){
     if(neologo_present(m->nc, m->neologo)){
