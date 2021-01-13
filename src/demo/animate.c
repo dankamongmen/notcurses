@@ -26,6 +26,11 @@ static const char* cycles[] = {
   "◢◣◤◥",     // 4 black triangles
   "◰◳◲◱",     // 4 white squares with quadrants
   "◴◷◶◵",     // 4 white circles with quadrants
+  "🞅🞆🞇🞈🞉🞊",   // 6 white circles
+  "🞎🞏🞐🞑🞒🞓",   // 6 white squares
+  "▤▥▦▧▨▩",   // 6 squares with fill
+  "⯁⯂⯃⯄",     // 4 regular black polyhedra
+  "⌌⌍⌎⌏",     // 4 crops
   NULL,
 };
 
@@ -149,12 +154,16 @@ animate(struct notcurses* nc, struct ncprogbar* left, struct ncprogbar* right){
   // string begins to disappear. endx and endy won't equal heady/headx until
   // the entire string has been consumed.
   (void)cycles; // FIXME
+  // FIXME need to color the stuff
   ncplane_set_fg_rgb(std, 0xffffff);
   struct timespec delay;
   timespec_div(&demodelay, 150, &delay);
+  phase = PHASE_SPIRAL;
   do{
     ncplane_putchar_yx(std, heady, headx, 'x');
     get_next_head(std, ncprogbar_plane(left), ncprogbar_plane(right), &heady, &headx);
+    // FIXME need get_next_end(), and to clear the old tail if it changes
+    // FIXME need to iterate each character through its cycle
     DEMO_RENDER(nc);
     demo_nanosleep(nc, &delay);
   }while(endy != heady || endx != headx);
@@ -249,7 +258,6 @@ int animate_demo(struct notcurses* nc){
     ncplane_destroy(column);
     return -1;
   }
-  ncplane_set_scrolling(column, true);
   int r = animate(nc, pbarleft, pbarright);
   ncplane_destroy(column);
   // reflash the gradient to eliminate the counter, setting stage for next demo
