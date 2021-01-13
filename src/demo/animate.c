@@ -1,11 +1,17 @@
 #include "demo.h"
 
+// we have a set of cyclic glyphs, with each cycle composed of some number N_c
+// of glyphs. our string is made up of each cycle, with each occupying N_c
+// cells, each iterating through the N_c states in a round. the string emerges
+// from the center of the screen, moving in a spiral. it then does a loop around
+// the columns, and returns back to its hole.
+// so, each iteration, start at the head of the chain, and move one forward.
+// work back along the path, moving back through the string. if we reach the
+// end of the string, clear the cell behind it. eventually, we'll clear the
+// entirety of the string, and we're done.
 static int
-animate(struct notcurses* nc, struct ncplane* column, int legendy,
-        struct ncprogbar* left, struct ncprogbar* right){
+animate(struct notcurses* nc, struct ncprogbar* left, struct ncprogbar* right){
   (void)nc; // FIXME
-  (void)column;
-  (void)legendy;
   (void)left;
   (void)right;
   return 0;
@@ -100,7 +106,7 @@ int animate_demo(struct notcurses* nc){
     return -1;
   }
   ncplane_set_scrolling(column, true);
-  int r = animate(nc, column, planey - 2, pbarleft, pbarright);
+  int r = animate(nc, pbarleft, pbarright);
   ncplane_destroy(column);
   // reflash the gradient to eliminate the counter, setting stage for next demo
   ncplane_cursor_move_yx(n, 1, 0);
