@@ -29,6 +29,7 @@ implementation of block-drawing characters, or relies on the font.
 | Sakura | ✔ | ✔ |? |`TERM=vte-256color` `COLORTERM=24bit` | No terminfo entry? |
 | mlterm | 🗴 | ✔ |? |`TERM=mlterm-256color` | Do not set `COLORTERM`. `mlterm-direct` gives strange results. |
 | st | ✔ | ✔ |? |`TERM=st-256color` `COLORTERM=24bit` | |
+| wezterm | ✔ | ✔ | | `TERM=wezterm` `COLORTERM=24bit` | |
 | wterm | | | | | |
 | GNU Screen | 🗴 | ✔ | |`TERM=screen.OLDTERM` | Must be compiled with `--enable-256color`. `TERM` should typically be `screen.` suffixed by the appropriate `TERM` value for the true connected terminal, e.g. `screen.vte-256color`. See below. |
 | tmux | | | | | |
