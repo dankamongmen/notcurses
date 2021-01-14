@@ -59,10 +59,10 @@ apply_term_heuristics(tinfo* ti, const char* termname){
   }else if(strstr(termname, "vte") || strstr(termname, "gnome")){
     ti->sextants = true; // VTE has long enjoyed good sextant support
   }
-// as of freebsd 12.1 / dragonfly 5.9, there's no libc support for sextants
-#if defined(__FreeBSD__) || defined(__DragonFly__)
-  ti->sextants = false;
-#endif
+  // run a wcwidth() to guarantee libc Unicode 13 support
+  if(wcwidth(L'🬸') < 0){
+    ti->sextants = false;
+  }
   return 0;
 }
 
