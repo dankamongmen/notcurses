@@ -177,8 +177,11 @@ TEST_CASE("Piles") {
       nullptr, nullptr, nullptr, 0
     };
     auto gen1 = ncplane_create(n_, &nopts);
+    REQUIRE(nullptr != gen1);
     auto gen2 = ncplane_create(gen1, &nopts);
+    REQUIRE(nullptr != gen2);
     auto gen3 = ncplane_create(gen2, &nopts);
+    REQUIRE(nullptr != gen3);
     int y, x;
     ncplane_abs_yx(gen1, &y, &x);
     CHECK(10 == y);
@@ -206,6 +209,60 @@ TEST_CASE("Piles") {
     CHECK(30 == x);
     CHECK(10 == ncplane_y(gen3)); // should also stay the same
     CHECK(10 == ncplane_x(gen3));
+    ncplane_destroy(gen2);
+    ncplane_destroy(gen3);
+  }
+
+  // When a plane is reparented, its absy/absx ought be updated to reflect the
+  // new parent (and its children ought also be updated). The absolute
+  // positions ought not change.
+  SUBCASE("ReparentUpdatePos") {
+    struct ncplane_options nopts = {
+      .y = 10,
+      .x = 10,
+      .rows = 2,
+      .cols = 2,
+      nullptr, nullptr, nullptr, 0
+    };
+    auto gen1 = ncplane_create(n_, &nopts);
+    REQUIRE(nullptr != gen1);
+    auto gen2 = ncplane_create(gen1, &nopts);
+    REQUIRE(nullptr != gen2);
+    auto gen3 = ncplane_create(gen2, &nopts);
+    REQUIRE(nullptr != gen3);
+    int y, x;
+    ncplane_abs_yx(gen1, &y, &x);
+    CHECK(10 == y);
+    CHECK(10 == x);
+    CHECK(10 == ncplane_y(gen1));
+    CHECK(10 == ncplane_x(gen1));
+    ncplane_abs_yx(gen2, &y, &x);
+    CHECK(20 == y);
+    CHECK(20 == x);
+    CHECK(10 == ncplane_y(gen2));
+    CHECK(10 == ncplane_x(gen2));
+    ncplane_abs_yx(gen3, &y, &x);
+    CHECK(30 == y);
+    CHECK(30 == x);
+    CHECK(10 == ncplane_y(gen3));
+    CHECK(10 == ncplane_x(gen3));
+    CHECK(nullptr != ncplane_reparent(gen1, gen2));
+    ncplane_abs_yx(gen2, &y, &x); // gen2 is now the parent
+    CHECK(20 == y);
+    CHECK(20 == x);
+    CHECK(20 == ncplane_y(gen1));
+    CHECK(20 == ncplane_x(gen1));
+    ncplane_abs_yx(gen1, &y, &x); // gen1 is below and to the left of gen2
+    CHECK(10 == y);
+    CHECK(10 == x);
+    CHECK(-10 == ncplane_y(gen1));
+    CHECK(-10 == ncplane_x(gen1));
+    ncplane_abs_yx(gen3, &y, &x);
+    CHECK(30 == y); // should stay the same
+    CHECK(30 == x);
+    CHECK(20 == ncplane_y(gen3)); // should reflect new parentage
+    CHECK(20 == ncplane_x(gen3));
+    ncplane_destroy(gen1);
     ncplane_destroy(gen2);
     ncplane_destroy(gen3);
   }
