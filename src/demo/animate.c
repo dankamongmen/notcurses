@@ -153,18 +153,25 @@ get_next_end(struct ncplane* std, struct ncplane* left, struct ncplane* right,
   get_next_head(std, left, right, endy, endx, endphase);
 }
 
-// determine the total number of moves we will make
+// determine the total number of moves we will make. this is most easily and
+// accurately done by running through a loop.
 static int
-determine_totalmoves(struct ncplane* left, struct ncplane* right){
-  int lrcol; // left column of right progbar
-  int rlcol; // right column of left progbar
-  int trow, brow; // top and bottom
-  ncplane_abs_yx(right, &trow, &lrcol);
-  ncplane_abs_yx(left, &brow, &rlcol);
-  rlcol += ncplane_dim_x(left) - 1;
-  brow += ncplane_dim_y(left) - 1;
-  return ((brow - trow + 3) * (brow - trow + 3) +
-          ncplane_dim_x(left) * 2 + ncplane_dim_y(left) * 2);
+determine_totalmoves(struct ncplane* std, struct ncplane* left, struct ncplane* right,
+                     int heady, int headx, int endy, int endx, int totallength){
+  int moves = 0, length = 0;
+  phase_e headphase, endphase;
+  do{
+    get_next_head(std, left, right, &heady, &headx, &headphase);
+    if(length < totallength){
+      ++length;
+    }else{
+      get_next_end(std, left, right, &endy, &endx, &endphase);
+    }
+    ++moves;
+fprintf(stderr, "move %d: %d/%d %d/%d\n", moves, heady, headx, endy, endx);
+  }while(endy != heady || endx != headx);
+fprintf(stderr, "done! move %d: %d/%d %d/%d\n", moves, heady, headx, endy, endx);
+  return moves;
 }
 
 static int
@@ -180,7 +187,9 @@ animate(struct notcurses* nc, struct ncprogbar* left, struct ncprogbar* right){
   for(const char** c = cycles ; *c ; ++c){
     totallength += ncstrwidth(*c);
   }
-  const int totalmoves = determine_totalmoves(ncprogbar_plane(left), ncprogbar_plane(right));
+  int totalmoves = determine_totalmoves(std, ncprogbar_plane(left), ncprogbar_plane(right),
+                                        heady, headx, endy, endx, totallength);
+  ++totalmoves; // for final render
   // headx and heady will not return to their starting location until the
   // string begins to disappear. endx and endy won't equal heady/headx until
   // the entire string has been consumed.
@@ -316,11 +325,6 @@ int animate_demo(struct notcurses* nc){
   }
   ncplane_destroy(column);
   int r = animate(nc, pbarleft, pbarright);
-  // reflash the gradient to eliminate the counter, setting stage for next demo
-  ncplane_cursor_move_yx(n, 1, 0);
-  if(ncplane_highgradient(n, tl, tr, bl, br, dimy - 1, dimx - 1) < 0){
-    return -1;
-  }
   ncprogbar_destroy(pbarleft);
   ncprogbar_destroy(pbarright);
   return r;
