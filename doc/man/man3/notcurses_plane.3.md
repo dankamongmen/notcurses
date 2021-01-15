@@ -63,6 +63,10 @@ typedef struct ncplane_options {
 
 **void ncplane_abs_yx(const struct ncplane* ***n***, int* ***y***, int* ***x***);**
 
+**int ncplane_abs_y(const struct ncplane* ***n***);**
+
+**int ncplane_abs_x(const struct ncplane* ***n***);**
+
 **struct ncplane* ncplane_parent(struct ncplane* ***n***);**
 
 **const struct ncplane* ncplane_parent_const(const struct ncplane* ***n***);**

@@ -808,9 +808,11 @@ void ncplane_yx(const struct ncplane* n, int* restrict y, int* restrict x);
 int ncplane_y(const struct ncplane* n);
 int ncplane_x(const struct ncplane* n);
 
-// Get the origin of plane 'n' relative to its pile. This is O(N) on the
-// binding depth of 'n'. Either or both of 'x' and y' may be NULL.
+// Get the origin of plane 'n' relative to its pile. Either or both of 'x' and
+// 'y' may be NULL.
 void ncplane_abs_yx(const struct ncplane* n, int* y, int* x);
+int ncplane_abs_y(const struct ncplane* n);
+int ncplane_abs_x(const struct ncplane* n);
 
 // Return the dimensions of this ncplane.
 void ncplane_dim_yx(struct ncplane* n, int* restrict rows, int* restrict cols);

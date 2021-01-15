@@ -246,12 +246,14 @@ TEST_CASE("Piles") {
     CHECK(30 == x);
     CHECK(10 == ncplane_y(gen3));
     CHECK(10 == ncplane_x(gen3));
+notcurses_debug(nc_, stderr);
     CHECK(nullptr != ncplane_reparent(gen1, gen2));
+notcurses_debug(nc_, stderr);
     ncplane_abs_yx(gen2, &y, &x); // gen2 is now the parent
     CHECK(20 == y);
     CHECK(20 == x);
-    CHECK(20 == ncplane_y(gen1));
-    CHECK(20 == ncplane_x(gen1));
+    CHECK(20 == ncplane_y(gen2));
+    CHECK(20 == ncplane_x(gen2));
     ncplane_abs_yx(gen1, &y, &x); // gen1 is below and to the left of gen2
     CHECK(10 == y);
     CHECK(10 == x);
@@ -260,8 +262,8 @@ TEST_CASE("Piles") {
     ncplane_abs_yx(gen3, &y, &x);
     CHECK(30 == y); // should stay the same
     CHECK(30 == x);
-    CHECK(20 == ncplane_y(gen3)); // should reflect new parentage
-    CHECK(20 == ncplane_x(gen3));
+    CHECK(10 == ncplane_y(gen3)); // remain the same; still a child of gen2
+    CHECK(10 == ncplane_x(gen3));
     ncplane_destroy(gen1);
     ncplane_destroy(gen2);
     ncplane_destroy(gen3);

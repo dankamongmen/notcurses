@@ -913,17 +913,26 @@ TEST_CASE("Plane") {
     int absy, absx;
     CHECK(0 == notcurses_render(nc_));
     ncplane_yx(nsub, &absy, &absx);
-    CHECK(1 == absy); // actually at 2, 2
+    CHECK(1 == absy); // relatively at 1, 1
     CHECK(1 == absx);
+    ncplane_abs_yx(nsub, &absy, &absx);
+    CHECK(2 == absy); // actually at 2, 2
+    CHECK(2 == absx);
     ncplane_reparent(nsub, nsub);
     CHECK(ncplane_pile(nsub) != ncplane_pile(ndom));
+    ncplane_abs_yx(nsub, &absy, &absx);
+    CHECK(2 == absy); // now relatively at 1, 1
+    CHECK(2 == absx);
     ncplane_yx(nsub, &absy, &absx);
-    CHECK(1 == absy); // now truly at 1, 1
-    CHECK(1 == absx);
+    CHECK(2 == absy);
+    CHECK(2 == absx);
     CHECK(0 == ncplane_move_yx(ndom, 0, 0));
+    ncplane_abs_yx(nsub, &absy, &absx);
+    CHECK(2 == absy); // still at 1, 1
+    CHECK(2 == absx);
     ncplane_yx(nsub, &absy, &absx);
-    CHECK(1 == absy); // still at 1, 1
-    CHECK(1 == absx);
+    CHECK(2 == absy);
+    CHECK(2 == absx);
   }
 
   SUBCASE("NoReparentStdPlane") {

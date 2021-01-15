@@ -1317,9 +1317,11 @@ API void ncplane_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
 API int ncplane_y(const struct ncplane* n);
 API int ncplane_x(const struct ncplane* n);
 
-// Get the origin of plane 'n' relative to its pile. This is O(N) on the
-// binding depth of 'n'. Either or both of 'x' and y' may be NULL.
+// Get the origin of plane 'n' relative to its pile. Either or both of 'x' and
+// 'y' may be NULL.
 API void ncplane_abs_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
+API int ncplane_abs_y(const struct ncplane* n);
+API int ncplane_abs_x(const struct ncplane* n);
 
 // Get the plane to which the plane 'n' is bound, if any.
 API struct ncplane* ncplane_parent(struct ncplane* n);

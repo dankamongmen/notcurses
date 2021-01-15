@@ -67,7 +67,7 @@ typedef struct ncplane {
   // ncplane_yx() etc. use coordinates relative to the plane to which this
   // plane is bound, but absx/absy are always relative to the terminal origin.
   // they must thus be translated by any function which moves a parent plane.
-  int absx, absy;        // origin of the plane relative to the screen
+  int absx, absy;        // origin of the plane relative to the pile's origin
   int lenx, leny;        // size of the plane, [0..len{x,y}) is addressable
   egcpool pool;          // attached storage pool for UTF-8 EGCs
   uint64_t channels;     // works the same way as cells

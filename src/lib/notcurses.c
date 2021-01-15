@@ -630,6 +630,7 @@ int ncplane_destroy(ncplane* ncp){
     logerror(ncplane_notcurses(ncp), "Won't destroy standard plane\n");
     return -1;
   }
+//notcurses_debug(ncplane_notcurses(ncp), stderr);
   if(ncp->above){
     ncp->above->below = ncp->below;
   }else{
@@ -649,7 +650,7 @@ int ncplane_destroy(ncplane* ncp){
   struct ncplane* bound = ncp->blist;
   while(bound){
     struct ncplane* tmp = bound->bnext;
-    if(ncplane_reparent(bound, ncp->boundto) == NULL){
+    if(ncplane_reparent_family(bound, ncp->boundto) == NULL){
       ret = -1;
     }
     bound = tmp;
@@ -2147,17 +2148,21 @@ const notcurses* ncplane_notcurses_const(const ncplane* n){
   return ncplane_pile_const(n)->nc;
 }
 
-static void
-ncplane_abs_yx_recurse(const ncplane* n, int* RESTRICT y, int* RESTRICT x){
-  if(n->boundto != n){
-    ncplane_translate(n, n->boundto, y, x);
-    ncplane_abs_yx_recurse(n->boundto, y, x);
-  }
+int ncplane_abs_y(const ncplane* n){
+  return n->absy; // FIXME adjust for margins?
+}
+
+int ncplane_abs_x(const ncplane* n){
+  return n->absx; // FIXME adjust for margins?
 }
 
 void ncplane_abs_yx(const ncplane* n, int* RESTRICT y, int* RESTRICT x){
-  ncplane_yx(n, y, x);
-  ncplane_abs_yx_recurse(n->boundto, y, x);
+  if(y){
+    *y = ncplane_abs_y(n);
+  }
+  if(x){
+    *x = ncplane_abs_x(n);
+  }
 }
 
 ncplane* ncplane_parent(ncplane* n){
@@ -2218,6 +2223,7 @@ ncplane* ncplane_reparent(ncplane* n, ncplane* newparent){
   if(n->boundto == newparent){
     return n;
   }
+//notcurses_debug(ncplane_notcurses(n), stderr);
   if(n->blist){
     if(n->boundto == n){ // children become new root planes
       ncplane* lastlink;
@@ -2244,7 +2250,7 @@ ncplane* ncplane_reparent(ncplane* n, ncplane* newparent){
     }
     n->blist = NULL;
   }
-//notcurses_debug(ncplane_notcurses(n), stderr);
+  // FIXME would be nice to skip ncplane_descendant_p() on this call...:/
   return ncplane_reparent_family(n, newparent);
 }
 
@@ -2292,13 +2298,9 @@ ncplane* ncplane_reparent_family(ncplane* n, ncplane* newparent){
   if(ncplane_descendant_p(newparent, n)){
     return NULL;
   }
+//notcurses_debug(ncplane_notcurses(n), stderr);
   if(n->boundto == newparent){ // no-op
     return n;
-  }
-  // if we are not a root plane, adjust our origin
-  if(n->boundto != n){
-    n->absx -= n->boundto->absx;
-    n->absy -= n->boundto->absy;
   }
   if(n->bprev){ // extract from sibling list
     if( (*n->bprev = n->bnext) ){
@@ -2321,8 +2323,6 @@ ncplane* ncplane_reparent_family(ncplane* n, ncplane* newparent){
     pthread_mutex_unlock(&ncplane_notcurses(n)->pilelock);
     splice_zaxis_recursive(n);
   }else{ // establish ourselves as a sibling of new parent's children
-    n->absx += n->boundto->absx;
-    n->absy += n->boundto->absy;
     if( (n->bnext = newparent->blist) ){
       n->bnext->bprev = &n->bnext;
     }
