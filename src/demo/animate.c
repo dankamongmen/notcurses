@@ -139,6 +139,33 @@ determine_totalmoves(struct ncplane* std, struct ncplane* left, struct ncplane* 
 }
 
 static int
+drawcycles(struct ncplane* std, struct ncprogbar* left, struct ncprogbar* right,
+           int length, int endy, int endx, phase_e endphase, uint64_t* channels,
+           int iters){
+  const char** c = cycles;
+  const char* cstr = *c;
+  size_t offset = 0;
+  (void)iters; // FIXME
+  while(length--){
+    get_next_head(std, ncprogbar_plane(left), ncprogbar_plane(right),
+                  &endy, &endx, &endphase);
+    free(ncplane_at_yx(std, endy, endx, NULL, channels));
+    ncplane_set_bg_rgb(std, channels_bg_rgb(*channels));
+    ncplane_set_fg_rgb(std, 0xffffff);
+    int sbytes;
+    if(ncplane_putegc_yx(std, endy, endx, cstr + offset, &sbytes) < 0){
+      return -1;
+    }
+    offset += sbytes;
+    if(cstr[offset] == '\0'){
+      cstr = *++c;
+      offset = 0;
+    }
+  }
+  return 0;
+}
+
+static int
 animate(struct notcurses* nc, struct ncprogbar* left, struct ncprogbar* right){
   int dimy, dimx;
   struct ncplane* std = notcurses_stddim_yx(nc, &dimy, &dimx);
@@ -146,7 +173,6 @@ animate(struct notcurses* nc, struct ncprogbar* left, struct ncprogbar* right){
   int heady = -1;
   int endy = -1;
   int endx = -1;
-  int length = 0;
   int totallength = 0;
   for(const char** c = cycles ; *c ; ++c){
     totallength += ncstrwidth(*c);
@@ -165,14 +191,12 @@ animate(struct notcurses* nc, struct ncprogbar* left, struct ncprogbar* right){
   clock_gettime(CLOCK_MONOTONIC, &expected);
   uint64_t expect_ns = timespec_to_ns(&expected);
   uint64_t channels;
+  int length = 1;
   do{
     if(headphase != PHASE_DONE){
-      free(ncplane_at_yx(std, heady, headx, NULL, &channels));
-      ncplane_set_bg_rgb(std, channels_bg_rgb(channels));
-      ncplane_set_fg_rgb(std, 0xffffff);
-      ncplane_putchar_yx(std, heady, headx, 'X');
       get_next_head(std, ncprogbar_plane(left), ncprogbar_plane(right),
                     &heady, &headx, &headphase);
+      drawcycles(std, left, right, length, endy, endx, endphase, &channels, moves);
     }
     // FIXME need to iterate each character through its cycle
     if(length < totallength){
