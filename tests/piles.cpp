@@ -165,6 +165,51 @@ TEST_CASE("Piles") {
     ncplane_destroy(n1);
   }
 
+  // the position of a plane is relative to its parent plane. when a plane
+  // is removed, the children ought be updated relative to their new parent.
+  // grandchildren and further oughtn't be changed.
+  SUBCASE("RemoveParentUpdatePos") {
+    struct ncplane_options nopts = {
+      .y = 10,
+      .x = 10,
+      .rows = 2,
+      .cols = 2,
+      nullptr, nullptr, nullptr, 0
+    };
+    auto gen1 = ncplane_create(n_, &nopts);
+    auto gen2 = ncplane_create(gen1, &nopts);
+    auto gen3 = ncplane_create(gen2, &nopts);
+    int y, x;
+    ncplane_abs_yx(gen1, &y, &x);
+    CHECK(10 == y);
+    CHECK(10 == x);
+    CHECK(10 == ncplane_y(gen1));
+    CHECK(10 == ncplane_x(gen1));
+    ncplane_abs_yx(gen2, &y, &x);
+    CHECK(20 == y);
+    CHECK(20 == x);
+    CHECK(10 == ncplane_y(gen2));
+    CHECK(10 == ncplane_x(gen2));
+    ncplane_abs_yx(gen3, &y, &x);
+    CHECK(30 == y);
+    CHECK(30 == x);
+    CHECK(10 == ncplane_y(gen3));
+    CHECK(10 == ncplane_x(gen3));
+    ncplane_destroy(gen1);
+    ncplane_abs_yx(gen2, &y, &x);
+    CHECK(20 == y); // should remain the same
+    CHECK(20 == x);
+    CHECK(20 == ncplane_y(gen2)); // should increase
+    CHECK(20 == ncplane_x(gen2));
+    ncplane_abs_yx(gen3, &y, &x);
+    CHECK(30 == y); // should stay the same
+    CHECK(30 == x);
+    CHECK(10 == ncplane_y(gen3)); // should also stay the same
+    CHECK(10 == ncplane_x(gen3));
+    ncplane_destroy(gen2);
+    ncplane_destroy(gen3);
+  }
+
   // common teardown
   CHECK(0 == notcurses_stop(nc_));
 }
