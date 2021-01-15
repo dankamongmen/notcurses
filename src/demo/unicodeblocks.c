@@ -40,11 +40,14 @@ pbar_make(struct notcurses* nc, int row){
   if(pbar == NULL){
     return NULL;
   }
+  uint64_t channels = 0;
+  channels_set_bg_rgb(&channels, 0);
+  ncplane_set_base(pbar, "", 0, channels);
   int posy, posx, pdimy, pdimx;
   ncplane_yx(pbar, &posy, &posx);
   ncplane_dim_yx(pbar, &pdimy, &pdimx);
   ncplane_cursor_move_yx(std, posy - 1, posx - 1);
-  uint64_t channels = 0;
+  channels = 0;
   channels_set_fg_rgb8(&channels, 0, 0xde, 0xde);
   if(ncplane_rounded_box(std, 0, channels, posy + pdimy, posx + pdimx, 0)){
     ncplane_destroy(pbar);
