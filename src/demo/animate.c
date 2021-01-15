@@ -34,28 +34,34 @@ static const char* cycles[] = {
   NULL,
 };
 
-static enum {
+typedef enum {
   PHASE_SPIRAL,
   PHASE_CIRCLE,
   PHASE_CLOSE,
-} phase;
+} phase_e;
 
 // get the new head position, given the old head position
 static void
 get_next_head(struct ncplane* std, struct ncplane* left, struct ncplane* right,
-              int* heady, int* headx){
+              int* heady, int* headx, phase_e* phase){
   int lrcol; // left column of right progbar
   int rlcol; // right column of left progbar
   int trow, brow; // top and bottom
+  if(*heady == -1 && *headx == -1){
+    *headx = ncplane_dim_x(std) / 2;
+    *heady = ncplane_dim_y(std) / 2;
+    *phase = PHASE_SPIRAL;
+    return;
+  }
   ncplane_abs_yx(right, &trow, &lrcol);
   ncplane_abs_yx(left, &brow, &rlcol);
   rlcol += ncplane_dim_x(left) - 1;
   brow += ncplane_dim_y(left) - 1;
   // if we're ending, we either remain where we are, or move down
-  if(phase == PHASE_CLOSE){
+  if(*phase == PHASE_CLOSE){
     if(*heady < ncplane_dim_y(std) / 2){
       ++*heady;
-    }else{
+    }else if(*headx > ncplane_dim_x(std) / 2){
       --*headx; // done
     }
     return;
@@ -64,8 +70,8 @@ get_next_head(struct ncplane* std, struct ncplane* left, struct ncplane* right,
   // case we head down, or if we're in PHASE_CIRCLE and at the top center,
   // in which case move into PHASE_CLOSE.
   if(*heady == trow - 2){
-    if(*headx == ncplane_dim_x(std) / 2 + 1 && phase == PHASE_CIRCLE){
-      phase = PHASE_CLOSE;
+    if(*headx == ncplane_dim_x(std) / 2 + 1 && *phase == PHASE_CIRCLE){
+      *phase = PHASE_CLOSE;
       ++*heady;
       return;
     }
@@ -74,7 +80,7 @@ get_next_head(struct ncplane* std, struct ncplane* left, struct ncplane* right,
       return;
     }
     if(*headx == ncplane_dim_x(std) / 2){
-      phase = PHASE_CIRCLE;
+      *phase = PHASE_CIRCLE;
     }
     --*headx;
   // we're to the left of the columns. head down, until bottom left.
@@ -141,15 +147,25 @@ get_next_head(struct ncplane* std, struct ncplane* left, struct ncplane* right,
   }
 }
 
+static void
+get_next_end(struct ncplane* std, struct ncplane* left, struct ncplane* right,
+             int* endy, int* endx, phase_e* endphase){
+  static int length = 0;
+  if(length < 1){
+    ++length;
+    return;
+  }
+  get_next_head(std, left, right, endy, endx, endphase);
+}
+
 static int
 animate(struct notcurses* nc, struct ncprogbar* left, struct ncprogbar* right){
   int dimy, dimx;
   struct ncplane* std = notcurses_stddim_yx(nc, &dimy, &dimx);
-  int headx = dimx / 2;
-  int heady = dimy / 2;
-  int endy = heady;
-  int endx = headx;
-  // headx and heady start at their final locations, as do endy and endx.
+  int headx = -1;
+  int heady = -1;
+  int endy = -1;
+  int endx = -1;
   // headx and heady will not return to their starting location until the
   // string begins to disappear. endx and endy won't equal heady/headx until
   // the entire string has been consumed.
@@ -158,12 +174,19 @@ animate(struct notcurses* nc, struct ncprogbar* left, struct ncprogbar* right){
   ncplane_set_fg_rgb(std, 0xffffff);
   struct timespec delay;
   timespec_div(&demodelay, 150, &delay);
-  phase = PHASE_SPIRAL;
+  phase_e headphase, endphase;
   do{
     ncplane_putchar_yx(std, heady, headx, 'x');
-    get_next_head(std, ncprogbar_plane(left), ncprogbar_plane(right), &heady, &headx);
-    // FIXME need get_next_end(), and to clear the old tail if it changes
+    get_next_head(std, ncprogbar_plane(left), ncprogbar_plane(right),
+                  &heady, &headx, &headphase);
     // FIXME need to iterate each character through its cycle
+    int oldx = endx;
+    int oldy = endy;
+    get_next_end(std, ncprogbar_plane(left), ncprogbar_plane(right),
+                 &endy, &endx, &endphase);
+    if(oldx != endx || oldy != endy){
+      ncplane_putchar_yx(std, oldy, oldx, '\0');
+    }
     DEMO_RENDER(nc);
     demo_nanosleep(nc, &delay);
   }while(endy != heady || endx != headx);
