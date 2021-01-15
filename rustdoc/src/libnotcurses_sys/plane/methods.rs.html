@@ -1807,43 +1807,6 @@
 <span id="1804">1804</span>
 <span id="1805">1805</span>
 <span id="1806">1806</span>
-<span id="1807">1807</span>
-<span id="1808">1808</span>
-<span id="1809">1809</span>
-<span id="1810">1810</span>
-<span id="1811">1811</span>
-<span id="1812">1812</span>
-<span id="1813">1813</span>
-<span id="1814">1814</span>
-<span id="1815">1815</span>
-<span id="1816">1816</span>
-<span id="1817">1817</span>
-<span id="1818">1818</span>
-<span id="1819">1819</span>
-<span id="1820">1820</span>
-<span id="1821">1821</span>
-<span id="1822">1822</span>
-<span id="1823">1823</span>
-<span id="1824">1824</span>
-<span id="1825">1825</span>
-<span id="1826">1826</span>
-<span id="1827">1827</span>
-<span id="1828">1828</span>
-<span id="1829">1829</span>
-<span id="1830">1830</span>
-<span id="1831">1831</span>
-<span id="1832">1832</span>
-<span id="1833">1833</span>
-<span id="1834">1834</span>
-<span id="1835">1835</span>
-<span id="1836">1836</span>
-<span id="1837">1837</span>
-<span id="1838">1838</span>
-<span id="1839">1839</span>
-<span id="1840">1840</span>
-<span id="1841">1841</span>
-<span id="1842">1842</span>
-<span id="1843">1843</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcPlane*` methods and associated functions.</span>
 
@@ -1851,20 +1814,20 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">cstring</span>, <span class="ident">error</span>, <span class="ident">error_ref</span>, <span class="ident">error_ref_mut</span>, <span class="ident">rstring</span>, <span class="ident">NcAlign</span>, <span class="ident">NcAlphaBits</span>, <span class="ident">NcBoxMask</span>, <span class="ident">NcCell</span>,
-    <span class="ident">NcChannel</span>, <span class="ident">NcChannelPair</span>, <span class="ident">NcColor</span>, <span class="ident">NcDimension</span>, <span class="ident">NcEgc</span>, <span class="ident">NcError</span>, <span class="ident">NcFadeCb</span>, <span class="ident">Notcurses</span>,
-    <span class="ident">NcOffset</span>, <span class="ident">NcPaletteIndex</span>, <span class="ident">NcPlane</span>, <span class="ident">NcPlaneOptions</span>, <span class="ident">NcResizeCb</span>, <span class="ident">NcResult</span>, <span class="ident">NcRgb</span>, <span class="ident">NcStyleMask</span>,
-    <span class="ident">NcTime</span>, <span class="ident">NCRESULT_ERR</span>,
+    <span class="ident">NcChannel</span>, <span class="ident">NcChannelPair</span>, <span class="ident">NcColor</span>, <span class="ident">NcDim</span>, <span class="ident">NcEgc</span>, <span class="ident">NcError</span>, <span class="ident">NcFadeCb</span>, <span class="ident">NcOffset</span>, <span class="ident">NcPaletteIndex</span>,
+    <span class="ident">NcPlane</span>, <span class="ident">NcPlaneOptions</span>, <span class="ident">NcResizeCb</span>, <span class="ident">NcResult</span>, <span class="ident">NcRgb</span>, <span class="ident">NcStyleMask</span>, <span class="ident">NcTime</span>, <span class="ident">Notcurses</span>,
+    <span class="ident">NCRESULT_ERR</span>,
 };
 
 <span class="doccomment">/// # NcPlaneOptions Constructors</span>
 <span class="kw">impl</span> <span class="ident">NcPlaneOptions</span> {
     <span class="doccomment">/// New NcPlaneOptions using the horizontal x.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">y</span>: <span class="ident">NcOffset</span>, <span class="ident">x</span>: <span class="ident">NcOffset</span>, <span class="ident">rows</span>: <span class="ident">NcDimension</span>, <span class="ident">cols</span>: <span class="ident">NcDimension</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">y</span>: <span class="ident">NcOffset</span>, <span class="ident">x</span>: <span class="ident">NcOffset</span>, <span class="ident">rows</span>: <span class="ident">NcDim</span>, <span class="ident">cols</span>: <span class="ident">NcDim</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span>::<span class="ident">with_flags</span>(<span class="ident">y</span>, <span class="ident">x</span>, <span class="ident">rows</span>, <span class="ident">cols</span>, <span class="prelude-val">None</span>, <span class="number">0</span>)
     }
 
     <span class="doccomment">/// New NcPlaneOptions with horizontal alignment.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_aligned</span>(<span class="ident">y</span>: <span class="ident">NcOffset</span>, <span class="ident">align</span>: <span class="ident">NcAlign</span>, <span class="ident">rows</span>: <span class="ident">NcDimension</span>, <span class="ident">cols</span>: <span class="ident">NcDimension</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_aligned</span>(<span class="ident">y</span>: <span class="ident">NcOffset</span>, <span class="ident">align</span>: <span class="ident">NcAlign</span>, <span class="ident">rows</span>: <span class="ident">NcDim</span>, <span class="ident">cols</span>: <span class="ident">NcDim</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span>::<span class="ident">with_flags_aligned</span>(<span class="ident">y</span>, <span class="ident">align</span>, <span class="ident">rows</span>, <span class="ident">cols</span>, <span class="prelude-val">None</span>, <span class="kw">crate</span>::<span class="ident">NCPLANE_OPTION_HORALIGNED</span>)
     }
 
@@ -1872,8 +1835,8 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_flags</span>(
         <span class="ident">y</span>: <span class="ident">NcOffset</span>,
         <span class="ident">x</span>: <span class="ident">NcOffset</span>,
-        <span class="ident">rows</span>: <span class="ident">NcDimension</span>,
-        <span class="ident">cols</span>: <span class="ident">NcDimension</span>,
+        <span class="ident">rows</span>: <span class="ident">NcDim</span>,
+        <span class="ident">cols</span>: <span class="ident">NcDim</span>,
         <span class="ident">resizecb</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NcResizeCb</span><span class="op">&gt;</span>,
         <span class="ident">flags</span>: <span class="ident">u64</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
@@ -1896,8 +1859,8 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_flags_aligned</span>(
         <span class="ident">y</span>: <span class="ident">NcOffset</span>,
         <span class="ident">align</span>: <span class="ident">NcAlign</span>,
-        <span class="ident">rows</span>: <span class="ident">NcDimension</span>,
-        <span class="ident">cols</span>: <span class="ident">NcDimension</span>,
+        <span class="ident">rows</span>: <span class="ident">NcDim</span>,
+        <span class="ident">cols</span>: <span class="ident">NcDim</span>,
         <span class="ident">resizecb</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NcResizeCb</span><span class="op">&gt;</span>,
         <span class="ident">flags</span>: <span class="ident">u64</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
@@ -1926,8 +1889,8 @@
         <span class="ident">nc</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Notcurses</span>,
         <span class="ident">y</span>: <span class="ident">NcOffset</span>,
         <span class="ident">x</span>: <span class="ident">NcOffset</span>,
-        <span class="ident">rows</span>: <span class="ident">NcDimension</span>,
-        <span class="ident">cols</span>: <span class="ident">NcDimension</span>,
+        <span class="ident">rows</span>: <span class="ident">NcDim</span>,
+        <span class="ident">cols</span>: <span class="ident">NcDim</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">NcPlane</span><span class="op">&gt;</span> {
         <span class="self">Self</span>::<span class="ident">with_options</span>(<span class="ident">nc</span>, <span class="ident">NcPlaneOptions</span>::<span class="ident">new</span>(<span class="ident">y</span>, <span class="ident">x</span>, <span class="ident">rows</span>, <span class="ident">cols</span>))
     }
@@ -1954,8 +1917,8 @@
         <span class="ident">bound_to</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span>,
         <span class="ident">y</span>: <span class="ident">NcOffset</span>,
         <span class="ident">x</span>: <span class="ident">NcOffset</span>,
-        <span class="ident">rows</span>: <span class="ident">NcDimension</span>,
-        <span class="ident">cols</span>: <span class="ident">NcDimension</span>,
+        <span class="ident">rows</span>: <span class="ident">NcDim</span>,
+        <span class="ident">cols</span>: <span class="ident">NcDim</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">NcPlane</span><span class="op">&gt;</span> {
         <span class="self">Self</span>::<span class="ident">with_options_bound</span>(<span class="ident">bound_to</span>, <span class="ident">NcPlaneOptions</span>::<span class="ident">new</span>(<span class="ident">y</span>, <span class="ident">x</span>, <span class="ident">rows</span>, <span class="ident">cols</span>))
     }
@@ -1983,7 +1946,7 @@
         <span class="macro">assert</span><span class="macro">!</span>[(<span class="ident">trows</span> <span class="op">&gt;</span> <span class="number">0</span>) <span class="op">&amp;</span> (<span class="ident">tcols</span> <span class="op">&gt;</span> <span class="number">0</span>)];
         <span class="self">Self</span>::<span class="ident">with_options</span>(
             <span class="ident">nc</span>,
-            <span class="ident">NcPlaneOptions</span>::<span class="ident">new</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="ident">trows</span> <span class="kw">as</span> <span class="ident">NcDimension</span>, <span class="ident">tcols</span> <span class="kw">as</span> <span class="ident">NcDimension</span>),
+            <span class="ident">NcPlaneOptions</span>::<span class="ident">new</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="ident">trows</span> <span class="kw">as</span> <span class="ident">NcDim</span>, <span class="ident">tcols</span> <span class="kw">as</span> <span class="ident">NcDim</span>),
         )
     }
 
@@ -2095,8 +2058,8 @@
     <span class="doccomment">/// *C style function: [ncplane_stain()][crate::ncplane_stain].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stain</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">y_stop</span>: <span class="ident">NcDimension</span>,
-        <span class="ident">x_stop</span>: <span class="ident">NcDimension</span>,
+        <span class="ident">y_stop</span>: <span class="ident">NcDim</span>,
+        <span class="ident">x_stop</span>: <span class="ident">NcDim</span>,
         <span class="ident">ul</span>: <span class="ident">NcChannelPair</span>,
         <span class="ident">ur</span>: <span class="ident">NcChannelPair</span>,
         <span class="ident">ll</span>: <span class="ident">NcChannelPair</span>,
@@ -2266,10 +2229,10 @@
     <span class="doccomment">/// *C style function: [ncplane_format()][crate::ncplane_format].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">format</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">y_stop</span>: <span class="ident">NcDimension</span>,
-        <span class="ident">x_stop</span>: <span class="ident">NcDimension</span>,
+        <span class="ident">y_stop</span>: <span class="ident">NcDim</span>,
+        <span class="ident">x_stop</span>: <span class="ident">NcDim</span>,
         <span class="ident">stylemask</span>: <span class="ident">NcStyleMask</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">NcDimension</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">NcDim</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span>
             <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncplane_format</span>(<span class="self">self</span>, <span class="ident">y_stop</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">x_stop</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">stylemask</span> <span class="kw">as</span> <span class="ident">u32</span>) };
         <span class="macro">error</span><span class="macro">!</span>[
@@ -2387,8 +2350,8 @@
     <span class="doccomment">/// *C style function: [ncplane_at_yx()][crate::ncplane_at_yx].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">at_yx</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">y</span>: <span class="ident">NcDimension</span>,
-        <span class="ident">x</span>: <span class="ident">NcDimension</span>,
+        <span class="ident">y</span>: <span class="ident">NcDim</span>,
+        <span class="ident">x</span>: <span class="ident">NcDim</span>,
         <span class="ident">stylemask</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcStyleMask</span>,
         <span class="ident">channels</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcChannelPair</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">NcEgc</span><span class="op">&gt;</span> {
@@ -2413,12 +2376,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncplane_at_yx_cell()][crate::ncplane_at_yx_cell].*</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncplane_at_yx_cell</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">y</span>: <span class="ident">NcDimension</span>,
-        <span class="ident">x</span>: <span class="ident">NcDimension</span>,
-        <span class="ident">cell</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcCell</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncplane_at_yx_cell</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">y</span>: <span class="ident">NcDim</span>, <span class="ident">x</span>: <span class="ident">NcDim</span>, <span class="ident">cell</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcCell</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncplane_at_yx_cell</span>(<span class="self">self</span>, <span class="ident">y</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">x</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">cell</span>) };
         <span class="macro">error</span><span class="macro">!</span>[
             <span class="ident">bytes</span>,
@@ -2498,10 +2456,10 @@
     <span class="doccomment">/// *C style function: [ncplane_contents()][crate::ncplane_contents].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">contents</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">beg_y</span>: <span class="ident">NcDimension</span>,
-        <span class="ident">beg_x</span>: <span class="ident">NcDimension</span>,
-        <span class="ident">len_y</span>: <span class="ident">NcDimension</span>,
-        <span class="ident">len_x</span>: <span class="ident">NcDimension</span>,
+        <span class="ident">beg_y</span>: <span class="ident">NcDim</span>,
+        <span class="ident">beg_x</span>: <span class="ident">NcDim</span>,
+        <span class="ident">len_y</span>: <span class="ident">NcDim</span>,
+        <span class="ident">len_x</span>: <span class="ident">NcDim</span>,
         <span class="ident">through_y</span>: <span class="ident">bool</span>,
         <span class="ident">through_x</span>: <span class="ident">bool</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
@@ -2542,17 +2500,12 @@
     <span class="doccomment">/// On success, returns the number of columns the cursor was advanced.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncplane_putc_yx()][crate::ncplane_putc_yx].*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">putc_yx</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">y</span>: <span class="ident">NcDimension</span>,
-        <span class="ident">x</span>: <span class="ident">NcDimension</span>,
-        <span class="ident">cell</span>: <span class="kw-2">&amp;</span><span class="ident">NcCell</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">NcDimension</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">putc_yx</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">y</span>: <span class="ident">NcDim</span>, <span class="ident">x</span>: <span class="ident">NcDim</span>, <span class="ident">cell</span>: <span class="kw-2">&amp;</span><span class="ident">NcCell</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">NcDim</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncplane_putc_yx</span>(<span class="self">self</span>, <span class="ident">y</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">x</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">cell</span>) };
         <span class="macro">error</span><span class="macro">!</span>[
             <span class="ident">res</span>,
             <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;NcPlane.putc_yx({}, {}, {:?})&quot;</span>, <span class="ident">y</span>, <span class="ident">x</span>, <span class="ident">cell</span>),
-            <span class="ident">res</span> <span class="kw">as</span> <span class="ident">NcDimension</span>
+            <span class="ident">res</span> <span class="kw">as</span> <span class="ident">NcDim</span>
         ]
     }
 
@@ -2563,13 +2516,9 @@
     <span class="doccomment">/// On success, returns the number of columns the cursor was advanced.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncplane_putc()][crate::ncplane_putc].*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">putc</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cell</span>: <span class="kw-2">&amp;</span><span class="ident">NcCell</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">NcDimension</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">putc</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cell</span>: <span class="kw-2">&amp;</span><span class="ident">NcCell</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">NcDim</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">ncplane_putc</span>(<span class="self">self</span>, <span class="ident">cell</span>);
-        <span class="macro">error</span><span class="macro">!</span>[
-            <span class="ident">res</span>,
-            <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;NcPlane.putc({:?})&quot;</span>, <span class="ident">cell</span>),
-            <span class="ident">res</span> <span class="kw">as</span> <span class="ident">NcDimension</span>
-        ]
+        <span class="macro">error</span><span class="macro">!</span>[<span class="ident">res</span>, <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;NcPlane.putc({:?})&quot;</span>, <span class="ident">cell</span>), <span class="ident">res</span> <span class="kw">as</span> <span class="ident">NcDim</span>]
     }
 
     <span class="doccomment">/// Calls [putchar_yx][NcPlane#method.putchar_yx] at the current cursor location.</span>
@@ -2577,20 +2526,16 @@
     <span class="doccomment">/// On success, returns the number of columns the cursor was advanced.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncplane_putchar()][crate::ncplane_putchar].*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">putchar</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ch</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">NcDimension</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">putchar</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ch</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">NcDim</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">ncplane_putchar</span>(<span class="self">self</span>, <span class="ident">ch</span>);
-        <span class="macro">error</span><span class="macro">!</span>[
-            <span class="ident">res</span>,
-            <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;NcPlane.putchar({:?})&quot;</span>, <span class="ident">ch</span>),
-            <span class="ident">res</span> <span class="kw">as</span> <span class="ident">NcDimension</span>
-        ]
+        <span class="macro">error</span><span class="macro">!</span>[<span class="ident">res</span>, <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;NcPlane.putchar({:?})&quot;</span>, <span class="ident">ch</span>), <span class="ident">res</span> <span class="kw">as</span> <span class="ident">NcDim</span>]
     }
 
     <span class="comment">// TODO: call put_egc</span>
     <span class="comment">// /// Replaces the [NcEgc][crate::NcEgc] to the current location, but retain</span>
     <span class="comment">// /// the styling. The current styling of the plane will not be changed.</span>
-    <span class="comment">// pub fn putchar_stained(&amp;mut self, y: NcDimension, x: NcDimension, ch: char) -&gt;</span>
-    <span class="comment">// NcResult&lt;NcDimension&gt; {</span>
+    <span class="comment">// pub fn putchar_stained(&amp;mut self, y: NcDim, x: NcDim, ch: char) -&gt;</span>
+    <span class="comment">// NcResult&lt;NcDim&gt; {</span>
     <span class="comment">//     error![crate::ncplane_putchar_stained(self, ch)]</span>
     <span class="comment">// }</span>
 
@@ -2600,17 +2545,12 @@
     <span class="doccomment">/// On success, returns the number of columns the cursor was advanced.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncplane_putchar_yx()][crate::ncplane_putchar_yx].*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">putchar_yx</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">y</span>: <span class="ident">NcDimension</span>,
-        <span class="ident">x</span>: <span class="ident">NcDimension</span>,
-        <span class="ident">ch</span>: <span class="ident">char</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">NcDimension</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">putchar_yx</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">y</span>: <span class="ident">NcDim</span>, <span class="ident">x</span>: <span class="ident">NcDim</span>, <span class="ident">ch</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">NcDim</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">ncplane_putchar_yx</span>(<span class="self">self</span>, <span class="ident">y</span>, <span class="ident">x</span>, <span class="ident">ch</span>);
         <span class="macro">error</span><span class="macro">!</span>[
             <span class="ident">res</span>,
             <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;NcPlane.putchar_yx({}, {}, {:?})&quot;</span>, <span class="ident">y</span>, <span class="ident">x</span>, <span class="ident">ch</span>),
-            <span class="ident">res</span> <span class="kw">as</span> <span class="ident">NcDimension</span>
+            <span class="ident">res</span> <span class="kw">as</span> <span class="ident">NcDim</span>
         ]
     }
 
@@ -2626,13 +2566,9 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncplane_putstr()][crate::ncplane_putstr].*</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">putstr</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">NcDimension</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">putstr</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">NcDim</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">ncplane_putstr</span>(<span class="self">self</span>, <span class="ident">string</span>);
-        <span class="macro">error</span><span class="macro">!</span>[
-            <span class="ident">res</span>,
-            <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;NcPlane.putstr({:?})&quot;</span>, <span class="ident">string</span>),
-            <span class="ident">res</span> <span class="kw">as</span> <span class="ident">NcDimension</span>
-        ]
+        <span class="macro">error</span><span class="macro">!</span>[<span class="ident">res</span>, <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;NcPlane.putstr({:?})&quot;</span>, <span class="ident">string</span>), <span class="ident">res</span> <span class="kw">as</span> <span class="ident">NcDim</span>]
     }
 
     <span class="doccomment">/// Same as [putstr][NcPlane#method.putstr], but it also tries to move the</span>
@@ -2645,7 +2581,7 @@
     <span class="doccomment">/// columns which were written before the error.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *(No equivalent C style function)*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">putstrln</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">NcDimension</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">putstrln</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">NcDim</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">cols</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">putstr</span>(<span class="ident">string</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> (<span class="ident">y</span>, <span class="ident">_x</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">cursor_yx</span>();
         <span class="self">self</span>.<span class="ident">cursor_move_yx</span>(<span class="ident">y</span> <span class="op">+</span> <span class="number">1</span>, <span class="number">0</span>)<span class="question-mark">?</span>;
@@ -2655,17 +2591,12 @@
     <span class="doccomment">/// Same as [putstr_yx()][NcPlane#method.putstr_yx] but [NcAlign]ed on x.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncplane_putstr_aligned()][crate::ncplane_putstr_aligned].*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">putstr_aligned</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">y</span>: <span class="ident">NcDimension</span>,
-        <span class="ident">align</span>: <span class="ident">NcAlign</span>,
-        <span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">NcDimension</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">putstr_aligned</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">y</span>: <span class="ident">NcDim</span>, <span class="ident">align</span>: <span class="ident">NcAlign</span>, <span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">NcDim</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncplane_putstr_aligned</span>(<span class="self">self</span>, <span class="ident">y</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">align</span>, <span class="macro">cstring</span><span class="macro">!</span>[<span class="ident">string</span>]) };
         <span class="macro">error</span><span class="macro">!</span>[
             <span class="ident">res</span>,
             <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;NcPlane.putstr_aligned({}, {}, {:?})&quot;</span>, <span class="ident">y</span>, <span class="ident">align</span>, <span class="ident">string</span>),
-            <span class="ident">res</span> <span class="kw">as</span> <span class="ident">NcDimension</span>
+            <span class="ident">res</span> <span class="kw">as</span> <span class="ident">NcDim</span>
         ]
     }
 
@@ -2680,12 +2611,12 @@
     <span class="doccomment">/// columns which were written before the error.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncplane_putstr_stained()][crate::ncplane_putstr_stained].*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">putstr_stained</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">NcDimension</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">putstr_stained</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">NcDim</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncplane_putstr_stained</span>(<span class="self">self</span>, <span class="macro">cstring</span><span class="macro">!</span>[<span class="ident">string</span>]) };
         <span class="macro">error</span><span class="macro">!</span>[
             <span class="ident">res</span>,
             <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;NcPlane.putstr_stained({:?})&quot;</span>, <span class="ident">string</span>),
-            <span class="ident">res</span> <span class="kw">as</span> <span class="ident">NcDimension</span>
+            <span class="ident">res</span> <span class="kw">as</span> <span class="ident">NcDim</span>
         ]
     }
 
@@ -2701,17 +2632,12 @@
     <span class="doccomment">/// columns which were written before the error.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncplane_putstr_yx()][crate::ncplane_putstr_yx].*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">putstr_yx</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">y</span>: <span class="ident">NcDimension</span>,
-        <span class="ident">x</span>: <span class="ident">NcDimension</span>,
-        <span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">NcDimension</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">putstr_yx</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">y</span>: <span class="ident">NcDim</span>, <span class="ident">x</span>: <span class="ident">NcDim</span>, <span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">NcDim</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncplane_putstr_yx</span>(<span class="self">self</span>, <span class="ident">y</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">x</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="macro">cstring</span><span class="macro">!</span>[<span class="ident">string</span>]) };
         <span class="macro">error</span><span class="macro">!</span>[
             <span class="ident">res</span>,
             <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;NcPlane.putstr_yx({}, {}, {:?})&quot;</span>, <span class="ident">y</span>, <span class="ident">x</span>, <span class="ident">string</span>),
-            <span class="ident">res</span> <span class="kw">as</span> <span class="ident">NcDimension</span>
+            <span class="ident">res</span> <span class="kw">as</span> <span class="ident">NcDim</span>
         ]
     }
 }
@@ -2838,12 +2764,12 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mergedown</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="ident">NcPlane</span>,
-        <span class="ident">source_y</span>: <span class="ident">NcDimension</span>,
-        <span class="ident">source_x</span>: <span class="ident">NcDimension</span>,
-        <span class="ident">len_y</span>: <span class="ident">NcDimension</span>,
-        <span class="ident">len_x</span>: <span class="ident">NcDimension</span>,
-        <span class="ident">target_y</span>: <span class="ident">NcDimension</span>,
-        <span class="ident">target_x</span>: <span class="ident">NcDimension</span>,
+        <span class="ident">source_y</span>: <span class="ident">NcDim</span>,
+        <span class="ident">source_x</span>: <span class="ident">NcDim</span>,
+        <span class="ident">len_y</span>: <span class="ident">NcDim</span>,
+        <span class="ident">len_x</span>: <span class="ident">NcDim</span>,
+        <span class="ident">target_y</span>: <span class="ident">NcDim</span>,
+        <span class="ident">target_x</span>: <span class="ident">NcDim</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">error</span><span class="macro">!</span>[
             <span class="kw">unsafe</span> {
@@ -3001,23 +2927,23 @@
     <span class="comment">//</span>
     <span class="comment">// NOTE: y and/or x may be NULL.</span>
     <span class="comment">// check for null and return NcResult</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cursor_yx</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">NcDimension</span>, <span class="ident">NcDimension</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cursor_yx</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">NcDim</span>, <span class="ident">NcDim</span>) {
         <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">y</span>, <span class="kw-2">mut</span> <span class="ident">x</span>) <span class="op">=</span> (<span class="number">0</span>, <span class="number">0</span>);
         <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncplane_cursor_yx</span>(<span class="self">self</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">y</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">x</span>) };
-        (<span class="ident">y</span> <span class="kw">as</span> <span class="ident">NcDimension</span>, <span class="ident">x</span> <span class="kw">as</span> <span class="ident">NcDimension</span>)
+        (<span class="ident">y</span> <span class="kw">as</span> <span class="ident">NcDim</span>, <span class="ident">x</span> <span class="kw">as</span> <span class="ident">NcDim</span>)
     }
 
     <span class="doccomment">/// Returns the current row of the cursor within this NcPlane.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *(No equivalent C style function)*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cursor_y</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcDimension</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cursor_y</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcDim</span> {
         <span class="self">self</span>.<span class="ident">cursor_yx</span>().<span class="number">0</span>
     }
 
     <span class="doccomment">/// Returns the current column of the cursor within this NcPlane.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *(No equivalent C style function)*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cursor_x</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcDimension</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cursor_x</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcDim</span> {
         <span class="self">self</span>.<span class="ident">cursor_yx</span>().<span class="number">1</span>
     }
 
@@ -3029,7 +2955,7 @@
     <span class="doccomment">/// and the cursor position will remain unchanged.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncplane_cursor_move_yx()][crate::ncplane_cursor_move_yx].*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cursor_move_yx</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">y</span>: <span class="ident">NcDimension</span>, <span class="ident">x</span>: <span class="ident">NcDimension</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cursor_move_yx</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">y</span>: <span class="ident">NcDim</span>, <span class="ident">x</span>: <span class="ident">NcDim</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">error</span><span class="macro">!</span>[
             <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncplane_cursor_move_yx</span>(<span class="self">self</span>, <span class="ident">y</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">x</span> <span class="kw">as</span> <span class="ident">i32</span>) },
             <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;NcPlane.move_yx({}, {})&quot;</span>, <span class="ident">y</span>, <span class="ident">x</span>)
@@ -3039,7 +2965,7 @@
     <span class="doccomment">/// Moves the cursor to the specified row within this NcPlane.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *(No equivalent C style function)*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cursor_move_y</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">y</span>: <span class="ident">NcDimension</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cursor_move_y</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">y</span>: <span class="ident">NcDim</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">cursor_x</span>();
         <span class="macro">error</span><span class="macro">!</span>[
             <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncplane_cursor_move_yx</span>(<span class="self">self</span>, <span class="ident">y</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">x</span> <span class="kw">as</span> <span class="ident">i32</span>) },
@@ -3050,7 +2976,7 @@
     <span class="doccomment">/// Moves the cursor to the specified column within this NcPlane.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *(No equivalent C style function)*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cursor_move_x</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">x</span>: <span class="ident">NcDimension</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cursor_move_x</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">x</span>: <span class="ident">NcDim</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">cursor_y</span>();
         <span class="macro">error</span><span class="macro">!</span>[
             <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncplane_cursor_move_yx</span>(<span class="self">self</span>, <span class="ident">y</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">x</span> <span class="kw">as</span> <span class="ident">i32</span>) },
@@ -3065,7 +2991,7 @@
     <span class="doccomment">/// *(No equivalent C style function)*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cursor_move_rows</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">rows</span>: <span class="ident">NcOffset</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">y</span>, <span class="ident">x</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">cursor_yx</span>();
-        <span class="self">self</span>.<span class="ident">cursor_move_yx</span>((<span class="ident">y</span> <span class="kw">as</span> <span class="ident">NcOffset</span> <span class="op">+</span> <span class="ident">rows</span>) <span class="kw">as</span> <span class="ident">NcDimension</span>, <span class="ident">x</span>)
+        <span class="self">self</span>.<span class="ident">cursor_move_yx</span>((<span class="ident">y</span> <span class="kw">as</span> <span class="ident">NcOffset</span> <span class="op">+</span> <span class="ident">rows</span>) <span class="kw">as</span> <span class="ident">NcDim</span>, <span class="ident">x</span>)
     }
 
     <span class="doccomment">/// Moves the cursor the number of columns specified (forward or backwards).</span>
@@ -3075,7 +3001,7 @@
     <span class="doccomment">/// *(No equivalent C style function)*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cursor_move_cols</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cols</span>: <span class="ident">NcOffset</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">y</span>, <span class="ident">x</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">cursor_yx</span>();
-        <span class="self">self</span>.<span class="ident">cursor_move_yx</span>(<span class="ident">y</span>, (<span class="ident">x</span> <span class="kw">as</span> <span class="ident">NcOffset</span> <span class="op">+</span> <span class="ident">cols</span>) <span class="kw">as</span> <span class="ident">NcDimension</span>)
+        <span class="self">self</span>.<span class="ident">cursor_move_yx</span>(<span class="ident">y</span>, (<span class="ident">x</span> <span class="kw">as</span> <span class="ident">NcOffset</span> <span class="op">+</span> <span class="ident">cols</span>) <span class="kw">as</span> <span class="ident">NcDim</span>)
     }
 }
 
@@ -3090,7 +3016,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncplane_align()][crate::ncplane_align].*</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">align</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">align</span>: <span class="ident">NcAlign</span>, <span class="ident">cols</span>: <span class="ident">NcDimension</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">align</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">align</span>: <span class="ident">NcAlign</span>, <span class="ident">cols</span>: <span class="ident">NcDim</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">error</span><span class="macro">!</span>[
             <span class="kw">crate</span>::<span class="ident">ncplane_align</span>(<span class="self">self</span>, <span class="ident">align</span>, <span class="ident">cols</span>),
             <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;NcPlane.align({:?}, {})&quot;</span>, <span class="ident">align</span>, <span class="ident">cols</span>)
@@ -3102,7 +3028,7 @@
     <span class="doccomment">/// *C style function: [ncplane_center_abs()][crate::ncplane_center_abs].*</span>
     <span class="comment">//</span>
     <span class="comment">// TODO: doc.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">center_abs</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcDimension</span>, <span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcDimension</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">center_abs</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcDim</span>, <span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcDim</span>) {
         <span class="kw">unsafe</span> {
             <span class="kw">crate</span>::<span class="ident">ncplane_center_abs</span>(<span class="self">self</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> (<span class="kw-2">*</span><span class="ident">y</span> <span class="kw">as</span> <span class="ident">i32</span>), <span class="kw-2">&amp;</span><span class="kw-2">mut</span> (<span class="kw-2">*</span><span class="ident">x</span> <span class="kw">as</span> <span class="ident">i32</span>));
         }
@@ -3111,17 +3037,17 @@
     <span class="doccomment">/// Returns the dimensions of this NcPlane.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncplane_dim_yx()][crate::ncplane_dim_yx].*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dim_yx</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">NcDimension</span>, <span class="ident">NcDimension</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dim_yx</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">NcDim</span>, <span class="ident">NcDim</span>) {
         <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">y</span>, <span class="kw-2">mut</span> <span class="ident">x</span>) <span class="op">=</span> (<span class="number">0</span>, <span class="number">0</span>);
         <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncplane_dim_yx</span>(<span class="self">self</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">y</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">x</span>) };
-        (<span class="ident">y</span> <span class="kw">as</span> <span class="ident">NcDimension</span>, <span class="ident">x</span> <span class="kw">as</span> <span class="ident">NcDimension</span>)
+        (<span class="ident">y</span> <span class="kw">as</span> <span class="ident">NcDim</span>, <span class="ident">x</span> <span class="kw">as</span> <span class="ident">NcDim</span>)
     }
 
     <span class="doccomment">/// Return the rows of this NcPlane.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncplane_dim_y()][crate::ncplane_dim_y].*</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dim_y</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcDimension</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dim_y</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcDim</span> {
         <span class="self">self</span>.<span class="ident">dim_yx</span>().<span class="number">0</span>
     }
 
@@ -3129,7 +3055,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncplane_dim_x()][crate::ncplane_dim_x].*</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dim_x</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcDimension</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dim_x</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcDim</span> {
         <span class="self">self</span>.<span class="ident">dim_yx</span>().<span class="number">1</span>
     }
 
@@ -3139,7 +3065,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncplane_dim_y()][crate::ncplane_dim_y].*</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rows</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcDimension</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rows</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcDim</span> {
         <span class="self">self</span>.<span class="ident">dim_yx</span>().<span class="number">0</span>
     }
 
@@ -3149,7 +3075,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncplane_dim_x()][crate::ncplane_dim_x].*</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cols</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcDimension</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cols</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcDim</span> {
         <span class="self">self</span>.<span class="ident">dim_yx</span>().<span class="number">1</span>
     }
 
@@ -3175,14 +3101,14 @@
     <span class="doccomment">/// *C style function: [ncplane_resize()][crate::ncplane_resize].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">resize</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">keep_y</span>: <span class="ident">NcDimension</span>,
-        <span class="ident">keep_x</span>: <span class="ident">NcDimension</span>,
-        <span class="ident">keep_len_y</span>: <span class="ident">NcDimension</span>,
-        <span class="ident">keep_len_x</span>: <span class="ident">NcDimension</span>,
+        <span class="ident">keep_y</span>: <span class="ident">NcDim</span>,
+        <span class="ident">keep_x</span>: <span class="ident">NcDim</span>,
+        <span class="ident">keep_len_y</span>: <span class="ident">NcDim</span>,
+        <span class="ident">keep_len_x</span>: <span class="ident">NcDim</span>,
         <span class="ident">y_off</span>: <span class="ident">NcOffset</span>,
         <span class="ident">x_off</span>: <span class="ident">NcOffset</span>,
-        <span class="ident">y_len</span>: <span class="ident">NcDimension</span>,
-        <span class="ident">x_len</span>: <span class="ident">NcDimension</span>,
+        <span class="ident">y_len</span>: <span class="ident">NcDim</span>,
+        <span class="ident">x_len</span>: <span class="ident">NcDim</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">error</span><span class="macro">!</span>[
             <span class="kw">unsafe</span> {
@@ -3222,7 +3148,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncplane_resize_simple()][crate::ncplane_resize_simple].*</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">resize_simple</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">y_len</span>: <span class="ident">NcDimension</span>, <span class="ident">x_len</span>: <span class="ident">NcDimension</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">resize_simple</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">y_len</span>: <span class="ident">NcDim</span>, <span class="ident">x_len</span>: <span class="ident">NcDim</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">error</span><span class="macro">!</span>[<span class="kw">crate</span>::<span class="ident">ncplane_resize_simple</span>(
             <span class="self">self</span>,
             <span class="ident">y_len</span> <span class="kw">as</span> <span class="ident">u32</span>,
@@ -3279,7 +3205,7 @@
     <span class="doccomment">/// *C style function: [ncplane_translate()][crate::ncplane_translate].*</span>
     <span class="comment">//</span>
     <span class="comment">// TODO: API change, return the coordinates as a tuple instead of being &amp;mut</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">translate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">target</span>: <span class="kw-2">&amp;</span><span class="ident">NcPlane</span>, <span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcDimension</span>, <span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcDimension</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">translate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">target</span>: <span class="kw-2">&amp;</span><span class="ident">NcPlane</span>, <span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcDim</span>, <span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcDim</span>) {
         <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncplane_translate</span>(<span class="self">self</span>, <span class="ident">target</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> (<span class="kw-2">*</span><span class="ident">y</span> <span class="kw">as</span> <span class="ident">i32</span>), <span class="kw-2">&amp;</span><span class="kw-2">mut</span> (<span class="kw-2">*</span><span class="ident">x</span> <span class="kw">as</span> <span class="ident">i32</span>)) }
     }
 
@@ -3291,7 +3217,7 @@
     <span class="doccomment">/// *C style function: [ncplane_translate_abs()][crate::ncplane_translate_abs].*</span>
     <span class="comment">//</span>
     <span class="comment">// TODO: API change, return a tuple (y,x,bool)</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">translate_abs</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcDimension</span>, <span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcDimension</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">translate_abs</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcDim</span>, <span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcDim</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncplane_translate_abs</span>(<span class="self">self</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> (<span class="kw-2">*</span><span class="ident">y</span> <span class="kw">as</span> <span class="ident">i32</span>), <span class="kw-2">&amp;</span><span class="kw-2">mut</span> (<span class="kw-2">*</span><span class="ident">x</span> <span class="kw">as</span> <span class="ident">i32</span>)) }
     }
 
@@ -3367,8 +3293,8 @@
         <span class="ident">lr</span>: <span class="kw-2">&amp;</span><span class="ident">NcCell</span>,
         <span class="ident">hline</span>: <span class="kw-2">&amp;</span><span class="ident">NcCell</span>,
         <span class="ident">vline</span>: <span class="kw-2">&amp;</span><span class="ident">NcCell</span>,
-        <span class="ident">y_stop</span>: <span class="ident">NcDimension</span>,
-        <span class="ident">x_stop</span>: <span class="ident">NcDimension</span>,
+        <span class="ident">y_stop</span>: <span class="ident">NcDim</span>,
+        <span class="ident">x_stop</span>: <span class="ident">NcDim</span>,
         <span class="ident">boxmask</span>: <span class="ident">NcBoxMask</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">error</span><span class="macro">!</span>[<span class="kw">unsafe</span> {
@@ -3403,8 +3329,8 @@
         <span class="ident">lr</span>: <span class="kw-2">&amp;</span><span class="ident">NcCell</span>,
         <span class="ident">hline</span>: <span class="kw-2">&amp;</span><span class="ident">NcCell</span>,
         <span class="ident">vline</span>: <span class="kw-2">&amp;</span><span class="ident">NcCell</span>,
-        <span class="ident">y_len</span>: <span class="ident">NcDimension</span>,
-        <span class="ident">x_len</span>: <span class="ident">NcDimension</span>,
+        <span class="ident">y_len</span>: <span class="ident">NcDim</span>,
+        <span class="ident">x_len</span>: <span class="ident">NcDim</span>,
         <span class="ident">boxmask</span>: <span class="ident">NcBoxMask</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">error</span><span class="macro">!</span>[<span class="kw">crate</span>::<span class="ident">ncplane_box_sized</span>(
@@ -3420,8 +3346,8 @@
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">stylemask</span>: <span class="ident">NcStyleMask</span>,
         <span class="ident">channels</span>: <span class="ident">NcChannelPair</span>,
-        <span class="ident">y_stop</span>: <span class="ident">NcDimension</span>,
-        <span class="ident">x_stop</span>: <span class="ident">NcDimension</span>,
+        <span class="ident">y_stop</span>: <span class="ident">NcDim</span>,
+        <span class="ident">x_stop</span>: <span class="ident">NcDim</span>,
         <span class="ident">boxmask</span>: <span class="ident">NcBoxMask</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">error</span><span class="macro">!</span>[<span class="kw">crate</span>::<span class="ident">ncplane_double_box</span>(
@@ -3437,8 +3363,8 @@
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">stylemask</span>: <span class="ident">NcStyleMask</span>,
         <span class="ident">channels</span>: <span class="ident">NcChannelPair</span>,
-        <span class="ident">y_len</span>: <span class="ident">NcDimension</span>,
-        <span class="ident">x_len</span>: <span class="ident">NcDimension</span>,
+        <span class="ident">y_len</span>: <span class="ident">NcDim</span>,
+        <span class="ident">x_len</span>: <span class="ident">NcDim</span>,
         <span class="ident">boxmask</span>: <span class="ident">NcBoxMask</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">error</span><span class="macro">!</span>[<span class="kw">crate</span>::<span class="ident">ncplane_double_box</span>(
@@ -3595,9 +3521,9 @@
         <span class="ident">ur</span>: <span class="ident">NcChannelPair</span>,
         <span class="ident">ll</span>: <span class="ident">NcChannelPair</span>,
         <span class="ident">lr</span>: <span class="ident">NcChannelPair</span>,
-        <span class="ident">y_stop</span>: <span class="ident">NcDimension</span>,
-        <span class="ident">x_stop</span>: <span class="ident">NcDimension</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">NcDimension</span><span class="op">&gt;</span> {
+        <span class="ident">y_stop</span>: <span class="ident">NcDim</span>,
+        <span class="ident">x_stop</span>: <span class="ident">NcDim</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">NcDim</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="kw">crate</span>::<span class="ident">ncplane_gradient</span>(
                 <span class="self">self</span>,
@@ -3611,7 +3537,7 @@
                 <span class="ident">x_stop</span> <span class="kw">as</span> <span class="ident">i32</span>,
             )
         };
-        <span class="macro">error</span><span class="macro">!</span>[<span class="ident">res</span>, <span class="string">&quot;&quot;</span>, <span class="ident">res</span> <span class="kw">as</span> <span class="ident">NcDimension</span>]
+        <span class="macro">error</span><span class="macro">!</span>[<span class="ident">res</span>, <span class="string">&quot;&quot;</span>, <span class="ident">res</span> <span class="kw">as</span> <span class="ident">NcDim</span>]
     }
 
     <span class="doccomment">/// Draw a gradient with its upper-left corner at the current cursor position,</span>
@@ -3629,11 +3555,11 @@
         <span class="ident">ur</span>: <span class="ident">NcChannel</span>,
         <span class="ident">ll</span>: <span class="ident">NcChannel</span>,
         <span class="ident">lr</span>: <span class="ident">NcChannel</span>,
-        <span class="ident">y_len</span>: <span class="ident">NcDimension</span>,
-        <span class="ident">x_len</span>: <span class="ident">NcDimension</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">NcDimension</span><span class="op">&gt;</span> {
+        <span class="ident">y_len</span>: <span class="ident">NcDim</span>,
+        <span class="ident">x_len</span>: <span class="ident">NcDim</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">NcDim</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">ncplane_gradient_sized</span>(<span class="self">self</span>, <span class="ident">egc</span>, <span class="ident">stylemask</span>, <span class="ident">ul</span>, <span class="ident">ur</span>, <span class="ident">ll</span>, <span class="ident">lr</span>, <span class="ident">y_len</span>, <span class="ident">x_len</span>);
-        <span class="macro">error</span><span class="macro">!</span>[<span class="ident">res</span>, <span class="string">&quot;&quot;</span>, <span class="ident">res</span> <span class="kw">as</span> <span class="ident">NcDimension</span>]
+        <span class="macro">error</span><span class="macro">!</span>[<span class="ident">res</span>, <span class="string">&quot;&quot;</span>, <span class="ident">res</span> <span class="kw">as</span> <span class="ident">NcDim</span>]
     }
 
     <span class="doccomment">/// Draws a high-resolution gradient using upper blocks and synced backgrounds.</span>
@@ -3651,13 +3577,13 @@
         <span class="ident">ur</span>: <span class="ident">NcChannel</span>,
         <span class="ident">ll</span>: <span class="ident">NcChannel</span>,
         <span class="ident">lr</span>: <span class="ident">NcChannel</span>,
-        <span class="ident">y_stop</span>: <span class="ident">NcDimension</span>,
-        <span class="ident">x_stop</span>: <span class="ident">NcDimension</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">NcDimension</span><span class="op">&gt;</span> {
+        <span class="ident">y_stop</span>: <span class="ident">NcDim</span>,
+        <span class="ident">x_stop</span>: <span class="ident">NcDim</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">NcDim</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="kw">crate</span>::<span class="ident">ncplane_highgradient</span>(<span class="self">self</span>, <span class="ident">ul</span>, <span class="ident">ur</span>, <span class="ident">ll</span>, <span class="ident">lr</span>, <span class="ident">y_stop</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">x_stop</span> <span class="kw">as</span> <span class="ident">i32</span>)
         };
-        <span class="macro">error</span><span class="macro">!</span>[<span class="ident">res</span>, <span class="string">&quot;&quot;</span>, <span class="ident">res</span> <span class="kw">as</span> <span class="ident">NcDimension</span>]
+        <span class="macro">error</span><span class="macro">!</span>[<span class="ident">res</span>, <span class="string">&quot;&quot;</span>, <span class="ident">res</span> <span class="kw">as</span> <span class="ident">NcDim</span>]
     }
 
     <span class="doccomment">/// [`gradient_sized`][NcPlane#method.gradient_sized]</span>
@@ -3670,13 +3596,13 @@
         <span class="ident">ur</span>: <span class="ident">NcChannel</span>,
         <span class="ident">ll</span>: <span class="ident">NcChannel</span>,
         <span class="ident">lr</span>: <span class="ident">NcChannel</span>,
-        <span class="ident">y_stop</span>: <span class="ident">NcDimension</span>,
-        <span class="ident">x_stop</span>: <span class="ident">NcDimension</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">NcDimension</span><span class="op">&gt;</span> {
+        <span class="ident">y_stop</span>: <span class="ident">NcDim</span>,
+        <span class="ident">x_stop</span>: <span class="ident">NcDim</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">NcDim</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="kw">crate</span>::<span class="ident">ncplane_highgradient_sized</span>(<span class="self">self</span>, <span class="ident">ul</span>, <span class="ident">ur</span>, <span class="ident">ll</span>, <span class="ident">lr</span>, <span class="ident">y_stop</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">x_stop</span> <span class="kw">as</span> <span class="ident">i32</span>)
         };
-        <span class="macro">error</span><span class="macro">!</span>[<span class="ident">res</span>, <span class="string">&quot;&quot;</span>, <span class="ident">res</span> <span class="kw">as</span> <span class="ident">NcDimension</span>]
+        <span class="macro">error</span><span class="macro">!</span>[<span class="ident">res</span>, <span class="string">&quot;&quot;</span>, <span class="ident">res</span> <span class="kw">as</span> <span class="ident">NcDim</span>]
     }
 
     <span class="doccomment">/// Converts this NcPlane&#39;s content to greyscale.</span>

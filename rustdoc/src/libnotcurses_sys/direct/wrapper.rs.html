@@ -67,16 +67,12 @@
 <span id="64">64</span>
 <span id="65">65</span>
 <span id="66">66</span>
-<span id="67">67</span>
-<span id="68">68</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `DirectMode` wrapper struct and traits implementations.</span>
 
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ops</span>::{<span class="ident">Deref</span>, <span class="ident">DerefMut</span>};
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">raw_wrap</span>, <span class="ident">NcDirect</span>, <span class="ident">NcResult</span>
-};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">raw_wrap</span>, <span class="ident">NcDirect</span>, <span class="ident">NcResult</span>};
 
 <span class="doccomment">/// Safe wrapper around [NcDirect], minimal notcurses instance for styling text.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DirectMode</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {

@@ -137,15 +137,13 @@
 <span id="134">134</span>
 <span id="135">135</span>
 <span id="136">136</span>
-<span id="137">137</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `FullMode` wrapper struct and traits implementations.</span>
 
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ops</span>::{<span class="ident">Deref</span>, <span class="ident">DerefMut</span>};
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">raw_wrap</span>, <span class="ident">NcAlign</span>, <span class="ident">NcBlitter</span>, <span class="ident">NcDimension</span>, <span class="ident">NcLogLevel</span>, <span class="ident">Notcurses</span>, <span class="ident">NotcursesOptions</span>,
-    <span class="ident">NcResult</span>, <span class="ident">NcScale</span>,
+    <span class="ident">raw_wrap</span>, <span class="ident">NcAlign</span>, <span class="ident">NcBlitter</span>, <span class="ident">NcDim</span>, <span class="ident">NcLogLevel</span>, <span class="ident">NcResult</span>, <span class="ident">NcScale</span>, <span class="ident">Notcurses</span>, <span class="ident">NotcursesOptions</span>,
 };
 
 <span class="doccomment">/// Safe wrapper around [Notcurses], the main struct of the TUI library.</span>
@@ -232,7 +230,7 @@
 
     <span class="doccomment">/// Returns the offset into `availcols` at which `cols` ought be output given</span>
     <span class="doccomment">/// the requirements of `align`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">align</span>(<span class="ident">availcols</span>: <span class="ident">NcDimension</span>, <span class="ident">align</span>: <span class="ident">NcAlign</span>, <span class="ident">cols</span>: <span class="ident">NcDimension</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">align</span>(<span class="ident">availcols</span>: <span class="ident">NcDim</span>, <span class="ident">align</span>: <span class="ident">NcAlign</span>, <span class="ident">cols</span>: <span class="ident">NcDim</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="ident">Notcurses</span>::<span class="ident">align</span>(<span class="ident">availcols</span>, <span class="ident">align</span>, <span class="ident">cols</span>)
     }
 

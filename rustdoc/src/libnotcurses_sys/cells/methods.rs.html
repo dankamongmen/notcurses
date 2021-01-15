@@ -493,8 +493,6 @@
 <span id="490">490</span>
 <span id="491">491</span>
 <span id="492">492</span>
-<span id="493">493</span>
-<span id="494">494</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcCell` methods and associated functions.</span>
 
@@ -541,21 +539,19 @@
         <span class="self">Self</span>::<span class="ident">with_char7b</span>(<span class="number">0</span> <span class="kw">as</span> <span class="ident">char</span>)
     }
 
-    <span class="comment">// TODO: it&#39;s not clear what it does</span>
-    <span class="comment">//</span>
-    <span class="comment">// /// Breaks the UTF-8 string in `gcluster` down, setting up this NcCell,</span>
-    <span class="comment">// /// and returns the number of bytes copied out of `gcluster`.</span>
-    <span class="comment">// ///</span>
-    <span class="comment">// /// The styling of the cell is left untouched, but any resources are released.</span>
-    <span class="comment">// /// *C style function: [cell_load()][crate::cell_load].*</span>
-    <span class="comment">// pub fn load(</span>
-    <span class="comment">//     plane: &amp;mut NcPlane,</span>
-    <span class="comment">//     cell: &amp;mut NcCell,</span>
-    <span class="comment">//     gcluster: NcEgc,</span>
-    <span class="comment">// ) -&gt; NcResult&lt;u32&gt; {</span>
-    <span class="comment">//     let bytes = unsafe { crate::cell_load(plane, cell, gcluster as u32 as *const i8)};</span>
-    <span class="comment">//     error![bytes, bytes as u32]</span>
-    <span class="comment">// }</span>
+    <span class="doccomment">/// Breaks the UTF-8 string in `egc` down, setting up this NcCell,</span>
+    <span class="doccomment">/// and returns the number of bytes copied out of `egc`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The styling of the cell is left untouched, but any resources are released.</span>
+    <span class="doccomment">/// *C style function: [cell_load()][crate::cell_load].*</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">load</span>(<span class="ident">plane</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span>, <span class="ident">cell</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcCell</span>, <span class="ident">egc</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">cell_load</span>(<span class="ident">plane</span>, <span class="ident">cell</span>, <span class="macro">cstring</span><span class="macro">!</span>[<span class="ident">egc</span>]) };
+        <span class="macro">error</span><span class="macro">!</span>[
+            <span class="ident">bytes</span>,
+            <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>[<span class="string">&quot;NcCell.load(NcPlane, NcCell, {:?})&quot;</span>, <span class="ident">egc</span>],
+            <span class="ident">bytes</span> <span class="kw">as</span> <span class="ident">u32</span>
+        ]
+    }
 
     <span class="doccomment">/// Same as [load][NcCell#method.load], plus blasts the styling with</span>
     <span class="doccomment">/// `style` and `channels`.</span>
@@ -828,8 +824,8 @@
         <span class="kw">crate</span>::<span class="ident">cellcmp</span>(<span class="ident">plane1</span>, <span class="ident">cell1</span>, <span class="ident">plane2</span>, <span class="ident">cell2</span>)
     }
 
-    <span class="doccomment">/// Saves the [NcStyleMask] and the [NcChannelPair], and returns the [NcEgc]</span>
-    <span class="doccomment">/// (the three elements of an NcCell).</span>
+    <span class="doccomment">/// Saves the [NcStyleMask] and the [NcChannelPair], and returns the [NcEgc].</span>
+    <span class="doccomment">/// (These are the three elements of an NcCell).</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [cell_fg_alpha()][crate::cell_fg_alpha].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">extract</span>(

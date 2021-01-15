@@ -149,7 +149,7 @@
 <span class="comment">// + nckey_mouse_p</span>
 <span class="comment">// + nckey_supppuab_p</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">NcDimension</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">NcDim</span>;
 
 <span class="kw">mod</span> <span class="ident">keycodes</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">keycodes</span>::<span class="kw-2">*</span>;
@@ -228,8 +228,8 @@
     <span class="doccomment">/// New NcInput, expecting all the arguments.</span>
     <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">with_all_args</span>(
         <span class="ident">id</span>: <span class="ident">char</span>,
-        <span class="ident">x</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NcDimension</span><span class="op">&gt;</span>,
-        <span class="ident">y</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NcDimension</span><span class="op">&gt;</span>,
+        <span class="ident">x</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NcDim</span><span class="op">&gt;</span>,
+        <span class="ident">y</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NcDim</span><span class="op">&gt;</span>,
         <span class="ident">alt</span>: <span class="ident">bool</span>,
         <span class="ident">shift</span>: <span class="ident">bool</span>,
         <span class="ident">ctrl</span>: <span class="ident">bool</span>,

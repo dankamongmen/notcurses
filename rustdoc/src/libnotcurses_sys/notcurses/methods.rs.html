@@ -650,11 +650,6 @@
 <span id="647">647</span>
 <span id="648">648</span>
 <span id="649">649</span>
-<span id="650">650</span>
-<span id="651">651</span>
-<span id="652">652</span>
-<span id="653">653</span>
-<span id="654">654</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `Notcurses*` methods and associated functions.</span>
 
@@ -662,9 +657,9 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">cstring</span>, <span class="ident">error</span>, <span class="ident">error_ref_mut</span>, <span class="ident">notcurses_init</span>, <span class="ident">rstring</span>, <span class="ident">NcAlign</span>, <span class="ident">NcBlitter</span>, <span class="ident">NcChannelPair</span>,
-    <span class="ident">NcDimension</span>, <span class="ident">NcEgc</span>, <span class="ident">NcError</span>, <span class="ident">NcFile</span>, <span class="ident">NcInput</span>, <span class="ident">NcLogLevel</span>, <span class="ident">Notcurses</span>, <span class="ident">NotcursesOptions</span>,
-    <span class="ident">NcPlane</span>, <span class="ident">NcResult</span>, <span class="ident">NcScale</span>, <span class="ident">NcSignalSet</span>, <span class="ident">NcStats</span>, <span class="ident">NcStyleMask</span>, <span class="ident">NcTime</span>,
-    <span class="ident">NCOPTION_NO_ALTERNATE_SCREEN</span>, <span class="ident">NCOPTION_SUPPRESS_BANNERS</span>, <span class="ident">NCRESULT_ERR</span>,
+    <span class="ident">NcDim</span>, <span class="ident">NcEgc</span>, <span class="ident">NcError</span>, <span class="ident">NcFile</span>, <span class="ident">NcInput</span>, <span class="ident">NcLogLevel</span>, <span class="ident">NcPlane</span>, <span class="ident">NcResult</span>, <span class="ident">NcScale</span>, <span class="ident">NcSignalSet</span>,
+    <span class="ident">NcStats</span>, <span class="ident">NcStyleMask</span>, <span class="ident">NcTime</span>, <span class="ident">Notcurses</span>, <span class="ident">NotcursesOptions</span>, <span class="ident">NCOPTION_NO_ALTERNATE_SCREEN</span>,
+    <span class="ident">NCOPTION_SUPPRESS_BANNERS</span>, <span class="ident">NCRESULT_ERR</span>,
 };
 
 <span class="doccomment">/// # `NotcursesOptions` Constructors</span>
@@ -675,12 +670,7 @@
     }
 
     <span class="doccomment">/// New NotcursesOptions, with margins.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">with_margins</span>(
-        <span class="ident">top</span>: <span class="ident">NcDimension</span>,
-        <span class="ident">right</span>: <span class="ident">NcDimension</span>,
-        <span class="ident">bottom</span>: <span class="ident">NcDimension</span>,
-        <span class="ident">left</span>: <span class="ident">NcDimension</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">with_margins</span>(<span class="ident">top</span>: <span class="ident">NcDim</span>, <span class="ident">right</span>: <span class="ident">NcDim</span>, <span class="ident">bottom</span>: <span class="ident">NcDim</span>, <span class="ident">left</span>: <span class="ident">NcDim</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span>::<span class="ident">with_all_options</span>(<span class="number">0</span>, <span class="ident">top</span>, <span class="ident">right</span>, <span class="ident">bottom</span>, <span class="ident">left</span>, <span class="number">0</span>)
     }
 
@@ -722,10 +712,10 @@
     <span class="doccomment">///</span>
     <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">with_all_options</span>(
         <span class="ident">loglevel</span>: <span class="ident">NcLogLevel</span>,
-        <span class="ident">margin_t</span>: <span class="ident">NcDimension</span>,
-        <span class="ident">margin_r</span>: <span class="ident">NcDimension</span>,
-        <span class="ident">margin_b</span>: <span class="ident">NcDimension</span>,
-        <span class="ident">margin_l</span>: <span class="ident">NcDimension</span>,
+        <span class="ident">margin_t</span>: <span class="ident">NcDim</span>,
+        <span class="ident">margin_r</span>: <span class="ident">NcDim</span>,
+        <span class="ident">margin_b</span>: <span class="ident">NcDim</span>,
+        <span class="ident">margin_l</span>: <span class="ident">NcDim</span>,
         <span class="ident">flags</span>: <span class="ident">u64</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
@@ -790,7 +780,7 @@
     <span class="doccomment">/// *C style function: [notcurses_align()][crate::notcurses_align].*</span>
     <span class="comment">//</span>
     <span class="comment">// TODO: handle error rightfully.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">align</span>(<span class="ident">availcols</span>: <span class="ident">NcDimension</span>, <span class="ident">align</span>: <span class="ident">NcAlign</span>, <span class="ident">cols</span>: <span class="ident">NcDimension</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">align</span>(<span class="ident">availcols</span>: <span class="ident">NcDim</span>, <span class="ident">align</span>: <span class="ident">NcAlign</span>, <span class="ident">cols</span>: <span class="ident">NcDim</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">error</span><span class="macro">!</span>[<span class="kw">crate</span>::<span class="ident">notcurses_align</span>(<span class="ident">availcols</span>, <span class="ident">align</span>, <span class="ident">cols</span>)]
     }
 
@@ -803,8 +793,8 @@
     <span class="doccomment">/// *C style function: [notcurses_at_yx()][crate::notcurses_at_yx].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">at_yx</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">y</span>: <span class="ident">NcDimension</span>,
-        <span class="ident">x</span>: <span class="ident">NcDimension</span>,
+        <span class="ident">y</span>: <span class="ident">NcDim</span>,
+        <span class="ident">x</span>: <span class="ident">NcDim</span>,
         <span class="ident">stylemask</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcStyleMask</span>,
         <span class="ident">channels</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcChannelPair</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NcEgc</span><span class="op">&gt;</span> {
@@ -907,7 +897,7 @@
     <span class="doccomment">/// It is an error if `y`, `x` lies outside the standard plane.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [notcurses_cursor_enable()][crate::notcurses_cursor_enable].*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cursor_enable</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">y</span>: <span class="ident">NcDimension</span>, <span class="ident">x</span>: <span class="ident">NcDimension</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cursor_enable</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">y</span>: <span class="ident">NcDim</span>, <span class="ident">x</span>: <span class="ident">NcDim</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">error</span><span class="macro">!</span>[<span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">notcurses_cursor_enable</span>(<span class="self">self</span>, <span class="ident">y</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">x</span> <span class="kw">as</span> <span class="ident">i32</span>) }]
     }
 
@@ -1121,12 +1111,12 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [notcurses_refresh()][crate::notcurses_refresh].*</span>
     <span class="comment">//</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">refresh</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>(<span class="ident">NcDimension</span>, <span class="ident">NcDimension</span>)<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">refresh</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>(<span class="ident">NcDim</span>, <span class="ident">NcDim</span>)<span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">y</span>, <span class="kw-2">mut</span> <span class="ident">x</span>) <span class="op">=</span> (<span class="number">0</span>, <span class="number">0</span>);
         <span class="macro">error</span><span class="macro">!</span>[
             <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">notcurses_refresh</span>(<span class="self">self</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">y</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">x</span>) },
             <span class="string">&quot;&quot;</span>,
-            (<span class="ident">y</span> <span class="kw">as</span> <span class="ident">NcDimension</span>, <span class="ident">x</span> <span class="kw">as</span> <span class="ident">NcDimension</span>)
+            (<span class="ident">y</span> <span class="kw">as</span> <span class="ident">NcDim</span>, <span class="ident">x</span> <span class="kw">as</span> <span class="ident">NcDim</span>)
         ]
     }
 
@@ -1205,8 +1195,8 @@
     <span class="comment">// #[inline]</span>
     <span class="comment">// pub fn stddim_yx&lt;&#39;a&gt;(</span>
     <span class="comment">//     &amp;&#39;a mut self,</span>
-    <span class="comment">//     y: &amp;mut NcDimension,</span>
-    <span class="comment">//     x: &amp;mut NcDimension,</span>
+    <span class="comment">//     y: &amp;mut NcDim,</span>
+    <span class="comment">//     x: &amp;mut NcDim,</span>
     <span class="comment">// ) -&gt; NcResult&lt;&amp;&#39;a mut NcPlane&gt; {</span>
     <span class="comment">//     crate::notcurses_stddim_yx(self, y, x)</span>
     <span class="comment">// }</span>
@@ -1218,8 +1208,8 @@
     <span class="comment">// #[inline]</span>
     <span class="comment">// pub fn stddim_yx_const&lt;&#39;a&gt;(</span>
     <span class="comment">//     &amp;&#39;a self,</span>
-    <span class="comment">//     y: &amp;mut NcDimension,</span>
-    <span class="comment">//     x: &amp;mut NcDimension,</span>
+    <span class="comment">//     y: &amp;mut NcDim,</span>
+    <span class="comment">//     x: &amp;mut NcDim,</span>
     <span class="comment">// ) -&gt; NcResult&lt;&amp;&#39;a NcPlane&gt; {</span>
     <span class="comment">//     crate::notcurses_stddim_yx_const(self, y, x)</span>
     <span class="comment">// }</span>
@@ -1231,7 +1221,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [notcurses_stdplane()][crate::notcurses_stdplane].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stdplane</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">NcPlane</span> {
-            <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw">crate</span>::<span class="ident">notcurses_stdplane</span>(<span class="self">self</span>) }
+        <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw">crate</span>::<span class="ident">notcurses_stdplane</span>(<span class="self">self</span>) }
     }
 
     <span class="doccomment">/// Returns a reference to the standard [NcPlane] for this terminal.</span>
@@ -1280,7 +1270,7 @@
     <span class="doccomment">/// Returns our current idea of the terminal dimensions in rows and cols.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [notcurses_supported_styles()][crate::notcurses_supported_styles].*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">term_dim_yx</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">NcDimension</span>, <span class="ident">NcDimension</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">term_dim_yx</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">NcDim</span>, <span class="ident">NcDim</span>) {
         <span class="kw">crate</span>::<span class="ident">notcurses_term_dim_yx</span>(<span class="self">self</span>)
     }
 
