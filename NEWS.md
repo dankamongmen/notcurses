@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 2.1.5 (not yet released):
+* 2.1.5 (2021-01-15):
   * Notcurses **now depends on GNU Readline at build and runtime**, entirely
     for the benefit of direct mode, which now prepares GNU Readline for safe
     use (unless the new `NCDIRECT_OPTIONS_NO_READLINE` is used).

@@ -1,6 +1,6 @@
 % notcurses_output(3)
 % nick black <nickblack@linux.com>
-% v2.1.4
+% v2.1.5
 
 # NAME
 
