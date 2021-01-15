@@ -3,8 +3,7 @@
 // we have a set of cyclic glyphs, with each cycle composed of some number N_c
 // of glyphs. our string is made up of each cycle, with each occupying N_c
 // cells, each iterating through the N_c states in a round. the string emerges
-// from the center of the screen, moving in a spiral. it then does a loop around
-// the columns, and returns back to its hole.
+// from the center of the screen, moving in a spiral.
 //
 // so, each iteration, start at the head of the chain, and move one forward.
 // work back along the path, moving back through the string. if we reach the
@@ -36,7 +35,6 @@ static const char* cycles[] = {
 
 typedef enum {
   PHASE_SPIRAL,
-  PHASE_CIRCLE,
   PHASE_CLOSE,
   PHASE_DONE,
 } phase_e;
@@ -69,45 +67,6 @@ get_next_head(struct ncplane* std, struct ncplane* left, struct ncplane* right,
       --*headx; // done
       *phase = PHASE_DONE;
     }
-  }
-  // we're above the columns. head left, unless we're at top left, in which
-  // case we head down, or if we're in PHASE_CIRCLE and at the top center,
-  // in which case move into PHASE_CLOSE.
-  if(*heady == trow - 2){
-    if(*headx == ncplane_dim_x(std) / 2 + 1 && *phase == PHASE_CIRCLE){
-      *phase = PHASE_CLOSE;
-      ++*heady;
-      return;
-    }
-    if(*headx == rlcol - ncplane_dim_x(left) - 2){
-      ++*heady; // turn the corner
-      return;
-    }
-    if(*headx == ncplane_dim_x(std) / 2){
-      *phase = PHASE_CIRCLE;
-    }
-    --*headx;
-  // we're to the left of the columns. head down, until bottom left.
-  }else if(*headx == rlcol - ncplane_dim_x(left) - 2){
-    if(*heady == brow + 2){
-      ++*headx;
-    }else{
-      ++*heady;
-    }
-  // we're below the columns. head right, until bottom right.
-  }else if(*heady == brow + 2){
-    if(*headx == lrcol + ncplane_dim_x(right) + 1){
-      --*heady;
-    }else{
-      ++*headx;
-    }
-  // we're to the right of the columns. head up, until top right.
-  }else if(*headx == lrcol + ncplane_dim_x(right) + 2){
-    if(*heady == trow - 2){
-      --*headx;
-    }else{
-      --*heady;
-    }
   }else{
     // in the spiral cycle. it's a counterclockwise spiral, come out the bottom,
     // calculate distances from the center in both directions. if the absolute
@@ -119,6 +78,9 @@ get_next_head(struct ncplane* std, struct ncplane* left, struct ncplane* right,
     // if |ydist|>|xdist| and positive y, etc.)
     int ydist = ncplane_dim_y(std) / 2 - *heady;
     int xdist = ncplane_dim_x(std) / 2 - *headx;
+    if(*heady < trow && xdist == ydist){
+      *phase = PHASE_CLOSE;
+    }
     if(ydist == 0 && xdist == 0){
       ++*heady; // move down
     }else if(abs(ydist) == abs(xdist)){ // corner
