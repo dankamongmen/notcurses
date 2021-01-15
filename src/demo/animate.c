@@ -171,12 +171,15 @@ animate(struct notcurses* nc, struct ncprogbar* left, struct ncprogbar* right){
   // the entire string has been consumed.
   (void)cycles; // FIXME
   // FIXME need to color the stuff
-  ncplane_set_fg_rgb(std, 0xffffff);
   struct timespec delay;
   timespec_div(&demodelay, 150, &delay);
   phase_e headphase, endphase;
   do{
-    ncplane_putchar_yx(std, heady, headx, 'x');
+    uint64_t channels;
+    free(ncplane_at_yx(std, heady, headx, NULL, &channels));
+    ncplane_set_bg_rgb(std, channels_bg_rgb(channels));
+    ncplane_set_fg_rgb(std, 0xffffff);
+    ncplane_putchar_yx(std, heady, headx, 'X');
     get_next_head(std, ncprogbar_plane(left), ncprogbar_plane(right),
                   &heady, &headx, &headphase);
     // FIXME need to iterate each character through its cycle
@@ -281,8 +284,8 @@ int animate_demo(struct notcurses* nc){
     ncplane_destroy(column);
     return -1;
   }
-  int r = animate(nc, pbarleft, pbarright);
   ncplane_destroy(column);
+  int r = animate(nc, pbarleft, pbarright);
   // reflash the gradient to eliminate the counter, setting stage for next demo
   ncplane_cursor_move_yx(n, 1, 0);
   if(ncplane_highgradient(n, tl, tr, bl, br, dimy - 1, dimx - 1) < 0){
