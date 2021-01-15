@@ -149,12 +149,22 @@ get_next_head(struct ncplane* std, struct ncplane* left, struct ncplane* right,
 
 static void
 get_next_end(struct ncplane* std, struct ncplane* left, struct ncplane* right,
-             int* endy, int* endx, phase_e* endphase, int totallength, int* length){
-  if(*length < totallength){
-    ++*length;
-    return;
-  }
+             int* endy, int* endx, phase_e* endphase){
   get_next_head(std, left, right, endy, endx, endphase);
+}
+
+// determine the total number of moves we will make
+static int
+determine_totalmoves(struct ncplane* left, struct ncplane* right){
+  int lrcol; // left column of right progbar
+  int rlcol; // right column of left progbar
+  int trow, brow; // top and bottom
+  ncplane_abs_yx(right, &trow, &lrcol);
+  ncplane_abs_yx(left, &brow, &rlcol);
+  rlcol += ncplane_dim_x(left) - 1;
+  brow += ncplane_dim_y(left) - 1;
+  return ((brow - trow + 3) * (brow - trow + 3) +
+          ncplane_dim_x(left) * 2 + ncplane_dim_y(left) * 2);
 }
 
 static int
@@ -170,14 +180,17 @@ animate(struct notcurses* nc, struct ncprogbar* left, struct ncprogbar* right){
   for(const char** c = cycles ; *c ; ++c){
     totallength += ncstrwidth(*c);
   }
+  const int totalmoves = determine_totalmoves(ncprogbar_plane(left), ncprogbar_plane(right));
   // headx and heady will not return to their starting location until the
   // string begins to disappear. endx and endy won't equal heady/headx until
   // the entire string has been consumed.
-  (void)cycles; // FIXME
-  // FIXME need to color the stuff
   struct timespec delay;
-  timespec_div(&demodelay, (dimy * dimx * 4) / 5, &delay);
+  uint64_t iterns = (timespec_to_ns(&demodelay) * 5) / totalmoves;
   phase_e headphase, endphase;
+  int moves = 0;
+  struct timespec expected;
+  clock_gettime(CLOCK_MONOTONIC, &expected);
+  uint64_t expect_ns = timespec_to_ns(&expected);
   do{
     uint64_t channels;
     free(ncplane_at_yx(std, heady, headx, NULL, &channels));
@@ -187,16 +200,29 @@ animate(struct notcurses* nc, struct ncprogbar* left, struct ncprogbar* right){
     get_next_head(std, ncprogbar_plane(left), ncprogbar_plane(right),
                   &heady, &headx, &headphase);
     // FIXME need to iterate each character through its cycle
-    int oldx = endx;
-    int oldy = endy;
-    get_next_end(std, ncprogbar_plane(left), ncprogbar_plane(right),
-                 &endy, &endx, &endphase, totallength, &length);
-    if(oldx != endx || oldy != endy){
-      ncplane_putchar_yx(std, oldy, oldx, '\0');
+    if(length < totallength){
+      ++length;
+    }else{
+      ncplane_putchar_yx(std, endy, endx, '\0');
+      get_next_end(std, ncprogbar_plane(left), ncprogbar_plane(right),
+                  &endy, &endx, &endphase);
     }
+    ++moves;
+    ncprogbar_set_progress(left, ((float)moves) / totalmoves);
+    ncprogbar_set_progress(right, ((float)moves) / totalmoves);
     DEMO_RENDER(nc);
-    demo_nanosleep(nc, &delay);
+    struct timespec now;
+    expect_ns += iterns;
+    clock_gettime(CLOCK_MONOTONIC, &now);
+    uint64_t nowns = timespec_to_ns(&now);
+    if(nowns < expect_ns){
+      ns_to_timespec(expect_ns - nowns, &delay);
+      demo_nanosleep(nc, &delay);
+    }
   }while(endy != heady || endx != headx);
+  ncprogbar_set_progress(left, 1);
+  ncprogbar_set_progress(right, 1);
+  DEMO_RENDER(nc);
   return 0;
 }
 
