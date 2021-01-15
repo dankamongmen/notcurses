@@ -149,10 +149,9 @@ get_next_head(struct ncplane* std, struct ncplane* left, struct ncplane* right,
 
 static void
 get_next_end(struct ncplane* std, struct ncplane* left, struct ncplane* right,
-             int* endy, int* endx, phase_e* endphase){
-  static int length = 0;
-  if(length < 1){
-    ++length;
+             int* endy, int* endx, phase_e* endphase, int totallength, int* length){
+  if(*length < totallength){
+    ++*length;
     return;
   }
   get_next_head(std, left, right, endy, endx, endphase);
@@ -166,13 +165,18 @@ animate(struct notcurses* nc, struct ncprogbar* left, struct ncprogbar* right){
   int heady = -1;
   int endy = -1;
   int endx = -1;
+  int length = 0;
+  int totallength = 0;
+  for(const char** c = cycles ; *c ; ++c){
+    totallength += ncstrwidth(*c);
+  }
   // headx and heady will not return to their starting location until the
   // string begins to disappear. endx and endy won't equal heady/headx until
   // the entire string has been consumed.
   (void)cycles; // FIXME
   // FIXME need to color the stuff
   struct timespec delay;
-  timespec_div(&demodelay, 150, &delay);
+  timespec_div(&demodelay, (dimy * dimx * 4) / 5, &delay);
   phase_e headphase, endphase;
   do{
     uint64_t channels;
@@ -186,7 +190,7 @@ animate(struct notcurses* nc, struct ncprogbar* left, struct ncprogbar* right){
     int oldx = endx;
     int oldy = endy;
     get_next_end(std, ncprogbar_plane(left), ncprogbar_plane(right),
-                 &endy, &endx, &endphase);
+                 &endy, &endx, &endphase, totallength, &length);
     if(oldx != endx || oldy != endy){
       ncplane_putchar_yx(std, oldy, oldx, '\0');
     }
