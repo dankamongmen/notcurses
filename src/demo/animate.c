@@ -43,18 +43,18 @@ typedef enum {
 static void
 get_next_head(struct ncplane* std, struct ncplane* left, struct ncplane* right,
               int* heady, int* headx, phase_e* phase){
-  if(*phase == PHASE_DONE){
-    return;
-  }
-  int lrcol; // left column of right progbar
-  int rlcol; // right column of left progbar
-  int trow, brow; // top and bottom
   if(*heady == -1 && *headx == -1){
     *headx = ncplane_dim_x(std) / 2;
     *heady = ncplane_dim_y(std) / 2;
     *phase = PHASE_SPIRAL;
     return;
   }
+  if(*phase == PHASE_DONE){
+    return;
+  }
+  int lrcol; // left column of right progbar
+  int rlcol; // right column of left progbar
+  int trow, brow; // top and bottom
   ncplane_abs_yx(right, &trow, &lrcol);
   ncplane_abs_yx(left, &brow, &rlcol);
   rlcol += ncplane_dim_x(left) - 1;
@@ -138,14 +138,43 @@ determine_totalmoves(struct ncplane* std, struct ncplane* left, struct ncplane* 
   return moves;
 }
 
+// find the 'iters'th EGC in 'utf8', modulo the number of EGCs in 'utf8'
+static int
+spin_cycle(const char* utf8, int iters){
+  int offsets[10]; // no cycles longer than this
+  mbstate_t mbs = { };
+  int offset = 0;
+  size_t s;
+  int o = 0;
+  while((s = mbrtowc(NULL, utf8 + offset, strlen(utf8 + offset) + 1, &mbs)) != (size_t)-1){
+    if(s == 0){ // ended with o EGCs
+      if(o == 0){
+        return -1;
+      }
+      return offsets[iters % o];
+    }
+    if(o == sizeof(offsets) / sizeof(*offsets)){
+      break;
+    }
+    offsets[o] = offset;
+    offset += s;
+    if(++o == iters){
+      return offsets[iters % o];
+    }
+  }
+  return -1;
+}
+
 static int
 drawcycles(struct ncplane* std, struct ncprogbar* left, struct ncprogbar* right,
            int length, int endy, int endx, phase_e endphase, uint64_t* channels,
            int iters){
   const char** c = cycles;
   const char* cstr = *c;
-  size_t offset = 0;
-  (void)iters; // FIXME
+  int offset = spin_cycle(cstr, iters);
+  if(offset < 0){
+    return -1;
+  }
   while(length--){
     get_next_head(std, ncprogbar_plane(left), ncprogbar_plane(right),
                   &endy, &endx, &endphase);
@@ -159,7 +188,13 @@ drawcycles(struct ncplane* std, struct ncprogbar* left, struct ncprogbar* right,
     offset += sbytes;
     if(cstr[offset] == '\0'){
       cstr = *++c;
-      offset = 0;
+      if(cstr == NULL){
+        c = cycles;
+        cstr = *c;
+      }
+      if((offset = spin_cycle(cstr, iters)) < 0){
+        return -1;
+      }
     }
   }
   return 0;
@@ -185,7 +220,8 @@ animate(struct notcurses* nc, struct ncprogbar* left, struct ncprogbar* right){
   // the entire string has been consumed.
   struct timespec delay;
   uint64_t iterns = (timespec_to_ns(&demodelay) * 5) / totalmoves;
-  phase_e headphase, endphase;
+  phase_e headphase = PHASE_SPIRAL;
+  phase_e endphase = PHASE_SPIRAL;
   int moves = 0;
   struct timespec expected;
   clock_gettime(CLOCK_MONOTONIC, &expected);
@@ -196,9 +232,10 @@ animate(struct notcurses* nc, struct ncprogbar* left, struct ncprogbar* right){
     if(headphase != PHASE_DONE){
       get_next_head(std, ncprogbar_plane(left), ncprogbar_plane(right),
                     &heady, &headx, &headphase);
-      drawcycles(std, left, right, length, endy, endx, endphase, &channels, moves);
+      if(drawcycles(std, left, right, length, endy, endx, endphase, &channels, moves) < 0){
+        return -1;
+      }
     }
-    // FIXME need to iterate each character through its cycle
     if(length < totallength){
       ++length;
     }else{
