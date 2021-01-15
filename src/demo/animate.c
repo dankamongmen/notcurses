@@ -38,12 +38,16 @@ typedef enum {
   PHASE_SPIRAL,
   PHASE_CIRCLE,
   PHASE_CLOSE,
+  PHASE_DONE,
 } phase_e;
 
 // get the new head position, given the old head position
 static void
 get_next_head(struct ncplane* std, struct ncplane* left, struct ncplane* right,
               int* heady, int* headx, phase_e* phase){
+  if(*phase == PHASE_DONE){
+    return;
+  }
   int lrcol; // left column of right progbar
   int rlcol; // right column of left progbar
   int trow, brow; // top and bottom
@@ -61,10 +65,10 @@ get_next_head(struct ncplane* std, struct ncplane* left, struct ncplane* right,
   if(*phase == PHASE_CLOSE){
     if(*heady < ncplane_dim_y(std) / 2){
       ++*heady;
-    }else if(*headx > ncplane_dim_x(std) / 2){
+    }else{
       --*headx; // done
+      *phase = PHASE_DONE;
     }
-    return;
   }
   // we're above the columns. head left, unless we're at top left, in which
   // case we head down, or if we're in PHASE_CIRCLE and at the top center,
@@ -168,9 +172,7 @@ determine_totalmoves(struct ncplane* std, struct ncplane* left, struct ncplane* 
       get_next_end(std, left, right, &endy, &endx, &endphase);
     }
     ++moves;
-fprintf(stderr, "move %d: %d/%d %d/%d\n", moves, heady, headx, endy, endx);
   }while(endy != heady || endx != headx);
-fprintf(stderr, "done! move %d: %d/%d %d/%d\n", moves, heady, headx, endy, endx);
   return moves;
 }
 
@@ -200,19 +202,22 @@ animate(struct notcurses* nc, struct ncprogbar* left, struct ncprogbar* right){
   struct timespec expected;
   clock_gettime(CLOCK_MONOTONIC, &expected);
   uint64_t expect_ns = timespec_to_ns(&expected);
+  uint64_t channels;
   do{
-    uint64_t channels;
-    free(ncplane_at_yx(std, heady, headx, NULL, &channels));
-    ncplane_set_bg_rgb(std, channels_bg_rgb(channels));
-    ncplane_set_fg_rgb(std, 0xffffff);
-    ncplane_putchar_yx(std, heady, headx, 'X');
-    get_next_head(std, ncprogbar_plane(left), ncprogbar_plane(right),
-                  &heady, &headx, &headphase);
+    if(headphase != PHASE_DONE){
+      free(ncplane_at_yx(std, heady, headx, NULL, &channels));
+      ncplane_set_bg_rgb(std, channels_bg_rgb(channels));
+      ncplane_set_fg_rgb(std, 0xffffff);
+      ncplane_putchar_yx(std, heady, headx, 'X');
+      get_next_head(std, ncprogbar_plane(left), ncprogbar_plane(right),
+                    &heady, &headx, &headphase);
+    }
     // FIXME need to iterate each character through its cycle
     if(length < totallength){
       ++length;
     }else{
-      ncplane_putchar_yx(std, endy, endx, '\0');
+      ncplane_set_fg_rgb(std, channels_fg_rgb(channels));
+      ncplane_putwc_yx(std, endy, endx, L'▄');
       get_next_end(std, ncprogbar_plane(left), ncprogbar_plane(right),
                   &endy, &endx, &endphase);
     }
