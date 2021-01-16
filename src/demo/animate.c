@@ -64,7 +64,6 @@ get_next_head(struct ncplane* std, struct ncplane* left, struct ncplane* right,
     if(*heady < ncplane_dim_y(std) / 2){
       ++*heady;
     }else{
-      --*headx; // done
       *phase = PHASE_DONE;
     }
   }else{
