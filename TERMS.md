@@ -17,30 +17,30 @@ relies on the font. Patches to correct/complete this table are very welcome!
 
 | Terminal        | `ccc` | Blocks | Recommended environment         | Notes |
 | --------------- | ----- | ------ | ------------------------------- | ----- |
-| Alacritty       | ✔     |🗴       |`TERM=alacritty` `COLORTERM=24bit` | |
+| Alacritty       | ✅    |❌      |`TERM=alacritty` `COLORTERM=24bit` | |
 | FBterm          | ?     |?       |`TERM=fbterm`                    | 256 colors, no RGB color. |
-| Gnome Terminal  | 🗴     |?       |`TERM=gnome` `COLORTERM=24bit`   | `ccc` support *is* available when run with `vte-256color`. |
+| Gnome Terminal  | ❌    |✅      |`TERM=gnome` `COLORTERM=24bit`   | `ccc` support *is* available when run with `vte-256color`. |
 | Guake           | ?     |?       |                                 | |
 | ITerm2          | ?     |?       |                                 | |
-| Kitty           | ✔     |✔       |`TERM=xterm-kitty`               | |
+| Kitty           | ✅    |✅      |`TERM=xterm-kitty`               | |
 | kmscon          | ?     |?       |`TERM=xterm-256color`            | No RGB color AFAICT, nor any distinct terminfo entry. |
-| Konsole         | 🗴     |?       |`TERM=konsole-direct`            | |
-| Linux console   | ✔     |N/A     |`TERM=linux` `COLORTERM=24bit`   | 8 (512 glyph fonts) or 16 (256 glyph fonts) colors max, but RGB values are downsampled to a 256-index palette. See below. |
-| mlterm          | 🗴     |?       |`TERM=mlterm-256color`           | Do not set `COLORTERM`. `mlterm-direct` gives strange results. |
+| Konsole         | ❌    |?       |`TERM=konsole-direct`            | |
+| Linux console   | ✅    |❌      |`TERM=linux` `COLORTERM=24bit`   | 8 (512 glyph fonts) or 16 (256 glyph fonts) colors max, but RGB values are downsampled to a 256-index palette. See below. |
+| mlterm          | ❌    |?       |`TERM=mlterm-256color`           | Do not set `COLORTERM`. `mlterm-direct` gives strange results. |
 | PuTTY           | ?     |?       |                                 | |
 | rxvt            | ?     |?       |                                 | |
-| Sakura          | ✔     |?       |`TERM=vte-256color` `COLORTERM=24bit` | No terminfo entry? |
-| GNU Screen      | 🗴     |?       |`TERM=screen.OLDTERM`            | Must be compiled with `--enable-256color`. `TERM` should typically be `screen.` suffixed by the appropriate `TERM` value for the true connected terminal, e.g. `screen.vte-256color`. See below. |
-| st              | ✔     |?       |`TERM=st-256color` `COLORTERM=24bit` | |
+| Sakura          | ✅    |?       |`TERM=vte-256color` `COLORTERM=24bit` | No terminfo entry? |
+| GNU Screen      | ❌    |?       |`TERM=screen.OLDTERM`            | Must be compiled with `--enable-256color`. `TERM` should typically be `screen.` suffixed by the appropriate `TERM` value for the true connected terminal, e.g. `screen.vte-256color`. See below. |
+| st ("suckless") | ✅    |?       |`TERM=st-256color` `COLORTERM=24bit` | |
 | Terminator      | ?     |?       | ?                               | |
 | Terminology     | ?     |?       | ?                               | |
 | Tilda           | ?     |?       | ?                               | |
 | tmux            | ?     |?       | ?                               | |
-| wezterm         | ✔     |?       |`TERM=wezterm` `COLORTERM=24bit` | |
+| wezterm         | ✅    |?       |`TERM=wezterm` `COLORTERM=24bit` | |
 | Windows Terminal| ?     |?       | ?                               | |
 | wterm           | ?     |?       | ?                               | |
-| XFCE4 Terminal  | ✔     |?       |`TERM=xfce` `COLORTERM=24bit`    | No `xfce-direct` variant exists. |
-| XTerm           | ?     |🗴       |`TERM=xterm+256color2` `COLORTERM=24bit` | See note about DirectColor. Must configure with `--enable-direct-color`. `TERM=xterm-direct` seems to have the undesirable effect of mapping low RGB values to a palette; I don't yet understand this well. The problem is not seen with the specified configuration. Sixel support when built with `--enable-sixel-graphics` and run in vt340 mode. |
+| XFCE4 Terminal  | ✅    |✅      |`TERM=xfce` `COLORTERM=24bit`    | No `xfce-direct` variant exists. |
+| XTerm           | ?     |❌      |`TERM=xterm+256color2` `COLORTERM=24bit` | See note about DirectColor. Must configure with `--enable-direct-color`. `TERM=xterm-direct` seems to have the undesirable effect of mapping low RGB values to a palette; I don't yet understand this well. The problem is not seen with the specified configuration. Sixel support when built with `--enable-sixel-graphics` and run in vt340 mode. |
 | Yakuake         | ?     |?       | ?                               | |
 
 Note that `xfce4-terminal`, `gnome-terminal`, etc. are essentially skinning
