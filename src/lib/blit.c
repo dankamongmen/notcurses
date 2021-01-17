@@ -878,13 +878,6 @@ int ncblit_rgba(const void* data, int linesize, const struct ncvisual_options* v
                     leny, lenx, blend);
 }
 
-int rgba_blit_dispatch(ncplane* nc, const struct blitset* bset, int placey,
-                       int placex, int linesize, const void* data, int begy,
-                       int begx, int leny, int lenx, bool blendcolors){
-  return bset->blit(nc, placey, placex, linesize, data, begy, begx,
-                    leny, lenx, blendcolors);
-}
-
 ncblitter_e ncvisual_media_defblitter(const notcurses* nc, ncscale_e scale){
   return rgba_blitter_default(nc->utf8, scale, nc->tcache.sextants);
 }

@@ -681,9 +681,13 @@ memdup(const void* src, size_t len){
 
 void* bgra_to_rgba(const void* data, int rows, int rowstride, int cols);
 
-int rgba_blit_dispatch(ncplane* nc, const struct blitset* bset, int placey,
-                       int placex, int linesize, const void* data, int begy,
-                       int begx, int leny, int lenx, bool blendcolors);
+static inline int
+rgba_blit_dispatch(ncplane* nc, const struct blitset* bset, int placey,
+                   int placex, int linesize, const void* data, int begy,
+                   int begx, int leny, int lenx, bool blendcolors){
+  return bset->blit(nc, placey, placex, linesize, data, begy, begx,
+                    leny, lenx, blendcolors);
+}
 
 // find the "center" cell of two lengths. in the case of even rows/columns, we
 // place the center on the top/left. in such a case there will be one more

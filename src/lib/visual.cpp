@@ -4,11 +4,6 @@
 #include "visual-details.h"
 #include "internal.h"
 
-// ncv constructors other than ncvisual_from_file() need to set up the
-// AVFrame* 'frame' according to their own data, which is assumed to
-// have been prepared already in 'ncv'.
-auto ncvisual_details_seed(struct ncvisual* ncv) -> void;
-
 auto ncvisual_geom(const notcurses* nc, const ncvisual* n,
                    const struct ncvisual_options* vopts,
                    int* y, int* x, int* toy, int* tox) -> int {
@@ -607,11 +602,6 @@ auto ncvisual_stream(notcurses* nc, ncvisual* ncv, float timescale,
 auto ncvisual_subtitle(const ncvisual* ncv) -> char* {
   (void)ncv;
   return nullptr;
-}
-
-auto ncvisual_init(int loglevel) -> int {
-  (void)loglevel;
-  return 0; // allow success here
 }
 
 auto ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
