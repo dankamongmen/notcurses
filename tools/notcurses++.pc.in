@@ -8,5 +8,5 @@ Description: C++ bindings for notcurses
 Version: @PROJECT_VERSION@
 
 Requires: notcurses >= @PROJECT_VERSION@
-Libs: -L${libdir} -lnotcurses++
+Libs: -L${libdir} -lnotcurses -lnotcurses++
 Cflags: -I${includedir}
