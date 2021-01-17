@@ -8,5 +8,5 @@ Description: TUI library for modern terminal emulators
 Version: @PROJECT_VERSION@
 
 Requires:
-Libs: -L${libdir} -lnotcurses
+Libs: -L${libdir} -lnotcurses-core -lnotcurses
 Cflags: -I${includedir}
