@@ -245,14 +245,14 @@ target_link_libraries(notcurses-static
 )
 if(${USE_FFMPEG})
 target_include_directories(notcurses
-  PUBLIC
+  PRIVATE
     "${AVCODEC_INCLUDE_DIRS}"
     "${AVFORMAT_INCLUDE_DIRS}"
     "${AVUTIL_INCLUDE_DIRS}"
     "${SWSCALE_INCLUDE_DIRS}"
 )
 target_include_directories(notcurses-static
-  PUBLIC
+  PRIVATE
     "${AVCODEC_STATIC_INCLUDE_DIRS}"
     "${AVFORMAT_STATIC_INCLUDE_DIRS}"
     "${AVUTIL_STATIC_INCLUDE_DIRS}"
@@ -263,7 +263,6 @@ target_link_libraries(notcurses
     "${AVCODEC_LIBRARIES}"
     "${AVFORMAT_LIBRARIES}"
     "${SWSCALE_LIBRARIES}"
-  PUBLIC
     "${AVUTIL_LIBRARIES}"
 )
 target_link_libraries(notcurses-static
@@ -271,7 +270,6 @@ target_link_libraries(notcurses-static
     "${AVCODEC_STATIC_LIBRARIES}"
     "${AVFORMAT_STATIC_LIBRARIES}"
     "${SWSCALE_STATIC_LIBRARIES}"
-  PUBLIC
     "${AVUTIL_STATIC_LIBRARIES}"
 )
 target_link_directories(notcurses
@@ -279,7 +277,6 @@ target_link_directories(notcurses
     "${AVCODEC_LIBRARY_DIRS}"
     "${AVFORMAT_LIBRARY_DIRS}"
     "${SWSCALE_LIBRARY_DIRS}"
-  PUBLIC
     "${AVUTIL_LIBRARY_DIRS}"
 )
 target_link_directories(notcurses-static
@@ -287,7 +284,6 @@ target_link_directories(notcurses-static
     "${AVCODEC_STATIC_LIBRARY_DIRS}"
     "${AVFORMAT_STATIC_LIBRARY_DIRS}"
     "${SWSCALE_STATIC_LIBRARY_DIRS}"
-  PUBLIC
     "${AVUTIL_STATIC_LIBRARY_DIRS}"
 )
 elseif(${USE_OIIO})
