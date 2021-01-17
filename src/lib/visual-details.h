@@ -37,6 +37,11 @@ typedef struct ncvisual {
   bool owndata; // we own data iff owndata == true
 } ncvisual;
 
+// ncv constructors other than ncvisual_from_file() need to set up the
+// AVFrame* 'frame' according to their own data, which is assumed to
+// have been prepared already in 'ncv'.
+auto ncvisual_details_seed(struct ncvisual* ncv) -> void;
+
 static inline auto
 ncvisual_create(void) -> ncvisual* {
   auto ret = new ncvisual{};
