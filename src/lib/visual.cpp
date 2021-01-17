@@ -67,6 +67,28 @@ auto ncvisual_init(int loglevel) -> int {
   return ret;
 }
 
+auto ncvisual_from_file(const char* filename) -> ncvisual* {
+  ncvisual* ret = nullptr;
+  if(pthread_rwlock_rdlock(&impllock) == 0){
+    if(impl){
+      ret = impl->ncvisual_from_file(filename);
+    }
+    pthread_rwlock_unlock(&impllock);
+  }
+  return ret;
+}
+
+auto ncvisual_create(void) -> ncvisual* {
+  ncvisual* ret = nullptr;
+  if(pthread_rwlock_rdlock(&impllock) == 0){
+    if(impl){
+      ret = impl->ncvisual_create();
+    }
+    pthread_rwlock_unlock(&impllock);
+  }
+  return ret;
+}
+
 auto ncvisual_geom(const notcurses* nc, const ncvisual* n,
                    const struct ncvisual_options* vopts,
                    int* y, int* x, int* toy, int* tox) -> int {
@@ -542,7 +564,7 @@ auto ncvisual_from_plane(const ncplane* n, ncblitter_e blit, int begy, int begx,
 
 auto ncvisual_destroy(ncvisual* ncv) -> void {
   if(ncv){
-    ncvisual_details_destroy(&ncv->details);
+    impl->ncvisual_details_destroy(ncv->details);
     if(ncv->owndata){
       free(ncv->data);
     }
@@ -625,19 +647,18 @@ auto ncvisual_polyfill_yx(ncvisual* n, int y, int x, uint32_t rgba) -> int {
   return ncvisual_polyfill_recurse(n, y, x, rgba, *pixel);
 }
 
-#ifndef USE_OIIO // built without ffmpeg or oiio
-#ifndef USE_FFMPEG
-auto ncvisual_from_file(const char* filename) -> ncvisual* {
-  (void)filename;
-  return nullptr;
-}
-
 auto notcurses_canopen_images(const notcurses* nc __attribute__ ((unused))) -> bool {
-  return false;
+  if(!impl){
+    return false;
+  }
+  return impl->canopen_images;
 }
 
 auto notcurses_canopen_videos(const notcurses* nc __attribute__ ((unused))) -> bool {
-  return false;
+  if(!impl){
+    return false;
+  }
+  return impl->canopen_videos;
 }
 
 auto ncvisual_decode_loop(ncvisual* nc) -> int {
@@ -671,6 +692,3 @@ auto ncvisual_resize(ncvisual* nc, int rows, int cols) -> int {
   }
   return -1;
 }
-
-#endif
-#endif

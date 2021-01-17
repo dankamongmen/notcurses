@@ -43,30 +43,6 @@ typedef struct ncvisual_details {
   int sub_stream_index;    // subtitle stream index, can be < 0 if no subtitles
 } ncvisual_details;
 
-static inline auto
-ncvisual_details_init(ncvisual_details* deets) -> int {
-  memset(deets, 0, sizeof(*deets));
-  deets->stream_index = -1;
-  deets->sub_stream_index = -1;
-  if((deets->frame = av_frame_alloc()) == nullptr){
-    return -1;
-  }
-  return 0;
-}
-
-static inline auto
-ncvisual_details_destroy(ncvisual_details* deets) -> void {
-  avcodec_close(deets->codecctx);
-  avcodec_free_context(&deets->codecctx);
-  av_frame_free(&deets->frame);
-  av_freep(&deets->oframe);
-  //avcodec_parameters_free(&ncv->cparams);
-  sws_freeContext(deets->swsctx);
-  av_packet_free(&deets->packet);
-  avformat_close_input(&deets->fmtctx);
-  avsubtitle_free(&deets->subtitle);
-}
-
 #endif
 
 #endif
