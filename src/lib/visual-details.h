@@ -37,6 +37,18 @@ typedef struct ncvisual {
   bool owndata; // we own data iff owndata == true
 } ncvisual;
 
+typedef struct ncvisual_implementation {
+  int (*ncvisual_init)(int loglevel);
+  int (*ncvisual_decode)(ncvisual*);
+  int (*ncvisual_blit)(ncvisual* ncv, int rows, int cols, ncplane* n,
+                       const struct blitset* bset, int placey, int placex,
+                       int begy, int begx, int leny, int lenx,
+                       bool blendcolors);
+  void (*ncvisual_details_seed)(ncvisual* ncv);
+} ncvisual_implementation;
+
+int notcurses_set_ncvisual_implementation(const ncvisual_implementation* imp);
+
 // ncv constructors other than ncvisual_from_file() need to set up the
 // AVFrame* 'frame' according to their own data, which is assumed to
 // have been prepared already in 'ncv'.
