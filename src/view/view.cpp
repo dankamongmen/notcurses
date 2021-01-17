@@ -20,6 +20,7 @@ static void usage(std::ostream& os, const char* name, int exitcode)
 void usage(std::ostream& o, const char* name, int exitcode){
   o << "usage: " << name << " [ -h ] [ -q ] [ -m margins ] [ -l loglevel ] [ -d mult ] [ -s scaletype ] [ -k ] [ -L ] [ -t seconds ] files" << '\n';
   o << " -h: display help and exit with success\n";
+  o << " -V: print program name and version\n";
   o << " -q: be quiet (no frame/timing information along top of screen)\n";
   o << " -k: don't use the alternate screen\n";
   o << " -L: loop frames\n";
