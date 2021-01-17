@@ -1,7 +1,7 @@
 # Usage
 
-As of version 2.0.0, Notcurses honors Semantic Versioning, the API is stable,
-and the project is committed to backwards compatibility.
+As of version 2.0.0, the Notcurses API is stable, and the project is committed
+to backwards compatibility.
 
 * [Direct Mode](#direct-mode)
 * [Alignment](#alignment)
@@ -15,16 +15,17 @@ and the project is committed to backwards compatibility.
 * [Stats](#stats)
 * [C++](#c++)
 
-A full API reference [is available](https://nick-black.com/notcurses/). Manual
-pages ought have been installed along with Notcurses. This document is a
+A full API reference [is available](https://nick-black.com/notcurses/) in the
+form of manual pages; these ought have been installed along with Notcurses. This document is a
 secondary reference, and should not be considered authoritative. For a more
 unified commentary, consider the [paperback](https://www.amazon.com/dp/B086PNVNC9)
-(also available as a free PDF from https://nick-black.com).
+(also available as a [free PDF](https://nick-black.com/dankwiki/index.php?title=Hacking_The_Planet!_with_Notcurses).
 
 A program wishing to use Notcurses will need to link it, ideally using the
 output of `pkg-config --libs notcurses`. It is advised to compile with the
-output of `pkg-config --cflags notcurses`. If using CMake, a support file is
-provided, and can be accessed as `Notcurses`.
+output of `pkg-config --cflags notcurses`. To use the minimal core Notcurses,
+without multimedia support, use `pkg-config --libs notcurses-core` etc. If
+using CMake, a support file is provided, and can be accessed as `Notcurses`.
 
 Before calling into Notcurses—and usually as one of the first calls of the
 program—be sure to call `setlocale(3)` with an appropriate UTF-8 locale. It is
