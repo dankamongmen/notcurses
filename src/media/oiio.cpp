@@ -1,6 +1,10 @@
 #include "builddef.h"
 #ifdef USE_OIIO
-#include "oiio.h"
+#include <OpenImageIO/filter.h>
+#include <OpenImageIO/version.h>
+#include <OpenImageIO/imageio.h>
+#include <OpenImageIO/imagebuf.h>
+#include <OpenImageIO/imagebufalgo.h>
 #include "internal.h"
 #include "visual-details.h"
 
