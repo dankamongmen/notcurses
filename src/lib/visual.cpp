@@ -89,6 +89,17 @@ auto ncvisual_create(void) -> ncvisual* {
   return ret;
 }
 
+auto ncvisual_printbanner(const notcurses* nc) -> void {
+  pthread_rwlock_rdlock(&impllock);
+  if(impl){
+    impl->ncvisual_printbanner(nc);
+  }else{
+    term_fg_palindex(nc, stderr, nc->tcache.colors <= 88 ? 1 % nc->tcache.colors : 0xcb);
+    fprintf(stderr, "\n Warning! Notcurses was built without multimedia support.\n");
+  }
+  pthread_rwlock_unlock(&impllock);
+}
+
 auto ncvisual_geom(const notcurses* nc, const ncvisual* n,
                    const struct ncvisual_options* vopts,
                    int* y, int* x, int* toy, int* tox) -> int {

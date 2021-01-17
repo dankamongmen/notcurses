@@ -210,6 +210,7 @@ endif()
 
 ############################################################################
 # libnotcurses (multimedia shared library+static library)
+if(NOT ${USE_MULTIMEDIA} STREQUAL "none")
 file(GLOB NCSRCS CONFIGURE_DEPENDS src/media/*.c src/media/*.cpp)
 add_library(notcurses SHARED ${NCSRCS} ${COMPATSRC})
 if(${USE_STATIC})
@@ -221,18 +222,12 @@ set_target_properties(
   notcurses-static PROPERTIES
   OUTPUT_NAME notcurses
 )
-if(${USE_FFMPEG})
 target_include_directories(notcurses
   PRIVATE
     include
     src
     src/lib
     "${PROJECT_BINARY_DIR}/include"
-  PUBLIC
-    "${AVCODEC_INCLUDE_DIRS}"
-    "${AVFORMAT_INCLUDE_DIRS}"
-    "${AVUTIL_INCLUDE_DIRS}"
-    "${SWSCALE_INCLUDE_DIRS}"
 )
 target_include_directories(notcurses-static
   PRIVATE
@@ -240,6 +235,24 @@ target_include_directories(notcurses-static
     src
     src/lib
     "${PROJECT_BINARY_DIR}/include"
+)
+target_link_libraries(notcurses
+  PUBLIC
+    notcurses-core
+)
+target_link_libraries(notcurses-static
+  PUBLIC
+    notcurses-core-static
+)
+if(${USE_FFMPEG})
+target_include_directories(notcurses
+  PUBLIC
+    "${AVCODEC_INCLUDE_DIRS}"
+    "${AVFORMAT_INCLUDE_DIRS}"
+    "${AVUTIL_INCLUDE_DIRS}"
+    "${SWSCALE_INCLUDE_DIRS}"
+)
+target_include_directories(notcurses-static
   PUBLIC
     "${AVCODEC_STATIC_INCLUDE_DIRS}"
     "${AVFORMAT_STATIC_INCLUDE_DIRS}"
@@ -251,8 +264,6 @@ target_link_libraries(notcurses
     "${AVCODEC_LIBRARIES}"
     "${AVFORMAT_LIBRARIES}"
     "${SWSCALE_LIBRARIES}"
-  PUBLIC
-    notcurses-core
     "${AVUTIL_LIBRARIES}"
 )
 target_link_libraries(notcurses-static
@@ -260,8 +271,6 @@ target_link_libraries(notcurses-static
     "${AVCODEC_STATIC_LIBRARIES}"
     "${AVFORMAT_STATIC_LIBRARIES}"
     "${SWSCALE_STATIC_LIBRARIES}"
-  PUBLIC
-    notcurses-core-static
     "${AVUTIL_STATIC_LIBRARIES}"
 )
 target_link_directories(notcurses
@@ -287,6 +296,7 @@ target_link_libraries(notcurses PRIVATE ${OIIO_LIBRARIES})
 target_link_libraries(notcurses-static PRIVATE ${OIIO_STATIC_LIBRARIES})
 target_link_directories(notcurses PRIVATE ${OIIO_LIBRARY_DIRS})
 target_link_directories(notcurses-static PRIVATE ${OIIO_STATIC_LIBRARY_DIRS})
+endif()
 endif()
 
 ############################################################################
@@ -523,7 +533,7 @@ target_link_libraries(notcurses-demo
 
 # all further binaries require either notcurses or notcurses++, which are
 # only build when we have multimedia support
-if(${USE_FFMPEG} OR ${USE_OIIO})
+if(NOT ${USE_MULTIMEDIA} STREQUAL "none")
 ############################################################################
 # ncneofetch
 file(GLOB FETCHSRCS CONFIGURE_DEPENDS src/fetch/*.c)
@@ -582,7 +592,7 @@ target_link_libraries(notcurses-tetris
 
 ############################################################################
 # notcurses-view
-if(${USE_FFMPEG} OR ${USE_OIIO})
+if(NOT ${USE_MULTIMEDIA} STREQUAL "none")
 file(GLOB VIEWSRCS CONFIGURE_DEPENDS src/view/*.cpp)
 add_executable(notcurses-view ${VIEWSRCS} ${COMPATSRC})
 target_include_directories(notcurses-view
@@ -668,7 +678,7 @@ configure_file(tools/notcurses-core.pc.in
   ${CMAKE_CURRENT_BINARY_DIR}/notcurses-core.pc
   @ONLY
 )
-if(${USE_FFMPEG} OR ${USE_OIIO})
+if(NOT ${USE_MULTIMEDIA} STREQUAL "none")
 configure_file(tools/notcurses.pc.in
   ${CMAKE_CURRENT_BINARY_DIR}/notcurses.pc
   @ONLY
@@ -726,7 +736,7 @@ install(FILES
   DESTINATION ${PKGCONFIG_DIR}
   )
 
-if(${USE_FFMPEG} OR ${USE_OIIO})
+if(NOT ${USE_MULTIMEDIA} STREQUAL "none")
 file(GLOB TESTDATA CONFIGURE_DEPENDS data/*)
 # Don't install source materia for self-originated multimedia
 list(FILTER TESTDATA EXCLUDE REGEX ".*xcf$")
@@ -740,7 +750,7 @@ file(GLOB MARKDOWN CONFIGURE_DEPENDS *.md)
 install(FILES ${MARKDOWN} DESTINATION ${CMAKE_INSTALL_DOCDIR})
 
 install(TARGETS notcurses-demo DESTINATION bin)
-if(${USE_FFMPEG} OR ${USE_OIIO})
+if(NOT ${USE_MULTIMEDIA} STREQUAL "none")
 install(TARGETS notcurses-input DESTINATION bin)
 install(TARGETS ncls DESTINATION bin)
 install(TARGETS ncneofetch DESTINATION bin)
