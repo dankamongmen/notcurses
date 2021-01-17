@@ -802,19 +802,7 @@ init_banner(const notcurses* nc){
 #error "No __BYTE_ORDER__ definition"
 #endif
            , curses_version());
-#ifdef USE_FFMPEG
-    printf("  avformat %u.%u.%u avutil %u.%u.%u swscale %u.%u.%u\n",
-          LIBAVFORMAT_VERSION_MAJOR, LIBAVFORMAT_VERSION_MINOR, LIBAVFORMAT_VERSION_MICRO,
-          LIBAVUTIL_VERSION_MAJOR, LIBAVUTIL_VERSION_MINOR, LIBAVUTIL_VERSION_MICRO,
-          LIBSWSCALE_VERSION_MAJOR, LIBSWSCALE_VERSION_MINOR, LIBSWSCALE_VERSION_MICRO);
-#else
-#ifdef USE_OIIO
-    printf("  openimageio %s\n", oiio_version());
-#else
-    term_fg_palindex(nc, stderr, nc->tcache.colors <= 88 ? 1 % nc->tcache.colors : 0xcb);
-    fprintf(stderr, "\n Warning! Notcurses was built without multimedia support.\n");
-#endif
-#endif
+    ncvisual_printbanner(nc);
     fflush(stdout);
     term_fg_palindex(nc, stderr, nc->tcache.colors <= 88 ? 1 % nc->tcache.colors : 0xcb);
     if(!nc->tcache.RGBflag){ // FIXME

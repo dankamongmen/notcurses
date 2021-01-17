@@ -25,6 +25,7 @@ typedef struct ncvisual_implementation {
                        bool blendcolors);
   ncvisual* (*ncvisual_create)(void);
   ncvisual* (*ncvisual_from_file)(const char* s);
+  void (*ncvisual_printbanner)(const struct notcurses* nc);
   // ncv constructors other than ncvisual_from_file() need to set up the
   // AVFrame* 'frame' according to their own data, which is assumed to
   // have been prepared already in 'ncv'.
@@ -34,6 +35,7 @@ typedef struct ncvisual_implementation {
   bool canopen_videos;
 } ncvisual_implementation;
 
+// ugh! need export this for pluggable multimedia modules without dlopen()
 __attribute__((visibility("default")))
 int notcurses_set_ncvisual_implementation(const ncvisual_implementation* imp);
 

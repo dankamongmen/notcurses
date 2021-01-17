@@ -1072,6 +1072,8 @@ int setup_signals(void* nc, bool no_quit_sigs, bool no_winch_sig,
                   int(*handler)(void*));
 int drop_signals(void* nc);
 
+void ncvisual_printbanner(const notcurses* nc);
+
 #ifdef __cplusplus
 }
 #endif
