@@ -210,7 +210,6 @@ endif()
 
 ############################################################################
 # libnotcurses (multimedia shared library+static library)
-if(NOT ${USE_MULTIMEDIA} STREQUAL "none")
 file(GLOB NCSRCS CONFIGURE_DEPENDS src/media/*.c src/media/*.cpp)
 add_library(notcurses SHARED ${NCSRCS} ${COMPATSRC})
 if(${USE_STATIC})
@@ -264,6 +263,7 @@ target_link_libraries(notcurses
     "${AVCODEC_LIBRARIES}"
     "${AVFORMAT_LIBRARIES}"
     "${SWSCALE_LIBRARIES}"
+  PUBLIC
     "${AVUTIL_LIBRARIES}"
 )
 target_link_libraries(notcurses-static
@@ -271,6 +271,7 @@ target_link_libraries(notcurses-static
     "${AVCODEC_STATIC_LIBRARIES}"
     "${AVFORMAT_STATIC_LIBRARIES}"
     "${SWSCALE_STATIC_LIBRARIES}"
+  PUBLIC
     "${AVUTIL_STATIC_LIBRARIES}"
 )
 target_link_directories(notcurses
@@ -296,7 +297,6 @@ target_link_libraries(notcurses PRIVATE ${OIIO_LIBRARIES})
 target_link_libraries(notcurses-static PRIVATE ${OIIO_STATIC_LIBRARIES})
 target_link_directories(notcurses PRIVATE ${OIIO_LIBRARY_DIRS})
 target_link_directories(notcurses-static PRIVATE ${OIIO_STATIC_LIBRARY_DIRS})
-endif()
 endif()
 
 ############################################################################
@@ -529,23 +529,8 @@ target_link_libraries(notcurses-demo
     notcurses
     unistring
     ${MATH_LIBRARIES}
-)
-
-# all further binaries require either notcurses or notcurses++, which are
-# only build when we have multimedia support
-if(NOT ${USE_MULTIMEDIA} STREQUAL "none")
-############################################################################
-# ncneofetch
-file(GLOB FETCHSRCS CONFIGURE_DEPENDS src/fetch/*.c)
-add_executable(ncneofetch ${FETCHSRCS})
-target_include_directories(ncneofetch
-  PRIVATE
-    include
-    "${PROJECT_BINARY_DIR}/include"
-)
-target_link_libraries(ncneofetch
-  PRIVATE
-    notcurses
+  PUBLIC
+    Threads::Threads
 )
 
 ############################################################################
@@ -563,20 +548,6 @@ target_link_libraries(notcurses-input
 )
 
 ############################################################################
-# ncls
-file(GLOB LSSRC CONFIGURE_DEPENDS src/ls/*.cpp)
-add_executable(ncls ${LSSRC})
-target_include_directories(ncls
-  PRIVATE
-    include
-    "${PROJECT_BINARY_DIR}/include"
-)
-target_link_libraries(ncls
-  PRIVATE
-    notcurses++
-)
-
-############################################################################
 # notcurses-tetris
 file(GLOB TETRISSRC CONFIGURE_DEPENDS src/tetris/*.cpp)
 add_executable(notcurses-tetris ${TETRISSRC})
@@ -586,6 +557,36 @@ target_include_directories(notcurses-tetris
     "${PROJECT_BINARY_DIR}/include"
 )
 target_link_libraries(notcurses-tetris
+  PRIVATE
+    notcurses++
+)
+
+# all further binaries require multimedia support
+if(NOT ${USE_MULTIMEDIA} STREQUAL "none")
+############################################################################
+# ncneofetch
+file(GLOB FETCHSRCS CONFIGURE_DEPENDS src/fetch/*.c)
+add_executable(ncneofetch ${FETCHSRCS})
+target_include_directories(ncneofetch
+  PRIVATE
+    include
+    "${PROJECT_BINARY_DIR}/include"
+)
+target_link_libraries(ncneofetch
+  PRIVATE
+    notcurses
+)
+
+############################################################################
+# ncls
+file(GLOB LSSRC CONFIGURE_DEPENDS src/ls/*.cpp)
+add_executable(ncls ${LSSRC})
+target_include_directories(ncls
+  PRIVATE
+    include
+    "${PROJECT_BINARY_DIR}/include"
+)
+target_link_libraries(ncls
   PRIVATE
     notcurses++
 )
@@ -624,8 +625,8 @@ target_include_directories(notcurses-tester
 )
 target_link_libraries(notcurses-tester
   PRIVATE
-    unistring
     notcurses++
+    unistring
     "${TERMINFO_LIBRARIES}"
 )
 add_test(
@@ -678,7 +679,6 @@ configure_file(tools/notcurses-core.pc.in
   ${CMAKE_CURRENT_BINARY_DIR}/notcurses-core.pc
   @ONLY
 )
-if(NOT ${USE_MULTIMEDIA} STREQUAL "none")
 configure_file(tools/notcurses.pc.in
   ${CMAKE_CURRENT_BINARY_DIR}/notcurses.pc
   @ONLY
@@ -687,7 +687,6 @@ configure_file(tools/notcurses++.pc.in
   ${CMAKE_CURRENT_BINARY_DIR}/notcurses++.pc
   @ONLY
 )
-endif()
 
 include(CMakePackageConfigHelpers)
 configure_file(tools/version.h.in include/version.h)
@@ -750,11 +749,11 @@ file(GLOB MARKDOWN CONFIGURE_DEPENDS *.md)
 install(FILES ${MARKDOWN} DESTINATION ${CMAKE_INSTALL_DOCDIR})
 
 install(TARGETS notcurses-demo DESTINATION bin)
-if(NOT ${USE_MULTIMEDIA} STREQUAL "none")
 install(TARGETS notcurses-input DESTINATION bin)
-install(TARGETS ncls DESTINATION bin)
-install(TARGETS ncneofetch DESTINATION bin)
 install(TARGETS notcurses-tetris DESTINATION bin)
+if(NOT ${USE_MULTIMEDIA} STREQUAL "none")
+install(TARGETS ncneofetch DESTINATION bin)
+install(TARGETS ncls DESTINATION bin)
 install(TARGETS notcurses-view DESTINATION bin)
 endif()
 
