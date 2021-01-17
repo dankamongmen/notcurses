@@ -1,6 +1,12 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 2.1.6 (not yet released):
+  * Notcurses has been split into two libraries, `notcurses-core` and
+    `notcurses`. The latter contains the heavyweight multimedia code,
+    so that applications which don't need this functionality can link against
+    only the former. `pkg-config` support is present for both.
+
 * 2.1.5 (2021-01-15):
   * Notcurses **now depends on GNU Readline at build and runtime**, entirely
     for the benefit of direct mode, which now prepares GNU Readline for safe
