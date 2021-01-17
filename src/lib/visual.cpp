@@ -4,6 +4,69 @@
 #include "visual-details.h"
 #include "internal.h"
 
+static const ncvisual_implementation* impl;
+static pthread_rwlock_t impllock = PTHREAD_RWLOCK_INITIALIZER;
+
+int notcurses_set_ncvisual_implementation(const ncvisual_implementation* imp){
+  int ret = -1;
+  if(pthread_rwlock_wrlock(&impllock)){
+    return -1;
+  }
+  if(impl == nullptr){
+    impl = imp;
+  }
+  ret |= pthread_rwlock_unlock(&impllock);
+  return ret;
+}
+
+auto ncvisual_decode(ncvisual* nc) -> int {
+  int ret = -1;
+  if(pthread_rwlock_rdlock(&impllock)){
+    return -1;
+  }
+  if(impl){
+    ret = impl->ncvisual_decode(nc);
+  }
+  ret |= pthread_rwlock_unlock(&impllock);
+  return ret;
+}
+
+auto ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
+                   const struct blitset* bset, int placey, int placex,
+                   int begy, int begx, int leny, int lenx,
+                   bool blendcolors) -> int {
+  int ret = -1;
+  if(pthread_rwlock_rdlock(&impllock)){
+    return -1;
+  }
+  if(impl){
+    ret = impl->ncvisual_blit(ncv, rows, cols, n, bset, placey, placex,
+                              begy, begx, leny, lenx, blendcolors);
+  }
+  ret |= pthread_rwlock_unlock(&impllock);
+  return ret;
+}
+
+auto ncvisual_details_seed(struct ncvisual* ncv) -> void {
+  pthread_rwlock_rdlock(&impllock);
+  if(impl){
+    impl->ncvisual_details_seed(ncv);
+  }
+  pthread_rwlock_unlock(&impllock);
+}
+
+auto ncvisual_init(int loglevel) -> int {
+  int ret = 0; // default to success here
+  if(pthread_rwlock_rdlock(&impllock)){
+    return -1;
+  }
+  if(impl){
+    ret = impl->ncvisual_init(loglevel);
+  }
+  ret |= pthread_rwlock_unlock(&impllock);
+  return ret;
+}
+
 auto ncvisual_geom(const notcurses* nc, const ncvisual* n,
                    const struct ncvisual_options* vopts,
                    int* y, int* x, int* toy, int* tox) -> int {
@@ -577,11 +640,6 @@ auto notcurses_canopen_videos(const notcurses* nc __attribute__ ((unused))) -> b
   return false;
 }
 
-auto ncvisual_decode(ncvisual* nc) -> int {
-  (void)nc;
-  return -1;
-}
-
 auto ncvisual_decode_loop(ncvisual* nc) -> int {
   (void)nc;
   return -1;
@@ -602,23 +660,6 @@ auto ncvisual_stream(notcurses* nc, ncvisual* ncv, float timescale,
 auto ncvisual_subtitle(const ncvisual* ncv) -> char* {
   (void)ncv;
   return nullptr;
-}
-
-auto ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
-                   const struct blitset* bset, int placey, int placex,
-                   int begy, int begx, int leny, int lenx,
-                   bool blendcolors) -> int {
-  (void)rows;
-  (void)cols;
-  if(rgba_blit_dispatch(n, bset, placey, placex, ncv->rowstride, ncv->data,
-                        begy, begx, leny, lenx, blendcolors) < 0){
-    return -1;
-  }
-  return 0;
-}
-
-auto ncvisual_details_seed(struct ncvisual* ncv) -> void {
-  (void)ncv;
 }
 
 auto ncvisual_resize(ncvisual* nc, int rows, int cols) -> int {
