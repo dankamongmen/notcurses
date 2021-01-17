@@ -12,7 +12,7 @@ prepackaged on many distributions. Otherwise, acquire the current source via
 
 On an APT-based distribution, run:
 
-`apt-get install build-essential cmake libavformat-dev libavutil-dev libncurses-dev libreadline-dev libqrcodegen-dev libswscale-dev pandoc pkg-config`
+`apt-get install build-essential cmake doctest-dev libavformat-dev libavutil-dev libncurses-dev libreadline-dev libqrcodegen-dev libswscale-dev libunistring-dev pandoc pkg-config`
 
 If you want to build the Python wrappers, you'll also need:
 
@@ -33,6 +33,7 @@ If you want to build the Rust wrappers, you'll also need:
 * `make`
 * `make test`
 * `make install`
+* `sudo ldconfig`
 
 The default multimedia engine is FFmpeg. You can select a different engine
 using `USE_MULTIMEDIA`. Valid values are `ffmpeg`, `oiio` (for OpenImageIO),
