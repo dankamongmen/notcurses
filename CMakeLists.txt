@@ -60,6 +60,12 @@ if("${USE_COVERAGE}")
   string(APPEND CMAKE_CXX_FLAGS_DEBUG " --coverage -fprofile-instr-generate -fcoverage-mapping")
 endif()
 
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+set(PKGCONFIG_DIR "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
+else()
+set(PKGCONFIG_DIR "${CMAKE_INSTALL_PREFIX}/libdata/pkgconfig")
+endif()
+
 # global compiler flags
 add_compile_definitions(FORTIFY_SOURCE=2)
 add_compile_options(-Wall -Wextra -W -Wshadow -Wformat -fexceptions)
@@ -114,11 +120,97 @@ endif()
 set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND qrcodegen)
 endif()
 find_library(LIBRT rt)
+feature_summary(WHAT ALL FATAL_ON_MISSING_REQUIRED_PACKAGES)
 
 file(GLOB COMPATSRC CONFIGURE_DEPENDS src/compat/compat.c)
 
-# libnotcurses (core shared library, core static library)
-file(GLOB NCSRCS CONFIGURE_DEPENDS src/lib/*.c src/lib/*.cpp)
+############################################################################
+# libnotcurses-core (core shared library, core static library)
+file(GLOB NCCORESRCS CONFIGURE_DEPENDS src/lib/*.c src/lib/*.cpp)
+add_library(notcurses-core SHARED ${NCCORESRCS} ${COMPATSRC})
+if(${USE_STATIC})
+add_library(notcurses-core-static STATIC ${NCCORESRCS})
+else()
+add_library(notcurses-core-static STATIC EXCLUDE_FROM_ALL ${NCCORESRCS})
+endif()
+set_target_properties(
+  notcurses-core-static PROPERTIES
+  OUTPUT_NAME notcurses-core
+)
+set_target_properties(notcurses-core PROPERTIES
+  VERSION ${PROJECT_VERSION}
+  SOVERSION ${PROJECT_VERSION_MAJOR}
+)
+set_target_properties(notcurses-core-static PROPERTIES
+  VERSION ${PROJECT_VERSION}
+)
+target_include_directories(notcurses-core
+  PRIVATE
+    include
+    src
+    "${PROJECT_BINARY_DIR}/include"
+    "${TERMINFO_INCLUDE_DIRS}"
+    "${READLINE_INCLUDE_DIRS}"
+)
+target_include_directories(notcurses-core-static
+  PRIVATE
+    include
+    src
+    "${PROJECT_BINARY_DIR}/include"
+    "${TERMINFO_STATIC_INCLUDE_DIRS}"
+    "${READLINE_STATIC_INCLUDE_DIRS}"
+)
+target_link_libraries(notcurses-core
+  PRIVATE
+    "${TERMINFO_LIBRARIES}"
+    "${READLINE_LIBRARIES}"
+    "${LIBRT}"
+    unistring
+  PUBLIC
+    Threads::Threads
+)
+target_link_libraries(notcurses-core-static
+  PRIVATE
+    "${TERMINFO_STATIC_LIBRARIES}"
+    "${READLINE_STATIC_LIBRARIES}"
+    "${LIBRT}"
+    unistring
+  PUBLIC
+    Threads::Threads
+)
+target_link_directories(notcurses-core
+  PRIVATE
+    "${TERMINFO_LIBRARY_DIRS}"
+    "${READLINE_LIBRARY_DIRS}"
+)
+target_link_directories(notcurses-core-static
+  PRIVATE
+    "${TERMINFO_STATIC_LIBRARY_DIRS}"
+    "${READLINE_STATIC_LIBRARY_DIRS}"
+)
+# don't want these on freebsd/dragonfly/osx
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+target_compile_definitions(notcurses-core
+  PUBLIC
+   _XOPEN_SOURCE=700 # wcwidth(3) requires _XOPEN_SOURCE, and is in our headers
+  PRIVATE
+   _GNU_SOURCE _DEFAULT_SOURCE
+)
+target_compile_definitions(notcurses-core-static
+  PUBLIC
+   _XOPEN_SOURCE=700 # wcwidth(3) requires _XOPEN_SOURCE, and is in our headers
+  PRIVATE
+   _GNU_SOURCE _DEFAULT_SOURCE
+)
+endif()
+if(${USE_QRCODEGEN})
+target_link_libraries(notcurses-core PRIVATE qrcodegen)
+target_link_libraries(notcurses-core-static PRIVATE qrcodegen)
+endif()
+
+############################################################################
+# libnotcurses (multimedia shared library+static library)
+file(GLOB NCSRCS CONFIGURE_DEPENDS src/media/*.c src/media/*.cpp)
 add_library(notcurses SHARED ${NCSRCS} ${COMPATSRC})
 if(${USE_STATIC})
 add_library(notcurses-static STATIC ${NCSRCS})
@@ -129,68 +221,13 @@ set_target_properties(
   notcurses-static PROPERTIES
   OUTPUT_NAME notcurses
 )
-
-feature_summary(WHAT ALL FATAL_ON_MISSING_REQUIRED_PACKAGES)
-
-set_target_properties(notcurses PROPERTIES
-  VERSION ${PROJECT_VERSION}
-  SOVERSION ${PROJECT_VERSION_MAJOR}
-)
-set_target_properties(notcurses-static PROPERTIES
-  VERSION ${PROJECT_VERSION}
-)
-target_include_directories(notcurses
-  PRIVATE
-    include
-    src
-    "${PROJECT_BINARY_DIR}/include"
-    "${TERMINFO_INCLUDE_DIRS}"
-    "${READLINE_INCLUDE_DIRS}"
-)
-target_include_directories(notcurses-static
-  PRIVATE
-    include
-    src
-    "${PROJECT_BINARY_DIR}/include"
-    "${TERMINFO_STATIC_INCLUDE_DIRS}"
-    "${READLINE_STATIC_INCLUDE_DIRS}"
-)
-target_link_libraries(notcurses
-  PRIVATE
-    "${TERMINFO_LIBRARIES}"
-    "${READLINE_LIBRARIES}"
-    "${LIBRT}"
-    unistring
-  PUBLIC
-    Threads::Threads
-)
-target_link_libraries(notcurses-static
-  PRIVATE
-    "${TERMINFO_STATIC_LIBRARIES}"
-    "${READLINE_STATIC_LIBRARIES}"
-    "${LIBRT}"
-    unistring
-  PUBLIC
-    Threads::Threads
-)
-target_link_directories(notcurses
-  PRIVATE
-    "${TERMINFO_LIBRARY_DIRS}"
-    "${READLINE_LIBRARY_DIRS}"
-)
-target_link_directories(notcurses-static
-  PRIVATE
-    "${TERMINFO_STATIC_LIBRARY_DIRS}"
-    "${READLINE_STATIC_LIBRARY_DIRS}"
-)
-
-if(${USE_QRCODEGEN})
-target_link_libraries(notcurses PRIVATE qrcodegen)
-target_link_libraries(notcurses-static PRIVATE qrcodegen)
-endif()
-
 if(${USE_FFMPEG})
 target_include_directories(notcurses
+  PRIVATE
+    include
+    src
+    src/lib
+    "${PROJECT_BINARY_DIR}/include"
   PUBLIC
     "${AVCODEC_INCLUDE_DIRS}"
     "${AVFORMAT_INCLUDE_DIRS}"
@@ -198,6 +235,11 @@ target_include_directories(notcurses
     "${SWSCALE_INCLUDE_DIRS}"
 )
 target_include_directories(notcurses-static
+  PRIVATE
+    include
+    src
+    src/lib
+    "${PROJECT_BINARY_DIR}/include"
   PUBLIC
     "${AVCODEC_STATIC_INCLUDE_DIRS}"
     "${AVFORMAT_STATIC_INCLUDE_DIRS}"
@@ -210,6 +252,7 @@ target_link_libraries(notcurses
     "${AVFORMAT_LIBRARIES}"
     "${SWSCALE_LIBRARIES}"
   PUBLIC
+    notcurses-core
     "${AVUTIL_LIBRARIES}"
 )
 target_link_libraries(notcurses-static
@@ -218,6 +261,7 @@ target_link_libraries(notcurses-static
     "${AVFORMAT_STATIC_LIBRARIES}"
     "${SWSCALE_STATIC_LIBRARIES}"
   PUBLIC
+    notcurses-core-static
     "${AVUTIL_STATIC_LIBRARIES}"
 )
 target_link_directories(notcurses
@@ -245,28 +289,8 @@ target_link_directories(notcurses PRIVATE ${OIIO_LIBRARY_DIRS})
 target_link_directories(notcurses-static PRIVATE ${OIIO_STATIC_LIBRARY_DIRS})
 endif()
 
-# don't want these on freebsd
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-target_compile_definitions(notcurses
-  PUBLIC
-   _XOPEN_SOURCE=700 # wcwidth(3) requires _XOPEN_SOURCE, and is in our headers
-  PRIVATE
-   _GNU_SOURCE _DEFAULT_SOURCE
-)
-target_compile_definitions(notcurses-static
-  PUBLIC
-   _XOPEN_SOURCE=700 # wcwidth(3) requires _XOPEN_SOURCE, and is in our headers
-  PRIVATE
-   _GNU_SOURCE _DEFAULT_SOURCE
-)
-set(PKGCONFIG_DIR "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
-elseif(${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
-set(PKGCONFIG_DIR "${CMAKE_INSTALL_PREFIX}/libdata/pkgconfig")
-elseif(${CMAKE_SYSTEM_NAME} STREQUAL "DragonFly")
-set(PKGCONFIG_DIR "${CMAKE_INSTALL_PREFIX}/libdata/pkgconfig")
-endif()
-
-# libnotcurses++
+############################################################################
+# libnotcurses++ (C++ wrappers)
 set(NCPP_SOURCES
   src/libcpp/FDPlane.cc
   src/libcpp/Menu.cc
@@ -375,31 +399,6 @@ install(FILES ${NOTCURSES_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/notcu
 install(FILES ${NCPP_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ncpp)
 install(FILES ${NCPP_INTERNAL_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ncpp/internal)
 
-# notcurses-demo
-file(GLOB DEMOSRCS CONFIGURE_DEPENDS src/demo/*.c)
-add_executable(notcurses-demo ${DEMOSRCS} ${COMPATSRC})
-target_compile_definitions(notcurses-demo
-  PRIVATE
-    _GNU_SOURCE
-)
-target_include_directories(notcurses-demo
-  PRIVATE
-    include
-    src
-    "${PROJECT_BINARY_DIR}/include"
-  PUBLIC
-    "${AVCODEC_INCLUDE_DIRS}"
-    "${AVFORMAT_INCLUDE_DIRS}"
-    "${AVUTIL_INCLUDE_DIRS}"
-    "${SWSCALE_INCLUDE_DIRS}"
-)
-target_link_libraries(notcurses-demo
-  PRIVATE
-    notcurses
-    unistring
-    ${MATH_LIBRARIES}
-)
-
 # tiny proofs of concept, one binary per source file
 if(USE_POC)
 file(GLOB POCSRCS CONFIGURE_DEPENDS src/poc/*.c src/poc/*.cpp)
@@ -496,6 +495,36 @@ if(USE_DOXYGEN)
   endif()
 endif()
 
+############################################################################
+# notcurses-demo
+file(GLOB DEMOSRCS CONFIGURE_DEPENDS src/demo/*.c)
+add_executable(notcurses-demo ${DEMOSRCS} ${COMPATSRC})
+target_compile_definitions(notcurses-demo
+  PRIVATE
+    _GNU_SOURCE
+)
+target_include_directories(notcurses-demo
+  PRIVATE
+    include
+    src
+    "${PROJECT_BINARY_DIR}/include"
+  PUBLIC
+    "${AVCODEC_INCLUDE_DIRS}"
+    "${AVFORMAT_INCLUDE_DIRS}"
+    "${AVUTIL_INCLUDE_DIRS}"
+    "${SWSCALE_INCLUDE_DIRS}"
+)
+target_link_libraries(notcurses-demo
+  PRIVATE
+    notcurses
+    unistring
+    ${MATH_LIBRARIES}
+)
+
+# all further binaries require either notcurses or notcurses++, which are
+# only build when we have multimedia support
+if(${USE_FFMPEG} OR ${USE_OIIO})
+############################################################################
 # ncneofetch
 file(GLOB FETCHSRCS CONFIGURE_DEPENDS src/fetch/*.c)
 add_executable(ncneofetch ${FETCHSRCS})
@@ -509,6 +538,7 @@ target_link_libraries(ncneofetch
     notcurses
 )
 
+############################################################################
 # notcurses-input
 file(GLOB INPUTSRCS CONFIGURE_DEPENDS src/input/input.cpp)
 add_executable(notcurses-input ${INPUTSRCS})
@@ -522,6 +552,7 @@ target_link_libraries(notcurses-input
     notcurses++
 )
 
+############################################################################
 # ncls
 file(GLOB LSSRC CONFIGURE_DEPENDS src/ls/*.cpp)
 add_executable(ncls ${LSSRC})
@@ -535,6 +566,7 @@ target_link_libraries(ncls
     notcurses++
 )
 
+############################################################################
 # notcurses-tetris
 file(GLOB TETRISSRC CONFIGURE_DEPENDS src/tetris/*.cpp)
 add_executable(notcurses-tetris ${TETRISSRC})
@@ -548,6 +580,7 @@ target_link_libraries(notcurses-tetris
     notcurses++
 )
 
+############################################################################
 # notcurses-view
 if(${USE_FFMPEG} OR ${USE_OIIO})
 file(GLOB VIEWSRCS CONFIGURE_DEPENDS src/view/*.cpp)
@@ -563,8 +596,10 @@ target_link_libraries(notcurses-view
     notcurses++
 )
 endif()
+endif()
 
-# Testing
+############################################################################
+# testing
 if(${BUILD_TESTING})
 #set(CMAKE_CTEST_ARGUMENTS "-V")
 if(${USE_DOCTEST})
@@ -629,15 +664,20 @@ add_custom_target(demo
 )
 
 # pkg-config support
+configure_file(tools/notcurses-core.pc.in
+  ${CMAKE_CURRENT_BINARY_DIR}/notcurses-core.pc
+  @ONLY
+)
+if(${USE_FFMPEG} OR ${USE_OIIO})
 configure_file(tools/notcurses.pc.in
   ${CMAKE_CURRENT_BINARY_DIR}/notcurses.pc
   @ONLY
 )
-
 configure_file(tools/notcurses++.pc.in
   ${CMAKE_CURRENT_BINARY_DIR}/notcurses++.pc
   @ONLY
 )
+endif()
 
 include(CMakePackageConfigHelpers)
 configure_file(tools/version.h.in include/version.h)
@@ -700,15 +740,15 @@ file(GLOB MARKDOWN CONFIGURE_DEPENDS *.md)
 install(FILES ${MARKDOWN} DESTINATION ${CMAKE_INSTALL_DOCDIR})
 
 install(TARGETS notcurses-demo DESTINATION bin)
+if(${USE_FFMPEG} OR ${USE_OIIO})
 install(TARGETS notcurses-input DESTINATION bin)
 install(TARGETS ncls DESTINATION bin)
 install(TARGETS ncneofetch DESTINATION bin)
 install(TARGETS notcurses-tetris DESTINATION bin)
-if(${USE_FFMPEG} OR ${USE_OIIO})
 install(TARGETS notcurses-view DESTINATION bin)
 endif()
 
-install(TARGETS notcurses notcurses++
+install(TARGETS notcurses-core notcurses notcurses++
   LIBRARY
     DESTINATION ${CMAKE_INSTALL_LIBDIR}
     COMPONENT Libraries
@@ -716,7 +756,7 @@ install(TARGETS notcurses notcurses++
 )
 if(${USE_STATIC})
 install(
-  TARGETS notcurses-static notcurses++-static
+  TARGETS notcurses-core-static notcurses-static notcurses++-static
   LIBRARY
     DESTINATION ${CMAKE_INSTALL_LIBDIR}
     COMPONENT Libraries
