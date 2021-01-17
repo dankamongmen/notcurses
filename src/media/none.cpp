@@ -4,14 +4,18 @@
 #include "internal.h"
 #include "visual-details.h"
 
-static void inject_implementation(void) __attribute__ ((constructor));
+void inject_implementation(void) __attribute__ ((constructor));
+
+typedef struct ncvisual_details {
+  bool null;
+} ncvisual_details;
 
 static ncvisual*
 null_create(void){
-  return calloc(sizeof(struct ncvisual), 1);
+  return new ncvisual{};
 }
 
-const static ncvisual_implementation ffmpeg_impl = {
+static const ncvisual_implementation ffmpeg_impl = {
   .ncvisual_init = NULL,
   .ncvisual_decode = NULL,
   .ncvisual_blit = NULL,
@@ -24,7 +28,7 @@ const static ncvisual_implementation ffmpeg_impl = {
   .canopen_videos = false,
 };
 
-static void inject_implementation(void){
+void inject_implementation(void){
   notcurses_set_ncvisual_implementation(&ffmpeg_impl);
 }
 

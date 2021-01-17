@@ -30,7 +30,7 @@ typedef struct ncvisual_implementation {
   // AVFrame* 'frame' according to their own data, which is assumed to
   // have been prepared already in 'ncv'.
   void (*ncvisual_details_seed)(ncvisual* ncv);
-  void (*ncvisual_details_destroy)(ncvisual_details* deets);
+  void (*ncvisual_details_destroy)(struct ncvisual_details* deets);
   bool canopen_images;
   bool canopen_videos;
 } ncvisual_implementation;
