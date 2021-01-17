@@ -1,5 +1,6 @@
 #include "builddef.h"
 #ifdef USE_FFMPEG
+extern "C" {
 #include <libavutil/error.h>
 #include <libavutil/frame.h>
 #include <libavutil/pixdesc.h>
@@ -10,6 +11,7 @@
 #include <libswscale/version.h>
 #include <libavformat/version.h>
 #include <libavformat/avformat.h>
+}
 #include "internal.h"
 #include "visual-details.h"
 
@@ -39,7 +41,8 @@ typedef struct ncvisual_details {
 
 #define IMGALLOCALIGN 32
 
-static void inject_implementation(void) __attribute__ ((constructor));
+void inject_implementation(void) __attribute__ ((constructor))
+__attribute__ ((visibility("default")));
 
 /*static void
 print_frame_summary(const AVCodecContext* cctx, const AVFrame* f) {
@@ -581,7 +584,7 @@ const static ncvisual_implementation ffmpeg_impl = {
   .canopen_videos = true,
 };
 
-static void inject_implementation(void){
+void inject_implementation(void){
   notcurses_set_ncvisual_implementation(&ffmpeg_impl);
 }
 
