@@ -131,12 +131,12 @@ may well be possible to use still older versions. Let me know of any successes!
 
 Seven binaries are installed as part of Notcurses:
 * `notcurses-demo`: some demonstration code
-* `notcurses-view`: renders visual media (images/videos)
+* `ncls`: an `ls` that displays multimedia in the terminal
+* `ncneofetch`: a [neofetch](https://github.com/dylanaraps/neofetch) ripoff
+* `ncplayer`: renders visual media (images/videos)
 * `notcurses-input`: decode and print keypresses
 * `notcurses-tester`: unit testing
 * `notcurses-tetris`: a tetris clone
-* `ncneofetch`: a [neofetch](https://github.com/dylanaraps/neofetch) ripoff
-* `ncls`: an `ls` that displays multimedia in the terminal
 
 To run `notcurses-demo` from a checkout, provide the `tests/` directory via
 the `-p` argument. Demos requiring data files will otherwise abort. The base

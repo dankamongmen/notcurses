@@ -1,21 +1,22 @@
-% notcurses-view(1)
+% ncplayer(1)
 % nick black <nickblack@linux.com>
 % v2.1.5
 
 # NAME
 
-notcurses-view - Render images and video to a terminal
+ncplayer - Render images and video to a terminal
 
 # SYNOPSIS
 
-**notcurses-view** [**-h**] [**-V**] [**-q**] [**-d** ***delaymult***] [**-l** ***loglevel***] [**-s** ***scalemode***] [**-k**] [**-L**] [**-t** ***seconds***] files
+**ncplayer** [**-h**] [**-V**] [**-q**] [**-d** ***delaymult***] [**-l** ***loglevel***] [**-s** ***scalemode***] [**-k**] [**-L**] [**-t** ***seconds***] files
 
 # DESCRIPTION
 
-**notcurses-view** uses a multimedia-enabled notcurses to render images
-and videos to a terminal. By default, **stretch**-type scaling is used to
-fill the rendering area, and the **sexblitter** blitter is used for a
-3x2→1 mapping from pixels to cells.
+**ncplayer** uses a multimedia-enabled Notcurses to render images and videos to a
+terminal. By default, **stretch**-type scaling is used to fill the rendering
+area, and the **sexblitter** blitter is used (where known to work well) for a
+3x2→1 mapping from pixels to cells. In a terminal that doesn't support Unicode
+13 sextants, the **quadblitter** is used instead.
 
 # OPTIONS
 

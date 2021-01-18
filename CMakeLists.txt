@@ -588,17 +588,17 @@ target_link_libraries(ncls
 )
 
 ############################################################################
-# notcurses-view
+# ncplayer
 if(NOT ${USE_MULTIMEDIA} STREQUAL "none")
 file(GLOB VIEWSRCS CONFIGURE_DEPENDS src/view/*.cpp)
-add_executable(notcurses-view ${VIEWSRCS} ${COMPATSRC})
-target_include_directories(notcurses-view
+add_executable(ncplayer ${VIEWSRCS} ${COMPATSRC})
+target_include_directories(ncplayer
   PRIVATE
     include
     src
     "${PROJECT_BINARY_DIR}/include"
 )
-target_link_libraries(notcurses-view
+target_link_libraries(ncplayer
   PRIVATE
     notcurses++
 )
@@ -750,7 +750,7 @@ install(TARGETS notcurses-tetris DESTINATION bin)
 if(NOT ${USE_MULTIMEDIA} STREQUAL "none")
 install(TARGETS ncneofetch DESTINATION bin)
 install(TARGETS ncls DESTINATION bin)
-install(TARGETS notcurses-view DESTINATION bin)
+install(TARGETS ncplayer DESTINATION bin)
 endif()
 
 install(TARGETS notcurses-core notcurses notcurses++

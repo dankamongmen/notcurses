@@ -6,6 +6,7 @@ rearrangements of Notcurses.
     `notcurses`. The latter contains the heavyweight multimedia code,
     so that applications which don't need this functionality can link against
     only the former. `pkg-config` support is present for both.
+  * The `notcurses-view` binary has been renamed `ncplayer`.
 
 * 2.1.5 (2021-01-15):
   * Notcurses **now depends on GNU Readline at build and runtime**, entirely
