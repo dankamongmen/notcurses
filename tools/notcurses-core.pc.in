@@ -4,9 +4,9 @@ libdir=${prefix}/@CMAKE_INSTALL_LIBDIR@
 includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
 
 Name: @PROJECT_NAME@
-Description: C++ bindings for notcurses
+Description: TUI library for modern terminal emulators
 Version: @PROJECT_VERSION@
 
-Requires: notcurses >= @PROJECT_VERSION@
-Libs: -L${libdir} -lnotcurses -lnotcurses++
+Requires:
+Libs: -L${libdir} -lnotcurses-core
 Cflags: -I${includedir}

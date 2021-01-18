@@ -8,9 +8,10 @@ notcurses - TUI library for modern terminal emulators
 
 # SYNOPSIS
 
-**#include <notcurses/notcurses.h>**
+**#include <notcurses/notcurses.h>** or
+**#include <notcurses/notcurses-core.h>**
 
-**-lnotcurses**
+**-lnotcurses** or **-lnotcurses-core**
 
 # DESCRIPTION
 
@@ -23,7 +24,8 @@ A program wishing to use Notcurses will need to link it, ideally using the
 output of **pkg-config --libs notcurses** (see **pkg-config(1)**). It is
 advised to compile with the output of **pkg-config --cflags notcurses**. If
 using CMake, a support file is provided, and can be accessed as **Notcurses**
-(see **cmake(1)**).
+(see **cmake(1)**). If multimedia capabilities are not needed, it is possible
+to link against a minimal Notcurses using **pkg-config --libs notcurses-core**.
 
 **notcurses_init(3)** can then be used to initialize a Notcurses instance for a
 given **FILE** (usually **stdout**, usually attached to a terminal).

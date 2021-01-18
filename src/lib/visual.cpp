@@ -4,10 +4,111 @@
 #include "visual-details.h"
 #include "internal.h"
 
-// ncv constructors other than ncvisual_from_file() need to set up the
-// AVFrame* 'frame' according to their own data, which is assumed to
-// have been prepared already in 'ncv'.
-auto ncvisual_details_seed(struct ncvisual* ncv) -> void;
+// FIXME make this a weak symbol instead so we work with static linking
+static const ncvisual_implementation* impl;
+static pthread_rwlock_t impllock = PTHREAD_RWLOCK_INITIALIZER;
+
+int notcurses_set_ncvisual_implementation(const ncvisual_implementation* imp){
+  int ret = -1;
+  if(pthread_rwlock_wrlock(&impllock)){
+    return -1;
+  }
+  if(impl == nullptr){
+    impl = imp;
+  }
+  ret |= pthread_rwlock_unlock(&impllock);
+  return ret;
+}
+
+auto ncvisual_decode(ncvisual* nc) -> int {
+  int ret = -1;
+  if(pthread_rwlock_rdlock(&impllock)){
+    return -1;
+  }
+  if(impl){
+    ret = impl->ncvisual_decode(nc);
+  }
+  ret |= pthread_rwlock_unlock(&impllock);
+  return ret;
+}
+
+auto ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
+                   const struct blitset* bset, int placey, int placex,
+                   int begy, int begx, int leny, int lenx,
+                   bool blendcolors) -> int {
+  int ret = -1;
+  if(pthread_rwlock_rdlock(&impllock)){
+    return -1;
+  }
+  if(impl){
+    if(impl->ncvisual_blit(ncv, rows, cols, n, bset, placey, placex,
+                           begy, begx, leny, lenx, blendcolors) >= 0){
+      ret = 0;
+    }
+  }else{
+    if(rgba_blit_dispatch(n, bset, placey, placex, ncv->rowstride, ncv->data,
+                          begy, begx, leny, lenx, blendcolors) >= 0){
+      ret = 0;
+    }
+  }
+  ret |= pthread_rwlock_unlock(&impllock);
+  return ret;
+}
+
+auto ncvisual_details_seed(struct ncvisual* ncv) -> void {
+  pthread_rwlock_rdlock(&impllock);
+  if(impl){
+    impl->ncvisual_details_seed(ncv);
+  }
+  pthread_rwlock_unlock(&impllock);
+}
+
+auto ncvisual_init(int loglevel) -> int {
+  int ret = 0; // default to success here
+  if(pthread_rwlock_rdlock(&impllock)){
+    return -1;
+  }
+  if(impl){
+    ret = impl->ncvisual_init(loglevel);
+  }
+  ret |= pthread_rwlock_unlock(&impllock);
+  return ret;
+}
+
+auto ncvisual_from_file(const char* filename) -> ncvisual* {
+  ncvisual* ret = nullptr;
+  if(pthread_rwlock_rdlock(&impllock) == 0){
+    if(impl){
+      ret = impl->ncvisual_from_file(filename);
+    }
+    pthread_rwlock_unlock(&impllock);
+  }
+  return ret;
+}
+
+auto ncvisual_create(void) -> ncvisual* {
+  ncvisual* ret = nullptr;
+  if(pthread_rwlock_rdlock(&impllock) == 0){
+    if(impl){
+      ret = impl->ncvisual_create();
+    }else{
+      ret = new ncvisual{};
+    }
+    pthread_rwlock_unlock(&impllock);
+  }
+  return ret;
+}
+
+auto ncvisual_printbanner(const notcurses* nc) -> void {
+  pthread_rwlock_rdlock(&impllock);
+  if(impl){
+    impl->ncvisual_printbanner(nc);
+  }else{
+    term_fg_palindex(nc, stderr, nc->tcache.colors <= 88 ? 1 % nc->tcache.colors : 0xcb);
+    fprintf(stderr, "\n Warning! Notcurses was built without multimedia support.\n");
+  }
+  pthread_rwlock_unlock(&impllock);
+}
 
 auto ncvisual_geom(const notcurses* nc, const ncvisual* n,
                    const struct ncvisual_options* vopts,
@@ -484,11 +585,15 @@ auto ncvisual_from_plane(const ncplane* n, ncblitter_e blit, int begy, int begx,
 
 auto ncvisual_destroy(ncvisual* ncv) -> void {
   if(ncv){
-    ncvisual_details_destroy(&ncv->details);
+    pthread_rwlock_rdlock(&impllock);
+    if(impl){
+      impl->ncvisual_details_destroy(ncv->details);
+    }
     if(ncv->owndata){
       free(ncv->data);
     }
     delete ncv;
+    pthread_rwlock_unlock(&impllock);
   }
 }
 
@@ -567,24 +672,18 @@ auto ncvisual_polyfill_yx(ncvisual* n, int y, int x, uint32_t rgba) -> int {
   return ncvisual_polyfill_recurse(n, y, x, rgba, *pixel);
 }
 
-#ifndef USE_OIIO // built without ffmpeg or oiio
-#ifndef USE_FFMPEG
-auto ncvisual_from_file(const char* filename) -> ncvisual* {
-  (void)filename;
-  return nullptr;
-}
-
 auto notcurses_canopen_images(const notcurses* nc __attribute__ ((unused))) -> bool {
-  return false;
+  if(!impl){
+    return false;
+  }
+  return impl->canopen_images;
 }
 
 auto notcurses_canopen_videos(const notcurses* nc __attribute__ ((unused))) -> bool {
-  return false;
-}
-
-auto ncvisual_decode(ncvisual* nc) -> int {
-  (void)nc;
-  return -1;
+  if(!impl){
+    return false;
+  }
+  return impl->canopen_videos;
 }
 
 auto ncvisual_decode_loop(ncvisual* nc) -> int {
@@ -609,28 +708,6 @@ auto ncvisual_subtitle(const ncvisual* ncv) -> char* {
   return nullptr;
 }
 
-auto ncvisual_init(int loglevel) -> int {
-  (void)loglevel;
-  return 0; // allow success here
-}
-
-auto ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
-                   const struct blitset* bset, int placey, int placex,
-                   int begy, int begx, int leny, int lenx,
-                   bool blendcolors) -> int {
-  (void)rows;
-  (void)cols;
-  if(rgba_blit_dispatch(n, bset, placey, placex, ncv->rowstride, ncv->data,
-                        begy, begx, leny, lenx, blendcolors) < 0){
-    return -1;
-  }
-  return 0;
-}
-
-auto ncvisual_details_seed(struct ncvisual* ncv) -> void {
-  (void)ncv;
-}
-
 auto ncvisual_resize(ncvisual* nc, int rows, int cols) -> int {
   // we'd need to verify that it's RGBA as well, except that if we've got no
   // multimedia engine, we've only got memory-assembled ncvisuals, which are
@@ -640,6 +717,3 @@ auto ncvisual_resize(ncvisual* nc, int rows, int cols) -> int {
   }
   return -1;
 }
-
-#endif
-#endif

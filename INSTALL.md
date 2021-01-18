@@ -14,6 +14,14 @@ On an APT-based distribution, run:
 
 `apt-get install build-essential cmake doctest-dev libavformat-dev libavutil-dev libncurses-dev libreadline-dev libqrcodegen-dev libswscale-dev libunistring-dev pandoc pkg-config`
 
+If you only intend to build core Notcurses (without multimedia support), run:
+
+`apt-get install build-essential cmake libncurses-dev libreadline-dev libqrcodegen-dev pandoc pkg-config`
+
+If you only intend to build core Notcurses (without multimedia support), run:
+
+`apt-get install build-essential cmake libncurses-dev libreadline-dev libqrcodegen-dev pandoc pkg-config`
+
 If you want to build the Python wrappers, you'll also need:
 
 `apt-get install python3-cffi python3-dev python3-pypandoc python3-setuptools`
@@ -28,8 +36,11 @@ If you want to build the Rust wrappers, you'll also need:
 
 ## Building
 
-* Create a subdirectory, traditionally `build`. Enter the directory.
-* `cmake ..`. You might want to set e.g. `CMAKE_BUILD_TYPE`.
+* Create a subdirectory, traditionally `build` (this is not strictly necessary,
+  but it keeps your source tree clean). Enter the directory.
+* `cmake ..`
+** You might want to set e.g. `CMAKE_BUILD_TYPE`. Use `-DVAR=val`.
+** To build without multimedia support, use `-DUSE_MULTIMEDIA=none`.
 * `make`
 * `make test`
 * `make install`
@@ -89,4 +100,3 @@ but must be `Debug` for use of `USE_COVERAGE`.
 * `USE_POC`: build small, uninstalled proof-of-concept binaries
 * `USE_QRCODEGEN`: build qrcode support via libqrcodegen
 * `USE_STATIC`: build static libraries (in addition to shared ones)
-
