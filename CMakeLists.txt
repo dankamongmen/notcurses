@@ -589,7 +589,6 @@ target_link_libraries(ncls
 
 ############################################################################
 # ncplayer
-if(NOT ${USE_MULTIMEDIA} STREQUAL "none")
 file(GLOB VIEWSRCS CONFIGURE_DEPENDS src/view/*.cpp)
 add_executable(ncplayer ${VIEWSRCS} ${COMPATSRC})
 target_include_directories(ncplayer
@@ -602,7 +601,6 @@ target_link_libraries(ncplayer
   PRIVATE
     notcurses++
 )
-endif()
 endif()
 
 ############################################################################
