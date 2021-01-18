@@ -4,6 +4,7 @@
 #include "visual-details.h"
 #include "internal.h"
 
+// FIXME make this a weak symbol instead so we work with static linking
 static const ncvisual_implementation* impl;
 static pthread_rwlock_t impllock = PTHREAD_RWLOCK_INITIALIZER;
 
@@ -40,8 +41,15 @@ auto ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
     return -1;
   }
   if(impl){
-    ret = impl->ncvisual_blit(ncv, rows, cols, n, bset, placey, placex,
-                              begy, begx, leny, lenx, blendcolors);
+    if(impl->ncvisual_blit(ncv, rows, cols, n, bset, placey, placex,
+                           begy, begx, leny, lenx, blendcolors) >= 0){
+      ret = 0;
+    }
+  }else{
+    if(rgba_blit_dispatch(n, bset, placey, placex, ncv->rowstride, ncv->data,
+                          begy, begx, leny, lenx, blendcolors) >= 0){
+      ret = 0;
+    }
   }
   ret |= pthread_rwlock_unlock(&impllock);
   return ret;
@@ -83,6 +91,8 @@ auto ncvisual_create(void) -> ncvisual* {
   if(pthread_rwlock_rdlock(&impllock) == 0){
     if(impl){
       ret = impl->ncvisual_create();
+    }else{
+      ret = new ncvisual{};
     }
     pthread_rwlock_unlock(&impllock);
   }
@@ -575,11 +585,15 @@ auto ncvisual_from_plane(const ncplane* n, ncblitter_e blit, int begy, int begx,
 
 auto ncvisual_destroy(ncvisual* ncv) -> void {
   if(ncv){
-    impl->ncvisual_details_destroy(ncv->details);
+    pthread_rwlock_rdlock(&impllock);
+    if(impl){
+      impl->ncvisual_details_destroy(ncv->details);
+    }
     if(ncv->owndata){
       free(ncv->data);
     }
     delete ncv;
+    pthread_rwlock_unlock(&impllock);
   }
 }
 
