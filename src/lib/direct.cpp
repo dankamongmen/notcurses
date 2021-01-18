@@ -484,7 +484,7 @@ ncdirectv* ncdirect_render_frame(ncdirect* n, const char* file,
     ncvisual_destroy(ncv);
     return nullptr;
   }
-//fprintf(stderr, "render %d/%d to %d+%dx%d scaling: %d\n", ncv->rows, ncv->cols, leny, lenx, scale);
+//fprintf(stderr, "render %d/%d to %d+%d scaling: %d\n", ncv->rows, ncv->cols, leny, lenx, scale);
   auto bset = rgba_blitter_low(n->utf8, n->tcache.sextants, scale, true, blitter);
   if(!bset){
     ncvisual_destroy(ncv);
@@ -1060,16 +1060,8 @@ int ncdirect_double_box(ncdirect* n, uint64_t ul, uint64_t ur,
 }
 
 // Can we load images? This requires being built against FFmpeg/OIIO.
-bool ncdirect_canopen_images(const ncdirect* n){
-  (void)n;
-#ifdef USE_FFMPEG
-  return true;
-#else
-#ifdef USE_OIIO
-  return true;
-#endif
-#endif
-  return false;
+bool ncdirect_canopen_images(const ncdirect* n __attribute__ ((unused))){
+  return notcurses_canopen_images(NULL);
 }
 
 // Is our encoding UTF-8? Requires LANG being set to a UTF8 locale.
