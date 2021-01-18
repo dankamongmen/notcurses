@@ -410,8 +410,23 @@ install(FILES ${NCPP_INTERNAL_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/n
 
 # tiny proofs of concept, one binary per source file
 if(USE_POC)
-file(GLOB POCSRCS CONFIGURE_DEPENDS src/poc/*.c src/poc/*.cpp)
+file(GLOB POCSRCS CONFIGURE_DEPENDS src/poc/*.c)
 foreach(f ${POCSRCS})
+  get_filename_component(fe "${f}" NAME_WE)
+  add_executable(${fe} ${f} ${COMPATSRC})
+  target_include_directories(${fe}
+    PRIVATE include src "${TERMINFO_INCLUDE_DIRS}"
+    "${PROJECT_BINARY_DIR}/include"
+  )
+  target_link_libraries(${fe}
+    PRIVATE notcurses "${TERMINFO_LIBRARIES}"
+  )
+  target_link_directories(${fe}
+    PRIVATE "${TERMINFO_LIBRARY_DIRS}"
+  )
+endforeach()
+file(GLOB POCPPSRCS CONFIGURE_DEPENDS src/pocpp/*.cpp)
+foreach(f ${POCPPSRCS})
   get_filename_component(fe "${f}" NAME_WE)
   add_executable(${fe} ${f} ${COMPATSRC})
   target_include_directories(${fe}
