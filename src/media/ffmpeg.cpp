@@ -41,7 +41,7 @@ typedef struct ncvisual_details {
 
 #define IMGALLOCALIGN 32
 
-static void inject_implementation(void) __attribute__ ((constructor));
+void inject_implementation(void) __attribute__ ((constructor));
 
 /*static void
 print_frame_summary(const AVCodecContext* cctx, const AVFrame* f) {
@@ -583,7 +583,7 @@ const static ncvisual_implementation ffmpeg_impl = {
   .canopen_videos = true,
 };
 
-static void inject_implementation(void){
+void inject_implementation(void){
   notcurses_set_ncvisual_implementation(&ffmpeg_impl);
 }
 
