@@ -105,7 +105,6 @@ int dragon_demo(struct notcurses* nc){
     }
     DEMO_RENDER(nc);
     demo_nanosleep(nc, &scaled);
-    ncplane_erase(n);
   }while(lasttotal != r);
   ncvisual_destroy(ncv);
   return 0;
