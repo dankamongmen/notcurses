@@ -3,6 +3,7 @@
 #include <time.h>
 #include <stdint.h>
 #include "compat/compat.h"
+#if !defined(__DragonFly_version) || __DragonFly_version < 500907
 // clock_nanosleep is unavailable on DragonFly BSD and Mac OS X
 int clock_nanosleep(clockid_t clockid, int flags, const struct timespec *request,
                     struct timespec *remain){
@@ -26,5 +27,6 @@ int clock_nanosleep(clockid_t clockid, int flags, const struct timespec *request
   return 0;
 
 }
+#endif
 #endif
 #endif
