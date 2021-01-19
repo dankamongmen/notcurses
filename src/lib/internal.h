@@ -8,19 +8,6 @@ extern "C" {
 #include "version.h"
 #include "builddef.h"
 
-#ifdef USE_FFMPEG
-#include <libavutil/error.h>
-#include <libavutil/frame.h>
-#include <libavutil/pixdesc.h>
-#include <libavutil/version.h>
-#include <libswscale/version.h>
-#include <libavformat/version.h>
-#else
-#ifdef USE_OIIO
-const char* oiio_version(void);
-#endif
-#endif
-
 #include <term.h>
 #include <time.h>
 #include <stdio.h>
@@ -42,6 +29,7 @@ const char* oiio_version(void);
 #include "egcpool.h"
 
 struct esctrie;
+struct ncvisual_details;
 
 // we can't define multipart ncvisual here, because OIIO requires C++ syntax,
 // and we can't go throwing C++ syntax into this header. so it goes.
@@ -864,9 +852,6 @@ int get_controlling_tty(void);
     nclog("%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } \
   } }while(0);
 
-// Convert a notcurses log level to some multimedia library equivalent.
-int ffmpeg_log_level(ncloglevel_e level);
-
 int term_setstyle(FILE* out, unsigned cur, unsigned targ, unsigned stylebit,
                   const char* ton, const char* toff);
 
@@ -1073,6 +1058,29 @@ int setup_signals(void* nc, bool no_quit_sigs, bool no_winch_sig,
 int drop_signals(void* nc);
 
 void ncvisual_printbanner(const notcurses* nc);
+
+typedef struct ncvisual_implementation {
+  int (*ncvisual_init)(int loglevel);
+  int (*ncvisual_decode)(struct ncvisual*);
+  int (*ncvisual_blit)(struct ncvisual* ncv, int rows, int cols, ncplane* n,
+                       const struct blitset* bset, int placey, int placex,
+                       int begy, int begx, int leny, int lenx,
+                       bool blendcolors);
+  struct ncvisual* (*ncvisual_create)(void);
+  struct ncvisual* (*ncvisual_from_file)(const char* s);
+  void (*ncvisual_printbanner)(const struct notcurses* nc);
+  // ncv constructors other than ncvisual_from_file() need to set up the
+  // AVFrame* 'frame' according to their own data, which is assumed to
+  // have been prepared already in 'ncv'.
+  void (*ncvisual_details_seed)(struct ncvisual* ncv);
+  void (*ncvisual_details_destroy)(struct ncvisual_details* deets);
+  bool canopen_images;
+  bool canopen_videos;
+} ncvisual_implementation;
+
+// overriden by strong symbol in libnotcurses.so if built with multimedia
+extern const ncvisual_implementation* visual_implementation
+ __attribute__ ((visibility("default")));
 
 #ifdef __cplusplus
 }

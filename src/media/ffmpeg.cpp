@@ -41,8 +41,6 @@ typedef struct ncvisual_details {
 
 #define IMGALLOCALIGN 32
 
-void inject_implementation(void) __attribute__ ((constructor));
-
 /*static void
 print_frame_summary(const AVCodecContext* cctx, const AVFrame* f) {
   char pfmt[128];
@@ -544,8 +542,29 @@ auto ffmpeg_details_seed(ncvisual* ncv) -> void {
   ncv->details->frame->format = AV_PIX_FMT_RGBA;
 }
 
+auto ffmpeg_log_level(int level) -> int{
+#ifdef USE_FFMPEG
+  switch(level){
+    case NCLOGLEVEL_SILENT: return AV_LOG_QUIET;
+    case NCLOGLEVEL_PANIC: return AV_LOG_PANIC;
+    case NCLOGLEVEL_FATAL: return AV_LOG_FATAL;
+    case NCLOGLEVEL_ERROR: return AV_LOG_ERROR;
+    case NCLOGLEVEL_WARNING: return AV_LOG_WARNING;
+    case NCLOGLEVEL_INFO: return AV_LOG_INFO;
+    case NCLOGLEVEL_VERBOSE: return AV_LOG_VERBOSE;
+    case NCLOGLEVEL_DEBUG: return AV_LOG_DEBUG;
+    case NCLOGLEVEL_TRACE: return AV_LOG_TRACE;
+    default: break;
+  }
+  fprintf(stderr, "Invalid log level: %d\n", level);
+  return AV_LOG_TRACE;
+#else
+  return level;
+#endif
+}
+
 auto ffmpeg_init(int loglevel) -> int {
-  av_log_set_level(loglevel);
+  av_log_set_level(ffmpeg_log_level(loglevel));
   // FIXME could also use av_log_set_callback() and capture the message...
   return 0;
 }
@@ -583,8 +602,6 @@ const static ncvisual_implementation ffmpeg_impl = {
   .canopen_videos = true,
 };
 
-void inject_implementation(void){
-  notcurses_set_ncvisual_implementation(&ffmpeg_impl);
-}
+const ncvisual_implementation* visual_implementation = &ffmpeg_impl;
 
 #endif

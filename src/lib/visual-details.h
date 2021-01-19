@@ -16,29 +16,6 @@ typedef struct ncvisual {
   bool owndata; // we own data iff owndata == true
 } ncvisual;
 
-typedef struct ncvisual_implementation {
-  int (*ncvisual_init)(int loglevel);
-  int (*ncvisual_decode)(ncvisual*);
-  int (*ncvisual_blit)(ncvisual* ncv, int rows, int cols, ncplane* n,
-                       const struct blitset* bset, int placey, int placex,
-                       int begy, int begx, int leny, int lenx,
-                       bool blendcolors);
-  ncvisual* (*ncvisual_create)(void);
-  ncvisual* (*ncvisual_from_file)(const char* s);
-  void (*ncvisual_printbanner)(const struct notcurses* nc);
-  // ncv constructors other than ncvisual_from_file() need to set up the
-  // AVFrame* 'frame' according to their own data, which is assumed to
-  // have been prepared already in 'ncv'.
-  void (*ncvisual_details_seed)(ncvisual* ncv);
-  void (*ncvisual_details_destroy)(struct ncvisual_details* deets);
-  bool canopen_images;
-  bool canopen_videos;
-} ncvisual_implementation;
-
-// ugh! need export this for pluggable multimedia modules without dlopen()
-__attribute__((visibility("default")))
-int notcurses_set_ncvisual_implementation(const ncvisual_implementation* imp);
-
 static inline auto
 ncvisual_set_data(ncvisual* ncv, uint32_t* data, bool owned) -> void {
   if(ncv->owndata){

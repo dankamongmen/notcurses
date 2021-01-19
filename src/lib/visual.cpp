@@ -4,31 +4,13 @@
 #include "visual-details.h"
 #include "internal.h"
 
-// FIXME make this a weak symbol instead so we work with static linking
-static const ncvisual_implementation* impl;
-static pthread_rwlock_t impllock = PTHREAD_RWLOCK_INITIALIZER;
-
-int notcurses_set_ncvisual_implementation(const ncvisual_implementation* imp){
-  int ret = -1;
-  if(pthread_rwlock_wrlock(&impllock)){
-    return -1;
-  }
-  if(impl == nullptr){
-    impl = imp;
-  }
-  ret |= pthread_rwlock_unlock(&impllock);
-  return ret;
-}
+const __attribute__ ((weak)) ncvisual_implementation* visual_implementation = nullptr;
 
 auto ncvisual_decode(ncvisual* nc) -> int {
   int ret = -1;
-  if(pthread_rwlock_rdlock(&impllock)){
-    return -1;
+  if(visual_implementation){
+    ret = visual_implementation->ncvisual_decode(nc);
   }
-  if(impl){
-    ret = impl->ncvisual_decode(nc);
-  }
-  ret |= pthread_rwlock_unlock(&impllock);
   return ret;
 }
 
@@ -37,11 +19,8 @@ auto ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
                    int begy, int begx, int leny, int lenx,
                    bool blendcolors) -> int {
   int ret = -1;
-  if(pthread_rwlock_rdlock(&impllock)){
-    return -1;
-  }
-  if(impl){
-    if(impl->ncvisual_blit(ncv, rows, cols, n, bset, placey, placex,
+  if(visual_implementation){
+    if(visual_implementation->ncvisual_blit(ncv, rows, cols, n, bset, placey, placex,
                            begy, begx, leny, lenx, blendcolors) >= 0){
       ret = 0;
     }
@@ -51,63 +30,48 @@ auto ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
       ret = 0;
     }
   }
-  ret |= pthread_rwlock_unlock(&impllock);
   return ret;
 }
 
 auto ncvisual_details_seed(struct ncvisual* ncv) -> void {
-  pthread_rwlock_rdlock(&impllock);
-  if(impl){
-    impl->ncvisual_details_seed(ncv);
+  if(visual_implementation){
+    visual_implementation->ncvisual_details_seed(ncv);
   }
-  pthread_rwlock_unlock(&impllock);
 }
 
 auto ncvisual_init(int loglevel) -> int {
   int ret = 0; // default to success here
-  if(pthread_rwlock_rdlock(&impllock)){
-    return -1;
+  if(visual_implementation){
+    ret = visual_implementation->ncvisual_init(loglevel);
   }
-  if(impl){
-    ret = impl->ncvisual_init(loglevel);
-  }
-  ret |= pthread_rwlock_unlock(&impllock);
   return ret;
 }
 
 auto ncvisual_from_file(const char* filename) -> ncvisual* {
   ncvisual* ret = nullptr;
-  if(pthread_rwlock_rdlock(&impllock) == 0){
-    if(impl){
-      ret = impl->ncvisual_from_file(filename);
-    }
-    pthread_rwlock_unlock(&impllock);
+  if(visual_implementation){
+    ret = visual_implementation->ncvisual_from_file(filename);
   }
   return ret;
 }
 
 auto ncvisual_create(void) -> ncvisual* {
   ncvisual* ret = nullptr;
-  if(pthread_rwlock_rdlock(&impllock) == 0){
-    if(impl){
-      ret = impl->ncvisual_create();
-    }else{
-      ret = new ncvisual{};
-    }
-    pthread_rwlock_unlock(&impllock);
+  if(visual_implementation){
+    ret = visual_implementation->ncvisual_create();
+  }else{
+    ret = new ncvisual{};
   }
   return ret;
 }
 
 auto ncvisual_printbanner(const notcurses* nc) -> void {
-  pthread_rwlock_rdlock(&impllock);
-  if(impl){
-    impl->ncvisual_printbanner(nc);
+  if(visual_implementation){
+    visual_implementation->ncvisual_printbanner(nc);
   }else{
     term_fg_palindex(nc, stderr, nc->tcache.colors <= 88 ? 1 % nc->tcache.colors : 0xcb);
     fprintf(stderr, "\n Warning! Notcurses was built without multimedia support.\n");
   }
-  pthread_rwlock_unlock(&impllock);
 }
 
 auto ncvisual_geom(const notcurses* nc, const ncvisual* n,
@@ -585,15 +549,13 @@ auto ncvisual_from_plane(const ncplane* n, ncblitter_e blit, int begy, int begx,
 
 auto ncvisual_destroy(ncvisual* ncv) -> void {
   if(ncv){
-    pthread_rwlock_rdlock(&impllock);
-    if(impl){
-      impl->ncvisual_details_destroy(ncv->details);
+    if(visual_implementation){
+      visual_implementation->ncvisual_details_destroy(ncv->details);
     }
     if(ncv->owndata){
       free(ncv->data);
     }
     delete ncv;
-    pthread_rwlock_unlock(&impllock);
   }
 }
 
@@ -673,17 +635,17 @@ auto ncvisual_polyfill_yx(ncvisual* n, int y, int x, uint32_t rgba) -> int {
 }
 
 auto notcurses_canopen_images(const notcurses* nc __attribute__ ((unused))) -> bool {
-  if(!impl){
+  if(!visual_implementation){
     return false;
   }
-  return impl->canopen_images;
+  return visual_implementation->canopen_images;
 }
 
 auto notcurses_canopen_videos(const notcurses* nc __attribute__ ((unused))) -> bool {
-  if(!impl){
+  if(!visual_implementation){
     return false;
   }
-  return impl->canopen_videos;
+  return visual_implementation->canopen_videos;
 }
 
 auto ncvisual_decode_loop(ncvisual* nc) -> int {

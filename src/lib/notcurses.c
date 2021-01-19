@@ -754,28 +754,6 @@ void notcurses_stats_reset(notcurses* nc, ncstats* stats){
   stash_stats(nc);
 }
 
-// Convert a notcurses log level to some multimedia library equivalent.
-int ffmpeg_log_level(ncloglevel_e level){
-#ifdef USE_FFMPEG
-  switch(level){
-    case NCLOGLEVEL_SILENT: return AV_LOG_QUIET;
-    case NCLOGLEVEL_PANIC: return AV_LOG_PANIC;
-    case NCLOGLEVEL_FATAL: return AV_LOG_FATAL;
-    case NCLOGLEVEL_ERROR: return AV_LOG_ERROR;
-    case NCLOGLEVEL_WARNING: return AV_LOG_WARNING;
-    case NCLOGLEVEL_INFO: return AV_LOG_INFO;
-    case NCLOGLEVEL_VERBOSE: return AV_LOG_VERBOSE;
-    case NCLOGLEVEL_DEBUG: return AV_LOG_DEBUG;
-    case NCLOGLEVEL_TRACE: return AV_LOG_TRACE;
-    default: break;
-  }
-  fprintf(stderr, "Invalid log level: %d\n", level);
-  return AV_LOG_TRACE;
-#else
-  return level;
-#endif
-}
-
 // unless the suppress_banner flag was set, print some version information and
 // (if applicable) warnings to stdout. we are not yet on the alternate screen.
 static void
@@ -1045,7 +1023,7 @@ notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
     terminfostr(&ret->tcache.smcup, "smcup");
     terminfostr(&ret->tcache.rmcup, "rmcup");
   }
-  if(ncvisual_init(ffmpeg_log_level(ret->loglevel))){
+  if(ncvisual_init(ret->loglevel)){
     goto err;
   }
   ret->stdplane = NULL;

@@ -669,7 +669,7 @@ ncdirect* ncdirect_init(const char* termtype, FILE* outfp, uint64_t flags){
     goto err;
   }
   shortname_term = termname();
-  if(ncvisual_init(ffmpeg_log_level(NCLOGLEVEL_SILENT))){
+  if(ncvisual_init(NCLOGLEVEL_SILENT)){
     goto err;
   }
   if(interrogate_terminfo(&ret->tcache, shortname_term)){

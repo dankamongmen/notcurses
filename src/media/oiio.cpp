@@ -8,8 +8,6 @@
 #include "internal.h"
 #include "visual-details.h"
 
-static void inject_implementation(void) __attribute__ ((constructor));
-
 typedef struct ncvisual_details {
   std::unique_ptr<OIIO::ImageInput> image;  // must be close()d
   std::unique_ptr<uint32_t[]> frame;
@@ -284,8 +282,6 @@ const static ncvisual_implementation oiio_impl = {
   .canopen_videos = false,
 };
 
-static void inject_implementation(void){
-  notcurses_set_ncvisual_implementation(&oiio_impl);
-}
+const ncvisual_implementation* visual_implementation = &oiio_impl;
 
 #endif
