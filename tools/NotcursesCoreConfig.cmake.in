@@ -1,0 +1,9 @@
+@PACKAGE_INIT@
+set(Notcurses_DIR "@PACKAGE_SOME_INSTALL_DIR@")
+
+# Compute paths
+get_filename_component(Notcurses_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+set(Notcurses_INCLUDE_DIRS "@CONF_INCLUDE_DIRS@")
+set(Notcurses_LIBRARY_DIRS "@CONF_LIBRARY_DIRS@")
+
+set(Notcurses_LIBRARIES -lnotcurses-core)
