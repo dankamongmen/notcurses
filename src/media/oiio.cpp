@@ -274,7 +274,6 @@ const static ncvisual_implementation oiio_impl = {
   .ncvisual_create = ncvisual_create,
   .ncvisual_details_seed = ncvisual_details_seed,
   .ncvisual_details_destroy = ncvisual_details_destroy,
-  .ncvisual_decode = oiio_decode,
   .canopen_images = true,
   .canopen_videos = false,
 };
