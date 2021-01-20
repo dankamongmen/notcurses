@@ -134,8 +134,7 @@ averr2ncerr(int averr){
   return -1;
 }
 
-static int
-ffmpeg_decode(ncvisual* nc){
+int ncvisual_decode(ncvisual* nc){
   if(nc->details->fmtctx == nullptr){ // not a file-backed ncvisual
     return -1;
   }
@@ -280,7 +279,7 @@ auto ffmpeg_details_init(void) -> ncvisual_details* {
   return deets;
 }
 
-auto ffmpeg_create() -> ncvisual* {
+auto ncvisual_create() -> ncvisual* {
   auto nc = new ncvisual{};
   if((nc->details = ffmpeg_details_init()) == nullptr){
     delete nc;
@@ -291,7 +290,7 @@ auto ffmpeg_create() -> ncvisual* {
 
 ncvisual* ncvisual_from_file(const char* filename) {
   AVStream* st;
-  ncvisual* ncv = ffmpeg_create();
+  ncvisual* ncv = ncvisual_create();
   if(ncv == nullptr){
     // fprintf(stderr, "Couldn't create %s (%s)\n", filename, strerror(errno));
     return nullptr;
@@ -531,7 +530,7 @@ int ffmpeg_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
   return 0;
 }
 
-auto ffmpeg_details_seed(ncvisual* ncv) -> void {
+auto ncvisual_details_seed(ncvisual* ncv) -> void {
   assert(nullptr == ncv->details->oframe);
   ncv->details->frame->data[0] = reinterpret_cast<uint8_t*>(ncv->data);
   ncv->details->frame->data[1] = nullptr;
@@ -563,20 +562,20 @@ auto ffmpeg_log_level(int level) -> int{
 #endif
 }
 
-auto ffmpeg_init(int loglevel) -> int {
+auto ncvisual_init(int loglevel) -> int {
   av_log_set_level(ffmpeg_log_level(loglevel));
   // FIXME could also use av_log_set_callback() and capture the message...
   return 0;
 }
 
-void ffmpeg_printbanner(const notcurses* nc __attribute__ ((unused))){
+void ncvisual_printbanner(const notcurses* nc __attribute__ ((unused))){
   printf("  avformat %u.%u.%u avutil %u.%u.%u swscale %u.%u.%u\n",
          LIBAVFORMAT_VERSION_MAJOR, LIBAVFORMAT_VERSION_MINOR, LIBAVFORMAT_VERSION_MICRO,
          LIBAVUTIL_VERSION_MAJOR, LIBAVUTIL_VERSION_MINOR, LIBAVUTIL_VERSION_MICRO,
          LIBSWSCALE_VERSION_MAJOR, LIBSWSCALE_VERSION_MINOR, LIBSWSCALE_VERSION_MICRO);
 }
 
-auto ffmpeg_details_destroy(ncvisual_details* deets) -> void {
+auto ncvisual_details_destroy(ncvisual_details* deets) -> void {
   avcodec_close(deets->codecctx);
   avcodec_free_context(&deets->codecctx);
   av_frame_free(&deets->frame);
@@ -590,14 +589,11 @@ auto ffmpeg_details_destroy(ncvisual_details* deets) -> void {
 }
 
 const static ncvisual_implementation ffmpeg_impl = {
-  .ncvisual_init = ffmpeg_init,
-  .ncvisual_decode = ffmpeg_decode,
+  .ncvisual_printbanner = ncvisual_printbanner,
   .ncvisual_blit = ffmpeg_blit,
-  .ncvisual_create = ffmpeg_create,
-  .ncvisual_from_file = ncvisual_from_file,
-  .ncvisual_printbanner = ffmpeg_printbanner,
-  .ncvisual_details_seed = ffmpeg_details_seed,
-  .ncvisual_details_destroy = ffmpeg_details_destroy,
+  .ncvisual_create = ncvisual_create,
+  .ncvisual_details_seed = ncvisual_details_seed,
+  .ncvisual_details_destroy = ncvisual_details_destroy,
   .canopen_images = true,
   .canopen_videos = true,
 };
