@@ -14,7 +14,7 @@ int main(void){
     return EXIT_FAILURE;
   }
   struct ncdirect* n; // see bug #391
-  if((n = ncdirect_init(NULL, NULL, 0)) == NULL){
+  if((n = ncdirect_core_init(NULL, NULL, 0)) == NULL){
     return EXIT_FAILURE;
   }
   int dimy = ncdirect_dim_y(n);

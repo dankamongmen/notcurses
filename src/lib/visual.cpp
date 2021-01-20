@@ -4,7 +4,8 @@
 #include "visual-details.h"
 #include "internal.h"
 
-const __attribute__ ((weak)) ncvisual_implementation* visual_implementation = nullptr;
+const __attribute__ ((weak))
+ncvisual_implementation* visual_implementation = nullptr;
 
 auto ncvisual_decode(ncvisual* nc) -> int {
   int ret = -1;
@@ -47,7 +48,8 @@ auto ncvisual_init(int loglevel) -> int {
   return ret;
 }
 
-auto ncvisual_from_file(const char* filename) -> ncvisual* {
+auto __attribute__ ((weak))
+ncvisual_from_file(const char* filename) -> ncvisual* {
   ncvisual* ret = nullptr;
   if(visual_implementation){
     ret = visual_implementation->ncvisual_from_file(filename);

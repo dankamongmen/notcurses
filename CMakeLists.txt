@@ -9,9 +9,6 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_VISIBILITY_PRESET hidden)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
-# Passes -Wl,-no-as-needed to linker steps, necessary to reliably link
-# libnotcurses.so into executables...for now. This is grotesque. FIXME
-set(CMAKE_LINK_WHAT_YOU_USE ON)
 
 include(CTest)
 include(GNUInstallDirs)
@@ -602,7 +599,7 @@ target_include_directories(ncls
 )
 tarGET_Link_libraries(ncls
   PRIVATE
-    notcurses
+    notcurses++
 )
 
 ############################################################################

@@ -882,7 +882,8 @@ int ncinputlayer_init(ncinputlayer* nilayer, FILE* infp){
 }
 
 // initialize a recursive mutex lock in a way that works on both glibc + musl
-int recursive_lock_init(pthread_mutex_t *lock){
+static int
+recursive_lock_init(pthread_mutex_t *lock){
 #ifndef __GLIBC__
 #define PTHREAD_MUTEX_RECURSIVE_NP PTHREAD_MUTEX_RECURSIVE
 #endif
@@ -905,7 +906,7 @@ int recursive_lock_init(pthread_mutex_t *lock){
 #endif
 }
 
-notcurses* notcurses_init(const notcurses_options* opts, FILE* outfp){
+notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   notcurses_options defaultopts;
   memset(&defaultopts, 0, sizeof(defaultopts));
   if(!opts){

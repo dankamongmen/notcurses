@@ -892,6 +892,10 @@ API const char* notcurses_str_scalemode(ncscale_e scalemode);
 // failure initializing terminfo.
 API struct notcurses* notcurses_init(const notcurses_options* opts, FILE* fp);
 
+// The same as notcurses_init(), but without any multimedia functionality,
+// allowing for a svelter binary. Link with notcurses-core if this is used.
+API struct notcurses* notcurses_core_init(const notcurses_options* opts, FILE* fp);
+
 // Destroy a Notcurses context.
 API int notcurses_stop(struct notcurses* nc);
 

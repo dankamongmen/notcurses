@@ -110,7 +110,7 @@ pbar_make(struct notcurses* nc, uint64_t flags){
 }
 
 int main(void){
-  struct notcurses* nc = notcurses_init(NULL, NULL);
+  struct notcurses* nc = notcurses_core_init(NULL, NULL);
   if(nc == NULL){
     return EXIT_FAILURE;
   }

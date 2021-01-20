@@ -11,7 +11,7 @@ int main(void){
     .tv_sec = 1,
     .tv_nsec = 500000000,
   };
-  struct notcurses* nc = notcurses_init(&opts, NULL);
+  struct notcurses* nc = notcurses_core_init(&opts, NULL);
   int dimy, dimx;
   struct ncplane* std = notcurses_stddim_yx(nc, &dimy, &dimx);
   struct ncvisual* ncv = ncvisual_from_plane(std, NCBLIT_2x1, 0, 0, dimy / 2, dimx / 2);

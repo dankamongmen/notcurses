@@ -7,7 +7,7 @@ int main(void){
   notcurses_options nopts = {
     .flags = NCOPTION_INHIBIT_SETLOCALE,
   };
-  struct notcurses* nc = notcurses_init(&nopts, NULL);
+  struct notcurses* nc = notcurses_core_init(&nopts, NULL);
   if(nc == NULL){
     return EXIT_FAILURE;
   }

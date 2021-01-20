@@ -44,6 +44,10 @@ typedef struct ncplane ncdirectv;
 // Returns NULL on error, including any failure initializing terminfo.
 API struct ncdirect* ncdirect_init(const char* termtype, FILE* fp, uint64_t flags);
 
+// The same as ncdirect_init(), but without any multimedia functionality,
+// allowing for a svelter binary. Link with notcurses-core if this is used.
+API struct ncdirect* ncdirect_core_init(const char* termtype, FILE* fp, uint64_t flags);
+
 // Direct mode. This API can be used to colorize and stylize output generated
 // outside of notcurses, without ever calling notcurses_render(). These should
 // not be intermixed with standard Notcurses rendering.

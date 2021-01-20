@@ -45,7 +45,7 @@ int main(int argc, char** argv){
     .flags = NCOPTION_INHIBIT_SETLOCALE |
               NCOPTION_SUPPRESS_BANNERS,
   };
-  struct notcurses* nc = notcurses_init(&opts, NULL);
+  struct notcurses* nc = notcurses_core_init(&opts, NULL);
   struct ncplane* n = notcurses_stdplane(nc);
   ncplane_set_scrolling(n, true);
   while(*++argv){

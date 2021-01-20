@@ -621,7 +621,7 @@ ncdirect_stop_minimal(void* vnc){
   return ret;
 }
 
-ncdirect* ncdirect_init(const char* termtype, FILE* outfp, uint64_t flags){
+ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
   if(flags > (NCDIRECT_OPTION_NO_QUIT_SIGHANDLERS << 1)){ // allow them through with warning
     logwarn((struct notcurses*)NULL, "Passed unsupported flags 0x%016jx\n", (uintmax_t)flags);
   }
