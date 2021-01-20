@@ -4,15 +4,11 @@
 #include "visual-details.h"
 #include "internal.h"
 
-const __attribute__ ((weak))
-ncvisual_implementation* visual_implementation = nullptr;
+const ncvisual_implementation* visual_implementation = nullptr;
 
-auto ncvisual_decode(ncvisual* nc) -> int {
-  int ret = -1;
-  if(visual_implementation){
-    ret = visual_implementation->ncvisual_decode(nc);
-  }
-  return ret;
+auto __attribute__ ((weak))
+ncvisual_decode(ncvisual* nc __attribute__ ((unused))) -> int {
+  return -1;
 }
 
 auto ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
@@ -34,37 +30,30 @@ auto ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
   return ret;
 }
 
+// ncv constructors other than ncvisual_from_file() need to set up the
+// AVFrame* 'frame' according to their own data, which is assumed to
+// have been prepared already in 'ncv'.
 auto ncvisual_details_seed(struct ncvisual* ncv) -> void {
   if(visual_implementation){
     visual_implementation->ncvisual_details_seed(ncv);
   }
 }
 
-auto ncvisual_init(int loglevel) -> int {
-  int ret = 0; // default to success here
-  if(visual_implementation){
-    ret = visual_implementation->ncvisual_init(loglevel);
-  }
-  return ret;
+auto __attribute__ ((weak))
+ncvisual_init(int loglevel __attribute__ ((unused))) -> int {
+  return 0;
 }
 
 auto __attribute__ ((weak))
-ncvisual_from_file(const char* filename) -> ncvisual* {
-  ncvisual* ret = nullptr;
-  if(visual_implementation){
-    ret = visual_implementation->ncvisual_from_file(filename);
-  }
-  return ret;
+ncvisual_from_file(const char* filename __attribute__ ((unused))) -> ncvisual* {
+  return nullptr;
 }
 
 auto ncvisual_create(void) -> ncvisual* {
-  ncvisual* ret = nullptr;
   if(visual_implementation){
-    ret = visual_implementation->ncvisual_create();
-  }else{
-    ret = new ncvisual{};
+    return visual_implementation->ncvisual_create();
   }
-  return ret;
+  return new ncvisual{};
 }
 
 auto ncvisual_printbanner(const notcurses* nc) -> void {
@@ -549,11 +538,15 @@ auto ncvisual_from_plane(const ncplane* n, ncblitter_e blit, int begy, int begx,
   return ncv;
 }
 
+auto ncvisual_details_destroy(ncvisual_details* deets){
+  if(visual_implementation){
+    visual_implementation->ncvisual_details_destroy(deets);
+  }
+}
+
 auto ncvisual_destroy(ncvisual* ncv) -> void {
   if(ncv){
-    if(visual_implementation){
-      visual_implementation->ncvisual_details_destroy(ncv->details);
-    }
+    ncvisual_details_destroy(ncv->details);
     if(ncv->owndata){
       free(ncv->data);
     }

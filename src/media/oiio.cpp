@@ -28,14 +28,14 @@ oiio_details_init(void) -> ncvisual_details* {
 }
 
 static inline auto
-oiio_details_destroy(ncvisual_details* deets) -> void {
+ncvisual_details_destroy(ncvisual_details* deets) -> void {
   if(deets->image){
     deets->image->close();
   }
   delete deets;
 }
 
-auto oiio_create() -> ncvisual* {
+auto ncvisual_create() -> ncvisual* {
   auto nc = new ncvisual{};
   if((nc->details = oiio_details_init()) == nullptr){
     delete nc;
@@ -44,8 +44,8 @@ auto oiio_create() -> ncvisual* {
   return nc;
 }
 
-ncvisual* oiio_from_file(const char* filename) {
-  ncvisual* ncv = oiio_create();
+ncvisual* ncvisual_from_file(const char* filename) {
+  ncvisual* ncv = ncvisual_create();
   if(ncv == nullptr){
     return nullptr;
   }
@@ -252,32 +252,29 @@ auto ncvisual_rotate(ncvisual* ncv, double rads) -> int {
 }
 */
 
-auto oiio_details_seed(ncvisual* ncv) -> void {
+auto ncvisual_details_seed(ncvisual* ncv) -> void {
   (void)ncv;
   // FIXME?
 }
 
-int oiio_init(int loglevel) {
+int ncvisual_init(int loglevel __attribute__ ((unused))) {
   // FIXME set OIIO global attribute "debug" based on loglevel
-  (void)loglevel;
   // FIXME check OIIO_VERSION_STRING components against linked openimageio_version()
   return 0; // allow success here
 }
 
 // FIXME would be nice to have OIIO::attributes("libraries") in here
-void oiio_printbanner(const notcurses* nc __attribute__ ((unused))){
+void ncvisual_printbanner(const notcurses* nc __attribute__ ((unused))){
   printf("  openimageio %s\n", OIIO_VERSION_STRING);
 }
 
 const static ncvisual_implementation oiio_impl = {
-  .ncvisual_init = oiio_init,
-  .ncvisual_decode = oiio_decode,
+  .ncvisual_printbanner = ncvisual_printbanner,
   .ncvisual_blit = oiio_blit,
-  .ncvisual_create = oiio_create,
-  .ncvisual_from_file = oiio_from_file,
-  .ncvisual_printbanner = oiio_printbanner,
-  .ncvisual_details_seed = oiio_details_seed,
-  .ncvisual_details_destroy = oiio_details_destroy,
+  .ncvisual_create = ncvisual_create,
+  .ncvisual_details_seed = ncvisual_details_seed,
+  .ncvisual_details_destroy = ncvisual_details_destroy,
+  .ncvisual_decode = oiio_decode,
   .canopen_images = true,
   .canopen_videos = false,
 };

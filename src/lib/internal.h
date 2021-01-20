@@ -1060,15 +1060,12 @@ int drop_signals(void* nc);
 void ncvisual_printbanner(const notcurses* nc);
 
 typedef struct ncvisual_implementation {
-  int (*ncvisual_init)(int loglevel);
-  int (*ncvisual_decode)(struct ncvisual*);
+  void (*ncvisual_printbanner)(const struct notcurses* nc);
   int (*ncvisual_blit)(struct ncvisual* ncv, int rows, int cols, ncplane* n,
                        const struct blitset* bset, int placey, int placex,
                        int begy, int begx, int leny, int lenx,
                        bool blendcolors);
   struct ncvisual* (*ncvisual_create)(void);
-  struct ncvisual* (*ncvisual_from_file)(const char* s);
-  void (*ncvisual_printbanner)(const struct notcurses* nc);
   // ncv constructors other than ncvisual_from_file() need to set up the
   // AVFrame* 'frame' according to their own data, which is assumed to
   // have been prepared already in 'ncv'.
@@ -1078,7 +1075,7 @@ typedef struct ncvisual_implementation {
   bool canopen_videos;
 } ncvisual_implementation;
 
-// overriden by strong symbol in libnotcurses.so if built with multimedia
+// assigned by libnotcurses.so if linked with multimedia
 extern const ncvisual_implementation* visual_implementation
   __attribute__ ((visibility("default")));
 
