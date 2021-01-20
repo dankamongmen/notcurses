@@ -26,7 +26,8 @@ via notcurses@googlegroups.com. i wrote a coherent
 free download, or [paperback purchase](https://amazon.com/dp/B086PNVNC9).
 
 i've not yet added many documented examples, but there are many small
-C/C++ programs available in [src/poc/](https://github.com/dankamongmen/notcurses/tree/master/src/poc).
+C/C++ programs available in [src/poc/](https://github.com/dankamongmen/notcurses/tree/master/src/poc)
+and [src/pocpp/](https://github.com/dankamongmen/notcurses/tree/master/src/pocpp), respectively.
 `notcurses-demo` covers most of the functionality of Notcurses, and can be
 found in [src/demo/](https://github.com/dankamongmen/notcurses/tree/master/src/demo).
 
