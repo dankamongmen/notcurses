@@ -28,14 +28,14 @@ oiio_details_init(void) -> ncvisual_details* {
 }
 
 static inline auto
-ncvisual_details_destroy(ncvisual_details* deets) -> void {
+oiio_details_destroy(ncvisual_details* deets) -> void {
   if(deets->image){
     deets->image->close();
   }
   delete deets;
 }
 
-auto ncvisual_create() -> ncvisual* {
+auto oiio_create() -> ncvisual* {
   auto nc = new ncvisual{};
   if((nc->details = oiio_details_init()) == nullptr){
     delete nc;
@@ -45,7 +45,7 @@ auto ncvisual_create() -> ncvisual* {
 }
 
 ncvisual* ncvisual_from_file(const char* filename) {
-  ncvisual* ncv = ncvisual_create();
+  ncvisual* ncv = oiio_create();
   if(ncv == nullptr){
     return nullptr;
   }
@@ -65,7 +65,7 @@ spec.width << "@" << spec.nchannels << " (" << spec.format << ")" << std::endl;*
   return ncv;
 }
 
-int oiio_decode(ncvisual* nc) {
+int ncvisual_decode(ncvisual* nc) {
 //fprintf(stderr, "current subimage: %d frame: %p\n", nc->details->image->current_subimage(), nc->details->frame.get());
   const auto &spec = nc->details->image->spec_dimensions(nc->details->framenum);
   if(nc->details->frame){
@@ -252,7 +252,7 @@ auto ncvisual_rotate(ncvisual* ncv, double rads) -> int {
 }
 */
 
-auto ncvisual_details_seed(ncvisual* ncv) -> void {
+auto oiio_details_seed(ncvisual* ncv) -> void {
   (void)ncv;
   // FIXME?
 }
@@ -264,16 +264,16 @@ int ncvisual_init(int loglevel __attribute__ ((unused))) {
 }
 
 // FIXME would be nice to have OIIO::attributes("libraries") in here
-void ncvisual_printbanner(const notcurses* nc __attribute__ ((unused))){
+void oiio_printbanner(const notcurses* nc __attribute__ ((unused))){
   printf("  openimageio %s\n", OIIO_VERSION_STRING);
 }
 
 const static ncvisual_implementation oiio_impl = {
-  .ncvisual_printbanner = ncvisual_printbanner,
+  .ncvisual_printbanner = oiio_printbanner,
   .ncvisual_blit = oiio_blit,
-  .ncvisual_create = ncvisual_create,
-  .ncvisual_details_seed = ncvisual_details_seed,
-  .ncvisual_details_destroy = ncvisual_details_destroy,
+  .ncvisual_create = oiio_create,
+  .ncvisual_details_seed = oiio_details_seed,
+  .ncvisual_details_destroy = oiio_details_destroy,
   .canopen_images = true,
   .canopen_videos = false,
 };
