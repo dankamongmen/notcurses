@@ -542,7 +542,6 @@ auto ncvisual_details_seed(ncvisual* ncv) -> void {
 }
 
 auto ffmpeg_log_level(int level) -> int{
-#ifdef USE_FFMPEG
   switch(level){
     case NCLOGLEVEL_SILENT: return AV_LOG_QUIET;
     case NCLOGLEVEL_PANIC: return AV_LOG_PANIC;
@@ -557,12 +556,9 @@ auto ffmpeg_log_level(int level) -> int{
   }
   fprintf(stderr, "Invalid log level: %d\n", level);
   return AV_LOG_TRACE;
-#else
-  return level;
-#endif
 }
 
-auto ncvisual_init(int loglevel) -> int {
+auto ffmpeg_init(int loglevel) -> int {
   av_log_set_level(ffmpeg_log_level(loglevel));
   // FIXME could also use av_log_set_callback() and capture the message...
   return 0;
@@ -589,6 +585,7 @@ auto ncvisual_details_destroy(ncvisual_details* deets) -> void {
 }
 
 const static ncvisual_implementation ffmpeg_impl = {
+  .ncvisual_init = ffmpeg_init,
   .ncvisual_printbanner = ncvisual_printbanner,
   .ncvisual_blit = ffmpeg_blit,
   .ncvisual_create = ncvisual_create,

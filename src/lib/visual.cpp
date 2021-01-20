@@ -39,8 +39,10 @@ auto ncvisual_details_seed(struct ncvisual* ncv) -> void {
   }
 }
 
-auto __attribute__ ((weak))
-ncvisual_init(int loglevel __attribute__ ((unused))) -> int {
+auto ncvisual_init(int loglevel) -> int {
+  if(visual_implementation){
+    return visual_implementation->ncvisual_init(loglevel);
+  }
   return 0;
 }
 

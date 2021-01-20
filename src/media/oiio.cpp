@@ -257,7 +257,7 @@ auto oiio_details_seed(ncvisual* ncv) -> void {
   // FIXME?
 }
 
-int ncvisual_init(int loglevel __attribute__ ((unused))) {
+int oiio_init(int loglevel __attribute__ ((unused))) {
   // FIXME set OIIO global attribute "debug" based on loglevel
   // FIXME check OIIO_VERSION_STRING components against linked openimageio_version()
   return 0; // allow success here
@@ -269,6 +269,7 @@ void oiio_printbanner(const notcurses* nc __attribute__ ((unused))){
 }
 
 const static ncvisual_implementation oiio_impl = {
+  .ncvisual_init = oiio_init,
   .ncvisual_printbanner = oiio_printbanner,
   .ncvisual_blit = oiio_blit,
   .ncvisual_create = oiio_create,

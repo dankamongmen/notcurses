@@ -1060,6 +1060,7 @@ int drop_signals(void* nc);
 void ncvisual_printbanner(const notcurses* nc);
 
 typedef struct ncvisual_implementation {
+  int (*ncvisual_init)(int loglevel);
   void (*ncvisual_printbanner)(const struct notcurses* nc);
   int (*ncvisual_blit)(struct ncvisual* ncv, int rows, int cols, ncplane* n,
                        const struct blitset* bset, int placey, int placex,
