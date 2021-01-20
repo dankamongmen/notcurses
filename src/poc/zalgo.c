@@ -5,7 +5,7 @@ int main(void){
   struct notcurses_options nops = {
     .flags = NCOPTION_NO_ALTERNATE_SCREEN,
   };
-  struct notcurses* nc = notcurses_init(&nops, NULL);
+  struct notcurses* nc = notcurses_core_init(&nops, NULL);
   struct ncplane* n = notcurses_stdplane(nc);
   const int y = 10;
   ncplane_putstr_aligned(n, y + 0, NCALIGN_CENTER, "Pack my box with five dozen liquor jugs.");

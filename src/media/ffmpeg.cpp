@@ -289,7 +289,7 @@ auto ffmpeg_create() -> ncvisual* {
   return nc;
 }
 
-ncvisual* ffmpeg_from_file(const char* filename) {
+ncvisual* ncvisual_from_file(const char* filename) {
   AVStream* st;
   ncvisual* ncv = ffmpeg_create();
   if(ncv == nullptr){
@@ -571,9 +571,9 @@ auto ffmpeg_init(int loglevel) -> int {
 
 void ffmpeg_printbanner(const notcurses* nc __attribute__ ((unused))){
   printf("  avformat %u.%u.%u avutil %u.%u.%u swscale %u.%u.%u\n",
-        LIBAVFORMAT_VERSION_MAJOR, LIBAVFORMAT_VERSION_MINOR, LIBAVFORMAT_VERSION_MICRO,
-        LIBAVUTIL_VERSION_MAJOR, LIBAVUTIL_VERSION_MINOR, LIBAVUTIL_VERSION_MICRO,
-        LIBSWSCALE_VERSION_MAJOR, LIBSWSCALE_VERSION_MINOR, LIBSWSCALE_VERSION_MICRO);
+         LIBAVFORMAT_VERSION_MAJOR, LIBAVFORMAT_VERSION_MINOR, LIBAVFORMAT_VERSION_MICRO,
+         LIBAVUTIL_VERSION_MAJOR, LIBAVUTIL_VERSION_MINOR, LIBAVUTIL_VERSION_MICRO,
+         LIBSWSCALE_VERSION_MAJOR, LIBSWSCALE_VERSION_MINOR, LIBSWSCALE_VERSION_MICRO);
 }
 
 auto ffmpeg_details_destroy(ncvisual_details* deets) -> void {
@@ -594,7 +594,7 @@ const static ncvisual_implementation ffmpeg_impl = {
   .ncvisual_decode = ffmpeg_decode,
   .ncvisual_blit = ffmpeg_blit,
   .ncvisual_create = ffmpeg_create,
-  .ncvisual_from_file = ffmpeg_from_file,
+  .ncvisual_from_file = ncvisual_from_file,
   .ncvisual_printbanner = ffmpeg_printbanner,
   .ncvisual_details_seed = ffmpeg_details_seed,
   .ncvisual_details_destroy = ffmpeg_details_destroy,

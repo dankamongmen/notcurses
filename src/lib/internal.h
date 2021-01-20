@@ -1080,7 +1080,13 @@ typedef struct ncvisual_implementation {
 
 // overriden by strong symbol in libnotcurses.so if built with multimedia
 extern const ncvisual_implementation* visual_implementation
- __attribute__ ((visibility("default")));
+  __attribute__ ((visibility("default")));
+
+struct ncvisual* ncvisual_from_file(const char* filename)
+  __attribute__ ((visibility("default")));
+
+struct ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags)
+  __attribute__ ((visibility("default")));
 
 #ifdef __cplusplus
 }

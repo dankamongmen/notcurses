@@ -6,7 +6,7 @@ int main(void){
   if(!setlocale(LC_ALL, "")){
     return EXIT_FAILURE;
   }
-  struct ncdirect* n = ncdirect_init(NULL, stdout, 0);
+  struct ncdirect* n = ncdirect_core_init(NULL, stdout, 0);
   putchar('\n');
   for(int i = 0 ; i < 15 ; ++i){
     uint64_t c1 = 0, c2 = 0;

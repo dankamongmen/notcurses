@@ -6,7 +6,7 @@ int main(void){
   struct notcurses_options nopts = {
     .flags = NCOPTION_NO_ALTERNATE_SCREEN,
   };
-  struct notcurses* nc = notcurses_init(&nopts, NULL);
+  struct notcurses* nc = notcurses_core_init(&nopts, NULL);
   if(nc == NULL){
     return EXIT_FAILURE;
   }

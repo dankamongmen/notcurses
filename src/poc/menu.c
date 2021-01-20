@@ -66,7 +66,7 @@ int main(void){
   notcurses_options opts = {
     .flags = NCOPTION_INHIBIT_SETLOCALE,
   };
-  struct notcurses* nc = notcurses_init(&opts, NULL);
+  struct notcurses* nc = notcurses_core_init(&opts, NULL);
   if(nc == NULL){
     return EXIT_FAILURE;
   }
