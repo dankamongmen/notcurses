@@ -5,7 +5,10 @@ rearrangements of Notcurses.
   * Notcurses has been split into two libraries, `notcurses-core` and
     `notcurses`. The latter contains the heavyweight multimedia code,
     so that applications which don't need this functionality can link against
-    only the former. `pkg-config` support is present for both.
+    only the former. `pkg-config` support is present for both. If using only
+    `notcurses_core`, use the new functions `notcurses_core_init()` and/or
+    `ncdirect_core_init()` in place of `ncdirect_init()` and
+    `notcurses_init()`, or your program is unlikely to link.
   * The `notcurses-view` binary has been renamed `ncplayer`.
 
 * 2.1.5 (2021-01-15):

@@ -23,9 +23,14 @@ unified commentary, consider the [paperback](https://www.amazon.com/dp/B086PNVNC
 
 A program wishing to use Notcurses will need to link it, ideally using the
 output of `pkg-config --libs notcurses`. It is advised to compile with the
-output of `pkg-config --cflags notcurses`. To use the minimal core Notcurses,
-without multimedia support, use `pkg-config --libs notcurses-core` etc. If
-using CMake, a support file is provided, and can be accessed as `Notcurses`.
+output of `pkg-config --cflags notcurses`. If using CMake, a support file is
+provided, and can be accessed as `Notcurses`.
+
+If your program makes no use of multimedia, you might want to link with only
+the core Notcurses, and thus incur far fewer dependencies. To use the minimal
+core Notcurses, use `pkg-config --libs notcurses-core` etc. In place of
+`notcurses_init()` and/or `ncdirect_init()` (see below), you must also use
+`notcurses_core_init()` and/or `ncdirect_core_init()`, or linking will fail.
 
 Before calling into Notcurses—and usually as one of the first calls of the
 program—be sure to call `setlocale(3)` with an appropriate UTF-8 locale. It is
@@ -142,6 +147,10 @@ int notcurses_lex_margins(const char* op, notcurses_options* opts);
 // which case /dev/tty will be opened. Returns NULL on error, including any
 // failure initializing terminfo.
 struct notcurses* notcurses_init(const notcurses_options* opts, FILE* fp);
+
+// The same as notcurses_init(), but without any multimedia functionality,
+// allowing for a svelter binary. Link with notcurses-core if this is used.
+struct notcurses* notcurses_core_init(const notcurses_options* opts, FILE* fp);
 
 // Destroy a Notcurses context.
 int notcurses_stop(struct notcurses* nc);
@@ -312,6 +321,10 @@ struct ncdirect; // minimal state for a terminal
 // NCDIRECT_OPTION_*.
 // Returns NULL on error, including any failure initializing terminfo.
 struct ncdirect* ncdirect_init(const char* termtype, FILE* fp, uint64_t flags);
+
+// The same as ncdirect_init(), but without any multimedia functionality,
+// allowing for a svelter binary. Link with notcurses-core if this is used.
+struct ncdirect* ncdirect_core_init(const char* termtype, FILE* fp, uint64_t flags);
 
 // ncdirect_init() will call setlocale() to inspect the current locale. If
 // that locale is "C" or "POSIX", it will call setlocale(LC_ALL, "") to set
