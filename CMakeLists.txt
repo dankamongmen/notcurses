@@ -740,6 +740,11 @@ install(FILES
   )
 
 install(FILES
+  ${CMAKE_CURRENT_BINARY_DIR}/notcurses-core.pc
+  DESTINATION ${PKGCONFIG_DIR}
+)
+
+install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/notcurses.pc
   DESTINATION ${PKGCONFIG_DIR}
 )
