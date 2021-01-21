@@ -707,6 +707,11 @@ configure_package_config_file(tools/NotcursesConfig.cmake.in
   INSTALL_DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/notcurses/cmake
 )
 
+write_basic_package_version_file(
+  ${CMAKE_CURRENT_BINARY_DIR}/NotcursesCoreConfigVersion.cmake
+  COMPATIBILITY SameMajorVersion
+)
+
 configure_package_config_file(tools/NotcursesCoreConfig.cmake.in
   ${CMAKE_CURRENT_BINARY_DIR}/NotcursesCoreConfig.cmake
   INSTALL_DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/notcurses/cmake
