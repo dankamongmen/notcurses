@@ -8,5 +8,7 @@ Description: TUI library for modern terminal emulators
 Version: @PROJECT_VERSION@
 
 Requires:
+Requires.private: pthread tinfo unistring
 Libs: -L${libdir} -lnotcurses-core
+Libs.private: -lm
 Cflags: -I${includedir}
