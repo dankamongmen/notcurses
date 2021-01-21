@@ -7,8 +7,8 @@ Name: @PROJECT_NAME@
 Description: TUI library for modern terminal emulators
 Version: @PROJECT_VERSION@
 
-Requires:
-Requires.private: notcurses-core
+Requires: notcurses-core
+Requires.private:
 Libs: -L${libdir} -lnotcurses
 Libs.private:
 Cflags: -I${includedir}
