@@ -33,7 +33,7 @@ found in [src/demo/](https://github.com/dankamongmen/notcurses/tree/master/src/d
 
 **If you're running Notcurses applications in a Docker, please consult
 "[Environment notes](#environment-notes)" below.** I track some
-[capabilities of terminal emulators](TERMS.md), and also maintain a list of
+[capabilities of terminal emulators](TERMINALS.md), and also maintain a list of
 [other TUI libraries](OTHERS.md).
 
 ![Linux](https://img.shields.io/badge/-Linux-grey?logo=linux)
