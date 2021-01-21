@@ -323,7 +323,7 @@ to breaking under incorrect `TERM` values. If you're not using `xterm`, your
 
 * **Q:** I pretty much always need an `ncplane` when using a `cell`. Why doesn't the latter hold a pointer to the former? **A:** Besides the massive redundancy this would entail, `cell` needs to remain as small as possible, and you almost always have the `ncplane` handy if you've got a reference to a valid `cell` anyway.
 
-* **Q:** I ran `notcurses-demo` with a single demo, but my summary numbers don't match that demo's numbers, you charlatan. **A:** `notcurses-demo` renders several frames beyond the actual demos.
+* **Q:** I ran `notcurses-demo`, but my table numbers don't match the Notcurses banner numbers, you charlatan. **A:** `notcurses-demo` renders several frames beyond the actual demos.
 
 * **Q:** When my program exits, I don't have a cursor, or text is invisible, or colors are weird, <i>ad nauseam</i>. **A:** Ensure you're calling `notcurses_stop()`/`ncdirect_stop()` on all exit paths, including fatal signals.
 
