@@ -64,9 +64,6 @@ get_next_head(struct ncplane* std, struct ncplane* left, struct ncplane* right,
   // if |ydist|>|xdist| and positive y, etc.)
   int ydist = ncplane_dim_y(std) / 2 - *heady;
   int xdist = ncplane_dim_x(std) / 2 - *headx;
-  if(*heady < trow && xdist < 0){
-    *phase = PHASE_DONE;
-  }
   if(ydist == 0 && xdist == 0){
     ++*heady; // move down
   }else if(abs(ydist) == abs(xdist)){ // corner
@@ -90,7 +87,11 @@ get_next_head(struct ncplane* std, struct ncplane* left, struct ncplane* right,
       }
     }else{
       if(xdist < 0){
-        --*heady;
+        if(*heady == trow){
+          *phase = PHASE_DONE;
+        }else{
+          --*heady;
+        }
       }else{
         ++*heady;
       }
