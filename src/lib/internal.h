@@ -1072,6 +1072,7 @@ typedef struct ncvisual_implementation {
   // have been prepared already in 'ncv'.
   void (*ncvisual_details_seed)(struct ncvisual* ncv);
   void (*ncvisual_details_destroy)(struct ncvisual_details* deets);
+  char* (*ncvisual_subtitle)(const struct ncvisual* ncv);
   bool canopen_images;
   bool canopen_videos;
 } ncvisual_implementation;

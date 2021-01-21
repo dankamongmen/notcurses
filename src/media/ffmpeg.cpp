@@ -112,7 +112,7 @@ deass(const char* ass) {
   return dup;
 }
 
-auto ncvisual_subtitle(const ncvisual* ncv) -> char* {
+auto ffmpeg_subtitle(const ncvisual* ncv) -> char* {
   for(unsigned i = 0 ; i < ncv->details->subtitle.num_rects ; ++i){
     const AVSubtitleRect* rect = ncv->details->subtitle.rects[i];
     if(rect->type == SUBTITLE_ASS){
@@ -584,13 +584,14 @@ auto ncvisual_details_destroy(ncvisual_details* deets) -> void {
   delete deets;
 }
 
-const static ncvisual_implementation ffmpeg_impl = {
+static const ncvisual_implementation ffmpeg_impl = {
   .ncvisual_init = ffmpeg_init,
   .ncvisual_printbanner = ncvisual_printbanner,
   .ncvisual_blit = ffmpeg_blit,
   .ncvisual_create = ncvisual_create,
   .ncvisual_details_seed = ncvisual_details_seed,
   .ncvisual_details_destroy = ncvisual_details_destroy,
+  .ncvisual_subtitle = ffmpeg_subtitle,
   .canopen_images = true,
   .canopen_videos = true,
 };

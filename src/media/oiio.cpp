@@ -227,7 +227,7 @@ auto ncvisual_stream(notcurses* nc, ncvisual* ncv, float timescale,
   return -1;
 }
 
-char* ncvisual_subtitle(const ncvisual* ncv) { // no support in OIIO
+char* oiio_subtitle(const ncvisual* ncv) { // no support in OIIO
   (void)ncv;
   return nullptr;
 }
@@ -275,6 +275,7 @@ const static ncvisual_implementation oiio_impl = {
   .ncvisual_create = oiio_create,
   .ncvisual_details_seed = oiio_details_seed,
   .ncvisual_details_destroy = oiio_details_destroy,
+  .ncvisual_subtitle = oiio_subtitle,
   .canopen_images = true,
   .canopen_videos = false,
 };

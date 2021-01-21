@@ -663,8 +663,10 @@ auto ncvisual_stream(notcurses* nc, ncvisual* ncv, float timescale,
 }
 
 auto ncvisual_subtitle(const ncvisual* ncv) -> char* {
-  (void)ncv;
-  return nullptr;
+  if(!visual_implementation){
+    return nullptr;
+  }
+  return visual_implementation->ncvisual_subtitle(ncv);
 }
 
 auto ncvisual_resize(ncvisual* nc, int rows, int cols) -> int {
