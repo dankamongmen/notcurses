@@ -133,16 +133,13 @@ add_library(notcurses-core-static STATIC ${NCCORESRCS})
 else()
 add_library(notcurses-core-static STATIC EXCLUDE_FROM_ALL ${NCCORESRCS})
 endif()
-set_target_properties(
-  notcurses-core-static PROPERTIES
-  OUTPUT_NAME notcurses-core
-)
 set_target_properties(notcurses-core PROPERTIES
   VERSION ${PROJECT_VERSION}
   SOVERSION ${PROJECT_VERSION_MAJOR}
 )
 set_target_properties(notcurses-core-static PROPERTIES
   VERSION ${PROJECT_VERSION}
+  OUTPUT_NAME notcurses-core
 )
 target_include_directories(notcurses-core
   PRIVATE
@@ -217,8 +214,12 @@ add_library(notcurses-static STATIC ${NCSRCS})
 else()
 add_library(notcurses-static STATIC EXCLUDE_FROM_ALL ${NCSRCS})
 endif()
-set_target_properties(
-  notcurses-static PROPERTIES
+set_target_properties(notcurses PROPERTIES
+  VERSION ${PROJECT_VERSION}
+  SOVERSION ${PROJECT_VERSION_MAJOR}
+)
+set_target_properties(notcurses-static PROPERTIES
+  VERSION ${PROJECT_VERSION}
   OUTPUT_NAME notcurses
 )
 target_include_directories(notcurses
