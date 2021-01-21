@@ -1,6 +1,9 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 2.1.8 (not yet released):
+  * The `notcurses-tetris` binary has been renamed `nctetris`.
+
 * 2.1.7 (2021-01-21):
   * Notcurses has been split into two libraries, `notcurses-core` and
     `notcurses`. The latter contains the heavyweight multimedia code,

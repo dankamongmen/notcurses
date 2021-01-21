@@ -19,5 +19,5 @@ Run, using `valgrind --tool=memcheck --leak-check=full`:
    terminal geometries: square, tall, wide
 * `notcurses-demo` with margins
 * `notcurses-demo` with FPS plot and HUD up
-* Play a game of `notcurses-tetris`
+* Play a game of `nctetris`
 * Run each PoC binary, including `ncpp_build` and `ncpp_build_exceptions`

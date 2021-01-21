@@ -1,18 +1,18 @@
-% notcurses-tetris(1)
+% nctetris(1)
 % nick black <nickblack@linux.com>
 % v2.1.7
 
 # NAME
 
-notcurses-tetris - Render images and video to a terminal
+nctetris - Render images and video to a terminal
 
 # SYNOPSIS
 
-**notcurses-tetris** [**-h|--help**] [**-l loglevel**]
+**nctetris** [**-h|--help**] [**-l loglevel**]
 
 # DESCRIPTION
 
-**notcurses-tetris** implements Tetris using notcurses.
+**nctetris** implements Tetris using Notcurses.
 
 The goal is to complete horizontal lines, without allowing tetriminos to
 reach the top of the screen. The falling tetrimino can be rotated counter-
