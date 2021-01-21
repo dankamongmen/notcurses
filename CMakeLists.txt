@@ -572,8 +572,6 @@ target_link_libraries(notcurses-tetris
     notcurses++
 )
 
-# all further binaries require multimedia support
-if(NOT ${USE_MULTIMEDIA} STREQUAL "none")
 ############################################################################
 # ncneofetch
 file(GLOB FETCHSRCS CONFIGURE_DEPENDS src/fetch/*.c)
@@ -588,6 +586,8 @@ target_link_libraries(ncneofetch
     notcurses
 )
 
+# all further binaries require multimedia support
+if(NOT ${USE_MULTIMEDIA} STREQUAL "none")
 ############################################################################
 # ncls
 file(GLOB LSSRC CONFIGURE_DEPENDS src/ls/*.cpp)
