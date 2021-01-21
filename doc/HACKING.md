@@ -1,5 +1,32 @@
 # Hacking!
 
+## notcurses vs notcurses-core
+
+I wanted to achieve three things:
+
+* Administrators decide whether they want multimedia support installed.
+* Clients decide whether they want to use multimedia, and write one program.
+* No dlopen(3) or weak symbols -- they're unportable, and break static linking.
+
+If the administrator doesn't want multimedia support installed, they can
+refrain from installing the notcurses library built with it. Building with
+`USE_MULTIMEDIA=none` results in a shim notcurses. This notcurses allows
+programs that want multimedia to still link; attempting to actually use
+`notcurses_from_file()` will result in an error, and the client application
+can test ahead of time with e.g. `notcurses_canopen_images()`.
+
+### Packaging
+
+The ideal packaging IMHO involves two builds, one with `USE_MULTIMEDIA` set
+to either `ffmpeg` or `oiio` (`ffmpeg` is preferred to `oiio`), and one with
+`USE_MULTIMEDIA=none`. These ought result in equivalent notcurses-core
+objects, but two different notcurses objects. Package notcurses-core into
+its own package, which recommends or even depends on either of the notcurses
+packages. Name the notcurses packages, say, `libnotcurses-ffmpeg` and
+`libnotcurses-nomedia`, have them conflict with one another, and have both
+depend on notcurses-core. Defining a virtual package `libnotcurses`, provided
+by either of the `libnotcurses-*` packages, is desirable if supported.
+
 ## Rows
 
 There are four kinds of `y`s: physical, rational, logical, and virtual. Physical
