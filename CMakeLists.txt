@@ -729,6 +729,12 @@ write_basic_package_version_file(
 
 # Installation
 install(FILES
+  "${CMAKE_CURRENT_BINARY_DIR}/NotcursesCoreConfig.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/NotcursesCoreConfigVersion.cmake"
+  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/NotcursesCore"
+)
+
+install(FILES
   "${CMAKE_CURRENT_BINARY_DIR}/NotcursesConfig.cmake"
   "${CMAKE_CURRENT_BINARY_DIR}/NotcursesConfigVersion.cmake"
   DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/Notcurses"
@@ -771,8 +777,8 @@ install(FILES ${MARKDOWN} DESTINATION ${CMAKE_INSTALL_DOCDIR})
 install(TARGETS notcurses-demo DESTINATION bin)
 install(TARGETS notcurses-input DESTINATION bin)
 install(TARGETS nctetris DESTINATION bin)
-if(NOT ${USE_MULTIMEDIA} STREQUAL "none")
 install(TARGETS ncneofetch DESTINATION bin)
+if(NOT ${USE_MULTIMEDIA} STREQUAL "none")
 install(TARGETS ncls DESTINATION bin)
 install(TARGETS ncplayer DESTINATION bin)
 endif()
