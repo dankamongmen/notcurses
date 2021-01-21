@@ -50,4 +50,4 @@ The same as **notcurses_init** and **ncdirect_init**.
 **notcurses(3)**,
 **notcurses_direct(3)**,
 **notcurses_init(3)**,
-utf8(7)
+**utf8(7)**
