@@ -335,6 +335,8 @@ to breaking under incorrect `TERM` values. If you're not using `xterm`, your
 
 * **Q:** Why does my right-to-left text appear left-to-right? **A:** Notcurses doesn't honor the BiDi state machine, and in fact forces left-to-right with BiDi codes. Likewise, ultra-wide glyphs will have interesting effects. ﷽!
 
+* **Q:** I get linker errors when statically linking. **A:** Are you linking all necessary libraries? Use `pkg-config --static --libs notcurses` to discover them.
+
 ## Supplemental material
 
 ### Useful links

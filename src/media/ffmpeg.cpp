@@ -279,7 +279,7 @@ auto ffmpeg_details_init(void) -> ncvisual_details* {
   return deets;
 }
 
-auto ncvisual_create() -> ncvisual* {
+auto ffmpeg_create() -> ncvisual* {
   auto nc = new ncvisual{};
   if((nc->details = ffmpeg_details_init()) == nullptr){
     delete nc;
@@ -290,7 +290,7 @@ auto ncvisual_create() -> ncvisual* {
 
 ncvisual* ffmpeg_from_file(const char* filename) {
   AVStream* st;
-  ncvisual* ncv = ncvisual_create();
+  ncvisual* ncv = ffmpeg_create();
   if(ncv == nullptr){
     // fprintf(stderr, "Couldn't create %s (%s)\n", filename, strerror(errno));
     return nullptr;
@@ -588,7 +588,7 @@ static const ncvisual_implementation ffmpeg_impl = {
   .ncvisual_init = ffmpeg_init,
   .ncvisual_printbanner = ncvisual_printbanner,
   .ncvisual_blit = ffmpeg_blit,
-  .ncvisual_create = ncvisual_create,
+  .ncvisual_create = ffmpeg_create,
   .ncvisual_from_file = ffmpeg_from_file,
   .ncvisual_details_seed = ncvisual_details_seed,
   .ncvisual_details_destroy = ncvisual_details_destroy,

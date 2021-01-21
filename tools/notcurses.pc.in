@@ -9,6 +9,6 @@ Version: @PROJECT_VERSION@
 
 Requires:
 Requires.private: pthread tinfo unistring
-Libs: -L${libdir} -lnotcurses-core -lnotcurses
-Libs.private: -lm
+Libs: -L${libdir} -lnotcurses
+Libs.private: -lm -lstdc++ -lnotcurses-core
 Cflags: -I${includedir}
