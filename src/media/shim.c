@@ -3,6 +3,12 @@
 
 extern const ncvisual_implementation* local_visual_implementation;
 
+#ifndef USE_FFMPEG
+#ifndef USE_OIIO
+const ncvisual_implementation* local_visual_implementation = NULL;
+#endif
+#endif
+
 ncdirect* ncdirect_init(const char* termtype, FILE* outfp, uint64_t flags){
   visual_implementation = local_visual_implementation;
   return ncdirect_core_init(termtype, outfp, flags);
