@@ -44,27 +44,6 @@ auto oiio_create() -> ncvisual* {
   return nc;
 }
 
-ncvisual* oiio_from_file(const char* filename) {
-  ncvisual* ncv = oiio_create();
-  if(ncv == nullptr){
-    return nullptr;
-  }
-  ncv->details->image = OIIO::ImageInput::open(filename);
-  if(!ncv->details->image){
-    // fprintf(stderr, "Couldn't create %s (%s)\n", filename, strerror(errno));
-    ncvisual_destroy(ncv);
-    return nullptr;
-  }
-/*const auto &spec = ncv->details->image->spec_dimensions(0);
-std::cout << "Opened " << filename << ": " << spec.height << "x" <<
-spec.width << "@" << spec.nchannels << " (" << spec.format << ")" << std::endl;*/
-  if(oiio_decode(ncv)){
-    ncvisual_destroy(ncv);
-    return nullptr;
-  }
-  return ncv;
-}
-
 int oiio_decode(ncvisual* nc) {
 //fprintf(stderr, "current subimage: %d frame: %p\n", nc->details->image->current_subimage(), nc->details->frame.get());
   const auto &spec = nc->details->image->spec_dimensions(nc->details->framenum);
@@ -109,6 +88,27 @@ int oiio_decode(ncvisual* nc) {
   ncvisual_set_data(nc, static_cast<uint32_t*>(nc->details->ibuf->localpixels()), false);
 //fprintf(stderr, "POST-DECODE DATA: %d %d %p %p\n", nc->rows, nc->cols, nc->data, nc->details->ibuf->localpixels());
   return 0;
+}
+
+ncvisual* oiio_from_file(const char* filename) {
+  ncvisual* ncv = oiio_create();
+  if(ncv == nullptr){
+    return nullptr;
+  }
+  ncv->details->image = OIIO::ImageInput::open(filename);
+  if(!ncv->details->image){
+    // fprintf(stderr, "Couldn't create %s (%s)\n", filename, strerror(errno));
+    ncvisual_destroy(ncv);
+    return nullptr;
+  }
+/*const auto &spec = ncv->details->image->spec_dimensions(0);
+std::cout << "Opened " << filename << ": " << spec.height << "x" <<
+spec.width << "@" << spec.nchannels << " (" << spec.format << ")" << std::endl;*/
+  if(oiio_decode(ncv)){
+    ncvisual_destroy(ncv);
+    return nullptr;
+  }
+  return ncv;
 }
 
 int ncvisual_decode_loop(ncvisual* ncv){
@@ -282,6 +282,6 @@ const static ncvisual_implementation oiio_impl = {
   .canopen_videos = false,
 };
 
-const ncvisual_implementation* visual_implementation = &oiio_impl;
+const ncvisual_implementation* local_visual_implementation = &oiio_impl;
 
 #endif

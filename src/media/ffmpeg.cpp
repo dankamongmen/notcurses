@@ -598,6 +598,6 @@ static const ncvisual_implementation ffmpeg_impl = {
   .canopen_videos = true,
 };
 
-const ncvisual_implementation* visual_implementation = &ffmpeg_impl;
+const ncvisual_implementation* local_visual_implementation = &ffmpeg_impl;
 
 #endif
