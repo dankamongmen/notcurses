@@ -10,12 +10,8 @@
 // end of the string, clear the cell behind it. eventually, we'll clear the
 // entirety of the string, and we're done.
 //
-// path: we know what phase we're in based on the location of the head. within
-// the side columns, we're spiraling. beyond them, we're circling. the geometry
-// of the circle is dictated by being one beyond the columns everywhere. the
-// geometry of the spiral is dictated by distance from the center.
+// path: the geometry of the spiral is dictated by distance from the center.
 //
-// we'll start with just one cycle to prove the path, then add the rest in.
 static const char* cycles[] = {
   "🞯🞰🞱🞲🞳🞴",   // 6 five-point asterisks
   "🞵🞶🞷🞸🞹🞺",   // 6 six-point asterisks
@@ -35,7 +31,6 @@ static const char* cycles[] = {
 
 typedef enum {
   PHASE_SPIRAL,
-  PHASE_CLOSE,
   PHASE_DONE,
 } phase_e;
 
@@ -59,54 +54,45 @@ get_next_head(struct ncplane* std, struct ncplane* left, struct ncplane* right,
   ncplane_abs_yx(left, &brow, &rlcol);
   rlcol += ncplane_dim_x(left) - 1;
   brow += ncplane_dim_y(left) - 1;
-  // if we're ending, we either remain where we are, or move down
-  if(*phase == PHASE_CLOSE){
-    if(*heady < ncplane_dim_y(std) / 2){
-      ++*heady;
-    }else{
-      *phase = PHASE_DONE;
-    }
-  }else{
-    // in the spiral cycle. it's a counterclockwise spiral, come out the bottom,
-    // calculate distances from the center in both directions. if the absolute
-    // values are equal, turn counterclockwise, *unless* xdist is positive and
-    // ydist is negative. in that case, we're coming down the left side, and
-    // need go down one further, only then turning right. that case is xdist is
-    // positive, ydist is negative, and xdist + ydist == -1. otherwise, continue
-    // moving counterclockwise (right if |ydist|>|xdist| and negative y, left
-    // if |ydist|>|xdist| and positive y, etc.)
-    int ydist = ncplane_dim_y(std) / 2 - *heady;
-    int xdist = ncplane_dim_x(std) / 2 - *headx;
-    if(*heady < trow && xdist == ydist){
-      *phase = PHASE_CLOSE;
-    }
-    if(ydist == 0 && xdist == 0){
+  // in the spiral cycle. it's a counterclockwise spiral, come out the bottom,
+  // calculate distances from the center in both directions. if the absolute
+  // values are equal, turn counterclockwise, *unless* xdist is positive and
+  // ydist is negative. in that case, we're coming down the left side, and
+  // need go down one further, only then turning right. that case is xdist is
+  // positive, ydist is negative, and xdist + ydist == -1. otherwise, continue
+  // moving counterclockwise (right if |ydist|>|xdist| and negative y, left
+  // if |ydist|>|xdist| and positive y, etc.)
+  int ydist = ncplane_dim_y(std) / 2 - *heady;
+  int xdist = ncplane_dim_x(std) / 2 - *headx;
+  if(*heady < trow && xdist < 0){
+    *phase = PHASE_DONE;
+  }
+  if(ydist == 0 && xdist == 0){
+    ++*heady; // move down
+  }else if(abs(ydist) == abs(xdist)){ // corner
+    if(ydist < 0 && xdist > 0){ // lower-left, move down
       ++*heady; // move down
-    }else if(abs(ydist) == abs(xdist)){ // corner
-      if(ydist < 0 && xdist > 0){ // lower-left, move down
-        ++*heady; // move down
-      }else if(ydist < 0 && xdist < 0){ // lower-right, move up
-        --*heady;
-      }else if(xdist > 0){ // upper-left, move down
-        ++*heady;
-      }else{ // upper-right, love left
+    }else if(ydist < 0 && xdist < 0){ // lower-right, move up
+      --*heady;
+    }else if(xdist > 0){ // upper-left, move down
+      ++*heady;
+    }else{ // upper-right, love left
+      --*headx;
+    }
+  }else if(ydist < 0 && xdist > 0 && ydist + xdist == -1){ // new iteration
+    ++*headx;
+  }else{
+    if(abs(ydist) > abs(xdist)){
+      if(ydist < 0){
+        ++*headx;
+      }else{
         --*headx;
       }
-    }else if(ydist < 0 && xdist > 0 && ydist + xdist == -1){ // new iteration
-      ++*headx;
     }else{
-      if(abs(ydist) > abs(xdist)){
-        if(ydist < 0){
-          ++*headx;
-        }else{
-          --*headx;
-        }
+      if(xdist < 0){
+        --*heady;
       }else{
-        if(xdist < 0){
-          --*heady;
-        }else{
-          ++*heady;
-        }
+        ++*heady;
       }
     }
   }
@@ -238,10 +224,10 @@ animate(struct notcurses* nc, struct ncprogbar* left, struct ncprogbar* right){
     if(length < totallength){
       ++length;
     }else{
-      ncplane_set_fg_rgb(std, channels_fg_rgb(channels));
-      ncplane_putwc_yx(std, endy, endx, L'▄');
       get_next_end(std, ncprogbar_plane(left), ncprogbar_plane(right),
                   &endy, &endx, &endphase);
+      ncplane_set_fg_rgb(std, channels_fg_rgb(channels));
+      ncplane_putwc_yx(std, endy, endx, L'▄');
     }
     ++moves;
     ncprogbar_set_progress(left, ((float)moves) / totalmoves);
