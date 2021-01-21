@@ -6,9 +6,11 @@
 
 const ncvisual_implementation* visual_implementation = nullptr;
 
-auto __attribute__ ((weak))
-ncvisual_decode(ncvisual* nc __attribute__ ((unused))) -> int {
-  return -1;
+auto ncvisual_decode(ncvisual* nc) -> int {
+  if(!visual_implementation){
+    return -1;
+  }
+  return visual_implementation->ncvisual_decode(nc);
 }
 
 auto ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
@@ -46,9 +48,11 @@ auto ncvisual_init(int loglevel) -> int {
   return 0;
 }
 
-auto __attribute__ ((weak))
-ncvisual_from_file(const char* filename __attribute__ ((unused))) -> ncvisual* {
-  return nullptr;
+auto ncvisual_from_file(const char* filename) -> ncvisual* {
+  if(!visual_implementation){
+    return nullptr;
+  }
+  return visual_implementation->ncvisual_from_file(filename);
 }
 
 auto ncvisual_create(void) -> ncvisual* {

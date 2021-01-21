@@ -134,7 +134,7 @@ averr2ncerr(int averr){
   return -1;
 }
 
-int ncvisual_decode(ncvisual* nc){
+int ffmpeg_decode(ncvisual* nc){
   if(nc->details->fmtctx == nullptr){ // not a file-backed ncvisual
     return -1;
   }
@@ -288,7 +288,7 @@ auto ncvisual_create() -> ncvisual* {
   return nc;
 }
 
-ncvisual* ncvisual_from_file(const char* filename) {
+ncvisual* ffmpeg_from_file(const char* filename) {
   AVStream* st;
   ncvisual* ncv = ncvisual_create();
   if(ncv == nullptr){
@@ -359,7 +359,7 @@ ncvisual* ncvisual_from_file(const char* filename) {
   // frame is set up in prep_details(), so that format can be set there, as
   // is necessary when it is prepared from inputs other than files. oframe
   // is set up whenever we convert to RGBA.
-  if(ncvisual_decode(ncv)){
+  if(ffmpeg_decode(ncv)){
     goto err;
   }
   return ncv;
@@ -435,7 +435,7 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, float timescale,
       }
       return r;
     }
-  }while((ncerr = ncvisual_decode(ncv)) == 0);
+  }while((ncerr = ffmpeg_decode(ncv)) == 0);
   if(activevopts.n != vopts->n){
     ncplane_destroy(activevopts.n);
   }
@@ -446,13 +446,13 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, float timescale,
 }
 
 int ncvisual_decode_loop(ncvisual* ncv){
-  int r = ncvisual_decode(ncv);
+  int r = ffmpeg_decode(ncv);
   if(r == 1){
     if(av_seek_frame(ncv->details->fmtctx, ncv->details->stream_index, 0, AVSEEK_FLAG_FRAME) < 0){
       // FIXME log error
       return -1;
     }
-    if(ncvisual_decode(ncv) < 0){
+    if(ffmpeg_decode(ncv) < 0){
       return -1;
     }
   }
@@ -589,8 +589,10 @@ static const ncvisual_implementation ffmpeg_impl = {
   .ncvisual_printbanner = ncvisual_printbanner,
   .ncvisual_blit = ffmpeg_blit,
   .ncvisual_create = ncvisual_create,
+  .ncvisual_from_file = ffmpeg_from_file,
   .ncvisual_details_seed = ncvisual_details_seed,
   .ncvisual_details_destroy = ncvisual_details_destroy,
+  .ncvisual_decode = ffmpeg_decode,
   .ncvisual_subtitle = ffmpeg_subtitle,
   .canopen_images = true,
   .canopen_videos = true,

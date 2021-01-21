@@ -1067,11 +1067,13 @@ typedef struct ncvisual_implementation {
                        int begy, int begx, int leny, int lenx,
                        bool blendcolors);
   struct ncvisual* (*ncvisual_create)(void);
+  struct ncvisual* (*ncvisual_from_file)(const char* fname);
   // ncv constructors other than ncvisual_from_file() need to set up the
   // AVFrame* 'frame' according to their own data, which is assumed to
   // have been prepared already in 'ncv'.
   void (*ncvisual_details_seed)(struct ncvisual* ncv);
   void (*ncvisual_details_destroy)(struct ncvisual_details* deets);
+  int (*ncvisual_decode)(struct ncvisual* nc);
   char* (*ncvisual_subtitle)(const struct ncvisual* ncv);
   bool canopen_images;
   bool canopen_videos;
@@ -1079,12 +1081,6 @@ typedef struct ncvisual_implementation {
 
 // assigned by libnotcurses.so if linked with multimedia
 extern const ncvisual_implementation* visual_implementation
-  __attribute__ ((visibility("default")));
-
-struct ncvisual* ncvisual_from_file(const char* filename)
-  __attribute__ ((visibility("default")));
-
-struct ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags)
   __attribute__ ((visibility("default")));
 
 #ifdef __cplusplus

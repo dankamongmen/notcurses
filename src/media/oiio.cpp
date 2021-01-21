@@ -44,7 +44,7 @@ auto oiio_create() -> ncvisual* {
   return nc;
 }
 
-ncvisual* ncvisual_from_file(const char* filename) {
+ncvisual* oiio_from_file(const char* filename) {
   ncvisual* ncv = oiio_create();
   if(ncv == nullptr){
     return nullptr;
@@ -58,14 +58,14 @@ ncvisual* ncvisual_from_file(const char* filename) {
 /*const auto &spec = ncv->details->image->spec_dimensions(0);
 std::cout << "Opened " << filename << ": " << spec.height << "x" <<
 spec.width << "@" << spec.nchannels << " (" << spec.format << ")" << std::endl;*/
-  if(ncvisual_decode(ncv)){
+  if(oiio_decode(ncv)){
     ncvisual_destroy(ncv);
     return nullptr;
   }
   return ncv;
 }
 
-int ncvisual_decode(ncvisual* nc) {
+int oiio_decode(ncvisual* nc) {
 //fprintf(stderr, "current subimage: %d frame: %p\n", nc->details->image->current_subimage(), nc->details->frame.get());
   const auto &spec = nc->details->image->spec_dimensions(nc->details->framenum);
   if(nc->details->frame){
@@ -112,14 +112,14 @@ int ncvisual_decode(ncvisual* nc) {
 }
 
 int ncvisual_decode_loop(ncvisual* ncv){
-  int r = ncvisual_decode(ncv);
+  int r = oiio_decode(ncv);
   if(r == 1){
     OIIO::ImageSpec newspec;
     if(ncv->details->image->seek_subimage(0, 0, newspec)){
       return -1;
     }
     ncv->details->framenum = 0;
-    if(ncvisual_decode(ncv) < 0){
+    if(oiio_decode(ncv) < 0){
       return -1;
     }
   }
@@ -217,7 +217,7 @@ auto ncvisual_stream(notcurses* nc, ncvisual* ncv, float timescale,
       return r;
     }
     ++frame;
-  }while((ncerr = ncvisual_decode(ncv)) == 0);
+  }while((ncerr = oiio_decode(ncv)) == 0);
   if(activevopts.n != vopts->n){
     ncplane_destroy(activevopts.n);
   }
@@ -273,8 +273,10 @@ const static ncvisual_implementation oiio_impl = {
   .ncvisual_printbanner = oiio_printbanner,
   .ncvisual_blit = oiio_blit,
   .ncvisual_create = oiio_create,
+  .ncvisual_from_file = oiio_from_file,
   .ncvisual_details_seed = oiio_details_seed,
   .ncvisual_details_destroy = oiio_details_destroy,
+  .ncvisual_decode = oiio_decode,
   .ncvisual_subtitle = oiio_subtitle,
   .canopen_images = true,
   .canopen_videos = false,
