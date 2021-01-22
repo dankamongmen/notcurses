@@ -91,7 +91,6 @@ progbar_redraw(ncprogbar* n){
       return -1;
     }
   }
-  double progress = n->progress * range;
   if(n->retrograde){
     delt *= -1;
     if(pos){
@@ -99,11 +98,6 @@ progbar_redraw(ncprogbar* n){
     }else{
       pos = range - 1;
     }
-    if(horizontal){
-      progress = range - progress;
-    }
-  }else if(!horizontal){
-    progress = range - progress;
   }
   double eachcell = (1.0 / range); // how much each cell is worth
   double chunk = n->progress;
