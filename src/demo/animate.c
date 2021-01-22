@@ -213,7 +213,7 @@ animate(struct notcurses* nc, struct ncprogbar* left, struct ncprogbar* right){
   struct timespec expected;
   clock_gettime(CLOCK_MONOTONIC, &expected);
   uint64_t expect_ns = timespec_to_ns(&expected);
-  uint64_t channels;
+  uint64_t channels = 0;
   int length = 1;
   do{
     get_next_head(std, ncprogbar_plane(left), ncprogbar_plane(right),

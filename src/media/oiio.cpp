@@ -269,15 +269,15 @@ void oiio_printbanner(const notcurses* nc __attribute__ ((unused))){
 }
 
 const static ncvisual_implementation oiio_impl = {
-  .ncvisual_init = oiio_init,
-  .ncvisual_printbanner = oiio_printbanner,
-  .ncvisual_blit = oiio_blit,
-  .ncvisual_create = oiio_create,
-  .ncvisual_from_file = oiio_from_file,
-  .ncvisual_details_seed = oiio_details_seed,
-  .ncvisual_details_destroy = oiio_details_destroy,
-  .ncvisual_decode = oiio_decode,
-  .ncvisual_subtitle = oiio_subtitle,
+  .visual_init = oiio_init,
+  .visual_printbanner = oiio_printbanner,
+  .visual_blit = oiio_blit,
+  .visual_create = oiio_create,
+  .visual_from_file = oiio_from_file,
+  .visual_details_seed = oiio_details_seed,
+  .visual_details_destroy = oiio_details_destroy,
+  .visual_decode = oiio_decode,
+  .visual_subtitle = oiio_subtitle,
   .canopen_images = true,
   .canopen_videos = false,
 };

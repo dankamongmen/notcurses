@@ -530,7 +530,7 @@ int ffmpeg_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
   return 0;
 }
 
-auto ncvisual_details_seed(ncvisual* ncv) -> void {
+auto ffmpeg_details_seed(ncvisual* ncv) -> void {
   assert(nullptr == ncv->details->oframe);
   ncv->details->frame->data[0] = reinterpret_cast<uint8_t*>(ncv->data);
   ncv->details->frame->data[1] = nullptr;
@@ -571,8 +571,9 @@ void ncvisual_printbanner(const notcurses* nc __attribute__ ((unused))){
          LIBSWSCALE_VERSION_MAJOR, LIBSWSCALE_VERSION_MINOR, LIBSWSCALE_VERSION_MICRO);
 }
 
-auto ncvisual_details_destroy(ncvisual_details* deets) -> void {
+auto ffmpeg_details_destroy(ncvisual_details* deets) -> void {
   avcodec_close(deets->codecctx);
+  avcodec_free_context(&deets->subtcodecctx);
   avcodec_free_context(&deets->codecctx);
   av_frame_free(&deets->frame);
   av_freep(&deets->oframe);
@@ -585,15 +586,15 @@ auto ncvisual_details_destroy(ncvisual_details* deets) -> void {
 }
 
 static const ncvisual_implementation ffmpeg_impl = {
-  .ncvisual_init = ffmpeg_init,
-  .ncvisual_printbanner = ncvisual_printbanner,
-  .ncvisual_blit = ffmpeg_blit,
-  .ncvisual_create = ffmpeg_create,
-  .ncvisual_from_file = ffmpeg_from_file,
-  .ncvisual_details_seed = ncvisual_details_seed,
-  .ncvisual_details_destroy = ncvisual_details_destroy,
-  .ncvisual_decode = ffmpeg_decode,
-  .ncvisual_subtitle = ffmpeg_subtitle,
+  .visual_init = ffmpeg_init,
+  .visual_printbanner = ncvisual_printbanner,
+  .visual_blit = ffmpeg_blit,
+  .visual_create = ffmpeg_create,
+  .visual_from_file = ffmpeg_from_file,
+  .visual_details_seed = ffmpeg_details_seed,
+  .visual_details_destroy = ffmpeg_details_destroy,
+  .visual_decode = ffmpeg_decode,
+  .visual_subtitle = ffmpeg_subtitle,
   .canopen_images = true,
   .canopen_videos = true,
 };

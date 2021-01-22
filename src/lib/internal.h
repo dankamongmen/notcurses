@@ -1060,21 +1060,21 @@ int drop_signals(void* nc);
 void ncvisual_printbanner(const notcurses* nc);
 
 typedef struct ncvisual_implementation {
-  int (*ncvisual_init)(int loglevel);
-  void (*ncvisual_printbanner)(const struct notcurses* nc);
-  int (*ncvisual_blit)(struct ncvisual* ncv, int rows, int cols, ncplane* n,
-                       const struct blitset* bset, int placey, int placex,
-                       int begy, int begx, int leny, int lenx,
-                       bool blendcolors);
-  struct ncvisual* (*ncvisual_create)(void);
-  struct ncvisual* (*ncvisual_from_file)(const char* fname);
+  int (*visual_init)(int loglevel);
+  void (*visual_printbanner)(const struct notcurses* nc);
+  int (*visual_blit)(struct ncvisual* ncv, int rows, int cols, ncplane* n,
+                     const struct blitset* bset, int placey, int placex,
+                     int begy, int begx, int leny, int lenx,
+                     bool blendcolors);
+  struct ncvisual* (*visual_create)(void);
+  struct ncvisual* (*visual_from_file)(const char* fname);
   // ncv constructors other than ncvisual_from_file() need to set up the
   // AVFrame* 'frame' according to their own data, which is assumed to
   // have been prepared already in 'ncv'.
-  void (*ncvisual_details_seed)(struct ncvisual* ncv);
-  void (*ncvisual_details_destroy)(struct ncvisual_details* deets);
-  int (*ncvisual_decode)(struct ncvisual* nc);
-  char* (*ncvisual_subtitle)(const struct ncvisual* ncv);
+  void (*visual_details_seed)(struct ncvisual* ncv);
+  void (*visual_details_destroy)(struct ncvisual_details* deets);
+  int (*visual_decode)(struct ncvisual* nc);
+  char* (*visual_subtitle)(const struct ncvisual* ncv);
   bool canopen_images;
   bool canopen_videos;
 } ncvisual_implementation;

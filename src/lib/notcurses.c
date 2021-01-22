@@ -631,6 +631,27 @@ int ncplane_destroy(ncplane* ncp){
     return -1;
   }
 //notcurses_debug(ncplane_notcurses(ncp), stderr);
+  int ret = 0;
+  // dissolve our binding from behind (->bprev is either NULL, or its
+  // predecessor on the bound list's ->bnext, or &ncp->boundto->blist)
+  if(ncp->bprev){
+    if( (*ncp->bprev = ncp->bnext) ){
+      ncp->bnext->bprev = ncp->bprev;
+    }
+  }
+  // recursively reparent our children to the plane to which we are bound.
+  // this will extract each one from the sibling list.
+  struct ncplane* bound = ncp->blist;
+  while(bound){
+    struct ncplane* tmp = bound->bnext;
+    if(ncplane_reparent_family(bound, ncp->boundto) == NULL){
+      ret = -1;
+    }
+    bound = tmp;
+  }
+  // extract ourselves from the z-axis. do this *after* reparenting, in case
+  // reparenting shifts up the z-axis somehow (though i don't think it can,
+  // at least not within a pile?).
   if(ncp->above){
     ncp->above->below = ncp->below;
   }else{
@@ -641,20 +662,7 @@ int ncplane_destroy(ncplane* ncp){
   }else{
     ncplane_pile(ncp)->bottom = ncp->above;
   }
-  if(ncp->bprev){
-    if( (*ncp->bprev = ncp->bnext) ){
-      ncp->bnext->bprev = ncp->bprev;
-    }
-  }
-  int ret = 0;
-  struct ncplane* bound = ncp->blist;
-  while(bound){
-    struct ncplane* tmp = bound->bnext;
-    if(ncplane_reparent_family(bound, ncp->boundto) == NULL){
-      ret = -1;
-    }
-    bound = tmp;
-  }
+  // no need to NULL out our ->boundto, as we are about to die (and unlinked)
   free_plane(ncp);
   return ret;
 }

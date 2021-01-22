@@ -10,7 +10,7 @@ auto ncvisual_decode(ncvisual* nc) -> int {
   if(!visual_implementation){
     return -1;
   }
-  return visual_implementation->ncvisual_decode(nc);
+  return visual_implementation->visual_decode(nc);
 }
 
 auto ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
@@ -19,7 +19,7 @@ auto ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
                    bool blendcolors) -> int {
   int ret = -1;
   if(visual_implementation){
-    if(visual_implementation->ncvisual_blit(ncv, rows, cols, n, bset, placey, placex,
+    if(visual_implementation->visual_blit(ncv, rows, cols, n, bset, placey, placex,
                            begy, begx, leny, lenx, blendcolors) >= 0){
       ret = 0;
     }
@@ -37,13 +37,13 @@ auto ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
 // have been prepared already in 'ncv'.
 auto ncvisual_details_seed(struct ncvisual* ncv) -> void {
   if(visual_implementation){
-    visual_implementation->ncvisual_details_seed(ncv);
+    visual_implementation->visual_details_seed(ncv);
   }
 }
 
 auto ncvisual_init(int loglevel) -> int {
   if(visual_implementation){
-    return visual_implementation->ncvisual_init(loglevel);
+    return visual_implementation->visual_init(loglevel);
   }
   return 0;
 }
@@ -52,19 +52,19 @@ auto ncvisual_from_file(const char* filename) -> ncvisual* {
   if(!visual_implementation){
     return nullptr;
   }
-  return visual_implementation->ncvisual_from_file(filename);
+  return visual_implementation->visual_from_file(filename);
 }
 
 auto ncvisual_create(void) -> ncvisual* {
   if(visual_implementation){
-    return visual_implementation->ncvisual_create();
+    return visual_implementation->visual_create();
   }
   return new ncvisual{};
 }
 
 auto ncvisual_printbanner(const notcurses* nc) -> void {
   if(visual_implementation){
-    visual_implementation->ncvisual_printbanner(nc);
+    visual_implementation->visual_printbanner(nc);
   }else{
     term_fg_palindex(nc, stderr, nc->tcache.colors <= 88 ? 1 % nc->tcache.colors : 0xcb);
     fprintf(stderr, "\n Warning! Notcurses was built without multimedia support.\n");
@@ -546,7 +546,7 @@ auto ncvisual_from_plane(const ncplane* n, ncblitter_e blit, int begy, int begx,
 
 auto ncvisual_details_destroy(ncvisual_details* deets){
   if(visual_implementation){
-    visual_implementation->ncvisual_details_destroy(deets);
+    visual_implementation->visual_details_destroy(deets);
   }
 }
 
@@ -670,7 +670,7 @@ auto ncvisual_subtitle(const ncvisual* ncv) -> char* {
   if(!visual_implementation){
     return nullptr;
   }
-  return visual_implementation->ncvisual_subtitle(ncv);
+  return visual_implementation->visual_subtitle(ncv);
 }
 
 auto ncvisual_resize(ncvisual* nc, int rows, int cols) -> int {
