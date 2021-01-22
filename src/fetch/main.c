@@ -254,11 +254,8 @@ linux_ncneofetch(fetched_info* fi){
       break;
     }
   }
-  if(dinfo->name == NULL){
-    if(fi->logo == NULL){
-      fi->neologo = get_neofetch_art(distro);
-    }
-    dinfo = NULL;
+  if(fi->logo == NULL){
+    fi->neologo = get_neofetch_art(distro);
   }
   free(distro);
   return dinfo;
@@ -556,7 +553,11 @@ neologo_present(struct ncdirect* nc, const char* nlogo){
   }
   free(lines);
   ncdirect_set_fg_rgb(nc, 0xba55d3);
-  ncdirect_printf_aligned(nc, -1, NCALIGN_CENTER, "(no image file is known for your distro)");
+  if(notcurses_canopen_images(NULL)){
+    ncdirect_printf_aligned(nc, -1, NCALIGN_CENTER, "(no image file is known for your distro)");
+  }else{
+    ncdirect_printf_aligned(nc, -1, NCALIGN_CENTER, "(notcurses was compiled without image support)");
+  }
   return 0;
 }
 
@@ -564,18 +565,21 @@ static void*
 display_thread(void* vmarshal){
   struct marshal* m = vmarshal;
   drawpalette(m->nc);
-  if(m->logo){
-    if(ncdirect_render_image(m->nc, m->logo, NCALIGN_CENTER,
-                             NCBLIT_DEFAULT, NCSCALE_SCALE_HIRES)){
-      return NULL;
+  if(notcurses_canopen_images(NULL)){
+    if(m->logo){
+      if(ncdirect_render_image(m->nc, m->logo, NCALIGN_CENTER,
+                              NCBLIT_DEFAULT, NCSCALE_SCALE_HIRES) == 0){
+        return NULL;
+      }
+    }else if(m->dinfo && m->dinfo->logofile){
+      if(ncdirect_render_image(m->nc, m->dinfo->logofile, NCALIGN_CENTER,
+                              NCBLIT_DEFAULT, NCSCALE_SCALE_HIRES) == 0){
+        return NULL;
+      }
     }
-  }else if(m->dinfo && m->dinfo->logofile){
-    if(ncdirect_render_image(m->nc, m->dinfo->logofile, NCALIGN_CENTER,
-                             NCBLIT_DEFAULT, NCSCALE_SCALE_HIRES)){
-      return NULL;
-    }
-  }else if(m->neologo){
-    if(neologo_present(m->nc, m->neologo)){
+  }
+  if(m->neologo){
+    if(neologo_present(m->nc, m->neologo) == 0){
       return NULL;
     }
   }
