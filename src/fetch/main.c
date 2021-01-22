@@ -112,12 +112,12 @@ fetch_cpu_info(fetched_info* fi){
 #define VEND "vendor_id"
     if(strncmp(buf, TAG, strlen(TAG)) == 0){
       // model name trumps vendor_id
-      free(fi->cpu_model);
       char* start = strchr(buf + strlen(TAG), ':');
       if(start){
         ++start;
         char* nl = strchr(start, '\n');
         *nl = '\0';
+        free(fi->cpu_model);
         fi->cpu_model = strdup(start);
       }
     }else if(strncmp(buf, VEND, strlen(VEND)) == 0){
