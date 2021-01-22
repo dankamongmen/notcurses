@@ -1070,8 +1070,7 @@ bool ncdirect_canutf8(const ncdirect* n){
 }
 
 int ncdirect_flush(const ncdirect* nc){
-  int r;
-  while((r = fflush(nc->ttyfp)) == EOF){
+  while(fflush(nc->ttyfp) == EOF){
     if(errno != EAGAIN){
       return -1;
     }
