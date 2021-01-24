@@ -191,20 +191,22 @@ TEST_CASE("Rotate") {
       }
       free(c);
     }
-    opts.n = rendered;
-    // FIXME check pixels after all rotations
-    CHECK(0 == ncvisual_rotate(ncv, M_PI / 2));
-    CHECK(ncvisual_render(nc_, ncv, &opts));
-    CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == ncvisual_rotate(ncv, M_PI / 2));
-    CHECK(ncvisual_render(nc_, ncv, &opts));
-    CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == ncvisual_rotate(ncv, M_PI / 2));
-    CHECK(ncvisual_render(nc_, ncv, &opts));
-    CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == ncvisual_rotate(ncv, M_PI / 2));
-    CHECK(ncvisual_render(nc_, ncv, &opts));
-    CHECK(0 == notcurses_render(nc_));
+    if(notcurses_canopen_images(nc_)){
+      opts.n = rendered;
+      // FIXME check pixels after all rotations
+      CHECK(0 == ncvisual_rotate(ncv, M_PI / 2));
+      CHECK(ncvisual_render(nc_, ncv, &opts));
+      CHECK(0 == notcurses_render(nc_));
+      CHECK(0 == ncvisual_rotate(ncv, M_PI / 2));
+      CHECK(ncvisual_render(nc_, ncv, &opts));
+      CHECK(0 == notcurses_render(nc_));
+      CHECK(0 == ncvisual_rotate(ncv, M_PI / 2));
+      CHECK(ncvisual_render(nc_, ncv, &opts));
+      CHECK(0 == notcurses_render(nc_));
+      CHECK(0 == ncvisual_rotate(ncv, M_PI / 2));
+      CHECK(ncvisual_render(nc_, ncv, &opts));
+      CHECK(0 == notcurses_render(nc_));
+    }
     ncvisual_destroy(ncv);
     ncplane_destroy(rendered);
     CHECK(0 == notcurses_render(nc_));
@@ -242,20 +244,22 @@ TEST_CASE("Rotate") {
       }
       free(c);
     }
-    // FIXME check pixels after all rotations
-    opts.n = rendered;
-    CHECK(0 == ncvisual_rotate(ncv, -M_PI / 2));
-    CHECK(ncvisual_render(nc_, ncv, &opts));
-    CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == ncvisual_rotate(ncv, -M_PI / 2));
-    CHECK(ncvisual_render(nc_, ncv, &opts));
-    CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == ncvisual_rotate(ncv, -M_PI / 2));
-    CHECK(ncvisual_render(nc_, ncv, &opts));
-    CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == ncvisual_rotate(ncv, -M_PI / 2));
-    CHECK(ncvisual_render(nc_, ncv, &opts));
-    CHECK(0 == notcurses_render(nc_));
+    if(notcurses_canopen_images(nc_)){
+      // FIXME check pixels after all rotations
+      opts.n = rendered;
+      CHECK(0 == ncvisual_rotate(ncv, -M_PI / 2));
+      CHECK(ncvisual_render(nc_, ncv, &opts));
+      CHECK(0 == notcurses_render(nc_));
+      CHECK(0 == ncvisual_rotate(ncv, -M_PI / 2));
+      CHECK(ncvisual_render(nc_, ncv, &opts));
+      CHECK(0 == notcurses_render(nc_));
+      CHECK(0 == ncvisual_rotate(ncv, -M_PI / 2));
+      CHECK(ncvisual_render(nc_, ncv, &opts));
+      CHECK(0 == notcurses_render(nc_));
+      CHECK(0 == ncvisual_rotate(ncv, -M_PI / 2));
+      CHECK(ncvisual_render(nc_, ncv, &opts));
+      CHECK(0 == notcurses_render(nc_));
+    }
     ncvisual_destroy(ncv);
     ncplane_destroy(rendered);
     CHECK(0 == notcurses_render(nc_));

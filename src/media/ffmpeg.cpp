@@ -197,7 +197,7 @@ int ffmpeg_decode(ncvisual* nc){
 }
 
 // resize frame to oframe, converting to RGBA (if necessary) along the way
-int ncvisual_resize(ncvisual* nc, int rows, int cols) {
+int ffmpeg_resize(ncvisual* nc, int rows, int cols) {
   const int targformat = AV_PIX_FMT_RGBA;
   AVFrame* inf = nc->details->oframe ? nc->details->oframe : nc->details->frame;
 //fprintf(stderr, "got format: %d (%d/%d) want format: %d (%d/%d)\n", inf->format, nc->rows, nc->cols, targformat, rows, cols);
@@ -373,9 +373,9 @@ err:
 // frames carry a presentation time relative to the beginning, so we get an
 // initial timestamp, and check each frame against the elapsed time to sync
 // up playback.
-int ncvisual_stream(notcurses* nc, ncvisual* ncv, float timescale,
-                    streamcb streamer, const struct ncvisual_options* vopts,
-                    void* curry) {
+int ffmpeg_stream(notcurses* nc, ncvisual* ncv, float timescale,
+                  streamcb streamer, const struct ncvisual_options* vopts,
+                  void* curry) {
   int frame = 1;
   struct timespec begin; // time we started
   clock_gettime(CLOCK_MONOTONIC, &begin);
@@ -445,7 +445,7 @@ int ncvisual_stream(notcurses* nc, ncvisual* ncv, float timescale,
   return ncerr;
 }
 
-int ncvisual_decode_loop(ncvisual* ncv){
+int ffmpeg_decode_loop(ncvisual* ncv){
   int r = ffmpeg_decode(ncv);
   if(r == 1){
     if(av_seek_frame(ncv->details->fmtctx, ncv->details->stream_index, 0, AVSEEK_FLAG_FRAME) < 0){
@@ -564,7 +564,7 @@ auto ffmpeg_init(int loglevel) -> int {
   return 0;
 }
 
-void ncvisual_printbanner(const notcurses* nc __attribute__ ((unused))){
+void ffmpeg_printbanner(const notcurses* nc __attribute__ ((unused))){
   printf("  avformat %u.%u.%u avutil %u.%u.%u swscale %u.%u.%u\n",
          LIBAVFORMAT_VERSION_MAJOR, LIBAVFORMAT_VERSION_MINOR, LIBAVFORMAT_VERSION_MICRO,
          LIBAVUTIL_VERSION_MAJOR, LIBAVUTIL_VERSION_MINOR, LIBAVUTIL_VERSION_MICRO,
@@ -587,14 +587,17 @@ auto ffmpeg_details_destroy(ncvisual_details* deets) -> void {
 
 static const ncvisual_implementation ffmpeg_impl = {
   .visual_init = ffmpeg_init,
-  .visual_printbanner = ncvisual_printbanner,
+  .visual_printbanner = ffmpeg_printbanner,
   .visual_blit = ffmpeg_blit,
   .visual_create = ffmpeg_create,
   .visual_from_file = ffmpeg_from_file,
   .visual_details_seed = ffmpeg_details_seed,
   .visual_details_destroy = ffmpeg_details_destroy,
   .visual_decode = ffmpeg_decode,
+  .visual_decode_loop = ffmpeg_decode_loop,
+  .visual_stream = ffmpeg_stream,
   .visual_subtitle = ffmpeg_subtitle,
+  .visual_resize = ffmpeg_resize,
   .canopen_images = true,
   .canopen_videos = true,
 };

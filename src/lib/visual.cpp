@@ -647,20 +647,19 @@ auto notcurses_canopen_videos(const notcurses* nc __attribute__ ((unused))) -> b
 }
 
 auto ncvisual_decode_loop(ncvisual* nc) -> int {
-  (void)nc;
-  return -1;
+  if(!visual_implementation){
+    return -1;
+  }
+  return visual_implementation->visual_decode_loop(nc);
 }
 
 auto ncvisual_stream(notcurses* nc, ncvisual* ncv, float timescale,
                      streamcb streamer, const ncvisual_options* vopts,
                      void* curry) -> int {
-  (void)nc;
-  (void)ncv;
-  (void)timescale;
-  (void)streamer;
-  (void)vopts;
-  (void)curry;
-  return -1;
+  if(!visual_implementation){
+    return -1;
+  }
+  return ncvisual_stream(nc, ncv, timescale, streamer, vopts, curry);
 }
 
 auto ncvisual_subtitle(const ncvisual* ncv) -> char* {
@@ -671,11 +670,8 @@ auto ncvisual_subtitle(const ncvisual* ncv) -> char* {
 }
 
 auto ncvisual_resize(ncvisual* nc, int rows, int cols) -> int {
-  // we'd need to verify that it's RGBA as well, except that if we've got no
-  // multimedia engine, we've only got memory-assembled ncvisuals, which are
-  // RGBA-native. so we ought be good, but this is undeniably sloppy...
-  if(nc->rows == rows && nc->cols == cols){
-    return 0;
+  if(!visual_implementation){
+    return -1;
   }
-  return -1;
+  return visual_implementation->visual_resize(nc, rows, cols);
 }

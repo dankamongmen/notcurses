@@ -111,7 +111,7 @@ spec.width << "@" << spec.nchannels << " (" << spec.format << ")" << std::endl;*
   return ncv;
 }
 
-int ncvisual_decode_loop(ncvisual* ncv){
+int oiio_decode_loop(ncvisual* ncv){
   int r = oiio_decode(ncv);
   if(r == 1){
     OIIO::ImageSpec newspec;
@@ -127,7 +127,7 @@ int ncvisual_decode_loop(ncvisual* ncv){
 }
 
 // resize, converting to RGBA (if necessary) along the way
-int ncvisual_resize(ncvisual* nc, int rows, int cols) {
+int oiio_resize(ncvisual* nc, int rows, int cols) {
 //fprintf(stderr, "%d/%d -> %d/%d on the resize\n", ncv->rows, ncv->cols, rows, cols);
   auto ibuf = std::make_unique<OIIO::ImageBuf>();
   if(nc->details->ibuf && (nc->cols != cols || nc->rows != rows)){ // scale it
@@ -180,8 +180,8 @@ int oiio_blit(struct ncvisual* ncv, int rows, int cols,
   return 0;
 }
 
-auto ncvisual_stream(notcurses* nc, ncvisual* ncv, float timescale,
-                     streamcb streamer, const struct ncvisual_options* vopts, void* curry) -> int {
+auto oiio_stream(notcurses* nc, ncvisual* ncv, float timescale,
+                 streamcb streamer, const struct ncvisual_options* vopts, void* curry) -> int {
   (void)timescale; // FIXME
   int frame = 1;
   struct timespec begin; // time we started
@@ -277,7 +277,10 @@ const static ncvisual_implementation oiio_impl = {
   .visual_details_seed = oiio_details_seed,
   .visual_details_destroy = oiio_details_destroy,
   .visual_decode = oiio_decode,
+  .visual_decode_loop = oiio_decode_loop,
+  .visual_stream = oiio_stream,
   .visual_subtitle = oiio_subtitle,
+  .visual_resize = oiio_resize,
   .canopen_images = true,
   .canopen_videos = false,
 };

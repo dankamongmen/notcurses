@@ -18,16 +18,19 @@ ncvisual* none_from_file(const char* filename) {
   return nullptr;
 }
 
-int ncvisual_decode_loop(ncvisual* ncv){
+int none_decode_loop(ncvisual* ncv){
   (void)ncv;
   return -1;
 }
 
 // resize, converting to RGBA (if necessary) along the way
-int ncvisual_resize(ncvisual* nc, int rows, int cols) {
-  (void)nc;
-  (void)rows;
-  (void)cols;
+int none_resize(ncvisual* nc, int rows, int cols) {
+  // we'd need to verify that it's RGBA as well, except that if we've got no
+  // multimedia engine, we've only got memory-assembled ncvisuals, which are
+  // RGBA-native. so we ought be good, but this is undeniably sloppy...
+  if(nc->rows == rows && nc->cols == cols){
+    return 0;
+  }
   return -1;
 }
 
@@ -44,8 +47,8 @@ int none_blit(struct ncvisual* ncv, int rows, int cols,
   return -1;
 }
 
-auto ncvisual_stream(notcurses* nc, ncvisual* ncv, float timescale,
-                     streamcb streamer, const struct ncvisual_options* vopts, void* curry) -> int {
+auto none_stream(notcurses* nc, ncvisual* ncv, float timescale,
+                 streamcb streamer, const struct ncvisual_options* vopts, void* curry) -> int {
   (void)nc;
   (void)ncv;
   (void)timescale;
@@ -106,7 +109,10 @@ const static ncvisual_implementation none_impl = {
   .visual_details_seed = none_details_seed,
   .visual_details_destroy = none_details_destroy,
   .visual_decode = none_decode,
+  .visual_decode_loop = none_decode_loop,
+  .visual_stream = none_stream,
   .visual_subtitle = none_subtitle,
+  .visual_resize = none_resize,
   .canopen_images = false,
   .canopen_videos = false,
 };
