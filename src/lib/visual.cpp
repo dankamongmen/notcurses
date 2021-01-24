@@ -65,9 +65,6 @@ auto ncvisual_create(void) -> ncvisual* {
 auto ncvisual_printbanner(const notcurses* nc) -> void {
   if(visual_implementation){
     visual_implementation->visual_printbanner(nc);
-  }else{
-    term_fg_palindex(nc, stderr, nc->tcache.colors <= 88 ? 1 % nc->tcache.colors : 0xcb);
-    fprintf(stderr, "\n Warning! Notcurses was built without multimedia support.\n");
   }
 }
 

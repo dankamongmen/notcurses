@@ -6,7 +6,7 @@ ts_to_ns(const struct timespec* ts){
   return ts->tv_sec * 1000000000 + ts->tv_nsec;
 }
 
-static const uint64_t delay = 2 * 1000000000ull;
+static const uint64_t delay = 500000000ull;
 
 static int
 pbar_fill(struct notcurses* nc, struct ncprogbar* pbar){
@@ -98,10 +98,10 @@ pbar_make(struct notcurses* nc, uint64_t flags){
   struct ncprogbar_options popts = {
     .flags = flags,
   };
-  channel_set_rgb8(&popts.ulchannel, 0x80, 0x22, 0x22);
-  channel_set_rgb8(&popts.urchannel, 0x22, 0x22, 0x80);
-  channel_set_rgb8(&popts.blchannel, 0x22, 0x80, 0x22);
-  channel_set_rgb8(&popts.brchannel, 0x80, 0x22, 0x22);
+  channel_set_rgb8(&popts.ulchannel, 0x80, 0xcc, 0xcc);
+  channel_set_rgb8(&popts.urchannel, 0xcc, 0xcc, 0x80);
+  channel_set_rgb8(&popts.blchannel, 0xcc, 0x80, 0xcc);
+  channel_set_rgb8(&popts.brchannel, 0x80, 0xcc, 0xcc);
   struct ncprogbar* ncp = ncprogbar_create(pbar, &popts);
   if(ncp == NULL){
     return NULL;
