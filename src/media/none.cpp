@@ -1,5 +1,5 @@
 #include "builddef.h"
-#ifndef USE_none
+#ifndef USE_OIIO
 #ifndef USE_FFMPEG
 #include "internal.h"
 #include "visual-details.h"
