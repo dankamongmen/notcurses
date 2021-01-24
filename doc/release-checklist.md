@@ -44,7 +44,6 @@
   * builds binaries: `cd .. && export TERM=xterm-256color && sudo pbuilder build *dsc`
     * performs this in xterm with TERM=xterm-256color
     * beware: freak TERMs won't be present in pbuilder
-* Copy `../*notcurses*$VERSION*` to apt repo, import with `reprepro`
 
 ### Fedora
 
