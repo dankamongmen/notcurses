@@ -659,7 +659,7 @@ auto ncvisual_stream(notcurses* nc, ncvisual* ncv, float timescale,
   if(!visual_implementation){
     return -1;
   }
-  return ncvisual_stream(nc, ncv, timescale, streamer, vopts, curry);
+  return visual_implementation->visual_stream(nc, ncv, timescale, streamer, vopts, curry);
 }
 
 auto ncvisual_subtitle(const ncvisual* ncv) -> char* {
