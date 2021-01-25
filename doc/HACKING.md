@@ -39,7 +39,7 @@ row of the rendering area. They are related by:
 
 In the absence of a `top` margin, physical `y` == rational `y`.
 
-Logical and virtual `y`s are relative to a plane (possibly the standard plane). 
+Logical and virtual `y`s are relative to a plane (possibly the standard plane).
 A logical `y` refers to a row of a plane, independent of scrolling. A virtual
 `y` refers to a row-sized chunk of the plane's framebuffer, which might be
 mapped to any row within the plane. They are related by:
@@ -62,7 +62,7 @@ Virtual `y` is useful for only two things:
 
 * Determining whether to scroll, and
 * Indexing into the plane's framebuffer
- 
+
 Thus we usually keep `y` logical.
 
 ## Right-to-left text
@@ -233,3 +233,94 @@ be taken.
 This raises a new issue: given cascading resize callbacks, `notcurses_resize()`
 can result in arbitrary changes to the pile. This suggests that the resize
 operation cannot occur between render and raster...
+
+### Alternatives to the Painter's Algorithm
+
+The rendering area is RY * RX, where RY and RX are positive integers.
+
+A plane is either active or inactive for a given cell in the rendering area.
+The plane is active if it is defined at that cell. It is inactive otherwise.
+
+There is an initial (possibly empty) inactive region before the plane is first
+reached. There then follow `A' (A' >= 0)` active regions, separated by
+`(I' = A'-1)` inactive regions (`I'` is 0 if `A'` is 0). These active regions `A_0, A_1, ...`
+all have the same size, and these inactive regions `I_0, I_1, ...`
+likewise all have the same size. I_0 + A_0 == RX. There is then a final
+(possibly empty) inactive region following the plane's lowermost, rightmost
+intersection with the visual area.
+
+ `I_init + A' * A_0 + I' * I_0 + I_final == RX * RY.`
+
+Given RX and RY, we can describe a plane's activity pattern completely with
+three numbers: `I_init`, `A'`, and `A_0`.
+
+Keep two ordered structures, an active set and an inactive set. The active set
+is counting down until they become inactive. The inactive set is counting down
+until the become active.
+
+Initialization:
+
+For each plane, calculate `I_init` and `A_0`. Planes with `I_init` values of 0 go
+into the active set, sorted first by `A_0` and secondarily by plane depth. Planes
+with `I_init values >= 0` go into the inactive set, sorted first by `I_init` and
+secondarily by plane depth.
+
+For rendering area RY * RX and plane py * px at offset y, x, `I_init` is:
+
+```
+ infinite for x >= RX
+ infinite for x + px <= 0
+ infinite for y >= RY
+ infinite for y + py <= 0
+ 0 for y <= 0, y + py >= 0, x <= 0
+ x for y <= 0, y + py >= 0, x > 0
+ y * RX + x for y > 0, x >= 0
+ y * RX for y > 0
+```
+
+max finite initial gap is RY * RX - 1. min initial gap is 0.
+
+Each node is a pointer to a plane, and the scalar coordinate `xy (0 <= xy < PX * PY)`
+at which the current state changes (`A_0` and `I_init`).
+
+assuming finite initial gap (i.e. that the plane overlaps the rendering area),
+the active length (can exceed practical length) is:
+
+```
+ x <= 0:
+  x + px >= RX: (spans horizontal range)
+   y <= 0:
+     RX * py + y, from origin
+   y > 0:
+     RX * py, from column 0
+  x + px < RX:
+    x + px,
+ x > 0:
+  x + px >= RX:
+    RX - x
+  x + px < RX:
+    px
+```
+
+max active length is RY * RX (for a plane covering the entirety of the
+horizontal viewing area), otherwise RX - 1. min active length is 1.
+
+inactive gap is undefined if plane spans visual region or is invisible.
+otherwise, inactive gap is calculated at right edge of plane (column C),
+and is equal to PX - (C + 1) + x if x >= 0, or PX - (C + 1) otherwise.
+
+at each step we check to see if the foremost planes of either set need flip
+to the other set. this suggests an extra sort per flip. unless we've eclipsed
+a plane's `I_init`, or entered a plane's `I_final`, an element moving from one set
+to another must have the same previous element as it did before. each node
+thus keeps an additional element, a double pointer to the previous element's
+next link. upon flip, check this pointer to ensure it's NULL. if it is NULL,
+link ourselves. otherwise, chase to the end, and link ourselves.
+
+ANALYSIS
+
+There's a sort at the beginning of O(PlgP) on P planes. We then check
+P * PX * PY cells. In the worst case, where all cells actually need be used,
+our new algorithm is worse by the cost of a sort.
+
+
