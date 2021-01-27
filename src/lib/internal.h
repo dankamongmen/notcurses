@@ -309,10 +309,11 @@ typedef struct ncpile {
   ncplane* top;               // topmost plane, never NULL
   ncplane* bottom;            // bottommost plane, never NULL
   ncplane* roots;             // head of root plane list
+  struct crender* crender;    // array (rows * cols crender objects)
   struct notcurses* nc;       // notcurses context
   struct ncpile *prev, *next; // circular list
+  size_t crenderlen;          // size of crender vector
   int dimy, dimx;             // rows and cols at time of render
-  struct crender* crender;    // array (rows * cols crender objects)
 } ncpile;
 
 // the standard pile can be reached through ->stdplane.

@@ -1151,22 +1151,22 @@ int ncpile_rasterize(ncplane* n){
   return 0;
 }
 
-// ensure the crender vector of 'n' is sufficiently large for
-// 'n'->dimy x 'n'->dimx, having previously been 'dimy'x'dimx', and initialize
-// the rvec afresh for a new render.
+// ensure the crender vector of 'n' is properly sized for 'n'->dimy x 'n'->dimx,
+// and initialize the rvec afresh for a new render.
 static int
-engorge_crender_vector(ncpile* n, int dimy, int dimx){
-  const int crenderlen = n->dimy * n->dimx; // desired size
-  if(crenderlen <= 0){
+engorge_crender_vector(ncpile* n){
+  if(n->dimy <= 0 || n->dimx <= 0){
     return -1;
   }
+  const size_t crenderlen = n->dimy * n->dimx; // desired size
 //fprintf(stderr, "crlen: %d y: %d x:%d\n", crenderlen, dimy, dimx);
-  if(crenderlen > dimy * dimx){
+  if(crenderlen != n->crenderlen){
     struct crender* tmp = realloc(n->crender, sizeof(*tmp) * crenderlen);
     if(tmp == NULL){
       return -1;
     }
     n->crender = tmp;
+    n->crenderlen = crenderlen;
   }
   init_rvec(n->crender, crenderlen);
   return 0;
@@ -1177,11 +1177,9 @@ int ncpile_render(ncplane* n){
   clock_gettime(CLOCK_MONOTONIC, &start);
   notcurses* nc = ncplane_notcurses(n);
   ncpile* pile = ncplane_pile(n);
-  const int olddimy = pile->dimy;
-  const int olddimx = pile->dimx;
   // update our notion of screen geometry, and render against that
   notcurses_resize_internal(n, NULL, NULL);
-  if(engorge_crender_vector(pile, olddimy, olddimx)){
+  if(engorge_crender_vector(pile)){
     return -1;
   }
   // FIXME notcurses_stdplane() doesn't belong here
