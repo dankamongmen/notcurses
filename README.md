@@ -367,7 +367,7 @@ to breaking under incorrect `TERM` values. If you're not using `xterm`, your
 
 ### History
 
-* 2021-02-06: [FOSDEM 2021 presentation](https://fosdem.org/2021/schedule/event/notcurses/).
+* 2021-02-06: [Lightning talk](https://www.youtube.com/watch?v=fq963c6Fl5E) at [FOSDEM 2021](https://fosdem.org/2021/schedule/event/notcurses/).
 * 2021-01-11: Notcurses is [accepted into DragonFly BSD](https://github.com/dankamongmen/notcurses/issues/1121).
 * 2020-12-13: Notcurses [2.1.0 "rubberband man"](https://github.com/dankamongmen/notcurses/releases/tag/v2.1.0).
 * 2020-11-23: [Invited presentation](https://mdco2.mini.debconf.org/talks/6-notcurses-making-terminals-do-things-that-were-never-intended/) at [DebMiniConf #2](https://mdco2.mini.debconf.org/).
