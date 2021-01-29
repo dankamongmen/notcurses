@@ -334,6 +334,7 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
         // if the following is true, we're a real glyph, and not the right-hand
         // side of a wide glyph (nor the null codepoint).
         if( (targc->gcluster = vis->gcluster) ){ // index copy only
+          crender->blitterstacked = cell_blitted_p(vis);
           // we can't plop down a wide glyph if the next cell is beyond the
           // screen, nor if we're bisected by a higher plane.
           if(cell_double_wide_p(vis)){
