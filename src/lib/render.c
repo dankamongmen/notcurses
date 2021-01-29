@@ -177,10 +177,22 @@ struct crender {
   // declaration. save the foreground state when we go highcontrast.
   unsigned hcfgblends; // number of foreground blends prior to HIGHCONTRAST
   uint32_t hcfg;       // foreground channel prior to HIGHCONTRAST
-  bool damaged;        // also used in rasterization
+  bool damaged;        // only used in rasterization
   // if CELL_ALPHA_HIGHCONTRAST is in play, we apply the HSV flip once the
   // background is locked in. set highcontrast to indicate this.
   bool highcontrast;
+  // If the glyph we render is from an ncvisual, and has a transparent or
+  // blended background, blitter stacking is in effect. This is a complicated
+  // issue, but essentially, imagine a bottom block is rendered with a green
+  // bottom and transparent top. on a lower plane, a top block is rendered with
+  // a red foreground and blue background. Normally, this would result in a
+  // blue top and green bottom, but that's not what we ever wanted -- what makes
+  // sense is a red top and green bottom. So ncvisual rendering sets
+  // CELL_BLITTERSTACK_MASK when rendering a cell with a transparent background.
+  // When paint() selects a glyph, it checks for this flag. If the flag is set,
+  // any lower planes with CELL_BLITTERSTACK_MASK set take this into account
+  // when solving the background.
+  bool blitterstacked;
 };
 
 // Emit fchannel with RGB changed to contrast effectively against bchannel.
@@ -253,7 +265,7 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
     if(absy >= dstleny || absy < 0){
       break;
     }
-    for(x = startx ; x < dimx ; ++x){
+    for(x = startx ; x < dimx ; ++x){ // iteration for each cell
       const int absx = x + offx;
       if(absx >= dstlenx || absx < 0){
         break;
