@@ -31,6 +31,14 @@ extern "C" {
 struct esctrie;
 struct ncvisual_details;
 
+// Does this glyph completely obscure the background? If so, there's no need
+// to emit a background when rasterizing, a small optimization.
+#define CELL_NOBACKGROUND_MASK  0x0400000000000000ull
+
+// Was this glyph drawn as part of an ncvisual? If so, we need to honor
+// blitter stacking rather than the standard trichannel solver.
+#define CELL_BLITTERSTACK_MASK  0x0000000004000000ull
+
 // we can't define multipart ncvisual here, because OIIO requires C++ syntax,
 // and we can't go throwing C++ syntax into this header. so it goes.
 
@@ -367,31 +375,6 @@ int interrogate_terminfo(tinfo* ti, const char* termname);
 void warn_terminfo(const notcurses* nc, const tinfo* ti);
 
 int resize_callbacks_children(ncplane* n);
-
-// Search the provided multibyte (UTF8) string 's' for the provided unicode
-// codepoint 'cp'. If found, return the column offset of the EGC in which the
-// codepoint appears in 'col', and the byte offset as the return value. If not
-// found, -1 is returned, and 'col' is meaningless.
-static inline int
-mbstr_find_codepoint(const char* s, char32_t cp, int* col){
-  mbstate_t ps;
-  memset(&ps, 0, sizeof(ps));
-  size_t bytes = 0;
-  size_t r;
-  wchar_t w;
-  *col = 0;
-  while((r = mbrtowc(&w, s + bytes, MB_CUR_MAX, &ps)) != (size_t)-1 && r != (size_t)-2){
-    if(r == 0){
-      break;
-    }
-    if(towlower(cp) == towlower(w)){
-      return bytes;
-    }
-    *col += wcwidth(w);
-    bytes += r;
-  }
-  return -1;
-}
 
 static inline ncpile*
 ncplane_pile(ncplane* n){
@@ -869,6 +852,21 @@ cell_nobackground_p(const nccell* c){
   return c->channels & CELL_NOBACKGROUND_MASK;
 }
 
+// True if the cell was blitted as part of an ncvisual, and has a transparent
+// background.
+static inline bool
+cell_blitted_p(const nccell* c){
+  return c->channels & CELL_BLITTERSTACK_MASK;
+}
+
+// Set this whenever blitting an ncvisual, when we have a transparent
+// background. In such cases, ncvisuals underneath the cell must be rendered
+// slightly differently.
+static inline void
+cell_set_blitted(nccell* c){
+  c->channels |= CELL_BLITTERSTACK_MASK;
+}
+
 // Destroy a plane and all its bound descendants.
 int ncplane_genocide(ncplane *ncp);
 
@@ -945,9 +943,8 @@ egc_rtl(const char* egc, int* bytes){
 }
 
 // lowest level of cell+pool setup. if the EGC changes the output to RTL, it
-// must be suffixed with a LTR-forcing character by now, and both
-// CELL_WIDEASIAN_MASK and CELL_NOBACKGROUND_MASK ought be set however they're
-// going to be set.
+// must be suffixed with a LTR-forcing character by now, and
+// CELL_NOBACKGROUND_MASK ought be set however it's going to be set.
 static inline int
 pool_blit_direct(egcpool* pool, nccell* c, const char* gcluster, int bytes, int cols){
   pool_release(pool, c);

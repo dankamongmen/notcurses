@@ -125,6 +125,7 @@ tria_blit(ncplane* nc, int placey, int placex, int linesize,
       }
       if(ffmpeg_trans_p(rgbbase_up[3]) || ffmpeg_trans_p(rgbbase_down[3])){
         cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
+        cell_set_blitted(c);
         if(ffmpeg_trans_p(rgbbase_up[3]) && ffmpeg_trans_p(rgbbase_down[3])){
           cell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
         }else if(ffmpeg_trans_p(rgbbase_up[3])){ // down has the color
@@ -433,6 +434,8 @@ quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
           cell_set_bg_alpha(c, CELL_ALPHA_BLEND);
           cell_set_fg_alpha(c, CELL_ALPHA_BLEND);
         }
+      }else{
+        cell_set_blitted(c);
       }
       if(*egc){
         if(pool_blit_direct(&nc->pool, c, egc, strlen(egc), 1) <= 0){
@@ -632,6 +635,8 @@ sextant_blit(ncplane* nc, int placey, int placex, int linesize,
       const char* egc = sex_trans_check(rgbas, &c->channels, blendcolors);
       if(egc == NULL){
         egc = sex_solver(rgbas, &c->channels, blendcolors);
+      }else{
+        cell_set_blitted(c);
       }
 //fprintf(stderr, "sex EGC: %s channels: %016lx\n", egc, c->channels);
       if(*egc){
