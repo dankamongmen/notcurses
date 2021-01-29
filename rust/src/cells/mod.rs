@@ -279,11 +279,6 @@ pub const NCCELL_FG_PALETTE: u64 = crate::bindings::ffi::CELL_FG_PALETTE;
 /// NOTE: When working with a single [`NcChannel`] use [`NCCELL_BG_RGB_MASK`];
 pub const NCCELL_FG_RGB_MASK: u64 = crate::bindings::ffi::CELL_FG_RGB_MASK;
 
-/// Indicates the glyph is entirely foreground
-///
-/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
-pub const NCCELL_NOBACKGROUND_MASK: u64 = crate::bindings::ffi::CELL_NOBACKGROUND_MASK;
-
 // NcEgc
 //
 /// Extended Grapheme Cluster. A 32-bit [`char`]-like type
