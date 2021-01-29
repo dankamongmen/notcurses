@@ -109,7 +109,6 @@ API int notcurses_ucs32_to_utf8(const char32_t* ucs32, unsigned ucs32count,
 #define CELL_ALPHA_BLEND        0x10000000ull
 #define CELL_ALPHA_OPAQUE       0x00000000ull
 
-#define CELL_NOBACKGROUND_MASK  0x0400000000000000ull
 // if this bit is set, we are *not* using the default background color
 #define CELL_BGDEFAULT_MASK     0x0000000040000000ull
 // if this bit is set, we are *not* using the default foreground color
@@ -548,6 +547,9 @@ channels_set_bg_default(uint64_t* channels){
 // meaningfully set transparency, but it can be mixed into a cascading color.
 // RGB is used if neither default terminal colors nor palette indexing are in
 // play, and fully supports all transparency options.
+//
+// This structure is exposed only so that most functions can be inlined. Do not
+// directly modify or access the fields of this structure; use the API.
 typedef struct nccell {
   // These 32 bits, together with the associated plane's associated egcpool,
   // completely define this cell's EGC. Unless the EGC requires more than four
@@ -593,14 +595,15 @@ typedef struct nccell {
   // (channels & 0x4000000000000000ull): foreground is *not* "default color"
   // (channels & 0x3000000000000000ull): foreground alpha (2 bits)
   // (channels & 0x0800000000000000ull): foreground uses palette index
-  // (channels & 0x0400000000000000ull): glyph is entirely foreground
+  // (channels & 0x0400000000000000ull): entirely foreground (used for optimization in rasterization)
   // (channels & 0x0300000000000000ull): reserved, must be 0
   // (channels & 0x00ffffff00000000ull): foreground in 3x8 RGB (rrggbb)
   // (channels & 0x0000000080000000ull): reserved, must be 0
   // (channels & 0x0000000040000000ull): background is *not* "default color"
   // (channels & 0x0000000030000000ull): background alpha (2 bits)
   // (channels & 0x0000000008000000ull): background uses palette index
-  // (channels & 0x0000000007000000ull): reserved, must be 0
+  // (channels & 0x0000000004000000ull): drawn by ncvisual (used to trigger blitter stacking)
+  // (channels & 0x0000000003000000ull): reserved, must be 0
   // (channels & 0x0000000000ffffffull): background in 3x8 RGB (rrggbb)
   // At render time, these 24-bit values are quantized down to terminal
   // capabilities, if necessary. There's a clear path to 10-bit support should

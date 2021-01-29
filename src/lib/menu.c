@@ -1,5 +1,30 @@
 #include "internal.h"
 
+// Search the provided multibyte (UTF8) string 's' for the provided unicode
+// codepoint 'cp'. If found, return the column offset of the EGC in which the
+// codepoint appears in 'col', and the byte offset as the return value. If not
+// found, -1 is returned, and 'col' is meaningless.
+static int
+mbstr_find_codepoint(const char* s, char32_t cp, int* col){
+  mbstate_t ps;
+  memset(&ps, 0, sizeof(ps));
+  size_t bytes = 0;
+  size_t r;
+  wchar_t w;
+  *col = 0;
+  while((r = mbrtowc(&w, s + bytes, MB_CUR_MAX, &ps)) != (size_t)-1 && r != (size_t)-2){
+    if(r == 0){
+      break;
+    }
+    if(towlower(cp) == towlower(w)){
+      return bytes;
+    }
+    *col += wcwidth(w);
+    bytes += r;
+  }
+  return -1;
+}
+
 static void
 free_menu_section(ncmenu_int_section* ms){
   for(int i = 0 ; i < ms->itemcount ; ++i){
