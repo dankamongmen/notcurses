@@ -8,7 +8,7 @@ ncls - List paths with rendering of multimedia
 
 # SYNOPSIS
 
-**ncls** [**-h**|**--help**] [**-V**|**--version**] [**-d**] [**-l**] [**-L**] [**-R**] [**-a|**--align** ***type***] [ paths ]
+**ncls** [**-h**|**--help**] [**-V**|**--version**] [**-d**] [**-l**] [**-L**] [**-R**] [**-a**|**--align** ***type***] [ paths ]
 
 # DESCRIPTION
 
