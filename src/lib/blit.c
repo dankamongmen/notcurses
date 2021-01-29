@@ -128,13 +128,14 @@ tria_blit(ncplane* nc, int placey, int placex, int linesize,
         if(ffmpeg_trans_p(rgbbase_up[3]) && ffmpeg_trans_p(rgbbase_down[3])){
           cell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
         }else if(ffmpeg_trans_p(rgbbase_up[3])){ // down has the color
-          if(cell_load(nc, c, "\u2584") <= 0){ // lower half block
+          if(pool_blit_direct(&nc->pool, c, "\u2584", strlen("\u2584"), 1) <= 0){
             return -1;
           }
           cell_set_fg_rgb8(c, rgbbase_down[0], rgbbase_down[1], rgbbase_down[2]);
           ++total;
         }else{ // up has the color
-          if(cell_load(nc, c, "\u2580") <= 0){ // upper half block
+          // upper half block
+          if(pool_blit_direct(&nc->pool, c, "\u2580", strlen("\u2580"), 1) <= 0){
             return -1;
           }
           cell_set_fg_rgb8(c, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2]);
@@ -144,13 +145,13 @@ tria_blit(ncplane* nc, int placey, int placex, int linesize,
         if(memcmp(rgbbase_up, rgbbase_down, 3) == 0){
           cell_set_fg_rgb8(c, rgbbase_down[0], rgbbase_down[1], rgbbase_down[2]);
           cell_set_bg_rgb8(c, rgbbase_down[0], rgbbase_down[1], rgbbase_down[2]);
-          if(cell_load(nc, c, " ") <= 0){ // only need the background
+          if(pool_blit_direct(&nc->pool, c, " ", 1, 1) <= 0){
             return -1;
           }
         }else{
           cell_set_fg_rgb8(c, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2]);
           cell_set_bg_rgb8(c, rgbbase_down[0], rgbbase_down[1], rgbbase_down[2]);
-          if(cell_load(nc, c, "\u2580") <= 0){ // upper half block
+          if(pool_blit_direct(&nc->pool, c, "\u2580", strlen("\u2580"), 1) <= 0){
             return -1;
           }
         }
