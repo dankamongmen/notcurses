@@ -124,11 +124,16 @@ int intro(struct notcurses* nc){
     }
   }
   ncplane_off_styles(ncp, NCSTYLE_BOLD);
-  const wchar_t wstr[] = L"▏▁ ▂ ▃ ▄ ▅ ▆ ▇ █ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁▕";
-  if(ncplane_putwstr_aligned(ncp, rows / 2 - 6, NCALIGN_CENTER, wstr) < 0){
+  const wchar_t nwstr[] = L"▏▁ ▂ ▃ ▄ ▅ ▆ ▇ █ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁▕";
+  if(ncplane_putwstr_aligned(ncp, rows / 2 - 6, NCALIGN_CENTER, nwstr) < 0){
     return -1;
   }
-  const wchar_t iwstr[] = L"▏█ ▇ ▆ ▅ ▄ ▃ ▂ ▁ ▁ ▂ ▃ ▄ ▅ ▆ ▇ █▕";
+  const wchar_t* iwstr;
+  if(notcurses_cansextant(nc)){
+    iwstr = L"▏▔ 🮂 🮃 ▀ 🮄 🮅 🮆 █ █ 🮆 🮅 🮄 ▀ 🮃 🮂 ▔▕";
+  }else{
+    iwstr = L"▏█ ▇ ▆ ▅ ▄ ▃ ▂ ▁ ▁ ▂ ▃ ▄ ▅ ▆ ▇ █▕";
+  }
   if(ncplane_putwstr_aligned(ncp, rows / 2 + 1, NCALIGN_CENTER, iwstr) < 0){
     return -1;
   }
