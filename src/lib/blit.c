@@ -391,6 +391,7 @@ qtrans_check(nccell* c, bool blendcolors,
   }else if(blendcolors){
     cell_set_fg_alpha(c, CELL_ALPHA_BLEND);
   }
+//fprintf(stderr, "QBQ: 0x%x\n", cell_blittedquadrants(c));
   return egc;
 }
 
@@ -610,6 +611,7 @@ sex_trans_check(cell* c, const uint32_t rgbas[6], bool blendcolors){
     cell_set_blitquadrants(c, !(transstring & 5u), !(transstring & 10u),
                               !(transstring & 20u), !(transstring & 40u));
   }
+//fprintf(stderr, "SEX-BQ: 0x%x\n", cell_blittedquadrants(c));
   return egc;
 }
 

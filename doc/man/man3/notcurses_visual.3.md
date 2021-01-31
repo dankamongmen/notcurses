@@ -159,7 +159,39 @@ The different **ncblitter_e** values select from among available glyph sets:
 * **NCBLIT_SIXEL**: Not yet implemented.
 
 **NCBLIT_4x1** and **NCBLIT_8x1** are intended for use with plots, and are
-not really applicable for general visuals.
+not really applicable for general visuals. **NCBLIT_BRAILLE** doesn't tend
+to work out very well for images, but (depending on the font) can be very
+good for plots.
+
+In the absence of scaling, for a given set of pixels, more rows and columns in
+the blitter will result in a smaller output image. An image rendered with
+**NCBLIT_1x1** will be twice as tall as the same image rendered with
+**NCBLIT_2x1**, which will be twice as wide as the same image rendered with
+**NCBLIT_2x2**. The same image rendered with **NCBLIT_3x2** will be one-third
+as tall and one-half as wide as the original **NCBLIT_1x1** render (again, this
+depends on **NCSCALE_NONE**). If the output size is held constant (using for
+instance **NCSCALE_SCALE_HIRES** and a large image), more rows and columns will
+result in more effective resolution.
+
+Assuming a cell is twice as tall as it is wide, **NCBLIT_1x1** (and indeed
+any NxN blitter) will stretch an image by a factor of 2 in the vertical
+dimension. **NCBLIT_2x1** will not distort the image whatsoever, as it maps a
+vector two pixels high and one pixel wide to a single cell. **NCBLIT_3x2** will
+stretch an image by a factor of 1.5.
+
+The cell's dimension in pixels is ideally evenly divisible by the blitter
+geometry. If **NCBLIT_3x2** is used together with a cell 8 pixels wide and
+14 pixels tall, two of the vertical segments will be 5 pixels tall, while one
+will be 4 pixels tall. Such unequal distributions are more likely with larger
+blitter geometries. Likewise, there are only ever two colors available to us in
+a given cell. **NCBLIT_1x1** and **NCBLIT_2x2** can be perfectly represented
+with two colors per cell. Blitters of higher geometry are increasingly likely
+to require some degree of interpolation. Transparency is always honored with
+complete fidelity.
+
+Finally, rendering operates slightly differently when two planes have both been
+blitted, and one lies atop the other. See **notcurses_render(3)** for more
+information.
 
 # RETURN VALUES
 
@@ -210,11 +242,14 @@ radians for **rads**, but this will change soon.
 among terminals.
 
 Bad font support can ruin **NCBLIT_2x2**, **NCBLIT_3x2**, **NCBLIT_4x1**,
-**NCBLIT_BRAILLE**, and **NCBLIT_8x1**.
+**NCBLIT_BRAILLE**, and **NCBLIT_8x1**. Braille glyphs ought ideally draw only
+the raised dots, rather than drawing all eight dots with two different styles.
+It's often best for the emulator to draw these glyphs itself.
 
 # SEE ALSO
 
 **notcurses(3)**,
 **notcurses_capabilities(3)**,
 **notcurses_plane(3)**,
+**notcurses_render(3)**,
 **utf-8(7)**

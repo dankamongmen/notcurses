@@ -852,11 +852,15 @@ cell_nobackground_p(const nccell* c){
   return (c->channels & CELL_NOBACKGROUND_MASK) == CELL_NOBACKGROUND_MASK;
 }
 
-// True iff the cell was blitted as part of an ncvisual, and has a transparent
-// background (being the only case where CELL_BLITTERSTACK_MASK bits are set).
-static inline bool
-cell_blitted_p(const nccell* c){
-  return c->channels & CELL_BLITTERSTACK_MASK; // any of the four bits is fine
+// Returns a number 0 <= n <= 15 representing the four quadrants, and which (if
+// any) are occupied due to blitting with a transparent background. The mapping
+// is {tl, tr, bl, br}.
+static inline unsigned
+cell_blittedquadrants(const nccell* c){
+  return ((c->channels & 0x8000000000000000ull) ? 1 : 0) |
+         ((c->channels & 0x0400000000000000ull) ? 2 : 0) |
+         ((c->channels & 0x0200000000000000ull) ? 4 : 0) |
+         ((c->channels & 0x0100000000000000ull) ? 8 : 0);
 }
 
 // Set this whenever blitting an ncvisual, when we have a transparent
@@ -866,10 +870,10 @@ static inline void
 cell_set_blitquadrants(nccell* c, unsigned tl, unsigned tr, unsigned bl, unsigned br){
   // FIXME want a static assert that these four constants OR together to
   // equal CELL_BLITTERSTACK_MASK, bah
-  c->channels |= tl ? 0x8000000000000000ull : 0;
-  c->channels |= tr ? 0x0400000000000000ull : 0;
-  c->channels |= bl ? 0x0200000000000000ull : 0;
-  c->channels |= br ? 0x0100000000000000ull : 0;
+  c->channels |= (tl ? 0x8000000000000000ull : 0);
+  c->channels |= (tr ? 0x0400000000000000ull : 0);
+  c->channels |= (bl ? 0x0200000000000000ull : 0);
+  c->channels |= (br ? 0x0100000000000000ull : 0);
 }
 
 // Destroy a plane and all its bound descendants.
