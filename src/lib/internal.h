@@ -33,11 +33,11 @@ struct ncvisual_details;
 
 // Does this glyph completely obscure the background? If so, there's no need
 // to emit a background when rasterizing, a small optimization.
-#define CELL_NOBACKGROUND_MASK  0x0400000000000000ull
+#define CELL_NOBACKGROUND_MASK  0x8700000000000000ull
 
 // Was this glyph drawn as part of an ncvisual? If so, we need to honor
 // blitter stacking rather than the standard trichannel solver.
-#define CELL_BLITTERSTACK_MASK  0x0000000004000000ull
+#define CELL_BLITTERSTACK_MASK  0x8700000000000000ull
 
 // we can't define multipart ncvisual here, because OIIO requires C++ syntax,
 // and we can't go throwing C++ syntax into this header. so it goes.
@@ -849,22 +849,27 @@ box_corner_needs(unsigned ctlword){
 // solid or shaded block, or certain emoji).
 static inline bool
 cell_nobackground_p(const nccell* c){
-  return c->channels & CELL_NOBACKGROUND_MASK;
+  return (c->channels & CELL_NOBACKGROUND_MASK) == CELL_NOBACKGROUND_MASK;
 }
 
-// True if the cell was blitted as part of an ncvisual, and has a transparent
-// background.
+// True iff the cell was blitted as part of an ncvisual, and has a transparent
+// background (being the only case where CELL_BLITTERSTACK_MASK bits are set).
 static inline bool
 cell_blitted_p(const nccell* c){
-  return c->channels & CELL_BLITTERSTACK_MASK;
+  return c->channels & CELL_BLITTERSTACK_MASK; // any of the four bits is fine
 }
 
 // Set this whenever blitting an ncvisual, when we have a transparent
 // background. In such cases, ncvisuals underneath the cell must be rendered
 // slightly differently.
 static inline void
-cell_set_blitted(nccell* c){
-  c->channels |= CELL_BLITTERSTACK_MASK;
+cell_set_blitquadrants(nccell* c, unsigned tl, unsigned tr, unsigned bl, unsigned br){
+  // FIXME want a static assert that these four constants OR together to
+  // equal CELL_BLITTERSTACK_MASK, bah
+  c->channels |= tl ? 0x8000000000000000ull : 0;
+  c->channels |= tr ? 0x0400000000000000ull : 0;
+  c->channels |= bl ? 0x0200000000000000ull : 0;
+  c->channels |= br ? 0x0100000000000000ull : 0;
 }
 
 // Destroy a plane and all its bound descendants.

@@ -125,7 +125,6 @@ tria_blit(ncplane* nc, int placey, int placex, int linesize,
       }
       if(ffmpeg_trans_p(rgbbase_up[3]) || ffmpeg_trans_p(rgbbase_down[3])){
         cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
-        cell_set_blitted(c);
         if(ffmpeg_trans_p(rgbbase_up[3]) && ffmpeg_trans_p(rgbbase_down[3])){
           cell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
         }else if(ffmpeg_trans_p(rgbbase_up[3])){ // down has the color
@@ -133,6 +132,7 @@ tria_blit(ncplane* nc, int placey, int placex, int linesize,
             return -1;
           }
           cell_set_fg_rgb8(c, rgbbase_down[0], rgbbase_down[1], rgbbase_down[2]);
+          cell_set_blitquadrants(c, 0, 0, 1, 1);
           ++total;
         }else{ // up has the color
           // upper half block
@@ -140,6 +140,7 @@ tria_blit(ncplane* nc, int placey, int placex, int linesize,
             return -1;
           }
           cell_set_fg_rgb8(c, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2]);
+          cell_set_blitquadrants(c, 1, 1, 0, 0);
           ++total;
         }
       }else{
@@ -309,14 +310,17 @@ qtrans_check(nccell* c, bool blendcolors,
           egc = "";
         }else{
           cell_set_fg_rgb8(c, rgbbase_br[0], rgbbase_br[1], rgbbase_br[2]);
+          cell_set_blitquadrants(c, 0, 0, 0, 1);
           egc = "▗";
         }
       }else{
         if(ffmpeg_trans_p(rgbbase_br[3])){
           cell_set_fg_rgb8(c, rgbbase_bl[0], rgbbase_bl[1], rgbbase_bl[2]);
+          cell_set_blitquadrants(c, 0, 0, 1, 0);
           egc = "▖";
         }else{
           cell_set_fchannel(c, lerp(bl, br));
+          cell_set_blitquadrants(c, 0, 0, 1, 1);
           egc = "▄";
         }
       }
@@ -324,16 +328,20 @@ qtrans_check(nccell* c, bool blendcolors,
       if(ffmpeg_trans_p(rgbbase_bl[3])){
         if(ffmpeg_trans_p(rgbbase_br[3])){ // entire bottom is transparent
           cell_set_fg_rgb8(c, rgbbase_tr[0], rgbbase_tr[1], rgbbase_tr[2]);
+          cell_set_blitquadrants(c, 0, 1, 0, 0);
           egc = "▝";
         }else{
           cell_set_fchannel(c, lerp(tr, br));
+          cell_set_blitquadrants(c, 0, 1, 0, 1);
           egc = "▐";
         }
       }else if(ffmpeg_trans_p(rgbbase_br[3])){ // only br is transparent
         cell_set_fchannel(c, lerp(tr, bl));
+        cell_set_blitquadrants(c, 0, 1, 1, 0);
         egc = "▞";
       }else{
         cell_set_fchannel(c, trilerp(tr, bl, br));
+        cell_set_blitquadrants(c, 0, 1, 1, 1);
         egc = "▟";
       }
     }
@@ -342,28 +350,35 @@ qtrans_check(nccell* c, bool blendcolors,
       if(ffmpeg_trans_p(rgbbase_bl[3])){
         if(ffmpeg_trans_p(rgbbase_br[3])){
           cell_set_fg_rgb8(c, rgbbase_tl[0], rgbbase_tl[1], rgbbase_tl[2]);
+          cell_set_blitquadrants(c, 1, 0, 0, 0);
           egc = "▘";
         }else{
           cell_set_fchannel(c, lerp(tl, br));
+          cell_set_blitquadrants(c, 1, 0, 0, 1);
           egc = "▚";
         }
       }else if(ffmpeg_trans_p(rgbbase_br[3])){
         cell_set_fchannel(c, lerp(tl, bl));
+        cell_set_blitquadrants(c, 1, 0, 1, 0);
         egc = "▌";
       }else{
         cell_set_fchannel(c, trilerp(tl, bl, br));
+        cell_set_blitquadrants(c, 1, 0, 1, 1);
         egc = "▙";
       }
     }else if(ffmpeg_trans_p(rgbbase_bl[3])){
       if(ffmpeg_trans_p(rgbbase_br[3])){ // entire bottom is transparent
         cell_set_fchannel(c, lerp(tl, tr));
+        cell_set_blitquadrants(c, 1, 1, 0, 0);
         egc = "▀";
       }else{ // only bl is transparent
         cell_set_fchannel(c, trilerp(tl, tr, br));
+        cell_set_blitquadrants(c, 1, 1, 0, 1);
         egc = "▜";
       }
     }else if(ffmpeg_trans_p(rgbbase_br[3])){ // only br is transparent
       cell_set_fchannel(c, trilerp(tl, tr, bl));
+      cell_set_blitquadrants(c, 1, 1, 1, 0);
       egc = "▛";
     }else{
       return NULL; // no transparency
@@ -434,8 +449,6 @@ quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
           cell_set_bg_alpha(c, CELL_ALPHA_BLEND);
           cell_set_fg_alpha(c, CELL_ALPHA_BLEND);
         }
-      }else{
-        cell_set_blitted(c);
       }
       if(*egc){
         if(pool_blit_direct(&nc->pool, c, egc, strlen(egc), 1) <= 0){
@@ -548,15 +561,20 @@ sex_solver(const uint32_t rgbas[6], uint64_t* channels, bool blendcolors){
 }
 
 static const char*
-sex_trans_check(const uint32_t rgbas[6], uint64_t* channels, bool blendcolors){
+sex_trans_check(cell* c, const uint32_t rgbas[6], bool blendcolors){
+  // bit is *set* where sextant *is not*
+  // 32: bottom right 16: bottom left
+  //  8: middle right  4: middle left
+  //  2: upper right   1: upper left
   static const char* sex[64] = {
-    "█", "🬻", "🬺", "🬹", "🬸", "🬷", "🬶", "🬵", "🬴", "🬳", "🬲", // 10
-    "🬱", "🬰", "🬯", "🬮", "🬭", "🬬", "🬫", "🬪", "🬩", "🬨", "▐", // 21
-    "🬧", "🬦", "🬥", "🬤", "🬣", "🬢", "🬡", "🬠", "🬟", // 30
-    "🬞", "🬝", "🬜", "🬛", "🬚", "🬙", "🬘", "🬗", "🬖", "🬕", // 40
-    "🬔", "▌", "🬓", "🬒", "🬑", "🬐", "🬏", "🬎", "🬍", "🬌", // 50
-    "🬋", "🬊", "🬉", "🬈", "🬇", "🬆", "🬅", "🬄", "🬃", "🬂", // 60
-    "🬁", "🬀", " ",
+    "█", "🬻", "🬺", "🬹", "🬸", "🬷", "🬶", "🬵",
+    "🬴", "🬳", "🬲", "🬱", "🬰", "🬯", "🬮", "🬭",
+    "🬬", "🬫", "🬪", "🬩", "🬨", "▐", "🬧", "🬦",
+    "🬥", "🬤", "🬣", "🬢", "🬡", "🬠", "🬟", "🬞",
+    "🬝", "🬜", "🬛", "🬚", "🬙", "🬘", "🬗", "🬖",
+    "🬕", "🬔", "▌", "🬓", "🬒", "🬑", "🬐", "🬏",
+    "🬎", "🬍", "🬌", "🬋", "🬊", "🬉", "🬈", "🬇",
+    "🬆", "🬅", "🬄", "🬃", "🬂", "🬁", "🬀", " ",
   };
   unsigned transstring = 0;
   unsigned r = 0, g = 0, b = 0;
@@ -574,21 +592,23 @@ sex_trans_check(const uint32_t rgbas[6], uint64_t* channels, bool blendcolors){
   if(transstring == 0){
     return NULL;
   }
-  channels_set_bg_alpha(channels, CELL_ALPHA_TRANSPARENT);
+  cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
   // there were some transparent pixels. since they get priority, the foreground
   // is just a general lerp across non-transparent pixels.
   const char* egc = sex[transstring];
-  channels_set_bg_alpha(channels, CELL_ALPHA_TRANSPARENT);
+  cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
 //fprintf(stderr, "transtring: %u egc: %s\n", transtring, egc);
   if(*egc == ' '){ // entirely transparent
-    channels_set_fg_alpha(channels, CELL_ALPHA_TRANSPARENT);
+    cell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
     return "";
   }else{ // partially transparent, thus div >= 1
 //fprintf(stderr, "div: %u r: %u g: %u b: %u\n", div, r, g, b);
-    channels_set_fchannel(channels, generalerp(r, g, b, div));
+    cell_set_fchannel(c, generalerp(r, g, b, div));
     if(blendcolors){
-      channels_set_fg_alpha(channels, CELL_ALPHA_BLEND);
+      cell_set_fg_alpha(c, CELL_ALPHA_BLEND);
     }
+    cell_set_blitquadrants(c, !(transstring & 5u), !(transstring & 10u),
+                              !(transstring & 20u), !(transstring & 40u));
   }
   return egc;
 }
@@ -632,11 +652,9 @@ sextant_blit(ncplane* nc, int placey, int placex, int linesize,
       nccell* c = ncplane_cell_ref_yx(nc, y, x);
       c->channels = 0;
       c->stylemask = 0;
-      const char* egc = sex_trans_check(rgbas, &c->channels, blendcolors);
+      const char* egc = sex_trans_check(c, rgbas, blendcolors);
       if(egc == NULL){
         egc = sex_solver(rgbas, &c->channels, blendcolors);
-      }else{
-        cell_set_blitted(c);
       }
 //fprintf(stderr, "sex EGC: %s channels: %016lx\n", egc, c->channels);
       if(*egc){

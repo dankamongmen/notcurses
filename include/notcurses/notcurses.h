@@ -591,20 +591,20 @@ typedef struct nccell {
   // can be determined by checking whether ->gcluster is zero.
   uint8_t width;              // 1B → 6B (8 bits of EGC column width)
   uint16_t stylemask;         // 2B → 8B (16 bits of NCSTYLE_* attributes)
-  // (channels & 0x8000000000000000ull): reserved, must be 0
+  // (channels & 0x8000000000000000ull): blitted to upper-left quadrant
   // (channels & 0x4000000000000000ull): foreground is *not* "default color"
   // (channels & 0x3000000000000000ull): foreground alpha (2 bits)
   // (channels & 0x0800000000000000ull): foreground uses palette index
-  // (channels & 0x0400000000000000ull): entirely foreground (used for optimization in rasterization)
-  // (channels & 0x0300000000000000ull): reserved, must be 0
-  // (channels & 0x00ffffff00000000ull): foreground in 3x8 RGB (rrggbb)
+  // (channels & 0x0400000000000000ull): blitted to upper-right quadrant
+  // (channels & 0x0200000000000000ull): blitted to lower-left quadrant
+  // (channels & 0x0100000000000000ull): blitted to lower-right quadrant
+  // (channels & 0x00ffffff00000000ull): foreground in 3x8 RGB (rrggbb) / pindex
   // (channels & 0x0000000080000000ull): reserved, must be 0
   // (channels & 0x0000000040000000ull): background is *not* "default color"
   // (channels & 0x0000000030000000ull): background alpha (2 bits)
   // (channels & 0x0000000008000000ull): background uses palette index
-  // (channels & 0x0000000004000000ull): drawn by ncvisual (used to trigger blitter stacking)
-  // (channels & 0x0000000003000000ull): reserved, must be 0
-  // (channels & 0x0000000000ffffffull): background in 3x8 RGB (rrggbb)
+  // (channels & 0x0000000007000000ull): reserved, must be 0
+  // (channels & 0x0000000000ffffffull): background in 3x8 RGB (rrggbb) / pindex
   // At render time, these 24-bit values are quantized down to terminal
   // capabilities, if necessary. There's a clear path to 10-bit support should
   // we one day need it, but keep things cagey for now. "default color" is
