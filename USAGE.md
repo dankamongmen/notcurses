@@ -1601,11 +1601,22 @@ manner.
 //    characters, followed by a NUL terminator.
 //
 // Multi-column characters can only have a single style/color throughout.
+// Existence is suffering, and thus wcwidth() is not reliable. It's just
+// quoting whether or not the EGC contains a "Wide Asian" double-width
+// character. This is set for some things, like most emoji, and not set for
+// other things, like cuneiform. True display width is a *function of the
+// font and terminal*. Among the longest Unicode codepoints is
+//
+//    U+FDFD ARABIC LIGATURE BISMILLAH AR-RAHMAN AR-RAHEEM ﷽
+//
+// wcwidth() rather optimistically claims this most exalted glyph to occupy
+// a single column. BiDi text is too complicated for me to even get into here.
+// Be assured there are no easy answers; ours is indeed a disturbing Universe.
 //
 // Each nccell occupies 16 static bytes (128 bits). The surface is thus ~1.6MB
 // for a (pretty large) 500x200 terminal. At 80x43, it's less than 64KB.
-// Dynamic requirements can add up to 16MB to an ncplane, but such large pools
-// are unlikely in common use.
+// Dynamic requirements (the egcpool) can add up to 16MB to an ncplane, but
+// such large pools are unlikely in common use.
 //
 // We implement some small alpha compositing. Foreground and background both
 // have two bits of inverted alpha. The actual grapheme written to a cell is
@@ -1624,6 +1635,9 @@ manner.
 // meaningfully set transparency, but it can be mixed into a cascading color.
 // RGB is used if neither default terminal colors nor palette indexing are in
 // play, and fully supports all transparency options.
+//
+// This structure is exposed only so that most functions can be inlined. Do not
+// directly modify or access the fields of this structure; use the API.
 typedef struct nccell {
   // These 32 bits, together with the associated plane's associated egcpool,
   // completely define this cell's EGC. Unless the EGC requires more than four
@@ -1665,12 +1679,13 @@ typedef struct nccell {
   // can be determined by checking whether ->gcluster is zero.
   uint8_t width;              // 1B → 6B (8 bits of EGC column width)
   uint16_t stylemask;         // 2B → 8B (16 bits of NCSTYLE_* attributes)
-  // (channels & 0x8000000000000000ull): reserved, must be 0
+  // (channels & 0x8000000000000000ull): blitted to upper-left quadrant
   // (channels & 0x4000000000000000ull): foreground is *not* "default color"
   // (channels & 0x3000000000000000ull): foreground alpha (2 bits)
   // (channels & 0x0800000000000000ull): foreground uses palette index
-  // (channels & 0x0400000000000000ull): glyph is entirely foreground
-  // (channels & 0x0300000000000000ull): reserved, must be 0
+  // (channels & 0x0400000000000000ull): blitted to upper-right quadrant
+  // (channels & 0x0200000000000000ull): blitted to lower-left quadrant
+  // (channels & 0x0100000000000000ull): blitted to lower-right quadrant
   // (channels & 0x00ffffff00000000ull): foreground in 3x8 RGB (rrggbb)
   // (channels & 0x0000000080000000ull): reserved, must be 0
   // (channels & 0x0000000040000000ull): background is *not* "default color"

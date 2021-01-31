@@ -1,5 +1,8 @@
 #include "main.h"
 
+// These tests primarily check against expected constant values, which is
+// useful in terms of maintaining ABI, but annoying when they do change.
+
 TEST_CASE("ChannelGetRGB") {
   const struct t {
     uint32_t channel;
