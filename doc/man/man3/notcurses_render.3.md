@@ -121,5 +121,6 @@ purposes of color blending.
 **notcurses_plane(3)**,
 **notcurses_refresh(3)**,
 **notcurses_stats(3)**,
+**notcurses_visual(3)**,
 **console_codes(4)**,
 **utf-8(7)**

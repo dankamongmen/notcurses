@@ -176,23 +176,26 @@ struct crender {
   // and then reapply any foreground shading from above the highcontrast
   // declaration. save the foreground state when we go highcontrast.
   unsigned hcfgblends; // number of foreground blends prior to HIGHCONTRAST
+  // FIXME can't hcfg be reduced to 24 bits and shoved in the bitfield below?
   uint32_t hcfg;       // foreground channel prior to HIGHCONTRAST
-  bool damaged;        // only used in rasterization
-  // if CELL_ALPHA_HIGHCONTRAST is in play, we apply the HSV flip once the
-  // background is locked in. set highcontrast to indicate this.
-  bool highcontrast;
-  // If the glyph we render is from an ncvisual, and has a transparent or
-  // blended background, blitter stacking is in effect. This is a complicated
-  // issue, but essentially, imagine a bottom block is rendered with a green
-  // bottom and transparent top. on a lower plane, a top block is rendered with
-  // a red foreground and blue background. Normally, this would result in a
-  // blue top and green bottom, but that's not what we ever wanted -- what makes
-  // sense is a red top and green bottom. So ncvisual rendering sets
-  // CELL_BLITTERSTACK_MASK when rendering a cell with a transparent background.
-  // When paint() selects a glyph, it checks for this flag. If the flag is set,
-  // any lower planes with CELL_BLITTERSTACK_MASK set take this into account
-  // when solving the background.
-  bool blitterstacked;
+  struct {
+    // If the glyph we render is from an ncvisual, and has a transparent or
+    // blended background, blitter stacking is in effect. This is a complicated
+    // issue, but essentially, imagine a bottom block is rendered with a green
+    // bottom and transparent top. on a lower plane, a top block is rendered
+    // with a red foreground and blue background. Normally, this would result
+    // in a blue top and green bottom, but that's not what we ever wanted --
+    // what makes sense is a red top and green bottom. So ncvisual rendering
+    // sets bits from CELL_BLITTERSTACK_MASK when rendering a cell with a
+    // transparent background. When paint() selects a glyph, it checks for these
+    // bits. If they are set, any lower planes with CELL_BLITTERSTACK_MASK set
+    // take this into account when solving the background color.
+    unsigned blittedquads: 4;
+    unsigned damaged: 1; // only used in rasterization
+    // if CELL_ALPHA_HIGHCONTRAST is in play, we apply the HSV flip once the
+    // background is locked in. set highcontrast to indicate this.
+    unsigned highcontrast: 1;
+  } s;
 };
 
 // Emit fchannel with RGB changed to contrast effectively against bchannel.
@@ -287,7 +290,7 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
           }
         }else{
           if(cell_fg_alpha(vis) == CELL_ALPHA_HIGHCONTRAST){
-            crender->highcontrast = true;
+            crender->s.highcontrast = true;
             crender->hcfgblends = crender->fgblends;
             crender->hcfg = cell_fchannel(targc);
           }
@@ -295,7 +298,7 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
           // crender->highcontrast can only be true if we just set it, since we're
           // about to set targc opaque based on crender->highcontrast (and this
           // entire stanza is conditional on targc not being CELL_ALPHA_OPAQUE).
-          if(crender->highcontrast){
+          if(crender->s.highcontrast){
             cell_set_fg_alpha(targc, CELL_ALPHA_OPAQUE);
           }
         }
@@ -308,8 +311,7 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
       // Evaluate the background first, in case we have HIGHCONTRAST fg text.
       if(cell_bg_alpha(targc) > CELL_ALPHA_OPAQUE){
         const nccell* vis = &p->fb[nfbcellidx(p, y, x)];
-        // FIXME need check maps to determine whether inversion is appropriate
-        if(!crender->blitterstacked || !cell_blitted_p(vis)){
+        if(!((!crender->s.blittedquads) & cell_blittedquadrants(vis))){
           if(cell_bg_default_p(vis)){
             vis = &p->basecell;
           }
@@ -331,6 +333,7 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
           }else{
             cell_blend_bchannel(targc, cell_fchannel(vis), &crender->bgblends);
           }
+          crender->s.blittedquads = 0;
         }
       }
 
@@ -349,7 +352,7 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
         // if the following is true, we're a real glyph, and not the right-hand
         // side of a wide glyph (nor the null codepoint).
         if( (targc->gcluster = vis->gcluster) ){ // index copy only
-          crender->blitterstacked = cell_blitted_p(vis);
+          crender->s.blittedquads = cell_blittedquadrants(vis);
           // we can't plop down a wide glyph if the next cell is beyond the
           // screen, nor if we're bisected by a higher plane.
           if(cell_double_wide_p(vis)){
@@ -403,7 +406,7 @@ lock_in_highcontrast(nccell* targc, struct crender* crender){
   if(cell_bg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
     cell_set_bg_default(targc);
   }
-  if(crender->highcontrast){
+  if(crender->s.highcontrast){
     // highcontrast weighs the original at 1/4 and the contrast at 3/4
     if(!cell_fg_default_p(targc)){
       crender->fgblends = 3;
@@ -429,7 +432,7 @@ postpaint_cell(nccell* lastframe, int dimx, struct crender* crender,
   lock_in_highcontrast(targc, crender);
   nccell* prevcell = &lastframe[fbcellidx(y, dimx, *x)];
   if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc) > 0){
-    crender->damaged = true;
+    crender->s.damaged = true;
     assert(!cell_wide_right_p(targc));
     const int width = targc->width;
     for(int i = 1 ; i < width ; ++i){
@@ -443,7 +446,7 @@ postpaint_cell(nccell* lastframe, int dimx, struct crender* crender,
       targc->channels = crender[-i].c.channels;
       targc->stylemask = crender[-i].c.stylemask;
       if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc) > 0){
-        crender->damaged = true;
+        crender->s.damaged = true;
       }
     }
   }
@@ -883,7 +886,7 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
       const size_t damageidx = innery * nc->lfdimx + innerx;
       unsigned r, g, b, br, bg, bb, palfg, palbg;
       const nccell* srccell = &nc->lastframe[damageidx];
-      if(!rvec[damageidx].damaged){
+      if(!rvec[damageidx].s.damaged){
         // no need to emit a cell; what we rendered appears to already be
         // here. no updates are performed to elision state nor lastframe.
         ++nc->stats.cellelisions;
@@ -1094,7 +1097,7 @@ int notcurses_refresh(notcurses* nc, int* restrict dimy, int* restrict dimx){
   }
   memset(p.crender, 0, count * sizeof(*p.crender));
   for(int i = 0 ; i < count ; ++i){
-    p.crender[i].damaged = true;
+    p.crender[i].s.damaged = true;
   }
   int ret = notcurses_rasterize(nc, &p, nc->rstate.mstreamfp);
   free(p.crender);
@@ -1128,7 +1131,7 @@ int notcurses_render_to_file(notcurses* nc, FILE* fp){
   }
   memset(p.crender, 0, count * sizeof(*p.crender));
   for(int i = 0 ; i < count ; ++i){
-    p.crender[i].damaged = true;
+    p.crender[i].s.damaged = true;
   }
   int ret = raster_and_write(nc, &p, out);
   free(p.crender);
