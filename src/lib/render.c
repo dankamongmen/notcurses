@@ -275,24 +275,6 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
       if(cell_wide_right_p(targc)){
         continue;
       }
-      // Background color takes effect independently of whether we have a
-      // glyph. If we've already locked in the background, it has no effect.
-      // If it's transparent, it has no effect. Otherwise, update the
-      // background channel and balpha.
-      // Evaluate the background first, in case we have HIGHCONTRAST fg text.
-      if(cell_bg_alpha(targc) > CELL_ALPHA_OPAQUE){
-        const nccell* vis = &p->fb[nfbcellidx(p, y, x)];
-        if(cell_bg_default_p(vis)){
-          vis = &p->basecell;
-        }
-        if(cell_bg_palindex_p(vis)){
-          if(cell_bg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
-            cell_set_bg_palindex(targc, cell_bg_palindex(vis));
-          }
-        }else{
-          cell_blend_bchannel(targc, cell_bchannel(vis), &crender->bgblends);
-        }
-      }
 
       if(cell_fg_alpha(targc) > CELL_ALPHA_OPAQUE){
         const nccell* vis = &p->fb[nfbcellidx(p, y, x)];
@@ -315,6 +297,39 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
           // entire stanza is conditional on targc not being CELL_ALPHA_OPAQUE).
           if(crender->highcontrast){
             cell_set_fg_alpha(targc, CELL_ALPHA_OPAQUE);
+          }
+        }
+      }
+
+      // Background color takes effect independently of whether we have a
+      // glyph. If we've already locked in the background, it has no effect.
+      // If it's transparent, it has no effect. Otherwise, update the
+      // background channel and balpha.
+      // Evaluate the background first, in case we have HIGHCONTRAST fg text.
+      if(cell_bg_alpha(targc) > CELL_ALPHA_OPAQUE){
+        const nccell* vis = &p->fb[nfbcellidx(p, y, x)];
+        // FIXME need check maps to determine whether inversion is appropriate
+        if(!crender->blitterstacked || !cell_blitted_p(vis)){
+          if(cell_bg_default_p(vis)){
+            vis = &p->basecell;
+          }
+          if(cell_bg_palindex_p(vis)){
+            if(cell_bg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
+              cell_set_bg_palindex(targc, cell_bg_palindex(vis));
+            }
+          }else{
+            cell_blend_bchannel(targc, cell_bchannel(vis), &crender->bgblends);
+          }
+        }else{ // use the local foreground; we're stacking blittings
+          if(cell_fg_default_p(vis)){
+            vis = &p->basecell;
+          }
+          if(cell_fg_palindex_p(vis)){
+            if(cell_bg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
+              cell_set_bg_palindex(targc, cell_fg_palindex(vis));
+            }
+          }else{
+            cell_blend_bchannel(targc, cell_fchannel(vis), &crender->bgblends);
           }
         }
       }
