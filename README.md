@@ -13,8 +13,9 @@
 </p>
 
 birthed screaming into this world by [nick black](https://nick-black.com/dankwiki/index.php/Hack_on) (<nickblack@linux.com>).
-C++ wrappers by [marek habersack](http://twistedcode.net/blog/) (<grendel@twistedcode.net>). the Notcurses API
-is stable as of version 2.0.
+* c++ wrappers by [marek habersack](http://twistedcode.net/blog/) (<grendel@twistedcode.net>)
+* rust wrappers by José Luis Cruz (<joseluis@andamira.net>)
+* python wrappers by igo95862 (<igo95862@yandex.ru>)
 
 for more information, see [dankwiki](https://nick-black.com/dankwiki/index.php/Notcurses)
 and the [man pages](https://notcurses.com/notcurses). there's also a reference
