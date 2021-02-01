@@ -170,14 +170,7 @@ int cell_duplicate(ncplane* n, nccell* targ, const nccell* c){
 struct crender {
   const ncplane *p; // source of glyph for this cell
   nccell c;
-  unsigned fgblends;
-  unsigned bgblends;
-  // we'll need recalculate the foreground relative to the solved background,
-  // and then reapply any foreground shading from above the highcontrast
-  // declaration. save the foreground state when we go highcontrast.
-  unsigned hcfgblends; // number of foreground blends prior to HIGHCONTRAST
-  // FIXME can't hcfg be reduced to 24 bits and shoved in the bitfield below?
-  uint32_t hcfg;       // foreground channel prior to HIGHCONTRAST
+  uint32_t hcfg;       // fg channel prior to HIGHCONTRAST (need full channel)
   struct {
     // If the glyph we render is from an ncvisual, and has a transparent or
     // blended background, blitter stacking is in effect. This is a complicated
@@ -195,6 +188,12 @@ struct crender {
     // if CELL_ALPHA_HIGHCONTRAST is in play, we apply the HSV flip once the
     // background is locked in. set highcontrast to indicate this.
     unsigned highcontrast: 1;
+    unsigned fgblends: 8;
+    unsigned bgblends: 8;
+    // we'll need recalculate the foreground relative to the solved background,
+    // and then reapply any foreground shading from above the highcontrast
+    // declaration. save the foreground state when we go highcontrast.
+    unsigned hcfgblends: 8; // number of foreground blends prior to HIGHCONTRAST
   } s;
 };
 
@@ -291,10 +290,12 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
         }else{
           if(cell_fg_alpha(vis) == CELL_ALPHA_HIGHCONTRAST){
             crender->s.highcontrast = true;
-            crender->hcfgblends = crender->fgblends;
+            crender->s.hcfgblends = crender->s.fgblends;
             crender->hcfg = cell_fchannel(targc);
           }
-          cell_blend_fchannel(targc, cell_fchannel(vis), &crender->fgblends);
+          unsigned fgblends = crender->s.fgblends;
+          cell_blend_fchannel(targc, cell_fchannel(vis), &fgblends);
+          crender->s.fgblends = fgblends;
           // crender->highcontrast can only be true if we just set it, since we're
           // about to set targc opaque based on crender->highcontrast (and this
           // entire stanza is conditional on targc not being CELL_ALPHA_OPAQUE).
@@ -320,7 +321,9 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
               cell_set_bg_palindex(targc, cell_bg_palindex(vis));
             }
           }else{
-            cell_blend_bchannel(targc, cell_bchannel(vis), &crender->bgblends);
+            unsigned bgblends = crender->s.bgblends;
+            cell_blend_bchannel(targc, cell_bchannel(vis), &bgblends);
+            crender->s.bgblends = bgblends;
           }
         }else{ // use the local foreground; we're stacking blittings
           if(cell_fg_default_p(vis)){
@@ -331,7 +334,9 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
               cell_set_bg_palindex(targc, cell_fg_palindex(vis));
             }
           }else{
-            cell_blend_bchannel(targc, cell_fchannel(vis), &crender->bgblends);
+            unsigned bgblends = crender->s.bgblends;
+            cell_blend_bchannel(targc, cell_fchannel(vis), &bgblends);
+            crender->s.bgblends = bgblends;
           }
           crender->s.blittedquads = 0;
         }
@@ -409,12 +414,13 @@ lock_in_highcontrast(nccell* targc, struct crender* crender){
   if(crender->s.highcontrast){
     // highcontrast weighs the original at 1/4 and the contrast at 3/4
     if(!cell_fg_default_p(targc)){
-      crender->fgblends = 3;
+      unsigned fgblends = 3;
       uint32_t fchan = cell_fchannel(targc);
       uint32_t bchan = cell_bchannel(targc);
-      uint32_t hchan = channels_blend(highcontrast(bchan), fchan, &crender->fgblends);
+      uint32_t hchan = channels_blend(highcontrast(bchan), fchan, &fgblends);
       cell_set_fchannel(targc, hchan);
-      hchan = channels_blend(hchan, crender->hcfg, &crender->hcfgblends);
+      fgblends = crender->s.hcfgblends;
+      hchan = channels_blend(hchan, crender->hcfg, &fgblends);
       cell_set_fchannel(targc, hchan);
     }else{
       cell_set_fg_rgb(targc, highcontrast(cell_bchannel(targc)));
