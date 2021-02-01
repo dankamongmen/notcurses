@@ -15,7 +15,7 @@
 #include <stdbool.h>
 // take host byte order and turn it into network (reverse on LE, no-op on BE),
 // then reverse that, guaranteeing LE. htole(x) == ltohe(x).
-#ifdef __linux__
+#if defined(__linux__) || defined(__gnu_hurd__)
 #include <byteswap.h>
 #define htole(x) (bswap_32(htonl(x)))
 #else
