@@ -1,7 +1,10 @@
 [package]
 name = "libnotcurses-sys"
 version = "2.1.7"
-authors = ["nick black <dankamongmen@gmail.com>"]
+authors = [
+    "nick black <dankamongmen@gmail.com>",
+		"José Luis Cruz <joseluis@andamira.net>"
+]
 license = "Apache-2.0"
 edition = "2018"
 description = "Low-level Rust bindings for the notcurses C library."
