@@ -64,6 +64,43 @@ TEST_CASE("Stacking") {
     ncplane_destroy(top);
   }
 
+  SUBCASE("StackedQuad") {
+    struct ncplane_options opts = {
+      0, 0, 1, 1, nullptr, "top", nullptr, 0,
+    };
+    auto top = ncplane_create(n_, &opts);
+    REQUIRE(nullptr != top);
+    // create an ncvisual of 2 rows, 2 columns, with the top 0xffffff
+    const uint32_t topv[] = {htole(0xffffffff), htole(0xffffffff), htole(0), htole(0)};
+    auto ncv = ncvisual_from_rgba(topv, 2, 8, 2);
+    REQUIRE(nullptr != ncv);
+    struct ncvisual_options vopts = {
+      .n = top, .scaling = NCSCALE_NONE, .y = 0, .x = 0, .begy = 0, .begx = 0,
+      .leny = 2, .lenx = 2, .blitter = NCBLIT_2x2, .flags = 0,
+    };
+    CHECK(top == ncvisual_render(nc_, ncv, &vopts));
+    ncvisual_destroy(ncv);
+
+    // create an ncvisual of 2 rows, 2 columns, with the bottom 0xffffff
+    const uint32_t botv[] = {htole(0), htole(0), htole(0xffffffff), htole(0xffffffff)};
+    ncv = ncvisual_from_rgba(botv, 2, 8, 2);
+    REQUIRE(nullptr != ncv);
+    vopts.n = n_;
+    CHECK(n_ == ncvisual_render(nc_, ncv, &vopts));
+    ncvisual_destroy(ncv);
+
+    CHECK(0 == notcurses_render(nc_));
+    uint64_t channels;
+    auto egc = notcurses_at_yx(nc_, 0, 0, nullptr, &channels);
+    REQUIRE(nullptr != egc);
+    // ought yield space with white background FIXME currently just yields
+    // an upper half block
+    CHECK(0 == strcmp("\u2580", egc));
+    CHECK(0xffffff == channels_fg_rgb(channels));
+    CHECK(0xffffff == channels_bg_rgb(channels));
+    ncplane_destroy(top);
+  }
+
   // common teardown
   CHECK(0 == notcurses_stop(nc_));
 }
