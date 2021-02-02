@@ -154,11 +154,9 @@ TEST_CASE("Stacking") {
       .leny = 2, .lenx = 2, .blitter = NCBLIT_2x2, .flags = 0,
     };
     CHECK(top == ncvisual_render(nc_, ncv, &vopts));
-    /*
-cell c = CELL_TRIVIAL_INITIALIZER;
-ncplane_at_yx_cell(top, 0, 0, &c);
-fprintf(stderr, "[[[%s]]] %016lx\n", cell_extended_gcluster(top, &c), c.channels);
-*/
+//cell c = CELL_TRIVIAL_INITIALIZER;
+//ncplane_at_yx_cell(top, 0, 0, &c);
+//fprintf(stderr, "[[[%s]]] %016lx\n", cell_extended_gcluster(top, &c), c.channels);
     ncvisual_destroy(ncv);
 
     // create an ncvisual of 2 rows, 2 columns, with the tr, bl 0xffffff
