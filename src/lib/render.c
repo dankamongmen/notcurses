@@ -312,7 +312,8 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
       // Evaluate the background first, in case we have HIGHCONTRAST fg text.
       if(cell_bg_alpha(targc) > CELL_ALPHA_OPAQUE){
         const nccell* vis = &p->fb[nfbcellidx(p, y, x)];
-        if(!((!crender->s.blittedquads) & cell_blittedquadrants(vis))){
+//fprintf(stderr, "y/x: %d/%d crenderbq: 0x%x visbq: 0x%x\n", y, x, crender->s.blittedquads, cell_blittedquadrants(vis));
+        if(!((~crender->s.blittedquads) & cell_blittedquadrants(vis))){
           if(cell_bg_default_p(vis)){
             vis = &p->basecell;
           }
