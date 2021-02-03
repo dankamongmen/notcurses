@@ -20,6 +20,7 @@
 #include <ncpp/Plot.hh>
 #include <ncpp/FDPlane.hh>
 #include <ncpp/Subproc.hh>
+#include <ncpp/Progbar.hh>
 
 using namespace ncpp;
 

@@ -179,6 +179,11 @@ namespace ncpp
 			return plane;
 		}
 
+		bool resize_maximize () const NOEXCEPT_MAYBE
+		{
+			return error_guard (ncplane_resize_maximize (plane), -1);
+		}
+
 		bool resize_realign () const NOEXCEPT_MAYBE
 		{
 			return error_guard (ncplane_resize_realign (plane), -1);
@@ -281,6 +286,16 @@ namespace ncpp
 			ncplane_erase (plane);
 		}
 
+		int get_abs_x () const noexcept
+		{
+			return ncplane_abs_x (plane);
+		}
+
+		int get_abs_y () const noexcept
+		{
+			return ncplane_abs_y (plane);
+		}
+
 		int get_x () const noexcept
 		{
 			return ncplane_x (plane);
@@ -314,6 +329,11 @@ namespace ncpp
 		int get_dim_y () const noexcept
 		{
 			return ncplane_dim_y (plane);
+		}
+
+		void get_abs_yx (int* y, int* x) const noexcept
+		{
+			ncplane_abs_yx (plane, y, x);
 		}
 
 		void get_yx (int *y, int *x) const noexcept
@@ -964,13 +984,12 @@ namespace ncpp
 			return error_guard_cond<bool, bool> (ret, ret);
 		}
 
-		bool at_cursor (Cell &c) const NOEXCEPT_MAYBE
+		int at_cursor (Cell &c) const NOEXCEPT_MAYBE
 		{
-			bool ret = ncplane_at_cursor_cell (plane, c) < 0;
-			return error_guard_cond<bool, bool> (ret, ret);
+			return error_guard<int>(ncplane_at_cursor_cell (plane, c), -1);
 		}
 
-		bool at_cursor (Cell *c) const noexcept
+		int at_cursor (Cell *c) const noexcept
 		{
 			if (c == nullptr)
 				return false;
@@ -1033,6 +1052,12 @@ namespace ncpp
 
 		// Some Cell APIs go here since they act on individual panels even though it may seem weird at points (e.g.
 		// release)
+
+		int load_egc32 (Cell &cell, uint32_t egc) const NOEXCEPT_MAYBE
+		{
+			int ret = cell_load_egc32 (plane, cell, egc);
+			return error_guard_cond<int> (ret, ret != 1);
+		}
 
 		int load (Cell &cell, const char *gcluster) const NOEXCEPT_MAYBE
 		{
@@ -1139,7 +1164,7 @@ namespace ncpp
 			ncplane_translate (src.plane, dst.plane, y, x);
 		}
 
-		bool translate_abs (int *y = nullptr, int *x = nullptr) const noexcept
+		bool translate_abs (int *y = nullptr, int *x = nullptr) const NOEXCEPT_MAYBE
 		{
 			return error_guard<bool, bool> (ncplane_translate_abs (plane, y, x), false);
 		}
@@ -1192,6 +1217,11 @@ namespace ncpp
 		{
 			int ret = ncplane_qrcode (plane, blitter, ymax, xmax, data, len);
 			return error_guard_cond<int> (ret, ret < 0);
+		}
+
+		bool is_descendant_of (const Plane& ancestor) const noexcept
+		{
+			return ncplane_descendant_p (plane, ancestor) != 0;
 		}
 
 		bool is_fg_default () const noexcept
