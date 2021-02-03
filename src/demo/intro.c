@@ -147,7 +147,7 @@ int intro(struct notcurses* nc){
     ncplane_off_styles(ncp, NCSTYLE_BLINK); // heh FIXME replace with pulse
   }
   struct timespec now;
-  clock_gettime(CLOCK_MONOTONIC_RAW, &now);
+  clock_gettime(CLOCK_MONOTONIC, &now);
   uint64_t deadline = timespec_to_ns(&now) + timespec_to_ns(&demodelay) * 2;
   int flipmode = 0;
   do{
@@ -158,7 +158,7 @@ int intro(struct notcurses* nc){
     struct timespec iter;
     timespec_div(&demodelay, 10, &iter);
     demo_nanosleep(nc, &iter);
-    clock_gettime(CLOCK_MONOTONIC_RAW, &now);
+    clock_gettime(CLOCK_MONOTONIC, &now);
   }while(timespec_to_ns(&now) < deadline);
   if(!notcurses_canfade(nc)){
     return 0;

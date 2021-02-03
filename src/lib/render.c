@@ -152,6 +152,23 @@ update_render_stats(const struct timespec* time1, const struct timespec* time0,
   }
 }
 
+static void
+update_raster_stats(const struct timespec* time1, const struct timespec* time0,
+                    ncstats* stats){
+  const int64_t elapsed = timespec_to_ns(time1) - timespec_to_ns(time0);
+  //fprintf(stderr, "Rasterizing took %ld.%03lds\n", elapsed / NANOSECS_IN_SEC,
+  //        (elapsed % NANOSECS_IN_SEC) / 1000000);
+  if(elapsed > 0){ // don't count clearly incorrect information, egads
+    stats->raster_ns += elapsed;
+    if(elapsed > stats->raster_max_ns){
+      stats->raster_max_ns = elapsed;
+    }
+    if(elapsed < stats->raster_min_ns){
+      stats->raster_min_ns = elapsed;
+    }
+  }
+}
+
 void cell_release(ncplane* n, nccell* c){
   pool_release(&n->pool, c);
 }
@@ -1174,18 +1191,20 @@ ncpile_render_internal(ncplane* n, struct crender* rvec, int leny, int lenx,
 }
 
 int ncpile_rasterize(ncplane* n){
-  struct timespec start, writedone;
+  struct timespec start, rasterdone, writedone;
   clock_gettime(CLOCK_MONOTONIC, &start);
   const ncpile* pile = ncplane_pile(n);
   struct notcurses* nc = ncplane_notcurses(n);
   const int miny = pile->dimy < nc->lfdimy ? pile->dimy : nc->lfdimy;
   const int minx = pile->dimx < nc->lfdimx ? pile->dimx : nc->lfdimx;
   postpaint(nc->lastframe, miny, minx, pile->crender, &nc->pool);
+  clock_gettime(CLOCK_MONOTONIC, &rasterdone);
   int bytes = notcurses_rasterize(nc, pile, nc->rstate.mstreamfp);
   // accepts -1 as an indication of failure
   update_render_bytes(&nc->stats, bytes);
   clock_gettime(CLOCK_MONOTONIC, &writedone);
-  update_write_stats(&writedone, &start, &nc->stats, bytes);
+  update_raster_stats(&rasterdone, &start, &nc->stats);
+  update_write_stats(&writedone, &rasterdone, &nc->stats, bytes);
   if(bytes < 0){
     return -1;
   }

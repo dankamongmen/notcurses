@@ -475,14 +475,12 @@ summary_table(struct ncdirect* nc, const char* spec, bool canimage, bool canvide
   }
   qprefix(nsdelta, NANOSECS_IN_SEC, timebuf, 0);
   bprefix(totalbytes, 1, totalbuf, 0);
-  //qprefix(totalrenderns, NANOSECS_IN_SEC, rtimebuf, 0);
-  table_segment(nc, "", "══╧════════╧════════╪═══════╪═════════╪═══════╪══╧══╧══╧═══════╝\n");
+  table_segment(nc, "", "══╧════════╧════════╪═══════╪═════════╪═══════╧══╧══╧══╧═══════╝\n");
   printf("            ");
   table_printf(nc, "│", "%*ss", PREFIXFMT(timebuf));
   table_printf(nc, "│", "%7lu", totalframes);
   table_printf(nc, "│", "%*s", BPREFIXFMT(totalbuf));
-  //table_printf(nc, "│", " %*ss", PREFIXFMT(rtimebuf));
-  table_printf(nc, "│", "%7.1f", nsdelta ? totalframes / ((double)nsdelta / NANOSECS_IN_SEC) : 0);
+  //table_printf(nc, "│", "%7.1f", nsdelta ? totalframes / ((double)nsdelta / NANOSECS_IN_SEC) : 0);
   printf("\n");
   ncdirect_set_fg_rgb8(nc, 0xff, 0xb0, 0xb0);
   fflush(stdout); // in case we print to stderr below, we want color from above

@@ -278,7 +278,7 @@ int trans_demo(struct notcurses* nc){
     struct ncplane* l = legend(nc, "what say we explore transparency together?");
     DEMO_RENDER(nc);
     struct timespec now;
-    clock_gettime(CLOCK_MONOTONIC_RAW, &now);
+    clock_gettime(CLOCK_MONOTONIC, &now);
     int err;
     if( (err = ncplane_pulse(l, &demodelay, pulser, &now)) != 2){
       return err;
