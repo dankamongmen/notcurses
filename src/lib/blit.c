@@ -147,12 +147,14 @@ tria_blit(ncplane* nc, int placey, int placex, int linesize,
         if(memcmp(rgbbase_up, rgbbase_down, 3) == 0){
           cell_set_fg_rgb8(c, rgbbase_down[0], rgbbase_down[1], rgbbase_down[2]);
           cell_set_bg_rgb8(c, rgbbase_down[0], rgbbase_down[1], rgbbase_down[2]);
+          cell_set_blitquadrants(c, 0, 0, 0, 0);
           if(pool_blit_direct(&nc->pool, c, " ", 1, 1) <= 0){
             return -1;
           }
         }else{
           cell_set_fg_rgb8(c, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2]);
           cell_set_bg_rgb8(c, rgbbase_down[0], rgbbase_down[1], rgbbase_down[2]);
+          cell_set_blitquadrants(c, 1, 1, 1, 1);
           if(pool_blit_direct(&nc->pool, c, "\u2580", strlen("\u2580"), 1) <= 0){
             return -1;
           }
@@ -307,6 +309,7 @@ qtrans_check(nccell* c, bool blendcolors,
         if(ffmpeg_trans_p(rgbbase_br[3])){
           // entirety is transparent, load with nul (but not NULL)
           cell_set_fg_default(c);
+          cell_set_blitquadrants(c, 0, 0, 0, 0);
           egc = "";
         }else{
           cell_set_fg_rgb8(c, rgbbase_br[0], rgbbase_br[1], rgbbase_br[2]);
@@ -450,6 +453,7 @@ quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
           cell_set_bg_alpha(c, CELL_ALPHA_BLEND);
           cell_set_fg_alpha(c, CELL_ALPHA_BLEND);
         }
+        cell_set_blitquadrants(c, 1, 1, 1, 1);
       }
       if(*egc){
         if(pool_blit_direct(&nc->pool, c, egc, strlen(egc), 1) <= 0){
@@ -658,6 +662,7 @@ sextant_blit(ncplane* nc, int placey, int placex, int linesize,
       const char* egc = sex_trans_check(c, rgbas, blendcolors);
       if(egc == NULL){
         egc = sex_solver(rgbas, &c->channels, blendcolors);
+        cell_set_blitquadrants(c, 1, 1, 1, 1);
       }
 //fprintf(stderr, "sex EGC: %s channels: %016lx\n", egc, c->channels);
       if(*egc){

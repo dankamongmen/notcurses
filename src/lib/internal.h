@@ -871,10 +871,11 @@ static inline void
 cell_set_blitquadrants(nccell* c, unsigned tl, unsigned tr, unsigned bl, unsigned br){
   // FIXME want a static assert that these four constants OR together to
   // equal CELL_BLITTERSTACK_MASK, bah
-  c->channels |= (tl ? 0x8000000000000000ull : 0);
-  c->channels |= (tr ? 0x0400000000000000ull : 0);
-  c->channels |= (bl ? 0x0200000000000000ull : 0);
-  c->channels |= (br ? 0x0100000000000000ull : 0);
+  uint64_t newval = (tl ? 0x8000000000000000ull : 0) |
+                    (tr ? 0x0400000000000000ull : 0) |
+                    (bl ? 0x0200000000000000ull : 0) |
+                    (br ? 0x0100000000000000ull : 0);
+  c->channels = ((c->channels & ~CELL_BLITTERSTACK_MASK) | newval);
 }
 
 // Destroy a plane and all its bound descendants.
@@ -953,8 +954,8 @@ egc_rtl(const char* egc, int* bytes){
 }
 
 // lowest level of cell+pool setup. if the EGC changes the output to RTL, it
-// must be suffixed with a LTR-forcing character by now, and
-// CELL_NOBACKGROUND_MASK ought be set however it's going to be set.
+// must be suffixed with a LTR-forcing character by now. The four bits of
+// CELL_BLITTERSTACK_MASK ought already be initialized.
 static inline int
 pool_blit_direct(egcpool* pool, nccell* c, const char* gcluster, int bytes, int cols){
   pool_release(pool, c);
