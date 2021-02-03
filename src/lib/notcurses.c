@@ -712,6 +712,7 @@ static void
 stash_stats(notcurses* nc){
   nc->stashstats.renders += nc->stats.renders;
   nc->stashstats.render_ns += nc->stats.render_ns;
+  nc->stashstats.raster_ns += nc->stats.raster_ns;
   nc->stashstats.writeouts += nc->stats.writeouts;
   nc->stashstats.writeout_ns += nc->stats.writeout_ns;
   nc->stashstats.failed_renders += nc->stats.failed_renders;
@@ -734,6 +735,12 @@ stash_stats(notcurses* nc){
   }
   if(nc->stashstats.writeout_min_ns > nc->stats.writeout_min_ns){
     nc->stashstats.writeout_min_ns = nc->stats.writeout_min_ns;
+  }
+  if(nc->stashstats.raster_max_ns < nc->stats.raster_max_ns){
+    nc->stashstats.raster_max_ns = nc->stats.raster_max_ns;
+  }
+  if(nc->stashstats.raster_min_ns > nc->stats.raster_min_ns){
+    nc->stashstats.raster_min_ns = nc->stats.raster_min_ns;
   }
   nc->stashstats.cellelisions += nc->stats.cellelisions;
   nc->stashstats.cellemissions += nc->stats.cellemissions;
@@ -1153,6 +1160,13 @@ int notcurses_stop(notcurses* nc){
         qprefix(nc->stashstats.render_ns / nc->stashstats.renders, NANOSECS_IN_SEC, avgbuf, 0);
         fprintf(stderr, "\n%ju render%s, %ss total (%ss min, %ss max, %ss avg)\n",
                 nc->stashstats.renders, nc->stashstats.renders == 1 ? "" : "s",
+                totalbuf, minbuf, maxbuf, avgbuf);
+        qprefix(nc->stashstats.raster_ns, NANOSECS_IN_SEC, totalbuf, 0);
+        qprefix(nc->stashstats.raster_min_ns, NANOSECS_IN_SEC, minbuf, 0);
+        qprefix(nc->stashstats.raster_max_ns, NANOSECS_IN_SEC, maxbuf, 0);
+        qprefix(nc->stashstats.raster_ns / nc->stashstats.writeouts, NANOSECS_IN_SEC, avgbuf, 0);
+        fprintf(stderr, "%ju raster%s, %ss total (%ss min, %ss max, %ss avg)\n",
+                nc->stashstats.writeouts, nc->stashstats.writeouts == 1 ? "" : "s",
                 totalbuf, minbuf, maxbuf, avgbuf);
         qprefix(nc->stashstats.writeout_ns, NANOSECS_IN_SEC, totalbuf, 0);
         qprefix(nc->stashstats.writeout_min_ns, NANOSECS_IN_SEC, minbuf, 0);

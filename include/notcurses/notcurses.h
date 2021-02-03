@@ -620,7 +620,7 @@ typedef struct nccell {
   uint64_t channels;          // + 8B == 16B
 } nccell;
 
-typedef nccell cell; // FIXME backwards-compat, remove in 3.0
+typedef nccell cell; // FIXME backwards-compat, remove in ABI3
 
 #define CELL_TRIVIAL_INITIALIZER { .gcluster = 0, .gcluster_backstop = 0, .width = 0, .stylemask = 0, .channels = 0, }
 // do *not* load invalid EGCs using these macros! there is no way for us to
@@ -1137,8 +1137,8 @@ API struct ncplane* ncplane_create(struct ncplane* n, const ncplane_options* nop
 // be the top, bottom, and root of this new pile.
 API struct ncplane* ncpile_create(struct notcurses* nc, const ncplane_options* nopts);
 
-// This function will be removed in 3.0 in favor of ncplane_create().
-// It persists in 2.0 only for backwards compatibility.
+// This function will be removed in ABI3 in favor of ncplane_create().
+// It persists in ABI2 only for backwards compatibility.
 API struct ncplane* ncplane_new(struct ncplane* n, int rows, int cols, int y, int x, void* opaque, const char* name)
   __attribute__ ((deprecated));
 
@@ -1237,12 +1237,13 @@ typedef struct ncstats {
   uint64_t writeouts;        // successful ncpile_rasterize() runs
   uint64_t failed_renders;   // aborted renders, should be 0
   uint64_t failed_writeouts; // aborted writes
+  // FIXME these next three all ought be "writeout" or "raster"
   uint64_t render_bytes;     // bytes emitted to ttyfp
   int64_t render_max_bytes;  // max bytes emitted for a frame
   int64_t render_min_bytes;  // min bytes emitted for a frame
-  uint64_t render_ns;        // nanoseconds spent in render+raster
-  int64_t render_max_ns;     // max ns spent in render+raster for a frame
-  int64_t render_min_ns;     // min ns spent in render+raster for a frame
+  uint64_t render_ns;        // nanoseconds spent rendering
+  int64_t render_max_ns;     // max ns spent in render for a frame
+  int64_t render_min_ns;     // min ns spent in render for a frame
   uint64_t writeout_ns;      // nanoseconds spent writing frames to terminal
   int64_t writeout_max_ns;   // max ns spent writing out a frame
   int64_t writeout_min_ns;   // min ns spent writing out a frame
@@ -1259,6 +1260,11 @@ typedef struct ncstats {
   // current state -- these can decrease
   uint64_t fbbytes;          // total bytes devoted to all active framebuffers
   unsigned planes;           // number of planes currently in existence
+
+  // FIXME placed here for ABI compatibility; move up for ABI3
+  uint64_t raster_ns;        // nanoseconds spent rasterizing
+  int64_t raster_max_ns;     // max ns spent in raster for a frame
+  int64_t raster_min_ns;     // min ns spent in raster for a frame
 } ncstats;
 
 // Allocate an ncstats object. Use this rather than allocating your own, since

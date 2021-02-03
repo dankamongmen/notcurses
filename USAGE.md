@@ -3018,9 +3018,12 @@ typedef struct ncstats {
   uint64_t render_bytes;     // bytes emitted to ttyfp
   int64_t render_max_bytes;  // max bytes emitted for a frame
   int64_t render_min_bytes;  // min bytes emitted for a frame
-  uint64_t render_ns;        // nanoseconds spent in render+raster
+  uint64_t render_ns;        // nanoseconds spent rendering
   int64_t render_max_ns;     // max ns spent in render+raster for a frame
   int64_t render_min_ns;     // min ns spent in render+raster for a frame
+  uint64_t raster_ns;        // nanoseconds spent rasterizing
+  int64_t raster_max_ns;     // max ns spent in raster for a frame
+  int64_t raster_min_ns;     // min ns spent in raster for a frame
   uint64_t writeout_ns;      // nanoseconds spent writing frames to terminal
   int64_t writeout_max_ns;   // max ns spent writing out a frame
   int64_t writeout_min_ns;   // min ns spent writing out a frame

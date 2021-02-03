@@ -20,9 +20,12 @@ typedef struct ncstats {
   uint64_t render_bytes;     // bytes emitted to ttyfp
   int64_t render_max_bytes;  // max bytes emitted for a frame
   int64_t render_min_bytes;  // min bytes emitted for a frame
-  uint64_t render_ns;        // nanoseconds spent in render+raster
+  uint64_t render_ns;        // nanoseconds spent rendering
   int64_t render_max_ns;     // max ns spent for a frame
   int64_t render_min_ns;     // min ns spent for a frame
+  uint64_t raster_ns;        // nanoseconds spent rasterizing
+  int64_t raster_max_ns;     // max ns spent in raster for a frame
+  int64_t raster_min_ns;     // min ns spent in raster for a frame
   uint64_t writeout_ns;      // ns spent writing frames to terminal
   int64_t writeout_max_ns;   // max ns spent writing out a frame
   int64_t writeout_min_ns;   // min ns spent writing out a frame
@@ -73,15 +76,19 @@ existing terminal state. As a first approximation, the time a terminal takes to
 ingest and reflect a frame is dependent on the size of the rasterized frame.
 
 **render_ns**, **render_max_ns**, and **render_min_ns** track the total
-amount of time spent rendering and rasterizing frames in nanoseconds. Rendering
-and rasterizing takes place in **notcurses_render(3)**, and is the entirety of
-**notcurses_render_to_buffer(3)**. These steps are independent of the terminal.
+amount of time spent rendering frames in nanoseconds. Rendering
+takes place in **ncpile_render** (called by **notcurses_render(3)** and
+**notcurses_render_to_buffer**). This step is independent of the terminal.
+
+**raster_ns**, **raster_max_ns**, and **raster_min_ns** track the total
+amount of time spent rasterizing frames in nanoseconds. Rasterizing
+takes place in **ncpile_raster** (called by **notcurses_raster(3)** and
+**notcurses_render_to_buffer**). This step depends on the terminal definitions.
+The same frame might not rasterize to the same bytes for different terminals.
 
 **writeout_ns**, **writeout_max_ns**, and **writeout_min_ns** track the total
-amount of time spent writing frames to the terminal. This takes place in only
-**notcurses_render(3)**. If **notcurses_render_to_buffer(3)** is used, the
-user is responsible for writing out the frame, and it will not be tracked by
-any stat.
+amount of time spent writing frames to the terminal. This takes place in
+**ncpile_rasterize** (called by **notcurses_render(3)**).
 
 **cellemissions** reflects the number of EGCs written to the terminal.
 **cellelisions** reflects the number of cells which were not written, due to

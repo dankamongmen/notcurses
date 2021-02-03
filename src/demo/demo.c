@@ -412,20 +412,18 @@ summary_table(struct ncdirect* nc, const char* spec, bool canimage, bool canvide
   table_segment(nc, "             runtime", "│");
   table_segment(nc, " frames", "│");
   table_segment(nc, "output(B)", "│");
-  table_segment(nc, "rendering", "│");
   table_segment(nc, "    FPS", "│");
   table_segment(nc, "%r", "│");
+  table_segment(nc, "%a", "│");
   table_segment(nc, "%w", "│");
-  table_segment(nc, "TheoFPS", "║\n══╤════════╤════════╪═══════╪═════════╪═════════╪═══════╪══╪══╪═══════╣\n");
+  table_segment(nc, "TheoFPS", "║\n══╤════════╤════════╪═══════╪═════════╪═══════╪══╪══╪══╪═══════╣\n");
   char timebuf[PREFIXSTRLEN + 1];
   char tfpsbuf[PREFIXSTRLEN + 1];
   char totalbuf[BPREFIXSTRLEN + 1];
-  char rtimebuf[PREFIXSTRLEN + 1];
   uint64_t nsdelta = 0;
   for(size_t i = 0 ; i < strlen(spec) ; ++i){
     nsdelta += results[i].timens;
     qprefix(results[i].timens, NANOSECS_IN_SEC, timebuf, 0);
-    qprefix(results[i].stats.render_ns, NANOSECS_IN_SEC, rtimebuf, 0);
     bprefix(results[i].stats.render_bytes, 1, totalbuf, 0);
     if(results[i].stats.renders){
       qprefix((uintmax_t)results[i].stats.renders * NANOSECS_IN_SEC * 1000 /
@@ -451,13 +449,15 @@ summary_table(struct ncdirect* nc, const char* spec, bool canimage, bool canvide
     ncdirect_set_fg_rgb(nc, rescolor);
     printf("%8s", demos[results[i].selector - 'a'].name);
     ncdirect_set_fg_rgb8(nc, 178, 102, 255);
-    printf("│%*ss│%7ju│%*s│ %*ss│%7.1f│%2jd│%2jd│%*s║",
+    printf("│%*ss│%7ju│%*s│%7.1f│%2jd│%2jd│%2jd│%*s║",
            PREFIXFMT(timebuf), (uintmax_t)(results[i].stats.renders),
-           BPREFIXFMT(totalbuf), PREFIXFMT(rtimebuf),
+           BPREFIXFMT(totalbuf),
            results[i].timens ?
             results[i].stats.renders / ((double)results[i].timens / NANOSECS_IN_SEC) : 0.0,
            (uintmax_t)(results[i].timens ?
             results[i].stats.render_ns * 100 / results[i].timens : 0),
+           (uintmax_t)(results[i].timens ?
+            results[i].stats.raster_ns * 100 / results[i].timens : 0),
            (uintmax_t)(results[i].timens ?
             results[i].stats.writeout_ns * 100 / results[i].timens : 0),
            PREFIXFMT(tfpsbuf));
@@ -475,13 +475,13 @@ summary_table(struct ncdirect* nc, const char* spec, bool canimage, bool canvide
   }
   qprefix(nsdelta, NANOSECS_IN_SEC, timebuf, 0);
   bprefix(totalbytes, 1, totalbuf, 0);
-  qprefix(totalrenderns, NANOSECS_IN_SEC, rtimebuf, 0);
-  table_segment(nc, "", "══╧════════╧════════╪═══════╪═════════╪═════════╪═══════╪══╧══╧═══════╝\n");
+  //qprefix(totalrenderns, NANOSECS_IN_SEC, rtimebuf, 0);
+  table_segment(nc, "", "══╧════════╧════════╪═══════╪═════════╪═══════╪══╧══╧══╧═══════╝\n");
   printf("            ");
   table_printf(nc, "│", "%*ss", PREFIXFMT(timebuf));
   table_printf(nc, "│", "%7lu", totalframes);
   table_printf(nc, "│", "%*s", BPREFIXFMT(totalbuf));
-  table_printf(nc, "│", " %*ss", PREFIXFMT(rtimebuf));
+  //table_printf(nc, "│", " %*ss", PREFIXFMT(rtimebuf));
   table_printf(nc, "│", "%7.1f", nsdelta ? totalframes / ((double)nsdelta / NANOSECS_IN_SEC) : 0);
   printf("\n");
   ncdirect_set_fg_rgb8(nc, 0xff, 0xb0, 0xb0);
