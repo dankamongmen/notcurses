@@ -26605,29 +26605,32 @@ int jungle_demo(struct notcurses* nc){
   struct ncplane* n = notcurses_stddim_yx(nc, &dimy, &dimx);
   // FIXME rewrite all of this using modern ncvisual, sheesh
   dimy *= 2; // use half blocks
-  const int xiter = ORIGWIDTH / dimx + !!(ORIGWIDTH % dimx);
-  const int yiter = ORIGHEIGHT / dimy + !!(ORIGHEIGHT % dimy);
-  const int xoff = (dimx - ORIGWIDTH / xiter) / 2;
   const int yoff = 2;
+  const int xiter = ORIGWIDTH / dimx + !!(ORIGWIDTH % dimx);
+  const int yiter = ORIGHEIGHT / (dimy - yoff) + !!(ORIGHEIGHT % dimy);
+  const int xoff = (dimx - ORIGWIDTH / xiter) / 2;
   ncplane_erase(n);
   nccell c = CELL_TRIVIAL_INITIALIZER;
   cell_load(n, &c, "\xe2\x96\x80"); // upper half block
   for(size_t y = 0 ; y < ORIGHEIGHT ; y += (yiter * 2)){
-    if(ncplane_cursor_move_yx(n, yoff + y / (yiter * 2), xoff)){
-      return -1;
-    }
-    // starting at 1 happens to give much better rain coverage on 80 columns
-    for(size_t x = 1 ; x < ORIGWIDTH ; x += xiter){
-      int idx = y * ORIGWIDTH + x;
-      int idx2 = (y + yiter) * ORIGWIDTH + x;
-      if(cell_set_fg_palindex(&c, buf[idx])){
+    int targy = yoff + y / (yiter * 2);
+    if(targy < dimy / 2){
+      if(ncplane_cursor_move_yx(n, targy, xoff)){
         return -1;
       }
-      if(cell_set_bg_palindex(&c, buf[idx2])){
-        return -1;
-      }
-      if(ncplane_putc(n, &c) < 0){
-        return -1;
+      // starting at 1 happens to give much better rain coverage on 80 columns
+      for(size_t x = 1 ; x < ORIGWIDTH ; x += xiter){
+        int idx = y * ORIGWIDTH + x;
+        int idx2 = (y + yiter) * ORIGWIDTH + x;
+        if(cell_set_fg_palindex(&c, buf[idx])){
+                return -1;
+        }
+        if(cell_set_bg_palindex(&c, buf[idx2])){
+                return -1;
+        }
+        if(ncplane_putc(n, &c) < 0){
+                return -1;
+        }
       }
     }
   }
