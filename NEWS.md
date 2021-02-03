@@ -3,6 +3,7 @@ rearrangements of Notcurses.
 
 * 2.1.8 (not yet released):
   * The `notcurses-tetris` binary has been renamed `nctetris`.
+  * The new function `channel_set_palindex()` has been added.
 
 * 2.1.7 (2021-01-21):
   * Notcurses has been split into two libraries, `notcurses-core` and

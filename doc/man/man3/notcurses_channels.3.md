@@ -27,11 +27,13 @@ notcurses_channels - operations on notcurses channels
 
 **uint32_t channel_rgb8(uint32_t ***channel***, uint32_t* restrict ***r***, uint32_t* restrict ***g***, uint32_t* restrict ***b***);**
 
-**unsigned channel_palindex(uint32_t ***channel***);**
-
 **int channel_set_rgb8(uint32_t* ***channel***, int ***r***, int ***g***, int ***b***);**
 
-**int channel_set(uint32_t* ***channel***, uint32_t rg***b***);**
+**int channel_set(uint32_t* ***channel***, uint32_t ***rgb***);**
+
+**unsigned channel_palindex(uint32_t ***channel***);**
+
+**int channel_set_palindex(uint32_t* ***channel***, int ***idx***);**
 
 **uint32_t channel_alpha(uint32_t ***channel***);**
 
@@ -53,13 +55,25 @@ notcurses_channels - operations on notcurses channels
 
 **unsigned channels_bg_rgb(uint64_t ***channels***);**
 
+**int channels_set_fg_rgb(uint64_t* ***channels***, unsigned ***rgb***);**
+
+**int channels_set_bg_rgb(uint64_t* ***channels***, unsigned ***rgb***);**
+
 **unsigned channels_fg_alpha(uint64_t ***channels***);**
 
 **unsigned channels_bg_alpha(uint64_t ***channels***);**
 
+**int channels_set_fg_alpha(uint64_t* ***channels***, int ***alpha***);**
+
+**int channels_set_bg_alpha(uint64_t* ***channels***, int ***alpha***);**
+
 **unsigned channels_fg_palindex(uint64_t ***channels***);**
 
 **unsigned channels_bg_palindex(uint64_t ***channels***);**
+
+**int channels_set_fg_palindex(uint64_t* ***channels***, int ***idx***);**
+
+**int channels_set_bg_palindex(uint64_t* ***channels***, int ***idx***);**
 
 **unsigned channels_fg_rgb8(uint64_t ***channels***, unsigned* ***r***, unsigned* ***g***, unsigned* ***b***);**
 
@@ -68,14 +82,6 @@ notcurses_channels - operations on notcurses channels
 **int channels_set_fg_rgb8(uint64_t* ***channels***, int ***r***, int ***g***, int ***b***);**
 
 **int channels_set_bg_rgb8(uint64_t* ***channels***, int ***r***, int ***g***, int ***b***);**
-
-**int channels_set_fg_rgb(uint64_t* ***channels***, unsigned ***rgb***);**
-
-**int channels_set_bg_rgb(uint64_t* ***channels***, unsigned ***rgb***);**
-
-**int channels_set_fg_alpha(uint64_t* ***channels***, int ***alpha***);**
-
-**int channels_set_bg_alpha(uint64_t* ***channels***, int ***alpha***);**
 
 **bool channels_fg_default_p(uint64_t ***channels***);**
 

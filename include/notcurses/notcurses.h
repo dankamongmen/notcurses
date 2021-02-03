@@ -245,6 +245,19 @@ channel_set_alpha(unsigned* channel, unsigned alpha){
   return 0;
 }
 
+static inline int
+channel_set_palindex(uint32_t* channel, int idx){
+  if(idx < 0 || idx >= NCPALETTESIZE){
+    return -1;
+  }
+  *channel |= CELL_BGDEFAULT_MASK;
+  *channel |= CELL_BG_PALETTE;
+  channel_set_alpha(channel, CELL_ALPHA_OPAQUE);
+  *channel &= 0xff000000ull;
+  *channel |= idx;
+  return 0;
+}
+
 // Is this channel using the "default color" rather than RGB/palette-indexed?
 static inline bool
 channel_default_p(unsigned channel){
@@ -345,7 +358,7 @@ channels_bg_rgb8(uint64_t channels, unsigned* r, unsigned* g, unsigned* b){
 // 'channels' variable, and mark it as not using the default color.
 static inline int
 channels_set_fg_rgb8(uint64_t* channels, int r, int g, int b){
-  unsigned channel = channels_fchannel(*channels);
+  uint32_t channel = channels_fchannel(*channels);
   if(channel_set_rgb8(&channel, r, g, b) < 0){
     return -1;
   }
@@ -356,7 +369,7 @@ channels_set_fg_rgb8(uint64_t* channels, int r, int g, int b){
 // Same, but clips to [0..255].
 static inline void
 channels_set_fg_rgb8_clipped(uint64_t* channels, int r, int g, int b){
-  unsigned channel = channels_fchannel(*channels);
+  uint32_t channel = channels_fchannel(*channels);
   channel_set_rgb8_clipped(&channel, r, g, b);
   *channels = ((uint64_t)channel << 32llu) | (*channels & 0xffffffffllu);
 }
@@ -364,7 +377,7 @@ channels_set_fg_rgb8_clipped(uint64_t* channels, int r, int g, int b){
 // Set the 2-bit alpha component of the foreground channel.
 static inline int
 channels_set_fg_alpha(uint64_t* channels, unsigned alpha){
-  unsigned channel = channels_fchannel(*channels);
+  uint32_t channel = channels_fchannel(*channels);
   if(channel_set_alpha(&channel, alpha) < 0){
     return -1;
   }
@@ -374,21 +387,18 @@ channels_set_fg_alpha(uint64_t* channels, unsigned alpha){
 
 static inline int
 channels_set_fg_palindex(uint64_t* channels, int idx){
-  if(idx < 0 || idx >= NCPALETTESIZE){
+  uint32_t channel = channels_fchannel(*channels);
+  if(channel_set_palindex(&channel, idx) < 0){
     return -1;
   }
-  *channels |= CELL_FGDEFAULT_MASK;
-  *channels |= CELL_FG_PALETTE;
-  channels_set_fg_alpha(channels, CELL_ALPHA_OPAQUE);
-  *channels &= 0xff000000ffffffffull;
-  *channels |= ((uint64_t)idx << 32u);
+  *channels = ((uint64_t)channel << 32llu) | (*channels & 0xffffffffllu);
   return 0;
 }
 
 // Same, but set an assembled 24 bit channel at once.
 static inline int
 channels_set_fg_rgb(uint64_t* channels, unsigned rgb){
-  unsigned channel = channels_fchannel(*channels);
+  uint32_t channel = channels_fchannel(*channels);
   if(channel_set(&channel, rgb) < 0){
     return -1;
   }
@@ -400,7 +410,7 @@ channels_set_fg_rgb(uint64_t* channels, unsigned rgb){
 // 'channels' variable, and mark it as not using the default color.
 static inline int
 channels_set_bg_rgb8(uint64_t* channels, int r, int g, int b){
-  unsigned channel = channels_bchannel(*channels);
+  uint32_t channel = channels_bchannel(*channels);
   if(channel_set_rgb8(&channel, r, g, b) < 0){
     return -1;
   }
@@ -411,7 +421,7 @@ channels_set_bg_rgb8(uint64_t* channels, int r, int g, int b){
 // Same, but clips to [0..255].
 static inline void
 channels_set_bg_rgb8_clipped(uint64_t* channels, int r, int g, int b){
-  unsigned channel = channels_bchannel(*channels);
+  uint32_t channel = channels_bchannel(*channels);
   channel_set_rgb8_clipped(&channel, r, g, b);
   channels_set_bchannel(channels, channel);
 }
@@ -422,7 +432,7 @@ channels_set_bg_alpha(uint64_t* channels, unsigned alpha){
   if(alpha == CELL_ALPHA_HIGHCONTRAST){ // forbidden for background alpha
     return -1;
   }
-  unsigned channel = channels_bchannel(*channels);
+  uint32_t channel = channels_bchannel(*channels);
   if(channel_set_alpha(&channel, alpha) < 0){
     return -1;
   }
@@ -434,21 +444,18 @@ channels_set_bg_alpha(uint64_t* channels, unsigned alpha){
 // bit, set it background-opaque, and clear the background default color bit.
 static inline int
 channels_set_bg_palindex(uint64_t* channels, int idx){
-  if(idx < 0 || idx >= NCPALETTESIZE){
+  uint32_t channel = channels_bchannel(*channels);
+  if(channel_set_palindex(&channel, idx) < 0){
     return -1;
   }
-  *channels |= CELL_BGDEFAULT_MASK;
-  *channels |= CELL_BG_PALETTE;
-  channels_set_bg_alpha(channels, CELL_ALPHA_OPAQUE);
-  *channels &= 0xffffffffff000000;
-  *channels |= idx;
+  channels_set_bchannel(channels, channel);
   return 0;
 }
 
 // Same, but set an assembled 24 bit channel at once.
 static inline int
 channels_set_bg_rgb(uint64_t* channels, unsigned rgb){
-  unsigned channel = channels_bchannel(*channels);
+  uint32_t channel = channels_bchannel(*channels);
   if(channel_set(&channel, rgb) < 0){
     return -1;
   }
@@ -485,7 +492,7 @@ channels_bg_palindex_p(uint64_t channels){
 // Mark the foreground channel as using its default color.
 static inline uint64_t
 channels_set_fg_default(uint64_t* channels){
-  unsigned channel = channels_fchannel(*channels);
+  uint32_t channel = channels_fchannel(*channels);
   channel_set_default(&channel);
   *channels = ((uint64_t)channel << 32llu) | (*channels & 0xffffffffllu);
   return *channels;
@@ -494,7 +501,7 @@ channels_set_fg_default(uint64_t* channels){
 // Mark the background channel as using its default color.
 static inline uint64_t
 channels_set_bg_default(uint64_t* channels){
-  unsigned channel = channels_bchannel(*channels);
+  uint32_t channel = channels_bchannel(*channels);
   channel_set_default(&channel);
   channels_set_bchannel(channels, channel);
   return *channels;
