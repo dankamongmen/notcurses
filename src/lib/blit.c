@@ -483,7 +483,7 @@ generalerp(unsigned rsum, unsigned gsum, unsigned bsum, int count){
 // of pixels that minimizes total source distance from the resulting lerps.
 static const char*
 sex_solver(const uint32_t rgbas[6], uint64_t* channels, bool blendcolors){
-	static const char* sex[64] = {
+	static const char* sex[69] = {
 	  " ", "🬀", "🬁", "🬃", "🬇", "🬏", "🬞", "🬂",
 	  "🬄", "🬈", "🬐", "🬟", "🬅", "🬉", "🬑", "🬠",
 	  "🬋", "🬓", "🬢", "🬖", "🬦", "🬭", "🬆", "🬊",
@@ -492,6 +492,7 @@ sex_solver(const uint32_t rgbas[6], uint64_t* channels, bool blendcolors){
 	  "🬷", "🬳", "🬫", "🬜", "🬶", "🬲", "🬪", "🬛",
 	  "🬰", "🬨", "🬙", "🬥", "🬕", "🬎", "🬵", "🬱",
 	  "🬩", "🬚", "🬯", "▐", "🬘", "🬤", "🬔", "🬮",
+    "n", "i", "c", "e"
 	};
   // each element within the set of 64 has an inverse element within the set,
   // for which we will calculate the same total differences, so just handle the
