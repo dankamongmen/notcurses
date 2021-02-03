@@ -26572,6 +26572,7 @@ int jungle_demo(struct notcurses* nc){
     return 0;
   }
   struct timespec start, now;
+  clock_gettime(CLOCK_MONOTONIC, &start);
   size_t have = 0, out = 0;
   palette256* pal;
   if((pal = load_palette(nc, palette, sizeof(palette))) == NULL){
@@ -26607,7 +26608,7 @@ int jungle_demo(struct notcurses* nc){
   const int xiter = ORIGWIDTH / dimx + !!(ORIGWIDTH % dimx);
   const int yiter = ORIGHEIGHT / dimy + !!(ORIGHEIGHT % dimy);
   const int xoff = (dimx - ORIGWIDTH / xiter) / 2;
-  const int yoff = (dimy - ORIGHEIGHT / yiter) / 4;
+  const int yoff = 2;
   ncplane_erase(n);
   nccell c = CELL_TRIVIAL_INITIALIZER;
   cell_load(n, &c, "\xe2\x96\x80"); // upper half block
@@ -26632,21 +26633,20 @@ int jungle_demo(struct notcurses* nc){
   }
   cell_release(n, &c);
   free(buf);
-  clock_gettime(CLOCK_MONOTONIC_RAW, &start);
   int iter = 0;
   int64_t iterns = NANOSECS_IN_SEC / 30;
-  int64_t nsrunning;
+  int64_t nsrunning = 0;
   do{
     DEMO_RENDER(nc);
     ++iter;
-    clock_gettime(CLOCK_MONOTONIC_RAW, &now);
-    nsrunning = timespec_to_ns(&now) - timespec_to_ns(&start);
     if(nsrunning < iter * iterns){
       struct timespec sleepts;
       ns_to_timespec(iter * iterns - nsrunning, &sleepts);
       demo_nanosleep(nc, &sleepts);
     }
     cycle_palettes(nc, pal);
+    clock_gettime(CLOCK_MONOTONIC, &now);
+    nsrunning = timespec_to_ns(&now) - timespec_to_ns(&start);
   }while(nsrunning > 0 && (uint64_t)nsrunning < 5 * timespec_to_ns(&demodelay));
   palette256_free(pal);
   return 0;
