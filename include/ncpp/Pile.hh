@@ -52,6 +52,26 @@ namespace ncpp
 
 			return rasterize ();
 		}
+
+		static Plane* top_with (const Plane& plane) noexcept
+		{
+			ncplane* ret = ncpile_top (const_cast<Plane&>(plane));
+			if (ret == nullptr) {
+				return nullptr;
+			}
+
+			return map_plane (ret);
+		}
+
+		static Plane* bottom_with (const Plane& plane) noexcept
+		{
+			ncplane* ret = ncpile_bottom (const_cast<Plane&>(plane));
+			if (ret == nullptr) {
+				return nullptr;
+			}
+
+			return map_plane (ret);
+		}
 	};
 }
 #endif

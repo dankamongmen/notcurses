@@ -121,6 +121,11 @@ namespace ncpp
 
 		bool stop ();
 
+		bool can_sextant () const noexcept
+		{
+			return notcurses_cansextant (nc);
+		}
+
 		bool can_utf8 () const noexcept
 		{
 			return notcurses_canutf8 (nc);
@@ -281,6 +286,16 @@ namespace ncpp
 		bool align (int availcols, ncalign_e align, int cols) const NOEXCEPT_MAYBE
 		{
 			return error_guard (notcurses_align (availcols, align, cols), -INT_MAX);
+		}
+
+		bool linesigs_enable () const NOEXCEPT_MAYBE
+		{
+			return error_guard (notcurses_linesigs_enable (nc), -1);
+		}
+
+		bool linesigs_disable () const NOEXCEPT_MAYBE
+		{
+			return error_guard (notcurses_linesigs_disable (nc), -1);
 		}
 
 		ncstats* stats_alloc () const noexcept
