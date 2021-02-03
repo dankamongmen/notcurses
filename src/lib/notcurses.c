@@ -703,6 +703,7 @@ reset_stats(ncstats* stats){
   memset(stats, 0, sizeof(*stats));
   stats->render_min_ns = 1ull << 62u;
   stats->render_min_bytes = 1ull << 62u;
+  stats->raster_min_ns = 1ull << 62u;
   stats->writeout_min_ns = 1ull << 62u;
   stats->fbbytes = fbbytes;
 }
