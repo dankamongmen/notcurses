@@ -334,11 +334,16 @@ struct ncdirect* ncdirect_core_init(const char* termtype, FILE* fp, uint64_t fla
 // prior to notcurses_init(), you should not set this bit. Even if you are
 // invoking setlocale(), this behavior shouldn't be an issue unless you're
 // doing something weird (setting a locale not based on LANG).
-#define NCDIRECT_OPTION_INHIBIT_SETLOCALE 0x0001ull
+#define NCDIRECT_OPTION_INHIBIT_SETLOCALE   0x0001ull
 
 // *Don't* place the terminal into cbreak mode (see tcgetattr(3)). By default,
 // echo and line buffering are turned off.
-#define NCDIRECT_OPTION_INHIBIT_CBREAK    0x0002ull
+#define NCDIRECT_OPTION_INHIBIT_CBREAK      0x0002ull
+
+// We typically install a signal handler for SIG{INT, SEGV, ABRT, QUIT} that
+// restores the screen, and then calls the old signal handler. Set to inhibit
+// registration of these signal handlers. Chosen to match fullscreen mode.
+#define NCDIRECT_OPTION_NO_QUIT_SIGHANDLERS 0x0008ull
 
 // Release 'nc' and any associated resources. 0 on success, non-0 on failure.
 int ncdirect_stop(struct ncdirect* nc);
@@ -348,6 +353,12 @@ This context must be destroyed using `ncdirect_stop()`. The following functions
 are available for direct mode:
 
 ```c
+// Read a (heap-allocated) line of text using the Readline library Initializes
+// Readline the first time it's called. For input to be echoed to the terminal,
+// it is necessary that NCDIRECT_OPTION_INHIBIT_CBREAK be provided to
+// ncdirect_init(). Returns NULL on error.
+API char* ncdirect_readline(struct ncdirect* nc, const char* prompt);
+
 int ncdirect_fg_rgb(struct ncdirect* nc, unsigned rgb);
 int ncdirect_bg_rgb(struct ncdirect* nc, unsigned rgb);
 

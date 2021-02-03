@@ -25,11 +25,6 @@ typedef struct ncplane ncdirectv;
 // echo and input's line buffering are turned off.
 #define NCDIRECT_OPTION_INHIBIT_CBREAK      0x0002ull
 
-// We typically initialize the GNU Readline library in a way that works with
-// ncdirect. If you intend no use of GNU Readline, this flag will inhibit any
-// such setup/teardown.
-#define NCDIRECT_OPTION_NO_READLINE         0x0004ull
-
 // We typically install a signal handler for SIG{INT, SEGV, ABRT, QUIT} that
 // restores the screen, and then calls the old signal handler. Set to inhibit
 // registration of these signal handlers. Chosen to match fullscreen mode.
@@ -47,6 +42,12 @@ API struct ncdirect* ncdirect_init(const char* termtype, FILE* fp, uint64_t flag
 // The same as ncdirect_init(), but without any multimedia functionality,
 // allowing for a svelter binary. Link with notcurses-core if this is used.
 API struct ncdirect* ncdirect_core_init(const char* termtype, FILE* fp, uint64_t flags);
+
+// Read a (heap-allocated) line of text using the Readline library Initializes
+// Readline the first time it's called. For input to be echoed to the terminal,
+// it is necessary that NCDIRECT_OPTION_INHIBIT_CBREAK be provided to
+// ncdirect_init(). Returns NULL on error.
+API char* ncdirect_readline(struct ncdirect* nc, const char* prompt);
 
 // Direct mode. This API can be used to colorize and stylize output generated
 // outside of notcurses, without ever calling notcurses_render(). These should

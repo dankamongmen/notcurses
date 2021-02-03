@@ -309,7 +309,7 @@ detect_cursor_inversion_wrapper(ncdirect* n, int* y, int* x){
 
 // no terminfo capability for this. dangerous--it involves writing controls to
 // the terminal, and then reading a response. many things can distupt this
-// non-atomic procedure.
+// non-atomic procedure, leading to unexpected results. a garbage function.
 int ncdirect_cursor_yx(ncdirect* n, int* y, int* x){
   struct termios termio, oldtermios;
   // this is only meaningful for real terminals
@@ -321,7 +321,7 @@ int ncdirect_cursor_yx(ncdirect* n, int* y, int* x){
     return -1;
   }
   memcpy(&oldtermios, &termio, sizeof(termio));
-  // we should already be in cbreak mode from ncdirect_init(), but just in case
+  // we might already be in cbreak mode from ncdirect_init(), but just in case
   // it got changed by the client code since then, duck into cbreak mode anew.
   termio.c_lflag &= ~(ICANON | ECHO);
   if(tcsetattr(n->ctermfd, TCSAFLUSH, &termio)){
@@ -597,7 +597,7 @@ static int
 ncdirect_stop_minimal(void* vnc){
   ncdirect* nc = static_cast<ncdirect*>(vnc);
   int ret = drop_signals(nc);
-  if(!(nc->flags & NCDIRECT_OPTION_NO_READLINE)){
+  if(nc->initialized_readline){
     rl_deprep_terminal();
   }
   if(nc->tcache.op && term_emit("op", nc->tcache.op, nc->ttyfp, true)){
@@ -673,13 +673,7 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
   if(interrogate_terminfo(&ret->tcache, shortname_term)){
     goto err;
   }
-  ret->channels = 0;
   ncdirect_set_styles(ret, 0);
-  if(!(flags & NCDIRECT_OPTION_NO_READLINE)){
-    rl_outstream = stderr;
-    rl_instream = stdin;
-    rl_prep_terminal(1); // 1 == read 8-bit input
-  }
   return ret;
 
 err:
@@ -699,6 +693,16 @@ int ncdirect_stop(ncdirect* nc){
     delete(nc);
   }
   return ret;
+}
+
+char* ncdirect_readline(ncdirect* n, const char* prompt){
+  if(!n->initialized_readline){
+    rl_outstream = n->ttyfp;
+    rl_instream = stdin;
+    rl_prep_terminal(1); // 1 == read 8-bit input
+    n->initialized_readline = true;
+  }
+  return readline(prompt);
 }
 
 static inline int

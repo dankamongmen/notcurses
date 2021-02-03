@@ -47,7 +47,7 @@ for the actual terminal must be available.
 **ncdirect_init(3)** makes available a very restricted subset of
 Notcurses functionality. This subset is intended to be interleaved with
 user-generated output, and is limited to coloring and styling. Direct mode is
-documented in **notcurses_directmode(3)**.
+documented in **notcurses_direct(3)**.
 
 ## Output
 
@@ -165,7 +165,7 @@ order to turn most error returns into exceptions.
 **notcurses_capabilities(3)**,
 **notcurses_cell(3)**,
 **notcurses_channels(3)**,
-**notcurses_directmode(3)**,
+**notcurses_direct(3)**,
 **notcurses_fade(3)**,
 **notcurses_fds(3)**,
 **notcurses_init(3)**,

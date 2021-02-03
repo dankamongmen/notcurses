@@ -4,6 +4,10 @@ rearrangements of Notcurses.
 * 2.1.8 (not yet released):
   * The `notcurses-tetris` binary has been renamed `nctetris`.
   * The new function `channel_set_palindex()` has been added.
+  * `NCDIRECT_OPTION_NO_READLINE` has been removed after a short life.
+  * `ncdirect_readline()` has been added. The first time used, it initializes
+    Readline. Readline will be destroyed by ncdirect_stop() if it was ever
+    initialized.
 
 * 2.1.7 (2021-01-21):
   * Notcurses has been split into two libraries, `notcurses-core` and

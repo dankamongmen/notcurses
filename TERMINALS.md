@@ -29,7 +29,7 @@ relies on the font. Patches to correct/complete this table are very welcome!
 | mlterm          | ❌    |?       |`TERM=mlterm-256color`           | Do not set `COLORTERM`. `mlterm-direct` gives strange results. |
 | PuTTY           | ❌    |❌      |`TERM=putty-256color` `COLORTERM=24bit` | |
 | rxvt            | ?     |?       |                                 | |
-| Sakura          | ✅    |?       |`TERM=vte-256color` `COLORTERM=24bit` | No terminfo entry? |
+| Sakura          | ✅    |?       |`TERM=vte-256color` `COLORTERM=24bit` | VTE-derived, no terminfo entry. |
 | GNU Screen      | ❌    |?       |`TERM=screen.OLDTERM`            | Must be compiled with `--enable-256color`. `TERM` should typically be `screen.` suffixed by the appropriate `TERM` value for the true connected terminal, e.g. `screen.vte-256color`. See below. |
 | st ("suckless") | ✅    |?       |`TERM=st-256color` `COLORTERM=24bit` | |
 | Terminator      | ?     |?       | ?                               | |

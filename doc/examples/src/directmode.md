@@ -7,7 +7,7 @@ rendering; output is intended to appear immediately (subject to buffering). It
 is still necessary to have a valid `TERM` environment variable identifying a
 valid terminfo database entry for the running terminal.
 
-The authoritative reference for direct mode is the `notcurses_directmode(3)`
+The authoritative reference for direct mode is the `notcurses_direct(3)`
 man page.
 
 Enter direct mode with a call to `ncdirect_init()`. It takes three arguments:
