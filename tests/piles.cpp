@@ -174,7 +174,7 @@ TEST_CASE("Piles") {
       .x = 10,
       .rows = 2,
       .cols = 2,
-      nullptr, nullptr, nullptr, 0
+      .userptr = nullptr, .name = nullptr, .resizecb = nullptr, .flags = 0,
     };
     auto gen1 = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != gen1);
@@ -222,7 +222,7 @@ TEST_CASE("Piles") {
       .x = 10,
       .rows = 2,
       .cols = 2,
-      nullptr, nullptr, nullptr, 0
+      .userptr = nullptr, .name = nullptr, .resizecb = nullptr, .flags = 0,
     };
     auto gen1 = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != gen1);
