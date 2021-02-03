@@ -613,9 +613,7 @@ ncdirect_stop_minimal(void* vnc){
     if(nc->tcache.cnorm && tty_emit("cnorm", nc->tcache.cnorm, nc->ctermfd)){
       ret = -1;
     }
-    if(!(nc->flags & NCDIRECT_OPTION_INHIBIT_CBREAK)){
-      ret |= tcsetattr(nc->ctermfd, TCSANOW, &nc->tpreserved);
-    }
+    ret |= tcsetattr(nc->ctermfd, TCSANOW, &nc->tpreserved);
     ret |= close(nc->ctermfd);
   }
   return ret;
@@ -649,11 +647,11 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
   }
   // we don't need a controlling tty for everything we do; allow a failure here
   if((ret->ctermfd = get_controlling_tty(ret->ttyfp)) >= 0){
+    if(tcgetattr(ret->ctermfd, &ret->tpreserved)){
+      fprintf(stderr, "Couldn't preserve terminal state for %d (%s)\n", ret->ctermfd, strerror(errno));
+      goto err;
+    }
     if(!(flags & NCDIRECT_OPTION_INHIBIT_CBREAK)){
-      if(tcgetattr(ret->ctermfd, &ret->tpreserved)){
-        fprintf(stderr, "Couldn't preserve terminal state for %d (%s)\n", ret->ctermfd, strerror(errno));
-        goto err;
-      }
       if(cbreak_mode(ret->ctermfd, &ret->tpreserved)){
         goto err;
       }
@@ -678,7 +676,7 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
   ret->channels = 0;
   ncdirect_set_styles(ret, 0);
   if(!(flags & NCDIRECT_OPTION_NO_READLINE)){
-    rl_outstream = outfp;
+    rl_outstream = stderr;
     rl_instream = stdin;
     rl_prep_terminal(1); // 1 == read 8-bit input
   }
@@ -686,9 +684,7 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
 
 err:
   if(ret->ctermfd >= 0){
-    if(!(flags & NCDIRECT_OPTION_INHIBIT_CBREAK)){
-      tcsetattr(ret->ctermfd, TCSANOW, &ret->tpreserved);
-    }
+    tcsetattr(ret->ctermfd, TCSANOW, &ret->tpreserved);
   }
   drop_signals(ret);
   delete(ret);
