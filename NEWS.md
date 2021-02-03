@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 2.1.8 (not yet released):
+* 2.1.8 (2021-02-03):
   * The `notcurses-tetris` binary has been renamed `nctetris`.
   * The new function `channel_set_palindex()` has been added.
   * `NCDIRECT_OPTION_NO_READLINE` has been removed after a short life.

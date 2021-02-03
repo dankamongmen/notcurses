@@ -1,6 +1,6 @@
 % notcurses_direct(3)
 % nick black <nickblack@linux.com>
-% v2.1.7
+% v2.1.8
 
 # NAME
 
