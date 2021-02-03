@@ -11,7 +11,7 @@ set -e
 
 usage () { echo "usage: `basename $0` path-to-neofetch" ; }
 
-[ $# -eq 1 ] || { usage >&2 ; return 1 ; }
+[ $# -eq 1 ] || { usage >&2 ; exit 1 ; }
 
 # Obviously, we're very sensitive to the exact contents of the neofetch
 # script. We rely on:
@@ -33,13 +33,38 @@ while IFS= read -r line ; do
 	if [ -z "$STARTED" ] ; then
 		if [ "$line" = 'get_distro_ascii() {' ] ; then
 			STARTED="$LINE"
-			echo "#include \"ncart.h\""
-			echo "#include <stdlib.h>"
-			echo "#include <strings.h>"
-			echo "// Output of \"`basename $0` $1\""
-			echo "// Generated on `date -u`"
-			echo "// Copyright Dylan Araps under an MIT License"
-			echo "// Found get_distro_ascii at line $LINE"
+			# FIXME copy the copyright directly from neofetch?
+			cat << EOHEADER
+#include "ncart.h"
+#include <stdlib.h>
+#include <strings.h>
+// Output of "`basename $0` $1"
+// Generated on `date -u`
+// Copyright Dylan Araps under an MIT License
+// The MIT License (MIT)
+//
+// Copyright (c) 2015-2021 Dylan Araps
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
+// Found get_distro_ascii at line $LINE
+EOHEADER
 		fi
 	elif [ -z "$NAME" ] ; then
 		NAME=`echo "$line" | sed -n -e 's/.*"\([^|]*\)"\*\?)$/\1/p'`
