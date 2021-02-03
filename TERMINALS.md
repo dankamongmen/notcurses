@@ -35,7 +35,7 @@ relies on the font. Patches to correct/complete this table are very welcome!
 | Terminator      | ?     |?       | ?                               | |
 | Terminology     | ?     |?       | ?                               | |
 | Tilda           | ?     |?       | ?                               | |
-| tmux            | ?     |?       | ?                               | |
+| tmux            | ❌    |❌      |`TERM=tmux-256color` `COLORTERM=24bit` | `tmux.conf` must apply `Tc`; see below. `bce` is available with the `tmux-256color-bce` definition. |
 | wezterm         | ✅    |?       |`TERM=wezterm` `COLORTERM=24bit` | |
 | Windows Terminal| ?     |?       | ?                               | |
 | wterm           | ?     |?       | ?                               | |
@@ -70,6 +70,19 @@ support, add `truecolor on` to your `screenrc`, or run it with `--truecolor`.
 Attempting to force RGB color in screen 4.X **will not work**.
 
 Add `defutf8 on` to your `screenrc`, or run screen with `-U`, to ensure UTF-8.
+
+## tmux
+
+`tmux` supports 24-bit color through its `Tc` (Truecolor) extension. You'll
+need an entry in `tmux.conf` of the form:
+
+`set -ga terminal-overrides ",EXTERNALTERM:Tc"`
+
+Where `EXTERNALTERM` is your `TERM` variable at the time of attachment, e.g.:
+
+`set -ga terminal-overrides ",vte-256color:Tc"`
+
+You'll then need `COLORTERM=24bit` defined within your tmux environment.
 
 ## The Linux console
 
