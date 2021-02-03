@@ -11,7 +11,7 @@ notcurses - TUI library for modern terminal emulators
 **#include <notcurses/notcurses.h>** or
 **#include <notcurses/notcurses-core.h>**
 
-**-lnotcurses** or **-lnotcurses-core**
+**-lnotcurses-core -lnotcurses** or **-lnotcurses-core**
 
 # DESCRIPTION
 
