@@ -330,9 +330,9 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
       if(cell_bg_alpha(targc) > CELL_ALPHA_OPAQUE){
         const nccell* vis = &p->fb[nfbcellidx(p, y, x)];
         // to be on the blitter stacking path, we need
-        //  1) crender->s.blittedquads to be non-zero
-        //  2) cell_blittedquadrants(vis) to be non-zero
-        //  3) somewhere crender is 0, blittedquads is 1
+        //  1) crender->s.blittedquads to be non-zero (we're below semigraphics)
+        //  2) cell_blittedquadrants(vis) to be non-zero (we're semigraphics)
+        //  3) somewhere crender is 0, blittedquads is 1 (we're visible)
         if(!crender->s.blittedquads || !((~crender->s.blittedquads) & cell_blittedquadrants(vis))){
           if(cell_bg_default_p(vis)){
             vis = &p->basecell;
