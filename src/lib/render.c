@@ -582,8 +582,8 @@ static int
 term_putc(FILE* out, const egcpool* e, const nccell* c){
   if(cell_simple_p(c)){
 //fprintf(stderr, "[%.4s] %08x\n", (const char*)&c->gcluster, c->gcluster); }
-    uint32_t firstbyte = htole(c->gcluster) & 0xff;
-    if(c->gcluster == 0 || iscntrl(firstbyte)){
+    // we must not have any 'cntrl' characters at this point
+    if(c->gcluster == 0){
       if(ncfputc(' ', out) == EOF){
         return -1;
       }
