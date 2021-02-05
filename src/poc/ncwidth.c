@@ -5,6 +5,22 @@
 #include <string.h>
 #include <locale.h>
 
+static int
+add_wchar(wchar_t** wbuf, size_t* bufsize, size_t* used, wchar_t wc){
+  if(*used == *bufsize){
+    const size_t GROW = 128;
+    wchar_t* tmp = realloc(*wbuf, *bufsize + GROW * sizeof(**wbuf));
+    if(tmp == NULL){
+      return -1;
+    }
+    *wbuf = tmp;
+    *bufsize += GROW * sizeof(**wbuf);
+  }
+  (*wbuf)[*used] = wc;
+  ++*used;
+  return 0;
+}
+
 int main(int argc, char **argv){
   if(!setlocale(LC_ALL, "")){
     return EXIT_FAILURE;
@@ -21,11 +37,14 @@ int main(int argc, char **argv){
     printf("\n");
     return EXIT_SUCCESS;
   }
+  size_t bufsize = 0, used = 0;
+  wchar_t* wbuf = NULL;
   while(*++argv){
     const char* arg = *argv;
     int totalcols = 0;
     size_t totalb = 0;
     int i = 0;
+    used = 0;
     while(*arg){
       mbstate_t mbs = {};
       wchar_t w;
@@ -44,8 +63,9 @@ int main(int argc, char **argv){
       }
       arg += conv;
       totalb += conv;
+      add_wchar(&wbuf, &bufsize, &used, w);
     }
-    printf("\n total width: %d  total bytes: %zu\n\n", totalcols, totalb);
+    printf("\n total width: %d  total bytes: %zu wcswidth: %d\n\n", totalcols, totalb, wcswidth(wbuf, used));
     // FIXME this will be broken if totalcols > screen width
     printf("%s\n", *argv);
     for(int z = 0 ; z < totalcols ; ++z){
