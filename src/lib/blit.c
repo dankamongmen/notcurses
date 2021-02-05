@@ -75,10 +75,12 @@ tria_blit_ascii(ncplane* nc, int placey, int placex, int linesize,
       if(ffmpeg_trans_p(rgbbase_up[3])){
         cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
         cell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
+        cell_set_blitquadrants(c, 0, 0, 0, 0);
       }else{
         cell_set_fg_rgb8(c, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2]);
         cell_set_bg_rgb8(c, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2]);
-        if(pool_load_direct(&nc->pool, c, " ", 1, 1) <= 0){
+        cell_set_blitquadrants(c, 1, 1, 1, 1);
+        if(pool_blit_direct(&nc->pool, c, " ", 1, 1) <= 0){
           return -1;
         }
         ++total;
