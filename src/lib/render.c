@@ -942,13 +942,8 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
           nc->rstate.bgpalelidable = false;
           nc->rstate.fgpalelidable = false;
         }
-        // we allow these to be set distinctly, but terminfo only supports using
-        // them both via the 'op' capability. unless we want to generate the 'op'
-        // escapes ourselves, if either is set to default, we first send op, and
-        // then a turnon for whichever aren't default.
-
-        // if our cell has a default foreground *or* background, we can elide the
-        // default set iff one of:
+        // if our cell has a default foreground *or* background, we can elide
+        // the default set iff one of:
         //  * we are a partial glyph, and the previous was default on both, or
         //  * we are a no-foreground glyph, and the previous was default background, or
         //  * we are a no-background glyph, and the previous was default foreground
@@ -959,8 +954,8 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
             return -1;
           }
         }
-        // if our cell has a non-default foreground, we can elide the non-default
-        // foreground set iff either:
+        // if our cell has a non-default foreground, we can elide the
+        // non-default foreground set iff either:
         //  * the previous was non-default, and matches what we have now, or
         //  * we are a no-foreground glyph (iswspace() is true)
         if(cell_fg_palindex_p(srccell)){ // palette-indexed foreground
@@ -993,6 +988,10 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
           nc->rstate.fgdefelidable = false;
           nc->rstate.fgpalelidable = false;
         }
+        // if our cell has a non-default background, we can elide the
+        // non-default background set iff either:
+        //  * we do not use the background, because the cell is all-foreground,
+        //  * the previous was non-default, and matches what we have now, or
         if(nobackground){
           ++nc->stats.bgelisions;
         }else if(cell_bg_palindex_p(srccell)){ // palette-indexed background

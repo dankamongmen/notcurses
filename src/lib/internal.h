@@ -979,11 +979,7 @@ static inline int
 pool_load_direct(egcpool* pool, nccell* c, const char* gcluster, int bytes, int cols){
   char* rtl = NULL;
   c->width = cols;
-  if(bytes == 3 && memcmp(gcluster, "\xe2\x96\x88", 4) == 0){
-    c->channels |= CELL_NOBACKGROUND_MASK;
-  }else{
-    c->channels &= ~CELL_NOBACKGROUND_MASK;
-  }
+  c->channels &= ~CELL_NOBACKGROUND_MASK;
   if(bytes >= 0){
     rtl = egc_rtl(gcluster, &bytes); // checks for RTL and adds U+200E if so
   }
