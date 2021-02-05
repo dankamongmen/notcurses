@@ -1446,7 +1446,9 @@ void scroll_down(ncplane* n){
 }
 
 int cell_load(ncplane* n, nccell* c, const char* gcluster){
-  return pool_load(&n->pool, c, gcluster);
+  int cols;
+  int bytes = utf8_egc_len(gcluster, &cols);
+  return pool_load_direct(&n->pool, c, gcluster, bytes, cols);
 }
 
 // where the magic happens. write the single EGC completely described by |egc|,
@@ -1457,9 +1459,10 @@ int cell_load(ncplane* n, nccell* c, const char* gcluster){
 static inline int
 ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
             uint16_t stylemask, uint64_t channels, int bytes){
-  // if scrolling is enabled, check *before ncplane_cursor_move_yx()* whether
-  // we're past the end of the line, and move to the next line if so. if x or y
-  // are specified, however, we must always try to print there.
+  // FIXME reject any control or space characters here--should be iswgraph()
+  // check *before ncplane_cursor_move_yx()* whether we're past the end of the
+  // line. if scrolling is enabled, move to the next line if so. if x or y are
+  // specified, we must always try to print at exactly that location.
   if(x != -1){
     if(x + cols > n->lenx){
       logerror(ncplane_notcurses(n), "Target x %d + %d cols >= length %d\n", x, cols, n->lenx);
@@ -1479,11 +1482,8 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
   // FIXME don't we need to check here for wide character on edge (though our
   // docs currently claim that a wide char on edge is allowed...)?
   if(*egc == '\n'){
-    if(n->scrolling){
-      scroll_down(n);
-      return 0;
-    }
-    // FIXME isn't it an error if scrolling is disabled?
+    scroll_down(n);
+    return 0;
   }
   // A wide character obliterates anything to its immediate right (and marks
   // that cell as wide). Any character placed atop one half of a wide character
