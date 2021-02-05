@@ -23,13 +23,12 @@ and the [man pages](https://notcurses.com/notcurses). in addition, there is
 [mailing list](https://groups.google.com/forum/#!forum/notcurses) which can be reached
 via notcurses@googlegroups.com. i wrote a coherent
 [guidebook](https://nick-black.com/htp-notcurses.pdf), which is available for
-free download, or [paperback purchase](https://amazon.com/dp/B086PNVNC9).
+free download (or [paperback purchase](https://amazon.com/dp/B086PNVNC9)).
 
-i've not yet added many documented examples, but there are many small
-C/C++ programs available in [src/poc/](https://github.com/dankamongmen/notcurses/tree/master/src/poc)
-and [src/pocpp/](https://github.com/dankamongmen/notcurses/tree/master/src/pocpp), respectively.
-`notcurses-demo` covers most of the functionality of Notcurses, and can be
-found in [src/demo/](https://github.com/dankamongmen/notcurses/tree/master/src/demo).
+i've not yet added many documented examples, but [src/poc/](https://github.com/dankamongmen/notcurses/tree/master/src/poc)
+and [src/pocpp/](https://github.com/dankamongmen/notcurses/tree/master/src/pocpp)
+contain many small C and C++ programs respectively. `notcurses-demo` covers
+most of the functionality of Notcurses.
 
 **If you're running Notcurses applications in a Docker, please consult
 "[Environment notes](#environment-notes)" below.**
