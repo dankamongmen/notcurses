@@ -955,30 +955,33 @@ egc_rtl(const char* egc, int* bytes){
 
 // lowest level of cell+pool setup. if the EGC changes the output to RTL, it
 // must be suffixed with a LTR-forcing character by now. The four bits of
-// CELL_BLITTERSTACK_MASK ought already be initialized.
+// CELL_BLITTERSTACK_MASK ought already be initialized. If gcluster is four
+// bytes or fewer, this function cannot fail.
 static inline int
 pool_blit_direct(egcpool* pool, nccell* c, const char* gcluster, int bytes, int cols){
   pool_release(pool, c);
   if(bytes < 0 || cols < 0){
     return -1;
   }
+  c->width = cols;
   if(bytes <= 4){
     c->gcluster = 0;
     memcpy(&c->gcluster, gcluster, bytes);
-    return bytes;
+  }else{
+    int eoffset = egcpool_stash(pool, gcluster, bytes);
+    if(eoffset < 0){
+      return -1;
+    }
+    set_gcluster_egc(c, eoffset);
   }
-  int eoffset = egcpool_stash(pool, gcluster, bytes);
-  if(eoffset < 0){
-    return -1;
-  }
-  set_gcluster_egc(c, eoffset);
   return bytes;
 }
 
+// Do an RTL-check, reset the quadrant occupancy bits, and pass the cell down to
+// pool_blit_direct().
 static inline int
 pool_load_direct(egcpool* pool, nccell* c, const char* gcluster, int bytes, int cols){
   char* rtl = NULL;
-  c->width = cols;
   c->channels &= ~CELL_NOBACKGROUND_MASK;
   if(bytes >= 0){
     rtl = egc_rtl(gcluster, &bytes); // checks for RTL and adds U+200E if so
@@ -994,13 +997,6 @@ pool_load_direct(egcpool* pool, nccell* c, const char* gcluster, int bytes, int 
 static inline int
 cell_load_direct(ncplane* n, nccell* c, const char* gcluster, int bytes, int cols){
   return pool_load_direct(&n->pool, c, gcluster, bytes, cols);
-}
-
-static inline int
-pool_load(egcpool* pool, nccell* c, const char* gcluster){
-  int cols;
-  int bytes = utf8_egc_len(gcluster, &cols);
-  return pool_load_direct(pool, c, gcluster, bytes, cols);
 }
 
 // increment y by 1 and rotate the framebuffer up one line. x moves to 0.
