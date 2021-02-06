@@ -56,7 +56,11 @@ NCURSES, benefiting greatly from its portability and thoroughness.
 
 Notcurses opens up advanced functionality for the interactive user on
 workstations, phones, laptops, and tablets, at the expense of e.g.
-some industrial and retail terminals.
+some industrial and retail terminals. Fundamentally, Curses assumes the minimum
+and allows you (with effort) to step up, whereas Notcurses assumes the maximum
+and steps down (by itself) when necessary. The latter approach probably breaks
+on some older hardware, but the former approach results in new software looking
+like old hardware.
 
 Why use this non-standard library?
 
