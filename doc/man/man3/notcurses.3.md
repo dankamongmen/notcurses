@@ -44,10 +44,10 @@ control of Notcurses behavior, including signal handlers, alternative screens,
 and overriding the TERM environment variable. A **terminfo** entry appropriate
 for the actual terminal must be available.
 
-**ncdirect_init(3)** makes available a very restricted subset of
-Notcurses functionality. This subset is intended to be interleaved with
-user-generated output, and is limited to coloring and styling. Direct mode is
-documented in **notcurses_direct(3)**.
+**ncdirect_init(3)** makes available a restricted subset of Notcurses
+functionality. This subset is intended to be interleaved with user-generated
+output, and is limited to coloring and styling. Direct mode is documented in
+**notcurses_direct(3)**.
 
 ## Output
 
