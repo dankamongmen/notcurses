@@ -63,13 +63,12 @@ Why use this non-standard library?
 * Thread safety, and efficient use in parallel programs, has been a design
   consideration from the beginning.
 
-* A svelter design than that codified by X/Open:
-  * Exported identifiers are prefixed to avoid common namespace collisions.
-  * The library object exports a minimal set of symbols. Where reasonable,
-    `static inline` header-only code is used. This facilitates compiler
-    optimizations, and reduces loader time.
-  * Notcurses can be built without its multimedia functionality, requiring a
-    significantly lesser set of dependencies.
+* A svelter design than that codified by X/Open: Exported identifiers are
+  prefixed to avoid common namespace collisions. The library object exports a
+  minimal set of symbols. Where reasonable, `static inline` header-only code is
+  used. This facilitates compiler optimizations, and reduces loader time.
+  Notcurses can be built without its multimedia functionality, requiring a
+  significantly lesser set of dependencies.
 
 * All APIs natively support the Universal Character Set (Unicode). The `cell`
   API is based around Unicode's [Extended Grapheme Cluster](https://unicode.org/reports/tr29/) concept.
