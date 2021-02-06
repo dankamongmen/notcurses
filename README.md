@@ -214,8 +214,6 @@ to breaking under incorrect `TERM` values. If you're not using `xterm`, your
 
 * **Q:** I'm not seeing `NCKEY_RESIZE` until I press some other key. **A:** You've almost certainly failed to mask `SIGWINCH` in some thread, and that thread is receiving the signal instead of the thread which called `notcurses_getc_blocking()`. As a result, the `poll()` is not interrupted. Call `pthread_sigmask()` before spawning any threads.
 
-* **Q:** One of the demos claimed to spend more than 100% of its runtime rendering. Do you know how to count? **A:** Runtime is wall clock time. A multithreaded demo can spend more than the wall-clock time rendering if multiple threads run concurrently.
-
 * **Q:** Using the C++ wrapper, how can I ensure that the `NotCurses` destructor is run when I return from `main()`? **A:** As noted in the [C++ FAQ](https://isocpp.org/wiki/faq/dtors#artificial-block-to-control-lifetimes), wrap it in an artificial scope (this assumes your `NotCurses` is scoped to `main()`).
 
 * **Q:** How do I hide a plane I want to make visible later? **A:** In order of least to most performant: move it offscreen using `ncplane_move_yx()`, move it underneath an opaque plane with `ncplane_move_below()`, or move it off-pile with `ncplane_reparent()`.
