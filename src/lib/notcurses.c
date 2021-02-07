@@ -2053,6 +2053,10 @@ bool notcurses_cansextant(const notcurses* nc){
   return nc->tcache.sextants && nc->tcache.utf8;
 }
 
+bool notcurses_canbraille(const notcurses* nc){
+  return nc->tcache.braille && nc->tcache.utf8;
+}
+
 bool notcurses_canfade(const notcurses* nc){
   return nc->tcache.CCCflag || nc->tcache.RGBflag;
 }

@@ -1228,6 +1228,9 @@ API bool notcurses_canutf8(const struct notcurses* nc);
 // Can we reliably use Unicode 13 sextants?
 API bool notcurses_cansextant(const struct notcurses* nc);
 
+// Can we reliably use Unicode Braille?
+API bool notcurses_canbraille(const struct notcurses* nc);
+
 // Can we blit to Sixel?
 API bool notcurses_cansixel(const struct notcurses* nc);
 

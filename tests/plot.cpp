@@ -146,6 +146,9 @@ TEST_CASE("Plot") {
   }
 
   SUBCASE("BraillePlot") {
+    if(!notcurses_canbraille(nc_)){
+      return;
+    }
     ncplane_options nopts = {
       .y = 1, .x = 1, .rows = 6, .cols = 50,
       .userptr = nullptr, .name = "plot", .resizecb = nullptr, .flags = 0,
@@ -250,6 +253,9 @@ TEST_CASE("Plot") {
   }
 
   SUBCASE("BraillePlot1Row") {
+    if(!notcurses_canbraille(nc_)){
+      return;
+    }
     ncplane_options nopts = {
       .y = 1, .x = 1, .rows = 1, .cols = 25,
       .userptr = nullptr, .name = "plot", .resizecb = nullptr, .flags = 0,

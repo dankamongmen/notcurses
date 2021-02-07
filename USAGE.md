@@ -300,6 +300,12 @@ bool notcurses_canutf8(const struct notcurses* nc);
 
 // Can we blit to Sixel? This requires being built against libsixel.
 bool notcurses_cansixel(const struct notcurses* nc);
+
+// Can we draw sextants? This requires Unicode 13.
+bool notcurses_cansextants(const struct notcurses* nc);
+
+// Can we draw Braille? The Linux console cannot.
+bool notcurses_canbraille(const struct notcurses* nc);
 ```
 
 ## Direct mode

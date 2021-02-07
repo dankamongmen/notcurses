@@ -28,6 +28,8 @@ notcurses_capabilities - runtime capability detection
 
 **bool notcurses_cansextant(const struct notcurses* ***nc***);**
 
+**bool notcurses_canbraille(const struct notcurses* ***nc***);**
+
 **bool notcurses_cansixel(const struct notcurses* ***nc***);**
 
 # DESCRIPTION
@@ -64,7 +66,8 @@ UTF-8 encoding, and the locale was successfully loaded.
 that the terminal can properly render Unicode 13 sextants.
 
 **notcurses_cansixel** returns **true** if the terminal advertises
-support for Sixel.
+support for Sixel. **notcurses_canbraille** returns **true** if Braille
+is expected to work on the terminal.
 
 # BUGS
 
