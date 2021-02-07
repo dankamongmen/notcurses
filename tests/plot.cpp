@@ -146,9 +146,6 @@ TEST_CASE("Plot") {
   }
 
   SUBCASE("BraillePlot") {
-    if(!notcurses_canbraille(nc_)){
-      return;
-    }
     ncplane_options nopts = {
       .y = 1, .x = 1, .rows = 6, .cols = 50,
       .userptr = nullptr, .name = "plot", .resizecb = nullptr, .flags = 0,
@@ -171,9 +168,11 @@ TEST_CASE("Plot") {
     CHECK(0 == notcurses_render(nc_));
     uint64_t channels;
     uint16_t smask;
-    // FIXME loop throughout plane, check all cells
-    auto egc = ncplane_at_yx(ncp, 5, 49, &smask, &channels);
-    CHECK(0 == strcmp(egc, "⣿"));
+    if(notcurses_canbraille(nc_)){
+      // FIXME loop throughout plane, check all cells
+      auto egc = ncplane_at_yx(ncp, 5, 49, &smask, &channels);
+      CHECK(0 == strcmp(egc, "⣿"));
+    }
     ncuplot_destroy(p);
   }
 
@@ -253,9 +252,6 @@ TEST_CASE("Plot") {
   }
 
   SUBCASE("BraillePlot1Row") {
-    if(!notcurses_canbraille(nc_)){
-      return;
-    }
     ncplane_options nopts = {
       .y = 1, .x = 1, .rows = 1, .cols = 25,
       .userptr = nullptr, .name = "plot", .resizecb = nullptr, .flags = 0,
