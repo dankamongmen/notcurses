@@ -45,11 +45,7 @@ class ncppplot {
    const notcurses* notc = ncplane_notcurses(n);
    ncblitter_e blitter = opts ? opts->gridtype : NCBLIT_DEFAULT;
    if(blitter == NCBLIT_DEFAULT){
-     if(notcurses_canutf8(ncplane_notcurses(n))){
-       blitter = NCBLIT_8x1;
-     }else{
-       blitter = NCBLIT_1x1;
-     }
+     blitter = ncplot_defblitter(notc);
    }
    bool degrade_blitter = !(opts && (opts->flags & NCPLOT_OPTION_NODEGRADE));
    auto bset = lookup_blitset(&notc->tcache, blitter, degrade_blitter);
