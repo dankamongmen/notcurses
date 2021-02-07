@@ -264,20 +264,21 @@ typedef struct tinfo {
   char* smkx;     // enter keypad transmit mode (keypad_xmit)
   char* rmkx;     // leave keypad transmit mode (keypad_local)
   char* getm;     // get mouse events
+  char* smcup;    // enter alternate mode
+  char* rmcup;    // restore primary mode
   bool RGBflag;   // "RGB" flag for 24bpc truecolor
   bool CCCflag;   // "CCC" flag for palette set capability
   bool BCEflag;   // "BCE" flag for erases with background color
   bool AMflag;    // "AM" flag for automatic movement to next line
   bool utf8;      // are we using utf-8 encoding, as hoped?
-  char* smcup;    // enter alternate mode
-  char* rmcup;    // restore primary mode
 
   // kitty interprets an RGB background that matches the default background
   // color *as* the default background, meaning it'll be translucent if
   // background_opaque is in use. detect this, and avoid the default if so.
   // bg_collides_default is either 0x0000000 or 0x1RRGGBB.
   uint32_t bg_collides_default;
-  bool sextants;  // do we have Unicode 13 sextant support?
+  bool sextants;  // do we have (good, vetted) Unicode 13 sextant support?
+  bool braille;   // do we have Braille support? (linux console does not)
 } tinfo;
 
 typedef struct ncinputlayer {

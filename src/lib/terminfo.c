@@ -50,6 +50,7 @@ apply_term_heuristics(tinfo* ti, const char* termname){
     // setupterm interprets a missing/empty TERM variable as the special value “unknown”.
     termname = "unknown";
   }
+  ti->braille = true;
   if(strstr(termname, "kitty")){ // kitty (https://sw.kovidgoyal.net/kitty/)
     // see https://sw.kovidgoyal.net/kitty/protocol-extensions.html
     // FIXME detect the actual default background color; this assumes it to
@@ -58,6 +59,8 @@ apply_term_heuristics(tinfo* ti, const char* termname){
     ti->sextants = true; // work since bugfix in 0.19.3
   }else if(strstr(termname, "vte") || strstr(termname, "gnome") || strstr(termname, "xfce")){
     ti->sextants = true; // VTE has long enjoyed good sextant support
+  }else if(strcmp(termname, "linux") == 0){
+    ti->braille = false; // no braille, no sextants in linux console
   }
   // run a wcwidth() to guarantee libc Unicode 13 support
   if(wcwidth(L'🬸') < 0){
