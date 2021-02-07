@@ -8,14 +8,6 @@ lookup_blitset(const tinfo* tcache, ncblitter_e setid, bool may_degrade) {
   if(setid == NCBLIT_DEFAULT){ // ought have resolved NCBLIT_DEFAULT before now
     return NULL;
   }
-  // the only viable blitter in ASCII is NCBLIT_1x1
-  if(!tcache->utf8 && setid != NCBLIT_1x1){
-    if(may_degrade){
-      setid = NCBLIT_1x1;
-    }else{
-      return NULL;
-    }
-  }
   // without braille support, NCBLIT_BRAILLE decays to NCBLIT_3x2
   if(!tcache->braille && setid == NCBLIT_BRAILLE){
     if(may_degrade){
@@ -28,6 +20,14 @@ lookup_blitset(const tinfo* tcache, ncblitter_e setid, bool may_degrade) {
   if(!tcache->sextants && setid == NCBLIT_3x2){
     if(may_degrade){
       setid = NCBLIT_2x2;
+    }else{
+      return NULL;
+    }
+  }
+  // the only viable blitter in ASCII is NCBLIT_1x1
+  if(!tcache->utf8 && setid != NCBLIT_1x1){
+    if(may_degrade){
+      setid = NCBLIT_1x1;
     }else{
       return NULL;
     }
