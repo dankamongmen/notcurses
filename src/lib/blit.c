@@ -913,5 +913,5 @@ int ncblit_rgba(const void* data, int linesize, const struct ncvisual_options* v
 }
 
 ncblitter_e ncvisual_media_defblitter(const notcurses* nc, ncscale_e scale){
-  return rgba_blitter_default(nc->tcache.utf8, scale, nc->tcache.sextants);
+  return rgba_blitter_default(&nc->tcache, scale);
 }

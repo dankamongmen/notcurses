@@ -40,24 +40,24 @@ encoding_x_scale(const struct blitset* bset) {
 
 // Expand NCBLIT_DEFAULT for media blitting, based on environment.
 static inline ncblitter_e 
-rgba_blitter_default(bool utf8, ncscale_e scale, bool sextants){
-  if(!utf8){
+rgba_blitter_default(const tinfo* tcache, ncscale_e scale){
+  if(!tcache->utf8){
     return NCBLIT_1x1;
   }
   if(scale == NCSCALE_NONE || scale == NCSCALE_SCALE){
     return NCBLIT_2x1;
   }
-  if(!sextants){
+  if(!tcache->sextants){
     return NCBLIT_2x2;
   }
   return NCBLIT_3x2;
 }
 
 static inline const struct blitset*
-rgba_blitter_low(const tinfo* tcache, bool sextants, ncscale_e scale, bool maydegrade,
+rgba_blitter_low(const tinfo* tcache, ncscale_e scale, bool maydegrade,
                  ncblitter_e blitrec) {
   if(blitrec == NCBLIT_DEFAULT){
-    blitrec = rgba_blitter_default(tcache->utf8, scale, sextants);
+    blitrec = rgba_blitter_default(tcache, scale);
   }
   const struct blitset* bset = lookup_blitset(tcache, blitrec, maydegrade);
   if(bset && !bset->blit){ // FIXME remove this once all blitters are enabled
@@ -72,8 +72,7 @@ static inline const struct blitset*
 rgba_blitter(const struct notcurses* nc, const struct ncvisual_options* opts) {
   const bool maydegrade = !(opts && (opts->flags & NCVISUAL_OPTION_NODEGRADE));
   const ncscale_e scale = opts ? opts->scaling : NCSCALE_NONE;
-  return rgba_blitter_low(&nc->tcache, notcurses_cansextant(nc),
-                          scale, maydegrade, opts ? opts->blitter : NCBLIT_DEFAULT);
+  return rgba_blitter_low(&nc->tcache, scale, maydegrade, opts ? opts->blitter : NCBLIT_DEFAULT);
 }
 
 #endif

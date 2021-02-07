@@ -485,7 +485,7 @@ ncdirectv* ncdirect_render_frame(ncdirect* n, const char* file,
     return nullptr;
   }
 //fprintf(stderr, "render %d/%d to %d+%d scaling: %d\n", ncv->rows, ncv->cols, leny, lenx, scale);
-  auto bset = rgba_blitter_low(&n->tcache, n->tcache.sextants, scale, true, blitter);
+  auto bset = rgba_blitter_low(&n->tcache, scale, true, blitter);
   if(!bset){
     ncvisual_destroy(ncv);
     return nullptr;
