@@ -268,6 +268,7 @@ typedef struct tinfo {
   bool CCCflag;   // "CCC" flag for palette set capability
   bool BCEflag;   // "BCE" flag for erases with background color
   bool AMflag;    // "AM" flag for automatic movement to next line
+  bool utf8;      // are we using utf-8 encoding, as hoped?
   char* smcup;    // enter alternate mode
   char* rmcup;    // restore primary mode
 
@@ -304,7 +305,6 @@ typedef struct ncdirect {
   uint64_t channels;         // current channels
   uint16_t stylemask;        // current styles
   ncinputlayer input;        // input layer; we're in cbreak mode
-  bool utf8;                 // are we using utf-8 encoding, as hoped?
   struct termios tpreserved; // terminal state upon entry
   // some terminals (e.g. kmscon) return cursor coordinates inverted from the
   // typical order. we detect it the first time ncdirect_cursor_yx() is called.
@@ -360,7 +360,6 @@ typedef struct notcurses {
   int loglevel;
   palette256 palette; // 256-indexed palette can be used instead of/with RGB
   bool palette_damage[NCPALETTESIZE];
-  bool utf8;      // are we using utf-8 encoding, as hoped?
   bool libsixel;  // do we have Sixel support?
 } notcurses;
 

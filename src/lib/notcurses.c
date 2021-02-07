@@ -945,10 +945,11 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     init_lang(ret);
   }
   const char* encoding = nl_langinfo(CODESET);
+  bool utf8;
   if(encoding && !strcmp(encoding, "UTF-8")){
-    ret->utf8 = true;
+    utf8 = true;
   }else if(encoding && (!strcmp(encoding, "ANSI_X3.4-1968") || !strcmp(encoding, "US-ASCII"))){
-    ret->utf8 = false;
+    utf8 = false;
   }else{
     fprintf(stderr, "Encoding (\"%s\") was neither ANSI_X3.4-1968 nor UTF-8, refusing to start\n Did you call setlocale()?\n",
             encoding ? encoding : "none found");
@@ -1028,6 +1029,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   if(interrogate_terminfo(&ret->tcache, shortname_term)){
     goto err;
   }
+  ret->tcache.utf8 = utf8;
   warn_terminfo(ret, &ret->tcache);
   reset_term_attributes(ret);
   if(ncinputlayer_init(&ret->input, stdin)){
@@ -2044,11 +2046,11 @@ int notcurses_mouse_disable(notcurses* n){
 }
 
 bool notcurses_canutf8(const notcurses* nc){
-  return nc->utf8;
+  return nc->tcache.utf8;
 }
 
 bool notcurses_cansextant(const notcurses* nc){
-  return nc->tcache.sextants && nc->utf8;
+  return nc->tcache.sextants && nc->tcache.utf8;
 }
 
 bool notcurses_canfade(const notcurses* nc){

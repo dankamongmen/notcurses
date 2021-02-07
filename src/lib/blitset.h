@@ -4,12 +4,12 @@
 #include "notcurses/notcurses.h"
 
 static inline const struct blitset*
-lookup_blitset(unsigned utf8, ncblitter_e setid, bool may_degrade) {
+lookup_blitset(const tinfo* tcache, ncblitter_e setid, bool may_degrade) {
   if(setid == NCBLIT_DEFAULT){ // ought have resolved NCBLIT_DEFAULT before now
     return NULL;
   }
   // the only viable blitter in ASCII is NCBLIT_1x1
-  if(!utf8 && setid != NCBLIT_1x1){
+  if(!tcache->utf8 && setid != NCBLIT_1x1){
     if(may_degrade){
       setid = NCBLIT_1x1;
     }else{
@@ -54,14 +54,12 @@ rgba_blitter_default(bool utf8, ncscale_e scale, bool sextants){
 }
 
 static inline const struct blitset*
-rgba_blitter_low(bool utf8, bool sextants, ncscale_e scale, bool maydegrade,
+rgba_blitter_low(const tinfo* tcache, bool sextants, ncscale_e scale, bool maydegrade,
                  ncblitter_e blitrec) {
-  const struct blitset* bset;
-  if(blitrec != NCBLIT_DEFAULT){
-    bset = lookup_blitset(utf8, blitrec, maydegrade);
-  }else{
-    bset = lookup_blitset(utf8, rgba_blitter_default(utf8, scale, sextants), maydegrade);
+  if(blitrec == NCBLIT_DEFAULT){
+    blitrec = rgba_blitter_default(tcache->utf8, scale, sextants);
   }
+  const struct blitset* bset = lookup_blitset(tcache, blitrec, maydegrade);
   if(bset && !bset->blit){ // FIXME remove this once all blitters are enabled
     bset = NULL;
   }
@@ -74,7 +72,7 @@ static inline const struct blitset*
 rgba_blitter(const struct notcurses* nc, const struct ncvisual_options* opts) {
   const bool maydegrade = !(opts && (opts->flags & NCVISUAL_OPTION_NODEGRADE));
   const ncscale_e scale = opts ? opts->scaling : NCSCALE_NONE;
-  return rgba_blitter_low(notcurses_canutf8(nc), notcurses_cansextant(nc),
+  return rgba_blitter_low(&nc->tcache, notcurses_cansextant(nc),
                           scale, maydegrade, opts ? opts->blitter : NCBLIT_DEFAULT);
 }
 

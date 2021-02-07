@@ -485,7 +485,7 @@ ncdirectv* ncdirect_render_frame(ncdirect* n, const char* file,
     return nullptr;
   }
 //fprintf(stderr, "render %d/%d to %d+%d scaling: %d\n", ncv->rows, ncv->cols, leny, lenx, scale);
-  auto bset = rgba_blitter_low(n->utf8, n->tcache.sextants, scale, true, blitter);
+  auto bset = rgba_blitter_low(&n->tcache, n->tcache.sextants, scale, true, blitter);
   if(!bset){
     ncvisual_destroy(ncv);
     return nullptr;
@@ -638,7 +638,7 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
   }
   const char* encoding = nl_langinfo(CODESET);
   if(encoding && strcmp(encoding, "UTF-8") == 0){
-    ret->utf8 = true;
+    ret->tcache.utf8 = true;
   }
   if(setup_signals(ret, (flags & NCDIRECT_OPTION_NO_QUIT_SIGHANDLERS),
                    true, ncdirect_stop_minimal)){
@@ -1066,7 +1066,7 @@ bool ncdirect_canopen_images(const ncdirect* n __attribute__ ((unused))){
 
 // Is our encoding UTF-8? Requires LANG being set to a UTF8 locale.
 bool ncdirect_canutf8(const ncdirect* n){
-  return n->utf8;
+  return n->tcache.utf8;
 }
 
 int ncdirect_flush(const ncdirect* nc){

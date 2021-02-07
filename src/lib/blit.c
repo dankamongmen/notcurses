@@ -902,8 +902,8 @@ int ncblit_rgba(const void* data, int linesize, const struct ncvisual_options* v
     blitter = vopts->blitter;
   }
   const bool degrade = !(vopts->flags & NCVISUAL_OPTION_NODEGRADE);
-  const struct blitset* bset = lookup_blitset(notcurses_canutf8(ncplane_notcurses(nc)),
-                                              blitter, degrade);
+  const notcurses* notc = ncplane_notcurses(nc);
+  const struct blitset* bset = lookup_blitset(&notc->tcache, blitter, degrade);
   if(bset == NULL){
     return -1;
   }
@@ -913,5 +913,5 @@ int ncblit_rgba(const void* data, int linesize, const struct ncvisual_options* v
 }
 
 ncblitter_e ncvisual_media_defblitter(const notcurses* nc, ncscale_e scale){
-  return rgba_blitter_default(nc->utf8, scale, nc->tcache.sextants);
+  return rgba_blitter_default(nc->tcache.utf8, scale, nc->tcache.sextants);
 }
