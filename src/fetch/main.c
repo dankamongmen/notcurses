@@ -7,7 +7,7 @@
 #include <pthread.h>
 #include <semaphore.h>
 #include <sys/types.h>
-#ifdef __linux__
+#if defined(__linux__) || defined(__gnu_hurd__)
 #include <sys/sysinfo.h>
 #else
 #include <sys/sysctl.h>
