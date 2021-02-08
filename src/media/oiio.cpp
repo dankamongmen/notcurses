@@ -191,6 +191,12 @@ auto oiio_stream(notcurses* nc, ncvisual* ncv, float timescale,
   memcpy(&activevopts, vopts, sizeof(*vopts));
   int ncerr;
   do{
+    // decay the blitter explicitly, so that the callback knows the blitter it
+    // was actually rendered with
+    auto bset = rgba_blitter(nc, &activevopts);
+    if(bset){
+      activevopts.blitter = bset->geom;
+    }
     if((newn = ncvisual_render(nc, ncv, &activevopts)) == NULL){
       if(activevopts.n != vopts->n){
         ncplane_destroy(activevopts.n);

@@ -66,7 +66,7 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
   }
   if(!marsh->quiet){
     stdn->printf(0, NCAlign::Left, "frame %06d\u2026 (%s)", marsh->framecount,
-                 notcurses_str_blitter(marsh->blitter));
+                 notcurses_str_blitter(vopts->blitter));
   }
   char* subtitle = ncvisual_subtitle(ncv);
   if(subtitle){

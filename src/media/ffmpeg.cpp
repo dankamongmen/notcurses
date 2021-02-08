@@ -399,6 +399,12 @@ int ffmpeg_stream(notcurses* nc, ncvisual* ncv, float timescale,
     if(activevopts.n){
       ncplane_erase(activevopts.n); // new frame could be partially transparent
     }
+    // decay the blitter explicitly, so that the callback knows the blitter it
+    // was actually rendered with
+    auto bset = rgba_blitter(nc, &activevopts);
+    if(bset){
+      activevopts.blitter = bset->geom;
+    }
     if((newn = ncvisual_render(nc, ncv, &activevopts)) == NULL){
       if(activevopts.n != vopts->n){
         ncplane_destroy(activevopts.n);
