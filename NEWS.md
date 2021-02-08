@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 2.1.9 (not yet released)
+* 2.2.0 (2021-02-08)
   * Add `notcurses_canbraille()` capability predicate.
 
 * 2.1.8 (2021-02-03):

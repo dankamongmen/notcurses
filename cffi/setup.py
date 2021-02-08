@@ -34,7 +34,7 @@ def read(fname):
 
 setup(
     name="notcurses",
-    version="2.1.8",
+    version="2.2.0",
     packages=['notcurses'],
     scripts=['notcurses-pydemo', 'notcurses-direct-pydemo'],
     package_dir={'': 'src'},
