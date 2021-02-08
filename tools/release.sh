@@ -16,11 +16,19 @@ vi NEWS.md
 
 git clean -f -d -x
 
-# bump version numbers wherever they occur (wherever we enumerate them, anyway)
-BUMP="CMakeLists.txt doc/Doxyfile doc/man/man*/* doc/man/index.html cffi/setup.py cffi/notcurses-pydemo.1.md rust/Cargo.toml rust/build/build.rs"
-for i in $BUMP ; do
-  sed -i -e "s/$OLDVERSION/$VERSION/g" $i
+# Doing general context-free regexery has led several times to heartache. We
+# thus do tightly-coupled, context-sensitive seds for each class of files.
+# Please don't add version numbers where they're not necessary.
+# FIXME we ought probably verify that there has been an actual change, as these
+#       will surely otherwise go out of date.
+sed -i -e "s/\(project(notcurses VERSION \)$OLDVERSION/\1$VERSION/" CMakeLists.txt
+sed -i -e "s/\(PROJECT_NUMBER *= \)$OLDVERSION/\1$VERSION/" doc/Doxyfile
+for i in doc/man/man*/*.md cffi/notcurses-*.md ; do
+  sed -i -e "s/% v$OLDVERSION/% v$VERSION/" "$i"
 done
+sed -i -e "s/(v$OLDVERSION)/(v$VERSION)/" doc/man/index.html
+#BUMP="cffi/setup.py rust/Cargo.toml rust/build/build.rs"
+exit
 
 BUILDDIR="build-$VERSION"
 
