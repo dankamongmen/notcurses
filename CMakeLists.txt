@@ -624,7 +624,7 @@ endif()
 if(${BUILD_TESTING})
 #set(CMAKE_CTEST_ARGUMENTS "-V")
 if(${USE_DOCTEST})
-file(GLOB TESTSRCS CONFIGURE_DEPENDS tests/*.cpp)
+file(GLOB TESTSRCS CONFIGURE_DEPENDS src/tests/*.cpp)
 add_executable(notcurses-tester ${TESTSRCS})
 target_include_directories(notcurses-tester
   PRIVATE
