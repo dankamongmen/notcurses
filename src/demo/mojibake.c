@@ -54,10 +54,12 @@ const char face_neutral_skeptical[] =
   "\U0001F610"
   "\U0001F611"
   "\U0001F636"
+  "\U0001F636\u200D\U0001F32B\ufe0f"
   "\U0001F60F"
   "\U0001F612"
   "\U0001F644"
   "\U0001F62C"
+  "\U0001F62E\u200D\U0001F4A8"
   "\U0001F925";
 const char face_sleepy[] =
   "\U0001F60C"
@@ -76,6 +78,7 @@ const char face_unwell[] =
   "\U0001F976"
   "\U0001F974"
   "\U0001F635"
+  "\U0001F635\u200d\U0001F4AB"
   "\U0001F92F";
 const char face_hat[] =
   "\U0001F920"
@@ -155,6 +158,8 @@ const char emotion[] =
   "\U0001F49F"
   "\u2763"
   "\U0001F494"
+  "\u2764\ufe0f\u200d\U0001F525"
+  "\u2764\ufe0f\u200d\U0001FA79"
   "\u2764"
   "\U0001F9E1"
   "\U0001F49B"
