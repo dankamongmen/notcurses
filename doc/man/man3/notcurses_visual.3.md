@@ -36,7 +36,7 @@ typedef enum {
 struct ncvisual_options {
   struct ncplane* n;
   ncscale_e scaling;
-  int ***y***, x;
+  int y, x;
   int begy, begx; // origin of rendered section
   int leny, lenx; // size of rendered section
   ncblitter_e blitter; // glyph set to use
