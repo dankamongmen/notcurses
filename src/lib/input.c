@@ -380,6 +380,12 @@ handle_queued_input(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin
 
 static char32_t
 handle_input(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin, sigset_t* sigmask){
+  // we once used getc() here (and kept ttyinfp, a FILE*, instead of the file
+  // descriptor ttyinfd), but under tmux, the first time running getc() would
+  // (bewilderingly) see a series of terminal reset codes emitted. this has
+  // never been explained to my satisfaction, but we can work around it by
+  // using a lower-level read() anyway.
+  // see https://github.com/dankamongmen/notcurses/issues/1314 for more info.
   unsigned char c;
   while(!input_queue_full(nc) && read(nc->ttyinfd, &c, 1) > 0){
     nc->inputbuf[nc->inputbuf_write_at] = c;
