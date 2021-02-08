@@ -685,8 +685,7 @@ int ncplane_genocide(ncplane *ncp){
 }
 
 static int
-make_nonblocking(FILE* fp){
-  int fd = fileno(fp);
+make_nonblocking(int fd){
   if(fd < 0){
     return -1;
   }
@@ -887,7 +886,7 @@ get_tty_fd(notcurses* nc, FILE* ttyfp){
 int ncinputlayer_init(ncinputlayer* nilayer, FILE* infp){
   setbuffer(infp, NULL, 0);
   nilayer->inputescapes = NULL;
-  nilayer->ttyinfp = infp;
+  nilayer->ttyinfd = fileno(infp);
   if(prep_special_keys(nilayer)){
     return -1;
   }
@@ -1035,7 +1034,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   if(ncinputlayer_init(&ret->input, stdin)){
     goto err;
   }
-  if(make_nonblocking(ret->input.ttyinfp)){
+  if(make_nonblocking(ret->input.ttyinfd)){
     goto err;
   }
   // Neither of these is supported on e.g. the "linux" virtual console.
@@ -2415,11 +2414,11 @@ int notcurses_lex_margins(const char* op, notcurses_options* opts){
 }
 
 int notcurses_inputready_fd(notcurses* n){
-  return fileno(n->input.ttyinfp);
+  return n->input.ttyinfd;
 }
 
 int ncdirect_inputready_fd(ncdirect* n){
-  return fileno(n->input.ttyinfp);
+  return n->input.ttyinfd;
 }
 
 uint32_t* ncplane_rgba(const ncplane* nc, ncblitter_e blit,

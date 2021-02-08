@@ -282,7 +282,7 @@ typedef struct tinfo {
 } tinfo;
 
 typedef struct ncinputlayer {
-  FILE* ttyinfp;  // FILE* for processing input
+  int ttyinfd;  // file descriptor for processing input
   unsigned char inputbuf[BUFSIZ];
   // we keep a wee ringbuffer of input queued up for delivery. if
   // inputbuf_occupied == sizeof(inputbuf), there is no room. otherwise, data

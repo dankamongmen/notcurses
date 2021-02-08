@@ -321,9 +321,9 @@ handle_getc(ncinputlayer* nc, int kpress, ncinput* ni, int leftmargin, int topma
 // blocks up through ts (infinite with NULL ts), returning number of events
 // (0 on timeout) or -1 on error/interruption.
 static int
-block_on_input(FILE* fp, const struct timespec* ts, sigset_t* sigmask){
+block_on_input(int fd, const struct timespec* ts, sigset_t* sigmask){
   struct pollfd pfd = {
-    .fd = fileno(fp),
+    .fd = fd,
     .events = POLLIN,
     .revents = 0,
   };
@@ -380,17 +380,16 @@ handle_queued_input(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin
 
 static char32_t
 handle_input(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin, sigset_t* sigmask){
-  int r;
-  // getc() returns unsigned chars cast to ints
-  while(!input_queue_full(nc) && (r = getc(nc->ttyinfp)) >= 0){
-    nc->inputbuf[nc->inputbuf_write_at] = (unsigned char)r;
+  unsigned char c;
+  while(!input_queue_full(nc) && read(nc->ttyinfd, &c, 1) > 0){
+    nc->inputbuf[nc->inputbuf_write_at] = c;
 //fprintf(stderr, "OCCUPY: %u@%u read: %d\n", nc->inputbuf_occupied, nc->inputbuf_write_at, nc->inputbuf[nc->inputbuf_write_at]);
     if(++nc->inputbuf_write_at == sizeof(nc->inputbuf) / sizeof(*nc->inputbuf)){
       nc->inputbuf_write_at = 0;
     }
     ++nc->inputbuf_occupied;
     const struct timespec ts = {};
-    if(block_on_input(nc->ttyinfp, &ts, sigmask) < 1){
+    if(block_on_input(nc->ttyinfd, &ts, sigmask) < 1){
       break;
     }
   }
@@ -444,7 +443,7 @@ ncinputlayer_prestamp(ncinputlayer* nc, const struct timespec *ts,
     return handle_queued_input(nc, ni, leftmargin, topmargin);
   }
   errno = 0;
-  if(block_on_input(nc->ttyinfp, ts, sigmask) > 0){
+  if(block_on_input(nc->ttyinfd, ts, sigmask) > 0){
 //fprintf(stderr, "%d events from input!\n", events);
     return handle_ncinput(nc, ni, leftmargin, topmargin, sigmask);
   }
