@@ -39,13 +39,13 @@ void notcurses_version_components(int* major, int* minor, int* patch, int* tweak
 static int
 reset_term_attributes(notcurses* nc){
   int ret = 0;
-  if(nc->tcache.op && term_emit("op", nc->tcache.op, nc->ttyfp, false)){
+  if(nc->tcache.op && term_emit(nc->tcache.op, nc->ttyfp, false)){
     ret = -1;
   }
-  if(nc->tcache.sgr0 && term_emit("sgr0", nc->tcache.sgr0, nc->ttyfp, false)){
+  if(nc->tcache.sgr0 && term_emit(nc->tcache.sgr0, nc->ttyfp, false)){
     ret = -1;
   }
-  if(nc->tcache.oc && term_emit("oc", nc->tcache.oc, nc->ttyfp, true)){
+  if(nc->tcache.oc && term_emit(nc->tcache.oc, nc->ttyfp, true)){
     ret = -1;
   }
   ret |= notcurses_mouse_disable(nc);
@@ -63,10 +63,10 @@ notcurses_stop_minimal(void* vnc){
   // they apply to the screen (alternate or otherwise) we're actually using.
   ret |= reset_term_attributes(nc);
   if(nc->ttyfd >= 0){
-    if(nc->tcache.rmcup && tty_emit("rmcup", nc->tcache.rmcup, nc->ttyfd)){
+    if(nc->tcache.rmcup && tty_emit(nc->tcache.rmcup, nc->ttyfd)){
       ret = -1;
     }
-    if(nc->tcache.cnorm && tty_emit("cnorm", nc->tcache.cnorm, nc->ttyfd)){
+    if(nc->tcache.cnorm && tty_emit(nc->tcache.cnorm, nc->ttyfd)){
       ret = -1;
     }
     ret |= tcsetattr(nc->ttyfd, TCSANOW, &nc->tpreserved);
@@ -811,7 +811,7 @@ init_banner(const notcurses* nc){
       fprintf(stderr, "\n Warning! Encoding is not UTF-8; output may be degraded.\n");
     }
     if(nc->tcache.sgr0){
-      term_emit("sgr0", nc->tcache.sgr0, stderr, true);
+      term_emit(nc->tcache.sgr0, stderr, true);
     }
   }
 }
@@ -1050,11 +1050,11 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     goto err;
   }
   if(ret->ttyfd >= 0){
-    if(ret->tcache.smkx && tty_emit("smkx", ret->tcache.smkx, ret->ttyfd)){
+    if(ret->tcache.smkx && tty_emit(ret->tcache.smkx, ret->ttyfd)){
       free_plane(ret->stdplane);
       goto err;
     }
-    if(ret->tcache.civis && tty_emit("civis", ret->tcache.civis, ret->ttyfd)){
+    if(ret->tcache.civis && tty_emit(ret->tcache.civis, ret->ttyfd)){
       free_plane(ret->stdplane);
       goto err;
     }
@@ -1068,19 +1068,19 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   // flush on the switch to alternate screen, lest initial output be swept away
   if(ret->ttyfd >= 0){
     if(ret->tcache.smcup){
-      if(tty_emit("smcup", ret->tcache.smcup, ret->ttyfd)){
+      if(tty_emit(ret->tcache.smcup, ret->ttyfd)){
         free_plane(ret->stdplane);
         goto err;
       }
       // explicit clear even though smcup *might* clear
-      if(tty_emit("clear", ret->tcache.clearscr, ret->ttyfd)){
+      if(tty_emit(ret->tcache.clearscr, ret->ttyfd)){
         notcurses_refresh(ret, NULL, NULL);
       }
     }else if(!(opts->flags & NCOPTION_NO_ALTERNATE_SCREEN)){
       // if they expected the alternate screen, but we didn't have one to
       // offer, at least clear the screen. try using "clear"; if that doesn't
       // fly, use notcurses_refresh() to force a clearing via iterated writes.
-      if(tty_emit("clear", ret->tcache.clearscr, ret->ttyfd)){
+      if(tty_emit(ret->tcache.clearscr, ret->ttyfd)){
         notcurses_refresh(ret, NULL, NULL);
       }
     }
@@ -1141,6 +1141,12 @@ int notcurses_stop(notcurses* nc){
     }
     if(nc->rstate.mstreamfp){
       fclose(nc->rstate.mstreamfp);
+    }
+    // if we were not using the alternate screen, our cursor's wherever we last
+    // wrote. move it to the bottom left of the screen.
+    if(!nc->tcache.smcup){
+      tty_emit(tiparm(nc->tcache.hpa, 0), nc->ttyfd);
+      tty_emit(tiparm(nc->tcache.vpa, nc->lfdimy - 1), nc->ttyfd);
     }
     if(nc->ttyfd >= 0){
       ret |= close(nc->ttyfd);
@@ -2026,7 +2032,7 @@ ncplane* ncplane_above(ncplane* n){
 #define SET_SGR_MODE_MOUSE    "1006"
 int notcurses_mouse_enable(notcurses* n){
   if(n->ttyfd >= 0){
-    return tty_emit("mouse", ESC "[?" SET_BTN_EVENT_MOUSE ";"
+    return tty_emit(ESC "[?" SET_BTN_EVENT_MOUSE ";"
                     /*SET_FOCUS_EVENT_MOUSE ";" */SET_SGR_MODE_MOUSE "h",
                     n->ttyfd);
   }
@@ -2037,7 +2043,7 @@ int notcurses_mouse_enable(notcurses* n){
 // the sequences 1000 etc?
 int notcurses_mouse_disable(notcurses* n){
   if(n->ttyfd >= 0){
-    return tty_emit("mouse", ESC "[?" SET_BTN_EVENT_MOUSE ";"
+    return tty_emit(ESC "[?" SET_BTN_EVENT_MOUSE ";"
                     /*SET_FOCUS_EVENT_MOUSE ";" */SET_SGR_MODE_MOUSE "l",
                     n->ttyfd);
   }

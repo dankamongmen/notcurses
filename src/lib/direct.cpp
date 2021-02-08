@@ -58,7 +58,7 @@ int ncdirect_cursor_up(ncdirect* nc, int num){
   if(!nc->tcache.cuu){
     return -1;
   }
-  return term_emit("cuu", tiparm(nc->tcache.cuu, num), nc->ttyfp, false);
+  return term_emit(tiparm(nc->tcache.cuu, num), nc->ttyfp, false);
 }
 
 int ncdirect_cursor_left(ncdirect* nc, int num){
@@ -68,7 +68,7 @@ int ncdirect_cursor_left(ncdirect* nc, int num){
   if(!nc->tcache.cub){
     return -1;
   }
-  return term_emit("cub", tiparm(nc->tcache.cub, num), nc->ttyfp, false);
+  return term_emit(tiparm(nc->tcache.cub, num), nc->ttyfp, false);
 }
 
 int ncdirect_cursor_right(ncdirect* nc, int num){
@@ -78,7 +78,7 @@ int ncdirect_cursor_right(ncdirect* nc, int num){
   if(!nc->tcache.cuf){ // FIXME fall back to cuf1
     return -1;
   }
-  return term_emit("cuf", tiparm(nc->tcache.cuf, num), nc->ttyfp, false);
+  return term_emit(tiparm(nc->tcache.cuf, num), nc->ttyfp, false);
 }
 
 int ncdirect_cursor_down(ncdirect* nc, int num){
@@ -88,14 +88,14 @@ int ncdirect_cursor_down(ncdirect* nc, int num){
   if(!nc->tcache.cud){
     return -1;
   }
-  return term_emit("cud", tiparm(nc->tcache.cud, num), nc->ttyfp, false);
+  return term_emit(tiparm(nc->tcache.cud, num), nc->ttyfp, false);
 }
 
 int ncdirect_clear(ncdirect* nc){
   if(!nc->tcache.clearscr){
     return -1; // FIXME scroll output off the screen
   }
-  return term_emit("clear", nc->tcache.clearscr, nc->ttyfp, true);
+  return term_emit(nc->tcache.clearscr, nc->ttyfp, true);
 }
 
 int ncdirect_dim_x(const ncdirect* nc){
@@ -126,14 +126,14 @@ int ncdirect_cursor_enable(ncdirect* nc){
   if(!nc->tcache.cnorm){
     return -1;
   }
-  return term_emit("cnorm", nc->tcache.cnorm, nc->ttyfp, true);
+  return term_emit(nc->tcache.cnorm, nc->ttyfp, true);
 }
 
 int ncdirect_cursor_disable(ncdirect* nc){
   if(!nc->tcache.civis){
     return -1;
   }
-  return term_emit("civis", nc->tcache.civis, nc->ttyfp, true);
+  return term_emit(nc->tcache.civis, nc->ttyfp, true);
 }
 
 int ncdirect_cursor_move_yx(ncdirect* n, int y, int x){
@@ -141,18 +141,18 @@ int ncdirect_cursor_move_yx(ncdirect* n, int y, int x){
     if(!n->tcache.hpa){
       return -1;
     }
-    return term_emit("hpa", tiparm(n->tcache.hpa, x), n->ttyfp, false);
+    return term_emit(tiparm(n->tcache.hpa, x), n->ttyfp, false);
   }else if(x == -1){ // keep column the same, vertical move only
     if(!n->tcache.vpa){
       return -1;
     }
-    return term_emit("vpa", tiparm(n->tcache.vpa, y), n->ttyfp, false);
+    return term_emit(tiparm(n->tcache.vpa, y), n->ttyfp, false);
   }
   if(n->tcache.cup){
-    return term_emit("cup", tiparm(n->tcache.cup, y, x), n->ttyfp, false);
+    return term_emit(tiparm(n->tcache.cup, y, x), n->ttyfp, false);
   }else if(n->tcache.vpa && n->tcache.hpa){
-    if(term_emit("hpa", tiparm(n->tcache.hpa, x), n->ttyfp, false) == 0 &&
-       term_emit("vpa", tiparm(n->tcache.vpa, y), n->ttyfp, false) == 0){
+    if(term_emit(tiparm(n->tcache.hpa, x), n->ttyfp, false) == 0 &&
+       term_emit(tiparm(n->tcache.vpa, y), n->ttyfp, false) == 0){
       return 0;
     }
   }
@@ -362,14 +362,14 @@ int ncdirect_cursor_push(ncdirect* n){
   if(n->tcache.sc == nullptr){
     return -1;
   }
-  return term_emit("sc", n->tcache.sc, n->ttyfp, false);
+  return term_emit(n->tcache.sc, n->ttyfp, false);
 }
 
 int ncdirect_cursor_pop(ncdirect* n){
   if(n->tcache.rc == nullptr){
     return -1;
   }
-  return term_emit("rc", n->tcache.rc, n->ttyfp, false);
+  return term_emit(n->tcache.rc, n->ttyfp, false);
 }
 
 static inline int
@@ -542,14 +542,14 @@ int ncdirect_set_fg_palindex(ncdirect* nc, int pidx){
   if(channels_set_fg_palindex(&nc->channels, pidx) < 0){
     return -1;
   }
-  return term_emit("setaf", tiparm(nc->tcache.setaf, pidx), nc->ttyfp, false);
+  return term_emit(tiparm(nc->tcache.setaf, pidx), nc->ttyfp, false);
 }
 
 int ncdirect_set_bg_palindex(ncdirect* nc, int pidx){
   if(channels_set_bg_palindex(&nc->channels, pidx) < 0){
     return -1;
   }
-  return term_emit("setab", tiparm(nc->tcache.setab, pidx), nc->ttyfp, false);
+  return term_emit(tiparm(nc->tcache.setab, pidx), nc->ttyfp, false);
 }
 
 int ncdirect_vprintf_aligned(ncdirect* n, int y, ncalign_e align, const char* fmt, va_list ap){
@@ -600,17 +600,17 @@ ncdirect_stop_minimal(void* vnc){
   if(nc->initialized_readline){
     rl_deprep_terminal();
   }
-  if(nc->tcache.op && term_emit("op", nc->tcache.op, nc->ttyfp, true)){
+  if(nc->tcache.op && term_emit(nc->tcache.op, nc->ttyfp, true)){
     ret = -1;
   }
-  if(nc->tcache.sgr0 && term_emit("sgr0", nc->tcache.sgr0, nc->ttyfp, true)){
+  if(nc->tcache.sgr0 && term_emit(nc->tcache.sgr0, nc->ttyfp, true)){
     ret = -1;
   }
-  if(nc->tcache.oc && term_emit("oc", nc->tcache.oc, nc->ttyfp, true)){
+  if(nc->tcache.oc && term_emit(nc->tcache.oc, nc->ttyfp, true)){
     ret = -1;
   }
   if(nc->ctermfd >= 0){
-    if(nc->tcache.cnorm && tty_emit("cnorm", nc->tcache.cnorm, nc->ctermfd)){
+    if(nc->tcache.cnorm && tty_emit(nc->tcache.cnorm, nc->ctermfd)){
       ret = -1;
     }
     ret |= tcsetattr(nc->ctermfd, TCSANOW, &nc->tpreserved);
@@ -709,16 +709,16 @@ static inline int
 ncdirect_style_emit(ncdirect* n, unsigned stylebits, FILE* out){
   int r = -1;
   if(stylebits == 0 && n->tcache.sgr0){
-    r = term_emit("sgr0", n->tcache.sgr0, n->ttyfp, false);
+    r = term_emit(n->tcache.sgr0, n->ttyfp, false);
   }else if(n->tcache.sgr){
-    r = term_emit("sgr", tiparm(n->tcache.sgr, stylebits & NCSTYLE_STANDOUT,
-                                stylebits & NCSTYLE_UNDERLINE,
-                                stylebits & NCSTYLE_REVERSE,
-                                stylebits & NCSTYLE_BLINK,
-                                stylebits & NCSTYLE_DIM,
-                                stylebits & NCSTYLE_BOLD,
-                                stylebits & NCSTYLE_INVIS,
-                                stylebits & NCSTYLE_PROTECT, 0), out, false);
+    r = term_emit(tiparm(n->tcache.sgr, stylebits & NCSTYLE_STANDOUT,
+                         stylebits & NCSTYLE_UNDERLINE,
+                         stylebits & NCSTYLE_REVERSE,
+                         stylebits & NCSTYLE_BLINK,
+                         stylebits & NCSTYLE_DIM,
+                         stylebits & NCSTYLE_BOLD,
+                         stylebits & NCSTYLE_INVIS,
+                         stylebits & NCSTYLE_PROTECT, 0), out, false);
   }
   // sgr resets colors, so set them back up if not defaults
   if(r == 0){
@@ -809,10 +809,10 @@ int ncdirect_set_fg_default(ncdirect* nc){
     return 0;
   }
   if(nc->tcache.fgop){
-    if(term_emit("fgop", nc->tcache.fgop, nc->ttyfp, false)){
+    if(term_emit(nc->tcache.fgop, nc->ttyfp, false)){
       return -1;
     }
-  }else if(term_emit("op", nc->tcache.op, nc->ttyfp, false) == 0){
+  }else if(term_emit(nc->tcache.op, nc->ttyfp, false) == 0){
     if(!ncdirect_bg_default_p(nc)){
       if(ncdirect_set_bg_rgb(nc, channels_bg_rgb(nc->channels))){
         return -1;
@@ -828,10 +828,10 @@ int ncdirect_set_bg_default(ncdirect* nc){
     return 0;
   }
   if(nc->tcache.bgop){
-    if(term_emit("bgop", nc->tcache.bgop, nc->ttyfp, false)){
+    if(term_emit(nc->tcache.bgop, nc->ttyfp, false)){
       return -1;
     }
-  }else if(term_emit("op", nc->tcache.op, nc->ttyfp, false) == 0){
+  }else if(term_emit(nc->tcache.op, nc->ttyfp, false) == 0){
     if(!ncdirect_fg_default_p(nc)){
       if(ncdirect_set_fg_rgb(nc, channels_fg_rgb(nc->channels))){
         return -1;

@@ -609,11 +609,11 @@ int term_setstyle(FILE* out, unsigned cur, unsigned targ, unsigned stylebit,
   if(curon != targon){
     if(targon){
       if(ton){
-        ret = term_emit("ton", ton, out, false);
+        ret = term_emit(ton, out, false);
       }
     }else{
       if(toff){ // how did this happen? we can turn it on, but not off?
-        ret = term_emit("toff", toff, out, false);
+        ret = term_emit(toff, out, false);
       }
     }
   }
@@ -640,18 +640,18 @@ term_setstyles(FILE* out, uint32_t* curattr, const nccell* c, bool* normalized,
     *normalized = true; // FIXME this is pretty conservative
     // if everything's 0, emit the shorter sgr0
     if(sgr0 && ((cellattr & NCSTYLE_MASK) == 0)){
-      if(term_emit("sgr0", sgr0, out, false) < 0){
+      if(term_emit(sgr0, out, false) < 0){
         ret = -1;
       }
-    }else if(term_emit("sgr", tiparm(sgr, cellattr & NCSTYLE_STANDOUT,
-                                     cellattr & NCSTYLE_UNDERLINE,
-                                     cellattr & NCSTYLE_REVERSE,
-                                     cellattr & NCSTYLE_BLINK,
-                                     cellattr & NCSTYLE_DIM,
-                                     cellattr & NCSTYLE_BOLD,
-                                     cellattr & NCSTYLE_INVIS,
-                                     cellattr & NCSTYLE_PROTECT, 0),
-                                     out, false) < 0){
+    }else if(term_emit(tiparm(sgr, cellattr & NCSTYLE_STANDOUT,
+                              cellattr & NCSTYLE_UNDERLINE,
+                              cellattr & NCSTYLE_REVERSE,
+                              cellattr & NCSTYLE_BLINK,
+                              cellattr & NCSTYLE_DIM,
+                              cellattr & NCSTYLE_BOLD,
+                              cellattr & NCSTYLE_INVIS,
+                              cellattr & NCSTYLE_PROTECT, 0),
+                              out, false) < 0){
       ret = -1;
     }
     // sgr will blow away italics/struck if they were set beforehand
@@ -755,9 +755,9 @@ term_bg_rgb8(bool RGBflag, const char* setab, int colors, FILE* out,
     // a single screen, start... combining close ones? For 8-color mode, simple
     // interpolation. I have no idea what to do for 88 colors. FIXME
     if(colors >= 256){
-      return term_emit("setab", tiparm(setab, rgb_quantize_256(r, g, b)), out, false);
+      return term_emit(tiparm(setab, rgb_quantize_256(r, g, b)), out, false);
     }else if(colors >= 8){
-      return term_emit("setab", tiparm(setab, rgb_quantize_8(r, g, b)), out, false);
+      return term_emit(tiparm(setab, rgb_quantize_8(r, g, b)), out, false);
     }
   }
   return 0;
@@ -782,9 +782,9 @@ term_fg_rgb8(bool RGBflag, const char* setaf, int colors, FILE* out,
     // a single screen, start... combining close ones? For 8-color mode, simple
     // interpolation. I have no idea what to do for 88 colors. FIXME
     if(colors >= 256){
-      return term_emit("setaf", tiparm(setaf, rgb_quantize_256(r, g, b)), out, false);
+      return term_emit(tiparm(setaf, rgb_quantize_256(r, g, b)), out, false);
     }else if(colors >= 8){
-      return term_emit("setaf", tiparm(setaf, rgb_quantize_8(r, g, b)), out, false);
+      return term_emit(tiparm(setaf, rgb_quantize_8(r, g, b)), out, false);
     }
   }
   return 0;
@@ -802,7 +802,7 @@ update_palette(notcurses* nc, FILE* out){
         r = r * 1000 / 255;
         g = g * 1000 / 255;
         b = b * 1000 / 255;
-        term_emit("initc", tiparm(nc->tcache.initc, damageidx, r, g, b), out, false);
+        term_emit(tiparm(nc->tcache.initc, damageidx, r, g, b), out, false);
         nc->palette_damage[damageidx] = false;
       }
     }
@@ -827,13 +827,13 @@ goto_location(notcurses* nc, FILE* out, int y, int x){
       return 0;
     }
     if(x == nc->rstate.x + 1 && nc->tcache.cuf1){
-      ret = term_emit("cuf1", nc->tcache.cuf1, out, false);
+      ret = term_emit(nc->tcache.cuf1, out, false);
     }else{
-      ret = term_emit("hpa", tiparm(nc->tcache.hpa, x), out, false);
+      ret = term_emit(tiparm(nc->tcache.hpa, x), out, false);
     }
   }else{
     // cup is required, no need to check for existence
-    ret = term_emit("cup", tiparm(nc->tcache.cup, y, x), out, false);
+    ret = term_emit(tiparm(nc->tcache.cup, y, x), out, false);
   }
   if(ret == 0){
     nc->rstate.x = x;
@@ -855,7 +855,7 @@ raster_defaults(notcurses* nc, bool fgdef, bool bgdef, FILE* out){
     ++nc->stats.defaultelisions;
     return 0;
   }else if((mustsetfg && mustsetbg) || !nc->tcache.fgop){
-    if(term_emit("op", nc->tcache.op, out, false)){
+    if(term_emit(nc->tcache.op, out, false)){
       return -1;
     }
     nc->rstate.fgdefelidable = true;
@@ -865,14 +865,14 @@ raster_defaults(notcurses* nc, bool fgdef, bool bgdef, FILE* out){
     nc->rstate.fgpalelidable = false;
     nc->rstate.bgpalelidable = false;
   }else if(mustsetfg){
-    if(term_emit("fgop", nc->tcache.fgop, out, false)){
+    if(term_emit(nc->tcache.fgop, out, false)){
       return -1;
     }
     nc->rstate.fgdefelidable = true;
     nc->rstate.fgelidable = false;
     nc->rstate.fgpalelidable = false;
   }else{
-    if(term_emit("bgop", nc->tcache.bgop, out, false)){
+    if(term_emit(nc->tcache.bgop, out, false)){
       return -1;
     }
     nc->rstate.bgdefelidable = true;
@@ -1089,11 +1089,11 @@ static int
 home_cursor(notcurses* nc, bool flush){
   int ret = -1;
   if(nc->tcache.home){
-    ret = term_emit("home", nc->tcache.home, nc->ttyfp, flush);
+    ret = term_emit(nc->tcache.home, nc->ttyfp, flush);
   }else if(nc->tcache.cup){
-    ret = term_emit("cup", tiparm(nc->tcache.cup, 1, 1), nc->ttyfp, flush);
+    ret = term_emit(tiparm(nc->tcache.cup, 1, 1), nc->ttyfp, flush);
   }else if(nc->tcache.clearscr){
-    ret = term_emit("clear", nc->tcache.clearscr, nc->ttyfp, flush);
+    ret = term_emit(nc->tcache.clearscr, nc->ttyfp, flush);
   }
   if(ret >= 0){
     nc->rstate.x = 0;
@@ -1360,7 +1360,7 @@ int notcurses_cursor_enable(notcurses* nc, int y, int x){
     nc->cursorx = x;
     return 0;
   }
-  if(tty_emit("cnorm", nc->tcache.cnorm, nc->ttyfd) || fflush(nc->ttyfp) == EOF){
+  if(tty_emit(nc->tcache.cnorm, nc->ttyfd) || fflush(nc->ttyfp) == EOF){
     return -1;
   }
   nc->cursory = y;
@@ -1375,7 +1375,7 @@ int notcurses_cursor_disable(notcurses* nc){
   }
   if(nc->ttyfd >= 0){
     if(nc->tcache.civis){
-      if(!tty_emit("civis", nc->tcache.civis, nc->ttyfd) && !fflush(nc->ttyfp)){
+      if(!tty_emit(nc->tcache.civis, nc->ttyfd) && !fflush(nc->ttyfp)){
         nc->cursory = -1;
         nc->cursorx = -1;
         return 0;

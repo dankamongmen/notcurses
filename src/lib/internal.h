@@ -505,7 +505,7 @@ rgb_greyscale(int r, int g, int b){
 }
 
 static inline int
-tty_emit(const char* name __attribute__ ((unused)), const char* seq, int fd){
+tty_emit(const char* seq, int fd){
   if(!seq){
     return -1;
   }
@@ -523,27 +523,25 @@ tty_emit(const char* name __attribute__ ((unused)), const char* seq, int fd){
     }
   }while(written < slen);
   if(written < slen){
-//fprintf(stderr, "Error emitting %zub %s escape (%s)\n", strlen(seq), name, strerror(errno));
+//fprintf(stderr, "Error emitting %zub escape (%s)\n", strlen(seq), strerror(errno));
     return -1;
   }
   return 0;
 }
 
 static inline int
-term_emit(const char* name __attribute__ ((unused)), const char* seq,
-          FILE* out, bool flush){
+term_emit(const char* seq, FILE* out, bool flush){
   if(!seq){
     return -1;
   }
   if(fputs(seq, out) == EOF){
-//fprintf(stderr, "Error emitting %zub %s escape (%s)\n", strlen(seq), name, strerror(errno));
+//fprintf(stderr, "Error emitting %zub escape (%s)\n", strlen(seq), strerror(errno));
     return -1;
   }
   if(flush){
     while(fflush(out) == EOF){
       if(errno != EAGAIN){
-        fprintf(stderr, "Error flushing after %zub %s sequence (%s)\n",
-                strlen(seq), name, strerror(errno));
+        fprintf(stderr, "Error flushing after %zub sequence (%s)\n", strlen(seq), strerror(errno));
         return -1;
       }
     }
@@ -556,7 +554,7 @@ term_bg_palindex(const notcurses* nc, FILE* out, unsigned pal){
   if(nc->tcache.setab == NULL){
     return 0;
   }
-  return term_emit("setab", tiparm(nc->tcache.setab, pal), out, false);
+  return term_emit(tiparm(nc->tcache.setab, pal), out, false);
 }
 
 static inline int
@@ -564,7 +562,7 @@ term_fg_palindex(const notcurses* nc, FILE* out, unsigned pal){
   if(nc->tcache.setaf == NULL){
     return 0;
   }
-  return term_emit("setaf", tiparm(nc->tcache.setaf, pal), out, false);
+  return term_emit(tiparm(nc->tcache.setaf, pal), out, false);
 }
 
 static inline const char*
