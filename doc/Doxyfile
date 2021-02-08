@@ -1371,7 +1371,7 @@ DOCSET_PUBLISHER_NAME  = Publisher
 # If the GENERATE_HTMLHELP tag is set to YES then doxygen generates three
 # additional HTML index files: index.hhp, index.hhc, and index.hhk. The
 # index.hhp is a project file that can be read by Microsoft's HTML Help Workshop
-# (see: https://www.microsoft.com/en-us/download/details.aspx?id=2.2.0) on
+# (see: https://www.microsoft.com/en-us/download/details.aspx?id=21138) on
 # Windows.
 #
 # The HTML Help Workshop contains a compiler that can convert all HTML output

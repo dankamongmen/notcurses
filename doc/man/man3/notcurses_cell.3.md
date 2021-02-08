@@ -35,7 +35,7 @@ typedef struct nccell {
 #define CELL_FG_PALETTE         (CELL_BG_PALETTE << 32u)
 #define CHANNEL_ALPHA_MASK      0x30000000ull
 #define CELL_ALPHA_HIGHCONTRAST 0x30000000ull
-#define CELL_ALPHA_TRANSPARENT  0x2.2.0000ull
+#define CELL_ALPHA_TRANSPARENT  0x20000000ull
 #define CELL_ALPHA_BLEND        0x10000000ull
 #define CELL_ALPHA_OPAQUE       0x00000000ull
 ```
