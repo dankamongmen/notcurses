@@ -637,8 +637,9 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
     init_lang(nullptr);
   }
   const char* encoding = nl_langinfo(CODESET);
+  bool utf8 = false;
   if(encoding && strcmp(encoding, "UTF-8") == 0){
-    ret->tcache.utf8 = true;
+    utf8 = true;
   }
   if(setup_signals(ret, (flags & NCDIRECT_OPTION_NO_QUIT_SIGHANDLERS),
                    true, ncdirect_stop_minimal)){
@@ -673,6 +674,7 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
   if(interrogate_terminfo(&ret->tcache, shortname_term)){
     goto err;
   }
+  ret->tcache.utf8 = utf8;
   ncdirect_set_styles(ret, 0);
   return ret;
 
