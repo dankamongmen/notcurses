@@ -68,6 +68,9 @@ to resume.
 
 # NOTES
 
+If you're looking for a fast, inline image viewer for the shell, try using
+**ncplayer -k -t0 -q**.
+
 Optimal display requires a terminal advertising the **rgb** terminfo(5)
 capability, or that the environment variable **COLORTERM** is defined to
 **24bit** (and that the terminal honors this variable), along with a

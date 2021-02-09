@@ -273,6 +273,9 @@ auto main(int argc, char** argv) -> int {
   auto nonopt = handle_opts(argc, argv, ncopts, &quiet, &timescale, &scalemode,
                             &blitter, &displaytime, &loop);
   ncopts.flags |= NCOPTION_INHIBIT_SETLOCALE;
+  if(quiet){
+    ncopts.flags |= NCOPTION_SUPPRESS_BANNERS;
+  }
   NotCurses nc{ncopts};
   if(!nc.can_open_images()){
     nc.stop();
