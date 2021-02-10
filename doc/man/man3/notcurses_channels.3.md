@@ -1,6 +1,6 @@
 % notcurses_channels(3)
 % nick black <nickblack@linux.com>
-% v2.2.0
+% v2.2.1
 
 # NAME
 

@@ -1,7 +1,10 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 2.2.0 (2021-02-08)
+* 2.2.1 (2021-02-09):
+  * Brown-bag release: fix UTF8 discovery in direct mode. Sorry!
+
+* 2.2.0 (2021-02-08):
   * Add `notcurses_canbraille()` capability predicate.
 
 * 2.1.8 (2021-02-03):
