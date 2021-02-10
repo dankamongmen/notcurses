@@ -10,6 +10,7 @@ extern "C" {
 typedef struct ncplane ncdirectv;
 
 #define API __attribute__((visibility("default")))
+#define ALLOC __attribute__((malloc)) __attribute__((warn_unused_result))
 
 // ncdirect_init() will call setlocale() to inspect the current locale. If
 // that locale is "C" or "POSIX", it will call setlocale(LC_ALL, "") to set
@@ -37,17 +38,17 @@ typedef struct ncplane ncdirectv;
 // styling to text in the standard output paradigm. 'flags' is a bitmask over
 // NCDIRECT_OPTION_*.
 // Returns NULL on error, including any failure initializing terminfo.
-API struct ncdirect* ncdirect_init(const char* termtype, FILE* fp, uint64_t flags);
+API ALLOC struct ncdirect* ncdirect_init(const char* termtype, FILE* fp, uint64_t flags);
 
 // The same as ncdirect_init(), but without any multimedia functionality,
 // allowing for a svelter binary. Link with notcurses-core if this is used.
-API struct ncdirect* ncdirect_core_init(const char* termtype, FILE* fp, uint64_t flags);
+API ALLOC struct ncdirect* ncdirect_core_init(const char* termtype, FILE* fp, uint64_t flags);
 
 // Read a (heap-allocated) line of text using the Readline library Initializes
 // Readline the first time it's called. For input to be echoed to the terminal,
 // it is necessary that NCDIRECT_OPTION_INHIBIT_CBREAK be provided to
 // ncdirect_init(). Returns NULL on error.
-API char* ncdirect_readline(struct ncdirect* nc, const char* prompt);
+API ALLOC char* ncdirect_readline(struct ncdirect* nc, const char* prompt);
 
 // Direct mode. This API can be used to colorize and stylize output generated
 // outside of notcurses, without ever calling notcurses_render(). These should
@@ -285,12 +286,13 @@ API int ncdirect_stop(struct ncdirect* nc);
 // the result. The image may be arbitrarily many rows -- the output will scroll
 // -- but will only occupy the column of the cursor, and those to the right.
 // To actually write (and free) this, invoke ncdirect_raster_frame().
-API ncdirectv* ncdirect_render_frame(struct ncdirect* n, const char* filename,
-                                     ncblitter_e blitter, ncscale_e scale);
+API ALLOC ncdirectv* ncdirect_render_frame(struct ncdirect* n, const char* filename,
+                                           ncblitter_e blitter, ncscale_e scale);
 
 // Takes the result of ncdirect_render_frame() and writes it to the output.
 API int ncdirect_raster_frame(struct ncdirect* n, ncdirectv* ncdv, ncalign_e align);
 
+#undef ALLOC
 #undef API
 
 #ifdef __cplusplus
