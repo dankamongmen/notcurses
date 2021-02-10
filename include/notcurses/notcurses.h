@@ -33,6 +33,7 @@ extern "C" {
 #endif
 
 #define API __attribute__((visibility("default")))
+#define ALLOC __attribute__((malloc))
 
 // Get a human-readable string describing the running Notcurses version.
 API const char* notcurses_version(void);
@@ -741,7 +742,7 @@ API const char* cell_extended_gcluster(const struct ncplane* n, const nccell* c)
 
 // copy the UTF8-encoded EGC out of the nccell. the result is not tied to any
 // ncplane, and persists across erases / destruction.
-static inline char*
+ALLOC static inline char*
 cell_strdup(const struct ncplane* n, const nccell* c){
   return strdup(cell_extended_gcluster(n, c));
 }
@@ -900,11 +901,11 @@ API const char* notcurses_str_scalemode(ncscale_e scalemode);
 // be a tty. You'll usually want stdout. NULL can be supplied for 'fp', in
 // which case /dev/tty will be opened. Returns NULL on error, including any
 // failure initializing terminfo.
-API struct notcurses* notcurses_init(const notcurses_options* opts, FILE* fp);
+API ALLOC struct notcurses* notcurses_init(const notcurses_options* opts, FILE* fp);
 
 // The same as notcurses_init(), but without any multimedia functionality,
 // allowing for a svelter binary. Link with notcurses-core if this is used.
-API struct notcurses* notcurses_core_init(const notcurses_options* opts, FILE* fp);
+API ALLOC struct notcurses* notcurses_core_init(const notcurses_options* opts, FILE* fp);
 
 // Destroy a Notcurses context.
 API int notcurses_stop(struct notcurses* nc);
@@ -1131,15 +1132,15 @@ typedef struct ncplane_options {
 // must both be positive. This plane is initially at the top of the z-buffer,
 // as if ncplane_move_top() had been called on it. The void* 'userptr' can be
 // retrieved (and reset) later. A 'name' can be set, used in debugging.
-API struct ncplane* ncplane_create(struct ncplane* n, const ncplane_options* nopts);
+API ALLOC struct ncplane* ncplane_create(struct ncplane* n, const ncplane_options* nopts);
 
 // Same as ncplane_create(), but creates a new pile. The returned plane will
 // be the top, bottom, and root of this new pile.
-API struct ncplane* ncpile_create(struct notcurses* nc, const ncplane_options* nopts);
+API ALLOC struct ncplane* ncpile_create(struct notcurses* nc, const ncplane_options* nopts);
 
 // This function will be removed in ABI3 in favor of ncplane_create().
 // It persists in ABI2 only for backwards compatibility.
-API struct ncplane* ncplane_new(struct ncplane* n, int rows, int cols, int y, int x, void* opaque, const char* name)
+API ALLOC struct ncplane* ncplane_new(struct ncplane* n, int rows, int cols, int y, int x, void* opaque, const char* name)
   __attribute__ ((deprecated));
 
 // Suitable for use as a 'resizecb', this will resize the plane to the visual
@@ -1175,7 +1176,7 @@ API struct ncplane* ncplane_reparent_family(struct ncplane* n, struct ncplane* n
 // The new plane will be immediately above the old one on the z axis, and will
 // be bound to the same parent. Bound planes are *not* duplicated; the new
 // plane is bound to the parent of 'n', but has no bound planes.
-API struct ncplane* ncplane_dup(const struct ncplane* n, void* opaque);
+API ALLOC struct ncplane* ncplane_dup(const struct ncplane* n, void* opaque);
 
 // provided a coordinate relative to the origin of 'src', map it to the same
 // absolute coordinate relative to the origin of 'dst'. either or both of 'y'
@@ -1272,7 +1273,7 @@ typedef struct ncstats {
 
 // Allocate an ncstats object. Use this rather than allocating your own, since
 // future versions of Notcurses might enlarge this structure.
-API ncstats* notcurses_stats_alloc(const struct notcurses* nc);
+API ALLOC ncstats* notcurses_stats_alloc(const struct notcurses* nc);
 
 // Acquire an atomic snapshot of the Notcurses object's stats.
 API void notcurses_stats(const struct notcurses* nc, ncstats* stats);
@@ -2361,7 +2362,7 @@ ncplane_double_box_sized(struct ncplane* n, uint32_t styles, uint64_t channels,
 
 // Open a visual at 'file', extract a codec and parameters, decode the first
 // image to memory.
-API struct ncvisual* ncvisual_from_file(const char* file);
+API ALLOC struct ncvisual* ncvisual_from_file(const char* file);
 
 // Prepare an ncvisual, and its underlying plane, based off RGBA content in
 // memory at 'rgba'. 'rgba' must be a flat array of 32-bit 8bpc RGBA pixels.
@@ -2369,22 +2370,22 @@ API struct ncvisual* ncvisual_from_file(const char* file);
 // are actual data. There must be 'rows' lines. The total size of 'rgba'
 // must thus be at least (rows * rowstride) bytes, of which (rows * cols * 4)
 // bytes are actual data. Resulting planes are ceil('rows' / 2) x 'cols'.
-API struct ncvisual* ncvisual_from_rgba(const void* rgba, int rows,
-                                        int rowstride, int cols);
+API ALLOC struct ncvisual* ncvisual_from_rgba(const void* rgba, int rows,
+                                              int rowstride, int cols);
 
 // ncvisual_from_rgba(), but 'bgra' is arranged as BGRA.
-API struct ncvisual* ncvisual_from_bgra(const void* rgba, int rows,
-                                        int rowstride, int cols);
+API ALLOC struct ncvisual* ncvisual_from_bgra(const void* rgba, int rows,
+                                              int rowstride, int cols);
 
 // Promote an ncplane 'n' to an ncvisual. The plane may contain only spaces,
 // half blocks, and full blocks. The latter will be checked, and any other
 // glyph will result in a NULL being returned. This function exists so that
 // planes can be subjected to ncvisual transformations. If possible, it's
 // better to create the ncvisual from memory using ncvisual_from_rgba().
-API struct ncvisual* ncvisual_from_plane(const struct ncplane* n,
-                                         ncblitter_e blit,
-                                         int begy, int begx,
-                                         int leny, int lenx);
+API ALLOC struct ncvisual* ncvisual_from_plane(const struct ncplane* n,
+                                               ncblitter_e blit,
+                                               int begy, int begx,
+                                               int leny, int lenx);
 
 #define NCVISUAL_OPTION_NODEGRADE 0x0001ull // fail rather than degrade
 #define NCVISUAL_OPTION_BLEND     0x0002ull // use CELL_ALPHA_BLEND with visual
@@ -2419,8 +2420,8 @@ struct ncvisual_options {
 // plane), continuing for 'leny'x'lenx' cells. Either or both of 'leny' and
 // 'lenx' can be specified as -1 to go through the boundary of the plane.
 // Only glyphs from the specified blitset may be present.
-API uint32_t* ncplane_rgba(const struct ncplane* n, ncblitter_e blit,
-                           int begy, int begx, int leny, int lenx);
+API ALLOC uint32_t* ncplane_rgba(const struct ncplane* n, ncblitter_e blit,
+                                 int begy, int begx, int leny, int lenx);
 
 // Get the size and ratio of ncvisual pixels to output cells along the y
 // ('toy') and x ('tox') axes. A ncvisual of '*y'X'*x' pixels will require
@@ -2477,7 +2478,7 @@ API struct ncplane* ncvisual_render(struct notcurses* nc, struct ncvisual* ncv,
 
 // If a subtitle ought be displayed at this time, return a heap-allocated copy
 // of the UTF8 text.
-API char* ncvisual_subtitle(const struct ncvisual* ncv);
+API ALLOC char* ncvisual_subtitle(const struct ncvisual* ncv);
 
 // Called for each frame rendered from 'ncv'. If anything but 0 is returned,
 // the streaming operation ceases immediately, and that value is propagated out.
@@ -2657,7 +2658,7 @@ struct ncreel;
 
 // Take over the ncplane 'nc' and use it to draw a reel according to 'popts'.
 // The plane will be destroyed by ncreel_destroy(); this transfers ownership.
-API struct ncreel* ncreel_create(struct ncplane* n, const ncreel_options* popts)
+API ALLOC struct ncreel* ncreel_create(struct ncplane* n, const ncreel_options* popts)
   __attribute__ ((nonnull (1)));
 
 // Returns the ncplane on which this ncreel lives.
@@ -2677,9 +2678,9 @@ typedef int (*tabletcb)(struct nctablet* t, bool drawfromtop);
 // the specified tablet. If both are specified, the tablet will be added to the
 // resulting location, assuming it is valid (after->next == before->prev); if
 // it is not valid, or there is any other error, NULL will be returned.
-API struct nctablet* ncreel_add(struct ncreel* nr, struct nctablet* after,
-                                struct nctablet* before, tabletcb cb,
-                                void* opaque)
+API ALLOC struct nctablet* ncreel_add(struct ncreel* nr, struct nctablet* after,
+                                      struct nctablet* before, tabletcb cb,
+                                      void* opaque)
   __attribute__ ((nonnull (1)));
 
 // Return the number of nctablets in the ncreel 'nr'.
@@ -2814,7 +2815,7 @@ typedef struct palette256 {
 // Create a new palette store. It will be initialized with notcurses' best
 // knowledge of the currently configured palette. The palette upon startup
 // cannot be reliably detected, sadly.
-API palette256* palette256_new(struct notcurses* nc);
+API ALLOC palette256* palette256_new(struct notcurses* nc);
 
 // Attempt to configure the terminal with the provided palette 'p'. Does not
 // transfer ownership of 'p'; palette256_free() can (ought) still be called.
@@ -2894,7 +2895,7 @@ typedef struct ncselector_options {
   uint64_t flags;        // bitfield of NCSELECTOR_OPTION_*
 } ncselector_options;
 
-API struct ncselector* ncselector_create(struct ncplane* n, const ncselector_options* opts)
+API ALLOC struct ncselector* ncselector_create(struct ncplane* n, const ncselector_options* opts)
   __attribute__ ((nonnull (1)));
 
 // Dynamically add or delete items. It is usually sufficient to supply a static
@@ -2969,7 +2970,7 @@ typedef struct ncmultiselector_options {
   uint64_t flags;        // bitfield of NCMULTISELECTOR_OPTION_*
 } ncmultiselector_options;
 
-API struct ncmultiselector* ncmultiselector_create(struct ncplane* n, const ncmultiselector_options* opts)
+API ALLOC struct ncmultiselector* ncmultiselector_create(struct ncplane* n, const ncmultiselector_options* opts)
   __attribute__ ((nonnull (1)));
 
 // Return selected vector. An array of bools must be provided, along with its
@@ -2991,12 +2992,30 @@ API bool ncmultiselector_offer_input(struct ncmultiselector* n, const struct nci
 // Destroy the ncmultiselector.
 API void ncmultiselector_destroy(struct ncmultiselector* n);
 
+// nctree widget -- a vertical browser supporting hierarchical objects.
+//
+// groups can be collapsed or expanded
+typedef struct nctree_options {
+  char* title; // title may be NULL, inhibiting riser, saving two rows.
+  char* secondary; // secondary may be NULL
+  char* footer; // footer may be NULL
+  struct ncmselector_item* items; // initial items, descriptions, and statuses
+  // maximum number of options to display at once, 0 to use all available space
+  unsigned maxdisplay;
+  // exhaustive styling options
+  uint64_t opchannels;   // option channels
+  uint64_t descchannels; // description channels
+  uint64_t titlechannels;// title channels
+  uint64_t footchannels; // secondary and footer channels
+  uint64_t boxchannels;  // border channels
+  uint64_t flags;        // bitfield of NCtree_OPTION_*
+} nctree_options;
+
 // Menus. Horizontal menu bars are supported, on the top and/or bottom rows.
 // If the menu bar is longer than the screen, it will be only partially
 // visible. Menus may be either visible or invisible by default. In the event of
 // a screen resize, menus will be automatically moved/resized. Elements can be
 // dynamically enabled or disabled at all levels (menu, section, and item),
-
 struct ncmenu_item {
   char* desc;           // utf-8 menu item, NULL for horizontal separator
   ncinput shortcut;     // shortcut, all should be distinct
@@ -3023,7 +3042,7 @@ typedef struct ncmenu_options {
 // Create a menu with the specified options. Menus are currently bound to an
 // overall Notcurses object (as opposed to a particular plane), and are
 // implemented as ncplanes kept atop other ncplanes.
-API struct ncmenu* ncmenu_create(struct ncplane* n, const ncmenu_options* opts)
+API ALLOC struct ncmenu* ncmenu_create(struct ncplane* n, const ncmenu_options* opts)
   __attribute__ ((nonnull (1)));
 
 // Unroll the specified menu section, making the menu visible if it was
@@ -3099,7 +3118,7 @@ typedef struct ncprogbar_options {
 
 // Takes ownership of the ncplane 'n', which will be destroyed by
 // ncprogbar_destroy(). The progress bar is initially at 0%.
-API struct ncprogbar* ncprogbar_create(struct ncplane* n, const ncprogbar_options* opts)
+API ALLOC struct ncprogbar* ncprogbar_create(struct ncplane* n, const ncprogbar_options* opts)
   __attribute__ ((nonnull (1)));
 
 // Return a reference to the ncprogbar's underlying ncplane.
@@ -3183,12 +3202,12 @@ typedef struct ncplot_options {
 // plot will make free use of the entirety of the plane. For domain
 // autodiscovery, set miny == maxy == 0. ncuplot holds uint64_ts, while
 // ncdplot holds doubles.
-API struct ncuplot* ncuplot_create(struct ncplane* n, const ncplot_options* opts,
-                                   uint64_t miny, uint64_t maxy)
+API ALLOC struct ncuplot* ncuplot_create(struct ncplane* n, const ncplot_options* opts,
+                                         uint64_t miny, uint64_t maxy)
   __attribute__ ((nonnull (1)));
 
-API struct ncdplot* ncdplot_create(struct ncplane* n, const ncplot_options* opts,
-                                   double miny, double maxy)
+API ALLOC struct ncdplot* ncdplot_create(struct ncplane* n, const ncplot_options* opts,
+                                         double miny, double maxy)
   __attribute__ ((nonnull (1)));
 
 // Return a reference to the ncplot's underlying ncplane.
@@ -3235,8 +3254,8 @@ typedef struct ncfdplane_options {
 
 // Create an ncfdplane around the fd 'fd'. Consider this function to take
 // ownership of the file descriptor, which will be closed in ncfdplane_destroy().
-API struct ncfdplane* ncfdplane_create(struct ncplane* n, const ncfdplane_options* opts,
-                          int fd, ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn)
+API ALLOC struct ncfdplane* ncfdplane_create(struct ncplane* n, const ncfdplane_options* opts,
+                                             int fd, ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn)
   __attribute__ ((nonnull (1)));
 
 API struct ncplane* ncfdplane_plane(struct ncfdplane* n)
@@ -3251,19 +3270,19 @@ typedef struct ncsubproc_options {
 } ncsubproc_options;
 
 // see exec(2). p-types use $PATH. e-type passes environment vars.
-API struct ncsubproc* ncsubproc_createv(struct ncplane* n, const ncsubproc_options* opts,
-                                        const char* bin,  char* const arg[],
-                                        ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn)
+API ALLOC struct ncsubproc* ncsubproc_createv(struct ncplane* n, const ncsubproc_options* opts,
+                                              const char* bin,  char* const arg[],
+                                              ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn)
   __attribute__ ((nonnull (1)));
 
-API struct ncsubproc* ncsubproc_createvp(struct ncplane* n, const ncsubproc_options* opts,
-                                         const char* bin,  char* const arg[],
-                                         ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn)
+API ALLOC struct ncsubproc* ncsubproc_createvp(struct ncplane* n, const ncsubproc_options* opts,
+                                               const char* bin,  char* const arg[],
+                                               ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn)
   __attribute__ ((nonnull (1)));
 
-API struct ncsubproc* ncsubproc_createvpe(struct ncplane* n, const ncsubproc_options* opts,
-                       const char* bin,  char* const arg[], char* const env[],
-                       ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn)
+API ALLOC struct ncsubproc* ncsubproc_createvpe(struct ncplane* n, const ncsubproc_options* opts,
+                                                const char* bin,  char* const arg[], char* const env[],
+                                                ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn)
   __attribute__ ((nonnull (1)));
 
 API struct ncplane* ncsubproc_plane(struct ncsubproc* n)
@@ -3298,7 +3317,7 @@ typedef struct ncreader_options {
 // ncreaders provide freeform input in a (possibly multiline) region, supporting
 // optional readline keybindings. takes ownership of 'n', destroying it on any
 // error (ncreader_destroy() otherwise destroys the ncplane).
-API struct ncreader* ncreader_create(struct ncplane* n, const ncreader_options* opts)
+API ALLOC struct ncreader* ncreader_create(struct ncplane* n, const ncreader_options* opts)
   __attribute__ ((nonnull (1)));
 
 // empty the ncreader of any user input, and home the cursor.
