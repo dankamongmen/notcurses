@@ -126,7 +126,9 @@ int runreels(struct notcurses* nc, struct ncreel* nr){
         return 0;
       case 'a':{
         auto tctx = new TabletCtx();
-        ncreel_add(nr, nullptr, nullptr, tabletfxn, tctx);
+        if(!ncreel_add(nr, nullptr, nullptr, tabletfxn, tctx)){
+          return -1;
+        }
         break;
       }
       case 'd':
