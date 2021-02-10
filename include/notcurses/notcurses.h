@@ -3412,6 +3412,7 @@ ncvisual_default_blitter(bool utf8, ncscale_e scale){
 // NCBLIT_2x1 is used outside of NCSCALE_STRETCH.
 API ncblitter_e ncvisual_media_defblitter(const struct notcurses* nc, ncscale_e scale);
 
+#undef ALLOC
 #undef API
 
 #ifdef __cplusplus
