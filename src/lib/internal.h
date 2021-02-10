@@ -28,6 +28,9 @@ extern "C" {
 #include "compat/compat.h"
 #include "egcpool.h"
 
+#define API __attribute__((visibility("default")))
+#define ALLOC __attribute__((malloc)) __attribute__((warn_unused_result))
+
 struct esctrie;
 struct ncvisual_details;
 
@@ -641,7 +644,7 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx,
 
 int update_term_dimensions(int fd, int* rows, int* cols);
 
-static inline void*
+ALLOC static inline void*
 memdup(const void* src, size_t len){
   void* ret = malloc(len);
   if(ret){
@@ -650,7 +653,7 @@ memdup(const void* src, size_t len){
   return ret;
 }
 
-void* bgra_to_rgba(const void* data, int rows, int rowstride, int cols);
+ALLOC void* bgra_to_rgba(const void* data, int rows, int rowstride, int cols);
 
 static inline int
 rgba_blit_dispatch(ncplane* nc, const struct blitset* bset, int placey,
@@ -786,7 +789,7 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n, const ncplane_options* 
 void free_plane(ncplane* p);
 
 // heap-allocated formatted output
-char* ncplane_vprintf_prep(const char* format, va_list ap);
+ALLOC char* ncplane_vprintf_prep(const char* format, va_list ap);
 
 // Resize the provided ncviusal to the specified 'rows' x 'cols', but do not
 // change the internals of the ncvisual. Uses oframe.
@@ -928,7 +931,7 @@ cell_blend_bchannel(nccell* cl, unsigned channel, unsigned* blends){
 // right-to-left, we make a copy, appending an U+200E to force left-to-right.
 // only the first unicode char of the EGC is currently checked FIXME. if the
 // EGC is not RTL, we return NULL.
-static char*
+ALLOC static inline char*
 egc_rtl(const char* egc, int* bytes){
   wchar_t w;
   mbstate_t mbstate = { };
@@ -1083,8 +1086,10 @@ typedef struct ncvisual_implementation {
 } ncvisual_implementation;
 
 // assigned by libnotcurses.so if linked with multimedia
-extern const ncvisual_implementation* visual_implementation
-  __attribute__ ((visibility("default")));
+API extern const ncvisual_implementation* visual_implementation;
+
+#undef ALLOC
+#undef API
 
 #ifdef __cplusplus
 }
