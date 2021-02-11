@@ -127,15 +127,11 @@ auto main(int argc, const char **argv) -> int {
   context.setOption("no-breaks", true); // don't break in the debugger when assertions fail
   dt_removed args(argv);
   handle_opts(argv);
-  if(check_data_dir()){
-    return EXIT_FAILURE;
-  }
   int res = context.run(); // run
+  reset_terminal();
+  check_data_dir();
   if(context.shouldExit()){ // important - query flags (and --exit) rely on the user doing this
     return res;             // propagate the result of the tests
   }
-  // if we exited via REQUIRE(), we likely left the terminal in an invalid
-  // state. go ahead and reset it manually.
-  reset_terminal();
   return res; // the result from doctest is propagated here as well
 }
