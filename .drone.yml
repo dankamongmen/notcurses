@@ -30,7 +30,7 @@ name: alpine-edge
 
 steps:
 - name: alpine-edge
-  image: dankamongmen/edge_builder:2021-01-08a
+  image: dankamongmen/edge_builder:2021-02-10a
   commands:
     - export LANG=en_US.UTF-8
     - mkdir build
