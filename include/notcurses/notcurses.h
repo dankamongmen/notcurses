@@ -2705,7 +2705,7 @@ API int ncreel_redraw(struct ncreel* nr)
 //  * a mouse scrollwheel event (rolls reel)
 //  * up, down, pgup, or pgdown (navigates among items)
 API bool ncreel_offer_input(struct ncreel* nr, const ncinput* ni)
-  __attribute__ ((nonnull (1)));
+  __attribute__ ((nonnull (1, 2)));
 
 // Return the focused tablet, if any tablets are present. This is not a copy;
 // be careful to use it only for the duration of a critical section.
@@ -2921,7 +2921,8 @@ API const char* ncselector_nextitem(struct ncselector* n);
 //  * a mouse scrollwheel event
 //  * a mouse click on the scrolling arrows
 //  * up, down, pgup, or pgdown on an unrolled menu (navigates among items)
-API bool ncselector_offer_input(struct ncselector* n, const ncinput* nc);
+API bool ncselector_offer_input(struct ncselector* n, const ncinput* nc)
+  __attribute__ ((nonnull (1, 2)));
 
 // Destroy the ncselector. If 'item' is not NULL, the last selected option will
 // be strdup()ed and assigned to '*item' (and must be free()d by the caller).
@@ -2987,7 +2988,8 @@ API struct ncplane* ncmultiselector_plane(struct ncmultiselector* n);
 //  * a mouse scrollwheel event
 //  * a mouse click on the scrolling arrows
 //  * up, down, pgup, or pgdown on an unrolled menu (navigates among items)
-API bool ncmultiselector_offer_input(struct ncmultiselector* n, const ncinput* nc);
+API bool ncmultiselector_offer_input(struct ncmultiselector* n, const ncinput* nc)
+  __attribute__ ((nonnull (1, 2)));
 
 // Destroy the ncmultiselector.
 API void ncmultiselector_destroy(struct ncmultiselector* n);
@@ -3007,20 +3009,17 @@ typedef struct nctree_item {
 } nctree_item;
 
 typedef struct nctree_options {
-  const char* title;      // NULL title inhibits riser, saving two rows
-  const char* secondary;  // secondary may be NULL
-  const char* footer;     // footer may be NULL
   const nctree_item* items; // top-level nctree_item array
   unsigned count;           // size of |items|
-  uint64_t titlechannels; // title channels
-  uint64_t footchannels;  // secondary and footer channels
-  uint64_t boxchannels;   // border channels
+  uint64_t bchannels;       // base channels
   int (*nctreecb)(struct ncplane*, void*); // item callback function
-  uint64_t flags;         // bitfield of NCTREE_OPTION_*
+  uint64_t flags;           // bitfield of NCTREE_OPTION_*
 } nctree_options;
 
+// |opts| may *not* be NULL, since it is necessary to define a callback
+// function.
 API ALLOC struct nctree* nctree_create(struct ncplane* n, const nctree_options* opts)
-  __attribute__ ((nonnull (1)));
+  __attribute__ ((nonnull (1, 2)));
 
 // Returns the ncplane on which this nctree lives.
 API struct ncplane* nctree_plane(struct nctree* n)
@@ -3039,7 +3038,7 @@ API int nctree_redraw(struct nctree* n)
 //  * a mouse scrollwheel event (srolls tree)
 //  * up, down, pgup, or pgdown (navigates among items)
 API bool nctree_offer_input(struct nctree* n, const ncinput* ni)
-  __attribute__ ((nonnull (1)));
+  __attribute__ ((nonnull (1, 2)));
 
   /*
 // Return the focused item, if any items are present. This is not a copy;
@@ -3138,7 +3137,8 @@ API struct ncplane* ncmenu_plane(struct ncmenu* n);
 //  * left or right on an unrolled menu (navigates among sections)
 //  * up or down on an unrolled menu (navigates among items)
 //  * escape on an unrolled menu (the menu is rolled up)
-API bool ncmenu_offer_input(struct ncmenu* n, const ncinput* nc);
+API bool ncmenu_offer_input(struct ncmenu* n, const ncinput* nc)
+  __attribute__ ((nonnull (1, 2)));
 
 // Destroy a menu created with ncmenu_create().
 API int ncmenu_destroy(struct ncmenu* n);
