@@ -10,6 +10,32 @@ notcurses_tree - high-level hierarchical line-based data
 
 **#include <notcurses/notcurses.h>**
 
+```c
+typedef struct nctree_item {
+  void* curry;
+  struct nctree_item* subs;
+  unsigned subcount;
+} nctree_item;
+
+typedef struct nctree_options {
+  const nctree_item* items; // top-level nctree_item array
+  unsigned count;           // size of |items|
+  uint64_t bchannels;       // base channels
+  int (*nctreecb)(struct ncplane*, void*); // item callback function
+  uint64_t flags;           // bitfield of NCTREE_OPTION_*
+} nctree_options;
+```
+
+**struct nctree* nctree_create(struct ncplane* ***n***, const nctree_options* ***opts***);**
+
+**struct ncplane* nctree_plane(struct nctree* ***n***);**
+
+**int nctree_redraw(struct nctree* ***n***);**
+
+**bool nctree_offer_input(struct nctree* ***n***, const ncinput* ***ni***);**
+
+**void nctree_destroy(struct nctree* ***n***);**
+
 # DESCRIPTION
 
 **nctree**s organize static hierarchical items, and allow them to be browsed.
