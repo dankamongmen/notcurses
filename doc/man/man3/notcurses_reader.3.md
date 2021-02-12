@@ -11,7 +11,6 @@ notcurses_reader - high level widget for collecting input
 **#include <notcurses/notcurses.h>**
 
 ```c
-struct ncinput;
 struct ncplane;
 struct ncreader;
 struct notcurses;
@@ -44,7 +43,7 @@ typedef struct ncreader_options {
 
 **int ncreader_write_egc(struct ncreader* ***n***, const char* ***egc***);**
 
-**bool ncreader_offer_input(struct ncreader* ***n***, const struct ncinput* ***ni***);**
+**bool ncreader_offer_input(struct ncreader* ***n***, const ncinput* ***ni***);**
 
 **char* ncreader_contents(const struct ncreader* ***n***);**
 

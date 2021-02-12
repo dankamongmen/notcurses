@@ -54,6 +54,8 @@ typedef struct ncreel_options {
 
 **struct nctablet* ncreel_prev(struct ncreel* ***nr***);**
 
+**bool ncreel_offer_input(struct ncreel* ***nr***, const ncinput* ***ni***);**
+
 **void ncreel_destroy(struct ncreel* ***nr***);**
 
 **void* nctablet_userptr(struct nctablet* ***t***);**
@@ -139,5 +141,6 @@ things more complicated for both me and the user.
 # SEE ALSO
 
 **notcurses(3)**,
+**notcurses_input(3)**,
 **notcurses_plane(3)**,
 **notcurses_tree(3)**

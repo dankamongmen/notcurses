@@ -13,7 +13,6 @@ notcurses_menu - operations on menus
 ```c
 struct ncmenu;
 struct ncplane;
-struct ncinput;
 struct notcurses;
 
 struct ncmenu_section {
@@ -53,13 +52,13 @@ typedef struct ncmenu_options {
 
 **int ncmenu_item_set_status(struct ncmenu* ***n***, const char* ***section***, const char* ***item***, bool ***enabled***);**
 
-**const char* ncmenu_selected(const struct ncmenu* ***n***, struct ncinput* ***ni***);**
+**const char* ncmenu_selected(const struct ncmenu* ***n***, ncinput* ***ni***);**
 
-**const char* ncmenu_mouse_selected(const struct ncmenu* ***n***, const struct ncinput* ***click***, struct ncinput* ***ni***);**
+**const char* ncmenu_mouse_selected(const struct ncmenu* ***n***, const ncinput* ***click***, ncinput* ***ni***);**
 
 **struct ncplane* ncmenu_plane(struct ncmenu* ***n***);**
 
-**bool ncmenu_offer_input(struct ncmenu* ***n***, const struct ncinput* ***nc***);**
+**bool ncmenu_offer_input(struct ncmenu* ***n***, const ncinput* ***nc***);**
 
 **int ncmenu_destroy(struct ncmenu* ***n***);**
 
@@ -80,7 +79,7 @@ the actively unrolled section. In either case, if there is a shortcut for the
 item and **ni** is not **NULL**, **ni** will be filled in with the shortcut.
 
 The menu can be driven either entirely by the application, via direct calls to
-**ncmenu_previtem**, **ncmenu_prevsection**, and the like, or **struct ncinput**
+**ncmenu_previtem**, **ncmenu_prevsection**, and the like, or **ncinput**
 objects can be handed to **ncmenu_offer_input**. In the latter case, the menu
 will largely manage itself. The application must handle item selection (usually
 via the Enter key and/or mouse click) itself, since the menu cannot arbitrarily
@@ -97,7 +96,7 @@ are due to invalid parameters.
 
 **ncmenu_offer_input** returns **true** if the menu "consumed" the input, i.e.
 found it relevant and took an action. Otherwise, **false** is returned, and the
-**struct ncinput** should be considered irrelevant to the menu.
+**ncinput** should be considered irrelevant to the menu.
 
 # SEE ALSO
 

@@ -991,7 +991,7 @@ typedef struct ncinput {
 // compare two ncinput structs for data equality. we can't just use memcmp()
 // due to potential padding in the struct (especially wrt bools) and seqnum.
 static inline bool
-ncinput_equal_p(const struct ncinput* n1, const struct ncinput* n2){
+ncinput_equal_p(const ncinput* n1, const ncinput* n2){
   if(n1->id != n2->id){
     return false;
   }
@@ -2704,7 +2704,7 @@ API int ncreel_redraw(struct ncreel* nr)
 //  * a mouse click on a tablet (focuses tablet)
 //  * a mouse scrollwheel event (rolls reel)
 //  * up, down, pgup, or pgdown (navigates among items)
-API bool ncreel_offer_input(struct ncreel* nr, const struct ncinput* ni)
+API bool ncreel_offer_input(struct ncreel* nr, const ncinput* ni)
   __attribute__ ((nonnull (1)));
 
 // Return the focused tablet, if any tablets are present. This is not a copy;
@@ -2921,7 +2921,7 @@ API const char* ncselector_nextitem(struct ncselector* n);
 //  * a mouse scrollwheel event
 //  * a mouse click on the scrolling arrows
 //  * up, down, pgup, or pgdown on an unrolled menu (navigates among items)
-API bool ncselector_offer_input(struct ncselector* n, const struct ncinput* nc);
+API bool ncselector_offer_input(struct ncselector* n, const ncinput* nc);
 
 // Destroy the ncselector. If 'item' is not NULL, the last selected option will
 // be strdup()ed and assigned to '*item' (and must be free()d by the caller).
@@ -2987,7 +2987,7 @@ API struct ncplane* ncmultiselector_plane(struct ncmultiselector* n);
 //  * a mouse scrollwheel event
 //  * a mouse click on the scrolling arrows
 //  * up, down, pgup, or pgdown on an unrolled menu (navigates among items)
-API bool ncmultiselector_offer_input(struct ncmultiselector* n, const struct ncinput* nc);
+API bool ncmultiselector_offer_input(struct ncmultiselector* n, const ncinput* nc);
 
 // Destroy the ncmultiselector.
 API void ncmultiselector_destroy(struct ncmultiselector* n);
@@ -3038,7 +3038,7 @@ API int nctree_redraw(struct nctree* n)
 //  * a mouse click on an item (focuses item)
 //  * a mouse scrollwheel event (srolls tree)
 //  * up, down, pgup, or pgdown (navigates among items)
-API bool nctree_offer_input(struct nctree* n, const struct ncinput* ni)
+API bool nctree_offer_input(struct nctree* n, const ncinput* ni)
   __attribute__ ((nonnull (1)));
 
   /*
@@ -3117,15 +3117,14 @@ API int ncmenu_item_set_status(struct ncmenu* n, const char* section,
 // Return the selected item description, or NULL if no section is unrolled. If
 // 'ni' is not NULL, and the selected item has a shortcut, 'ni' will be filled
 // in with that shortcut--this can allow faster matching.
-API const char* ncmenu_selected(const struct ncmenu* n, struct ncinput* ni);
+API const char* ncmenu_selected(const struct ncmenu* n, ncinput* ni);
 
 // Return the item description corresponding to the mouse click 'click'. The
 // item must be on an actively unrolled section, and the click must be in the
 // area of a valid item. If 'ni' is not NULL, and the selected item has a
 // shortcut, 'ni' will be filled in with the shortcut.
 API const char* ncmenu_mouse_selected(const struct ncmenu* n,
-                                      const struct ncinput* click,
-                                      struct ncinput* ni);
+                                      const ncinput* click, ncinput* ni);
 
 // Return the ncplane backing this ncmenu.
 API struct ncplane* ncmenu_plane(struct ncmenu* n);
@@ -3139,7 +3138,7 @@ API struct ncplane* ncmenu_plane(struct ncmenu* n);
 //  * left or right on an unrolled menu (navigates among sections)
 //  * up or down on an unrolled menu (navigates among items)
 //  * escape on an unrolled menu (the menu is rolled up)
-API bool ncmenu_offer_input(struct ncmenu* n, const struct ncinput* nc);
+API bool ncmenu_offer_input(struct ncmenu* n, const ncinput* nc);
 
 // Destroy a menu created with ncmenu_create().
 API int ncmenu_destroy(struct ncmenu* n);
@@ -3379,7 +3378,7 @@ API struct ncplane* ncreader_plane(struct ncreader* n)
 // Offer the input to the ncreader. If it's relevant, this function returns
 // true, and the input ought not be processed further. Almost all inputs
 // are relevant to an ncreader, save synthesized ones.
-API bool ncreader_offer_input(struct ncreader* n, const struct ncinput* ni)
+API bool ncreader_offer_input(struct ncreader* n, const ncinput* ni)
   __attribute__ ((nonnull (1, 2)));
 
 // Atttempt to move in the specified direction. Returns 0 if a move was

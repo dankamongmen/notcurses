@@ -11,7 +11,6 @@ notcurses_multiselector - high level widget for selecting from a set
 **#include <notcurses/notcurses.h>**
 
 ```c
-struct ncinput;
 struct ncplane;
 struct notcurses;
 struct ncmultiselector;
@@ -47,7 +46,7 @@ typedef struct ncmultiselector_options {
 
 **struct ncplane* ncmultiselector_plane(struct ncmultiselector* ***n***);**
 
-**bool ncmultiselector_offer_input(struct ncmultiselector* ***n***, const struct ncinput* ***nc***);**
+**bool ncmultiselector_offer_input(struct ncmultiselector* ***n***, const ncinput* ***nc***);**
 
 **void ncmultiselector_destroy(struct ncmultiselector* ***n***);**
 
