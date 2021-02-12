@@ -12,12 +12,17 @@ notcurses_tree - high-level hierarchical line-based data
 
 # DESCRIPTION
 
+# RETURN VALUES
+
 # NOTES
 
-# RETURN VALUES
+**nctree** shares many properties with **notcurses_reel**. Unlike the latter,
+**nctree**s support arbitrary hierarchical levels, but they do not allow
+elements to come and go across the lifetime of the widget.
 
 # SEE ALSO
 
 **notcurses(3)**,
 **notcurses_input(3)**,
-**notcurses_plane(3)**
+**notcurses_plane(3)**,
+**notcurses_reel(3)**
