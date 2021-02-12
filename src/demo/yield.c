@@ -22,11 +22,6 @@ int yield_demo(struct notcurses* nc){
     return -1;
   }
   
-  DEMO_RENDER(nc);
-  struct timespec delay;
-  timespec_div(&demodelay, 2, &delay);
-  demo_nanosleep(nc, &delay);
-
   int vy, vx, vscaley, vscalex;
   vopts.scaling = NCSCALE_NONE;
   ncvisual_geom(nc, wmv, &vopts, &vy, &vx, &vscaley, &vscalex);
@@ -52,10 +47,19 @@ int yield_demo(struct notcurses* nc){
     ncvisual_destroy(wmv);
     return -1;
   }
+  uint64_t basechan = 0;
+  channels_set_bg_alpha(&basechan, CELL_ALPHA_TRANSPARENT);
+  channels_set_fg_alpha(&basechan, CELL_ALPHA_TRANSPARENT);
+  ncplane_set_base(label, " ", NCSTYLE_BOLD, basechan);
   ncplane_set_bg_alpha(label, CELL_ALPHA_TRANSPARENT);
-  ncplane_set_fg_rgb8(label, 0, 0, 0);
+  ncplane_set_fg_rgb8(label, 0xff, 0xff, 0xff);
   ncplane_set_styles(label, NCSTYLE_BOLD);
-  ncplane_printf_aligned(label, 0, NCALIGN_CENTER, "Yield: %3.1f%%", ((double)tfilled * 100) / threshold_painted);
+  ncplane_printf_aligned(label, 0, NCALIGN_CENTER, "Yield: %03.1f%%", ((double)tfilled * 100) / threshold_painted);
+
+  DEMO_RENDER(nc);
+  struct timespec delay;
+  timespec_div(&demodelay, 2, &delay);
+  demo_nanosleep(nc, &delay);
 
   int iters = 0;
   while(tfilled < threshold_painted && iters < MAXITER){
