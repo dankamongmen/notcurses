@@ -53,6 +53,9 @@ struct ncselector;// widget supporting selecting 1 from a list of options
 struct ncmultiselector; // widget supporting selecting 0..n from n options
 struct ncreader;  // widget supporting free string input ala readline
 struct ncfadectx; // context for a palette fade operation
+struct nctablet;  // grouped item within an ncreel
+struct ncreel;    // hierarchical block-based data browser
+struct nctree;    // hierarchical line-based data browser
 
 // we never blit full blocks, but instead spaces (more efficient) with the
 // background set to the desired foreground.
@@ -2653,9 +2656,6 @@ typedef struct ncreel_options {
   uint64_t flags;      // bitfield over NCREEL_OPTION_*
 } ncreel_options;
 
-struct nctablet;
-struct ncreel;
-
 // Take over the ncplane 'nc' and use it to draw a reel according to 'popts'.
 // The plane will be destroyed by ncreel_destroy(); this transfers ownership.
 API ALLOC struct ncreel* ncreel_create(struct ncplane* n, const ncreel_options* popts)
@@ -2992,24 +2992,37 @@ API bool ncmultiselector_offer_input(struct ncmultiselector* n, const struct nci
 // Destroy the ncmultiselector.
 API void ncmultiselector_destroy(struct ncmultiselector* n);
 
-// nctree widget -- a vertical browser supporting hierarchical objects.
+// nctree widget -- a vertical browser supporting line-based hierarchies.
 //
-// groups can be collapsed or expanded
+// each item can have subitems, and has a curry. there is one callback for the
+// entirety of the nctree. visible items have the callback invoked upon their
+// curry and an ncplane. the ncplane can be reused across multiple invocations
+// of the callback.
+
+// each item has a curry, and zero or more subitems.
+typedef struct nctree_item {
+  void* curry;
+  struct nctree_item* subs;
+  unsigned subcount;
+} nctree_item;
+
 typedef struct nctree_options {
-  char* title; // title may be NULL, inhibiting riser, saving two rows.
-  char* secondary; // secondary may be NULL
-  char* footer; // footer may be NULL
-  struct ncmselector_item* items; // initial items, descriptions, and statuses
-  // maximum number of options to display at once, 0 to use all available space
-  unsigned maxdisplay;
-  // exhaustive styling options
-  uint64_t opchannels;   // option channels
-  uint64_t descchannels; // description channels
-  uint64_t titlechannels;// title channels
-  uint64_t footchannels; // secondary and footer channels
-  uint64_t boxchannels;  // border channels
-  uint64_t flags;        // bitfield of NCtree_OPTION_*
+  const char* title;      // NULL title inhibits riser, saving two rows
+  const char* secondary;  // secondary may be NULL
+  const char* footer;     // footer may be NULL
+  const nctree_item* items; // top-level nctree_item array
+  unsigned count;           // size of |items|
+  uint64_t titlechannels; // title channels
+  uint64_t footchannels;  // secondary and footer channels
+  uint64_t boxchannels;   // border channels
+  uint64_t flags;         // bitfield of NCTREE_OPTION_*
 } nctree_options;
+
+API ALLOC struct nctree* nctree_create(struct ncplane* n, const nctree_options* opts)
+  __attribute__ ((nonnull (1)));
+
+// Destroy the nctree.
+API void nctree_destroy(struct nctree* n);
 
 // Menus. Horizontal menu bars are supported, on the top and/or bottom rows.
 // If the menu bar is longer than the screen, it will be only partially
