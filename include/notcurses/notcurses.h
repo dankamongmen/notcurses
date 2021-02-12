@@ -2662,7 +2662,7 @@ API ALLOC struct ncreel* ncreel_create(struct ncplane* n, const ncreel_options* 
   __attribute__ ((nonnull (1)));
 
 // Returns the ncplane on which this ncreel lives.
-API struct ncplane* ncreel_plane(struct ncreel* pr)
+API struct ncplane* ncreel_plane(struct ncreel* nr)
   __attribute__ ((nonnull (1)));
 
 // Tablet draw callback, provided a tablet (from which the ncplane and userptr
@@ -3021,6 +3021,40 @@ typedef struct nctree_options {
 
 API ALLOC struct nctree* nctree_create(struct ncplane* n, const nctree_options* opts)
   __attribute__ ((nonnull (1)));
+
+// Returns the ncplane on which this nctree lives.
+API struct ncplane* nctree_plane(struct nctree* n)
+  __attribute__ ((nonnull (1)));
+
+// Redraw the nctree 'n' in its entirety. The tree will be cleared, and items
+// will be lain out, using the focused item as a fulcrum. Item-drawing
+// callbacks will be invoked for each visible item.
+API int nctree_redraw(struct nctree* n)
+  __attribute__ ((nonnull (1)));
+
+// Offer input 'ni' to the nctree 'n'. If it's relevant, this function returns
+// true, and the input ought not be processed further. If it's irrelevant to
+// the tree, false is returned. Relevant inputs include:
+//  * a mouse click on an item (focuses item)
+//  * a mouse scrollwheel event (srolls tree)
+//  * up, down, pgup, or pgdown (navigates among items)
+API bool nctree_offer_input(struct nctree* n, const struct ncinput* ni)
+  __attribute__ ((nonnull (1)));
+
+  /*
+// Return the focused item, if any items are present. This is not a copy;
+// be careful to use it only for the duration of a critical section.
+API struct nctablet* nctree_focused(struct nctree* n)
+  __attribute__ ((nonnull (1)));
+
+// Change focus to the next item, if one exists
+API struct nctablet* nctree_next(struct nctree* n)
+  __attribute__ ((nonnull (1)));
+
+// Change focus to the previous item, if one exists
+API struct nctablet* nctree_prev(struct nctree* n)
+  __attribute__ ((nonnull (1)));
+  */
 
 // Destroy the nctree.
 API void nctree_destroy(struct nctree* n);
