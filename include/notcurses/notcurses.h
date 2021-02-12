@@ -3015,6 +3015,7 @@ typedef struct nctree_options {
   uint64_t titlechannels; // title channels
   uint64_t footchannels;  // secondary and footer channels
   uint64_t boxchannels;   // border channels
+  int (*nctreecb)(struct ncplane*, void*); // item callback function
   uint64_t flags;         // bitfield of NCTREE_OPTION_*
 } nctree_options;
 
