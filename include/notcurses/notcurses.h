@@ -823,7 +823,7 @@ typedef enum {
 // that locale is "C" or "POSIX", it will call setlocale(LC_ALL, "") to set
 // the locale according to the LANG environment variable. Ideally, this will
 // result in UTF8 being enabled, even if the client app didn't call
-// setlocale() itself. Unless you're certain that you're invoking setlocale() 
+// setlocale() itself. Unless you're certain that you're invoking setlocale()
 // prior to notcurses_init(), you should not set this bit. Even if you are
 // invoking setlocale(), this behavior shouldn't be an issue unless you're
 // doing something weird (setting a locale not based on LANG).
@@ -3012,7 +3012,7 @@ typedef struct nctree_options {
   const nctree_item* items; // top-level nctree_item array
   unsigned count;           // size of |items|
   uint64_t bchannels;       // base channels
-  int (*nctreecb)(struct ncplane*, void*); // item callback function
+  int (*nctreecb)(struct ncplane*, void*, int); // item callback function
   uint64_t flags;           // bitfield of NCTREE_OPTION_*
 } nctree_options;
 
@@ -3040,20 +3040,22 @@ API int nctree_redraw(struct nctree* n)
 API bool nctree_offer_input(struct nctree* n, const ncinput* ni)
   __attribute__ ((nonnull (1, 2)));
 
-  /*
 // Return the focused item, if any items are present. This is not a copy;
 // be careful to use it only for the duration of a critical section.
-API struct nctablet* nctree_focused(struct nctree* n)
-  __attribute__ ((nonnull (1)));
+API void* nctree_focused(struct nctree* n) __attribute__ ((nonnull (1)));
 
-// Change focus to the next item, if one exists
-API struct nctablet* nctree_next(struct nctree* n)
-  __attribute__ ((nonnull (1)));
+// Change focus to the next item.
+API void* nctree_next(struct nctree* n) __attribute__ ((nonnull (1)));
 
-// Change focus to the previous item, if one exists
-API struct nctablet* nctree_prev(struct nctree* n)
-  __attribute__ ((nonnull (1)));
-  */
+// Change focus to the previous item.
+API void* nctree_prev(struct nctree* n) __attribute__ ((nonnull (1)));
+
+// Go to the item specified by the array |spec| having |specdepth| elements. If
+// the spec is invalid, NULL is returned, and the depth of the first invalid
+// spec is written to *|failspec|. Otherwise, |specdepth| is written to
+// *|failspec|, and the curry is returned (|failspec| is necessary because the
+// curry could itself be NULL).
+API void* nctree_goto(struct nctree* n, const int* spec, size_t specdepth, int* failspec);
 
 // Destroy the nctree.
 API void nctree_destroy(struct nctree* n);

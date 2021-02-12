@@ -8,7 +8,7 @@ typedef struct nctree_int_item {
 } nctree_int_item;
 
 typedef struct nctree {
-  int (*cbfxn)(ncplane*, void*);
+  int (*cbfxn)(ncplane*, void*, int);
   nctree_int_item* items;
   unsigned itemcount;
   uint64_t bchannels;
