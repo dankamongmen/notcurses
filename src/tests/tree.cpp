@@ -2,8 +2,8 @@
 #include <iostream>
 
 int treecb(struct ncplane* n, void* curry, int pos){
-  // FIXME draw to the ncplane
-  fprintf(stderr, "n: %p curry: %p pos: %d", n, curry, pos);
+  ncplane_printf_yx(n, 0, 0, "item: %s pos: %d",
+                    static_cast<const char*>(curry), pos);
   return 0;
 }
 
@@ -58,29 +58,29 @@ TEST_CASE("Tree") {
   SUBCASE("CreateTree") {
     nctree_item subs[] = {
       {
-        .curry = nullptr,
+        .curry = strdup("sub1-1"),
         .subs = nullptr,
         .subcount = 0,
       },{
-        .curry = nullptr,
+        .curry = strdup("sub1-2"),
         .subs = nullptr,
         .subcount = 0,
       }
     };
     nctree_item items[] = {
       {
-        .curry = nullptr,
+        .curry = strdup("item1"),
         .subs = nullptr,
         .subcount = 0,
       }, {
-        .curry = nullptr,
+        .curry = strdup("item2"),
         .subs = subs,
         .subcount = 2,
       },
     };
     struct nctree_options opts = {
       .items = items,
-      .count = 2,
+      .count = sizeof(items) / sizeof(*items),
       .bchannels = 0,
       .nctreecb = treecb,
       .flags = 0,
@@ -93,6 +93,7 @@ TEST_CASE("Tree") {
     REQUIRE(nullptr != treen);
     auto tree = nctree_create(treen, &opts);
     REQUIRE(nullptr != tree);
+    CHECK(0 == notcurses_render(nc_));
     nctree_destroy(tree);
   }
 
