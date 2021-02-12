@@ -1,9 +1,9 @@
 #include "main.h"
 #include <iostream>
 
-int treecb(struct ncplane* n, void* curry){
-  // FIXME do something better
-  fprintf(stderr, "n: %p curry: %p", n, curry);
+int treecb(struct ncplane* n, void* curry, int pos){
+  // FIXME draw to the ncplane
+  fprintf(stderr, "n: %p curry: %p pos: %d", n, curry, pos);
   return 0;
 }
 

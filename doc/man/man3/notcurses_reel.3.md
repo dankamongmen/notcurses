@@ -15,6 +15,7 @@ notcurses_reel - high-level widget for hierarchical data
 #define NCREEL_OPTION_CIRCULAR       0x0002
 
 struct ncreel;
+struct ncplane;
 struct nctablet;
 
 typedef struct ncreel_options {
