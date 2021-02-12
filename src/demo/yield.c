@@ -23,9 +23,9 @@ int yield_demo(struct notcurses* nc){
   }
   
   DEMO_RENDER(nc);
-  demo_nanosleep(nc, &demodelay);
-
-  ncplane_erase(std);
+  struct timespec delay;
+  timespec_div(&demodelay, 2, &delay);
+  demo_nanosleep(nc, &delay);
 
   int vy, vx, vscaley, vscalex;
   vopts.scaling = NCSCALE_NONE;
@@ -39,6 +39,24 @@ int yield_demo(struct notcurses* nc){
   const int MAXITER = 512;
   timespec_div(&demodelay, MAXITER, &scaled);
   long tfilled = 0;
+
+  struct ncplane_options labopts = {
+    .y = 3,
+    .x = NCALIGN_CENTER,
+    .rows = 1,
+    .cols = 12,
+    .flags = NCPLANE_OPTION_HORALIGNED,
+  };
+  struct ncplane* label = ncplane_create(std, &labopts);
+  if(label == NULL){
+    ncvisual_destroy(wmv);
+    return -1;
+  }
+  ncplane_set_bg_alpha(label, CELL_ALPHA_TRANSPARENT);
+  ncplane_set_fg_rgb8(label, 0, 0, 0);
+  ncplane_set_styles(label, NCSTYLE_BOLD);
+  ncplane_printf_aligned(label, 0, NCALIGN_CENTER, "Yield: %3.1f%%", ((double)tfilled * 100) / threshold_painted);
+
   int iters = 0;
   while(tfilled < threshold_painted && iters < MAXITER){
 //fprintf(stderr, "%d/%d x %d/%d tfilled: %ld thresh: %ld total: %ld\n", vy, vx, vscaley, vscalex, tfilled, threshold_painted, total);
@@ -73,18 +91,15 @@ int yield_demo(struct notcurses* nc){
       ncvisual_destroy(wmv);
       return -1;
     }
-    ncplane_set_bg_rgb8(std, 0x10, 0x10, 0x10);
-    ncplane_set_fg_rgb8(std, 0xf0, 0x20, 0x20);
-    ncplane_set_styles(std, NCSTYLE_BOLD);
     if(tfilled > threshold_painted){
       tfilled = threshold_painted; // don't allow printing of 100.1% etc
     }
-    ncplane_printf_aligned(std, 3, NCALIGN_CENTER, "Yield: %3.1f%%", ((double)tfilled * 100) / threshold_painted);
-    ncplane_set_styles(std, NCSTYLE_NONE);
+    ncplane_printf_aligned(label, 0, NCALIGN_CENTER, "Yield: %3.1f%%", ((double)tfilled * 100) / threshold_painted);
     DEMO_RENDER(nc);
     demo_nanosleep(nc, &scaled);
     ++iters;
   }
+  ncplane_destroy(label);
   ncvisual_destroy(wmv);
   ncplane_erase(std);
   return 0;
