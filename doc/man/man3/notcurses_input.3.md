@@ -39,7 +39,7 @@ typedef struct ncinput {
 
 **int notcurses_inputready_fd(struct notcurses* ***n***);**
 
-**static inline bool ncinput_equal_p(const struct ncinput* ***n1***, const struct ncinput* ***n2***);**
+**static inline bool ncinput_equal_p(const ncinput* ***n1***, const ncinput* ***n2***);**
 
 **int notcurses_linesigs_disable(struct notcurses* ***n***);**
 

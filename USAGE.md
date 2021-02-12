@@ -2188,7 +2188,7 @@ int ncreel_redraw(struct ncreel* nr);
 //  * a mouse click on a tablet (focuses tablet)
 //  * a mouse scrollwheel event (rolls reel)
 //  * up, down, pgup, or pgdown (navigates among items)
-bool ncreel_offer_input(struct ncreel* nr, const struct ncinput* ni);
+bool ncreel_offer_input(struct ncreel* nr, const ncinput* ni);
 
 // Return the focused tablet, if any tablets are present. This is not a copy;
 // be careful to use it only for the duration of a critical section.
@@ -2446,7 +2446,7 @@ struct ncplane* ncreader_plane(struct ncreader* n);
 // Offer the input to the ncreader. If it's relevant, this function returns
 // true, and the input ought not be processed further. Almost all inputs
 // are relevant to an ncreader, save synthesized ones.
-bool ncreader_offer_input(struct ncreader* n, const struct ncinput* ni);
+bool ncreader_offer_input(struct ncreader* n, const ncinput* ni);
 
 // return a nul-terminated heap copy of the current (UTF-8) contents.
 char* ncreader_contents(const struct ncreader* n);
