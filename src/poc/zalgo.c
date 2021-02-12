@@ -3,7 +3,7 @@
 
 int main(void){
   struct notcurses_options nops = {
-    .flags = NCOPTION_NO_ALTERNATE_SCREEN,
+    .flags = NCOPTION_NO_ALTERNATE_SCREEN | NCOPTION_SUPPRESS_BANNERS,
   };
   struct notcurses* nc = notcurses_core_init(&nops, NULL);
   struct ncplane* n = notcurses_stdplane(nc);
