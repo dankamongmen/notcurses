@@ -38,7 +38,7 @@ be any non-negative number.
 
 **-L**: Loop frames until a key is pressed.
 
-**-k**: Inhibit use of the alternate screen. Necessary if you want the output left on your terminal after the program exits.
+**-k**: Use direct mode (see **notcurses_direct(3)**). This will have the effect of leaving the output on-screen after program exit, and generating it inline (rather than clearing the screen and placing it at the top).
 
 **-q**: Print neither frame/timing information along the top of the screen, nor the output summary on exit.
 
@@ -79,6 +79,7 @@ fixed-width font with good coverage of the Unicode Block Drawing Characters.
 # SEE ALSO
 
 **notcurses(3)**,
+**notcurses_direct(3)**,
 **notcurses_visual(3)**,
 **terminfo(5)**,
 **unicode(7)**

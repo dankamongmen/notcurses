@@ -22,7 +22,7 @@ void usage(std::ostream& o, const char* name, int exitcode){
   o << " -h: display help and exit with success\n";
   o << " -V: print program name and version\n";
   o << " -q: be quiet (no frame/timing information along top of screen)\n";
-  o << " -k: don't use the alternate screen\n";
+  o << " -k: use direct mode rather than rendered mode\n";
   o << " -L: loop frames\n";
   o << " -t seconds: delay t seconds after each file\n";
   o << " -l loglevel: integer between 0 and 9, goes to stderr'\n";
@@ -259,6 +259,13 @@ auto handle_opts(int argc, char** argv, notcurses_options& opts, bool* quiet,
   return optind;
 }
 
+int direct_mode_player(int argc, char** argv, bool quiet, float timescale,
+                       ncscale_e scalemode, ncblitter_e blitter,
+                       float displaytime, bool loop){
+  // FIXME
+  return 0;
+}
+
 auto main(int argc, char** argv) -> int {
   if(setlocale(LC_ALL, "") == nullptr){
     std::cerr << "Couldn't set locale based off LANG\n";
@@ -272,6 +279,15 @@ auto main(int argc, char** argv) -> int {
   bool loop = false;
   auto nonopt = handle_opts(argc, argv, ncopts, &quiet, &timescale, &scalemode,
                             &blitter, &displaytime, &loop);
+  // if -k was provided, we now use direct mode rather than simply not using the
+  // alternate screen, so that output is inline with the shell.
+  if(ncopts.flags & NCOPTION_NO_ALTERNATE_SCREEN){
+    if(direct_mode_player(argc, argv, quiet, timescale, scalemode, blitter, displaytime, loop)){
+      return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
+  }
+  // no -k, we're using full rendered mode (and the alternate screen).
   ncopts.flags |= NCOPTION_INHIBIT_SETLOCALE;
   if(quiet){
     ncopts.flags |= NCOPTION_SUPPRESS_BANNERS;
@@ -296,9 +312,7 @@ auto main(int argc, char** argv) -> int {
         failed = true;
         break;
       }
-      if(!(ncopts.flags & NCOPTION_NO_ALTERNATE_SCREEN)){
-        stdn->erase();
-      }
+      stdn->erase();
       struct ncvisual_options vopts{};
       int r;
       vopts.n = *stdn;
