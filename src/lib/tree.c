@@ -14,6 +14,14 @@ typedef struct nctree {
   uint64_t bchannels;
 } nctree;
 
+static void
+free_tree_items(nctree_int_item* iarray){
+  for(unsigned c = 0 ; c < iarray->subcount ; ++c){
+    free_tree_items(&iarray->subs[c]);
+  }
+  free(iarray->subs);
+}
+
 static nctree_int_item*
 dup_tree_items(const nctree_item* items, unsigned count){
   nctree_int_item* ret = malloc(sizeof(*ret) * count);
@@ -24,6 +32,9 @@ dup_tree_items(const nctree_item* items, unsigned count){
       nii->n = NULL;
       nii->subcount = items[c].subcount;
       if((nii->subs = dup_tree_items(items[c].subs, nii->subcount)) == NULL){
+        while(c--){
+          free_tree_items(&ret[c]);
+        }
         free(ret);
         return NULL;
       }
@@ -64,14 +75,6 @@ nctree* nctree_create(ncplane* n, const struct nctree_options* opts){
     return NULL;
   }
   return nctree_inner_create(n, opts);
-}
-
-static void
-free_tree_items(nctree_int_item* iarray){
-  for(unsigned c = 0 ; c < iarray->subcount ; ++c){
-    free_tree_items(&iarray->subs[c]);
-  }
-  free(iarray->subs);
 }
 
 void nctree_destroy(nctree* n){
