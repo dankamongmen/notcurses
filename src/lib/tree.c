@@ -13,7 +13,7 @@ typedef struct nctree {
   nctree_int_item items; // topmost set of items, holds widget plane
   unsigned* currentpath; // array of |maxdepth|+1 elements, ended by UINT_MAX
   unsigned maxdepth;     // binds the path length
-  unsigned activerow;    // active row 0 <= activerow < dimy
+  int activerow;         // active row 0 <= activerow < dimy
   uint64_t bchannels;    // border glyph channels
 } nctree;
 
@@ -167,7 +167,7 @@ nctree_chase_max(const nctree_int_item* nii, unsigned* path, int idx){
 
 static void*
 nctree_prior_recursive(const nctree_int_item* nii, unsigned* path, int idx){
-//fprintf(stderr, "PATH[%d]: %u %p COUNT: %u\n", idx, path[idx], nii->curry, nii->subcount);
+fprintf(stderr, "PPATH[%d]: %u %p COUNT: %u\n", idx, path[idx], nii->curry, nii->subcount);
   void* ret = NULL;
   if(nii->subcount){
     ret = nctree_prior_recursive(&nii->subs[path[idx]], path, idx + 1);
@@ -190,6 +190,36 @@ void* nctree_prev(nctree* n){
   }
   nctree_redraw(n); // FIXME maybe require explicit redraws?
   return ret;
+}
+
+// the next is either:
+//  - an extension to the right, if subs are available, or
+//  - a bump to the rightmost path component with subcount available, or
+//  - the current item
+void* nctree_next(nctree* n){
+  nctree_int_item* nii = &n->items;
+  nctree_int_item* wedge = NULL;  // tracks the rightmost with room in subs
+  int idx = 0;
+  int wedidx = 0;
+  while(n->currentpath[idx] != UINT_MAX){
+    if(n->currentpath[idx] < nii->subcount - 1){
+      wedge = nii;
+      wedidx = idx;
+    }
+    nii = &nii->subs[n->currentpath[idx]];
+    ++idx;
+  }
+  if(nii->subcount){
+    n->currentpath[idx] = 0;
+    n->currentpath[idx + 1] = UINT_MAX;
+    return nii->subs[n->currentpath[idx]].curry;
+  }
+  if(wedge){
+    ++n->currentpath[wedidx];
+    n->currentpath[wedidx + 1] = UINT_MAX;
+    return wedge->subs[n->currentpath[wedidx]].curry;
+  }
+  return nii->curry;
 }
 
 int nctree_redraw(nctree* n){
@@ -231,11 +261,8 @@ void* nctree_focused(nctree* n){
     nii = &nii->subs[n->currentpath[idx]];
     ++idx;
   }
+//fprintf(stderr, "FOCUSED: %s\n", nii->curry);
   return nii->curry;
-}
-
-void* nctree_next(nctree* n){
-  // FIXME
 }
 
 void* nctree_goto(nctree* n, const int* spec, size_t specdepth, int* failspec){
