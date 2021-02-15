@@ -42,15 +42,32 @@ TEST_CASE("Tree") {
     REQUIRE(nullptr == treen);
   }
 
+  nctree_item subs[] = {
+    {
+      .curry = strdup("sub1-0"),
+      .subs = nullptr,
+      .subcount = 0,
+    },{
+      .curry = strdup("sub1-1"),
+      .subs = nullptr,
+      .subcount = 0,
+    }
+  };
+
+  nctree_item items[] = {
+    {
+      .curry = strdup("item0"),
+      .subs = nullptr,
+      .subcount = 0,
+    }, {
+      .curry = strdup("item1"),
+      .subs = subs,
+      .subcount = 2,
+    },
+  };
+
   // should be refused with a null callback
   SUBCASE("BadTreeNoCallback") {
-    nctree_item items[] = {
-      {
-        .curry = strdup("item1"),
-        .subs = nullptr,
-        .subcount = 0,
-      },
-    };
     struct nctree_options opts = {
       .items = items,
       .count = sizeof(items) / sizeof(*items),
@@ -62,29 +79,7 @@ TEST_CASE("Tree") {
     REQUIRE(nullptr == treen);
   }
 
-  SUBCASE("CreateTree") {
-    nctree_item subs[] = {
-      {
-        .curry = strdup("sub1-1"),
-        .subs = nullptr,
-        .subcount = 0,
-      },{
-        .curry = strdup("sub1-2"),
-        .subs = nullptr,
-        .subcount = 0,
-      }
-    };
-    nctree_item items[] = {
-      {
-        .curry = strdup("item1"),
-        .subs = nullptr,
-        .subcount = 0,
-      }, {
-        .curry = strdup("item2"),
-        .subs = subs,
-        .subcount = 2,
-      },
-    };
+  SUBCASE("Create") {
     struct nctree_options opts = {
       .items = items,
       .count = sizeof(items) / sizeof(*items),
@@ -103,7 +98,55 @@ TEST_CASE("Tree") {
     CHECK(0 == notcurses_render(nc_));
     CHECK(treen == nctree_plane(tree));
     CHECK(items[0].curry == nctree_focused(tree));
+    nctree_destroy(tree);
+  }
+
+  SUBCASE("Traverse") {
+    struct nctree_options opts = {
+      .items = items,
+      .count = sizeof(items) / sizeof(*items),
+      .bchannels = 0,
+      .nctreecb = treecb,
+      .flags = 0,
+    };
+    const ncplane_options nopts = {
+      .y = 0, .x = 0, .rows = 3, .cols = ncplane_dim_y(n_),
+      .userptr = nullptr, .name = nullptr, .resizecb = nullptr, .flags = 0,
+    };
+    auto treen = ncplane_create(n_, &nopts);
+    REQUIRE(nullptr != treen);
+    auto tree = nctree_create(treen, &opts);
+    REQUIRE(nullptr != tree);
+    CHECK(0 == notcurses_render(nc_));
+    CHECK(treen == nctree_plane(tree));
+    CHECK(items[0].curry == nctree_focused(tree));
+
     CHECK(items[0].curry == nctree_prev(tree));
+    CHECK(items[0].curry == nctree_focused(tree));
+
+    CHECK(items[1].curry == nctree_next(tree));
+    CHECK(items[1].curry == nctree_focused(tree));
+
+    CHECK(items[1].subs[0].curry == nctree_next(tree));
+    CHECK(items[1].subs[0].curry == nctree_focused(tree));
+
+    CHECK(items[1].subs[1].curry == nctree_next(tree));
+    CHECK(items[1].subs[1].curry == nctree_focused(tree));
+
+    CHECK(items[1].subs[1].curry == nctree_next(tree));
+    CHECK(items[1].subs[1].curry == nctree_focused(tree));
+
+    CHECK(items[1].subs[0].curry == nctree_prev(tree));
+    CHECK(items[1].subs[0].curry == nctree_focused(tree));
+
+    CHECK(items[1].curry == nctree_prev(tree));
+    CHECK(items[1].curry == nctree_focused(tree));
+
+    CHECK(items[0].curry == nctree_prev(tree));
+    CHECK(items[0].curry == nctree_focused(tree));
+
+    CHECK(items[0].curry == nctree_prev(tree));
+    CHECK(items[0].curry == nctree_focused(tree));
     nctree_destroy(tree);
   }
 
