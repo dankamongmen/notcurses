@@ -12,12 +12,11 @@ int main(void){
   do{
     if(!(r |= (ncdirect_set_fg_default(n)))){
       if(!(r |= (printf("Guess the long: ") < 0))){
-        if(!fflush(stdout)){
+        if(!(r |= fflush(stdout))){
           int rargs = scanf("%ld", &guess); // super shitty to the max
           if(rargs != 1){
-            fprintf(stderr, "Die, infidel!\n");
-            ncdirect_stop(n);
-            return EXIT_FAILURE;
+            r = -1;
+            break;
           }
           int offoom = labs(__builtin_clzl(guess) - __builtin_clzl(secret));
           if(guess > secret){
@@ -30,7 +29,7 @@ int main(void){
         }
       }
     }
-  }while(guess != secret && !r);
+  }while(!r && guess != secret);
   if(r || printf("You enjoy 20/20 vision into the minds of antimen!\n") < 0){
     ncdirect_stop(n);
     return EXIT_FAILURE;
