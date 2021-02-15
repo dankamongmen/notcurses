@@ -21,7 +21,7 @@ area, and the **sexblitter** blitter is used (where known to work well) for a
 # OPTIONS
 
 **-d** ***delaymult***: Apply a non-negative rational multiplier to the delayscale.
-Only applies to multiframe media such as video and animated images.
+Only applies to multiframe media such as video and animated images. Not supported with **-k**.
 
 **-t** ***seconds***: Delay **seconds** after each file. If this option is used,
 the "press any key to continue" prompt will not be displayed. **seconds** may
@@ -36,9 +36,9 @@ be any non-negative number.
 
 **-m margins**: Define rendering margins (see below).
 
-**-L**: Loop frames until a key is pressed.
+**-L**: Loop frames until a key is pressed. Not supported with **-k**.
 
-**-k**: Use direct mode (see **notcurses_direct(3)**). This will have the effect of leaving the output on-screen after program exit, and generating it inline (rather than clearing the screen and placing it at the top).
+**-k**: Use direct mode (see **notcurses_direct(3)**). This will have the effect of leaving the output on-screen after program exit, and generating it inline (rather than clearing the screen and placing it at the top). Not supported with **-L** or **-d**.
 
 **-q**: Print neither frame/timing information along the top of the screen, nor the output summary on exit.
 
@@ -75,6 +75,13 @@ Optimal display requires a terminal advertising the **rgb** terminfo(5)
 capability, or that the environment variable **COLORTERM** is defined to
 **24bit** (and that the terminal honors this variable), along with a
 fixed-width font with good coverage of the Unicode Block Drawing Characters.
+
+# BUGS
+
+Direct mode (**-k**) does not yet support multiframe media. It'll read them
+just fine, but only show the first frame. This might or might not change in
+the future. Direct mode is kinda fundamentally suboptimal for multiframe
+media. Until that time, **-k** is exclusive with **-d** and **-L**.
 
 # SEE ALSO
 
