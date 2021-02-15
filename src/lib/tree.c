@@ -8,9 +8,12 @@ typedef struct nctree_int_item {
 } nctree_int_item;
 
 typedef struct nctree {
+  ncplane* ncp;
   int (*cbfxn)(ncplane*, void*, int);
   nctree_int_item* items;
   unsigned itemcount;
+  // FIXME need to track item we're on, probably via array of uints + sentinel?
+  unsigned activerow;
   uint64_t bchannels;
 } nctree;
 
@@ -51,6 +54,8 @@ nctree_inner_create(ncplane* n, const struct nctree_options* opts){
     ret->cbfxn = opts->nctreecb;
     ret->itemcount = opts->count;
     ret->items = dup_tree_items(opts->items, ret->itemcount);
+    ret->activerow = 0;
+    ret->ncp = n;
     if(ret->items == NULL){
       logerror(ncplane_notcurses(n), "Couldn't duplicate tree items\n");
       free(ret);
@@ -85,4 +90,33 @@ void nctree_destroy(nctree* n){
     free(n->items);
     free(n);
   }
+}
+
+// Returns the ncplane on which this nctree lives.
+ncplane* nctree_plane(nctree* n){
+  return n->ncp;
+}
+
+int nctree_redraw(nctree* n){
+  // FIXME
+}
+
+bool nctree_offer_input(nctree* n, const ncinput* ni){
+  // FIXME
+}
+
+void* nctree_focused(nctree* n){
+  // FIXME
+}
+
+void* nctree_next(nctree* n){
+  // FIXME
+}
+
+void* nctree_prev(nctree* n){
+  // FIXME
+}
+
+void* nctree_goto(nctree* n, const int* spec, size_t specdepth, int* failspec){
+  // FIXME
 }
