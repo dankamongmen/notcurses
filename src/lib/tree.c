@@ -56,6 +56,23 @@ dup_tree_items(nctree_int_item* fill, const nctree_item* items, unsigned count, 
   return 0;
 }
 
+// the initial path ought point to the first item. maxdepth must be set.
+static int
+prep_initial_path(nctree* n){
+  n->currentpath = malloc(sizeof(*n->currentpath) * (n->maxdepth + 1));
+  if(n->currentpath == NULL){
+    return -1;
+  }
+  const nctree_int_item* nii = &n->items;
+  int c = 0;
+  while(nii->subcount){
+    n->currentpath[c++] = 0;
+    nii = &nii->subs[0];
+  }
+  n->currentpath[c] = UINT_MAX;
+  return 0;
+}
+
 static nctree*
 nctree_inner_create(ncplane* n, const struct nctree_options* opts){
   nctree* ret = malloc(sizeof(*ret));
@@ -68,8 +85,8 @@ nctree_inner_create(ncplane* n, const struct nctree_options* opts){
       return NULL;
     }
 //fprintf(stderr, "MAXDEPTH: %u\n", ret->maxdepth);
-    ret->currentpath = malloc(sizeof(*ret->currentpath) * (ret->maxdepth + 1));
-    if(ret->currentpath == NULL){
+    if(prep_initial_path(ret)){
+      free_tree_items(&ret->items);
       free(ret);
       return NULL;
     }
@@ -141,7 +158,14 @@ bool nctree_offer_input(nctree* n, const ncinput* ni){
 }
 
 void* nctree_focused(nctree* n){
-  // FIXME
+  int idx = 0;
+  const nctree_int_item* nii = &n->items;
+  while(n->currentpath[idx] != UINT_MAX){
+    assert(n->currentpath[idx] < nii->count);
+    nii = &nii->subs[n->currentpath[idx]];
+    ++idx;
+  }
+  return nii->curry;
 }
 
 void* nctree_next(nctree* n){
