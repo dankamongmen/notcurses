@@ -51,6 +51,7 @@ int main(int argc, char **argv){
       size_t conv = mbrtowc(&w, arg, strlen(arg), &mbs);
       if(conv == (size_t)-1 || conv == (size_t)-2){
         fprintf(stderr, "Invalid UTF-8: %s\n", arg);
+        free(wbuf);
         return EXIT_FAILURE;
       }
       int width = wcwidth(w);
@@ -83,5 +84,6 @@ int main(int argc, char **argv){
       putchar('\n');
     }
   }
+  free(wbuf);
   return EXIT_SUCCESS;
 }
