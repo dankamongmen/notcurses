@@ -8,6 +8,7 @@
 #include <libgen.h>
 #include <unistd.h>
 #include <iostream>
+#include <ncpp/Direct.hh>
 #include <ncpp/Visual.hh>
 #include <ncpp/NotCurses.hh>
 #include "compat/compat.h"
@@ -22,7 +23,7 @@ void usage(std::ostream& o, const char* name, int exitcode){
   o << " -h: display help and exit with success\n";
   o << " -V: print program name and version\n";
   o << " -q: be quiet (no frame/timing information along top of screen)\n";
-  o << " -k: use direct mode rather than rendered mode\n";
+  o << " -k: use direct mode (cannot be used with -L or -d)\n";
   o << " -L: loop frames\n";
   o << " -t seconds: delay t seconds after each file\n";
   o << " -l loglevel: integer between 0 and 9, goes to stderr'\n";
@@ -195,10 +196,18 @@ auto handle_opts(int argc, char** argv, notcurses_options& opts, bool* quiet,
           usage(std::cerr, argv[0], EXIT_FAILURE);
         }
         break;
-      case 'k':{
+      case 'k':{ // actually engages direct mode
         opts.flags |= NCOPTION_NO_ALTERNATE_SCREEN;
+        if(*loop || *timescale != 1.0){
+          std::cerr << "-k cannot be used with -L or -d" << std::endl;
+          usage(std::cerr, argv[0], EXIT_FAILURE);
+        }
         break;
       }case 'L':{
+        if(opts.flags & NCOPTION_NO_ALTERNATE_SCREEN){
+          std::cerr << "-L cannot be used with -k" << std::endl;
+          usage(std::cerr, argv[0], EXIT_FAILURE);
+        }
         *loop = true;
         break;
       }case 'm':{
@@ -231,6 +240,10 @@ auto handle_opts(int argc, char** argv, notcurses_options& opts, bool* quiet,
           usage(std::cerr, argv[0], EXIT_FAILURE);
         }
         *timescale = ts;
+        if(opts.flags & NCOPTION_NO_ALTERNATE_SCREEN){
+          std::cerr << "-d cannot be used with -k" << std::endl;
+          usage(std::cerr, argv[0], EXIT_FAILURE);
+        }
         break;
       }case 'l':{
         std::stringstream ss;
@@ -259,11 +272,60 @@ auto handle_opts(int argc, char** argv, notcurses_options& opts, bool* quiet,
   return optind;
 }
 
-int direct_mode_player(int argc, char** argv, bool quiet, float timescale,
+// argc/argv ought already be reduced to only the media arguments
+int direct_mode_player(int argc, char** argv, float timescale,
                        ncscale_e scalemode, ncblitter_e blitter,
                        float displaytime, bool loop){
-  // FIXME
-  return 0;
+  Direct dm{};
+  if(!dm.canopen_images()){
+    std::cerr << "Notcurses was compiled without multimedia support\n";
+    return -1;
+  }
+  bool failed = false;
+  {
+    for(auto i = 0 ; i < argc ; ++i){
+      std::unique_ptr<Visual> ncv;
+      try{
+        ncv = std::make_unique<Visual>(argv[i]);
+      }catch(std::exception& e){
+        // FIXME want to stop nc first :/ can't due to stdn, ugh
+        std::cerr << argv[i] << ": " << e.what() << "\n";
+        failed = true;
+        break;
+      }
+      struct ncvisual_options vopts{};
+      int r;
+      vopts.scaling = scalemode;
+      vopts.blitter = blitter;
+      do{
+        // FIXME just display, please
+        if(r == 0){
+          //vopts.blitter = marsh.blitter;
+          if(displaytime < 0){
+            /*
+            if(!nc.render()){
+              failed = true;
+              break;
+            }
+            */
+          }else{
+            // FIXME do we still want to honor keybindings when timing out?
+            struct timespec ts;
+            ts.tv_sec = displaytime;
+            ts.tv_nsec = (displaytime - ts.tv_sec) * NANOSECS_IN_SEC;
+            clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);
+          }
+        }
+      }while(loop && r == 0);
+      if(r < 0){ // positive is intentional abort
+        std::cerr << "Error decoding " << argv[i] << std::endl;
+        failed = true;
+        break;
+      }
+    }
+  }
+done:
+  return failed ? -1 : 0;
 }
 
 auto main(int argc, char** argv) -> int {
@@ -282,7 +344,8 @@ auto main(int argc, char** argv) -> int {
   // if -k was provided, we now use direct mode rather than simply not using the
   // alternate screen, so that output is inline with the shell.
   if(ncopts.flags & NCOPTION_NO_ALTERNATE_SCREEN){
-    if(direct_mode_player(argc, argv, quiet, timescale, scalemode, blitter, displaytime, loop)){
+    if(direct_mode_player(argc - nonopt, argv + nonopt, timescale,
+                          scalemode, blitter, displaytime, loop)){
       return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;
