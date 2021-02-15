@@ -168,7 +168,7 @@ void* nctree_focused(nctree* n){
   int idx = 0;
   const nctree_int_item* nii = &n->items;
   while(n->currentpath[idx] != UINT_MAX){
-    assert(n->currentpath[idx] < nii->count);
+    assert(n->currentpath[idx] < nii->subcount);
     nii = &nii->subs[n->currentpath[idx]];
     ++idx;
   }
