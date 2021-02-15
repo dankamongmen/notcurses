@@ -99,10 +99,31 @@ ncplane* nctree_plane(nctree* n){
 
 int nctree_redraw(nctree* n){
   // FIXME
+  return 0;
 }
 
 bool nctree_offer_input(nctree* n, const ncinput* ni){
-  // FIXME
+  if(ni->id == NCKEY_UP){
+    nctree_prev(n);
+    return true;
+  }else if(ni->id == NCKEY_DOWN){
+    nctree_next(n);
+    return true;
+  }else if(ni->id == NCKEY_PGUP){
+    nctree_prev(n); // more FIXME
+    return true;
+  }else if(ni->id == NCKEY_PGDOWN){
+    nctree_next(n); // more FIXME
+    return true;
+  }else if(ni->id == NCKEY_HOME){
+    nctree_prev(n); // more FIXME
+    return true;
+  }else if(ni->id == NCKEY_END){
+    nctree_next(n); // more FIXME
+    return true;
+  }
+  // FIXME implement left, right, +, -
+  return false;
 }
 
 void* nctree_focused(nctree* n){
