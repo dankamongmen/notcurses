@@ -182,14 +182,41 @@ fprintf(stderr, "PPATH[%d]: %u %p COUNT: %u\n", idx, path[idx], nii->curry, nii-
   return ret ? ret : nii->curry;
 }
 
-// move to the prior path, updating the path in-place, returning its curry.
+// the prev is either:
+//   the item to the left, if the last path component is 0, or
+//   a drop from the rightmost non-zero path component, extended out to the right, or
+//   the current item
+// so we can always just go to the last path component, act there, and possibly
+// extend it out to the maximal topright.
 void* nctree_prev(nctree* n){
-  void* ret = nctree_prior_recursive(&n->items.subs[n->currentpath[0]], n->currentpath, 0);
-  if(n->activerow > 0){
-    --n->activerow; // FIXME deduct size of previous?
+  nctree_int_item* nii = &n->items;
+  nctree_int_item* wedge = NULL; // tracks the rightmost non-zero path
+  int idx = 0;
+  while(n->currentpath[idx] != UINT_MAX){
+    nii = &nii->subs[n->currentpath[idx]];
+    if(idx == 0){
+      wedge = &n->items;
+    }else{// if(idx > 1){
+      wedge = &wedge->subs[n->currentpath[idx - 1]];
+    }
+    ++idx;
   }
-  nctree_redraw(n); // FIXME maybe require explicit redraws?
-  return ret;
+  if(n->currentpath[idx - 1]){
+    --n->currentpath[idx - 1];
+    nii = &wedge->subs[n->currentpath[idx - 1]];
+    while(nii->subcount){
+      n->currentpath[idx - 1] = nii->subcount - 1;
+      nii = &nii->subs[n->currentpath[idx - 1]];
+      ++idx;
+    }
+    n->currentpath[idx] = UINT_MAX;
+    return nii->curry;
+  }
+  if(wedge == &n->items){
+    return nii->curry; // no change
+  }
+  n->currentpath[idx - 1] = UINT_MAX;
+  return wedge->curry;
 }
 
 // the next is either:
@@ -209,6 +236,7 @@ void* nctree_next(nctree* n){
     nii = &nii->subs[n->currentpath[idx]];
     ++idx;
   }
+  // FIXME update n->activerow, redraw
   if(nii->subcount){
     n->currentpath[idx] = 0;
     n->currentpath[idx + 1] = UINT_MAX;
