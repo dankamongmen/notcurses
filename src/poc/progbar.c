@@ -136,12 +136,20 @@ int main(void){
   ncprogbar_destroy(ncp);
   ncplane_erase(notcurses_stdplane(nc));
   ncp = hbar_make(nc, NCPROGBAR_OPTION_RETROGRADE);
+  if(ncp == NULL){
+    notcurses_stop(nc);
+    return EXIT_FAILURE;
+  }
   if(pbar_fill(nc, ncp)){
     notcurses_stop(nc);
     return EXIT_FAILURE;
   }
   ncprogbar_destroy(ncp);
   ncp = hbar_make(nc, 0);
+  if(ncp == NULL){
+    notcurses_stop(nc);
+    return EXIT_FAILURE;
+  }
   if(pbar_fill(nc, ncp)){
     notcurses_stop(nc);
     return EXIT_FAILURE;
