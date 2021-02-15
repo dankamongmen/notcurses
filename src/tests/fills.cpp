@@ -573,7 +573,7 @@ TEST_CASE("Fills") {
     const char* qr = "a very simple qr code";
     int dimy, dimx;
     ncplane_dim_yx(n_, &dimy, &dimx);
-    CHECK(0 < ncplane_qrcode(n_, NCBLIT_DEFAULT, &dimy, &dimx, qr, strlen(qr)));
+    CHECK(0 < ncplane_qrcode(n_, &dimy, &dimx, qr, strlen(qr)));
     CHECK(0 == notcurses_render(nc_));
   }
 #endif

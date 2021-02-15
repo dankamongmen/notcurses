@@ -96,6 +96,8 @@ typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 
 **ncblitter_e ncvisual_media_defblitter(const struct notcurses ***nc***, ncscale_e ***scaling***);**
 
+**int ncplane_qrcode(struct ncplane* ***n***, int* ***ymax***, int* ***xmax***, const void* ***data***, size_t ***len***)**
+
 # DESCRIPTION
 
 An **ncvisual** is a virtual pixel framebuffer. They can be created from
@@ -143,6 +145,10 @@ geometry of same. **flags** is a bitfield over:
 
 * **NCVISUAL_OPTION_NODEGRADE** If the specified blitter is not available, fail rather than degrading.
 * **NCVISUAL_OPTION_BLEND**: Render with **CELL_ALPHA_BLEND**.
+
+**ncplane_qrcode** draws an ISO/IEC 18004:2015 QR Code for the **len** bytes of
+**data** using **NCBLIT_2x1** (this is the only blitter that will work with QR
+Code scanners, due to its 1:1 aspect ratio).
 
 # BLITTERS
 

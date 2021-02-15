@@ -6,7 +6,7 @@ static int
 render_qrcode(struct ncplane* n, int dimy, int dimx, const char* text){
   int y = dimy, x = dimx;
   ncplane_home(n);
-  int ver = ncplane_qrcode(n, NCBLIT_2x2, &y, &x, text, strlen(text));
+  int ver = ncplane_qrcode(n, &y, &x, text, strlen(text));
   if(ver < 0){
     return -1;
   }

@@ -571,8 +571,8 @@ qrcode_cols(int version){
   return QR_BASE_SIZE + (version * PER_QR_VERSION);
 }
 
-int ncplane_qrcode(ncplane* n, ncblitter_e blitter, int* ymax, int* xmax,
-                   const void* data, size_t len){
+int ncplane_qrcode(ncplane* n, int* ymax, int* xmax, const void* data, size_t len){
+  const ncblitter_e blitter = NCBLIT_2x1;
   const int MAX_QR_VERSION = 40; // QR library only supports up to 40
   if(*ymax <= 0 || *xmax <= 0){
     return -1;

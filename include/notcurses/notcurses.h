@@ -3295,8 +3295,9 @@ API int ncsubproc_destroy(struct ncsubproc* n);
 // returned. Otherwise, the QR code "version" (size) is returned. The QR code
 // is (version * 4 + 17) columns wide, and ⌈version * 4 + 17⌉ rows tall (the
 // properly-scaled values are written back to '*ymax' and '*xmax').
-API int ncplane_qrcode(struct ncplane* n, ncblitter_e blitter, int* ymax,
-                       int* xmax, const void* data, size_t len);
+API int ncplane_qrcode(struct ncplane* n, int* ymax, int* xmax,
+                       const void* data, size_t len)
+  __attribute__ ((nonnull (1, 4)));
 
 // Enable horizontal scrolling. Virtual lines can then grow arbitrarily long.
 #define NCREADER_OPTION_HORSCROLL 0x0001ull

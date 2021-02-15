@@ -2946,7 +2946,7 @@ int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv, float timescale,
 
 ### QR codes
 
-If build with libqrcodegen support, `ncplane_qrcode()` can be used to draw
+If built with libqrcodegen support, `ncplane_qrcode()` can be used to draw
 a QR code for arbitrary data.
 
 ```c
@@ -2955,10 +2955,8 @@ a QR code for arbitrary data.
 // returned. Otherwise, the QR code "version" (size) is returned. The QR code
 // is (version * 4 + 17) columns wide, and ⌈version * 4 + 17⌉ rows tall (the
 // properly-scaled values are written back to '*ymax' and '*xmax').
-int ncplane_qrcode(struct ncplane* n, ncblitter_e blitter, int* ymax,
-                   int* xmax, const void* data, size_t len);
+int ncplane_qrcode(struct ncplane* n, int* ymax, int* xmax, const void* data, size_t len);
 ```
-
 
 ### Multimedia
 
