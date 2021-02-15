@@ -1,5 +1,6 @@
 #include "internal.h"
 
+// these are never allocated themselves, but always as arrays of object
 typedef struct nctree_int_item {
   void* curry;
   ncplane* n;
@@ -10,40 +11,50 @@ typedef struct nctree_int_item {
 typedef struct nctree {
   ncplane* ncp;
   int (*cbfxn)(ncplane*, void*, int);
-  nctree_int_item* items;
-  unsigned itemcount;
+  nctree_int_item items;
   // FIXME need to track item we're on, probably via array of uints + sentinel?
+  unsigned maxdepth;
   unsigned activerow;
   uint64_t bchannels;
 } nctree;
 
+// recursively free an array of nctree_int_item; nctree_int_item structs are
+// never individually free()d, just their innards
 static void
 free_tree_items(nctree_int_item* iarray){
   for(unsigned c = 0 ; c < iarray->subcount ; ++c){
     free_tree_items(&iarray->subs[c]);
   }
+  ncplane_destroy(iarray->n);
   free(iarray->subs);
 }
 
-static nctree_int_item*
-dup_tree_items(const nctree_item* items, unsigned count){
-  nctree_int_item* ret = malloc(sizeof(*ret) * count);
-  if(ret){
-    for(unsigned c = 0 ; c < count ; ++c){
-      nctree_int_item* nii = &ret[c];
-      nii->curry = items[c].curry;
-      nii->n = NULL;
-      nii->subcount = items[c].subcount;
-      if((nii->subs = dup_tree_items(items[c].subs, nii->subcount)) == NULL){
-        while(c--){
-          free_tree_items(&ret[c]);
-        }
-        free(ret);
-        return NULL;
+// allocates a |count|-sized array of nctree_int_items, and fills |fill| in,
+// using |items|. updates |*maxdepth| when appropriate.
+static int
+dup_tree_items(nctree_int_item* fill, const nctree_item* items, unsigned count, unsigned depth,
+               unsigned* maxdepth){
+  fill->subcount = count;
+  fill->subs = malloc(sizeof(*fill->subs) * count);
+  if(fill->subs == NULL){
+    return -1;
+  }
+  for(unsigned c = 0 ; c < fill->subcount ; ++c){
+    nctree_int_item* nii = &fill->subs[c];
+    nii->curry = items[c].curry;
+    nii->n = NULL;
+    if(dup_tree_items(nii, items[c].subs, items[c].subcount, depth + 1, maxdepth)){
+      while(c--){
+        free_tree_items(&fill->subs[c]);
       }
+      free(fill->subs);
+      return -1;
     }
   }
-  return ret;
+  if(depth > *maxdepth){
+    *maxdepth = depth;
+  }
+  return 0;
 }
 
 static nctree*
@@ -52,15 +63,15 @@ nctree_inner_create(ncplane* n, const struct nctree_options* opts){
   if(ret){
     ret->bchannels = opts->bchannels;
     ret->cbfxn = opts->nctreecb;
-    ret->itemcount = opts->count;
-    ret->items = dup_tree_items(opts->items, ret->itemcount);
-    ret->activerow = 0;
-    ret->ncp = n;
-    if(ret->items == NULL){
-      logerror(ncplane_notcurses(n), "Couldn't duplicate tree items\n");
+    ret->maxdepth = 0;
+    if(dup_tree_items(&ret->items, opts->items, opts->count, 0, &ret->maxdepth)){
       free(ret);
       return NULL;
     }
+    ret->items.n = NULL;
+    ret->items.curry = NULL;
+    ret->activerow = 0;
+    ret->ncp = n;
   }
   return ret;
 }
@@ -84,10 +95,7 @@ nctree* nctree_create(ncplane* n, const struct nctree_options* opts){
 
 void nctree_destroy(nctree* n){
   if(n){
-    for(unsigned c = 0 ; c < n->itemcount ; ++c){
-      free_tree_items(&n->items[c]);
-    }
-    free(n->items);
+    free_tree_items(&n->items);
     free(n);
   }
 }
