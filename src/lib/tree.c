@@ -142,46 +142,6 @@ ncplane* nctree_plane(nctree* n){
   return n->items.ncp;
 }
 
-// first we go out to the path's end, marked by UINT_MAX.
-// there, start falling back, until we find a path element that is not 0
-// (if there are no such elements, we're at the first item).
-// if |*breakpoint| is set, we're solved--propagate the return.
-// otherwise, if we are greater than 0, decrement, set |*breakpoint|,
-//  and call forward to the greatest subelement, returning it.
-// otherwise, we are equal to 0, and things are unsolved;
-//  propagate the return, unless we're the penultimate, in which case return
-//  our own curry;
-// return our curry unless |*breakpoint| is set.
-// FIXME rewrite as iteration -- we already have all the state we need!
-
-static void*
-nctree_chase_max(const nctree_int_item* nii, unsigned* path, int idx){
-  if(nii->subcount == 0){
-    path[idx] = UINT_MAX;
-    return NULL;
-  }
-  path[idx] = nii->subcount - 1;
-  void* ret = nctree_chase_max(&nii->subs[path[idx]], path, idx + 1);
-  return ret ? ret : nii->curry;
-}
-
-static void*
-nctree_prior_recursive(const nctree_int_item* nii, unsigned* path, int idx){
-fprintf(stderr, "PPATH[%d]: %u %p COUNT: %u\n", idx, path[idx], nii->curry, nii->subcount);
-  void* ret = NULL;
-  if(nii->subcount){
-    ret = nctree_prior_recursive(&nii->subs[path[idx]], path, idx + 1);
-  }
-  if(ret){
-    return ret;
-  }
-  if(path[idx]){
-    --path[idx];
-    ret = nctree_chase_max(&nii->subs[path[idx]], path, idx + 1);
-  }
-  return ret ? ret : nii->curry;
-}
-
 // the prev is either:
 //   the item to the left, if the last path component is 0, or
 //   a drop from the rightmost non-zero path component, extended out to the right, or
@@ -251,6 +211,10 @@ void* nctree_next(nctree* n){
 }
 
 int nctree_redraw(nctree* n){
+  ncplane* ncp = n->items.ncp;
+  if(ncplane_cursor_move_yx(ncp, n->activerow, 0)){
+    return -1;
+  }
   // FIXME start at n->activerow with the currentpath. for each, until we run
   // out or fill the screen, check that it has an ncplane defined. if not,
   // create one. pass it to the callback with the curry.
@@ -293,6 +257,8 @@ void* nctree_focused(nctree* n){
   return nii->curry;
 }
 
+/*
 void* nctree_goto(nctree* n, const int* spec, size_t specdepth, int* failspec){
   // FIXME
 }
+*/
