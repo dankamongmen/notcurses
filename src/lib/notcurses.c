@@ -290,6 +290,9 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
     return NULL;
   }
   ncplane* p = malloc(sizeof(*p));
+  if(p == NULL){
+    return NULL;
+  }
   size_t fbsize = sizeof(*p->fb) * (nopts->rows * nopts->cols);
   if((p->fb = malloc(fbsize)) == NULL){
     logerror(nc, "Error allocating cellmatrix (r=%d, c=%d)\n",
