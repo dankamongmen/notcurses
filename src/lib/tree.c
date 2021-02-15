@@ -3,19 +3,18 @@
 // these are never allocated themselves, but always as arrays of object
 typedef struct nctree_int_item {
   void* curry;
-  ncplane* n;
+  ncplane* ncp;
   unsigned subcount;
   struct nctree_int_item* subs;
 } nctree_int_item;
 
 typedef struct nctree {
-  ncplane* ncp;
   int (*cbfxn)(ncplane*, void*, int);
-  nctree_int_item items;
-  // FIXME need to track item we're on, probably via array of uints + sentinel?
-  unsigned maxdepth;
-  unsigned activerow;
-  uint64_t bchannels;
+  nctree_int_item items; // topmost set of items, holds widget plane
+  unsigned* currentpath; // array of |maxdepth|+1 elements, ended by UINT_MAX
+  unsigned maxdepth;     // binds the path length
+  unsigned activerow;    // active row 0 <= activerow < dimy
+  uint64_t bchannels;    // border glyph channels
 } nctree;
 
 // recursively free an array of nctree_int_item; nctree_int_item structs are
@@ -25,7 +24,7 @@ free_tree_items(nctree_int_item* iarray){
   for(unsigned c = 0 ; c < iarray->subcount ; ++c){
     free_tree_items(&iarray->subs[c]);
   }
-  ncplane_destroy(iarray->n);
+  ncplane_destroy(iarray->ncp);
   free(iarray->subs);
 }
 
@@ -42,7 +41,7 @@ dup_tree_items(nctree_int_item* fill, const nctree_item* items, unsigned count, 
   for(unsigned c = 0 ; c < fill->subcount ; ++c){
     nctree_int_item* nii = &fill->subs[c];
     nii->curry = items[c].curry;
-    nii->n = NULL;
+    nii->ncp = NULL;
     if(dup_tree_items(nii, items[c].subs, items[c].subcount, depth + 1, maxdepth)){
       while(c--){
         free_tree_items(&fill->subs[c]);
@@ -68,14 +67,21 @@ nctree_inner_create(ncplane* n, const struct nctree_options* opts){
       free(ret);
       return NULL;
     }
-    ret->items.n = NULL;
+//fprintf(stderr, "MAXDEPTH: %u\n", ret->maxdepth);
+    ret->currentpath = malloc(sizeof(*ret->currentpath) * (ret->maxdepth + 1));
+    if(ret->currentpath == NULL){
+      free(ret);
+      return NULL;
+    }
+    ret->items.ncp = n;
     ret->items.curry = NULL;
     ret->activerow = 0;
-    ret->ncp = n;
+    nctree_redraw(ret);
   }
   return ret;
 }
 
+// FIXME free up |n| on all error paths
 nctree* nctree_create(ncplane* n, const struct nctree_options* opts){
   notcurses* nc = ncplane_notcurses(n);
   if(opts->flags){
@@ -102,7 +108,7 @@ void nctree_destroy(nctree* n){
 
 // Returns the ncplane on which this nctree lives.
 ncplane* nctree_plane(nctree* n){
-  return n->ncp;
+  return n->items.ncp;
 }
 
 int nctree_redraw(nctree* n){
@@ -130,7 +136,7 @@ bool nctree_offer_input(nctree* n, const ncinput* ni){
     nctree_next(n); // more FIXME
     return true;
   }
-  // FIXME implement left, right, +, -
+  // FIXME implement left, right, +, - (expand/collapse)
   return false;
 }
 
