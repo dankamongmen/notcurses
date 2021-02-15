@@ -103,6 +103,7 @@ TEST_CASE("Tree") {
     CHECK(0 == notcurses_render(nc_));
     CHECK(treen == nctree_plane(tree));
     CHECK(items[0].curry == nctree_focused(tree));
+    CHECK(items[0].curry == nctree_prev(tree));
     nctree_destroy(tree);
   }
 
