@@ -17,7 +17,7 @@ TEST_CASE("Tree") {
   REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
 
   // should be refused with a null items
-  SUBCASE("BadTreeNoPointer") {
+  SUBCASE("BadTreeNoItems") {
     struct nctree_options opts = {
       .items = nullptr,
       .count = 2,
@@ -43,10 +43,17 @@ TEST_CASE("Tree") {
   }
 
   // should be refused with a null callback
-  SUBCASE("BadTreeNoCount") {
+  SUBCASE("BadTreeNoCallback") {
+    nctree_item items[] = {
+      {
+        .curry = strdup("item1"),
+        .subs = nullptr,
+        .subcount = 0,
+      },
+    };
     struct nctree_options opts = {
-      .items = {},
-      .count = 1,
+      .items = items,
+      .count = sizeof(items) / sizeof(*items),
       .bchannels = 0,
       .nctreecb = nullptr,
       .flags = 0,
