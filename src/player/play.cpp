@@ -273,9 +273,7 @@ auto handle_opts(int argc, char** argv, notcurses_options& opts, bool* quiet,
 }
 
 // argc/argv ought already be reduced to only the media arguments
-int direct_mode_player(int argc, char** argv, float timescale,
-                       ncscale_e scalemode, ncblitter_e blitter,
-                       float displaytime, bool loop){
+int direct_mode_player(int argc, char** argv, ncscale_e scalemode, ncblitter_e blitter){
   Direct dm{};
   if(!dm.canopen_images()){
     std::cerr << "Notcurses was compiled without multimedia support\n";
@@ -284,47 +282,16 @@ int direct_mode_player(int argc, char** argv, float timescale,
   bool failed = false;
   {
     for(auto i = 0 ; i < argc ; ++i){
-      std::unique_ptr<Visual> ncv;
       try{
-        ncv = std::make_unique<Visual>(argv[i]);
+        dm.render_image(argv[i], NCALIGN_RIGHT, blitter, scalemode);
       }catch(std::exception& e){
         // FIXME want to stop nc first :/ can't due to stdn, ugh
         std::cerr << argv[i] << ": " << e.what() << "\n";
         failed = true;
         break;
       }
-      struct ncvisual_options vopts{};
-      int r;
-      vopts.scaling = scalemode;
-      vopts.blitter = blitter;
-      do{
-        // FIXME just display, please
-        if(r == 0){
-          //vopts.blitter = marsh.blitter;
-          if(displaytime < 0){
-            /*
-            if(!nc.render()){
-              failed = true;
-              break;
-            }
-            */
-          }else{
-            // FIXME do we still want to honor keybindings when timing out?
-            struct timespec ts;
-            ts.tv_sec = displaytime;
-            ts.tv_nsec = (displaytime - ts.tv_sec) * NANOSECS_IN_SEC;
-            clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);
-          }
-        }
-      }while(loop && r == 0);
-      if(r < 0){ // positive is intentional abort
-        std::cerr << "Error decoding " << argv[i] << std::endl;
-        failed = true;
-        break;
-      }
     }
   }
-done:
   return failed ? -1 : 0;
 }
 
@@ -344,8 +311,7 @@ auto main(int argc, char** argv) -> int {
   // if -k was provided, we now use direct mode rather than simply not using the
   // alternate screen, so that output is inline with the shell.
   if(ncopts.flags & NCOPTION_NO_ALTERNATE_SCREEN){
-    if(direct_mode_player(argc - nonopt, argv + nonopt, timescale,
-                          scalemode, blitter, displaytime, loop)){
+    if(direct_mode_player(argc - nonopt, argv + nonopt, scalemode, blitter)){
       return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;
