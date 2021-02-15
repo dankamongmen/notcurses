@@ -426,8 +426,8 @@ summary_table(struct ncdirect* nc, const char* spec, bool canimage, bool canvide
     qprefix(results[i].timens, NANOSECS_IN_SEC, timebuf, 0);
     bprefix(results[i].stats.render_bytes, 1, totalbuf, 0);
     if(results[i].stats.renders){
-      qprefix((uintmax_t)results[i].stats.renders * NANOSECS_IN_SEC * 1000 /
-              (results[i].stats.render_ns + results[i].stats.writeout_ns),
+      qprefix((uintmax_t)results[i].stats.writeouts * NANOSECS_IN_SEC * 1000 /
+              (results[i].stats.render_ns + results[i].stats.writeout_ns + results[i].stats.raster_ns),
               1000, tfpsbuf, 0);
     }else{
       qprefix(0, NANOSECS_IN_SEC, tfpsbuf, 0);
