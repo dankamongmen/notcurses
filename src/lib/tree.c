@@ -98,22 +98,29 @@ nctree_inner_create(ncplane* n, const struct nctree_options* opts){
   return ret;
 }
 
-// FIXME free up |n| on all error paths
 nctree* nctree_create(ncplane* n, const struct nctree_options* opts){
   notcurses* nc = ncplane_notcurses(n);
   if(opts->flags){
     logwarn(nc, "Passed invalid flags 0x%016jx\n", (uint64_t)opts->flags);
-    return NULL;
+    goto error;
   }
   if(opts->count == 0 || opts->items == NULL){
     logerror(nc, "Can't create empty tree\n");
-    return NULL;
+    goto error;
   }
   if(opts->nctreecb == NULL){
     logerror(nc, "Can't use NULL callback\n");
-    return NULL;
+    goto error;
   }
-  return nctree_inner_create(n, opts);
+  nctree* ret = nctree_inner_create(n, opts);
+  if(ret == NULL){
+    goto error;
+  }
+  return ret;
+
+error:
+  ncplane_destroy(n);
+  return NULL;
 }
 
 void nctree_destroy(nctree* n){
