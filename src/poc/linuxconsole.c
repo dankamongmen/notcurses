@@ -32,8 +32,8 @@ get_tty_fd(const char* dev){
 
 static bool
 is_linux_console(int fd){
-  int mode, r;
-  if( (r = ioctl(fd, KDGETMODE, &mode)) ){
+  int mode;
+  if(ioctl(fd, KDGETMODE, &mode)){
     fprintf(stderr, "Not a Linux console, KDGETMODE failed (%s)\n", strerror(errno));
     return false;
   }
