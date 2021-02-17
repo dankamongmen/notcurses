@@ -1,5 +1,126 @@
 #include "notcurses/notcurses.h"
 
+static nctree_item u214 = {
+  .subs = NULL,
+  .subcount = 0,
+  .curry = "²¹⁴U",
+};
+
+static nctree_item u215 = {
+  .subs = NULL,
+  .subcount = 0,
+  .curry = "²¹⁵U",
+};
+
+static nctree_item u216 = {
+  .subs = NULL,
+  .subcount = 0,
+  .curry = "²¹⁶U",
+};
+
+static nctree_item u217 = {
+  .subs = NULL,
+  .subcount = 0,
+  .curry = "²¹⁷U",
+};
+
+static nctree_item u222 = {
+  .subs = NULL,
+  .subcount = 0,
+  .curry = "²²²U",
+};
+
+static nctree_item u227 = {
+  .subs = NULL,
+  .subcount = 0,
+  .curry = "²²⁷U",
+};
+
+static nctree_item u230 = {
+  .subs = NULL,
+  .subcount = 0,
+  .curry = "²³⁰U",
+};
+
+static nctree_item alphaUs[] = {
+  {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²¹⁴U",
+  }, {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²¹⁵U",
+  }, {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²¹⁶U",
+  }, {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²¹⁷U",
+  },
+};
+
+static nctree_item alphaU = {
+  .subs = alphaUs,
+  .subcount = sizeof(alphaUs) / sizeof(*alphaUs),
+};
+
+static nctree_item alphas = {
+  .subs = &alphaU,
+  .subcount = 1,
+};
+
+static nctree_item doubleUs[] = {
+  {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²³⁰U",
+  }
+};
+
+static nctree_item doubleU = {
+  .subs = doubleUs,
+  .subcount = sizeof(doubleUs) / sizeof(*doubleUs),
+};
+
+static nctree_item doublebeta = {
+  .subs = {
+    &doubleU,
+  },
+  .subcount = 1,
+};
+
+static nctree_item betaminus = {
+};
+
+static nctree_item betaplus = {
+  .subs = {
+    &u222,
+    &u227,
+  },
+  .subcount = 2,
+};
+
+static nctree_item gammas = {
+};
+
+static nctree_item sfissions = {
+};
+
+static nctree_item rads = {
+  .subs = {
+    &alphas,
+    &doublebeta,
+    &betaminus,
+    &betaplus,
+    &gammas,
+    &sfissions,
+  },
+  .subcount = 6,
+};
+
 static int
 callback(struct ncplane* ncp, void* curry, int dizzy){
   // FIXME
@@ -20,6 +141,8 @@ tree_ui(struct notcurses* nc, struct nctree* tree){
 static struct nctree*
 create_tree(struct notcurses* nc){
   struct nctree_options topts = {
+    .items = &rads,
+    .count = sizeof(rads) / sizeof(*rads),
     .nctreecb = callback,
     .flags = 0,
   };
