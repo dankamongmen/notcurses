@@ -118,6 +118,7 @@ TEST_CASE("Tree") {
     auto tree = nctree_create(treen, &opts);
     REQUIRE(nullptr != tree);
     CHECK(0 == notcurses_render(nc_));
+
     CHECK(treen == nctree_plane(tree));
     CHECK(items[0].curry == nctree_focused(tree));
 

@@ -249,6 +249,7 @@ int nctree_redraw(nctree* n){
         return -1;
       }
     }
+    n->cbfxn(nii->ncp, nii->curry, 0);
     // FIXME start with the currentpath. for each, until we run
     // out or fill the screen, check that it has an ncplane defined. if not,
     // create one. pass it to the callback with the curry.
