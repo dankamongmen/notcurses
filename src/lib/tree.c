@@ -10,12 +10,12 @@ typedef struct nctree_int_item {
 
 typedef struct nctree {
   int (*cbfxn)(ncplane*, void*, int);
-  nctree_int_item items; // topmost set of items, holds widget plane
-  void* curcurry;        // curry addressed by the path
-  unsigned* currentpath; // array of |maxdepth|+1 elements, ended by UINT_MAX
-  unsigned maxdepth;     // binds the path length
-  int activerow;         // active row 0 <= activerow < dimy
-  uint64_t bchannels;    // border glyph channels
+  nctree_int_item items;    // topmost set of items, holds widget plane
+  nctree_int_item* curitem; // item addressed by the path
+  unsigned* currentpath;    // array of |maxdepth|+1 elements, ended by UINT_MAX
+  unsigned maxdepth;        // binds the path length
+  int activerow;            // active row 0 <= activerow < dimy
+  uint64_t bchannels;       // border glyph channels
 } nctree;
 
 // recursively free an array of nctree_int_item; nctree_int_item structs are
@@ -71,14 +71,14 @@ prep_initial_path(nctree* n){
   if(n->currentpath == NULL){
     return -1;
   }
-  const nctree_int_item* nii = &n->items;
+  nctree_int_item* nii = &n->items;
   int c = 0;
   while(nii->subcount){
     n->currentpath[c++] = 0;
     nii = &nii->subs[0];
   }
   n->currentpath[c] = UINT_MAX;
-  n->curcurry = nii->curry;
+  n->curitem = nii;
   return 0;
 }
 
@@ -150,7 +150,7 @@ ncplane* nctree_plane(nctree* n){
 //   the current item
 // so we can always just go to the last path component, act there, and possibly
 // extend it out to the maximal topright.
-static void*
+static nctree_int_item*
 nctree_prev_internal(nctree* n){
   nctree_int_item* nii = &n->items;
   nctree_int_item* wedge = NULL; // tracks the rightmost non-zero path
@@ -173,25 +173,25 @@ nctree_prev_internal(nctree* n){
       ++idx;
     }
     n->currentpath[idx] = UINT_MAX;
-    return nii->curry;
+    return nii;
   }
   if(wedge == &n->items){
-    return nii->curry; // no change
+    return nii; // no change
   }
   n->currentpath[idx - 1] = UINT_MAX;
-  return wedge->curry;
+  return wedge;
 }
 
 void* nctree_prev(nctree* n){
-  n->curcurry = nctree_prev_internal(n);
-  return n->curcurry;
+  n->curitem = nctree_prev_internal(n);
+  return n->curitem->curry;
 }
 
 // the next is either:
 //  - an extension to the right, if subs are available, or
 //  - a bump to the rightmost path component with subcount available, or
 //  - the current item
-static void*
+static nctree_int_item*
 nctree_next_internal(nctree* n){
   nctree_int_item* nii = &n->items;
   nctree_int_item* wedge = NULL;  // tracks the rightmost with room in subs
@@ -205,23 +205,23 @@ nctree_next_internal(nctree* n){
     nii = &nii->subs[n->currentpath[idx]];
     ++idx;
   }
-  // FIXME update n->activerow, redraw
   if(nii->subcount){
     n->currentpath[idx] = 0;
     n->currentpath[idx + 1] = UINT_MAX;
-    return nii->subs[n->currentpath[idx]].curry;
+    return &nii->subs[n->currentpath[idx]];
   }
   if(wedge){
     ++n->currentpath[wedidx];
     n->currentpath[wedidx + 1] = UINT_MAX;
-    return wedge->subs[n->currentpath[wedidx]].curry;
+    return &wedge->subs[n->currentpath[wedidx]];
   }
-  return nii->curry;
+  return nii;
 }
 
 void* nctree_next(nctree* n){
-  n->curcurry = nctree_next_internal(n);
-  return n->curcurry;
+  // FIXME update n->activerow, redraw
+  n->curitem = nctree_next_internal(n);
+  return n->curitem->curry;
 }
 
 int nctree_redraw(nctree* n){
@@ -229,9 +229,13 @@ int nctree_redraw(nctree* n){
   if(ncplane_cursor_move_yx(ncp, n->activerow, 0)){
     return -1;
   }
-  // FIXME start at n->activerow with the currentpath. for each, until we run
-  // out or fill the screen, check that it has an ncplane defined. if not,
-  // create one. pass it to the callback with the curry.
+  int frontiert = n->activerow;
+  int frontierb = n->activerow;
+  while(frontiert > 0 && frontierb < ncplane_dim_y(n->items.ncp)){
+    // FIXME start with the currentpath. for each, until we run
+    // out or fill the screen, check that it has an ncplane defined. if not,
+    // create one. pass it to the callback with the curry.
+  }
   return 0;
 }
 
@@ -260,7 +264,7 @@ bool nctree_offer_input(nctree* n, const ncinput* ni){
 }
 
 void* nctree_focused(nctree* n){
-  return n->curcurry;
+  return n->curitem->curry;
 }
 
 /*
