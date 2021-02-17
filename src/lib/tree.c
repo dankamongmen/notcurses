@@ -11,6 +11,7 @@ typedef struct nctree_int_item {
 typedef struct nctree {
   int (*cbfxn)(ncplane*, void*, int);
   nctree_int_item items; // topmost set of items, holds widget plane
+  void* curcurry;        // curry addressed by the path
   unsigned* currentpath; // array of |maxdepth|+1 elements, ended by UINT_MAX
   unsigned maxdepth;     // binds the path length
   int activerow;         // active row 0 <= activerow < dimy
@@ -77,6 +78,7 @@ prep_initial_path(nctree* n){
     nii = &nii->subs[0];
   }
   n->currentpath[c] = UINT_MAX;
+  n->curcurry = nii->curry;
   return 0;
 }
 
@@ -148,7 +150,8 @@ ncplane* nctree_plane(nctree* n){
 //   the current item
 // so we can always just go to the last path component, act there, and possibly
 // extend it out to the maximal topright.
-void* nctree_prev(nctree* n){
+static void*
+nctree_prev_internal(nctree* n){
   nctree_int_item* nii = &n->items;
   nctree_int_item* wedge = NULL; // tracks the rightmost non-zero path
   int idx = 0;
@@ -179,11 +182,17 @@ void* nctree_prev(nctree* n){
   return wedge->curry;
 }
 
+void* nctree_prev(nctree* n){
+  n->curcurry = nctree_prev_internal(n);
+  return n->curcurry;
+}
+
 // the next is either:
 //  - an extension to the right, if subs are available, or
 //  - a bump to the rightmost path component with subcount available, or
 //  - the current item
-void* nctree_next(nctree* n){
+static void*
+nctree_next_internal(nctree* n){
   nctree_int_item* nii = &n->items;
   nctree_int_item* wedge = NULL;  // tracks the rightmost with room in subs
   int idx = 0;
@@ -208,6 +217,11 @@ void* nctree_next(nctree* n){
     return wedge->subs[n->currentpath[wedidx]].curry;
   }
   return nii->curry;
+}
+
+void* nctree_next(nctree* n){
+  n->curcurry = nctree_next_internal(n);
+  return n->curcurry;
 }
 
 int nctree_redraw(nctree* n){
@@ -246,15 +260,7 @@ bool nctree_offer_input(nctree* n, const ncinput* ni){
 }
 
 void* nctree_focused(nctree* n){
-  int idx = 0;
-  const nctree_int_item* nii = &n->items;
-  while(n->currentpath[idx] != UINT_MAX){
-    assert(n->currentpath[idx] < nii->subcount);
-    nii = &nii->subs[n->currentpath[idx]];
-    ++idx;
-  }
-//fprintf(stderr, "FOCUSED: %s\n", nii->curry);
-  return nii->curry;
+  return n->curcurry;
 }
 
 /*
