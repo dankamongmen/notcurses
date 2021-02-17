@@ -231,10 +231,29 @@ int nctree_redraw(nctree* n){
   }
   int frontiert = n->activerow;
   int frontierb = n->activerow;
-  while(frontiert > 0 && frontierb < ncplane_dim_y(n->items.ncp)){
+  nctree_int_item* nii = n->curitem;
+  while(frontiert > 0 || frontierb < ncplane_dim_y(n->items.ncp)){
+    if(!nii->ncp){
+      struct ncplane_options nopts = {
+        .x = 0, // FIXME
+        .y = 0, // FIXME
+        .cols = ncplane_dim_x(n->items.ncp), // FIXME
+        .rows = ncplane_dim_y(n->items.ncp), // FIXME
+        .userptr = NULL,
+        .name = NULL,
+        .resizecb = NULL, // FIXME
+        .flags = 0,
+      };
+      nii->ncp = ncplane_create(n->items.ncp, &nopts);
+      if(nii->ncp == NULL){
+        return -1;
+      }
+    }
     // FIXME start with the currentpath. for each, until we run
     // out or fill the screen, check that it has an ncplane defined. if not,
     // create one. pass it to the callback with the curry.
+    --frontiert; // FIXME placeholders to break loop
+    ++frontierb;
   }
   return 0;
 }
