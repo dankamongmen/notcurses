@@ -64,13 +64,8 @@ dup_tree_items(nctree_int_item* fill, const nctree_item* items, unsigned count, 
   return 0;
 }
 
-// the initial path ought point to the first item. maxdepth must be set.
-static int
-prep_initial_path(nctree* n){
-  n->currentpath = malloc(sizeof(*n->currentpath) * (n->maxdepth + 1));
-  if(n->currentpath == NULL){
-    return -1;
-  }
+static void
+goto_first_item(nctree* n){
   nctree_int_item* nii = &n->items;
   int c = 0;
   while(nii->subcount){
@@ -79,6 +74,17 @@ prep_initial_path(nctree* n){
   }
   n->currentpath[c] = UINT_MAX;
   n->curitem = nii;
+  n->activerow = 0;
+}
+
+// the initial path ought point to the first item. maxdepth must be set.
+static int
+prep_initial_path(nctree* n){
+  n->currentpath = malloc(sizeof(*n->currentpath) * (n->maxdepth + 1));
+  if(n->currentpath == NULL){
+    return -1;
+  }
+  goto_first_item(n);
   return 0;
 }
 
@@ -101,7 +107,6 @@ nctree_inner_create(ncplane* n, const struct nctree_options* opts){
     }
     ret->items.ncp = n;
     ret->items.curry = NULL;
-    ret->activerow = 0;
     nctree_redraw(ret);
   }
   return ret;
@@ -253,6 +258,7 @@ int nctree_redraw(nctree* n){
     // FIXME start with the currentpath. for each, until we run
     // out or fill the screen, check that it has an ncplane defined. if not,
     // create one. pass it to the callback with the curry.
+    // FIXME or maybe just track the top visible item, and always start from there?
     --frontiert; // FIXME placeholders to break loop
     ++frontierb;
   }
@@ -273,7 +279,7 @@ bool nctree_offer_input(nctree* n, const ncinput* ni){
     nctree_next(n); // more FIXME
     return true;
   }else if(ni->id == NCKEY_HOME){
-    nctree_prev(n); // more FIXME
+    goto_first_item(n);
     return true;
   }else if(ni->id == NCKEY_END){
     nctree_next(n); // more FIXME
