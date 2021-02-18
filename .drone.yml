@@ -62,7 +62,7 @@ steps:
 ---
 kind: pipeline
 type: docker
-name: ubuntu-focal
+name: ubuntu-hirsute
 
 steps:
 - name: ubuntu-build
