@@ -380,7 +380,7 @@ int ffmpeg_stream(notcurses* nc, ncvisual* ncv, float timescale,
   struct timespec begin; // time we started
   clock_gettime(CLOCK_MONOTONIC, &begin);
   uint64_t nsbegin = timespec_to_ns(&begin);
-  bool usets = false;
+  //bool usets = false;
   // each frame has a pkt_duration in milliseconds. keep the aggregate, in case
   // we don't have PTS available.
   uint64_t sum_duration = 0;
@@ -390,12 +390,14 @@ int ffmpeg_stream(notcurses* nc, ncvisual* ncv, float timescale,
   int ncerr;
   do{
     // codecctx seems to be off by a factor of 2 regularly. instead, go with
-    // the time_base from the avformatctx.
+    // the time_base from the avformatctx. except ts isn't properly reset for
+    // all media when we loop =[. we seem to be accurate enough now with the
+    // tbase/ppd. see https://github.com/dankamongmen/notcurses/issues/1352.
     double tbase = av_q2d(ncv->details->fmtctx->streams[ncv->details->stream_index]->time_base);
-    int64_t ts = ncv->details->frame->best_effort_timestamp;
+    /*int64_t ts = ncv->details->frame->best_effort_timestamp;
     if(frame == 1 && ts){
       usets = true;
-    }
+    }*/
     if(activevopts.n){
       ncplane_erase(activevopts.n); // new frame could be partially transparent
     }
@@ -418,15 +420,15 @@ int ffmpeg_stream(notcurses* nc, ncvisual* ncv, float timescale,
     uint64_t duration = ncv->details->frame->pkt_duration * tbase * NANOSECS_IN_SEC;
 //fprintf(stderr, "use: %u dur: %ju ts: %ju cctx: %f fctx: %f\n", usets, duration, ts, av_q2d(ncv->details->codecctx->time_base), av_q2d(ncv->details->fmtctx->streams[ncv->details->stream_index]->time_base));
     double schedns = nsbegin;
-    if(usets){
+    /*if(usets){
       if(tbase == 0){
         tbase = duration;
       }
       schedns += ts * (tbase * timescale) * NANOSECS_IN_SEC;
-    }else{
+    }else{*/
       sum_duration += (duration * timescale);
       schedns += sum_duration;
-    }
+    //}
     struct timespec abstime;
     ns_to_timespec(schedns, &abstime);
     int r;
