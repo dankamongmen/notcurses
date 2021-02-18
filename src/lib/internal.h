@@ -373,7 +373,7 @@ void sigwinch_handler(int signo);
 
 void init_lang(notcurses* nc); // nc may be NULL, only used for logging
 int terminfostr(char** gseq, const char* name);
-int interrogate_terminfo(tinfo* ti, const char* termname);
+int interrogate_terminfo(tinfo* ti, const char* termname, unsigned utf8);
 
 // if there were missing elements we wanted from terminfo, bitch about them here
 void warn_terminfo(const notcurses* nc, const tinfo* ti);

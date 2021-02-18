@@ -672,10 +672,9 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
   if(ncvisual_init(NCLOGLEVEL_SILENT)){
     goto err;
   }
-  if(interrogate_terminfo(&ret->tcache, shortname_term)){
+  if(interrogate_terminfo(&ret->tcache, shortname_term, utf8)){
     goto err;
   }
-  ret->tcache.utf8 = utf8;
   ncdirect_set_styles(ret, 0);
   return ret;
 
