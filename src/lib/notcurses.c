@@ -35,32 +35,19 @@ void notcurses_version_components(int* major, int* minor, int* patch, int* tweak
 }
 
 // reset the current colors, styles, and palette. called on startup (to purge
-// any preexisting styling) and shutdown (to not affect further programs). we
-// want to flush if we emit anything here, hence the convoluted structure.
+// any preexisting styling) and shutdown (to not affect further programs).
+// nc->ttyfd must be valid.
 static int
 reset_term_attributes(notcurses* nc){
   int ret = 0;
-  if(nc->tcache.oc){
-    if(nc->tcache.op && term_emit(nc->tcache.op, nc->ttyfp, false)){
-      ret = -1;
-    }
-    if(nc->tcache.sgr0 && term_emit(nc->tcache.sgr0, nc->ttyfp, false)){
-      ret = -1;
-    }
-    if(term_emit(nc->tcache.oc, nc->ttyfp, true)){
-      ret = -1;
-    }
-  }else if(nc->tcache.sgr0){
-    if(nc->tcache.op && term_emit(nc->tcache.op, nc->ttyfp, false)){
-      ret = -1;
-    }
-    if(term_emit(nc->tcache.sgr0, nc->ttyfp, true)){
-      ret = -1;
-    }
-  }else{
-    if(nc->tcache.op && term_emit(nc->tcache.op, nc->ttyfp, true)){
-      ret = -1;
-    }
+  if(nc->tcache.op && tty_emit(nc->tcache.op, nc->ttyfd)){
+    ret = -1;
+  }
+  if(nc->tcache.sgr0 && tty_emit(nc->tcache.sgr0, nc->ttyfd)){
+    ret = -1;
+  }
+  if(nc->tcache.oc && tty_emit(nc->tcache.oc, nc->ttyfd)){
+    ret = -1;
   }
   ret |= notcurses_mouse_disable(nc);
   return ret;
@@ -75,8 +62,8 @@ notcurses_stop_minimal(void* vnc){
   int ret = drop_signals(nc);
   // be sure to write the restoration sequences *prior* to running rmcup, as
   // they apply to the screen (alternate or otherwise) we're actually using.
-  ret |= reset_term_attributes(nc);
   if(nc->ttyfd >= 0){
+    ret |= reset_term_attributes(nc);
     if(nc->tcache.rmcup && tty_emit(nc->tcache.rmcup, nc->ttyfd)){
       ret = -1;
     }
@@ -1016,7 +1003,6 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   if(interrogate_terminfo(&ret->tcache, shortname_term, utf8)){
     goto err;
   }
-  reset_term_attributes(ret);
   if(ncinputlayer_init(&ret->input, stdin)){
     goto err;
   }
@@ -1044,6 +1030,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
       free_plane(ret->stdplane);
       goto err;
     }
+    reset_term_attributes(ret);
   }
   if((ret->rstate.mstreamfp = open_memstream(&ret->rstate.mstream, &ret->rstate.mstrsize)) == NULL){
     free_plane(ret->stdplane);
