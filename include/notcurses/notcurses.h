@@ -55,7 +55,6 @@ struct ncreader;  // widget supporting free string input ala readline
 struct ncfadectx; // context for a palette fade operation
 struct nctablet;  // grouped item within an ncreel
 struct ncreel;    // hierarchical block-based data browser
-struct nctree;    // hierarchical line-based data browser
 
 // we never blit full blocks, but instead spaces (more efficient) with the
 // background set to the desired foreground.
@@ -2997,72 +2996,6 @@ API bool ncmultiselector_offer_input(struct ncmultiselector* n, const ncinput* n
 
 // Destroy the ncmultiselector.
 API void ncmultiselector_destroy(struct ncmultiselector* n);
-
-// nctree widget -- a vertical browser supporting line-based hierarchies.
-//
-// each item can have subitems, and has a curry. there is one callback for the
-// entirety of the nctree. visible items have the callback invoked upon their
-// curry and an ncplane. the ncplane can be reused across multiple invocations
-// of the callback.
-
-// each item has a curry, and zero or more subitems.
-typedef struct nctree_item {
-  void* curry;
-  struct nctree_item* subs;
-  unsigned subcount;
-} nctree_item;
-
-typedef struct nctree_options {
-  const nctree_item* items; // top-level nctree_item array
-  unsigned count;           // size of |items|
-  uint64_t bchannels;       // base channels
-  int (*nctreecb)(struct ncplane*, void*, int); // item callback function
-  uint64_t flags;           // bitfield of NCTREE_OPTION_*
-} nctree_options;
-
-// |opts| may *not* be NULL, since it is necessary to define a callback
-// function.
-API ALLOC struct nctree* nctree_create(struct ncplane* n, const nctree_options* opts)
-  __attribute__ ((nonnull (1, 2)));
-
-// Returns the ncplane on which this nctree lives.
-API struct ncplane* nctree_plane(struct nctree* n)
-  __attribute__ ((nonnull (1)));
-
-// Redraw the nctree 'n' in its entirety. The tree will be cleared, and items
-// will be lain out, using the focused item as a fulcrum. Item-drawing
-// callbacks will be invoked for each visible item.
-API int nctree_redraw(struct nctree* n)
-  __attribute__ ((nonnull (1)));
-
-// Offer input 'ni' to the nctree 'n'. If it's relevant, this function returns
-// true, and the input ought not be processed further. If it's irrelevant to
-// the tree, false is returned. Relevant inputs include:
-//  * a mouse click on an item (focuses item)
-//  * a mouse scrollwheel event (srolls tree)
-//  * up, down, pgup, or pgdown (navigates among items)
-API bool nctree_offer_input(struct nctree* n, const ncinput* ni)
-  __attribute__ ((nonnull (1, 2)));
-
-// Return the focused item, if any items are present. This is not a copy;
-// be careful to use it only for the duration of a critical section.
-API void* nctree_focused(struct nctree* n) __attribute__ ((nonnull (1)));
-
-// Change focus to the next item.
-API void* nctree_next(struct nctree* n) __attribute__ ((nonnull (1)));
-
-// Change focus to the previous item.
-API void* nctree_prev(struct nctree* n) __attribute__ ((nonnull (1)));
-
-// Go to the item specified by the array |spec| having |specdepth| elements. If
-// the spec is invalid, NULL is returned, and the depth of the first invalid
-// spec is written to *|failspec|. Otherwise, |specdepth| is written to
-// *|failspec|, and the curry is returned (|failspec| is necessary because the
-// curry could itself be NULL).
-API void* nctree_goto(struct nctree* n, const int* spec, size_t specdepth, int* failspec);
-
-// Destroy the nctree.
-API void nctree_destroy(struct nctree* n);
 
 // Menus. Horizontal menu bars are supported, on the top and/or bottom rows.
 // If the menu bar is longer than the screen, it will be only partially
