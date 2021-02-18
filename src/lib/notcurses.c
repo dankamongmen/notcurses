@@ -35,18 +35,32 @@ void notcurses_version_components(int* major, int* minor, int* patch, int* tweak
 }
 
 // reset the current colors, styles, and palette. called on startup (to purge
-// any preexisting styling) and shutdown (to not affect further programs).
+// any preexisting styling) and shutdown (to not affect further programs). we
+// want to flush if we emit anything here, hence the convoluted structure.
 static int
 reset_term_attributes(notcurses* nc){
   int ret = 0;
-  if(nc->tcache.op && term_emit(nc->tcache.op, nc->ttyfp, false)){
-    ret = -1;
-  }
-  if(nc->tcache.sgr0 && term_emit(nc->tcache.sgr0, nc->ttyfp, false)){
-    ret = -1;
-  }
-  if(nc->tcache.oc && term_emit(nc->tcache.oc, nc->ttyfp, true)){
-    ret = -1;
+  if(nc->tcache.oc){
+    if(nc->tcache.op && term_emit(nc->tcache.op, nc->ttyfp, false)){
+      ret = -1;
+    }
+    if(nc->tcache.sgr0 && term_emit(nc->tcache.sgr0, nc->ttyfp, false)){
+      ret = -1;
+    }
+    if(term_emit(nc->tcache.oc, nc->ttyfp, true)){
+      ret = -1;
+    }
+  }else if(nc->tcache.sgr0){
+    if(nc->tcache.op && term_emit(nc->tcache.op, nc->ttyfp, false)){
+      ret = -1;
+    }
+    if(term_emit(nc->tcache.sgr0, nc->ttyfp, true)){
+      ret = -1;
+    }
+  }else{
+    if(nc->tcache.op && term_emit(nc->tcache.op, nc->ttyfp, true)){
+      ret = -1;
+    }
   }
   ret |= notcurses_mouse_disable(nc);
   return ret;
@@ -778,6 +792,9 @@ init_banner(const notcurses* nc){
     if(!notcurses_canutf8(nc)){
       fprintf(stderr, "\n Warning! Encoding is not UTF-8; output may be degraded.\n");
     }
+    if(!nc->tcache.hpa){
+      fprintf(stderr, "\n Warning! No absolute horizontal placement.\n");
+    }
     if(nc->tcache.sgr0){
       term_emit(nc->tcache.sgr0, stderr, true);
     }
@@ -996,11 +1013,9 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
             shortname_term ? shortname_term : "?",
             longname_term ? longname_term : "?");
   }
-  if(interrogate_terminfo(&ret->tcache, shortname_term)){
+  if(interrogate_terminfo(&ret->tcache, shortname_term, utf8)){
     goto err;
   }
-  ret->tcache.utf8 = utf8;
-  warn_terminfo(ret, &ret->tcache);
   reset_term_attributes(ret);
   if(ncinputlayer_init(&ret->input, stdin)){
     goto err;
