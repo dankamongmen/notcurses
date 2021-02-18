@@ -1,47 +1,5 @@
 #include "notcurses/notcurses.h"
 
-static nctree_item u214 = {
-  .subs = NULL,
-  .subcount = 0,
-  .curry = "²¹⁴U",
-};
-
-static nctree_item u215 = {
-  .subs = NULL,
-  .subcount = 0,
-  .curry = "²¹⁵U",
-};
-
-static nctree_item u216 = {
-  .subs = NULL,
-  .subcount = 0,
-  .curry = "²¹⁶U",
-};
-
-static nctree_item u217 = {
-  .subs = NULL,
-  .subcount = 0,
-  .curry = "²¹⁷U",
-};
-
-static nctree_item u222 = {
-  .subs = NULL,
-  .subcount = 0,
-  .curry = "²²²U",
-};
-
-static nctree_item u227 = {
-  .subs = NULL,
-  .subcount = 0,
-  .curry = "²²⁷U",
-};
-
-static nctree_item u230 = {
-  .subs = NULL,
-  .subcount = 0,
-  .curry = "²³⁰U",
-};
-
 static nctree_item alphaUs[] = {
   {
     .subs = NULL,
@@ -86,21 +44,28 @@ static nctree_item doubleU = {
 };
 
 static nctree_item doublebeta = {
-  .subs = {
-    &doubleU,
-  },
+  .subs = &doubleU,
   .subcount = 1,
 };
 
 static nctree_item betaminus = {
 };
 
-static nctree_item betaplus = {
-  .subs = {
-    &u222,
-    &u227,
+static nctree_item betaplusUs[] = {
+  {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²²²U",
+  }, {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²²⁷U",
   },
-  .subcount = 2,
+};
+
+static nctree_item betaplus = {
+  .subs = betaplusUs,
+  .subcount = sizeof(betaplusUs) / sizeof(*betaplusUs),
 };
 
 static nctree_item gammas = {
@@ -109,16 +74,31 @@ static nctree_item gammas = {
 static nctree_item sfissions = {
 };
 
-static nctree_item rads = {
-  .subs = {
-    &alphas,
-    &doublebeta,
-    &betaminus,
-    &betaplus,
-    &gammas,
-    &sfissions,
+static nctree_item radUs[] = {
+  {
+    .subs = &alphas,
+    .subcount = 1,
+  }, {
+    .subs = &doublebeta,
+    .subcount = 1,
+  }, {
+    .subs = &betaminus,
+    .subcount = 0,
+  }, {
+    .subs = &betaplus,
+    .subcount = 0,
+  }, {
+    .subs = &gammas,
+    .subcount = 0,
+  }, {
+    .subs = &sfissions,
+    .subcount = 0,
   },
-  .subcount = 6,
+};
+
+static nctree_item rads = {
+  .subs = radUs,
+  .subcount = sizeof(radUs) / sizeof(*radUs),
 };
 
 static int
@@ -135,6 +115,7 @@ tree_ui(struct notcurses* nc, struct nctree* tree){
   ncinput ni;
   while(notcurses_getc_blocking(nc, &ni) != (char32_t)-1){
     fprintf(stderr, "ni: 0x%04x\n", ni.id);
+    (void)tree; // FIXME
   }
 }
 
@@ -142,7 +123,7 @@ static struct nctree*
 create_tree(struct notcurses* nc){
   struct nctree_options topts = {
     .items = &rads,
-    .count = sizeof(rads) / sizeof(*rads),
+    .count = 1,
     .nctreecb = callback,
     .flags = 0,
   };
@@ -151,11 +132,18 @@ create_tree(struct notcurses* nc){
 }
 
 int main(void){
-  struct notcurses* nc = notcurses_init(NULL, NULL);
+  struct notcurses_options nopts = {
+    .loglevel = NCLOGLEVEL_WARNING,
+  };
+  struct notcurses* nc = notcurses_init(&nopts, NULL);
   if(nc == NULL){
     return EXIT_FAILURE;
   }
   struct nctree* tree = create_tree(nc);
+  if(tree == NULL){
+    notcurses_stop(nc);
+    return EXIT_FAILURE;
+  }
   tree_ui(nc, tree);
   nctree_destroy(tree);
   notcurses_stop(nc);
