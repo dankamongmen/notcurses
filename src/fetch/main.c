@@ -77,7 +77,7 @@ static distro_info distros[] = {
 
 static int
 fetch_bsd_cpuinfo(fetched_info* fi){
-#ifdef __linux__
+#if defined(__linux__) || defined(__gnu_hurd__)
   (void)fi;
 #else
   size_t len = sizeof(fi->core_count);
