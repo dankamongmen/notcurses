@@ -102,9 +102,8 @@ static nctree_item rads = {
 
 static int
 callback(struct ncplane* ncp, void* curry, int dizzy){
+  ncplane_putstr(ncp, curry);
   // FIXME
-  (void)ncp;
-  (void)curry;
   (void)dizzy;
   return 0;
 }
@@ -127,6 +126,9 @@ create_tree(struct notcurses* nc){
     .flags = 0,
   };
   struct nctree* tree = nctree_create(notcurses_stdplane(nc), &topts);
+  if(tree){
+    notcurses_render(nc);
+  }
   return tree;
 }
 
