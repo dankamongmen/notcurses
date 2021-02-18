@@ -57,6 +57,8 @@ apply_term_heuristics(tinfo* ti, const char* termname){
     // be RGB(0, 0, 0) (the default). we could also just set it, i guess.
     ti->bg_collides_default = 0x1000000;
     ti->sextants = true; // work since bugfix in 0.19.3
+  /*}else if(strstr(termname, "alacritty")){
+    ti->sextants = true; // alacritty https://github.com/alacritty/alacritty/issues/4409 */
   }else if(strstr(termname, "vte") || strstr(termname, "gnome") || strstr(termname, "xfce")){
     ti->sextants = true; // VTE has long enjoyed good sextant support
   }else if(strcmp(termname, "linux") == 0){
