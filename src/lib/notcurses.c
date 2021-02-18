@@ -935,7 +935,6 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   ret->lastframe = NULL;
   ret->lfdimy = 0;
   ret->lfdimx = 0;
-  ret->libsixel = false;
   egcpool_init(&ret->pool);
   if((ret->loglevel = opts->loglevel) > NCLOGLEVEL_TRACE || ret->loglevel < 0){
     fprintf(stderr, "Invalid loglevel %d\n", ret->loglevel);
@@ -2032,7 +2031,7 @@ bool notcurses_canchangecolor(const notcurses* nc){
 }
 
 bool notcurses_cansixel(const notcurses* nc){
-  return nc->libsixel;
+  return nc->tcache.libsixel;
 }
 
 palette256* palette256_new(notcurses* nc){

@@ -282,6 +282,7 @@ typedef struct tinfo {
   uint32_t bg_collides_default;
   bool sextants;  // do we have (good, vetted) Unicode 13 sextant support?
   bool braille;   // do we have Braille support? (linux console does not)
+  bool libsixel;  // do we have Sixel support?
 } tinfo;
 
 typedef struct ncinputlayer {
@@ -363,7 +364,6 @@ typedef struct notcurses {
   int loglevel;
   palette256 palette; // 256-indexed palette can be used instead of/with RGB
   bool palette_damage[NCPALETTESIZE];
-  bool libsixel;  // do we have Sixel support?
 } notcurses;
 
 #include "blitset.h"
