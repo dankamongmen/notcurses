@@ -702,12 +702,14 @@ make_nonblocking(int fd){
 static void
 reset_stats(ncstats* stats){
   uint64_t fbbytes = stats->fbbytes;
+  unsigned planes = stats->planes;
   memset(stats, 0, sizeof(*stats));
   stats->render_min_ns = 1ull << 62u;
   stats->render_min_bytes = 1ull << 62u;
   stats->raster_min_ns = 1ull << 62u;
   stats->writeout_min_ns = 1ull << 62u;
   stats->fbbytes = fbbytes;
+  stats->planes = planes;
 }
 
 // add the current stats to the cumulative stashed stats, and reset them
@@ -971,8 +973,8 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   ret->margin_l = opts->margin_l;
   ret->margin_r = opts->margin_r;
   ret->cursory = ret->cursorx = -1;
-  ret->stats.fbbytes = 0;
-  ret->stashstats.fbbytes = 0;
+  memset(&ret->stats, 0, sizeof(ret->stats));
+  memset(&ret->stashstats, 0, sizeof(ret->stashstats));
   reset_stats(&ret->stats);
   reset_stats(&ret->stashstats);
   ret->ttyfp = outfp;
@@ -1169,30 +1171,30 @@ int notcurses_stop(notcurses* nc){
         qprefix(nc->stashstats.render_min_ns, NANOSECS_IN_SEC, minbuf, 0);
         qprefix(nc->stashstats.render_max_ns, NANOSECS_IN_SEC, maxbuf, 0);
         qprefix(nc->stashstats.render_ns / nc->stashstats.renders, NANOSECS_IN_SEC, avgbuf, 0);
-        fprintf(stderr, "\n%ju render%s, %ss total (%ss min, %ss max, %ss avg)\n",
+        fprintf(stderr, "\n%ju render%s, %ss (%ss min, %ss avg, %ss max)\n",
                 nc->stashstats.renders, nc->stashstats.renders == 1 ? "" : "s",
-                totalbuf, minbuf, maxbuf, avgbuf);
+                totalbuf, minbuf, avgbuf, maxbuf);
         qprefix(nc->stashstats.raster_ns, NANOSECS_IN_SEC, totalbuf, 0);
         qprefix(nc->stashstats.raster_min_ns, NANOSECS_IN_SEC, minbuf, 0);
         qprefix(nc->stashstats.raster_max_ns, NANOSECS_IN_SEC, maxbuf, 0);
         qprefix(nc->stashstats.raster_ns / nc->stashstats.writeouts, NANOSECS_IN_SEC, avgbuf, 0);
-        fprintf(stderr, "%ju raster%s, %ss total (%ss min, %ss max, %ss avg)\n",
+        fprintf(stderr, "%ju raster%s, %ss (%ss min, %ss avg, %ss max)\n",
                 nc->stashstats.writeouts, nc->stashstats.writeouts == 1 ? "" : "s",
-                totalbuf, minbuf, maxbuf, avgbuf);
+                totalbuf, minbuf, avgbuf, maxbuf);
         qprefix(nc->stashstats.writeout_ns, NANOSECS_IN_SEC, totalbuf, 0);
         qprefix(nc->stashstats.writeout_min_ns, NANOSECS_IN_SEC, minbuf, 0);
         qprefix(nc->stashstats.writeout_max_ns, NANOSECS_IN_SEC, maxbuf, 0);
         qprefix(nc->stashstats.writeouts ? nc->stashstats.writeout_ns / nc->stashstats.writeouts : 0,
                 NANOSECS_IN_SEC, avgbuf, 0);
-        fprintf(stderr, "%ju write%s, %ss total (%ss min, %ss max, %ss avg)\n",
+        fprintf(stderr, "%ju write%s, %ss (%ss min, %ss avg, %ss max)\n",
                 nc->stashstats.writeouts, nc->stashstats.writeouts == 1 ? "" : "s",
-                totalbuf, minbuf, maxbuf, avgbuf);
-        bprefix(nc->stashstats.render_bytes, 1, totalbuf, 0),
-        bprefix(nc->stashstats.render_min_bytes, 1, minbuf, 0),
-        bprefix(nc->stashstats.render_max_bytes, 1, maxbuf, 0),
-        fprintf(stderr, "%sB total (%sB min, %sB max, %.03gKiB avg)\n",
-                totalbuf, minbuf, maxbuf,
-                nc->stashstats.render_bytes / (double)nc->stashstats.renders / 1024);
+                totalbuf, minbuf, avgbuf, maxbuf);
+        bprefix(nc->stashstats.render_bytes, 1, totalbuf, 1),
+        bprefix(nc->stashstats.render_min_bytes, 1, minbuf, 1),
+        bprefix(nc->stashstats.renders ? nc->stashstats.render_bytes / nc->stashstats.renders : 0, 1, avgbuf, 1);
+        bprefix(nc->stashstats.render_max_bytes, 1, maxbuf, 1),
+        fprintf(stderr, "%sB (%sB min, %sB avg, %sB max)\n",
+                totalbuf, minbuf, avgbuf, maxbuf);
       }
       if(nc->stashstats.renders || nc->stashstats.failed_renders){
         fprintf(stderr, "%ju failed render%s, %ju failed write%s, %ju refresh%s\n",
