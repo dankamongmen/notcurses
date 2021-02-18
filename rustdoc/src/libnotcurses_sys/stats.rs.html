@@ -41,7 +41,7 @@
     }
 
     <span class="doccomment">/// Acquires an atomic snapshot of the Notcurses object&#39;s stats.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stats</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">nc</span>: <span class="kw-2">&amp;</span><span class="ident">Notcurses</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stats</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">nc</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Notcurses</span>) {
         <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">notcurses_stats</span>(<span class="ident">nc</span>, <span class="self">self</span>) }
     }
 
