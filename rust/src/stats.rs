@@ -13,7 +13,7 @@ impl NcStats {
     }
 
     /// Acquires an atomic snapshot of the Notcurses object's stats.
-    pub fn stats(&mut self, nc: &Notcurses) {
+    pub fn stats(&mut self, nc: &mut Notcurses) {
         unsafe { crate::notcurses_stats(nc, self) }
     }
 
