@@ -616,6 +616,7 @@ ncdirect_stop_minimal(void* vnc){
     ret |= tcsetattr(nc->ctermfd, TCSANOW, &nc->tpreserved);
     ret |= close(nc->ctermfd);
   }
+  ret |= ncdirect_flush(nc);
   return ret;
 }
 
