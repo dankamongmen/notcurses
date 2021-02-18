@@ -23,11 +23,7 @@ static nctree_item alphaUs[] = {
 static nctree_item alphaU = {
   .subs = alphaUs,
   .subcount = sizeof(alphaUs) / sizeof(*alphaUs),
-};
-
-static nctree_item alphas = {
-  .subs = &alphaU,
-  .subcount = 1,
+  .curry = "ɑ-emitting U",
 };
 
 static nctree_item doubleUs[] = {
@@ -41,11 +37,7 @@ static nctree_item doubleUs[] = {
 static nctree_item doubleU = {
   .subs = doubleUs,
   .subcount = sizeof(doubleUs) / sizeof(*doubleUs),
-};
-
-static nctree_item doublebeta = {
-  .subs = &doubleU,
-  .subcount = 1,
+  .curry = "ββ-emitting U",
 };
 
 static nctree_item betaminus = {
@@ -76,29 +68,36 @@ static nctree_item sfissions = {
 
 static nctree_item radUs[] = {
   {
-    .subs = &alphas,
+    .subs = &alphaU,
     .subcount = 1,
+    .curry = "ɑ emitters",
   }, {
-    .subs = &doublebeta,
+    .subs = &doubleU,
     .subcount = 1,
+    .curry = "ββ emitters",
   }, {
     .subs = &betaminus,
     .subcount = 0,
+    .curry = "β- emitters",
   }, {
     .subs = &betaplus,
     .subcount = 0,
+    .curry = "β+ emitters",
   }, {
     .subs = &gammas,
     .subcount = 0,
+    .curry = "γ emitters",
   }, {
     .subs = &sfissions,
     .subcount = 0,
+    .curry = "spontaneous fissions",
   },
 };
 
 static nctree_item rads = {
   .subs = radUs,
   .subcount = sizeof(radUs) / sizeof(*radUs),
+  .curry = "radiating isotopes",
 };
 
 static int
