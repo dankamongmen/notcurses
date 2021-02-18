@@ -46,6 +46,9 @@ static int query_address(struct notcurses *nc, struct ncplane *plane,
   plane_opts.x = strlen(question) + 1;
 
   struct ncplane *reader_plane = ncplane_create(plane, &plane_opts);
+  uint64_t channels = 0;
+  channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+  ncplane_set_base(reader_plane, "", 0, channels);
 
   struct ncreader_options reader_opts = {0};
   reader_opts.flags = NCREADER_OPTION_CURSOR;
