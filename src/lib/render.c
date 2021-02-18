@@ -97,7 +97,7 @@ blocking_write(int fd, const char* buf, size_t buflen){
   return 0;
 }
 
-// update timings for writeout. only call on success.
+// update timings for writeout. only call on success. call only under statlock.
 static void
 update_write_stats(const struct timespec* time1, const struct timespec* time0,
                    ncstats* stats, int bytes){
@@ -118,7 +118,7 @@ update_write_stats(const struct timespec* time1, const struct timespec* time0,
   }
 }
 
-// negative 'bytes' is recorded as a failure.
+// negative 'bytes' is recorded as a failure. call only while holding statlock.
 static void
 update_render_bytes(ncstats* stats, int bytes){
   if(bytes >= 0){
@@ -134,6 +134,7 @@ update_render_bytes(ncstats* stats, int bytes){
   }
 }
 
+// call only while holding statlock.
 static void
 update_render_stats(const struct timespec* time1, const struct timespec* time0,
                     ncstats* stats){
@@ -152,6 +153,7 @@ update_render_stats(const struct timespec* time1, const struct timespec* time0,
   }
 }
 
+// call only while holding statlock.
 static void
 update_raster_stats(const struct timespec* time1, const struct timespec* time0,
                     ncstats* stats){
@@ -1200,10 +1202,12 @@ int ncpile_rasterize(ncplane* n){
   clock_gettime(CLOCK_MONOTONIC, &rasterdone);
   int bytes = notcurses_rasterize(nc, pile, nc->rstate.mstreamfp);
   // accepts -1 as an indication of failure
-  update_render_bytes(&nc->stats, bytes);
   clock_gettime(CLOCK_MONOTONIC, &writedone);
+  pthread_mutex_lock(&nc->statlock);
+  update_render_bytes(&nc->stats, bytes);
   update_raster_stats(&rasterdone, &start, &nc->stats);
   update_write_stats(&writedone, &rasterdone, &nc->stats, bytes);
+  pthread_mutex_unlock(&nc->statlock);
   if(bytes < 0){
     return -1;
   }
@@ -1246,7 +1250,9 @@ int ncpile_render(ncplane* n){
                          notcurses_stdplane(nc)->absy,
                          notcurses_stdplane(nc)->absx);
   clock_gettime(CLOCK_MONOTONIC, &renderdone);
+  pthread_mutex_lock(&nc->statlock);
   update_render_stats(&renderdone, &start, &nc->stats);
+  pthread_mutex_unlock(&nc->statlock);
   return 0;
 }
 
@@ -1267,7 +1273,9 @@ int notcurses_render_to_buffer(notcurses* nc, char** buf, size_t* buflen){
     return -1;
   }
   int bytes = notcurses_rasterize_inner(nc, ncplane_pile(stdn), nc->rstate.mstreamfp);
+  pthread_mutex_lock(&nc->statlock);
   update_render_bytes(&nc->stats, bytes);
+  pthread_mutex_unlock(&nc->statlock);
   if(bytes < 0){
     return -1;
   }

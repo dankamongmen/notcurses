@@ -5,6 +5,9 @@ rearrangements of Notcurses.
   * `ncplane_qrcode()` no longer accepts a blitter argument, since `NCBLIT_2x1`
     is the only one that actually works with qr code scanners. I'm unaware of
     any external `ncplane_qrcode()` users, so hopefully this isn't a problem.
+  * `notcurses_stats()` no longer qualifies its `notcurses*` argument with
+    `const`, since it now takes a lock. I'm sorry about that, though on the
+    plus side, data races can no longer result in invalid stats.
 
 * 2.2.1 (2021-02-09):
   * Brown-bag release: fix UTF8 discovery in direct mode. Sorry!

@@ -348,6 +348,7 @@ typedef struct notcurses {
   int cursory;    // desired cursor placement according to user.
   int cursorx;    // -1 is don't-care, otherwise moved here after each render.
 
+  pthread_mutex_t statlock;
   ncstats stats;  // some statistics across the lifetime of the notcurses ctx
 
   FILE* ttyfp;    // FILE* for writing rasterized data

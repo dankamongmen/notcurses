@@ -3062,12 +3062,12 @@ typedef struct ncstats {
 ncstats* notcurses_stats_alloc(const struct notcurses* nc);
 
 // Acquire an atomic snapshot of the Notcurses object's stats.
-void notcurses_stats(const struct notcurses* nc, ncstats* stats);
+void notcurses_stats(struct notcurses* nc, ncstats* stats);
 
-// Reset all cumulative stats (immediate ones, such as fbbytes, are not reset).
+// Reset all cumulative stats (immediate ones, such as fbbytes, are not reset),
+// first copying them into |*stats| (if |stats| is not NULL).
 void notcurses_stats_reset(struct notcurses* nc, ncstats* stats);
 ```
-
 
 ## C++
 

@@ -221,10 +221,12 @@ void free_plane(ncplane* p){
   if(p){
     // ncdirect fakes an ncplane with no ->pile
     if(ncplane_pile(p)){
+      notcurses* nc = ncplane_notcurses(p);
+      pthread_mutex_lock(&nc->statlock);
       --ncplane_notcurses(p)->stats.planes;
       ncplane_notcurses(p)->stats.fbbytes -= sizeof(*p->fb) * p->leny * p->lenx;
+      pthread_mutex_unlock(&nc->statlock);
       if(p->above == NULL && p->below == NULL){
-        struct notcurses* nc = ncplane_notcurses(p);
         pthread_mutex_lock(&nc->pilelock);
         ncpile_destroy(ncplane_pile(p));
         pthread_mutex_unlock(&nc->pilelock);
@@ -357,8 +359,10 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
     }else{ // new pile
       make_ncpile(nc, p);
     }
+    pthread_mutex_lock(&nc->statlock);
     nc->stats.fbbytes += fbsize;
     ++nc->stats.planes;
+    pthread_mutex_unlock(&nc->statlock);
     pthread_mutex_unlock(&nc->pilelock);
   }
   loginfo(nc, "Created new %dx%d plane \"%s\" @ %dx%d\n",
@@ -541,6 +545,7 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
     return -1;
   }
   loginfo(ncplane_notcurses(n), "%dx%d @ %d/%d → %d/%d @ %d/%d (keeping %dx%d from %d/%d)\n", rows, cols, n->absy, n->absx, ylen, xlen, n->absy + keepy + yoff, n->absx + keepx + xoff, keepleny, keeplenx, keepy, keepx);
+  notcurses* nc = ncplane_notcurses(n);
   // we're good to resize. we'll need alloc up a new framebuffer, and copy in
   // those elements we're retaining, zeroing out the rest. alternatively, if
   // we've shrunk, we will be filling the new structure.
@@ -559,8 +564,10 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
     n->x = xlen - 1;
   }
   nccell* preserved = n->fb;
+  pthread_mutex_lock(&nc->statlock);
   ncplane_notcurses(n)->stats.fbbytes -= sizeof(*preserved) * (rows * cols);
   ncplane_notcurses(n)->stats.fbbytes += fbsize;
+  pthread_mutex_unlock(&nc->statlock);
   n->fb = fb;
   const int oldabsy = n->absy;
   // go ahead and move. we can no longer fail at this point. but don't yet
@@ -712,8 +719,10 @@ reset_stats(ncstats* stats){
   stats->planes = planes;
 }
 
-void notcurses_stats(const notcurses* nc, ncstats* stats){
+void notcurses_stats(notcurses* nc, ncstats* stats){
+  pthread_mutex_lock(&nc->statlock);
   memcpy(stats, &nc->stats, sizeof(*stats));
+  pthread_mutex_unlock(&nc->statlock);
 }
 
 ncstats* notcurses_stats_alloc(const notcurses* nc __attribute__ ((unused))){
@@ -721,10 +730,12 @@ ncstats* notcurses_stats_alloc(const notcurses* nc __attribute__ ((unused))){
 }
 
 void notcurses_stats_reset(notcurses* nc, ncstats* stats){
+  pthread_mutex_lock(&nc->statlock);
   if(stats){
     memcpy(stats, &nc->stats, sizeof(*stats));
   }
   reset_stats(&nc->stats);
+  pthread_mutex_unlock(&nc->statlock);
 }
 
 // unless the suppress_banner flag was set, print some version information and
@@ -879,6 +890,7 @@ recursive_lock_init(pthread_mutex_t *lock){
 #endif
 }
 
+// FIXME cut this up into a few distinct pieces, yearrrgh
 notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   notcurses_options defaultopts;
   memset(&defaultopts, 0, sizeof(defaultopts));
@@ -915,11 +927,6 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   if(outfp == NULL){
     outfp = stdout;
   }
-  if(recursive_lock_init(&ret->pilelock)){
-    fprintf(stderr, "Couldn't initialize pile mutex\n");
-    free(ret);
-    return NULL;
-  }
   ret->margin_t = opts->margin_t;
   ret->margin_b = opts->margin_b;
   ret->margin_l = opts->margin_l;
@@ -955,6 +962,16 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     }
   }else{
     fprintf(stderr, "Defaulting to %dx%d (output is not to a terminal)\n", DEFAULT_ROWS, DEFAULT_COLS);
+  }
+  if(recursive_lock_init(&ret->pilelock)){
+    fprintf(stderr, "Couldn't initialize pile mutex\n");
+    free(ret);
+    return NULL;
+  }
+  if(pthread_mutex_init(&ret->statlock, NULL)){
+    pthread_mutex_destroy(&ret->pilelock);
+    free(ret);
+    return NULL;
   }
   if(setup_signals(ret, (opts->flags & NCOPTION_NO_QUIT_SIGHANDLERS),
                    (opts->flags & NCOPTION_NO_WINCH_SIGHANDLER),
@@ -1046,6 +1063,8 @@ err:
   // FIXME looks like we have some memory leaks on this error path?
   tcsetattr(ret->ttyfd, TCSANOW, &ret->tpreserved);
   drop_signals(ret);
+  pthread_mutex_destroy(&ret->statlock);
+  pthread_mutex_destroy(&ret->pilelock);
   free(ret);
   return NULL;
 }
@@ -1172,6 +1191,7 @@ int notcurses_stop(notcurses* nc){
       }
     }
     del_curterm(cur_term);
+    ret |= pthread_mutex_destroy(&nc->statlock);
     ret |= pthread_mutex_destroy(&nc->pilelock);
     free(nc);
   }
