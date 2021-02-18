@@ -348,7 +348,6 @@ typedef struct notcurses {
   int cursorx;    // -1 is don't-care, otherwise moved here after each render.
 
   ncstats stats;  // some statistics across the lifetime of the notcurses ctx
-  ncstats stashstats; // cumulative stats, unaffected by notcurses_stats_reset()
 
   FILE* ttyfp;    // FILE* for writing rasterized data
   int ttyfd;      // file descriptor for controlling tty

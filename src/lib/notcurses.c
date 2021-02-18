@@ -712,54 +712,6 @@ reset_stats(ncstats* stats){
   stats->planes = planes;
 }
 
-// add the current stats to the cumulative stashed stats, and reset them
-static void
-stash_stats(notcurses* nc){
-  nc->stashstats.renders += nc->stats.renders;
-  nc->stashstats.render_ns += nc->stats.render_ns;
-  nc->stashstats.raster_ns += nc->stats.raster_ns;
-  nc->stashstats.writeouts += nc->stats.writeouts;
-  nc->stashstats.writeout_ns += nc->stats.writeout_ns;
-  nc->stashstats.failed_renders += nc->stats.failed_renders;
-  nc->stashstats.failed_writeouts += nc->stats.failed_writeouts;
-  nc->stashstats.render_bytes += nc->stats.render_bytes;
-  if(nc->stashstats.render_max_bytes < nc->stats.render_max_bytes){
-    nc->stashstats.render_max_bytes = nc->stats.render_max_bytes;
-  }
-  if(nc->stashstats.render_max_ns < nc->stats.render_max_ns){
-    nc->stashstats.render_max_ns = nc->stats.render_max_ns;
-  }
-  if(nc->stashstats.render_min_bytes > nc->stats.render_min_bytes){
-    nc->stashstats.render_min_bytes = nc->stats.render_min_bytes;
-  }
-  if(nc->stashstats.render_min_ns > nc->stats.render_min_ns){
-    nc->stashstats.render_min_ns = nc->stats.render_min_ns;
-  }
-  if(nc->stashstats.writeout_max_ns < nc->stats.writeout_max_ns){
-    nc->stashstats.writeout_max_ns = nc->stats.writeout_max_ns;
-  }
-  if(nc->stashstats.writeout_min_ns > nc->stats.writeout_min_ns){
-    nc->stashstats.writeout_min_ns = nc->stats.writeout_min_ns;
-  }
-  if(nc->stashstats.raster_max_ns < nc->stats.raster_max_ns){
-    nc->stashstats.raster_max_ns = nc->stats.raster_max_ns;
-  }
-  if(nc->stashstats.raster_min_ns > nc->stats.raster_min_ns){
-    nc->stashstats.raster_min_ns = nc->stats.raster_min_ns;
-  }
-  nc->stashstats.cellelisions += nc->stats.cellelisions;
-  nc->stashstats.cellemissions += nc->stats.cellemissions;
-  nc->stashstats.fgelisions += nc->stats.fgelisions;
-  nc->stashstats.fgemissions += nc->stats.fgemissions;
-  nc->stashstats.bgelisions += nc->stats.bgelisions;
-  nc->stashstats.bgemissions += nc->stats.bgemissions;
-  nc->stashstats.defaultelisions += nc->stats.defaultelisions;
-  nc->stashstats.defaultemissions += nc->stats.defaultemissions;
-  nc->stashstats.refreshes += nc->stats.refreshes;
-  // fbbytes aren't stashed
-  reset_stats(&nc->stats);
-}
-
 void notcurses_stats(const notcurses* nc, ncstats* stats){
   memcpy(stats, &nc->stats, sizeof(*stats));
 }
@@ -772,7 +724,7 @@ void notcurses_stats_reset(notcurses* nc, ncstats* stats){
   if(stats){
     memcpy(stats, &nc->stats, sizeof(*stats));
   }
-  stash_stats(nc);
+  reset_stats(&nc->stats);
 }
 
 // unless the suppress_banner flag was set, print some version information and
@@ -974,9 +926,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   ret->margin_r = opts->margin_r;
   ret->cursory = ret->cursorx = -1;
   memset(&ret->stats, 0, sizeof(ret->stats));
-  memset(&ret->stashstats, 0, sizeof(ret->stashstats));
   reset_stats(&ret->stats);
-  reset_stats(&ret->stashstats);
   ret->ttyfp = outfp;
   ret->renderfp = opts->renderfp;
   memset(&ret->rstate, 0, sizeof(ret->rstate));
@@ -1160,67 +1110,66 @@ int notcurses_stop(notcurses* nc){
     free(nc->lastframe);
     free(nc->rstate.mstream);
     input_free_esctrie(&nc->input.inputescapes);
-    stash_stats(nc);
     if(!nc->suppress_banner){
-      if(nc->stashstats.renders){
+      if(nc->stats.renders){
         char totalbuf[BPREFIXSTRLEN + 1];
         char minbuf[BPREFIXSTRLEN + 1];
         char maxbuf[BPREFIXSTRLEN + 1];
         char avgbuf[BPREFIXSTRLEN + 1];
-        qprefix(nc->stashstats.render_ns, NANOSECS_IN_SEC, totalbuf, 0);
-        qprefix(nc->stashstats.render_min_ns, NANOSECS_IN_SEC, minbuf, 0);
-        qprefix(nc->stashstats.render_max_ns, NANOSECS_IN_SEC, maxbuf, 0);
-        qprefix(nc->stashstats.render_ns / nc->stashstats.renders, NANOSECS_IN_SEC, avgbuf, 0);
+        qprefix(nc->stats.render_ns, NANOSECS_IN_SEC, totalbuf, 0);
+        qprefix(nc->stats.render_min_ns, NANOSECS_IN_SEC, minbuf, 0);
+        qprefix(nc->stats.render_max_ns, NANOSECS_IN_SEC, maxbuf, 0);
+        qprefix(nc->stats.render_ns / nc->stats.renders, NANOSECS_IN_SEC, avgbuf, 0);
         fprintf(stderr, "\n%ju render%s, %ss (%ss min, %ss avg, %ss max)\n",
-                nc->stashstats.renders, nc->stashstats.renders == 1 ? "" : "s",
+                nc->stats.renders, nc->stats.renders == 1 ? "" : "s",
                 totalbuf, minbuf, avgbuf, maxbuf);
-        qprefix(nc->stashstats.raster_ns, NANOSECS_IN_SEC, totalbuf, 0);
-        qprefix(nc->stashstats.raster_min_ns, NANOSECS_IN_SEC, minbuf, 0);
-        qprefix(nc->stashstats.raster_max_ns, NANOSECS_IN_SEC, maxbuf, 0);
-        qprefix(nc->stashstats.raster_ns / nc->stashstats.writeouts, NANOSECS_IN_SEC, avgbuf, 0);
+        qprefix(nc->stats.raster_ns, NANOSECS_IN_SEC, totalbuf, 0);
+        qprefix(nc->stats.raster_min_ns, NANOSECS_IN_SEC, minbuf, 0);
+        qprefix(nc->stats.raster_max_ns, NANOSECS_IN_SEC, maxbuf, 0);
+        qprefix(nc->stats.raster_ns / nc->stats.writeouts, NANOSECS_IN_SEC, avgbuf, 0);
         fprintf(stderr, "%ju raster%s, %ss (%ss min, %ss avg, %ss max)\n",
-                nc->stashstats.writeouts, nc->stashstats.writeouts == 1 ? "" : "s",
+                nc->stats.writeouts, nc->stats.writeouts == 1 ? "" : "s",
                 totalbuf, minbuf, avgbuf, maxbuf);
-        qprefix(nc->stashstats.writeout_ns, NANOSECS_IN_SEC, totalbuf, 0);
-        qprefix(nc->stashstats.writeout_min_ns, NANOSECS_IN_SEC, minbuf, 0);
-        qprefix(nc->stashstats.writeout_max_ns, NANOSECS_IN_SEC, maxbuf, 0);
-        qprefix(nc->stashstats.writeouts ? nc->stashstats.writeout_ns / nc->stashstats.writeouts : 0,
+        qprefix(nc->stats.writeout_ns, NANOSECS_IN_SEC, totalbuf, 0);
+        qprefix(nc->stats.writeout_min_ns, NANOSECS_IN_SEC, minbuf, 0);
+        qprefix(nc->stats.writeout_max_ns, NANOSECS_IN_SEC, maxbuf, 0);
+        qprefix(nc->stats.writeouts ? nc->stats.writeout_ns / nc->stats.writeouts : 0,
                 NANOSECS_IN_SEC, avgbuf, 0);
         fprintf(stderr, "%ju write%s, %ss (%ss min, %ss avg, %ss max)\n",
-                nc->stashstats.writeouts, nc->stashstats.writeouts == 1 ? "" : "s",
+                nc->stats.writeouts, nc->stats.writeouts == 1 ? "" : "s",
                 totalbuf, minbuf, avgbuf, maxbuf);
-        bprefix(nc->stashstats.render_bytes, 1, totalbuf, 1),
-        bprefix(nc->stashstats.render_min_bytes, 1, minbuf, 1),
-        bprefix(nc->stashstats.renders ? nc->stashstats.render_bytes / nc->stashstats.renders : 0, 1, avgbuf, 1);
-        bprefix(nc->stashstats.render_max_bytes, 1, maxbuf, 1),
+        bprefix(nc->stats.render_bytes, 1, totalbuf, 1),
+        bprefix(nc->stats.render_min_bytes, 1, minbuf, 1),
+        bprefix(nc->stats.renders ? nc->stats.render_bytes / nc->stats.renders : 0, 1, avgbuf, 1);
+        bprefix(nc->stats.render_max_bytes, 1, maxbuf, 1),
         fprintf(stderr, "%sB (%sB min, %sB avg, %sB max)\n",
                 totalbuf, minbuf, avgbuf, maxbuf);
       }
-      if(nc->stashstats.renders || nc->stashstats.failed_renders){
+      if(nc->stats.renders || nc->stats.failed_renders){
         fprintf(stderr, "%ju failed render%s, %ju failed write%s, %ju refresh%s\n",
-                nc->stashstats.failed_renders,
-                nc->stashstats.failed_renders == 1 ? "" : "s",
-                nc->stashstats.failed_writeouts,
-                nc->stashstats.failed_writeouts == 1 ? "" : "s",
-                nc->stashstats.refreshes,
-                nc->stashstats.refreshes == 1 ? "" : "es");
+                nc->stats.failed_renders,
+                nc->stats.failed_renders == 1 ? "" : "s",
+                nc->stats.failed_writeouts,
+                nc->stats.failed_writeouts == 1 ? "" : "s",
+                nc->stats.refreshes,
+                nc->stats.refreshes == 1 ? "" : "es");
         fprintf(stderr, "RGB emits:elides: def %ju:%ju fg %ju:%ju bg %ju:%ju\n",
-                nc->stashstats.defaultemissions,
-                nc->stashstats.defaultelisions,
-                nc->stashstats.fgemissions,
-                nc->stashstats.fgelisions,
-                nc->stashstats.bgemissions,
-                nc->stashstats.bgelisions);
+                nc->stats.defaultemissions,
+                nc->stats.defaultelisions,
+                nc->stats.fgemissions,
+                nc->stats.fgelisions,
+                nc->stats.bgemissions,
+                nc->stats.bgelisions);
         fprintf(stderr, "Cell emits:elides: %ju/%ju (%.2f%%) %.2f%% %.2f%% %.2f%%\n",
-                nc->stashstats.cellemissions, nc->stashstats.cellelisions,
-                (nc->stashstats.cellemissions + nc->stashstats.cellelisions) == 0 ? 0 :
-                (nc->stashstats.cellelisions * 100.0) / (nc->stashstats.cellemissions + nc->stashstats.cellelisions),
-                (nc->stashstats.defaultemissions + nc->stashstats.defaultelisions) == 0 ? 0 :
-                (nc->stashstats.defaultelisions * 100.0) / (nc->stashstats.defaultemissions + nc->stashstats.defaultelisions),
-                (nc->stashstats.fgemissions + nc->stashstats.fgelisions) == 0 ? 0 :
-                (nc->stashstats.fgelisions * 100.0) / (nc->stashstats.fgemissions + nc->stashstats.fgelisions),
-                (nc->stashstats.bgemissions + nc->stashstats.bgelisions) == 0 ? 0 :
-                (nc->stashstats.bgelisions * 100.0) / (nc->stashstats.bgemissions + nc->stashstats.bgelisions));
+                nc->stats.cellemissions, nc->stats.cellelisions,
+                (nc->stats.cellemissions + nc->stats.cellelisions) == 0 ? 0 :
+                (nc->stats.cellelisions * 100.0) / (nc->stats.cellemissions + nc->stats.cellelisions),
+                (nc->stats.defaultemissions + nc->stats.defaultelisions) == 0 ? 0 :
+                (nc->stats.defaultelisions * 100.0) / (nc->stats.defaultemissions + nc->stats.defaultelisions),
+                (nc->stats.fgemissions + nc->stats.fgelisions) == 0 ? 0 :
+                (nc->stats.fgelisions * 100.0) / (nc->stats.fgemissions + nc->stats.fgelisions),
+                (nc->stats.bgemissions + nc->stats.bgelisions) == 0 ? 0 :
+                (nc->stats.bgelisions * 100.0) / (nc->stats.bgemissions + nc->stats.bgelisions));
       }
     }
     del_curterm(cur_term);
