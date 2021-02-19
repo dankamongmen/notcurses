@@ -245,10 +245,10 @@ you off guard.
 Utility functions operating on the toplevel `notcurses` object include:
 
 ```c
-// Return the topmost ncplane, of which there is always at least one.
+// Return the topmost ncplane of the standard pile.
 struct ncplane* notcurses_top(struct notcurses* n);
 
-// Return the bottommost ncplane, of which there is always at least one.
+// Return the bottommost ncplane of the standard pile.
 struct ncplane* notcurses_bottom(struct notcurses* n);
 
 // Return our current idea of the terminal dimensions in rows and cols.
@@ -2569,16 +2569,19 @@ channel_set(unsigned* channel, unsigned rgb){
 // Extract the 2-bit alpha component from a 32-bit channel.
 static inline unsigned
 channel_alpha(unsigned channel){
-  return (channel & CELL_ALPHA_MASK) >> CELL_ALPHA_SHIFT;
+  return channel & CELL_BG_ALPHA_MASK;
 }
 
 // Set the 2-bit alpha component of the 32-bit channel.
 static inline int
 channel_set_alpha(unsigned* channel, unsigned alpha){
-  if(alpha < CELL_ALPHA_OPAQUE || alpha > CELL_ALPHA_TRANS){
+  if(alpha & ~CELL_BG_ALPHA_MASK){
     return -1;
   }
-  *channel = (alpha << CELL_ALPHA_SHIFT) | (*channel & ~CELL_ALPHA_MASK);
+  *channel = alpha | (*channel & ~CHANNEL_ALPHA_MASK);
+  if(alpha != CELL_ALPHA_OPAQUE){
+    *channel |= CELL_BGDEFAULT_MASK;
+  }
   return 0;
 }
 
@@ -2894,7 +2897,7 @@ typedef enum {
   NCSCALE_STRETCH,
 } ncscale_e;
 
-// Lex a visual scaling mode (one of "none", "stretch", or "scale").
+// Lex a scaling mode (one of "none", "stretch", "scale", "nonehi", or "scalehi").
 int notcurses_lex_scalemode(const char* op, ncscale_e* scalemode);
 
 // Get the name of a scaling mode.

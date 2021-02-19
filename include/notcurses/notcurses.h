@@ -938,10 +938,10 @@ API int notcurses_render_to_buffer(struct notcurses* nc, char** buf, size_t* buf
 // notcurses_render() has not yet been called, nothing will be written.
 API int notcurses_render_to_file(struct notcurses* nc, FILE* fp);
 
-// Return the topmost ncplane, of which there is always at least one.
+// Return the topmost ncplane of the standard pile.
 API struct ncplane* notcurses_top(struct notcurses* n);
 
-// Return the bottommost ncplane, of which there is always at least one.
+// Return the bottommost ncplane of the standard pile.
 API struct ncplane* notcurses_bottom(struct notcurses* n);
 
 // Destroy all ncplanes other than the stdplane.
