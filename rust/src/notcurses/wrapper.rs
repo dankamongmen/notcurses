@@ -53,7 +53,7 @@ impl<'a> FullMode<'a> {
         raw_wrap![Notcurses::new()]
     }
 
-    /// New FullMode, without banners.
+    /// New FullMode, with banners.
     pub fn with_banners() -> NcResult<Self> {
         raw_wrap![Notcurses::with_banners()]
     }
