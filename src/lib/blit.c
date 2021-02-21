@@ -513,20 +513,20 @@ generalerp(unsigned rsum, unsigned gsum, unsigned bsum, int count){
 // of pixels that minimizes total source distance from the resulting lerps.
 static const char*
 sex_solver(const uint32_t rgbas[6], uint64_t* channels, bool blendcolors){
-	static const char* sex[69] = {
-	  " ", "🬀", "🬁", "🬃", "🬇", "🬏", "🬞", "🬂",
-	  "🬄", "🬈", "🬐", "🬟", "🬅", "🬉", "🬑", "🬠",
-	  "🬋", "🬓", "🬢", "🬖", "🬦", "🬭", "🬆", "🬊",
-	  "🬒", "🬡", "🬌", "▌", "🬣", "🬗", "🬧", "🬍",
-	  "█", "🬻", "🬺", "🬸", "🬴", "🬬", "🬝", "🬹",
-	  "🬷", "🬳", "🬫", "🬜", "🬶", "🬲", "🬪", "🬛",
-	  "🬰", "🬨", "🬙", "🬥", "🬕", "🬎", "🬵", "🬱",
-	  "🬩", "🬚", "🬯", "▐", "🬘", "🬤", "🬔", "🬮",
-    "n", "i", "c", "e"
-	};
   // each element within the set of 64 has an inverse element within the set,
-  // for which we will calculate the same total differences, so just handle the
-  // first 32, and then assign fg to whichever cluster is larger.
+  // for which we would calculate the same total differences, so just handle
+  // the first 32. the partition[] bit masks represent combinations of
+  // sextants, and their indices correspond to sex[].
+  static const char* sex[32] = {
+    " ", "🬀", "🬁", "🬃", "🬇", "🬏", "🬞", "🬂", // 0..7
+
+    "🬄", "🬈", "🬐", "🬟", "🬅", "🬉", "🬑", "🬠", // 8..15
+
+    "🬋", "🬓", "🬢", "🬖", "🬦", "🬭", "🬆", "🬊", // 16..23
+
+    "🬒", "🬡", "🬌", "▌", "🬣", "🬗", "🬧", "🬍", // 24..31
+
+  };
   static const unsigned partitions[32] = {
     0, // 1 way to arrange 0
     1, 2, 4, 8, 16, 32, // 6 ways to arrange 1
@@ -557,9 +557,9 @@ sex_solver(const uint32_t rgbas[6], uint64_t* channels, bool blendcolors){
         bsum1 += ncpixel_b(rgbas[mask]);
       }
     }
-//fprintf(stderr, "sum0: %u/%u/%u sum1: %u/%u/%u insum: %d\n", rsum0, gsum0, bsum0, rsum1, gsum1, bsum1, insum);
     uint32_t l0 = generalerp(rsum0, gsum0, bsum0, insum);
     uint32_t l1 = generalerp(rsum1, gsum1, bsum1, 6 - insum);
+//fprintf(stderr, "sum0: %06x sum1: %06x insum: %d\n", l0 & 0xffffffu, l1 & 0xffffffu, insum);
     uint32_t totaldiff = 0;
     for(unsigned mask = 0 ; mask < 6 ; ++mask){
       unsigned r, g, b;
@@ -568,11 +568,12 @@ sex_solver(const uint32_t rgbas[6], uint64_t* channels, bool blendcolors){
       }else{
         channel_rgb8(l1, &r, &g, &b);
       }
-      totaldiff += rgb_diff(ncpixel_r(rgbas[mask]), ncpixel_g(rgbas[mask]),
-                            ncpixel_b(rgbas[mask]), r, g, b);
+      uint32_t rdiff = rgb_diff(ncpixel_r(rgbas[mask]), ncpixel_g(rgbas[mask]),
+                                ncpixel_b(rgbas[mask]), r, g, b);
+      totaldiff += rdiff;
 //fprintf(stderr, "mask: %u totaldiff: %u insum: %d (%08x / %08x)\n", mask, totaldiff, insum, l0, l1);
     }
-//fprintf(stderr, "bits: %u %zu totaldiff: %u best: %u (%d)\n", partitions[glyph], glyph, totaldiff, mindiff, best);
+//fprintf(stderr, "bits: %u %zu totaldiff: %f best: %f (%d)\n", partitions[glyph], glyph, totaldiff, mindiff, best);
     if(totaldiff < mindiff){
       mindiff = totaldiff;
       best = glyph;
@@ -584,7 +585,7 @@ sex_solver(const uint32_t rgbas[6], uint64_t* channels, bool blendcolors){
     }
   }
 //fprintf(stderr, "solved for best: %d (%u)\n", best, mindiff);
-  assert(best >= 0 && best < 64);
+  assert(best >= 0 && best < 32);
   if(blendcolors){
     channels_set_fg_alpha(channels, CELL_ALPHA_BLEND);
     channels_set_bg_alpha(channels, CELL_ALPHA_BLEND);
