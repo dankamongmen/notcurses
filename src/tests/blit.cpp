@@ -105,5 +105,53 @@ TEST_CASE("Blitting") {
     ncplane_destroy(ncp);
   }
 
+  // addresses a case with quadblitter that was done incorrectly with the
+  // original version https://github.com/dankamongmen/notcurses/issues/1354
+  SUBCASE("QuadblitterMax") {
+    if(notcurses_canutf8(nc_)){
+      uint32_t p2x2[4];
+      uint32_t* ptl = &p2x2[0];
+      ncpixel_set_a(ptl, 0xff);
+      ncpixel_set_r(ptl, 0);
+      ncpixel_set_g(ptl, 0);
+      ncpixel_set_b(ptl, 0);
+      uint32_t* ptr = &p2x2[1];
+      ncpixel_set_a(ptr, 0xff);
+      ncpixel_set_r(ptr, 0x43);
+      ncpixel_set_g(ptr, 0x46);
+      ncpixel_set_b(ptr, 0x43);
+      uint32_t* pbl = &p2x2[2];
+      ncpixel_set_a(pbl, 0xff);
+      ncpixel_set_r(pbl, 0x4c);
+      ncpixel_set_g(pbl, 0x50);
+      ncpixel_set_b(pbl, 0x51);
+      uint32_t* pbr = &p2x2[3];
+      ncpixel_set_a(pbr, 0xff);
+      ncpixel_set_r(pbr, 0x90);
+      ncpixel_set_g(pbr, 0x94);
+      ncpixel_set_b(pbr, 0x95);
+      auto ncv = ncvisual_from_rgba(p2x2, 2, 8, 2);
+      REQUIRE(nullptr != ncv);
+      struct ncvisual_options vopts = {
+        .n = nullptr, .scaling = NCSCALE_NONE,
+        .y = 0, .x = 0, .begy = 0, .begx = 0, .leny = 0, .lenx = 0,
+        .blitter = NCBLIT_2x2, .flags = 0,
+      };
+      auto ncp = ncvisual_render(nc_, ncv, &vopts);
+      ncvisual_destroy(ncv);
+      REQUIRE(nullptr != ncp);
+      CHECK(0 == notcurses_render(nc_));
+      ncplane_destroy(ncp);
+      uint64_t channels;
+      uint16_t stylemask;
+      auto egc = notcurses_at_yx(nc_, 0, 0, &stylemask, &channels);
+      REQUIRE(nullptr != egc);
+      CHECK(0 == strcmp(egc, "▟"));
+      CHECK(0 == stylemask);
+      CHECK(0x4060646340000000 == channels);
+      free(egc);
+    }
+  }
+
   CHECK(!notcurses_stop(nc_));
 }

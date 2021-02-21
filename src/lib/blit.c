@@ -175,6 +175,7 @@ rgb_diff(unsigned r1, unsigned g1, unsigned b1, unsigned r2, unsigned g2, unsign
   distance += r1 > r2 ? r1 - r2 : r2 - r1;
   distance += g1 > g2 ? g1 - g2 : g2 - g1;
   distance += b1 > b2 ? b1 - b2 : b2 - b1;
+//fprintf(stderr, "RGBDIFF %u %u %u %u %u %u: %u\n", r1, g1, b1, r2, g2, b2, distance);
   return distance;
 }
 
@@ -258,28 +259,51 @@ quadrant_solver(uint32_t tl, uint32_t tr, uint32_t bl, uint32_t br,
 //fprintf(stderr, "mindiff: %u[%zu] fore: %08x back: %08x %d+%d/%d+%d\n", mindiff, mindiffidx, *fore, *back, qd->pair[0], qd->pair[1], qd->others[0], qd->others[1]);
   const char* egc = qd->egc;
   // break down the excluded pair and lerp
-  unsigned r0, r1, g0, g1, b0, b1;
+  unsigned r0, r1, r2, g0, g1, g2, b0, b1, b2;
   unsigned roth, goth, both, rlerp, glerp, blerp;
+  channel_rgb8(*back, &roth, &goth, &both);
+  channel_rgb8(*fore, &rlerp, &glerp, &blerp);
+//fprintf(stderr, "rgbs: %02x %02x %02x / %02x %02x %02x\n", r0, g0, b0, r1, g1, b1);
+  // get diffs of the excluded two from both lerps
   channel_rgb8(colors[qd->others[0]], &r0, &g0, &b0);
   channel_rgb8(colors[qd->others[1]], &r1, &g1, &b1);
-  channel_rgb8(*fore, &rlerp, &glerp, &blerp);
-  channel_rgb8(*back, &roth, &goth, &both);
-//fprintf(stderr, "rgbs: %02x %02x %02x / %02x %02x %02x\n", r0, g0, b0, r1, g1, b1);
-  diffs[0] = rgb_diff(r0, g0, b0, rlerp, glerp, blerp);
-  diffs[1] = rgb_diff(r0, g0, b0, roth, goth, both);
-  diffs[2] = rgb_diff(r1, g1, b1, rlerp, glerp, blerp);
-  diffs[3] = rgb_diff(r1, g1, b1, roth, goth, both);
-//fprintf(stderr, "diffs: %08x %08x %08x %08x\n", diffs[0], diffs[1], diffs[2], diffs[3]);
-  if(diffs[0] < diffs[1] && diffs[0] < diffs[2]){
-    egc = qd->oth0egc;
-    *back = colors[qd->others[1]];
-    *fore = trilerp(colors[qd->pair[0]], colors[qd->pair[1]], colors[qd->others[0]]);
-//fprintf(stderr, "swap 1 %08x %08x\n", *fore, *back);
-  }else if(diffs[2] < diffs[3]){
-    egc = qd->oth1egc;
-    *back = colors[qd->others[0]];
-    *fore = trilerp(colors[qd->pair[0]], colors[qd->pair[1]], colors[qd->others[1]]);
-//fprintf(stderr, "swap 2 %08x %08x\n", *fore, *back);
+  diffs[0] = rgb_diff(r0, g0, b0, roth, goth, both);
+  diffs[1] = rgb_diff(r1, g1, b1, roth, goth, both);
+  diffs[2] = rgb_diff(r0, g0, b0, rlerp, glerp, blerp);
+  diffs[3] = rgb_diff(r1, g1, b1, rlerp, glerp, blerp);
+  // get diffs of the included two from their lerp
+  channel_rgb8(colors[qd->pair[0]], &r0, &g0, &b0);
+  channel_rgb8(colors[qd->pair[1]], &r1, &g1, &b1);
+  diffs[4] = rgb_diff(r0, g0, b0, rlerp, glerp, blerp);
+  diffs[5] = rgb_diff(r1, g1, b1, rlerp, glerp, blerp);
+  unsigned curdiff = diffs[0] + diffs[1] + diffs[4] + diffs[5];
+  // it might be better to combine three, and leave one totally unchanged.
+  // propose a trilerps; we only need consider the member of the excluded pair
+  // closer to the primary lerp. recalculate total diff; merge if lower.
+  if(diffs[2] < diffs[3]){
+    unsigned tri = trilerp(colors[qd->pair[0]], colors[qd->pair[1]], colors[qd->others[0]]);
+    channel_rgb8(colors[qd->others[0]], &r2, &g2, &b2);
+    channel_rgb8(tri, &roth, &goth, &both);
+    if(rgb_diff(r0, g0, b0, roth, goth, both) +
+       rgb_diff(r1, g1, b1, roth, goth, both) +
+       rgb_diff(r2, g2, b2, roth, goth, both) < curdiff){
+      egc = qd->oth0egc;
+      *back = colors[qd->others[1]];
+      *fore = tri;
+    }
+//fprintf(stderr, "quadblitter swap type 1\n");
+  }else{
+    unsigned tri = trilerp(colors[qd->pair[0]], colors[qd->pair[1]], colors[qd->others[1]]);
+    channel_rgb8(colors[qd->others[1]], &r2, &g2, &b2);
+    channel_rgb8(tri, &roth, &goth, &both);
+    if(rgb_diff(r0, g0, b0, roth, goth, both) +
+       rgb_diff(r1, g1, b1, roth, goth, both) +
+       rgb_diff(r2, g2, b2, roth, goth, both) < curdiff){
+      egc = qd->oth1egc;
+      *back = colors[qd->others[0]];
+      *fore = tri;
+    }
+//fprintf(stderr, "quadblitter swap type 2\n");
   }
   return egc;
 }
