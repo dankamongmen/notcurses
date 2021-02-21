@@ -367,7 +367,7 @@ mselector_run(struct notcurses* nc, struct ncplane* p, struct ncmultiselector* m
   return run_out_text(p, text, &textpos, &iterdelay);
 }
 
-// creates an ncreader, ncselector, and ncmultiselector, and moves them into
+// creates a plane, an ncselector, and a ncmultiselector, and moves them into
 // place. the latter two are then faded out. all three are then destroyed.
 static int
 reader_demo(struct notcurses* nc){
@@ -379,7 +379,6 @@ reader_demo(struct notcurses* nc){
   const int x = ncplane_align(std, NCALIGN_CENTER, READER_COLS);
   struct ncselector* selector = NULL;
   struct ncmultiselector* mselector = NULL;
-  struct ncreader* reader = NULL;
   struct ncplane_options nopts = {
     .y = dimy,
     .x = x,
@@ -423,7 +422,7 @@ reader_demo(struct notcurses* nc){
 done:
   ncselector_destroy(selector, NULL);
   ncmultiselector_destroy(mselector);
-  ncreader_destroy(reader, NULL);
+  ncplane_destroy(rp);
   return ret;
 }
 
