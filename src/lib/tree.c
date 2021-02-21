@@ -125,6 +125,10 @@ nctree* nctree_create(ncplane* n, const struct nctree_options* opts){
     logerror(nc, "Can't use NULL callback\n");
     goto error;
   }
+  if(opts->indentcols < 0){
+    logerror(nc, "Can't indent negative columns\n");
+    goto error;
+  }
   nctree* ret = nctree_inner_create(n, opts);
   if(ret == NULL){
     logerror(nc, "Couldn't prepare nctree\n");
@@ -240,7 +244,7 @@ int nctree_redraw(nctree* n){
   while(frontiert > 0 || frontierb < ncplane_dim_y(n->items.ncp)){
     if(!nii->ncp){
       struct ncplane_options nopts = {
-        .x = 0, // FIXME
+        .x = 0, // FIXME indentcols * hierarchy level
         .y = 0, // FIXME
         .cols = ncplane_dim_x(n->items.ncp), // FIXME
         .rows = ncplane_dim_y(n->items.ncp), // FIXME

@@ -23,6 +23,7 @@ TEST_CASE("Tree") {
       .count = 2,
       .bchannels = 0,
       .nctreecb = treecb,
+      .indentcols = 0,
       .flags = 0,
     };
     auto treen = nctree_create(n_, &opts);
@@ -36,6 +37,7 @@ TEST_CASE("Tree") {
       .count = 0,
       .bchannels = 0,
       .nctreecb = treecb,
+      .indentcols = 1,
       .flags = 0,
     };
     auto treen = nctree_create(n_, &opts);
@@ -73,6 +75,21 @@ TEST_CASE("Tree") {
       .count = sizeof(items) / sizeof(*items),
       .bchannels = 0,
       .nctreecb = nullptr,
+      .indentcols = 1,
+      .flags = 0,
+    };
+    auto treen = nctree_create(n_, &opts);
+    REQUIRE(nullptr == treen);
+  }
+
+  // should be refused with negative indentcols
+  SUBCASE("BadTreeNoCallback") {
+    struct nctree_options opts = {
+      .items = items,
+      .count = sizeof(items) / sizeof(*items),
+      .bchannels = 0,
+      .nctreecb = treecb,
+      .indentcols = -1,
       .flags = 0,
     };
     auto treen = nctree_create(n_, &opts);
@@ -85,6 +102,7 @@ TEST_CASE("Tree") {
       .count = sizeof(items) / sizeof(*items),
       .bchannels = 0,
       .nctreecb = treecb,
+      .indentcols = 1,
       .flags = 0,
     };
     const ncplane_options nopts = {
@@ -107,6 +125,7 @@ TEST_CASE("Tree") {
       .count = sizeof(items) / sizeof(*items),
       .bchannels = 0,
       .nctreecb = treecb,
+      .indentcols = 2,
       .flags = 0,
     };
     const ncplane_options nopts = {
