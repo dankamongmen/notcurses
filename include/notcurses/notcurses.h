@@ -104,8 +104,6 @@ API int ncstrwidth(const char* mbs);
 API int notcurses_ucs32_to_utf8(const char32_t* ucs32, unsigned ucs32count,
                                 unsigned char* resultbuf, size_t buflen);
 
-// extract these bits to get a channel's alpha value
-#define CHANNEL_ALPHA_MASK    0x30000000ull
 // background cannot be highcontrast, only foreground
 #define CELL_ALPHA_HIGHCONTRAST 0x30000000ull
 #define CELL_ALPHA_TRANSPARENT  0x20000000ull
@@ -128,7 +126,7 @@ API int notcurses_ucs32_to_utf8(const char32_t* ucs32, unsigned ucs32count,
 // palette-indexed foreground color
 #define CELL_FG_PALETTE         (CELL_BG_PALETTE << 32u)
 // extract these bits to get the background alpha mask
-#define CELL_BG_ALPHA_MASK      CHANNEL_ALPHA_MASK
+#define CELL_BG_ALPHA_MASK      0x30000000ull
 // extract these bits to get the foreground alpha mask
 #define CELL_FG_ALPHA_MASK      (CELL_BG_ALPHA_MASK << 32u)
 
@@ -227,7 +225,7 @@ channel_set(unsigned* channel, unsigned rgb){
 // Extract the 2-bit alpha component from a 32-bit channel.
 static inline unsigned
 channel_alpha(unsigned channel){
-  return channel & CHANNEL_ALPHA_MASK;
+  return channel & CELL_BG_ALPHA_MASK;
 }
 
 static inline unsigned
@@ -238,10 +236,10 @@ channel_palindex(uint32_t channel){
 // Set the 2-bit alpha component of the 32-bit channel.
 static inline int
 channel_set_alpha(unsigned* channel, unsigned alpha){
-  if(alpha & ~CHANNEL_ALPHA_MASK){
+  if(alpha & ~CELL_BG_ALPHA_MASK){
     return -1;
   }
-  *channel = alpha | (*channel & ~CHANNEL_ALPHA_MASK);
+  *channel = alpha | (*channel & ~CELL_BG_ALPHA_MASK);
   if(alpha != CELL_ALPHA_OPAQUE){
     *channel |= CELL_BGDEFAULT_MASK;
   }
@@ -893,7 +891,7 @@ API int notcurses_lex_blitter(const char* op, ncblitter_e* blitter);
 // Get the name of a blitter.
 API const char* notcurses_str_blitter(ncblitter_e blitter);
 
-// Lex a visual scaling mode (one of "none", "stretch", or "scale").
+// Lex a scaling mode (one of "none", "stretch", "scale", "nonehi", or "scalehi").
 API int notcurses_lex_scalemode(const char* op, ncscale_e* scalemode);
 
 // Get the name of a scaling mode.
@@ -940,10 +938,10 @@ API int notcurses_render_to_buffer(struct notcurses* nc, char** buf, size_t* buf
 // notcurses_render() has not yet been called, nothing will be written.
 API int notcurses_render_to_file(struct notcurses* nc, FILE* fp);
 
-// Return the topmost ncplane, of which there is always at least one.
+// Return the topmost ncplane of the standard pile.
 API struct ncplane* notcurses_top(struct notcurses* n);
 
-// Return the bottommost ncplane, of which there is always at least one.
+// Return the bottommost ncplane of the standard pile.
 API struct ncplane* notcurses_bottom(struct notcurses* n);
 
 // Destroy all ncplanes other than the stdplane.
