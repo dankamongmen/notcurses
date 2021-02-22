@@ -157,39 +157,39 @@ ncplane* nctree_plane(nctree* n){
 // so we can always just go to the last path component, act there, and possibly
 // extend it out to the maximal topright.
 static nctree_int_item*
-nctree_prev_internal(nctree* n){
+nctree_prev_internal(nctree* n, unsigned* newpath){
   nctree_int_item* nii = &n->items;
   nctree_int_item* wedge = NULL; // tracks the rightmost non-zero path
   int idx = 0;
-  while(n->currentpath[idx] != UINT_MAX){
-    nii = &nii->subs[n->currentpath[idx]];
+  while((newpath[idx] = newpath[idx]) != UINT_MAX){
+    nii = &nii->subs[newpath[idx]];
     if(idx == 0){
       wedge = &n->items;
     }else{// if(idx > 1){
-      wedge = &wedge->subs[n->currentpath[idx - 1]];
+      wedge = &wedge->subs[newpath[idx - 1]];
     }
     ++idx;
   }
-  if(n->currentpath[idx - 1]){
-    --n->currentpath[idx - 1];
-    nii = &wedge->subs[n->currentpath[idx - 1]];
+  if(newpath[idx - 1]){
+    --newpath[idx - 1];
+    nii = &wedge->subs[newpath[idx - 1]];
     while(nii->subcount){
-      n->currentpath[idx - 1] = nii->subcount - 1;
-      nii = &nii->subs[n->currentpath[idx - 1]];
+      newpath[idx - 1] = nii->subcount - 1;
+      nii = &nii->subs[newpath[idx - 1]];
       ++idx;
     }
-    n->currentpath[idx] = UINT_MAX;
+    newpath[idx] = UINT_MAX;
     return nii;
   }
   if(wedge == &n->items){
     return nii; // no change
   }
-  n->currentpath[idx - 1] = UINT_MAX;
+  newpath[idx - 1] = UINT_MAX;
   return wedge;
 }
 
 void* nctree_prev(nctree* n){
-  n->curitem = nctree_prev_internal(n);
+  n->curitem = nctree_prev_internal(n, n->currentpath);
   return n->curitem->curry;
 }
 
@@ -198,35 +198,35 @@ void* nctree_prev(nctree* n){
 //  - a bump to the rightmost path component with subcount available, or
 //  - the current item
 static nctree_int_item*
-nctree_next_internal(nctree* n){
+nctree_next_internal(nctree* n, unsigned* newpath){
   nctree_int_item* nii = &n->items;
   nctree_int_item* wedge = NULL;  // tracks the rightmost with room in subs
   int idx = 0;
   int wedidx = 0;
-  while(n->currentpath[idx] != UINT_MAX){
-    if(n->currentpath[idx] < nii->subcount - 1){
+  while((newpath[idx] = newpath[idx]) != UINT_MAX){
+    if(newpath[idx] < nii->subcount - 1){
       wedge = nii;
       wedidx = idx;
     }
-    nii = &nii->subs[n->currentpath[idx]];
+    nii = &nii->subs[newpath[idx]];
     ++idx;
   }
   if(nii->subcount){
-    n->currentpath[idx] = 0;
-    n->currentpath[idx + 1] = UINT_MAX;
-    return &nii->subs[n->currentpath[idx]];
+    newpath[idx] = 0;
+    newpath[idx + 1] = UINT_MAX;
+    return &nii->subs[newpath[idx]];
   }
   if(wedge){
-    ++n->currentpath[wedidx];
-    n->currentpath[wedidx + 1] = UINT_MAX;
-    return &wedge->subs[n->currentpath[wedidx]];
+    ++newpath[wedidx];
+    newpath[wedidx + 1] = UINT_MAX;
+    return &wedge->subs[newpath[wedidx]];
   }
   return nii;
 }
 
 void* nctree_next(nctree* n){
   // FIXME update n->activerow, redraw
-  n->curitem = nctree_next_internal(n);
+  n->curitem = nctree_next_internal(n, n->currentpath);
   return n->curitem->curry;
 }
 
@@ -245,6 +245,7 @@ tree_path_length(const unsigned* path){
 static int
 draw_tree_item(nctree* n, nctree_int_item* nii, const unsigned* path,
                int* frontiert, int* frontierb){
+fprintf(stderr, "drawing item ft: %d fb: %d %p\n", *frontiert, *frontierb, nii->ncp);
   if(!nii->ncp){
     const int startx = tree_path_length(path) * n->indentcols;
     int ymin, ymax;
@@ -273,13 +274,16 @@ draw_tree_item(nctree* n, nctree_int_item* nii, const unsigned* path,
     if(nii->ncp == NULL){
       return -1;
     }
+  }else{
+    // FIXME move and possibly enlarge nii->ncp
   }
   int ret = n->cbfxn(nii->ncp, nii->curry, 0); // FIXME third param
   if(ret < 0){
     return -1;
   }
   // FIXME shrink plane if it was enlarged
-  if(ncplane_y(nii->ncp) < *frontiert){
+fprintf(stderr, "ft: %d fb: %d %p ncplane_y: %d\n", *frontiert, *frontierb, nii->ncp, ncplane_y(nii->ncp));
+  if(ncplane_y(nii->ncp) <= *frontiert){
     *frontiert = ncplane_y(nii->ncp) - 1;
   }
   if(ncplane_y(nii->ncp) + ncplane_dim_y(nii->ncp) > *frontierb){
@@ -304,23 +308,22 @@ nctree_inner_redraw(nctree* n, unsigned* tmppath){
   }
   // draw items above the current one FIXME
   while(frontiert >= 0){
-    // FIXME get previous
+    nii = nctree_prev_internal(n, tmppath);
     if(draw_tree_item(n, nii, tmppath, &frontiert, &frontierb)){
       return -1;
     }
-    --frontiert; // FIXME placeholder to break loop
   }
   // FIXME destroy any drawn ones before us
   // move items up if there is a gap at the top FIXME
   if(frontiert >= 0){
   }
+  n->activerow = ncplane_y(n->curitem->ncp);
   // draw items below the current one FIME
   while(frontierb < ncplane_dim_y(n->items.ncp)){
-    // FIXME get next
+    nii = nctree_next_internal(n, tmppath);
     if(draw_tree_item(n, nii, tmppath, &frontiert, &frontierb)){
       return -1;
     }
-    ++frontierb; // FIXME placeholder to break loop
   }
   // FIXME destroy any drawn ones after us
   return 0;
