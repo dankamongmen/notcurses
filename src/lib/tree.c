@@ -67,14 +67,9 @@ dup_tree_items(nctree_int_item* fill, const nctree_item* items, unsigned count, 
 
 static void
 goto_first_item(nctree* n){
-  nctree_int_item* nii = &n->items;
-  int c = 0;
-  while(nii->subcount){
-    n->currentpath[c++] = 0;
-    nii = &nii->subs[0];
-  }
-  n->currentpath[c] = UINT_MAX;
-  n->curitem = nii;
+  n->currentpath[0] = 0;
+  n->currentpath[1] = UINT_MAX;
+  n->curitem = &n->items.subs[0];
   n->activerow = 0;
 }
 
