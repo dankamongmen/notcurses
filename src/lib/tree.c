@@ -263,6 +263,7 @@ draw_tree_item(nctree* n, nctree_int_item* nii, const unsigned* path,
       ymin = 0;
       ymax = *frontiert;
     }
+//fprintf(stderr, "x: %d y: %d\n", startx, ymin);
     struct ncplane_options nopts = {
       .x = startx,
       .y = ymin,

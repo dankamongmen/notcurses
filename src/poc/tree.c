@@ -108,13 +108,21 @@ callback(struct ncplane* ncp, void* curry, int dizzy){
   return 0;
 }
 
-static void
+static int
 tree_ui(struct notcurses* nc, struct nctree* tree){
   ncinput ni;
   while(notcurses_getc_blocking(nc, &ni) != (char32_t)-1){
-    fprintf(stderr, "ni: 0x%04x\n", ni.id);
-    (void)tree; // FIXME
+    if(nctree_offer_input(tree, &ni)){
+      if(nctree_redraw(tree)){
+        return -1;
+      }
+      continue;
+    }
+    if(ni.id == 'q'){
+      return 0;
+    }
   }
+  return -1;
 }
 
 static struct nctree*
@@ -123,6 +131,7 @@ create_tree(struct notcurses* nc){
     .items = &rads,
     .count = 1,
     .nctreecb = callback,
+    .indentcols = 2,
     .flags = 0,
   };
   struct nctree* tree = nctree_create(notcurses_stdplane(nc), &topts);
@@ -145,8 +154,11 @@ int main(void){
     notcurses_stop(nc);
     return EXIT_FAILURE;
   }
-  tree_ui(nc, tree);
+  int r = tree_ui(nc, tree);
   nctree_destroy(tree);
   notcurses_stop(nc);
+  if(r){
+    return EXIT_FAILURE;
+  }
   return EXIT_SUCCESS;
 }
