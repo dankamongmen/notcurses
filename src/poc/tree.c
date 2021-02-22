@@ -17,7 +17,27 @@ static nctree_item alphaUs[] = {
     .subs = NULL,
     .subcount = 0,
     .curry = "²¹⁷U",
-  },
+  }, {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²¹⁸U",
+  }, {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²¹⁹U",
+  }, {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²²¹U",
+  }, {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²²²U",
+  }, {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²⁴⁰U",
+  }
 };
 
 static nctree_item alphaU = {
@@ -40,7 +60,26 @@ static nctree_item doubleU = {
   .curry = "ββ-emitting U",
 };
 
+static nctree_item betaminusUs[] = {
+  {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²³⁹U",
+  }, {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²⁴⁰U",
+  }, {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²⁴²U",
+  }
+};
+
 static nctree_item betaminus = {
+  .subs = betaminusUs,
+  .subcount = sizeof(betaminusUs) / sizeof(*betaminusUs),
+  .curry = "β-emitting U",
 };
 
 static nctree_item betaplusUs[] = {
@@ -58,12 +97,44 @@ static nctree_item betaplusUs[] = {
 static nctree_item betaplus = {
   .subs = betaplusUs,
   .subcount = sizeof(betaplusUs) / sizeof(*betaplusUs),
+  .curry = "β+-emitting U",
 };
 
 static nctree_item gammas = {
 };
 
+static nctree_item sfissionUs[] = {
+  {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²³⁰U",
+  }, {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²³²U",
+  }, {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²³³U",
+  }, {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²³⁴U",
+  }, {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²³⁵U",
+  }, {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²³⁶U",
+  },
+};
+
 static nctree_item sfissions = {
+  .subs = sfissionUs,
+  .subcount = sizeof(sfissionUs) / sizeof(*sfissionUs),
+  .curry = "spontaneously fissioning U",
 };
 
 static nctree_item radUs[] = {
@@ -77,11 +148,11 @@ static nctree_item radUs[] = {
     .curry = "ββ emitters",
   }, {
     .subs = &betaminus,
-    .subcount = 0,
+    .subcount = 1,
     .curry = "β- emitters",
   }, {
     .subs = &betaplus,
-    .subcount = 0,
+    .subcount = 1,
     .curry = "β+ emitters",
   }, {
     .subs = &gammas,
@@ -89,7 +160,7 @@ static nctree_item radUs[] = {
     .curry = "γ emitters",
   }, {
     .subs = &sfissions,
-    .subcount = 0,
+    .subcount = 1,
     .curry = "spontaneous fissions",
   },
 };

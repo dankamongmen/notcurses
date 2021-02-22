@@ -96,7 +96,7 @@ nctree_inner_create(ncplane* n, const struct nctree_options* opts){
       free(ret);
       return NULL;
     }
-//fprintf(stderr, "MAXDEPTH: %u\n", maxdepth);
+//fprintf(stderr, "MAXDEPTH: %u\n", ret->maxdepth);
     if(prep_initial_path(ret, ret->maxdepth)){
       free_tree_items(&ret->items);
       free(ret);
