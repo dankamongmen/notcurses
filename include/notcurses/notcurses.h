@@ -836,9 +836,9 @@ typedef enum {
 // event in the notcurses_getc() queue. Set to inhibit this handler.
 #define NCOPTION_NO_WINCH_SIGHANDLER 0x0004ull
 
-// We typically install a signal handler for SIG{INT, SEGV, ABRT, QUIT} that
-// restores the screen, and then calls the old signal handler. Set to inhibit
-// registration of these signal handlers.
+// We typically install a signal handler for SIG{INT, ILL, SEGV, ABRT, TERM,
+// QUIT} that restores the screen, and then calls the old signal handler. Set
+// to inhibit registration of these signal handlers.
 #define NCOPTION_NO_QUIT_SIGHANDLERS 0x0008ull
 
 // NCOPTION_RETAIN_CURSOR was removed in 1.6.18. It ought be repurposed. FIXME.
