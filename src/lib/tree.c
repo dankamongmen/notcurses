@@ -247,7 +247,7 @@ draw_tree_item(nctree* n, nctree_int_item* nii, const unsigned* path,
                int* frontiert, int* frontierb){
 //fprintf(stderr, "drawing item ft: %d fb: %d %p\n", *frontiert, *frontierb, nii->ncp);
   if(!nii->ncp){
-    const int startx = tree_path_length(path) * n->indentcols;
+    const int startx = (tree_path_length(path) - 1) * n->indentcols;
     int ymin, ymax;
     if(*frontiert == *frontierb){
       ymin = 0;
