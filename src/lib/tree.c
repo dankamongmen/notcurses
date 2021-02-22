@@ -12,9 +12,10 @@ typedef struct nctree {
   int (*cbfxn)(ncplane*, void*, int);
   nctree_int_item items;    // topmost set of items, holds widget plane
   nctree_int_item* curitem; // item addressed by the path
+  unsigned maxdepth;        // maximum hierarchy level
   unsigned* currentpath;    // array of |maxdepth|+1 elements, ended by UINT_MAX
-  unsigned maxdepth;        // binds the path length
   int activerow;            // active row 0 <= activerow < dimy
+  int indentcols;           // cols to indent per level
   uint64_t bchannels;       // border glyph channels
 } nctree;
 
@@ -77,10 +78,10 @@ goto_first_item(nctree* n){
   n->activerow = 0;
 }
 
-// the initial path ought point to the first item. maxdepth must be set.
+// the initial path ought point to the first item.
 static int
-prep_initial_path(nctree* n){
-  n->currentpath = malloc(sizeof(*n->currentpath) * (n->maxdepth + 1));
+prep_initial_path(nctree* n, unsigned maxdepth){
+  n->currentpath = malloc(sizeof(*n->currentpath) * (maxdepth + 1));
   if(n->currentpath == NULL){
     return -1;
   }
@@ -94,13 +95,14 @@ nctree_inner_create(ncplane* n, const struct nctree_options* opts){
   if(ret){
     ret->bchannels = opts->bchannels;
     ret->cbfxn = opts->nctreecb;
+    ret->indentcols = opts->indentcols;
     ret->maxdepth = 0;
     if(dup_tree_items(&ret->items, opts->items, opts->count, 0, &ret->maxdepth)){
       free(ret);
       return NULL;
     }
-//fprintf(stderr, "MAXDEPTH: %u\n", ret->maxdepth);
-    if(prep_initial_path(ret)){
+//fprintf(stderr, "MAXDEPTH: %u\n", maxdepth);
+    if(prep_initial_path(ret, ret->maxdepth)){
       free_tree_items(&ret->items);
       free(ret);
       return NULL;
@@ -233,7 +235,67 @@ void* nctree_next(nctree* n){
   return n->curitem->curry;
 }
 
-int nctree_redraw(nctree* n){
+static int
+tree_path_length(const unsigned* path){
+  int len = 0;
+  while(path[len] != UINT_MAX){
+    ++len;
+  }
+  return len;
+}
+
+// draw the item. if *|frontiert| == *|frontierb|, we're the current item, and
+// can use all the available space. if *|frontiert| < 0, draw down from
+// *|frontierb|. otherwise, draw up from *|frontiert|.
+static int
+draw_tree_item(nctree* n, nctree_int_item* nii, const unsigned* path,
+               int* frontiert, int* frontierb){
+  if(!nii->ncp){
+    const int startx = tree_path_length(path) * n->indentcols;
+    int ymin, ymax;
+    if(*frontiert == *frontierb){
+      ymin = 0;
+      ymax = ncplane_dim_y(n->items.ncp) - 1;
+    }else if(*frontiert < 0){
+      ymin = *frontierb;
+      ymax = ncplane_dim_y(n->items.ncp) - 1;
+    }else{
+      ymin = 0;
+      ymax = *frontiert;
+    }
+    struct ncplane_options nopts = {
+      .x = startx,
+      .y = ymin,
+      .cols = ncplane_dim_x(n->items.ncp) - startx,
+      .rows = ymax - ymin + 1,
+      .userptr = NULL,
+      .name = NULL,
+      .resizecb = NULL,
+      .flags = 0,
+    };
+    nii->ncp = ncplane_create(n->items.ncp, &nopts);
+    if(nii->ncp == NULL){
+      return -1;
+    }
+  }
+  int ret = n->cbfxn(nii->ncp, nii->curry, 0); // FIXME third param
+  if(ret < 0){
+    return -1;
+  }
+  // FIXME shrink plane if it was enlarged
+  if(ncplane_y(nii->ncp) < *frontiert){
+    *frontiert = ncplane_y(nii->ncp) - 1;
+  }
+  if(ncplane_y(nii->ncp) + ncplane_dim_y(nii->ncp) > *frontierb){
+    *frontierb = ncplane_y(nii->ncp) + ncplane_dim_y(nii->ncp);
+  }
+  return 0;
+}
+
+// tmppath ought be initialized with currentpath, but having size sufficient
+// to hold n->maxdepth + 1 unsigneds.
+static int
+nctree_inner_redraw(nctree* n, unsigned* tmppath){
   ncplane* ncp = n->items.ncp;
   if(ncplane_cursor_move_yx(ncp, n->activerow, 0)){
     return -1;
@@ -241,32 +303,42 @@ int nctree_redraw(nctree* n){
   int frontiert = n->activerow;
   int frontierb = n->activerow;
   nctree_int_item* nii = n->curitem;
-  while(frontiert > 0 || frontierb < ncplane_dim_y(n->items.ncp)){
-    if(!nii->ncp){
-      struct ncplane_options nopts = {
-        .x = 0, // FIXME indentcols * hierarchy level
-        .y = 0, // FIXME
-        .cols = ncplane_dim_x(n->items.ncp), // FIXME
-        .rows = ncplane_dim_y(n->items.ncp), // FIXME
-        .userptr = NULL,
-        .name = NULL,
-        .resizecb = NULL, // FIXME
-        .flags = 0,
-      };
-      nii->ncp = ncplane_create(n->items.ncp, &nopts);
-      if(nii->ncp == NULL){
-        return -1;
-      }
-    }
-    n->cbfxn(nii->ncp, nii->curry, 0);
-    // FIXME start with the currentpath. for each, until we run
-    // out or fill the screen, check that it has an ncplane defined. if not,
-    // create one. pass it to the callback with the curry.
-    // FIXME or maybe just track the top visible item, and always start from there?
-    --frontiert; // FIXME placeholders to break loop
-    ++frontierb;
+  if(draw_tree_item(n, nii, tmppath, &frontiert, &frontierb)){
+    return -1;
   }
+  // draw items above the current one FIXME
+  while(frontiert >= 0){
+    // FIXME get previous
+    if(draw_tree_item(n, nii, tmppath, &frontiert, &frontierb)){
+      return -1;
+    }
+    --frontiert; // FIXME placeholder to break loop
+  }
+  // FIXME destroy any drawn ones before us
+  // move items up if there is a gap at the top FIXME
+  if(frontiert >= 0){
+  }
+  // draw items below the current one FIME
+  while(frontierb < ncplane_dim_y(n->items.ncp)){
+    // FIXME get next
+    if(draw_tree_item(n, nii, tmppath, &frontiert, &frontierb)){
+      return -1;
+    }
+    ++frontierb; // FIXME placeholder to break loop
+  }
+  // FIXME destroy any drawn ones after us
   return 0;
+}
+
+int nctree_redraw(nctree* n){
+  unsigned* tmppath = malloc(sizeof(*tmppath) * (n->maxdepth + 1));
+  if(tmppath == NULL){
+    return -1;
+  }
+  memcpy(tmppath, n->currentpath, sizeof(*tmppath) * (n->maxdepth + 1));
+  int ret = nctree_inner_redraw(n, tmppath);
+  free(tmppath);
+  return ret;
 }
 
 bool nctree_offer_input(nctree* n, const ncinput* ni){
@@ -298,7 +370,7 @@ void* nctree_focused(nctree* n){
 }
 
 /*
-void* nctree_goto(nctree* n, const int* spec, size_t specdepth, int* failspec){
+void* nctree_goto(nctree* n, const unsigned* spec, int* failspec){
   // FIXME
 }
 */

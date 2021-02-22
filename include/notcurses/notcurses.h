@@ -3055,12 +3055,12 @@ API void* nctree_next(struct nctree* n) __attribute__ ((nonnull (1)));
 // Change focus to the previous item.
 API void* nctree_prev(struct nctree* n) __attribute__ ((nonnull (1)));
 
-// Go to the item specified by the array |spec| having |specdepth| elements. If
+// Go to the item specified by the array |spec|, terminated by UINT_MAX. If
 // the spec is invalid, NULL is returned, and the depth of the first invalid
-// spec is written to *|failspec|. Otherwise, |specdepth| is written to
+// spec is written to *|failspec|. Otherwise, the true depth is written to
 // *|failspec|, and the curry is returned (|failspec| is necessary because the
 // curry could itself be NULL).
-API void* nctree_goto(struct nctree* n, const int* spec, size_t specdepth, int* failspec);
+API void* nctree_goto(struct nctree* n, const unsigned* spec, int* failspec);
 
 // Destroy the nctree.
 API void nctree_destroy(struct nctree* n);
