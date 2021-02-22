@@ -41,6 +41,9 @@ might surprise NCURSES programmers:
 * Notcurses has no support for soft labels (`slk_init()`, etc.), subwindows
   which share memory with their parents, nor the NCURSES tracing functionality
   (`trace(3NCURSES)`).
+* Notcurses doesn't implement any of the `curs_util(3x)` functions, including
+  window serialization/deserialization via `putwin()`/`getwin()`.
+* Notcurses doesn't interact with `LINES` nor `COLUMNS` environment variables.
 
 ## Adapting NCURSES programs
 
@@ -80,3 +83,19 @@ compat_mvwprintw(struct ncplane* nc, int y, int x, const char* fmt, ...){
 
 These are pretty obvious, implementation-wise.
 
+### Some details
+
+* `cbreak()`/`nocbreak()`/`echo()`/`noecho()`/`nl()`/`nonl()`: termios
+  properties are not exposed as granularly by Notcurses. Rendered mode
+  always enters cbreak mode. Direct mode enters cbreak mode by default,
+  but `NCDIRECT_OPTION_INHIBIT_CBREAK` will inhibit this.
+* `raw()`/`noraw()`: The line discipline conversions (e.g. Ctrl+C) can be
+  disabled at any time with `notcurses_linesigs_disable()`, and turned back on
+  with `notcurses_linesigs_enable()`.
+* `keypad()`: The keypad is always enabled, if the `smkx`
+  capability is advertised.
+* `halfdelay()`/`nodelay()`/`timeout()`/`wtimeout()`: No such global controls
+  are supported. Use `notcurses_getc()` with a timeout if you want a timeout.
+  Use `notcurses_getc_nblock()` if you want an immediate return.
+* `intrflush()`/`qiflush()`/`noqiflush()`: No such functionality is supported.
+* `typeahead()`: No such functionality is supported.
