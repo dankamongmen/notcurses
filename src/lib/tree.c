@@ -245,7 +245,7 @@ tree_path_length(const unsigned* path){
 static int
 draw_tree_item(nctree* n, nctree_int_item* nii, const unsigned* path,
                int* frontiert, int* frontierb){
-fprintf(stderr, "drawing item ft: %d fb: %d %p\n", *frontiert, *frontierb, nii->ncp);
+//fprintf(stderr, "drawing item ft: %d fb: %d %p\n", *frontiert, *frontierb, nii->ncp);
   if(!nii->ncp){
     const int startx = tree_path_length(path) * n->indentcols;
     int ymin, ymax;
@@ -282,7 +282,7 @@ fprintf(stderr, "drawing item ft: %d fb: %d %p\n", *frontiert, *frontierb, nii->
     return -1;
   }
   // FIXME shrink plane if it was enlarged
-fprintf(stderr, "ft: %d fb: %d %p ncplane_y: %d\n", *frontiert, *frontierb, nii->ncp, ncplane_y(nii->ncp));
+//fprintf(stderr, "ft: %d fb: %d %p ncplane_y: %d\n", *frontiert, *frontierb, nii->ncp, ncplane_y(nii->ncp));
   if(ncplane_y(nii->ncp) <= *frontiert){
     *frontiert = ncplane_y(nii->ncp) - 1;
   }
@@ -306,9 +306,13 @@ nctree_inner_redraw(nctree* n, unsigned* tmppath){
   if(draw_tree_item(n, nii, tmppath, &frontiert, &frontierb)){
     return -1;
   }
+  nctree_int_item* tmpnii;
   // draw items above the current one FIXME
   while(frontiert >= 0){
-    nii = nctree_prev_internal(n, tmppath);
+    if((tmpnii = nctree_prev_internal(n, tmppath)) == nii){
+      break;
+    }
+    nii = tmpnii;
     if(draw_tree_item(n, nii, tmppath, &frontiert, &frontierb)){
       return -1;
     }
@@ -320,7 +324,10 @@ nctree_inner_redraw(nctree* n, unsigned* tmppath){
   n->activerow = ncplane_y(n->curitem->ncp);
   // draw items below the current one FIME
   while(frontierb < ncplane_dim_y(n->items.ncp)){
-    nii = nctree_next_internal(n, tmppath);
+    if((tmpnii = nctree_next_internal(n, tmppath)) == nii){
+      break;
+    }
+    nii = tmpnii;
     if(draw_tree_item(n, nii, tmppath, &frontiert, &frontierb)){
       return -1;
     }
