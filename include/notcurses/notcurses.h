@@ -836,9 +836,9 @@ typedef enum {
 // event in the notcurses_getc() queue. Set to inhibit this handler.
 #define NCOPTION_NO_WINCH_SIGHANDLER 0x0004ull
 
-// We typically install a signal handler for SIG{INT, SEGV, ABRT, QUIT} that
-// restores the screen, and then calls the old signal handler. Set to inhibit
-// registration of these signal handlers.
+// We typically install a signal handler for SIG{INT, ILL, SEGV, ABRT, TERM,
+// QUIT} that restores the screen, and then calls the old signal handler. Set
+// to inhibit registration of these signal handlers.
 #define NCOPTION_NO_QUIT_SIGHANDLERS 0x0008ull
 
 // NCOPTION_RETAIN_CURSOR was removed in 1.6.18. It ought be repurposed. FIXME.
@@ -1010,13 +1010,15 @@ ncinput_equal_p(const ncinput* n1, const ncinput* n2){
 // be NULL. Returns 0 on a timeout. If an event is processed, the return value
 // is the 'id' field from that event. 'ni' may be NULL.
 API char32_t notcurses_getc(struct notcurses* n, const struct timespec* ts,
-                            sigset_t* sigmask, ncinput* ni);
+                            sigset_t* sigmask, ncinput* ni)
+  __attribute__ ((nonnull (1)));
 
 // Get a file descriptor suitable for input event poll()ing. When this
 // descriptor becomes available, you can call notcurses_getc_nblock(),
 // and input ought be ready. This file descriptor is *not* necessarily
 // the file descriptor associated with stdin (but it might be!).
-API int notcurses_inputready_fd(struct notcurses* n);
+API int notcurses_inputready_fd(struct notcurses* n)
+  __attribute__ ((nonnull (1)));
 
 // 'ni' may be NULL if the caller is uninterested in event details. If no event
 // is ready, returns 0.

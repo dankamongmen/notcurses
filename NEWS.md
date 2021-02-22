@@ -1,6 +1,9 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 2.2.3 (not yet released)
+  * Add `SIGILL` to the set of fatal signals we handle.
+
 * 2.2.2 (2021-02-18):
   * `notcurses_stats()` no longer qualifies its `notcurses*` argument with
     `const`, since it now takes a lock. I'm sorry about that, though on the
