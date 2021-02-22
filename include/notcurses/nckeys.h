@@ -9,7 +9,7 @@ extern "C" {
 
 // Special composed key definitions. These values are added to 0x100000.
 #define NCKEY_INVALID suppuabize(0)
-#define NCKEY_RESIZE  suppuabize(1) // generated internally in response to SIGWINCH
+#define NCKEY_SIGNAL  suppuabize(1) // generated internally in response to SIGWINCH / SIGCONT
 #define NCKEY_UP      suppuabize(2)
 #define NCKEY_RIGHT   suppuabize(3)
 #define NCKEY_DOWN    suppuabize(4)
@@ -118,6 +118,7 @@ extern "C" {
 #define NCKEY_SCROLL_UP   NCKEY_BUTTON4
 #define NCKEY_SCROLL_DOWN NCKEY_BUTTON5
 #define NCKEY_RETURN      NCKEY_ENTER
+#define NCKEY_RESIZE      NCKEY_SIGNAL
 
 // Just aliases, ma'am, from the 128 characters common to ASCII+UTF8
 #define NCKEY_ESC      0x1b

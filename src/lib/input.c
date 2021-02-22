@@ -14,6 +14,7 @@ static const char32_t NCKEY_CSI = 1;
 
 static sig_atomic_t resize_seen;
 
+// called for SIGWINCH and SIGCONT
 void sigwinch_handler(int signo){
   resize_seen = signo;
 }
@@ -335,8 +336,10 @@ block_on_input(int fd, const struct timespec* ts, sigset_t* sigmask){
     pthread_sigmask(0, NULL, &scratchmask);
   }
   sigmask = &scratchmask;
+  sigdelset(sigmask, SIGCONT);
   sigdelset(sigmask, SIGWINCH);
   sigdelset(sigmask, SIGINT);
+  sigdelset(sigmask, SIGILL);
   sigdelset(sigmask, SIGQUIT);
   sigdelset(sigmask, SIGSEGV);
   sigdelset(sigmask, SIGABRT);
@@ -402,7 +405,7 @@ handle_input(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin, sigse
   // highest priority is resize notifications, since they don't queue
   if(resize_seen){
     resize_seen = 0;
-    return NCKEY_RESIZE;
+    return NCKEY_SIGNAL;
   }
   return handle_queued_input(nc, ni, leftmargin, topmargin);
 }
