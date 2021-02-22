@@ -102,6 +102,11 @@ static nctree_item rads = {
 
 static int
 callback(struct ncplane* ncp, void* curry, int dizzy){
+  if(ncplane_dim_y(ncp) > 1){
+    if(ncplane_resize_simple(ncp, 1, ncplane_dim_x(ncp))){
+      return -1;
+    }
+  }
   ncplane_putstr(ncp, curry);
   // FIXME
   (void)dizzy;
