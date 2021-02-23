@@ -36,6 +36,8 @@ static int
 dup_tree_items(nctree_int_item* fill, const nctree_item* items, unsigned count, unsigned depth,
                unsigned* maxdepth){
   fill->subcount = count;
+  // FIXME perhaps better to alloc a page at a time and take all items from
+  // there, for better TLB performance?
   fill->subs = malloc(sizeof(*fill->subs) * count);
   if(fill->subs == NULL){
     return -1;

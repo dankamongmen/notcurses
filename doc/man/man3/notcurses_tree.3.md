@@ -25,8 +25,10 @@ typedef struct nctree_options {
   unsigned count;           // size of |items|
   uint64_t bchannels;       // base channels
   int (*nctreecb)(struct ncplane*, void*, int); // item callback
+  int indentcols;           // columns to indent per hierarchy
   uint64_t flags;           // bitfield of NCTREE_OPTION_*
 } nctree_options;
+
 ```
 
 **struct nctree* nctree_create(struct ncplane* ***n***, const nctree_options* ***opts***);**
