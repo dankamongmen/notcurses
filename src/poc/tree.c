@@ -365,6 +365,7 @@ callback(struct ncplane* ncp, void* curry, int dizzy){
       return -1;
     }
   }
+  ncplane_cursor_move_yx(ncp, 0, 0);
   ncplane_putstr(ncp, curry);
   // FIXME
   (void)dizzy;

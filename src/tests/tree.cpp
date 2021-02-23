@@ -167,6 +167,7 @@ TEST_CASE("Tree") {
 
     CHECK(items[0].curry == nctree_prev(tree));
     CHECK(items[0].curry == nctree_focused(tree));
+
     nctree_destroy(tree);
   }
 
