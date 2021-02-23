@@ -130,10 +130,40 @@ static nctree_item betaminusUs[] = {
   }
 };
 
-static nctree_item betaminus = {
-  .subs = betaminusUs,
-  .subcount = sizeof(betaminusUs) / sizeof(*betaminusUs),
-  .curry = "β−-emitting U",
+static nctree_item betaminusPus[] = {
+  {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²⁴¹Pu",
+  }, {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²⁴³Pu",
+  }, {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²⁴⁵Pu",
+  }, {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²⁴⁶Pu",
+  }, {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²⁴⁷Pu",
+  }
+};
+
+static nctree_item betaminus[] = {
+  {
+    .subs = betaminusUs,
+    .subcount = sizeof(betaminusUs) / sizeof(*betaminusUs),
+    .curry = "β−-emitting U",
+  }, {
+    .subs = betaminusPus,
+    .subcount = sizeof(betaminusPus) / sizeof(*betaminusPus),
+    .curry = "β−-emitting Pu",
+  },
 };
 
 static nctree_item betaplusUs[] = {
@@ -288,8 +318,8 @@ static nctree_item radUs[] = {
     .subcount = 1,
     .curry = "ɑ emitters",
   }, {
-    .subs = &betaminus,
-    .subcount = 1,
+    .subs = betaminus,
+    .subcount = sizeof(betaminus) / sizeof(*betaminus),
     .curry = "β− emitters",
   }, {
     .subs = &doubleminusU,
