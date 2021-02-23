@@ -173,40 +173,31 @@ reader_post(struct notcurses* nc, struct ncselector* selector, struct ncmultisel
 }
 
 static int
-layout_next_text(struct ncreader* reader, const char* text, size_t* textpos){
+layout_next_text(struct ncplane* p, const char* text, size_t* textpos){
   size_t towrite = strcspn(text + *textpos, " \t\n");
   towrite += strspn(text + *textpos + towrite, " \t\n");
   if(towrite){
     char* duped = strndup(text + *textpos, towrite);
     size_t bytes;
-    if(ncplane_puttext(ncreader_plane(reader), -1, NCALIGN_LEFT, duped, &bytes) < 0 || bytes != strlen(duped)){
+    if(ncplane_puttext(p, -1, NCALIGN_LEFT, duped, &bytes) < 0 || bytes != strlen(duped)){
       free(duped);
       return -1;
     }
     free(duped);
-    int y, x, posy, posx;
-    struct ncplane* ncp = ncreader_plane(reader);
-    ncplane_cursor_yx(ncp, &y, &x);
-    ncplane_yx(ncp, &posy, &posx);
-    int stdy = ncplane_dim_y(notcurses_stdplane(ncplane_notcurses(ncp)));
-    if(y + posy < stdy - 1){
-      // don't check for failure -- not supported under vt100
-      notcurses_cursor_enable(ncplane_notcurses(ncp), y + posy, x + posx);
-    }
     *textpos += towrite;
   }
   return 0;
 }
 
 static int
-run_out_text(struct ncreader* reader, const char* text, size_t* textpos,
+run_out_text(struct ncplane* p, const char* text, size_t* textpos,
              const struct timespec* iterdelay){
   while(text[*textpos]){
-    int ret = layout_next_text(reader, text, textpos);
+    int ret = layout_next_text(p, text, textpos);
     if(ret){
       return ret;
     }
-    demo_nanosleep(ncplane_notcurses(ncreader_plane(reader)), iterdelay);
+    demo_nanosleep(ncplane_notcurses(p), iterdelay);
   }
   return 0;
 }
@@ -229,9 +220,9 @@ get_word_count(const char* text){
   return words;
 }
 
-// selector moves across to the left; reader moves up halfway to the center
+// selector moves across to the left; plane moves up halfway to the center
 static int
-selector_run(struct notcurses* nc, struct ncreader* reader, struct ncselector* selector){
+selector_run(struct notcurses* nc, struct ncplane* p, struct ncselector* selector){
   const char text[] =
     "Notcurses provides several widgets to quickly build vivid TUIs.\n"
     "This NCReader widget facilitates free-form text entry complete with readline-style bindings.\n"
@@ -240,9 +231,9 @@ selector_run(struct notcurses* nc, struct ncreader* reader, struct ncselector* s
   int titers = get_word_count(text);
   int ret = 0, dimy, dimx;
   ncplane_dim_yx(notcurses_stdplane(nc), &dimy, &dimx);
-  const int centery = (dimy - ncplane_dim_y(ncreader_plane(reader))) / 2;
+  const int centery = (dimy - ncplane_dim_y(p)) / 2;
   int ry, rx, sy, sx;
-  ncplane_yx(ncreader_plane(reader), &ry, &rx);
+  ncplane_yx(p, &ry, &rx);
   ncplane_yx(ncselector_plane(selector), &sy, &sx);
   const int xiters = sx - 2;
   const int yiters = (ry - centery) / 2;
@@ -268,13 +259,13 @@ selector_run(struct notcurses* nc, struct ncreader* reader, struct ncselector* s
       ++xi;
     }
     if(i == (int)(yi * eachy)){
-      if(ncplane_move_yx(ncreader_plane(reader), --ry, rx)){
+      if(ncplane_move_yx(p, --ry, rx)){
         return -1;
       }
       ++yi;
     }
     if(i == (int)(ti * eacht)){
-      if( (ret = layout_next_text(reader, text, &textpos)) ){
+      if( (ret = layout_next_text(p, text, &textpos)) ){
         return ret;
       }
       ++ti;
@@ -299,12 +290,12 @@ selector_run(struct notcurses* nc, struct ncreader* reader, struct ncselector* s
       clock_gettime(CLOCK_MONOTONIC, &now);
     }
   }
-  return run_out_text(reader, text, &textpos, &iterdelay);
+  return run_out_text(p, text, &textpos, &iterdelay);
 }
 
-// selector moves across to the right; reader moves up halfway to the center
+// selector moves across to the right; plane moves up halfway to the center
 static int
-mselector_run(struct notcurses* nc, struct ncreader* reader, struct ncmultiselector* mselector){
+mselector_run(struct notcurses* nc, struct ncplane* p, struct ncmultiselector* mselector){
   const char text[] =
     "NCMultiselector allows 0..n options to be selected from a list of n items.\n"
     "A variety of plots are supported. "
@@ -314,9 +305,9 @@ mselector_run(struct notcurses* nc, struct ncreader* reader, struct ncmultiselec
   const int titers = get_word_count(text);
   int ret = 0, dimy, dimx;
   ncplane_dim_yx(notcurses_stdplane(nc), &dimy, &dimx);
-  const int centery = (dimy - ncplane_dim_y(ncreader_plane(reader))) / 2;
+  const int centery = (dimy - ncplane_dim_y(p)) / 2;
   int ry, rx, sy, sx;
-  ncplane_yx(ncreader_plane(reader), &ry, &rx);
+  ncplane_yx(p, &ry, &rx);
   ncplane_yx(ncmultiselector_plane(mselector), &sy, &sx);
   const int xiters = dimx - ncplane_dim_x(ncmultiselector_plane(mselector));
   const int yiters = ry - centery;
@@ -336,7 +327,7 @@ mselector_run(struct notcurses* nc, struct ncreader* reader, struct ncmultiselec
   size_t textpos = 0;
   for(int i = 0 ; i < iters ; ++i){
     if(i == (int)(ti * eacht)){
-      if( (ret = layout_next_text(reader, text, &textpos)) ){
+      if( (ret = layout_next_text(p, text, &textpos)) ){
         return ret;
       }
       ++ti;
@@ -348,7 +339,7 @@ mselector_run(struct notcurses* nc, struct ncreader* reader, struct ncmultiselec
       ++xi;
     }
     if(i == (int)(yi * eachy)){
-      if(ncplane_move_yx(ncreader_plane(reader), --ry, rx)){
+      if(ncplane_move_yx(p, --ry, rx)){
         return -1;
       }
       ++yi;
@@ -373,10 +364,10 @@ mselector_run(struct notcurses* nc, struct ncreader* reader, struct ncmultiselec
       clock_gettime(CLOCK_MONOTONIC, &now);
     }
   }
-  return run_out_text(reader, text, &textpos, &iterdelay);
+  return run_out_text(p, text, &textpos, &iterdelay);
 }
 
-// creates an ncreader, ncselector, and ncmultiselector, and moves them into
+// creates a plane, an ncselector, and a ncmultiselector, and moves them into
 // place. the latter two are then faded out. all three are then destroyed.
 static int
 reader_demo(struct notcurses* nc){
@@ -385,15 +376,9 @@ reader_demo(struct notcurses* nc){
   struct ncplane* std = notcurses_stddim_yx(nc, &dimy, &dimx);
   const int READER_COLS = 64;
   const int READER_ROWS = 8;
-  ncreader_options ropts = {
-    .tchannels = CHANNELS_RGB_INITIALIZER(0xa0, 0xe0, 0xe0, 0, 0, 0),
-  };
-  uint64_t echannels = CHANNELS_RGB_INITIALIZER(0x20, 0xe0, 0xe0, 0, 0, 0);
-  channels_set_bg_alpha(&echannels, CELL_ALPHA_BLEND);
   const int x = ncplane_align(std, NCALIGN_CENTER, READER_COLS);
   struct ncselector* selector = NULL;
   struct ncmultiselector* mselector = NULL;
-  struct ncreader* reader = NULL;
   struct ncplane_options nopts = {
     .y = dimy,
     .x = x,
@@ -405,28 +390,28 @@ reader_demo(struct notcurses* nc){
   if(rp == NULL){
     goto done;
   }
-  ncplane_set_base(rp, " ", 0, echannels);
-  reader = ncreader_create(rp, &ropts);
-  if(reader == NULL){
-    goto done;
-  }
-  ncplane_set_scrolling(ncreader_plane(reader), true);
+  ncplane_set_fg_rgb8(rp, 0x20, 0xe0, 0xe0);
+  uint64_t echannels = 0;
+  channels_set_fg_alpha(&echannels, CELL_ALPHA_BLEND);
+  channels_set_bg_alpha(&echannels, CELL_ALPHA_BLEND);
+  ncplane_set_base(rp, "", 0, echannels);
+  ncplane_set_scrolling(rp, true);
   // Bring the selector left across the top, while raising the exposition
   // halfway to its target height.
-  selector = selector_demo(std, ncreader_plane(reader), dimx, 2);
+  selector = selector_demo(std, rp, dimx, 2);
   if(selector == NULL){
     goto done;
   }
-  if( (ret = selector_run(nc, reader, selector)) ){
+  if( (ret = selector_run(nc, rp, selector)) ){
     goto done;
   }
   // Bring the multiselector right across the top, while raising the exposition
   // the remainder of its path to the center of the screen.
-  mselector = multiselector_demo(std, ncreader_plane(reader), 8);
+  mselector = multiselector_demo(std, rp, 8);
   if(mselector == NULL){
     goto done;
   }
-  if( (ret = mselector_run(nc, reader, mselector)) ){
+  if( (ret = mselector_run(nc, rp, mselector)) ){
     goto done;
   }
   // Delay and fade
@@ -437,9 +422,7 @@ reader_demo(struct notcurses* nc){
 done:
   ncselector_destroy(selector, NULL);
   ncmultiselector_destroy(mselector);
-  ncreader_destroy(reader, NULL);
-  // don't check for failure -- not supported under vt100
-  notcurses_cursor_disable(nc);
+  ncplane_destroy(rp);
   return ret;
 }
 

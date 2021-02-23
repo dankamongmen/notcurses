@@ -739,6 +739,35 @@ void notcurses_stats_reset(notcurses* nc, ncstats* stats){
   pthread_mutex_unlock(&nc->statlock);
 }
 
+// only invoked without suppress banners flag. prints various warnings based on
+// the environment / terminal definition.
+static void
+init_banner_warnings(const notcurses* nc, FILE* out){
+  const bool tty = isatty(fileno(out));
+  if(tty){
+    term_fg_palindex(nc, out, nc->tcache.colors <= 88 ? 1 % nc->tcache.colors : 0xcb);
+  }
+  if(!nc->tcache.RGBflag){ // FIXME
+    fprintf(out, "\n Warning! Colors subject to https://github.com/dankamongmen/notcurses/issues/4");
+    fprintf(out, "\n  Specify a (correct) TrueColor TERM, or COLORTERM=24bit.\n");
+  }else{
+    if(!nc->tcache.CCCflag){
+      fprintf(out, "\n Warning! Advertised TrueColor but no 'ccc' flag\n");
+    }
+  }
+  if(!notcurses_canutf8(nc)){
+    fprintf(out, "\n Warning! Encoding is not UTF-8; output may be degraded.\n");
+  }
+  if(!nc->tcache.hpa){
+    fprintf(out, "\n Warning! No absolute horizontal placement.\n");
+  }
+  if(nc->tcache.sgr0){
+    if(tty){
+      term_emit(nc->tcache.sgr0, out, true);
+    }
+  }
+}
+
 // unless the suppress_banner flag was set, print some version information and
 // (if applicable) warnings to stdout. we are not yet on the alternate screen.
 static void
@@ -767,24 +796,7 @@ init_banner(const notcurses* nc){
            , curses_version());
     ncvisual_printbanner(nc);
     fflush(stdout);
-    term_fg_palindex(nc, stderr, nc->tcache.colors <= 88 ? 1 % nc->tcache.colors : 0xcb);
-    if(!nc->tcache.RGBflag){ // FIXME
-      fprintf(stderr, "\n Warning! Colors subject to https://github.com/dankamongmen/notcurses/issues/4");
-      fprintf(stderr, "\n  Specify a (correct) TrueColor TERM, or COLORTERM=24bit.\n");
-    }else{
-      if(!nc->tcache.CCCflag){
-        fprintf(stderr, "\n Warning! Advertised TrueColor but no 'ccc' flag\n");
-      }
-    }
-    if(!notcurses_canutf8(nc)){
-      fprintf(stderr, "\n Warning! Encoding is not UTF-8; output may be degraded.\n");
-    }
-    if(!nc->tcache.hpa){
-      fprintf(stderr, "\n Warning! No absolute horizontal placement.\n");
-    }
-    if(nc->tcache.sgr0){
-      term_emit(nc->tcache.sgr0, stderr, true);
-    }
+    init_banner_warnings(nc, stderr);
   }
 }
 

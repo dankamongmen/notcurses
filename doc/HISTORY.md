@@ -1,5 +1,6 @@
 # History
 
+* 2021-02-08: Notcurses [2.2.0 "no one man should have all that power"](https://github.com/dankamongmen/notcurses/releases/tag/v2.2.0).
 * 2021-02-06: [Lightning talk](https://www.youtube.com/watch?v=fq963c6Fl5E) at [FOSDEM 2021](https://fosdem.org/2021/schedule/event/notcurses/).
 * 2021-01-28: Notcurses 2.1.7 introduces the extracted `notcurses-core` library, to allow packaging/linking without multimedia dependencies.
 * 2021-01-11: Notcurses is [accepted into DragonFly BSD](https://github.com/dankamongmen/notcurses/issues/1121).

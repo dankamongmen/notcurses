@@ -1,6 +1,6 @@
 % notcurses_direct(3)
 % nick black <nickblack@linux.com>
-% v2.2.1
+% v2.2.2
 
 # NAME
 
@@ -110,9 +110,9 @@ The following flags are defined:
     buffering; see **tcgetattr(3)**).
 
 * **NCDIRECT_OPTION_NO_QUIT_SIGHANDLERS**: A signal handler will usually be
-    installed for **SIGINT**, **SIGQUIT**, **SIGSEGV**, **SIGTERM**, and
-    **SIGABRT**, cleaning up the terminal on such exceptions. With this flag,
-    the handler will not be installed.
+    installed for **SIGINT**, **SIGILL**, **SIGQUIT**, **SIGSEGV**,
+    **SIGTERM**, and **SIGABRT**, cleaning up the terminal on such exceptions.
+    With this flag, the handler will not be installed.
 
 An appropriate **terminfo(5)** entry must exist for the terminal. This entry is
 usually selected using the value of the **TERM** environment variable (see

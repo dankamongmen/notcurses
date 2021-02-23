@@ -55,7 +55,6 @@ struct ncreader;  // widget supporting free string input ala readline
 struct ncfadectx; // context for a palette fade operation
 struct nctablet;  // grouped item within an ncreel
 struct ncreel;    // hierarchical block-based data browser
-struct nctree;    // hierarchical line-based data browser
 
 // we never blit full blocks, but instead spaces (more efficient) with the
 // background set to the desired foreground.
@@ -105,8 +104,6 @@ API int ncstrwidth(const char* mbs);
 API int notcurses_ucs32_to_utf8(const char32_t* ucs32, unsigned ucs32count,
                                 unsigned char* resultbuf, size_t buflen);
 
-// extract these bits to get a channel's alpha value
-#define CHANNEL_ALPHA_MASK    0x30000000ull
 // background cannot be highcontrast, only foreground
 #define CELL_ALPHA_HIGHCONTRAST 0x30000000ull
 #define CELL_ALPHA_TRANSPARENT  0x20000000ull
@@ -129,7 +126,7 @@ API int notcurses_ucs32_to_utf8(const char32_t* ucs32, unsigned ucs32count,
 // palette-indexed foreground color
 #define CELL_FG_PALETTE         (CELL_BG_PALETTE << 32u)
 // extract these bits to get the background alpha mask
-#define CELL_BG_ALPHA_MASK      CHANNEL_ALPHA_MASK
+#define CELL_BG_ALPHA_MASK      0x30000000ull
 // extract these bits to get the foreground alpha mask
 #define CELL_FG_ALPHA_MASK      (CELL_BG_ALPHA_MASK << 32u)
 
@@ -228,7 +225,7 @@ channel_set(unsigned* channel, unsigned rgb){
 // Extract the 2-bit alpha component from a 32-bit channel.
 static inline unsigned
 channel_alpha(unsigned channel){
-  return channel & CHANNEL_ALPHA_MASK;
+  return channel & CELL_BG_ALPHA_MASK;
 }
 
 static inline unsigned
@@ -239,10 +236,10 @@ channel_palindex(uint32_t channel){
 // Set the 2-bit alpha component of the 32-bit channel.
 static inline int
 channel_set_alpha(unsigned* channel, unsigned alpha){
-  if(alpha & ~CHANNEL_ALPHA_MASK){
+  if(alpha & ~CELL_BG_ALPHA_MASK){
     return -1;
   }
-  *channel = alpha | (*channel & ~CHANNEL_ALPHA_MASK);
+  *channel = alpha | (*channel & ~CELL_BG_ALPHA_MASK);
   if(alpha != CELL_ALPHA_OPAQUE){
     *channel |= CELL_BGDEFAULT_MASK;
   }
@@ -839,9 +836,9 @@ typedef enum {
 // event in the notcurses_getc() queue. Set to inhibit this handler.
 #define NCOPTION_NO_WINCH_SIGHANDLER 0x0004ull
 
-// We typically install a signal handler for SIG{INT, SEGV, ABRT, QUIT} that
-// restores the screen, and then calls the old signal handler. Set to inhibit
-// registration of these signal handlers.
+// We typically install a signal handler for SIG{INT, ILL, SEGV, ABRT, TERM,
+// QUIT} that restores the screen, and then calls the old signal handler. Set
+// to inhibit registration of these signal handlers.
 #define NCOPTION_NO_QUIT_SIGHANDLERS 0x0008ull
 
 // NCOPTION_RETAIN_CURSOR was removed in 1.6.18. It ought be repurposed. FIXME.
@@ -894,7 +891,7 @@ API int notcurses_lex_blitter(const char* op, ncblitter_e* blitter);
 // Get the name of a blitter.
 API const char* notcurses_str_blitter(ncblitter_e blitter);
 
-// Lex a visual scaling mode (one of "none", "stretch", or "scale").
+// Lex a scaling mode (one of "none", "stretch", "scale", "nonehi", or "scalehi").
 API int notcurses_lex_scalemode(const char* op, ncscale_e* scalemode);
 
 // Get the name of a scaling mode.
@@ -941,10 +938,10 @@ API int notcurses_render_to_buffer(struct notcurses* nc, char** buf, size_t* buf
 // notcurses_render() has not yet been called, nothing will be written.
 API int notcurses_render_to_file(struct notcurses* nc, FILE* fp);
 
-// Return the topmost ncplane, of which there is always at least one.
+// Return the topmost ncplane of the standard pile.
 API struct ncplane* notcurses_top(struct notcurses* n);
 
-// Return the bottommost ncplane, of which there is always at least one.
+// Return the bottommost ncplane of the standard pile.
 API struct ncplane* notcurses_bottom(struct notcurses* n);
 
 // Destroy all ncplanes other than the stdplane.
@@ -1013,13 +1010,15 @@ ncinput_equal_p(const ncinput* n1, const ncinput* n2){
 // be NULL. Returns 0 on a timeout. If an event is processed, the return value
 // is the 'id' field from that event. 'ni' may be NULL.
 API char32_t notcurses_getc(struct notcurses* n, const struct timespec* ts,
-                            sigset_t* sigmask, ncinput* ni);
+                            sigset_t* sigmask, ncinput* ni)
+  __attribute__ ((nonnull (1)));
 
 // Get a file descriptor suitable for input event poll()ing. When this
 // descriptor becomes available, you can call notcurses_getc_nblock(),
 // and input ought be ready. This file descriptor is *not* necessarily
 // the file descriptor associated with stdin (but it might be!).
-API int notcurses_inputready_fd(struct notcurses* n);
+API int notcurses_inputready_fd(struct notcurses* n)
+  __attribute__ ((nonnull (1)));
 
 // 'ni' may be NULL if the caller is uninterested in event details. If no event
 // is ready, returns 0.

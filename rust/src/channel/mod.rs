@@ -91,7 +91,7 @@ pub use reimplemented::*;
 pub type NcChannel = u32;
 
 /// Extract these bits to get a channel's alpha value
-pub const NCCHANNEL_ALPHA_MASK: u32 = crate::bindings::ffi::CHANNEL_ALPHA_MASK;
+pub const NCCHANNEL_ALPHA_MASK: u32 = crate::bindings::ffi::CELL_BG_ALPHA_MASK;
 
 // NcAlphaBits
 //

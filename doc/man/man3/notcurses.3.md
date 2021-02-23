@@ -1,6 +1,6 @@
 % notcurses(3)
 % nick black <nickblack@linux.com>
-% v2.2.1
+% v2.2.2
 
 # NAME
 
@@ -118,7 +118,6 @@ A few high-level widgets are included, all built atop ncplanes:
 * **notcurses_reader(3)** for free-form input data
 * **notcurses_reel(3)** for hierarchal display of block-based data
 * **notcurses_selector(3)** for selecting one item from a set
-* **notcurses_tree(3)** for hierarchal display of line-based data
 
 ## Threads
 
@@ -187,7 +186,6 @@ order to turn most error returns into exceptions.
 **notcurses_stats(3)**,
 **notcurses_stdplane(3)**,
 **notcurses_stop(3)**,
-**notcurses_tree(3)**,
 **notcurses_visual(3)**,
 **terminfo(5)**, **ascii(7)**, **utf-8(7)**,
 **unicode(7)**

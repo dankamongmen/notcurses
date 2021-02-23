@@ -62,7 +62,7 @@ impl NcCell {
     ///
     /// - Breaks the UTF-8 string in `gcluster` down, setting up this NcCell.
     /// - Returns the number of bytes copied out of `gcluster`.
-    /// - The styling of the cell is left untouched, but any resources are released.
+    /// - Any resources are released.
     /// - Blasts the styling with `style` and `channels`.
     ///
     /// *C style function: [cell_prime()][crate::cell_prime].*

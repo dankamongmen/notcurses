@@ -1,6 +1,6 @@
 % notcurses_init(3)
 % nick black <nickblack@linux.com>
-% v2.2.1
+% v2.2.2
 
 # NAME
 
@@ -122,9 +122,9 @@ zero. The following flags are defined:
     input. With this flag, the handler will not be installed.
 
 * **NCOPTION_NO_QUIT_SIGHANDLERS**: A signal handler will usually be installed
-    for **SIGINT**, **SIGQUIT**, **SIGSEGV**, **SIGTERM**, and **SIGABRT**,
-    cleaning up the terminal on such exceptions. With this flag, the handler
-    will not be installed.
+    for **SIGINT**, **SIGILL**, **SIGQUIT**, **SIGSEGV**, **SIGTERM**, and
+    **SIGABRT**, cleaning up the terminal on such exceptions. With this flag,
+    the handler will not be installed.
 
 * **NCOPTION_SUPPRESS_BANNERS**: Disables the diagnostics and version
     information printed on startup, and the performance summary on exit.

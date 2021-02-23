@@ -1,6 +1,6 @@
 % notcurses_reel(3)
 % nick black <nickblack@linux.com>
-% v2.2.1
+% v2.2.2
 
 # NAME
 
@@ -127,12 +127,6 @@ tablet, unless no tablets exist, in which case they return **NULL**.
 
 **ncreel_add** returns the newly-added **nctablet**.
 
-# NOTES
-
-**ncreel** shares many properties with **notcurses_tree**. Unlike the latter,
-**ncreel**s supply only a single level of hierarchy, and allow elements to
-come and go across the lifetime of the widget.
-
 # BUGS
 
 I can't decide whether to require the user to explicitly call **ncreel_redraw**.
@@ -143,5 +137,4 @@ things more complicated for both me and the user.
 
 **notcurses(3)**,
 **notcurses_input(3)**,
-**notcurses_plane(3)**,
-**notcurses_tree(3)**
+**notcurses_plane(3)**
