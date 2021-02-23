@@ -160,21 +160,15 @@ ncplane* nctree_plane(nctree* n){
 // extend it out to the maximal topright.
 static nctree_int_item*
 nctree_prev_internal(nctree* n, unsigned* newpath){
-for(int i = 0 ; i < 100 ; ++i){
-if(newpath[i] == UINT_MAX){ fprintf(stderr, " <---- prevpath\n"); break; }
-fprintf(stderr, "%u ", newpath[i]);
-}
   nctree_int_item* nii = &n->items;
   nctree_int_item* wedge = NULL; // tracks the rightmost non-zero path
   int idx = 0;
   while(newpath[idx] != UINT_MAX){
     nii = &nii->subs[newpath[idx]];
-//fprintf(stderr, "FORVART %s subs: %u via %u\n", (const char*)nii->curry, nii->subcount, newpath[idx]);
     if(idx == 0){
       wedge = &n->items;
     }else{// if(idx > 1){
       wedge = &wedge->subs[newpath[idx - 1]];
-//fprintf(stderr, "WEDGE %s subs: %u via %u\n", (const char*)wedge->curry, wedge->subcount, newpath[idx - 1]);
     }
     ++idx;
   }
@@ -182,18 +176,20 @@ fprintf(stderr, "%u ", newpath[i]);
   if(newpath[idx]){
     --newpath[idx];
     nii = &wedge->subs[newpath[idx]];
+    ++idx;
+//fprintf(stderr, "nii->subcount: %u idx: %d\n", nii->subcount, idx);
     while(nii->subcount){
       newpath[idx] = nii->subcount - 1;
       nii = &nii->subs[newpath[idx]];
+      ++idx;
+//fprintf(stderr, "nii->subcount: %u idx: %d\n", nii->subcount, idx);
     }
-fprintf(stderr, "OUT 1 %d\n", idx);
     newpath[idx] = UINT_MAX;
     return nii;
   }
   if(wedge == &n->items){
     return nii; // no change
   }
-fprintf(stderr, "OUT 2 %d\n", idx + 1);
   newpath[idx] = UINT_MAX;
   return wedge;
 }
@@ -237,12 +233,6 @@ nctree_next_internal(nctree* n, unsigned* newpath){
 void* nctree_next(nctree* n){
   // FIXME update n->activerow, redraw
   n->curitem = nctree_next_internal(n, n->currentpath);
-fprintf(stderr, "NEXT------------------------->\n");
-for(int i = 0 ; i < 100 ; ++i){
-if(n->currentpath[i] == UINT_MAX){ fprintf(stderr, " <---- nextpath\n"); break; }
-fprintf(stderr, "%u ", n->currentpath[i]);
-}
-fprintf(stderr, "NEXT DONE\n");
   return n->curitem->curry;
 }
 
@@ -322,7 +312,6 @@ nctree_inner_redraw(nctree* n, unsigned* tmppath){
   if(draw_tree_item(n, nii, tmppath, &frontiert, &frontierb)){
     return -1;
   }
-fprintf(stderr, "FULCRUM %s\n", (const char*)nii->curry);
   nctree_int_item* tmpnii;
   // draw items above the current one FIXME
   while(frontiert >= 0){
@@ -333,7 +322,6 @@ fprintf(stderr, "FULCRUM %s\n", (const char*)nii->curry);
     if(draw_tree_item(n, nii, tmppath, &frontiert, &frontierb)){
       return -1;
     }
-fprintf(stderr, "DRAWING %s\n", (const char*)nii->curry);
   }
   // FIXME destroy any drawn ones before us
   // move items up if there is a gap at the top FIXME
