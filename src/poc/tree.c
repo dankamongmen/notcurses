@@ -36,6 +36,46 @@ static nctree_item alphaUs[] = {
   }, {
     .subs = NULL,
     .subcount = 0,
+    .curry = "²²⁸U",
+  }, {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²²⁹U",
+  }, {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²³⁰U",
+  }, {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²³¹U",
+  }, {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²³²U",
+  }, {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²³³U",
+  }, {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²³⁴U",
+  }, {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²³⁵U",
+  }, {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²³⁶U",
+  }, {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²³⁸U",
+  }, {
+    .subs = NULL,
+    .subcount = 0,
     .curry = "²⁴⁰U",
   }
 };
@@ -60,6 +100,20 @@ static nctree_item doubleU = {
   .curry = "ββ-emitting U",
 };
 
+static nctree_item doubleminusUs[] = {
+  {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²³⁸U",
+  }
+};
+
+static nctree_item doubleminusU = {
+  .subs = doubleminusUs,
+  .subcount = sizeof(doubleminusUs) / sizeof(*doubleminusUs),
+  .curry = "β−β−-emitting U",
+};
+
 static nctree_item betaminusUs[] = {
   {
     .subs = NULL,
@@ -79,7 +133,7 @@ static nctree_item betaminusUs[] = {
 static nctree_item betaminus = {
   .subs = betaminusUs,
   .subcount = sizeof(betaminusUs) / sizeof(*betaminusUs),
-  .curry = "β-emitting U",
+  .curry = "β−-emitting U",
 };
 
 static nctree_item betaplusUs[] = {
@@ -91,16 +145,59 @@ static nctree_item betaplusUs[] = {
     .subs = NULL,
     .subcount = 0,
     .curry = "²²⁷U",
+  }, {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²²⁹U",
   },
 };
 
 static nctree_item betaplus = {
   .subs = betaplusUs,
   .subcount = sizeof(betaplusUs) / sizeof(*betaplusUs),
-  .curry = "β+-emitting U",
+  .curry = "β-emitting U",
+};
+
+static nctree_item gammaUs[] = {
+  {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²¹⁶Uᵐ",
+  }, {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²³⁴Uᵐ",
+  }, {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²³⁵Uᵐ",
+  }, {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²³⁶Uᵐ¹",
+  }, {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²³⁶Uᵐ²",
+  }, {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²³⁸Uᵐ",
+  }, {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²³⁹Uᵐ¹",
+  }, {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²³⁹Uᵐ²",
+  },
 };
 
 static nctree_item gammas = {
+  .subs = gammaUs,
+  .subcount = sizeof(gammaUs) / sizeof(*gammaUs),
+  .curry = "γ-emitting U",
 };
 
 static nctree_item sfissionUs[] = {
@@ -128,6 +225,10 @@ static nctree_item sfissionUs[] = {
     .subs = NULL,
     .subcount = 0,
     .curry = "²³⁶U",
+  }, {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²³⁸U",
   },
 };
 
@@ -137,31 +238,87 @@ static nctree_item sfissions = {
   .curry = "spontaneously fissioning U",
 };
 
+static nctree_item ecaptureUs[] = {
+  {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²²⁸U",
+  }, {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²³¹U",
+  },
+};
+
+static nctree_item ecaptures = {
+  .subs = ecaptureUs,
+  .subcount = sizeof(ecaptureUs) / sizeof(*ecaptureUs),
+  .curry = "electron capturing U",
+};
+
+static nctree_item cdecayUs[] = {
+  {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²³²U",
+  }, {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²³³U",
+  }, {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²³⁴U",
+  }, {
+    .subs = NULL,
+    .subcount = 0,
+    .curry = "²³⁵U",
+  },
+};
+
+static nctree_item cdecays = {
+  .subs = cdecayUs,
+  .subcount = sizeof(cdecayUs) / sizeof(*cdecayUs),
+  .curry = "cluster decaying U",
+};
+
 static nctree_item radUs[] = {
   {
     .subs = &alphaU,
     .subcount = 1,
     .curry = "ɑ emitters",
   }, {
+    .subs = &betaminus,
+    .subcount = 1,
+    .curry = "β− emitters",
+  }, {
+    .subs = &doubleminusU,
+    .subcount = 1,
+    .curry = "β−β− emitters",
+  }, {
     .subs = &doubleU,
     .subcount = 1,
     .curry = "ββ emitters",
   }, {
-    .subs = &betaminus,
-    .subcount = 1,
-    .curry = "β- emitters",
-  }, {
     .subs = &betaplus,
     .subcount = 1,
-    .curry = "β+ emitters",
+    .curry = "β emitters",
   }, {
     .subs = &gammas,
-    .subcount = 0,
+    .subcount = 1,
     .curry = "γ emitters",
   }, {
     .subs = &sfissions,
     .subcount = 1,
     .curry = "spontaneous fissions",
+  }, {
+    .subs = &cdecays,
+    .subcount = 1,
+    .curry = "cluster decays",
+  }, {
+    .subs = &ecaptures,
+    .subcount = 1,
+    .curry = "electron captures",
   },
 };
 
