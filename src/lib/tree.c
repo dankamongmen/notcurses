@@ -104,6 +104,7 @@ nctree_inner_create(ncplane* n, const struct nctree_options* opts){
       free(ret);
       return NULL;
     }
+    ncplane_set_base(n, " ", 0, opts->bchannels);
     ret->items.ncp = n;
     ret->items.curry = NULL;
     nctree_redraw(ret);
@@ -250,7 +251,7 @@ tree_path_length(const unsigned* path){
 // *|frontierb|. otherwise, draw up from *|frontiert|.
 static int
 draw_tree_item(nctree* n, nctree_int_item* nii, const unsigned* path,
-               int* frontiert, int* frontierb){
+               int* frontiert, int* frontierb, int distance){
 //fprintf(stderr, "drawing item ft: %d fb: %d %p\n", *frontiert, *frontierb, nii->ncp);
   if(!nii->ncp){
     const int startx = (tree_path_length(path) - 1) * n->indentcols;
@@ -283,7 +284,7 @@ draw_tree_item(nctree* n, nctree_int_item* nii, const unsigned* path,
   }else{
     // FIXME move and possibly enlarge nii->ncp
   }
-  int ret = n->cbfxn(nii->ncp, nii->curry, 0); // FIXME third param
+  int ret = n->cbfxn(nii->ncp, nii->curry, distance);
   if(ret < 0){
     return -1;
   }
@@ -309,7 +310,8 @@ nctree_inner_redraw(nctree* n, unsigned* tmppath){
   int frontiert = n->activerow;
   int frontierb = n->activerow;
   nctree_int_item* nii = n->curitem;
-  if(draw_tree_item(n, nii, tmppath, &frontiert, &frontierb)){
+  int distance = 0;
+  if(draw_tree_item(n, nii, tmppath, &frontiert, &frontierb, distance)){
     return -1;
   }
   nctree_int_item* tmpnii;
@@ -319,7 +321,8 @@ nctree_inner_redraw(nctree* n, unsigned* tmppath){
       break;
     }
     nii = tmpnii;
-    if(draw_tree_item(n, nii, tmppath, &frontiert, &frontierb)){
+    --distance;
+    if(draw_tree_item(n, nii, tmppath, &frontiert, &frontierb, distance)){
       return -1;
     }
   }
@@ -327,6 +330,7 @@ nctree_inner_redraw(nctree* n, unsigned* tmppath){
   // move items up if there is a gap at the top FIXME
   if(frontiert >= 0){
   }
+  distance = 0;
   n->activerow = ncplane_y(n->curitem->ncp);
   // draw items below the current one FIME
   while(frontierb < ncplane_dim_y(n->items.ncp)){
@@ -334,7 +338,8 @@ nctree_inner_redraw(nctree* n, unsigned* tmppath){
       break;
     }
     nii = tmpnii;
-    if(draw_tree_item(n, nii, tmppath, &frontiert, &frontierb)){
+    ++distance;
+    if(draw_tree_item(n, nii, tmppath, &frontiert, &frontierb, distance)){
       return -1;
     }
   }
