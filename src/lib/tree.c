@@ -196,7 +196,18 @@ nctree_prev_internal(nctree* n, unsigned* newpath){
 }
 
 void* nctree_prev(nctree* n){
-  n->curitem = nctree_prev_internal(n, n->currentpath);
+  int rows = 0;
+  if(n->curitem->ncp){
+    rows = ncplane_dim_y(n->curitem->ncp);
+  }
+  nctree_int_item* tmp = nctree_prev_internal(n, n->currentpath);
+  if(tmp != n->curitem){
+    n->curitem = tmp;
+    n->activerow -= rows;
+    if(n->activerow < 0){
+      n->activerow = 0;
+    }
+  }
   return n->curitem->curry;
 }
 
@@ -232,8 +243,18 @@ nctree_next_internal(nctree* n, unsigned* newpath){
 }
 
 void* nctree_next(nctree* n){
-  // FIXME update n->activerow, redraw
-  n->curitem = nctree_next_internal(n, n->currentpath);
+  int rows = 0;
+  if(n->curitem->ncp){
+    rows = ncplane_dim_y(n->curitem->ncp);
+  }
+  nctree_int_item* tmp = nctree_next_internal(n, n->currentpath);
+  if(tmp != n->curitem){
+    n->curitem = tmp;
+    n->activerow += rows;
+    if(n->activerow >= ncplane_dim_y(n->items.ncp)){
+      n->activerow = ncplane_dim_y(n->items.ncp) - 1;
+    }
+  }
   return n->curitem->curry;
 }
 
@@ -332,7 +353,9 @@ nctree_inner_redraw(nctree* n, unsigned* tmppath){
   }
   distance = 0;
   n->activerow = ncplane_y(n->curitem->ncp);
+  nii = n->curitem;
   // draw items below the current one FIME
+  memcpy(tmppath, n->currentpath, sizeof(*tmppath) * (n->maxdepth + 1));
   while(frontierb < ncplane_dim_y(n->items.ncp)){
     if((tmpnii = nctree_next_internal(n, tmppath)) == nii){
       break;

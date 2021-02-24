@@ -369,13 +369,19 @@ callback(struct ncplane* ncp, void* curry, int dizzy){
   uint64_t channels = 0;
   if(dizzy == 0){
     channels_set_bg_rgb(&channels, 0x006060);
+    ncplane_set_fg_rgb(ncp, 0xffffff);
   }else if(dizzy < 0){
-    channels_set_bg_rgb8(&channels, 0, 60 + dizzy, 0);
+    float f = -dizzy / 80.0;
+    channels_set_bg_rgb8(&channels, 0, 60 - 60 * f, 0);
+    ncplane_set_fg_rgb(ncp, 0xbbbbbb);
   }else if(dizzy > 0){
-    channels_set_bg_rgb8(&channels, 0, 60 - dizzy, 0);
+    float f = dizzy / 80.0;
+    channels_set_bg_rgb8(&channels, 0, 60 - 60 * f, 0);
+    ncplane_set_fg_rgb(ncp, 0xbbbbbb);
   }
-  ncplane_set_base(ncp, " ", 0, channels);
+  ncplane_set_base(ncp, "", 0, channels);
   ncplane_putstr(ncp, curry);
+fprintf(stderr, "DIZZY (%s) %d\n", (const char*)curry, dizzy);
   return 0;
 }
 
@@ -385,6 +391,9 @@ tree_ui(struct notcurses* nc, struct nctree* tree){
   while(notcurses_getc_blocking(nc, &ni) != (char32_t)-1){
     if(nctree_offer_input(tree, &ni)){
       if(nctree_redraw(tree)){
+        return -1;
+      }
+      if(notcurses_render(nc)){
         return -1;
       }
       continue;
