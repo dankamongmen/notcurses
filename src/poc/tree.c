@@ -381,7 +381,6 @@ callback(struct ncplane* ncp, void* curry, int dizzy){
   }
   ncplane_set_base(ncp, "", 0, channels);
   ncplane_putstr(ncp, curry);
-fprintf(stderr, "DIZZY (%s) %d\n", (const char*)curry, dizzy);
   return 0;
 }
 

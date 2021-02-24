@@ -530,18 +530,12 @@ target_include_directories(notcurses-demo
     include
     src
     "${PROJECT_BINARY_DIR}/include"
-  PUBLIC
-    "${AVCODEC_INCLUDE_DIRS}"
-    "${AVFORMAT_INCLUDE_DIRS}"
-    "${AVUTIL_INCLUDE_DIRS}"
-    "${SWSCALE_INCLUDE_DIRS}"
 )
 target_link_libraries(notcurses-demo
   PRIVATE
     notcurses
     unistring
     ${MATH_LIBRARIES}
-  PUBLIC
     Threads::Threads
 )
 
