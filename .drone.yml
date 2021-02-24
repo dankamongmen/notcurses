@@ -5,7 +5,7 @@ name: debian-unstable
 
 steps:
 - name: debian-build
-  image: dankamongmen/unstable_builder:2021-02-12b
+  image: dankamongmen/unstable_builder:2021-02-24a
   commands:
     - export LANG=en_US.UTF-8
     - mkdir build
