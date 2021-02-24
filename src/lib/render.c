@@ -415,11 +415,11 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
 // we need CELL_ALPHA_TRANSPARENT
 static inline void
 init_rvec(struct crender* rvec, int totalcells){
-  memset(rvec, 0, sizeof(*rvec) * totalcells);
+  struct crender c = {};
+  cell_set_fg_alpha(&c.c, CELL_ALPHA_TRANSPARENT);
+  cell_set_bg_alpha(&c.c, CELL_ALPHA_TRANSPARENT);
   for(int t = 0 ; t < totalcells ; ++t){
-    struct crender* c = &rvec[t];
-    cell_set_fg_alpha(&c->c, CELL_ALPHA_TRANSPARENT);
-    cell_set_bg_alpha(&c->c, CELL_ALPHA_TRANSPARENT);
+    memcpy(&rvec[t], &c, sizeof(c));
   }
 }
 
