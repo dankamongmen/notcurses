@@ -3,6 +3,8 @@ rearrangements of Notcurses.
 
 * 2.2.3 (not yet released)
   * Add `SIGILL` to the set of fatal signals we handle.
+  * Add the `nctree` widget for line-oriented hierarchical data. See
+    the new `notcurses_tree(3)` man page for complete information.
 
 * 2.2.2 (2021-02-18):
   * `notcurses_stats()` no longer qualifies its `notcurses*` argument with
