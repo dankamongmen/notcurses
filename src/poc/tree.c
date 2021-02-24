@@ -366,6 +366,15 @@ callback(struct ncplane* ncp, void* curry, int dizzy){
     }
   }
   ncplane_cursor_move_yx(ncp, 0, 0);
+  uint64_t channels = 0;
+  if(dizzy == 0){
+    channels_set_bg_rgb(&channels, 0x006060);
+  }else if(dizzy < 0){
+    channels_set_bg_rgb8(&channels, 0, 60 + dizzy, 0);
+  }else if(dizzy > 0){
+    channels_set_bg_rgb8(&channels, 0, 60 - dizzy, 0);
+  }
+  ncplane_set_base(ncp, " ", 0, channels);
   ncplane_putstr(ncp, curry);
   return 0;
 }
@@ -394,6 +403,7 @@ create_tree(struct notcurses* nc){
     .count = 1,
     .nctreecb = callback,
     .indentcols = 2,
+    .bchannels = 0,
     .flags = 0,
   };
   struct nctree* tree = nctree_create(notcurses_stdplane(nc), &topts);
