@@ -251,7 +251,6 @@ handle_opts(int argc, char** argv, notcurses_options* opts,
   char *renderfile = NULL;
   *json_output = NULL;
   int c;
-  memset(opts, 0, sizeof(*opts));
   const struct option longopts[] = {
     { .name = "help", .has_arg = 0, .flag = NULL, .val = 'h', },
     { .name = "version", .has_arg = 0, .flag = NULL, .val = 'V', },
@@ -522,7 +521,7 @@ int main(int argc, char** argv){
   const char* spec;
   FILE* json = NULL; // emit JSON summary to this file? (-J)
   bool ignore_failures; // continue after a failure? (-k)
-  notcurses_options nopts;
+  notcurses_options nopts = {};
   if((spec = handle_opts(argc, argv, &nopts, &ignore_failures, &json)) == NULL){
     if(argv[optind] != NULL){
       usage(*argv, EXIT_FAILURE);
