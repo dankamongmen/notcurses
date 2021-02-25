@@ -837,7 +837,7 @@ braille_blit(ncplane* nc, int placey, int placex, int linesize,
 
 // NCBLIT_DEFAULT is not included, as it has no defined properties. It ought
 // be replaced with some real blitter implementation by the calling widget.
-const struct blitset notcurses_blitters[] = {
+static const struct blitset notcurses_blitters[] = {
    { .geom = NCBLIT_8x1,     .width = 1, .height = 8, .egcs = L" ▁▂▃▄▅▆▇█",
      .blit = tria_blit,      .name = "eightstep",     .fill = false, },
    { .geom = NCBLIT_1x1,     .width = 1, .height = 1, .egcs = L" █",
@@ -852,8 +852,8 @@ const struct blitset notcurses_blitters[] = {
      .blit = tria_blit,      .name = "fourstep",      .fill = false, },
    { .geom = NCBLIT_BRAILLE, .width = 2, .height = 4, .egcs = L"⠀⢀⢠⢰⢸⡀⣀⣠⣰⣸⡄⣄⣤⣴⣼⡆⣆⣦⣶⣾⡇⣇⣧⣷⣿",
      .blit = braille_blit,   .name = "braille",       .fill = true,  },
-   { .geom = NCBLIT_SIXEL,   .width = 1, .height = 6, .egcs = L"",
-     .blit = NULL,           .name = "sixel",         .fill = true,  }, // FIXME
+   { .geom = NCBLIT_PIXEL,   .width = 1, .height = 6, .egcs = L"",
+     .blit = NULL, /* FIXME*/.name = "pixel",         .fill = true,  },
    { .geom = 0,              .width = 0, .height = 0, .egcs = NULL,
      .blit = NULL,           .name = NULL,            .fill = false,  },
 };
@@ -935,6 +935,44 @@ int ncblit_rgba(const void* data, int linesize, const struct ncvisual_options* v
   const bool blend = (vopts->flags & NCVISUAL_OPTION_BLEND);
   return bset->blit(nc, vopts->y, vopts->x, linesize, data, begy, begx,
                     leny, lenx, blend);
+}
+
+const struct blitset* lookup_blitset(const tinfo* tcache, ncblitter_e setid, bool may_degrade) {
+  if(setid == NCBLIT_DEFAULT){ // ought have resolved NCBLIT_DEFAULT before now
+    return NULL;
+  }
+  // without braille support, NCBLIT_BRAILLE decays to NCBLIT_3x2
+  if(!tcache->braille && setid == NCBLIT_BRAILLE){
+    if(may_degrade){
+      setid = NCBLIT_3x2;
+    }else{
+      return NULL;
+    }
+  }
+  // without sextant support, NCBLIT_3x2 decays to NCBLIT_2x2
+  if(!tcache->sextants && setid == NCBLIT_3x2){
+    if(may_degrade){
+      setid = NCBLIT_2x2;
+    }else{
+      return NULL;
+    }
+  }
+  // the only viable blitter in ASCII is NCBLIT_1x1
+  if(!tcache->utf8 && setid != NCBLIT_1x1){
+    if(may_degrade){
+      setid = NCBLIT_1x1;
+    }else{
+      return NULL;
+    }
+  }
+  const struct blitset* bset = notcurses_blitters;
+  while(bset->egcs){
+    if(bset->geom == setid){
+      return bset;
+    }
+    ++bset;
+  }
+  return NULL;
 }
 
 ncblitter_e ncvisual_media_defblitter(const notcurses* nc, ncscale_e scale){
