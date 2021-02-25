@@ -287,7 +287,7 @@ draw_tree_item(nctree* n, nctree_int_item* nii, const unsigned* path,
       ymin = 0;
       ymax = *frontiert;
     }
-//fprintf(stderr, "x: %d y: %d\n", startx, ymin);
+fprintf(stderr, "x: %d y: %d\n", startx, ymin);
     struct ncplane_options nopts = {
       .x = startx,
       .y = ymin,
@@ -303,19 +303,44 @@ draw_tree_item(nctree* n, nctree_int_item* nii, const unsigned* path,
       return -1;
     }
   }else{
-    // FIXME move and possibly enlarge nii->ncp
+    // FIXME is frontiert always the place to be?
+    // FIXME possibly enlarge nii->ncp?
+  }
+  if(ncplane_y(nii->ncp) <= *frontiert || *frontierb >= ncplane_dim_y(n->items.ncp)){
+    ncplane_move_yx(nii->ncp, *frontiert, ncplane_x(nii->ncp));
+  }else{
+    ncplane_move_yx(nii->ncp, *frontierb, ncplane_x(nii->ncp));
   }
   int ret = n->cbfxn(nii->ncp, nii->curry, distance);
   if(ret < 0){
     return -1;
   }
   // FIXME shrink plane if it was enlarged
-//fprintf(stderr, "ft: %d fb: %d %p ncplane_y: %d\n", *frontiert, *frontierb, nii->ncp, ncplane_y(nii->ncp));
+fprintf(stderr, "ft: %d fb: %d %p ncplane_y: %d\n", *frontiert, *frontierb, nii->ncp, ncplane_y(nii->ncp));
   if(ncplane_y(nii->ncp) <= *frontiert){
     *frontiert = ncplane_y(nii->ncp) - 1;
   }
   if(ncplane_y(nii->ncp) + ncplane_dim_y(nii->ncp) > *frontierb){
     *frontierb = ncplane_y(nii->ncp) + ncplane_dim_y(nii->ncp);
+  }
+  return 0;
+}
+
+// iterate backwards from tmppath, destroying any ncplanes we find. they've
+// been pushed off-screen. tmppath is changed as we iterate. nii will not be
+// destroyed, only items above nii.
+static int
+destroy_above(nctree* n, nctree_int_item* nii, unsigned* path, int distance){
+  nctree_int_item* tmpnii;
+  while((tmpnii = nctree_prev_internal(n, path)) != nii){
+    nii = tmpnii;
+    --distance;
+    if(nii->ncp){
+fprintf(stderr, "PREVDESTROY: %s\n", (const char*)nii->curry);
+      ncplane_destroy(nii->ncp);
+      nii->ncp = NULL;
+      n->cbfxn(nii->ncp, nii->curry, distance);
+    }
   }
   return 0;
 }
@@ -332,11 +357,14 @@ nctree_inner_redraw(nctree* n, unsigned* tmppath){
   int frontierb = n->activerow;
   nctree_int_item* nii = n->curitem;
   int distance = 0;
+fprintf(stderr, "FOCUSED: %s\n", (const char*)nii->curry);
+  // draw the focused item
   if(draw_tree_item(n, nii, tmppath, &frontiert, &frontierb, distance)){
     return -1;
   }
   nctree_int_item* tmpnii;
-  // draw items above the current one FIXME
+  // draw items above the current one
+fprintf(stderr, "FRONTIERT: %d\n", frontiert);
   while(frontiert >= 0){
     if((tmpnii = nctree_prev_internal(n, tmppath)) == nii){
       break;
@@ -346,8 +374,9 @@ nctree_inner_redraw(nctree* n, unsigned* tmppath){
     if(draw_tree_item(n, nii, tmppath, &frontiert, &frontierb, distance)){
       return -1;
     }
+fprintf(stderr, "PREV: %s\n", (const char*)nii->curry);
   }
-  // FIXME destroy any drawn ones before us
+  destroy_above(n, nii, tmppath, distance);
   // move items up if there is a gap at the top FIXME
   if(frontiert >= 0){
   }
