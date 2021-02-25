@@ -146,9 +146,11 @@ calc_highgradient(nccell* c, uint32_t ul, uint32_t ur, uint32_t ll,
 int ncplane_highgradient(ncplane* n, uint32_t ul, uint32_t ur,
                          uint32_t ll, uint32_t lr, int ystop, int xstop){
   if(!notcurses_canutf8(ncplane_notcurses(n))){
+    logerror(ncplane_notcurses(n), "Highdef gradients require UTF8\n");
     return -1;
   }
   if(check_gradient_channel_args(ul, ur, ll, lr)){
+    logerror(ncplane_notcurses(n), "Invalid highdef gradient channels\n");
     return -1;
   }
   int yoff, xoff, ymax, xmax;
