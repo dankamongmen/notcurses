@@ -282,7 +282,7 @@ typedef struct tinfo {
   uint32_t bg_collides_default;
   bool sextants;  // do we have (good, vetted) Unicode 13 sextant support?
   bool braille;   // do we have Braille support? (linux console does not)
-  bool libsixel;  // do we have Sixel support?
+  bool sixel;     // do we have Sixel support?
 } tinfo;
 
 typedef struct ncinputlayer {
@@ -373,7 +373,15 @@ void sigwinch_handler(int signo);
 
 void init_lang(notcurses* nc); // nc may be NULL, only used for logging
 int terminfostr(char** gseq, const char* name);
+
+// load |ti| from the terminfo database, which must already have been
+// initialized. set |utf8| if we've verified UTF8 output encoding.
 int interrogate_terminfo(tinfo* ti, const char* termname, unsigned utf8);
+
+// perform queries that require writing to the terminal, and reading a
+// response, rather than simply reading the terminfo database. can result
+// in a lengthy delay or even block if the terminal doesn't respond.
+int query_term(tinfo* ti, int fd);
 
 // if there were missing elements we wanted from terminfo, bitch about them here
 void warn_terminfo(const notcurses* nc, const tinfo* ti);
@@ -507,26 +515,30 @@ rgb_greyscale(int r, int g, int b){
   return fg * 255;
 }
 
+// write(2) with retry on partial write or interrupted write
+static inline ssize_t
+writen(int fd, const void* buf, size_t len){
+  ssize_t r;
+  size_t w = 0;
+  while(w < len){
+    if((r = write(fd, (const char*)buf + w, len - w)) < 0){
+      if(errno == EAGAIN || errno == EBUSY || errno == EINTR){
+        continue;
+      }
+      return -1;
+    }
+    w += r;
+  }
+  return w;
+}
+
 static inline int
 tty_emit(const char* seq, int fd){
   if(!seq){
     return -1;
   }
   size_t slen = strlen(seq);
-  size_t written = 0;
-  do{
-    ssize_t ret = write(fd, seq, slen);
-    if(ret > 0){
-      written += ret;
-    }
-    if(ret < 0){
-      if(errno != EAGAIN){
-        break;
-      }
-    }
-  }while(written < slen);
-  if(written < slen){
-//fprintf(stderr, "Error emitting %zub escape (%s)\n", strlen(seq), strerror(errno));
+  if(writen(fd, seq, slen) < 0){
     return -1;
   }
   return 0;
