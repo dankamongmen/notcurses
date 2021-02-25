@@ -777,12 +777,14 @@ init_banner(const notcurses* nc){
     term_fg_palindex(nc, stdout, nc->tcache.colors <= 256 ? 50 % nc->tcache.colors : 0x20e080);
     printf("\n notcurses %s by nick black et al", notcurses_version());
     term_fg_palindex(nc, stdout, nc->tcache.colors <= 256 ? 12 % nc->tcache.colors : 0x2080e0);
-    printf("\n  %d rows %d cols (%sB) %zuB cells %d colors%s\n"
+    printf("\n  %d rows %d cols (%sB) %zuB cells %d colors%s%s\n"
            "  compiled with gcc-%s, %s-endian\n"
            "  terminfo from %s\n",
            nc->stdplane->leny, nc->stdplane->lenx,
            bprefix(nc->stats.fbbytes, 1, prefixbuf, 0), sizeof(nccell),
-           nc->tcache.colors, nc->tcache.RGBflag ? "+RGB" : "",
+           nc->tcache.colors,
+           nc->tcache.RGBflag ? "+RGB" : "",
+           nc->tcache.sixel ? "+Sixel" : "",
            __VERSION__,
 #ifdef __BYTE_ORDER__
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
