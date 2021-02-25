@@ -383,7 +383,7 @@ callback(struct ncplane* ncp, void* curry, int dizzy){
     channels_set_bg_rgb8(&channels, 0, 0x60 - 0x60 * f, 0);
     ncplane_set_fg_rgb(ncp, 0xbbbbbb);
   }
-  ncplane_set_base(ncp, "", 0, channels);
+  ncplane_set_base(ncp, " ", 0, channels);
   ncplane_putstr(ncp, curry);
   return 0;
 }
@@ -408,8 +408,30 @@ tree_ui(struct notcurses* nc, struct nctree* tree){
   return -1;
 }
 
+static int
+ncdup_paint(struct ncplane* n){
+  uint32_t tl = CHANNEL_RGB_INITIALIZER(0, 0, 0);
+  uint32_t tr = CHANNEL_RGB_INITIALIZER(0x88, 0x88, 0x88);
+  uint32_t bl = CHANNEL_RGB_INITIALIZER(0x88, 0x88, 0x88);
+  uint32_t br = CHANNEL_RGB_INITIALIZER(0xff, 0xff, 0xff);
+  return ncplane_highgradient_sized(n, tl, tr, bl, br,
+                                    ncplane_dim_y(n), ncplane_dim_x(n));
+}
+
+static int
+ncdup_resize(struct ncplane* n){
+  ncplane_resize_maximize(n);
+  return ncdup_paint(n);
+}
+
 static struct nctree*
 create_tree(struct notcurses* nc){
+  struct ncplane* ncdup = ncplane_dup(notcurses_stdplane(nc), NULL);
+  if(ncdup == NULL){
+    return NULL;
+  }
+  ncplane_set_resizecb(ncdup, ncdup_resize);
+  ncdup_paint(ncdup);
   struct nctree_options topts = {
     .items = &rads,
     .count = 1,
@@ -417,9 +439,11 @@ create_tree(struct notcurses* nc){
     .indentcols = 2,
     .flags = 0,
   };
-  struct nctree* tree = nctree_create(notcurses_stdplane(nc), &topts);
+  struct nctree* tree = nctree_create(ncdup, &topts);
   if(tree){
     notcurses_render(nc);
+  }else{
+    ncplane_destroy(ncdup);
   }
   return tree;
 }
