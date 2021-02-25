@@ -360,6 +360,9 @@ static nctree_item rads = {
 
 static int
 callback(struct ncplane* ncp, void* curry, int dizzy){
+  if(ncp == NULL){
+    return 0;
+  }
   if(ncplane_dim_y(ncp) > 1){
     if(ncplane_resize_simple(ncp, 1, ncplane_dim_x(ncp))){
       return -1;
@@ -368,15 +371,15 @@ callback(struct ncplane* ncp, void* curry, int dizzy){
   ncplane_cursor_move_yx(ncp, 0, 0);
   uint64_t channels = 0;
   if(dizzy == 0){
-    channels_set_bg_rgb(&channels, 0x006060);
+    channels_set_bg_rgb(&channels, 0x006080);
     ncplane_set_fg_rgb(ncp, 0xffffff);
   }else if(dizzy < 0){
     float f = -dizzy / 80.0;
-    channels_set_bg_rgb8(&channels, 0, 60 - 60 * f, 0);
+    channels_set_bg_rgb8(&channels, 0, 0x60 - 0x60 * f, 0);
     ncplane_set_fg_rgb(ncp, 0xbbbbbb);
   }else if(dizzy > 0){
-    float f = dizzy / 80.0;
-    channels_set_bg_rgb8(&channels, 0, 60 - 60 * f, 0);
+    float f = dizzy / 60.0;
+    channels_set_bg_rgb8(&channels, 0, 0x60 - 0x60 * f, 0);
     ncplane_set_fg_rgb(ncp, 0xbbbbbb);
   }
   ncplane_set_base(ncp, "", 0, channels);
