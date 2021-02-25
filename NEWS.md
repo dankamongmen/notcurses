@@ -5,6 +5,9 @@ rearrangements of Notcurses.
   * Add `SIGILL` to the set of fatal signals we handle.
   * Add the `nctree` widget for line-oriented hierarchical data. See
     the new `notcurses_tree(3)` man page for complete information.
+  * Implemented `NCBLIT_PIXEL` for terminals reporting Sixel support.
+    Attempt Sixel detection iff `NCOPTION_VERIFY_SIXEL` is provided to
+    `notcurses_init()`. Sixel detection can delay or even block initialization.
 
 * 2.2.2 (2021-02-18):
   * `notcurses_stats()` no longer qualifies its `notcurses*` argument with
