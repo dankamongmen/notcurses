@@ -196,6 +196,8 @@ query_sixel(tinfo* ti, int fd){
     return -1;
   }
   char in;
+  // perhaps the most lackadaisical response is that of st, which returns a
+  // bare ESC[?6c (note no semicolon).
   enum {
     WANT_CSI,
     WANT_QMARK,
@@ -218,6 +220,8 @@ query_sixel(tinfo* ti, int fd){
       case WANT_SEMI:
         if(in == ';'){
           state = WANT_C;
+        }else if(in == 'c'){
+          state = DONE;
         }
         break;
       case WANT_C:
