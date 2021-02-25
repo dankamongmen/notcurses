@@ -67,10 +67,10 @@ fn notcurses_canopen_videos() {
 
 #[test]
 #[serial]
-fn notcurses_cansixel() {
+fn notcurses_canpixel() {
     unsafe {
         let nc = notcurses_init_test();
-        let res = crate::notcurses_cansixel(nc);
+        let res = crate::notcurses_canpixel(nc);
         notcurses_stop(nc);
         print!("[{}] ", res);
     }

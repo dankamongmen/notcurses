@@ -30,7 +30,7 @@
 // fmt notcurses_canfade
 // fmt notcurses_canopen_images
 // fmt notcurses_canopen_videos
-// fmt notcurses_cansixel
+// fmt notcurses_canpixel
 // fmt notcurses_cansextant
 // fmt notcurses_cantruecolor
 // fmt notcurses_canutf8

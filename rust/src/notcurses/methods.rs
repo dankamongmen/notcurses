@@ -200,9 +200,9 @@ impl Notcurses {
     ///
     /// See [NCBLIT_PIXEL][crate::NCBLIT_PIXEL].
     ///
-    /// *C style function: [notcurses_cansixel()][crate::notcurses_cansixel].*
-    pub fn cansixel(&self) -> bool {
-        unsafe { crate::notcurses_cansixel(self) }
+    /// *C style function: [notcurses_canpixel()][crate::notcurses_canpixel].*
+    pub fn canpixel(&self) -> bool {
+        unsafe { crate::notcurses_canpixel(self) }
     }
 
     /// Returns true if we can reliably use Unicode 13 sextants.
