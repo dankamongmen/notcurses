@@ -161,7 +161,7 @@ int ncdirect_cursor_move_yx(ncdirect* n, int y, int x){
 
 static int
 cursor_yx_get(int ttyfd, int* y, int* x){
-  if(write(ttyfd, "\033[6n", 4) != 4){
+  if(writen(ttyfd, "\033[6n", 4) != 4){
     return -1;
   }
   bool done = false;
