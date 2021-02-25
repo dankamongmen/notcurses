@@ -102,7 +102,7 @@ pub use ffi::{
 // ncblitter_e_NCBLIT_8x1,
 // ncblitter_e_NCBLIT_BRAILLE,
 // ncblitter_e_NCBLIT_DEFAULT,
-// ncblitter_e_NCBLIT_SIXEL,
+// ncblitter_e_NCBLIT_PIXEL,
 
 // ncbox -----------------------------------------------------------------------
 

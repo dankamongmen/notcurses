@@ -31,7 +31,7 @@ int main(int argc, char** argv){
     // NCBLIT_4x1,     // four vert/horz levels
     NCBLIT_BRAILLE, // 4 rows, 2 cols (braille)
     // NCBLIT_8x1,     // eight vert/horz levels
-    // NCBLIT_SIXEL,   // not yet implemented
+    NCBLIT_PIXEL,   // pixel graphics
     -1,
   };
   for(const int* blitter = blitters ; *blitter >= 0 ; ++blitter){
