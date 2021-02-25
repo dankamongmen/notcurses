@@ -844,6 +844,19 @@ static inline int
 sixel_blit(ncplane* nc, int placey, int placex, int linesize,
            const void* data, int begy, int begx,
            int leny, int lenx, bool blendcolors){
+  int dimy, dimx, x, y;
+  int total = 0; // number of cells written
+  ncplane_dim_yx(nc, &dimy, &dimx);
+  int visy = begy;
+  for(y = placey ; visy < (begy + leny) && y < dimy ; ++y, visy += 6){
+    if(ncplane_cursor_move_yx(nc, y, placex)){
+      return -1;
+    }
+    int visx = begx;
+    for(x = placex ; visx < (begx + lenx) && x < dimx ; ++x, visx += 2){
+    }
+  }
+  return total;
 }
 
 // NCBLIT_DEFAULT is not included, as it has no defined properties. It ought
@@ -863,7 +876,7 @@ static const struct blitset notcurses_blitters[] = {
      .blit = tria_blit,      .name = "fourstep",      .fill = false, },
    { .geom = NCBLIT_BRAILLE, .width = 2, .height = 4, .egcs = L"⠀⢀⢠⢰⢸⡀⣀⣠⣰⣸⡄⣄⣤⣴⣼⡆⣆⣦⣶⣾⡇⣇⣧⣷⣿",
      .blit = braille_blit,   .name = "braille",       .fill = true,  },
-   { .geom = NCBLIT_PIXEL,   .width = 1, .height = 6, .egcs = L"",
+   { .geom = NCBLIT_PIXEL,   .width = 2, .height = 6, .egcs = L"",
      .blit = sixel_blit,     .name = "pixel",         .fill = true,  },
    { .geom = 0,              .width = 0, .height = 0, .egcs = NULL,
      .blit = NULL,           .name = NULL,            .fill = false,  },
