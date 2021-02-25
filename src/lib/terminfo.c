@@ -189,3 +189,59 @@ int interrogate_terminfo(tinfo* ti, const char* termname, unsigned utf8){
   }
   return 0;
 }
+
+static int
+query_sixel(tinfo* ti, int fd){
+  if(writen(fd, "\033[c", 3) != 3){
+    return -1;
+  }
+  char in;
+  enum {
+    WANT_CSI,
+    WANT_QMARK,
+    WANT_SEMI,
+    WANT_C,
+    DONE
+  } state = WANT_CSI;
+  while(read(fd, &in, 1) == 1){
+    switch(state){
+      case WANT_CSI:
+        if(in == NCKEY_ESC){
+          state = WANT_QMARK;
+        }
+        break;
+      case WANT_QMARK:
+        if(in == '?'){
+          state = WANT_SEMI;
+        }
+        break;
+      case WANT_SEMI:
+        if(in == ';'){
+          state = WANT_C;
+        }
+        break;
+      case WANT_C:
+        if(in == 'c'){
+          state = DONE;
+        }else if(in == '4'){
+          ti->sixel = true;
+        }
+        break;
+      case DONE:
+      default:
+        break;
+    }
+    if(state == DONE){
+      break;
+    }
+  }
+  return 0;
+}
+
+// fd must be a real terminal, and must not be in nonblocking mode
+int query_term(tinfo* ti, int fd){
+  if(query_sixel(ti, fd)){
+    return -1;
+  }
+  return 0;
+}

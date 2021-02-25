@@ -303,6 +303,7 @@ auto main(int argc, char** argv) -> int {
   float timescale, displaytime;
   ncscale_e scalemode;
   notcurses_options ncopts{};
+  ncopts.flags = NCOPTION_VERIFY_SIXEL;
   ncblitter_e blitter = NCBLIT_DEFAULT;
   bool quiet = false;
   bool loop = false;

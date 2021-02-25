@@ -1018,9 +1018,6 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   if(ncinputlayer_init(&ret->input, stdin)){
     goto err;
   }
-  if(make_nonblocking(ret->input.ttyinfd)){
-    goto err;
-  }
   // Neither of these is supported on e.g. the "linux" virtual console.
   if(!(opts->flags & NCOPTION_NO_ALTERNATE_SCREEN)){
     terminfostr(&ret->tcache.smcup, "smcup");
@@ -1034,6 +1031,12 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     goto err;
   }
   if(ret->ttyfd >= 0){
+    if(opts->flags & NCOPTION_VERIFY_SIXEL){
+      if(query_term(&ret->tcache, ret->ttyfd)){
+        free_plane(ret->stdplane);
+        goto err;
+      }
+    }
     if(ret->tcache.smkx && tty_emit(ret->tcache.smkx, ret->ttyfd)){
       free_plane(ret->stdplane);
       goto err;
@@ -1043,6 +1046,9 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
       goto err;
     }
     reset_term_attributes(ret);
+  }
+  if(make_nonblocking(ret->input.ttyinfd)){
+    goto err;
   }
   if((ret->rstate.mstreamfp = open_memstream(&ret->rstate.mstream, &ret->rstate.mstrsize)) == NULL){
     free_plane(ret->stdplane);
@@ -2065,7 +2071,7 @@ bool notcurses_canchangecolor(const notcurses* nc){
 }
 
 bool notcurses_cansixel(const notcurses* nc){
-  return nc->tcache.libsixel;
+  return nc->tcache.sixel;
 }
 
 palette256* palette256_new(notcurses* nc){
