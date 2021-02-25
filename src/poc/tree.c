@@ -363,6 +363,7 @@ callback(struct ncplane* ncp, void* curry, int dizzy){
   if(ncp == NULL){
     return 0;
   }
+  const float totylen = ncplane_dim_y(ncplane_parent_const(ncp));
   if(ncplane_dim_y(ncp) > 1){
     if(ncplane_resize_simple(ncp, 1, ncplane_dim_x(ncp))){
       return -1;
@@ -374,11 +375,11 @@ callback(struct ncplane* ncp, void* curry, int dizzy){
     channels_set_bg_rgb(&channels, 0x006080);
     ncplane_set_fg_rgb(ncp, 0xffffff);
   }else if(dizzy < 0){
-    float f = -dizzy / 80.0;
+    float f = -dizzy / totylen;
     channels_set_bg_rgb8(&channels, 0, 0x60 - 0x60 * f, 0);
     ncplane_set_fg_rgb(ncp, 0xbbbbbb);
   }else if(dizzy > 0){
-    float f = dizzy / 60.0;
+    float f = dizzy / totylen;
     channels_set_bg_rgb8(&channels, 0, 0x60 - 0x60 * f, 0);
     ncplane_set_fg_rgb(ncp, 0xbbbbbb);
   }
