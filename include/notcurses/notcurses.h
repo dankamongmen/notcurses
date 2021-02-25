@@ -67,7 +67,7 @@ typedef enum {
   NCBLIT_4x1,     // four vertical levels     █▆▄▂
   NCBLIT_BRAILLE, // 4 rows, 2 cols (braille) ⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿
   NCBLIT_8x1,     // eight vertical levels    █▇▆▅▄▃▂▁
-  NCBLIT_SIXEL,   // not yet implemented
+  NCBLIT_PIXEL,   // pixel graphics
 } ncblitter_e;
 
 // Alignment within a plane or terminal. Left/right-justified, or centered.
@@ -1234,8 +1234,8 @@ API bool notcurses_cansextant(const struct notcurses* nc);
 // Can we reliably use Unicode Braille?
 API bool notcurses_canbraille(const struct notcurses* nc);
 
-// Can we blit to Sixel?
-API bool notcurses_cansixel(const struct notcurses* nc);
+// Can we blit to pixel graphics?
+API bool notcurses_canpixel(const struct notcurses* nc);
 
 typedef struct ncstats {
   // purely increasing stats
@@ -3431,8 +3431,6 @@ struct blitset {
   const char* name;
   bool fill;
 };
-
-API extern const struct blitset notcurses_blitters[];
 
 // replaced by ncvisual_media_defblitter(). this original version never returns
 // NCBLIT_3x2.

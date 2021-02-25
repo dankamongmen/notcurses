@@ -27,7 +27,7 @@ typedef enum {
   NCBLIT_4x1,     // four vertical levels
   NCBLIT_BRAILLE, // 4 rows, 2 cols (braille)
   NCBLIT_8x1,     // eight vertical levels
-  NCBLIT_SIXEL,   // not yet implemented
+  NCBLIT_PIXEL,   // pixel graphics
 } ncblitter_e;
 
 #define NCVISUAL_OPTION_NODEGRADE 0x0001
@@ -45,12 +45,6 @@ struct ncvisual_options {
 
 typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 ```
-
-**bool notcurses_canopen_images(const struct notcurses* ***nc***);**
-
-**bool notcurses_canopen_videos(const struct notcurses* ***nc***);**
-
-**bool notcurses_cansixel(const struct notcurses* ***nc***);**
 
 **struct ncvisual* ncvisual_from_file(const char* ***file***);**
 
@@ -162,12 +156,17 @@ The different **ncblitter_e** values select from among available glyph sets:
 * **NCBLIT_4x1**: Adds ¼ and ¾ blocks (▂▆) to **NCBLIT_2x1**.
 * **NCBLIT_BRAILLE**: 4 rows and 2 columns of braille (⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿).
 * **NCBLIT_8x1**: Adds ⅛, ⅜, ⅝, and ⅞ blocks (▇▅▃▁) to **NCBLIT_4x1**.
-* **NCBLIT_SIXEL**: Not yet implemented.
+* **NCBLIT_PIXEL**: Adds pixel graphics.
 
 **NCBLIT_4x1** and **NCBLIT_8x1** are intended for use with plots, and are
 not really applicable for general visuals. **NCBLIT_BRAILLE** doesn't tend
 to work out very well for images, but (depending on the font) can be very
 good for plots.
+
+A string can be transformed to a blitter with **notcurses_lex_blitter**,
+recognizing **ascii**, **halfblock**, **quadblitter**, **sexblitter**,
+**fourstep**, **braille**, **eightstep**, and **pixel**. Conversion in the
+opposite direction is performed with **notcurses_str_blitter**.
 
 In the absence of scaling, for a given set of pixels, more rows and columns in
 the blitter will result in a smaller output image. An image rendered with
@@ -178,6 +177,11 @@ as tall and one-half as wide as the original **NCBLIT_1x1** render (again, this
 depends on **NCSCALE_NONE**). If the output size is held constant (using for
 instance **NCSCALE_SCALE_HIRES** and a large image), more rows and columns will
 result in more effective resolution.
+
+A string can be transformed to a scaling mode with **notcurses_lex_scalemode**,
+recognizing **stretch**, **scalehi**, **hires**, **scale**, and **none**.
+Conversion in the opposite direction is performed with
+**notcurses_str_scalemode**.
 
 Assuming a cell is twice as tall as it is wide, **NCBLIT_1x1** (and indeed
 any NxN blitter) will stretch an image by a factor of 2 in the vertical
@@ -200,10 +204,6 @@ blitted, and one lies atop the other. See **notcurses_render(3)** for more
 information.
 
 # RETURN VALUES
-
-**notcurses_canopen_images** and **notcurses_canopen_videos** returns true if
-images and videos, respecitvely, can be decoded, or false if Notcurses was
-built with insufficient multimedia support.
 
 **ncvisual_from_file** returns an **ncvisual** object on success, or **NULL**
 on failure. Success indicates that the specified **file** was opened, and
@@ -243,9 +243,6 @@ linked library. OpenImageIO does not support subtitles.
 
 **ncvisual_rotate** currently supports only **M_PI**/2 and -**M_PI**/2
 radians for **rads**, but this will change soon.
-
-**NCBLIT_SIXEL** is not yet implemented, and is only infrequently supported
-among terminals.
 
 Bad font support can ruin **NCBLIT_2x2**, **NCBLIT_3x2**, **NCBLIT_4x1**,
 **NCBLIT_BRAILLE**, and **NCBLIT_8x1**. Braille glyphs ought ideally draw only
