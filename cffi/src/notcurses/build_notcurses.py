@@ -94,7 +94,7 @@ bool notcurses_canchangecolor(const struct notcurses* nc);
 bool notcurses_canopen_images(const struct notcurses* nc);
 bool notcurses_canopen_videos(const struct notcurses* nc);
 bool notcurses_canutf8(const struct notcurses* nc);
-bool notcurses_cansixel(const struct notcurses* nc);
+bool notcurses_canpixel(const struct notcurses* nc);
 int notcurses_mouse_enable(struct notcurses* n);
 int notcurses_mouse_disable(struct notcurses* n);
 int ncplane_destroy(struct ncplane* ncp);

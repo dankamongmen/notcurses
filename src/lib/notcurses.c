@@ -2072,7 +2072,7 @@ bool notcurses_canchangecolor(const notcurses* nc){
   return true;
 }
 
-bool notcurses_cansixel(const notcurses* nc){
+bool notcurses_canpixel(const notcurses* nc){
   return nc->tcache.sixel;
 }
 
