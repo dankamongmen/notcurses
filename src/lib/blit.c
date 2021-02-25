@@ -835,6 +835,17 @@ braille_blit(ncplane* nc, int placey, int placex, int linesize,
   return total;
 }
 
+// Sixel blitter. Sixels are stacks 6 pixels high, and 1 pixel wide. RGB colors
+// are programmed as a set of registers, which are then referenced by the
+// stacks. There is also a RLE component, handled in rasterization. These can't
+// be represented as EGCs in the traditional manner FIXME maybe write them to
+// EGCpool and use a special code (2, presumably) to indicate no coloring?
+static inline int
+sixel_blit(ncplane* nc, int placey, int placex, int linesize,
+           const void* data, int begy, int begx,
+           int leny, int lenx, bool blendcolors){
+}
+
 // NCBLIT_DEFAULT is not included, as it has no defined properties. It ought
 // be replaced with some real blitter implementation by the calling widget.
 static const struct blitset notcurses_blitters[] = {
@@ -853,7 +864,7 @@ static const struct blitset notcurses_blitters[] = {
    { .geom = NCBLIT_BRAILLE, .width = 2, .height = 4, .egcs = L"⠀⢀⢠⢰⢸⡀⣀⣠⣰⣸⡄⣄⣤⣴⣼⡆⣆⣦⣶⣾⡇⣇⣧⣷⣿",
      .blit = braille_blit,   .name = "braille",       .fill = true,  },
    { .geom = NCBLIT_PIXEL,   .width = 1, .height = 6, .egcs = L"",
-     .blit = NULL, /* FIXME*/.name = "pixel",         .fill = true,  },
+     .blit = sixel_blit,     .name = "pixel",         .fill = true,  },
    { .geom = 0,              .width = 0, .height = 0, .egcs = NULL,
      .blit = NULL,           .name = NULL,            .fill = false,  },
 };
