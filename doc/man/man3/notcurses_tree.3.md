@@ -23,7 +23,6 @@ typedef struct nctree_item {
 typedef struct nctree_options {
   const nctree_item* items; // top-level nctree_item array
   unsigned count;           // size of |items|
-  uint64_t bchannels;       // base channels
   int (*nctreecb)(struct ncplane*, void*, int); // item callback
   int indentcols;           // columns to indent per hierarchy
   uint64_t flags;           // bitfield of NCTREE_OPTION_*

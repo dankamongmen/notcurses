@@ -21,7 +21,6 @@ TEST_CASE("Tree") {
     struct nctree_options opts = {
       .items = nullptr,
       .count = 2,
-      .bchannels = 0,
       .nctreecb = treecb,
       .indentcols = 0,
       .flags = 0,
@@ -35,7 +34,6 @@ TEST_CASE("Tree") {
     struct nctree_options opts = {
       .items = {},
       .count = 0,
-      .bchannels = 0,
       .nctreecb = treecb,
       .indentcols = 1,
       .flags = 0,
@@ -73,7 +71,6 @@ TEST_CASE("Tree") {
     struct nctree_options opts = {
       .items = items,
       .count = sizeof(items) / sizeof(*items),
-      .bchannels = 0,
       .nctreecb = nullptr,
       .indentcols = 1,
       .flags = 0,
@@ -87,7 +84,6 @@ TEST_CASE("Tree") {
     struct nctree_options opts = {
       .items = items,
       .count = sizeof(items) / sizeof(*items),
-      .bchannels = 0,
       .nctreecb = treecb,
       .indentcols = -1,
       .flags = 0,
@@ -100,7 +96,6 @@ TEST_CASE("Tree") {
     struct nctree_options opts = {
       .items = items,
       .count = sizeof(items) / sizeof(*items),
-      .bchannels = 0,
       .nctreecb = treecb,
       .indentcols = 1,
       .flags = 0,
@@ -123,7 +118,6 @@ TEST_CASE("Tree") {
     struct nctree_options opts = {
       .items = items,
       .count = sizeof(items) / sizeof(*items),
-      .bchannels = 0,
       .nctreecb = treecb,
       .indentcols = 2,
       .flags = 0,
@@ -533,7 +527,6 @@ SUBCASE("TraverseLongList") {
   struct nctree_options topts = {
     .items = &rads,
     .count = 1,
-    .bchannels = 0,
     .nctreecb = treecb,
     .indentcols = 2,
     .flags = 0,

@@ -415,7 +415,6 @@ create_tree(struct notcurses* nc){
     .count = 1,
     .nctreecb = callback,
     .indentcols = 2,
-    .bchannels = 0,
     .flags = 0,
   };
   struct nctree* tree = nctree_create(notcurses_stdplane(nc), &topts);

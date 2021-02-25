@@ -90,7 +90,6 @@ static nctree*
 nctree_inner_create(ncplane* n, const struct nctree_options* opts){
   nctree* ret = malloc(sizeof(*ret));
   if(ret){
-    ret->bchannels = opts->bchannels;
     ret->cbfxn = opts->nctreecb;
     ret->indentcols = opts->indentcols;
     ret->maxdepth = 0;
@@ -104,7 +103,6 @@ nctree_inner_create(ncplane* n, const struct nctree_options* opts){
       free(ret);
       return NULL;
     }
-    ncplane_set_base(n, " ", 0, opts->bchannels);
     ret->items.ncp = n;
     ret->items.curry = NULL;
     nctree_redraw(ret);
