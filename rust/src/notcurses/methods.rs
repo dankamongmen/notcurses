@@ -196,9 +196,9 @@ impl Notcurses {
         unsafe { crate::notcurses_canopen_videos(self) }
     }
 
-    /// Returns true if sixel blitting is supported.
+    /// Returns true if pixel graphics are supported.
     ///
-    /// See [NCBLIT_SIXEL][crate::NCBLIT_SIXEL].
+    /// See [NCBLIT_PIXEL][crate::NCBLIT_PIXEL].
     ///
     /// *C style function: [notcurses_cansixel()][crate::notcurses_cansixel].*
     pub fn cansixel(&self) -> bool {

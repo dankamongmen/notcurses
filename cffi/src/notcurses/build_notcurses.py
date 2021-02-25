@@ -126,7 +126,7 @@ typedef enum {
   NCBLIT_4x1,
   NCBLIT_BRAILLE,
   NCBLIT_8x1,
-  NCBLIT_SIXEL,
+  NCBLIT_PIXEL,
 } ncblitter_e;
 const char* notcurses_str_blitter(ncblitter_e blitter);
 int notcurses_lex_blitter(const char* op, ncblitter_e* blitter);

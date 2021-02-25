@@ -267,7 +267,7 @@ pub type NcFdPlaneOptions = crate::bindings::ffi::ncfdplane_options;
 /// - [`NCBLIT_8x1`]
 /// - [`NCBLIT_BRAILLE`]
 /// - [`NCBLIT_DEFAULT`]
-/// - [`NCBLIT_SIXEL`]
+/// - [`NCBLIT_PIXEL`]
 ///
 pub type NcBlitter = crate::bindings::ffi::ncblitter_e;
 
@@ -304,4 +304,4 @@ pub const NCBLIT_DEFAULT: NcBlitter = crate::bindings::ffi::ncblitter_e_NCBLIT_D
 /// [`NcBlitter`] mode (not yet implemented)
 ///
 /// See [Sixel in Wikipedia](https://en.wikipedia.org/wiki/Sixel).
-pub const NCBLIT_SIXEL: NcBlitter = crate::bindings::ffi::ncblitter_e_NCBLIT_SIXEL;
+pub const NCBLIT_PIXEL: NcBlitter = crate::bindings::ffi::ncblitter_e_NCBLIT_PIXEL;
