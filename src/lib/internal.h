@@ -675,11 +675,7 @@ rgba_blitter_low(const tinfo* tcache, ncscale_e scale, bool maydegrade,
   if(blitrec == NCBLIT_DEFAULT){
     blitrec = rgba_blitter_default(tcache, scale);
   }
-  const struct blitset* bset = lookup_blitset(tcache, blitrec, maydegrade);
-  if(bset && !bset->blit){ // FIXME remove this once all blitters are enabled
-    bset = NULL;
-  }
-  return bset;
+  return lookup_blitset(tcache, blitrec, maydegrade);
 }
 
 // RGBA visuals all use NCBLIT_2x1 by default (or NCBLIT_1x1 if not in
