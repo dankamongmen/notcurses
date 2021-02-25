@@ -130,14 +130,14 @@ Seven binaries are installed as part of Notcurses:
 * `notcurses-input`: decode and print keypresses
 * `notcurses-tester`: unit testing
 
-To run `notcurses-demo` from a checkout, provide the `tests/` directory via
+To run `notcurses-demo` from a checkout, provide the `data` directory via
 the `-p` argument. Demos requiring data files will otherwise abort. The base
 delay used in `notcurses-demo` can be changed with `-d`, accepting a
 floating-point multiplier. Values less than 1 will speed up the demo, while
 values greater than 1 will slow it down.
 
-`notcurses-tester` expects `../tests/` to exist, and be populated with the
-necessary data files. It can be run by itself, or via `make test`.
+`notcurses-tester` likewise requires that `data`, populated with the necessary
+data files, be specified with `-p`. It can be run by itself, or via `make test`.
 
 ## Documentation
 
