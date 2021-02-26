@@ -579,22 +579,58 @@ ncfputc(char c, FILE* out){
 #endif
 }
 
-// write the nccell's UTF-8 extended grapheme cluster to the provided FILE*.
 static int
-term_putc(FILE* out, const egcpool* e, const nccell* c){
-  if(cell_simple_p(c)){
-//fprintf(stderr, "[%.4s] %08x\n", (const char*)&c->gcluster, c->gcluster); }
-    // we must not have any 'cntrl' characters at this point
-    if(c->gcluster == 0){
-      if(ncfputc(' ', out) == EOF){
-        return -1;
-      }
-    }else if(ncfputs((const char*)&c->gcluster, out) == EOF){
+enter_pixel_mode(notcurses* nc, FILE* out){
+  if(!nc->rstate.pixelmode){
+    if(term_emit("\ePq", out, false)){
       return -1;
     }
+  }
+  nc->rstate.pixelmode = true;
+  return 0;
+}
+
+static int
+leave_pixel_mode(notcurses* nc, FILE* out){
+  if(term_emit("\e\\", out, false)){
+    return -1;
+  }
+  nc->rstate.pixelmode = false;
+  return 0;
+}
+
+// write the nccell's UTF-8 extended grapheme cluster to the provided FILE*.
+static int
+term_putc(notcurses* nc, FILE* out, const egcpool* e, const nccell* c){
+  if(cell_pixels_p(c)){
+    if(!nc->rstate.pixelmode){
+      if(enter_pixel_mode(nc, out)){
+        return -1;
+      }
+      if(ncfputs(egcpool_extended_gcluster(e, c), out) == EOF){
+        return -1;
+      }
+    }
   }else{
-    if(ncfputs(egcpool_extended_gcluster(e, c), out) == EOF){
-      return -1;
+    if(nc->rstate.pixelmode){
+      if(leave_pixel_mode(nc, out)){
+        return -1;
+      }
+    }
+    if(cell_simple_p(c)){
+  //fprintf(stderr, "[%.4s] %08x\n", (const char*)&c->gcluster, c->gcluster); }
+      // we must not have any 'cntrl' characters at this point
+      if(c->gcluster == 0){
+        if(ncfputc(' ', out) == EOF){
+          return -1;
+        }
+      }else if(ncfputs((const char*)&c->gcluster, out) == EOF){
+        return -1;
+      }
+    }else{
+      if(ncfputs(egcpool_extended_gcluster(e, c), out) == EOF){
+        return -1;
+      }
     }
   }
   return 0;
@@ -1027,7 +1063,7 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
           nc->rstate.bgpalelidable = false;
         }
 //fprintf(stderr, "RAST %08x [%s] to %d/%d cols: %u %016lx\n", srccell->gcluster, pool_extended_gcluster(&nc->pool, srccell), y, x, srccell->width, srccell->channels);
-        if(term_putc(out, &nc->pool, srccell)){
+        if(term_putc(nc, out, &nc->pool, srccell)){
           return -1;
         }
         ++nc->rstate.x;
