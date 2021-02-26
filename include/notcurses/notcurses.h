@@ -891,7 +891,7 @@ API int notcurses_lex_blitter(const char* op, ncblitter_e* blitter);
 // Get the name of a blitter.
 API const char* notcurses_str_blitter(ncblitter_e blitter);
 
-// Lex a scaling mode (one of "none", "stretch", "scale", "nonehi", or "scalehi").
+// Lex a scaling mode (one of "none", "stretch", "scale", "hires", or "scalehi").
 API int notcurses_lex_scalemode(const char* op, ncscale_e* scalemode);
 
 // Get the name of a scaling mode.

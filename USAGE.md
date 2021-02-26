@@ -2897,7 +2897,7 @@ typedef enum {
   NCSCALE_STRETCH,
 } ncscale_e;
 
-// Lex a scaling mode (one of "none", "stretch", "scale", "nonehi", or "scalehi").
+// Lex a scaling mode (one of "none", "stretch", "scale", "hires", or "scalehi").
 int notcurses_lex_scalemode(const char* op, ncscale_e* scalemode);
 
 // Get the name of a scaling mode.
