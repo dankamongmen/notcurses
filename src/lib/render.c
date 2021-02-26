@@ -401,6 +401,7 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
             targc->stylemask = vis->stylemask;
             targc->width = vis->width;
           }
+          cell_set_pixels(targc, cell_pixels_p(vis));
           crender->p = p;
         }else if(cell_wide_right_p(vis)){
           crender->p = p;
@@ -607,9 +608,9 @@ term_putc(notcurses* nc, FILE* out, const egcpool* e, const nccell* c){
       if(enter_pixel_mode(nc, out)){
         return -1;
       }
-      if(ncfputs(egcpool_extended_gcluster(e, c), out) == EOF){
-        return -1;
-      }
+    }
+    if(ncfputs(egcpool_extended_gcluster(e, c), out) == EOF){
+      return -1;
     }
   }else{
     if(nc->rstate.pixelmode){

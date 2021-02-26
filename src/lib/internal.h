@@ -634,8 +634,12 @@ cell_pixels_p(const nccell* c){
 }
 
 static inline nccell*
-cell_set_pixels(nccell* c){
-  c->channels |= CELL_PIXEL_GRAPHICS;
+cell_set_pixels(nccell* c, unsigned p){
+  if(p){
+    c->channels |= CELL_PIXEL_GRAPHICS;
+  }else{
+    c->channels &= ~CELL_PIXEL_GRAPHICS;
+  }
   return c;
 }
 
