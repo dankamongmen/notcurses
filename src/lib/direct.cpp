@@ -400,6 +400,7 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
   const bool bgdefault = ncdirect_bg_default_p(n);
   const uint32_t fgrgb = channels_fg_rgb(n->channels);
   const uint32_t bgrgb = channels_bg_rgb(n->channels);
+  bool pixelmode = false;
   for(int y = 0 ; y < dimy ; ++y){
     if(xoff){
       if(ncdirect_cursor_move_yx(n, -1, xoff)){
@@ -413,15 +414,24 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
       if(egc == nullptr){
         return -1;
       }
-      if(channels_fg_alpha(channels) == CELL_ALPHA_TRANSPARENT){
-        ncdirect_set_fg_default(n);
-      }else{
-        ncdirect_set_fg_rgb(n, channels_fg_rgb(channels));
-      }
-      if(channels_bg_alpha(channels) == CELL_ALPHA_TRANSPARENT){
-        ncdirect_set_bg_default(n);
-      }else{
-        ncdirect_set_bg_rgb(n, channels_bg_rgb(channels));
+      if(!channels_pixel_p(channels)){
+        if(pixelmode){
+          // FIXME leave pixel mode
+          pixelmode = false;
+        }
+        if(channels_fg_alpha(channels) == CELL_ALPHA_TRANSPARENT){
+          ncdirect_set_fg_default(n);
+        }else{
+          ncdirect_set_fg_rgb(n, channels_fg_rgb(channels));
+        }
+        if(channels_bg_alpha(channels) == CELL_ALPHA_TRANSPARENT){
+          ncdirect_set_bg_default(n);
+        }else{
+          ncdirect_set_bg_rgb(n, channels_bg_rgb(channels));
+        }
+      }else if(!pixelmode){
+        // FIXME enter pixel mode
+        pixelmode = true;
       }
 //fprintf(stderr, "%03d/%03d [%s] (%03dx%03d)\n", y, x, egc, dimy, dimx);
       if(fprintf(n->ttyfp, "%s", strlen(egc) == 0 ? " " : egc) < 0){
@@ -673,6 +683,9 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
     goto err;
   }
   if(interrogate_terminfo(&ret->tcache, shortname_term, utf8)){
+    goto err;
+  }
+  if(query_term(&ret->tcache, ret->ctermfd)){
     goto err;
   }
   ncdirect_set_styles(ret, 0);
