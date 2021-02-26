@@ -607,7 +607,7 @@ typedef struct nccell {
   // (channels & 0x0200000000000000ull): blitted to lower-left quadrant
   // (channels & 0x0100000000000000ull): blitted to lower-right quadrant
   // (channels & 0x00ffffff00000000ull): foreground in 3x8 RGB (rrggbb) / pindex
-  // (channels & 0x0000000080000000ull): reserved, must be 0
+  // (channels & 0x0000000080000000ull): pixel graphics
   // (channels & 0x0000000040000000ull): background is *not* "default color"
   // (channels & 0x0000000030000000ull): background alpha (2 bits)
   // (channels & 0x0000000008000000ull): background uses palette index

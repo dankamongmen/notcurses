@@ -372,15 +372,15 @@ callback(struct ncplane* ncp, void* curry, int dizzy){
   ncplane_cursor_move_yx(ncp, 0, 0);
   uint64_t channels = 0;
   if(dizzy == 0){
-    channels_set_bg_rgb(&channels, 0x006080);
+    channels_set_bg_rgb(&channels, 0x004080);
     ncplane_set_fg_rgb(ncp, 0xffffff);
   }else if(dizzy < 0){
     float f = -dizzy / totylen;
-    channels_set_bg_rgb8(&channels, 0, 0x60 - 0x60 * f, 0);
+    channels_set_bg_rgb8(&channels, 0, 0x40 - 0x40 * f, 0);
     ncplane_set_fg_rgb(ncp, 0xbbbbbb);
   }else if(dizzy > 0){
     float f = dizzy / totylen;
-    channels_set_bg_rgb8(&channels, 0, 0x60 - 0x60 * f, 0);
+    channels_set_bg_rgb8(&channels, 0, 0x40 - 0x40 * f, 0);
     ncplane_set_fg_rgb(ncp, 0xbbbbbb);
   }
   ncplane_set_base(ncp, " ", 0, channels);
