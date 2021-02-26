@@ -52,7 +52,7 @@ char32_t demo_getc(struct notcurses* nc, const struct timespec* ts, ncinput* ni)
   // yes, i'd like CLOCK_MONOTONIC too, but pthread_cond_timedwait() is based off
   // of crappy CLOCK_REALTIME :/
   // abstime shouldn't be further out than our maximum sleep time -- this can
-  // lead to 0 frames output during the wait (happening now with zoo FIXME)
+  // lead to 0 frames output during the wait
   if(ts){
     ns = timespec_to_ns(ts);
   }else{

@@ -451,6 +451,7 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
       if(term_emit(n->tcache.pixeloff, n->ttyfp, false)){
         return -1;
       }
+      pixelmode = false;
     }
     // FIXME replace with a SGR clear
     ncdirect_set_fg_default(n);
