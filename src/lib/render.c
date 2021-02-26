@@ -582,7 +582,7 @@ ncfputc(char c, FILE* out){
 static int
 enter_pixel_mode(notcurses* nc, FILE* out){
   if(!nc->rstate.pixelmode){
-    if(term_emit("\ePq", out, false)){
+    if(term_emit(nc->tcache.pixelon, out, false)){
       return -1;
     }
   }
@@ -592,7 +592,7 @@ enter_pixel_mode(notcurses* nc, FILE* out){
 
 static int
 leave_pixel_mode(notcurses* nc, FILE* out){
-  if(term_emit("\e\\", out, false)){
+  if(term_emit(nc->tcache.pixeloff, out, false)){
     return -1;
   }
   nc->rstate.pixelmode = false;
@@ -971,96 +971,98 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
         if(goto_location(nc, out, y, x)){
           return -1;
         }
-        // set the style. this can change the color back to the default; if it
-        // does, we need update our elision possibilities.
-        if(term_setstyles(out, &nc->rstate, srccell,
-                          nc->tcache.sgr0, nc->tcache.sgr,
-                          nc->tcache.italics, nc->tcache.italoff,
-                          nc->tcache.struck, nc->tcache.struckoff)){
-          return -1;
-        }
-        // if our cell has a default foreground *or* background, we can elide
-        // the default set iff one of:
-        //  * we are a partial glyph, and the previous was default on both, or
-        //  * we are a no-foreground glyph, and the previous was default background, or
-        //  * we are a no-background glyph, and the previous was default foreground
-        bool nobackground = cell_nobackground_p(srccell);
-        if((cell_fg_default_p(srccell)) || (!nobackground && cell_bg_default_p(srccell))){
-          if(raster_defaults(nc, cell_fg_default_p(srccell),
-                             !nobackground && cell_bg_default_p(srccell), out)){
+        if(!cell_pixels_p(srccell)){
+          // set the style. this can change the color back to the default; if it
+          // does, we need update our elision possibilities.
+          if(term_setstyles(out, &nc->rstate, srccell,
+                            nc->tcache.sgr0, nc->tcache.sgr,
+                            nc->tcache.italics, nc->tcache.italoff,
+                            nc->tcache.struck, nc->tcache.struckoff)){
             return -1;
           }
-        }
-        // if our cell has a non-default foreground, we can elide the
-        // non-default foreground set iff either:
-        //  * the previous was non-default, and matches what we have now, or
-        //  * we are a no-foreground glyph (iswspace() is true)
-        if(cell_fg_palindex_p(srccell)){ // palette-indexed foreground
-          palfg = cell_fg_palindex(srccell);
-          // we overload lastr for the palette index; both are 8 bits
-          if(nc->rstate.fgpalelidable && nc->rstate.lastr == palfg){
-            ++nc->stats.fgelisions;
-          }else{
-            if(term_fg_palindex(nc, out, palfg)){
+          // if our cell has a default foreground *or* background, we can elide
+          // the default set iff one of:
+          //  * we are a partial glyph, and the previous was default on both, or
+          //  * we are a no-foreground glyph, and the previous was default background, or
+          //  * we are a no-background glyph, and the previous was default foreground
+          bool nobackground = cell_nobackground_p(srccell);
+          if((cell_fg_default_p(srccell)) || (!nobackground && cell_bg_default_p(srccell))){
+            if(raster_defaults(nc, cell_fg_default_p(srccell),
+                              !nobackground && cell_bg_default_p(srccell), out)){
               return -1;
             }
-            ++nc->stats.fgemissions;
-            nc->rstate.fgpalelidable = true;
           }
-          nc->rstate.lastr = palfg;
-          nc->rstate.fgdefelidable = false;
-          nc->rstate.fgelidable = false;
-        }else if(!cell_fg_default_p(srccell)){ // rgb foreground
-          cell_fg_rgb8(srccell, &r, &g, &b);
-          if(nc->rstate.fgelidable && nc->rstate.lastr == r && nc->rstate.lastg == g && nc->rstate.lastb == b){
-            ++nc->stats.fgelisions;
-          }else{
-            if(term_fg_rgb8(nc->tcache.RGBflag, nc->tcache.setaf, nc->tcache.colors, out, r, g, b)){
-              return -1;
+          // if our cell has a non-default foreground, we can elide the
+          // non-default foreground set iff either:
+          //  * the previous was non-default, and matches what we have now, or
+          //  * we are a no-foreground glyph (iswspace() is true)
+          if(cell_fg_palindex_p(srccell)){ // palette-indexed foreground
+            palfg = cell_fg_palindex(srccell);
+            // we overload lastr for the palette index; both are 8 bits
+            if(nc->rstate.fgpalelidable && nc->rstate.lastr == palfg){
+              ++nc->stats.fgelisions;
+            }else{
+              if(term_fg_palindex(nc, out, palfg)){
+                return -1;
+              }
+              ++nc->stats.fgemissions;
+              nc->rstate.fgpalelidable = true;
             }
-            ++nc->stats.fgemissions;
-            nc->rstate.fgelidable = true;
+            nc->rstate.lastr = palfg;
+            nc->rstate.fgdefelidable = false;
+            nc->rstate.fgelidable = false;
+          }else if(!cell_fg_default_p(srccell)){ // rgb foreground
+            cell_fg_rgb8(srccell, &r, &g, &b);
+            if(nc->rstate.fgelidable && nc->rstate.lastr == r && nc->rstate.lastg == g && nc->rstate.lastb == b){
+              ++nc->stats.fgelisions;
+            }else{
+              if(term_fg_rgb8(nc->tcache.RGBflag, nc->tcache.setaf, nc->tcache.colors, out, r, g, b)){
+                return -1;
+              }
+              ++nc->stats.fgemissions;
+              nc->rstate.fgelidable = true;
+            }
+            nc->rstate.lastr = r; nc->rstate.lastg = g; nc->rstate.lastb = b;
+            nc->rstate.fgdefelidable = false;
+            nc->rstate.fgpalelidable = false;
           }
-          nc->rstate.lastr = r; nc->rstate.lastg = g; nc->rstate.lastb = b;
-          nc->rstate.fgdefelidable = false;
-          nc->rstate.fgpalelidable = false;
-        }
-        // if our cell has a non-default background, we can elide the
-        // non-default background set iff either:
-        //  * we do not use the background, because the cell is all-foreground,
-        //  * the previous was non-default, and matches what we have now, or
-        if(nobackground){
-          ++nc->stats.bgelisions;
-        }else if(cell_bg_palindex_p(srccell)){ // palette-indexed background
-          palbg = cell_bg_palindex(srccell);
-          if(nc->rstate.bgpalelidable && nc->rstate.lastbr == palbg){
+          // if our cell has a non-default background, we can elide the
+          // non-default background set iff either:
+          //  * we do not use the background, because the cell is all-foreground,
+          //  * the previous was non-default, and matches what we have now, or
+          if(nobackground){
             ++nc->stats.bgelisions;
-          }else{
-            if(term_bg_palindex(nc, out, palbg)){
-              return -1;
+          }else if(cell_bg_palindex_p(srccell)){ // palette-indexed background
+            palbg = cell_bg_palindex(srccell);
+            if(nc->rstate.bgpalelidable && nc->rstate.lastbr == palbg){
+              ++nc->stats.bgelisions;
+            }else{
+              if(term_bg_palindex(nc, out, palbg)){
+                return -1;
+              }
+              ++nc->stats.bgemissions;
+              nc->rstate.bgpalelidable = true;
             }
-            ++nc->stats.bgemissions;
-            nc->rstate.bgpalelidable = true;
-          }
-          nc->rstate.lastr = palbg;
-          nc->rstate.bgdefelidable = false;
-          nc->rstate.bgelidable = false;
-        }else if(!cell_bg_default_p(srccell)){ // rgb background
-          cell_bg_rgb8(srccell, &br, &bg, &bb);
-          if(nc->rstate.bgelidable && nc->rstate.lastbr == br && nc->rstate.lastbg == bg && nc->rstate.lastbb == bb){
-            ++nc->stats.bgelisions;
-          }else{
-            if(term_bg_rgb8(nc->tcache.RGBflag, nc->tcache.setab,
-                            nc->tcache.colors, out, br, bg, bb,
-                            nc->tcache.bg_collides_default)){
-              return -1;
+            nc->rstate.lastr = palbg;
+            nc->rstate.bgdefelidable = false;
+            nc->rstate.bgelidable = false;
+          }else if(!cell_bg_default_p(srccell)){ // rgb background
+            cell_bg_rgb8(srccell, &br, &bg, &bb);
+            if(nc->rstate.bgelidable && nc->rstate.lastbr == br && nc->rstate.lastbg == bg && nc->rstate.lastbb == bb){
+              ++nc->stats.bgelisions;
+            }else{
+              if(term_bg_rgb8(nc->tcache.RGBflag, nc->tcache.setab,
+                              nc->tcache.colors, out, br, bg, bb,
+                              nc->tcache.bg_collides_default)){
+                return -1;
+              }
+              ++nc->stats.bgemissions;
+              nc->rstate.bgelidable = true;
             }
-            ++nc->stats.bgemissions;
-            nc->rstate.bgelidable = true;
+            nc->rstate.lastbr = br; nc->rstate.lastbg = bg; nc->rstate.lastbb = bb;
+            nc->rstate.bgdefelidable = false;
+            nc->rstate.bgpalelidable = false;
           }
-          nc->rstate.lastbr = br; nc->rstate.lastbg = bg; nc->rstate.lastbb = bb;
-          nc->rstate.bgdefelidable = false;
-          nc->rstate.bgpalelidable = false;
         }
 //fprintf(stderr, "RAST %08x [%s] to %d/%d cols: %u %016lx\n", srccell->gcluster, pool_extended_gcluster(&nc->pool, srccell), y, x, srccell->width, srccell->channels);
         if(term_putc(nc, out, &nc->pool, srccell)){

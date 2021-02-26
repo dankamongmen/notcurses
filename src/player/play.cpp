@@ -27,8 +27,8 @@ void usage(std::ostream& o, const char* name, int exitcode){
   o << " -L: loop frames\n";
   o << " -t seconds: delay t seconds after each file\n";
   o << " -l loglevel: integer between 0 and 9, goes to stderr'\n";
-  o << " -s scaletype: one of 'none', 'hires', 'scale', 'scalehi', or 'stretch'\n";
-  o << " -b blitter: 'ascii', 'halfblock', 'quadblitter', 'sexblitter', or 'braille'\n";
+  o << " -s 'none', 'hires', 'scale', 'scalehi', or 'stretch'\n";
+  o << " -b 'ascii', 'halfblock', 'quadblitter', 'sexblitter', 'braille', or 'pixel'\n";
   o << " -m margins: margin, or 4 comma-separated margins\n";
   o << " -d mult: non-negative floating point scale for frame time" << std::endl;
   exit(exitcode);

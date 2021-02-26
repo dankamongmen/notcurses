@@ -288,6 +288,8 @@ typedef struct tinfo {
   uint32_t bg_collides_default;
   bool sextants;  // do we have (good, vetted) Unicode 13 sextant support?
   bool braille;   // do we have Braille support? (linux console does not)
+  char* pixelon;  // enter pixel graphics mode
+  char* pixeloff; // leave pixel graphics mode
   bool sixel;     // do we have Sixel support?
 } tinfo;
 
@@ -622,8 +624,13 @@ plane_debug(const ncplane* n, bool details){
 }
 
 static inline unsigned
+channels_pixel_p(uint64_t channels){
+  return channels & CELL_PIXEL_GRAPHICS;
+}
+
+static inline unsigned
 cell_pixels_p(const nccell* c){
-  return c->channels & CELL_PIXEL_GRAPHICS;
+  return channels_pixel_p(c->channels);
 }
 
 static inline nccell*

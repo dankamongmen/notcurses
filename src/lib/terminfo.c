@@ -228,7 +228,10 @@ query_sixel(tinfo* ti, int fd){
         if(in == 'c'){
           state = DONE;
         }else if(in == '4'){
-          ti->sixel = true;
+          if(!ti->pixelon){
+            ti->pixelon = strdup("\ePq");
+            ti->pixeloff = strdup("\e\\");
+          } // FIXME else warning?
         }
         break;
       case DONE:
