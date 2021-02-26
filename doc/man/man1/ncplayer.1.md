@@ -32,7 +32,7 @@ be any non-negative number.
 **-s** ***scalemode***: Scaling mode, one of **none**, **hires**, **scale**, **scalehi**, or **stretch**.
 
 **-b** ***blitter***: Blitter, one of **ascii**, **halfblocks**, **quadblitter**,
-**sexblitter**, or **braille**.
+**sexblitter**, **braille**, or **pixel**.
 
 **-m margins**: Define rendering margins (see below).
 
