@@ -859,6 +859,7 @@ sixel_blit(ncplane* nc, int placey, int placex, int linesize,
       // FIXME find sixels with common colors for single register program
       unsigned bitsused = 0; // once 63, we're done
       int colorreg = 1; // leave 0 as background
+      bool printed = false;
       for(int sy = y ; sy < dimy && sy < y + 6 ; ++sy){
         const uint32_t* rgb = (const uint32_t*)(data + (linesize * sy) + (visx * 4));
         if(ffmpeg_trans_p(ncpixel_a(*rgb))){
@@ -882,12 +883,14 @@ sixel_blit(ncplane* nc, int placey, int placex, int linesize,
           // FIXME use percentages(rgb)
           // bitstring is added to 63, resulting in [63, 126] aka '?'..'~'
           int n = snprintf(sixel + offset, sizeof(sixel) - offset,
-                           "#%d;2;%d;%d;%d%c", colorreg, 100, 100, 100, c);
+                           "%s#%d;2;%d;%d;%d#%d%c", printed ? "$" : "",
+                           colorreg, 100, 100, 100, colorreg, c);
           if(n < 0){
             return -1;
           }
           offset += n;
           ++colorreg;
+          printed = true;
         }
         if(bitsused == 63){
           break;
