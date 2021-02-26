@@ -39,8 +39,12 @@ struct ncvisual_details;
 #define CELL_NOBACKGROUND_MASK  0x8700000000000000ull
 
 // Was this glyph drawn as part of an ncvisual? If so, we need to honor
-// blitter stacking rather than the standard trichannel solver.
+// blitter stacking rather than the standard trichannel solver (yes, this
+// is the same as CELL_NOBACKGROUND_MASK).
 #define CELL_BLITTERSTACK_MASK  0x8700000000000000ull
+
+// if this bit is set, the cell ought be rasterized in pixel graphics mode.
+#define CELL_PIXEL_GRAPHICS     0x0000000080000000ull
 
 // we can't define multipart ncvisual here, because OIIO requires C++ syntax,
 // and we can't go throwing C++ syntax into this header. so it goes.
@@ -613,6 +617,17 @@ plane_debug(const ncplane* n, bool details){
       }
     }
   }
+}
+
+static inline unsigned
+cell_pixels_p(const nccell* c){
+  return c->channels & CELL_PIXEL_GRAPHICS;
+}
+
+static inline nccell*
+cell_set_pixels(nccell* c){
+  c->channels |= CELL_PIXEL_GRAPHICS;
+  return c;
 }
 
 static inline void
