@@ -898,7 +898,7 @@ sixel_blit(ncplane* nc, int placey, int placex, int linesize,
         if(pool_blit_direct(&nc->pool, c, sixel, offset, 1) <= 0){
           return -1;
         }
-        cell_set_pixels(c);
+        cell_set_pixels(c, 1);
       } // FIXME otherwise, reset?
     }
   }

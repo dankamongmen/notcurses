@@ -416,7 +416,9 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
       }
       if(!channels_pixel_p(channels)){
         if(pixelmode){
-          // FIXME leave pixel mode
+          if(term_emit(n->tcache.pixeloff, n->ttyfp, false)){
+            return -1;
+          }
           pixelmode = false;
         }
         if(channels_fg_alpha(channels) == CELL_ALPHA_TRANSPARENT){
@@ -430,7 +432,9 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
           ncdirect_set_bg_rgb(n, channels_bg_rgb(channels));
         }
       }else if(!pixelmode){
-        // FIXME enter pixel mode
+        if(term_emit(n->tcache.pixelon, n->ttyfp, false)){
+          return -1;
+        }
         pixelmode = true;
       }
 //fprintf(stderr, "%03d/%03d [%s] (%03dx%03d)\n", y, x, egc, dimy, dimx);
@@ -443,6 +447,11 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
     // yes, we want to reset colors and emit an explicit new line following
     // each line of output; this is necessary if our output is lifted out and
     // used in something e.g. paste(1).
+    if(pixelmode){
+      if(term_emit(n->tcache.pixeloff, n->ttyfp, false)){
+        return -1;
+      }
+    }
     // FIXME replace with a SGR clear
     ncdirect_set_fg_default(n);
     ncdirect_set_bg_default(n);

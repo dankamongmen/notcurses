@@ -304,7 +304,7 @@ auto main(int argc, char** argv) -> int {
   ncscale_e scalemode;
   notcurses_options ncopts{};
   ncopts.flags = NCOPTION_VERIFY_SIXEL;
-  ncblitter_e blitter = NCBLIT_DEFAULT;
+  ncblitter_e blitter = NCBLIT_PIXEL;
   bool quiet = false;
   bool loop = false;
   auto nonopt = handle_opts(argc, argv, ncopts, &quiet, &timescale, &scalemode,
