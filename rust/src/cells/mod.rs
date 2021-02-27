@@ -19,7 +19,6 @@
 // (W) wrap: 40
 // (#) test: 26
 // ------------------------------------------
-//W# cell_bchannel
 //W# cell_bg_alpha
 //W# cell_bg_default_p
 //W# cell_bg_palindex

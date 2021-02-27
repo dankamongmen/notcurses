@@ -6,23 +6,6 @@ use crate::NcCell;
 
 #[test]
 #[serial]
-fn channels() {
-    let mut c1 = NcCell::new();
-    assert_eq![0, crate::cell_fchannel(&c1)];
-    assert_eq![0, crate::cell_bchannel(&c1)];
-
-    let mut channels = crate::cell_set_fchannel(&mut c1, 0xAA112233);
-    assert_eq![0xAA112233, crate::cell_fchannel(&c1)];
-    assert_eq![0xAA11223300000000, channels];
-    channels = crate::cell_set_bchannel(&mut c1, 0xBB445566);
-    assert_eq![0xBB445566, crate::cell_bchannel(&c1)];
-    assert_eq![0xAA112233BB445566, channels];
-
-    let _c2 = NcCell::with_char7b('@');
-}
-
-#[test]
-#[serial]
 fn rgb() {
     // rgb
 
