@@ -43,42 +43,6 @@ pub fn cell_set_bg_alpha(cell: &mut NcCell, alpha: NcAlphaBits) {
     crate::channels_set_bg_alpha(&mut cell.channels, alpha);
 }
 
-// Channels --------------------------------------------------------------------
-
-/// Gets the foreground [NcChannel] from an [NcCell].
-///
-/// *Method: NcCell.[fchannel()][NcCell#method.fchannel].*
-#[inline]
-pub fn cell_fchannel(cell: &NcCell) -> NcChannel {
-    crate::channels_fchannel(cell.channels)
-}
-
-/// Gets the background [NcChannel] from an [NcCell].
-///
-/// *Method: NcCell.[bchannel()][NcCell#method.bchannel].*
-#[inline]
-pub fn cell_bchannel(cell: &NcCell) -> NcChannel {
-    crate::channels_bchannel(cell.channels)
-}
-
-/// Sets the foreground [NcChannel] of an [NcCell] and returns the new
-/// [NcChannelPair].
-///
-/// *Method: NcCell.[set_fchannel()][NcCell#method.set_fchannel].*
-#[inline]
-pub fn cell_set_fchannel(cell: &mut NcCell, channel: NcChannel) -> NcChannelPair {
-    crate::channels_set_fchannel(&mut cell.channels, channel)
-}
-
-/// Sets the background [NcChannel] of an [NcCell] and returns the new
-/// [NcChannelPair].
-///
-/// *Method: NcCell.[set_bchannel()][NcCell#method.set_bchannel].*
-#[inline]
-pub fn cell_set_bchannel(cell: &mut NcCell, channel: NcChannel) -> NcChannelPair {
-    crate::channels_set_bchannel(&mut cell.channels, channel)
-}
-
 // NcColor ---------------------------------------------------------------------
 
 /// Gets the foreground [NcColor] RGB components of an [NcCell],

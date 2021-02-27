@@ -75,16 +75,6 @@ namespace ncpp
 			return _cell.channels;
 		}
 
-		uint64_t set_fchannel (uint32_t channel) noexcept
-		{
-			return cell_set_fchannel (&_cell, channel);
-		}
-
-		uint64_t set_bchannel (uint32_t channel) noexcept
-		{
-			return cell_set_bchannel (&_cell, channel);
-		}
-
 		void set_styles (CellStyle styles) noexcept
 		{
 			cell_set_styles (&_cell, static_cast<unsigned>(styles));
@@ -108,16 +98,6 @@ namespace ncpp
 		bool is_double_wide () const noexcept
 		{
 			return cell_double_wide_p (&_cell);
-		}
-
-		unsigned get_bchannel () const noexcept
-		{
-			return cell_bchannel (&_cell);
-		}
-
-		unsigned get_fchannel () const noexcept
-		{
-			return cell_fchannel (&_cell);
 		}
 
 		unsigned get_fg_rgb () const noexcept

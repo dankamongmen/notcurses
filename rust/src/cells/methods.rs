@@ -116,13 +116,6 @@ impl NcCell {
         channels
     }
 
-    /// Gets the background [NcChannel].
-    ///
-    /// *C style function: [cell_bchannel()][crate::cell_bchannel].*
-    pub fn bchannel(&self) -> NcChannel {
-        crate::cell_bchannel(self)
-    }
-
     /// Extracts the background [NcAlphaBits] (shifted to LSBs).
     ///
     /// *C style function: [cell_bg_alpha()][crate::cell_bg_alpha].*
@@ -166,13 +159,6 @@ impl NcCell {
         let (mut r, mut g, mut b) = (0, 0, 0);
         crate::cell_bg_rgb8(self, &mut r, &mut g, &mut b);
         (r, g, b)
-    }
-
-    /// Gets the foreground [NcChannel].
-    ///
-    /// *C style function: [cell_fchannel()][crate::cell_fchannel].*
-    pub fn fchannel(&self) -> NcChannel {
-        crate::cell_fchannel(self)
     }
 
     /// Extracts the foreground [NcAlphaBits] (shifted to LSBs).
@@ -220,13 +206,6 @@ impl NcCell {
         (r, g, b)
     }
 
-    /// Sets the background [NcChannel] and returns the new [NcChannelPair].
-    ///
-    /// *C style function: [cell_set_bchannel()][crate::cell_set_bchannel].*
-    pub fn set_bchannel(&mut self, channel: NcChannel) -> NcChannelPair {
-        crate::cell_set_bchannel(self, channel)
-    }
-
     /// Sets the background [NcAlphaBits].
     ///
     /// *C style function: [cell_set_bg_alpha()][crate::cell_set_bg_alpha].*
@@ -265,13 +244,6 @@ impl NcCell {
     /// *C style function: [cell_set_bg_rgb8()][crate::cell_set_bg_rgb8].*
     pub fn set_bg_rgb8(&mut self, red: NcColor, green: NcColor, blue: NcColor) {
         crate::cell_set_bg_rgb8(self, red, green, blue);
-    }
-
-    /// Sets the foreground [NcChannel] and returns the new [NcChannelPair].
-    ///
-    /// *C style function: [cell_set_fchannel()][crate::cell_set_fchannel].*
-    pub fn set_fchannel(&mut self, channel: NcChannel) -> NcChannelPair {
-        crate::cell_set_fchannel(self, channel)
     }
 
     /// Sets the foreground [NcAlphaBits].
