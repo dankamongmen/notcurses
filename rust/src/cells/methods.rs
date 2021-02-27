@@ -1,7 +1,7 @@
 //! `NcCell` methods and associated functions.
 
 use crate::{
-    cell_load, cstring, error, NcAlphaBits, NcCell, NcChannel, NcChannelPair, NcColor, NcEgc,
+    cell_load, cstring, error, NcAlphaBits, NcCell, NcChannelPair, NcColor, NcEgc,
     NcEgcBackstop, NcPaletteIndex, NcPlane, NcResult, NcRgb, NcStyleMask, NCRESULT_ERR,
 };
 
