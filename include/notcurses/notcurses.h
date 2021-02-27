@@ -1238,6 +1238,8 @@ API bool notcurses_canpixel(const struct notcurses* nc);
 // Must not be called concurrently with either input or rasterization.
 API int notcurses_check_pixel_support(struct notcurses* nc);
 
+// whenever a new field is added here, ensure we add the proper rule to
+// notcurses_stats_reset(), so that values are preserved in the stash stats.
 typedef struct ncstats {
   // purely increasing stats
   uint64_t renders;          // successful ncpile_render() runs

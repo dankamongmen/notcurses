@@ -359,6 +359,7 @@ typedef struct notcurses {
 
   pthread_mutex_t statlock;
   ncstats stats;  // some statistics across the lifetime of the notcurses ctx
+  ncstats stashed_stats; // retain across a notcurses_stats_reset(), to print in closing banner
 
   FILE* ttyfp;    // FILE* for writing rasterized data
   int ttyfd;      // file descriptor for controlling tty
