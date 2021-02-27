@@ -8,21 +8,22 @@ steps:
   image: dankamongmen/unstable_builder:2021-02-24a
   commands:
     - export LANG=en_US.UTF-8
+    - export TERM=xterm
     - mkdir build
     - cd build
     - cmake .. -DCMAKE_BUILD_TYPE=Release
     - make -j2
-    - env TERM=xterm ctest
+    - ctest
     - make install
     - ldconfig
     - cd ../cffi
     - LDFLAGS=-L/usr/local/lib CFLAGS=-I/usr/local/include python3 setup.py sdist build install
-    - env TERM=xterm LD_LIBRARY_PATH=/usr/local/lib ./notcurses-pydemo > /dev/null
-#    - env TERM=xterm LD_LIBRARY_PATH=/usr/local/lib ./notcurses-direct-pydemo
+    - env LD_LIBRARY_PATH=/usr/local/lib ./notcurses-pydemo > /dev/null
+    - env LD_LIBRARY_PATH=/usr/local/lib ./notcurses-direct-pydemo
     - cd ../rust
     - rustc --version
     - cargo build
-    - env TERM=xterm cargo t_all
+    - cargo t_all
 ---
 kind: pipeline
 type: docker
@@ -33,11 +34,12 @@ steps:
   image: dankamongmen/edge_builder:2021-02-10a
   commands:
     - export LANG=en_US.UTF-8
+    - export TERM=xterm
     - mkdir build
     - cd build
     - cmake -DCMAKE_BUILD_TYPE=Release -DUSE_QRCODEGEN=off -DUSE_PANDOC=off ..
     - make -j2
-    - env TERM=xterm ctest
+    - ctest
 ---
 kind: pipeline
 type: docker
@@ -48,20 +50,21 @@ steps:
   image: dankamongmen/fedora34:2021-01-08b
   commands:
     - export LANG=en_US.UTF-8
+    - export TERM=xterm
     - mkdir build
     - cd build
     - cmake -DCMAKE_BUILD_TYPE=Release -DUSE_MULTIMEDIA=oiio ..
     - make -j2
-    - env TERM=xterm ctest
+    - ctest
     - make install
     - ldconfig
     - cd ../rust
     - rustc --version
     - cargo build
-    - env TERM=xterm cargo t_all
+    - cargo t_all
     - LDFLAGS=-L/usr/local/lib CFLAGS=-I/usr/local/include python3 setup.py sdist build install
-    - env TERM=xterm LD_LIBRARY_PATH=/usr/local/lib ./notcurses-pydemo > /dev/null
-    - env TERM=xterm LD_LIBRARY_PATH=/usr/local/lib ./notcurses-direct-pydemo
+    - env LD_LIBRARY_PATH=/usr/local/lib ./notcurses-pydemo > /dev/null
+    - env LD_LIBRARY_PATH=/usr/local/lib ./notcurses-direct-pydemo
 ---
 kind: pipeline
 type: docker
@@ -72,11 +75,12 @@ steps:
   image: dankamongmen/hirsute:2021-02-01a
   commands:
     - export LANG=es_ES.UTF-8
+    - export TERM=xterm
     - mkdir build
     - cd build
     - cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_MULTIMEDIA=none ..
     - make -j2
-    - env TERM=xterm ctest -V
+    - ctest -V
     - make install
     - ldconfig
     - cd ../cffi
