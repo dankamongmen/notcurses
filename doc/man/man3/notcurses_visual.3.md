@@ -166,9 +166,9 @@ to work out very well for images, but (depending on the font) can be very
 good for plots.
 
 A string can be transformed to a blitter with **notcurses_lex_blitter**,
-recognizing **ascii**, **halfblock**, **quadblitter**, **sexblitter**,
-**fourstep**, **braille**, **eightstep**, and **pixel**. Conversion in the
-opposite direction is performed with **notcurses_str_blitter**.
+recognizing **ascii**, **half**, **quad**, **sex**, **fourstep**, **braille**,
+**eightstep**, and **pixel**. Conversion in the opposite direction is performed
+with **notcurses_str_blitter**.
 
 In the absence of scaling, for a given set of pixels, more rows and columns in
 the blitter will result in a smaller output image. An image rendered with
