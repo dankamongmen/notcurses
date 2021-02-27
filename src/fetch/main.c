@@ -1,6 +1,7 @@
 #include <pwd.h>
 #include <errno.h>
 #include <stdio.h>
+#include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
 #include <locale.h>
@@ -189,15 +190,20 @@ fetch_x_props(fetched_info* fi){
 // Returns NULL if no such file can be found. Return value is heap-allocated.
 static char *
 get_xdg_logo(const char *spec){
-  char logopath[PATH_MAX + 1]; // FIXME
-  int s = snprintf(logopath, sizeof(logopath) - 1, "%s/%s", "/usr/share/pixmaps/", spec);
-  if(s < 0 || (size_t)s >= sizeof(logopath)){
+  const char* logopath = "/usr/share/pixmaps/";
+  int dfd = open(logopath, O_CLOEXEC | O_DIRECTORY);
+  if(dfd < 0){
     return NULL;
   }
-  if(access(logopath, F_OK) == 0){
-    return strdup(logopath);
+  int r = faccessat(dfd, spec, R_OK, 0);
+  close(dfd);
+  if(r){
+    return NULL;
   }
-  return NULL;
+  char* p = malloc(strlen(spec) + strlen(logopath) + 1);
+  strcpy(p, logopath);
+  strcat(p, spec);
+  return p;
 }
 
 // FIXME deal more forgivingly with quotation marks
