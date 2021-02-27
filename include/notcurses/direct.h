@@ -216,6 +216,11 @@ API bool ncdirect_canopen_images(const struct ncdirect* n);
 // Is our encoding UTF-8? Requires LANG being set to a UTF8 locale.
 API bool ncdirect_canutf8(const struct ncdirect* n);
 
+// This function must successfully return before NCBLIT_PIXEL is available.
+// Returns -1 on error, 0 for no support, or 1 if pixel output is supported.
+// Must not be called concurrently with either input or rasterization.
+API int ncdirect_check_pixel_support(struct ncdirect* n);
+
 // Draw horizontal/vertical lines using the specified channels, interpolating
 // between them as we go. The EGC may not use more than one column. For a
 // horizontal line, |len| cannot exceed the screen width minus the cursor's

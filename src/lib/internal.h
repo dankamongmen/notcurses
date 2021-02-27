@@ -286,11 +286,12 @@ typedef struct tinfo {
   // background_opaque is in use. detect this, and avoid the default if so.
   // bg_collides_default is either 0x0000000 or 0x1RRGGBB.
   uint32_t bg_collides_default;
-  bool sextants;  // do we have (good, vetted) Unicode 13 sextant support?
-  bool braille;   // do we have Braille support? (linux console does not)
+  pthread_mutex_t pixel_query; // only query for pixel support once
   char* pixelon;  // enter pixel graphics mode
   char* pixeloff; // leave pixel graphics mode
-  bool sixel;     // do we have Sixel support?
+  bool pixel_query_done; // have we yet performed pixel query?
+  bool sextants;  // do we have (good, vetted) Unicode 13 sextant support?
+  bool braille;   // do we have Braille support? (linux console does not)
 } tinfo;
 
 typedef struct ncinputlayer {
@@ -385,6 +386,8 @@ int terminfostr(char** gseq, const char* name);
 // load |ti| from the terminfo database, which must already have been
 // initialized. set |utf8| if we've verified UTF8 output encoding.
 int interrogate_terminfo(tinfo* ti, const char* termname, unsigned utf8);
+
+void free_terminfo_cache(tinfo* ti);
 
 // perform queries that require writing to the terminal, and reading a
 // response, rather than simply reading the terminfo database. can result

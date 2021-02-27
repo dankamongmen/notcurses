@@ -72,6 +72,8 @@ notcurses_direct - minimal notcurses instances for styling text
 
 **bool ncdirect_canutf8(const struct ncdirect* ***n***);**
 
+**int ncdirect_check_pixel_support(struct ncdirect* ***n***);**
+
 **int ncdirect_hline_interp(struct ncdirect* ***n***, const char* ***egc***, int ***len***, uint64_t ***h1***, uint64_t ***h2***);**
 
 **int ncdirect_vline_interp(struct ncdirect* ***n***, const char* ***egc***, int ***len***, uint64_t ***h1***, uint64_t ***h2***);**
@@ -144,6 +146,10 @@ information, consult **readline(3)**. If you want input echoed to the
 terminal while using **ncdirect_readline**, **NCDIRECT_OPTION_INHIBIT_CBREAK**
 must be supplied to **ncdirect_init**.
 
+**ncdirect_check_pixel_support** must be called (and successfully return)
+before **NCBLIT_PIXEL** can be used to render images; see
+**notcurses_visual(3)** for more details.
+
 # RETURN VALUES
 
 **ncdirect_init** returns **NULL** on failure. Otherwise, the return value
@@ -153,6 +159,9 @@ to **ncdirect_stop**.
 **ncdirect_putstr** and **ncdirect_printf_aligned** return the number of bytes
 written on success. On failure, they return some negative number.
 
+**ncdirect_check_pixel_support** returns -1 on error, 0 if there is no pixel
+support, and 1 if pixel support is successfully detected.
+
 All other functions return 0 on success, and non-zero on error.
 
 # SEE ALSO
@@ -161,5 +170,6 @@ All other functions return 0 on success, and non-zero on error.
 **readline(3)**
 **notcurses(3)**,
 **notcurses_plane(3)**,
+**notcurses_visual(3)**,
 **terminfo(5)**,
 **termios(3)**

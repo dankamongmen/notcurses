@@ -143,6 +143,9 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
     }else if(keyp >= '0' && keyp <= '8'){ // FIXME eliminate ctrl/alt
       marsh->blitter = static_cast<ncblitter_e>(keyp - '0');
       vopts->blitter = marsh->blitter;
+      if(vopts->blitter == NCBLIT_PIXEL){
+        notcurses_check_pixel_support(nc);
+      }
       continue;
     }else if(keyp == NCKey::Up){
       // FIXME
@@ -280,6 +283,9 @@ int direct_mode_player(int argc, char** argv, ncscale_e scalemode, ncblitter_e b
     return -1;
   }
   bool failed = false;
+  if(blitter == NCBLIT_PIXEL){
+    dm.check_pixel_support();
+  }
   {
     for(auto i = 0 ; i < argc ; ++i){
       try{
@@ -303,7 +309,6 @@ auto main(int argc, char** argv) -> int {
   float timescale, displaytime;
   ncscale_e scalemode;
   notcurses_options ncopts{};
-  ncopts.flags = NCOPTION_VERIFY_SIXEL;
   ncblitter_e blitter = NCBLIT_PIXEL;
   bool quiet = false;
   bool loop = false;
@@ -348,6 +353,9 @@ auto main(int argc, char** argv) -> int {
       vopts.n = *stdn;
       vopts.scaling = scalemode;
       vopts.blitter = blitter;
+      if(vopts.blitter == NCBLIT_PIXEL){
+        notcurses_check_pixel_support(nc);
+      }
       do{
         struct marshal marsh = {
           .subtitle_plane = nullptr,

@@ -71,6 +71,10 @@ apply_term_heuristics(tinfo* ti, const char* termname){
   return 0;
 }
 
+void free_terminfo_cache(tinfo* ti){
+  pthread_mutex_destroy(&ti->pixel_query);
+}
+
 // termname is just the TERM environment variable. some details are not
 // exposed via terminfo, and we must make heuristic decisions based on
 // the detected terminal type, yuck :/.
@@ -184,6 +188,8 @@ int interrogate_terminfo(tinfo* ti, const char* termname, unsigned utf8){
     ti->fgop = "\x1b[39m";
     ti->bgop = "\x1b[49m";
   }
+  pthread_mutex_init(&ti->pixel_query, NULL);
+  ti->pixel_query_done = false;
   if(apply_term_heuristics(ti, termname)){
     return -1;
   }
@@ -229,8 +235,8 @@ query_sixel(tinfo* ti, int fd){
           state = DONE;
         }else if(in == '4'){
           if(!ti->pixelon){
-            ti->pixelon = strdup("\ePq");
-            ti->pixeloff = strdup("\e\\");
+            ti->pixelon = "\ePq";
+            ti->pixeloff = "\e\\";
           } // FIXME else warning?
         }
         break;
@@ -245,10 +251,18 @@ query_sixel(tinfo* ti, int fd){
   return 0;
 }
 
-// fd must be a real terminal, and must not be in nonblocking mode
+// fd must be a real terminal, and must not be in nonblocking mode. uses the
+// pthread_mutex_t of |ti| to only act once.
 int query_term(tinfo* ti, int fd){
-  if(query_sixel(ti, fd)){
+  if(fd < 0){
     return -1;
   }
-  return 0;
+  int ret = 0;
+  pthread_mutex_lock(&ti->pixel_query);
+  if(!ti->pixel_query_done){
+    ret = query_sixel(ti, fd);
+    ti->pixel_query_done = true;
+  }
+  pthread_mutex_unlock(&ti->pixel_query);
+  return ret;
 }

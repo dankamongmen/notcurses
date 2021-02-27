@@ -637,6 +637,7 @@ ncdirect_stop_minimal(void* vnc){
     ret |= close(nc->ctermfd);
   }
   ret |= ncdirect_flush(nc);
+  free_terminfo_cache(&nc->tcache);
   return ret;
 }
 
@@ -1099,6 +1100,16 @@ int ncdirect_flush(const ncdirect* nc){
     if(errno != EAGAIN){
       return -1;
     }
+  }
+  return 0;
+}
+
+int ncdirect_check_pixel_support(ncdirect* n){
+  if(query_term(&n->tcache, n->ctermfd)){
+    return -1;
+  }
+  if(n->tcache.pixelon){
+    return 1;
   }
   return 0;
 }
