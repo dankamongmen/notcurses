@@ -66,15 +66,11 @@ UTF-8 encoding, and the locale was successfully loaded.
 that the terminal can properly render Unicode 13 sextants.
 
 **notcurses_canpixel** returns **true** if the terminal advertises
-support for pixel graphics (e.g. Sixel).
+support for pixel graphics (e.g. Sixel). This function will not return **true**
+until **notcurses_check_pixel_support** is called, and successfully returns.
 
 **notcurses_canbraille** returns **true** if Braille is expected to work on the
 terminal.
-
-# BUGS
-
-**notcurses_canpixel** currently only returns non-zero if 
-**NCOPTION_VERIFY_SIXEL** was passed to **notcurses_init(3)**.
 
 # NOTES
 
@@ -88,4 +84,5 @@ will return **true**, but the full spectrum will not be available.
 
 **notcurses(3)**,
 **notcurses_init(3)**,
+**notcurses_visual(3)**,
 utf8(7)
