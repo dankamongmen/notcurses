@@ -29,6 +29,6 @@ Notcurses supports only Python 3.
 # SEE ALSO
 
 **notcurses-demo(1)**,
-**notcurses-direct-pydemo(1)**,
+**ncdirect-pydemo(1)**,
 **python(1)**,
 **notcurses(3)**
