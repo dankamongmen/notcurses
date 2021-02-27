@@ -59,6 +59,9 @@ steps:
     - rustc --version
     - cargo build
     - env TERM=xterm cargo t_all
+    - LDFLAGS=-L/usr/local/lib CFLAGS=-I/usr/local/include python3 setup.py sdist build install
+    - env TERM=xterm LD_LIBRARY_PATH=/usr/local/lib ./notcurses-pydemo > /dev/null
+    - env TERM=xterm LD_LIBRARY_PATH=/usr/local/lib ./notcurses-direct-pydemo
 ---
 kind: pipeline
 type: docker
