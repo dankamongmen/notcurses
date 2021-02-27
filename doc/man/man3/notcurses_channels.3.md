@@ -43,14 +43,6 @@ notcurses_channels - operations on notcurses channels
 
 **uint32_t channel_set_default(uint32_t* ***channel***);**
 
-**unsigned channels_bchannel(uint64_t ***channels***);**
-
-**unsigned channels_fchannel(uint64_t ***channels***);**
-
-**uint64_t channels_set_bchannel(uint64_t* ***channels***, uint32_t ***channel***);**
-
-**uint64_t channels_set_fchannel(uint64_t* ***channels***, uint32_t ***channel***);**
-
 **unsigned channels_fg_rgb(uint64_t ***channels***);**
 
 **unsigned channels_bg_rgb(uint64_t ***channels***);**
