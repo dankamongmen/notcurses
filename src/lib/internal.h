@@ -566,7 +566,7 @@ term_emit(const char* seq, FILE* out, bool flush){
   }
   if(flush){
     while(fflush(out) == EOF){
-      if(errno != EAGAIN){
+      if(errno != EAGAIN && errno != EINTR && errno != EBUSY){
         fprintf(stderr, "Error flushing after %zub sequence (%s)\n", strlen(seq), strerror(errno));
         return -1;
       }
