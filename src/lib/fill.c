@@ -413,10 +413,10 @@ rotate_2x1_cw(ncplane* src, ncplane* dst, int srcy, int srcx, int dsty, int dstx
   //     otherwise, c2bg c2btrans
   //  - botright gets topright. if topright is foreground, c2fg c2ftrans.
   //     otherwise, c2bg c2btrans
-  uint32_t c1b = cell_bchannel(&c1);
-  uint32_t c2b = cell_bchannel(&c2);
-  uint32_t c1t = cell_fchannel(&c1);
-  uint32_t c2t = cell_fchannel(&c2);
+  uint32_t c1b = cell_bchannel_common(&c1);
+  uint32_t c2b = cell_bchannel_common(&c2);
+  uint32_t c1t = cell_fchannel_common(&c1);
+  uint32_t c2t = cell_fchannel_common(&c2);
   int ret = 0;
   ret |= rotate_channels(src, &c1, &c1t, &c1b);
   ret |= rotate_channels(src, &c2, &c2t, &c2b);
@@ -443,10 +443,10 @@ rotate_2x1_ccw(ncplane* src, ncplane* dst, int srcy, int srcx, int dsty, int dst
     cell_release(src, &c1);
     return -1;
   }
-  uint32_t c1b = cell_bchannel(&c1);
-  unsigned c2b = cell_bchannel(&c2);
-  unsigned c1t = cell_fchannel(&c1);
-  unsigned c2t = cell_fchannel(&c2);
+  uint32_t c1b = cell_bchannel_common(&c1);
+  unsigned c2b = cell_bchannel_common(&c2);
+  unsigned c1t = cell_fchannel_common(&c1);
+  unsigned c2t = cell_fchannel_common(&c2);
   int ret = 0;
   ret |= rotate_channels(src, &c1, &c1t, &c1b);
   ret |= rotate_channels(src, &c2, &c2t, &c2b);
