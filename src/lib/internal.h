@@ -606,7 +606,7 @@ ncplane_cell_ref_yx(ncplane* n, int y, int x){
 
 static inline void
 cell_debug(const egcpool* p, const nccell* c){
-  fprintf(stderr, "gcluster: %u %s style: 0x%04x chan: 0x%016jx\n",
+  fprintf(stderr, "gcluster: %08x %s style: 0x%04x chan: 0x%016jx\n",
 				  c->gcluster, egcpool_extended_gcluster(p, c), c->stylemask, c->channels);
 }
 
@@ -951,10 +951,32 @@ cell_bchannel(const nccell* cl){
   return channels_bchannel(cl->channels);
 }
 
+// Extract those elements of the channel which are common to both foreground
+// and background channel representations.
+static inline uint32_t
+channel_common(uint32_t channel){
+  return channel & (CELL_BGDEFAULT_MASK | CELL_BG_RGB_MASK |
+                    CELL_BG_PALETTE | CELL_BG_ALPHA_MASK);
+}
+
+// Extract those elements of the background channel which may be freely swapped
+// with the foreground channel (alpha and coloring info).
+static inline uint32_t
+cell_bchannel_common(const nccell* cl){
+  return channel_common(cell_bchannel(cl));
+}
+
 // Extract the 32-bit foreground channel from a cell.
 static inline uint32_t
 cell_fchannel(const nccell* cl){
   return channels_fchannel(cl->channels);
+}
+
+// Extract those elements of the foreground channel which may be freely swapped
+// with the background channel (alpha and coloring info).
+static inline uint32_t
+cell_fchannel_common(const nccell* cl){
+  return channel_common(cell_fchannel(cl));
 }
 
 // Set the 32-bit background channel of an nccell.
