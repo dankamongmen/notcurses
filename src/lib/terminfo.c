@@ -1,3 +1,4 @@
+#include <fcntl.h>
 #include <ncurses.h> // needed for some definitions, see terminfo(3ncurses)
 #include "internal.h"
 
@@ -251,17 +252,26 @@ query_sixel(tinfo* ti, int fd){
   return 0;
 }
 
-// fd must be a real terminal, and must not be in nonblocking mode. uses the
-// pthread_mutex_t of |ti| to only act once.
+// fd must be a real terminal. uses the query lock of |ti| to only act once.
 int query_term(tinfo* ti, int fd){
   if(fd < 0){
+    return -1;
+  }
+  int flags = fcntl(fd, F_GETFL, 0);
+  if(flags < 0){
     return -1;
   }
   int ret = 0;
   pthread_mutex_lock(&ti->pixel_query);
   if(!ti->pixel_query_done){
+    if(flags & O_NONBLOCK){
+      fcntl(fd, F_SETFL, flags & ~O_NONBLOCK);
+    }
     ret = query_sixel(ti, fd);
     ti->pixel_query_done = true;
+    if(flags & O_NONBLOCK){
+      fcntl(fd, F_SETFL, flags);
+    }
   }
   pthread_mutex_unlock(&ti->pixel_query);
   return ret;
