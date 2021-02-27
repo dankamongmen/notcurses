@@ -782,8 +782,7 @@ init_banner(const notcurses* nc){
            "  terminfo from %s\n",
            nc->stdplane->leny, nc->stdplane->lenx,
            bprefix(nc->stats.fbbytes, 1, prefixbuf, 0), sizeof(nccell),
-           nc->tcache.colors,
-           nc->tcache.RGBflag ? "+RGB" : "",
+           nc->tcache.colors, nc->tcache.RGBflag ? "+RGB" : "",
            __VERSION__,
 #ifdef __BYTE_ORDER__
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
@@ -1029,6 +1028,9 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   if(ncinputlayer_init(&ret->input, stdin)){
     goto err;
   }
+  if(make_nonblocking(ret->input.ttyinfd)){
+    goto err;
+  }
   // Neither of these is supported on e.g. the "linux" virtual console.
   if(!(opts->flags & NCOPTION_NO_ALTERNATE_SCREEN)){
     terminfostr(&ret->tcache.smcup, "smcup");
@@ -1051,9 +1053,6 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
       goto err;
     }
     reset_term_attributes(ret);
-  }
-  if(make_nonblocking(ret->input.ttyinfd)){
-    goto err;
   }
   if((ret->rstate.mstreamfp = open_memstream(&ret->rstate.mstream, &ret->rstate.mstrsize)) == NULL){
     free_plane(ret->stdplane);

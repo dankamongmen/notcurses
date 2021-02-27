@@ -696,9 +696,6 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
   if(interrogate_terminfo(&ret->tcache, shortname_term, utf8)){
     goto err;
   }
-  if(query_term(&ret->tcache, ret->ctermfd)){
-    goto err;
-  }
   ncdirect_set_styles(ret, 0);
   return ret;
 
