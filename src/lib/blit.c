@@ -855,7 +855,9 @@ sixel_blit(ncplane* nc, int placey, int placex, int linesize,
     int visx = begx;
     for(x = placex ; visx < (begx + lenx) && x < dimx ; ++x, visx += 1){
       size_t offset = 0;
-      char sixel[128]; // FIXME
+#define GROWTHFACTOR 256
+      size_t avail = GROWTHFACTOR;
+      char* sixel = malloc(avail);
       // FIXME find sixels with common colors for single register program
       unsigned bitsused = 0; // once 63, we're done
       int colorreg = 1; // leave 0 as background
@@ -882,7 +884,8 @@ sixel_blit(ncplane* nc, int placey, int placex, int linesize,
           char c = 63 + thesebits;
           // FIXME use percentages(rgb)
           // bitstring is added to 63, resulting in [63, 126] aka '?'..'~'
-          int n = snprintf(sixel + offset, sizeof(sixel) - offset,
+          // FIXME grow if necessary
+          int n = snprintf(sixel + offset, avail - offset,
                            "%s#%d;2;%d;%d;%d#%d%c", printed ? "$" : "",
                            colorreg, 100, 100, 100, colorreg, c);
           if(n < 0){
@@ -899,13 +902,16 @@ sixel_blit(ncplane* nc, int placey, int placex, int linesize,
       if(offset){
         nccell* c = ncplane_cell_ref_yx(nc, y, x);
         if(pool_blit_direct(&nc->pool, c, sixel, offset, 1) <= 0){
+          free(sixel);
           return -1;
         }
         cell_set_pixels(c, 1);
       } // FIXME otherwise, reset?
+      free(sixel);
     }
   }
   return total;
+#undef GROWTHFACTOR
 }
 
 // NCBLIT_DEFAULT is not included, as it has no defined properties. It ought
