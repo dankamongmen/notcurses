@@ -14,7 +14,7 @@ ncplayer - Render images and video to a terminal
 
 **ncplayer** uses a multimedia-enabled Notcurses to render images and videos to a
 terminal. By default, **stretch**-type scaling is used to fill the rendering
-area, and the **sexblitter** blitter is used (where known to work well) for a
+area, and the **sex**-type blitter is used (where known to work well) for a
 3x2→1 mapping from pixels to cells. In a terminal that doesn't support Unicode
 13 sextants, the **quadblitter** is used instead.
 
@@ -31,8 +31,7 @@ be any non-negative number.
 
 **-s** ***scalemode***: Scaling mode, one of **none**, **hires**, **scale**, **scalehi**, or **stretch**.
 
-**-b** ***blitter***: Blitter, one of **ascii**, **halfblocks**, **quadblitter**,
-**sexblitter**, **braille**, or **pixel**.
+**-b** ***blitter***: Blitter, one of **ascii**, **half**, **quad**, **sex**, **braille**, or **pixel**.
 
 **-m margins**: Define rendering margins (see below).
 
