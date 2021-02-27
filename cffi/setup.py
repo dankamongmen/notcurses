@@ -10,8 +10,8 @@ class ManPageGenerator(install):
         outfile = 'notcurses-pydemo.1'
         pypandoc.convert_file(os.path.join(here, 'notcurses-pydemo.1.md'), 'man', outputfile=outfile, extra_args=['-s'])
         files.append(outfile)
-        outfile = 'notcurses-direct-pydemo.1'
-        pypandoc.convert_file(os.path.join(here, 'notcurses-direct-pydemo.1.md'), 'man', outputfile=outfile, extra_args=['-s'])
+        outfile = 'ncdirect-pydemo.1'
+        pypandoc.convert_file(os.path.join(here, 'ncdirect-pydemo.1.md'), 'man', outputfile=outfile, extra_args=['-s'])
         files.append(outfile)
         # this breaks when using --user without --prefix
         ipage = (os.path.join(self.prefix, 'share', 'man', 'man1'), files)
@@ -36,7 +36,7 @@ setup(
     name="notcurses",
     version="2.2.2",
     packages=['notcurses'],
-    scripts=['notcurses-pydemo', 'notcurses-direct-pydemo'],
+    scripts=['notcurses-pydemo', 'ncdirect-pydemo'],
     package_dir={'': 'src'},
     author="Nick Black",
     author_email="nickblack@linux.com",
