@@ -92,6 +92,8 @@ typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 
 **int ncplane_qrcode(struct ncplane* ***n***, int* ***ymax***, int* ***xmax***, const void* ***data***, size_t ***len***)**
 
+**int notcurses_check_pixel_support(struct notcurses* ***nc***);**
+
 # DESCRIPTION
 
 An **ncvisual** is a virtual pixel framebuffer. They can be created from
@@ -202,6 +204,16 @@ complete fidelity.
 Finally, rendering operates slightly differently when two planes have both been
 blitted, and one lies atop the other. See **notcurses_render(3)** for more
 information.
+
+# PIXEL BLITTING
+
+Some terminals support pixel-based output, either via Sixel or some bespoke
+mechanism. Checking for Sixel support requires interrogating the terminal and
+reading a response. This takes time, and will never complete if the terminal
+doesn't respond. Before **NCBLIT_PIXEL** can be used, it is thus necessary to
+check for support with **notcurses_check_pixel_support**. If this function has
+not successfully returned, attempts to use **NCBLIT_PIXEL** will fall back to
+**NCBLIT_3x2** (or fail, if **NCVISUAL_OPTION_NODEGRADE** is used).
 
 # RETURN VALUES
 

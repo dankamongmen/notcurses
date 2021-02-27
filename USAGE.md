@@ -89,13 +89,14 @@ typedef enum {
 // prior to notcurses_init(), you should not set this bit. Even if you are
 // invoking setlocale(), this behavior shouldn't be an issue unless you're
 // doing something weird (setting a locale not based on LANG).
-#define NCOPTION_INHIBIT_SETLOCALE 0x0001
+#define NCOPTION_INHIBIT_SETLOCALE   0x0001
 
-// Checking for Sixel support requires writing an escape, and then reading an
-// inline reply from the terminal. Since this can interact poorly with actual
-// user input, it's not done unless Sixel will actually be used. Set this flag
-// to unconditionally test for Sixel support in notcurses_init().
-#define NCOPTION_VERIFY_SIXEL        0x0002
+// Checking for pixel support might require writing a control sequence, and
+// then reading a reply directly from the terminal. If the terminal doesn't
+// support this, the application will lock up. If you'll be using pixels, set
+// this flag to perform the check in notcurses_init(). You must otherwise call
+// notcurses_check_pixel() before NCBLIT_PIXEL will become available.
+#define NCOPTION_VERIFY_PIXEL        0x0002ull
 
 // We typically install a signal handler for SIGWINCH that generates a resize
 // event in the notcurses_getc() queue. Set to inhibit this handler.
@@ -306,6 +307,11 @@ bool notcurses_cansextants(const struct notcurses* nc);
 
 // Can we draw Braille? The Linux console cannot.
 bool notcurses_canbraille(const struct notcurses* nc);
+
+// If NCOPTION_VERIFY_PIXEL was not supplied to notcurses_init(), this
+// function must successfully return before NCBLIT_PIXEL is available. Returns
+// -1 on error, 0 if pixel mode is not supported, or 1 if it is supported.
+int notcurses_check_pixel(struct notcurses* nc);
 ```
 
 ## Direct mode

@@ -826,11 +826,7 @@ typedef enum {
 // doing something weird (setting a locale not based on LANG).
 #define NCOPTION_INHIBIT_SETLOCALE   0x0001ull
 
-// Checking for Sixel support requires writing an escape, and then reading an
-// inline reply from the terminal. Since this can interact poorly with actual
-// user input, it's not done unless Sixel will actually be used. Set this flag
-// to unconditionally test for Sixel support in notcurses_init().
-#define NCOPTION_VERIFY_SIXEL        0x0002ull
+// NCOPTION_VERIFY_PIXEL was removed in 2.2.3. It ought be repurposed. FIXME.
 
 // We typically install a signal handler for SIGWINCH that generates a resize
 // event in the notcurses_getc() queue. Set to inhibit this handler.
@@ -1236,6 +1232,11 @@ API bool notcurses_canbraille(const struct notcurses* nc);
 
 // Can we blit to pixel graphics?
 API bool notcurses_canpixel(const struct notcurses* nc);
+
+// This function must successfully return before NCBLIT_PIXEL is available.
+// Returns -1 on error, 0 for no support, or 1 if pixel output is supported.
+// Must not be called concurrently with either input or rasterization.
+API int notcurses_check_pixel_support(struct notcurses* nc);
 
 typedef struct ncstats {
   // purely increasing stats

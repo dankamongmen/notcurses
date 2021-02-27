@@ -777,14 +777,13 @@ init_banner(const notcurses* nc){
     term_fg_palindex(nc, stdout, nc->tcache.colors <= 256 ? 50 % nc->tcache.colors : 0x20e080);
     printf("\n notcurses %s by nick black et al", notcurses_version());
     term_fg_palindex(nc, stdout, nc->tcache.colors <= 256 ? 12 % nc->tcache.colors : 0x2080e0);
-    printf("\n  %d rows %d cols (%sB) %zuB cells %d colors%s%s\n"
+    printf("\n  %d rows %d cols (%sB) %zuB cells %d colors%s\n"
            "  compiled with gcc-%s, %s-endian\n"
            "  terminfo from %s\n",
            nc->stdplane->leny, nc->stdplane->lenx,
            bprefix(nc->stats.fbbytes, 1, prefixbuf, 0), sizeof(nccell),
            nc->tcache.colors,
            nc->tcache.RGBflag ? "+RGB" : "",
-           nc->tcache.sixel ? "+Sixel" : "",
            __VERSION__,
 #ifdef __BYTE_ORDER__
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
@@ -906,6 +905,16 @@ recursive_lock_init(pthread_mutex_t *lock){
 #ifndef __GLIBC__
 #undef PTHREAD_MUTEX_RECURSIVE_NP
 #endif
+}
+
+int notcurses_check_pixel_support(notcurses* nc){
+  if(query_term(&nc->tcache, nc->ttyfd)){
+    return -1;
+  }
+  if(nc->tcache.pixelon){
+    return 1;
+  }
+  return 0;
 }
 
 // FIXME cut this up into a few distinct pieces, yearrrgh
@@ -1033,12 +1042,6 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     goto err;
   }
   if(ret->ttyfd >= 0){
-    if(opts->flags & NCOPTION_VERIFY_SIXEL){
-      if(query_term(&ret->tcache, ret->ttyfd)){
-        free_plane(ret->stdplane);
-        goto err;
-      }
-    }
     if(ret->tcache.smkx && tty_emit(ret->tcache.smkx, ret->ttyfd)){
       free_plane(ret->stdplane);
       goto err;
@@ -1215,6 +1218,7 @@ int notcurses_stop(notcurses* nc){
     del_curterm(cur_term);
     ret |= pthread_mutex_destroy(&nc->statlock);
     ret |= pthread_mutex_destroy(&nc->pilelock);
+    free_terminfo_cache(&nc->tcache);
     free(nc);
   }
   return ret;
@@ -2073,7 +2077,7 @@ bool notcurses_canchangecolor(const notcurses* nc){
 }
 
 bool notcurses_canpixel(const notcurses* nc){
-  return nc->tcache.sixel;
+  return nc->tcache.pixelon;
 }
 
 palette256* palette256_new(notcurses* nc){

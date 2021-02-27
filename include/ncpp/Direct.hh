@@ -217,6 +217,11 @@ namespace ncpp
 			return ncdirect_canutf8 (direct);
 		}
 
+		int check_pixel_support() noexcept
+		{
+			return ncdirect_check_pixel_support (direct);
+		}
+
 	private:
 		ncdirect *direct;
 	};
