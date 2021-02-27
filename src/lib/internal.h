@@ -945,6 +945,30 @@ cell_set_blitquadrants(nccell* c, unsigned tl, unsigned tr, unsigned bl, unsigne
 // Destroy a plane and all its bound descendants.
 int ncplane_genocide(ncplane *ncp);
 
+// Extract the 32-bit background channel from a cell.
+static inline uint32_t
+cell_bchannel(const nccell* cl){
+  return channels_bchannel(cl->channels);
+}
+
+// Extract the 32-bit foreground channel from a cell.
+static inline uint32_t
+cell_fchannel(const nccell* cl){
+  return channels_fchannel(cl->channels);
+}
+
+// Set the 32-bit background channel of an nccell.
+static inline uint64_t
+cell_set_bchannel(nccell* cl, uint32_t channel){
+  return channels_set_bchannel(&cl->channels, channel);
+}
+
+// Set the 32-bit foreground channel of an nccell.
+static inline uint64_t
+cell_set_fchannel(nccell* cl, uint32_t channel){
+  return channels_set_fchannel(&cl->channels, channel);
+}
+
 // Returns the result of blending two channels. 'blends' indicates how heavily
 // 'c1' ought be weighed. If 'blends' is 0, 'c1' will be entirely replaced by
 // 'c2'. If 'c1' is otherwise the default color, 'c1' will not be touched,

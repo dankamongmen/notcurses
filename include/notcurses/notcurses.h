@@ -1924,30 +1924,6 @@ API int ncplane_mergedown(const struct ncplane* RESTRICT src,
 // The cursor is homed. The plane's active attributes are unaffected.
 API void ncplane_erase(struct ncplane* n);
 
-// Extract the 32-bit background channel from a cell.
-static inline uint32_t
-cell_bchannel(const nccell* cl){
-  return channels_bchannel(cl->channels);
-}
-
-// Extract the 32-bit foreground channel from a cell.
-static inline uint32_t
-cell_fchannel(const nccell* cl){
-  return channels_fchannel(cl->channels);
-}
-
-// Set the 32-bit background channel of an nccell.
-static inline uint64_t
-cell_set_bchannel(nccell* cl, uint32_t channel){
-  return channels_set_bchannel(&cl->channels, channel);
-}
-
-// Set the 32-bit foreground channel of an nccell.
-static inline uint64_t
-cell_set_fchannel(nccell* cl, uint32_t channel){
-  return channels_set_fchannel(&cl->channels, channel);
-}
-
 // Extract 24 bits of foreground RGB from 'cl', shifted to LSBs.
 static inline uint32_t
 cell_fg_rgb(const nccell* cl){

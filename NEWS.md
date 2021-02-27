@@ -12,6 +12,10 @@ rearrangements of Notcurses.
     `ncdirect_check_pixel_support()`, which must be called (and must return
     success) before `NCBLIT_PIXEL` will be available. `NCBLIT_PIXEL` degrades
     to `NCBLIT_3x2` until support is verified.
+  * Ceased exporting `cell_fchannel()`, `cell_bchannel()`,
+    `cell_set_fchannel()`, and `cell_set_bchannel()`. These functions were
+    never safe for users. Everything a user might want to manipulate can be
+    manipulated with more granular functions.
 
 * 2.2.2 (2021-02-18):
   * `notcurses_stats()` no longer qualifies its `notcurses*` argument with
