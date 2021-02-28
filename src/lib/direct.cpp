@@ -499,6 +499,9 @@ ncdirectv* ncdirect_render_frame(ncdirect* n, const char* file,
     .resizecb = nullptr,
     .flags = 0,
   };
+  if(bset->geom == NCBLIT_PIXEL){
+    nopts.rows = 1;
+  }
   auto ncdv = ncplane_new_internal(nullptr, nullptr, &nopts);
   if(!ncdv){
     ncvisual_destroy(ncv);
