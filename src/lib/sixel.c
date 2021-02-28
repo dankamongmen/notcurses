@@ -7,10 +7,19 @@ break_sixel_comps(unsigned char comps[static 3], uint32_t rgba){
   comps[2] = ncpixel_b(rgba) * 100 / 255;
 }
 
+// first pass: extract up to 256 sixelspace colors over arbitrarily many sixels
+// sixelspace is 0..100 corresponding to 0..255, lame =[
 typedef struct colortable {
   int colors;
+  int sixelcount;
   unsigned char table[3 * 256];
 } colortable;
+
+// second pass: construct data for extracted colors over the sixels
+typedef struct sixeltable {
+  const colortable* ctab;
+  unsigned char* data;  // |colors|x|sixelcount|-byte arrays
+} sixeltable;
 
 // returns the index at which the provided color can be found, possibly
 // inserting it into the table. returns -1 if the color is not in the
@@ -66,6 +75,40 @@ extract_color_table(ncplane* nc, const uint32_t* data, int placey, int placex,
         if(find_color(ctab, comps) < 0){
           return -1;
         }
+      }
+      ++ctab->sixelcount;
+    }
+  }
+  return 0;
+}
+
+static int
+extract_data_table(ncplane* nc, const uint32_t* data, int placey, int placex,
+                   int linesize, int begy, int begx, int leny, int lenx,
+                   sixeltable* stab){
+  for(int c = 0 ; c < stab->ctab->colors ; ++c){
+    int dimy, dimx, x, y;
+    int pos = 0;
+    ncplane_dim_yx(nc, &dimy, &dimx);
+    int visy = begy;
+    for(y = placey ; visy < (begy + leny) && y < dimy ; ++y, visy += 6){
+      int visx = begx;
+      for(x = placex ; visx < (begx + lenx) && x < dimx ; ++x, visx += 1){
+        for(int sy = visy ; sy < dimy && sy < visy + 6 ; ++sy){
+          const uint32_t* rgb = (const uint32_t*)(data + (linesize * sy) + (visx * 4));
+          if(rgba_trans_p(ncpixel_a(*rgb))){
+//fprintf(stderr, "transparent\n");
+            continue;
+          }
+          unsigned char comps[3];
+          break_sixel_comps(comps, *rgb);
+//fprintf(stderr, "%d/%d/%d\n", comps[0], comps[1], comps[2]);
+          if(memcmp(comps, stab->ctab->table + c * 3, 3) == 0){
+            stab->data[c * stab->ctab->sixelcount + pos] |= (1u << (sy - visy));
+          }
+        }
+//fprintf(stderr, "color %d pos %d: %u\n", c, pos, stab->data[c * stab->ctab->sixelcount + pos]);
+        ++pos;
       }
     }
   }
@@ -162,14 +205,31 @@ int sixel_blit(ncplane* nc, int placey, int placex, int linesize,
     return -1;
   }
   ctab->colors = 0;
+  ctab->sixelcount = 0;
   memset(ctab->table, 0xff, 3);
   if(extract_color_table(nc, data, placey, placex, linesize,
                          begy, begx, leny, lenx, ctab)){
     free(ctab);
     return -1;
   }
+  sixeltable stable = {
+    .ctab = ctab,
+    .data = malloc(ctab->colors * ctab->sixelcount),
+  };
+  if(stable.data == NULL){
+    free(ctab);
+    return -1;
+  }
+  memset(stable.data, 0, ctab->colors * ctab->sixelcount);
+  if(extract_data_table(nc, data, placey, placex, linesize,
+                        begy, begx, leny, lenx, &stable)){
+    free(stable.data);
+    free(ctab);
+    return -1;
+  }
   int r = sixel_blit_inner(nc, placey, placex, linesize, data,
                            begy, begx, leny, lenx, ctab);
+  free(stable.data);
   free(ctab);
   return r;
 }
