@@ -122,6 +122,25 @@ extract_data_table(ncplane* nc, const uint32_t* data, int placey, int placex,
 }
 
 static int
+write_rle(FILE* fp, int seenrle, unsigned char crle){
+  crle += 63;
+  if(seenrle == 1){
+    if(fputc(crle, fp) == EOF){
+      return -1;
+    }
+  }else if(seenrle == 2){
+    if(fprintf(fp, "%c%c", crle, crle) <= 0){
+      return -1;
+    }
+  }else{
+    if(fprintf(fp, "!%d%c", seenrle, crle) <= 0){
+      return -1;
+    }
+  }
+  return 0;
+}
+
+static int
 write_sixel_data(FILE* fp, int lenx, sixeltable* stab){
   fprintf(fp, "\e[?80h\ePq"); // FIXME pixelon
   for(int i = 0 ; i < stab->ctab->colors ; ++i){
@@ -132,11 +151,25 @@ write_sixel_data(FILE* fp, int lenx, sixeltable* stab){
   while(p < stab->ctab->sixelcount){
     for(int i = 0 ; i < stab->ctab->colors ; ++i){
       fprintf(fp, "#%d", i);
+      int seenrle = 0;
+      unsigned char crle = 0;
       for(int m = p ; m < stab->ctab->sixelcount && m < p + lenx ; ++m){
 //fprintf(stderr, "%d ", i * stab->ctab->sixelcount + m);
 //fputc(stab->data[i * stab->ctab->sixelcount + m] + 63, stderr);
-        fputc(stab->data[i * stab->ctab->sixelcount + m] + 63, fp);
+        if(seenrle){
+          if(stab->data[i * stab->ctab->sixelcount + m] == crle){
+            ++seenrle;
+          }else{
+            write_rle(fp, seenrle, crle);
+            seenrle = 1;
+            crle = stab->data[i * stab->ctab->sixelcount + m];
+          }
+        }else{
+          seenrle = 1;
+          crle = stab->data[i * stab->ctab->sixelcount + m];
+        }
       }
+      write_rle(fp, seenrle, crle);
       //if(m < stab->ctab->sixelcount){ // print subband terminator
         if(i + 1 < stab->ctab->colors){
           fputc('$', fp);
