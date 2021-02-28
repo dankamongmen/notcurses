@@ -128,8 +128,6 @@ typedef struct rasterstate {
   bool bgpalelidable;
   bool fgdefelidable;
   bool bgdefelidable;
-  // are we in a pixel graphics mode?
-  bool pixelmode;
 } rasterstate;
 
 // Tablets are the toplevel entitites within an ncreel. Each corresponds to

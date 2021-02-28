@@ -580,58 +580,22 @@ ncfputc(char c, FILE* out){
 #endif
 }
 
-static int
-enter_pixel_mode(notcurses* nc, FILE* out){
-  if(!nc->rstate.pixelmode){
-    if(term_emit(nc->tcache.pixelon, out, false)){
-      return -1;
-    }
-  }
-  nc->rstate.pixelmode = true;
-  return 0;
-}
-
-static int
-leave_pixel_mode(notcurses* nc, FILE* out){
-  if(term_emit(nc->tcache.pixeloff, out, false)){
-    return -1;
-  }
-  nc->rstate.pixelmode = false;
-  return 0;
-}
-
 // write the nccell's UTF-8 extended grapheme cluster to the provided FILE*.
 static int
-term_putc(notcurses* nc, FILE* out, const egcpool* e, const nccell* c){
-  if(cell_pixels_p(c)){
-    if(!nc->rstate.pixelmode){
-      if(enter_pixel_mode(nc, out)){
+term_putc(FILE* out, const egcpool* e, const nccell* c){
+  if(cell_simple_p(c)){
+//fprintf(stderr, "[%.4s] %08x\n", (const char*)&c->gcluster, c->gcluster); }
+    // we must not have any 'cntrl' characters at this point
+    if(c->gcluster == 0){
+      if(ncfputc(' ', out) == EOF){
         return -1;
       }
-    }
-    if(ncfputs(egcpool_extended_gcluster(e, c), out) == EOF){
+    }else if(ncfputs((const char*)&c->gcluster, out) == EOF){
       return -1;
     }
   }else{
-    if(nc->rstate.pixelmode){
-      if(leave_pixel_mode(nc, out)){
-        return -1;
-      }
-    }
-    if(cell_simple_p(c)){
-  //fprintf(stderr, "[%.4s] %08x\n", (const char*)&c->gcluster, c->gcluster); }
-      // we must not have any 'cntrl' characters at this point
-      if(c->gcluster == 0){
-        if(ncfputc(' ', out) == EOF){
-          return -1;
-        }
-      }else if(ncfputs((const char*)&c->gcluster, out) == EOF){
-        return -1;
-      }
-    }else{
-      if(ncfputs(egcpool_extended_gcluster(e, c), out) == EOF){
-        return -1;
-      }
+    if(ncfputs(egcpool_extended_gcluster(e, c), out) == EOF){
+      return -1;
     }
   }
   return 0;
@@ -863,18 +827,16 @@ update_palette(notcurses* nc, FILE* out){
 // our understanding of our horizontal location is faulty.
 // FIXME fall back to synthesized moves in the absence of capabilities (i.e.
 // textronix lacks cup; fake it with horiz+vert moves)
+// if hardposupdate is non-zero, we always perform a cup
 static inline int
-goto_location(notcurses* nc, FILE* out, int y, int x){
+goto_location(notcurses* nc, FILE* out, int y, int x, unsigned hardposupdate){
   int ret = 0;
   // if we don't have hpa, force a cup even if we're only 1 char away. the only
   // terminal i know supporting cup sans hpa is vt100, and vt100 can suck it.
   // you can't use cuf for backwards moves anyway; again, vt100 can suck it.
-  if(nc->rstate.y == y && nc->tcache.hpa){ // only need move x
+  if(nc->rstate.y == y && nc->tcache.hpa && !hardposupdate){ // only need move x
     if(nc->rstate.x == x){ // needn't move shit
       return 0;
-    }
-    if(nc->rstate.pixelmode && leave_pixel_mode(nc, out)){
-      return -1;
     }
     if(x == nc->rstate.x + 1 && nc->tcache.cuf1){
       ret = term_emit(nc->tcache.cuf1, out, false);
@@ -883,9 +845,6 @@ goto_location(notcurses* nc, FILE* out, int y, int x){
     }
   }else{
     // cup is required, no need to check for existence
-    if(nc->rstate.pixelmode && leave_pixel_mode(nc, out)){
-      return -1;
-    }
     ret = term_emit(tiparm(nc->tcache.cup, y, x), out, false);
   }
   if(ret == 0){
@@ -958,6 +917,7 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
   // we explicitly move the cursor at the beginning of each output line, so no
   // need to home it expliticly.
   update_palette(nc, out);
+  bool hardposupdate = false;
 //fprintf(stderr, "pile %p ymax: %d xmax: %d\n", p, p->dimy + nc->stdplane->absy, p->dimx + nc->stdplane->absx);
   for(y = nc->stdplane->absy ; y < p->dimy + nc->stdplane->absy ; ++y){
     const int innery = y - nc->stdplane->absy;
@@ -975,9 +935,10 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
         }
       }else{
         ++nc->stats.cellemissions;
-        if(goto_location(nc, out, y, x)){
+        if(goto_location(nc, out, y, x, hardposupdate)){
           return -1;
         }
+        hardposupdate = false;
         if(!cell_pixels_p(srccell)){
           // set the style. this can change the color back to the default; if it
           // does, we need update our elision possibilities.
@@ -1069,8 +1030,12 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
           }
         }
 //fprintf(stderr, "RAST %08x [%s] to %d/%d cols: %u %016lx\n", srccell->gcluster, pool_extended_gcluster(&nc->pool, srccell), y, x, srccell->width, srccell->channels);
-        if(term_putc(nc, out, &nc->pool, srccell)){
+        if(term_putc(out, &nc->pool, srccell)){
           return -1;
+        }
+        // if we just emitted a sixel, always force a hard cursor relocation
+        if(cell_pixels_p(srccell)){
+          hardposupdate = true;
         }
         ++nc->rstate.x;
         if(srccell->width >= 2){
@@ -1400,7 +1365,7 @@ int notcurses_cursor_enable(notcurses* nc, int y, int x){
   if(nc->ttyfd < 0 || !nc->tcache.cnorm){
     return -1;
   }
-  if(goto_location(nc, nc->ttyfp, y + nc->stdplane->absy, x + nc->stdplane->absx)){
+  if(goto_location(nc, nc->ttyfp, y + nc->stdplane->absy, x + nc->stdplane->absx, 0)){
     return -1;
   }
   // if we were already positive, we're already visible, no need to write cnorm
