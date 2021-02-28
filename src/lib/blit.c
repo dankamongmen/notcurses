@@ -835,6 +835,45 @@ braille_blit(ncplane* nc, int placey, int placex, int linesize,
   return total;
 }
 
+// monochromatic blitter for testing
+static inline int
+sixel_blit(ncplane* nc, int placey, int placex, int linesize,
+           const void* data, int begy, int begx,
+           int leny, int lenx, bool blendcolors){
+  int dimy, dimx, x, y;
+  int total = 0; // number of cells written
+  ncplane_dim_yx(nc, &dimy, &dimx);
+  int visy = begy;
+  for(y = placey ; visy < (begy + leny) && y < dimy ; ++y, visy += 6){
+    if(ncplane_cursor_move_yx(nc, y, placex)){
+      return -1;
+    }
+    int visx = begx;
+    for(x = placex ; visx < (begx + lenx) && x < dimx ; ++x, visx += 1){
+      char sixel[128];
+      unsigned bitsused = 0; // once 63, we're done
+      for(int sy = visy ; sy < dimy && sy < visy + 6 ; ++sy){
+        const uint32_t* rgb = (const uint32_t*)(data + (linesize * sy) + (visx * 4));
+        if(ffmpeg_trans_p(ncpixel_a(*rgb))){
+          continue;
+        }
+        bitsused |= (1u << (sy - visy));
+      }
+      nccell* c = ncplane_cell_ref_yx(nc, y, x);
+      int n = snprintf(sixel, sizeof(sixel), "#1;2;100;100;100#1%c", bitsused + 63);
+      if(n){
+        if(pool_blit_direct(&nc->pool, c, sixel, n, 1) <= 0){
+          return -1;
+        }
+      } // FIXME otherwise, reset?
+      cell_set_pixels(c, 1);
+    }
+  }
+  (void)blendcolors; // FIXME
+  return total;
+}
+
+/*
 static inline void
 break_sixel_comps(unsigned char comps[static 3], uint32_t rgba){
   comps[0] = ncpixel_r(rgba) * 100 / 255;
@@ -844,9 +883,8 @@ break_sixel_comps(unsigned char comps[static 3], uint32_t rgba){
 
 // Sixel blitter. Sixels are stacks 6 pixels high, and 1 pixel wide. RGB colors
 // are programmed as a set of registers, which are then referenced by the
-// stacks. There is also a RLE component, handled in rasterization. These can't
-// be represented as EGCs in the traditional manner FIXME maybe write them to
-// EGCpool and use a special code (2, presumably) to indicate no coloring?
+// stacks. There is also a RLE component, handled in rasterization.
+// A pixel block is indicated by setting cell_pixels_p().
 static inline int
 sixel_blit(ncplane* nc, int placey, int placex, int linesize,
            const void* data, int begy, int begx,
@@ -925,6 +963,7 @@ sixel_blit(ncplane* nc, int placey, int placex, int linesize,
   return total;
 #undef GROWTHFACTOR
 }
+*/
 
 // NCBLIT_DEFAULT is not included, as it has no defined properties. It ought
 // be replaced with some real blitter implementation by the calling widget.

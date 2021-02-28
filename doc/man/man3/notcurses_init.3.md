@@ -111,8 +111,9 @@ zero. The following flags are defined:
     itself, usually as one of the first lines.
 
 * **NCOPTION_NO_WINCH_SIGHANDLER**: A signal handler will usually be installed
-    for **SIGWINCH**, resulting in **NCKEY_RESIZE** events being generated on
-    input. With this flag, the handler will not be installed.
+    for **SIGWINCH** and **SIGCONT**, resulting in **NCKEY_RESIZE** events
+    being generated on input. With this flag, the handler will not be
+    installed.
 
 * **NCOPTION_NO_QUIT_SIGHANDLERS**: A signal handler will usually be installed
     for **SIGINT**, **SIGILL**, **SIGQUIT**, **SIGSEGV**, **SIGTERM**, and
