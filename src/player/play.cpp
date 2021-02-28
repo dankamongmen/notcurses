@@ -66,7 +66,7 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
     marsh->blitter = ncvisual_media_defblitter(nc, vopts->scaling);
   }
   if(!marsh->quiet){
-    stdn->printf(0, NCAlign::Left, "frame %06d\u2026 (%s)", marsh->framecount,
+    stdn->printf(0, NCAlign::Left, "frame %06d (%s)", marsh->framecount,
                  notcurses_str_blitter(vopts->blitter));
   }
   char* subtitle = ncvisual_subtitle(ncv);
@@ -148,6 +148,9 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
       vopts->blitter = marsh->blitter;
       if(vopts->blitter == NCBLIT_PIXEL){
         notcurses_check_pixel_support(nc);
+        vopts->y = 1;
+      }else{
+        vopts->y = 0;
       }
       continue;
     }else if(keyp == NCKey::Up){
@@ -358,6 +361,9 @@ auto main(int argc, char** argv) -> int {
       vopts.blitter = blitter;
       if(vopts.blitter == NCBLIT_PIXEL){
         notcurses_check_pixel_support(nc);
+        vopts.y = 1;
+      }else{
+        vopts.y = 0;
       }
       do{
         struct marshal marsh = {

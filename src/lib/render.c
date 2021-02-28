@@ -1028,15 +1028,14 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
             nc->rstate.bgdefelidable = false;
             nc->rstate.bgpalelidable = false;
           }
+        }else{
+          hardposupdate = true;
         }
 //fprintf(stderr, "RAST %08x [%s] to %d/%d cols: %u %016lx\n", srccell->gcluster, pool_extended_gcluster(&nc->pool, srccell), y, x, srccell->width, srccell->channels);
         if(term_putc(out, &nc->pool, srccell)){
           return -1;
         }
         // if we just emitted a sixel, always force a hard cursor relocation
-        if(cell_pixels_p(srccell)){
-          hardposupdate = true;
-        }
         ++nc->rstate.x;
         if(srccell->width >= 2){
           x += srccell->width - 1;
