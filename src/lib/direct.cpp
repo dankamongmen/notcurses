@@ -400,7 +400,6 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
   const bool bgdefault = ncdirect_bg_default_p(n);
   const uint32_t fgrgb = channels_fg_rgb(n->channels);
   const uint32_t bgrgb = channels_bg_rgb(n->channels);
-  bool pixelmode = false;
   for(int y = 0 ; y < dimy ; ++y){
     if(xoff){
       if(ncdirect_cursor_move_yx(n, -1, xoff)){
@@ -414,28 +413,15 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
       if(egc == nullptr){
         return -1;
       }
-      if(!channels_pixel_p(channels)){
-        if(pixelmode){
-          if(term_emit(n->tcache.pixeloff, n->ttyfp, false)){
-            return -1;
-          }
-          pixelmode = false;
-        }
-        if(channels_fg_alpha(channels) == CELL_ALPHA_TRANSPARENT){
-          ncdirect_set_fg_default(n);
-        }else{
-          ncdirect_set_fg_rgb(n, channels_fg_rgb(channels));
-        }
-        if(channels_bg_alpha(channels) == CELL_ALPHA_TRANSPARENT){
-          ncdirect_set_bg_default(n);
-        }else{
-          ncdirect_set_bg_rgb(n, channels_bg_rgb(channels));
-        }
-      }else if(!pixelmode){
-        if(term_emit(n->tcache.pixelon, n->ttyfp, false)){
-          return -1;
-        }
-        pixelmode = true;
+      if(channels_fg_alpha(channels) == CELL_ALPHA_TRANSPARENT){
+        ncdirect_set_fg_default(n);
+      }else{
+        ncdirect_set_fg_rgb(n, channels_fg_rgb(channels));
+      }
+      if(channels_bg_alpha(channels) == CELL_ALPHA_TRANSPARENT){
+        ncdirect_set_bg_default(n);
+      }else{
+        ncdirect_set_bg_rgb(n, channels_bg_rgb(channels));
       }
 //fprintf(stderr, "%03d/%03d [%s] (%03dx%03d)\n", y, x, egc, dimy, dimx);
       if(fprintf(n->ttyfp, "%s", strlen(egc) == 0 ? " " : egc) < 0){
@@ -447,22 +433,15 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
     // yes, we want to reset colors and emit an explicit new line following
     // each line of output; this is necessary if our output is lifted out and
     // used in something e.g. paste(1).
-    if(pixelmode){
-      if(term_emit(n->tcache.pixeloff, n->ttyfp, false)){
+    // FIXME replace with a SGR clear
+    ncdirect_set_fg_default(n);
+    ncdirect_set_bg_default(n);
+    if(putc('\n', n->ttyfp) == EOF){
+      return -1;
+    }
+    if(y == toty){
+      if(ncdirect_cursor_down(n, 1)){
         return -1;
-      }
-      pixelmode = false;
-    }else{
-      // FIXME replace with a SGR clear
-      ncdirect_set_fg_default(n);
-      ncdirect_set_bg_default(n);
-      if(putc('\n', n->ttyfp) == EOF){
-        return -1;
-      }
-      if(y == toty){
-        if(ncdirect_cursor_down(n, 1)){
-          return -1;
-        }
       }
     }
   }
