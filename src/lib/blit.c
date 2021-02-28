@@ -835,6 +835,13 @@ braille_blit(ncplane* nc, int placey, int placex, int linesize,
   return total;
 }
 
+static inline void
+break_sixel_comps(unsigned char comps[static 3], uint32_t rgba){
+  comps[0] = ncpixel_r(rgba) * 100 / 255;
+  comps[1] = ncpixel_g(rgba) * 100 / 255;
+  comps[2] = ncpixel_b(rgba) * 100 / 255;
+}
+
 // Sixel blitter. Sixels are stacks 6 pixels high, and 1 pixel wide. RGB colors
 // are programmed as a set of registers, which are then referenced by the
 // stacks. There is also a RLE component, handled in rasterization. These can't
@@ -870,11 +877,15 @@ sixel_blit(ncplane* nc, int placey, int placex, int linesize,
         if(bitsused & (1u << (sy - y))){
           continue;
         }
+        unsigned char comps[3];
+        break_sixel_comps(comps, *rgb);
         unsigned thesebits = 1u << (sy - y);
         for(int ty = sy + 1 ; ty < dimy && ty < y + 6 ; ++ty){
           const uint32_t* trgb = (const uint32_t*)(data + (linesize * ty) + (visx * 4));
           if(!ffmpeg_trans_p(ncpixel_a(*trgb))){
-            if(memcmp(rgb + 1, trgb + 1, 3) == 0){
+            unsigned char candcomps[3];
+            break_sixel_comps(candcomps, *trgb);
+            if(memcmp(comps, candcomps, sizeof(comps)) == 0){
               thesebits |= (1u << (ty - y));
             }
           }
@@ -886,8 +897,8 @@ sixel_blit(ncplane* nc, int placey, int placex, int linesize,
           // bitstring is added to 63, resulting in [63, 126] aka '?'..'~'
           // FIXME grow if necessary
           int n = snprintf(sixel + offset, avail - offset,
-                           "%s#%d;2;%d;%d;%d#%d%c", printed ? "$" : "",
-                           colorreg, 100, 100, 100, colorreg, c);
+                           "%s#%d;2;%u;%u;%u#%d%c", printed ? "$" : "",
+                           colorreg, comps[0], comps[1], comps[2], colorreg, c);
           if(n < 0){
             return -1;
           }
