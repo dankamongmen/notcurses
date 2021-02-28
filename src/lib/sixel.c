@@ -66,7 +66,7 @@ extract_color_table(ncplane* nc, const uint32_t* data, int placey, int placex,
     int visx = begx;
     for(x = placex ; visx < (begx + lenx) && x < dimx ; ++x, visx += 1){
       for(int sy = visy ; sy < dimy && sy < visy + 6 ; ++sy){
-        const uint32_t* rgb = (const uint32_t*)(data + (linesize * sy) + (visx * 4));
+        const uint32_t* rgb = (const uint32_t*)(data + (linesize * sy) + (visx));
         if(rgba_trans_p(ncpixel_a(*rgb))){
           continue;
         }
@@ -95,7 +95,7 @@ extract_data_table(ncplane* nc, const uint32_t* data, int placey, int placex,
       int visx = begx;
       for(x = placex ; visx < (begx + lenx) && x < dimx ; ++x, visx += 1){
         for(int sy = visy ; sy < dimy && sy < visy + 6 ; ++sy){
-          const uint32_t* rgb = (const uint32_t*)(data + (linesize * sy) + (visx * 4));
+          const uint32_t* rgb = (const uint32_t*)(data + (linesize * sy) + (visx));
           if(rgba_trans_p(ncpixel_a(*rgb))){
 //fprintf(stderr, "transparent\n");
             continue;
@@ -115,85 +115,60 @@ extract_data_table(ncplane* nc, const uint32_t* data, int placey, int placex,
   return 0;
 }
 
+static int
+write_sixel_data(FILE* fp, int lenx, sixeltable* stab){
+  fprintf(fp, "\e[?80h\ePq"); // FIXME pixelon
+  for(int i = 0 ; i < stab->ctab->colors ; ++i){
+    const unsigned char* rgb = stab->ctab->table + i * 3;
+    fprintf(fp, "#%d;2;%u;%u;%u", i, rgb[0], rgb[1], rgb[2]);
+  }
+  int p = 0;
+  while(p < stab->ctab->sixelcount){
+    for(int i = 0 ; i < stab->ctab->colors ; ++i){
+      fprintf(fp, "#%d", i);
+      for(int m = p ; m < stab->ctab->sixelcount && m < p + lenx ; ++m){
+        fputc(stab->data[i * stab->ctab->sixelcount + p] + 63, fp);
+      }
+      //if(m < stab->ctab->sixelcount){ // print subband terminator
+        if(i + 1 < stab->ctab->colors){
+          fputc('$', fp);
+        }else{
+          fputc('-', fp);
+        }
+      //}
+    }
+    p += lenx;
+  }
+  fprintf(fp, "\e\\"); // FIXME pixeloff
+  if(fclose(fp) == EOF){
+    return -1;
+  }
+  return 0;
+}
+
 // Sixel blitter. Sixels are stacks 6 pixels high, and 1 pixel wide. RGB colors
 // are programmed as a set of registers, which are then referenced by the
 // stacks. There is also a RLE component, handled in rasterization.
 // A pixel block is indicated by setting cell_pixels_p().
-int sixel_blit_inner(ncplane* nc, int placey, int placex, int linesize,
-                     const void* data, int begy, int begx,
-                     int leny, int lenx, colortable* ctab){
-  int dimy, dimx, x, y;
-  int total = 0; // number of cells written
-  ncplane_dim_yx(nc, &dimy, &dimx);
-  int visy = begy;
-  for(y = placey ; visy < (begy + leny) && y < dimy ; ++y, visy += 6){
-    if(ncplane_cursor_move_yx(nc, y, placex)){
-      return -1;
-    }
-    int visx = begx;
-    for(x = placex ; visx < (begx + lenx) && x < dimx ; ++x, visx += 1){
-      size_t offset = 0;
-#define GROWTHFACTOR 256
-      size_t avail = GROWTHFACTOR;
-      char* sixel = malloc(avail);
-      // FIXME find sixels with common colors for single register program
-      unsigned bitsused = 0; // once 63, we're done
-      int colorreg = 1; // leave 0 as background
-      bool printed = false;
-      for(int sy = visy ; sy < dimy && sy < visy + 6 ; ++sy){
-        const uint32_t* rgb = (const uint32_t*)(data + (linesize * sy) + (visx * 4));
-        if(rgba_trans_p(ncpixel_a(*rgb))){
-          continue;
-        }
-        if(bitsused & (1u << (sy - visy))){
-          continue;
-        }
-        unsigned char comps[3];
-        break_sixel_comps(comps, *rgb);
-        unsigned thesebits = 1u << (sy - visy);
-        for(int ty = sy + 1 ; ty < dimy && ty < visy + 6 ; ++ty){
-          const uint32_t* trgb = (const uint32_t*)(data + (linesize * ty) + (visx * 4));
-          if(!rgba_trans_p(ncpixel_a(*trgb))){
-            unsigned char candcomps[3];
-            break_sixel_comps(candcomps, *trgb);
-            if(memcmp(comps, candcomps, sizeof(comps)) == 0){
-              thesebits |= (1u << (ty - visy));
-            }
-          }
-        }
-        if(thesebits){
-          bitsused |= thesebits;
-          char c = 63 + thesebits;
-          // FIXME use percentages(rgb)
-          // bitstring is added to 63, resulting in [63, 126] aka '?'..'~'
-          // FIXME grow if necessary
-          int n = snprintf(sixel + offset, avail - offset,
-                           "%s#%d;2;%u;%u;%u#%d%c", printed ? "$" : "",
-                           colorreg, comps[0], comps[1], comps[2], colorreg, c);
-          if(n < 0){
-            return -1;
-          }
-          offset += n;
-          ++colorreg;
-          printed = true;
-        }
-        if(bitsused == 63){
-          break;
-        }
-      }
-      if(offset){
-        nccell* c = ncplane_cell_ref_yx(nc, y, x);
-        if(pool_blit_direct(&nc->pool, c, sixel, offset, 1) <= 0){
-          free(sixel);
-          return -1;
-        }
-        cell_set_pixels(c, 1);
-      } // FIXME otherwise, reset?
-      free(sixel);
-    }
+int sixel_blit_inner(ncplane* nc, int placey, int placex, int lenx, sixeltable* stab){
+  char* buf = NULL;
+  size_t size = 0;
+  FILE* fp = open_memstream(&buf, &size);
+  if(fp == NULL){
+    return -1;
   }
-  return total;
-#undef GROWTHFACTOR
+  if(write_sixel_data(fp, lenx, stab)){
+    fclose(fp);
+    free(buf);
+    return -1;
+  }
+  nccell* c = ncplane_cell_ref_yx(nc, placey, placex);
+  if(pool_blit_direct(&nc->pool, c, buf, size, 1) < 0){ // FIXME true width?
+    free(buf);
+    return -1;
+  }
+  free(buf);
+  return 1;
 }
 
 int sixel_blit(ncplane* nc, int placey, int placex, int linesize,
@@ -227,8 +202,7 @@ int sixel_blit(ncplane* nc, int placey, int placex, int linesize,
     free(ctab);
     return -1;
   }
-  int r = sixel_blit_inner(nc, placey, placex, linesize, data,
-                           begy, begx, leny, lenx, ctab);
+  int r = sixel_blit_inner(nc, placey, placex, lenx, &stable);
   free(stable.data);
   free(ctab);
   return r;
