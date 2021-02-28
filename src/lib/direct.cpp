@@ -10,21 +10,6 @@
 #include "notcurses/direct.h"
 #include "internal.h"
 
-static inline uint64_t
-ncdirect_channels(const ncdirect* nc){
-  return nc->channels;
-}
-
-static inline bool
-ncdirect_fg_default_p(const struct ncdirect* nc){
-  return channels_fg_default_p(ncdirect_channels(nc));
-}
-
-static inline bool
-ncdirect_bg_default_p(const struct ncdirect* nc){
-  return channels_bg_default_p(ncdirect_channels(nc));
-}
-
 int ncdirect_putstr(ncdirect* nc, uint64_t channels, const char* utf8){
   if(channels_fg_default_p(channels)){
     if(ncdirect_set_fg_default(nc)){

@@ -1179,6 +1179,21 @@ rgba_trans_p(unsigned alpha){
   return false;
 }
 
+static inline uint64_t
+ncdirect_channels(const ncdirect* nc){
+  return nc->channels;
+}
+
+static inline bool
+ncdirect_fg_default_p(const struct ncdirect* nc){
+  return channels_fg_default_p(ncdirect_channels(nc));
+}
+
+static inline bool
+ncdirect_bg_default_p(const struct ncdirect* nc){
+  return channels_bg_default_p(ncdirect_channels(nc));
+}
+
 int sixel_blit(ncplane* nc, int placey, int placex, int linesize,
                const void* data, int begy, int begx,
                int leny, int lenx, bool blendcolors);

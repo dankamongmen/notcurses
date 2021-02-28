@@ -2,21 +2,21 @@ This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
 * 2.2.3 (not yet released)
-  * Add `SIGILL` to the set of fatal signals we handle.
-  * Added `NCKEY_SIGNAL`. `NCKEY_RESIZE` is now an alias for `NCKEY_SIGNAL`.
-  * `SIGCONT` now synthesizes a `NCKEY_SIGNAL`, just like `SIGWINCH`.
+  * Implemented `NCBLIT_PIXEL` for terminals reporting Sixel support.
+    Added `notcurses_check_pixel_support()` and its companion
+    `ncdirect_check_pixel_support()`, which must be called (and must return
+    success) before `NCBLIT_PIXEL` will be available. `NCBLIT_PIXEL` degrades
+    to `NCBLIT_3x2` until support is verified. This functionality ought be
+    considered experimental, and its behavior is subject to change.
   * Add the `nctree` widget for line-oriented hierarchical data. See
     the new `notcurses_tree(3)` man page for complete information.
   * Ceased exporting `cell_fchannel()`, `cell_bchannel()`,
     `cell_set_fchannel()`, and `cell_set_bchannel()`. These functions were
     never safe for users. Everything a user might want to manipulate can be
     manipulated with more granular functions.
-  * Implemented `NCBLIT_PIXEL` for terminals reporting Sixel support.
-    Added `notcurses_check_pixel_support()` and its companion
-    `ncdirect_check_pixel_support()`, which must be called (and must return
-    success) before `NCBLIT_PIXEL` will be available. `NCBLIT_PIXEL` degrades
-    to `NCBLIT_3x2` until support is verified. This functionality ought be
-    considered experimental.
+  * Add `SIGILL` to the set of fatal signals we handle.
+  * Added `NCKEY_SIGNAL`. `NCKEY_RESIZE` is now an alias for `NCKEY_SIGNAL`.
+  * `SIGCONT` now synthesizes a `NCKEY_SIGNAL`, just like `SIGWINCH`.
 
 * 2.2.2 (2021-02-18):
   * `notcurses_stats()` no longer qualifies its `notcurses*` argument with
