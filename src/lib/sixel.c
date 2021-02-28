@@ -97,7 +97,7 @@ extract_data_table(ncplane* nc, const uint32_t* data, int placey, int placex,
         for(int sy = visy ; sy < dimy && sy < visy + 6 ; ++sy){
           const uint32_t* rgb = (const uint32_t*)(data + (linesize * sy) + (visx));
           if(rgba_trans_p(ncpixel_a(*rgb))){
-//fprintf(stderr, "transparent\n");
+fprintf(stderr, "transparent\n");
             continue;
           }
           unsigned char comps[3];
@@ -105,6 +105,8 @@ extract_data_table(ncplane* nc, const uint32_t* data, int placey, int placex,
 //fprintf(stderr, "%d/%d/%d\n", comps[0], comps[1], comps[2]);
           if(memcmp(comps, stab->ctab->table + c * 3, 3) == 0){
             stab->data[c * stab->ctab->sixelcount + pos] |= (1u << (sy - visy));
+fprintf(stderr, "%d ", c * stab->ctab->sixelcount + pos);
+fputc(stab->data[c * stab->ctab->sixelcount + pos] + 63, stderr);
           }
         }
 //fprintf(stderr, "color %d pos %d: %u\n", c, pos, stab->data[c * stab->ctab->sixelcount + pos]);
@@ -127,7 +129,9 @@ write_sixel_data(FILE* fp, int lenx, sixeltable* stab){
     for(int i = 0 ; i < stab->ctab->colors ; ++i){
       fprintf(fp, "#%d", i);
       for(int m = p ; m < stab->ctab->sixelcount && m < p + lenx ; ++m){
-        fputc(stab->data[i * stab->ctab->sixelcount + p] + 63, fp);
+//fprintf(stderr, "%d ", i * stab->ctab->sixelcount + m);
+fputc(stab->data[i * stab->ctab->sixelcount + m] + 63, stderr);
+        fputc(stab->data[i * stab->ctab->sixelcount + m] + 63, fp);
       }
       //if(m < stab->ctab->sixelcount){ // print subband terminator
         if(i + 1 < stab->ctab->colors){
