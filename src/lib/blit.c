@@ -31,17 +31,6 @@ trilerp(uint32_t c0, uint32_t c1, uint32_t c2){
   return ret;
 }
 
-// alpha comes to us 0--255, but we have only 3 alpha values to map them to.
-// settled on experimentally.
-static inline bool
-ffmpeg_trans_p(unsigned char alpha){
-  if(alpha < 192){
-//fprintf(stderr, "TRANSPARENT!\n");
-    return true;
-  }
-  return false;
-}
-
 // Retarded RGBA blitter (ASCII only).
 static inline int
 tria_blit_ascii(ncplane* nc, int placey, int placex, int linesize,
@@ -72,7 +61,7 @@ tria_blit_ascii(ncplane* nc, int placey, int placex, int linesize,
         cell_set_bg_alpha(c, CELL_ALPHA_BLEND);
         cell_set_fg_alpha(c, CELL_ALPHA_BLEND);
       }
-      if(ffmpeg_trans_p(rgbbase_up[3])){
+      if(rgba_trans_p(rgbbase_up[3])){
         cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
         cell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
         cell_set_blitquadrants(c, 0, 0, 0, 0);
@@ -125,11 +114,11 @@ tria_blit(ncplane* nc, int placey, int placex, int linesize,
         cell_set_bg_alpha(c, CELL_ALPHA_BLEND);
         cell_set_fg_alpha(c, CELL_ALPHA_BLEND);
       }
-      if(ffmpeg_trans_p(rgbbase_up[3]) || ffmpeg_trans_p(rgbbase_down[3])){
+      if(rgba_trans_p(rgbbase_up[3]) || rgba_trans_p(rgbbase_down[3])){
         cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
-        if(ffmpeg_trans_p(rgbbase_up[3]) && ffmpeg_trans_p(rgbbase_down[3])){
+        if(rgba_trans_p(rgbbase_up[3]) && rgba_trans_p(rgbbase_down[3])){
           cell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
-        }else if(ffmpeg_trans_p(rgbbase_up[3])){ // down has the color
+        }else if(rgba_trans_p(rgbbase_up[3])){ // down has the color
           if(pool_blit_direct(&nc->pool, c, "\u2584", strlen("\u2584"), 1) <= 0){
             return -1;
           }
@@ -326,13 +315,13 @@ qtrans_check(nccell* c, bool blendcolors,
   channel_set_rgb8(&bl, rgbbase_bl[0], rgbbase_bl[1], rgbbase_bl[2]);
   channel_set_rgb8(&br, rgbbase_br[0], rgbbase_br[1], rgbbase_br[2]);
   const char* egc = NULL;
-  if(ffmpeg_trans_p(rgbbase_tl[3])){
+  if(rgba_trans_p(rgbbase_tl[3])){
     // top left is transparent
-    if(ffmpeg_trans_p(rgbbase_tr[3])){
+    if(rgba_trans_p(rgbbase_tr[3])){
       // all of top is transparent
-      if(ffmpeg_trans_p(rgbbase_bl[3])){
+      if(rgba_trans_p(rgbbase_bl[3])){
         // top and left are transparent
-        if(ffmpeg_trans_p(rgbbase_br[3])){
+        if(rgba_trans_p(rgbbase_br[3])){
           // entirety is transparent, load with nul (but not NULL)
           cell_set_fg_default(c);
           cell_set_blitquadrants(c, 0, 0, 0, 0);
@@ -343,7 +332,7 @@ qtrans_check(nccell* c, bool blendcolors,
           egc = "▗";
         }
       }else{
-        if(ffmpeg_trans_p(rgbbase_br[3])){
+        if(rgba_trans_p(rgbbase_br[3])){
           cell_set_fg_rgb8(c, rgbbase_bl[0], rgbbase_bl[1], rgbbase_bl[2]);
           cell_set_blitquadrants(c, 0, 0, 1, 0);
           egc = "▖";
@@ -354,8 +343,8 @@ qtrans_check(nccell* c, bool blendcolors,
         }
       }
     }else{ // top right is foreground, top left is transparent
-      if(ffmpeg_trans_p(rgbbase_bl[3])){
-        if(ffmpeg_trans_p(rgbbase_br[3])){ // entire bottom is transparent
+      if(rgba_trans_p(rgbbase_bl[3])){
+        if(rgba_trans_p(rgbbase_br[3])){ // entire bottom is transparent
           cell_set_fg_rgb8(c, rgbbase_tr[0], rgbbase_tr[1], rgbbase_tr[2]);
           cell_set_blitquadrants(c, 0, 1, 0, 0);
           egc = "▝";
@@ -364,7 +353,7 @@ qtrans_check(nccell* c, bool blendcolors,
           cell_set_blitquadrants(c, 0, 1, 0, 1);
           egc = "▐";
         }
-      }else if(ffmpeg_trans_p(rgbbase_br[3])){ // only br is transparent
+      }else if(rgba_trans_p(rgbbase_br[3])){ // only br is transparent
         cell_set_fchannel(c, lerp(tr, bl));
         cell_set_blitquadrants(c, 0, 1, 1, 0);
         egc = "▞";
@@ -375,9 +364,9 @@ qtrans_check(nccell* c, bool blendcolors,
       }
     }
   }else{ // topleft is foreground for all here
-    if(ffmpeg_trans_p(rgbbase_tr[3])){
-      if(ffmpeg_trans_p(rgbbase_bl[3])){
-        if(ffmpeg_trans_p(rgbbase_br[3])){
+    if(rgba_trans_p(rgbbase_tr[3])){
+      if(rgba_trans_p(rgbbase_bl[3])){
+        if(rgba_trans_p(rgbbase_br[3])){
           cell_set_fg_rgb8(c, rgbbase_tl[0], rgbbase_tl[1], rgbbase_tl[2]);
           cell_set_blitquadrants(c, 1, 0, 0, 0);
           egc = "▘";
@@ -386,7 +375,7 @@ qtrans_check(nccell* c, bool blendcolors,
           cell_set_blitquadrants(c, 1, 0, 0, 1);
           egc = "▚";
         }
-      }else if(ffmpeg_trans_p(rgbbase_br[3])){
+      }else if(rgba_trans_p(rgbbase_br[3])){
         cell_set_fchannel(c, lerp(tl, bl));
         cell_set_blitquadrants(c, 1, 0, 1, 0);
         egc = "▌";
@@ -395,8 +384,8 @@ qtrans_check(nccell* c, bool blendcolors,
         cell_set_blitquadrants(c, 1, 0, 1, 1);
         egc = "▙";
       }
-    }else if(ffmpeg_trans_p(rgbbase_bl[3])){
-      if(ffmpeg_trans_p(rgbbase_br[3])){ // entire bottom is transparent
+    }else if(rgba_trans_p(rgbbase_bl[3])){
+      if(rgba_trans_p(rgbbase_br[3])){ // entire bottom is transparent
         cell_set_fchannel(c, lerp(tl, tr));
         cell_set_blitquadrants(c, 1, 1, 0, 0);
         egc = "▀";
@@ -405,7 +394,7 @@ qtrans_check(nccell* c, bool blendcolors,
         cell_set_blitquadrants(c, 1, 1, 0, 1);
         egc = "▜";
       }
-    }else if(ffmpeg_trans_p(rgbbase_br[3])){ // only br is transparent
+    }else if(rgba_trans_p(rgbbase_br[3])){ // only br is transparent
       cell_set_fchannel(c, trilerp(tl, tr, bl));
       cell_set_blitquadrants(c, 1, 1, 1, 0);
       egc = "▛";
@@ -613,7 +602,7 @@ sex_trans_check(cell* c, const uint32_t rgbas[6], bool blendcolors){
   unsigned r = 0, g = 0, b = 0;
   unsigned div = 0;
   for(unsigned mask = 0 ; mask < 6 ; ++mask){
-    if(ffmpeg_trans_p(ncpixel_a(rgbas[mask]))){
+    if(rgba_trans_p(ncpixel_a(rgbas[mask]))){
       transstring |= (1u << mask);
     }else{
       r += ncpixel_r(rgbas[mask]);
@@ -768,35 +757,35 @@ braille_blit(ncplane* nc, int placey, int placex, int linesize,
         }
       }
       // FIXME fold this into the above?
-      if(!ffmpeg_trans_p(ncpixel_a(*rgbbase_l0))){
+      if(!rgba_trans_p(ncpixel_a(*rgbbase_l0))){
         egcidx |= 1u;
         fold_rgb8(&r, &g, &b, rgbbase_l0, &blends);
       }
-      if(!ffmpeg_trans_p(ncpixel_a(*rgbbase_l1))){
+      if(!rgba_trans_p(ncpixel_a(*rgbbase_l1))){
         egcidx |= 2u;
         fold_rgb8(&r, &g, &b, rgbbase_l1, &blends);
       }
-      if(!ffmpeg_trans_p(ncpixel_a(*rgbbase_l2))){
+      if(!rgba_trans_p(ncpixel_a(*rgbbase_l2))){
         egcidx |= 4u;
         fold_rgb8(&r, &g, &b, rgbbase_l2, &blends);
       }
-      if(!ffmpeg_trans_p(ncpixel_a(*rgbbase_r0))){
+      if(!rgba_trans_p(ncpixel_a(*rgbbase_r0))){
         egcidx |= 8u;
         fold_rgb8(&r, &g, &b, rgbbase_r0, &blends);
       }
-      if(!ffmpeg_trans_p(ncpixel_a(*rgbbase_r1))){
+      if(!rgba_trans_p(ncpixel_a(*rgbbase_r1))){
         egcidx |= 16u;
         fold_rgb8(&r, &g, &b, rgbbase_r1, &blends);
       }
-      if(!ffmpeg_trans_p(ncpixel_a(*rgbbase_r2))){
+      if(!rgba_trans_p(ncpixel_a(*rgbbase_r2))){
         egcidx |= 32u;
         fold_rgb8(&r, &g, &b, rgbbase_r2, &blends);
       }
-      if(!ffmpeg_trans_p(ncpixel_a(*rgbbase_l3))){
+      if(!rgba_trans_p(ncpixel_a(*rgbbase_l3))){
         egcidx |= 64u;
         fold_rgb8(&r, &g, &b, rgbbase_l3, &blends);
       }
-      if(!ffmpeg_trans_p(ncpixel_a(*rgbbase_r3))){
+      if(!rgba_trans_p(ncpixel_a(*rgbbase_r3))){
         egcidx |= 128u;
         fold_rgb8(&r, &g, &b, rgbbase_r3, &blends);
       }
@@ -834,136 +823,6 @@ braille_blit(ncplane* nc, int placey, int placex, int linesize,
   }
   return total;
 }
-
-// monochromatic blitter for testing
-static inline int
-sixel_blit(ncplane* nc, int placey, int placex, int linesize,
-           const void* data, int begy, int begx,
-           int leny, int lenx, bool blendcolors){
-  int dimy, dimx, x, y;
-  int total = 0; // number of cells written
-  ncplane_dim_yx(nc, &dimy, &dimx);
-  int visy = begy;
-  for(y = placey ; visy < (begy + leny) && y < dimy ; ++y, visy += 6){
-    if(ncplane_cursor_move_yx(nc, y, placex)){
-      return -1;
-    }
-    int visx = begx;
-    for(x = placex ; visx < (begx + lenx) && x < dimx ; ++x, visx += 1){
-      char sixel[128];
-      unsigned bitsused = 0; // once 63, we're done
-      for(int sy = visy ; sy < dimy && sy < visy + 6 ; ++sy){
-        const uint32_t* rgb = (const uint32_t*)(data + (linesize * sy) + (visx * 4));
-        if(ffmpeg_trans_p(ncpixel_a(*rgb))){
-          continue;
-        }
-        bitsused |= (1u << (sy - visy));
-      }
-      nccell* c = ncplane_cell_ref_yx(nc, y, x);
-      int n = snprintf(sixel, sizeof(sixel), "#1;2;100;100;100#1%c", bitsused + 63);
-      if(n){
-        if(pool_blit_direct(&nc->pool, c, sixel, n, 1) <= 0){
-          return -1;
-        }
-      } // FIXME otherwise, reset?
-      cell_set_pixels(c, 1);
-    }
-  }
-  (void)blendcolors; // FIXME
-  return total;
-}
-
-/*
-static inline void
-break_sixel_comps(unsigned char comps[static 3], uint32_t rgba){
-  comps[0] = ncpixel_r(rgba) * 100 / 255;
-  comps[1] = ncpixel_g(rgba) * 100 / 255;
-  comps[2] = ncpixel_b(rgba) * 100 / 255;
-}
-
-// Sixel blitter. Sixels are stacks 6 pixels high, and 1 pixel wide. RGB colors
-// are programmed as a set of registers, which are then referenced by the
-// stacks. There is also a RLE component, handled in rasterization.
-// A pixel block is indicated by setting cell_pixels_p().
-static inline int
-sixel_blit(ncplane* nc, int placey, int placex, int linesize,
-           const void* data, int begy, int begx,
-           int leny, int lenx, bool blendcolors){
-  int dimy, dimx, x, y;
-  int total = 0; // number of cells written
-  ncplane_dim_yx(nc, &dimy, &dimx);
-  int visy = begy;
-  for(y = placey ; visy < (begy + leny) && y < dimy ; ++y, visy += 6){
-    if(ncplane_cursor_move_yx(nc, y, placex)){
-      return -1;
-    }
-    int visx = begx;
-    for(x = placex ; visx < (begx + lenx) && x < dimx ; ++x, visx += 1){
-      size_t offset = 0;
-#define GROWTHFACTOR 256
-      size_t avail = GROWTHFACTOR;
-      char* sixel = malloc(avail);
-      // FIXME find sixels with common colors for single register program
-      unsigned bitsused = 0; // once 63, we're done
-      int colorreg = 1; // leave 0 as background
-      bool printed = false;
-      for(int sy = visy ; sy < dimy && sy < visy + 6 ; ++sy){
-        const uint32_t* rgb = (const uint32_t*)(data + (linesize * sy) + (visx * 4));
-        if(ffmpeg_trans_p(ncpixel_a(*rgb))){
-          continue;
-        }
-        if(bitsused & (1u << (sy - visy))){
-          continue;
-        }
-        unsigned char comps[3];
-        break_sixel_comps(comps, *rgb);
-        unsigned thesebits = 1u << (sy - visy);
-        for(int ty = sy + 1 ; ty < dimy && ty < visy + 6 ; ++ty){
-          const uint32_t* trgb = (const uint32_t*)(data + (linesize * ty) + (visx * 4));
-          if(!ffmpeg_trans_p(ncpixel_a(*trgb))){
-            unsigned char candcomps[3];
-            break_sixel_comps(candcomps, *trgb);
-            if(memcmp(comps, candcomps, sizeof(comps)) == 0){
-              thesebits |= (1u << (ty - visy));
-            }
-          }
-        }
-        if(thesebits){
-          bitsused |= thesebits;
-          char c = 63 + thesebits;
-          // FIXME use percentages(rgb)
-          // bitstring is added to 63, resulting in [63, 126] aka '?'..'~'
-          // FIXME grow if necessary
-          int n = snprintf(sixel + offset, avail - offset,
-                           "%s#%d;2;%u;%u;%u#%d%c", printed ? "$" : "",
-                           colorreg, comps[0], comps[1], comps[2], colorreg, c);
-          if(n < 0){
-            return -1;
-          }
-          offset += n;
-          ++colorreg;
-          printed = true;
-        }
-        if(bitsused == 63){
-          break;
-        }
-      }
-      if(offset){
-        nccell* c = ncplane_cell_ref_yx(nc, y, x);
-        if(pool_blit_direct(&nc->pool, c, sixel, offset, 1) <= 0){
-          free(sixel);
-          return -1;
-        }
-        cell_set_pixels(c, 1);
-      } // FIXME otherwise, reset?
-      free(sixel);
-    }
-  }
-  (void)blendcolors; // FIXME
-  return total;
-#undef GROWTHFACTOR
-}
-*/
 
 // NCBLIT_DEFAULT is not included, as it has no defined properties. It ought
 // be replaced with some real blitter implementation by the calling widget.

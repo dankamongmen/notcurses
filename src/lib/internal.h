@@ -1171,6 +1171,20 @@ int drop_signals(void* nc);
 
 void ncvisual_printbanner(const notcurses* nc);
 
+// alpha comes to us 0--255, but we have only 3 alpha values to map them to.
+// settled on experimentally.
+static inline bool
+rgba_trans_p(unsigned alpha){
+  if(alpha < 192){
+    return true;
+  }
+  return false;
+}
+
+int sixel_blit(ncplane* nc, int placey, int placex, int linesize,
+               const void* data, int begy, int begx,
+               int leny, int lenx, bool blendcolors);
+
 typedef struct ncvisual_implementation {
   int (*visual_init)(int loglevel);
   void (*visual_printbanner)(const struct notcurses* nc);
