@@ -56,15 +56,10 @@ find_color(colortable* ctab, unsigned char comps[static 3]){
 // everything in a single pass FIXME.
 // what do we do if every pixel is transparent (0 colors)? FIXME
 static int
-extract_color_table(ncplane* nc, const uint32_t* data, int placey, int placex,
-                    int linesize, int begy, int begx, int leny, int lenx,
-                    colortable* ctab){
-  int dimy, dimx, x, y;
-  ncplane_dim_yx(nc, &dimy, &dimx);
-  int visy = begy;
-  for(y = placey ; visy < (begy + leny) && y < dimy ; ++y, visy += 6){
-    int visx = begx;
-    for(x = placex ; visx < (begx + lenx) && x < dimx ; ++x, visx += 1){
+extract_color_table(const uint32_t* data, int linesize, int begy, int begx,
+                    int leny, int lenx, colortable* ctab){
+  for(int visy = begy ; visy < (begy + leny) ; visy += 6){
+    for(int visx = begx ; visx < (begx + lenx) ; visx += 1){
       for(int sy = visy ; sy < (begy + leny) && sy < visy + 6 ; ++sy){
         const uint32_t* rgb = (const uint32_t*)(data + (linesize / 4 * sy) + (visx));
         if(rgba_trans_p(ncpixel_a(*rgb))){
@@ -73,6 +68,7 @@ extract_color_table(ncplane* nc, const uint32_t* data, int placey, int placex,
         unsigned char comps[3];
         break_sixel_comps(comps, *rgb);
         if(find_color(ctab, comps) < 0){
+fprintf(stderr, "FUCK ME; THE COLOR TABLE'S FULL\n");
           return -1;
         }
       }
@@ -83,19 +79,14 @@ extract_color_table(ncplane* nc, const uint32_t* data, int placey, int placex,
 }
 
 static int
-extract_data_table(ncplane* nc, const uint32_t* data, int placey, int placex,
-                   int linesize, int begy, int begx, int leny, int lenx,
-                   sixeltable* stab){
+extract_data_table(const uint32_t* data, int linesize, int begy, int begx,
+                   int leny, int lenx, sixeltable* stab){
 //fprintf(stderr, "colors: %d sixelcount: %d\n", stab->ctab->colors, stab->ctab->sixelcount);
   for(int c = 0 ; c < stab->ctab->colors ; ++c){
-    int dimy, dimx, x, y;
     int pos = 0;
-    ncplane_dim_yx(nc, &dimy, &dimx);
 //fprintf(stderr, "dimy/x: %d/%d placey/x: %d/%d begyx: %d/%d lenyx: %d/%d\n", dimy, dimx, placey, placex, begy, begx, leny, lenx);
-    int visy = begy;
-    for(y = placey ; visy < (begy + leny) && y < dimy ; ++y, visy += 6){
-      int visx = begx;
-      for(x = placex ; visx < (begx + lenx) && x < dimx ; ++x, visx += 1){
+    for(int visy = begy ; visy < (begy + leny) ; visy += 6){
+      for(int visx = begx ; visx < (begx + lenx) ; visx += 1){
 //fprintf(stderr, "handling sixel %d for color %d visy: %d\n", pos, c, visy);
         for(int sy = visy ; sy < (begy + leny) && sy < visy + 6 ; ++sy){
           const uint32_t* rgb = (const uint32_t*)(data + (linesize / 4 * sy) + visx);
@@ -223,8 +214,7 @@ int sixel_blit(ncplane* nc, int placey, int placex, int linesize,
   ctab->colors = 0;
   ctab->sixelcount = 0;
   memset(ctab->table, 0xff, 3);
-  if(extract_color_table(nc, data, placey, placex, linesize,
-                         begy, begx, leny, lenx, ctab)){
+  if(extract_color_table(data, linesize, begy, begx, leny, lenx, ctab)){
     free(ctab);
     return -1;
   }
@@ -237,8 +227,7 @@ int sixel_blit(ncplane* nc, int placey, int placex, int linesize,
     return -1;
   }
   memset(stable.data, 0, ctab->colors * ctab->sixelcount);
-  if(extract_data_table(nc, data, placey, placex, linesize,
-                        begy, begx, leny, lenx, &stable)){
+  if(extract_data_table(data, linesize, begy, begx, leny, lenx, &stable)){
     free(stable.data);
     free(ctab);
     return -1;
