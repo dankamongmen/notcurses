@@ -1,45 +1,5 @@
 #include "internal.h"
 
-/*
-// monochromatic blitter for testing
-static inline int
-sixel_blit(ncplane* nc, int placey, int placex, int linesize,
-           const void* data, int begy, int begx,
-           int leny, int lenx, bool blendcolors){
-  int dimy, dimx, x, y;
-  int total = 0; // number of cells written
-  ncplane_dim_yx(nc, &dimy, &dimx);
-  int visy = begy;
-  for(y = placey ; visy < (begy + leny) && y < dimy ; ++y, visy += 6){
-    if(ncplane_cursor_move_yx(nc, y, placex)){
-      return -1;
-    }
-    int visx = begx;
-    for(x = placex ; visx < (begx + lenx) && x < dimx ; ++x, visx += 1){
-      char sixel[128];
-      unsigned bitsused = 0; // once 63, we're done
-      for(int sy = visy ; sy < dimy && sy < visy + 6 ; ++sy){
-        const uint32_t* rgb = (const uint32_t*)(data + (linesize * sy) + (visx * 4));
-        if(rgba_trans_p(ncpixel_a(*rgb))){
-          continue;
-        }
-        bitsused |= (1u << (sy - visy));
-      }
-      nccell* c = ncplane_cell_ref_yx(nc, y, x);
-      int n = snprintf(sixel, sizeof(sixel), "#1;2;100;100;100#1%c", bitsused + 63);
-      if(n){
-        if(pool_blit_direct(&nc->pool, c, sixel, n, 1) <= 0){
-          return -1;
-        }
-      } // FIXME otherwise, reset?
-      cell_set_pixels(c, 1);
-    }
-  }
-  (void)blendcolors; // FIXME
-  return total;
-}
-*/
-
 static inline void
 break_sixel_comps(unsigned char comps[static 3], uint32_t rgba){
   comps[0] = ncpixel_r(rgba) * 100 / 255;
@@ -47,13 +7,78 @@ break_sixel_comps(unsigned char comps[static 3], uint32_t rgba){
   comps[2] = ncpixel_b(rgba) * 100 / 255;
 }
 
+typedef struct colortable {
+  int colors;
+  unsigned char table[3 * 256];
+} colortable;
+
+// returns the index at which the provided color can be found, possibly
+// inserting it into the table. returns -1 if the color is not in the
+// table and the table is full.
+// FIXME switch to binary search, duh
+// FIXME replace all these 3s with sizeof(comps)
+static int
+find_color(colortable* ctab, unsigned char comps[static 3]){
+  int i;
+  for(i = 0 ; i < ctab->colors ; ++i){
+    int cmp = memcmp(ctab->table + i * 3, comps, 3);
+    if(cmp == 0){
+      return i;
+    }else if(cmp > 0){
+      break;
+    }
+  }
+  if(ctab->colors == sizeof(ctab->table) / 3){
+    return -1;
+  }
+  if(i < ctab->colors){
+    memmove(ctab->table + (i + 1) * 3, ctab->table + i * 3, (ctab->colors - i) * 3);
+  }
+  memcpy(ctab->table + i * 3, comps, 3);
+  ++ctab->colors;
+  return i;
+}
+
+// rather inelegant preprocess of the entire image. colors are converted to the
+// 100x100x100 sixel colorspace, and built into a table. if there are more than
+// 255 converted colors, we (currently) reject it FIXME. ideally we'd do the
+// image piecemeal, allowing us to get complete color fidelity; barring that,
+// we'd have something sensibly quantize us down first FIXME. we ought do
+// everything in a single pass FIXME.
+// what do we do if every pixel is transparent (0 colors)? FIXME
+static int
+extract_color_table(ncplane* nc, const uint32_t* data, int placey, int placex,
+                    int linesize, int begy, int begx, int leny, int lenx,
+                    colortable* ctab){
+  int dimy, dimx, x, y;
+  ncplane_dim_yx(nc, &dimy, &dimx);
+  int visy = begy;
+  for(y = placey ; visy < (begy + leny) && y < dimy ; ++y, visy += 6){
+    int visx = begx;
+    for(x = placex ; visx < (begx + lenx) && x < dimx ; ++x, visx += 1){
+      for(int sy = visy ; sy < dimy && sy < visy + 6 ; ++sy){
+        const uint32_t* rgb = (const uint32_t*)(data + (linesize * sy) + (visx * 4));
+        if(rgba_trans_p(ncpixel_a(*rgb))){
+          continue;
+        }
+        unsigned char comps[3];
+        break_sixel_comps(comps, *rgb);
+        if(find_color(ctab, comps) < 0){
+          return -1;
+        }
+      }
+    }
+  }
+  return 0;
+}
+
 // Sixel blitter. Sixels are stacks 6 pixels high, and 1 pixel wide. RGB colors
 // are programmed as a set of registers, which are then referenced by the
 // stacks. There is also a RLE component, handled in rasterization.
 // A pixel block is indicated by setting cell_pixels_p().
-int sixel_blit(ncplane* nc, int placey, int placex, int linesize,
-               const void* data, int begy, int begx,
-               int leny, int lenx, bool blendcolors){
+int sixel_blit_inner(ncplane* nc, int placey, int placex, int linesize,
+                     const void* data, int begy, int begx,
+                     int leny, int lenx, colortable* ctab){
   int dimy, dimx, x, y;
   int total = 0; // number of cells written
   ncplane_dim_yx(nc, &dimy, &dimx);
@@ -124,8 +149,27 @@ int sixel_blit(ncplane* nc, int placey, int placex, int linesize,
       free(sixel);
     }
   }
-  (void)blendcolors; // FIXME
   return total;
 #undef GROWTHFACTOR
 }
 
+int sixel_blit(ncplane* nc, int placey, int placex, int linesize,
+               const void* data, int begy, int begx,
+               int leny, int lenx, bool blendcolors){
+  (void)blendcolors; // FIXME
+  colortable* ctab = malloc(sizeof(*ctab));
+  if(ctab == NULL){
+    return -1;
+  }
+  ctab->colors = 0;
+  memset(ctab->table, 0xff, 3);
+  if(extract_color_table(nc, data, placey, placex, linesize,
+                         begy, begx, leny, lenx, ctab)){
+    free(ctab);
+    return -1;
+  }
+  int r = sixel_blit_inner(nc, placey, placex, linesize, data,
+                           begy, begx, leny, lenx, ctab);
+  free(ctab);
+  return r;
+}
