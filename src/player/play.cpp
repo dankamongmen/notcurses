@@ -312,7 +312,7 @@ auto main(int argc, char** argv) -> int {
   float timescale, displaytime;
   ncscale_e scalemode;
   notcurses_options ncopts{};
-  ncblitter_e blitter = NCBLIT_PIXEL;
+  ncblitter_e blitter = NCBLIT_DEFAULT;
   bool quiet = false;
   bool loop = false;
   auto nonopt = handle_opts(argc, argv, ncopts, &quiet, &timescale, &scalemode,
