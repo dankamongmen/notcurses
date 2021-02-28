@@ -921,6 +921,7 @@ sixel_blit(ncplane* nc, int placey, int placex, int linesize,
       free(sixel);
     }
   }
+  (void)blendcolors; // FIXME
   return total;
 #undef GROWTHFACTOR
 }
