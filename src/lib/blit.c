@@ -869,24 +869,24 @@ sixel_blit(ncplane* nc, int placey, int placex, int linesize,
       unsigned bitsused = 0; // once 63, we're done
       int colorreg = 1; // leave 0 as background
       bool printed = false;
-      for(int sy = y ; sy < dimy && sy < y + 6 ; ++sy){
+      for(int sy = visy ; sy < dimy && sy < visy + 6 ; ++sy){
         const uint32_t* rgb = (const uint32_t*)(data + (linesize * sy) + (visx * 4));
         if(ffmpeg_trans_p(ncpixel_a(*rgb))){
           continue;
         }
-        if(bitsused & (1u << (sy - y))){
+        if(bitsused & (1u << (sy - visy))){
           continue;
         }
         unsigned char comps[3];
         break_sixel_comps(comps, *rgb);
-        unsigned thesebits = 1u << (sy - y);
-        for(int ty = sy + 1 ; ty < dimy && ty < y + 6 ; ++ty){
+        unsigned thesebits = 1u << (sy - visy);
+        for(int ty = sy + 1 ; ty < dimy && ty < visy + 6 ; ++ty){
           const uint32_t* trgb = (const uint32_t*)(data + (linesize * ty) + (visx * 4));
           if(!ffmpeg_trans_p(ncpixel_a(*trgb))){
             unsigned char candcomps[3];
             break_sixel_comps(candcomps, *trgb);
             if(memcmp(comps, candcomps, sizeof(comps)) == 0){
-              thesebits |= (1u << (ty - y));
+              thesebits |= (1u << (ty - visy));
             }
           }
         }
