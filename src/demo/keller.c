@@ -9,12 +9,18 @@ visualize(struct notcurses* nc, struct ncvisual* ncv){
     NCBLIT_2x2,
     NCBLIT_3x2,
     NCBLIT_BRAILLE,
+    NCBLIT_PIXEL,
   };
   for(size_t i = 0 ; i < sizeof(bs) / sizeof(*bs) ; ++i){
+    if(bs[i] == NCBLIT_PIXEL && !notcurses_canpixel(nc)){
+      // FIXME throw up an indicator?
+      continue;
+    }
     struct ncvisual_options vopts = {
       .scaling = NCSCALE_STRETCH,
       .blitter = bs[i],
       .n = notcurses_stdplane(nc),
+      .y = bs[i] == NCBLIT_PIXEL,
     };
     if(ncvisual_render(nc, ncv, &vopts) == NULL){
       return -1;

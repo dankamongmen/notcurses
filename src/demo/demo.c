@@ -547,6 +547,7 @@ int main(int argc, char** argv){
   if(notcurses_mouse_enable(nc)){
     goto err;
   }
+  notcurses_check_pixel_support(nc);
   if(input_dispatcher(nc)){
     goto err;
   }
