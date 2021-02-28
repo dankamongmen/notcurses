@@ -664,25 +664,23 @@ int term_setstyle(FILE* out, unsigned cur, unsigned targ, unsigned stylebit,
 
 // write any escape sequences necessary to set the desired style
 static inline int
-term_setstyles(FILE* out, rasterstate* rstate, const nccell* c,
-               const char* sgr0, const char* sgr, const char* italics,
-               const char* italoff, const char* struck, const char* struckoff){
+term_setstyles(FILE* out, notcurses* nc, const nccell* c){
   bool normalized = false;
   uint32_t cellattr = cell_styles(c);
-  if(cellattr == rstate->curattr){
+  if(cellattr == nc->rstate.curattr){
     return 0; // happy agreement, change nothing
   }
   int ret = 0;
   // if only italics changed, don't emit any sgr escapes. xor of current and
   // target ought have all 0s in the lower 8 bits if only italics changed.
-  if((cellattr ^ rstate->curattr) & 0xfful){
+  if((cellattr ^ nc->rstate.curattr) & 0xfful){
     normalized = true; // FIXME this is pretty conservative
     // if everything's 0, emit the shorter sgr0
-    if(sgr0 && ((cellattr & NCSTYLE_MASK) == 0)){
-      if(term_emit(sgr0, out, false) < 0){
+    if(nc->tcache.sgr0 && ((cellattr & NCSTYLE_MASK) == 0)){
+      if(term_emit(nc->tcache.sgr0, out, false) < 0){
         ret = -1;
       }
-    }else if(term_emit(tiparm(sgr, cellattr & NCSTYLE_STANDOUT,
+    }else if(term_emit(tiparm(nc->tcache.sgr, cellattr & NCSTYLE_STANDOUT,
                               cellattr & NCSTYLE_UNDERLINE,
                               cellattr & NCSTYLE_REVERSE,
                               cellattr & NCSTYLE_BLINK,
@@ -694,18 +692,20 @@ term_setstyles(FILE* out, rasterstate* rstate, const nccell* c,
       ret = -1;
     }
     // sgr will blow away italics/struck if they were set beforehand
-    rstate->curattr &= !(NCSTYLE_ITALIC | NCSTYLE_STRUCK);
+    nc->rstate.curattr &= !(NCSTYLE_ITALIC | NCSTYLE_STRUCK);
   }
-  ret |= term_setstyle(out, rstate->curattr, cellattr, NCSTYLE_ITALIC, italics, italoff);
-  ret |= term_setstyle(out, rstate->curattr, cellattr, NCSTYLE_STRUCK, struck, struckoff);
-  rstate->curattr = cellattr;
+  ret |= term_setstyle(out, nc->rstate.curattr, cellattr, NCSTYLE_ITALIC,
+                       nc->tcache.italics, nc->tcache.italoff);
+  ret |= term_setstyle(out, nc->rstate.curattr, cellattr, NCSTYLE_STRUCK,
+                       nc->tcache.struck, nc->tcache.struckoff);
+  nc->rstate.curattr = cellattr;
   if(normalized){
-    rstate->fgdefelidable = true;
-    rstate->bgdefelidable = true;
-    rstate->bgelidable = false;
-    rstate->fgelidable = false;
-    rstate->bgpalelidable = false;
-    rstate->fgpalelidable = false;
+    nc->rstate.fgdefelidable = true;
+    nc->rstate.bgdefelidable = true;
+    nc->rstate.bgelidable = false;
+    nc->rstate.fgelidable = false;
+    nc->rstate.bgpalelidable = false;
+    nc->rstate.fgpalelidable = false;
   }
   return ret;
 }
@@ -975,10 +975,7 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
         if(!cell_pixels_p(srccell)){
           // set the style. this can change the color back to the default; if it
           // does, we need update our elision possibilities.
-          if(term_setstyles(out, &nc->rstate, srccell,
-                            nc->tcache.sgr0, nc->tcache.sgr,
-                            nc->tcache.italics, nc->tcache.italoff,
-                            nc->tcache.struck, nc->tcache.struckoff)){
+          if(term_setstyles(out, nc, srccell)){
             return -1;
           }
           // if our cell has a default foreground *or* background, we can elide
