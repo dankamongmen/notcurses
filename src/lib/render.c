@@ -873,6 +873,9 @@ goto_location(notcurses* nc, FILE* out, int y, int x){
     if(nc->rstate.x == x){ // needn't move shit
       return 0;
     }
+    if(nc->rstate.pixelmode && leave_pixel_mode(nc, out)){
+      return -1;
+    }
     if(x == nc->rstate.x + 1 && nc->tcache.cuf1){
       ret = term_emit(nc->tcache.cuf1, out, false);
     }else{
@@ -880,6 +883,9 @@ goto_location(notcurses* nc, FILE* out, int y, int x){
     }
   }else{
     // cup is required, no need to check for existence
+    if(nc->rstate.pixelmode && leave_pixel_mode(nc, out)){
+      return -1;
+    }
     ret = term_emit(tiparm(nc->tcache.cup, y, x), out, false);
   }
   if(ret == 0){

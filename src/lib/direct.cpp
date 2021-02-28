@@ -452,16 +452,17 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
         return -1;
       }
       pixelmode = false;
-    }
-    // FIXME replace with a SGR clear
-    ncdirect_set_fg_default(n);
-    ncdirect_set_bg_default(n);
-    if(putc('\n', n->ttyfp) == EOF){
-      return -1;
-    }
-    if(y == toty){
-      if(ncdirect_cursor_down(n, 1)){
+    }else{
+      // FIXME replace with a SGR clear
+      ncdirect_set_fg_default(n);
+      ncdirect_set_bg_default(n);
+      if(putc('\n', n->ttyfp) == EOF){
         return -1;
+      }
+      if(y == toty){
+        if(ncdirect_cursor_down(n, 1)){
+          return -1;
+        }
       }
     }
   }
