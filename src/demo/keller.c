@@ -20,7 +20,7 @@ visualize(struct notcurses* nc, struct ncvisual* ncv){
       .scaling = NCSCALE_STRETCH,
       .blitter = bs[i],
       .n = notcurses_stdplane(nc),
-      .y = bs[i] == NCBLIT_PIXEL,
+      .y = 1,
     };
     if(ncvisual_render(nc, ncv, &vopts) == NULL){
       return -1;
