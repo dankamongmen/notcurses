@@ -139,7 +139,8 @@ extract_data_table(const uint32_t* data, int linesize, int begy, int begx,
   return 0;
 }
 
-// Emit some number of equivalent, subsequent sixels, using sixel RLE.
+// Emit some number of equivalent, subsequent sixels, using sixel RLE. We've
+// seen the sixel |crle| for |seenrle| columns in a row. |seenrle| must > 0.
 static int
 write_rle(FILE* fp, int seenrle, unsigned char crle){
   crle += 63;
@@ -190,13 +191,11 @@ write_sixel_data(FILE* fp, int lenx, sixeltable* stab){
         }
       }
       write_rle(fp, seenrle, crle);
-      //if(m < stab->ctab->sixelcount){ // print subband terminator
-        if(i + 1 < stab->ctab->colors){
-          fputc('$', fp);
-        }else{
-          fputc('-', fp);
-        }
-      //}
+      if(i + 1 < stab->ctab->colors){
+        fputc('$', fp);
+      }else{
+        fputc('-', fp);
+      }
     }
     p += lenx;
   }
