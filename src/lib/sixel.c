@@ -52,7 +52,7 @@ find_color(colortable* ctab, unsigned char comps[static 3]){
 
 // rather inelegant preprocess of the entire image. colors are converted to the
 // 100x100x100 sixel colorspace, and built into a table. if there are more than
-// 255 converted colors, we (currently) reject it FIXME. ideally we'd do the
+// 256 converted colors, we (currently) reject it FIXME. ideally we'd do the
 // image piecemeal, allowing us to get complete color fidelity; barring that,
 // we'd have something sensibly quantize us down first FIXME. we ought do
 // everything in a single pass FIXME.
@@ -83,9 +83,12 @@ static inline void
 initialize_ctable(colortable* ctab){
   ctab->colors = 0;
   ctab->sixelcount = 0;
-  memset(ctab->table, 0xff, 3);
 }
 
+// Use as many of the original colors as we can, but not more than will fit
+// into the set of color registers. We're already losing some precision by the
+// RGB -> sixelspace conversion (256->100); try with the complete colors, and
+// progressively mask more out until they all fit.
 static int
 extract_color_table(const uint32_t* data, int linesize, int begy, int begx,
                     int leny, int lenx, colortable* ctab, unsigned char* mask){
@@ -101,6 +104,7 @@ extract_color_table(const uint32_t* data, int linesize, int begy, int begx,
   return -1;
 }
 
+// Having assembled the color table, build the raw sixels.
 static int
 extract_data_table(const uint32_t* data, int linesize, int begy, int begx,
                    int leny, int lenx, sixeltable* stab, unsigned char mask){
@@ -135,6 +139,7 @@ extract_data_table(const uint32_t* data, int linesize, int begy, int begx,
   return 0;
 }
 
+// Emit some number of equivalent, subsequent sixels, using sixel RLE.
 static int
 write_rle(FILE* fp, int seenrle, unsigned char crle){
   crle += 63;
@@ -154,6 +159,7 @@ write_rle(FILE* fp, int seenrle, unsigned char crle){
   return 0;
 }
 
+// Emit the sprixel in its entirety, plus enable and disable pixel mode.
 static int
 write_sixel_data(FILE* fp, int lenx, sixeltable* stab){
   fprintf(fp, "\e[?80h\ePq"); // FIXME pixelon
