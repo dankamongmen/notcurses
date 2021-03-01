@@ -30,9 +30,9 @@ visualize(struct notcurses* nc, struct ncvisual* ncv){
     const char* name = notcurses_str_blitter(bs[i]);
     int scalex, scaley, truey, truex;
     ncvisual_geom(nc, ncv, &vopts, &truey, &truex, &scaley, &scalex);
+    ncplane_putstr_aligned(vopts.n, ncplane_dim_y(vopts.n) / 2 - 3, NCALIGN_CENTER, name);
     ncplane_printf_aligned(vopts.n, ncplane_dim_y(vopts.n) / 2 - 1, NCALIGN_CENTER,
-                           "%dx%d", truex, truey);
-    ncplane_putstr_aligned(vopts.n, ncplane_dim_y(vopts.n) / 2, NCALIGN_CENTER, name);
+                           "%03dx%03d", truex, truey);
     ncplane_printf_aligned(vopts.n, ncplane_dim_y(vopts.n) / 2 + 1, NCALIGN_CENTER,
                            "%d:%d pixels -> cell", scalex, scaley);
     int ret = demo_render(nc);

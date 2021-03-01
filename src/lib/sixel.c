@@ -5,10 +5,12 @@ break_sixel_comps(unsigned char comps[static 3], uint32_t rgba, unsigned char ma
   comps[0] = (ncpixel_r(rgba) & mask) * 100 / 255;
   comps[1] = (ncpixel_g(rgba) & mask) * 100 / 255;
   comps[2] = (ncpixel_b(rgba) & mask) * 100 / 255;
+//fprintf(stderr, "%u %u %u\n", comps[0], comps[1], comps[2]);
 }
 
 // first pass: extract up to 256 sixelspace colors over arbitrarily many sixels
 // sixelspace is 0..100 corresponding to 0..255, lame =[
+// FIXME you can have more (or fewer) than 256 registers...detect?
 typedef struct colortable {
   int colors;
   int sixelcount;
