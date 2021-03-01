@@ -695,18 +695,6 @@ int ncplane_genocide(ncplane *ncp){
   return ret;
 }
 
-static int
-make_nonblocking(int fd){
-  if(fd < 0){
-    return -1;
-  }
-  int flags = fcntl(fd, F_GETFL, 0);
-  if(flags < 0){
-    return -1;
-  }
-  return fcntl(fd, F_SETFL, flags | O_NONBLOCK);
-}
-
 static void
 reset_stats(ncstats* stats){
   uint64_t fbbytes = stats->fbbytes;
@@ -1076,7 +1064,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   if(ncinputlayer_init(&ret->input, stdin)){
     goto err;
   }
-  if(make_nonblocking(ret->input.ttyinfd)){
+  if(set_fd_nonblocking(ret->input.ttyinfd)){
     goto err;
   }
   // Neither of these is supported on e.g. the "linux" virtual console.

@@ -79,7 +79,7 @@ blocking_write(int fd, const char* buf, size_t buflen){
   while(written < buflen){
     ssize_t w = write(fd, buf + written, buflen - written);
     if(w < 0){
-      if(errno != EAGAIN && errno != EWOULDBLOCK){
+      if(errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR){
         return -1;
       }
     }else{

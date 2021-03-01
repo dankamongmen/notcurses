@@ -79,8 +79,7 @@ ncfdplane_thread(void* vncfp){
   return NULL;
 }
 
-static int
-set_fd_nonblocking(int fd){
+int set_fd_nonblocking(int fd){
   int flags = fcntl(fd, F_GETFL, 0);
   if(flags < 0){
     return -1;
