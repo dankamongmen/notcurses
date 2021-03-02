@@ -3411,7 +3411,7 @@ struct blitset {
   const wchar_t* egcs;
   int (*blit)(struct ncplane* n, int placey, int placex, int linesize,
               const void* data, int begy, int begx, int leny, int lenx,
-              bool blendcolors);
+              unsigned blendcolors);
   const char* name;
   bool fill;
 };

@@ -517,8 +517,6 @@ auto ncvisual_render_pixels(tinfo* tcache, ncvisual* ncv, const blitset* bset,
     if(scaling == NCSCALE_NONE || scaling == NCSCALE_NONE_HIRES){
       dispcols = ncv->cols;
       disprows = ncv->rows;
-      /*dispcols = dispcols / tcache->cellpixx + dispcols % tcache->cellpixx;
-      disprows = disprows / tcache->cellpixy + disprows % tcache->cellpixy;*/
     }else{
       ncplane_dim_yx(n, &disprows, &dispcols);
       dispcols *= tcache->cellpixx;
@@ -534,7 +532,8 @@ auto ncvisual_render_pixels(tinfo* tcache, ncvisual* ncv, const blitset* bset,
   lenx = dispcols;
 //fprintf(stderr, "blit: %dx%d <- %dx%d:%d+%d of %d/%d stride %u @%dx%d %p\n", disprows, dispcols, begy, begx, leny, lenx, ncv->rows, ncv->cols, ncv->rowstride, placey, placex, ncv->data);
   if(ncvisual_blit(ncv, disprows, dispcols, n, bset,
-                   placey, placex, begy, begx, leny, lenx, false)){
+                   placey, placex, begy, begx, leny, lenx,
+                   ncplane_notcurses(stdn)->tcache.cellpixx)){
     ncplane_destroy(n);
     return nullptr;
   }
