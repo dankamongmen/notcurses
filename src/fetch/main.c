@@ -451,13 +451,13 @@ infoplane_notcurses(struct notcurses* nc, const fetched_info* fi, int planeheigh
     ncplane_printf_aligned(infop, 4, NCALIGN_LEFT, " RGB TERM: %s", fi->term);
     nccell c = CELL_CHAR_INITIALIZER('R');
     cell_set_styles(&c, NCSTYLE_BOLD);
-    cell_set_fg_rgb8(&c, 0xd0, 0, 0);
+    cell_set_fg_rgb8(&c, 0xf0, 0xa0, 0xa0);
     ncplane_putc_yx(infop, 4, 1, &c);
     cell_load_char(infop, &c, 'G');
-    cell_set_fg_rgb8(&c, 0, 0xd0, 0);
+    cell_set_fg_rgb8(&c, 0xa0, 0xf0, 0xa0);
     ncplane_putc_yx(infop, 4, 2, &c);
     cell_load_char(infop, &c, 'B');
-    cell_set_fg_rgb8(&c, 0, 0, 0xd);
+    cell_set_fg_rgb8(&c, 0xa0, 0xa0, 0xf0);
     ncplane_putc_yx(infop, 4, 3, &c);
     cell_set_styles(&c, NCSTYLE_NONE);
   }else{
