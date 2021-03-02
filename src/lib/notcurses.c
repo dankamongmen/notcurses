@@ -183,8 +183,16 @@ void ncplane_dim_yx(const ncplane* n, int* rows, int* cols){
 int update_term_dimensions(int fd, int* rows, int* cols, tinfo* tcache){
   // if we're not a real tty, we presumably haven't changed geometry, return
   if(fd < 0){
-    *rows = DEFAULT_ROWS;
-    *cols = DEFAULT_COLS;
+    if(rows){
+      *rows = DEFAULT_ROWS;
+    }
+    if(cols){
+      *cols = DEFAULT_COLS;
+    }
+    if(tcache){
+      tcache->cellpixy = 0;
+      tcache->cellpixx = 0;
+    }
     return 0;
   }
   struct winsize ws;
