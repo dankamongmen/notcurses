@@ -559,7 +559,7 @@ neologo_present(struct ncdirect* nc, const char* nlogo){
   }
   free(lines);
   ncdirect_set_fg_rgb(nc, 0xba55d3);
-  if(notcurses_canopen_images(NULL)){
+  if(ncdirect_canopen_images(nc)){
     ncdirect_printf_aligned(nc, -1, NCALIGN_CENTER, "(no image file is known for your distro)");
   }else{
     ncdirect_printf_aligned(nc, -1, NCALIGN_CENTER, "(notcurses was compiled without image support)");
@@ -571,15 +571,16 @@ static void*
 display_thread(void* vmarshal){
   struct marshal* m = vmarshal;
   drawpalette(m->nc);
-  if(notcurses_canopen_images(NULL)){
+  if(ncdirect_canopen_images(m->nc)){
+    ncdirect_check_pixel_support(m->nc);
     if(m->logo){
       if(ncdirect_render_image(m->nc, m->logo, NCALIGN_CENTER,
-                              NCBLIT_DEFAULT, NCSCALE_SCALE_HIRES) == 0){
+                               NCBLIT_PIXEL, NCSCALE_SCALE_HIRES) == 0){
         return NULL;
       }
     }else if(m->dinfo && m->dinfo->logofile){
       if(ncdirect_render_image(m->nc, m->dinfo->logofile, NCALIGN_CENTER,
-                              NCBLIT_DEFAULT, NCSCALE_SCALE_HIRES) == 0){
+                               NCBLIT_PIXEL, NCSCALE_SCALE_HIRES) == 0){
         return NULL;
       }
     }
