@@ -774,9 +774,8 @@ term_bg_rgb8(bool RGBflag, const char* setab, int colors, FILE* out,
   return 0;
 }
 
-static inline int
-term_fg_rgb8(bool RGBflag, const char* setaf, int colors, FILE* out,
-             unsigned r, unsigned g, unsigned b){
+int term_fg_rgb8(bool RGBflag, const char* setaf, int colors, FILE* out,
+                 unsigned r, unsigned g, unsigned b){
   // We typically want to use tputs() and tiperm() to acquire and write the
   // escapes, as these take into account terminal-specific delays, padding,
   // etc. For the case of DirectColor, there is no suitable terminfo entry, but
