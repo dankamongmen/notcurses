@@ -477,8 +477,13 @@ ncdirectv* ncdirect_render_frame(ncdirect* n, const char* file,
   }
   int disprows, dispcols;
   if(scale != NCSCALE_NONE && scale != NCSCALE_NONE_HIRES){
-    dispcols = ncdirect_dim_x(n) * encoding_x_scale(bset);
-    disprows = ncdirect_dim_y(n) * encoding_y_scale(bset);
+    if(bset->geom != NCBLIT_PIXEL){
+      dispcols = ncdirect_dim_x(n) * encoding_x_scale(bset);
+      disprows = ncdirect_dim_y(n) * encoding_y_scale(bset);
+    }else{
+      dispcols = ncdirect_dim_x(n) * n->tcache.cellpixx;
+      disprows = ncdirect_dim_y(n) * n->tcache.cellpixy;
+    }
     if(scale == NCSCALE_SCALE || scale == NCSCALE_SCALE_HIRES){
       scale_visual(ncv, &disprows, &dispcols);
     }
@@ -501,6 +506,7 @@ ncdirectv* ncdirect_render_frame(ncdirect* n, const char* file,
   };
   if(bset->geom == NCBLIT_PIXEL){
     nopts.rows = 1;
+    nopts.cols = dispcols / n->tcache.cellpixx;
   }
   auto ncdv = ncplane_new_internal(nullptr, nullptr, &nopts);
   if(!ncdv){
@@ -664,6 +670,7 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
   if(interrogate_terminfo(&ret->tcache, shortname_term, utf8)){
     goto err;
   }
+  update_term_dimensions(ret->ctermfd, NULL, NULL, &ret->tcache);
   ncdirect_set_styles(ret, 0);
   return ret;
 

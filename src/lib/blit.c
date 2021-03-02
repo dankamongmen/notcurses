@@ -841,7 +841,7 @@ static const struct blitset notcurses_blitters[] = {
      .blit = tria_blit,      .name = "fourstep",      .fill = false, },
    { .geom = NCBLIT_BRAILLE, .width = 2, .height = 4, .egcs = L"⠀⢀⢠⢰⢸⡀⣀⣠⣰⣸⡄⣄⣤⣴⣼⡆⣆⣦⣶⣾⡇⣇⣧⣷⣿",
      .blit = braille_blit,   .name = "braille",       .fill = true,  },
-   { .geom = NCBLIT_PIXEL,   .width = 1, .height = 6, .egcs = L"",
+   { .geom = NCBLIT_PIXEL,   .width = 1, .height = 1, .egcs = L"",
      .blit = sixel_blit,     .name = "pixel",         .fill = true,  },
    { .geom = 0,              .width = 0, .height = 0, .egcs = NULL,
      .blit = NULL,           .name = NULL,            .fill = false,  },

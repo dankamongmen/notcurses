@@ -479,21 +479,20 @@ auto ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const blitset* bset,
   return n;
 }
 
-auto ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const blitset* bset,
+auto ncvisual_render_pixels(tinfo* tcache, ncvisual* ncv, const blitset* bset,
                             int placey, int placex, int begy, int begx,
-                            int leny, int lenx, ncplane* n, ncscale_e scaling) -> ncplane* {
+                            int leny, int lenx, ncplane* n, ncscale_e scaling,
+                            ncplane* stdn) -> ncplane* {
   int disprows, dispcols;
 //fprintf(stderr, "INPUT N: %p\n", vopts ? vopts->n : nullptr);
   if(n == nullptr){ // create plane
     if(scaling == NCSCALE_NONE || scaling == NCSCALE_NONE_HIRES){
       dispcols = ncv->cols;
       disprows = ncv->rows;
-      /*dispcols = dispcols / nc->tcache.cellpixx + dispcols % nc->tcache.cellpixx;
-      disprows = disprows / nc->tcache.cellpixy + disprows % nc->tcache.cellpixy;*/
     }else{
-      notcurses_term_dim_yx(nc, &disprows, &dispcols);
-      dispcols *= nc->tcache.cellpixx;
-      disprows *= nc->tcache.cellpixy;
+      ncplane_dim_yx(stdn, &disprows, &dispcols);
+      dispcols *= tcache->cellpixx;
+      disprows *= tcache->cellpixy;
       if(scaling == NCSCALE_SCALE || scaling == NCSCALE_SCALE_HIRES){
         scale_visual(ncv, &disprows, &dispcols);
       }
@@ -503,13 +502,13 @@ auto ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const blitset* bset,
       .y = placey,
       .x = placex,
       .rows = 1,
-      .cols = dispcols / nc->tcache.cellpixx,
+      .cols = dispcols / tcache->cellpixx,
       .userptr = nullptr,
       .name = "rgba",
       .resizecb = nullptr,
       .flags = 0,
     };
-    if((n = ncplane_create(notcurses_stdplane(nc), &nopts)) == nullptr){
+    if((n = ncplane_create(stdn, &nopts)) == nullptr){
       return nullptr;
     }
     placey = 0;
@@ -518,14 +517,14 @@ auto ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const blitset* bset,
     if(scaling == NCSCALE_NONE || scaling == NCSCALE_NONE_HIRES){
       dispcols = ncv->cols;
       disprows = ncv->rows;
-      /*dispcols = dispcols / nc->tcache.cellpixx + dispcols % nc->tcache.cellpixx;
-      disprows = disprows / nc->tcache.cellpixy + disprows % nc->tcache.cellpixy;*/
+      /*dispcols = dispcols / tcache->cellpixx + dispcols % tcache->cellpixx;
+      disprows = disprows / tcache->cellpixy + disprows % tcache->cellpixy;*/
     }else{
       ncplane_dim_yx(n, &disprows, &dispcols);
-      dispcols *= nc->tcache.cellpixx;
-      disprows *= nc->tcache.cellpixy;
-      dispcols -= (placex * nc->tcache.cellpixx + 1);
-      disprows -= (placey * nc->tcache.cellpixy + 1);
+      dispcols *= tcache->cellpixx;
+      disprows *= tcache->cellpixy;
+      dispcols -= (placex * tcache->cellpixx + 1);
+      disprows -= (placey * tcache->cellpixy + 1);
       if(scaling == NCSCALE_SCALE || scaling == NCSCALE_SCALE_HIRES){
         scale_visual(ncv, &disprows, &dispcols);
       } // else stretch
@@ -533,7 +532,7 @@ auto ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const blitset* bset,
   }
   leny = disprows;
   lenx = dispcols;
-fprintf(stderr, "blit: %dx%d <- %dx%d:%d+%d of %d/%d stride %u @%dx%d %p\n", disprows, dispcols, begy, begx, leny, lenx, ncv->rows, ncv->cols, ncv->rowstride, placey, placex, ncv->data);
+//fprintf(stderr, "blit: %dx%d <- %dx%d:%d+%d of %d/%d stride %u @%dx%d %p\n", disprows, dispcols, begy, begx, leny, lenx, ncv->rows, ncv->cols, ncv->rowstride, placey, placex, ncv->data);
   if(ncvisual_blit(ncv, disprows, dispcols, n, bset,
                    placey, placex, begy, begx, leny, lenx, false)){
     ncplane_destroy(n);
@@ -590,8 +589,8 @@ auto ncvisual_render(notcurses* nc, ncvisual* ncv,
                               n, scaling,
                               vopts && (vopts->flags & NCVISUAL_OPTION_BLEND));
   }else{
-    n = ncvisual_render_pixels(nc, ncv, bset, placey, placex, begy, begx, leny, lenx,
-                               n, scaling);
+    n = ncvisual_render_pixels(&nc->tcache, ncv, bset, placey, placex, begy, begx,
+                               leny, lenx, n, scaling, notcurses_stdplane(nc));
   }
   return n;
 }
