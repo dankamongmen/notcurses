@@ -1206,6 +1206,9 @@ int sixel_blit(ncplane* nc, int placey, int placex, int linesize,
                const void* data, int begy, int begx,
                int leny, int lenx, unsigned cellpixx);
 
+int term_fg_rgb8(bool RGBflag, const char* setaf, int colors, FILE* out,
+                 unsigned r, unsigned g, unsigned b);
+
 typedef struct ncvisual_implementation {
   int (*visual_init)(int loglevel);
   void (*visual_printbanner)(const struct notcurses* nc);

@@ -825,18 +825,28 @@ init_banner(const notcurses* nc){
     printf("\n notcurses %s by nick black et al", notcurses_version());
     term_fg_palindex(nc, stdout, nc->tcache.colors <= 256 ? 12 % nc->tcache.colors : 0x2080e0);
     if(nc->tcache.cellpixy && nc->tcache.cellpixx){
-      printf("\n  %d rows (%dpx) %d cols (%dpx) (%sB) %zuB cells %d colors%s\n",
+      printf("\n  %d rows (%dpx) %d cols (%dpx) (%sB) %zuB cells %d colors",
              nc->stdplane->leny, nc->tcache.cellpixy,
              nc->stdplane->lenx, nc->tcache.cellpixx,
              bprefix(nc->stats.fbbytes, 1, prefixbuf, 0), sizeof(nccell),
-             nc->tcache.colors, nc->tcache.RGBflag ? "+RGB" : "");
+             nc->tcache.colors);
     }else{
-      printf("\n  %d rows %d cols (%sB) %zuB cells %d colors%s\n",
+      printf("\n  %d rows %d cols (%sB) %zuB cells %d colors",
              nc->stdplane->leny, nc->stdplane->lenx,
              bprefix(nc->stats.fbbytes, 1, prefixbuf, 0), sizeof(nccell),
-             nc->tcache.colors, nc->tcache.RGBflag ? "+RGB" : "");
+             nc->tcache.colors);
     }
-    printf("  compiled with gcc-%s, %s-endian\n"
+    if(nc->tcache.RGBflag){
+      putc('+', stdout);
+      term_fg_rgb8(true, nc->tcache.setaf, nc->tcache.colors, stdout, 0xc0, 0x80, 0x80);
+      putc('R', stdout);
+      term_fg_rgb8(true, nc->tcache.setaf, nc->tcache.colors, stdout, 0x80, 0xc0, 0x80);
+      putc('G', stdout);
+      term_fg_rgb8(true, nc->tcache.setaf, nc->tcache.colors, stdout, 0x80, 0x80, 0xc0);
+      putc('B', stdout);
+      term_fg_palindex(nc, stdout, nc->tcache.colors <= 256 ? 12 % nc->tcache.colors : 0x2080e0);
+    }
+    printf("\n  compiled with gcc-%s, %s-endian\n"
            "  terminfo from %s\n",
            __VERSION__,
 #ifdef __BYTE_ORDER__
