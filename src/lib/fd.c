@@ -79,15 +79,25 @@ ncfdplane_thread(void* vncfp){
   return NULL;
 }
 
-int set_fd_nonblocking(int fd){
+int set_fd_nonblocking(int fd, unsigned state, unsigned* oldstate){
   int flags = fcntl(fd, F_GETFL, 0);
   if(flags < 0){
     return -1;
   }
-  if(flags & O_NONBLOCK){
-    return 0;
+  if(oldstate){
+    *oldstate = flags & O_NONBLOCK;
   }
-  flags |= O_NONBLOCK;
+  if(state){
+    if(flags & O_NONBLOCK){
+      return 0;
+    }
+    flags |= O_NONBLOCK;
+  }else{
+    if(!(flags & O_NONBLOCK)){
+      return 0;
+    }
+    flags &= ~O_NONBLOCK;
+  }
   if(fcntl(fd, F_SETFL, flags)){
     return -1;
   }
@@ -188,7 +198,7 @@ launch_pipe_process(int* pipe, int* pidfd){
     }
   }else if(p > 0){ // parent
     *pipe = pipes[0];
-    set_fd_nonblocking(*pipe);
+    set_fd_nonblocking(*pipe, 1, NULL);
   }
   return p;
 }

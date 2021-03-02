@@ -777,6 +777,7 @@ void notcurses_stats_reset(notcurses* nc, ncstats* stats){
 // the environment / terminal definition.
 static void
 init_banner_warnings(const notcurses* nc, FILE* out){
+  // might be using stderr, so don't just reuse stdout decision
   const bool tty = isatty(fileno(out));
   if(tty){
     term_fg_palindex(nc, out, nc->tcache.colors <= 88 ? 1 % nc->tcache.colors : 0xcb);
@@ -1064,7 +1065,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   if(ncinputlayer_init(&ret->input, stdin)){
     goto err;
   }
-  if(set_fd_nonblocking(ret->input.ttyinfd)){
+  if(set_fd_nonblocking(ret->input.ttyinfd, 1, &ret->stdio_blocking_save)){
     goto err;
   }
   // Neither of these is supported on e.g. the "linux" virtual console.
@@ -1168,6 +1169,7 @@ int notcurses_stop(notcurses* nc){
   int ret = 0;
   if(nc){
     ret |= notcurses_stop_minimal(nc);
+    ret |= set_fd_nonblocking(nc->input.ttyinfd, nc->stdio_blocking_save, NULL);
     if(nc->stdplane){
       notcurses_drop_planes(nc);
       free_plane(nc->stdplane);

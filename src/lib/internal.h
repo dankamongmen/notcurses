@@ -373,6 +373,7 @@ typedef struct notcurses {
   int loglevel;
   palette256 palette; // 256-indexed palette can be used instead of/with RGB
   bool palette_damage[NCPALETTESIZE];
+  unsigned stdio_blocking_save; // was stdio blocking at entry? restore on stop.
 } notcurses;
 
 #include "blitset.h"
@@ -1152,7 +1153,7 @@ int ncinputlayer_init(ncinputlayer* nilayer, FILE* infp);
 // FIXME absorb into ncinputlayer_init()
 int cbreak_mode(int ttyfd, const struct termios* tpreserved);
 
-int set_fd_nonblocking(int fd);
+int set_fd_nonblocking(int fd, unsigned state, unsigned* oldstate);
 
 // Given the four channels arguments, verify that:
 //
