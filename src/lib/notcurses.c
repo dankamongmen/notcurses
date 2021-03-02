@@ -180,7 +180,7 @@ void ncplane_dim_yx(const ncplane* n, int* rows, int* cols){
 
 // anyone calling this needs ensure the ncplane's framebuffer is updated
 // to reflect changes in geometry. also called at startup for standard plane.
-int update_term_dimensions(int fd, int* rows, int* cols){
+int update_term_dimensions(int fd, int* rows, int* cols, tinfo* tcache){
   // if we're not a real tty, we presumably haven't changed geometry, return
   if(fd < 0){
     *rows = DEFAULT_ROWS;
@@ -203,6 +203,10 @@ int update_term_dimensions(int fd, int* rows, int* cols){
   }
   if(cols){
     *cols = ws.ws_col;
+  }
+  if(tcache){
+    tcache->cellpixy = ws.ws_row ? ws.ws_ypixel / ws.ws_row : 0;
+    tcache->cellpixx = ws.ws_col ? ws.ws_xpixel / ws.ws_col : 0;
   }
   return 0;
 }
@@ -812,12 +816,20 @@ init_banner(const notcurses* nc){
     term_fg_palindex(nc, stdout, nc->tcache.colors <= 256 ? 50 % nc->tcache.colors : 0x20e080);
     printf("\n notcurses %s by nick black et al", notcurses_version());
     term_fg_palindex(nc, stdout, nc->tcache.colors <= 256 ? 12 % nc->tcache.colors : 0x2080e0);
-    printf("\n  %d rows %d cols (%sB) %zuB cells %d colors%s\n"
-           "  compiled with gcc-%s, %s-endian\n"
+    if(nc->tcache.cellpixy && nc->tcache.cellpixx){
+      printf("\n  %d rows (%dpx) %d cols (%dpx) (%sB) %zuB cells %d colors%s\n",
+             nc->stdplane->leny, nc->tcache.cellpixy,
+             nc->stdplane->lenx, nc->tcache.cellpixx,
+             bprefix(nc->stats.fbbytes, 1, prefixbuf, 0), sizeof(nccell),
+             nc->tcache.colors, nc->tcache.RGBflag ? "+RGB" : "");
+    }else{
+      printf("\n  %d rows %d cols (%sB) %zuB cells %d colors%s\n",
+             nc->stdplane->leny, nc->stdplane->lenx,
+             bprefix(nc->stats.fbbytes, 1, prefixbuf, 0), sizeof(nccell),
+             nc->tcache.colors, nc->tcache.RGBflag ? "+RGB" : "");
+    }
+    printf("  compiled with gcc-%s, %s-endian\n"
            "  terminfo from %s\n",
-           nc->stdplane->leny, nc->stdplane->lenx,
-           bprefix(nc->stats.fbbytes, 1, prefixbuf, 0), sizeof(nccell),
-           nc->tcache.colors, nc->tcache.RGBflag ? "+RGB" : "",
            __VERSION__,
 #ifdef __BYTE_ORDER__
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
@@ -1047,20 +1059,20 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     fprintf(stderr, "Terminfo error %d (see terminfo(3ncurses))\n", termerr);
     goto err;
   }
+  const char* shortname_term = termname();
+  const char* longname_term = longname();
+  if(interrogate_terminfo(&ret->tcache, shortname_term, utf8)){
+    goto err;
+  }
   int dimy, dimx;
-  if(update_term_dimensions(ret->ttyfd, &dimy, &dimx)){
+  if(update_term_dimensions(ret->ttyfd, &dimy, &dimx, &ret->tcache)){
     goto err;
   }
   ret->suppress_banner = opts->flags & NCOPTION_SUPPRESS_BANNERS;
-  char* shortname_term = termname();
-  char* longname_term = longname();
   if(!ret->suppress_banner){
     fprintf(stderr, "Term: %dx%d %s (%s)\n", dimy, dimx,
             shortname_term ? shortname_term : "?",
             longname_term ? longname_term : "?");
-  }
-  if(interrogate_terminfo(&ret->tcache, shortname_term, utf8)){
-    goto err;
   }
   if(ncinputlayer_init(&ret->input, stdin)){
     goto err;
