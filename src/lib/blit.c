@@ -35,7 +35,7 @@ trilerp(uint32_t c0, uint32_t c1, uint32_t c2){
 static inline int
 tria_blit_ascii(ncplane* nc, int placey, int placex, int linesize,
                 const void* data, int begy, int begx,
-                int leny, int lenx, bool blendcolors){
+                int leny, int lenx, unsigned blendcolors){
 //fprintf(stderr, "ASCII %d X %d @ %d X %d (%p) place: %d X %d\n", leny, lenx, begy, begx, data, placey, placex);
   const int bpp = 32;
   int dimy, dimx, x, y;
@@ -84,7 +84,7 @@ tria_blit_ascii(ncplane* nc, int placey, int placex, int linesize,
 static inline int
 tria_blit(ncplane* nc, int placey, int placex, int linesize,
           const void* data, int begy, int begx,
-          int leny, int lenx, bool blendcolors){
+          int leny, int lenx, unsigned blendcolors){
 //fprintf(stderr, "HALF %d X %d @ %d X %d (%p) place: %d X %d\n", leny, lenx, begy, begx, data, placey, placex);
   const int bpp = 32;
   int dimy, dimx, x, y;
@@ -306,7 +306,7 @@ quadrant_solver(uint32_t tl, uint32_t tr, uint32_t bl, uint32_t br,
 // FIXME we ought be able to just build up a bitstring and use it as an index!
 // FIXME pass in rgbas as array of uint32_t ala sexblitter
 static inline const char*
-qtrans_check(nccell* c, bool blendcolors,
+qtrans_check(nccell* c, unsigned blendcolors,
              const unsigned char* rgbbase_tl, const unsigned char* rgbbase_tr,
              const unsigned char* rgbbase_bl, const unsigned char* rgbbase_br){
   uint32_t tl = 0, tr = 0, bl = 0, br = 0;
@@ -418,7 +418,7 @@ qtrans_check(nccell* c, bool blendcolors,
 static inline int
 quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
               const void* data, int begy, int begx,
-              int leny, int lenx, bool blendcolors){
+              int leny, int lenx, unsigned blendcolors){
   const int bpp = 32;
   int dimy, dimx, x, y;
   int total = 0; // number of cells written
@@ -501,7 +501,7 @@ generalerp(unsigned rsum, unsigned gsum, unsigned bsum, int count){
 // (all six pixels are different colors). We want to solve for the 2-partition
 // of pixels that minimizes total source distance from the resulting lerps.
 static const char*
-sex_solver(const uint32_t rgbas[6], uint64_t* channels, bool blendcolors){
+sex_solver(const uint32_t rgbas[6], uint64_t* channels, unsigned blendcolors){
   // each element within the set of 64 has an inverse element within the set,
   // for which we would calculate the same total differences, so just handle
   // the first 32. the partition[] bit masks represent combinations of
@@ -583,7 +583,7 @@ sex_solver(const uint32_t rgbas[6], uint64_t* channels, bool blendcolors){
 }
 
 static const char*
-sex_trans_check(cell* c, const uint32_t rgbas[6], bool blendcolors){
+sex_trans_check(cell* c, const uint32_t rgbas[6], unsigned blendcolors){
   // bit is *set* where sextant *is not*
   // 32: bottom right 16: bottom left
   //  8: middle right  4: middle left
@@ -641,7 +641,7 @@ sex_trans_check(cell* c, const uint32_t rgbas[6], bool blendcolors){
 static inline int
 sextant_blit(ncplane* nc, int placey, int placex, int linesize,
              const void* data, int begy, int begx,
-             int leny, int lenx, bool blendcolors){
+             int leny, int lenx, unsigned blendcolors){
   const int bpp = 32;
   int dimy, dimx, x, y;
   int total = 0; // number of cells written
@@ -710,7 +710,7 @@ fold_rgb8(unsigned* restrict r, unsigned* restrict g, unsigned* restrict b,
 static inline int
 braille_blit(ncplane* nc, int placey, int placex, int linesize,
              const void* data, int begy, int begx,
-             int leny, int lenx, bool blendcolors){
+             int leny, int lenx, unsigned blendcolors){
   const int bpp = 32;
   int dimy, dimx, x, y;
   int total = 0; // number of cells written

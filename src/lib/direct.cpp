@@ -514,7 +514,7 @@ ncdirectv* ncdirect_render_frame(ncdirect* n, const char* file,
     return nullptr;
   }
   if(ncvisual_blit(ncv, disprows, dispcols, ncdv, bset,
-                   0, 0, 0, 0, leny, lenx, false)){
+                   0, 0, 0, 0, leny, lenx, n->tcache.cellpixx)){
     ncvisual_destroy(ncv);
     free_plane(ncdv);
     return nullptr;

@@ -1204,7 +1204,7 @@ ncdirect_bg_default_p(const struct ncdirect* nc){
 
 int sixel_blit(ncplane* nc, int placey, int placex, int linesize,
                const void* data, int begy, int begx,
-               int leny, int lenx, bool blendcolors);
+               int leny, int lenx, unsigned cellpixx);
 
 typedef struct ncvisual_implementation {
   int (*visual_init)(int loglevel);
