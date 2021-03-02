@@ -2422,17 +2422,20 @@ API void ncvisual_destroy(struct ncvisual* ncv);
 
 // extract the next frame from an ncvisual. returns 1 on end of file, 0 on
 // success, and -1 on failure.
-API int ncvisual_decode(struct ncvisual* nc);
+API int ncvisual_decode(struct ncvisual* nc)
+  __attribute__ ((nonnull (1)));
 
 // decode the next frame ala ncvisual_decode(), but if we have reached the end,
 // rewind to the first frame of the ncvisual. a subsequent 'ncvisual_render()'
 // will render the first frame, as if the ncvisual had been closed and reopened.
 // the return values remain the same as those of ncvisual_decode().
-API int ncvisual_decode_loop(struct ncvisual* nc);
+API int ncvisual_decode_loop(struct ncvisual* nc)
+  __attribute__ ((nonnull (1)));
 
 // Rotate the visual 'rads' radians. Only M_PI/2 and -M_PI/2 are
 // supported at the moment, but this will change FIXME.
-API int ncvisual_rotate(struct ncvisual* n, double rads);
+API int ncvisual_rotate(struct ncvisual* n, double rads)
+  __attribute__ ((nonnull (1)));
 
 // Resize the visual so that it is 'rows' X 'columns'. This is a lossy
 // transformation, unless the size is unchanged.
@@ -2459,11 +2462,13 @@ API int ncvisual_set_yx(const struct ncvisual* n, int y, int x, uint32_t pixel)
 // the boundaries of the frame. Returns the plane to which we drew (if ncv->n
 // is NULL, a new plane will be created).
 API struct ncplane* ncvisual_render(struct notcurses* nc, struct ncvisual* ncv,
-                                    const struct ncvisual_options* vopts);
+                                    const struct ncvisual_options* vopts)
+  __attribute__ ((nonnull (2)));
 
 // If a subtitle ought be displayed at this time, return a heap-allocated copy
 // of the UTF8 text.
-API ALLOC char* ncvisual_subtitle(const struct ncvisual* ncv);
+API ALLOC char* ncvisual_subtitle(const struct ncvisual* ncv)
+  __attribute__ ((nonnull (1)));
 
 // Called for each frame rendered from 'ncv'. If anything but 0 is returned,
 // the streaming operation ceases immediately, and that value is propagated out.

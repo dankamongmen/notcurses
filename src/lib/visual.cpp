@@ -419,6 +419,129 @@ auto ncvisual_from_bgra(const void* bgra, int rows, int rowstride,
   return ncv;
 }
 
+auto ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const blitset* bset,
+                           int placey, int placex, int begy, int begx,
+                           int leny, int lenx, ncplane* n, ncscale_e scaling,
+                           bool blendcolors) -> ncplane* {
+  int disprows, dispcols;
+//fprintf(stderr, "INPUT N: %p\n", vopts ? vopts->n : nullptr);
+  if(n == nullptr){ // create plane
+    if(scaling == NCSCALE_NONE || scaling == NCSCALE_NONE_HIRES){
+      dispcols = ncv->cols;
+      disprows = ncv->rows;
+    }else{
+      notcurses_term_dim_yx(nc, &disprows, &dispcols);
+      dispcols *= encoding_x_scale(bset);
+      disprows *= encoding_y_scale(bset);
+      if(scaling == NCSCALE_SCALE || scaling == NCSCALE_SCALE_HIRES){
+        scale_visual(ncv, &disprows, &dispcols);
+      } // else stretch
+    }
+//fprintf(stderr, "PLACING NEW PLANE: %d/%d @ %d/%d\n", disprows, dispcols, placey, placex);
+    struct ncplane_options nopts = {
+      .y = placey,
+      .x = placex,
+      .rows = disprows / encoding_y_scale(bset),
+      .cols = dispcols / encoding_x_scale(bset),
+      .userptr = nullptr,
+      .name = "rgba",
+      .resizecb = nullptr,
+      .flags = 0,
+    };
+    if((n = ncplane_create(notcurses_stdplane(nc), &nopts)) == nullptr){
+      return nullptr;
+    }
+    placey = 0;
+    placex = 0;
+  }else{
+    if(scaling == NCSCALE_NONE || scaling == NCSCALE_NONE_HIRES){
+      dispcols = ncv->cols;
+      disprows = ncv->rows;
+    }else{
+      ncplane_dim_yx(n, &disprows, &dispcols);
+      dispcols *= encoding_x_scale(bset);
+      disprows *= encoding_y_scale(bset);
+      disprows -= placey;
+      dispcols -= placex;
+      if(scaling == NCSCALE_SCALE || scaling == NCSCALE_SCALE_HIRES){
+        scale_visual(ncv, &disprows, &dispcols);
+      } // else stretch
+    }
+  }
+  leny = (leny / (double)ncv->rows) * ((double)disprows);
+  lenx = (lenx / (double)ncv->cols) * ((double)dispcols);
+//fprintf(stderr, "blit: %dx%d:%d+%d of %d/%d stride %u %p\n", begy, begx, leny, lenx, ncv->rows, ncv->cols, ncv->rowstride, ncv->data);
+  if(ncvisual_blit(ncv, disprows, dispcols, n, bset,
+                   placey, placex, begy, begx, leny, lenx, blendcolors)){
+    ncplane_destroy(n);
+    return nullptr;
+  }
+  return n;
+}
+
+auto ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const blitset* bset,
+                            int placey, int placex, int begy, int begx,
+                            int leny, int lenx, ncplane* n, ncscale_e scaling) -> ncplane* {
+  int disprows, dispcols;
+//fprintf(stderr, "INPUT N: %p\n", vopts ? vopts->n : nullptr);
+  if(n == nullptr){ // create plane
+    if(scaling == NCSCALE_NONE || scaling == NCSCALE_NONE_HIRES){
+      dispcols = ncv->cols;
+      disprows = ncv->rows;
+      /*dispcols = dispcols / nc->tcache.cellpixx + dispcols % nc->tcache.cellpixx;
+      disprows = disprows / nc->tcache.cellpixy + disprows % nc->tcache.cellpixy;*/
+    }else{
+      notcurses_term_dim_yx(nc, &disprows, &dispcols);
+      dispcols *= nc->tcache.cellpixx;
+      disprows *= nc->tcache.cellpixy;
+      if(scaling == NCSCALE_SCALE || scaling == NCSCALE_SCALE_HIRES){
+        scale_visual(ncv, &disprows, &dispcols);
+      }
+    }
+//fprintf(stderr, "PLACING NEW PLANE: %d/%d @ %d/%d\n", disprows, dispcols, placey, placex);
+    struct ncplane_options nopts = {
+      .y = placey,
+      .x = placex,
+      .rows = 1,
+      .cols = dispcols / nc->tcache.cellpixx,
+      .userptr = nullptr,
+      .name = "rgba",
+      .resizecb = nullptr,
+      .flags = 0,
+    };
+    if((n = ncplane_create(notcurses_stdplane(nc), &nopts)) == nullptr){
+      return nullptr;
+    }
+    placey = 0;
+    placex = 0;
+  }else{
+    if(scaling == NCSCALE_NONE || scaling == NCSCALE_NONE_HIRES){
+      dispcols = ncv->cols;
+      disprows = ncv->rows;
+      /*dispcols = dispcols / nc->tcache.cellpixx + dispcols % nc->tcache.cellpixx;
+      disprows = disprows / nc->tcache.cellpixy + disprows % nc->tcache.cellpixy;*/
+    }else{
+      ncplane_dim_yx(n, &disprows, &dispcols);
+      dispcols *= nc->tcache.cellpixx;
+      disprows *= nc->tcache.cellpixy;
+      dispcols -= (placex * nc->tcache.cellpixx + 1);
+      disprows -= (placey * nc->tcache.cellpixy + 1);
+      if(scaling == NCSCALE_SCALE || scaling == NCSCALE_SCALE_HIRES){
+        scale_visual(ncv, &disprows, &dispcols);
+      } // else stretch
+    }
+  }
+  leny = disprows;
+  lenx = dispcols;
+fprintf(stderr, "blit: %dx%d <- %dx%d:%d+%d of %d/%d stride %u @%dx%d %p\n", disprows, dispcols, begy, begx, leny, lenx, ncv->rows, ncv->cols, ncv->rowstride, placey, placex, ncv->data);
+  if(ncvisual_blit(ncv, disprows, dispcols, n, bset,
+                   placey, placex, begy, begx, leny, lenx, false)){
+    ncplane_destroy(n);
+    return nullptr;
+  }
+  return n;
+}
+
 auto ncvisual_render(notcurses* nc, ncvisual* ncv,
                      const struct ncvisual_options* vopts) -> ncplane* {
   if(vopts && vopts->flags > NCVISUAL_OPTION_BLEND){
@@ -428,7 +551,7 @@ auto ncvisual_render(notcurses* nc, ncvisual* ncv,
   int leny = vopts ? vopts->leny : 0;
   int begy = vopts ? vopts->begy : 0;
   int begx = vopts ? vopts->begx : 0;
-//fprintf(stderr, "render %dx%d+%dx%d %p\n", begy, begx, leny, lenx, ncv->data);
+//fprintf(stderr, "blit %dx%d+%dx%d %p\n", begy, begx, leny, lenx, ncv->data);
   if(begy < 0 || begx < 0 || lenx < -1 || leny < -1){
     return nullptr;
   }
@@ -436,17 +559,17 @@ auto ncvisual_render(notcurses* nc, ncvisual* ncv,
   if(ncv->data == nullptr){
     return nullptr;
   }
-//fprintf(stderr, "render %d/%d to %dx%d+%dx%d scaling: %d\n", ncv->rows, ncv->cols, begy, begx, leny, lenx, vopts ? vopts->scaling : 0);
+//fprintf(stderr, "blit %d/%d to %dx%d+%dx%d scaling: %d\n", ncv->rows, ncv->cols, begy, begx, leny, lenx, vopts ? vopts->scaling : 0);
   if(begx >= ncv->cols || begy >= ncv->rows){
     return nullptr;
   }
-  if(lenx == 0){ // 0 means "to the end"; use all space available
+  if(lenx == 0){ // 0 means "to the end"; use all available source material
     lenx = ncv->cols - begx;
   }
   if(leny == 0){
     leny = ncv->rows - begy;
   }
-//fprintf(stderr, "render %d/%d to %dx%d+%dx%d scaling: %d\n", ncv->rows, ncv->cols, begy, begx, leny, lenx, vopts ? vopts->scaling : 0);
+//fprintf(stderr, "blit %d/%d to %dx%d+%dx%d scaling: %d\n", ncv->rows, ncv->cols, begy, begx, leny, lenx, vopts ? vopts->scaling : 0);
   if(lenx <= 0 || leny <= 0){ // no need to draw zero-size object, exit
     return nullptr;
   }
@@ -460,60 +583,15 @@ auto ncvisual_render(notcurses* nc, ncvisual* ncv,
 //fprintf(stderr, "beg/len: %d %d %d %d scale: %d/%d\n", begy, leny, begx, lenx, encoding_y_scale(bset), encoding_x_scale(bset));
   int placey = vopts ? vopts->y : 0;
   int placex = vopts ? vopts->x : 0;
-  int disprows, dispcols;
-  ncplane* n = nullptr;
-//fprintf(stderr, "INPUT N: %p\n", vopts ? vopts->n : nullptr);
-  if((n = (vopts ? vopts->n : nullptr)) == nullptr){ // create plane
-    if(!vopts || vopts->scaling == NCSCALE_NONE || vopts->scaling == NCSCALE_NONE_HIRES){
-      dispcols = ncv->cols;// * encoding_x_scale(bset);
-      disprows = ncv->rows;// * encoding_y_scale(bset);
-    }else{
-      notcurses_term_dim_yx(nc, &disprows, &dispcols);
-      dispcols *= encoding_x_scale(bset);
-      disprows *= encoding_y_scale(bset);
-      if(vopts->scaling == NCSCALE_SCALE || vopts->scaling == NCSCALE_SCALE_HIRES){
-        scale_visual(ncv, &disprows, &dispcols);
-      }
-    }
-//fprintf(stderr, "PLACING NEW PLANE: %d/%d @ %d/%d\n", disprows, dispcols, placey, placex);
-    struct ncplane_options nopts = {
-      .y = placey,
-      .x = placex,
-      .rows = disprows / encoding_y_scale(bset),
-      .cols = dispcols / encoding_x_scale(bset),
-      .userptr = nullptr,
-      .name = "vis",
-      .resizecb = nullptr,
-      .flags = 0,
-    };
-    if((n = ncplane_create(notcurses_stdplane(nc), &nopts)) == nullptr){
-      return nullptr;
-    }
-    placey = 0;
-    placex = 0;
+  ncplane* n = (vopts ? vopts->n : nullptr);
+  ncscale_e scaling = vopts ? vopts->scaling : NCSCALE_NONE;
+  if(bset->geom != NCBLIT_PIXEL){
+    n = ncvisual_render_cells(nc, ncv, bset, placey, placex, begy, begx, leny, lenx,
+                              n, scaling,
+                              vopts && (vopts->flags & NCVISUAL_OPTION_BLEND));
   }else{
-    if(!vopts || vopts->scaling == NCSCALE_NONE || vopts->scaling == NCSCALE_NONE_HIRES){
-      dispcols = ncv->cols;// * encoding_x_scale(bset);
-      disprows = ncv->rows;// * encoding_y_scale(bset);
-    }else{
-      ncplane_dim_yx(n, &disprows, &dispcols);
-      dispcols *= encoding_x_scale(bset);
-      disprows *= encoding_y_scale(bset);
-      disprows -= placey;
-      dispcols -= placex;
-      if(vopts->scaling == NCSCALE_SCALE || vopts->scaling == NCSCALE_SCALE_HIRES){
-        scale_visual(ncv, &disprows, &dispcols);
-      }
-    }
-  }
-  leny = (leny / (double)ncv->rows) * ((double)disprows);
-  lenx = (lenx / (double)ncv->cols) * ((double)dispcols);
-//fprintf(stderr, "render: %dx%d:%d+%d of %d/%d stride %u %p\n", begy, begx, leny, lenx, ncv->rows, ncv->cols, ncv->rowstride, ncv->data);
-  if(ncvisual_blit(ncv, disprows, dispcols, n, bset,
-                   placey, placex, begy, begx, leny, lenx,
-                   vopts && (vopts->flags & NCVISUAL_OPTION_BLEND))){
-    ncplane_destroy(n);
-    return nullptr;
+    n = ncvisual_render_pixels(nc, ncv, bset, placey, placex, begy, begx, leny, lenx,
+                               n, scaling);
   }
   return n;
 }
