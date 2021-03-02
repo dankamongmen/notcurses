@@ -86,7 +86,7 @@ int ncdirect_clear(ncdirect* nc){
 int ncdirect_dim_x(const ncdirect* nc){
   int x;
   if(nc->ctermfd >= 0){
-    if(update_term_dimensions(nc->ctermfd, nullptr, &x) == 0){
+    if(update_term_dimensions(nc->ctermfd, nullptr, &x, NULL) == 0){
       return x;
     }
   }else{
@@ -98,7 +98,7 @@ int ncdirect_dim_x(const ncdirect* nc){
 int ncdirect_dim_y(const ncdirect* nc){
   int y;
   if(nc->ctermfd >= 0){
-    if(update_term_dimensions(nc->ctermfd, &y, nullptr) == 0){
+    if(update_term_dimensions(nc->ctermfd, &y, nullptr, NULL) == 0){
       return y;
     }
   }else{

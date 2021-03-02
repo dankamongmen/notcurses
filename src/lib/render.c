@@ -23,7 +23,7 @@ notcurses_resize_internal(ncplane* pp, int* restrict rows, int* restrict cols){
   int oldcols = pile->dimx;
   *rows = oldrows;
   *cols = oldcols;
-  if(update_term_dimensions(n->ttyfd, rows, cols)){
+  if(update_term_dimensions(n->ttyfd, rows, cols, &n->tcache)){
     return -1;
   }
   *rows -= n->margin_t + n->margin_b;

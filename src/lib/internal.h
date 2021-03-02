@@ -279,6 +279,11 @@ typedef struct tinfo {
   bool AMflag;    // "AM" flag for automatic movement to next line
   bool utf8;      // are we using utf-8 encoding, as hoped?
 
+  // we use the cell's size in pixels for pixel blitting. this information can
+  // be acquired on all terminals with pixel support.
+  int cellpixy;   // cell pixel height, might be 0
+  int cellpixx;   // cell pixel width, might be 0
+
   // kitty interprets an RGB background that matches the default background
   // color *as* the default background, meaning it'll be translucent if
   // background_opaque is in use. detect this, and avoid the default if so.
@@ -355,7 +360,7 @@ typedef struct notcurses {
   int cursory;    // desired cursor placement according to user.
   int cursorx;    // -1 is don't-care, otherwise moved here after each render.
 
-  pthread_mutex_t statlock;
+  pthread_mutex_t statlock; // FIXME align on cacheline
   ncstats stats;  // some statistics across the lifetime of the notcurses ctx
   ncstats stashed_stats; // retain across a notcurses_stats_reset(), to print in closing banner
 
@@ -685,7 +690,7 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx,
                             int keepleny, int keeplenx, int yoff, int xoff,
                             int ylen, int xlen);
 
-int update_term_dimensions(int fd, int* rows, int* cols);
+int update_term_dimensions(int fd, int* rows, int* cols, tinfo* tcache);
 
 ALLOC static inline void*
 memdup(const void* src, size_t len){
