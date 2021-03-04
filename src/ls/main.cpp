@@ -225,7 +225,6 @@ int main(int argc, char* const * argv){
         break;
     }
   }
-  notcurses_check_
   auto procs = std::thread::hardware_concurrency();
   if(procs <= 0){
     procs = 4;
@@ -242,6 +241,7 @@ int main(int argc, char* const * argv){
     dereflinks,
     alignment,
   };
+  ctx.nc.check_pixel_support();
   keep_working = true;
   for(auto s = 0u ; s < procs ; ++s){
     threads.emplace_back(std::thread(ncls_thread, &ctx));
