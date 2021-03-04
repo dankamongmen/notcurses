@@ -39,7 +39,6 @@ dtable_to_ctable(int dtable, unsigned char* ctable){
 // returns the index at which the provided color can be found *in the
 // dtable*, possibly inserting it into the ctable. returns -1 if the
 // color is not in the table and the table is full.
-// FIXME switch to binary search, duh
 // FIXME replace all these 3s and 5s
 static int
 find_color(colortable* ctab, unsigned char comps[static 3]){
@@ -86,12 +85,7 @@ find_color(colortable* ctab, unsigned char comps[static 3]){
 }
 
 // rather inelegant preprocess of the entire image. colors are converted to the
-// 100x100x100 sixel colorspace, and built into a table. if there are more than
-// MAXCOLORS converted colors, we (currently) reject it FIXME. ideally we'd do
-// the image piecemeal, allowing us to get complete color fidelity; barring
-// that, we'd have something sensibly quantize us down first FIXME. we ought do
-// everything in a single pass FIXME.
-// what do we do if every pixel is transparent (0 colors)? FIXME
+// 100x100x100 sixel colorspace, and built into a table.
 static int
 extract_ctable_inner(const uint32_t* data, int linesize, int begy, int begx,
                      int leny, int lenx, sixeltable* stab, unsigned char mask){
