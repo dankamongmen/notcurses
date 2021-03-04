@@ -818,22 +818,23 @@ init_banner_warnings(const notcurses* nc, FILE* out){
 // unless the suppress_banner flag was set, print some version information and
 // (if applicable) warnings to stdout. we are not yet on the alternate screen.
 static void
-init_banner(const notcurses* nc){
+init_banner(const notcurses* nc, const char* shortname_term){
   if(!nc->suppress_banner){
     char prefixbuf[BPREFIXSTRLEN + 1];
     term_fg_palindex(nc, stdout, nc->tcache.colors <= 256 ? 50 % nc->tcache.colors : 0x20e080);
     printf("\n notcurses %s by nick black et al", notcurses_version());
+    printf(" on %s", shortname_term ? shortname_term : "?");
     term_fg_palindex(nc, stdout, nc->tcache.colors <= 256 ? 12 % nc->tcache.colors : 0x2080e0);
     if(nc->tcache.cellpixy && nc->tcache.cellpixx){
-      printf("\n  %d rows (%dpx) %d cols (%dpx) (%sB) %zuB cells %d colors",
+      printf("\n  %d rows (%dpx) %d cols (%dpx) (%sB) %d colors",
              nc->stdplane->leny, nc->tcache.cellpixy,
              nc->stdplane->lenx, nc->tcache.cellpixx,
-             bprefix(nc->stats.fbbytes, 1, prefixbuf, 0), sizeof(nccell),
+             bprefix(nc->stats.fbbytes, 1, prefixbuf, 0),
              nc->tcache.colors);
     }else{
-      printf("\n  %d rows %d cols (%sB) %zuB cells %d colors",
+      printf("\n  %d rows %d cols (%sB) %d colors",
              nc->stdplane->leny, nc->stdplane->lenx,
-             bprefix(nc->stats.fbbytes, 1, prefixbuf, 0), sizeof(nccell),
+             bprefix(nc->stats.fbbytes, 1, prefixbuf, 0),
              nc->tcache.colors);
     }
     if(nc->tcache.RGBflag){
@@ -846,7 +847,7 @@ init_banner(const notcurses* nc){
       putc('B', stdout);
       term_fg_palindex(nc, stdout, nc->tcache.colors <= 256 ? 12 % nc->tcache.colors : 0x2080e0);
     }
-    printf("\n  compiled with gcc-%s, %s-endian\n"
+    printf("\n  compiled with gcc-%s, %s-endian %zuB cells\n"
            "  terminfo from %s\n",
            __VERSION__,
 #ifdef __BYTE_ORDER__
@@ -858,7 +859,7 @@ init_banner(const notcurses* nc){
 #else
 #error "No __BYTE_ORDER__ definition"
 #endif
-           , curses_version());
+           , sizeof(nccell), curses_version());
     ncvisual_printbanner(nc);
     fflush(stdout);
     init_banner_warnings(nc, stderr);
@@ -1078,7 +1079,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     goto err;
   }
   const char* shortname_term = termname();
-  const char* longname_term = longname();
+// const char* longname_term = longname();
   if(interrogate_terminfo(&ret->tcache, shortname_term, utf8)){
     goto err;
   }
@@ -1087,11 +1088,6 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     goto err;
   }
   ret->suppress_banner = opts->flags & NCOPTION_SUPPRESS_BANNERS;
-  if(!ret->suppress_banner){
-    fprintf(stderr, "Term: %dx%d %s (%s)\n", dimy, dimx,
-            shortname_term ? shortname_term : "?",
-            longname_term ? longname_term : "?");
-  }
   if(ncinputlayer_init(&ret->input, stdin)){
     goto err;
   }
@@ -1126,7 +1122,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     goto err;
   }
   ret->rstate.x = ret->rstate.y = -1;
-  init_banner(ret);
+  init_banner(ret, shortname_term);
   // flush on the switch to alternate screen, lest initial output be swept away
   if(ret->ttyfd >= 0){
     if(ret->tcache.smcup){
@@ -2298,10 +2294,12 @@ ncplane* ncplane_reparent(ncplane* n, ncplane* newparent){
   if(n->blist){
     if(n->boundto == n){ // children become new root planes
       ncplane* lastlink;
-      for(ncplane* child = n->blist ; child ; child = child->bnext){
+      ncplane* child = n->blist;
+      do{
         child->boundto = child;
         lastlink = child;
-      } // n->blist != NULL -> lastlink != NULL
+        child = child->bnext;
+      }while(child); // n->blist != NULL -> lastlink != NULL
       if( (lastlink->bnext = ncplane_pile(n)->roots) ){
         lastlink->bnext->bprev = &lastlink->bnext;
       }
@@ -2309,10 +2307,12 @@ ncplane* ncplane_reparent(ncplane* n, ncplane* newparent){
       ncplane_pile(n)->roots = n->blist;
     }else{ // children are rebound to current parent
       ncplane* lastlink;
-      for(ncplane* child = n->blist ; child ; child = child->bnext){
+      ncplane* child = n->blist;
+      do{
         child->boundto = n->boundto;
         lastlink = child;
-      } // n->blist != NULL -> lastlink != NULL
+        child = child->bnext;
+      }while(child); // n->blist != NULL -> lastlink != NULL
       if( (lastlink->bnext = n->boundto->blist) ){
         lastlink->bnext->bprev = &lastlink->bnext;
       }
