@@ -143,7 +143,7 @@ void ncls_thread(const lsContext* ctx) {
       work.pop();
       pthread_mutex_unlock(&mtx);
       auto s = j.dir / j.p;
-      auto faken = ctx->nc.prep_image(s.c_str(), NCBLIT_DEFAULT, NCSCALE_SCALE_HIRES);
+      auto faken = ctx->nc.prep_image(s.c_str(), NCBLIT_PIXEL, NCSCALE_SCALE_HIRES);
       pthread_mutex_lock(&outmtx);
       std::cout << j.p << '\n';
       if(faken){
@@ -225,6 +225,7 @@ int main(int argc, char* const * argv){
         break;
     }
   }
+  notcurses_check_
   auto procs = std::thread::hardware_concurrency();
   if(procs <= 0){
     procs = 4;
