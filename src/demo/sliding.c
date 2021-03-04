@@ -94,7 +94,6 @@ static int
 fill_chunk(struct ncplane* n, int idx){
   const int hidx = idx % CHUNKS_HORZ;
   const int vidx = idx / CHUNKS_HORZ;
-  char buf[4];
   int maxy, maxx;
   ncplane_dim_yx(n, &maxy, &maxx);
   uint64_t channels = 0;
@@ -113,11 +112,8 @@ fill_chunk(struct ncplane* n, int idx){
   }
   ret |= ncplane_double_box(n, 0, channels, maxy - 1, maxx - 1, 0);
   if(maxx >= 4 && maxy >= 3){
-    ret |= ncplane_cursor_move_yx(n, (maxy - 1) / 2, (maxx - 1) / 2);
-    snprintf(buf, sizeof(buf), "%d", (idx + 1) / 10); // don't zero-index to viewer
-    ret |= (ncplane_putegc(n, buf, NULL) < 0);
-    snprintf(buf, sizeof(buf), "%d", (idx + 1) % 10);
-    ret |= (ncplane_putegc(n, buf, NULL) < 0);
+    // don't zero-index to viewer
+    ret |= (ncplane_printf_yx(n, (maxy - 1) / 2, (maxx - 1) / 2, "%02d", idx + 1) < 0);
   }
   return ret;
 }
