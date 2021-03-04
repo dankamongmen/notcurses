@@ -44,19 +44,39 @@ dtable_to_ctable(int dtable, unsigned char* ctable){
 static int
 find_color(colortable* ctab, unsigned char comps[static 3]){
   int i;
-  for(i = 0 ; i < ctab->colors ; ++i){
-    int cmp = memcmp(ctab->table + i * 5, comps, 3);
-    if(cmp == 0){
-      return ctable_to_dtable(ctab->table + i * 5);
-    }else if(cmp > 0){
-      break;
+  if(ctab->colors){
+    int l, r;
+    l = 0;
+    r = ctab->colors - 1;
+    do{
+      i = l + (r - l) / 2;
+//fprintf(stderr, "%02x%02x%02x L %d R %d m %d\n", comps[0], comps[1], comps[2], l, r, i);
+      int cmp = memcmp(ctab->table + i * 5, comps, 3);
+      if(cmp == 0){
+        return ctable_to_dtable(ctab->table + i * 5);
+      }
+      if(cmp < 0){
+        l = i + 1;
+      }else{ // key is smaller
+        r = i - 1;
+      }
+//fprintf(stderr, "BCMP: %d L %d R %d m: %d\n", cmp, l, r, i);
+    }while(l <= r);
+    if(r < 0){
+      i = 0;
+    }else if(l == ctab->colors){
+      i = ctab->colors;
+    }else{
+      i = l;
     }
-  }
-  if(ctab->colors == MAXCOLORS){
-    return -1;
-  }
-  if(i < ctab->colors){
-    memmove(ctab->table + (i + 1) * 5, ctab->table + i * 5, (ctab->colors - i) * 5);
+    if(ctab->colors == MAXCOLORS){
+      return -1;
+    }
+    if(i < ctab->colors){
+      memmove(ctab->table + (i + 1) * 5, ctab->table + i * 5, (ctab->colors - i) * 5);
+    }
+  }else{
+    i = 0;
   }
   memcpy(ctab->table + i * 5, comps, 3);
   dtable_to_ctable(ctab->colors, ctab->table + i * 5);
