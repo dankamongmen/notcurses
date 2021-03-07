@@ -481,21 +481,19 @@ auto ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const blitset* bset,
 
 auto ncvisual_render_pixels(tinfo* tcache, ncvisual* ncv, const blitset* bset,
                             int placey, int placex, int begy, int begx,
-                            int leny, int lenx, ncplane* n, ncscale_e scaling,
-                            ncplane* stdn) -> ncplane* {
+                            ncplane* n, ncscale_e scaling, ncplane* stdn)
+                            -> ncplane* {
   int disprows, dispcols;
+  if(scaling == NCSCALE_NONE || scaling == NCSCALE_NONE_HIRES){
+    dispcols = ncv->cols;
+    disprows = ncv->rows;
+  }
 //fprintf(stderr, "INPUT N: %p\n", vopts ? vopts->n : nullptr);
   if(n == nullptr){ // create plane
-    if(scaling == NCSCALE_NONE || scaling == NCSCALE_NONE_HIRES){
-      dispcols = ncv->cols;
-      disprows = ncv->rows;
-    }else{
+    if(scaling != NCSCALE_NONE && scaling != NCSCALE_NONE_HIRES){
       ncplane_dim_yx(stdn, &disprows, &dispcols);
       dispcols *= tcache->cellpixx;
       disprows *= tcache->cellpixy;
-      if(scaling == NCSCALE_SCALE || scaling == NCSCALE_SCALE_HIRES){
-        scale_visual(ncv, &disprows, &dispcols);
-      }
     }
 //fprintf(stderr, "PLACING NEW PLANE: %d/%d @ %d/%d\n", disprows, dispcols, placey, placex);
     struct ncplane_options nopts = {
@@ -514,25 +512,20 @@ auto ncvisual_render_pixels(tinfo* tcache, ncvisual* ncv, const blitset* bset,
     placey = 0;
     placex = 0;
   }else{
-    if(scaling == NCSCALE_NONE || scaling == NCSCALE_NONE_HIRES){
-      dispcols = ncv->cols;
-      disprows = ncv->rows;
-    }else{
+    if(scaling != NCSCALE_NONE && scaling != NCSCALE_NONE_HIRES){
       ncplane_dim_yx(n, &disprows, &dispcols);
       dispcols *= tcache->cellpixx;
       disprows *= tcache->cellpixy;
       dispcols -= (placex * tcache->cellpixx + 1);
       disprows -= (placey * tcache->cellpixy + 1);
-      if(scaling == NCSCALE_SCALE || scaling == NCSCALE_SCALE_HIRES){
-        scale_visual(ncv, &disprows, &dispcols);
-      } // else stretch
     }
   }
-  leny = disprows;
-  lenx = dispcols;
+  if(scaling == NCSCALE_SCALE || scaling == NCSCALE_SCALE_HIRES){
+    scale_visual(ncv, &disprows, &dispcols);
+  }
 //fprintf(stderr, "blit: %dx%d <- %dx%d:%d+%d of %d/%d stride %u @%dx%d %p\n", disprows, dispcols, begy, begx, leny, lenx, ncv->rows, ncv->cols, ncv->rowstride, placey, placex, ncv->data);
   if(ncvisual_blit(ncv, disprows, dispcols, n, bset,
-                   placey, placex, begy, begx, leny, lenx,
+                   placey, placex, begy, begx, disprows, dispcols,
                    ncplane_notcurses(stdn)->tcache.cellpixx)){
     ncplane_destroy(n);
     return nullptr;
@@ -589,7 +582,7 @@ auto ncvisual_render(notcurses* nc, ncvisual* ncv,
                               vopts && (vopts->flags & NCVISUAL_OPTION_BLEND));
   }else{
     n = ncvisual_render_pixels(&nc->tcache, ncv, bset, placey, placex, begy, begx,
-                               leny, lenx, n, scaling, notcurses_stdplane(nc));
+                               n, scaling, notcurses_stdplane(nc));
   }
   return n;
 }
