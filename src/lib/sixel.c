@@ -194,7 +194,9 @@ write_sixel_data(FILE* fp, int lenx, sixeltable* stab){
       if(i + 1 < stab->ctab->colors){
         fputc('$', fp);
       }else{
-        fputc('-', fp);
+        if(p + lenx < stab->ctab->sixelcount){
+          fputc('-', fp);
+        }
       }
     }
     p += lenx;
