@@ -839,11 +839,11 @@ init_banner(const notcurses* nc, const char* shortname_term){
     }
     if(nc->tcache.RGBflag){
       putc('+', stdout);
-      term_fg_rgb8(true, nc->tcache.setaf, nc->tcache.colors, stdout, 0xc0, 0x80, 0x80);
+      term_fg_rgb8(true, nc->tcache.setaf, nc->tcache.colors, stdout, 0xe0, 0x60, 0x60);
       putc('R', stdout);
-      term_fg_rgb8(true, nc->tcache.setaf, nc->tcache.colors, stdout, 0x80, 0xc0, 0x80);
+      term_fg_rgb8(true, nc->tcache.setaf, nc->tcache.colors, stdout, 0x60, 0xe0, 0x60);
       putc('G', stdout);
-      term_fg_rgb8(true, nc->tcache.setaf, nc->tcache.colors, stdout, 0x80, 0x80, 0xc0);
+      term_fg_rgb8(true, nc->tcache.setaf, nc->tcache.colors, stdout, 0x60, 0x60, 0xe0);
       putc('B', stdout);
       term_fg_palindex(nc, stdout, nc->tcache.colors <= 256 ? 12 % nc->tcache.colors : 0x2080e0);
     }
