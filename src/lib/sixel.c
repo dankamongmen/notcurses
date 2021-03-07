@@ -161,11 +161,15 @@ write_rle(FILE* fp, int seenrle, unsigned char crle){
 
 // Emit the sprixel in its entirety, plus enable and disable pixel mode.
 static int
-write_sixel_data(FILE* fp, int leny, int lenx, sixeltable* stab){
+write_sixel_data(FILE* fp, int lenx, sixeltable* stab){
+  // DECSDM (sixel scrolling enable) plus enter sixel mode
+  // FIXME i think we can print DESDM on the first one, and never again
   fprintf(fp, "\e[?80h\ePq"); // FIXME pixelon
 
   // Set Raster Attributes - pan/pad=1 (pixel aspect ratio), Ph=lenx, Pv=leny
-  fprintf(fp, "\"1;1;%d;%d", lenx, leny);
+  // using Ph/Pv causes a background to be drawn using color register 0 for all
+  // unspecified pixels, which we do not want.
+  //fprintf(fp, "\"1;1;%d;%d", lenx, leny);
 
   for(int i = 0 ; i < stab->ctab->colors ; ++i){
     const unsigned char* rgb = stab->ctab->table + i * 5;
@@ -216,7 +220,7 @@ write_sixel_data(FILE* fp, int leny, int lenx, sixeltable* stab){
 // are programmed as a set of registers, which are then referenced by the
 // stacks. There is also a RLE component, handled in rasterization.
 // A pixel block is indicated by setting cell_pixels_p().
-int sixel_blit_inner(ncplane* nc, int placey, int placex, int leny, int lenx,
+int sixel_blit_inner(ncplane* nc, int placey, int placex, int lenx,
                      sixeltable* stab, unsigned cellpixx){
   char* buf = NULL;
   size_t size = 0;
@@ -224,7 +228,7 @@ int sixel_blit_inner(ncplane* nc, int placey, int placex, int leny, int lenx,
   if(fp == NULL){
     return -1;
   }
-  if(write_sixel_data(fp, leny, lenx, stab)){
+  if(write_sixel_data(fp, lenx, stab)){
     fclose(fp);
     free(buf);
     return -1;
@@ -261,7 +265,7 @@ int sixel_blit(ncplane* nc, int placey, int placex, int linesize,
     free(stable.data);
     return -1;
   }
-  int r = sixel_blit_inner(nc, placey, placex, leny, lenx, &stable, cellpixx);
+  int r = sixel_blit_inner(nc, placey, placex, lenx, &stable, cellpixx);
   free(stable.data);
   free(ctab);
   return r;
