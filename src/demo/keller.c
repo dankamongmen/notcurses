@@ -22,6 +22,9 @@ visualize(struct notcurses* nc, struct ncvisual* ncv){
       .n = notcurses_stdplane(nc),
       .y = 1,
     };
+    if(vopts.blitter == NCBLIT_PIXEL){
+      vopts.scaling = NCSCALE_NONE;
+    }
     if(ncvisual_render(nc, ncv, &vopts) == NULL){
       return -1;
     }
