@@ -223,15 +223,3 @@ pub type NcRgb = u32;
 /// `type in C: no data type`
 ///
 pub type NcColor = u8;
-
-/// the [NcEgc][crate::NcEgc] which form the various levels of a given geometry.
-///
-/// If the geometry is wide, things are arranged with the rightmost side
-/// increasing most quickly, i.e. it can be indexed as height arrays of
-/// 1 + height glyphs.
-/// i.e. The first five braille EGCs are all 0 on the left,
-/// [0..4] on the right.
-///
-/// `type in C: blitset (struct)`
-///
-pub type NcBlitSet = crate::bindings::ffi::blitset;
