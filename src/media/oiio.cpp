@@ -149,10 +149,10 @@ int oiio_resize(ncvisual* nc, int rows, int cols) {
   return 0;
 }
 
-int oiio_blit(struct ncvisual* ncv, int rows, int cols,
-                  ncplane* n, const struct blitset* bset,
-                  int placey, int placex, int begy, int begx,
-                  int leny, int lenx, bool blendcolors) {
+int oiio_blit(const tinfo* tcache, struct ncvisual* ncv, int rows, int cols,
+              ncplane* n, const struct blitset* bset,
+              int placey, int placex, int begy, int begx,
+              int leny, int lenx, bool blendcolors) {
 //fprintf(stderr, "%d/%d -> %d/%d on the resize\n", ncv->rows, ncv->cols, rows, cols);
   void* data = nullptr;
   int stride = 0;
@@ -173,8 +173,8 @@ int oiio_blit(struct ncvisual* ncv, int rows, int cols,
     data = ncv->data;
     stride = ncv->rowstride;
   }
-  if(rgba_blit_dispatch(n, bset, placey, placex, stride, data, begy, begx,
-                        leny, lenx, blendcolors) < 0){
+  if(rgba_blit_dispatch(tcache, n, bset, placey, placex, stride, data,
+                        begy, begx, leny, lenx, blendcolors) < 0){
     return -1;
   }
   return 0;

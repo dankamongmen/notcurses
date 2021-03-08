@@ -467,8 +467,8 @@ int ffmpeg_decode_loop(ncvisual* ncv){
   return r;
 }
 
-int ffmpeg_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
-                const struct blitset* bset, int placey, int placex,
+int ffmpeg_blit(const tinfo* tcache, ncvisual* ncv, int rows, int cols,
+                ncplane* n, const struct blitset* bset, int placey, int placex,
                 int begy, int begx, int leny, int lenx, bool blendcolors) {
   const AVFrame* inframe = ncv->details->oframe ? ncv->details->oframe : ncv->details->frame;
 //fprintf(stderr, "inframe: %p oframe: %p frame: %p\n", inframe, ncv->details->oframe, ncv->details->frame);
@@ -522,8 +522,8 @@ int ffmpeg_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
     data = ncv->data;
   }
 //fprintf(stderr, "place: %d/%d rows/cols: %d/%d %d/%d+%d/%d\n", placey, placex, rows, cols, begy, begx, leny, lenx);
-  if(rgba_blit_dispatch(n, bset, placey, placex, stride, data, begy, begx,
-                        leny, lenx, blendcolors) < 0){
+  if(rgba_blit_dispatch(tcache, n, bset, placey, placex, stride, data,
+                        begy, begx, leny, lenx, blendcolors) < 0){
 //fprintf(stderr, "rgba dispatch failed!\n");
     if(sframe){
       av_freep(sframe->data);

@@ -3399,23 +3399,6 @@ API void ncreader_destroy(struct ncreader* n, char** contents);
 API void notcurses_debug(struct notcurses* nc, FILE* debugfp)
   __attribute__ ((nonnull (1, 2)));
 
-// a system for rendering RGBA pixels as text glyphs
-struct blitset {
-  ncblitter_e geom;
-  int width;
-  int height;
-  // the EGCs which form the various levels of a given plotset. if the geometry
-  // is wide, things are arranged with the rightmost side increasing most
-  // quickly, i.e. it can be indexed as height arrays of 1 + height glyphs. i.e.
-  // the first five braille EGCs are all 0 on the left, [0..4] on the right.
-  const wchar_t* egcs;
-  int (*blit)(struct ncplane* n, int placey, int placex, int linesize,
-              const void* data, int begy, int begx, int leny, int lenx,
-              unsigned blendcolors);
-  const char* name;
-  bool fill;
-};
-
 // replaced by ncvisual_media_defblitter(). this original version never returns
 // NCBLIT_3x2.
 static inline ncblitter_e

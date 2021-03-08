@@ -381,6 +381,23 @@ typedef struct notcurses {
   unsigned stdio_blocking_save; // was stdio blocking at entry? restore on stop.
 } notcurses;
 
+// a system for rendering RGBA pixels as text glyphs
+struct blitset {
+  ncblitter_e geom;
+  int width;
+  int height;
+  // the EGCs which form the various levels of a given plotset. if the geometry
+  // is wide, things are arranged with the rightmost side increasing most
+  // quickly, i.e. it can be indexed as height arrays of 1 + height glyphs. i.e.
+  // the first five braille EGCs are all 0 on the left, [0..4] on the right.
+  const wchar_t* egcs;
+  int (*blit)(const tinfo* tcache, struct ncplane* n, int placey, int placex,
+              int linesize, const void* data, int begy, int begx,
+              int leny, int lenx, unsigned blendcolors);
+  const char* name;
+  bool fill;
+};
+
 #include "blitset.h"
 
 void sigwinch_handler(int signo);
@@ -724,10 +741,10 @@ rgba_blitter(const struct notcurses* nc, const struct ncvisual_options* opts) {
 }
 
 static inline int
-rgba_blit_dispatch(ncplane* nc, const struct blitset* bset, int placey,
-                   int placex, int linesize, const void* data, int begy,
-                   int begx, int leny, int lenx, bool blendcolors){
-  return bset->blit(nc, placey, placex, linesize, data, begy, begx,
+rgba_blit_dispatch(const tinfo* tcache, ncplane* nc, const struct blitset* bset,
+                   int placey, int placex, int linesize, const void* data,
+                   int begy, int begx, int leny, int lenx, bool blendcolors){
+  return bset->blit(tcache, nc, placey, placex, linesize, data, begy, begx,
                     leny, lenx, blendcolors);
 }
 
@@ -861,8 +878,8 @@ ALLOC char* ncplane_vprintf_prep(const char* format, va_list ap);
 
 // Resize the provided ncviusal to the specified 'rows' x 'cols', but do not
 // change the internals of the ncvisual. Uses oframe.
-int ncvisual_blit(struct ncvisual* ncv, int rows, int cols,
-                  ncplane* n, const struct blitset* bset,
+int ncvisual_blit(const tinfo* tcache, struct ncvisual* ncv,
+                  int rows, int cols, ncplane* n, const struct blitset* bset,
                   int placey, int placex, int begy, int begx,
                   int leny, int lenx, bool blendcolors);
 
@@ -1202,8 +1219,8 @@ ncdirect_bg_default_p(const struct ncdirect* nc){
   return channels_bg_default_p(ncdirect_channels(nc));
 }
 
-int sixel_blit(ncplane* nc, int placey, int placex, int linesize,
-               const void* data, int begy, int begx,
+int sixel_blit(const tinfo* tcache, ncplane* nc, int placey, int placex,
+               int linesize, const void* data, int begy, int begx,
                int leny, int lenx, unsigned cellpixx);
 
 int term_fg_rgb8(bool RGBflag, const char* setaf, int colors, FILE* out,
@@ -1212,7 +1229,8 @@ int term_fg_rgb8(bool RGBflag, const char* setaf, int colors, FILE* out,
 typedef struct ncvisual_implementation {
   int (*visual_init)(int loglevel);
   void (*visual_printbanner)(const struct notcurses* nc);
-  int (*visual_blit)(struct ncvisual* ncv, int rows, int cols, ncplane* n,
+  int (*visual_blit)(const tinfo* tcache, struct ncvisual* ncv,
+                     int rows, int cols, ncplane* n,
                      const struct blitset* bset, int placey, int placex,
                      int begy, int begx, int leny, int lenx,
                      bool blendcolors);
