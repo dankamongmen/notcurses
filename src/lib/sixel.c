@@ -161,11 +161,10 @@ write_rle(FILE* fp, int seenrle, unsigned char crle){
 
 // Emit the sprixel in its entirety, plus enable and disable pixel mode.
 static int
-write_sixel_data(ncplane* n, FILE* fp, int lenx, sixeltable* stab){
-  notcurses* nc = ncplane_notcurses(n);
+write_sixel_data(FILE* fp, int lenx, sixeltable* stab){
   // DECSDM (sixel scrolling enable) plus enter sixel mode
   // FIXME i think we can print DESDM on the first one, and never again
-  fprintf(fp, nc->tcache.pixelon);
+  fprintf(fp, "\e[?80h\ePq"); // FIXME pixelon
 
   // Set Raster Attributes - pan/pad=1 (pixel aspect ratio), Ph=lenx, Pv=leny
   // using Ph/Pv causes a background to be drawn using color register 0 for all
@@ -210,7 +209,7 @@ write_sixel_data(ncplane* n, FILE* fp, int lenx, sixeltable* stab){
     }
     p += lenx;
   }
-  fprintf(fp, nc->tcache.pixeloff);
+  fprintf(fp, "\e\\"); // FIXME pixeloff
   if(fclose(fp) == EOF){
     return -1;
   }
@@ -229,7 +228,7 @@ int sixel_blit_inner(ncplane* nc, int placey, int placex, int lenx,
   if(fp == NULL){
     return -1;
   }
-  if(write_sixel_data(nc, fp, lenx, stab)){
+  if(write_sixel_data(fp, lenx, stab)){
     fclose(fp);
     free(buf);
     return -1;
