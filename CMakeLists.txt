@@ -145,6 +145,7 @@ target_include_directories(notcurses-core
   PRIVATE
     include
     src
+    "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
     "${TERMINFO_INCLUDE_DIRS}"
     "${READLINE_INCLUDE_DIRS}"
@@ -153,6 +154,7 @@ target_include_directories(notcurses-core-static
   PRIVATE
     include
     src
+    "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
     "${TERMINFO_STATIC_INCLUDE_DIRS}"
     "${READLINE_STATIC_INCLUDE_DIRS}"
@@ -227,6 +229,7 @@ target_include_directories(notcurses
     include
     src
     src/lib
+    "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
 )
 target_include_directories(notcurses-static
@@ -234,6 +237,7 @@ target_include_directories(notcurses-static
     include
     src
     src/lib
+    "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
 )
 target_link_libraries(notcurses
@@ -529,12 +533,12 @@ target_include_directories(notcurses-demo
   PRIVATE
     include
     src
+    "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
 )
 target_link_libraries(notcurses-demo
   PRIVATE
     notcurses
-    unistring
     ${MATH_LIBRARIES}
     Threads::Threads
 )
@@ -546,6 +550,7 @@ add_executable(notcurses-input ${INPUTSRCS})
 target_include_directories(notcurses-input
   PRIVATE
     include
+    "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
 )
 target_link_libraries(notcurses-input
@@ -560,6 +565,7 @@ add_executable(nctetris ${TETRISSRC})
 target_include_directories(nctetris
   PRIVATE
     include
+    "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
 )
 target_link_libraries(nctetris
@@ -574,6 +580,7 @@ add_executable(ncneofetch ${FETCHSRCS})
 target_include_directories(ncneofetch
   PRIVATE
     include
+    "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
 )
 target_link_libraries(ncneofetch
@@ -590,6 +597,7 @@ add_executable(ncls ${LSSRC})
 target_include_directories(ncls
   PRIVATE
     include
+    "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
 )
 tarGET_Link_libraries(ncls
@@ -605,6 +613,7 @@ target_include_directories(ncplayer
   PRIVATE
     include
     src
+    "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
 )
 target_link_libraries(ncplayer
@@ -624,6 +633,7 @@ target_include_directories(notcurses-tester
   PRIVATE
     include
     src
+    "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
     src/lib
 )

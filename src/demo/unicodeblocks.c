@@ -4,7 +4,6 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unictype.h>
 #include "demo.h"
 
 // show unicode blocks. a block is always a multiple of 16 codepoints.
