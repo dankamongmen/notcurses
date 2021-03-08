@@ -513,7 +513,7 @@ ncdirectv* ncdirect_render_frame(ncdirect* n, const char* file,
     ncvisual_destroy(ncv);
     return nullptr;
   }
-  if(ncvisual_blit(&n->tcache, ncv, disprows, dispcols, ncdv, bset,
+  if(ncvisual_blit(ncv, disprows, dispcols, ncdv, bset,
                    0, 0, 0, 0, leny, lenx, n->tcache.cellpixx)){
     ncvisual_destroy(ncv);
     free_plane(ncdv);
@@ -1080,7 +1080,7 @@ int ncdirect_check_pixel_support(ncdirect* n){
   if(query_term(&n->tcache, n->ctermfd)){
     return -1;
   }
-  if(n->tcache.pixelon){
+  if(n->tcache.sixel_supported){
     return 1;
   }
   return 0;

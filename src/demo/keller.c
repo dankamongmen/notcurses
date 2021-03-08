@@ -23,7 +23,7 @@ visualize(struct notcurses* nc, struct ncvisual* ncv){
       .y = 1,
     };
     if(vopts.blitter == NCBLIT_PIXEL){
-      vopts.scaling = NCSCALE_NONE;
+      vopts.scaling = NCSCALE_SCALE;
     }
     if(ncvisual_render(nc, ncv, &vopts) == NULL){
       return -1;

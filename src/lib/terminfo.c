@@ -235,14 +235,8 @@ query_sixel(tinfo* ti, int fd){
         if(in == 'c'){
           state = DONE;
         }else if(in == '4'){
-          if(!ti->pixelon){
-            // \e[?80: "sixel scrolling" mode (put output at cursor location)
-            // \x90: 8-bit "device control sequence", lowercase q (start sixel)
-            // doesn't seem to work with at least xterm; we instead use '\ePq'
-            ti->pixelon = "\e[?80h\ePq";
-            // \x9c: 8-bit "string terminator" (end sixel) doesn't work on at
-            // least xterm; we instead use '\e\\'
-            ti->pixeloff = "\e\\";
+          if(!ti->sixel_supported){
+            ti->sixel_supported = true;
           } // FIXME else warning?
         }
         break;

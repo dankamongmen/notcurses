@@ -976,7 +976,7 @@ int notcurses_check_pixel_support(notcurses* nc){
   if(query_term(&nc->tcache, nc->ttyfd)){
     return -1;
   }
-  if(nc->tcache.pixelon){
+  if(nc->tcache.sixel_supported){
     return 1;
   }
   return 0;
@@ -2146,7 +2146,7 @@ bool notcurses_canchangecolor(const notcurses* nc){
 }
 
 bool notcurses_canpixel(const notcurses* nc){
-  return nc->tcache.pixelon;
+  return nc->tcache.sixel_supported;
 }
 
 palette256* palette256_new(notcurses* nc){
