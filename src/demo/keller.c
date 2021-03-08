@@ -15,7 +15,7 @@ visualize(struct notcurses* nc, struct ncvisual* ncv){
   };
   for(size_t i = 0 ; i < sizeof(bs) / sizeof(*bs) ; ++i){
     struct ncvisual_options vopts = {
-      .scaling = bs[i] == NCBLIT_PIXEL ? NCSCALE_SCALE : NCSCALE_STRETCH,
+      .scaling = bs[i] == NCBLIT_PIXEL ? NCSCALE_NONE : NCSCALE_STRETCH,
       .blitter = bs[i],
       .n = notcurses_stdplane(nc),
       .y = 1,
@@ -26,10 +26,18 @@ visualize(struct notcurses* nc, struct ncvisual* ncv){
     vopts.x = (ncplane_dim_x(notcurses_stdplane(nc)) - truex / scalex) / 2;
     ncplane_set_fg_rgb(vopts.n, 0xffffff);
     ncplane_set_bg_rgb(vopts.n, 0);
+    ncplane_erase(vopts.n);
+    // if we're about to blit pixel graphics, render the screen as empty, so
+    // that everything is damaged for the printing of the legend.
+    if(vopts.blitter == NCBLIT_PIXEL){
+      DEMO_RENDER(nc);
+    }
     if(ncvisual_render(nc, ncv, &vopts) == NULL){
-      ncplane_erase(vopts.n);
       ncplane_printf_aligned(vopts.n, ncplane_dim_y(vopts.n) / 2 - 1, NCALIGN_CENTER, "not available");
     }else{
+      if(vopts.blitter == NCBLIT_PIXEL){
+        DEMO_RENDER(nc);
+      }
       ncplane_printf_aligned(vopts.n, ncplane_dim_y(vopts.n) / 2 - 1, NCALIGN_CENTER,
                             "%03dx%03d", truex, truey);
       ncplane_printf_aligned(vopts.n, ncplane_dim_y(vopts.n) / 2 + 1, NCALIGN_CENTER,
