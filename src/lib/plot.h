@@ -43,12 +43,12 @@ class ncppplot {
      return false;
    }
    const notcurses* notc = ncplane_notcurses(n);
-   ncblitter_e blitter = opts ? opts->gridtype : NCBLIT_DEFAULT;
-   if(blitter == NCBLIT_DEFAULT){
-     blitter = ncplot_defblitter(notc);
+   ncblitter_e blitfxn = opts ? opts->gridtype : NCBLIT_DEFAULT;
+   if(blitfxn == NCBLIT_DEFAULT){
+     blitfxn = ncplot_defblitter(notc);
    }
    bool degrade_blitter = !(opts && (opts->flags & NCPLOT_OPTION_NODEGRADE));
-   auto bset = lookup_blitset(&notc->tcache, blitter, degrade_blitter);
+   auto bset = lookup_blitset(&notc->tcache, blitfxn, degrade_blitter);
    if(bset == nullptr){
      ncplane_destroy(n);
      return false;

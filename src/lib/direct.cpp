@@ -457,7 +457,7 @@ int ncdirect_raster_frame(ncdirect* n, ncdirectv* ncdv, ncalign_e align){
 }
 
 ncdirectv* ncdirect_render_frame(ncdirect* n, const char* file,
-                                 ncblitter_e blitter, ncscale_e scale){
+                                 ncblitter_e blitfxn, ncscale_e scale){
   struct ncvisual* ncv = ncvisual_from_file(file);
   if(ncv == nullptr){
     return nullptr;
@@ -470,7 +470,7 @@ ncdirectv* ncdirect_render_frame(ncdirect* n, const char* file,
     return nullptr;
   }
 //fprintf(stderr, "render %d/%d to %d+%d scaling: %d\n", ncv->rows, ncv->cols, leny, lenx, scale);
-  auto bset = rgba_blitter_low(&n->tcache, scale, true, blitter);
+  auto bset = rgba_blitter_low(&n->tcache, scale, true, blitfxn);
   if(!bset){
     ncvisual_destroy(ncv);
     return nullptr;
@@ -524,8 +524,8 @@ ncdirectv* ncdirect_render_frame(ncdirect* n, const char* file,
 }
 
 int ncdirect_render_image(ncdirect* n, const char* file, ncalign_e align,
-                          ncblitter_e blitter, ncscale_e scale){
-  auto faken = ncdirect_render_frame(n, file, blitter, scale);
+                          ncblitter_e blitfxn, ncscale_e scale){
+  auto faken = ncdirect_render_frame(n, file, blitfxn, scale);
   if(!faken){
     return -1;
   }
