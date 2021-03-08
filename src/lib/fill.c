@@ -574,7 +574,7 @@ qrcode_cols(int version){
 }
 
 int ncplane_qrcode(ncplane* n, int* ymax, int* xmax, const void* data, size_t len){
-  const ncblitter_e blitter = NCBLIT_2x1;
+  const ncblitter_e blitfxn = NCBLIT_2x1;
   const int MAX_QR_VERSION = 40; // QR library only supports up to 40
   if(*ymax <= 0 || *xmax <= 0){
     return -1;
@@ -639,7 +639,7 @@ int ncplane_qrcode(ncplane* n, int* ymax, int* xmax, const void* data, size_t le
         ret = square;
         struct ncvisual_options vopts = {
           .n = n,
-          .blitter = blitter,
+          .blitter = blitfxn,
         };
         if(ncvisual_render(ncplane_notcurses(n), ncv, &vopts) == n){
           ret = square;

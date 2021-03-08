@@ -72,14 +72,14 @@ auto ncvisual_geom(const notcurses* nc, const ncvisual* n,
                    const struct ncvisual_options* vopts,
                    int* y, int* x, int* toy, int* tox) -> int {
   const ncscale_e scale = vopts ? vopts->scaling : NCSCALE_NONE;
-  ncblitter_e blitter;
+  ncblitter_e blitfxn;
   if(!vopts || vopts->blitter == NCBLIT_DEFAULT){
-    blitter = ncvisual_media_defblitter(nc, scale);
+    blitfxn = ncvisual_media_defblitter(nc, scale);
   }else{
-    blitter = vopts->blitter;
+    blitfxn = vopts->blitter;
   }
   const bool maydegrade = !(vopts && (vopts->flags & NCVISUAL_OPTION_NODEGRADE));
-  const struct blitset* bset = lookup_blitset(&nc->tcache, blitter, maydegrade);
+  const struct blitset* bset = lookup_blitset(&nc->tcache, blitfxn, maydegrade);
   if(!bset){
     return -1;
   }

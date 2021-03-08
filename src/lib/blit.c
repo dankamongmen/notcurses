@@ -826,7 +826,7 @@ braille_blit(ncplane* nc, int placey, int placex, int linesize,
 
 // NCBLIT_DEFAULT is not included, as it has no defined properties. It ought
 // be replaced with some real blitter implementation by the calling widget.
-static const struct blitset notcurses_blitters[] = {
+static struct blitset notcurses_blitters[] = {
    { .geom = NCBLIT_8x1,     .width = 1, .height = 8, .egcs = L" ▁▂▃▄▅▆▇█",
      .blit = tria_blit,      .name = "eightstep",     .fill = false, },
    { .geom = NCBLIT_1x1,     .width = 1, .height = 1, .egcs = L" █",
@@ -847,83 +847,12 @@ static const struct blitset notcurses_blitters[] = {
      .blit = NULL,           .name = NULL,            .fill = false,  },
 };
 
-int notcurses_lex_blitter(const char* op, ncblitter_e* blitter){
-  const struct blitset* bset = notcurses_blitters;
-  while(bset->name){
-    if(strcasecmp(bset->name, op) == 0){
-      *blitter = bset->geom;
-      return 0;
-    }
-    ++bset;
+void set_pixel_blitter(blitter blitfxn){
+  struct blitset* b = notcurses_blitters;
+  while(b->geom != NCBLIT_PIXEL){
+    ++b;
   }
-  if(strcasecmp("default", op) == 0){
-    *blitter = NCBLIT_DEFAULT;
-    return 0;
-  }
-  return -1;
-}
-
-const char* notcurses_str_blitter(ncblitter_e blitter){
-  if(blitter == NCBLIT_DEFAULT){
-    return "default";
-  }
-  const struct blitset* bset = notcurses_blitters;
-  while(bset->name){
-    if(bset->geom == blitter){
-      return bset->name;
-    }
-    ++bset;
-  }
-  return NULL;
-}
-
-int ncblit_bgrx(const void* data, int linesize, const struct ncvisual_options* vopts){
-  if(vopts->leny <= 0 || vopts->lenx <= 0){
-    return -1;
-  }
-  void* rdata = bgra_to_rgba(data, vopts->leny, linesize, vopts->lenx);
-  if(rdata == NULL){
-    return -1;
-  }
-  int r = ncblit_rgba(rdata, linesize, vopts);
-  free(rdata);
-  return r;
-}
-
-int ncblit_rgba(const void* data, int linesize, const struct ncvisual_options* vopts){
-  if(vopts->flags > NCVISUAL_OPTION_BLEND){
-    fprintf(stderr, "Warning: unknown ncvisual options %016jx\n", (uintmax_t)vopts->flags);
-  }
-  if(linesize <= 0 || (size_t)linesize < vopts->lenx * sizeof(uint32_t)){
-    return -1;
-  }
-  struct ncplane* nc = vopts->n;
-  if(nc == NULL){
-    return -1;
-  }
-  int lenx = vopts->lenx;
-  int leny = vopts->leny;
-  int begy = vopts->begy;
-  int begx = vopts->begx;
-//fprintf(stderr, "render %dx%d+%dx%d %p\n", begy, begx, leny, lenx, ncv->data);
-  if(begy < 0 || begx < 0 || lenx < -1 || leny < -1){
-    return -1;
-  }
-  ncblitter_e blitter;
-  if(!vopts || vopts->blitter == NCBLIT_DEFAULT){
-    blitter = ncvisual_media_defblitter(ncplane_notcurses(nc), NCSCALE_NONE);
-  }else{
-    blitter = vopts->blitter;
-  }
-  const bool degrade = !(vopts->flags & NCVISUAL_OPTION_NODEGRADE);
-  const notcurses* notc = ncplane_notcurses(nc);
-  const struct blitset* bset = lookup_blitset(&notc->tcache, blitter, degrade);
-  if(bset == NULL){
-    return -1;
-  }
-  const bool blend = (vopts->flags & NCVISUAL_OPTION_BLEND);
-  return bset->blit(nc, vopts->y, vopts->x, linesize, data, begy, begx,
-                    leny, lenx, blend);
+  b->blit = blitfxn;
 }
 
 const struct blitset* lookup_blitset(const tinfo* tcache, ncblitter_e setid, bool may_degrade) {
@@ -970,6 +899,85 @@ const struct blitset* lookup_blitset(const tinfo* tcache, ncblitter_e setid, boo
     ++bset;
   }
   return NULL;
+}
+
+int notcurses_lex_blitter(const char* op, ncblitter_e* blitfxn){
+  const struct blitset* bset = notcurses_blitters;
+  while(bset->name){
+    if(strcasecmp(bset->name, op) == 0){
+      *blitfxn = bset->geom;
+      return 0;
+    }
+    ++bset;
+  }
+  if(strcasecmp("default", op) == 0){
+    *blitfxn = NCBLIT_DEFAULT;
+    return 0;
+  }
+  return -1;
+}
+
+const char* notcurses_str_blitter(ncblitter_e blitfxn){
+  if(blitfxn == NCBLIT_DEFAULT){
+    return "default";
+  }
+  const struct blitset* bset = notcurses_blitters;
+  while(bset->name){
+    if(bset->geom == blitfxn){
+      return bset->name;
+    }
+    ++bset;
+  }
+  return NULL;
+}
+
+int ncblit_bgrx(const void* data, int linesize, const struct ncvisual_options* vopts){
+  if(vopts->leny <= 0 || vopts->lenx <= 0){
+    return -1;
+  }
+  void* rdata = bgra_to_rgba(data, vopts->leny, linesize, vopts->lenx);
+  if(rdata == NULL){
+    return -1;
+  }
+  int r = ncblit_rgba(rdata, linesize, vopts);
+  free(rdata);
+  return r;
+}
+
+int ncblit_rgba(const void* data, int linesize, const struct ncvisual_options* vopts){
+  if(vopts->flags > NCVISUAL_OPTION_BLEND){
+    fprintf(stderr, "Warning: unknown ncvisual options %016jx\n", (uintmax_t)vopts->flags);
+  }
+  if(linesize <= 0 || (size_t)linesize < vopts->lenx * sizeof(uint32_t)){
+    return -1;
+  }
+  struct ncplane* nc = vopts->n;
+  if(nc == NULL){
+    return -1;
+  }
+  int lenx = vopts->lenx;
+  int leny = vopts->leny;
+  int begy = vopts->begy;
+  int begx = vopts->begx;
+//fprintf(stderr, "render %dx%d+%dx%d %p\n", begy, begx, leny, lenx, ncv->data);
+  if(begy < 0 || begx < 0 || lenx < -1 || leny < -1){
+    return -1;
+  }
+  ncblitter_e blitfxn;
+  if(!vopts || vopts->blitter == NCBLIT_DEFAULT){
+    blitfxn = ncvisual_media_defblitter(ncplane_notcurses(nc), NCSCALE_NONE);
+  }else{
+    blitfxn = vopts->blitter;
+  }
+  const bool degrade = !(vopts->flags & NCVISUAL_OPTION_NODEGRADE);
+  const notcurses* notc = ncplane_notcurses(nc);
+  const struct blitset* bset = lookup_blitset(&notc->tcache, blitfxn, degrade);
+  if(bset == NULL){
+    return -1;
+  }
+  const bool blend = (vopts->flags & NCVISUAL_OPTION_BLEND);
+  return bset->blit(nc, vopts->y, vopts->x, linesize, data, begy, begx,
+                    leny, lenx, blend);
 }
 
 ncblitter_e ncvisual_media_defblitter(const notcurses* nc, ncscale_e scale){

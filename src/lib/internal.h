@@ -380,6 +380,10 @@ typedef struct notcurses {
   unsigned stdio_blocking_save; // was stdio blocking at entry? restore on stop.
 } notcurses;
 
+typedef int (*blitter)(struct ncplane* n, int placey, int placex,
+                       int linesize, const void* data, int begy, int begx,
+                       int leny, int lenx, unsigned blendcolors);
+
 // a system for rendering RGBA pixels as text glyphs
 struct blitset {
   ncblitter_e geom;
@@ -390,9 +394,7 @@ struct blitset {
   // quickly, i.e. it can be indexed as height arrays of 1 + height glyphs. i.e.
   // the first five braille EGCs are all 0 on the left, [0..4] on the right.
   const wchar_t* egcs;
-  int (*blit)(struct ncplane* n, int placey, int placex,
-              int linesize, const void* data, int begy, int begx,
-              int leny, int lenx, unsigned blendcolors);
+  blitter blit;
   const char* name;
   bool fill;
 };
@@ -718,26 +720,6 @@ memdup(const void* src, size_t len){
 }
 
 ALLOC void* bgra_to_rgba(const void* data, int rows, int rowstride, int cols);
-
-API const struct blitset* lookup_blitset(const tinfo* tcache, ncblitter_e setid, bool may_degrade);
-
-static inline const struct blitset*
-rgba_blitter_low(const tinfo* tcache, ncscale_e scale, bool maydegrade,
-                 ncblitter_e blitrec) {
-  if(blitrec == NCBLIT_DEFAULT){
-    blitrec = rgba_blitter_default(tcache, scale);
-  }
-  return lookup_blitset(tcache, blitrec, maydegrade);
-}
-
-// RGBA visuals all use NCBLIT_2x1 by default (or NCBLIT_1x1 if not in
-// UTF-8 mode), but an alternative can be specified.
-static inline const struct blitset*
-rgba_blitter(const struct notcurses* nc, const struct ncvisual_options* opts) {
-  const bool maydegrade = !(opts && (opts->flags & NCVISUAL_OPTION_NODEGRADE));
-  const ncscale_e scale = opts ? opts->scaling : NCSCALE_NONE;
-  return rgba_blitter_low(&nc->tcache, scale, maydegrade, opts ? opts->blitter : NCBLIT_DEFAULT);
-}
 
 // find the "center" cell of two lengths. in the case of even rows/columns, we
 // place the center on the top/left. in such a case there will be one more
@@ -1214,8 +1196,14 @@ int sixel_blit(ncplane* nc, int placey, int placex, int linesize,
                const void* data, int begy, int begx,
                int leny, int lenx, unsigned cellpixx);
 
+int kitty_blit(ncplane* nc, int placey, int placex, int linesize,
+               const void* data, int begy, int begx,
+               int leny, int lenx, unsigned cellpixx);
+
 int term_fg_rgb8(bool RGBflag, const char* setaf, int colors, FILE* out,
                  unsigned r, unsigned g, unsigned b);
+
+API const struct blitset* lookup_blitset(const tinfo* tcache, ncblitter_e setid, bool may_degrade);
 
 static inline int
 rgba_blit_dispatch(ncplane* nc, const struct blitset* bset, int placey,
@@ -1223,6 +1211,24 @@ rgba_blit_dispatch(ncplane* nc, const struct blitset* bset, int placey,
                    int begx, int leny, int lenx, bool blendcolors){
   return bset->blit(nc, placey, placex, linesize, data, begy, begx,
                     leny, lenx, blendcolors);
+}
+
+static inline const struct blitset*
+rgba_blitter_low(const tinfo* tcache, ncscale_e scale, bool maydegrade,
+                 ncblitter_e blitrec) {
+  if(blitrec == NCBLIT_DEFAULT){
+    blitrec = rgba_blitter_default(tcache, scale);
+  }
+  return lookup_blitset(tcache, blitrec, maydegrade);
+}
+
+// RGBA visuals all use NCBLIT_2x1 by default (or NCBLIT_1x1 if not in
+// UTF-8 mode), but an alternative can be specified.
+static inline const struct blitset*
+rgba_blitter(const struct notcurses* nc, const struct ncvisual_options* opts) {
+  const bool maydegrade = !(opts && (opts->flags & NCVISUAL_OPTION_NODEGRADE));
+  const ncscale_e scale = opts ? opts->scaling : NCSCALE_NONE;
+  return rgba_blitter_low(&nc->tcache, scale, maydegrade, opts ? opts->blitter : NCBLIT_DEFAULT);
 }
 
 typedef struct ncvisual_implementation {
