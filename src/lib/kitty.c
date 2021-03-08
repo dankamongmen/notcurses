@@ -7,15 +7,24 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, const uint32_t* dat
     return -1;
   }
   fprintf(fp, "\e_Gf=24,s=%d,v=%d;", lenx, leny);
+  // FIXME need to base64 encode payload. each 3B RGB goes to a 4B base64
   for(int y = 0 ; y < leny ; ++y){
     const uint32_t* line = data + linesize / sizeof(*data);
     for(int x = 0 ; x < lenx ; ++x){
       uint32_t pixel = line[x];
-      fprintf(fp, "%u%u%u", ncpixel_r(pixel), ncpixel_g(pixel), ncpixel_b(pixel));
+      unsigned r = ncpixel_r(pixel);
+      unsigned g = ncpixel_g(pixel);
+      unsigned b = ncpixel_b(pixel);
+      unsigned char b64[4] = {
+        ((r & 0xfc) >> 2) + 'A',
+        ((r & 0x3 << 2) | ((g & 0xf0) >> 4)) + 'A',
+        (((g & 0xf) << 2) | ((b & 0xc0) >> 6)) + 'A',
+        (b & 0x3f) + 'A'
+      };
+      fprintf(fp, "%c%c%c%c", b64[0], b64[1], b64[2], b64[3]);
     }
   }
   fprintf(fp, "\e\\");
-  // FIXME need to base64 encode this
   if(fclose(fp) == EOF){
     return -1;
   }
@@ -26,6 +35,7 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, const uint32_t* dat
 // deflate-compressed) 24bit RGB.
 int kitty_blit_inner(ncplane* nc, int placey, int placex, int linesize,
                      int leny, int lenx, unsigned cellpixx, const void* data){
+  unsigned width = lenx / cellpixx + !!(lenx % cellpixx);
   char* buf = NULL;
   size_t size = 0;
   FILE* fp = open_memstream(&buf, &size);
@@ -38,8 +48,6 @@ int kitty_blit_inner(ncplane* nc, int placey, int placex, int linesize,
     return -1;
   }
   nccell* c = ncplane_cell_ref_yx(nc, placey, placex);
-  unsigned width = lenx / cellpixx + !!(lenx % cellpixx);
-fprintf(stderr, "SIZE: %zu WIDTH: %u\n", size, width);
   if(pool_blit_direct(&nc->pool, c, buf, size, width) < 0){
     free(buf);
     return -1;
