@@ -141,7 +141,11 @@ extract_color_table(const uint32_t* data, int linesize, int begy, int begx,
 // Emit some number of equivalent, subsequent sixels, using sixel RLE. We've
 // seen the sixel |crle| for |seenrle| columns in a row. |seenrle| must > 0.
 static int
-write_rle(FILE* fp, int seenrle, unsigned char crle){
+write_rle(int* printed, int color, FILE* fp, int seenrle, unsigned char crle){
+  if(!*printed){
+    fprintf(fp, "#%d", color);
+    *printed = 1;
+  }
   crle += 63;
   if(seenrle == 1){
     if(fputc(crle, fp) == EOF){
@@ -180,9 +184,9 @@ write_sixel_data(FILE* fp, int lenx, sixeltable* stab){
   int p = 0;
   while(p < stab->ctab->sixelcount){
     for(int i = 0 ; i < stab->ctab->colors ; ++i){
-      fprintf(fp, "#%d", i);
-      int seenrle = 0;
-      unsigned char crle = 0;
+      int printed = 0;
+      int seenrle = 0; // number of repetitions
+      unsigned char crle = 0; // character being repeated
       int idx = ctable_to_dtable(stab->ctab->table + i * 5);
       for(int m = p ; m < stab->ctab->sixelcount && m < p + lenx ; ++m){
 //fprintf(stderr, "%d ", idx * stab->ctab->sixelcount + m);
@@ -191,7 +195,7 @@ write_sixel_data(FILE* fp, int lenx, sixeltable* stab){
           if(stab->data[idx * stab->ctab->sixelcount + m] == crle){
             ++seenrle;
           }else{
-            write_rle(fp, seenrle, crle);
+            write_rle(&printed, i, fp, seenrle, crle);
             seenrle = 1;
             crle = stab->data[idx * stab->ctab->sixelcount + m];
           }
@@ -200,9 +204,13 @@ write_sixel_data(FILE* fp, int lenx, sixeltable* stab){
           crle = stab->data[idx * stab->ctab->sixelcount + m];
         }
       }
-      write_rle(fp, seenrle, crle);
+      if(crle){
+        write_rle(&printed, i, fp, seenrle, crle);
+      }
       if(i + 1 < stab->ctab->colors){
-        fputc('$', fp);
+        if(printed){
+          fputc('$', fp);
+        }
       }else{
         if(p + lenx < stab->ctab->sixelcount){
           fputc('-', fp);
