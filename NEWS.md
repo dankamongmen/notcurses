@@ -1,13 +1,14 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 2.2.3 (not yet released)
-  * Implemented `NCBLIT_PIXEL` for terminals reporting Sixel support.
-    Added `notcurses_check_pixel_support()` and its companion
+* 2.2.3 (2021-03-08)
+  * Implemented **EXPERIMENTAL** `NCBLIT_PIXEL` for terminals reporting Sixel
+    support. Added `notcurses_check_pixel_support()` and its companion
     `ncdirect_check_pixel_support()`, which must be called (and must return
     success) before `NCBLIT_PIXEL` will be available. `NCBLIT_PIXEL` degrades
-    to `NCBLIT_3x2` until support is verified. This functionality ought be
-    considered experimental, and its behavior is subject to change.
+    to `NCBLIT_3x2` until support is verified. This functionality is not yet
+    well integrated into general rendering; it will not play nicely with other
+    intersecting planes. Do not rely on current behavior.
   * Add the `nctree` widget for line-oriented hierarchical data. See
     the new `notcurses_tree(3)` man page for complete information.
   * Ceased exporting `cell_fchannel()`, `cell_bchannel()`,
