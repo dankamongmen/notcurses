@@ -849,13 +849,13 @@
         <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">notcurses_canopen_videos</span>(<span class="self">self</span>) }
     }
 
-    <span class="doccomment">/// Returns true if sixel blitting is supported.</span>
+    <span class="doccomment">/// Returns true if pixel graphics are supported.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// See [NCBLIT_SIXEL][crate::NCBLIT_SIXEL].</span>
+    <span class="doccomment">/// See [NCBLIT_PIXEL][crate::NCBLIT_PIXEL].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [notcurses_cansixel()][crate::notcurses_cansixel].*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cansixel</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">notcurses_cansixel</span>(<span class="self">self</span>) }
+    <span class="doccomment">/// *C style function: [notcurses_canpixel()][crate::notcurses_canpixel].*</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">canpixel</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">notcurses_canpixel</span>(<span class="self">self</span>) }
     }
 
     <span class="doccomment">/// Returns true if we can reliably use Unicode 13 sextants.</span>

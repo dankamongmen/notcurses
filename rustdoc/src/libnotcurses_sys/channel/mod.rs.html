@@ -226,18 +226,6 @@
 <span id="223">223</span>
 <span id="224">224</span>
 <span id="225">225</span>
-<span id="226">226</span>
-<span id="227">227</span>
-<span id="228">228</span>
-<span id="229">229</span>
-<span id="230">230</span>
-<span id="231">231</span>
-<span id="232">232</span>
-<span id="233">233</span>
-<span id="234">234</span>
-<span id="235">235</span>
-<span id="236">236</span>
-<span id="237">237</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcChannel*`</span>
 
@@ -332,7 +320,7 @@
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcChannel</span> <span class="op">=</span> <span class="ident">u32</span>;
 
 <span class="doccomment">/// Extract these bits to get a channel&#39;s alpha value</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCCHANNEL_ALPHA_MASK</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">CHANNEL_ALPHA_MASK</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCCHANNEL_ALPHA_MASK</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">CELL_BG_ALPHA_MASK</span>;
 
 <span class="comment">// NcAlphaBits</span>
 <span class="comment">//</span>
@@ -464,17 +452,5 @@
 <span class="doccomment">/// `type in C: no data type`</span>
 <span class="doccomment">///</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcColor</span> <span class="op">=</span> <span class="ident">u8</span>;
-
-<span class="doccomment">/// the [NcEgc][crate::NcEgc] which form the various levels of a given geometry.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// If the geometry is wide, things are arranged with the rightmost side</span>
-<span class="doccomment">/// increasing most quickly, i.e. it can be indexed as height arrays of</span>
-<span class="doccomment">/// 1 + height glyphs.</span>
-<span class="doccomment">/// i.e. The first five braille EGCs are all 0 on the left,</span>
-<span class="doccomment">/// [0..4] on the right.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `type in C: blitset (struct)`</span>
-<span class="doccomment">///</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcBlitSet</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">blitset</span>;
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "libnotcurses_sys";</script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>

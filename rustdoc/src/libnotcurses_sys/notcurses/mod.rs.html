@@ -211,14 +211,6 @@
 <span id="208">208</span>
 <span id="209">209</span>
 <span id="210">210</span>
-<span id="211">211</span>
-<span id="212">212</span>
-<span id="213">213</span>
-<span id="214">214</span>
-<span id="215">215</span>
-<span id="216">216</span>
-<span id="217">217</span>
-<span id="218">218</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `Notcurses`</span>
 
@@ -252,7 +244,7 @@
 <span class="comment">// fmt notcurses_canfade</span>
 <span class="comment">// fmt notcurses_canopen_images</span>
 <span class="comment">// fmt notcurses_canopen_videos</span>
-<span class="comment">// fmt notcurses_cansixel</span>
+<span class="comment">// fmt notcurses_canpixel</span>
 <span class="comment">// fmt notcurses_cansextant</span>
 <span class="comment">// fmt notcurses_cantruecolor</span>
 <span class="comment">// fmt notcurses_canutf8</span>
@@ -366,14 +358,6 @@
 <span class="doccomment">/// Notcurses typically prints version info in notcurses_init() and performance</span>
 <span class="doccomment">/// info in notcurses_stop(). This inhibits that output.</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCOPTION_SUPPRESS_BANNERS</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCOPTION_SUPPRESS_BANNERS</span> <span class="kw">as</span> <span class="ident">u64</span>;
-
-<span class="doccomment">/// Test for Sixel support</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Checking for Sixel support requires writing an escape, and then reading an</span>
-<span class="doccomment">/// inline reply from the terminal. Since this can interact poorly with actual</span>
-<span class="doccomment">/// user input, it&#39;s not done unless Sixel will actually be used. Set this flag</span>
-<span class="doccomment">/// to unconditionally test for Sixel support in notcurses_init().</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCOPTION_VERIFY_SIXEL</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCOPTION_VERIFY_SIXEL</span> <span class="kw">as</span> <span class="ident">u64</span>;
 
 <span class="comment">// NcLogLevel ------------------------------------------------------------------</span>
 
