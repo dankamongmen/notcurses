@@ -821,10 +821,10 @@ static void
 init_banner(const notcurses* nc, const char* shortname_term){
   if(!nc->suppress_banner){
     char prefixbuf[BPREFIXSTRLEN + 1];
-    term_fg_palindex(nc, stdout, nc->tcache.colors <= 256 ? 50 % nc->tcache.colors : 0x20e080);
+    term_fg_palindex(nc, stdout, 50 % nc->tcache.colors);
     printf("\n notcurses %s by nick black et al", notcurses_version());
     printf(" on %s", shortname_term ? shortname_term : "?");
-    term_fg_palindex(nc, stdout, nc->tcache.colors <= 256 ? 12 % nc->tcache.colors : 0x2080e0);
+    term_fg_palindex(nc, stdout, 12 % nc->tcache.colors);
     if(nc->tcache.cellpixy && nc->tcache.cellpixx){
       printf("\n  %d rows (%dpx) %d cols (%dpx) (%sB) %d colors",
              nc->stdplane->leny, nc->tcache.cellpixy,
