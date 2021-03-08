@@ -8,7 +8,7 @@ ncplayer - Render images and video to a terminal
 
 # SYNOPSIS
 
-**ncplayer** [**-h**] [**-V**] [**-q**] [**-d** ***delaymult***] [**-l** ***loglevel***] [**-s** ***scalemode***] [**-k**] [**-L**] [**-t** ***seconds***] files
+**ncplayer** [**-h**] [**-V**] [**-q**] [**-d** ***delaymult***] [**-l** ***loglevel***] [**-b** ***blitter***] [**-s** ***scalemode***] [**-k**] [**-L**] [**-t** ***seconds***] files
 
 # DESCRIPTION
 

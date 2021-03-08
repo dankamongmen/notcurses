@@ -489,7 +489,7 @@ ncdirectv* ncdirect_render_frame(ncdirect* n, const char* file,
     }
   }else{
     disprows = ncv->rows;
-    dispcols = ncv->cols / encoding_x_scale(&n->tcache, bset);
+    dispcols = ncv->cols;
   }
   leny = (leny / (double)ncv->rows) * ((double)disprows);
   lenx = (lenx / (double)ncv->cols) * ((double)dispcols);
