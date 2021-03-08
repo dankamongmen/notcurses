@@ -1,9 +1,16 @@
 #ifndef NOTCURSES_VISUAL_DETAILS
 #define NOTCURSES_VISUAL_DETAILS
 
-#include "builddef.h"
-#include "notcurses/notcurses.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include "builddef.h"
+
+struct blitset;
 struct ncplane;
 struct ncvisual_details;
 
@@ -16,8 +23,8 @@ typedef struct ncvisual {
   bool owndata; // we own data iff owndata == true
 } ncvisual;
 
-static inline auto
-ncvisual_set_data(ncvisual* ncv, uint32_t* data, bool owned) -> void {
+static inline void
+ncvisual_set_data(ncvisual* ncv, uint32_t* data, bool owned){
   if(ncv->owndata){
     free(ncv->data);
   }
@@ -26,7 +33,7 @@ ncvisual_set_data(ncvisual* ncv, uint32_t* data, bool owned) -> void {
 }
 
 static inline void
-scale_visual(const ncvisual* ncv, int* disprows, int* dispcols) {
+scale_visual(const ncvisual* ncv, int* disprows, int* dispcols){
   float xratio = (float)(*dispcols) / ncv->cols;
   if(xratio * ncv->rows > *disprows){
     xratio = (float)(*disprows) / ncv->rows;
@@ -34,5 +41,11 @@ scale_visual(const ncvisual* ncv, int* disprows, int* dispcols) {
   *disprows = xratio * (ncv->rows);
   *dispcols = xratio * (ncv->cols);
 }
+
+void ncvisual_destroy(struct ncvisual* ncv);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

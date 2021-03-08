@@ -739,14 +739,6 @@ rgba_blitter(const struct notcurses* nc, const struct ncvisual_options* opts) {
   return rgba_blitter_low(&nc->tcache, scale, maydegrade, opts ? opts->blitter : NCBLIT_DEFAULT);
 }
 
-static inline int
-rgba_blit_dispatch(ncplane* nc, const struct blitset* bset, int placey,
-                   int placex, int linesize, const void* data, int begy,
-                   int begx, int leny, int lenx, bool blendcolors){
-  return bset->blit(nc, placey, placex, linesize, data, begy, begx,
-                    leny, lenx, blendcolors);
-}
-
 // find the "center" cell of two lengths. in the case of even rows/columns, we
 // place the center on the top/left. in such a case there will be one more
 // cell to the bottom/right of the center.
@@ -1224,6 +1216,14 @@ int sixel_blit(ncplane* nc, int placey, int placex, int linesize,
 
 int term_fg_rgb8(bool RGBflag, const char* setaf, int colors, FILE* out,
                  unsigned r, unsigned g, unsigned b);
+
+static inline int
+rgba_blit_dispatch(ncplane* nc, const struct blitset* bset, int placey,
+                   int placex, int linesize, const void* data, int begy,
+                   int begx, int leny, int lenx, bool blendcolors){
+  return bset->blit(nc, placey, placex, linesize, data, begy, begx,
+                    leny, lenx, blendcolors);
+}
 
 typedef struct ncvisual_implementation {
   int (*visual_init)(int loglevel);
