@@ -478,8 +478,8 @@ ncdirectv* ncdirect_render_frame(ncdirect* n, const char* file,
   int disprows, dispcols;
   if(scale != NCSCALE_NONE && scale != NCSCALE_NONE_HIRES){
     if(bset->geom != NCBLIT_PIXEL){
-      dispcols = ncdirect_dim_x(n) * encoding_x_scale(bset);
-      disprows = ncdirect_dim_y(n) * encoding_y_scale(bset);
+      dispcols = ncdirect_dim_x(n) * encoding_x_scale(&n->tcache, bset);
+      disprows = ncdirect_dim_y(n) * encoding_y_scale(&n->tcache, bset);
     }else{
       dispcols = ncdirect_dim_x(n) * n->tcache.cellpixx;
       disprows = ncdirect_dim_y(n) * n->tcache.cellpixy;
@@ -489,7 +489,7 @@ ncdirectv* ncdirect_render_frame(ncdirect* n, const char* file,
     }
   }else{
     disprows = ncv->rows;
-    dispcols = ncv->cols / encoding_x_scale(bset);
+    dispcols = ncv->cols / encoding_x_scale(&n->tcache, bset);
   }
   leny = (leny / (double)ncv->rows) * ((double)disprows);
   lenx = (lenx / (double)ncv->cols) * ((double)dispcols);
@@ -497,8 +497,8 @@ ncdirectv* ncdirect_render_frame(ncdirect* n, const char* file,
   ncplane_options nopts = {
     .y = 0,
     .x = 0,
-    .rows = disprows / encoding_y_scale(bset),
-    .cols = dispcols / encoding_x_scale(bset),
+    .rows = disprows / encoding_y_scale(&n->tcache, bset),
+    .cols = dispcols / encoding_x_scale(&n->tcache, bset),
     .userptr = nullptr,
     .name = "fake",
     .resizecb = nullptr,

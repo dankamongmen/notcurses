@@ -5,13 +5,19 @@
 
 // number of pixels that map to a single cell, height-wise
 static inline int
-encoding_y_scale(const struct blitset* bset) {
+encoding_y_scale(const tinfo* tcache, const struct blitset* bset) {
+  if(bset->geom == NCBLIT_PIXEL){
+    return tcache->cellpixy;
+  }
   return bset->height;
 }
 
 // number of pixels that map to a single cell, width-wise
 static inline int
-encoding_x_scale(const struct blitset* bset) {
+encoding_x_scale(const tinfo* tcache, const struct blitset* bset) {
+  if(bset->geom == NCBLIT_PIXEL){
+    return tcache->cellpixx;
+  }
   return bset->width;
 }
 

@@ -3,6 +3,8 @@
 // show it with each blitter, with a legend
 static int
 visualize(struct notcurses* nc, struct ncvisual* ncv){
+  struct timespec kdelay;
+  timespec_div(&demodelay, 2, &kdelay);
   ncblitter_e bs[] = {
     NCBLIT_1x1,
     NCBLIT_2x1,
@@ -12,37 +14,34 @@ visualize(struct notcurses* nc, struct ncvisual* ncv){
     NCBLIT_PIXEL,
   };
   for(size_t i = 0 ; i < sizeof(bs) / sizeof(*bs) ; ++i){
-    if(bs[i] == NCBLIT_PIXEL && !notcurses_canpixel(nc)){
-      // FIXME throw up an indicator?
-      continue;
-    }
     struct ncvisual_options vopts = {
-      .scaling = NCSCALE_STRETCH,
+      .scaling = bs[i] == NCBLIT_PIXEL ? NCSCALE_SCALE : NCSCALE_STRETCH,
       .blitter = bs[i],
       .n = notcurses_stdplane(nc),
       .y = 1,
+      .flags = NCVISUAL_OPTION_NODEGRADE,
     };
-    if(vopts.blitter == NCBLIT_PIXEL){
-      vopts.scaling = NCSCALE_SCALE;
-    }
-    if(ncvisual_render(nc, ncv, &vopts) == NULL){
-      return -1;
-    }
-    ncplane_set_fg_rgb(vopts.n, 0xffffff);
-    ncplane_set_bg_rgb(vopts.n, 0);
-    const char* name = notcurses_str_blitter(bs[i]);
     int scalex, scaley, truey, truex;
     ncvisual_geom(nc, ncv, &vopts, &truey, &truex, &scaley, &scalex);
+    vopts.x = (ncplane_dim_x(notcurses_stdplane(nc)) - truex / scalex) / 2;
+    ncplane_set_fg_rgb(vopts.n, 0xffffff);
+    ncplane_set_bg_rgb(vopts.n, 0);
+    if(ncvisual_render(nc, ncv, &vopts) == NULL){
+      ncplane_erase(vopts.n);
+      ncplane_printf_aligned(vopts.n, ncplane_dim_y(vopts.n) / 2 - 1, NCALIGN_CENTER, "not available");
+    }else{
+      ncplane_printf_aligned(vopts.n, ncplane_dim_y(vopts.n) / 2 - 1, NCALIGN_CENTER,
+                            "%03dx%03d", truex, truey);
+      ncplane_printf_aligned(vopts.n, ncplane_dim_y(vopts.n) / 2 + 1, NCALIGN_CENTER,
+                            "%d:%d pixels -> cell", scalex, scaley);
+    }
+    const char* name = notcurses_str_blitter(bs[i]);
     ncplane_putstr_aligned(vopts.n, ncplane_dim_y(vopts.n) / 2 - 3, NCALIGN_CENTER, name);
-    ncplane_printf_aligned(vopts.n, ncplane_dim_y(vopts.n) / 2 - 1, NCALIGN_CENTER,
-                           "%03dx%03d", truex, truey);
-    ncplane_printf_aligned(vopts.n, ncplane_dim_y(vopts.n) / 2 + 1, NCALIGN_CENTER,
-                           "%d:%d pixels -> cell", scalex, scaley);
     int ret = demo_render(nc);
     if(ret){
       return ret;
     }
-    ret = demo_nanosleep(nc, &demodelay);
+    ret = demo_nanosleep(nc, &kdelay);
     if(ret){
       return ret;
     }

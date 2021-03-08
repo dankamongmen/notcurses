@@ -552,7 +552,7 @@ neologo_present(struct ncdirect* nc, const char* nlogo){
       maxlinelen = collen;
     }
   }
-  const int leftpad = (80 - maxlinelen) / 2;
+  const int leftpad = (ncdirect_dim_x(nc) - maxlinelen) / 2;
   for(int i = 0 ; i < linecount ; ++i){
     printf("%*.*s%s", leftpad, leftpad, "", lines[i]);
     free(lines[i]);

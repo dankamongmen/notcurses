@@ -93,22 +93,22 @@ auto ncvisual_geom(const notcurses* nc, const ncvisual* n,
   if(n){
     if(scale == NCSCALE_NONE || scale == NCSCALE_NONE_HIRES){
       *y = n->rows;
-      *x = n->cols;// * encoding_x_scale(bset);
+      *x = n->cols;
     }else{
       int rows = vopts->n ? ncplane_dim_y(vopts->n) : ncplane_dim_y(nc->stdplane);
       int cols = vopts->n ? ncplane_dim_x(vopts->n) : ncplane_dim_x(nc->stdplane);
-      *y = rows * encoding_y_scale(bset);
-      *x = cols * encoding_x_scale(bset);
+      *y = rows * encoding_y_scale(&nc->tcache, bset);
+      *x = cols * encoding_x_scale(&nc->tcache, bset);
     }
     if(scale == NCSCALE_SCALE || scale == NCSCALE_SCALE_HIRES){
       scale_visual(n, y, x);
     }
   }
   if(toy){
-    *toy = encoding_y_scale(bset);
+    *toy = encoding_y_scale(&nc->tcache, bset);
   }
   if(tox){
-    *tox = encoding_x_scale(bset);
+    *tox = encoding_x_scale(&nc->tcache, bset);
   }
   return 0;
 }
@@ -431,8 +431,8 @@ auto ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const blitset* bset,
       disprows = ncv->rows;
     }else{
       notcurses_term_dim_yx(nc, &disprows, &dispcols);
-      dispcols *= encoding_x_scale(bset);
-      disprows *= encoding_y_scale(bset);
+      dispcols *= encoding_x_scale(&nc->tcache, bset);
+      disprows *= encoding_y_scale(&nc->tcache, bset);
       if(scaling == NCSCALE_SCALE || scaling == NCSCALE_SCALE_HIRES){
         scale_visual(ncv, &disprows, &dispcols);
       } // else stretch
@@ -441,8 +441,8 @@ auto ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const blitset* bset,
     struct ncplane_options nopts = {
       .y = placey,
       .x = placex,
-      .rows = disprows / encoding_y_scale(bset),
-      .cols = dispcols / encoding_x_scale(bset),
+      .rows = disprows / encoding_y_scale(&nc->tcache, bset),
+      .cols = dispcols / encoding_x_scale(&nc->tcache, bset),
       .userptr = nullptr,
       .name = "rgba",
       .resizecb = nullptr,
@@ -459,8 +459,8 @@ auto ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const blitset* bset,
       disprows = ncv->rows;
     }else{
       ncplane_dim_yx(n, &disprows, &dispcols);
-      dispcols *= encoding_x_scale(bset);
-      disprows *= encoding_y_scale(bset);
+      dispcols *= encoding_x_scale(&nc->tcache, bset);
+      disprows *= encoding_y_scale(&nc->tcache, bset);
       disprows -= placey;
       dispcols -= placex;
       if(scaling == NCSCALE_SCALE || scaling == NCSCALE_SCALE_HIRES){
