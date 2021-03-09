@@ -38,7 +38,7 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, const uint32_t* dat
       unsigned b = ncpixel_b(pixel);
       unsigned char b64[4] = {
         b64subs[((r & 0xfc) >> 2)],
-        b64subs[((r & 0x3 << 2) | ((g & 0xf0) >> 4))],
+        b64subs[((r & 0x3 << 4) | ((g & 0xf0) >> 4))],
         b64subs[(((g & 0xf) << 2) | ((b & 0xc0) >> 6))],
         b64subs[(b & 0x3f)]
       };
