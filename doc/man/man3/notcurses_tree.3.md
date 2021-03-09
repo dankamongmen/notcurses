@@ -1,6 +1,6 @@
 % notcurses_tree(3)
 % nick black <nickblack@linux.com>
-% v2.2.1
+% v2.2.3
 
 # NAME
 
