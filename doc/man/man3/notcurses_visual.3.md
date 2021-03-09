@@ -251,6 +251,9 @@ Multimedia decoding requires that Notcurses be built with either FFmpeg or
 OpenImageIO support. What formats can be decoded is totally dependent on the
 linked library. OpenImageIO does not support subtitles.
 
+Sixel documentation can be found at [Dankwiki](https://nick-black.com/dankwiki/index.php?title=Sixel).
+Kitty's graphics protocol is specified in [its documentation](https://sw.kovidgoyal.net/kitty/graphics-protocol.html).
+
 # BUGS
 
 **ncvisual_rotate** currently supports only **M_PI**/2 and -**M_PI**/2

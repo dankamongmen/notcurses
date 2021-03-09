@@ -1,6 +1,10 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 2.2.4 (not yet released)
+  * Implemented **EXPERIMENTAL** `NCBLIT_PIXEL` for terminals reporting the
+    Kitty pixel graphics protocol.
+
 * 2.2.3 (2021-03-08)
   * Implemented **EXPERIMENTAL** `NCBLIT_PIXEL` for terminals reporting Sixel
     support. Added `notcurses_check_pixel_support()` and its companion
