@@ -6,10 +6,11 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, const uint32_t* dat
   if(linesize % sizeof(*data)){
     return -1;
   }
+  // FIXME must write m=1 for initial chunks, m=0 for final (assuming > 1)
   fprintf(fp, "\e_Gf=24,s=%d,v=%d;", lenx, leny);
   // FIXME need to base64 encode payload. each 3B RGB goes to a 4B base64
   for(int y = 0 ; y < leny ; ++y){
-    const uint32_t* line = data + linesize / sizeof(*data);
+    const uint32_t* line = data + (linesize / sizeof(*data)) * y;
     for(int x = 0 ; x < lenx ; ++x){
       uint32_t pixel = line[x];
       unsigned r = ncpixel_r(pixel);
@@ -21,6 +22,8 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, const uint32_t* dat
         (((g & 0xf) << 2) | ((b & 0xc0) >> 6)) + 'A',
         (b & 0x3f) + 'A'
       };
+// this isn't the correct base64 distribution FIXME
+fprintf(stderr, "%u/%u/%u -> %c%c%c%c %u %u %u %u\n", r, g, b, b64[0], b64[1], b64[2], b64[3], b64[0], b64[1], b64[2], b64[3]);
       fprintf(fp, "%c%c%c%c", b64[0], b64[1], b64[2], b64[3]);
     }
   }
