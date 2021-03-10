@@ -469,7 +469,7 @@ int ffmpeg_decode_loop(ncvisual* ncv){
 
 int ffmpeg_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
                 const struct blitset* bset, int placey, int placex,
-                int begy, int begx, int leny, int lenx, bool blendcolors) {
+                int begy, int begx, int leny, int lenx, unsigned blendcolors) {
   const AVFrame* inframe = ncv->details->oframe ? ncv->details->oframe : ncv->details->frame;
 //fprintf(stderr, "inframe: %p oframe: %p frame: %p\n", inframe, ncv->details->oframe, ncv->details->frame);
   void* data = nullptr;

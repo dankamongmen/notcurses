@@ -251,6 +251,7 @@ int sixel_blit_inner(ncplane* nc, int placey, int placex, int lenx,
     free(buf);
     return -1;
   }
+  cell_set_pixels(c, 1);
   free(buf);
   return 1;
 }

@@ -401,6 +401,9 @@ struct blitset {
 
 #include "blitset.h"
 
+void reset_stats(ncstats* stats);
+void summarize_stats(notcurses* nc);
+
 void sigwinch_handler(int signo);
 
 void init_lang(notcurses* nc); // nc may be NULL, only used for logging
@@ -854,7 +857,7 @@ ALLOC char* ncplane_vprintf_prep(const char* format, va_list ap);
 int ncvisual_blit(struct ncvisual* ncv, int rows, int cols,
                   ncplane* n, const struct blitset* bset,
                   int placey, int placex, int begy, int begx,
-                  int leny, int lenx, bool blendcolors);
+                  int leny, int lenx, unsigned blendcolors);
 
 void nclog(const char* fmt, ...);
 
@@ -1069,6 +1072,7 @@ pool_blit_direct(egcpool* pool, nccell* c, const char* gcluster, int bytes, int 
     return -1;
   }
   c->width = cols;
+  cell_set_pixels(c, 0);
   if(bytes <= 4){
     c->gcluster = 0;
     memcpy(&c->gcluster, gcluster, bytes);
@@ -1208,7 +1212,7 @@ API const struct blitset* lookup_blitset(const tinfo* tcache, ncblitter_e setid,
 static inline int
 rgba_blit_dispatch(ncplane* nc, const struct blitset* bset, int placey,
                    int placex, int linesize, const void* data, int begy,
-                   int begx, int leny, int lenx, bool blendcolors){
+                   int begx, int leny, int lenx, unsigned blendcolors){
   return bset->blit(nc, placey, placex, linesize, data, begy, begx,
                     leny, lenx, blendcolors);
 }
@@ -1237,7 +1241,7 @@ typedef struct ncvisual_implementation {
   int (*visual_blit)(struct ncvisual* ncv, int rows, int cols, ncplane* n,
                      const struct blitset* bset, int placey, int placex,
                      int begy, int begx, int leny, int lenx,
-                     bool blendcolors);
+                     unsigned blendcolors);
   struct ncvisual* (*visual_create)(void);
   struct ncvisual* (*visual_from_file)(const char* fname);
   // ncv constructors other than ncvisual_from_file() need to set up the
