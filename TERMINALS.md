@@ -15,16 +15,17 @@ The following have been established on a Debian Unstable workstation.
 the terminal provides its own implementation of block-drawing characters, or
 relies on the font. Patches to correct/complete this table are very welcome!
 
-| Terminal        | Pixel `TIOCGWINSZ` | `ccc` | Blocks | Recommended environment         | Notes |
-| --------------- | ------------------ | ----- | ------------------------------- | ----- |
+| Terminal        | Pixel `TIOCGWINSZ` | `ccc` | Blocks | Recommended environment           | Notes |
+| --------------- | ------------------ | ----- | ------ | -----------------------           | ----- |
 | Alacritty       | ✅                 |  ✅   |❌      |`TERM=alacritty` `COLORTERM=24bit` | |
-| FBterm          | ❌                 |  ?    |?       |`TERM=fbterm`                    | 256 colors, no RGB color. |
-| Gnome Terminal  |                    |  ❌   |✅      |`TERM=gnome` `COLORTERM=24bit`   | `ccc` support *is* available when run with `vte-256color`. |
-| Guake           |                    |  ?    |?       |                                 | |
-| ITerm2          |                    |  ?    |?       |                                 | |
-| Kitty           | ✅                 |  ✅   |✅      |`TERM=xterm-kitty`               | |
-| kmscon          |                    |  ?    |?       |`TERM=xterm-256color`            | No RGB color AFAICT, nor any distinct terminfo entry. |
-| Konsole         | ❌                 |  ❌   |?       |`TERM=konsole-direct`            | |
+| FBterm          | ❌                 |  ?    |?       |`TERM=fbterm`                      | 256 colors, no RGB color. |
+| foot            |                    |       |        |                                   | |
+| Gnome Terminal  |                    |  ❌   |✅      |`TERM=gnome` `COLORTERM=24bit`     | `ccc` support *is* available when run with `vte-256color`. |
+| Guake           |                    |  ?    |?       |                                   | |
+| ITerm2          |                    |  ?    |?       |                                   | |
+| Kitty           | ✅                 |  ✅   |✅      |`TERM=xterm-kitty`                 | |
+| kmscon          |                    |  ?    |?       |`TERM=xterm-256color`              | No RGB color AFAICT, nor any distinct terminfo entry. |
+| Konsole         | ❌                 |  ❌   |?       |`TERM=konsole-direct`              | |
 | Linux console   | ❌                 |  ✅   |see [below](#the-linux-console) |`TERM=linux` `COLORTERM=24bit`   | 8 (512 glyph fonts) or 16 (256 glyph fonts) colors max, but RGB values are downsampled to a 256-index palette. See below. |
 | mlterm          | ✅                 |  ❌   |?       |`TERM=mlterm-256color`           | Do not set `COLORTERM`. `mlterm-direct` gives strange results. |
 | PuTTY           |                    |  ❌   |❌      |`TERM=putty-256color` `COLORTERM=24bit` | |
