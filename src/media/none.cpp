@@ -37,7 +37,7 @@ int none_resize(ncvisual* nc, int rows, int cols) {
 int none_blit(struct ncvisual* ncv, int rows, int cols,
                   ncplane* n, const struct blitset* bset,
                   int placey, int placex, int begy, int begx,
-                  int leny, int lenx, bool blendcolors) {
+                  int leny, int lenx, unsigned blendcolors) {
   (void)rows;
   (void)cols;
   if(rgba_blit_dispatch(n, bset, placey, placex, ncv->rowstride, ncv->data,
