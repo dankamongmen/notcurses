@@ -16,7 +16,7 @@ auto ncvisual_decode(ncvisual* nc) -> int {
 auto ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
                    const struct blitset* bset, int placey, int placex,
                    int begy, int begx, int leny, int lenx,
-                   bool blendcolors) -> int {
+                   unsigned blendcolors) -> int {
   int ret = -1;
   if(visual_implementation){
     if(visual_implementation->visual_blit(ncv, rows, cols, n, bset, placey, placex,
@@ -523,7 +523,7 @@ auto ncvisual_render_pixels(tinfo* tcache, ncvisual* ncv, const blitset* bset,
   if(scaling == NCSCALE_SCALE || scaling == NCSCALE_SCALE_HIRES){
     scale_visual(ncv, &disprows, &dispcols);
   }
-//fprintf(stderr, "blit: %dx%d <- %dx%d:%d+%d of %d/%d stride %u @%dx%d %p\n", disprows, dispcols, begy, begx, leny, lenx, ncv->rows, ncv->cols, ncv->rowstride, placey, placex, ncv->data);
+//fprintf(stderr, "pblit: %dx%d <- %dx%d of %d/%d stride %u @%dx%d %p %u\n", disprows, dispcols, begy, begx, ncv->rows, ncv->cols, ncv->rowstride, placey, placex, ncv->data, ncplane_notcurses(stdn)->tcache.cellpixx);
   if(ncvisual_blit(ncv, disprows, dispcols, n, bset,
                    placey, placex, begy, begx, disprows, dispcols,
                    ncplane_notcurses(stdn)->tcache.cellpixx)){
