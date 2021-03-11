@@ -3,49 +3,108 @@
 static unsigned const char b64subs[] =
  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-// we can only write 4KiB at a time
+// every 3 RGBA pixels (96 bits) become 16 base64-encoded bytes (128 bits). if
+// there are only 2 pixels available, those 64 bits become 12 bytes. if there
+// is only 1 pixel available, those 32 bits become 8 bytes. (pcount + 1) * 4
+// bytes are used, plus a null terminator. we thus must receive 17.
+static void
+base64_rgba3(const uint32_t* pixels, size_t pcount, char* b64){
+  uint32_t pixel = *pixels++;
+  unsigned r = ncpixel_r(pixel);
+  unsigned g = ncpixel_g(pixel);
+  unsigned b = ncpixel_b(pixel);
+  unsigned a = rgba_trans_p(ncpixel_a(pixel)) ? 0 : 255;
+  b64[0] = b64subs[(r & 0xfc) >> 2];
+  b64[1] = b64subs[(r & 0x3 << 4) | ((g & 0xf0) >> 4)];
+  b64[2] = b64subs[((g & 0xf) << 2) | ((b & 0xc0) >> 6)];
+  b64[3] = b64subs[b & 0x3f];
+  b64[4] = b64subs[(a & 0xfc) >> 2];
+  if(pcount == 1){
+    b64[5] = b64subs[(a & 0x3) << 4];
+    b64[6] = '=';
+    b64[7] = '=';
+    b64[8] = '\0';
+    return;
+  }
+  b64[5] = (a & 0x3) << 4;
+  pixel = *pixels++;
+  r = ncpixel_r(pixel);
+  g = ncpixel_g(pixel);
+  b = ncpixel_b(pixel);
+  a = rgba_trans_p(ncpixel_a(pixel)) ? 0 : 255;
+  b64[5] = b64subs[b64[5] | ((r & 0xf0) >> 4)];
+  b64[6] = b64subs[((r & 0xf) << 2) | ((g & 0xc0) >> 6u)];
+  b64[7] = b64subs[g & 0x3f];
+  b64[8] = b64subs[(b & 0xfc) >> 2];
+  b64[9] = b64subs[((b & 0x3) << 4) | ((a & 0xf0) >> 4)];
+  if(pcount == 2){
+    b64[10] = b64subs[(a & 0xf) << 2];
+    b64[11] = '=';
+    b64[12] = '\0';
+    return;
+  }
+  b64[10] = (a & 0xf) << 2;
+  pixel = *pixels;
+  r = ncpixel_r(pixel);
+  g = ncpixel_g(pixel);
+  b = ncpixel_b(pixel);
+  a = rgba_trans_p(ncpixel_a(pixel)) ? 0 : 255;
+  b64[10] = b64subs[b64[10] | ((r & 0xc0) >> 6)];
+  b64[11] = b64subs[r & 0x3f];
+  b64[12] = b64subs[(g & 0xfc) >> 2];
+  b64[13] = b64subs[((g & 0x3) << 4) | ((b & 0xf0) >> 4)];
+  b64[14] = b64subs[((b & 0xf) << 2) | ((a & 0xc0) >> 6)];
+  b64[15] = b64subs[a & 0x3f];
+  b64[16] = '\0';
+}
+
+// we can only write 4KiB at a time. we're writing base64-encoded RGBA. each
+// pixel is 4B raw (32 bits). each chunk of three pixels is then 12 bytes, or
+// 16 base64-encoded bytes. 4096 / 16 == 256 3-pixel groups, or 768 pixels.
 static int
 write_kitty_data(FILE* fp, int linesize, int leny, int lenx, const uint32_t* data){
 #define KITTY_MAXLEN 4096 // 4096B maximum payload
   if(linesize % sizeof(*data)){
     return -1;
   }
-  int total = leny * lenx * 4; // 3B RGB -> 4B Base64, total bytes
-  int chunks = (total + (KITTY_MAXLEN - 1)) / KITTY_MAXLEN;
-  int totalout = 0; // total bytes of payload out
-  int y = 0;
+  int total = leny * lenx; // total number of pixels (4 * total == bytecount)
+#define RGBA_MAXLEN 768 // 768 base64-encoded pixels in 4096 bytes
+  // number of 4KiB chunks we'll need
+  int chunks = (total + (RGBA_MAXLEN - 1)) / RGBA_MAXLEN;
+  int totalout = 0; // total pixels of payload out
+  int y = 0; // position within source image
   int x = 0;
-  int targetout = 0;
+  int targetout = 0; // number of pixels expected out after this chunk
 //fprintf(stderr, "total: %d chunks = %d, s=%d,v=%d\n", total, chunks, lenx, leny);
   while(chunks--){
     if(totalout == 0){
-      fprintf(fp, "\e_Gf=24,s=%d,v=%d,a=T%s;", lenx, leny, chunks > 1 ? ",m=1" : "");
+      fprintf(fp, "\e_Gf=32,s=%d,v=%d,a=T%s;", lenx, leny, chunks > 1 ? ",m=1" : "");
     }else{
       fprintf(fp, "\e_Gm=%d;", chunks ? 1 : 0);
     }
-    if((targetout += KITTY_MAXLEN) > total){
+    if((targetout += RGBA_MAXLEN) > total){
       targetout = total;
     }
     while(totalout < targetout){
-      if(x == lenx){
-        x = 0;
-        ++y;
+      int encodeable = targetout - totalout;
+      if(encodeable > 3){
+        encodeable = 3;
       }
-      const uint32_t* line = data + (linesize / sizeof(*data)) * y;
-      uint32_t pixel = line[x];
-      unsigned r = ncpixel_r(pixel);
-      unsigned g = ncpixel_g(pixel);
-      unsigned b = ncpixel_b(pixel);
-      unsigned char b64[4] = {
-        b64subs[((r & 0xfc) >> 2)],
-        b64subs[((r & 0x3 << 4) | ((g & 0xf0) >> 4))],
-        b64subs[(((g & 0xf) << 2) | ((b & 0xc0) >> 6))],
-        b64subs[(b & 0x3f)]
-      };
+      uint32_t source[3]; // we encode up to 3 pixels at a time
+      for(int e = 0 ; e < encodeable ; ++e){
+        if(x == lenx){
+          x = 0;
+          ++y;
+        }
+        const uint32_t* line = data + (linesize / sizeof(*data)) * y;
+        source[e] = line[x];
 //fprintf(stderr, "%u/%u/%u -> %c%c%c%c %u %u %u %u\n", r, g, b, b64[0], b64[1], b64[2], b64[3], b64[0], b64[1], b64[2], b64[3]);
-      fprintf(fp, "%c%c%c%c", b64[0], b64[1], b64[2], b64[3]);
-      totalout += 4;
-      ++x;
+        ++x;
+      }
+      totalout += encodeable;
+      char out[17];
+      base64_rgba3(source, encodeable, out);
+      fputs(out, fp);
     }
     fprintf(fp, "\e\\");
   }
@@ -53,6 +112,8 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, const uint32_t* dat
     return -1;
   }
   return 0;
+#undef RGBA_MAXLEN
+#undef KITTY_MAXLEN
 }
 
 // Kitty graphics blitter. Kitty can take in up to 4KiB at a time of (optionally
