@@ -15,7 +15,7 @@ visualize(struct notcurses* nc, struct ncvisual* ncv){
   };
   for(size_t i = 0 ; i < sizeof(bs) / sizeof(*bs) ; ++i){
     struct ncvisual_options vopts = {
-      .scaling = bs[i] == NCBLIT_PIXEL ? NCSCALE_NONE : NCSCALE_STRETCH,
+      .scaling = bs[i] == NCBLIT_PIXEL ? NCSCALE_SCALE : NCSCALE_STRETCH,
       .blitter = bs[i],
       .n = notcurses_stdplane(nc),
       .y = 1,
@@ -24,6 +24,7 @@ visualize(struct notcurses* nc, struct ncvisual* ncv){
     int scalex, scaley, truey, truex;
     ncvisual_geom(nc, ncv, &vopts, &truey, &truex, &scaley, &scalex);
     vopts.x = (ncplane_dim_x(notcurses_stdplane(nc)) - truex / scalex) / 2;
+//fprintf(stderr, "X: %d truex: %d sclaex: %d\n", vopts.x, truex, scalex);
     ncplane_set_fg_rgb(vopts.n, 0xffffff);
     ncplane_set_bg_rgb(vopts.n, 0);
     ncplane_erase(vopts.n);
