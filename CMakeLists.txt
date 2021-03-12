@@ -625,7 +625,7 @@ endif()
 ############################################################################
 # testing
 if(${BUILD_TESTING})
-set(CMAKE_CTEST_ARGUMENTS "-V")
+#set(CMAKE_CTEST_ARGUMENTS "-V")
 if(${USE_DOCTEST})
 file(GLOB TESTSRCS CONFIGURE_DEPENDS src/tests/*.cpp)
 add_executable(notcurses-tester ${TESTSRCS})
