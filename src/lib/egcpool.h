@@ -30,7 +30,7 @@ typedef struct egcpool {
 } egcpool;
 
 #define POOL_MINIMUM_ALLOC BUFSIZ
-#define POOL_MAXIMUM_BYTES (1u << 30u) // max 1GB
+#define POOL_MAXIMUM_BYTES (1u << 24u) // max 16MiB
 
 static inline void
 egcpool_init(egcpool* p){

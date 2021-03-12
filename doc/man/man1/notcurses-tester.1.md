@@ -13,7 +13,7 @@ notcurses-tester - Notcurses unit testing
 # DESCRIPTION
 
 **notcurses-tester** drives the several hundred unit tests included with
-notcurses. It requires several data files installed alongside notcurses;
+Notcurses. It requires several data files installed alongside Notcurses;
 if these are in an irregular location, supply **-p**.
 
 # OPTIONS

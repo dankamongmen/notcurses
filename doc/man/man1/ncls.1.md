@@ -12,7 +12,7 @@ ncls - List paths with rendering of multimedia
 
 # DESCRIPTION
 
-**ncls** uses a multimedia-enabled notcurses to list paths, similarly to the
+**ncls** uses a multimedia-enabled Notcurses to list paths, similarly to the
 **ls(1)** command, rendering images and videos to a terminal.
 
 # OPTIONS

@@ -4,7 +4,7 @@
 
 # NAME
 
-notcurses-demo - Show off some notcurses features
+notcurses-demo - Show off some Notcurses features
 
 # SYNOPSIS
 
@@ -14,11 +14,11 @@ notcurses-demo - Show off some notcurses features
 
 # DESCRIPTION
 
-**notcurses-demo** demonstrates the capabilities of the notcurses library. It
+**notcurses-demo** demonstrates the capabilities of the Notcurses library. It
 can be run in any terminal emulator or console with a correct terminfo(5)
 database, but is at is best in a 24bpp TrueColor RGB environment. If
 **notcurses-demo** seems to generate garbage, something is likely configured in
-a way that is going to prevent notcurses from working in other applications.
+a way that is going to prevent Notcurses from working in other applications.
 
 The demonstrations include (see NOTES below):
 
@@ -46,7 +46,7 @@ The demonstrations include (see NOTES below):
 * (***w***)hiteout—a great Nothing slowly robs the world of color
 * (***x***)ray—stimulate a logo with energy
 * (***y***)ield—the best laid schemes o' mice an'men gang aft agley
-* (***z***)oo—see the marvelous widgets of the notcurses world
+* (***z***)oo—see the marvelous widgets of the Notcurses world
 
 At any time, press 'q' to quit. The demo is best run in at least an 80x45
 terminal, and will refuse to run in anything smaller than 80x24.
@@ -95,9 +95,9 @@ considered non-free under the Debian Free Software Guidelines. As a result, the
 are unavailable through the Debian package. This applies to any distro which
 uses the DFSG source tarball, including Ubuntu and Fedora.
 
-If notcurses is built without multimedia support, the **chunli**, **eagle**,
+If Notcurses is built without multimedia support, the **chunli**, **eagle**,
 **keller**, **outro**, **view**, **xray**, and **yield** demos will be
-partially or wholly unavailable. If notcurses is built without libqrcodegen,
+partially or wholly unavailable. If Notcurses is built without libqrcodegen,
 the **qrcode** demo will be unavailable.
 
 If **notcurses-demo** is run in a terminal lacking the **can_change** terminfo
