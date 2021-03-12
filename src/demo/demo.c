@@ -130,7 +130,7 @@ usage(const char* exe, int status){
   fprintf(out, "usage: ");
   if(n) ncdirect_set_fg_rgb8(n, 0x80, 0xff, 0x80);
   fprintf(out, "%s ", exe);
-  const char* options[] = { "-hVikc", "-m margins", "-p path", "-l loglevel",
+  const char* options[] = { "-hVkc", "-m margins", "-p path", "-l loglevel",
                             "-d mult", "-J jsonfile", "-f renderfile", "demospec",
                             NULL };
   for(const char** op = options ; *op ; ++op){
@@ -141,7 +141,6 @@ usage(const char* exe, int status){
   const char* optexpo[] = {
     "-h|--help", "this message",
     "-V|--version", "print program name and version",
-    "-i", "ignore failures, keep going",
     "-k", "keep screen; do not switch to alternate",
     "-d", "delay multiplier (non-negative float)",
     "-J", "emit JSON summary to file",
@@ -190,7 +189,7 @@ usage(const char* exe, int status){
 }
 
 static int
-ext_demos(struct notcurses* nc, const char* spec, bool ignore_failures){
+ext_demos(struct notcurses* nc, const char* spec){
   int ret = 0;
   results = malloc(sizeof(*results) * strlen(spec));
   if(results == NULL){
@@ -233,7 +232,7 @@ ext_demos(struct notcurses* nc, const char* spec, bool ignore_failures){
     prevns = nowns;
     results[i].result = ret;
     hud_completion_notify(&results[i]);
-    if(ret && !ignore_failures){
+    if(ret){
       break;
     }
   }
@@ -244,10 +243,8 @@ ext_demos(struct notcurses* nc, const char* spec, bool ignore_failures){
 // specification, also returns NULL, heh. determine this by argv[optind];
 // if it's NULL, there were valid options, but no spec.
 static const char*
-handle_opts(int argc, char** argv, notcurses_options* opts,
-            bool* ignore_failures, FILE** json_output){
+handle_opts(int argc, char** argv, notcurses_options* opts, FILE** json_output){
   bool constant_seed = false;
-  *ignore_failures = false;
   char *renderfile = NULL;
   *json_output = NULL;
   int c;
@@ -257,7 +254,7 @@ handle_opts(int argc, char** argv, notcurses_options* opts,
     { .name = NULL, .has_arg = 0, .flag = NULL, .val = 0, },
   };
   int lidx;
-  while((c = getopt_long(argc, argv, "VhickJ:l:r:d:f:p:m:", longopts, &lidx)) != EOF){
+  while((c = getopt_long(argc, argv, "VhckJ:l:r:d:f:p:m:", longopts, &lidx)) != EOF){
     switch(c){
       case 'h':
         usage(*argv, EXIT_SUCCESS);
@@ -298,9 +295,6 @@ handle_opts(int argc, char** argv, notcurses_options* opts,
         break;
       case 'c':
         constant_seed = true;
-        break;
-      case 'i':
-        *ignore_failures = true;
         break;
       case 'k':
         opts->flags |= NCOPTION_NO_ALTERNATE_SCREEN;
@@ -520,9 +514,8 @@ int main(int argc, char** argv){
   pthread_sigmask(SIG_SETMASK, &sigmask, NULL);
   const char* spec;
   FILE* json = NULL; // emit JSON summary to this file? (-J)
-  bool ignore_failures; // continue after a failure? (-k)
   notcurses_options nopts = {};
-  if((spec = handle_opts(argc, argv, &nopts, &ignore_failures, &json)) == NULL){
+  if((spec = handle_opts(argc, argv, &nopts, &json)) == NULL){
     if(argv[optind] != NULL){
       usage(*argv, EXIT_FAILURE);
     }
@@ -584,7 +577,7 @@ int main(int argc, char** argv){
       goto err;
     }
     notcurses_stats_reset(nc, NULL);
-    if(ext_demos(nc, spec, ignore_failures)){
+    if(ext_demos(nc, spec)){
       goto err;
     }
     if(hud_destroy()){ // destroy here since notcurses_drop_planes will kill it

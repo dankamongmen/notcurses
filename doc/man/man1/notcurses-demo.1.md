@@ -10,7 +10,7 @@ notcurses-demo - Show off some notcurses features
 
 **notcurses-demo** [**-h**|**--help**] [**-p** ***path***] [**-d** ***delaymult***]
  [**-l** ***loglevel***] [**-f** ***renderfile***] [**-J** ***jsonfile***] [**-m** ***margins***]
- [**-V**|**--version**] [**-ikc**] ***demospec***
+ [**-V**|**--version**] [**-kc**] ***demospec***
 
 # DESCRIPTION
 
@@ -68,8 +68,6 @@ terminal, and will refuse to run in anything smaller than 80x24.
 **-k**: Inhibit use of the alternate screen. Necessary if you want the output left on your terminal after the program exits.
 
 **-c**: Do not attempt to seed the PRNG. This is useful when benchmarking.
-
-**-i**: Continue after a failing demo.
 
 **-h**|**--help**: Print a usage message, and exit with success.
 
