@@ -54,16 +54,22 @@ comma-delimited values for the top, right, bottom, and left margins
 respectively. Negative margins are illegal.
 
 Scaling mode **stretch** resizes the object to match the target rendering
-area exactly. **scale** resizes the object so that the longer edge of the
-rendering area is matched exactly, and the other edge is changed to
-maintain aspect ratio. **none** uses the original image size.
+area exactly. Unless a blitter is specified with **-b**, **stretch** will use
+the highest-resolution non-pixel blitter available. **scale** resizes the
+object so that the longer edge of the rendering area is matched exactly, and
+the other edge is changed to maintain aspect ratio. **none** uses the original
+image size. Both **scale** and **none** aim for a 1:1 aspect ratio, and default
+to **NCBLIT_2x1** at the cost of some potential resolution. The alternatives
+**scalehi** and **hires** use the highest-resolution non-pixel blitter
+available. Pixel blitting is never performed unless explicitly requested with
+**-bpixel**.
 
-Blitters can be selected by pressing '0' through '8'. **NCBLIT_DEFAULT**
-corresponds to '0'. The various blitters are described in
-**notcurses_visual**.
+Blitters can be selected at runtime by pressing '0' through '8'.
+**NCBLIT_DEFAULT** corresponds to '0'. The various blitters are described in
+**notcurses_visual(3)**.
 
-A video can be paused with space. Press space (or any other valid control)
-to resume.
+Multiframe media can be paused with space. Press space (or any other valid
+control) to resume.
 
 # NOTES
 
