@@ -2143,7 +2143,7 @@ int ncplane_resize_realign(ncplane* n){
 }
 
 // The standard plane cannot be reparented; we return NULL in that case.
-// If provided |newparent|==|n|, we are moving |n| to its own stack. If |n|
+// If provided |newparent|==|n|, we are moving |n| to its own pile. If |n|
 // is already bound to |newparent|, this is a no-op, and we return |n|.
 // This is essentially a wrapper around ncplane_reparent_family() that first
 // reparents any children to the parent of 'n', or makes them root planes if

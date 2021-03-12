@@ -13,11 +13,17 @@ visualize(struct notcurses* nc, struct ncvisual* ncv){
     NCBLIT_BRAILLE,
     NCBLIT_PIXEL,
   };
+  struct ncplane* stdn = notcurses_stdplane(nc);
+  ncplane_set_fg_rgb(stdn, 0xffffff);
+  ncplane_set_bg_rgb(stdn, 0);
+  uint64_t channels = 0;
+  channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+  channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+  ncplane_set_base(stdn, "", 0, channels);
   for(size_t i = 0 ; i < sizeof(bs) / sizeof(*bs) ; ++i){
     struct ncvisual_options vopts = {
-      .scaling = bs[i] == NCBLIT_PIXEL ? NCSCALE_SCALE : NCSCALE_STRETCH,
+      .scaling = NCSCALE_SCALE,
       .blitter = bs[i],
-      .n = notcurses_stdplane(nc),
       .y = 1,
       .flags = NCVISUAL_OPTION_NODEGRADE,
     };
@@ -25,27 +31,27 @@ visualize(struct notcurses* nc, struct ncvisual* ncv){
     ncvisual_geom(nc, ncv, &vopts, &truey, &truex, &scaley, &scalex);
     vopts.x = (ncplane_dim_x(notcurses_stdplane(nc)) - truex / scalex) / 2;
 //fprintf(stderr, "X: %d truex: %d sclaex: %d\n", vopts.x, truex, scalex);
-    ncplane_set_fg_rgb(vopts.n, 0xffffff);
-    ncplane_set_bg_rgb(vopts.n, 0);
-    ncplane_erase(vopts.n);
+    ncplane_erase(stdn);
     // if we're about to blit pixel graphics, render the screen as empty, so
     // that everything is damaged for the printing of the legend.
     if(vopts.blitter == NCBLIT_PIXEL){
       DEMO_RENDER(nc);
     }
-    if(ncvisual_render(nc, ncv, &vopts) == NULL){
-      ncplane_printf_aligned(vopts.n, ncplane_dim_y(vopts.n) / 2 - 1, NCALIGN_CENTER, "not available");
+    struct ncplane* n;
+    if((n = ncvisual_render(nc, ncv, &vopts)) == NULL){
+      ncplane_printf_aligned(stdn, ncplane_dim_y(stdn) / 2 - 1, NCALIGN_CENTER, "not available");
     }else{
+      ncplane_move_below(n, stdn);
       if(vopts.blitter == NCBLIT_PIXEL){
         DEMO_RENDER(nc);
       }
-      ncplane_printf_aligned(vopts.n, ncplane_dim_y(vopts.n) / 2 - 1, NCALIGN_CENTER,
+      ncplane_printf_aligned(stdn, ncplane_dim_y(stdn) / 2 - 1, NCALIGN_CENTER,
                             "%03dx%03d", truex, truey);
-      ncplane_printf_aligned(vopts.n, ncplane_dim_y(vopts.n) / 2 + 1, NCALIGN_CENTER,
+      ncplane_printf_aligned(stdn, ncplane_dim_y(stdn) / 2 + 1, NCALIGN_CENTER,
                             "%d:%d pixels -> cell", scalex, scaley);
     }
     const char* name = notcurses_str_blitter(bs[i]);
-    ncplane_putstr_aligned(vopts.n, ncplane_dim_y(vopts.n) / 2 - 3, NCALIGN_CENTER, name);
+    ncplane_putstr_aligned(stdn, ncplane_dim_y(stdn) / 2 - 3, NCALIGN_CENTER, name);
     int ret = demo_render(nc);
     if(ret){
       return ret;
@@ -54,6 +60,7 @@ visualize(struct notcurses* nc, struct ncvisual* ncv){
     if(ret){
       return ret;
     }
+    ncplane_destroy(n);
   }
   return 0;
 }
