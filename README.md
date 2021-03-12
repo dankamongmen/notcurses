@@ -245,7 +245,7 @@ to breaking under incorrect `TERM` values. If you're not using `xterm`, your
 
 * **Q:** How can I use Direct Mode in conjunction with libreadline? **A:** Pass `NCDIRECT_OPTION_CBREAK` to `ncdirect_init()`, and ensure you do not pass `NCDIRECT_OPTION_NO_READLINE`. If you'd like, set `rl_readline_name` and `rl_attempted_completion_function` prior to calling `ncdirect_init()`. With that said, consider using a Notcurses `ncreader`.
 
-* **Q:** Will there ever be Java wrappers? **A:** I should hope not.
+* **Q:** Will there ever be Java wrappers? **A:** I should hope not. If you want a Java solution, try Autumn Lamonte's [Jexer](https://jexer.sourceforge.io/).
 
 * **Q:** Given that the glyph channel is initialized as transparent for a plane, shouldn't the foreground and background be initialized as transparent, also? **A:** Probably (they are instead initialized to default opaque). This would change some of the most longstanding behavior of Notcurses, though, so it isn't happening.
 
