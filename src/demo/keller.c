@@ -30,6 +30,7 @@ visualize(struct notcurses* nc, struct ncvisual* ncv){
     int scalex, scaley, truey, truex;
     ncvisual_geom(nc, ncv, &vopts, &truey, &truex, &scaley, &scalex);
     vopts.x = (ncplane_dim_x(notcurses_stdplane(nc)) - truex / scalex) / 2;
+    vopts.y = (ncplane_dim_y(notcurses_stdplane(nc)) - truey / scaley) / 2;
 //fprintf(stderr, "X: %d truex: %d sclaex: %d\n", vopts.x, truex, scalex);
     ncplane_erase(stdn);
     // if we're about to blit pixel graphics, render the screen as empty, so

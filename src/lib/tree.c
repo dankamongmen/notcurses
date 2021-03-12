@@ -68,6 +68,18 @@ dup_tree_items(nctree_int_item* fill, const nctree_item* items, unsigned count, 
 }
 
 static void
+goto_last_item(nctree* n){
+  void* prev = NULL;
+  void* r;
+  while((r = nctree_next(n))){
+    if(r == prev){
+      return;
+    }
+    prev = r;
+  }
+}
+
+static void
 goto_first_item(nctree* n){
   n->currentpath[0] = 0;
   n->currentpath[1] = UINT_MAX;
@@ -438,7 +450,7 @@ bool nctree_offer_input(nctree* n, const ncinput* ni){
     goto_first_item(n);
     return true;
   }else if(ni->id == NCKEY_END){
-    nctree_next(n); // more FIXME
+    goto_last_item(n);
     return true;
   }
   // FIXME implement left, right, +, - (expand/collapse)
