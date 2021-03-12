@@ -828,7 +828,7 @@ update_palette(notcurses* nc, FILE* out){
 // textronix lacks cup; fake it with horiz+vert moves)
 // if hardcursorpos is non-zero, we always perform a cup
 static inline int
-goto_location(notcurses* nc, FILE* out, int y, int x, unsigned hardcursorpos){
+goto_location(notcurses* nc, FILE* out, int y, int x, bool* hardcursorpos){
 //fprintf(stderr, "going to %d/%d from %d/%d hard: %u\n", y, x, nc->rstate.y, nc->rstate.x, hardcursorpos);
   int ret = 0;
   // if we don't have hpa, force a cup even if we're only 1 char away. the only
@@ -846,11 +846,10 @@ goto_location(notcurses* nc, FILE* out, int y, int x, unsigned hardcursorpos){
   }else{
     // cup is required, no need to check for existence
     ret = term_emit(tiparm(nc->tcache.cup, y, x), out, false);
+    *hardcursorpos = 0;
   }
-  if(ret == 0){
-    nc->rstate.x = x;
-    nc->rstate.y = y;
-  }
+  nc->rstate.x = x;
+  nc->rstate.y = y;
   return ret;
 }
 
@@ -895,6 +894,44 @@ raster_defaults(notcurses* nc, bool fgdef, bool bgdef, FILE* out){
   return 0;
 }
 
+// these are unlikely, so we leave it uninlined
+static int
+emit_fg_palindex(notcurses* nc, FILE* out, const nccell* srccell){
+  unsigned palfg = cell_fg_palindex(srccell);
+  // we overload lastr for the palette index; both are 8 bits
+  if(nc->rstate.fgpalelidable && nc->rstate.lastr == palfg){
+    ++nc->stats.fgelisions;
+  }else{
+    if(term_fg_palindex(nc, out, palfg)){
+      return -1;
+    }
+    ++nc->stats.fgemissions;
+    nc->rstate.fgpalelidable = true;
+  }
+  nc->rstate.lastr = palfg;
+  nc->rstate.fgdefelidable = false;
+  nc->rstate.fgelidable = false;
+  return 0;
+}
+
+static int
+emit_bg_palindex(notcurses* nc, FILE* out, const nccell* srccell){
+  unsigned palbg = cell_bg_palindex(srccell);
+  if(nc->rstate.bgpalelidable && nc->rstate.lastbr == palbg){
+    ++nc->stats.bgelisions;
+  }else{
+    if(term_bg_palindex(nc, out, palbg)){
+      return -1;
+    }
+    ++nc->stats.bgemissions;
+    nc->rstate.bgpalelidable = true;
+  }
+  nc->rstate.lastr = palbg;
+  nc->rstate.bgdefelidable = false;
+  nc->rstate.bgelidable = false;
+  return 0;
+}
+
 // Producing the frame requires three steps:
 //  * render -- build up a flat framebuffer from a set of ncplanes
 //  * rasterize -- build up a UTF-8/ASCII stream of escapes and EGCs
@@ -923,7 +960,7 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
     for(x = nc->stdplane->absx ; x < p->dimx + nc->stdplane->absx ; ++x){
       const int innerx = x - nc->stdplane->absx;
       const size_t damageidx = innery * nc->lfdimx + innerx;
-      unsigned r, g, b, br, bg, bb, palfg, palbg;
+      unsigned r, g, b, br, bg, bb;
       const nccell* srccell = &nc->lastframe[damageidx];
       if(!rvec[damageidx].s.damaged){
         // no need to emit a cell; what we rendered appears to already be
@@ -934,10 +971,9 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
         }
       }else{
         ++nc->stats.cellemissions;
-        if(goto_location(nc, out, y, x, nc->rstate.hardcursorpos)){
+        if(goto_location(nc, out, y, x, &nc->rstate.hardcursorpos)){
           return -1;
         }
-        nc->rstate.hardcursorpos = false;
         if(!cell_pixels_p(srccell)){
           // set the style. this can change the color back to the default; if it
           // does, we need update our elision possibilities.
@@ -961,20 +997,9 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
           //  * the previous was non-default, and matches what we have now, or
           //  * we are a no-foreground glyph (iswspace() is true)
           if(cell_fg_palindex_p(srccell)){ // palette-indexed foreground
-            palfg = cell_fg_palindex(srccell);
-            // we overload lastr for the palette index; both are 8 bits
-            if(nc->rstate.fgpalelidable && nc->rstate.lastr == palfg){
-              ++nc->stats.fgelisions;
-            }else{
-              if(term_fg_palindex(nc, out, palfg)){
-                return -1;
-              }
-              ++nc->stats.fgemissions;
-              nc->rstate.fgpalelidable = true;
+            if(emit_fg_palindex(nc, out, srccell)){
+              return -1;
             }
-            nc->rstate.lastr = palfg;
-            nc->rstate.fgdefelidable = false;
-            nc->rstate.fgelidable = false;
           }else if(!cell_fg_default_p(srccell)){ // rgb foreground
             cell_fg_rgb8(srccell, &r, &g, &b);
             if(nc->rstate.fgelidable && nc->rstate.lastr == r && nc->rstate.lastg == g && nc->rstate.lastb == b){
@@ -997,19 +1022,9 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
           if(nobackground){
             ++nc->stats.bgelisions;
           }else if(cell_bg_palindex_p(srccell)){ // palette-indexed background
-            palbg = cell_bg_palindex(srccell);
-            if(nc->rstate.bgpalelidable && nc->rstate.lastbr == palbg){
-              ++nc->stats.bgelisions;
-            }else{
-              if(term_bg_palindex(nc, out, palbg)){
-                return -1;
-              }
-              ++nc->stats.bgemissions;
-              nc->rstate.bgpalelidable = true;
+            if(emit_bg_palindex(nc, out, srccell)){
+              return -1;
             }
-            nc->rstate.lastr = palbg;
-            nc->rstate.bgdefelidable = false;
-            nc->rstate.bgelidable = false;
           }else if(!cell_bg_default_p(srccell)){ // rgb background
             cell_bg_rgb8(srccell, &br, &bg, &bb);
             if(nc->rstate.bgelidable && nc->rstate.lastbr == br && nc->rstate.lastbg == bg && nc->rstate.lastbb == bb){
@@ -1371,7 +1386,8 @@ int notcurses_cursor_enable(notcurses* nc, int y, int x){
   if(nc->ttyfd < 0 || !nc->tcache.cnorm){
     return -1;
   }
-  if(goto_location(nc, nc->ttyfp, y + nc->stdplane->absy, x + nc->stdplane->absx, 0)){
+  bool hardcursorpos = false;
+  if(goto_location(nc, nc->ttyfp, y + nc->stdplane->absy, x + nc->stdplane->absx, &hardcursorpos)){
     return -1;
   }
   // if we were already positive, we're already visible, no need to write cnorm
