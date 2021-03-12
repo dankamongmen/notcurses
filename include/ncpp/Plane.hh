@@ -358,7 +358,7 @@ namespace ncpp
 
 		Plane* reparent (Plane *newparent = nullptr) const noexcept
 		{
-			ncplane *ret = ncplane_reparent (plane, newparent == nullptr ? nullptr : newparent->plane);
+			ncplane *ret = ncplane_reparent (plane, newparent == nullptr ? plane : newparent->plane);
 			if (ret == nullptr)
 				return nullptr;
 
@@ -377,7 +377,7 @@ namespace ncpp
 
 		Plane* reparent_family (Plane *newparent = nullptr) const noexcept
 		{
-			ncplane *ret = ncplane_reparent_family (plane, newparent == nullptr ? nullptr : newparent->plane);
+			ncplane *ret = ncplane_reparent_family (plane, newparent == nullptr ? plane : newparent->plane);
 			if (ret == nullptr)
 				return nullptr;
 
