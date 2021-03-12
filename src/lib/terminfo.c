@@ -65,6 +65,8 @@ apply_term_heuristics(tinfo* ti, const char* termname){
     ti->sextants = true; // alacritty https://github.com/alacritty/alacritty/issues/4409 */
   }else if(strstr(termname, "vte") || strstr(termname, "gnome") || strstr(termname, "xfce")){
     ti->sextants = true; // VTE has long enjoyed good sextant support
+  }else if(strncmp(termname, "foot", 4) == 0){
+    ti->sextants = true;
   }else if(strcmp(termname, "linux") == 0){
     ti->braille = false; // no braille, no sextants in linux console
   }
