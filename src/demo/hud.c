@@ -196,8 +196,9 @@ hud_toggle(struct notcurses* nc){
   }
   hud_hidden = !hud_hidden;
   if(hud_hidden){
-    ncplane_move_bottom(hud);
+    ncplane_reparent(hud, hud);
   }else{
+    ncplane_reparent(hud, notcurses_stdplane(nc));
     ncplane_move_top(hud);
   }
   demo_render(nc);
@@ -211,8 +212,9 @@ fpsplot_toggle(struct notcurses* nc){
   }
   plot_hidden = !plot_hidden;
   if(plot_hidden){
-    ncplane_move_bottom(ncuplot_plane(plot));
+    ncplane_reparent(ncuplot_plane(plot), ncuplot_plane(plot));
   }else{
+    ncplane_reparent(ncuplot_plane(plot), notcurses_stdplane(nc));
     ncplane_move_top(ncuplot_plane(plot));
   }
   return demo_render(nc);
