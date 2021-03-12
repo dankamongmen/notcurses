@@ -826,14 +826,15 @@ update_palette(notcurses* nc, FILE* out){
 // our understanding of our horizontal location is faulty.
 // FIXME fall back to synthesized moves in the absence of capabilities (i.e.
 // textronix lacks cup; fake it with horiz+vert moves)
-// if hardposupdate is non-zero, we always perform a cup
+// if hardcursorpos is non-zero, we always perform a cup
 static inline int
-goto_location(notcurses* nc, FILE* out, int y, int x, unsigned hardposupdate){
+goto_location(notcurses* nc, FILE* out, int y, int x, unsigned hardcursorpos){
+//fprintf(stderr, "going to %d/%d from %d/%d hard: %u\n", y, x, nc->rstate.y, nc->rstate.x, hardcursorpos);
   int ret = 0;
   // if we don't have hpa, force a cup even if we're only 1 char away. the only
   // terminal i know supporting cup sans hpa is vt100, and vt100 can suck it.
   // you can't use cuf for backwards moves anyway; again, vt100 can suck it.
-  if(nc->rstate.y == y && nc->tcache.hpa && !hardposupdate){ // only need move x
+  if(nc->rstate.y == y && nc->tcache.hpa && !hardcursorpos){ // only need move x
     if(nc->rstate.x == x){ // needn't move shit
       return 0;
     }
@@ -916,7 +917,6 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
   // we explicitly move the cursor at the beginning of each output line, so no
   // need to home it expliticly.
   update_palette(nc, out);
-  bool hardposupdate = false;
 //fprintf(stderr, "pile %p ymax: %d xmax: %d\n", p, p->dimy + nc->stdplane->absy, p->dimx + nc->stdplane->absx);
   for(y = nc->stdplane->absy ; y < p->dimy + nc->stdplane->absy ; ++y){
     const int innery = y - nc->stdplane->absy;
@@ -934,10 +934,10 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
         }
       }else{
         ++nc->stats.cellemissions;
-        if(goto_location(nc, out, y, x, hardposupdate)){
+        if(goto_location(nc, out, y, x, nc->rstate.hardcursorpos)){
           return -1;
         }
-        hardposupdate = false;
+        nc->rstate.hardcursorpos = false;
         if(!cell_pixels_p(srccell)){
           // set the style. this can change the color back to the default; if it
           // does, we need update our elision possibilities.
@@ -1028,7 +1028,7 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
             nc->rstate.bgpalelidable = false;
           }
         }else{
-          hardposupdate = true;
+          nc->rstate.hardcursorpos = true;
         }
 //fprintf(stderr, "RAST %08x [%s] to %d/%d cols: %u %016lx\n", srccell->gcluster, pool_extended_gcluster(&nc->pool, srccell), y, x, srccell->width, srccell->channels);
         if(term_putc(out, &nc->pool, srccell)){

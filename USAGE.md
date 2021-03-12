@@ -19,7 +19,7 @@ A full API reference [is available](https://nick-black.com/notcurses/) in the
 form of manual pages; these ought have been installed along with Notcurses. This document is a
 secondary reference, and should not be considered authoritative. For a more
 unified commentary, consider the [paperback](https://www.amazon.com/dp/B086PNVNC9)
-(also available as a [free PDF](https://nick-black.com/dankwiki/index.php?title=Hacking_The_Planet!_with_Notcurses).
+(also available as a [free PDF](https://nick-black.com/dankwiki/index.php?title=Hacking_The_Planet!_with_Notcurses)).
 
 A program wishing to use Notcurses will need to link it, ideally using the
 output of `pkg-config --libs notcurses`. It is advised to compile with the
@@ -2854,7 +2854,7 @@ typedef enum {
   NCBLIT_1x1,     // space, compatible with ASCII
   NCBLIT_2x1,     // halves + 1x1 (space)     ▄▀
   NCBLIT_2x2,     // quadrants + 2x1          ▗▐ ▖▀▟▌▙
-  NCBLIT_3x2,     // sextants (*NOT* 2x2)     🬀🬁🬂🬃🬄🬅🬆🬇🬈🬉🬊🬋🬌🬍🬎🬏🬐🬑🬒🬓🬔🬕🬖🬗🬘🬙🬚🬛🬜🬝🬞🬟🬠🬡🬢🬣🬤🬥🬦🬧🬨🬩🬪🬫🬬🬭🬮🬯🬰🬱🬲🬳🬴🬵🬶🬷🬸🬹🬺🬻
+  NCBLIT_3x2,     // sextants (*NOT* 2x2)     🬀🬁🬂🬃🬄🬅🬆🬇🬈🬉🬊🬋🬌🬍🬎🬏🬐🬑🬒🬓🬔🬕🬖🬗🬘🬙🬚🬛🬜🬝🬞
   NCBLIT_4x1,     // four vertical levels     █▆▄▂
   NCBLIT_BRAILLE, // 4 rows, 2 cols (braille) ⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿
   NCBLIT_8x1,     // eight vertical levels    █▇▆▅▄▃▂▁

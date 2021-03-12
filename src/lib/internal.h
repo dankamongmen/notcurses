@@ -128,6 +128,9 @@ typedef struct rasterstate {
   bool bgpalelidable;
   bool fgdefelidable;
   bool bgdefelidable;
+
+  // need we do a hard cursor update (i.e. did we just emit a pixel graphic)?
+  bool hardcursorpos;
 } rasterstate;
 
 // Tablets are the toplevel entitites within an ncreel. Each corresponds to
