@@ -1162,7 +1162,8 @@ API int (*ncplane_resizecb(const struct ncplane* n))(struct ncplane*);
 // is already the root of a pile, in which case this is a no-op. Returns 'n'.
 // The standard plane cannot be reparented. Any planes bound to 'n' are
 // reparented to the previous parent of 'n'.
-API struct ncplane* ncplane_reparent(struct ncplane* n, struct ncplane* newparent);
+API struct ncplane* ncplane_reparent(struct ncplane* n, struct ncplane* newparent)
+  __attribute__ ((nonnull(1, 2)));
 
 // The same as ncplane_reparent(), except any planes bound to 'n' come along
 // with it to its new destination. Their z-order is maintained. If 'newparent'
