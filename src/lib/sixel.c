@@ -1,17 +1,18 @@
 #include "internal.h"
 
+#define RGBSIZE 3
+
 static inline void
-break_sixel_comps(unsigned char comps[static 3], uint32_t rgba, unsigned char mask){
-  comps[0] = (ncpixel_r(rgba) & mask) * 100 / 255;
-  comps[1] = (ncpixel_g(rgba) & mask) * 100 / 255;
-  comps[2] = (ncpixel_b(rgba) & mask) * 100 / 255;
+break_sixel_comps(unsigned char comps[static RGBSIZE], uint32_t rgba){
+  comps[0] = ncpixel_r(rgba) * 100 / 255;
+  comps[1] = ncpixel_g(rgba) * 100 / 255;
+  comps[2] = ncpixel_b(rgba) * 100 / 255;
 //fprintf(stderr, "%u %u %u\n", comps[0], comps[1], comps[2]);
 }
 
 // FIXME you can have more (or fewer) than 256 registers...detect?
-// if we expand this, we'll need another byte per color for dtable lookup
 #define MAXCOLORS 256
-#define CENTSIZE 4
+#define CENTSIZE (4 + (MAXCOLORS > 256))
 
 // first pass: extract up to 256 sixelspace colors over arbitrarily many sixels
 // sixelspace is 0..100 corresponding to 0..255, lame =[
@@ -29,20 +30,28 @@ typedef struct sixeltable {
 
 static inline int
 ctable_to_dtable(const unsigned char* ctable){
-  return ctable[3];
+  if(MAXCOLORS > 256){
+    return ctable[RGBSIZE] * 256 + ctable[RGBSIZE + 1];
+  }else{
+    return ctable[RGBSIZE];
+  }
 }
 
 static inline void
 dtable_to_ctable(int dtable, unsigned char* ctable){
-  ctable[3] = dtable % 256;
+  if(MAXCOLORS > 256){
+    ctable[RGBSIZE] = dtable / 256;
+    ctable[RGBSIZE + 1] = dtable % 256;
+  }else{
+    ctable[RGBSIZE] = dtable;
+  }
 }
 
 // returns the index at which the provided color can be found *in the
 // dtable*, possibly inserting it into the ctable. returns -1 if the
 // color is not in the table and the table is full.
-// FIXME replace all these 3s
 static int
-find_color(colortable* ctab, unsigned char comps[static 3]){
+find_color(colortable* ctab, unsigned char comps[static RGBSIZE]){
   int i;
   if(ctab->colors){
     int l, r;
@@ -51,7 +60,7 @@ find_color(colortable* ctab, unsigned char comps[static 3]){
     do{
       i = l + (r - l) / 2;
 //fprintf(stderr, "%02x%02x%02x L %d R %d m %d\n", comps[0], comps[1], comps[2], l, r, i);
-      int cmp = memcmp(ctab->table + i * CENTSIZE, comps, 3);
+      int cmp = memcmp(ctab->table + i * CENTSIZE, comps, RGBSIZE);
       if(cmp == 0){
         return ctable_to_dtable(ctab->table + i * CENTSIZE);
       }
@@ -79,7 +88,7 @@ find_color(colortable* ctab, unsigned char comps[static 3]){
   }else{
     i = 0;
   }
-  memcpy(ctab->table + i * CENTSIZE, comps, 3);
+  memcpy(ctab->table + i * CENTSIZE, comps, RGBSIZE);
   dtable_to_ctable(ctab->colors, ctab->table + i * CENTSIZE);
   ++ctab->colors;
   return ctab->colors - 1;
@@ -90,7 +99,7 @@ find_color(colortable* ctab, unsigned char comps[static 3]){
 // 100x100x100 sixel colorspace, and built into a table.
 static int
 extract_ctable_inner(const uint32_t* data, int linesize, int begy, int begx,
-                     int leny, int lenx, sixeltable* stab, unsigned char mask){
+                     int leny, int lenx, sixeltable* stab){
   int pos = 0;
   for(int visy = begy ; visy < (begy + leny) ; visy += 6){
     for(int visx = begx ; visx < (begx + lenx) ; visx += 1){
@@ -99,11 +108,11 @@ extract_ctable_inner(const uint32_t* data, int linesize, int begy, int begx,
         if(rgba_trans_p(ncpixel_a(*rgb))){
           continue;
         }
-        unsigned char comps[3];
-        break_sixel_comps(comps, *rgb, mask);
+        unsigned char comps[RGBSIZE];
+        break_sixel_comps(comps, *rgb);
         int c = find_color(stab->ctab, comps);
         if(c < 0){
-//fprintf(stderr, "FAILED FINDING COLOR AUGH 0x%02x\n", mask);
+//fprintf(stderr, "FAILED FINDING COLOR AUGH\n");
           return -1;
         }
         stab->data[c * stab->ctab->sixelcount + pos] |= (1u << (sy - visy));
@@ -123,19 +132,13 @@ initialize_stable(sixeltable* stab){
 
 // Use as many of the original colors as we can, but not more than will fit
 // into the set of color registers. We're already losing some precision by the
-// RGB -> sixelspace conversion (256->100); try with the complete colors, and
-// progressively mask more out until they all fit.
+// RGB -> sixelspace conversion (256->100); try with the complete colors.
 static int
 extract_color_table(const uint32_t* data, int linesize, int begy, int begx,
-                    int leny, int lenx, sixeltable* stab, unsigned char* mask){
-  *mask = 0xff;
-  while(mask){
-    initialize_stable(stab);
-    if(extract_ctable_inner(data, linesize, begy, begx, leny, lenx, stab, *mask) == 0){
-      return 0;
-    }
-    *mask <<= 1;
-    *mask &= 0xff;
+                    int leny, int lenx, sixeltable* stab){
+  initialize_stable(stab);
+  if(extract_ctable_inner(data, linesize, begy, begx, leny, lenx, stab) == 0){
+    return 0;
   }
   return -1;
 }
@@ -274,8 +277,7 @@ int sixel_blit(ncplane* nc, int placey, int placex, int linesize,
     free(ctab);
     return -1;
   }
-  unsigned char mask;
-  if(extract_color_table(data, linesize, begy, begx, leny, lenx, &stable, &mask)){
+  if(extract_color_table(data, linesize, begy, begx, leny, lenx, &stable)){
     free(ctab);
     free(stable.data);
     return -1;
