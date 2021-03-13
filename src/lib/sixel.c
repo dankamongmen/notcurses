@@ -1,99 +1,15 @@
 #include "internal.h"
-
-#define RGBSIZE 3
-
-static inline void
-break_sixel_comps(unsigned char comps[static RGBSIZE], uint32_t rgba){
-  comps[0] = ncpixel_r(rgba) * 100 / 255;
-  comps[1] = ncpixel_g(rgba) * 100 / 255;
-  comps[2] = ncpixel_b(rgba) * 100 / 255;
-//fprintf(stderr, "%u %u %u\n", comps[0], comps[1], comps[2]);
-}
+#include "neuquant.h"
 
 // FIXME you can have more (or fewer) than 256 registers...detect?
 #define MAXCOLORS 256
-#define CENTSIZE (4 + (MAXCOLORS > 256))
-
-// first pass: extract up to 256 sixelspace colors over arbitrarily many sixels
-// sixelspace is 0..100 corresponding to 0..255, lame =[
-typedef struct colortable {
-  int colors;
-  int sixelcount;
-  unsigned char table[CENTSIZE * MAXCOLORS]; // components + dtable index
-} colortable;
 
 // second pass: construct data for extracted colors over the sixels
 typedef struct sixeltable {
-  colortable* ctab;
   unsigned char* data;  // |colors|x|sixelcount|-byte arrays
+  kohonenctx* kctx;
+  int sixelcount;
 } sixeltable;
-
-static inline int
-ctable_to_dtable(const unsigned char* ctable){
-  if(MAXCOLORS > 256){
-    return ctable[RGBSIZE] * 256 + ctable[RGBSIZE + 1];
-  }else{
-    return ctable[RGBSIZE];
-  }
-}
-
-static inline void
-dtable_to_ctable(int dtable, unsigned char* ctable){
-  if(MAXCOLORS > 256){
-    ctable[RGBSIZE] = dtable / 256;
-    ctable[RGBSIZE + 1] = dtable % 256;
-  }else{
-    ctable[RGBSIZE] = dtable;
-  }
-}
-
-// returns the index at which the provided color can be found *in the
-// dtable*, possibly inserting it into the ctable. returns -1 if the
-// color is not in the table and the table is full.
-static int
-find_color(colortable* ctab, unsigned char comps[static RGBSIZE]){
-  int i;
-  if(ctab->colors){
-    int l, r;
-    l = 0;
-    r = ctab->colors - 1;
-    do{
-      i = l + (r - l) / 2;
-//fprintf(stderr, "%02x%02x%02x L %d R %d m %d\n", comps[0], comps[1], comps[2], l, r, i);
-      int cmp = memcmp(ctab->table + i * CENTSIZE, comps, RGBSIZE);
-      if(cmp == 0){
-        return ctable_to_dtable(ctab->table + i * CENTSIZE);
-      }
-      if(cmp < 0){
-        l = i + 1;
-      }else{ // key is smaller
-        r = i - 1;
-      }
-//fprintf(stderr, "BCMP: %d L %d R %d m: %d\n", cmp, l, r, i);
-    }while(l <= r);
-    if(r < 0){
-      i = 0;
-    }else if(l == ctab->colors){
-      i = ctab->colors;
-    }else{
-      i = l;
-    }
-    if(ctab->colors == MAXCOLORS){
-      return -1;
-    }
-    if(i < ctab->colors){
-      memmove(ctab->table + (i + 1) * CENTSIZE, ctab->table + i * CENTSIZE,
-              (ctab->colors - i) * CENTSIZE);
-    }
-  }else{
-    i = 0;
-  }
-  memcpy(ctab->table + i * CENTSIZE, comps, RGBSIZE);
-  dtable_to_ctable(ctab->colors, ctab->table + i * CENTSIZE);
-  ++ctab->colors;
-  return ctab->colors - 1;
-  //return ctable_to_dtable(ctab->table + i * CENTSIZE);
-}
 
 // rather inelegant preprocess of the entire image. colors are converted to the
 // 100x100x100 sixel colorspace, and built into a table.
@@ -104,19 +20,17 @@ extract_ctable_inner(const uint32_t* data, int linesize, int begy, int begx,
   for(int visy = begy ; visy < (begy + leny) ; visy += 6){
     for(int visx = begx ; visx < (begx + lenx) ; visx += 1){
       for(int sy = visy ; sy < (begy + leny) && sy < visy + 6 ; ++sy){
-        const uint32_t* rgb = (const uint32_t*)(data + (linesize / CENTSIZE * sy) + visx);
+        const uint32_t* rgb = (const uint32_t*)(data + (linesize / 4 * sy) + visx);
         if(rgba_trans_p(ncpixel_a(*rgb))){
           continue;
         }
-        unsigned char comps[RGBSIZE];
-        break_sixel_comps(comps, *rgb);
-        int c = find_color(stab->ctab, comps);
+        int c = inxsearch(stab->kctx, ncpixel_r(*rgb), ncpixel_g(*rgb), ncpixel_b(*rgb));
         if(c < 0){
 //fprintf(stderr, "FAILED FINDING COLOR AUGH\n");
           return -1;
         }
-        stab->data[c * stab->ctab->sixelcount + pos] |= (1u << (sy - visy));
-//fprintf(stderr, "color %d pos %d: 0x%x\n", c, pos, stab->data[c * stab->ctab->sixelcount + pos]);
+        stab->data[c * stab->sixelcount + pos] |= (1u << (sy - visy));
+//fprintf(stderr, "color %d pos %d: 0x%x\n", c, pos, stab->data[c * stab->sixelcount + pos]);
       }
       ++pos;
     }
@@ -126,8 +40,7 @@ extract_ctable_inner(const uint32_t* data, int linesize, int begy, int begx,
 
 static inline void
 initialize_stable(sixeltable* stab){
-  stab->ctab->colors = 0;
-  memset(stab->data, 0, stab->ctab->sixelcount * MAXCOLORS);
+  memset(stab->data, 0, stab->sixelcount * MAXCOLORS);
 }
 
 // Use as many of the original colors as we can, but not more than will fit
@@ -182,42 +95,43 @@ write_sixel_data(FILE* fp, int lenx, sixeltable* stab){
   // unspecified pixels, which we do not want.
   //fprintf(fp, "\"1;1;%d;%d", lenx, leny);
 
-  for(int i = 0 ; i < stab->ctab->colors ; ++i){
-    const unsigned char* rgb = stab->ctab->table + i * CENTSIZE;
-    fprintf(fp, "#%d;2;%u;%u;%u", i, rgb[0], rgb[1], rgb[2]);
+  for(int i = 0 ; i < MAXCOLORS ; ++i){
+    unsigned char rgb[3];
+    netcolor(stab->kctx, i, rgb);
+fprintf(stderr, "RGB[%03d]: %3d %3d %3d\n", i, rgb[0], rgb[1], rgb[2]);
+    fprintf(fp, "#%d;2;%u;%u;%u", i, rgb[0] * 100 / 255, rgb[1] * 100 / 255, rgb[2] * 100 / 255);
   }
   int p = 0;
-  while(p < stab->ctab->sixelcount){
-    for(int i = 0 ; i < stab->ctab->colors ; ++i){
+  while(p < stab->sixelcount){
+    for(int i = 0 ; i < MAXCOLORS ; ++i){
       int printed = 0;
       int seenrle = 0; // number of repetitions
       unsigned char crle = 0; // character being repeated
-      int idx = ctable_to_dtable(stab->ctab->table + i * CENTSIZE);
-      for(int m = p ; m < stab->ctab->sixelcount && m < p + lenx ; ++m){
-//fprintf(stderr, "%d ", idx * stab->ctab->sixelcount + m);
-//fputc(stab->data[idx * stab->ctab->sixelcount + m] + 63, stderr);
+      for(int m = p ; m < stab->sixelcount && m < p + lenx ; ++m){
+//fprintf(stderr, "%d ", i * stab->sixelcount + m);
+//fputc(stab->data[i * stab->sixelcount + m] + 63, stderr);
         if(seenrle){
-          if(stab->data[idx * stab->ctab->sixelcount + m] == crle){
+          if(stab->data[i * stab->sixelcount + m] == crle){
             ++seenrle;
           }else{
             write_rle(&printed, i, fp, seenrle, crle);
             seenrle = 1;
-            crle = stab->data[idx * stab->ctab->sixelcount + m];
+            crle = stab->data[i * stab->sixelcount + m];
           }
         }else{
           seenrle = 1;
-          crle = stab->data[idx * stab->ctab->sixelcount + m];
+          crle = stab->data[i * stab->sixelcount + m];
         }
       }
       if(crle){
         write_rle(&printed, i, fp, seenrle, crle);
       }
-      if(i + 1 < stab->ctab->colors){
+      if(i + 1 < MAXCOLORS){
         if(printed){
           fputc('$', fp);
         }
       }else{
-        if(p + lenx < stab->ctab->sixelcount){
+        if(p + lenx < stab->sixelcount){
           fputc('-', fp);
         }
       }
@@ -264,26 +178,27 @@ int sixel_blit_inner(ncplane* nc, int placey, int placex, int lenx,
 int sixel_blit(ncplane* nc, int placey, int placex, int linesize,
                const void* data, int begy, int begx,
                int leny, int lenx, unsigned cellpixx){
-  colortable* ctab = malloc(sizeof(*ctab));
-  if(ctab == NULL){
-    return -1;
-  }
-  ctab->sixelcount = (lenx - begx) * ((leny - begy + 5) / 6);
+  int sixelcount = (lenx - begx) * ((leny - begy + 5) / 6);
   sixeltable stable = {
-    .ctab = ctab,
-    .data = malloc(MAXCOLORS * ctab->sixelcount),
+    .data = malloc(MAXCOLORS * sixelcount),
+    .sixelcount = sixelcount,
   };
   if(stable.data == NULL){
-    free(ctab);
     return -1;
   }
-  if(extract_color_table(data, linesize, begy, begx, leny, lenx, &stable)){
-    free(ctab);
+  if((stable.kctx = initnet(data, leny, linesize, lenx, 1)) == NULL){
     free(stable.data);
+  }
+  learn(stable.kctx);
+  unbiasnet(stable.kctx);
+  inxbuild(stable.kctx);
+  if(extract_color_table(data, linesize, begy, begx, leny, lenx, &stable)){
+    free(stable.data);
+    freenet(stable.kctx);
     return -1;
   }
   int r = sixel_blit_inner(nc, placey, placex, lenx, &stable, cellpixx);
   free(stable.data);
-  free(ctab);
+  freenet(stable.kctx);
   return r;
 }
