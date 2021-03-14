@@ -178,7 +178,7 @@ void cell_release(ncplane* n, nccell* c){
 // Duplicate one cell onto another when they share a plane. Convenience wrapper.
 int cell_duplicate(ncplane* n, nccell* targ, const nccell* c){
   if(cell_duplicate_far(&n->pool, targ, n, c) < 0){
-    logerror(ncplane_notcurses(n), "Failed duplicating cell");
+    logerror(ncplane_notcurses(n), "Failed duplicating cell\n");
     return -1;
   }
   return 0;
@@ -1406,7 +1406,7 @@ int notcurses_cursor_enable(notcurses* nc, int y, int x){
 
 int notcurses_cursor_disable(notcurses* nc){
   if(nc->cursorx < 0 || nc->cursory < 0){
-    logerror(nc, "Cursor is not enabled");
+    logerror(nc, "Cursor is not enabled\n");
     return -1;
   }
   if(nc->ttyfd >= 0){
