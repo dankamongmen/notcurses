@@ -14,8 +14,9 @@ break_sixel_comps(unsigned char comps[static RGBSIZE], uint32_t rgba, unsigned c
 }
 
 typedef struct cdetails {
-  int64_t sums[3];
-  int64_t count;
+  int64_t sums[3];        // sum of components of all matching original colors
+  int32_t count;          // count of pixels matching
+  int multiple_colors;    // whether we've seen at least two colors
 } cdetails;
 
 // second pass: construct data for extracted colors over the sixels
@@ -92,8 +93,9 @@ find_color(sixeltable* stab, unsigned char comps[static RGBSIZE]){
 // rather inelegant preprocess of the entire image. colors are converted to the
 // 100x100x100 sixel colorspace, and built into a table.
 static int
-extract_ctable_inner(const uint32_t* data, int linesize, int begy, int begx,
-                     int leny, int lenx, sixeltable* stab, unsigned char mask){
+extract_color_table(const uint32_t* data, int linesize, int begy, int begx,
+                    int leny, int lenx, sixeltable* stab){
+  unsigned char mask = 0xc0;
   int pos = 0;
   for(int visy = begy ; visy < (begy + leny) ; visy += 6){
     for(int visx = begx ; visx < (begx + lenx) ; visx += 1){
@@ -121,21 +123,6 @@ extract_ctable_inner(const uint32_t* data, int linesize, int begy, int begx,
     }
   }
   return 0;
-}
-
-// Use as many of the original colors as we can, but not more than will fit
-// into the set of color registers. We're already losing some precision by the
-// RGB -> sixelspace conversion (256->100); try with the complete colors, and
-// progressively mask more out until they all fit.
-static inline int
-extract_color_table(const uint32_t* data, int linesize, int begy, int begx,
-                    int leny, int lenx, sixeltable* stab){
-  memset(stab->data, 0, stab->sixelcount * MAXCOLORS);
-  memset(stab->deets, 0, sizeof(*stab->deets) * MAXCOLORS);
-  if(extract_ctable_inner(data, linesize, begy, begx, leny, lenx, stab, 0xc0) == 0){
-    return 0;
-  }
-  return -1;
 }
 
 // Emit some number of equivalent, subsequent sixels, using sixel RLE. We've
@@ -280,6 +267,9 @@ int sixel_blit(ncplane* nc, int placey, int placex, int linesize,
     free(stable.data);
     return -1;
   }
+  // stable.table doesn't need initializing; we start from the bottom
+  memset(stable.data, 0, sixelcount * MAXCOLORS);
+  memset(stable.deets, 0, sizeof(*stable.deets) * MAXCOLORS);
   if(extract_color_table(data, linesize, begy, begx, leny, lenx, &stable)){
     free(stable.table);
     free(stable.data);
