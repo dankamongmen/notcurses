@@ -64,9 +64,10 @@ to **NCBLIT_2x1** at the cost of some potential resolution. The alternatives
 available. Pixel blitting is never performed unless explicitly requested with
 **-bpixel**.
 
-Blitters can be selected at runtime by pressing '0' through '8'.
+Blitters can be selected at runtime by pressing '0' through '6'.
 **NCBLIT_DEFAULT** corresponds to '0'. The various blitters are described in
-**notcurses_visual(3)**.
+**notcurses_visual(3)**. If a blitter cannot be used in the current environment,
+the current blitter will be retained.
 
 Multiframe media can be paused with space. Press space (or any other valid
 control) to resume.
