@@ -5,6 +5,8 @@
 extern "C" {
 #endif
 
+#include "internal.h"
+
 int oiio_decode(struct ncvisual* nc);
 struct ncvisual_details* oiio_details_init(void);
 void oiio_printbanner(const struct notcurses* nc);
