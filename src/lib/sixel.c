@@ -141,10 +141,15 @@ initialize_stable(sixeltable* stab){
 // progressively mask more out until they all fit.
 static int
 extract_color_table(const uint32_t* data, int linesize, int begy, int begx,
-                    int leny, int lenx, sixeltable* stab){
-  initialize_stable(stab);
-  if(extract_ctable_inner(data, linesize, begy, begx, leny, lenx, stab, 0xf0) == 0){
-    return 0;
+                    int leny, int lenx, sixeltable* stab, unsigned char* mask){
+  *mask = 0xf0;
+  while(mask){
+    initialize_stable(stab);
+    if(extract_ctable_inner(data, linesize, begy, begx, leny, lenx, stab, *mask) == 0){
+      return 0;
+    }
+    *mask <<= 1;
+    *mask &= 0xff;
   }
   return -1;
 }
@@ -193,7 +198,7 @@ write_sixel_data(FILE* fp, int lenx, sixeltable* stab){
     int idx = ctable_to_dtable(rgb);
     int count = stab->deets[idx].count;
 //fprintf(stderr, "RGB: %3u %3u %3u DT: %d SUMS: %3d %3d %3d COUNT: %d\n", rgb[0], rgb[1], rgb[2], idx, stab->deets[idx].sums[0] / count * 100 / 255, stab->deets[idx].sums[1] / count * 100 / 255, stab->deets[idx].sums[2] / count * 100 / 255, count);
-//fprintf(fp, "#%d;2;%u;%u;%u", i, rgb[0], rgb[1], rgb[2]);
+    //fprintf(fp, "#%d;2;%u;%u;%u", i, rgb[0], rgb[1], rgb[2]);
     fprintf(fp, "#%d;2;%u;%u;%u", i, stab->deets[idx].sums[0] / count * 100 / 255,
             stab->deets[idx].sums[1] / count * 100 / 255,
             stab->deets[idx].sums[2] / count * 100 / 255);
@@ -292,7 +297,8 @@ int sixel_blit(ncplane* nc, int placey, int placex, int linesize,
     free(ctab);
     return -1;
   }
-  if(extract_color_table(data, linesize, begy, begx, leny, lenx, &stable)){
+  unsigned char mask;
+  if(extract_color_table(data, linesize, begy, begx, leny, lenx, &stable, &mask)){
     free(ctab);
     free(stable.data);
     free(stable.deets);
