@@ -294,9 +294,7 @@ typedef struct tinfo {
   uint32_t bg_collides_default;
   pthread_mutex_t pixel_query; // only query for pixel support once
   int color_registers; // sixel color registers (post pixel_query_done)
-  // FIXME at least xterm caps its "maximum graphics geometry" by the current
-  // window geometry. i don't want to requery on resize, so these are useless.
-  //int sixel_maxx, sixel_maxy; // sixel size maxima (post pixel_query_done)
+  int sixel_maxx, sixel_maxy; // sixel size maxima (post pixel_query_done)
   bool sixel_supported;  // do we support sixel (post pixel_query_done)?
   bool pixel_query_done; // have we yet performed pixel query?
   bool sextants;  // do we have (good, vetted) Unicode 13 sextant support?

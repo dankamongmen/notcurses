@@ -294,11 +294,9 @@ query_sixel_details(tinfo* ti, int fd){
   if(query_xtsmgraphics(fd, "\x1b[?1;1;0S", &ti->color_registers, NULL)){
     return -1;
   }
-  /*
-  if(query_xtsmgraphics(fd, "\x1b[?2;1;0S", &ti->sixel_maxx, &ti->sixel_maxy)){
+  if(query_xtsmgraphics(fd, "\x1b[?2;4;0S", &ti->sixel_maxx, &ti->sixel_maxy)){
     return -1;
   }
-  */
 //fprintf(stderr, "Sixel ColorRegs: %d Max_x: %d Max_y: %d\n", ti->color_registers, ti->sixel_maxx, ti->sixel_maxy);
   return 0;
 }
