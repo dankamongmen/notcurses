@@ -346,6 +346,19 @@ typedef struct ncpile {
   int dimy, dimx;             // rows and cols at time of render
 } ncpile;
 
+// there is a context-wide set of displayed pixel glyphs ("sprixels"); i.e.
+// these are independent of particular piles. there should never be very many
+// associated with a context (a dozen or so at max). with the kitty protocol,
+// we can register them, and then manipulate them by id. with the sixel
+// protocol, we just have to rewrite them.
+typedef struct sprixel {
+  char* glyph;  // glyph; can be quite large
+  int id;       // embedded into glusters field of nccell
+  int cols;
+  int rows;
+  struct sprixel* next;
+} sprixel;
+
 // the standard pile can be reached through ->stdplane.
 typedef struct notcurses {
   ncplane* stdplane; // standard plane, covers screen
@@ -376,6 +389,8 @@ typedef struct notcurses {
   struct termios tpreserved; // terminal state upon entry
   pthread_mutex_t pilelock; // guards pile list, locks resize in render
   bool suppress_banner; // from notcurses_options
+
+  sprixel* sprixelcache; // list of pixel graphics currently displayed
 
   // desired margins (best-effort only), copied in from notcurses_options
   int margin_t, margin_b, margin_r, margin_l;
@@ -665,6 +680,8 @@ plane_debug(const ncplane* n, bool details){
     }
   }
 }
+
+void sprixel_free(sprixel* s);
 
 static inline unsigned
 channels_pixel_p(uint64_t channels){
