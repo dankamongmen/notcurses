@@ -19,7 +19,7 @@ relies on the font. Patches to correct/complete this table are very welcome!
 | --------------- | ------------------ | ----- | ------ | -----------------------           | ----- |
 | Alacritty       | ✅                 |  ✅   |❌      |`TERM=alacritty` `COLORTERM=24bit` | |
 | FBterm          | ❌                 |  ?    |?       |`TERM=fbterm`                      | 256 colors, no RGB color. |
-| foot            |                    |       |        |                                   | |
+| foot            | ✅                 |  ✅   |✅      |`TERM=foot`                        | |
 | Gnome Terminal  |                    |  ❌   |✅      |`TERM=gnome` `COLORTERM=24bit`     | `ccc` support *is* available when run with `vte-256color`. |
 | Guake           |                    |  ?    |?       |                                   | |
 | ITerm2          |                    |  ?    |?       |                                   | |
