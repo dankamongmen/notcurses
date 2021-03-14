@@ -14,9 +14,10 @@ break_sixel_comps(unsigned char comps[static RGBSIZE], uint32_t rgba, unsigned c
 }
 
 typedef struct cdetails {
-  int64_t sums[3];        // sum of components of all matching original colors
-  int32_t count;          // count of pixels matching
-  int multiple_colors;    // whether we've seen at least two colors
+  int64_t sums[3];         // sum of components of all matching original colors
+  int32_t count;           // count of pixels matching
+  unsigned char two_colors;// have we seen at least two colors?
+  unsigned char r, g, b;   // until two_colors is true, track one r/g/b
 } cdetails;
 
 // second pass: construct data for extracted colors over the sixels
@@ -90,8 +91,12 @@ find_color(sixeltable* stab, unsigned char comps[static RGBSIZE]){
   //return ctable_to_dtable(stab->table + i * CENTSIZE);
 }
 
-// rather inelegant preprocess of the entire image. colors are converted to the
-// 100x100x100 sixel colorspace, and built into a table.
+// no matter the input palette, we can always get a maximum of 64 colors if we
+// mask at 0xc0 on each component (this partitions each component into 4 chunks,
+// and 4 * 4 * 4 -> 64). so this will never overflow our color register table
+// (assumed to have at least 256 registers). at each color, we store a pixel
+// count, and a sum of all three channels. in addition, we track whether we've
+// seen at least two colors in the chunk.
 static int
 extract_color_table(const uint32_t* data, int linesize, int begy, int begx,
                     int leny, int lenx, sixeltable* stab){
@@ -112,6 +117,18 @@ extract_color_table(const uint32_t* data, int linesize, int begy, int begx,
           return -1;
         }
         stab->data[c * stab->sixelcount + pos] |= (1u << (sy - visy));
+        if(stab->deets[c].count == 0){
+          stab->deets[c].two_colors = false;
+          stab->deets[c].r = ncpixel_r(*rgb);
+          stab->deets[c].g = ncpixel_g(*rgb);
+          stab->deets[c].b = ncpixel_b(*rgb);
+        }else if(stab->deets[c].two_colors == false){
+          if(stab->deets[c].r != ncpixel_r(*rgb) ||
+             stab->deets[c].g != ncpixel_g(*rgb) ||
+             stab->deets[c].b != ncpixel_b(*rgb)){
+            stab->deets[c].two_colors = true;
+          }
+        }
         stab->deets[c].sums[0] += ncpixel_r(*rgb);
         stab->deets[c].sums[1] += ncpixel_g(*rgb);
         stab->deets[c].sums[2] += ncpixel_b(*rgb);
