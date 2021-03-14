@@ -145,11 +145,12 @@ int kitty_blit_inner(ncplane* nc, int placey, int placex, int linesize,
 
 int kitty_blit(ncplane* nc, int placey, int placex, int linesize,
                const void* data, int begy, int begx,
-               int leny, int lenx, unsigned cellpixx){
+               int leny, int lenx, const blitterargs* bargs){
   (void)begy;
   (void)begx;
 //fprintf(stderr, "s=%d,v=%d\n", lenx, leny);
-  int r = kitty_blit_inner(nc, placey, placex, linesize, leny, lenx, cellpixx, data);
+  int r = kitty_blit_inner(nc, placey, placex, linesize, leny, lenx,
+                           bargs->pixel.celldimx, data);
   if(r < 0){
     return -1;
   }

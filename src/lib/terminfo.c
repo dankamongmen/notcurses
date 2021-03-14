@@ -286,15 +286,19 @@ query_xtsmgraphics(int fd, const char* seq, int* val, int* val2){
   return 0;
 }
 
-// query for Sixel details (number of color registers and maximum geometry)
+// query for Sixel details including the number of color registers and, one day
+// perhaps, maximum geometry. xterm binds its return by the current geometry,
+// making it useless for a one-time query.
 static int
 query_sixel_details(tinfo* ti, int fd){
   if(query_xtsmgraphics(fd, "\x1b[?1;1;0S", &ti->color_registers, NULL)){
     return -1;
   }
+  /*
   if(query_xtsmgraphics(fd, "\x1b[?2;1;0S", &ti->sixel_maxx, &ti->sixel_maxy)){
     return -1;
   }
+  */
 //fprintf(stderr, "Sixel ColorRegs: %d Max_x: %d Max_y: %d\n", ti->color_registers, ti->sixel_maxx, ti->sixel_maxy);
   return 0;
 }
@@ -341,7 +345,7 @@ query_sixel(tinfo* ti, int fd){
           if(!ti->sixel_supported){
             ti->sixel_supported = true;
             ti->color_registers = 256;  // assumed default [shrug]
-            ti->sixel_maxx = ti->sixel_maxy = 0;
+//            ti->sixel_maxx = ti->sixel_maxy = 0;
           } // FIXME else warning?
         }
         break;

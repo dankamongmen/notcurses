@@ -294,7 +294,9 @@ typedef struct tinfo {
   uint32_t bg_collides_default;
   pthread_mutex_t pixel_query; // only query for pixel support once
   int color_registers; // sixel color registers (post pixel_query_done)
-  int sixel_maxx, sixel_maxy; // sixel size maxima (post pixel_query_done)
+  // FIXME at least xterm caps its "maximum graphics geometry" by the current
+  // window geometry. i don't want to requery on resize, so these are useless.
+  //int sixel_maxx, sixel_maxy; // sixel size maxima (post pixel_query_done)
   bool sixel_supported;  // do we support sixel (post pixel_query_done)?
   bool pixel_query_done; // have we yet performed pixel query?
   bool sextants;  // do we have (good, vetted) Unicode 13 sextant support?
@@ -385,9 +387,18 @@ typedef struct notcurses {
   unsigned stdio_blocking_save; // was stdio blocking at entry? restore on stop.
 } notcurses;
 
+// cell vs pixel-specific arguments
+typedef union {
+  unsigned blendcolors; // for cells
+  struct {
+    int celldimx;       // horizontal pixels per cell
+    int colorregs;      // number of color registers
+  } pixel;              // for pixels
+} blitterargs;
+
 typedef int (*blitter)(struct ncplane* n, int placey, int placex,
                        int linesize, const void* data, int begy, int begx,
-                       int leny, int lenx, unsigned blendcolors);
+                       int leny, int lenx, const blitterargs* bargs);
 
 // a system for rendering RGBA pixels as text glyphs
 struct blitset {
@@ -1203,11 +1214,11 @@ ncdirect_bg_default_p(const struct ncdirect* nc){
 
 int sixel_blit(ncplane* nc, int placey, int placex, int linesize,
                const void* data, int begy, int begx,
-               int leny, int lenx, unsigned cellpixx);
+               int leny, int lenx, const blitterargs* bargs);
 
 int kitty_blit(ncplane* nc, int placey, int placex, int linesize,
                const void* data, int begy, int begx,
-               int leny, int lenx, unsigned cellpixx);
+               int leny, int lenx, const blitterargs* bargs);
 
 int term_fg_rgb8(bool RGBflag, const char* setaf, int colors, FILE* out,
                  unsigned r, unsigned g, unsigned b);
@@ -1218,8 +1229,11 @@ static inline int
 rgba_blit_dispatch(ncplane* nc, const struct blitset* bset, int placey,
                    int placex, int linesize, const void* data, int begy,
                    int begx, int leny, int lenx, unsigned blendcolors){
+  blitterargs bargs = {
+    .blendcolors = blendcolors,
+  };
   return bset->blit(nc, placey, placex, linesize, data, begy, begx,
-                    leny, lenx, blendcolors);
+                    leny, lenx, &bargs);
 }
 
 static inline const struct blitset*
