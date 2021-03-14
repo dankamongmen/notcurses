@@ -203,7 +203,7 @@ int interrogate_terminfo(tinfo* ti, const char* termname, unsigned utf8){
 }
 
 static int
-read_xtsmgraphics_reply(int fd){
+read_xtsmgraphics_reply(int fd, int* val2){
   char in;
   // return is of the form CSI ? Pi ; 0 ; Pv S
   enum {
@@ -211,7 +211,8 @@ read_xtsmgraphics_reply(int fd){
     WANT_QMARK,
     WANT_SEMI1,
     WANT_SEMI2,
-    WANT_PV,
+    WANT_PV1,
+    WANT_PV2,
     DONE
   } state = WANT_CSI;
   int pv = 0;
@@ -235,15 +236,26 @@ read_xtsmgraphics_reply(int fd){
         break;
       case WANT_SEMI2:
         if(in == ';'){
-          state = WANT_PV;
+          state = WANT_PV1;
         }
         break;
-      case WANT_PV:
-        if(in == 'S'){
+      case WANT_PV1:
+        if(!val2 && in == 'S'){
           state = DONE;
+        }else if(val2 && in == ';'){
+          *val2 = 0;
+          state = WANT_PV2;
         }else if(isdigit(in)){
           pv *= 10;
           pv += in - '0';
+        }
+        break;
+      case WANT_PV2:
+        if(in == 'S'){
+          state = DONE;
+        }else if(isdigit(in)){
+          *val2 *= 10;
+          *val2 += in - '0';
         }
         break;
       case DONE:
@@ -251,8 +263,7 @@ read_xtsmgraphics_reply(int fd){
         break;
     }
     if(state == DONE){
-      if(pv >= 0){
-fprintf(stderr, "READ %d\n", pv);
+      if(pv >= 0 && (!val2 || *val2 >= 0)){
         return pv;
       }
       break;
@@ -262,12 +273,12 @@ fprintf(stderr, "READ %d\n", pv);
 }
 
 static int
-query_xtsmgraphics(int fd, const char* seq, int* val){
+query_xtsmgraphics(int fd, const char* seq, int* val, int* val2){
   ssize_t w = writen(fd, seq, strlen(seq));
   if(w < 0 || (size_t)w != strlen(seq)){
     return -1;
   }
-  int r = read_xtsmgraphics_reply(fd);
+  int r = read_xtsmgraphics_reply(fd, val2);
   if(r <= 0){
     return -1;
   }
@@ -278,13 +289,13 @@ query_xtsmgraphics(int fd, const char* seq, int* val){
 // query for Sixel details (number of color registers and maximum geometry)
 static int
 query_sixel_details(tinfo* ti, int fd){
-  if(query_xtsmgraphics(fd, "\x1b[?1;1;0S", &ti->color_registers)){
+  if(query_xtsmgraphics(fd, "\x1b[?1;1;0S", &ti->color_registers, NULL)){
     return -1;
   }
-  int erp;
-  if(query_xtsmgraphics(fd, "\x1b[?2;1;0S", &erp)){
+  if(query_xtsmgraphics(fd, "\x1b[?2;1;0S", &ti->sixel_maxx, &ti->sixel_maxy)){
     return -1;
   }
+//fprintf(stderr, "Sixel ColorRegs: %d Max_x: %d Max_y: %d\n", ti->color_registers, ti->sixel_maxx, ti->sixel_maxy);
   return 0;
 }
 
@@ -330,6 +341,7 @@ query_sixel(tinfo* ti, int fd){
           if(!ti->sixel_supported){
             ti->sixel_supported = true;
             ti->color_registers = 256;  // assumed default [shrug]
+            ti->sixel_maxx = ti->sixel_maxy = 0;
           } // FIXME else warning?
         }
         break;
