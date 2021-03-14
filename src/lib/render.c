@@ -223,24 +223,6 @@ highcontrast(uint32_t bchannel){
   unsigned g = channel_g(bchannel);
   unsigned b = channel_b(bchannel);
   uint32_t conrgb = 0;
-  /*
-  float lumi = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-  unsigned max = r > g ? r > b ? r : b : g > b ? g : b;
-  unsigned min = r < g ? r < b ? r : b : g < b ? g : b;
-  float rrgb = r / 255.0;
-  float grgb = g / 255.0;
-  float brgb = b / 255.0;
-  float rrel = rrgb <= 0.03928 ? rrgb / 12.92 : pow(((rrgb + 0.055) / 1.055), 2.4);
-  float grel = grgb <= 0.03928 ? grgb / 12.92 : pow(((grgb + 0.055) / 1.055), 2.4);
-  float brel = brgb <= 0.03928 ? brgb / 12.92 : pow(((brgb + 0.055) / 1.055), 2.4);
-  max = !max ? 1 : max;
-  unsigned sat = 10 * (max - min) / max;
-  if(sat > 6){
-    conrgb = 0xffffff;
-  }else{
-    conrgb = 0;
-  }
-  */
   if(r + g + b < 320){
     channel_set(&conrgb, 0xffffff);
   }else{
