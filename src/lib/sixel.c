@@ -21,15 +21,15 @@ typedef struct colortable {
 } colortable;
 
 typedef struct cdetails {
-  uint32_t sums[3];
-  int32_t count;
+  int64_t sums[3];
+  int64_t count;
 } cdetails;
 
 // second pass: construct data for extracted colors over the sixels
 typedef struct sixeltable {
   colortable* ctab;
-  unsigned char* data;  // |colors|x|sixelcount|-byte arrays
-  cdetails* deets;      // |colors|
+  unsigned char* data;  // |maxcolors|x|sixelcount|-byte arrays
+  cdetails* deets;      // |maxcolors| cdetails structures
   int sixelcount;
 } sixeltable;
 
@@ -194,9 +194,10 @@ write_sixel_data(FILE* fp, int lenx, sixeltable* stab){
     int count = stab->deets[idx].count;
 //fprintf(stderr, "RGB: %3u %3u %3u DT: %d SUMS: %3d %3d %3d COUNT: %d\n", rgb[0], rgb[1], rgb[2], idx, stab->deets[idx].sums[0] / count * 100 / 255, stab->deets[idx].sums[1] / count * 100 / 255, stab->deets[idx].sums[2] / count * 100 / 255, count);
     //fprintf(fp, "#%d;2;%u;%u;%u", i, rgb[0], rgb[1], rgb[2]);
-    fprintf(fp, "#%d;2;%u;%u;%u", i, stab->deets[idx].sums[0] / count * 100 / 255,
-            stab->deets[idx].sums[1] / count * 100 / 255,
-            stab->deets[idx].sums[2] / count * 100 / 255);
+    fprintf(fp, "#%d;2;%jd;%jd;%jd", i,
+            (intmax_t)(stab->deets[idx].sums[0] * 100 / count / 255),
+            (intmax_t)(stab->deets[idx].sums[1] * 100 / count / 255),
+            (intmax_t)(stab->deets[idx].sums[2] * 100 / count / 255));
   }
   int p = 0;
   while(p < stab->sixelcount){
