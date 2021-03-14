@@ -2855,10 +2855,10 @@ typedef enum {
   NCBLIT_2x1,     // halves + 1x1 (space)     ▄▀
   NCBLIT_2x2,     // quadrants + 2x1          ▗▐ ▖▀▟▌▙
   NCBLIT_3x2,     // sextants (*NOT* 2x2)     🬀🬁🬂🬃🬄🬅🬆🬇🬈🬉🬊🬋🬌🬍🬎🬏🬐🬑🬒🬓🬔🬕🬖🬗🬘🬙🬚🬛🬜🬝🬞
-  NCBLIT_4x1,     // four vertical levels     █▆▄▂
   NCBLIT_BRAILLE, // 4 rows, 2 cols (braille) ⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿
-  NCBLIT_8x1,     // eight vertical levels    █▇▆▅▄▃▂▁
   NCBLIT_PIXEL,   // pixel graphics
+  NCBLIT_4x1,     // four vertical levels     █▆▄▂     (plots only)
+  NCBLIT_8x1,     // eight vertical levels    █▇▆▅▄▃▂▁ (plots only)
 } ncblitter_e;
 
 // Lex a blitter.

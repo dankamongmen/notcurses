@@ -24,10 +24,10 @@ typedef enum {
   NCBLIT_2x1,     // halves + 1x1
   NCBLIT_2x2,     // quadrants + 2x1
   NCBLIT_3x2,     // sextants + 1x1
-  NCBLIT_4x1,     // four vertical levels
   NCBLIT_BRAILLE, // 4 rows, 2 cols (braille)
-  NCBLIT_8x1,     // eight vertical levels
   NCBLIT_PIXEL,   // pixel graphics
+  NCBLIT_4x1,     // four vertical levels, (plots)
+  NCBLIT_8x1,     // eight vertical levels, (plots)
 } ncblitter_e;
 
 #define NCVISUAL_OPTION_NODEGRADE 0x0001
@@ -155,10 +155,13 @@ The different **ncblitter_e** values select from among available glyph sets:
 * **NCBLIT_2x1**: Adds the half blocks (▄▀) to **NCBLIT_1x1**.
 * **NCBLIT_2x2**: Adds left and right half blocks (▌▐) and quadrants (▖▗▟▙) to **NCBLIT_2x1**.
 * **NCBLIT_3x2**: Adds sextants to **NCBLIT_1x1**.
-* **NCBLIT_4x1**: Adds ¼ and ¾ blocks (▂▆) to **NCBLIT_2x1**.
 * **NCBLIT_BRAILLE**: 4 rows and 2 columns of braille (⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿).
-* **NCBLIT_8x1**: Adds ⅛, ⅜, ⅝, and ⅞ blocks (▇▅▃▁) to **NCBLIT_4x1**.
 * **NCBLIT_PIXEL**: Adds pixel graphics.
+
+Two more blitters exist for plots, but are unsuitable for generic media:
+
+* **NCBLIT_4x1**: Adds ¼ and ¾ blocks (▂▆) to **NCBLIT_2x1**.
+* **NCBLIT_8x1**: Adds ⅛, ⅜, ⅝, and ⅞ blocks (▇▅▃▁) to **NCBLIT_4x1**.
 
 **NCBLIT_4x1** and **NCBLIT_8x1** are intended for use with plots, and are
 not really applicable for general visuals. **NCBLIT_BRAILLE** doesn't tend

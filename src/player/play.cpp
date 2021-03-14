@@ -143,7 +143,7 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
     }else if(keyp == 'L'){ // FIXME check for ctrl+l
       nc.refresh(nullptr, nullptr);
       continue;
-    }else if(keyp >= '0' && keyp <= '8'){ // FIXME eliminate ctrl/alt
+    }else if(keyp >= '0' && keyp <= '6'){ // FIXME eliminate ctrl/alt
       marsh->blitter = static_cast<ncblitter_e>(keyp - '0');
       vopts->blitter = marsh->blitter;
       if(vopts->blitter == NCBLIT_PIXEL){
@@ -393,7 +393,7 @@ auto main(int argc, char** argv) -> int {
               }else if(ie == 'L'){
                 --i;
                 nc.refresh(nullptr, nullptr);
-              }else if(ie >= '0' && ie <= '8'){
+              }else if(ie >= '0' && ie <= '6'){
                 --i; // rerun same input with the new blitter
                 vopts.blitter = blitter = static_cast<ncblitter_e>(ie - '0');
               }else if(ie == NCKey::Resize){
