@@ -150,7 +150,7 @@ int oiio_resize(ncvisual* nc, int rows, int cols) {
 int oiio_blit(struct ncvisual* ncv, int rows, int cols,
               ncplane* n, const struct blitset* bset,
               int placey, int placex, int begy, int begx,
-              int leny, int lenx, unsigned blendcolors) {
+              int leny, int lenx, const blitterargs* bargs) {
 //fprintf(stderr, "%d/%d -> %d/%d on the resize\n", ncv->rows, ncv->cols, rows, cols);
   void* data = nullptr;
   int stride = 0;
@@ -172,7 +172,7 @@ int oiio_blit(struct ncvisual* ncv, int rows, int cols,
     stride = ncv->rowstride;
   }
   return oiio_blit_dispatch(n, bset, placey, placex, stride, data,
-                            begy, begx, leny, lenx, blendcolors);
+                            begy, begx, leny, lenx, bargs);
   return 0;
 }
 

@@ -513,8 +513,14 @@ ncdirectv* ncdirect_render_frame(ncdirect* n, const char* file,
     ncvisual_destroy(ncv);
     return nullptr;
   }
+  blitterargs bargs = {
+    .pixel = {
+      .celldimx = n->tcache.cellpixx,
+      .colorregs = n->tcache.color_registers,
+    },
+  };
   if(ncvisual_blit(ncv, disprows, dispcols, ncdv, bset,
-                   0, 0, 0, 0, leny, lenx, n->tcache.cellpixx)){
+                   0, 0, 0, 0, leny, lenx, &bargs)){
     ncvisual_destroy(ncv);
     free_plane(ncdv);
     return nullptr;

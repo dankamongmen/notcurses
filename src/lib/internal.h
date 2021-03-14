@@ -873,7 +873,7 @@ ALLOC char* ncplane_vprintf_prep(const char* format, va_list ap);
 int ncvisual_blit(struct ncvisual* ncv, int rows, int cols,
                   ncplane* n, const struct blitset* bset,
                   int placey, int placex, int begy, int begx,
-                  int leny, int lenx, unsigned blendcolors);
+                  int leny, int lenx, const blitterargs* bargs);
 
 void nclog(const char* fmt, ...);
 
@@ -1228,12 +1228,9 @@ API const struct blitset* lookup_blitset(const tinfo* tcache, ncblitter_e setid,
 static inline int
 rgba_blit_dispatch(ncplane* nc, const struct blitset* bset, int placey,
                    int placex, int linesize, const void* data, int begy,
-                   int begx, int leny, int lenx, unsigned blendcolors){
-  blitterargs bargs = {
-    .blendcolors = blendcolors,
-  };
+                   int begx, int leny, int lenx, const blitterargs* bargs){
   return bset->blit(nc, placey, placex, linesize, data, begy, begx,
-                    leny, lenx, &bargs);
+                    leny, lenx, bargs);
 }
 
 static inline const struct blitset*
@@ -1260,7 +1257,7 @@ typedef struct ncvisual_implementation {
   int (*visual_blit)(struct ncvisual* ncv, int rows, int cols, ncplane* n,
                      const struct blitset* bset, int placey, int placex,
                      int begy, int begx, int leny, int lenx,
-                     unsigned blendcolors);
+                     const blitterargs* barg);
   struct ncvisual* (*visual_create)(void);
   struct ncvisual* (*visual_from_file)(const char* fname);
   // ncv constructors other than ncvisual_from_file() need to set up the

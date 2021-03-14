@@ -16,16 +16,16 @@ auto ncvisual_decode(ncvisual* nc) -> int {
 auto ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
                    const struct blitset* bset, int placey, int placex,
                    int begy, int begx, int leny, int lenx,
-                   unsigned blendcolors) -> int {
+                   const blitterargs* barg) -> int {
   int ret = -1;
   if(visual_implementation){
     if(visual_implementation->visual_blit(ncv, rows, cols, n, bset, placey, placex,
-                           begy, begx, leny, lenx, blendcolors) >= 0){
+                           begy, begx, leny, lenx, barg) >= 0){
       ret = 0;
     }
   }else{
     if(rgba_blit_dispatch(n, bset, placey, placex, ncv->rowstride, ncv->data,
-                          begy, begx, leny, lenx, blendcolors) >= 0){
+                          begy, begx, leny, lenx, barg) >= 0){
       ret = 0;
     }
   }
@@ -471,8 +471,10 @@ auto ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const blitset* bset,
   leny = (leny / (double)ncv->rows) * ((double)disprows);
   lenx = (lenx / (double)ncv->cols) * ((double)dispcols);
 //fprintf(stderr, "blit: %dx%d:%d+%d of %d/%d stride %u %p\n", begy, begx, leny, lenx, ncv->rows, ncv->cols, ncv->rowstride, ncv->data);
+  blitterargs bargs;
+  bargs.blendcolors = blendcolors;
   if(ncvisual_blit(ncv, disprows, dispcols, n, bset,
-                   placey, placex, begy, begx, leny, lenx, blendcolors)){
+                   placey, placex, begy, begx, leny, lenx, &bargs)){
     ncplane_destroy(n);
     return nullptr;
   }
@@ -524,9 +526,11 @@ auto ncvisual_render_pixels(tinfo* tcache, ncvisual* ncv, const blitset* bset,
     scale_visual(ncv, &disprows, &dispcols);
   }
 //fprintf(stderr, "pblit: %dx%d <- %dx%d of %d/%d stride %u @%dx%d %p %u\n", disprows, dispcols, begy, begx, ncv->rows, ncv->cols, ncv->rowstride, placey, placex, ncv->data, ncplane_notcurses(stdn)->tcache.cellpixx);
+  blitterargs bargs;
+  bargs.pixel.celldimx = ncplane_notcurses(stdn)->tcache.cellpixx;
+  bargs.pixel.colorregs = ncplane_notcurses(stdn)->tcache.color_registers;
   if(ncvisual_blit(ncv, disprows, dispcols, n, bset,
-                   placey, placex, begy, begx, disprows, dispcols,
-                   ncplane_notcurses(stdn)->tcache.cellpixx)){
+                   placey, placex, begy, begx, disprows, dispcols, &bargs)){
     ncplane_destroy(n);
     return nullptr;
   }
