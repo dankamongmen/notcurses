@@ -66,7 +66,8 @@ rm $TARBALL.asc
 
 cd "$BUILDDIR"
 sudo make install
-tar czvf notcurses-doc-$VERSION.tar.gz *.1 *.3 *.html
+# restrict to files beginning with n* to leave out shared objects
+tar czvf notcurses-doc-$VERSION.tar.gz n*.1 n*.3 *.html
 github-asset dankamongmen/notcurses upload v$VERSION notcurses-doc-$VERSION.tar.gz
 cd ../cffi
 python3 setup.py sdist
