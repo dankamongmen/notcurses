@@ -175,9 +175,6 @@ directly:
   set to **Wide**, not narrow (if that doesn't work, ensure it is set to
   **Narrow**, heh).
 
-* The unit tests assume dimensions of at least 80x24. They might work in a
-  smaller terminal. They might not. Don't file bugs on it.
-
 ### TrueColor detection
 
 Notcurses primarily loads control sequences from `terminfo(5)`, using the

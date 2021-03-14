@@ -102,11 +102,7 @@ public:
   auto argv() -> const char** { return &vec[0]; }
 };
 
-auto main(int argc, const char **argv) -> int {
-  if(!setlocale(LC_ALL, "")){
-    std::cerr << "Couldn't set locale based on user preferences!" << std::endl;
-    return EXIT_FAILURE;
-  }
+auto lang_and_term() -> void {
   const char* lang = getenv("LANG");
   if(lang == nullptr){
     std::cerr << "Warning: LANG wasn't defined" << std::endl;
@@ -117,9 +113,29 @@ auto main(int argc, const char **argv) -> int {
   // ubuntu's buildd sets TERM=unknown, fuck it, handle this atrocity
   if(term == nullptr || strcmp(term, "unknown") == 0){
     std::cerr << "TERM wasn't defined, exiting with success" << std::endl;
-    return EXIT_SUCCESS;
+    exit(EXIT_SUCCESS);
   }
-  std::cout << "Running with TERM=" << term << std::endl;
+  auto nc = testing_notcurses();
+  if(!nc){
+    exit(EXIT_FAILURE);
+  }
+  int dimy, dimx;
+  notcurses_stddim_yx(nc, &dimy, &dimx);
+  std::cout << "Running with TERM=" << term << " (" << dimx << 'x'
+            << dimy << ")" << std::endl;
+  notcurses_stop(nc);
+  if(dimx < 80 || dimy < 24){ // minimum assumed geometry
+    std::cerr << "Terminal was too small for tests (minimum 80x24)" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+}
+
+auto main(int argc, const char **argv) -> int {
+  if(!setlocale(LC_ALL, "")){
+    std::cerr << "Couldn't set locale based on user preferences!" << std::endl;
+    return EXIT_FAILURE;
+  }
+  lang_and_term(); // might exit
   doctest::Context context;
 
   context.setOption("order-by", "name"); // sort the test cases by their name
