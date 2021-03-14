@@ -203,8 +203,95 @@ int interrogate_terminfo(tinfo* ti, const char* termname, unsigned utf8){
 }
 
 static int
+read_xtsmgraphics_reply(int fd){
+  char in;
+  // return is of the form CSI ? Pi ; 0 ; Pv S
+  enum {
+    WANT_CSI,
+    WANT_QMARK,
+    WANT_SEMI1,
+    WANT_SEMI2,
+    WANT_PV,
+    DONE
+  } state = WANT_CSI;
+  int pv = 0;
+  while(read(fd, &in, 1) == 1){
+//fprintf(stderr, "READ: %c 0x%02x\n", in, in);
+    switch(state){
+      case WANT_CSI:
+        if(in == NCKEY_ESC){
+          state = WANT_QMARK;
+        }
+        break;
+      case WANT_QMARK:
+        if(in == '?'){
+          state = WANT_SEMI1;
+        }
+        break;
+      case WANT_SEMI1:
+        if(in == ';'){
+          state = WANT_SEMI2;
+        }
+        break;
+      case WANT_SEMI2:
+        if(in == ';'){
+          state = WANT_PV;
+        }
+        break;
+      case WANT_PV:
+        if(in == 'S'){
+          state = DONE;
+        }else if(isdigit(in)){
+          pv *= 10;
+          pv += in - '0';
+        }
+        break;
+      case DONE:
+      default:
+        break;
+    }
+    if(state == DONE){
+      if(pv >= 0){
+fprintf(stderr, "READ %d\n", pv);
+        return pv;
+      }
+      break;
+    }
+  }
+  return -1;
+}
+
+static int
+query_xtsmgraphics(int fd, const char* seq, int* val){
+  ssize_t w = writen(fd, seq, strlen(seq));
+  if(w < 0 || (size_t)w != strlen(seq)){
+    return -1;
+  }
+  int r = read_xtsmgraphics_reply(fd);
+  if(r <= 0){
+    return -1;
+  }
+  *val = r;
+  return 0;
+}
+
+// query for Sixel details (number of color registers and maximum geometry)
+static int
+query_sixel_details(tinfo* ti, int fd){
+  if(query_xtsmgraphics(fd, "\x1b[?1;1;0S", &ti->color_registers)){
+    return -1;
+  }
+  int erp;
+  if(query_xtsmgraphics(fd, "\x1b[?2;1;0S", &erp)){
+    return -1;
+  }
+  return 0;
+}
+
+// query for Sixel support
+static int
 query_sixel(tinfo* ti, int fd){
-  if(writen(fd, "\033[c", 3) != 3){
+  if(writen(fd, "\x1b[c", 3) != 3){
     return -1;
   }
   char in;
@@ -242,6 +329,7 @@ query_sixel(tinfo* ti, int fd){
         }else if(in == '4'){
           if(!ti->sixel_supported){
             ti->sixel_supported = true;
+            ti->color_registers = 256;  // assumed default [shrug]
           } // FIXME else warning?
         }
         break;
@@ -253,7 +341,7 @@ query_sixel(tinfo* ti, int fd){
       break;
     }
   }
-  return 0;
+  return 0; // FIXME return error?
 }
 
 // fd must be a real terminal. uses the query lock of |ti| to only act once.
@@ -273,6 +361,9 @@ int query_term(tinfo* ti, int fd){
     }
     ret = query_sixel(ti, fd);
     ti->pixel_query_done = true;
+    if(ti->sixel_supported){
+      query_sixel_details(ti, fd);
+    }
     if(flags & O_NONBLOCK){
       fcntl(fd, F_SETFL, flags);
     }

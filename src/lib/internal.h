@@ -293,6 +293,7 @@ typedef struct tinfo {
   // bg_collides_default is either 0x0000000 or 0x1RRGGBB.
   uint32_t bg_collides_default;
   pthread_mutex_t pixel_query; // only query for pixel support once
+  int color_registers; // sixel color registers (post pixel_query_done)
   bool sixel_supported;  // do we support sixel (post pixel_query_done)?
   bool pixel_query_done; // have we yet performed pixel query?
   bool sextants;  // do we have (good, vetted) Unicode 13 sextant support?
