@@ -17,7 +17,6 @@ break_sixel_comps(unsigned char comps[static RGBSIZE], uint32_t rgba, unsigned c
 // sixelspace is 0..100 corresponding to 0..255, lame =[
 typedef struct colortable {
   int colors;
-  int sixelcount;
   unsigned char table[CENTSIZE * MAXCOLORS]; // components + dtable index
 } colortable;
 
@@ -31,6 +30,7 @@ typedef struct sixeltable {
   colortable* ctab;
   unsigned char* data;  // |colors|x|sixelcount|-byte arrays
   cdetails* deets;      // |colors|
+  int sixelcount;
 } sixeltable;
 
 static inline int
@@ -114,12 +114,12 @@ extract_ctable_inner(const uint32_t* data, int linesize, int begy, int begx,
 //fprintf(stderr, "FAILED FINDING COLOR AUGH 0x%02x\n", mask);
           return -1;
         }
-        stab->data[c * stab->ctab->sixelcount + pos] |= (1u << (sy - visy));
+        stab->data[c * stab->sixelcount + pos] |= (1u << (sy - visy));
         stab->deets[c].sums[0] += ncpixel_r(*rgb);
         stab->deets[c].sums[1] += ncpixel_g(*rgb);
         stab->deets[c].sums[2] += ncpixel_b(*rgb);
         ++stab->deets[c].count;
-//fprintf(stderr, "color %d pos %d: 0x%x\n", c, pos, stab->data[c * stab->ctab->sixelcount + pos]);
+//fprintf(stderr, "color %d pos %d: 0x%x\n", c, pos, stab->data[c * stab->sixelcount + pos]);
 //fprintf(stderr, " sums: %u %u %u count: %d r/g/b: %u %u %u\n", stab->deets[c].sums[0], stab->deets[c].sums[1], stab->deets[c].sums[2], stab->deets[c].count, ncpixel_r(*rgb), ncpixel_g(*rgb), ncpixel_b(*rgb));
       }
       ++pos;
@@ -131,7 +131,7 @@ extract_ctable_inner(const uint32_t* data, int linesize, int begy, int begx,
 static inline void
 initialize_stable(sixeltable* stab){
   stab->ctab->colors = 0;
-  memset(stab->data, 0, stab->ctab->sixelcount * MAXCOLORS);
+  memset(stab->data, 0, stab->sixelcount * MAXCOLORS);
   memset(stab->deets, 0, sizeof(*stab->deets) * MAXCOLORS);
 }
 
@@ -141,15 +141,10 @@ initialize_stable(sixeltable* stab){
 // progressively mask more out until they all fit.
 static int
 extract_color_table(const uint32_t* data, int linesize, int begy, int begx,
-                    int leny, int lenx, sixeltable* stab, unsigned char* mask){
-  *mask = 0xf0;
-  while(mask){
-    initialize_stable(stab);
-    if(extract_ctable_inner(data, linesize, begy, begx, leny, lenx, stab, *mask) == 0){
-      return 0;
-    }
-    *mask <<= 1;
-    *mask &= 0xff;
+                    int leny, int lenx, sixeltable* stab){
+  initialize_stable(stab);
+  if(extract_ctable_inner(data, linesize, begy, begx, leny, lenx, stab, 0xc0) == 0){
+    return 0;
   }
   return -1;
 }
@@ -204,26 +199,26 @@ write_sixel_data(FILE* fp, int lenx, sixeltable* stab){
             stab->deets[idx].sums[2] / count * 100 / 255);
   }
   int p = 0;
-  while(p < stab->ctab->sixelcount){
+  while(p < stab->sixelcount){
     for(int i = 0 ; i < stab->ctab->colors ; ++i){
       int printed = 0;
       int seenrle = 0; // number of repetitions
       unsigned char crle = 0; // character being repeated
       int idx = ctable_to_dtable(stab->ctab->table + i * CENTSIZE);
-      for(int m = p ; m < stab->ctab->sixelcount && m < p + lenx ; ++m){
-//fprintf(stderr, "%d ", idx * stab->ctab->sixelcount + m);
-//fputc(stab->data[idx * stab->ctab->sixelcount + m] + 63, stderr);
+      for(int m = p ; m < stab->sixelcount && m < p + lenx ; ++m){
+//fprintf(stderr, "%d ", idx * stab->sixelcount + m);
+//fputc(stab->data[idx * stab->sixelcount + m] + 63, stderr);
         if(seenrle){
-          if(stab->data[idx * stab->ctab->sixelcount + m] == crle){
+          if(stab->data[idx * stab->sixelcount + m] == crle){
             ++seenrle;
           }else{
             write_rle(&printed, i, fp, seenrle, crle);
             seenrle = 1;
-            crle = stab->data[idx * stab->ctab->sixelcount + m];
+            crle = stab->data[idx * stab->sixelcount + m];
           }
         }else{
           seenrle = 1;
-          crle = stab->data[idx * stab->ctab->sixelcount + m];
+          crle = stab->data[idx * stab->sixelcount + m];
         }
       }
       if(crle){
@@ -234,7 +229,7 @@ write_sixel_data(FILE* fp, int lenx, sixeltable* stab){
           fputc('$', fp);
         }
       }else{
-        if(p + lenx < stab->ctab->sixelcount){
+        if(p + lenx < stab->sixelcount){
           fputc('-', fp);
         }
       }
@@ -285,11 +280,12 @@ int sixel_blit(ncplane* nc, int placey, int placex, int linesize,
   if(ctab == NULL){
     return -1;
   }
-  ctab->sixelcount = (lenx - begx) * ((leny - begy + 5) / 6);
+  int sixelcount = (lenx - begx) * ((leny - begy + 5) / 6);
   sixeltable stable = {
     .ctab = ctab,
-    .data = malloc(MAXCOLORS * ctab->sixelcount),
+    .data = malloc(MAXCOLORS * sixelcount),
     .deets = malloc(MAXCOLORS * sizeof(cdetails)),
+    .sixelcount = sixelcount,
   };
   if(stable.data == NULL || stable.deets == NULL){
     free(stable.deets);
@@ -297,8 +293,7 @@ int sixel_blit(ncplane* nc, int placey, int placex, int linesize,
     free(ctab);
     return -1;
   }
-  unsigned char mask;
-  if(extract_color_table(data, linesize, begy, begx, leny, lenx, &stable, &mask)){
+  if(extract_color_table(data, linesize, begy, begx, leny, lenx, &stable)){
     free(ctab);
     free(stable.data);
     free(stable.deets);
