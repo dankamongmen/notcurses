@@ -630,7 +630,8 @@ term_setstyles(FILE* out, notcurses* nc, const nccell* c){
         normalized = true;
       }
     }else if(nc->tcache.sgr){
-      if(term_emit(tiparm(nc->tcache.sgr, cellattr & NCSTYLE_STANDOUT,
+      if(term_emit(tiparm(nc->tcache.sgr,
+                          cellattr & NCSTYLE_STANDOUT,
                           cellattr & NCSTYLE_UNDERLINE,
                           cellattr & NCSTYLE_REVERSE,
                           cellattr & NCSTYLE_BLINK,
@@ -922,9 +923,10 @@ emit_bg_palindex(notcurses* nc, FILE* out, const nccell* srccell){
 }
 
 static int
-rasterize_sprixels(notcurses* nc, FILE* out){
+rasterize_sprixels(notcurses* nc, const ncpile* p, FILE* out){
   sprixel* s;
-  for(sprixel** parent = &nc->sprixelcache ; (s = *parent) ; parent = &s->next){
+  sprixel** parent = &nc->sprixelcache;
+  while( (s = *parent) ){
     if(s->invalidated == SPRIXEL_INVALIDATED){
       int y, x;
       ncplane_yx(s->n, &y, &x);
@@ -936,18 +938,32 @@ rasterize_sprixels(notcurses* nc, FILE* out){
       }
       s->invalidated = SPRIXEL_NOCHANGE;
       nc->rstate.hardcursorpos = true;
+      parent = &s->next;
     }else if(s->invalidated == SPRIXEL_HIDE){
-fprintf(stderr, "OUGHT HIDE [%dx%d @ %d/%d] %p\n", s->dimy, s->dimx, s->y, s->x, s);
+//fprintf(stderr, "OUGHT HIDE [%dx%d @ %d/%d] %p\n", s->dimy, s->dimx, s->y, s->x, s);
       // FIXME only do this for sixel
-      for(int y = s->y ; y < s->y + s->dimy - 1 ; ++y){
-        for(int x = s->x ; x < s->x + s->dimx - 1 ; ++x){
+      struct crender* rvec = p->crender;
+      // FIXME need to cap by ends minus bottom, right margins also
+      const int ycap = nc->stdplane->leny /*s->dimy*/ + nc->margin_t;
+      const int xcap = nc->stdplane->lenx /*s->dimx*/ + nc->margin_l;
+//fprintf(stderr, "yCAP: %d xCAP: %d\n", ycap, xcap);
+      for(int y = s->y + nc->stdplane->absy ; y < s->y + nc->stdplane->absy + s->dimy && y < ycap ; ++y){
+        const int innery = y - nc->stdplane->absy;
+        for(int x = s->x + nc->stdplane->absx ; x < s->x + nc->stdplane->absx + s->dimx && x < xcap ; ++x){
+          const int innerx = x - nc->stdplane->absx;
+          const size_t damageidx = innery * nc->lfdimx + innerx;
+//fprintf(stderr, "DAMAGING %zu %d * %d + %d (max %d/%d)\n", damageidx, innery, nc->lfdimx, innerx, ycap, xcap);
+          rvec[damageidx].s.damaged = 1;
         }
       }
       // FIXME delete it in kitty
       *parent = s->next;
       sprixel_free(s);
+    }else{
+      parent = &s->next;
     }
   }
+  // FIXME what effect does emission have on rasterizing style state?
   return 0;
 }
 
@@ -1081,7 +1097,7 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
   if(rasterize_core(nc, p, out)){
     return -1;
   }
-  if(rasterize_sprixels(nc, out)){
+  if(rasterize_sprixels(nc, p, out)){
     return -1;
   }
   // FIXME only do this refresh loop if necessary
