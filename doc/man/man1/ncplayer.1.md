@@ -8,7 +8,7 @@ ncplayer - Render images and video to a terminal
 
 # SYNOPSIS
 
-**ncplayer** [**-h**] [**-V**] [**-q**] [**-d** ***delaymult***] [**-l** ***loglevel***] [**-b** ***blitter***] [**-s** ***scalemode***] [**-k**] [**-L**] [**-a** ***align***] [**-t** ***seconds***] files
+**ncplayer** [**-h**] [**-V**] [**-q**] [**-d** ***delaymult***] [**-l** ***loglevel***] [**-b** ***blitter***] [**-s** ***scalemode***] [**-k**] [**-L**] [**-t** ***seconds***] files
 
 # DESCRIPTION
 
@@ -32,8 +32,6 @@ be any non-negative number.
 **-s** ***scalemode***: Scaling mode, one of **none**, **hires**, **scale**, **scalehi**, or **stretch**.
 
 **-b** ***blitter***: Blitter, one of **ascii**, **half**, **quad**, **sex**, **braille**, or **pixel**.
-
-**-a** ***type***: Align images on **left**, **center**, or **right**.
 
 **-m margins**: Define rendering margins (see below).
 
