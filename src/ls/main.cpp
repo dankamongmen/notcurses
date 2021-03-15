@@ -26,6 +26,7 @@ void usage(std::ostream& os, const char* name, int code){
   os << " -R: list subdirectories recursively\n";
   os << " -a|--align type: 'left', 'right', or 'center'\n";
   os << " -b|--blitter blitter: 'ascii', 'half', 'quad', 'sex', 'braille', or 'pixel'\n";
+  os << " -s|--scale scaling: one of 'none', 'hires', 'scale', 'scalehi', or 'stretch'\n";
   os << " -h: print usage information\n";
   os << " -V: print version information\n";
   os << std::flush;
@@ -52,6 +53,7 @@ struct lsContext {
   bool dereflinks;
   ncpp::NCAlign alignment;
   ncblitter_e blitter;
+  ncscale_e scaling;
 };
 
 int handle_path(int dirfd, std::filesystem::path& dir, const char* p, const lsContext& ctx, bool toplevel);
@@ -145,7 +147,7 @@ void ncls_thread(const lsContext* ctx) {
       work.pop();
       pthread_mutex_unlock(&mtx);
       auto s = j.dir / j.p;
-      auto faken = ctx->nc.prep_image(s.c_str(), ctx->blitter, NCSCALE_SCALE_HIRES, -1, -1);
+      auto faken = ctx->nc.prep_image(s.c_str(), ctx->blitter, ctx->scaling, -1, -1);
       pthread_mutex_lock(&outmtx);
       std::cout << j.p << '\n';
       if(faken){
@@ -184,15 +186,17 @@ int main(int argc, char* const * argv){
   bool dereflinks = false;
   ncpp::NCAlign alignment = ncpp::NCAlign::Right;
   ncblitter_e blitter = NCBLIT_DEFAULT;
+  ncscale_e scale = NCSCALE_SCALE_HIRES;
   const struct option opts[] = {
     { "align", 1, nullptr, 'a' },
     { "blitter", 1, nullptr, 'b' },
+    { "scale", 1, nullptr, 's' },
     { "help", 0, nullptr, 'h' },
     { "version", 0, nullptr, 'V' },
     { nullptr, 0, nullptr, 0 },
   };
   int c, lidx;
-  while((c = getopt_long(argc, argv, "Va:b:dhlLR", opts, &lidx)) != -1){
+  while((c = getopt_long(argc, argv, "Va:b:s:dhlLR", opts, &lidx)) != -1){
     switch(c){
       case 'V':
         printf("ncls version %s\n", notcurses_version());
@@ -212,6 +216,13 @@ int main(int argc, char* const * argv){
       case 'b':
         if(notcurses_lex_blitter(optarg, &blitter)){
           std::cerr << "Invalid blitter specification (got "
+                    << optarg << ")" << std::endl;
+          usage(std::cerr, argv[0], EXIT_FAILURE);
+        }
+        break;
+      case 's':
+        if(notcurses_lex_scalemode(optarg, &scale)){
+          std::cerr << "Invalid scaling specification (got "
                     << optarg << ")" << std::endl;
           usage(std::cerr, argv[0], EXIT_FAILURE);
         }
@@ -252,6 +263,7 @@ int main(int argc, char* const * argv){
     dereflinks,
     alignment,
     blitter,
+    scale,
   };
   ctx.nc.check_pixel_support();
   keep_working = true;

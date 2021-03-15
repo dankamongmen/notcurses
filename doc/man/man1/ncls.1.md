@@ -8,7 +8,7 @@ ncls - List paths with rendering of multimedia
 
 # SYNOPSIS
 
-**ncls** [**-h**|**--help**] [**-V**|**--version**] [**-d**] [**-l**] [**-L**] [**-R**] [**-a**|**--align** ***type***] [**-b** ***blitter***] [ paths ]
+**ncls** [**-h**|**--help**] [**-V**|**--version**] [**-d**] [**-l**] [**-L**] [**-R**] [**-a**|**--align** ***type***] [**-b**|**--blitter** ***blitter***] [**-s**|**--scale** ***scale***] [ paths ]
 
 # DESCRIPTION
 
@@ -32,6 +32,8 @@ ncls - List paths with rendering of multimedia
 **-a**|**--align** ***type***: Align images on **left**, **center**, or **right**.
 
 **-b**|**--blitter** ***blitter***: Blitter, one of **ascii**, **half**, **quad**, **sex**, **braille**, or **pixel**.
+
+**-s**|**--scale** ***scalemode***: Scaling mode, one of **none**, **hires**, **scale**, **scalehi**, or **stretch**.
 
 paths: Run on the specified paths. If none are supplied, run on the current
 directory.
