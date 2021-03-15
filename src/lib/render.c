@@ -922,7 +922,9 @@ static int
 rasterize_sprixels(notcurses* nc, FILE* out){
   for(sprixel* s = nc->sprixelcache ; s ; s = s->next){
     if(s->invalidated){
-      if(goto_location(nc, out, s->y, s->x)){
+      int y, x;
+      ncplane_yx(s->n, &y, &x);
+      if(goto_location(nc, out, y, x)){
         return -1;
       }
       if(ncfputs(s->glyph, out) < 0){
