@@ -8,31 +8,45 @@ TEST_CASE("DirectMode") {
   }
 
   SUBCASE("SetItalic") {
-    CHECK(0 == ncdirect_set_styles(nc_, NCSTYLE_ITALIC));
+    if(nc_->tcache.sgr){
+      CHECK(0 == ncdirect_set_styles(nc_, NCSTYLE_ITALIC));
+    }else{
+      CHECK(0 != ncdirect_set_styles(nc_, NCSTYLE_ITALIC));
+    }
     printf("DirectMode *italic*!\n");
     fflush(stdout);
-    CHECK(0 == ncdirect_off_styles(nc_, NCSTYLE_ITALIC));
+    if(nc_->tcache.sgr){
+      CHECK(0 == ncdirect_off_styles(nc_, NCSTYLE_ITALIC));
+    }else{
+      CHECK(0 != ncdirect_off_styles(nc_, NCSTYLE_ITALIC));
+    }
   }
 
   SUBCASE("SetBold") {
-    CHECK(0 == ncdirect_set_styles(nc_, NCSTYLE_BOLD));
-    printf("DirectMode *bold*!\n");
-    fflush(stdout);
-    CHECK(0 == ncdirect_off_styles(nc_, NCSTYLE_BOLD));
+    if(nc_->tcache.sgr){
+      CHECK(0 == ncdirect_set_styles(nc_, NCSTYLE_BOLD));
+      printf("DirectMode *bold*!\n");
+      fflush(stdout);
+      CHECK(0 == ncdirect_off_styles(nc_, NCSTYLE_BOLD));
+    }
   }
 
   SUBCASE("SetUnderline") {
-    CHECK(0 == ncdirect_set_styles(nc_, NCSTYLE_UNDERLINE));
-    printf("DirectMode *underline*!\n");
-    fflush(stdout);
-    CHECK(0 == ncdirect_off_styles(nc_, NCSTYLE_UNDERLINE));
+    if(nc_->tcache.sgr){
+      CHECK(0 == ncdirect_set_styles(nc_, NCSTYLE_UNDERLINE));
+      printf("DirectMode *underline*!\n");
+      fflush(stdout);
+      CHECK(0 == ncdirect_off_styles(nc_, NCSTYLE_UNDERLINE));
+    }
   }
 
   SUBCASE("SetStruck") {
-    CHECK(0 == ncdirect_set_styles(nc_, NCSTYLE_STRUCK));
-    printf("DirectMode *struck*!\n");
-    fflush(stdout);
-    CHECK(0 == ncdirect_off_styles(nc_, NCSTYLE_STRUCK));
+    if(nc_->tcache.sgr){
+      CHECK(0 == ncdirect_set_styles(nc_, NCSTYLE_STRUCK));
+      printf("DirectMode *struck*!\n");
+      fflush(stdout);
+      CHECK(0 == ncdirect_off_styles(nc_, NCSTYLE_STRUCK));
+    }
   }
 
   CHECK(0 == ncdirect_stop(nc_));
