@@ -266,11 +266,8 @@ int sixel_blit_inner(ncplane* nc, int leny, int lenx, sixeltable* stab,
   return 1;
 }
 
-int sixel_blit(ncplane* nc, int placey, int placex, int linesize,
-               const void* data, int begy, int begx,
+int sixel_blit(ncplane* nc, int linesize, const void* data, int begy, int begx,
                int leny, int lenx, const blitterargs* bargs){
-  (void)placey;
-  (void)placex;
   int sixelcount = (lenx - begx) * ((leny - begy + 5) / 6);
   sixeltable stable = {
     .data = malloc(MAXCOLORS * sixelcount),

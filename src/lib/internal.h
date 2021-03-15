@@ -398,7 +398,11 @@ typedef struct notcurses {
 
 // cell vs pixel-specific arguments
 typedef union {
-  unsigned blendcolors; // for cells
+  struct {
+    int placey;         // placement within ncplane
+    int placex;
+    int blendcolors;    // use CELL_ALPHA_BLEND
+  } cell;               // for cells
   struct {
     int celldimx;       // horizontal pixels per cell
     int celldimy;       // vertical pixels per cell
@@ -406,9 +410,9 @@ typedef union {
   } pixel;              // for pixels
 } blitterargs;
 
-typedef int (*blitter)(struct ncplane* n, int placey, int placex,
-                       int linesize, const void* data, int begy, int begx,
-                       int leny, int lenx, const blitterargs* bargs);
+typedef int (*blitter)(struct ncplane* n, int linesize, const void* data,
+                       int begy, int begx, int leny, int lenx,
+                       const blitterargs* bargs);
 
 // a system for rendering RGBA pixels as text glyphs
 struct blitset {
@@ -864,8 +868,7 @@ ALLOC char* ncplane_vprintf_prep(const char* format, va_list ap);
 // change the internals of the ncvisual. Uses oframe.
 int ncvisual_blit(struct ncvisual* ncv, int rows, int cols,
                   ncplane* n, const struct blitset* bset,
-                  int placey, int placex, int begy, int begx,
-                  int leny, int lenx, const blitterargs* bargs);
+                  int begy, int begx, int leny, int lenx, const blitterargs* bargs);
 
 void nclog(const char* fmt, ...);
 
@@ -1214,12 +1217,10 @@ ncdirect_bg_default_p(const struct ncdirect* nc){
   return channels_bg_default_p(ncdirect_channels(nc));
 }
 
-int sixel_blit(ncplane* nc, int placey, int placex, int linesize,
-               const void* data, int begy, int begx,
+int sixel_blit(ncplane* nc, int linesize, const void* data, int begy, int begx,
                int leny, int lenx, const blitterargs* bargs);
 
-int kitty_blit(ncplane* nc, int placey, int placex, int linesize,
-               const void* data, int begy, int begx,
+int kitty_blit(ncplane* nc, int linesize, const void* data, int begy, int begx,
                int leny, int lenx, const blitterargs* bargs);
 
 int term_fg_rgb8(bool RGBflag, const char* setaf, int colors, FILE* out,
@@ -1228,11 +1229,10 @@ int term_fg_rgb8(bool RGBflag, const char* setaf, int colors, FILE* out,
 API const struct blitset* lookup_blitset(const tinfo* tcache, ncblitter_e setid, bool may_degrade);
 
 static inline int
-rgba_blit_dispatch(ncplane* nc, const struct blitset* bset, int placey,
-                   int placex, int linesize, const void* data, int begy,
+rgba_blit_dispatch(ncplane* nc, const struct blitset* bset,
+                   int linesize, const void* data, int begy,
                    int begx, int leny, int lenx, const blitterargs* bargs){
-  return bset->blit(nc, placey, placex, linesize, data, begy, begx,
-                    leny, lenx, bargs);
+  return bset->blit(nc, linesize, data, begy, begx, leny, lenx, bargs);
 }
 
 static inline const struct blitset*
@@ -1257,9 +1257,8 @@ typedef struct ncvisual_implementation {
   int (*visual_init)(int loglevel);
   void (*visual_printbanner)(const struct notcurses* nc);
   int (*visual_blit)(struct ncvisual* ncv, int rows, int cols, ncplane* n,
-                     const struct blitset* bset, int placey, int placex,
-                     int begy, int begx, int leny, int lenx,
-                     const blitterargs* barg);
+                     const struct blitset* bset, int begy, int begx,
+                     int leny, int lenx, const blitterargs* barg);
   struct ncvisual* (*visual_create)(void);
   struct ncvisual* (*visual_from_file)(const char* fname);
   // ncv constructors other than ncvisual_from_file() need to set up the
