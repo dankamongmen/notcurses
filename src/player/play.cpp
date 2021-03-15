@@ -28,6 +28,7 @@ void usage(std::ostream& o, const char* name, int exitcode){
   o << " -t seconds: delay t seconds after each file\n";
   o << " -l loglevel: integer between 0 and 9, goes to stderr'\n";
   o << " -s scaling: one of 'none', 'hires', 'scale', 'scalehi', or 'stretch'\n";
+  o << " -a type: 'left', 'right', or 'center'\n";
   o << " -b blitter: one of 'ascii', 'half', 'quad', 'sex', 'braille', or 'pixel'\n";
   o << " -m margins: margin, or 4 comma-separated margins\n";
   o << " -d mult: non-negative floating point scale for frame time" << std::endl;
@@ -282,7 +283,8 @@ auto handle_opts(int argc, char** argv, notcurses_options& opts, bool* quiet,
 }
 
 // argc/argv ought already be reduced to only the media arguments
-int direct_mode_player(int argc, char** argv, ncscale_e scalemode, ncblitter_e blitter){
+int direct_mode_player(int argc, char** argv, ncscale_e scalemode,
+                       ncblitter_e blitter, int lmargin, int rmargin){
   Direct dm{};
   if(!dm.canopen_images()){
     std::cerr << "Notcurses was compiled without multimedia support\n";
@@ -295,7 +297,8 @@ int direct_mode_player(int argc, char** argv, ncscale_e scalemode, ncblitter_e b
   {
     for(auto i = 0 ; i < argc ; ++i){
       try{
-        dm.render_image(argv[i], NCALIGN_RIGHT, blitter, scalemode);
+        dm.prep_image(argv[i], blitter, scalemode, -1,
+                      dm.get_dim_x() - (lmargin + rmargin));
       }catch(std::exception& e){
         // FIXME want to stop nc first :/ can't due to stdn, ugh
         std::cerr << argv[i] << ": " << e.what() << "\n";
@@ -323,7 +326,7 @@ auto main(int argc, char** argv) -> int {
   // if -k was provided, we now use direct mode rather than simply not using the
   // alternate screen, so that output is inline with the shell.
   if(ncopts.flags & NCOPTION_NO_ALTERNATE_SCREEN){
-    if(direct_mode_player(argc - nonopt, argv + nonopt, scalemode, blitter)){
+    if(direct_mode_player(argc - nonopt, argv + nonopt, scalemode, blitter, ncopts.margin_l, ncopts.margin_r)){
       return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;

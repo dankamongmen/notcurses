@@ -457,7 +457,10 @@ int ncdirect_raster_frame(ncdirect* n, ncdirectv* ncdv, ncalign_e align){
 }
 
 ncdirectv* ncdirect_render_frame(ncdirect* n, const char* file,
-                                 ncblitter_e blitfxn, ncscale_e scale){
+                                 ncblitter_e blitfxn, ncscale_e scale,
+                                 int ymax, int xmax){
+  int dimy = ymax > 0 ? ymax : ncdirect_dim_y(n);
+  int dimx = xmax > 0 ? xmax : ncdirect_dim_x(n);
   struct ncvisual* ncv = ncvisual_from_file(file);
   if(ncv == nullptr){
     return nullptr;
@@ -478,11 +481,11 @@ ncdirectv* ncdirect_render_frame(ncdirect* n, const char* file,
   int disprows, dispcols;
   if(scale != NCSCALE_NONE && scale != NCSCALE_NONE_HIRES){
     if(bset->geom != NCBLIT_PIXEL){
-      dispcols = ncdirect_dim_x(n) * encoding_x_scale(&n->tcache, bset);
-      disprows = ncdirect_dim_y(n) * encoding_y_scale(&n->tcache, bset);
+      dispcols = dimx * encoding_x_scale(&n->tcache, bset);
+      disprows = dimy * encoding_y_scale(&n->tcache, bset);
     }else{
-      dispcols = ncdirect_dim_x(n) * n->tcache.cellpixx;
-      disprows = ncdirect_dim_y(n) * n->tcache.cellpixy;
+      dispcols = dimx * n->tcache.cellpixx;
+      disprows = dimy * n->tcache.cellpixy;
     }
     if(scale == NCSCALE_SCALE || scale == NCSCALE_SCALE_HIRES){
       scale_visual(ncv, &disprows, &dispcols);
@@ -531,7 +534,7 @@ ncdirectv* ncdirect_render_frame(ncdirect* n, const char* file,
 
 int ncdirect_render_image(ncdirect* n, const char* file, ncalign_e align,
                           ncblitter_e blitfxn, ncscale_e scale){
-  auto faken = ncdirect_render_frame(n, file, blitfxn, scale);
+  auto faken = ncdirect_render_frame(n, file, blitfxn, scale, -1, -1);
   if(!faken){
     return -1;
   }

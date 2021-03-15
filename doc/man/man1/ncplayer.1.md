@@ -8,7 +8,7 @@ ncplayer - Render images and video to a terminal
 
 # SYNOPSIS
 
-**ncplayer** [**-h**] [**-V**] [**-q**] [**-d** ***delaymult***] [**-l** ***loglevel***] [**-b** ***blitter***] [**-s** ***scalemode***] [**-k**] [**-L**] [**-t** ***seconds***] files
+**ncplayer** [**-h**] [**-V**] [**-q**] [**-d** ***delaymult***] [**-l** ***loglevel***] [**-b** ***blitter***] [**-s** ***scalemode***] [**-k**] [**-L**] [**-a** ***align***] [**-t** ***seconds***] files
 
 # DESCRIPTION
 
@@ -33,6 +33,8 @@ be any non-negative number.
 
 **-b** ***blitter***: Blitter, one of **ascii**, **half**, **quad**, **sex**, **braille**, or **pixel**.
 
+**-a** ***type***: Align images on **left**, **center**, or **right**.
+
 **-m margins**: Define rendering margins (see below).
 
 **-L**: Loop frames until a key is pressed. Not supported with **-k**.
@@ -51,7 +53,8 @@ Default margins are all 0 and default scaling is **stretch**. The full
 rendering area will thus be used. Using **-m**, margins can be supplied.
 Provide a single number to set all four margins to the same value, or four
 comma-delimited values for the top, right, bottom, and left margins
-respectively. Negative margins are illegal.
+respectively. Top and bottom margins are ignored when **-k** is used. Negative
+margins are illegal.
 
 Scaling mode **stretch** resizes the object to match the target rendering
 area exactly. Unless a blitter is specified with **-b**, **stretch** will use
