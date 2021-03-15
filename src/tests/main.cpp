@@ -16,7 +16,8 @@ static const char* datadir = NOTCURSES_SHARE;
 
 auto testing_notcurses() -> struct notcurses* {
   notcurses_options nopts{};
-  nopts.loglevel = NCLOGLEVEL_ERROR;
+  // FIXME get loglevel from command line. enabling it by default leads to
+  // more confusion than useful information, so leave it off by default.
   nopts.flags = NCOPTION_SUPPRESS_BANNERS | NCOPTION_NO_ALTERNATE_SCREEN;
   auto nc = notcurses_init(&nopts, nullptr);
   return nc;
