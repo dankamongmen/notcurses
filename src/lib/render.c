@@ -918,6 +918,20 @@ emit_bg_palindex(notcurses* nc, FILE* out, const nccell* srccell){
   return 0;
 }
 
+static int
+rasterize_sprixels(notcurses* nc, FILE* out){
+  for(sprixel* s = nc->sprixelcache ; s ; s = s->next){
+    if(s->invalidated){
+      if(ncfputs(s->glyph, out) < 0){
+        return -1;
+      }
+      s->invalidated = false;
+      nc->rstate.hardcursorpos = true;
+    }
+  }
+  return 0;
+}
+
 // Producing the frame requires three steps:
 //  * render -- build up a flat framebuffer from a set of ncplanes
 //  * rasterize -- build up a UTF-8/ASCII stream of escapes and EGCs
@@ -1041,6 +1055,10 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
 //fprintf(stderr, "damageidx: %ld\n", damageidx);
     }
   }
+  if(rasterize_sprixels(nc, out)){
+    return -1;
+  }
+  // FIXME now emit damaged cells sitting atop sprixels
   if(fflush(out)){
     return -1;
   }

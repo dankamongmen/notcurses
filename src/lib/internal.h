@@ -352,6 +352,7 @@ typedef struct sprixel {
   int id;       // embedded into glusters field of nccell
   int cols;
   int rows;
+  int invalidated;
   struct sprixel* next;
 } sprixel;
 
