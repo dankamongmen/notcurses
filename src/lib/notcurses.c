@@ -655,6 +655,9 @@ int ncplane_destroy(ncplane* ncp){
     logerror(ncplane_notcurses(ncp), "Won't destroy standard plane\n");
     return -1;
   }
+  if(ncp->sprite){
+    sprixel_hide(ncp->sprite);
+  }
 //notcurses_debug(ncplane_notcurses(ncp), stderr);
   int ret = 0;
   // dissolve our binding from behind (->bprev is either NULL, or its

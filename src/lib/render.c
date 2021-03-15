@@ -924,7 +924,7 @@ emit_bg_palindex(notcurses* nc, FILE* out, const nccell* srccell){
 static int
 rasterize_sprixels(notcurses* nc, FILE* out){
   for(sprixel* s = nc->sprixelcache ; s ; s = s->next){
-    if(s->invalidated){
+    if(s->invalidated == SPRIXEL_INVALIDATED){
       int y, x;
       ncplane_yx(s->n, &y, &x);
       if(goto_location(nc, out, y, x)){
@@ -933,8 +933,10 @@ rasterize_sprixels(notcurses* nc, FILE* out){
       if(ncfputs(s->glyph, out) < 0){
         return -1;
       }
-      s->invalidated = false;
+      s->invalidated = SPRIXEL_NOCHANGE;
       nc->rstate.hardcursorpos = true;
+    }else if(s->invalidated == SPRIXEL_HIDE){
+      // FIXME delete it
     }
   }
   return 0;

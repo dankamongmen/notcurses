@@ -7,6 +7,11 @@ void sprixel_free(sprixel* s){
   }
 }
 
+void sprixel_hide(sprixel* s){
+  s->n->sprite = NULL;
+  s->invalidated = SPRIXEL_HIDE;
+}
+
 sprixel* sprixel_create(ncplane* n, const char* s, int bytes){
   sprixel* ret = malloc(sizeof(sprixel));
   if(ret){
@@ -14,7 +19,7 @@ sprixel* sprixel_create(ncplane* n, const char* s, int bytes){
       free(ret);
       return NULL;
     }
-    ret->invalidated = 1;
+    ret->invalidated = SPRIXEL_INVALIDATED;
     ret->n = n;
     if(ncplane_pile(n)){
       notcurses* nc = ncplane_notcurses(n);
