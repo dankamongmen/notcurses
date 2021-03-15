@@ -14,17 +14,16 @@ auto ncvisual_decode(ncvisual* nc) -> int {
 }
 
 auto ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
-                   const struct blitset* bset, int placey, int placex,
-                   int begy, int begx, int leny, int lenx,
-                   const blitterargs* barg) -> int {
+                   const struct blitset* bset, int begy, int begx,
+                   int leny, int lenx, const blitterargs* barg) -> int {
   int ret = -1;
   if(visual_implementation){
-    if(visual_implementation->visual_blit(ncv, rows, cols, n, bset, placey, placex,
-                           begy, begx, leny, lenx, barg) >= 0){
+    if(visual_implementation->visual_blit(ncv, rows, cols, n, bset,
+                                          begy, begx, leny, lenx, barg) >= 0){
       ret = 0;
     }
   }else{
-    if(rgba_blit_dispatch(n, bset, placey, placex, ncv->rowstride, ncv->data,
+    if(rgba_blit_dispatch(n, bset, ncv->rowstride, ncv->data,
                           begy, begx, leny, lenx, barg) >= 0){
       ret = 0;
     }
@@ -472,9 +471,10 @@ auto ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const blitset* bset,
   lenx = (lenx / (double)ncv->cols) * ((double)dispcols);
 //fprintf(stderr, "blit: %dx%d:%d+%d of %d/%d stride %u %p\n", begy, begx, leny, lenx, ncv->rows, ncv->cols, ncv->rowstride, ncv->data);
   blitterargs bargs;
-  bargs.blendcolors = blendcolors;
-  if(ncvisual_blit(ncv, disprows, dispcols, n, bset,
-                   placey, placex, begy, begx, leny, lenx, &bargs)){
+  bargs.cell.placey = placey;
+  bargs.cell.placex = placex;
+  bargs.cell.blendcolors = blendcolors;
+  if(ncvisual_blit(ncv, disprows, dispcols, n, bset, begy, begx, leny, lenx, &bargs)){
     ncplane_destroy(n);
     return nullptr;
   }
@@ -483,8 +483,7 @@ auto ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const blitset* bset,
 
 auto ncvisual_render_pixels(tinfo* tcache, ncvisual* ncv, const blitset* bset,
                             int placey, int placex, int begy, int begx,
-                            ncplane* n, ncscale_e scaling, ncplane* stdn)
-                            -> ncplane* {
+                            ncplane* n, ncscale_e scaling, ncplane* stdn) -> ncplane* {
   int disprows, dispcols;
   if(scaling == NCSCALE_NONE || scaling == NCSCALE_NONE_HIRES){
     dispcols = ncv->cols;
@@ -531,7 +530,7 @@ auto ncvisual_render_pixels(tinfo* tcache, ncvisual* ncv, const blitset* bset,
   bargs.pixel.celldimy = ncplane_notcurses(stdn)->tcache.cellpixy;
   bargs.pixel.colorregs = ncplane_notcurses(stdn)->tcache.color_registers;
   if(ncvisual_blit(ncv, disprows, dispcols, n, bset,
-                   placey, placex, begy, begx, disprows, dispcols, &bargs)){
+                   begy, begx, disprows, dispcols, &bargs)){
     ncplane_destroy(n);
     return nullptr;
   }

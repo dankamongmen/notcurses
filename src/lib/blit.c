@@ -33,10 +33,9 @@ trilerp(uint32_t c0, uint32_t c1, uint32_t c2){
 
 // Retarded RGBA blitter (ASCII only).
 static inline int
-tria_blit_ascii(ncplane* nc, int placey, int placex, int linesize,
-                const void* data, int begy, int begx,
+tria_blit_ascii(ncplane* nc, int linesize, const void* data, int begy, int begx,
                 int leny, int lenx, const blitterargs* bargs){
-//fprintf(stderr, "ASCII %d X %d @ %d X %d (%p) place: %d X %d\n", leny, lenx, begy, begx, data, placey, placex);
+//fprintf(stderr, "ASCII %d X %d @ %d X %d (%p) place: %d X %d\n", leny, lenx, begy, begx, data, bargs->cell.placey, bargs->cell.placex);
   const int bpp = 32;
   int dimy, dimx, x, y;
   int total = 0; // number of cells written
@@ -44,12 +43,12 @@ tria_blit_ascii(ncplane* nc, int placey, int placex, int linesize,
   // FIXME not going to necessarily be safe on all architectures hrmmm
   const unsigned char* dat = data;
   int visy = begy;
-  for(y = placey ; visy < (begy + leny) && y < dimy ; ++y, ++visy){
-    if(ncplane_cursor_move_yx(nc, y, placex)){
+  for(y = bargs->cell.placey ; visy < (begy + leny) && y < dimy ; ++y, ++visy){
+    if(ncplane_cursor_move_yx(nc, y, bargs->cell.placex)){
       return -1;
     }
     int visx = begx;
-    for(x = placex ; visx < (begx + lenx) && x < dimx ; ++x, ++visx){
+    for(x = bargs->cell.placex ; visx < (begx + lenx) && x < dimx ; ++x, ++visx){
       const unsigned char* rgbbase_up = dat + (linesize * visy) + (visx * bpp / CHAR_BIT);
 //fprintf(stderr, "[%04d/%04d] bpp: %d lsize: %d %02x %02x %02x %02x\n", y, x, bpp, linesize, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2], rgbbase_up[3]);
       nccell* c = ncplane_cell_ref_yx(nc, y, x);
@@ -57,7 +56,7 @@ tria_blit_ascii(ncplane* nc, int placey, int placex, int linesize,
       // effective in that case anyway
       c->channels = 0;
       c->stylemask = 0;
-      if(bargs->blendcolors){
+      if(bargs->cell.blendcolors){
         cell_set_bg_alpha(c, CELL_ALPHA_BLEND);
         cell_set_fg_alpha(c, CELL_ALPHA_BLEND);
       }
@@ -82,10 +81,9 @@ tria_blit_ascii(ncplane* nc, int placey, int placex, int linesize,
 // RGBA half-block blitter. Best for most images/videos. Full fidelity
 // combined with 1:1 pixel aspect ratio.
 static inline int
-tria_blit(ncplane* nc, int placey, int placex, int linesize,
-          const void* data, int begy, int begx,
+tria_blit(ncplane* nc, int linesize, const void* data, int begy, int begx,
           int leny, int lenx, const blitterargs* bargs){
-//fprintf(stderr, "HALF %d X %d @ %d X %d (%p) place: %d X %d\n", leny, lenx, begy, begx, data, placey, placex);
+//fprintf(stderr, "HALF %d X %d @ %d X %d (%p) place: %d X %d\n", leny, lenx, begy, begx, data, bargs->cell.placey, bargs->cell.placex);
   const int bpp = 32;
   int dimy, dimx, x, y;
   int total = 0; // number of cells written
@@ -93,12 +91,12 @@ tria_blit(ncplane* nc, int placey, int placex, int linesize,
   // FIXME not going to necessarily be safe on all architectures hrmmm
   const unsigned char* dat = data;
   int visy = begy;
-  for(y = placey ; visy < (begy + leny) && y < dimy ; ++y, visy += 2){
-    if(ncplane_cursor_move_yx(nc, y, placex)){
+  for(y = bargs->cell.placey ; visy < (begy + leny) && y < dimy ; ++y, visy += 2){
+    if(ncplane_cursor_move_yx(nc, y, bargs->cell.placex)){
       return -1;
     }
     int visx = begx;
-    for(x = placex ; visx < (begx + lenx) && x < dimx ; ++x, ++visx){
+    for(x = bargs->cell.placex ; visx < (begx + lenx) && x < dimx ; ++x, ++visx){
       const unsigned char* rgbbase_up = dat + (linesize * visy) + (visx * bpp / CHAR_BIT);
       const unsigned char* rgbbase_down = zeroes;
       if(visy < begy + leny - 1){
@@ -110,7 +108,7 @@ tria_blit(ncplane* nc, int placey, int placex, int linesize,
       // effective in that case anyway
       c->channels = 0;
       c->stylemask = 0;
-      if(bargs->blendcolors){
+      if(bargs->cell.blendcolors){
         cell_set_bg_alpha(c, CELL_ALPHA_BLEND);
         cell_set_fg_alpha(c, CELL_ALPHA_BLEND);
       }
@@ -416,23 +414,22 @@ qtrans_check(nccell* c, unsigned blendcolors,
 // quadrant blitter. maps 2x2 to each cell. since we only have two colors at
 // our disposal (foreground and background), we lose some fidelity.
 static inline int
-quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
-              const void* data, int begy, int begx,
+quadrant_blit(ncplane* nc, int linesize, const void* data, int begy, int begx,
               int leny, int lenx, const blitterargs* bargs){
   const int bpp = 32;
   int dimy, dimx, x, y;
   int total = 0; // number of cells written
   ncplane_dim_yx(nc, &dimy, &dimx);
-//fprintf(stderr, "quadblitter %dx%d -> %d/%d+%d/%d\n", leny, lenx, dimy, dimx, placey, placex);
+//fprintf(stderr, "quadblitter %dx%d -> %d/%d+%d/%d\n", leny, lenx, dimy, dimx, bargs->cell.placey, bargs->cell.placex);
   // FIXME not going to necessarily be safe on all architectures hrmmm
   const unsigned char* dat = data;
   int visy = begy;
-  for(y = placey ; visy < (begy + leny) && y < dimy ; ++y, visy += 2){
-    if(ncplane_cursor_move_yx(nc, y, placex)){
+  for(y = bargs->cell.placey ; visy < (begy + leny) && y < dimy ; ++y, visy += 2){
+    if(ncplane_cursor_move_yx(nc, y, bargs->cell.placex)){
       return -1;
     }
     int visx = begx;
-    for(x = placex ; visx < (begx + lenx) && x < dimx ; ++x, visx += 2){
+    for(x = bargs->cell.placex ; visx < (begx + lenx) && x < dimx ; ++x, visx += 2){
       const unsigned char* rgbbase_tl = dat + (linesize * visy) + (visx * bpp / CHAR_BIT);
       const unsigned char* rgbbase_tr = zeroes;
       const unsigned char* rgbbase_bl = zeroes;
@@ -450,7 +447,7 @@ quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
       nccell* c = ncplane_cell_ref_yx(nc, y, x);
       c->channels = 0;
       c->stylemask = 0;
-      const char* egc = qtrans_check(c, bargs->blendcolors, rgbbase_tl, rgbbase_tr, rgbbase_bl, rgbbase_br);
+      const char* egc = qtrans_check(c, bargs->cell.blendcolors, rgbbase_tl, rgbbase_tr, rgbbase_bl, rgbbase_br);
       if(egc == NULL){
         uint32_t tl = 0, tr = 0, bl = 0, br = 0;
         channel_set_rgb8(&tl, rgbbase_tl[0], rgbbase_tl[1], rgbbase_tl[2]);
@@ -464,7 +461,7 @@ quadrant_blit(ncplane* nc, int placey, int placex, int linesize,
 //fprintf(stderr, "%d/%d %08x/%08x\n", y, x, fg, bg);
         cell_set_fchannel(c, fg);
         cell_set_bchannel(c, bg);
-        if(bargs->blendcolors){
+        if(bargs->cell.blendcolors){
           cell_set_bg_alpha(c, CELL_ALPHA_BLEND);
           cell_set_fg_alpha(c, CELL_ALPHA_BLEND);
         }
@@ -639,22 +636,21 @@ sex_trans_check(cell* c, const uint32_t rgbas[6], unsigned blendcolors){
 // sextant blitter. maps 3x2 to each cell. since we only have two colors at
 // our disposal (foreground and background), we lose some fidelity.
 static inline int
-sextant_blit(ncplane* nc, int placey, int placex, int linesize,
-             const void* data, int begy, int begx,
+sextant_blit(ncplane* nc, int linesize, const void* data, int begy, int begx,
              int leny, int lenx, const blitterargs* bargs){
   const int bpp = 32;
   int dimy, dimx, x, y;
   int total = 0; // number of cells written
   ncplane_dim_yx(nc, &dimy, &dimx);
-//fprintf(stderr, "sexblitter %dx%d -> %d/%d+%d/%d\n", leny, lenx, dimy, dimx, placey, placex);
+//fprintf(stderr, "sexblitter %dx%d -> %d/%d+%d/%d\n", leny, lenx, dimy, dimx, bargs->cell.placey, bargs->cell.placex);
   const unsigned char* dat = data;
   int visy = begy;
-  for(y = placey ; visy < (begy + leny) && y < dimy ; ++y, visy += 3){
-    if(ncplane_cursor_move_yx(nc, y, placex)){
+  for(y = bargs->cell.placey ; visy < (begy + leny) && y < dimy ; ++y, visy += 3){
+    if(ncplane_cursor_move_yx(nc, y, bargs->cell.placex)){
       return -1;
     }
     int visx = begx;
-    for(x = placex ; visx < (begx + lenx) && x < dimx ; ++x, visx += 2){
+    for(x = bargs->cell.placex ; visx < (begx + lenx) && x < dimx ; ++x, visx += 2){
       uint32_t rgbas[6] = { 0, 0, 0, 0, 0, 0 };
       memcpy(&rgbas[0], (dat + (linesize * visy) + (visx * bpp / CHAR_BIT)), sizeof(*rgbas));
       if(visx < begx + lenx - 1){
@@ -675,9 +671,9 @@ sextant_blit(ncplane* nc, int placey, int placex, int linesize,
       nccell* c = ncplane_cell_ref_yx(nc, y, x);
       c->channels = 0;
       c->stylemask = 0;
-      const char* egc = sex_trans_check(c, rgbas, bargs->blendcolors);
+      const char* egc = sex_trans_check(c, rgbas, bargs->cell.blendcolors);
       if(egc == NULL){
-        egc = sex_solver(rgbas, &c->channels, bargs->blendcolors);
+        egc = sex_solver(rgbas, &c->channels, bargs->cell.blendcolors);
         cell_set_blitquadrants(c, 1, 1, 1, 1);
       }
 //fprintf(stderr, "sex EGC: %s channels: %016lx\n", egc, c->channels);
@@ -708,8 +704,7 @@ fold_rgb8(unsigned* restrict r, unsigned* restrict g, unsigned* restrict b,
 // visuals with only two colors in a given area, as it packs lots of
 // resolution. always transparent background.
 static inline int
-braille_blit(ncplane* nc, int placey, int placex, int linesize,
-             const void* data, int begy, int begx,
+braille_blit(ncplane* nc, int linesize, const void* data, int begy, int begx,
              int leny, int lenx, const blitterargs* bargs){
   const int bpp = 32;
   int dimy, dimx, x, y;
@@ -718,12 +713,12 @@ braille_blit(ncplane* nc, int placey, int placex, int linesize,
   // FIXME not going to necessarily be safe on all architectures hrmmm
   const unsigned char* dat = data;
   int visy = begy;
-  for(y = placey ; visy < (begy + leny) && y < dimy ; ++y, visy += 4){
-    if(ncplane_cursor_move_yx(nc, y, placex)){
+  for(y = bargs->cell.placey ; visy < (begy + leny) && y < dimy ; ++y, visy += 4){
+    if(ncplane_cursor_move_yx(nc, y, bargs->cell.placex)){
       return -1;
     }
     int visx = begx;
-    for(x = placex ; visx < (begx + lenx) && x < dimx ; ++x, visx += 2){
+    for(x = bargs->cell.placex ; visx < (begx + lenx) && x < dimx ; ++x, visx += 2){
       const uint32_t* rgbbase_l0 = (const uint32_t*)(dat + (linesize * visy) + (visx * bpp / CHAR_BIT));
       const uint32_t* rgbbase_r0 = &zeroes32;
       const uint32_t* rgbbase_l1 = &zeroes32;
@@ -795,7 +790,7 @@ braille_blit(ncplane* nc, int placey, int placex, int linesize,
       // effective in that case anyway
       c->channels = 0;
       c->stylemask = 0;
-      if(bargs->blendcolors){
+      if(bargs->cell.blendcolors){
         cell_set_fg_alpha(c, CELL_ALPHA_BLEND);
       }
       // FIXME for now, we just sample, color-wise, and always draw crap.
@@ -976,10 +971,13 @@ int ncblit_rgba(const void* data, int linesize, const struct ncvisual_options* v
     return -1;
   }
   blitterargs bargs = {
-    .blendcolors = (vopts->flags & NCVISUAL_OPTION_BLEND),
+    .cell = {
+      .placey = vopts->y,
+      .placex = vopts->x,
+      .blendcolors = (vopts->flags & NCVISUAL_OPTION_BLEND),
+    },
   };
-  return bset->blit(nc, vopts->y, vopts->x, linesize, data, begy, begx,
-                    leny, lenx, &bargs);
+  return bset->blit(nc, linesize, data, begy, begx, leny, lenx, &bargs);
 }
 
 ncblitter_e ncvisual_media_defblitter(const notcurses* nc, ncscale_e scale){

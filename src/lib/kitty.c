@@ -142,13 +142,10 @@ int kitty_blit_inner(ncplane* nc, int linesize, int leny, int lenx,
 }
 
 
-int kitty_blit(ncplane* nc, int placey, int placex, int linesize,
-               const void* data, int begy, int begx,
+int kitty_blit(ncplane* nc, int linesize, const void* data, int begy, int begx,
                int leny, int lenx, const blitterargs* bargs){
   (void)begy;
   (void)begx;
-  (void)placey;
-  (void)placex;
 //fprintf(stderr, "s=%d,v=%d\n", lenx, leny);
   int r = kitty_blit_inner(nc, linesize, leny, lenx, data, bargs);
   if(r < 0){
