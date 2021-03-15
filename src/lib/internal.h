@@ -690,7 +690,7 @@ sprixel* sprixel_create(ncplane* n, const char* s, int bytes);
 
 static inline void
 pool_release(egcpool* pool, nccell* c){
-  if(!cell_simple_p(c)){
+  if(cell_extended_p(c)){
     egcpool_release(pool, cell_egc_idx(c));
   }
   c->gcluster = 0; // don't subject ourselves to double-release problems
@@ -709,7 +709,7 @@ cell_duplicate_far(egcpool* tpool, nccell* targ, const ncplane* splane, const nc
   targ->stylemask = c->stylemask;
   targ->channels = c->channels;
   targ->width = c->width;
-  if(cell_simple_p(c)){
+  if(!cell_extended_p(c)){
     targ->gcluster = c->gcluster;
     return 0;
   }
@@ -1089,7 +1089,7 @@ plane_blit_sixel(ncplane* n, const char* s, int bytes, int leny, int lenx){
   gcluster[0] = 2;
   gcluster[1] = spx->id;
   gcluster[2] = 0; // FIXME
-  gcluster[3] = 0; // FIXME
+  gcluster[3] = 2; // FIXME
   for(int y = 0 ; y < leny ; ++y){
     for(int x = 0 ; x < lenx ; ++x){
       nccell* c = ncplane_cell_ref_yx(n, y, x);
