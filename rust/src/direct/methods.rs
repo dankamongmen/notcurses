@@ -93,8 +93,10 @@ impl NcDirect {
         filename: &str,
         blitter: NcBlitter,
         scale: NcScale,
+        maxy: i32,
+        maxx: i32,
     ) -> NcResult<&'a mut NcPlane> {
-        let res = unsafe { crate::ncdirect_render_frame(self, cstring![filename], blitter, scale) };
+        let res = unsafe { crate::ncdirect_render_frame(self, cstring![filename], blitter, scale, maxy, maxx) };
         error_ref_mut![
             res,
             &format!(
