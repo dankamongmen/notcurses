@@ -928,7 +928,7 @@ rasterize_sprixels(notcurses* nc, FILE* out){
     if(s->invalidated == SPRIXEL_INVALIDATED){
       int y, x;
       ncplane_yx(s->n, &y, &x);
-      if(goto_location(nc, out, y, x)){
+      if(goto_location(nc, out, y + nc->stdplane->absy, x + nc->stdplane->absx)){
         return -1;
       }
       if(ncfputs(s->glyph, out) < 0){
@@ -938,7 +938,12 @@ rasterize_sprixels(notcurses* nc, FILE* out){
       nc->rstate.hardcursorpos = true;
     }else if(s->invalidated == SPRIXEL_HIDE){
 fprintf(stderr, "OUGHT HIDE [%dx%d @ %d/%d] %p\n", s->dimy, s->dimx, s->y, s->x, s);
-      // FIXME delete it
+      // FIXME only do this for sixel
+      for(int y = s->y ; y < s->y + s->dimy - 1 ; ++y){
+        for(int x = s->x ; x < s->x + s->dimx - 1 ; ++x){
+        }
+      }
+      // FIXME delete it in kitty
       *parent = s->next;
       sprixel_free(s);
     }
@@ -958,20 +963,11 @@ fprintf(stderr, "OUGHT HIDE [%dx%d @ %d/%d] %p\n", s->dimy, s->dimx, s->y, s->x,
 // lastframe has *not yet been written to the screen*, i.e. it's only about to
 // *become* the last frame rasterized.
 static int
-notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
-  const struct crender* rvec = p->crender;
-  int y, x;
-  fseeko(out, 0, SEEK_SET);
-  // we only need to emit a coordinate if it was damaged. the damagemap is a
-  // bit per coordinate, one per struct crender.
-  // don't write a clearscreen. we only update things that have been changed.
-  // we explicitly move the cursor at the beginning of each output line, so no
-  // need to home it expliticly.
-  update_palette(nc, out);
-//fprintf(stderr, "pile %p ymax: %d xmax: %d\n", p, p->dimy + nc->stdplane->absy, p->dimx + nc->stdplane->absx);
-  for(y = nc->stdplane->absy ; y < p->dimy + nc->stdplane->absy ; ++y){
+rasterize_core(notcurses* nc, const ncpile* p, FILE* out){
+  struct crender* rvec = p->crender;
+  for(int y = nc->stdplane->absy ; y < p->dimy + nc->stdplane->absy ; ++y){
     const int innery = y - nc->stdplane->absy;
-    for(x = nc->stdplane->absx ; x < p->dimx + nc->stdplane->absx ; ++x){
+    for(int x = nc->stdplane->absx ; x < p->dimx + nc->stdplane->absx ; ++x){
       const int innerx = x - nc->stdplane->absx;
       const size_t damageidx = innery * nc->lfdimx + innerx;
       unsigned r, g, b, br, bg, bb;
@@ -1059,7 +1055,7 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
         if(term_putc(out, &nc->pool, srccell)){
           return -1;
         }
-        // if we just emitted a sixel, always force a hard cursor relocation
+        rvec[damageidx].s.damaged = 0;
         ++nc->rstate.x;
         if(srccell->width >= 2){
           x += srccell->width - 1;
@@ -1069,10 +1065,29 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
 //fprintf(stderr, "damageidx: %ld\n", damageidx);
     }
   }
+  return 0;
+}
+
+static int
+notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
+  fseeko(out, 0, SEEK_SET);
+  // we only need to emit a coordinate if it was damaged. the damagemap is a
+  // bit per coordinate, one per struct crender.
+  // don't write a clearscreen. we only update things that have been changed.
+  // we explicitly move the cursor at the beginning of each output line, so no
+  // need to home it expliticly.
+  update_palette(nc, out);
+//fprintf(stderr, "pile %p ymax: %d xmax: %d\n", p, p->dimy + nc->stdplane->absy, p->dimx + nc->stdplane->absx);
+  if(rasterize_core(nc, p, out)){
+    return -1;
+  }
   if(rasterize_sprixels(nc, out)){
     return -1;
   }
-  // FIXME now emit damaged cells sitting atop sprixels
+  // FIXME only do this refresh loop if necessary
+  if(rasterize_core(nc, p, out)){
+    return -1;
+  }
   if(fflush(out)){
     return -1;
   }
