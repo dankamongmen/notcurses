@@ -620,22 +620,27 @@ term_setstyles(FILE* out, notcurses* nc, const nccell* c){
   // if only italics changed, don't emit any sgr escapes. xor of current and
   // target ought have all 0s in the lower 8 bits if only italics changed.
   if((cellattr ^ nc->rstate.curattr) & 0xfful){
-    normalized = true; // FIXME this is pretty conservative
     // if everything's 0, emit the shorter sgr0
     if(nc->tcache.sgr0 && ((cellattr & NCSTYLE_MASK) == 0)){
       if(term_emit(nc->tcache.sgr0, out, false) < 0){
         ret = -1;
+      }else{
+        normalized = true;
       }
-    }else if(term_emit(tiparm(nc->tcache.sgr, cellattr & NCSTYLE_STANDOUT,
-                              cellattr & NCSTYLE_UNDERLINE,
-                              cellattr & NCSTYLE_REVERSE,
-                              cellattr & NCSTYLE_BLINK,
-                              cellattr & NCSTYLE_DIM,
-                              cellattr & NCSTYLE_BOLD,
-                              cellattr & NCSTYLE_INVIS,
-                              cellattr & NCSTYLE_PROTECT, 0),
-                              out, false) < 0){
-      ret = -1;
+    }else if(nc->tcache.sgr){
+      if(term_emit(tiparm(nc->tcache.sgr, cellattr & NCSTYLE_STANDOUT,
+                          cellattr & NCSTYLE_UNDERLINE,
+                          cellattr & NCSTYLE_REVERSE,
+                          cellattr & NCSTYLE_BLINK,
+                          cellattr & NCSTYLE_DIM,
+                          cellattr & NCSTYLE_BOLD,
+                          cellattr & NCSTYLE_INVIS,
+                          cellattr & NCSTYLE_PROTECT, 0),
+                          out, false) < 0){
+        ret = -1;
+      }else{
+        normalized = true;
+      }
     }
     // sgr will blow away italics/struck if they were set beforehand
     nc->rstate.curattr &= !(NCSTYLE_ITALIC | NCSTYLE_STRUCK);
