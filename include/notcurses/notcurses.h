@@ -586,10 +586,6 @@ typedef struct nccell {
   // are single-byte ASCII-derived values. The XXXXXX is interpreted as a 24-bit
   // index into the egcpool. These pools may thus be up to 16MB.
   //
-  // A pixel graphic (a "sprixel") is indicated by the value 0x02XXXXXX. This
-  // is safe for the same reasons as a spilled EGC. The remaining 24 bits are
-  // an identifier for the sprixel cache, shared across the notcurses context.
-  //
   // The cost of this scheme is that the character 0x01 (SOH) cannot be encoded
   // in a nccell, which is absolutely fine because what 70s horseshit is SOH?
   // It must not be allowed through the API, or havoc will result.

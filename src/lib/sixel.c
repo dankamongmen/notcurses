@@ -243,8 +243,8 @@ write_sixel_data(FILE* fp, int lenx, sixeltable* stab){
 // are programmed as a set of registers, which are then referenced by the
 // stacks. There is also a RLE component, handled in rasterization.
 // A pixel block is indicated by setting cell_pixels_p().
-int sixel_blit_inner(ncplane* nc, int placey, int placex, int lenx,
-                     sixeltable* stab, unsigned cellpixx){
+int sixel_blit_inner(ncplane* nc, int leny, int lenx, sixeltable* stab,
+                     const blitterargs* bargs){
   char* buf = NULL;
   size_t size = 0;
   FILE* fp = open_memstream(&buf, &size);
@@ -256,9 +256,9 @@ int sixel_blit_inner(ncplane* nc, int placey, int placex, int lenx,
     free(buf);
     return -1;
   }
-  nccell* c = ncplane_cell_ref_yx(nc, placey, placex);
-  unsigned width = lenx / cellpixx + !!(lenx % cellpixx);
-  if(pool_blit_direct(&nc->pool, c, buf, size, width) < 0){
+  unsigned cols = lenx / bargs->pixel.celldimx + !!(lenx % bargs->pixel.celldimx);
+  unsigned rows = leny / bargs->pixel.celldimy + !!(leny % bargs->pixel.celldimx);
+  if(plane_blit_sixel(nc, buf, size, rows, cols) < 0){
     free(buf);
     return -1;
   }
@@ -269,6 +269,8 @@ int sixel_blit_inner(ncplane* nc, int placey, int placex, int lenx,
 int sixel_blit(ncplane* nc, int placey, int placex, int linesize,
                const void* data, int begy, int begx,
                int leny, int lenx, const blitterargs* bargs){
+  (void)placey;
+  (void)placex;
   int sixelcount = (lenx - begx) * ((leny - begy + 5) / 6);
   sixeltable stable = {
     .data = malloc(MAXCOLORS * sixelcount),
@@ -292,7 +294,7 @@ int sixel_blit(ncplane* nc, int placey, int placex, int linesize,
     free(stable.deets);
     return -1;
   }
-  int r = sixel_blit_inner(nc, placey, placex, lenx, &stable, bargs->pixel.celldimx);
+  int r = sixel_blit_inner(nc, leny, lenx, &stable, bargs);
   free(stable.data);
   free(stable.deets);
   free(stable.table);

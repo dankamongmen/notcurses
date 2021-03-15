@@ -401,6 +401,7 @@ typedef union {
   unsigned blendcolors; // for cells
   struct {
     int celldimx;       // horizontal pixels per cell
+    int celldimy;       // vertical pixels per cell
     int colorregs;      // number of color registers
   } pixel;              // for pixels
 } blitterargs;
@@ -1066,6 +1067,17 @@ egc_rtl(const char* egc, int* bytes){
   memcpy(s + *bytes, LTRMARK, sizeof(LTRMARK));
   *bytes += strlen(LTRMARK);
   return s;
+}
+
+static inline int
+plane_blit_sixel(ncplane* n, const char* s, int bytes, int leny, int lenx){
+  (void)n;
+  (void)s;
+  (void)bytes;
+  (void)leny;
+  (void)lenx;
+  // FIXME
+  return 0;
 }
 
 // lowest level of cell+pool setup. if the EGC changes the output to RTL, it

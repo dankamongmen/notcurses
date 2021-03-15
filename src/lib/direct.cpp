@@ -519,6 +519,7 @@ ncdirectv* ncdirect_render_frame(ncdirect* n, const char* file,
   blitterargs bargs = {
     .pixel = {
       .celldimx = n->tcache.cellpixx,
+      .celldimy = n->tcache.cellpixy,
       .colorregs = n->tcache.color_registers,
     },
   };
