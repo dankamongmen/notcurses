@@ -118,9 +118,10 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, const uint32_t* dat
 
 // Kitty graphics blitter. Kitty can take in up to 4KiB at a time of (optionally
 // deflate-compressed) 24bit RGB.
-int kitty_blit_inner(ncplane* nc, int placey, int placex, int linesize,
-                     int leny, int lenx, unsigned cellpixx, const void* data){
-  unsigned width = lenx / cellpixx + !!(lenx % cellpixx);
+int kitty_blit_inner(ncplane* nc, int linesize, int leny, int lenx,
+                     const void* data, const blitterargs* bargs){
+  int rows = leny / bargs->pixel.celldimx + !!(leny % bargs->pixel.celldimx);
+  int cols = lenx / bargs->pixel.celldimx + !!(lenx % bargs->pixel.celldimx);
   char* buf = NULL;
   size_t size = 0;
   FILE* fp = open_memstream(&buf, &size);
@@ -132,8 +133,7 @@ int kitty_blit_inner(ncplane* nc, int placey, int placex, int linesize,
     free(buf);
     return -1;
   }
-  nccell* c = ncplane_cell_ref_yx(nc, placey, placex);
-  if(pool_blit_direct(&nc->pool, c, buf, size, width) < 0){
+  if(plane_blit_sixel(nc, buf, size, rows, cols) < 0){
     free(buf);
     return -1;
   }
@@ -147,9 +147,10 @@ int kitty_blit(ncplane* nc, int placey, int placex, int linesize,
                int leny, int lenx, const blitterargs* bargs){
   (void)begy;
   (void)begx;
+  (void)placey;
+  (void)placex;
 //fprintf(stderr, "s=%d,v=%d\n", lenx, leny);
-  int r = kitty_blit_inner(nc, placey, placex, linesize, leny, lenx,
-                           bargs->pixel.celldimx, data);
+  int r = kitty_blit_inner(nc, linesize, leny, lenx, data, bargs);
   if(r < 0){
     return -1;
   }

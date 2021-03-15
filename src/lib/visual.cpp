@@ -528,6 +528,7 @@ auto ncvisual_render_pixels(tinfo* tcache, ncvisual* ncv, const blitset* bset,
 //fprintf(stderr, "pblit: %dx%d <- %dx%d of %d/%d stride %u @%dx%d %p %u\n", disprows, dispcols, begy, begx, ncv->rows, ncv->cols, ncv->rowstride, placey, placex, ncv->data, ncplane_notcurses(stdn)->tcache.cellpixx);
   blitterargs bargs;
   bargs.pixel.celldimx = ncplane_notcurses(stdn)->tcache.cellpixx;
+  bargs.pixel.celldimy = ncplane_notcurses(stdn)->tcache.cellpixy;
   bargs.pixel.colorregs = ncplane_notcurses(stdn)->tcache.color_registers;
   if(ncvisual_blit(ncv, disprows, dispcols, n, bset,
                    placey, placex, begy, begx, disprows, dispcols, &bargs)){
