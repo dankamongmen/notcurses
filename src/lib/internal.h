@@ -350,6 +350,7 @@ typedef struct ncpile {
 typedef struct sprixel {
   char* glyph;  // glyph; can be quite large
   int id;       // embedded into glusters field of nccell
+  int y, x;     // position relative to the standard plane
   int cols;
   int rows;
   int invalidated;
