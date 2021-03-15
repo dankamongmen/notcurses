@@ -302,7 +302,7 @@ int direct_mode_player(int argc, char** argv, ncscale_e scalemode,
         break;
       }
       printf("%*.*s", lmargin, lmargin, "");
-      if(dm.raster_image(faken, NCAlign::Left)){
+      if(dm.raster_image(faken, NCAlign::Center)){
         failed = true;
         break;
       }
