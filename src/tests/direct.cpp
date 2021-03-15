@@ -15,7 +15,7 @@ TEST_CASE("DirectMode") {
     }
     printf("DirectMode *italic*!\n");
     fflush(stdout);
-    if(nc_->tcache.sgr){
+    if(nc_->tcache.sgr0){
       CHECK(0 == ncdirect_off_styles(nc_, NCSTYLE_ITALIC));
     }else{
       CHECK(0 != ncdirect_off_styles(nc_, NCSTYLE_ITALIC));
