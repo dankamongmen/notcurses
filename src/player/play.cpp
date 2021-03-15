@@ -301,8 +301,17 @@ int direct_mode_player(int argc, char** argv, ncscale_e scalemode,
         failed = true;
         break;
       }
-      printf("%*.*s", lmargin, lmargin, "");
-      if(dm.raster_image(faken, NCAlign::Center)){
+      // FIXME we want to honor the different left and right margins, but that
+      // would require raster_image() knowing how far over we were starting for
+      // multiline cellular blittings...
+      ncpp::NCAlign a;
+      if(blitter == NCBLIT_PIXEL){
+        printf("%*.*s", lmargin, lmargin, "");
+        a = NCAlign::Left;
+      }else{
+        a = NCAlign::Center;
+      }
+      if(dm.raster_image(faken, a)){
         failed = true;
         break;
       }
