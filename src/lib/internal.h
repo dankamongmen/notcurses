@@ -54,7 +54,11 @@ typedef struct sprixel {
   char* glyph;       // glyph; can be quite large
   int id;            // embedded into glusters field of nccell
   struct ncplane* n; // associated ncplane, provides location and size
-  int invalidated;
+  enum {
+    SPRIXEL_NOCHANGE,
+    SPRIXEL_INVALIDATED,
+    SPRIXEL_HIDE,
+  } invalidated;
   struct sprixel* next;
 } sprixel;
 
@@ -686,6 +690,7 @@ plane_debug(const ncplane* n, bool details){
 }
 
 void sprixel_free(sprixel* s);
+void sprixel_hide(sprixel* s);
 sprixel* sprixel_create(ncplane* n, const char* s, int bytes);
 
 static inline void
