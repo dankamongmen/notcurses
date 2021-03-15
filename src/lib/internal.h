@@ -60,6 +60,8 @@ typedef struct sprixel {
     SPRIXEL_HIDE,
   } invalidated;
   struct sprixel* next;
+  int y, x;          // only defined when being hidden (n is NULL)
+  int dimy, dimx;    // likewise only defined when being hidden
 } sprixel;
 
 // A plane is memory for some rectilinear virtual window, plus current cursor
