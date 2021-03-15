@@ -379,6 +379,12 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
   const int toty = ncdirect_dim_y(n);
   int dimy, dimx;
   ncplane_dim_yx(np, &dimy, &dimx);
+  if(np->sprite){
+    if(fputs(np->sprite->glyph, n->ttyfp) == EOF){
+      return -1;
+    }
+    return 0;
+  }
 //fprintf(stderr, "rasterizing %dx%d+%d\n", dimy, dimx, xoff);
   // save the existing style and colors
   const bool fgdefault = ncdirect_fg_default_p(n);

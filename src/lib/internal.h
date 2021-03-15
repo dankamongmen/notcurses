@@ -45,6 +45,19 @@ struct ncvisual_details;
 // we can't define multipart ncvisual here, because OIIO requires C++ syntax,
 // and we can't go throwing C++ syntax into this header. so it goes.
 
+// there is a context-wide set of displayed pixel glyphs ("sprixels"); i.e.
+// these are independent of particular piles. there should never be very many
+// associated with a context (a dozen or so at max). with the kitty protocol,
+// we can register them, and then manipulate them by id. with the sixel
+// protocol, we just have to rewrite them.
+typedef struct sprixel {
+  char* glyph;       // glyph; can be quite large
+  int id;            // embedded into glusters field of nccell
+  struct ncplane* n; // associated ncplane, provides location and size
+  int invalidated;
+  struct sprixel* next;
+} sprixel;
+
 // A plane is memory for some rectilinear virtual window, plus current cursor
 // state for that window, and part of a pile. Each pile has a total order along
 // its z-axis. Functions update these virtual planes over a series of API
@@ -85,6 +98,8 @@ typedef struct ncplane {
   struct ncplane** bprev; // blist link back to us
   struct ncplane* blist;  // head of list of bound planes
   struct ncplane* boundto;// plane to which we are bound (ourself for roots)
+
+  sprixel* sprite;       // pointer into the sprixel cache
 
   void* userptr;         // slot for the user to stick some opaque pointer
   int (*resizecb)(struct ncplane*); // callback after parent is resized
@@ -342,19 +357,6 @@ typedef struct ncpile {
   int dimy, dimx;             // rows and cols at time of render
 } ncpile;
 
-// there is a context-wide set of displayed pixel glyphs ("sprixels"); i.e.
-// these are independent of particular piles. there should never be very many
-// associated with a context (a dozen or so at max). with the kitty protocol,
-// we can register them, and then manipulate them by id. with the sixel
-// protocol, we just have to rewrite them.
-typedef struct sprixel {
-  char* glyph;  // glyph; can be quite large
-  int id;       // embedded into glusters field of nccell
-  ncplane* n;   // associated ncplane, provides location and size
-  int invalidated;
-  struct sprixel* next;
-} sprixel;
-
 // the standard pile can be reached through ->stdplane.
 typedef struct notcurses {
   ncplane* stdplane; // standard plane, covers screen
@@ -387,6 +389,7 @@ typedef struct notcurses {
   bool suppress_banner; // from notcurses_options
 
   sprixel* sprixelcache; // list of pixel graphics currently displayed
+  int sprixelnonce;      // next sprixel id FIXME ought be atomic
 
   // desired margins (best-effort only), copied in from notcurses_options
   int margin_t, margin_b, margin_r, margin_l;
@@ -683,6 +686,7 @@ plane_debug(const ncplane* n, bool details){
 }
 
 void sprixel_free(sprixel* s);
+sprixel* sprixel_create(ncplane* n, const char* s, int bytes);
 
 static inline void
 pool_release(egcpool* pool, nccell* c){
@@ -1072,14 +1076,28 @@ egc_rtl(const char* egc, int* bytes){
   return s;
 }
 
+// a sprixel occupies the entirety of its associated plane. each cell contains
+// a reference to the context-wide sprixel cache. this ought be an entirely
+// new, purpose-specific plane.
 static inline int
 plane_blit_sixel(ncplane* n, const char* s, int bytes, int leny, int lenx){
-  (void)n;
-  (void)s;
-  (void)bytes;
-  (void)leny;
-  (void)lenx;
-  // FIXME
+  sprixel* spx = sprixel_create(n, s, bytes);
+  if(spx == NULL){
+    return -1;
+  }
+  char gcluster[4];
+  gcluster[0] = 2;
+  gcluster[1] = spx->id;
+  gcluster[2] = 0; // FIXME
+  gcluster[3] = 0; // FIXME
+  for(int y = 0 ; y < leny ; ++y){
+    for(int x = 0 ; x < lenx ; ++x){
+      nccell* c = ncplane_cell_ref_yx(n, y, x);
+      memcpy(&c->gcluster, gcluster, sizeof(gcluster));
+      c->width = lenx;
+    }
+  }
+  n->sprite = spx;
   return 0;
 }
 

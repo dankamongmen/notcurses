@@ -321,6 +321,7 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
   p->lenx = nopts->cols;
   p->x = p->y = 0;
   p->logrow = 0;
+  p->sprite = NULL;
   p->blist = NULL;
   p->name = strdup(nopts->name ? nopts->name : "");
   p->align = NCALIGN_UNALIGNED;
