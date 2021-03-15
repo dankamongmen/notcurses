@@ -296,12 +296,13 @@ int direct_mode_player(int argc, char** argv, ncscale_e scalemode,
   }
   {
     for(auto i = 0 ; i < argc ; ++i){
-      try{
-        dm.prep_image(argv[i], blitter, scalemode, -1,
-                      dm.get_dim_x() - (lmargin + rmargin));
-      }catch(std::exception& e){
-        // FIXME want to stop nc first :/ can't due to stdn, ugh
-        std::cerr << argv[i] << ": " << e.what() << "\n";
+      auto faken = dm.prep_image(argv[i], blitter, scalemode, -1,
+                                 dm.get_dim_x() - (lmargin + rmargin));
+      if(!faken){
+        failed = true;
+        break;
+      }
+      if(dm.raster_image(faken, NCALIGN_RIGHT)){
         failed = true;
         break;
       }
