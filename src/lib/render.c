@@ -814,13 +814,13 @@ update_palette(notcurses* nc, FILE* out){
 // textronix lacks cup; fake it with horiz+vert moves)
 // if hardcursorpos is non-zero, we always perform a cup
 static inline int
-goto_location(notcurses* nc, FILE* out, int y, int x, bool* hardcursorpos){
+goto_location(notcurses* nc, FILE* out, int y, int x){
 //fprintf(stderr, "going to %d/%d from %d/%d hard: %u\n", y, x, nc->rstate.y, nc->rstate.x, hardcursorpos);
   int ret = 0;
   // if we don't have hpa, force a cup even if we're only 1 char away. the only
   // terminal i know supporting cup sans hpa is vt100, and vt100 can suck it.
   // you can't use cuf for backwards moves anyway; again, vt100 can suck it.
-  if(nc->rstate.y == y && nc->tcache.hpa && !hardcursorpos){ // only need move x
+  if(nc->rstate.y == y && nc->tcache.hpa && !nc->rstate.hardcursorpos){ // only need move x
     if(nc->rstate.x == x){ // needn't move shit
       return 0;
     }
@@ -832,7 +832,7 @@ goto_location(notcurses* nc, FILE* out, int y, int x, bool* hardcursorpos){
   }else{
     // cup is required, no need to check for existence
     ret = term_emit(tiparm(nc->tcache.cup, y, x), out, false);
-    *hardcursorpos = 0;
+    nc->rstate.hardcursorpos = 0;
   }
   nc->rstate.x = x;
   nc->rstate.y = y;
@@ -922,6 +922,9 @@ static int
 rasterize_sprixels(notcurses* nc, FILE* out){
   for(sprixel* s = nc->sprixelcache ; s ; s = s->next){
     if(s->invalidated){
+      if(goto_location(nc, out, s->y, s->x)){
+        return -1;
+      }
       if(ncfputs(s->glyph, out) < 0){
         return -1;
       }
@@ -971,7 +974,7 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
         }
       }else{
         ++nc->stats.cellemissions;
-        if(goto_location(nc, out, y, x, &nc->rstate.hardcursorpos)){
+        if(goto_location(nc, out, y, x)){
           return -1;
         }
         // set the style. this can change the color back to the default; if it
@@ -1386,8 +1389,7 @@ int notcurses_cursor_enable(notcurses* nc, int y, int x){
   if(nc->ttyfd < 0 || !nc->tcache.cnorm){
     return -1;
   }
-  bool hardcursorpos = false;
-  if(goto_location(nc, nc->ttyfp, y + nc->stdplane->absy, x + nc->stdplane->absx, &hardcursorpos)){
+  if(goto_location(nc, nc->ttyfp, y + nc->stdplane->absy, x + nc->stdplane->absx)){
     return -1;
   }
   // if we were already positive, we're already visible, no need to write cnorm
