@@ -75,12 +75,12 @@ namespace ncpp
 
 		int get_dim_x () const NOEXCEPT_MAYBE
 		{
-			return error_guard (ncdirect_dim_x (direct), -1);
+			return error_guard<int> (ncdirect_dim_x (direct), -1);
 		}
 
 		int get_dim_y () const NOEXCEPT_MAYBE
 		{
-			return error_guard (ncdirect_dim_y (direct), -1);
+			return error_guard<int> (ncdirect_dim_y (direct), -1);
 		}
 
 		unsigned get_palette_size () const noexcept
@@ -143,9 +143,9 @@ namespace ncpp
 			return ncdirect_render_image (direct, file, align, blitter, scale);
 		}
 
-		ncdirectv* prep_image (const char* file, ncblitter_e blitter, ncscale_e scale) const noexcept
+		ncdirectv* prep_image (const char* file, ncblitter_e blitter, ncscale_e scale, int maxy, int maxx) const noexcept
 		{
-			return ncdirect_render_frame (direct, file, blitter, scale);
+			return ncdirect_render_frame (direct, file, blitter, scale, maxy, maxx);
 		}
 
 		int raster_image (ncdirectv* faken, ncalign_e align) const noexcept
