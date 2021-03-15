@@ -666,10 +666,6 @@ add_test(
   COMMAND sgr-full
 )
 add_test(
-  NAME sgr-direct
-  COMMAND sgr-direct
-)
-add_test(
   NAME rgb
   COMMAND rgb
 )
