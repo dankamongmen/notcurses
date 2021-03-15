@@ -1267,7 +1267,7 @@ int ncplane_base(ncplane* ncp, nccell* c){
 }
 
 const char* cell_extended_gcluster(const ncplane* n, const nccell* c){
-  if(cell_simple_p(c)){
+  if(!cell_extended_p(c)){
     return (const char*)&c->gcluster;
   }
   return egcpool_extended_gcluster(&n->pool, c);

@@ -245,6 +245,9 @@ highcontrast(uint32_t bchannel){
 static void
 paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
       int dstabsy, int dstabsx){
+  if(p->sprite){
+    return;
+  }
   int y, x, dimy, dimx, offy, offx;
   ncplane_dim_yx(p, &dimy, &dimx);
   offy = p->absy - dstabsy;

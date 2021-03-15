@@ -256,10 +256,16 @@ cell_extended_p(const nccell* c){
   return (htole(c->gcluster) & htole(0xff000000ul)) == htole(0x01000000ul);
 }
 
+// Is the cell part of a sprixel?
+static inline bool
+cell_sprixel_p(const nccell* c){
+  return (htole(c->gcluster) & htole(0xff000000ul)) == htole(0x02000000ul);
+}
+
 // Is the cell simple (a UTF8-encoded EGC of four bytes or fewer)?
 static inline bool
 cell_simple_p(const nccell* c){
-  return !cell_extended_p(c);
+  return !cell_extended_p(c) && !cell_sprixel_p(c);
 }
 
 // only applies to complex cells, do not use on simple cells
