@@ -453,6 +453,19 @@ int ncdirect_double_box(struct ncdirect* n, uint64_t ul, uint64_t ur,
 // the column of the cursor, and those to the right.
 int ncdirect_render_image(struct ncdirect* nc, const char* filename,
                           ncblitter_e blitter, ncscale_e scale);
+
+// Render an image using the specified blitter and scaling, but do not write
+// the result. The image may be arbitrarily many rows -- the output will scroll
+// -- but will only occupy the column of the cursor, and those to the right.
+// To actually write (and free) this, invoke ncdirect_raster_frame(). 'maxx'
+// and 'maxy', if greater than 0, are used for scaling; the terminal's geometry
+// is otherwise used.
+ncdirectv* ncdirect_render_frame(struct ncdirect* n, const char* filename,
+                                 ncblitter_e blitter, ncscale_e scale,
+                                 int maxy, int maxx);
+
+// Takes the result of ncdirect_render_frame() and writes it to the output.
+int ncdirect_raster_frame(struct ncdirect* n, ncdirectv* ncdv, ncalign_e align);
 ```
 
 Several of the Notcurses capability predicates have `ncdirect` analogues:

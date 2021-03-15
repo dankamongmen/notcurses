@@ -86,6 +86,10 @@ notcurses_direct - minimal notcurses instances for styling text
 
 **int ncdirect_render_image(struct ncdirect* ***n***, const char* ***filename***, ncblitter_e ***blitter***, ncscale_e ***scale***);**
 
+**ncdirectv* ncdirect_render_frame(struct ncdirect* ***n***, const char* ***filename***, ncblitter_e ***blitter***, ncscale_e ***scale***, int ***maxy***, int ***maxx***);**
+
+**int ncdirect_raster_frame(struct ncdirect* ***n***, ncdirectv* ***ncdv***, ncalign_e ***align***);**
+
 **char* ncdirect_readline(struct ncdirect* ***n***, const char* ***prompt***);**
 
 # DESCRIPTION
