@@ -13,5 +13,20 @@ TEST_CASE("Pixel") {
     return;
   }
 
+#ifdef NOTCURSES_USE_MULTIMEDIA
+  SUBCASE("PixelRender") {
+    auto ncv = ncvisual_from_file(find_data("worldmap.png"));
+    REQUIRE(ncv);
+    struct ncvisual_options vopts{};
+    vopts.blitter = NCBLIT_PIXEL;
+    auto newn = ncvisual_render(nc_, ncv, &vopts);
+    CHECK(newn);
+    CHECK(0 == notcurses_render(nc_));
+    ncplane_destroy(newn);
+    CHECK(0 == notcurses_render(nc_));
+    ncvisual_destroy(ncv);
+  }
+#endif
+
   CHECK(!notcurses_stop(nc_));
 }
