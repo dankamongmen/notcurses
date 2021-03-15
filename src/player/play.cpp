@@ -28,7 +28,6 @@ void usage(std::ostream& o, const char* name, int exitcode){
   o << " -t seconds: delay t seconds after each file\n";
   o << " -l loglevel: integer between 0 and 9, goes to stderr'\n";
   o << " -s scaling: one of 'none', 'hires', 'scale', 'scalehi', or 'stretch'\n";
-  o << " -a type: 'left', 'right', or 'center'\n";
   o << " -b blitter: one of 'ascii', 'half', 'quad', 'sex', 'braille', or 'pixel'\n";
   o << " -m margins: margin, or 4 comma-separated margins\n";
   o << " -d mult: non-negative floating point scale for frame time" << std::endl;
@@ -302,7 +301,8 @@ int direct_mode_player(int argc, char** argv, ncscale_e scalemode,
         failed = true;
         break;
       }
-      if(dm.raster_image(faken, NCALIGN_RIGHT)){
+      printf("%*.*s", lmargin, lmargin, "");
+      if(dm.raster_image(faken, NCAlign::Left)){
         failed = true;
         break;
       }

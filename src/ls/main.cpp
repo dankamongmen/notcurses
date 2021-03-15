@@ -50,7 +50,7 @@ struct lsContext {
   bool recursedirs;
   bool directories;
   bool dereflinks;
-  ncalign_e alignment;
+  ncpp::NCAlign alignment;
   ncblitter_e blitter;
 };
 
@@ -182,7 +182,7 @@ int main(int argc, char* const * argv){
   bool recursedirs = false;
   bool longlisting = false;
   bool dereflinks = false;
-  ncalign_e alignment = NCALIGN_RIGHT;
+  ncpp::NCAlign alignment = ncpp::NCAlign::Right;
   ncblitter_e blitter = NCBLIT_DEFAULT;
   const struct option opts[] = {
     { "align", 1, nullptr, 'a' },
@@ -199,11 +199,11 @@ int main(int argc, char* const * argv){
         exit(EXIT_SUCCESS);
       case 'a':
         if(strcasecmp(optarg, "left") == 0){
-          alignment = NCALIGN_LEFT;
+          alignment = ncpp::NCAlign::Left;
         }else if(strcasecmp(optarg, "right") == 0){
-          alignment = NCALIGN_RIGHT;
+          alignment = ncpp::NCAlign::Right;
         }else if(strcasecmp(optarg, "center") == 0){
-          alignment = NCALIGN_CENTER;
+          alignment = ncpp::NCAlign::Center;
         }else{
           std::cerr << "Unknown alignment type: " << optarg << "\n";
           usage(std::cerr, argv[0], EXIT_FAILURE);

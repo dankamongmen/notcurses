@@ -7,6 +7,7 @@
 
 #include "Root.hh"
 #include "Cell.hh"
+#include "NCAlign.hh"
 
 namespace ncpp
 {
@@ -138,9 +139,9 @@ namespace ncpp
 			return error_guard (ncdirect_cursor_disable (direct), -1);
 		}
 
-		int render_image (const char* file, ncalign_e align, ncblitter_e blitter, ncscale_e scale) const noexcept
+		int render_image (const char* file, NCAlign align, ncblitter_e blitter, ncscale_e scale) const noexcept
 		{
-			return ncdirect_render_image (direct, file, align, blitter, scale);
+			return ncdirect_render_image (direct, file, static_cast<ncalign_e>(align), blitter, scale);
 		}
 
 		ncdirectv* prep_image (const char* file, ncblitter_e blitter, ncscale_e scale, int maxy, int maxx) const noexcept
@@ -148,9 +149,9 @@ namespace ncpp
 			return ncdirect_render_frame (direct, file, blitter, scale, maxy, maxx);
 		}
 
-		int raster_image (ncdirectv* faken, ncalign_e align) const noexcept
+		int raster_image (ncdirectv* faken, NCAlign align) const noexcept
 		{
-			return ncdirect_raster_frame (direct, faken, align);
+			return ncdirect_raster_frame (direct, faken, static_cast<ncalign_e>(align));
 		}
 
 		bool putstr (uint64_t channels, const char* utf8) const NOEXCEPT_MAYBE
