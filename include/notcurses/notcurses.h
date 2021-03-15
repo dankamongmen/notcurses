@@ -586,6 +586,10 @@ typedef struct nccell {
   // are single-byte ASCII-derived values. The XXXXXX is interpreted as a 24-bit
   // index into the egcpool. These pools may thus be up to 16MB.
   //
+  // A pixel graphic (a "sprixel") is indicated by the value 0x02XXXXXX. This
+  // is safe for the same reasons as a spilled EGC. The remaining 24 bits are
+  // an identifier for the sprixel cache, shared across the notcurses context.
+  //
   // The cost of this scheme is that the character 0x01 (SOH) cannot be encoded
   // in a nccell, which is absolutely fine because what 70s horseshit is SOH?
   // It must not be allowed through the API, or havoc will result.
@@ -608,7 +612,7 @@ typedef struct nccell {
   // (channels & 0x0200000000000000ull): blitted to lower-left quadrant
   // (channels & 0x0100000000000000ull): blitted to lower-right quadrant
   // (channels & 0x00ffffff00000000ull): foreground in 3x8 RGB (rrggbb) / pindex
-  // (channels & 0x0000000080000000ull): pixel graphics
+  // (channels & 0x0000000080000000ull): reserved, must be 0
   // (channels & 0x0000000040000000ull): background is *not* "default color"
   // (channels & 0x0000000030000000ull): background alpha (2 bits)
   // (channels & 0x0000000008000000ull): background uses palette index
@@ -739,6 +743,7 @@ cell_wide_left_p(const nccell* c){
 
 // return a pointer to the NUL-terminated EGC referenced by 'c'. this pointer
 // can be invalidated by any further operation on the plane 'n', so...watch out!
+// must not be called on a pixel graphic.
 API const char* cell_extended_gcluster(const struct ncplane* n, const nccell* c);
 
 // copy the UTF8-encoded EGC out of the nccell. the result is not tied to any

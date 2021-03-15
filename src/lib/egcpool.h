@@ -250,10 +250,22 @@ cell_egc_idx(const nccell* c){
   return (htole(c->gcluster) & 0x00fffffflu);
 }
 
+// Is the cell a spilled (more than 4 byte) UTF8 EGC?
+static inline bool
+cell_extended_p(const nccell* c){
+  return (htole(c->gcluster) & htole(0xff000000ul)) == htole(0x01000000ul);
+}
+
+// Is the cell a sprixel?
+static inline bool
+cell_pixels_p(const nccell* c){
+  return (htole(c->gcluster) & htole(0xff000000ul)) == htole(0x02000000ul);
+}
+
 // Is the cell simple (a UTF8-encoded EGC of four bytes or fewer)?
 static inline bool
 cell_simple_p(const nccell* c){
-  return (htole(c->gcluster) & htole(0xff000000ul)) != htole(0x01000000ul);
+  return !cell_pixels_p(c) && !cell_extended_p(c);
 }
 
 // only applies to complex cells, do not use on simple cells

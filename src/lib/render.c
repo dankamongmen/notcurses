@@ -383,7 +383,6 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
             targc->stylemask = vis->stylemask;
             targc->width = vis->width;
           }
-          cell_set_pixels(targc, cell_pixels_p(vis));
           crender->p = p;
         }else if(cell_wide_right_p(vis)){
           crender->p = p;

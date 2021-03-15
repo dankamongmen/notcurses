@@ -39,12 +39,8 @@ struct ncvisual_details;
 #define CELL_NOBACKGROUND_MASK  0x8700000000000000ull
 
 // Was this glyph drawn as part of an ncvisual? If so, we need to honor
-// blitter stacking rather than the standard trichannel solver (yes, this
-// is the same as CELL_NOBACKGROUND_MASK).
-#define CELL_BLITTERSTACK_MASK  0x8700000000000000ull
-
-// if this bit is set, the cell ought be rasterized in pixel graphics mode.
-#define CELL_PIXEL_GRAPHICS     0x0000000080000000ull
+// blitter stacking rather than the standard trichannel solver.
+#define CELL_BLITTERSTACK_MASK  CELL_NOBACKGROUND_MASK
 
 // we can't define multipart ncvisual here, because OIIO requires C++ syntax,
 // and we can't go throwing C++ syntax into this header. so it goes.
@@ -683,26 +679,6 @@ plane_debug(const ncplane* n, bool details){
 
 void sprixel_free(sprixel* s);
 
-static inline unsigned
-channels_pixel_p(uint64_t channels){
-  return channels & CELL_PIXEL_GRAPHICS;
-}
-
-static inline unsigned
-cell_pixels_p(const nccell* c){
-  return channels_pixel_p(c->channels);
-}
-
-static inline nccell*
-cell_set_pixels(nccell* c, unsigned p){
-  if(p){
-    c->channels |= CELL_PIXEL_GRAPHICS;
-  }else{
-    c->channels &= ~CELL_PIXEL_GRAPHICS;
-  }
-  return c;
-}
-
 static inline void
 pool_release(egcpool* pool, nccell* c){
   if(!cell_simple_p(c)){
@@ -1103,7 +1079,6 @@ pool_blit_direct(egcpool* pool, nccell* c, const char* gcluster, int bytes, int 
     return -1;
   }
   c->width = cols;
-  cell_set_pixels(c, 0);
   if(bytes <= 4){
     c->gcluster = 0;
     memcpy(&c->gcluster, gcluster, bytes);
