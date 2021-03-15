@@ -137,7 +137,6 @@ int kitty_blit_inner(ncplane* nc, int placey, int placex, int linesize,
     free(buf);
     return -1;
   }
-  cell_set_pixels(c, 1);
   free(buf);
   return 1;
 }
