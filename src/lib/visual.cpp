@@ -500,7 +500,7 @@ auto ncvisual_render_pixels(tinfo* tcache, ncvisual* ncv, const blitset* bset,
     struct ncplane_options nopts = {
       .y = placey,
       .x = placex,
-      .rows = 1,
+      .rows = disprows / tcache->cellpixy,
       .cols = dispcols / tcache->cellpixx,
       .userptr = nullptr,
       .name = "rgba",
