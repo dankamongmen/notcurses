@@ -1098,8 +1098,8 @@ plane_blit_sixel(ncplane* n, const char* s, int bytes, int leny, int lenx,
     return -1;
   }
   uint32_t gcluster = htole(0x02000000ul) + htole(spx->id);
-  for(int y = 0 ; y < leny ; ++y){
-    for(int x = 0 ; x < lenx ; ++x){
+  for(int y = 0 ; y < leny && y < ncplane_dim_y(n) ; ++y){
+    for(int x = 0 ; x < lenx && x < ncplane_dim_x(n) ; ++x){
       nccell* c = ncplane_cell_ref_yx(n, y, x);
       memcpy(&c->gcluster, &gcluster, sizeof(gcluster));
       c->width = lenx;

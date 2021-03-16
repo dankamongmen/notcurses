@@ -218,6 +218,10 @@ check for support with **notcurses_check_pixel_support**. If this function has
 not successfully returned, attempts to use **NCBLIT_PIXEL** will fall back to
 **NCBLIT_3x2** (or fail, if **NCVISUAL_OPTION_NODEGRADE** is used).
 
+Pixel blitting creates a new, immutable, purpose-specific plane. Attempting
+to pass a non-**NULL** ***n*** in **ncvisual_options** will result in an error
+if **NCBLIT_PIXEL** is used.
+
 # RETURN VALUES
 
 **ncvisual_from_file** returns an **ncvisual** object on success, or **NULL**
