@@ -925,7 +925,7 @@ emit_bg_palindex(notcurses* nc, FILE* out, const nccell* srccell){
 int sprite_kitty_annihilate(notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
   (void)p;
   (void)nc;
-  if(fprintf(out, "\e_Ga=d,d=i,i=%d,q=1\e\\", s->id) < 0){
+  if(fprintf(out, "\e_Ga=d,d=i,i=%d\e\\", s->id) < 0){
     return 0;
   }
   return 0;

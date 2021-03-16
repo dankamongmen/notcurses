@@ -80,7 +80,7 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, const uint32_t* dat
     if(totalout == 0){
       // FIXME need to send image id from notcurses struct
       static int horror = 1;
-      fprintf(fp, "\e_Gf=32,s=%d,v=%d,i=%d,q=1,a=T%s;", lenx, leny, horror, chunks > 1 ? ",m=1" : "");
+      fprintf(fp, "\e_Gf=32,s=%d,v=%d,i=%d,a=T%s;", lenx, leny, horror, chunks > 1 ? ",m=1" : "");
       ++horror;
     }else{
       fprintf(fp, "\e_Gm=%d;", chunks ? 1 : 0);
