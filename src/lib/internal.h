@@ -1095,15 +1095,11 @@ plane_blit_sixel(ncplane* n, const char* s, int bytes, int leny, int lenx){
   if(spx == NULL){
     return -1;
   }
-  char gcluster[4];
-  gcluster[0] = 2;
-  gcluster[1] = spx->id;
-  gcluster[2] = 0; // FIXME
-  gcluster[3] = 2; // FIXME
+  uint32_t gcluster = htole(0x02000000ul) + htole(spx->id);
   for(int y = 0 ; y < leny ; ++y){
     for(int x = 0 ; x < lenx ; ++x){
       nccell* c = ncplane_cell_ref_yx(n, y, x);
-      memcpy(&c->gcluster, gcluster, sizeof(gcluster));
+      memcpy(&c->gcluster, &gcluster, sizeof(gcluster));
       c->width = lenx;
     }
   }
