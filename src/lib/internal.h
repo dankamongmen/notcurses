@@ -313,6 +313,7 @@ typedef struct tinfo {
   int color_registers; // sixel color registers (post pixel_query_done)
   int sixel_maxx, sixel_maxy; // sixel size maxima (post pixel_query_done)
   bool sixel_supported;  // do we support sixel (post pixel_query_done)?
+  int (*pixel_destroy)(struct notcurses* nc, const struct ncpile* p, FILE* out, sprixel* s);
   bool pixel_query_done; // have we yet performed pixel query?
   bool sextants;  // do we have (good, vetted) Unicode 13 sextant support?
   bool braille;   // do we have Braille support? (linux console does not)
@@ -694,6 +695,8 @@ plane_debug(const ncplane* n, bool details){
 void sprixel_free(sprixel* s);
 void sprixel_hide(sprixel* s);
 sprixel* sprixel_create(ncplane* n, const char* s, int bytes);
+int sprite_kitty_annihilate(notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
+int sprite_sixel_annihilate(notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
 
 static inline void
 pool_release(egcpool* pool, nccell* c){
