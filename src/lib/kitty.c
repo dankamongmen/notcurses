@@ -62,7 +62,8 @@ base64_rgba3(const uint32_t* pixels, size_t pcount, char* b64){
 // pixel is 4B raw (32 bits). each chunk of three pixels is then 12 bytes, or
 // 16 base64-encoded bytes. 4096 / 16 == 256 3-pixel groups, or 768 pixels.
 static int
-write_kitty_data(FILE* fp, int linesize, int leny, int lenx, const uint32_t* data){
+write_kitty_data(FILE* fp, int linesize, int leny, int lenx,
+                 const uint32_t* data, int sprixelid){
 #define KITTY_MAXLEN 4096 // 4096B maximum payload
   if(linesize % sizeof(*data)){
     return -1;
@@ -78,12 +79,9 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, const uint32_t* dat
 //fprintf(stderr, "total: %d chunks = %d, s=%d,v=%d\n", total, chunks, lenx, leny);
   while(chunks--){
     if(totalout == 0){
-      // FIXME need to send image id from notcurses struct
-      static int horror = 1;
-      fprintf(fp, "\e_Gf=32,s=%d,v=%d,i=%d,a=T%s;", lenx, leny, horror, chunks > 1 ? ",m=1" : "");
-      ++horror;
+      fprintf(fp, "\e_Gf=32,s=%d,v=%d,i=%d,a=T%s;", lenx, leny, sprixelid, chunks > 1 ? ",m=1" : "");
     }else{
-      fprintf(fp, "\e_Gm=%d;", chunks ? 1 : 0);
+      fprintf(fp, "\e_G%sm=%d;", chunks ? "" : "q=1,", chunks ? 1 : 0);
     }
     if((targetout += RGBA_MAXLEN) > total){
       targetout = total;
@@ -131,12 +129,12 @@ int kitty_blit_inner(ncplane* nc, int linesize, int leny, int lenx,
   if(fp == NULL){
     return -1;
   }
-  if(write_kitty_data(fp, linesize, leny, lenx, data)){
+  if(write_kitty_data(fp, linesize, leny, lenx, data, bargs->pixel.sprixelid)){
     fclose(fp);
     free(buf);
     return -1;
   }
-  if(plane_blit_sixel(nc, buf, size, rows, cols) < 0){
+  if(plane_blit_sixel(nc, buf, size, rows, cols, bargs->pixel.sprixelid) < 0){
     free(buf);
     return -1;
   }
