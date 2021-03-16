@@ -12,7 +12,7 @@ handle(struct notcurses* nc, const char *fn){
   struct ncplane* stdn = notcurses_stddim_yx(nc, &dimy, &dimx);
   uint64_t channels = CHANNELS_RGB_INITIALIZER(100, 140, 100, 140, 100, 140);
   ncplane_set_base(stdn, "a", 0, channels);
-  for(int x = 0 ; x < dimx ; x += 5){
+  for(int x = 0 ; x < dimx ; x += 15){
     struct ncvisual_options vopts = {
       .x = x,
       .scaling = NCSCALE_NONE_HIRES,
