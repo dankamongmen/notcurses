@@ -258,7 +258,7 @@ int sixel_blit_inner(ncplane* nc, int leny, int lenx, sixeltable* stab,
   }
   unsigned cols = lenx / bargs->pixel.celldimx + !!(lenx % bargs->pixel.celldimx);
   unsigned rows = leny / bargs->pixel.celldimy + !!(leny % bargs->pixel.celldimx);
-  if(plane_blit_sixel(nc, buf, size, rows, cols) < 0){
+  if(plane_blit_sixel(nc, buf, size, rows, cols, bargs->pixel.sprixelid) < 0){
     free(buf);
     return -1;
   }

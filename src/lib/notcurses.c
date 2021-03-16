@@ -951,7 +951,6 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   ret->margin_r = opts->margin_r;
   ret->cursory = ret->cursorx = -1;
   ret->sprixelcache = NULL;
-  ret->sprixelnonce = 1;
   memset(&ret->stats, 0, sizeof(ret->stats));
   memset(&ret->stashed_stats, 0, sizeof(ret->stashed_stats));
   reset_stats(&ret->stats);

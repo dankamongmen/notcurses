@@ -971,7 +971,7 @@ rasterize_sprixels(notcurses* nc, const ncpile* p, FILE* out){
       nc->rstate.hardcursorpos = true;
       parent = &s->next;
     }else if(s->invalidated == SPRIXEL_HIDE){
-//fprintf(stderr, "OUGHT HIDE [%dx%d @ %d/%d] %p\n", s->dimy, s->dimx, s->y, s->x, s);
+//fprintf(stderr, "OUGHT HIDE %d [%dx%d @ %d/%d] %p\n", s->id, s->dimy, s->dimx, s->y, s->x, s);
       int r = nc->tcache.pixel_destroy(nc, p, out, s);
       if(r < 0){
         return -1;

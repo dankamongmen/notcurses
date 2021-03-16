@@ -529,6 +529,7 @@ auto ncvisual_render_pixels(tinfo* tcache, ncvisual* ncv, const blitset* bset,
   bargs.pixel.celldimx = ncplane_notcurses(stdn)->tcache.cellpixx;
   bargs.pixel.celldimy = ncplane_notcurses(stdn)->tcache.cellpixy;
   bargs.pixel.colorregs = ncplane_notcurses(stdn)->tcache.color_registers;
+  bargs.pixel.sprixelid = tcache->sprixelnonce++;
   if(ncvisual_blit(ncv, disprows, dispcols, n, bset,
                    begy, begx, disprows, dispcols, &bargs)){
     ncplane_destroy(n);
