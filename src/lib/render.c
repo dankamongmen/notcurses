@@ -922,10 +922,37 @@ emit_bg_palindex(notcurses* nc, FILE* out, const nccell* srccell){
   return 0;
 }
 
+int sprite_kitty_annihilate(notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
+  // FIXME
+  return 0;
+}
+
+int sprite_sixel_annihilate(notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
+  (void)out;
+  struct crender* rvec = p->crender;
+  // FIXME need to cap by ends minus bottom, right margins also
+  const int ycap = nc->stdplane->leny /*s->dimy*/ + nc->margin_t;
+  const int xcap = nc->stdplane->lenx /*s->dimx*/ + nc->margin_l;
+//fprintf(stderr, "yCAP: %d xCAP: %d\n", ycap, xcap);
+  for(int y = s->y + nc->stdplane->absy ; y < s->y + nc->stdplane->absy + s->dimy && y < ycap ; ++y){
+    const int innery = y - nc->stdplane->absy;
+    for(int x = s->x + nc->stdplane->absx ; x < s->x + nc->stdplane->absx + s->dimx && x < xcap ; ++x){
+      const int innerx = x - nc->stdplane->absx;
+      const size_t damageidx = innery * nc->lfdimx + innerx;
+//fprintf(stderr, "DAMAGING %zu %d * %d + %d (max %d/%d)\n", damageidx, innery, nc->lfdimx, innerx, ycap, xcap);
+      rvec[damageidx].s.damaged = 1;
+    }
+  }
+  return 1;
+}
+
+// returns -1 on error, 0 on success, 1 on success + invalidations requiring
+// a subsequent repass by the rasterizer.
 static int
 rasterize_sprixels(notcurses* nc, const ncpile* p, FILE* out){
   sprixel* s;
   sprixel** parent = &nc->sprixelcache;
+  int ret = 0;
   while( (s = *parent) ){
     if(s->invalidated == SPRIXEL_INVALIDATED){
       int y, x;
@@ -941,20 +968,11 @@ rasterize_sprixels(notcurses* nc, const ncpile* p, FILE* out){
       parent = &s->next;
     }else if(s->invalidated == SPRIXEL_HIDE){
 //fprintf(stderr, "OUGHT HIDE [%dx%d @ %d/%d] %p\n", s->dimy, s->dimx, s->y, s->x, s);
-      // FIXME only do this for sixel
-      struct crender* rvec = p->crender;
-      // FIXME need to cap by ends minus bottom, right margins also
-      const int ycap = nc->stdplane->leny /*s->dimy*/ + nc->margin_t;
-      const int xcap = nc->stdplane->lenx /*s->dimx*/ + nc->margin_l;
-//fprintf(stderr, "yCAP: %d xCAP: %d\n", ycap, xcap);
-      for(int y = s->y + nc->stdplane->absy ; y < s->y + nc->stdplane->absy + s->dimy && y < ycap ; ++y){
-        const int innery = y - nc->stdplane->absy;
-        for(int x = s->x + nc->stdplane->absx ; x < s->x + nc->stdplane->absx + s->dimx && x < xcap ; ++x){
-          const int innerx = x - nc->stdplane->absx;
-          const size_t damageidx = innery * nc->lfdimx + innerx;
-//fprintf(stderr, "DAMAGING %zu %d * %d + %d (max %d/%d)\n", damageidx, innery, nc->lfdimx, innerx, ycap, xcap);
-          rvec[damageidx].s.damaged = 1;
-        }
+      int r = nc->tcache.pixel_destroy(nc, p, out, s);
+      if(r < 0){
+        return -1;
+      }else if(r > 0){
+        ret = 1;
       }
       // FIXME delete it in kitty
       *parent = s->next;
@@ -964,7 +982,7 @@ rasterize_sprixels(notcurses* nc, const ncpile* p, FILE* out){
     }
   }
   // FIXME what effect does emission have on rasterizing style state?
-  return 0;
+  return ret;
 }
 
 // Producing the frame requires three steps:
@@ -1097,12 +1115,13 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
   if(rasterize_core(nc, p, out)){
     return -1;
   }
-  if(rasterize_sprixels(nc, p, out)){
+  int r = rasterize_sprixels(nc, p, out);
+  if(r < 0){
     return -1;
-  }
-  // FIXME only do this refresh loop if necessary
-  if(rasterize_core(nc, p, out)){
-    return -1;
+  }else if(r > 0){
+    if(rasterize_core(nc, p, out)){
+      return -1;
+    }
   }
   if(fflush(out)){
     return -1;
