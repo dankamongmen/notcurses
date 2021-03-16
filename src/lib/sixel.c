@@ -175,19 +175,21 @@ unzip_color(const uint32_t* data, int linesize, int begy, int begx,
             unsigned r, unsigned g, unsigned b){
   unsigned char* tcrec = stab->table + CENTSIZE * stab->colors;
   dtable_to_ctable(stab->colors, tcrec);
-  cdetails* deets = stab->deets + src;
   cdetails* targdeets = stab->deets + stab->colors;
   unsigned char* crec = stab->table + CENTSIZE * src;
   int didx = ctable_to_dtable(crec);
+  cdetails* deets = stab->deets + didx;
   unsigned char* srcsixels = stab->data + stab->sixelcount * didx;
   unsigned char* dstsixels = stab->data + stab->sixelcount * stab->colors;
 fprintf(stderr, "counts: src: %d dst: %d src: %p dst: %p\n", deets->count, targdeets->count, srcsixels, dstsixels);
   int sixel = 0;
 int totalcount = 0;
+int sixelson = 0;
   memset(deets, 0, sizeof(*deets));
   for(int visy = begy ; visy < (begy + leny) ; visy += 6){
     for(int visx = begx ; visx < (begx + lenx) ; visx += 1, ++sixel){
       if(srcsixels[sixel]){
+++sixelson;
         for(int sy = visy ; sy < (begy + leny) && sy < visy + 6 ; ++sy){
           if(srcsixels[sixel] & (1u << (sy - visy))){
             ++totalcount;
@@ -208,7 +210,7 @@ int totalcount = 0;
       }
     }
   }
-fprintf(stderr, "counts: src: %d dst: %d total: %d\n", deets->count, targdeets->count, totalcount);
+fprintf(stderr, "counts: src: %d dst: %d total: %d sixels: %d\n", deets->count, targdeets->count, totalcount, sixelson);
 }
 
 // relax segment |coloridx|. we must have room for a new color. we find the
@@ -257,7 +259,6 @@ refine_color_table(const uint32_t* data, int linesize, int begy, int begx,
       cdetails* deets = stab->deets + didx;
 fprintf(stderr, "[%d->%d] hi: %d %d %d lo: %d %d %d\n", i, didx, deets->hi[0], deets->hi[1], deets->hi[2], deets->lo[0], deets->lo[1], deets->lo[2]);
       if(memcmp(deets->hi, deets->lo, RGBSIZE)){
-fprintf(stderr, "good try on %d->%d (%d)\n", i, didx, stab->colorregs);
         refine_color(data, linesize, begy, begx, leny, lenx, stab, i);
         if(stab->colors == stab->colorregs){
 fprintf(stderr, "filled table!\n");
@@ -324,6 +325,7 @@ write_sixel_data(FILE* fp, int lenx, sixeltable* stab){
             (intmax_t)(stab->deets[idx].sums[2] * 100 / count / 255));
   }
   int p = 0;
+int totals[stab->colors]; memset(totals, 0, sizeof(totals));
   while(p < stab->sixelcount){
     for(int i = 0 ; i < stab->colors ; ++i){
       int printed = 0;
@@ -333,6 +335,7 @@ write_sixel_data(FILE* fp, int lenx, sixeltable* stab){
       for(int m = p ; m < stab->sixelcount && m < p + lenx ; ++m){
 //fprintf(stderr, "%d ", idx * stab->sixelcount + m);
 //fputc(stab->data[idx * stab->sixelcount + m] + 63, stderr);
+if(stab->data[idx * stab->sixelcount + m]) ++totals[i];
         if(seenrle){
           if(stab->data[idx * stab->sixelcount + m] == crle){
             ++seenrle;
@@ -361,6 +364,9 @@ write_sixel_data(FILE* fp, int lenx, sixeltable* stab){
     }
     p += lenx;
   }
+for(int i = 0 ; i < stab->colors ; ++i){
+fprintf(stderr, "count: %d total: %d\n", stab->deets[i].count, totals[i]);
+}
   // \x9c: 8-bit "string terminator" (end sixel) doesn't work on at
   // least xterm; we instead use '\e\\'
   fprintf(fp, "\e\\");
@@ -408,6 +414,7 @@ int sixel_blit(ncplane* nc, int linesize, const void* data, int begy, int begx,
     .colorregs = 256, // FIXME pull in from bargs
     .colors = 0,
   };
+fprintf(stderr, "DATA: %p DATA SIZE: %d\n", stable.data, bargs->pixel.colorregs * sixelcount);
   if(stable.data == NULL || stable.deets == NULL || stable.table == NULL){
     free(stable.table);
     free(stable.deets);
@@ -423,7 +430,7 @@ int sixel_blit(ncplane* nc, int linesize, const void* data, int begy, int begx,
     free(stable.deets);
     return -1;
   }
-  //refine_color_table(data, linesize, begy, begx, leny, lenx, &stable);
+  refine_color_table(data, linesize, begy, begx, leny, lenx, &stable);
   int r = sixel_blit_inner(nc, leny, lenx, &stable, bargs);
   free(stable.data);
   free(stable.deets);
