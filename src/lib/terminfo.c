@@ -200,6 +200,7 @@ int interrogate_terminfo(tinfo* ti, const char* termname, unsigned utf8){
   if(apply_term_heuristics(ti, termname)){
     return -1;
   }
+  ti->sprixelnonce = 1;
   return 0;
 }
 

@@ -15,7 +15,7 @@ void sprixel_hide(sprixel* s){
   s->n = NULL;
 }
 
-sprixel* sprixel_create(ncplane* n, const char* s, int bytes){
+sprixel* sprixel_create(ncplane* n, const char* s, int bytes, int sprixelid){
   sprixel* ret = malloc(sizeof(sprixel));
   if(ret){
     if((ret->glyph = memdup(s, bytes + 1)) == NULL){
@@ -28,7 +28,7 @@ sprixel* sprixel_create(ncplane* n, const char* s, int bytes){
       notcurses* nc = ncplane_notcurses(n);
       ret->next = nc->sprixelcache;
       nc->sprixelcache = ret;
-      ret->id = nc->sprixelnonce++; // FIXME should be atomic
+      ret->id = sprixelid;
     }
   }
   return ret;

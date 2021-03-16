@@ -313,6 +313,7 @@ typedef struct tinfo {
   int color_registers; // sixel color registers (post pixel_query_done)
   int sixel_maxx, sixel_maxy; // sixel size maxima (post pixel_query_done)
   bool sixel_supported;  // do we support sixel (post pixel_query_done)?
+  int sprixelnonce;      // next sprixel id
   int (*pixel_destroy)(struct notcurses* nc, const struct ncpile* p, FILE* out, sprixel* s);
   bool pixel_query_done; // have we yet performed pixel query?
   bool sextants;  // do we have (good, vetted) Unicode 13 sextant support?
@@ -396,7 +397,6 @@ typedef struct notcurses {
   bool suppress_banner; // from notcurses_options
 
   sprixel* sprixelcache; // list of pixel graphics currently displayed
-  int sprixelnonce;      // next sprixel id FIXME ought be atomic
 
   // desired margins (best-effort only), copied in from notcurses_options
   int margin_t, margin_b, margin_r, margin_l;
@@ -417,6 +417,7 @@ typedef union {
     int celldimx;       // horizontal pixels per cell
     int celldimy;       // vertical pixels per cell
     int colorregs;      // number of color registers
+    int sprixelid;      // unqie 24-bit id into sprixel cache
   } pixel;              // for pixels
 } blitterargs;
 
@@ -694,7 +695,7 @@ plane_debug(const ncplane* n, bool details){
 
 void sprixel_free(sprixel* s);
 void sprixel_hide(sprixel* s);
-sprixel* sprixel_create(ncplane* n, const char* s, int bytes);
+sprixel* sprixel_create(ncplane* n, const char* s, int bytes, int sprixelid);
 int sprite_kitty_annihilate(notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
 int sprite_sixel_annihilate(notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
 
@@ -1090,8 +1091,9 @@ egc_rtl(const char* egc, int* bytes){
 // a reference to the context-wide sprixel cache. this ought be an entirely
 // new, purpose-specific plane.
 static inline int
-plane_blit_sixel(ncplane* n, const char* s, int bytes, int leny, int lenx){
-  sprixel* spx = sprixel_create(n, s, bytes);
+plane_blit_sixel(ncplane* n, const char* s, int bytes, int leny, int lenx,
+                 int sprixelid){
+  sprixel* spx = sprixel_create(n, s, bytes, sprixelid);
   if(spx == NULL){
     return -1;
   }

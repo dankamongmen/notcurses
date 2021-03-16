@@ -527,6 +527,7 @@ ncdirectv* ncdirect_render_frame(ncdirect* n, const char* file,
       .celldimx = n->tcache.cellpixx,
       .celldimy = n->tcache.cellpixy,
       .colorregs = n->tcache.color_registers,
+      .sprixelid = n->tcache.sprixelnonce++,
     },
   };
   if(ncvisual_blit(ncv, disprows, dispcols, ncdv, bset,
