@@ -52,7 +52,7 @@ visualize(struct notcurses* nc, struct ncvisual* ncv){
                             "%d:%d pixels -> cell", scalex, scaley);
     }
     const char* name = notcurses_str_blitter(bs[i]);
-    ncplane_putstr_aligned(stdn, ncplane_dim_y(stdn) / 2 - 3, NCALIGN_CENTER, name);
+    ncplane_printf_aligned(stdn, ncplane_dim_y(stdn) / 2 - 3, NCALIGN_CENTER, "%sblitter", name);
     int ret = demo_render(nc);
     if(ret){
       return ret;
