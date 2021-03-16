@@ -6,11 +6,11 @@ visualize(struct notcurses* nc, struct ncvisual* ncv){
   struct timespec kdelay;
   timespec_div(&demodelay, 2, &kdelay);
   ncblitter_e bs[] = {
+    NCBLIT_BRAILLE,
     NCBLIT_1x1,
     NCBLIT_2x1,
     NCBLIT_2x2,
     NCBLIT_3x2,
-    NCBLIT_BRAILLE,
     NCBLIT_PIXEL,
   };
   struct ncplane* stdn = notcurses_stdplane(nc);
