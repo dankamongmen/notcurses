@@ -123,6 +123,9 @@ extract_color_table(const uint32_t* data, int linesize, int begy, int begx,
           return -1;
         }
         stab->data[c * stab->sixelcount + pos] |= (1u << (sy - visy));
+        stab->deets[c].sums[0] += ncpixel_r(*rgb);
+        stab->deets[c].sums[1] += ncpixel_g(*rgb);
+        stab->deets[c].sums[2] += ncpixel_b(*rgb);
         comps[0] = ss(ncpixel_r(*rgb), 0xff);
         comps[1] = ss(ncpixel_g(*rgb), 0xff);
         comps[2] = ss(ncpixel_b(*rgb), 0xff);
@@ -147,9 +150,6 @@ extract_color_table(const uint32_t* data, int linesize, int begy, int begx,
             stab->deets[c].lo[2] = comps[2];
           }
         }
-        stab->deets[c].sums[0] += comps[0];
-        stab->deets[c].sums[1] += comps[1];
-        stab->deets[c].sums[2] += comps[2];
         ++stab->deets[c].count;
 //fprintf(stderr, "color %d pos %d: 0x%x\n", c, pos, stab->data[c * stab->sixelcount + pos]);
 //fprintf(stderr, " sums: %u %u %u count: %d r/g/b: %u %u %u\n", stab->deets[c].sums[0], stab->deets[c].sums[1], stab->deets[c].sums[2], stab->deets[c].count, ncpixel_r(*rgb), ncpixel_g(*rgb), ncpixel_b(*rgb));
