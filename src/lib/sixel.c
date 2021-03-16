@@ -415,8 +415,8 @@ int sixel_blit(ncplane* nc, int linesize, const void* data, int begy, int begx,
     return -1;
   }
   // stable.table doesn't need initializing; we start from the bottom
-  memset(stable.data, 0, sixelcount * bargs->pixel.colorregs);
-  memset(stable.deets, 0, sizeof(*stable.deets) * bargs->pixel.colorregs);
+  memset(stable.data, 0, sixelcount * colorregs);
+  memset(stable.deets, 0, sizeof(*stable.deets) * colorregs);
   if(extract_color_table(data, linesize, begy, begx, leny, lenx, &stable)){
     free(stable.table);
     free(stable.data);
