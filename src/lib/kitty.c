@@ -144,7 +144,6 @@ int kitty_blit_inner(ncplane* nc, int linesize, int leny, int lenx,
   return 1;
 }
 
-
 int kitty_blit(ncplane* nc, int linesize, const void* data, int begy, int begx,
                int leny, int lenx, const blitterargs* bargs){
   (void)begy;
