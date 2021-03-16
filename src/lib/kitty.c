@@ -78,7 +78,10 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, const uint32_t* dat
 //fprintf(stderr, "total: %d chunks = %d, s=%d,v=%d\n", total, chunks, lenx, leny);
   while(chunks--){
     if(totalout == 0){
-      fprintf(fp, "\e_Gf=32,s=%d,v=%d,a=T%s;", lenx, leny, chunks > 1 ? ",m=1" : "");
+      // FIXME need to send image id from notcurses struct
+      static int horror = 1;
+      fprintf(fp, "\e_Gf=32,s=%d,v=%d,i=%d,q=1,a=T%s;", lenx, leny, horror, chunks > 1 ? ",m=1" : "");
+      ++horror;
     }else{
       fprintf(fp, "\e_Gm=%d;", chunks ? 1 : 0);
     }
