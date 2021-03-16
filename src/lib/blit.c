@@ -155,17 +155,6 @@ tria_blit(ncplane* nc, int linesize, const void* data, int begy, int begx,
   return total;
 }
 
-// get a non-negative "distance" between two rgb values
-static inline uint32_t
-rgb_diff(unsigned r1, unsigned g1, unsigned b1, unsigned r2, unsigned g2, unsigned b2){
-  uint32_t distance = 0;
-  distance += r1 > r2 ? r1 - r2 : r2 - r1;
-  distance += g1 > g2 ? g1 - g2 : g2 - g1;
-  distance += b1 > b2 ? b1 - b2 : b2 - b1;
-//fprintf(stderr, "RGBDIFF %u %u %u %u %u %u: %u\n", r1, g1, b1, r2, g2, b2, distance);
-  return distance;
-}
-
 // once we find the closest pair of colors, we need look at the other two
 // colors, and determine whether either belongs with us rather with them.
 // if so, take the closer, and trilerp it in with us. otherwise, lerp the

@@ -97,6 +97,39 @@ find_color(sixeltable* stab, unsigned char comps[static RGBSIZE]){
   //return ctable_to_dtable(stab->table + i * CENTSIZE);
 }
 
+static void
+update_deets(uint32_t rgb, cdetails* deets){
+  unsigned char comps[RGBSIZE];
+  deets->sums[0] += ncpixel_r(rgb);
+  deets->sums[1] += ncpixel_g(rgb);
+  deets->sums[2] += ncpixel_b(rgb);
+  comps[0] = ss(ncpixel_r(rgb), 0xff);
+  comps[1] = ss(ncpixel_g(rgb), 0xff);
+  comps[2] = ss(ncpixel_b(rgb), 0xff);
+  if(deets->count == 0){
+    deets->lo[0] = deets->hi[0] = comps[0];
+    deets->lo[1] = deets->hi[1] = comps[1];
+    deets->lo[2] = deets->hi[2] = comps[2];
+  }else{
+    if(deets->hi[0] < comps[0]){
+      deets->hi[0] = comps[0];
+    }else if(deets->lo[0] > comps[0]){
+      deets->lo[0] = comps[0];
+    }
+    if(deets->hi[1] < comps[1]){
+      deets->hi[1] = comps[1];
+    }else if(deets->lo[1] > comps[1]){
+      deets->lo[1] = comps[1];
+    }
+    if(deets->hi[2] < comps[2]){
+      deets->hi[2] = comps[2];
+    }else if(deets->lo[2] > comps[2]){
+      deets->lo[2] = comps[2];
+    }
+  }
+  ++deets->count;
+}
+
 // no matter the input palette, we can always get a maximum of 64 colors if we
 // mask at 0xc0 on each component (this partitions each component into 4 chunks,
 // and 4 * 4 * 4 -> 64). so this will never overflow our color register table
@@ -123,34 +156,7 @@ extract_color_table(const uint32_t* data, int linesize, int begy, int begx,
           return -1;
         }
         stab->data[c * stab->sixelcount + pos] |= (1u << (sy - visy));
-        stab->deets[c].sums[0] += ncpixel_r(*rgb);
-        stab->deets[c].sums[1] += ncpixel_g(*rgb);
-        stab->deets[c].sums[2] += ncpixel_b(*rgb);
-        comps[0] = ss(ncpixel_r(*rgb), 0xff);
-        comps[1] = ss(ncpixel_g(*rgb), 0xff);
-        comps[2] = ss(ncpixel_b(*rgb), 0xff);
-        if(stab->deets[c].count == 0){
-          stab->deets[c].lo[0] = stab->deets[c].hi[0] = comps[0];
-          stab->deets[c].lo[1] = stab->deets[c].hi[1] = comps[1];
-          stab->deets[c].lo[2] = stab->deets[c].hi[2] = comps[2];
-        }else{
-          if(stab->deets[c].hi[0] < comps[0]){
-            stab->deets[c].hi[0] = comps[0];
-          }else if(stab->deets[c].lo[0] > comps[0]){
-            stab->deets[c].lo[0] = comps[0];
-          }
-          if(stab->deets[c].hi[1] < comps[1]){
-            stab->deets[c].hi[1] = comps[1];
-          }else if(stab->deets[c].lo[1] > comps[1]){
-            stab->deets[c].lo[1] = comps[1];
-          }
-          if(stab->deets[c].hi[2] < comps[2]){
-            stab->deets[c].hi[2] = comps[2];
-          }else if(stab->deets[c].lo[2] > comps[2]){
-            stab->deets[c].lo[2] = comps[2];
-          }
-        }
-        ++stab->deets[c].count;
+        update_deets(*rgb, &stab->deets[c]);
 //fprintf(stderr, "color %d pos %d: 0x%x\n", c, pos, stab->data[c * stab->sixelcount + pos]);
 //fprintf(stderr, " sums: %u %u %u count: %d r/g/b: %u %u %u\n", stab->deets[c].sums[0], stab->deets[c].sums[1], stab->deets[c].sums[2], stab->deets[c].count, ncpixel_r(*rgb), ncpixel_g(*rgb), ncpixel_b(*rgb));
       }
@@ -160,10 +166,83 @@ extract_color_table(const uint32_t* data, int linesize, int begy, int begx,
   return 0;
 }
 
-// relax segment |coloridx|. we must have room for a new color.
+// run through the sixels matching color |src|, going to color |stab->colors|,
+// keeping those under |r||g||b|, and putting those above it into the new
+// color. rebuilds both sixel groups and color details.
+static void
+unzip_color(const uint32_t* data, int linesize, int begy, int begx,
+            int leny, int lenx, sixeltable* stab, int src,
+            unsigned r, unsigned g, unsigned b){
+  unsigned char* tcrec = stab->table + CENTSIZE * stab->colors;
+  dtable_to_ctable(stab->colors, tcrec);
+  cdetails* deets = stab->deets + src;
+  cdetails* targdeets = stab->deets + stab->colors;
+  unsigned char* crec = stab->table + CENTSIZE * src;
+  int didx = ctable_to_dtable(crec);
+  unsigned char* srcsixels = stab->data + stab->sixelcount * didx;
+  unsigned char* dstsixels = stab->data + stab->sixelcount * stab->colors;
+fprintf(stderr, "counts: src: %d dst: %d\n", deets->count, targdeets->count);
+  int sixel = 0;
+  memset(deets, 0, sizeof(*deets));
+  for(int visy = begy ; visy < (begy + leny) ; visy += 6){
+    for(int visx = begx ; visx < (begx + lenx) ; visx += 1, ++sixel){
+      if(srcsixels[sixel]){
+        for(int sy = visy ; sy < (begy + leny) && sy < visy + 6 ; ++sy){
+          if(srcsixels[sixel] & (1u << (sy - visy))){
+            const uint32_t* rgb = (const uint32_t*)(data + (linesize / 4 * sy) + visx);
+            unsigned char comps[RGBSIZE];
+            break_sixel_comps(comps, *rgb, 0xff);
+            if(comps[0] > r || comps[1] > g || comps[2] > b){
+              ++targdeets->count;
+              dstsixels[sixel] |= (1u << (sy - visy));
+              srcsixels[sixel] &= ~(1u << (sy - visy));
+              update_deets(*rgb, targdeets);
+//fprintf(stderr, "%u/%u/%u comps: [%u/%u/%u]\n", r, g, b, comps[0], comps[1], comps[2]);
+//fprintf(stderr, "match sixel %d %u %u\n", sixel, srcsixels[sixel], 1u << (sy - visy));
+            }else{
+              ++deets->count;
+              update_deets(*rgb, deets);
+            }
+          }
+        }
+      }
+    }
+  }
+fprintf(stderr, "counts: src: %d dst: %d\n", deets->count, targdeets->count);
+}
+
+// relax segment |coloridx|. we must have room for a new color. we find the
+// biggest component gap, and split our color entry in half there. we know
+// the elements can't go into any preexisting color entry, so the only
+// choices are staying where they are, or going to the new one. "unzip" the
+// sixels from the data table by looking back to the sources and classifying
+// them in one or the other centry. rebuild our sums, sixels, hi/lo, and
+// counts as we do so. anaphase, baybee! target always gets the upper range.
 static void
 refine_color(const uint32_t* data, int linesize, int begy, int begx,
              int leny, int lenx, sixeltable* stab, int color){
+  unsigned char* crec = stab->table + CENTSIZE * color;
+  int didx = ctable_to_dtable(crec);
+  cdetails* deets = stab->deets + didx;
+  int rdelt = deets->hi[0] - deets->lo[0];
+  int gdelt = deets->hi[1] - deets->lo[1];
+  int bdelt = deets->hi[2] - deets->lo[2];
+  unsigned rmax = deets->hi[0];
+  unsigned gmax = deets->hi[1];
+  unsigned bmax = deets->hi[2];
+  if(gdelt >= rdelt && gdelt >= bdelt){ // split on green
+fprintf(stderr, "[%d->%d] SPLIT ON GREEN %d %d\n", color, stab->colors, deets->hi[1], deets->lo[1]);
+    gmax = deets->lo[1] + (deets->hi[1] - deets->lo[1]) / 2;
+  }else if(rdelt >= gdelt && rdelt >= bdelt){ // split on red
+fprintf(stderr, "[%d->%d] SPLIT ON RED %d %d\n", color, stab->colors, deets->hi[0], deets->lo[0]);
+    rmax = deets->lo[0] + (deets->hi[0] - deets->lo[0]) / 2;
+  }else{ // split on blue
+fprintf(stderr, "[%d->%d] SPLIT ON BLUE %d %d\n", color, stab->colors, deets->hi[2], deets->lo[2]);
+    bmax = deets->lo[2] + (deets->hi[2] - deets->lo[2]) / 2;
+  }
+  unzip_color(data, linesize, begy, begx, leny, lenx, stab, color,
+              rmax, gmax, bmax);
+  ++stab->colors;
 }
 
 // relax the details down into free color registers
@@ -176,7 +255,7 @@ refine_color_table(const uint32_t* data, int linesize, int begy, int begx,
       unsigned char* crec = stab->table + CENTSIZE * i;
       int didx = ctable_to_dtable(crec);
       cdetails* deets = stab->deets + didx;
-fprintf(stderr, "hi: %d %d %d lo: %d %d %d\n", deets->hi[0], deets->hi[1], deets->hi[2], deets->hi[0], deets->hi[1], deets->hi[2]);
+fprintf(stderr, "[%d->%d] hi: %d %d %d lo: %d %d %d\n", i, didx, deets->hi[0], deets->hi[1], deets->hi[2], deets->lo[0], deets->lo[1], deets->lo[2]);
       if(memcmp(deets->hi, deets->lo, RGBSIZE)){
 fprintf(stderr, "good try on %d->%d (%d)\n", i, didx, stab->colorregs);
         refine_color(data, linesize, begy, begx, leny, lenx, stab, i);
@@ -184,6 +263,7 @@ fprintf(stderr, "good try on %d->%d (%d)\n", i, didx, stab->colorregs);
 fprintf(stderr, "filled table!\n");
           break;
         }
+        refined = true;
       }
     }
     if(!refined){ // no more possible work
