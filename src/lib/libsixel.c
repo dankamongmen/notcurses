@@ -46,7 +46,7 @@ libsixel_blit_inner(ncplane* nc, int linesize, const void* data,
   sixel_dither_t* dither = NULL;
   sixel_output_t* output;
   // FIXME provide bargs->pixels.colorregs
-  SIXELSTATUS status =  sixel_dither_new(&dither, 128, NULL);
+  SIXELSTATUS status =  sixel_dither_new(&dither, bargs->pixel.colorregs, NULL);
   if(SIXEL_FAILED(status)){
     free(cpy);
     return -1;
