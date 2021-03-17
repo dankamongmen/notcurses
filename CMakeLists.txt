@@ -24,6 +24,7 @@ cmake_dependent_option(
   "${BUILD_TESTING}" OFF
 )
 option(USE_DOXYGEN "Build HTML cross reference with doxygen" OFF)
+option(USE_LIBSIXEL "Enable libsixel for improved Sixel graphics" OFF)
 option(USE_PANDOC "Build man pages and HTML reference with pandoc" ON)
 option(USE_POC "Build small, uninstalled proof-of-concept binaries" ON)
 option(USE_QRCODEGEN "Disable libqrcodegen QR code support" ON)
@@ -96,6 +97,10 @@ elseif(${USE_OIIO})
 pkg_check_modules(OIIO REQUIRED OpenImageIO>=2.1)
 set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND OpenImageIO)
 endif()
+if(${USE_LIBSIXEL})
+pkg_check_modules(LIBSIXEL REQUIRED libsixel>=1.8.6)
+set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND libsixel)
+endif()
 find_library(MATH_LIBRARIES m)
 if(${USE_DOCTEST})
 find_package(doctest 2.3.5)
@@ -147,8 +152,9 @@ target_include_directories(notcurses-core
     src
     "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
-    "${TERMINFO_INCLUDE_DIRS}"
+    "${LIBSIXEL_INCLUDE_DIRS}"
     "${READLINE_INCLUDE_DIRS}"
+    "${TERMINFO_INCLUDE_DIRS}"
 )
 target_include_directories(notcurses-core-static
   PRIVATE
@@ -156,13 +162,15 @@ target_include_directories(notcurses-core-static
     src
     "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
-    "${TERMINFO_STATIC_INCLUDE_DIRS}"
+    "${LIBSIXEL_STATIC_INCLUDE_DIRS}"
     "${READLINE_STATIC_INCLUDE_DIRS}"
+    "${TERMINFO_STATIC_INCLUDE_DIRS}"
 )
 target_link_libraries(notcurses-core
   PRIVATE
-    "${TERMINFO_LIBRARIES}"
+    "${LIBSIXEL_LIBRARIES}"
     "${READLINE_LIBRARIES}"
+    "${TERMINFO_LIBRARIES}"
     "${LIBRT}"
     unistring
   PUBLIC
@@ -170,8 +178,9 @@ target_link_libraries(notcurses-core
 )
 target_link_libraries(notcurses-core-static
   PRIVATE
-    "${TERMINFO_STATIC_LIBRARIES}"
+    "${LIBSIXEL_STATIC_LIBRARIES}"
     "${READLINE_STATIC_LIBRARIES}"
+    "${TERMINFO_STATIC_LIBRARIES}"
     "${LIBRT}"
     unistring
   PUBLIC
@@ -179,13 +188,15 @@ target_link_libraries(notcurses-core-static
 )
 target_link_directories(notcurses-core
   PRIVATE
-    "${TERMINFO_LIBRARY_DIRS}"
+    "${LIBSIXEL_LIBRARY_DIRS}"
     "${READLINE_LIBRARY_DIRS}"
+    "${TERMINFO_LIBRARY_DIRS}"
 )
 target_link_directories(notcurses-core-static
   PRIVATE
-    "${TERMINFO_STATIC_LIBRARY_DIRS}"
+    "${LIBSIXEL_STATIC_LIBRARY_DIRS}"
     "${READLINE_STATIC_LIBRARY_DIRS}"
+    "${TERMINFO_STATIC_LIBRARY_DIRS}"
 )
 # don't want these on freebsd/dragonfly/osx
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")

@@ -187,7 +187,7 @@ find_color(sixeltable* stab, unsigned char comps[static RGBSIZE]){
     }else{
       i = l;
     }
-    if(stab->colors == stab->colorregs){
+    if(stab->colors == stab->colorregs){ // used all our color registers
       return -1;
     }
     if(i < stab->colors){

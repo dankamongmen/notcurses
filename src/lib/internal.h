@@ -1328,9 +1328,10 @@ int sprite_kitty_cell_wipe(const notcurses* nc, sprixel* s, int y, int x);
 
 int sixel_blit(ncplane* nc, int linesize, const void* data,
                int leny, int lenx, const blitterargs* bargs);
-
 int kitty_blit(ncplane* nc, int linesize, const void* data,
                int leny, int lenx, const blitterargs* bargs);
+int libsixel_blit(ncplane* nc, int linesize, const void* data, int begy, int begx,
+                  int leny, int lenx, const blitterargs* bargs);
 
 int term_fg_rgb8(bool RGBflag, const char* setaf, int colors, FILE* out,
                  unsigned r, unsigned g, unsigned b);
