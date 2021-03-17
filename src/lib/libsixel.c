@@ -33,12 +33,6 @@ dup_for_libsixel(const void* data, int linesize, int leny, int lenx){
 }
 
 static int
-sixel_write(char* data, int size, void* priv){
-  fprintf(stdout, "%*.*s", size, size, data);
-  return 0;
-}
-
-static int
 libsixel_blit_inner(ncplane* nc, int linesize, const void* data,
                         int begy, int begx, int leny, int lenx,
                         const blitterargs* bargs){
