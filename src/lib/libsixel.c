@@ -3,20 +3,21 @@
 #include <sixel/sixel.h>
 
 typedef struct libsixel_closure {
-  void* buf;
+  char* buf;
   int size;
 } libsixel_closure;
 
 static int
 libsixel_writer(char* data, int size, void* priv){
   libsixel_closure* closure = priv;
-  void* tmp = realloc(closure->buf, closure->size + size);
+  char* tmp = realloc(closure->buf, closure->size + size + 1);
   if(tmp == NULL){
     return -1;
   }
   closure->buf = tmp;
   memcpy(closure->buf + closure->size, data, size);
   closure->size += size;
+  closure->buf[closure->size] = '\0';
   return 0;
 }
 
