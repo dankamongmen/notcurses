@@ -48,14 +48,17 @@ libsixel_blit_inner(ncplane* nc, int linesize, const void* data,
   sixel_dither_t* dither = NULL;
   sixel_output_t* output;
   // FIXME provide bargs->pixels.colorregs
-  SIXELSTATUS status =  sixel_dither_new(&dither, colors, NULL);
+  SIXELSTATUS status = sixel_dither_new(&dither, colors, NULL);
   if(SIXEL_FAILED(status)){
-fprintf(stderr, "OH NOES %d\n", bargs->pixel.colorregs);
     free(cpy);
     return -1;
   }
-  sixel_dither_initialize(dither, cpy, lenx, leny, SIXEL_PIXELFORMAT_RGBA8888, SIXEL_LARGE_AUTO, SIXEL_REP_AUTO, SIXEL_QUALITY_AUTO);
-  //if(SIXEL_OK != sixel_output_new(&output, sixel_write, &closure, NULL)){
+  status = sixel_dither_initialize(dither, cpy, lenx, leny, SIXEL_PIXELFORMAT_RGBA8888, SIXEL_LARGE_AUTO, SIXEL_REP_AUTO, SIXEL_QUALITY_AUTO);
+  if(SIXEL_FAILED(status)){
+    sixel_dither_destroy(dither);
+    free(cpy);
+    return -1;
+  }
   if(SIXEL_OK != sixel_output_new(&output, libsixel_writer, &closure, NULL)){
     sixel_dither_destroy(dither);
     free(cpy);
@@ -73,7 +76,6 @@ fprintf(stderr, "OH NOES %d\n", bargs->pixel.colorregs);
   free(cpy);
   unsigned cols = lenx / bargs->pixel.celldimx + !!(lenx % bargs->pixel.celldimx);
   unsigned rows = leny / bargs->pixel.celldimy + !!(leny % bargs->pixel.celldimx);
-fprintf(stderr, "ABOUT TO WRITE %d\n", closure.size);
   if(closure.buf == NULL){
     return -1;
   }
