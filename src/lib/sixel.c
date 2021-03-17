@@ -172,7 +172,7 @@ extract_color_table(const uint32_t* data, int linesize, int begy, int begx,
 static void
 unzip_color(const uint32_t* data, int linesize, int begy, int begx,
             int leny, int lenx, sixeltable* stab, int src,
-            unsigned r, unsigned g, unsigned b){
+            unsigned char rgb[static 3]){
   unsigned char* tcrec = stab->table + CENTSIZE * stab->colors;
   dtable_to_ctable(stab->colors, tcrec);
   cdetails* targdeets = stab->deets + stab->colors;
@@ -189,17 +189,17 @@ unzip_color(const uint32_t* data, int linesize, int begy, int begx,
       if(srcsixels[sixel]){
         for(int sy = visy ; sy < (begy + leny) && sy < visy + 6 ; ++sy){
           if(srcsixels[sixel] & (1u << (sy - visy))){
-            const uint32_t* rgb = (const uint32_t*)(data + (linesize / 4 * sy) + visx);
+            const uint32_t* pixel = (const uint32_t*)(data + (linesize / 4 * sy) + visx);
             unsigned char comps[RGBSIZE];
-            break_sixel_comps(comps, *rgb, 0xff);
-            if(comps[0] > r || comps[1] > g || comps[2] > b){
+            break_sixel_comps(comps, *pixel, 0xff);
+            if(comps[0] > rgb[0] || comps[1] > rgb[1] || comps[2] > rgb[2]){
               dstsixels[sixel] |= (1u << (sy - visy));
               srcsixels[sixel] &= ~(1u << (sy - visy));
-              update_deets(*rgb, targdeets);
+              update_deets(*pixel, targdeets);
 //fprintf(stderr, "%u/%u/%u comps: [%u/%u/%u]\n", r, g, b, comps[0], comps[1], comps[2]);
 //fprintf(stderr, "match sixel %d %u %u\n", sixel, srcsixels[sixel], 1u << (sy - visy));
             }else{
-              update_deets(*rgb, deets);
+              update_deets(*pixel, deets);
             }
           }
         }
@@ -224,21 +224,18 @@ refine_color(const uint32_t* data, int linesize, int begy, int begx,
   int rdelt = deets->hi[0] - deets->lo[0];
   int gdelt = deets->hi[1] - deets->lo[1];
   int bdelt = deets->hi[2] - deets->lo[2];
-  unsigned rmax = deets->hi[0];
-  unsigned gmax = deets->hi[1];
-  unsigned bmax = deets->hi[2];
+  unsigned char rgbmax[3] = { deets->hi[0], deets->hi[1], deets->hi[2] };
   if(gdelt >= rdelt && gdelt >= bdelt){ // split on green
 //fprintf(stderr, "[%d->%d] SPLIT ON GREEN %d %d\n", color, stab->colors, deets->hi[1], deets->lo[1]);
-    gmax = deets->lo[1] + (deets->hi[1] - deets->lo[1]) / 2;
+    rgbmax[1] = deets->lo[1] + (deets->hi[1] - deets->lo[1]) / 2;
   }else if(rdelt >= gdelt && rdelt >= bdelt){ // split on red
 //fprintf(stderr, "[%d->%d] SPLIT ON RED %d %d\n", color, stab->colors, deets->hi[0], deets->lo[0]);
-    rmax = deets->lo[0] + (deets->hi[0] - deets->lo[0]) / 2;
+    rgbmax[0] = deets->lo[0] + (deets->hi[0] - deets->lo[0]) / 2;
   }else{ // split on blue
 //fprintf(stderr, "[%d->%d] SPLIT ON BLUE %d %d\n", color, stab->colors, deets->hi[2], deets->lo[2]);
-    bmax = deets->lo[2] + (deets->hi[2] - deets->lo[2]) / 2;
+    rgbmax[2] = deets->lo[2] + (deets->hi[2] - deets->lo[2]) / 2;
   }
-  unzip_color(data, linesize, begy, begx, leny, lenx, stab, color,
-              rmax, gmax, bmax);
+  unzip_color(data, linesize, begy, begx, leny, lenx, stab, color, rgbmax);
   ++stab->colors;
 }
 
@@ -248,7 +245,8 @@ refine_color_table(const uint32_t* data, int linesize, int begy, int begx,
                    int leny, int lenx, sixeltable* stab){
   while(stab->colors < stab->colorregs){
     bool refined = false;
-    for(int i = 0 ; i < stab->colors ; ++i){
+    int tmpcolors = stab->colors; // force us to come back through
+    for(int i = 0 ; i < tmpcolors ; ++i){
       unsigned char* crec = stab->table + CENTSIZE * i;
       int didx = ctable_to_dtable(crec);
       cdetails* deets = stab->deets + didx;
