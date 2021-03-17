@@ -1,4 +1,5 @@
 #include "internal.h"
+#ifdef USE_LIBSIXEL
 #include <sixel/sixel.h>
 
 typedef struct libsixel_closure {
@@ -36,6 +37,7 @@ static int
 libsixel_blit_inner(ncplane* nc, int linesize, const void* data,
                         int begy, int begx, int leny, int lenx,
                         const blitterargs* bargs){
+  int colors = bargs->pixel.colorregs > 256 ? 256 : bargs->pixel.colorregs;
   (void)begy;
   (void)begx;
   void* cpy = dup_for_libsixel(data, linesize, leny, lenx);
@@ -46,8 +48,9 @@ libsixel_blit_inner(ncplane* nc, int linesize, const void* data,
   sixel_dither_t* dither = NULL;
   sixel_output_t* output;
   // FIXME provide bargs->pixels.colorregs
-  SIXELSTATUS status =  sixel_dither_new(&dither, bargs->pixel.colorregs, NULL);
+  SIXELSTATUS status =  sixel_dither_new(&dither, colors, NULL);
   if(SIXEL_FAILED(status)){
+fprintf(stderr, "OH NOES %d\n", bargs->pixel.colorregs);
     free(cpy);
     return -1;
   }
@@ -70,6 +73,10 @@ libsixel_blit_inner(ncplane* nc, int linesize, const void* data,
   free(cpy);
   unsigned cols = lenx / bargs->pixel.celldimx + !!(lenx % bargs->pixel.celldimx);
   unsigned rows = leny / bargs->pixel.celldimy + !!(leny % bargs->pixel.celldimx);
+fprintf(stderr, "ABOUT TO WRITE %d\n", closure.size);
+  if(closure.buf == NULL){
+    return -1;
+  }
   if(plane_blit_sixel(nc, closure.buf, closure.size, rows, cols, bargs->pixel.sprixelid) < 0){
     free(closure.buf);
     return -1;
@@ -90,3 +97,4 @@ int libsixel_blit(ncplane* nc, int linesize, const void* data,
   }
   return r;
 }
+#endif
