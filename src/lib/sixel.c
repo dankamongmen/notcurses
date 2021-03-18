@@ -215,7 +215,8 @@ unzip_color(const uint32_t* data, int linesize, int begy, int begx,
 // sixels from the data table by looking back to the sources and classifying
 // them in one or the other centry. rebuild our sums, sixels, hi/lo, and
 // counts as we do so. anaphase, baybee! target always gets the upper range.
-static void
+// returns 1 if we did a refinement, 0 otherwise.
+static int
 refine_color(const uint32_t* data, int linesize, int begy, int begx,
              int leny, int lenx, sixeltable* stab, int color){
   unsigned char* crec = stab->table + CENTSIZE * color;
@@ -226,17 +227,27 @@ refine_color(const uint32_t* data, int linesize, int begy, int begx,
   int bdelt = deets->hi[2] - deets->lo[2];
   unsigned char rgbmax[3] = { deets->hi[0], deets->hi[1], deets->hi[2] };
   if(gdelt >= rdelt && gdelt >= bdelt){ // split on green
-//fprintf(stderr, "[%d->%d] SPLIT ON GREEN %d %d\n", color, stab->colors, deets->hi[1], deets->lo[1]);
+    if(gdelt < 3){
+      return 0;
+    }
+//fprintf(stderr, "[%d->%d] SPLIT ON GREEN %d %d (pop: %d)\n", color, stab->colors, deets->hi[1], deets->lo[1], deets->count);
     rgbmax[1] = deets->lo[1] + (deets->hi[1] - deets->lo[1]) / 2;
   }else if(rdelt >= gdelt && rdelt >= bdelt){ // split on red
-//fprintf(stderr, "[%d->%d] SPLIT ON RED %d %d\n", color, stab->colors, deets->hi[0], deets->lo[0]);
+    if(rdelt < 3){
+      return 0;
+    }
+//fprintf(stderr, "[%d->%d] SPLIT ON RED %d %d (pop: %d)\n", color, stab->colors, deets->hi[0], deets->lo[0], deets->count);
     rgbmax[0] = deets->lo[0] + (deets->hi[0] - deets->lo[0]) / 2;
   }else{ // split on blue
-//fprintf(stderr, "[%d->%d] SPLIT ON BLUE %d %d\n", color, stab->colors, deets->hi[2], deets->lo[2]);
+    if(bdelt < 3){
+      return 0;
+    }
+//fprintf(stderr, "[%d->%d] SPLIT ON BLUE %d %d (pop: %d)\n", color, stab->colors, deets->hi[2], deets->lo[2], deets->count);
     rgbmax[2] = deets->lo[2] + (deets->hi[2] - deets->lo[2]) / 2;
   }
   unzip_color(data, linesize, begy, begx, leny, lenx, stab, color, rgbmax);
   ++stab->colors;
+  return 1;
 }
 
 // relax the details down into free color registers
@@ -251,13 +262,14 @@ refine_color_table(const uint32_t* data, int linesize, int begy, int begx,
       int didx = ctable_to_dtable(crec);
       cdetails* deets = stab->deets + didx;
 //fprintf(stderr, "[%d->%d] hi: %d %d %d lo: %d %d %d\n", i, didx, deets->hi[0], deets->hi[1], deets->hi[2], deets->lo[0], deets->lo[1], deets->lo[2]);
-      if(memcmp(deets->hi, deets->lo, RGBSIZE)){
-        refine_color(data, linesize, begy, begx, leny, lenx, stab, i);
-        if(stab->colors == stab->colorregs){
-//fprintf(stderr, "filled table!\n");
-          break;
+      if(deets->count > leny * lenx / stab->colorregs){
+        if(refine_color(data, linesize, begy, begx, leny, lenx, stab, i)){
+          if(stab->colors == stab->colorregs){
+  //fprintf(stderr, "filled table!\n");
+            break;
+          }
+          refined = true;
         }
-        refined = true;
       }
     }
     if(!refined){ // no more possible work
@@ -395,6 +407,9 @@ int sixel_blit(ncplane* nc, int linesize, const void* data, int begy, int begx,
                int leny, int lenx, const blitterargs* bargs){
   int sixelcount = (lenx - begx) * ((leny - begy + 5) / 6);
   int colorregs = bargs->pixel.colorregs;
+  if(colorregs <= 0){
+    return -1;
+  }
   if(colorregs > 256){
     colorregs = 256;
   }
