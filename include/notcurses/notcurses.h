@@ -17,7 +17,7 @@
 // then reverse that, guaranteeing LE. htole(x) == ltohe(x).
 #if defined(__linux__) || defined(__gnu_hurd__)
 #include <byteswap.h>
-#define htole(x) (bswap_32(htonl(x)))
+#define htole(x) (__bswap_32(htonl(x)))
 #else
 #include <sys/endian.h>
 #define htole(x) (bswap32(htonl(x)))
