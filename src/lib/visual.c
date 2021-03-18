@@ -1,21 +1,21 @@
-#include <cmath>
-#include <cstring>
+#include <math.h>
+#include <string.h>
 #include "builddef.h"
 #include "visual-details.h"
 #include "internal.h"
 
-const ncvisual_implementation* visual_implementation = nullptr;
+const ncvisual_implementation* visual_implementation = NULL;
 
-auto ncvisual_decode(ncvisual* nc) -> int {
+int ncvisual_decode(ncvisual* nc){
   if(!visual_implementation){
     return -1;
   }
   return visual_implementation->visual_decode(nc);
 }
 
-auto ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
-                   const struct blitset* bset, int begy, int begx,
-                   int leny, int lenx, const blitterargs* barg) -> int {
+int ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
+                  const struct blitset* bset, int begy, int begx,
+                  int leny, int lenx, const blitterargs* barg){
   int ret = -1;
   if(visual_implementation){
     if(visual_implementation->visual_blit(ncv, rows, cols, n, bset,
@@ -34,42 +34,44 @@ auto ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
 // ncv constructors other than ncvisual_from_file() need to set up the
 // AVFrame* 'frame' according to their own data, which is assumed to
 // have been prepared already in 'ncv'.
-auto ncvisual_details_seed(struct ncvisual* ncv) -> void {
+void ncvisual_details_seed(struct ncvisual* ncv){
   if(visual_implementation){
     visual_implementation->visual_details_seed(ncv);
   }
 }
 
-auto ncvisual_init(int loglevel) -> int {
+int ncvisual_init(int loglevel){
   if(visual_implementation){
     return visual_implementation->visual_init(loglevel);
   }
   return 0;
 }
 
-auto ncvisual_from_file(const char* filename) -> ncvisual* {
+ncvisual* ncvisual_from_file(const char* filename){
   if(!visual_implementation){
-    return nullptr;
+    return NULL;
   }
   return visual_implementation->visual_from_file(filename);
 }
 
-auto ncvisual_create(void) -> ncvisual* {
+ncvisual* ncvisual_create(void){
   if(visual_implementation){
     return visual_implementation->visual_create();
   }
-  return new ncvisual{};
+  ncvisual* ret = malloc(sizeof(*ret));
+  memset(ret, 0, sizeof(*ret));
+  return ret;
 }
 
-auto ncvisual_printbanner(const notcurses* nc) -> void {
+void ncvisual_printbanner(const notcurses* nc){
   if(visual_implementation){
     visual_implementation->visual_printbanner(nc);
   }
 }
 
-auto ncvisual_geom(const notcurses* nc, const ncvisual* n,
-                   const struct ncvisual_options* vopts,
-                   int* y, int* x, int* toy, int* tox) -> int {
+int ncvisual_geom(const notcurses* nc, const ncvisual* n,
+                  const struct ncvisual_options* vopts,
+                  int* y, int* x, int* toy, int* tox){
   const ncscale_e scale = vopts ? vopts->scaling : NCSCALE_NONE;
   ncblitter_e blitfxn;
   if(!vopts || vopts->blitter == NCBLIT_DEFAULT){
@@ -112,11 +114,11 @@ auto ncvisual_geom(const notcurses* nc, const ncvisual* n,
   return 0;
 }
 
-auto bgra_to_rgba(const void* data, int rows, int rowstride, int cols) -> void* {
+void* bgra_to_rgba(const void* data, int rows, int rowstride, int cols){
   if(rowstride % 4){ // must be a multiple of 4 bytes
-    return nullptr;
+    return NULL;
   }
-  auto ret = static_cast<uint32_t*>(malloc(rowstride * rows));
+  uint32_t* ret = malloc(rowstride * rows);
   if(ret){
     for(int y = 0 ; y < rows ; ++y){
       for(int x = 0 ; x < cols ; ++x){
@@ -136,8 +138,8 @@ auto bgra_to_rgba(const void* data, int rows, int rowstride, int cols) -> void* 
 // "real" pixels, where "real" pixels are, by convention, all zeroes.
 // Placing this box at offyXoffx relative to the visual will encompass all
 // pixels. Returns the area of the box (0 if there are no pixels).
-auto ncvisual_bounding_box(const ncvisual* ncv, int* leny, int* lenx,
-                           int* offy, int* offx) -> int {
+int ncvisual_bounding_box(const ncvisual* ncv, int* leny, int* lenx,
+                          int* offy, int* offx){
   int trow, lcol = -1, rcol = INT_MAX; // FIXME shouldn't need lcol init
   // first, find the topmost row with a real pixel. if there is no such row,
   // there are no such pixels. if we find one, we needn't look in this region
@@ -242,8 +244,8 @@ ncvisual_center(const ncvisual* n, int* RESTRICT y, int* RESTRICT x){
 // rotate the 0-indexed (origin-indexed) ['y', 'x'] through 'ctheta' and
 // 'stheta' around the centerpoint at ['centy', 'centx']. write the results
 // back to 'y' and 'x'.
-static auto
-rotate_point(int* y, int* x, double stheta, double ctheta, int centy, int centx) -> void {
+static void
+rotate_point(int* y, int* x, double stheta, double ctheta, int centy, int centx){
   // convert coordinates from origin to left-handed cartesian
   const int convx = *x - centx;
   const int convy = *y - centy;
@@ -256,9 +258,9 @@ rotate_point(int* y, int* x, double stheta, double ctheta, int centy, int centx)
 // theta radians, enlarging or shrinking it as necessary. returns the area.
 // 'leny', 'lenx', 'offy', and 'offx' describe the bounding box to be rotated,
 // and might all be updated (in either direction).
-static auto
+static int
 rotate_bounding_box(double stheta, double ctheta, int* leny, int* lenx,
-                    int* offy, int* offx) -> int {
+                    int* offy, int* offx){
 //fprintf(stderr, "Incoming bounding box: %dx%d @ %dx%d rotate s(%f) c(%f)\n", *leny, *lenx, *offy, *offx, stheta, ctheta);
   int xs[4], ys[4]; // x and y locations of rotated coordinates
   int centy = *leny;
@@ -306,7 +308,7 @@ rotate_bounding_box(double stheta, double ctheta, int* leny, int* lenx,
   return *leny * *lenx;
 }
 
-auto ncvisual_rotate(ncvisual* ncv, double rads) -> int {
+int ncvisual_rotate(ncvisual* ncv, double rads){
   // done to force conversion into RGBA
   int err = ncvisual_resize(ncv, ncv->rows, ncv->cols);
   if(err){
@@ -314,7 +316,7 @@ auto ncvisual_rotate(ncvisual* ncv, double rads) -> int {
   }
   assert(ncv->rowstride / 4 >= ncv->cols);
   rads = -rads; // we're a left-handed Cartesian
-  if(ncv->data == nullptr){
+  if(ncv->data == NULL){
     return -1;
   }
   int centy, centx;
@@ -341,8 +343,8 @@ auto ncvisual_rotate(ncvisual* ncv, double rads) -> int {
   center_box(&bbcenty, &bbcentx);
 //fprintf(stderr, "stride: %d height: %d width: %d\n", ncv->rowstride, ncv->rows, ncv->cols);
   assert(ncv->rowstride / 4 >= ncv->cols);
-  auto data = static_cast<uint32_t*>(malloc(bbarea * 4));
-  if(data == nullptr){
+  uint32_t* data = malloc(bbarea * 4);
+  if(data == NULL){
     return -1;
   }
   memset(data, 0, bbarea * 4);
@@ -369,21 +371,20 @@ auto ncvisual_rotate(ncvisual* ncv, double rads) -> int {
   return 0;
 }
 
-auto ncvisual_from_rgba(const void* rgba, int rows, int rowstride,
-                        int cols) -> ncvisual* {
+ncvisual* ncvisual_from_rgba(const void* rgba, int rows, int rowstride, int cols){
   if(rowstride % 4){
-    return nullptr;
+    return NULL;
   }
   ncvisual* ncv = ncvisual_create();
   if(ncv){
     ncv->rowstride = rowstride;
     ncv->cols = cols;
     ncv->rows = rows;
-    auto data = static_cast<uint32_t*>(memdup(rgba, rowstride * ncv->rows));
+    uint32_t* data = memdup(rgba, rowstride * ncv->rows);
 //fprintf(stderr, "COPY US %zu (%d)\n", rowstride * ncv->rows, ncv->rows);
-    if(data == nullptr){
+    if(data == NULL){
       ncvisual_destroy(ncv);
-      return nullptr;
+      return NULL;
     }
 //fprintf(stderr, "ROWS: %d STRIDE: %d (%d) COLS: %d\n", rows, rowstride, rowstride / 4, cols);
     ncvisual_set_data(ncv, data, true);
@@ -392,25 +393,24 @@ auto ncvisual_from_rgba(const void* rgba, int rows, int rowstride,
   return ncv;
 }
 
-auto ncvisual_from_bgra(const void* bgra, int rows, int rowstride,
-                        int cols) -> ncvisual* {
+ncvisual* ncvisual_from_bgra(const void* bgra, int rows, int rowstride, int cols){
   if(rowstride % 4){
-    return nullptr;
+    return NULL;
   }
   ncvisual* ncv = ncvisual_create();
   if(ncv){
     ncv->rowstride = rowstride;
     ncv->cols = cols;
     ncv->rows = rows;
-    auto data = static_cast<uint32_t*>(memdup(bgra, rowstride * ncv->rows));
+    uint32_t* data = memdup(bgra, rowstride * ncv->rows);
     for(int p = 0 ; p < rowstride / 4 * ncv->rows ; ++p){
       const unsigned r = (data[p] & 0xffllu) << 16u;
       const unsigned b = (data[p] & 0xff0000llu) >> 16u;
       data[p] = (data[p] & 0xff00ff00llu) | r | b;
     }
-    if(data == nullptr){
+    if(data == NULL){
       ncvisual_destroy(ncv);
-      return nullptr;
+      return NULL;
     }
     ncvisual_set_data(ncv, data, true);
     ncvisual_details_seed(ncv);
@@ -418,13 +418,13 @@ auto ncvisual_from_bgra(const void* bgra, int rows, int rowstride,
   return ncv;
 }
 
-auto ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const blitset* bset,
-                           int placey, int placex, int begy, int begx,
-                           int leny, int lenx, ncplane* n, ncscale_e scaling,
-                           bool blendcolors) -> ncplane* {
+ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitset* bset,
+                               int placey, int placex, int begy, int begx,
+                               int leny, int lenx, ncplane* n, ncscale_e scaling,
+                               bool blendcolors){
   int disprows, dispcols;
-//fprintf(stderr, "INPUT N: %p\n", vopts ? vopts->n : nullptr);
-  if(n == nullptr){ // create plane
+//fprintf(stderr, "INPUT N: %p\n", vopts ? vopts->n : NULL);
+  if(n == NULL){ // create plane
     if(scaling == NCSCALE_NONE || scaling == NCSCALE_NONE_HIRES){
       dispcols = ncv->cols;
       disprows = ncv->rows;
@@ -442,13 +442,13 @@ auto ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const blitset* bset,
       .x = placex,
       .rows = disprows / encoding_y_scale(&nc->tcache, bset),
       .cols = dispcols / encoding_x_scale(&nc->tcache, bset),
-      .userptr = nullptr,
+      .userptr = NULL,
       .name = "rgba",
-      .resizecb = nullptr,
+      .resizecb = NULL,
       .flags = 0,
     };
-    if((n = ncplane_create(notcurses_stdplane(nc), &nopts)) == nullptr){
-      return nullptr;
+    if((n = ncplane_create(notcurses_stdplane(nc), &nopts)) == NULL){
+      return NULL;
     }
     placey = 0;
     placex = 0;
@@ -476,21 +476,21 @@ auto ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const blitset* bset,
   bargs.cell.blendcolors = blendcolors;
   if(ncvisual_blit(ncv, disprows, dispcols, n, bset, begy, begx, leny, lenx, &bargs)){
     ncplane_destroy(n);
-    return nullptr;
+    return NULL;
   }
   return n;
 }
 
-auto ncvisual_render_pixels(tinfo* tcache, ncvisual* ncv, const blitset* bset,
-                            int placey, int placex, int begy, int begx,
-                            ncplane* n, ncscale_e scaling, ncplane* stdn) -> ncplane* {
+ncplane* ncvisual_render_pixels(tinfo* tcache, ncvisual* ncv, const struct blitset* bset,
+                                int placey, int placex, int begy, int begx,
+                                ncplane* n, ncscale_e scaling, ncplane* stdn){
   int disprows, dispcols;
   if(scaling == NCSCALE_NONE || scaling == NCSCALE_NONE_HIRES){
     dispcols = ncv->cols;
     disprows = ncv->rows;
   }
-//fprintf(stderr, "INPUT N: %p\n", vopts ? vopts->n : nullptr);
-  if(n == nullptr){ // create plane
+//fprintf(stderr, "INPUT N: %p\n", vopts ? vopts->n : NULL);
+  if(n == NULL){ // create plane
     if(scaling != NCSCALE_NONE && scaling != NCSCALE_NONE_HIRES){
       ncplane_dim_yx(stdn, &disprows, &dispcols);
       dispcols *= tcache->cellpixx;
@@ -502,13 +502,13 @@ auto ncvisual_render_pixels(tinfo* tcache, ncvisual* ncv, const blitset* bset,
       .x = placex,
       .rows = disprows / tcache->cellpixy + !!(disprows % tcache->cellpixy),
       .cols = dispcols / tcache->cellpixx + !!(dispcols % tcache->cellpixx),
-      .userptr = nullptr,
+      .userptr = NULL,
       .name = "rgba",
-      .resizecb = nullptr,
+      .resizecb = NULL,
       .flags = 0,
     };
-    if((n = ncplane_create(stdn, &nopts)) == nullptr){
-      return nullptr;
+    if((n = ncplane_create(stdn, &nopts)) == NULL){
+      return NULL;
     }
     placey = 0;
     placex = 0;
@@ -533,13 +533,12 @@ auto ncvisual_render_pixels(tinfo* tcache, ncvisual* ncv, const blitset* bset,
   if(ncvisual_blit(ncv, disprows, dispcols, n, bset,
                    begy, begx, disprows, dispcols, &bargs)){
     ncplane_destroy(n);
-    return nullptr;
+    return NULL;
   }
   return n;
 }
 
-auto ncvisual_render(notcurses* nc, ncvisual* ncv,
-                     const struct ncvisual_options* vopts) -> ncplane* {
+ncplane* ncvisual_render(notcurses* nc, ncvisual* ncv, const struct ncvisual_options* vopts){
   if(vopts && vopts->flags > NCVISUAL_OPTION_BLEND){
     logwarn(nc, "Warning: unknown ncvisual options %016jx\n", (uintmax_t)vopts->flags);
   }
@@ -549,15 +548,15 @@ auto ncvisual_render(notcurses* nc, ncvisual* ncv,
   int begx = vopts ? vopts->begx : 0;
 //fprintf(stderr, "blit %dx%d+%dx%d %p\n", begy, begx, leny, lenx, ncv->data);
   if(begy < 0 || begx < 0 || lenx < -1 || leny < -1){
-    return nullptr;
+    return NULL;
   }
 //fprintf(stderr, "OUR DATA: %p rows/cols: %d/%d\n", ncv->data, ncv->rows, ncv->cols);
-  if(ncv->data == nullptr){
-    return nullptr;
+  if(ncv->data == NULL){
+    return NULL;
   }
 //fprintf(stderr, "blit %d/%d to %dx%d+%dx%d scaling: %d\n", ncv->rows, ncv->cols, begy, begx, leny, lenx, vopts ? vopts->scaling : 0);
   if(begx >= ncv->cols || begy >= ncv->rows){
-    return nullptr;
+    return NULL;
   }
   if(lenx == 0){ // 0 means "to the end"; use all available source material
     lenx = ncv->cols - begx;
@@ -567,19 +566,19 @@ auto ncvisual_render(notcurses* nc, ncvisual* ncv,
   }
 //fprintf(stderr, "blit %d/%d to %dx%d+%dx%d scaling: %d\n", ncv->rows, ncv->cols, begy, begx, leny, lenx, vopts ? vopts->scaling : 0);
   if(lenx <= 0 || leny <= 0){ // no need to draw zero-size object, exit
-    return nullptr;
+    return NULL;
   }
   if(begx + lenx > ncv->cols || begy + leny > ncv->rows){
-    return nullptr;
+    return NULL;
   }
-  auto bset = rgba_blitter(nc, vopts);
+  const struct blitset* bset = rgba_blitter(nc, vopts);
   if(!bset){
-    return nullptr;
+    return NULL;
   }
 //fprintf(stderr, "beg/len: %d %d %d %d scale: %d/%d\n", begy, leny, begx, lenx, encoding_y_scale(bset), encoding_x_scale(bset));
   int placey = vopts ? vopts->y : 0;
   int placex = vopts ? vopts->x : 0;
-  ncplane* n = (vopts ? vopts->n : nullptr);
+  ncplane* n = (vopts ? vopts->n : NULL);
   ncscale_e scaling = vopts ? vopts->scaling : NCSCALE_NONE;
   if(bset->geom != NCBLIT_PIXEL){
     n = ncvisual_render_cells(nc, ncv, bset, placey, placex, begy, begx, leny, lenx,
@@ -592,13 +591,13 @@ auto ncvisual_render(notcurses* nc, ncvisual* ncv,
   return n;
 }
 
-auto ncvisual_from_plane(const ncplane* n, ncblitter_e blit, int begy, int begx,
-                         int leny, int lenx) -> ncvisual* {
+ncvisual* ncvisual_from_plane(const ncplane* n, ncblitter_e blit, int begy, int begx,
+                              int leny, int lenx){
   uint32_t* rgba = ncplane_rgba(n, blit, begy, begx, leny, lenx);
 //fprintf(stderr, "snarg: %d/%d @ %d/%d (%p)\n", leny, lenx, begy, begx, rgba);
 //fprintf(stderr, "RGBA %p\n", rgba);
-  if(rgba == nullptr){
-    return nullptr;
+  if(rgba == NULL){
+    return NULL;
   }
   int dimy, dimx;
   ncplane_dim_yx(n, &dimy, &dimx);
@@ -608,36 +607,36 @@ auto ncvisual_from_plane(const ncplane* n, ncblitter_e blit, int begy, int begx,
   if(leny == -1){
     leny = (n->leny - begy);
   }
-  auto* ncv = ncvisual_from_rgba(rgba, leny * 2, lenx * 4, lenx);
+  ncvisual* ncv = ncvisual_from_rgba(rgba, leny * 2, lenx * 4, lenx);
   free(rgba);
 //fprintf(stderr, "RETURNING %p\n", ncv);
   return ncv;
 }
 
-auto ncvisual_details_destroy(ncvisual_details* deets){
+void ncvisual_details_destroy(struct ncvisual_details* deets){
   if(visual_implementation){
     visual_implementation->visual_details_destroy(deets);
   }
 }
 
-auto ncvisual_destroy(ncvisual* ncv) -> void {
+void ncvisual_destroy(ncvisual* ncv){
   if(ncv){
     ncvisual_details_destroy(ncv->details);
     if(ncv->owndata){
       free(ncv->data);
     }
-    delete ncv;
+    free(ncv);
   }
 }
 
-auto ncvisual_simple_streamer(ncvisual* ncv, struct ncvisual_options* vopts,
-                              const timespec* tspec, void* curry) -> int {
+int ncvisual_simple_streamer(ncvisual* ncv, struct ncvisual_options* vopts,
+                             const struct timespec* tspec, void* curry){
   if(notcurses_render(ncplane_notcurses(vopts->n))){
     return -1;
   }
   int ret = 0;
   if(curry){
-    ncplane* subncp = static_cast<ncplane*>(curry);
+    ncplane* subncp = curry;
     char* subtitle = ncvisual_subtitle(ncv);
     if(subtitle){
       if(ncplane_putstr_yx(subncp, 0, 0, subtitle) < 0){
@@ -650,7 +649,7 @@ auto ncvisual_simple_streamer(ncvisual* ncv, struct ncvisual_options* vopts,
   return ret;
 }
 
-auto ncvisual_set_yx(const struct ncvisual* n, int y, int x, uint32_t pixel) -> int {
+int ncvisual_set_yx(const struct ncvisual* n, int y, int x, uint32_t pixel){
   if(y >= n->rows || y < 0){
     return -1;
   }
@@ -661,7 +660,7 @@ auto ncvisual_set_yx(const struct ncvisual* n, int y, int x, uint32_t pixel) -> 
   return 0;
 }
 
-auto ncvisual_at_yx(const ncvisual* n, int y, int x, uint32_t* pixel) -> int {
+int ncvisual_at_yx(const ncvisual* n, int y, int x, uint32_t* pixel){
   if(y >= n->rows || y < 0){
     return -1;
   }
@@ -672,8 +671,7 @@ auto ncvisual_at_yx(const ncvisual* n, int y, int x, uint32_t* pixel) -> int {
   return 0;
 }
 
-auto ncvisual_polyfill_recurse(ncvisual* n, int y, int x,
-                               uint32_t rgba, uint32_t match) -> int {
+int ncvisual_polyfill_recurse(ncvisual* n, int y, int x, uint32_t rgba, uint32_t match){
   if(y < 0 || y >= n->rows){
     return 0;
   }
@@ -694,7 +692,7 @@ auto ncvisual_polyfill_recurse(ncvisual* n, int y, int x,
   return ret;
 }
 
-auto ncvisual_polyfill_yx(ncvisual* n, int y, int x, uint32_t rgba) -> int {
+int ncvisual_polyfill_yx(ncvisual* n, int y, int x, uint32_t rgba){
   if(y >= n->rows || y < 0){
     return -1;
   }
@@ -705,44 +703,44 @@ auto ncvisual_polyfill_yx(ncvisual* n, int y, int x, uint32_t rgba) -> int {
   return ncvisual_polyfill_recurse(n, y, x, rgba, *pixel);
 }
 
-auto notcurses_canopen_images(const notcurses* nc __attribute__ ((unused))) -> bool {
+bool notcurses_canopen_images(const notcurses* nc __attribute__ ((unused))){
   if(!visual_implementation){
     return false;
   }
   return visual_implementation->canopen_images;
 }
 
-auto notcurses_canopen_videos(const notcurses* nc __attribute__ ((unused))) -> bool {
+bool notcurses_canopen_videos(const notcurses* nc __attribute__ ((unused))){
   if(!visual_implementation){
     return false;
   }
   return visual_implementation->canopen_videos;
 }
 
-auto ncvisual_decode_loop(ncvisual* nc) -> int {
+int ncvisual_decode_loop(ncvisual* nc){
   if(!visual_implementation){
     return -1;
   }
   return visual_implementation->visual_decode_loop(nc);
 }
 
-auto ncvisual_stream(notcurses* nc, ncvisual* ncv, float timescale,
-                     streamcb streamer, const ncvisual_options* vopts,
-                     void* curry) -> int {
+int ncvisual_stream(notcurses* nc, ncvisual* ncv, float timescale,
+                    streamcb streamer, const struct ncvisual_options* vopts,
+                    void* curry){
   if(!visual_implementation){
     return -1;
   }
   return visual_implementation->visual_stream(nc, ncv, timescale, streamer, vopts, curry);
 }
 
-auto ncvisual_subtitle(const ncvisual* ncv) -> char* {
+char* ncvisual_subtitle(const ncvisual* ncv){
   if(!visual_implementation){
-    return nullptr;
+    return NULL;
   }
   return visual_implementation->visual_subtitle(ncv);
 }
 
-auto ncvisual_resize(ncvisual* nc, int rows, int cols) -> int {
+int ncvisual_resize(ncvisual* nc, int rows, int cols){
   if(!visual_implementation){
     return -1;
   }
