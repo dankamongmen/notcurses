@@ -3240,7 +3240,7 @@ API struct nctab* nctab_prev(struct nctab* t)
 API ALLOC struct nctab* nctabbed_add(struct nctabbed* nt, struct nctab* after,
                                      struct nctab* before, tabcb tcb,
                                      const char* name, void* opaque)
-  __attribute__ ((nonnull (1, 4, 5)));
+  __attribute__ ((nonnull (1, 5)));
 
 API int nctabbed_del(struct nctabbed* nt, struct nctab* t)
   __attribute__ ((nonnull (1)));
@@ -3265,6 +3265,58 @@ API struct nctab* nctabbed_prev(struct nctabbed* nt)
   __attribute__ ((nonnull (1)));
 
 API struct nctab* nctabbed_select(struct nctabbed* nt, struct nctab* t)
+  __attribute__ ((nonnull (1, 2)));
+
+API void nctabbed_channels(struct nctabbed* nt, uint64_t* RESTRICT hdrchan,
+                           uint64_t* RESTRICT selchan, uint64_t* RESTRICT sepchan)
+  __attribute__ ((nonnull (1)));
+
+static inline uint64_t
+nctabbed_hdrchan(struct nctabbed* nt){
+  uint64_t ch;
+  nctabbed_channels(nt, &ch, NULL, NULL);
+  return ch;
+}
+
+static inline uint64_t
+nctabbed_selchan(struct nctabbed* nt){
+  uint64_t ch;
+  nctabbed_channels(nt, NULL, &ch, NULL);
+  return ch;
+}
+
+static inline uint64_t
+nctabbed_sepchan(struct nctabbed* nt){
+  uint64_t ch;
+  nctabbed_channels(nt, NULL, NULL, &ch);
+  return ch;
+}
+
+API const char* nctabbed_separator(struct nctabbed* nt)
+  __attribute__ ((nonnull (1)));
+
+API int nctabbed_separator_width(struct nctabbed* nt)
+  __attribute__ ((nonnull (1)));
+
+API void nctabbed_set_hdrchan(struct nctabbed* nt, uint64_t chan)
+  __attribute__ ((nonnull (1)));
+
+API void nctabbed_set_selchan(struct nctabbed* nt, uint64_t chan)
+  __attribute__ ((nonnull (1)));
+
+API void nctabbed_set_sepchan(struct nctabbed* nt, uint64_t chan)
+  __attribute__ ((nonnull (1)));
+
+API tabcb nctab_set_cb(struct nctab* t, tabcb newcb)
+  __attribute__ ((nonnull (1)));
+
+API int nctab_set_name(struct nctab* t, const char* newname)
+  __attribute__ ((nonnull (1, 2)));
+
+API void* nctab_set_userptr(struct nctab* t, void* newopaque)
+  __attribute__ ((nonnull (1)));
+
+API int nctabbed_set_separator(struct nctabbed* nt, const char* separator)
   __attribute__ ((nonnull (1, 2)));
 
 // Plots. Given a rectilinear area, an ncplot can graph samples along some axis.

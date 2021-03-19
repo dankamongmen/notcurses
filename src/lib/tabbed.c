@@ -20,7 +20,9 @@ void nctabbed_redraw(nctabbed* nt){
     ncplane_resize_simple(nt->p, rows - 1, cols);
   }
   // the callback draws the tab contents
-  nt->selected->cb(nt->selected, nt->p, nt->selected->curry);
+  if(nt->selected->cb){
+    nt->selected->cb(nt->selected, nt->p, nt->selected->curry);
+  }
   // now we draw the headers
   t = nt->leftmost;
   ncplane_erase(nt->hp);
@@ -342,6 +344,21 @@ nctab* nctabbed_select(nctabbed* nt, nctab* t){
   return prevsel;
 }
 
+void nctabbed_channels(nctabbed* nt, uint64_t* RESTRICT hdrchan,
+                       uint64_t* RESTRICT selchan, uint64_t* RESTRICT sepchan){
+  memcpy(&nt->opts.hdrchan, hdrchan, sizeof(*hdrchan));
+  memcpy(&nt->opts.selchan, selchan, sizeof(*selchan));
+  memcpy(&nt->opts.sepchan, sepchan, sizeof(*sepchan));
+}
+
+const char* nctabbed_separator(nctabbed* nt){
+  return nt->opts.separator;
+}
+
+int nctabbed_separator_width(nctabbed* nt){
+  return nt->sepcols;
+}
+
 void nctabbed_destroy(nctabbed* nt){
   if(!nt){
     return;
@@ -358,4 +375,58 @@ void nctabbed_destroy(nctabbed* nt){
   ncplane_genocide(nt->ncp);
   free(nt->opts.separator);
   free(nt);
+}
+
+void nctabbed_set_hdrchan(nctabbed* nt, uint64_t chan){
+  nt->opts.hdrchan = chan;
+}
+
+void nctabbed_set_selchan(nctabbed* nt, uint64_t chan){
+  nt->opts.selchan = chan;
+}
+
+void nctabbed_set_sepchan(nctabbed* nt, uint64_t chan){
+  nt->opts.sepchan = chan;
+}
+
+tabcb nctab_set_cb(nctab* t, tabcb newcb){
+  tabcb prevcb = t->cb;
+  t->cb = newcb;
+  return prevcb;
+}
+
+int nctab_set_name(nctab* t, const char* newname){
+  int newnamecols;
+  char* prevname = t->name;
+  if((newnamecols = ncstrwidth(newname)) < 0){
+    return -1;
+  }
+  if((t->name = strdup(newname)) == NULL){
+    t->name = prevname;
+    return -1;
+  }
+  free(prevname);
+  t->namecols = newnamecols;
+  return 0;
+}
+
+void* nctab_set_userptr(nctab* t, void* newopaque){
+  void* prevcurry = t->curry;
+  t->curry = newopaque;
+  return t->curry;
+}
+
+int nctabbed_set_separator(nctabbed* nt, const char* separator){
+  int newsepcols;
+  char* prevsep = nt->opts.separator;
+  if((newsepcols = ncstrwidth(separator)) < 0){
+    return -1;
+  }
+  if((nt->opts.separator = strdup(separator)) == NULL){
+    nt->opts.separator = prevsep;
+    return -1;
+  }
+  free(prevsep);
+  nt->sepcols = newsepcols;
+  return 0;
 }
