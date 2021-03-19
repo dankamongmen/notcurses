@@ -250,6 +250,42 @@ int nctabbed_del(nctabbed* nt, nctab* t){
   return 0;
 }
 
+int nctab_move(nctabbed* nt, nctab* t, nctab* after, nctab* before){
+  if(after && before){
+    if(after->prev != before || before->next != after){
+      logerror(ncplane_notcurses(nt->ncp), "bad before (%p) / after (%p) spec\n", before, after);
+      return -1;
+    }
+  }else if(!after && !before){
+    logerror(ncplane_notcurses(nt->ncp), "bad before (%p) / after (%p) spec\n", before, after);
+    return -1;
+  }
+  // bad things would happen
+  if(t == after || t == before){
+    return -1;
+  }
+  t->prev->next = t->next;
+  t->next->prev = t->prev;
+  if(t == nt->leftmost){
+    nt->leftmost = t->next;
+  }
+  if(after){
+    t->next = after->next;
+    t->prev = after;
+    after->next = t;
+    t->next->prev = t;
+  }else{
+    if(before == nt->leftmost){
+      nt->leftmost = t;
+    }
+    t->next = before;
+    t->prev = before->prev;
+    before->prev = t;
+    t->prev->next = t;
+  }
+  return 0;
+}
+
 void nctabbed_rotate(nctabbed* nt, int amt){
   if(amt > 0){
     for(int i = 0 ; i < amt ; ++i){
@@ -276,6 +312,12 @@ nctab* nctabbed_prev(nctabbed* nt){
   }
   nt->selected = nt->selected->prev;
   return nt->selected;
+}
+
+nctab* nctabbed_select(nctabbed* nt, nctab* t){
+  nctab* prevsel = nt->selected;
+  nt->selected = t;
+  return prevsel;
 }
 
 void nctabbed_destroy(nctabbed* nt){

@@ -11,7 +11,13 @@
 
 void tabcbfn(struct nctab* t, struct ncplane* ncp, void* curry){
   ncplane_erase(ncp);
-  ncplane_putstr(ncp, "Use left/right arrow keys for navigation, [/] for rotating the tabs, a to add a tab, r to remove a tab, q to quit");
+  ncplane_puttext(ncp, -1, NCALIGN_LEFT,
+                  "Use left/right arrow keys for navigation, "
+                  "'[' and ']' to rotate tabs, "
+                  "'a' to add a tab, 'r' to remove a tab, "
+                  "',' and '.' to move the selected tab, "
+                  "and 'q' to quit",
+                  NULL);
 }
 
 int main(void){
@@ -22,7 +28,7 @@ int main(void){
   int rows, cols;
   struct ncplane* stdp = notcurses_stddim_yx(nc, &rows, &cols);
   struct ncplane_options popts = {
-    .y = 5,
+    .y = 3,
     .x = 5,
     .rows = rows - 10,
     .cols = cols - 10
@@ -62,6 +68,12 @@ int main(void){
         break;
       case ']':
         nctabbed_rotate(nct, 1);
+        break;
+      case ',':
+        nctab_move_left(nct, nctabbed_selected(nct));
+        break;
+      case '.':
+        nctab_move_right(nct, nctabbed_selected(nct));
         break;
       case 'a':
         nctabbed_add(nct, NULL, NULL, tabcbfn, "added tab", NULL);

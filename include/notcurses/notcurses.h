@@ -3243,6 +3243,20 @@ API ALLOC struct nctab* nctabbed_add(struct nctabbed* nt, struct nctab* after,
 API int nctabbed_del(struct nctabbed* nt, struct nctab* t)
   __attribute__ ((nonnull (1)));
 
+API int nctab_move(struct nctabbed* nt, struct nctab* t, struct nctab* after,
+                   struct nctab* before)
+  __attribute__ ((nonnull (1, 2)));
+
+static inline int
+nctab_move_right(struct nctabbed* nt, struct nctab* t){
+  return nctab_move(nt, t, nctab_next(t), NULL);
+}
+
+static inline int
+nctab_move_left(struct nctabbed* nt, struct nctab* t){
+  return nctab_move(nt, t, NULL, nctab_prev(t));
+}
+
 API void nctabbed_rotate(struct nctabbed* nt, int amt)
   __attribute__ ((nonnull (1)));
 
@@ -3251,6 +3265,9 @@ API struct nctab* nctabbed_next(struct nctabbed* nt)
 
 API struct nctab* nctabbed_prev(struct nctabbed* nt)
   __attribute__ ((nonnull (1)));
+
+API struct nctab* nctabbed_select(struct nctabbed* nt, struct nctab* t)
+  __attribute__ ((nonnull (1, 2)));
 
 // Plots. Given a rectilinear area, an ncplot can graph samples along some axis.
 // There is some underlying independent variable--this could be e.g. measurement
