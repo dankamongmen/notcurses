@@ -266,24 +266,40 @@ int nctab_move(nctabbed* nt, nctab* t, nctab* after, nctab* before){
   }
   t->prev->next = t->next;
   t->next->prev = t->prev;
-  if(t == nt->leftmost){
-    nt->leftmost = t->next;
-  }
   if(after){
     t->next = after->next;
     t->prev = after;
     after->next = t;
     t->next->prev = t;
   }else{
-    if(before == nt->leftmost){
-      nt->leftmost = t;
-    }
     t->next = before;
     t->prev = before->prev;
     before->prev = t;
     t->prev->next = t;
   }
   return 0;
+}
+
+void nctab_move_right(nctabbed* nt, nctab* t){
+  if(t == nt->leftmost->prev){
+    nctab_move(nt, t, NULL, nt->leftmost);
+    nt->leftmost = t;
+    return;
+  }else if(t == nt->leftmost){
+    nt->leftmost = t->next;
+  }
+  nctab_move(nt, t, t->next, NULL);
+}
+
+void nctab_move_left(nctabbed* nt, nctab* t){
+  if(t == nt->leftmost){
+    nt->leftmost = t->next;
+    nctab_move(nt, t, nt->leftmost->prev, NULL);
+    return;
+  }else if(t == nt->leftmost->next){
+    nt->leftmost = t;
+  }
+  nctab_move(nt, t, NULL, t->prev);
 }
 
 void nctabbed_rotate(nctabbed* nt, int amt){
