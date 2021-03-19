@@ -249,6 +249,24 @@ typedef struct ncprogbar {
   bool retrograde;
 } ncprogbar;
 
+typedef struct nctab {
+  tabcb cb;
+  char* name;
+  void* curry;
+  struct nctab* prev;
+  struct nctab* next;
+} nctab;
+
+typedef struct nctabbed {
+  ncplane* ncp;
+  ncplane* p;
+  ncplane* hp;
+  nctab* leftmost;
+  nctab* selected;
+  int tabcount;
+  nctabbed_options opts;
+} nctabbed;
+
 // terminfo cache
 typedef struct tinfo {
   unsigned colors;// number of colors terminfo reported usable for this screen

@@ -55,6 +55,8 @@ struct ncreader;  // widget supporting free string input ala readline
 struct ncfadectx; // context for a palette fade operation
 struct nctablet;  // grouped item within an ncreel
 struct ncreel;    // hierarchical block-based data browser
+struct nctab;     // grouped item within an nctabbed
+struct nctabbed;  // widget with one tab visible at a time
 
 // we never blit full blocks, but instead spaces (more efficient) with the
 // background set to the desired foreground.
@@ -3178,6 +3180,48 @@ API double ncprogbar_progress(const struct ncprogbar* n)
 
 // Destroy the progress bar and its underlying ncplane.
 API void ncprogbar_destroy(struct ncprogbar* n);
+
+// Tabbed widgets. The tab list is displayed at the top or at the bottom of the
+// plane, and only one tab is visible at a time.
+
+// Display tab list at the bottom instead of at the top of the plane
+#define NCTABBED_OPTION_BOTTOM 0x0001ull
+
+typedef struct nctabbed_options {
+  uint64_t hdrchan;
+  uint64_t selchan;
+  uint64_t flags;
+} nctabbed_options;
+
+typedef void (*tabcb)(struct nctab* t, struct ncplane* ncp, void* curry);
+
+API ALLOC struct nctabbed* nctabbed_create(struct ncplane* n, const nctabbed_options* opts);
+
+API void nctabbed_destroy(struct nctabbed* nt);
+
+API void nctabbed_redraw(struct nctabbed* nt);
+
+API struct nctab* nctabbed_selected(struct nctabbed* nt);
+
+API struct nctab* nctabbed_leftmost(struct nctabbed* nt);
+
+API int nctabbed_tabcount(struct nctabbed* nt);
+
+API struct ncplane* nctabbed_plane(struct nctabbed* nt);
+
+API struct ncplane* nctabbed_content_plane(struct nctabbed* nt);
+
+API ALLOC struct nctab* nctabbed_add(struct nctabbed* nt, struct nctab* after,
+                                     struct nctab* before, tabcb tcb,
+                                     const char* name, void* opaque);
+
+API int nctabbed_del(struct nctabbed* nt, struct nctab* t);
+
+API void nctabbed_rotate(struct nctabbed* nt, int amt);
+
+API struct nctab* nctabbed_next(struct nctabbed* nt);
+
+API struct nctab* nctabbed_prev(struct nctabbed* nt);
 
 // Plots. Given a rectilinear area, an ncplot can graph samples along some axis.
 // There is some underlying independent variable--this could be e.g. measurement
