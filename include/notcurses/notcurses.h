@@ -3190,6 +3190,8 @@ API void ncprogbar_destroy(struct ncprogbar* n);
 typedef struct nctabbed_options {
   uint64_t hdrchan;
   uint64_t selchan;
+  uint64_t sepchan;
+  char* separator;
   uint64_t flags;
 } nctabbed_options;
 

@@ -35,12 +35,14 @@ int main(void){
   };
   struct ncplane* ncp = ncplane_create(stdp, &popts);
   struct nctabbed_options topts = {
-    .hdrchan = CHANNELS_RGB_INITIALIZER(255, 0, 0, 0, 0, 0),
+    .hdrchan = CHANNELS_RGB_INITIALIZER(255, 0, 0, 60, 60, 60),
     .selchan = CHANNELS_RGB_INITIALIZER(0, 255, 0, 0, 0, 0),
+    .sepchan = CHANNELS_RGB_INITIALIZER(255, 255, 255, 100, 100, 100),
+    .separator = " || ",
     .flags = 0
   };
   struct nctabbed* nct = nctabbed_create(ncp, &topts);
-  ncplane_set_base(nctabbed_content_plane(nct), " ", 0, CHANNELS_RGB_INITIALIZER(255, 255, 255, 15, 15, 15));
+  ncplane_set_base(nctabbed_content_plane(nct), " ", 0, CHANNELS_RGB_INITIALIZER(255, 255, 255, 15, 60, 15));
   REDRAW();
   nctabbed_add(nct, NULL, NULL, tabcbfn, "Tab #1", NULL);
   REDRAW();

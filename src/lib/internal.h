@@ -265,6 +265,7 @@ typedef struct nctabbed {
   nctab* leftmost;
   nctab* selected;
   int tabcount;
+  int sepcols;
   nctabbed_options opts;
 } nctabbed;
 

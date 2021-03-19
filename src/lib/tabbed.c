@@ -1,17 +1,5 @@
 #include "internal.h"
 
-static bool
-tab_is_before(nctabbed* nt, nctab* t, nctab* relativeto){
-  nctab* tb = relativeto;
-  while(tb != nt->leftmost){
-    tb = tb->prev;
-    if(t == tb){
-      return true;
-    }
-  }
-  return false;
-}
-
 void nctabbed_redraw(nctabbed* nt){
   nctab* t;
   int drawn_cols = 0;
@@ -45,10 +33,12 @@ void nctabbed_redraw(nctabbed* nt){
     }else{
       drawn_cols += ncplane_putstr(nt->hp, t->name);
     }
-    // avoid drawing the separator after the last tab or when we ran out of space
-    if(t->next != nt->leftmost || drawn_cols >= cols){
-      // FIXME maybe have the separator configurable thru opts
-      drawn_cols += ncplane_putchar(nt->hp, ' ');
+    // avoid drawing the separator after the last tab, or when we
+    // ran out of space, or when it's not set
+    if((t->next != nt->leftmost || drawn_cols >= cols) && nt->opts.separator){
+      ncplane_set_channels(nt->hp, nt->opts.sepchan);
+      drawn_cols += ncplane_putstr(nt->hp, nt->opts.separator);
+      ncplane_set_channels(nt->hp, nt->opts.hdrchan);
     }
     t = t->next;
   }while(t != nt->leftmost && drawn_cols < cols);
@@ -66,10 +56,10 @@ void nctabbed_ensure_selected_header_visible(nctabbed* nt){
     if(t == nt->selected){
       break;
     }
-    takencols += t->namecols + 1; // separator width
+    takencols += t->namecols + nt->sepcols;
     if(takencols >= cols){
 //fprintf(stderr, "not enough space, rotating\n");
-      takencols -= nt->leftmost->namecols + 1; // separator width
+      takencols -= nt->leftmost->namecols + nt->sepcols;
       nctabbed_rotate(nt, -1);
     }
     t = t->next;
@@ -84,6 +74,9 @@ nctabbed_validate_opts(ncplane* n, const nctabbed_options* opts){
     return false;
   }
   if(opts->flags > NCTABBED_OPTION_BOTTOM){
+    return false;
+  }
+  if(opts->sepchan && !opts->separator){
     return false;
   }
   return true;
@@ -147,6 +140,19 @@ nctabbed* nctabbed_create(ncplane* n, const nctabbed_options* topts){
   nt->leftmost = nt->selected = NULL;
   nt->tabcount = 0;
   memcpy(&nt->opts, topts, sizeof(*topts));
+  if(nt->opts.separator){
+    if((nt->opts.separator = strdup(nt->opts.separator)) == NULL){
+      free(nt);
+      return NULL;
+    }
+    if((nt->sepcols = ncstrwidth(nt->opts.separator)) < 0){
+      free(nt->opts.separator);
+      free(nt);
+      return NULL;
+    }
+  }else{
+    nt->sepcols = 0;
+  }
   ncplane_dim_yx(n, &nrows, &ncols);
   if(topts->flags & NCTABBED_OPTION_BOTTOM){
     nopts.y = nopts.x = 0;
@@ -350,5 +356,6 @@ void nctabbed_destroy(nctabbed* nt){
     t = tmp;
   }
   ncplane_genocide(nt->ncp);
+  free(nt->opts.separator);
   free(nt);
 }
