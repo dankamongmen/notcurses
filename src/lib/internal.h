@@ -252,6 +252,7 @@ typedef struct ncprogbar {
 typedef struct nctab {
   tabcb cb;
   char* name;
+  int namecols;
   void* curry;
   struct nctab* prev;
   struct nctab* next;

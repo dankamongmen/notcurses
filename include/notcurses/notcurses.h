@@ -3199,29 +3199,58 @@ API ALLOC struct nctabbed* nctabbed_create(struct ncplane* n, const nctabbed_opt
 
 API void nctabbed_destroy(struct nctabbed* nt);
 
-API void nctabbed_redraw(struct nctabbed* nt);
+API void nctabbed_redraw(struct nctabbed* nt)
+  __attribute__ ((nonnull (1)));
 
-API struct nctab* nctabbed_selected(struct nctabbed* nt);
+API void nctabbed_ensure_selected_header_visible(struct nctabbed* nt)
+  __attribute__ ((nonnull (1)));
 
-API struct nctab* nctabbed_leftmost(struct nctabbed* nt);
+API struct nctab* nctabbed_selected(struct nctabbed* nt)
+  __attribute__ ((nonnull (1)));
 
-API int nctabbed_tabcount(struct nctabbed* nt);
+API struct nctab* nctabbed_leftmost(struct nctabbed* nt)
+  __attribute__ ((nonnull (1)));
 
-API struct ncplane* nctabbed_plane(struct nctabbed* nt);
+API int nctabbed_tabcount(struct nctabbed* nt)
+  __attribute__ ((nonnull (1)));
 
-API struct ncplane* nctabbed_content_plane(struct nctabbed* nt);
+API struct ncplane* nctabbed_plane(struct nctabbed* nt)
+  __attribute__ ((nonnull (1)));
+
+API struct ncplane* nctabbed_content_plane(struct nctabbed* nt)
+  __attribute__ ((nonnull (1)));
+
+API const char* nctab_name(struct nctab* t)
+  __attribute__ ((nonnull (1)));
+
+API int nctab_name_width(struct nctab* t)
+  __attribute__ ((nonnull (1)));
+
+API void* nctab_userptr(struct nctab* t)
+  __attribute__ ((nonnull (1)));
+
+API struct nctab* nctab_next(struct nctab* t)
+  __attribute__ ((nonnull (1)));
+
+API struct nctab* nctab_prev(struct nctab* t)
+  __attribute__ ((nonnull (1)));
 
 API ALLOC struct nctab* nctabbed_add(struct nctabbed* nt, struct nctab* after,
                                      struct nctab* before, tabcb tcb,
-                                     const char* name, void* opaque);
+                                     const char* name, void* opaque)
+  __attribute__ ((nonnull (1, 4, 5)));
 
-API int nctabbed_del(struct nctabbed* nt, struct nctab* t);
+API int nctabbed_del(struct nctabbed* nt, struct nctab* t)
+  __attribute__ ((nonnull (1)));
 
-API void nctabbed_rotate(struct nctabbed* nt, int amt);
+API void nctabbed_rotate(struct nctabbed* nt, int amt)
+  __attribute__ ((nonnull (1)));
 
-API struct nctab* nctabbed_next(struct nctabbed* nt);
+API struct nctab* nctabbed_next(struct nctabbed* nt)
+  __attribute__ ((nonnull (1)));
 
-API struct nctab* nctabbed_prev(struct nctabbed* nt);
+API struct nctab* nctabbed_prev(struct nctabbed* nt)
+  __attribute__ ((nonnull (1)));
 
 // Plots. Given a rectilinear area, an ncplot can graph samples along some axis.
 // There is some underlying independent variable--this could be e.g. measurement

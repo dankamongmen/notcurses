@@ -1,11 +1,24 @@
 #include "internal.h"
 
+static bool
+tab_is_before(nctabbed* nt, nctab* t, nctab* relativeto){
+  nctab* tb = relativeto;
+  while(tb != nt->leftmost){
+    tb = tb->prev;
+    if(t == tb){
+      return true;
+    }
+  }
+  return false;
+}
+
 void nctabbed_redraw(nctabbed* nt){
   nctab* t;
   int drawn_cols = 0;
   int rows, cols;
   if(nt->tabcount == 0){
     // no tabs = nothing to draw
+    ncplane_erase(nt->hp);
     return;
   }
   // update sizes for planes
@@ -23,7 +36,6 @@ void nctabbed_redraw(nctabbed* nt){
   // now we draw the headers
   t = nt->leftmost;
   ncplane_erase(nt->hp);
-  ncplane_home(nt->hp);
   ncplane_set_channels(nt->hp, nt->opts.hdrchan);
   do{
     if(t == nt->selected){
@@ -40,6 +52,30 @@ void nctabbed_redraw(nctabbed* nt){
     }
     t = t->next;
   }while(t != nt->leftmost && drawn_cols < cols);
+}
+
+void nctabbed_ensure_selected_header_visible(nctabbed* nt){
+  nctab* t = nt->leftmost;
+  int cols = ncplane_dim_x(nt->hp);
+  int takencols = 0;
+  if(!t){
+    return;
+  }
+//fprintf(stderr, "ensuring selected header visible\n");
+  do{
+    if(t == nt->selected){
+      break;
+    }
+    takencols += t->namecols + 1; // separator width
+    if(takencols >= cols){
+//fprintf(stderr, "not enough space, rotating\n");
+      takencols -= nt->leftmost->namecols + 1; // separator width
+      nctabbed_rotate(nt, -1);
+    }
+    t = t->next;
+//fprintf(stderr, "iteration over: takencols = %d, cols = %d\n", takencols, cols);
+  }while(t != nt->leftmost);
+//fprintf(stderr, "ensuring done\n");
 }
 
 static bool
@@ -71,6 +107,26 @@ ncplane* nctabbed_plane(nctabbed* nt){
 
 ncplane* nctabbed_content_plane(nctabbed* nt){
   return nt->p;
+}
+
+const char* nctab_name(nctab* t){
+  return t->name;
+}
+
+int nctab_name_width(nctab* t){
+  return t->namecols;
+}
+
+void* nctab_userptr(nctab* t){
+  return t->curry;
+}
+
+nctab* nctab_next(nctab* t){
+  return t->next;
+}
+
+nctab* nctab_prev(nctab* t){
+  return t->prev;
 }
 
 nctabbed* nctabbed_create(ncplane* n, const nctabbed_options* topts){
@@ -147,6 +203,11 @@ nctab* nctabbed_add(nctabbed* nt, nctab* after, nctab* before, tabcb cb,
     free(t);
     return NULL;
   }
+  if((t->namecols = ncstrwidth(name)) < 0){
+    free(t->name);
+    free(t);
+    return NULL;
+  }
   if(after){
     t->next = after->next;
     t->prev = after;
@@ -205,14 +266,16 @@ nctab* nctabbed_next(nctabbed* nt){
   if(nt->tabcount == 0){
     return NULL;
   }
-  return nt->selected = nt->selected->next;
+  nt->selected = nt->selected->next;
+  return nt->selected;
 }
 
 nctab* nctabbed_prev(nctabbed* nt){
   if(nt->tabcount == 0){
     return NULL;
   }
-  return nt->selected = nt->selected->prev;
+  nt->selected = nt->selected->prev;
+  return nt->selected;
 }
 
 void nctabbed_destroy(nctabbed* nt){

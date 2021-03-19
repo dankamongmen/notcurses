@@ -9,41 +9,12 @@
     notcurses_getc_blocking(nc, NULL); \
   }while(0)
 
-#define TAB1 1
-#define TAB2 2
-#define TAB3 3
-#define TABANOTHER 4
-#define ADDEDTAB 5
-
 void tabcbfn(struct nctab* t, struct ncplane* ncp, void* curry){
   ncplane_erase(ncp);
-  ncplane_putstr(ncp, "This is the tab content. Nothing to see here...");
-  ncplane_cursor_move_yx(ncp, 3, 5);
-  switch(*(int*) curry){
-    case TAB1:
-      ncplane_putstr(ncp, "use left/right arrow keys for navigation, [/] for rotating the tabs, a to add a tab, r to remove a tab, q to quit");
-      break;
-    case TAB2:
-      ncplane_putstr(ncp, "the second tab");
-      break;
-    case TAB3:
-      ncplane_putstr(ncp, "third tab contents");
-      break;
-    case TABANOTHER:
-      ncplane_putstr(ncp, "And the another tab contents i guess");
-      break;
-    case ADDEDTAB:
-      ncplane_putstr(ncp, "this is a tab YOU added!");
-      break;
-  }
+  ncplane_putstr(ncp, "Use left/right arrow keys for navigation, [/] for rotating the tabs, a to add a tab, r to remove a tab, q to quit");
 }
 
 int main(void){
-  int tab1 = TAB1;
-  int tab2 = TAB2;
-  int tab3 = TAB3;
-  int tabanother = TABANOTHER;
-  int addedtab = ADDEDTAB;
   struct notcurses* nc = notcurses_core_init(NULL, NULL);
   if(!nc){
     return EXIT_FAILURE;
@@ -65,13 +36,17 @@ int main(void){
   struct nctabbed* nct = nctabbed_create(ncp, &topts);
   ncplane_set_base(nctabbed_content_plane(nct), " ", 0, CHANNELS_RGB_INITIALIZER(255, 255, 255, 15, 15, 15));
   REDRAW();
-  nctabbed_add(nct, NULL, NULL, tabcbfn, "Tab #1", &tab1);
+  nctabbed_add(nct, NULL, NULL, tabcbfn, "Tab #1", NULL);
   REDRAW();
-  nctabbed_add(nct, NULL, NULL, tabcbfn, "Tab #2", &tab3);
+  nctabbed_add(nct, NULL, NULL, tabcbfn, "Tab #2", NULL);
   REDRAW();
-  nctabbed_add(nct, NULL, NULL, tabcbfn, "Tab #3", &tab3);
+  nctabbed_add(nct, NULL, NULL, tabcbfn, "Tab #3", NULL);
   REDRAW();
-  nctabbed_add(nct, NULL, NULL, tabcbfn, "Another tab right here", &tabanother);
+  nctabbed_add(nct, NULL, NULL, tabcbfn, "alpha", NULL);
+  REDRAW();
+  nctabbed_add(nct, NULL, NULL, tabcbfn, "beta", NULL);
+  REDRAW();
+  nctabbed_add(nct, NULL, NULL, tabcbfn, "gamma", NULL);
   REDRAW();
   char32_t c;
   while((c = notcurses_getc_blocking(nc, NULL)) != 'q'){
@@ -89,13 +64,14 @@ int main(void){
         nctabbed_rotate(nct, 1);
         break;
       case 'a':
-        nctabbed_add(nct, NULL, NULL, tabcbfn, "added tab", &addedtab);
+        nctabbed_add(nct, NULL, NULL, tabcbfn, "added tab", NULL);
         break;
       case 'r':
         nctabbed_del(nct, nctabbed_selected(nct));
         break;
       default:;
     }
+    nctabbed_ensure_selected_header_visible(nct);
     nctabbed_redraw(nct);
     if(notcurses_render(nc)){
       goto ded;
