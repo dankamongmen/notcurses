@@ -62,7 +62,6 @@ TEST_CASE("Pixel") {
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == nc_->tcache.pixel_cell_wipe(nc_, s, 1, 1));
     CHECK(0 == notcurses_render(nc_));
-    sleep(1);
     CHECK(0 == nc_->tcache.pixel_cell_wipe(nc_, s, 1, 0));
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == nc_->tcache.pixel_cell_wipe(nc_, s, 0, 1));

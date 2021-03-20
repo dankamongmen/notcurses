@@ -3,6 +3,22 @@
 static unsigned const char b64subs[] =
  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
+// convert a base64 character into its equivalent integer 0..63
+static inline int
+b64idx(char b64){
+  if(b64 >= 'A' && b64 <= 'Z'){
+    return b64 - 'A';
+  }else if(b64 >= 'a' && b64 <= 'z'){
+    return b64 - 'a';
+  }else if(b64 >= '0' && b64 <= '9'){
+    return b64 - '0';
+  }else if(b64 == '+'){
+    return 62;
+  }else{
+    return 63;
+  }
+}
+
 // every 3 RGBA pixels (96 bits) become 16 base64-encoded bytes (128 bits). if
 // there are only 2 pixels available, those 64 bits become 12 bytes. if there
 // is only 1 pixel available, those 32 bits become 8 bytes. (pcount + 1) * 4
@@ -71,11 +87,32 @@ kitty_null(char* triplet, int skip, int max, int pleft){
   if(max + skip > pleft){
     max = pleft - skip;
   }
-fprintf(stderr, "alpha-nulling up to %d after %d\n", max, skip);
-  (void)triplet;
-  (void)max;
-  (void)skip;
-  char pixels[12];
+//fprintf(stderr, "alpha-nulling %d after %d\n", max, skip);
+  if(skip == 0){
+    if(max == 1){
+      memset(triplet, b64subs[0], 5);
+      triplet[5] = b64subs[b64idx(triplet[5]) & 0xf];
+    }else if(max == 2){
+      memset(triplet, b64subs[0], 10);
+      triplet[10] = b64subs[b64idx(triplet[10]) & 0x3];
+    }else{ // max == 3
+      memset(triplet, b64subs[0], 16);
+    }
+  }else if(skip == 1){
+    if(max == 1){
+      triplet[5] = b64subs[b64idx(triplet[5]) & 0x30];
+      memset(triplet + 6, b64subs[0], 4);
+      triplet[10] = b64subs[b64idx(triplet[10]) & 0x3];
+    }else{
+      triplet[5] = b64subs[b64idx(triplet[5]) & 0x30];
+      memset(triplet + 6, b64subs[0], 10);
+    }
+  }else{ // skip == 2
+    if(max == 1){
+      triplet[10] = b64subs[b64idx(triplet[10]) & 0xf];
+      memset(triplet + 11, b64subs[0], 5);
+    }
+  }
   return max;
 }
 
@@ -100,20 +137,21 @@ int sprite_kitty_cell_wipe(notcurses* nc, sprixel* s, int ycell, int xcell){
   if(ycell * ypixels > s->pixy){
     targy -= ((ycell * ypixels) - s->pixy);
   }
-fprintf(stderr, "TARGET AREA: %d x %d\n", targy, targx);
+//fprintf(stderr, "TARGET AREA: %d x %d\n", targy, targx);
   char* c = s->glyph;
   // every pixel was 4 source bytes, 32 bits, 6.33 base64 bytes. every 3 input pixels is
   // 12 bytes (96 bits), an even 16 base64 bytes. there is chunking to worry about. there
   // are up to 768 pixels in a chunk.
   int nextpixel = (s->pixx * ycell * ypixels) + (xpixels * xcell);
-fprintf(stderr, "NEXTPIXEL: %d\n", nextpixel);
   int thisrow = targx;
   int chunkedhandled = 0;
   while(targy){ // need to null out |targy| rows of |targx| pixels, track with |thisrow|
+//fprintf(stderr, "CHUNK %d NEXTPIXEL: %d\n", chunkedhandled, nextpixel);
     while(*c != ';'){
       ++c;
     }
     ++c;
+//fprintf(stderr, "PLUCKING FROM [%s]\n", c);
     int inchunk = totalpixels - chunkedhandled * RGBA_MAXLEN;
     if(inchunk > RGBA_MAXLEN){
       inchunk = RGBA_MAXLEN;
@@ -128,7 +166,7 @@ fprintf(stderr, "NEXTPIXEL: %d\n", nextpixel);
       // we start within a 16-byte chunk |tripbytes| into the chunk. determine
       // the number of bits.
       int tripskip = pixoffset - triples * 3;
-fprintf(stderr, "pixoffset: %d next: %d tripbytes: %d tripskip: %d thisrow: %d\n", pixoffset, nextpixel, tripbytes, tripskip, thisrow);
+//fprintf(stderr, "pixoffset: %d next: %d tripbytes: %d tripskip: %d thisrow: %d\n", pixoffset, nextpixel, tripbytes, tripskip, thisrow);
       // the maximum number of pixels we can convert is the minimum of the
       // pixels remaining in the target row, and the pixels left in the chunk.
       int chomped = kitty_null(c + tripbytes, tripskip, thisrow, inchunk - triples * 3);
@@ -144,6 +182,7 @@ fprintf(stderr, "pixoffset: %d next: %d tripbytes: %d tripskip: %d thisrow: %d\n
     }
     c += RGBA_MAXLEN * 4 * 4 / 3; // 4bpp * 4/3 for base64, 4096b per chunk
     ++chunkedhandled;
+//fprintf(stderr, "LOOKING NOW AT %u [%s]\n", c - s->glyph, c);
   }
   return -1;
 }
