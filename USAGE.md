@@ -9,7 +9,7 @@ to backwards compatibility.
 * [Planes](#planes) ([Plane Channels API](#plane-channels-api))
 * [Cells](#cells) ([Cell Channels API](#cell-channels-api))
 * [Reels](#reels) ([ncreel Examples](#ncreel-examples))
-* [Widgets](#widgets) ([Plots](#plots)) ([Readers](#readers)) ([Progbars](#progbars))
+* [Widgets](#widgets) ([Plots](#plots)) ([Readers](#readers)) ([Progbars](#progbars)) ([nctabbed](#nctabbed))
 * [Channels](#channels)
 * [Visuals](#visuals) ([QR codes](#qrcodes)) ([Multimedia](#multimedia)) ([Pixels](#pixels))
 * [Stats](#stats)
@@ -2480,7 +2480,7 @@ the time of each redraw), with the horizontal length scaled by 2 for
 purposes of comparison. I.e. for a plane of 20 rows and 50 columns, the
 progress will be to the right (50 > 40) or left with `OPTION_RETROGRADE`.
 
-```
+```c
 // Takes ownership of the ncplane 'n', which will be destroyed by
 // ncprogbar_destroy(). The progress bar is initially at 0%.
 struct ncprogbar* ncprogbar_create(struct ncplane* n, const ncprogbar_options* opts);
@@ -2506,6 +2506,185 @@ double ncprogbar_progress(const struct ncprogbar* n);
 
 // Destroy the progress bar and its underlying ncplane.
 void ncprogbar_destroy(struct ncprogbar* n);
+```
+
+### nctabbed
+
+Tabbed widgets. The tab list is displayed at the top or at the bottom of the
+plane, and only one tab is visible at a time.
+
+```c
+// Display the tab list at the bottom instead of at the top of the plane
+#define NCTABBED_OPTION_BOTTOM 0x0001ull
+
+typedef struct nctabbed_options {
+  uint64_t selchan; // channel for the selected tab header
+  uint64_t hdrchan; // channel for unselected tab headers
+  uint64_t sepchan; // channel for the tab separator
+  char* separator;  // separator string
+  uint64_t flags;   // bitmask of NCTABBED_OPTION_*
+} nctabbed_options;
+
+// Tab content drawing callback. Takes the tab it was associated to, the ncplane
+// on which tab content is to be drawn, and the user pointer of the tab.
+// It is called during nctabbed_redraw().
+typedef void (*tabcb)(struct nctab* t, struct ncplane* ncp, void* curry);
+
+// Creates a new nctabbed widget, associated with the given ncplane 'n', and with
+// additional options given in 'opts'. When 'opts' is NULL, it acts as if it were
+// called with an all-zero opts. The widget takes ownership of 'n', and destroys
+// it when the widget is destroyed. Returns the newly created widget. Returns
+// NULL on failure, also destroying 'n'.
+struct nctabbed* nctabbed_create(struct ncplane* n, const nctabbed_options* opts);
+
+// Destroy an nctabbed widget. All memory belonging to 'nt' is deallocated,
+// including all tabs and their names. The plane associated with 'nt' is also
+// destroyed. Calling this with NULL does nothing.
+void nctabbed_destroy(struct nctabbed* nt);
+
+// Redraw the widget. This calls the tab callback of the currently selected tab
+// to draw tab contents, and draws tab headers. The tab content plane is not
+// modified by this function, apart from resizing the plane is necessary.
+void nctabbed_redraw(struct nctabbed* nt);
+
+// Make sure the tab header of the currently selected tab is at least partially
+// visible. (by rotating tabs until at least one column is displayed)
+// Does nothing if there are no tabs.
+void nctabbed_ensure_selected_header_visible(struct nctabbed* nt);
+
+// Returns the currently selected tab, or NULL if there are no tabs.
+struct nctab* nctabbed_selected(struct nctabbed* nt);
+
+// Returns the leftmost tab, or NULL if there are no tabs.
+struct nctab* nctabbed_leftmost(struct nctabbed* nt);
+
+// Returns the number of tabs in the widget.
+int nctabbed_tabcount(struct nctabbed* nt);
+
+// Returns the plane associated to 'nt'.
+struct ncplane* nctabbed_plane(struct nctabbed* nt);
+
+// Returns the tab content plane.
+struct ncplane* nctabbed_content_plane(struct nctabbed* nt);
+
+// Returns the tab name. This is not a copy and it should not be stored.
+const char* nctab_name(struct nctab* t);
+
+// Returns the width (in columns) of the tab's name.
+int nctab_name_width(struct nctab* t);
+
+// Returns the tab's user pointer.
+void* nctab_userptr(struct nctab* t);
+
+// Returns the tab to the right of 't'. This does not change which tab is selected.
+struct nctab* nctab_next(struct nctab* t);
+
+// Returns the tab to the left of 't'. This does not change which tab is selected.
+struct nctab* nctab_prev(struct nctab* t);
+
+// Add a new tab to 'nt' with the given tab callback, name, and user pointer.
+// If both 'before' and 'after' are NULL, the tab is inserted after the selected
+// tab. Otherwise, it gets put after 'after' (if not NULL) and before 'before'
+// (if not NULL). If both 'after' and 'before' are given, they must be two
+// neighboring tabs (the tab list is circular, so the last tab is immediately
+// before the leftmost tab), otherwise the function returns NULL. If 'name' is
+// NULL or a string containing illegal characters, the function returns NULL.
+// On all other failures the function also returns NULL. If it returns NULL,
+// none of the arguments are modified, and the widget state is not altered.
+struct nctab* nctabbed_add(struct nctabbed* nt, struct nctab* after,
+                           struct nctab* before, tabcb tcb,
+                           const char* name, void* opaque);
+
+// Remove a tab 't' from 'nt'. Its neighboring tabs become neighbors to each
+// other. If 't' if the selected tab, the tab after 't' becomes selected.
+// Likewise if 't' is the leftmost tab, the tab after 't' becomes leftmost.
+// If 't' is the only tab, there will no more be a selected or leftmost tab,
+// until a new tab is added. Returns -1 if 't' is NULL, and 0 otherwise.
+int nctabbed_del(struct nctabbed* nt, struct nctab* t);
+
+// Move 't' after 'after' (if not NULL) and before 'before' (if not NULL).
+// If both 'after' and 'before' are NULL, the function returns -1, otherwise
+// it returns 0.
+int nctab_move(struct nctabbed* nt, struct nctab* t, struct nctab* after,
+               struct nctab* before);
+
+// Move 't' to the right by one tab, looping around to become leftmost if needed.
+void nctab_move_right(struct nctabbed* nt, struct nctab* t);
+
+// Move 't' to the right by one tab, looping around to become the last tab if needed.
+void nctab_move_left(struct nctabbed* nt, struct nctab* t);
+
+// Rotate the tabs of 'nt' right by 'amt' tabs, or '-amt' tabs left if 'amt' is
+// negative. Tabs are rotated only by changing the leftmost tab; the selected tab
+// stays the same. If there are no tabs, nothing happens.
+void nctabbed_rotate(struct nctabbed* nt, int amt);
+
+// Select the tab after the currently selected tab, and return the newly selected
+// tab. Returns NULL if there are no tabs.
+struct nctab* nctabbed_next(struct nctabbed* nt);
+
+// Select the tab before the currently selected tab, and return the newly selected
+// tab. Returns NULL if there are no tabs.
+struct nctab* nctabbed_prev(struct nctabbed* nt);
+
+// Change the selected tab to be 't'. Returns the previously selected tab.
+struct nctab* nctabbed_select(struct nctabbed* nt, struct nctab* t);
+
+// Write the channels for tab headers, the selected tab header, and the separator
+// to '*hdrchan', '*selchan', and '*sepchan' respectively.
+void nctabbed_channels(struct nctabbed* nt, uint64_t* RESTRICT hdrchan,
+                       uint64_t* RESTRICT selchan, uint64_t* RESTRICT sepchan);
+
+static inline uint64_t
+nctabbed_hdrchan(struct nctabbed* nt){
+  uint64_t ch;
+  nctabbed_channels(nt, &ch, NULL, NULL);
+  return ch;
+}
+
+static inline uint64_t
+nctabbed_selchan(struct nctabbed* nt){
+  uint64_t ch;
+  nctabbed_channels(nt, NULL, &ch, NULL);
+  return ch;
+}
+
+static inline uint64_t
+nctabbed_sepchan(struct nctabbed* nt){
+  uint64_t ch;
+  nctabbed_channels(nt, NULL, NULL, &ch);
+  return ch;
+}
+
+// Returns the tab separator. This is not a copy and it should not be stored.
+// This can be NULL, if the separator was set to NULL in ncatbbed_create() or
+// nctabbed_set_separator().
+const char* nctabbed_separator(struct nctabbed* nt);
+
+// Returns the tab separator width, or zero if there is no separator.
+int nctabbed_separator_width(struct nctabbed* nt);
+
+// Set the tab headers channel for 'nt'.
+void nctabbed_set_hdrchan(struct nctabbed* nt, uint64_t chan);
+
+// Set the selected tab header channel for 'nt'.
+void nctabbed_set_selchan(struct nctabbed* nt, uint64_t chan);
+
+// Set the tab separator channel for 'nt'.
+void nctabbed_set_sepchan(struct nctabbed* nt, uint64_t chan);
+
+// Set the tab callback function for 't'. Returns the previous tab callback.
+tabcb nctab_set_cb(struct nctab* t, tabcb newcb);
+
+// Change the name of 't'. Returns -1 if 'newname' is NULL, and 0 otherwise.
+int nctab_set_name(struct nctab* t, const char* newname);
+
+// Set the user pointer of 't'. Returns the previous user pointer.
+void* nctab_set_userptr(struct nctab* t, void* newopaque);
+
+// Change the tab separator for 'nt'. Returns -1 if 'separator' is not NULL and
+// is not a valid string, and 0 otherwise.
+int nctabbed_set_separator(struct nctabbed* nt, const char* separator);
 ```
 
 ## Channels

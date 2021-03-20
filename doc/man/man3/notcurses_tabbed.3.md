@@ -20,7 +20,8 @@ typedef struct nctabbed_options {
   uint64_t selchan; // channel for the selected tab header
   uint64_t hdrchan; // channel for unselected tab headers
   uint64_t sepchan; // channel for the tab separator
-  uint64_t flags;   // bitmask of NCTABBED_OPTION_* 
+  char* separator;  // separator string (copied by nctabbed_create())
+  uint64_t flags;   // bitmask of NCTABBED_OPTION_*
 } nctabbed_options;
 
 typedef void (*tabcb)(struct nctab* t, struct ncplane* ncp, void* userptr);
@@ -137,7 +138,7 @@ of the tab content plane, nor should it modify the widget's or the tab's state.
 failed to be created. This destroys the **ncplane** given to it even if it fails.
 
 **nctabbed_selected** and **nctabbed_leftmost** return the selected and
-leftmost tabs, accordingly. (if any)
+leftmost tabs, respectively. (if any)
 
 **nctab_name** returns the tab's name. This is not a copy, and it should not be
 stored, since it is freed when the tab's name is changed or the tab is deleted.

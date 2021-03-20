@@ -3184,89 +3184,146 @@ API void ncprogbar_destroy(struct ncprogbar* n);
 // Tabbed widgets. The tab list is displayed at the top or at the bottom of the
 // plane, and only one tab is visible at a time.
 
-// Display tab list at the bottom instead of at the top of the plane
+// Display the tab list at the bottom instead of at the top of the plane
 #define NCTABBED_OPTION_BOTTOM 0x0001ull
 
 typedef struct nctabbed_options {
-  uint64_t hdrchan;
-  uint64_t selchan;
-  uint64_t sepchan;
-  char* separator;
-  uint64_t flags;
+  uint64_t selchan; // channel for the selected tab header
+  uint64_t hdrchan; // channel for unselected tab headers
+  uint64_t sepchan; // channel for the tab separator
+  char* separator;  // separator string (copied by nctabbed_create())
+  uint64_t flags;   // bitmask of NCTABBED_OPTION_*
 } nctabbed_options;
 
+// Tab content drawing callback. Takes the tab it was associated to, the ncplane
+// on which tab content is to be drawn, and the user pointer of the tab.
+// It is called during nctabbed_redraw().
 typedef void (*tabcb)(struct nctab* t, struct ncplane* ncp, void* curry);
 
-API ALLOC struct nctabbed* nctabbed_create(struct ncplane* n, const nctabbed_options* opts);
+// Creates a new nctabbed widget, associated with the given ncplane 'n', and with
+// additional options given in 'opts'. When 'opts' is NULL, it acts as if it were
+// called with an all-zero opts. The widget takes ownership of 'n', and destroys
+// it when the widget is destroyed. Returns the newly created widget. Returns
+// NULL on failure, also destroying 'n'.
+API ALLOC struct nctabbed* nctabbed_create(struct ncplane* n, const nctabbed_options* opts)
+  __attribute ((nonnull (1)));
 
+// Destroy an nctabbed widget. All memory belonging to 'nt' is deallocated,
+// including all tabs and their names. The plane associated with 'nt' is also
+// destroyed. Calling this with NULL does nothing.
 API void nctabbed_destroy(struct nctabbed* nt);
 
+// Redraw the widget. This calls the tab callback of the currently selected tab
+// to draw tab contents, and draws tab headers. The tab content plane is not
+// modified by this function, apart from resizing the plane is necessary.
 API void nctabbed_redraw(struct nctabbed* nt)
   __attribute__ ((nonnull (1)));
 
+// Make sure the tab header of the currently selected tab is at least partially
+// visible. (by rotating tabs until at least one column is displayed)
+// Does nothing if there are no tabs.
 API void nctabbed_ensure_selected_header_visible(struct nctabbed* nt)
   __attribute__ ((nonnull (1)));
 
+// Returns the currently selected tab, or NULL if there are no tabs.
 API struct nctab* nctabbed_selected(struct nctabbed* nt)
   __attribute__ ((nonnull (1)));
 
+// Returns the leftmost tab, or NULL if there are no tabs.
 API struct nctab* nctabbed_leftmost(struct nctabbed* nt)
   __attribute__ ((nonnull (1)));
 
+// Returns the number of tabs in the widget.
 API int nctabbed_tabcount(struct nctabbed* nt)
   __attribute__ ((nonnull (1)));
 
+// Returns the plane associated to 'nt'.
 API struct ncplane* nctabbed_plane(struct nctabbed* nt)
   __attribute__ ((nonnull (1)));
 
+// Returns the tab content plane.
 API struct ncplane* nctabbed_content_plane(struct nctabbed* nt)
   __attribute__ ((nonnull (1)));
 
+// Returns the tab name. This is not a copy and it should not be stored.
 API const char* nctab_name(struct nctab* t)
   __attribute__ ((nonnull (1)));
 
+// Returns the width (in columns) of the tab's name.
 API int nctab_name_width(struct nctab* t)
   __attribute__ ((nonnull (1)));
 
+// Returns the tab's user pointer.
 API void* nctab_userptr(struct nctab* t)
   __attribute__ ((nonnull (1)));
 
+// Returns the tab to the right of 't'. This does not change which tab is selected.
 API struct nctab* nctab_next(struct nctab* t)
   __attribute__ ((nonnull (1)));
 
+// Returns the tab to the left of 't'. This does not change which tab is selected.
 API struct nctab* nctab_prev(struct nctab* t)
   __attribute__ ((nonnull (1)));
 
+// Add a new tab to 'nt' with the given tab callback, name, and user pointer.
+// If both 'before' and 'after' are NULL, the tab is inserted after the selected
+// tab. Otherwise, it gets put after 'after' (if not NULL) and before 'before'
+// (if not NULL). If both 'after' and 'before' are given, they must be two
+// neighboring tabs (the tab list is circular, so the last tab is immediately
+// before the leftmost tab), otherwise the function returns NULL. If 'name' is
+// NULL or a string containing illegal characters, the function returns NULL.
+// On all other failures the function also returns NULL. If it returns NULL,
+// none of the arguments are modified, and the widget state is not altered.
 API ALLOC struct nctab* nctabbed_add(struct nctabbed* nt, struct nctab* after,
                                      struct nctab* before, tabcb tcb,
                                      const char* name, void* opaque)
   __attribute__ ((nonnull (1, 5)));
 
+// Remove a tab 't' from 'nt'. Its neighboring tabs become neighbors to each
+// other. If 't' if the selected tab, the tab after 't' becomes selected.
+// Likewise if 't' is the leftmost tab, the tab after 't' becomes leftmost.
+// If 't' is the only tab, there will no more be a selected or leftmost tab,
+// until a new tab is added. Returns -1 if 't' is NULL, and 0 otherwise.
 API int nctabbed_del(struct nctabbed* nt, struct nctab* t)
   __attribute__ ((nonnull (1)));
 
+// Move 't' after 'after' (if not NULL) and before 'before' (if not NULL).
+// If both 'after' and 'before' are NULL, the function returns -1, otherwise
+// it returns 0.
 API int nctab_move(struct nctabbed* nt, struct nctab* t, struct nctab* after,
                    struct nctab* before)
   __attribute__ ((nonnull (1, 2)));
 
+// Move 't' to the right by one tab, looping around to become leftmost if needed.
 API void nctab_move_right(struct nctabbed* nt, struct nctab* t)
   __attribute__ ((nonnull (1, 2)));
 
+// Move 't' to the right by one tab, looping around to become the last tab if needed.
 API void nctab_move_left(struct nctabbed* nt, struct nctab* t)
   __attribute__ ((nonnull (1, 2)));
 
+// Rotate the tabs of 'nt' right by 'amt' tabs, or '-amt' tabs left if 'amt' is
+// negative. Tabs are rotated only by changing the leftmost tab; the selected tab
+// stays the same. If there are no tabs, nothing happens.
 API void nctabbed_rotate(struct nctabbed* nt, int amt)
   __attribute__ ((nonnull (1)));
 
+// Select the tab after the currently selected tab, and return the newly selected
+// tab. Returns NULL if there are no tabs.
 API struct nctab* nctabbed_next(struct nctabbed* nt)
   __attribute__ ((nonnull (1)));
 
+// Select the tab before the currently selected tab, and return the newly selected
+// tab. Returns NULL if there are no tabs.
 API struct nctab* nctabbed_prev(struct nctabbed* nt)
   __attribute__ ((nonnull (1)));
 
+// Change the selected tab to be 't'. Returns the previously selected tab.
 API struct nctab* nctabbed_select(struct nctabbed* nt, struct nctab* t)
   __attribute__ ((nonnull (1, 2)));
 
+// Write the channels for tab headers, the selected tab header, and the separator
+// to '*hdrchan', '*selchan', and '*sepchan' respectively.
 API void nctabbed_channels(struct nctabbed* nt, uint64_t* RESTRICT hdrchan,
                            uint64_t* RESTRICT selchan, uint64_t* RESTRICT sepchan)
   __attribute__ ((nonnull (1)));
@@ -3292,30 +3349,42 @@ nctabbed_sepchan(struct nctabbed* nt){
   return ch;
 }
 
+// Returns the tab separator. This is not a copy and it should not be stored.
+// This can be NULL, if the separator was set to NULL in ncatbbed_create() or
+// nctabbed_set_separator().
 API const char* nctabbed_separator(struct nctabbed* nt)
   __attribute__ ((nonnull (1)));
 
+// Returns the tab separator width, or zero if there is no separator.
 API int nctabbed_separator_width(struct nctabbed* nt)
   __attribute__ ((nonnull (1)));
 
+// Set the tab headers channel for 'nt'.
 API void nctabbed_set_hdrchan(struct nctabbed* nt, uint64_t chan)
   __attribute__ ((nonnull (1)));
 
+// Set the selected tab header channel for 'nt'.
 API void nctabbed_set_selchan(struct nctabbed* nt, uint64_t chan)
   __attribute__ ((nonnull (1)));
 
+// Set the tab separator channel for 'nt'.
 API void nctabbed_set_sepchan(struct nctabbed* nt, uint64_t chan)
   __attribute__ ((nonnull (1)));
 
+// Set the tab callback function for 't'. Returns the previous tab callback.
 API tabcb nctab_set_cb(struct nctab* t, tabcb newcb)
   __attribute__ ((nonnull (1)));
 
+// Change the name of 't'. Returns -1 if 'newname' is NULL, and 0 otherwise.
 API int nctab_set_name(struct nctab* t, const char* newname)
   __attribute__ ((nonnull (1, 2)));
 
+// Set the user pointer of 't'. Returns the previous user pointer.
 API void* nctab_set_userptr(struct nctab* t, void* newopaque)
   __attribute__ ((nonnull (1)));
 
+// Change the tab separator for 'nt'. Returns -1 if 'separator' is not NULL and
+// is not a valid string, and 0 otherwise.
 API int nctabbed_set_separator(struct nctabbed* nt, const char* separator)
   __attribute__ ((nonnull (1, 2)));
 
