@@ -346,8 +346,8 @@ query_sixel(tinfo* ti, int fd){
             ti->sixel_supported = true;
             ti->color_registers = 256;  // assumed default [shrug]
             ti->pixel_destroy = sprite_sixel_annihilate;
-//            ti->sixel_maxx = ti->sixel_maxy = 0;
-          } // FIXME else warning?
+            ti->sixel_maxx = ti->sixel_maxy = 0;
+          }
         }
         break;
       case DONE:

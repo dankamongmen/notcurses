@@ -48,7 +48,7 @@ int main(int argc, char** argv){
     .margin_r = 2,
   };
   struct notcurses* nc = notcurses_init(&opts, NULL);
-  if(!notcurses_check_pixel_support(nc)){
+  if(notcurses_check_pixel_support(nc) <= 0){
     notcurses_stop(nc);
     fprintf(stderr, "this program requires pixel graphics support\n");
     return EXIT_FAILURE;
