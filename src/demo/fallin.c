@@ -192,11 +192,21 @@ int fallin_demo(struct notcurses* nc){
   if(ncv == NULL){
     goto err;
   }
+  struct ncplane_options nopts = {
+    .rows = dimy - 2,
+    .cols = dimx,
+    .y = 1,
+  };
+  n = ncplane_create(stdn, &nopts);
+  if(n == NULL){
+    goto err;
+  }
   struct ncvisual_options vopts = {
     .scaling = NCSCALE_STRETCH,
     .blitter = NCBLIT_PIXEL,
+    .n = n,
   };
-  if((n = ncvisual_render(nc, ncv, &vopts)) == NULL){
+  if(ncvisual_render(nc, ncv, &vopts) == NULL){
     ncvisual_destroy(ncv);
     goto err;
   }
