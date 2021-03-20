@@ -415,15 +415,17 @@ typedef struct notcurses {
 // cell vs pixel-specific arguments
 typedef union {
   struct {
-    int placey;         // placement within ncplane
-    int placex;
     int blendcolors;    // use CELL_ALPHA_BLEND
+    int placey;           // placement within ncplane
+    int placex;
   } cell;               // for cells
   struct {
     int celldimx;       // horizontal pixels per cell
     int celldimy;       // vertical pixels per cell
     int colorregs;      // number of color registers
     int sprixelid;      // unqie 24-bit id into sprixel cache
+    int placey;         // placement within ncplane
+    int placex;
   } pixel;              // for pixels
 } blitterargs;
 
@@ -702,8 +704,8 @@ plane_debug(const ncplane* n, bool details){
 void sprixel_free(sprixel* s);
 void sprixel_hide(sprixel* s);
 // dimy and dimx are cell geometry, not pixel
-sprixel* sprixel_create(ncplane* n, const char* s, int bytes, int sprixelid,
-                        int dimy, int dimx, int pixy, int pixx);
+sprixel* sprixel_create(ncplane* n, const char* s, int bytes, int placey, int placex,
+                        int sprixelid, int dimy, int dimx, int pixy, int pixx);
 API int sprite_wipe_cell(const notcurses* nc, sprixel* s, int y, int x);
 int sprite_kitty_annihilate(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
 int sprite_sixel_annihilate(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
@@ -1100,15 +1102,15 @@ egc_rtl(const char* egc, int* bytes){
 // a reference to the context-wide sprixel cache. this ought be an entirely
 // new, purpose-specific plane.
 static inline int
-plane_blit_sixel(ncplane* n, const char* s, int bytes, int leny, int lenx,
-                 int sprixelid, int dimy, int dimx){
-  sprixel* spx = sprixel_create(n, s, bytes, sprixelid, leny, lenx, dimy, dimx);
+plane_blit_sixel(ncplane* n, const char* s, int bytes, int placey, int placex,
+                 int leny, int lenx, int sprixelid, int dimy, int dimx){
+  sprixel* spx = sprixel_create(n, s, bytes, placey, placex, sprixelid, leny, lenx, dimy, dimx);
   if(spx == NULL){
     return -1;
   }
   uint32_t gcluster = htole(0x02000000ul) + htole(spx->id);
-  for(int y = 0 ; y < leny && y < ncplane_dim_y(n) ; ++y){
-    for(int x = 0 ; x < lenx && x < ncplane_dim_x(n) ; ++x){
+  for(int y = placey ; y < placey + leny && y < ncplane_dim_y(n) ; ++y){
+    for(int x = placex ; x < placex + lenx && x < ncplane_dim_x(n) ; ++x){
       nccell* c = ncplane_cell_ref_yx(n, y, x);
       memcpy(&c->gcluster, &gcluster, sizeof(gcluster));
       c->width = lenx;

@@ -971,6 +971,8 @@ rasterize_sprixels(notcurses* nc, const ncpile* p, FILE* out){
     if(s->invalidated == SPRIXEL_INVALIDATED){
       int y, x;
       ncplane_yx(s->n, &y, &x);
+      y += s->y;
+      x += s->x;
 //fprintf(stderr, "DRAWING BITMAP AT %d/%d\n", y, x);
       if(goto_location(nc, out, y + nc->stdplane->absy, x + nc->stdplane->absx)){
         return -1;

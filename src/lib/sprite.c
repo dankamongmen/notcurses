@@ -17,8 +17,8 @@ void sprixel_hide(sprixel* s){
 }
 
 // y and x are the cell geometry, not the pixel geometry
-sprixel* sprixel_create(ncplane* n, const char* s, int bytes, int sprixelid,
-                        int dimy, int dimx, int pixy, int pixx){
+sprixel* sprixel_create(ncplane* n, const char* s, int bytes, int placey, int placex,
+                        int sprixelid, int dimy, int dimx, int pixy, int pixx){
   sprixel* ret = malloc(sizeof(sprixel));
   if(ret){
     if((ret->glyph = memdup(s, bytes + 1)) == NULL){
@@ -40,6 +40,8 @@ sprixel* sprixel_create(ncplane* n, const char* s, int bytes, int sprixelid,
     ret->dimx = dimx;
     ret->pixx = pixx;
     ret->pixy = pixy;
+    ret->y = placey;
+    ret->x = placex;
     if(ncplane_pile(n)){
       notcurses* nc = ncplane_notcurses(n);
       ret->next = nc->sprixelcache;

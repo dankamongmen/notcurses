@@ -81,9 +81,9 @@ fprintf(stderr, "TARGET AREA: [ %dx%d -> %dx%d ] of %dx%d\n", top, left, bottom 
           rle = 0;
         }
         if(column >= left && column < right){ // zorch it
-fprintf(stderr, "STARTED WITH %d %c\n", *c, *c);
+//fprintf(stderr, "STARTED WITH %d %c\n", *c, *c);
           *c = ((*c - 63) & mask) + 63;
-fprintf(stderr, "CHANGED TO %d %c\n", *c, *c);
+//fprintf(stderr, "CHANGED TO %d %c\n", *c, *c);
         }
         ++column;
       }
@@ -504,7 +504,8 @@ int sixel_blit_inner(ncplane* nc, int leny, int lenx, sixeltable* stab,
   }
   unsigned cols = lenx / bargs->pixel.celldimx + !!(lenx % bargs->pixel.celldimx);
   unsigned rows = leny / bargs->pixel.celldimy + !!(leny % bargs->pixel.celldimy);
-  if(plane_blit_sixel(nc, buf, size, rows, cols, bargs->pixel.sprixelid, leny, lenx) < 0){
+  if(plane_blit_sixel(nc, buf, size, bargs->pixel.placey, bargs->pixel.placex,
+                      rows, cols, bargs->pixel.sprixelid, leny, lenx) < 0){
     free(buf);
     return -1;
   }

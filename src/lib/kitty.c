@@ -255,7 +255,8 @@ int kitty_blit_inner(ncplane* nc, int linesize, int leny, int lenx,
     free(buf);
     return -1;
   }
-  if(plane_blit_sixel(nc, buf, size, rows, cols, bargs->pixel.sprixelid, leny, lenx) < 0){
+  if(plane_blit_sixel(nc, buf, size, bargs->pixel.placey, bargs->pixel.placex,
+                      rows, cols, bargs->pixel.sprixelid, leny, lenx) < 0){
     free(buf);
     return -1;
   }
