@@ -2,6 +2,7 @@
 
 void sprixel_free(sprixel* s){
   if(s){
+    free(s->tacache);
     free(s->glyph);
     free(s);
   }
@@ -24,6 +25,15 @@ sprixel* sprixel_create(ncplane* n, const char* s, int bytes, int sprixelid,
       free(ret);
       return NULL;
     }
+    const size_t tasize = sizeof(*ret->tacache) * dimy * dimx;
+    if((ret->tacache = malloc(tasize)) == NULL){
+      free(ret->glyph);
+      free(ret);
+      return NULL;
+    }
+    // FIXME set up transparency cache when generating sprixel;
+    // we manage only annihilation cache
+    memset(ret->tacache, 0, tasize);
     ret->invalidated = SPRIXEL_INVALIDATED;
     ret->n = n;
     ret->dimy = dimy;
@@ -41,13 +51,19 @@ sprixel* sprixel_create(ncplane* n, const char* s, int bytes, int sprixelid,
 }
 
 int sprite_wipe_cell(const notcurses* nc, sprixel* s, int ycell, int xcell){
+  if(!nc->tcache.pixel_cell_wipe){
+    return 0;
+  }
   if(ycell >= s->dimy){
     return -1;
   }
   if(xcell >= s->dimx){
     return -1;
   }
-  // FIXME transparency-annihilation cache!
+  if(s->tacache[s->dimx * ycell + xcell] == 2){
+    return 0; // already annihilated
+  }
+  s->tacache[s->dimx * ycell + xcell] = 2;
   int r = nc->tcache.pixel_cell_wipe(nc, s, ycell, xcell);
   if(r == 0){
     s->invalidated = SPRIXEL_INVALIDATED;

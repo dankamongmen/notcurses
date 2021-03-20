@@ -63,6 +63,7 @@ typedef struct sprixel {
   int y, x;
   int dimy, dimx;    // cell geometry
   int pixy, pixx;    // pixel geometry (might be smaller than cell geo)
+  int* tacache;       // transparency-annihilatin cache (dimy * dimx)
 } sprixel;
 
 // A plane is memory for some rectilinear virtual window, plus current cursor
@@ -703,7 +704,7 @@ void sprixel_hide(sprixel* s);
 // dimy and dimx are cell geometry, not pixel
 sprixel* sprixel_create(ncplane* n, const char* s, int bytes, int sprixelid,
                         int dimy, int dimx, int pixy, int pixx);
-int sprite_wipe_cell(const notcurses* nc, sprixel* s, int y, int x);
+API int sprite_wipe_cell(const notcurses* nc, sprixel* s, int y, int x);
 int sprite_kitty_annihilate(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
 int sprite_sixel_annihilate(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
 
