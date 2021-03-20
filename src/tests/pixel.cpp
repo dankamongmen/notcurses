@@ -8,7 +8,7 @@ TEST_CASE("Pixel") {
   auto n_ = notcurses_stdplane(nc_);
   REQUIRE(n_);
 
-  if(!notcurses_check_pixel_support(nc_)){
+  if(notcurses_check_pixel_support(nc_) <= 0){
     CHECK(!notcurses_stop(nc_));
     return;
   }
