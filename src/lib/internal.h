@@ -315,6 +315,10 @@ typedef struct tinfo {
   bool sixel_supported;  // do we support sixel (post pixel_query_done)?
   int sprixelnonce;      // next sprixel id
   int (*pixel_destroy)(struct notcurses* nc, const struct ncpile* p, FILE* out, sprixel* s);
+  // wipe out a cell's worth of pixels from within a sprixel. for sixel, this
+  // means leaving out the pixels (and likely resizes the string). for kitty,
+  // this means dialing down their alpha to 0 (in equivalent space).
+  int (*pixel_cell_wipe)(sprixel* s, int y, int x);
   bool pixel_query_done; // have we yet performed pixel query?
   bool sextants;  // do we have (good, vetted) Unicode 13 sextant support?
   bool braille;   // do we have Braille support? (linux console does not)
@@ -1256,6 +1260,9 @@ static inline bool
 ncdirect_bg_default_p(const struct ncdirect* nc){
   return channels_bg_default_p(ncdirect_channels(nc));
 }
+
+int sprite_sixel_cell_wipe(sprixel* s, int y, int x);
+int sprite_kitty_cell_wipe(sprixel* s, int y, int x);
 
 int sixel_blit(ncplane* nc, int linesize, const void* data, int begy, int begx,
                int leny, int lenx, const blitterargs* bargs);

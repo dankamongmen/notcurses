@@ -6,6 +6,10 @@ int yield_demo(struct notcurses* nc){
   }
   int dimy, dimx;
   struct ncplane* std = notcurses_stddim_yx(nc, &dimy, &dimx);
+  // in sixel-based implementation, if we redraw each cycle, the underlying
+  // material will be redrawn, taking time. erasing won't eliminate the
+  // flicker, but it does minimize it.
+  ncplane_erase(std);
   char* pic = find_data("worldmap.png");
   struct ncvisual* wmv = ncvisual_from_file(pic);
   free(pic);
