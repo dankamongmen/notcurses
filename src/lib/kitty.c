@@ -117,13 +117,7 @@ kitty_null(char* triplet, int skip, int max, int pleft){
 }
 
 #define RGBA_MAXLEN 768 // 768 base64-encoded pixels in 4096 bytes
-int sprite_kitty_cell_wipe(notcurses* nc, sprixel* s, int ycell, int xcell){
-  if(ycell >= s->dimy){
-    return -1;
-  }
-  if(xcell >= s->dimx){
-    return -1;
-  }
+int sprite_kitty_cell_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
   const int totalpixels = s->pixy * s->pixx;
   const int xpixels = nc->tcache.cellpixx;
   const int ypixels = nc->tcache.cellpixy;
@@ -145,7 +139,8 @@ int sprite_kitty_cell_wipe(notcurses* nc, sprixel* s, int ycell, int xcell){
   int nextpixel = (s->pixx * ycell * ypixels) + (xpixels * xcell);
   int thisrow = targx;
   int chunkedhandled = 0;
-  while(targy){ // need to null out |targy| rows of |targx| pixels, track with |thisrow|
+  const int chunks = totalpixels / RGBA_MAXLEN + !!(totalpixels % RGBA_MAXLEN);
+  while(targy && chunkedhandled < chunks){ // need to null out |targy| rows of |targx| pixels, track with |thisrow|
 //fprintf(stderr, "CHUNK %d NEXTPIXEL: %d\n", chunkedhandled, nextpixel);
     while(*c != ';'){
       ++c;

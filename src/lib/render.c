@@ -245,9 +245,6 @@ highcontrast(uint32_t bchannel){
 static void
 paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
       int dstabsy, int dstabsx){
-  if(p->sprite){
-    return;
-  }
   int y, x, dimy, dimx, offy, offx;
   ncplane_dim_yx(p, &dimy, &dimx);
   offy = p->absy - dstabsy;
@@ -281,9 +278,22 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
       if(cell_wide_right_p(targc)){
         continue;
       }
+      const nccell* vis = &p->fb[nfbcellidx(p, y, x)];
+
+      // if we're a sprixel, we must not register ourselves as the active
+      // glyph, but we *do* need to null out any cellregions that we've
+      // scribbled upon.
+      if(cell_sprixel_p(vis)){
+        // if we already have a glyph solved, and we run into a bitmap
+        // cell, we need to null that cell out.
+        if(crender->p){
+          sprite_wipe_cell(ncplane_notcurses_const(p), p->sprite, y, x);
+        }
+        continue;
+      }
 
       if(cell_fg_alpha(targc) > CELL_ALPHA_OPAQUE){
-        const nccell* vis = &p->fb[nfbcellidx(p, y, x)];
+        vis = &p->fb[nfbcellidx(p, y, x)];
         if(cell_fg_default_p(vis)){
           vis = &p->basecell;
         }
@@ -315,7 +325,7 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
       // background channel and balpha.
       // Evaluate the background first, in case we have HIGHCONTRAST fg text.
       if(cell_bg_alpha(targc) > CELL_ALPHA_OPAQUE){
-        const nccell* vis = &p->fb[nfbcellidx(p, y, x)];
+        vis = &p->fb[nfbcellidx(p, y, x)];
         // to be on the blitter stacking path, we need
         //  1) crender->s.blittedquads to be non-zero (we're below semigraphics)
         //  2) cell_blittedquadrants(vis) to be non-zero (we're semigraphics)
@@ -358,7 +368,7 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
       // still use a character we find here, but its color will come entirely
       // from cells underneath us.
       if(!crender->p){
-        const nccell* vis = &p->fb[nfbcellidx(p, y, x)];
+        vis = &p->fb[nfbcellidx(p, y, x)];
         if(vis->gcluster == 0 && !cell_double_wide_p(vis)){
           vis = &p->basecell;
         }
@@ -922,7 +932,7 @@ emit_bg_palindex(notcurses* nc, FILE* out, const nccell* srccell){
   return 0;
 }
 
-int sprite_kitty_annihilate(notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
+int sprite_kitty_annihilate(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
   (void)p;
   (void)nc;
   if(fprintf(out, "\e_Ga=d,d=i,i=%d\e\\", s->id) < 0){
@@ -931,7 +941,7 @@ int sprite_kitty_annihilate(notcurses* nc, const ncpile* p, FILE* out, sprixel* 
   return 0;
 }
 
-int sprite_sixel_annihilate(notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
+int sprite_sixel_annihilate(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
   (void)out;
   struct crender* rvec = p->crender;
   // FIXME need to cap by ends minus bottom, right margins also

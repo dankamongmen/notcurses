@@ -6,13 +6,7 @@
 // color bands have varying size). le sigh! we work geometrically here,
 // blasting through each band and scrubbing the necessary cells therein.
 // define a rectangle that will be scrubbed.
-int sprite_sixel_cell_wipe(notcurses* nc, sprixel* s, int ycell, int xcell){
-  if(ycell >= s->dimy){
-    return -1;
-  }
-  if(xcell >= s->dimx){
-    return -1;
-  }
+int sprite_sixel_cell_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
   const int xpixels = nc->tcache.cellpixx;
   const int ypixels = nc->tcache.cellpixy;
   const int top = ypixels * ycell;          // start scrubbing on this row
