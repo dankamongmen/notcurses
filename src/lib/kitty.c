@@ -1,40 +1,5 @@
 #include "internal.h"
 
-#define RGBA_MAXLEN 768 // 768 base64-encoded pixels in 4096 bytes
-int sprite_kitty_cell_wipe(notcurses* nc, sprixel* s, int ycell, int xcell){
-  if(ycell >= s->dimy){
-    return -1;
-  }
-  if(xcell >= s->dimx){
-    return -1;
-  }
-  int xpixels = nc->tcache.cellpixx;
-  int ypixels = nc->tcache.cellpixy;
-  int xpx = xpixels * xcell; // pixel coordinates where we start erasing
-  int ypx = ypixels * ycell;
-  char* c = s->glyph;
-  // every pixel was 4 source bytes, 32 bits, 6.33 base64 bytes. every 3 input pixels is
-  // 12 bytes (96 bits), an even 16 base64 bytes. there is chunking to worry about. there
-  // are up to 768 pixels in a chunk.
-  int chunks = (xcell + s->dimx * ycell) / RGBA_MAXLEN;
-  do{
-    while(*c != ';'){
-      ++c;
-    }
-    ++c;
-    if(chunks == 0){
-      // we're in the proper chunk. find the pixel offset of the first
-      // pixel (within the chunk).
-      int offset = (xpx + s->dimx * ypx) % RGBA_MAXLEN;
-      // skip the 16-byte pixel triples
-      int bytes = (offset / 3) * 16;
-      // FIXME
-      return 0;
-    }
-  }while(--chunks);
-  return -1;
-}
-
 static unsigned const char b64subs[] =
  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
@@ -93,6 +58,80 @@ base64_rgba3(const uint32_t* pixels, size_t pcount, char* b64){
   b64[16] = '\0';
 }
 
+// null out part of a triplet (a triplet is 3 pixels, which map to 12 bytes, which map to
+// 16 bytes when base64 encoded). skip the initial |skip| pixels, and null out a maximum
+// of |max| pixels after that. returns the number of pixels nulled out. |max| must be
+// positive. |skip| must be non-negative, and less than 3.
+static inline int
+kitty_null(char* triplet, int skip, int max){
+  (void)triplet;
+  (void)max;
+  (void)skip;
+  char pixels[12];
+  return max;
+}
+
+#define RGBA_MAXLEN 768 // 768 base64-encoded pixels in 4096 bytes
+int sprite_kitty_cell_wipe(notcurses* nc, sprixel* s, int ycell, int xcell){
+  if(ycell >= s->dimy){
+    return -1;
+  }
+  if(xcell >= s->dimx){
+    return -1;
+  }
+  const int xpixels = nc->tcache.cellpixx;
+  const int ypixels = nc->tcache.cellpixy;
+  // if the cell is on the right or bottom borders, it might only be partially
+  // filled by actual graphic data, and we need to cap our target area.
+  int targx = xpixels;
+  if(xcell * xpixels > s->pixx){
+    targx -= ((xcell * xpixels) - s->pixx);
+  }
+  int targy = ypixels;
+  if(ycell * ypixels > s->pixy){
+    targy -= ((ycell * ypixels) - s->pixy);
+  }
+fprintf(stderr, "TARGET AREA: %d x %d\n", targy, targx);
+  char* c = s->glyph;
+  // every pixel was 4 source bytes, 32 bits, 6.33 base64 bytes. every 3 input pixels is
+  // 12 bytes (96 bits), an even 16 base64 bytes. there is chunking to worry about. there
+  // are up to 768 pixels in a chunk.
+  int nextpixel = s->dimx * xpixels * ycell + xpixels * xcell;
+  int nextend = nextpixel + targx - 1;
+fprintf(stderr, "NEXTPIXEL: %d\n", nextpixel);
+  int curpixel = 0;
+  int thisrow = targx;
+  while(targy){ // need to null out |targy| rows of |targx| pixels, track with |thisrow|
+    while(*c != ';'){
+      ++c;
+    }
+    ++c;
+    while(nextpixel - curpixel < RGBA_MAXLEN && thisrow){
+      // our next pixel is within this chunk. find the pixel offset of the
+      // first pixel (within the chunk).
+      int pixoffset = nextpixel - curpixel;
+      int triples = pixoffset / 3;
+      int tripbytes = triples * 16;
+      // we start within a 16-byte chunk |tripbytes| into the chunk. determine
+      // the number of bits.
+      int tripskip = pixoffset - triples * 3;
+      int chomped = kitty_null(c + tripbytes, tripskip, thisrow);
+      thisrow -= chomped;
+      nextpixel += chomped;
+fprintf(stderr, "pixoffset: %d next: %d tripbytes: %d tripskip: %d\n", pixoffset, nextpixel, tripbytes, tripskip);
+      if(thisrow == 0){
+        if(--targy == 0){
+          return 0;
+        }
+        thisrow = targx;
+        nextpixel += s->dimx - xpixels;
+      }
+    }
+    c += RGBA_MAXLEN * 4 * 4 / 3; // 4bpp * 4/3 for base64, 4096b per chunk
+  }
+  return -1;
+}
+
 // we can only write 4KiB at a time. we're writing base64-encoded RGBA. each
 // pixel is 4B raw (32 bits). each chunk of three pixels is then 12 bytes, or
 // 16 base64-encoded bytes. 4096 / 16 == 256 3-pixel groups, or 768 pixels.
@@ -146,8 +185,8 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx,
     return -1;
   }
   return 0;
-#undef RGBA_MAXLEN
 }
+#undef RGBA_MAXLEN
 
 // Kitty graphics blitter. Kitty can take in up to 4KiB at a time of (optionally
 // deflate-compressed) 24bit RGB.
@@ -166,7 +205,7 @@ int kitty_blit_inner(ncplane* nc, int linesize, int leny, int lenx,
     free(buf);
     return -1;
   }
-  if(plane_blit_sixel(nc, buf, size, rows, cols, bargs->pixel.sprixelid) < 0){
+  if(plane_blit_sixel(nc, buf, size, rows, cols, bargs->pixel.sprixelid, leny, lenx) < 0){
     free(buf);
     return -1;
   }
