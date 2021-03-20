@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <strings.h>
 // Output of "neofetch-ripper /usr/bin/neofetch"
-// Generated on Wed 03 Feb 2021 05:31:31 AM UTC
+// Generated on Sat 20 Mar 2021 01:36:49 PM UTC
 // Copyright Dylan Araps under an MIT License
 // The MIT License (MIT)
 //
