@@ -280,10 +280,12 @@ auto ffmpeg_details_init(void) -> ncvisual_details* {
 }
 
 auto ffmpeg_create() -> ncvisual* {
-  auto nc = new ncvisual{};
-  if((nc->details = ffmpeg_details_init()) == nullptr){
-    delete nc;
-    return nullptr;
+  ncvisual* nc = static_cast<ncvisual*>(malloc(sizeof(*nc)));
+  if(nc){
+    if((nc->details = ffmpeg_details_init()) == nullptr){
+      free(nc);
+      return nullptr;
+    }
   }
   return nc;
 }

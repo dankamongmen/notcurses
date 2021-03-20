@@ -34,10 +34,12 @@ auto oiio_details_destroy(ncvisual_details* deets) -> void {
 }
 
 auto oiio_create() -> ncvisual* {
-  auto nc = new ncvisual{};
-  if((nc->details = oiio_details_init()) == nullptr){
-    delete nc;
-    return nullptr;
+  ncvisual* nc = static_cast<ncvisual*>(malloc(sizeof(*nc)));
+  if(nc){
+    if((nc->details = oiio_details_init()) == nullptr){
+      free(nc);
+      return nullptr;
+    }
   }
   return nc;
 }

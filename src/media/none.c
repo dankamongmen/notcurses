@@ -4,18 +4,18 @@
 #include "internal.h"
 #include "visual-details.h"
 
-auto none_create() -> ncvisual* {
-  return new ncvisual{};
+ncvisual* none_create(){
+  return malloc(sizeof(ncvisual));
 }
 
-int none_decode(ncvisual* nc) {
+int none_decode(ncvisual* nc){
   (void)nc;
   return -1;
 }
 
-ncvisual* none_from_file(const char* filename) {
+ncvisual* none_from_file(const char* filename){
   (void)filename;
-  return nullptr;
+  return NULL;
 }
 
 int none_decode_loop(ncvisual* ncv){
@@ -24,7 +24,7 @@ int none_decode_loop(ncvisual* ncv){
 }
 
 // resize, converting to RGBA (if necessary) along the way
-int none_resize(ncvisual* nc, int rows, int cols) {
+int none_resize(ncvisual* nc, int rows, int cols){
   // we'd need to verify that it's RGBA as well, except that if we've got no
   // multimedia engine, we've only got memory-assembled ncvisuals, which are
   // RGBA-native. so we ought be good, but this is undeniably sloppy...
@@ -36,7 +36,7 @@ int none_resize(ncvisual* nc, int rows, int cols) {
 
 int none_blit(struct ncvisual* ncv, int rows, int cols,
                   ncplane* n, const struct blitset* bset,
-                  int begy, int begx, int leny, int lenx, const blitterargs* bargs) {
+                  int begy, int begx, int leny, int lenx, const blitterargs* bargs){
   (void)rows;
   (void)cols;
   if(rgba_blit_dispatch(n, bset, ncv->rowstride, ncv->data,
@@ -46,8 +46,8 @@ int none_blit(struct ncvisual* ncv, int rows, int cols,
   return -1;
 }
 
-auto none_stream(notcurses* nc, ncvisual* ncv, float timescale,
-                 streamcb streamer, const struct ncvisual_options* vopts, void* curry) -> int {
+int none_stream(notcurses* nc, ncvisual* ncv, float timescale,
+                streamcb streamer, const struct ncvisual_options* vopts, void* curry){
   (void)nc;
   (void)ncv;
   (void)timescale;
@@ -57,36 +57,16 @@ auto none_stream(notcurses* nc, ncvisual* ncv, float timescale,
   return -1;
 }
 
-char* none_subtitle(const ncvisual* ncv) { // no support in none
+char* none_subtitle(const ncvisual* ncv){ // no support in none
   (void)ncv;
-  return nullptr;
+  return NULL;
 }
 
-// FIXME before we can enable this, we need build an none::APPBUFFER-style
-// ImageBuf in ncvisual in ncvisual_from_rgba().
-/*
-auto ncvisual_rotate(ncvisual* ncv, double rads) -> int {
-  none::ROI roi(0, ncv->cols, 0, ncv->rows, 0, 1, 0, 4);
-  auto tmpibuf = std::move(*ncv->details->ibuf);
-  ncv->details->ibuf = std::make_unique<none::ImageBuf>();
-  none::ImageSpec sp{};
-  sp.set_format(none::TypeDesc(none::TypeDesc::UINT8, 4));
-  sp.nchannels = 4;
-  ncv->details->ibuf->reset();
-  if(!none::ImageBufAlgo::rotate(*ncv->details->ibuf, tmpibuf, rads, "", 0, true, roi)){
-    return NCERR_DECODE; // FIXME need we do anything further?
-  }
-  ncv->rowstride = ncv->cols * 4;
-  ncvisual_set_data(ncv, static_cast<uint32_t*>(ncv->details->ibuf->localpixels()), false);
-  return NCERR_SUCCESS;
-}
-*/
-
-auto none_details_seed(ncvisual* ncv) -> void {
+void none_details_seed(ncvisual* ncv){
   (void)ncv;
 }
 
-auto none_details_destroy(struct ncvisual_details* ncv) -> void {
+void none_details_destroy(struct ncvisual_details* ncv){
   (void)ncv;
 }
 
