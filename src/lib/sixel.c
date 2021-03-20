@@ -29,16 +29,83 @@ fprintf(stderr, "TARGET AREA: [ %dx%d -> %dx%d ] of %dx%d\n", top, left, bottom 
   // (after that, simply count hyphens). FIXME store loc in sprixel metadata?
   // it seems sufficient to look for the first #d not followed by a semicolon.
   // remember, these are sixels *we've* created internally, not random ones.
+  while(*c != '#'){
+    ++c;
+  }
   do{
-    while(*c != '#'){
-      ++c;
-    }
+    ++c;
     while(isdigit(*c)){
       ++c;
     }
-  }while(*c == ';');
-fprintf(stderr, "FOUND SIXMAP AT %zd\n", c - s->glyph);
-  return 0; // FIXME
+    while(*c == ';'){
+      ++c;
+      while(isdigit(*c)){
+        ++c;
+      }
+    }
+  }while(*c == '#');
+  --c;
+  int row = 0;
+  while(row + 6 <= top){
+    while(*c != '-'){
+      ++c;
+    }
+    row += 6;
+  }
+  unsigned mask = 0;
+  if(row < top){
+    for(int i = 0 ; i < top - row ; ++i){
+      mask |= (1 << i);
+    }
+  }
+  // make masks containing only pixels which we will *not* be turning off
+  // (on the top or bottom), if any. go through each entry and if it
+  // occupies our target columns, scrub scrub scrub!
+  while(*c == '#' || isdigit(*c)){
+    while(*c == '#' || isdigit(*c)){
+      ++c;
+    }
+    int column = 0;
+    int rle = 0;
+    // here begins the substance, concluded by '-', '$', or '\e'. '!' indicates rle.
+    while(*c != '-' && *c != '$' && *c != '\e'){
+      if(*c == '!'){
+        rle = 0;
+      }else if(isdigit(*c)){
+        rle *= 10;
+        rle += (*c - '0');
+      }else{
+        if(rle){
+          // FIXME this can skip over the starting column
+          column += (rle - 1);
+          rle = 0;
+        }
+        if(column >= left && column < right){ // zorch it
+          *c = ((*c - 63) & mask) + 63;
+          fprintf(stderr, "CHANGED TO %d %c\n", *c, *c);
+        }
+        ++column;
+      }
+      ++c;
+    }
+    if(*c == '-'){
+      row += 6;
+      if(row >= bottom){
+        return 0;
+      }
+      mask = 0;
+      if(bottom - row < 6){
+        for(int i = 0 ; i < bottom - row ; ++i){
+          mask |= (1 << (6 - i));
+        }
+      }
+    }else if(*c == '\e'){
+      return 0;
+    }
+    column = 0;
+    ++c;
+  }
+  return 0;
 }
 
 #define RGBSIZE 3
