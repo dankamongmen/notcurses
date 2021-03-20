@@ -1105,6 +1105,9 @@ plane_blit_sixel(ncplane* n, const char* s, int bytes, int leny, int lenx,
       c->width = lenx;
     }
   }
+  if(n->sprite){
+    sprixel_hide(n->sprite);
+  }
   n->sprite = spx;
   return 0;
 }

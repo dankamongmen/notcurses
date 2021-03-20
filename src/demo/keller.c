@@ -42,6 +42,7 @@ visualize(struct notcurses* nc, struct ncvisual* ncv){
     if((n = ncvisual_render(nc, ncv, &vopts)) == NULL){
       ncplane_printf_aligned(stdn, ncplane_dim_y(stdn) / 2 - 1, NCALIGN_CENTER, "not available");
     }else{
+      // FIXME shouldn't need this once z-axis is united with bitmap graphics
       ncplane_move_below(n, stdn);
       if(vopts.blitter == NCBLIT_PIXEL){
         DEMO_RENDER(nc);
