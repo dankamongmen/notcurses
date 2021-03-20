@@ -250,23 +250,24 @@ typedef struct ncprogbar {
 } ncprogbar;
 
 typedef struct nctab {
-  tabcb cb;
-  char* name;
-  int namecols;
-  void* curry;
+  tabcb cb;     // tab callback
+  char* name;   // tab name
+  int namecols; // tab name width in columns
+  void* curry;  // user pointer
   struct nctab* prev;
   struct nctab* next;
 } nctab;
 
 typedef struct nctabbed {
-  ncplane* ncp;
-  ncplane* p;
-  ncplane* hp;
-  nctab* leftmost;
-  nctab* selected;
-  int tabcount;
-  int sepcols;
-  nctabbed_options opts;
+  ncplane* ncp;          // widget ncplane
+  ncplane* p;            // tab content ncplane
+  ncplane* hp;           // tab headers ncplane
+  // a doubly-linked circular list of tabs
+  nctab* leftmost;       // the tab most to the left
+  nctab* selected;       // the currently selected tab
+  int tabcount;          // tab separator (can be NULL)
+  int sepcols;           // separator with in columns
+  nctabbed_options opts; // copied in nctabbed_create()
 } nctabbed;
 
 // terminfo cache
