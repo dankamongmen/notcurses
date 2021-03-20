@@ -195,6 +195,7 @@ int fallin_demo(struct notcurses* nc){
   struct ncvisual_options vopts = {
     .n = stdn,
     .scaling = NCSCALE_STRETCH,
+    .blitter = NCBLIT_PIXEL,
   };
   if(ncvisual_render(nc, ncv, &vopts) == NULL){
     ncvisual_destroy(ncv);
