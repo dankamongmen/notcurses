@@ -61,7 +61,8 @@ typedef struct sprixel {
   } invalidated;
   struct sprixel* next;
   int y, x;
-  int dimy, dimx;
+  int dimy, dimx;    // cell geometry
+  int pixy, pixx;    // pixel geometry (might be smaller than cell geo)
 } sprixel;
 
 // A plane is memory for some rectilinear virtual window, plus current cursor
@@ -700,7 +701,8 @@ plane_debug(const ncplane* n, bool details){
 void sprixel_free(sprixel* s);
 void sprixel_hide(sprixel* s);
 // dimy and dimx are cell geometry, not pixel
-sprixel* sprixel_create(ncplane* n, const char* s, int bytes, int sprixelid, int dimy, int dimx);
+sprixel* sprixel_create(ncplane* n, const char* s, int bytes, int sprixelid,
+                        int dimy, int dimx, int pixy, int pixx);
 int sprite_kitty_annihilate(notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
 int sprite_sixel_annihilate(notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
 
@@ -1097,8 +1099,8 @@ egc_rtl(const char* egc, int* bytes){
 // new, purpose-specific plane.
 static inline int
 plane_blit_sixel(ncplane* n, const char* s, int bytes, int leny, int lenx,
-                 int sprixelid){
-  sprixel* spx = sprixel_create(n, s, bytes, sprixelid, leny, lenx);
+                 int sprixelid, int dimy, int dimx){
+  sprixel* spx = sprixel_create(n, s, bytes, sprixelid, leny, lenx, dimy, dimx);
   if(spx == NULL){
     return -1;
   }
