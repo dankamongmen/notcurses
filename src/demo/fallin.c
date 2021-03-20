@@ -203,7 +203,7 @@ int fallin_demo(struct notcurses* nc){
   }
   struct ncvisual_options vopts = {
     .scaling = NCSCALE_STRETCH,
-    .blitter = NCBLIT_PIXEL,
+    //.blitter = NCBLIT_PIXEL,
     .n = n,
   };
   if(ncvisual_render(nc, ncv, &vopts) == NULL){
