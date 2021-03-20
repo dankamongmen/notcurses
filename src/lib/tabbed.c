@@ -414,7 +414,7 @@ int nctab_set_name(nctab* t, const char* newname){
 void* nctab_set_userptr(nctab* t, void* newopaque){
   void* prevcurry = t->curry;
   t->curry = newopaque;
-  return t->curry;
+  return prevcurry;
 }
 
 int nctabbed_set_separator(nctabbed* nt, const char* separator){
