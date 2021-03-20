@@ -189,6 +189,7 @@ nctabbed* nctabbed_create(ncplane* n, const nctabbed_options* topts){
       return NULL;
     }
   }
+  nctabbed_redraw(nt);
   return nt;
 }
 
