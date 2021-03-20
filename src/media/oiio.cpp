@@ -16,14 +16,7 @@ typedef struct ncvisual_details {
 } ncvisual_details;
 
 auto oiio_details_init(void) -> ncvisual_details* {
-  auto deets = static_cast<ncvisual_details*>(malloc(sizeof(ncvisual_details)));
-  if(deets){
-    deets->image = nullptr;
-    deets->frame = nullptr;
-    deets->ibuf = nullptr;
-    deets->framenum = 0;
-  }
-  return deets;
+  return new ncvisual_details{};
 }
 
 auto oiio_details_destroy(ncvisual_details* deets) -> void {
@@ -34,13 +27,10 @@ auto oiio_details_destroy(ncvisual_details* deets) -> void {
 }
 
 auto oiio_create() -> ncvisual* {
-  auto nc = static_cast<ncvisual*>(malloc(sizeof(ncvisual)));
-  if(nc){
-    memset(nc, 0, sizeof(*nc));
-    if((nc->details = oiio_details_init()) == nullptr){
-      free(nc);
-      return nullptr;
-    }
+  auto nc = new ncvisual{};
+  if((nc->details = oiio_details_init()) == nullptr){
+    delete nc;
+    return nullptr;
   }
   return nc;
 }
@@ -196,6 +186,16 @@ auto ncvisual_rotate(ncvisual* ncv, double rads) -> int {
   return NCERR_SUCCESS;
 }
 */
+
+auto oiio_destroy(ncvisual* ncv) -> void {
+  if(ncv){
+    oiio_details_destroy(ncv->details);
+    if(ncv->owndata){
+      delete ncv->data;
+    }
+    delete ncv;
+  }
+}
 
 // FIXME would be nice to have OIIO::attributes("libraries") in here
 void oiio_printbanner(const struct notcurses* nc __attribute__ ((unused))){

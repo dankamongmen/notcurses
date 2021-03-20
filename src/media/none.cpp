@@ -5,7 +5,11 @@
 #include "visual-details.h"
 
 ncvisual* none_create(){
-  return malloc(sizeof(ncvisual));
+  return new ncvisual{};
+}
+
+void none_destroy(ncvisual* ncv){
+  delete ncv;
 }
 
 int none_decode(ncvisual* nc){
@@ -86,12 +90,12 @@ static const ncvisual_implementation none_impl = {
   .visual_create = none_create,
   .visual_from_file = none_from_file,
   .visual_details_seed = none_details_seed,
-  .visual_details_destroy = none_details_destroy,
   .visual_decode = none_decode,
   .visual_decode_loop = none_decode_loop,
   .visual_stream = none_stream,
   .visual_subtitle = none_subtitle,
   .visual_resize = none_resize,
+  .visual_destroy = none_destroy,
   .canopen_images = false,
   .canopen_videos = false,
 };

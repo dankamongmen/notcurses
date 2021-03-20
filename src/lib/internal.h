@@ -1302,13 +1302,13 @@ typedef struct ncvisual_implementation {
   // AVFrame* 'frame' according to their own data, which is assumed to
   // have been prepared already in 'ncv'.
   void (*visual_details_seed)(struct ncvisual* ncv);
-  void (*visual_details_destroy)(struct ncvisual_details* deets);
   int (*visual_decode)(struct ncvisual* nc);
   int (*visual_decode_loop)(struct ncvisual* nc);
   int (*visual_stream)(notcurses* nc, struct ncvisual* ncv, float timescale,
                        streamcb streamer, const struct ncvisual_options* vopts, void* curry);
   char* (*visual_subtitle)(const struct ncvisual* ncv);
   int (*visual_resize)(struct ncvisual* ncv, int rows, int cols);
+  void (*visual_destroy)(struct ncvisual* ncv);
   bool canopen_images;
   bool canopen_videos;
 } ncvisual_implementation;

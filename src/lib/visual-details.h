@@ -42,8 +42,6 @@ scale_visual(const ncvisual* ncv, int* disprows, int* dispcols){
   *dispcols = xratio * (ncv->cols);
 }
 
-void ncvisual_destroy(struct ncvisual* ncv);
-
 #ifdef __cplusplus
 }
 #endif

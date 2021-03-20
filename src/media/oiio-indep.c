@@ -91,12 +91,12 @@ static const ncvisual_implementation oiio_impl = {
   .visual_create = oiio_create,
   .visual_from_file = oiio_from_file,
   .visual_details_seed = oiio_details_seed,
-  .visual_details_destroy = oiio_details_destroy,
   .visual_decode = oiio_decode,
   .visual_decode_loop = oiio_decode_loop,
   .visual_stream = oiio_stream,
   .visual_subtitle = oiio_subtitle,
   .visual_resize = oiio_resize,
+  .visual_destroy = oiio_destroy,
   .canopen_images = true,
   .canopen_videos = false,
 };

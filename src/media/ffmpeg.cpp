@@ -598,6 +598,16 @@ auto ffmpeg_details_destroy(ncvisual_details* deets) -> void {
   free(deets);
 }
 
+auto ffmpeg_destroy(ncvisual* ncv) -> void {
+  if(ncv){
+    ffmpeg_details_destroy(ncv->details);
+    if(ncv->owndata){
+      delete ncv->data;
+    }
+    delete ncv;
+  }
+}
+
 static const ncvisual_implementation ffmpeg_impl = {
   .visual_init = ffmpeg_init,
   .visual_printbanner = ffmpeg_printbanner,
@@ -605,12 +615,12 @@ static const ncvisual_implementation ffmpeg_impl = {
   .visual_create = ffmpeg_create,
   .visual_from_file = ffmpeg_from_file,
   .visual_details_seed = ffmpeg_details_seed,
-  .visual_details_destroy = ffmpeg_details_destroy,
   .visual_decode = ffmpeg_decode,
   .visual_decode_loop = ffmpeg_decode_loop,
   .visual_stream = ffmpeg_stream,
   .visual_subtitle = ffmpeg_subtitle,
   .visual_resize = ffmpeg_resize,
+  .visual_destroy = ffmpeg_destroy,
   .canopen_images = true,
   .canopen_videos = true,
 };
