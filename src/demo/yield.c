@@ -12,13 +12,23 @@ int yield_demo(struct notcurses* nc){
   if(wmv == NULL){
     return -1;
   }
-  struct ncvisual_options vopts = {
+  ncscale_e scale = NCSCALE_STRETCH;
+  struct ncplane_options nopts = {
     .y = 1,
-    .scaling = NCSCALE_STRETCH,
+    .rows = dimy - 2,
+    .cols = dimx,
+  };
+  struct ncvisual_options vopts = {
+    .scaling = scale,
     .blitter = NCBLIT_PIXEL,
   };
-  struct ncplane* n;
-  if((n = ncvisual_render(nc, wmv, &vopts)) == NULL){
+  vopts.n = ncplane_create(std, &nopts);
+  if(vopts.n == NULL){
+    ncvisual_destroy(wmv);
+    return -1;
+  }
+  if(ncvisual_render(nc, wmv, &vopts) == NULL){
+    ncplane_destroy(vopts.n);
     ncvisual_destroy(wmv);
     return -1;
   }
@@ -26,13 +36,13 @@ int yield_demo(struct notcurses* nc){
   int vy, vx, vscaley, vscalex;
   vopts.scaling = NCSCALE_NONE;
   ncvisual_geom(nc, wmv, &vopts, &vy, &vx, &vscaley, &vscalex);
-  vopts.scaling = NCSCALE_STRETCH;
+  vopts.scaling = scale;
   struct timespec scaled;
   const long total = vy * vx;
   // less than this, and we exit almost immediately. more than this, and we
   // run closer to twenty seconds. 11/50 it is, then.
   const long threshold_painted = total * 11 / 50;
-  const int MAXITER = 512;
+  const int MAXITER = 256;
   timespec_div(&demodelay, MAXITER, &scaled);
   long tfilled = 0;
 
@@ -46,7 +56,7 @@ int yield_demo(struct notcurses* nc){
   struct ncplane* label = ncplane_create(std, &labopts);
   if(label == NULL){
     ncvisual_destroy(wmv);
-    ncplane_destroy(n);
+    ncplane_destroy(vopts.n);
     return -1;
   }
   uint64_t basechan = 0;
@@ -73,7 +83,7 @@ int yield_demo(struct notcurses* nc){
       uint32_t pixel = 0;
       if(ncvisual_at_yx(wmv, y, x, &pixel) < 0){
         ncvisual_destroy(wmv);
-        ncplane_destroy(n);
+        ncplane_destroy(vopts.n);
         return -1;
       }
       if(ncpixel_a(pixel) != 0xff){ // don't do areas we've already done
@@ -87,7 +97,7 @@ int yield_demo(struct notcurses* nc){
       pfilled = ncvisual_polyfill_yx(wmv, y, x, pixel);
       if(pfilled < 0){
         ncvisual_destroy(wmv);
-        ncplane_destroy(n);
+        ncplane_destroy(vopts.n);
         return -1;
       }
       // it's possible that nothing changed (pfilled == 0), but render anyway
@@ -95,8 +105,7 @@ int yield_demo(struct notcurses* nc){
       DEMO_RENDER(nc);
     }while(pfilled == 0);
     tfilled += pfilled;
-    ncplane_destroy(n);
-    if((n = ncvisual_render(nc, wmv, &vopts)) == NULL){
+    if(ncvisual_render(nc, wmv, &vopts) == NULL){
       ncvisual_destroy(wmv);
       return -1;
     }
@@ -110,7 +119,7 @@ int yield_demo(struct notcurses* nc){
   }
   ncplane_destroy(label);
   ncvisual_destroy(wmv);
-  ncplane_destroy(n);
+  ncplane_destroy(vopts.n);
   ncplane_erase(std);
   return 0;
 }
