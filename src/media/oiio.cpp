@@ -16,12 +16,9 @@ typedef struct ncvisual_details {
 } ncvisual_details;
 
 auto oiio_details_init(void) -> ncvisual_details* {
-  auto deets = new ncvisual_details{};
+  auto deets = static_cast<ncvisual_details*>(malloc(sizeof(ncvisual_details)));
   if(deets){
-    deets->image = nullptr;
-    deets->frame = nullptr;
-    deets->ibuf = nullptr;
-    deets->framenum = 0;
+    memset(deets, 0, sizeof(*deets));
   }
   return deets;
 }
@@ -34,8 +31,9 @@ auto oiio_details_destroy(ncvisual_details* deets) -> void {
 }
 
 auto oiio_create() -> ncvisual* {
-  ncvisual* nc = static_cast<ncvisual*>(malloc(sizeof(*nc)));
+  auto nc = static_cast<ncvisual*>(malloc(sizeof(*nc)));
   if(nc){
+    memset(nc, 0, sizeof(*nc));
     if((nc->details = oiio_details_init()) == nullptr){
       free(nc);
       return nullptr;
