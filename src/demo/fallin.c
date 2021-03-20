@@ -183,7 +183,7 @@ int fallin_demo(struct notcurses* nc){
       x += newx;
     }
   }
-  ncplane_erase(stdn);
+  struct ncplane* n = NULL;
 #ifndef DFSG_BUILD
   if(notcurses_canopen_images(nc)){
   char* path = find_data("lamepatents.jpg");
@@ -193,11 +193,10 @@ int fallin_demo(struct notcurses* nc){
     goto err;
   }
   struct ncvisual_options vopts = {
-    .n = stdn,
     .scaling = NCSCALE_STRETCH,
     .blitter = NCBLIT_PIXEL,
   };
-  if(ncvisual_render(nc, ncv, &vopts) == NULL){
+  if((n = ncvisual_render(nc, ncv, &vopts)) == NULL){
     ncvisual_destroy(ncv);
     goto err;
   }
@@ -208,6 +207,7 @@ int fallin_demo(struct notcurses* nc){
   int ret = drop_bricks(nc, arr, arrcount);
   free(arr);
   free(usemap);
+  ncplane_destroy(n);
   return ret;
 
 err:
