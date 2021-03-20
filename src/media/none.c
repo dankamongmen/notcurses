@@ -79,7 +79,7 @@ void none_printbanner(const notcurses* nc){
   fprintf(stderr, "\n Warning! Notcurses was built without multimedia support.\n");
 }
 
-const static ncvisual_implementation none_impl = {
+static const ncvisual_implementation none_impl = {
   .visual_init = none_init,
   .visual_printbanner = none_printbanner,
   .visual_blit = none_blit,
