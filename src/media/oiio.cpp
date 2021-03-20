@@ -191,7 +191,7 @@ auto oiio_destroy(ncvisual* ncv) -> void {
   if(ncv){
     oiio_details_destroy(ncv->details);
     if(ncv->owndata){
-      delete ncv->data;
+      free(ncv->data);
     }
     delete ncv;
   }

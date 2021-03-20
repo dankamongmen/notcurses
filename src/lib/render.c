@@ -931,10 +931,6 @@ int sprite_kitty_annihilate(notcurses* nc, const ncpile* p, FILE* out, sprixel* 
   return 0;
 }
 
-int sprite_sixel_cell_wipe(notcurses* nc, sprixel* s, int y, int x){
-  return 0; // FIXME
-}
-
 int sprite_sixel_annihilate(notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
   (void)out;
   struct crender* rvec = p->crender;
