@@ -1,5 +1,40 @@
 #include "internal.h"
 
+#define RGBA_MAXLEN 768 // 768 base64-encoded pixels in 4096 bytes
+int sprite_kitty_cell_wipe(notcurses* nc, sprixel* s, int ycell, int xcell){
+  if(ycell >= s->dimy){
+    return -1;
+  }
+  if(xcell >= s->dimx){
+    return -1;
+  }
+  int xpixels = nc->tcache.cellpixx;
+  int ypixels = nc->tcache.cellpixy;
+  int xpx = xpixels * xcell; // pixel coordinates where we start erasing
+  int ypx = ypixels * ycell;
+  char* c = s->glyph;
+  // every pixel was 4 source bytes, 32 bits, 6.33 base64 bytes. every 3 input pixels is
+  // 12 bytes (96 bits), an even 16 base64 bytes. there is chunking to worry about. there
+  // are up to 768 pixels in a chunk.
+  int chunks = (xcell + s->dimx * ycell) / RGBA_MAXLEN;
+  do{
+    while(*c != ';'){
+      ++c;
+    }
+    ++c;
+    if(chunks == 0){
+      // we're in the proper chunk. find the pixel offset of the first
+      // pixel (within the chunk).
+      int offset = (xpx + s->dimx * ypx) % RGBA_MAXLEN;
+      // skip the 16-byte pixel triples
+      int bytes = (offset / 3) * 16;
+      // FIXME
+      return 0;
+    }
+  }while(--chunks);
+  return -1;
+}
+
 static unsigned const char b64subs[] =
  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
@@ -64,12 +99,10 @@ base64_rgba3(const uint32_t* pixels, size_t pcount, char* b64){
 static int
 write_kitty_data(FILE* fp, int linesize, int leny, int lenx,
                  const uint32_t* data, int sprixelid){
-#define KITTY_MAXLEN 4096 // 4096B maximum payload
   if(linesize % sizeof(*data)){
     return -1;
   }
   int total = leny * lenx; // total number of pixels (4 * total == bytecount)
-#define RGBA_MAXLEN 768 // 768 base64-encoded pixels in 4096 bytes
   // number of 4KiB chunks we'll need
   int chunks = (total + (RGBA_MAXLEN - 1)) / RGBA_MAXLEN;
   int totalout = 0; // total pixels of payload out
@@ -114,7 +147,6 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx,
   }
   return 0;
 #undef RGBA_MAXLEN
-#undef KITTY_MAXLEN
 }
 
 // Kitty graphics blitter. Kitty can take in up to 4KiB at a time of (optionally
@@ -146,7 +178,6 @@ int kitty_blit(ncplane* nc, int linesize, const void* data, int begy, int begx,
                int leny, int lenx, const blitterargs* bargs){
   (void)begy;
   (void)begx;
-//fprintf(stderr, "s=%d,v=%d\n", lenx, leny);
   int r = kitty_blit_inner(nc, linesize, leny, lenx, data, bargs);
   if(r < 0){
     return -1;

@@ -39,8 +39,8 @@ TEST_CASE("Pixel") {
 
   SUBCASE("PixelCellWipe") {
     // first, assemble a visual equivalent to 4 cells
-    auto y = nc_->tcache.cellpixy;
-    auto x = nc_->tcache.cellpixx;
+    auto y = 2 * nc_->tcache.cellpixy;
+    auto x = 2 * nc_->tcache.cellpixx;
     std::vector<uint32_t> v(x * y, 0xffffffff);
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
@@ -58,13 +58,13 @@ TEST_CASE("Pixel") {
     auto s = n->sprite;
     REQUIRE(nullptr != s);
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == nc_->tcache.pixel_cell_wipe(s, 0, 0));
+    CHECK(0 == nc_->tcache.pixel_cell_wipe(nc_, s, 0, 0));
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == nc_->tcache.pixel_cell_wipe(s, 1, 1));
+    CHECK(0 == nc_->tcache.pixel_cell_wipe(nc_, s, 1, 1));
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == nc_->tcache.pixel_cell_wipe(s, 1, 0));
+    CHECK(0 == nc_->tcache.pixel_cell_wipe(nc_, s, 1, 0));
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == nc_->tcache.pixel_cell_wipe(s, 0, 1));
+    CHECK(0 == nc_->tcache.pixel_cell_wipe(nc_, s, 0, 1));
     CHECK(0 == notcurses_render(nc_));
     ncplane_destroy(n);
     ncvisual_destroy(ncv);

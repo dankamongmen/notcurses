@@ -53,15 +53,15 @@ struct ncvisual_details;
 typedef struct sprixel {
   char* glyph;       // glyph; can be quite large
   int id;            // embedded into glusters field of nccell
-  struct ncplane* n; // associated ncplane, provides location and size
+  struct ncplane* n; // associated ncplane
   enum {
     SPRIXEL_NOCHANGE,
     SPRIXEL_INVALIDATED,
     SPRIXEL_HIDE,
   } invalidated;
   struct sprixel* next;
-  int y, x;          // only defined when being hidden (n is NULL)
-  int dimy, dimx;    // likewise only defined when being hidden
+  int y, x;
+  int dimy, dimx;
 } sprixel;
 
 // A plane is memory for some rectilinear virtual window, plus current cursor
@@ -318,7 +318,7 @@ typedef struct tinfo {
   // wipe out a cell's worth of pixels from within a sprixel. for sixel, this
   // means leaving out the pixels (and likely resizes the string). for kitty,
   // this means dialing down their alpha to 0 (in equivalent space).
-  int (*pixel_cell_wipe)(sprixel* s, int y, int x);
+  int (*pixel_cell_wipe)(struct notcurses* nc, sprixel* s, int y, int x);
   bool pixel_query_done; // have we yet performed pixel query?
   bool sextants;  // do we have (good, vetted) Unicode 13 sextant support?
   bool braille;   // do we have Braille support? (linux console does not)
@@ -699,7 +699,8 @@ plane_debug(const ncplane* n, bool details){
 
 void sprixel_free(sprixel* s);
 void sprixel_hide(sprixel* s);
-sprixel* sprixel_create(ncplane* n, const char* s, int bytes, int sprixelid);
+// dimy and dimx are cell geometry, not pixel
+sprixel* sprixel_create(ncplane* n, const char* s, int bytes, int sprixelid, int dimy, int dimx);
 int sprite_kitty_annihilate(notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
 int sprite_sixel_annihilate(notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
 
@@ -1097,7 +1098,7 @@ egc_rtl(const char* egc, int* bytes){
 static inline int
 plane_blit_sixel(ncplane* n, const char* s, int bytes, int leny, int lenx,
                  int sprixelid){
-  sprixel* spx = sprixel_create(n, s, bytes, sprixelid);
+  sprixel* spx = sprixel_create(n, s, bytes, sprixelid, leny, lenx);
   if(spx == NULL){
     return -1;
   }
@@ -1261,8 +1262,8 @@ ncdirect_bg_default_p(const struct ncdirect* nc){
   return channels_bg_default_p(ncdirect_channels(nc));
 }
 
-int sprite_sixel_cell_wipe(sprixel* s, int y, int x);
-int sprite_kitty_cell_wipe(sprixel* s, int y, int x);
+int sprite_sixel_cell_wipe(notcurses* nc, sprixel* s, int y, int x);
+int sprite_kitty_cell_wipe(notcurses* nc, sprixel* s, int y, int x);
 
 int sixel_blit(ncplane* nc, int linesize, const void* data, int begy, int begx,
                int leny, int lenx, const blitterargs* bargs);
