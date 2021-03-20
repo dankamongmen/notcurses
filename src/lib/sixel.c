@@ -81,8 +81,9 @@ fprintf(stderr, "TARGET AREA: [ %dx%d -> %dx%d ] of %dx%d\n", top, left, bottom 
           rle = 0;
         }
         if(column >= left && column < right){ // zorch it
+fprintf(stderr, "STARTED WITH %d %c\n", *c, *c);
           *c = ((*c - 63) & mask) + 63;
-          fprintf(stderr, "CHANGED TO %d %c\n", *c, *c);
+fprintf(stderr, "CHANGED TO %d %c\n", *c, *c);
         }
         ++column;
       }
