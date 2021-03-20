@@ -39,3 +39,14 @@ sprixel* sprixel_create(ncplane* n, const char* s, int bytes, int sprixelid,
   }
   return ret;
 }
+
+int sprite_wipe_cell(const notcurses* nc, sprixel* s, int ycell, int xcell){
+  if(ycell >= s->dimy){
+    return -1;
+  }
+  if(xcell >= s->dimx){
+    return -1;
+  }
+  // FIXME transparency-annihilation cache!
+  return nc->tcache.pixel_cell_wipe(nc, s, ycell, xcell);
+}

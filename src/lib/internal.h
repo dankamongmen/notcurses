@@ -315,11 +315,11 @@ typedef struct tinfo {
   int sixel_maxx, sixel_maxy; // sixel size maxima (post pixel_query_done)
   bool sixel_supported;  // do we support sixel (post pixel_query_done)?
   int sprixelnonce;      // next sprixel id
-  int (*pixel_destroy)(struct notcurses* nc, const struct ncpile* p, FILE* out, sprixel* s);
+  int (*pixel_destroy)(const struct notcurses* nc, const struct ncpile* p, FILE* out, sprixel* s);
   // wipe out a cell's worth of pixels from within a sprixel. for sixel, this
   // means leaving out the pixels (and likely resizes the string). for kitty,
   // this means dialing down their alpha to 0 (in equivalent space).
-  int (*pixel_cell_wipe)(struct notcurses* nc, sprixel* s, int y, int x);
+  int (*pixel_cell_wipe)(const struct notcurses* nc, sprixel* s, int y, int x);
   bool pixel_query_done; // have we yet performed pixel query?
   bool sextants;  // do we have (good, vetted) Unicode 13 sextant support?
   bool braille;   // do we have Braille support? (linux console does not)
@@ -703,8 +703,9 @@ void sprixel_hide(sprixel* s);
 // dimy and dimx are cell geometry, not pixel
 sprixel* sprixel_create(ncplane* n, const char* s, int bytes, int sprixelid,
                         int dimy, int dimx, int pixy, int pixx);
-int sprite_kitty_annihilate(notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
-int sprite_sixel_annihilate(notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
+int sprite_wipe_cell(const notcurses* nc, sprixel* s, int y, int x);
+int sprite_kitty_annihilate(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
+int sprite_sixel_annihilate(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
 
 static inline void
 pool_release(egcpool* pool, nccell* c){
@@ -1264,8 +1265,8 @@ ncdirect_bg_default_p(const struct ncdirect* nc){
   return channels_bg_default_p(ncdirect_channels(nc));
 }
 
-int sprite_sixel_cell_wipe(notcurses* nc, sprixel* s, int y, int x);
-int sprite_kitty_cell_wipe(notcurses* nc, sprixel* s, int y, int x);
+int sprite_sixel_cell_wipe(const notcurses* nc, sprixel* s, int y, int x);
+int sprite_kitty_cell_wipe(const notcurses* nc, sprixel* s, int y, int x);
 
 int sixel_blit(ncplane* nc, int linesize, const void* data, int begy, int begx,
                int leny, int lenx, const blitterargs* bargs);
