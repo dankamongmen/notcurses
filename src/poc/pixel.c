@@ -10,26 +10,29 @@ handle(struct notcurses* nc, const char *fn){
   }
   int dimy, dimx;
   struct ncplane* stdn = notcurses_stddim_yx(nc, &dimy, &dimx);
-  for(int x = 0 ; x < dimx ; x += 15){
-    uint64_t channels = CHANNELS_RGB_INITIALIZER(random() % 256, random() % 256, 100, random() % 256, 100, 140);
-    ncplane_set_base(stdn, "a", 0, channels);
-    struct ncvisual_options vopts = {
-      .x = x,
-      .scaling = NCSCALE_NONE_HIRES,
-      .blitter = NCBLIT_PIXEL,
-    };
-    struct ncplane* nv = ncvisual_render(nc, ncv, &vopts);
-    if(nv == NULL){
-      ncvisual_destroy(ncv);
-      return -1;
+  for(int y = 0 ; y < dimy ; y += 15){
+    for(int x = 0 ; x < dimx ; x += 15){
+      uint64_t channels = CHANNELS_RGB_INITIALIZER(random() % 256, random() % 256, 100, random() % 256, 100, 140);
+      ncplane_set_base(stdn, "a", 0, channels);
+      struct ncvisual_options vopts = {
+        .y = y,
+        .x = x,
+        .scaling = NCSCALE_NONE_HIRES,
+        .blitter = NCBLIT_PIXEL,
+      };
+      struct ncplane* nv = ncvisual_render(nc, ncv, &vopts);
+      if(nv == NULL){
+        ncvisual_destroy(ncv);
+        return -1;
+      }
+      notcurses_render(nc);
+      sleep(1);
+      channels = CHANNELS_RGB_INITIALIZER(random() % 256, random() % 256, 100, random() % 256, 100, 140);
+      ncplane_set_base(stdn, "a", 0, channels);
+      notcurses_render(nc);
+      sleep(1);
+      ncplane_destroy(nv);
     }
-    notcurses_render(nc);
-    sleep(1);
-    channels = CHANNELS_RGB_INITIALIZER(random() % 256, random() % 256, 100, random() % 256, 100, 140);
-    ncplane_set_base(stdn, "a", 0, channels);
-    notcurses_render(nc);
-    sleep(1);
-    ncplane_destroy(nv);
   }
   ncvisual_destroy(ncv);
   return 0;
