@@ -269,27 +269,21 @@ int ffmpeg_resize(ncvisual* nc, int rows, int cols) {
 }
 
 auto ffmpeg_details_init(void) -> ncvisual_details* {
-  auto deets = static_cast<ncvisual_details*>(malloc(sizeof(ncvisual_details)));
-  if(deets){
-    memset(deets, 0, sizeof(*deets));
-    deets->stream_index = -1;
-    deets->sub_stream_index = -1;
-    if((deets->frame = av_frame_alloc()) == nullptr){
-      free(deets);
-      return nullptr;
-    }
+  auto deets = new ncvisual_details{};
+  deets->stream_index = -1;
+  deets->sub_stream_index = -1;
+  if((deets->frame = av_frame_alloc()) == nullptr){
+    delete deets;
+    return nullptr;
   }
   return deets;
 }
 
 auto ffmpeg_create() -> ncvisual* {
-  auto nc = static_cast<ncvisual*>(malloc(sizeof(ncvisual)));
-  if(nc){
-    memset(nc, 0, sizeof(*nc));
-    if((nc->details = ffmpeg_details_init()) == nullptr){
-      free(nc);
-      return nullptr;
-    }
+  auto nc = new ncvisual{};
+  if((nc->details = ffmpeg_details_init()) == nullptr){
+    delete nc;
+    return nullptr;
   }
   return nc;
 }
@@ -595,14 +589,14 @@ auto ffmpeg_details_destroy(ncvisual_details* deets) -> void {
   av_packet_free(&deets->packet);
   avformat_close_input(&deets->fmtctx);
   avsubtitle_free(&deets->subtitle);
-  free(deets);
+  delete deets;
 }
 
 auto ffmpeg_destroy(ncvisual* ncv) -> void {
   if(ncv){
     ffmpeg_details_destroy(ncv->details);
     if(ncv->owndata){
-      delete ncv->data;
+      free(ncv->data);
     }
     delete ncv;
   }
