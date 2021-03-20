@@ -79,7 +79,7 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx,
 //fprintf(stderr, "total: %d chunks = %d, s=%d,v=%d\n", total, chunks, lenx, leny);
   while(chunks--){
     if(totalout == 0){
-      fprintf(fp, "\e_Gf=32,s=%d,v=%d,i=%d,a=T%s;", lenx, leny, sprixelid, chunks > 1 ? ",m=1" : "");
+      fprintf(fp, "\e_Gf=32,s=%d,v=%d,i=%d,a=T,%c=1;", lenx, leny, sprixelid, chunks > 1 ? 'm' : 'q');
     }else{
       fprintf(fp, "\e_G%sm=%d;", chunks ? "" : "q=1,", chunks ? 1 : 0);
     }
