@@ -121,7 +121,7 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx,
 // deflate-compressed) 24bit RGB.
 int kitty_blit_inner(ncplane* nc, int linesize, int leny, int lenx,
                      const void* data, const blitterargs* bargs){
-  int rows = leny / bargs->pixel.celldimx + !!(leny % bargs->pixel.celldimx);
+  int rows = leny / bargs->pixel.celldimy + !!(leny % bargs->pixel.celldimy);
   int cols = lenx / bargs->pixel.celldimx + !!(lenx % bargs->pixel.celldimx);
   char* buf = NULL;
   size_t size = 0;
