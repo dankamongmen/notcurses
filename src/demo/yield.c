@@ -107,6 +107,7 @@ int yield_demo(struct notcurses* nc){
     tfilled += pfilled;
     if(ncvisual_render(nc, wmv, &vopts) == NULL){
       ncvisual_destroy(wmv);
+      ncplane_destroy(vopts.n);
       return -1;
     }
     if(tfilled > threshold_painted){
