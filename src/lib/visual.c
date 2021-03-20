@@ -484,12 +484,12 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
 ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blitset* bset,
                                 int placey, int placex, int begy, int begx,
                                 ncplane* n, ncscale_e scaling, ncplane* stdn){
-  int disprows, dispcols;
+  int disprows = 0, dispcols = 0;
   if(scaling == NCSCALE_NONE || scaling == NCSCALE_NONE_HIRES){
     dispcols = ncv->cols;
     disprows = ncv->rows;
   }
-//fprintf(stderr, "INPUT N: %p\n", vopts ? vopts->n : NULL);
+//fprintf(stderr, "INPUT N: %p rows: %d cols: %d\n", n ? n : NULL, disprows, dispcols);
   if(n == NULL){ // create plane
     if(scaling != NCSCALE_NONE && scaling != NCSCALE_NONE_HIRES){
       ncplane_dim_yx(stdn, &disprows, &dispcols);
@@ -524,7 +524,7 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
   if(scaling == NCSCALE_SCALE || scaling == NCSCALE_SCALE_HIRES){
     scale_visual(ncv, &disprows, &dispcols);
   }
-//fprintf(stderr, "pblit: %dx%d <- %dx%d of %d/%d stride %u @%dx%d %p %u\n", disprows, dispcols, begy, begx, ncv->rows, ncv->cols, ncv->rowstride, placey, placex, ncv->data, ncplane_notcurses(stdn)->nc->tcache.cellpixx);
+//fprintf(stderr, "pblit: %dx%d <- %dx%d of %d/%d stride %u @%dx%d %p %u\n", disprows, dispcols, begy, begx, ncv->rows, ncv->cols, ncv->rowstride, placey, placex, ncv->data, nc->tcache.cellpixx);
   blitterargs bargs;
   bargs.pixel.celldimx = nc->tcache.cellpixx;
   bargs.pixel.celldimy = nc->tcache.cellpixy;

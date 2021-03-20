@@ -922,11 +922,6 @@ emit_bg_palindex(notcurses* nc, FILE* out, const nccell* srccell){
   return 0;
 }
 
-int sprite_kitty_cell_wipe(sprixel* s, int y, int x){
-  // FIXME
-  return 0;
-}
-
 int sprite_kitty_annihilate(notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
   (void)p;
   (void)nc;
@@ -936,7 +931,7 @@ int sprite_kitty_annihilate(notcurses* nc, const ncpile* p, FILE* out, sprixel* 
   return 0;
 }
 
-int sprite_sixel_cell_wipe(sprixel* s, int y, int x){
+int sprite_sixel_cell_wipe(notcurses* nc, sprixel* s, int y, int x){
   return 0; // FIXME
 }
 
