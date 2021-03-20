@@ -48,5 +48,9 @@ int sprite_wipe_cell(const notcurses* nc, sprixel* s, int ycell, int xcell){
     return -1;
   }
   // FIXME transparency-annihilation cache!
-  return nc->tcache.pixel_cell_wipe(nc, s, ycell, xcell);
+  int r = nc->tcache.pixel_cell_wipe(nc, s, ycell, xcell);
+  if(r == 0){
+    s->invalidated = SPRIXEL_INVALIDATED;
+  }
+  return r;
 }
