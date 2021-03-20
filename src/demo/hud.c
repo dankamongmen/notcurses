@@ -398,7 +398,9 @@ struct ncplane* hud_create(struct notcurses* nc){
   int yoffset = dimy - HUD_ROWS;
   struct ncplane_options nopts = {
     .y = yoffset,
-    .x = 9,
+    // we want it to start tucked right up underneath the title of the FPS
+    // graph. graph is min(80, dimx) wide, centered, and we want 6 in.
+    .x = (dimx - (dimx > 80 ? 80 : dimx)) / 2 + 6,
     .rows = HUD_ROWS,
     .cols = HUD_COLS,
     .userptr = NULL,
