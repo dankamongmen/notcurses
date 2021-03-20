@@ -530,6 +530,8 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
   bargs.pixel.celldimy = nc->tcache.cellpixy;
   bargs.pixel.colorregs = nc->tcache.color_registers;
   bargs.pixel.sprixelid = nc->tcache.sprixelnonce++;
+  bargs.pixel.placey = placey;
+  bargs.pixel.placex = placex;
   if(ncvisual_blit(ncv, disprows, dispcols, n, bset,
                    begy, begx, disprows, dispcols, &bargs)){
     ncplane_destroy(n);
