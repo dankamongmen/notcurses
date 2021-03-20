@@ -107,5 +107,47 @@ TEST_CASE("Pixel") {
     ncvisual_destroy(ncv);
     CHECK(0 == notcurses_render(nc_));
   }
+
+  SUBCASE("PixelBigCellWipePolychromatic") {
+    // first, assemble a visual equivalent to 4 cells
+    auto y = 10 * nc_->tcache.cellpixy;
+    auto x = 10 * nc_->tcache.cellpixx;
+    std::vector<uint32_t> v(x * y, 0xffffffff);
+    for(auto& e : v){
+      e -= random() % 0x1000000;
+    }
+    auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
+    REQUIRE(nullptr != ncv);
+    struct ncvisual_options vopts = {
+      .n = nullptr,
+      .scaling = NCSCALE_NONE,
+      .y = 0, .x = 0,
+      .begy = 0, .begx = 0,
+      .leny = y, .lenx = x,
+      .blitter = NCBLIT_PIXEL,
+      .flags = NCVISUAL_OPTION_NODEGRADE,
+    };
+    auto n = ncvisual_render(nc_, ncv, &vopts);
+    REQUIRE(nullptr != n);
+    auto s = n->sprite;
+    REQUIRE(nullptr != s);
+    CHECK(0 == notcurses_render(nc_));
+    CHECK(0 == nc_->tcache.pixel_cell_wipe(nc_, s, 5, 5));
+    s->invalidated = SPRIXEL_INVALIDATED;
+    CHECK(0 == notcurses_render(nc_));
+    CHECK(0 == nc_->tcache.pixel_cell_wipe(nc_, s, 3, 3));
+    s->invalidated = SPRIXEL_INVALIDATED;
+    CHECK(0 == notcurses_render(nc_));
+    CHECK(0 == nc_->tcache.pixel_cell_wipe(nc_, s, 8, 8));
+    s->invalidated = SPRIXEL_INVALIDATED;
+    CHECK(0 == notcurses_render(nc_));
+    CHECK(0 == nc_->tcache.pixel_cell_wipe(nc_, s, 8, 3));
+    s->invalidated = SPRIXEL_INVALIDATED;
+    CHECK(0 == notcurses_render(nc_));
+    ncplane_destroy(n);
+    ncvisual_destroy(ncv);
+    CHECK(0 == notcurses_render(nc_));
+  }
+
   CHECK(!notcurses_stop(nc_));
 }

@@ -45,6 +45,12 @@ struct ncvisual_details;
 // we can't define multipart ncvisual here, because OIIO requires C++ syntax,
 // and we can't go throwing C++ syntax into this header. so it goes.
 
+typedef enum {
+  SPRIXEL_NOCHANGE,
+  SPRIXEL_INVALIDATED,
+  SPRIXEL_HIDE,
+} sprixel_e;
+
 // there is a context-wide set of displayed pixel glyphs ("sprixels"); i.e.
 // these are independent of particular piles. there should never be very many
 // associated with a context (a dozen or so at max). with the kitty protocol,
@@ -54,11 +60,7 @@ typedef struct sprixel {
   char* glyph;       // glyph; can be quite large
   int id;            // embedded into glusters field of nccell
   struct ncplane* n; // associated ncplane
-  enum {
-    SPRIXEL_NOCHANGE,
-    SPRIXEL_INVALIDATED,
-    SPRIXEL_HIDE,
-  } invalidated;
+  sprixel_e invalidated;
   struct sprixel* next;
   int y, x;
   int dimy, dimx;    // cell geometry
@@ -450,6 +452,26 @@ struct blitset {
 
 #include "blitset.h"
 
+static inline int
+ncfputs(const char* ext, FILE* out){
+  int r;
+#ifdef __USE_GNU
+  r = fputs_unlocked(ext, out);
+#else
+  r = fputs(ext, out);
+#endif
+  return r;
+}
+
+static inline int
+ncfputc(char c, FILE* out){
+#ifdef __USE_GNU
+  return fputc_unlocked(c, out);
+#else
+  return fputc(c, out);
+#endif
+}
+
 void reset_stats(ncstats* stats);
 void summarize_stats(notcurses* nc);
 
@@ -635,7 +657,7 @@ term_emit(const char* seq, FILE* out, bool flush){
   if(!seq){
     return -1;
   }
-  if(fputs(seq, out) == EOF){
+  if(ncfputs(seq, out) == EOF){
 //fprintf(stderr, "Error emitting %zub escape (%s)\n", strlen(seq), strerror(errno));
     return -1;
   }

@@ -227,7 +227,7 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx,
       totalout += encodeable;
       char out[17];
       base64_rgba3(source, encodeable, out);
-      fputs(out, fp);
+      ncfputs(out, fp);
     }
     fprintf(fp, "\e\\");
   }

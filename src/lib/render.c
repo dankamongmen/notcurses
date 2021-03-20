@@ -554,26 +554,6 @@ int ncplane_mergedown_simple(const ncplane* restrict src, ncplane* restrict dst)
   return ncplane_mergedown(src, dst, 0, 0, ncplane_dim_y(src), ncplane_dim_x(src), 0, 0);
 }
 
-static inline int
-ncfputs(const char* ext, FILE* out){
-  int r;
-#ifdef __USE_GNU
-  r = fputs_unlocked(ext, out);
-#else
-  r = fputs(ext, out);
-#endif
-  return r;
-}
-
-static inline int
-ncfputc(char c, FILE* out){
-#ifdef __USE_GNU
-  return fputc_unlocked(c, out);
-#else
-  return fputc(c, out);
-#endif
-}
-
 // write the nccell's UTF-8 extended grapheme cluster to the provided FILE*.
 static int
 term_putc(FILE* out, const egcpool* e, const nccell* c){
@@ -973,7 +953,7 @@ rasterize_sprixels(notcurses* nc, const ncpile* p, FILE* out){
       ncplane_yx(s->n, &y, &x);
       y += s->y;
       x += s->x;
-//fprintf(stderr, "DRAWING BITMAP AT %d/%d\n", y, x);
+//fprintf(stderr, "DRAWING BITMAP AT %d/%d\n", y + nc->stdplane->absy, x + nc->stdplane->absx);
       if(goto_location(nc, out, y + nc->stdplane->absy, x + nc->stdplane->absx)){
         return -1;
       }
@@ -991,7 +971,6 @@ rasterize_sprixels(notcurses* nc, const ncpile* p, FILE* out){
       }else if(r > 0){
         ret = 1;
       }
-      // FIXME delete it in kitty
       *parent = s->next;
       sprixel_free(s);
     }else{
