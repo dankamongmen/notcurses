@@ -174,6 +174,7 @@ int sprite_kitty_cell_wipe(notcurses* nc, sprixel* s, int ycell, int xcell){
       nextpixel += chomped;
       if(thisrow == 0){
         if(--targy == 0){
+          s->invalidated = SPRIXEL_INVALIDATED;
           return 0;
         }
         thisrow = targx;
