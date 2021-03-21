@@ -137,8 +137,6 @@ int interrogate_terminfo(tinfo* ti, const char* termname, unsigned utf8){
   terminfostr(&ti->oc, "oc");         // restore defaults to all colors
   terminfostr(&ti->home, "home");     // home the cursor
   terminfostr(&ti->clearscr, "clear");// clear screen, home cursor
-  terminfostr(&ti->cleareol, "el");   // clear to end of line
-  terminfostr(&ti->clearbol, "el1");  // clear to beginning of line
   terminfostr(&ti->cuu, "cuu"); // move N up
   terminfostr(&ti->cud, "cud"); // move N down
   terminfostr(&ti->hpa, "hpa"); // set horizontal position
@@ -146,7 +144,6 @@ int interrogate_terminfo(tinfo* ti, const char* termname, unsigned utf8){
   terminfostr(&ti->cuf, "cuf"); // n non-destructive spaces
   terminfostr(&ti->cub, "cub"); // n non-destructive backspaces
   terminfostr(&ti->cuf1, "cuf1"); // non-destructive space
-  terminfostr(&ti->cub1, "cub1"); // non-destructive backspace
   terminfostr(&ti->sc, "sc"); // push ("save") cursor
   terminfostr(&ti->rc, "rc"); // pop ("restore") cursor
   // Some terminals cannot combine certain styles with colors. Don't advertise
