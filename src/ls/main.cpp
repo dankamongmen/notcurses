@@ -153,6 +153,7 @@ void ncls_thread(const lsContext* ctx) {
       if(faken){
         ctx->nc.raster_image(faken, ctx->alignment);
       }
+      std::cout << '\n';
       pthread_mutex_unlock(&outmtx);
     }else if(!keep_working){
       pthread_mutex_unlock(&mtx);

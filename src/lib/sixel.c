@@ -420,7 +420,7 @@ write_sixel_data(FILE* fp, int lenx, sixeltable* stab){
   // \x90: 8-bit "device control sequence", lowercase q (start sixel)
   // doesn't seem to work with at least xterm; we instead use '\ePq'
   // FIXME i think we can print DESDM on the first one, and never again
-  fprintf(fp, "\e[?80h\ePq");
+  //fprintf(fp, "\e[?80h\ePq");
 
   // Set Raster Attributes - pan/pad=1 (pixel aspect ratio), Ph=lenx, Pv=leny
   // using Ph/Pv causes a background to be drawn using color register 0 for all
