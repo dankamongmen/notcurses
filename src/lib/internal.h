@@ -269,7 +269,6 @@ typedef struct tinfo {
   char* cuf;      // move N cells right
   char* cud;      // move N cells down
   char* cuf1;     // move 1 cell right
-  char* cub1;     // move 1 cell left
   char* home;     // home cursor
   char* civis;    // hide cursor
   char* cnorm;    // restore cursor to default state
@@ -288,8 +287,6 @@ typedef struct tinfo {
   char* initc;    // set a palette entry's RGB value
   char* oc;       // restore original colors
   char* clearscr; // erase screen and home cursor
-  char* cleareol; // clear to end of line
-  char* clearbol; // clear to beginning of line
   char* sc;       // push the cursor location onto the stack
   char* rc;       // pop the cursor location off the stack
   char* smkx;     // enter keypad transmit mode (keypad_xmit)

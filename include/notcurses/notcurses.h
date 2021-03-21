@@ -3403,7 +3403,12 @@ API void ncreader_destroy(struct ncreader* n, char** contents);
 
 // Dump selected Notcurses state to the supplied 'debugfp'. Output is freeform,
 // and subject to change. It includes geometry of all planes, from all piles.
-API void notcurses_debug(struct notcurses* nc, FILE* debugfp)
+API void notcurses_debug(const struct notcurses* nc, FILE* debugfp)
+  __attribute__ ((nonnull (1, 2)));
+
+// Dump selected configuration capabilities to 'debugfp'. Output is freeform,
+// and subject to change.
+API void notcurses_debug_caps(const struct notcurses* nc, FILE* debugfp)
   __attribute__ ((nonnull (1, 2)));
 
 // replaced by ncvisual_media_defblitter(). this original version never returns
