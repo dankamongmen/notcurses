@@ -293,29 +293,28 @@ int direct_mode_player(int argc, char** argv, ncscale_e scalemode,
   if(blitter == NCBLIT_PIXEL){
     dm.check_pixel_support();
   }
-  {
-    for(auto i = 0 ; i < argc ; ++i){
-      auto faken = dm.prep_image(argv[i], blitter, scalemode, -1,
-                                 dm.get_dim_x() - (lmargin + rmargin));
-      if(!faken){
-        failed = true;
-        break;
-      }
-      // FIXME we want to honor the different left and right margins, but that
-      // would require raster_image() knowing how far over we were starting for
-      // multiline cellular blittings...
-      ncpp::NCAlign a;
-      if(blitter == NCBLIT_PIXEL){
-        printf("%*.*s", lmargin, lmargin, "");
-        a = NCAlign::Left;
-      }else{
-        a = NCAlign::Center;
-      }
-      if(dm.raster_image(faken, a)){
-        failed = true;
-        break;
-      }
+  for(auto i = 0 ; i < argc ; ++i){
+    auto faken = dm.prep_image(argv[i], blitter, scalemode, -1,
+                               dm.get_dim_x() - (lmargin + rmargin));
+    if(!faken){
+      failed = true;
+      break;
     }
+    // FIXME we want to honor the different left and right margins, but that
+    // would require raster_image() knowing how far over we were starting for
+    // multiline cellular blittings...
+    ncpp::NCAlign a;
+    if(blitter == NCBLIT_PIXEL){
+      printf("%*.*s", lmargin, lmargin, "");
+      a = NCAlign::Left;
+    }else{
+      a = NCAlign::Center;
+    }
+    if(dm.raster_image(faken, a)){
+      failed = true;
+      break;
+    }
+    printf("\n");
   }
   return failed ? -1 : 0;
 }
