@@ -218,9 +218,11 @@ check for support with **notcurses_check_pixel_support**. If this function has
 not successfully returned, attempts to use **NCBLIT_PIXEL** will fall back to
 **NCBLIT_3x2** (or fail, if **NCVISUAL_OPTION_NODEGRADE** is used).
 
-Pixel blitting creates a new, immutable, purpose-specific plane. Attempting
-to pass a non-**NULL** ***n*** in **ncvisual_options** will result in an error
-if **NCBLIT_PIXEL** is used.
+Bitmaps cannot be blitted to the standard plane; an attempt to do so will be
+rejected as an error. Only one bitmap can be blitted onto a plane at a time
+(but multiple planes with bitmaps may be visible); blitting a second to the
+same plane will delete the original. Destroying the plane with which a bitmap
+is associated will delete the bitmap.
 
 # RETURN VALUES
 

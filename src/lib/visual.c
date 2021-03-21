@@ -483,7 +483,12 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
 
 ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blitset* bset,
                                 int placey, int placex, int begy, int begx,
-                                ncplane* n, ncscale_e scaling, ncplane* stdn){
+                                ncplane* n, ncscale_e scaling){
+  ncplane* stdn = notcurses_stdplane(nc);
+  if(stdn == n){
+    logerror(nc, "Won't render bitmaps to the standard plane\n");
+    return NULL;
+  }
   int disprows = 0, dispcols = 0;
   if(scaling == NCSCALE_NONE || scaling == NCSCALE_NONE_HIRES){
     dispcols = ncv->cols;
@@ -584,11 +589,9 @@ ncplane* ncvisual_render(notcurses* nc, ncvisual* ncv, const struct ncvisual_opt
   ncscale_e scaling = vopts ? vopts->scaling : NCSCALE_NONE;
   if(bset->geom != NCBLIT_PIXEL){
     n = ncvisual_render_cells(nc, ncv, bset, placey, placex, begy, begx, leny, lenx,
-                              n, scaling,
-                              vopts && (vopts->flags & NCVISUAL_OPTION_BLEND));
+                              n, scaling, vopts && (vopts->flags & NCVISUAL_OPTION_BLEND));
   }else{
-    n = ncvisual_render_pixels(nc, ncv, bset, placey, placex, begy, begx,
-                               n, scaling, notcurses_stdplane(nc));
+    n = ncvisual_render_pixels(nc, ncv, bset, placey, placex, begy, begx, n, scaling);
   }
   return n;
 }
