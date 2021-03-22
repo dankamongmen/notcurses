@@ -549,7 +549,7 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
 }
 
 ncplane* ncvisual_render(notcurses* nc, ncvisual* ncv, const struct ncvisual_options* vopts){
-  if(vopts && vopts->flags > NCVISUAL_OPTION_BLEND){
+  if(vopts && vopts->flags > NCVISUAL_OPTION_HORALIGNED){
     logwarn(nc, "Warning: unknown ncvisual options %016jx\n", (uintmax_t)vopts->flags);
   }
   int lenx = vopts ? vopts->lenx : 0;

@@ -2886,27 +2886,35 @@ int notcurses_lex_blitter(const char* op, ncblitter_e* blitter);
 // Get the name of a blitter.
 const char* notcurses_str_blitter(ncblitter_e blitter);
 
+#define NCVISUAL_OPTION_NODEGRADE  0x0001ull // fail rather than degrade
+#define NCVISUAL_OPTION_BLEND      0x0002ull // use CELL_ALPHA_BLEND with visual
+#define NCVISUAL_OPTION_HORALIGNED 0x0004ull // x is an alignment, not absolute
+
 struct ncvisual_options {
   // if no ncplane is provided, one will be created using the exact size
   // necessary to render the source with perfect fidelity (this might be
-  // smaller or larger than the rendering area). if provided, style is
-  // taken into account, relative to the provided ncplane.
+  // smaller or larger than the rendering area).
   struct ncplane* n;
-  // the style is ignored if no ncplane is provided (it ought be NCSCALE_NONE
+  // the scaling is ignored if no ncplane is provided (it ought be NCSCALE_NONE
   // in this case). otherwise, the source is stretched/scaled relative to the
   // provided ncplane.
   ncscale_e scaling;
   // if an ncplane is provided, y and x specify where the visual will be
   // rendered on that plane. otherwise, they specify where the created ncplane
-  // will be placed.
+  // will be placed relative to the standard plane's origin. x is an ncalign_e
+  // value if NCVISUAL_OPTION_HORALIGNED is provided.
   int y, x;
   // the section of the visual that ought be rendered. for the entire visual,
   // pass an origin of 0, 0 and a size of 0, 0 (or the true height and width).
-  // these numbers are all in terms of ncvisual pixels.
+  // these numbers are all in terms of ncvisual pixels. negative values are
+  // prohibited.
   int begy, begx; // origin of rendered section
   int leny, lenx; // size of rendered section
+  // use NCBLIT_DEFAULT if you don't care, an appropriate blitter will be
+  // chosen for your terminal, given your scaling. NCBLIT_PIXEL is never
+  // chosen for NCBLIT_DEFAULT.
   ncblitter_e blitter; // glyph set to use (maps input to output cells)
-  uint64_t flags; // currently all zero
+  uint64_t flags; // bitmask over NCVISUAL_OPTION_*
 };
 
 typedef enum {
