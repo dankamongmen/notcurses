@@ -6,6 +6,7 @@ rearrangements of Notcurses.
     Kitty pixel graphics protocol.
   * Added `notcurses_debug_caps()` to dump terminal properties, both those
     reported and those inferred, to a `FILE*`.
+  * Added `NCOPTION_NO_CLEAR_BITMAPS` option for `notcurses_init()`.
 
 * 2.2.3 (2021-03-08)
   * Implemented **EXPERIMENTAL** `NCBLIT_PIXEL` for terminals reporting Sixel

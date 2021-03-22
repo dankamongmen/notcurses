@@ -551,9 +551,9 @@ int sixel_blit(ncplane* nc, int linesize, const void* data,
   return r;
 }
 
-int sprite_sixel_init(const notcurses* nc){
+int sprite_sixel_init(int fd){
   // \e[?8452: DECSDM private "sixel scrolling" mode keeps the sixel from
   // scrolling, but puts it at the current cursor location (as opposed to
   // the upper left corner of the screen).
-  return tty_emit("\e[?8452h", nc->ttyfd);
+  return tty_emit("\e[?8452h", fd);
 }

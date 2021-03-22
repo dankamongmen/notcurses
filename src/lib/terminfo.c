@@ -384,6 +384,7 @@ int query_term(tinfo* ti, int fd){
     if(ti->sixel_supported){
       query_sixel_details(ti, fd);
     }
+    ti->pixel_init(fd);
     if(flags & O_NONBLOCK){
       fcntl(fd, F_SETFL, flags);
     }

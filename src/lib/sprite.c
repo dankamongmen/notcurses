@@ -77,5 +77,5 @@ int sprite_init(const notcurses* nc){
   if(!nc->tcache.pixel_init){
     return 0;
   }
-  return nc->tcache.pixel_init(nc);
+  return nc->tcache.pixel_init(nc->ttyfd);
 }

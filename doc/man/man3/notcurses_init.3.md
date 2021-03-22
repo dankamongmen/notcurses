@@ -12,6 +12,7 @@ notcurses_init - initialize a notcurses instance
 
 ```c
 #define NCOPTION_INHIBIT_SETLOCALE   0x0001ull
+#define NCOPTION_NO_CLEAR_BITMAPS    0x0002ull
 #define NCOPTION_NO_WINCH_SIGHANDLER 0x0004ull
 #define NCOPTION_NO_QUIT_SIGHANDLERS 0x0008ull
 #define NCOPTION_SUPPRESS_BANNERS    0x0020ull
@@ -109,6 +110,10 @@ zero. The following flags are defined:
     **setlocale(LC_ALL, "").** This will attempt to set the locale based off
     the **LANG** environment variable. Your program should call **setlocale(3)**
     itself, usually as one of the first lines.
+
+* **NCOPTION_NO_CLEAR_BITMAPS**: On entry, make no special attempt to clear any
+    preexisting bitmaps. Note that they might still get cleared even if this is
+    set, and they might not get cleared even if this is not set.
 
 * **NCOPTION_NO_WINCH_SIGHANDLER**: A signal handler will usually be installed
     for **SIGWINCH** and **SIGCONT**, resulting in **NCKEY_RESIZE** events

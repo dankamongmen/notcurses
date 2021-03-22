@@ -91,6 +91,12 @@ typedef enum {
 // doing something weird (setting a locale not based on LANG).
 #define NCOPTION_INHIBIT_SETLOCALE   0x0001
 
+// We typically try to clear any preexisting bitmaps. If we ought *not* try
+// to do this, pass NCOPTION_NO_CLEAR_BITMAPS. Note that they might still
+// get cleared even if this is set, and they might not get cleared even if
+// this is not set. It's a tough world out there.
+#define NCOPTION_NO_CLEAR_BITMAPS    0x0002ull
+
 // We typically install a signal handler for SIGWINCH that generates a resize
 // event in the notcurses_getc() queue. Set to inhibit this handler.
 #define NCOPTION_NO_WINCH_SIGHANDLER 0x0004
