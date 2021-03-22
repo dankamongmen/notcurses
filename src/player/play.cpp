@@ -319,6 +319,82 @@ int direct_mode_player(int argc, char** argv, ncscale_e scalemode,
   return failed ? -1 : 0;
 }
 
+int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
+                               ncscale_e scalemode, ncblitter_e blitter,
+                               bool quiet, bool loop,
+                               double timescale, double displaytime){
+  int dimy, dimx;
+  std::unique_ptr<Plane> stdn(nc.get_stdplane(&dimy, &dimx));
+  for(auto i = 0 ; i < argc ; ++i){
+    std::unique_ptr<Visual> ncv;
+    ncv = std::make_unique<Visual>(argv[i]);
+    stdn->erase();
+    struct ncvisual_options vopts{};
+    int r;
+    vopts.n = *stdn;
+    vopts.scaling = scalemode;
+    vopts.blitter = blitter;
+    if(vopts.blitter == NCBLIT_PIXEL){
+      notcurses_check_pixel_support(nc);
+      vopts.y = 1;
+    }else{
+      vopts.y = 0;
+    }
+    do{
+      struct marshal marsh = {
+        .subtitle_plane = nullptr,
+        .framecount = 0,
+        .quiet = quiet,
+        .blitter = vopts.blitter,
+      };
+      r = ncv->stream(&vopts, timescale, perframe, &marsh);
+      free(stdn->get_userptr());
+      stdn->set_userptr(nullptr);
+      if(r == 0){
+        vopts.blitter = marsh.blitter;
+        if(!loop){
+          if(displaytime < 0){
+            stdn->printf(0, NCAlign::Center, "press key to advance");
+            if(!nc.render()){
+              return -1;
+            }
+            char32_t ie = nc.getc(true);
+            if(ie == (char32_t)-1){
+              return -1;
+            }else if(ie == 'q'){
+              return 0;
+            }else if(ie == 'L'){
+              --i;
+              nc.refresh(nullptr, nullptr);
+            }else if(ie >= '0' && ie <= '6'){
+              --i; // rerun same input with the new blitter
+              vopts.blitter = blitter = static_cast<ncblitter_e>(ie - '0');
+            }else if(ie == NCKey::Resize){
+              --i; // rerun with the new size
+              if(!nc.refresh(&dimy, &dimx)){
+                return -1;
+              }
+            }
+          }else{
+            // FIXME do we still want to honor keybindings when timing out?
+            struct timespec ts;
+            ts.tv_sec = displaytime;
+            ts.tv_nsec = (displaytime - ts.tv_sec) * NANOSECS_IN_SEC;
+            clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);
+          }
+        }else{
+          ncv->decode_loop();
+        }
+      }
+    }while(loop && r == 0);
+    if(r < 0){ // positive is intentional abort
+      std::cerr << "Error decoding " << argv[i] << std::endl;
+      return -1;
+    }
+  }
+  return 0;
+}
+
 int rendered_mode_player(int argc, char** argv, ncscale_e scalemode,
                          ncblitter_e blitter, notcurses_options& ncopts,
                          bool quiet, bool loop,
@@ -334,94 +410,19 @@ int rendered_mode_player(int argc, char** argv, ncscale_e scalemode,
     std::cerr << "Notcurses was compiled without multimedia support\n";
     return EXIT_FAILURE;
   }
-  int dimy, dimx;
-  bool failed = false;
-  {
-    std::unique_ptr<Plane> stdn(nc.get_stdplane(&dimy, &dimx));
-    for(auto i = 0 ; i < argc ; ++i){
-      std::unique_ptr<Visual> ncv;
-      try{
-        ncv = std::make_unique<Visual>(argv[i]);
-      }catch(std::exception& e){
-        // FIXME want to stop nc first :/ can't due to stdn, ugh
-        std::cerr << argv[i] << ": " << e.what() << "\n";
-        failed = true;
-        break;
-      }
-      stdn->erase();
-      struct ncvisual_options vopts{};
-      int r;
-      vopts.n = *stdn;
-      vopts.scaling = scalemode;
-      vopts.blitter = blitter;
-      if(vopts.blitter == NCBLIT_PIXEL){
-        notcurses_check_pixel_support(nc);
-        vopts.y = 1;
-      }else{
-        vopts.y = 0;
-      }
-      do{
-        struct marshal marsh = {
-          .subtitle_plane = nullptr,
-          .framecount = 0,
-          .quiet = quiet,
-          .blitter = vopts.blitter,
-        };
-        r = ncv->stream(&vopts, timescale, perframe, &marsh);
-        free(stdn->get_userptr());
-        stdn->set_userptr(nullptr);
-        if(r == 0){
-          vopts.blitter = marsh.blitter;
-          if(!loop){
-            if(displaytime < 0){
-              stdn->printf(0, NCAlign::Center, "press key to advance");
-              if(!nc.render()){
-                failed = true;
-                break;
-              }
-              char32_t ie = nc.getc(true);
-              if(ie == (char32_t)-1){
-                failed = true;
-                break;
-              }else if(ie == 'q'){
-                goto done;
-              }else if(ie == 'L'){
-                --i;
-                nc.refresh(nullptr, nullptr);
-              }else if(ie >= '0' && ie <= '6'){
-                --i; // rerun same input with the new blitter
-                vopts.blitter = blitter = static_cast<ncblitter_e>(ie - '0');
-              }else if(ie == NCKey::Resize){
-                --i; // rerun with the new size
-                if(!nc.refresh(&dimy, &dimx)){
-                  failed = true;
-                  break;
-                }
-              }
-            }else{
-              // FIXME do we still want to honor keybindings when timing out?
-              struct timespec ts;
-              ts.tv_sec = displaytime;
-              ts.tv_nsec = (displaytime - ts.tv_sec) * NANOSECS_IN_SEC;
-              clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);
-            }
-          }else{
-            ncv->decode_loop();
-          }
-        }
-      }while(loop && r == 0);
-      if(r < 0){ // positive is intentional abort
-        std::cerr << "Error decoding " << argv[i] << std::endl;
-        failed = true;
-        break;
-      }
-    }
+  int r;
+  try{
+    r = rendered_mode_player_inner(nc, argc, argv, scalemode, blitter,
+                                   quiet, loop, timescale, displaytime);
+  }catch(std::exception& e){
+    nc.stop();
+    std::cerr << e.what() << "\n";
+    return -1;
   }
-done:
   if(!nc.stop()){
     return -1;
   }
-  return failed;
+  return r;
 }
 
 auto main(int argc, char** argv) -> int {
