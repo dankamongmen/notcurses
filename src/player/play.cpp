@@ -412,17 +412,14 @@ int rendered_mode_player(int argc, char** argv, ncscale_e scalemode,
       std::cerr << "Notcurses was compiled without multimedia support\n";
       return EXIT_FAILURE;
     }
-    try{
-      r = rendered_mode_player_inner(nc, argc, argv, scalemode, blitter,
-                                    quiet, loop, timescale, displaytime);
-    }catch(std::exception& e){
-      nc.stop();
-      std::cerr << e.what() << "\n";
-      return -1;
-    }
+    r = rendered_mode_player_inner(nc, argc, argv, scalemode, blitter,
+                                   quiet, loop, timescale, displaytime);
     if(!nc.stop()){
       return -1;
     }
+  }catch(ncpp::init_error& e){
+    std::cerr << e.what() << "\n";
+    return -1;
   }catch(ncpp::init_error* e){
     std::cerr << e->what() << "\n";
     return -1;
