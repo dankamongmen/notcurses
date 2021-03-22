@@ -30,8 +30,9 @@ typedef enum {
   NCBLIT_8x1,     // eight vertical levels, (plots)
 } ncblitter_e;
 
-#define NCVISUAL_OPTION_NODEGRADE 0x0001
-#define NCVISUAL_OPTION_BLEND     0x0002
+#define NCVISUAL_OPTION_NODEGRADE  0x0001
+#define NCVISUAL_OPTION_BLEND      0x0002
+#define NCVISUAL_OPTION_HORALIGNED 0x0004
 
 struct ncvisual_options {
   struct ncplane* n;
