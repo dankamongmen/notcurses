@@ -325,21 +325,31 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
                                double timescale, double displaytime){
   int dimy, dimx;
   std::unique_ptr<Plane> stdn(nc.get_stdplane(&dimy, &dimx));
+  uint64_t transchan = 0;
+  channels_set_fg_alpha(&transchan, CELL_ALPHA_TRANSPARENT);
+  channels_set_bg_alpha(&transchan, CELL_ALPHA_TRANSPARENT);
+  stdn->set_base("", 0, transchan);
+  struct ncplane_options nopts{};
+  nopts.rows = dimy - 1; // don't want kitty to scroll on pixels FIXME
+  nopts.cols = dimx;
+  nopts.resizecb = ncplane_resize_maximize;
+  struct ncplane* n = ncplane_create(*stdn, &nopts); // FIXME make c++ style
+  if(!n){
+    return -1;
+  }
+  ncplane_move_bottom(n);
   for(auto i = 0 ; i < argc ; ++i){
     std::unique_ptr<Visual> ncv;
     ncv = std::make_unique<Visual>(argv[i]);
-    stdn->erase();
     struct ncvisual_options vopts{};
     int r;
-    vopts.n = *stdn;
+    vopts.n = n;
     vopts.scaling = scalemode;
     vopts.blitter = blitter;
     if(vopts.blitter == NCBLIT_PIXEL){
       notcurses_check_pixel_support(nc);
-      vopts.y = 1;
-    }else{
-      vopts.y = 0;
     }
+    ncplane_erase(n);
     do{
       struct marshal marsh = {
         .subtitle_plane = nullptr,
