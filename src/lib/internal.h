@@ -321,7 +321,7 @@ typedef struct tinfo {
   // means leaving out the pixels (and likely resizes the string). for kitty,
   // this means dialing down their alpha to 0 (in equivalent space).
   int (*pixel_cell_wipe)(const struct notcurses* nc, sprixel* s, int y, int x);
-  int (*pixel_clear_all)(const struct notcurses* nc);
+  int (*pixel_init)(const struct notcurses* nc);
   bool pixel_query_done; // have we yet performed pixel query?
   bool sextants;  // do we have (good, vetted) Unicode 13 sextant support?
   bool braille;   // do we have Braille support? (linux console does not)
@@ -730,9 +730,10 @@ sprixel* sprixel_create(ncplane* n, const char* s, int bytes, int placey, int pl
                         int parse_start);
 API int sprite_wipe_cell(const notcurses* nc, sprixel* s, int y, int x);
 int sprite_kitty_annihilate(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
-int sprite_kitty_clear_all(const notcurses* nc);
+int sprite_kitty_init(const notcurses* nc);
+int sprite_sixel_init(const notcurses* nc);
 int sprite_sixel_annihilate(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
-int sprite_clear_all(const notcurses* nc);
+int sprite_init(const notcurses* nc);
 
 static inline void
 pool_release(egcpool* pool, nccell* c){

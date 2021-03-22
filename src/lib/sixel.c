@@ -416,12 +416,7 @@ write_rle(int* printed, int color, FILE* fp, int seenrle, unsigned char crle){
 // Emit the sprixel in its entirety, plus enable and disable pixel mode.
 static int
 write_sixel_data(FILE* fp, int lenx, sixeltable* stab, int* parse_start){
-  // \e[?80: DECSDM "sixel scrolling" mode (put output at cursor location)
-  // \x90: 8-bit "device control sequence", lowercase q (start sixel)
-  // doesn't seem to work with at least xterm; we instead use '\ePq'
-  // FIXME i think we can print DESDM on the first one, and never again
-  *parse_start += fprintf(fp, "\e[?80h\ePq");
-
+  *parse_start = fprintf(fp, "\ePq");
   // Set Raster Attributes - pan/pad=1 (pixel aspect ratio), Ph=lenx, Pv=leny
   // using Ph/Pv causes a background to be drawn using color register 0 for all
   // unspecified pixels, which we do not want.
@@ -554,4 +549,11 @@ int sixel_blit(ncplane* nc, int linesize, const void* data, int begy, int begx,
   free(stable.deets);
   free(stable.table);
   return r;
+}
+
+int sprite_sixel_init(const notcurses* nc){
+  // \e[?8452: DECSDM private "sixel scrolling" mode keeps the sixel from
+  // scrolling, but puts it at the current cursor location (as opposed to
+  // the upper left corner of the screen).
+  return tty_emit("\e[?8452h", nc->ttyfd);
 }
