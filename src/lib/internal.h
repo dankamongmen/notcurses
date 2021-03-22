@@ -738,6 +738,7 @@ pool_release(egcpool* pool, nccell* c){
     egcpool_release(pool, cell_egc_idx(c));
   }
   c->gcluster = 0; // don't subject ourselves to double-release problems
+  c->width = 0;    // don't subject ourselves to geometric ambiguities
 }
 
 // set the nccell 'c' to point into the egcpool at location 'eoffset'
