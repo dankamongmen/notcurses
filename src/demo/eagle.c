@@ -73,7 +73,6 @@ zoom_map(struct notcurses* nc, const char* map, int* ret){
   vheight /= yscale;
   vwidth /= xscale;
   vopts.n = zncp;
-  vopts.blitter = NCBLIT_PIXEL;
   vopts.scaling = NCSCALE_STRETCH;
   if(ncvisual_render(nc, ncv, &vopts) == NULL || (*ret = demo_render(nc))){
     ncvisual_destroy(ncv);
