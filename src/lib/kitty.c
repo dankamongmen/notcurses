@@ -81,6 +81,7 @@ base64_rgba3(const uint32_t* pixels, size_t pcount, char* b64){
 // available in the chunk.
 static inline int
 kitty_null(char* triplet, int skip, int max, int pleft){
+//fprintf(stderr, "SKIP/MAX/PLEFT %d/%d/%d\n", skip, max, pleft);
   if(pleft > 3){
     pleft = 3;
   }
@@ -124,15 +125,15 @@ int sprite_kitty_cell_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell
   // if the cell is on the right or bottom borders, it might only be partially
   // filled by actual graphic data, and we need to cap our target area.
   int targx = xpixels;
-  if(xcell * xpixels > s->pixx){
-    targx -= ((xcell * xpixels) - s->pixx);
+  if((xcell + 1) * xpixels > s->pixx){
+    targx = s->pixx - xcell * xpixels;
   }
   int targy = ypixels;
-  if(ycell * ypixels > s->pixy){
-    targy -= ((ycell * ypixels) - s->pixy);
+  if((ycell + 1) * ypixels > s->pixy){
+    targy = s->pixy - ycell * ypixels;
   }
-//fprintf(stderr, "TARGET AREA: %d x %d\n", targy, targx);
   char* c = s->glyph;
+//fprintf(stderr, "TARGET AREA: %d x %d @ %dx%d of %d/%d (%d/%d) len %zu\n", targy, targx, ycell, xcell, s->dimy, s->dimx, s->pixy, s->pixx, strlen(c));
   // every pixel was 4 source bytes, 32 bits, 6.33 base64 bytes. every 3 input pixels is
   // 12 bytes (96 bits), an even 16 base64 bytes. there is chunking to worry about. there
   // are up to 768 pixels in a chunk.
@@ -141,7 +142,7 @@ int sprite_kitty_cell_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell
   int chunkedhandled = 0;
   const int chunks = totalpixels / RGBA_MAXLEN + !!(totalpixels % RGBA_MAXLEN);
   while(targy && chunkedhandled < chunks){ // need to null out |targy| rows of |targx| pixels, track with |thisrow|
-//fprintf(stderr, "CHUNK %d NEXTPIXEL: %d\n", chunkedhandled, nextpixel);
+//fprintf(stderr, "CHUNK %d NEXTPIXEL: %d NEXTCHUNK: %d\n", chunkedhandled, nextpixel, nextchunk);
     while(*c != ';'){
       ++c;
     }
@@ -152,6 +153,7 @@ int sprite_kitty_cell_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell
       inchunk = RGBA_MAXLEN;
     }
     const int curpixel = chunkedhandled * RGBA_MAXLEN;
+    // a full chunk is 4096 + 2 + 7 (5005)
     while(nextpixel - curpixel < RGBA_MAXLEN && thisrow){
       // our next pixel is within this chunk. find the pixel offset of the
       // first pixel (within the chunk).
@@ -164,15 +166,21 @@ int sprite_kitty_cell_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell
 //fprintf(stderr, "pixoffset: %d next: %d tripbytes: %d tripskip: %d thisrow: %d\n", pixoffset, nextpixel, tripbytes, tripskip, thisrow);
       // the maximum number of pixels we can convert is the minimum of the
       // pixels remaining in the target row, and the pixels left in the chunk.
+//fprintf(stderr, "inchunk: %d total: %d triples: %d\n", inchunk, totalpixels, triples);
       int chomped = kitty_null(c + tripbytes, tripskip, thisrow, inchunk - triples * 3);
+      assert(chomped >= 0);
       thisrow -= chomped;
-      nextpixel += chomped;
+//fprintf(stderr, "POSTCHIMP CHOMP: %d pixoffset: %d next: %d tripbytes: %d tripskip: %d thisrow: %d\n", chomped, pixoffset, nextpixel, tripbytes, tripskip, thisrow);
       if(thisrow == 0){
+//fprintf(stderr, "CLEARED ROW, TARGY: %d\n", targy - 1);
         if(--targy == 0){
           return 0;
         }
         thisrow = targx;
-        nextpixel += s->dimx * xpixels - targx;
+//fprintf(stderr, "BUMP IT: %d %d %d %d\n", nextpixel, s->pixx, targx, chomped);
+        nextpixel += s->pixx - targx + chomped;
+      }else{
+        nextpixel += chomped;
       }
     }
     c += RGBA_MAXLEN * 4 * 4 / 3; // 4bpp * 4/3 for base64, 4096b per chunk
