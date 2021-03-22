@@ -1357,15 +1357,17 @@ API int ncplane_move_yx(struct ncplane* n, int y, int x);
 
 // Get the origin of plane 'n' relative to its bound plane, or pile (if 'n' is
 // a root plane). To get absolute coordinates, use ncplane_abs_yx().
-API void ncplane_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
-API int ncplane_y(const struct ncplane* n);
-API int ncplane_x(const struct ncplane* n);
+API void ncplane_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x)
+  __attribute__ ((nonnull (1)));
+API int ncplane_y(const struct ncplane* n) __attribute__ ((pure));
+API int ncplane_x(const struct ncplane* n) __attribute__ ((pure));
 
 // Get the origin of plane 'n' relative to its pile. Either or both of 'x' and
 // 'y' may be NULL.
-API void ncplane_abs_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
-API int ncplane_abs_y(const struct ncplane* n);
-API int ncplane_abs_x(const struct ncplane* n);
+API void ncplane_abs_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x)
+  __attribute__ ((nonnull (1)));
+API int ncplane_abs_y(const struct ncplane* n) __attribute__ ((pure));
+API int ncplane_abs_x(const struct ncplane* n) __attribute__ ((pure));
 
 // Get the plane to which the plane 'n' is bound, if any.
 API struct ncplane* ncplane_parent(struct ncplane* n);
