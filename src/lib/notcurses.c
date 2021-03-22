@@ -1037,7 +1037,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     goto err;
   }
   if(ret->ttyfd >= 0){
-    if(sprite_clear_all(ret)){
+    if(sprite_init(ret)){
       free_plane(ret->stdplane);
       goto err;
     }
