@@ -314,7 +314,6 @@ int direct_mode_player(int argc, char** argv, ncscale_e scalemode,
       failed = true;
       break;
     }
-    printf("\n");
   }
   return failed ? -1 : 0;
 }
