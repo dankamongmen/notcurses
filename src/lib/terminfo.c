@@ -184,9 +184,11 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8)
   terminfostr(&ti->struckoff, "rmxx"); // cancel strikeout
   // if the keypad neen't be explicitly enabled, smkx is not present
   if(ti->smkx){
-    if(tty_emit(tiparm(ti->smkx), fd) < 0){
-      fprintf(stderr, "Error entering keypad transmit mode\n");
-      return -1;
+    if(fd >= 0){
+      if(tty_emit(tiparm(ti->smkx), fd) < 0){
+        fprintf(stderr, "Error entering keypad transmit mode\n");
+        return -1;
+      }
     }
   }
   // if op is defined as ansi 39 + ansi 49, make the split definitions available
