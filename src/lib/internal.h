@@ -413,26 +413,26 @@ typedef struct notcurses {
   unsigned stdio_blocking_save; // was stdio blocking at entry? restore on stop.
 } notcurses;
 
-// cell vs pixel-specific arguments
-typedef union {
-  struct {
-    int blendcolors;    // use CELL_ALPHA_BLEND
-    int placey;           // placement within ncplane
-    int placex;
-  } cell;               // for cells
-  struct {
-    int celldimx;       // horizontal pixels per cell
-    int celldimy;       // vertical pixels per cell
-    int colorregs;      // number of color registers
-    int sprixelid;      // unqie 24-bit id into sprixel cache
-    int placey;         // placement within ncplane
-    int placex;
-  } pixel;              // for pixels
+typedef struct {
+  int begy;             // upper left start within visual
+  int begx;
+  int placey;           // placement within ncplane
+  int placex;
+  union { // cell vs pixel-specific arguments
+    struct {
+      int blendcolors;    // use CELL_ALPHA_BLEND
+    } cell;               // for cells
+    struct {
+      int celldimx;       // horizontal pixels per cell
+      int celldimy;       // vertical pixels per cell
+      int colorregs;      // number of color registers
+      int sprixelid;      // unqie 24-bit id into sprixel cache
+    } pixel;              // for pixels
+  } u;
 } blitterargs;
 
 typedef int (*blitter)(struct ncplane* n, int linesize, const void* data,
-                       int begy, int begx, int leny, int lenx,
-                       const blitterargs* bargs);
+                       int leny, int lenx, const blitterargs* bargs);
 
 // a system for rendering RGBA pixels as text glyphs
 struct blitset {
@@ -920,7 +920,7 @@ ALLOC char* ncplane_vprintf_prep(const char* format, va_list ap);
 // change the internals of the ncvisual. Uses oframe.
 int ncvisual_blit(struct ncvisual* ncv, int rows, int cols,
                   ncplane* n, const struct blitset* bset,
-                  int begy, int begx, int leny, int lenx, const blitterargs* bargs);
+                  int leny, int lenx, const blitterargs* bargs);
 
 void nclog(const char* fmt, ...);
 
@@ -1299,10 +1299,10 @@ ncdirect_bg_default_p(const struct ncdirect* nc){
 int sprite_sixel_cell_wipe(const notcurses* nc, sprixel* s, int y, int x);
 int sprite_kitty_cell_wipe(const notcurses* nc, sprixel* s, int y, int x);
 
-int sixel_blit(ncplane* nc, int linesize, const void* data, int begy, int begx,
+int sixel_blit(ncplane* nc, int linesize, const void* data,
                int leny, int lenx, const blitterargs* bargs);
 
-int kitty_blit(ncplane* nc, int linesize, const void* data, int begy, int begx,
+int kitty_blit(ncplane* nc, int linesize, const void* data,
                int leny, int lenx, const blitterargs* bargs);
 
 int term_fg_rgb8(bool RGBflag, const char* setaf, int colors, FILE* out,
@@ -1312,9 +1312,9 @@ API const struct blitset* lookup_blitset(const tinfo* tcache, ncblitter_e setid,
 
 static inline int
 rgba_blit_dispatch(ncplane* nc, const struct blitset* bset,
-                   int linesize, const void* data, int begy,
-                   int begx, int leny, int lenx, const blitterargs* bargs){
-  return bset->blit(nc, linesize, data, begy, begx, leny, lenx, bargs);
+                   int linesize, const void* data,
+                   int leny, int lenx, const blitterargs* bargs){
+  return bset->blit(nc, linesize, data, leny, lenx, bargs);
 }
 
 static inline const struct blitset*
@@ -1339,7 +1339,7 @@ typedef struct ncvisual_implementation {
   int (*visual_init)(int loglevel);
   void (*visual_printbanner)(const struct notcurses* nc);
   int (*visual_blit)(struct ncvisual* ncv, int rows, int cols, ncplane* n,
-                     const struct blitset* bset, int begy, int begx,
+                     const struct blitset* bset,
                      int leny, int lenx, const blitterargs* barg);
   struct ncvisual* (*visual_create)(void);
   struct ncvisual* (*visual_from_file)(const char* fname);

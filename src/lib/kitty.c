@@ -251,8 +251,8 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx,
 // deflate-compressed) 24bit RGB.
 int kitty_blit_inner(ncplane* nc, int linesize, int leny, int lenx,
                      const void* data, const blitterargs* bargs){
-  int rows = leny / bargs->pixel.celldimy + !!(leny % bargs->pixel.celldimy);
-  int cols = lenx / bargs->pixel.celldimx + !!(lenx % bargs->pixel.celldimx);
+  int rows = leny / bargs->u.pixel.celldimy + !!(leny % bargs->u.pixel.celldimy);
+  int cols = lenx / bargs->u.pixel.celldimx + !!(lenx % bargs->u.pixel.celldimx);
   char* buf = NULL;
   size_t size = 0;
   FILE* fp = open_memstream(&buf, &size);
@@ -260,14 +260,14 @@ int kitty_blit_inner(ncplane* nc, int linesize, int leny, int lenx,
     return -1;
   }
   int parse_start = 0;
-  if(write_kitty_data(fp, linesize, leny, lenx, data, bargs->pixel.sprixelid,
+  if(write_kitty_data(fp, linesize, leny, lenx, data, bargs->u.pixel.sprixelid,
                       &parse_start)){
     fclose(fp);
     free(buf);
     return -1;
   }
-  if(plane_blit_sixel(nc, buf, size, bargs->pixel.placey, bargs->pixel.placex,
-                      rows, cols, bargs->pixel.sprixelid, leny, lenx,
+  if(plane_blit_sixel(nc, buf, size, bargs->placey, bargs->placex,
+                      rows, cols, bargs->u.pixel.sprixelid, leny, lenx,
                       parse_start) < 0){
     free(buf);
     return -1;
@@ -276,10 +276,8 @@ int kitty_blit_inner(ncplane* nc, int linesize, int leny, int lenx,
   return 1;
 }
 
-int kitty_blit(ncplane* nc, int linesize, const void* data, int begy, int begx,
+int kitty_blit(ncplane* nc, int linesize, const void* data,
                int leny, int lenx, const blitterargs* bargs){
-  (void)begy;
-  (void)begx;
   int r = kitty_blit_inner(nc, linesize, leny, lenx, data, bargs);
   if(r < 0){
     return -1;

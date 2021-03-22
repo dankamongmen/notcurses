@@ -498,10 +498,10 @@ int sixel_blit_inner(ncplane* nc, int leny, int lenx, sixeltable* stab,
     free(buf);
     return -1;
   }
-  unsigned cols = lenx / bargs->pixel.celldimx + !!(lenx % bargs->pixel.celldimx);
-  unsigned rows = leny / bargs->pixel.celldimy + !!(leny % bargs->pixel.celldimy);
-  if(plane_blit_sixel(nc, buf, size, bargs->pixel.placey, bargs->pixel.placex,
-                      rows, cols, bargs->pixel.sprixelid, leny, lenx,
+  unsigned cols = lenx / bargs->u.pixel.celldimx + !!(lenx % bargs->u.pixel.celldimx);
+  unsigned rows = leny / bargs->u.pixel.celldimy + !!(leny % bargs->u.pixel.celldimy);
+  if(plane_blit_sixel(nc, buf, size, bargs->placey, bargs->placex,
+                      rows, cols, bargs->u.pixel.sprixelid, leny, lenx,
                       parse_start) < 0){
     free(buf);
     return -1;
@@ -510,10 +510,10 @@ int sixel_blit_inner(ncplane* nc, int leny, int lenx, sixeltable* stab,
   return 1;
 }
 
-int sixel_blit(ncplane* nc, int linesize, const void* data, int begy, int begx,
+int sixel_blit(ncplane* nc, int linesize, const void* data,
                int leny, int lenx, const blitterargs* bargs){
-  int sixelcount = (lenx - begx) * ((leny - begy + 5) / 6);
-  int colorregs = bargs->pixel.colorregs;
+  int sixelcount = (lenx - bargs->begx) * ((leny - bargs->begy + 5) / 6);
+  int colorregs = bargs->u.pixel.colorregs;
   if(colorregs <= 0){
     return -1;
   }
@@ -537,13 +537,13 @@ int sixel_blit(ncplane* nc, int linesize, const void* data, int begy, int begx,
   // stable.table doesn't need initializing; we start from the bottom
   memset(stable.data, 0, sixelcount * colorregs);
   memset(stable.deets, 0, sizeof(*stable.deets) * colorregs);
-  if(extract_color_table(data, linesize, begy, begx, leny, lenx, &stable)){
+  if(extract_color_table(data, linesize, bargs->begy, bargs->begx, leny, lenx, &stable)){
     free(stable.table);
     free(stable.data);
     free(stable.deets);
     return -1;
   }
-  refine_color_table(data, linesize, begy, begx, leny, lenx, &stable);
+  refine_color_table(data, linesize, bargs->begy, bargs->begx, leny, lenx, &stable);
   int r = sixel_blit_inner(nc, leny, lenx, &stable, bargs);
   free(stable.data);
   free(stable.deets);

@@ -524,13 +524,12 @@ ncdirectv* ncdirect_render_frame(ncdirect* n, const char* file,
   }
   blitterargs bargs = {};
   if(bset->geom == NCBLIT_PIXEL){
-    bargs.pixel.celldimx = n->tcache.cellpixx;
-    bargs.pixel.celldimy = n->tcache.cellpixy;
-    bargs.pixel.colorregs = n->tcache.color_registers;
-    bargs.pixel.sprixelid = n->tcache.sprixelnonce++;
+    bargs.u.pixel.celldimx = n->tcache.cellpixx;
+    bargs.u.pixel.celldimy = n->tcache.cellpixy;
+    bargs.u.pixel.colorregs = n->tcache.color_registers;
+    bargs.u.pixel.sprixelid = n->tcache.sprixelnonce++;
   }
-  if(ncvisual_blit(ncv, disprows, dispcols, ncdv, bset,
-                   0, 0, leny, lenx, &bargs)){
+  if(ncvisual_blit(ncv, disprows, dispcols, ncdv, bset, leny, lenx, &bargs)){
     ncvisual_destroy(ncv);
     free_plane(ncdv);
     return NULL;

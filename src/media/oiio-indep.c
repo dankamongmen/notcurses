@@ -5,10 +5,9 @@
 #include "oiio.h"
 
 int oiio_blit_dispatch(struct ncplane* nc, const struct blitset* bset,
-                       int linesize, const void* data, int begy, int begx,
+                       int linesize, const void* data,
                        int leny, int lenx, const blitterargs* bargs){
-  if(rgba_blit_dispatch(nc, bset, linesize, data, begy, begx,
-                        leny, lenx, bargs) < 0){
+  if(rgba_blit_dispatch(nc, bset, linesize, data, leny, lenx, bargs) < 0){
     return -1;
   }
   return 0;

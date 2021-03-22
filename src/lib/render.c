@@ -286,7 +286,7 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
       if(cell_sprixel_p(vis)){
         // if we already have a glyph solved, and we run into a bitmap
         // cell, we need to null that cell out.
-        if(crender->p){
+        if(crender->p || crender->s.bgblends){
           sprite_wipe_cell(ncplane_notcurses_const(p), p->sprite, y, x);
         }
         continue;
