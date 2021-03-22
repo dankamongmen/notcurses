@@ -123,6 +123,9 @@ nctree_inner_create(ncplane* n, const struct nctree_options* opts){
 }
 
 nctree* nctree_create(ncplane* n, const struct nctree_options* opts){
+  if(n == NULL){
+    return -1;
+  }
   notcurses* nc = ncplane_notcurses(n);
   if(opts->flags){
     logwarn(nc, "Passed invalid flags 0x%016jx\n", (uint64_t)opts->flags);
