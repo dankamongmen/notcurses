@@ -250,6 +250,7 @@ typedef struct ncprogbar {
 } ncprogbar;
 
 typedef struct nctab {
+  struct nctabbed* nt; // The nctabbed this belongs to
   tabcb cb;     // tab callback
   char* name;   // tab name
   int namecols; // tab name width in columns

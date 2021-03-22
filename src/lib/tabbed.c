@@ -72,14 +72,12 @@ void nctabbed_ensure_selected_header_visible(nctabbed* nt){
 
 static bool
 nctabbed_validate_opts(ncplane* n, const nctabbed_options* opts){
-  if(!n){
-    return false;
-  }
+  notcurses* nc = ncplane_notcurses(n);
   if(opts->flags > NCTABBED_OPTION_BOTTOM){
-    return false;
+    logwarn(nc, "Provided unsupported flags 0x%016jx\n", (uint64_t)opts->flags);
   }
   if(opts->sepchan && !opts->separator){
-    return false;
+    logwarn(nc, "Provided non-zero separator channel when separator is NULL")
   }
   return true;
 }
@@ -129,6 +127,7 @@ nctabbed* nctabbed_create(ncplane* n, const nctabbed_options* topts){
   ncplane_options nopts = {};
   int nrows, ncols;
   nctabbed* nt;
+  notcurses* nc = ncplane_notcurses(n);
   if(!topts){
     topts = &zeroed;
   }
@@ -136,6 +135,7 @@ nctabbed* nctabbed_create(ncplane* n, const nctabbed_options* topts){
     return NULL;
   }
   if((nt = malloc(sizeof(*nt))) == NULL){
+    logerror(nc, "Couldn't allocate nctabbed");
     return NULL;
   }
   nt->ncp = n;
@@ -144,10 +144,12 @@ nctabbed* nctabbed_create(ncplane* n, const nctabbed_options* topts){
   memcpy(&nt->opts, topts, sizeof(*topts));
   if(nt->opts.separator){
     if((nt->opts.separator = strdup(nt->opts.separator)) == NULL){
+      logerror(nc, "Couldn't allocate nctabbed separator");
       free(nt);
       return NULL;
     }
     if((nt->sepcols = ncstrwidth(nt->opts.separator)) < 0){
+      logerror(nc, "Separator string contains illegal characters");
       free(nt->opts.separator);
       free(nt);
       return NULL;
@@ -161,6 +163,7 @@ nctabbed* nctabbed_create(ncplane* n, const nctabbed_options* topts){
     nopts.cols = ncols;
     nopts.rows = nrows - 1;
     if((nt->p = ncplane_create(n, &nopts)) == NULL){
+      logerror(nc, "Couldn't create the tab content plane");
       ncplane_genocide(n);
       free(nt);
       return NULL;
@@ -168,6 +171,7 @@ nctabbed* nctabbed_create(ncplane* n, const nctabbed_options* topts){
     nopts.y = nrows - 2;
     nopts.rows = 1;
     if((nt->hp = ncplane_create(n, &nopts)) == NULL){
+      logerror(nc, "Couldn't create the tab headers plane");
       ncplane_genocide(n);
       free(nt);
       return NULL;
@@ -177,6 +181,7 @@ nctabbed* nctabbed_create(ncplane* n, const nctabbed_options* topts){
     nopts.cols = ncols;
     nopts.rows = 1;
     if((nt->hp = ncplane_create(n, &nopts)) == NULL){
+      logerror(nc, "Couldn't create the tab headers plane");
       ncplane_genocide(n);
       free(nt);
       return NULL;
@@ -184,6 +189,7 @@ nctabbed* nctabbed_create(ncplane* n, const nctabbed_options* topts){
     nopts.y = 1;
     nopts.rows = nrows - 1;
     if((nt->p = ncplane_create(n, &nopts)) == NULL){
+      logerror(nc, "Couldn't create the tab content plane");
       ncplane_genocide(n);
       free(nt);
       return NULL;
@@ -196,6 +202,7 @@ nctabbed* nctabbed_create(ncplane* n, const nctabbed_options* topts){
 nctab* nctabbed_add(nctabbed* nt, nctab* after, nctab* before, tabcb cb,
                     const char* name, void* opaque){
   nctab* t;
+  notcurses* nc = ncplane_notcurses(nt->ncp);
   if(after && before){
     if(after->prev != before || before->next != after){
       logerror(ncplane_notcurses(nt->ncp), "bad before (%p) / after (%p) spec\n", before, after);
@@ -206,13 +213,16 @@ nctab* nctabbed_add(nctabbed* nt, nctab* after, nctab* before, tabcb cb,
     after = nt->selected;
   }
   if((t = malloc(sizeof(*t))) == NULL){
+    logerror(nc, "Couldn't alocate nctab")
     return NULL;
   }
   if((t->name = strdup(name)) == NULL){
+    logerror(nc, "Couldn't allocate the tab name");
     free(t);
     return NULL;
   }
   if((t->namecols = ncstrwidth(name)) < 0){
+    logerror(nc, "Tab name contains illegal characters")
     free(t->name);
     free(t);
     return NULL;
@@ -232,6 +242,7 @@ nctab* nctabbed_add(nctabbed* nt, nctab* after, nctab* before, tabcb cb,
     t->prev = t->next = t;
     nt->leftmost = nt->selected = t;
   }
+  t->nt = nt;
   t->cb = cb;
   t->curry = opaque;
   ++nt->tabcount;
@@ -240,6 +251,7 @@ nctab* nctabbed_add(nctabbed* nt, nctab* after, nctab* before, tabcb cb,
 
 int nctabbed_del(nctabbed* nt, nctab* t){
   if(!t){
+    logerror(ncplane_notcurses(nt->ncp), "Provided NULL nctab");
     return -1;
   }
   if(nt->tabcount == 1){
@@ -271,6 +283,7 @@ int nctab_move(nctabbed* nt, nctab* t, nctab* after, nctab* before){
   }
   // bad things would happen
   if(t == after || t == before){
+    logerror(ncplane_notcurses(nt->ncp), "Cannot move a tab before or after itself.");
     return -1;
   }
   t->prev->next = t->next;
@@ -399,10 +412,13 @@ tabcb nctab_set_cb(nctab* t, tabcb newcb){
 int nctab_set_name(nctab* t, const char* newname){
   int newnamecols;
   char* prevname = t->name;
+  notcurses* nc = ncplane_notcurses(t->nt->ncp);
   if((newnamecols = ncstrwidth(newname)) < 0){
+    logerror(nc, "New tab name contains illegal characters");
     return -1;
   }
   if((t->name = strdup(newname)) == NULL){
+    logerror(nc, "Couldn't allocate new tab name");
     t->name = prevname;
     return -1;
   }
@@ -420,10 +436,13 @@ void* nctab_set_userptr(nctab* t, void* newopaque){
 int nctabbed_set_separator(nctabbed* nt, const char* separator){
   int newsepcols;
   char* prevsep = nt->opts.separator;
+  notcurses* nc = ncplane_notcurses(nt->ncp);
   if((newsepcols = ncstrwidth(separator)) < 0){
+    logerror(nc, "New tab separator contains illegal characters");
     return -1;
   }
   if((nt->opts.separator = strdup(separator)) == NULL){
+    logerror(nc, "Couldn't allocate new tab separator");
     nt->opts.separator = prevsep;
     return -1;
   }

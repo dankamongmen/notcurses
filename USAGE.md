@@ -9,7 +9,7 @@ to backwards compatibility.
 * [Planes](#planes) ([Plane Channels API](#plane-channels-api))
 * [Cells](#cells) ([Cell Channels API](#cell-channels-api))
 * [Reels](#reels) ([ncreel Examples](#ncreel-examples))
-* [Widgets](#widgets) ([Plots](#plots)) ([Readers](#readers)) ([Progbars](#progbars)) ([nctabbed](#nctabbed))
+* [Widgets](#widgets) ([Plots](#plots)) ([Readers](#readers)) ([Progbars](#progbars)) ([Tabs](#tabs))
 * [Channels](#channels)
 * [Visuals](#visuals) ([QR codes](#qrcodes)) ([Multimedia](#multimedia)) ([Pixels](#pixels))
 * [Stats](#stats)
@@ -2508,7 +2508,7 @@ double ncprogbar_progress(const struct ncprogbar* n);
 void ncprogbar_destroy(struct ncprogbar* n);
 ```
 
-### nctabbed
+### Tabs
 
 Tabbed widgets. The tab list is displayed at the top or at the bottom of the
 plane, and only one tab is visible at a time.
