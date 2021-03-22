@@ -319,27 +319,10 @@ int direct_mode_player(int argc, char** argv, ncscale_e scalemode,
   return failed ? -1 : 0;
 }
 
-auto main(int argc, char** argv) -> int {
-  if(setlocale(LC_ALL, "") == nullptr){
-    std::cerr << "Couldn't set locale based off LANG\n";
-    return EXIT_FAILURE;
-  }
-  float timescale, displaytime;
-  ncscale_e scalemode;
-  notcurses_options ncopts{};
-  ncblitter_e blitter = NCBLIT_DEFAULT;
-  bool quiet = false;
-  bool loop = false;
-  auto nonopt = handle_opts(argc, argv, ncopts, &quiet, &timescale, &scalemode,
-                            &blitter, &displaytime, &loop);
-  // if -k was provided, we now use direct mode rather than simply not using the
-  // alternate screen, so that output is inline with the shell.
-  if(ncopts.flags & NCOPTION_NO_ALTERNATE_SCREEN){
-    if(direct_mode_player(argc - nonopt, argv + nonopt, scalemode, blitter, ncopts.margin_l, ncopts.margin_r)){
-      return EXIT_FAILURE;
-    }
-    return EXIT_SUCCESS;
-  }
+int rendered_mode_player(int argc, char** argv, ncscale_e scalemode,
+                         ncblitter_e blitter, notcurses_options& ncopts,
+                         bool quiet, bool loop,
+                         double timescale, double displaytime){
   // no -k, we're using full rendered mode (and the alternate screen).
   ncopts.flags |= NCOPTION_INHIBIT_SETLOCALE;
   if(quiet){
@@ -355,7 +338,7 @@ auto main(int argc, char** argv) -> int {
   bool failed = false;
   {
     std::unique_ptr<Plane> stdn(nc.get_stdplane(&dimy, &dimx));
-    for(auto i = nonopt ; i < argc ; ++i){
+    for(auto i = 0 ; i < argc ; ++i){
       std::unique_ptr<Visual> ncv;
       try{
         ncv = std::make_unique<Visual>(argv[i]);
@@ -436,7 +419,35 @@ auto main(int argc, char** argv) -> int {
   }
 done:
   if(!nc.stop()){
+    return -1;
+  }
+  return failed;
+}
+
+auto main(int argc, char** argv) -> int {
+  if(setlocale(LC_ALL, "") == nullptr){
+    std::cerr << "Couldn't set locale based off LANG\n";
     return EXIT_FAILURE;
   }
-  return failed ? EXIT_FAILURE : EXIT_SUCCESS;
+  float timescale, displaytime;
+  ncscale_e scalemode;
+  notcurses_options ncopts{};
+  ncblitter_e blitter = NCBLIT_DEFAULT;
+  bool quiet = false;
+  bool loop = false;
+  auto nonopt = handle_opts(argc, argv, ncopts, &quiet, &timescale, &scalemode,
+                            &blitter, &displaytime, &loop);
+  int r;
+  // if -k was provided, we now use direct mode rather than simply not using the
+  // alternate screen, so that output is inline with the shell.
+  if(ncopts.flags & NCOPTION_NO_ALTERNATE_SCREEN){
+    r = direct_mode_player(argc - nonopt, argv + nonopt, scalemode, blitter, ncopts.margin_l, ncopts.margin_r);
+  }else{
+    r = rendered_mode_player(argc - nonopt, argv + nonopt, scalemode, blitter, ncopts,
+                             quiet, loop, timescale, displaytime);
+  }
+  if(r){
+    return EXIT_FAILURE;
+  }
+  return EXIT_SUCCESS;
 }
