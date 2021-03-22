@@ -2383,8 +2383,9 @@ API ALLOC struct ncvisual* ncvisual_from_plane(const struct ncplane* n,
                                                int begy, int begx,
                                                int leny, int lenx);
 
-#define NCVISUAL_OPTION_NODEGRADE 0x0001ull // fail rather than degrade
-#define NCVISUAL_OPTION_BLEND     0x0002ull // use CELL_ALPHA_BLEND with visual
+#define NCVISUAL_OPTION_NODEGRADE  0x0001ull // fail rather than degrade
+#define NCVISUAL_OPTION_BLEND      0x0002ull // use CELL_ALPHA_BLEND with visual
+#define NCVISUAL_OPTION_HORALIGNED 0x0004ull // x is an alignment, not absolute
 
 struct ncvisual_options {
   // if no ncplane is provided, one will be created using the exact size
@@ -2397,7 +2398,8 @@ struct ncvisual_options {
   ncscale_e scaling;
   // if an ncplane is provided, y and x specify where the visual will be
   // rendered on that plane. otherwise, they specify where the created ncplane
-  // will be placed relative to the standard plane's origin.
+  // will be placed relative to the standard plane's origin. x is an ncalign_e
+  // value if NCVISUAL_OPTION_HORALIGNED is provided.
   int y, x;
   // the section of the visual that ought be rendered. for the entire visual,
   // pass an origin of 0, 0 and a size of 0, 0 (or the true height and width).
@@ -2405,8 +2407,9 @@ struct ncvisual_options {
   // prohibited.
   int begy, begx; // origin of rendered section
   int leny, lenx; // size of rendered section
-  // use NCBLIT_DEFAULT if you don't care, to use NCBLIT_2x2 (assuming
-  // UTF8) or NCBLIT_1x1 (in an ASCII environment)
+  // use NCBLIT_DEFAULT if you don't care, an appropriate blitter will be
+  // chosen for your terminal, given your scaling. NCBLIT_PIXEL is never
+  // chosen for NCBLIT_DEFAULT.
   ncblitter_e blitter; // glyph set to use (maps input to output cells)
   uint64_t flags; // bitmask over NCVISUAL_OPTION_*
 };

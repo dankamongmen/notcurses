@@ -28,6 +28,31 @@ fader(struct notcurses* nc, struct ncplane* ncp, void* curry){
   return 0;
 }
 
+static int
+orcaride(struct notcurses* nc){
+  char* path = find_data("natasha-blur.png");
+  if(path == NULL){
+    return -1;
+  }
+  struct ncvisual* ncv = ncvisual_from_file(path);
+  free(path);
+  if(ncv == NULL){
+    return -1;
+  }
+  struct ncvisual_options vopts = {
+    .blitter = NCBLIT_PIXEL,
+    .flags = NCVISUAL_OPTION_NODEGRADE,
+  };
+  struct ncplane* n = ncvisual_render(nc, ncv, &vopts);
+  if(n == NULL){
+    ncvisual_destroy(ncv);
+    return -1;
+  }
+  DEMO_RENDER(nc);
+  ncvisual_destroy(ncv);
+  return 0;
+}
+
 int intro(struct notcurses* nc){
   if(!notcurses_canutf8(nc)){
     return 0;
@@ -145,6 +170,9 @@ int intro(struct notcurses* nc){
       return -1;
     }
     ncplane_off_styles(ncp, NCSTYLE_BLINK); // heh FIXME replace with pulse
+  }
+  if(notcurses_check_pixel_support(nc) && notcurses_canopen_images(nc)){
+    orcaride(nc);
   }
   struct timespec now;
   clock_gettime(CLOCK_MONOTONIC, &now);
