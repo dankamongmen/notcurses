@@ -718,11 +718,13 @@ validate_ncreel_opts(ncplane* n, const ncreel_options* ropts){
   if(n == NULL){
     return false;
   }
+  const notcurses* nc = ncplane_notcurses_const(n);
   if(ropts->flags >= (NCREEL_OPTION_CIRCULAR << 1u)){
-    logwarn(ncplane_notcurses(n), "Provided unsupported flags 0x%016jx\n", (uintmax_t)ropts->flags);
+    logwarn(nc, "Provided unsupported flags 0x%016jx\n", (uintmax_t)ropts->flags);
   }
   if(ropts->flags & NCREEL_OPTION_CIRCULAR){
     if(!(ropts->flags & NCREEL_OPTION_INFINITESCROLL)){
+      logerror(nc, "Can't set circular without infinitescroll\n");
       return false; // can't set circular without infinitescroll
     }
   }
@@ -732,9 +734,11 @@ validate_ncreel_opts(ncplane* n, const ncreel_options* ropts){
                             NCBOXMASK_TOP |
                             NCBOXMASK_BOTTOM;
   if(ropts->bordermask > fullmask){
+    logerror(nc, "Bad bordermask: 0x%016x\n", ropts->bordermask);
     return false;
   }
   if(ropts->tabletmask > fullmask){
+    logerror(nc, "Bad tabletmask: 0x%016x\n", ropts->bordermask);
     return false;
   }
   return true;
