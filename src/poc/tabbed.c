@@ -20,8 +20,44 @@ void tabcbfn(struct nctab* t, struct ncplane* ncp, void* curry){
                   NULL);
 }
 
-int main(void){
-  struct notcurses* nc = notcurses_core_init(NULL, NULL);
+void print_usage(char** argv){
+  printf("Usage: %s [ -bht | --bottom | --help | --top ]...\n", argv[0]);
+}
+
+int main(int argc, char** argv){
+  struct notcurses* nc;
+  bool bottom = false;
+  for(int i = 1 ; i < argc ; ++i){
+    if(strcmp(argv[i], "--help") == 0){
+      print_usage(argv);
+      return EXIT_SUCCESS;
+    }else if(strcmp(argv[i], "--bottom") == 0){
+      bottom = true;
+    }else if(strcmp(argv[i], "--top") == 0){
+      bottom = false;
+    }else if(argv[i][0] == '-'){
+      for(char* c = &argv[i][1] ; *c ; ++c){
+        switch(*c){
+          case 'h':
+            print_usage(argv);
+            return EXIT_SUCCESS;
+          case 'b':
+            bottom = true;
+            break;
+          case 't':
+            bottom = false;
+            break;
+          default:
+            print_usage(argv);
+            return EXIT_FAILURE;
+        }
+      }
+    }else{
+      print_usage(argv);
+      return EXIT_FAILURE;
+    }
+  }
+  nc = notcurses_core_init(NULL, NULL);
   if(!nc){
     return EXIT_FAILURE;
   }
@@ -39,7 +75,7 @@ int main(void){
     .selchan = CHANNELS_RGB_INITIALIZER(0, 255, 0, 0, 0, 0),
     .sepchan = CHANNELS_RGB_INITIALIZER(255, 255, 255, 100, 100, 100),
     .separator = " || ",
-    .flags = 0
+    .flags = bottom ? NCTABBED_OPTION_BOTTOM : 0
   };
   struct nctabbed* nct = nctabbed_create(ncp, &topts);
   ncplane_set_base(nctabbed_content_plane(nct), " ", 0, CHANNELS_RGB_INITIALIZER(255, 255, 255, 15, 60, 15));
@@ -91,7 +127,11 @@ int main(void){
       goto ded;
     }
   }
+  goto fin;
 ded:
+  notcurses_stop(nc);
+  return EXIT_FAILURE;
+fin:
   if(notcurses_stop(nc) < 0){
     return EXIT_FAILURE;
   }
