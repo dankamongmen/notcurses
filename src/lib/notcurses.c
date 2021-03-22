@@ -380,7 +380,7 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
     pthread_mutex_unlock(&nc->pilelock);
   }
   loginfo(nc, "Created new %dx%d plane \"%s\" @ %dx%d\n",
-          nopts->rows, nopts->cols, p->name, p->absy, p->absx);
+          nopts->rows, nopts->cols, p->name ? p->name : "", p->absy, p->absx);
   return p;
 }
 
@@ -691,6 +691,8 @@ int ncplane_destroy(ncplane* ncp){
     ncplane_pile(ncp)->bottom = ncp->above;
   }
   // no need to NULL out our ->boundto, as we are about to die (and unlinked)
+  loginfo(ncplane_notcurses_const(ncp), "Destroying %dx%d plane \"%s\" @ %dx%d\n",
+          ncp->leny, ncp->lenx, ncp->name ? ncp->name : NULL, ncp->absy, ncp->absx);
   free_plane(ncp);
   return ret;
 }
