@@ -415,13 +415,12 @@ write_rle(int* printed, int color, FILE* fp, int seenrle, unsigned char crle){
 
 // Emit the sprixel in its entirety, plus enable and disable pixel mode.
 static int
-write_sixel_data(FILE* fp, int lenx, sixeltable* stab){
+write_sixel_data(FILE* fp, int lenx, sixeltable* stab, int* parse_start){
   // \e[?80: DECSDM "sixel scrolling" mode (put output at cursor location)
   // \x90: 8-bit "device control sequence", lowercase q (start sixel)
   // doesn't seem to work with at least xterm; we instead use '\ePq'
   // FIXME i think we can print DESDM on the first one, and never again
-  fprintf(fp, "\e[?80h\ePq");
-  //fprintf(fp, "\ePq");
+  *parse_start += fprintf(fp, "\e[?80h\ePq");
 
   // Set Raster Attributes - pan/pad=1 (pixel aspect ratio), Ph=lenx, Pv=leny
   // using Ph/Pv causes a background to be drawn using color register 0 for all
@@ -434,10 +433,10 @@ write_sixel_data(FILE* fp, int lenx, sixeltable* stab){
     int count = stab->deets[idx].count;
 //fprintf(stderr, "RGB: %3u %3u %3u DT: %d SUMS: %3d %3d %3d COUNT: %d\n", rgb[0], rgb[1], rgb[2], idx, stab->deets[idx].sums[0] / count * 100 / 255, stab->deets[idx].sums[1] / count * 100 / 255, stab->deets[idx].sums[2] / count * 100 / 255, count);
     //fprintf(fp, "#%d;2;%u;%u;%u", i, rgb[0], rgb[1], rgb[2]);
-    fprintf(fp, "#%d;2;%jd;%jd;%jd", i,
-            (intmax_t)(stab->deets[idx].sums[0] * 100 / count / 255),
-            (intmax_t)(stab->deets[idx].sums[1] * 100 / count / 255),
-            (intmax_t)(stab->deets[idx].sums[2] * 100 / count / 255));
+    *parse_start += fprintf(fp, "#%d;2;%jd;%jd;%jd", i,
+                            (intmax_t)(stab->deets[idx].sums[0] * 100 / count / 255),
+                            (intmax_t)(stab->deets[idx].sums[1] * 100 / count / 255),
+                            (intmax_t)(stab->deets[idx].sums[2] * 100 / count / 255));
   }
   int p = 0;
   while(p < stab->sixelcount){
@@ -498,7 +497,8 @@ int sixel_blit_inner(ncplane* nc, int leny, int lenx, sixeltable* stab,
   if(fp == NULL){
     return -1;
   }
-  if(write_sixel_data(fp, lenx, stab)){
+  int parse_start = 0;
+  if(write_sixel_data(fp, lenx, stab, &parse_start)){
     fclose(fp);
     free(buf);
     return -1;
@@ -506,7 +506,8 @@ int sixel_blit_inner(ncplane* nc, int leny, int lenx, sixeltable* stab,
   unsigned cols = lenx / bargs->pixel.celldimx + !!(lenx % bargs->pixel.celldimx);
   unsigned rows = leny / bargs->pixel.celldimy + !!(leny % bargs->pixel.celldimy);
   if(plane_blit_sixel(nc, buf, size, bargs->pixel.placey, bargs->pixel.placex,
-                      rows, cols, bargs->pixel.sprixelid, leny, lenx) < 0){
+                      rows, cols, bargs->pixel.sprixelid, leny, lenx,
+                      parse_start) < 0){
     free(buf);
     return -1;
   }

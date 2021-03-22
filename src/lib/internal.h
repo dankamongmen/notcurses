@@ -65,7 +65,8 @@ typedef struct sprixel {
   int y, x;
   int dimy, dimx;    // cell geometry
   int pixy, pixx;    // pixel geometry (might be smaller than cell geo)
-  int* tacache;       // transparency-annihilatin cache (dimy * dimx)
+  int* tacache;      // transparency-annihilatin cache (dimy * dimx)
+  int parse_start;   // where to start parsing for cell wipes
 } sprixel;
 
 // A plane is memory for some rectilinear virtual window, plus current cursor
@@ -725,7 +726,8 @@ void sprixel_free(sprixel* s);
 void sprixel_hide(sprixel* s);
 // dimy and dimx are cell geometry, not pixel
 sprixel* sprixel_create(ncplane* n, const char* s, int bytes, int placey, int placex,
-                        int sprixelid, int dimy, int dimx, int pixy, int pixx);
+                        int sprixelid, int dimy, int dimx, int pixy, int pixx,
+                        int parse_start);
 API int sprite_wipe_cell(const notcurses* nc, sprixel* s, int y, int x);
 int sprite_kitty_annihilate(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
 int sprite_kitty_clear_all(const notcurses* nc);
@@ -1126,8 +1128,10 @@ egc_rtl(const char* egc, int* bytes){
 // new, purpose-specific plane.
 static inline int
 plane_blit_sixel(ncplane* n, const char* s, int bytes, int placey, int placex,
-                 int leny, int lenx, int sprixelid, int dimy, int dimx){
-  sprixel* spx = sprixel_create(n, s, bytes, placey, placex, sprixelid, leny, lenx, dimy, dimx);
+                 int leny, int lenx, int sprixelid, int dimy, int dimx,
+                 int parse_start){
+  sprixel* spx = sprixel_create(n, s, bytes, placey, placex, sprixelid,
+                                leny, lenx, dimy, dimx, parse_start);
   if(spx == NULL){
     return -1;
   }

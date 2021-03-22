@@ -132,7 +132,7 @@ int sprite_kitty_cell_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell
   if((ycell + 1) * ypixels > s->pixy){
     targy = s->pixy - ycell * ypixels;
   }
-  char* c = s->glyph;
+  char* c = s->glyph + s->parse_start;
 //fprintf(stderr, "TARGET AREA: %d x %d @ %dx%d of %d/%d (%d/%d) len %zu\n", targy, targx, ycell, xcell, s->dimy, s->dimx, s->pixy, s->pixx, strlen(c));
   // every pixel was 4 source bytes, 32 bits, 6.33 base64 bytes. every 3 input pixels is
   // 12 bytes (96 bits), an even 16 base64 bytes. there is chunking to worry about. there
@@ -142,11 +142,6 @@ int sprite_kitty_cell_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell
   int chunkedhandled = 0;
   const int chunks = totalpixels / RGBA_MAXLEN + !!(totalpixels % RGBA_MAXLEN);
   while(targy && chunkedhandled < chunks){ // need to null out |targy| rows of |targx| pixels, track with |thisrow|
-//fprintf(stderr, "CHUNK %d NEXTPIXEL: %d NEXTCHUNK: %d\n", chunkedhandled, nextpixel, nextchunk);
-    while(*c != ';'){
-      ++c;
-    }
-    ++c;
 //fprintf(stderr, "PLUCKING FROM [%s]\n", c);
     int inchunk = totalpixels - chunkedhandled * RGBA_MAXLEN;
     if(inchunk > RGBA_MAXLEN){
@@ -184,8 +179,13 @@ int sprite_kitty_cell_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell
       }
     }
     c += RGBA_MAXLEN * 4 * 4 / 3; // 4bpp * 4/3 for base64, 4096b per chunk
+    c += 8; // new chunk header
     ++chunkedhandled;
 //fprintf(stderr, "LOOKING NOW AT %u [%s]\n", c - s->glyph, c);
+    while(*c != ';'){
+      ++c;
+    }
+    ++c;
   }
   return -1;
 }
@@ -195,7 +195,7 @@ int sprite_kitty_cell_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell
 // 16 base64-encoded bytes. 4096 / 16 == 256 3-pixel groups, or 768 pixels.
 static int
 write_kitty_data(FILE* fp, int linesize, int leny, int lenx,
-                 const uint32_t* data, int sprixelid){
+                 const uint32_t* data, int sprixelid, int* parse_start){
   if(linesize % sizeof(*data)){
     return -1;
   }
@@ -209,7 +209,8 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx,
 //fprintf(stderr, "total: %d chunks = %d, s=%d,v=%d\n", total, chunks, lenx, leny);
   while(chunks--){
     if(totalout == 0){
-      fprintf(fp, "\e_Gf=32,s=%d,v=%d,i=%d,a=T,%c=1;", lenx, leny, sprixelid, chunks ? 'm' : 'q');
+      *parse_start = fprintf(fp, "\e_Gf=32,s=%d,v=%d,i=%d,a=T,%c=1;",
+                             lenx, leny, sprixelid, chunks ? 'm' : 'q');
     }else{
       fprintf(fp, "\e_G%sm=%d;", chunks ? "" : "q=1,", chunks ? 1 : 0);
     }
@@ -258,13 +259,16 @@ int kitty_blit_inner(ncplane* nc, int linesize, int leny, int lenx,
   if(fp == NULL){
     return -1;
   }
-  if(write_kitty_data(fp, linesize, leny, lenx, data, bargs->pixel.sprixelid)){
+  int parse_start = 0;
+  if(write_kitty_data(fp, linesize, leny, lenx, data, bargs->pixel.sprixelid,
+                      &parse_start)){
     fclose(fp);
     free(buf);
     return -1;
   }
   if(plane_blit_sixel(nc, buf, size, bargs->pixel.placey, bargs->pixel.placex,
-                      rows, cols, bargs->pixel.sprixelid, leny, lenx) < 0){
+                      rows, cols, bargs->pixel.sprixelid, leny, lenx,
+                      parse_start) < 0){
     free(buf);
     return -1;
   }
