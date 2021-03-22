@@ -320,6 +320,7 @@ typedef struct tinfo {
   // means leaving out the pixels (and likely resizes the string). for kitty,
   // this means dialing down their alpha to 0 (in equivalent space).
   int (*pixel_cell_wipe)(const struct notcurses* nc, sprixel* s, int y, int x);
+  int (*pixel_clear_all)(const struct notcurses* nc);
   bool pixel_query_done; // have we yet performed pixel query?
   bool sextants;  // do we have (good, vetted) Unicode 13 sextant support?
   bool braille;   // do we have Braille support? (linux console does not)
@@ -479,7 +480,7 @@ int terminfostr(char** gseq, const char* name);
 
 // load |ti| from the terminfo database, which must already have been
 // initialized. set |utf8| if we've verified UTF8 output encoding.
-int interrogate_terminfo(tinfo* ti, const char* termname, unsigned utf8);
+int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8);
 
 void free_terminfo_cache(tinfo* ti);
 
@@ -727,7 +728,9 @@ sprixel* sprixel_create(ncplane* n, const char* s, int bytes, int placey, int pl
                         int sprixelid, int dimy, int dimx, int pixy, int pixx);
 API int sprite_wipe_cell(const notcurses* nc, sprixel* s, int y, int x);
 int sprite_kitty_annihilate(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
+int sprite_kitty_clear_all(const notcurses* nc);
 int sprite_sixel_annihilate(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
+int sprite_clear_all(const notcurses* nc);
 
 static inline void
 pool_release(egcpool* pool, nccell* c){

@@ -282,3 +282,7 @@ int kitty_blit(ncplane* nc, int linesize, const void* data, int begy, int begx,
   }
   return r;
 }
+
+int sprite_kitty_clear_all(const notcurses* nc){
+  return tty_emit("\e_Ga=d\e\\", nc->ttyfd);
+}

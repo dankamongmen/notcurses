@@ -72,3 +72,10 @@ int sprite_wipe_cell(const notcurses* nc, sprixel* s, int ycell, int xcell){
   }
   return r;
 }
+
+int sprite_clear_all(const notcurses* nc){
+  if(!nc->tcache.pixel_clear_all){
+    return 0;
+  }
+  return nc->tcache.pixel_clear_all(nc);
+}

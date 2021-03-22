@@ -683,7 +683,7 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
   if(ncvisual_init(NCLOGLEVEL_SILENT)){
     goto err;
   }
-  if(interrogate_terminfo(&ret->tcache, shortname_term, utf8)){
+  if(interrogate_terminfo(&ret->tcache, ret->ctermfd, shortname_term, utf8)){
     goto err;
   }
   update_term_dimensions(ret->ctermfd, NULL, NULL, &ret->tcache);

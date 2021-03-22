@@ -62,6 +62,7 @@ apply_term_heuristics(tinfo* ti, const char* termname){
     ti->sixel_supported = true;
     ti->pixel_cell_wipe = sprite_kitty_cell_wipe;
     ti->pixel_destroy = sprite_kitty_annihilate;
+    ti->pixel_clear_all = sprite_kitty_clear_all;
     set_pixel_blitter(kitty_blit);
   /*}else if(strstr(termname, "alacritty")){
     ti->sextants = true; // alacritty https://github.com/alacritty/alacritty/issues/4409 */
@@ -86,7 +87,7 @@ void free_terminfo_cache(tinfo* ti){
 // termname is just the TERM environment variable. some details are not
 // exposed via terminfo, and we must make heuristic decisions based on
 // the detected terminal type, yuck :/.
-int interrogate_terminfo(tinfo* ti, const char* termname, unsigned utf8){
+int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8){
   memset(ti, 0, sizeof(*ti));
   ti->utf8 = utf8;
   ti->RGBflag = query_rgb();
@@ -150,25 +151,25 @@ int interrogate_terminfo(tinfo* ti, const char* termname, unsigned utf8){
   // support for the style in that case.
   int nocolor_stylemask = tigetnum("ncv");
   if(nocolor_stylemask > 0){
-    if(nocolor_stylemask & WA_STANDOUT){ // ncv is composed of terminfo bits, not ours
+    if(nocolor_stylemask & A_STANDOUT){ // ncv is composed of terminfo bits, not ours
       ti->standout = NULL;
     }
-    if(nocolor_stylemask & WA_UNDERLINE){
+    if(nocolor_stylemask & A_UNDERLINE){
       ti->uline = NULL;
     }
-    if(nocolor_stylemask & WA_REVERSE){
+    if(nocolor_stylemask & A_REVERSE){
       ti->reverse = NULL;
     }
-    if(nocolor_stylemask & WA_BLINK){
+    if(nocolor_stylemask & A_BLINK){
       ti->blink = NULL;
     }
-    if(nocolor_stylemask & WA_DIM){
+    if(nocolor_stylemask & A_DIM){
       ti->dim = NULL;
     }
-    if(nocolor_stylemask & WA_BOLD){
+    if(nocolor_stylemask & A_BOLD){
       ti->bold = NULL;
     }
-    if(nocolor_stylemask & WA_ITALIC){
+    if(nocolor_stylemask & A_ITALIC){
       ti->italics = NULL;
     }
     // can't do anything about struck! :/
@@ -183,7 +184,7 @@ int interrogate_terminfo(tinfo* ti, const char* termname, unsigned utf8){
   terminfostr(&ti->struckoff, "rmxx"); // cancel strikeout
   // if the keypad neen't be explicitly enabled, smkx is not present
   if(ti->smkx){
-    if(putp(tiparm(ti->smkx)) != OK){
+    if(tty_emit(tiparm(ti->smkx), fd) < 0){
       fprintf(stderr, "Error entering keypad transmit mode\n");
       return -1;
     }
