@@ -62,7 +62,7 @@ apply_term_heuristics(tinfo* ti, const char* termname){
     ti->sixel_supported = true;
     ti->pixel_cell_wipe = sprite_kitty_cell_wipe;
     ti->pixel_destroy = sprite_kitty_annihilate;
-    ti->pixel_clear_all = sprite_kitty_clear_all;
+    ti->pixel_init = sprite_kitty_init;
     set_pixel_blitter(kitty_blit);
   /*}else if(strstr(termname, "alacritty")){
     ti->sextants = true; // alacritty https://github.com/alacritty/alacritty/issues/4409 */
@@ -347,6 +347,7 @@ query_sixel(tinfo* ti, int fd){
             ti->sixel_supported = true;
             ti->color_registers = 256;  // assumed default [shrug]
             ti->pixel_destroy = sprite_sixel_annihilate;
+            ti->pixel_init = sprite_sixel_init;
             //ti->pixel_cell_wipe = sprite_sixel_cell_wipe;
             ti->sixel_maxx = ti->sixel_maxy = 0;
           }
