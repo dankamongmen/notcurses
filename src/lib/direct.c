@@ -522,14 +522,13 @@ ncdirectv* ncdirect_render_frame(ncdirect* n, const char* file,
     ncvisual_destroy(ncv);
     return NULL;
   }
-  blitterargs bargs = {
-    .pixel = {
-      .celldimx = n->tcache.cellpixx,
-      .celldimy = n->tcache.cellpixy,
-      .colorregs = n->tcache.color_registers,
-      .sprixelid = n->tcache.sprixelnonce++,
-    },
-  };
+  blitterargs bargs = {};
+  if(bset->geom == NCBLIT_PIXEL){
+    bargs.pixel.celldimx = n->tcache.cellpixx;
+    bargs.pixel.celldimy = n->tcache.cellpixy;
+    bargs.pixel.colorregs = n->tcache.color_registers;
+    bargs.pixel.sprixelid = n->tcache.sprixelnonce++;
+  }
   if(ncvisual_blit(ncv, disprows, dispcols, ncdv, bset,
                    0, 0, leny, lenx, &bargs)){
     ncvisual_destroy(ncv);
@@ -684,7 +683,7 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
   if(ncvisual_init(NCLOGLEVEL_SILENT)){
     goto err;
   }
-  if(interrogate_terminfo(&ret->tcache, shortname_term, utf8)){
+  if(interrogate_terminfo(&ret->tcache, ret->ctermfd, shortname_term, utf8)){
     goto err;
   }
   update_term_dimensions(ret->ctermfd, NULL, NULL, &ret->tcache);
