@@ -404,22 +404,27 @@ int rendered_mode_player(int argc, char** argv, ncscale_e scalemode,
   if(quiet){
     ncopts.flags |= NCOPTION_SUPPRESS_BANNERS;
   }
-  NotCurses nc{ncopts};
-  if(!nc.can_open_images()){
-    nc.stop();
-    std::cerr << "Notcurses was compiled without multimedia support\n";
-    return EXIT_FAILURE;
-  }
   int r;
   try{
-    r = rendered_mode_player_inner(nc, argc, argv, scalemode, blitter,
-                                   quiet, loop, timescale, displaytime);
-  }catch(std::exception& e){
-    nc.stop();
-    std::cerr << e.what() << "\n";
-    return -1;
-  }
-  if(!nc.stop()){
+    NotCurses nc{ncopts};
+    if(!nc.can_open_images()){
+      nc.stop();
+      std::cerr << "Notcurses was compiled without multimedia support\n";
+      return EXIT_FAILURE;
+    }
+    try{
+      r = rendered_mode_player_inner(nc, argc, argv, scalemode, blitter,
+                                    quiet, loop, timescale, displaytime);
+    }catch(std::exception& e){
+      nc.stop();
+      std::cerr << e.what() << "\n";
+      return -1;
+    }
+    if(!nc.stop()){
+      return -1;
+    }
+  }catch(ncpp::init_error* e){
+    std::cerr << e->what() << "\n";
     return -1;
   }
   return r;
