@@ -2108,11 +2108,11 @@ const notcurses* ncplane_notcurses_const(const ncplane* n){
 }
 
 int ncplane_abs_y(const ncplane* n){
-  return n->absy; // FIXME adjust for margins?
+  return n->absy;
 }
 
 int ncplane_abs_x(const ncplane* n){
-  return n->absx; // FIXME adjust for margins?
+  return n->absx;
 }
 
 void ncplane_abs_yx(const ncplane* n, int* RESTRICT y, int* RESTRICT x){
