@@ -11,8 +11,6 @@ void sprixel_free(sprixel* s){
 void sprixel_hide(sprixel* s){
   s->n->sprite = NULL;
   s->invalidated = SPRIXEL_HIDE;
-  ncplane_yx(s->n, &s->y, &s->x);
-  ncplane_dim_yx(s->n, &s->dimy, &s->dimx);
   s->n = NULL;
 }
 
