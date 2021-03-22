@@ -200,7 +200,7 @@ int main(int argc, char* const * argv){
   while((c = getopt_long(argc, argv, "Va:b:s:dhlLR", opts, &lidx)) != -1){
     switch(c){
       case 'V':
-        printf("ncls version %s\n", notcurses_version());
+        std::cout << "ncls version " <<  notcurses_version() << std::endl;
         exit(EXIT_SUCCESS);
       case 'a':
         if(strcasecmp(optarg, "left") == 0){

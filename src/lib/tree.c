@@ -124,7 +124,7 @@ nctree_inner_create(ncplane* n, const struct nctree_options* opts){
 
 nctree* nctree_create(ncplane* n, const struct nctree_options* opts){
   if(n == NULL){
-    return -1;
+    return NULL;
   }
   notcurses* nc = ncplane_notcurses(n);
   if(opts->flags){
