@@ -725,6 +725,7 @@ plane_debug(const ncplane* n, bool details){
 }
 
 void sprixel_free(sprixel* s);
+void sprixel_invalidate(sprixel* s);
 void sprixel_hide(sprixel* s);
 // dimy and dimx are cell geometry, not pixel
 sprixel* sprixel_create(ncplane* n, const char* s, int bytes, int placey, int placex,

@@ -28,28 +28,42 @@ fader(struct notcurses* nc, struct ncplane* ncp, void* curry){
   return 0;
 }
 
-static int
-orcaride(struct notcurses* nc){
+static struct ncplane*
+orcashow(struct notcurses* nc){
   char* path = find_data("natasha-blur.png");
   if(path == NULL){
-    return -1;
+    return NULL;
   }
   struct ncvisual* ncv = ncvisual_from_file(path);
   free(path);
   if(ncv == NULL){
-    return -1;
+    return NULL;
   }
   struct ncvisual_options vopts = {
     .blitter = NCBLIT_PIXEL,
-    .flags = NCVISUAL_OPTION_NODEGRADE,
+    .flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_HORALIGNED,
   };
   struct ncplane* n = ncvisual_render(nc, ncv, &vopts);
-  if(n == NULL){
-    ncvisual_destroy(ncv);
+  ncvisual_destroy(ncv);
+  return n;
+}
+
+static int
+orcaride(struct notcurses* nc, struct ncplane* on, int dimy, int dimx){
+  int odimy, odimx, oy, ox;
+  ncplane_yx(on, &oy, &ox);
+  ncplane_dim_yx(on, &odimy, &odimx);
+  DEMO_RENDER(nc);
+  if(oy + odimy + 5 < dimy){
+    oy += 5;
+  }
+  if(ox + odimx + 10 < dimx){
+    ox += 10;
+  }
+  if(ncplane_move_yx(on, oy, ox)){
     return -1;
   }
   DEMO_RENDER(nc);
-  ncvisual_destroy(ncv);
   return 0;
 }
 
@@ -171,8 +185,9 @@ int intro(struct notcurses* nc){
     }
     ncplane_off_styles(ncp, NCSTYLE_BLINK); // heh FIXME replace with pulse
   }
+  struct ncplane* on = NULL;
   if(notcurses_check_pixel_support(nc) && notcurses_canopen_images(nc)){
-    orcaride(nc);
+    on = orcashow(nc);
   }
   struct timespec now;
   clock_gettime(CLOCK_MONOTONIC, &now);
@@ -187,7 +202,11 @@ int intro(struct notcurses* nc){
     timespec_div(&demodelay, 10, &iter);
     demo_nanosleep(nc, &iter);
     clock_gettime(CLOCK_MONOTONIC, &now);
+    if(flipmode % 3 == 0){
+      orcaride(nc, on, rows, cols);
+    }
   }while(timespec_to_ns(&now) < deadline);
+  ncplane_destroy(on);
   if(!notcurses_canfade(nc)){
     return 0;
   }
