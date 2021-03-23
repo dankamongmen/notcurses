@@ -49,16 +49,20 @@ orcashow(struct notcurses* nc){
 }
 
 static int
-orcaride(struct notcurses* nc, struct ncplane* on, int dimy, int dimx){
+orcaride(struct notcurses* nc, struct ncplane* on, int dimy, int dimx, int iteration){
+  if(iteration % 2){
+    return 0;
+  }
   int odimy, odimx, oy, ox;
   ncplane_yx(on, &oy, &ox);
   ncplane_dim_yx(on, &odimy, &odimx);
-  DEMO_RENDER(nc);
-  if(oy + odimy + 5 < dimy){
-    oy += 5;
+  if(iteration % 4 == 0){
+    if(oy + odimy + 5 < dimy){
+      oy += 5;
+    }
   }
-  if(ox + odimx + 10 < dimx){
-    ox += 10;
+  if(ox + odimx + 5 < dimx){
+    ox += 5;
   }
   if(ncplane_move_yx(on, oy, ox)){
     return -1;
@@ -202,9 +206,7 @@ int intro(struct notcurses* nc){
     timespec_div(&demodelay, 10, &iter);
     demo_nanosleep(nc, &iter);
     clock_gettime(CLOCK_MONOTONIC, &now);
-    if(flipmode % 3 == 0){
-      orcaride(nc, on, rows, cols);
-    }
+    orcaride(nc, on, rows, cols, flipmode);
   }while(timespec_to_ns(&now) < deadline);
   ncplane_destroy(on);
   if(!notcurses_canfade(nc)){
