@@ -383,8 +383,8 @@ int query_term(tinfo* ti, int fd){
     ti->pixel_query_done = true;
     if(ti->sixel_supported){
       query_sixel_details(ti, fd);
+      ti->pixel_init(fd);
     }
-    ti->pixel_init(fd);
     if(flags & O_NONBLOCK){
       fcntl(fd, F_SETFL, flags);
     }
