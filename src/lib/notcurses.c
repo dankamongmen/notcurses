@@ -1900,6 +1900,10 @@ move_bound_planes(ncplane* n, int dy, int dx){
   while(n){
     n->absy += dy;
     n->absx += dx;
+    // FIXME do these only if we actually changed location
+    if(n->sprite){
+      sprixel_invalidate(n->sprite);
+    }
     move_bound_planes(n->blist, dy, dx);
     n = n->bnext;
   }
@@ -1914,6 +1918,10 @@ int ncplane_move_yx(ncplane* n, int y, int x){
   dx = (n->boundto->absx + x) - n->absx;
   n->absx += dx;
   n->absy += dy;
+  // FIXME do these only if we actually changed location
+  if(n->sprite){
+    sprixel_invalidate(n->sprite);
+  }
   move_bound_planes(n->blist, dy, dx);
   return 0;
 }
