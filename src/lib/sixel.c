@@ -415,7 +415,7 @@ write_rle(int* printed, int color, FILE* fp, int seenrle, unsigned char crle){
 
 // Emit the sprixel in its entirety, plus enable and disable pixel mode.
 static int
-write_sixel_data(FILE* fp, int lenx, sixeltable* stab, int* parse_start){
+write_sixel_data(FILE* fp, int lenx, sixeltable* stab, int* parse_start, int* tacache){
   *parse_start = fprintf(fp, "\ePq");
   // Set Raster Attributes - pan/pad=1 (pixel aspect ratio), Ph=lenx, Pv=leny
   // using Ph/Pv causes a background to be drawn using color register 0 for all
@@ -434,6 +434,7 @@ write_sixel_data(FILE* fp, int lenx, sixeltable* stab, int* parse_start){
                             (intmax_t)(stab->deets[idx].sums[2] * 100 / count / 255));
   }
   int p = 0;
+  (void)tacache; // FIXME fill in tacache when we hit transparencies
   while(p < stab->sixelcount){
     for(int i = 0 ; i < stab->colors ; ++i){
       int printed = 0;
@@ -493,16 +494,23 @@ int sixel_blit_inner(ncplane* nc, int leny, int lenx, sixeltable* stab,
     return -1;
   }
   int parse_start = 0;
-  if(write_sixel_data(fp, lenx, stab, &parse_start)){
-    fclose(fp);
+  unsigned cols = lenx / bargs->u.pixel.celldimx + !!(lenx % bargs->u.pixel.celldimx);
+  unsigned rows = leny / bargs->u.pixel.celldimy + !!(leny % bargs->u.pixel.celldimy);
+  int* tacache = malloc(sizeof(*tacache) * rows * cols);
+  memset(tacache, 0, sizeof(*tacache) * rows * cols);
+  if(tacache == NULL){
     free(buf);
     return -1;
   }
-  unsigned cols = lenx / bargs->u.pixel.celldimx + !!(lenx % bargs->u.pixel.celldimx);
-  unsigned rows = leny / bargs->u.pixel.celldimy + !!(leny % bargs->u.pixel.celldimy);
+  if(write_sixel_data(fp, lenx, stab, &parse_start, tacache)){
+    free(tacache);
+    free(buf);
+    return -1;
+  }
   if(plane_blit_sixel(nc, buf, size, bargs->placey, bargs->placex,
                       rows, cols, bargs->u.pixel.sprixelid, leny, lenx,
-                      parse_start) < 0){
+                      parse_start, tacache) < 0){
+    free(tacache);
     free(buf);
     return -1;
   }

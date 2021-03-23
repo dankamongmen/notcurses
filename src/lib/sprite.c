@@ -17,22 +17,14 @@ void sprixel_hide(sprixel* s){
 // y and x are the cell geometry, not the pixel geometry
 sprixel* sprixel_create(ncplane* n, const char* s, int bytes, int placey, int placex,
                         int sprixelid, int dimy, int dimx, int pixy, int pixx,
-                        int parse_start){
+                        int parse_start, int* tacache){
   sprixel* ret = malloc(sizeof(sprixel));
   if(ret){
     if((ret->glyph = memdup(s, bytes + 1)) == NULL){
       free(ret);
       return NULL;
     }
-    const size_t tasize = sizeof(*ret->tacache) * dimy * dimx;
-    if((ret->tacache = malloc(tasize)) == NULL){
-      free(ret->glyph);
-      free(ret);
-      return NULL;
-    }
-    // FIXME set up transparency cache when generating sprixel;
-    // we manage only annihilation cache
-    memset(ret->tacache, 0, tasize);
+    ret->tacache = tacache;
     ret->invalidated = SPRIXEL_INVALIDATED;
     ret->n = n;
     ret->dimy = dimy;

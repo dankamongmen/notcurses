@@ -45,7 +45,7 @@ int yield_demo(struct notcurses* nc){
   const long total = vy * vx;
   // less than this, and we exit almost immediately. more than this, and we
   // run closer to twenty seconds. 11/50 it is, then.
-  const long threshold_painted = total * 11 / 50;
+  const long threshold_painted = total * 1 / 50;
   const int MAXITER = 256;
   timespec_div(&demodelay, MAXITER, &scaled);
   long tfilled = 0;

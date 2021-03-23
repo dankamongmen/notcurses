@@ -193,12 +193,18 @@ int sprite_kitty_cell_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell
 // we can only write 4KiB at a time. we're writing base64-encoded RGBA. each
 // pixel is 4B raw (32 bits). each chunk of three pixels is then 12 bytes, or
 // 16 base64-encoded bytes. 4096 / 16 == 256 3-pixel groups, or 768 pixels.
-static int
-write_kitty_data(FILE* fp, int linesize, int leny, int lenx,
+static int*
+write_kitty_data(FILE* fp, int rows, int cols, int linesize, int leny, int lenx,
                  const uint32_t* data, int sprixelid, int* parse_start){
   if(linesize % sizeof(*data)){
-    return -1;
+    return NULL;
   }
+  int* tacache = malloc(sizeof(*tacache) * rows * cols);
+  if(tacache == NULL){
+    return NULL;
+  }
+  memset(tacache, 0, sizeof(*tacache) * rows * cols);
+  (void)tacache; // FIXME populate tacache with 1s for cells with transparency
   int total = leny * lenx; // total number of pixels (4 * total == bytecount)
   // number of 4KiB chunks we'll need
   int chunks = (total + (RGBA_MAXLEN - 1)) / RGBA_MAXLEN;
@@ -241,9 +247,10 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx,
     fprintf(fp, "\e\\");
   }
   if(fclose(fp) == EOF){
-    return -1;
+    free(tacache);
+    return NULL;
   }
-  return 0;
+  return tacache;
 }
 #undef RGBA_MAXLEN
 
@@ -260,15 +267,17 @@ int kitty_blit_inner(ncplane* nc, int linesize, int leny, int lenx,
     return -1;
   }
   int parse_start = 0;
-  if(write_kitty_data(fp, linesize, leny, lenx, data, bargs->u.pixel.sprixelid,
-                      &parse_start)){
+  int* tacache = write_kitty_data(fp, rows, cols, linesize, leny, lenx, data,
+                                  bargs->u.pixel.sprixelid, &parse_start);
+  if(tacache == NULL){
     fclose(fp);
     free(buf);
     return -1;
   }
   if(plane_blit_sixel(nc, buf, size, bargs->placey, bargs->placex,
                       rows, cols, bargs->u.pixel.sprixelid, leny, lenx,
-                      parse_start) < 0){
+                      parse_start, tacache) < 0){
+    free(tacache);
     free(buf);
     return -1;
   }
