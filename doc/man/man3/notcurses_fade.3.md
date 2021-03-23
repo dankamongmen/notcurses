@@ -17,7 +17,8 @@ struct ncfadectx;
 // returned, the fading operation ceases immediately, and that value is
 // propagated out. If provided and not NULL, the faders will not themselves
 // call notcurses_render().
-typedef int (*fadecb)(struct notcurses* nc, struct ncplane* ncp, const struct timespec*, void* curry);
+typedef int (*fadecb)(struct notcurses* nc, struct ncplane* ncp,
+                      const struct timespec*, void* curry);
 ```
 
 **bool notcurses_canfade(const struct notcurses* ***nc***);**
