@@ -314,6 +314,11 @@ int direct_mode_player(int argc, char** argv, ncscale_e scalemode,
       failed = true;
       break;
     }
+    int y, x;
+    dm.get_cursor_yx(&y, &x);
+    if(x){
+      std::cout << std::endl;
+    }
   }
   return failed ? -1 : 0;
 }
