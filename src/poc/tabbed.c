@@ -80,19 +80,21 @@ int main(int argc, char** argv){
     .flags = bottom ? NCTABBED_OPTION_BOTTOM : 0
   };
   struct nctabbed* nct = nctabbed_create(ncp, &topts);
+  struct nctab* t_; // stupid unused result warnings
+  (void) t_;
   ncplane_set_base(nctabbed_content_plane(nct), " ", 0, CHANNELS_RGB_INITIALIZER(255, 255, 255, 15, 60, 15));
   REDRAW();
-  (void) nctabbed_add(nct, NULL, NULL, tabcbfn, "Tab #1", NULL);
+  t_ = nctabbed_add(nct, NULL, NULL, tabcbfn, "Tab #1", NULL);
   REDRAW();
-  (void) nctabbed_add(nct, NULL, NULL, tabcbfn, "Tab #2", NULL);
+  t_ = nctabbed_add(nct, NULL, NULL, tabcbfn, "Tab #2", NULL);
   REDRAW();
-  (void) nctabbed_add(nct, NULL, NULL, tabcbfn, "Tab #3", NULL);
+  t_ = nctabbed_add(nct, NULL, NULL, tabcbfn, "Tab #3", NULL);
   REDRAW();
-  (void) nctabbed_add(nct, NULL, NULL, tabcbfn, "alpha", NULL);
+  t_ = nctabbed_add(nct, NULL, NULL, tabcbfn, "alpha", NULL);
   REDRAW();
-  (void) nctabbed_add(nct, NULL, NULL, tabcbfn, "beta", NULL);
+  t_ = nctabbed_add(nct, NULL, NULL, tabcbfn, "beta", NULL);
   REDRAW();
-  (void) nctabbed_add(nct, NULL, NULL, tabcbfn, "gamma", NULL);
+  t_ = nctabbed_add(nct, NULL, NULL, tabcbfn, "gamma", NULL);
   REDRAW();
   char32_t c;
   while((c = notcurses_getc_blocking(nc, NULL)) != 'q'){
@@ -116,7 +118,7 @@ int main(int argc, char** argv){
         nctab_move_right(nct, nctabbed_selected(nct));
         break;
       case 'a':
-        (void) nctabbed_add(nct, NULL, NULL, tabcbfn, "added tab", NULL);
+        t_ = nctabbed_add(nct, NULL, NULL, tabcbfn, "added tab", NULL);
         break;
       case 'r':
         nctabbed_del(nct, nctabbed_selected(nct));
