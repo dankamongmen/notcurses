@@ -190,6 +190,7 @@ struct crender {
   const ncplane *p; // source of glyph for this cell
   nccell c;
   uint32_t hcfg;       // fg channel prior to HIGHCONTRAST (need full channel)
+  uint32_t sprixelid;  // id of sprixel we're potentially invalidating
   struct {
     // If the glyph we render is from an ncvisual, and has a transparent or
     // blended background, blitter stacking is in effect. This is a complicated
@@ -213,6 +214,7 @@ struct crender {
     // and then reapply any foreground shading from above the highcontrast
     // declaration. save the foreground state when we go highcontrast.
     unsigned hcfgblends: 8; // number of foreground blends prior to HIGHCONTRAST
+    unsigned sprixeled: 1; // have we passed through a sprixel?
   } s;
 };
 
@@ -242,6 +244,7 @@ highcontrast(uint32_t bchannel){
 //
 // only those cells where 'p' intersects with the target rendering area are
 // rendered.
+//
 static void
 paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
       int dstabsy, int dstabsx){
@@ -285,9 +288,15 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
       // scribbled upon.
       if(cell_sprixel_p(vis)){
         // if we already have a glyph solved, and we run into a bitmap
-        // cell, we need to null that cell out.
+        // cell, we need to null that cell out of the bitmap.
         if(crender->p || crender->s.bgblends){
           sprite_wipe_cell(ncplane_notcurses_const(p), p->sprite, y, x);
+        }else if(!crender->p){
+          // if we are a bitmap, and above a cell that has changed (and
+          // will thus be printed), we'll need redraw the sprixel.
+          if(rvec->sprixelid == 0){
+            rvec->sprixelid = cell_sprixel_id(vis);
+          }
         }
         continue;
       }
@@ -922,11 +931,12 @@ int sprite_kitty_annihilate(const notcurses* nc, const ncpile* p, FILE* out, spr
 }
 
 int sprite_sixel_annihilate(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
+  /*
   (void)out;
   struct crender* rvec = p->crender;
   // FIXME need to cap by ends minus bottom, right margins also
-  const int ycap = nc->stdplane->leny /*s->dimy*/ + nc->margin_t;
-  const int xcap = nc->stdplane->lenx /*s->dimx*/ + nc->margin_l;
+  const int ycap = nc->stdplane->leny + nc->margin_t;
+  const int xcap = nc->stdplane->lenx + nc->margin_l;
 //fprintf(stderr, "yCAP: %d xCAP: %d\n", ycap, xcap);
   for(int y = s->y + nc->stdplane->absy ; y < s->y + nc->stdplane->absy + s->dimy && y < ycap ; ++y){
     const int innery = y - nc->stdplane->absy;
@@ -937,6 +947,7 @@ int sprite_sixel_annihilate(const notcurses* nc, const ncpile* p, FILE* out, spr
       rvec[damageidx].s.damaged = 1;
     }
   }
+  */
   return 1;
 }
 
@@ -1082,6 +1093,9 @@ rasterize_core(notcurses* nc, const ncpile* p, FILE* out){
           nc->rstate.bgpalelidable = false;
         }
 //fprintf(stderr, "RAST %08x [%s] to %d/%d cols: %u %016lx\n", srccell->gcluster, pool_extended_gcluster(&nc->pool, srccell), y, x, srccell->width, srccell->channels);
+        if(rvec[damageidx].sprixelid){
+          sprixel_invalidate(sprixel_by_id(nc, rvec[damageidx].sprixelid));
+        }
         if(term_putc(out, &nc->pool, srccell)){
           return -1;
         }

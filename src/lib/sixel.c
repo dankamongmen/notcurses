@@ -420,7 +420,7 @@ write_sixel_data(FILE* fp, int lenx, sixeltable* stab, int* parse_start, int* ta
   // Set Raster Attributes - pan/pad=1 (pixel aspect ratio), Ph=lenx, Pv=leny
   // using Ph/Pv causes a background to be drawn using color register 0 for all
   // unspecified pixels, which we do not want.
-  //fprintf(fp, "\"1;1;%d;%d", lenx, leny);
+//  fprintf(fp, "\"1;1;%d;%d", lenx, leny);
 
   for(int i = 0 ; i < stab->colors ; ++i){
     const unsigned char* rgb = stab->table + i * CENTSIZE;

@@ -14,6 +14,21 @@ void sprixel_hide(sprixel* s){
   s->n = NULL;
 }
 
+void sprixel_invalidate(sprixel* s){
+  if(s->invalidated != SPRIXEL_HIDE){
+    s->invalidated = SPRIXEL_INVALIDATED;
+  }
+}
+
+sprixel* sprixel_by_id(notcurses* nc, uint32_t id){
+  for(sprixel* cur = nc->sprixelcache ; cur ; cur = cur->next){
+    if(cur->id == id){
+      return cur;
+    }
+  }
+  return NULL;
+}
+
 // y and x are the cell geometry, not the pixel geometry
 sprixel* sprixel_create(ncplane* n, const char* s, int bytes, int placey, int placex,
                         int sprixelid, int dimy, int dimx, int pixy, int pixx,
