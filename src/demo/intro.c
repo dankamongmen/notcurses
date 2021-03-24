@@ -61,7 +61,7 @@ orcashow(struct notcurses* nc, int dimy, int dimx){
 }
 
 static int
-orcaride(struct notcurses* nc, struct ncplane* on, int dimy, int iteration){
+orcaride(struct notcurses* nc, struct ncplane* on){
   int odimy, odimx, oy, ox;
   ncplane_yx(on, &oy, &ox);
   ncplane_dim_yx(on, &odimy, &odimx);
@@ -212,7 +212,7 @@ int intro(struct notcurses* nc){
     clock_gettime(CLOCK_MONOTONIC, &now);
     if(on){
       if(flipmode % 5 == 0){
-        orcaride(nc, on, rows, flipmode);
+        orcaride(nc, on);
       }
     }
   }while(timespec_to_ns(&now) < deadline);
