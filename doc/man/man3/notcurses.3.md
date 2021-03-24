@@ -119,6 +119,7 @@ A few high-level widgets are included, all built atop ncplanes:
 * **notcurses_reel(3)** for hierarchal display of block-based data
 * **notcurses_tabbed(3)** for tabbed interfaces
 * **notcurses_selector(3)** for selecting one item from a set
+* **notcurses_tree(3)** for hierarchal display of line-based data
 
 ## Threads
 
@@ -188,6 +189,7 @@ order to turn most error returns into exceptions.
 **notcurses_stdplane(3)**,
 **notcurses_stop(3)**,
 **notcurses_tabbed(3)**,
+**notcurses_tree(3)**,
 **notcurses_visual(3)**,
 **terminfo(5)**, **ascii(7)**, **utf-8(7)**,
 **unicode(7)**

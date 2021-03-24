@@ -139,6 +139,16 @@ namespace ncpp
 			return error_guard (ncdirect_cursor_disable (direct), -1);
 		}
 
+		void get_cursor_yx (int *y, int *x) const noexcept
+		{
+			ncdirect_cursor_yx (direct, y, x);
+		}
+
+		void get_cursor_yx (int &y, int &x) const noexcept
+		{
+			get_cursor_yx (&y, &x);
+		}
+
 		int render_image (const char* file, NCAlign align, ncblitter_e blitter, ncscale_e scale) const noexcept
 		{
 			return ncdirect_render_image (direct, file, static_cast<ncalign_e>(align), blitter, scale);

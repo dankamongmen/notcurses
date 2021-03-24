@@ -16,14 +16,7 @@ typedef struct ncvisual_details {
 } ncvisual_details;
 
 auto oiio_details_init(void) -> ncvisual_details* {
-  auto deets = new ncvisual_details{};
-  if(deets){
-    deets->image = nullptr;
-    deets->frame = nullptr;
-    deets->ibuf = nullptr;
-    deets->framenum = 0;
-  }
-  return deets;
+  return new ncvisual_details{};
 }
 
 auto oiio_details_destroy(ncvisual_details* deets) -> void {
@@ -149,7 +142,7 @@ int oiio_resize(ncvisual* nc, int rows, int cols) {
 
 int oiio_blit(struct ncvisual* ncv, int rows, int cols,
               ncplane* n, const struct blitset* bset,
-              int begy, int begx, int leny, int lenx, const blitterargs* bargs) {
+              int leny, int lenx, const blitterargs* bargs) {
 //fprintf(stderr, "%d/%d -> %d/%d on the resize\n", ncv->rows, ncv->cols, rows, cols);
   void* data = nullptr;
   int stride = 0;
@@ -170,8 +163,7 @@ int oiio_blit(struct ncvisual* ncv, int rows, int cols,
     data = ncv->data;
     stride = ncv->rowstride;
   }
-  return oiio_blit_dispatch(n, bset, stride, data, begy, begx, leny, lenx, bargs);
-  return 0;
+  return oiio_blit_dispatch(n, bset, stride, data, leny, lenx, bargs);
 }
 
 // FIXME before we can enable this, we need build an OIIO::APPBUFFER-style
@@ -193,6 +185,16 @@ auto ncvisual_rotate(ncvisual* ncv, double rads) -> int {
   return NCERR_SUCCESS;
 }
 */
+
+auto oiio_destroy(ncvisual* ncv) -> void {
+  if(ncv){
+    oiio_details_destroy(ncv->details);
+    if(ncv->owndata){
+      free(ncv->data);
+    }
+    delete ncv;
+  }
+}
 
 // FIXME would be nice to have OIIO::attributes("libraries") in here
 void oiio_printbanner(const struct notcurses* nc __attribute__ ((unused))){

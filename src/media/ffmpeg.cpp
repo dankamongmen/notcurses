@@ -468,7 +468,7 @@ int ffmpeg_decode_loop(ncvisual* ncv){
 }
 
 int ffmpeg_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
-                const struct blitset* bset, int begy, int begx,
+                const struct blitset* bset,
                 int leny, int lenx, const blitterargs* bargs) {
   const AVFrame* inframe = ncv->details->oframe ? ncv->details->oframe : ncv->details->frame;
 //fprintf(stderr, "inframe: %p oframe: %p frame: %p\n", inframe, ncv->details->oframe, ncv->details->frame);
@@ -522,7 +522,7 @@ int ffmpeg_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
     data = ncv->data;
   }
 //fprintf(stderr, "place: %d/%d rows/cols: %d/%d %d/%d+%d/%d\n", bargs->cell.placey, bargs->cell.placex, rows, cols, begy, begx, leny, lenx);
-  if(rgba_blit_dispatch(n, bset, stride, data, begy, begx, leny, lenx, bargs) < 0){
+  if(rgba_blit_dispatch(n, bset, stride, data, leny, lenx, bargs) < 0){
 //fprintf(stderr, "rgba dispatch failed!\n");
     if(sframe){
       av_freep(sframe->data);
@@ -592,6 +592,16 @@ auto ffmpeg_details_destroy(ncvisual_details* deets) -> void {
   delete deets;
 }
 
+auto ffmpeg_destroy(ncvisual* ncv) -> void {
+  if(ncv){
+    ffmpeg_details_destroy(ncv->details);
+    if(ncv->owndata){
+      free(ncv->data);
+    }
+    delete ncv;
+  }
+}
+
 static const ncvisual_implementation ffmpeg_impl = {
   .visual_init = ffmpeg_init,
   .visual_printbanner = ffmpeg_printbanner,
@@ -599,12 +609,12 @@ static const ncvisual_implementation ffmpeg_impl = {
   .visual_create = ffmpeg_create,
   .visual_from_file = ffmpeg_from_file,
   .visual_details_seed = ffmpeg_details_seed,
-  .visual_details_destroy = ffmpeg_details_destroy,
   .visual_decode = ffmpeg_decode,
   .visual_decode_loop = ffmpeg_decode_loop,
   .visual_stream = ffmpeg_stream,
   .visual_subtitle = ffmpeg_subtitle,
   .visual_resize = ffmpeg_resize,
+  .visual_destroy = ffmpeg_destroy,
   .canopen_images = true,
   .canopen_videos = true,
 };

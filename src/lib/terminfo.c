@@ -60,7 +60,9 @@ apply_term_heuristics(tinfo* ti, const char* termname){
     ti->sextants = true; // work since bugfix in 0.19.3
     ti->pixel_query_done = true;
     ti->sixel_supported = true;
+    ti->pixel_cell_wipe = sprite_kitty_cell_wipe;
     ti->pixel_destroy = sprite_kitty_annihilate;
+    ti->pixel_init = sprite_kitty_init;
     set_pixel_blitter(kitty_blit);
   /*}else if(strstr(termname, "alacritty")){
     ti->sextants = true; // alacritty https://github.com/alacritty/alacritty/issues/4409 */
@@ -85,7 +87,7 @@ void free_terminfo_cache(tinfo* ti){
 // termname is just the TERM environment variable. some details are not
 // exposed via terminfo, and we must make heuristic decisions based on
 // the detected terminal type, yuck :/.
-int interrogate_terminfo(tinfo* ti, const char* termname, unsigned utf8){
+int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8){
   memset(ti, 0, sizeof(*ti));
   ti->utf8 = utf8;
   ti->RGBflag = query_rgb();
@@ -136,8 +138,6 @@ int interrogate_terminfo(tinfo* ti, const char* termname, unsigned utf8){
   terminfostr(&ti->oc, "oc");         // restore defaults to all colors
   terminfostr(&ti->home, "home");     // home the cursor
   terminfostr(&ti->clearscr, "clear");// clear screen, home cursor
-  terminfostr(&ti->cleareol, "el");   // clear to end of line
-  terminfostr(&ti->clearbol, "el1");  // clear to beginning of line
   terminfostr(&ti->cuu, "cuu"); // move N up
   terminfostr(&ti->cud, "cud"); // move N down
   terminfostr(&ti->hpa, "hpa"); // set horizontal position
@@ -145,32 +145,31 @@ int interrogate_terminfo(tinfo* ti, const char* termname, unsigned utf8){
   terminfostr(&ti->cuf, "cuf"); // n non-destructive spaces
   terminfostr(&ti->cub, "cub"); // n non-destructive backspaces
   terminfostr(&ti->cuf1, "cuf1"); // non-destructive space
-  terminfostr(&ti->cub1, "cub1"); // non-destructive backspace
   terminfostr(&ti->sc, "sc"); // push ("save") cursor
   terminfostr(&ti->rc, "rc"); // pop ("restore") cursor
   // Some terminals cannot combine certain styles with colors. Don't advertise
   // support for the style in that case.
   int nocolor_stylemask = tigetnum("ncv");
   if(nocolor_stylemask > 0){
-    if(nocolor_stylemask & WA_STANDOUT){ // ncv is composed of terminfo bits, not ours
+    if(nocolor_stylemask & A_STANDOUT){ // ncv is composed of terminfo bits, not ours
       ti->standout = NULL;
     }
-    if(nocolor_stylemask & WA_UNDERLINE){
+    if(nocolor_stylemask & A_UNDERLINE){
       ti->uline = NULL;
     }
-    if(nocolor_stylemask & WA_REVERSE){
+    if(nocolor_stylemask & A_REVERSE){
       ti->reverse = NULL;
     }
-    if(nocolor_stylemask & WA_BLINK){
+    if(nocolor_stylemask & A_BLINK){
       ti->blink = NULL;
     }
-    if(nocolor_stylemask & WA_DIM){
+    if(nocolor_stylemask & A_DIM){
       ti->dim = NULL;
     }
-    if(nocolor_stylemask & WA_BOLD){
+    if(nocolor_stylemask & A_BOLD){
       ti->bold = NULL;
     }
-    if(nocolor_stylemask & WA_ITALIC){
+    if(nocolor_stylemask & A_ITALIC){
       ti->italics = NULL;
     }
     // can't do anything about struck! :/
@@ -185,9 +184,11 @@ int interrogate_terminfo(tinfo* ti, const char* termname, unsigned utf8){
   terminfostr(&ti->struckoff, "rmxx"); // cancel strikeout
   // if the keypad neen't be explicitly enabled, smkx is not present
   if(ti->smkx){
-    if(putp(tiparm(ti->smkx)) != OK){
-      fprintf(stderr, "Error entering keypad transmit mode\n");
-      return -1;
+    if(fd >= 0){
+      if(tty_emit(tiparm(ti->smkx), fd) < 0){
+        fprintf(stderr, "Error entering keypad transmit mode\n");
+        return -1;
+      }
     }
   }
   // if op is defined as ansi 39 + ansi 49, make the split definitions available
@@ -346,8 +347,10 @@ query_sixel(tinfo* ti, int fd){
             ti->sixel_supported = true;
             ti->color_registers = 256;  // assumed default [shrug]
             ti->pixel_destroy = sprite_sixel_annihilate;
-//            ti->sixel_maxx = ti->sixel_maxy = 0;
-          } // FIXME else warning?
+            ti->pixel_init = sprite_sixel_init;
+            ti->pixel_cell_wipe = sprite_sixel_cell_wipe;
+            ti->sixel_maxx = ti->sixel_maxy = 0;
+          }
         }
         break;
       case DONE:
@@ -380,6 +383,7 @@ int query_term(tinfo* ti, int fd){
     ti->pixel_query_done = true;
     if(ti->sixel_supported){
       query_sixel_details(ti, fd);
+      ti->pixel_init(fd);
     }
     if(flags & O_NONBLOCK){
       fcntl(fd, F_SETFL, flags);

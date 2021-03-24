@@ -45,6 +45,12 @@ struct ncvisual_details;
 // we can't define multipart ncvisual here, because OIIO requires C++ syntax,
 // and we can't go throwing C++ syntax into this header. so it goes.
 
+typedef enum {
+  SPRIXEL_NOCHANGE,
+  SPRIXEL_INVALIDATED,
+  SPRIXEL_HIDE,
+} sprixel_e;
+
 // there is a context-wide set of displayed pixel glyphs ("sprixels"); i.e.
 // these are independent of particular piles. there should never be very many
 // associated with a context (a dozen or so at max). with the kitty protocol,
@@ -52,16 +58,17 @@ struct ncvisual_details;
 // protocol, we just have to rewrite them.
 typedef struct sprixel {
   char* glyph;       // glyph; can be quite large
-  int id;            // embedded into glusters field of nccell
-  struct ncplane* n; // associated ncplane, provides location and size
-  enum {
-    SPRIXEL_NOCHANGE,
-    SPRIXEL_INVALIDATED,
-    SPRIXEL_HIDE,
-  } invalidated;
+  uint32_t id;       // embedded into glusters field of nccell, 24 bits
+  struct ncplane* n; // associated ncplane
+  sprixel_e invalidated;
   struct sprixel* next;
-  int y, x;          // only defined when being hidden (n is NULL)
-  int dimy, dimx;    // likewise only defined when being hidden
+  int y, x;
+  int dimy, dimx;    // cell geometry
+  int pixy, pixx;    // pixel geometry (might be smaller than cell geo)
+  int* tacache;      // transparency-annihilation cache (dimy * dimx)
+  // each tacache entry is one of 0 (standard opaque cell), 1 (cell with
+  // some transparency), 2 (annihilated, excised)
+  int parse_start;   // where to start parsing for cell wipes
 } sprixel;
 
 // A plane is memory for some rectilinear virtual window, plus current cursor
@@ -287,7 +294,6 @@ typedef struct tinfo {
   char* cuf;      // move N cells right
   char* cud;      // move N cells down
   char* cuf1;     // move 1 cell right
-  char* cub1;     // move 1 cell left
   char* home;     // home cursor
   char* civis;    // hide cursor
   char* cnorm;    // restore cursor to default state
@@ -306,8 +312,6 @@ typedef struct tinfo {
   char* initc;    // set a palette entry's RGB value
   char* oc;       // restore original colors
   char* clearscr; // erase screen and home cursor
-  char* cleareol; // clear to end of line
-  char* clearbol; // clear to beginning of line
   char* sc;       // push the cursor location onto the stack
   char* rc;       // pop the cursor location off the stack
   char* smkx;     // enter keypad transmit mode (keypad_xmit)
@@ -336,7 +340,12 @@ typedef struct tinfo {
   int sixel_maxx, sixel_maxy; // sixel size maxima (post pixel_query_done)
   bool sixel_supported;  // do we support sixel (post pixel_query_done)?
   int sprixelnonce;      // next sprixel id
-  int (*pixel_destroy)(struct notcurses* nc, const struct ncpile* p, FILE* out, sprixel* s);
+  int (*pixel_destroy)(const struct notcurses* nc, const struct ncpile* p, FILE* out, sprixel* s);
+  // wipe out a cell's worth of pixels from within a sprixel. for sixel, this
+  // means leaving out the pixels (and likely resizes the string). for kitty,
+  // this means dialing down their alpha to 0 (in equivalent space).
+  int (*pixel_cell_wipe)(const struct notcurses* nc, sprixel* s, int y, int x);
+  int (*pixel_init)(int fd);
   bool pixel_query_done; // have we yet performed pixel query?
   bool sextants;  // do we have (good, vetted) Unicode 13 sextant support?
   bool braille;   // do we have Braille support? (linux console does not)
@@ -428,24 +437,26 @@ typedef struct notcurses {
   unsigned stdio_blocking_save; // was stdio blocking at entry? restore on stop.
 } notcurses;
 
-// cell vs pixel-specific arguments
-typedef union {
-  struct {
-    int placey;         // placement within ncplane
-    int placex;
-    int blendcolors;    // use CELL_ALPHA_BLEND
-  } cell;               // for cells
-  struct {
-    int celldimx;       // horizontal pixels per cell
-    int celldimy;       // vertical pixels per cell
-    int colorregs;      // number of color registers
-    int sprixelid;      // unqie 24-bit id into sprixel cache
-  } pixel;              // for pixels
+typedef struct {
+  int begy;             // upper left start within visual
+  int begx;
+  int placey;           // placement within ncplane
+  int placex;
+  union { // cell vs pixel-specific arguments
+    struct {
+      int blendcolors;    // use CELL_ALPHA_BLEND
+    } cell;               // for cells
+    struct {
+      int celldimx;       // horizontal pixels per cell
+      int celldimy;       // vertical pixels per cell
+      int colorregs;      // number of color registers
+      int sprixelid;      // unqie 24-bit id into sprixel cache
+    } pixel;              // for pixels
+  } u;
 } blitterargs;
 
 typedef int (*blitter)(struct ncplane* n, int linesize, const void* data,
-                       int begy, int begx, int leny, int lenx,
-                       const blitterargs* bargs);
+                       int leny, int lenx, const blitterargs* bargs);
 
 // a system for rendering RGBA pixels as text glyphs
 struct blitset {
@@ -464,6 +475,26 @@ struct blitset {
 
 #include "blitset.h"
 
+static inline int
+ncfputs(const char* ext, FILE* out){
+  int r;
+#ifdef __USE_GNU
+  r = fputs_unlocked(ext, out);
+#else
+  r = fputs(ext, out);
+#endif
+  return r;
+}
+
+static inline int
+ncfputc(char c, FILE* out){
+#ifdef __USE_GNU
+  return fputc_unlocked(c, out);
+#else
+  return fputc(c, out);
+#endif
+}
+
 void reset_stats(ncstats* stats);
 void summarize_stats(notcurses* nc);
 
@@ -474,7 +505,7 @@ int terminfostr(char** gseq, const char* name);
 
 // load |ti| from the terminfo database, which must already have been
 // initialized. set |utf8| if we've verified UTF8 output encoding.
-int interrogate_terminfo(tinfo* ti, const char* termname, unsigned utf8);
+int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8);
 
 void free_terminfo_cache(tinfo* ti);
 
@@ -649,7 +680,7 @@ term_emit(const char* seq, FILE* out, bool flush){
   if(!seq){
     return -1;
   }
-  if(fputs(seq, out) == EOF){
+  if(ncfputs(seq, out) == EOF){
 //fprintf(stderr, "Error emitting %zub escape (%s)\n", strlen(seq), strerror(errno));
     return -1;
   }
@@ -716,10 +747,20 @@ plane_debug(const ncplane* n, bool details){
 }
 
 void sprixel_free(sprixel* s);
+void sprixel_invalidate(sprixel* s);
 void sprixel_hide(sprixel* s);
-sprixel* sprixel_create(ncplane* n, const char* s, int bytes, int sprixelid);
-int sprite_kitty_annihilate(notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
-int sprite_sixel_annihilate(notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
+// dimy and dimx are cell geometry, not pixel
+sprixel* sprixel_create(ncplane* n, const char* s, int bytes, int placey, int placex,
+                        int sprixelid, int dimy, int dimx, int pixy, int pixx,
+                        int parse_start, int* tacache);
+API int sprite_wipe_cell(const notcurses* nc, sprixel* s, int y, int x);
+int sprite_kitty_annihilate(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
+int sprite_kitty_init(int fd);
+int sprite_sixel_init(int fd);
+int sprite_sixel_annihilate(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
+int sprite_init(const notcurses* nc);
+void sprixel_invalidate(sprixel* s);
+sprixel* sprixel_by_id(notcurses* nc, uint32_t id);
 
 static inline void
 pool_release(egcpool* pool, nccell* c){
@@ -727,6 +768,7 @@ pool_release(egcpool* pool, nccell* c){
     egcpool_release(pool, cell_egc_idx(c));
   }
   c->gcluster = 0; // don't subject ourselves to double-release problems
+  c->width = 0;    // don't subject ourselves to geometric ambiguities
 }
 
 // set the nccell 'c' to point into the egcpool at location 'eoffset'
@@ -905,14 +947,14 @@ ALLOC char* ncplane_vprintf_prep(const char* format, va_list ap);
 // change the internals of the ncvisual. Uses oframe.
 int ncvisual_blit(struct ncvisual* ncv, int rows, int cols,
                   ncplane* n, const struct blitset* bset,
-                  int begy, int begx, int leny, int lenx, const blitterargs* bargs);
+                  int leny, int lenx, const blitterargs* bargs);
 
 void nclog(const char* fmt, ...);
 
 bool is_linux_console(const notcurses* nc, unsigned no_font_changes);
 
 // get a file descriptor for the controlling tty device, -1 on error
-int get_controlling_tty(void);
+int get_controlling_tty(FILE* fp);
 
 // logging
 #define logerror(nc, fmt, ...) do{ \
@@ -1113,19 +1155,24 @@ egc_rtl(const char* egc, int* bytes){
 // a reference to the context-wide sprixel cache. this ought be an entirely
 // new, purpose-specific plane.
 static inline int
-plane_blit_sixel(ncplane* n, const char* s, int bytes, int leny, int lenx,
-                 int sprixelid){
-  sprixel* spx = sprixel_create(n, s, bytes, sprixelid);
+plane_blit_sixel(ncplane* n, const char* s, int bytes, int placey, int placex,
+                 int leny, int lenx, int sprixelid, int dimy, int dimx,
+                 int parse_start, int* tacache){
+  sprixel* spx = sprixel_create(n, s, bytes, placey, placex, sprixelid,
+                                leny, lenx, dimy, dimx, parse_start, tacache);
   if(spx == NULL){
     return -1;
   }
   uint32_t gcluster = htole(0x02000000ul) + htole(spx->id);
-  for(int y = 0 ; y < leny && y < ncplane_dim_y(n) ; ++y){
-    for(int x = 0 ; x < lenx && x < ncplane_dim_x(n) ; ++x){
+  for(int y = placey ; y < placey + leny && y < ncplane_dim_y(n) ; ++y){
+    for(int x = placex ; x < placex + lenx && x < ncplane_dim_x(n) ; ++x){
       nccell* c = ncplane_cell_ref_yx(n, y, x);
       memcpy(&c->gcluster, &gcluster, sizeof(gcluster));
       c->width = lenx;
     }
+  }
+  if(n->sprite){
+    sprixel_hide(n->sprite);
   }
   n->sprite = spx;
   return 0;
@@ -1276,10 +1323,13 @@ ncdirect_bg_default_p(const struct ncdirect* nc){
   return channels_bg_default_p(ncdirect_channels(nc));
 }
 
-int sixel_blit(ncplane* nc, int linesize, const void* data, int begy, int begx,
+int sprite_sixel_cell_wipe(const notcurses* nc, sprixel* s, int y, int x);
+int sprite_kitty_cell_wipe(const notcurses* nc, sprixel* s, int y, int x);
+
+int sixel_blit(ncplane* nc, int linesize, const void* data,
                int leny, int lenx, const blitterargs* bargs);
 
-int kitty_blit(ncplane* nc, int linesize, const void* data, int begy, int begx,
+int kitty_blit(ncplane* nc, int linesize, const void* data,
                int leny, int lenx, const blitterargs* bargs);
 
 int term_fg_rgb8(bool RGBflag, const char* setaf, int colors, FILE* out,
@@ -1289,9 +1339,9 @@ API const struct blitset* lookup_blitset(const tinfo* tcache, ncblitter_e setid,
 
 static inline int
 rgba_blit_dispatch(ncplane* nc, const struct blitset* bset,
-                   int linesize, const void* data, int begy,
-                   int begx, int leny, int lenx, const blitterargs* bargs){
-  return bset->blit(nc, linesize, data, begy, begx, leny, lenx, bargs);
+                   int linesize, const void* data,
+                   int leny, int lenx, const blitterargs* bargs){
+  return bset->blit(nc, linesize, data, leny, lenx, bargs);
 }
 
 static inline const struct blitset*
@@ -1316,7 +1366,7 @@ typedef struct ncvisual_implementation {
   int (*visual_init)(int loglevel);
   void (*visual_printbanner)(const struct notcurses* nc);
   int (*visual_blit)(struct ncvisual* ncv, int rows, int cols, ncplane* n,
-                     const struct blitset* bset, int begy, int begx,
+                     const struct blitset* bset,
                      int leny, int lenx, const blitterargs* barg);
   struct ncvisual* (*visual_create)(void);
   struct ncvisual* (*visual_from_file)(const char* fname);
@@ -1324,13 +1374,13 @@ typedef struct ncvisual_implementation {
   // AVFrame* 'frame' according to their own data, which is assumed to
   // have been prepared already in 'ncv'.
   void (*visual_details_seed)(struct ncvisual* ncv);
-  void (*visual_details_destroy)(struct ncvisual_details* deets);
   int (*visual_decode)(struct ncvisual* nc);
   int (*visual_decode_loop)(struct ncvisual* nc);
   int (*visual_stream)(notcurses* nc, struct ncvisual* ncv, float timescale,
                        streamcb streamer, const struct ncvisual_options* vopts, void* curry);
   char* (*visual_subtitle)(const struct ncvisual* ncv);
   int (*visual_resize)(struct ncvisual* ncv, int rows, int cols);
+  void (*visual_destroy)(struct ncvisual* ncv);
   bool canopen_images;
   bool canopen_videos;
 } ncvisual_implementation;

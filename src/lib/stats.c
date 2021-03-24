@@ -70,7 +70,7 @@ void notcurses_stats_reset(notcurses* nc, ncstats* stats){
   stash->bgemissions += nc->stats.bgemissions;
   stash->defaultelisions += nc->stats.defaultelisions;
   stash->defaultemissions += nc->stats.defaultemissions;
-  stash->refreshes = nc->stats.refreshes;
+  stash->refreshes += nc->stats.refreshes;
   stash->fbbytes = nc->stats.fbbytes;
   stash->planes = nc->stats.planes;
   reset_stats(&nc->stats);

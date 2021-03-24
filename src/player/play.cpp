@@ -66,6 +66,8 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
     marsh->blitter = ncvisual_media_defblitter(nc, vopts->scaling);
   }
   if(!marsh->quiet){
+    // FIXME put this on its own plane if we're going to erase()ing it
+    stdn->erase();
     stdn->printf(0, NCAlign::Left, "frame %06d (%s)", marsh->framecount,
                  notcurses_str_blitter(vopts->blitter));
   }
@@ -293,31 +295,152 @@ int direct_mode_player(int argc, char** argv, ncscale_e scalemode,
   if(blitter == NCBLIT_PIXEL){
     dm.check_pixel_support();
   }
-  {
-    for(auto i = 0 ; i < argc ; ++i){
-      auto faken = dm.prep_image(argv[i], blitter, scalemode, -1,
-                                 dm.get_dim_x() - (lmargin + rmargin));
-      if(!faken){
-        failed = true;
-        break;
-      }
-      // FIXME we want to honor the different left and right margins, but that
-      // would require raster_image() knowing how far over we were starting for
-      // multiline cellular blittings...
-      ncpp::NCAlign a;
-      if(blitter == NCBLIT_PIXEL){
-        printf("%*.*s", lmargin, lmargin, "");
-        a = NCAlign::Left;
-      }else{
-        a = NCAlign::Center;
-      }
-      if(dm.raster_image(faken, a)){
-        failed = true;
-        break;
-      }
+  for(auto i = 0 ; i < argc ; ++i){
+    auto faken = dm.prep_image(argv[i], blitter, scalemode, -1,
+                               dm.get_dim_x() - (lmargin + rmargin));
+    if(!faken){
+      failed = true;
+      break;
+    }
+    // FIXME we want to honor the different left and right margins, but that
+    // would require raster_image() knowing how far over we were starting for
+    // multiline cellular blittings...
+    ncpp::NCAlign a;
+    if(blitter == NCBLIT_PIXEL){
+      printf("%*.*s", lmargin, lmargin, "");
+      a = NCAlign::Left;
+    }else{
+      a = NCAlign::Center;
+    }
+    if(dm.raster_image(faken, a)){
+      failed = true;
+      break;
+    }
+    int y, x;
+    dm.get_cursor_yx(&y, &x);
+    if(x){
+      std::cout << std::endl;
     }
   }
   return failed ? -1 : 0;
+}
+
+int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
+                               ncscale_e scalemode, ncblitter_e blitter,
+                               bool quiet, bool loop,
+                               double timescale, double displaytime){
+  int dimy, dimx;
+  std::unique_ptr<Plane> stdn(nc.get_stdplane(&dimy, &dimx));
+  uint64_t transchan = 0;
+  channels_set_fg_alpha(&transchan, CELL_ALPHA_TRANSPARENT);
+  channels_set_bg_alpha(&transchan, CELL_ALPHA_TRANSPARENT);
+  stdn->set_base("", 0, transchan);
+  struct ncplane_options nopts{};
+  nopts.rows = dimy - 1; // don't want kitty to scroll on pixels FIXME
+  nopts.cols = dimx;
+  nopts.resizecb = ncplane_resize_maximize;
+  struct ncplane* n = ncplane_create(*stdn, &nopts); // FIXME make c++ style
+  if(!n){
+    return -1;
+  }
+  ncplane_move_bottom(n);
+  for(auto i = 0 ; i < argc ; ++i){
+    std::unique_ptr<Visual> ncv;
+    ncv = std::make_unique<Visual>(argv[i]);
+    struct ncvisual_options vopts{};
+    int r;
+    vopts.n = n;
+    vopts.scaling = scalemode;
+    vopts.blitter = blitter;
+    if(vopts.blitter == NCBLIT_PIXEL){
+      notcurses_check_pixel_support(nc);
+    }
+    ncplane_erase(n);
+    do{
+      struct marshal marsh = {
+        .subtitle_plane = nullptr,
+        .framecount = 0,
+        .quiet = quiet,
+        .blitter = vopts.blitter,
+      };
+      r = ncv->stream(&vopts, timescale, perframe, &marsh);
+      free(stdn->get_userptr());
+      stdn->set_userptr(nullptr);
+      if(r == 0){
+        vopts.blitter = marsh.blitter;
+        if(!loop){
+          if(displaytime < 0){
+            stdn->printf(0, NCAlign::Center, "press key to advance");
+            if(!nc.render()){
+              return -1;
+            }
+            char32_t ie = nc.getc(true);
+            if(ie == (char32_t)-1){
+              return -1;
+            }else if(ie == 'q'){
+              return 0;
+            }else if(ie == 'L'){
+              --i;
+              nc.refresh(nullptr, nullptr);
+            }else if(ie >= '0' && ie <= '6'){
+              --i; // rerun same input with the new blitter
+              vopts.blitter = blitter = static_cast<ncblitter_e>(ie - '0');
+            }else if(ie == NCKey::Resize){
+              --i; // rerun with the new size
+              if(!nc.refresh(&dimy, &dimx)){
+                return -1;
+              }
+            }
+          }else{
+            // FIXME do we still want to honor keybindings when timing out?
+            struct timespec ts;
+            ts.tv_sec = displaytime;
+            ts.tv_nsec = (displaytime - ts.tv_sec) * NANOSECS_IN_SEC;
+            clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);
+          }
+        }else{
+          ncv->decode_loop();
+        }
+      }
+    }while(loop && r == 0);
+    if(r < 0){ // positive is intentional abort
+      std::cerr << "Error decoding " << argv[i] << std::endl;
+      return -1;
+    }
+  }
+  return 0;
+}
+
+int rendered_mode_player(int argc, char** argv, ncscale_e scalemode,
+                         ncblitter_e blitter, notcurses_options& ncopts,
+                         bool quiet, bool loop,
+                         double timescale, double displaytime){
+  // no -k, we're using full rendered mode (and the alternate screen).
+  ncopts.flags |= NCOPTION_INHIBIT_SETLOCALE;
+  if(quiet){
+    ncopts.flags |= NCOPTION_SUPPRESS_BANNERS;
+  }
+  int r;
+  try{
+    NotCurses nc{ncopts};
+    if(!nc.can_open_images()){
+      nc.stop();
+      std::cerr << "Notcurses was compiled without multimedia support\n";
+      return EXIT_FAILURE;
+    }
+    r = rendered_mode_player_inner(nc, argc, argv, scalemode, blitter,
+                                   quiet, loop, timescale, displaytime);
+    if(!nc.stop()){
+      return -1;
+    }
+  }catch(ncpp::init_error& e){
+    std::cerr << e.what() << "\n";
+    return -1;
+  }catch(ncpp::init_error* e){
+    std::cerr << e->what() << "\n";
+    return -1;
+  }
+  return r;
 }
 
 auto main(int argc, char** argv) -> int {
@@ -333,111 +456,17 @@ auto main(int argc, char** argv) -> int {
   bool loop = false;
   auto nonopt = handle_opts(argc, argv, ncopts, &quiet, &timescale, &scalemode,
                             &blitter, &displaytime, &loop);
+  int r;
   // if -k was provided, we now use direct mode rather than simply not using the
   // alternate screen, so that output is inline with the shell.
   if(ncopts.flags & NCOPTION_NO_ALTERNATE_SCREEN){
-    if(direct_mode_player(argc - nonopt, argv + nonopt, scalemode, blitter, ncopts.margin_l, ncopts.margin_r)){
-      return EXIT_FAILURE;
-    }
-    return EXIT_SUCCESS;
+    r = direct_mode_player(argc - nonopt, argv + nonopt, scalemode, blitter, ncopts.margin_l, ncopts.margin_r);
+  }else{
+    r = rendered_mode_player(argc - nonopt, argv + nonopt, scalemode, blitter, ncopts,
+                             quiet, loop, timescale, displaytime);
   }
-  // no -k, we're using full rendered mode (and the alternate screen).
-  ncopts.flags |= NCOPTION_INHIBIT_SETLOCALE;
-  if(quiet){
-    ncopts.flags |= NCOPTION_SUPPRESS_BANNERS;
-  }
-  NotCurses nc{ncopts};
-  if(!nc.can_open_images()){
-    nc.stop();
-    std::cerr << "Notcurses was compiled without multimedia support\n";
+  if(r){
     return EXIT_FAILURE;
   }
-  int dimy, dimx;
-  bool failed = false;
-  {
-    std::unique_ptr<Plane> stdn(nc.get_stdplane(&dimy, &dimx));
-    for(auto i = nonopt ; i < argc ; ++i){
-      std::unique_ptr<Visual> ncv;
-      try{
-        ncv = std::make_unique<Visual>(argv[i]);
-      }catch(std::exception& e){
-        // FIXME want to stop nc first :/ can't due to stdn, ugh
-        std::cerr << argv[i] << ": " << e.what() << "\n";
-        failed = true;
-        break;
-      }
-      stdn->erase();
-      struct ncvisual_options vopts{};
-      int r;
-      vopts.n = *stdn;
-      vopts.scaling = scalemode;
-      vopts.blitter = blitter;
-      if(vopts.blitter == NCBLIT_PIXEL){
-        notcurses_check_pixel_support(nc);
-        vopts.y = 1;
-      }else{
-        vopts.y = 0;
-      }
-      do{
-        struct marshal marsh = {
-          .subtitle_plane = nullptr,
-          .framecount = 0,
-          .quiet = quiet,
-          .blitter = vopts.blitter,
-        };
-        r = ncv->stream(&vopts, timescale, perframe, &marsh);
-        free(stdn->get_userptr());
-        stdn->set_userptr(nullptr);
-        if(r == 0){
-          vopts.blitter = marsh.blitter;
-          if(!loop){
-            if(displaytime < 0){
-              stdn->printf(0, NCAlign::Center, "press key to advance");
-              if(!nc.render()){
-                failed = true;
-                break;
-              }
-              char32_t ie = nc.getc(true);
-              if(ie == (char32_t)-1){
-                failed = true;
-                break;
-              }else if(ie == 'q'){
-                goto done;
-              }else if(ie == 'L'){
-                --i;
-                nc.refresh(nullptr, nullptr);
-              }else if(ie >= '0' && ie <= '6'){
-                --i; // rerun same input with the new blitter
-                vopts.blitter = blitter = static_cast<ncblitter_e>(ie - '0');
-              }else if(ie == NCKey::Resize){
-                --i; // rerun with the new size
-                if(!nc.refresh(&dimy, &dimx)){
-                  failed = true;
-                  break;
-                }
-              }
-            }else{
-              // FIXME do we still want to honor keybindings when timing out?
-              struct timespec ts;
-              ts.tv_sec = displaytime;
-              ts.tv_nsec = (displaytime - ts.tv_sec) * NANOSECS_IN_SEC;
-              clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);
-            }
-          }else{
-            ncv->decode_loop();
-          }
-        }
-      }while(loop && r == 0);
-      if(r < 0){ // positive is intentional abort
-        std::cerr << "Error decoding " << argv[i] << std::endl;
-        failed = true;
-        break;
-      }
-    }
-  }
-done:
-  if(!nc.stop()){
-    return EXIT_FAILURE;
-  }
-  return failed ? EXIT_FAILURE : EXIT_SUCCESS;
+  return EXIT_SUCCESS;
 }

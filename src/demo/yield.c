@@ -6,18 +6,33 @@ int yield_demo(struct notcurses* nc){
   }
   int dimy, dimx;
   struct ncplane* std = notcurses_stddim_yx(nc, &dimy, &dimx);
+  // in sixel-based implementation, if we redraw each cycle, the underlying
+  // material will be redrawn, taking time. erasing won't eliminate the
+  // flicker, but it does minimize it.
+  ncplane_erase(std);
   char* pic = find_data("worldmap.png");
   struct ncvisual* wmv = ncvisual_from_file(pic);
   free(pic);
   if(wmv == NULL){
     return -1;
   }
-  struct ncvisual_options vopts = {
-    .n = std,
+  ncscale_e scale = NCSCALE_STRETCH;
+  struct ncplane_options nopts = {
     .y = 1,
-    .scaling = NCSCALE_STRETCH,
+    .rows = dimy - 2,
+    .cols = dimx,
   };
+  struct ncvisual_options vopts = {
+    .scaling = scale,
+    .blitter = NCBLIT_PIXEL,
+  };
+  vopts.n = ncplane_create(std, &nopts);
+  if(vopts.n == NULL){
+    ncvisual_destroy(wmv);
+    return -1;
+  }
   if(ncvisual_render(nc, wmv, &vopts) == NULL){
+    ncplane_destroy(vopts.n);
     ncvisual_destroy(wmv);
     return -1;
   }
@@ -25,13 +40,15 @@ int yield_demo(struct notcurses* nc){
   int vy, vx, vscaley, vscalex;
   vopts.scaling = NCSCALE_NONE;
   ncvisual_geom(nc, wmv, &vopts, &vy, &vx, &vscaley, &vscalex);
-  vopts.scaling = NCSCALE_STRETCH;
+  vopts.scaling = scale;
   struct timespec scaled;
   const long total = vy * vx;
   // less than this, and we exit almost immediately. more than this, and we
-  // run closer to twenty seconds. 11/50 it is, then.
-  const long threshold_painted = total * 11 / 50;
-  const int MAXITER = 512;
+  // run closer to twenty seconds. 11/50 it is, then. pixels are different.
+  // it would be nice to hit this all with a rigor stick. yes, the 1 makes
+  // all the difference in cells v pixels. FIXME
+  const long threshold_painted = total * (10 + !notcurses_canpixel(nc)) / 50;
+  const int MAXITER = 256;
   timespec_div(&demodelay, MAXITER, &scaled);
   long tfilled = 0;
 
@@ -45,6 +62,7 @@ int yield_demo(struct notcurses* nc){
   struct ncplane* label = ncplane_create(std, &labopts);
   if(label == NULL){
     ncvisual_destroy(wmv);
+    ncplane_destroy(vopts.n);
     return -1;
   }
   uint64_t basechan = 0;
@@ -71,6 +89,7 @@ int yield_demo(struct notcurses* nc){
       uint32_t pixel = 0;
       if(ncvisual_at_yx(wmv, y, x, &pixel) < 0){
         ncvisual_destroy(wmv);
+        ncplane_destroy(vopts.n);
         return -1;
       }
       if(ncpixel_a(pixel) != 0xff){ // don't do areas we've already done
@@ -84,6 +103,7 @@ int yield_demo(struct notcurses* nc){
       pfilled = ncvisual_polyfill_yx(wmv, y, x, pixel);
       if(pfilled < 0){
         ncvisual_destroy(wmv);
+        ncplane_destroy(vopts.n);
         return -1;
       }
       // it's possible that nothing changed (pfilled == 0), but render anyway
@@ -93,6 +113,7 @@ int yield_demo(struct notcurses* nc){
     tfilled += pfilled;
     if(ncvisual_render(nc, wmv, &vopts) == NULL){
       ncvisual_destroy(wmv);
+      ncplane_destroy(vopts.n);
       return -1;
     }
     if(tfilled > threshold_painted){
@@ -105,6 +126,7 @@ int yield_demo(struct notcurses* nc){
   }
   ncplane_destroy(label);
   ncvisual_destroy(wmv);
+  ncplane_destroy(vopts.n);
   ncplane_erase(std);
   return 0;
 }

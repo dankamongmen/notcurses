@@ -17,7 +17,7 @@
 // then reverse that, guaranteeing LE. htole(x) == ltohe(x).
 #if defined(__linux__) || defined(__gnu_hurd__)
 #include <byteswap.h>
-#define htole(x) (bswap_32(htonl(x)))
+#define htole(x) (__bswap_32(htonl(x)))
 #else
 #include <sys/endian.h>
 #define htole(x) (bswap32(htonl(x)))
@@ -834,7 +834,11 @@ typedef enum {
 // doing something weird (setting a locale not based on LANG).
 #define NCOPTION_INHIBIT_SETLOCALE   0x0001ull
 
-// NCOPTION_VERIFY_PIXEL was removed in 2.2.3. It ought be repurposed. FIXME.
+// We typically try to clear any preexisting bitmaps. If we ought *not* try
+// to do this, pass NCOPTION_NO_CLEAR_BITMAPS. Note that they might still
+// get cleared even if this is set, and they might not get cleared even if
+// this is not set. It's a tough world out there.
+#define NCOPTION_NO_CLEAR_BITMAPS    0x0002ull
 
 // We typically install a signal handler for SIGWINCH that generates a resize
 // event in the notcurses_getc() queue. Set to inhibit this handler.
@@ -1355,15 +1359,17 @@ API int ncplane_move_yx(struct ncplane* n, int y, int x);
 
 // Get the origin of plane 'n' relative to its bound plane, or pile (if 'n' is
 // a root plane). To get absolute coordinates, use ncplane_abs_yx().
-API void ncplane_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
-API int ncplane_y(const struct ncplane* n);
-API int ncplane_x(const struct ncplane* n);
+API void ncplane_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x)
+  __attribute__ ((nonnull (1)));
+API int ncplane_y(const struct ncplane* n) __attribute__ ((pure));
+API int ncplane_x(const struct ncplane* n) __attribute__ ((pure));
 
 // Get the origin of plane 'n' relative to its pile. Either or both of 'x' and
 // 'y' may be NULL.
-API void ncplane_abs_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
-API int ncplane_abs_y(const struct ncplane* n);
-API int ncplane_abs_x(const struct ncplane* n);
+API void ncplane_abs_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x)
+  __attribute__ ((nonnull (1)));
+API int ncplane_abs_y(const struct ncplane* n) __attribute__ ((pure));
+API int ncplane_abs_x(const struct ncplane* n) __attribute__ ((pure));
 
 // Get the plane to which the plane 'n' is bound, if any.
 API struct ncplane* ncplane_parent(struct ncplane* n);
@@ -2381,8 +2387,9 @@ API ALLOC struct ncvisual* ncvisual_from_plane(const struct ncplane* n,
                                                int begy, int begx,
                                                int leny, int lenx);
 
-#define NCVISUAL_OPTION_NODEGRADE 0x0001ull // fail rather than degrade
-#define NCVISUAL_OPTION_BLEND     0x0002ull // use CELL_ALPHA_BLEND with visual
+#define NCVISUAL_OPTION_NODEGRADE  0x0001ull // fail rather than degrade
+#define NCVISUAL_OPTION_BLEND      0x0002ull // use CELL_ALPHA_BLEND with visual
+#define NCVISUAL_OPTION_HORALIGNED 0x0004ull // x is an alignment, not absolute
 
 struct ncvisual_options {
   // if no ncplane is provided, one will be created using the exact size
@@ -2395,7 +2402,8 @@ struct ncvisual_options {
   ncscale_e scaling;
   // if an ncplane is provided, y and x specify where the visual will be
   // rendered on that plane. otherwise, they specify where the created ncplane
-  // will be placed relative to the standard plane's origin.
+  // will be placed relative to the standard plane's origin. x is an ncalign_e
+  // value if NCVISUAL_OPTION_HORALIGNED is provided.
   int y, x;
   // the section of the visual that ought be rendered. for the entire visual,
   // pass an origin of 0, 0 and a size of 0, 0 (or the true height and width).
@@ -2403,8 +2411,9 @@ struct ncvisual_options {
   // prohibited.
   int begy, begx; // origin of rendered section
   int leny, lenx; // size of rendered section
-  // use NCBLIT_DEFAULT if you don't care, to use NCBLIT_2x2 (assuming
-  // UTF8) or NCBLIT_1x1 (in an ASCII environment)
+  // use NCBLIT_DEFAULT if you don't care, an appropriate blitter will be
+  // chosen for your terminal, given your scaling. NCBLIT_PIXEL is never
+  // chosen for NCBLIT_DEFAULT.
   ncblitter_e blitter; // glyph set to use (maps input to output cells)
   uint64_t flags; // bitmask over NCVISUAL_OPTION_*
 };
@@ -3616,7 +3625,12 @@ API void ncreader_destroy(struct ncreader* n, char** contents);
 
 // Dump selected Notcurses state to the supplied 'debugfp'. Output is freeform,
 // and subject to change. It includes geometry of all planes, from all piles.
-API void notcurses_debug(struct notcurses* nc, FILE* debugfp)
+API void notcurses_debug(const struct notcurses* nc, FILE* debugfp)
+  __attribute__ ((nonnull (1, 2)));
+
+// Dump selected configuration capabilities to 'debugfp'. Output is freeform,
+// and subject to change.
+API void notcurses_debug_caps(const struct notcurses* nc, FILE* debugfp)
   __attribute__ ((nonnull (1, 2)));
 
 // replaced by ncvisual_media_defblitter(). this original version never returns

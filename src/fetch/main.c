@@ -393,7 +393,7 @@ place_infoplane(struct ncdirect* ncd, int planeheight){
   }
   struct notcurses_options opts = {
     .flags = NCOPTION_SUPPRESS_BANNERS | NCOPTION_INHIBIT_SETLOCALE
-              | NCOPTION_NO_ALTERNATE_SCREEN,
+              | NCOPTION_NO_ALTERNATE_SCREEN | NCOPTION_NO_CLEAR_BITMAPS,
     .margin_t = cury,
     .margin_b = dimy - (cury + planeheight),
   };

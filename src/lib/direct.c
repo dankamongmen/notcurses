@@ -1,7 +1,7 @@
 #include <ncurses.h> // needed for some definitions, see terminfo(3ncurses)
 #include <fcntl.h>
-#include <cerrno>
-#include <cstring>
+#include <errno.h>
+#include <string.h>
 #include <unistd.h>
 #include <termios.h>
 #include <readline/readline.h>
@@ -86,7 +86,7 @@ int ncdirect_clear(ncdirect* nc){
 int ncdirect_dim_x(const ncdirect* nc){
   int x;
   if(nc->ctermfd >= 0){
-    if(update_term_dimensions(nc->ctermfd, nullptr, &x, NULL) == 0){
+    if(update_term_dimensions(nc->ctermfd, NULL, &x, NULL) == 0){
       return x;
     }
   }else{
@@ -98,7 +98,7 @@ int ncdirect_dim_x(const ncdirect* nc){
 int ncdirect_dim_y(const ncdirect* nc){
   int y;
   if(nc->ctermfd >= 0){
-    if(update_term_dimensions(nc->ctermfd, &y, nullptr, NULL) == 0){
+    if(update_term_dimensions(nc->ctermfd, &y, NULL, NULL) == 0){
       return y;
     }
   }else{
@@ -344,14 +344,14 @@ int ncdirect_cursor_yx(ncdirect* n, int* y, int* x){
 }
 
 int ncdirect_cursor_push(ncdirect* n){
-  if(n->tcache.sc == nullptr){
+  if(n->tcache.sc == NULL){
     return -1;
   }
   return term_emit(n->tcache.sc, n->ttyfp, false);
 }
 
 int ncdirect_cursor_pop(ncdirect* n){
-  if(n->tcache.rc == nullptr){
+  if(n->tcache.rc == NULL){
     return -1;
   }
   return term_emit(n->tcache.rc, n->ttyfp, false);
@@ -380,7 +380,7 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
   int dimy, dimx;
   ncplane_dim_yx(np, &dimy, &dimx);
   if(np->sprite){
-    if(fputs(np->sprite->glyph, n->ttyfp) == EOF){
+    if(ncfputs(np->sprite->glyph, n->ttyfp) == EOF){
       return -1;
     }
     return 0;
@@ -401,7 +401,7 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
       uint16_t stylemask;
       uint64_t channels;
       char* egc = ncplane_at_yx(np, y, x, &stylemask, &channels);
-      if(egc == nullptr){
+      if(egc == NULL){
         return -1;
       }
       if(channels_fg_alpha(channels) == CELL_ALPHA_TRANSPARENT){
@@ -468,21 +468,21 @@ ncdirectv* ncdirect_render_frame(ncdirect* n, const char* file,
   int dimy = ymax > 0 ? ymax : ncdirect_dim_y(n);
   int dimx = xmax > 0 ? xmax : ncdirect_dim_x(n);
   struct ncvisual* ncv = ncvisual_from_file(file);
-  if(ncv == nullptr){
-    return nullptr;
+  if(ncv == NULL){
+    return NULL;
   }
 //fprintf(stderr, "OUR DATA: %p rows/cols: %d/%d\n", ncv->data, ncv->rows, ncv->cols);
   int leny = ncv->rows; // we allow it to freely scroll
   int lenx = ncv->cols;
   if(leny == 0 || lenx == 0){
     ncvisual_destroy(ncv);
-    return nullptr;
+    return NULL;
   }
 //fprintf(stderr, "render %d/%d to %d+%d scaling: %d\n", ncv->rows, ncv->cols, leny, lenx, scale);
-  auto bset = rgba_blitter_low(&n->tcache, scale, true, blitfxn);
+  const struct blitset* bset = rgba_blitter_low(&n->tcache, scale, true, blitfxn);
   if(!bset){
     ncvisual_destroy(ncv);
-    return nullptr;
+    return NULL;
   }
   int disprows, dispcols;
   if(scale != NCSCALE_NONE && scale != NCSCALE_NONE_HIRES){
@@ -508,33 +508,31 @@ ncdirectv* ncdirect_render_frame(ncdirect* n, const char* file,
     .x = 0,
     .rows = disprows / encoding_y_scale(&n->tcache, bset),
     .cols = dispcols / encoding_x_scale(&n->tcache, bset),
-    .userptr = nullptr,
+    .userptr = NULL,
     .name = "fake",
-    .resizecb = nullptr,
+    .resizecb = NULL,
     .flags = 0,
   };
   if(bset->geom == NCBLIT_PIXEL){
     nopts.rows = 1;
     nopts.cols = dispcols / n->tcache.cellpixx;
   }
-  auto ncdv = ncplane_new_internal(nullptr, nullptr, &nopts);
+  struct ncplane* ncdv = ncplane_new_internal(NULL, NULL, &nopts);
   if(!ncdv){
     ncvisual_destroy(ncv);
-    return nullptr;
+    return NULL;
   }
-  blitterargs bargs = {
-    .pixel = {
-      .celldimx = n->tcache.cellpixx,
-      .celldimy = n->tcache.cellpixy,
-      .colorregs = n->tcache.color_registers,
-      .sprixelid = n->tcache.sprixelnonce++,
-    },
-  };
-  if(ncvisual_blit(ncv, disprows, dispcols, ncdv, bset,
-                   0, 0, leny, lenx, &bargs)){
+  blitterargs bargs = {};
+  if(bset->geom == NCBLIT_PIXEL){
+    bargs.u.pixel.celldimx = n->tcache.cellpixx;
+    bargs.u.pixel.celldimy = n->tcache.cellpixy;
+    bargs.u.pixel.colorregs = n->tcache.color_registers;
+    bargs.u.pixel.sprixelid = n->tcache.sprixelnonce++;
+  }
+  if(ncvisual_blit(ncv, disprows, dispcols, ncdv, bset, leny, lenx, &bargs)){
     ncvisual_destroy(ncv);
     free_plane(ncdv);
-    return nullptr;
+    return NULL;
   }
   ncvisual_destroy(ncv);
   return ncdv;
@@ -542,7 +540,7 @@ ncdirectv* ncdirect_render_frame(ncdirect* n, const char* file,
 
 int ncdirect_render_image(ncdirect* n, const char* file, ncalign_e align,
                           ncblitter_e blitfxn, ncscale_e scale){
-  auto faken = ncdirect_render_frame(n, file, blitfxn, scale, -1, -1);
+  ncdirectv* faken = ncdirect_render_frame(n, file, blitfxn, scale, -1, -1);
   if(!faken){
     return -1;
   }
@@ -565,7 +563,7 @@ int ncdirect_set_bg_palindex(ncdirect* nc, int pidx){
 
 int ncdirect_vprintf_aligned(ncdirect* n, int y, ncalign_e align, const char* fmt, va_list ap){
   char* r = ncplane_vprintf_prep(fmt, ap);
-  if(r == nullptr){
+  if(r == NULL){
     return -1;
   }
   const size_t len = ncstrwidth(r);
@@ -598,7 +596,7 @@ int get_controlling_tty(FILE* ttyfp){
     }
   }
   char cbuf[L_ctermid + 1];
-  if(ctermid(cbuf) == nullptr){
+  if(ctermid(cbuf) == NULL){
     return -1;
   }
   return open(cbuf, O_RDWR | O_CLOEXEC);
@@ -606,7 +604,7 @@ int get_controlling_tty(FILE* ttyfp){
 
 static int
 ncdirect_stop_minimal(void* vnc){
-  ncdirect* nc = static_cast<ncdirect*>(vnc);
+  ncdirect* nc = vnc;
   int ret = drop_signals(nc);
   if(nc->initialized_readline){
     rl_deprep_terminal();
@@ -636,18 +634,18 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
   if(flags > (NCDIRECT_OPTION_NO_QUIT_SIGHANDLERS << 1)){ // allow them through with warning
     logwarn((struct notcurses*)NULL, "Passed unsupported flags 0x%016jx\n", (uintmax_t)flags);
   }
-  if(outfp == nullptr){
+  if(outfp == NULL){
     outfp = stdout;
   }
-  auto ret = new ncdirect{};
-  if(ret == nullptr){
+  ncdirect* ret = malloc(sizeof(ncdirect));
+  if(ret == NULL){
     return ret;
   }
+  memset(ret, 0, sizeof(*ret));
   ret->flags = flags;
   ret->ttyfp = outfp;
-  memset(&ret->palette, 0, sizeof(ret->palette));
   if(!(flags & NCDIRECT_OPTION_INHIBIT_SETLOCALE)){
-    init_lang(nullptr);
+    init_lang(NULL);
   }
   const char* encoding = nl_langinfo(CODESET);
   bool utf8 = false;
@@ -656,8 +654,8 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
   }
   if(setup_signals(ret, (flags & NCDIRECT_OPTION_NO_QUIT_SIGHANDLERS),
                    true, ncdirect_stop_minimal)){
-    delete ret;
-    return nullptr;
+    free(ret);
+    return NULL;
   }
   // we don't need a controlling tty for everything we do; allow a failure here
   if((ret->ctermfd = get_controlling_tty(ret->ttyfp)) >= 0){
@@ -684,7 +682,7 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
   if(ncvisual_init(NCLOGLEVEL_SILENT)){
     goto err;
   }
-  if(interrogate_terminfo(&ret->tcache, shortname_term, utf8)){
+  if(interrogate_terminfo(&ret->tcache, ret->ctermfd, shortname_term, utf8)){
     goto err;
   }
   update_term_dimensions(ret->ctermfd, NULL, NULL, &ret->tcache);
@@ -696,8 +694,8 @@ err:
     tcsetattr(ret->ctermfd, TCSANOW, &ret->tpreserved);
   }
   drop_signals(ret);
-  delete(ret);
-  return nullptr;
+  free(ret);
+  return NULL;
 }
 
 int ncdirect_stop(ncdirect* nc){
@@ -705,7 +703,7 @@ int ncdirect_stop(ncdirect* nc){
   if(nc){
     ret |= ncdirect_stop_minimal(nc);
     input_free_esctrie(&nc->input.inputescapes);
-    delete(nc);
+    free(nc);
   }
   return ret;
 }

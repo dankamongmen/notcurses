@@ -380,7 +380,7 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
     pthread_mutex_unlock(&nc->pilelock);
   }
   loginfo(nc, "Created new %dx%d plane \"%s\" @ %dx%d\n",
-          nopts->rows, nopts->cols, p->name, p->absy, p->absx);
+          nopts->rows, nopts->cols, p->name ? p->name : "", p->absy, p->absx);
   return p;
 }
 
@@ -691,6 +691,8 @@ int ncplane_destroy(ncplane* ncp){
     ncplane_pile(ncp)->bottom = ncp->above;
   }
   // no need to NULL out our ->boundto, as we are about to die (and unlinked)
+  loginfo(ncplane_notcurses_const(ncp), "Destroying %dx%d plane \"%s\" @ %dx%d\n",
+          ncp->leny, ncp->lenx, ncp->name ? ncp->name : NULL, ncp->absy, ncp->absx);
   free_plane(ncp);
   return ret;
 }
@@ -1007,7 +1009,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   }
   const char* shortname_term = termname();
 // const char* longname_term = longname();
-  if(interrogate_terminfo(&ret->tcache, shortname_term, utf8)){
+  if(interrogate_terminfo(&ret->tcache, ret->ttyfd, shortname_term, utf8)){
     goto err;
   }
   int dimy, dimx;
@@ -1031,9 +1033,16 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   }
   ret->stdplane = NULL;
   if((ret->stdplane = create_initial_ncplane(ret, dimy, dimx)) == NULL){
+    fprintf(stderr, "Couldn't create the initial plane (bad margins?)\n");
     goto err;
   }
   if(ret->ttyfd >= 0){
+    if(!(opts->flags & NCOPTION_NO_CLEAR_BITMAPS)){
+      if(sprite_init(ret)){
+        free_plane(ret->stdplane);
+        goto err;
+      }
+    }
     if(ret->tcache.smkx && tty_emit(ret->tcache.smkx, ret->ttyfd)){
       free_plane(ret->stdplane);
       goto err;
@@ -1891,6 +1900,10 @@ move_bound_planes(ncplane* n, int dy, int dx){
   while(n){
     n->absy += dy;
     n->absx += dx;
+    // FIXME do these only if we actually changed location
+    if(n->sprite){
+      sprixel_invalidate(n->sprite);
+    }
     move_bound_planes(n->blist, dy, dx);
     n = n->bnext;
   }
@@ -1905,6 +1918,10 @@ int ncplane_move_yx(ncplane* n, int y, int x){
   dx = (n->boundto->absx + x) - n->absx;
   n->absx += dx;
   n->absy += dy;
+  // FIXME do these only if we actually changed location
+  if(n->sprite){
+    sprixel_invalidate(n->sprite);
+  }
   move_bound_planes(n->blist, dy, dx);
   return 0;
 }
@@ -1933,6 +1950,9 @@ void ncplane_yx(const ncplane* n, int* y, int* x){
 }
 
 void ncplane_erase(ncplane* n){
+  if(n->sprite){
+    sprixel_hide(n->sprite);
+  }
   // we must preserve the background, but a pure cell_duplicate() would be
   // wiped out by the egcpool_dump(). do a duplication (to get the stylemask
   // and channels), and then reload.
@@ -2096,11 +2116,11 @@ const notcurses* ncplane_notcurses_const(const ncplane* n){
 }
 
 int ncplane_abs_y(const ncplane* n){
-  return n->absy; // FIXME adjust for margins?
+  return n->absy;
 }
 
 int ncplane_abs_x(const ncplane* n){
-  return n->absx; // FIXME adjust for margins?
+  return n->absx;
 }
 
 void ncplane_abs_yx(const ncplane* n, int* RESTRICT y, int* RESTRICT x){

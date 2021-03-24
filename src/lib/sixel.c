@@ -1,5 +1,114 @@
 #include "internal.h"
 
+// sixel is in a sense simpler to edit in-place than kitty, as it has neither
+// chunking nor base64 to worry about. in another sense, it's waaay suckier,
+// because you effectively have to lex through a byte at a time (since the
+// color bands have varying size). le sigh! we work geometrically here,
+// blasting through each band and scrubbing the necessary cells therein.
+// define a rectangle that will be scrubbed.
+int sprite_sixel_cell_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
+  const int xpixels = nc->tcache.cellpixx;
+  const int ypixels = nc->tcache.cellpixy;
+  const int top = ypixels * ycell;          // start scrubbing on this row
+  int bottom = ypixels * (ycell + 1); // do *not* scrub this row
+  const int left = xpixels * xcell;         // start scrubbing on this column
+  int right = xpixels * (xcell + 1);  // do *not* scrub this column
+  // if the cell is on the right or bottom borders, it might only be partially
+  // filled by actual graphic data, and we need to cap our target area.
+  if(right > s->pixx){
+    right = s->pixx;
+  }
+  if(bottom > s->pixy){
+    bottom = s->pixy;
+  }
+//fprintf(stderr, "TARGET AREA: [ %dx%d -> %dx%d ] of %dx%d\n", top, left, bottom - 1, right - 1, s->pixy, s->pixx);
+  char* c = s->glyph;
+  // lines of sixels are broken by a hyphen. if we were guaranteed to already
+  // be in the meat of the sixel, it would be sufficient to count hyphens, but
+  // we must distinguish the introductory material from the sixmap, alas
+  // (after that, simply count hyphens). FIXME store loc in sprixel metadata?
+  // it seems sufficient to look for the first #d not followed by a semicolon.
+  // remember, these are sixels *we've* created internally, not random ones.
+  while(*c != '#'){
+    ++c;
+  }
+  do{
+    ++c;
+    while(isdigit(*c)){
+      ++c;
+    }
+    while(*c == ';'){
+      ++c;
+      while(isdigit(*c)){
+        ++c;
+      }
+    }
+  }while(*c == '#');
+  --c;
+  int row = 0;
+  while(row + 6 <= top){
+    while(*c != '-'){
+      ++c;
+    }
+    row += 6;
+    unsigned mask = 0;
+    if(row < top){
+      for(int i = 0 ; i < top - row ; ++i){
+        mask |= (1 << i);
+      }
+    }
+    // make masks containing only pixels which we will *not* be turning off
+    // (on the top or bottom), if any. go through each entry and if it
+    // occupies our target columns, scrub scrub scrub!
+    while(*c == '#' || isdigit(*c)){
+      while(*c == '#' || isdigit(*c)){
+        ++c;
+      }
+      int column = 0;
+      int rle = 0;
+      // here begins the substance, concluded by '-', '$', or '\e'. '!' indicates rle.
+      while(*c != '-' && *c != '$' && *c != '\e'){
+        if(*c == '!'){
+          rle = 0;
+        }else if(isdigit(*c)){
+          rle *= 10;
+          rle += (*c - '0');
+        }else{
+          if(rle){
+            // FIXME this can skip over the starting column
+            column += (rle - 1);
+            rle = 0;
+          }
+          if(column >= left && column < right){ // zorch it
+//fprintf(stderr, "STARTED WITH %d %c\n", *c, *c);
+            *c = ((*c - 63) & mask) + 63;
+//fprintf(stderr, "CHANGED TO %d %c\n", *c, *c);
+          }
+          ++column;
+        }
+        ++c;
+      }
+      if(*c == '-'){
+        row += 6;
+        if(row >= bottom){
+          return 0;
+        }
+        mask = 0;
+        if(bottom - row < 6){
+          for(int i = 0 ; i < bottom - row ; ++i){
+            mask |= (1 << (6 - i));
+          }
+        }
+      }else if(*c == '\e'){
+        return 0;
+      }
+      column = 0;
+      ++c;
+    }
+  }
+  return 0;
+}
+
 #define RGBSIZE 3
 #define CENTSIZE (RGBSIZE + 1) // size of a color table entry
 
@@ -215,7 +324,8 @@ unzip_color(const uint32_t* data, int linesize, int begy, int begx,
 // sixels from the data table by looking back to the sources and classifying
 // them in one or the other centry. rebuild our sums, sixels, hi/lo, and
 // counts as we do so. anaphase, baybee! target always gets the upper range.
-static void
+// returns 1 if we did a refinement, 0 otherwise.
+static int
 refine_color(const uint32_t* data, int linesize, int begy, int begx,
              int leny, int lenx, sixeltable* stab, int color){
   unsigned char* crec = stab->table + CENTSIZE * color;
@@ -226,17 +336,27 @@ refine_color(const uint32_t* data, int linesize, int begy, int begx,
   int bdelt = deets->hi[2] - deets->lo[2];
   unsigned char rgbmax[3] = { deets->hi[0], deets->hi[1], deets->hi[2] };
   if(gdelt >= rdelt && gdelt >= bdelt){ // split on green
-//fprintf(stderr, "[%d->%d] SPLIT ON GREEN %d %d\n", color, stab->colors, deets->hi[1], deets->lo[1]);
+    if(gdelt < 3){
+      return 0;
+    }
+//fprintf(stderr, "[%d->%d] SPLIT ON GREEN %d %d (pop: %d)\n", color, stab->colors, deets->hi[1], deets->lo[1], deets->count);
     rgbmax[1] = deets->lo[1] + (deets->hi[1] - deets->lo[1]) / 2;
   }else if(rdelt >= gdelt && rdelt >= bdelt){ // split on red
-//fprintf(stderr, "[%d->%d] SPLIT ON RED %d %d\n", color, stab->colors, deets->hi[0], deets->lo[0]);
+    if(rdelt < 3){
+      return 0;
+    }
+//fprintf(stderr, "[%d->%d] SPLIT ON RED %d %d (pop: %d)\n", color, stab->colors, deets->hi[0], deets->lo[0], deets->count);
     rgbmax[0] = deets->lo[0] + (deets->hi[0] - deets->lo[0]) / 2;
   }else{ // split on blue
-//fprintf(stderr, "[%d->%d] SPLIT ON BLUE %d %d\n", color, stab->colors, deets->hi[2], deets->lo[2]);
+    if(bdelt < 3){
+      return 0;
+    }
+//fprintf(stderr, "[%d->%d] SPLIT ON BLUE %d %d (pop: %d)\n", color, stab->colors, deets->hi[2], deets->lo[2], deets->count);
     rgbmax[2] = deets->lo[2] + (deets->hi[2] - deets->lo[2]) / 2;
   }
   unzip_color(data, linesize, begy, begx, leny, lenx, stab, color, rgbmax);
   ++stab->colors;
+  return 1;
 }
 
 // relax the details down into free color registers
@@ -251,13 +371,14 @@ refine_color_table(const uint32_t* data, int linesize, int begy, int begx,
       int didx = ctable_to_dtable(crec);
       cdetails* deets = stab->deets + didx;
 //fprintf(stderr, "[%d->%d] hi: %d %d %d lo: %d %d %d\n", i, didx, deets->hi[0], deets->hi[1], deets->hi[2], deets->lo[0], deets->lo[1], deets->lo[2]);
-      if(memcmp(deets->hi, deets->lo, RGBSIZE)){
-        refine_color(data, linesize, begy, begx, leny, lenx, stab, i);
-        if(stab->colors == stab->colorregs){
-//fprintf(stderr, "filled table!\n");
-          break;
+      if(deets->count > leny * lenx / stab->colorregs){
+        if(refine_color(data, linesize, begy, begx, leny, lenx, stab, i)){
+          if(stab->colors == stab->colorregs){
+  //fprintf(stderr, "filled table!\n");
+            break;
+          }
+          refined = true;
         }
-        refined = true;
       }
     }
     if(!refined){ // no more possible work
@@ -294,17 +415,12 @@ write_rle(int* printed, int color, FILE* fp, int seenrle, unsigned char crle){
 
 // Emit the sprixel in its entirety, plus enable and disable pixel mode.
 static int
-write_sixel_data(FILE* fp, int lenx, sixeltable* stab){
-  // \e[?80: DECSDM "sixel scrolling" mode (put output at cursor location)
-  // \x90: 8-bit "device control sequence", lowercase q (start sixel)
-  // doesn't seem to work with at least xterm; we instead use '\ePq'
-  // FIXME i think we can print DESDM on the first one, and never again
-  fprintf(fp, "\e[?80h\ePq");
-
+write_sixel_data(FILE* fp, int lenx, sixeltable* stab, int* parse_start, int* tacache){
+  *parse_start = fprintf(fp, "\ePq");
   // Set Raster Attributes - pan/pad=1 (pixel aspect ratio), Ph=lenx, Pv=leny
   // using Ph/Pv causes a background to be drawn using color register 0 for all
   // unspecified pixels, which we do not want.
-  //fprintf(fp, "\"1;1;%d;%d", lenx, leny);
+//  fprintf(fp, "\"1;1;%d;%d", lenx, leny);
 
   for(int i = 0 ; i < stab->colors ; ++i){
     const unsigned char* rgb = stab->table + i * CENTSIZE;
@@ -312,12 +428,13 @@ write_sixel_data(FILE* fp, int lenx, sixeltable* stab){
     int count = stab->deets[idx].count;
 //fprintf(stderr, "RGB: %3u %3u %3u DT: %d SUMS: %3d %3d %3d COUNT: %d\n", rgb[0], rgb[1], rgb[2], idx, stab->deets[idx].sums[0] / count * 100 / 255, stab->deets[idx].sums[1] / count * 100 / 255, stab->deets[idx].sums[2] / count * 100 / 255, count);
     //fprintf(fp, "#%d;2;%u;%u;%u", i, rgb[0], rgb[1], rgb[2]);
-    fprintf(fp, "#%d;2;%jd;%jd;%jd", i,
-            (intmax_t)(stab->deets[idx].sums[0] * 100 / count / 255),
-            (intmax_t)(stab->deets[idx].sums[1] * 100 / count / 255),
-            (intmax_t)(stab->deets[idx].sums[2] * 100 / count / 255));
+    *parse_start += fprintf(fp, "#%d;2;%jd;%jd;%jd", i,
+                            (intmax_t)(stab->deets[idx].sums[0] * 100 / count / 255),
+                            (intmax_t)(stab->deets[idx].sums[1] * 100 / count / 255),
+                            (intmax_t)(stab->deets[idx].sums[2] * 100 / count / 255));
   }
   int p = 0;
+  (void)tacache; // FIXME fill in tacache when we hit transparencies
   while(p < stab->sixelcount){
     for(int i = 0 ; i < stab->colors ; ++i){
       int printed = 0;
@@ -376,14 +493,24 @@ int sixel_blit_inner(ncplane* nc, int leny, int lenx, sixeltable* stab,
   if(fp == NULL){
     return -1;
   }
-  if(write_sixel_data(fp, lenx, stab)){
-    fclose(fp);
+  int parse_start = 0;
+  unsigned cols = lenx / bargs->u.pixel.celldimx + !!(lenx % bargs->u.pixel.celldimx);
+  unsigned rows = leny / bargs->u.pixel.celldimy + !!(leny % bargs->u.pixel.celldimy);
+  int* tacache = malloc(sizeof(*tacache) * rows * cols);
+  memset(tacache, 0, sizeof(*tacache) * rows * cols);
+  if(tacache == NULL){
     free(buf);
     return -1;
   }
-  unsigned cols = lenx / bargs->pixel.celldimx + !!(lenx % bargs->pixel.celldimx);
-  unsigned rows = leny / bargs->pixel.celldimy + !!(leny % bargs->pixel.celldimx);
-  if(plane_blit_sixel(nc, buf, size, rows, cols, bargs->pixel.sprixelid) < 0){
+  if(write_sixel_data(fp, lenx, stab, &parse_start, tacache)){
+    free(tacache);
+    free(buf);
+    return -1;
+  }
+  if(plane_blit_sixel(nc, buf, size, bargs->placey, bargs->placex,
+                      rows, cols, bargs->u.pixel.sprixelid, leny, lenx,
+                      parse_start, tacache) < 0){
+    free(tacache);
     free(buf);
     return -1;
   }
@@ -391,10 +518,13 @@ int sixel_blit_inner(ncplane* nc, int leny, int lenx, sixeltable* stab,
   return 1;
 }
 
-int sixel_blit(ncplane* nc, int linesize, const void* data, int begy, int begx,
+int sixel_blit(ncplane* nc, int linesize, const void* data,
                int leny, int lenx, const blitterargs* bargs){
-  int sixelcount = (lenx - begx) * ((leny - begy + 5) / 6);
-  int colorregs = bargs->pixel.colorregs;
+  int sixelcount = (lenx - bargs->begx) * ((leny - bargs->begy + 5) / 6);
+  int colorregs = bargs->u.pixel.colorregs;
+  if(colorregs <= 0){
+    return -1;
+  }
   if(colorregs > 256){
     colorregs = 256;
   }
@@ -415,16 +545,23 @@ int sixel_blit(ncplane* nc, int linesize, const void* data, int begy, int begx,
   // stable.table doesn't need initializing; we start from the bottom
   memset(stable.data, 0, sixelcount * colorregs);
   memset(stable.deets, 0, sizeof(*stable.deets) * colorregs);
-  if(extract_color_table(data, linesize, begy, begx, leny, lenx, &stable)){
+  if(extract_color_table(data, linesize, bargs->begy, bargs->begx, leny, lenx, &stable)){
     free(stable.table);
     free(stable.data);
     free(stable.deets);
     return -1;
   }
-  refine_color_table(data, linesize, begy, begx, leny, lenx, &stable);
+  refine_color_table(data, linesize, bargs->begy, bargs->begx, leny, lenx, &stable);
   int r = sixel_blit_inner(nc, leny, lenx, &stable, bargs);
   free(stable.data);
   free(stable.deets);
   free(stable.table);
   return r;
+}
+
+int sprite_sixel_init(int fd){
+  // \e[?8452: DECSDM private "sixel scrolling" mode keeps the sixel from
+  // scrolling, but puts it at the current cursor location (as opposed to
+  // the upper left corner of the screen).
+  return tty_emit("\e[?8452h", fd);
 }

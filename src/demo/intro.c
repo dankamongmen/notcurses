@@ -28,6 +28,53 @@ fader(struct notcurses* nc, struct ncplane* ncp, void* curry){
   return 0;
 }
 
+static struct ncplane*
+orcashow(struct notcurses* nc, int dimy, int dimx){
+  char* path = find_data("natasha-blur.png");
+  if(path == NULL){
+    return NULL;
+  }
+  struct ncvisual* ncv = ncvisual_from_file(path);
+  free(path);
+  if(ncv == NULL){
+    return NULL;
+  }
+  struct ncvisual_options vopts = {
+    .blitter = NCBLIT_PIXEL,
+    .flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_HORALIGNED,
+  };
+  struct ncplane* n = ncvisual_render(nc, ncv, &vopts);
+  ncvisual_destroy(ncv);
+  int odimy, odimx, oy, ox;
+  ncplane_yx(n, &oy, &ox);
+  ncplane_dim_yx(n, &odimy, &odimx);
+  if(odimy > dimy - 2){
+    ncplane_destroy(n);
+    return NULL;
+  }
+  if(odimx > dimx){
+    ncplane_destroy(n);
+    return NULL;
+  }
+  ncplane_move_yx(n, dimy - odimy - 2, dimx - odimx);
+  return n;
+}
+
+static int
+orcaride(struct notcurses* nc, struct ncplane* on){
+  int odimy, odimx, oy, ox;
+  ncplane_yx(on, &oy, &ox);
+  ncplane_dim_yx(on, &odimy, &odimx);
+  if(ox >= odimx / 2){
+    ox -= odimx / 2;
+  }
+  if(ncplane_move_yx(on, oy, ox)){
+    return -1;
+  }
+  DEMO_RENDER(nc);
+  return 0;
+}
+
 int intro(struct notcurses* nc){
   if(!notcurses_canutf8(nc)){
     return 0;
@@ -146,6 +193,10 @@ int intro(struct notcurses* nc){
     }
     ncplane_off_styles(ncp, NCSTYLE_BLINK); // heh FIXME replace with pulse
   }
+  struct ncplane* on = NULL;
+  if(notcurses_check_pixel_support(nc) && notcurses_canopen_images(nc)){
+    on = orcashow(nc, rows, cols);
+  }
   struct timespec now;
   clock_gettime(CLOCK_MONOTONIC, &now);
   uint64_t deadline = timespec_to_ns(&now) + timespec_to_ns(&demodelay) * 2;
@@ -159,7 +210,13 @@ int intro(struct notcurses* nc){
     timespec_div(&demodelay, 10, &iter);
     demo_nanosleep(nc, &iter);
     clock_gettime(CLOCK_MONOTONIC, &now);
+    if(on){
+      if(flipmode % 5 == 0){
+        orcaride(nc, on);
+      }
+    }
   }while(timespec_to_ns(&now) < deadline);
+  ncplane_destroy(on);
   if(!notcurses_canfade(nc)){
     return 0;
   }

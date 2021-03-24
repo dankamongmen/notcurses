@@ -183,30 +183,44 @@ int fallin_demo(struct notcurses* nc){
       x += newx;
     }
   }
-  ncplane_erase(stdn);
+  struct ncplane* n = NULL;
 #ifndef DFSG_BUILD
   if(notcurses_canopen_images(nc)){
-  char* path = find_data("lamepatents.jpg");
-  struct ncvisual* ncv = ncvisual_from_file(path);
-  free(path);
-  if(ncv == NULL){
-    goto err;
-  }
-  struct ncvisual_options vopts = {
-    .n = stdn,
-    .scaling = NCSCALE_STRETCH,
-  };
-  if(ncvisual_render(nc, ncv, &vopts) == NULL){
+    char* path = find_data("lamepatents.jpg");
+    if(path == NULL){
+      goto err;
+    }
+    struct ncvisual* ncv = ncvisual_from_file(path);
+    free(path);
+    if(ncv == NULL){
+      goto err;
+    }
+    struct ncplane_options nopts = {
+      .rows = dimy - 2,
+      .cols = dimx,
+      .y = 1,
+    };
+    n = ncplane_create(stdn, &nopts);
+    if(n == NULL){
+      goto err;
+    }
+    struct ncvisual_options vopts = {
+      .scaling = NCSCALE_STRETCH,
+      //.blitter = NCBLIT_PIXEL,
+      .n = n,
+    };
+    if(ncvisual_render(nc, ncv, &vopts) == NULL){
+      ncvisual_destroy(ncv);
+      goto err;
+    }
+    assert(ncvisual_decode(ncv) == 1);
     ncvisual_destroy(ncv);
-    goto err;
-  }
-  assert(ncvisual_decode(ncv) == 1);
-  ncvisual_destroy(ncv);
   }
 #endif
   int ret = drop_bricks(nc, arr, arrcount);
   free(arr);
   free(usemap);
+  ncplane_destroy(n);
   return ret;
 
 err:

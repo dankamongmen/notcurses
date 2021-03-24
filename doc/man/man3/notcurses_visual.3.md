@@ -30,8 +30,9 @@ typedef enum {
   NCBLIT_8x1,     // eight vertical levels, (plots)
 } ncblitter_e;
 
-#define NCVISUAL_OPTION_NODEGRADE 0x0001
-#define NCVISUAL_OPTION_BLEND     0x0002
+#define NCVISUAL_OPTION_NODEGRADE  0x0001
+#define NCVISUAL_OPTION_BLEND      0x0002
+#define NCVISUAL_OPTION_HORALIGNED 0x0004
 
 struct ncvisual_options {
   struct ncplane* n;
@@ -218,9 +219,11 @@ check for support with **notcurses_check_pixel_support**. If this function has
 not successfully returned, attempts to use **NCBLIT_PIXEL** will fall back to
 **NCBLIT_3x2** (or fail, if **NCVISUAL_OPTION_NODEGRADE** is used).
 
-Pixel blitting creates a new, immutable, purpose-specific plane. Attempting
-to pass a non-**NULL** ***n*** in **ncvisual_options** will result in an error
-if **NCBLIT_PIXEL** is used.
+Bitmaps cannot be blitted to the standard plane; an attempt to do so will be
+rejected as an error. Only one bitmap can be blitted onto a plane at a time
+(but multiple planes with bitmaps may be visible); blitting a second to the
+same plane will delete the original. Destroying the plane with which a bitmap
+is associated will delete the bitmap.
 
 # RETURN VALUES
 
