@@ -29,7 +29,7 @@ fader(struct notcurses* nc, struct ncplane* ncp, void* curry){
 }
 
 static struct ncplane*
-orcashow(struct notcurses* nc){
+orcashow(struct notcurses* nc, int dimy, int dimx){
   char* path = find_data("natasha-blur.png");
   if(path == NULL){
     return NULL;
@@ -45,24 +45,28 @@ orcashow(struct notcurses* nc){
   };
   struct ncplane* n = ncvisual_render(nc, ncv, &vopts);
   ncvisual_destroy(ncv);
+  int odimy, odimx, oy, ox;
+  ncplane_yx(n, &oy, &ox);
+  ncplane_dim_yx(n, &odimy, &odimx);
+  if(odimy > dimy - 2){
+    ncplane_destroy(n);
+    return NULL;
+  }
+  if(odimx > dimx){
+    ncplane_destroy(n);
+    return NULL;
+  }
+  ncplane_move_yx(n, dimy - odimy - 2, dimx - odimx);
   return n;
 }
 
 static int
-orcaride(struct notcurses* nc, struct ncplane* on, int dimy, int dimx, int iteration){
-  if(iteration % 2){
-    return 0;
-  }
+orcaride(struct notcurses* nc, struct ncplane* on, int dimy, int iteration){
   int odimy, odimx, oy, ox;
   ncplane_yx(on, &oy, &ox);
   ncplane_dim_yx(on, &odimy, &odimx);
-  if(iteration % 4 == 0){
-    if(oy + odimy + 5 < dimy){
-      oy += 5;
-    }
-  }
-  if(ox + odimx + 5 < dimx){
-    ox += 5;
+  if(ox >= odimx / 2){
+    ox -= odimx / 2;
   }
   if(ncplane_move_yx(on, oy, ox)){
     return -1;
@@ -191,7 +195,7 @@ int intro(struct notcurses* nc){
   }
   struct ncplane* on = NULL;
   if(notcurses_check_pixel_support(nc) && notcurses_canopen_images(nc)){
-    on = orcashow(nc);
+    on = orcashow(nc, rows, cols);
   }
   struct timespec now;
   clock_gettime(CLOCK_MONOTONIC, &now);
@@ -207,7 +211,9 @@ int intro(struct notcurses* nc){
     demo_nanosleep(nc, &iter);
     clock_gettime(CLOCK_MONOTONIC, &now);
     if(on){
-      orcaride(nc, on, rows, cols, flipmode);
+      if(flipmode % 5 == 0){
+        orcaride(nc, on, rows, flipmode);
+      }
     }
   }while(timespec_to_ns(&now) < deadline);
   ncplane_destroy(on);
