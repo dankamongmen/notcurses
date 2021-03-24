@@ -7,6 +7,7 @@ rearrangements of Notcurses.
   * Added `notcurses_debug_caps()` to dump terminal properties, both those
     reported and those inferred, to a `FILE*`.
   * Added `NCOPTION_NO_CLEAR_BITMAPS` option for `notcurses_init()`.
+  * Added `NCVISUAL_OPTION_HORALIGNED` flag for `ncvisual_render()`.
 
 * 2.2.3 (2021-03-08)
   * Implemented **EXPERIMENTAL** `NCBLIT_PIXEL` for terminals reporting Sixel
