@@ -102,6 +102,10 @@ ncplane* nctabbed_content_plane(nctabbed* nt){
   return nt->p;
 }
 
+tabcb nctab_cb(nctab* t){
+  return t->cb;
+}
+
 const char* nctab_name(nctab* t){
   return t->name;
 }

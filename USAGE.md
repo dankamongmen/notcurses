@@ -2567,6 +2567,10 @@ struct ncplane* nctabbed_plane(struct nctabbed* nt);
 // Returns the tab content plane.
 struct ncplane* nctabbed_content_plane(struct nctabbed* nt);
 
+// Returns the tab callback.
+tabcb nctab_cb(struct nctab* t)
+  __attribute__ ((nonnull (1)));
+
 // Returns the tab name. This is not a copy and it should not be stored.
 const char* nctab_name(struct nctab* t);
 

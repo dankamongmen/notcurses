@@ -45,6 +45,8 @@ typedef void (*tabcb)(struct nctab* t, struct ncplane* ncp, void* userptr);
 
 **struct ncplane* nctabbed_content_plane(struct nctabbed* ***nt***);**
 
+**tabcb nctab_cb(struct nctab* ***t***);**
+
 **const char* nctab_name(struct nctab* ***t***);**
 
 **int nctab_name_width(struct nctab* ***t***);**
@@ -134,11 +136,11 @@ of the tab content plane, nor should it modify the widget's or the tab's state.
 
 # RETURN VALUES
 
-**nctabbed_create** returns the newly created widget, or NULL when the widget
+**nctabbed_create** returns the newly created widget, or **NULL** when the widget
 failed to be created. This destroys the **ncplane** given to it even if it fails.
 
 **nctabbed_selected** and **nctabbed_leftmost** return the selected and
-leftmost tabs, respectively. (if any)
+leftmost tabs, respectively. If there are no tabs, these return **NULL**.
 
 **nctab_name** returns the tab's name. This is not a copy, and it should not be
 stored, since it is freed when the tab's name is changed or the tab is deleted.

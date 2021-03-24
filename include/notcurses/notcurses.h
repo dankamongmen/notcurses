@@ -3245,6 +3245,10 @@ API struct ncplane* nctabbed_plane(struct nctabbed* nt)
 API struct ncplane* nctabbed_content_plane(struct nctabbed* nt)
   __attribute__ ((nonnull (1)));
 
+// Returns the tab callback.
+API tabcb nctab_cb(struct nctab* t)
+  __attribute__ ((nonnull (1)));
+
 // Returns the tab name. This is not a copy and it should not be stored.
 API const char* nctab_name(struct nctab* t)
   __attribute__ ((nonnull (1)));
