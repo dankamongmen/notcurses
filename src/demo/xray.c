@@ -89,7 +89,7 @@ int xray_demo(struct notcurses* nc){
   if(n == NULL){
     return -1;
   }
-  char* path = find_data("notcursesII.mkv");
+  char* path = find_data("notcursesIII.mkv");
   struct ncvisual* ncv = ncvisual_from_file(path);
   free(path);
   if(ncv == NULL){
