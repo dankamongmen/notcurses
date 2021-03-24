@@ -931,8 +931,11 @@ int sprite_kitty_annihilate(const notcurses* nc, const ncpile* p, FILE* out, spr
 }
 
 int sprite_sixel_annihilate(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
-  /*
+  (void)nc;
+  (void)p;
   (void)out;
+  (void)s;
+  /*
   struct crender* rvec = p->crender;
   // FIXME need to cap by ends minus bottom, right margins also
   const int ycap = nc->stdplane->leny + nc->margin_t;
