@@ -256,6 +256,28 @@ typedef struct ncprogbar {
   bool retrograde;
 } ncprogbar;
 
+typedef struct nctab {
+  struct nctabbed* nt; // The nctabbed this belongs to
+  tabcb cb;     // tab callback
+  char* name;   // tab name
+  int namecols; // tab name width in columns
+  void* curry;  // user pointer
+  struct nctab* prev;
+  struct nctab* next;
+} nctab;
+
+typedef struct nctabbed {
+  ncplane* ncp;          // widget ncplane
+  ncplane* p;            // tab content ncplane
+  ncplane* hp;           // tab headers ncplane
+  // a doubly-linked circular list of tabs
+  nctab* leftmost;       // the tab most to the left
+  nctab* selected;       // the currently selected tab
+  int tabcount;          // tab separator (can be NULL)
+  int sepcols;           // separator with in columns
+  nctabbed_options opts; // copied in nctabbed_create()
+} nctabbed;
+
 // terminfo cache
 typedef struct tinfo {
   unsigned colors;// number of colors terminfo reported usable for this screen
