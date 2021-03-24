@@ -51,60 +51,60 @@ int sprite_sixel_cell_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell
       ++c;
     }
     row += 6;
-  }
-  unsigned mask = 0;
-  if(row < top){
-    for(int i = 0 ; i < top - row ; ++i){
-      mask |= (1 << i);
-    }
-  }
-  // make masks containing only pixels which we will *not* be turning off
-  // (on the top or bottom), if any. go through each entry and if it
-  // occupies our target columns, scrub scrub scrub!
-  while(*c == '#' || isdigit(*c)){
-    while(*c == '#' || isdigit(*c)){
-      ++c;
-    }
-    int column = 0;
-    int rle = 0;
-    // here begins the substance, concluded by '-', '$', or '\e'. '!' indicates rle.
-    while(*c != '-' && *c != '$' && *c != '\e'){
-      if(*c == '!'){
-        rle = 0;
-      }else if(isdigit(*c)){
-        rle *= 10;
-        rle += (*c - '0');
-      }else{
-        if(rle){
-          // FIXME this can skip over the starting column
-          column += (rle - 1);
-          rle = 0;
-        }
-        if(column >= left && column < right){ // zorch it
-//fprintf(stderr, "STARTED WITH %d %c\n", *c, *c);
-          *c = ((*c - 63) & mask) + 63;
-//fprintf(stderr, "CHANGED TO %d %c\n", *c, *c);
-        }
-        ++column;
+    unsigned mask = 0;
+    if(row < top){
+      for(int i = 0 ; i < top - row ; ++i){
+        mask |= (1 << i);
       }
-      ++c;
     }
-    if(*c == '-'){
-      row += 6;
-      if(row >= bottom){
+    // make masks containing only pixels which we will *not* be turning off
+    // (on the top or bottom), if any. go through each entry and if it
+    // occupies our target columns, scrub scrub scrub!
+    while(*c == '#' || isdigit(*c)){
+      while(*c == '#' || isdigit(*c)){
+        ++c;
+      }
+      int column = 0;
+      int rle = 0;
+      // here begins the substance, concluded by '-', '$', or '\e'. '!' indicates rle.
+      while(*c != '-' && *c != '$' && *c != '\e'){
+        if(*c == '!'){
+          rle = 0;
+        }else if(isdigit(*c)){
+          rle *= 10;
+          rle += (*c - '0');
+        }else{
+          if(rle){
+            // FIXME this can skip over the starting column
+            column += (rle - 1);
+            rle = 0;
+          }
+          if(column >= left && column < right){ // zorch it
+//fprintf(stderr, "STARTED WITH %d %c\n", *c, *c);
+            *c = ((*c - 63) & mask) + 63;
+//fprintf(stderr, "CHANGED TO %d %c\n", *c, *c);
+          }
+          ++column;
+        }
+        ++c;
+      }
+      if(*c == '-'){
+        row += 6;
+        if(row >= bottom){
+          return 0;
+        }
+        mask = 0;
+        if(bottom - row < 6){
+          for(int i = 0 ; i < bottom - row ; ++i){
+            mask |= (1 << (6 - i));
+          }
+        }
+      }else if(*c == '\e'){
         return 0;
       }
-      mask = 0;
-      if(bottom - row < 6){
-        for(int i = 0 ; i < bottom - row ; ++i){
-          mask |= (1 << (6 - i));
-        }
-      }
-    }else if(*c == '\e'){
-      return 0;
+      column = 0;
+      ++c;
     }
-    column = 0;
-    ++c;
   }
   return 0;
 }
