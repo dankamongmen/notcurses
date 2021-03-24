@@ -10,6 +10,8 @@
   }while(0)
 
 void tabcbfn(struct nctab* t, struct ncplane* ncp, void* curry){
+  (void) t;
+  (void) curry;
   ncplane_erase(ncp);
   ncplane_puttext(ncp, -1, NCALIGN_LEFT,
                   "Use left/right arrow keys for navigation, "
@@ -80,17 +82,17 @@ int main(int argc, char** argv){
   struct nctabbed* nct = nctabbed_create(ncp, &topts);
   ncplane_set_base(nctabbed_content_plane(nct), " ", 0, CHANNELS_RGB_INITIALIZER(255, 255, 255, 15, 60, 15));
   REDRAW();
-  nctabbed_add(nct, NULL, NULL, tabcbfn, "Tab #1", NULL);
+  (void) nctabbed_add(nct, NULL, NULL, tabcbfn, "Tab #1", NULL);
   REDRAW();
-  nctabbed_add(nct, NULL, NULL, tabcbfn, "Tab #2", NULL);
+  (void) nctabbed_add(nct, NULL, NULL, tabcbfn, "Tab #2", NULL);
   REDRAW();
-  nctabbed_add(nct, NULL, NULL, tabcbfn, "Tab #3", NULL);
+  (void) nctabbed_add(nct, NULL, NULL, tabcbfn, "Tab #3", NULL);
   REDRAW();
-  nctabbed_add(nct, NULL, NULL, tabcbfn, "alpha", NULL);
+  (void) nctabbed_add(nct, NULL, NULL, tabcbfn, "alpha", NULL);
   REDRAW();
-  nctabbed_add(nct, NULL, NULL, tabcbfn, "beta", NULL);
+  (void) nctabbed_add(nct, NULL, NULL, tabcbfn, "beta", NULL);
   REDRAW();
-  nctabbed_add(nct, NULL, NULL, tabcbfn, "gamma", NULL);
+  (void) nctabbed_add(nct, NULL, NULL, tabcbfn, "gamma", NULL);
   REDRAW();
   char32_t c;
   while((c = notcurses_getc_blocking(nc, NULL)) != 'q'){
@@ -114,7 +116,7 @@ int main(int argc, char** argv){
         nctab_move_right(nct, nctabbed_selected(nct));
         break;
       case 'a':
-        nctabbed_add(nct, NULL, NULL, tabcbfn, "added tab", NULL);
+        (void) nctabbed_add(nct, NULL, NULL, tabcbfn, "added tab", NULL);
         break;
       case 'r':
         nctabbed_del(nct, nctabbed_selected(nct));

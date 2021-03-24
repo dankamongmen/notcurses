@@ -1,6 +1,6 @@
 #include "main.h"
 
-void tabbedcb(struct nctab* t, struct ncplane* ncp, void* curry){
+void tabbedcb(struct nctab*, struct ncplane*, void*){
 
 }
 
@@ -313,6 +313,8 @@ TEST_CASE("Tabbed") {
     auto t4 = nctabbed_add(nt, nullptr, nullptr, tabbedcb, "tab4", nullptr);
     auto t3 = nctabbed_add(nt, nullptr, nullptr, tabbedcb, "tab3", nullptr);
     auto t2 = nctabbed_add(nt, nullptr, nullptr, tabbedcb, "tab2", nullptr);
+    (void)t3;
+    (void)t4;
     CHECK(t1 == nctabbed_selected(nt));
     nctabbed_select(nt, t2);
     CHECK(t2 == nctabbed_selected(nt));
