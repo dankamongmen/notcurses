@@ -81,7 +81,8 @@ int xray_demo(struct notcurses* nc){
   int dimx, dimy;
   notcurses_term_dim_yx(nc, &dimy, &dimx);
   struct ncplane_options nopts = {
-    .rows = dimy,
+    .y = 1,
+    .rows = dimy - 2,
     .cols = dimx,
     .resizecb = ncplane_resize_maximize,
   };
@@ -104,8 +105,16 @@ int xray_demo(struct notcurses* nc){
   struct ncvisual_options vopts = {
     .n = n,
     .scaling = NCSCALE_STRETCH,
+    .blitter = NCBLIT_PIXEL,
+    .flags = NCVISUAL_OPTION_NODEGRADE, // to test for NCBLIT_PIXEL
   };
-  int ret = ncvisual_stream(nc, ncv, 0.5 * delaymultiplier, perframecb, &vopts, newpanel);
+  float dm = 0;
+  // returns 0 if the selected blitter isn't available
+  if(ncvisual_geom(nc, ncv, &vopts, NULL, NULL, NULL, NULL)){
+    vopts.flags &= ~NCVISUAL_OPTION_NODEGRADE;
+    dm = 0.5 * delaymultiplier;
+  }
+  int ret = ncvisual_stream(nc, ncv, dm, perframecb, &vopts, newpanel);
   ncvisual_destroy(ncv);
   ncplane_destroy(n);
   ncplane_destroy(newpanel);
