@@ -364,9 +364,15 @@ nctab* nctabbed_select(nctabbed* nt, nctab* t){
 
 void nctabbed_channels(nctabbed* nt, uint64_t* RESTRICT hdrchan,
                        uint64_t* RESTRICT selchan, uint64_t* RESTRICT sepchan){
-  memcpy(&nt->opts.hdrchan, hdrchan, sizeof(*hdrchan));
-  memcpy(&nt->opts.selchan, selchan, sizeof(*selchan));
-  memcpy(&nt->opts.sepchan, sepchan, sizeof(*sepchan));
+  if(hdrchan){
+    memcpy(&nt->opts.hdrchan, hdrchan, sizeof(*hdrchan));
+  }
+  if(selchan){
+    memcpy(&nt->opts.selchan, selchan, sizeof(*selchan));
+  }
+  if(sepchan){
+    memcpy(&nt->opts.sepchan, sepchan, sizeof(*sepchan));
+  }
 }
 
 const char* nctabbed_separator(nctabbed* nt){
