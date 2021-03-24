@@ -206,7 +206,9 @@ int intro(struct notcurses* nc){
     timespec_div(&demodelay, 10, &iter);
     demo_nanosleep(nc, &iter);
     clock_gettime(CLOCK_MONOTONIC, &now);
-    orcaride(nc, on, rows, cols, flipmode);
+    if(on){
+      orcaride(nc, on, rows, cols, flipmode);
+    }
   }while(timespec_to_ns(&now) < deadline);
   ncplane_destroy(on);
   if(!notcurses_canfade(nc)){
