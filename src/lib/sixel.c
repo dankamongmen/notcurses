@@ -21,7 +21,7 @@ int sprite_sixel_cell_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell
   if(bottom > s->pixy){
     bottom = s->pixy;
   }
-fprintf(stderr, "TARGET AREA: [ %dx%d -> %dx%d ] of %dx%d\n", top, left, bottom - 1, right - 1, s->pixy, s->pixx);
+//fprintf(stderr, "TARGET AREA: [ %dx%d -> %dx%d ] of %dx%d\n", top, left, bottom - 1, right - 1, s->pixy, s->pixx);
   char* c = s->glyph;
   // lines of sixels are broken by a hyphen. if we were guaranteed to already
   // be in the meat of the sixel, it would be sufficient to count hyphens, but
