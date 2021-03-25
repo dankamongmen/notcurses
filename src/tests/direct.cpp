@@ -49,13 +49,27 @@ TEST_CASE("DirectMode") {
     }
   }
 
+#ifndef NOTCURSES_USE_MULTIMEDIA
+  SUBCASE("VisualDisabled"){
+    CHECK(!ncdirect_canopen_images(nc_));
+  }
+#else
+  SUBCASE("ImagesEnabled"){
+    CHECK(ncdirect_canopen_images(nc_));
+  }
+
+  SUBCASE("LoadImage") {
+    CHECK(0 == ncdirect_render_image(nc_, find_data("changes.jpg"), NCALIGN_LEFT, NCBLIT_1x1, NCSCALE_STRETCH));
+  }
+#endif
+
   CHECK(0 == ncdirect_stop(nc_));
 
   // make sure that we can pass undefined flags and still create the ncdirect
   SUBCASE("FutureFlags") {
-    nc_ = ncdirect_init(NULL, stdout, ~0ULL);
-    REQUIRE(nullptr != nc_);
-    CHECK(0 == ncdirect_stop(nc_));
+    auto fnc = ncdirect_init(NULL, stdout, ~0ULL);
+    REQUIRE(nullptr != fnc);
+    CHECK(0 == ncdirect_stop(fnc));
   }
 
 }
