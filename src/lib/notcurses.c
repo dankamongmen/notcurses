@@ -2042,10 +2042,6 @@ bool notcurses_canchangecolor(const notcurses* nc){
   return true;
 }
 
-bool notcurses_canpixel(const notcurses* nc){
-  return nc->tcache.sixel_supported;
-}
-
 palette256* palette256_new(notcurses* nc){
   palette256* p = malloc(sizeof(*p));
   if(p){

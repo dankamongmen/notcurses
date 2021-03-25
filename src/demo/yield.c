@@ -47,7 +47,7 @@ int yield_demo(struct notcurses* nc){
   // run closer to twenty seconds. 11/50 it is, then. pixels are different.
   // it would be nice to hit this all with a rigor stick. yes, the 1 makes
   // all the difference in cells v pixels. FIXME
-  const long threshold_painted = total * (10 + !notcurses_canpixel(nc)) / 50;
+  const long threshold_painted = total * (10 + (notcurses_check_pixel_support(nc) <= 0)) / 50;
   const int MAXITER = 256;
   timespec_div(&demodelay, MAXITER, &scaled);
   long tfilled = 0;
