@@ -252,6 +252,8 @@ to breaking under incorrect `TERM` values. If you're not using `xterm`, your
 
 * **Q:** Can I avoid manually exporting `COLORTERM=24bit` everywhere? **A:** Sure. Add `SendEnv COLORTERM` to `.ssh/config`, and `AcceptEnv COLORTERM` to `sshd_config` on the remote server. Yes, this will probably require root on the remote server. Don't blame me, man; I didn't do it.
 
+* **Q:** How about *arbitrary image manipulation here* functionality? **A:** I'm not going to beat ImageMagick et al. on image manipulation, but you can load an `ncvisual` from RGBA memory using `ncvisual_from_rgba()`.
+
 ## Useful links
 
 * [BiDi in Terminal Emulators](https://terminal-wg.pages.freedesktop.org/bidi/)
