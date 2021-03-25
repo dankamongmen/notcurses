@@ -145,6 +145,24 @@ geometry of same. **flags** is a bitfield over:
 **data** using **NCBLIT_2x1** (this is the only blitter that will work with QR
 Code scanners, due to its 1:1 aspect ratio).
 
+# OPTIONS
+
+**begy** and **begx** specify the upper left corner of the image to start
+drawing. **leny** and **lenx** specify the area of the subimage drawn.
+**leny** and/or **lenx** may be specified as a negative number to draw
+through the bottom right corner of the image.
+
+The **n** field specifies the plane to use. If this is **NULL**, a new plane
+will be created, having the precise geometry necessary to blit the specified
+section of the image. This might be larger (or smaller) than the visual area.
+
+**y** and **x** have different meanings depending on whether or not **n** was
+**NULL**. If not (drawing onto a preexisting plane), they specify where in
+the plane to start drawing. If **n** was **NULL** (new plane), they specify
+the origin of the new plane relative to the standard plane. If the **flags**
+field contains **NCVISUAL_OPTION_HORALIGNED**, the **x** parameter is
+interpreted as an **ncalign_e** rather than an absolute position.
+
 # BLITTERS
 
 The different **ncblitter_e** values select from among available glyph sets:
@@ -271,6 +289,9 @@ Bad font support can ruin **NCBLIT_2x2**, **NCBLIT_3x2**, **NCBLIT_4x1**,
 **NCBLIT_BRAILLE**, and **NCBLIT_8x1**. Braille glyphs ought ideally draw only
 the raised dots, rather than drawing all eight dots with two different styles.
 It's often best for the emulator to draw these glyphs itself.
+
+**ncvisual_render** ought be able to create new planes in piles other than
+the standard pile. This ought become a reality soon.
 
 # SEE ALSO
 
