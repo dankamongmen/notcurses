@@ -196,15 +196,6 @@ impl Notcurses {
         unsafe { crate::notcurses_canopen_videos(self) }
     }
 
-    /// Returns true if pixel graphics are supported.
-    ///
-    /// See [NCBLIT_PIXEL][crate::NCBLIT_PIXEL].
-    ///
-    /// *C style function: [notcurses_canpixel()][crate::notcurses_canpixel].*
-    pub fn canpixel(&self) -> bool {
-        unsafe { crate::notcurses_canpixel(self) }
-    }
-
     /// Returns true if we can reliably use Unicode 13 sextants.
     ///
     /// *C style function: [notcurses_cansextant()][crate::notcurses_cansextant].*

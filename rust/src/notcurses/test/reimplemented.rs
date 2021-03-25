@@ -67,17 +67,6 @@ fn notcurses_canopen_videos() {
 
 #[test]
 #[serial]
-fn notcurses_canpixel() {
-    unsafe {
-        let nc = notcurses_init_test();
-        let res = crate::notcurses_canpixel(nc);
-        notcurses_stop(nc);
-        print!("[{}] ", res);
-    }
-}
-
-#[test]
-#[serial]
 fn notcurses_cansextant() {
     unsafe {
         let nc = notcurses_init_test();
