@@ -60,6 +60,7 @@ TEST_CASE("DirectMode") {
 
   SUBCASE("LoadImage") {
     CHECK(0 == ncdirect_render_image(nc_, find_data("changes.jpg"), NCALIGN_LEFT, NCBLIT_1x1, NCSCALE_STRETCH));
+    CHECK(0 == ncdirect_render_image(nc_, find_data("worldmap.png"), NCALIGN_RIGHT, NCBLIT_1x1, NCSCALE_SCALE));
   }
 #endif
 
