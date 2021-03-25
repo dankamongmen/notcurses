@@ -393,4 +393,6 @@ TEST_CASE("Tabbed") {
     CHECK(0 == strcmp(tname, nctab_name(t1)));
     nctabbed_destroy(nt);
   }
+
+  CHECK(0 == notcurses_stop(nc_));
 }
