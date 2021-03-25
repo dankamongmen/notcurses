@@ -11,17 +11,26 @@ TEST_CASE("Visual") {
 
   // check that NCVISUAL_OPTION_HORALIGNED works in all three cases
   SUBCASE("VisualAligned") {
-    const uint32_t pixels[4] = { htole(0xffff0000), htole(0xff00ff00), htole(0xff00000ff), htole(0xffffffff) };
+    const uint32_t pixels[4] = { htole(0xffff0000), htole(0xff00ff00), htole(0xff0000ff), htole(0xffffffff) };
     ncvisual_options vopts = {
+      .n = nullptr,
+      .scaling = NCSCALE_NONE,
       .y = 0,
       .x = NCALIGN_LEFT,
+      .begy = 0,
+      .begx = 0,
       .leny = 2,
       .lenx = 2,
+      .blitter = NCBLIT_1x1,
       .flags = NCVISUAL_OPTION_HORALIGNED,
     };
     auto ncv = ncvisual_from_rgba(pixels, 2, 2 * sizeof(*pixels), 2);
     REQUIRE(nullptr != ncv);
+    auto n = ncvisual_render(nc_, ncv, &vopts);
+    REQUIRE(nullptr != n);
+    CHECK(0 == notcurses_render(nc_));
     ncvisual_destroy(ncv);
+    ncplane_destroy(n);
   }
 
   SUBCASE("LoadRGBAFromMemory") {
@@ -433,12 +442,12 @@ TEST_CASE("Visual") {
 
 #ifndef NOTCURSES_USE_MULTIMEDIA
   SUBCASE("VisualDisabled"){
-    REQUIRE(!notcurses_canopen_images(nc_));
-    REQUIRE(!notcurses_canopen_videos(nc_));
+    CHECK(!notcurses_canopen_images(nc_));
+    CHECK(!notcurses_canopen_videos(nc_));
   }
 #else
   SUBCASE("ImagesEnabled"){
-    REQUIRE(notcurses_canopen_images(nc_));
+    CHECK(notcurses_canopen_images(nc_));
   }
 
   SUBCASE("LoadImageCreatePlane") {
@@ -499,12 +508,13 @@ TEST_CASE("Visual") {
     CHECK(ndimx == dimx);
   }
 
-  SUBCASE("LoadVideoASCII") {
+  SUBCASE("LoadVideoASCIIScale") {
     if(notcurses_canopen_videos(nc_)){
       int dimy, dimx;
       ncplane_dim_yx(ncp_, &dimy, &dimx);
       auto ncv = ncvisual_from_file(find_data("notcursesIII.mkv"));
       REQUIRE(ncv);
+      // FIXME can't we use use ncvisual_stream() here?
       for(;;){ // run at the highest speed we can
         int ret = ncvisual_decode(ncv);
         if(1 == ret){
@@ -512,7 +522,7 @@ TEST_CASE("Visual") {
         }
         CHECK(0 == ret);
         struct ncvisual_options opts{};
-        opts.scaling = NCSCALE_STRETCH;
+        opts.scaling = NCSCALE_SCALE_HIRES;
         opts.n = ncp_;
         opts.blitter = NCBLIT_1x1;
         CHECK(ncvisual_render(nc_, ncv, &opts));
@@ -522,7 +532,7 @@ TEST_CASE("Visual") {
     }
   }
 
-  SUBCASE("LoadVideoHalfblocks") {
+  SUBCASE("LoadVideoHalfScale") {
     if(notcurses_canopen_videos(nc_)){
       int dimy, dimx;
       ncplane_dim_yx(ncp_, &dimy, &dimx);
@@ -535,7 +545,7 @@ TEST_CASE("Visual") {
         }
         CHECK(0 == ret);
         struct ncvisual_options opts{};
-        opts.scaling = NCSCALE_STRETCH;
+        opts.scaling = NCSCALE_SCALE_HIRES;
         opts.n = ncp_;
         opts.blitter = NCBLIT_2x1;
         CHECK(ncvisual_render(nc_, ncv, &opts));
@@ -545,8 +555,8 @@ TEST_CASE("Visual") {
     }
   }
 
-  // quadblitter is default for NCSCALE_STRETCH
-  SUBCASE("LoadVideoQuadblitter") {
+  // quadblitter is default for NCSCALE_SCALE_HIRES
+  SUBCASE("LoadVideoQuadScale") {
     if(notcurses_canopen_videos(nc_)){
       int dimy, dimx;
       ncplane_dim_yx(ncp_, &dimy, &dimx);
@@ -559,7 +569,7 @@ TEST_CASE("Visual") {
         }
         CHECK(0 == ret);
         struct ncvisual_options opts{};
-        opts.scaling = NCSCALE_STRETCH;
+        opts.scaling = NCSCALE_SCALE_HIRES;
         opts.n = ncp_;
         opts.blitter = NCBLIT_2x2;
         CHECK(ncvisual_render(nc_, ncv, &opts));
@@ -569,7 +579,7 @@ TEST_CASE("Visual") {
     }
   }
 
-  SUBCASE("LoadVideoSexblitter") {
+  SUBCASE("LoadVideoSexScale") {
     if(notcurses_canopen_videos(nc_)){
       int dimy, dimx;
       ncplane_dim_yx(ncp_, &dimy, &dimx);
@@ -582,7 +592,7 @@ TEST_CASE("Visual") {
         }
         CHECK(0 == ret);
         struct ncvisual_options opts{};
-        opts.scaling = NCSCALE_STRETCH;
+        opts.scaling = NCSCALE_SCALE_HIRES;
         opts.n = ncp_;
         opts.blitter = NCBLIT_3x2;
         CHECK(ncvisual_render(nc_, ncv, &opts));
@@ -592,7 +602,7 @@ TEST_CASE("Visual") {
     }
   }
 
-  SUBCASE("LoadVideoBraille") {
+  SUBCASE("LoadVideoBrailleScale") {
     if(notcurses_canopen_videos(nc_)){
       int dimy, dimx;
       ncplane_dim_yx(ncp_, &dimy, &dimx);
@@ -605,7 +615,7 @@ TEST_CASE("Visual") {
         }
         CHECK(0 == ret);
         struct ncvisual_options opts{};
-        opts.scaling = NCSCALE_STRETCH;
+        opts.scaling = NCSCALE_SCALE_HIRES;
         opts.n = ncp_;
         opts.blitter = NCBLIT_BRAILLE;
         CHECK(ncvisual_render(nc_, ncv, &opts));
@@ -615,7 +625,7 @@ TEST_CASE("Visual") {
     }
   }
 
-  SUBCASE("LoadVideoPixel") {
+  SUBCASE("LoadVideoPixelScale") {
     if(notcurses_check_pixel_support(nc_) > 0){
       if(notcurses_canopen_videos(nc_)){
         int dimy, dimx;
@@ -629,9 +639,8 @@ TEST_CASE("Visual") {
           }
           CHECK(0 == ret);
           struct ncvisual_options opts{};
-          opts.scaling = NCSCALE_STRETCH;
-          opts.n = ncp_;
-          opts.blitter = NCBLIT_BRAILLE;
+          opts.scaling = NCSCALE_SCALE;
+          opts.blitter = NCBLIT_PIXEL;
           CHECK(ncvisual_render(nc_, ncv, &opts));
           CHECK(0 == notcurses_render(nc_));
         }
