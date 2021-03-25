@@ -1243,9 +1243,6 @@ API bool notcurses_cansextant(const struct notcurses* nc);
 // Can we reliably use Unicode Braille?
 API bool notcurses_canbraille(const struct notcurses* nc);
 
-// Can we blit to pixel graphics?
-API bool notcurses_canpixel(const struct notcurses* nc);
-
 // This function must successfully return before NCBLIT_PIXEL is available.
 // Returns -1 on error, 0 for no support, or 1 if pixel output is supported.
 // Must not be called concurrently with either input or rasterization.

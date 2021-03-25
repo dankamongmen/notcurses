@@ -255,6 +255,10 @@ aspect-preserving **NCBLIT_2x1** will be returned. If sextants are available
 (see **notcurses_cansextant**), this will be **NCBLIT_3x2**, or otherwise
 **NCBLIT_2x2**.
 
+**notcurses_check_pixel_support** returns 1 if bitmap support (via any
+mechanism) is detected; **NCBLIT_PIXEL** can be used after such a return.
+It returns 0 a lack of bitmap support was confirmed, and -1 on error.
+
 # NOTES
 
 Multimedia decoding requires that Notcurses be built with either FFmpeg or
