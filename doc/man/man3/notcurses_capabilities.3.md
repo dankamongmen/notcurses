@@ -30,7 +30,7 @@ notcurses_capabilities - runtime capability detection
 
 **bool notcurses_canbraille(const struct notcurses* ***nc***);**
 
-**bool notcurses_canpixel(const struct notcurses* ***nc***);**
+**int notcurses_check_pixel_support(struct notcurses* ***nc***);**
 
 # DESCRIPTION
 
@@ -65,12 +65,12 @@ UTF-8 encoding, and the locale was successfully loaded.
 **notcurses_cansextant** returns **true** if the heuristics suggest
 that the terminal can properly render Unicode 13 sextants.
 
-**notcurses_canpixel** returns **true** if the terminal advertises
-support for pixel graphics (e.g. Sixel). This function will not return **true**
-until **notcurses_check_pixel_support** is called, and successfully returns.
-
 **notcurses_canbraille** returns **true** if Braille is expected to work on the
 terminal.
+
+**notcurses_check_pixel_support** returns 1 if bitmap support (via any
+mechanism) is detected; **NCBLIT_PIXEL** can be used after such a return.
+It returns 0 a lack of bitmap support was confirmed, and -1 on error.
 
 # NOTES
 

@@ -93,8 +93,6 @@ typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 
 **int ncplane_qrcode(struct ncplane* ***n***, int* ***ymax***, int* ***xmax***, const void* ***data***, size_t ***len***)**
 
-**int notcurses_check_pixel_support(struct notcurses* ***nc***);**
-
 # DESCRIPTION
 
 An **ncvisual** is a virtual pixel framebuffer. They can be created from
@@ -254,10 +252,6 @@ in the specified configuration. If UTF8 is not enabled, this will always be
 aspect-preserving **NCBLIT_2x1** will be returned. If sextants are available
 (see **notcurses_cansextant**), this will be **NCBLIT_3x2**, or otherwise
 **NCBLIT_2x2**.
-
-**notcurses_check_pixel_support** returns 1 if bitmap support (via any
-mechanism) is detected; **NCBLIT_PIXEL** can be used after such a return.
-It returns 0 a lack of bitmap support was confirmed, and -1 on error.
 
 # NOTES
 

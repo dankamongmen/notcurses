@@ -675,7 +675,6 @@ pub use ffi::{
     notcurses_canopen_images,
     notcurses_canopen_videos,
     notcurses_cansextant,
-    notcurses_canpixel,
     notcurses_cantruecolor,
     notcurses_canutf8,
     notcurses_cursor_disable,
