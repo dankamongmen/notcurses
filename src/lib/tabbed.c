@@ -365,13 +365,13 @@ nctab* nctabbed_select(nctabbed* nt, nctab* t){
 void nctabbed_channels(nctabbed* nt, uint64_t* RESTRICT hdrchan,
                        uint64_t* RESTRICT selchan, uint64_t* RESTRICT sepchan){
   if(hdrchan){
-    memcpy(&nt->opts.hdrchan, hdrchan, sizeof(*hdrchan));
+    memcpy(hdrchan, &nt->opts.hdrchan, sizeof(*hdrchan));
   }
   if(selchan){
-    memcpy(&nt->opts.selchan, selchan, sizeof(*selchan));
+    memcpy(selchan, &nt->opts.selchan, sizeof(*selchan));
   }
   if(sepchan){
-    memcpy(&nt->opts.sepchan, sepchan, sizeof(*sepchan));
+    memcpy(sepchan, &nt->opts.sepchan, sizeof(*sepchan));
   }
 }
 
@@ -389,7 +389,6 @@ void nctabbed_destroy(nctabbed* nt){
   }
   nctab* t = nt->leftmost;
   nctab* tmp;
-  t->prev->next = NULL;
   while(t){
     tmp = t->next;
     free(t->name);
