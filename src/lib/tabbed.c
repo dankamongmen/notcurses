@@ -391,7 +391,9 @@ void nctabbed_destroy(nctabbed* nt){
   nctab* tmp;
   if(t){
     t->prev->next = NULL;
-    t->next->prev = NULL;
+    if(t->next){
+      t->next->prev = NULL;
+    }
   }
   while(t){
     tmp = t->next;
