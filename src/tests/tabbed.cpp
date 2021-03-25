@@ -61,7 +61,7 @@ TEST_CASE("Tabbed") {
     REQUIRE(nullptr != nt);
     CHECK(0 == nctabbed_tabcount(nt));
     auto t1 = nctabbed_add(nt, nullptr, nullptr, tabbedcb, "amazingtab123", nullptr);
-    CHECK(nullptr != t1);
+    REQUIRE(nullptr != t1);
     CHECK(t1 == nctabbed_selected(nt));
     CHECK(t1 == nctabbed_leftmost(nt));
     CHECK(1 == nctabbed_tabcount(nt));
@@ -70,7 +70,7 @@ TEST_CASE("Tabbed") {
     CHECK(nullptr == nctab_userptr(t1));
     CHECK(0 == strcmp("amazingtab123", nctab_name(t1)));
     auto t2 = nctabbed_add(nt, nullptr, nullptr, nullptr, "nullcbtab", nullptr);
-    CHECK(nullptr != t2);
+    REQUIRE(nullptr != t2);
     CHECK(t1 == nctabbed_selected(nt));
     CHECK(t1 == nctabbed_leftmost(nt));
     CHECK(2 == nctabbed_tabcount(nt));
@@ -80,24 +80,26 @@ TEST_CASE("Tabbed") {
     CHECK(t1 == nctab_prev(t2));
     // this one gets put in the middle
     auto t3 = nctabbed_add(nt, nullptr, nullptr, tabbedcb, "tab3", nullptr);
-    CHECK(nullptr != t3);
+    REQUIRE(nullptr != t3);
     CHECK(3 == nctabbed_tabcount(nt));
     CHECK(t2 == nctab_next(t3));
     CHECK(t1 == nctab_prev(t3));
-    // this one at the end
+    CHECK(t1 == nctab_next(t2));
+    CHECK(t2 == nctab_prev(t1));
+    // now the last
     auto t4 = nctabbed_add(nt, t2, t1, tabbedcb, "tab4", nullptr);
-    CHECK(nullptr != t4);
+    REQUIRE(nullptr != t4);
     CHECK(4 == nctabbed_tabcount(nt));
     CHECK(t1 == nctab_next(t4));
     CHECK(t2 == nctab_prev(t4));
     // second to last
     auto t5 = nctabbed_add(nt, nullptr, t4, tabbedcb, "tab5", nullptr);
-    CHECK(nullptr != t5);
+    REQUIRE(nullptr != t5);
     CHECK(t4 == nctab_next(t5));
     CHECK(t2 == nctab_prev(t5));
     // second
     auto t6 = nctabbed_add(nt, t1, nullptr, tabbedcb, "tab6", nullptr);
-    CHECK(nullptr != t6);
+    REQUIRE(nullptr != t6);
     CHECK(t3 == nctab_next(t6));
     CHECK(t1 == nctab_prev(t6));
     nctabbed_destroy(nt);
