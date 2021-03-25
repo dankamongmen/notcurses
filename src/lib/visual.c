@@ -558,14 +558,17 @@ ncplane* ncvisual_render(notcurses* nc, ncvisual* ncv, const struct ncvisual_opt
   int begx = vopts ? vopts->begx : 0;
 //fprintf(stderr, "blit %dx%d+%dx%d %p\n", begy, begx, leny, lenx, ncv->data);
   if(begy < 0 || begx < 0 || lenx < -1 || leny < -1){
+    logerror(nc, "Invalid geometry for visual %d %d %d %d\n", begy, begx, leny, lenx);
     return NULL;
   }
 //fprintf(stderr, "OUR DATA: %p rows/cols: %d/%d\n", ncv->data, ncv->rows, ncv->cols);
   if(ncv->data == NULL){
+    logerror(nc, "No data in visual\n");
     return NULL;
   }
 //fprintf(stderr, "blit %d/%d to %dx%d+%dx%d scaling: %d\n", ncv->rows, ncv->cols, begy, begx, leny, lenx, vopts ? vopts->scaling : 0);
   if(begx >= ncv->cols || begy >= ncv->rows){
+    logerror(nc, "Visual too large %d > %d or %d > %d\n", begy, ncv->rows, begx, ncv->cols);
     return NULL;
   }
   if(lenx == 0){ // 0 means "to the end"; use all available source material
@@ -576,13 +579,16 @@ ncplane* ncvisual_render(notcurses* nc, ncvisual* ncv, const struct ncvisual_opt
   }
 //fprintf(stderr, "blit %d/%d to %dx%d+%dx%d scaling: %d\n", ncv->rows, ncv->cols, begy, begx, leny, lenx, vopts ? vopts->scaling : 0);
   if(lenx <= 0 || leny <= 0){ // no need to draw zero-size object, exit
+    logerror(nc, "Zero-size object %d %d\n", leny, lenx);
     return NULL;
   }
   if(begx + lenx > ncv->cols || begy + leny > ncv->rows){
+    logerror(nc, "Geometry too large %d > %d or %d > %d\n", begy + leny, ncv->rows, begx + lenx, ncv->cols);
     return NULL;
   }
   const struct blitset* bset = rgba_blitter(nc, vopts);
   if(!bset){
+    logerror(nc, "Couldn't get a blitter for %d\n", vopts ? vopts->blitter : NCBLIT_DEFAULT);
     return NULL;
   }
 //fprintf(stderr, "beg/len: %d %d %d %d scale: %d/%d\n", begy, leny, begx, lenx, encoding_y_scale(bset), encoding_x_scale(bset));
