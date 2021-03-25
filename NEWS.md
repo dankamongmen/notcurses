@@ -8,6 +8,8 @@ rearrangements of Notcurses.
     reported and those inferred, to a `FILE*`.
   * Added `NCOPTION_NO_CLEAR_BITMAPS` option for `notcurses_init()`.
   * Added `NCVISUAL_OPTION_HORALIGNED` flag for `ncvisual_render()`.
+  * Added the `nctabbed` widget for multiplexing planes data with navigational
+    tabs. Courtesy Łukasz Drukała, in his first contribution.
 
 * 2.2.3 (2021-03-08)
   * Implemented **EXPERIMENTAL** `NCBLIT_PIXEL` for terminals reporting Sixel
