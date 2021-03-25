@@ -389,6 +389,10 @@ void nctabbed_destroy(nctabbed* nt){
   }
   nctab* t = nt->leftmost;
   nctab* tmp;
+  if(t){
+    t->prev->next = t->next;
+    t->next->prev = t->prev;
+  }
   while(t){
     tmp = t->next;
     free(t->name);
