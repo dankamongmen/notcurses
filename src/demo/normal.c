@@ -112,8 +112,9 @@ rotate_visual(struct notcurses* nc, struct ncplane* n, int dy, int dx){
     }
     int vy, vx, vyscale, vxscale;
     ncvisual_geom(nc, ncv, &vopts, &vy, &vx, &vyscale, &vxscale);
-    vopts.x = (dimx - (vx / vxscale)) / 2;
+    vopts.x = NCALIGN_CENTER;
     vopts.y = (dimy - (vy / vyscale)) / 2;
+    vopts.flags |= NCVISUAL_OPTION_HORALIGNED;
     struct ncplane* newn;
     if((newn = ncvisual_render(nc, ncv, &vopts)) == NULL){
       r = -1;

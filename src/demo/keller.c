@@ -25,11 +25,11 @@ visualize(struct notcurses* nc, struct ncvisual* ncv){
       .scaling = NCSCALE_SCALE,
       .blitter = bs[i],
       .y = 1,
-      .flags = NCVISUAL_OPTION_NODEGRADE,
+      .flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_HORALIGNED,
     };
     int scalex, scaley, truey, truex;
     ncvisual_geom(nc, ncv, &vopts, &truey, &truex, &scaley, &scalex);
-    vopts.x = (ncplane_dim_x(notcurses_stdplane(nc)) - truex / scalex) / 2;
+    vopts.x = NCALIGN_CENTER;
     vopts.y = (ncplane_dim_y(notcurses_stdplane(nc)) - truey / scaley) / 2;
 //fprintf(stderr, "X: %d truex: %d sclaex: %d\n", vopts.x, truex, scalex);
     ncplane_erase(stdn);

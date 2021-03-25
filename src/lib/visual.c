@@ -421,7 +421,7 @@ ncvisual* ncvisual_from_bgra(const void* bgra, int rows, int rowstride, int cols
 ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitset* bset,
                                int placey, int placex, int begy, int begx,
                                int leny, int lenx, ncplane* n, ncscale_e scaling,
-                               bool blendcolors){
+                               uint64_t flags){
   int disprows, dispcols;
 //fprintf(stderr, "INPUT N: %p\n", vopts ? vopts->n : NULL);
   if(n == NULL){ // create plane
@@ -447,6 +447,9 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
       .resizecb = NULL,
       .flags = 0,
     };
+    if(flags & NCVISUAL_OPTION_HORALIGNED){
+      nopts.flags |= NCPLANE_OPTION_HORALIGNED;
+    }
     if((n = ncplane_create(notcurses_stdplane(nc), &nopts)) == NULL){
       return NULL;
     }
@@ -466,6 +469,9 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
         scale_visual(ncv, &disprows, &dispcols);
       } // else stretch
     }
+    if(flags & NCVISUAL_OPTION_HORALIGNED){
+      placex = (ncplane_dim_x(n) - dispcols) / 2;
+    }
   }
   leny = (leny / (double)ncv->rows) * ((double)disprows);
   lenx = (lenx / (double)ncv->cols) * ((double)dispcols);
@@ -475,7 +481,7 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
   bargs.begx = begx;
   bargs.placey = placey;
   bargs.placex = placex;
-  bargs.u.cell.blendcolors = blendcolors;
+  bargs.u.cell.blendcolors = flags & NCVISUAL_OPTION_BLEND;
   if(ncvisual_blit(ncv, disprows, dispcols, n, bset, leny, lenx, &bargs)){
     ncplane_destroy(n);
     return NULL;
@@ -591,6 +597,12 @@ ncplane* ncvisual_render(notcurses* nc, ncvisual* ncv, const struct ncvisual_opt
     logerror(nc, "Couldn't get a blitter for %d\n", vopts ? vopts->blitter : NCBLIT_DEFAULT);
     return NULL;
   }
+  if(vopts && vopts->flags & NCVISUAL_OPTION_HORALIGNED){
+    if(vopts->x < NCALIGN_UNALIGNED || vopts->x > NCALIGN_RIGHT){
+      logerror(nc, "Bad x value %d for horizontal alignment\n", vopts->x);
+      return NULL;
+    }
+  }
 //fprintf(stderr, "beg/len: %d %d %d %d scale: %d/%d\n", begy, leny, begx, lenx, encoding_y_scale(bset), encoding_x_scale(bset));
   int placey = vopts ? vopts->y : 0;
   int placex = vopts ? vopts->x : 0;
@@ -598,8 +610,9 @@ ncplane* ncvisual_render(notcurses* nc, ncvisual* ncv, const struct ncvisual_opt
   ncscale_e scaling = vopts ? vopts->scaling : NCSCALE_NONE;
   if(bset->geom != NCBLIT_PIXEL){
     n = ncvisual_render_cells(nc, ncv, bset, placey, placex, begy, begx, leny, lenx,
-                              n, scaling, vopts && (vopts->flags & NCVISUAL_OPTION_BLEND));
+                              n, scaling, vopts ? vopts->flags : 0);
   }else{
+    // FIXME pass flags
     n = ncvisual_render_pixels(nc, ncv, bset, placey, placex, begy, begx, n, scaling);
   }
   return n;
