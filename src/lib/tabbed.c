@@ -208,7 +208,7 @@ nctab* nctabbed_add(nctabbed* nt, nctab* after, nctab* before, tabcb cb,
   nctab* t;
   notcurses* nc = ncplane_notcurses(nt->ncp);
   if(after && before){
-    if(after->prev != before || before->next != after){
+    if(after->next != before || before->prev != after){
       logerror(ncplane_notcurses(nt->ncp), "bad before (%p) / after (%p) spec\n", before, after);
       return NULL;
     }

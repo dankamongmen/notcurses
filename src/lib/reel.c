@@ -786,7 +786,7 @@ nctablet* ncreel_add(ncreel* nr, nctablet* after, nctablet *before,
                      tabletcb cbfxn, void* opaque){
   nctablet* t;
   if(after && before){
-    if(after->prev != before || before->next != after){
+    if(after->next != before || before->prev != after){
       logerror(ncplane_notcurses(nr->p), "bad before (%p) / after (%p) spec\n", before, after);
       return NULL;
     }
