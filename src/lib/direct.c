@@ -380,6 +380,11 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
   int dimy, dimx;
   ncplane_dim_yx(np, &dimy, &dimx);
   if(np->sprite){
+    if(xoff){
+      if(ncdirect_cursor_move_yx(n, -1, xoff)){
+        return -1;
+      }
+    }
     if(ncfputs(np->sprite->glyph, n->ttyfp) == EOF){
       return -1;
     }
