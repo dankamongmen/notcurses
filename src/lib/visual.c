@@ -453,6 +453,9 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
     if(flags & NCVISUAL_OPTION_HORALIGNED){
       nopts.flags |= NCPLANE_OPTION_HORALIGNED;
     }
+    if(flags & NCVISUAL_OPTION_VERALIGNED){
+      nopts.flags |= NCPLANE_OPTION_VERALIGNED;
+    }
     if((n = ncplane_create(notcurses_stdplane(nc), &nopts)) == NULL){
       return NULL;
     }
@@ -469,13 +472,19 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
       if(!(flags & NCVISUAL_OPTION_HORALIGNED)){
         dispcols -= placex;
       }
-      disprows -= placey;
+      if(!(flags & NCVISUAL_OPTION_VERALIGNED)){
+        disprows -= placey;
+      }
       if(scaling == NCSCALE_SCALE || scaling == NCSCALE_SCALE_HIRES){
         scale_visual(ncv, &disprows, &dispcols);
       } // else stretch
     }
     if(flags & NCVISUAL_OPTION_HORALIGNED){
       placex = ncplane_align(n, placex, dispcols / encoding_x_scale(&nc->tcache, bset));
+    }
+fprintf(stderr, "DISPROWS: %d PLACEY: %d\n", disprows, placey);
+    if(flags & NCVISUAL_OPTION_VERALIGNED){
+      placey = ncplane_align(n, placey, disprows / encoding_y_scale(&nc->tcache, bset));
     }
   }
   leny = (leny / (double)ncv->rows) * ((double)disprows);
@@ -486,6 +495,7 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
   bargs.begx = begx;
   bargs.placey = placey;
   bargs.placex = placex;
+fprintf(stderr, "ARRRRRRP %d/ %d\n", placey, placex);
   bargs.u.cell.blendcolors = flags & NCVISUAL_OPTION_BLEND;
   if(ncvisual_blit(ncv, disprows, dispcols, n, bset, leny, lenx, &bargs)){
     ncplane_destroy(n);
@@ -528,6 +538,9 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
     if(flags & NCVISUAL_OPTION_HORALIGNED){
       nopts.flags |= NCPLANE_OPTION_HORALIGNED;
     }
+    if(flags & NCVISUAL_OPTION_VERALIGNED){
+      nopts.flags |= NCPLANE_OPTION_VERALIGNED;
+    }
     if((n = ncplane_create(stdn, &nopts)) == NULL){
       return NULL;
     }
@@ -538,8 +551,10 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
       ncplane_dim_yx(n, &disprows, &dispcols);
       dispcols *= nc->tcache.cellpixx;
       disprows *= nc->tcache.cellpixy;
-      dispcols -= (placex * nc->tcache.cellpixx + 1);
       if(!(flags & NCVISUAL_OPTION_HORALIGNED)){
+        dispcols -= (placex * nc->tcache.cellpixx + 1);
+      }
+      if(!(flags & NCVISUAL_OPTION_VERALIGNED)){
         disprows -= (placey * nc->tcache.cellpixy + 1);
       }
     }
@@ -552,6 +567,13 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
       placex = (ncplane_dim_x(n) - dispcols / nc->tcache.cellpixx) / 2;
     }else if(placex == NCALIGN_RIGHT){
       placex = ncplane_dim_x(n) - dispcols / nc->tcache.cellpixx;
+    }
+  }
+  if(flags & NCVISUAL_OPTION_VERALIGNED){
+    if(placey == NCALIGN_CENTER){
+      placey = (ncplane_dim_y(n) - disprows / nc->tcache.cellpixy) / 2;
+    }else if(placex == NCALIGN_BOTTOM){
+      placey = ncplane_dim_y(n) - disprows / nc->tcache.cellpixy;
     }
   }
 //fprintf(stderr, "pblit: %dx%d <- %dx%d of %d/%d stride %u @%dx%d %p %u\n", disprows, dispcols, begy, begx, ncv->rows, ncv->cols, ncv->rowstride, placey, placex, ncv->data, nc->tcache.cellpixx);

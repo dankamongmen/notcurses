@@ -24,8 +24,9 @@ visualize(struct notcurses* nc, struct ncvisual* ncv){
     struct ncvisual_options vopts = {
       .scaling = NCSCALE_SCALE,
       .blitter = bs[i],
-      .y = 1,
-      .flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_HORALIGNED,
+      .y = NCALIGN_CENTER,
+      .flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_HORALIGNED
+                | NCVISUAL_OPTION_VERALIGNED,
     };
     int scalex, scaley, truey, truex;
     ncvisual_geom(nc, ncv, &vopts, &truey, &truex, &scaley, &scalex);
