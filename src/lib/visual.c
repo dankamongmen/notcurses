@@ -482,7 +482,6 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
     if(flags & NCVISUAL_OPTION_HORALIGNED){
       placex = ncplane_align(n, placex, dispcols / encoding_x_scale(&nc->tcache, bset));
     }
-fprintf(stderr, "DISPROWS: %d PLACEY: %d\n", disprows, placey);
     if(flags & NCVISUAL_OPTION_VERALIGNED){
       placey = ncplane_align(n, placey, disprows / encoding_y_scale(&nc->tcache, bset));
     }
@@ -495,7 +494,6 @@ fprintf(stderr, "DISPROWS: %d PLACEY: %d\n", disprows, placey);
   bargs.begx = begx;
   bargs.placey = placey;
   bargs.placex = placex;
-fprintf(stderr, "ARRRRRRP %d/ %d\n", placey, placex);
   bargs.u.cell.blendcolors = flags & NCVISUAL_OPTION_BLEND;
   if(ncvisual_blit(ncv, disprows, dispcols, n, bset, leny, lenx, &bargs)){
     ncplane_destroy(n);
@@ -517,7 +515,7 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
     dispcols = ncv->cols;
     disprows = ncv->rows;
   }
-//fprintf(stderr, "INPUT N: %p rows: %d cols: %d\n", n ? n : NULL, disprows, dispcols);
+//fprintf(stderr, "INPUT N: %p rows: %d cols: %d 0x%016lx\n", n ? n : NULL, disprows, dispcols, flags);
   if(n == NULL){ // create plane
     if(scaling != NCSCALE_NONE && scaling != NCSCALE_NONE_HIRES){
       ncplane_dim_yx(stdn, &disprows, &dispcols);
@@ -571,9 +569,9 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
   }
   if(flags & NCVISUAL_OPTION_VERALIGNED){
     if(placey == NCALIGN_CENTER){
-      placey = (ncplane_dim_y(n) - disprows / nc->tcache.cellpixy) / 2;
-    }else if(placex == NCALIGN_BOTTOM){
-      placey = ncplane_dim_y(n) - disprows / nc->tcache.cellpixy;
+      placey = ((ncplane_dim_y(n) * nc->tcache.cellpixy - disprows) / 2) / nc->tcache.cellpixy;
+    }else if(placey == NCALIGN_BOTTOM){
+      placey = ncplane_dim_y(n) * nc->tcache.cellpixy - disprows / nc->tcache.cellpixy;
     }
   }
 //fprintf(stderr, "pblit: %dx%d <- %dx%d of %d/%d stride %u @%dx%d %p %u\n", disprows, dispcols, begy, begx, ncv->rows, ncv->cols, ncv->rowstride, placey, placex, ncv->data, nc->tcache.cellpixx);
@@ -622,7 +620,7 @@ ncplane* ncvisual_render(notcurses* nc, ncvisual* ncv, const struct ncvisual_opt
   if(leny == 0){
     leny = ncv->rows - begy;
   }
-//fprintf(stderr, "blit %d/%d to %dx%d+%dx%d scaling: %d\n", ncv->rows, ncv->cols, begy, begx, leny, lenx, vopts ? vopts->scaling : 0);
+//fprintf(stderr, "blit %d/%d to %dx%d+%dx%d scaling: %d flags: 0x%016lx\n", ncv->rows, ncv->cols, begy, begx, leny, lenx, vopts ? vopts->scaling : 0, vopts ? vopts->flags : 0);
   if(lenx <= 0 || leny <= 0){ // no need to draw zero-size object, exit
     logerror(nc, "Zero-size object %d %d\n", leny, lenx);
     return NULL;
@@ -642,9 +640,9 @@ ncplane* ncvisual_render(notcurses* nc, ncvisual* ncv, const struct ncvisual_opt
       return NULL;
     }
   }
-//fprintf(stderr, "beg/len: %d %d %d %d scale: %d/%d\n", begy, leny, begx, lenx, encoding_y_scale(bset), encoding_x_scale(bset));
   int placey = vopts ? vopts->y : 0;
   int placex = vopts ? vopts->x : 0;
+//fprintf(stderr, "beg/len: %d %d %d %d place: %d/%d scale: %d/%d\n", begy, leny, begx, lenx, placey, placex, encoding_y_scale(&nc->tcache, bset), encoding_x_scale(&nc->tcache, bset));
   ncplane* n = (vopts ? vopts->n : NULL);
   ncscale_e scaling = vopts ? vopts->scaling : NCSCALE_NONE;
   if(bset->geom != NCBLIT_PIXEL){
