@@ -293,7 +293,9 @@ int direct_mode_player(int argc, char** argv, ncscale_e scalemode,
   }
   bool failed = false;
   if(blitter == NCBLIT_PIXEL){
-    dm.check_pixel_support();
+    if(dm.check_pixel_support() <= 0){
+      blitter = NCBLIT_DEFAULT;
+    }
   }
   for(auto i = 0 ; i < argc ; ++i){
     auto faken = dm.prep_image(argv[i], blitter, scalemode, -1,
@@ -318,7 +320,7 @@ int direct_mode_player(int argc, char** argv, ncscale_e scalemode,
     }
     int y, x;
     dm.get_cursor_yx(&y, &x);
-    if(x || (i + 1 < argc && blitter == NCBLIT_PIXEL)){
+    if(x){
       std::cout << std::endl;
     }
   }

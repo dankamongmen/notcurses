@@ -307,6 +307,7 @@ query_sixel_details(tinfo* ti, int fd){
 // query for Sixel support
 static int
 query_sixel(tinfo* ti, int fd){
+  int (*pixel_init)(int fd) = NULL;
   if(writen(fd, "\x1b[c", 3) != 3){
     return -1;
   }
@@ -347,7 +348,7 @@ query_sixel(tinfo* ti, int fd){
             ti->sixel_supported = true;
             ti->color_registers = 256;  // assumed default [shrug]
             ti->pixel_destroy = sprite_sixel_annihilate;
-            ti->pixel_init = sprite_sixel_init;
+            pixel_init = ti->pixel_init = sprite_sixel_init;
             ti->pixel_cell_wipe = sprite_sixel_cell_wipe;
             ti->sixel_maxx = ti->sixel_maxy = 0;
           }
@@ -359,6 +360,11 @@ query_sixel(tinfo* ti, int fd){
     }
     if(state == DONE){
       break;
+    }
+  }
+  if(pixel_init){
+    if(pixel_init(fd)){
+      return -1;
     }
   }
   return 0; // FIXME return error?
