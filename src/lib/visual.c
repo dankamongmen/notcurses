@@ -463,14 +463,16 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
       ncplane_dim_yx(n, &disprows, &dispcols);
       dispcols *= encoding_x_scale(&nc->tcache, bset);
       disprows *= encoding_y_scale(&nc->tcache, bset);
+      if(!(flags & NCVISUAL_OPTION_HORALIGNED)){
+        dispcols -= placex;
+      }
       disprows -= placey;
-      dispcols -= placex;
       if(scaling == NCSCALE_SCALE || scaling == NCSCALE_SCALE_HIRES){
         scale_visual(ncv, &disprows, &dispcols);
       } // else stretch
     }
     if(flags & NCVISUAL_OPTION_HORALIGNED){
-      placex = (ncplane_dim_x(n) - dispcols) / 2;
+      placex = (ncplane_dim_x(n) - dispcols / encoding_x_scale(&nc->tcache, bset)) / 2;
     }
   }
   leny = (leny / (double)ncv->rows) * ((double)disprows);
