@@ -39,6 +39,7 @@ sprixel* sprixel_create(ncplane* n, const char* s, int bytes, int placey, int pl
       free(ret);
       return NULL;
     }
+    ret->glyphlen = bytes;
     ret->tacache = tacache;
     ret->invalidated = SPRIXEL_INVALIDATED;
     ret->n = n;

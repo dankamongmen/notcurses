@@ -58,6 +58,7 @@ typedef enum {
 // protocol, we just have to rewrite them.
 typedef struct sprixel {
   char* glyph;       // glyph; can be quite large
+  int glyphlen;
   uint32_t id;       // embedded into glusters field of nccell, 24 bits
   struct ncplane* n; // associated ncplane
   sprixel_e invalidated;

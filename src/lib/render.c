@@ -723,7 +723,7 @@ term_esc_rgb(FILE* out, bool foreground, unsigned r, unsigned g, unsigned b){
   }
   rgbbuf[offset++] = 'm';
   rgbbuf[offset] = '\0';
-  if(ncfputs(rgbbuf, out) == EOF){
+  if(fwrite(rgbbuf, offset, 1, out) != 1){
     return -1;
   }
   return 0;
@@ -971,7 +971,7 @@ rasterize_sprixels(notcurses* nc, const ncpile* p, FILE* out){
       if(goto_location(nc, out, y + nc->stdplane->absy, x + nc->stdplane->absx)){
         return -1;
       }
-      if(ncfputs(s->glyph, out) < 0){
+      if(fwrite(s->glyph, s->glyphlen, 1, out) != 1){
         return -1;
       }
       s->invalidated = SPRIXEL_NOCHANGE;
