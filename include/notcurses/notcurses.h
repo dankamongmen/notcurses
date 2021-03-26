@@ -81,6 +81,9 @@ typedef enum {
   NCALIGN_RIGHT,
 } ncalign_e;
 
+#define NCALIGN_TOP NCALIGN_LEFT
+#define NCALIGN_BOTTOM NCALIGN_RIGHT
+
 // How to scale an ncvisual during rendering. NCSCALE_NONE will apply no
 // scaling. NCSCALE_SCALE scales a visual to the plane's size, maintaining
 // aspect ratio. NCSCALE_STRETCH stretches and scales the image in an

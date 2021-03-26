@@ -296,7 +296,7 @@ make_ncpile(notcurses* nc, ncplane* n){
 // (as once more is n).
 ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
                               const ncplane_options* nopts){
-  if(nopts->flags >= (NCPLANE_OPTION_HORALIGNED << 1u)){
+  if(nopts->flags >= (NCPLANE_OPTION_VERALIGNED << 1u)){
     logwarn(nc, "Provided unsupported flags %016jx\n", (uintmax_t)nopts->flags);
   }
   if(nopts->rows <= 0 || nopts->cols <= 0){
@@ -324,24 +324,29 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
   p->sprite = NULL;
   p->blist = NULL;
   p->name = strdup(nopts->name ? nopts->name : "");
-  p->align = NCALIGN_UNALIGNED;
+  p->halign = NCALIGN_UNALIGNED;
+  p->valign = NCALIGN_UNALIGNED;
   if(!n){ // new root/standard plane
     p->absy = nopts->y;
     p->absx = nopts->x;
     p->bnext = NULL;
     p->bprev = NULL;
     p->boundto = p;
-    p->align = NCALIGN_UNALIGNED;
   }else{ // bound to preexisting pile
     if(nopts->flags & NCPLANE_OPTION_HORALIGNED){
       p->absx = ncplane_align(n, nopts->x, nopts->cols);
-      p->align = nopts->x;
+      p->halign = nopts->x;
     }else{
       p->absx = nopts->x;
-      p->align = NCALIGN_UNALIGNED;
     }
     p->absx += n->absx;
-    p->absy = nopts->y + n->absy;
+    if(nopts->flags & NCPLANE_OPTION_VERALIGNED){
+      p->absy = ncplane_align(n, nopts->y, nopts->rows);
+      p->valign = nopts->y;
+    }else{
+      p->absy = nopts->y;
+    }
+    p->absy += n->absy;
     if( (p->bnext = n->blist) ){
       n->blist->bprev = &p->bnext;
     }
@@ -494,7 +499,7 @@ ncplane* ncplane_dup(const ncplane* n, void* opaque){
         ncplane_destroy(newn);
         return NULL;
       }
-      newn->align = n->align;
+      newn->halign = n->halign;
       newn->stylemask = ncplane_styles(n);
       newn->channels = ncplane_channels(n);
       memmove(newn->fb, n->fb, sizeof(*n->fb) * dimx * dimy);
@@ -2165,12 +2170,19 @@ int ncplane_resize_realign(ncplane* n){
     logerror(ncplane_notcurses(n), "Passed the standard plane");
     return -1;
   }
-  if(n->align == NCALIGN_UNALIGNED){
+  if(n->halign == NCALIGN_UNALIGNED && n->valign == NCALIGN_UNALIGNED){
     logerror(ncplane_notcurses(n), "Passed a non-aligned plane");
     return -1;
   }
-  int xpos = ncplane_align(parent, n->align, ncplane_dim_x(n));
-  return ncplane_move_yx(n, ncplane_y(n), xpos);
+  int xpos = ncplane_x(n);
+  if(n->halign != NCALIGN_UNALIGNED){
+    xpos = ncplane_align(parent, n->halign, ncplane_dim_x(n));
+  }
+  int ypos = ncplane_y(n);
+  if(n->valign != NCALIGN_UNALIGNED){
+    ypos = ncplane_align(parent, n->valign, ncplane_dim_y(n));
+  }
+  return ncplane_move_yx(n, ypos, xpos);
 }
 
 // The standard plane cannot be reparented; we return NULL in that case.
