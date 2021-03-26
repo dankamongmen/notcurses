@@ -118,7 +118,8 @@ typedef struct ncplane {
   int (*resizecb)(struct ncplane*); // callback after parent is resized
   nccell basecell;       // cell written anywhere that fb[i].gcluster == 0
   char* name;            // used only for debugging
-  ncalign_e align;       // relative to parent plane, for automatic realignment
+  ncalign_e halign;      // relative to parent plane, for automatic realignment
+  ncalign_e valign;      // relative to parent plane, for automatic realignment
   uint16_t stylemask;    // same deal as in a cell
   bool scrolling;        // is scrolling enabled? always disabled by default
 } ncplane;
