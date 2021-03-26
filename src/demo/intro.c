@@ -3,7 +3,7 @@
 static int centercols;
 
 static int
-fader(struct notcurses* nc, struct ncplane* ncp, void* curry){
+animate(struct notcurses* nc, struct ncplane* ncp, void* curry){
   int* flipmode = curry;
   int rows, cols;
   ncplane_dim_yx(ncp, &rows, &cols);
@@ -62,11 +62,12 @@ orcashow(struct notcurses* nc, int dimy, int dimx){
 
 static int
 orcaride(struct notcurses* nc, struct ncplane* on){
-  int odimy, odimx, oy, ox;
+  int odimy, odimx, oy, ox, dimx;
+  ncplane_dim_yx(notcurses_stdplane(nc), NULL, &dimx);
   ncplane_yx(on, &oy, &ox);
   ncplane_dim_yx(on, &odimy, &odimx);
-  if(ox >= odimx / 2){
-    ox -= odimx / 2;
+  if(ox >= (dimx - odimx) / 4){
+    ox -= (dimx - odimx) / 4;
   }
   if(ncplane_move_yx(on, oy, ox)){
     return -1;
@@ -199,15 +200,16 @@ int intro(struct notcurses* nc){
   }
   struct timespec now;
   clock_gettime(CLOCK_MONOTONIC, &now);
+  // there ought be 20 iterations
   uint64_t deadline = timespec_to_ns(&now) + timespec_to_ns(&demodelay) * 2;
+  struct timespec iter;
+  timespec_div(&demodelay, 10, &iter);
   int flipmode = 0;
   do{
     int err;
-    if( (err = fader(nc, ncp, &flipmode)) ){
+    if( (err = animate(nc, ncp, &flipmode)) ){
       return err;
     }
-    struct timespec iter;
-    timespec_div(&demodelay, 10, &iter);
     demo_nanosleep(nc, &iter);
     clock_gettime(CLOCK_MONOTONIC, &now);
     if(on){
@@ -216,10 +218,14 @@ int intro(struct notcurses* nc){
       }
     }
   }while(timespec_to_ns(&now) < deadline);
-  ncplane_destroy(on);
-  if(!notcurses_canfade(nc)){
-    return 0;
+  if(notcurses_canfade(nc)){
+    struct timespec fade = demodelay;
+    int err;
+    if( (err = ncplane_fadeout(ncp, &fade, demo_fader, NULL)) ){
+      ncplane_destroy(on);
+      return err;
+    }
   }
-  struct timespec fade = demodelay;
-  return ncplane_fadeout(ncp, &fade, demo_fader, NULL);
+  ncplane_destroy(on);
+  return 0;
 }
