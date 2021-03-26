@@ -1123,8 +1123,10 @@ notcurses_term_dim_yx(const struct notcurses* n, int* RESTRICT rows, int* RESTRI
 API char* notcurses_at_yx(struct notcurses* nc, int yoff, int xoff,
                           uint16_t* stylemask, uint64_t* channels);
 
-// Horizontal alignment relative to the parent plane. Use 'align' instead of 'x'.
+// Horizontal alignment relative to the parent plane. Use ncalign_e for 'x'.
 #define NCPLANE_OPTION_HORALIGNED 0x0001ull
+// Vertical alignment relative to the parent plane. Use ncalign_e for 'y'.
+#define NCPLANE_OPTION_VERALIGNED 0x0002ull
 
 typedef struct ncplane_options {
   int y;            // vertical placement relative to parent plane
