@@ -16,6 +16,9 @@ int ncvisual_decode(ncvisual* nc){
 int ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
                   const struct blitset* bset, int leny, int lenx,
                   const blitterargs* barg){
+  if(barg->placex < 0 || barg->placey < 0){
+    return -1;
+  }
   int ret = -1;
   if(visual_implementation){
     if(visual_implementation->visual_blit(ncv, rows, cols, n, bset,
@@ -472,8 +475,7 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
       } // else stretch
     }
     if(flags & NCVISUAL_OPTION_HORALIGNED){
-      // FIXME this only centers
-      placex = (ncplane_dim_x(n) - dispcols / encoding_x_scale(&nc->tcache, bset)) / 2;
+      placex = ncplane_align(n, placex, dispcols / encoding_x_scale(&nc->tcache, bset));
     }
   }
   leny = (leny / (double)ncv->rows) * ((double)disprows);
