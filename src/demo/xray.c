@@ -104,7 +104,7 @@ int xray_demo(struct notcurses* nc){
   }
   struct ncvisual_options vopts = {
     .n = n,
-    .scaling = NCSCALE_STRETCH,
+    .scaling = NCSCALE_SCALE_HIRES,
     .blitter = NCBLIT_PIXEL,
     .flags = NCVISUAL_OPTION_NODEGRADE, // to test for NCBLIT_PIXEL
   };

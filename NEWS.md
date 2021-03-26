@@ -7,7 +7,9 @@ rearrangements of Notcurses.
   * Added `notcurses_debug_caps()` to dump terminal properties, both those
     reported and those inferred, to a `FILE*`.
   * Added `NCOPTION_NO_CLEAR_BITMAPS` option for `notcurses_init()`.
-  * Added `NCVISUAL_OPTION_HORALIGNED` flag for `ncvisual_render()`.
+  * Added `NCVISUAL_OPTION_HORALIGNED` and `NCVISUAL_OPTION_VERALIGNED` flags
+    for `ncvisual_render()`.
+  * Added `NCPLANE_OPTION_VERALIGNED` flag for `ncplane_create()`.
   * Added the `nctabbed` widget for multiplexing planes data with navigational
     tabs. Courtesy Łukasz Drukała, in his first contribution.
   * Removed **notcurses_canpixel()**, which was obsoleted by

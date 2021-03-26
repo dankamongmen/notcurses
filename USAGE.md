@@ -716,7 +716,10 @@ When an `ncplane` is no longer needed, free it with
 `ncplane_destroy()`. To quickly reset the `ncplane`, use `ncplane_erase()`.
 
 ```c
+// Horizontal alignment relative to the parent plane. Use ncalign_e for 'x'.
 #define NCPLANE_OPTION_HORALIGNED 0x0001ull
+// Vertical alignment relative to the parent plane. Use ncalign_e for 'y'.
+#define NCPLANE_OPTION_VERALIGNED 0x0002ull
 
 typedef struct ncplane_options {
   int y;            // vertical placement relative to parent plane

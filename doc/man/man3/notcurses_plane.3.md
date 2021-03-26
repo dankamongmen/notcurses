@@ -12,6 +12,7 @@ notcurses_plane - operations on ncplanes
 
 ```c
 #define NCPLANE_OPTION_HORALIGNED 0x0001ull
+#define NCPLANE_OPTION_VERALIGNED 0x0002ull
 
 typedef struct ncplane_options {
   int y;            // vertical placement relative to parent plane
@@ -216,6 +217,12 @@ another, x and y coordinates are relative to the plane to which it is bound,
 and if this latter plane moves, all its bound planes move along with it. When a
 plane is destroyed, all planes bound to it (directly or transitively) are
 destroyed.
+
+If the **NCPLANE_OPTION_HORALIGNED** flag is provided, ***x*** is interpreted
+as an **ncalign_e** rather than an absolute position. If the
+**NCPLANE_OPTION_VERALIGNED** flag is provided, ***y*** is interpreted as an
+**ncalign_e** rather than an absolute postiion. Either way, all positions
+are relative to the parent plane.
 
 **ncplane_reparent** detaches the plane ***n*** from any plane to which it is
 bound, and binds it to ***newparent***. Its children are reparented to its
