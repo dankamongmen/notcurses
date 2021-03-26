@@ -28,6 +28,43 @@ animate(struct notcurses* nc, struct ncplane* ncp, void* curry){
   return 0;
 }
 
+static int
+greatscott(struct notcurses* nc, int dimy, int dimx){
+  char* path = find_data("greatscott.jpg");
+  if(path == NULL){
+    return -1;
+  }
+  struct ncvisual* ncv = ncvisual_from_file(path);
+  free(path);
+  if(ncv == NULL){
+    return -1;
+  }
+  struct ncvisual_options vopts = {
+    .x = NCALIGN_CENTER,
+    .blitter = NCBLIT_PIXEL,
+    .scaling = NCSCALE_NONE,
+    .flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_HORALIGNED,
+  };
+  struct ncplane* n = ncvisual_render(nc, ncv, &vopts);
+  ncvisual_destroy(ncv);
+  int odimy, odimx, oy, ox;
+  ncplane_yx(n, &oy, &ox);
+  ncplane_dim_yx(n, &odimy, &odimx);
+  if(odimy > dimy - 2){
+    ncplane_destroy(n);
+    return -1;
+  }
+  if(odimx > dimx){
+    ncplane_destroy(n);
+    return -1;
+  }
+  ncplane_move_yx(n, (dimy - odimy) / 2, ox);
+  DEMO_RENDER(nc);
+  demo_nanosleep(nc, &demodelay);
+  ncplane_destroy(n);
+  return 0;
+}
+
 static struct ncplane*
 orcashow(struct notcurses* nc, int dimy, int dimx){
   char* path = find_data("natasha-blur.png");
@@ -41,7 +78,7 @@ orcashow(struct notcurses* nc, int dimy, int dimx){
   }
   struct ncvisual_options vopts = {
     .blitter = NCBLIT_PIXEL,
-    .flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_HORALIGNED,
+    .flags = NCVISUAL_OPTION_NODEGRADE,
   };
   struct ncplane* n = ncvisual_render(nc, ncv, &vopts);
   ncvisual_destroy(ncv);
@@ -213,19 +250,24 @@ int intro(struct notcurses* nc){
     demo_nanosleep(nc, &iter);
     clock_gettime(CLOCK_MONOTONIC, &now);
     if(on){
-      if(flipmode % 5 == 0){
+      if(flipmode % 4 == 0){
         orcaride(nc, on);
       }
     }
   }while(timespec_to_ns(&now) < deadline);
+  ncplane_destroy(on);
+  if(notcurses_check_pixel_support(nc) && notcurses_canopen_images(nc)){
+    int err;
+    if((err = greatscott(nc, rows, cols))){
+      return err;
+    }
+  }
   if(notcurses_canfade(nc)){
     struct timespec fade = demodelay;
     int err;
     if( (err = ncplane_fadeout(ncp, &fade, demo_fader, NULL)) ){
-      ncplane_destroy(on);
       return err;
     }
   }
-  ncplane_destroy(on);
   return 0;
 }
