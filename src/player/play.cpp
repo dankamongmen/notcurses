@@ -318,7 +318,7 @@ int direct_mode_player(int argc, char** argv, ncscale_e scalemode,
     }
     int y, x;
     dm.get_cursor_yx(&y, &x);
-    if(x){
+    if(x || (i + 1 < argc && blitter == NCBLIT_PIXEL)){
       std::cout << std::endl;
     }
   }
