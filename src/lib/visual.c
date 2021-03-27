@@ -16,9 +16,6 @@ int ncvisual_decode(ncvisual* nc){
 int ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
                   const struct blitset* bset, int leny, int lenx,
                   const blitterargs* barg){
-  if(barg->placex < 0 || barg->placey < 0){
-    return -1;
-  }
   int ret = -1;
   if(visual_implementation){
     if(visual_implementation->visual_blit(ncv, rows, cols, n, bset,
@@ -432,7 +429,7 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
                                int leny, int lenx, ncplane* n, ncscale_e scaling,
                                uint64_t flags){
   int disprows, dispcols;
-//fprintf(stderr, "INPUT N: %p\n", vopts ? vopts->n : NULL);
+//fprintf(stderr, "INPUT N: %p\n", n);
   if(n == NULL){ // create plane
     if(scaling == NCSCALE_NONE || scaling == NCSCALE_NONE_HIRES){
       dispcols = ncv->cols;

@@ -35,7 +35,7 @@ trilerp(uint32_t c0, uint32_t c1, uint32_t c2){
 static inline int
 tria_blit_ascii(ncplane* nc, int linesize, const void* data,
                 int leny, int lenx, const blitterargs* bargs){
-//fprintf(stderr, "ASCII %d X %d @ %d X %d (%p) place: %d X %d\n", leny, lenx, bargs->begy, begx, data, bargs->placey, bargs->placex);
+//fprintf(stderr, "ASCII %d X %d @ %d X %d (%p) place: %d X %d\n", leny, lenx, bargs->begy, bargs->begx, data, bargs->placey, bargs->placex);
   const int bpp = 32;
   int dimy, dimx, x, y;
   int total = 0; // number of cells written
@@ -44,11 +44,17 @@ tria_blit_ascii(ncplane* nc, int linesize, const void* data,
   const unsigned char* dat = data;
   int visy = bargs->begy;
   for(y = bargs->placey ; visy < (bargs->begy + leny) && y < dimy ; ++y, ++visy){
-    if(ncplane_cursor_move_yx(nc, y, bargs->placex)){
+    if(y < 0){
+      continue;
+    }
+    if(ncplane_cursor_move_yx(nc, y, bargs->placex < 0 ? 0 : bargs->placex)){
       return -1;
     }
     int visx = bargs->begx;
     for(x = bargs->placex ; visx < (bargs->begx + lenx) && x < dimx ; ++x, ++visx){
+      if(x < 0){
+        continue;
+      }
       const unsigned char* rgbbase_up = dat + (linesize * visy) + (visx * bpp / CHAR_BIT);
 //fprintf(stderr, "[%04d/%04d] bpp: %d lsize: %d %02x %02x %02x %02x\n", y, x, bpp, linesize, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2], rgbbase_up[3]);
       nccell* c = ncplane_cell_ref_yx(nc, y, x);
@@ -92,11 +98,17 @@ tria_blit(ncplane* nc, int linesize, const void* data,
   const unsigned char* dat = data;
   int visy = bargs->begy;
   for(y = bargs->placey ; visy < (bargs->begy + leny) && y < dimy ; ++y, visy += 2){
-    if(ncplane_cursor_move_yx(nc, y, bargs->placex)){
+    if(y < 0){
+      continue;
+    }
+    if(ncplane_cursor_move_yx(nc, y, bargs->placex < 0 ? 0 : bargs->placex)){
       return -1;
     }
     int visx = bargs->begx;
     for(x = bargs->placex ; visx < (bargs->begx + lenx) && x < dimx ; ++x, ++visx){
+      if(x < 0){
+        continue;
+      }
       const unsigned char* rgbbase_up = dat + (linesize * visy) + (visx * bpp / CHAR_BIT);
       const unsigned char* rgbbase_down = zeroes;
       if(visy < bargs->begy + leny - 1){
@@ -414,11 +426,17 @@ quadrant_blit(ncplane* nc, int linesize, const void* data,
   const unsigned char* dat = data;
   int visy = bargs->begy;
   for(y = bargs->placey ; visy < (bargs->begy + leny) && y < dimy ; ++y, visy += 2){
-    if(ncplane_cursor_move_yx(nc, y, bargs->placex)){
+    if(y < 0){
+      continue;
+    }
+    if(ncplane_cursor_move_yx(nc, y, bargs->placex < 0 ? 0 : bargs->placex)){
       return -1;
     }
     int visx = bargs->begx;
     for(x = bargs->placex ; visx < (bargs->begx + lenx) && x < dimx ; ++x, visx += 2){
+      if(x < 0){
+        continue;
+      }
       const unsigned char* rgbbase_tl = dat + (linesize * visy) + (visx * bpp / CHAR_BIT);
       const unsigned char* rgbbase_tr = zeroes;
       const unsigned char* rgbbase_bl = zeroes;
@@ -635,11 +653,17 @@ sextant_blit(ncplane* nc, int linesize, const void* data,
   const unsigned char* dat = data;
   int visy = bargs->begy;
   for(y = bargs->placey ; visy < (bargs->begy + leny) && y < dimy ; ++y, visy += 3){
-    if(ncplane_cursor_move_yx(nc, y, bargs->placex)){
+    if(y < 0){
+      continue;
+    }
+    if(ncplane_cursor_move_yx(nc, y, bargs->placex < 0 ? 0 : bargs->placex)){
       return -1;
     }
     int visx = bargs->begx;
     for(x = bargs->placex ; visx < (bargs->begx + lenx) && x < dimx ; ++x, visx += 2){
+      if(x < 0){
+        continue;
+      }
       uint32_t rgbas[6] = { 0, 0, 0, 0, 0, 0 };
       memcpy(&rgbas[0], (dat + (linesize * visy) + (visx * bpp / CHAR_BIT)), sizeof(*rgbas));
       if(visx < bargs->begx + lenx - 1){
@@ -703,11 +727,17 @@ braille_blit(ncplane* nc, int linesize, const void* data,
   const unsigned char* dat = data;
   int visy = bargs->begy;
   for(y = bargs->placey ; visy < (bargs->begy + leny) && y < dimy ; ++y, visy += 4){
-    if(ncplane_cursor_move_yx(nc, y, bargs->placex)){
+    if(y < 0){
+      continue;
+    }
+    if(ncplane_cursor_move_yx(nc, y, bargs->placex < 0 ? 0 : bargs->placex)){
       return -1;
     }
     int visx = bargs->begx;
     for(x = bargs->placex ; visx < (bargs->begx + lenx) && x < dimx ; ++x, visx += 2){
+      if(x < 0){
+        continue;
+      }
       const uint32_t* rgbbase_l0 = (const uint32_t*)(dat + (linesize * visy) + (visx * bpp / CHAR_BIT));
       const uint32_t* rgbbase_r0 = &zeroes32;
       const uint32_t* rgbbase_l1 = &zeroes32;

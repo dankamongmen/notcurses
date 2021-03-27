@@ -418,7 +418,6 @@ int ffmpeg_stream(notcurses* nc, ncvisual* ncv, float timescale,
     }
     ++frame;
     uint64_t duration = ncv->details->frame->pkt_duration * tbase * NANOSECS_IN_SEC;
-//fprintf(stderr, "use: %u dur: %ju ts: %ju cctx: %f fctx: %f\n", usets, duration, ts, av_q2d(ncv->details->codecctx->time_base), av_q2d(ncv->details->fmtctx->streams[ncv->details->stream_index]->time_base));
     double schedns = nsbegin;
     /*if(usets){
       if(tbase == 0){
