@@ -296,10 +296,22 @@ make_ncpile(notcurses* nc, ncplane* n){
 // (as once more is n).
 ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
                               const ncplane_options* nopts){
-  if(nopts->flags >= (NCPLANE_OPTION_VERALIGNED << 1u)){
+  if(nopts->flags >= (NCPLANE_OPTION_MARGINALIZED << 1u)){
     logwarn(nc, "Provided unsupported flags %016jx\n", (uintmax_t)nopts->flags);
   }
-  if(nopts->rows <= 0 || nopts->cols <= 0){
+  if(nopts->flags & NCPLANE_OPTION_HORALIGNED || nopts->flags & NCPLANE_OPTION_VERALIGNED){
+    if(n == NULL){
+      logerror(nc, "Alignment requires a parent plane\n");
+      return NULL;
+    }
+  }
+  if(nopts->flags & NCPLANE_OPTION_MARGINALIZED){
+    if(nopts->rows != 0 || nopts->cols != 0){
+      logerror(nc, "Geometry specified with margins (r=%d, c=%d)\n",
+               nopts->rows, nopts->cols);
+      return NULL;
+    }
+  }else if(nopts->rows <= 0 || nopts->cols <= 0){
     logerror(nc, "Won't create denormalized plane (r=%d, c=%d)\n",
              nopts->rows, nopts->cols);
     return NULL;
@@ -317,8 +329,25 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
   }
   memset(p->fb, 0, fbsize);
   p->scrolling = false;
-  p->leny = nopts->rows;
-  p->lenx = nopts->cols;
+  if(nopts->flags & NCPLANE_OPTION_MARGINALIZED){
+    p->margin_b = nopts->margin_b;
+    p->margin_r = nopts->margin_r;
+    if(n){ // use parent size
+      p->leny = ncplane_dim_y(n);
+      p->lenx = ncplane_dim_x(n);
+    }else{ // use pile size
+      notcurses_term_dim_yx(nc, &p->leny, &p->lenx);
+    }
+    if((p->leny -= p->margin_b) <= 0){
+      p->leny = 1;
+    }
+    if((p->lenx -= p->margin_r) <= 0){
+      p->lenx = 1;
+    }
+  }else{
+    p->leny = nopts->rows;
+    p->lenx = nopts->cols;
+  }
   p->x = p->y = 0;
   p->logrow = 0;
   p->sprite = NULL;
@@ -354,6 +383,7 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
     *p->bprev = p;
     p->boundto = n;
   }
+  // FIXME handle top/left margins
   p->resizecb = nopts->resizecb;
   p->stylemask = 0;
   p->channels = 0;
@@ -416,7 +446,6 @@ const ncplane* notcurses_stdplane_const(const notcurses* nc){
 }
 
 ncplane* ncplane_create(ncplane* n, const ncplane_options* nopts){
-fprintf(stderr, "nopts: %p name: %s\n", nopts, nopts->name);
   return ncplane_new_internal(ncplane_notcurses(n), n, nopts);
 }
 
@@ -2154,8 +2183,9 @@ int (*ncplane_resizecb(const ncplane* n))(ncplane*){
   return n->resizecb;
 }
 
-int ncplane_resize_marginalize(ncplane* n){
+int ncplane_resize_marginalized(ncplane* n){
   (void)n;// FIXME uhhh do something here
+fprintf(stderr, "NEED TO RESIZE THIS MARGINALIZED-ASS PLANE\n");
   return 0;
 }
 
@@ -2172,10 +2202,9 @@ int ncplane_resize_maximize(ncplane* n){
 
 int ncplane_resize_realign(ncplane* n){
   const ncplane* parent = ncplane_parent_const(n);
-  // FIXME this *should* be allowed for other root planes, though, right?
-  if(parent == n){ // somehow got stdplane, should never get here
-    logerror(ncplane_notcurses(n), "Passed the standard plane");
-    return -1;
+  if(parent == n){
+    logerror(ncplane_notcurses(n), "Can't realign a root plane");
+    return 0;
   }
   if(n->halign == NCALIGN_UNALIGNED && n->valign == NCALIGN_UNALIGNED){
     logerror(ncplane_notcurses(n), "Passed a non-aligned plane");

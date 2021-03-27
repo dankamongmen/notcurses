@@ -783,7 +783,7 @@ int ncplane_resize_maximize(struct ncplane* n);
 // Suitable for use as a 'resizecb' with planes created with
 // NCPLANE_OPTION_MARGINALIZED. This will resize the plane 'n' against its
 // parent, attempting to enforce the supplied margins.
-int ncplane_resize_marginalize(struct ncplane* n);
+int ncplane_resize_marginalized(struct ncplane* n);
 
 // Suitable for use as a 'resizecb'. This will realign the plane 'n' against
 // its parent, using the alignment specified at ncplane_create()-time.
