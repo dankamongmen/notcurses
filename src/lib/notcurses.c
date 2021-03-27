@@ -503,7 +503,6 @@ inline int ncplane_cursor_move_yx(ncplane* n, int y, int x){
 }
 
 ncplane* ncplane_dup(const ncplane* n, void* opaque){
-fprintf(stderr, "FUCXK ME IN THE ASS\n");
   int dimy = n->leny;
   int dimx = n->lenx;
   // if we're duping the standard plane, we need adjust for marginalia
