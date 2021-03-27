@@ -1,5 +1,34 @@
 #include "internal.h"
 
+// Kitty has its own bitmap graphics protocol, rather superior to DEC Sixel.
+// A header is written with various directives, followed by a number of
+// chunks. Each chunk carries up to 4096B of base64-encoded pixels. Bitmaps
+// can be ordered on a z-axis, with text at a logical z=0. A bitmap at a
+// positive coordinate will be drawn above text; a negative coordinate will
+// be drawn below text. It is not possible for a single bitmap to be under
+// some text and above other text; since we need both, we draw at a positive
+// coordinate (above all text), and cut out sections by setting their alpha
+// values to 0. We thus require RGBA, meaning 768 pixels per 4096B chunk
+// (768pix * 4Bpp * 4/3 base64 overhead == 4096B).
+//
+// How to reclaim a section once we no longer want to draw text above it is
+// an open question; we'd presumably need to store the original alphas in
+// the T-A matrix.
+//
+// It has some interesting features of which we do not yet take advantage:
+//  * in-terminal scaling of image data (we prescale)
+//  * subregion display of a transmitted bitmap
+//  * an animation protocol we should probably use for video, and definitely
+//     ought use for cell wiping
+//  * movement (redisplay at another position) of loaded bitmaps
+//
+// https://sw.kovidgoyal.net/kitty/graphics-protocol.html
+//
+// We are unlikely to ever use several features: direct PNG support (only
+// works for PNG), transfer via shared memory (only works locally),
+// compression (only helps on easy graphics), or offsets within a cell.
+
+// lookup table for base64
 static unsigned const char b64subs[] =
  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
@@ -255,9 +284,9 @@ write_kitty_data(FILE* fp, int rows, int cols, int linesize, int leny, int lenx,
 #undef RGBA_MAXLEN
 
 // Kitty graphics blitter. Kitty can take in up to 4KiB at a time of (optionally
-// deflate-compressed) 24bit RGB.
-int kitty_blit_inner(ncplane* nc, int linesize, int leny, int lenx,
-                     const void* data, const blitterargs* bargs){
+// deflate-compressed) 24bit RGB. Returns -1 on error, 1 on success.
+int kitty_blit(ncplane* nc, int linesize, const void* data,
+               int leny, int lenx, const blitterargs* bargs){
   int rows = leny / bargs->u.pixel.celldimy + !!(leny % bargs->u.pixel.celldimy);
   int cols = lenx / bargs->u.pixel.celldimx + !!(lenx % bargs->u.pixel.celldimx);
   char* buf = NULL;
@@ -285,15 +314,17 @@ int kitty_blit_inner(ncplane* nc, int linesize, int leny, int lenx,
   return 1;
 }
 
-int kitty_blit(ncplane* nc, int linesize, const void* data,
-               int leny, int lenx, const blitterargs* bargs){
-  int r = kitty_blit_inner(nc, linesize, leny, lenx, data, bargs);
-  if(r < 0){
-    return -1;
-  }
-  return r;
-}
-
+// clears all kitty bitmaps
 int sprite_kitty_init(int fd){
   return tty_emit("\e_Ga=d\e\\", fd);
+}
+
+// removes the kitty bitmap graphic identified by s->id
+int sprite_kitty_annihilate(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
+  (void)p;
+  (void)nc;
+  if(fprintf(out, "\e_Ga=d,d=i,i=%d\e\\", s->id) < 0){
+    return 0;
+  }
+  return 0;
 }
