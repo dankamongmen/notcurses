@@ -94,6 +94,8 @@ typedef struct ncplane {
   // plane is bound, but absx/absy are always relative to the terminal origin.
   // they must thus be translated by any function which moves a parent plane.
   int absx, absy;        // origin of the plane relative to the pile's origin
+                         //  also used as left and top margin on resize by
+                         //  ncplane_resize_marginalized()
   int lenx, leny;        // size of the plane, [0..len{x,y}) is addressable
   egcpool pool;          // attached storage pool for UTF-8 EGCs
   uint64_t channels;     // works the same way as cells
@@ -122,6 +124,7 @@ typedef struct ncplane {
   ncalign_e halign;      // relative to parent plane, for automatic realignment
   ncalign_e valign;      // relative to parent plane, for automatic realignment
   uint16_t stylemask;    // same deal as in a cell
+  int margin_b, margin_r;// bottom and right margins, stored for resize
   bool scrolling;        // is scrolling enabled? always disabled by default
 } ncplane;
 

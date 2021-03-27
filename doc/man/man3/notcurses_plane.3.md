@@ -50,7 +50,7 @@ typedef struct ncplane_options {
 
 **int ncplane_resize_maximize(struct ncplane* ***n***);**
 
-**int ncplane_resize_marginalize(struct ncplane* ***n***);**
+**int ncplane_resize_marginalized(struct ncplane* ***n***);**
 
 **void ncplane_set_resizecb(struct ncplane* ***n***, int(*resizecb)(struct ncplane*));**
 
@@ -240,7 +240,7 @@ will be interpreted as top and left margins. ***margin_b*** and ***margin_r***
 will be interpreted as bottom and right margins. The plane will take the maximum
 space possible subject to its parent planes and these margins. The plane cannot
 become smaller than 1x1 (the margins are best-effort).
-**ncplane_resize_marginalize** should usually be used together with this flag,
+**ncplane_resize_marginalized** should usually be used together with this flag,
 so that the plane is automatically resized.
 
 **ncplane_reparent** detaches the plane ***n*** from any plane to which it is
