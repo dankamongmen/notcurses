@@ -59,13 +59,13 @@ TEST_CASE("Pixel") {
     auto s = n->sprite;
     REQUIRE(nullptr != s);
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == nc_->tcache.pixel_cell_wipe(nc_, s, 0, 0));
+    CHECK(0 == sprite_wipe_cell(nc_, s, 0, 0));
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == nc_->tcache.pixel_cell_wipe(nc_, s, 1, 1));
+    CHECK(0 == sprite_wipe_cell(nc_, s, 1, 1));
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == nc_->tcache.pixel_cell_wipe(nc_, s, 1, 0));
+    CHECK(0 == sprite_wipe_cell(nc_, s, 1, 0));
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == nc_->tcache.pixel_cell_wipe(nc_, s, 0, 1));
+    CHECK(0 == sprite_wipe_cell(nc_, s, 0, 1));
     CHECK(0 == notcurses_render(nc_));
     ncplane_destroy(n);
     ncvisual_destroy(ncv);
@@ -96,13 +96,13 @@ TEST_CASE("Pixel") {
     auto s = n->sprite;
     REQUIRE(nullptr != s);
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == nc_->tcache.pixel_cell_wipe(nc_, s, 0, 0));
+    CHECK(0 == sprite_wipe_cell(nc_, s, 0, 0));
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == nc_->tcache.pixel_cell_wipe(nc_, s, 1, 1));
+    CHECK(0 == sprite_wipe_cell(nc_, s, 1, 1));
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == nc_->tcache.pixel_cell_wipe(nc_, s, 1, 0));
+    CHECK(0 == sprite_wipe_cell(nc_, s, 1, 0));
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == nc_->tcache.pixel_cell_wipe(nc_, s, 0, 1));
+    CHECK(0 == sprite_wipe_cell(nc_, s, 0, 1));
     CHECK(0 == notcurses_render(nc_));
     ncplane_destroy(n);
     ncvisual_destroy(ncv);
@@ -133,17 +133,13 @@ TEST_CASE("Pixel") {
     auto s = n->sprite;
     REQUIRE(nullptr != s);
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == nc_->tcache.pixel_cell_wipe(nc_, s, 5, 5));
-    s->invalidated = SPRIXEL_INVALIDATED;
+    CHECK(0 == sprite_wipe_cell(nc_, s, 5, 5));
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == nc_->tcache.pixel_cell_wipe(nc_, s, 3, 3));
-    s->invalidated = SPRIXEL_INVALIDATED;
+    CHECK(0 == sprite_wipe_cell(nc_, s, 3, 3));
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == nc_->tcache.pixel_cell_wipe(nc_, s, 8, 8));
-    s->invalidated = SPRIXEL_INVALIDATED;
+    CHECK(0 == sprite_wipe_cell(nc_, s, 8, 8));
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == nc_->tcache.pixel_cell_wipe(nc_, s, 8, 3));
-    s->invalidated = SPRIXEL_INVALIDATED;
+    CHECK(0 == sprite_wipe_cell(nc_, s, 8, 3));
     CHECK(0 == notcurses_render(nc_));
     ncplane_destroy(n);
     ncvisual_destroy(ncv);
@@ -151,7 +147,28 @@ TEST_CASE("Pixel") {
   }
 
 #ifdef NOTCURSES_USE_MULTIMEDIA
-  SUBCASE("PixelWipeScreen") {
+  SUBCASE("PixelWipeBlocks") {
+    auto ncv = ncvisual_from_file(find_data("blocks.png"));
+    REQUIRE(ncv);
+    struct ncvisual_options vopts{};
+    vopts.blitter = NCBLIT_PIXEL;
+    vopts.flags = NCVISUAL_OPTION_NODEGRADE;
+    auto newn = ncvisual_render(nc_, ncv, &vopts);
+    REQUIRE(newn);
+    CHECK(0 == notcurses_render(nc_));
+    const auto s = newn->sprite;
+    for(int y = 0 ; y < s->dimy ; ++y){
+      for(int x = 0 ; x < s->dimx ; ++x){
+        CHECK(0 == sprite_wipe_cell(nc_, s, y, x));
+        CHECK(0 == notcurses_render(nc_));
+      }
+    }
+    ncplane_destroy(newn);
+    CHECK(0 == notcurses_render(nc_));
+    ncvisual_destroy(ncv);
+  }
+
+  SUBCASE("PixelWipeImage") {
     auto ncv = ncvisual_from_file(find_data("worldmap.png"));
     REQUIRE(ncv);
     struct ncvisual_options vopts{};
