@@ -24,15 +24,14 @@ visualize(struct notcurses* nc, struct ncvisual* ncv){
     struct ncvisual_options vopts = {
       .scaling = NCSCALE_SCALE,
       .blitter = bs[i],
-      .y = NCALIGN_CENTER,
       .flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_HORALIGNED
                 | NCVISUAL_OPTION_VERALIGNED,
     };
     int scalex, scaley, truey, truex;
     ncvisual_geom(nc, ncv, &vopts, &truey, &truex, &scaley, &scalex);
     vopts.x = NCALIGN_CENTER;
-    vopts.y = (ncplane_dim_y(notcurses_stdplane(nc)) - truey / scaley) / 2;
-//fprintf(stderr, "X: %d truex: %d sclaex: %d\n", vopts.x, truex, scalex);
+    vopts.y = NCALIGN_CENTER;
+//fprintf(stderr, "X: %d truex: %d scalex: %d\n", vopts.x, truex, scalex);
     ncplane_erase(stdn);
     // if we're about to blit pixel graphics, render the screen as empty, so
     // that everything is damaged for the printing of the legend.
@@ -49,9 +48,9 @@ visualize(struct notcurses* nc, struct ncvisual* ncv){
         DEMO_RENDER(nc);
       }
       ncplane_printf_aligned(stdn, ncplane_dim_y(stdn) / 2 - 1, NCALIGN_CENTER,
-                            "%03dx%03d", truex, truey);
+                             "%03dx%03d", truex, truey);
       ncplane_printf_aligned(stdn, ncplane_dim_y(stdn) / 2 + 1, NCALIGN_CENTER,
-                            "%d:%d pixels -> cell", scalex, scaley);
+                             "%d:%d pixels -> cell", scalex, scaley);
     }
     const char* name = notcurses_str_blitter(bs[i]);
     ncplane_printf_aligned(stdn, ncplane_dim_y(stdn) / 2 - 3, NCALIGN_CENTER, "%sblitter", name);

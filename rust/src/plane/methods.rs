@@ -1204,12 +1204,27 @@ impl NcPlane {
     /// Returns `-`[NCRESULT_MAX][crate::NCRESULT_MAX] if
     /// [NCALIGN_UNALIGNED][crate::NCALIGN_UNALIGNED] or invalid [NcAlign].
     ///
-    /// *C style function: [ncplane_align()][crate::ncplane_align].*
+    /// *C style function: [ncplane_halign()][crate::ncplane_halign].*
     #[inline]
-    pub fn align(&mut self, align: NcAlign, cols: NcDim) -> NcResult<()> {
+    pub fn halign(&mut self, align: NcAlign, cols: NcDim) -> NcResult<()> {
         error![
-            crate::ncplane_align(self, align, cols),
-            &format!("NcPlane.align({:?}, {})", align, cols)
+            crate::ncplane_halign(self, halign, cols),
+            &format!("NcPlane.halign({:?}, {})", halign, cols)
+        ]
+    }
+
+    /// Returns the row at which `rows` rows ought start in order to be
+    /// aligned according to `align` within this NcPlane.
+    ///
+    /// Returns `-`[NCRESULT_MAX][crate::NCRESULT_MAX] if
+    /// [NCALIGN_UNALIGNED][crate::NCALIGN_UNALIGNED] or invalid [NcAlign].
+    ///
+    /// *C style function: [ncplane_valign()][crate::ncplane_valign].*
+    #[inline]
+    pub fn valign(&mut self, align: NcAlign, cols: NcDim) -> NcResult<()> {
+        error![
+            crate::ncplane_valign(self, valign, cols),
+            &format!("NcPlane.valign({:?}, {})", valign, cols)
         ]
     }
 
