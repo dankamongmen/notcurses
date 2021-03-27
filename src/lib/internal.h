@@ -56,6 +56,7 @@ typedef enum {
   SPRIXCELL_NORMAL,         // no transparent pixels in this cell
   SPRIXCELL_CONTAINS_TRANS, // this cell has transparent pixels
   SPRIXCELL_ANNIHILATED,    // this cell has been wiped
+  SPRIXCELL_UNHIDDEN,       // this cell needs be unwiped
 } sprixcell_e;
 
 // there is a context-wide set of displayed pixel glyphs ("sprixels"); i.e.
@@ -761,8 +762,9 @@ plane_debug(const ncplane* n, bool details){
 void sprixel_free(sprixel* s);
 void sprixel_invalidate(sprixel* s);
 void sprixel_hide(sprixel* s);
-// dimy and dimx are cell geometry, not pixel
+// takes ownership of g on success
 sprixel* sprixel_update(sprixel* s, char* g, int bytes);
+// dimy and dimx are cell geometry, not pixel. takes ownership of s on success.
 sprixel* sprixel_create(ncplane* n, char* s, int bytes, int placey, int placex,
                         int sprixelid, int dimy, int dimx, int pixy, int pixx,
                         int parse_start, sprixcell_e* tacache);
@@ -1180,7 +1182,11 @@ plane_blit_sixel(ncplane* n, char* s, int bytes, int placey, int placex,
   for(int y = placey ; y < placey + leny && y < ncplane_dim_y(n) ; ++y){
     for(int x = placex ; x < placex + lenx && x < ncplane_dim_x(n) ; ++x){
       nccell* c = ncplane_cell_ref_yx(n, y, x);
-      memcpy(&c->gcluster, &gcluster, sizeof(gcluster));
+      if(x == placex){
+        memcpy(&c->gcluster, &gcluster, sizeof(gcluster));
+      }else{
+        c->gcluster = 0;
+      }
       c->width = lenx;
     }
   }

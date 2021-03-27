@@ -296,6 +296,7 @@ int kitty_blit(ncplane* nc, int linesize, const void* data,
     return -1;
   }
   int parse_start = 0;
+  // closes fp on success
   sprixcell_e* tacache = write_kitty_data(fp, rows, cols, linesize, leny, lenx, data,
                                           bargs->u.pixel.sprixelid, &parse_start);
   if(tacache == NULL){

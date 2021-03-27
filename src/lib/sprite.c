@@ -30,14 +30,16 @@ sprixel* sprixel_by_id(notcurses* nc, uint32_t id){
 }
 
 // s ought already have been scrubbed according to the T-A matrix
-sprixel* sprixel_update(sprixel* s, const char* g, int bytes){
+sprixel* sprixel_update(sprixel* s, char* g, int bytes){
   free(s->glyph);
   s->glyph = g;
   s->glyphlen = bytes;
   s->invalidated = SPRIXEL_INVALIDATED;
+  return s;
 }
 
-// y and x are the cell geometry, not the pixel geometry
+// 'y' and 'x' are the cell geometry, not the pixel geometry. takes
+// ownership of 's' on success.
 sprixel* sprixel_create(ncplane* n, char* s, int bytes, int placey, int placex,
                         int sprixelid, int dimy, int dimx, int pixy, int pixx,
                         int parse_start, sprixcell_e* tacache){
