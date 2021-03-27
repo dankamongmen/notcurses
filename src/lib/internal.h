@@ -1182,11 +1182,7 @@ plane_blit_sixel(ncplane* n, char* s, int bytes, int placey, int placex,
   for(int y = placey ; y < placey + leny && y < ncplane_dim_y(n) ; ++y){
     for(int x = placex ; x < placex + lenx && x < ncplane_dim_x(n) ; ++x){
       nccell* c = ncplane_cell_ref_yx(n, y, x);
-      if(x == placex){
-        memcpy(&c->gcluster, &gcluster, sizeof(gcluster));
-      }else{
-        c->gcluster = 0;
-      }
+      memcpy(&c->gcluster, &gcluster, sizeof(gcluster));
       c->width = lenx;
     }
   }
