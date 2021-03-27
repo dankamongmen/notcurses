@@ -46,10 +46,17 @@ struct ncvisual_details;
 // and we can't go throwing C++ syntax into this header. so it goes.
 
 typedef enum {
-  SPRIXEL_NOCHANGE,
-  SPRIXEL_INVALIDATED,
-  SPRIXEL_HIDE,
+  SPRIXEL_QUIESCENT,   // sprixel has been drawn
+  SPRIXEL_INVALIDATED, // sprixel needs to be redrawn
+  SPRIXEL_HIDE,        // sprixel queued for destruction
 } sprixel_e;
+
+// elements of the T-A matrix
+typedef enum {
+  SPRIXCELL_NORMAL,         // no transparent pixels in this cell
+  SPRIXCELL_CONTAINS_TRANS, // this cell has transparent pixels
+  SPRIXCELL_ANNIHILATED,    // this cell has been wiped
+} sprixcell_e;
 
 // there is a context-wide set of displayed pixel glyphs ("sprixels"); i.e.
 // these are independent of particular piles. there should never be very many
@@ -57,16 +64,16 @@ typedef enum {
 // we can register them, and then manipulate them by id. with the sixel
 // protocol, we just have to rewrite them.
 typedef struct sprixel {
-  char* glyph;       // glyph; can be quite large
-  int glyphlen;
-  uint32_t id;       // embedded into glusters field of nccell, 24 bits
-  struct ncplane* n; // associated ncplane
-  sprixel_e invalidated;
+  char* glyph;          // glyph; can be quite large
+  int glyphlen;         // length of the glyph in bytes
+  uint32_t id;          // embedded into glusters field of nccell, 24 bits
+  struct ncplane* n;    // associated ncplane
+  sprixel_e invalidated;// sprixel invalidation state
   struct sprixel* next;
   int y, x;
-  int dimy, dimx;    // cell geometry
-  int pixy, pixx;    // pixel geometry (might be smaller than cell geo)
-  int* tacache;      // transparency-annihilation cache (dimy * dimx)
+  int dimy, dimx;       // cell geometry
+  int pixy, pixx;       // pixel geometry (might be smaller than cell geo)
+  sprixcell_e* tacache; // transparency-annihilation cache (dimy * dimx)
   // each tacache entry is one of 0 (standard opaque cell), 1 (cell with
   // some transparency), 2 (annihilated, excised)
   int parse_start;   // where to start parsing for cell wipes
@@ -755,9 +762,10 @@ void sprixel_free(sprixel* s);
 void sprixel_invalidate(sprixel* s);
 void sprixel_hide(sprixel* s);
 // dimy and dimx are cell geometry, not pixel
+sprixel* sprixel_update(sprixel* s, char* g, int bytes);
 sprixel* sprixel_create(ncplane* n, char* s, int bytes, int placey, int placex,
                         int sprixelid, int dimy, int dimx, int pixy, int pixx,
-                        int parse_start, int* tacache);
+                        int parse_start, sprixcell_e* tacache);
 API int sprite_wipe_cell(const notcurses* nc, sprixel* s, int y, int x);
 int sprite_kitty_annihilate(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
 int sprite_kitty_init(int fd);
@@ -1162,7 +1170,7 @@ egc_rtl(const char* egc, int* bytes){
 static inline int
 plane_blit_sixel(ncplane* n, char* s, int bytes, int placey, int placex,
                  int leny, int lenx, int sprixelid, int dimy, int dimx,
-                 int parse_start, int* tacache){
+                 int parse_start, sprixcell_e * tacache){
   sprixel* spx = sprixel_create(n, s, bytes, placey, placex, sprixelid,
                                 leny, lenx, dimy, dimx, parse_start, tacache);
   if(spx == NULL){

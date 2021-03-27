@@ -35,7 +35,7 @@ relies on the font. Patches to correct/complete this table are very welcome!
 | st ("suckless") | ✅                 |  ✅   |?       |`TERM=st-256color` `COLORTERM=24bit` | |
 | Terminator      | ✅                 |  ?    |?       | ?                               | |
 | Terminology     | ❌                 |  ?    |?       | ?                               | |
-| Tilda           |                    |  ?    |?       | ?                               | |
+| [Tilda](https://github.com/lanoxx/tilda)           |                    |  ?    |?       | ?                               | |
 | [tmux](https://github.com/tmux/tmux/wiki)            |                    |  ❌   |n/a     |`TERM=tmux-256color` `COLORTERM=24bit` | `tmux.conf` must apply `Tc`; see below. `bce` is available with the `tmux-256color-bce` definition. |
 | [wezterm](https://github.com/wez/wezterm)         |                    |  ✅   |?       |`TERM=wezterm` `COLORTERM=24bit` | |
 | [Windows Terminal](https://github.com/microsoft/terminal)|                    |  ?    |?       | ?                               | |
