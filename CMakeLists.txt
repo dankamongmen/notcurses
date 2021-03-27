@@ -26,7 +26,7 @@ cmake_dependent_option(
 option(USE_DOXYGEN "Build HTML cross reference with doxygen" OFF)
 option(USE_PANDOC "Build man pages and HTML reference with pandoc" ON)
 option(USE_POC "Build small, uninstalled proof-of-concept binaries" ON)
-option(USE_QRCODEGEN "Disable libqrcodegen QR code support" ON)
+option(USE_QRCODEGEN "Enable libqrcodegen QR code support" ON)
 option(USE_STATIC "Build static libraries (in addition to shared)" ON)
 set(USE_MULTIMEDIA "ffmpeg" CACHE STRING "Multimedia engine, one of 'ffmpeg', 'oiio', or 'none'")
 set_property(CACHE USE_MULTIMEDIA PROPERTY STRINGS ffmpeg oiio none)
