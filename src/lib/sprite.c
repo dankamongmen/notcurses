@@ -83,11 +83,11 @@ int sprite_wipe_cell(const notcurses* nc, sprixel* s, int ycell, int xcell){
     return -1;
   }
   if(s->tacache[s->dimx * ycell + xcell] == 2){
-fprintf(stderr, "CACHED WIPE %d %d/%d\n", s->id, ycell, xcell);
+//fprintf(stderr, "CACHED WIPE %d %d/%d\n", s->id, ycell, xcell);
     return 0; // already annihilated
   }
   s->tacache[s->dimx * ycell + xcell] = 2;
-fprintf(stderr, "WIPING %d %d/%d\n", s->id, ycell, xcell);
+//fprintf(stderr, "WIPING %d %d/%d\n", s->id, ycell, xcell);
   int r = nc->tcache.pixel_cell_wipe(nc, s, ycell, xcell);
   if(r == 0){
     s->invalidated = SPRIXEL_INVALIDATED;
