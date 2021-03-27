@@ -965,7 +965,7 @@ rasterize_sprixels(notcurses* nc, const ncpile* p, FILE* out){
       if(fwrite(s->glyph, s->glyphlen, 1, out) != 1){
         return -1;
       }
-      s->invalidated = SPRIXEL_NOCHANGE;
+      s->invalidated = SPRIXEL_QUIESCENT;
       nc->rstate.hardcursorpos = true;
       parent = &s->next;
     }else if(s->invalidated == SPRIXEL_HIDE){

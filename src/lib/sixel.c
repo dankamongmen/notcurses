@@ -415,7 +415,7 @@ write_rle(int* printed, int color, FILE* fp, int seenrle, unsigned char crle){
 
 // Emit the sprixel in its entirety, plus enable and disable pixel mode.
 static int
-write_sixel_data(FILE* fp, int lenx, sixeltable* stab, int* parse_start, int* tacache){
+write_sixel_data(FILE* fp, int lenx, sixeltable* stab, int* parse_start, sprixcell_e* tacache){
   *parse_start = fprintf(fp, "\ePq");
   // Set Raster Attributes - pan/pad=1 (pixel aspect ratio), Ph=lenx, Pv=leny
   // using Ph/Pv causes a background to be drawn using color register 0 for all
@@ -496,7 +496,7 @@ int sixel_blit_inner(ncplane* nc, int leny, int lenx, sixeltable* stab,
   int parse_start = 0;
   unsigned cols = lenx / bargs->u.pixel.celldimx + !!(lenx % bargs->u.pixel.celldimx);
   unsigned rows = leny / bargs->u.pixel.celldimy + !!(leny % bargs->u.pixel.celldimy);
-  int* tacache = malloc(sizeof(*tacache) * rows * cols);
+  sprixcell_e* tacache = malloc(sizeof(*tacache) * rows * cols);
   memset(tacache, 0, sizeof(*tacache) * rows * cols);
   if(tacache == NULL){
     free(buf);

@@ -222,13 +222,13 @@ int sprite_kitty_cell_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell
 // we can only write 4KiB at a time. we're writing base64-encoded RGBA. each
 // pixel is 4B raw (32 bits). each chunk of three pixels is then 12 bytes, or
 // 16 base64-encoded bytes. 4096 / 16 == 256 3-pixel groups, or 768 pixels.
-static int*
+static sprixcell_e*
 write_kitty_data(FILE* fp, int rows, int cols, int linesize, int leny, int lenx,
                  const uint32_t* data, int sprixelid, int* parse_start){
   if(linesize % sizeof(*data)){
     return NULL;
   }
-  int* tacache = malloc(sizeof(*tacache) * rows * cols);
+  sprixcell_e* tacache = malloc(sizeof(*tacache) * rows * cols);
   if(tacache == NULL){
     return NULL;
   }
@@ -296,8 +296,8 @@ int kitty_blit(ncplane* nc, int linesize, const void* data,
     return -1;
   }
   int parse_start = 0;
-  int* tacache = write_kitty_data(fp, rows, cols, linesize, leny, lenx, data,
-                                  bargs->u.pixel.sprixelid, &parse_start);
+  sprixcell_e* tacache = write_kitty_data(fp, rows, cols, linesize, leny, lenx, data,
+                                          bargs->u.pixel.sprixelid, &parse_start);
   if(tacache == NULL){
     fclose(fp);
     free(buf);

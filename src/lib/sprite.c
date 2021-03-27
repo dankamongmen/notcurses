@@ -29,10 +29,18 @@ sprixel* sprixel_by_id(notcurses* nc, uint32_t id){
   return NULL;
 }
 
+// s ought already have been scrubbed according to the T-A matrix
+sprixel* sprixel_update(sprixel* s, const char* g, int bytes){
+  free(s->glyph);
+  s->glyph = g;
+  s->glyphlen = bytes;
+  s->invalidated = SPRIXEL_INVALIDATED;
+}
+
 // y and x are the cell geometry, not the pixel geometry
 sprixel* sprixel_create(ncplane* n, char* s, int bytes, int placey, int placex,
                         int sprixelid, int dimy, int dimx, int pixy, int pixx,
-                        int parse_start, int* tacache){
+                        int parse_start, sprixcell_e* tacache){
   sprixel* ret = malloc(sizeof(sprixel));
   if(ret){
     ret->glyph = s;
@@ -73,11 +81,11 @@ int sprite_wipe_cell(const notcurses* nc, sprixel* s, int ycell, int xcell){
     return -1;
   }
   if(s->tacache[s->dimx * ycell + xcell] == 2){
-//fprintf(stderr, "CACHED WIPE %d %d/%d\n", s->id, ycell, xcell);
+fprintf(stderr, "CACHED WIPE %d %d/%d\n", s->id, ycell, xcell);
     return 0; // already annihilated
   }
   s->tacache[s->dimx * ycell + xcell] = 2;
-//fprintf(stderr, "WIPING %d %d/%d\n", s->id, ycell, xcell);
+fprintf(stderr, "WIPING %d %d/%d\n", s->id, ycell, xcell);
   int r = nc->tcache.pixel_cell_wipe(nc, s, ycell, xcell);
   if(r == 0){
     s->invalidated = SPRIXEL_INVALIDATED;
