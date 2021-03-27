@@ -13,7 +13,7 @@ use crate::{
 impl NcPlaneOptions {
     /// New NcPlaneOptions using the horizontal x.
     pub fn new(y: NcOffset, x: NcOffset, rows: NcDim, cols: NcDim) -> Self {
-        Self::with_flags(y, x, rows, cols, None, 0)
+        Self::with_flags(y, x, rows, cols, None, 0, 0, 0)
     }
 
     /// New NcPlaneOptions with horizontal alignment.
@@ -68,8 +68,8 @@ impl NcPlaneOptions {
             name: null(),
             resizecb: crate::ncresizecb_to_c(resizecb),
             flags,
-            0,
-            0,
+            margin_b: 0,
+            margin_r: 0,
         }
     }
 }

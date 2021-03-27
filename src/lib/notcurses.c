@@ -2184,9 +2184,27 @@ int (*ncplane_resizecb(const ncplane* n))(ncplane*){
 }
 
 int ncplane_resize_marginalized(ncplane* n){
-  (void)n;// FIXME uhhh do something here
-fprintf(stderr, "NEED TO RESIZE THIS MARGINALIZED-ASS PLANE\n");
-  return 0;
+  const ncplane* parent = ncplane_parent_const(n);
+  // a marginalized plane cannot be larger than its oppressor plane =]
+  int maxy, maxx;
+  if(parent == n){ // root plane, need to use pile size
+    return 0; // FIXME
+  }else{
+    ncplane_dim_yx(parent, &maxy, &maxx);
+  }
+  if((maxy -= n->margin_b) < 1){
+    maxy = 1;
+  }
+  if((maxx -= n->margin_r) < 1){
+    maxx = 1;
+  }
+  // FIXME mix in top/left margins (absy/absx)
+  int oldy, oldx;
+  ncplane_dim_yx(n, &oldy, &oldx); // current dimensions of 'n'
+  int keepleny = oldy > maxy ? maxy : oldy;
+  int keeplenx = oldx > maxx ? maxx : oldx;
+  // FIXME place it according to top/left
+  return ncplane_resize_internal(n, 0, 0, keepleny, keeplenx, 0, 0, maxy, maxx);
 }
 
 int ncplane_resize_maximize(ncplane* n){
