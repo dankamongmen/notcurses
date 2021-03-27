@@ -1186,7 +1186,10 @@ int notcurses_stop(notcurses* nc){
     // if we were not using the alternate screen, our cursor's wherever we last
     // wrote. move it to the bottom left of the screen.
     if(!nc->tcache.smcup){
-      tty_emit(tiparm(nc->tcache.cup, nc->lfdimy + nc->margin_t - 1, 0), nc->ttyfd);
+      tty_emit(tiparm(nc->tcache.hpa, 0), nc->ttyfd);
+      if(nc->lfdimy){
+        tty_emit(tiparm(nc->tcache.vpa, nc->lfdimy + nc->margin_t - 1), nc->ttyfd);
+      }
     }
     if(nc->ttyfd >= 0){
       ret |= close(nc->ttyfd);

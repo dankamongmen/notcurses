@@ -40,25 +40,14 @@ greatscott(struct notcurses* nc, int dimy, int dimx){
     return -1;
   }
   struct ncvisual_options vopts = {
+    .y = 1,
     .x = NCALIGN_CENTER,
     .blitter = NCBLIT_PIXEL,
-    .scaling = NCSCALE_NONE,
+    .scaling = NCSCALE_SCALE,
     .flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_HORALIGNED,
   };
   struct ncplane* n = ncvisual_render(nc, ncv, &vopts);
   ncvisual_destroy(ncv);
-  int odimy, odimx, oy, ox;
-  ncplane_yx(n, &oy, &ox);
-  ncplane_dim_yx(n, &odimy, &odimx);
-  if(odimy > dimy - 2){
-    ncplane_destroy(n);
-    return -1;
-  }
-  if(odimx > dimx){
-    ncplane_destroy(n);
-    return -1;
-  }
-  ncplane_move_yx(n, (dimy - odimy) / 2, ox);
   DEMO_RENDER(nc);
   demo_nanosleep(nc, &demodelay);
   ncplane_destroy(n);
