@@ -116,14 +116,13 @@
 //W  ncplane_y
 //W  ncplane_yx
 //
-// functions manually reimplemented: 39
+// functions manually reimplemented: 40
 // ------------------------------------------
 // (X) wont:  9
-// (+) done: 32 / 0
-// (W) wrap: 24
+// (+) done: 33 / 0
+// (W) wrap: 25
 // (#) test:  5
 // ------------------------------------------
-//W+ ncplane_align
 //W+ ncplane_bchannel
 //W+ ncplane_bg_alpha
 //W# ncplane_bg_default_p
@@ -140,6 +139,7 @@
 //W+ ncplane_fg_rgb
 //W+ ncplane_fg_rgb8
 //W+ ncplane_gradient_sized
+//W+ ncplane_halign
 // + ncplane_hline
 //W+ ncplane_perimeter
 //W+ ncplane_perimeter_double
@@ -161,6 +161,7 @@
 //W# ncplane_resize_simple
 // + ncplane_rounded_box
 // + ncplane_rounded_box_sized
+//W+ ncplane_halign
 // + ncplane_vline
 // + ncplane_vprintf
 //
