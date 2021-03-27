@@ -33,20 +33,11 @@ visualize(struct notcurses* nc, struct ncvisual* ncv){
     vopts.y = NCALIGN_CENTER;
 //fprintf(stderr, "X: %d truex: %d scalex: %d\n", vopts.x, truex, scalex);
     ncplane_erase(stdn);
-    // if we're about to blit pixel graphics, render the screen as empty, so
-    // that everything is damaged for the printing of the legend.
-    if(vopts.blitter == NCBLIT_PIXEL){
-      DEMO_RENDER(nc);
-    }
     struct ncplane* n;
     if((n = ncvisual_render(nc, ncv, &vopts)) == NULL){
       ncplane_printf_aligned(stdn, ncplane_dim_y(stdn) / 2 - 1, NCALIGN_CENTER, "not available");
     }else{
-      // FIXME shouldn't need this once z-axis is united with bitmap graphics
       ncplane_move_below(n, stdn);
-      if(vopts.blitter == NCBLIT_PIXEL){
-        DEMO_RENDER(nc);
-      }
       ncplane_printf_aligned(stdn, ncplane_dim_y(stdn) / 2 - 1, NCALIGN_CENTER,
                              "%03dx%03d", truex, truey);
       ncplane_printf_aligned(stdn, ncplane_dim_y(stdn) / 2 + 1, NCALIGN_CENTER,
