@@ -492,23 +492,34 @@ typedef enum {
   NCALIGN_RIGHT,
 } ncalign_e;
 
-// Return the column at which 'c' cols ought start in order to be aligned
-// according to 'align' within ncplane 'n'. Returns INT_MAX on invalid 'align'.
-// Undefined behavior on negative 'c'.
+#define NCALIGN_TOP NCALIGN_LEFT
+#define NCALIGN_BOTTOM NCALIGN_RIGHT
+
+// Return the offset into 'availu' at which 'u' ought be output given the
+// requirements of 'align'. Return -INT_MAX on invalid 'align'. Undefined
+// behavior on negative 'availu' or 'u'.
 static inline int
-ncplane_align(const struct ncplane* n, ncalign_e align, int c){
-  if(align == NCALIGN_LEFT){
+notcurses_align(int availu, ncalign_e align, int u){
+  if(align == NCALIGN_LEFT || align == NCALIGN_TOP){
     return 0;
   }
-  int cols;
-  ncplane_dim_yx(n, NULL, &cols);
   if(align == NCALIGN_CENTER){
-    return (cols - c) / 2;
-  }else if(align == NCALIGN_RIGHT){
-    return cols - c;
+    return (availu - u) / 2;
   }
-  return INT_MAX;
+  if(align == NCALIGN_RIGHT || align == NCALIGN_BOTTOM){
+    return availu - u;
+  }
+  return -INT_MAX; // invalid |align|
 }
+
+// Return the column at which 'c' cols ought start in order to be aligned
+// according to 'align' within ncplane 'n'. Return -INT_MAX on invalid
+// 'align'. Undefined behavior on negative 'c'.
+static inline int
+ncplane_align(const struct ncplane* n, ncalign_e align, int c){
+  return notcurses_align(ncplane_dim_x(n), align, c);
+}
+
 ```
 
 ## Input

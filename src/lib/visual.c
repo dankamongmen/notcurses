@@ -421,6 +421,12 @@ ncvisual* ncvisual_from_bgra(const void* bgra, int rows, int rowstride, int cols
   return ncv;
 }
 
+// by the end, disprows/dispcols refer to the number of source rows/cols (in
+// pixels), which will be mapped to a region of cells scaled by the encodings).
+// the blit will begin at placey/placex (in terms of cells). begy/begx define
+// the origin of the source region to draw (in pixels). leny/lenx defined the
+// geometry of the source region to draw, again in pixels. ncv->rows and
+// ncv->cols define the source geometry in pixels.
 ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitset* bset,
                                int placey, int placex, int begy, int begx,
                                int leny, int lenx, ncplane* n, ncscale_e scaling,
@@ -480,10 +486,10 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
       } // else stretch
     }
     if(flags & NCVISUAL_OPTION_HORALIGNED){
-      placex = ncplane_align(n, placex, dispcols / encoding_x_scale(&nc->tcache, bset));
+      placex = ncplane_halign(n, placex, dispcols / encoding_x_scale(&nc->tcache, bset));
     }
     if(flags & NCVISUAL_OPTION_VERALIGNED){
-      placey = ncplane_align(n, placey, disprows / encoding_y_scale(&nc->tcache, bset));
+      placey = ncplane_valign(n, placey, disprows / encoding_y_scale(&nc->tcache, bset));
     }
   }
   leny = (leny / (double)ncv->rows) * ((double)disprows);

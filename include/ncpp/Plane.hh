@@ -308,7 +308,17 @@ namespace ncpp
 
 		int get_align (NCAlign align, int c) const NOEXCEPT_MAYBE
 		{
-			return error_guard<int> (ncplane_align (plane, static_cast<ncalign_e>(align), c), INT_MAX);
+			return error_guard<int> (ncplane_halign (plane, static_cast<ncalign_e>(align), c), INT_MAX);
+		}
+
+		int get_halign (NCAlign align, int c) const NOEXCEPT_MAYBE
+		{
+			return error_guard<int> (ncplane_halign (plane, static_cast<ncalign_e>(align), c), INT_MAX);
+		}
+
+		int get_valign (NCAlign align, int r) const NOEXCEPT_MAYBE
+		{
+			return error_guard<int> (ncplane_valign (plane, static_cast<ncalign_e>(align), r), INT_MAX);
 		}
 
 		void get_dim (int *rows, int *cols) const noexcept

@@ -376,7 +376,7 @@ reader_demo(struct notcurses* nc){
   struct ncplane* std = notcurses_stddim_yx(nc, &dimy, &dimx);
   const int READER_COLS = 64;
   const int READER_ROWS = 8;
-  const int x = ncplane_align(std, NCALIGN_CENTER, READER_COLS);
+  const int x = ncplane_halign(std, NCALIGN_CENTER, READER_COLS);
   struct ncselector* selector = NULL;
   struct ncmultiselector* mselector = NULL;
   struct ncplane_options nopts = {

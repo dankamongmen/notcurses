@@ -7,6 +7,8 @@ rearrangements of Notcurses.
   * Added `notcurses_debug_caps()` to dump terminal properties, both those
     reported and those inferred, to a `FILE*`.
   * Added `NCOPTION_NO_CLEAR_BITMAPS` option for `notcurses_init()`.
+  * Added `ncplane_valign()` and `ncplane_halign()`. `ncplane_align()` is now
+    an alias for `ncplane_halign()`, and deprecated.
   * Added `NCVISUAL_OPTION_HORALIGNED` and `NCVISUAL_OPTION_VERALIGNED` flags
     for `ncvisual_render()`.
   * Added `NCPLANE_OPTION_VERALIGNED` flag for `ncplane_create()`.

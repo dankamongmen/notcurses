@@ -3417,7 +3417,7 @@ mojiplane(struct ncplane* title, int y, int rows, const char* summary){
     ncplane_destroy(n);
     return NULL;
   }
-  const int x = ncplane_align(n, NCALIGN_RIGHT, strlen(summary) + 2);
+  const int x = ncplane_halign(n, NCALIGN_RIGHT, strlen(summary) + 2);
   if(ncplane_putstr_yx(n, rows - 1, x, summary) < 0){
     ncplane_destroy(n);
     return NULL;
