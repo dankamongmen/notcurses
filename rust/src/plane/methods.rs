@@ -1208,8 +1208,8 @@ impl NcPlane {
     #[inline]
     pub fn halign(&mut self, align: NcAlign, cols: NcDim) -> NcResult<()> {
         error![
-            crate::ncplane_halign(self, halign, cols),
-            &format!("NcPlane.halign({:?}, {})", halign, cols)
+            crate::ncplane_halign(self, align, cols),
+            &format!("NcPlane.halign({:?}, {})", align, cols)
         ]
     }
 
@@ -1223,8 +1223,8 @@ impl NcPlane {
     #[inline]
     pub fn valign(&mut self, align: NcAlign, cols: NcDim) -> NcResult<()> {
         error![
-            crate::ncplane_valign(self, valign, cols),
-            &format!("NcPlane.valign({:?}, {})", valign, cols)
+            crate::ncplane_valign(self, align, cols),
+            &format!("NcPlane.valign({:?}, {})", align, cols)
         ]
     }
 
