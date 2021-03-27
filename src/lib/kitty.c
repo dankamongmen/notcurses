@@ -238,7 +238,6 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
   int totalout = 0; // total pixels of payload out
   int y = 0; // position within source image (pixels)
   int x = 0;
-  int tyx = 0; // postition within tamatrix (cells)
   int targetout = 0; // number of pixels expected out after this chunk
 //fprintf(stderr, "total: %d chunks = %d, s=%d,v=%d\n", total, chunks, lenx, leny);
   while(chunks--){
@@ -261,26 +260,17 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
       for(int e = 0 ; e < encodeable ; ++e){
         if(x == lenx){
           x = 0;
-          if(x % cdimx){
-            ++tyx;
-          }
-          if(++y % cdimy){
-            tyx -= cols;
-          }
+          ++y;
         }
         const uint32_t* line = data + (linesize / sizeof(*data)) * y;
         source[e] = line[x];
 //fprintf(stderr, "%u/%u/%u -> %c%c%c%c %u %u %u %u\n", r, g, b, b64[0], b64[1], b64[2], b64[3], b64[0], b64[1], b64[2], b64[3]);
-        if(++x % cdimx == 0){
-          ++tyx;
-        }
+        ++x;
+        int tyx = (x / cdimx) + (y / cdimy) * cols;
         wipe[e] = (tacache[tyx] == SPRIXCELL_ANNIHILATED);
       }
       totalout += encodeable;
       char out[17];
-if(wipe[0] || wipe[1] || wipe[2]){
-fprintf(stderr, "TYX: %d lenx: %d y: %d x: %d %d %d %d\n", tyx, lenx, y, x, wipe[0], wipe[1], wipe[2]);
-}
       base64_rgba3(source, encodeable, out, wipe);
       ncfputs(out, fp);
     }

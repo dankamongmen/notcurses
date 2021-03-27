@@ -245,16 +245,22 @@ update_deets(uint32_t rgb, cdetails* deets){
 // (assumed to have at least 256 registers). at each color, we store a pixel
 // count, and a sum of all three channels. in addition, we track whether we've
 // seen at least two colors in the chunk.
-static int
-extract_color_table(const uint32_t* data, int linesize, int begy, int begx,
-                    int leny, int lenx, sixeltable* stab){
+static inline int
+extract_color_table(const uint32_t* data, int linesize, int begy, int begx, int cols,
+                    int leny, int lenx, int cdimy, int cdimx, sixeltable* stab,
+                    sprixcell_e* tacache){
   unsigned char mask = 0xc0;
   int pos = 0;
-  for(int visy = begy ; visy < (begy + leny) ; visy += 6){
-    for(int visx = begx ; visx < (begx + lenx) ; visx += 1){
-      for(int sy = visy ; sy < (begy + leny) && sy < visy + 6 ; ++sy){
-        const uint32_t* rgb = (const uint32_t*)(data + (linesize / 4 * sy) + visx);
+  for(int visy = begy ; visy < (begy + leny) ; visy += 6){ // pixel row
+    for(int visx = begx ; visx < (begx + lenx) ; visx += 1){ // pixel column
+      for(int sy = visy ; sy < (begy + leny) && sy < visy + 6 ; ++sy){ // offset within sprixel
+        const uint32_t* rgb = (data + (linesize / 4 * sy) + visx);
         if(rgba_trans_p(ncpixel_a(*rgb))){
+          continue;
+        }
+        int txyidx = (sy / cdimy) * cols + (visx / cdimx);
+        if(tacache[txyidx] == SPRIXCELL_ANNIHILATED){
+//fprintf(stderr, "TRANS SKIP %d %d %d %d\n", visy, visx, sy, txyidx);
           continue;
         }
         unsigned char comps[RGBSIZE];
@@ -416,7 +422,7 @@ write_rle(int* printed, int color, FILE* fp, int seenrle, unsigned char crle){
 // Emit the sprixel in its entirety, plus enable and disable pixel mode.
 // Closes |fp| on all paths.
 static int
-write_sixel_data(FILE* fp, int lenx, sixeltable* stab, int* parse_start, sprixcell_e* tacache){
+write_sixel_data(FILE* fp, int lenx, sixeltable* stab, int* parse_start){
   *parse_start = fprintf(fp, "\ePq");
   // Set Raster Attributes - pan/pad=1 (pixel aspect ratio), Ph=lenx, Pv=leny
   // using Ph/Pv causes a background to be drawn using color register 0 for all
@@ -435,7 +441,6 @@ write_sixel_data(FILE* fp, int lenx, sixeltable* stab, int* parse_start, sprixce
                             (intmax_t)(stab->deets[idx].sums[2] * 100 / count / 255));
   }
   int p = 0;
-  (void)tacache; // FIXME fill in tacache when we hit transparencies
   while(p < stab->sixelcount){
     for(int i = 0 ; i < stab->colors ; ++i){
       int printed = 0;
@@ -486,8 +491,10 @@ write_sixel_data(FILE* fp, int lenx, sixeltable* stab, int* parse_start, sprixce
 // are programmed as a set of registers, which are then referenced by the
 // stacks. There is also a RLE component, handled in rasterization.
 // A pixel block is indicated by setting cell_pixels_p().
-int sixel_blit_inner(ncplane* n, int leny, int lenx, sixeltable* stab,
-                     const blitterargs* bargs){
+static inline int
+sixel_blit_inner(ncplane* n, int leny, int lenx, sixeltable* stab,
+                 const blitterargs* bargs, unsigned reuse,
+                 sprixcell_e* tacache){
   char* buf = NULL;
   size_t size = 0;
   FILE* fp = open_memstream(&buf, &size);
@@ -497,31 +504,8 @@ int sixel_blit_inner(ncplane* n, int leny, int lenx, sixeltable* stab,
   int parse_start = 0;
   int cols = lenx / bargs->u.pixel.celldimx + !!(lenx % bargs->u.pixel.celldimx);
   int rows = leny / bargs->u.pixel.celldimy + !!(leny % bargs->u.pixel.celldimy);
-  sprixcell_e* tacache = NULL;
-  bool reuse = false;
-  // if we have a sprixel attached to this plane, see if we can reuse it
-  // (we need the same dimensions) and thus immediately apply its T-A table.
-  if(n->sprite){
-    sprixel* s = n->sprite;
-    if(s->dimy == rows && s->dimx == cols){
-      tacache = s->tacache;
-      reuse = true;
-    }
-  }
-  if(!reuse){
-    tacache = malloc(sizeof(*tacache) * rows * cols);
-    if(tacache == NULL){
-      fclose(fp);
-      free(buf);
-      return -1;
-    }
-    memset(tacache, 0, sizeof(*tacache) * rows * cols);
-  }
   // calls fclose() on success
-  if(write_sixel_data(fp, lenx, stab, &parse_start, tacache)){
-    if(!reuse){
-      free(tacache);
-    }
+  if(write_sixel_data(fp, lenx, stab, &parse_start)){
     free(buf);
     return -1;
   }
@@ -532,7 +516,6 @@ int sixel_blit_inner(ncplane* n, int leny, int lenx, sixeltable* stab,
     if(plane_blit_sixel(n, buf, size, bargs->placey, bargs->placex,
                         rows, cols, bargs->u.pixel.sprixelid, leny, lenx,
                         parse_start, tacache) < 0){
-      free(tacache);
       free(buf);
       return -1;
     }
@@ -567,14 +550,39 @@ int sixel_blit(ncplane* n, int linesize, const void* data,
   // stable.table doesn't need initializing; we start from the bottom
   memset(stable.data, 0, sixelcount * colorregs);
   memset(stable.deets, 0, sizeof(*stable.deets) * colorregs);
-  if(extract_color_table(data, linesize, bargs->begy, bargs->begx, leny, lenx, &stable)){
+  int cols = lenx / bargs->u.pixel.celldimx + !!(lenx % bargs->u.pixel.celldimx);
+  int rows = leny / bargs->u.pixel.celldimy + !!(leny % bargs->u.pixel.celldimy);
+  sprixcell_e* tacache = NULL;
+  bool reuse = false;
+  // if we have a sprixel attached to this plane, see if we can reuse it
+  // (we need the same dimensions) and thus immediately apply its T-A table.
+  if(n->sprite){
+    sprixel* s = n->sprite;
+    if(s->dimy == rows && s->dimx == cols){
+      tacache = s->tacache;
+      reuse = true;
+    }
+  }
+  if(!reuse){
+    tacache = malloc(sizeof(*tacache) * rows * cols);
+    if(tacache == NULL){
+      return -1;
+    }
+    memset(tacache, 0, sizeof(*tacache) * rows * cols);
+  }
+  if(extract_color_table(data, linesize, bargs->begy, bargs->begx, cols, leny, lenx,
+                         bargs->u.pixel.celldimy, bargs->u.pixel.celldimx,
+                         &stable, tacache)){
+    if(!reuse){
+      free(tacache);
+    }
     free(stable.table);
     free(stable.data);
     free(stable.deets);
     return -1;
   }
   refine_color_table(data, linesize, bargs->begy, bargs->begx, leny, lenx, &stable);
-  int r = sixel_blit_inner(n, leny, lenx, &stable, bargs);
+  int r = sixel_blit_inner(n, leny, lenx, &stable, bargs, reuse, tacache);
   free(stable.data);
   free(stable.deets);
   free(stable.table);
