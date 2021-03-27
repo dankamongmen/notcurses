@@ -1186,11 +1186,7 @@ int notcurses_stop(notcurses* nc){
     // if we were not using the alternate screen, our cursor's wherever we last
     // wrote. move it to the bottom left of the screen.
     if(!nc->tcache.smcup){
-      // FIXME combine into a single cup (heh)?
-      tty_emit(tiparm(nc->tcache.hpa, 0), nc->ttyfd);
-      if(nc->lfdimy){
-        tty_emit(tiparm(nc->tcache.vpa, nc->lfdimy + nc->margin_t - 1), nc->ttyfd);
-      }
+      tty_emit(tiparm(nc->tcache.cup, nc->lfdimy + nc->margin_t - 1, 0), nc->ttyfd);
     }
     if(nc->ttyfd >= 0){
       ret |= close(nc->ttyfd);
@@ -2187,17 +2183,18 @@ int ncplane_resize_marginalized(ncplane* n){
   // a marginalized plane cannot be larger than its oppressor plane =]
   int maxy, maxx;
   if(parent == n){ // root plane, need to use pile size
-    return 0; // FIXME
+    ncpile* p = ncplane_pile(n);
+    maxy = p->dimy;
+    maxx = p->dimx;
   }else{
     ncplane_dim_yx(parent, &maxy, &maxx);
   }
-  if((maxy -= n->margin_b) < 1){
+  if((maxy -= (n->margin_b + (n->absy - n->boundto->absy))) < 1){
     maxy = 1;
   }
-  if((maxx -= n->margin_r) < 1){
+  if((maxx -= (n->margin_r + (n->absx - n->boundto->absx))) < 1){
     maxx = 1;
   }
-  // FIXME mix in top/left margins (absy/absx)
   int oldy, oldx;
   ncplane_dim_yx(n, &oldy, &oldx); // current dimensions of 'n'
   int keepleny = oldy > maxy ? maxy : oldy;
