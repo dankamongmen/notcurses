@@ -508,6 +508,12 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
   return n;
 }
 
+// by the end, disprows/dispcols refer to the number of source rows/cols (in
+// pixels), which will be mapped to a region of cells scaled by the encodings).
+// the blit will begin at placey/placex (in terms of cells). begy/begx define
+// the origin of the source region to draw (in pixels). leny/lenx defined the
+// geometry of the source region to draw, again in pixels. ncv->rows and
+// ncv->cols define the source geometry in pixels.
 ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blitset* bset,
                                 int placey, int placex, int begy, int begx,
                                 ncplane* n, ncscale_e scaling, uint64_t flags){
@@ -523,12 +529,17 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
   }
 //fprintf(stderr, "INPUT N: %p rows: %d cols: %d 0x%016lx\n", n ? n : NULL, disprows, dispcols, flags);
   if(n == NULL){ // create plane
-    if(scaling != NCSCALE_NONE && scaling != NCSCALE_NONE_HIRES){
-      ncplane_dim_yx(stdn, &disprows, &dispcols);
+    if(scaling == NCSCALE_NONE || scaling == NCSCALE_NONE_HIRES){
+      dispcols = ncv->cols;
+      disprows = ncv->rows;
+    }else{
+      notcurses_term_dim_yx(nc, &disprows, &dispcols);
       dispcols *= nc->tcache.cellpixx;
       disprows *= nc->tcache.cellpixy;
+      if(scaling == NCSCALE_SCALE || scaling == NCSCALE_SCALE_HIRES){
+        scale_visual(ncv, &disprows, &dispcols);
+      } // else stretch
     }
-//fprintf(stderr, "PLACING NEW PLANE: %d/%d @ %d/%d\n", disprows, dispcols, placey, placex);
     struct ncplane_options nopts = {
       .y = placey,
       .x = placex,
@@ -545,6 +556,7 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
     if(flags & NCVISUAL_OPTION_VERALIGNED){
       nopts.flags |= NCPLANE_OPTION_VERALIGNED;
     }
+//fprintf(stderr, "PLACING NEW PLANE: %d/%d @ %d/%d 0x%016lx\n", nopts.rows, nopts.cols, nopts.y, nopts.x, nopts.flags);
     if((n = ncplane_create(stdn, &nopts)) == NULL){
       return NULL;
     }
