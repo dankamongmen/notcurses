@@ -415,7 +415,7 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
     pthread_mutex_unlock(&nc->pilelock);
   }
   loginfo(nc, "Created new %dx%d plane \"%s\" @ %dx%d\n",
-          nopts->rows, nopts->cols, p->name ? p->name : "", p->absy, p->absx);
+          p->leny, p->lenx, p->name ? p->name : "", p->absy, p->absx);
   return p;
 }
 
@@ -1993,7 +1993,7 @@ void ncplane_erase(ncplane* n){
   // wiped out by the egcpool_dump(). do a duplication (to get the stylemask
   // and channels), and then reload.
   char* egc = cell_strdup(n, &n->basecell);
-  memset(n->fb, 0, sizeof(*n->fb) * n->lenx * n->leny);
+  memset(n->fb, 0, sizeof(*n->fb) * n->leny * n->lenx);
   egcpool_dump(&n->pool);
   egcpool_init(&n->pool);
   // we need to zero out the EGC before handing this off to cell_load, but
