@@ -755,7 +755,7 @@ void sprixel_free(sprixel* s);
 void sprixel_invalidate(sprixel* s);
 void sprixel_hide(sprixel* s);
 // dimy and dimx are cell geometry, not pixel
-sprixel* sprixel_create(ncplane* n, const char* s, int bytes, int placey, int placex,
+sprixel* sprixel_create(ncplane* n, char* s, int bytes, int placey, int placex,
                         int sprixelid, int dimy, int dimx, int pixy, int pixx,
                         int parse_start, int* tacache);
 API int sprite_wipe_cell(const notcurses* nc, sprixel* s, int y, int x);
@@ -1160,7 +1160,7 @@ egc_rtl(const char* egc, int* bytes){
 // a reference to the context-wide sprixel cache. this ought be an entirely
 // new, purpose-specific plane.
 static inline int
-plane_blit_sixel(ncplane* n, const char* s, int bytes, int placey, int placex,
+plane_blit_sixel(ncplane* n, char* s, int bytes, int placey, int placex,
                  int leny, int lenx, int sprixelid, int dimy, int dimx,
                  int parse_start, int* tacache){
   sprixel* spx = sprixel_create(n, s, bytes, placey, placex, sprixelid,

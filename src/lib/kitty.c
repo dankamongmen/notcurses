@@ -303,6 +303,7 @@ int kitty_blit(ncplane* nc, int linesize, const void* data,
     free(buf);
     return -1;
   }
+  // takes ownership of |buf| on success
   if(plane_blit_sixel(nc, buf, size, bargs->placey, bargs->placex,
                       rows, cols, bargs->u.pixel.sprixelid, leny, lenx,
                       parse_start, tacache) < 0){
@@ -310,7 +311,6 @@ int kitty_blit(ncplane* nc, int linesize, const void* data,
     free(buf);
     return -1;
   }
-  free(buf);
   return 1;
 }
 

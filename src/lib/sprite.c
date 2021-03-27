@@ -30,15 +30,12 @@ sprixel* sprixel_by_id(notcurses* nc, uint32_t id){
 }
 
 // y and x are the cell geometry, not the pixel geometry
-sprixel* sprixel_create(ncplane* n, const char* s, int bytes, int placey, int placex,
+sprixel* sprixel_create(ncplane* n, char* s, int bytes, int placey, int placex,
                         int sprixelid, int dimy, int dimx, int pixy, int pixx,
                         int parse_start, int* tacache){
   sprixel* ret = malloc(sizeof(sprixel));
   if(ret){
-    if((ret->glyph = memdup(s, bytes + 1)) == NULL){
-      free(ret);
-      return NULL;
-    }
+    ret->glyph = s;
     ret->glyphlen = bytes;
     ret->tacache = tacache;
     ret->invalidated = SPRIXEL_INVALIDATED;
