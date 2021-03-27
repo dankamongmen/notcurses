@@ -416,6 +416,7 @@ const ncplane* notcurses_stdplane_const(const notcurses* nc){
 }
 
 ncplane* ncplane_create(ncplane* n, const ncplane_options* nopts){
+fprintf(stderr, "nopts: %p name: %s\n", nopts, nopts->name);
   return ncplane_new_internal(ncplane_notcurses(n), n, nopts);
 }
 
@@ -473,6 +474,7 @@ inline int ncplane_cursor_move_yx(ncplane* n, int y, int x){
 }
 
 ncplane* ncplane_dup(const ncplane* n, void* opaque){
+fprintf(stderr, "FUCXK ME IN THE ASS\n");
   int dimy = n->leny;
   int dimx = n->lenx;
   // if we're duping the standard plane, we need adjust for marginalia
@@ -2152,13 +2154,17 @@ int (*ncplane_resizecb(const ncplane* n))(ncplane*){
   return n->resizecb;
 }
 
+int ncplane_resize_marginalize(ncplane* n){
+  (void)n;// FIXME uhhh do something here
+  return 0;
+}
+
 int ncplane_resize_maximize(ncplane* n){
-  const ncpile* pile = ncplane_pile(n);
+  const ncpile* pile = ncplane_pile(n); // FIXME should be taken against parent
   const int rows = pile->dimy;
   const int cols = pile->dimx;
   int oldy, oldx;
   ncplane_dim_yx(n, &oldy, &oldx); // current dimensions of 'n'
-//fprintf(stderr, "CURRENT: %d/%d TERM: %d/%d\n", oldy, oldx, rows, cols);
   int keepleny = oldy > rows ? rows : oldy;
   int keeplenx = oldx > cols ? cols : oldx;
   return ncplane_resize_internal(n, 0, 0, keepleny, keeplenx, 0, 0, rows, cols);
@@ -2166,6 +2172,7 @@ int ncplane_resize_maximize(ncplane* n){
 
 int ncplane_resize_realign(ncplane* n){
   const ncplane* parent = ncplane_parent_const(n);
+  // FIXME this *should* be allowed for other root planes, though, right?
   if(parent == n){ // somehow got stdplane, should never get here
     logerror(ncplane_notcurses(n), "Passed the standard plane");
     return -1;

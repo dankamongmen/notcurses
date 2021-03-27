@@ -16,7 +16,8 @@ TEST_CASE("Tabbed") {
   SUBCASE("CreateNullOpts") {
     struct ncplane_options nopts = {
       .y = 1, .x = 2, .rows = ncplane_dim_y(n_) - 2, .cols = ncplane_dim_x(n_) - 4,
-      .userptr = nullptr, .name = nullptr, .resizecb = nullptr, .flags = 0
+      .userptr = nullptr, .name = nullptr, .resizecb = nullptr, .flags = 0,
+      .margin_b = 0, .margin_r = 0,
     };
     auto ncp = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != ncp);
@@ -39,7 +40,8 @@ TEST_CASE("Tabbed") {
     };
     struct ncplane_options nopts = {
       .y = 1, .x = 2, .rows = ncplane_dim_y(n_) - 2, .cols = ncplane_dim_x(n_) - 4,
-      .userptr = nullptr, .name = nullptr, .resizecb = nullptr, .flags = 0
+      .userptr = nullptr, .name = nullptr, .resizecb = nullptr, .flags = 0,
+      .margin_b = 0, .margin_r = 0,
     };
     auto ncp = ncplane_create(n_, &nopts);
     auto nt = nctabbed_create(ncp, &opts);
@@ -54,7 +56,8 @@ TEST_CASE("Tabbed") {
   SUBCASE("Add") {
     struct ncplane_options nopts = {
       .y = 1, .x = 2, .rows = ncplane_dim_y(n_) - 2, .cols = ncplane_dim_x(n_) - 4,
-      .userptr = nullptr, .name = nullptr, .resizecb = nullptr, .flags = 0
+      .userptr = nullptr, .name = nullptr, .resizecb = nullptr, .flags = 0,
+      .margin_b = 0, .margin_r = 0,
     };
     auto ncp = ncplane_create(n_, &nopts);
     auto nt = nctabbed_create(ncp, nullptr);
@@ -108,7 +111,8 @@ TEST_CASE("Tabbed") {
   SUBCASE("Del") {
     struct ncplane_options nopts = {
       .y = 1, .x = 2, .rows = ncplane_dim_y(n_) - 2, .cols = ncplane_dim_x(n_) - 4,
-      .userptr = nullptr, .name = nullptr, .resizecb = nullptr, .flags = 0
+      .userptr = nullptr, .name = nullptr, .resizecb = nullptr, .flags = 0,
+      .margin_b = 0, .margin_r = 0,
     };
     auto ncp = ncplane_create(n_, &nopts);
     auto nt = nctabbed_create(ncp, nullptr);
@@ -154,7 +158,8 @@ TEST_CASE("Tabbed") {
   SUBCASE("Move") {
     struct ncplane_options nopts = {
       .y = 1, .x = 2, .rows = ncplane_dim_y(n_) - 2, .cols = ncplane_dim_x(n_) - 4,
-      .userptr = nullptr, .name = nullptr, .resizecb = nullptr, .flags = 0
+      .userptr = nullptr, .name = nullptr, .resizecb = nullptr, .flags = 0,
+      .margin_b = 0, .margin_r = 0,
     };
     auto ncp = ncplane_create(n_, &nopts);
     auto nt = nctabbed_create(ncp, nullptr);
@@ -207,7 +212,8 @@ TEST_CASE("Tabbed") {
   SUBCASE("Rotate") {
     struct ncplane_options nopts = {
       .y = 1, .x = 2, .rows = ncplane_dim_y(n_) - 2, .cols = ncplane_dim_x(n_) - 4,
-      .userptr = nullptr, .name = nullptr, .resizecb = nullptr, .flags = 0
+      .userptr = nullptr, .name = nullptr, .resizecb = nullptr, .flags = 0,
+      .margin_b = 0, .margin_r = 0,
     };
     auto ncp = ncplane_create(n_, &nopts);
     auto nt = nctabbed_create(ncp, nullptr);
@@ -240,7 +246,8 @@ TEST_CASE("Tabbed") {
   SUBCASE("MoveLeftRight") {
     struct ncplane_options nopts = {
       .y = 1, .x = 2, .rows = ncplane_dim_y(n_) - 2, .cols = ncplane_dim_x(n_) - 4,
-      .userptr = nullptr, .name = nullptr, .resizecb = nullptr, .flags = 0
+      .userptr = nullptr, .name = nullptr, .resizecb = nullptr, .flags = 0,
+      .margin_b = 0, .margin_r = 0,
     };
     auto ncp = ncplane_create(n_, &nopts);
     auto nt = nctabbed_create(ncp, nullptr);
@@ -305,7 +312,8 @@ TEST_CASE("Tabbed") {
   SUBCASE("Select") {
     struct ncplane_options nopts = {
       .y = 1, .x = 2, .rows = ncplane_dim_y(n_) - 2, .cols = ncplane_dim_x(n_) - 4,
-      .userptr = nullptr, .name = nullptr, .resizecb = nullptr, .flags = 0
+      .userptr = nullptr, .name = nullptr, .resizecb = nullptr, .flags = 0,
+      .margin_b = 0, .margin_r = 0,
     };
     auto ncp = ncplane_create(n_, &nopts);
     auto nt = nctabbed_create(ncp, nullptr);
@@ -332,7 +340,8 @@ TEST_CASE("Tabbed") {
   SUBCASE("NextPrev") {
     struct ncplane_options nopts = {
       .y = 1, .x = 2, .rows = ncplane_dim_y(n_) - 2, .cols = ncplane_dim_x(n_) - 4,
-      .userptr = nullptr, .name = nullptr, .resizecb = nullptr, .flags = 0
+      .userptr = nullptr, .name = nullptr, .resizecb = nullptr, .flags = 0,
+      .margin_b = 0, .margin_r = 0,
     };
     auto ncp = ncplane_create(n_, &nopts);
     auto nt = nctabbed_create(ncp, nullptr);
@@ -364,7 +373,8 @@ TEST_CASE("Tabbed") {
   SUBCASE("Setters") {
     struct ncplane_options nopts = {
       .y = 1, .x = 2, .rows = ncplane_dim_y(n_) - 2, .cols = ncplane_dim_x(n_) - 4,
-      .userptr = nullptr, .name = nullptr, .resizecb = nullptr, .flags = 0
+      .userptr = nullptr, .name = nullptr, .resizecb = nullptr, .flags = 0,
+      .margin_b = 0, .margin_r = 0,
     };
     auto ncp = ncplane_create(n_, &nopts);
     auto nt = nctabbed_create(ncp, nullptr);

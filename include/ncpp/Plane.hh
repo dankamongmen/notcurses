@@ -92,6 +92,8 @@ namespace ncpp
 				.name = nullptr,
 				.resizecb = nullptr,
 				.flags = 0,
+				.margin_b = 0,
+				.margin_r = 0,
 			};
 			plane = ncplane_create (
 				notcurses_stdplane(get_notcurses ()),
@@ -1310,6 +1312,8 @@ namespace ncpp
 				.name = nullptr,
 				.resizecb = nullptr,
 				.flags = 0,
+				.margin_b = 0,
+				.margin_r = 0,
 			};
 			return create_plane (n, nopts);
 		}
@@ -1324,6 +1328,8 @@ namespace ncpp
 				opaque,
 				nullptr,
 				nullptr,
+				0,
+				0,
 				0,
 			};
 			return create_plane (n, nopts);

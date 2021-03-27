@@ -103,6 +103,7 @@ TEST_CASE("Tree") {
     const ncplane_options nopts = {
       .y = 0, .x = 0, .rows = 3, .cols = ncplane_dim_y(n_),
       .userptr = nullptr, .name = nullptr, .resizecb = nullptr, .flags = 0,
+      .margin_b = 0, .margin_r = 0,
     };
     auto treen = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != treen);
@@ -125,6 +126,7 @@ TEST_CASE("Tree") {
     const ncplane_options nopts = {
       .y = 0, .x = 0, .rows = 3, .cols = ncplane_dim_y(n_),
       .userptr = nullptr, .name = nullptr, .resizecb = nullptr, .flags = 0,
+      .margin_b = 0, .margin_r = 0,
     };
     auto treen = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != treen);

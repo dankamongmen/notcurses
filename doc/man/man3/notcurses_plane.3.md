@@ -11,8 +11,9 @@ notcurses_plane - operations on ncplanes
 **#include <notcurses/notcurses.h>**
 
 ```c
-#define NCPLANE_OPTION_HORALIGNED 0x0001ull
-#define NCPLANE_OPTION_VERALIGNED 0x0002ull
+#define NCPLANE_OPTION_HORALIGNED   0x0001ull
+#define NCPLANE_OPTION_VERALIGNED   0x0002ull
+#define NCPLANE_OPTION_MARGINALIZED 0x0004ull
 
 typedef struct ncplane_options {
   int y;            // vertical placement relative to parent plane
@@ -23,6 +24,7 @@ typedef struct ncplane_options {
   const char* name; // name (used only for debugging), may be NULL
   int (*resizecb)(struct ncplane*); // called on parent resize
   uint64_t flags;   // closure over NCPLANE_OPTION_*
+  int margin_b, margin_r; // bottom and right margins
 } ncplane_options;
 ```
 
@@ -45,6 +47,10 @@ typedef struct ncplane_options {
 **int ncplane_descendant_p(const struct ncplane* ***n***, const struct ncplane* ***ancestor***);**
 
 **int ncplane_resize_realign(struct ncplane* ***n***);**
+
+**int ncplane_resize_maximize(struct ncplane* ***n***);**
+
+**int ncplane_resize_marginalize(struct ncplane* ***n***);**
 
 **void ncplane_set_resizecb(struct ncplane* ***n***, int(*resizecb)(struct ncplane*));**
 
@@ -209,6 +215,7 @@ anywhere. In addition to its framebuffer--a rectilinear matrix of **nccell**s
 * the plane, if any, to which it is bound,
 * the next plane bound by the plane to which it is bound,
 * the head of the list of its bound planes,
+* its resize methodology,
 * its z-index, and
 * a name (used only for debugging).
 
@@ -222,7 +229,19 @@ If the **NCPLANE_OPTION_HORALIGNED** flag is provided, ***x*** is interpreted
 as an **ncalign_e** rather than an absolute position. If the
 **NCPLANE_OPTION_VERALIGNED** flag is provided, ***y*** is interpreted as an
 **ncalign_e** rather than an absolute postiion. Either way, all positions
-are relative to the parent plane.
+are relative to the parent plane. **ncplane_resize_realign** should usually be
+used together with these flags, so that the plane is automatically realigned
+upon a resize of its parent.
+
+If the **NCPLANE_OPTION_MARGINALIZED** flag is provided, neither
+**NCPLANE_OPTION_HORALIGNED** nor **NCPLANE_OPTION_VERALIGNED** may be
+provided, and ***rows*** and ***cols*** must both be 0. ***y*** and ***x***
+will be interpreted as top and left margins. ***margin_b*** and ***margin_r***
+will be interpreted as bottom and right margins. The plane will take the maximum
+space possible subject to its parent planes and these margins. The plane cannot
+become smaller than 1x1 (the margins are best-effort).
+**ncplane_resize_marginalize** should usually be used together with this flag,
+so that the plane is automatically resized.
 
 **ncplane_reparent** detaches the plane ***n*** from any plane to which it is
 bound, and binds it to ***newparent***. Its children are reparented to its

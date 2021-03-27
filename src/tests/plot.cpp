@@ -149,6 +149,7 @@ TEST_CASE("Plot") {
     ncplane_options nopts = {
       .y = 1, .x = 1, .rows = 6, .cols = 50,
       .userptr = nullptr, .name = "plot", .resizecb = nullptr, .flags = 0,
+      .margin_b = 0, .margin_r = 0,
     };
     auto ncp = ncplane_create(n_, &nopts);
     REQUIRE(ncp);
@@ -180,6 +181,7 @@ TEST_CASE("Plot") {
     ncplane_options nopts = {
       .y = 1, .x = 1, .rows = 1, .cols = 9,
       .userptr = nullptr, .name = "plot", .resizecb = nullptr, .flags = 0,
+      .margin_b = 0, .margin_r = 0,
     };
     auto ncp = ncplane_create(n_, &nopts);
     REQUIRE(ncp);
@@ -206,6 +208,7 @@ TEST_CASE("Plot") {
     ncplane_options nopts = {
       .y = 1, .x = 1, .rows = 1, .cols = 9,
       .userptr = nullptr, .name = "plot", .resizecb = nullptr, .flags = 0,
+      .margin_b = 0, .margin_r = 0,
     };
     auto ncp = ncplane_create(n_, &nopts);
     REQUIRE(ncp);
@@ -229,6 +232,7 @@ TEST_CASE("Plot") {
     ncplane_options nopts = {
       .y = 1, .x = 1, .rows = 1, .cols = 16,
       .userptr = nullptr, .name = "plot", .resizecb = nullptr, .flags = 0,
+      .margin_b = 0, .margin_r = 0,
     };
     auto ncp = ncplane_create(n_, &nopts);
     REQUIRE(ncp);
@@ -255,6 +259,7 @@ TEST_CASE("Plot") {
     ncplane_options nopts = {
       .y = 1, .x = 1, .rows = 1, .cols = 25,
       .userptr = nullptr, .name = "plot", .resizecb = nullptr, .flags = 0,
+      .margin_b = 0, .margin_r = 0,
     };
     auto ncp = ncplane_create(n_, &nopts);
     REQUIRE(ncp);

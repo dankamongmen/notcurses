@@ -16,6 +16,9 @@ rearrangements of Notcurses.
     tabs. Courtesy Łukasz Drukała, in his first contribution.
   * Removed **notcurses_canpixel()**, which was obsoleted by
     **notcurses_check_pixel_support()**.
+  * Added `NCPLANE_OPTION_MARGINALIZED` flag for `ncplane_create()`. Added
+    the `ncplane_resize_marginalized()` resize callback. This allows you to
+    have automatic resizing with a margin relative to some parent plane.
 
 * 2.2.3 (2021-03-08)
   * Implemented **EXPERIMENTAL** `NCBLIT_PIXEL` for terminals reporting Sixel

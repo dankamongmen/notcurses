@@ -1130,16 +1130,24 @@ API char* notcurses_at_yx(struct notcurses* nc, int yoff, int xoff,
 #define NCPLANE_OPTION_HORALIGNED 0x0001ull
 // Vertical alignment relative to the parent plane. Use ncalign_e for 'y'.
 #define NCPLANE_OPTION_VERALIGNED 0x0002ull
+// Maximize relative to the parent plane, modulo the provided margins. The
+// margins are best-effort; the plane will always be at least 1 column by
+// 1 row. If the margins can be effected, the plane will be sized to all
+// remaining space. 'y' and 'x' are overloaded as the top and left margins
+// when this flag is used. 'rows' and 'cols' must be 0 when this flag is
+// used. This flag is exclusive with both of the alignment flags.
+#define NCPLANE_OPTION_MARGINALIZED 0x0004ull
 
 typedef struct ncplane_options {
   int y;            // vertical placement relative to parent plane
   int x;            // horizontal placement relative to parent plane
-  int rows;         // number of rows, must be positive
-  int cols;         // number of columns, must be positive
+  int rows;         // rows, must be positive (unless NCPLANE_OPTION_MARGINALIZED)
+  int cols;         // columns, must be positive (unless NCPLANE_OPTION_MARGINALIZED)
   void* userptr;    // user curry, may be NULL
   const char* name; // name (used only for debugging), may be NULL
   int (*resizecb)(struct ncplane*); // callback when parent is resized
   uint64_t flags;   // closure over NCPLANE_OPTION_*
+  int margin_b, margin_r; // margins (require NCPLANE_OPTION_MARGINALIZED)
 } ncplane_options;
 
 // Create a new ncplane bound to plane 'n', at the offset 'y'x'x' (relative to
@@ -1161,6 +1169,11 @@ API ALLOC struct ncplane* ncplane_new(struct ncplane* n, int rows, int cols, int
 // Suitable for use as a 'resizecb', this will resize the plane to the visual
 // region's size. It is used for the standard plane.
 API int ncplane_resize_maximize(struct ncplane* n);
+
+// Suitable for use as a 'resizecb' with planes created with
+// NCPLANE_OPTION_MARGINALIZED. This will resize the plane 'n' against its
+// parent, attempting to enforce the supplied margins.
+API int ncplane_resize_marginalize(struct ncplane* n);
 
 // Suitable for use as a 'resizecb'. This will realign the plane 'n' against
 // its parent, using the alignment specified at ncplane_create()-time.

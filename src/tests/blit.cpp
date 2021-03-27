@@ -23,6 +23,7 @@ TEST_CASE("Blitting") {
       .name = nullptr,
       .resizecb = nullptr,
       .flags = 0,
+      .margin_b = 0, .margin_r = 0,
     };
     auto ncp = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != ncp);
@@ -71,6 +72,7 @@ TEST_CASE("Blitting") {
       .name = nullptr,
       .resizecb = nullptr,
       .flags = 0,
+      .margin_b = 0, .margin_r = 0,
     };
     auto ncp = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != ncp);

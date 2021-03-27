@@ -13,6 +13,7 @@ TEST_CASE("Piles") {
   SUBCASE("SmallerPileRender") {
     struct ncplane_options nopts = {
       1, 1, dimy - 2, dimx - 2, nullptr, "small", nullptr, 0,
+      .margin_b = 0, .margin_r = 0,
     };
     auto np = ncpile_create(nc_, &nopts);
     REQUIRE(nullptr != np);
@@ -49,7 +50,7 @@ TEST_CASE("Piles") {
   // create a plane bigger than the standard plane, and render it as a pile
   SUBCASE("BiggerPileRender") {
     struct ncplane_options nopts = {
-      -1, -1, dimy + 2, dimx + 2, nullptr, "big", nullptr, 0,
+      -1, -1, dimy + 2, dimx + 2, nullptr, "big", nullptr, 0, 0, 0,
     };
     auto np = ncpile_create(nc_, &nopts);
     REQUIRE(nullptr != np);
@@ -86,7 +87,7 @@ TEST_CASE("Piles") {
   // create a new pile, and rotate subplanes through the root set
   SUBCASE("ShufflePile") {
     struct ncplane_options nopts = {
-      1, 1, dimy - 2, dimx - 2, nullptr, "new1", nullptr, 0,
+      1, 1, dimy - 2, dimx - 2, nullptr, "new1", nullptr, 0, 0, 0,
     };
     auto n1 = ncpile_create(nc_, &nopts);
     REQUIRE(nullptr != n1);
@@ -131,7 +132,7 @@ TEST_CASE("Piles") {
 
   SUBCASE("ShufflePileFamilies") {
     struct ncplane_options nopts = {
-      1, 1, dimy - 2, dimx - 2, nullptr, "new1", nullptr, 0,
+      1, 1, dimy - 2, dimx - 2, nullptr, "new1", nullptr, 0, 0, 0,
     };
     auto n1 = ncpile_create(nc_, &nopts);
     REQUIRE(nullptr != n1);
@@ -175,6 +176,7 @@ TEST_CASE("Piles") {
       .rows = 2,
       .cols = 2,
       .userptr = nullptr, .name = nullptr, .resizecb = nullptr, .flags = 0,
+      .margin_b = 0, .margin_r = 0,
     };
     auto gen1 = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != gen1);
@@ -223,6 +225,7 @@ TEST_CASE("Piles") {
       .rows = 2,
       .cols = 2,
       .userptr = nullptr, .name = nullptr, .resizecb = nullptr, .flags = 0,
+      .margin_b = 0, .margin_r = 0,
     };
     auto gen1 = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != gen1);
