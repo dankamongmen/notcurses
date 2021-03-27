@@ -320,14 +320,6 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
   if(p == NULL){
     return NULL;
   }
-  size_t fbsize = sizeof(*p->fb) * (nopts->rows * nopts->cols);
-  if((p->fb = malloc(fbsize)) == NULL){
-    logerror(nc, "Error allocating cellmatrix (r=%d, c=%d)\n",
-             nopts->rows, nopts->cols);
-    free(p);
-    return NULL;
-  }
-  memset(p->fb, 0, fbsize);
   p->scrolling = false;
   if(nopts->flags & NCPLANE_OPTION_MARGINALIZED){
     p->margin_b = nopts->margin_b;
@@ -348,6 +340,14 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
     p->leny = nopts->rows;
     p->lenx = nopts->cols;
   }
+  size_t fbsize = sizeof(*p->fb) * (p->leny * p->lenx);
+  if((p->fb = malloc(fbsize)) == NULL){
+    logerror(nc, "Error allocating cellmatrix (r=%d, c=%d)\n",
+             p->leny, p->lenx);
+    free(p);
+    return NULL;
+  }
+  memset(p->fb, 0, fbsize);
   p->x = p->y = 0;
   p->logrow = 0;
   p->sprite = NULL;
