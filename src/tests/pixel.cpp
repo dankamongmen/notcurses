@@ -28,6 +28,7 @@ TEST_CASE("Pixel") {
     REQUIRE(ncv);
     struct ncvisual_options vopts{};
     vopts.blitter = NCBLIT_PIXEL;
+    vopts.flags = NCVISUAL_OPTION_NODEGRADE;
     auto newn = ncvisual_render(nc_, ncv, &vopts);
     CHECK(newn);
     CHECK(0 == notcurses_render(nc_));
@@ -148,6 +149,29 @@ TEST_CASE("Pixel") {
     ncvisual_destroy(ncv);
     CHECK(0 == notcurses_render(nc_));
   }
+
+#ifdef NOTCURSES_USE_MULTIMEDIA
+  SUBCASE("PixelWipeScreen") {
+    auto ncv = ncvisual_from_file(find_data("worldmap.png"));
+    REQUIRE(ncv);
+    struct ncvisual_options vopts{};
+    vopts.blitter = NCBLIT_PIXEL;
+    vopts.flags = NCVISUAL_OPTION_NODEGRADE;
+    auto newn = ncvisual_render(nc_, ncv, &vopts);
+    CHECK(newn);
+    CHECK(0 == notcurses_render(nc_));
+    const auto s = newn->sprite;
+    for(int y = 0 ; y < s->dimy ; ++y){
+      for(int x = 0 ; x < s->dimx ; ++x){
+        CHECK(0 == sprite_wipe_cell(nc_, s, y, x));
+        CHECK(0 == notcurses_render(nc_));
+      }
+    }
+    ncplane_destroy(newn);
+    CHECK(0 == notcurses_render(nc_));
+    ncvisual_destroy(ncv);
+  }
+#endif
 
   CHECK(!notcurses_stop(nc_));
 }
