@@ -341,7 +341,7 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
     }
     p->absx += n->absx;
     if(nopts->flags & NCPLANE_OPTION_VERALIGNED){
-      p->absy = ncplane_halign(n, nopts->y, nopts->rows);
+      p->absy = ncplane_valign(n, nopts->y, nopts->rows);
       p->valign = nopts->y;
     }else{
       p->absy = nopts->y;
