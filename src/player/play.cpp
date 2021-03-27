@@ -41,6 +41,36 @@ struct marshal {
   ncblitter_e blitter; // can be changed while streaming, must propagate out
 };
 
+auto handle_subtitle(char* subtitle, struct marshal* marsh,
+                     const ncvisual_options* vopts) -> void {
+  if(!marsh->subtitle_plane){
+    int dimx, dimy;
+    ncplane_dim_yx(vopts->n, &dimy, &dimx);
+    struct ncplane_options nopts = {
+      .y = dimy - 1,
+      .x = 0,
+      .rows = 1,
+      .cols = dimx,
+      .userptr = nullptr,
+      .name = "subt",
+      .resizecb = nullptr,
+      .flags = 0,
+    };
+    marsh->subtitle_plane = ncplane_create(vopts->n, &nopts);
+    uint64_t channels = 0;
+    channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+    channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+    ncplane_set_base(marsh->subtitle_plane, "", 0, channels);
+    ncplane_set_fg_rgb(marsh->subtitle_plane, 0x00ffff);
+    ncplane_set_fg_alpha(marsh->subtitle_plane, CELL_ALPHA_HIGHCONTRAST);
+    ncplane_set_bg_alpha(marsh->subtitle_plane, CELL_ALPHA_TRANSPARENT);
+  }else{
+    ncplane_erase(marsh->subtitle_plane);
+  }
+  ncplane_printf_yx(marsh->subtitle_plane, 0, 0, "%s", subtitle);
+  free(subtitle);
+}
+
 // frame count is in the curry. original time is kept in n's userptr.
 auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
               const struct timespec* abstime, void* vmarshal) -> int {
@@ -73,32 +103,7 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
   }
   char* subtitle = ncvisual_subtitle(ncv);
   if(subtitle){
-    if(!marsh->subtitle_plane){
-      int dimx, dimy;
-      ncplane_dim_yx(vopts->n, &dimy, &dimx);
-      struct ncplane_options nopts = {
-        .y = dimy - 1,
-        .x = 0,
-        .rows = 1,
-        .cols = dimx,
-        .userptr = nullptr,
-        .name = "subt",
-        .resizecb = nullptr,
-        .flags = 0,
-      };
-      marsh->subtitle_plane = ncplane_create(notcurses_stdplane(nc), &nopts);
-      uint64_t channels = 0;
-      channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
-      channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
-      ncplane_set_base(marsh->subtitle_plane, "", 0, channels);
-      ncplane_set_fg_rgb(marsh->subtitle_plane, 0x00ffff);
-      ncplane_set_fg_alpha(marsh->subtitle_plane, CELL_ALPHA_HIGHCONTRAST);
-      ncplane_set_bg_alpha(marsh->subtitle_plane, CELL_ALPHA_TRANSPARENT);
-    }else{
-      ncplane_erase(marsh->subtitle_plane);
-    }
-    ncplane_printf_yx(marsh->subtitle_plane, 0, 0, "%s", subtitle);
-    free(subtitle);
+    handle_subtitle(subtitle, marsh, vopts);
   }
   const intmax_t h = ns / (60 * 60 * NANOSECS_IN_SEC);
   ns -= h * (60 * 60 * NANOSECS_IN_SEC);
