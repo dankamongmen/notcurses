@@ -619,14 +619,14 @@ int fpsgraph_init(struct notcurses* nc){
   int dimy, dimx;
   struct ncplane* stdn = notcurses_stddim_yx(nc, &dimy, &dimx);
   ncplane_options nopts = {
-    .y = dimy - PLOTHEIGHT,
+    .y = NCALIGN_BOTTOM,
     .x = NCALIGN_CENTER,
     .rows = PLOTHEIGHT,
     .cols = dimx > 80 ? 80 : dimx,
     .userptr = NULL,
     .name = "fps",
     .resizecb = ncplane_resize_realign,
-    .flags = NCPLANE_OPTION_HORALIGNED,
+    .flags = NCPLANE_OPTION_HORALIGNED | NCPLANE_OPTION_VERALIGNED,
   };
   struct ncplane* newp = ncplane_create(stdn, &nopts);
   if(newp == NULL){
