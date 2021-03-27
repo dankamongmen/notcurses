@@ -29,7 +29,7 @@ animate(struct notcurses* nc, struct ncplane* ncp, void* curry){
 }
 
 static int
-greatscott(struct notcurses* nc, int dimy, int dimx){
+greatscott(struct notcurses* nc){
   char* path = find_data("greatscott.jpg");
   if(path == NULL){
     return -1;
@@ -247,7 +247,7 @@ int intro(struct notcurses* nc){
   ncplane_destroy(on);
   if(notcurses_check_pixel_support(nc) && notcurses_canopen_images(nc)){
     int err;
-    if((err = greatscott(nc, rows, cols))){
+    if((err = greatscott(nc))){
       return err;
     }
   }
