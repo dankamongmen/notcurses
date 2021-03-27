@@ -414,6 +414,7 @@ write_rle(int* printed, int color, FILE* fp, int seenrle, unsigned char crle){
 }
 
 // Emit the sprixel in its entirety, plus enable and disable pixel mode.
+// Closes |fp| on all paths.
 static int
 write_sixel_data(FILE* fp, int lenx, sixeltable* stab, int* parse_start, sprixcell_e* tacache){
   *parse_start = fprintf(fp, "\ePq");
@@ -521,7 +522,6 @@ int sixel_blit_inner(ncplane* n, int leny, int lenx, sixeltable* stab,
     if(!reuse){
       free(tacache);
     }
-    fclose(fp);
     free(buf);
     return -1;
   }
@@ -532,9 +532,7 @@ int sixel_blit_inner(ncplane* n, int leny, int lenx, sixeltable* stab,
     if(plane_blit_sixel(n, buf, size, bargs->placey, bargs->placex,
                         rows, cols, bargs->u.pixel.sprixelid, leny, lenx,
                         parse_start, tacache) < 0){
-      if(!reuse){
-        free(tacache);
-      }
+      free(tacache);
       free(buf);
       return -1;
     }
