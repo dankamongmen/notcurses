@@ -52,13 +52,14 @@ b64idx(char b64){
 // there are only 2 pixels available, those 64 bits become 12 bytes. if there
 // is only 1 pixel available, those 32 bits become 8 bytes. (pcount + 1) * 4
 // bytes are used, plus a null terminator. we thus must receive 17.
-static void
-base64_rgba3(const uint32_t* pixels, size_t pcount, char* b64){
+static inline void
+base64_rgba3(const uint32_t* pixels, size_t pcount, char* b64, bool wipe[static 3]){
   uint32_t pixel = *pixels++;
   unsigned r = ncpixel_r(pixel);
   unsigned g = ncpixel_g(pixel);
   unsigned b = ncpixel_b(pixel);
-  unsigned a = rgba_trans_p(ncpixel_a(pixel)) ? 0 : 255;
+  unsigned a = wipe[0] ? 0 : rgba_trans_p(ncpixel_a(pixel)) ? 0 : 255;
+//fprintf(stderr, "WIPE: %d %d %d\n", wipe[0], wipe[1], wipe[2]);
   b64[0] = b64subs[(r & 0xfc) >> 2];
   b64[1] = b64subs[(r & 0x3 << 4) | ((g & 0xf0) >> 4)];
   b64[2] = b64subs[((g & 0xf) << 2) | ((b & 0xc0) >> 6)];
@@ -76,7 +77,7 @@ base64_rgba3(const uint32_t* pixels, size_t pcount, char* b64){
   r = ncpixel_r(pixel);
   g = ncpixel_g(pixel);
   b = ncpixel_b(pixel);
-  a = rgba_trans_p(ncpixel_a(pixel)) ? 0 : 255;
+  a = wipe[1] ? 0 : rgba_trans_p(ncpixel_a(pixel)) ? 0 : 255;
   b64[5] = b64subs[b64[5] | ((r & 0xf0) >> 4)];
   b64[6] = b64subs[((r & 0xf) << 2) | ((g & 0xc0) >> 6u)];
   b64[7] = b64subs[g & 0x3f];
@@ -93,7 +94,7 @@ base64_rgba3(const uint32_t* pixels, size_t pcount, char* b64){
   r = ncpixel_r(pixel);
   g = ncpixel_g(pixel);
   b = ncpixel_b(pixel);
-  a = rgba_trans_p(ncpixel_a(pixel)) ? 0 : 255;
+  a = wipe[2] ? 0 : rgba_trans_p(ncpixel_a(pixel)) ? 0 : 255;
   b64[10] = b64subs[b64[10] | ((r & 0xc0) >> 6)];
   b64[11] = b64subs[r & 0x3f];
   b64[12] = b64subs[(g & 0xfc) >> 2];
@@ -224,20 +225,20 @@ int sprite_kitty_cell_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell
 // 16 base64-encoded bytes. 4096 / 16 == 256 3-pixel groups, or 768 pixels.
 // closes |fp| on all paths.
 static int
-write_kitty_data(FILE* fp, int linesize, int leny, int lenx,
-                 const uint32_t* data, int sprixelid, sprixcell_e* tacache,
-                 int* parse_start){
+write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
+                 const uint32_t* data, int cdimy, int cdimx, int sprixelid,
+                 sprixcell_e* tacache, int* parse_start){
   if(linesize % sizeof(*data)){
     fclose(fp);
     return -1;
   }
-  (void)tacache; // FIXME populate tacache with 1s for cells with transparency
   int total = leny * lenx; // total number of pixels (4 * total == bytecount)
   // number of 4KiB chunks we'll need
   int chunks = (total + (RGBA_MAXLEN - 1)) / RGBA_MAXLEN;
   int totalout = 0; // total pixels of payload out
-  int y = 0; // position within source image
+  int y = 0; // position within source image (pixels)
   int x = 0;
+  int tyx = 0; // postition within tamatrix (cells)
   int targetout = 0; // number of pixels expected out after this chunk
 //fprintf(stderr, "total: %d chunks = %d, s=%d,v=%d\n", total, chunks, lenx, leny);
   while(chunks--){
@@ -256,19 +257,31 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx,
         encodeable = 3;
       }
       uint32_t source[3]; // we encode up to 3 pixels at a time
+      bool wipe[3];
       for(int e = 0 ; e < encodeable ; ++e){
         if(x == lenx){
           x = 0;
-          ++y;
+          if(x % cdimx){
+            ++tyx;
+          }
+          if(++y % cdimy){
+            tyx -= cols;
+          }
         }
         const uint32_t* line = data + (linesize / sizeof(*data)) * y;
         source[e] = line[x];
 //fprintf(stderr, "%u/%u/%u -> %c%c%c%c %u %u %u %u\n", r, g, b, b64[0], b64[1], b64[2], b64[3], b64[0], b64[1], b64[2], b64[3]);
-        ++x;
+        if(++x % cdimx == 0){
+          ++tyx;
+        }
+        wipe[e] = (tacache[tyx] == SPRIXCELL_ANNIHILATED);
       }
       totalout += encodeable;
       char out[17];
-      base64_rgba3(source, encodeable, out);
+if(wipe[0] || wipe[1] || wipe[2]){
+fprintf(stderr, "TYX: %d lenx: %d y: %d x: %d %d %d %d\n", tyx, lenx, y, x, wipe[0], wipe[1], wipe[2]);
+}
+      base64_rgba3(source, encodeable, out, wipe);
       ncfputs(out, fp);
     }
     fprintf(fp, "\e\\");
@@ -297,11 +310,9 @@ int kitty_blit(ncplane* n, int linesize, const void* data,
   // if we have a sprixel attached to this plane, see if we can reuse it
   // (we need the same dimensions) and thus immediately apply its T-A table.
   int sprixelid;
-fprintf(stderr, "n: %p n->srite: %p\n", n, n->sprite);
   if(n->sprite){
     sprixel* s = n->sprite;
     if(s->dimy == rows && s->dimx == cols){
-fprintf(stderr, "REUSING\n");
       tacache = s->tacache;
       s->tacache = NULL;
       reuse = true;
@@ -309,7 +320,6 @@ fprintf(stderr, "REUSING\n");
   }
   int parse_start = 0;
   if(!reuse){
-fprintf(stderr, "DIDN'T REUSE\n");
     tacache = malloc(sizeof(*tacache) * rows * cols);
     if(tacache == NULL){
       fclose(fp);
@@ -320,7 +330,8 @@ fprintf(stderr, "DIDN'T REUSE\n");
   }
   sprixelid = bargs->u.pixel.sprixelid;
   // closes fp on all paths
-  if(write_kitty_data(fp, linesize, leny, lenx, data,
+  if(write_kitty_data(fp, linesize, leny, lenx, cols, data,
+                      bargs->u.pixel.celldimy, bargs->u.pixel.celldimx,
                       sprixelid, tacache, &parse_start)){
     if(!reuse){
       free(tacache);
