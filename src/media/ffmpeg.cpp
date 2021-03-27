@@ -394,13 +394,6 @@ int ffmpeg_stream(notcurses* nc, ncvisual* ncv, float timescale,
     // all media when we loop =[. we seem to be accurate enough now with the
     // tbase/ppd. see https://github.com/dankamongmen/notcurses/issues/1352.
     double tbase = av_q2d(ncv->details->fmtctx->streams[ncv->details->stream_index]->time_base);
-    /*int64_t ts = ncv->details->frame->best_effort_timestamp;
-    if(frame == 1 && ts){
-      usets = true;
-    }*/
-    if(activevopts.n){
-      ncplane_erase(activevopts.n); // new frame could be partially transparent
-    }
     // decay the blitter explicitly, so that the callback knows the blitter it
     // was actually rendered with
     auto bset = rgba_blitter(nc, &activevopts);
@@ -419,15 +412,8 @@ int ffmpeg_stream(notcurses* nc, ncvisual* ncv, float timescale,
     ++frame;
     uint64_t duration = ncv->details->frame->pkt_duration * tbase * NANOSECS_IN_SEC;
     double schedns = nsbegin;
-    /*if(usets){
-      if(tbase == 0){
-        tbase = duration;
-      }
-      schedns += ts * (tbase * timescale) * NANOSECS_IN_SEC;
-    }else{*/
-      sum_duration += (duration * timescale);
-      schedns += sum_duration;
-    //}
+    sum_duration += (duration * timescale);
+    schedns += sum_duration;
     struct timespec abstime;
     ns_to_timespec(schedns, &abstime);
     int r;
