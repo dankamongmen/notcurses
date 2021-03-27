@@ -25,6 +25,7 @@ TEST_CASE("Scrolling") {
       .rows = 2,
       .cols = 20,
       .userptr = nullptr, .name = nullptr, .resizecb = nullptr, .flags = 0,
+      .margin_b = 0, .margin_r = 0,
     };
     struct ncplane* n = ncplane_create(n_, &nopts);
     REQUIRE(n);
@@ -54,6 +55,7 @@ TEST_CASE("Scrolling") {
       .rows = 2,
       .cols = 20,
       .userptr = nullptr, .name = nullptr, .resizecb = nullptr, .flags = 0,
+      .margin_b = 0, .margin_r = 0,
     };
     struct ncplane* n = ncplane_create(n_, &nopts);
     REQUIRE(n);
@@ -75,6 +77,7 @@ TEST_CASE("Scrolling") {
       .rows = 2,
       .cols = 20,
       .userptr = nullptr, .name = nullptr, .resizecb = nullptr, .flags = 0,
+      .margin_b = 0, .margin_r = 0,
     };
     struct ncplane* n = ncplane_create(n_, &nopts);
     REQUIRE(n);
@@ -102,6 +105,7 @@ TEST_CASE("Scrolling") {
       .rows = 2,
       .cols = 20,
       .userptr = nullptr, .name = nullptr, .resizecb = nullptr, .flags = 0,
+      .margin_b = 0, .margin_r = 0,
     };
     struct ncplane* n = ncplane_create(n_, &nopts);
     REQUIRE(n);
@@ -141,6 +145,7 @@ TEST_CASE("Scrolling") {
       .rows = 4,
       .cols = 20,
       .userptr = nullptr, .name = nullptr, .resizecb = nullptr, .flags = 0,
+      .margin_b = 0, .margin_r = 0,
     };
     struct ncplane* n = ncplane_create(n_, &nopts);
     REQUIRE(n);
@@ -165,6 +170,7 @@ TEST_CASE("Scrolling") {
       .rows = 2,
       .cols = 20,
       .userptr = nullptr, .name = nullptr, .resizecb = nullptr, .flags = 0,
+      .margin_b = 0, .margin_r = 0,
     };
     struct ncplane* n = ncplane_create(n_, &nopts);
     REQUIRE(n);
@@ -225,6 +231,7 @@ TEST_CASE("Scrolling") {
       .rows = 2,
       .cols = 20,
       .userptr = nullptr, .name = nullptr, .resizecb = nullptr, .flags = 0,
+      .margin_b = 0, .margin_r = 0,
     };
     struct ncplane* n = ncplane_create(n_, &nopts);
     REQUIRE(n);

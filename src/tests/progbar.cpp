@@ -26,6 +26,7 @@ TEST_CASE("ProgressBar") {
       .name = "pbar",
       .resizecb = nullptr,
       .flags = 0,
+      .margin_b = 0, .margin_r = 0,
     };
     const char* egcs[] = { " ", "▁", "▂", "▃", "▄", "▅", "▆", "▇", "▀" };
     auto n = ncplane_create(n_, &nopts);
@@ -55,6 +56,7 @@ TEST_CASE("ProgressBar") {
       .name = "pbar",
       .resizecb = nullptr,
       .flags = 0,
+      .margin_b = 0, .margin_r = 0,
     };
     const char* egcs[] = { " ", "▔", "🮂", "🮃", "▀", "🮄", "🮅", "🮆", "▀"};
     auto n = ncplane_create(n_, &nopts);
@@ -91,6 +93,7 @@ TEST_CASE("ProgressBar") {
       .name = "pbar",
       .resizecb = nullptr,
       .flags = 0,
+      .margin_b = 0, .margin_r = 0,
     };
     const char* egcs[] = { " ", "▏", "▎", "▍", "▌", "▋", "▊", "▉" };
     auto n = ncplane_create(n_, &nopts);
@@ -130,6 +133,7 @@ TEST_CASE("ProgressBar") {
       .name = "pbar",
       .resizecb = nullptr,
       .flags = 0,
+      .margin_b = 0, .margin_r = 0,
     };
     const char* egcs[] = { " ", "🮇", "🮇", "🮈", "▐", "🮉", "🮊", "🮋" };
     auto n = ncplane_create(n_, &nopts);

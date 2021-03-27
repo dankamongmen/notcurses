@@ -46,6 +46,7 @@ auto main(int argc, const char** argv) -> int {
     .name = "read",
     .resizecb = nullptr,
     .flags = 0,
+    .margin_b = 0, .margin_r = 0,
   };
   struct ncplane* rp = ncplane_create(**n, &nopts);
   ncplane_set_base(rp, "░", 0, 0);

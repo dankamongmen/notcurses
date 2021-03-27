@@ -55,6 +55,8 @@ auto handle_subtitle(char* subtitle, struct marshal* marsh,
       .name = "subt",
       .resizecb = nullptr,
       .flags = 0,
+      .margin_b = 0,
+      .margin_r = 0,
     };
     marsh->subtitle_plane = ncplane_create(vopts->n, &nopts);
     uint64_t channels = 0;
@@ -96,7 +98,7 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
     marsh->blitter = ncvisual_media_defblitter(nc, vopts->scaling);
   }
   if(!marsh->quiet){
-    // FIXME put this on its own plane if we're going to erase()ing it
+    // FIXME put this on its own plane if we're going to be erase()ing it
     stdn->erase();
     stdn->printf(0, NCAlign::Left, "frame %06d (%s)", marsh->framecount,
                  notcurses_str_blitter(vopts->blitter));
@@ -122,14 +124,15 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
   nc.get_term_dim(&dimy, &dimx);
   ncplane_dim_yx(vopts->n, &oldy, &oldx);
   uint64_t absnow = timespec_to_ns(abstime);
-  char32_t keyp;
   for( ; ; ){
     struct timespec interval;
     clock_gettime(CLOCK_MONOTONIC, &interval);
     uint64_t nsnow = timespec_to_ns(&interval);
+    char32_t keyp;
+    ncinput ni;
     if(absnow > nsnow){
       ns_to_timespec(absnow - nsnow, &interval);
-      keyp = nc.getc(&interval, nullptr, nullptr);
+      keyp = nc.getc(&interval, nullptr, &ni);
     }else{
       keyp = nc.getc();
     }
@@ -147,17 +150,14 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
     }
     if(keyp == NCKey::Resize){
       return 0;
-    }else if(keyp == 'L'){ // FIXME check for ctrl+l
+    }else if(keyp == 'L' && ni.ctrl){
       nc.refresh(nullptr, nullptr);
       continue;
-    }else if(keyp >= '0' && keyp <= '6'){ // FIXME eliminate ctrl/alt
+    }else if(keyp >= '0' && keyp <= '6' && !ni.alt && !ni.ctrl){
       marsh->blitter = static_cast<ncblitter_e>(keyp - '0');
       vopts->blitter = marsh->blitter;
       if(vopts->blitter == NCBLIT_PIXEL){
         notcurses_check_pixel_support(nc);
-        vopts->y = 1;
-      }else{
-        vopts->y = 0;
       }
       continue;
     }else if(keyp == NCKey::Up){
@@ -343,11 +343,16 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
   channels_set_bg_alpha(&transchan, CELL_ALPHA_TRANSPARENT);
   stdn->set_base("", 0, transchan);
   struct ncplane_options nopts{};
-  nopts.rows = dimy - 1; // don't want kitty to scroll on pixels FIXME
-  nopts.cols = dimx;
-  nopts.resizecb = ncplane_resize_maximize;
-  auto n = std::make_unique<Plane>(*stdn, &nopts);
-  n->move_bottom();
+  // leave a line at the bottom. perhaps one day we'll put information there.
+  // for now, this keeps us from scrolling when we use bitmaps.
+  nopts.margin_b = 1;
+  nopts.resizecb = ncplane_resize_marginalize;
+  nopts.flags = NCPLANE_OPTION_MARGINALIZED;
+  auto n = ncplane_create(*stdn, &nopts);
+  if(!n){
+    return -1;
+  }
+  ncplane_move_bottom(n);
   for(auto i = 0 ; i < argc ; ++i){
     std::unique_ptr<Visual> ncv;
     ncv = std::make_unique<Visual>(argv[i]);
@@ -356,13 +361,13 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
     vopts.flags |= NCVISUAL_OPTION_HORALIGNED | NCVISUAL_OPTION_VERALIGNED;
     vopts.y = NCALIGN_CENTER;
     vopts.x = NCALIGN_CENTER;
-    vopts.n = *n;
+    vopts.n = n;
     vopts.scaling = scalemode;
     vopts.blitter = blitter;
     if(vopts.blitter == NCBLIT_PIXEL){
       notcurses_check_pixel_support(nc);
     }
-    n->erase();
+    ncplane_erase(n);
     do{
       struct marshal marsh = {
         .subtitle_plane = nullptr,
@@ -377,7 +382,7 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
         vopts.blitter = marsh.blitter;
         if(!loop){
           if(displaytime < 0){
-            stdn->printf(0, NCAlign::Center, "press key to advance");
+            stdn->printf(0, NCAlign::Center, "press a key to advance");
             if(!nc.render()){
               return -1;
             }

@@ -29,6 +29,7 @@ TEST_CASE("Stacking") {
   SUBCASE("LowerAtopUpperWhite") {
     struct ncplane_options opts = {
       0, 0, 1, 1, nullptr, "top", nullptr, 0,
+      .margin_b = 0, .margin_r = 0,
     };
     auto top = ncplane_create(n_, &opts);
     REQUIRE(nullptr != top);
@@ -65,7 +66,7 @@ TEST_CASE("Stacking") {
 
   SUBCASE("UpperAtopLowerWhite") {
     struct ncplane_options opts = {
-      0, 0, 1, 1, nullptr, "top", nullptr, 0,
+      0, 0, 1, 1, nullptr, "top", nullptr, 0, 0, 0,
     };
     auto top = ncplane_create(n_, &opts);
     REQUIRE(nullptr != top);
@@ -102,7 +103,7 @@ TEST_CASE("Stacking") {
 
   SUBCASE("StackedQuadHalves") {
     struct ncplane_options opts = {
-      0, 0, 1, 1, nullptr, "top", nullptr, 0,
+      0, 0, 1, 1, nullptr, "top", nullptr, 0, 0, 0,
     };
     auto top = ncplane_create(n_, &opts);
     REQUIRE(nullptr != top);
@@ -141,7 +142,7 @@ TEST_CASE("Stacking") {
     ncplane_erase(n_);
     notcurses_refresh(nc_, nullptr, nullptr);
     struct ncplane_options opts = {
-      0, 0, 1, 1, nullptr, "top", nullptr, 0,
+      0, 0, 1, 1, nullptr, "top", nullptr, 0, 0, 0,
     };
     auto top = ncplane_create(n_, &opts);
     REQUIRE(nullptr != top);

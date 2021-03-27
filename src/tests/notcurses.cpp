@@ -80,6 +80,7 @@ TEST_CASE("NotcursesBase") {
           .name = nullptr,
           .resizecb = nullptr,
           .flags = 0,
+          .margin_b = 0, .margin_r = 0,
         };
         planes[idx] = ncplane_create(notcurses_stdplane(nc_), &nopts);
         REQUIRE(planes[idx]);

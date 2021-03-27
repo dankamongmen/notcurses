@@ -19,6 +19,7 @@ TEST_CASE("Selectors") {
       .rows = 1,
       .cols = 1,
       .userptr = nullptr, .name = nullptr, .resizecb = nullptr, .flags = 0,
+      .margin_b = 0, .margin_r = 0,
     };
     struct ncplane* n = ncplane_create(n_, &nopts);
     struct ncselector* ncs = ncselector_create(n, &opts);
@@ -43,6 +44,7 @@ TEST_CASE("Selectors") {
       .rows = 1,
       .cols = 1,
       .userptr = nullptr, .name = nullptr, .resizecb = nullptr, .flags = 0,
+      .margin_b = 0, .margin_r = 0,
     };
     struct ncplane* n = ncplane_create(n_, &nopts);
     struct ncselector* ncs = ncselector_create(n, &opts);
@@ -66,6 +68,7 @@ TEST_CASE("Selectors") {
       .rows = 1,
       .cols = 1,
       .userptr = nullptr, .name = nullptr, .resizecb = nullptr, .flags = 0,
+      .margin_b = 0, .margin_r = 0,
     };
     struct ncplane* n = ncplane_create(n_, &nopts);
     struct ncselector* ncs = ncselector_create(n, &opts);
@@ -89,6 +92,7 @@ TEST_CASE("Selectors") {
       .rows = 1,
       .cols = 1,
       .userptr = nullptr, .name = nullptr, .resizecb = nullptr, .flags = 0,
+      .margin_b = 0, .margin_r = 0,
     };
     struct ncplane* n = ncplane_create(n_, &nopts);
     struct ncselector* ncs = ncselector_create(n, &opts);
@@ -118,6 +122,7 @@ TEST_CASE("Selectors") {
       .rows = 1,
       .cols = 1,
       .userptr = nullptr, .name = nullptr, .resizecb = nullptr, .flags = 0,
+      .margin_b = 0, .margin_r = 0,
     };
     struct ncplane* n = ncplane_create(n_, &nopts);
     struct ncselector* ncs = ncselector_create(n, &opts);
@@ -140,6 +145,7 @@ TEST_CASE("Selectors") {
       .rows = 1,
       .cols = 1,
       .userptr = nullptr, .name = nullptr, .resizecb = nullptr, .flags = 0,
+      .margin_b = 0, .margin_r = 0,
     };
     struct ncplane* n = ncplane_create(n_, &nopts);
     struct ncselector* ncs = ncselector_create(n, &opts);
@@ -171,6 +177,7 @@ TEST_CASE("Selectors") {
       .rows = 1,
       .cols = 1,
       .userptr = nullptr, .name = nullptr, .resizecb = nullptr, .flags = 0,
+      .margin_b = 0, .margin_r = 0,
     };
     struct ncplane* n = ncplane_create(n_, &nopts);
     struct ncselector* ncs = ncselector_create(n, &opts);
@@ -217,6 +224,7 @@ TEST_CASE("Selectors") {
       .rows = 1,
       .cols = 1,
       .userptr = nullptr, .name = nullptr, .resizecb = nullptr, .flags = 0,
+      .margin_b = 0, .margin_r = 0,
     };
     struct ncplane* n = ncplane_create(n_, &nopts);
     struct ncselector* ncs = ncselector_create(n, &opts);
@@ -268,6 +276,7 @@ TEST_CASE("Selectors") {
       .rows = 1,
       .cols = 1,
       .userptr = nullptr, .name = nullptr, .resizecb = nullptr, .flags = 0,
+      .margin_b = 0, .margin_r = 0,
     };
     struct ncplane* n = ncplane_create(n_, &nopts);
     struct ncselector* ncs = ncselector_create(n, &opts);

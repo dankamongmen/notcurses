@@ -61,19 +61,26 @@ sprixel* sprixel_create(ncplane* n, const char* s, int bytes, int placey, int pl
 }
 
 int sprite_wipe_cell(const notcurses* nc, sprixel* s, int ycell, int xcell){
+  if(s->invalidated == SPRIXEL_HIDE){ // no need to do work if we're killing it
+    return 0;
+  }
   if(!nc->tcache.pixel_cell_wipe){
     return 0;
   }
-  if(ycell >= s->dimy){
+  if(ycell >= s->dimy || ycell < 0){
+    logerror(nc, "Bad y coordinate %d (%d)\n", ycell, s->dimy);
     return -1;
   }
-  if(xcell >= s->dimx){
+  if(xcell >= s->dimx || xcell < 0){
+    logerror(nc, "Bad x coordinate %d (%d)\n", xcell, s->dimx);
     return -1;
   }
   if(s->tacache[s->dimx * ycell + xcell] == 2){
+//fprintf(stderr, "CACHED WIPE %d %d/%d\n", s->id, ycell, xcell);
     return 0; // already annihilated
   }
   s->tacache[s->dimx * ycell + xcell] = 2;
+//fprintf(stderr, "WIPING %d %d/%d\n", s->id, ycell, xcell);
   int r = nc->tcache.pixel_cell_wipe(nc, s, ycell, xcell);
   if(r == 0){
     s->invalidated = SPRIXEL_INVALIDATED;
