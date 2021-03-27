@@ -926,23 +926,7 @@ int sprite_sixel_annihilate(const notcurses* nc, const ncpile* p, FILE* out, spr
   (void)p;
   (void)out;
   (void)s;
-  /*
-  struct crender* rvec = p->crender;
-  // FIXME need to cap by ends minus bottom, right margins also
-  const int ycap = nc->stdplane->leny + nc->margin_t;
-  const int xcap = nc->stdplane->lenx + nc->margin_l;
-//fprintf(stderr, "yCAP: %d xCAP: %d\n", ycap, xcap);
-  for(int y = s->y + nc->stdplane->absy ; y < s->y + nc->stdplane->absy + s->dimy && y < ycap ; ++y){
-    const int innery = y - nc->stdplane->absy;
-    for(int x = s->x + nc->stdplane->absx ; x < s->x + nc->stdplane->absx + s->dimx && x < xcap ; ++x){
-      const int innerx = x - nc->stdplane->absx;
-      const size_t damageidx = innery * nc->lfdimx + innerx;
-//fprintf(stderr, "DAMAGING %zu %d * %d + %d (max %d/%d)\n", damageidx, innery, nc->lfdimx, innerx, ycap, xcap);
-      rvec[damageidx].s.damaged = 1;
-    }
-  }
-  */
-  return 1;
+  return 0;
 }
 
 // returns -1 on error, 0 on success, 1 on success + invalidations requiring
