@@ -222,17 +222,15 @@ int sprite_kitty_cell_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell
 // we can only write 4KiB at a time. we're writing base64-encoded RGBA. each
 // pixel is 4B raw (32 bits). each chunk of three pixels is then 12 bytes, or
 // 16 base64-encoded bytes. 4096 / 16 == 256 3-pixel groups, or 768 pixels.
-static sprixcell_e*
-write_kitty_data(FILE* fp, int rows, int cols, int linesize, int leny, int lenx,
-                 const uint32_t* data, int sprixelid, int* parse_start){
+// closes |fp| on all paths.
+static int
+write_kitty_data(FILE* fp, int linesize, int leny, int lenx,
+                 const uint32_t* data, int sprixelid, sprixcell_e* tacache,
+                 int* parse_start){
   if(linesize % sizeof(*data)){
-    return NULL;
+    fclose(fp);
+    return -1;
   }
-  sprixcell_e* tacache = malloc(sizeof(*tacache) * rows * cols);
-  if(tacache == NULL){
-    return NULL;
-  }
-  memset(tacache, 0, sizeof(*tacache) * rows * cols);
   (void)tacache; // FIXME populate tacache with 1s for cells with transparency
   int total = leny * lenx; // total number of pixels (4 * total == bytecount)
   // number of 4KiB chunks we'll need
@@ -276,16 +274,15 @@ write_kitty_data(FILE* fp, int rows, int cols, int linesize, int leny, int lenx,
     fprintf(fp, "\e\\");
   }
   if(fclose(fp) == EOF){
-    free(tacache);
-    return NULL;
+    return -1;
   }
-  return tacache;
+  return 0;
 }
 #undef RGBA_MAXLEN
 
 // Kitty graphics blitter. Kitty can take in up to 4KiB at a time of (optionally
 // deflate-compressed) 24bit RGB. Returns -1 on error, 1 on success.
-int kitty_blit(ncplane* nc, int linesize, const void* data,
+int kitty_blit(ncplane* n, int linesize, const void* data,
                int leny, int lenx, const blitterargs* bargs){
   int rows = leny / bargs->u.pixel.celldimy + !!(leny % bargs->u.pixel.celldimy);
   int cols = lenx / bargs->u.pixel.celldimx + !!(lenx % bargs->u.pixel.celldimx);
@@ -295,17 +292,44 @@ int kitty_blit(ncplane* nc, int linesize, const void* data,
   if(fp == NULL){
     return -1;
   }
+  sprixcell_e* tacache = NULL;
+  bool reuse = false;
+  // if we have a sprixel attached to this plane, see if we can reuse it
+  // (we need the same dimensions) and thus immediately apply its T-A table.
+  int sprixelid;
+fprintf(stderr, "n: %p n->srite: %p\n", n, n->sprite);
+  if(n->sprite){
+    sprixel* s = n->sprite;
+    if(s->dimy == rows && s->dimx == cols){
+fprintf(stderr, "REUSING\n");
+      tacache = s->tacache;
+      s->tacache = NULL;
+      reuse = true;
+    }
+  }
   int parse_start = 0;
-  // closes fp on success
-  sprixcell_e* tacache = write_kitty_data(fp, rows, cols, linesize, leny, lenx, data,
-                                          bargs->u.pixel.sprixelid, &parse_start);
-  if(tacache == NULL){
-    fclose(fp);
+  if(!reuse){
+fprintf(stderr, "DIDN'T REUSE\n");
+    tacache = malloc(sizeof(*tacache) * rows * cols);
+    if(tacache == NULL){
+      fclose(fp);
+      free(buf);
+      return -1;
+    }
+    memset(tacache, 0, sizeof(*tacache) * rows * cols);
+  }
+  sprixelid = bargs->u.pixel.sprixelid;
+  // closes fp on all paths
+  if(write_kitty_data(fp, linesize, leny, lenx, data,
+                      sprixelid, tacache, &parse_start)){
+    if(!reuse){
+      free(tacache);
+    }
     free(buf);
     return -1;
   }
-  // takes ownership of |buf| on success
-  if(plane_blit_sixel(nc, buf, size, bargs->placey, bargs->placex,
+  // take ownership of |buf| on success
+  if(plane_blit_sixel(n, buf, size, bargs->placey, bargs->placex,
                       rows, cols, bargs->u.pixel.sprixelid, leny, lenx,
                       parse_start, tacache) < 0){
     free(tacache);
