@@ -1454,35 +1454,46 @@ API void* ncplane_userptr(struct ncplane* n);
 API void ncplane_center_abs(const struct ncplane* n, int* RESTRICT y,
                             int* RESTRICT x);
 
-// Return the offset into 'availcols' at which 'cols' ought be output given the
-// requirements of 'align'. Return -INT_MAX if unaligned or in case of invalid
-// 'align'. Undefined behavior on negative 'cols'.
+// Return the offset into 'availu' at which 'u' ought be output given the
+// requirements of 'align'. Return -INT_MAX on invalid 'align'. Undefined
+// behavior on negative 'availu' or 'u'.
 static inline int
-notcurses_align(int availcols, ncalign_e align, int cols){
-  if(cols < 0){
-    return -INT_MAX;
-  }
-  if(align == NCALIGN_LEFT){
-    return 0;
-  }
-  if(cols > availcols){
+notcurses_align(int availu, ncalign_e align, int u){
+  if(align == NCALIGN_LEFT || align == NCALIGN_TOP){
     return 0;
   }
   if(align == NCALIGN_CENTER){
-    return (availcols - cols) / 2;
+    return (availu - u) / 2;
   }
-  if(align == NCALIGN_RIGHT){
-    return availcols - cols;
+  if(align == NCALIGN_RIGHT || align == NCALIGN_BOTTOM){
+    return availu - u;
   }
-  return -INT_MAX;
+  return -INT_MAX; // invalid |align|
 }
 
 // Return the column at which 'c' cols ought start in order to be aligned
-// according to 'align' within ncplane 'n'. Return -INT_MAX if unaligned
-// or in case of invalid 'align'. Undefined behavior on negative 'c'.
+// according to 'align' within ncplane 'n'. Return -INT_MAX on invalid
+// 'align'. Undefined behavior on negative 'c'.
+static inline int
+ncplane_halign(const struct ncplane* n, ncalign_e align, int c){
+  return notcurses_align(ncplane_dim_x(n), align, c);
+}
+
+static inline int
+ncplane_align(const struct ncplane* n, ncalign_e align, int c)
+__attribute__ ((deprecated));
+
 static inline int
 ncplane_align(const struct ncplane* n, ncalign_e align, int c){
-  return notcurses_align(ncplane_dim_x(n), align, c);
+  return ncplane_halign(n, align, c);
+}
+
+// Return the row at which 'r' rows ought start in order to be aligned
+// according to 'align' within ncplane 'n'. Return -INT_MAX on invalid
+// 'align'. Undefined behavior on negative 'r'.
+static inline int
+ncplane_valign(const struct ncplane* n, ncalign_e align, int r){
+  return notcurses_align(ncplane_dim_y(n), align, r);
 }
 
 // Move the cursor to the specified position (the cursor needn't be visible).
@@ -1646,7 +1657,7 @@ static inline int
 ncplane_putwstr_aligned(struct ncplane* n, int y, ncalign_e align,
                         const wchar_t* gclustarr){
   int width = wcswidth(gclustarr, INT_MAX);
-  int xpos = ncplane_align(n, align, width);
+  int xpos = ncplane_halign(n, align, width);
   if(xpos < 0){
     return -1;
   }

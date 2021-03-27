@@ -334,14 +334,14 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
     p->boundto = p;
   }else{ // bound to preexisting pile
     if(nopts->flags & NCPLANE_OPTION_HORALIGNED){
-      p->absx = ncplane_align(n, nopts->x, nopts->cols);
+      p->absx = ncplane_halign(n, nopts->x, nopts->cols);
       p->halign = nopts->x;
     }else{
       p->absx = nopts->x;
     }
     p->absx += n->absx;
     if(nopts->flags & NCPLANE_OPTION_VERALIGNED){
-      p->absy = ncplane_align(n, nopts->y, nopts->rows);
+      p->absy = ncplane_halign(n, nopts->y, nopts->rows);
       p->valign = nopts->y;
     }else{
       p->absy = nopts->y;
@@ -2176,11 +2176,11 @@ int ncplane_resize_realign(ncplane* n){
   }
   int xpos = ncplane_x(n);
   if(n->halign != NCALIGN_UNALIGNED){
-    xpos = ncplane_align(parent, n->halign, ncplane_dim_x(n));
+    xpos = ncplane_halign(parent, n->halign, ncplane_dim_x(n));
   }
   int ypos = ncplane_y(n);
   if(n->valign != NCALIGN_UNALIGNED){
-    ypos = ncplane_align(parent, n->valign, ncplane_dim_y(n));
+    ypos = ncplane_valign(parent, n->valign, ncplane_dim_y(n));
   }
   return ncplane_move_yx(n, ypos, xpos);
 }

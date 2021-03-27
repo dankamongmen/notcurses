@@ -78,7 +78,7 @@ ncselector_draw(ncselector* n){
   int yoff = 0;
   if(n->title){
     size_t riserwidth = n->titlecols + 4;
-    int offx = ncplane_align(n->ncp, NCALIGN_RIGHT, riserwidth);
+    int offx = ncplane_halign(n->ncp, NCALIGN_RIGHT, riserwidth);
     ncplane_cursor_move_yx(n->ncp, 0, 0);
     ncplane_hline(n->ncp, &transchar, offx);
     ncplane_cursor_move_yx(n->ncp, 0, offx);
@@ -92,7 +92,7 @@ ncselector_draw(ncselector* n){
   int bodywidth = ncselector_body_width(n);
   int dimy, dimx;
   ncplane_dim_yx(n->ncp, &dimy, &dimx);
-  int xoff = ncplane_align(n->ncp, NCALIGN_RIGHT, bodywidth);
+  int xoff = ncplane_halign(n->ncp, NCALIGN_RIGHT, bodywidth);
   if(xoff){
     for(int y = yoff + 1 ; y < dimy ; ++y){
       ncplane_cursor_move_yx(n->ncp, y, 0);
@@ -572,7 +572,7 @@ ncmultiselector_draw(ncmultiselector* n){
   int yoff = 0;
   if(n->title){
     size_t riserwidth = n->titlecols + 4;
-    int offx = ncplane_align(n->ncp, NCALIGN_RIGHT, riserwidth);
+    int offx = ncplane_halign(n->ncp, NCALIGN_RIGHT, riserwidth);
     ncplane_cursor_move_yx(n->ncp, 0, 0);
     ncplane_hline(n->ncp, &transchar, offx);
     ncplane_rounded_box_sized(n->ncp, 0, n->boxchannels, 3, riserwidth, 0);
@@ -585,7 +585,7 @@ ncmultiselector_draw(ncmultiselector* n){
   int bodywidth = ncmultiselector_body_width(n);
   int dimy, dimx;
   ncplane_dim_yx(n->ncp, &dimy, &dimx);
-  int xoff = ncplane_align(n->ncp, NCALIGN_RIGHT, bodywidth);
+  int xoff = ncplane_halign(n->ncp, NCALIGN_RIGHT, bodywidth);
   if(xoff){
     for(int y = yoff + 1 ; y < dimy ; ++y){
       ncplane_cursor_move_yx(n->ncp, y, 0);
