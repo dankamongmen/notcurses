@@ -58,9 +58,14 @@ make_slider(struct notcurses* nc, int dimy, int dimx){
 }
 
 static int
-perframecb(struct ncvisual* ncv __attribute__ ((unused)),
-           struct ncvisual_options* vopts,
+perframecb(struct ncvisual* ncv, struct ncvisual_options* vopts,
            const struct timespec* tspec, void* vnewplane){
+  (void)ncv;
+  // only need these two steps done once, but we can't do them in
+  // main() due to the plane being created in ncvisual_stream() =[
+  ncplane_set_resizecb(vopts->n, ncplane_resize_maximize);
+  ncplane_move_above(vnewplane, vopts->n);
+
   struct notcurses* nc = ncplane_notcurses(vopts->n);
   static int frameno = 0;
   int x;
@@ -81,16 +86,6 @@ int xray_demo(struct notcurses* nc){
   int dimx, dimy;
   notcurses_term_dim_yx(nc, &dimy, &dimx);
   ncplane_erase(notcurses_stdplane(nc));
-  struct ncplane_options nopts = {
-    .y = 1,
-    .rows = dimy - 2,
-    .cols = dimx,
-    .resizecb = ncplane_resize_maximize,
-  };
-  struct ncplane* n = ncplane_create(notcurses_stdplane(nc), &nopts);
-  if(n == NULL){
-    return -1;
-  }
   char* path = find_data("notcursesIII.mkv");
   struct ncvisual* ncv = ncvisual_from_file(path);
   free(path);
@@ -100,11 +95,9 @@ int xray_demo(struct notcurses* nc){
   struct ncplane* newpanel = make_slider(nc, dimy, dimx);
   if(newpanel == NULL){
     ncvisual_destroy(ncv);
-    ncplane_destroy(n);
     return -1;
   }
   struct ncvisual_options vopts = {
-    .n = n,
     .y = NCALIGN_CENTER,
     .x = NCALIGN_CENTER,
     .scaling = NCSCALE_SCALE_HIRES,
@@ -120,7 +113,6 @@ int xray_demo(struct notcurses* nc){
   }
   int ret = ncvisual_stream(nc, ncv, dm, perframecb, &vopts, newpanel);
   ncvisual_destroy(ncv);
-  ncplane_destroy(n);
   ncplane_destroy(newpanel);
   return ret;
 }
