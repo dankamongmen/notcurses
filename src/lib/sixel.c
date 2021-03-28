@@ -151,7 +151,7 @@ extract_color_table(const uint32_t* data, int linesize, int begy, int begx, int 
         }
         int txyidx = (sy / cdimy) * cols + (visx / cdimx);
         if(tacache[txyidx] == SPRIXCELL_ANNIHILATED){
-//fprintf(stderr, "TRANS SKIP %d %d %d %d\n", visy, visx, sy, txyidx);
+//fprintf(stderr, "TRANS SKIP %d %d %d %d (cell: %d %d)\n", visy, visx, sy, txyidx, sy / cdimy, visx / cdimx);
           continue;
         }
         unsigned char comps[RGBSIZE];

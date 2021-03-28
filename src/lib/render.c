@@ -925,14 +925,6 @@ emit_bg_palindex(notcurses* nc, FILE* out, const nccell* srccell){
   return 0;
 }
 
-int sprite_sixel_annihilate(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
-  (void)nc;
-  (void)p;
-  (void)out;
-  (void)s;
-  return 0;
-}
-
 // returns -1 on error, 0 on success, 1 on success + invalidations requiring
 // a subsequent repass by the rasterizer.
 static int
@@ -958,7 +950,7 @@ rasterize_sprixels(notcurses* nc, const ncpile* p, FILE* out){
       parent = &s->next;
     }else if(s->invalidated == SPRIXEL_HIDE){
 //fprintf(stderr, "OUGHT HIDE %d [%dx%d @ %d/%d] %p\n", s->id, s->dimy, s->dimx, s->y, s->x, s);
-      int r = nc->tcache.pixel_destroy(nc, p, out, s);
+      int r = sprite_destroy(nc, p, out, s);
       if(r < 0){
         return -1;
       }else if(r > 0){

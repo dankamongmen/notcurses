@@ -347,7 +347,6 @@ query_sixel(tinfo* ti, int fd){
           if(!ti->sixel_supported){
             ti->sixel_supported = true;
             ti->color_registers = 256;  // assumed default [shrug]
-            ti->pixel_destroy = sprite_sixel_annihilate;
             pixel_init = ti->pixel_init = sprite_sixel_init;
             ti->sixel_maxx = ti->sixel_maxy = 0;
           }
