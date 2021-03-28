@@ -171,12 +171,12 @@ is interpreted as an **ncalign_e** rather than an absolute position.
 The different **ncblitter_e** values select from among available glyph sets:
 
 * **NCBLIT_DEFAULT**: Let the **ncvisual** choose its own blitter.
-* **NCBLIT_1x1**: Spaces only. Works in ASCII, unlike other blitters.
+* **NCBLIT_1x1**: Spaces only. Works in ASCII, unlike most other blitters.
 * **NCBLIT_2x1**: Adds the half blocks (▄▀) to **NCBLIT_1x1**.
 * **NCBLIT_2x2**: Adds left and right half blocks (▌▐) and quadrants (▖▗▟▙) to **NCBLIT_2x1**.
 * **NCBLIT_3x2**: Adds sextants to **NCBLIT_1x1**.
 * **NCBLIT_BRAILLE**: 4 rows and 2 columns of braille (⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿).
-* **NCBLIT_PIXEL**: Adds pixel graphics.
+* **NCBLIT_PIXEL**: Adds pixel graphics (these also work in ASCII).
 
 Two more blitters exist for plots, but are unsuitable for generic media:
 

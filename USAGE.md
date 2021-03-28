@@ -2983,7 +2983,7 @@ channels_set_bg_default(uint64_t* channels){
 familiar pixel graphics routines, and then rendered to a (character-
 graphics) plane using a variety of blitting methods:
 
-* Space with background color -- the only blitter that works in ASCII
+* Space with background color -- the only cell blitter that works in ASCII
   mode. 1:1 pixels map losslessly to 2:1 cells.
 * Unicode upper- and lower-half blocks (▀ and ▄, respectively). 2:1 pixels
   map losslessly to 2:1 cells. The default blitting mode.
@@ -2991,6 +2991,7 @@ graphics) plane using a variety of blitting methods:
 * Unicode sextants. 3x2 pixels map to 2:1 cells.
 * Braille. 4:2 pixels map to 2:1 cells. Useful when only two colors are needed
   in a small area, due to high resolution.
+* Sixel- and Kitty-based bitmaps.
 
 It is most typicaly to prepare `ncvisual`s from files on disk (see 
 [Multimedia](#multimedia) below); this requires Notcurses to be built against
@@ -3086,7 +3087,7 @@ typedef enum {
   NCBLIT_2x2,     // quadrants + 2x1          ▗▐ ▖▀▟▌▙
   NCBLIT_3x2,     // sextants (*NOT* 2x2)     🬀🬁🬂🬃🬄🬅🬆🬇🬈🬉🬊🬋🬌🬍🬎🬏🬐🬑🬒🬓🬔🬕🬖🬗🬘🬙🬚🬛🬜🬝🬞
   NCBLIT_BRAILLE, // 4 rows, 2 cols (braille) ⡀⡄⡆⡇⢀⣀⣄⣆⣇⢠⣠⣤⣦⣧⢰⣰⣴⣶⣷⢸⣸⣼⣾⣿
-  NCBLIT_PIXEL,   // pixel graphics
+  NCBLIT_PIXEL,   // pixel graphics (also work in ASCII)
   NCBLIT_4x1,     // four vertical levels     █▆▄▂     (plots only)
   NCBLIT_8x1,     // eight vertical levels    █▇▆▅▄▃▂▁ (plots only)
 } ncblitter_e;
