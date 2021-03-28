@@ -394,6 +394,9 @@ int ffmpeg_stream(notcurses* nc, ncvisual* ncv, float timescale,
     // all media when we loop =[. we seem to be accurate enough now with the
     // tbase/ppd. see https://github.com/dankamongmen/notcurses/issues/1352.
     double tbase = av_q2d(ncv->details->fmtctx->streams[ncv->details->stream_index]->time_base);
+    if(activevopts.n){
+      ncplane_erase(activevopts.n); // new frame could be partially transparent
+    }
     // decay the blitter explicitly, so that the callback knows the blitter it
     // was actually rendered with
     auto bset = rgba_blitter(nc, &activevopts);

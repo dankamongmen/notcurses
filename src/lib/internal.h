@@ -74,7 +74,6 @@ typedef struct sprixel {
   int y, x;
   int dimy, dimx;       // cell geometry
   int pixy, pixx;       // pixel geometry (might be smaller than cell geo)
-  sprixcell_e* tacache; // transparency-annihilation cache (dimy * dimx)
   // each tacache entry is one of 0 (standard opaque cell), 1 (cell with
   // some transparency), 2 (annihilated, excised)
   int parse_start;   // where to start parsing for cell wipes
@@ -124,6 +123,8 @@ typedef struct ncplane {
   struct ncplane* boundto;// plane to which we are bound (ourself for roots)
 
   sprixel* sprite;       // pointer into the sprixel cache
+  sprixcell_e* tacache;  // transparency-annihilation sprite matrix
+  int tacachey, tacachex;// tacache geometry FIXME get rid of this
 
   void* userptr;         // slot for the user to stick some opaque pointer
   int (*resizecb)(struct ncplane*); // callback after parent is resized
@@ -767,12 +768,10 @@ int sprite_destroy(const struct notcurses* nc, const struct ncpile* p, FILE* out
 void sprixel_free(sprixel* s);
 void sprixel_invalidate(sprixel* s);
 void sprixel_hide(sprixel* s);
-// takes ownership of g on success
-sprixel* sprixel_update(sprixel* s, char* g, int bytes);
 // dimy and dimx are cell geometry, not pixel. takes ownership of s on success.
 sprixel* sprixel_create(ncplane* n, char* s, int bytes, int placey, int placex,
                         int sprixelid, int dimy, int dimx, int pixy, int pixx,
-                        int parse_start, sprixcell_e* tacache);
+                        int parse_start);
 API int sprite_wipe_cell(const notcurses* nc, sprixel* s, int y, int x);
 int sprite_kitty_annihilate(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
 int sprite_kitty_init(int fd);
@@ -1178,7 +1177,7 @@ plane_blit_sixel(ncplane* n, char* s, int bytes, int placey, int placex,
                  int leny, int lenx, int sprixelid, int dimy, int dimx,
                  int parse_start, sprixcell_e * tacache){
   sprixel* spx = sprixel_create(n, s, bytes, placey, placex, sprixelid,
-                                leny, lenx, dimy, dimx, parse_start, tacache);
+                                leny, lenx, dimy, dimx, parse_start);
   if(spx == NULL){
     return -1;
   }
@@ -1193,6 +1192,9 @@ plane_blit_sixel(ncplane* n, char* s, int bytes, int placey, int placex,
   if(n->sprite){
     sprixel_hide(n->sprite);
   }
+  n->tacache = tacache;
+  n->tacachey = leny;
+  n->tacachex = lenx;
   n->sprite = spx;
   return 0;
 }

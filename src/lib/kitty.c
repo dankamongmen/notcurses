@@ -300,11 +300,9 @@ int kitty_blit(ncplane* n, int linesize, const void* data,
   // if we have a sprixel attached to this plane, see if we can reuse it
   // (we need the same dimensions) and thus immediately apply its T-A table.
   int sprixelid;
-  if(n->sprite){
-    sprixel* s = n->sprite;
-    if(s->dimy == rows && s->dimx == cols){
-      tacache = s->tacache;
-      s->tacache = NULL;
+  if(n->tacache){
+    if(n->tacachey == rows && n->tacachex == cols){
+      tacache = n->tacache;
       reuse = true;
     }
   }
@@ -329,11 +327,13 @@ int kitty_blit(ncplane* n, int linesize, const void* data,
     free(buf);
     return -1;
   }
-  // take ownership of |buf| on success
+  // take ownership of |buf| and |tacache| on success
   if(plane_blit_sixel(n, buf, size, bargs->placey, bargs->placex,
                       rows, cols, bargs->u.pixel.sprixelid, leny, lenx,
                       parse_start, tacache) < 0){
-    free(tacache);
+    if(!reuse){
+      free(tacache);
+    }
     free(buf);
     return -1;
   }

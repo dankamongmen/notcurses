@@ -938,7 +938,7 @@ rasterize_sprixels(notcurses* nc, const ncpile* p, FILE* out){
       ncplane_yx(s->n, &y, &x);
       y += s->y;
       x += s->x;
-//fprintf(stderr, "DRAWING BITMAP %d AT %d/%d\n", s->id, y + nc->stdplane->absy, x + nc->stdplane->absx);
+//fprintf(stderr, "DRAWING BITMAP %d AT %d/%d for %p\n", s->id, y + nc->stdplane->absy, x + nc->stdplane->absx, s->n);
       if(goto_location(nc, out, y + nc->stdplane->absy, x + nc->stdplane->absx)){
         return -1;
       }

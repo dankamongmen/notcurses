@@ -384,8 +384,7 @@ write_sixel_data(FILE* fp, int lenx, sixeltable* stab, int* parse_start){
 // A pixel block is indicated by setting cell_pixels_p().
 static inline int
 sixel_blit_inner(ncplane* n, int leny, int lenx, sixeltable* stab,
-                 const blitterargs* bargs, unsigned reuse,
-                 sprixcell_e* tacache){
+                 const blitterargs* bargs, sprixcell_e* tacache){
   char* buf = NULL;
   size_t size = 0;
   FILE* fp = open_memstream(&buf, &size);
@@ -400,16 +399,12 @@ sixel_blit_inner(ncplane* n, int leny, int lenx, sixeltable* stab,
     free(buf);
     return -1;
   }
-  // both paths take ownership of buf on success
-  if(reuse){
-    sprixel_update(n->sprite, buf, size);
-  }else{
-    if(plane_blit_sixel(n, buf, size, bargs->placey, bargs->placex,
-                        rows, cols, bargs->u.pixel.sprixelid, leny, lenx,
-                        parse_start, tacache) < 0){
-      free(buf);
-      return -1;
-    }
+  // take ownership of buf on success
+  if(plane_blit_sixel(n, buf, size, bargs->placey, bargs->placex,
+                      rows, cols, bargs->u.pixel.sprixelid, leny, lenx,
+                      parse_start, tacache) < 0){
+    free(buf);
+    return -1;
   }
   return 1;
 }
@@ -447,10 +442,10 @@ int sixel_blit(ncplane* n, int linesize, const void* data,
   bool reuse = false;
   // if we have a sprixel attached to this plane, see if we can reuse it
   // (we need the same dimensions) and thus immediately apply its T-A table.
-  if(n->sprite){
-    sprixel* s = n->sprite;
-    if(s->dimy == rows && s->dimx == cols){
-      tacache = s->tacache;
+  if(n->tacache){
+//fprintf(stderr, "OUGHT BE A REUSE %d %d %d %d\n", n->tacachey, rows, n->tacachex, cols);
+    if(n->tacachey == rows && n->tacachex == cols){
+      tacache = n->tacache;
       reuse = true;
     }
   }
@@ -473,7 +468,7 @@ int sixel_blit(ncplane* n, int linesize, const void* data,
     return -1;
   }
   refine_color_table(data, linesize, bargs->begy, bargs->begx, leny, lenx, &stable);
-  int r = sixel_blit_inner(n, leny, lenx, &stable, bargs, reuse, tacache);
+  int r = sixel_blit_inner(n, leny, lenx, &stable, bargs, tacache);
   free(stable.data);
   free(stable.deets);
   free(stable.table);
