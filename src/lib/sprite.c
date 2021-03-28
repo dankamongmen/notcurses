@@ -103,3 +103,10 @@ int sprite_init(const notcurses* nc){
   }
   return nc->tcache.pixel_init(nc->ttyfd);
 }
+
+int sprite_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
+  if(!nc->tcache.pixel_destroy){
+    return 0;
+  }
+  return nc->tcache.pixel_destroy(nc, p, out, s);
+}
