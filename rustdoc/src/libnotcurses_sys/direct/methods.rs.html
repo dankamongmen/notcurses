@@ -642,6 +642,8 @@
 <span id="639">639</span>
 <span id="640">640</span>
 <span id="641">641</span>
+<span id="642">642</span>
+<span id="643">643</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcDirect` methods and associated functions.</span>
 
@@ -738,8 +740,10 @@
         <span class="ident">filename</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
         <span class="ident">blitter</span>: <span class="ident">NcBlitter</span>,
         <span class="ident">scale</span>: <span class="ident">NcScale</span>,
+        <span class="ident">maxy</span>: <span class="ident">i32</span>,
+        <span class="ident">maxx</span>: <span class="ident">i32</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">NcPlane</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirect_render_frame</span>(<span class="self">self</span>, <span class="macro">cstring</span><span class="macro">!</span>[<span class="ident">filename</span>], <span class="ident">blitter</span>, <span class="ident">scale</span>) };
+        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirect_render_frame</span>(<span class="self">self</span>, <span class="macro">cstring</span><span class="macro">!</span>[<span class="ident">filename</span>], <span class="ident">blitter</span>, <span class="ident">scale</span>, <span class="ident">maxy</span>, <span class="ident">maxx</span>) };
         <span class="macro">error_ref_mut</span><span class="macro">!</span>[
             <span class="ident">res</span>,
             <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(

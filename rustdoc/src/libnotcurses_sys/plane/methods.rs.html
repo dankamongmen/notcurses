@@ -1807,6 +1807,27 @@
 <span id="1804">1804</span>
 <span id="1805">1805</span>
 <span id="1806">1806</span>
+<span id="1807">1807</span>
+<span id="1808">1808</span>
+<span id="1809">1809</span>
+<span id="1810">1810</span>
+<span id="1811">1811</span>
+<span id="1812">1812</span>
+<span id="1813">1813</span>
+<span id="1814">1814</span>
+<span id="1815">1815</span>
+<span id="1816">1816</span>
+<span id="1817">1817</span>
+<span id="1818">1818</span>
+<span id="1819">1819</span>
+<span id="1820">1820</span>
+<span id="1821">1821</span>
+<span id="1822">1822</span>
+<span id="1823">1823</span>
+<span id="1824">1824</span>
+<span id="1825">1825</span>
+<span id="1826">1826</span>
+<span id="1827">1827</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcPlane*` methods and associated functions.</span>
 
@@ -1823,7 +1844,7 @@
 <span class="kw">impl</span> <span class="ident">NcPlaneOptions</span> {
     <span class="doccomment">/// New NcPlaneOptions using the horizontal x.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">y</span>: <span class="ident">NcOffset</span>, <span class="ident">x</span>: <span class="ident">NcOffset</span>, <span class="ident">rows</span>: <span class="ident">NcDim</span>, <span class="ident">cols</span>: <span class="ident">NcDim</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span>::<span class="ident">with_flags</span>(<span class="ident">y</span>, <span class="ident">x</span>, <span class="ident">rows</span>, <span class="ident">cols</span>, <span class="prelude-val">None</span>, <span class="number">0</span>)
+        <span class="self">Self</span>::<span class="ident">with_flags</span>(<span class="ident">y</span>, <span class="ident">x</span>, <span class="ident">rows</span>, <span class="ident">cols</span>, <span class="prelude-val">None</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>)
     }
 
     <span class="doccomment">/// New NcPlaneOptions with horizontal alignment.</span>
@@ -1839,6 +1860,8 @@
         <span class="ident">cols</span>: <span class="ident">NcDim</span>,
         <span class="ident">resizecb</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NcResizeCb</span><span class="op">&gt;</span>,
         <span class="ident">flags</span>: <span class="ident">u64</span>,
+        <span class="ident">margin_b</span>: <span class="ident">NcOffset</span>,
+        <span class="ident">margin_r</span>: <span class="ident">NcOffset</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">NcPlaneOptions</span> {
             <span class="ident">y</span>: <span class="ident">y</span> <span class="kw">as</span> <span class="ident">i32</span>,
@@ -1849,6 +1872,8 @@
             <span class="ident">name</span>: <span class="ident">null</span>(),
             <span class="ident">resizecb</span>: <span class="kw">crate</span>::<span class="ident">ncresizecb_to_c</span>(<span class="ident">resizecb</span>),
             <span class="ident">flags</span>,
+            <span class="ident">margin_b</span>: <span class="ident">margin_b</span> <span class="kw">as</span> <span class="ident">i32</span>,
+            <span class="ident">margin_r</span>: <span class="ident">margin_r</span> <span class="kw">as</span> <span class="ident">i32</span>,
         }
     }
 
@@ -1874,6 +1899,8 @@
             <span class="ident">name</span>: <span class="ident">null</span>(),
             <span class="ident">resizecb</span>: <span class="kw">crate</span>::<span class="ident">ncresizecb_to_c</span>(<span class="ident">resizecb</span>),
             <span class="ident">flags</span>,
+            <span class="ident">margin_b</span>: <span class="number">0</span>,
+            <span class="ident">margin_r</span>: <span class="number">0</span>,
         }
     }
 }
@@ -3014,12 +3041,27 @@
     <span class="doccomment">/// Returns `-`[NCRESULT_MAX][crate::NCRESULT_MAX] if</span>
     <span class="doccomment">/// [NCALIGN_UNALIGNED][crate::NCALIGN_UNALIGNED] or invalid [NcAlign].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [ncplane_align()][crate::ncplane_align].*</span>
+    <span class="doccomment">/// *C style function: [ncplane_halign()][crate::ncplane_halign].*</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">align</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">align</span>: <span class="ident">NcAlign</span>, <span class="ident">cols</span>: <span class="ident">NcDim</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">halign</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">align</span>: <span class="ident">NcAlign</span>, <span class="ident">cols</span>: <span class="ident">NcDim</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">error</span><span class="macro">!</span>[
-            <span class="kw">crate</span>::<span class="ident">ncplane_align</span>(<span class="self">self</span>, <span class="ident">align</span>, <span class="ident">cols</span>),
-            <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;NcPlane.align({:?}, {})&quot;</span>, <span class="ident">align</span>, <span class="ident">cols</span>)
+            <span class="kw">crate</span>::<span class="ident">ncplane_halign</span>(<span class="self">self</span>, <span class="ident">align</span>, <span class="ident">cols</span>),
+            <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;NcPlane.halign({:?}, {})&quot;</span>, <span class="ident">align</span>, <span class="ident">cols</span>)
+        ]
+    }
+
+    <span class="doccomment">/// Returns the row at which `rows` rows ought start in order to be</span>
+    <span class="doccomment">/// aligned according to `align` within this NcPlane.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Returns `-`[NCRESULT_MAX][crate::NCRESULT_MAX] if</span>
+    <span class="doccomment">/// [NCALIGN_UNALIGNED][crate::NCALIGN_UNALIGNED] or invalid [NcAlign].</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// *C style function: [ncplane_valign()][crate::ncplane_valign].*</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">valign</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">align</span>: <span class="ident">NcAlign</span>, <span class="ident">cols</span>: <span class="ident">NcDim</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="macro">error</span><span class="macro">!</span>[
+            <span class="kw">crate</span>::<span class="ident">ncplane_valign</span>(<span class="self">self</span>, <span class="ident">align</span>, <span class="ident">cols</span>),
+            <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;NcPlane.valign({:?}, {})&quot;</span>, <span class="ident">align</span>, <span class="ident">cols</span>)
         ]
     }
 

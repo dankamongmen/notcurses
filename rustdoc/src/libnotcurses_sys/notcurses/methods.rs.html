@@ -641,15 +641,6 @@
 <span id="638">638</span>
 <span id="639">639</span>
 <span id="640">640</span>
-<span id="641">641</span>
-<span id="642">642</span>
-<span id="643">643</span>
-<span id="644">644</span>
-<span id="645">645</span>
-<span id="646">646</span>
-<span id="647">647</span>
-<span id="648">648</span>
-<span id="649">649</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `Notcurses*` methods and associated functions.</span>
 
@@ -847,15 +838,6 @@
     <span class="doccomment">/// *C style function: [notcurses_canopen_videos()][crate::notcurses_canopen_videos].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">canopen_videos</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">notcurses_canopen_videos</span>(<span class="self">self</span>) }
-    }
-
-    <span class="doccomment">/// Returns true if pixel graphics are supported.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// See [NCBLIT_PIXEL][crate::NCBLIT_PIXEL].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [notcurses_canpixel()][crate::notcurses_canpixel].*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">canpixel</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">notcurses_canpixel</span>(<span class="self">self</span>) }
     }
 
     <span class="doccomment">/// Returns true if we can reliably use Unicode 13 sextants.</span>
