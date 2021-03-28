@@ -148,6 +148,10 @@ TEST_CASE("Pixel") {
 
 #ifdef NOTCURSES_USE_MULTIMEDIA
   SUBCASE("PixelWipeImage") {
+    uint64_t channels = 0;
+    channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+    channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+    CHECK(0 == ncplane_set_base(n_, "", 0, channels));
     auto ncv = ncvisual_from_file(find_data("worldmap.png"));
     REQUIRE(ncv);
     struct ncvisual_options vopts{};
@@ -155,6 +159,7 @@ TEST_CASE("Pixel") {
     vopts.flags = NCVISUAL_OPTION_NODEGRADE;
     auto newn = ncvisual_render(nc_, ncv, &vopts);
     CHECK(newn);
+    ncplane_move_bottom(newn);
     CHECK(0 == notcurses_render(nc_));
     const auto s = newn->sprite;
     for(int y = 0 ; y < s->dimy ; ++y){
