@@ -71,9 +71,6 @@ int sprite_wipe_cell(const notcurses* nc, sprixel* s, int ycell, int xcell){
   if(s->invalidated == SPRIXEL_HIDE){ // no need to do work if we're killing it
     return 0;
   }
-  if(!nc->tcache.pixel_cell_wipe){
-    return 0;
-  }
   if(ycell >= s->dimy || ycell < 0){
     logerror(nc, "Bad y coordinate %d (%d)\n", ycell, s->dimy);
     return -1;
@@ -82,11 +79,16 @@ int sprite_wipe_cell(const notcurses* nc, sprixel* s, int ycell, int xcell){
     logerror(nc, "Bad x coordinate %d (%d)\n", xcell, s->dimx);
     return -1;
   }
-  if(s->tacache[s->dimx * ycell + xcell] == 2){
+  if(s->tacache[s->dimx * ycell + xcell] == SPRIXCELL_ANNIHILATED){
 //fprintf(stderr, "CACHED WIPE %d %d/%d\n", s->id, ycell, xcell);
     return 0; // already annihilated
   }
-  s->tacache[s->dimx * ycell + xcell] = 2;
+  // mark the cell as annihilated whether we actually scrubbed it or not,
+  // so that we use this fact should we move to another frame
+  s->tacache[s->dimx * ycell + xcell] = SPRIXCELL_ANNIHILATED;
+  if(!nc->tcache.pixel_cell_wipe){ // sixel has no cell wiping
+    return -1;
+  }
 //fprintf(stderr, "WIPING %d %d/%d\n", s->id, ycell, xcell);
   int r = nc->tcache.pixel_cell_wipe(nc, s, ycell, xcell);
   if(r == 0){

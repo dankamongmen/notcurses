@@ -349,7 +349,6 @@ query_sixel(tinfo* ti, int fd){
             ti->color_registers = 256;  // assumed default [shrug]
             ti->pixel_destroy = sprite_sixel_annihilate;
             pixel_init = ti->pixel_init = sprite_sixel_init;
-            ti->pixel_cell_wipe = sprite_sixel_cell_wipe;
             ti->sixel_maxx = ti->sixel_maxy = 0;
           }
         }
