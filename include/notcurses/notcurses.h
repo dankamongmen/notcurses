@@ -2416,7 +2416,7 @@ API ALLOC struct ncvisual* ncvisual_from_plane(const struct ncplane* n,
 #define NCVISUAL_OPTION_NODEGRADE  0x0001ull // fail rather than degrade
 #define NCVISUAL_OPTION_BLEND      0x0002ull // use CELL_ALPHA_BLEND with visual
 #define NCVISUAL_OPTION_HORALIGNED 0x0004ull // x is an alignment, not absolute
-#define NCVISUAL_OPTION_VERALIGNED 0x0004ull // y is an alignment, not absolute
+#define NCVISUAL_OPTION_VERALIGNED 0x0008ull // y is an alignment, not absolute
 
 struct ncvisual_options {
   // if no ncplane is provided, one will be created using the exact size

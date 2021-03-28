@@ -3100,6 +3100,7 @@ const char* notcurses_str_blitter(ncblitter_e blitter);
 #define NCVISUAL_OPTION_NODEGRADE  0x0001ull // fail rather than degrade
 #define NCVISUAL_OPTION_BLEND      0x0002ull // use CELL_ALPHA_BLEND with visual
 #define NCVISUAL_OPTION_HORALIGNED 0x0004ull // x is an alignment, not absolute
+#define NCVISUAL_OPTION_VERALIGNED 0x0008ull // y is an alignment, not absolute
 
 struct ncvisual_options {
   // if no ncplane is provided, one will be created using the exact size
@@ -3113,7 +3114,8 @@ struct ncvisual_options {
   // if an ncplane is provided, y and x specify where the visual will be
   // rendered on that plane. otherwise, they specify where the created ncplane
   // will be placed relative to the standard plane's origin. x is an ncalign_e
-  // value if NCVISUAL_OPTION_HORALIGNED is provided.
+  // value if NCVISUAL_OPTION_HORALIGNED is provided. y is an ncalign_e
+  // value if NCVISUAL_OPTION_VERALIGNED is provided.
   int y, x;
   // the section of the visual that ought be rendered. for the entire visual,
   // pass an origin of 0, 0 and a size of 0, 0 (or the true height and width).

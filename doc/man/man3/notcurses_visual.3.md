@@ -33,6 +33,7 @@ typedef enum {
 #define NCVISUAL_OPTION_NODEGRADE  0x0001
 #define NCVISUAL_OPTION_BLEND      0x0002
 #define NCVISUAL_OPTION_HORALIGNED 0x0004
+#define NCVISUAL_OPTION_VERALIGNED 0x0008
 
 struct ncvisual_options {
   struct ncplane* n;
@@ -161,7 +162,9 @@ section of the image. This might be larger (or smaller) than the visual area.
 the plane to start drawing. If **n** was **NULL** (new plane), they specify
 the origin of the new plane relative to the standard plane. If the **flags**
 field contains **NCVISUAL_OPTION_HORALIGNED**, the **x** parameter is
-interpreted as an **ncalign_e** rather than an absolute position.
+interpreted as an **ncalign_e** rather than an absolute position. If the
+**flags** field contains **NCVISUAL_OPTION_VERALIGNED**, the **y** parameter
+is interpreted as an **ncalign_e** rather than an absolute position.
 
 # BLITTERS
 
