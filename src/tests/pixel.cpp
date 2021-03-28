@@ -59,13 +59,13 @@ TEST_CASE("Pixel") {
     auto s = n->sprite;
     REQUIRE(nullptr != s);
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == sprite_wipe_cell(nc_, s, 0, 0));
+    CHECK(0 == ncplane_putchar_yx(n_, 0, 0, 'x'));
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == sprite_wipe_cell(nc_, s, 1, 1));
+    CHECK(0 == ncplane_putchar_yx(n_, 1, 1, 'x'));
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == sprite_wipe_cell(nc_, s, 1, 0));
+    CHECK(0 == ncplane_putchar_yx(n_, 1, 0, 'x'));
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == sprite_wipe_cell(nc_, s, 0, 1));
+    CHECK(0 == ncplane_putchar_yx(n_, 0, 1, 'x'));
     CHECK(0 == notcurses_render(nc_));
     ncplane_destroy(n);
     ncvisual_destroy(ncv);
@@ -96,13 +96,13 @@ TEST_CASE("Pixel") {
     auto s = n->sprite;
     REQUIRE(nullptr != s);
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == sprite_wipe_cell(nc_, s, 0, 0));
+    CHECK(0 == ncplane_putchar_yx(n_, 0, 0, 'x'));
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == sprite_wipe_cell(nc_, s, 1, 1));
+    CHECK(0 == ncplane_putchar_yx(n_, 1, 1, 'x'));
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == sprite_wipe_cell(nc_, s, 1, 0));
+    CHECK(0 == ncplane_putchar_yx(n_, 1, 0, 'x'));
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == sprite_wipe_cell(nc_, s, 0, 1));
+    CHECK(0 == ncplane_putchar_yx(n_, 0, 1, 'x'));
     CHECK(0 == notcurses_render(nc_));
     ncplane_destroy(n);
     ncvisual_destroy(ncv);
@@ -133,13 +133,13 @@ TEST_CASE("Pixel") {
     auto s = n->sprite;
     REQUIRE(nullptr != s);
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == sprite_wipe_cell(nc_, s, 5, 5));
+    CHECK(0 == ncplane_putchar_yx(n_, 5, 5, 'x'));
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == sprite_wipe_cell(nc_, s, 3, 3));
+    CHECK(0 == ncplane_putchar_yx(n_, 3, 3, 'x'));
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == sprite_wipe_cell(nc_, s, 8, 8));
+    CHECK(0 == ncplane_putchar_yx(n_, 8, 8, 'x'));
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == sprite_wipe_cell(nc_, s, 8, 3));
+    CHECK(0 == ncplane_putchar_yx(n_, 8, 3, 'x'));
     CHECK(0 == notcurses_render(nc_));
     ncplane_destroy(n);
     ncvisual_destroy(ncv);
@@ -159,7 +159,7 @@ TEST_CASE("Pixel") {
     const auto s = newn->sprite;
     for(int y = 0 ; y < s->dimy ; ++y){
       for(int x = 0 ; x < s->dimx ; ++x){
-        CHECK(0 == sprite_wipe_cell(nc_, s, y, x));
+        CHECK(0 == ncplane_putchar_yx(n_, y, x, 'x'));
         CHECK(0 == notcurses_render(nc_));
       }
     }
