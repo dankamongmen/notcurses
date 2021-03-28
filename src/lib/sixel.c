@@ -1,114 +1,5 @@
 #include "internal.h"
 
-// sixel is in a sense simpler to edit in-place than kitty, as it has neither
-// chunking nor base64 to worry about. in another sense, it's waaay suckier,
-// because you effectively have to lex through a byte at a time (since the
-// color bands have varying size). le sigh! we work geometrically here,
-// blasting through each band and scrubbing the necessary cells therein.
-// define a rectangle that will be scrubbed.
-int sprite_sixel_cell_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
-  const int xpixels = nc->tcache.cellpixx;
-  const int ypixels = nc->tcache.cellpixy;
-  const int top = ypixels * ycell;          // start scrubbing on this row
-  int bottom = ypixels * (ycell + 1); // do *not* scrub this row
-  const int left = xpixels * xcell;         // start scrubbing on this column
-  int right = xpixels * (xcell + 1);  // do *not* scrub this column
-  // if the cell is on the right or bottom borders, it might only be partially
-  // filled by actual graphic data, and we need to cap our target area.
-  if(right > s->pixx){
-    right = s->pixx;
-  }
-  if(bottom > s->pixy){
-    bottom = s->pixy;
-  }
-//fprintf(stderr, "TARGET AREA: [ %dx%d -> %dx%d ] of %dx%d\n", top, left, bottom - 1, right - 1, s->pixy, s->pixx);
-  char* c = s->glyph;
-  // lines of sixels are broken by a hyphen. if we were guaranteed to already
-  // be in the meat of the sixel, it would be sufficient to count hyphens, but
-  // we must distinguish the introductory material from the sixmap, alas
-  // (after that, simply count hyphens). FIXME store loc in sprixel metadata?
-  // it seems sufficient to look for the first #d not followed by a semicolon.
-  // remember, these are sixels *we've* created internally, not random ones.
-  while(*c != '#'){
-    ++c;
-  }
-  do{
-    ++c;
-    while(isdigit(*c)){
-      ++c;
-    }
-    while(*c == ';'){
-      ++c;
-      while(isdigit(*c)){
-        ++c;
-      }
-    }
-  }while(*c == '#');
-  --c;
-  int row = 0;
-  while(row + 6 <= top){
-    while(*c != '-'){
-      ++c;
-    }
-    row += 6;
-    unsigned mask = 0;
-    if(row < top){
-      for(int i = 0 ; i < top - row ; ++i){
-        mask |= (1 << i);
-      }
-    }
-    // make masks containing only pixels which we will *not* be turning off
-    // (on the top or bottom), if any. go through each entry and if it
-    // occupies our target columns, scrub scrub scrub!
-    while(*c == '#' || isdigit(*c)){
-      while(*c == '#' || isdigit(*c)){
-        ++c;
-      }
-      int column = 0;
-      int rle = 0;
-      // here begins the substance, concluded by '-', '$', or '\e'. '!' indicates rle.
-      while(*c != '-' && *c != '$' && *c != '\e'){
-        if(*c == '!'){
-          rle = 0;
-        }else if(isdigit(*c)){
-          rle *= 10;
-          rle += (*c - '0');
-        }else{
-          if(rle){
-            // FIXME this can skip over the starting column
-            column += (rle - 1);
-            rle = 0;
-          }
-          if(column >= left && column < right){ // zorch it
-//fprintf(stderr, "STARTED WITH %d %c\n", *c, *c);
-            *c = ((*c - 63) & mask) + 63;
-//fprintf(stderr, "CHANGED TO %d %c\n", *c, *c);
-          }
-          ++column;
-        }
-        ++c;
-      }
-      if(*c == '-'){
-        row += 6;
-        if(row >= bottom){
-          return 0;
-        }
-        mask = 0;
-        if(bottom - row < 6){
-          for(int i = 0 ; i < bottom - row ; ++i){
-            mask |= (1 << (6 - i));
-          }
-        }
-      }else if(*c == '\e'){
-        return 0;
-      }
-      column = 0;
-      ++c;
-    }
-  }
-  return 0;
-}
-
 #define RGBSIZE 3
 #define CENTSIZE (RGBSIZE + 1) // size of a color table entry
 
@@ -250,7 +141,7 @@ extract_color_table(const uint32_t* data, int linesize, int begy, int begx, int 
                     int leny, int lenx, int cdimy, int cdimx, sixeltable* stab,
                     sprixcell_e* tacache){
   unsigned char mask = 0xc0;
-  int pos = 0;
+  int pos = 0; // pixel position
   for(int visy = begy ; visy < (begy + leny) ; visy += 6){ // pixel row
     for(int visx = begx ; visx < (begx + lenx) ; visx += 1){ // pixel column
       for(int sy = visy ; sy < (begy + leny) && sy < visy + 6 ; ++sy){ // offset within sprixel

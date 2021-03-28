@@ -759,6 +759,10 @@ plane_debug(const ncplane* n, bool details){
   }
 }
 
+// nulls out a cell from a kitty bitmap via changing the alpha value
+// throughout to 0. the same trick doesn't work on sixel, but there we
+// can just print directly over the bitmap.
+int sprite_kitty_cell_wipe(const notcurses* nc, sprixel* s, int y, int x);
 void sprixel_free(sprixel* s);
 void sprixel_invalidate(sprixel* s);
 void sprixel_hide(sprixel* s);
@@ -1337,9 +1341,6 @@ static inline bool
 ncdirect_bg_default_p(const struct ncdirect* nc){
   return channels_bg_default_p(ncdirect_channels(nc));
 }
-
-int sprite_sixel_cell_wipe(const notcurses* nc, sprixel* s, int y, int x);
-int sprite_kitty_cell_wipe(const notcurses* nc, sprixel* s, int y, int x);
 
 int sixel_blit(ncplane* nc, int linesize, const void* data,
                int leny, int lenx, const blitterargs* bargs);

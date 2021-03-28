@@ -290,7 +290,11 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
         // if we already have a glyph solved, and we run into a bitmap
         // cell, we need to null that cell out of the bitmap.
         if(crender->p || crender->s.bgblends){
-          sprite_wipe_cell(ncplane_notcurses_const(p), p->sprite, y, x);
+          // if sprite_wipe_cell() fails, we presumably do not have the
+          // ability to wipe, and must reprint the character
+          if(sprite_wipe_cell(ncplane_notcurses_const(p), p->sprite, y, x)){
+            crender->s.damaged = 1;
+          }
         }else if(!crender->p){
           // if we are a bitmap, and above a cell that has changed (and
           // will thus be printed), we'll need redraw the sprixel.
@@ -465,7 +469,7 @@ postpaint_cell(nccell* lastframe, int dimx, struct crender* crender,
   lock_in_highcontrast(targc, crender);
   nccell* prevcell = &lastframe[fbcellidx(y, dimx, *x)];
   if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc) > 0){
-    crender->s.damaged = true;
+    crender->s.damaged = 1;
     assert(!cell_wide_right_p(targc));
     const int width = targc->width;
     for(int i = 1 ; i < width ; ++i){
@@ -479,7 +483,7 @@ postpaint_cell(nccell* lastframe, int dimx, struct crender* crender,
       targc->channels = crender[-i].c.channels;
       targc->stylemask = crender[-i].c.stylemask;
       if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc) > 0){
-        crender->s.damaged = true;
+        crender->s.damaged = 1;
       }
     }
   }
@@ -1100,16 +1104,11 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
   // need to home it expliticly.
   update_palette(nc, out);
 //fprintf(stderr, "pile %p ymax: %d xmax: %d\n", p, p->dimy + nc->stdplane->absy, p->dimx + nc->stdplane->absx);
-  if(rasterize_core(nc, p, out)){
+  if(rasterize_sprixels(nc, p, out) < 0){
     return -1;
   }
-  int r = rasterize_sprixels(nc, p, out);
-  if(r < 0){
+  if(rasterize_core(nc, p, out)){
     return -1;
-  }else if(r > 0){
-    if(rasterize_core(nc, p, out)){
-      return -1;
-    }
   }
   if(fflush(out)){
     return -1;
