@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 2.2.4 (not yet released)
+* 2.2.4 (2021-03-29)
   * Implemented **EXPERIMENTAL** `NCBLIT_PIXEL` for terminals reporting the
     Kitty pixel graphics protocol.
   * Added `notcurses_debug_caps()` to dump terminal properties, both those

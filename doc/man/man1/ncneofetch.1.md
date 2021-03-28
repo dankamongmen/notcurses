@@ -1,6 +1,6 @@
 % ncneofetch(1)
 % nick black <nickblack@linux.com>
-% v2.2.3
+% v2.2.4
 
 # NAME
 
