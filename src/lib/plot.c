@@ -418,7 +418,7 @@ ncuplot* ncuplot_create(ncplane* n, const ncplot_options* opts, uint64_t miny, u
   ncuplot* ret = malloc(sizeof(*ret));
   if(ret){
     memset(ret, 0, sizeof(*ret));
-    if(create_uint64_t(ret, n, opts, miny, maxy, 0, UINT64_MAX) == 0){
+    if(create_uint64_t(ret, n, opts, miny, maxy, 0, UINT64_MAX)){
       return ret;
     }
     free(ret);
