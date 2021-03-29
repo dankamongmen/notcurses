@@ -449,7 +449,7 @@ ncdplot* ncdplot_create(ncplane* n, const ncplot_options* opts, double miny, dou
   ncdplot* ret = malloc(sizeof(*ret));
   if(ret){
     memset(ret, 0, sizeof(*ret));
-    if(create_double(ret, n, opts, miny, maxy, -DBL_MAX, DBL_MAX) == 0){
+    if(create_double(ret, n, opts, miny, maxy, -DBL_MAX, DBL_MAX)){
       return ret;
     }
     free(ret);
