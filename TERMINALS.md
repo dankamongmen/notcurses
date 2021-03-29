@@ -19,11 +19,11 @@ relies on the font. Patches to correct/complete this table are very welcome!
 | --------------- | ------------------ | ----- | ------ | -----------------------           | ----- |
 | [Alacritty](https://github.com/alacritty/alacritty)       | ✅                 |  ✅   |❌      |`TERM=alacritty` `COLORTERM=24bit` | |
 | [FBterm](https://github.com/zhangyuanwei/fbterm)          | ❌                 |  ?    |?       |`TERM=fbterm`                      | 256 colors, no RGB color. |
-| [foot](https://codeberg.org/dnkl/foot)            | ✅                 |  ✅   |✅      |`TERM=foot`                        | |
+| [foot](https://codeberg.org/dnkl/foot)            | ✅                 |  ✅   |✅      |`TERM=foot`                        | Sixel support. |
 | [Gnome Terminal](https://gitlab.gnome.org/GNOME/gnome-terminal)  |                    |  ❌   |✅      |`TERM=gnome` `COLORTERM=24bit`     | `ccc` support *is* available when run with `vte-256color`. |
 | [Guake](https://github.com/Guake/guake)           |                    |  ?    |?       |                                   | |
 | [ITerm2](https://github.com/gnachman/iTerm2)          |                    |  ?    |?       |                                   | |
-| [Kitty](https://github.com/kovidgoyal/kitty)           | ✅                 |  ✅   |✅      |`TERM=xterm-kitty`                 | |
+| [Kitty](https://github.com/kovidgoyal/kitty)           | ✅                 |  ✅   |✅      |`TERM=xterm-kitty`                 | See below. |
 | [kmscon](https://github.com/dvdhrm/kmscon)          |                    |  ?    |?       |`TERM=xterm-256color`              | No RGB color AFAICT, nor any distinct terminfo entry. |
 | [Konsole](https://invent.kde.org/utilities/konsole)         | ❌                 |  ❌   |?       |`TERM=konsole-direct`              | |
 | Linux console   | ❌                 |  ✅   |see [below](#the-linux-console) |`TERM=linux` `COLORTERM=24bit`   | 8 (512 glyph fonts) or 16 (256 glyph fonts) colors max, but RGB values are downsampled to a 256-index palette. See below. |
@@ -37,7 +37,7 @@ relies on the font. Patches to correct/complete this table are very welcome!
 | Terminology     | ❌                 |  ?    |?       | ?                               | |
 | [Tilda](https://github.com/lanoxx/tilda)           |                    |  ?    |?       | ?                               | |
 | [tmux](https://github.com/tmux/tmux/wiki)            |                    |  ❌   |n/a     |`TERM=tmux-256color` `COLORTERM=24bit` | `tmux.conf` must apply `Tc`; see below. `bce` is available with the `tmux-256color-bce` definition. |
-| [wezterm](https://github.com/wez/wezterm)         |                    |  ✅   |?       |`TERM=wezterm` `COLORTERM=24bit` | |
+| [wezterm](https://github.com/wez/wezterm)         |                    |  ✅   |?       |`TERM=wezterm` `COLORTERM=24bit` | See below. |
 | [Windows Terminal](https://github.com/microsoft/terminal)|                    |  ?    |?       | ?                               | |
 | [wterm](https://github.com/majestrate/wterm)           |                    |  ?    |?       | ?                               | |
 | [XFCE4 Terminal](https://gitlab.xfce.org/apps/xfce4-terminal)  | ❌                 |  ✅   |✅      |`TERM=xfce` `COLORTERM=24bit`    | No `xfce-direct` variant exists. |
@@ -45,7 +45,8 @@ relies on the font. Patches to correct/complete this table are very welcome!
 | [Yakuake](https://github.com/KDE/yakuake)         |                    |  ?    |?       | ?                               | |
 
 Note that `xfce4-terminal`, `gnome-terminal`, etc. are essentially skinning
-atop the common VTE ("Virtual TErminal") library.
+atop the common GNOME [VTE ("Virtual
+TErminal")](https://gitlab.gnome.org/GNOME/vte) library.
 
 ## Kitty
 
@@ -62,6 +63,11 @@ be demonstrated with the `kittyzapper` binary (`src/poc/kittyzapper.c`).
 
 Kitty is furthermore the only terminal I know to lack the `bce` (Background
 Color Erase) capability, but Notcurses never relies on `bce` behavior.
+
+## Wezterm
+
+Wezterm [implements](https://wezfurlong.org/wezterm/escape-sequences.html) some
+interesting underline options, and the iTerm2 graphic protocol.
 
 ## GNU screen
 
