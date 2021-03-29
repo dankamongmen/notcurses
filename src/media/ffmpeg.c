@@ -1,6 +1,5 @@
 #include "builddef.h"
 #ifdef USE_FFMPEG
-extern "C" {
 #include <libavutil/error.h>
 #include <libavutil/frame.h>
 #include <libavutil/pixdesc.h>
@@ -11,7 +10,6 @@ extern "C" {
 #include <libswscale/version.h>
 #include <libavformat/version.h>
 #include <libavformat/avformat.h>
-}
 #include "internal.h"
 #include "visual-details.h"
 
@@ -42,9 +40,9 @@ typedef struct ncvisual_details {
 #define IMGALLOCALIGN 32
 
 /*static void
-print_frame_summary(const AVCodecContext* cctx, const AVFrame* f) {
+print_frame_summary(const AVCodecContext* cctx, const AVFrame* f){
   char pfmt[128];
-  av_get_pix_fmt_string(pfmt, sizeof(pfmt), static_cast<enum AVPixelFormat>(f->format));
+  av_get_pix_fmt_string(pfmt, sizeof(pfmt), f->format);
   fprintf(stderr, "Frame %05d (%d? %d?) %dx%d pfmt %d (%s)\n",
           cctx->frame_number,
           f->coded_picture_number,
@@ -80,12 +78,12 @@ print_frame_summary(const AVCodecContext* cctx, const AVFrame* f) {
 }*/
 
 static char*
-deass(const char* ass) {
+deass(const char* ass){
   // SSA/ASS formats:
   // Dialogue: Marked=0,0:02:40.65,0:02:41.79,Wolf main,Cher,0000,0000,0000,,Et les enregistrements de ses ondes delta ?
   // FIXME more
   if(strncmp(ass, "Dialogue:", strlen("Dialogue:"))){
-    return nullptr;
+    return NULL;
   }
   const char* delim = strchr(ass, ',');
   int commas = 0; // we want 8
@@ -94,7 +92,7 @@ deass(const char* ass) {
     ++commas;
   }
   if(!delim){
-    return nullptr;
+    return NULL;
   }
   // handle ASS syntax...\i0, \b0, etc.
   char* dup = strdup(delim + 1);
@@ -112,16 +110,16 @@ deass(const char* ass) {
   return dup;
 }
 
-auto ffmpeg_subtitle(const ncvisual* ncv) -> char* {
+char* ffmpeg_subtitle(const ncvisual* ncv){
   for(unsigned i = 0 ; i < ncv->details->subtitle.num_rects ; ++i){
     const AVSubtitleRect* rect = ncv->details->subtitle.rects[i];
     if(rect->type == SUBTITLE_ASS){
       return deass(rect->ass);
-    }else if(rect->type == SUBTITLE_TEXT) {;
+    }else if(rect->type == SUBTITLE_TEXT){;
       return strdup(rect->text);
     }
   }
-  return nullptr;
+  return NULL;
 }
 
 static int
@@ -135,7 +133,7 @@ averr2ncerr(int averr){
 }
 
 int ffmpeg_decode(ncvisual* nc){
-  if(nc->details->fmtctx == nullptr){ // not a file-backed ncvisual
+  if(nc->details->fmtctx == NULL){ // not a file-backed ncvisual
     return -1;
   }
   bool have_frame = false;
@@ -192,30 +190,30 @@ int ffmpeg_decode(ncvisual* nc){
   nc->cols = nc->details->frame->width;
   nc->rows = nc->details->frame->height;
 //fprintf(stderr, "good decode! %d/%d %d %p\n", nc->details->frame->height, nc->details->frame->width, nc->rowstride, f->data);
-  ncvisual_set_data(nc, reinterpret_cast<uint32_t*>(f->data[0]), false);
+  ncvisual_set_data(nc, f->data[0], false);
   return 0;
 }
 
 // resize frame to oframe, converting to RGBA (if necessary) along the way
-int ffmpeg_resize(ncvisual* nc, int rows, int cols) {
+int ffmpeg_resize(ncvisual* nc, int rows, int cols){
   const int targformat = AV_PIX_FMT_RGBA;
   AVFrame* inf = nc->details->oframe ? nc->details->oframe : nc->details->frame;
 //fprintf(stderr, "got format: %d (%d/%d) want format: %d (%d/%d)\n", inf->format, nc->rows, nc->cols, targformat, rows, cols);
   if(inf->format == targformat && nc->rows == rows && nc->cols == cols){
     return 0;
   }
-  auto swsctx = sws_getContext(inf->width,
-                               inf->height,
-                               static_cast<AVPixelFormat>(inf->format),
-                               cols, rows,
-                               static_cast<AVPixelFormat>(targformat),
-                               SWS_LANCZOS, nullptr, nullptr, nullptr);
-  if(swsctx == nullptr){
+  struct SwsContext* swsctx = sws_getContext(inf->width,
+                                             inf->height,
+                                             inf->format,
+                                             cols, rows,
+                                             targformat,
+                                             SWS_LANCZOS, NULL, NULL, NULL);
+  if(swsctx == NULL){
     //fprintf(stderr, "Error retrieving swsctx\n");
     return -1;
   }
   AVFrame* sframe;
-  if((sframe = av_frame_alloc()) == nullptr){
+  if((sframe = av_frame_alloc()) == NULL){
     // fprintf(stderr, "Couldn't allocate frame for %s\n", filename);
     sws_freeContext(swsctx);
     return -1; // no need to free swsctx
@@ -227,15 +225,14 @@ int ffmpeg_resize(ncvisual* nc, int rows, int cols) {
 //fprintf(stderr, "SIZE DECODED: %d %d (%d) (want %d %d)\n", nc->rows, nc->cols, inf->linesize[0], rows, cols);
   int size = av_image_alloc(sframe->data, sframe->linesize,
                             sframe->width, sframe->height,
-                            static_cast<AVPixelFormat>(sframe->format),
-                            IMGALLOCALIGN);
+                            sframe->format, IMGALLOCALIGN);
   if(size < 0){
 //fprintf(stderr, "Error allocating visual data (%d)\n", size);
     av_freep(&sframe);
     sws_freeContext(swsctx);
     return -1;
   }
-  int height = sws_scale(swsctx, inf->data,
+  int height = sws_scale(swsctx, (const uint8_t * const*)inf->data,
                          inf->linesize, 0,
                          inf->height, sframe->data,
                          sframe->linesize);
@@ -247,7 +244,7 @@ int ffmpeg_resize(ncvisual* nc, int rows, int cols) {
     return -1;
   }
   const AVFrame* f = sframe;
-  int bpp = av_get_bits_per_pixel(av_pix_fmt_desc_get(static_cast<AVPixelFormat>(f->format)));
+  int bpp = av_get_bits_per_pixel(av_pix_fmt_desc_get(f->format));
   if(bpp != 32){
 //fprintf(stderr, "Bad bits-per-pixel (wanted 32, got %d)\n", bpp);
     av_freep(sframe->data);
@@ -257,7 +254,7 @@ int ffmpeg_resize(ncvisual* nc, int rows, int cols) {
   nc->rowstride = sframe->linesize[0];
   nc->rows = rows;
   nc->cols = cols;
-  ncvisual_set_data(nc, reinterpret_cast<uint32_t*>(sframe->data[0]), true);
+  ncvisual_set_data(nc, sframe->data[0], true);
   if(nc->details->oframe){
     //av_freep(nc->details->oframe->data);
     av_freep(&nc->details->oframe);
@@ -268,40 +265,46 @@ int ffmpeg_resize(ncvisual* nc, int rows, int cols) {
   return 0;
 }
 
-auto ffmpeg_details_init(void) -> ncvisual_details* {
-  auto deets = new ncvisual_details{};
-  deets->stream_index = -1;
-  deets->sub_stream_index = -1;
-  if((deets->frame = av_frame_alloc()) == nullptr){
-    delete deets;
-    return nullptr;
+ncvisual_details* ffmpeg_details_init(void){
+  ncvisual_details* deets = malloc(sizeof(*deets));
+  if(deets){
+    memset(deets, 0, sizeof(*deets));
+    deets->stream_index = -1;
+    deets->sub_stream_index = -1;
+    if((deets->frame = av_frame_alloc()) == NULL){
+      free(deets);
+      return NULL;
+    }
   }
   return deets;
 }
 
-auto ffmpeg_create() -> ncvisual* {
-  auto nc = new ncvisual{};
-  if((nc->details = ffmpeg_details_init()) == nullptr){
-    delete nc;
-    return nullptr;
+ncvisual* ffmpeg_create(){
+  ncvisual* nc = malloc(sizeof(*nc));
+  if(nc){
+    memset(nc, 0, sizeof(*nc));
+    if((nc->details = ffmpeg_details_init()) == NULL){
+      free(nc);
+      return NULL;
+    }
   }
   return nc;
 }
 
-ncvisual* ffmpeg_from_file(const char* filename) {
+ncvisual* ffmpeg_from_file(const char* filename){
   AVStream* st;
   ncvisual* ncv = ffmpeg_create();
-  if(ncv == nullptr){
+  if(ncv == NULL){
     // fprintf(stderr, "Couldn't create %s (%s)\n", filename, strerror(errno));
-    return nullptr;
+    return NULL;
   }
 //fprintf(stderr, "FRAME FRAME: %p\n", ncv->details->frame);
-  int averr = avformat_open_input(&ncv->details->fmtctx, filename, nullptr, nullptr);
+  int averr = avformat_open_input(&ncv->details->fmtctx, filename, NULL, NULL);
   if(averr < 0){
 //fprintf(stderr, "Couldn't open %s (%d)\n", filename, averr);
     goto err;
   }
-  averr = avformat_find_stream_info(ncv->details->fmtctx, nullptr);
+  averr = avformat_find_stream_info(ncv->details->fmtctx, NULL);
   if(averr < 0){
 //fprintf(stderr, "Error extracting stream info from %s (%d)\n", filename, averr);
     goto err;
@@ -309,12 +312,12 @@ ncvisual* ffmpeg_from_file(const char* filename) {
 //av_dump_format(ncv->details->fmtctx, 0, filename, false);
   if((averr = av_find_best_stream(ncv->details->fmtctx, AVMEDIA_TYPE_SUBTITLE, -1, -1, &ncv->details->subtcodec, 0)) >= 0){
     ncv->details->sub_stream_index = averr;
-    if((ncv->details->subtcodecctx = avcodec_alloc_context3(ncv->details->subtcodec)) == nullptr){
+    if((ncv->details->subtcodecctx = avcodec_alloc_context3(ncv->details->subtcodec)) == NULL){
       //fprintf(stderr, "Couldn't allocate decoder for %s\n", filename);
       goto err;
     }
     // FIXME do we need avcodec_parameters_to_context() here?
-    if(avcodec_open2(ncv->details->subtcodecctx, ncv->details->subtcodec, nullptr) < 0){
+    if(avcodec_open2(ncv->details->subtcodecctx, ncv->details->subtcodec, NULL) < 0){
       //fprintf(stderr, "Couldn't open codec for %s (%s)\n", filename, av_err2str(*averr));
       goto err;
     }
@@ -322,7 +325,7 @@ ncvisual* ffmpeg_from_file(const char* filename) {
     ncv->details->sub_stream_index = -1;
   }
 //fprintf(stderr, "FRAME FRAME: %p\n", ncv->details->frame);
-  if((ncv->details->packet = av_packet_alloc()) == nullptr){
+  if((ncv->details->packet = av_packet_alloc()) == NULL){
     // fprintf(stderr, "Couldn't allocate packet for %s\n", filename);
     goto err;
   }
@@ -331,23 +334,23 @@ ncvisual* ffmpeg_from_file(const char* filename) {
     goto err;
   }
   ncv->details->stream_index = averr;
-  if(ncv->details->codec == nullptr){
+  if(ncv->details->codec == NULL){
     //fprintf(stderr, "Couldn't find decoder for %s\n", filename);
     goto err;
   }
   st = ncv->details->fmtctx->streams[ncv->details->stream_index];
-  if((ncv->details->codecctx = avcodec_alloc_context3(ncv->details->codec)) == nullptr){
+  if((ncv->details->codecctx = avcodec_alloc_context3(ncv->details->codec)) == NULL){
     //fprintf(stderr, "Couldn't allocate decoder for %s\n", filename);
     goto err;
   }
   if(avcodec_parameters_to_context(ncv->details->codecctx, st->codecpar) < 0){
     goto err;
   }
-  if(avcodec_open2(ncv->details->codecctx, ncv->details->codec, nullptr) < 0){
+  if(avcodec_open2(ncv->details->codecctx, ncv->details->codec, NULL) < 0){
     //fprintf(stderr, "Couldn't open codec for %s (%s)\n", filename, av_err2str(*averr));
     goto err;
   }
-  /*if((ncv->cparams = avcodec_parameters_alloc()) == nullptr){
+  /*if((ncv->cparams = avcodec_parameters_alloc()) == NULL){
     //fprintf(stderr, "Couldn't allocate codec params for %s\n", filename);
     goto err;
   }
@@ -366,7 +369,7 @@ ncvisual* ffmpeg_from_file(const char* filename) {
 
 err:
   ncvisual_destroy(ncv);
-  return nullptr;
+  return NULL;
 }
 
 // iterate over the decoded frames, calling streamer() with curry for each.
@@ -375,7 +378,7 @@ err:
 // up playback.
 int ffmpeg_stream(notcurses* nc, ncvisual* ncv, float timescale,
                   streamcb streamer, const struct ncvisual_options* vopts,
-                  void* curry) {
+                  void* curry){
   int frame = 1;
   struct timespec begin; // time we started
   clock_gettime(CLOCK_MONOTONIC, &begin);
@@ -385,7 +388,7 @@ int ffmpeg_stream(notcurses* nc, ncvisual* ncv, float timescale,
   // we don't have PTS available.
   uint64_t sum_duration = 0;
   ncplane* newn = NULL;
-  ncvisual_options activevopts;
+  struct ncvisual_options activevopts;
   memcpy(&activevopts, vopts, sizeof(*vopts));
   int ncerr;
   do{
@@ -399,7 +402,7 @@ int ffmpeg_stream(notcurses* nc, ncvisual* ncv, float timescale,
     }
     // decay the blitter explicitly, so that the callback knows the blitter it
     // was actually rendered with
-    auto bset = rgba_blitter(nc, &activevopts);
+    const struct blitset* bset = rgba_blitter(nc, &activevopts);
     if(bset){
       activevopts.blitter = bset->geom;
     }
@@ -457,29 +460,29 @@ int ffmpeg_decode_loop(ncvisual* ncv){
 
 int ffmpeg_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
                 const struct blitset* bset,
-                int leny, int lenx, const blitterargs* bargs) {
+                int leny, int lenx, const blitterargs* bargs){
   const AVFrame* inframe = ncv->details->oframe ? ncv->details->oframe : ncv->details->frame;
 //fprintf(stderr, "inframe: %p oframe: %p frame: %p\n", inframe, ncv->details->oframe, ncv->details->frame);
-  void* data = nullptr;
+  void* data = NULL;
   int stride = 0;
-  AVFrame* sframe = nullptr;
+  AVFrame* sframe = NULL;
   const int targformat = AV_PIX_FMT_RGBA;
 //fprintf(stderr, "got format: %d want format: %d\n", inframe->format, targformat);
   if(inframe && (cols != inframe->width || rows != inframe->height || inframe->format != targformat)){
 //fprintf(stderr, "resize+render: %d/%d->%d/%d (%dX%d @ %dX%d, %d/%d)\n", inframe->height, inframe->width, rows, cols, begy, begx, placey, placex, leny, lenx);
     sframe = av_frame_alloc();
-    if(sframe == nullptr){
+    if(sframe == NULL){
 //fprintf(stderr, "Couldn't allocate output frame for scaled frame\n");
       return -1;
     }
     //fprintf(stderr, "WHN NCV: %d/%d\n", inframe->width, inframe->height);
     ncv->details->swsctx = sws_getCachedContext(ncv->details->swsctx,
                                                ncv->cols, ncv->rows,
-                                               static_cast<AVPixelFormat>(inframe->format),
+                                               inframe->format,
                                                cols, rows,
-                                               static_cast<AVPixelFormat>(targformat),
-                                               SWS_LANCZOS, nullptr, nullptr, nullptr);
-    if(ncv->details->swsctx == nullptr){
+                                               targformat,
+                                               SWS_LANCZOS, NULL, NULL, NULL);
+    if(ncv->details->swsctx == NULL){
 //fprintf(stderr, "Error retrieving details->swsctx\n");
       return -1;
     }
@@ -489,7 +492,7 @@ int ffmpeg_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
     sframe->height = rows;
     int size = av_image_alloc(sframe->data, sframe->linesize,
                               sframe->width, sframe->height,
-                              static_cast<AVPixelFormat>(sframe->format),
+                              sframe->format,
                               IMGALLOCALIGN);
     if(size < 0){
 //fprintf(stderr, "Error allocating visual data (%d X %d)\n", sframe->height, sframe->width);
@@ -525,10 +528,10 @@ int ffmpeg_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
   return 0;
 }
 
-auto ffmpeg_details_seed(ncvisual* ncv) -> void {
-  assert(nullptr == ncv->details->oframe);
-  ncv->details->frame->data[0] = reinterpret_cast<uint8_t*>(ncv->data);
-  ncv->details->frame->data[1] = nullptr;
+void ffmpeg_details_seed(ncvisual* ncv){
+  assert(NULL == ncv->details->oframe);
+  ncv->details->frame->data[0] = (uint8_t*)ncv->data;
+  ncv->details->frame->data[1] = NULL;
   ncv->details->frame->linesize[0] = ncv->rowstride;
   ncv->details->frame->linesize[1] = 0;
   ncv->details->frame->width = ncv->cols;
@@ -536,7 +539,7 @@ auto ffmpeg_details_seed(ncvisual* ncv) -> void {
   ncv->details->frame->format = AV_PIX_FMT_RGBA;
 }
 
-auto ffmpeg_log_level(int level) -> int{
+int ffmpeg_log_level(int level){
   switch(level){
     case NCLOGLEVEL_SILENT: return AV_LOG_QUIET;
     case NCLOGLEVEL_PANIC: return AV_LOG_PANIC;
@@ -553,7 +556,7 @@ auto ffmpeg_log_level(int level) -> int{
   return AV_LOG_TRACE;
 }
 
-auto ffmpeg_init(int loglevel) -> int {
+int ffmpeg_init(int loglevel){
   av_log_set_level(ffmpeg_log_level(loglevel));
   // FIXME could also use av_log_set_callback() and capture the message...
   return 0;
@@ -566,7 +569,7 @@ void ffmpeg_printbanner(const notcurses* nc __attribute__ ((unused))){
          LIBSWSCALE_VERSION_MAJOR, LIBSWSCALE_VERSION_MINOR, LIBSWSCALE_VERSION_MICRO);
 }
 
-auto ffmpeg_details_destroy(ncvisual_details* deets) -> void {
+void ffmpeg_details_destroy(ncvisual_details* deets){
   avcodec_close(deets->codecctx);
   avcodec_free_context(&deets->subtcodecctx);
   avcodec_free_context(&deets->codecctx);
@@ -577,16 +580,16 @@ auto ffmpeg_details_destroy(ncvisual_details* deets) -> void {
   av_packet_free(&deets->packet);
   avformat_close_input(&deets->fmtctx);
   avsubtitle_free(&deets->subtitle);
-  delete deets;
+  free(deets);
 }
 
-auto ffmpeg_destroy(ncvisual* ncv) -> void {
+void ffmpeg_destroy(ncvisual* ncv){
   if(ncv){
     ffmpeg_details_destroy(ncv->details);
     if(ncv->owndata){
       free(ncv->data);
     }
-    delete ncv;
+    free(ncv);
   }
 }
 
