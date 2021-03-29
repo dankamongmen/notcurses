@@ -8,7 +8,7 @@ steps:
   image: dankamongmen/unstable_builder:2021-03-18a
   commands:
     - export LANG=en_US.UTF-8
-    - export TERM=xterm
+    - export TERM=vt100
     - mkdir build
     - cd build
     - cmake .. -DCMAKE_BUILD_TYPE=Release
@@ -34,7 +34,7 @@ steps:
   image: dankamongmen/edge_builder:2021-03-18a
   commands:
     - export LANG=en_US.UTF-8
-    - export TERM=xterm
+    - export TERM=vt100
     - mkdir build
     - cd build
     - cmake -DCMAKE_BUILD_TYPE=Release -DUSE_QRCODEGEN=off -DUSE_PANDOC=off ..
@@ -50,7 +50,7 @@ steps:
   image: dankamongmen/rawhide:2021-03-18a
   commands:
     - export LANG=en_US.UTF-8
-    - export TERM=xterm
+    - export TERM=vt100
     - mkdir build
     - cd build
     - cmake -DCMAKE_BUILD_TYPE=Release -DUSE_MULTIMEDIA=oiio ..
