@@ -422,6 +422,7 @@ ncuplot* ncuplot_create(ncplane* n, const ncplot_options* opts, uint64_t miny, u
       return ret;
     }
     free(ret);
+    ret = NULL;
   }
   return ret;
 }
@@ -453,6 +454,7 @@ ncdplot* ncdplot_create(ncplane* n, const ncplot_options* opts, double miny, dou
       return ret;
     }
     free(ret);
+    ret = NULL;
   }
   return ret;
 }
