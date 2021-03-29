@@ -119,6 +119,7 @@ if(NOT "${HAVE_QRCODEGEN_H}")
 endif()
 set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND qrcodegen)
 endif()
+find_library(LIBM m)
 find_library(LIBRT rt)
 feature_summary(WHAT ALL FATAL_ON_MISSING_REQUIRED_PACKAGES)
 
@@ -163,6 +164,7 @@ target_link_libraries(notcurses-core
   PRIVATE
     "${TERMINFO_LIBRARIES}"
     "${READLINE_LIBRARIES}"
+    "${LIBM}"
     "${LIBRT}"
     unistring
   PUBLIC
@@ -172,6 +174,7 @@ target_link_libraries(notcurses-core-static
   PRIVATE
     "${TERMINFO_STATIC_LIBRARIES}"
     "${READLINE_STATIC_LIBRARIES}"
+    "${LIBM}"
     "${LIBRT}"
     unistring
   PUBLIC

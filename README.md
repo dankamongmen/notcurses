@@ -103,14 +103,14 @@ portability, you should by all means use that fine library.
 Minimum versions generally indicate the oldest version I've tested with; it
 may well be possible to use still older versions. Let me know of any successes!
 
-* (build) A C11 and a C++17 compiler
-* (build) CMake 3.14.0+
+* (build) CMake 3.14.0+ and a C11 compiler
+* (OPTIONAL) (OpenImageIO, testing, C++ bindings): A C++17 compiler
 * (build+runtime) From [NCURSES](https://invisible-island.net/ncurses/announce.html): terminfo 6.1+
 * (build+runtime) GNU [libunistring](https://www.gnu.org/software/libunistring/) 0.9.10+
 * (build+runtime) GNU [Readline](https://www.gnu.org/software/readline/) 8.0+
 * (OPTIONAL) (build+runtime) From QR-Code-generator: [libqrcodegen](https://github.com/nayuki/QR-Code-generator) 1.5.0+
 * (OPTIONAL) (build+runtime) From [FFmpeg](https://www.ffmpeg.org/): libswscale 5.0+, libavformat 57.0+, libavutil 56.0+
-* (OPTIONAL) (build+runtime) [OpenImageIO](https://github.com/OpenImageIO/oiio) 2.15.0+
+* (OPTIONAL) (build+runtime) [OpenImageIO](https://github.com/OpenImageIO/oiio) 2.15.0+, requires C++
 * (OPTIONAL) (testing) [Doctest](https://github.com/onqtam/doctest) 2.3.5+
 * (OPTIONAL) (documentation) [pandoc](https://pandoc.org/index.html) 1.19.2+
 * (OPTIONAL) (python bindings): Python 3.7+, [CFFI](https://pypi.org/project/cffi/) 1.13.2+, [pypandoc](https://pypi.org/project/pypandoc/) 1.5+
