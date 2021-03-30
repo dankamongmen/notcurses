@@ -121,29 +121,6 @@ int ncdirect_cursor_disable(ncdirect* nc){
   return term_emit(nc->tcache.civis, nc->ttyfp, true);
 }
 
-int ncdirect_cursor_move_yx(ncdirect* n, int y, int x){
-  if(y == -1){ // keep row the same, horizontal move only
-    if(!n->tcache.hpa){
-      return -1;
-    }
-    return term_emit(tiparm(n->tcache.hpa, x), n->ttyfp, false);
-  }else if(x == -1){ // keep column the same, vertical move only
-    if(!n->tcache.vpa){
-      return -1;
-    }
-    return term_emit(tiparm(n->tcache.vpa, y), n->ttyfp, false);
-  }
-  if(n->tcache.cup){
-    return term_emit(tiparm(n->tcache.cup, y, x), n->ttyfp, false);
-  }else if(n->tcache.vpa && n->tcache.hpa){
-    if(term_emit(tiparm(n->tcache.hpa, x), n->ttyfp, false) == 0 &&
-       term_emit(tiparm(n->tcache.vpa, y), n->ttyfp, false) == 0){
-      return 0;
-    }
-  }
-  return -1;
-}
-
 static int
 cursor_yx_get(int ttyfd, int* y, int* x){
   if(writen(ttyfd, "\033[6n", 4) != 4){
@@ -206,6 +183,35 @@ cursor_yx_get(int ttyfd, int* y, int* x){
     *x = column;
   }
   return 0;
+}
+
+int ncdirect_cursor_move_yx(ncdirect* n, int y, int x){
+  if(y == -1){ // keep row the same, horizontal move only
+    if(n->tcache.hpa){
+      return term_emit(tiparm(n->tcache.hpa, x), n->ttyfp, false);
+    }else{
+      if(cursor_yx_get(n->ctermfd, &y, NULL)){
+        return -1;
+      }
+    }
+  }else if(x == -1){ // keep column the same, vertical move only
+    if(!n->tcache.vpa){
+      return term_emit(tiparm(n->tcache.vpa, y), n->ttyfp, false);
+    }else{
+      if(cursor_yx_get(n->ctermfd, NULL, &x)){
+        return -1;
+      }
+    }
+  }
+  if(n->tcache.cup){
+    return term_emit(tiparm(n->tcache.cup, y, x), n->ttyfp, false);
+  }else if(n->tcache.vpa && n->tcache.hpa){
+    if(term_emit(tiparm(n->tcache.hpa, x), n->ttyfp, false) == 0 &&
+       term_emit(tiparm(n->tcache.vpa, y), n->ttyfp, false) == 0){
+      return 0;
+    }
+  }
+  return -1;
 }
 
 // an algorithm to detect inverted cursor reporting on terminals 2x2 or larger:
