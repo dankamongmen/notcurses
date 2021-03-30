@@ -13,7 +13,7 @@ steps:
     - cd build
     - cmake .. -DCMAKE_BUILD_TYPE=Release
     - make -j2
-    - ctest
+    - ctest --output-on-failure
     - make install
     - ldconfig
     - cd ../cffi
@@ -39,7 +39,7 @@ steps:
     - cd build
     - cmake -DCMAKE_BUILD_TYPE=Release -DUSE_QRCODEGEN=off -DUSE_PANDOC=off ..
     - make -j2
-    - ctest
+    - ctest --output-on-failure
 ---
 kind: pipeline
 type: docker
@@ -55,7 +55,7 @@ steps:
     - cd build
     - cmake -DCMAKE_BUILD_TYPE=Release -DUSE_MULTIMEDIA=oiio ..
     - make -j2
-    - ctest
+    - ctest --output-on-failure
     - make install
     - ldconfig
     - cd ../rust
@@ -80,7 +80,7 @@ steps:
     - cd build
     - cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_MULTIMEDIA=none ..
     - make -j2
-    - ctest -V
+    - ctest --output-on-failure
     - make install
     - ldconfig
     - cd ../cffi

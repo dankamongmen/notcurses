@@ -190,7 +190,7 @@ struct crender {
   const ncplane *p; // source of glyph for this cell
   nccell c;
   uint32_t hcfg;       // fg channel prior to HIGHCONTRAST (need full channel)
-  uint32_t sprixelid;  // id of sprixel we're potentially invalidating
+  sprixel* sprixel;    // bitmap encountered during traversal
   struct {
     // If the glyph we render is from an ncvisual, and has a transparent or
     // blended background, blitter stacking is in effect. This is a complicated
@@ -246,7 +246,7 @@ highcontrast(uint32_t bchannel){
 // rendered.
 //
 static void
-paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
+paint(ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
       int dstabsy, int dstabsx){
   int y, x, dimy, dimx, offy, offx;
   ncplane_dim_yx(p, &dimy, &dimx);
@@ -298,8 +298,8 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
         }else if(!crender->p){
           // if we are a bitmap, and above a cell that has changed (and
           // will thus be printed), we'll need redraw the sprixel.
-          if(rvec->sprixelid == 0){
-            rvec->sprixelid = cell_sprixel_id(vis);
+          if(rvec->sprixel == NULL){
+            rvec->sprixel = sprixel_by_id(ncplane_notcurses(p), cell_sprixel_id(vis));
           }
         }
         continue;
@@ -388,6 +388,9 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
         // if the following is true, we're a real glyph, and not the right-hand
         // side of a wide glyph (nor the null codepoint).
         if( (targc->gcluster = vis->gcluster) ){ // index copy only
+          if(rvec->sprixel && rvec->sprixel->invalidated == SPRIXEL_HIDE){
+            crender->s.damaged = true;
+          }
           crender->s.blittedquads = cell_blittedquadrants(vis);
           // we can't plop down a wide glyph if the next cell is beyond the
           // screen, nor if we're bisected by a higher plane.
@@ -511,7 +514,7 @@ postpaint(nccell* lastframe, int dimy, int dimx, struct crender* rvec, egcpool* 
 
 // merging one plane down onto another is basically just performing a render
 // using only these two planes, with the result written to the lower plane.
-int ncplane_mergedown(const ncplane* restrict src, ncplane* restrict dst,
+int ncplane_mergedown(ncplane* restrict src, ncplane* restrict dst,
                       int begsrcy, int begsrcx, int leny, int lenx,
                       int dsty, int dstx){
 //fprintf(stderr, "Merging down %d/%d @ %d/%d to %d/%d\n", leny, lenx, begsrcy, begsrcx, dsty, dstx);
@@ -557,7 +560,7 @@ int ncplane_mergedown(const ncplane* restrict src, ncplane* restrict dst,
   return 0;
 }
 
-int ncplane_mergedown_simple(const ncplane* restrict src, ncplane* restrict dst){
+int ncplane_mergedown_simple(ncplane* restrict src, ncplane* restrict dst){
   const notcurses* nc = ncplane_notcurses_const(src);
   if(dst == NULL){
     dst = nc->stdplane;
@@ -1067,8 +1070,8 @@ rasterize_core(notcurses* nc, const ncpile* p, FILE* out){
           nc->rstate.bgpalelidable = false;
         }
 //fprintf(stderr, "RAST %08x [%s] to %d/%d cols: %u %016lx\n", srccell->gcluster, pool_extended_gcluster(&nc->pool, srccell), y, x, srccell->width, srccell->channels);
-        if(rvec[damageidx].sprixelid){
-          sprixel_invalidate(sprixel_by_id(nc, rvec[damageidx].sprixelid));
+        if(rvec[damageidx].sprixel){
+          sprixel_invalidate(rvec[damageidx].sprixel);
         }
         if(term_putc(out, &nc->pool, srccell)){
           return -1;
