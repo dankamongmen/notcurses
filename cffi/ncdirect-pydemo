@@ -24,7 +24,10 @@ def print_rgb(nc, total):
 
 def demo():
     nc = notcurses.Ncdirect()
-    nc.cursorDisable()
+    try:
+        nc.cursorDisable()
+    except RuntimeError:
+        print("Couldn't disable cursor")
     for t in range(768):
       print_rgb(nc, t);
     print()
