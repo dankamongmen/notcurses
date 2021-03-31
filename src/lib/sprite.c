@@ -7,10 +7,25 @@ void sprixel_free(sprixel* s){
   }
 }
 
+// store the original (absolute) coordinates from which we moved, so that
+// we can invalidate them in sprite_draw().
+void sprixel_movefrom(sprixel* s, int y, int x){
+  if(s->invalidated != SPRIXEL_HIDE){
+    if(s->invalidated != SPRIXEL_MOVED){
+      s->invalidated = SPRIXEL_MOVED;
+      s->movedfromy = y;
+      s->movedfromx = x;
+    }
+  }
+}
+
 void sprixel_hide(sprixel* s){
-  s->invalidated = SPRIXEL_HIDE;
-  s->n->sprite = NULL;
-  s->n = NULL;
+  // guard so that a double call doesn't drop core on s->n->sprite
+  if(s->invalidated != SPRIXEL_HIDE){
+    s->invalidated = SPRIXEL_HIDE;
+    s->n->sprite = NULL;
+    s->n = NULL;
+  }
 }
 
 void sprixel_invalidate(sprixel* s){
@@ -83,6 +98,12 @@ int sprite_wipe_cell(const notcurses* nc, sprixel* s, int ycell, int xcell){
   if(r == 0){
     s->invalidated = SPRIXEL_INVALIDATED;
   }
+  return r;
+}
+
+// precondition: s->invalidated is SPRIXEL_INVALIDATED or SPRIXEL_MOVED.
+int sprite_draw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
+  int r = n->tcache.pixel_draw(n, p, s, out);
   return r;
 }
 

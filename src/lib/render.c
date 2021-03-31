@@ -184,40 +184,6 @@ int cell_duplicate(ncplane* n, nccell* targ, const nccell* c){
   return 0;
 }
 
-// Extracellular state for a cell during the render process. There is one
-// crender per rendered cell, and they are initialized to all zeroes.
-struct crender {
-  const ncplane *p; // source of glyph for this cell
-  nccell c;
-  uint32_t hcfg;       // fg channel prior to HIGHCONTRAST (need full channel)
-  sprixel* sprixel;    // bitmap encountered during traversal
-  struct {
-    // If the glyph we render is from an ncvisual, and has a transparent or
-    // blended background, blitter stacking is in effect. This is a complicated
-    // issue, but essentially, imagine a bottom block is rendered with a green
-    // bottom and transparent top. on a lower plane, a top block is rendered
-    // with a red foreground and blue background. Normally, this would result
-    // in a blue top and green bottom, but that's not what we ever wanted --
-    // what makes sense is a red top and green bottom. So ncvisual rendering
-    // sets bits from CELL_BLITTERSTACK_MASK when rendering a cell with a
-    // transparent background. When paint() selects a glyph, it checks for these
-    // bits. If they are set, any lower planes with CELL_BLITTERSTACK_MASK set
-    // take this into account when solving the background color.
-    unsigned blittedquads: 4;
-    unsigned damaged: 1; // only used in rasterization
-    // if CELL_ALPHA_HIGHCONTRAST is in play, we apply the HSV flip once the
-    // background is locked in. set highcontrast to indicate this.
-    unsigned highcontrast: 1;
-    unsigned fgblends: 8;
-    unsigned bgblends: 8;
-    // we'll need recalculate the foreground relative to the solved background,
-    // and then reapply any foreground shading from above the highcontrast
-    // declaration. save the foreground state when we go highcontrast.
-    unsigned hcfgblends: 8; // number of foreground blends prior to HIGHCONTRAST
-    unsigned sprixeled: 1; // have we passed through a sprixel?
-  } s;
-};
-
 // Emit fchannel with RGB changed to contrast effectively against bchannel.
 static uint32_t
 highcontrast(uint32_t bchannel){
@@ -936,36 +902,34 @@ rasterize_sprixels(notcurses* nc, const ncpile* p, FILE* out){
   sprixel** parent = &nc->sprixelcache;
   int ret = 0;
   while( (s = *parent) ){
-    if(s->invalidated == SPRIXEL_INVALIDATED){
+    if(s->invalidated == SPRIXEL_INVALIDATED || s->invalidated == SPRIXEL_MOVED){
       int y, x;
       ncplane_yx(s->n, &y, &x);
       y += s->y;
       x += s->x;
 //fprintf(stderr, "DRAWING BITMAP %d AT %d/%d for %p\n", s->id, y + nc->stdplane->absy, x + nc->stdplane->absx, s->n);
-      if(goto_location(nc, out, y + nc->stdplane->absy, x + nc->stdplane->absx)){
-        return -1;
+      if(goto_location(nc, out, y + nc->stdplane->absy, x + nc->stdplane->absx) == 0){
+        if(sprite_draw(nc, p, s, out)){
+          return -1;
+        }
+        nc->rstate.hardcursorpos = true;
+        parent = &s->next;
+      }else{
+        ret = -1;
       }
-      if(fwrite(s->glyph, s->glyphlen, 1, out) != 1){
-        return -1;
-      }
-      s->invalidated = SPRIXEL_QUIESCENT;
-      nc->rstate.hardcursorpos = true;
-      parent = &s->next;
     }else if(s->invalidated == SPRIXEL_HIDE){
 //fprintf(stderr, "OUGHT HIDE %d [%dx%d @ %d/%d] %p\n", s->id, s->dimy, s->dimx, s->y, s->x, s);
-      int r = sprite_destroy(nc, p, out, s);
-      if(r < 0){
-        return -1;
-      }else if(r > 0){
-        ret = 1;
+      if(sprite_destroy(nc, p, out, s) == 0){
+        *parent = s->next;
+        sprixel_free(s);
+      }else{
+        ret = -1;
       }
-      *parent = s->next;
-      sprixel_free(s);
     }else{
       parent = &s->next;
     }
   }
-  // FIXME what effect does emission have on rasterizing style state?
+  // FIXME what effect (if any) does emission have on rasterizing style state?
   return ret;
 }
 

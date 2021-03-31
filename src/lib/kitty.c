@@ -242,7 +242,7 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx,
 //fprintf(stderr, "total: %d chunks = %d, s=%d,v=%d\n", total, chunks, lenx, leny);
   while(chunks--){
     if(totalout == 0){
-      *parse_start = fprintf(fp, "\e_Gf=32,s=%d,v=%d,i=%d,a=T,%c=1;",
+      *parse_start = fprintf(fp, "\e_Gf=32,p=1,s=%d,v=%d,i=%d,a=T,%c=1;",
                              lenx, leny, sprixelid, chunks ? 'm' : 'q');
     }else{
       fprintf(fp, "\e_G%sm=%d;", chunks ? "" : "q=1,", chunks ? 1 : 0);
@@ -348,11 +348,6 @@ int kitty_blit(ncplane* n, int linesize, const void* data,
   return 1;
 }
 
-// clears all kitty bitmaps
-int sprite_kitty_init(int fd){
-  return tty_emit("\e_Ga=d\e\\", fd);
-}
-
 // removes the kitty bitmap graphic identified by s->id
 int sprite_kitty_annihilate(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
   (void)p;
@@ -361,4 +356,21 @@ int sprite_kitty_annihilate(const notcurses* nc, const ncpile* p, FILE* out, spr
     return 0;
   }
   return 0;
+}
+
+int kitty_draw(const notcurses* nc, const ncpile* p, sprixel* s, FILE* out){
+  (void)nc;
+  (void)p;
+  (void)out;
+  int ret = 0;
+  if(fwrite(s->glyph, s->glyphlen, 1, out) != 1){
+    ret = -1;
+  }
+  s->invalidated = SPRIXEL_QUIESCENT;
+  return ret;
+}
+
+// clears all kitty bitmaps
+int sprite_kitty_init(int fd){
+  return tty_emit("\e_Ga=d\e\\", fd);
 }
