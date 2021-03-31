@@ -478,21 +478,33 @@ int sixel_blit(ncplane* n, int linesize, const void* data,
   return r;
 }
 
+int sixel_delete(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
+//fprintf(stderr, "%d] %d %p\n", s->id, s->invalidated, s->n);
+  (void)nc;
+  (void)out;
+  for(int yy = s->movedfromy ; yy < s->movedfromy + s->dimy ; ++yy){
+    for(int xx = s->movedfromx ; xx < s->movedfromx + s->dimx ; ++xx){
+      p->crender[yy * p->dimx + xx].s.damaged = 1;
+    }
+  }
+  return 0;
+}
+
 int sixel_draw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
+  (void)n;
   if(s->invalidated == SPRIXEL_MOVED){
     for(int yy = s->movedfromy ; yy < s->movedfromy + s->dimy ; ++yy){
       for(int xx = s->movedfromx ; xx < s->movedfromx + s->dimx ; ++xx){
-        if(yy < n->rstate.y || yy >= n->rstate.y + s->dimy ||
-           xx < n->rstate.x || xx >= n->rstate.x + s->dimx){
-        }
         p->crender[yy * p->dimx + xx].s.damaged = 1;
       }
     }
+    s->invalidated = SPRIXEL_INVALIDATED;
+  }else{
+    if(fwrite(s->glyph, s->glyphlen, 1, out) != 1){
+      return -1;
+    }
+    s->invalidated = SPRIXEL_QUIESCENT;
   }
-  if(fwrite(s->glyph, s->glyphlen, 1, out) != 1){
-    return -1;
-  }
-  s->invalidated = SPRIXEL_QUIESCENT;
   return 0;
 }
 

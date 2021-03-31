@@ -22,7 +22,10 @@ void sprixel_movefrom(sprixel* s, int y, int x){
 void sprixel_hide(sprixel* s){
   // guard so that a double call doesn't drop core on s->n->sprite
   if(s->invalidated != SPRIXEL_HIDE){
+//fprintf(stderr, "HIDING %d\n", s->id);
     s->invalidated = SPRIXEL_HIDE;
+    s->movedfromy = ncplane_abs_y(s->n);
+    s->movedfromx = ncplane_abs_x(s->n);
     s->n->sprite = NULL;
     s->n = NULL;
   }

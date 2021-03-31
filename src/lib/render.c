@@ -894,15 +894,24 @@ emit_bg_palindex(notcurses* nc, FILE* out, const nccell* srccell){
   return 0;
 }
 
-// returns -1 on error, 0 on success, 1 on success + invalidations requiring
-// a subsequent repass by the rasterizer.
+// remove any sprixels which are no longer desired. for kitty, this will be
+// a pure erase; for sixel, we must overwrite.
 static int
-rasterize_sprixels(notcurses* nc, const ncpile* p, FILE* out){
+clean_sprixels(notcurses* nc, const ncpile* p, FILE* out){
   sprixel* s;
   sprixel** parent = &nc->sprixelcache;
   int ret = 0;
   while( (s = *parent) ){
-    if(s->invalidated == SPRIXEL_INVALIDATED || s->invalidated == SPRIXEL_MOVED){
+    if(s->invalidated == SPRIXEL_HIDE){
+//fprintf(stderr, "OUGHT HIDE %d [%dx%d @ %d/%d] %p\n", s->id, s->dimy, s->dimx, s->y, s->x, s);
+      if(sprite_destroy(nc, p, out, s) == 0){
+        *parent = s->next;
+        sprixel_free(s);
+      }else{
+        ret = -1;
+      }
+    }else if(s->invalidated == SPRIXEL_MOVED || s->invalidated == SPRIXEL_INVALIDATED){
+      // FIXME clean this up, don't use sprite_draw, don't always move, etc.
       int y, x;
       ncplane_yx(s->n, &y, &x);
       y += s->y;
@@ -914,22 +923,36 @@ rasterize_sprixels(notcurses* nc, const ncpile* p, FILE* out){
         }
         nc->rstate.hardcursorpos = true;
         parent = &s->next;
-      }else{
-        ret = -1;
-      }
-    }else if(s->invalidated == SPRIXEL_HIDE){
-//fprintf(stderr, "OUGHT HIDE %d [%dx%d @ %d/%d] %p\n", s->id, s->dimy, s->dimx, s->y, s->x, s);
-      if(sprite_destroy(nc, p, out, s) == 0){
-        *parent = s->next;
-        sprixel_free(s);
-      }else{
-        ret = -1;
       }
     }else{
       parent = &s->next;
     }
   }
-  // FIXME what effect (if any) does emission have on rasterizing style state?
+  return ret;
+}
+
+// returns -1 on error, 0 on success. draw any sprixels. any material
+// underneath them has already been updated.
+static int
+rasterize_sprixels(notcurses* nc, const ncpile* p, FILE* out){
+  int ret = 0;
+  for(sprixel* s = nc->sprixelcache ; s ; s = s->next){
+    if(s->invalidated == SPRIXEL_INVALIDATED){
+      int y, x;
+      ncplane_yx(s->n, &y, &x);
+      y += s->y;
+      x += s->x;
+//fprintf(stderr, "DRAWING BITMAP %d AT %d/%d for %p\n", s->id, y + nc->stdplane->absy, x + nc->stdplane->absx, s->n);
+      if(goto_location(nc, out, y + nc->stdplane->absy, x + nc->stdplane->absx) == 0){
+        if(sprite_draw(nc, p, s, out)){
+          return -1;
+        }
+        nc->rstate.hardcursorpos = true;
+      }else{
+        ret = -1;
+      }
+    }
+  }
   return ret;
 }
 
@@ -1063,6 +1086,12 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
   // need to home it expliticly.
   update_palette(nc, out);
 //fprintf(stderr, "pile %p ymax: %d xmax: %d\n", p, p->dimy + nc->stdplane->absy, p->dimx + nc->stdplane->absx);
+  if(clean_sprixels(nc, p, out) < 0){
+    return -1;
+  }
+  if(rasterize_core(nc, p, out)){
+    return -1;
+  }
   if(rasterize_sprixels(nc, p, out) < 0){
     return -1;
   }
