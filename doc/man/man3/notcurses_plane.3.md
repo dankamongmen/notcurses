@@ -382,7 +382,15 @@ All other functions cannot fail (and return **void**).
 **ncplane_new** is defined as a deprecated wrapper around **ncplane_create**.
 It should not be used in new code.
 
+# BUGS
+
+**ncplane_at_yx** doesn't yet account for bitmap-based graphics (see
+**notcurses_visual**).
+
 # SEE ALSO
 
-**notcurses(3)**, **notcurses_cell(3)**, **notcurses_output(3)**,
-**notcurses_stdplane(3)**
+**notcurses(3)**,
+**notcurses_cell(3)**,
+**notcurses_output(3)**,
+**notcurses_stdplane(3)**,
+**notcurses_visual(3)**

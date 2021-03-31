@@ -694,6 +694,7 @@ int ncplane_destroy(ncplane* ncp){
   if(ncp->sprite){
     sprixel_hide(ncp->sprite);
   }
+  free(ncp->tacache);
 //notcurses_debug(ncplane_notcurses(ncp), stderr);
   int ret = 0;
   // dissolve our binding from behind (->bprev is either NULL, or its

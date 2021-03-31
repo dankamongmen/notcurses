@@ -351,6 +351,7 @@ query_sixel(tinfo* ti, int fd){
             pixel_init = ti->pixel_init = sprite_sixel_init;
             ti->pixel_draw = sixel_draw;
             ti->sixel_maxx = ti->sixel_maxy = 0;
+            ti->pixel_destroy = sixel_delete;
           }
         }
         break;

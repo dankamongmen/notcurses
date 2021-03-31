@@ -815,6 +815,7 @@ sprixel* sprixel_create(ncplane* n, char* s, int bytes, int placey, int placex,
                         int sprixelid, int dimy, int dimx, int pixy, int pixx,
                         int parse_start);
 int sprite_wipe_cell(const notcurses* nc, sprixel* s, int y, int x);
+int sixel_delete(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
 int sprite_kitty_annihilate(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
 int sprite_kitty_init(int fd);
 int sprite_sixel_init(int fd);
