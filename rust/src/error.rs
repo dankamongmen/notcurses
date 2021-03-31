@@ -43,20 +43,38 @@ impl error::Error for NcError {
 }
 
 impl NcError {
-    /// New NcError.
-    pub fn new(int: NcIntResult) -> Self {
+    /// New NcError with default [NCRESULT_ERR] error number, and without message.
+    pub fn new() -> Self {
+        Self {
+            int: NCRESULT_ERR,
+            ..Default::default()
+        }
+    }
+
+    /// New NcError with custom error number, and without message.
+    pub fn new_err(int: NcIntResult) -> Self {
         Self {
             int,
             ..Default::default()
         }
     }
-    /// New NcError with message.
+
+    /// New NcError with default [NCRESULT_ERR] error number and a custom message.
+    pub fn new_msg(msg: &str) -> Self {
+        Self {
+            int: NCRESULT_ERR,
+            msg: msg.to_string(),
+        }
+    }
+
+    /// New NcError with both a custom error number and a custom message.
     pub fn with_msg(int: NcIntResult, msg: &str) -> Self {
         Self {
             int,
             msg: msg.to_string(),
         }
     }
+
 }
 
 /// The result type for the Rust methods API.

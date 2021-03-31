@@ -471,7 +471,7 @@ impl NcDirect {
             core::char::from_u32_unchecked(crate::ncdirect_getc(self, ntime, nsigmask, ninput))
         };
         if c as u32 as i32 == NCRESULT_ERR {
-            return Err(NcError::new(NCRESULT_ERR));
+            return Err(NcError::new());
         }
         Ok(c)
     }

@@ -4,7 +4,7 @@ use core::ptr::{null, null_mut};
 
 use crate::{
     NcAlign, NcDim, NcError, NcInput, NcOffset, NcPlane, NcResult, NcSignalSet, NcTime, Notcurses,
-    NCALIGN_CENTER, NCALIGN_LEFT, NCALIGN_RIGHT, NCRESULT_ERR, NCRESULT_MAX,
+    NCALIGN_CENTER, NCALIGN_LEFT, NCALIGN_RIGHT, NCRESULT_MAX,
 };
 
 /// Returns the offset into `availcols` at which `cols` ought be output given
@@ -89,7 +89,7 @@ pub fn notcurses_stddim_yx<'a>(
             return Ok(&mut *sp);
         }
     }
-    Err(NcError::new(NCRESULT_ERR))
+    Err(NcError::new())
 }
 
 /// [notcurses_stdplane_const()][crate::notcurses_stdplane_const], plus free
@@ -109,7 +109,7 @@ pub fn notcurses_stddim_yx_const<'a>(
             return Ok(&*sp);
         }
     }
-    Err(NcError::new(NCRESULT_ERR))
+    Err(NcError::new())
 }
 
 /// Returns our current idea of the terminal dimensions in rows and cols.
