@@ -145,6 +145,53 @@ TEST_CASE("Pixel") {
     CHECK(0 == notcurses_render(nc_));
   }
 
+  // verify that the sprixel's TAM is properly initialized
+  SUBCASE("PixelTAMSetup") {
+    // first, assemble a visual equivalent to 81 cells
+    auto dimy = 9;
+    auto dimx = 9;
+    auto y = dimy * nc_->tcache.cellpixy;
+    auto x = dimx * nc_->tcache.cellpixx;
+    std::vector<uint32_t> v(x * y, 0xffffffff);
+    // every other cell, set some pixels transparent
+    for(int i = 0 ; i < dimy * dimx ; ++i){
+      if(i % 2){
+        int py = (i / dimx) * nc_->tcache.cellpixy;
+        int px = (i % dimx) * nc_->tcache.cellpixx;
+        ncpixel_set_a(&v[py * x + px], 0);
+      }
+    }
+    auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
+    REQUIRE(nullptr != ncv);
+    struct ncvisual_options vopts = {
+      .n = nullptr,
+      .scaling = NCSCALE_NONE,
+      .y = 0, .x = 0,
+      .begy = 0, .begx = 0,
+      .leny = y, .lenx = x,
+      .blitter = NCBLIT_PIXEL,
+      .flags = NCVISUAL_OPTION_NODEGRADE,
+    };
+    auto n = ncvisual_render(nc_, ncv, &vopts);
+    REQUIRE(nullptr != n);
+    ncvisual_destroy(ncv);
+    CHECK(0 == notcurses_render(nc_));
+    const auto s = n->sprite;
+    REQUIRE(s);
+    CHECK(s->dimy == dimy);
+    CHECK(s->dimx == dimx);
+    const auto tam = n->tacache;
+    for(int i = 0 ; i < s->dimy * s->dimx ; ++i){
+      int py = (i / dimx) * nc_->tcache.cellpixy;
+      int px = (i % dimx) * nc_->tcache.cellpixx;
+      // cells with a transparent pixel ought be SPRIXCELL_CONTAINS_TRANS;
+      // cells without one ought be SPRIXCELL_OPAQUE.
+      CHECK((i % 2) == tam[(i / dimx) + (i % dimx)]);
+      ncpixel_set_a(&v[py * x + px], 0);
+    }
+    ncplane_destroy(n);
+  }
+
   // too much output -- OOMs ctest FIXME
   /*
 #ifdef NOTCURSES_USE_MULTIMEDIA
