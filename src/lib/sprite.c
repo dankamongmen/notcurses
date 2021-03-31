@@ -19,7 +19,7 @@ void sprixel_invalidate(sprixel* s){
   }
 }
 
-sprixel* sprixel_by_id(notcurses* nc, uint32_t id){
+sprixel* sprixel_by_id(const notcurses* nc, uint32_t id){
   for(sprixel* cur = nc->sprixelcache ; cur ; cur = cur->next){
     if(cur->id == id){
       return cur;

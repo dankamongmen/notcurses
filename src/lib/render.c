@@ -246,7 +246,7 @@ highcontrast(uint32_t bchannel){
 // rendered.
 //
 static void
-paint(ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
+paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
       int dstabsy, int dstabsx){
   int y, x, dimy, dimx, offy, offx;
   ncplane_dim_yx(p, &dimy, &dimx);
@@ -299,7 +299,7 @@ paint(ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
           // if we are a bitmap, and above a cell that has changed (and
           // will thus be printed), we'll need redraw the sprixel.
           if(rvec->sprixel == NULL){
-            rvec->sprixel = sprixel_by_id(ncplane_notcurses(p), cell_sprixel_id(vis));
+            rvec->sprixel = sprixel_by_id(ncplane_notcurses_const(p), cell_sprixel_id(vis));
           }
         }
         continue;
@@ -514,27 +514,27 @@ postpaint(nccell* lastframe, int dimy, int dimx, struct crender* rvec, egcpool* 
 
 // merging one plane down onto another is basically just performing a render
 // using only these two planes, with the result written to the lower plane.
-int ncplane_mergedown(ncplane* restrict src, ncplane* restrict dst,
+int ncplane_mergedown(const ncplane* restrict src, ncplane* restrict dst,
                       int begsrcy, int begsrcx, int leny, int lenx,
                       int dsty, int dstx){
 //fprintf(stderr, "Merging down %d/%d @ %d/%d to %d/%d\n", leny, lenx, begsrcy, begsrcx, dsty, dstx);
   if(dsty >= dst->leny || dstx >= dst->lenx){
-    logerror(ncplane_notcurses(dst), "Dest origin %d/%d ≥ dest dimensions %d/%d\n",
+    logerror(ncplane_notcurses_const(dst), "Dest origin %d/%d ≥ dest dimensions %d/%d\n",
              dsty, dstx, dst->leny, dst->lenx);
     return -1;
   }
   if(dst->leny - leny < dsty || dst->lenx - lenx < dstx){
-    logerror(ncplane_notcurses(dst), "Dest len %d/%d ≥ dest dimensions %d/%d\n",
+    logerror(ncplane_notcurses_const(dst), "Dest len %d/%d ≥ dest dimensions %d/%d\n",
              leny, lenx, dst->leny, dst->lenx);
     return -1;
   }
   if(begsrcy >= src->leny || begsrcx >= src->lenx){
-    logerror(ncplane_notcurses(dst), "Source origin %d/%d ≥ source dimensions %d/%d\n",
+    logerror(ncplane_notcurses_const(dst), "Source origin %d/%d ≥ source dimensions %d/%d\n",
              begsrcy, begsrcx, src->leny, src->lenx);
     return -1;
   }
   if(src->leny - leny < begsrcy || src->lenx - lenx < begsrcx){
-    logerror(ncplane_notcurses(dst), "Source len %d/%d ≥ source dimensions %d/%d\n",
+    logerror(ncplane_notcurses_const(dst), "Source len %d/%d ≥ source dimensions %d/%d\n",
              leny, lenx, src->leny, src->lenx);
     return -1;
   }
@@ -543,7 +543,7 @@ int ncplane_mergedown(ncplane* restrict src, ncplane* restrict dst,
   const size_t crenderlen = sizeof(struct crender) * totalcells;
   struct crender* rvec = malloc(crenderlen);
   if(!rendfb || !rvec){
-    logerror(ncplane_notcurses(dst), "Error allocating render state for %dx%d\n", leny, lenx);
+    logerror(ncplane_notcurses_const(dst), "Error allocating render state for %dx%d\n", leny, lenx);
     free(rendfb);
     free(rvec);
     return -1;
@@ -560,7 +560,7 @@ int ncplane_mergedown(ncplane* restrict src, ncplane* restrict dst,
   return 0;
 }
 
-int ncplane_mergedown_simple(ncplane* restrict src, ncplane* restrict dst){
+int ncplane_mergedown_simple(const ncplane* restrict src, ncplane* restrict dst){
   const notcurses* nc = ncplane_notcurses_const(src);
   if(dst == NULL){
     dst = nc->stdplane;

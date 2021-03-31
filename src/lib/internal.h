@@ -778,7 +778,7 @@ int sprite_kitty_init(int fd);
 int sprite_sixel_init(int fd);
 int sprite_init(const notcurses* nc);
 void sprixel_invalidate(sprixel* s);
-sprixel* sprixel_by_id(notcurses* nc, uint32_t id);
+sprixel* sprixel_by_id(const notcurses* nc, uint32_t id);
 
 static inline void
 pool_release(egcpool* pool, nccell* c){
