@@ -19,7 +19,6 @@ TEST_CASE("Pixel") {
     CHECK(0 < nc_->tcache.cellpixy);
     CHECK(0 < nc_->tcache.cellpixx);
     CHECK(nc_->tcache.sixel_supported);
-    CHECK(nullptr != nc_->tcache.pixel_cell_wipe);
   }
 
 #ifdef NOTCURSES_USE_MULTIMEDIA
@@ -110,7 +109,7 @@ TEST_CASE("Pixel") {
   }
 
   SUBCASE("PixelBigCellWipePolychromatic") {
-    // first, assemble a visual equivalent to 4 cells
+    // first, assemble a visual equivalent to 100 cells
     auto y = 10 * nc_->tcache.cellpixy;
     auto x = 10 * nc_->tcache.cellpixx;
     std::vector<uint32_t> v(x * y, 0xffffffff);
