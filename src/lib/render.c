@@ -941,7 +941,7 @@ rasterize_sprixels(notcurses* nc, const ncpile* p, FILE* out){
       ncplane_yx(s->n, &y, &x);
       y += s->y;
       x += s->x;
-//fprintf(stderr, "DRAWING BITMAP %d AT %d/%d for %p\n", s->id, y + nc->stdplane->absy, x + nc->stdplane->absx, s->n);
+fprintf(stderr, "DRAWING BITMAP %d AT %d/%d for %p\n", s->id, y + nc->stdplane->absy, x + nc->stdplane->absx, s->n);
       if(goto_location(nc, out, y + nc->stdplane->absy, x + nc->stdplane->absx)){
         return -1;
       }
@@ -952,7 +952,7 @@ rasterize_sprixels(notcurses* nc, const ncpile* p, FILE* out){
       nc->rstate.hardcursorpos = true;
       parent = &s->next;
     }else if(s->invalidated == SPRIXEL_HIDE){
-//fprintf(stderr, "OUGHT HIDE %d [%dx%d @ %d/%d] %p\n", s->id, s->dimy, s->dimx, s->y, s->x, s);
+fprintf(stderr, "OUGHT HIDE %d [%dx%d @ %d/%d] %p\n", s->id, s->dimy, s->dimx, s->y, s->x, s);
       int r = sprite_destroy(nc, p, out, s);
       if(r < 0){
         return -1;
@@ -1103,6 +1103,9 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
     return -1;
   }
   if(rasterize_core(nc, p, out)){
+    return -1;
+  }
+  if(rasterize_sprixels(nc, p, out) < 0){
     return -1;
   }
   if(fflush(out)){
