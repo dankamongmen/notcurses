@@ -49,6 +49,7 @@ typedef enum {
   SPRIXEL_QUIESCENT,   // sprixel has been drawn
   SPRIXEL_INVALIDATED, // sprixel needs to be redrawn
   SPRIXEL_HIDE,        // sprixel queued for destruction
+  SPRIXEL_MOVED,       // sprixel needs be moved
 } sprixel_e;
 
 // elements of the T-A matrix
@@ -77,6 +78,8 @@ typedef struct sprixel {
   // each tacache entry is one of 0 (standard opaque cell), 1 (cell with
   // some transparency), 2 (annihilated, excised)
   int parse_start;   // where to start parsing for cell wipes
+  int movedfromy;       // for SPRIXEL_MOVED, the starting absolute position,
+  int movedfromx;       // so that we can damage old cells when redrawn
 } sprixel;
 
 // A plane is memory for some rectilinear virtual window, plus current cursor
@@ -360,6 +363,7 @@ typedef struct tinfo {
   // this means dialing down their alpha to 0 (in equivalent space).
   int (*pixel_cell_wipe)(const struct notcurses* nc, sprixel* s, int y, int x);
   int (*pixel_init)(int fd);
+  int (*pixel_draw)(const struct notcurses* n, const struct ncpile* p, sprixel* s, FILE* out);
   bool pixel_query_done; // have we yet performed pixel query?
   bool sextants;  // do we have (good, vetted) Unicode 13 sextant support?
   bool braille;   // do we have Braille support? (linux console does not)
@@ -398,6 +402,40 @@ typedef struct ncdirect {
   bool initialized_readline; // have we initialized Readline?
   uint64_t flags;            // copied in ncdirect_init() from param
 } ncdirect;
+
+// Extracellular state for a cell during the render process. There is one
+// crender per rendered cell, and they are initialized to all zeroes.
+struct crender {
+  const ncplane *p; // source of glyph for this cell
+  nccell c;
+  uint32_t hcfg;       // fg channel prior to HIGHCONTRAST (need full channel)
+  sprixel* sprixel;    // bitmap encountered during traversal
+  struct {
+    // If the glyph we render is from an ncvisual, and has a transparent or
+    // blended background, blitter stacking is in effect. This is a complicated
+    // issue, but essentially, imagine a bottom block is rendered with a green
+    // bottom and transparent top. on a lower plane, a top block is rendered
+    // with a red foreground and blue background. Normally, this would result
+    // in a blue top and green bottom, but that's not what we ever wanted --
+    // what makes sense is a red top and green bottom. So ncvisual rendering
+    // sets bits from CELL_BLITTERSTACK_MASK when rendering a cell with a
+    // transparent background. When paint() selects a glyph, it checks for these
+    // bits. If they are set, any lower planes with CELL_BLITTERSTACK_MASK set
+    // take this into account when solving the background color.
+    unsigned blittedquads: 4;
+    unsigned damaged: 1; // only used in rasterization
+    // if CELL_ALPHA_HIGHCONTRAST is in play, we apply the HSV flip once the
+    // background is locked in. set highcontrast to indicate this.
+    unsigned highcontrast: 1;
+    unsigned fgblends: 8;
+    unsigned bgblends: 8;
+    // we'll need recalculate the foreground relative to the solved background,
+    // and then reapply any foreground shading from above the highcontrast
+    // declaration. save the foreground state when we go highcontrast.
+    unsigned hcfgblends: 8; // number of foreground blends prior to HIGHCONTRAST
+    unsigned sprixeled: 1; // have we passed through a sprixel?
+  } s;
+};
 
 typedef struct ncpile {
   ncplane* top;               // topmost plane, never NULL
@@ -767,7 +805,11 @@ int sprite_kitty_cell_wipe(const notcurses* nc, sprixel* s, int y, int x);
 int sprite_destroy(const struct notcurses* nc, const struct ncpile* p, FILE* out, sprixel* s);
 void sprixel_free(sprixel* s);
 void sprixel_invalidate(sprixel* s);
+void sprixel_movefrom(sprixel* s, int y, int x);
 void sprixel_hide(sprixel* s);
+int sprite_draw(const notcurses* n, const ncpile *p, sprixel* s, FILE* out);
+int kitty_draw(const notcurses* n, const ncpile *p, sprixel* s, FILE* out);
+int sixel_draw(const notcurses* n, const ncpile *p, sprixel* s, FILE* out);
 // dimy and dimx are cell geometry, not pixel. takes ownership of s on success.
 sprixel* sprixel_create(ncplane* n, char* s, int bytes, int placey, int placex,
                         int sprixelid, int dimy, int dimx, int pixy, int pixx,

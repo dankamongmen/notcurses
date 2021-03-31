@@ -478,6 +478,24 @@ int sixel_blit(ncplane* n, int linesize, const void* data,
   return r;
 }
 
+int sixel_draw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
+  if(s->invalidated == SPRIXEL_MOVED){
+    for(int yy = s->movedfromy ; yy < s->movedfromy + s->dimy ; ++yy){
+      for(int xx = s->movedfromx ; xx < s->movedfromx + s->dimx ; ++xx){
+        if(yy < n->rstate.y || yy >= n->rstate.y + s->dimy ||
+           xx < n->rstate.x || xx >= n->rstate.x + s->dimx){
+        }
+        p->crender[yy * p->dimx + xx].s.damaged = 1;
+      }
+    }
+  }
+  if(fwrite(s->glyph, s->glyphlen, 1, out) != 1){
+    return -1;
+  }
+  s->invalidated = SPRIXEL_QUIESCENT;
+  return 0;
+}
+
 int sprite_sixel_init(int fd){
   // \e[?8452: DECSDM private "sixel scrolling" mode keeps the sixel from
   // scrolling, but puts it at the current cursor location (as opposed to
