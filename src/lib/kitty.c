@@ -225,9 +225,9 @@ int sprite_kitty_cell_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell
 // 16 base64-encoded bytes. 4096 / 16 == 256 3-pixel groups, or 768 pixels.
 // closes |fp| on all paths.
 static int
-write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
-                 const uint32_t* data, int cdimy, int cdimx, int sprixelid,
-                 sprixcell_e* tacache, int* parse_start){
+write_kitty_data(FILE* fp, int linesize, int leny, int lenx,
+                 int cols, const uint32_t* data, int cdimy, int cdimx,
+                 int sprixelid, sprixcell_e* tacache, int* parse_start){
   if(linesize % sizeof(*data)){
     fclose(fp);
     return -1;
@@ -267,7 +267,14 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
 //fprintf(stderr, "%u/%u/%u -> %c%c%c%c %u %u %u %u\n", r, g, b, b64[0], b64[1], b64[2], b64[3], b64[0], b64[1], b64[2], b64[3]);
         int tyx = (x / cdimx) + (y / cdimy) * cols;
 //fprintf(stderr, "Tyx: %d y: %d (%d) * %d x: %d (%d)\n", tyx, y, y / cdimy, cols, x, x / cdimx);
-        wipe[e] = (tacache[tyx] == SPRIXCELL_ANNIHILATED);
+        if(tacache[tyx] == SPRIXCELL_ANNIHILATED){
+          wipe[e] = 1;
+        }else{
+          wipe[e] = 0;
+          if(rgba_trans_p(ncpixel_a(source[e]))){
+            tacache[tyx] = SPRIXCELL_CONTAINS_TRANS;
+          }
+        }
         ++x;
       }
       totalout += encodeable;
