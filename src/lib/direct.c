@@ -185,22 +185,31 @@ cursor_yx_get(int ttyfd, int* y, int* x){
   return 0;
 }
 
+// if we're lacking hpa/vpa, *and* -1 is passed for one of x/y, *and* we've
+// not got a real ctermfd, we're pretty fucked. we just punt and substitute
+// 0 for that case, which hopefully only happens when running headless unit
+// tests under TERM=vt100. if we need to truly rigourize things, we could
+// cub/cub1 the width or cuu/cuu1 the height, then cuf/cub back? FIXME
 int ncdirect_cursor_move_yx(ncdirect* n, int y, int x){
   if(y == -1){ // keep row the same, horizontal move only
     if(n->tcache.hpa){
       return term_emit(tiparm(n->tcache.hpa, x), n->ttyfp, false);
-    }else{
+    }else if(n->ctermfd >= 0){
       if(cursor_yx_get(n->ctermfd, &y, NULL)){
         return -1;
       }
+    }else{
+      y = 0;
     }
   }else if(x == -1){ // keep column the same, vertical move only
     if(!n->tcache.vpa){
       return term_emit(tiparm(n->tcache.vpa, y), n->ttyfp, false);
-    }else{
+    }else if(n->ctermfd >= 0){
       if(cursor_yx_get(n->ctermfd, NULL, &x)){
         return -1;
       }
+    }else{
+      x = 0;
     }
   }
   if(n->tcache.cup){
@@ -387,6 +396,9 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
   ncplane_dim_yx(np, &dimy, &dimx);
   if(np->sprite){
     if(xoff){
+      // doing an x-move without specifying the y coordinate requires asking
+      // the terminal where the cursor currently is. this will obviously only
+      // work on a real terminal
       if(ncdirect_cursor_move_yx(n, -1, xoff)){
         return -1;
       }
@@ -396,7 +408,7 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
     }
     return 0;
   }
-//fprintf(stderr, "rasterizing %dx%d+%d\n", dimy, dimx, xoff);
+  fprintf(stderr, "rasterizing %dx%d+%d\n", dimy, dimx, xoff);
   // save the existing style and colors
   const bool fgdefault = ncdirect_fg_default_p(n);
   const bool bgdefault = ncdirect_bg_default_p(n);
