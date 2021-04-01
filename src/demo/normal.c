@@ -99,7 +99,7 @@ rotate_visual(struct notcurses* nc, struct ncplane* n, int dy, int dx){
         if(ncvisual_render(nc, nncv, &nvopts) == NULL){
           return -1;
         }
-        ncplane_move_below(notcurses_stdplane(nc), n);
+        ncplane_move_below(notcurses_stdplane(nc), np);
       }
       free(path);
     }
