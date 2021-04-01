@@ -62,6 +62,13 @@ TEST_CASE("DirectMode") {
     CHECK(0 == ncdirect_render_image(nc_, find_data("changes.jpg"), NCALIGN_LEFT, NCBLIT_1x1, NCSCALE_STRETCH));
     CHECK(0 == ncdirect_render_image(nc_, find_data("worldmap.png"), NCALIGN_RIGHT, NCBLIT_1x1, NCSCALE_SCALE));
   }
+
+  SUBCASE("LoadSprixel") {
+    if(ncdirect_check_pixel_support(nc_) > 0){
+      CHECK(0 == ncdirect_render_image(nc_, find_data("changes.jpg"), NCALIGN_LEFT, NCBLIT_PIXEL, NCSCALE_STRETCH));
+      CHECK(0 == ncdirect_render_image(nc_, find_data("worldmap.png"), NCALIGN_RIGHT, NCBLIT_PIXEL, NCSCALE_SCALE));
+    }
+  }
 #endif
 
   CHECK(0 == ncdirect_stop(nc_));
