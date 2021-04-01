@@ -41,3 +41,8 @@
 * [viu](https://github.com/atanunq/viu) (Rust)
 * [grafterm](https://github.com/slok/grafterm) (Go)
 * [timg](https://github.com/hzeller/timg) (C++)
+
+## Advanced
+
+* [Jexer](https://jexer.sourceforge.io/)[Java]
+* [pygamelib](https://github.com/arnauddupuis/pygamelib)[Python]
