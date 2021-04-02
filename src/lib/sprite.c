@@ -1,5 +1,8 @@
 #include "internal.h"
 
+// FIXME needs be atomic
+static uint32_t sprixelid_nonce;
+
 void sprixel_free(sprixel* s){
   if(s){
     free(s->glyph);
@@ -46,32 +49,40 @@ sprixel* sprixel_by_id(const notcurses* nc, uint32_t id){
   return NULL;
 }
 
-// 'y' and 'x' are the cell geometry, not the pixel geometry. takes
-// ownership of 's' on success.
-sprixel* sprixel_create(ncplane* n, char* s, int bytes, int placey, int placex,
-                        int sprixelid, int dimy, int dimx, int pixy, int pixx,
-                        int parse_start){
+sprixel* sprixel_alloc(ncplane* n, int dimy, int dimx){
   sprixel* ret = malloc(sizeof(sprixel));
   if(ret){
-    ret->glyph = s;
-    ret->glyphlen = bytes;
-    ret->invalidated = SPRIXEL_INVALIDATED;
+fprintf(stderr, "LOADING UP %p with %p\n", ret, n);
+    memset(ret, 0, sizeof(*ret));
     ret->n = n;
     ret->dimy = dimy;
     ret->dimx = dimx;
-    ret->pixx = pixx;
-    ret->pixy = pixy;
-    ret->y = placey;
-    ret->x = placex;
-    ret->parse_start = parse_start;
-    if(ncplane_pile(n)){
-      notcurses* nc = ncplane_notcurses(n);
+    ret->id = ++sprixelid_nonce;
+//fprintf(stderr, "LOOKING AT %p (p->n = %p)\n", ret, ret->n);
+    if(ncplane_pile(ret->n)){
+      notcurses* nc = ncplane_notcurses(ret->n);
       ret->next = nc->sprixelcache;
       nc->sprixelcache = ret;
-      ret->id = sprixelid;
+//fprintf(stderr, "%p %p %p\n", nc->sprixelcache, ret, nc->sprixelcache->next);
     }
   }
   return ret;
+}
+
+// 'y' and 'x' are the cell geometry, not the pixel geometry. takes
+// ownership of 's' on success.
+int sprixel_load(sprixel* spx, char* s, int bytes, int placey, int placex,
+                 int pixy, int pixx, int parse_start){
+  assert(spx->n);
+  spx->glyph = s;
+  spx->glyphlen = bytes;
+  spx->invalidated = SPRIXEL_INVALIDATED;
+  spx->pixx = pixx;
+  spx->pixy = pixy;
+  spx->y = placey;
+  spx->x = placex;
+  spx->parse_start = parse_start;
+  return 0;
 }
 
 int sprite_wipe_cell(const notcurses* nc, sprixel* s, int ycell, int xcell){
