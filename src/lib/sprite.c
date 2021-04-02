@@ -10,6 +10,17 @@ void sprixel_free(sprixel* s){
   }
 }
 
+sprixel* sprixel_recycle(ncplane* n){
+  const notcurses* nc = ncplane_notcurses(n);
+  if(nc->tcache.pixel_destroy == sprite_kitty_annihilate){
+    int dimy = n->sprite->dimy;
+    int dimx = n->sprite->dimx;
+    sprixel_hide(n->sprite);
+    return sprixel_alloc(n, dimy, dimx);
+  }
+  return n->sprite;
+}
+
 // store the original (absolute) coordinates from which we moved, so that
 // we can invalidate them in sprite_draw().
 void sprixel_movefrom(sprixel* s, int y, int x){
@@ -52,7 +63,6 @@ sprixel* sprixel_by_id(const notcurses* nc, uint32_t id){
 sprixel* sprixel_alloc(ncplane* n, int dimy, int dimx){
   sprixel* ret = malloc(sizeof(sprixel));
   if(ret){
-fprintf(stderr, "LOADING UP %p with %p\n", ret, n);
     memset(ret, 0, sizeof(*ret));
     ret->n = n;
     ret->dimy = dimy;

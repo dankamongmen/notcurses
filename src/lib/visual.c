@@ -608,6 +608,8 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
     if((ncv->spx = sprixel_alloc(n, rows, cols)) == NULL){
       goto err;
     }
+  }else{
+    ncv->spx = sprixel_recycle(n);
   }
   bargs.u.pixel.spx = ncv->spx;
   if(ncvisual_blit(ncv, disprows, dispcols, n, bset, disprows, dispcols, &bargs)){
