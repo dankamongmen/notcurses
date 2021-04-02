@@ -502,7 +502,7 @@ typedef struct {
       int celldimx;       // horizontal pixels per cell
       int celldimy;       // vertical pixels per cell
       int colorregs;      // number of color registers
-      sprixel* spx;       // sprixel object
+      int sprixelid;      // unqie 24-bit id into sprixel cache
     } pixel;              // for pixels
   } u;
 } blitterargs;
@@ -811,9 +811,9 @@ int sprite_draw(const notcurses* n, const ncpile *p, sprixel* s, FILE* out);
 int kitty_draw(const notcurses* n, const ncpile *p, sprixel* s, FILE* out);
 int sixel_draw(const notcurses* n, const ncpile *p, sprixel* s, FILE* out);
 // dimy and dimx are cell geometry, not pixel. takes ownership of s on success.
-sprixel* sprixel_alloc(ncplane* n, int dimy, int dimx);
-int sprixel_load(sprixel* spx, char* s, int bytes, int placey, int placex,
-                 int pixy, int pixx, int parse_start);
+sprixel* sprixel_create(ncplane* n, char* s, int bytes, int placey, int placex,
+                        int sprixelid, int dimy, int dimx, int pixy, int pixx,
+                        int parse_start);
 int sprite_wipe_cell(const notcurses* nc, sprixel* s, int y, int x);
 int sixel_delete(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
 int sprite_kitty_annihilate(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
@@ -1216,13 +1216,14 @@ egc_rtl(const char* egc, int* bytes){
 // a reference to the context-wide sprixel cache. this ought be an entirely
 // new, purpose-specific plane.
 static inline int
-plane_blit_sixel(sprixel* spx, char* s, int bytes,
-                 int placey, int placex, int leny, int lenx,
-                 int parse_start, sprixcell_e* tacache){
-  if(sprixel_load(spx, s, bytes, placey, placex, leny, lenx, parse_start)){
+plane_blit_sixel(ncplane* n, char* s, int bytes, int placey, int placex,
+                 int leny, int lenx, int sprixelid, int dimy, int dimx,
+                 int parse_start, sprixcell_e * tacache){
+  sprixel* spx = sprixel_create(n, s, bytes, placey, placex, sprixelid,
+                                leny, lenx, dimy, dimx, parse_start);
+  if(spx == NULL){
     return -1;
   }
-  ncplane* n = spx->n;
   uint32_t gcluster = htole(0x02000000ul) + htole(spx->id);
   for(int y = placey ; y < placey + leny && y < ncplane_dim_y(n) ; ++y){
     for(int x = placex ; x < placex + lenx && x < ncplane_dim_x(n) ; ++x){
@@ -1231,12 +1232,13 @@ plane_blit_sixel(sprixel* spx, char* s, int bytes,
       c->width = lenx;
     }
   }
-  if(n){
-    n->tacache = tacache;
-    n->tacachey = leny;
-    n->tacachex = lenx;
-    n->sprite = spx;
+  if(n->sprite){
+    sprixel_hide(n->sprite);
   }
+  n->tacache = tacache;
+  n->tacachey = leny;
+  n->tacachex = lenx;
+  n->sprite = spx;
   return 0;
 }
 

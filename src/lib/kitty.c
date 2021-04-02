@@ -295,8 +295,8 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx,
 // deflate-compressed) 24bit RGB. Returns -1 on error, 1 on success.
 int kitty_blit(ncplane* n, int linesize, const void* data,
                int leny, int lenx, const blitterargs* bargs){
-  int cols = bargs->u.pixel.spx->dimx;
-  int rows = bargs->u.pixel.spx->dimy;
+  int rows = leny / bargs->u.pixel.celldimy + !!(leny % bargs->u.pixel.celldimy);
+  int cols = lenx / bargs->u.pixel.celldimx + !!(lenx % bargs->u.pixel.celldimx);
   char* buf = NULL;
   size_t size = 0;
   FILE* fp = open_memstream(&buf, &size);
@@ -307,6 +307,7 @@ int kitty_blit(ncplane* n, int linesize, const void* data,
   bool reuse = false;
   // if we have a sprixel attached to this plane, see if we can reuse it
   // (we need the same dimensions) and thus immediately apply its T-A table.
+  int sprixelid;
   if(n->tacache){
     if(n->tacachey == rows && n->tacachex == cols){
       tacache = n->tacache;
@@ -323,10 +324,11 @@ int kitty_blit(ncplane* n, int linesize, const void* data,
     }
     memset(tacache, 0, sizeof(*tacache) * rows * cols);
   }
+  sprixelid = bargs->u.pixel.sprixelid;
   // closes fp on all paths
   if(write_kitty_data(fp, linesize, leny, lenx, cols, data,
                       bargs->u.pixel.celldimy, bargs->u.pixel.celldimx,
-                      bargs->u.pixel.spx->id, tacache, &parse_start)){
+                      sprixelid, tacache, &parse_start)){
     if(!reuse){
       free(tacache);
     }
@@ -334,9 +336,9 @@ int kitty_blit(ncplane* n, int linesize, const void* data,
     return -1;
   }
   // take ownership of |buf| and |tacache| on success
-  if(plane_blit_sixel(bargs->u.pixel.spx, buf, size,
-                      bargs->placey, bargs->placex,
-                      leny, lenx, parse_start, tacache) < 0){
+  if(plane_blit_sixel(n, buf, size, bargs->placey, bargs->placex,
+                      rows, cols, bargs->u.pixel.sprixelid, leny, lenx,
+                      parse_start, tacache) < 0){
     if(!reuse){
       free(tacache);
     }

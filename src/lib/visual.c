@@ -429,7 +429,6 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
                                int leny, int lenx, ncplane* n, ncscale_e scaling,
                                uint64_t flags){
   int disprows, dispcols;
-  ncplane* createdn = NULL;
 //fprintf(stderr, "INPUT N: %p\n", n);
   if(n == NULL){ // create plane
     if(scaling == NCSCALE_NONE || scaling == NCSCALE_NONE_HIRES){
@@ -463,7 +462,6 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
     if((n = ncplane_create(notcurses_stdplane(nc), &nopts)) == NULL){
       return NULL;
     }
-    createdn = n;
     placey = 0;
     placex = 0;
   }else{
@@ -501,7 +499,7 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
   bargs.placex = placex;
   bargs.u.cell.blendcolors = flags & NCVISUAL_OPTION_BLEND;
   if(ncvisual_blit(ncv, disprows, dispcols, n, bset, leny, lenx, &bargs)){
-    ncplane_destroy(createdn);
+    ncplane_destroy(n);
     return NULL;
   }
   return n;
@@ -526,7 +524,6 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
     dispcols = ncv->cols;
     disprows = ncv->rows;
   }
-  ncplane* createdn = NULL;
 //fprintf(stderr, "INPUT N: %p rows: %d cols: %d 0x%016lx\n", n ? n : NULL, disprows, dispcols, flags);
   if(n == NULL){ // create plane
     if(scaling == NCSCALE_NONE || scaling == NCSCALE_NONE_HIRES){
@@ -562,7 +559,6 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
     }
     placey = 0;
     placex = 0;
-    createdn = n;
   }else{
     if(scaling != NCSCALE_NONE && scaling != NCSCALE_NONE_HIRES){
       ncplane_dim_yx(n, &disprows, &dispcols);
@@ -602,25 +598,12 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
   bargs.u.pixel.celldimx = nc->tcache.cellpixx;
   bargs.u.pixel.celldimy = nc->tcache.cellpixy;
   bargs.u.pixel.colorregs = nc->tcache.color_registers;
-  if(ncv->spx == NULL){
-    int cols = dispcols / bargs.u.pixel.celldimx + !!(dispcols % bargs.u.pixel.celldimx);
-    int rows = disprows / bargs.u.pixel.celldimy + !!(disprows % bargs.u.pixel.celldimy);
-    if((ncv->spx = sprixel_alloc(n, rows, cols)) == NULL){
-      goto err;
-    }
-  }
-  bargs.u.pixel.spx = ncv->spx;
+  bargs.u.pixel.sprixelid = nc->tcache.sprixelnonce++;
   if(ncvisual_blit(ncv, disprows, dispcols, n, bset, disprows, dispcols, &bargs)){
-    goto err;
+    ncplane_destroy(n);
+    return NULL;
   }
   return n;
-
-err:
-  if(ncv->spx){
-    sprixel_free(ncv->spx);
-  }
-  ncplane_destroy(createdn);
-  return NULL;
 }
 
 ncplane* ncvisual_render(notcurses* nc, ncvisual* ncv, const struct ncvisual_options* vopts){

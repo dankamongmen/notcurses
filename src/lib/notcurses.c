@@ -1984,9 +1984,9 @@ void ncplane_yx(const ncplane* n, int* y, int* x){
 }
 
 void ncplane_erase(ncplane* n){
-  /*if(n->sprite){
+  if(n->sprite){
     sprixel_hide(n->sprite);
-  }*/
+  }
   // we must preserve the background, but a pure cell_duplicate() would be
   // wiped out by the egcpool_dump(). do a duplication (to get the stylemask
   // and channels), and then reload.

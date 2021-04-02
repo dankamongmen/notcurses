@@ -386,7 +386,7 @@ write_sixel_data(FILE* fp, int lenx, sixeltable* stab, int* parse_start){
 // stacks. There is also a RLE component, handled in rasterization.
 // A pixel block is indicated by setting cell_pixels_p().
 static inline int
-sixel_blit_inner(int leny, int lenx, sixeltable* stab,
+sixel_blit_inner(ncplane* n, int leny, int lenx, sixeltable* stab,
                  const blitterargs* bargs, sprixcell_e* tacache){
   char* buf = NULL;
   size_t size = 0;
@@ -395,15 +395,17 @@ sixel_blit_inner(int leny, int lenx, sixeltable* stab,
     return -1;
   }
   int parse_start = 0;
+  int cols = lenx / bargs->u.pixel.celldimx + !!(lenx % bargs->u.pixel.celldimx);
+  int rows = leny / bargs->u.pixel.celldimy + !!(leny % bargs->u.pixel.celldimy);
   // calls fclose() on success
   if(write_sixel_data(fp, lenx, stab, &parse_start)){
     free(buf);
     return -1;
   }
   // take ownership of buf on success
-  if(plane_blit_sixel(bargs->u.pixel.spx, buf, size,
-                      bargs->placey, bargs->placex,
-                      leny, lenx, parse_start, tacache) < 0){
+  if(plane_blit_sixel(n, buf, size, bargs->placey, bargs->placex,
+                      rows, cols, bargs->u.pixel.sprixelid, leny, lenx,
+                      parse_start, tacache) < 0){
     free(buf);
     return -1;
   }
@@ -437,8 +439,8 @@ int sixel_blit(ncplane* n, int linesize, const void* data,
   // stable.table doesn't need initializing; we start from the bottom
   memset(stable.data, 0, sixelcount * colorregs);
   memset(stable.deets, 0, sizeof(*stable.deets) * colorregs);
-  int cols = bargs->u.pixel.spx->dimx;
-  int rows = bargs->u.pixel.spx->dimy;
+  int cols = lenx / bargs->u.pixel.celldimx + !!(lenx % bargs->u.pixel.celldimx);
+  int rows = leny / bargs->u.pixel.celldimy + !!(leny % bargs->u.pixel.celldimy);
   sprixcell_e* tacache = NULL;
   bool reuse = false;
   // if we have a sprixel attached to this plane, see if we can reuse it
@@ -469,7 +471,7 @@ int sixel_blit(ncplane* n, int linesize, const void* data,
     return -1;
   }
   refine_color_table(data, linesize, bargs->begy, bargs->begx, leny, lenx, &stable);
-  int r = sixel_blit_inner(leny, lenx, &stable, bargs, tacache);
+  int r = sixel_blit_inner(n, leny, lenx, &stable, bargs, tacache);
   free(stable.data);
   free(stable.deets);
   free(stable.table);

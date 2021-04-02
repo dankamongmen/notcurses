@@ -1085,19 +1085,16 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
   // we explicitly move the cursor at the beginning of each output line, so no
   // need to home it expliticly.
   update_palette(nc, out);
-fprintf(stderr, "pile %p ymax: %d xmax: %d\n", p, p->dimy + nc->stdplane->absy, p->dimx + nc->stdplane->absx);
+//fprintf(stderr, "pile %p ymax: %d xmax: %d\n", p, p->dimy + nc->stdplane->absy, p->dimx + nc->stdplane->absx);
   if(clean_sprixels(nc, p, out) < 0){
     return -1;
   }
-fprintf(stderr, "RASTERIZE CORE\n");
   if(rasterize_core(nc, p, out)){
     return -1;
   }
-fprintf(stderr, "RASTERIZE SPRIXELS\n");
   if(rasterize_sprixels(nc, p, out) < 0){
     return -1;
   }
-fprintf(stderr, "RASTERIZE CORE\n");
   if(rasterize_core(nc, p, out)){
     return -1;
   }

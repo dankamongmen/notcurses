@@ -12,7 +12,6 @@ extern "C" {
 
 struct blitset;
 struct ncplane;
-struct sprixel;
 struct ncvisual_details;
 
 typedef struct ncvisual {
@@ -22,7 +21,6 @@ typedef struct ncvisual {
   // lines are sometimes padded. this many true bytes per row in data.
   int rowstride;
   bool owndata; // we own data iff owndata == true
-  struct sprixel* spx; // non-NULL if this is NCBLIT_PIXEL
 } ncvisual;
 
 static inline void
