@@ -1,5 +1,6 @@
 # Other TUI libraries of note
 
+* [blessed](https://github.com/chjj/blessed) (node.js)
 * [blessed-contrib](https://github.com/yaronn/blessed-contrib) (Javascript)
 * [blessings](https://github.com/erikrose/blessings) (Python)
 * [caca](http://caca.zoy.org/wiki/libcaca) (C)
