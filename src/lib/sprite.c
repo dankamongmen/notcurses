@@ -20,9 +20,11 @@ void sprixel_free(sprixel* s){
 sprixel* sprixel_recycle(ncplane* n, ncvisual* ncv){
   const notcurses* nc = ncplane_notcurses(n);
   if(nc->tcache.pixel_destroy == sprite_kitty_annihilate){
-    int dimy = n->sprite->dimy;
-    int dimx = n->sprite->dimx;
-    sprixel_hide(n->sprite);
+    sprixel* hides = n->sprite ? n->sprite : ncv->spx;
+    assert(hides);
+    int dimy = hides->dimy;
+    int dimx = hides->dimx;
+    sprixel_hide(hides);
     return sprixel_alloc(n, ncv, dimy, dimx);
   }
   return n->sprite;
