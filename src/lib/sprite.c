@@ -47,10 +47,14 @@ void sprixel_hide(sprixel* s){
     s->invalidated = SPRIXEL_HIDE;
     s->movedfromy = ncplane_abs_y(s->n);
     s->movedfromx = ncplane_abs_x(s->n);
-    s->ncv->spx = NULL;
-    s->ncv = NULL;
-    s->n->sprite = NULL;
-    s->n = NULL;
+    if(s->ncv){
+      s->ncv->spx = NULL;
+      s->ncv = NULL;
+    }
+    if(s->n){
+      s->n->sprite = NULL;
+      s->n = NULL;
+    }
   }
 }
 

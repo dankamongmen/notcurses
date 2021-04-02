@@ -713,6 +713,9 @@ ncvisual* ncvisual_from_plane(const ncplane* n, ncblitter_e blit, int begy, int 
 }
 
 void ncvisual_destroy(ncvisual* ncv){
+  if(ncv->spx){
+    ncv->spx->ncv = NULL;
+  }
   if(visual_implementation){
     visual_implementation->visual_destroy(ncv);
   }
