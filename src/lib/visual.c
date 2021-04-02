@@ -602,7 +602,7 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
   bargs.u.pixel.celldimx = nc->tcache.cellpixx;
   bargs.u.pixel.celldimy = nc->tcache.cellpixy;
   bargs.u.pixel.colorregs = nc->tcache.color_registers;
-  if(ncv->spx == NULL){
+  if(ncv->spx == NULL || n->sprite == NULL){
     int cols = dispcols / bargs.u.pixel.celldimx + !!(dispcols % bargs.u.pixel.celldimx);
     int rows = disprows / bargs.u.pixel.celldimy + !!(disprows % bargs.u.pixel.celldimy);
     if((ncv->spx = sprixel_alloc(n, ncv, rows, cols)) == NULL){
