@@ -407,6 +407,7 @@ int sample_##T(const nc##X##plot* ncp, int64_t x, T* y){ \
   return 0; \
 } \
 void destroy_##T(nc##X##plot* ncpp){ \
+  free(ncpp->title); \
   free(ncpp->slots); \
   ncplane_destroy(ncpp->ncp); \
 }
