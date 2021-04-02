@@ -605,11 +605,11 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
   if(ncv->spx == NULL){
     int cols = dispcols / bargs.u.pixel.celldimx + !!(dispcols % bargs.u.pixel.celldimx);
     int rows = disprows / bargs.u.pixel.celldimy + !!(disprows % bargs.u.pixel.celldimy);
-    if((ncv->spx = sprixel_alloc(n, rows, cols)) == NULL){
+    if((ncv->spx = sprixel_alloc(n, ncv, rows, cols)) == NULL){
       goto err;
     }
   }else{
-    ncv->spx = sprixel_recycle(n);
+    ncv->spx = sprixel_recycle(n, ncv);
   }
   bargs.u.pixel.spx = ncv->spx;
   if(ncvisual_blit(ncv, disprows, dispcols, n, bset, disprows, dispcols, &bargs)){

@@ -1,22 +1,29 @@
 #include "internal.h"
+#include "visual-details.h"
 
 // FIXME needs be atomic
 static uint32_t sprixelid_nonce;
 
 void sprixel_free(sprixel* s){
   if(s){
+    if(s->n){
+      s->n->sprite = NULL;
+    }
+    if(s->ncv){
+      s->ncv->spx = NULL;
+    }
     free(s->glyph);
     free(s);
   }
 }
 
-sprixel* sprixel_recycle(ncplane* n){
+sprixel* sprixel_recycle(ncplane* n, ncvisual* ncv){
   const notcurses* nc = ncplane_notcurses(n);
   if(nc->tcache.pixel_destroy == sprite_kitty_annihilate){
     int dimy = n->sprite->dimy;
     int dimx = n->sprite->dimx;
     sprixel_hide(n->sprite);
-    return sprixel_alloc(n, dimy, dimx);
+    return sprixel_alloc(n, ncv, dimy, dimx);
   }
   return n->sprite;
 }
@@ -40,6 +47,8 @@ void sprixel_hide(sprixel* s){
     s->invalidated = SPRIXEL_HIDE;
     s->movedfromy = ncplane_abs_y(s->n);
     s->movedfromx = ncplane_abs_x(s->n);
+    s->ncv->spx = NULL;
+    s->ncv = NULL;
     s->n->sprite = NULL;
     s->n = NULL;
   }
@@ -60,11 +69,12 @@ sprixel* sprixel_by_id(const notcurses* nc, uint32_t id){
   return NULL;
 }
 
-sprixel* sprixel_alloc(ncplane* n, int dimy, int dimx){
+sprixel* sprixel_alloc(ncplane* n, ncvisual* ncv, int dimy, int dimx){
   sprixel* ret = malloc(sizeof(sprixel));
   if(ret){
     memset(ret, 0, sizeof(*ret));
     ret->n = n;
+    ret->ncv = ncv;
     ret->dimy = dimy;
     ret->dimx = dimx;
     ret->id = ++sprixelid_nonce;

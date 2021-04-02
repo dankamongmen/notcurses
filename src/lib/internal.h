@@ -69,7 +69,10 @@ typedef struct sprixel {
   char* glyph;          // glyph; can be quite large
   int glyphlen;         // length of the glyph in bytes
   uint32_t id;          // embedded into glusters field of nccell, 24 bits
+  // both the plane and visual can die before the sprixel does. they are
+  // responsible in such a case for NULLing out this link themselves.
   struct ncplane* n;    // associated ncplane
+  struct ncvisual* ncv; // associated ncvisual
   sprixel_e invalidated;// sprixel invalidation state
   struct sprixel* next;
   int y, x;
@@ -811,8 +814,8 @@ int sprite_draw(const notcurses* n, const ncpile *p, sprixel* s, FILE* out);
 int kitty_draw(const notcurses* n, const ncpile *p, sprixel* s, FILE* out);
 int sixel_draw(const notcurses* n, const ncpile *p, sprixel* s, FILE* out);
 // dimy and dimx are cell geometry, not pixel. takes ownership of s on success.
-sprixel* sprixel_alloc(ncplane* n, int dimy, int dimx);
-sprixel* sprixel_recycle(ncplane* n);
+sprixel* sprixel_alloc(ncplane* n, struct ncvisual* ncv, int dimy, int dimx);
+sprixel* sprixel_recycle(ncplane* n, struct ncvisual* ncv);
 int sprixel_load(sprixel* spx, char* s, int bytes, int placey, int placex,
                  int pixy, int pixx, int parse_start);
 int sprite_wipe_cell(const notcurses* nc, sprixel* s, int y, int x);
