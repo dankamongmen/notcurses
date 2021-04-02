@@ -58,6 +58,7 @@ typedef enum {
   SPRIXCELL_CONTAINS_TRANS, // this cell has transparent pixels
   SPRIXCELL_ANNIHILATED,    // this cell has been wiped
   SPRIXCELL_UNHIDDEN,       // this cell needs be unwiped
+  SPRIXCELL_ANASTASIS,      // this cell needs be revived
 } sprixcell_e;
 
 // there is a context-wide set of displayed pixel glyphs ("sprixels"); i.e.
@@ -437,6 +438,7 @@ struct crender {
     // declaration. save the foreground state when we go highcontrast.
     unsigned hcfgblends: 8; // number of foreground blends prior to HIGHCONTRAST
     unsigned sprixeled: 1; // have we passed through a sprixel?
+    unsigned p_beats_sprixel: 1; // did we solve for our glyph above the bitmap?
   } s;
 };
 

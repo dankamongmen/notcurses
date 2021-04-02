@@ -791,16 +791,16 @@ init_banner(const notcurses* nc, const char* shortname_term){
     printf(" on %s", shortname_term ? shortname_term : "?");
     term_fg_palindex(nc, stdout, 12 % nc->tcache.colors);
     if(nc->tcache.cellpixy && nc->tcache.cellpixx){
-      printf("\n  %d rows (%dpx) %d cols (%dpx) (%sB) %d colors",
+      printf("\n  %d rows (%dpx) %d cols (%dpx) (%sB) %zuB crend %d colors",
              nc->stdplane->leny, nc->tcache.cellpixy,
              nc->stdplane->lenx, nc->tcache.cellpixx,
              bprefix(nc->stats.fbbytes, 1, prefixbuf, 0),
-             nc->tcache.colors);
+             sizeof(struct crender), nc->tcache.colors);
     }else{
-      printf("\n  %d rows %d cols (%sB) %d colors",
+      printf("\n  %d rows %d cols (%sB) %zuB crend %d colors",
              nc->stdplane->leny, nc->stdplane->lenx,
              bprefix(nc->stats.fbbytes, 1, prefixbuf, 0),
-             nc->tcache.colors);
+             sizeof(struct crender), nc->tcache.colors);
     }
     if(nc->tcache.RGBflag){
       putc('+', stdout);

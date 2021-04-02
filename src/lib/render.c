@@ -259,6 +259,7 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
           // if sprite_wipe_cell() fails, we presumably do not have the
           // ability to wipe, and must reprint the character
           if(sprite_wipe_cell(ncplane_notcurses_const(p), p->sprite, y, x)){
+            crender->s.p_beats_sprixel = 1;
             crender->s.damaged = 1;
           }
         }else if(!crender->p){
@@ -968,7 +969,7 @@ rasterize_sprixels(notcurses* nc, const ncpile* p, FILE* out){
 // lastframe has *not yet been written to the screen*, i.e. it's only about to
 // *become* the last frame rasterized.
 static int
-rasterize_core(notcurses* nc, const ncpile* p, FILE* out){
+rasterize_core(notcurses* nc, const ncpile* p, FILE* out, unsigned phase){
   struct crender* rvec = p->crender;
   for(int y = nc->stdplane->absy ; y < p->dimy + nc->stdplane->absy ; ++y){
     const int innery = y - nc->stdplane->absy;
@@ -984,7 +985,7 @@ rasterize_core(notcurses* nc, const ncpile* p, FILE* out){
         if(cell_wide_left_p(srccell)){
           ++x;
         }
-      }else{
+      }else if(phase != 0 || !rvec[damageidx].s.p_beats_sprixel){
         ++nc->stats.cellemissions;
         if(goto_location(nc, out, y, x)){
           return -1;
@@ -1090,7 +1091,7 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
     return -1;
   }
 //fprintf(stderr, "RASTERIZE CORE\n");
-  if(rasterize_core(nc, p, out)){
+  if(rasterize_core(nc, p, out, 0)){
     return -1;
   }
 //fprintf(stderr, "RASTERIZE SPRIXELS\n");
@@ -1098,7 +1099,7 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
     return -1;
   }
 //fprintf(stderr, "RASTERIZE CORE\n");
-  if(rasterize_core(nc, p, out)){
+  if(rasterize_core(nc, p, out, 1)){
     return -1;
   }
   if(fflush(out)){
