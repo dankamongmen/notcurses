@@ -124,6 +124,7 @@ int sprite_wipe_cell(const notcurses* nc, sprixel* s, int ycell, int xcell){
   // mark the cell as annihilated whether we actually scrubbed it or not,
   // so that we use this fact should we move to another frame
   s->n->tacache[s->dimx * ycell + xcell] = SPRIXCELL_ANNIHILATED;
+//fprintf(stderr, "ANNIHILATED %p %d\n", s->n->tacache, s->dimx * ycell + xcell);
   if(!nc->tcache.pixel_cell_wipe){ // sixel has no cell wiping
     return -1;
   }

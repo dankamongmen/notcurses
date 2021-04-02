@@ -678,6 +678,7 @@ ncplane* ncvisual_render(notcurses* nc, ncvisual* ncv, const struct ncvisual_opt
   int placex = vopts ? vopts->x : 0;
 //fprintf(stderr, "beg/len: %d %d %d %d place: %d/%d scale: %d/%d\n", begy, leny, begx, lenx, placey, placex, encoding_y_scale(&nc->tcache, bset), encoding_x_scale(&nc->tcache, bset));
   ncplane* n = (vopts ? vopts->n : NULL);
+//fprintf(stderr, "%p tacache: %p\n", n, n->tacache);
   ncscale_e scaling = vopts ? vopts->scaling : NCSCALE_NONE;
   if(bset->geom != NCBLIT_PIXEL){
     n = ncvisual_render_cells(nc, ncv, bset, placey, placex, begy, begx, leny, lenx,

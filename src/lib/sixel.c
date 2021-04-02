@@ -386,7 +386,7 @@ write_sixel_data(FILE* fp, int lenx, sixeltable* stab, int* parse_start){
 // stacks. There is also a RLE component, handled in rasterization.
 // A pixel block is indicated by setting cell_pixels_p().
 static inline int
-sixel_blit_inner(int leny, int lenx, sixeltable* stab,
+sixel_blit_inner(int leny, int lenx, sixeltable* stab, int rows, int cols,
                  const blitterargs* bargs, sprixcell_e* tacache){
   char* buf = NULL;
   size_t size = 0;
@@ -401,7 +401,7 @@ sixel_blit_inner(int leny, int lenx, sixeltable* stab,
     return -1;
   }
   // take ownership of buf on success
-  if(plane_blit_sixel(bargs->u.pixel.spx, buf, size,
+  if(plane_blit_sixel(bargs->u.pixel.spx, buf, size, rows, cols,
                       bargs->placey, bargs->placex,
                       leny, lenx, parse_start, tacache) < 0){
     free(buf);
@@ -444,7 +444,7 @@ int sixel_blit(ncplane* n, int linesize, const void* data,
   // if we have a sprixel attached to this plane, see if we can reuse it
   // (we need the same dimensions) and thus immediately apply its T-A table.
   if(n->tacache){
-//fprintf(stderr, "OUGHT BE A REUSE %d %d %d %d\n", n->tacachey, rows, n->tacachex, cols);
+//fprintf(stderr, "IT'S A REUSE %d %d %d %d\n", n->tacachey, rows, n->tacachex, cols);
     if(n->tacachey == rows && n->tacachex == cols){
       tacache = n->tacache;
       reuse = true;
@@ -469,7 +469,7 @@ int sixel_blit(ncplane* n, int linesize, const void* data,
     return -1;
   }
   refine_color_table(data, linesize, bargs->begy, bargs->begx, leny, lenx, &stable);
-  int r = sixel_blit_inner(leny, lenx, &stable, bargs, tacache);
+  int r = sixel_blit_inner(leny, lenx, &stable, rows, cols, bargs, tacache);
   free(stable.data);
   free(stable.deets);
   free(stable.table);

@@ -1220,7 +1220,7 @@ egc_rtl(const char* egc, int* bytes){
 // a reference to the context-wide sprixel cache. this ought be an entirely
 // new, purpose-specific plane.
 static inline int
-plane_blit_sixel(sprixel* spx, char* s, int bytes,
+plane_blit_sixel(sprixel* spx, char* s, int bytes, int rows, int cols,
                  int placey, int placex, int leny, int lenx,
                  int parse_start, sprixcell_e* tacache){
   if(sprixel_load(spx, s, bytes, placey, placex, leny, lenx, parse_start)){
@@ -1228,17 +1228,18 @@ plane_blit_sixel(sprixel* spx, char* s, int bytes,
   }
   ncplane* n = spx->n;
   uint32_t gcluster = htole(0x02000000ul) + htole(spx->id);
-  for(int y = placey ; y < placey + leny && y < ncplane_dim_y(n) ; ++y){
-    for(int x = placex ; x < placex + lenx && x < ncplane_dim_x(n) ; ++x){
+  for(int y = placey ; y < placey + rows && y < ncplane_dim_y(n) ; ++y){
+    for(int x = placex ; x < placex + cols && x < ncplane_dim_x(n) ; ++x){
       nccell* c = ncplane_cell_ref_yx(n, y, x);
       memcpy(&c->gcluster, &gcluster, sizeof(gcluster));
-      c->width = lenx;
+      c->width = cols;
     }
   }
   if(n){
+//fprintf(stderr, "TACACHE WAS: %p NOW: %p size: %d/%d\n", n->tacache, tacache, rows, cols);
     n->tacache = tacache;
-    n->tacachey = leny;
-    n->tacachex = lenx;
+    n->tacachey = rows;
+    n->tacachex = cols;
     n->sprite = spx;
   }
   return 0;
