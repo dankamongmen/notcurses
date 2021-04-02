@@ -552,7 +552,7 @@ ncdirectv* ncdirect_render_frame(ncdirect* n, const char* file,
     bargs.u.pixel.colorregs = n->tcache.color_registers;
     int cols = lenx / bargs.u.pixel.celldimx + !!(lenx % bargs.u.pixel.celldimx);
     int rows = leny / bargs.u.pixel.celldimy + !!(leny % bargs.u.pixel.celldimy);
-    if((bargs.u.pixel.spx = sprixel_alloc(ncdv, rows, cols)) == NULL){
+    if((bargs.u.pixel.spx = sprixel_alloc(ncdv, ncv, rows, cols)) == NULL){
       ncvisual_destroy(ncv);
       free_plane(ncdv);
       return NULL;
