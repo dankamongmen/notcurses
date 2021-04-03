@@ -13,8 +13,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
+
+from os import environ
 
 from setuptools import Extension, setup
+
+if environ.get('CFLAGS') is None:
+    environ['CFLAGS'] = "-Werror -Wextra -Wconversion -Wall"
+
+if environ.get('LDFLAGS') is None:
+    environ['LDFLAGS'] = "-Wl,--no-as-needed"
 
 setup(
     name="notcurses",
@@ -25,6 +34,7 @@ setup(
             name='notcurses.misc',
             sources=['notcurses/misc.c'],
             libraries=['notcurses'],
+            language='c',
         ),
     ],
     author="Nick Black",
