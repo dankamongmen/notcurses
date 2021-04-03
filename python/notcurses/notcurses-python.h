@@ -143,7 +143,7 @@ static inline void PyObject_cleanup(PyObject **object)
 
 #define CLEANUP_PY_OBJ __attribute__((cleanup(PyObject_cleanup)))
 
-#define PY_CHECK(py_function)               \
+#define GNU_PY_CHECK(py_function)               \
     ({                                      \
         PyObject *new_object = py_function; \
         if (new_object == NULL)             \
@@ -153,7 +153,7 @@ static inline void PyObject_cleanup(PyObject **object)
         new_object;                         \
     })
 
-#define PY_CHECK_INT(py_function)       \
+#define GNU_PY_CHECK_INT(py_function)       \
     ({                                  \
         int return_value = py_function; \
         if (return_value < 0)           \
