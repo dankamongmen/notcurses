@@ -152,3 +152,13 @@ static inline void PyObject_cleanup(PyObject **object)
         }                                   \
         new_object;                         \
     })
+
+#define PY_CHECK_INT(py_function)       \
+    ({                                  \
+        int return_value = py_function; \
+        if (return_value < 0)           \
+        {                               \
+            return NULL;                \
+        }                               \
+        return_value;                   \
+    })
