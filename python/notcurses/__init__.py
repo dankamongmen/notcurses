@@ -14,8 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .misc import notcurses_version
+from .misc import notcurses_version, notcurses_version_components
 
-__all__ = [
-    'notcurses_version',
-]
+__all__ = (
+    'notcurses_version', 'notcurses_version_components'
+)

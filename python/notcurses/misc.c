@@ -24,8 +24,19 @@ python_notcurses_version(PyObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
     return PyUnicode_FromString(verstion_str);
 }
 
+static PyObject *
+python_notcurses_version_components(PyObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
+{
+    int major, minor, patch, tweak = {0};
+
+    notcurses_version_components(&major, &minor, &patch, &tweak);
+
+    return Py_BuildValue("iiii", major, minor, patch, tweak);
+}
+
 static PyMethodDef NotcursesMiscMethods[] = {
     {"notcurses_version", (PyCFunction)python_notcurses_version, METH_NOARGS, "Get a human-readable string describing the running Notcurses version."},
+    {"notcurses_version_components", (PyCFunction)python_notcurses_version_components, METH_NOARGS, "Get a tuple of major, minor, patch, tweak integer of the running Notcurses version."},
     {NULL, NULL, 0, NULL},
 };
 
