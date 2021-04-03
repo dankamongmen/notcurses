@@ -1239,6 +1239,9 @@ plane_blit_sixel(sprixel* spx, char* s, int bytes, int rows, int cols,
   }
   if(n){
 //fprintf(stderr, "TACACHE WAS: %p NOW: %p size: %d/%d\n", n->tacache, tacache, rows, cols);
+    if(n->tacache != tacache){
+      free(n->tacache);
+    }
     n->tacache = tacache;
     n->tacachey = rows;
     n->tacachex = cols;

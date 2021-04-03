@@ -100,6 +100,7 @@ sprixel* sprixel_alloc(ncplane* n, ncvisual* ncv, int dimy, int dimx){
 int sprixel_load(sprixel* spx, char* s, int bytes, int placey, int placex,
                  int pixy, int pixx, int parse_start){
   assert(spx->n);
+  free(spx->glyph);
   spx->glyph = s;
   spx->glyphlen = bytes;
   spx->invalidated = SPRIXEL_INVALIDATED;
