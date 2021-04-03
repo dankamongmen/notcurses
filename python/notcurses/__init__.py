@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
-# Copyright 2020 igo95862
+# Copyright 2020, 2021 igo95862
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,11 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ._notcurses import get_notcurses_version
-from .notcurses import (NcAlign, NcChannels, NcDirect, NcInput, NcInputCodes,
-                        NcPlane, NotcursesContext, get_std_plane)
+from .misc import notcurses_version
 
 __all__ = [
-    'NcPlane', 'get_std_plane', 'NcAlign', 'NcInput', 'NcInputCodes',
-    'get_notcurses_version', 'NcDirect', 'NcChannels', 'NotcursesContext'
+    'notcurses_version',
 ]
