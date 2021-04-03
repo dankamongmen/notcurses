@@ -135,3 +135,20 @@ typedef struct
     PyObject_HEAD;
     struct palette256 palette256;
 } Palette256Object;
+
+static inline void PyObject_cleanup(PyObject **object)
+{
+    Py_XDECREF(*object);
+}
+
+#define CLEANUP_PY_OBJ __attribute__((cleanup(PyObject_cleanup)))
+
+#define PY_CHECK(py_function)               \
+    ({                                      \
+        PyObject *new_object = py_function; \
+        if (new_object == NULL)             \
+        {                                   \
+            return NULL;                    \
+        }                                   \
+        new_object;                         \
+    })
