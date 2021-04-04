@@ -1118,7 +1118,7 @@
             <span class="ident">core</span>::<span class="ident">char</span>::<span class="ident">from_u32_unchecked</span>(<span class="kw">crate</span>::<span class="ident">ncdirect_getc</span>(<span class="self">self</span>, <span class="ident">ntime</span>, <span class="ident">nsigmask</span>, <span class="ident">ninput</span>))
         };
         <span class="kw">if</span> <span class="ident">c</span> <span class="kw">as</span> <span class="ident">u32</span> <span class="kw">as</span> <span class="ident">i32</span> <span class="op">=</span><span class="op">=</span> <span class="ident">NCRESULT_ERR</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">NcError</span>::<span class="ident">new</span>(<span class="ident">NCRESULT_ERR</span>));
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">NcError</span>::<span class="ident">new</span>());
         }
         <span class="prelude-val">Ok</span>(<span class="ident">c</span>)
     }

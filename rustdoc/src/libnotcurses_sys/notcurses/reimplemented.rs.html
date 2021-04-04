@@ -133,7 +133,7 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">NcAlign</span>, <span class="ident">NcDim</span>, <span class="ident">NcError</span>, <span class="ident">NcInput</span>, <span class="ident">NcOffset</span>, <span class="ident">NcPlane</span>, <span class="ident">NcResult</span>, <span class="ident">NcSignalSet</span>, <span class="ident">NcTime</span>, <span class="ident">Notcurses</span>,
-    <span class="ident">NCALIGN_CENTER</span>, <span class="ident">NCALIGN_LEFT</span>, <span class="ident">NCALIGN_RIGHT</span>, <span class="ident">NCRESULT_ERR</span>, <span class="ident">NCRESULT_MAX</span>,
+    <span class="ident">NCALIGN_CENTER</span>, <span class="ident">NCALIGN_LEFT</span>, <span class="ident">NCALIGN_RIGHT</span>, <span class="ident">NCRESULT_MAX</span>,
 };
 
 <span class="doccomment">/// Returns the offset into `availcols` at which `cols` ought be output given</span>
@@ -218,7 +218,7 @@
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">sp</span>);
         }
     }
-    <span class="prelude-val">Err</span>(<span class="ident">NcError</span>::<span class="ident">new</span>(<span class="ident">NCRESULT_ERR</span>))
+    <span class="prelude-val">Err</span>(<span class="ident">NcError</span>::<span class="ident">new</span>())
 }
 
 <span class="doccomment">/// [notcurses_stdplane_const()][crate::notcurses_stdplane_const], plus free</span>
@@ -238,7 +238,7 @@
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">sp</span>);
         }
     }
-    <span class="prelude-val">Err</span>(<span class="ident">NcError</span>::<span class="ident">new</span>(<span class="ident">NCRESULT_ERR</span>))
+    <span class="prelude-val">Err</span>(<span class="ident">NcError</span>::<span class="ident">new</span>())
 }
 
 <span class="doccomment">/// Returns our current idea of the terminal dimensions in rows and cols.</span>
