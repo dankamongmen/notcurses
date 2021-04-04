@@ -1,6 +1,6 @@
 % ncls(1)
 % nick black <nickblack@linux.com>
-% v2.2.4
+% v2.2.5
 
 # NAME
 
