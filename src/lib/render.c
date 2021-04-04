@@ -265,8 +265,8 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
         }else if(!crender->p){
           // if we are a bitmap, and above a cell that has changed (and
           // will thus be printed), we'll need redraw the sprixel.
-          if(rvec->sprixel == NULL){
-            rvec->sprixel = sprixel_by_id(ncplane_notcurses_const(p), cell_sprixel_id(vis));
+          if(crender->sprixel == NULL){
+            crender->sprixel = sprixel_by_id(ncplane_notcurses_const(p), cell_sprixel_id(vis));
           }
         }
         continue;
@@ -355,7 +355,7 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
         // if the following is true, we're a real glyph, and not the right-hand
         // side of a wide glyph (nor the null codepoint).
         if( (targc->gcluster = vis->gcluster) ){ // index copy only
-          if(rvec->sprixel && rvec->sprixel->invalidated == SPRIXEL_HIDE){
+          if(crender->sprixel && crender->sprixel->invalidated == SPRIXEL_HIDE){
             crender->s.damaged = true;
           }
           crender->s.blittedquads = cell_blittedquadrants(vis);

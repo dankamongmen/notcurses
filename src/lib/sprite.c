@@ -18,7 +18,7 @@ void sprixel_free(sprixel* s){
 }
 
 sprixel* sprixel_recycle(ncplane* n, ncvisual* ncv){
-  const notcurses* nc = ncplane_notcurses(n);
+  const notcurses* nc = ncplane_notcurses_const(n);
   if(nc->tcache.pixel_destroy == sprite_kitty_annihilate){
     sprixel* hides = n->sprite ? n->sprite : ncv->spx;
     assert(hides);
