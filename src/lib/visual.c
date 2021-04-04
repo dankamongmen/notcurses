@@ -605,6 +605,12 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
   if(ncv->spx == NULL || n->sprite == NULL){
     int cols = dispcols / bargs.u.pixel.celldimx + !!(dispcols % bargs.u.pixel.celldimx);
     int rows = disprows / bargs.u.pixel.celldimy + !!(disprows % bargs.u.pixel.celldimy);
+    if(ncv->spx){
+      sprixel_hide(ncv->spx);
+    }
+    if(n->sprite){
+      sprixel_hide(n->sprite);
+    }
     if((ncv->spx = sprixel_alloc(n, ncv, rows, cols)) == NULL){
       goto err;
     }
