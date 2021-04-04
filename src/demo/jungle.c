@@ -26625,8 +26625,14 @@ int jungle_demo(struct notcurses* nc){
         if(cell_set_fg_palindex(&c, buf[idx])){
                 return -1;
         }
-        if(cell_set_bg_palindex(&c, buf[idx2])){
-                return -1;
+        if(y + yiter < ORIGHEIGHT){
+          if(cell_set_bg_palindex(&c, buf[idx2])){
+            return -1;
+          }
+        }else{
+          if(cell_set_bg_palindex(&c, 0)){
+            return -1;
+          }
         }
         if(ncplane_putc(n, &c) < 0){
                 return -1;
