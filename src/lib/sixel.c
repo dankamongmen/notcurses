@@ -316,7 +316,7 @@ write_rle(int* printed, int color, FILE* fp, int seenrle, unsigned char crle){
 // Emit the sprixel in its entirety, plus enable and disable pixel mode.
 // Closes |fp| on all paths.
 static int
-write_sixel_data(FILE* fp, int lenx, sixeltable* stab, int* parse_start){
+write_sixel_data(FILE* fp, int lenx, const sixeltable* stab, int* parse_start){
   *parse_start = fprintf(fp, "\ePq");
   // Set Raster Attributes - pan/pad=1 (pixel aspect ratio), Ph=lenx, Pv=leny
   // using Ph/Pv causes a background to be drawn using color register 0 for all
@@ -386,7 +386,7 @@ write_sixel_data(FILE* fp, int lenx, sixeltable* stab, int* parse_start){
 // stacks. There is also a RLE component, handled in rasterization.
 // A pixel block is indicated by setting cell_pixels_p().
 static inline int
-sixel_blit_inner(int leny, int lenx, sixeltable* stab, int rows, int cols,
+sixel_blit_inner(int leny, int lenx, const sixeltable* stab, int rows, int cols,
                  const blitterargs* bargs, sprixcell_e* tacache){
   char* buf = NULL;
   size_t size = 0;
