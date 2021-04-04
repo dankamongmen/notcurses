@@ -21,3 +21,11 @@ Run, using `valgrind --tool=memcheck --leak-check=full`:
 * `notcurses-demo` with FPS plot and HUD up
 * Play a game of `nctetris`
 * Run each PoC binary, including `ncpp_build` and `ncpp_build_exceptions`
+
+Bitmap tests; all must be done in both Sixel and Kitty environments:
+* `ncplayer -bpixel`, make sure frame count/time is always visible
+* `ncplayer -bpixel`, make sure we can switch to cells and back
+* `ncplayer`, make sure we can switch into pixel and back
+* `notcurses-demo k`, make sure bitmaps are deleted
+* `notcurses-demo y`, make sure yield is always visible
+All of these need to work without flicker.
