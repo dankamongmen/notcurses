@@ -305,6 +305,17 @@ query_sixel_details(tinfo* ti, int fd){
   return 0;
 }
 
+// we found Sixel support -- set up the API
+static void
+setup_sixel(tinfo* ti, int (**pixel_init)(int fd)){
+  ti->sixel_supported = true;
+  ti->color_registers = 256;  // assumed default [shrug]
+  *pixel_init = ti->pixel_init = sprite_sixel_init;
+  ti->pixel_draw = sixel_draw;
+  ti->sixel_maxx = ti->sixel_maxy = 0;
+  ti->pixel_destroy = sixel_delete;
+}
+
 // query for Sixel support
 static int
 query_sixel(tinfo* ti, int fd){
@@ -320,8 +331,12 @@ query_sixel(tinfo* ti, int fd){
     WANT_QMARK,
     WANT_SEMI,
     WANT_C,
+    WANT_C_ALACRITTY_HACK,
     DONE
   } state = WANT_CSI;
+  // we're looking for a 4 following a semicolon, or alacritty's insistence
+  // on CSI 6c followed by XTSMGRAPHICS, which probably breaks us on a real
+  // VT102, but how many of them could there be? le sigh FIXME
   while(read(fd, &in, 1) == 1){
     switch(state){
       case WANT_CSI:
@@ -339,20 +354,22 @@ query_sixel(tinfo* ti, int fd){
           state = WANT_C;
         }else if(in == 'c'){
           state = DONE;
+        }else if(in == '6'){
+          state = WANT_C_ALACRITTY_HACK;
         }
         break;
       case WANT_C:
         if(in == 'c'){
           state = DONE;
         }else if(in == '4'){
-          if(!ti->sixel_supported){
-            ti->sixel_supported = true;
-            ti->color_registers = 256;  // assumed default [shrug]
-            pixel_init = ti->pixel_init = sprite_sixel_init;
-            ti->pixel_draw = sixel_draw;
-            ti->sixel_maxx = ti->sixel_maxy = 0;
-            ti->pixel_destroy = sixel_delete;
-          }
+          setup_sixel(ti, &pixel_init);
+          state = DONE;
+        }
+        break;
+      case WANT_C_ALACRITTY_HACK:
+        if(in == 'c'){
+          setup_sixel(ti, &pixel_init);
+          state = DONE;
         }
         break;
       case DONE:
