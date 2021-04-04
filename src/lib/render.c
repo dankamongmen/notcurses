@@ -243,6 +243,7 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
         break;
       }
       struct crender* crender = &rvec[fbcellidx(absy, dstlenx, absx)];
+//fprintf(stderr, "p: %p damaged: %u %d/%d\n", p, crender->s.damaged, y, x);
       nccell* targc = &crender->c;
       if(cell_wide_right_p(targc)){
         continue;
@@ -253,20 +254,22 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
       // glyph, but we *do* need to null out any cellregions that we've
       // scribbled upon.
       if(cell_sprixel_p(vis)){
+//fprintf(stderr, "presprixel: %p preid: %d id: %d state: %d\n", rvec->sprixel, rvec->sprixel ? rvec->sprixel->id : 0, cell_sprixel_id(vis), sprixel_by_id(ncplane_notcurses_const(p), cell_sprixel_id(vis))->invalidated);
         // if we already have a glyph solved, and we run into a bitmap
         // cell, we need to null that cell out of the bitmap.
         if(crender->p || crender->s.bgblends){
           // if sprite_wipe_cell() fails, we presumably do not have the
           // ability to wipe, and must reprint the character
           if(sprite_wipe_cell(ncplane_notcurses_const(p), p->sprite, y, x)){
+//fprintf(stderr, "damaging due to wipe %d/%d\n", y, x);
             crender->s.p_beats_sprixel = 1;
             crender->s.damaged = 1;
           }
         }else if(!crender->p){
           // if we are a bitmap, and above a cell that has changed (and
           // will thus be printed), we'll need redraw the sprixel.
-          if(rvec->sprixel == NULL){
-            rvec->sprixel = sprixel_by_id(ncplane_notcurses_const(p), cell_sprixel_id(vis));
+          if(crender->sprixel == NULL /*|| rvec->sprixel->invalidated == SPRIXEL_HIDE*/){
+            crender->sprixel = sprixel_by_id(ncplane_notcurses_const(p), cell_sprixel_id(vis));
           }
         }
         continue;
@@ -355,8 +358,8 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
         // if the following is true, we're a real glyph, and not the right-hand
         // side of a wide glyph (nor the null codepoint).
         if( (targc->gcluster = vis->gcluster) ){ // index copy only
-          if(rvec->sprixel && rvec->sprixel->invalidated == SPRIXEL_HIDE){
-            crender->s.damaged = true;
+          if(crender->sprixel && crender->sprixel->invalidated == SPRIXEL_HIDE){
+            crender->s.damaged = 1;
           }
           crender->s.blittedquads = cell_blittedquadrants(vis);
           // we can't plop down a wide glyph if the next cell is beyond the
@@ -439,6 +442,7 @@ postpaint_cell(nccell* lastframe, int dimx, struct crender* crender,
   lock_in_highcontrast(targc, crender);
   nccell* prevcell = &lastframe[fbcellidx(y, dimx, *x)];
   if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc) > 0){
+//fprintf(stderr, "damaging due to cmp\n");
     crender->s.damaged = 1;
     assert(!cell_wide_right_p(targc));
     const int width = targc->width;
@@ -453,6 +457,7 @@ postpaint_cell(nccell* lastframe, int dimx, struct crender* crender,
       targc->channels = crender[-i].c.channels;
       targc->stylemask = crender[-i].c.stylemask;
       if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc) > 0){
+//fprintf(stderr, "damaging due to cmp2\n");
         crender->s.damaged = 1;
       }
     }
@@ -986,6 +991,9 @@ rasterize_core(notcurses* nc, const ncpile* p, FILE* out, unsigned phase){
           ++x;
         }
       }else if(phase != 0 || !rvec[damageidx].s.p_beats_sprixel){
+        // in the first text phase, we draw only those glyphs where the glyph
+        // was not above a sprixel (and the cell is damaged). in the second
+        // phase, we draw everything that remains damaged.
         ++nc->stats.cellemissions;
         if(goto_location(nc, out, y, x)){
           return -1;
@@ -1065,6 +1073,7 @@ rasterize_core(notcurses* nc, const ncpile* p, FILE* out, unsigned phase){
           return -1;
         }
         rvec[damageidx].s.damaged = 0;
+        rvec[damageidx].s.p_beats_sprixel = 0;
         ++nc->rstate.x;
         if(srccell->width >= 2){
           x += srccell->width - 1;
@@ -1085,11 +1094,11 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
   // don't write a clearscreen. we only update things that have been changed.
   // we explicitly move the cursor at the beginning of each output line, so no
   // need to home it expliticly.
-  update_palette(nc, out);
 //fprintf(stderr, "pile %p ymax: %d xmax: %d\n", p, p->dimy + nc->stdplane->absy, p->dimx + nc->stdplane->absx);
   if(clean_sprixels(nc, p, out) < 0){
     return -1;
   }
+  update_palette(nc, out);
 //fprintf(stderr, "RASTERIZE CORE\n");
   if(rasterize_core(nc, p, out, 0)){
     return -1;
@@ -1187,7 +1196,7 @@ int notcurses_refresh(notcurses* nc, int* restrict dimy, int* restrict dimx){
   }
   init_rvec(p.crender, count);
   for(int i = 0 ; i < count ; ++i){
-    p.crender[i].s.damaged = true;
+    p.crender[i].s.damaged = 1;
   }
   int ret = notcurses_rasterize(nc, &p, nc->rstate.mstreamfp);
   free(p.crender);
@@ -1221,7 +1230,7 @@ int notcurses_render_to_file(notcurses* nc, FILE* fp){
   }
   init_rvec(p.crender, count);
   for(int i = 0 ; i < count ; ++i){
-    p.crender[i].s.damaged = true;
+    p.crender[i].s.damaged = 1;
   }
   int ret = raster_and_write(nc, &p, out);
   free(p.crender);

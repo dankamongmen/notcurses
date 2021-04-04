@@ -150,7 +150,7 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
     }
     if(keyp == NCKey::Resize){
       return 0;
-    }else if(keyp == 'L' && ni.ctrl){
+    }else if(keyp == 'L' && ni.ctrl && !ni.alt){
       nc.refresh(nullptr, nullptr);
       continue;
     }else if(keyp >= '0' && keyp <= '6' && !ni.alt && !ni.ctrl){
@@ -161,16 +161,16 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
       }
       continue;
     }else if(keyp == NCKey::Up){
-      // FIXME
+      // FIXME move backwards significantly
       continue;
     }else if(keyp == NCKey::Down){
-      // FIXME
+      // FIXME move forwards significantly
       continue;
     }else if(keyp == NCKey::Right){
-      // FIXME
+      // FIXME move forwards
       continue;
     }else if(keyp == NCKey::Left){
-      // FIXME
+      // FIXME move backwards
       continue;
     }
     return 1;
