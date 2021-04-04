@@ -27,8 +27,8 @@ fn main() {
         .clang_arg("-fretain-comments-from-system-headers")
         .clang_arg("-fparse-all-comments")
         // Remove warnings about improper_ctypes
-        .blacklist_function("strtold")
-        .blacklist_function("wcstold")
+        .blocklist_function("strtold")
+        .blocklist_function("wcstold")
         // Don't derive the Copy trait on types with destructors.
         .no_copy("ncdirect")
         .no_copy("ncdplot")
