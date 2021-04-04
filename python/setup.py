@@ -20,7 +20,9 @@ from os import environ
 from setuptools import Extension, setup
 
 if environ.get('CFLAGS') is None:
-    environ['CFLAGS'] = "-Werror -Wextra -Wconversion -Wall"
+    environ['CFLAGS'] = (
+        "-Werror "
+        "-Wextra -Wconversion -Wall")
 
 if environ.get('LDFLAGS') is None:
     environ['LDFLAGS'] = "-Wl,--no-as-needed"
@@ -31,8 +33,13 @@ setup(
     packages=['notcurses'],
     ext_modules=[
         Extension(
-            name='notcurses.misc',
-            sources=['notcurses/misc.c'],
+            name='notcurses.notcurses',
+            sources=[
+                'notcurses/channels.c',
+                'notcurses/context.c',
+                'notcurses/main.c',
+                'notcurses/misc.c',
+            ],
             libraries=['notcurses'],
             language='c',
         ),
