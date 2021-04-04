@@ -625,7 +625,35 @@ TEST_CASE("Visual") {
     }
   }
 
-  SUBCASE("LoadVideoPixelScale") {
+  SUBCASE("LoadVideoPixelScaleOnePlane") {
+    if(notcurses_check_pixel_support(nc_) > 0){
+      if(notcurses_canopen_videos(nc_)){
+        int dimy, dimx;
+        ncplane_dim_yx(ncp_, &dimy, &dimx);
+        auto ncv = ncvisual_from_file(find_data("notcursesIII.mkv"));
+        REQUIRE(ncv);
+        struct ncplane* n = NULL;
+        for(;;){ // run at the highest speed we can
+          int ret = ncvisual_decode(ncv);
+          if(1 == ret){
+            break;
+          }
+          CHECK(0 == ret);
+          struct ncvisual_options opts{};
+          opts.scaling = NCSCALE_SCALE;
+          opts.blitter = NCBLIT_PIXEL;
+          opts.n = n;
+          n = ncvisual_render(nc_, ncv, &opts);
+          REQUIRE(nullptr != n);
+          CHECK(0 == notcurses_render(nc_));
+        }
+        ncplane_destroy(n);
+        ncvisual_destroy(ncv);
+      }
+    }
+  }
+
+  SUBCASE("LoadVideoPixelScaleDifferentPlanes") {
     if(notcurses_check_pixel_support(nc_) > 0){
       if(notcurses_canopen_videos(nc_)){
         int dimy, dimx;
@@ -641,7 +669,7 @@ TEST_CASE("Visual") {
           struct ncvisual_options opts{};
           opts.scaling = NCSCALE_SCALE;
           opts.blitter = NCBLIT_PIXEL;
-          CHECK(ncvisual_render(nc_, ncv, &opts));
+          REQUIRE(ncvisual_render(nc_, ncv, &opts));
           CHECK(0 == notcurses_render(nc_));
         }
         ncvisual_destroy(ncv);
