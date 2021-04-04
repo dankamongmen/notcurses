@@ -420,6 +420,7 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
       return -1;
     }
   }
+  free(ncplane_userptr(n));
   return 0;
 }
 
