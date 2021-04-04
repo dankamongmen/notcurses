@@ -455,3 +455,35 @@ int ncsubproc_destroy(ncsubproc* n){
 ncplane* ncsubproc_plane(ncsubproc* n){
   return n->nfp->ncp;
 }
+
+// if ttyfp is a tty, return a file descriptor extracted from it. otherwise,
+// try to get the controlling terminal. otherwise, return -1.
+int get_tty_fd(notcurses* nc, FILE* ttyfp){
+  int fd = -1;
+  if(ttyfp){
+    if((fd = fileno(ttyfp)) < 0){
+      logwarn(nc, "No file descriptor was available in outfp %p\n", ttyfp);
+    }else{
+      if(isatty(fd)){
+        fd = dup(fd);
+      }else{
+        loginfo(nc, "File descriptor %d was not a TTY\n", fd);
+        fd = -1;
+      }
+    }
+  }
+  if(fd < 0){
+    fd = open("/dev/tty", O_RDWR | O_CLOEXEC);
+    if(fd < 0){
+      loginfo(nc, "Error opening /dev/tty (%s)\n", strerror(errno));
+    }else{
+      if(!isatty(fd)){
+        loginfo(nc, "File descriptor for /dev/tty (%d) is not actually a TTY\n", fd);
+        close(fd);
+        fd = -1;
+      }
+    }
+  }
+  loginfo(nc, "Returning TTY fd %d\n", fd);
+  return fd;
+}

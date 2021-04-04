@@ -1342,6 +1342,8 @@ int cbreak_mode(int ttyfd, const struct termios* tpreserved);
 
 int set_fd_nonblocking(int fd, unsigned state, unsigned* oldstate);
 
+int get_tty_fd(notcurses* nc, FILE* ttyfp);
+
 // Given the four channels arguments, verify that:
 //
 // - if any is default foreground, all are default foreground

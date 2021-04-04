@@ -617,20 +617,6 @@ int ncdirect_printf_aligned(ncdirect* n, int y, ncalign_e align, const char* fmt
   return ret;
 }
 
-int get_controlling_tty(FILE* ttyfp){
-  int fd = fileno(ttyfp);
-  if(fd > 0 && isatty(fd)){
-    if((fd = dup(fd)) >= 0){
-      return fd;
-    }
-  }
-  char cbuf[L_ctermid + 1];
-  if(ctermid(cbuf) == NULL){
-    return -1;
-  }
-  return open(cbuf, O_RDWR | O_CLOEXEC);
-}
-
 static int
 ncdirect_stop_minimal(void* vnc){
   ncdirect* nc = vnc;
@@ -687,7 +673,7 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
     return NULL;
   }
   // we don't need a controlling tty for everything we do; allow a failure here
-  if((ret->ctermfd = get_controlling_tty(ret->ttyfp)) >= 0){
+  if((ret->ctermfd = get_tty_fd(NULL, ret->ttyfp)) >= 0){
     if(tcgetattr(ret->ctermfd, &ret->tpreserved)){
       fprintf(stderr, "Couldn't preserve terminal state for %d (%s)\n", ret->ctermfd, strerror(errno));
       goto err;

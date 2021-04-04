@@ -59,11 +59,11 @@ TEST_CASE("Fade") {
   }
 
   SUBCASE("FadeOut") {
-    CHECK(0 == notcurses_render(nc_));
     struct timespec ts;
     ts.tv_sec = 0;
     ts.tv_nsec = 250000000;
     CHECK(0 == ncplane_fadeout(n_, &ts, nullptr, nullptr));
+    CHECK(0 == notcurses_render(nc_));
   }
 
   SUBCASE("FadeIn") {
@@ -71,14 +71,15 @@ TEST_CASE("Fade") {
     ts.tv_sec = 0;
     ts.tv_nsec = 250000000;
     CHECK(0 == ncplane_fadein(n_, &ts, nullptr, nullptr));
+    CHECK(0 == notcurses_render(nc_));
   }
 
   SUBCASE("FadeOutAbort") {
-    CHECK(0 == notcurses_render(nc_));
     struct timespec ts;
     ts.tv_sec = 0;
     ts.tv_nsec = 250000000;
     CHECK(0 < ncplane_fadeout(n_, &ts, fadeaborter, nullptr));
+    CHECK(0 == notcurses_render(nc_));
   }
 
   SUBCASE("FadeInAbort") {
@@ -86,6 +87,7 @@ TEST_CASE("Fade") {
     ts.tv_sec = 0;
     ts.tv_nsec = 250000000;
     CHECK(0 < ncplane_fadein(n_, &ts, fadeaborter, nullptr));
+    CHECK(0 == notcurses_render(nc_));
   }
 
   SUBCASE("Pulse") {
@@ -100,6 +102,7 @@ TEST_CASE("Fade") {
     struct timespec pulsestart;
     clock_gettime(CLOCK_MONOTONIC, &pulsestart);
     CHECK(0 < ncplane_pulse(n_, &ts, pulser, &pulsestart));
+    CHECK(0 == notcurses_render(nc_));
   }
 
   // drive fadeout with the more flexible api
@@ -112,6 +115,7 @@ TEST_CASE("Fade") {
       CHECK(0 == ncplane_fadeout_iteration(n_, nctx, i, nullptr, nullptr));
     }
     ncfadectx_free(nctx);
+    CHECK(0 == notcurses_render(nc_));
   }
 
   SUBCASE("FadeOutFlexibleAbort") {
@@ -123,6 +127,7 @@ TEST_CASE("Fade") {
       CHECK(0 < ncplane_fadeout_iteration(n_, nctx, i, fadeaborter, nullptr));
     }
     ncfadectx_free(nctx);
+    CHECK(0 == notcurses_render(nc_));
   }
 
   // drive fadein with the more flexible api
@@ -135,6 +140,7 @@ TEST_CASE("Fade") {
       CHECK(0 == ncplane_fadein_iteration(n_, nctx, i, nullptr, nullptr));
     }
     ncfadectx_free(nctx);
+    CHECK(0 == notcurses_render(nc_));
   }
 
   SUBCASE("FadeInFlexibleAbort") {
@@ -146,6 +152,7 @@ TEST_CASE("Fade") {
       CHECK(0 < ncplane_fadein_iteration(n_, nctx, i, fadeaborter, nullptr));
     }
     ncfadectx_free(nctx);
+    CHECK(0 == notcurses_render(nc_));
   }
 
   CHECK(0 == notcurses_stop(nc_));
