@@ -482,7 +482,10 @@ int sixel_delete(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
   (void)out;
   for(int yy = s->movedfromy ; yy < s->movedfromy + s->dimy ; ++yy){
     for(int xx = s->movedfromx ; xx < s->movedfromx + s->dimx ; ++xx){
-      p->crender[yy * p->dimx + xx].s.damaged = 1;
+      struct crender *r = &p->crender[yy * p->dimx + xx];
+      if(!r->sprixel){
+        r->s.damaged = 1;
+      }
     }
   }
   return 0;
