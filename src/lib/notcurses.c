@@ -245,6 +245,10 @@ void free_plane(ncplane* p){
         pthread_mutex_unlock(&nc->pilelock);
       }
     }
+    if(p->sprite){
+      sprixel_hide(p->sprite);
+    }
+    free(p->tacache);
     egcpool_dump(&p->pool);
     free(p->name);
     free(p->fb);
@@ -691,11 +695,9 @@ int ncplane_destroy(ncplane* ncp){
     logerror(ncplane_notcurses(ncp), "Won't destroy standard plane\n");
     return -1;
   }
-  if(ncp->sprite){
-    sprixel_hide(ncp->sprite);
-  }
-  free(ncp->tacache);
 //notcurses_debug(ncplane_notcurses(ncp), stderr);
+  loginfo(ncplane_notcurses_const(ncp), "Destroying %dx%d plane \"%s\" @ %dx%d\n",
+          ncp->leny, ncp->lenx, ncp->name ? ncp->name : NULL, ncp->absy, ncp->absx);
   int ret = 0;
   // dissolve our binding from behind (->bprev is either NULL, or its
   // predecessor on the bound list's ->bnext, or &ncp->boundto->blist)
@@ -727,9 +729,6 @@ int ncplane_destroy(ncplane* ncp){
   }else{
     ncplane_pile(ncp)->bottom = ncp->above;
   }
-  // no need to NULL out our ->boundto, as we are about to die (and unlinked)
-  loginfo(ncplane_notcurses_const(ncp), "Destroying %dx%d plane \"%s\" @ %dx%d\n",
-          ncp->leny, ncp->lenx, ncp->name ? ncp->name : NULL, ncp->absy, ncp->absx);
   free_plane(ncp);
   return ret;
 }
