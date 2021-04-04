@@ -19,8 +19,8 @@ birthed screaming into this world by [nick black](https://nick-black.com/dankwik
 * python wrappers by igo95862 (<igo95862@yandex.ru>)
 
 for more information, see [dankwiki](https://nick-black.com/dankwiki/index.php/Notcurses)
-and the [man pages](https://notcurses.com/notcurses). in addition, there is
-[Doxygen](https://nick-black.com/notcurses/html/) output. there is a
+and the [man pages](https://notcurses.com). in addition, there is
+[Doxygen](https://notcurses.com/html/) output. there is a
 [mailing list](https://groups.google.com/forum/#!forum/notcurses) which can be reached
 via notcurses@googlegroups.com. i wrote a coherent
 [guidebook](https://nick-black.com/htp-notcurses.pdf), which is available for
