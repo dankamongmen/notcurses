@@ -1185,7 +1185,7 @@ int notcurses_refresh(notcurses* nc, int* restrict dimy, int* restrict dimx){
   if(p.crender == NULL){
     return -1;
   }
-  memset(p.crender, 0, count * sizeof(*p.crender));
+  init_rvec(p.crender, count);
   for(int i = 0 ; i < count ; ++i){
     p.crender[i].s.damaged = true;
   }
@@ -1219,7 +1219,7 @@ int notcurses_render_to_file(notcurses* nc, FILE* fp){
     free(rastered);
     return -1;
   }
-  memset(p.crender, 0, count * sizeof(*p.crender));
+  init_rvec(p.crender, count);
   for(int i = 0 ; i < count ; ++i){
     p.crender[i].s.damaged = true;
   }
