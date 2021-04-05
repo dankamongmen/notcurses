@@ -30,6 +30,7 @@
 // fm  ncdirect_box
 // fm  ncdirect_canopen_images
 // fm  ncdirect_canutf8
+// fm  ncdirect_check_pixel_support
 // fm  ncdirect_clear
 // fm  ncdirect_cursor_disable
 // fm  ncdirect_cursor_down
@@ -67,11 +68,10 @@
 //X    ncdirect_styles_on      // deprecated
 //X    ncdirect_styles_set     // deprecated
 // fm  ncdirect_vline_interp
-//
-// rm ncdirect_bg_rgb8
-// rm ncdirect_fg_rgb8
-// rm ncdirect_getc_nblock
-// rm ncdirect_getc_nblocking
+// rm  ncdirect_bg_rgb8
+// rm  ncdirect_fg_rgb8
+// rm  ncdirect_getc_nblock
+// rm  ncdirect_getc_nblocking
 
 #[cfg(test)]
 mod test;

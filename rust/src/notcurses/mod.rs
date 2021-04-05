@@ -33,6 +33,7 @@
 // fmt notcurses_cansextant
 // fmt notcurses_cantruecolor
 // fmt notcurses_canutf8
+// fm  notcurses_check_pixel_support
 // fm  notcurses_cursor_disable
 // fm  notcurses_cursor_enable
 // fmt notcurses_debug

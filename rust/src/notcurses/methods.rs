@@ -220,6 +220,26 @@ impl Notcurses {
         unsafe { crate::notcurses_canutf8(self) }
     }
 
+    /// Checks for pixel support.
+    ///
+    /// Returns `false` for no support, or `true` if pixel output is supported.
+    ///
+    /// This function must successfully return before NCBLIT_PIXEL is available.
+    ///
+    /// Must not be called concurrently with either input or rasterization.
+    ///
+    /// *C style function: [notcurses_check_pixel_support()][crate::notcurses_check-pixel_support].*
+    pub fn check_pixel_support(&mut self) -> NcResult<bool> {
+        let res = unsafe { crate::notcurses_check_pixel_support(self) };
+        match res {
+            0 => return Ok(false),
+            1 => return Ok(true),
+            NCRESULT_ERR | _ => {
+                return Err(NcError::with_msg(res, "Notcuses.check_pixel_support()"));
+            }
+        }
+    }
+
     /// Disables the terminal's cursor, if supported.
     ///
     /// Immediate effect (no need for a call to notcurses_render()).
