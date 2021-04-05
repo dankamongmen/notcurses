@@ -160,6 +160,13 @@ impl Notcurses {
         unsafe { &mut *crate::notcurses_bottom(self) }
     }
 
+    /// Returns true if we can reliably use Unicode Braille.
+    ///
+    /// *C style function: [notcurses_canbraille()][crate::notcurses_canbraille].*
+    pub fn canbraille(&self) -> bool {
+        unsafe { crate::notcurses_canbraille(self) }
+    }
+
     /// Returns true if it's possible to set the "hardware" palette.
     ///
     /// Requires the "ccc" terminfo capability.

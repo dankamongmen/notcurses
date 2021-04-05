@@ -4,9 +4,9 @@ use core::ptr::{null, null_mut};
 
 use crate::ffi::sigset_t;
 use crate::{
-    cstring, error, error_ref_mut, NcAlign, NcBlitter, NcChannelPair, NcColor, NcDim, NcDirect,
-    NcDirectFlags, NcEgc, NcError, NcInput, NcPaletteIndex, NcPlane, NcResult, NcRgb, NcScale,
-    NcStyleMask, NcTime, NCRESULT_ERR,
+    cstring, error, error_ref_mut, rstring, NcAlign, NcBlitter, NcChannelPair, NcColor, NcDim,
+    NcDirect, NcDirectFlags, NcEgc, NcError, NcInput, NcPaletteIndex, NcPlane, NcResult, NcRgb,
+    NcScale, NcStyleMask, NcTime, NCRESULT_ERR,
 };
 
 /// # `NcDirect` constructors and destructors
@@ -96,7 +96,9 @@ impl NcDirect {
         maxy: i32,
         maxx: i32,
     ) -> NcResult<&'a mut NcPlane> {
-        let res = unsafe { crate::ncdirect_render_frame(self, cstring![filename], blitter, scale, maxy, maxx) };
+        let res = unsafe {
+            crate::ncdirect_render_frame(self, cstring![filename], blitter, scale, maxy, maxx)
+        };
         error_ref_mut![
             res,
             &format!(
@@ -304,7 +306,6 @@ impl NcDirect {
             }
         }
     }
-
 
     /// Disables the terminal's cursor, if supported.
     ///
@@ -537,6 +538,26 @@ impl NcDirect {
             unsafe { crate::ncdirect_putstr(self, channels, cstring![string]) },
             &format!("NcDirect.putstr({:0X}, {:?})", channels, string)
         ]
+    }
+
+    /// Reads a (heap-allocated) line of text using the Readline library.
+    ///
+    /// Initializes Readline the first time it's called.
+    ///
+    /// For input to be echoed to the terminal, it is necessary that
+    /// [NCDIRECT_OPTION_INHIBIT_CBREAK] be provided to [ncdirect_init]
+    ///
+    /// *C style function: [ncdirect_readline()][crate::ncdirect_readline].*
+    pub fn readline(&mut self, prompt: &str) -> NcResult<&str> {
+        let res = unsafe { crate::ncdirect_readline(self, cstring![prompt]) };
+        if res != null_mut() {
+            return Ok(rstring![res]);
+        } else {
+            Err(NcError::with_msg(
+                NCRESULT_ERR,
+                &format!["NcDirect.readline({})", prompt],
+            ))
+        }
     }
 
     /// Draws a box with its upper-left corner at the current cursor position,

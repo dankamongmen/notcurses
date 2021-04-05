@@ -302,7 +302,7 @@ pub const NCBLIT_BRAILLE: NcBlitter = crate::bindings::ffi::ncblitter_e_NCBLIT_B
 /// [`NcBlitter`] mode where the blitter is automatically chosen
 pub const NCBLIT_DEFAULT: NcBlitter = crate::bindings::ffi::ncblitter_e_NCBLIT_DEFAULT;
 
-/// [`NcBlitter`] mode (not yet implemented)
+/// [`NcPixel`] mode
 ///
 /// See [Sixel in Wikipedia](https://en.wikipedia.org/wiki/Sixel).
 pub const NCBLIT_PIXEL: NcBlitter = crate::bindings::ffi::ncblitter_e_NCBLIT_PIXEL;

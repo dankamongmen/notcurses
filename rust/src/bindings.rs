@@ -138,6 +138,7 @@ pub use ffi::{
     ncdirect_canutf8,
     ncdirect_check_pixel_support,
     ncdirect_clear,
+    ncdirect_core_init,
     ncdirect_cursor_disable,
     ncdirect_cursor_down,
     ncdirect_cursor_enable,
@@ -672,6 +673,7 @@ pub use ffi::{
     // functions
     notcurses_at_yx,
     notcurses_bottom,
+    notcurses_canbraille,
     notcurses_canchangecolor,
     notcurses_canfade,
     notcurses_canopen_images,
@@ -680,6 +682,7 @@ pub use ffi::{
     notcurses_cantruecolor,
     notcurses_canutf8,
     notcurses_check_pixel_support,
+    notcurses_core_init,
     notcurses_cursor_disable,
     notcurses_cursor_enable,
     notcurses_debug,

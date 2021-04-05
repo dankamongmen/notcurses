@@ -7,8 +7,8 @@ fn main() -> NcResult<()> {
 
     // INFO
 
-    let t_rows = dm.dim_x();
-    let t_cols = dm.dim_y();
+    let t_rows = dm.dim_y();
+    let t_cols = dm.dim_x();
     println!("Terminal rows={0}, cols={1}", t_rows, t_cols);
 
     println!(

@@ -32,6 +32,7 @@
 // fm  ncdirect_canutf8
 // fm  ncdirect_check_pixel_support
 // fm  ncdirect_clear
+// f~  ncdirect_core_init
 // fm  ncdirect_cursor_disable
 // fm  ncdirect_cursor_down
 // fm  ncdirect_cursor_enable
@@ -59,6 +60,7 @@
 //X    ncdirect_printf_aligned
 // fm  ncdirect_putstr
 // fm  ncdirect_raster_frame
+// fm  ncdirect_readline
 // fm  ncdirect_render_frame
 // fm  ncdirect_render_image
 // fm  ncdirect_rounded_box

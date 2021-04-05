@@ -6,15 +6,15 @@
 //          1  X: wont do
 //          2  ~: WIP
 //
-// col 1:  48
+// col 1:  50
 // --------------
-//         42  f: ffi function imported by bindgen
+//         44  f: ffi function imported by bindgen
 //             F: ffi function wrapped safely
 //          6  r: static function reimplemented in Rust
 //
-// col 2:  45
+// col 2:  46
 // --------------
-//         38  m: impl as a `Notcurses` method
+//         39  m: impl as a `Notcurses` method
 //          7  M: impl for the `FullMode` wrapper struct too
 //
 // col 3:  14
@@ -26,6 +26,7 @@
 //
 // fm  notcurses_at_yx
 // fm  notcurses_bottom
+// fm  notcurses_canbraille
 // fmt notcurses_canchangecolor
 // fmt notcurses_canfade
 // fmt notcurses_canopen_images
@@ -34,6 +35,7 @@
 // fmt notcurses_cantruecolor
 // fmt notcurses_canutf8
 // fm  notcurses_check_pixel_support
+// f~  notcurses_core_init
 // fm  notcurses_cursor_disable
 // fm  notcurses_cursor_enable
 // fmt notcurses_debug
