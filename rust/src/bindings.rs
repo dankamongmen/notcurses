@@ -554,6 +554,8 @@ pub use ffi::{
 // ncscale_e_NCSCALE_NONE,
 // ncscale_e_NCSCALE_SCALE,
 // ncscale_e_NCSCALE_STRETCH,
+// ncscale_e_NCSCALE_NONE_HIRES,
+// ncscale_e_NCSCALE_SCALE_HIRES,
 
 // ncselector ------------------------------------------------------------------
 //
