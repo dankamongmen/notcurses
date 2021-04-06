@@ -1,0 +1,104 @@
+0d0
+
+Differences between files:
+==========================
+out-20201227/bindgen/ncdirect out-20210321/bindgen/ncdirect
+out-20201227/bindgen/ncplane out-20210321/bindgen/ncplane
+out-20201227/bindgen/notcurses out-20210321/bindgen/notcurses
+out-20201227/static/cell out-20210321/static/cell
+out-20201227/static/channel out-20210321/static/channel
+out-20201227/static/_NON_FILTERED out-20210321/static/_NON_FILTERED
+
+broken down:
+============
+
+diff out-20201227/bindgen/ncdirect out-20210321/bindgen/ncdirect:
+1,3d0
+< ncdirect_bg_default
+< ncdirect_bg_palindex
+< ncdirect_bg_rgb
+6a4
+> ncdirect_check_pixel_support
+7a6
+> ncdirect_core_init
+21,23d19
+< ncdirect_fg_default
+< ncdirect_fg_palindex
+< ncdirect_fg_rgb
+28a25,26
+> ncdirect_off_styles
+> ncdirect_on_styles
+32a31
+> ncdirect_readline
+35a35,41
+> ncdirect_set_bg_default
+> ncdirect_set_bg_palindex
+> ncdirect_set_bg_rgb
+> ncdirect_set_fg_default
+> ncdirect_set_fg_palindex
+> ncdirect_set_fg_rgb
+> ncdirect_set_styles
+
+diff out-20201227/bindgen/ncplane out-20210321/bindgen/ncplane:
+1a2,4
+> ncplane_abs_x
+> ncplane_abs_y
+> ncplane_abs_yx
+
+diff out-20201227/bindgen/notcurses out-20210321/bindgen/notcurses:
+2a3
+> notcurses_canbraille
+6a8
+> notcurses_canpixel
+8d9
+< notcurses_cansixel
+10a12,13
+> notcurses_check_pixel_support
+> notcurses_core_init
+
+diff out-20201227/static/cell out-20210321/static/cell:
+1d0
+< cell_bchannel
+11d9
+< cell_fchannel
+24d21
+< cell_set_bchannel
+31d27
+< cell_set_fchannel
+
+diff out-20201227/static/channel out-20210321/static/channel:
+4a5
+> channel_palindex
+10a12
+> channels_bg_palindex
+17a20
+> channel_set_palindex
+22a26
+> channels_fg_palindex
+
+diff out-20201227/static/_NON_FILTERED out-20210321/static/_NON_FILTERED:
+0a1
+> ALLOC static inline char*
+
+Only in one path:
+=================
+Only in out-20210321/bindgen: nctree
+Only in out-20210321/static: nctree
+
+display contents:
+=================
+
+cat out-20210321/bindgen/nctree:
+-------------------
+nctree_create
+nctree_destroy
+nctree_focused
+nctree_goto
+nctree_next
+nctree_offer_input
+nctree_plane
+nctree_prev
+nctree_redraw
+
+cat out-20210321/static/nctree:
+-------------------

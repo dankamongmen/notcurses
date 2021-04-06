@@ -1,0 +1,5 @@
+ALLOC static inline char*
+bprefix
+iprefix
+ncinput_equal_p
+qprefix

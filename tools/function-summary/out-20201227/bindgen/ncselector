@@ -1,9 +1,0 @@
-ncselector_additem
-ncselector_create
-ncselector_delitem
-ncselector_destroy
-ncselector_nextitem
-ncselector_offer_input
-ncselector_plane
-ncselector_previtem
-ncselector_selected
