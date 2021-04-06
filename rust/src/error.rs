@@ -74,7 +74,6 @@ impl NcError {
             msg: msg.to_string(),
         }
     }
-
 }
 
 /// The result type for the Rust methods API.

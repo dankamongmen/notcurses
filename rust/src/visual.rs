@@ -28,8 +28,8 @@ use core::ptr::null_mut;
 use libc::c_void;
 
 use crate::{
-    cstring, rstring, error, error_ref_mut, NcBlitter, NcDim, NcError, NcIntResult, NcPixel, NcPlane, NcRgb,
-    NcResult, NcTime, Notcurses, NCBLIT_PIXEL, NCRESULT_ERR,
+    cstring, error, error_ref_mut, rstring, NcBlitter, NcDim, NcError, NcIntResult, NcPixel,
+    NcPlane, NcResult, NcRgb, NcTime, Notcurses, NCBLIT_PIXEL, NCRESULT_ERR,
 };
 
 /// How to scale an [`NcVisual`] during rendering
@@ -373,7 +373,6 @@ impl NcVisual {
         ]
     }
 
-
     /// Renders the decoded frame to the specified [NcPlane].
     ///
     /// See [`NcVisualOptions`].
@@ -503,10 +502,7 @@ impl NcVisual {
         if res != null_mut() {
             return Ok(rstring![res]);
         } else {
-            Err(NcError::with_msg(
-                NCRESULT_ERR,
-                "NcVisual.subtitle()"
-            ))
+            Err(NcError::with_msg(NCRESULT_ERR, "NcVisual.subtitle()"))
         }
     }
 }
