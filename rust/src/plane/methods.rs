@@ -1,12 +1,15 @@
 //! `NcPlane*` methods and associated functions.
 
-use core::ptr::{null, null_mut};
+use core::{
+    ptr::{null, null_mut},
+    slice::from_raw_parts_mut,
+};
 
 use crate::{
-    cstring, error, error_ref, error_ref_mut, rstring, NcAlign, NcAlphaBits, NcBoxMask, NcCell,
-    NcChannel, NcChannelPair, NcColor, NcDim, NcEgc, NcError, NcFadeCb, NcOffset, NcPaletteIndex,
-    NcPlane, NcPlaneOptions, NcResizeCb, NcResult, NcRgb, NcStyleMask, NcTime, Notcurses,
-    NCRESULT_ERR,
+    cstring, error, error_ref, error_ref_mut, rstring, NcAlign, NcAlphaBits, NcBlitter, NcBoxMask,
+    NcCell, NcChannel, NcChannelPair, NcColor, NcDim, NcEgc, NcError, NcFadeCb, NcOffset,
+    NcPaletteIndex, NcPlane, NcPlaneOptions, NcResizeCb, NcResult, NcRgb, NcStyleMask, NcTime,
+    Notcurses, NCRESULT_ERR,
 };
 
 /// # NcPlaneOptions Constructors
@@ -1340,6 +1343,77 @@ impl NcPlane {
                 keep_y, keep_x, keep_len_y, keep_len_x, y_off, x_off, y_len, x_len
             )
         ]
+    }
+
+    /// Suitable for use as a 'resizecb', this will resize the plane
+    /// to the visual region's size. It is used for the standard plane.
+    ///
+    /// *C style function: [ncplane_resize_maximize()][crate::ncplane_resize_maximize].*
+    pub fn resize_maximize(&mut self) -> NcResult<()> {
+        error![
+            unsafe { crate::ncplane_resize_maximize(self) },
+            "NcPlane.resize_maximize()"
+        ]
+    }
+
+    /// Creates an RGBA flat array from the selected region of the ncplane.
+    ///
+    /// Starts at the plane's `beg_y`x`beg_x` coordinate (which must lie on the
+    /// plane), continuing for `len_y`x`len_x` cells.
+    ///
+    /// Use `None` for either or both of `len_y` and `len_x` in order to
+    /// go through the boundary of the plane in that axis.
+    ///
+    /// Only glyphs from the specified blitset may be present.
+    ///
+    /// *C style function: [ncplane_rgba()][crate::ncplane_rgba].*
+    pub fn rgba(
+        &mut self,
+        blitter: NcBlitter,
+        beg_y: NcDim,
+        beg_x: NcDim,
+        len_y: Option<NcDim>,
+        len_x: Option<NcDim>,
+    ) -> NcResult<&mut [u32]> {
+        // converts length arguments to expected format
+        let len_y2: i32;
+        let len_x2: i32;
+        if let Some(y) = len_y {
+            len_y2 = y as i32;
+        } else {
+            len_y2 = -1;
+        }
+        if let Some(x) = len_x {
+            len_x2 = x as i32;
+        } else {
+            len_x2 = -1;
+        }
+
+        let res_array = unsafe {
+            crate::ncplane_rgba(self, blitter, beg_y as i32, beg_x as i32, len_y2, len_x2)
+        };
+
+        // calculates array length
+        let array_len_y;
+        let array_len_x;
+        if len_y2 == -1 {
+            array_len_y = self.dim_y() - beg_y;
+        } else {
+            array_len_y = len_y2 as u32;
+        }
+        if len_x2 == -1 {
+            array_len_x = self.dim_x() - beg_x;
+        } else {
+            array_len_x = len_x2 as u32;
+        }
+        let array_len = (array_len_y * array_len_x) as usize;
+
+        // returns the result
+        if res_array != null_mut() {
+            return Ok(unsafe { from_raw_parts_mut(res_array, array_len) });
+        } else {
+            Err(NcError::with_msg(NCRESULT_ERR, "NcPlane.rgba()"))
+        }
     }
 
     /// Realigns this NcPlane against its parent, using the alignment specified

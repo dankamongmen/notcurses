@@ -5,7 +5,7 @@
 // (X) wont:  6
 // (D) depr:  4
 // (#) test: 13
-// (W) wrap: 79 of 98
+// (W) wrap: 81 of 98
 // -------------------------------------------
 //W  ncpile_bottom
 //W# ncpile_create
@@ -74,9 +74,9 @@
 //W  ncplane_reparent_family
 //W# ncplane_resize
 //W  ncplane_resizecb
-//   ncplane_resize_maximize
+//W  ncplane_resize_maximize
 //W  ncplane_resize_realign
-//   ncplane_rgba
+//W  ncplane_rgba
 //W  ncplane_rotate_ccw
 //W  ncplane_rotate_cw
 //W  ncplane_set_base
