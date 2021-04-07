@@ -17,7 +17,7 @@ relies on the font. Patches to correct/complete this table are very welcome!
 
 | Terminal        | Pixel `TIOCGWINSZ` | `ccc` | Blocks | Recommended environment           | Notes |
 | --------------- | ------------------ | ----- | ------ | -----------------------           | ----- |
-| [Alacritty](https://github.com/alacritty/alacritty)       | ✅                 |  ✅   |❌      |`TERM=alacritty` `COLORTERM=24bit` | |
+| [Alacritty](https://github.com/alacritty/alacritty)       | ✅                 |  ✅   |❌      |`TERM=alacritty` `COLORTERM=24bit` | Sixel support WIP: https://github.com/ayosec/alacritty/tree/graphics |
 | [FBterm](https://github.com/zhangyuanwei/fbterm)          | ❌                 |  ?    |?       |`TERM=fbterm`                      | 256 colors, no RGB color. |
 | [foot](https://codeberg.org/dnkl/foot)            | ✅                 |  ✅   |✅      |`TERM=foot`                        | Sixel support. |
 | [Gnome Terminal](https://gitlab.gnome.org/GNOME/gnome-terminal)  |                    |  ❌   |✅      |`TERM=gnome` `COLORTERM=24bit`     | `ccc` support *is* available when run with `vte-256color`. |
@@ -37,7 +37,7 @@ relies on the font. Patches to correct/complete this table are very welcome!
 | Terminology     | ❌                 |  ?    |?       | ?                               | |
 | [Tilda](https://github.com/lanoxx/tilda)           |                    |  ?    |?       | ?                               | |
 | [tmux](https://github.com/tmux/tmux/wiki)            |                    |  ❌   |n/a     |`TERM=tmux-256color` `COLORTERM=24bit` | `tmux.conf` must apply `Tc`; see below. `bce` is available with the `tmux-256color-bce` definition. |
-| [wezterm](https://github.com/wez/wezterm)         |                    |  ✅   |?       |`TERM=wezterm` `COLORTERM=24bit` | See below. |
+| [wezterm](https://github.com/wez/wezterm)         | ✅                 |  ✅   |?       |`TERM=wezterm` `COLORTERM=24bit` | See below. |
 | [Windows Terminal](https://github.com/microsoft/terminal)|                    |  ?    |?       | ?                               | |
 | [wterm](https://github.com/majestrate/wterm)           |                    |  ?    |?       | ?                               | |
 | [XFCE4 Terminal](https://gitlab.xfce.org/apps/xfce4-terminal)  | ❌                 |  ✅   |✅      |`TERM=xfce` `COLORTERM=24bit`    | No `xfce-direct` variant exists. |
