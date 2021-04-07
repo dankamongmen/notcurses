@@ -3062,15 +3062,14 @@ char* ncvisual_subtitle(const struct ncvisual* ncv);
 And finally, the `ncvisual` can be blitted to one or more `ncplane`s:
 
 ```c
-// Render the decoded frame to the specified ncplane (if one is not provided,
+// Render the decoded frame to the specified ncplane. If one is not provided,
 // one will be created, having the exact size necessary to display the visual.
-// In this case, 'style' must be NCSTYLE_NONE). A subregion of the visual can
-// be rendered using 'begx', 'begy', 'lenx', and 'leny'. Negative values for
-// 'begy' or 'begx' are an error. It is an error to specify any region beyond
-// the boundaries of the frame. Returns the plane to which we drew (if ncv->n
-// is NULL, a new plane will be created).
+// A subregion of the visual can be rendered using 'begx', 'begy', 'lenx', and
+// 'leny'. Negative values for 'begy' or 'begx' are an error. It is an error to
+// specify any region beyond the boundaries of the frame. Returns the
+// (possibly newly-created) plane to which we drew.
 struct ncplane* ncvisual_render(struct notcurses* nc, struct ncvisual* ncv,
-                                    const struct ncvisual_options* vopts);
+                                    const struct ncvisual_options* vopts)
 
 // decode the next frame ala ncvisual_decode(), but if we have reached the end,
 // rewind to the first frame of the ncvisual. a subsequent `ncvisual_render()`

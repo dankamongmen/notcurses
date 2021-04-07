@@ -2500,13 +2500,12 @@ API int ncvisual_at_yx(const struct ncvisual* n, int y, int x, uint32_t* pixel)
 API int ncvisual_set_yx(const struct ncvisual* n, int y, int x, uint32_t pixel)
   __attribute__ ((nonnull (1)));
 
-// Render the decoded frame to the specified ncplane (if one is not provided,
+// Render the decoded frame to the specified ncplane. If one is not provided,
 // one will be created, having the exact size necessary to display the visual.
-// In this case, 'style' must be NCSTYLE_NONE). A subregion of the visual can
-// be rendered using 'begx', 'begy', 'lenx', and 'leny'. Negative values for
-// 'begy' or 'begx' are an error. It is an error to specify any region beyond
-// the boundaries of the frame. Returns the plane to which we drew (if ncv->n
-// is NULL, a new plane will be created).
+// A subregion of the visual can be rendered using 'begx', 'begy', 'lenx', and
+// 'leny'. Negative values for 'begy' or 'begx' are an error. It is an error to
+// specify any region beyond the boundaries of the frame. Returns the
+// (possibly newly-created) plane to which we drew.
 API struct ncplane* ncvisual_render(struct notcurses* nc, struct ncvisual* ncv,
                                     const struct ncvisual_options* vopts)
   __attribute__ ((nonnull (2)));
