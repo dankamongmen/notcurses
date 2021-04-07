@@ -54,8 +54,11 @@ fn main() -> NcResult<()> {
     let voptions = NcVisualOptions::without_plane(1, 2, 0, 0, cell_y, cell_x, NCBLIT_PIXEL, 0);
     pixels.render(&mut nc, &voptions)?;
 
-    rsleep![&mut nc, 10];
+    // FIXME: segfaults
+    // let mut stdplane = nc.stdplane();
+    // let mut vplane = NcPlane::new_bound(&mut stdplane, 0, 0, 4, 4)?
 
+    rsleep![&mut nc, 10];
     pixels.destroy();
 
     Ok(())

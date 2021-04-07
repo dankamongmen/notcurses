@@ -31,7 +31,6 @@ fn main() -> NcResult<()> {
 
     println!("\nExiting...");
 
-    rsleep![&mut nc, 1, 500];
-    nc.stop()?;
+    rsleep![&mut nc, 1];
     Ok(())
 }
