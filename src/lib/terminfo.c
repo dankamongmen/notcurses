@@ -336,7 +336,7 @@ query_sixel(tinfo* ti, int fd){
   // we're looking for a 4 following a semicolon, or alacritty's insistence
   // on CSI 6c followed by XTSMGRAPHICS, which probably breaks us on a real
   // VT102, but how many of them could there be? le sigh FIXME
-  while(read(fd, &in, 1) == 1){
+  while(state != DONE && read(fd, &in, 1) == 1){
     switch(state){
       case WANT_CSI:
         if(in == NCKEY_ESC){
@@ -367,19 +367,19 @@ query_sixel(tinfo* ti, int fd){
         break;
       case WANT_C_ALACRITTY_HACK:
         if(in == 'c'){
+          /* FIXME alacritty has not yet merged their sixel support
           setup_sixel(ti);
-          state = DONE;
+          state = DONE; */
+          return 0;
         }
         break;
       case DONE:
       default:
         break;
     }
-    if(state == DONE){
-      break;
-    }
   }
-  return 0; // FIXME return error?
+  query_sixel_details(ti, fd);
+  return 0;
 }
 
 // fd must be a real terminal. uses the query lock of |ti| to only act once.
@@ -400,7 +400,6 @@ int query_term(tinfo* ti, int fd){
     ret = query_sixel(ti, fd);
     ti->pixel_query_done = true;
     if(ti->sixel_supported){
-      query_sixel_details(ti, fd);
       ti->pixel_init(fd);
     }
     if(flags & O_NONBLOCK){
