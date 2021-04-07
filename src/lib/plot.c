@@ -342,7 +342,7 @@ int window_slide_##T(nc##X##plot* ncp, int64_t x){ \
 } \
 \
 /* x must be within n's window at this point */ \
-inline void update_sample_##T(nc##X##plot* ncp, int64_t x, T y, bool reset){ \
+void update_sample_##T(nc##X##plot* ncp, int64_t x, T y, bool reset){ \
   const int64_t diff = ncp->slotx - x; /* amount behind */ \
   const int idx = (ncp->slotstart + ncp->slotcount - diff) % ncp->slotcount; \
   if(reset){ \
