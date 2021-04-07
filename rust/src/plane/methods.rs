@@ -924,11 +924,22 @@ impl NcPlane {
     /// It is an error to attempt to move the standard plane.
     ///
     /// *C style function: [ncplane_move_yx()][crate::ncplane_move_yx].*
-    //
-    // CHECK: whether a negative offset is valid
     pub fn move_yx(&mut self, y: NcOffset, x: NcOffset) -> NcResult<()> {
         error![
             unsafe { crate::ncplane_move_yx(self, y, x) },
+            &format!("NcPlane.move_yx({}, {})", y, x)
+        ]
+    }
+
+    /// Moves this NcPlane relative to its current position.
+    ///
+    /// It is an error to attempt to move the standard plane.
+    ///
+    /// *(No equivalent C style function)*
+    pub fn move_rel(&mut self, rows: NcOffset, cols: NcOffset) -> NcResult<()> {
+        let (y, x) = self.yx();
+        error![
+            unsafe { crate::ncplane_move_yx(self, y + rows, x + cols) },
             &format!("NcPlane.move_yx({}, {})", y, x)
         ]
     }

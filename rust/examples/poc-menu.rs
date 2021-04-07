@@ -1,6 +1,7 @@
 //! based on the proof of concept at ../../src/poc/menu.c
 
 // FIXME: has bugs, doesn't work well
+// probably related to the arrays or the strings...
 
 use libnotcurses_sys::*;
 
@@ -43,10 +44,7 @@ fn main() -> NcResult<()> {
     menu_top.item_set_status("Schwarzgerät", "Disabled", false)?;
     menu_top.item_set_status("Schwarzgerät", "Restart", false)?;
 
-    let mut channels: NcChannelPair = 0;
-    channels.set_fg_rgb(0x88aa00);
-    channels.set_bg_rgb(0x000088);
-    stdplane.set_base("x", 0, channels)?;
+    stdplane.set_base("x", 0, NcChannelPair::with_rgb(0x88aa00, 0x000088))?;
 
     nc.render()?;
 

@@ -17,12 +17,12 @@ pub trait NcChannelMethods {
     fn bcombine(&self, fchannel: NcChannel) -> NcChannelPair;
 
     fn alpha(&self) -> NcAlphaBits;
-    fn set_alpha(&mut self, alpha: NcAlphaBits);
+    fn set_alpha(&mut self, alpha: NcAlphaBits) -> Self;
 
-    fn set(&mut self, rgb: NcRgb);
+    fn set(&mut self, rgb: NcRgb) -> Self;
 
     fn rgb8(&self) -> (NcColor, NcColor, NcColor);
-    fn set_rgb8(&mut self, r: NcColor, g: NcColor, b: NcColor);
+    fn set_rgb8(&mut self, r: NcColor, g: NcColor, b: NcColor) -> Self;
     fn r(&self) -> NcColor;
     fn g(&self) -> NcColor;
     fn b(&self) -> NcColor;
@@ -31,7 +31,7 @@ pub trait NcChannelMethods {
     fn set_b(&mut self, b: NcColor) -> NcChannel;
 
     fn rgb(&self) -> NcRgb;
-    fn set_rgb(&mut self, rgb: NcRgb);
+    fn set_rgb(&mut self, rgb: NcRgb) -> Self;
 
     fn default_p(&self) -> bool;
     fn set_default(&mut self) -> NcChannel;
@@ -42,15 +42,45 @@ pub trait NcChannelMethods {
 /// Enables the [NcChannelPair] methods.
 pub trait NcChannelPairMethods {
     // constructors
-    // …
+    fn new() -> Self;
+    fn with_default() -> Self;
+    fn with_rgb(fg_rgb: NcRgb, bg_rgb: NcRgb) -> Self;
+    fn with_rgb_both(rgb: NcRgb) -> Self;
+    fn with_rgb_alpha(
+        fg_rgb: NcRgb,
+        fg_alpha: NcAlphaBits,
+        bg_rgb: NcRgb,
+        bg_alpha: NcAlphaBits,
+    ) -> Self;
+    fn with_rgb_alpha_both(rgb: NcRgb, alpha: NcAlphaBits) -> Self;
+    fn with_rgb8(
+        fg_r: NcColor,
+        fg_g: NcColor,
+        fg_b: NcColor,
+        bg_r: NcColor,
+        bg_g: NcColor,
+        bg_b: NcColor,
+    ) -> Self;
+    fn with_rgb8_both(r: NcColor, g: NcColor, b: NcColor) -> Self;
+    fn with_rgb8_alpha(
+        fg_r: NcColor,
+        fg_g: NcColor,
+        fg_b: NcColor,
+        fg_alpha: NcAlphaBits,
+        bg_r: NcColor,
+        bg_g: NcColor,
+        bg_b: NcColor,
+        bg_alpha: NcAlphaBits,
+    ) -> Self;
+    fn with_rgb8_alpha_both(r: NcColor, g: NcColor, b: NcColor, alpha: NcAlphaBits) -> Self;
 
     // methods
     fn combine(fchannel: NcChannel, bchannel: NcChannel) -> NcChannelPair;
 
     fn fchannel(&self) -> NcChannel;
     fn bchannel(&self) -> NcChannel;
-    fn set_fchannel(&mut self, fchannel: NcChannel) -> NcChannelPair;
-    fn set_bchannel(&mut self, bchannel: NcChannel) -> NcChannelPair;
+    fn set_fchannel(&mut self, fchannel: NcChannel) -> Self;
+    fn set_bchannel(&mut self, bchannel: NcChannel) -> Self;
 
     fn fg_alpha(&self) -> NcAlphaBits;
     fn bg_alpha(&self) -> NcAlphaBits;
@@ -59,35 +89,35 @@ pub trait NcChannelPairMethods {
 
     fn fg_rgb(&self) -> NcRgb;
     fn bg_rgb(&self) -> NcRgb;
-    fn set_fg_rgb(&mut self, alpha: NcAlphaBits);
-    fn set_bg_rgb(&mut self, alpha: NcAlphaBits);
+    fn set_fg_rgb(&mut self, alpha: NcAlphaBits) -> Self;
+    fn set_bg_rgb(&mut self, alpha: NcAlphaBits) -> Self;
 
     fn fg_rgb8(&self) -> (NcColor, NcColor, NcColor);
     fn bg_rgb8(&self) -> (NcColor, NcColor, NcColor);
-    fn set_fg_rgb8(&mut self, r: NcColor, g: NcColor, b: NcColor) -> NcChannelPair;
-    fn set_bg_rgb8(&mut self, r: NcColor, g: NcColor, b: NcColor) -> NcChannelPair;
+    fn set_fg_rgb8(&mut self, r: NcColor, g: NcColor, b: NcColor) -> Self;
+    fn set_bg_rgb8(&mut self, r: NcColor, g: NcColor, b: NcColor) -> Self;
     fn fg_r(&self) -> NcColor;
     fn fg_g(&self) -> NcColor;
     fn fg_b(&self) -> NcColor;
     fn bg_r(&self) -> NcColor;
     fn bg_g(&self) -> NcColor;
     fn bg_b(&self) -> NcColor;
-    fn fg_set_r(&mut self, r: NcColor) -> NcChannelPair;
-    fn fg_set_g(&mut self, g: NcColor) -> NcChannelPair;
-    fn fg_set_b(&mut self, b: NcColor) -> NcChannelPair;
-    fn bg_set_r(&mut self, r: NcColor) -> NcChannelPair;
-    fn bg_set_g(&mut self, g: NcColor) -> NcChannelPair;
-    fn bg_set_b(&mut self, b: NcColor) -> NcChannelPair;
+    fn fg_set_r(&mut self, r: NcColor) -> Self;
+    fn fg_set_g(&mut self, g: NcColor) -> Self;
+    fn fg_set_b(&mut self, b: NcColor) -> Self;
+    fn bg_set_r(&mut self, r: NcColor) -> Self;
+    fn bg_set_g(&mut self, g: NcColor) -> Self;
+    fn bg_set_b(&mut self, b: NcColor) -> Self;
 
     fn fg_default_p(&self) -> bool;
     fn bg_default_p(&self) -> bool;
-    fn set_fg_default(&mut self) -> NcChannelPair;
-    fn set_bg_default(&mut self) -> NcChannelPair;
+    fn set_fg_default(&mut self) -> Self;
+    fn set_bg_default(&mut self) -> Self;
 
     fn fg_palindex_p(&self) -> bool;
     fn bg_palindex_p(&self) -> bool;
-    fn set_fg_palindex(&mut self, index: NcPaletteIndex);
-    fn set_bg_palindex(&mut self, index: NcPaletteIndex);
+    fn set_fg_palindex(&mut self, index: NcPaletteIndex) -> Self;
+    fn set_bg_palindex(&mut self, index: NcPaletteIndex) -> Self;
 }
 
 // NcChannel -------------------------------------------------------------------
@@ -108,32 +138,22 @@ impl NcChannelMethods for NcChannel {
 
     /// New NcChannel, expects [NcRgb].
     fn with_rgb(rgb: NcRgb) -> Self {
-        let mut channel = 0;
-        crate::channel_set(&mut channel, rgb);
-        channel
+        Self::new().set(rgb)
     }
 
     /// New NcChannel, expects [NcRgb] & [NcAlphaBits].
     fn with_rgb_alpha(rgb: NcRgb, alpha: NcAlphaBits) -> Self {
-        let mut channel = 0;
-        crate::channel_set(&mut channel, rgb);
-        crate::channel_set_alpha(&mut channel, alpha);
-        channel
+        Self::new().set(rgb).set_alpha(alpha)
     }
 
     /// New NcChannel, expects three RGB [NcColor] components.
     fn with_rgb8(r: NcColor, g: NcColor, b: NcColor) -> Self {
-        let mut channel = 0;
-        crate::channel_set_rgb8(&mut channel, r, g, b);
-        channel
+        Self::new().set_rgb8(r, g, b)
     }
 
-    /// New NcChannel, expects three RGB [NcColor] components.
+    /// New NcChannel, expects three RGB [NcColor] components & [NcAlphaBits].
     fn with_rgb8_alpha(r: NcColor, g: NcColor, b: NcColor, alpha: NcAlphaBits) -> Self {
-        let mut channel = 0;
-        crate::channel_set_rgb8(&mut channel, r, g, b);
-        crate::channel_set_alpha(&mut channel, alpha);
-        channel
+        Self::new().set_rgb8(r, g, b).set_alpha(alpha)
     }
 
     // Combine
@@ -170,8 +190,9 @@ impl NcChannelMethods for NcChannel {
     /// Sets the [NcAlphaBits].
     ///
     /// *C style function: [channel_set_alpha()][crate::channel_set_alpha].*
-    fn set_alpha(&mut self, alpha: NcAlphaBits) {
-        crate::channel_set_alpha(self, alpha)
+    fn set_alpha(&mut self, alpha: NcAlphaBits) -> Self {
+        crate::channel_set_alpha(self, alpha);
+        *self
     }
 
     // NcRgb
@@ -180,8 +201,9 @@ impl NcChannelMethods for NcChannel {
     /// "default color", retaining the other bits unchanged.
     ///
     /// *C style function: [channel_set()][crate::channel_set].*
-    fn set(&mut self, rgb: NcRgb) {
+    fn set(&mut self, rgb: NcRgb) -> Self {
         crate::channel_set(self, rgb);
+        *self
     }
 
     // NcColor
@@ -199,8 +221,9 @@ impl NcChannelMethods for NcChannel {
     /// marks the NcChannel as NOT using the default color.
     ///
     /// *C style function: [channel_set_rgb8()][crate::channel_set_rgb8].*
-    fn set_rgb8(&mut self, r: NcColor, g: NcColor, b: NcColor) {
+    fn set_rgb8(&mut self, r: NcColor, g: NcColor, b: NcColor) -> Self {
         crate::channel_set_rgb8(self, r, g, b);
+        *self
     }
 
     /// Gets the red [NcColor].
@@ -266,8 +289,9 @@ impl NcChannelMethods for NcChannel {
     /// retaining the other bits unchanged.
     ///
     /// *C style function: [channel_set()][crate::channel_set].*
-    fn set_rgb(&mut self, rgb: NcRgb) {
+    fn set_rgb(&mut self, rgb: NcRgb) -> Self {
         crate::channel_set(self, rgb);
+        *self
     }
 
     // default color
@@ -300,6 +324,100 @@ impl NcChannelMethods for NcChannel {
 
 /// # `NcChannelPair` Methods
 impl NcChannelPairMethods for NcChannelPair {
+    // Constructors
+
+    /// New NcChannelPair, set to black and NOT using the default color.
+    fn new() -> Self {
+        Self::combine(
+            0 as NcChannel | crate::NCCELL_BGDEFAULT_MASK,
+            0 as NcChannel | crate::NCCELL_BGDEFAULT_MASK,
+        )
+    }
+
+    /// New NcChannelPair, set to black but using the default color.
+    fn with_default() -> Self {
+        Self::combine(0 as NcChannel, 0 as NcChannel)
+    }
+
+    /// New NcChannel, expects two separate [NcRgb]s for the foreground
+    /// and background channels.
+    fn with_rgb(fg_rgb: NcRgb, bg_rgb: NcRgb) -> Self {
+        Self::combine(NcChannel::with_rgb(fg_rgb), NcChannel::with_rgb(bg_rgb))
+    }
+
+    /// New NcChannelPair, expects a single [NcRgb] for both foreground
+    /// and background channels.
+    fn with_rgb_both(rgb: NcRgb) -> Self {
+        let channel = NcChannel::new().set(rgb);
+        Self::combine(channel, channel)
+    }
+
+    /// New NcChannel, expects two separate [NcRgb] & [NcAlphaBits] for the
+    /// foreground and background channels.
+    fn with_rgb_alpha(
+        fg_rgb: NcRgb,
+        fg_alpha: NcAlphaBits,
+        bg_rgb: NcRgb,
+        bg_alpha: NcAlphaBits,
+    ) -> Self {
+        Self::combine(
+            NcChannel::with_rgb(fg_rgb).set_alpha(fg_alpha),
+            NcChannel::with_rgb(bg_rgb).set_alpha(bg_alpha),
+        )
+    }
+
+    /// New NcChannel, expects [NcRgb] & [NcAlphaBits] for both channels.
+    fn with_rgb_alpha_both(rgb: NcRgb, alpha: NcAlphaBits) -> Self {
+        let channel = NcChannel::new().set(rgb).set_alpha(alpha);
+        Self::combine(channel, channel)
+    }
+
+    /// New NcChannelPair, expects three RGB [NcColor] components for each channel.
+    fn with_rgb8(
+        fg_r: NcColor,
+        fg_g: NcColor,
+        fg_b: NcColor,
+        bg_r: NcColor,
+        bg_g: NcColor,
+        bg_b: NcColor,
+    ) -> Self {
+        Self::combine(
+            NcChannel::with_rgb8(fg_r, fg_g, fg_b),
+            NcChannel::with_rgb8(bg_r, bg_g, bg_b),
+        )
+    }
+
+    /// New NcChannelPair, expects three RGB [NcColor] components for both
+    /// the foreground and background channels.
+    fn with_rgb8_both(r: NcColor, g: NcColor, b: NcColor) -> Self {
+        let channel = NcChannel::new().set_rgb8(r, g, b);
+        Self::combine(channel, channel)
+    }
+
+    /// New NcChannelPair, expects three RGB [NcColor] components & [NcAlphaBits]
+    /// for both foreground and background channels.
+    fn with_rgb8_alpha(
+        fg_r: NcColor,
+        fg_g: NcColor,
+        fg_b: NcColor,
+        fg_alpha: NcAlphaBits,
+        bg_r: NcColor,
+        bg_g: NcColor,
+        bg_b: NcColor,
+        bg_alpha: NcAlphaBits,
+    ) -> Self {
+        Self::combine(
+            NcChannel::with_rgb8_alpha(fg_r, fg_g, fg_b, fg_alpha),
+            NcChannel::with_rgb8_alpha(bg_r, bg_g, bg_b, bg_alpha),
+        )
+    }
+
+    /// New NcChannel, expects three RGB [NcColor] components.
+    fn with_rgb8_alpha_both(r: NcColor, g: NcColor, b: NcColor, alpha: NcAlphaBits) -> Self {
+        let channel = NcChannel::new().set_rgb8(r, g, b).set_alpha(alpha);
+        Self::combine(channel, channel)
+    }
+
     // Combine
 
     /// Combines two [NcChannel]s into an [NcChannelPair].
@@ -388,15 +506,17 @@ impl NcChannelPairMethods for NcChannelPair {
     /// Sets the foreground [NcRgb].
     ///
     /// *C style function: [channels_set_fg_rgb()][crate::channels_set_fg_rgb].*
-    fn set_fg_rgb(&mut self, rgb: NcRgb) {
-        crate::channels_set_fg_rgb(self, rgb)
+    fn set_fg_rgb(&mut self, rgb: NcRgb) -> Self {
+        crate::channels_set_fg_rgb(self, rgb);
+        *self
     }
 
     /// Sets the background [NcRgb].
     ///
     /// *C style function: [channels_set_bg_rgb()][crate::channels_set_bg_rgb].*
-    fn set_bg_rgb(&mut self, rgb: NcRgb) {
-        crate::channels_set_bg_rgb(self, rgb)
+    fn set_bg_rgb(&mut self, rgb: NcRgb) -> Self {
+        crate::channels_set_bg_rgb(self, rgb);
+        *self
     }
 
     // NcColor
@@ -582,15 +702,17 @@ impl NcChannelPairMethods for NcChannelPair {
     /// [indexed][NcPaletteIndex] [NcPalette][crate::NcPalette] color.
     ///
     /// *C style function: [channels_set_fg_palindex()][crate::channels_set_fg_palindex].*
-    fn set_fg_palindex(&mut self, index: NcPaletteIndex) {
-        crate::channels_set_fg_palindex(self, index)
+    fn set_fg_palindex(&mut self, index: NcPaletteIndex) -> Self {
+        crate::channels_set_fg_palindex(self, index);
+        *self
     }
 
     /// Sets the background of an [NcChannelPair] as using an
     /// [indexed][NcPaletteIndex] [NcPalette][crate::NcPalette] color.
     ///
     /// *C style function: [channels_set_bg_palindex()][crate::channels_set_bg_palindex].*
-    fn set_bg_palindex(&mut self, index: NcPaletteIndex) {
-        crate::channels_set_bg_palindex(self, index)
+    fn set_bg_palindex(&mut self, index: NcPaletteIndex) -> Self {
+        crate::channels_set_bg_palindex(self, index);
+        *self
     }
 }
