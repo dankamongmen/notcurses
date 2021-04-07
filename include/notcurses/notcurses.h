@@ -2400,7 +2400,7 @@ API ALLOC struct ncvisual* ncvisual_from_rgba(const void* rgba, int rows,
                                               int rowstride, int cols);
 
 // ncvisual_from_rgba(), but 'bgra' is arranged as BGRA.
-API ALLOC struct ncvisual* ncvisual_from_bgra(const void* rgba, int rows,
+API ALLOC struct ncvisual* ncvisual_from_bgra(const void* bgra, int rows,
                                               int rowstride, int cols);
 
 // Promote an ncplane 'n' to an ncvisual. The plane may contain only spaces,

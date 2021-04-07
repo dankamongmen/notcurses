@@ -409,7 +409,7 @@ nctree_inner_redraw(nctree* n, unsigned* tmppath){
   distance = 0;
   n->activerow = ncplane_y(n->curitem->ncp);
   nii = n->curitem;
-  // draw items below the current one FIME
+  // draw items below the current one FIXME
   memcpy(tmppath, n->currentpath, sizeof(*tmppath) * (n->maxdepth + 1));
   while(frontierb < ncplane_dim_y(n->items.ncp)){
     if((tmpnii = nctree_next_internal(n, tmppath)) == nii){
