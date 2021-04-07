@@ -42,13 +42,13 @@ mod methods;
 /// `type in C: ncmenu (struct)`
 pub type NcMenu = crate::bindings::ffi::ncmenu;
 
-/// Options struct for [`NcMenu`]
+/// Options struct for [`NcMenu`].
 pub type NcMenuOptions = crate::bindings::ffi::ncmenu_options;
 
-/// Item for [`NcMenu`]
+/// Item for [`NcMenu`].
 pub type NcMenuItem = crate::bindings::ffi::ncmenu_item;
 
-/// Section for [`NcMenu`]
+/// Section for [`NcMenu`].
 pub type NcMenuSection = crate::bindings::ffi::ncmenu_section;
 
 /// [NcMenuOptions] flag: Bottom row (as opposed to top row).

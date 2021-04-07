@@ -622,6 +622,27 @@ pub use ffi::{
     nctablet_userptr,
 };
 
+// nctree ----------------------------------------------------------------------
+//
+// // structs
+// nctree,
+// nctree_item,
+// nctree_options,
+//
+#[doc(inline)]
+pub use ffi::{
+    // functions
+    nctree_create,
+    nctree_destroy,
+    nctree_focused,
+    nctree_goto,
+    nctree_next,
+    nctree_offer_input,
+    nctree_plane,
+    nctree_prev,
+    nctree_redraw,
+};
+
 // ncvisual --------------------------------------------------------------------
 //
 // already wrapped:
