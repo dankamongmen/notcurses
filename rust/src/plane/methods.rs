@@ -370,7 +370,7 @@ impl NcPlane {
         }
     }
 
-    /// Sets the backround [NcRgb] for this NcPlane.
+    /// Sets the background [NcRgb] for this NcPlane.
     ///
     /// *C style function: [ncplane_set_bg_rgb()][crate::ncplane_set_bg_rgb].*
     #[inline]
@@ -844,6 +844,32 @@ impl NcPlane {
 // -----------------------------------------------------------------------------
 /// ## NcPlane methods: `NcPlane` & `Notcurses`
 impl NcPlane {
+    /// Gets the origin of this plane relative to its pile.
+    ///
+    /// *C style function: [ncplane_abs_yx()][crate::ncplane_abs_yx].*
+    pub fn abs_yx(&self) -> (NcDim, NcDim) {
+        let mut y = 0;
+        let mut x = 0;
+        unsafe {
+            crate::ncplane_abs_yx(self, &mut y, &mut x);
+        }
+        (y as NcDim, x as NcDim)
+    }
+
+    /// Gets the origin of this plane relative to its pile, in the y axis.
+    ///
+    /// *C style function: [ncplane_abs_y()][crate::ncplane_abs_y].*
+    pub fn abs_y(&self) -> NcDim {
+        unsafe { crate::ncplane_abs_y(self) as NcDim }
+    }
+
+    /// Gets the origin of this plane relative to its pile, in the x axis.
+    ///
+    /// *C style function: [ncplane_abs_x()][crate::ncplane_abs_x].*
+    pub fn abs_x(&self) -> NcDim {
+        unsafe { crate::ncplane_abs_x(self) as NcDim }
+    }
+
     /// Duplicates this NcPlane.
     ///
     /// The new NcPlane will have the same geometry, the same rendering state,

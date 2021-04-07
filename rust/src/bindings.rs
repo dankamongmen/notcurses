@@ -327,6 +327,9 @@ pub use ffi::{
 pub use ffi::{
     // functions
     ncplane_above,
+    ncplane_abs_x,
+    ncplane_abs_y,
+    ncplane_abs_yx,
     ncplane_at_cursor,
     ncplane_at_cursor_cell,
     ncplane_at_yx,

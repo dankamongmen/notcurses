@@ -1,5 +1,7 @@
 //! based on the proof of concept at ../../src/poc/menu.c
 
+// FIXME: has bugs, doesn't work well
+
 use libnotcurses_sys::*;
 
 fn main() -> NcResult<()> {

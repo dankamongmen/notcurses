@@ -5,7 +5,7 @@
 // (X) wont:  6
 // (D) depr:  4
 // (#) test: 13
-// (W) wrap: 81 of 98
+// (W) wrap: 81 of 101 (111 - 6 - 4)
 // -------------------------------------------
 //W  ncpile_bottom
 //W# ncpile_create
@@ -13,6 +13,9 @@
 //W  ncpile_render
 //W  ncpile_top
 //W  ncplane_above
+//W  ncplane_abs_x
+//W  ncplane_abs_y
+//W  ncplane_abs_yx
 //W  ncplane_at_cursor
 //W  ncplane_at_cursor_cell
 //W  ncplane_at_yx

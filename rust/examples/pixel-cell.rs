@@ -1,4 +1,4 @@
-//! pixel example
+//! pixel-cell example
 //!
 //! Shows how to get the size of a cell in pixels
 //!
@@ -42,7 +42,7 @@ fn main() -> NcResult<()> {
     let range = Uniform::from(50..=180);
     let mut buffer = Vec::<u8>::with_capacity((cell_y * cell_x * 4) as usize);
     #[allow(unused_parens)]
-    for _byte in (0..={ cell_x * cell_y }) {
+    for _byte in (0..={ cell_y * cell_x }) {
         buffer.push(rng.sample(&range));
         buffer.push(rng.sample(&range));
         buffer.push(rng.sample(&range));
