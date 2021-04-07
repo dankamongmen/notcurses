@@ -295,10 +295,10 @@ query_xtsmgraphics(int fd, const char* seq, int* val, int* val2){
 // making it useless for a one-time query.
 static int
 query_sixel_details(tinfo* ti, int fd){
-  if(query_xtsmgraphics(fd, "\x1b[?1;1;0S", &ti->color_registers, NULL)){
+  if(query_xtsmgraphics(fd, "\x1b[?2;4;0S", &ti->sixel_maxx, &ti->sixel_maxy)){
     return -1;
   }
-  if(query_xtsmgraphics(fd, "\x1b[?2;4;0S", &ti->sixel_maxx, &ti->sixel_maxy)){
+  if(query_xtsmgraphics(fd, "\x1b[?1;1;0S", &ti->color_registers, NULL)){
     return -1;
   }
 //fprintf(stderr, "Sixel ColorRegs: %d Max_x: %d Max_y: %d\n", ti->color_registers, ti->sixel_maxx, ti->sixel_maxy);
@@ -307,10 +307,10 @@ query_sixel_details(tinfo* ti, int fd){
 
 // we found Sixel support -- set up the API
 static void
-setup_sixel(tinfo* ti, int (**pixel_init)(int fd)){
+setup_sixel(tinfo* ti){
   ti->sixel_supported = true;
   ti->color_registers = 256;  // assumed default [shrug]
-  *pixel_init = ti->pixel_init = sprite_sixel_init;
+  ti->pixel_init = sprite_sixel_init;
   ti->pixel_draw = sixel_draw;
   ti->sixel_maxx = ti->sixel_maxy = 0;
   ti->pixel_destroy = sixel_delete;
@@ -319,7 +319,6 @@ setup_sixel(tinfo* ti, int (**pixel_init)(int fd)){
 // query for Sixel support
 static int
 query_sixel(tinfo* ti, int fd){
-  int (*pixel_init)(int fd) = NULL;
   if(writen(fd, "\x1b[c", 3) != 3){
     return -1;
   }
@@ -362,13 +361,13 @@ query_sixel(tinfo* ti, int fd){
         if(in == 'c'){
           state = DONE;
         }else if(in == '4'){
-          setup_sixel(ti, &pixel_init);
+          setup_sixel(ti);
           state = DONE;
         }
         break;
       case WANT_C_ALACRITTY_HACK:
         if(in == 'c'){
-          setup_sixel(ti, &pixel_init);
+          setup_sixel(ti);
           state = DONE;
         }
         break;
@@ -378,11 +377,6 @@ query_sixel(tinfo* ti, int fd){
     }
     if(state == DONE){
       break;
-    }
-  }
-  if(pixel_init){
-    if(pixel_init(fd)){
-      return -1;
     }
   }
   return 0; // FIXME return error?
