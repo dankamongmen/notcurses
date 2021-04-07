@@ -456,14 +456,21 @@ impl Notcurses {
     }
 
     /// Returns the number of simultaneous colors claimed to be supported,
-    /// or 1 if there is no color support.
+    /// if there is color support.
     ///
     /// Note that several terminal emulators advertise more colors than they
     /// actually support, downsampling internally.
     ///
     /// *C style function: [notcurses_palette_size()][crate::notcurses_palette_size].*
-    pub fn palette_size(&mut self) -> u32 {
-        unsafe { crate::notcurses_palette_size(self) }
+    pub fn palette_size(&mut self) -> NcResult<u32> {
+        let res = unsafe { crate::notcurses_palette_size(self) };
+        if res == 1 {
+            return Err(NcError::with_msg(
+                1,
+                "No color support ← Notcurses.palette_size()",
+            ));
+        }
+        Ok(res)
     }
 
     /// Refreshes the physical screen to match what was last rendered (i.e.,

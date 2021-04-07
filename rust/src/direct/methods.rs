@@ -159,7 +159,8 @@ impl NcDirect {
         ]
     }
 
-    /// Returns the number of simultaneous colors claimed to be supported.
+    /// Returns the number of simultaneous colors claimed to be supported,
+    /// if there is color support.
     ///
     /// Note that several terminal emulators advertise more colors than they
     /// actually support, downsampling internally.
