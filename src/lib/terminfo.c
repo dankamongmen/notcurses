@@ -367,9 +367,9 @@ query_sixel(tinfo* ti, int fd){
         break;
       case WANT_C_ALACRITTY_HACK:
         if(in == 'c'){
-          /* FIXME alacritty has not yet merged their sixel support
           setup_sixel(ti);
-          state = DONE; */
+          state = DONE;
+          // alacritty doesn't want further querying
           return 0;
         }
         break;

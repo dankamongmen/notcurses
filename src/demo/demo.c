@@ -538,10 +538,15 @@ int main(int argc, char** argv){
   }
   const bool canimage = notcurses_canopen_images(nc);
   const bool canvideo = notcurses_canopen_videos(nc);
+  printf(" Enabling mouse...");
+  fflush(stdout);
   if(notcurses_mouse_enable(nc)){
     goto err;
   }
+  printf("done.\n Checking for bitmap support...");
+  fflush(stdout);
   notcurses_check_pixel_support(nc);
+  printf("done.\n");
   if(input_dispatcher(nc)){
     goto err;
   }
