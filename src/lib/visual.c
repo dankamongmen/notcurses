@@ -698,7 +698,7 @@ ncplane* ncvisual_render(notcurses* nc, ncvisual* ncv, const struct ncvisual_opt
 
 ncvisual* ncvisual_from_plane(const ncplane* n, ncblitter_e blit, int begy, int begx,
                               int leny, int lenx){
-  uint32_t* rgba = ncplane_rgba(n, blit, begy, begx, leny, lenx);
+  uint32_t* rgba = ncplane_as_rgba(n, blit, begy, begx, leny, lenx, NULL, NULL);
 //fprintf(stderr, "snarg: %d/%d @ %d/%d (%p)\n", leny, lenx, begy, begx, rgba);
 //fprintf(stderr, "RGBA %p\n", rgba);
   if(rgba == NULL){

@@ -1,6 +1,11 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 2.2.6 (not yet released)
+  * `ncplane_rgba()` has been deprecated in favor of the new function
+    `ncplane_as_rgba()`, which the former now wraps. It will be removed
+    in ABI3. The new function can report the synthesized pixel geometry.
+
 * 2.2.5 (2021-04-04)
   * Bugfix release, no user-visible changes.
 

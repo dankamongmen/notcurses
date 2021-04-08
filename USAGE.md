@@ -1017,9 +1017,11 @@ int ncplane_at_yx_cell(struct ncplane* n, int y, int x, nccell* c);
 // Start at the plane's 'begy'x'begx' coordinate (which must lie on the
 // plane), continuing for 'leny'x'lenx' cells. Either or both of 'leny' and
 // 'lenx' can be specified as -1 to go through the boundary of the plane.
-// Only glyphs from the specified blitset may be present.
-uint32_t* ncplane_rgba(const struct ncplane* nc, ncblitter_e blit,
-                       int begy, int begx, int leny, int lenx);
+// Only glyphs from the specified blitset may be present. If 'pxdimy' and/or
+// 'pxdimx' are non-NULL, they will be filled in with the pixel geometry.
+uint32_t* ncplane_as_rgba(const struct ncplane* n, ncblitter_e blit,
+                          int begy, int begx, int leny, int lenx,
+                          int *pxdimy, int *pxdimx);
 
 // return a nul-terminated, heap copy of the current (UTF-8) contents.
 char* ncplane_contents(const struct ncplane* nc, int begy, int begx,

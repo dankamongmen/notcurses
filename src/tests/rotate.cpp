@@ -173,8 +173,12 @@ TEST_CASE("Rotate") {
     ncvisual_options opts{};
     auto rendered = ncvisual_render(nc_, ncv, &opts);
     REQUIRE(rendered);
-    uint32_t* rgbaret = ncplane_rgba(rendered, NCBLIT_DEFAULT, 0, 0, -1, -1);
+    int pxdimy, pxdimx;
+    uint32_t* rgbaret = ncplane_as_rgba(rendered, NCBLIT_DEFAULT,
+                                        0, 0, -1, -1, &pxdimy, &pxdimx);
     REQUIRE(rgbaret);
+    CHECK(pxdimx == width);
+    CHECK(pxdimy == height);
     for(int i = 0 ; i < height * width / 2 ; ++i){
       if(rgbaret[i] & CELL_BG_RGB_MASK){
         CHECK(htole(rgbaret[i]) == rgba[i]);
@@ -226,8 +230,12 @@ TEST_CASE("Rotate") {
     ncvisual_options opts{};
     auto rendered = ncvisual_render(nc_, ncv, &opts);
     REQUIRE(rendered);
-    uint32_t* rgbaret = ncplane_rgba(rendered, NCBLIT_DEFAULT, 0, 0, -1, -1);
+    int pxdimy, pxdimx;
+    uint32_t* rgbaret = ncplane_as_rgba(rendered, NCBLIT_DEFAULT,
+                                        0, 0, -1, -1, &pxdimy, &pxdimx);
     REQUIRE(rgbaret);
+    CHECK(pxdimy == height);
+    CHECK(pxdimx == width);
     for(int i = 0 ; i < height * width / 2 ; ++i){
       if(rgbaret[i] & CELL_BG_RGB_MASK){
         CHECK(htole(rgbaret[i]) == rgba[i]);

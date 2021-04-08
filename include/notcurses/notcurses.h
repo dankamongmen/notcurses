@@ -2450,9 +2450,20 @@ struct ncvisual_options {
 // Start at the plane's 'begy'x'begx' coordinate (which must lie on the
 // plane), continuing for 'leny'x'lenx' cells. Either or both of 'leny' and
 // 'lenx' can be specified as -1 to go through the boundary of the plane.
-// Only glyphs from the specified blitset may be present.
-API ALLOC uint32_t* ncplane_rgba(const struct ncplane* n, ncblitter_e blit,
-                                 int begy, int begx, int leny, int lenx);
+// Only glyphs from the specified blitset may be present. If 'pxdimy' and/or
+// 'pxdimx' are non-NULL, they will be filled in with the pixel geometry.
+API ALLOC uint32_t* ncplane_as_rgba(const struct ncplane* n, ncblitter_e blit,
+                                    int begy, int begx, int leny, int lenx,
+                                    int *pxdimy, int *pxdimx)
+  __attribute__ ((nonnull (1)));
+
+// Deprecated in favor of ncplane_as_rgba. This will be removed in ABI3.
+ALLOC __attribute__ ((deprecated)) __attribute__ ((nonnull (1)))
+static inline uint32_t*
+ncplane_rgba(const struct ncplane* n, ncblitter_e blit,
+             int begy, int begx, int leny, int lenx){
+  return ncplane_as_rgba(n, blit, begy, begx, leny, lenx, NULL, NULL);
+}
 
 // Get the size and ratio of ncvisual pixels to output cells along the y
 // ('toy') and x ('tox') axes. A ncvisual of '*y'X'*x' pixels will require

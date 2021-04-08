@@ -805,7 +805,7 @@ namespace ncpp
 
 		uint32_t* rgba(ncblitter_e blit, int begy, int begx, int leny, int lenx) const noexcept
 		{
-			return ncplane_rgba (plane, blit, begy, begx, leny, lenx);
+			return ncplane_as_rgba (plane, blit, begy, begx, leny, lenx, nullptr, nullptr);
 		}
 
 		char* content(int begy, int begx, int leny, int lenx) const noexcept

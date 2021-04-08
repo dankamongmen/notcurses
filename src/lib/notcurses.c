@@ -2424,12 +2424,16 @@ int ncdirect_inputready_fd(ncdirect* n){
   return n->input.ttyinfd;
 }
 
-uint32_t* ncplane_rgba(const ncplane* nc, ncblitter_e blit,
-                       int begy, int begx, int leny, int lenx){
+uint32_t* ncplane_as_rgba(const ncplane* nc, ncblitter_e blit,
+                          int begy, int begx, int leny, int lenx,
+                          int *pxdimy, int *pxdimx){
+  const notcurses* ncur = ncplane_notcurses_const(nc);
   if(begy < 0 || begx < 0){
+    logerror(ncur, "Nil offset (%d,%d)\n", begy, begx);
     return NULL;
   }
   if(begx >= nc->lenx || begy >= nc->leny){
+    logerror(ncur, "Invalid offset (%d,%d)\n", begy, begx);
     return NULL;
   }
   if(lenx == -1){ // -1 means "to the end"; use all space available
@@ -2439,13 +2443,27 @@ uint32_t* ncplane_rgba(const ncplane* nc, ncblitter_e blit,
     leny = nc->leny - begy;
   }
   if(lenx < 0 || leny < 0){ // no need to draw zero-size object, exit
+    logerror(ncur, "Nil geometry (%dx%d)\n", leny, lenx);
     return NULL;
   }
 //fprintf(stderr, "sum: %d/%d avail: %d/%d\n", begy + leny, begx + lenx, nc->leny, nc->lenx);
   if(begx + lenx > nc->lenx || begy + leny > nc->leny){
+    logerror(ncur, "Invalid specs %d + %d > %d or %d + %d > %d\n",
+             begx, lenx, nc->lenx, begy, leny, nc->leny);
+    return NULL;
+  }
+  if(blit > NCBLIT_2x1){
+    logerror(ncur, "Blitter %d is not yet supported\n", blit);
     return NULL;
   }
 //fprintf(stderr, "ALLOCATING %zu\n", 4u * lenx * leny * 2);
+  // FIXME this all assumes NCBLIT_2x1, need blitter-specific scaling
+  if(pxdimy){
+    *pxdimy = leny * 2;
+  }
+  if(pxdimx){
+    *pxdimx = lenx;
+  }
   uint32_t* ret = malloc(sizeof(*ret) * lenx * leny * 2);
   if(ret){
     for(int y = begy, targy = 0 ; y < begy + leny ; ++y, targy += 2){
@@ -2466,8 +2484,6 @@ uint32_t* ncplane_rgba(const ncplane* nc, ncblitter_e blit,
         // FIXME how do we deal with transparency?
         uint32_t frgba = (fr) + (fg << 16u) + (fb << 8u) + 0xff000000;
         uint32_t brgba = (br) + (bg << 16u) + (bb << 8u) + 0xff000000;
-        // FIXME integrate 'blit'
-        (void)blit;
         // FIXME need to be able to pick up quadrants!
         if((strcmp(c, " ") == 0) || (strcmp(c, "") == 0)){
           *top = *bot = brgba;

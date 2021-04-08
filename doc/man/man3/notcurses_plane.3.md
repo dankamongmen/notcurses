@@ -104,7 +104,7 @@ typedef struct ncplane_options {
 
 **int ncplane_at_yx_cell(struct ncplane* ***n***, int ***y***, int ***x***, nccell* ***c***);**
 
-**uint32_t* ncplane_rgba(const struct ncplane* ***nc***, int ***begy***, int ***begx***, int ***leny***, int ***lenx***);**
+**uint32_t* ncplane_as_rgba(const struct ncplane* ***nc***, int ***begy***, int ***begx***, int ***leny***, int ***lenx***, int* ***pxdimy***, int* ***pxdimx***);**
 
 **char* ncplane_contents(const struct ncplane* ***nc***, int ***begy***, int ***begx***, int ***leny***, int ***lenx***);**
 
@@ -372,6 +372,9 @@ EGC at the relevant cell, or **NULL** if the cell is invalid. The caller should 
 this result. **ncplane_at_yx_cell** and **ncplane_at_cursor_cell** instead load
 these values into an **nccell**, which is invalidated if the associated plane is
 destroyed. The caller should release this **nccell** with **cell_release**.
+
+**ncplane_as_rgba** returns a heap-allocated array of **uint32_t** values,
+each representing a single RGBA pixel, or **NULL** on failure.
 
 Functions returning **int** return 0 on success, and non-zero on error.
 
