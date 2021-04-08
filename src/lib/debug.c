@@ -20,7 +20,7 @@ tinfo_debug_caps(const tinfo* ti, FILE* debugfp, int rows, int cols,
           indent, capyn(ti->sgr), capyn(ti->sgr0));
   fprintf(debugfp, "%sop: %c fgop: %c bgop: %c\n",
           indent, capyn(ti->op), capyn(ti->fgop), capyn(ti->bgop));
-  fprintf(debugfp, "%srows: %u cols: %u rpix: %u cpix: %u (%dx%d)\n",
+  fprintf(debugfp, "%srows: %u cols: %u rpx: %u cpx: %u (%dx%d)\n",
           indent, rows, cols, ti->cellpixy, ti->cellpixx, rows * ti->cellpixy, cols * ti->cellpixx);
   if(!ti->pixel_query_done){
     fprintf(debugfp, "%sno bitmap graphics information yet\n", indent);

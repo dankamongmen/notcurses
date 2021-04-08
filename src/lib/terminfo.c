@@ -372,6 +372,9 @@ query_sixel(tinfo* ti, int fd){
 }
 
 // fd must be a real terminal. uses the query lock of |ti| to only act once.
+// we ought already have performed a TIOCGWINSZ ioctl() to verify that the
+// terminal reports cell area in pixels, as that's necessary for our use of
+// sixel (or any other bitmap protocol).
 int query_term(tinfo* ti, int fd){
   if(fd < 0){
     return -1;
@@ -383,16 +386,22 @@ int query_term(tinfo* ti, int fd){
   int ret = 0;
   pthread_mutex_lock(&ti->pixel_query);
   if(!ti->pixel_query_done){
-    if(flags & O_NONBLOCK){
-      fcntl(fd, F_SETFL, flags & ~O_NONBLOCK);
-    }
-    ret = query_sixel(ti, fd);
-    ti->pixel_query_done = true;
-    if(ti->sixel_supported){
-      ti->pixel_init(fd);
-    }
-    if(flags & O_NONBLOCK){
-      fcntl(fd, F_SETFL, flags);
+    // if the terminal reported 0 pixels for cell dimensions, bypass any
+    // interrogation, and assume no bitmap support.
+    if(!ti->cellpixx || !ti->cellpixy){
+      ti->pixel_query_done = true;
+    }else{
+      if(flags & O_NONBLOCK){
+        fcntl(fd, F_SETFL, flags & ~O_NONBLOCK);
+      }
+      ret = query_sixel(ti, fd);
+      ti->pixel_query_done = true;
+      if(ti->sixel_supported){
+        ti->pixel_init(fd);
+      }
+      if(flags & O_NONBLOCK){
+        fcntl(fd, F_SETFL, flags);
+      }
     }
   }
   pthread_mutex_unlock(&ti->pixel_query);
