@@ -145,16 +145,19 @@ macro_rules! error {
 /// `$msg` is optional. By default it will be an empty `&str` `""`.
 #[macro_export]
 macro_rules! error_ref {
-    ($ptr:expr, $msg:expr) => {
+    ($ptr:expr, $msg:expr, $ok:expr) => {
         if $ptr != core::ptr::null() {
             #[allow(unused_unsafe)]
-            return Ok(unsafe { &*$ptr });
+            return Ok(unsafe { $ok });
         } else {
             return Err(crate::NcError::with_msg(crate::NCRESULT_ERR, $msg));
         }
     };
+    ($ptr:expr, $msg:expr) => {
+        error_ref![$ptr, $msg, &*$ptr ];
+    };
     ($ptr:expr) => {
-        error_ref![$ptr, ""];
+        error_ref![$ptr, "", &*$ptr ];
     };
 }
 
@@ -168,16 +171,19 @@ macro_rules! error_ref {
 /// `$msg` is optional. By default it will be an empty `&str` `""`.
 #[macro_export]
 macro_rules! error_ref_mut {
-    ($ptr:expr, $msg:expr) => {
+    ($ptr:expr, $msg:expr, $ok:expr) => {
         if $ptr != core::ptr::null_mut() {
             #[allow(unused_unsafe)]
-            return Ok(unsafe { &mut *$ptr });
+            return Ok(unsafe { $ok });
         } else {
             return Err(crate::NcError::with_msg(crate::NCRESULT_ERR, $msg));
         }
     };
+    ($ptr:expr, $msg:expr) => {
+        error_ref_mut![$ptr, $msg, &mut *$ptr ];
+    };
     ($ptr:expr) => {
-        error_ref_mut![$ptr, ""];
+        error_ref_mut![$ptr, "", &mut *$ptr ];
     };
 }
 

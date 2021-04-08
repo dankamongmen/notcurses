@@ -1407,7 +1407,7 @@ impl NcPlane {
         ]
     }
 
-    /// Creates an RGBA flat array from the selected region of the ncplane.
+    /// Creates an RGBA flat array from the selected region of the plane.
     ///
     /// Starts at the plane's `beg_y`x`beg_x` coordinate (which must lie on the
     /// plane), continuing for `len_y`x`len_x` cells.
@@ -1417,8 +1417,8 @@ impl NcPlane {
     ///
     /// Only glyphs from the specified blitset may be present.
     ///
-    /// *C style function: [ncplane_rgba()][crate::ncplane_rgba].*
-    pub fn rgba(
+    /// *C style function: [ncplane_rgba()][crate::ncplane_as_rgba].*
+    pub fn as_rgba(
         &mut self,
         blitter: NcBlitter,
         beg_y: NcDim,
@@ -1440,31 +1440,19 @@ impl NcPlane {
             len_x2 = -1;
         }
 
+        // pixel geometry
+        let mut pxdimy = 0;
+        let mut pxdimx = 0;
+
         let res_array = unsafe {
-            crate::ncplane_rgba(self, blitter, beg_y as i32, beg_x as i32, len_y2, len_x2)
+            crate::ncplane_as_rgba(self, blitter, beg_y as i32, beg_x as i32, len_y2, len_x2, &mut pxdimy, &mut pxdimx)
         };
 
-        // calculates array length
-        let array_len_y;
-        let array_len_x;
-        if len_y2 == -1 {
-            array_len_y = self.dim_y() - beg_y;
-        } else {
-            array_len_y = len_y2 as u32;
-        }
-        if len_x2 == -1 {
-            array_len_x = self.dim_x() - beg_x;
-        } else {
-            array_len_x = len_x2 as u32;
-        }
-        let array_len = (array_len_y * array_len_x) as usize;
-
-        // returns the result
-        if res_array != null_mut() {
-            return Ok(unsafe { from_raw_parts_mut(res_array, array_len) });
-        } else {
-            Err(NcError::with_msg(NCRESULT_ERR, "NcPlane.rgba()"))
-        }
+        error_ref_mut![
+            res_array,
+            &format!["NcPlane.rgba({}, {}, {}, {:?}, {:?})", blitter, beg_y, beg_x, len_y, len_x],
+            from_raw_parts_mut(res_array, (pxdimy * pxdimx) as usize)
+        ]
     }
 
     /// Realigns this NcPlane against its parent, using the alignment specified

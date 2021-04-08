@@ -395,7 +395,7 @@ pub use ffi::{
     ncplane_resize_maximize,
     ncplane_resize_realign,
     ncplane_resizecb,
-    ncplane_rgba,
+    ncplane_as_rgba,
     ncplane_rotate_ccw,
     ncplane_rotate_cw,
     ncplane_set_base,
