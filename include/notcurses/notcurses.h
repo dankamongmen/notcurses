@@ -2391,11 +2391,11 @@ ncplane_double_box_sized(struct ncplane* n, uint32_t styles, uint64_t channels,
 API ALLOC struct ncvisual* ncvisual_from_file(const char* file);
 
 // Prepare an ncvisual, and its underlying plane, based off RGBA content in
-// memory at 'rgba'. 'rgba' must be a flat array of 32-bit 8bpc RGBA pixels.
-// These must be arranged in 'rowstride' lines, where the first 'cols' * 4b
-// are actual data. There must be 'rows' lines. The total size of 'rgba'
-// must thus be at least (rows * rowstride) bytes, of which (rows * cols * 4)
-// bytes are actual data. Resulting planes are ceil('rows' / 2) x 'cols'.
+// memory at 'rgba'. 'rgba' is laid out as 'rows' lines, each of which is
+// 'rowstride' bytes in length. Each line has 'cols' 32-bit 8bpc RGBA pixels
+// followed by possible padding (there will be 'rowstride' - 'cols' * 4 bytes
+// of padding). The total size of 'rgba' is thus (rows * rowstride) bytes, of
+// which (rows * cols * 4) bytes are actual non-padding data.
 API ALLOC struct ncvisual* ncvisual_from_rgba(const void* rgba, int rows,
                                               int rowstride, int cols);
 
