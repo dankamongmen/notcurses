@@ -278,6 +278,17 @@ impl Notcurses {
         }
     }
 
+    /// Dumps selected configuration capabilities to 'debugfp'.
+    ///
+    /// Output is freeform, and subject to change.
+    ///
+    /// *C style function: [notcurses_debug_caps()][crate::notcurses_debug_caps].*
+    pub fn debug_caps(&self, debugfp: &mut NcFile) {
+        unsafe {
+            crate::notcurses_debug_caps(self, debugfp.as_nc_ptr());
+        }
+    }
+
     /// Destroys all [NcPlane]s other than the stdplane.
     ///
     /// *C style function: [notcurses_drop_planes()][crate::notcurses_drop_planes].*

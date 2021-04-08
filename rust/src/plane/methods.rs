@@ -1382,6 +1382,20 @@ impl NcPlane {
         ]
     }
 
+    /// Suitable for use as a 'resizecb' with planes created with
+    /// [`NCPLANE_OPTION_MARGINALIZED`][crate::NCPLANE_OPTION_MARGINALIZED].
+    ///
+    /// This will resize this plane against its parent, attempting to enforce
+    /// the supplied margins.
+    ///
+    /// *C style function: [ncplane_resize_marginalized()][crate::ncplane_resize_marginalized].*
+    pub fn resize_marginalized(&mut self) -> NcResult<()> {
+        error![
+            unsafe { crate::ncplane_resize_marginalized(self) },
+            "NcPlane.resize_marginalized()"
+        ]
+    }
+
     /// Suitable for use as a 'resizecb', this will resize the plane
     /// to the visual region's size. It is used for the standard plane.
     ///

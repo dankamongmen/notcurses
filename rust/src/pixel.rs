@@ -121,7 +121,7 @@ pub fn ncpixel_set_rgb8(pixel: &mut NcPixel, red: NcColor, green: NcColor, blue:
 // NOTE: waiting for: https://github.com/rust-lang/rust/issues/56546
 // to move doc comments to the trait and appear unhidden at the implementation.
 pub trait NcPixelMethods {
-    fn new(r: NcColor, g: NcColor, b: NcColor) -> NcPixel;
+    fn new(r: NcColor, g: NcColor, b: NcColor) -> Self;
     fn a(self) -> NcColor;
     fn b(self) -> NcColor;
     fn g(self) -> NcColor;
@@ -135,7 +135,7 @@ pub trait NcPixelMethods {
 
 impl NcPixelMethods for NcPixel {
     /// Constructs a libav-compatible ABGR pixel from [NcColor] RGB components.
-    fn new(red: NcColor, green: NcColor, blue: NcColor) -> NcPixel {
+    fn new(red: NcColor, green: NcColor, blue: NcColor) -> Self {
         ncpixel(red, green, blue)
     }
 

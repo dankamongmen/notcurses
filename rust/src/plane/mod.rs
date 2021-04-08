@@ -1,11 +1,11 @@
 //! `NcPlane`
 
-// functions already exported by bindgen : 108 (5 + 103)
-// -----------------------------------------------------
+// functions already exported by bindgen : 112
+// -------------------------------------------
 // (X) wont:  6
 // (D) depr:  4
 // (#) test: 13
-// (W) wrap: 81 of 101 (111 - 6 - 4)
+// (W) wrap: 82 of 102 (112 - 6 - 4)
 // -------------------------------------------
 //W  ncpile_bottom
 //W# ncpile_create
@@ -77,6 +77,7 @@
 //W  ncplane_reparent_family
 //W# ncplane_resize
 //W  ncplane_resizecb
+//W  ncplane_resize_marginalize
 //W  ncplane_resize_maximize
 //W  ncplane_resize_realign
 //W  ncplane_rgba
@@ -243,8 +244,21 @@ pub type NcPlane = crate::bindings::ffi::ncplane;
 /// Options struct for [`NcPlane`]
 pub type NcPlaneOptions = crate::bindings::ffi::ncplane_options;
 
-/// Horizontal alignment relative to the parent plane. Set alignment in 'x'.
+/// Horizontal alignment relative to the parent plane. Use NcAlign for 'x'.
 pub const NCPLANE_OPTION_HORALIGNED: u64 = crate::bindings::ffi::NCPLANE_OPTION_HORALIGNED as u64;
+
+/// Vertical alignment relative to the parent plane. Use NcAlign for 'y'.
+pub const NCPLANE_OPTION_VERALIGNED: u64 = crate::bindings::ffi::NCPLANE_OPTION_VERALIGNED as u64;
+
+/// Maximize relative to the parent plane, modulo the provided margins.
+///
+/// The margins are best-effort; the plane will always be at least 1 column by
+/// 1 row. If the margins can be effected, the plane will be sized to all
+/// remaining space. 'y' and 'x' are overloaded as the top and left margins
+/// when this flag is used. 'rows' and 'cols' must be 0 when this flag is
+/// used. This flag is exclusive with both of the alignment flags.
+pub const NCPLANE_OPTION_MARGINALIZED: u64 =
+    crate::bindings::ffi::NCPLANE_OPTION_MARGINALIZED as u64;
 
 /// I/O wrapper to dump file descriptor to [`NcPlane`]
 ///

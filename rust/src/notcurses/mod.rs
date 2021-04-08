@@ -1,7 +1,7 @@
 //! `Notcurses`
 
 // --- -------------------------------------------------------------------------
-// col 0:
+// col 0:   3
 // --------------
 //          1  X: wont do
 //          2  ~: WIP
@@ -12,14 +12,14 @@
 //             F: ffi function wrapped safely
 //          6  r: static function reimplemented in Rust
 //
-// col 2:  46
+// col 2:  48
 // --------------
-//         39  m: impl as a `Notcurses` method
-//          7  M: impl for the `FullMode` wrapper struct too
+//         38  m: impl as a `Notcurses` method
+//         10  M: impl for the `FullMode` wrapper struct too
 //
-// col 3:  14
+// col 3:  13
 // --------------
-//         14  t: tests done for the ffi or reimplemented funtion
+//         13  t: tests done for the ffi or reimplemented funtion
 //             T: tests done also for the m method
 //             Ŧ: tests done also for the M method wrapper struct
 // --- -------------------------------------------------------------------------
@@ -39,6 +39,7 @@
 // fm  notcurses_cursor_disable
 // fm  notcurses_cursor_enable
 // fmt notcurses_debug
+// fm  notcurses_debug_caps
 // fmt notcurses_drop_planes
 // fm  notcurses_getc
 // fMt notcurses_init

@@ -322,6 +322,8 @@ pub use ffi::{
 //
 // // constants
 // NCPLANE_OPTION_HORALIGNED,
+// NCPLANE_OPTION_MARGINALIZED,
+// NCPLANE_OPTION_VERALIGNED
 
 #[doc(inline)]
 pub use ffi::{
@@ -389,6 +391,7 @@ pub use ffi::{
     ncplane_reparent,
     ncplane_reparent_family,
     ncplane_resize,
+    ncplane_resize_marginalized,
     ncplane_resize_maximize,
     ncplane_resize_realign,
     ncplane_resizecb,
@@ -712,6 +715,7 @@ pub use ffi::{
     notcurses_cursor_disable,
     notcurses_cursor_enable,
     notcurses_debug,
+    notcurses_debug_caps,
     notcurses_drop_planes,
     notcurses_getc,
     notcurses_init,
