@@ -1,7 +1,7 @@
 use libnotcurses_sys::*;
 
 fn main() -> NcResult<()> {
-    let mut nc = FullMode::new()?;
+    let mut nc = FullMode::without_altscreen()?;
 
     let (t_rows, t_cols) = nc.term_dim_yx();
     println!("Terminal rows={0}, cols={1}", t_rows, t_cols);
@@ -24,7 +24,6 @@ Palette size: {6:?}
         nc.palette_size(),
     );
 
-    println!("Done. Waiting for 10 seconds. . .");
-    rsleep![&mut nc, 10];
+    rsleep![&mut nc, 1];
     Ok(())
 }

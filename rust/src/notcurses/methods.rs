@@ -652,7 +652,7 @@ impl Notcurses {
 
     /// Returns our current idea of the terminal dimensions in rows and cols.
     ///
-    /// *C style function: [notcurses_supported_styles()][crate::notcurses_supported_styles].*
+    /// *C style function: [notcurses_term_dim_yx()][crate::notcurses_term_dim_yx].*
     pub fn term_dim_yx(&self) -> (NcDim, NcDim) {
         crate::notcurses_term_dim_yx(self)
     }
