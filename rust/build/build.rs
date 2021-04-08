@@ -42,6 +42,13 @@ fn main() {
         .no_copy("ncuplot")
         .no_copy("ncvisual")
         .no_copy("notcurses")
+        // try to derive more traits
+        .derive_default(true)
+        .derive_hash(true)
+        .derive_partialord(true)
+        .derive_ord(true)
+        .derive_partialeq(true)
+        .derive_eq(true)
         // Tell cargo to invalidate the built crate whenever any of the
         // included header files changed.
         .parse_callbacks(Box::new(bindgen::CargoCallbacks));

@@ -575,7 +575,7 @@ impl NcPlane {
     ///
     /// *C style function: [ncplane_at_yx_cell()][crate::ncplane_at_yx_cell].*
     #[inline]
-    pub fn ncplane_at_yx_cell(&mut self, y: NcDim, x: NcDim, cell: &mut NcCell) -> NcResult<u32> {
+    pub fn at_yx_cell(&mut self, y: NcDim, x: NcDim, cell: &mut NcCell) -> NcResult<u32> {
         let bytes = unsafe { crate::ncplane_at_yx_cell(self, y as i32, x as i32, cell) };
         error![
             bytes,
@@ -584,7 +584,7 @@ impl NcPlane {
         ]
     }
 
-    /// Extracts this NcPlane's base [NcCell] into `cell`.
+    /// Extracts this NcPlane's base [NcCell].
     ///
     /// The reference is invalidated if this NcPlane is destroyed.
     ///
