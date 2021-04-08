@@ -330,12 +330,9 @@ query_sixel(tinfo* ti, int fd){
     WANT_QMARK,
     WANT_SEMI,
     WANT_C,
-    WANT_C_ALACRITTY_HACK,
     DONE
   } state = WANT_CSI;
-  // we're looking for a 4 following a semicolon, or alacritty's insistence
-  // on CSI 6c followed by XTSMGRAPHICS, which probably breaks us on a real
-  // VT102, but how many of them could there be? le sigh FIXME
+  // we're looking for a 4 following a semicolon
   while(state != DONE && read(fd, &in, 1) == 1){
     switch(state){
       case WANT_CSI:
@@ -353,8 +350,6 @@ query_sixel(tinfo* ti, int fd){
           state = WANT_C;
         }else if(in == 'c'){
           state = DONE;
-        }else if(in == '6'){
-          state = WANT_C_ALACRITTY_HACK;
         }
         break;
       case WANT_C:
@@ -365,20 +360,14 @@ query_sixel(tinfo* ti, int fd){
           state = DONE;
         }
         break;
-      case WANT_C_ALACRITTY_HACK:
-        if(in == 'c'){
-          setup_sixel(ti);
-          state = DONE;
-          // alacritty doesn't want further querying
-          return 0;
-        }
-        break;
       case DONE:
       default:
         break;
     }
   }
-  query_sixel_details(ti, fd);
+  if(ti->sixel_supported){
+    query_sixel_details(ti, fd);
+  }
   return 0;
 }
 
