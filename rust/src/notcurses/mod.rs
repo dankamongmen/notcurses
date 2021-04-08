@@ -118,6 +118,12 @@ pub const NCOPTION_INHIBIT_SETLOCALE: u64 = crate::bindings::ffi::NCOPTION_INHIB
 pub const NCOPTION_NO_ALTERNATE_SCREEN: u64 =
     crate::bindings::ffi::NCOPTION_NO_ALTERNATE_SCREEN as u64;
 
+/// Do not try to clear any preexisting bitmaps.
+///
+/// Note that they might still get cleared even if this is set, and they might
+/// not get cleared even if this is not set.
+pub const NCOPTION_NO_CLEAR_BITMAPS: u64 = crate::bindings::ffi::NCOPTION_NO_CLEAR_BITMAPS as u64;
+
 /// Do not modify the font.
 ///
 /// Notcurses might attempt to change the font slightly, to support certain
