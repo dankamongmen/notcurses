@@ -1115,3 +1115,19 @@ int ncdirect_check_pixel_support(ncdirect* n){
   }
   return 0;
 }
+
+int ncdirect_stream(ncdirect* nc, const char* filename, float timescale,
+                    streamcb streamer, const struct ncvisual_options* vopts,
+                    void* curry){
+  (void)nc;
+  (void)timescale;
+  (void)streamer;
+  (void)vopts;
+  (void)curry;
+  ncvisual* ncv = ncvisual_from_file(filename);
+  if(ncv == NULL){
+    return -1;
+  }
+  // FIXME
+  return 0;
+}
