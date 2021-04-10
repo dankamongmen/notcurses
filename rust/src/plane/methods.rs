@@ -1470,8 +1470,9 @@ impl NcPlane {
     /// Returns an [NcPixelGeometry] structure filled with pixel geometry for
     /// the display region, each cell, and the maximum displayable bitmap.
     ///
-    /// This function calls [notcurses_check_pixel_support], possibly leading to
-    /// an interrogation of the terminal.
+    /// This function calls
+    /// [notcurses_check_pixel_support][crate::notcurses_check_pixel_support],
+    /// possibly leading to an interrogation of the terminal.
     ///
     /// *C style function: [ncplane_pixelgeom()][crate::ncplane_pixelgeom].*
     pub fn pixelgeom(&mut self) -> NcPixelGeometry {

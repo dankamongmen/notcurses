@@ -5,6 +5,10 @@ use crate::{
     NcPaletteIndex, NcPlane, NcResult, NcRgb, NcStyleMask, NCRESULT_ERR,
 };
 
+#[allow(unused_imports)]
+// imports for doc comments
+use crate::NcChannel;
+
 /// # NcCell constructors
 impl NcCell {
     /// New NcCell, expects a 7-bit [char].
@@ -83,7 +87,7 @@ impl NcCell {
     ///
     /// *C style function: [cell_duplicate()][crate::cell_duplicate].*
     pub fn duplicate(&self, target: &mut NcCell, common_plane: &mut NcPlane) -> NcResult<()> {
-        error![unsafe { crate::cell_duplicate(common_plane, target, self) }]
+        error![unsafe { crate::nccell_duplicate(common_plane, target, self) }]
     }
 
     /// Initializes (zeroes out) the NcCell.
@@ -99,7 +103,7 @@ impl NcCell {
     /// *C style function: [cell_release()][crate::cell_release].*
     pub fn release(&mut self, plane: &mut NcPlane) {
         unsafe {
-            crate::cell_release(plane, self);
+            crate::nccell_release(plane, self);
         }
     }
 }

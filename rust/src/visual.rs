@@ -162,7 +162,7 @@ impl NcVisualOptions {
 
 /// # NcVisual Constructors & destructors
 impl NcVisual {
-    /// Like [ncvisual_from_rgba], but 'bgra' is arranged as BGRA.
+    /// Like [from_rgba][NcVisual#method.from_rgba], but 'bgra' is arranged as BGRA.
     ///
     /// *C style function: [ncvisual_from_bgra()][crate::ncvisual_from_bgra].*
     pub fn from_bgra<'a>(
@@ -187,8 +187,8 @@ impl NcVisual {
     /// Opens a visual at `file`, extracts the codec and parameters and
     /// decodes the first image to memory.
     ///
-    /// *C style function: [ncvisual_from_bgra()][crate::ncvisual_from_bgra].*
-    pub fn ncvisual_from_file<'a>(file: &str) -> NcResult<&'a mut NcVisual> {
+    /// *C style function: [ncvisual_from_file()][crate::ncvisual_from_file].*
+    pub fn from_file<'a>(file: &str) -> NcResult<&'a mut NcVisual> {
         error_ref_mut![
             unsafe { crate::ncvisual_from_file(cstring![file]) },
             &format!("NcVisual::from_file()")
@@ -201,10 +201,11 @@ impl NcVisual {
     /// This will be checked, and any other glyph will result in an error.
     ///
     /// This function exists so that planes can be subjected to NcVisual transformations.
-    /// If possible, it's better to create the ncvisual from memory using [ncvisual_from_rgba].
+    /// If possible, it's better to create the ncvisual from memory using
+    /// [from_rgba][NcVisual#method.from_rgba].
     ///
-    /// *C style function: [ncvisual_from_bgra()][crate::ncvisual_from_bgra].*
-    pub fn ncvisual_from_plane<'a>(
+    /// *C style function: [ncvisual_from_plane()][crate::ncvisual_from_plane].*
+    pub fn from_plane<'a>(
         plane: &NcPlane,
         blitter: NcBlitter,
         beg_y: NcDim,
@@ -293,8 +294,8 @@ impl NcVisual {
         }
     }
 
-    /// Extracts the next frame from the NcVisual, ala [decode], but if we have
-    /// reached the end, rewinds to the first frame.
+    /// Extracts the next frame from the NcVisual, ala [decode][NcVisual#method.decode],
+    /// but if we have reached the end, rewinds to the first frame.
     ///
     /// *A subsequent [NcVisual.render]() will render the first frame,
     /// as if the ncvisual had been closed and reopened.*

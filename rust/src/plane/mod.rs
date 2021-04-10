@@ -322,7 +322,7 @@ pub const NCBLIT_BRAILLE: NcBlitter = crate::bindings::ffi::ncblitter_e_NCBLIT_B
 /// [`NcBlitter`] mode where the blitter is automatically chosen
 pub const NCBLIT_DEFAULT: NcBlitter = crate::bindings::ffi::ncblitter_e_NCBLIT_DEFAULT;
 
-/// [`NcPixel`] mode
+/// Sixel/Pixel mode
 ///
 /// See [Sixel in Wikipedia](https://en.wikipedia.org/wiki/Sixel).
 pub const NCBLIT_PIXEL: NcBlitter = crate::bindings::ffi::ncblitter_e_NCBLIT_PIXEL;
@@ -330,7 +330,7 @@ pub const NCBLIT_PIXEL: NcBlitter = crate::bindings::ffi::ncblitter_e_NCBLIT_PIX
 /// Contains the pixel geometry information as returned by the 
 /// NcPlane.[pixelgeom()][NcPlane#method.pixelgeom] method.
 ///
-/// If bitmaps are not supported, the fields max_bitmap_[yx] will be 0.
+/// If bitmaps are not supported, the fields `max_bitmap_*` will be 0.
 #[derive(Clone, Debug)]
 pub struct NcPixelGeometry {
     /// Geometry of the display region

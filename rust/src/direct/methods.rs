@@ -545,8 +545,9 @@ impl NcDirect {
     ///
     /// Initializes Readline the first time it's called.
     ///
-    /// For input to be echoed to the terminal, it is necessary that
-    /// [NCDIRECT_OPTION_INHIBIT_CBREAK] be provided to [ncdirect_init]
+    /// For input to be echoed to the terminal, it is necessary that the flag
+    /// [NCDIRECT_OPTION_INHIBIT_CBREAK][crate::NCDIRECT_OPTION_INHIBIT_CBREAK]
+    /// be provided to the constructor.
     ///
     /// *C style function: [ncdirect_readline()][crate::ncdirect_readline].*
     pub fn readline(&mut self, prompt: &str) -> NcResult<&str> {
