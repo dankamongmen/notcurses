@@ -377,7 +377,7 @@ err:
 // initial timestamp, and check each frame against the elapsed time to sync
 // up playback.
 int ffmpeg_stream(notcurses* nc, ncvisual* ncv, float timescale,
-                  streamcb streamer, const struct ncvisual_options* vopts,
+                  ncstreamcb streamer, const struct ncvisual_options* vopts,
                   void* curry){
   int frame = 1;
   struct timespec begin; // time we started

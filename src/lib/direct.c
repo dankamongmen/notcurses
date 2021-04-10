@@ -485,26 +485,20 @@ int ncdirect_raster_frame(ncdirect* n, ncdirectv* ncdv, ncalign_e align){
   return r;
 }
 
-ncdirectv* ncdirect_render_frame(ncdirect* n, const char* file,
-                                 ncblitter_e blitfxn, ncscale_e scale,
-                                 int ymax, int xmax){
+static ncdirectv*
+ncdirect_render_visual(ncdirect* n, ncvisual* ncv, ncblitter_e blitfxn,
+                       ncscale_e scale, int ymax, int xmax){
   int dimy = ymax > 0 ? ymax : ncdirect_dim_y(n);
   int dimx = xmax > 0 ? xmax : ncdirect_dim_x(n);
-  struct ncvisual* ncv = ncvisual_from_file(file);
-  if(ncv == NULL){
-    return NULL;
-  }
 //fprintf(stderr, "OUR DATA: %p rows/cols: %d/%d\n", ncv->data, ncv->rows, ncv->cols);
   int leny = ncv->rows; // we allow it to freely scroll
   int lenx = ncv->cols;
   if(leny == 0 || lenx == 0){
-    ncvisual_destroy(ncv);
     return NULL;
   }
 //fprintf(stderr, "render %d/%d to %d+%d scaling: %d\n", ncv->rows, ncv->cols, leny, lenx, scale);
   const struct blitset* bset = rgba_blitter_low(&n->tcache, scale, true, blitfxn);
   if(!bset){
-    ncvisual_destroy(ncv);
     return NULL;
   }
   int disprows, dispcols;
@@ -542,7 +536,6 @@ ncdirectv* ncdirect_render_frame(ncdirect* n, const char* file,
   }
   struct ncplane* ncdv = ncplane_new_internal(NULL, NULL, &nopts);
   if(!ncdv){
-    ncvisual_destroy(ncv);
     return NULL;
   }
   blitterargs bargs = {};
@@ -553,18 +546,27 @@ ncdirectv* ncdirect_render_frame(ncdirect* n, const char* file,
     int cols = lenx / bargs.u.pixel.celldimx + !!(lenx % bargs.u.pixel.celldimx);
     int rows = leny / bargs.u.pixel.celldimy + !!(leny % bargs.u.pixel.celldimy);
     if((bargs.u.pixel.spx = sprixel_alloc(ncdv, ncv, rows, cols)) == NULL){
-      ncvisual_destroy(ncv);
       free_plane(ncdv);
       return NULL;
     }
   }
   if(ncvisual_blit(ncv, disprows, dispcols, ncdv, bset, leny, lenx, &bargs)){
-    ncvisual_destroy(ncv);
     free_plane(ncdv);
     return NULL;
   }
-  ncvisual_destroy(ncv);
   return ncdv;
+}
+
+ncdirectv* ncdirect_render_frame(ncdirect* n, const char* file,
+                                 ncblitter_e blitfxn, ncscale_e scale,
+                                 int ymax, int xmax){
+  struct ncvisual* ncv = ncvisual_from_file(file);
+  if(ncv == NULL){
+    return NULL;
+  }
+  ncdirectv* v = ncdirect_render_visual(n, ncv, blitfxn, scale, ymax, xmax);
+  ncvisual_destroy(ncv);
+  return v;
 }
 
 int ncdirect_render_image(ncdirect* n, const char* file, ncalign_e align,
@@ -1116,18 +1118,28 @@ int ncdirect_check_pixel_support(ncdirect* n){
   return 0;
 }
 
-int ncdirect_stream(ncdirect* nc, const char* filename, float timescale,
-                    streamcb streamer, const struct ncvisual_options* vopts,
-                    void* curry){
-  (void)nc;
-  (void)timescale;
-  (void)streamer;
-  (void)vopts;
-  (void)curry;
+int ncdirect_stream(ncdirect* n, const char* filename, ncstreamcb streamer,
+                    struct ncvisual_options* vopts, void* curry){
+  int y, x;
+  if(ncdirect_cursor_yx(n, &y, &x)){
+    return -1;
+  }
   ncvisual* ncv = ncvisual_from_file(filename);
   if(ncv == NULL){
     return -1;
   }
-  // FIXME
+  do{
+    if(ncdirect_cursor_move_yx(n, y, x)){
+      ncvisual_destroy(ncv);
+      return -1;
+    }
+    ncdirectv* v = ncdirect_render_visual(n, ncv, vopts->blitter, vopts->scaling, 0, 0);
+    if(v == NULL){
+      ncvisual_destroy(ncv);
+      return -1;
+    }
+    streamer(ncv, vopts, NULL, curry);
+  }while(ncvisual_decode(ncv));
+  ncvisual_destroy(ncv);
   return 0;
 }

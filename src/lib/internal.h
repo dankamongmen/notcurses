@@ -1448,7 +1448,7 @@ typedef struct ncvisual_implementation {
   int (*visual_decode)(struct ncvisual* nc);
   int (*visual_decode_loop)(struct ncvisual* nc);
   int (*visual_stream)(notcurses* nc, struct ncvisual* ncv, float timescale,
-                       streamcb streamer, const struct ncvisual_options* vopts, void* curry);
+                       ncstreamcb streamer, const struct ncvisual_options* vopts, void* curry);
   char* (*visual_subtitle)(const struct ncvisual* ncv);
   int (*visual_resize)(struct ncvisual* ncv, int rows, int cols);
   void (*visual_destroy)(struct ncvisual* ncv);

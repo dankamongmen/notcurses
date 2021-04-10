@@ -14,7 +14,7 @@ int oiio_blit_dispatch(struct ncplane* nc, const struct blitset* bset,
 }
 
 int oiio_stream(struct notcurses* nc, ncvisual* ncv, float timescale,
-                streamcb streamer, const struct ncvisual_options* vopts,
+                ncstreamcb streamer, const struct ncvisual_options* vopts,
                 void* curry){
   (void)timescale; // FIXME
   int frame = 1;
