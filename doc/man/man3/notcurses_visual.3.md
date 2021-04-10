@@ -34,6 +34,7 @@ typedef enum {
 #define NCVISUAL_OPTION_BLEND      0x0002
 #define NCVISUAL_OPTION_HORALIGNED 0x0004
 #define NCVISUAL_OPTION_VERALIGNED 0x0008
+#define NCVISUAL_OPTION_ADDALPHA   0x0010
 
 struct ncvisual_options {
   struct ncplane* n;
@@ -43,6 +44,7 @@ struct ncvisual_options {
   int leny, lenx; // size of rendered section
   ncblitter_e blitter; // glyph set to use
   uint64_t flags; // bitmask over NCVISUAL_OPTION_*
+  uint32_t transcolor; // use this color for ADDALPHA
 };
 
 typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);

@@ -506,6 +506,7 @@ typedef struct {
   int begx;
   int placey;           // placement within ncplane
   int placex;
+  uint32_t transcolor;  // if non-zero, treat the lower 24 bits as a transparent color
   union { // cell vs pixel-specific arguments
     struct {
       int blendcolors;    // use CELL_ALPHA_BLEND

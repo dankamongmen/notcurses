@@ -38,6 +38,7 @@ TEST_CASE("Blitting") {
       .lenx = 4,
       .blitter = NCBLIT_1x1,
       .flags = 0,
+      .transcolor = 0,
     };
     ncblit_bgrx(data, 16, &vopts);
     for(int y = 0 ; y < 2 ; ++y){
@@ -87,6 +88,7 @@ TEST_CASE("Blitting") {
       .lenx = 4,
       .blitter = NCBLIT_1x1,
       .flags = 0,
+      .transcolor = 0,
     };
     ncblit_bgrx(data, 20, &vopts);
     for(int y = 0 ; y < 2 ; ++y){
@@ -139,6 +141,7 @@ TEST_CASE("Blitting") {
           .n = nullptr, .scaling = NCSCALE_NONE,
           .y = 0, .x = 0, .begy = 0, .begx = 0, .leny = 0, .lenx = 0,
           .blitter = NCBLIT_2x2, .flags = 0,
+          .transcolor = 0,
         };
         auto ncp = ncvisual_render(nc_, ncv, &vopts);
         ncvisual_destroy(ncv);

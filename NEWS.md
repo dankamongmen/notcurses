@@ -15,6 +15,9 @@ rearrangements of Notcurses.
   * `cell_release()` and `cell_duplicate()` have been migrated to
     `nccell_release()` and `nccell_duplicate()`, respectively. The former
     forms have been deprecated, and will be removed in API3.
+  * Added `NCVISUAL_OPTION_ADDALPHA`, and the `transcolor` field to
+    `ncvisual_options`. If the former flag is used, the latter color
+    will be treated as transparent.
 
 * 2.2.5 (2021-04-04)
   * Bugfix release, no user-visible changes.
