@@ -13,7 +13,8 @@ might surprise NCURSES programmers:
 * There is no distinct `PANEL` type. The z-buffer is a fundamental property,
   and all drawable surfaces are ordered along the z axis. There is no
   equivalent to `update_panels()`.
-* Scrolling is disabled by default, and cannot be globally enabled.
+* Scrolling is disabled by default, and cannot be globally enabled (but
+  see Direct Mode).
 * The Curses `cchar_t` has a fixed-size array of `wchar_t`. The Notcurses
   `cell` instead supports a UTF-8 encoded extended grapheme cluster of
   arbitrary length. The only supported encodings are ASCII via `ANSI_X3.4-1968`
