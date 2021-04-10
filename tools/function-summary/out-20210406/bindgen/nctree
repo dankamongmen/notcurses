@@ -1,9 +1,0 @@
-nctree_create
-nctree_destroy
-nctree_focused
-nctree_goto
-nctree_next
-nctree_offer_input
-nctree_plane
-nctree_prev
-nctree_redraw

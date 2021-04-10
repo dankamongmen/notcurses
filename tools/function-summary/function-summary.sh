@@ -16,7 +16,7 @@ PATH_SOURCE_FILE="../../include/notcurses/notcurses.h"
 
 # this is the path to the latest bindgen generated rust sources
 # TODO: retrieve it automatically, from the target folder, the most recently created/updated)
-PATH_BINDGEN_LATEST="bindgen_20210406.rs"
+PATH_BINDGEN_LATEST="bindgen_20210410.rs"
 
 # these are the main function prefixes used in notcurses (before the first `_`) for STATS_FILE
 # NOTE: updated manually
