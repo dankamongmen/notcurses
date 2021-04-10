@@ -7,15 +7,9 @@ PENDING changes
 bindgen add:
 - [ ] ncdirect_stream
 - [x] ncplane_as_rgba
-- [ ] nclane_pixelgeom
-- [ ] ncvisual_blitter_geom
-- [ ] ncvisual_geom
+- [x] ncplane_pixelgeom
+- [x] ncvisual_blitter_geom
 bindgen del
 - [x] ncplane_rgba
-
-static add:
-- [ ] ncplane_rgba
-- [ ] ncvisual_geom
-static del:
 
 ## ...

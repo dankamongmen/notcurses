@@ -8,8 +8,8 @@ use core::{
 use crate::{
     cstring, error, error_ref, error_ref_mut, rstring, NcAlign, NcAlphaBits, NcBlitter, NcBoxMask,
     NcCell, NcChannel, NcChannelPair, NcColor, NcDim, NcEgc, NcError, NcFadeCb, NcOffset,
-    NcPaletteIndex, NcPlane, NcPlaneOptions, NcResizeCb, NcResult, NcRgb, NcStyleMask, NcTime,
-    Notcurses, NCRESULT_ERR,
+    NcPaletteIndex, NcPixelGeometry, NcPlane, NcPlaneOptions, NcResizeCb, NcResult, NcRgb,
+    NcStyleMask, NcTime, Notcurses, NCRESULT_ERR,
 };
 
 /// # NcPlaneOptions Constructors
@@ -1445,14 +1445,61 @@ impl NcPlane {
         let mut pxdimx = 0;
 
         let res_array = unsafe {
-            crate::ncplane_as_rgba(self, blitter, beg_y as i32, beg_x as i32, len_y2, len_x2, &mut pxdimy, &mut pxdimx)
+            crate::ncplane_as_rgba(
+                self,
+                blitter,
+                beg_y as i32,
+                beg_x as i32,
+                len_y2,
+                len_x2,
+                &mut pxdimy,
+                &mut pxdimx,
+            )
         };
 
         error_ref_mut![
             res_array,
-            &format!["NcPlane.rgba({}, {}, {}, {:?}, {:?})", blitter, beg_y, beg_x, len_y, len_x],
+            &format![
+                "NcPlane.rgba({}, {}, {}, {:?}, {:?})",
+                blitter, beg_y, beg_x, len_y, len_x
+            ],
             from_raw_parts_mut(res_array, (pxdimy * pxdimx) as usize)
         ]
+    }
+
+    /// Returns an [NcPixelGeometry] structure filled with pixel geometry for
+    /// the display region, each cell, and the maximum displayable bitmap.
+    ///
+    /// This function calls [notcurses_check_pixel_support], possibly leading to
+    /// an interrogation of the terminal.
+    ///
+    /// *C style function: [ncplane_pixelgeom()][crate::ncplane_pixelgeom].*
+    pub fn pixelgeom(&mut self) -> NcPixelGeometry {
+        let mut pxy = 0;
+        let mut pxx = 0;
+        let mut celldimy = 0;
+        let mut celldimx = 0;
+        let mut maxbmapy = 0;
+        let mut maxbmapx = 0;
+        unsafe {
+            crate::ncplane_pixelgeom(
+                self,
+                &mut pxy,
+                &mut pxx,
+                &mut celldimy,
+                &mut celldimx,
+                &mut maxbmapy,
+                &mut maxbmapx,
+            );
+        }
+        NcPixelGeometry {
+            display_y: pxy as NcDim,
+            display_x: pxx as NcDim,
+            cell_y: celldimy as NcDim,
+            cell_x: celldimx as NcDim,
+            max_bitmap_y: maxbmapy as NcDim,
+            max_bitmap_x: maxbmapx as NcDim,
+        }
     }
 
     /// Realigns this NcPlane against its parent, using the alignment specified

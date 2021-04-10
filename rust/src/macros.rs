@@ -154,10 +154,10 @@ macro_rules! error_ref {
         }
     };
     ($ptr:expr, $msg:expr) => {
-        error_ref![$ptr, $msg, &*$ptr ];
+        error_ref![$ptr, $msg, &*$ptr];
     };
     ($ptr:expr) => {
-        error_ref![$ptr, "", &*$ptr ];
+        error_ref![$ptr, "", &*$ptr];
     };
 }
 
@@ -180,10 +180,10 @@ macro_rules! error_ref_mut {
         }
     };
     ($ptr:expr, $msg:expr) => {
-        error_ref_mut![$ptr, $msg, &mut *$ptr ];
+        error_ref_mut![$ptr, $msg, &mut *$ptr];
     };
     ($ptr:expr) => {
-        error_ref_mut![$ptr, "", &mut *$ptr ];
+        error_ref_mut![$ptr, "", &mut *$ptr];
     };
 }
 

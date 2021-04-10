@@ -24,6 +24,9 @@ Palette size: {6:?}
         nc.palette_size(),
     );
 
+    let pixelgeom = nc.stdplane().pixelgeom();
+    println!("{:#?}", pixelgeom);
+
     rsleep![&mut nc, 1];
     Ok(())
 }
