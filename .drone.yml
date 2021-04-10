@@ -11,7 +11,7 @@ steps:
     - export TERM=vt100
     - mkdir build
     - cd build
-    - cmake .. -DCMAKE_BUILD_TYPE=Release
+    - cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_QRCODEGEN=on
     - make -j2
     - ctest --output-on-failure
     - make install
@@ -37,7 +37,7 @@ steps:
     - export TERM=vt100
     - mkdir build
     - cd build
-    - cmake -DCMAKE_BUILD_TYPE=Release -DUSE_QRCODEGEN=off -DUSE_PANDOC=off ..
+    - cmake -DCMAKE_BUILD_TYPE=Release -DUSE_PANDOC=off ..
     - make -j2
     - ctest --output-on-failure
 ---
@@ -53,7 +53,7 @@ steps:
     - export TERM=vt100
     - mkdir build
     - cd build
-    - cmake -DCMAKE_BUILD_TYPE=Release -DUSE_MULTIMEDIA=oiio ..
+    - cmake -DCMAKE_BUILD_TYPE=Release -DUSE_MULTIMEDIA=oiio -DUSE_QRCODEGEN=on ..
     - make -j2
     - ctest --output-on-failure
     - make install
@@ -78,7 +78,7 @@ steps:
     - export TERM=xterm
     - mkdir build
     - cd build
-    - cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_MULTIMEDIA=none ..
+    - cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_QRCODEGEN=on -DUSE_MULTIMEDIA=none ..
     - make -j2
     - ctest --output-on-failure
     - make install
