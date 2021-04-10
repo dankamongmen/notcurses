@@ -1030,7 +1030,7 @@ int ncplane_at_yx_cell(struct ncplane* n, int y, int x, nccell* c);
 // 'pxdimx' are non-NULL, they will be filled in with the pixel geometry.
 uint32_t* ncplane_as_rgba(const struct ncplane* n, ncblitter_e blit,
                           int begy, int begx, int leny, int lenx,
-                          int *pxdimy, int *pxdimx);
+                          int* pxdimy, int* pxdimx);
 
 // return a nul-terminated, heap copy of the current (UTF-8) contents.
 char* ncplane_contents(const struct ncplane* nc, int begy, int begx,

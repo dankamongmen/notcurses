@@ -129,7 +129,7 @@ typedef enum {
 } ncblitter_e;
 const char* notcurses_str_blitter(ncblitter_e blitter);
 int notcurses_lex_blitter(const char* op, ncblitter_e* blitter);
-uint32_t* ncplane_rgba(const struct ncplane* nc, ncblitter_e blit, int begy, int begx, int leny, int lenx);
+uint32_t* ncplane_as_rgba(const struct ncplane* nc, ncblitter_e blit, int begy, int begx, int leny, int lenx, int* pxdimy, int* pxdimx);
 char* ncplane_contents(const struct ncplane* nc, int begy, int begx, int leny, int lenx);
 void* ncplane_set_userptr(struct ncplane* n, void* opaque);
 void* ncplane_userptr(struct ncplane* n);

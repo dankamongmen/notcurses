@@ -2426,7 +2426,7 @@ int ncdirect_inputready_fd(ncdirect* n){
 
 uint32_t* ncplane_as_rgba(const ncplane* nc, ncblitter_e blit,
                           int begy, int begx, int leny, int lenx,
-                          int *pxdimy, int *pxdimx){
+                          int* pxdimy, int* pxdimx){
   const notcurses* ncur = ncplane_notcurses_const(nc);
   if(begy < 0 || begx < 0){
     logerror(ncur, "Nil offset (%d,%d)\n", begy, begx);

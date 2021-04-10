@@ -2465,7 +2465,7 @@ struct ncvisual_options {
 // 'pxdimx' are non-NULL, they will be filled in with the pixel geometry.
 API ALLOC uint32_t* ncplane_as_rgba(const struct ncplane* n, ncblitter_e blit,
                                     int begy, int begx, int leny, int lenx,
-                                    int *pxdimy, int *pxdimx)
+                                    int* pxdimy, int* pxdimx)
   __attribute__ ((nonnull (1)));
 
 // Deprecated in favor of ncplane_as_rgba. This will be removed in ABI3.
