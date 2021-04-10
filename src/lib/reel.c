@@ -161,8 +161,8 @@ draw_borders(ncplane* n, unsigned mask, uint64_t channel, direction_e direction)
       ncplane_putc(n, &lr);
     }
   }
-  cell_release(n, &ul); cell_release(n, &ur); cell_release(n, &hl);
-  cell_release(n, &ll); cell_release(n, &lr); cell_release(n, &vl);
+  nccell_release(n, &ul); nccell_release(n, &ur); nccell_release(n, &hl);
+  nccell_release(n, &ll); nccell_release(n, &lr); nccell_release(n, &vl);
   return ret;
 }
 

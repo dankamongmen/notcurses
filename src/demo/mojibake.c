@@ -3543,7 +3543,7 @@ makegroup(struct ncplane* title, int y, const char* emoji, const char* name){
       break;
     }
     int w = ncplane_putc_yx(n, y, x, &c);
-    cell_release(n, &c);
+    nccell_release(n, &c);
     if(w < 0){
       ncplane_destroy(n);
       return NULL;

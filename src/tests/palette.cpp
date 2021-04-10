@@ -68,7 +68,7 @@ TEST_CASE("Palette256") {
     CHECK(0 == cell_set_fg_palindex(&c, 0x20));
     CHECK(0 == cell_set_bg_palindex(&c, 0x40));
     CHECK(1 == ncplane_putc_yx(n_, 0, 0, &c));
-    cell_release(n_, &c);
+    nccell_release(n_, &c);
     nccell r = CELL_TRIVIAL_INITIALIZER;
     CHECK(0 < ncplane_at_yx_cell(n_, 0, 0, &r));
     CHECK(cell_fg_palindex_p(&r));
@@ -77,7 +77,7 @@ TEST_CASE("Palette256") {
     CHECK(CELL_ALPHA_OPAQUE == cell_bg_alpha(&r));
     CHECK(0x20 == cell_fg_palindex(&r));
     CHECK(0x40 == cell_bg_palindex(&r));
-    cell_release(n_, &r);
+    nccell_release(n_, &r);
   }
 
   SUBCASE("RenderCAttrs") {
@@ -88,7 +88,7 @@ TEST_CASE("Palette256") {
     CHECK(0 == ncplane_set_fg_palindex(n_, 0x20));
     CHECK(0 == ncplane_set_bg_palindex(n_, 0x40));
     CHECK(0 < ncplane_putc_yx(n_, 0, 0, &c));
-    cell_release(n_, &c);
+    nccell_release(n_, &c);
     CHECK(0 == notcurses_render(nc_));
     nccell r = CELL_TRIVIAL_INITIALIZER;
     CHECK(nullptr != notcurses_at_yx(nc_, 0, 0, &r.stylemask, &r.channels));
@@ -98,7 +98,7 @@ TEST_CASE("Palette256") {
     CHECK(CELL_ALPHA_OPAQUE == cell_bg_alpha(&r));
     CHECK(0x20 == cell_fg_palindex(&r));
     CHECK(0x40 == cell_bg_palindex(&r));
-    cell_release(n_, &r);
+    nccell_release(n_, &r);
   }
 
   // common teardown

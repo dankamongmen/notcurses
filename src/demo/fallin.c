@@ -163,13 +163,13 @@ int fallin_demo(struct notcurses* nc){
               // allow a fail if we were printing a wide char to the
               // last column of our plane
               if(!cell_double_wide_p(&c) || usex + 1 < x + newx){
-                cell_release(n, &c);
+                nccell_release(n, &c);
                 goto err;
               }
             }
           }
           usemap[usey * dimx + usex] = true;
-          cell_release(n, &c);
+          nccell_release(n, &c);
         }
       }
       // shuffle the new ncplane into the array

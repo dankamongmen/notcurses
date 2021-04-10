@@ -78,9 +78,9 @@ TEST_CASE("Rotate") {
     CHECK(-1 < cell_prime(testn, &vl, "█", 0, lr));
     CHECK(0 == ncplane_perimeter(testn, &tl, &tr, &bl, &br, &hl, &vl, 0));
     RotateCW(nc_, testn);
-    cell_release(testn, &tl); cell_release(testn, &tr);
-    cell_release(testn, &bl); cell_release(testn, &br);
-    cell_release(testn, &hl); cell_release(testn, &vl);
+    nccell_release(testn, &tl); nccell_release(testn, &tr);
+    nccell_release(testn, &bl); nccell_release(testn, &br);
+    nccell_release(testn, &hl); nccell_release(testn, &vl);
     CHECK(0 == ncplane_destroy(testn));
   }
 

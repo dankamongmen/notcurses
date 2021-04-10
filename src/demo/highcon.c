@@ -132,6 +132,6 @@ int highcontrast_demo(struct notcurses* nc){
   ret = 0;
 
 err:
-  cell_release(n, &c);
+  nccell_release(n, &c);
   return ret;
 }

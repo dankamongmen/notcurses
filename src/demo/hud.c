@@ -170,13 +170,13 @@ about_toggle(struct notcurses* nc){
     channels_set_bg_rgb(&channels, 0);
     if(cells_rounded_box(n, NCSTYLE_NONE, channels, &ul, &ur, &ll, &lr, &hl, &vl) == 0){
       if(ncplane_perimeter(n, &ul, &ur, &ll, &lr, &hl, &vl, 0) == 0){
-        cell_release(n, &ul); cell_release(n, &ur); cell_release(n, &hl);
-        cell_release(n, &ll); cell_release(n, &lr); cell_release(n, &vl);
+        nccell_release(n, &ul); nccell_release(n, &ur); nccell_release(n, &hl);
+        nccell_release(n, &ll); nccell_release(n, &lr); nccell_release(n, &vl);
         about = n;
         return;
       }
-      cell_release(n, &ul); cell_release(n, &ur); cell_release(n, &hl);
-      cell_release(n, &ll); cell_release(n, &lr); cell_release(n, &vl);
+      nccell_release(n, &ul); nccell_release(n, &ur); nccell_release(n, &hl);
+      nccell_release(n, &ll); nccell_release(n, &lr); nccell_release(n, &vl);
     }
   }
   ncplane_destroy(n);
@@ -340,12 +340,12 @@ hud_refresh(struct ncplane* n){
   cell_set_bg_alpha(&hl, CELL_ALPHA_BLEND);
   cell_set_bg_alpha(&vl, CELL_ALPHA_BLEND);
   if(ncplane_perimeter(n, &ul, &ur, &ll, &lr, &hl, &vl, 0)){
-    cell_release(n, &ul); cell_release(n, &ur); cell_release(n, &hl);
-    cell_release(n, &ll); cell_release(n, &lr); cell_release(n, &vl);
+    nccell_release(n, &ul); nccell_release(n, &ur); nccell_release(n, &hl);
+    nccell_release(n, &ll); nccell_release(n, &lr); nccell_release(n, &vl);
     return -1;
   }
-  cell_release(n, &ul); cell_release(n, &ur); cell_release(n, &hl);
-  cell_release(n, &ll); cell_release(n, &lr); cell_release(n, &vl);
+  nccell_release(n, &ul); nccell_release(n, &ur); nccell_release(n, &hl);
+  nccell_release(n, &ll); nccell_release(n, &lr); nccell_release(n, &vl);
   return 0;
 }
 
@@ -372,7 +372,7 @@ hud_print_finished(elem* list){
       ncplane_set_bg_alpha(hud, CELL_ALPHA_BLEND);
       ncplane_set_fg_rgb(hud, 0xffffff);
       ncplane_set_fg_alpha(hud, CELL_ALPHA_OPAQUE);
-      cell_release(hud, &c);
+      nccell_release(hud, &c);
       if(ncplane_printf_yx(hud, line, 1, "%d", e->frames) < 0){
         return -1;
       }
@@ -587,7 +587,7 @@ int demo_render(struct notcurses* nc){
     ncplane_set_bg_alpha(hud, CELL_ALPHA_BLEND);
     ncplane_set_fg_rgb(hud, 0x80d0ff);
     ncplane_set_fg_alpha(hud, CELL_ALPHA_OPAQUE);
-    cell_release(hud, &c);
+    nccell_release(hud, &c);
     ncplane_on_styles(hud, NCSTYLE_BOLD);
     if(ncplane_printf_yx(hud, 1, 1, "%d", elems->frames) < 0){
       return -1;

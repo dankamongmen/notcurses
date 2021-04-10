@@ -164,9 +164,9 @@ int intro(struct notcurses* nc){
                        NCBOXGRAD_TOP | NCBOXGRAD_BOTTOM | NCBOXGRAD_RIGHT | NCBOXGRAD_LEFT)){
     return -1;
   }
-  cell_release(ncp, &ul); cell_release(ncp, &ur);
-  cell_release(ncp, &ll); cell_release(ncp, &lr);
-  cell_release(ncp, &hl); cell_release(ncp, &vl);
+  nccell_release(ncp, &ul); nccell_release(ncp, &ur);
+  nccell_release(ncp, &ll); nccell_release(ncp, &lr);
+  nccell_release(ncp, &hl); nccell_release(ncp, &vl);
   const char s1[] = " Die Welt ist alles, was der Fall ist. ";
   const char str[] = " Wovon man nicht sprechen kann, darüber muss man schweigen. ";
   if(ncplane_set_fg_rgb8(ncp, 192, 192, 192)){

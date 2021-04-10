@@ -662,10 +662,20 @@ cell_prime(struct ncplane* n, nccell* c, const char* gcluster,
 
 // Duplicate 'c' into 'targ'; both must be/will be bound to 'n'. Returns -1 on
 // failure, and 0 on success.
-API int cell_duplicate(struct ncplane* n, nccell* targ, const nccell* c);
+API int nccell_duplicate(struct ncplane* n, nccell* targ, const nccell* c);
+
+__attribute__ ((deprecated)) static inline int
+cell_duplicate(struct ncplane* n, nccell* targ, const nccell* c){
+  return nccell_duplicate(n, targ, c);
+}
 
 // Release resources held by the nccell 'c'.
-API void cell_release(struct ncplane* n, nccell* c);
+API void nccell_release(struct ncplane* n, nccell* c);
+
+__attribute__ ((deprecated)) static inline void
+cell_release(struct ncplane* n, nccell* c){
+  nccell_release(n, c);
+}
 
 #define NCSTYLE_MASK      0x03ffu
 #define NCSTYLE_STANDOUT  0x0080u
@@ -2263,7 +2273,7 @@ API void ncfadectx_free(struct ncfadectx* nctx);
 
 // load up six cells with the EGCs necessary to draw a box. returns 0 on
 // success, -1 on error. on error, any cells this function might
-// have loaded before the error are cell_release()d. There must be at least
+// have loaded before the error are nccell_release()d. There must be at least
 // six EGCs in gcluster.
 static inline int
 cells_load_box(struct ncplane* n, uint32_t styles, uint64_t channels,
@@ -2278,15 +2288,15 @@ cells_load_box(struct ncplane* n, uint32_t styles, uint64_t channels,
             if(cell_prime(n, vl, gclusters + ulen, styles, channels) > 0){
               return 0;
             }
-            cell_release(n, hl);
+            nccell_release(n, hl);
           }
-          cell_release(n, lr);
+          nccell_release(n, lr);
         }
-        cell_release(n, ll);
+        nccell_release(n, ll);
       }
-      cell_release(n, ur);
+      nccell_release(n, ur);
     }
-    cell_release(n, ul);
+    nccell_release(n, ul);
   }
   return -1;
 }
@@ -2305,9 +2315,9 @@ ncplane_rounded_box(struct ncplane* n, uint32_t styles, uint64_t channels,
   if((ret = cells_rounded_box(n, styles, channels, &ul, &ur, &ll, &lr, &hl, &vl)) == 0){
     ret = ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, ystop, xstop, ctlword);
   }
-  cell_release(n, &ul); cell_release(n, &ur);
-  cell_release(n, &ll); cell_release(n, &lr);
-  cell_release(n, &hl); cell_release(n, &vl);
+  nccell_release(n, &ul); nccell_release(n, &ur);
+  nccell_release(n, &ll); nccell_release(n, &lr);
+  nccell_release(n, &hl); nccell_release(n, &vl);
   return ret;
 }
 
@@ -2329,9 +2339,9 @@ ncplane_perimeter_rounded(struct ncplane* n, uint32_t stylemask,
     return -1;
   }
   int r = ncplane_box_sized(n, &ul, &ur, &ll, &lr, &hl, &vl, dimy, dimx, ctlword);
-  cell_release(n, &ul); cell_release(n, &ur);
-  cell_release(n, &ll); cell_release(n, &lr);
-  cell_release(n, &hl); cell_release(n, &vl);
+  nccell_release(n, &ul); nccell_release(n, &ur);
+  nccell_release(n, &ll); nccell_release(n, &lr);
+  nccell_release(n, &hl); nccell_release(n, &vl);
   return r;
 }
 
@@ -2358,9 +2368,9 @@ ncplane_double_box(struct ncplane* n, uint32_t styles, uint64_t channels,
   if((ret = cells_double_box(n, styles, channels, &ul, &ur, &ll, &lr, &hl, &vl)) == 0){
     ret = ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, ystop, xstop, ctlword);
   }
-  cell_release(n, &ul); cell_release(n, &ur);
-  cell_release(n, &ll); cell_release(n, &lr);
-  cell_release(n, &hl); cell_release(n, &vl);
+  nccell_release(n, &ul); nccell_release(n, &ur);
+  nccell_release(n, &ll); nccell_release(n, &lr);
+  nccell_release(n, &hl); nccell_release(n, &vl);
   return ret;
 }
 
@@ -2382,9 +2392,9 @@ ncplane_perimeter_double(struct ncplane* n, uint32_t stylemask,
     return -1;
   }
   int r = ncplane_box_sized(n, &ul, &ur, &ll, &lr, &hl, &vl, dimy, dimx, ctlword);
-  cell_release(n, &ul); cell_release(n, &ur);
-  cell_release(n, &ll); cell_release(n, &lr);
-  cell_release(n, &hl); cell_release(n, &vl);
+  nccell_release(n, &ul); nccell_release(n, &ur);
+  nccell_release(n, &ll); nccell_release(n, &lr);
+  nccell_release(n, &hl); nccell_release(n, &vl);
   return r;
 }
 

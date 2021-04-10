@@ -64,7 +64,7 @@ lighten(struct ncplane* n, nccell* c, int distance, int y, int x){
 static inline int
 lightup_surrounding_cells(struct ncplane* n, nccell* lightup, int y, int x){
   lighten(n, lightup, 0, y, x);
-  cell_release(n, lightup);
+  nccell_release(n, lightup);
   return 0;
 }
 
@@ -199,7 +199,7 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total,
   ncplane_putegc_yx(n, 0, 3, "╔", NULL);
   cell_load(n, &hl, "═");
   ncplane_hline(n, &hl, 20 - 4 - 1);
-  cell_release(n, &hl);
+  nccell_release(n, &hl);
   ncplane_putegc_yx(n, 0, 19, "╗", NULL);
   ncplane_putegc_yx(n, 1, 19, "║", NULL);
   ncplane_putegc_yx(n, 2, 19, "╨", NULL);

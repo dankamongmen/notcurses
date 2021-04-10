@@ -95,7 +95,7 @@ int box_demo(struct notcurses* nc){
   nccell c = CELL_CHAR_INITIALIZER(' ');
   cell_set_bg_default(&c);
   ncplane_set_base_cell(n, &c);
-  cell_release(n, &c);
+  nccell_release(n, &c);
   ncplane_set_fg_rgb8(n, 180, 40, 180);
   ncplane_set_bg_default(n);
   if(notcurses_canutf8(nc)){
@@ -177,11 +177,11 @@ int box_demo(struct notcurses* nc){
     DEMO_RENDER(nc);
     nanosleep(&iterdelay, NULL);
   }
-  cell_release(n, &ul);
-  cell_release(n, &ur);
-  cell_release(n, &ll);
-  cell_release(n, &lr);
-  cell_release(n, &hl);
-  cell_release(n, &vl);
+  nccell_release(n, &ul);
+  nccell_release(n, &ur);
+  nccell_release(n, &ll);
+  nccell_release(n, &lr);
+  nccell_release(n, &hl);
+  nccell_release(n, &vl);
   return 0;
 }

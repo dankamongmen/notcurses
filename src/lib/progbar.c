@@ -151,13 +151,13 @@ progbar_redraw(ncprogbar* n){
     if(horizontal){
       for(int freepos = 0 ; freepos < dimy ; ++freepos){
         nccell* c = ncplane_cell_ref_yx(ncp, freepos, pos);
-        cell_release(ncp, c);
+        nccell_release(ncp, c);
         cell_init(c);
       }
     }else{
       for(int freepos = 0 ; freepos < dimx ; ++freepos){
         nccell* c = ncplane_cell_ref_yx(ncp, pos, freepos);
-        cell_release(ncp, c);
+        nccell_release(ncp, c);
         cell_init(c);
       }
     }

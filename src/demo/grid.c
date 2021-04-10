@@ -23,15 +23,15 @@ release_cells(struct ncplane* n,
               nccell* ul, nccell* uc, nccell* ur,
               nccell* cl, nccell* cc, nccell* cr,
               nccell* ll, nccell* lc, nccell* lr){
-  cell_release(n, ul);
-  cell_release(n, uc);
-  cell_release(n, ur);
-  cell_release(n, cl);
-  cell_release(n, cc);
-  cell_release(n, cr);
-  cell_release(n, ll);
-  cell_release(n, lc);
-  cell_release(n, lr);
+  nccell_release(n, ul);
+  nccell_release(n, uc);
+  nccell_release(n, ur);
+  nccell_release(n, cl);
+  nccell_release(n, cc);
+  nccell_release(n, cr);
+  nccell_release(n, ll);
+  nccell_release(n, lc);
+  nccell_release(n, lr);
 }
 
 static int

@@ -568,9 +568,9 @@ TEST_CASE("Fills") {
           nccell c2 = CELL_TRIVIAL_INITIALIZER;
           CHECK(0 < ncplane_at_yx_cell(p2, y - 1, x - 1, &c2));
           CHECK(0 == cellcmp(p1, &c1, p2, &c2));
-          cell_release(p2, &c2);
+          nccell_release(p2, &c2);
         }
-        cell_release(p1, &c1);
+        nccell_release(p1, &c1);
       }
     }
     ncplane_destroy(p1);

@@ -222,7 +222,7 @@ ext_demos(struct notcurses* nc, const char* spec){
     cell_set_fg_rgb8(&c, 0, 0, 0);
     cell_set_bg_rgb8(&c, 0, 0, 0);
     ncplane_set_base_cell(n, &c);
-    cell_release(n, &c);
+    nccell_release(n, &c);
 
     hud_schedule(demos[idx].name);
     ret = demos[idx].fxn(nc);

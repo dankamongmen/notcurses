@@ -307,7 +307,7 @@ write_header(ncmenu* ncm){
         if(ncplane_putc_yx(ncm->ncp, ypos, xoff + ncm->sections[i].shortcut_offset, &cl) < 0){
           return -1;
         }
-        cell_release(ncm->ncp, &cl);
+        nccell_release(ncm->ncp, &cl);
       }
       xoff += ncstrwidth(ncm->sections[i].name);
     }
@@ -386,7 +386,7 @@ ncmenu* ncmenu_create(ncplane* n, const ncmenu_options* opts){
         cell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT);
         cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT);
         ncplane_set_base_cell(ret->ncp, &c);
-        cell_release(ret->ncp, &c);
+        nccell_release(ret->ncp, &c);
         if(write_header(ret) == 0){
           return ret;
         }
@@ -487,7 +487,7 @@ int ncmenu_unroll(ncmenu* n, int sectionidx){
         if(ncplane_putc_yx(n->ncp, ypos, xpos + 1 + sec->items[i].shortcut_offset, &cl) < 0){
           return -1;
         }
-        cell_release(n->ncp, &cl);
+        nccell_release(n->ncp, &cl);
       }
     }else{
       n->ncp->channels = n->headerchannels;

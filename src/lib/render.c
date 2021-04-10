@@ -171,12 +171,12 @@ update_raster_stats(const struct timespec* time1, const struct timespec* time0,
   }
 }
 
-void cell_release(ncplane* n, nccell* c){
+void nccell_release(ncplane* n, nccell* c){
   pool_release(&n->pool, c);
 }
 
 // Duplicate one cell onto another when they share a plane. Convenience wrapper.
-int cell_duplicate(ncplane* n, nccell* targ, const nccell* c){
+int nccell_duplicate(ncplane* n, nccell* targ, const nccell* c){
   if(cell_duplicate_far(&n->pool, targ, n, c) < 0){
     logerror(ncplane_notcurses(n), "Failed duplicating cell\n");
     return -1;

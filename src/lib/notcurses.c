@@ -161,7 +161,7 @@ int ncplane_at_yx_cell(ncplane* n, int y, int x, nccell* c){
   if(y < n->leny && x < n->lenx){
     if(y >= 0 && x >= 0){
       nccell* targ = ncplane_cell_ref_yx(n, y, x);
-      if(cell_duplicate(n, c, targ) == 0){
+      if(nccell_duplicate(n, c, targ) == 0){
         return strlen(cell_extended_gcluster(n, targ));
       }
     }
@@ -1270,7 +1270,7 @@ int ncplane_set_base_cell(ncplane* ncp, const nccell* c){
   if(cell_wide_right_p(c)){
     return -1;
   }
-  return cell_duplicate(ncp, &ncp->basecell, c);
+  return nccell_duplicate(ncp, &ncp->basecell, c);
 }
 
 int ncplane_set_base(ncplane* ncp, const char* egc, uint32_t stylemask, uint64_t channels){
@@ -1278,7 +1278,7 @@ int ncplane_set_base(ncplane* ncp, const char* egc, uint32_t stylemask, uint64_t
 }
 
 int ncplane_base(ncplane* ncp, nccell* c){
-  return cell_duplicate(ncp, c, &ncp->basecell);
+  return nccell_duplicate(ncp, c, &ncp->basecell);
 }
 
 const char* cell_extended_gcluster(const ncplane* n, const nccell* c){
@@ -1390,7 +1390,7 @@ void ncplane_cursor_yx(const ncplane* n, int* y, int* x){
 
 static inline void
 cell_obliterate(ncplane* n, nccell* c){
-  cell_release(n, c);
+  nccell_release(n, c);
   cell_init(c);
 }
 
@@ -1401,7 +1401,7 @@ void scroll_down(ncplane* n){
     n->logrow = (n->logrow + 1) % n->leny;
     nccell* row = n->fb + nfbcellidx(n, n->y, 0);
     for(int clearx = 0 ; clearx < n->lenx ; ++clearx){
-      cell_release(n, &row[clearx]);
+      nccell_release(n, &row[clearx]);
     }
     memset(row, 0, sizeof(*row) * n->lenx);
   }else{
@@ -1477,7 +1477,7 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
     if(cell_wide_left_p(candidate)){
       cell_obliterate(n, &n->fb[nfbcellidx(n, n->y, n->x + 1)]);
     }
-    cell_release(n, candidate);
+    nccell_release(n, candidate);
     candidate->channels = targ->channels;
     candidate->stylemask = targ->stylemask;
     candidate->width = targ->width;
@@ -1685,7 +1685,7 @@ int ncplane_hline_interp(ncplane* n, const nccell* c, int len,
   int deltbb = bb2 - bb1;
   int ret;
   nccell dupc = CELL_TRIVIAL_INITIALIZER;
-  if(cell_duplicate(n, &dupc, c) < 0){
+  if(nccell_duplicate(n, &dupc, c) < 0){
     return -1;
   }
   bool fgdef = false, bgdef = false;
@@ -1712,7 +1712,7 @@ int ncplane_hline_interp(ncplane* n, const nccell* c, int len,
       break;
     }
   }
-  cell_release(n, &dupc);
+  nccell_release(n, &dupc);
   return ret;
 }
 
@@ -1738,7 +1738,7 @@ int ncplane_vline_interp(ncplane* n, const nccell* c, int len,
   int ret, ypos, xpos;
   ncplane_cursor_yx(n, &ypos, &xpos);
   nccell dupc = CELL_TRIVIAL_INITIALIZER;
-  if(cell_duplicate(n, &dupc, c) < 0){
+  if(nccell_duplicate(n, &dupc, c) < 0){
     return -1;
   }
   bool fgdef = false, bgdef = false;
@@ -1768,7 +1768,7 @@ int ncplane_vline_interp(ncplane* n, const nccell* c, int len,
       break;
     }
   }
-  cell_release(n, &dupc);
+  nccell_release(n, &dupc);
   return ret;
 }
 
@@ -1954,7 +1954,7 @@ void ncplane_erase(ncplane* n){
   if(n->sprite){
     sprixel_hide(n->sprite);
   }
-  // we must preserve the background, but a pure cell_duplicate() would be
+  // we must preserve the background, but a pure nccell_duplicate() would be
   // wiped out by the egcpool_dump(). do a duplication (to get the stylemask
   // and channels), and then reload.
   char* egc = cell_strdup(n, &n->basecell);

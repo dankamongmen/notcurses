@@ -39,7 +39,7 @@ TEST_CASE("Cell") {
     nccell c = CELL_TRIVIAL_INITIALIZER;
     CHECK(1 == cell_load(n_, &c, " "));
     CHECK(cell_simple_p(&c));
-    cell_release(n_, &c);
+    nccell_release(n_, &c);
   }
 
   SUBCASE("MultibyteWidth") {
@@ -75,7 +75,7 @@ TEST_CASE("Cell") {
     CHECK(1 == cell_load(n_, &c, "i"));
     cell_set_fg_rgb8(&c, 255, 255, 255);
     ncplane_set_base_cell(n_, &c);
-    cell_release(n_, &c);
+    nccell_release(n_, &c);
     CHECK(0 == notcurses_render(nc_));
     cell_off_styles(&c, NCSTYLE_ITALIC);
   }
@@ -88,7 +88,7 @@ TEST_CASE("Cell") {
     CHECK(1 == cell_load(n_, &c, "b"));
     cell_set_fg_rgb8(&c, 255, 255, 255);
     ncplane_set_base_cell(n_, &c);
-    cell_release(n_, &c);
+    nccell_release(n_, &c);
     CHECK(0 == notcurses_render(nc_));
     cell_off_styles(&c, NCSTYLE_BOLD);
   }
@@ -101,7 +101,7 @@ TEST_CASE("Cell") {
     CHECK(1 == cell_load(n_, &c, "u"));
     cell_set_fg_rgb8(&c, 255, 255, 255);
     ncplane_set_base_cell(n_, &c);
-    cell_release(n_, &c);
+    nccell_release(n_, &c);
     CHECK(0 == notcurses_render(nc_));
     cell_off_styles(&c, NCSTYLE_UNDERLINE);
   }

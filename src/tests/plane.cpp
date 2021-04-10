@@ -183,7 +183,7 @@ TEST_CASE("Plane") {
       CHECK(yidx == posy);
       CHECK(x - 1 == posx);
     }
-    cell_release(n_, &c);
+    nccell_release(n_, &c);
     CHECK(0 == notcurses_render(nc_));
   }
 
@@ -202,7 +202,7 @@ TEST_CASE("Plane") {
       CHECK(y - 2 == posy);
       CHECK(xidx == posx - 1);
     }
-    cell_release(n_, &c);
+    nccell_release(n_, &c);
     CHECK(0 == notcurses_render(nc_));
   }
 
@@ -319,9 +319,9 @@ TEST_CASE("Plane") {
     REQUIRE(2 == u1);
     REQUIRE(3 == u2);
     REQUIRE(1 == u3);
-    cell_release(n_, &cell1);
-    cell_release(n_, &cell2);
-    cell_release(n_, &cell3);
+    nccell_release(n_, &cell1);
+    nccell_release(n_, &cell2);
+    nccell_release(n_, &cell3);
   }
 
   SUBCASE("CellDuplicateCombining") {
@@ -340,15 +340,15 @@ TEST_CASE("Plane") {
     nccell cell4 = CELL_TRIVIAL_INITIALIZER;
     nccell cell5 = CELL_TRIVIAL_INITIALIZER;
     nccell cell6 = CELL_TRIVIAL_INITIALIZER;
-    CHECK(0 == cell_duplicate(n_, &cell4, &cell1));
-    CHECK(0 == cell_duplicate(n_, &cell5, &cell2));
-    CHECK(0 == cell_duplicate(n_, &cell6, &cell3));
-    cell_release(n_, &cell1);
-    cell_release(n_, &cell2);
-    cell_release(n_, &cell3);
-    cell_release(n_, &cell4);
-    cell_release(n_, &cell5);
-    cell_release(n_, &cell6);
+    CHECK(0 == nccell_duplicate(n_, &cell4, &cell1));
+    CHECK(0 == nccell_duplicate(n_, &cell5, &cell2));
+    CHECK(0 == nccell_duplicate(n_, &cell6, &cell3));
+    nccell_release(n_, &cell1);
+    nccell_release(n_, &cell2);
+    nccell_release(n_, &cell3);
+    nccell_release(n_, &cell4);
+    nccell_release(n_, &cell5);
+    nccell_release(n_, &cell6);
   }
 
   SUBCASE("CellMultiColumn") {
@@ -364,8 +364,8 @@ TEST_CASE("Plane") {
     REQUIRE(strlen(w2) == u2);
     CHECK(ncstrwidth(w1) == 1 + cell_double_wide_p(&c1));
     CHECK_FALSE(cell_double_wide_p(&c2));
-    cell_release(n_, &c1);
-    cell_release(n_, &c2);
+    nccell_release(n_, &c1);
+    nccell_release(n_, &c2);
   }
 
   // verifies that the initial userptr is what we provided, that it is a nullptr
@@ -558,7 +558,7 @@ TEST_CASE("Plane") {
     CHECK(0 == testcell.gcluster);
     CHECK(0 == testcell.stylemask);
     CHECK(0 == testcell.channels);
-    cell_release(n_, &testcell);
+    nccell_release(n_, &testcell);
     int dimy, dimx;
     ncplane_dim_yx(n_, &dimy, &dimx);
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 1, dimx - strlen(STR2)));
@@ -596,7 +596,7 @@ TEST_CASE("Plane") {
     CHECK(0 == testcell.gcluster);
     CHECK(0 == testcell.stylemask);
     CHECK(0 == testcell.channels);
-    cell_release(n_, &testcell);
+    nccell_release(n_, &testcell);
     int dimy, dimx;
     ncplane_dim_yx(n_, &dimy, &dimx);
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 1, dimx - mbstowcs(nullptr, STR2, 0)));

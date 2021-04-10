@@ -1088,17 +1088,17 @@ namespace ncpp
 
 		void release (Cell &cell) const noexcept
 		{
-			cell_release (plane, cell);
+			nccell_release (plane, cell);
 		}
 
 		int duplicate (Cell &target, Cell &source) const NOEXCEPT_MAYBE
 		{
-			return error_guard<int> (cell_duplicate (plane, target, source), -1);
+			return error_guard<int> (nccell_duplicate (plane, target, source), -1);
 		}
 
 		int duplicate (Cell &target, Cell const& source) const NOEXCEPT_MAYBE
 		{
-			return error_guard<int> (cell_duplicate (plane, target, source), -1);
+			return error_guard<int> (nccell_duplicate (plane, target, source), -1);
 		}
 
 		int duplicate (Cell &target, Cell *source) const

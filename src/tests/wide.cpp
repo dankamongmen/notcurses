@@ -121,7 +121,7 @@ TEST_CASE("Wide") {
     nccell c = CELL_TRIVIAL_INITIALIZER;
     CHECK(0 < cell_load(n_, &c, w));
     CHECK(0 < ncplane_putc_yx(n_, 1, 0, &c));
-    cell_release(n_, &c);
+    nccell_release(n_, &c);
     ncplane_at_yx_cell(n_, 0, 0, &c);
     CHECK(0 == strcmp(cell_extended_gcluster(n_, &c), FROG));
     ncplane_at_yx_cell(n_, 0, 1, &c);
@@ -242,14 +242,14 @@ TEST_CASE("Wide") {
     nccell c = CELL_TRIVIAL_INITIALIZER;
     CHECK(0 < ncplane_at_yx_cell(ncp, 1, 0, &c));
     CHECK(!strcmp(cell_extended_gcluster(ncp, &c), "│"));
-    cell_release(ncp, &c);
+    nccell_release(ncp, &c);
     char* egc = notcurses_at_yx(nc_, 1, 0, &c.stylemask, &c.channels);
     REQUIRE(egc);
     CHECK(!strcmp(egc, "│"));
     free(egc);
     CHECK(0 < ncplane_at_yx_cell(ncp, 1, 3, &c));
     CHECK(!strcmp(cell_extended_gcluster(ncp, &c), "│"));
-    cell_release(ncp, &c);
+    nccell_release(ncp, &c);
     egc = notcurses_at_yx(nc_, 1, 3, &c.stylemask, &c.channels);
     REQUIRE(egc);
     CHECK(!strcmp(egc, "│"));
@@ -436,8 +436,8 @@ TEST_CASE("Wide") {
     CHECK(0 == ncplane_at_yx_cell(n_, 1, 2, &cr));
     CHECK(cell_simple_p(&cr));
     CHECK(0 == cr.gcluster);
-    cell_release(n_, &cl);
-    cell_release(n_, &cr);
+    nccell_release(n_, &cl);
+    nccell_release(n_, &cr);
     CHECK(chanright == chanleft);
     ncplane_destroy(p);
   }

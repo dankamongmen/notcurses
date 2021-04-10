@@ -172,7 +172,7 @@ int normal_demo(struct notcurses* nc){
   cell_set_fg_rgb8(&c, 0x0, 0x0, 0x0);
   cell_set_bg_rgb8(&c, 0x0, 0x0, 0x0);
   ncplane_set_base_cell(nstd, &c);
-  cell_release(nstd, &c);
+  nccell_release(nstd, &c);
   struct ncplane* n = NULL;
   struct ncvisual_options vopts = {
     .n = nstd,
@@ -250,7 +250,7 @@ int normal_demo(struct notcurses* nc){
   cell_set_fg_rgb8(&c, 0, 0, 0);
   cell_set_bg_rgb8(&c, 0, 0, 0);
   ncplane_set_base_cell(nstd, &c);
-  cell_release(nstd, &c);
+  nccell_release(nstd, &c);
   r = rotate_visual(nc, n, dy, dx);
   return r;
 

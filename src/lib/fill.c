@@ -33,7 +33,7 @@ ncplane_polyfill_recurse(ncplane* n, int y, int x, const nccell* c, const char* 
   if(strcmp(glust, filltarg)){
     return 0;
   }
-  if(cell_duplicate(n, cur, c) < 0){
+  if(nccell_duplicate(n, cur, c) < 0){
     return -1;
   }
   int r, ret = 1;
@@ -399,7 +399,7 @@ rotate_2x1_cw(ncplane* src, ncplane* dst, int srcy, int srcx, int dsty, int dstx
     return -1;
   }
   if(ncplane_at_yx_cell(src, srcy, srcx + 1, &c2) < 0){
-    cell_release(src, &c1);
+    nccell_release(src, &c1);
     return -1;
   }
   // there can be at most 4 colors and 4 transparencies:
@@ -440,7 +440,7 @@ rotate_2x1_ccw(ncplane* src, ncplane* dst, int srcy, int srcx, int dsty, int dst
     return -1;
   }
   if(ncplane_at_yx_cell(src, srcy, srcx + 1, &c2) < 0){
-    cell_release(src, &c1);
+    nccell_release(src, &c1);
     return -1;
   }
   uint32_t c1b = cell_bchannel_common(&c1);

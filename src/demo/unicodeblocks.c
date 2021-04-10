@@ -97,8 +97,8 @@ draw_block(struct ncplane* nn, uint32_t blockstart){
   if(ncplane_box_sized(nn, &ul, &ur, &ll, &lr, &hl, &vl, dimy, dimx, control)){
     return -1;
   }
-  cell_release(nn, &ul); cell_release(nn, &ur); cell_release(nn, &hl);
-  cell_release(nn, &ll); cell_release(nn, &lr); cell_release(nn, &vl);
+  nccell_release(nn, &ul); nccell_release(nn, &ur); nccell_release(nn, &hl);
+  nccell_release(nn, &ll); nccell_release(nn, &lr); nccell_release(nn, &vl);
   int chunk;
   for(chunk = 0 ; chunk < BLOCKSIZE / CHUNKSIZE ; ++chunk){
     int z;

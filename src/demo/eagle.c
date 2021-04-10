@@ -118,7 +118,7 @@ draw_eagle(struct ncplane* n, const char* sprite){
   cell_set_fg_alpha(&bgc, CELL_ALPHA_TRANSPARENT);
   cell_set_bg_alpha(&bgc, CELL_ALPHA_TRANSPARENT);
   ncplane_set_base_cell(n, &bgc);
-  cell_release(n, &bgc);
+  nccell_release(n, &bgc);
   size_t s;
   int sbytes;
   for(s = 0 ; sprite[s] ; ++s){

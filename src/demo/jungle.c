@@ -26640,7 +26640,7 @@ int jungle_demo(struct notcurses* nc){
       }
     }
   }
-  cell_release(n, &c);
+  nccell_release(n, &c);
   free(buf);
   int iter = 0;
   int64_t iterns = NANOSECS_IN_SEC / 30;
