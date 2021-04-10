@@ -80,7 +80,7 @@ ncvisual_blitset_geom(const notcurses* nc, const ncvisual* n,
                       const struct ncvisual_options* vopts,
                       int* y, int* x, int* toy, int* tox,
                       int* leny, int* lenx, const struct blitset** blitter){
-  if(vopts && vopts->flags > NCVISUAL_OPTION_HORALIGNED){
+  if(vopts && vopts->flags > NCVISUAL_OPTION_ADDALPHA){
     logwarn(nc, "Warning: unknown ncvisual options %016jx\n", (uintmax_t)vopts->flags);
   }
   int begy, begx;
@@ -490,7 +490,7 @@ ncvisual* ncvisual_from_bgra(const void* bgra, int rows, int rowstride, int cols
 ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitset* bset,
                                int placey, int placex, int begy, int begx,
                                int leny, int lenx, ncplane* n, ncscale_e scaling,
-                               uint64_t flags){
+                               uint64_t flags, uint32_t transcolor){
   int disprows, dispcols;
   ncplane* createdn = NULL;
 //fprintf(stderr, "INPUT N: %p\n", n);
@@ -560,6 +560,7 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
   lenx = (lenx / (double)ncv->cols) * ((double)dispcols);
 //fprintf(stderr, "blit: %dx%d:%d+%d of %d/%d stride %u %p\n", begy, begx, leny, lenx, ncv->rows, ncv->cols, ncv->rowstride, ncv->data);
   blitterargs bargs;
+  bargs.transcolor = transcolor;
   bargs.begy = begy;
   bargs.begx = begx;
   bargs.placey = placey;
@@ -580,7 +581,8 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
 // ncv->cols define the source geometry in pixels.
 ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blitset* bset,
                                 int placey, int placex, int begy, int begx,
-                                ncplane* n, ncscale_e scaling, uint64_t flags){
+                                ncplane* n, ncscale_e scaling, uint64_t flags,
+                                uint32_t transcolor){
   ncplane* stdn = notcurses_stdplane(nc);
   if(stdn == n){
     logerror(nc, "Won't render bitmaps to the standard plane\n");
@@ -660,6 +662,7 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
   }
 //fprintf(stderr, "pblit: %dx%d <- %dx%d of %d/%d stride %u @%dx%d %p %u\n", disprows, dispcols, begy, begx, ncv->rows, ncv->cols, ncv->rowstride, placey, placex, ncv->data, nc->tcache.cellpixx);
   blitterargs bargs;
+  bargs.transcolor = transcolor;
   bargs.begy = begy;
   bargs.begx = begx;
   bargs.placey = placey;
@@ -710,12 +713,16 @@ ncplane* ncvisual_render(notcurses* nc, ncvisual* ncv, const struct ncvisual_opt
   ncplane* n = (vopts ? vopts->n : NULL);
 //fprintf(stderr, "%p tacache: %p\n", n, n->tacache);
   ncscale_e scaling = vopts ? vopts->scaling : NCSCALE_NONE;
+  uint32_t transcolor = 0;
+  if(vopts && vopts->flags & NCVISUAL_OPTION_ADDALPHA){
+    transcolor = 0x1000000ull | vopts->transcolor;
+  }
   if(bset->geom != NCBLIT_PIXEL){
     n = ncvisual_render_cells(nc, ncv, bset, placey, placex, begy, begx, leny, lenx,
-                              n, scaling, vopts ? vopts->flags : 0);
+                              n, scaling, vopts ? vopts->flags : 0, transcolor);
   }else{
     n = ncvisual_render_pixels(nc, ncv, bset, placey, placex, begy, begx, n, scaling,
-                               vopts ? vopts->flags : 0);
+                               vopts ? vopts->flags : 0, transcolor);
   }
   return n;
 }

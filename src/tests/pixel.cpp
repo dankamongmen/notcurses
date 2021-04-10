@@ -52,6 +52,7 @@ TEST_CASE("Pixel") {
       .leny = y, .lenx = x,
       .blitter = NCBLIT_PIXEL,
       .flags = NCVISUAL_OPTION_NODEGRADE,
+      .transcolor = 0,
     };
     auto n = ncvisual_render(nc_, ncv, &vopts);
     REQUIRE(nullptr != n);
@@ -89,6 +90,7 @@ TEST_CASE("Pixel") {
       .leny = y, .lenx = x,
       .blitter = NCBLIT_PIXEL,
       .flags = NCVISUAL_OPTION_NODEGRADE,
+      .transcolor = 0,
     };
     auto n = ncvisual_render(nc_, ncv, &vopts);
     REQUIRE(nullptr != n);
@@ -126,6 +128,7 @@ TEST_CASE("Pixel") {
       .leny = y, .lenx = x,
       .blitter = NCBLIT_PIXEL,
       .flags = NCVISUAL_OPTION_NODEGRADE,
+      .transcolor = 0,
     };
     auto n = ncvisual_render(nc_, ncv, &vopts);
     REQUIRE(nullptr != n);
@@ -171,6 +174,7 @@ TEST_CASE("Pixel") {
       .leny = y, .lenx = x,
       .blitter = NCBLIT_PIXEL,
       .flags = NCVISUAL_OPTION_NODEGRADE,
+      .transcolor = 0,
     };
     auto n = ncvisual_render(nc_, ncv, &vopts);
     REQUIRE(nullptr != n);

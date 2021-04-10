@@ -40,6 +40,7 @@ TEST_CASE("Stacking") {
     struct ncvisual_options vopts = {
       .n = top, .scaling = NCSCALE_NONE, .y = 0, .x = 0, .begy = 0, .begx = 0,
       .leny = 2, .lenx = 1, .blitter = NCBLIT_2x1, .flags = 0,
+      .transcolor = 0,
     };
     CHECK(top == ncvisual_render(nc_, ncv, &vopts));
     ncvisual_destroy(ncv);
@@ -77,6 +78,7 @@ TEST_CASE("Stacking") {
     struct ncvisual_options vopts = {
       .n = top, .scaling = NCSCALE_NONE, .y = 0, .x = 0, .begy = 0, .begx = 0,
       .leny = 2, .lenx = 1, .blitter = NCBLIT_2x1, .flags = 0,
+      .transcolor = 0,
     };
     CHECK(top == ncvisual_render(nc_, ncv, &vopts));
     ncvisual_destroy(ncv);
@@ -115,6 +117,7 @@ TEST_CASE("Stacking") {
       struct ncvisual_options vopts = {
         .n = top, .scaling = NCSCALE_NONE, .y = 0, .x = 0, .begy = 0, .begx = 0,
         .leny = 2, .lenx = 2, .blitter = NCBLIT_2x2, .flags = 0,
+        .transcolor = 0,
       };
       CHECK(top == ncvisual_render(nc_, ncv, &vopts));
       ncvisual_destroy(ncv);
@@ -156,6 +159,7 @@ TEST_CASE("Stacking") {
       struct ncvisual_options vopts = {
         .n = top, .scaling = NCSCALE_NONE, .y = 0, .x = 0, .begy = 0, .begx = 0,
         .leny = 2, .lenx = 2, .blitter = NCBLIT_2x2, .flags = 0,
+        .transcolor = 0,
       };
       CHECK(top == ncvisual_render(nc_, ncv, &vopts));
       ncvisual_destroy(ncv);
