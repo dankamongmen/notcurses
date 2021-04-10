@@ -180,9 +180,6 @@ TEST_CASE("Rotate") {
     if(height % 2){
       ++height;
     }
-    if(width % 2){
-      ++width;
-    }
     CHECK(pxdimx == width);
     CHECK(pxdimy == height);
     for(int i = 0 ; i < height * width / 2 ; ++i){
@@ -242,9 +239,6 @@ TEST_CASE("Rotate") {
     REQUIRE(rgbaret);
     if(height % 2){
       ++height;
-    }
-    if(width % 2){
-      ++width;
     }
     CHECK(pxdimy == height);
     CHECK(pxdimx == width);

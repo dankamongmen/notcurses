@@ -329,7 +329,6 @@ setup_sixel(tinfo* ti, int fd){
 // query for Sixel support
 static int
 query_sixel(tinfo* ti, int fd){
-fprintf(stderr, "SIXEL QUERY!\n");
   if(writen(fd, "\x1b[c", 3) != 3){
     return -1;
   }
