@@ -1138,6 +1138,7 @@ int ncdirect_stream(ncdirect* n, const char* filename, ncstreamcb streamer,
       ncvisual_destroy(ncv);
       return -1;
     }
+    ncdirect_raster_frame(n, v, (vopts->flags & NCVISUAL_OPTION_HORALIGNED) ? vopts->x : 0);
     streamer(ncv, vopts, NULL, curry);
   }while(ncvisual_decode(ncv));
   ncvisual_destroy(ncv);
