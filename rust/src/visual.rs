@@ -160,7 +160,7 @@ impl NcVisualOptions {
     }
 
     pub fn fullsize_pixel_without_plane(y: NcDim, x: NcDim, leny: NcDim, lenx: NcDim) -> Self {
-        Self::without_plane(y, x, 0, 0, leny, lenx, NCBLIT_PIXEL, 0)
+        Self::without_plane(y, x, 0, 0, leny, lenx, NCBLIT_PIXEL, 0, 0)
     }
 }
 
