@@ -1,5 +1,4 @@
 //! `NcPlane*` methods and associated functions.
-
 use core::{
     ptr::{null, null_mut},
     slice::from_raw_parts_mut,
@@ -105,7 +104,7 @@ impl NcPlane {
     ) -> NcResult<&'a mut NcPlane> {
         error_ref_mut![
             unsafe { crate::ncpile_create(nc, &options) },
-            &format!["NcPlane::with_options(Notcurses, {:?})", options]
+            &format!["NcPlane::with_options(Notcurses, {:?})", &options]
         ]
     }
 
@@ -131,7 +130,7 @@ impl NcPlane {
     ) -> NcResult<&'a mut NcPlane> {
         error_ref_mut![
             unsafe { crate::ncplane_create(bound_to, &options) },
-            &format!("NcPlane::with_options_bound(NcPlane, {:?})", options)
+            &format!("NcPlane::with_options_bound(NcPlane, {:?})", &options)
         ]
     }
 

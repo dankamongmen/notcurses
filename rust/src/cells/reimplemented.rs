@@ -3,7 +3,7 @@
 use libc::strcmp;
 
 use crate::{
-    nccell_release, cstring, NcAlphaBits, NcCell, NcChannel, NcChannelPair, NcColor, NcEgc,
+    cstring, nccell_release, NcAlphaBits, NcCell, NcChannel, NcChannelPair, NcColor, NcEgc,
     NcIntResult, NcPaletteIndex, NcPlane, NcRgb, NcStyleMask, NCCELL_ALPHA_OPAQUE,
     NCCELL_BGDEFAULT_MASK, NCCELL_BG_PALETTE, NCCELL_FGDEFAULT_MASK, NCCELL_FG_PALETTE,
     NCRESULT_ERR, NCRESULT_OK, NCSTYLE_MASK,

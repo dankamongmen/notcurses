@@ -4,7 +4,7 @@ use core::ptr::null_mut;
 
 use crate::ffi::__va_list_tag;
 use crate::{
-    nccell_release, cstring, ncplane_channels, NcAlign, NcAlphaBits, NcBoxMask, NcCell, NcChannel,
+    cstring, nccell_release, ncplane_channels, NcAlign, NcAlphaBits, NcBoxMask, NcCell, NcChannel,
     NcChannelPair, NcColor, NcDim, NcEgc, NcIntResult, NcPlane, NcRgb, NcStyleMask, NCRESULT_ERR,
     NCRESULT_OK,
 };

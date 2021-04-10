@@ -120,13 +120,14 @@ macro_rules! printf {
 /// type `()`, and an empty `&str` `""`, respectively.
 #[macro_export]
 macro_rules! error {
-    ($res:expr, $msg:expr, $ok:expr) => {
-        if $res >= crate::NCRESULT_OK {
+    ($res:expr, $msg:expr, $ok:expr) => {{
+        let res = $res;
+        if res >= crate::NCRESULT_OK {
             return Ok($ok);
         } else {
-            return Err(crate::NcError::with_msg($res, $msg));
+            return Err(crate::NcError::with_msg(res, $msg));
         }
-    };
+    }};
     ($res:expr, $msg:expr) => {
         error![$res, $msg, ()];
     };
@@ -145,20 +146,23 @@ macro_rules! error {
 /// `$msg` is optional. By default it will be an empty `&str` `""`.
 #[macro_export]
 macro_rules! error_ref {
-    ($ptr:expr, $msg:expr, $ok:expr) => {
-        if $ptr != core::ptr::null() {
+    ($ptr:expr, $msg:expr, $ok:expr) => {{
+        let ptr = $ptr; // avoid calling a function multiple times
+        if ptr.is_null() {
+            return Err(crate::NcError::with_msg(crate::NCRESULT_ERR, $msg));
+        } else {
             #[allow(unused_unsafe)]
             return Ok(unsafe { $ok });
-        } else {
-            return Err(crate::NcError::with_msg(crate::NCRESULT_ERR, $msg));
         }
-    };
-    ($ptr:expr, $msg:expr) => {
-        error_ref![$ptr, $msg, &*$ptr];
-    };
-    ($ptr:expr) => {
-        error_ref![$ptr, "", &*$ptr];
-    };
+    }};
+    ($ptr:expr, $msg:expr) => {{
+        let ptr = $ptr;
+        error_ref![$ptr, $msg, unsafe { &*ptr }];
+    }};
+    ($ptr:expr) => {{
+        let ptr = $ptr;
+        error_ref![$ptr, "", unsafe { &*ptr }];
+    }};
 }
 
 /// Returns an `Ok(&mut T)` from a `*mut T` pointer,
@@ -171,20 +175,23 @@ macro_rules! error_ref {
 /// `$msg` is optional. By default it will be an empty `&str` `""`.
 #[macro_export]
 macro_rules! error_ref_mut {
-    ($ptr:expr, $msg:expr, $ok:expr) => {
-        if $ptr != core::ptr::null_mut() {
+    ($ptr:expr, $msg:expr, $ok:expr) => {{
+        let ptr = $ptr; // avoid calling a function multiple times
+        if ptr.is_null() {
+            return Err(crate::NcError::with_msg(crate::NCRESULT_ERR, $msg));
+        } else {
             #[allow(unused_unsafe)]
             return Ok(unsafe { $ok });
-        } else {
-            return Err(crate::NcError::with_msg(crate::NCRESULT_ERR, $msg));
         }
-    };
-    ($ptr:expr, $msg:expr) => {
-        error_ref_mut![$ptr, $msg, &mut *$ptr];
-    };
-    ($ptr:expr) => {
-        error_ref_mut![$ptr, "", &mut *$ptr];
-    };
+    }};
+    ($ptr:expr, $msg:expr) => {{
+        let ptr = $ptr;
+        error_ref_mut![ptr, $msg, unsafe { &mut *ptr }];
+    }};
+    ($ptr:expr) => {{
+        let ptr = $ptr;
+        error_ref_mut![ptr, "", unsafe { &mut *ptr }];
+    }};
 }
 
 /// Returns an `Ok(String)` from a `*const` pointer to a C string,

@@ -327,7 +327,7 @@ pub const NCBLIT_DEFAULT: NcBlitter = crate::bindings::ffi::ncblitter_e_NCBLIT_D
 /// See [Sixel in Wikipedia](https://en.wikipedia.org/wiki/Sixel).
 pub const NCBLIT_PIXEL: NcBlitter = crate::bindings::ffi::ncblitter_e_NCBLIT_PIXEL;
 
-/// Contains the pixel geometry information as returned by the 
+/// Contains the pixel geometry information as returned by the
 /// NcPlane.[pixelgeom()][NcPlane#method.pixelgeom] method.
 ///
 /// If bitmaps are not supported, the fields `max_bitmap_*` will be 0.
