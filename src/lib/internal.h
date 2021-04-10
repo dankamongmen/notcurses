@@ -1370,10 +1370,17 @@ int drop_signals(void* nc);
 void ncvisual_printbanner(const notcurses* nc);
 
 // alpha comes to us 0--255, but we have only 3 alpha values to map them to.
-// settled on experimentally.
+// settled on experimentally. if transcolor is non-zero, match its lower 24
+// bits against the color, and treat a match as transparent.
 static inline bool
-rgba_trans_p(unsigned alpha){
-  if(alpha < 192){
+rgba_trans_p(uint32_t p, uint32_t transcolor){
+  if(ncpixel_a(p) < 192){
+    return true;
+  }
+  if(transcolor && 
+      (ncpixel_r(p) == (transcolor & 0xff0000ull)) &&
+      (ncpixel_g(p) == (transcolor & 0xff00ull)) &&
+      (ncpixel_b(p) == (transcolor & 0xffull))){
     return true;
   }
   return false;

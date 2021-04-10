@@ -105,6 +105,7 @@ impl NcVisualOptions {
         lenx: NcDim,
         blitter: NcBlitter,
         flags: u64,
+        transcolor: u32,
     ) -> Self {
         Self {
             // provided plane
@@ -123,6 +124,7 @@ impl NcVisualOptions {
             blitter,
             // bitmask over NCVISUAL_OPTION_*
             flags,
+            transcolor,
         }
     }
 
@@ -135,6 +137,7 @@ impl NcVisualOptions {
         lenx: NcDim,
         blitter: NcBlitter,
         flags: u64,
+        transcolor: u32,
     ) -> Self {
         Self {
             n: null_mut(),
@@ -152,6 +155,7 @@ impl NcVisualOptions {
             blitter,
             // bitmask over NCVISUAL_OPTION_*
             flags,
+            transcolor,
         }
     }
 
