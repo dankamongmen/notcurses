@@ -88,6 +88,7 @@ pub use reimplemented::*;
 /// ```
 /// `type in C: channel (uint32_t)`
 ///
+/// See also: [NcRgb] and [NcRgba] types.
 pub type NcChannel = u32;
 
 /// Extract these bits to get a channel's alpha value
@@ -103,7 +104,6 @@ pub const NCCHANNEL_ALPHA_MASK: u32 = crate::bindings::ffi::CELL_BG_ALPHA_MASK;
 /// ```txt
 /// ~~AA~~~~ -------- -------- --------
 /// ```
-///
 /// `type in C: no data type`
 ///
 pub type NcAlphaBits = u32;
@@ -119,8 +119,8 @@ pub type NcAlphaBits = u32;
 /// ## Default Color
 ///
 /// The "default color" is best explained by
-/// [color(3NCURSES)](https://manpages.debian.org/stretch/ncurses-doc/color.3ncurses.en.html)
-/// and [default_colors(3NCURSES)](https://manpages.debian.org/stretch/ncurses-doc/default_colors.3ncurses.en.html).
+/// [color(3NCURSES)](https://manpages.debian.org/stretch/ncurses-doc/color.3ncurses.en.html) and
+/// [default_colors(3NCURSES)](https://manpages.debian.org/stretch/ncurses-doc/default_colors.3ncurses.en.html).
 /// Ours is the same concept.
 ///
 /// **Until the "not default color" bit is set, any color you load will be ignored.**
@@ -205,9 +205,9 @@ pub type NcChannelPair = u64;
 /// ```txt
 /// -------- RRRRRRRR GGGGGGGG BBBBBBBB
 /// ```
-///
 /// `type in C: no data type`
 ///
+/// See also: [NcRgba] and [NcChannel] types.
 pub type NcRgb = u32;
 
 // NcColor
@@ -219,7 +219,5 @@ pub type NcRgb = u32;
 /// ```txt
 /// CCCCCCCC (1 Byte)
 /// ```
-///
 /// `type in C: no data type`
-///
 pub type NcColor = u8;

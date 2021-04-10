@@ -656,8 +656,11 @@ pub use ffi::{
 // ncvisual_options,
 //
 // // constants
+// NCVISUAL_OPTION_ADDALPHA,
 // NCVISUAL_OPTION_BLEND,
+// NCVISUAL_OPTION_HORALIGNED
 // NCVISUAL_OPTION_NODEGRADE,
+// NCVISUAL_OPTION_VERALIGNED
 
 #[doc(inline)]
 pub use ffi::{

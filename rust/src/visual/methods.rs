@@ -1,80 +1,13 @@
-//! `NcVisual* ` types, methods and associated functions.
-
-// functions already exported by bindgen : 18
-// -----------------------------------------
-// (W) wrap: 17
-// (#) test: 0
-// -----------------------------------------
-//W  ncvisual_at_yx
-//W  ncvisual_decode
-//W  ncvisual_decode_loop
-//W  ncvisual_destroy
-//W  ncvisual_from_bgra
-//W  ncvisual_from_file
-//W  ncvisual_from_plane
-//W  ncvisual_from_rgba
-//W  ncvisual_blitter_geom
-//W  ncvisual_media_defblitter
-//W  ncvisual_polyfill_yx
-//W  ncvisual_render
-//W  ncvisual_resize
-//W  ncvisual_rotate
-//W  ncvisual_set_yx
-//W  ncvisual_simple_streamer
-//~  ncvisual_stream
-//W  ncvisual_subtitle
+//! `NcVisual*` methods and associated functions.
 
 use core::ptr::null_mut;
 use libc::c_void;
 
 use crate::{
     cstring, error, error_ref_mut, rstring, NcBlitter, NcDim, NcError, NcIntResult, NcPixel,
-    NcPlane, NcResult, NcRgb, NcTime, Notcurses, NCBLIT_PIXEL, NCRESULT_ERR,
+    NcPlane, NcResult, NcRgba, NcScale, NcTime, NcVisual, NcVisualOptions, Notcurses, NCBLIT_PIXEL,
+    NCRESULT_ERR,
 };
-
-/// How to scale an [`NcVisual`] during rendering
-///
-/// - NCSCALE_NONE will apply no scaling.
-/// - NCSCALE_SCALE scales a visual to the plane's size,
-///   maintaining aspect ratio.
-/// - NCSCALE_STRETCH stretches and scales the image in an
-///   attempt to fill the entirety of the plane.
-///
-pub type NcScale = crate::bindings::ffi::ncscale_e;
-
-/// Maintain original size.
-pub const NCSCALE_NONE: NcScale = crate::bindings::ffi::ncscale_e_NCSCALE_NONE;
-
-/// Maintain aspect ratio.
-pub const NCSCALE_SCALE: NcScale = crate::bindings::ffi::ncscale_e_NCSCALE_SCALE;
-
-/// Throw away aspect ratio.
-pub const NCSCALE_STRETCH: NcScale = crate::bindings::ffi::ncscale_e_NCSCALE_STRETCH;
-
-/// Maintain original size, admitting high-resolution blitters
-/// that don't preserve aspect ratio.
-pub const NCSCALE_NONE_HIRES: NcScale = crate::bindings::ffi::ncscale_e_NCSCALE_NONE_HIRES;
-
-/// Maintain aspect ratio, admitting high-resolution blitters
-/// that don't preserve aspect ratio.
-pub const NCSCALE_SCALE_HIRES: NcScale = crate::bindings::ffi::ncscale_e_NCSCALE_SCALE_HIRES;
-
-/// A visual bit of multimedia opened with LibAV|OIIO
-pub type NcVisual = crate::bindings::ffi::ncvisual;
-
-/// Options struct for [`NcVisual`]
-///
-/// If a plane is not provided, one will be created, having the exact size
-/// necessary to display the visual.
-///
-/// A subregion of the visual can be rendered using `begx`, `begy`, `lenx`, and `leny`.
-pub type NcVisualOptions = crate::bindings::ffi::ncvisual_options;
-
-/// Uses [`NCCELL_ALPHA_BLEND`][crate::NCCELL_ALPHA_BLEND] with visual.
-pub const NCVISUAL_OPTION_BLEND: u32 = crate::bindings::ffi::NCVISUAL_OPTION_BLEND;
-
-/// Fails rather than degrade.
-pub const NCVISUAL_OPTION_NODEGRADE: u32 = crate::bindings::ffi::NCVISUAL_OPTION_NODEGRADE;
 
 /// # NcVisualOptions Constructors
 impl NcVisualOptions {
@@ -105,7 +38,7 @@ impl NcVisualOptions {
         lenx: NcDim,
         blitter: NcBlitter,
         flags: u64,
-        transcolor: u32,
+        transcolor: NcRgba,
     ) -> Self {
         Self {
             // provided plane
@@ -155,6 +88,7 @@ impl NcVisualOptions {
             blitter,
             // bitmask over NCVISUAL_OPTION_*
             flags,
+            // This color will be treated as transparent with flag [NCVISUAL_OPTION_ADDALPHA].
             transcolor,
         }
     }
@@ -374,9 +308,7 @@ impl NcVisual {
     /// Polyfills at the specified location using `rgba`.
     ///
     /// *C style function: [ncvisual_polyfill_yx()][crate::ncvisual_polyfill_yx].*
-    //
-    // TODO: determine rgba type. Is it NcRgb? or make a new type NcRgba.
-    pub fn polyfill_yx(&mut self, y: NcDim, x: NcDim, rgba: NcRgb) -> NcResult<()> {
+    pub fn polyfill_yx(&mut self, y: NcDim, x: NcDim, rgba: NcRgba) -> NcResult<()> {
         error![
             unsafe { crate::ncvisual_polyfill_yx(self, y as i32, x as i32, rgba) },
             &format!["NcVisual.polyfill_yx({}, {}, {})", y, x, rgba]
