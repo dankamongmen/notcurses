@@ -371,6 +371,12 @@ typedef struct tinfo {
   bool pixel_query_done; // have we yet performed pixel query?
   bool sextants;  // do we have (good, vetted) Unicode 13 sextant support?
   bool braille;   // do we have Braille support? (linux console does not)
+  // alacritty went rather off the reservation for their sixel support. they
+  // reply to DSA with CSI?6c, meaning VT102, but no VT102 had Sixel support,
+  // and indeed they don't respond to XTSMGRAPHICS (which we need to query
+  // after validating basic Sixel). so if the TERM variable contains
+  // "alacritty", *and* we get VT102, we go ahead and query XTSMGRAPHICS.
+  bool alacritty_sixel_hack;
 } tinfo;
 
 typedef struct ncinputlayer {

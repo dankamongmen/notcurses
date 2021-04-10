@@ -67,6 +67,8 @@ apply_term_heuristics(tinfo* ti, const char* termname){
     set_pixel_blitter(kitty_blit);
   /*}else if(strstr(termname, "alacritty")){
     ti->sextants = true; // alacritty https://github.com/alacritty/alacritty/issues/4409 */
+  }else if(strstr(termname, "alacritty")){
+    ti->alacritty_sixel_hack = true;
   }else if(strstr(termname, "vte") || strstr(termname, "gnome") || strstr(termname, "xfce")){
     ti->sextants = true; // VTE has long enjoyed good sextant support
   }else if(strncmp(termname, "foot", 4) == 0){
@@ -319,17 +321,22 @@ setup_sixel(tinfo* ti){
 // query for Sixel support
 static int
 query_sixel(tinfo* ti, int fd){
+fprintf(stderr, "SIXEL QUERY!\n");
   if(writen(fd, "\x1b[c", 3) != 3){
     return -1;
   }
   char in;
   // perhaps the most lackadaisical response is that of st, which returns a
-  // bare ESC[?6c (note no semicolon).
+  // bare ESC[?6c (note no semicolon). this is equivalent to alacritty's
+  // return, both suggesting a VT102. alacritty's miraculous technicolor VT102
+  // can display sixel, but real VT102s can even reply to XTSMGRAPHICS, so we
+  // detect VT102 + TERM including alacritty, and special-case that.
   enum {
     WANT_CSI,
     WANT_QMARK,
     WANT_SEMI,
     WANT_C,
+    WANT_VT102_C,
     DONE
   } state = WANT_CSI;
   // we're looking for a 4 following a semicolon
@@ -350,6 +357,18 @@ query_sixel(tinfo* ti, int fd){
           state = WANT_C;
         }else if(in == 'c'){
           state = DONE;
+        }else if(in == '6'){
+          state = WANT_VT102_C;
+        }
+        break;
+      case WANT_VT102_C:
+        if(in == 'c'){
+          if(ti->alacritty_sixel_hack){
+            setup_sixel(ti);
+          }
+          state = DONE;
+        }else if(in == ';'){
+          state = WANT_C;
         }
         break;
       case WANT_C:
