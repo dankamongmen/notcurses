@@ -1389,9 +1389,9 @@ ncplane_rounded_box(struct ncplane* n, uint32_t attr, uint64_t channels,
   if((ret = cells_rounded_box(n, attr, channels, &ul, &ur, &ll, &lr, &hl, &vl)) == 0){
     ret = ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, ystop, xstop, ctlword);
   }
-  cell_release(n, &ul); cell_release(n, &ur);
-  cell_release(n, &ll); cell_release(n, &lr);
-  cell_release(n, &hl); cell_release(n, &vl);
+  nccell_release(n, &ul); nccell_release(n, &ur);
+  nccell_release(n, &ll); nccell_release(n, &lr);
+  nccell_release(n, &hl); nccell_release(n, &vl);
   return ret;
 }
 
@@ -1414,9 +1414,9 @@ ncplane_double_box(struct ncplane* n, uint32_t attr, uint64_t channels,
   if((ret = cells_double_box(n, attr, channels, &ul, &ur, &ll, &lr, &hl, &vl)) == 0){
     ret = ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, ystop, xstop, ctlword);
   }
-  cell_release(n, &ul); cell_release(n, &ur);
-  cell_release(n, &ll); cell_release(n, &lr);
-  cell_release(n, &hl); cell_release(n, &vl);
+  nccell_release(n, &ul); nccell_release(n, &ur);
+  nccell_release(n, &ll); nccell_release(n, &lr);
+  nccell_release(n, &hl); nccell_release(n, &vl);
   return ret;
 }
 
@@ -1818,7 +1818,7 @@ EGC can be provided, or a string composed of multiple EGCs. In the latter case,
 the first EGC from the string is loaded. Remember, backing storage for the EGC
 is provided by the `ncplane` passed to `cell_load()`; if this `ncplane` is
 destroyed (or even erased), the `nccell` cannot safely be used. If you're done
-using the `nccell` before being done with the `ncplane`, call `cell_release()`
+using the `nccell` before being done with the `ncplane`, call `nccell_release()`
 to free up the EGC resources.
 
 ```c
@@ -1839,10 +1839,10 @@ cell_prime(struct ncplane* n, nccell* c, const char* gcluster,
 
 // Duplicate 'c' into 'targ'. Not intended for external use; exposed for the
 // benefit of unit tests.
-int cell_duplicate(struct ncplane* n, nccell* targ, const cell* c);
+int nccell_duplicate(struct ncplane* n, nccell* targ, const cell* c);
 
 // Release resources held by the cell 'c'.
-void cell_release(struct ncplane* n, nccell* c);
+void nccell_release(struct ncplane* n, nccell* c);
 
 #define NCSTYLE_MASK      0x03fful
 #define NCSTYLE_STANDOUT  0x0080ul
@@ -1922,7 +1922,7 @@ const char* cell_extended_gcluster(const struct ncplane* n, const nccell* c);
 
 // load up six cells with the EGCs necessary to draw a box. returns 0 on
 // success, -1 on error. on error, any cells this function might
-// have loaded before the error are cell_release()d. There must be at least
+// have loaded before the error are nccell_release()d. There must be at least
 // six EGCs in gcluster.
 static inline int
 cells_load_box(struct ncplane* n, uint32_t style, uint64_t channels,
@@ -1937,15 +1937,15 @@ cells_load_box(struct ncplane* n, uint32_t style, uint64_t channels,
             if(cell_prime(n, vl, gclusters + ulen, style, channels) > 0){
               return 0;
             }
-            cell_release(n, hl);
+            nccell_release(n, hl);
           }
-          cell_release(n, lr);
+          nccell_release(n, lr);
         }
-        cell_release(n, ll);
+        nccell_release(n, ll);
       }
-      cell_release(n, ur);
+      nccell_release(n, ur);
     }
-    cell_release(n, ul);
+    nccell_release(n, ul);
   }
   return -1;
 }

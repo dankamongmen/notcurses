@@ -47,9 +47,9 @@ typedef struct nccell {
 **int cell_prime(struct ncplane* ***n***, nccell* ***c***, const char* ***gcluster***,
                  uint32_t ***stylemask***, uint64_t ***channels***);**
 
-**int cell_duplicate(struct ncplane* ***n***, nccell* ***targ***, const nccell* ***c***);**
+**int nccell_duplicate(struct ncplane* ***n***, nccell* ***targ***, const nccell* ***c***);**
 
-**void cell_release(struct ncplane* ***n***, nccell* ***c***);**
+**void nccell_release(struct ncplane* ***n***, nccell* ***c***);**
 
 **void cell_styles_set(nccell* ***c***, unsigned ***stylebits***);**
 
@@ -132,9 +132,9 @@ some backing egcpool. Egcpools are associated with **ncplane**s, so **nccell**s
 must be considered associated with **ncplane**s. Indeed, **ncplane_erase()**
 destroys the backing storage for all a plane's cells, invalidating them. This
 association is formed at the time of **cell_load()**, **cell_prime()**, or
-**cell_duplicate()**. All of these functions first call **cell_release()**, as
+**nccell_duplicate()**. All of these functions first call **nccell_release()**, as
 does **cell_load_simple()**. When done using a **nccell** entirely, call
-**cell_release()**. **ncplane_destroy()** will free up the memory used by the
+**nccell_release()**. **ncplane_destroy()** will free up the memory used by the
 **nccell**, but the backing egcpool has a maximum size of 16MiB, and failure to
 release **nccell**s can eventually block new output.
 

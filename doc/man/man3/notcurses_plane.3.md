@@ -382,7 +382,7 @@ respectively, of the pile containing their argument. **notcurses_top** and
 EGC at the relevant cell, or **NULL** if the cell is invalid. The caller should free
 this result. **ncplane_at_yx_cell** and **ncplane_at_cursor_cell** instead load
 these values into an **nccell**, which is invalidated if the associated plane is
-destroyed. The caller should release this **nccell** with **cell_release**.
+destroyed. The caller should release this **nccell** with **nccell_release**.
 
 **ncplane_as_rgba** returns a heap-allocated array of **uint32_t** values,
 each representing a single RGBA pixel, or **NULL** on failure.
