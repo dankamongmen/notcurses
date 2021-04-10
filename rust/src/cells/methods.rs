@@ -85,7 +85,7 @@ impl NcCell {
     ///
     /// Both must be or will be bound to `common_plane`.
     ///
-    /// *C style function: [cell_duplicate()][crate::cell_duplicate].*
+    /// *C style function: [nccell_duplicate()][crate::nccell_duplicate].*
     pub fn duplicate(&self, target: &mut NcCell, common_plane: &mut NcPlane) -> NcResult<()> {
         error![unsafe { crate::nccell_duplicate(common_plane, target, self) }]
     }
@@ -100,7 +100,7 @@ impl NcCell {
 
     /// Releases resources held by the current cell in the [NcPlane] `plane`.
     ///
-    /// *C style function: [cell_release()][crate::cell_release].*
+    /// *C style function: [nccell_release()][crate::nccell_release].*
     pub fn release(&mut self, plane: &mut NcPlane) {
         unsafe {
             crate::nccell_release(plane, self);
