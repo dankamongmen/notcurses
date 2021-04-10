@@ -512,8 +512,8 @@ typedef struct {
   } u;
 } blitterargs;
 
-typedef int (*blitter)(struct ncplane* n, int linesize, const void* data,
-                       int leny, int lenx, const blitterargs* bargs);
+typedef int (*ncblitter)(struct ncplane* n, int linesize, const void* data,
+                         int leny, int lenx, const blitterargs* bargs);
 
 // a system for rendering RGBA pixels as text glyphs
 struct blitset {
@@ -525,7 +525,7 @@ struct blitset {
   // quickly, i.e. it can be indexed as height arrays of 1 + height glyphs. i.e.
   // the first five braille EGCs are all 0 on the left, [0..4] on the right.
   const wchar_t* egcs;
-  blitter blit;
+  ncblitter blit;
   const char* name;
   bool fill;
 };

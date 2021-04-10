@@ -107,7 +107,7 @@ int xray_demo(struct notcurses* nc){
   };
   float dm = 0;
   // returns 0 if the selected blitter isn't available
-  if(ncvisual_geom(nc, ncv, &vopts, NULL, NULL, NULL, NULL)){
+  if(ncvisual_blitter_geom(nc, ncv, &vopts, NULL, NULL, NULL, NULL, NULL)){
     vopts.flags &= ~NCVISUAL_OPTION_NODEGRADE;
     dm = 0.5 * delaymultiplier;
   }

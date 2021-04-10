@@ -44,7 +44,7 @@ zoom_map(struct notcurses* nc, const char* map, int* ret){
     .y = 1,
     .blitter = NCBLIT_2x2,
   };
-  if(ncvisual_geom(nc, ncv, &vopts, &vheight, &vwidth, &yscale, &xscale)){
+  if(ncvisual_blitter_geom(nc, ncv, &vopts, &vheight, &vwidth, &yscale, &xscale, NULL)){
     ncvisual_destroy(ncv);
     return NULL;
   }

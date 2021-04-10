@@ -70,7 +70,7 @@ rotate_grad(struct notcurses* nc){
     if(ncvisual_rotate(v, M_PI / 2)){
       return -1;
     }
-    ncvisual_geom(nc, v, &vopts, &vy, &vx, &scaley, &scalex);
+    ncvisual_blitter_geom(nc, v, &vopts, &vy, &vx, &scaley, &scalex, NULL);
     vopts.x = (dimx - (vx / scalex)) / 2;
     vopts.y = (dimy - (vy / scaley)) / 2;
     struct ncplane* newn = ncvisual_render(nc, v, &vopts);
@@ -84,7 +84,7 @@ rotate_grad(struct notcurses* nc){
 
   for(int i = 0 ; i < 8 ; ++i){
     int vy, vx, scaley, scalex;
-    ncvisual_geom(nc, v, &vopts, &vy, &vx, &scaley, &scalex);
+    ncvisual_blitter_geom(nc, v, &vopts, &vy, &vx, &scaley, &scalex, NULL);
     vopts.x = (dimx - (vx / scalex)) / 2;
     vopts.y = (dimy - (vy / scaley)) / 2;
     if(ncvisual_rotate(v, M_PI / 4)){

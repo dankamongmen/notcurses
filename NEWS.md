@@ -5,6 +5,9 @@ rearrangements of Notcurses.
   * `ncplane_rgba()` has been deprecated in favor of the new function
     `ncplane_as_rgba()`, which the former now wraps. It will be removed
     in ABI3. The new function can report the synthesized pixel geometry.
+  * `ncvisual_geom()` has been deprecated in favor of the new function
+    `ncvisual_blitter_geom()`, which the former now wraps. It will be
+    removed in ABI3. The new function can report the chosen blitter.
   * `ncplane_pixelgeom()` has been added, allowing callers to determine the
     size of the plane and cells in pixels, as well as the maximum bitmap
     size that can be displayed.

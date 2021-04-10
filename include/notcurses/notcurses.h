@@ -2461,7 +2461,7 @@ struct ncvisual_options {
 // Start at the plane's 'begy'x'begx' coordinate (which must lie on the
 // plane), continuing for 'leny'x'lenx' cells. Either or both of 'leny' and
 // 'lenx' can be specified as -1 to go through the boundary of the plane.
-// Only glyphs from the specified blitset may be present. If 'pxdimy' and/or
+// Only glyphs from the specified ncblitset may be present. If 'pxdimy' and/or
 // 'pxdimx' are non-NULL, they will be filled in with the pixel geometry.
 API ALLOC uint32_t* ncplane_as_rgba(const struct ncplane* n, ncblitter_e blit,
                                     int begy, int begx, int leny, int lenx,
@@ -2478,11 +2478,21 @@ ncplane_rgba(const struct ncplane* n, ncblitter_e blit,
 
 // Get the size and ratio of ncvisual pixels to output cells along the y
 // ('toy') and x ('tox') axes. A ncvisual of '*y'X'*x' pixels will require
-// ('*y' * '*toy')X('x' * 'tox') cells for full output. Returns non-zero
+// ('*y' * '*toy')X('*x' * '*tox') cells for full output. Returns non-zero
 // for an invalid 'vopts->blitter'. Scaling is taken into consideration.
-API int ncvisual_geom(const struct notcurses* nc, const struct ncvisual* n,
-                      const struct ncvisual_options* vopts,
-                      int* y, int* x, int* toy, int* tox);
+// The blitter that will be used is returned in '*blitter'.
+API int ncvisual_blitter_geom(const struct notcurses* nc, const struct ncvisual* n,
+                              const struct ncvisual_options* vopts,
+                              int* y, int* x, int* toy, int* tox,
+                              ncblitter_e* blitter)
+  __attribute__ ((nonnull (1)));
+
+__attribute__ ((deprecated)) static inline int
+ncvisual_geom(const struct notcurses* nc, const struct ncvisual* n,
+              const struct ncvisual_options* vopts,
+              int* y, int* x, int* toy, int* tox){
+  return ncvisual_blitter_geom(nc, n, vopts, y, x, toy, tox, NULL);
+}
 
 // Destroy an ncvisual. Rendered elements will not be disrupted, but the visual
 // can be neither decoded nor rendered any further.

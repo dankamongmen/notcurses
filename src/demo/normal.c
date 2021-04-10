@@ -111,7 +111,7 @@ rotate_visual(struct notcurses* nc, struct ncplane* n, int dy, int dx){
       break;
     }
     int vy, vx, vyscale, vxscale;
-    ncvisual_geom(nc, ncv, &vopts, &vy, &vx, &vyscale, &vxscale);
+    ncvisual_blitter_geom(nc, ncv, &vopts, &vy, &vx, &vyscale, &vxscale, NULL);
     vopts.x = NCALIGN_CENTER;
     vopts.y = (dimy - (vy / vyscale)) / 2;
     vopts.flags |= NCVISUAL_OPTION_HORALIGNED;
@@ -178,7 +178,7 @@ int normal_demo(struct notcurses* nc){
     .n = nstd,
   };
   int yscale, xscale;
-  ncvisual_geom(nc, NULL, &vopts, NULL, NULL, &yscale, &xscale);
+  ncvisual_blitter_geom(nc, NULL, &vopts, NULL, NULL, &yscale, &xscale, NULL);
   dy *= yscale;
   dx *= xscale;
   uint32_t* rgba = malloc(sizeof(*rgba) * dy * dx);
