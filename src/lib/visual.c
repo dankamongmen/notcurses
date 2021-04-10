@@ -70,54 +70,54 @@ void ncvisual_printbanner(const notcurses* nc){
 }
 
 static inline void
-ncvisual_geometry(const struct ncvisual_options* vopts, int* restrict begy,
-                  int* restrict begx, int* restrict leny, int* restrict lenx){
+ncvisual_origin(const struct ncvisual_options* vopts, int* restrict begy, int* restrict begx){
   *begy = vopts ? vopts->begy : 0;
   *begx = vopts ? vopts->begx : 0;
-  *lenx = vopts ? vopts->lenx : 0;
-  *leny = vopts ? vopts->leny : 0;
 }
 
-// FIXME doesn't yet work for NCBLIT_PIXEL
 static int
 ncvisual_blitset_geom(const notcurses* nc, const ncvisual* n,
                       const struct ncvisual_options* vopts,
                       int* y, int* x, int* toy, int* tox,
-                      const struct blitset** blitter){
+                      int* leny, int* lenx, const struct blitset** blitter){
   if(vopts && vopts->flags > NCVISUAL_OPTION_HORALIGNED){
     logwarn(nc, "Warning: unknown ncvisual options %016jx\n", (uintmax_t)vopts->flags);
   }
-  int begy, begx, leny, lenx;
-  ncvisual_geometry(vopts, &begy, &begx, &leny, &lenx);
-//fprintf(stderr, "blit %dx%d+%dx%d %p\n", begy, begx, leny, lenx, ncv->data);
-  if(begy < 0 || begx < 0 || lenx < -1 || leny < -1){
-    logerror(nc, "Invalid geometry for visual %d %d %d %d\n", begy, begx, leny, lenx);
+  int begy, begx;
+  ncvisual_origin(vopts, &begy, &begx);
+  *lenx = vopts ? vopts->lenx : 0;
+  *leny = vopts ? vopts->leny : 0;
+//fprintf(stderr, "blit %dx%d+%dx%d %p\n", begy, begx, *leny, *lenx, ncv->data);
+  if(begy < 0 || begx < 0 || *lenx < -1 || *leny < -1){
+    logerror(nc, "Invalid geometry for visual %d %d %d %d\n", begy, begx, *leny, *lenx);
     return -1;
   }
+  if(n){
 //fprintf(stderr, "OUR DATA: %p rows/cols: %d/%d\n", ncv->data, ncv->rows, ncv->cols);
-  if(n->data == NULL){
-    logerror(nc, "No data in visual\n");
-    return -1;
-  }
-//fprintf(stderr, "blit %d/%d to %dx%d+%dx%d scaling: %d\n", n->rows, n->cols, begy, begx, leny, lenx, vopts ? vopts->scaling : 0);
-  if(begx >= n->cols || begy >= n->rows){
-    logerror(nc, "Visual too large %d > %d or %d > %d\n", begy, n->rows, begx, n->cols);
-    return -1;
-  }
-  if(lenx == 0){ // 0 means "to the end"; use all available source material
-    lenx = n->cols - begx;
-  }
-  if(leny == 0){
-    leny = n->rows - begy;
-  }
-//fprintf(stderr, "blit %d/%d to %dx%d+%dx%d scaling: %d flags: 0x%016lx\n", n->rows, n->cols, begy, begx, leny, lenx, vopts ? vopts->scaling : 0, vopts ? vopts->flags : 0);
-  if(lenx <= 0 || leny <= 0){ // no need to draw zero-size object, exit
-    logerror(nc, "Zero-size object %d %d\n", leny, lenx);
-    return -1;
-  }
-  if(begx + lenx > n->cols || begy + leny > n->rows){
-    logerror(nc, "Geometry too large %d > %d or %d > %d\n", begy + leny, n->rows, begx + lenx, n->cols);
-    return -1;
+    if(n->data == NULL){
+      logerror(nc, "No data in visual\n");
+      return -1;
+    }
+//fprintf(stderr, "blit %d/%d to %dx%d+%dx%d scaling: %d\n", n->rows, n->cols, begy, begx, *leny, *lenx, vopts ? vopts->scaling : 0);
+    if(begx >= n->cols || begy >= n->rows){
+      logerror(nc, "Visual too large %d > %d or %d > %d\n", begy, n->rows, begx, n->cols);
+      return -1;
+    }
+    if(*lenx == 0){ // 0 means "to the end"; use all available source material
+      *lenx = n->cols - begx;
+    }
+    if(*leny == 0){
+      *leny = n->rows - begy;
+    }
+//fprintf(stderr, "blit %d/%d to %dx%d+%dx%d scaling: %d flags: 0x%016lx\n", n->rows, n->cols, begy, begx, *leny, *lenx, vopts ? vopts->scaling : 0, vopts ? vopts->flags : 0);
+    if(*lenx <= 0 || *leny <= 0){ // no need to draw zero-size object, exit
+      logerror(nc, "Zero-size object %d %d\n", *leny, *lenx);
+      return -1;
+    }
+    if(begx + *lenx > n->cols || begy + *leny > n->rows){
+      logerror(nc, "Geometry too large %d > %d or %d > %d\n", begy + *leny, n->rows, begx + *lenx, n->cols);
+      return -1;
+    }
   }
   const ncscale_e scale = vopts ? vopts->scaling : NCSCALE_NONE;
   const struct blitset* bset = rgba_blitter(nc, vopts);
@@ -155,6 +155,12 @@ ncvisual_blitset_geom(const notcurses* nc, const ncvisual* n,
   if(tox){
     *tox = encoding_x_scale(&nc->tcache, bset);
   }
+  if(vopts && vopts->flags & NCVISUAL_OPTION_HORALIGNED){
+    if(vopts->x < NCALIGN_UNALIGNED || vopts->x > NCALIGN_RIGHT){
+      logerror(nc, "Bad x value %d for horizontal alignment\n", vopts->x);
+      return -1;
+    }
+  }
   return 0;
 }
 
@@ -163,7 +169,8 @@ int ncvisual_blitter_geom(const notcurses* nc, const ncvisual* n,
                           int* y, int* x, int* toy, int* tox,
                           ncblitter_e* blitter){
   const struct blitset* bset;
-  int ret = ncvisual_blitset_geom(nc, n, vopts, y, x, toy, tox, &bset);
+  int leny, lenx;
+  int ret = ncvisual_blitset_geom(nc, n, vopts, y, x, toy, tox, &leny, &lenx, &bset);
   if(blitter){
     *blitter = bset->geom;
   }
@@ -690,19 +697,13 @@ err:
 }
 
 ncplane* ncvisual_render(notcurses* nc, ncvisual* ncv, const struct ncvisual_options* vopts){
-  int srcy, srcx, toy, tox;
   const struct blitset* bset;
-  if(ncvisual_blitset_geom(nc, ncv, vopts, &srcy, &srcx, &toy, &tox, &bset) < 0){
+  int srcy, srcx, toy, tox, leny, lenx;
+  if(ncvisual_blitset_geom(nc, ncv, vopts, &srcy, &srcx, &toy, &tox, &leny, &lenx, &bset) < 0){
     return NULL;
   }
-  int begy, begx, leny, lenx;
-  ncvisual_geometry(vopts, &begy, &begx, &leny, &lenx);
-  if(vopts && vopts->flags & NCVISUAL_OPTION_HORALIGNED){
-    if(vopts->x < NCALIGN_UNALIGNED || vopts->x > NCALIGN_RIGHT){
-      logerror(nc, "Bad x value %d for horizontal alignment\n", vopts->x);
-      return NULL;
-    }
-  }
+  int begy, begx;
+  ncvisual_origin(vopts, &begy, &begx);
   int placey = vopts ? vopts->y : 0;
   int placex = vopts ? vopts->x : 0;
 //fprintf(stderr, "beg/len: %d %d %d %d place: %d/%d scale: %d/%d\n", begy, leny, begx, lenx, placey, placex, encoding_y_scale(&nc->tcache, bset), encoding_x_scale(&nc->tcache, bset));

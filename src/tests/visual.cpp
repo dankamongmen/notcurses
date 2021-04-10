@@ -88,6 +88,7 @@ TEST_CASE("Visual") {
       vopts.flags = NCVISUAL_OPTION_NODEGRADE;
       CHECK(n_ == ncvisual_render(nc_, ncv, &vopts));
       CHECK(0 == notcurses_render(nc_));
+sleep(1);
       for(int y = 0 ; y < DIMY / 2 ; ++y){
         for(int x = 0 ; x < DIMX ; ++x){
           uint16_t stylemask;
