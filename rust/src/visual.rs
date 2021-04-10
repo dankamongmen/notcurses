@@ -333,7 +333,7 @@ impl NcVisual {
         let mut to_x = 0;
 
         let res = unsafe {
-            crate::ncvisual_geom(nc, self, options, &mut y, &mut x, &mut to_y, &mut to_x)
+            crate::ncvisual_blitter_geom(nc, self, options, &mut y, &mut x, &mut to_y, &mut to_x, null_mut())
         };
         error![
             res,

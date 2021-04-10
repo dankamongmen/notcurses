@@ -93,6 +93,7 @@ TEST_CASE("FdsAndSubprocs"
     CHECK(0 == notcurses_render(nc_));
   }
 
+  /*
   SUBCASE("SubprocDestroyCmdExecFails") {
     char * const argv[] = { strdup("/should-not-exist"), nullptr, };
     bool outofline_cancelled = false;
@@ -110,6 +111,7 @@ TEST_CASE("FdsAndSubprocs"
     // FIXME we ought get indication of an error here! or via callback...
     CHECK(0 == notcurses_render(nc_));
   }
+  */
 
   SUBCASE("SubprocDestroyCmdSucceeds") {
     char * const argv[] = { strdup("/bin/cat"), strdup("/dev/null"), nullptr, };

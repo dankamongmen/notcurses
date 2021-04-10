@@ -69,20 +69,64 @@ void ncvisual_printbanner(const notcurses* nc){
   }
 }
 
-int ncvisual_geom(const notcurses* nc, const ncvisual* n,
-                  const struct ncvisual_options* vopts,
-                  int* y, int* x, int* toy, int* tox){
-  const ncscale_e scale = vopts ? vopts->scaling : NCSCALE_NONE;
-  ncblitter_e blitfxn;
-  if(!vopts || vopts->blitter == NCBLIT_DEFAULT){
-    blitfxn = ncvisual_media_defblitter(nc, scale);
-  }else{
-    blitfxn = vopts->blitter;
+static inline void
+ncvisual_origin(const struct ncvisual_options* vopts, int* restrict begy, int* restrict begx){
+  *begy = vopts ? vopts->begy : 0;
+  *begx = vopts ? vopts->begx : 0;
+}
+
+static int
+ncvisual_blitset_geom(const notcurses* nc, const ncvisual* n,
+                      const struct ncvisual_options* vopts,
+                      int* y, int* x, int* toy, int* tox,
+                      int* leny, int* lenx, const struct blitset** blitter){
+  if(vopts && vopts->flags > NCVISUAL_OPTION_HORALIGNED){
+    logwarn(nc, "Warning: unknown ncvisual options %016jx\n", (uintmax_t)vopts->flags);
   }
-  const bool maydegrade = !(vopts && (vopts->flags & NCVISUAL_OPTION_NODEGRADE));
-  const struct blitset* bset = lookup_blitset(&nc->tcache, blitfxn, maydegrade);
-  if(!bset){
+  int begy, begx;
+  ncvisual_origin(vopts, &begy, &begx);
+  *lenx = vopts ? vopts->lenx : 0;
+  *leny = vopts ? vopts->leny : 0;
+//fprintf(stderr, "blit %dx%d+%dx%d %p\n", begy, begx, *leny, *lenx, ncv->data);
+  if(begy < 0 || begx < 0 || *lenx < -1 || *leny < -1){
+    logerror(nc, "Invalid geometry for visual %d %d %d %d\n", begy, begx, *leny, *lenx);
     return -1;
+  }
+  if(n){
+//fprintf(stderr, "OUR DATA: %p rows/cols: %d/%d\n", ncv->data, ncv->rows, ncv->cols);
+    if(n->data == NULL){
+      logerror(nc, "No data in visual\n");
+      return -1;
+    }
+//fprintf(stderr, "blit %d/%d to %dx%d+%dx%d scaling: %d\n", n->rows, n->cols, begy, begx, *leny, *lenx, vopts ? vopts->scaling : 0);
+    if(begx >= n->cols || begy >= n->rows){
+      logerror(nc, "Visual too large %d > %d or %d > %d\n", begy, n->rows, begx, n->cols);
+      return -1;
+    }
+    if(*lenx == 0){ // 0 means "to the end"; use all available source material
+      *lenx = n->cols - begx;
+    }
+    if(*leny == 0){
+      *leny = n->rows - begy;
+    }
+//fprintf(stderr, "blit %d/%d to %dx%d+%dx%d scaling: %d flags: 0x%016lx\n", n->rows, n->cols, begy, begx, *leny, *lenx, vopts ? vopts->scaling : 0, vopts ? vopts->flags : 0);
+    if(*lenx <= 0 || *leny <= 0){ // no need to draw zero-size object, exit
+      logerror(nc, "Zero-size object %d %d\n", *leny, *lenx);
+      return -1;
+    }
+    if(begx + *lenx > n->cols || begy + *leny > n->rows){
+      logerror(nc, "Geometry too large %d > %d or %d > %d\n", begy + *leny, n->rows, begx + *lenx, n->cols);
+      return -1;
+    }
+  }
+  const ncscale_e scale = vopts ? vopts->scaling : NCSCALE_NONE;
+  const struct blitset* bset = rgba_blitter(nc, vopts);
+  if(!bset){
+    logerror(nc, "Couldn't get a blitter for %d\n", vopts ? vopts->blitter : NCBLIT_DEFAULT);
+    return -1;
+  }
+  if(blitter){
+    *blitter = bset;
   }
   int fauxy, fauxx;
   if(!y){
@@ -111,7 +155,26 @@ int ncvisual_geom(const notcurses* nc, const ncvisual* n,
   if(tox){
     *tox = encoding_x_scale(&nc->tcache, bset);
   }
+  if(vopts && vopts->flags & NCVISUAL_OPTION_HORALIGNED){
+    if(vopts->x < NCALIGN_UNALIGNED || vopts->x > NCALIGN_RIGHT){
+      logerror(nc, "Bad x value %d for horizontal alignment\n", vopts->x);
+      return -1;
+    }
+  }
   return 0;
+}
+
+int ncvisual_blitter_geom(const notcurses* nc, const ncvisual* n,
+                          const struct ncvisual_options* vopts,
+                          int* y, int* x, int* toy, int* tox,
+                          ncblitter_e* blitter){
+  const struct blitset* bset;
+  int leny, lenx;
+  int ret = ncvisual_blitset_geom(nc, n, vopts, y, x, toy, tox, &leny, &lenx, &bset);
+  if(blitter){
+    *blitter = bset->geom;
+  }
+  return ret;
 }
 
 void* bgra_to_rgba(const void* data, int rows, int rowstride, int cols){
@@ -452,7 +515,7 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
       .cols = dispcols / encoding_x_scale(&nc->tcache, bset) +
               !!(dispcols % encoding_x_scale(&nc->tcache, bset)),
       .userptr = NULL,
-      .name = "rgba",
+      .name = "cvis",
       .resizecb = NULL,
       .flags = 0,
     };
@@ -548,7 +611,7 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
       .rows = disprows / nc->tcache.cellpixy + !!(disprows % nc->tcache.cellpixy),
       .cols = dispcols / nc->tcache.cellpixx + !!(dispcols % nc->tcache.cellpixx),
       .userptr = NULL,
-      .name = "rgba",
+      .name = "bmap",
       .resizecb = NULL,
       .flags = 0,
     };
@@ -634,54 +697,13 @@ err:
 }
 
 ncplane* ncvisual_render(notcurses* nc, ncvisual* ncv, const struct ncvisual_options* vopts){
-  if(vopts && vopts->flags > NCVISUAL_OPTION_HORALIGNED){
-    logwarn(nc, "Warning: unknown ncvisual options %016jx\n", (uintmax_t)vopts->flags);
-  }
-  int lenx = vopts ? vopts->lenx : 0;
-  int leny = vopts ? vopts->leny : 0;
-  int begy = vopts ? vopts->begy : 0;
-  int begx = vopts ? vopts->begx : 0;
-//fprintf(stderr, "blit %dx%d+%dx%d %p\n", begy, begx, leny, lenx, ncv->data);
-  if(begy < 0 || begx < 0 || lenx < -1 || leny < -1){
-    logerror(nc, "Invalid geometry for visual %d %d %d %d\n", begy, begx, leny, lenx);
+  const struct blitset* bset;
+  int srcy, srcx, toy, tox, leny, lenx;
+  if(ncvisual_blitset_geom(nc, ncv, vopts, &srcy, &srcx, &toy, &tox, &leny, &lenx, &bset) < 0){
     return NULL;
   }
-//fprintf(stderr, "OUR DATA: %p rows/cols: %d/%d\n", ncv->data, ncv->rows, ncv->cols);
-  if(ncv->data == NULL){
-    logerror(nc, "No data in visual\n");
-    return NULL;
-  }
-//fprintf(stderr, "blit %d/%d to %dx%d+%dx%d scaling: %d\n", ncv->rows, ncv->cols, begy, begx, leny, lenx, vopts ? vopts->scaling : 0);
-  if(begx >= ncv->cols || begy >= ncv->rows){
-    logerror(nc, "Visual too large %d > %d or %d > %d\n", begy, ncv->rows, begx, ncv->cols);
-    return NULL;
-  }
-  if(lenx == 0){ // 0 means "to the end"; use all available source material
-    lenx = ncv->cols - begx;
-  }
-  if(leny == 0){
-    leny = ncv->rows - begy;
-  }
-//fprintf(stderr, "blit %d/%d to %dx%d+%dx%d scaling: %d flags: 0x%016lx\n", ncv->rows, ncv->cols, begy, begx, leny, lenx, vopts ? vopts->scaling : 0, vopts ? vopts->flags : 0);
-  if(lenx <= 0 || leny <= 0){ // no need to draw zero-size object, exit
-    logerror(nc, "Zero-size object %d %d\n", leny, lenx);
-    return NULL;
-  }
-  if(begx + lenx > ncv->cols || begy + leny > ncv->rows){
-    logerror(nc, "Geometry too large %d > %d or %d > %d\n", begy + leny, ncv->rows, begx + lenx, ncv->cols);
-    return NULL;
-  }
-  const struct blitset* bset = rgba_blitter(nc, vopts);
-  if(!bset){
-    logerror(nc, "Couldn't get a blitter for %d\n", vopts ? vopts->blitter : NCBLIT_DEFAULT);
-    return NULL;
-  }
-  if(vopts && vopts->flags & NCVISUAL_OPTION_HORALIGNED){
-    if(vopts->x < NCALIGN_UNALIGNED || vopts->x > NCALIGN_RIGHT){
-      logerror(nc, "Bad x value %d for horizontal alignment\n", vopts->x);
-      return NULL;
-    }
-  }
+  int begy, begx;
+  ncvisual_origin(vopts, &begy, &begx);
   int placey = vopts ? vopts->y : 0;
   int placex = vopts ? vopts->x : 0;
 //fprintf(stderr, "beg/len: %d %d %d %d place: %d/%d scale: %d/%d\n", begy, leny, begx, lenx, placey, placex, encoding_y_scale(&nc->tcache, bset), encoding_x_scale(&nc->tcache, bset));

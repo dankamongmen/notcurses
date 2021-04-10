@@ -26,6 +26,7 @@ make_slider(struct notcurses* nc, int dimy, int dimx){
     .x = 0,
     .rows = sizeof(leg) / sizeof(*leg),
     .cols = len * REPS,
+    .name = "scrl",
   };
   struct ncplane* n = ncplane_create(notcurses_stdplane(nc), &nopts);
   uint64_t channels = 0;
@@ -64,7 +65,7 @@ perframecb(struct ncvisual* ncv, struct ncvisual_options* vopts,
   // only need these two steps done once, but we can't do them in
   // main() due to the plane being created in ncvisual_stream() =[
   ncplane_set_resizecb(vopts->n, ncplane_resize_maximize);
-  ncplane_move_above(vnewplane, vopts->n);
+  ncplane_move_above(vopts->n, vnewplane);
 
   struct notcurses* nc = ncplane_notcurses(vopts->n);
   static int frameno = 0;
@@ -107,7 +108,7 @@ int xray_demo(struct notcurses* nc){
   };
   float dm = 0;
   // returns 0 if the selected blitter isn't available
-  if(ncvisual_geom(nc, ncv, &vopts, NULL, NULL, NULL, NULL)){
+  if(ncvisual_blitter_geom(nc, ncv, &vopts, NULL, NULL, NULL, NULL, NULL)){
     vopts.flags &= ~NCVISUAL_OPTION_NODEGRADE;
     dm = 0.5 * delaymultiplier;
   }

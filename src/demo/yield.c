@@ -39,7 +39,7 @@ int yield_demo(struct notcurses* nc){
   
   int vy, vx, vscaley, vscalex;
   vopts.scaling = NCSCALE_NONE;
-  ncvisual_geom(nc, wmv, &vopts, &vy, &vx, &vscaley, &vscalex);
+  ncvisual_blitter_geom(nc, wmv, &vopts, &vy, &vx, &vscaley, &vscalex, NULL);
   vopts.scaling = scale;
   struct timespec scaled;
   const long total = vy * vx;

@@ -669,7 +669,7 @@ pub use ffi::{
     ncvisual_from_file,
     ncvisual_from_plane,
     ncvisual_from_rgba,
-    ncvisual_geom,
+    ncvisual_blitter_geom,
     ncvisual_media_defblitter,
     ncvisual_polyfill_yx,
     ncvisual_render,

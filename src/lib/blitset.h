@@ -44,6 +44,6 @@ ncplot_defblitter(const notcurses* nc){
   return NCBLIT_1x1;
 }
 
-void set_pixel_blitter(blitter blitfxn);
+void set_pixel_blitter(ncblitter blitfxn);
 
 #endif

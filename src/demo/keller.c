@@ -28,7 +28,7 @@ visualize(struct notcurses* nc, struct ncvisual* ncv){
                 | NCVISUAL_OPTION_VERALIGNED,
     };
     int scalex, scaley, truey, truex;
-    ncvisual_geom(nc, ncv, &vopts, &truey, &truex, &scaley, &scalex);
+    ncvisual_blitter_geom(nc, ncv, &vopts, &truey, &truex, &scaley, &scalex, NULL);
     vopts.x = NCALIGN_CENTER;
     vopts.y = NCALIGN_CENTER;
 //fprintf(stderr, "X: %d truex: %d scalex: %d\n", vopts.x, truex, scalex);

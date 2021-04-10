@@ -861,7 +861,7 @@ static struct blitset notcurses_blitters[] = {
      .blit = NULL,           .name = NULL,            .fill = false,  },
 };
 
-void set_pixel_blitter(blitter blitfxn){
+void set_pixel_blitter(ncblitter blitfxn){
   struct blitset* b = notcurses_blitters;
   while(b->geom != NCBLIT_PIXEL){
     ++b;

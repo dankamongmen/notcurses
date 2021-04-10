@@ -31,7 +31,7 @@ int main(int argc, char** argv){
   if(!ncv){
     goto err;
   }
-  ncvisual_geom(nc, ncv, &vopts, nullptr, nullptr, &scaley, &scalex);
+  ncvisual_blitter_geom(nc, ncv, &vopts, nullptr, nullptr, &scaley, &scalex, nullptr);
   vopts.scaling = NCSCALE_STRETCH;
   struct ncplane* ntarg;
   if((ntarg = ncvisual_render(nc, ncv, &vopts)) == nullptr){

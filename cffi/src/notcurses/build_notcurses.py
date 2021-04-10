@@ -208,7 +208,7 @@ struct ncvisual* ncvisual_from_file(const char* file);
 struct ncvisual* ncvisual_from_rgba(const void* rgba, int rows, int rowstride, int cols);
 struct ncvisual* ncvisual_from_bgra(const void* rgba, int rows, int rowstride, int cols);
 struct ncvisual* ncvisual_from_plane(const struct ncplane* n, ncblitter_e blit, int begy, int begx, int leny, int lenx);
-int ncvisual_geom(const struct notcurses* nc, const struct ncvisual* n, const struct ncvisual_options* vopts, int* y, int* x, int* toy, int* tox);
+int ncvisual_blitter_geom(const struct notcurses* nc, const struct ncvisual* n, const struct ncvisual_options* vopts, int* y, int* x, int* toy, int* tox, ncblitter_e* blitter);
 void ncvisual_destroy(struct ncvisual* ncv);
 int ncvisual_decode(struct ncvisual* nc);
 int ncvisual_decode_loop(struct ncvisual* nc);
