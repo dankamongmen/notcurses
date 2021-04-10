@@ -51,7 +51,7 @@ fn main() -> NcResult<()> {
 
     // show the newly created ncvisual delimited with the box drawing characters
     let pixels = NcVisual::from_rgba(buffer.as_slice(), cell_y, cell_x * 4, cell_x)?;
-    let voptions = NcVisualOptions::without_plane(1, 2, 0, 0, cell_y, cell_x, NCBLIT_PIXEL, 0);
+    let voptions = NcVisualOptions::without_plane(1, 2, 0, 0, cell_y, cell_x, NCBLIT_PIXEL, 0, 0);
     pixels.render(&mut nc, &voptions)?;
 
     // FIXME: segfaults
