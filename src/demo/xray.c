@@ -65,7 +65,9 @@ perframecb(struct ncvisual* ncv, struct ncvisual_options* vopts,
   // only need these two steps done once, but we can't do them in
   // main() due to the plane being created in ncvisual_stream() =[
   ncplane_set_resizecb(vopts->n, ncplane_resize_maximize);
-  ncplane_move_above(vopts->n, vnewplane);
+  // until #1518 is done, the stream isn't transparent, and thus it
+  // can obstruct the slider if there are few enough rows. FIXME
+  ncplane_move_above(vnewplane, vopts->n);
 
   struct notcurses* nc = ncplane_notcurses(vopts->n);
   static int frameno = 0;

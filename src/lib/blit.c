@@ -615,7 +615,7 @@ sex_trans_check(cell* c, const uint32_t rgbas[6], unsigned blendcolors){
       ++div;
     }
   }
-  if(transstring == 0){
+  if(transstring == 0){ // there was no transparency
     return NULL;
   }
   cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
@@ -685,7 +685,7 @@ sextant_blit(ncplane* nc, int linesize, const void* data,
       c->channels = 0;
       c->stylemask = 0;
       const char* egc = sex_trans_check(c, rgbas, bargs->u.cell.blendcolors);
-      if(egc == NULL){
+      if(egc == NULL){ // no transparency; run a full solver
         egc = sex_solver(rgbas, &c->channels, bargs->u.cell.blendcolors);
         cell_set_blitquadrants(c, 1, 1, 1, 1);
       }
