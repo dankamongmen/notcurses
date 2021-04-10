@@ -881,8 +881,8 @@ const struct blitset* lookup_blitset(const tinfo* tcache, ncblitter_e setid, boo
       return NULL;
     }
   }
-  // without pixel support, NCBLIT_PIXEL decays to NCBLIT_3x2
-  if(!tcache->sixel_supported && setid == NCBLIT_PIXEL){
+  // without bitmap support, NCBLIT_PIXEL decays to NCBLIT_3x2
+  if(!tcache->bitmap_supported && setid == NCBLIT_PIXEL){
     if(may_degrade){
       setid = NCBLIT_3x2;
     }else{
@@ -893,6 +893,14 @@ const struct blitset* lookup_blitset(const tinfo* tcache, ncblitter_e setid, boo
   if(!tcache->sextants && setid == NCBLIT_3x2){
     if(may_degrade){
       setid = NCBLIT_2x2;
+    }else{
+      return NULL;
+    }
+  }
+  // without quadrant support, NCBLIT_2x2 decays to NCBLIT_2x1
+  if(!tcache->quadrants && setid == NCBLIT_2x2){
+    if(may_degrade){
+      setid = NCBLIT_2x1;
     }else{
       return NULL;
     }

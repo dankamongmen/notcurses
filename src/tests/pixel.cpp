@@ -10,7 +10,7 @@ TEST_CASE("Pixel") {
   REQUIRE(n_);
 
   if(notcurses_check_pixel_support(nc_) <= 0){
-    CHECK(0 == nc_->tcache.sixel_supported);
+    CHECK(0 == nc_->tcache.bitmap_supported);
     CHECK(!notcurses_stop(nc_));
     return;
   }
@@ -18,7 +18,7 @@ TEST_CASE("Pixel") {
   SUBCASE("SprixelTermValues") {
     CHECK(0 < nc_->tcache.cellpixy);
     CHECK(0 < nc_->tcache.cellpixx);
-    CHECK(nc_->tcache.sixel_supported);
+    CHECK(nc_->tcache.bitmap_supported);
   }
 
 #ifdef NOTCURSES_USE_MULTIMEDIA

@@ -58,25 +58,32 @@ apply_term_heuristics(tinfo* ti, const char* termname){
     // be RGB(0, 0, 0) (the default). we could also just set it, i guess.
     ti->bg_collides_default = 0x1000000;
     ti->sextants = true; // work since bugfix in 0.19.3
+    ti->quadrants = true;
     ti->pixel_query_done = true;
-    ti->sixel_supported = true;
+    ti->bitmap_supported = true;
     ti->pixel_cell_wipe = sprite_kitty_cell_wipe;
     ti->pixel_destroy = sprite_kitty_annihilate;
     ti->pixel_init = sprite_kitty_init;
     ti->pixel_draw = kitty_draw;
     set_pixel_blitter(kitty_blit);
-  /*}else if(strstr(termname, "alacritty")){
-    ti->sextants = true; // alacritty https://github.com/alacritty/alacritty/issues/4409 */
   }else if(strstr(termname, "alacritty")){
     ti->alacritty_sixel_hack = true;
+    ti->quadrants = true;
+    // ti->sextants = true; // alacritty https://github.com/alacritty/alacritty/issues/4409 */
   }else if(strstr(termname, "vte") || strstr(termname, "gnome") || strstr(termname, "xfce")){
     ti->sextants = true; // VTE has long enjoyed good sextant support
+    ti->quadrants = true;
   }else if(strncmp(termname, "foot", 4) == 0){
     ti->sextants = true;
+    ti->quadrants = true;
+  }else if(strncmp(termname, "st", 2) == 0){
+    // st had neithersextants nor quadrants last i checked (0.8.4)
   }else if(strcmp(termname, "linux") == 0){
     ti->braille = false; // no braille, no sextants in linux console
+    // FIXME if the NCOPTION_NO_FONT_CHANGES, this isn't true
+    ti->quadrants = true; // we program quadrants on the console
   }
-  // run a wcwidth() to guarantee libc Unicode 13 support
+  // run a wcwidth() to guarantee libc Unicode 13 support, independently of term
   if(wcwidth(L'🬸') < 0){
     ti->sextants = false;
   }
@@ -309,13 +316,14 @@ query_sixel_details(tinfo* ti, int fd){
 
 // we found Sixel support -- set up the API
 static void
-setup_sixel(tinfo* ti){
-  ti->sixel_supported = true;
+setup_sixel(tinfo* ti, int fd){
+  ti->bitmap_supported = true;
   ti->color_registers = 256;  // assumed default [shrug]
   ti->pixel_init = sprite_sixel_init;
   ti->pixel_draw = sixel_draw;
   ti->sixel_maxx = ti->sixel_maxy = 0;
   ti->pixel_destroy = sixel_delete;
+  query_sixel_details(ti, fd);
 }
 
 // query for Sixel support
@@ -364,7 +372,7 @@ fprintf(stderr, "SIXEL QUERY!\n");
       case WANT_VT102_C:
         if(in == 'c'){
           if(ti->alacritty_sixel_hack){
-            setup_sixel(ti);
+            setup_sixel(ti, fd);
           }
           state = DONE;
         }else if(in == ';'){
@@ -375,7 +383,7 @@ fprintf(stderr, "SIXEL QUERY!\n");
         if(in == 'c'){
           state = DONE;
         }else if(in == '4'){
-          setup_sixel(ti);
+          setup_sixel(ti, fd);
           state = DONE;
         }
         break;
@@ -383,9 +391,6 @@ fprintf(stderr, "SIXEL QUERY!\n");
       default:
         break;
     }
-  }
-  if(ti->sixel_supported){
-    query_sixel_details(ti, fd);
   }
   return 0;
 }
@@ -415,7 +420,7 @@ int query_term(tinfo* ti, int fd){
       }
       ret = query_sixel(ti, fd);
       ti->pixel_query_done = true;
-      if(ti->sixel_supported){
+      if(ti->bitmap_supported){
         ti->pixel_init(fd);
       }
       if(flags & O_NONBLOCK){

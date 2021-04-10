@@ -1112,7 +1112,7 @@ int ncdirect_check_pixel_support(ncdirect* n){
   if(query_term(&n->tcache, n->ctermfd)){
     return -1;
   }
-  if(n->tcache.sixel_supported){
+  if(n->tcache.bitmap_supported){
     return 1;
   }
   return 0;

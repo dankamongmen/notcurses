@@ -316,12 +316,12 @@ write_rle(int* printed, int color, FILE* fp, int seenrle, unsigned char crle){
 // Emit the sprixel in its entirety, plus enable and disable pixel mode.
 // Closes |fp| on all paths.
 static int
-write_sixel_data(FILE* fp, int lenx, const sixeltable* stab, int* parse_start){
+write_sixel_data(FILE* fp, int leny, int lenx, const sixeltable* stab, int* parse_start){
   *parse_start = fprintf(fp, "\ePq");
   // Set Raster Attributes - pan/pad=1 (pixel aspect ratio), Ph=lenx, Pv=leny
   // using Ph/Pv causes a background to be drawn using color register 0 for all
   // unspecified pixels, which we do not want.
-//  fprintf(fp, "\"1;1;%d;%d", lenx, leny);
+  fprintf(fp, "\"1;2;%d;%d", lenx, leny);
 
   for(int i = 0 ; i < stab->colors ; ++i){
     const unsigned char* rgb = stab->table + i * CENTSIZE;
@@ -396,7 +396,7 @@ sixel_blit_inner(int leny, int lenx, const sixeltable* stab, int rows, int cols,
   }
   int parse_start = 0;
   // calls fclose() on success
-  if(write_sixel_data(fp, lenx, stab, &parse_start)){
+  if(write_sixel_data(fp, leny, lenx, stab, &parse_start)){
     free(buf);
     return -1;
   }

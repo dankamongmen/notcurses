@@ -25,7 +25,7 @@ tinfo_debug_caps(const tinfo* ti, FILE* debugfp, int rows, int cols,
   if(!ti->pixel_query_done){
     fprintf(debugfp, "%sno bitmap graphics information yet\n", indent);
   }else{
-    if(!ti->sixel_supported){
+    if(!ti->bitmap_supported){
       fprintf(debugfp, "%sdidn't detect bitmap graphics support\n", indent);
     }else if(ti->sixel_maxy || ti->color_registers){
       fprintf(debugfp, "%smax sixel size: %dx%d colorregs: %u\n",
@@ -34,8 +34,9 @@ tinfo_debug_caps(const tinfo* ti, FILE* debugfp, int rows, int cols,
       fprintf(debugfp, "%sRGBA pixel graphics supported\n", indent);
     }
   }
-  fprintf(debugfp, "%sUTF8: %c sextants: %c braille: %c images: %c videos: %c\n",
-          indent, capbool(ti->utf8), capbool(ti->sextants), capbool(ti->braille),
+  fprintf(debugfp, "%sUTF8: %c quad: %c sex: %c braille: %c images: %c videos: %c\n",
+          indent, capbool(ti->utf8), capbool(ti->quadrants),
+          capbool(ti->sextants), capbool(ti->braille),
           capbool(images), capbool(videos));
   if(ti->bg_collides_default){
     fprintf(debugfp, "%sbackground of 0x%06lx is considered transparent\n", indent, ti->bg_collides_default & 0xfffffful);

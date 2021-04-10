@@ -359,7 +359,7 @@ typedef struct tinfo {
   pthread_mutex_t pixel_query; // only query for pixel support once
   int color_registers; // sixel color registers (post pixel_query_done)
   int sixel_maxx, sixel_maxy; // sixel size maxima (post pixel_query_done)
-  bool sixel_supported;  // do we support sixel (post pixel_query_done)?
+  bool bitmap_supported;  // do we support bitmaps (post pixel_query_done)?
   int sprixelnonce;      // next sprixel id
   int (*pixel_destroy)(const struct notcurses* nc, const struct ncpile* p, FILE* out, sprixel* s);
   // wipe out a cell's worth of pixels from within a sprixel. for sixel, this
@@ -369,6 +369,7 @@ typedef struct tinfo {
   int (*pixel_init)(int fd);
   int (*pixel_draw)(const struct notcurses* n, const struct ncpile* p, sprixel* s, FILE* out);
   bool pixel_query_done; // have we yet performed pixel query?
+  bool quadrants; // do we have (good, vetted) Unicode 1 quadrant support?
   bool sextants;  // do we have (good, vetted) Unicode 13 sextant support?
   bool braille;   // do we have Braille support? (linux console does not)
   // alacritty went rather off the reservation for their sixel support. they

@@ -908,7 +908,7 @@ int notcurses_check_pixel_support(notcurses* nc){
   if(query_term(&nc->tcache, nc->ttyfd)){
     return -1;
   }
-  if(nc->tcache.sixel_supported){
+  if(nc->tcache.bitmap_supported){
     return 1;
   }
   return 0;
