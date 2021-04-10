@@ -360,7 +360,8 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
     ncv = std::make_unique<Visual>(argv[i]);
     struct ncvisual_options vopts{};
     int r;
-    vopts.flags |= NCVISUAL_OPTION_HORALIGNED | NCVISUAL_OPTION_VERALIGNED;
+    vopts.flags |= NCVISUAL_OPTION_HORALIGNED | NCVISUAL_OPTION_VERALIGNED
+                | NCVISUAL_OPTION_ADDALPHA;
     vopts.y = NCALIGN_CENTER;
     vopts.x = NCALIGN_CENTER;
     vopts.n = n;
