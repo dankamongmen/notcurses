@@ -1329,7 +1329,7 @@ int ncpile_render(ncplane* n){
 
 int notcurses_render(notcurses* nc){
 //fprintf(stderr, "--------------- BEGIN RENDER\n");
-notcurses_debug(nc, stderr);
+//notcurses_debug(nc, stderr);
   ncplane* stdn = notcurses_stdplane(nc);
   if(ncpile_render(stdn)){
     return -1;
