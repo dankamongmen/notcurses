@@ -5,12 +5,12 @@
 // (W) wrap: 4
 // (#) test: 0
 // ------------------------------------------
-//W  cell_duplicate
 //…  cell_extended_gcluster
 //…  cell_load
-//W  cell_release
 //W  cells_double_box
 //W  cells_rounded_box
+//W  nccell_duplicate
+//W  nccell_release
 //
 // functions manually reimplemented: 43
 // ------------------------------------------
@@ -57,10 +57,10 @@
 // X cell_set_fg_rgb8_clipped   // unneeded
 //W+ cell_set_styles
 //W+ cells_load_box
-//W+ cell_strdup
 //W+ cell_styles
 //W+ cell_wide_left_p
 //W+ cell_wide_right_p
+//W+ nccell_strdup
 
 #[cfg(test)]
 mod test;

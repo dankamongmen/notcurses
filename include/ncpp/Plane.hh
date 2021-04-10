@@ -1193,7 +1193,7 @@ namespace ncpp
 
 		char* strdup (Cell const& cell) const noexcept
 		{
-			return cell_strdup (plane, cell);
+			return nccell_strdup (plane, cell);
 		}
 
 		char* extract (Cell const& cell, uint16_t *stylemask = nullptr, uint64_t *channels = nullptr)

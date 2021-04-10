@@ -1957,7 +1957,7 @@ void ncplane_erase(ncplane* n){
   // we must preserve the background, but a pure nccell_duplicate() would be
   // wiped out by the egcpool_dump(). do a duplication (to get the stylemask
   // and channels), and then reload.
-  char* egc = cell_strdup(n, &n->basecell);
+  char* egc = nccell_strdup(n, &n->basecell);
   memset(n->fb, 0, sizeof(*n->fb) * n->leny * n->lenx);
   egcpool_dump(&n->pool);
   egcpool_init(&n->pool);

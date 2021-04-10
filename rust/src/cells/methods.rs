@@ -371,9 +371,9 @@ impl NcCell {
     /// The result is not tied to the [NcPlane],
     /// and persists across erases and destruction.
     ///
-    /// *C style function: [cell_strdup()][crate::cell_strdup].*
+    /// *C style function: [nccell_strdup()][crate::nccell_strdup].*
     pub fn strdup(&self, plane: &NcPlane) -> NcEgc {
-        crate::cell_strdup(plane, self)
+        crate::nccell_strdup(plane, self)
     }
 
     /// Does this NcCell contain a wide codepoint?

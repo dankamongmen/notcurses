@@ -693,14 +693,25 @@ cell_release(struct ncplane* n, nccell* c){
 // Set the specified style bits for the nccell 'c', whether they're actively
 // supported or not. Only the lower 16 bits are meaningful.
 static inline void
-cell_set_styles(nccell* c, unsigned stylebits){
+nccell_set_styles(nccell* c, unsigned stylebits){
   c->stylemask = stylebits & NCSTYLE_MASK;
+}
+
+__attribute__ ((deprecated)) static inline void
+cell_set_styles(nccell* c, unsigned stylebits){
+  nccell_set_styles(c, stylebits);
 }
 
 // Extract the style bits from the nccell.
 static inline unsigned
-cell_styles(const nccell* c){
+nccell_styles(const nccell* c){
   return c->stylemask;
+}
+
+// Extract the style bits from the nccell.
+__attribute__ ((deprecated)) static inline unsigned
+cell_styles(const nccell* c){
+  return nccell_styles(c);
 }
 
 // Add the specified styles (in the LSBs) to the nccell's existing spec,
@@ -764,8 +775,13 @@ API const char* cell_extended_gcluster(const struct ncplane* n, const nccell* c)
 // copy the UTF8-encoded EGC out of the nccell. the result is not tied to any
 // ncplane, and persists across erases / destruction.
 ALLOC static inline char*
-cell_strdup(const struct ncplane* n, const nccell* c){
+nccell_strdup(const struct ncplane* n, const nccell* c){
   return strdup(cell_extended_gcluster(n, c));
+}
+
+__attribute__ ((deprecated)) ALLOC static inline char*
+cell_strdup(const struct ncplane* n, const nccell* c){
+  return nccell_strdup(n, c);
 }
 
 // Extract the three elements of a nccell.
@@ -778,7 +794,7 @@ cell_extract(const struct ncplane* n, const nccell* c,
   if(channels){
     *channels = c->channels;
   }
-  return cell_strdup(n, c);
+  return nccell_strdup(n, c);
 }
 
 // Returns true if the two nccells are distinct EGCs, attributes, or channels.

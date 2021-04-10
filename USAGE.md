@@ -1859,20 +1859,20 @@ void nccell_release(struct ncplane* n, nccell* c);
 // copy the UTF8-encoded EGC out of the cell, whether simple or complex. the
 // result is not tied to the ncplane, and persists across erases / destruction.
 static inline char*
-cell_strdup(const struct ncplane* n, const nccell* c){
+nccell_strdup(const struct ncplane* n, const nccell* c){
   return strdup(cell_extended_gcluster(n, c));
 }
 
 // Set the specified style bits for the cell 'c', whether they're actively
 // supported or not. Only the lower 16 bits are meaningful.
 static inline void
-cell_styles_set(nccell* c, unsigned stylebits){
+nccell_styles_set(nccell* c, unsigned stylebits){
   c->stylemask = stylebits & NCSTYLE_MASK;
 }
 
 // Extract the style bits from the cell.
 static inline unsigned
-cell_styles(const nccell* c){
+nccell_styles(const nccell* c){
   return c->stylemask;
 }
 

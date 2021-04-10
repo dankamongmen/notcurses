@@ -592,7 +592,7 @@ int term_setstyle(FILE* out, unsigned cur, unsigned targ, unsigned stylebit,
 static inline int
 term_setstyles(FILE* out, notcurses* nc, const nccell* c){
   bool normalized = false;
-  uint32_t cellattr = cell_styles(c);
+  uint32_t cellattr = nccell_styles(c);
   if(cellattr == nc->rstate.curattr){
     return 0; // happy agreement, change nothing
   }

@@ -77,12 +77,12 @@ namespace ncpp
 
 		void set_styles (CellStyle styles) noexcept
 		{
-			cell_set_styles (&_cell, static_cast<unsigned>(styles));
+			nccell_set_styles (&_cell, static_cast<unsigned>(styles));
 		}
 
 		CellStyle get_styles () noexcept
 		{
-			return static_cast<CellStyle>(cell_styles (&_cell));
+			return static_cast<CellStyle>(nccell_styles (&_cell));
 		}
 
 		void styles_on (CellStyle styles) noexcept

@@ -3,7 +3,7 @@
 use libc::strcmp;
 
 use crate::{
-    cell_release, cstring, NcAlphaBits, NcCell, NcChannel, NcChannelPair, NcColor, NcEgc,
+    nccell_release, cstring, NcAlphaBits, NcCell, NcChannel, NcChannelPair, NcColor, NcEgc,
     NcIntResult, NcPaletteIndex, NcPlane, NcRgb, NcStyleMask, NCCELL_ALPHA_OPAQUE,
     NCCELL_BGDEFAULT_MASK, NCCELL_BG_PALETTE, NCCELL_FGDEFAULT_MASK, NCCELL_FG_PALETTE,
     NCRESULT_ERR, NCRESULT_OK, NCSTYLE_MASK,
@@ -348,7 +348,7 @@ pub const fn cell_wide_left_p(cell: &NcCell) -> bool {
 ///
 /// *Method: NcCell.[strdup()][NcCell#method.strdup].*
 #[inline]
-pub fn cell_strdup(plane: &NcPlane, cell: &NcCell) -> NcEgc {
+pub fn nccell_strdup(plane: &NcPlane, cell: &NcCell) -> NcEgc {
     core::char::from_u32(
         unsafe { libc::strdup(crate::cell_extended_gcluster(plane, cell)) } as i32 as u32,
     )
@@ -379,7 +379,7 @@ pub fn cell_extract(
     if *channels != 0 {
         *channels = cell.channels;
     }
-    cell_strdup(plane, cell)
+    nccell_strdup(plane, cell)
 }
 
 /// Returns true if the two cells are distinct [NcEgc]s, attributes, or channels.
@@ -440,7 +440,7 @@ pub fn cell_prime(
 /// Returns [NCRESULT_OK] on success or [NCRESULT_ERR] on error.
 ///
 /// On error, any [NcCell]s this function might have loaded before the error
-/// are [cell_release]d. There must be at least six [NcEgc]s in `gcluster`.
+/// are [nccell_release]d. There must be at least six [NcEgc]s in `gcluster`.
 ///
 /// *Method: NcCell.[load_box()][NcCell#method.load_box].*
 pub fn cells_load_box(
@@ -486,23 +486,23 @@ pub fn cells_load_box(
                             return NCRESULT_OK;
                         }
                         unsafe {
-                            cell_release(plane, hl);
+                            nccell_release(plane, hl);
                         }
                     }
                     unsafe {
-                        cell_release(plane, lr);
+                        nccell_release(plane, lr);
                     }
                 }
                 unsafe {
-                    cell_release(plane, ll);
+                    nccell_release(plane, ll);
                 }
             }
             unsafe {
-                cell_release(plane, ur);
+                nccell_release(plane, ur);
             }
         }
         unsafe {
-            cell_release(plane, ul);
+            nccell_release(plane, ul);
         }
     }
     NCRESULT_ERR

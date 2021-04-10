@@ -51,9 +51,9 @@ typedef struct nccell {
 
 **void nccell_release(struct ncplane* ***n***, nccell* ***c***);**
 
-**void cell_styles_set(nccell* ***c***, unsigned ***stylebits***);**
+**void nccell_styles_set(nccell* ***c***, unsigned ***stylebits***);**
 
-**unsigned cell_styles(const nccell* ***c***);**
+**unsigned nccell_styles(const nccell* ***c***);**
 
 **void cell_on_styles(nccell* ***c***, unsigned ***stylebits***);**
 
@@ -71,7 +71,7 @@ typedef struct nccell {
 
 **const char* cell_extended_gcluster(const struct ncplane* ***n***, const nccell* ***c***);**
 
-**char* cell_strdup(const struct ncplane* ***n***, const nccell* ***c***);**
+**char* nccell_strdup(const struct ncplane* ***n***, const nccell* ***c***);**
 
 **int cell_load_char(struct ncplane* ***n***, nccell* ***c***, char ***ch***);**
 
@@ -141,7 +141,7 @@ release **nccell**s can eventually block new output.
 **cell_extended_gcluster** provides a nul-terminated handle to the EGC. This
 ought be considered invalidated by changes to the **nccell** or **egcpool**.
 The handle is **not** heap-allocated; do **not** attempt to **free(3)** it.
-A heap-allocated copy can be acquired with **cell_strdup**.
+A heap-allocated copy can be acquired with **nccell_strdup**.
 
 # RETURN VALUES
 

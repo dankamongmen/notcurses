@@ -450,7 +450,7 @@ infoplane_notcurses(struct notcurses* nc, const fetched_info* fi, int planeheigh
   if(notcurses_cantruecolor(nc)){
     ncplane_printf_aligned(infop, 4, NCALIGN_LEFT, " RGB TERM: %s", fi->term);
     nccell c = CELL_CHAR_INITIALIZER('R');
-    cell_set_styles(&c, NCSTYLE_BOLD);
+    nccell_set_styles(&c, NCSTYLE_BOLD);
     cell_set_fg_rgb8(&c, 0xf0, 0xa0, 0xa0);
     ncplane_putc_yx(infop, 4, 1, &c);
     cell_load_char(infop, &c, 'G');
@@ -459,7 +459,7 @@ infoplane_notcurses(struct notcurses* nc, const fetched_info* fi, int planeheigh
     cell_load_char(infop, &c, 'B');
     cell_set_fg_rgb8(&c, 0xa0, 0xa0, 0xf0);
     ncplane_putc_yx(infop, 4, 3, &c);
-    cell_set_styles(&c, NCSTYLE_NONE);
+    nccell_set_styles(&c, NCSTYLE_NONE);
   }else{
     ncplane_printf_aligned(infop, 4, NCALIGN_LEFT, " TERM: %s", fi->term);
   }
@@ -487,9 +487,9 @@ infoplane_notcurses(struct notcurses* nc, const fetched_info* fi, int planeheigh
   channels_set_fg_rgb8(&channels, 0, 0xff, 0);
   ncplane_hline_interp(infop, &hl, planewidth / 2, ul.channels, channels);
   ncplane_hline_interp(infop, &hl, planewidth / 2, channels, ur.channels);
-  cell_release(infop, &ul); cell_release(infop, &ur);
-  cell_release(infop, &ll); cell_release(infop, &lr);
-  cell_release(infop, &hl); cell_release(infop, &vl);
+  nccell_release(infop, &ul); nccell_release(infop, &ur);
+  nccell_release(infop, &ll); nccell_release(infop, &lr);
+  nccell_release(infop, &hl); nccell_release(infop, &vl);
   ncplane_set_fg_rgb8(infop, 0xff, 0xff, 0xff);
   ncplane_set_styles(infop, NCSTYLE_BOLD);
   if(ncplane_printf_aligned(infop, 0, NCALIGN_CENTER, "[ %s@%s ]",

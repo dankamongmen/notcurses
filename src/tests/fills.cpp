@@ -503,7 +503,7 @@ TEST_CASE("Fills") {
       for(int x = 0 ; x < DIMX ; ++x){
         CHECK(0 < ncplane_at_yx_cell(p1, y, x, &c1));
         if(y < 1 || y > 5 || x < 1 || x > 5){
-          auto cstr = cell_strdup(p1, &c1);
+          auto cstr = nccell_strdup(p1, &c1);
           CHECK(0 == strcmp(cstr, "█"));
           free(cstr);
         }else{
@@ -561,7 +561,7 @@ TEST_CASE("Fills") {
         nccell c1 = CELL_TRIVIAL_INITIALIZER;
         CHECK(0 < ncplane_at_yx_cell(p1, y, x, &c1));
         if(y < 1 || y > 5 || x < 1 || x > 5){
-          auto cstr = cell_strdup(p1, &c1);
+          auto cstr = nccell_strdup(p1, &c1);
           CHECK(0 == strcmp(cstr, "▀"));
           free(cstr);
         }else{
