@@ -17,14 +17,14 @@ limitations under the License.
 
 #include "notcurses-python.h"
 
-PyObject *
+static PyObject *
 python_notcurses_version(PyObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
 {
     const char *verstion_str = notcurses_version();
     return PyUnicode_FromString(verstion_str);
 }
 
-PyObject *
+static PyObject *
 python_notcurses_version_components(PyObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
 {
     int major, minor, patch, tweak = {0};
@@ -34,7 +34,7 @@ python_notcurses_version_components(PyObject *Py_UNUSED(self), PyObject *Py_UNUS
     return Py_BuildValue("iiii", major, minor, patch, tweak);
 }
 
-PyObject *
+static PyObject *
 python_ncstrwidth(PyObject *Py_UNUSED(self), PyObject *args)
 {
     const char *s = NULL;

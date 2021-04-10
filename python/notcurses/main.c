@@ -19,8 +19,8 @@ limitations under the License.
 
 static struct PyModuleDef NotcursesMiscModule = {
     PyModuleDef_HEAD_INIT,
-    .m_name = "NotcursesMisc",
-    .m_doc = "Notcurses miscellaneous functions",
+    .m_name = "Notcurses",
+    .m_doc = "Notcurses python module",
     .m_size = -1,
     .m_methods = NULL,
 };
