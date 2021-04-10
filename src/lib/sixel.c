@@ -317,7 +317,8 @@ write_rle(int* printed, int color, FILE* fp, int seenrle, unsigned char crle){
 // Closes |fp| on all paths.
 static int
 write_sixel_data(FILE* fp, int leny, int lenx, const sixeltable* stab, int* parse_start){
-  *parse_start = fprintf(fp, "\ePq");
+  // Set P2=1, turning empty pixels transparent
+  *parse_start = fprintf(fp, "\eP0;1;0q");
   // Set Raster Attributes - pan/pad=1 (pixel aspect ratio), Ph=lenx, Pv=leny
   // using Ph/Pv causes a background to be drawn using color register 0 for all
   // unspecified pixels, which we do not want.
