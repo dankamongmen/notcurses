@@ -28,7 +28,7 @@ tinfo_debug_caps(const tinfo* ti, FILE* debugfp, int rows, int cols,
     if(!ti->sixel_supported){
       fprintf(debugfp, "%sdidn't detect bitmap graphics support\n", indent);
     }else if(ti->sixel_maxy || ti->color_registers){
-      fprintf(debugfp, "%smax bitmap size: %dx%d colorregs: %u\n",
+      fprintf(debugfp, "%smax sixel size: %dx%d colorregs: %u\n",
               indent, ti->sixel_maxy, ti->sixel_maxx, ti->color_registers);
     }else{
       fprintf(debugfp, "%sRGBA pixel graphics supported\n", indent);
