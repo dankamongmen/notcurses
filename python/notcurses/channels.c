@@ -17,7 +17,7 @@ limitations under the License.
 
 #include "notcurses-python.h"
 
-PyObject *
+static PyObject *
 python_channels_rgb_initializer(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long fr, fg, fb, br, bg, bb = {0};
@@ -29,7 +29,7 @@ python_channels_rgb_initializer(PyObject *Py_UNUSED(self), PyObject *args)
     return Py_BuildValue("K", channels);
 }
 
-PyObject *
+static PyObject *
 python_channel_rgb_initializer(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long r, g, b = {0};
@@ -41,7 +41,7 @@ python_channel_rgb_initializer(PyObject *Py_UNUSED(self), PyObject *args)
     return Py_BuildValue("k", channel);
 }
 
-PyObject *
+static PyObject *
 python_channel_r(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long channel = {0};
@@ -53,7 +53,7 @@ python_channel_r(PyObject *Py_UNUSED(self), PyObject *args)
     return Py_BuildValue("k", r);
 }
 
-PyObject *
+static PyObject *
 python_channel_g(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long channel = {0};
@@ -65,7 +65,7 @@ python_channel_g(PyObject *Py_UNUSED(self), PyObject *args)
     return Py_BuildValue("k", g);
 }
 
-PyObject *
+static PyObject *
 python_channel_b(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long channel = {0};
@@ -77,7 +77,7 @@ python_channel_b(PyObject *Py_UNUSED(self), PyObject *args)
     return Py_BuildValue("k", b);
 }
 
-PyObject *
+static PyObject *
 python_channel_rgb8(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long channel = {0};
@@ -90,7 +90,7 @@ python_channel_rgb8(PyObject *Py_UNUSED(self), PyObject *args)
     return Py_BuildValue("III", r, g, b);
 }
 
-PyObject *
+static PyObject *
 python_channel_set_rgb8(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long channel = {0};
@@ -105,7 +105,7 @@ python_channel_set_rgb8(PyObject *Py_UNUSED(self), PyObject *args)
     return Py_BuildValue("k", (unsigned long)channel_fixed_size);
 }
 
-PyObject *
+static PyObject *
 python_channel_set_rgb8_clipped(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned int channel = {0};
@@ -118,7 +118,7 @@ python_channel_set_rgb8_clipped(PyObject *Py_UNUSED(self), PyObject *args)
     return Py_BuildValue("k", channel);
 }
 
-PyObject *
+static PyObject *
 python_channel_set(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned int channel, rgb = {0};
@@ -130,7 +130,7 @@ python_channel_set(PyObject *Py_UNUSED(self), PyObject *args)
     return Py_BuildValue("I", channel);
 }
 
-PyObject *
+static PyObject *
 python_channel_alpha(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned int channel = {0};
@@ -140,7 +140,7 @@ python_channel_alpha(PyObject *Py_UNUSED(self), PyObject *args)
     return Py_BuildValue("I", channel_alpha(channel));
 }
 
-PyObject *
+static PyObject *
 python_channel_palindex(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long channel = {0};
@@ -150,7 +150,7 @@ python_channel_palindex(PyObject *Py_UNUSED(self), PyObject *args)
     return Py_BuildValue("I", channel_palindex((uint32_t)channel));
 }
 
-PyObject *
+static PyObject *
 python_channel_set_alpha(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned int channel, alpha = {0};
@@ -162,7 +162,7 @@ python_channel_set_alpha(PyObject *Py_UNUSED(self), PyObject *args)
     return Py_BuildValue("I", channel);
 }
 
-PyObject *
+static PyObject *
 python_channel_set_palindex(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long channel = {0};
@@ -177,7 +177,7 @@ python_channel_set_palindex(PyObject *Py_UNUSED(self), PyObject *args)
     return Py_BuildValue("k", (unsigned long)channel_fixed_size);
 }
 
-PyObject *
+static PyObject *
 python_channel_default_p(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned int channel = {0};
@@ -187,7 +187,7 @@ python_channel_default_p(PyObject *Py_UNUSED(self), PyObject *args)
     return PyBool_FromLong((long)channel_default_p(channel));
 }
 
-PyObject *
+static PyObject *
 python_channel_palindex_p(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned int channel = {0};
@@ -197,7 +197,7 @@ python_channel_palindex_p(PyObject *Py_UNUSED(self), PyObject *args)
     return PyBool_FromLong((long)channel_palindex_p(channel));
 }
 
-PyObject *
+static PyObject *
 python_channel_set_default(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned int channel = {0};
@@ -207,7 +207,7 @@ python_channel_set_default(PyObject *Py_UNUSED(self), PyObject *args)
     return Py_BuildValue("I", channel_set_default(&channel));
 }
 
-PyObject *
+static PyObject *
 python_channels_bchannel(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long channels = {0};
@@ -217,7 +217,7 @@ python_channels_bchannel(PyObject *Py_UNUSED(self), PyObject *args)
     return Py_BuildValue("k", (unsigned long)channels_bchannel((uint64_t)channels));
 }
 
-PyObject *
+static PyObject *
 python_channels_fchannel(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long channels = {0};
@@ -227,7 +227,7 @@ python_channels_fchannel(PyObject *Py_UNUSED(self), PyObject *args)
     return Py_BuildValue("k", (unsigned long)channels_fchannel((uint64_t)channels));
 }
 
-PyObject *
+static PyObject *
 python_channels_set_bchannel(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long channels = {0};
@@ -240,7 +240,7 @@ python_channels_set_bchannel(PyObject *Py_UNUSED(self), PyObject *args)
     return Py_BuildValue("K", (unsigned long long)channels_set_bchannel(&channels_fixed_size, (uint32_t)channel));
 }
 
-PyObject *
+static PyObject *
 python_channels_set_fchannel(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long channels = {0};
@@ -253,7 +253,7 @@ python_channels_set_fchannel(PyObject *Py_UNUSED(self), PyObject *args)
     return Py_BuildValue("K", (unsigned long long)channels_set_fchannel(&channels_fixed_size, (uint32_t)channel));
 }
 
-PyObject *
+static PyObject *
 python_channels_combine(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long fchan, bchan = {0};
@@ -263,7 +263,7 @@ python_channels_combine(PyObject *Py_UNUSED(self), PyObject *args)
     return Py_BuildValue("K", (unsigned long long)channels_combine((uint32_t)fchan, (uint32_t)bchan));
 }
 
-PyObject *
+static PyObject *
 python_channels_fg_palindex(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long channels = {0};
@@ -273,7 +273,7 @@ python_channels_fg_palindex(PyObject *Py_UNUSED(self), PyObject *args)
     return Py_BuildValue("k", (unsigned long)channels_fg_palindex((uint64_t)channels));
 }
 
-PyObject *
+static PyObject *
 python_channels_bg_palindex(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long channels = {0};
@@ -283,7 +283,7 @@ python_channels_bg_palindex(PyObject *Py_UNUSED(self), PyObject *args)
     return Py_BuildValue("k", (unsigned long)channels_bg_palindex((uint64_t)channels));
 }
 
-PyObject *
+static PyObject *
 python_channels_fg_rgb(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long channels = {0};
@@ -293,7 +293,7 @@ python_channels_fg_rgb(PyObject *Py_UNUSED(self), PyObject *args)
     return Py_BuildValue("I", channels_fg_rgb(channels));
 }
 
-PyObject *
+static PyObject *
 python_channels_bg_rgb(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long channels = {0};
@@ -303,7 +303,7 @@ python_channels_bg_rgb(PyObject *Py_UNUSED(self), PyObject *args)
     return Py_BuildValue("I", channels_bg_rgb(channels));
 }
 
-PyObject *
+static PyObject *
 python_channels_fg_alpha(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long channels = {0};
@@ -313,7 +313,7 @@ python_channels_fg_alpha(PyObject *Py_UNUSED(self), PyObject *args)
     return Py_BuildValue("I", channels_fg_alpha(channels));
 }
 
-PyObject *
+static PyObject *
 python_channels_bg_alpha(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long channels = {0};
@@ -323,7 +323,7 @@ python_channels_bg_alpha(PyObject *Py_UNUSED(self), PyObject *args)
     return Py_BuildValue("I", channels_bg_alpha(channels));
 }
 
-PyObject *
+static PyObject *
 python_channels_fg_rgb8(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long channels = {0};
@@ -336,7 +336,7 @@ python_channels_fg_rgb8(PyObject *Py_UNUSED(self), PyObject *args)
     return Py_BuildValue("III", r, g, b);
 }
 
-PyObject *
+static PyObject *
 python_channels_bg_rgb8(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long channels = {0};
@@ -349,7 +349,7 @@ python_channels_bg_rgb8(PyObject *Py_UNUSED(self), PyObject *args)
     return Py_BuildValue("III", r, g, b);
 }
 
-PyObject *
+static PyObject *
 python_channels_set_fg_rgb8(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long channels = {0};
@@ -364,7 +364,7 @@ python_channels_set_fg_rgb8(PyObject *Py_UNUSED(self), PyObject *args)
     return Py_BuildValue("K", (unsigned long long)channels_fixed_size);
 }
 
-PyObject *
+static PyObject *
 python_channels_set_fg_rgb8_clipped(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long channels = {0};
@@ -379,7 +379,7 @@ python_channels_set_fg_rgb8_clipped(PyObject *Py_UNUSED(self), PyObject *args)
     return Py_BuildValue("K", (unsigned long long)channels_fixed_size);
 }
 
-PyObject *
+static PyObject *
 python_channels_set_fg_alpha(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long channels = {0};
@@ -394,7 +394,7 @@ python_channels_set_fg_alpha(PyObject *Py_UNUSED(self), PyObject *args)
     return Py_BuildValue("K", (unsigned long long)channels_fixed_size);
 }
 
-PyObject *
+static PyObject *
 python_channels_set_fg_palindex(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long channels = {0};
@@ -409,7 +409,7 @@ python_channels_set_fg_palindex(PyObject *Py_UNUSED(self), PyObject *args)
     return Py_BuildValue("K", (unsigned long long)channels_fixed_size);
 }
 
-PyObject *
+static PyObject *
 python_channels_set_fg_rgb(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long channels = {0};
@@ -424,7 +424,7 @@ python_channels_set_fg_rgb(PyObject *Py_UNUSED(self), PyObject *args)
     return Py_BuildValue("K", (unsigned long long)channels_fixed_size);
 }
 
-PyObject *
+static PyObject *
 python_channels_set_bg_rgb8(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long channels = {0};
@@ -439,7 +439,7 @@ python_channels_set_bg_rgb8(PyObject *Py_UNUSED(self), PyObject *args)
     return Py_BuildValue("K", (unsigned long long)channels_fixed_size);
 }
 
-PyObject *
+static PyObject *
 python_channels_set_bg_rgb8_clipped(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long channels = {0};
@@ -454,7 +454,7 @@ python_channels_set_bg_rgb8_clipped(PyObject *Py_UNUSED(self), PyObject *args)
     return Py_BuildValue("K", (unsigned long long)channels_fixed_size);
 }
 
-PyObject *
+static PyObject *
 python_channels_set_bg_alpha(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long channels = {0};
@@ -469,7 +469,7 @@ python_channels_set_bg_alpha(PyObject *Py_UNUSED(self), PyObject *args)
     return Py_BuildValue("K", (unsigned long long)channels_fixed_size);
 }
 
-PyObject *
+static PyObject *
 python_channels_set_bg_palindex(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long channels = {0};
@@ -484,7 +484,7 @@ python_channels_set_bg_palindex(PyObject *Py_UNUSED(self), PyObject *args)
     return Py_BuildValue("K", (unsigned long long)channels_fixed_size);
 }
 
-PyObject *
+static PyObject *
 python_channels_set_bg_rgb(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long channels = {0};
@@ -499,7 +499,7 @@ python_channels_set_bg_rgb(PyObject *Py_UNUSED(self), PyObject *args)
     return Py_BuildValue("K", (unsigned long long)channels_fixed_size);
 }
 
-PyObject *
+static PyObject *
 python_channels_fg_default_p(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long channels = {0};
@@ -509,7 +509,7 @@ python_channels_fg_default_p(PyObject *Py_UNUSED(self), PyObject *args)
     return PyBool_FromLong((long)channels_fg_default_p((uint64_t)channels));
 }
 
-PyObject *
+static PyObject *
 python_channels_fg_palindex_p(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long channels = {0};
@@ -519,7 +519,7 @@ python_channels_fg_palindex_p(PyObject *Py_UNUSED(self), PyObject *args)
     return PyBool_FromLong((long)channels_fg_palindex_p((uint64_t)channels));
 }
 
-PyObject *
+static PyObject *
 python_channels_bg_default_p(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long channels = {0};
@@ -529,7 +529,7 @@ python_channels_bg_default_p(PyObject *Py_UNUSED(self), PyObject *args)
     return PyBool_FromLong((long)channels_bg_default_p((uint64_t)channels));
 }
 
-PyObject *
+static PyObject *
 python_channels_bg_palindex_p(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long channels = {0};
@@ -539,7 +539,7 @@ python_channels_bg_palindex_p(PyObject *Py_UNUSED(self), PyObject *args)
     return PyBool_FromLong((long)channels_bg_palindex_p((uint64_t)channels));
 }
 
-PyObject *
+static PyObject *
 python_channels_set_fg_default(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long channels = {0};
@@ -551,7 +551,7 @@ python_channels_set_fg_default(PyObject *Py_UNUSED(self), PyObject *args)
     return Py_BuildValue("K", (unsigned long long)channels_set_fg_default(&channels_fixed_size));
 }
 
-PyObject *
+static PyObject *
 python_channels_set_bg_default(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long channels = {0};

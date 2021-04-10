@@ -138,63 +138,13 @@ typedef struct
 
 // Functions
 
-#define SPLIT __attribute__((used))
+PyMODINIT_FUNC PyInit_notcurses(void);
 
 // // Channels
-
-PyObject *python_channels_rgb_initializer(PyObject *, PyObject *);
-PyObject *python_channel_rgb_initializer(PyObject *, PyObject *);
-PyObject *python_channel_r(PyObject *, PyObject *);
-PyObject *python_channel_g(PyObject *, PyObject *);
-PyObject *python_channel_b(PyObject *, PyObject *);
-PyObject *python_channel_rgb8(PyObject *, PyObject *);
-PyObject *python_channel_set_rgb8(PyObject *, PyObject *);
-PyObject *python_channel_set_rgb8_clipped(PyObject *, PyObject *);
-PyObject *python_channel_set(PyObject *, PyObject *);
-PyObject *python_channel_alpha(PyObject *, PyObject *);
-PyObject *python_channel_palindex(PyObject *, PyObject *);
-PyObject *python_channel_set_alpha(PyObject *, PyObject *);
-PyObject *python_channel_set_palindex(PyObject *, PyObject *);
-PyObject *python_channel_default_p(PyObject *, PyObject *);
-PyObject *python_channel_palindex_p(PyObject *, PyObject *);
-PyObject *python_channel_set_default(PyObject *, PyObject *);
-PyObject *python_channels_bchannel(PyObject *, PyObject *);
-PyObject *python_channels_fchannel(PyObject *, PyObject *);
-PyObject *python_channels_set_bchannel(PyObject *, PyObject *);
-PyObject *python_channels_set_fchannel(PyObject *, PyObject *);
-PyObject *python_channels_combine(PyObject *, PyObject *);
-PyObject *python_channels_fg_palindex(PyObject *, PyObject *);
-PyObject *python_channels_bg_palindex(PyObject *, PyObject *);
-PyObject *python_channels_fg_rgb(PyObject *, PyObject *);
-PyObject *python_channels_bg_rgb(PyObject *, PyObject *);
-PyObject *python_channels_fg_alpha(PyObject *, PyObject *);
-PyObject *python_channels_bg_alpha(PyObject *, PyObject *);
-PyObject *python_channels_fg_rgb8(PyObject *, PyObject *);
-PyObject *python_channels_bg_rgb8(PyObject *, PyObject *);
-PyObject *python_channels_set_fg_rgb8(PyObject *, PyObject *);
-PyObject *python_channels_set_fg_rgb8_clipped(PyObject *, PyObject *);
-PyObject *python_channels_set_fg_alpha(PyObject *, PyObject *);
-PyObject *python_channels_set_fg_palindex(PyObject *, PyObject *);
-PyObject *python_channels_set_fg_rgb(PyObject *, PyObject *);
-PyObject *python_channels_set_bg_rgb8(PyObject *, PyObject *);
-PyObject *python_channels_set_bg_rgb8_clipped(PyObject *, PyObject *);
-PyObject *python_channels_set_bg_alpha(PyObject *, PyObject *);
-PyObject *python_channels_set_bg_palindex(PyObject *, PyObject *);
-PyObject *python_channels_set_bg_rgb(PyObject *, PyObject *);
-PyObject *python_channels_fg_default_p(PyObject *, PyObject *);
-PyObject *python_channels_fg_palindex_p(PyObject *, PyObject *);
-PyObject *python_channels_bg_default_p(PyObject *, PyObject *);
-PyObject *python_channels_bg_palindex_p(PyObject *, PyObject *);
-PyObject *python_channels_set_fg_default(PyObject *, PyObject *);
-PyObject *python_channels_set_bg_default(PyObject *, PyObject *);
 
 extern PyMethodDef ChannelsFunctions[];
 
 // // Misc
-
-PyObject *python_notcurses_version(PyObject *, PyObject *);
-PyObject *python_notcurses_version_components(PyObject *, PyObject *);
-PyObject *python_ncstrwidth(PyObject *, PyObject *);
 
 extern PyMethodDef MiscFunctions[];
 
