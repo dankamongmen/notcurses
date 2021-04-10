@@ -447,8 +447,10 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
     struct ncplane_options nopts = {
       .y = placey,
       .x = placex,
-      .rows = disprows / encoding_y_scale(&nc->tcache, bset),
-      .cols = dispcols / encoding_x_scale(&nc->tcache, bset),
+      .rows = disprows / encoding_y_scale(&nc->tcache, bset) +
+              !!(disprows % encoding_y_scale(&nc->tcache, bset)),
+      .cols = dispcols / encoding_x_scale(&nc->tcache, bset) +
+              !!(dispcols % encoding_x_scale(&nc->tcache, bset)),
       .userptr = NULL,
       .name = "rgba",
       .resizecb = NULL,
@@ -682,7 +684,7 @@ ncplane* ncvisual_render(notcurses* nc, ncvisual* ncv, const struct ncvisual_opt
   }
   int placey = vopts ? vopts->y : 0;
   int placex = vopts ? vopts->x : 0;
-//fprintf(stderr, "beg/len: %d %d %d %d place: %d/%d scale: %d/%d\n", begy, leny, begx, lenx, placey, placex, encoding_y_scale(&nc->tcache, bset), encoding_x_scale(&nc->tcache, bset));
+fprintf(stderr, "beg/len: %d %d %d %d place: %d/%d scale: %d/%d\n", begy, leny, begx, lenx, placey, placex, encoding_y_scale(&nc->tcache, bset), encoding_x_scale(&nc->tcache, bset));
   ncplane* n = (vopts ? vopts->n : NULL);
 //fprintf(stderr, "%p tacache: %p\n", n, n->tacache);
   ncscale_e scaling = vopts ? vopts->scaling : NCSCALE_NONE;

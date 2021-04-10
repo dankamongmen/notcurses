@@ -174,9 +174,15 @@ TEST_CASE("Rotate") {
     auto rendered = ncvisual_render(nc_, ncv, &opts);
     REQUIRE(rendered);
     int pxdimy, pxdimx;
-    uint32_t* rgbaret = ncplane_as_rgba(rendered, NCBLIT_DEFAULT,
+    uint32_t* rgbaret = ncplane_as_rgba(rendered, NCBLIT_2x1,
                                         0, 0, -1, -1, &pxdimy, &pxdimx);
     REQUIRE(rgbaret);
+    if(height % 2){
+      ++height;
+    }
+    if(width % 2){
+      ++width;
+    }
     CHECK(pxdimx == width);
     CHECK(pxdimy == height);
     for(int i = 0 ; i < height * width / 2 ; ++i){
@@ -231,9 +237,15 @@ TEST_CASE("Rotate") {
     auto rendered = ncvisual_render(nc_, ncv, &opts);
     REQUIRE(rendered);
     int pxdimy, pxdimx;
-    uint32_t* rgbaret = ncplane_as_rgba(rendered, NCBLIT_DEFAULT,
+    uint32_t* rgbaret = ncplane_as_rgba(rendered, NCBLIT_2x1,
                                         0, 0, -1, -1, &pxdimy, &pxdimx);
     REQUIRE(rgbaret);
+    if(height % 2){
+      ++height;
+    }
+    if(width % 2){
+      ++width;
+    }
     CHECK(pxdimy == height);
     CHECK(pxdimx == width);
     for(int i = 0 ; i < height * width / 2 ; ++i){

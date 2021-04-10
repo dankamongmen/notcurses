@@ -2456,7 +2456,7 @@ uint32_t* ncplane_as_rgba(const ncplane* nc, ncblitter_e blit,
     logerror(ncur, "Blitter %d is not yet supported\n", blit);
     return NULL;
   }
-//fprintf(stderr, "ALLOCATING %zu\n", 4u * lenx * leny * 2);
+//fprintf(stderr, "ALLOCATING %zu %d %d\n", 4u * lenx * leny * 2, leny, lenx);
   // FIXME this all assumes NCBLIT_2x1, need blitter-specific scaling
   if(pxdimy){
     *pxdimy = leny * 2;
