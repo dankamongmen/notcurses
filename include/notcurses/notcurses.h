@@ -1114,6 +1114,17 @@ ncplane_dim_x(const struct ncplane* n){
   return dimx;
 }
 
+// Retrieve pixel geometry for the display region ('pxy', 'pxx'), each cell
+// ('celldimy', 'celldimx'), and the maximum displayable bitmap ('maxbmapy',
+// 'maxbmapx'). Note that this will call notcurses_check_pixel_support(),
+// possibly leading to an interrogation of the terminal. If bitmaps are not
+// supported, 'maxbmapy' and 'maxbmapx' will be 0. Any of the geometry
+// arguments may be NULL.
+API void ncplane_pixelgeom(struct ncplane* n, int* RESTRICT pxy, int* RESTRICT pxx,
+                           int* RESTRICT celldimy, int* RESTRICT celldimx,
+                           int* RESTRICT maxbmapy, int* RESTRICT maxbmapx)
+  __attribute__ ((nonnull (1)));
+
 // Return our current idea of the terminal dimensions in rows and cols.
 static inline void
 notcurses_term_dim_yx(const struct notcurses* n, int* RESTRICT rows, int* RESTRICT cols){
@@ -1193,7 +1204,7 @@ API int (*ncplane_resizecb(const struct ncplane* n))(struct ncplane*);
 // The standard plane cannot be reparented. Any planes bound to 'n' are
 // reparented to the previous parent of 'n'.
 API struct ncplane* ncplane_reparent(struct ncplane* n, struct ncplane* newparent)
-  __attribute__ ((nonnull(1, 2)));
+  __attribute__ ((nonnull (1, 2)));
 
 // The same as ncplane_reparent(), except any planes bound to 'n' come along
 // with it to its new destination. Their z-order is maintained. If 'newparent'
@@ -1307,16 +1318,16 @@ typedef struct ncstats {
 // Allocate an ncstats object. Use this rather than allocating your own, since
 // future versions of Notcurses might enlarge this structure.
 API ALLOC ncstats* notcurses_stats_alloc(const struct notcurses* nc)
-  __attribute__ ((nonnull(1)));
+  __attribute__ ((nonnull (1)));
 
 // Acquire an atomic snapshot of the Notcurses object's stats.
 API void notcurses_stats(struct notcurses* nc, ncstats* stats)
-  __attribute__ ((nonnull(1, 2)));
+  __attribute__ ((nonnull (1, 2)));
 
 // Reset all cumulative stats (immediate ones, such as fbbytes, are not reset),
 // first copying them into |*stats| (if |stats| is not NULL).
 API void notcurses_stats_reset(struct notcurses* nc, ncstats* stats)
-  __attribute__ ((nonnull(1)));
+  __attribute__ ((nonnull (1)));
 
 // Resize the specified ncplane. The four parameters 'keepy', 'keepx',
 // 'keepleny', and 'keeplenx' define a subset of the ncplane to keep,

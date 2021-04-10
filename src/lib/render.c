@@ -1328,11 +1328,15 @@ int ncpile_render(ncplane* n){
 }
 
 int notcurses_render(notcurses* nc){
+//fprintf(stderr, "--------------- BEGIN RENDER\n");
+notcurses_debug(nc, stderr);
   ncplane* stdn = notcurses_stdplane(nc);
   if(ncpile_render(stdn)){
     return -1;
   }
-  return(ncpile_rasterize(stdn));
+  int i = ncpile_rasterize(stdn);
+//fprintf(stderr, "----------------- END RENDER\n");
+  return i;
 }
 
 // for now, we just run the top half of notcurses_render(), and copy out the

@@ -2718,3 +2718,42 @@ int ncstrwidth(const char* mbs){
   }while(*mbs);
   return cols;
 }
+
+void ncplane_pixelgeom(ncplane* n, int* RESTRICT pxy, int* RESTRICT pxx,
+                       int* RESTRICT celldimy, int* RESTRICT celldimx,
+                       int* RESTRICT maxbmapy, int* RESTRICT maxbmapx){
+  notcurses* nc = ncplane_notcurses(n);
+  if(celldimy){
+    *celldimy = nc->tcache.cellpixy;
+  }
+  if(celldimx){
+    *celldimx = nc->tcache.cellpixx;
+  }
+  if(pxy){
+    *pxy = nc->tcache.cellpixy * ncplane_dim_y(n);
+  }
+  if(pxx){
+    *pxx = nc->tcache.cellpixx * ncplane_dim_x(n);
+  }
+  if(notcurses_check_pixel_support(nc) > 0){
+    if(maxbmapy){
+      *maxbmapy = nc->tcache.cellpixy * ncplane_dim_y(n);
+      if(*maxbmapy > nc->tcache.sixel_maxy && nc->tcache.sixel_maxy){
+        *maxbmapy = nc->tcache.sixel_maxy;
+      }
+    }
+    if(maxbmapx){
+      *maxbmapx = nc->tcache.cellpixx * ncplane_dim_x(n);
+      if(*maxbmapx > nc->tcache.sixel_maxx && nc->tcache.sixel_maxx){
+        *maxbmapx = nc->tcache.sixel_maxx;
+      }
+    }
+  }else{
+    if(maxbmapy){
+      *maxbmapy = 0;
+    }
+    if(maxbmapx){
+      *maxbmapx = 0;
+    }
+  }
+}

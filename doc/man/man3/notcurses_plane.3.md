@@ -198,6 +198,8 @@ typedef struct ncplane_options {
 
 **int ncplane_rotate_ccw(struct ncplane* ***n***);**
 
+**void ncplane_pixelgeom(struct notcurses* ***n***, int* restrict ***pxy***, int* restrict ***pxx***, int* restrict ***celldimy***, int* restrict ***celldimx***, int* restrict ***maxbmapy***, int* restrict ***maxbmapx***);**
+
 ## DESCRIPTION
 
 Ncplanes are the fundamental drawing object of notcurses. All output functions
@@ -349,6 +351,15 @@ last row is cleared, and output begins at the beginning of the last row. This
 does not take place until output is generated (i.e. it is possible to fill a
 plane when scrolling is enabled).
 
+**ncplane_pixelgeom** retrieves pixel geometry details. **pxy** and **pxx**
+return the size of the plane in pixels. **celldimy** and **celldimx** return
+the size of a cell in pixels (these ought be the same across planes).
+**maxbmapy** and **maxbmapx** describe the largest bitmap which can be
+displayed in the plane. This function transitively calls
+**notcurses_check_pixel_support**, possibly leading to terminal interrogation
+(see **notcurses_capabilities(3)** for why this may be undesirable). Any
+parameter (save **n**) may be **NULL**.
+
 # RETURN VALUES
 
 **ncplane_create** and **ncplane_dup** return a new **struct ncplane** on
@@ -393,6 +404,7 @@ It should not be used in new code.
 # SEE ALSO
 
 **notcurses(3)**,
+**notcurses_capabilities(3)**,
 **notcurses_cell(3)**,
 **notcurses_output(3)**,
 **notcurses_stdplane(3)**,

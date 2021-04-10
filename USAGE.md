@@ -233,7 +233,6 @@ notcurses_stddim_yx_const(const struct notcurses* nc, int* restrict y, int* rest
   ncplane_dim_yx(s, y, x); // accepts NULL
   return s;
 }
-
 ```
 
 A reference to the standard plane *is* persistent across a screen resize, as are
@@ -907,6 +906,16 @@ ncplane_dim_x(const struct ncplane* n){
   ncplane_dim_yx(n, NULL, &dimx);
   return dimx;
 }
+
+// Retrieve pixel geometry for the display region ('pxy', 'pxx'), each cell
+// ('celldimy', 'celldimx'), and the maximum displayable bitmap ('maxbmapy',
+// 'maxbmapx'). Note that this will call notcurses_check_pixel_support(),
+// possibly leading to an interrogation of the terminal. If bitmaps are not
+// supported, 'maxbmapy' and 'maxbmapx' will be 0. Any of the geometry
+// arguments may be NULL.
+void ncplane_pixelgeom(struct ncplane* n, int* restrict pxy, int* restrict pxx,
+                       int* restrict celldimy, int* restrict celldimx,
+                       int* restrict maxbmapy, int* restrict maxbmapx);
 
 // provided a coordinate relative to the origin of 'src', map it to the same
 // absolute coordinate relative to the origin of 'dst'. either or both of 'y'
