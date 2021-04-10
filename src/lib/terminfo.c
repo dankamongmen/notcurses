@@ -325,19 +325,19 @@ query_sixel_details(tinfo* ti, int fd){
 
 // we found Sixel support -- set up the API
 static void
-setup_sixel(tinfo* ti, int fd){
+setup_sixel(tinfo* ti){
   ti->bitmap_supported = true;
   ti->color_registers = 256;  // assumed default [shrug]
   ti->pixel_init = sprite_sixel_init;
   ti->pixel_draw = sixel_draw;
   ti->sixel_maxx = ti->sixel_maxy = 0;
   ti->pixel_destroy = sixel_delete;
-  query_sixel_details(ti, fd);
 }
 
 // query for Sixel support
 static int
 query_sixel(tinfo* ti, int fd){
+  bool query = false;
   if(writen(fd, "\x1b[c", 3) != 3){
     return -1;
   }
@@ -380,7 +380,7 @@ query_sixel(tinfo* ti, int fd){
       case WANT_VT102_C:
         if(in == 'c'){
           if(ti->alacritty_sixel_hack){
-            setup_sixel(ti, fd);
+            setup_sixel(ti);
           }
           state = DONE;
         }else if(in == ';'){
@@ -391,7 +391,8 @@ query_sixel(tinfo* ti, int fd){
         if(in == 'c'){
           state = DONE;
         }else if(in == '4'){
-          setup_sixel(ti, fd);
+          setup_sixel(ti);
+          query = true;
           state = DONE;
         }
         break;
@@ -399,6 +400,9 @@ query_sixel(tinfo* ti, int fd){
       default:
         break;
     }
+  }
+  if(query){
+    query_sixel_details(ti, fd);
   }
   return 0;
 }
