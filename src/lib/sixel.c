@@ -139,7 +139,7 @@ update_deets(uint32_t rgb, cdetails* deets){
 static inline int
 extract_color_table(const uint32_t* data, int linesize, int begy, int begx, int cols,
                     int leny, int lenx, int cdimy, int cdimx, sixeltable* stab,
-                    sprixcell_e* tacache){
+                    sprixcell_e* tacache, uint32_t transcolor){
   unsigned char mask = 0xc0;
   int pos = 0; // pixel position
   for(int visy = begy ; visy < (begy + leny) ; visy += 6){ // pixel row
@@ -147,7 +147,7 @@ extract_color_table(const uint32_t* data, int linesize, int begy, int begx, int 
       for(int sy = visy ; sy < (begy + leny) && sy < visy + 6 ; ++sy){ // offset within sprixel
         const uint32_t* rgb = (data + (linesize / 4 * sy) + visx);
         int txyidx = (sy / cdimy) * cols + (visx / cdimx);
-        if(rgba_trans_p(ncpixel_a(*rgb))){
+        if(rgba_trans_p(ncpixel_a(*rgb), transcolor)){
           if(tacache[txyidx] == SPRIXCELL_NORMAL){
             tacache[txyidx] = SPRIXCELL_CONTAINS_TRANS;
           }
@@ -460,7 +460,7 @@ int sixel_blit(ncplane* n, int linesize, const void* data,
   }
   if(extract_color_table(data, linesize, bargs->begy, bargs->begx, cols, leny, lenx,
                          bargs->u.pixel.celldimy, bargs->u.pixel.celldimx,
-                         &stable, tacache)){
+                         &stable, tacache, bargs->transcolor)){
     if(!reuse){
       free(tacache);
     }

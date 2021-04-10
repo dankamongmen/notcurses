@@ -31,6 +31,11 @@ trilerp(uint32_t c0, uint32_t c1, uint32_t c2){
   return ret;
 }
 
+static inline unsigned
+rgba_trans_q(const unsigned char* p, uint32_t transcolor){
+  return rgba_trans_p(*(const uint32_t*)p, transcolor);
+}
+
 // Retarded RGBA blitter (ASCII only).
 static inline int
 tria_blit_ascii(ncplane* nc, int linesize, const void* data,
@@ -66,7 +71,7 @@ tria_blit_ascii(ncplane* nc, int linesize, const void* data,
         cell_set_bg_alpha(c, CELL_ALPHA_BLEND);
         cell_set_fg_alpha(c, CELL_ALPHA_BLEND);
       }
-      if(rgba_trans_p(rgbbase_up[3])){
+      if(rgba_trans_q(rgbbase_up, bargs->transcolor)){
         cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
         cell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
         cell_set_blitquadrants(c, 0, 0, 0, 0);
@@ -90,6 +95,7 @@ static inline int
 tria_blit(ncplane* nc, int linesize, const void* data,
           int leny, int lenx, const blitterargs* bargs){
 //fprintf(stderr, "HALF %d X %d @ %d X %d (%p) place: %d X %d\n", leny, lenx, bargs->begy, bargs->begx, data, bargs->placey, bargs->placex);
+  uint32_t transcolor = bargs->transcolor;
   const int bpp = 32;
   int dimy, dimx, x, y;
   int total = 0; // number of cells written
@@ -124,11 +130,11 @@ tria_blit(ncplane* nc, int linesize, const void* data,
         cell_set_bg_alpha(c, CELL_ALPHA_BLEND);
         cell_set_fg_alpha(c, CELL_ALPHA_BLEND);
       }
-      if(rgba_trans_p(rgbbase_up[3]) || rgba_trans_p(rgbbase_down[3])){
+      if(rgba_trans_q(rgbbase_up, transcolor) || rgba_trans_q(rgbbase_down, transcolor)){
         cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
-        if(rgba_trans_p(rgbbase_up[3]) && rgba_trans_p(rgbbase_down[3])){
+        if(rgba_trans_q(rgbbase_up, transcolor) && rgba_trans_q(rgbbase_down, transcolor)){
           cell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
-        }else if(rgba_trans_p(rgbbase_up[3])){ // down has the color
+        }else if(rgba_trans_q(rgbbase_up, transcolor)){ // down has the color
           if(pool_blit_direct(&nc->pool, c, "\u2584", strlen("\u2584"), 1) <= 0){
             return -1;
           }
@@ -307,20 +313,21 @@ quadrant_solver(uint32_t tl, uint32_t tr, uint32_t bl, uint32_t br,
 static inline const char*
 qtrans_check(nccell* c, unsigned blendcolors,
              const unsigned char* rgbbase_tl, const unsigned char* rgbbase_tr,
-             const unsigned char* rgbbase_bl, const unsigned char* rgbbase_br){
+             const unsigned char* rgbbase_bl, const unsigned char* rgbbase_br,
+             uint32_t transcolor){
   uint32_t tl = 0, tr = 0, bl = 0, br = 0;
   channel_set_rgb8(&tl, rgbbase_tl[0], rgbbase_tl[1], rgbbase_tl[2]);
   channel_set_rgb8(&tr, rgbbase_tr[0], rgbbase_tr[1], rgbbase_tr[2]);
   channel_set_rgb8(&bl, rgbbase_bl[0], rgbbase_bl[1], rgbbase_bl[2]);
   channel_set_rgb8(&br, rgbbase_br[0], rgbbase_br[1], rgbbase_br[2]);
   const char* egc = NULL;
-  if(rgba_trans_p(rgbbase_tl[3])){
+  if(rgba_trans_q(rgbbase_tl, transcolor)){
     // top left is transparent
-    if(rgba_trans_p(rgbbase_tr[3])){
+    if(rgba_trans_q(rgbbase_tr, transcolor)){
       // all of top is transparent
-      if(rgba_trans_p(rgbbase_bl[3])){
+      if(rgba_trans_q(rgbbase_bl, transcolor)){
         // top and left are transparent
-        if(rgba_trans_p(rgbbase_br[3])){
+        if(rgba_trans_q(rgbbase_br, transcolor)){
           // entirety is transparent, load with nul (but not NULL)
           cell_set_fg_default(c);
           cell_set_blitquadrants(c, 0, 0, 0, 0);
@@ -331,7 +338,7 @@ qtrans_check(nccell* c, unsigned blendcolors,
           egc = "▗";
         }
       }else{
-        if(rgba_trans_p(rgbbase_br[3])){
+        if(rgba_trans_q(rgbbase_br, transcolor)){
           cell_set_fg_rgb8(c, rgbbase_bl[0], rgbbase_bl[1], rgbbase_bl[2]);
           cell_set_blitquadrants(c, 0, 0, 1, 0);
           egc = "▖";
@@ -342,8 +349,8 @@ qtrans_check(nccell* c, unsigned blendcolors,
         }
       }
     }else{ // top right is foreground, top left is transparent
-      if(rgba_trans_p(rgbbase_bl[3])){
-        if(rgba_trans_p(rgbbase_br[3])){ // entire bottom is transparent
+      if(rgba_trans_q(rgbbase_bl, transcolor)){
+        if(rgba_trans_q(rgbbase_br, transcolor)){ // entire bottom is transparent
           cell_set_fg_rgb8(c, rgbbase_tr[0], rgbbase_tr[1], rgbbase_tr[2]);
           cell_set_blitquadrants(c, 0, 1, 0, 0);
           egc = "▝";
@@ -352,7 +359,7 @@ qtrans_check(nccell* c, unsigned blendcolors,
           cell_set_blitquadrants(c, 0, 1, 0, 1);
           egc = "▐";
         }
-      }else if(rgba_trans_p(rgbbase_br[3])){ // only br is transparent
+      }else if(rgba_trans_q(rgbbase_br, transcolor)){ // only br is transparent
         cell_set_fchannel(c, lerp(tr, bl));
         cell_set_blitquadrants(c, 0, 1, 1, 0);
         egc = "▞";
@@ -363,9 +370,9 @@ qtrans_check(nccell* c, unsigned blendcolors,
       }
     }
   }else{ // topleft is foreground for all here
-    if(rgba_trans_p(rgbbase_tr[3])){
-      if(rgba_trans_p(rgbbase_bl[3])){
-        if(rgba_trans_p(rgbbase_br[3])){
+    if(rgba_trans_q(rgbbase_tr, transcolor)){
+      if(rgba_trans_q(rgbbase_bl, transcolor)){
+        if(rgba_trans_q(rgbbase_br, transcolor)){
           cell_set_fg_rgb8(c, rgbbase_tl[0], rgbbase_tl[1], rgbbase_tl[2]);
           cell_set_blitquadrants(c, 1, 0, 0, 0);
           egc = "▘";
@@ -374,7 +381,7 @@ qtrans_check(nccell* c, unsigned blendcolors,
           cell_set_blitquadrants(c, 1, 0, 0, 1);
           egc = "▚";
         }
-      }else if(rgba_trans_p(rgbbase_br[3])){
+      }else if(rgba_trans_q(rgbbase_br, transcolor)){
         cell_set_fchannel(c, lerp(tl, bl));
         cell_set_blitquadrants(c, 1, 0, 1, 0);
         egc = "▌";
@@ -383,8 +390,8 @@ qtrans_check(nccell* c, unsigned blendcolors,
         cell_set_blitquadrants(c, 1, 0, 1, 1);
         egc = "▙";
       }
-    }else if(rgba_trans_p(rgbbase_bl[3])){
-      if(rgba_trans_p(rgbbase_br[3])){ // entire bottom is transparent
+    }else if(rgba_trans_q(rgbbase_bl, transcolor)){
+      if(rgba_trans_q(rgbbase_br, transcolor)){ // entire bottom is transparent
         cell_set_fchannel(c, lerp(tl, tr));
         cell_set_blitquadrants(c, 1, 1, 0, 0);
         egc = "▀";
@@ -393,7 +400,7 @@ qtrans_check(nccell* c, unsigned blendcolors,
         cell_set_blitquadrants(c, 1, 1, 0, 1);
         egc = "▜";
       }
-    }else if(rgba_trans_p(rgbbase_br[3])){ // only br is transparent
+    }else if(rgba_trans_q(rgbbase_br, transcolor)){ // only br is transparent
       cell_set_fchannel(c, trilerp(tl, tr, bl));
       cell_set_blitquadrants(c, 1, 1, 1, 0);
       egc = "▛";
@@ -454,7 +461,7 @@ quadrant_blit(ncplane* nc, int linesize, const void* data,
       nccell* c = ncplane_cell_ref_yx(nc, y, x);
       c->channels = 0;
       c->stylemask = 0;
-      const char* egc = qtrans_check(c, bargs->u.cell.blendcolors, rgbbase_tl, rgbbase_tr, rgbbase_bl, rgbbase_br);
+      const char* egc = qtrans_check(c, bargs->u.cell.blendcolors, rgbbase_tl, rgbbase_tr, rgbbase_bl, rgbbase_br, bargs->transcolor);
       if(egc == NULL){
         uint32_t tl = 0, tr = 0, bl = 0, br = 0;
         channel_set_rgb8(&tl, rgbbase_tl[0], rgbbase_tl[1], rgbbase_tl[2]);
@@ -587,7 +594,8 @@ sex_solver(const uint32_t rgbas[6], uint64_t* channels, unsigned blendcolors){
 }
 
 static const char*
-sex_trans_check(cell* c, const uint32_t rgbas[6], unsigned blendcolors){
+sex_trans_check(cell* c, const uint32_t rgbas[6], unsigned blendcolors,
+                uint32_t transcolor){
   // bit is *set* where sextant *is not*
   // 32: bottom right 16: bottom left
   //  8: middle right  4: middle left
@@ -606,7 +614,7 @@ sex_trans_check(cell* c, const uint32_t rgbas[6], unsigned blendcolors){
   unsigned r = 0, g = 0, b = 0;
   unsigned div = 0;
   for(unsigned mask = 0 ; mask < 6 ; ++mask){
-    if(rgba_trans_p(ncpixel_a(rgbas[mask]))){
+    if(rgba_trans_p(rgbas[mask], transcolor)){
       transstring |= (1u << mask);
     }else{
       r += ncpixel_r(rgbas[mask]);
@@ -684,7 +692,7 @@ sextant_blit(ncplane* nc, int linesize, const void* data,
       nccell* c = ncplane_cell_ref_yx(nc, y, x);
       c->channels = 0;
       c->stylemask = 0;
-      const char* egc = sex_trans_check(c, rgbas, bargs->u.cell.blendcolors);
+      const char* egc = sex_trans_check(c, rgbas, bargs->u.cell.blendcolors, bargs->transcolor);
       if(egc == NULL){ // no transparency; run a full solver
         egc = sex_solver(rgbas, &c->channels, bargs->u.cell.blendcolors);
         cell_set_blitquadrants(c, 1, 1, 1, 1);
@@ -771,35 +779,35 @@ braille_blit(ncplane* nc, int linesize, const void* data,
         }
       }
       // FIXME fold this into the above?
-      if(!rgba_trans_p(ncpixel_a(*rgbbase_l0))){
+      if(!rgba_trans_p(*rgbbase_l0, bargs->transcolor)){
         egcidx |= 1u;
         fold_rgb8(&r, &g, &b, rgbbase_l0, &blends);
       }
-      if(!rgba_trans_p(ncpixel_a(*rgbbase_l1))){
+      if(!rgba_trans_p(*rgbbase_l1, bargs->transcolor)){
         egcidx |= 2u;
         fold_rgb8(&r, &g, &b, rgbbase_l1, &blends);
       }
-      if(!rgba_trans_p(ncpixel_a(*rgbbase_l2))){
+      if(!rgba_trans_p(*rgbbase_l2, bargs->transcolor)){
         egcidx |= 4u;
         fold_rgb8(&r, &g, &b, rgbbase_l2, &blends);
       }
-      if(!rgba_trans_p(ncpixel_a(*rgbbase_r0))){
+      if(!rgba_trans_p(*rgbbase_r0, bargs->transcolor)){
         egcidx |= 8u;
         fold_rgb8(&r, &g, &b, rgbbase_r0, &blends);
       }
-      if(!rgba_trans_p(ncpixel_a(*rgbbase_r1))){
+      if(!rgba_trans_p(*rgbbase_r1, bargs->transcolor)){
         egcidx |= 16u;
         fold_rgb8(&r, &g, &b, rgbbase_r1, &blends);
       }
-      if(!rgba_trans_p(ncpixel_a(*rgbbase_r2))){
+      if(!rgba_trans_p(*rgbbase_r2, bargs->transcolor)){
         egcidx |= 32u;
         fold_rgb8(&r, &g, &b, rgbbase_r2, &blends);
       }
-      if(!rgba_trans_p(ncpixel_a(*rgbbase_l3))){
+      if(!rgba_trans_p(*rgbbase_l3, bargs->transcolor)){
         egcidx |= 64u;
         fold_rgb8(&r, &g, &b, rgbbase_l3, &blends);
       }
-      if(!rgba_trans_p(ncpixel_a(*rgbbase_r3))){
+      if(!rgba_trans_p(*rgbbase_r3, bargs->transcolor)){
         egcidx |= 128u;
         fold_rgb8(&r, &g, &b, rgbbase_r3, &blends);
       }
