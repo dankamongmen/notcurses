@@ -847,7 +847,7 @@ int ncvisual_decode_loop(ncvisual* nc){
 }
 
 int ncvisual_stream(notcurses* nc, ncvisual* ncv, float timescale,
-                    streamcb streamer, const struct ncvisual_options* vopts,
+                    ncstreamcb streamer, const struct ncvisual_options* vopts,
                     void* curry){
   if(!visual_implementation){
     return -1;

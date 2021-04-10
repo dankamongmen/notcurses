@@ -51,7 +51,7 @@ int none_blit(struct ncvisual* ncv, int rows, int cols,
 }
 
 int none_stream(notcurses* nc, ncvisual* ncv, float timescale,
-                streamcb streamer, const struct ncvisual_options* vopts, void* curry){
+                ncstreamcb streamer, const struct ncvisual_options* vopts, void* curry){
   (void)nc;
   (void)ncv;
   (void)timescale;

@@ -71,7 +71,7 @@ namespace ncpp
 			return error_guard<ncplane*, ncplane*> (ncvisual_render (get_notcurses (), visual, vopts), nullptr);
 		}
 
-		int stream (const ncvisual_options* vopts, float timescale, streamcb streamer, void *curry = nullptr) const NOEXCEPT_MAYBE
+		int stream (const ncvisual_options* vopts, float timescale, ncstreamcb streamer, void *curry = nullptr) const NOEXCEPT_MAYBE
 		{
 			return error_guard<int> (ncvisual_stream (get_notcurses (), visual, timescale, streamer, vopts, curry), -1);
 		}

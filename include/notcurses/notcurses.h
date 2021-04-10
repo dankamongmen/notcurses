@@ -2550,8 +2550,8 @@ API ALLOC char* ncvisual_subtitle(const struct ncvisual* ncv)
 // Called for each frame rendered from 'ncv'. If anything but 0 is returned,
 // the streaming operation ceases immediately, and that value is propagated out.
 // The recommended absolute display time target is passed in 'tspec'.
-typedef int (*streamcb)(struct ncvisual*, struct ncvisual_options*,
-                        const struct timespec*, void*);
+typedef int (*ncstreamcb)(struct ncvisual*, struct ncvisual_options*,
+                          const struct timespec*, void*);
 
 // Shut up and display my frames! Provide as an argument to ncvisual_stream().
 // If you'd like subtitles to be decoded, provide an ncplane as the curry. If the
@@ -2569,7 +2569,7 @@ API int ncvisual_simple_streamer(struct ncvisual* ncv, struct ncvisual_options* 
 // 300FPS, and a 'timescale' of 10 will result in 3FPS. It is an error to
 // supply 'timescale' less than or equal to 0.
 API int ncvisual_stream(struct notcurses* nc, struct ncvisual* ncv,
-                        float timescale, streamcb streamer,
+                        float timescale, ncstreamcb streamer,
                         const struct ncvisual_options* vopts, void* curry);
 
 // Blit a flat array 'data' of RGBA 32-bit values to the ncplane 'vopts->n',
