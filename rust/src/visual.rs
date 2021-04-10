@@ -13,7 +13,7 @@
 //W  ncvisual_from_file
 //W  ncvisual_from_plane
 //W  ncvisual_from_rgba
-//W  ncvisual_geom
+//W  ncvisual_blitter_geom
 //W  ncvisual_media_defblitter
 //W  ncvisual_polyfill_yx
 //W  ncvisual_render
@@ -321,7 +321,7 @@ impl NcVisual {
     ///
     /// Errors on invalid blitter in `options`. Scaling is taken into consideration.
     ///
-    /// *C style function: [ncvisual_geom()][crate::ncvisual_geom].*
+    /// *C style function: [ncvisual_blitter_geom()][crate::ncvisual_blitter_geom].*
     pub fn geom(
         &self,
         nc: &Notcurses,
@@ -333,7 +333,16 @@ impl NcVisual {
         let mut to_x = 0;
 
         let res = unsafe {
-            crate::ncvisual_blitter_geom(nc, self, options, &mut y, &mut x, &mut to_y, &mut to_x, null_mut())
+            crate::ncvisual_blitter_geom(
+                nc,
+                self,
+                options,
+                &mut y,
+                &mut x,
+                &mut to_y,
+                &mut to_x,
+                null_mut(),
+            )
         };
         error![
             res,

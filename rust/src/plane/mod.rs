@@ -1,11 +1,11 @@
 //! `NcPlane`
 
-// functions already exported by bindgen : 112
+// functions already exported by bindgen : 113
 // -------------------------------------------
 // (X) wont:  6
 // (D) depr:  4
 // (#) test: 13
-// (W) wrap: 82 of 102 (112 - 6 - 4)
+// (W) wrap: 83 of 102 (112 - 6 - 4)
 // -------------------------------------------
 //W  ncpile_bottom
 //W# ncpile_create
@@ -58,6 +58,7 @@
 //W  ncplane_on_styles
 //W  ncplane_parent
 //W  ncplane_parent_const
+//W  ncplane_pixelgeom
 //   ncplane_polyfill_yx
 //W  ncplane_pulse
 //   ncplane_putchar_stained
@@ -181,6 +182,8 @@ mod reimplemented;
 #[allow(unused_imports)]
 pub(crate) use helpers::*;
 pub use reimplemented::*;
+
+use crate::NcDim;
 
 // NcPlane
 /// Fundamental drawing surface.
@@ -323,3 +326,18 @@ pub const NCBLIT_DEFAULT: NcBlitter = crate::bindings::ffi::ncblitter_e_NCBLIT_D
 ///
 /// See [Sixel in Wikipedia](https://en.wikipedia.org/wiki/Sixel).
 pub const NCBLIT_PIXEL: NcBlitter = crate::bindings::ffi::ncblitter_e_NCBLIT_PIXEL;
+
+/// Contains the pixel geometry information as returned by the 
+/// NcPlane.[pixelgeom()][NcPlane#method.pixelgeom] method.
+///
+/// If bitmaps are not supported, the fields max_bitmap_[yx] will be 0.
+#[derive(Clone, Debug)]
+pub struct NcPixelGeometry {
+    /// Geometry of the display region
+    pub display_y: NcDim,
+    pub display_x: NcDim,
+    pub cell_y: NcDim,
+    pub cell_x: NcDim,
+    pub max_bitmap_y: NcDim,
+    pub max_bitmap_x: NcDim,
+}
