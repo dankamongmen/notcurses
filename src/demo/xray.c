@@ -26,6 +26,7 @@ make_slider(struct notcurses* nc, int dimy, int dimx){
     .x = 0,
     .rows = sizeof(leg) / sizeof(*leg),
     .cols = len * REPS,
+    .name = "scrl",
   };
   struct ncplane* n = ncplane_create(notcurses_stdplane(nc), &nopts);
   uint64_t channels = 0;

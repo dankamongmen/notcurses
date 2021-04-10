@@ -515,7 +515,7 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
       .cols = dispcols / encoding_x_scale(&nc->tcache, bset) +
               !!(dispcols % encoding_x_scale(&nc->tcache, bset)),
       .userptr = NULL,
-      .name = "rgba",
+      .name = "cvis",
       .resizecb = NULL,
       .flags = 0,
     };
@@ -611,7 +611,7 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
       .rows = disprows / nc->tcache.cellpixy + !!(disprows % nc->tcache.cellpixy),
       .cols = dispcols / nc->tcache.cellpixx + !!(dispcols % nc->tcache.cellpixx),
       .userptr = NULL,
-      .name = "rgba",
+      .name = "bmap",
       .resizecb = NULL,
       .flags = 0,
     };
