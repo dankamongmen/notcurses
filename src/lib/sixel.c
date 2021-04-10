@@ -147,7 +147,7 @@ extract_color_table(const uint32_t* data, int linesize, int begy, int begx, int 
       for(int sy = visy ; sy < (begy + leny) && sy < visy + 6 ; ++sy){ // offset within sprixel
         const uint32_t* rgb = (data + (linesize / 4 * sy) + visx);
         int txyidx = (sy / cdimy) * cols + (visx / cdimx);
-        if(rgba_trans_p(ncpixel_a(*rgb), transcolor)){
+        if(rgba_trans_p(*rgb, transcolor)){
           if(tacache[txyidx] == SPRIXCELL_NORMAL){
             tacache[txyidx] = SPRIXCELL_CONTAINS_TRANS;
           }

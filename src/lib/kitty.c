@@ -60,7 +60,6 @@ base64_rgba3(const uint32_t* pixels, size_t pcount, char* b64, bool wipe[static 
   unsigned g = ncpixel_g(pixel);
   unsigned b = ncpixel_b(pixel);
   unsigned a = wipe[0] ? 0 : rgba_trans_p(pixel, transcolor) ? 0 : 255;
-//fprintf(stderr, "WIPE: %d %d %d\n", wipe[0], wipe[1], wipe[2]);
   b64[0] = b64subs[(r & 0xfc) >> 2];
   b64[1] = b64subs[(r & 0x3 << 4) | ((g & 0xf0) >> 4)];
   b64[2] = b64subs[((g & 0xf) << 2) | ((b & 0xc0) >> 6)];
