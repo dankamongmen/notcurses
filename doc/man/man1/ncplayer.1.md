@@ -8,7 +8,7 @@ ncplayer - Render images and video to a terminal
 
 # SYNOPSIS
 
-**ncplayer** [**-h**] [**-V**] [**-q**] [**-d** ***delaymult***] [**-l** ***loglevel***] [**-b** ***blitter***] [**-s** ***scalemode***] [**-k**] [**-L**] [**-t** ***seconds***] files
+**ncplayer** [**-h**] [**-V**] [**-q**] [**-d** ***delaymult***] [**-l** ***loglevel***] [**-b** ***blitter***] [**-s** ***scalemode***] [**-k**] [**-L**] [**-t** ***seconds***] [**-a**] files
 
 # DESCRIPTION
 
@@ -40,6 +40,8 @@ be any non-negative number.
 **-k**: Use direct mode (see **notcurses_direct(3)**). This will have the effect of leaving the output on-screen after program exit, and generating it inline (rather than clearing the screen and placing it at the top). Not supported with **-L** or **-d**.
 
 **-q**: Print neither frame/timing information along the top of the screen, nor the output summary on exit.
+
+**-a**: Treat color 0x000000 as if it were transparent.
 
 **-V**: Print the program name and version, and exit with success.
 

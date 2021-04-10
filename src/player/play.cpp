@@ -19,7 +19,7 @@ static void usage(std::ostream& os, const char* name, int exitcode)
   __attribute__ ((noreturn));
 
 void usage(std::ostream& o, const char* name, int exitcode){
-  o << "usage: " << name << " [ -h ] [ -q ] [ -m margins ] [ -l loglevel ] [ -d mult ] [ -s scaletype ] [ -k ] [ -L ] [ -t seconds ] files" << '\n';
+  o << "usage: " << name << " [ -h ] [ -q ] [ -m margins ] [ -l loglevel ] [ -d mult ] [ -s scaletype ] [ -k ] [ -L ] [ -t seconds ] [ -a ] files" << '\n';
   o << " -h: display help and exit with success\n";
   o << " -V: print program name and version\n";
   o << " -q: be quiet (no frame/timing information along top of screen)\n";
@@ -30,6 +30,7 @@ void usage(std::ostream& o, const char* name, int exitcode){
   o << " -s scaling: one of 'none', 'hires', 'scale', 'scalehi', or 'stretch'\n";
   o << " -b blitter: one of 'ascii', 'half', 'quad', 'sex', 'braille', or 'pixel'\n";
   o << " -m margins: margin, or 4 comma-separated margins\n";
+  o << " -a: replace color 0x000000 with a transparent channel\n";
   o << " -d mult: non-negative floating point scale for frame time" << std::endl;
   exit(exitcode);
 }
@@ -183,13 +184,13 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
 // can exit() directly. returns index in argv of first non-option param.
 auto handle_opts(int argc, char** argv, notcurses_options& opts, bool* quiet,
                  float* timescale, ncscale_e* scalemode, ncblitter_e* blitter,
-                 float* displaytime, bool* loop)
+                 float* displaytime, bool* loop, uint32_t* transcolor)
                  -> int {
   *timescale = 1.0;
   *scalemode = NCSCALE_STRETCH;
   *displaytime = -1;
   int c;
-  while((c = getopt(argc, argv, "Vhql:d:s:b:t:m:kL")) != -1){
+  while((c = getopt(argc, argv, "Vhql:d:s:b:t:m:kLa")) != -1){
     switch(c){
       case 'h':
         usage(std::cout, argv[0], EXIT_SUCCESS);
@@ -197,6 +198,13 @@ auto handle_opts(int argc, char** argv, notcurses_options& opts, bool* quiet,
       case 'V':
         printf("ncplayer version %s\n", notcurses_version());
         exit(EXIT_SUCCESS);
+      case 'a':
+        if(*transcolor){
+          std::cerr <<  "Provided -a twice!" << std::endl;
+          usage(std::cerr, argv[0], EXIT_FAILURE);
+        }
+        *transcolor = 0x1000000ull;
+        break;
       case 'q':
         *quiet = true;
         break;
@@ -337,7 +345,8 @@ int direct_mode_player(int argc, char** argv, ncscale_e scalemode,
 int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
                                ncscale_e scalemode, ncblitter_e blitter,
                                bool quiet, bool loop,
-                               double timescale, double displaytime){
+                               double timescale, double displaytime,
+                               uint32_t transcolor){
   int dimy, dimx;
   std::unique_ptr<Plane> stdn(nc.get_stdplane(&dimy, &dimx));
   uint64_t transchan = 0;
@@ -360,8 +369,11 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
     ncv = std::make_unique<Visual>(argv[i]);
     struct ncvisual_options vopts{};
     int r;
-    vopts.flags |= NCVISUAL_OPTION_HORALIGNED | NCVISUAL_OPTION_VERALIGNED
-                | NCVISUAL_OPTION_ADDALPHA;
+    vopts.flags |= NCVISUAL_OPTION_HORALIGNED | NCVISUAL_OPTION_VERALIGNED;
+    if(transcolor){
+      vopts.flags |= NCVISUAL_OPTION_ADDALPHA;
+    }
+    vopts.transcolor = transcolor & 0xffffffull;
     vopts.y = NCALIGN_CENTER;
     vopts.x = NCALIGN_CENTER;
     vopts.n = n;
@@ -431,7 +443,8 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
 int rendered_mode_player(int argc, char** argv, ncscale_e scalemode,
                          ncblitter_e blitter, notcurses_options& ncopts,
                          bool quiet, bool loop,
-                         double timescale, double displaytime){
+                         double timescale, double displaytime,
+                         uint32_t transcolor){
   // no -k, we're using full rendered mode (and the alternate screen).
   ncopts.flags |= NCOPTION_INHIBIT_SETLOCALE;
   if(quiet){
@@ -446,7 +459,8 @@ int rendered_mode_player(int argc, char** argv, ncscale_e scalemode,
       return EXIT_FAILURE;
     }
     r = rendered_mode_player_inner(nc, argc, argv, scalemode, blitter,
-                                   quiet, loop, timescale, displaytime);
+                                   quiet, loop, timescale, displaytime,
+                                   transcolor);
     if(!nc.stop()){
       return -1;
     }
@@ -469,10 +483,11 @@ auto main(int argc, char** argv) -> int {
   ncscale_e scalemode;
   notcurses_options ncopts{};
   ncblitter_e blitter = NCBLIT_DEFAULT;
+  uint32_t transcolor = 0;
   bool quiet = false;
   bool loop = false;
   auto nonopt = handle_opts(argc, argv, ncopts, &quiet, &timescale, &scalemode,
-                            &blitter, &displaytime, &loop);
+                            &blitter, &displaytime, &loop, &transcolor);
   int r;
   // if -k was provided, we now use direct mode rather than simply not using the
   // alternate screen, so that output is inline with the shell.
@@ -480,7 +495,7 @@ auto main(int argc, char** argv) -> int {
     r = direct_mode_player(argc - nonopt, argv + nonopt, scalemode, blitter, ncopts.margin_l, ncopts.margin_r);
   }else{
     r = rendered_mode_player(argc - nonopt, argv + nonopt, scalemode, blitter, ncopts,
-                             quiet, loop, timescale, displaytime);
+                             quiet, loop, timescale, displaytime, transcolor);
   }
   if(r){
     return EXIT_FAILURE;
