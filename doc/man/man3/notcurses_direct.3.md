@@ -90,6 +90,8 @@ notcurses_direct - minimal notcurses instances for styling text
 
 **int ncdirect_raster_frame(struct ncdirect* ***n***, ncdirectv* ***ncdv***, ncalign_e ***align***);**
 
+**int ncdirect_stream(struct ncdirect* ***n***, const char* ***filename***, ncstreamcb ***streamer***, struct ncvisual_options* ***vopts***, void* ***curry***);**
+
 **char* ncdirect_readline(struct ncdirect* ***n***, const char* ***prompt***);**
 
 # DESCRIPTION

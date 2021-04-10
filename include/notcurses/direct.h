@@ -300,6 +300,9 @@ API ALLOC ncdirectv* ncdirect_render_frame(struct ncdirect* n, const char* filen
 // Takes the result of ncdirect_render_frame() and writes it to the output.
 API int ncdirect_raster_frame(struct ncdirect* n, ncdirectv* ncdv, ncalign_e align);
 
+API int ncdirect_stream(struct ncdirect* n, const char* filename, ncstreamcb streamer,
+                        struct ncvisual_options* vopts, void* curry);
+
 #undef ALLOC
 #undef API
 

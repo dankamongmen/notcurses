@@ -11,6 +11,7 @@ rearrangements of Notcurses.
   * `ncplane_pixelgeom()` has been added, allowing callers to determine the
     size of the plane and cells in pixels, as well as the maximum bitmap
     size that can be displayed.
+  * added new function `ncdirect_stream()`, which does what you'd think.
 
 * 2.2.5 (2021-04-04)
   * Bugfix release, no user-visible changes.
