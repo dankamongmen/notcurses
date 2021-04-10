@@ -4,7 +4,7 @@ use core::ptr::null_mut;
 
 use crate::ffi::__va_list_tag;
 use crate::{
-    cell_release, cstring, ncplane_channels, NcAlign, NcAlphaBits, NcBoxMask, NcCell, NcChannel,
+    nccell_release, cstring, ncplane_channels, NcAlign, NcAlphaBits, NcBoxMask, NcCell, NcChannel,
     NcChannelPair, NcColor, NcDim, NcEgc, NcIntResult, NcPlane, NcRgb, NcStyleMask, NCRESULT_ERR,
     NCRESULT_OK,
 };
@@ -384,12 +384,12 @@ pub fn ncplane_perimeter_double(
         boxmask,
     );
     unsafe {
-        cell_release(plane, &mut ul);
-        cell_release(plane, &mut ur);
-        cell_release(plane, &mut ll);
-        cell_release(plane, &mut lr);
-        cell_release(plane, &mut hl);
-        cell_release(plane, &mut vl);
+        nccell_release(plane, &mut ul);
+        nccell_release(plane, &mut ur);
+        nccell_release(plane, &mut ll);
+        nccell_release(plane, &mut lr);
+        nccell_release(plane, &mut hl);
+        nccell_release(plane, &mut vl);
     }
     ret
 }
@@ -446,12 +446,12 @@ pub fn ncplane_perimeter_rounded(
         boxmask,
     );
     unsafe {
-        cell_release(plane, &mut ul);
-        cell_release(plane, &mut ur);
-        cell_release(plane, &mut ll);
-        cell_release(plane, &mut lr);
-        cell_release(plane, &mut hl);
-        cell_release(plane, &mut vl);
+        nccell_release(plane, &mut ul);
+        nccell_release(plane, &mut ur);
+        nccell_release(plane, &mut ll);
+        nccell_release(plane, &mut lr);
+        nccell_release(plane, &mut hl);
+        nccell_release(plane, &mut vl);
     }
     ret
 }
@@ -546,12 +546,12 @@ pub fn ncplane_double_box(
             );
         }
 
-        cell_release(plane, &mut ul);
-        cell_release(plane, &mut ur);
-        cell_release(plane, &mut ll);
-        cell_release(plane, &mut lr);
-        cell_release(plane, &mut hl);
-        cell_release(plane, &mut vl);
+        nccell_release(plane, &mut ul);
+        nccell_release(plane, &mut ur);
+        nccell_release(plane, &mut ll);
+        nccell_release(plane, &mut lr);
+        nccell_release(plane, &mut hl);
+        nccell_release(plane, &mut vl);
     }
     ret
 }
@@ -630,12 +630,12 @@ pub fn ncplane_rounded_box(
                 boxmask,
             );
         }
-        cell_release(plane, &mut ul);
-        cell_release(plane, &mut ur);
-        cell_release(plane, &mut ll);
-        cell_release(plane, &mut lr);
-        cell_release(plane, &mut hl);
-        cell_release(plane, &mut vl);
+        nccell_release(plane, &mut ul);
+        nccell_release(plane, &mut ur);
+        nccell_release(plane, &mut ll);
+        nccell_release(plane, &mut lr);
+        nccell_release(plane, &mut hl);
+        nccell_release(plane, &mut vl);
     }
     ret
 }

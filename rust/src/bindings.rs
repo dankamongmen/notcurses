@@ -58,12 +58,12 @@ pub use ffi::{
 #[doc(inline)]
 pub use ffi::{
     // functions
-    cell_duplicate,
     cell_extended_gcluster,
     cell_load,
-    cell_release,
     cells_double_box,
     cells_rounded_box,
+    nccell_duplicate,
+    nccell_release,
 };
 
 // channel ---------------------------------------------------------------------
