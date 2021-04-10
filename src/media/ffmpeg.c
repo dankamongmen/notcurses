@@ -402,10 +402,7 @@ int ffmpeg_stream(notcurses* nc, ncvisual* ncv, float timescale,
     }
     // decay the blitter explicitly, so that the callback knows the blitter it
     // was actually rendered with
-    const struct blitset* bset = rgba_blitter(nc, &activevopts);
-    if(bset){
-      activevopts.blitter = bset->geom;
-    }
+    ncvisual_blitter_geom(nc, ncv, &activevopts, NULL, NULL, NULL, NULL, &activevopts.blitter);
     if((newn = ncvisual_render(nc, ncv, &activevopts)) == NULL){
       if(activevopts.n != vopts->n){
         ncplane_destroy(activevopts.n);

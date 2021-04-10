@@ -1413,7 +1413,7 @@ int kitty_blit(ncplane* nc, int linesize, const void* data,
 int term_fg_rgb8(bool RGBflag, const char* setaf, int colors, FILE* out,
                  unsigned r, unsigned g, unsigned b);
 
-API const struct blitset* lookup_blitset(const tinfo* tcache, ncblitter_e setid, bool may_degrade);
+const struct blitset* lookup_blitset(const tinfo* tcache, ncblitter_e setid, bool may_degrade);
 
 static inline int
 rgba_blit_dispatch(ncplane* nc, const struct blitset* bset,

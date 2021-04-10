@@ -160,6 +160,8 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
         notcurses_check_pixel_support(nc);
       }
       continue;
+    }else if(keyp >= '7' && keyp <= '9' && !ni.alt && !ni.ctrl){
+      continue; // don't error out
     }else if(keyp == NCKey::Up){
       // FIXME move backwards significantly
       continue;
@@ -396,7 +398,8 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
               nc.refresh(nullptr, nullptr);
             }else if(ie >= '0' && ie <= '6'){
               --i; // rerun same input with the new blitter
-              vopts.blitter = blitter = static_cast<ncblitter_e>(ie - '0');
+            }else if(ie >= '7' && ie <= '9'){
+              --i; // just absorb the input
             }else if(ie == NCKey::Resize){
               --i; // rerun with the new size
               if(!nc.refresh(&dimy, &dimx)){
