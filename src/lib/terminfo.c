@@ -51,7 +51,7 @@ apply_term_heuristics(tinfo* ti, const char* termname){
     // setupterm interprets a missing/empty TERM variable as the special value “unknown”.
     termname = "unknown";
   }
-  ti->braille = true;
+  ti->braille = true; // most everyone has working braille, even from fonts
   if(strstr(termname, "kitty")){ // kitty (https://sw.kovidgoyal.net/kitty/)
     // see https://sw.kovidgoyal.net/kitty/protocol-extensions.html
     // FIXME detect the actual default background color; this assumes it to
@@ -78,12 +78,21 @@ apply_term_heuristics(tinfo* ti, const char* termname){
     ti->quadrants = true;
   }else if(strncmp(termname, "st", 2) == 0){
     // st had neithersextants nor quadrants last i checked (0.8.4)
+  }else if(strstr(termname, "xterm")){
+    // xterm has nothing beyond halfblocks. this is going to catch all kinds
+    // of people using xterm when they shouldn't be, or even real database
+    // entries like "xterm-kitty" (if we don't catch them above), giving a
+    // pretty minimal (but safe) experience. set your TERM correctly!
   }else if(strcmp(termname, "linux") == 0){
     ti->braille = false; // no braille, no sextants in linux console
     // FIXME if the NCOPTION_NO_FONT_CHANGES, this isn't true
     ti->quadrants = true; // we program quadrants on the console
   }
-  // run a wcwidth() to guarantee libc Unicode 13 support, independently of term
+  // run a wcwidth(⣿) to guarantee libc Unicode 3 support, independent of term
+  if(wcwidth(L'⣿') < 0){
+    ti->braille = false;
+  }
+  // run a wcwidth(🬸) to guarantee libc Unicode 13 support, independent of term
   if(wcwidth(L'🬸') < 0){
     ti->sextants = false;
   }
