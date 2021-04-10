@@ -94,7 +94,7 @@ class Cell:
         self.c.gcluster = egc # FIXME need use cell_load
 
     def __del__(self):
-        lib.cell_release(self.ncp.getNcplane(), self.c)
+        lib.nccell_release(self.ncp.getNcplane(), self.c)
 
     def setFgRGB(self, r, g, b):
         self.c.channels = channels_set_fg_rgb8(self.c.channels, r, g, b)
