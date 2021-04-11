@@ -131,8 +131,325 @@ Notcurses_drop_planes(NotcursesObject *self, PyObject *Py_UNUSED(args))
     Py_RETURN_NONE;
 }
 
+static PyObject *
+Notcurses_render(NotcursesObject *self, PyObject *Py_UNUSED(args))
+{
+    CHECK_NOTCURSES(notcurses_render(self->notcurses_ptr));
+    Py_RETURN_NONE;
+}
+
+static void cleanup_char_buffer(char **buffer_ptr)
+{
+    if (NULL != buffer_ptr)
+    {
+        free(*buffer_ptr);
+    }
+}
+
+static PyObject *
+Notcurses_render_to_buffer(NotcursesObject *self, PyObject *Py_UNUSED(args))
+{
+    char *buffer __attribute__((cleanup(cleanup_char_buffer))) = NULL;
+    size_t buffer_len = 0;
+
+    CHECK_NOTCURSES(notcurses_render_to_buffer(self->notcurses_ptr, &buffer, &buffer_len));
+
+    return PyBytes_FromStringAndSize(buffer, (Py_ssize_t)buffer_len);
+}
+
+static void cleanup_file(FILE **file_to_close)
+{
+    if (NULL != file_to_close)
+    {
+        fclose(*file_to_close);
+    }
+}
+
+static PyObject *
+Notcurses_render_to_file(NotcursesObject *self, PyObject *args)
+{
+    int fd = INT_MAX;
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "i", &fd));
+
+    FILE *new_render_file __attribute__((cleanup(cleanup_file))) = fdopen(fd, "w");
+
+    if (NULL == new_render_file)
+    {
+        return PyErr_SetFromErrno(PyExc_RuntimeError);
+    }
+
+    CHECK_NOTCURSES(notcurses_render_to_file(self->notcurses_ptr, new_render_file));
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+Notcurses_top(NotcursesObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when ncplane is implemented");
+    return NULL;
+}
+
+static PyObject *
+Notcurses_bottom(NotcursesObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when ncplane is implemented");
+    return NULL;
+}
+
+static PyObject *
+Notcurses_getc(NotcursesObject *Py_UNUSED(self), PyObject *Py_UNUSED(args), PyObject *Py_UNUSED(kwds))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when ncinput is implemented");
+    return NULL;
+}
+
+static PyObject *
+Notcurses_inputready_fd(NotcursesObject *self, PyObject *Py_UNUSED(args))
+{
+    int input_fd = notcurses_inputready_fd(self->notcurses_ptr);
+
+    return PyLong_FromLong((long)input_fd);
+}
+
+static PyObject *
+Notcurses_getc_nblock(NotcursesObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when ncinput is implemented");
+    return NULL;
+}
+
+static PyObject *
+Notcurses_getc_blocking(NotcursesObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when ncinput is implemented");
+    return NULL;
+}
+
+static PyObject *
+Notcurses_mouse_enable(NotcursesObject *self, PyObject *Py_UNUSED(args))
+{
+    CHECK_NOTCURSES(notcurses_mouse_enable(self->notcurses_ptr));
+    Py_RETURN_NONE;
+}
+static PyObject *
+Notcurses_mouse_disable(NotcursesObject *self, PyObject *Py_UNUSED(args))
+{
+    CHECK_NOTCURSES(notcurses_mouse_disable(self->notcurses_ptr));
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+Notcurses_linesigs_disable(NotcursesObject *self, PyObject *Py_UNUSED(args))
+{
+    CHECK_NOTCURSES(notcurses_linesigs_disable(self->notcurses_ptr));
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+Notcurses_linesigs_enable(NotcursesObject *self, PyObject *Py_UNUSED(args))
+{
+    CHECK_NOTCURSES(notcurses_linesigs_enable(self->notcurses_ptr));
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+Notcurses_refresh(NotcursesObject *self, PyObject *Py_UNUSED(args))
+{
+    int rows = 0, collumns = 0;
+    CHECK_NOTCURSES(notcurses_refresh(self->notcurses_ptr, &rows, &collumns));
+
+    return Py_BuildValue("ii", rows, collumns);
+}
+
+static PyObject *
+Notcurses_stdplane(NotcursesObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when ncplane is implemented");
+    return NULL;
+}
+
+static PyObject *
+Notcurses_stddim_yx(NotcursesObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when ncplane is implemented");
+    return NULL;
+}
+
+static PyObject *
+Notcurses_term_dim_yx(NotcursesObject *self, PyObject *Py_UNUSED(args))
+{
+    int rows = 0, collumns = 0;
+    notcurses_term_dim_yx(self->notcurses_ptr, &rows, &collumns);
+
+    return Py_BuildValue("ii", rows, collumns);
+}
+
+static PyObject *
+Notcurses_at_yx(NotcursesObject *Py_UNUSED(self), PyObject *Py_UNUSED(args), PyObject *Py_UNUSED(kwds))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when EGC is implemented");
+    return NULL;
+}
+
+static PyObject *
+Notcurses_ncpile_create(NotcursesObject *Py_UNUSED(self), PyObject *Py_UNUSED(args), PyObject *Py_UNUSED(kwds))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when Pile is implemented");
+    return NULL;
+}
+
+static PyObject *
+Notcurses_supported_styles(NotcursesObject *self, PyObject *Py_UNUSED(args))
+{
+    unsigned int styles = notcurses_supported_styles(self->notcurses_ptr);
+    return PyLong_FromLong((long)styles);
+}
+
+static PyObject *
+Notcurses_palette_size(NotcursesObject *self, PyObject *Py_UNUSED(args))
+{
+    unsigned int pallete_size = notcurses_palette_size(self->notcurses_ptr);
+    return PyLong_FromLong((long)pallete_size);
+}
+
+static PyObject *
+Notcurses_cantruecolor(NotcursesObject *self, PyObject *Py_UNUSED(args))
+{
+    return PyBool_FromLong((long)notcurses_cantruecolor(self->notcurses_ptr));
+}
+
+static PyObject *
+Notcurses_canfade(NotcursesObject *self, PyObject *Py_UNUSED(args))
+{
+    return PyBool_FromLong((long)notcurses_canfade(self->notcurses_ptr));
+}
+
+static PyObject *
+Notcurses_canchangecolor(NotcursesObject *self, PyObject *Py_UNUSED(args))
+{
+    return PyBool_FromLong((long)notcurses_canchangecolor(self->notcurses_ptr));
+}
+
+static PyObject *
+Notcurses_canopen_images(NotcursesObject *self, PyObject *Py_UNUSED(args))
+{
+    return PyBool_FromLong((long)notcurses_canopen_images(self->notcurses_ptr));
+}
+
+static PyObject *
+Notcurses_canopen_videos(NotcursesObject *self, PyObject *Py_UNUSED(args))
+{
+    return PyBool_FromLong((long)notcurses_canopen_videos(self->notcurses_ptr));
+}
+
+static PyObject *
+Notcurses_canutf8(NotcursesObject *self, PyObject *Py_UNUSED(args))
+{
+    return PyBool_FromLong((long)notcurses_canutf8(self->notcurses_ptr));
+}
+
+static PyObject *
+Notcurses_cansextant(NotcursesObject *self, PyObject *Py_UNUSED(args))
+{
+    return PyBool_FromLong((long)notcurses_cansextant(self->notcurses_ptr));
+}
+
+static PyObject *
+Notcurses_canbraille(NotcursesObject *self, PyObject *Py_UNUSED(args))
+{
+    return PyBool_FromLong((long)notcurses_canbraille(self->notcurses_ptr));
+}
+
+static PyObject *
+Notcurses_check_pixel_support(NotcursesObject *self, PyObject *Py_UNUSED(args))
+{
+    int pixel_output_supported = CHECK_NOTCURSES(notcurses_check_pixel_support(self->notcurses_ptr));
+    return PyLong_FromLong((long)pixel_output_supported);
+}
+
+static PyObject *
+Notcurses_stats(NotcursesObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when stats is implemented");
+    return NULL;
+}
+
+static PyObject *
+Notcurses_stats_reset(NotcursesObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when stats is implemented");
+    return NULL;
+}
+
+static PyObject *
+Notcurses_cursor_enable(NotcursesObject *self, PyObject *args, PyObject *kwds)
+{
+    int y = 0, x = 0;
+
+    char *keywords[] = {"y", "x", NULL};
+
+    GNU_PY_CHECK_INT(
+        PyArg_ParseTupleAndKeywords(args, kwds, "|ii", keywords,
+                                    &y, &x));
+
+    CHECK_NOTCURSES(notcurses_cursor_enable(self->notcurses_ptr, y, x));
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+Notcurses_cursor_disable(NotcursesObject *self, PyObject *Py_UNUSED(args))
+{
+    CHECK_NOTCURSES(notcurses_cursor_disable(self->notcurses_ptr));
+    Py_RETURN_NONE;
+}
+
 static PyMethodDef Notcurses_methods[] = {
     {"drop_planes", (PyCFunction)Notcurses_drop_planes, METH_NOARGS, "Destroy all ncplanes other than the stdplane."},
+
+    {"render", (PyCFunction)Notcurses_render, METH_NOARGS, "Renders and rasterizes the standard pile in one shot. Blocking call."},
+    {"render_to_buffer", (PyCFunction)Notcurses_render_to_buffer, METH_NOARGS, "Perform the rendering and rasterization portion of notcurses_render() and write it to bytes object instead of terminal."},
+    {"render_to_file", (PyCFunction)Notcurses_render_to_file, METH_VARARGS, "Write the last rendered frame, in its entirety, to file descriptor. If render() has not yet been called, nothing will be written."},
+
+    {"top", (PyCFunction)Notcurses_top, METH_NOARGS, "Return the topmost ncplane of the standard pile."},
+    {"bottom", (PyCFunction)Notcurses_bottom, METH_NOARGS, "Return the bottommost ncplane of the standard pile."},
+
+    {"getc", (void *)Notcurses_getc, METH_VARARGS | METH_KEYWORDS, "See ppoll(2) for more detail. Provide a None 'ts' to block at length, a 'ts' of 0 for non-blocking operation, and otherwise a timespec to bound blocking. Signals in sigmask (less several we handle internally) will be atomically masked and unmasked per ppoll(2). It should generally contain all signals. Returns a single Unicode code point, or (char32_t)-1 on error. 'sigmask' may be NULL. Returns 0 on a timeout. If an event is processed, the return value is the 'id' field from that event. 'ni' may be NULL."},
+    {"inputready_fd", (PyCFunction)Notcurses_inputready_fd, METH_NOARGS, "Get a file descriptor suitable for input event poll()ing. When this descriptor becomes available, you can call notcurses_getc_nblock(), and input ought be ready. This file descriptor is *not* necessarily the file descriptor associated with stdin (but it might be!)."},
+    {"getc_nblock", (PyCFunction)Notcurses_getc_nblock, METH_NOARGS, "Get input event without blocking. If no event is ready, returns None."},
+    {"getc_blocking", (PyCFunction)Notcurses_getc_blocking, METH_NOARGS, "Get input event completely blocking until and event or signal received."},
+
+    {"mouse_enable", (PyCFunction)Notcurses_mouse_enable, METH_NOARGS, "Enable the mouse in \"button-event tracking\" mode with focus detection and UTF8-style extended coordinates. On success mouse events will be published to getc()"},
+    {"mouse_disable", (PyCFunction)Notcurses_mouse_disable, METH_NOARGS, "Disable mouse events. Any events in the input queue can still be delivered."},
+    {"linesigs_disable", (PyCFunction)Notcurses_linesigs_disable, METH_NOARGS, "Disable signals originating from the terminal's line discipline, i.e. SIGINT (^C), SIGQUIT (^\\), and SIGTSTP (^Z). They are enabled by default."},
+    {"linesigs_enable", (PyCFunction)Notcurses_linesigs_enable, METH_NOARGS, "Restore signals originating from the terminal's line discipline, i.e. SIGINT (^C), SIGQUIT (^\\), and SIGTSTP (^Z), if disabled."},
+
+    {"refresh", (PyCFunction)Notcurses_refresh, METH_NOARGS, "Refresh the physical screen to match what was last rendered. Return the new dimensions"},
+    {"stdplane", (PyCFunction)Notcurses_stdplane, METH_NOARGS, "Get a reference to the standard plane (one matching our current idea of the terminal size) for this terminal. The standard plane always exists, and its origin is always at the uppermost, leftmost cell of the terminal."},
+    {"stddim_yx", (PyCFunction)Notcurses_stddim_yx, METH_NOARGS, "Get standard plane plus dimensions dimensions."},
+    {"term_dim_yx", (PyCFunction)Notcurses_term_dim_yx, METH_NOARGS, "Return our current idea of the terminal dimensions in rows and cols."},
+
+    {"at_yx", (void *)Notcurses_at_yx, METH_VARARGS | METH_KEYWORDS, "Retrieve the contents of the specified cell as last rendered."},
+    {"ncpile_create", (void *)Notcurses_ncpile_create, METH_VARARGS | METH_KEYWORDS, "Same as ncplane_create(), but creates a new pile. The returned plane will be the top, bottom, and root of this new pile."},
+
+    {"supported_styles", (PyCFunction)Notcurses_supported_styles, METH_NOARGS, PyDoc_STR("Returns a 16-bit bitmask of supported curses-style attributes (NCSTYLE_UNDERLINE, NCSTYLE_BOLD, etc.) The attribute is only indicated as supported if the terminal can support it together with color. For more information, see the \"ncv\" capability in terminfo(5).")},
+    {"palette_size", (PyCFunction)Notcurses_palette_size, METH_NOARGS, PyDoc_STR("Returns the number of simultaneous colors claimed to be supported, or 1 if there is no color support. Note that several terminal emulators advertise more colors than they actually support, downsampling internally.")},
+    {"cantruecolor", (PyCFunction)Notcurses_cantruecolor, METH_NOARGS, PyDoc_STR("Can we directly specify RGB values per cell, or only use palettes?")},
+    {"canfade", (PyCFunction)Notcurses_canfade, METH_NOARGS, PyDoc_STR("Can we fade? Fading requires either the \"rgb\" or \"ccc\" terminfo capability.")},
+    {"canchangecolor", (PyCFunction)Notcurses_canchangecolor, METH_NOARGS, PyDoc_STR("Can we set the \"hardware\" palette? Requires the \"ccc\" terminfo capability.")},
+    {"canopen_images", (PyCFunction)Notcurses_canopen_images, METH_NOARGS, PyDoc_STR("Can we set the \"hardware\" palette? Requires the \"ccc\" terminfo capability.")},
+    {"canopen_videos", (PyCFunction)Notcurses_canopen_videos, METH_NOARGS, PyDoc_STR("Can we load videos? This requires being built against FFmpeg.")},
+    {"canutf8", (PyCFunction)Notcurses_canutf8, METH_NOARGS, PyDoc_STR("Is our encoding UTF-8? Requires LANG being set to a UTF8 locale.")},
+    {"cansextant", (PyCFunction)Notcurses_cansextant, METH_NOARGS, PyDoc_STR("Can we reliably use Unicode 13 sextants?")},
+    {"canbraille", (PyCFunction)Notcurses_canbraille, METH_NOARGS, PyDoc_STR("Can we reliably use Unicode Braille?")},
+    {"check_pixel_support", (PyCFunction)Notcurses_check_pixel_support, METH_NOARGS, PyDoc_STR("This function must successfully return before NCBLIT_PIXEL is available. Raises exception on error, 0 for no support, or 1 if pixel output is supported. Must not be called concurrently with either input or rasterization.")},
+
+    {"stats", (PyCFunction)Notcurses_stats, METH_NOARGS, PyDoc_STR("Acquire an atomic snapshot of the Notcurses object's stats.")},
+    {"stats_reset", (PyCFunction)Notcurses_stats_reset, METH_NOARGS, PyDoc_STR("Reset all cumulative stats (immediate ones, such as fbbytes, are not reset) and first returning a copy before reset.")},
+
+    {"cursor_enable", (void *)Notcurses_cursor_enable, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Enable the terminal's cursor, if supported, placing it at 'y', 'x'. Immediate effect (no need for a call to notcurses_render()). It is an error if 'y', 'x' lies outside the standard plane.")},
+    {"cursor_disable", (PyCFunction)Notcurses_cursor_disable, METH_NOARGS, PyDoc_STR("Disable the terminal's cursor.")},
+
     {NULL, NULL, 0, NULL},
 };
 
