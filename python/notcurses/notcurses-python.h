@@ -20,13 +20,15 @@ limitations under the License.
 #include <notcurses/notcurses.h>
 #include <notcurses/direct.h>
 
-// Define structs
+// Define classes
 
 typedef struct
 {
     PyObject_HEAD;
     struct notcurses *notcurses_ptr;
 } NotcursesObject;
+
+extern PyTypeObject Notcurses_Type;
 
 typedef struct
 {
@@ -187,3 +189,42 @@ static inline void PyObject_cleanup(PyObject **object)
         }                                                                                  \
         return_value;                                                                      \
     })
+
+#define CHECK_NOTCURSES_PTR(notcurses_func)                                  \
+    ({                                                                       \
+        void *return_ptr = notcurses_func;                                   \
+        if (NULL == return_ptr)                                              \
+        {                                                                    \
+            PyErr_Format(PyExc_RuntimeError, "Notcurses returned null ptr"); \
+            return NULL;                                                     \
+        }                                                                    \
+        return_ptr;                                                          \
+    })
+
+#define GNU_PY_LONG_CHECK(py_long)              \
+    ({                                          \
+        long new_long = PyLong_AsLong(py_long); \
+        if (PyErr_Occurred())                   \
+        {                                       \
+            return NULL;                        \
+        }                                       \
+        new_long;                               \
+    })
+
+#define GNU_PY_MODULE_ADD_OBJECT(module, py_object, py_object_name)    \
+    ({                                                                 \
+        Py_INCREF(py_object);                                          \
+        if (PyModule_AddObject(module, py_object_name, py_object) < 0) \
+        {                                                              \
+            Py_DECREF(py_object);                                      \
+            return NULL;                                               \
+        }                                                              \
+    })
+
+#define GNU_PY_TYPE_READY(py_type)     \
+    {                                  \
+        if (PyType_Ready(py_type) < 0) \
+        {                              \
+            return NULL;               \
+        }                              \
+    }
