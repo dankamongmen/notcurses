@@ -34,6 +34,12 @@ PyInit_notcurses(void)
     GNU_PY_CHECK_INT(PyModule_AddFunctions(py_module, ChannelsFunctions));
     GNU_PY_CHECK_INT(PyModule_AddFunctions(py_module, MiscFunctions));
 
+    // Type ready?
+    GNU_PY_TYPE_READY(&Notcurses_Type);
+
+    // Add objects
+    GNU_PY_MODULE_ADD_OBJECT(py_module, (PyObject *)&Notcurses_Type, "Notcurses");
+
     // background cannot be highcontrast, only foreground
     GNU_PY_CHECK_INT(PyModule_AddIntMacro(py_module, CELL_ALPHA_HIGHCONTRAST));
     GNU_PY_CHECK_INT(PyModule_AddIntMacro(py_module, CELL_ALPHA_TRANSPARENT));
