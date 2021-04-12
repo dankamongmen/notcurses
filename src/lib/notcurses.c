@@ -932,6 +932,8 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   if(ret == NULL){
     return ret;
   }
+  ret->rstate.mstream = NULL;
+  ret->rstate.mstreamfp = NULL;
   ret->loglevel = opts->loglevel;
   if(!(opts->flags & NCOPTION_INHIBIT_SETLOCALE)){
     init_lang(ret);
@@ -945,7 +947,6 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   }else{
     fprintf(stderr, "Encoding (\"%s\") was neither ANSI_X3.4-1968 nor UTF-8, refusing to start\n Did you call setlocale()?\n",
             encoding ? encoding : "none found");
-    free(ret);
     return NULL;
   }
   if(outfp == NULL){
@@ -1041,6 +1042,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     goto err;
   }
   if(ret->ttyfd >= 0){
+    reset_term_attributes(ret);
     if(!(opts->flags & NCOPTION_NO_CLEAR_BITMAPS)){
       if(sprite_init(ret)){
         free_plane(ret->stdplane);
@@ -1055,7 +1057,6 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
       free_plane(ret->stdplane);
       goto err;
     }
-    reset_term_attributes(ret);
   }
   if((ret->rstate.mstreamfp = open_memstream(&ret->rstate.mstream, &ret->rstate.mstrsize)) == NULL){
     free_plane(ret->stdplane);
@@ -1088,6 +1089,10 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
 err:
   fprintf(stderr, "Alas, you will not be going to space today.\n");
   // FIXME looks like we have some memory leaks on this error path?
+  if(ret->rstate.mstreamfp){
+    fclose(ret->rstate.mstreamfp);
+  }
+  free(ret->rstate.mstream);
   tcsetattr(ret->ttyfd, TCSANOW, &ret->tpreserved);
   drop_signals(ret);
   pthread_mutex_destroy(&ret->statlock);
