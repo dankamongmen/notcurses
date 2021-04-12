@@ -218,11 +218,8 @@ ext_demos(struct notcurses* nc, const char* spec){
     // set the standard plane's base character to an opaque black, but don't
     // erase the plane (we let one demo bleed through to the next, an effect
     // we exploit in a few transitions).
-    nccell c = CELL_TRIVIAL_INITIALIZER;
-    cell_set_fg_rgb8(&c, 0, 0, 0);
-    cell_set_bg_rgb8(&c, 0, 0, 0);
-    ncplane_set_base_cell(n, &c);
-    nccell_release(n, &c);
+    uint64_t stdc = CHANNELS_RGB_INITIALIZER(0, 0, 0, 0, 0, 0);
+    ncplane_set_base(n, "", 0, stdc);
 
     hud_schedule(demos[idx].name);
     ret = demos[idx].fxn(nc);

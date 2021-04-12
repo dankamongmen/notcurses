@@ -98,6 +98,10 @@ int xray_demo(struct notcurses* nc){
     ncvisual_destroy(ncv);
     return -1;
   }
+  uint64_t stdc = 0;
+  channels_set_fg_alpha(&stdc, CELL_ALPHA_TRANSPARENT);
+  channels_set_bg_alpha(&stdc, CELL_ALPHA_TRANSPARENT);
+  ncplane_set_base(notcurses_stdplane(nc), "", 0, stdc);
   struct ncvisual_options vopts = {
     .y = NCALIGN_CENTER,
     .x = NCALIGN_CENTER,
@@ -106,7 +110,6 @@ int xray_demo(struct notcurses* nc){
     .flags = NCVISUAL_OPTION_NODEGRADE // to test for NCBLIT_PIXEL
               | NCVISUAL_OPTION_VERALIGNED | NCVISUAL_OPTION_HORALIGNED
               | NCVISUAL_OPTION_ADDALPHA,
-    .transcolor = 0,
   };
   float dm = 0;
   // returns 0 if the selected blitter isn't available
