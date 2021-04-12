@@ -652,12 +652,18 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
     }else if(placex == NCALIGN_RIGHT){
       placex = ncplane_dim_x(n) - dispcols / nc->tcache.cellpixx;
     }
+    if(placex < 0){
+      return NULL;
+    }
   }
   if(flags & NCVISUAL_OPTION_VERALIGNED){
     if(placey == NCALIGN_CENTER){
       placey = ((ncplane_dim_y(n) * nc->tcache.cellpixy - disprows) / 2) / nc->tcache.cellpixy;
     }else if(placey == NCALIGN_BOTTOM){
       placey = ncplane_dim_y(n) * nc->tcache.cellpixy - disprows / nc->tcache.cellpixy;
+    }
+    if(placey < 0){
+      return NULL;
     }
   }
 //fprintf(stderr, "pblit: %dx%d <- %dx%d of %d/%d stride %u @%dx%d %p %u\n", disprows, dispcols, begy, begx, ncv->rows, ncv->cols, ncv->rowstride, placey, placex, ncv->data, nc->tcache.cellpixx);

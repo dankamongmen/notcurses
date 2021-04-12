@@ -1252,6 +1252,8 @@ plane_blit_sixel(sprixel* spx, char* s, int bytes, int rows, int cols,
   }
   ncplane* n = spx->n;
   uint32_t gcluster = htole(0x02000000ul) + htole(spx->id);
+  // FIXME rows/cols ought never exceed the size, just as placey/placex
+  // ought never be negative. why need we check the former?
   for(int y = placey ; y < placey + rows && y < ncplane_dim_y(n) ; ++y){
     for(int x = placex ; x < placex + cols && x < ncplane_dim_x(n) ; ++x){
       nccell* c = ncplane_cell_ref_yx(n, y, x);
