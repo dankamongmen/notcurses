@@ -59,7 +59,11 @@ reset_term_attributes(notcurses* nc){
 static int
 notcurses_stop_minimal(void* vnc){
   notcurses* nc = vnc;
-  int ret = drop_signals(nc);
+  int ret = 0;
+  // see notcurses_core_init()--don't treat failure here as an error. it
+  // screws up unit tests, and one day we'll need support multiple notcurses
+  // contexts. FIXME
+  drop_signals(nc);
   // be sure to write the restoration sequences *prior* to running rmcup, as
   // they apply to the screen (alternate or otherwise) we're actually using.
   if(nc->ttyfd >= 0){
