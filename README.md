@@ -13,10 +13,11 @@
 <a href="https://www.youtube.com/watch?v=cYhZ7myXyyg"><img src="https://img.youtube.com/vi/cYhZ7myXyyg/0.jpg" alt="setting the standard (hype video)"/></a>
 </p>
 
-birthed screaming into this world by [nick black](https://nick-black.com/dankwiki/index.php/Hack_on) (<nickblack@linux.com>).
+birthed screaming into this world by [nick black](https://nick-black.com/dankwiki/index.php/Hack_on) (<nickblack@linux.com>)
 * c++ wrappers by [marek habersack](http://twistedcode.net/blog/) (<grendel@twistedcode.net>)
 * rust wrappers by José Luis Cruz (<joseluis@andamira.net>)
 * python wrappers by igo95862 (<igo95862@yandex.ru>)
+* [https://github.com/dundalek/notcurses-zig-example](zig wrappers) by [Jakub Dundalek](https://dundalek.com/) (<dundalek@gmail.com>)
 
 for more information, see [dankwiki](https://nick-black.com/dankwiki/index.php/Notcurses)
 and the [man pages](https://notcurses.com). in addition, there is
