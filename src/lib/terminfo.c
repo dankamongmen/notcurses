@@ -80,6 +80,7 @@ apply_term_heuristics(tinfo* ti, const char* termname){
     // st had neithersextants nor quadrants last i checked (0.8.4)
   }else if(strstr(termname, "mlterm")){
     ti->quadrants = true; // good quadrants, no sextants as of 3.9.0
+    ti->sprixel_cursor_hack = true;
   }else if(strstr(termname, "xterm")){
     // xterm has nothing beyond halfblocks. this is going to catch all kinds
     // of people using xterm when they shouldn't be, or even real database
@@ -88,6 +89,7 @@ apply_term_heuristics(tinfo* ti, const char* termname){
   }else if(strcmp(termname, "linux") == 0){
     ti->braille = false; // no braille, no sextants in linux console
     // FIXME if the NCOPTION_NO_FONT_CHANGES, this isn't true
+    // FIXME we probably want to do this based off ioctl()s in linux.c
     ti->quadrants = true; // we program quadrants on the console
   }
   // run a wcwidth(⣿) to guarantee libc Unicode 3 support, independent of term

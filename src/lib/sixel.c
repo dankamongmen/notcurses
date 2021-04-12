@@ -137,9 +137,13 @@ update_deets(uint32_t rgb, cdetails* deets){
 // count, and a sum of all three channels. in addition, we track whether we've
 // seen at least two colors in the chunk.
 static inline int
-extract_color_table(const uint32_t* data, int linesize, int begy, int begx, int cols,
-                    int leny, int lenx, int cdimy, int cdimx, sixeltable* stab,
-                    sprixcell_e* tacache, uint32_t transcolor){
+extract_color_table(const uint32_t* data, int linesize, int cols,
+                    int leny, int lenx, sixeltable* stab,
+                    sprixcell_e* tacache, const blitterargs* bargs){
+  const int begx = bargs->begx;
+  const int begy = bargs->begy;
+  const int cdimy = bargs->u.pixel.celldimy;
+  const int cdimx = bargs->u.pixel.celldimx;
   unsigned char mask = 0xc0;
   int pos = 0; // pixel position
   for(int visy = begy ; visy < (begy + leny) ; visy += 6){ // pixel row
@@ -147,7 +151,7 @@ extract_color_table(const uint32_t* data, int linesize, int begy, int begx, int 
       for(int sy = visy ; sy < (begy + leny) && sy < visy + 6 ; ++sy){ // offset within sprixel
         const uint32_t* rgb = (data + (linesize / 4 * sy) + visx);
         int txyidx = (sy / cdimy) * cols + (visx / cdimx);
-        if(rgba_trans_p(*rgb, transcolor)){
+        if(rgba_trans_p(*rgb, bargs->transcolor)){
           if(tacache[txyidx] == SPRIXCELL_NORMAL){
             tacache[txyidx] = SPRIXCELL_CONTAINS_TRANS;
           }
@@ -316,7 +320,8 @@ write_rle(int* printed, int color, FILE* fp, int seenrle, unsigned char crle){
 // Emit the sprixel in its entirety, plus enable and disable pixel mode.
 // Closes |fp| on all paths.
 static int
-write_sixel_data(FILE* fp, int leny, int lenx, const sixeltable* stab, int* parse_start){
+write_sixel_data(FILE* fp, int leny, int lenx, const sixeltable* stab, int* parse_start,
+                 const char* cursor_hack){
   // Set P2=1, turning empty pixels transparent
   *parse_start = fprintf(fp, "\eP0;1;0q");
   // Set Raster Attributes - pan/pad=1 (pixel aspect ratio), Ph=lenx, Pv=leny
@@ -377,6 +382,9 @@ write_sixel_data(FILE* fp, int leny, int lenx, const sixeltable* stab, int* pars
   // \x9c: 8-bit "string terminator" (end sixel) doesn't work on at
   // least xterm; we instead use '\e\\'
   fprintf(fp, "\e\\");
+  if(cursor_hack){
+    fprintf(fp, "%s", cursor_hack);
+  }
   if(fclose(fp) == EOF){
     return -1;
   }
@@ -398,7 +406,8 @@ sixel_blit_inner(int leny, int lenx, const sixeltable* stab, int rows, int cols,
   }
   int parse_start = 0;
   // calls fclose() on success
-  if(write_sixel_data(fp, leny, lenx, stab, &parse_start)){
+  if(write_sixel_data(fp, leny, lenx, stab, &parse_start,
+                      bargs->u.pixel.cursor_hack)){
     free(buf);
     return -1;
   }
@@ -459,9 +468,8 @@ int sixel_blit(ncplane* n, int linesize, const void* data,
     }
     memset(tacache, 0, sizeof(*tacache) * rows * cols);
   }
-  if(extract_color_table(data, linesize, bargs->begy, bargs->begx, cols, leny, lenx,
-                         bargs->u.pixel.celldimy, bargs->u.pixel.celldimx,
-                         &stable, tacache, bargs->transcolor)){
+  if(extract_color_table(data, linesize, cols, leny, lenx,
+                         &stable, tacache, bargs)){
     if(!reuse){
       free(tacache);
     }

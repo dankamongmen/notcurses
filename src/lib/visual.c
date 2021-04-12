@@ -686,6 +686,12 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
     ncv->spx = sprixel_recycle(n, ncv);
   }
   bargs.u.pixel.spx = ncv->spx;
+  // FIXME only set this if cursor is indeed hidden
+  if(nc->tcache.sprixel_cursor_hack){
+    bargs.u.pixel.cursor_hack = nc->tcache.civis;
+  }else{
+    bargs.u.pixel.cursor_hack = NULL;
+  }
   if(ncvisual_blit(ncv, disprows, dispcols, n, bset, disprows, dispcols, &bargs)){
     goto err;
   }
