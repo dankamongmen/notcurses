@@ -331,7 +331,8 @@ setup_sixel(tinfo* ti){
   ti->color_registers = 256;  // assumed default [shrug]
   ti->pixel_init = sprite_sixel_init;
   ti->pixel_draw = sixel_draw;
-  ti->sixel_maxx = ti->sixel_maxy = 0;
+  ti->sixel_maxx = 4096; // whee!
+  ti->sixel_maxy = 4096;
   ti->pixel_destroy = sixel_delete;
 }
 
