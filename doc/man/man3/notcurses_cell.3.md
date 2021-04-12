@@ -1,6 +1,6 @@
 % notcurses_cell(3)
 % nick black <nickblack@linux.com>
-% v2.2.5
+% v2.2.6
 
 # NAME
 

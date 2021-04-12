@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 2.2.6 (not yet released)
+* 2.2.6 (2021-04-12)
   * `ncplane_rgba()` has been deprecated in favor of the new function
     `ncplane_as_rgba()`, which the former now wraps. It will be removed
     in ABI3. The new function can report the synthesized pixel geometry.
@@ -11,7 +11,7 @@ rearrangements of Notcurses.
   * `ncplane_pixelgeom()` has been added, allowing callers to determine the
     size of the plane and cells in pixels, as well as the maximum bitmap
     size that can be displayed.
-  * added new function `ncdirect_stream()`, which does what you'd think.
+  * Added new function `ncdirect_stream()`, which does what you'd think.
   * `cell_release()` and `cell_duplicate()` have been migrated to
     `nccell_release()` and `nccell_duplicate()`, respectively. The former
     forms have been deprecated, and will be removed in API3.
