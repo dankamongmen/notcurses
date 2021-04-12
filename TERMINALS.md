@@ -34,7 +34,7 @@ relies on the font. Patches to correct/complete this table are very welcome!
 | GNU Screen      |                    |  ❌   |n/a     |`TERM=screen.OLDTERM`            | Must be compiled with `--enable-256color`. `TERM` should typically be `screen.` suffixed by the appropriate `TERM` value for the true connected terminal, e.g. `screen.vte-256color`. See below. |
 | st ("suckless") | ✅                 |  ✅   |?       |`TERM=st-256color` `COLORTERM=24bit` | |
 | Terminator      | ✅                 |  ?    |?       | ?                               | |
-| Terminology     | ❌                 |  ?    |?       | ?                               | |
+| Terminology     | ❌                 |  ❌   |?       | `TERM=terminology`              | |
 | [Tilda](https://github.com/lanoxx/tilda)           |                    |  ?    |?       | ?                               | |
 | [tmux](https://github.com/tmux/tmux/wiki)            |                    |  ❌   |n/a     |`TERM=tmux-256color` `COLORTERM=24bit` | `tmux.conf` must apply `Tc`; see below. `bce` is available with the `tmux-256color-bce` definition. |
 | [wezterm](https://github.com/wez/wezterm)         | ✅                 |  ✅   |?       |`TERM=wezterm` `COLORTERM=24bit` | See below. |
