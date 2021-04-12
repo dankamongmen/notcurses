@@ -80,7 +80,7 @@ ncvisual_blitset_geom(const notcurses* nc, const ncvisual* n,
                       const struct ncvisual_options* vopts,
                       int* y, int* x, int* toy, int* tox,
                       int* leny, int* lenx, const struct blitset** blitter){
-  if(vopts && vopts->flags > NCVISUAL_OPTION_ADDALPHA){
+  if(vopts && vopts->flags >= (NCVISUAL_OPTION_ADDALPHA << 1u)){
     logwarn(nc, "Warning: unknown ncvisual options %016jx\n", (uintmax_t)vopts->flags);
   }
   int begy, begx;
@@ -703,6 +703,7 @@ ncplane* ncvisual_render(notcurses* nc, ncvisual* ncv, const struct ncvisual_opt
   const struct blitset* bset;
   int srcy, srcx, toy, tox, leny, lenx;
   if(ncvisual_blitset_geom(nc, ncv, vopts, &srcy, &srcx, &toy, &tox, &leny, &lenx, &bset) < 0){
+    // ncvisual_blitset_geom() emits its own diagnostics, no need for an error here
     return NULL;
   }
   int begy, begx;
