@@ -811,13 +811,14 @@ init_banner(const notcurses* nc, const char* shortname_term){
       putc('R', stdout);
       term_fg_rgb8(true, nc->tcache.setaf, nc->tcache.colors, stdout, 0x60, 0xe0, 0x60);
       putc('G', stdout);
-      term_fg_rgb8(true, nc->tcache.setaf, nc->tcache.colors, stdout, 0x60, 0x60, 0xe0);
+      term_fg_rgb8(true, nc->tcache.setaf, nc->tcache.colors, stdout, 0x20, 0x80, 0xff);
       putc('B', stdout);
       term_fg_palindex(nc, stdout, nc->tcache.colors <= 256 ? 12 % nc->tcache.colors : 0x2080e0);
     }
-    printf("\n  compiled with gcc-%s, %s-endian %zuB cells\n"
+    printf("\n  compiled with gcc-%s, %zuB %s-endian cells\n"
            "  terminfo from %s\n",
            __VERSION__,
+           sizeof(nccell),
 #ifdef __BYTE_ORDER__
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
            "little"
@@ -827,7 +828,7 @@ init_banner(const notcurses* nc, const char* shortname_term){
 #else
 #error "No __BYTE_ORDER__ definition"
 #endif
-           , sizeof(nccell), curses_version());
+           , curses_version());
     ncvisual_printbanner(nc);
     fflush(stdout);
     init_banner_warnings(nc, stderr);
