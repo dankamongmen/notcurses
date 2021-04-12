@@ -82,7 +82,7 @@ int highcontrast_demo(struct notcurses* nc){
     if(total > 768){
       total = r = g = b = 0;
     }
-    cell_load_char(n, &c, motto[out % strlen(motto)]);
+    nccell_load_char(n, &c, motto[out % strlen(motto)]);
     cell_set_bg_rgb(&c, scrcolors[out % totcells]);
     if(ncplane_putc_yx(n, (out + dimx) / dimx, out % dimx, &c) < 0){
       free(scrcolors);

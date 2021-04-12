@@ -1898,7 +1898,7 @@ cell_double_wide_p(const nccell* c){
 // Load a 7-bit char 'ch' into the nccell 'c'. Returns the number of bytes
 // used, or -1 on error.
 static inline int
-cell_load_char(struct ncplane* n, nccell* c, char ch){
+nccell_load_char(struct ncplane* n, nccell* c, char ch){
   char gcluster[2];
   gcluster[0] = ch;
   gcluster[1] = '\0';
@@ -1908,7 +1908,7 @@ cell_load_char(struct ncplane* n, nccell* c, char ch){
 // Load a UTF-8 encoded EGC of up to 4 bytes into the nccell 'c'. Returns the
 // number of bytes used, or -1 on error.
 static inline int
-cell_load_egc32(struct ncplane* n, nccell* c, uint32_t egc){
+nccell_load_egc32(struct ncplane* n, nccell* c, uint32_t egc){
   char gcluster[sizeof(egc) + 1];
   egc = htole(egc);
   memcpy(gcluster, &egc, sizeof(egc));
@@ -1920,6 +1920,22 @@ cell_load_egc32(struct ncplane* n, nccell* c, uint32_t egc){
 // is invalidated by any further operation on the plane 'n', so...watch out!
 // returns NULL if called on a sprixel.
 const char* nccell_extended_gcluster(const struct ncplane* n, const nccell* c);
+
+// Returns true if the two nccells are distinct EGCs, attributes, or channels.
+// The actual egcpool index needn't be the same--indeed, the planes needn't even
+// be the same. Only the expanded EGC must be equal. The EGC must be bit-equal;
+// it would probably be better to test whether they're Unicode-equal FIXME.
+static inline bool
+nccellcmp(const struct ncplane* n1, const nccell* RESTRICT c1,
+          const struct ncplane* n2, const nccell* RESTRICT c2){
+  if(c1->stylemask != c2->stylemask){
+    return true;
+  }
+  if(c1->channels != c2->channels){
+    return true;
+  }
+  return strcmp(nccell_extended_gcluster(n1, c1), nccell_extended_gcluster(n2, c2));
+}
 
 // load up six cells with the EGCs necessary to draw a box. returns 0 on
 // success, -1 on error. on error, any cells this function might

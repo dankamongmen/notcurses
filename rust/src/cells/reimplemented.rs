@@ -306,11 +306,11 @@ pub const fn cell_wide_left_p(cell: &NcCell) -> bool {
 // //
 // // TODO:CHECK is this necessary at all?
 // #[inline]
-// pub fn cell_load_char(plane: &mut NcPlane, cell: &mut NcCell, ch: NcEgc) /* -> i32 */
+// pub fn nccell_load_char(plane: &mut NcPlane, cell: &mut NcCell, ch: NcEgc) /* -> i32 */
 // {
 //     let _ = unsafe { crate::cell_load(plane, cell, ch) };
 // }
-// cell_load_char(struct ncplane* n, nccell* c, char ch){
+// nccell_load_char(struct ncplane* n, nccell* c, char ch){
 //   char gcluster[2];
 //   gcluster[0] = ch;
 //   gcluster[1] = '\0';
@@ -323,7 +323,7 @@ pub const fn cell_wide_left_p(cell: &NcCell) -> bool {
 // //
 // // TODO
 // #[inline]
-// pub fn cell_load_egc32(plane: &mut NcPlane, cell: &mut NcCell, egc: &str) -> NcIntResult {
+// pub fn nccell_load_egc32(plane: &mut NcPlane, cell: &mut NcCell, egc: &str) -> NcIntResult {
 //     char gcluster[sizeof(egc) + 1];
 //     egc = egc.to_le();
 //     memcpy(gcluster, &egc, sizeof(egc));
@@ -333,7 +333,7 @@ pub const fn cell_wide_left_p(cell: &NcCell) -> bool {
 // // Load a UTF-8 encoded EGC of up to 4 bytes into the nccell 'c'. Returns the
 // // number of bytes used, or -1 on error.
 // static inline int
-// cell_load_egc32(struct ncplane* n, nccell* c, uint32_t egc){
+// nccell_load_egc32(struct ncplane* n, nccell* c, uint32_t egc){
 //   char gcluster[sizeof(egc) + 1];
 //   egc = htole(egc);
 //   memcpy(gcluster, &egc, sizeof(egc));

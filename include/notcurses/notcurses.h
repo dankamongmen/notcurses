@@ -806,6 +806,7 @@ cell_extract(const struct ncplane* n, const nccell* c,
 // The actual egcpool index needn't be the same--indeed, the planes needn't even
 // be the same. Only the expanded EGC must be equal. The EGC must be bit-equal;
 // it would probably be better to test whether they're Unicode-equal FIXME.
+// probably needs be fixed up for sprixels FIXME.
 static inline bool
 nccellcmp(const struct ncplane* n1, const nccell* RESTRICT c1,
           const struct ncplane* n2, const nccell* RESTRICT c2){
@@ -827,22 +828,32 @@ cellcmp(const struct ncplane* n1, const nccell* RESTRICT c1,
 // Load a 7-bit char 'ch' into the nccell 'c'. Returns the number of bytes
 // used, or -1 on error.
 static inline int
-cell_load_char(struct ncplane* n, nccell* c, char ch){
+nccell_load_char(struct ncplane* n, nccell* c, char ch){
   char gcluster[2];
   gcluster[0] = ch;
   gcluster[1] = '\0';
   return cell_load(n, c, gcluster);
 }
 
+__attribute__ ((deprecated)) static inline int
+cell_load_char(struct ncplane* n, nccell* c, char ch){
+  return nccell_load_char(n, c, ch);
+}
+
 // Load a UTF-8 encoded EGC of up to 4 bytes into the nccell 'c'. Returns the
 // number of bytes used, or -1 on error.
 static inline int
-cell_load_egc32(struct ncplane* n, nccell* c, uint32_t egc){
+nccell_load_egc32(struct ncplane* n, nccell* c, uint32_t egc){
   char gcluster[sizeof(egc) + 1];
   egc = htole(egc);
   memcpy(gcluster, &egc, sizeof(egc));
   gcluster[4] = '\0';
   return cell_load(n, c, gcluster);
+}
+
+__attribute__ ((deprecated)) static inline int
+cell_load_egc32(struct ncplane* n, nccell* c, uint32_t egc){
+  return nccell_load_egc32(n, c, egc);
 }
 
 // These log levels consciously map cleanly to those of libav; Notcurses itself

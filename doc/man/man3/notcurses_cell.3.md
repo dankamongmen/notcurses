@@ -55,6 +55,8 @@ typedef struct nccell {
 
 **unsigned nccell_styles(const nccell* ***c***);**
 
+**bool nccellcmp(const struct ncplane* ***n1***, const nccell* ***c1***, const struct ncplane* ***n2***, const nccell* ***c2***);**
+
 **void cell_on_styles(nccell* ***c***, unsigned ***stylebits***);**
 
 **void cell_off_styles(nccell* ***c***, unsigned ***stylebits***);**
@@ -73,9 +75,9 @@ typedef struct nccell {
 
 **char* nccell_strdup(const struct ncplane* ***n***, const nccell* ***c***);**
 
-**int cell_load_char(struct ncplane* ***n***, nccell* ***c***, char ***ch***);**
+**int nccell_load_char(struct ncplane* ***n***, nccell* ***c***, char ***ch***);**
 
-**int cell_load_egc32(struct ncplane* ***n***, nccell* ***c***, uint32_t ***egc***);**
+**int nccell_load_egc32(struct ncplane* ***n***, nccell* ***c***, uint32_t ***egc***);**
 
 **char* cell_extract(const struct ncplane* ***n***, const nccell* ***c***, uint16_t* ***stylemask***, uint64_t* ***channels***);**
 
@@ -133,10 +135,10 @@ must be considered associated with **ncplane**s. Indeed, **ncplane_erase**
 destroys the backing storage for all a plane's cells, invalidating them. This
 association is formed at the time of **cell_load**, **cell_prime**, or
 **nccell_duplicate**. All of these functions first call **nccell_release**, as
-does **cell_load_simple**. When done using a **nccell** entirely, call
-**nccell_release**. **ncplane_destroy** will free up the memory used by the
-**nccell**, but the backing egcpool has a maximum size of 16MiB, and failure to
-release **nccell**s can eventually block new output.
+do **cell_load_egc32** and **cell_load_char**. When done using a **nccell**
+entirely, call **nccell_release**. **ncplane_destroy** will free up the memory
+used by the **nccell**, but the backing egcpool has a maximum size of 16MiB,
+and failure to release **nccell**s can eventually block new output.
 
 **nccell_extended_gcluster** provides a nul-terminated handle to the EGC. This
 ought be considered invalidated by changes to the **nccell** or **egcpool**.
@@ -151,6 +153,9 @@ backing egcpool reaching its maximum size.
 
 **cell_set_fg_rgb8** and similar functions will return -1 if provided invalid
 inputs, and 0 otherwise.
+
+**nccellcmp** returns a negative integer, 0, or a positive integer if ***c1*** is
+less than, equal to, or more than ***c2***, respectively.
 
 **nccell_extended_gcluster** returns **NULL** if called on a sprixel (see
 **notcurses_visual(3)**.

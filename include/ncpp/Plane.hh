@@ -1067,7 +1067,7 @@ namespace ncpp
 
 		int load_egc32 (Cell &cell, uint32_t egc) const NOEXCEPT_MAYBE
 		{
-			int ret = cell_load_egc32 (plane, cell, egc);
+			int ret = nccell_load_egc32 (plane, cell, egc);
 			return error_guard_cond<int> (ret, ret != 1);
 		}
 
@@ -1078,7 +1078,7 @@ namespace ncpp
 
 		bool load (Cell &cell, char ch) const NOEXCEPT_MAYBE
 		{
-			return error_guard (cell_load_char (plane, cell, ch), -1);
+			return error_guard (nccell_load_char (plane, cell, ch), -1);
 		}
 
 		int prime (Cell &cell, const char *gcluster, uint16_t styles, uint64_t channels) const NOEXCEPT_MAYBE
