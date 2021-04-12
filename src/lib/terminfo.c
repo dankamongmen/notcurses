@@ -347,14 +347,16 @@ query_sixel(tinfo* ti, int fd){
   // return, both suggesting a VT102. alacritty's miraculous technicolor VT102
   // can display sixel, but real VT102s can even reply to XTSMGRAPHICS, so we
   // detect VT102 + TERM including alacritty, and special-case that.
+  // FIXME need unit tests on this
   enum {
     WANT_CSI,
     WANT_QMARK,
     WANT_SEMI,
-    WANT_C,
+    WANT_C4, // want '4' to indicate sixel or 'c' to terminate
     WANT_VT102_C,
     DONE
   } state = WANT_CSI;
+  bool in4 = false; // set true after seeing ";4", clear on semi
   // we're looking for a 4 following a semicolon
   while(state != DONE && read(fd, &in, 1) == 1){
     switch(state){
@@ -370,12 +372,17 @@ query_sixel(tinfo* ti, int fd){
         break;
       case WANT_SEMI:
         if(in == ';'){
-          state = WANT_C;
+          if(in4){
+            setup_sixel(ti);
+            query = true;
+          }
+          state = WANT_C4;
         }else if(in == 'c'){
           state = DONE;
         }else if(in == '6'){
           state = WANT_VT102_C;
         }
+        in4 = false;
         break;
       case WANT_VT102_C:
         if(in == 'c'){
@@ -384,16 +391,17 @@ query_sixel(tinfo* ti, int fd){
           }
           state = DONE;
         }else if(in == ';'){
-          state = WANT_C;
+          state = WANT_C4;
         }
         break;
-      case WANT_C:
+      case WANT_C4:
         if(in == 'c'){
           state = DONE;
         }else if(in == '4'){
-          setup_sixel(ti);
-          query = true;
-          state = DONE;
+          in4 = true;
+          state = WANT_SEMI;
+        }else{
+          in4 = false;
         }
         break;
       case DONE:
