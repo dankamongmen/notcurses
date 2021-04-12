@@ -769,14 +769,19 @@ cell_wide_left_p(const nccell* c){
 
 // return a pointer to the NUL-terminated EGC referenced by 'c'. this pointer
 // can be invalidated by any further operation on the plane 'n', so...watch out!
-// must not be called on a pixel graphic.
-API const char* cell_extended_gcluster(const struct ncplane* n, const nccell* c);
+// returns NULL if called on a pixel graphic.
+API const char* nccell_extended_gcluster(const struct ncplane* n, const nccell* c);
+
+__attribute__ ((deprecated)) static inline const char*
+cell_extended_gcluster(const struct ncplane* n, const nccell* c){
+  return nccell_extended_gcluster(n, c);
+}
 
 // copy the UTF8-encoded EGC out of the nccell. the result is not tied to any
 // ncplane, and persists across erases / destruction.
 ALLOC static inline char*
 nccell_strdup(const struct ncplane* n, const nccell* c){
-  return strdup(cell_extended_gcluster(n, c));
+  return strdup(nccell_extended_gcluster(n, c));
 }
 
 __attribute__ ((deprecated)) ALLOC static inline char*
@@ -802,15 +807,21 @@ cell_extract(const struct ncplane* n, const nccell* c,
 // be the same. Only the expanded EGC must be equal. The EGC must be bit-equal;
 // it would probably be better to test whether they're Unicode-equal FIXME.
 static inline bool
-cellcmp(const struct ncplane* n1, const nccell* RESTRICT c1,
-        const struct ncplane* n2, const nccell* RESTRICT c2){
+nccellcmp(const struct ncplane* n1, const nccell* RESTRICT c1,
+          const struct ncplane* n2, const nccell* RESTRICT c2){
   if(c1->stylemask != c2->stylemask){
     return true;
   }
   if(c1->channels != c2->channels){
     return true;
   }
-  return strcmp(cell_extended_gcluster(n1, c1), cell_extended_gcluster(n2, c2));
+  return strcmp(nccell_extended_gcluster(n1, c1), nccell_extended_gcluster(n2, c2));
+}
+
+__attribute__ ((deprecated)) static inline bool
+cellcmp(const struct ncplane* n1, const nccell* RESTRICT c1,
+        const struct ncplane* n2, const nccell* RESTRICT c2){
+  return nccellcmp(n1, c1, n2, c2);
 }
 
 // Load a 7-bit char 'ch' into the nccell 'c'. Returns the number of bytes

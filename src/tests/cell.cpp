@@ -352,7 +352,7 @@ TEST_CASE("Cell") {
   SUBCASE("CellLoadCharPrinting") {
     nccell c = CELL_TRIVIAL_INITIALIZER;
     CHECK(1 == cell_load_char(n_, &c, '*'));
-    CHECK(0 == strcmp(cell_extended_gcluster(n_, &c), "*"));
+    CHECK(0 == strcmp(nccell_extended_gcluster(n_, &c), "*"));
   }
 
   SUBCASE("CellLoadCharWhitespace") {

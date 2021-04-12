@@ -609,12 +609,12 @@ TEST_CASE("Plane") {
     REQUIRE(0 == ncplane_putstr(n_, STR3));
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
     REQUIRE(0 < ncplane_at_cursor_cell(n_, &testcell)); // want first char of STR1
-    CHECK(!strcmp("Σ", cell_extended_gcluster(n_, &testcell)));
+    CHECK(!strcmp("Σ", nccell_extended_gcluster(n_, &testcell)));
     CHECK(0 == testcell.stylemask);
     CHECK(0 == testcell.channels);
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 1, dimx - mbstowcs(nullptr, STR2, 0)));
     REQUIRE(0 < ncplane_at_cursor_cell(n_, &testcell)); // want first char of STR2
-    CHECK(!strcmp("α", cell_extended_gcluster(n_, &testcell)));
+    CHECK(!strcmp("α", nccell_extended_gcluster(n_, &testcell)));
     CHECK(0 == testcell.stylemask);
     CHECK(0 == testcell.channels);
     // FIXME maybe check all cells?

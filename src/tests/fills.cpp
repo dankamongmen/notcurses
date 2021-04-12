@@ -381,7 +381,7 @@ TEST_CASE("Fills") {
     for(int i = 0 ; i < 10 ; ++i){
       CHECK(0 < ncplane_at_yx_cell(n_, 0, i, &cbase));
       CHECK(0 < ncplane_at_yx_cell(p1, 0, i, &cp));
-      CHECK(0 == cellcmp(n_, &cbase, p1, &cp));
+      CHECK(0 == nccellcmp(n_, &cbase, p1, &cp));
     }
     CHECK(0 == ncplane_cursor_move_yx(p1, 0, 0));
     // make sure glyphs replace glyps
@@ -390,7 +390,7 @@ TEST_CASE("Fills") {
     for(int i = 0 ; i < 10 ; ++i){
       CHECK(0 < ncplane_at_yx_cell(n_, 0, i, &cbase));
       CHECK(0 < ncplane_at_yx_cell(p1, 0, i, &cp));
-      CHECK(0 == cellcmp(n_, &cbase, p1, &cp));
+      CHECK(0 == nccellcmp(n_, &cbase, p1, &cp));
     }
     // make sure nulls do not replace glyphs
     auto p2 = ncplane_create(n_, &nopts);
@@ -399,7 +399,7 @@ TEST_CASE("Fills") {
     for(int i = 0 ; i < 10 ; ++i){
       CHECK(0 < ncplane_at_yx_cell(n_, 0, i, &cbase));
       CHECK(0 < ncplane_at_yx_cell(p1, 0, i, &cp));
-      CHECK(0 == cellcmp(n_, &cbase, p1, &cp));
+      CHECK(0 == nccellcmp(n_, &cbase, p1, &cp));
     }
     ncplane_destroy(p1);
   }
@@ -426,7 +426,7 @@ TEST_CASE("Fills") {
     for(int i = 0 ; i < 10 ; ++i){
       CHECK(0 < ncplane_at_yx_cell(n_, 0, i, &cbase));
       CHECK(0 < ncplane_at_yx_cell(p1, 0, i, &cp));
-      CHECK(0 == cellcmp(n_, &cbase, p1, &cp));
+      CHECK(0 == nccellcmp(n_, &cbase, p1, &cp));
     }
     ncplane_destroy(p1);
     CHECK(0 == notcurses_render(nc_));
@@ -439,7 +439,7 @@ TEST_CASE("Fills") {
     for(int i = 0 ; i < 10 ; ++i){
       CHECK(0 < ncplane_at_yx_cell(n_, 0, i, &cbase));
       CHECK(0 < ncplane_at_yx_cell(p3, 0, i, &c3));
-      CHECK(0 == cellcmp(n_, &cbase, p3, &c3));
+      CHECK(0 == nccellcmp(n_, &cbase, p3, &c3));
     }
     CHECK(0 == notcurses_render(nc_));
     // make sure nulls do not replace glyphs
@@ -449,7 +449,7 @@ TEST_CASE("Fills") {
     for(int i = 0 ; i < 10 ; ++i){
       CHECK(0 < ncplane_at_yx_cell(n_, 0, i, &cbase));
       CHECK(0 < ncplane_at_yx_cell(p3, 0, i, &c3));
-      CHECK(0 == cellcmp(n_, &cbase, p3, &c3));
+      CHECK(0 == nccellcmp(n_, &cbase, p3, &c3));
     }
     ncplane_destroy(p3);
     CHECK(0 == notcurses_render(nc_));
@@ -508,7 +508,7 @@ TEST_CASE("Fills") {
           free(cstr);
         }else{
           CHECK(0 < ncplane_at_yx_cell(p2, y - 1, x - 1, &c2));
-          CHECK(0 == cellcmp(p1, &c1, p2, &c2));
+          CHECK(0 == nccellcmp(p1, &c1, p2, &c2));
         }
       }
     }
@@ -567,7 +567,7 @@ TEST_CASE("Fills") {
         }else{
           nccell c2 = CELL_TRIVIAL_INITIALIZER;
           CHECK(0 < ncplane_at_yx_cell(p2, y - 1, x - 1, &c2));
-          CHECK(0 == cellcmp(p1, &c1, p2, &c2));
+          CHECK(0 == nccellcmp(p1, &c1, p2, &c2));
           nccell_release(p2, &c2);
         }
         nccell_release(p1, &c1);

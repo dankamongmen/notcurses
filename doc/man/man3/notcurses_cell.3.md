@@ -69,7 +69,7 @@ typedef struct nccell {
 
 **bool cell_double_wide_p(const nccell* ***c***);**
 
-**const char* cell_extended_gcluster(const struct ncplane* ***n***, const nccell* ***c***);**
+**const char* nccell_extended_gcluster(const struct ncplane* ***n***, const nccell* ***c***);**
 
 **char* nccell_strdup(const struct ncplane* ***n***, const nccell* ***c***);**
 
@@ -129,38 +129,43 @@ Unicode 13 can be encoded in no more than four UTF-8 bytes), it is encoded
 directly into the **nccell**'s **gcluster** field, and no additional storage
 is necessary. Otherwise, the EGC is stored as a nul-terminated UTF-8 string in
 some backing egcpool. Egcpools are associated with **ncplane**s, so **nccell**s
-must be considered associated with **ncplane**s. Indeed, **ncplane_erase()**
+must be considered associated with **ncplane**s. Indeed, **ncplane_erase**
 destroys the backing storage for all a plane's cells, invalidating them. This
-association is formed at the time of **cell_load()**, **cell_prime()**, or
-**nccell_duplicate()**. All of these functions first call **nccell_release()**, as
-does **cell_load_simple()**. When done using a **nccell** entirely, call
-**nccell_release()**. **ncplane_destroy()** will free up the memory used by the
+association is formed at the time of **cell_load**, **cell_prime**, or
+**nccell_duplicate**. All of these functions first call **nccell_release**, as
+does **cell_load_simple**. When done using a **nccell** entirely, call
+**nccell_release**. **ncplane_destroy** will free up the memory used by the
 **nccell**, but the backing egcpool has a maximum size of 16MiB, and failure to
 release **nccell**s can eventually block new output.
 
-**cell_extended_gcluster** provides a nul-terminated handle to the EGC. This
+**nccell_extended_gcluster** provides a nul-terminated handle to the EGC. This
 ought be considered invalidated by changes to the **nccell** or **egcpool**.
 The handle is **not** heap-allocated; do **not** attempt to **free(3)** it.
 A heap-allocated copy can be acquired with **nccell_strdup**.
 
 # RETURN VALUES
 
-**cell_load()** and similar functions return the number of bytes loaded from the
+**cell_load** and similar functions return the number of bytes loaded from the
 EGC, or -1 on failure. They can fail due to either an invalid UTF-8 input, or the
 backing egcpool reaching its maximum size.
 
-**cell_set_fg_rgb8()** and similar functions will return -1 if provided invalid
+**cell_set_fg_rgb8** and similar functions will return -1 if provided invalid
 inputs, and 0 otherwise.
+
+**nccell_extended_gcluster** returns **NULL** if called on a sprixel (see
+**notcurses_visual(3)**.
 
 # NOTES
 
 **cell** was renamed to **nccell** in Notcurses 2.2.0, so as not to bleed such
 a common term into the (single, global) C namespace. **cell** will be retained
-as an alias until Notcurses 3.0.
+as an alias until Notcurses 3.0. Likewise, many functions prefixed with **cell**
+have been renamed to start with **nccell**.
 
 # SEE ALSO
 
 **notcurses(3)**,
 **notcurses_channels(3)**,
 **notcurses_plane(3)**,
-**notcurses_output(3)**
+**notcurses_output(3)**,
+**notcurses_visual(3)**

@@ -166,7 +166,7 @@ int ncplane_at_yx_cell(ncplane* n, int y, int x, nccell* c){
     if(y >= 0 && x >= 0){
       nccell* targ = ncplane_cell_ref_yx(n, y, x);
       if(nccell_duplicate(n, c, targ) == 0){
-        return strlen(cell_extended_gcluster(n, targ));
+        return strlen(nccell_extended_gcluster(n, targ));
       }
     }
   }
@@ -1291,9 +1291,12 @@ int ncplane_base(ncplane* ncp, nccell* c){
   return nccell_duplicate(ncp, c, &ncp->basecell);
 }
 
-const char* cell_extended_gcluster(const ncplane* n, const nccell* c){
-  if(!cell_extended_p(c)){
+const char* nccell_extended_gcluster(const ncplane* n, const nccell* c){
+  if(cell_simple_p(c)){
     return (const char*)&c->gcluster;
+  }
+  if(cell_sprixel_p(c)){
+    return NULL;
   }
   return egcpool_extended_gcluster(&n->pool, c);
 }
@@ -1498,7 +1501,7 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
 
 int ncplane_putc_yx(ncplane* n, int y, int x, const nccell* c){
   const int cols = cell_double_wide_p(c) ? 2 : 1;
-  const char* egc = cell_extended_gcluster(n, c);
+  const char* egc = nccell_extended_gcluster(n, c);
   return ncplane_put(n, y, x, egc, cols, c->stylemask, c->channels, strlen(egc));
 }
 
@@ -1559,7 +1562,7 @@ int ncplane_cursor_at(const ncplane* n, nccell* c, char** gclust){
   memcpy(c, src, sizeof(*src));
   if(cell_simple_p(c)){
     *gclust = NULL;
-  }else if((*gclust = strdup(cell_extended_gcluster(n, src))) == NULL){
+  }else if((*gclust = strdup(nccell_extended_gcluster(n, src))) == NULL){
     return -1;
   }
   return 0;

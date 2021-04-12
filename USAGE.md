@@ -1860,7 +1860,7 @@ void nccell_release(struct ncplane* n, nccell* c);
 // result is not tied to the ncplane, and persists across erases / destruction.
 static inline char*
 nccell_strdup(const struct ncplane* n, const nccell* c){
-  return strdup(cell_extended_gcluster(n, c));
+  return strdup(nccell_extended_gcluster(n, c));
 }
 
 // Set the specified style bits for the cell 'c', whether they're actively
@@ -1918,7 +1918,8 @@ cell_load_egc32(struct ncplane* n, nccell* c, uint32_t egc){
 
 // return a pointer to the NUL-terminated EGC referenced by 'c'. this pointer
 // is invalidated by any further operation on the plane 'n', so...watch out!
-const char* cell_extended_gcluster(const struct ncplane* n, const nccell* c);
+// returns NULL if called on a sprixel.
+const char* nccell_extended_gcluster(const struct ncplane* n, const nccell* c);
 
 // load up six cells with the EGCs necessary to draw a box. returns 0 on
 // success, -1 on error. on error, any cells this function might

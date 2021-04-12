@@ -876,7 +876,7 @@ cell_duplicate_far(egcpool* tpool, nccell* targ, const ncplane* splane, const nc
     targ->gcluster = c->gcluster;
     return 0;
   }
-  const char* egc = cell_extended_gcluster(splane, c);
+  const char* egc = nccell_extended_gcluster(splane, c);
   size_t ulen = strlen(egc);
   int eoffset = egcpool_stash(tpool, egc, ulen);
   if(eoffset < 0){
@@ -1347,7 +1347,7 @@ cellcmp_and_dupfar(egcpool* dampool, nccell* damcell,
                    const ncplane* srcplane, const nccell* srccell){
   if(damcell->stylemask == srccell->stylemask){
     if(damcell->channels == srccell->channels){
-      const char* srcegc = cell_extended_gcluster(srcplane, srccell);
+      const char* srcegc = nccell_extended_gcluster(srcplane, srccell);
       const char* damegc = pool_extended_gcluster(dampool, damcell);
       if(strcmp(damegc, srcegc) == 0){
         return 0; // EGC match
