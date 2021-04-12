@@ -132,6 +132,7 @@ undesirable behavior.
 * Images from Super Mario Bros. copyright Nintendo of America.
 * Images from Ninja Gaiden copyright Koei Tecmo America.
 * Images from Final Fantasy copyright Square Enix Co Ltd.
+* Images from Back to the Future copyright Universal Studios and U-Drive Joint Venture.
 * "Jungle with Rain" copyright Mark Ferrari/Living Worlds.
 
 # SEE ALSO
