@@ -209,8 +209,6 @@ to breaking under incorrect `TERM` values. If you're not using `xterm`, your
 
 * **Q:** Can I have Notcurses without this huge multimedia stack? **A:** Yes! Build with `-DUSE_MULTIMEDIA=none`.
 
-* **Q:** In `xterm`, Alt doesn't work as expected. **A:** Check out the `eightBitInput` resource of `xterm`. Add `XTerm*eightBitInput: false` to your `$HOME/.Xresources`, and run e.g. `xrdb -all -merge $HOME/.Xresources`.
-
 * **Q:** Notcurses looks like absolute crap in `screen`. **A:** `screen` doesn't support RGB colors (at least as of 4.08.00); if you have `COLORTERM` defined, you'll have a bad time. If you have a `screen` that was compiled with `--enable-colors256`, try exporting `TERM=screen-256color` as opposed to `TERM=screen`.
 
 * **Q:** Notcurses looks like absolute crap in `mosh`. **A**: Yeah it sure does. I'm not yet sure what's up.

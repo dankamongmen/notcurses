@@ -341,7 +341,6 @@ setup_sixel(tinfo* ti){
 // query for Sixel support
 static int
 query_sixel(tinfo* ti, int fd){
-  bool query = false;
   if(writen(fd, "\x1b[c", 3) != 3){
     return -1;
   }
@@ -378,7 +377,6 @@ query_sixel(tinfo* ti, int fd){
         if(in == ';'){
           if(in4){
             setup_sixel(ti);
-            query = true;
           }
           state = WANT_C4;
         }else if(in == 'c'){
@@ -390,9 +388,11 @@ query_sixel(tinfo* ti, int fd){
         break;
       case WANT_VT102_C:
         if(in == 'c'){
-          if(ti->alacritty_sixel_hack){
+          // until graphics/ayosec is merged, alacritty doesn't actually
+          // have sixel support. enable this then. FIXME
+          /*if(ti->alacritty_sixel_hack){
             setup_sixel(ti);
-          }
+          }*/
           state = DONE;
         }else if(in == ';'){
           state = WANT_C4;
@@ -413,7 +413,7 @@ query_sixel(tinfo* ti, int fd){
         break;
     }
   }
-  if(query){
+  if(ti->bitmap_supported){
     query_sixel_details(ti, fd);
   }
   return 0;
