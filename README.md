@@ -17,7 +17,7 @@ birthed screaming into this world by [nick black](https://nick-black.com/dankwik
 * c++ wrappers by [marek habersack](http://twistedcode.net/blog/) (<grendel@twistedcode.net>)
 * rust wrappers by José Luis Cruz (<joseluis@andamira.net>)
 * python wrappers by igo95862 (<igo95862@yandex.ru>)
-* [https://github.com/dundalek/notcurses-zig-example](zig wrappers) by [Jakub Dundalek](https://dundalek.com/) (<dundalek@gmail.com>)
+* [zig wrappers](https://github.com/dundalek/notcurses-zig-example) by [Jakub Dundalek](https://dundalek.com/) (<dundalek@gmail.com>)
 
 for more information, see [dankwiki](https://nick-black.com/dankwiki/index.php/Notcurses)
 and the [man pages](https://notcurses.com). in addition, there is
