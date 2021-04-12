@@ -715,7 +715,7 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ffi</span>::<span class="ident">__va_list_tag</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">cell_release</span>, <span class="ident">cstring</span>, <span class="ident">ncplane_channels</span>, <span class="ident">NcAlign</span>, <span class="ident">NcAlphaBits</span>, <span class="ident">NcBoxMask</span>, <span class="ident">NcCell</span>, <span class="ident">NcChannel</span>,
+    <span class="ident">cstring</span>, <span class="ident">nccell_release</span>, <span class="ident">ncplane_channels</span>, <span class="ident">NcAlign</span>, <span class="ident">NcAlphaBits</span>, <span class="ident">NcBoxMask</span>, <span class="ident">NcCell</span>, <span class="ident">NcChannel</span>,
     <span class="ident">NcChannelPair</span>, <span class="ident">NcColor</span>, <span class="ident">NcDim</span>, <span class="ident">NcEgc</span>, <span class="ident">NcIntResult</span>, <span class="ident">NcPlane</span>, <span class="ident">NcRgb</span>, <span class="ident">NcStyleMask</span>, <span class="ident">NCRESULT_ERR</span>,
     <span class="ident">NCRESULT_OK</span>,
 };
@@ -1095,12 +1095,12 @@
         <span class="ident">boxmask</span>,
     );
     <span class="kw">unsafe</span> {
-        <span class="ident">cell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ul</span>);
-        <span class="ident">cell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ur</span>);
-        <span class="ident">cell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ll</span>);
-        <span class="ident">cell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">lr</span>);
-        <span class="ident">cell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">hl</span>);
-        <span class="ident">cell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">vl</span>);
+        <span class="ident">nccell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ul</span>);
+        <span class="ident">nccell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ur</span>);
+        <span class="ident">nccell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ll</span>);
+        <span class="ident">nccell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">lr</span>);
+        <span class="ident">nccell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">hl</span>);
+        <span class="ident">nccell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">vl</span>);
     }
     <span class="ident">ret</span>
 }
@@ -1157,12 +1157,12 @@
         <span class="ident">boxmask</span>,
     );
     <span class="kw">unsafe</span> {
-        <span class="ident">cell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ul</span>);
-        <span class="ident">cell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ur</span>);
-        <span class="ident">cell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ll</span>);
-        <span class="ident">cell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">lr</span>);
-        <span class="ident">cell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">hl</span>);
-        <span class="ident">cell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">vl</span>);
+        <span class="ident">nccell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ul</span>);
+        <span class="ident">nccell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ur</span>);
+        <span class="ident">nccell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ll</span>);
+        <span class="ident">nccell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">lr</span>);
+        <span class="ident">nccell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">hl</span>);
+        <span class="ident">nccell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">vl</span>);
     }
     <span class="ident">ret</span>
 }
@@ -1257,12 +1257,12 @@
             );
         }
 
-        <span class="ident">cell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ul</span>);
-        <span class="ident">cell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ur</span>);
-        <span class="ident">cell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ll</span>);
-        <span class="ident">cell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">lr</span>);
-        <span class="ident">cell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">hl</span>);
-        <span class="ident">cell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">vl</span>);
+        <span class="ident">nccell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ul</span>);
+        <span class="ident">nccell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ur</span>);
+        <span class="ident">nccell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ll</span>);
+        <span class="ident">nccell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">lr</span>);
+        <span class="ident">nccell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">hl</span>);
+        <span class="ident">nccell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">vl</span>);
     }
     <span class="ident">ret</span>
 }
@@ -1341,12 +1341,12 @@
                 <span class="ident">boxmask</span>,
             );
         }
-        <span class="ident">cell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ul</span>);
-        <span class="ident">cell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ur</span>);
-        <span class="ident">cell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ll</span>);
-        <span class="ident">cell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">lr</span>);
-        <span class="ident">cell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">hl</span>);
-        <span class="ident">cell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">vl</span>);
+        <span class="ident">nccell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ul</span>);
+        <span class="ident">nccell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ur</span>);
+        <span class="ident">nccell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ll</span>);
+        <span class="ident">nccell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">lr</span>);
+        <span class="ident">nccell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">hl</span>);
+        <span class="ident">nccell_release</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">vl</span>);
     }
     <span class="ident">ret</span>
 }

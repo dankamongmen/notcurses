@@ -516,7 +516,7 @@
 <span class="kw">use</span> <span class="ident">libc</span>::<span class="ident">strcmp</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">cell_release</span>, <span class="ident">cstring</span>, <span class="ident">NcAlphaBits</span>, <span class="ident">NcCell</span>, <span class="ident">NcChannel</span>, <span class="ident">NcChannelPair</span>, <span class="ident">NcColor</span>, <span class="ident">NcEgc</span>,
+    <span class="ident">cstring</span>, <span class="ident">nccell_release</span>, <span class="ident">NcAlphaBits</span>, <span class="ident">NcCell</span>, <span class="ident">NcChannel</span>, <span class="ident">NcChannelPair</span>, <span class="ident">NcColor</span>, <span class="ident">NcEgc</span>,
     <span class="ident">NcIntResult</span>, <span class="ident">NcPaletteIndex</span>, <span class="ident">NcPlane</span>, <span class="ident">NcRgb</span>, <span class="ident">NcStyleMask</span>, <span class="ident">NCCELL_ALPHA_OPAQUE</span>,
     <span class="ident">NCCELL_BGDEFAULT_MASK</span>, <span class="ident">NCCELL_BG_PALETTE</span>, <span class="ident">NCCELL_FGDEFAULT_MASK</span>, <span class="ident">NCCELL_FG_PALETTE</span>,
     <span class="ident">NCRESULT_ERR</span>, <span class="ident">NCRESULT_OK</span>, <span class="ident">NCSTYLE_MASK</span>,
@@ -861,7 +861,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// *Method: NcCell.[strdup()][NcCell#method.strdup].*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cell_strdup</span>(<span class="ident">plane</span>: <span class="kw-2">&amp;</span><span class="ident">NcPlane</span>, <span class="ident">cell</span>: <span class="kw-2">&amp;</span><span class="ident">NcCell</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcEgc</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">nccell_strdup</span>(<span class="ident">plane</span>: <span class="kw-2">&amp;</span><span class="ident">NcPlane</span>, <span class="ident">cell</span>: <span class="kw-2">&amp;</span><span class="ident">NcCell</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcEgc</span> {
     <span class="ident">core</span>::<span class="ident">char</span>::<span class="ident">from_u32</span>(
         <span class="kw">unsafe</span> { <span class="ident">libc</span>::<span class="ident">strdup</span>(<span class="kw">crate</span>::<span class="ident">cell_extended_gcluster</span>(<span class="ident">plane</span>, <span class="ident">cell</span>)) } <span class="kw">as</span> <span class="ident">i32</span> <span class="kw">as</span> <span class="ident">u32</span>,
     )
@@ -892,7 +892,7 @@
     <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">channels</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
         <span class="kw-2">*</span><span class="ident">channels</span> <span class="op">=</span> <span class="ident">cell</span>.<span class="ident">channels</span>;
     }
-    <span class="ident">cell_strdup</span>(<span class="ident">plane</span>, <span class="ident">cell</span>)
+    <span class="ident">nccell_strdup</span>(<span class="ident">plane</span>, <span class="ident">cell</span>)
 }
 
 <span class="doccomment">/// Returns true if the two cells are distinct [NcEgc]s, attributes, or channels.</span>
@@ -953,7 +953,7 @@
 <span class="doccomment">/// Returns [NCRESULT_OK] on success or [NCRESULT_ERR] on error.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// On error, any [NcCell]s this function might have loaded before the error</span>
-<span class="doccomment">/// are [cell_release]d. There must be at least six [NcEgc]s in `gcluster`.</span>
+<span class="doccomment">/// are [nccell_release]d. There must be at least six [NcEgc]s in `gcluster`.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// *Method: NcCell.[load_box()][NcCell#method.load_box].*</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cells_load_box</span>(
@@ -999,23 +999,23 @@
                             <span class="kw">return</span> <span class="ident">NCRESULT_OK</span>;
                         }
                         <span class="kw">unsafe</span> {
-                            <span class="ident">cell_release</span>(<span class="ident">plane</span>, <span class="ident">hl</span>);
+                            <span class="ident">nccell_release</span>(<span class="ident">plane</span>, <span class="ident">hl</span>);
                         }
                     }
                     <span class="kw">unsafe</span> {
-                        <span class="ident">cell_release</span>(<span class="ident">plane</span>, <span class="ident">lr</span>);
+                        <span class="ident">nccell_release</span>(<span class="ident">plane</span>, <span class="ident">lr</span>);
                     }
                 }
                 <span class="kw">unsafe</span> {
-                    <span class="ident">cell_release</span>(<span class="ident">plane</span>, <span class="ident">ll</span>);
+                    <span class="ident">nccell_release</span>(<span class="ident">plane</span>, <span class="ident">ll</span>);
                 }
             }
             <span class="kw">unsafe</span> {
-                <span class="ident">cell_release</span>(<span class="ident">plane</span>, <span class="ident">ur</span>);
+                <span class="ident">nccell_release</span>(<span class="ident">plane</span>, <span class="ident">ur</span>);
             }
         }
         <span class="kw">unsafe</span> {
-            <span class="ident">cell_release</span>(<span class="ident">plane</span>, <span class="ident">ul</span>);
+            <span class="ident">nccell_release</span>(<span class="ident">plane</span>, <span class="ident">ul</span>);
         }
     }
     <span class="ident">NCRESULT_ERR</span>

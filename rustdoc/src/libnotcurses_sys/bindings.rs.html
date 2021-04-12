@@ -756,6 +756,47 @@
 <span id="753">753</span>
 <span id="754">754</span>
 <span id="755">755</span>
+<span id="756">756</span>
+<span id="757">757</span>
+<span id="758">758</span>
+<span id="759">759</span>
+<span id="760">760</span>
+<span id="761">761</span>
+<span id="762">762</span>
+<span id="763">763</span>
+<span id="764">764</span>
+<span id="765">765</span>
+<span id="766">766</span>
+<span id="767">767</span>
+<span id="768">768</span>
+<span id="769">769</span>
+<span id="770">770</span>
+<span id="771">771</span>
+<span id="772">772</span>
+<span id="773">773</span>
+<span id="774">774</span>
+<span id="775">775</span>
+<span id="776">776</span>
+<span id="777">777</span>
+<span id="778">778</span>
+<span id="779">779</span>
+<span id="780">780</span>
+<span id="781">781</span>
+<span id="782">782</span>
+<span id="783">783</span>
+<span id="784">784</span>
+<span id="785">785</span>
+<span id="786">786</span>
+<span id="787">787</span>
+<span id="788">788</span>
+<span id="789">789</span>
+<span id="790">790</span>
+<span id="791">791</span>
+<span id="792">792</span>
+<span id="793">793</span>
+<span id="794">794</span>
+<span id="795">795</span>
+<span id="796">796</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! A selection of the [ffi] bindings intended to be used directly.</span>
 <span class="doccomment">//!</span>
@@ -817,12 +858,12 @@
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">ffi</span>::{
     <span class="comment">// functions</span>
-    <span class="ident">cell_duplicate</span>,
     <span class="ident">cell_extended_gcluster</span>,
     <span class="ident">cell_load</span>,
-    <span class="ident">cell_release</span>,
     <span class="ident">cells_double_box</span>,
     <span class="ident">cells_rounded_box</span>,
+    <span class="ident">nccell_duplicate</span>,
+    <span class="ident">nccell_release</span>,
 };
 
 <span class="comment">// channel ---------------------------------------------------------------------</span>
@@ -895,7 +936,9 @@
     <span class="ident">ncdirect_box</span>,
     <span class="ident">ncdirect_canopen_images</span>,
     <span class="ident">ncdirect_canutf8</span>,
+    <span class="ident">ncdirect_check_pixel_support</span>,
     <span class="ident">ncdirect_clear</span>,
+    <span class="ident">ncdirect_core_init</span>,
     <span class="ident">ncdirect_cursor_disable</span>,
     <span class="ident">ncdirect_cursor_down</span>,
     <span class="ident">ncdirect_cursor_enable</span>,
@@ -920,6 +963,7 @@
     <span class="ident">ncdirect_printf_aligned</span>,
     <span class="ident">ncdirect_putstr</span>,
     <span class="ident">ncdirect_raster_frame</span>,
+    <span class="ident">ncdirect_readline</span>,
     <span class="ident">ncdirect_render_frame</span>,
     <span class="ident">ncdirect_render_image</span>,
     <span class="ident">ncdirect_rounded_box</span>,
@@ -1078,11 +1122,17 @@
 <span class="comment">//</span>
 <span class="comment">// // constants</span>
 <span class="comment">// NCPLANE_OPTION_HORALIGNED,</span>
+<span class="comment">// NCPLANE_OPTION_MARGINALIZED,</span>
+<span class="comment">// NCPLANE_OPTION_VERALIGNED</span>
 
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">ffi</span>::{
     <span class="comment">// functions</span>
     <span class="ident">ncplane_above</span>,
+    <span class="ident">ncplane_abs_x</span>,
+    <span class="ident">ncplane_abs_y</span>,
+    <span class="ident">ncplane_abs_yx</span>,
+    <span class="ident">ncplane_as_rgba</span>,
     <span class="ident">ncplane_at_cursor</span>,
     <span class="ident">ncplane_at_cursor_cell</span>,
     <span class="ident">ncplane_at_yx</span>,
@@ -1124,6 +1174,7 @@
     <span class="ident">ncplane_on_styles</span>,
     <span class="ident">ncplane_parent</span>,
     <span class="ident">ncplane_parent_const</span>,
+    <span class="ident">ncplane_pixelgeom</span>,
     <span class="ident">ncplane_polyfill_yx</span>,
     <span class="ident">ncplane_pulse</span>,
     <span class="ident">ncplane_putc_yx</span>,
@@ -1142,10 +1193,10 @@
     <span class="ident">ncplane_reparent</span>,
     <span class="ident">ncplane_reparent_family</span>,
     <span class="ident">ncplane_resize</span>,
+    <span class="ident">ncplane_resize_marginalized</span>,
     <span class="ident">ncplane_resize_maximize</span>,
     <span class="ident">ncplane_resize_realign</span>,
     <span class="ident">ncplane_resizecb</span>,
-    <span class="ident">ncplane_rgba</span>,
     <span class="ident">ncplane_rotate_ccw</span>,
     <span class="ident">ncplane_rotate_cw</span>,
     <span class="ident">ncplane_set_base</span>,
@@ -1310,6 +1361,8 @@
 <span class="comment">// ncscale_e_NCSCALE_NONE,</span>
 <span class="comment">// ncscale_e_NCSCALE_SCALE,</span>
 <span class="comment">// ncscale_e_NCSCALE_STRETCH,</span>
+<span class="comment">// ncscale_e_NCSCALE_NONE_HIRES,</span>
+<span class="comment">// ncscale_e_NCSCALE_SCALE_HIRES,</span>
 
 <span class="comment">// ncselector ------------------------------------------------------------------</span>
 <span class="comment">//</span>
@@ -1373,6 +1426,27 @@
     <span class="ident">nctablet_userptr</span>,
 };
 
+<span class="comment">// nctree ----------------------------------------------------------------------</span>
+<span class="comment">//</span>
+<span class="comment">// // structs</span>
+<span class="comment">// nctree,</span>
+<span class="comment">// nctree_item,</span>
+<span class="comment">// nctree_options,</span>
+<span class="comment">//</span>
+<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">ffi</span>::{
+    <span class="comment">// functions</span>
+    <span class="ident">nctree_create</span>,
+    <span class="ident">nctree_destroy</span>,
+    <span class="ident">nctree_focused</span>,
+    <span class="ident">nctree_goto</span>,
+    <span class="ident">nctree_next</span>,
+    <span class="ident">nctree_offer_input</span>,
+    <span class="ident">nctree_plane</span>,
+    <span class="ident">nctree_prev</span>,
+    <span class="ident">nctree_redraw</span>,
+};
+
 <span class="comment">// ncvisual --------------------------------------------------------------------</span>
 <span class="comment">//</span>
 <span class="comment">// already wrapped:</span>
@@ -1382,13 +1456,17 @@
 <span class="comment">// ncvisual_options,</span>
 <span class="comment">//</span>
 <span class="comment">// // constants</span>
+<span class="comment">// NCVISUAL_OPTION_ADDALPHA,</span>
 <span class="comment">// NCVISUAL_OPTION_BLEND,</span>
+<span class="comment">// NCVISUAL_OPTION_HORALIGNED</span>
 <span class="comment">// NCVISUAL_OPTION_NODEGRADE,</span>
+<span class="comment">// NCVISUAL_OPTION_VERALIGNED</span>
 
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">ffi</span>::{
     <span class="comment">// functions</span>
     <span class="ident">ncvisual_at_yx</span>,
+    <span class="ident">ncvisual_blitter_geom</span>,
     <span class="ident">ncvisual_decode</span>,
     <span class="ident">ncvisual_decode_loop</span>,
     <span class="ident">ncvisual_destroy</span>,
@@ -1396,7 +1474,6 @@
     <span class="ident">ncvisual_from_file</span>,
     <span class="ident">ncvisual_from_plane</span>,
     <span class="ident">ncvisual_from_rgba</span>,
-    <span class="ident">ncvisual_geom</span>,
     <span class="ident">ncvisual_media_defblitter</span>,
     <span class="ident">ncvisual_polyfill_yx</span>,
     <span class="ident">ncvisual_render</span>,
@@ -1419,6 +1496,7 @@
 <span class="comment">// // constants</span>
 <span class="comment">// NCOPTION_INHIBIT_SETLOCALE,</span>
 <span class="comment">// NCOPTION_NO_ALTERNATE_SCREEN,</span>
+<span class="comment">// NCOPTION_NO_CLEAR_BITMAPS</span>
 <span class="comment">// NCOPTION_NO_FONT_CHANGES,</span>
 <span class="comment">// NCOPTION_NO_QUIT_SIGHANDLERS,</span>
 <span class="comment">// NCOPTION_NO_WINCH_SIGHANDLER,</span>
@@ -1429,6 +1507,7 @@
     <span class="comment">// functions</span>
     <span class="ident">notcurses_at_yx</span>,
     <span class="ident">notcurses_bottom</span>,
+    <span class="ident">notcurses_canbraille</span>,
     <span class="ident">notcurses_canchangecolor</span>,
     <span class="ident">notcurses_canfade</span>,
     <span class="ident">notcurses_canopen_images</span>,
@@ -1436,9 +1515,12 @@
     <span class="ident">notcurses_cansextant</span>,
     <span class="ident">notcurses_cantruecolor</span>,
     <span class="ident">notcurses_canutf8</span>,
+    <span class="ident">notcurses_check_pixel_support</span>,
+    <span class="ident">notcurses_core_init</span>,
     <span class="ident">notcurses_cursor_disable</span>,
     <span class="ident">notcurses_cursor_enable</span>,
     <span class="ident">notcurses_debug</span>,
+    <span class="ident">notcurses_debug_caps</span>,
     <span class="ident">notcurses_drop_planes</span>,
     <span class="ident">notcurses_getc</span>,
     <span class="ident">notcurses_init</span>,

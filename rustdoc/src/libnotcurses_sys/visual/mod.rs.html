@@ -1,0 +1,238 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `src/visual/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../libnotcurses_sys/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<span id="2">  2</span>
+<span id="3">  3</span>
+<span id="4">  4</span>
+<span id="5">  5</span>
+<span id="6">  6</span>
+<span id="7">  7</span>
+<span id="8">  8</span>
+<span id="9">  9</span>
+<span id="10"> 10</span>
+<span id="11"> 11</span>
+<span id="12"> 12</span>
+<span id="13"> 13</span>
+<span id="14"> 14</span>
+<span id="15"> 15</span>
+<span id="16"> 16</span>
+<span id="17"> 17</span>
+<span id="18"> 18</span>
+<span id="19"> 19</span>
+<span id="20"> 20</span>
+<span id="21"> 21</span>
+<span id="22"> 22</span>
+<span id="23"> 23</span>
+<span id="24"> 24</span>
+<span id="25"> 25</span>
+<span id="26"> 26</span>
+<span id="27"> 27</span>
+<span id="28"> 28</span>
+<span id="29"> 29</span>
+<span id="30"> 30</span>
+<span id="31"> 31</span>
+<span id="32"> 32</span>
+<span id="33"> 33</span>
+<span id="34"> 34</span>
+<span id="35"> 35</span>
+<span id="36"> 36</span>
+<span id="37"> 37</span>
+<span id="38"> 38</span>
+<span id="39"> 39</span>
+<span id="40"> 40</span>
+<span id="41"> 41</span>
+<span id="42"> 42</span>
+<span id="43"> 43</span>
+<span id="44"> 44</span>
+<span id="45"> 45</span>
+<span id="46"> 46</span>
+<span id="47"> 47</span>
+<span id="48"> 48</span>
+<span id="49"> 49</span>
+<span id="50"> 50</span>
+<span id="51"> 51</span>
+<span id="52"> 52</span>
+<span id="53"> 53</span>
+<span id="54"> 54</span>
+<span id="55"> 55</span>
+<span id="56"> 56</span>
+<span id="57"> 57</span>
+<span id="58"> 58</span>
+<span id="59"> 59</span>
+<span id="60"> 60</span>
+<span id="61"> 61</span>
+<span id="62"> 62</span>
+<span id="63"> 63</span>
+<span id="64"> 64</span>
+<span id="65"> 65</span>
+<span id="66"> 66</span>
+<span id="67"> 67</span>
+<span id="68"> 68</span>
+<span id="69"> 69</span>
+<span id="70"> 70</span>
+<span id="71"> 71</span>
+<span id="72"> 72</span>
+<span id="73"> 73</span>
+<span id="74"> 74</span>
+<span id="75"> 75</span>
+<span id="76"> 76</span>
+<span id="77"> 77</span>
+<span id="78"> 78</span>
+<span id="79"> 79</span>
+<span id="80"> 80</span>
+<span id="81"> 81</span>
+<span id="82"> 82</span>
+<span id="83"> 83</span>
+<span id="84"> 84</span>
+<span id="85"> 85</span>
+<span id="86"> 86</span>
+<span id="87"> 87</span>
+<span id="88"> 88</span>
+<span id="89"> 89</span>
+<span id="90"> 90</span>
+<span id="91"> 91</span>
+<span id="92"> 92</span>
+<span id="93"> 93</span>
+<span id="94"> 94</span>
+<span id="95"> 95</span>
+<span id="96"> 96</span>
+<span id="97"> 97</span>
+<span id="98"> 98</span>
+<span id="99"> 99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+</pre><div class="example-wrap"><pre class="rust ">
+<span class="comment">// functions already exported by bindgen : 18</span>
+<span class="comment">// -----------------------------------------</span>
+<span class="comment">// (W) wrap: 17</span>
+<span class="comment">// (#) test: 0</span>
+<span class="comment">// -----------------------------------------</span>
+<span class="comment">//W  ncvisual_at_yx</span>
+<span class="comment">//W  ncvisual_decode</span>
+<span class="comment">//W  ncvisual_decode_loop</span>
+<span class="comment">//W  ncvisual_destroy</span>
+<span class="comment">//W  ncvisual_from_bgra</span>
+<span class="comment">//W  ncvisual_from_file</span>
+<span class="comment">//W  ncvisual_from_plane</span>
+<span class="comment">//W  ncvisual_from_rgba</span>
+<span class="comment">//W  ncvisual_blitter_geom</span>
+<span class="comment">//W  ncvisual_media_defblitter</span>
+<span class="comment">//W  ncvisual_polyfill_yx</span>
+<span class="comment">//W  ncvisual_render</span>
+<span class="comment">//W  ncvisual_resize</span>
+<span class="comment">//W  ncvisual_rotate</span>
+<span class="comment">//W  ncvisual_set_yx</span>
+<span class="comment">//W  ncvisual_simple_streamer</span>
+<span class="comment">//~  ncvisual_stream</span>
+<span class="comment">//W  ncvisual_subtitle</span>
+
+<span class="kw">mod</span> <span class="ident">methods</span>;
+
+<span class="doccomment">/// How to scale an [`NcVisual`] during rendering</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// - NCSCALE_NONE will apply no scaling.</span>
+<span class="doccomment">/// - NCSCALE_SCALE scales a visual to the plane&#39;s size,</span>
+<span class="doccomment">///   maintaining aspect ratio.</span>
+<span class="doccomment">/// - NCSCALE_STRETCH stretches and scales the image in an</span>
+<span class="doccomment">///   attempt to fill the entirety of the plane.</span>
+<span class="doccomment">///</span>
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcScale</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncscale_e</span>;
+
+<span class="doccomment">/// Maintain original size.</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCSCALE_NONE</span>: <span class="ident">NcScale</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncscale_e_NCSCALE_NONE</span>;
+
+<span class="doccomment">/// Maintain aspect ratio.</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCSCALE_SCALE</span>: <span class="ident">NcScale</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncscale_e_NCSCALE_SCALE</span>;
+
+<span class="doccomment">/// Throw away aspect ratio.</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCSCALE_STRETCH</span>: <span class="ident">NcScale</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncscale_e_NCSCALE_STRETCH</span>;
+
+<span class="doccomment">/// Maintain original size, admitting high-resolution blitters</span>
+<span class="doccomment">/// that don&#39;t preserve aspect ratio.</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCSCALE_NONE_HIRES</span>: <span class="ident">NcScale</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncscale_e_NCSCALE_NONE_HIRES</span>;
+
+<span class="doccomment">/// Maintain aspect ratio, admitting high-resolution blitters</span>
+<span class="doccomment">/// that don&#39;t preserve aspect ratio.</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCSCALE_SCALE_HIRES</span>: <span class="ident">NcScale</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncscale_e_NCSCALE_SCALE_HIRES</span>;
+
+<span class="doccomment">/// A visual bit of multimedia.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// It can be constructed from a rgba or bgra buffer.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// The [NcVisualOptions] structure is used only by the following methods:</span>
+<span class="doccomment">/// - [.geom][NcVisual#method.render]</span>
+<span class="doccomment">/// - [.render][NcVisual#method.render]</span>
+<span class="doccomment">/// - [.simple_streamer][NcVisual#method.render]</span>
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcVisual</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncvisual</span>;
+
+<span class="doccomment">/// Options struct for [`NcVisual`]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// If a plane is not provided, one will be created, having the exact size</span>
+<span class="doccomment">/// necessary to display the visual.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// A subregion of the visual can be rendered using `begx`, `begy`, `lenx`, and `leny`.</span>
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcVisualOptions</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncvisual_options</span>;
+
+<span class="comment">// NcRgba</span>
+<span class="comment">//</span>
+<span class="doccomment">/// 32 bits broken into 3x 8bpp RGB channels + 8ppp alpha.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Unlike with [`NcChannel`], operations involving `NcRgb` ignores the last 4th byte</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ## Diagram</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ```txt</span>
+<span class="doccomment">/// AAAAAAAA RRRRRRRR GGGGGGGG BBBBBBBB</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">/// `type in C: no data type`</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// See also: [NcRgb] and [NcChannel] types.</span>
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcRgba</span> <span class="op">=</span> <span class="ident">u32</span>;
+
+<span class="comment">// // NcBgra</span>
+<span class="comment">// //</span>
+<span class="comment">// /// 32 bits broken into 3x 8bpp BGR channels + 8ppp alpha.</span>
+<span class="comment">// ///</span>
+<span class="comment">// /// ## Diagram</span>
+<span class="comment">// ///</span>
+<span class="comment">// /// ```txt</span>
+<span class="comment">// /// AAAAAAAA BBBBBBBB GGGGGGGG RRRRRRRR</span>
+<span class="comment">// /// ```</span>
+<span class="comment">// ///</span>
+<span class="comment">// /// `type in C: no data type`</span>
+<span class="comment">// ///</span>
+<span class="comment">// /// See also: [NcRgba], [NcRgb] and [NcChannel] types.</span>
+<span class="comment">// pub type NcBgra = u32;</span>
+
+<span class="doccomment">/// Treats as transparent the color specified in the `transcolor` field.</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCVISUAL_OPTION_ADDALPHA</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCVISUAL_OPTION_ADDALPHA</span>;
+
+<span class="doccomment">/// Uses [`NCCELL_ALPHA_BLEND`][crate::NCCELL_ALPHA_BLEND] with visual.</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCVISUAL_OPTION_BLEND</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCVISUAL_OPTION_BLEND</span>;
+
+<span class="doccomment">/// Fails rather than degrade.</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCVISUAL_OPTION_NODEGRADE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCVISUAL_OPTION_NODEGRADE</span>;
+
+<span class="doccomment">/// Y is an alignment, not absolute.</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCVISUAL_OPTION_VERALIGNED</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCVISUAL_OPTION_VERALIGNED</span>;
+
+<span class="doccomment">/// X is an alignment, not absolute.</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCVISUAL_OPTION_HORALIGNED</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCVISUAL_OPTION_HORALIGNED</span>;
+</pre></div>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "libnotcurses_sys";</script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>

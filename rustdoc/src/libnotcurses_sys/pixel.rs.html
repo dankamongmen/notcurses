@@ -311,7 +311,7 @@
 <span class="comment">// NOTE: waiting for: https://github.com/rust-lang/rust/issues/56546</span>
 <span class="comment">// to move doc comments to the trait and appear unhidden at the implementation.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">NcPixelMethods</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">r</span>: <span class="ident">NcColor</span>, <span class="ident">g</span>: <span class="ident">NcColor</span>, <span class="ident">b</span>: <span class="ident">NcColor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcPixel</span>;
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">r</span>: <span class="ident">NcColor</span>, <span class="ident">g</span>: <span class="ident">NcColor</span>, <span class="ident">b</span>: <span class="ident">NcColor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
     <span class="kw">fn</span> <span class="ident">a</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcColor</span>;
     <span class="kw">fn</span> <span class="ident">b</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcColor</span>;
     <span class="kw">fn</span> <span class="ident">g</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcColor</span>;
@@ -325,7 +325,7 @@
 
 <span class="kw">impl</span> <span class="ident">NcPixelMethods</span> <span class="kw">for</span> <span class="ident">NcPixel</span> {
     <span class="doccomment">/// Constructs a libav-compatible ABGR pixel from [NcColor] RGB components.</span>
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">red</span>: <span class="ident">NcColor</span>, <span class="ident">green</span>: <span class="ident">NcColor</span>, <span class="ident">blue</span>: <span class="ident">NcColor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcPixel</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">red</span>: <span class="ident">NcColor</span>, <span class="ident">green</span>: <span class="ident">NcColor</span>, <span class="ident">blue</span>: <span class="ident">NcColor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ncpixel</span>(<span class="ident">red</span>, <span class="ident">green</span>, <span class="ident">blue</span>)
     }
 
