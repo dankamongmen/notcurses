@@ -78,6 +78,8 @@ apply_term_heuristics(tinfo* ti, const char* termname){
     ti->quadrants = true;
   }else if(strncmp(termname, "st", 2) == 0){
     // st had neithersextants nor quadrants last i checked (0.8.4)
+  }else if(strstr(termname, "mlterm")){
+    ti->quadrants = true; // good quadrants, no sextants as of 3.9.0
   }else if(strstr(termname, "xterm")){
     // xterm has nothing beyond halfblocks. this is going to catch all kinds
     // of people using xterm when they shouldn't be, or even real database
