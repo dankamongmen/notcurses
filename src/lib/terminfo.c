@@ -224,6 +224,7 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8)
   return 0;
 }
 
+// FIXME need unit tests on this
 static int
 read_xtsmgraphics_reply(int fd, int* val2){
   char in;
@@ -262,7 +263,7 @@ read_xtsmgraphics_reply(int fd, int* val2){
         }
         break;
       case WANT_PV1:
-        if(!val2 && in == 'S'){
+        if(in == 'S'){
           state = DONE;
         }else if(val2 && in == ';'){
           *val2 = 0;
