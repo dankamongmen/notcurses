@@ -28,6 +28,8 @@ static int plot_pos_y;
 
 #define FPSHZ 2
 
+#define FPSGRAPH_MAX_COLS 72 // give it some room on each side of an 80-column term
+
 // how many columns for runtime?
 #define HUD_ROWS (3 + 2) // 2 for borders
 static const int HUD_COLS = 23 + 2; // 2 for borders
@@ -399,8 +401,8 @@ struct ncplane* hud_create(struct notcurses* nc){
   struct ncplane_options nopts = {
     .y = yoffset,
     // we want it to start tucked right up underneath the title of the FPS
-    // graph. graph is min(80, dimx) wide, centered, and we want 6 in.
-    .x = (dimx - (dimx > 80 ? 80 : dimx)) / 2 + 6,
+    // graph. graph is min(FPSGRAPH_MAX_COLS, dimx) wide, centered, and we want 6 in.
+    .x = (dimx - (dimx > FPSGRAPH_MAX_COLS ? FPSGRAPH_MAX_COLS : dimx)) / 2 + 6,
     .rows = HUD_ROWS,
     .cols = HUD_COLS,
     .userptr = NULL,
@@ -622,7 +624,7 @@ int fpsgraph_init(struct notcurses* nc){
     .y = NCALIGN_BOTTOM,
     .x = NCALIGN_CENTER,
     .rows = PLOTHEIGHT,
-    .cols = dimx > 80 ? 80 : dimx,
+    .cols = dimx > FPSGRAPH_MAX_COLS ? FPSGRAPH_MAX_COLS : dimx,
     .userptr = NULL,
     .name = "fps",
     .resizecb = ncplane_resize_realign,
