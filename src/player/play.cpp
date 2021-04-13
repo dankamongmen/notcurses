@@ -410,6 +410,7 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
               --i;
               nc.refresh(nullptr, nullptr);
             }else if(ie >= '0' && ie <= '6'){
+              blitter = vopts.blitter = static_cast<ncblitter_e>(ie - '0');
               --i; // rerun same input with the new blitter
             }else if(ie >= '7' && ie <= '9'){
               --i; // just absorb the input
