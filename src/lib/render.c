@@ -199,6 +199,30 @@ highcontrast(uint32_t bchannel){
   return conrgb;
 }
 
+static void
+paint_sprixel(const ncplane* p, const nccell* vis, struct crender* crender,
+              int y, int x){
+  const notcurses* nc = ncplane_notcurses_const(p);
+//fprintf(stderr, "presprixel: %p preid: %d id: %d state: %d\n", rvec->sprixel, rvec->sprixel ? rvec->sprixel->id : 0, cell_sprixel_id(vis), sprixel_by_id(ncplane_notcurses_const(p), cell_sprixel_id(vis))->invalidated);
+  // if we already have a glyph solved, and we run into a bitmap
+  // cell, we need to null that cell out of the bitmap.
+  if(crender->p || crender->s.bgblends){
+    // if sprite_wipe_cell() fails, we presumably do not have the
+    // ability to wipe, and must reprint the character
+    if(sprite_wipe_cell(nc, p->sprite, y, x)){
+//fprintf(stderr, "damaging due to wipe %d/%d\n", y, x);
+      crender->s.p_beats_sprixel = 1;
+      crender->s.damaged = 1;
+    }
+  }else if(!crender->p){
+    // if we are a bitmap, and above a cell that has changed (and
+    // will thus be printed), we'll need redraw the sprixel.
+    if(crender->sprixel == NULL /*|| rvec->sprixel->invalidated == SPRIXEL_HIDE*/){
+      crender->sprixel = sprixel_by_id(nc, cell_sprixel_id(vis));
+    }
+  }
+}
+
 // Paints a single ncplane 'p' into the provided scratch framebuffer 'fb' (we
 // can't always write directly into lastframe, because we need build state to
 // solve certain cells, and need compare their solved result to the last frame).
@@ -254,24 +278,7 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
       // glyph, but we *do* need to null out any cellregions that we've
       // scribbled upon.
       if(cell_sprixel_p(vis)){
-//fprintf(stderr, "presprixel: %p preid: %d id: %d state: %d\n", rvec->sprixel, rvec->sprixel ? rvec->sprixel->id : 0, cell_sprixel_id(vis), sprixel_by_id(ncplane_notcurses_const(p), cell_sprixel_id(vis))->invalidated);
-        // if we already have a glyph solved, and we run into a bitmap
-        // cell, we need to null that cell out of the bitmap.
-        if(crender->p || crender->s.bgblends){
-          // if sprite_wipe_cell() fails, we presumably do not have the
-          // ability to wipe, and must reprint the character
-          if(sprite_wipe_cell(ncplane_notcurses_const(p), p->sprite, y, x)){
-//fprintf(stderr, "damaging due to wipe %d/%d\n", y, x);
-            crender->s.p_beats_sprixel = 1;
-            crender->s.damaged = 1;
-          }
-        }else if(!crender->p){
-          // if we are a bitmap, and above a cell that has changed (and
-          // will thus be printed), we'll need redraw the sprixel.
-          if(crender->sprixel == NULL /*|| rvec->sprixel->invalidated == SPRIXEL_HIDE*/){
-            crender->sprixel = sprixel_by_id(ncplane_notcurses_const(p), cell_sprixel_id(vis));
-          }
-        }
+        paint_sprixel(p, vis, crender, y, x);
         continue;
       }
 
