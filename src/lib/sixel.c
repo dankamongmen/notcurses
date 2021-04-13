@@ -173,8 +173,8 @@ extract_color_table(const uint32_t* data, int linesize, int cols,
         if(rgba_trans_p(*rgb, bargs->transcolor)){
           if(tacache[txyidx] == SPRIXCELL_NORMAL){
             tacache[txyidx] = SPRIXCELL_CONTAINS_TRANS;
-            stab->p2 = SIXEL_P2_TRANS;
           }
+          stab->p2 = SIXEL_P2_TRANS;
           continue;
         }
         if(tacache[txyidx] == SPRIXCELL_ANNIHILATED){
