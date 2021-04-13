@@ -3,6 +3,24 @@
 #define RGBSIZE 3
 #define CENTSIZE (RGBSIZE + 1) // size of a color table entry
 
+// we set P2 based on whether there is any transparency in the sixel. if not,
+// use SIXEL_P2_ALLOPAQUE (0), for faster drawing in certain terminals.
+typedef enum {
+  SIXEL_P2_ALLOPAQUE = 0,
+  SIXEL_P2_TRANS = 1,
+} sixel_p2_e;
+
+// the P2 parameter on a sixel specifies how unspecified pixels are drawn.
+// if P2 is 1, unspecified pixels are transparent. otherwise, they're drawn
+// as something else. some terminals (e.g. foot) can draw more quickly if
+// P2 is 0, so we set that when we have no transparent pixels -- i.e. when
+// all TAM entries are 0. P2 is at a fixed location in the sixel header.
+// obviously, the sixel must already exist.
+static inline void
+change_p2(char* sixel, sixel_p2_e value){
+  sixel[4] = value + '0';
+}
+
 // take (8-bit rgb value & mask) to sixelspace [0..100]
 static inline char
 ss(unsigned rgb, unsigned char mask){
@@ -33,6 +51,7 @@ typedef struct sixeltable {
   unsigned char* table; // |colorregs| x CENTSIZE: components + dtable index
   int sixelcount;
   int colorregs;
+  sixel_p2_e p2;        // set to SIXEL_P2_TRANS if we have transparent pixels
 } sixeltable;
 
 static inline int
@@ -154,6 +173,7 @@ extract_color_table(const uint32_t* data, int linesize, int cols,
         if(rgba_trans_p(*rgb, bargs->transcolor)){
           if(tacache[txyidx] == SPRIXCELL_NORMAL){
             tacache[txyidx] = SPRIXCELL_CONTAINS_TRANS;
+            stab->p2 = SIXEL_P2_TRANS;
           }
           continue;
         }
@@ -321,15 +341,9 @@ write_rle(int* printed, int color, FILE* fp, int seenrle, unsigned char crle){
 // Closes |fp| on all paths.
 static int
 write_sixel_data(FILE* fp, int leny, int lenx, const sixeltable* stab, int* parse_start,
-                 const char* cursor_hack){
-  // Set P2=1, turning empty pixels transparent
-  *parse_start = fprintf(fp, "\eP0;1;0q");
+                 const char* cursor_hack, sixel_p2_e p2){
   // Set Raster Attributes - pan/pad=1 (pixel aspect ratio), Ph=lenx, Pv=leny
-  // using Ph/Pv causes a background to be drawn using color register 0 for all
-  // unspecified pixels, which we do not want.
-  fprintf(fp, "\"1;1;%d;%d", lenx, leny);
-  (void)leny;
-
+  *parse_start = fprintf(fp, "\eP0;%d;0q\"1;1;%d;%d", p2, lenx, leny);
   for(int i = 0 ; i < stab->colors ; ++i){
     const unsigned char* rgb = stab->table + i * CENTSIZE;
     int idx = ctable_to_dtable(rgb);
@@ -407,7 +421,7 @@ sixel_blit_inner(int leny, int lenx, const sixeltable* stab, int rows, int cols,
   int parse_start = 0;
   // calls fclose() on success
   if(write_sixel_data(fp, leny, lenx, stab, &parse_start,
-                      bargs->u.pixel.cursor_hack)){
+                      bargs->u.pixel.cursor_hack, stab->p2)){
     free(buf);
     return -1;
   }
@@ -438,6 +452,7 @@ int sixel_blit(ncplane* n, int linesize, const void* data,
     .sixelcount = sixelcount,
     .colorregs = colorregs,
     .colors = 0,
+    .p2 = SIXEL_P2_ALLOPAQUE,
   };
   if(stable.data == NULL || stable.deets == NULL || stable.table == NULL){
     free(stable.table);
