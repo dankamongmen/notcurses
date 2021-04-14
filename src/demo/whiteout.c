@@ -185,7 +185,7 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total,
   ncplane_putegc_yx(n, 5, 17, "│", NULL);
   ncplane_putegc_yx(n, 6, 17, "╰", NULL);
   nccell hl = CELL_TRIVIAL_INITIALIZER;
-  cell_load(n, &hl, "─");
+  nccell_load(n, &hl, "─");
   cell_set_fg_rgb8(&hl, 255, 255, 255);
   cell_set_bg_rgb8(&hl, 32, 64, 32);
   ncplane_hline(n, &hl, 57 - 18 - 1);
@@ -197,7 +197,7 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total,
   ncplane_putegc_yx(n, 2, 3, "╨", NULL);
   ncplane_putegc_yx(n, 1, 3, "║", NULL);
   ncplane_putegc_yx(n, 0, 3, "╔", NULL);
-  cell_load(n, &hl, "═");
+  nccell_load(n, &hl, "═");
   ncplane_hline(n, &hl, 20 - 4 - 1);
   nccell_release(n, &hl);
   ncplane_putegc_yx(n, 0, 19, "╗", NULL);

@@ -76,11 +76,11 @@ TEST_CASE("Wide") {
     for(auto & tcell : tcells){
       nccell_init(&tcell);
     }
-    CHECK(1 < cell_load(n_, &tcells[0], EGC0));
-    CHECK(1 < cell_load(n_, &tcells[1], EGC1));
-    CHECK(1 < cell_load(n_, &tcells[2], EGC2));
-    CHECK(1 < cell_load(n_, &tcells[3], EGC3));
-    CHECK(1 < cell_load(n_, &tcells[4], EGC4));
+    CHECK(1 < nccell_load(n_, &tcells[0], EGC0));
+    CHECK(1 < nccell_load(n_, &tcells[1], EGC1));
+    CHECK(1 < nccell_load(n_, &tcells[2], EGC2));
+    CHECK(1 < nccell_load(n_, &tcells[3], EGC3));
+    CHECK(1 < nccell_load(n_, &tcells[4], EGC4));
     for(auto & tcell : tcells){
       CHECK(0 < ncplane_putc(n_, &tcell));
     }
@@ -119,7 +119,7 @@ TEST_CASE("Wide") {
     CHECK(2 == x);
     CHECK(0 < ncplane_putegc_yx(n_, 0, 0, w, &sbytes));
     nccell c = CELL_TRIVIAL_INITIALIZER;
-    CHECK(0 < cell_load(n_, &c, w));
+    CHECK(0 < nccell_load(n_, &c, w));
     CHECK(0 < ncplane_putc_yx(n_, 1, 0, &c));
     nccell_release(n_, &c);
     ncplane_at_yx_cell(n_, 0, 0, &c);
@@ -915,7 +915,7 @@ TEST_CASE("Wide") {
   // U+1F427 PINCHED FINGERS → UTF8(f0 9f a4 8c)
   SUBCASE("ItalicEmoji") {
     nccell c = CELL_TRIVIAL_INITIALIZER;
-    cell_load(n_, &c, "\U0001F427");
+    nccell_load(n_, &c, "\U0001F427");
     CHECK(0xa7909ff0 == htole(c.gcluster));
     cell_on_styles(&c, NCSTYLE_ITALIC);
     CHECK(4 == strlen(nccell_extended_gcluster(n_, &c)));
@@ -934,7 +934,7 @@ TEST_CASE("Wide") {
 
   SUBCASE("StyleMaxEmoji") {
     nccell c = CELL_TRIVIAL_INITIALIZER;
-    cell_load(n_, &c, "\U0001F427");
+    nccell_load(n_, &c, "\U0001F427");
     CHECK(0xa7909ff0 == htole(c.gcluster));
     cell_on_styles(&c, NCSTYLE_MASK);
     CHECK(4 == strlen(nccell_extended_gcluster(n_, &c)));
@@ -992,7 +992,7 @@ TEST_CASE("Wide") {
   SUBCASE("OfflineEGCs") {
     nccell c = CELL_TRIVIAL_INITIALIZER;
     const char egc[] = "\U0001F471\u200D\u2640"; // all one EGC
-    CHECK(0 < cell_load(n_, &c, egc));
+    CHECK(0 < nccell_load(n_, &c, egc));
     ncplane_set_scrolling(n_, true);
     for(int i = 0 ; i < 100 ; ++i){ // FIXME fill up stdplane
       CHECK(0 < ncplane_putc(n_, &c));

@@ -107,7 +107,7 @@ TEST_CASE("Plane") {
   SUBCASE("EmitCell") {
     const char cchar[] = "✔";
     nccell c{};
-    CHECK(strlen(cchar) == cell_load(n_, &c, cchar));
+    CHECK(strlen(cchar) == nccell_load(n_, &c, cchar));
     CHECK(0 < ncplane_putc(n_, &c));
     int x, y;
     ncplane_cursor_yx(n_, &y, &x);
@@ -174,7 +174,7 @@ TEST_CASE("Plane") {
     REQUIRE(0 < y);
     REQUIRE(0 < x);
     nccell c{};
-    cell_load(n_, &c, "-");
+    nccell_load(n_, &c, "-");
     for(int yidx = 0 ; yidx < y ; ++yidx){
       CHECK(0 == ncplane_cursor_move_yx(n_, yidx, 1));
       CHECK(x - 2 == ncplane_hline(n_, &c, x - 2));
@@ -193,7 +193,7 @@ TEST_CASE("Plane") {
     REQUIRE(0 < y);
     REQUIRE(0 < x);
     nccell c{};
-    cell_load(n_, &c, "|");
+    nccell_load(n_, &c, "|");
     for(int xidx = 1 ; xidx < x - 1 ; ++xidx){
       CHECK(0 == ncplane_cursor_move_yx(n_, 1, xidx));
       CHECK(y - 2 == ncplane_vline(n_, &c, y - 2));
@@ -313,9 +313,9 @@ TEST_CASE("Plane") {
     nccell cell1 = CELL_TRIVIAL_INITIALIZER;
     nccell cell2 = CELL_TRIVIAL_INITIALIZER;
     nccell cell3 = CELL_TRIVIAL_INITIALIZER;
-    auto u1 = cell_load(n_, &cell1, w1);
-    auto u2 = cell_load(n_, &cell2, w2);
-    auto u3 = cell_load(n_, &cell3, w3);
+    auto u1 = nccell_load(n_, &cell1, w1);
+    auto u2 = nccell_load(n_, &cell2, w2);
+    auto u3 = nccell_load(n_, &cell3, w3);
     REQUIRE(2 == u1);
     REQUIRE(3 == u2);
     REQUIRE(1 == u3);
@@ -331,9 +331,9 @@ TEST_CASE("Plane") {
     nccell cell1 = CELL_TRIVIAL_INITIALIZER;
     nccell cell2 = CELL_TRIVIAL_INITIALIZER;
     nccell cell3 = CELL_TRIVIAL_INITIALIZER;
-    auto u1 = cell_load(n_, &cell1, w1);
-    auto u2 = cell_load(n_, &cell2, w2);
-    auto u3 = cell_load(n_, &cell3, w3);
+    auto u1 = nccell_load(n_, &cell1, w1);
+    auto u2 = nccell_load(n_, &cell2, w2);
+    auto u3 = nccell_load(n_, &cell3, w3);
     REQUIRE(2 == u1);
     REQUIRE(3 == u2);
     REQUIRE(1 == u3);
@@ -356,8 +356,8 @@ TEST_CASE("Plane") {
     const char* w2 = "N";
     nccell c1 = CELL_TRIVIAL_INITIALIZER;
     nccell c2 = CELL_TRIVIAL_INITIALIZER;
-    auto u1 = cell_load(n_, &c1, w1);
-    auto u2 = cell_load(n_, &c2, w2);
+    auto u1 = nccell_load(n_, &c1, w1);
+    auto u2 = nccell_load(n_, &c2, w2);
     REQUIRE(0 < u1);
     REQUIRE(0 < u2);
     REQUIRE(strlen(w1) == u1);

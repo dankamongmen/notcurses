@@ -128,7 +128,7 @@ TEST_CASE("ZAxis") {
       .margin_b = 0, .margin_r = 0,
     };
     struct ncplane* n2 = ncplane_create(n_, &nopts);
-    REQUIRE(1 == cell_load(n2, &c, "y"));
+    REQUIRE(1 == nccell_load(n2, &c, "y"));
     REQUIRE(!cell_set_fg_rgb8(&c, 0, 0xff, 0));
     REQUIRE(1 == ncplane_putc(n2, &c));
     CHECK_EQ(0, notcurses_render(nc_));
@@ -136,7 +136,7 @@ TEST_CASE("ZAxis") {
     REQUIRE(1 == ncplane_at_cursor_cell(n2, &cat));
     REQUIRE(0 == strcmp("y", nccell_extended_gcluster(n_, &c)));
     struct ncplane* n3 = ncplane_create(n_, &nopts);
-    REQUIRE(1 == cell_load(n3, &c, "z"));
+    REQUIRE(1 == nccell_load(n3, &c, "z"));
     REQUIRE(!cell_set_fg_rgb8(&c, 0, 0, 0xff));
     REQUIRE(1 == ncplane_putc(n3, &c));
     CHECK(!notcurses_render(nc_));

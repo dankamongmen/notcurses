@@ -257,7 +257,7 @@ int ncplane_gradient(ncplane* n, const char* egc, uint32_t stylemask,
     for(int x = xoff ; x <= xstop ; ++x){
       nccell* targc = ncplane_cell_ref_yx(n, y, x);
       targc->channels = 0;
-      if(cell_load(n, targc, egc) < 0){
+      if(nccell_load(n, targc, egc) < 0){
         return -1;
       }
       targc->stylemask = stylemask;

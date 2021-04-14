@@ -26611,7 +26611,7 @@ int jungle_demo(struct notcurses* nc){
   const int xoff = (dimx - ORIGWIDTH / xiter) / 2;
   ncplane_erase(n);
   nccell c = CELL_TRIVIAL_INITIALIZER;
-  cell_load(n, &c, "\xe2\x96\x80"); // upper half block
+  nccell_load(n, &c, "\xe2\x96\x80"); // upper half block
   for(size_t y = 0 ; y < ORIGHEIGHT ; y += (yiter * 2)){
     int targy = yoff + y / (yiter * 2);
     if(targy < dimy / 2){

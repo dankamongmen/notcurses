@@ -42,7 +42,7 @@ typedef struct nccell {
 
 **void nccell_init(nccell* ***c***);**
 
-**int cell_load(struct ncplane* ***n***, nccell* ***c***, const char* ***gcluster***);**
+**int nccell_load(struct ncplane* ***n***, nccell* ***c***, const char* ***gcluster***);**
 
 **int nccell_prime(struct ncplane* ***n***, nccell* ***c***, const char* ***gcluster***,
                  uint32_t ***stylemask***, uint64_t ***channels***);**
@@ -133,9 +133,9 @@ is necessary. Otherwise, the EGC is stored as a nul-terminated UTF-8 string in
 some backing egcpool. Egcpools are associated with **ncplane**s, so **nccell**s
 must be considered associated with **ncplane**s. Indeed, **ncplane_erase**
 destroys the backing storage for all a plane's cells, invalidating them. This
-association is formed at the time of **cell_load**, **nccell_prime**, or
+association is formed at the time of **nccell_load**, **nccell_prime**, or
 **nccell_duplicate**. All of these functions first call **nccell_release**, as
-do **cell_load_egc32** and **cell_load_char**. When done using a **nccell**
+do **nccell_load_egc32** and **nccell_load_char**. When done using a **nccell**
 entirely, call **nccell_release**. **ncplane_destroy** will free up the memory
 used by the **nccell**, but the backing egcpool has a maximum size of 16MiB,
 and failure to release **nccell**s can eventually block new output.
@@ -147,7 +147,7 @@ A heap-allocated copy can be acquired with **nccell_strdup**.
 
 # RETURN VALUES
 
-**cell_load** and similar functions return the number of bytes loaded from the
+**nccell_load** and similar functions return the number of bytes loaded from the
 EGC, or -1 on failure. They can fail due to either an invalid UTF-8 input, or the
 backing egcpool reaching its maximum size.
 

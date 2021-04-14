@@ -51,7 +51,7 @@ TEST_CASE("Fills") {
     CHECK(16 == ncplane_polyfill_yx(pfn, 0, 0, &c));
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 < ncplane_putc_yx(pfn, 0, 0, &c));
-    CHECK(0 < cell_load(pfn, &c, "/"));
+    CHECK(0 < nccell_load(pfn, &c, "/"));
     CHECK(0 < ncplane_polyfill_yx(pfn, 0, 0, &c));
     char* ncpc = ncplane_at_yx(pfn, 0, 0, NULL, NULL);
     CHECK(0 == strcmp(ncpc, "/"));
@@ -474,7 +474,7 @@ TEST_CASE("Fills") {
     struct ncplane* p1 = ncplane_create(n_, &nopts);
     REQUIRE(p1);
     nccell c1 = CELL_TRIVIAL_INITIALIZER;
-    CHECK(0 < cell_load(p1, &c1, "█"));
+    CHECK(0 < nccell_load(p1, &c1, "█"));
     CHECK(0 == cell_set_bg_rgb(&c1, 0x00ff00));
     CHECK(0 == cell_set_fg_rgb(&c1, 0x0000ff));
     CHECK(0 < ncplane_polyfill_yx(p1, 0, 0, &c1));
@@ -493,7 +493,7 @@ TEST_CASE("Fills") {
     auto p2 = ncplane_create(n_, &n2opts);
     REQUIRE(p2);
     nccell c2 = CELL_TRIVIAL_INITIALIZER;
-    CHECK(0 < cell_load(p2, &c2, "🞶"));
+    CHECK(0 < nccell_load(p2, &c2, "🞶"));
     CHECK(0 == cell_set_bg_rgb(&c2, 0x00ffff));
     CHECK(0 == cell_set_fg_rgb(&c2, 0xff00ff));
     CHECK(0 < ncplane_polyfill_yx(p2, 0, 0, &c2));

@@ -653,19 +653,20 @@ cell_init(nccell* c){
 // Breaks the UTF-8 string in 'gcluster' down, setting up the nccell 'c'.
 // Returns the number of bytes copied out of 'gcluster', or -1 on failure. The
 // styling of the cell is left untouched, but any resources are released.
-API int cell_load(struct ncplane* n, nccell* c, const char* gcluster);
+API int nccell_load(struct ncplane* n, nccell* c, const char* gcluster);
+__attribute__ ((deprecated)) API int cell_load(struct ncplane* n, nccell* c, const char* gcluster);
 
-// cell_load(), plus blast the styling with 'attr' and 'channels'.
+// nccell_load(), plus blast the styling with 'attr' and 'channels'.
 static inline int
 nccell_prime(struct ncplane* n, nccell* c, const char* gcluster,
            uint32_t stylemask, uint64_t channels){
   c->stylemask = stylemask;
   c->channels = channels;
-  int ret = cell_load(n, c, gcluster);
+  int ret = nccell_load(n, c, gcluster);
   return ret;
 }
 
-// cell_load(), plus blast the styling with 'attr' and 'channels'.
+// nccell_load(), plus blast the styling with 'attr' and 'channels'.
 __attribute__ ((deprecated)) static inline int
 cell_prime(struct ncplane* n, nccell* c, const char* gcluster,
            uint32_t stylemask, uint64_t channels){
@@ -844,7 +845,7 @@ nccell_load_char(struct ncplane* n, nccell* c, char ch){
   char gcluster[2];
   gcluster[0] = ch;
   gcluster[1] = '\0';
-  return cell_load(n, c, gcluster);
+  return nccell_load(n, c, gcluster);
 }
 
 __attribute__ ((deprecated)) static inline int
@@ -860,7 +861,7 @@ nccell_load_egc32(struct ncplane* n, nccell* c, uint32_t egc){
   egc = htole(egc);
   memcpy(gcluster, &egc, sizeof(egc));
   gcluster[4] = '\0';
-  return cell_load(n, c, gcluster);
+  return nccell_load(n, c, gcluster);
 }
 
 __attribute__ ((deprecated)) static inline int

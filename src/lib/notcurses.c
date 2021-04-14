@@ -1422,10 +1422,14 @@ void scroll_down(ncplane* n){
   }
 }
 
-int cell_load(ncplane* n, nccell* c, const char* gcluster){
+int nccell_load(ncplane* n, nccell* c, const char* gcluster){
   int cols;
   int bytes = utf8_egc_len(gcluster, &cols);
   return pool_load_direct(&n->pool, c, gcluster, bytes, cols);
+}
+
+int cell_load(ncplane* n, nccell* c, const char* gcluster){
+  return nccell_load(n, c, gcluster);
 }
 
 // where the magic happens. write the single EGC completely described by |egc|,
@@ -1977,7 +1981,7 @@ void ncplane_erase(ncplane* n){
   // we need to zero out the EGC before handing this off to cell_load, but
   // we don't want to lose the channels/attributes, so explicit gcluster load.
   n->basecell.gcluster = 0;
-  cell_load(n, &n->basecell, egc);
+  nccell_load(n, &n->basecell, egc);
   free(egc);
   n->y = n->x = 0;
 }

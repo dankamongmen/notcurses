@@ -1073,7 +1073,7 @@ namespace ncpp
 
 		int load (Cell &cell, const char *gcluster) const NOEXCEPT_MAYBE
 		{
-			return error_guard<int> (cell_load (plane, cell, gcluster), -1);
+			return error_guard<int> (nccell_load (plane, cell, gcluster), -1);
 		}
 
 		bool load (Cell &cell, char ch) const NOEXCEPT_MAYBE

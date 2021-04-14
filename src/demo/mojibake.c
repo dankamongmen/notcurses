@@ -3535,7 +3535,7 @@ makegroup(struct ncplane* title, int y, const char* emoji, const char* name){
   y = 1;
   int x = 1;
   while(*emoji){
-    int bytes = cell_load(n, &c, emoji);
+    int bytes = nccell_load(n, &c, emoji);
     // glibc is missing several:
     //  U+1F972 SMILING FACE WITH TEAR
     // we put them at the end of their sections...yuck

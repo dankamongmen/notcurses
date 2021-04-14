@@ -37,7 +37,7 @@ TEST_CASE("Cell") {
 
   SUBCASE("Loadchar") {
     nccell c = CELL_TRIVIAL_INITIALIZER;
-    CHECK(1 == cell_load(n_, &c, " "));
+    CHECK(1 == nccell_load(n_, &c, " "));
     CHECK(cell_simple_p(&c));
     nccell_release(n_, &c);
   }
@@ -72,7 +72,7 @@ TEST_CASE("Cell") {
     int dimy, dimx;
     notcurses_term_dim_yx(nc_, &dimy, &dimx);
     nccell_set_styles(&c, NCSTYLE_ITALIC);
-    CHECK(1 == cell_load(n_, &c, "i"));
+    CHECK(1 == nccell_load(n_, &c, "i"));
     cell_set_fg_rgb8(&c, 255, 255, 255);
     ncplane_set_base_cell(n_, &c);
     nccell_release(n_, &c);
@@ -85,7 +85,7 @@ TEST_CASE("Cell") {
     int dimy, dimx;
     notcurses_term_dim_yx(nc_, &dimy, &dimx);
     nccell_set_styles(&c, NCSTYLE_BOLD);
-    CHECK(1 == cell_load(n_, &c, "b"));
+    CHECK(1 == nccell_load(n_, &c, "b"));
     cell_set_fg_rgb8(&c, 255, 255, 255);
     ncplane_set_base_cell(n_, &c);
     nccell_release(n_, &c);
@@ -98,7 +98,7 @@ TEST_CASE("Cell") {
     int dimy, dimx;
     notcurses_term_dim_yx(nc_, &dimy, &dimx);
     nccell_set_styles(&c, NCSTYLE_UNDERLINE);
-    CHECK(1 == cell_load(n_, &c, "u"));
+    CHECK(1 == nccell_load(n_, &c, "u"));
     cell_set_fg_rgb8(&c, 255, 255, 255);
     ncplane_set_base_cell(n_, &c);
     nccell_release(n_, &c);
@@ -109,11 +109,11 @@ TEST_CASE("Cell") {
   /*SUBCASE("CellLoadTamil") {
     const char zerodeg[] = "\u0bb8\u0bc0\u0bb0\u0bc7\u0bb3\u0b95\u0bbf\u0b95\u0bbf\u0bb0\u0bbf";
     nccell c = CELL_TRIVIAL_INITIALIZER;
-    size_t ulen = cell_load(n_, &c, zerodeg);
+    size_t ulen = nccell_load(n_, &c, zerodeg);
     // First have U+0BB8 TAMIL LETTER SA U+0BC0 TAMIL VOWEL SIGN II
     // // e0 ae b8 e0 af 80
     CHECK(6 == ulen);
-    ulen = cell_load(n_, &c, zerodeg + ulen);
+    ulen = nccell_load(n_, &c, zerodeg + ulen);
     // U+0BB0 TAMIL LETTER RA U+0BCB TAMIL VOWEL SIGN OO
     // e0 ae b0 e0 af 8b
     CHECK(6 == ulen);
