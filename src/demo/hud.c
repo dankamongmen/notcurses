@@ -170,7 +170,7 @@ about_toggle(struct notcurses* nc){
     channels = 0;
     channels_set_fg_rgb(&channels, 0xc020c0);
     channels_set_bg_rgb(&channels, 0);
-    if(cells_rounded_box(n, NCSTYLE_NONE, channels, &ul, &ur, &ll, &lr, &hl, &vl) == 0){
+    if(nccells_rounded_box(n, NCSTYLE_NONE, channels, &ul, &ur, &ll, &lr, &hl, &vl) == 0){
       if(ncplane_perimeter(n, &ul, &ur, &ll, &lr, &hl, &vl, 0) == 0){
         nccell_release(n, &ul); nccell_release(n, &ur); nccell_release(n, &hl);
         nccell_release(n, &ll); nccell_release(n, &lr); nccell_release(n, &vl);
@@ -326,7 +326,7 @@ hud_refresh(struct ncplane* n){
   nccell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
   nccell lr = CELL_TRIVIAL_INITIALIZER, ll = CELL_TRIVIAL_INITIALIZER;
   nccell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
-  if(cells_rounded_box(n, NCSTYLE_NONE, 0, &ul, &ur, &ll, &lr, &hl, &vl)){
+  if(nccells_rounded_box(n, NCSTYLE_NONE, 0, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
   ul.channels = CHANNELS_RGB_INITIALIZER(0xf0, 0xc0, 0xc0, 0, 0, 0);

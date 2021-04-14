@@ -2583,25 +2583,40 @@ char* ncplane_contents(const ncplane* nc, int begy, int begx, int leny, int lenx
   return ret;
 }
 
-int cells_ascii_box(struct ncplane* n, uint32_t attr, uint64_t channels,
-                    nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
-  return cells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, "/\\\\/-|");
-}
-
-int cells_double_box(struct ncplane* n, uint32_t attr, uint64_t channels,
-                     nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
-  if(notcurses_canutf8(ncplane_notcurses(n))){
-    return cells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, "╔╗╚╝═║");
-  }
-  return cells_ascii_box(n, attr, channels, ul, ur, ll, lr, hl, vl);
-}
-
-int cells_rounded_box(struct ncplane* n, uint32_t attr, uint64_t channels,
+int nccells_ascii_box(ncplane* n, uint32_t attr, uint64_t channels,
                       nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
+  return nccells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, "/\\\\/-|");
+}
+
+int cells_ascii_box(ncplane* n, uint32_t attr, uint64_t channels,
+                    nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
+  return nccells_ascii_box(n, attr, channels, ul, ur, ll, lr, hl, vl);
+}
+
+int nccells_double_box(ncplane* n, uint32_t attr, uint64_t channels,
+                       nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
   if(notcurses_canutf8(ncplane_notcurses(n))){
-    return cells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, "╭╮╰╯─│");
+    return nccells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, "╔╗╚╝═║");
   }
-  return cells_ascii_box(n, attr, channels, ul, ur, ll, lr, hl, vl);
+  return nccells_ascii_box(n, attr, channels, ul, ur, ll, lr, hl, vl);
+}
+
+int cells_double_box(ncplane* n, uint32_t attr, uint64_t channels,
+                     nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
+  return nccells_double_box(n, attr, channels, ul, ur, ll, lr, hl, vl);
+}
+
+int nccells_rounded_box(ncplane* n, uint32_t attr, uint64_t channels,
+                        nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
+  if(notcurses_canutf8(ncplane_notcurses(n))){
+    return nccells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, "╭╮╰╯─│");
+  }
+  return nccells_ascii_box(n, attr, channels, ul, ur, ll, lr, hl, vl);
+}
+
+int cells_rounded_box(ncplane* n, uint32_t attr, uint64_t channels,
+                      nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
+  return nccells_rounded_box(n, attr, channels, ul, ur, ll, lr, hl, vl);
 }
 
 // find the center coordinate of a plane, preferring the top/left in the

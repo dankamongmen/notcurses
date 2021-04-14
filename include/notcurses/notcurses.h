@@ -2327,9 +2327,9 @@ API void ncfadectx_free(struct ncfadectx* nctx);
 // have loaded before the error are nccell_release()d. There must be at least
 // six EGCs in gcluster.
 static inline int
-cells_load_box(struct ncplane* n, uint32_t styles, uint64_t channels,
-               nccell* ul, nccell* ur, nccell* ll, nccell* lr,
-               nccell* hl, nccell* vl, const char* gclusters){
+nccells_load_box(struct ncplane* n, uint32_t styles, uint64_t channels,
+                 nccell* ul, nccell* ur, nccell* ll, nccell* lr,
+                 nccell* hl, nccell* vl, const char* gclusters){
   int ulen;
   if((ulen = nccell_prime(n, ul, gclusters, styles, channels)) > 0){
     if((ulen = nccell_prime(n, ur, gclusters += ulen, styles, channels)) > 0){
@@ -2352,9 +2352,14 @@ cells_load_box(struct ncplane* n, uint32_t styles, uint64_t channels,
   return -1;
 }
 
-API int cells_rounded_box(struct ncplane* n, uint32_t styles, uint64_t channels,
-                          nccell* ul, nccell* ur, nccell* ll,
-                          nccell* lr, nccell* hl, nccell* vl);
+API int nccells_rounded_box(struct ncplane* n, uint32_t styles, uint64_t channels,
+                            nccell* ul, nccell* ur, nccell* ll,
+                            nccell* lr, nccell* hl, nccell* vl);
+
+__attribute__ ((deprecated)) API int
+cells_rounded_box(struct ncplane* n, uint32_t styles, uint64_t channels,
+                  nccell* ul, nccell* ur, nccell* ll,
+                  nccell* lr, nccell* hl, nccell* vl);
 
 static inline int
 ncplane_rounded_box(struct ncplane* n, uint32_t styles, uint64_t channels,
@@ -2363,7 +2368,7 @@ ncplane_rounded_box(struct ncplane* n, uint32_t styles, uint64_t channels,
   nccell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
   nccell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
   nccell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
-  if((ret = cells_rounded_box(n, styles, channels, &ul, &ur, &ll, &lr, &hl, &vl)) == 0){
+  if((ret = nccells_rounded_box(n, styles, channels, &ul, &ur, &ll, &lr, &hl, &vl)) == 0){
     ret = ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, ystop, xstop, ctlword);
   }
   nccell_release(n, &ul); nccell_release(n, &ur);
@@ -2386,7 +2391,7 @@ ncplane_perimeter_rounded(struct ncplane* n, uint32_t stylemask,
   nccell lr = CELL_TRIVIAL_INITIALIZER;
   nccell vl = CELL_TRIVIAL_INITIALIZER;
   nccell hl = CELL_TRIVIAL_INITIALIZER;
-  if(cells_rounded_box(n, stylemask, channels, &ul, &ur, &ll, &lr, &hl, &vl)){
+  if(nccells_rounded_box(n, stylemask, channels, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
   int r = ncplane_box_sized(n, &ul, &ur, &ll, &lr, &hl, &vl, dimy, dimx, ctlword);
@@ -2405,9 +2410,14 @@ ncplane_rounded_box_sized(struct ncplane* n, uint32_t styles, uint64_t channels,
                              x + xlen - 1, ctlword);
 }
 
-API int cells_double_box(struct ncplane* n, uint32_t styles, uint64_t channels,
-                         nccell* ul, nccell* ur, nccell* ll,
-                         nccell* lr, nccell* hl, nccell* vl);
+API int nccells_double_box(struct ncplane* n, uint32_t styles, uint64_t channels,
+                           nccell* ul, nccell* ur, nccell* ll,
+                           nccell* lr, nccell* hl, nccell* vl);
+
+__attribute__ ((deprecated)) API int
+cells_double_box(struct ncplane* n, uint32_t styles, uint64_t channels,
+                 nccell* ul, nccell* ur, nccell* ll,
+                 nccell* lr, nccell* hl, nccell* vl);
 
 static inline int
 ncplane_double_box(struct ncplane* n, uint32_t styles, uint64_t channels,
@@ -2416,7 +2426,7 @@ ncplane_double_box(struct ncplane* n, uint32_t styles, uint64_t channels,
   nccell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
   nccell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
   nccell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
-  if((ret = cells_double_box(n, styles, channels, &ul, &ur, &ll, &lr, &hl, &vl)) == 0){
+  if((ret = nccells_double_box(n, styles, channels, &ul, &ur, &ll, &lr, &hl, &vl)) == 0){
     ret = ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, ystop, xstop, ctlword);
   }
   nccell_release(n, &ul); nccell_release(n, &ur);
@@ -2439,7 +2449,7 @@ ncplane_perimeter_double(struct ncplane* n, uint32_t stylemask,
   nccell lr = CELL_TRIVIAL_INITIALIZER;
   nccell vl = CELL_TRIVIAL_INITIALIZER;
   nccell hl = CELL_TRIVIAL_INITIALIZER;
-  if(cells_double_box(n, stylemask, channels, &ul, &ur, &ll, &lr, &hl, &vl)){
+  if(nccells_double_box(n, stylemask, channels, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
   int r = ncplane_box_sized(n, &ul, &ur, &ll, &lr, &hl, &vl, dimy, dimx, ctlword);

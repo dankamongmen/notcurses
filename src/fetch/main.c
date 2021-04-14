@@ -471,7 +471,7 @@ infoplane_notcurses(struct notcurses* nc, const fetched_info* fi, int planeheigh
   nccell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
   nccell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
   nccell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
-  if(cells_rounded_box(infop, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl)){
+  if(nccells_rounded_box(infop, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
   cell_set_fg_rgb8(&ul, 0x90, 0x90, 0x90);

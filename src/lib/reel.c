@@ -122,7 +122,7 @@ draw_borders(ncplane* n, unsigned mask, uint64_t channel, direction_e direction)
   nccell ul, ur, ll, lr, hl, vl;
   nccell_init(&ul); nccell_init(&ur); nccell_init(&hl);
   nccell_init(&ll); nccell_init(&lr); nccell_init(&vl);
-  if(cells_rounded_box(n, 0, channel, &ul, &ur, &ll, &lr, &hl, &vl)){
+  if(nccells_rounded_box(n, 0, channel, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
 //fprintf(stderr, "drawing borders %p ->%d/%d, mask: %04x\n", w, maxx, maxy, mask);

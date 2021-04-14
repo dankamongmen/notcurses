@@ -721,7 +721,7 @@ namespace ncpp
 
 		bool load_box (uint16_t styles, uint64_t channels, Cell &ul, Cell &ur, Cell &ll, Cell &lr, Cell &hl, Cell &vl, const char *gclusters) const NOEXCEPT_MAYBE
 		{
-			return error_guard (cells_load_box (plane, styles, channels, ul, ur, ll, lr, hl, vl, gclusters), -1);
+			return error_guard (nccells_load_box (plane, styles, channels, ul, ur, ll, lr, hl, vl, gclusters), -1);
 		}
 
 		bool load_box (CellStyle style, uint64_t channels, Cell &ul, Cell &ur, Cell &ll, Cell &lr, Cell &hl, Cell &vl, const char *gclusters) const NOEXCEPT_MAYBE
@@ -731,7 +731,7 @@ namespace ncpp
 
 		bool load_rounded_box (uint16_t styles, uint64_t channels, Cell &ul, Cell &ur, Cell &ll, Cell &lr, Cell &hl, Cell &vl) const NOEXCEPT_MAYBE
 		{
-			return error_guard (cells_rounded_box (plane, styles, channels, ul, ur, ll, lr, hl, vl), -1);
+			return error_guard (nccells_rounded_box (plane, styles, channels, ul, ur, ll, lr, hl, vl), -1);
 		}
 
 		bool load_rounded_box (CellStyle style, uint64_t channels, Cell &ul, Cell &ur, Cell &ll, Cell &lr, Cell &hl, Cell &vl) const NOEXCEPT_MAYBE
@@ -741,7 +741,7 @@ namespace ncpp
 
 		bool load_double_box (uint16_t styles, uint64_t channels, Cell &ul, Cell &ur, Cell &ll, Cell &lr, Cell &hl, Cell &vl) const NOEXCEPT_MAYBE
 		{
-			return error_guard (cells_double_box (plane, styles, channels, ul, ur, ll, lr, hl, vl), -1);
+			return error_guard (nccells_double_box (plane, styles, channels, ul, ur, ll, lr, hl, vl), -1);
 		}
 
 		bool load_double_box (CellStyle style, uint64_t channels, Cell &ul, Cell &ur, Cell &ll, Cell &lr, Cell &hl, Cell &vl) const NOEXCEPT_MAYBE

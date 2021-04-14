@@ -37,15 +37,15 @@ notcurses_lines - operations on lines and boxes
 
 **static inline int ncplane_perimeter(struct ncplane* ***n***, const nccell* ***ul***, const nccell* ***ur***, const nccell* ***ll***, const nccell* ***lr***, const nccell* ***hline***, const nccell* ***vline***, unsigned ***ctlword***)**
 
-**static inline int cells_load_box(struct ncplane* ***n***, uint32_t ***styles***, uint64_t ***channels***, nccell* ***ul***, nccell* ***ur***, nccell* ***ll***, nccell* ***lr***, nccell* ***hl***, nccell* ***vl***, const char* ***gclusters***);**
+**static inline int nccells_load_box(struct ncplane* ***n***, uint32_t ***styles***, uint64_t ***channels***, nccell* ***ul***, nccell* ***ur***, nccell* ***ll***, nccell* ***lr***, nccell* ***hl***, nccell* ***vl***, const char* ***gclusters***);**
 
-**static inline int cells_rounded_box(struct ncplane* ***n***, uint32_t ***styles***, uint64_t ***channels***, nccell* ***ul***, nccell* ***ur***, nccell* ***ll***, nccell* ***lr***, nccell* ***hl***, nccell* ***vl***);**
+**static inline int nccells_rounded_box(struct ncplane* ***n***, uint32_t ***styles***, uint64_t ***channels***, nccell* ***ul***, nccell* ***ur***, nccell* ***ll***, nccell* ***lr***, nccell* ***hl***, nccell* ***vl***);**
 
 **static inline int ncplane_rounded_box(struct ncplane* ***n***, uint32_t ***styles***, uint64_t ***channels***, int ***ystop***, int ***xstop***, unsigned ***ctlword***);**
 
 **static inline int ncplane_rounded_box_sized(struct ncplane* ***n***, uint32_t ***styles***, uint64_t ***channels***, int ***ylen***, int ***xlen***, unsigned ***ctlword***);**
 
-**static inline int cells_double_box(struct ncplane* ***n***, uint32_t ***styles***, uint64_t ***channels***, nccell* ***ul***, nccell* ***ur***, nccell* ***ll***, nccell* ***lr***, nccell* ***hl***, nccell* ***vl***);**
+**static inline int nccells_double_box(struct ncplane* ***n***, uint32_t ***styles***, uint64_t ***channels***, nccell* ***ul***, nccell* ***ur***, nccell* ***ll***, nccell* ***lr***, nccell* ***hl***, nccell* ***vl***);**
 
 **static inline int ncplane_double_box(struct ncplane* ***n***, uint32_t ***styles***, uint64_t ***channels***, int ***ystop***, int ***xstop***, unsigned ***ctlword***);**
 

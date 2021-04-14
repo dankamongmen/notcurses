@@ -213,7 +213,7 @@ TEST_CASE("Plane") {
     REQUIRE(2 < y);
     REQUIRE(2 < x);
     nccell ul{}, ll{}, lr{}, ur{}, hl{}, vl{};
-    REQUIRE(0 == cells_rounded_box(n_, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl));
+    REQUIRE(0 == nccells_rounded_box(n_, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl));
     CHECK_GT(0, ncplane_box(n_, &ul, &ur, &ll, &lr, &hl, &vl, y + 1, x + 1, 0));
     CHECK(0 == ncplane_cursor_move_yx(n_, 1, 0));
     CHECK_GT(0, ncplane_box(n_, &ul, &ur, &ll, &lr, &hl, &vl, y, x, 0));
@@ -660,7 +660,7 @@ TEST_CASE("Plane") {
     REQUIRE(20 < dimy);
     REQUIRE(40 < dimx);
     nccell ul{}, ll{}, lr{}, ur{}, hl{}, vl{};
-    REQUIRE(0 == cells_double_box(n_, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl));
+    REQUIRE(0 == nccells_double_box(n_, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl));
     CHECK(0 == channels_set_fg_rgb8(&ul.channels, 255, 0, 0));
     CHECK(0 == channels_set_fg_rgb8(&ur.channels, 0, 255, 0));
     CHECK(0 == channels_set_fg_rgb8(&ll.channels, 0, 0, 255));
@@ -698,7 +698,7 @@ TEST_CASE("Plane") {
     REQUIRE(20 < dimy);
     REQUIRE(40 < dimx);
     nccell ul{}, ll{}, lr{}, ur{}, hl{}, vl{};
-    REQUIRE(0 == cells_rounded_box(n_, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl));
+    REQUIRE(0 == nccells_rounded_box(n_, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl));
     // we'll try all 16 boxmasks in sideszXsidesz configurations in a 4x4 map
     CHECK(0 == channels_set_fg_rgb8(&ul.channels, 255, 0, 0));
     CHECK(0 == channels_set_fg_rgb8(&ur.channels, 0, 255, 0));
@@ -760,7 +760,7 @@ TEST_CASE("Plane") {
     };
     struct ncplane* ncp = ncplane_create(n_, &nopts);
     REQUIRE(ncp);
-    REQUIRE(0 == cells_rounded_box(ncp, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl));
+    REQUIRE(0 == nccells_rounded_box(ncp, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl));
     CHECK(0 == ncplane_box(ncp, &ul, &ur, &ll, &lr, &hl, &vl, y + 1, x + 1, 0));
     CHECK(0 == notcurses_render(nc_));
     // FIXME verify with ncplane_at_cursor_cell()
@@ -783,7 +783,7 @@ TEST_CASE("Plane") {
     };
     struct ncplane* ncp = ncplane_create(n_, &nopts);
     REQUIRE(ncp);
-    REQUIRE(0 == cells_rounded_box(ncp, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl));
+    REQUIRE(0 == nccells_rounded_box(ncp, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl));
     CHECK(0 == ncplane_box(ncp, &ul, &ur, &ll, &lr, &hl, &vl, y + 1, x + 1, 0));
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncplane_move_yx(ncp, nrows - 3, ncols - 3));
