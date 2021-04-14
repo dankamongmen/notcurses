@@ -153,6 +153,7 @@ int sprite_kitty_cell_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell
 //fprintf(stderr, "CACHED WIPE %d %d/%d\n", s->id, ycell, xcell);
     return 0; // already annihilated, needn't draw glyph in kitty
   }
+//fprintf(stderr, "NEW WIPE %d %d/%d\n", s->id, ycell, xcell);
   const int totalpixels = s->pixy * s->pixx;
   const int xpixels = nc->tcache.cellpixx;
   const int ypixels = nc->tcache.cellpixy;
@@ -271,13 +272,21 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx,
         const uint32_t* line = data + (linesize / sizeof(*data)) * y;
         source[e] = line[x];
 //fprintf(stderr, "%u/%u/%u -> %c%c%c%c %u %u %u %u\n", r, g, b, b64[0], b64[1], b64[2], b64[3], b64[0], b64[1], b64[2], b64[3]);
-        int tyx = (x / cdimx) + (y / cdimy) * cols;
+        int xcell = x / cdimx;
+        int ycell = y / cdimy;
+        int tyx = xcell + ycell * cols;
 //fprintf(stderr, "Tyx: %d y: %d (%d) * %d x: %d (%d)\n", tyx, y, y / cdimy, cols, x, x / cdimx);
         if(tacache[tyx] == SPRIXCELL_ANNIHILATED){
           wipe[e] = 1;
         }else{
           wipe[e] = 0;
           if(rgba_trans_p(source[e], transcolor)){
+            if(x % cdimx == 0 && y % cdimy == 0){
+              tacache[tyx] = SPRIXCELL_ALL_TRANS;
+            }else if(tacache[tyx] == SPRIXCELL_NORMAL){
+              tacache[tyx] = SPRIXCELL_CONTAINS_TRANS;
+            }
+          }else if(tacache[tyx] == SPRIXCELL_ALL_TRANS){
             tacache[tyx] = SPRIXCELL_CONTAINS_TRANS;
           }
         }

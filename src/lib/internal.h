@@ -56,7 +56,8 @@ typedef enum {
 typedef enum {
   SPRIXCELL_NORMAL,         // no transparent pixels in this cell
   SPRIXCELL_CONTAINS_TRANS, // this cell has transparent pixels
-  SPRIXCELL_ANNIHILATED,    // this cell has been wiped
+  SPRIXCELL_ALL_TRANS,      // all pixels are naturally transparent
+  SPRIXCELL_ANNIHILATED,    // this cell has been wiped (all trans)
 } sprixcell_e;
 
 // there is a context-wide set of displayed pixel glyphs ("sprixels"); i.e.
@@ -831,7 +832,7 @@ int sprite_kitty_cell_wipe(const notcurses* nc, sprixel* s, int y, int x);
 int sixel_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell);
 int sprite_destroy(const struct notcurses* nc, const struct ncpile* p, FILE* out, sprixel* s);
 void sprixel_free(sprixel* s);
-void sprixel_invalidate(sprixel* s);
+void sprixel_invalidate(sprixel* s, int y, int x);
 void sprixel_movefrom(sprixel* s, int y, int x);
 void sprixel_hide(sprixel* s);
 int sprite_draw(const notcurses* n, const ncpile *p, sprixel* s, FILE* out);
@@ -848,7 +849,6 @@ int sprite_kitty_annihilate(const notcurses* nc, const ncpile* p, FILE* out, spr
 int sprite_kitty_init(int fd);
 int sprite_sixel_init(int fd);
 int sprite_init(const notcurses* nc);
-void sprixel_invalidate(sprixel* s);
 int kitty_shutdown(int fd);
 int sixel_shutdown(int fd);
 sprixel* sprixel_by_id(const notcurses* nc, uint32_t id);

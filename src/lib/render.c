@@ -1084,7 +1084,7 @@ rasterize_core(notcurses* nc, const ncpile* p, FILE* out, unsigned phase){
         }
 //fprintf(stderr, "RAST %08x [%s] to %d/%d cols: %u %016lx\n", srccell->gcluster, pool_extended_gcluster(&nc->pool, srccell), y, x, srccell->width, srccell->channels);
         if(rvec[damageidx].sprixel){
-          sprixel_invalidate(rvec[damageidx].sprixel);
+          sprixel_invalidate(rvec[damageidx].sprixel, y, x);
         }
         if(term_putc(out, &nc->pool, srccell)){
           return -1;
