@@ -408,7 +408,7 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
     }
     return 0;
   }
-  fprintf(stderr, "rasterizing %dx%d+%d\n", dimy, dimx, xoff);
+//fprintf(stderr, "rasterizing %dx%d+%d\n", dimy, dimx, xoff);
   // save the existing style and colors
   const bool fgdefault = ncdirect_fg_default_p(n);
   const bool bgdefault = ncdirect_bg_default_p(n);
@@ -1143,7 +1143,7 @@ int ncdirect_stream(ncdirect* n, const char* filename, ncstreamcb streamer,
     }
     ncdirect_raster_frame(n, v, (vopts->flags & NCVISUAL_OPTION_HORALIGNED) ? vopts->x : 0);
     streamer(ncv, vopts, NULL, curry);
-  }while(ncvisual_decode(ncv));
+  }while(ncvisual_decode(ncv) == 0);
   ncvisual_destroy(ncv);
   return 0;
 }

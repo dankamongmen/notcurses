@@ -164,6 +164,11 @@ namespace ncpp
 			return ncdirect_raster_frame (direct, faken, static_cast<ncalign_e>(align));
 		}
 
+		int streamfile (const char* filename, ncstreamcb streamer, struct ncvisual_options* vopts, void* curry) const NOEXCEPT_MAYBE
+		{
+			return error_guard (ncdirect_stream(direct, filename, streamer, vopts, curry), -1);
+		}
+
 		bool putstr (uint64_t channels, const char* utf8) const NOEXCEPT_MAYBE
 		{
 			return error_guard (ncdirect_putstr (direct, channels, utf8), -1);
