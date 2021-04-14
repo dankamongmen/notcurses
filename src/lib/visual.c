@@ -601,6 +601,7 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
       disprows = ncv->rows;
     }else{
       notcurses_term_dim_yx(nc, &disprows, &dispcols);
+      --disprows; // some terminals scroll when bitmaps hit the last line
       dispcols *= nc->tcache.cellpixx;
       disprows *= nc->tcache.cellpixy;
       if(scaling == NCSCALE_SCALE || scaling == NCSCALE_SCALE_HIRES){
