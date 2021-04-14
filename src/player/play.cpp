@@ -298,6 +298,16 @@ auto handle_opts(int argc, char** argv, notcurses_options& opts, bool* quiet,
   return optind;
 }
 
+int perframe_direct(struct ncvisual* ncv, struct ncvisual_options* vopts,
+                    const struct timespec* abstime, void* vmarshal){
+  // FIXME probably want to reset cursor here?
+  (void)ncv;
+  (void)vopts;
+  (void)abstime;
+  (void)vmarshal;
+  return 0;
+}
+
 // argc/argv ought already be reduced to only the media arguments
 int direct_mode_player(int argc, char** argv, ncscale_e scalemode,
                        ncblitter_e blitter, int lmargin, int rmargin){
@@ -313,15 +323,18 @@ int direct_mode_player(int argc, char** argv, ncscale_e scalemode,
     }
   }
   for(auto i = 0 ; i < argc ; ++i){
+    /*
     auto faken = dm.prep_image(argv[i], blitter, scalemode, -1,
                                dm.get_dim_x() - (lmargin + rmargin));
     if(!faken){
       failed = true;
       break;
     }
+    */
     // FIXME we want to honor the different left and right margins, but that
     // would require raster_image() knowing how far over we were starting for
     // multiline cellular blittings...
+    (void)rmargin;
     ncpp::NCAlign a;
     if(blitter == NCBLIT_PIXEL){
       printf("%*.*s", lmargin, lmargin, "");
@@ -329,14 +342,24 @@ int direct_mode_player(int argc, char** argv, ncscale_e scalemode,
     }else{
       a = NCAlign::Center;
     }
+    /*
     if(dm.raster_image(faken, a)){
       failed = true;
       break;
     }
+    */
     int y, x;
     dm.get_cursor_yx(&y, &x);
     if(x){
       std::cout << std::endl;
+    }
+    struct ncvisual_options vopts{};
+    vopts.blitter = blitter;
+    vopts.scaling = scalemode;
+    vopts.x = static_cast<int>(a);
+    vopts.flags = NCVISUAL_OPTION_HORALIGNED;
+    if(dm.streamfile(argv[i], perframe_direct, &vopts, NULL)){
+      failed = true;
     }
   }
   return failed ? -1 : 0;

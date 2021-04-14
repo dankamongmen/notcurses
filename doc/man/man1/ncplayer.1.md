@@ -87,10 +87,8 @@ fixed-width font with good coverage of the Unicode Block Drawing Characters.
 
 # BUGS
 
-Direct mode (**-k**) does not yet support multiframe media. It'll read them
-just fine, but only show the first frame. This might or might not change in
-the future. Direct mode is kinda fundamentally suboptimal for multiframe
-media. Until that time, **-k** is exclusive with **-d** and **-L**.
+Direct mode is kinda fundamentally suboptimal for multiframe media, and
+is not yet supported with **-L** nor **-d**.
 
 # SEE ALSO
 
