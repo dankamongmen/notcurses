@@ -443,7 +443,7 @@ pub fn nccell_prime(
 /// are [nccell_release]d. There must be at least six [NcEgc]s in `gcluster`.
 ///
 /// *Method: NcCell.[load_box()][NcCell#method.load_box].*
-pub fn cells_load_box(
+pub fn nccells_load_box(
     plane: &mut NcPlane,
     style: NcStyleMask,
     channels: NcChannelPair,
