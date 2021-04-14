@@ -917,7 +917,7 @@ TEST_CASE("Wide") {
     nccell c = CELL_TRIVIAL_INITIALIZER;
     nccell_load(n_, &c, "\U0001F427");
     CHECK(0xa7909ff0 == htole(c.gcluster));
-    cell_on_styles(&c, NCSTYLE_ITALIC);
+    nccell_on_styles(&c, NCSTYLE_ITALIC);
     CHECK(4 == strlen(nccell_extended_gcluster(n_, &c)));
     CHECK(0 == strcmp("\U0001F427", nccell_extended_gcluster(n_, &c)));
     CHECK(0 < ncplane_putc_yx(n_, 0, 0, &c));
@@ -936,7 +936,7 @@ TEST_CASE("Wide") {
     nccell c = CELL_TRIVIAL_INITIALIZER;
     nccell_load(n_, &c, "\U0001F427");
     CHECK(0xa7909ff0 == htole(c.gcluster));
-    cell_on_styles(&c, NCSTYLE_MASK);
+    nccell_on_styles(&c, NCSTYLE_MASK);
     CHECK(4 == strlen(nccell_extended_gcluster(n_, &c)));
     CHECK(0 == strcmp("\U0001F427", nccell_extended_gcluster(n_, &c)));
     CHECK(0 < ncplane_putc_yx(n_, 0, 0, &c));

@@ -68,12 +68,12 @@ tria_blit_ascii(ncplane* nc, int linesize, const void* data,
       c->channels = 0;
       c->stylemask = 0;
       if(bargs->u.cell.blendcolors){
-        cell_set_bg_alpha(c, CELL_ALPHA_BLEND);
-        cell_set_fg_alpha(c, CELL_ALPHA_BLEND);
+        nccell_set_bg_alpha(c, CELL_ALPHA_BLEND);
+        nccell_set_fg_alpha(c, CELL_ALPHA_BLEND);
       }
       if(rgba_trans_q(rgbbase_up, bargs->transcolor)){
-        cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
-        cell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
+        nccell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
+        nccell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
         cell_set_blitquadrants(c, 0, 0, 0, 0);
       }else{
         cell_set_fg_rgb8(c, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2]);
@@ -127,13 +127,13 @@ tria_blit(ncplane* nc, int linesize, const void* data,
       c->channels = 0;
       c->stylemask = 0;
       if(bargs->u.cell.blendcolors){
-        cell_set_bg_alpha(c, CELL_ALPHA_BLEND);
-        cell_set_fg_alpha(c, CELL_ALPHA_BLEND);
+        nccell_set_bg_alpha(c, CELL_ALPHA_BLEND);
+        nccell_set_fg_alpha(c, CELL_ALPHA_BLEND);
       }
       if(rgba_trans_q(rgbbase_up, transcolor) || rgba_trans_q(rgbbase_down, transcolor)){
-        cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
+        nccell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
         if(rgba_trans_q(rgbbase_up, transcolor) && rgba_trans_q(rgbbase_down, transcolor)){
-          cell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
+          nccell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
         }else if(rgba_trans_q(rgbbase_up, transcolor)){ // down has the color
           if(pool_blit_direct(&nc->pool, c, "\u2584", strlen("\u2584"), 1) <= 0){
             return -1;
@@ -329,7 +329,7 @@ qtrans_check(nccell* c, unsigned blendcolors,
         // top and left are transparent
         if(rgba_trans_q(rgbbase_br, transcolor)){
           // entirety is transparent, load with nul (but not NULL)
-          cell_set_fg_default(c);
+          nccell_set_fg_default(c);
           cell_set_blitquadrants(c, 0, 0, 0, 0);
           egc = "";
         }else{
@@ -409,11 +409,11 @@ qtrans_check(nccell* c, unsigned blendcolors,
     }
   }
   assert(egc);
-  cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
+  nccell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
   if(*egc == '\0'){
-    cell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
+    nccell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
   }else if(blendcolors){
-    cell_set_fg_alpha(c, CELL_ALPHA_BLEND);
+    nccell_set_fg_alpha(c, CELL_ALPHA_BLEND);
   }
 //fprintf(stderr, "QBQ: 0x%x\n", cell_blittedquadrants(c));
   return egc;
@@ -476,8 +476,8 @@ quadrant_blit(ncplane* nc, int linesize, const void* data,
         cell_set_fchannel(c, fg);
         cell_set_bchannel(c, bg);
         if(bargs->u.cell.blendcolors){
-          cell_set_bg_alpha(c, CELL_ALPHA_BLEND);
-          cell_set_fg_alpha(c, CELL_ALPHA_BLEND);
+          nccell_set_bg_alpha(c, CELL_ALPHA_BLEND);
+          nccell_set_fg_alpha(c, CELL_ALPHA_BLEND);
         }
         cell_set_blitquadrants(c, 1, 1, 1, 1);
       }
@@ -626,20 +626,20 @@ sex_trans_check(cell* c, const uint32_t rgbas[6], unsigned blendcolors,
   if(transstring == 0){ // there was no transparency
     return NULL;
   }
-  cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
+  nccell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
   // there were some transparent pixels. since they get priority, the foreground
   // is just a general lerp across non-transparent pixels.
   const char* egc = sex[transstring];
-  cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
+  nccell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
 //fprintf(stderr, "transtring: %u egc: %s\n", transtring, egc);
   if(*egc == ' '){ // entirely transparent
-    cell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
+    nccell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
     return "";
   }else{ // partially transparent, thus div >= 1
 //fprintf(stderr, "div: %u r: %u g: %u b: %u\n", div, r, g, b);
     cell_set_fchannel(c, generalerp(r, g, b, div));
     if(blendcolors){
-      cell_set_fg_alpha(c, CELL_ALPHA_BLEND);
+      nccell_set_fg_alpha(c, CELL_ALPHA_BLEND);
     }
     cell_set_blitquadrants(c, !(transstring & 5u), !(transstring & 10u),
                               !(transstring & 20u), !(transstring & 40u));
@@ -818,14 +818,14 @@ braille_blit(ncplane* nc, int linesize, const void* data,
       c->channels = 0;
       c->stylemask = 0;
       if(bargs->u.cell.blendcolors){
-        cell_set_fg_alpha(c, CELL_ALPHA_BLEND);
+        nccell_set_fg_alpha(c, CELL_ALPHA_BLEND);
       }
       // FIXME for now, we just sample, color-wise, and always draw crap.
       // more complicated to do optimally than quadrants, for sure. ideally,
       // we only get one color in an area.
-      cell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
+      nccell_set_bg_alpha(c, CELL_ALPHA_TRANSPARENT);
       if(!egcidx){
-          cell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
+          nccell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
           // FIXME else look for pairs of transparency!
       }else{
         if(blends){

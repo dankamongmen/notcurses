@@ -42,7 +42,7 @@ TEST_CASE("Palette256") {
   SUBCASE("FAttributes") {
     nccell c = CELL_TRIVIAL_INITIALIZER;
     CHECK(cell_fg_default_p(&c));
-    cell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT);
+    nccell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT);
     CHECK(0 == cell_set_fg_palindex(&c, 0x20));
     CHECK(!cell_fg_default_p(&c));
     CHECK(cell_fg_palindex_p(&c));
@@ -53,7 +53,7 @@ TEST_CASE("Palette256") {
   SUBCASE("BAttributes") {
     nccell c = CELL_TRIVIAL_INITIALIZER;
     CHECK(cell_bg_default_p(&c));
-    cell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT);
+    nccell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT);
     CHECK(0 == cell_set_bg_palindex(&c, 0x20));
     CHECK(!cell_bg_default_p(&c));
     CHECK(cell_bg_palindex_p(&c));

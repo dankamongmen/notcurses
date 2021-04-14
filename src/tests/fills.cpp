@@ -250,7 +250,7 @@ TEST_CASE("Fills") {
     // attr should change, but not the EGC/color
     CHECK(0 == ncplane_cursor_move_yx(n_, 0, 0));
     nccell c = CELL_TRIVIAL_INITIALIZER;
-    cell_on_styles(&c, NCSTYLE_BOLD);
+    nccell_on_styles(&c, NCSTYLE_BOLD);
     CHECK(0 < ncplane_format(n_, 0, 0, c.stylemask));
     nccell d = CELL_TRIVIAL_INITIALIZER;
     CHECK(1 == ncplane_at_yx_cell(n_, 0, 0, &d));

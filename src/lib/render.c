@@ -305,7 +305,7 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
           // about to set targc opaque based on crender->highcontrast (and this
           // entire stanza is conditional on targc not being CELL_ALPHA_OPAQUE).
           if(crender->s.highcontrast){
-            cell_set_fg_alpha(targc, CELL_ALPHA_OPAQUE);
+            nccell_set_fg_alpha(targc, CELL_ALPHA_OPAQUE);
           }
         }
       }
@@ -405,8 +405,8 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
 static inline void
 init_rvec(struct crender* rvec, int totalcells){
   struct crender c = {};
-  cell_set_fg_alpha(&c.c, CELL_ALPHA_TRANSPARENT);
-  cell_set_bg_alpha(&c.c, CELL_ALPHA_TRANSPARENT);
+  nccell_set_fg_alpha(&c.c, CELL_ALPHA_TRANSPARENT);
+  nccell_set_bg_alpha(&c.c, CELL_ALPHA_TRANSPARENT);
   for(int t = 0 ; t < totalcells ; ++t){
     memcpy(&rvec[t], &c, sizeof(c));
   }
@@ -418,10 +418,10 @@ init_rvec(struct crender* rvec, int totalcells){
 static inline void
 lock_in_highcontrast(nccell* targc, struct crender* crender){
   if(cell_fg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
-    cell_set_fg_default(targc);
+    nccell_set_fg_default(targc);
   }
   if(cell_bg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
-    cell_set_bg_default(targc);
+    nccell_set_bg_default(targc);
   }
   if(crender->s.highcontrast){
     // highcontrast weighs the original at 1/4 and the contrast at 3/4

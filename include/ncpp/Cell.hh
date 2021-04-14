@@ -87,12 +87,12 @@ namespace ncpp
 
 		void styles_on (CellStyle styles) noexcept
 		{
-			cell_on_styles (&_cell, static_cast<unsigned>(styles));
+			nccell_on_styles (&_cell, static_cast<unsigned>(styles));
 		}
 
 		void styles_off (CellStyle styles) noexcept
 		{
-			cell_off_styles (&_cell, static_cast<unsigned>(styles));
+			nccell_off_styles (&_cell, static_cast<unsigned>(styles));
 		}
 
 		bool is_double_wide () const noexcept
@@ -122,7 +122,7 @@ namespace ncpp
 
 		bool set_fg_alpha (unsigned alpha) noexcept
 		{
-			return cell_set_fg_alpha (&_cell, alpha) != -1;
+			return nccell_set_fg_alpha (&_cell, alpha) != -1;
 		}
 
 		unsigned get_bg_alpha () const noexcept
@@ -132,7 +132,7 @@ namespace ncpp
 
 		bool set_bg_alpha (unsigned alpha) noexcept
 		{
-			return cell_set_bg_alpha (&_cell, alpha) != -1;
+			return nccell_set_bg_alpha (&_cell, alpha) != -1;
 		}
 
 		unsigned get_fg_rgb8 (unsigned *r, unsigned *g, unsigned *b) const noexcept
@@ -157,7 +157,7 @@ namespace ncpp
 
 		void set_fg_default () noexcept
 		{
-			cell_set_fg_default (&_cell);
+			nccell_set_fg_default (&_cell);
 		}
 
 		unsigned get_bg_rgb8 (unsigned *r, unsigned *g, unsigned *b) const noexcept
@@ -182,7 +182,7 @@ namespace ncpp
 
 		void set_bg_default () noexcept
 		{
-			cell_set_bg_default (&_cell);
+			nccell_set_bg_default (&_cell);
 		}
 
 		bool is_bg_default () const noexcept

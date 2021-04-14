@@ -730,36 +730,66 @@ cell_styles(const nccell* c){
 // Add the specified styles (in the LSBs) to the nccell's existing spec,
 // whether they're actively supported or not.
 static inline void
-cell_on_styles(nccell* c, unsigned stylebits){
+nccell_on_styles(nccell* c, unsigned stylebits){
   c->stylemask |= (stylebits & NCSTYLE_MASK);
+}
+
+__attribute__ ((deprecated)) static inline void
+cell_on_styles(nccell* c, unsigned stylebits){
+  nccell_on_styles(c, stylebits);
 }
 
 // Remove the specified styles (in the LSBs) from the nccell's existing spec.
 static inline void
-cell_off_styles(nccell* c, unsigned stylebits){
+nccell_off_styles(nccell* c, unsigned stylebits){
   c->stylemask &= ~(stylebits & NCSTYLE_MASK);
+}
+
+__attribute__ ((deprecated)) static inline void
+cell_off_styles(nccell* c, unsigned stylebits){
+  nccell_off_styles(c, stylebits);
 }
 
 // Use the default color for the foreground.
 static inline void
-cell_set_fg_default(nccell* c){
+nccell_set_fg_default(nccell* c){
   channels_set_fg_default(&c->channels);
+}
+
+__attribute__ ((deprecated)) static inline void
+cell_set_fg_default(nccell* c){
+  nccell_set_fg_default(c);
 }
 
 // Use the default color for the background.
 static inline void
-cell_set_bg_default(nccell* c){
+nccell_set_bg_default(nccell* c){
   channels_set_bg_default(&c->channels);
 }
 
-static inline int
-cell_set_fg_alpha(nccell* c, int alpha){
-  return channels_set_fg_alpha(&c->channels, alpha);
+__attribute__ ((deprecated)) static inline void
+cell_set_bg_default(nccell* c){
+  nccell_set_bg_default(c);
 }
 
 static inline int
-cell_set_bg_alpha(nccell* c, int alpha){
+nccell_set_fg_alpha(nccell* c, int alpha){
+  return channels_set_fg_alpha(&c->channels, alpha);
+}
+
+__attribute__ ((deprecated)) static inline int
+cell_set_fg_alpha(nccell* c, int alpha){
+  return nccell_set_fg_alpha(c, alpha);
+}
+
+static inline int
+nccell_set_bg_alpha(nccell* c, int alpha){
   return channels_set_bg_alpha(&c->channels, alpha);
+}
+
+__attribute__ ((deprecated)) static inline int
+cell_set_bg_alpha(nccell* c, int alpha){
+  return nccell_set_bg_alpha(c, alpha);
 }
 
 // Is the cell part of a multicolumn element?
