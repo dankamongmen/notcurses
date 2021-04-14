@@ -535,6 +535,7 @@ int sixel_draw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
 }
 
 int sprite_sixel_init(int fd){
+fprintf(stderr, "ARP?\n");
   // \e[?8452: DECSDM private "sixel scrolling" mode keeps the sixel from
   // scrolling, but puts it at the current cursor location (as opposed to
   // the upper left corner of the screen).
@@ -552,4 +553,9 @@ int sixel_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
   }
   change_p2(s->glyph, SIXEL_P2_TRANS);
   return -1;
+}
+
+int sixel_shutdown(int fd){
+fprintf(stderr, "ERP?\n");
+  return tty_emit("\e[?80;8452l", fd);
 }

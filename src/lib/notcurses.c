@@ -67,6 +67,9 @@ notcurses_stop_minimal(void* vnc){
   // be sure to write the restoration sequences *prior* to running rmcup, as
   // they apply to the screen (alternate or otherwise) we're actually using.
   if(nc->ttyfd >= 0){
+    if(nc->tcache.pixel_shutdown){
+      ret |= nc->tcache.pixel_shutdown(nc->ttyfd);
+    }
     ret |= reset_term_attributes(nc);
     if(nc->tcache.rmcup && tty_emit(nc->tcache.rmcup, nc->ttyfd)){
       ret = -1;

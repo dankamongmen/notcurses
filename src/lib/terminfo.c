@@ -65,6 +65,7 @@ apply_term_heuristics(tinfo* ti, const char* termname){
     ti->pixel_destroy = sprite_kitty_annihilate;
     ti->pixel_init = sprite_kitty_init;
     ti->pixel_draw = kitty_draw;
+    ti->pixel_shutdown = kitty_shutdown;
     set_pixel_blitter(kitty_blit);
   }else if(strstr(termname, "alacritty")){
     ti->alacritty_sixel_hack = true;
@@ -339,6 +340,7 @@ setup_sixel(tinfo* ti){
   ti->sixel_maxy = 4096;
   ti->pixel_destroy = sixel_delete;
   ti->pixel_cell_wipe = sixel_wipe;
+  ti->pixel_shutdown = sixel_shutdown;
 }
 
 // query for Sixel support

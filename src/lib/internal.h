@@ -363,8 +363,9 @@ typedef struct tinfo {
   // means leaving out the pixels (and likely resizes the string). for kitty,
   // this means dialing down their alpha to 0 (in equivalent space).
   int (*pixel_cell_wipe)(const struct notcurses* nc, sprixel* s, int y, int x);
-  int (*pixel_init)(int fd);
+  int (*pixel_init)(int fd);     // called when support is detected
   int (*pixel_draw)(const struct notcurses* n, const struct ncpile* p, sprixel* s, FILE* out);
+  int (*pixel_shutdown)(int fd); // called during context shutdown
   bool bitmap_supported;    // do we support bitmaps (post pixel_query_done)?
   bool sprixel_cursor_hack; // do sprixels reset the cursor? (mlterm)
   bool pixel_query_done;    // have we yet performed pixel query?
@@ -848,6 +849,8 @@ int sprite_kitty_init(int fd);
 int sprite_sixel_init(int fd);
 int sprite_init(const notcurses* nc);
 void sprixel_invalidate(sprixel* s);
+int kitty_shutdown(int fd);
+int sixel_shutdown(int fd);
 sprixel* sprixel_by_id(const notcurses* nc, uint32_t id);
 
 static inline void

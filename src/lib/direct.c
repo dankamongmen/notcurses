@@ -636,6 +636,9 @@ ncdirect_stop_minimal(void* vnc){
     ret = -1;
   }
   if(nc->ctermfd >= 0){
+    if(nc->tcache.pixel_shutdown){
+      ret |= nc->tcache.pixel_shutdown(nc->ctermfd);
+    }
     if(nc->tcache.cnorm && tty_emit(nc->tcache.cnorm, nc->ctermfd)){
       ret = -1;
     }

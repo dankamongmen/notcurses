@@ -379,3 +379,10 @@ int kitty_draw(const notcurses* nc, const ncpile* p, sprixel* s, FILE* out){
 int sprite_kitty_init(int fd){
   return tty_emit("\e_Ga=d\e\\", fd);
 }
+
+int kitty_shutdown(int fd){
+  // FIXME need to close off any open kitty bitmap emission, or we will
+  // lock up the terminal
+  (void)fd;
+  return 0;
+}
