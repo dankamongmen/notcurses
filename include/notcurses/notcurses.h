@@ -828,8 +828,8 @@ cell_strdup(const struct ncplane* n, const nccell* c){
 
 // Extract the three elements of a nccell.
 static inline char*
-cell_extract(const struct ncplane* n, const nccell* c,
-             uint16_t* stylemask, uint64_t* channels){
+nccell_extract(const struct ncplane* n, const nccell* c,
+               uint16_t* stylemask, uint64_t* channels){
   if(stylemask){
     *stylemask = c->stylemask;
   }
@@ -837,6 +837,12 @@ cell_extract(const struct ncplane* n, const nccell* c,
     *channels = c->channels;
   }
   return nccell_strdup(n, c);
+}
+
+__attribute__ ((deprecated)) static inline char*
+cell_extract(const struct ncplane* n, const nccell* c,
+             uint16_t* stylemask, uint64_t* channels){
+  return nccell_extract(n, c, stylemask, channels);
 }
 
 // Returns true if the two nccells are distinct EGCs, attributes, or channels.

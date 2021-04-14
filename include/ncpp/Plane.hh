@@ -1198,7 +1198,7 @@ namespace ncpp
 
 		char* extract (Cell const& cell, uint16_t *stylemask = nullptr, uint64_t *channels = nullptr)
 		{
-			return cell_extract (plane, cell, stylemask, channels);
+			return nccell_extract (plane, cell, stylemask, channels);
 		}
 
 		// FIXME these can except if fed a sprixel, right (returns NULL)?

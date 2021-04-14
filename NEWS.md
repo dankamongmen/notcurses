@@ -6,7 +6,7 @@ rearrangements of Notcurses.
     function `nccell_extended_gcluster()`, which the former now wraps.
     It will be removed in ABI3. The same treatment has been applied to
     `cell_load_egc32()`, `cell_load_char()`, `cellcmp()`, `cell_init()`,
-    `cell_load()`, and `cell_prime()`.
+    `cell_extract()`, `cell_load()`, and `cell_prime()`.
 
 * 2.2.6 (2021-04-12)
   * `ncplane_rgba()` has been deprecated in favor of the new function

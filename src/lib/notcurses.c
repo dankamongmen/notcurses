@@ -154,7 +154,7 @@ char* ncplane_at_cursor(ncplane* n, uint16_t* stylemask, uint64_t* channels){
 char* ncplane_at_yx(const ncplane* n, int y, int x, uint16_t* stylemask, uint64_t* channels){
   if(y < n->leny && x < n->lenx){
     if(y >= 0 && x >= 0){
-      return cell_extract(n, &n->fb[nfbcellidx(n, y, x)], stylemask, channels);
+      return nccell_extract(n, &n->fb[nfbcellidx(n, y, x)], stylemask, channels);
     }
   }
   return NULL;
