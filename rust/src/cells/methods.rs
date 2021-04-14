@@ -314,7 +314,7 @@ impl NcCell {
         styles: &mut NcStyleMask,
         channels: &mut NcChannelPair,
     ) -> NcEgc {
-        crate::cell_extract(plane, self, styles, channels)
+        crate::nccell_extract(plane, self, styles, channels)
     }
 
     /// Returns the [NcEgc] of the NcCell.
@@ -324,7 +324,7 @@ impl NcCell {
     /// *(No equivalent C style function)*
     pub fn egc(&mut self, plane: &mut NcPlane) -> NcEgc {
         let (mut _styles, mut _channels) = (0, 0);
-        crate::cell_extract(plane, self, &mut _styles, &mut _channels)
+        crate::nccell_extract(plane, self, &mut _styles, &mut _channels)
     }
 
     /// Returns the [NcStyleMask] bits.
