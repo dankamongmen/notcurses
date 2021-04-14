@@ -356,7 +356,7 @@ pub fn ncplane_perimeter_double(
     let mut hl = NcCell::new();
     let mut vl = NcCell::new();
     if unsafe {
-        crate::cells_double_box(
+        crate::nccells_double_box(
             plane,
             stylemask as u32,
             channels,
@@ -418,7 +418,7 @@ pub fn ncplane_perimeter_rounded(
     let mut hl = NcCell::new();
     let mut vl = NcCell::new();
     if unsafe {
-        crate::cells_rounded_box(
+        crate::nccells_rounded_box(
             plane,
             stylemask as u32,
             channels,
@@ -520,7 +520,7 @@ pub fn ncplane_double_box(
     let mut vl = NcCell::new();
 
     unsafe {
-        ret = crate::cells_double_box(
+        ret = crate::nccells_double_box(
             plane,
             stylemask as u32,
             channels,
@@ -605,7 +605,7 @@ pub fn ncplane_rounded_box(
     let mut vl = NcCell::new();
 
     unsafe {
-        ret = crate::cells_rounded_box(
+        ret = crate::nccells_rounded_box(
             plane,
             stylemask as u32,
             channels,
