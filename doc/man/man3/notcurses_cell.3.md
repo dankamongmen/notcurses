@@ -40,11 +40,11 @@ typedef struct nccell {
 #define CELL_ALPHA_OPAQUE       0x00000000ull
 ```
 
-**void cell_init(nccell* ***c***);**
+**void nccell_init(nccell* ***c***);**
 
-**int cell_load(struct ncplane* ***n***, nccell* ***c***, const char* ***gcluster***);**
+**int nccell_load(struct ncplane* ***n***, nccell* ***c***, const char* ***gcluster***);**
 
-**int cell_prime(struct ncplane* ***n***, nccell* ***c***, const char* ***gcluster***,
+**int nccell_prime(struct ncplane* ***n***, nccell* ***c***, const char* ***gcluster***,
                  uint32_t ***stylemask***, uint64_t ***channels***);**
 
 **int nccell_duplicate(struct ncplane* ***n***, nccell* ***targ***, const nccell* ***c***);**
@@ -54,6 +54,8 @@ typedef struct nccell {
 **void nccell_styles_set(nccell* ***c***, unsigned ***stylebits***);**
 
 **unsigned nccell_styles(const nccell* ***c***);**
+
+**bool nccellcmp(const struct ncplane* ***n1***, const nccell* ***c1***, const struct ncplane* ***n2***, const nccell* ***c2***);**
 
 **void cell_on_styles(nccell* ***c***, unsigned ***stylebits***);**
 
@@ -69,13 +71,13 @@ typedef struct nccell {
 
 **bool cell_double_wide_p(const nccell* ***c***);**
 
-**const char* cell_extended_gcluster(const struct ncplane* ***n***, const nccell* ***c***);**
+**const char* nccell_extended_gcluster(const struct ncplane* ***n***, const nccell* ***c***);**
 
 **char* nccell_strdup(const struct ncplane* ***n***, const nccell* ***c***);**
 
-**int cell_load_char(struct ncplane* ***n***, nccell* ***c***, char ***ch***);**
+**int nccell_load_char(struct ncplane* ***n***, nccell* ***c***, char ***ch***);**
 
-**int cell_load_egc32(struct ncplane* ***n***, nccell* ***c***, uint32_t ***egc***);**
+**int nccell_load_egc32(struct ncplane* ***n***, nccell* ***c***, uint32_t ***egc***);**
 
 **char* cell_extract(const struct ncplane* ***n***, const nccell* ***c***, uint16_t* ***stylemask***, uint64_t* ***channels***);**
 
@@ -129,38 +131,46 @@ Unicode 13 can be encoded in no more than four UTF-8 bytes), it is encoded
 directly into the **nccell**'s **gcluster** field, and no additional storage
 is necessary. Otherwise, the EGC is stored as a nul-terminated UTF-8 string in
 some backing egcpool. Egcpools are associated with **ncplane**s, so **nccell**s
-must be considered associated with **ncplane**s. Indeed, **ncplane_erase()**
+must be considered associated with **ncplane**s. Indeed, **ncplane_erase**
 destroys the backing storage for all a plane's cells, invalidating them. This
-association is formed at the time of **cell_load()**, **cell_prime()**, or
-**nccell_duplicate()**. All of these functions first call **nccell_release()**, as
-does **cell_load_simple()**. When done using a **nccell** entirely, call
-**nccell_release()**. **ncplane_destroy()** will free up the memory used by the
-**nccell**, but the backing egcpool has a maximum size of 16MiB, and failure to
-release **nccell**s can eventually block new output.
+association is formed at the time of **nccell_load**, **nccell_prime**, or
+**nccell_duplicate**. All of these functions first call **nccell_release**, as
+do **nccell_load_egc32** and **nccell_load_char**. When done using a **nccell**
+entirely, call **nccell_release**. **ncplane_destroy** will free up the memory
+used by the **nccell**, but the backing egcpool has a maximum size of 16MiB,
+and failure to release **nccell**s can eventually block new output.
 
-**cell_extended_gcluster** provides a nul-terminated handle to the EGC. This
+**nccell_extended_gcluster** provides a nul-terminated handle to the EGC. This
 ought be considered invalidated by changes to the **nccell** or **egcpool**.
 The handle is **not** heap-allocated; do **not** attempt to **free(3)** it.
 A heap-allocated copy can be acquired with **nccell_strdup**.
 
 # RETURN VALUES
 
-**cell_load()** and similar functions return the number of bytes loaded from the
+**nccell_load** and similar functions return the number of bytes loaded from the
 EGC, or -1 on failure. They can fail due to either an invalid UTF-8 input, or the
 backing egcpool reaching its maximum size.
 
-**cell_set_fg_rgb8()** and similar functions will return -1 if provided invalid
+**cell_set_fg_rgb8** and similar functions will return -1 if provided invalid
 inputs, and 0 otherwise.
+
+**nccellcmp** returns a negative integer, 0, or a positive integer if ***c1*** is
+less than, equal to, or more than ***c2***, respectively.
+
+**nccell_extended_gcluster** returns **NULL** if called on a sprixel (see
+**notcurses_visual(3)**.
 
 # NOTES
 
 **cell** was renamed to **nccell** in Notcurses 2.2.0, so as not to bleed such
 a common term into the (single, global) C namespace. **cell** will be retained
-as an alias until Notcurses 3.0.
+as an alias until Notcurses 3.0. Likewise, many functions prefixed with **cell**
+have been renamed to start with **nccell**.
 
 # SEE ALSO
 
 **notcurses(3)**,
 **notcurses_channels(3)**,
 **notcurses_plane(3)**,
-**notcurses_output(3)**
+**notcurses_output(3)**,
+**notcurses_visual(3)**

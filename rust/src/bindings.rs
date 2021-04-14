@@ -58,10 +58,10 @@ pub use ffi::{
 #[doc(inline)]
 pub use ffi::{
     // functions
-    cell_extended_gcluster,
-    cell_load,
-    cells_double_box,
-    cells_rounded_box,
+    nccell_extended_gcluster,
+    nccell_load,
+    nccells_double_box,
+    nccells_rounded_box,
     nccell_duplicate,
     nccell_release,
 };

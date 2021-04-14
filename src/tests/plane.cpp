@@ -107,7 +107,7 @@ TEST_CASE("Plane") {
   SUBCASE("EmitCell") {
     const char cchar[] = "✔";
     nccell c{};
-    CHECK(strlen(cchar) == cell_load(n_, &c, cchar));
+    CHECK(strlen(cchar) == nccell_load(n_, &c, cchar));
     CHECK(0 < ncplane_putc(n_, &c));
     int x, y;
     ncplane_cursor_yx(n_, &y, &x);
@@ -174,7 +174,7 @@ TEST_CASE("Plane") {
     REQUIRE(0 < y);
     REQUIRE(0 < x);
     nccell c{};
-    cell_load(n_, &c, "-");
+    nccell_load(n_, &c, "-");
     for(int yidx = 0 ; yidx < y ; ++yidx){
       CHECK(0 == ncplane_cursor_move_yx(n_, yidx, 1));
       CHECK(x - 2 == ncplane_hline(n_, &c, x - 2));
@@ -193,7 +193,7 @@ TEST_CASE("Plane") {
     REQUIRE(0 < y);
     REQUIRE(0 < x);
     nccell c{};
-    cell_load(n_, &c, "|");
+    nccell_load(n_, &c, "|");
     for(int xidx = 1 ; xidx < x - 1 ; ++xidx){
       CHECK(0 == ncplane_cursor_move_yx(n_, 1, xidx));
       CHECK(y - 2 == ncplane_vline(n_, &c, y - 2));
@@ -213,7 +213,7 @@ TEST_CASE("Plane") {
     REQUIRE(2 < y);
     REQUIRE(2 < x);
     nccell ul{}, ll{}, lr{}, ur{}, hl{}, vl{};
-    REQUIRE(0 == cells_rounded_box(n_, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl));
+    REQUIRE(0 == nccells_rounded_box(n_, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl));
     CHECK_GT(0, ncplane_box(n_, &ul, &ur, &ll, &lr, &hl, &vl, y + 1, x + 1, 0));
     CHECK(0 == ncplane_cursor_move_yx(n_, 1, 0));
     CHECK_GT(0, ncplane_box(n_, &ul, &ur, &ll, &lr, &hl, &vl, y, x, 0));
@@ -313,9 +313,9 @@ TEST_CASE("Plane") {
     nccell cell1 = CELL_TRIVIAL_INITIALIZER;
     nccell cell2 = CELL_TRIVIAL_INITIALIZER;
     nccell cell3 = CELL_TRIVIAL_INITIALIZER;
-    auto u1 = cell_load(n_, &cell1, w1);
-    auto u2 = cell_load(n_, &cell2, w2);
-    auto u3 = cell_load(n_, &cell3, w3);
+    auto u1 = nccell_load(n_, &cell1, w1);
+    auto u2 = nccell_load(n_, &cell2, w2);
+    auto u3 = nccell_load(n_, &cell3, w3);
     REQUIRE(2 == u1);
     REQUIRE(3 == u2);
     REQUIRE(1 == u3);
@@ -331,9 +331,9 @@ TEST_CASE("Plane") {
     nccell cell1 = CELL_TRIVIAL_INITIALIZER;
     nccell cell2 = CELL_TRIVIAL_INITIALIZER;
     nccell cell3 = CELL_TRIVIAL_INITIALIZER;
-    auto u1 = cell_load(n_, &cell1, w1);
-    auto u2 = cell_load(n_, &cell2, w2);
-    auto u3 = cell_load(n_, &cell3, w3);
+    auto u1 = nccell_load(n_, &cell1, w1);
+    auto u2 = nccell_load(n_, &cell2, w2);
+    auto u3 = nccell_load(n_, &cell3, w3);
     REQUIRE(2 == u1);
     REQUIRE(3 == u2);
     REQUIRE(1 == u3);
@@ -356,8 +356,8 @@ TEST_CASE("Plane") {
     const char* w2 = "N";
     nccell c1 = CELL_TRIVIAL_INITIALIZER;
     nccell c2 = CELL_TRIVIAL_INITIALIZER;
-    auto u1 = cell_load(n_, &c1, w1);
-    auto u2 = cell_load(n_, &c2, w2);
+    auto u1 = nccell_load(n_, &c1, w1);
+    auto u2 = nccell_load(n_, &c2, w2);
     REQUIRE(0 < u1);
     REQUIRE(0 < u2);
     REQUIRE(strlen(w1) == u1);
@@ -609,12 +609,12 @@ TEST_CASE("Plane") {
     REQUIRE(0 == ncplane_putstr(n_, STR3));
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 0, 0));
     REQUIRE(0 < ncplane_at_cursor_cell(n_, &testcell)); // want first char of STR1
-    CHECK(!strcmp("Σ", cell_extended_gcluster(n_, &testcell)));
+    CHECK(!strcmp("Σ", nccell_extended_gcluster(n_, &testcell)));
     CHECK(0 == testcell.stylemask);
     CHECK(0 == testcell.channels);
     REQUIRE(0 == ncplane_cursor_move_yx(n_, 1, dimx - mbstowcs(nullptr, STR2, 0)));
     REQUIRE(0 < ncplane_at_cursor_cell(n_, &testcell)); // want first char of STR2
-    CHECK(!strcmp("α", cell_extended_gcluster(n_, &testcell)));
+    CHECK(!strcmp("α", nccell_extended_gcluster(n_, &testcell)));
     CHECK(0 == testcell.stylemask);
     CHECK(0 == testcell.channels);
     // FIXME maybe check all cells?
@@ -660,7 +660,7 @@ TEST_CASE("Plane") {
     REQUIRE(20 < dimy);
     REQUIRE(40 < dimx);
     nccell ul{}, ll{}, lr{}, ur{}, hl{}, vl{};
-    REQUIRE(0 == cells_double_box(n_, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl));
+    REQUIRE(0 == nccells_double_box(n_, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl));
     CHECK(0 == channels_set_fg_rgb8(&ul.channels, 255, 0, 0));
     CHECK(0 == channels_set_fg_rgb8(&ur.channels, 0, 255, 0));
     CHECK(0 == channels_set_fg_rgb8(&ll.channels, 0, 0, 255));
@@ -698,7 +698,7 @@ TEST_CASE("Plane") {
     REQUIRE(20 < dimy);
     REQUIRE(40 < dimx);
     nccell ul{}, ll{}, lr{}, ur{}, hl{}, vl{};
-    REQUIRE(0 == cells_rounded_box(n_, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl));
+    REQUIRE(0 == nccells_rounded_box(n_, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl));
     // we'll try all 16 boxmasks in sideszXsidesz configurations in a 4x4 map
     CHECK(0 == channels_set_fg_rgb8(&ul.channels, 255, 0, 0));
     CHECK(0 == channels_set_fg_rgb8(&ur.channels, 0, 255, 0));
@@ -760,7 +760,7 @@ TEST_CASE("Plane") {
     };
     struct ncplane* ncp = ncplane_create(n_, &nopts);
     REQUIRE(ncp);
-    REQUIRE(0 == cells_rounded_box(ncp, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl));
+    REQUIRE(0 == nccells_rounded_box(ncp, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl));
     CHECK(0 == ncplane_box(ncp, &ul, &ur, &ll, &lr, &hl, &vl, y + 1, x + 1, 0));
     CHECK(0 == notcurses_render(nc_));
     // FIXME verify with ncplane_at_cursor_cell()
@@ -783,7 +783,7 @@ TEST_CASE("Plane") {
     };
     struct ncplane* ncp = ncplane_create(n_, &nopts);
     REQUIRE(ncp);
-    REQUIRE(0 == cells_rounded_box(ncp, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl));
+    REQUIRE(0 == nccells_rounded_box(ncp, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl));
     CHECK(0 == ncplane_box(ncp, &ul, &ur, &ll, &lr, &hl, &vl, y + 1, x + 1, 0));
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncplane_move_yx(ncp, nrows - 3, ncols - 3));

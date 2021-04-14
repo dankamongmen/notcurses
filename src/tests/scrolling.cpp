@@ -154,7 +154,7 @@ TEST_CASE("Scrolling") {
     nccell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
     nccell dl = CELL_TRIVIAL_INITIALIZER, dr = CELL_TRIVIAL_INITIALIZER;
     nccell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
-    CHECK(0 == cells_double_box(n, 0, 0, &ul, &ur, &dl, &dr, &hl, &vl));
+    CHECK(0 == nccells_double_box(n, 0, 0, &ul, &ur, &dl, &dr, &hl, &vl));
     CHECK(0 > ncplane_box_sized(n, &ul, &ur, &dl, &dr, &hl, &vl, 2, 25, 0));
     CHECK(0 > ncplane_box_sized(n, &ul, &ur, &dl, &dr, &hl, &vl, 2, 21, 0));
     CHECK(0 == notcurses_render(nc_));

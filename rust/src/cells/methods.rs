@@ -1,7 +1,7 @@
 //! `NcCell` methods and associated functions.
 
 use crate::{
-    cell_load, cstring, error, NcAlphaBits, NcCell, NcChannelPair, NcColor, NcEgc, NcEgcBackstop,
+    nccell_load, cstring, error, NcAlphaBits, NcCell, NcChannelPair, NcColor, NcEgc, NcEgcBackstop,
     NcPaletteIndex, NcPlane, NcResult, NcRgb, NcStyleMask, NCRESULT_ERR,
 };
 
@@ -27,7 +27,7 @@ impl NcCell {
     #[inline]
     pub fn with_char(ch: char, plane: &mut NcPlane) -> Self {
         let mut cell = Self::new();
-        let result = unsafe { cell_load(plane, &mut cell, cstring![ch.to_string()]) };
+        let result = unsafe { nccell_load(plane, &mut cell, cstring![ch.to_string()]) };
         debug_assert_ne![NCRESULT_ERR, result];
         cell
     }
@@ -36,7 +36,7 @@ impl NcCell {
     #[inline]
     pub fn with_str(plane: &mut NcPlane, string: &str) -> Self {
         let mut cell = Self::new();
-        let result = unsafe { cell_load(plane, &mut cell, cstring![string]) };
+        let result = unsafe { nccell_load(plane, &mut cell, cstring![string]) };
         debug_assert_ne![NCRESULT_ERR, result];
         cell
     }
@@ -51,9 +51,9 @@ impl NcCell {
     /// and returns the number of bytes copied out of `egc`.
     ///
     /// The styling of the cell is left untouched, but any resources are released.
-    /// *C style function: [cell_load()][crate::cell_load].*
+    /// *C style function: [nccell_load()][crate::nccell_load].*
     pub fn load(plane: &mut NcPlane, cell: &mut NcCell, egc: &str) -> NcResult<u32> {
-        let bytes = unsafe { crate::cell_load(plane, cell, cstring![egc]) };
+        let bytes = unsafe { crate::nccell_load(plane, cell, cstring![egc]) };
         error![
             bytes,
             &format!["NcCell.load(NcPlane, NcCell, {:?})", egc],
@@ -69,7 +69,7 @@ impl NcCell {
     /// - Any resources are released.
     /// - Blasts the styling with `style` and `channels`.
     ///
-    /// *C style function: [cell_prime()][crate::cell_prime].*
+    /// *C style function: [nccell_prime()][crate::nccell_prime].*
     pub fn prime(
         plane: &mut NcPlane,
         cell: &mut NcCell,
@@ -77,7 +77,7 @@ impl NcCell {
         style: NcStyleMask,
         channels: NcChannelPair,
     ) -> NcResult<u32> {
-        let bytes = crate::cell_prime(plane, cell, gcluster, style, channels);
+        let bytes = crate::nccell_prime(plane, cell, gcluster, style, channels);
         error![bytes, "", bytes as u32]
     }
 
@@ -92,10 +92,10 @@ impl NcCell {
 
     /// Initializes (zeroes out) the NcCell.
     ///
-    /// *C style function: [cell_init()][crate::cell_init].*
+    /// *C style function: [nccell_init()][crate::nccell_init].*
     #[inline]
     pub fn init(&mut self) {
-        crate::cell_init(self);
+        crate::nccell_init(self);
     }
 
     /// Releases resources held by the current cell in the [NcPlane] `plane`.
@@ -116,7 +116,7 @@ impl NcCell {
     /// *(No equivalent C style function)*
     pub fn channels(&mut self, plane: &mut NcPlane) -> NcChannelPair {
         let (mut _styles, mut channels) = (0, 0);
-        let _char = crate::cell_extract(plane, self, &mut _styles, &mut channels);
+        let _char = crate::nccell_extract(plane, self, &mut _styles, &mut channels);
         channels
     }
 
@@ -314,7 +314,7 @@ impl NcCell {
         styles: &mut NcStyleMask,
         channels: &mut NcChannelPair,
     ) -> NcEgc {
-        crate::cell_extract(plane, self, styles, channels)
+        crate::nccell_extract(plane, self, styles, channels)
     }
 
     /// Returns the [NcEgc] of the NcCell.
@@ -324,7 +324,7 @@ impl NcCell {
     /// *(No equivalent C style function)*
     pub fn egc(&mut self, plane: &mut NcPlane) -> NcEgc {
         let (mut _styles, mut _channels) = (0, 0);
-        crate::cell_extract(plane, self, &mut _styles, &mut _channels)
+        crate::nccell_extract(plane, self, &mut _styles, &mut _channels)
     }
 
     /// Returns the [NcStyleMask] bits.
@@ -410,7 +410,7 @@ impl NcCell {
     /// are [release][NcCell#method.release]d.
     /// There must be at least six [NcEgc]s in `gcluster`.
     ///
-    /// *C style function: [cells_load_box()][crate::cells_load_box].*
+    /// *C style function: [nccells_load_box()][crate::nccells_load_box].*
     pub fn load_box(
         plane: &mut NcPlane,
         style: NcStyleMask,
@@ -423,14 +423,14 @@ impl NcCell {
         vl: &mut NcCell,
         gcluster: &str,
     ) -> NcResult<()> {
-        error![crate::cells_load_box(
+        error![crate::nccells_load_box(
             plane, style, channels, ul, ur, ll, lr, hl, vl, gcluster
         )]
     }
 
     /// NcCell.[load_box()][NcCell#method.box] with the double box-drawing characters.
     ///
-    /// *C style function: [cells_double_box()][crate::cells_double_box].*
+    /// *C style function: [nccells_double_box()][crate::nccells_double_box].*
     pub fn double_box(
         plane: &mut NcPlane,
         style: NcStyleMask,
@@ -443,13 +443,13 @@ impl NcCell {
         vl: &mut NcCell,
     ) -> NcResult<()> {
         error![unsafe {
-            crate::cells_double_box(plane, style as u32, channels, ul, ur, ll, lr, hl, vl)
+            crate::nccells_double_box(plane, style as u32, channels, ul, ur, ll, lr, hl, vl)
         }]
     }
 
     /// NcCell.[load_box()][NcCell#method.box] with the rounded box-drawing characters.
     ///
-    /// *C style function: [cells_rounded_box()][crate::cells_double_box].*
+    /// *C style function: [nccells_rounded_box()][crate::nccells_double_box].*
     pub fn rounded_box(
         plane: &mut NcPlane,
         style: NcStyleMask,
@@ -462,7 +462,7 @@ impl NcCell {
         vl: &mut NcCell,
     ) -> NcResult<()> {
         error![unsafe {
-            crate::cells_rounded_box(plane, style as u32, channels, ul, ur, ll, lr, hl, vl)
+            crate::nccells_rounded_box(plane, style as u32, channels, ul, ur, ll, lr, hl, vl)
         }]
     }
 }

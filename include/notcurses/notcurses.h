@@ -641,23 +641,36 @@ typedef nccell cell; // FIXME backwards-compat, remove in ABI3
 #define CELL_INITIALIZER(c, s, chan) { .gcluster = (htole(c)), .gcluster_backstop = 0, .width = (uint8_t)wcwidth(c), .stylemask = (s), .channels = (chan), }
 
 static inline void
-cell_init(nccell* c){
+nccell_init(nccell* c){
   memset(c, 0, sizeof(*c));
+}
+
+__attribute__ ((deprecated)) static inline void
+cell_init(nccell* c){
+  nccell_init(c);
 }
 
 // Breaks the UTF-8 string in 'gcluster' down, setting up the nccell 'c'.
 // Returns the number of bytes copied out of 'gcluster', or -1 on failure. The
 // styling of the cell is left untouched, but any resources are released.
-API int cell_load(struct ncplane* n, nccell* c, const char* gcluster);
+API int nccell_load(struct ncplane* n, nccell* c, const char* gcluster);
+__attribute__ ((deprecated)) API int cell_load(struct ncplane* n, nccell* c, const char* gcluster);
 
-// cell_load(), plus blast the styling with 'attr' and 'channels'.
+// nccell_load(), plus blast the styling with 'attr' and 'channels'.
 static inline int
-cell_prime(struct ncplane* n, nccell* c, const char* gcluster,
+nccell_prime(struct ncplane* n, nccell* c, const char* gcluster,
            uint32_t stylemask, uint64_t channels){
   c->stylemask = stylemask;
   c->channels = channels;
-  int ret = cell_load(n, c, gcluster);
+  int ret = nccell_load(n, c, gcluster);
   return ret;
+}
+
+// nccell_load(), plus blast the styling with 'attr' and 'channels'.
+__attribute__ ((deprecated)) static inline int
+cell_prime(struct ncplane* n, nccell* c, const char* gcluster,
+           uint32_t stylemask, uint64_t channels){
+  return nccell_prime(n, c, gcluster, stylemask, channels);
 }
 
 // Duplicate 'c' into 'targ'; both must be/will be bound to 'n'. Returns -1 on
@@ -769,14 +782,19 @@ cell_wide_left_p(const nccell* c){
 
 // return a pointer to the NUL-terminated EGC referenced by 'c'. this pointer
 // can be invalidated by any further operation on the plane 'n', so...watch out!
-// must not be called on a pixel graphic.
-API const char* cell_extended_gcluster(const struct ncplane* n, const nccell* c);
+// returns NULL if called on a pixel graphic.
+API const char* nccell_extended_gcluster(const struct ncplane* n, const nccell* c);
+
+__attribute__ ((deprecated)) static inline const char*
+cell_extended_gcluster(const struct ncplane* n, const nccell* c){
+  return nccell_extended_gcluster(n, c);
+}
 
 // copy the UTF8-encoded EGC out of the nccell. the result is not tied to any
 // ncplane, and persists across erases / destruction.
 ALLOC static inline char*
 nccell_strdup(const struct ncplane* n, const nccell* c){
-  return strdup(cell_extended_gcluster(n, c));
+  return strdup(nccell_extended_gcluster(n, c));
 }
 
 __attribute__ ((deprecated)) ALLOC static inline char*
@@ -801,37 +819,54 @@ cell_extract(const struct ncplane* n, const nccell* c,
 // The actual egcpool index needn't be the same--indeed, the planes needn't even
 // be the same. Only the expanded EGC must be equal. The EGC must be bit-equal;
 // it would probably be better to test whether they're Unicode-equal FIXME.
+// probably needs be fixed up for sprixels FIXME.
 static inline bool
-cellcmp(const struct ncplane* n1, const nccell* RESTRICT c1,
-        const struct ncplane* n2, const nccell* RESTRICT c2){
+nccellcmp(const struct ncplane* n1, const nccell* RESTRICT c1,
+          const struct ncplane* n2, const nccell* RESTRICT c2){
   if(c1->stylemask != c2->stylemask){
     return true;
   }
   if(c1->channels != c2->channels){
     return true;
   }
-  return strcmp(cell_extended_gcluster(n1, c1), cell_extended_gcluster(n2, c2));
+  return strcmp(nccell_extended_gcluster(n1, c1), nccell_extended_gcluster(n2, c2));
+}
+
+__attribute__ ((deprecated)) static inline bool
+cellcmp(const struct ncplane* n1, const nccell* RESTRICT c1,
+        const struct ncplane* n2, const nccell* RESTRICT c2){
+  return nccellcmp(n1, c1, n2, c2);
 }
 
 // Load a 7-bit char 'ch' into the nccell 'c'. Returns the number of bytes
 // used, or -1 on error.
 static inline int
-cell_load_char(struct ncplane* n, nccell* c, char ch){
+nccell_load_char(struct ncplane* n, nccell* c, char ch){
   char gcluster[2];
   gcluster[0] = ch;
   gcluster[1] = '\0';
-  return cell_load(n, c, gcluster);
+  return nccell_load(n, c, gcluster);
+}
+
+__attribute__ ((deprecated)) static inline int
+cell_load_char(struct ncplane* n, nccell* c, char ch){
+  return nccell_load_char(n, c, ch);
 }
 
 // Load a UTF-8 encoded EGC of up to 4 bytes into the nccell 'c'. Returns the
 // number of bytes used, or -1 on error.
 static inline int
-cell_load_egc32(struct ncplane* n, nccell* c, uint32_t egc){
+nccell_load_egc32(struct ncplane* n, nccell* c, uint32_t egc){
   char gcluster[sizeof(egc) + 1];
   egc = htole(egc);
   memcpy(gcluster, &egc, sizeof(egc));
   gcluster[4] = '\0';
-  return cell_load(n, c, gcluster);
+  return nccell_load(n, c, gcluster);
+}
+
+__attribute__ ((deprecated)) static inline int
+cell_load_egc32(struct ncplane* n, nccell* c, uint32_t egc){
+  return nccell_load_egc32(n, c, egc);
 }
 
 // These log levels consciously map cleanly to those of libav; Notcurses itself
@@ -2292,16 +2327,16 @@ API void ncfadectx_free(struct ncfadectx* nctx);
 // have loaded before the error are nccell_release()d. There must be at least
 // six EGCs in gcluster.
 static inline int
-cells_load_box(struct ncplane* n, uint32_t styles, uint64_t channels,
-               nccell* ul, nccell* ur, nccell* ll, nccell* lr,
-               nccell* hl, nccell* vl, const char* gclusters){
+nccells_load_box(struct ncplane* n, uint32_t styles, uint64_t channels,
+                 nccell* ul, nccell* ur, nccell* ll, nccell* lr,
+                 nccell* hl, nccell* vl, const char* gclusters){
   int ulen;
-  if((ulen = cell_prime(n, ul, gclusters, styles, channels)) > 0){
-    if((ulen = cell_prime(n, ur, gclusters += ulen, styles, channels)) > 0){
-      if((ulen = cell_prime(n, ll, gclusters += ulen, styles, channels)) > 0){
-        if((ulen = cell_prime(n, lr, gclusters += ulen, styles, channels)) > 0){
-          if((ulen = cell_prime(n, hl, gclusters += ulen, styles, channels)) > 0){
-            if(cell_prime(n, vl, gclusters + ulen, styles, channels) > 0){
+  if((ulen = nccell_prime(n, ul, gclusters, styles, channels)) > 0){
+    if((ulen = nccell_prime(n, ur, gclusters += ulen, styles, channels)) > 0){
+      if((ulen = nccell_prime(n, ll, gclusters += ulen, styles, channels)) > 0){
+        if((ulen = nccell_prime(n, lr, gclusters += ulen, styles, channels)) > 0){
+          if((ulen = nccell_prime(n, hl, gclusters += ulen, styles, channels)) > 0){
+            if(nccell_prime(n, vl, gclusters + ulen, styles, channels) > 0){
               return 0;
             }
             nccell_release(n, hl);
@@ -2317,9 +2352,14 @@ cells_load_box(struct ncplane* n, uint32_t styles, uint64_t channels,
   return -1;
 }
 
-API int cells_rounded_box(struct ncplane* n, uint32_t styles, uint64_t channels,
-                          nccell* ul, nccell* ur, nccell* ll,
-                          nccell* lr, nccell* hl, nccell* vl);
+API int nccells_rounded_box(struct ncplane* n, uint32_t styles, uint64_t channels,
+                            nccell* ul, nccell* ur, nccell* ll,
+                            nccell* lr, nccell* hl, nccell* vl);
+
+__attribute__ ((deprecated)) API int
+cells_rounded_box(struct ncplane* n, uint32_t styles, uint64_t channels,
+                  nccell* ul, nccell* ur, nccell* ll,
+                  nccell* lr, nccell* hl, nccell* vl);
 
 static inline int
 ncplane_rounded_box(struct ncplane* n, uint32_t styles, uint64_t channels,
@@ -2328,7 +2368,7 @@ ncplane_rounded_box(struct ncplane* n, uint32_t styles, uint64_t channels,
   nccell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
   nccell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
   nccell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
-  if((ret = cells_rounded_box(n, styles, channels, &ul, &ur, &ll, &lr, &hl, &vl)) == 0){
+  if((ret = nccells_rounded_box(n, styles, channels, &ul, &ur, &ll, &lr, &hl, &vl)) == 0){
     ret = ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, ystop, xstop, ctlword);
   }
   nccell_release(n, &ul); nccell_release(n, &ur);
@@ -2351,7 +2391,7 @@ ncplane_perimeter_rounded(struct ncplane* n, uint32_t stylemask,
   nccell lr = CELL_TRIVIAL_INITIALIZER;
   nccell vl = CELL_TRIVIAL_INITIALIZER;
   nccell hl = CELL_TRIVIAL_INITIALIZER;
-  if(cells_rounded_box(n, stylemask, channels, &ul, &ur, &ll, &lr, &hl, &vl)){
+  if(nccells_rounded_box(n, stylemask, channels, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
   int r = ncplane_box_sized(n, &ul, &ur, &ll, &lr, &hl, &vl, dimy, dimx, ctlword);
@@ -2370,9 +2410,14 @@ ncplane_rounded_box_sized(struct ncplane* n, uint32_t styles, uint64_t channels,
                              x + xlen - 1, ctlword);
 }
 
-API int cells_double_box(struct ncplane* n, uint32_t styles, uint64_t channels,
-                         nccell* ul, nccell* ur, nccell* ll,
-                         nccell* lr, nccell* hl, nccell* vl);
+API int nccells_double_box(struct ncplane* n, uint32_t styles, uint64_t channels,
+                           nccell* ul, nccell* ur, nccell* ll,
+                           nccell* lr, nccell* hl, nccell* vl);
+
+__attribute__ ((deprecated)) API int
+cells_double_box(struct ncplane* n, uint32_t styles, uint64_t channels,
+                 nccell* ul, nccell* ur, nccell* ll,
+                 nccell* lr, nccell* hl, nccell* vl);
 
 static inline int
 ncplane_double_box(struct ncplane* n, uint32_t styles, uint64_t channels,
@@ -2381,7 +2426,7 @@ ncplane_double_box(struct ncplane* n, uint32_t styles, uint64_t channels,
   nccell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
   nccell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
   nccell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
-  if((ret = cells_double_box(n, styles, channels, &ul, &ur, &ll, &lr, &hl, &vl)) == 0){
+  if((ret = nccells_double_box(n, styles, channels, &ul, &ur, &ll, &lr, &hl, &vl)) == 0){
     ret = ncplane_box(n, &ul, &ur, &ll, &lr, &hl, &vl, ystop, xstop, ctlword);
   }
   nccell_release(n, &ul); nccell_release(n, &ur);
@@ -2404,7 +2449,7 @@ ncplane_perimeter_double(struct ncplane* n, uint32_t stylemask,
   nccell lr = CELL_TRIVIAL_INITIALIZER;
   nccell vl = CELL_TRIVIAL_INITIALIZER;
   nccell hl = CELL_TRIVIAL_INITIALIZER;
-  if(cells_double_box(n, stylemask, channels, &ul, &ur, &ll, &lr, &hl, &vl)){
+  if(nccells_double_box(n, stylemask, channels, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
   int r = ncplane_box_sized(n, &ul, &ur, &ll, &lr, &hl, &vl, dimy, dimx, ctlword);

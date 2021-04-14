@@ -71,7 +71,7 @@ draw_block(struct ncplane* nn, uint32_t blockstart){
   nccell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
   nccell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
   nccell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
-  cells_rounded_box(nn, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl);
+  nccells_rounded_box(nn, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl);
   cell_set_bg_alpha(&ul, CELL_ALPHA_TRANSPARENT);
   cell_set_bg_alpha(&ur, CELL_ALPHA_TRANSPARENT);
   cell_set_bg_alpha(&ll, CELL_ALPHA_TRANSPARENT);

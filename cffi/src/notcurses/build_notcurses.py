@@ -186,10 +186,10 @@ int ncplane_putstr_aligned(struct ncplane* n, int y, ncalign_e align, const char
 int ncplane_putstr_stained(struct ncplane* n, const char* s);
 int ncplane_putwstr_stained(struct ncplane* n, const wchar_t* gclustarr);
 struct ncplane* ncplane_dup(const struct ncplane* n, void* opaque);
-int cell_load(struct ncplane* n, cell* c, const char* gcluster);
+int nccell_load(struct ncplane* n, cell* c, const char* gcluster);
 int nccell_duplicate(struct ncplane* n, cell* targ, const cell* c);
 void nccell_release(struct ncplane* n, cell* c);
-const char* cell_extended_gcluster(const struct ncplane* n, const cell* c);
+const char* nccell_extended_gcluster(const struct ncplane* n, const cell* c);
 typedef struct palette256 {
   // We store the RGB values as a regular ol' channel
   uint32_t chans[256];

@@ -128,7 +128,7 @@ int intro(struct notcurses* nc){
   if(ncplane_cursor_move_yx(ncp, 1, 0)){
     return -1;
   }
-  if(cells_rounded_box(ncp, NCSTYLE_BOLD, 0, &ul, &ur, &ll, &lr, &hl, &vl)){
+  if(nccells_rounded_box(ncp, NCSTYLE_BOLD, 0, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
   cell_set_fg_rgb(&ul, 0xff0000); cell_set_bg_rgb(&ul, 0x002000);

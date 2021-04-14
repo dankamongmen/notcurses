@@ -136,7 +136,7 @@ slidepanel(struct notcurses* nc, struct ncplane* stdn){
   }
   ncplane_destroy(l);
 
-  cell_load_char(n, &c, '\0');
+  nccell_load_char(n, &c, '\0');
   ncplane_set_base_cell(n, &c);
   clock_gettime(CLOCK_MONOTONIC, &cur);
   deadlinens = timespec_to_ns(&cur) + timespec_to_ns(&demodelay);
@@ -194,7 +194,7 @@ slidepanel(struct notcurses* nc, struct ncplane* stdn){
 
   // Now we replace the characters with X's, colored as underneath us.
   // Our background color remains opaque default.
-  cell_load_char(n, &c, 'X');
+  nccell_load_char(n, &c, 'X');
   cell_set_fg_default(&c);
   cell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT);
   cell_set_bg_alpha(&c, CELL_ALPHA_OPAQUE);

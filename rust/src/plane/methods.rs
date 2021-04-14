@@ -603,10 +603,10 @@ impl NcPlane {
     ///
     /// *C style function: [ncplane_set_base()][crate::ncplane_set_base].*
     // call stack:
-    // - ncplane_set_base calls cell_prime:
-    //      return cell_prime(ncp, &ncp->basecell, egc, stylemask, channels);
-    // - cell_prime calls notcurses.c/cell_load:
-    //      return cell_load(n, c, gcluster);
+    // - ncplane_set_base calls nccell_prime:
+    //      return nccell_prime(ncp, &ncp->basecell, egc, stylemask, channels);
+    // - nccell_prime calls notcurses.c/nccell_load:
+    //      return nccell_load(n, c, gcluster);
     // - cell-load calls internal.h/pool load:
     //      return pool_load(&n->pool, c, gcluster);
     pub fn set_base(

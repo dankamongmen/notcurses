@@ -5,10 +5,10 @@
 // (W) wrap: 4
 // (#) test: 0
 // ------------------------------------------
-//…  cell_extended_gcluster
-//…  cell_load
-//W  cells_double_box
-//W  cells_rounded_box
+//…  nccell_extended_gcluster
+//…  nccell_load
+//W  nccells_double_box
+//W  nccells_rounded_box
 //W  nccell_duplicate
 //W  nccell_release
 //
@@ -25,7 +25,6 @@
 //W# cell_bg_palindex_p
 //W# cell_bg_rgb
 //W# cell_bg_rgb8
-//W+ cellcmp
 //W+ cell_double_wide_p
 //W+ cell_extract
 //W# cell_fchannel
@@ -35,9 +34,6 @@
 //W# cell_fg_palindex_p
 //W# cell_fg_rgb
 //W# cell_fg_rgb8
-//W+ cell_init
-//…… cell_load_char
-//   cell_load_egc32
 //W+ cell_off_styles
 //W+ cell_on_styles
 //W+ cell_prime
@@ -56,10 +52,14 @@
 //W# cell_set_fg_rgb8
 // X cell_set_fg_rgb8_clipped   // unneeded
 //W+ cell_set_styles
-//W+ cells_load_box
 //W+ cell_styles
 //W+ cell_wide_left_p
 //W+ cell_wide_right_p
+//W+ nccellcmp
+//W+ nccells_load_box
+//W+ nccell_init
+//…… nccell_load_char
+//   nccell_load_egc32
 //W+ nccell_strdup
 
 #[cfg(test)]

@@ -306,15 +306,15 @@ pub const fn cell_wide_left_p(cell: &NcCell) -> bool {
 // //
 // // TODO:CHECK is this necessary at all?
 // #[inline]
-// pub fn cell_load_char(plane: &mut NcPlane, cell: &mut NcCell, ch: NcEgc) /* -> i32 */
+// pub fn nccell_load_char(plane: &mut NcPlane, cell: &mut NcCell, ch: NcEgc) /* -> i32 */
 // {
-//     let _ = unsafe { crate::cell_load(plane, cell, ch) };
+//     let _ = unsafe { crate::nccell_load(plane, cell, ch) };
 // }
-// cell_load_char(struct ncplane* n, nccell* c, char ch){
+// nccell_load_char(struct ncplane* n, nccell* c, char ch){
 //   char gcluster[2];
 //   gcluster[0] = ch;
 //   gcluster[1] = '\0';
-//   let _ = cell_load(n, c, gcluster);
+//   let _ = nccell_load(n, c, gcluster);
 // }
 
 // /// Loads a UTF-8 grapheme cluster of up to 4 bytes into the cell `c`.
@@ -323,22 +323,22 @@ pub const fn cell_wide_left_p(cell: &NcCell) -> bool {
 // //
 // // TODO
 // #[inline]
-// pub fn cell_load_egc32(plane: &mut NcPlane, cell: &mut NcCell, egc: &str) -> NcIntResult {
+// pub fn nccell_load_egc32(plane: &mut NcPlane, cell: &mut NcCell, egc: &str) -> NcIntResult {
 //     char gcluster[sizeof(egc) + 1];
 //     egc = egc.to_le();
 //     memcpy(gcluster, &egc, sizeof(egc));
 //     gcluster[4] = '\0';
-//     return cell_load(n, c, gcluster);
+//     return nccell_load(n, c, gcluster);
 // }
 // // Load a UTF-8 encoded EGC of up to 4 bytes into the nccell 'c'. Returns the
 // // number of bytes used, or -1 on error.
 // static inline int
-// cell_load_egc32(struct ncplane* n, nccell* c, uint32_t egc){
+// nccell_load_egc32(struct ncplane* n, nccell* c, uint32_t egc){
 //   char gcluster[sizeof(egc) + 1];
 //   egc = htole(egc);
 //   memcpy(gcluster, &egc, sizeof(egc));
 //   gcluster[4] = '\0';
-//   return cell_load(n, c, gcluster);
+//   return nccell_load(n, c, gcluster);
 // }
 
 /// Copies the UTF8-encoded [NcEgc] out of the [NcCell], whether simple or complex.
@@ -350,13 +350,13 @@ pub const fn cell_wide_left_p(cell: &NcCell) -> bool {
 #[inline]
 pub fn nccell_strdup(plane: &NcPlane, cell: &NcCell) -> NcEgc {
     core::char::from_u32(
-        unsafe { libc::strdup(crate::cell_extended_gcluster(plane, cell)) } as i32 as u32,
+        unsafe { libc::strdup(crate::nccell_extended_gcluster(plane, cell)) } as i32 as u32,
     )
     .expect("wrong char")
 
     // Unsafer option B (maybe faster, TODO:BENCH):
     // unsafe {
-    //     core::char::from_u32_unchecked(libc::strdup(cell_extended_gcluster(plane, cell)) as i32 as u32)
+    //     core::char::from_u32_unchecked(libc::strdup(nccell_extended_gcluster(plane, cell)) as i32 as u32)
     // }
 }
 
@@ -367,7 +367,7 @@ pub fn nccell_strdup(plane: &NcPlane, cell: &NcCell) -> NcEgc {
 ///
 /// *Method: NcCell.[extract()][NcCell#method.extract].*
 #[inline]
-pub fn cell_extract(
+pub fn nccell_extract(
     plane: &NcPlane,
     cell: &NcCell,
     stylemask: &mut NcStyleMask,
@@ -400,8 +400,8 @@ pub fn cellcmp(plane1: &NcPlane, cell1: &NcCell, plane2: &NcPlane, cell2: &NcCel
     }
     unsafe {
         strcmp(
-            crate::cell_extended_gcluster(plane1, cell1),
-            crate::cell_extended_gcluster(plane2, cell2),
+            crate::nccell_extended_gcluster(plane1, cell1),
+            crate::nccell_extended_gcluster(plane2, cell2),
         ) != 0
     }
 }
@@ -410,11 +410,11 @@ pub fn cellcmp(plane1: &NcPlane, cell1: &NcCell, plane2: &NcPlane, cell2: &NcCel
 ///
 /// *Method: NcCell.[init()][NcCell#method.init].*
 #[inline]
-pub fn cell_init(cell: &mut NcCell) {
+pub fn nccell_init(cell: &mut NcCell) {
     *cell = unsafe { core::mem::zeroed() }
 }
 
-/// Same as [cell_load][crate::cell_load], plus blasts the styling with
+/// Same as [nccell_load][crate::nccell_load], plus blasts the styling with
 /// `style` and `channels`.
 ///
 /// - Breaks the UTF-8 string in `gcluster` down, setting up the cell `cell`.
@@ -423,7 +423,7 @@ pub fn cell_init(cell: &mut NcCell) {
 /// - Blasts the styling with `style` and `channels`.
 ///
 /// *Method: NcCell.[prime()][NcCell#method.prime].*
-pub fn cell_prime(
+pub fn nccell_prime(
     plane: &mut NcPlane,
     cell: &mut NcCell,
     gcluster: &str,
@@ -432,7 +432,7 @@ pub fn cell_prime(
 ) -> NcIntResult {
     cell.stylemask = style;
     cell.channels = channels;
-    unsafe { crate::cell_load(plane, cell, cstring![gcluster]) }
+    unsafe { crate::nccell_load(plane, cell, cstring![gcluster]) }
 }
 
 /// Loads up six cells with the [NcEgc]s necessary to draw a box.
@@ -443,7 +443,7 @@ pub fn cell_prime(
 /// are [nccell_release]d. There must be at least six [NcEgc]s in `gcluster`.
 ///
 /// *Method: NcCell.[load_box()][NcCell#method.load_box].*
-pub fn cells_load_box(
+pub fn nccells_load_box(
     plane: &mut NcPlane,
     style: NcStyleMask,
     channels: NcChannelPair,
@@ -460,27 +460,27 @@ pub fn cells_load_box(
 
     let mut ulen: NcIntResult;
 
-    ulen = cell_prime(plane, ul, gcluster, style, channels);
+    ulen = nccell_prime(plane, ul, gcluster, style, channels);
 
     if ulen > 0 {
         gclu = unsafe { gclu.offset(ulen as isize) };
-        ulen = cell_prime(plane, ur, gcluster, style, channels);
+        ulen = nccell_prime(plane, ur, gcluster, style, channels);
 
         if ulen > 0 {
             gclu = unsafe { gclu.offset(ulen as isize) };
-            ulen = cell_prime(plane, ll, gcluster, style, channels);
+            ulen = nccell_prime(plane, ll, gcluster, style, channels);
 
             if ulen > 0 {
                 gclu = unsafe { gclu.offset(ulen as isize) };
-                ulen = cell_prime(plane, lr, gcluster, style, channels);
+                ulen = nccell_prime(plane, lr, gcluster, style, channels);
 
                 if ulen > 0 {
                     gclu = unsafe { gclu.offset(ulen as isize) };
-                    ulen = cell_prime(plane, hl, gcluster, style, channels);
+                    ulen = nccell_prime(plane, hl, gcluster, style, channels);
 
                     if ulen > 0 {
                         let _gclu = unsafe { gclu.offset(ulen as isize) };
-                        ulen = cell_prime(plane, vl, gcluster, style, channels);
+                        ulen = nccell_prime(plane, vl, gcluster, style, channels);
 
                         if ulen > 0 {
                             return NCRESULT_OK;

@@ -721,7 +721,7 @@ namespace ncpp
 
 		bool load_box (uint16_t styles, uint64_t channels, Cell &ul, Cell &ur, Cell &ll, Cell &lr, Cell &hl, Cell &vl, const char *gclusters) const NOEXCEPT_MAYBE
 		{
-			return error_guard (cells_load_box (plane, styles, channels, ul, ur, ll, lr, hl, vl, gclusters), -1);
+			return error_guard (nccells_load_box (plane, styles, channels, ul, ur, ll, lr, hl, vl, gclusters), -1);
 		}
 
 		bool load_box (CellStyle style, uint64_t channels, Cell &ul, Cell &ur, Cell &ll, Cell &lr, Cell &hl, Cell &vl, const char *gclusters) const NOEXCEPT_MAYBE
@@ -731,7 +731,7 @@ namespace ncpp
 
 		bool load_rounded_box (uint16_t styles, uint64_t channels, Cell &ul, Cell &ur, Cell &ll, Cell &lr, Cell &hl, Cell &vl) const NOEXCEPT_MAYBE
 		{
-			return error_guard (cells_rounded_box (plane, styles, channels, ul, ur, ll, lr, hl, vl), -1);
+			return error_guard (nccells_rounded_box (plane, styles, channels, ul, ur, ll, lr, hl, vl), -1);
 		}
 
 		bool load_rounded_box (CellStyle style, uint64_t channels, Cell &ul, Cell &ur, Cell &ll, Cell &lr, Cell &hl, Cell &vl) const NOEXCEPT_MAYBE
@@ -741,7 +741,7 @@ namespace ncpp
 
 		bool load_double_box (uint16_t styles, uint64_t channels, Cell &ul, Cell &ur, Cell &ll, Cell &lr, Cell &hl, Cell &vl) const NOEXCEPT_MAYBE
 		{
-			return error_guard (cells_double_box (plane, styles, channels, ul, ur, ll, lr, hl, vl), -1);
+			return error_guard (nccells_double_box (plane, styles, channels, ul, ur, ll, lr, hl, vl), -1);
 		}
 
 		bool load_double_box (CellStyle style, uint64_t channels, Cell &ul, Cell &ur, Cell &ll, Cell &lr, Cell &hl, Cell &vl) const NOEXCEPT_MAYBE
@@ -1067,23 +1067,23 @@ namespace ncpp
 
 		int load_egc32 (Cell &cell, uint32_t egc) const NOEXCEPT_MAYBE
 		{
-			int ret = cell_load_egc32 (plane, cell, egc);
+			int ret = nccell_load_egc32 (plane, cell, egc);
 			return error_guard_cond<int> (ret, ret != 1);
 		}
 
 		int load (Cell &cell, const char *gcluster) const NOEXCEPT_MAYBE
 		{
-			return error_guard<int> (cell_load (plane, cell, gcluster), -1);
+			return error_guard<int> (nccell_load (plane, cell, gcluster), -1);
 		}
 
 		bool load (Cell &cell, char ch) const NOEXCEPT_MAYBE
 		{
-			return error_guard (cell_load_char (plane, cell, ch), -1);
+			return error_guard (nccell_load_char (plane, cell, ch), -1);
 		}
 
 		int prime (Cell &cell, const char *gcluster, uint16_t styles, uint64_t channels) const NOEXCEPT_MAYBE
 		{
-			return error_guard<int> (cell_prime (plane, cell, gcluster, styles, channels), -1);
+			return error_guard<int> (nccell_prime (plane, cell, gcluster, styles, channels), -1);
 		}
 
 		void release (Cell &cell) const noexcept
@@ -1201,14 +1201,15 @@ namespace ncpp
 			return cell_extract (plane, cell, stylemask, channels);
 		}
 
+		// FIXME these can except if fed a sprixel, right (returns NULL)?
 		const char* get_extended_gcluster (Cell &cell) const noexcept
 		{
-			return cell_extended_gcluster (plane, cell);
+			return nccell_extended_gcluster (plane, cell);
 		}
 
 		const char* get_extended_gcluster (Cell const& cell) const noexcept
 		{
-			return cell_extended_gcluster (plane, cell);
+			return nccell_extended_gcluster (plane, cell);
 		}
 
 		static Plane* map_plane (ncplane *ncp, Plane *associated_plane = nullptr) noexcept;

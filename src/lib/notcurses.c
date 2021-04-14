@@ -169,7 +169,7 @@ int ncplane_at_yx_cell(ncplane* n, int y, int x, nccell* c){
     if(y >= 0 && x >= 0){
       nccell* targ = ncplane_cell_ref_yx(n, y, x);
       if(nccell_duplicate(n, c, targ) == 0){
-        return strlen(cell_extended_gcluster(n, targ));
+        return strlen(nccell_extended_gcluster(n, targ));
       }
     }
   }
@@ -400,7 +400,7 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
   p->stylemask = 0;
   p->channels = 0;
   egcpool_init(&p->pool);
-  cell_init(&p->basecell);
+  nccell_init(&p->basecell);
   p->userptr = nopts->userptr;
   if(nc == NULL){ // fake ncplane backing ncdirect object
     p->above = NULL;
@@ -1287,16 +1287,19 @@ int ncplane_set_base_cell(ncplane* ncp, const nccell* c){
 }
 
 int ncplane_set_base(ncplane* ncp, const char* egc, uint32_t stylemask, uint64_t channels){
-  return cell_prime(ncp, &ncp->basecell, egc, stylemask, channels);
+  return nccell_prime(ncp, &ncp->basecell, egc, stylemask, channels);
 }
 
 int ncplane_base(ncplane* ncp, nccell* c){
   return nccell_duplicate(ncp, c, &ncp->basecell);
 }
 
-const char* cell_extended_gcluster(const ncplane* n, const nccell* c){
-  if(!cell_extended_p(c)){
+const char* nccell_extended_gcluster(const ncplane* n, const nccell* c){
+  if(cell_simple_p(c)){
     return (const char*)&c->gcluster;
+  }
+  if(cell_sprixel_p(c)){
+    return NULL;
   }
   return egcpool_extended_gcluster(&n->pool, c);
 }
@@ -1402,9 +1405,9 @@ void ncplane_cursor_yx(const ncplane* n, int* y, int* x){
 }
 
 static inline void
-cell_obliterate(ncplane* n, nccell* c){
+nccell_obliterate(ncplane* n, nccell* c){
   nccell_release(n, c);
-  cell_init(c);
+  nccell_init(c);
 }
 
 // increment y by 1 and rotate the framebuffer up one line. x moves to 0.
@@ -1422,10 +1425,14 @@ void scroll_down(ncplane* n){
   }
 }
 
-int cell_load(ncplane* n, nccell* c, const char* gcluster){
+int nccell_load(ncplane* n, nccell* c, const char* gcluster){
   int cols;
   int bytes = utf8_egc_len(gcluster, &cols);
   return pool_load_direct(&n->pool, c, gcluster, bytes, cols);
+}
+
+int cell_load(ncplane* n, nccell* c, const char* gcluster){
+  return nccell_load(n, c, gcluster);
 }
 
 // where the magic happens. write the single EGC completely described by |egc|,
@@ -1474,7 +1481,7 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
         &n->fb[nfbcellidx(n, n->y, n->x - 1)] :
         // left half will never be on the last column of a row
         &n->fb[nfbcellidx(n, n->y, n->x + 1)];
-      cell_obliterate(n, sacrifice);
+      nccell_obliterate(n, sacrifice);
     }
   }
   targ->stylemask = stylemask;
@@ -1488,7 +1495,7 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
   for(int i = 1 ; i < cols ; ++i){
     nccell* candidate = &n->fb[nfbcellidx(n, n->y, n->x)];
     if(cell_wide_left_p(candidate)){
-      cell_obliterate(n, &n->fb[nfbcellidx(n, n->y, n->x + 1)]);
+      nccell_obliterate(n, &n->fb[nfbcellidx(n, n->y, n->x + 1)]);
     }
     nccell_release(n, candidate);
     candidate->channels = targ->channels;
@@ -1501,7 +1508,7 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
 
 int ncplane_putc_yx(ncplane* n, int y, int x, const nccell* c){
   const int cols = cell_double_wide_p(c) ? 2 : 1;
-  const char* egc = cell_extended_gcluster(n, c);
+  const char* egc = nccell_extended_gcluster(n, c);
   return ncplane_put(n, y, x, egc, cols, c->stylemask, c->channels, strlen(egc));
 }
 
@@ -1562,7 +1569,7 @@ int ncplane_cursor_at(const ncplane* n, nccell* c, char** gclust){
   memcpy(c, src, sizeof(*src));
   if(cell_simple_p(c)){
     *gclust = NULL;
-  }else if((*gclust = strdup(cell_extended_gcluster(n, src))) == NULL){
+  }else if((*gclust = strdup(nccell_extended_gcluster(n, src))) == NULL){
     return -1;
   }
   return 0;
@@ -1977,7 +1984,7 @@ void ncplane_erase(ncplane* n){
   // we need to zero out the EGC before handing this off to cell_load, but
   // we don't want to lose the channels/attributes, so explicit gcluster load.
   n->basecell.gcluster = 0;
-  cell_load(n, &n->basecell, egc);
+  nccell_load(n, &n->basecell, egc);
   free(egc);
   n->y = n->x = 0;
 }
@@ -2579,25 +2586,40 @@ char* ncplane_contents(const ncplane* nc, int begy, int begx, int leny, int lenx
   return ret;
 }
 
-int cells_ascii_box(struct ncplane* n, uint32_t attr, uint64_t channels,
-                    nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
-  return cells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, "/\\\\/-|");
-}
-
-int cells_double_box(struct ncplane* n, uint32_t attr, uint64_t channels,
-                     nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
-  if(notcurses_canutf8(ncplane_notcurses(n))){
-    return cells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, "╔╗╚╝═║");
-  }
-  return cells_ascii_box(n, attr, channels, ul, ur, ll, lr, hl, vl);
-}
-
-int cells_rounded_box(struct ncplane* n, uint32_t attr, uint64_t channels,
+int nccells_ascii_box(ncplane* n, uint32_t attr, uint64_t channels,
                       nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
+  return nccells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, "/\\\\/-|");
+}
+
+int cells_ascii_box(ncplane* n, uint32_t attr, uint64_t channels,
+                    nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
+  return nccells_ascii_box(n, attr, channels, ul, ur, ll, lr, hl, vl);
+}
+
+int nccells_double_box(ncplane* n, uint32_t attr, uint64_t channels,
+                       nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
   if(notcurses_canutf8(ncplane_notcurses(n))){
-    return cells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, "╭╮╰╯─│");
+    return nccells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, "╔╗╚╝═║");
   }
-  return cells_ascii_box(n, attr, channels, ul, ur, ll, lr, hl, vl);
+  return nccells_ascii_box(n, attr, channels, ul, ur, ll, lr, hl, vl);
+}
+
+int cells_double_box(ncplane* n, uint32_t attr, uint64_t channels,
+                     nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
+  return nccells_double_box(n, attr, channels, ul, ur, ll, lr, hl, vl);
+}
+
+int nccells_rounded_box(ncplane* n, uint32_t attr, uint64_t channels,
+                        nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
+  if(notcurses_canutf8(ncplane_notcurses(n))){
+    return nccells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, "╭╮╰╯─│");
+  }
+  return nccells_ascii_box(n, attr, channels, ul, ur, ll, lr, hl, vl);
+}
+
+int cells_rounded_box(ncplane* n, uint32_t attr, uint64_t channels,
+                      nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
+  return nccells_rounded_box(n, attr, channels, ul, ur, ll, lr, hl, vl);
 }
 
 // find the center coordinate of a plane, preferring the top/left in the

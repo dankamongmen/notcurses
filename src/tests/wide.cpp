@@ -74,13 +74,13 @@ TEST_CASE("Wide") {
     const char EGC4[] = "\ufdfd"; // neutral yet huge bismillah ﷽
     std::array<nccell, 5> tcells;
     for(auto & tcell : tcells){
-      cell_init(&tcell);
+      nccell_init(&tcell);
     }
-    CHECK(1 < cell_load(n_, &tcells[0], EGC0));
-    CHECK(1 < cell_load(n_, &tcells[1], EGC1));
-    CHECK(1 < cell_load(n_, &tcells[2], EGC2));
-    CHECK(1 < cell_load(n_, &tcells[3], EGC3));
-    CHECK(1 < cell_load(n_, &tcells[4], EGC4));
+    CHECK(1 < nccell_load(n_, &tcells[0], EGC0));
+    CHECK(1 < nccell_load(n_, &tcells[1], EGC1));
+    CHECK(1 < nccell_load(n_, &tcells[2], EGC2));
+    CHECK(1 < nccell_load(n_, &tcells[3], EGC3));
+    CHECK(1 < nccell_load(n_, &tcells[4], EGC4));
     for(auto & tcell : tcells){
       CHECK(0 < ncplane_putc(n_, &tcell));
     }
@@ -90,10 +90,10 @@ TEST_CASE("Wide") {
       CHECK(0 == ncplane_cursor_move_yx(n_, 0, x));
       nccell testcell = CELL_TRIVIAL_INITIALIZER;
       CHECK(0 < ncplane_at_cursor_cell(n_, &testcell));
-      CHECK(!strcmp(cell_extended_gcluster(n_, &tcell), cell_extended_gcluster(n_, &testcell)));
+      CHECK(!strcmp(nccell_extended_gcluster(n_, &tcell), nccell_extended_gcluster(n_, &testcell)));
       CHECK(0 == testcell.stylemask);
       wchar_t w;
-      CHECK(0 < mbtowc(&w, cell_extended_gcluster(n_, &tcell), MB_CUR_MAX));
+      CHECK(0 < mbtowc(&w, nccell_extended_gcluster(n_, &tcell), MB_CUR_MAX));
       if(wcwidth(w) == 2){
         CHECK(2 == testcell.width);
         ++x;
@@ -119,17 +119,17 @@ TEST_CASE("Wide") {
     CHECK(2 == x);
     CHECK(0 < ncplane_putegc_yx(n_, 0, 0, w, &sbytes));
     nccell c = CELL_TRIVIAL_INITIALIZER;
-    CHECK(0 < cell_load(n_, &c, w));
+    CHECK(0 < nccell_load(n_, &c, w));
     CHECK(0 < ncplane_putc_yx(n_, 1, 0, &c));
     nccell_release(n_, &c);
     ncplane_at_yx_cell(n_, 0, 0, &c);
-    CHECK(0 == strcmp(cell_extended_gcluster(n_, &c), FROG));
+    CHECK(0 == strcmp(nccell_extended_gcluster(n_, &c), FROG));
     ncplane_at_yx_cell(n_, 0, 1, &c);
     CHECK(ncstrwidth(FROG) == 1 + cell_double_wide_p(&c)); // should be wide
     ncplane_at_yx_cell(n_, 0, 2, &c);
-    CHECK(0 == strlen(cell_extended_gcluster(n_, &c))); // should be nothing
+    CHECK(0 == strlen(nccell_extended_gcluster(n_, &c))); // should be nothing
     ncplane_at_yx_cell(n_, 1, 0, &c);
-    CHECK(0 == strcmp(cell_extended_gcluster(n_, &c), FROG));
+    CHECK(0 == strcmp(nccell_extended_gcluster(n_, &c), FROG));
     ncplane_at_yx_cell(n_, 1, 1, &c);
     CHECK(ncstrwidth(FROG) == 1 + cell_double_wide_p(&c)); //should be wide
     CHECK(0 == notcurses_render(nc_)); // should be nothing
@@ -155,7 +155,7 @@ TEST_CASE("Wide") {
       CHECK(0 == c.gcluster); // should be nothing
     }
     ncplane_at_yx_cell(n_, 0, 1, &c);
-    CHECK(0 == strcmp(cell_extended_gcluster(n_, &c), SNAKE));
+    CHECK(0 == strcmp(nccell_extended_gcluster(n_, &c), SNAKE));
     ncplane_at_yx_cell(n_, 0, 2, &c);
     CHECK(ncstrwidth(SNAKE) == 1 + cell_double_wide_p(&c)); // should be wide
     CHECK(0 == notcurses_render(nc_));
@@ -182,12 +182,12 @@ TEST_CASE("Wide") {
       CHECK(0 == c.gcluster); // should be nothing
     }
     ncplane_at_yx_cell(n_, 0, 1, &c);
-    CHECK(0 == strcmp(cc, cell_extended_gcluster(n_, &c))); // should be 'X'
+    CHECK(0 == strcmp(cc, nccell_extended_gcluster(n_, &c))); // should be 'X'
     ncplane_at_yx_cell(n_, 0, 2, &c);
-    CHECK(0 == strcmp(cc, cell_extended_gcluster(n_, &c))); // should be 'X'
+    CHECK(0 == strcmp(cc, nccell_extended_gcluster(n_, &c))); // should be 'X'
     ncplane_at_yx_cell(n_, 0, 3, &c);
     if(ncstrwidth(wbashedr) > 1){
-      CHECK(0 == strlen(cell_extended_gcluster(n_, &c))); // should be nothing
+      CHECK(0 == strlen(nccell_extended_gcluster(n_, &c))); // should be nothing
     }
     CHECK(0 == notcurses_render(nc_));
   }
@@ -208,13 +208,13 @@ TEST_CASE("Wide") {
     CHECK(3 == x);
     nccell c = CELL_TRIVIAL_INITIALIZER;
     ncplane_at_yx_cell(n_, 0, 0, &c);
-    CHECK(0 == strcmp(cell_extended_gcluster(n_, &c), SNAKE));
+    CHECK(0 == strcmp(nccell_extended_gcluster(n_, &c), SNAKE));
     ncplane_at_yx_cell(n_, 0, 1, &c);
     CHECK(ncstrwidth(SNAKE) == 1 + cell_double_wide_p(&c));
     ncplane_at_yx_cell(n_, 0, 2, &c);
-    CHECK(0 == strcmp(cc, cell_extended_gcluster(n_, &c))); // should be 'X'
+    CHECK(0 == strcmp(cc, nccell_extended_gcluster(n_, &c))); // should be 'X'
     ncplane_at_yx_cell(n_, 0, 3, &c);
-    CHECK(0 == strcmp(cell_extended_gcluster(n_, &c), SCORPION));
+    CHECK(0 == strcmp(nccell_extended_gcluster(n_, &c), SCORPION));
     ncplane_at_yx_cell(n_, 0, 4, &c);
     CHECK(ncstrwidth(SCORPION) == 1 + cell_double_wide_p(&c));
     CHECK(0 == notcurses_render(nc_));
@@ -241,14 +241,14 @@ TEST_CASE("Wide") {
     CHECK(0 == notcurses_render(nc_));
     nccell c = CELL_TRIVIAL_INITIALIZER;
     CHECK(0 < ncplane_at_yx_cell(ncp, 1, 0, &c));
-    CHECK(!strcmp(cell_extended_gcluster(ncp, &c), "│"));
+    CHECK(!strcmp(nccell_extended_gcluster(ncp, &c), "│"));
     nccell_release(ncp, &c);
     char* egc = notcurses_at_yx(nc_, 1, 0, &c.stylemask, &c.channels);
     REQUIRE(egc);
     CHECK(!strcmp(egc, "│"));
     free(egc);
     CHECK(0 < ncplane_at_yx_cell(ncp, 1, 3, &c));
-    CHECK(!strcmp(cell_extended_gcluster(ncp, &c), "│"));
+    CHECK(!strcmp(nccell_extended_gcluster(ncp, &c), "│"));
     nccell_release(ncp, &c);
     egc = notcurses_at_yx(nc_, 1, 3, &c.stylemask, &c.channels);
     REQUIRE(egc);
@@ -309,45 +309,45 @@ TEST_CASE("Wide") {
 
     // should be wide char 1
     CHECK(3 == ncplane_at_yx_cell(n_, 0, 0, &c));
-    CHECK(!strcmp("\xe5\x85\xa8", cell_extended_gcluster(n_, &c)));
+    CHECK(!strcmp("\xe5\x85\xa8", nccell_extended_gcluster(n_, &c)));
     CHECK(cell_double_wide_p(&c));
     egc = notcurses_at_yx(nc_, 0, 0, &c.stylemask, &c.channels);
     REQUIRE(egc);
     CHECK(!strcmp("\xe5\x85\xa8", egc));
     CHECK(cell_double_wide_p(&c));
     free(egc);
-    cell_init(&c);
+    nccell_init(&c);
     // should be wide char 1 right side
     REQUIRE(0 == ncplane_at_yx_cell(n_, 0, 1, &c));
-    CHECK(!strcmp("", cell_extended_gcluster(n_, &c)));
+    CHECK(!strcmp("", nccell_extended_gcluster(n_, &c)));
     CHECK(cell_double_wide_p(&c));
     egc = notcurses_at_yx(nc_, 0, 1, &c.stylemask, &c.channels);
     REQUIRE(egc);
     CHECK(!strcmp("", egc));
     CHECK(cell_double_wide_p(&c));
     free(egc);
-    cell_init(&c);
+    nccell_init(&c);
 
     // should be wide char 2
     REQUIRE(3 == ncplane_at_yx_cell(n_, 0, 2, &c));
-    CHECK(!strcmp("\xe5\xbd\xa2", cell_extended_gcluster(n_, &c)));
+    CHECK(!strcmp("\xe5\xbd\xa2", nccell_extended_gcluster(n_, &c)));
     CHECK(cell_double_wide_p(&c));
     egc = notcurses_at_yx(nc_, 0, 2, &c.stylemask, &c.channels);
     REQUIRE(egc);
     CHECK(!strcmp("\xe5\xbd\xa2", egc));
     CHECK(cell_double_wide_p(&c));
     free(egc);
-    cell_init(&c);
+    nccell_init(&c);
     // should be wide char 2 right side
     CHECK(0 == ncplane_at_yx_cell(n_, 0, 3, &c));
-    CHECK(!strcmp("", cell_extended_gcluster(n_, &c)));
+    CHECK(!strcmp("", nccell_extended_gcluster(n_, &c)));
     CHECK(cell_double_wide_p(&c));
     egc = notcurses_at_yx(nc_, 0, 3, &c.stylemask, &c.channels);
     REQUIRE(egc);
     CHECK(!strcmp("", egc));
     CHECK(cell_double_wide_p(&c));
     free(egc);
-    cell_init(&c);
+    nccell_init(&c);
 
     struct ncplane_options nopts = {
       .y = 0,
@@ -370,26 +370,26 @@ TEST_CASE("Wide") {
     REQUIRE(egc);
     CHECK(0 == strcmp(" ", egc));
     free(egc);
-    cell_init(&c);
+    nccell_init(&c);
     // should be character from higher plane
     egc = notcurses_at_yx(nc_, 0, 1, &c.stylemask, &c.channels);
     REQUIRE(egc);
     CHECK(0 == strcmp("A", egc));
     free(egc);
-    cell_init(&c);
+    nccell_init(&c);
 
     egc = notcurses_at_yx(nc_, 0, 2, &c.stylemask, &c.channels);
     REQUIRE(egc);
     CHECK(0 == strcmp("B", egc));
     free(egc);
-    cell_init(&c);
+    nccell_init(&c);
 
     // should be nothing, having been stomped
     egc = notcurses_at_yx(nc_, 0, 3, &c.stylemask, &c.channels);
     REQUIRE(egc);
     CHECK(0 == strcmp("", egc));
     free(egc);
-    cell_init(&c);
+    nccell_init(&c);
 
     CHECK(0 == ncplane_destroy(n));
   }
@@ -432,7 +432,7 @@ TEST_CASE("Wide") {
     free(egc);
     nccell cl = CELL_TRIVIAL_INITIALIZER, cr = CELL_TRIVIAL_INITIALIZER;
     CHECK(3 == ncplane_at_yx_cell(n_, 1, 1, &cl));
-    CHECK(0 == strcmp("六", cell_extended_gcluster(n_, &cl)));
+    CHECK(0 == strcmp("六", nccell_extended_gcluster(n_, &cl)));
     CHECK(0 == ncplane_at_yx_cell(n_, 1, 2, &cr));
     CHECK(cell_simple_p(&cr));
     CHECK(0 == cr.gcluster);
@@ -915,11 +915,11 @@ TEST_CASE("Wide") {
   // U+1F427 PINCHED FINGERS → UTF8(f0 9f a4 8c)
   SUBCASE("ItalicEmoji") {
     nccell c = CELL_TRIVIAL_INITIALIZER;
-    cell_load(n_, &c, "\U0001F427");
+    nccell_load(n_, &c, "\U0001F427");
     CHECK(0xa7909ff0 == htole(c.gcluster));
     cell_on_styles(&c, NCSTYLE_ITALIC);
-    CHECK(4 == strlen(cell_extended_gcluster(n_, &c)));
-    CHECK(0 == strcmp("\U0001F427", cell_extended_gcluster(n_, &c)));
+    CHECK(4 == strlen(nccell_extended_gcluster(n_, &c)));
+    CHECK(0 == strcmp("\U0001F427", nccell_extended_gcluster(n_, &c)));
     CHECK(0 < ncplane_putc_yx(n_, 0, 0, &c));
     CHECK(0 == notcurses_render(nc_));
     uint16_t stylemask;
@@ -934,11 +934,11 @@ TEST_CASE("Wide") {
 
   SUBCASE("StyleMaxEmoji") {
     nccell c = CELL_TRIVIAL_INITIALIZER;
-    cell_load(n_, &c, "\U0001F427");
+    nccell_load(n_, &c, "\U0001F427");
     CHECK(0xa7909ff0 == htole(c.gcluster));
     cell_on_styles(&c, NCSTYLE_MASK);
-    CHECK(4 == strlen(cell_extended_gcluster(n_, &c)));
-    CHECK(0 == strcmp("\U0001F427", cell_extended_gcluster(n_, &c)));
+    CHECK(4 == strlen(nccell_extended_gcluster(n_, &c)));
+    CHECK(0 == strcmp("\U0001F427", nccell_extended_gcluster(n_, &c)));
     CHECK(0 < ncplane_putc_yx(n_, 0, 0, &c));
     CHECK(0 == notcurses_render(nc_));
     uint16_t stylemask;
@@ -992,7 +992,7 @@ TEST_CASE("Wide") {
   SUBCASE("OfflineEGCs") {
     nccell c = CELL_TRIVIAL_INITIALIZER;
     const char egc[] = "\U0001F471\u200D\u2640"; // all one EGC
-    CHECK(0 < cell_load(n_, &c, egc));
+    CHECK(0 < nccell_load(n_, &c, egc));
     ncplane_set_scrolling(n_, true);
     for(int i = 0 ; i < 100 ; ++i){ // FIXME fill up stdplane
       CHECK(0 < ncplane_putc(n_, &c));

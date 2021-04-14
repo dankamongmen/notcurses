@@ -62,7 +62,7 @@ namespace ncpp
 
 		void init () noexcept
 		{
-			cell_init (&_cell);
+			nccell_init (&_cell);
 		}
 
 		uint16_t get_stylemask () const noexcept

@@ -39,25 +39,25 @@ prep_cells2(struct ncplane* n,
            nccell* ul, nccell* uc, nccell* ur,
            nccell* cl, nccell* cc, nccell* cr,
            nccell* ll, nccell* lc, nccell* lr){
-  cell_init(ul);
-  cell_init(uc);
-  cell_init(cl);
-  cell_init(cr);
-  cell_init(ll);
-  cell_init(lc);
-  cell_init(lr);
-  cell_init(ur);
-  cell_init(cc);
+  nccell_init(ul);
+  nccell_init(uc);
+  nccell_init(cl);
+  nccell_init(cr);
+  nccell_init(ll);
+  nccell_init(lc);
+  nccell_init(lr);
+  nccell_init(ur);
+  nccell_init(cc);
   int ret = 0;
-  ret |= cell_load(n, ul, "╔");
-  ret |= cell_load(n, uc, "╦");
-  ret |= cell_load(n, ur, "╗");
-  ret |= cell_load(n, cl, "╠");
-  ret |= cell_load(n, cc, "╬");
-  ret |= cell_load(n, cr, "╣");
-  ret |= cell_load(n, ll, "╚");
-  ret |= cell_load(n, lc, "╩");
-  ret |= cell_load(n, lr, "╝");
+  ret |= nccell_load(n, ul, "╔");
+  ret |= nccell_load(n, uc, "╦");
+  ret |= nccell_load(n, ur, "╗");
+  ret |= nccell_load(n, cl, "╠");
+  ret |= nccell_load(n, cc, "╬");
+  ret |= nccell_load(n, cr, "╣");
+  ret |= nccell_load(n, ll, "╚");
+  ret |= nccell_load(n, lc, "╩");
+  ret |= nccell_load(n, lr, "╝");
   return ret;
 }
 
@@ -66,25 +66,25 @@ prep_cells(struct ncplane* n,
            nccell* ul, nccell* uc, nccell* ur,
            nccell* cl, nccell* cc, nccell* cr,
            nccell* ll, nccell* lc, nccell* lr){
-  cell_init(ul);
-  cell_init(uc);
-  cell_init(cl);
-  cell_init(cr);
-  cell_init(ll);
-  cell_init(lc);
-  cell_init(lr);
-  cell_init(ur);
-  cell_init(cc);
+  nccell_init(ul);
+  nccell_init(uc);
+  nccell_init(cl);
+  nccell_init(cr);
+  nccell_init(ll);
+  nccell_init(lc);
+  nccell_init(lr);
+  nccell_init(ur);
+  nccell_init(cc);
   int ret = 0;
-  ret |= cell_load(n, ul, "┍");
-  ret |= cell_load(n, uc, "┯");
-  ret |= cell_load(n, ur, "┑");
-  ret |= cell_load(n, cl, "┝");
-  ret |= cell_load(n, cc, "┿");
-  ret |= cell_load(n, cr, "┥");
-  ret |= cell_load(n, ll, "┕");
-  ret |= cell_load(n, lc, "┷");
-  ret |= cell_load(n, lr, "┙");
+  ret |= nccell_load(n, ul, "┍");
+  ret |= nccell_load(n, uc, "┯");
+  ret |= nccell_load(n, ur, "┑");
+  ret |= nccell_load(n, cl, "┝");
+  ret |= nccell_load(n, cc, "┿");
+  ret |= nccell_load(n, cr, "┥");
+  ret |= nccell_load(n, ll, "┕");
+  ret |= nccell_load(n, lc, "┷");
+  ret |= nccell_load(n, lr, "┙");
   return ret;
 }
 

@@ -154,7 +154,7 @@ int fallin_demo(struct notcurses* nc){
             goto err;
           }
           if(*egc){
-            if(cell_prime(n, &c, egc, smask, channels) <= 0){
+            if(nccell_prime(n, &c, egc, smask, channels) <= 0){
               free(egc);
               goto err;
             }

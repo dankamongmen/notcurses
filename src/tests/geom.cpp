@@ -40,7 +40,7 @@ TEST_CASE("Geometry") {
       nccell tl = CELL_TRIVIAL_INITIALIZER, tr = CELL_TRIVIAL_INITIALIZER;
       nccell bl = CELL_TRIVIAL_INITIALIZER, br = CELL_TRIVIAL_INITIALIZER;
       nccell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
-      CHECK(0 == cells_double_box(n, 0, 0, &tl, &tr, &bl, &br, &hl, &vl));
+      CHECK(0 == nccells_double_box(n, 0, 0, &tl, &tr, &bl, &br, &hl, &vl));
       CHECK(0 <= ncplane_perimeter(n, &tl, &tr, &bl, &br, &hl, &vl, 0));
       CHECK(0 == notcurses_render(nc_));
       int y, x;
@@ -87,7 +87,7 @@ TEST_CASE("Geometry") {
       nccell tl = CELL_TRIVIAL_INITIALIZER, tr = CELL_TRIVIAL_INITIALIZER;
       nccell bl = CELL_TRIVIAL_INITIALIZER, br = CELL_TRIVIAL_INITIALIZER;
       nccell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
-      CHECK(0 == cells_double_box(n, 0, 0, &tl, &tr, &bl, &br, &hl, &vl));
+      CHECK(0 == nccells_double_box(n, 0, 0, &tl, &tr, &bl, &br, &hl, &vl));
       CHECK(0 <= ncplane_perimeter(n, &tl, &tr, &bl, &br, &hl, &vl, 0));
       CHECK(0 == notcurses_render(nc_));
       int y, x;

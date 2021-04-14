@@ -64,7 +64,7 @@ TEST_CASE("Palette256") {
   // write it to an ncplane, and verify attributes via reflection
   SUBCASE("PutCAttrs") {
     nccell c = CELL_TRIVIAL_INITIALIZER;
-    CHECK(1 == cell_load_char(n_, &c, 'X'));
+    CHECK(1 == nccell_load_char(n_, &c, 'X'));
     CHECK(0 == cell_set_fg_palindex(&c, 0x20));
     CHECK(0 == cell_set_bg_palindex(&c, 0x40));
     CHECK(1 == ncplane_putc_yx(n_, 0, 0, &c));
@@ -82,7 +82,7 @@ TEST_CASE("Palette256") {
 
   SUBCASE("RenderCAttrs") {
     nccell c = CELL_TRIVIAL_INITIALIZER;
-    cell_load_char(n_, &c, 'X');
+    nccell_load_char(n_, &c, 'X');
     CHECK(0 == cell_set_fg_palindex(&c, 0x20));
     CHECK(0 == cell_set_bg_palindex(&c, 0x40));
     CHECK(0 == ncplane_set_fg_palindex(n_, 0x20));
