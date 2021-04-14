@@ -70,12 +70,12 @@ TEST_CASE("Rotate") {
     nccell tl = CELL_TRIVIAL_INITIALIZER, tr = CELL_TRIVIAL_INITIALIZER;
     nccell bl = CELL_TRIVIAL_INITIALIZER, br = CELL_TRIVIAL_INITIALIZER;
     nccell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
-    CHECK(-1 < cell_prime(testn, &tl, "█", 0, ul));
-    CHECK(-1 < cell_prime(testn, &tr, "█", 0, ur));
-    CHECK(-1 < cell_prime(testn, &bl, "█", 0, ll));
-    CHECK(-1 < cell_prime(testn, &br, "█", 0, lr));
-    CHECK(-1 < cell_prime(testn, &hl, "█", 0, ll));
-    CHECK(-1 < cell_prime(testn, &vl, "█", 0, lr));
+    CHECK(-1 < nccell_prime(testn, &tl, "█", 0, ul));
+    CHECK(-1 < nccell_prime(testn, &tr, "█", 0, ur));
+    CHECK(-1 < nccell_prime(testn, &bl, "█", 0, ll));
+    CHECK(-1 < nccell_prime(testn, &br, "█", 0, lr));
+    CHECK(-1 < nccell_prime(testn, &hl, "█", 0, ll));
+    CHECK(-1 < nccell_prime(testn, &vl, "█", 0, lr));
     CHECK(0 == ncplane_perimeter(testn, &tl, &tr, &bl, &br, &hl, &vl, 0));
     RotateCW(nc_, testn);
     nccell_release(testn, &tl); nccell_release(testn, &tr);

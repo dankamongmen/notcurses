@@ -1284,7 +1284,7 @@ int ncplane_set_base_cell(ncplane* ncp, const nccell* c){
 }
 
 int ncplane_set_base(ncplane* ncp, const char* egc, uint32_t stylemask, uint64_t channels){
-  return cell_prime(ncp, &ncp->basecell, egc, stylemask, channels);
+  return nccell_prime(ncp, &ncp->basecell, egc, stylemask, channels);
 }
 
 int ncplane_base(ncplane* ncp, nccell* c){

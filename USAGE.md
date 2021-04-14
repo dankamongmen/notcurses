@@ -1788,8 +1788,8 @@ typedef struct nccell {
 #define CELL_ALPHA_OPAQUE       0x00000000ull
 ```
 
-`nccell`s must be initialized with an initialization macro or `cell_init()`
-before any other use. `cell_init()` and `CELL_TRIVIAL_INITIALIZER` both
+`nccell`s must be initialized with an initialization macro or `nccell_init()`
+before any other use. `nccell_init()` and `CELL_TRIVIAL_INITIALIZER` both
 simply zero out the `nccell`.
 
 ```c
@@ -1798,7 +1798,7 @@ simply zero out the `nccell`.
 #define CELL_INITIALIZER(c, s, chan) { .gcluster = (c), .gcluster_backstop = 0, .reserved = 0, .stylemask = (s), .channels = (chan), }
 
 static inline void
-cell_init(nccell* c){
+nccell_init(nccell* c){
   memset(c, 0, sizeof(*c));
 }
 ```
@@ -1829,7 +1829,7 @@ int cell_load(struct ncplane* n, nccell* c, const char* gcluster);
 
 // cell_load(), plus blast the styling with 'attr' and 'channels'.
 static inline int
-cell_prime(struct ncplane* n, nccell* c, const char* gcluster,
+nccell_prime(struct ncplane* n, nccell* c, const char* gcluster,
            uint32_t stylemask, uint64_t channels){
   c->stylemask = stylemask;
   c->channels = channels;
@@ -1946,12 +1946,12 @@ cells_load_box(struct ncplane* n, uint32_t style, uint64_t channels,
                nccell* ul, nccell* ur, nccell* ll, nccell* lr,
                nccell* hl, nccell* vl, const char* gclusters){
   int ulen;
-  if((ulen = cell_prime(n, ul, gclusters, style, channels)) > 0){
-    if((ulen = cell_prime(n, ur, gclusters += ulen, style, channels)) > 0){
-      if((ulen = cell_prime(n, ll, gclusters += ulen, style, channels)) > 0){
-        if((ulen = cell_prime(n, lr, gclusters += ulen, style, channels)) > 0){
-          if((ulen = cell_prime(n, hl, gclusters += ulen, style, channels)) > 0){
-            if(cell_prime(n, vl, gclusters + ulen, style, channels) > 0){
+  if((ulen = nccell_prime(n, ul, gclusters, style, channels)) > 0){
+    if((ulen = nccell_prime(n, ur, gclusters += ulen, style, channels)) > 0){
+      if((ulen = nccell_prime(n, ll, gclusters += ulen, style, channels)) > 0){
+        if((ulen = nccell_prime(n, lr, gclusters += ulen, style, channels)) > 0){
+          if((ulen = nccell_prime(n, hl, gclusters += ulen, style, channels)) > 0){
+            if(nccell_prime(n, vl, gclusters + ulen, style, channels) > 0){
               return 0;
             }
             nccell_release(n, hl);

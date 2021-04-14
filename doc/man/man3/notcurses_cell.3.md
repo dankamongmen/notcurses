@@ -40,11 +40,11 @@ typedef struct nccell {
 #define CELL_ALPHA_OPAQUE       0x00000000ull
 ```
 
-**void cell_init(nccell* ***c***);**
+**void nccell_init(nccell* ***c***);**
 
 **int cell_load(struct ncplane* ***n***, nccell* ***c***, const char* ***gcluster***);**
 
-**int cell_prime(struct ncplane* ***n***, nccell* ***c***, const char* ***gcluster***,
+**int nccell_prime(struct ncplane* ***n***, nccell* ***c***, const char* ***gcluster***,
                  uint32_t ***stylemask***, uint64_t ***channels***);**
 
 **int nccell_duplicate(struct ncplane* ***n***, nccell* ***targ***, const nccell* ***c***);**
@@ -133,7 +133,7 @@ is necessary. Otherwise, the EGC is stored as a nul-terminated UTF-8 string in
 some backing egcpool. Egcpools are associated with **ncplane**s, so **nccell**s
 must be considered associated with **ncplane**s. Indeed, **ncplane_erase**
 destroys the backing storage for all a plane's cells, invalidating them. This
-association is formed at the time of **cell_load**, **cell_prime**, or
+association is formed at the time of **cell_load**, **nccell_prime**, or
 **nccell_duplicate**. All of these functions first call **nccell_release**, as
 do **cell_load_egc32** and **cell_load_char**. When done using a **nccell**
 entirely, call **nccell_release**. **ncplane_destroy** will free up the memory

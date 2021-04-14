@@ -1083,7 +1083,7 @@ namespace ncpp
 
 		int prime (Cell &cell, const char *gcluster, uint16_t styles, uint64_t channels) const NOEXCEPT_MAYBE
 		{
-			return error_guard<int> (cell_prime (plane, cell, gcluster, styles, channels), -1);
+			return error_guard<int> (nccell_prime (plane, cell, gcluster, styles, channels), -1);
 		}
 
 		void release (Cell &cell) const noexcept
