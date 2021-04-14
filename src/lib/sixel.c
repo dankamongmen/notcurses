@@ -540,3 +540,14 @@ int sprite_sixel_init(int fd){
   // the upper left corner of the screen).
   return tty_emit("\e[?80;8452h", fd);
 }
+
+// we return -1 because we're not doing a proper wipe -- that's not possible
+// using sixel. we just mark it as partially transparent, so that if it's
+// redrawn, it's redrawn using P2=1.
+int sixel_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
+  (void)nc;
+  (void)ycell;
+  (void)xcell;
+  change_p2(s->glyph, SIXEL_P2_TRANS);
+  return -1;
+}

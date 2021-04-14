@@ -338,6 +338,7 @@ setup_sixel(tinfo* ti){
   ti->sixel_maxx = 4096; // whee!
   ti->sixel_maxy = 4096;
   ti->pixel_destroy = sixel_delete;
+  ti->pixel_cell_wipe = sixel_wipe;
 }
 
 // query for Sixel support
