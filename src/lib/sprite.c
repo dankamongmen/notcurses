@@ -60,9 +60,17 @@ void sprixel_hide(sprixel* s){
   }
 }
 
-void sprixel_invalidate(sprixel* s){
-  if(s->invalidated != SPRIXEL_HIDE){
-    s->invalidated = SPRIXEL_INVALIDATED;
+// y and x are absolute coordinates
+void sprixel_invalidate(sprixel* s, int y, int x){
+//fprintf(stderr, "INVALIDATING AT %d/%d\n", y, x);
+  if(s->invalidated != SPRIXEL_HIDE && s->n){
+    int localy = y - s->n->absy;
+    int localx = x - s->n->absx;
+//fprintf(stderr, "INVALIDATING AT %d/%d (%d/%d) TAM: %d\n", y, x, localy, localx, s->n->tacache[localy * s->dimx + localx]);
+    if(s->n->tacache[localy * s->dimx + localx] != SPRIXCELL_ALL_TRANS &&
+       s->n->tacache[localy * s->dimx + localx] != SPRIXCELL_ALL_TRANS){
+      s->invalidated = SPRIXEL_INVALIDATED;
+    }
   }
 }
 
