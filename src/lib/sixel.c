@@ -554,6 +554,8 @@ int sixel_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
   return -1;
 }
 
+// 80 (sixel scrolling) is enabled by default. 8452 is not. XTSAVE/XTRESTORE
+// would be better, where they're supported.
 int sixel_shutdown(int fd){
-  return tty_emit("\e[?80;8452l", fd);
+  return tty_emit("\e[?8452l", fd);
 }
