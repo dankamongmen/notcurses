@@ -85,7 +85,7 @@ int box_demo(struct notcurses* nc){
   nccell ul = CELL_TRIVIAL_INITIALIZER, ll = CELL_TRIVIAL_INITIALIZER;
   nccell lr = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
   nccell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
-  if(cells_double_box(n, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl)){
+  if(nccells_double_box(n, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
   // target grid is 7x7
