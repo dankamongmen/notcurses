@@ -94,7 +94,7 @@ void summarize_stats(notcurses* nc){
     qprefix(stats->raster_ns, NANOSECS_IN_SEC, totalbuf, 0);
     qprefix(stats->raster_min_ns, NANOSECS_IN_SEC, minbuf, 0);
     qprefix(stats->raster_max_ns, NANOSECS_IN_SEC, maxbuf, 0);
-    qprefix(stats->raster_ns / stats->writeouts, NANOSECS_IN_SEC, avgbuf, 0);
+    qprefix(stats->writeouts ? stats->raster_ns / stats->writeouts : 0, NANOSECS_IN_SEC, avgbuf, 0);
     fprintf(stderr, "%ju raster%s, %ss (%ss min, %ss avg, %ss max)\n",
             stats->writeouts, stats->writeouts == 1 ? "" : "s",
             totalbuf, minbuf, avgbuf, maxbuf);
