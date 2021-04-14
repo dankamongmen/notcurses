@@ -827,6 +827,7 @@ plane_debug(const ncplane* n, bool details){
 // throughout to 0. the same trick doesn't work on sixel, but there we
 // can just print directly over the bitmap.
 int sprite_kitty_cell_wipe(const notcurses* nc, sprixel* s, int y, int x);
+int sixel_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell);
 int sprite_destroy(const struct notcurses* nc, const struct ncpile* p, FILE* out, sprixel* s);
 void sprixel_free(sprixel* s);
 void sprixel_invalidate(sprixel* s);
