@@ -204,15 +204,16 @@ paint_sprixel(const ncplane* p, const nccell* vis, struct crender* crender,
               int y, int x){
   const notcurses* nc = ncplane_notcurses_const(p);
 //fprintf(stderr, "presprixel: %p preid: %d id: %d state: %d\n", rvec->sprixel, rvec->sprixel ? rvec->sprixel->id : 0, cell_sprixel_id(vis), sprixel_by_id(ncplane_notcurses_const(p), cell_sprixel_id(vis))->invalidated);
-  // if we already have a glyph solved, and we run into a bitmap
-  // cell, we need to null that cell out of the bitmap.
+  // if we already have a glyph solved (meaning said glyph is above this
+  // sprixel), and we run into a bitmap cell, we need to null that cell out
+  // of the bitmap.
   if(crender->p || crender->s.bgblends){
     // if sprite_wipe_cell() fails, we presumably do not have the
     // ability to wipe, and must reprint the character
     if(sprite_wipe_cell(nc, p->sprite, y, x)){
 //fprintf(stderr, "damaging due to wipe %d/%d\n", y, x);
-      crender->s.p_beats_sprixel = 1;
       crender->s.damaged = 1;
+      crender->s.p_beats_sprixel = 1;
     }
   }else if(!crender->p){
     // if we are a bitmap, and above a cell that has changed (and

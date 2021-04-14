@@ -57,8 +57,6 @@ typedef enum {
   SPRIXCELL_NORMAL,         // no transparent pixels in this cell
   SPRIXCELL_CONTAINS_TRANS, // this cell has transparent pixels
   SPRIXCELL_ANNIHILATED,    // this cell has been wiped
-  SPRIXCELL_UNHIDDEN,       // this cell needs be unwiped
-  SPRIXCELL_ANASTASIS,      // this cell needs be revived
 } sprixcell_e;
 
 // there is a context-wide set of displayed pixel glyphs ("sprixels"); i.e.
