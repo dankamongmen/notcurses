@@ -175,6 +175,11 @@ void nccell_release(ncplane* n, nccell* c){
   pool_release(&n->pool, c);
 }
 
+// FIXME deprecated, goes away in abi3
+void cell_release(ncplane* n, nccell* c){
+  nccell_release(n, c);
+}
+
 // Duplicate one cell onto another when they share a plane. Convenience wrapper.
 int nccell_duplicate(ncplane* n, nccell* targ, const nccell* c){
   if(cell_duplicate_far(&n->pool, targ, n, c) < 0){
@@ -182,6 +187,10 @@ int nccell_duplicate(ncplane* n, nccell* targ, const nccell* c){
     return -1;
   }
   return 0;
+}
+
+int cell_duplicate(struct ncplane* n, nccell* targ, const nccell* c){
+  return nccell_duplicate(n, targ, c);
 }
 
 // Emit fchannel with RGB changed to contrast effectively against bchannel.

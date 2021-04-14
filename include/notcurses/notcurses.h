@@ -677,18 +677,12 @@ cell_prime(struct ncplane* n, nccell* c, const char* gcluster,
 // failure, and 0 on success.
 API int nccell_duplicate(struct ncplane* n, nccell* targ, const nccell* c);
 
-__attribute__ ((deprecated)) static inline int
-cell_duplicate(struct ncplane* n, nccell* targ, const nccell* c){
-  return nccell_duplicate(n, targ, c);
-}
+__attribute__ ((deprecated)) API int cell_duplicate(struct ncplane* n, nccell* targ, const nccell* c);
 
 // Release resources held by the nccell 'c'.
 API void nccell_release(struct ncplane* n, nccell* c);
 
-__attribute__ ((deprecated)) static inline void
-cell_release(struct ncplane* n, nccell* c){
-  nccell_release(n, c);
-}
+__attribute__ ((deprecated)) API void cell_release(struct ncplane* n, nccell* c);
 
 #define NCSTYLE_MASK      0x03ffu
 #define NCSTYLE_STANDOUT  0x0080u
