@@ -451,13 +451,13 @@ infoplane_notcurses(struct notcurses* nc, const fetched_info* fi, int planeheigh
     ncplane_printf_aligned(infop, 4, NCALIGN_LEFT, " RGB TERM: %s", fi->term);
     nccell c = CELL_CHAR_INITIALIZER('R');
     nccell_set_styles(&c, NCSTYLE_BOLD);
-    cell_set_fg_rgb8(&c, 0xf0, 0xa0, 0xa0);
+    nccell_set_fg_rgb8(&c, 0xf0, 0xa0, 0xa0);
     ncplane_putc_yx(infop, 4, 1, &c);
     nccell_load_char(infop, &c, 'G');
-    cell_set_fg_rgb8(&c, 0xa0, 0xf0, 0xa0);
+    nccell_set_fg_rgb8(&c, 0xa0, 0xf0, 0xa0);
     ncplane_putc_yx(infop, 4, 2, &c);
     nccell_load_char(infop, &c, 'B');
-    cell_set_fg_rgb8(&c, 0xa0, 0xa0, 0xf0);
+    nccell_set_fg_rgb8(&c, 0xa0, 0xa0, 0xf0);
     ncplane_putc_yx(infop, 4, 3, &c);
     nccell_set_styles(&c, NCSTYLE_NONE);
   }else{
@@ -474,10 +474,10 @@ infoplane_notcurses(struct notcurses* nc, const fetched_info* fi, int planeheigh
   if(nccells_rounded_box(infop, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
-  cell_set_fg_rgb8(&ul, 0x90, 0x90, 0x90);
-  cell_set_fg_rgb8(&ur, 0x90, 0x90, 0x90);
-  cell_set_fg_rgb8(&ll, 0, 0, 0);
-  cell_set_fg_rgb8(&lr, 0, 0, 0);
+  nccell_set_fg_rgb8(&ul, 0x90, 0x90, 0x90);
+  nccell_set_fg_rgb8(&ur, 0x90, 0x90, 0x90);
+  nccell_set_fg_rgb8(&ll, 0, 0, 0);
+  nccell_set_fg_rgb8(&lr, 0, 0, 0);
   unsigned ctrlword = NCBOXGRAD_BOTTOM | NCBOXGRAD_LEFT | NCBOXGRAD_RIGHT;
   if(ncplane_perimeter(infop, &ul, &ur, &ll, &lr, &hl, &vl, ctrlword)){
     return -1;

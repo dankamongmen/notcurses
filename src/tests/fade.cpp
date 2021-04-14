@@ -43,7 +43,7 @@ TEST_CASE("Fade") {
   ncplane_dim_yx(n_, &dimy, &dimx);
   nccell c = CELL_TRIVIAL_INITIALIZER;
   c.gcluster = '*';
-  cell_set_fg_rgb8(&c, 0xff, 0xff, 0xff);
+  nccell_set_fg_rgb8(&c, 0xff, 0xff, 0xff);
   unsigned rgb = 0xffffffu;
   CHECK(!ncplane_set_scrolling(n_, true));
   for(int y = 0 ; y < dimy ; ++y){
@@ -52,8 +52,8 @@ TEST_CASE("Fade") {
       if(rgb < 32){
         rgb = 0xffffffu;
       }
-      cell_set_fg_rgb(&c, rgb);
-      cell_set_bg_rgb8(&c, rgb & 0xff, (rgb >> 16u) & 0xff, (rgb >> 8u) & 0xff);
+      nccell_set_fg_rgb(&c, rgb);
+      nccell_set_bg_rgb8(&c, rgb & 0xff, (rgb >> 16u) & 0xff, (rgb >> 8u) & 0xff);
       CHECK(0 < ncplane_putc(n_, &c));
     }
   }

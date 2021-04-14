@@ -75,7 +75,7 @@ int highcontrast_demo(struct notcurses* nc){
   }
   const char motto[] = " high contrast text is evaluated relative to the solved background";
   nccell c = CELL_TRIVIAL_INITIALIZER;
-  cell_set_fg_alpha(&c, CELL_ALPHA_HIGHCONTRAST);
+  nccell_set_fg_alpha(&c, CELL_ALPHA_HIGHCONTRAST);
   unsigned total = 0, r = 0, g = 0, b = 0;
   for(int out = 0 ; out < totcells ; ++out){ // build up the initial screen
     scrcolors[out] = generate_next_color(&total, &r, &g, &b, STEP);
@@ -83,7 +83,7 @@ int highcontrast_demo(struct notcurses* nc){
       total = r = g = b = 0;
     }
     nccell_load_char(n, &c, motto[out % strlen(motto)]);
-    cell_set_bg_rgb(&c, scrcolors[out % totcells]);
+    nccell_set_bg_rgb(&c, scrcolors[out % totcells]);
     if(ncplane_putc_yx(n, (out + dimx) / dimx, out % dimx, &c) < 0){
       free(scrcolors);
       goto err;
@@ -99,20 +99,20 @@ int highcontrast_demo(struct notcurses* nc){
   uint64_t iterns = totalns / (totcells / 2);
   do{
     if(offset){
-      cell_set_fg_alpha(&c, CELL_ALPHA_OPAQUE);
+      nccell_set_fg_alpha(&c, CELL_ALPHA_OPAQUE);
       const int f = offset - 1 + dimx;
       const int l = totcells + dimx - offset;
       ncplane_at_yx_cell(n, f / dimx, f % dimx, &c);
-      cell_set_fg_rgb(&c, 0x004000 + (16 * offset));
-      cell_set_bg_rgb(&c, 0);
-      cell_set_fg_alpha(&c, CELL_ALPHA_OPAQUE);
+      nccell_set_fg_rgb(&c, 0x004000 + (16 * offset));
+      nccell_set_bg_rgb(&c, 0);
+      nccell_set_fg_alpha(&c, CELL_ALPHA_OPAQUE);
       if(ncplane_putc_yx(n, f / dimx, f % dimx, &c) < 0){
         goto err;
       }
       ncplane_at_yx_cell(n, l / dimx, l % dimx, &c);
-      cell_set_fg_rgb(&c, 0x004000 + (16 * offset));
-      cell_set_bg_rgb(&c, 0);
-      cell_set_fg_alpha(&c, CELL_ALPHA_OPAQUE);
+      nccell_set_fg_rgb(&c, 0x004000 + (16 * offset));
+      nccell_set_bg_rgb(&c, 0);
+      nccell_set_fg_alpha(&c, CELL_ALPHA_OPAQUE);
       if(ncplane_putc_yx(n, l / dimx, l % dimx, &c) < 0){
         goto err;
       }

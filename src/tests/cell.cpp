@@ -73,7 +73,7 @@ TEST_CASE("Cell") {
     notcurses_term_dim_yx(nc_, &dimy, &dimx);
     nccell_set_styles(&c, NCSTYLE_ITALIC);
     CHECK(1 == nccell_load(n_, &c, "i"));
-    cell_set_fg_rgb8(&c, 255, 255, 255);
+    nccell_set_fg_rgb8(&c, 255, 255, 255);
     ncplane_set_base_cell(n_, &c);
     nccell_release(n_, &c);
     CHECK(0 == notcurses_render(nc_));
@@ -86,7 +86,7 @@ TEST_CASE("Cell") {
     notcurses_term_dim_yx(nc_, &dimy, &dimx);
     nccell_set_styles(&c, NCSTYLE_BOLD);
     CHECK(1 == nccell_load(n_, &c, "b"));
-    cell_set_fg_rgb8(&c, 255, 255, 255);
+    nccell_set_fg_rgb8(&c, 255, 255, 255);
     ncplane_set_base_cell(n_, &c);
     nccell_release(n_, &c);
     CHECK(0 == notcurses_render(nc_));
@@ -99,7 +99,7 @@ TEST_CASE("Cell") {
     notcurses_term_dim_yx(nc_, &dimy, &dimx);
     nccell_set_styles(&c, NCSTYLE_UNDERLINE);
     CHECK(1 == nccell_load(n_, &c, "u"));
-    cell_set_fg_rgb8(&c, 255, 255, 255);
+    nccell_set_fg_rgb8(&c, 255, 255, 255);
     ncplane_set_base_cell(n_, &c);
     nccell_release(n_, &c);
     CHECK(0 == notcurses_render(nc_));
@@ -150,7 +150,7 @@ TEST_CASE("Cell") {
   // white on a black background ought be unmolested for highcontrast
   SUBCASE("HighContrastWhiteOnBlackBackground"){
     nccell c = CELL_CHAR_INITIALIZER('+');
-    CHECK(0 == cell_set_fg_rgb8(&c, 0xff, 0xff, 0xff));
+    CHECK(0 == nccell_set_fg_rgb8(&c, 0xff, 0xff, 0xff));
     CHECK(0 == nccell_set_fg_alpha(&c, CELL_ALPHA_HIGHCONTRAST));
     CHECK(0 == nccell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT));
     struct ncplane_options nopts = {
@@ -168,7 +168,7 @@ TEST_CASE("Cell") {
     REQUIRE(nullptr != np);
     CHECK(1 == ncplane_putc(np, &c));
     nccell_load_char(np, &c, '*');
-    CHECK(0 == cell_set_bg_rgb8(&c, 0x0, 0x0, 0x0));
+    CHECK(0 == nccell_set_bg_rgb8(&c, 0x0, 0x0, 0x0));
     CHECK(0 == nccell_set_bg_alpha(&c, CELL_ALPHA_OPAQUE));
     CHECK(1 == ncplane_putc(n_, &c));
     CHECK(0 == notcurses_render(nc_));
@@ -190,7 +190,7 @@ TEST_CASE("Cell") {
   // white on a white background ought be changed for highcontrast
   SUBCASE("HighContrastWhiteOnWhiteBackground"){
     nccell c = CELL_CHAR_INITIALIZER('+');
-    CHECK(0 == cell_set_fg_rgb8(&c, 0xff, 0xff, 0xff));
+    CHECK(0 == nccell_set_fg_rgb8(&c, 0xff, 0xff, 0xff));
     CHECK(0 == nccell_set_fg_alpha(&c, CELL_ALPHA_HIGHCONTRAST));
     CHECK(0 == nccell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT));
     struct ncplane_options nopts = {
@@ -208,7 +208,7 @@ TEST_CASE("Cell") {
     REQUIRE(nullptr != np);
     CHECK(1 == ncplane_putc(np, &c));
     nccell_load_char(np, &c, '*');
-    CHECK(0 == cell_set_bg_rgb8(&c, 0xff, 0xff, 0xff));
+    CHECK(0 == nccell_set_bg_rgb8(&c, 0xff, 0xff, 0xff));
     CHECK(0 == nccell_set_bg_alpha(&c, CELL_ALPHA_OPAQUE));
     CHECK(1 == ncplane_putc(n_, &c));
     CHECK(0 == notcurses_render(nc_));
@@ -230,7 +230,7 @@ TEST_CASE("Cell") {
   // black on a black background must be changed for highcontrast
   SUBCASE("HighContrastBlackOnBlackBackground"){
     nccell c = CELL_CHAR_INITIALIZER('+');
-    CHECK(0 == cell_set_fg_rgb8(&c, 0x0, 0x0, 0x0));
+    CHECK(0 == nccell_set_fg_rgb8(&c, 0x0, 0x0, 0x0));
     CHECK(0 == nccell_set_fg_alpha(&c, CELL_ALPHA_HIGHCONTRAST));
     CHECK(0 == nccell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT));
     struct ncplane_options nopts = {
@@ -248,7 +248,7 @@ TEST_CASE("Cell") {
     REQUIRE(nullptr != np);
     CHECK(1 == ncplane_putc(np, &c));
     nccell_load_char(np, &c, '*');
-    CHECK(0 == cell_set_bg_rgb8(&c, 0x0, 0x0, 0x0));
+    CHECK(0 == nccell_set_bg_rgb8(&c, 0x0, 0x0, 0x0));
     CHECK(0 == nccell_set_bg_alpha(&c, CELL_ALPHA_OPAQUE));
     CHECK(1 == ncplane_putc(n_, &c));
     CHECK(0 == notcurses_render(nc_));
@@ -270,7 +270,7 @@ TEST_CASE("Cell") {
   // black on a white background ought be unmolested for highcontrast
   SUBCASE("HighContrastBlackOnWhiteBackground"){
     nccell c = CELL_CHAR_INITIALIZER('+');
-    CHECK(0 == cell_set_fg_rgb8(&c, 0x0, 0x0, 0x0));
+    CHECK(0 == nccell_set_fg_rgb8(&c, 0x0, 0x0, 0x0));
     CHECK(0 == nccell_set_fg_alpha(&c, CELL_ALPHA_HIGHCONTRAST));
     CHECK(0 == nccell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT));
     struct ncplane_options nopts = {
@@ -288,7 +288,7 @@ TEST_CASE("Cell") {
     REQUIRE(nullptr != np);
     CHECK(1 == ncplane_putc(np, &c));
     nccell_load_char(np, &c, '*');
-    CHECK(0 == cell_set_bg_rgb8(&c, 0xff, 0xff, 0xff));
+    CHECK(0 == nccell_set_bg_rgb8(&c, 0xff, 0xff, 0xff));
     CHECK(0 == nccell_set_bg_alpha(&c, CELL_ALPHA_OPAQUE));
     CHECK(1 == ncplane_putc(n_, &c));
     CHECK(0 == notcurses_render(nc_));
@@ -312,7 +312,7 @@ TEST_CASE("Cell") {
   SUBCASE("HighContrastBelowOnly"){
     nccell c = CELL_TRIVIAL_INITIALIZER;
     // top has a background of white
-    CHECK(0 == cell_set_bg_rgb8(&c, 0xff, 0xff, 0xff));
+    CHECK(0 == nccell_set_bg_rgb8(&c, 0xff, 0xff, 0xff));
     CHECK(0 == nccell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT));
     struct ncplane_options nopts = {
       .y = 0,
@@ -330,7 +330,7 @@ TEST_CASE("Cell") {
     CHECK(1 == ncplane_putc(np, &c));
     nccell_load_char(n_, &c, '*');
     // bottom has white foreground + HIGHCONTRAST, should remain white
-    CHECK(0 == cell_set_fg_rgb8(&c, 0xff, 0x0, 0xff));
+    CHECK(0 == nccell_set_fg_rgb8(&c, 0xff, 0x0, 0xff));
     CHECK(0 == nccell_set_fg_alpha(&c, CELL_ALPHA_HIGHCONTRAST));
     nccell_set_bg_default(&c);
     CHECK(1 == ncplane_putc(n_, &c));

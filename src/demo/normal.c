@@ -169,8 +169,8 @@ int normal_demo(struct notcurses* nc){
   struct ncplane* nstd = notcurses_stddim_yx(nc, &dy, &dx);
   ncplane_erase(nstd);
   nccell c = CELL_TRIVIAL_INITIALIZER;
-  cell_set_fg_rgb8(&c, 0x0, 0x0, 0x0);
-  cell_set_bg_rgb8(&c, 0x0, 0x0, 0x0);
+  nccell_set_fg_rgb8(&c, 0x0, 0x0, 0x0);
+  nccell_set_bg_rgb8(&c, 0x0, 0x0, 0x0);
   ncplane_set_base_cell(nstd, &c);
   nccell_release(nstd, &c);
   struct ncplane* n = NULL;
@@ -247,8 +247,8 @@ int normal_demo(struct notcurses* nc){
   DEMO_RENDER(nc);
   timespec_div(&demodelay, 2, &scaled);
   demo_nanosleep(nc, &scaled);
-  cell_set_fg_rgb8(&c, 0, 0, 0);
-  cell_set_bg_rgb8(&c, 0, 0, 0);
+  nccell_set_fg_rgb8(&c, 0, 0, 0);
+  nccell_set_bg_rgb8(&c, 0, 0, 0);
   ncplane_set_base_cell(nstd, &c);
   nccell_release(nstd, &c);
   r = rotate_visual(nc, n, dy, dx);

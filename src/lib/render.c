@@ -435,7 +435,7 @@ lock_in_highcontrast(nccell* targc, struct crender* crender){
       hchan = channels_blend(hchan, crender->hcfg, &fgblends);
       cell_set_fchannel(targc, hchan);
     }else{
-      cell_set_fg_rgb(targc, highcontrast(cell_bchannel(targc)));
+      nccell_set_fg_rgb(targc, highcontrast(cell_bchannel(targc)));
     }
   }
 }
@@ -1032,7 +1032,7 @@ rasterize_core(notcurses* nc, const ncpile* p, FILE* out, unsigned phase){
             return -1;
           }
         }else if(!cell_fg_default_p(srccell)){ // rgb foreground
-          cell_fg_rgb8(srccell, &r, &g, &b);
+          nccell_fg_rgb8(srccell, &r, &g, &b);
           if(nc->rstate.fgelidable && nc->rstate.lastr == r && nc->rstate.lastg == g && nc->rstate.lastb == b){
             ++nc->stats.fgelisions;
           }else{
@@ -1057,7 +1057,7 @@ rasterize_core(notcurses* nc, const ncpile* p, FILE* out, unsigned phase){
             return -1;
           }
         }else if(!cell_bg_default_p(srccell)){ // rgb background
-          cell_bg_rgb8(srccell, &br, &bg, &bb);
+          nccell_bg_rgb8(srccell, &br, &bg, &bb);
           if(nc->rstate.bgelidable && nc->rstate.lastbr == br && nc->rstate.lastbg == bg && nc->rstate.lastbb == bb){
             ++nc->stats.bgelisions;
           }else{

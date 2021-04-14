@@ -5,12 +5,12 @@ void ncplane_greyscale(ncplane *n){
     for(int x = 0 ; x < n->lenx ; ++x){
       nccell* c = &n->fb[nfbcellidx(n, y, x)];
       unsigned r, g, b;
-      cell_fg_rgb8(c, &r, &g, &b);
+      nccell_fg_rgb8(c, &r, &g, &b);
       int gy = rgb_greyscale(r, g, b);
-      cell_set_fg_rgb8(c, gy, gy, gy);
-      cell_bg_rgb8(c, &r, &g, &b);
+      nccell_set_fg_rgb8(c, gy, gy, gy);
+      nccell_bg_rgb8(c, &r, &g, &b);
       gy = rgb_greyscale(r, g, b);
-      cell_set_bg_rgb8(c, gy, gy, gy);
+      nccell_set_bg_rgb8(c, gy, gy, gy);
     }
   }
 }
@@ -143,8 +143,8 @@ calc_highgradient(nccell* c, uint32_t ul, uint32_t ur, uint32_t ll,
     cell_set_bchannel(c, calc_gradient_channel(ul, ur, ll, lr,
                                                y * 2 + 1, x, ylen, xlen));
   }else{
-    cell_set_fg_default(c);
-    cell_set_bg_default(c);
+    nccell_set_fg_default(c);
+    nccell_set_bg_default(c);
   }
 }
 

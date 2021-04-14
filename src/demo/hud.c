@@ -335,12 +335,12 @@ hud_refresh(struct ncplane* n){
   lr.channels = CHANNELS_RGB_INITIALIZER(0xf0, 0xc0, 0xc0, 0, 0, 0);
   hl.channels = CHANNELS_RGB_INITIALIZER(0xf0, 0xc0, 0xc0, 0, 0, 0);
   vl.channels = CHANNELS_RGB_INITIALIZER(0xf0, 0xc0, 0xc0, 0, 0, 0);
-  cell_set_bg_alpha(&ul, CELL_ALPHA_BLEND);
-  cell_set_bg_alpha(&ur, CELL_ALPHA_BLEND);
-  cell_set_bg_alpha(&ll, CELL_ALPHA_BLEND);
-  cell_set_bg_alpha(&lr, CELL_ALPHA_BLEND);
-  cell_set_bg_alpha(&hl, CELL_ALPHA_BLEND);
-  cell_set_bg_alpha(&vl, CELL_ALPHA_BLEND);
+  nccell_set_bg_alpha(&ul, CELL_ALPHA_BLEND);
+  nccell_set_bg_alpha(&ur, CELL_ALPHA_BLEND);
+  nccell_set_bg_alpha(&ll, CELL_ALPHA_BLEND);
+  nccell_set_bg_alpha(&lr, CELL_ALPHA_BLEND);
+  nccell_set_bg_alpha(&hl, CELL_ALPHA_BLEND);
+  nccell_set_bg_alpha(&vl, CELL_ALPHA_BLEND);
   if(ncplane_perimeter(n, &ul, &ur, &ll, &lr, &hl, &vl, 0)){
     nccell_release(n, &ul); nccell_release(n, &ur); nccell_release(n, &hl);
     nccell_release(n, &ll); nccell_release(n, &lr); nccell_release(n, &vl);

@@ -475,8 +475,8 @@ TEST_CASE("Fills") {
     REQUIRE(p1);
     nccell c1 = CELL_TRIVIAL_INITIALIZER;
     CHECK(0 < nccell_load(p1, &c1, "█"));
-    CHECK(0 == cell_set_bg_rgb(&c1, 0x00ff00));
-    CHECK(0 == cell_set_fg_rgb(&c1, 0x0000ff));
+    CHECK(0 == nccell_set_bg_rgb(&c1, 0x00ff00));
+    CHECK(0 == nccell_set_fg_rgb(&c1, 0x0000ff));
     CHECK(0 < ncplane_polyfill_yx(p1, 0, 0, &c1));
     CHECK(0 == notcurses_render(nc_));
     struct ncplane_options n2opts = {
@@ -494,8 +494,8 @@ TEST_CASE("Fills") {
     REQUIRE(p2);
     nccell c2 = CELL_TRIVIAL_INITIALIZER;
     CHECK(0 < nccell_load(p2, &c2, "🞶"));
-    CHECK(0 == cell_set_bg_rgb(&c2, 0x00ffff));
-    CHECK(0 == cell_set_fg_rgb(&c2, 0xff00ff));
+    CHECK(0 == nccell_set_bg_rgb(&c2, 0x00ffff));
+    CHECK(0 == nccell_set_fg_rgb(&c2, 0xff00ff));
     CHECK(0 < ncplane_polyfill_yx(p2, 0, 0, &c2));
     CHECK(0 == ncplane_mergedown_simple(p2, p1));
     CHECK(0 == notcurses_render(nc_));

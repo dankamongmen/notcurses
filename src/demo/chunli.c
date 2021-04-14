@@ -52,8 +52,8 @@ int chunli_demo(struct notcurses* nc){
   int ret, dimx, dimy;
   notcurses_refresh(nc, &dimy, &dimx);
   nccell b = CELL_TRIVIAL_INITIALIZER;
-  cell_set_fg_alpha(&b, CELL_ALPHA_TRANSPARENT);
-  cell_set_bg_alpha(&b, CELL_ALPHA_TRANSPARENT);
+  nccell_set_fg_alpha(&b, CELL_ALPHA_TRANSPARENT);
+  nccell_set_bg_alpha(&b, CELL_ALPHA_TRANSPARENT);
   if( (ret = chunli_draw(nc, "bmp", CHUNS, &b)) ){
     return ret;
   }

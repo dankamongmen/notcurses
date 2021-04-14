@@ -76,8 +76,8 @@ tria_blit_ascii(ncplane* nc, int linesize, const void* data,
         nccell_set_fg_alpha(c, CELL_ALPHA_TRANSPARENT);
         cell_set_blitquadrants(c, 0, 0, 0, 0);
       }else{
-        cell_set_fg_rgb8(c, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2]);
-        cell_set_bg_rgb8(c, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2]);
+        nccell_set_fg_rgb8(c, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2]);
+        nccell_set_bg_rgb8(c, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2]);
         cell_set_blitquadrants(c, 1, 1, 1, 1);
         if(pool_blit_direct(&nc->pool, c, " ", 1, 1) <= 0){
           return -1;
@@ -138,7 +138,7 @@ tria_blit(ncplane* nc, int linesize, const void* data,
           if(pool_blit_direct(&nc->pool, c, "\u2584", strlen("\u2584"), 1) <= 0){
             return -1;
           }
-          cell_set_fg_rgb8(c, rgbbase_down[0], rgbbase_down[1], rgbbase_down[2]);
+          nccell_set_fg_rgb8(c, rgbbase_down[0], rgbbase_down[1], rgbbase_down[2]);
           cell_set_blitquadrants(c, 0, 0, 1, 1);
           ++total;
         }else{ // up has the color
@@ -146,21 +146,21 @@ tria_blit(ncplane* nc, int linesize, const void* data,
           if(pool_blit_direct(&nc->pool, c, "\u2580", strlen("\u2580"), 1) <= 0){
             return -1;
           }
-          cell_set_fg_rgb8(c, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2]);
+          nccell_set_fg_rgb8(c, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2]);
           cell_set_blitquadrants(c, 1, 1, 0, 0);
           ++total;
         }
       }else{
         if(memcmp(rgbbase_up, rgbbase_down, 3) == 0){
-          cell_set_fg_rgb8(c, rgbbase_down[0], rgbbase_down[1], rgbbase_down[2]);
-          cell_set_bg_rgb8(c, rgbbase_down[0], rgbbase_down[1], rgbbase_down[2]);
+          nccell_set_fg_rgb8(c, rgbbase_down[0], rgbbase_down[1], rgbbase_down[2]);
+          nccell_set_bg_rgb8(c, rgbbase_down[0], rgbbase_down[1], rgbbase_down[2]);
           cell_set_blitquadrants(c, 0, 0, 0, 0);
           if(pool_blit_direct(&nc->pool, c, " ", 1, 1) <= 0){
             return -1;
           }
         }else{
-          cell_set_fg_rgb8(c, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2]);
-          cell_set_bg_rgb8(c, rgbbase_down[0], rgbbase_down[1], rgbbase_down[2]);
+          nccell_set_fg_rgb8(c, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2]);
+          nccell_set_bg_rgb8(c, rgbbase_down[0], rgbbase_down[1], rgbbase_down[2]);
           cell_set_blitquadrants(c, 1, 1, 1, 1);
           if(pool_blit_direct(&nc->pool, c, "\u2580", strlen("\u2580"), 1) <= 0){
             return -1;
@@ -333,13 +333,13 @@ qtrans_check(nccell* c, unsigned blendcolors,
           cell_set_blitquadrants(c, 0, 0, 0, 0);
           egc = "";
         }else{
-          cell_set_fg_rgb8(c, rgbbase_br[0], rgbbase_br[1], rgbbase_br[2]);
+          nccell_set_fg_rgb8(c, rgbbase_br[0], rgbbase_br[1], rgbbase_br[2]);
           cell_set_blitquadrants(c, 0, 0, 0, 1);
           egc = "▗";
         }
       }else{
         if(rgba_trans_q(rgbbase_br, transcolor)){
-          cell_set_fg_rgb8(c, rgbbase_bl[0], rgbbase_bl[1], rgbbase_bl[2]);
+          nccell_set_fg_rgb8(c, rgbbase_bl[0], rgbbase_bl[1], rgbbase_bl[2]);
           cell_set_blitquadrants(c, 0, 0, 1, 0);
           egc = "▖";
         }else{
@@ -351,7 +351,7 @@ qtrans_check(nccell* c, unsigned blendcolors,
     }else{ // top right is foreground, top left is transparent
       if(rgba_trans_q(rgbbase_bl, transcolor)){
         if(rgba_trans_q(rgbbase_br, transcolor)){ // entire bottom is transparent
-          cell_set_fg_rgb8(c, rgbbase_tr[0], rgbbase_tr[1], rgbbase_tr[2]);
+          nccell_set_fg_rgb8(c, rgbbase_tr[0], rgbbase_tr[1], rgbbase_tr[2]);
           cell_set_blitquadrants(c, 0, 1, 0, 0);
           egc = "▝";
         }else{
@@ -373,7 +373,7 @@ qtrans_check(nccell* c, unsigned blendcolors,
     if(rgba_trans_q(rgbbase_tr, transcolor)){
       if(rgba_trans_q(rgbbase_bl, transcolor)){
         if(rgba_trans_q(rgbbase_br, transcolor)){
-          cell_set_fg_rgb8(c, rgbbase_tl[0], rgbbase_tl[1], rgbbase_tl[2]);
+          nccell_set_fg_rgb8(c, rgbbase_tl[0], rgbbase_tl[1], rgbbase_tl[2]);
           cell_set_blitquadrants(c, 1, 0, 0, 0);
           egc = "▘";
         }else{
@@ -829,7 +829,7 @@ braille_blit(ncplane* nc, int linesize, const void* data,
           // FIXME else look for pairs of transparency!
       }else{
         if(blends){
-          cell_set_fg_rgb8(c, r / blends, g / blends, b / blends);
+          nccell_set_fg_rgb8(c, r / blends, g / blends, b / blends);
         }
         // UTF-8 encodings of the Braille Patterns are always 0xe2 0xaX 0xCC,
         // where 0 <= X <= 3 and 0x80 <= CC <= 0xbf (4 groups of 64).

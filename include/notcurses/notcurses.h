@@ -2095,33 +2095,59 @@ cell_bg_alpha(const nccell* cl){
 
 // Extract 24 bits of foreground RGB from 'cl', split into components.
 static inline uint32_t
-cell_fg_rgb8(const nccell* cl, unsigned* r, unsigned* g, unsigned* b){
+nccell_fg_rgb8(const nccell* cl, unsigned* r, unsigned* g, unsigned* b){
   return channels_fg_rgb8(cl->channels, r, g, b);
+}
+
+__attribute__ ((deprecated)) static inline uint32_t
+cell_fg_rgb8(const nccell* cl, unsigned* r, unsigned* g, unsigned* b){
+  return nccell_fg_rgb8(cl, r, g, b);
 }
 
 // Extract 24 bits of background RGB from 'cl', split into components.
 static inline uint32_t
-cell_bg_rgb8(const nccell* cl, unsigned* r, unsigned* g, unsigned* b){
+nccell_bg_rgb8(const nccell* cl, unsigned* r, unsigned* g, unsigned* b){
   return channels_bg_rgb8(cl->channels, r, g, b);
+}
+
+// Extract 24 bits of background RGB from 'cl', split into components.
+__attribute__ ((deprecated)) static inline uint32_t
+cell_bg_rgb8(const nccell* cl, unsigned* r, unsigned* g, unsigned* b){
+  return nccell_bg_rgb8(cl, r, g, b);
 }
 
 // Set the r, g, and b cell for the foreground component of this 64-bit
 // 'cl' variable, and mark it as not using the default color.
 static inline int
-cell_set_fg_rgb8(nccell* cl, int r, int g, int b){
+nccell_set_fg_rgb8(nccell* cl, int r, int g, int b){
   return channels_set_fg_rgb8(&cl->channels, r, g, b);
+}
+
+__attribute__ ((deprecated)) static inline int
+cell_set_fg_rgb8(nccell* cl, int r, int g, int b){
+  return nccell_set_fg_rgb8(cl, r, g, b);
 }
 
 // Same, but clipped to [0..255].
 static inline void
-cell_set_fg_rgb8_clipped(nccell* cl, int r, int g, int b){
+nccell_set_fg_rgb8_clipped(nccell* cl, int r, int g, int b){
   channels_set_fg_rgb8_clipped(&cl->channels, r, g, b);
+}
+
+__attribute__ ((deprecated)) static inline void
+cell_set_fg_rgb8_clipped(nccell* cl, int r, int g, int b){
+  nccell_set_fg_rgb8_clipped(cl, r, g, b);
 }
 
 // Same, but with an assembled 24-bit RGB value.
 static inline int
-cell_set_fg_rgb(nccell* c, uint32_t channel){
+nccell_set_fg_rgb(nccell* c, uint32_t channel){
   return channels_set_fg_rgb(&c->channels, channel);
+}
+
+__attribute__ ((deprecated)) static inline int
+cell_set_fg_rgb(nccell* c, uint32_t channel){
+  return nccell_set_fg_rgb(c, channel);
 }
 
 // Set the cell's foreground palette index, set the foreground palette index
@@ -2139,8 +2165,13 @@ cell_fg_palindex(const nccell* cl){
 // Set the r, g, and b cell for the background component of this 64-bit
 // 'cl' variable, and mark it as not using the default color.
 static inline int
-cell_set_bg_rgb8(nccell* cl, int r, int g, int b){
+nccell_set_bg_rgb8(nccell* cl, int r, int g, int b){
   return channels_set_bg_rgb8(&cl->channels, r, g, b);
+}
+
+__attribute__ ((deprecated)) static inline int
+cell_set_bg_rgb8(nccell* cl, int r, int g, int b){
+  return nccell_set_bg_rgb8(cl, r, g, b);
 }
 
 // Same, but clipped to [0..255].
@@ -2152,8 +2183,13 @@ cell_set_bg_rgb8_clipped(nccell* cl, int r, int g, int b){
 // Same, but with an assembled 24-bit RGB value. A value over 0xffffff
 // will be rejected, with a non-zero return value.
 static inline int
-cell_set_bg_rgb(nccell* c, uint32_t channel){
+nccell_set_bg_rgb(nccell* c, uint32_t channel){
   return channels_set_bg_rgb(&c->channels, channel);
+}
+
+__attribute__ ((deprecated)) static inline int
+cell_set_bg_rgb(nccell* c, uint32_t channel){
+  return nccell_set_bg_rgb(c, channel);
 }
 
 // Set the cell's background palette index, set the background palette index

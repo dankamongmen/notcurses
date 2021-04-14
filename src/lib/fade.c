@@ -124,13 +124,13 @@ int ncplane_fadein_iteration(ncplane* n, ncfadectx* nctx, int iter,
         r = r * iter / nctx->maxsteps;
         g = g * iter / nctx->maxsteps;
         b = b * iter / nctx->maxsteps;
-        cell_set_fg_rgb8(c, r, g, b);
+        nccell_set_fg_rgb8(c, r, g, b);
       }
       if(!cell_bg_default_p(c)){
         br = br * iter / nctx->maxsteps;
         bg = bg * iter / nctx->maxsteps;
         bb = bb * iter / nctx->maxsteps;
-        cell_set_bg_rgb8(c, br, bg, bb);
+        nccell_set_bg_rgb8(c, br, bg, bb);
       }
     }
   }
@@ -188,14 +188,14 @@ int ncplane_fadeout_iteration(ncplane* n, ncfadectx* nctx, int iter,
         r = r * (nctx->maxsteps - iter) / nctx->maxsteps;
         g = g * (nctx->maxsteps - iter) / nctx->maxsteps;
         b = b * (nctx->maxsteps - iter) / nctx->maxsteps;
-        cell_set_fg_rgb8(c, r, g, b);
+        nccell_set_fg_rgb8(c, r, g, b);
       }
       if(!cell_bg_default_p(c)){
         channels_bg_rgb8(nctx->channels[nctx->cols * y + x], &br, &bg, &bb);
         br = br * (nctx->maxsteps - iter) / nctx->maxsteps;
         bg = bg * (nctx->maxsteps - iter) / nctx->maxsteps;
         bb = bb * (nctx->maxsteps - iter) / nctx->maxsteps;
-        cell_set_bg_rgb8(c, br, bg, bb);
+        nccell_set_bg_rgb8(c, br, bg, bb);
       }
     }
   }
@@ -205,14 +205,14 @@ int ncplane_fadeout_iteration(ncplane* n, ncfadectx* nctx, int iter,
     r = r * (nctx->maxsteps - iter) / nctx->maxsteps;
     g = g * (nctx->maxsteps - iter) / nctx->maxsteps;
     b = b * (nctx->maxsteps - iter) / nctx->maxsteps;
-    cell_set_fg_rgb8(&n->basecell, r, g, b);
+    nccell_set_fg_rgb8(&n->basecell, r, g, b);
   }
   if(!cell_bg_default_p(c)){
     channels_bg_rgb8(nctx->channels[nctx->cols * y], &br, &bg, &bb);
     br = br * (nctx->maxsteps - iter) / nctx->maxsteps;
     bg = bg * (nctx->maxsteps - iter) / nctx->maxsteps;
     bb = bb * (nctx->maxsteps - iter) / nctx->maxsteps;
-    cell_set_bg_rgb8(&n->basecell, br, bg, bb);
+    nccell_set_bg_rgb8(&n->basecell, br, bg, bb);
   }
   uint64_t nextwake = (iter + 1) * nctx->nanosecs_step + nctx->startns;
   struct timespec sleepspec;

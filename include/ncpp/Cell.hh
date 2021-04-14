@@ -137,22 +137,22 @@ namespace ncpp
 
 		unsigned get_fg_rgb8 (unsigned *r, unsigned *g, unsigned *b) const noexcept
 		{
-			return cell_fg_rgb8 (&_cell, r, g, b);
+			return nccell_fg_rgb8 (&_cell, r, g, b);
 		}
 
 		bool set_fg_rgb8 (int r, int g, int b, bool clipped = false) noexcept
 		{
 			if (clipped) {
-				cell_set_fg_rgb8_clipped (&_cell, r, g, b);
+				nccell_set_fg_rgb8_clipped (&_cell, r, g, b);
 				return true;
 			}
 
-			return cell_set_fg_rgb8 (&_cell, r, g, b) != -1;
+			return nccell_set_fg_rgb8 (&_cell, r, g, b) != -1;
 		}
 
 		void set_fg_rgb (uint32_t channel) noexcept
 		{
-			cell_set_fg_rgb (&_cell, channel);
+			nccell_set_fg_rgb (&_cell, channel);
 		}
 
 		void set_fg_default () noexcept
@@ -162,7 +162,7 @@ namespace ncpp
 
 		unsigned get_bg_rgb8 (unsigned *r, unsigned *g, unsigned *b) const noexcept
 		{
-			return cell_bg_rgb8 (&_cell, r, g, b);
+			return nccell_bg_rgb8 (&_cell, r, g, b);
 		}
 
 		bool set_bg_rgb8 (int r, int g, int b, bool clipped = false) noexcept
@@ -172,12 +172,12 @@ namespace ncpp
 				return true;
 			}
 
-			return cell_set_bg_rgb8 (&_cell, r, g, b) != -1;
+			return nccell_set_bg_rgb8 (&_cell, r, g, b) != -1;
 		}
 
 		void set_bg_rgb (uint32_t channel) noexcept
 		{
-			cell_set_bg_rgb (&_cell, channel);
+			nccell_set_bg_rgb (&_cell, channel);
 		}
 
 		void set_bg_default () noexcept

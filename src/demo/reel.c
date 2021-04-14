@@ -72,7 +72,7 @@ tabletdraw(struct ncplane* w, int maxy, tabletctx* tctx, unsigned rgb){
   for(y = 0 ; y < maxy ; ++y, rgb += 16){
     snprintf(cchbuf, sizeof(cchbuf) / sizeof(*cchbuf), "%x", y % 16);
     nccell_load(w, &c, cchbuf);
-    if(cell_set_fg_rgb8(&c, (rgb >> 16u) % 0xffu, (rgb >> 8u) % 0xffu, rgb % 0xffu)){
+    if(nccell_set_fg_rgb8(&c, (rgb >> 16u) % 0xffu, (rgb >> 8u) % 0xffu, rgb % 0xffu)){
       return -1;
     }
     int x;

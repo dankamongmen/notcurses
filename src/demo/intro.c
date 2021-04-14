@@ -120,7 +120,7 @@ int intro(struct notcurses* nc){
     return -1;
   }
   nccell c = CELL_TRIVIAL_INITIALIZER;
-  cell_set_bg_rgb8(&c, 0x20, 0x20, 0x20);
+  nccell_set_bg_rgb8(&c, 0x20, 0x20, 0x20);
   ncplane_set_base_cell(ncp, &c);
   nccell ul = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
   nccell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
@@ -131,10 +131,10 @@ int intro(struct notcurses* nc){
   if(nccells_rounded_box(ncp, NCSTYLE_BOLD, 0, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
-  cell_set_fg_rgb(&ul, 0xff0000); cell_set_bg_rgb(&ul, 0x002000);
-  cell_set_fg_rgb(&ur, 0x00ff00); cell_set_bg_rgb(&ur, 0x002000);
-  cell_set_fg_rgb(&ll, 0x0000ff); cell_set_bg_rgb(&ll, 0x002000);
-  cell_set_fg_rgb(&lr, 0xffffff); cell_set_bg_rgb(&lr, 0x002000);
+  nccell_set_fg_rgb(&ul, 0xff0000); nccell_set_bg_rgb(&ul, 0x002000);
+  nccell_set_fg_rgb(&ur, 0x00ff00); nccell_set_bg_rgb(&ur, 0x002000);
+  nccell_set_fg_rgb(&ll, 0x0000ff); nccell_set_bg_rgb(&ll, 0x002000);
+  nccell_set_fg_rgb(&lr, 0xffffff); nccell_set_bg_rgb(&lr, 0x002000);
   if(ncplane_box_sized(ncp, &ul, &ur, &ll, &lr, &hl, &vl, rows - 1, cols,
                        NCBOXGRAD_TOP | NCBOXGRAD_BOTTOM |
                         NCBOXGRAD_RIGHT | NCBOXGRAD_LEFT)){
@@ -153,10 +153,10 @@ int intro(struct notcurses* nc){
   if(ncplane_gradient(ncp, "Δ", 0, cul, cur, cll, clr, rows - 8, cols / 2 + centercols / 2 - 1) <= 0){
     return -1;
   }
-  cell_set_fg_rgb(&lr, 0xff0000); cell_set_bg_rgb(&lr, 0x002000);
-  cell_set_fg_rgb(&ll, 0x00ff00); cell_set_bg_rgb(&ll, 0x002000);
-  cell_set_fg_rgb(&ur, 0x0000ff); cell_set_bg_rgb(&ur, 0x002000);
-  cell_set_fg_rgb(&ul, 0xffffff); cell_set_bg_rgb(&ul, 0x002000);
+  nccell_set_fg_rgb(&lr, 0xff0000); nccell_set_bg_rgb(&lr, 0x002000);
+  nccell_set_fg_rgb(&ll, 0x00ff00); nccell_set_bg_rgb(&ll, 0x002000);
+  nccell_set_fg_rgb(&ur, 0x0000ff); nccell_set_bg_rgb(&ur, 0x002000);
+  nccell_set_fg_rgb(&ul, 0xffffff); nccell_set_bg_rgb(&ul, 0x002000);
   if(ncplane_cursor_move_yx(ncp, 4, (cols - centercols) / 2)){
     return -1;
   }

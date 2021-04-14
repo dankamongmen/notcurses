@@ -1723,10 +1723,10 @@ int ncplane_hline_interp(ncplane* n, const nccell* c, int len,
     int bg = (deltbg * ret) / len + bg1;
     int bb = (deltbb * ret) / len + bb1;
     if(!fgdef){
-      cell_set_fg_rgb8(&dupc, r, g, b);
+      nccell_set_fg_rgb8(&dupc, r, g, b);
     }
     if(!bgdef){
-      cell_set_bg_rgb8(&dupc, br, bg, bb);
+      nccell_set_bg_rgb8(&dupc, br, bg, bb);
     }
     if(ncplane_putc(n, &dupc) <= 0){
       break;
@@ -1779,10 +1779,10 @@ int ncplane_vline_interp(ncplane* n, const nccell* c, int len,
     bg1 += deltbg;
     bb1 += deltbb;
     if(!fgdef){
-      cell_set_fg_rgb8(&dupc, r1, g1, b1);
+      nccell_set_fg_rgb8(&dupc, r1, g1, b1);
     }
     if(!bgdef){
-      cell_set_bg_rgb8(&dupc, br1, bg1, bb1);
+      nccell_set_bg_rgb8(&dupc, br1, bg1, bb1);
     }
     if(ncplane_putc(n, &dupc) <= 0){
       break;

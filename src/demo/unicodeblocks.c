@@ -72,26 +72,26 @@ draw_block(struct ncplane* nn, uint32_t blockstart){
   nccell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
   nccell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
   nccells_rounded_box(nn, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl);
-  cell_set_bg_alpha(&ul, CELL_ALPHA_TRANSPARENT);
-  cell_set_bg_alpha(&ur, CELL_ALPHA_TRANSPARENT);
-  cell_set_bg_alpha(&ll, CELL_ALPHA_TRANSPARENT);
-  cell_set_bg_alpha(&lr, CELL_ALPHA_TRANSPARENT);
-  cell_set_fg_rgb8(&ul, 0xea, 0xaa, 0x00);
-  cell_set_fg_rgb8(&ur, 0x00, 0x30, 0x57);
-  cell_set_fg_rgb8(&ll, 0x00, 0x30, 0x57);
-  cell_set_fg_rgb8(&lr, 0xea, 0xaa, 0x00);
+  nccell_set_bg_alpha(&ul, CELL_ALPHA_TRANSPARENT);
+  nccell_set_bg_alpha(&ur, CELL_ALPHA_TRANSPARENT);
+  nccell_set_bg_alpha(&ll, CELL_ALPHA_TRANSPARENT);
+  nccell_set_bg_alpha(&lr, CELL_ALPHA_TRANSPARENT);
+  nccell_set_fg_rgb8(&ul, 0xea, 0xaa, 0x00);
+  nccell_set_fg_rgb8(&ur, 0x00, 0x30, 0x57);
+  nccell_set_fg_rgb8(&ll, 0x00, 0x30, 0x57);
+  nccell_set_fg_rgb8(&lr, 0xea, 0xaa, 0x00);
   // see https://github.com/dankamongmen/notcurses/issues/259. we use a random
   // (but dark) background for the perimeter to force refreshing on the box,
   // when it might otherwise be molested by RTL text. hacky and gross :( FIXME
   int rbg = random() % 20;
-  cell_set_bg_rgb(&ul, rbg);
-  cell_set_bg_rgb(&ur, rbg);
-  cell_set_bg_rgb(&ll, rbg);
-  cell_set_bg_rgb(&lr, rbg);
-  cell_set_fg_rgb8(&hl, 255, 255, 255);
-  cell_set_fg_rgb8(&vl, 255, 255, 255);
-  cell_set_bg_rgb8(&hl, 0, 0, 0);
-  cell_set_bg_rgb8(&vl, 0, 0, 0);
+  nccell_set_bg_rgb(&ul, rbg);
+  nccell_set_bg_rgb(&ur, rbg);
+  nccell_set_bg_rgb(&ll, rbg);
+  nccell_set_bg_rgb(&lr, rbg);
+  nccell_set_fg_rgb8(&hl, 255, 255, 255);
+  nccell_set_fg_rgb8(&vl, 255, 255, 255);
+  nccell_set_bg_rgb8(&hl, 0, 0, 0);
+  nccell_set_bg_rgb8(&vl, 0, 0, 0);
   ncplane_home(nn);
   unsigned control = NCBOXGRAD_TOP | NCBOXGRAD_BOTTOM | NCBOXGRAD_LEFT | NCBOXGRAD_RIGHT;
   if(ncplane_box_sized(nn, &ul, &ur, &ll, &lr, &hl, &vl, dimy, dimx, control)){

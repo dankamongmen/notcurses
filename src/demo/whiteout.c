@@ -53,11 +53,11 @@ lighten(struct ncplane* n, nccell* c, int distance, int y, int x){
     return 0;
   }
   unsigned r, g, b;
-  cell_fg_rgb8(c, &r, &g, &b);
+  nccell_fg_rgb8(c, &r, &g, &b);
   r += rand() % (64 / (2 * distance + 1) + 1);
   g += rand() % (64 / (2 * distance + 1) + 1);
   b += rand() % (64 / (2 * distance + 1) + 1);
-  cell_set_fg_rgb8_clipped(c, r, g, b);
+  nccell_set_fg_rgb8_clipped(c, r, g, b);
   return ncplane_putc_yx(n, y, x, c);
 }
 
@@ -186,8 +186,8 @@ message(struct ncplane* n, int maxy, int maxx, int num, int total,
   ncplane_putegc_yx(n, 6, 17, "╰", NULL);
   nccell hl = CELL_TRIVIAL_INITIALIZER;
   nccell_load(n, &hl, "─");
-  cell_set_fg_rgb8(&hl, 255, 255, 255);
-  cell_set_bg_rgb8(&hl, 32, 64, 32);
+  nccell_set_fg_rgb8(&hl, 255, 255, 255);
+  nccell_set_bg_rgb8(&hl, 32, 64, 32);
   ncplane_hline(n, &hl, 57 - 18 - 1);
   ncplane_putegc_yx(n, 6, 56, "╯", NULL);
   ncplane_putegc_yx(n, 5, 56, "│", NULL);
