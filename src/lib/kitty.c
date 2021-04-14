@@ -149,6 +149,10 @@ kitty_null(char* triplet, int skip, int max, int pleft){
 
 #define RGBA_MAXLEN 768 // 768 base64-encoded pixels in 4096 bytes
 int sprite_kitty_cell_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
+  if(s->n->tacache[s->dimx * ycell + xcell] == SPRIXCELL_ANNIHILATED){
+//fprintf(stderr, "CACHED WIPE %d %d/%d\n", s->id, ycell, xcell);
+    return 0; // already annihilated, needn't draw glyph in kitty
+  }
   const int totalpixels = s->pixy * s->pixx;
   const int xpixels = nc->tcache.cellpixx;
   const int ypixels = nc->tcache.cellpixy;
@@ -199,6 +203,7 @@ int sprite_kitty_cell_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell
       if(thisrow == 0){
 //fprintf(stderr, "CLEARED ROW, TARGY: %d\n", targy - 1);
         if(--targy == 0){
+          s->invalidated = SPRIXEL_INVALIDATED;
           return 0;
         }
         thisrow = targx;

@@ -213,8 +213,8 @@ paint_sprixel(const ncplane* p, const nccell* vis, struct crender* crender,
     if(sprite_wipe_cell(nc, p->sprite, y, x)){
 //fprintf(stderr, "damaging due to wipe %d/%d\n", y, x);
       crender->s.damaged = 1;
-      crender->s.p_beats_sprixel = 1;
     }
+    crender->s.p_beats_sprixel = 1;
   }else if(!crender->p){
     // if we are a bitmap, and above a cell that has changed (and
     // will thus be printed), we'll need redraw the sprixel.

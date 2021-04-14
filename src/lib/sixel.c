@@ -546,8 +546,10 @@ int sprite_sixel_init(int fd){
 // redrawn, it's redrawn using P2=1.
 int sixel_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
   (void)nc;
-  (void)ycell;
-  (void)xcell;
+  if(s->n->tacache[s->dimx * ycell + xcell] == SPRIXCELL_ANNIHILATED){
+//fprintf(stderr, "CACHED WIPE %d %d/%d\n", s->id, ycell, xcell);
+    return 1; // already annihilated, but still must draw glyph
+  }
   change_p2(s->glyph, SIXEL_P2_TRANS);
   return -1;
 }
