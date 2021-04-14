@@ -410,7 +410,7 @@ pub fn cellcmp(plane1: &NcPlane, cell1: &NcCell, plane2: &NcPlane, cell2: &NcCel
 ///
 /// *Method: NcCell.[init()][NcCell#method.init].*
 #[inline]
-pub fn cell_init(cell: &mut NcCell) {
+pub fn nccell_init(cell: &mut NcCell) {
     *cell = unsafe { core::mem::zeroed() }
 }
 

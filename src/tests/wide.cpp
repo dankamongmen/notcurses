@@ -74,7 +74,7 @@ TEST_CASE("Wide") {
     const char EGC4[] = "\ufdfd"; // neutral yet huge bismillah ﷽
     std::array<nccell, 5> tcells;
     for(auto & tcell : tcells){
-      cell_init(&tcell);
+      nccell_init(&tcell);
     }
     CHECK(1 < cell_load(n_, &tcells[0], EGC0));
     CHECK(1 < cell_load(n_, &tcells[1], EGC1));
@@ -316,7 +316,7 @@ TEST_CASE("Wide") {
     CHECK(!strcmp("\xe5\x85\xa8", egc));
     CHECK(cell_double_wide_p(&c));
     free(egc);
-    cell_init(&c);
+    nccell_init(&c);
     // should be wide char 1 right side
     REQUIRE(0 == ncplane_at_yx_cell(n_, 0, 1, &c));
     CHECK(!strcmp("", nccell_extended_gcluster(n_, &c)));
@@ -326,7 +326,7 @@ TEST_CASE("Wide") {
     CHECK(!strcmp("", egc));
     CHECK(cell_double_wide_p(&c));
     free(egc);
-    cell_init(&c);
+    nccell_init(&c);
 
     // should be wide char 2
     REQUIRE(3 == ncplane_at_yx_cell(n_, 0, 2, &c));
@@ -337,7 +337,7 @@ TEST_CASE("Wide") {
     CHECK(!strcmp("\xe5\xbd\xa2", egc));
     CHECK(cell_double_wide_p(&c));
     free(egc);
-    cell_init(&c);
+    nccell_init(&c);
     // should be wide char 2 right side
     CHECK(0 == ncplane_at_yx_cell(n_, 0, 3, &c));
     CHECK(!strcmp("", nccell_extended_gcluster(n_, &c)));
@@ -347,7 +347,7 @@ TEST_CASE("Wide") {
     CHECK(!strcmp("", egc));
     CHECK(cell_double_wide_p(&c));
     free(egc);
-    cell_init(&c);
+    nccell_init(&c);
 
     struct ncplane_options nopts = {
       .y = 0,
@@ -370,26 +370,26 @@ TEST_CASE("Wide") {
     REQUIRE(egc);
     CHECK(0 == strcmp(" ", egc));
     free(egc);
-    cell_init(&c);
+    nccell_init(&c);
     // should be character from higher plane
     egc = notcurses_at_yx(nc_, 0, 1, &c.stylemask, &c.channels);
     REQUIRE(egc);
     CHECK(0 == strcmp("A", egc));
     free(egc);
-    cell_init(&c);
+    nccell_init(&c);
 
     egc = notcurses_at_yx(nc_, 0, 2, &c.stylemask, &c.channels);
     REQUIRE(egc);
     CHECK(0 == strcmp("B", egc));
     free(egc);
-    cell_init(&c);
+    nccell_init(&c);
 
     // should be nothing, having been stomped
     egc = notcurses_at_yx(nc_, 0, 3, &c.stylemask, &c.channels);
     REQUIRE(egc);
     CHECK(0 == strcmp("", egc));
     free(egc);
-    cell_init(&c);
+    nccell_init(&c);
 
     CHECK(0 == ncplane_destroy(n));
   }

@@ -397,7 +397,7 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
   p->stylemask = 0;
   p->channels = 0;
   egcpool_init(&p->pool);
-  cell_init(&p->basecell);
+  nccell_init(&p->basecell);
   p->userptr = nopts->userptr;
   if(nc == NULL){ // fake ncplane backing ncdirect object
     p->above = NULL;
@@ -1402,9 +1402,9 @@ void ncplane_cursor_yx(const ncplane* n, int* y, int* x){
 }
 
 static inline void
-cell_obliterate(ncplane* n, nccell* c){
+nccell_obliterate(ncplane* n, nccell* c){
   nccell_release(n, c);
-  cell_init(c);
+  nccell_init(c);
 }
 
 // increment y by 1 and rotate the framebuffer up one line. x moves to 0.
@@ -1474,7 +1474,7 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
         &n->fb[nfbcellidx(n, n->y, n->x - 1)] :
         // left half will never be on the last column of a row
         &n->fb[nfbcellidx(n, n->y, n->x + 1)];
-      cell_obliterate(n, sacrifice);
+      nccell_obliterate(n, sacrifice);
     }
   }
   targ->stylemask = stylemask;
@@ -1488,7 +1488,7 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
   for(int i = 1 ; i < cols ; ++i){
     nccell* candidate = &n->fb[nfbcellidx(n, n->y, n->x)];
     if(cell_wide_left_p(candidate)){
-      cell_obliterate(n, &n->fb[nfbcellidx(n, n->y, n->x + 1)]);
+      nccell_obliterate(n, &n->fb[nfbcellidx(n, n->y, n->x + 1)]);
     }
     nccell_release(n, candidate);
     candidate->channels = targ->channels;

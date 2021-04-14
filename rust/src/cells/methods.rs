@@ -92,10 +92,10 @@ impl NcCell {
 
     /// Initializes (zeroes out) the NcCell.
     ///
-    /// *C style function: [cell_init()][crate::cell_init].*
+    /// *C style function: [nccell_init()][crate::nccell_init].*
     #[inline]
     pub fn init(&mut self) {
-        crate::cell_init(self);
+        crate::nccell_init(self);
     }
 
     /// Releases resources held by the current cell in the [NcPlane] `plane`.

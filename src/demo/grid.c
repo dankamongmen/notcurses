@@ -39,15 +39,15 @@ prep_cells2(struct ncplane* n,
            nccell* ul, nccell* uc, nccell* ur,
            nccell* cl, nccell* cc, nccell* cr,
            nccell* ll, nccell* lc, nccell* lr){
-  cell_init(ul);
-  cell_init(uc);
-  cell_init(cl);
-  cell_init(cr);
-  cell_init(ll);
-  cell_init(lc);
-  cell_init(lr);
-  cell_init(ur);
-  cell_init(cc);
+  nccell_init(ul);
+  nccell_init(uc);
+  nccell_init(cl);
+  nccell_init(cr);
+  nccell_init(ll);
+  nccell_init(lc);
+  nccell_init(lr);
+  nccell_init(ur);
+  nccell_init(cc);
   int ret = 0;
   ret |= cell_load(n, ul, "╔");
   ret |= cell_load(n, uc, "╦");
@@ -66,15 +66,15 @@ prep_cells(struct ncplane* n,
            nccell* ul, nccell* uc, nccell* ur,
            nccell* cl, nccell* cc, nccell* cr,
            nccell* ll, nccell* lc, nccell* lr){
-  cell_init(ul);
-  cell_init(uc);
-  cell_init(cl);
-  cell_init(cr);
-  cell_init(ll);
-  cell_init(lc);
-  cell_init(lr);
-  cell_init(ur);
-  cell_init(cc);
+  nccell_init(ul);
+  nccell_init(uc);
+  nccell_init(cl);
+  nccell_init(cr);
+  nccell_init(ll);
+  nccell_init(lc);
+  nccell_init(lr);
+  nccell_init(ur);
+  nccell_init(cc);
   int ret = 0;
   ret |= cell_load(n, ul, "┍");
   ret |= cell_load(n, uc, "┯");

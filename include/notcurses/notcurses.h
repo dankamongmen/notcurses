@@ -641,8 +641,13 @@ typedef nccell cell; // FIXME backwards-compat, remove in ABI3
 #define CELL_INITIALIZER(c, s, chan) { .gcluster = (htole(c)), .gcluster_backstop = 0, .width = (uint8_t)wcwidth(c), .stylemask = (s), .channels = (chan), }
 
 static inline void
-cell_init(nccell* c){
+nccell_init(nccell* c){
   memset(c, 0, sizeof(*c));
+}
+
+__attribute__ ((deprecated)) static inline void
+cell_init(nccell* c){
+  nccell_init(c);
 }
 
 // Breaks the UTF-8 string in 'gcluster' down, setting up the nccell 'c'.

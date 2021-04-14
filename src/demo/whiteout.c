@@ -76,7 +76,7 @@ typedef struct worm {
 
 static void
 init_worm(worm* s, int dimy, int dimx){
-  cell_init(&s->lightup);
+  nccell_init(&s->lightup);
   s->y = random() % dimy;
   s->x = random() % dimx;
   s->prevx = 0;
@@ -466,7 +466,7 @@ int witherworm_demo(struct notcurses* nc){
     do{ // (re)draw a screen
       const int start = starts[i];
       int step = steps[i];
-      cell_init(&c);
+      nccell_init(&c);
       int y, x, maxy, maxx;
       ncplane_dim_yx(n, &maxy, &maxx); // might resize
       int rgb = start;

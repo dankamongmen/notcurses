@@ -35,7 +35,6 @@
 //W# cell_fg_palindex_p
 //W# cell_fg_rgb
 //W# cell_fg_rgb8
-//W+ cell_init
 //W+ cell_off_styles
 //W+ cell_on_styles
 //W+ cell_prime
@@ -58,6 +57,7 @@
 //W+ cell_styles
 //W+ cell_wide_left_p
 //W+ cell_wide_right_p
+//W+ nccell_init
 //…… nccell_load_char
 //   nccell_load_egc32
 //W+ nccell_strdup
