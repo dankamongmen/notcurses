@@ -115,7 +115,7 @@ typedef enum {
 //
 // when a sprixel is moved, its TAM must be updated. OPAQUE, MIXED, and
 // TRANSPARENT cells retain their entries. ANNIHILATED cells remain
-// ANNIHILATED if their new absolute position corresponded to an ANNIHILATED
+// ANNIHILATED if their new absolute position corresponds to an ANNIHILATED
 // cell; they otherwise transition back as outlined above. this is because
 // ANNIHILATION is a property of those glyphs above us, while the other
 // three are internal, intrinsic properties. for Sixel, all cells no longer
