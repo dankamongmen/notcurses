@@ -52,11 +52,91 @@ typedef enum {
   SPRIXEL_MOVED,       // sprixel needs be moved
 } sprixel_e;
 
-// elements of the T-A matrix
+// elements of the T-A matrix describe transparency and annihilation at a
+// per-cell basis, making up something of a state machine. when a sprixel
+// plane is first created, the TAM is (meaninglessly) initialized to all
+// zeroes (SPRIXCELL_OPAQUE). during the construction of the sprixel from
+// an RGBA frame, OPAQUE entries are possibly marked MIXED or TRANSPARENT.
+// subsequent sprixels blitted to the same plane will reuse the TAM, and
+// retain any SPRIXCELL_ANNIHILATED entries, cutting them out of the
+// sprixel.
+//
+// sixel can transition to ANNIHILATED via a no-op; kitty can transition
+// to ANNIHILATED only by wiping the cell (removing it from the sprixel via
+// all-0 alphas), deleting the bitmap, and displaying it once more. sixel
+// bitmaps are removed by obliterating them with new output, while kitty
+// bitmaps are removed by a fixed-length terminal escape. an important
+// implication is that sixels cannot be progressively reduced by emitting
+// progressively more transparent sixels atop one another--to remove a
+// cell from a Sixel sprixel, it is necessary to print a glyph. the same
+// goes for Kitty sprixels, but there we delete and rerender bitmaps
+// in toto without glyph involvement.
+//
+// a glyph above an OPAQUE sprixel requires annihilating the underlying cell,
+// and emitting the glyph only after annihilation is complete. a glyph below
+// an OPAQUE sprixel should never be emitted (update the lastframe to
+// contain it, but do not mark the cell damaged). should the sprixel be
+// removed, the cell will be marked damaged, and the glyph will be updated.
+//
+// a glyph above a MIXED sprixcell requires the same process as one above an
+// OPAQUE sprixcell. a glyph below a MIXED sprixcell can be emitted, but a
+// Sixel-based sprixel must then be printed afresh. a Kitty-based sprixel
+// needn't be touched in this case.
+//
+// a glyph above a TRANSPARENT sprixcell requires annihilating the underlying
+// cell, but this is a special annihilation which never requires a wipe nor
+// redisplay, just the state transition. a glyph below a TRANSPARENT sprixcell
+// can be emitted with no change to the sprixcell.
+//
+// a glyph above an ANNIHILATED sprixcell can be emitted with no change to
+// the sprixcell. it does not make sense to emit a glyph below an ANNIHILATED
+// sprixcell; if there is no longer a glyph above the sprixcell, the sprixcell
+// must transition back to its original state (see below).
+//
+// rendering a new RGBA frame into the same sprixel plane can result in changes
+// between OPAQUE, MIXED, and TRANSPARENT. an OPAQUE sprixcell which becomes
+// TRANSPARENT or MIXED upon rendering a new RGBA frame must damage its cell,
+// since the glyph underneath might have changed without being emitted. the
+// new glyph must be emitted prior to redisplay of the sprixel.
+//
+// an ANNIHILATED sprixcell with no glyph above it must be restored to its
+// original form (from the most recent RGBA frame). this requires the original
+// pixel data. for Sixel, we must keep the RGB values in an auxiliary vector,
+// hung off the TAM, updated each time we convert an RGBA frame into a
+// partially- or wholly-ANNIHILATED sprixel. for Kitty, we must keep the
+// original alpha values (1/3 the data necessary for Sixel). the new state
+// can be solved from this data. if the new state is either OPAQUE or MIXED,
+// the sprixel must be redisplayed. if the new state is TRANSPARENT, this cell
+// requires no such redisplay.
+//
+// when a sprixel is removed from the rendering pile, in Sixel all cells it
+// covered must be marked damaged, so that they are rendered, obliterating
+// the bitmap. in Kitty the bitmap can simply be deleted.
+//
+// when a sprixel is moved, its TAM must be updated. OPAQUE, MIXED, and
+// TRANSPARENT cells retain their entries. ANNIHILATED cells remain
+// ANNIHILATED if their new absolute position corresponded to an ANNIHILATED
+// cell; they otherwise transition back as outlined above. this is because
+// ANNIHILATION is a property of those glyphs above us, while the other
+// three are internal, intrinsic properties. for Sixel, all cells no longer
+// covered must be damaged for rerendering, and the sprixel must subsequently
+// be displayed at its new position. for Kitty, the sprixel must be deleted,
+// and all cells no longer covered but which were previously under an OPAQUE
+// cell must be damaged for rerendering (not to erase the bitmap, but because
+// they might have changed without being emitted while obstructed by the
+// sprixel). the sprixel should be displayed at its new position. using Kitty's
+// bitmap movement is also acceptable, rather than a deletion and rerender.
+// whichever method is used, it is necessary to recover any ANNIHILATED cells
+// before moving or redisplaying the sprixel.
+//
+// all emissions take place at rasterization time. cell wiping happens at
+// rendering time. cell reconstruction happens at rendering time (for
+// ANNIHILATED cells which are no longer ANNIHILATED), or at blittime for
+// a new RGBA frame.
 typedef enum {
-  SPRIXCELL_NORMAL,         // no transparent pixels in this cell
-  SPRIXCELL_CONTAINS_TRANS, // this cell has transparent pixels
-  SPRIXCELL_ALL_TRANS,      // all pixels are naturally transparent
+  SPRIXCELL_OPAQUE,         // no transparent pixels in this cell
+  SPRIXCELL_MIXED,          // this cell has both opaque and transparent pixels
+  SPRIXCELL_TRANSPARENT,    // all pixels are naturally transparent
   SPRIXCELL_ANNIHILATED,    // this cell has been wiped (all trans)
 } sprixcell_e;
 

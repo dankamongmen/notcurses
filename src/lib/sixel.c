@@ -171,11 +171,17 @@ extract_color_table(const uint32_t* data, int linesize, int cols,
         const uint32_t* rgb = (data + (linesize / 4 * sy) + visx);
         int txyidx = (sy / cdimy) * cols + (visx / cdimx);
         if(rgba_trans_p(*rgb, bargs->transcolor)){
-          if(tacache[txyidx] == SPRIXCELL_NORMAL){
-            tacache[txyidx] = SPRIXCELL_CONTAINS_TRANS;
+          if(tacache[txyidx] == SPRIXCELL_OPAQUE){
+            if(sy % cdimy == 0 && visx % cdimx == 0){
+              tacache[txyidx] = SPRIXCELL_TRANSPARENT;
+            }else{
+              tacache[txyidx] = SPRIXCELL_MIXED;
+            }
           }
           stab->p2 = SIXEL_P2_TRANS;
           continue;
+        }else if(tacache[txyidx] == SPRIXCELL_TRANSPARENT){
+          tacache[txyidx] = SPRIXCELL_MIXED;
         }
         if(tacache[txyidx] == SPRIXCELL_ANNIHILATED){
 //fprintf(stderr, "TRANS SKIP %d %d %d %d (cell: %d %d)\n", visy, visx, sy, txyidx, sy / cdimy, visx / cdimx);

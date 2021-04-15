@@ -67,8 +67,8 @@ void sprixel_invalidate(sprixel* s, int y, int x){
     int localy = y - s->n->absy;
     int localx = x - s->n->absx;
 //fprintf(stderr, "INVALIDATING AT %d/%d (%d/%d) TAM: %d\n", y, x, localy, localx, s->n->tacache[localy * s->dimx + localx]);
-    if(s->n->tacache[localy * s->dimx + localx] != SPRIXCELL_ALL_TRANS &&
-       s->n->tacache[localy * s->dimx + localx] != SPRIXCELL_ALL_TRANS){
+    if(s->n->tacache[localy * s->dimx + localx] != SPRIXCELL_TRANSPARENT &&
+       s->n->tacache[localy * s->dimx + localx] != SPRIXCELL_ANNIHILATED){
       s->invalidated = SPRIXEL_INVALIDATED;
     }
   }

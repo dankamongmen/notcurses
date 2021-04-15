@@ -282,12 +282,12 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx,
           wipe[e] = 0;
           if(rgba_trans_p(source[e], transcolor)){
             if(x % cdimx == 0 && y % cdimy == 0){
-              tacache[tyx] = SPRIXCELL_ALL_TRANS;
-            }else if(tacache[tyx] == SPRIXCELL_NORMAL){
-              tacache[tyx] = SPRIXCELL_CONTAINS_TRANS;
+              tacache[tyx] = SPRIXCELL_TRANSPARENT;
+            }else if(tacache[tyx] == SPRIXCELL_OPAQUE){
+              tacache[tyx] = SPRIXCELL_MIXED;
             }
-          }else if(tacache[tyx] == SPRIXCELL_ALL_TRANS){
-            tacache[tyx] = SPRIXCELL_CONTAINS_TRANS;
+          }else if(tacache[tyx] == SPRIXCELL_TRANSPARENT){
+            tacache[tyx] = SPRIXCELL_MIXED;
           }
         }
         ++x;
