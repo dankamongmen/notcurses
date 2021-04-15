@@ -15,7 +15,7 @@ use crate::{
 ///
 /// *Method: NcCell.[fg_alpha()][NcCell#method.fg_alpha].*
 #[inline]
-pub fn cell_fg_alpha(cell: &NcCell) -> NcAlphaBits {
+pub fn nccell_fg_alpha(cell: &NcCell) -> NcAlphaBits {
     crate::channels_fg_alpha(cell.channels)
 }
 
@@ -23,7 +23,7 @@ pub fn cell_fg_alpha(cell: &NcCell) -> NcAlphaBits {
 ///
 /// *Method: NcCell.[bg_alpha()][NcCell#method.bg_alpha].*
 #[inline]
-pub fn cell_bg_alpha(cell: &NcCell) -> NcAlphaBits {
+pub fn nccell_bg_alpha(cell: &NcCell) -> NcAlphaBits {
     crate::channels_bg_alpha(cell.channels)
 }
 
@@ -31,7 +31,7 @@ pub fn cell_bg_alpha(cell: &NcCell) -> NcAlphaBits {
 ///
 /// *Method: NcCell.[set_fg_alpha()][NcCell#method.set_fg_alpha].*
 #[inline]
-pub fn cell_set_fg_alpha(cell: &mut NcCell, alpha: NcAlphaBits) {
+pub fn nccell_set_fg_alpha(cell: &mut NcCell, alpha: NcAlphaBits) {
     crate::channels_set_fg_alpha(&mut cell.channels, alpha);
 }
 
@@ -39,7 +39,7 @@ pub fn cell_set_fg_alpha(cell: &mut NcCell, alpha: NcAlphaBits) {
 ///
 /// *Method: NcCell.[set_bg_alpha()][NcCell#method.set_bg_alpha].*
 #[inline]
-pub fn cell_set_bg_alpha(cell: &mut NcCell, alpha: NcAlphaBits) {
+pub fn nccell_set_bg_alpha(cell: &mut NcCell, alpha: NcAlphaBits) {
     crate::channels_set_bg_alpha(&mut cell.channels, alpha);
 }
 
@@ -50,7 +50,7 @@ pub fn cell_set_bg_alpha(cell: &mut NcCell, alpha: NcAlphaBits) {
 ///
 /// *Method: NcCell.[fg_rgb8()][NcCell#method.fg_rgb8].*
 #[inline]
-pub fn cell_fg_rgb8(
+pub fn nccell_fg_rgb8(
     cell: &NcCell,
     red: &mut NcColor,
     green: &mut NcColor,
@@ -64,7 +64,7 @@ pub fn cell_fg_rgb8(
 ///
 /// *Method: NcCell.[bg_rgb8()][NcCell#method.bg_rgb8].*
 #[inline]
-pub fn cell_bg_rgb8(
+pub fn nccell_bg_rgb8(
     cell: &NcCell,
     red: &mut NcColor,
     green: &mut NcColor,
@@ -78,7 +78,7 @@ pub fn cell_bg_rgb8(
 ///
 /// *Method: NcCell.[set_fg_rgb8()][NcCell#method.set_fg_rgb8].*
 #[inline]
-pub fn cell_set_fg_rgb8(cell: &mut NcCell, red: NcColor, green: NcColor, blue: NcColor) {
+pub fn nccell_set_fg_rgb8(cell: &mut NcCell, red: NcColor, green: NcColor, blue: NcColor) {
     crate::channels_set_fg_rgb8(&mut cell.channels, red, green, blue);
 }
 
@@ -87,7 +87,7 @@ pub fn cell_set_fg_rgb8(cell: &mut NcCell, red: NcColor, green: NcColor, blue: N
 ///
 /// *Method: NcCell.[set_bg_rgb8()][NcCell#method.set_bg_rgb8].*
 #[inline]
-pub fn cell_set_bg_rgb8(cell: &mut NcCell, red: NcColor, green: NcColor, blue: NcColor) {
+pub fn nccell_set_bg_rgb8(cell: &mut NcCell, red: NcColor, green: NcColor, blue: NcColor) {
     crate::channels_set_bg_rgb8(&mut cell.channels, red, green, blue);
 }
 
@@ -97,7 +97,7 @@ pub fn cell_set_bg_rgb8(cell: &mut NcCell, red: NcColor, green: NcColor, blue: N
 ///
 /// *Method: NcCell.[fg_rgb()][NcCell#method.fg_rgb].*
 #[inline]
-pub fn cell_fg_rgb(cell: &NcCell) -> NcRgb {
+pub fn nccell_fg_rgb(cell: &NcCell) -> NcRgb {
     crate::channels_fg_rgb(cell.channels)
 }
 
@@ -105,7 +105,7 @@ pub fn cell_fg_rgb(cell: &NcCell) -> NcRgb {
 ///
 /// *Method: NcCell.[bg_rgb()][NcCell#method.bg_rgb].*
 #[inline]
-pub fn cell_bg_rgb(cell: &NcCell) -> NcRgb {
+pub fn nccell_bg_rgb(cell: &NcCell) -> NcRgb {
     crate::channels_bg_rgb(cell.channels)
 }
 
@@ -114,7 +114,7 @@ pub fn cell_bg_rgb(cell: &NcCell) -> NcRgb {
 ///
 /// *Method: NcCell.[set_fg_rgb()][NcCell#method.set_fg_rgb].*
 #[inline]
-pub fn cell_set_fg_rgb(cell: &mut NcCell, rgb: NcRgb) {
+pub fn nccell_set_fg_rgb(cell: &mut NcCell, rgb: NcRgb) {
     crate::channels_set_fg_rgb(&mut cell.channels, rgb);
 }
 
@@ -123,7 +123,7 @@ pub fn cell_set_fg_rgb(cell: &mut NcCell, rgb: NcRgb) {
 ///
 /// *Method: NcCell.[set_bg_rgb()][NcCell#method.set_bg_rgb].*
 #[inline]
-pub fn cell_set_bg_rgb(cell: &mut NcCell, rgb: NcRgb) {
+pub fn nccell_set_bg_rgb(cell: &mut NcCell, rgb: NcRgb) {
     crate::channels_set_bg_rgb(&mut cell.channels, rgb);
 }
 
@@ -134,7 +134,7 @@ pub fn cell_set_bg_rgb(cell: &mut NcCell, rgb: NcRgb) {
 ///
 /// *Method: NcCell.[set_fg_default()][NcCell#method.set_fg_default].*
 #[inline]
-pub fn cell_set_fg_default(cell: &mut NcCell) {
+pub fn nccell_set_fg_default(cell: &mut NcCell) {
     crate::channels_set_fg_default(&mut cell.channels);
 }
 
@@ -143,7 +143,7 @@ pub fn cell_set_fg_default(cell: &mut NcCell) {
 ///
 /// *Method: NcCell.[set_bg_default()][NcCell#method.set_bg_default].*
 #[inline]
-pub fn cell_set_bg_default(cell: &mut NcCell) {
+pub fn nccell_set_bg_default(cell: &mut NcCell) {
     crate::channels_set_bg_default(&mut cell.channels);
 }
 
@@ -152,7 +152,7 @@ pub fn cell_set_bg_default(cell: &mut NcCell) {
 ///
 /// *Method: NcCell.[fg_default_p()][NcCell#method.fg_default_p].*
 #[inline]
-pub fn cell_fg_default_p(cell: &NcCell) -> bool {
+pub fn nccell_fg_default_p(cell: &NcCell) -> bool {
     crate::channels_fg_default_p(cell.channels)
 }
 
@@ -164,7 +164,7 @@ pub fn cell_fg_default_p(cell: &NcCell) -> bool {
 ///
 /// *Method: NcCell.[bg_default_p()][NcCell#method.bg_default_p].*
 #[inline]
-pub fn cell_bg_default_p(cell: &NcCell) -> bool {
+pub fn nccell_bg_default_p(cell: &NcCell) -> bool {
     crate::channels_bg_default_p(cell.channels)
 }
 
@@ -175,7 +175,7 @@ pub fn cell_bg_default_p(cell: &NcCell) -> bool {
 ///
 /// *Method: NcCell.[fg_palindex_p()][NcCell#method.fg_palindex_p].*
 #[inline]
-pub fn cell_fg_palindex_p(cell: &NcCell) -> bool {
+pub fn nccell_fg_palindex_p(cell: &NcCell) -> bool {
     crate::channels_fg_palindex_p(cell.channels)
 }
 
@@ -184,7 +184,7 @@ pub fn cell_fg_palindex_p(cell: &NcCell) -> bool {
 ///
 /// *Method: NcCell.[bg_palindex_p()][NcCell#method.bg_palindex_p].*
 #[inline]
-pub fn cell_bg_palindex_p(cell: &NcCell) -> bool {
+pub fn nccell_bg_palindex_p(cell: &NcCell) -> bool {
     crate::channels_bg_palindex_p(cell.channels)
 }
 
@@ -192,7 +192,7 @@ pub fn cell_bg_palindex_p(cell: &NcCell) -> bool {
 ///
 /// *Method: NcCell.[fg_palindex()][NcCell#method.fg_palindex].*
 #[inline]
-pub const fn cell_fg_palindex(cell: &NcCell) -> NcPaletteIndex {
+pub const fn nccell_fg_palindex(cell: &NcCell) -> NcPaletteIndex {
     ((cell.channels & 0xff00000000 as NcChannelPair) >> 32) as NcPaletteIndex
 }
 
@@ -200,7 +200,7 @@ pub const fn cell_fg_palindex(cell: &NcCell) -> NcPaletteIndex {
 ///
 /// *Method: NcCell.[bg_palindex()][NcCell#method.bg_palindex].*
 #[inline]
-pub const fn cell_bg_palindex(cell: &NcCell) -> NcPaletteIndex {
+pub const fn nccell_bg_palindex(cell: &NcCell) -> NcPaletteIndex {
     (cell.channels & 0xff) as NcPaletteIndex
 }
 
@@ -213,10 +213,10 @@ pub const fn cell_bg_palindex(cell: &NcCell) -> NcPaletteIndex {
 //
 // NOTE: unlike the original C function, this one can't fail
 #[inline]
-pub fn cell_set_fg_palindex(cell: &mut NcCell, index: NcPaletteIndex) {
+pub fn nccell_set_fg_palindex(cell: &mut NcCell, index: NcPaletteIndex) {
     cell.channels |= NCCELL_FGDEFAULT_MASK;
     cell.channels |= NCCELL_FG_PALETTE;
-    cell_set_fg_alpha(cell, NCCELL_ALPHA_OPAQUE);
+    nccell_set_fg_alpha(cell, NCCELL_ALPHA_OPAQUE);
     cell.channels &= 0xff000000ffffffff as NcChannelPair;
     cell.channels |= (index as NcChannelPair) << 32;
 }
@@ -230,10 +230,10 @@ pub fn cell_set_fg_palindex(cell: &mut NcCell, index: NcPaletteIndex) {
 //
 // NOTE: unlike the original C function, this one can't fail
 #[inline]
-pub fn cell_set_bg_palindex(cell: &mut NcCell, index: NcPaletteIndex) {
+pub fn nccell_set_bg_palindex(cell: &mut NcCell, index: NcPaletteIndex) {
     cell.channels |= NCCELL_BGDEFAULT_MASK as NcChannelPair;
     cell.channels |= NCCELL_BG_PALETTE as NcChannelPair;
-    cell_set_bg_alpha(cell, NCCELL_ALPHA_OPAQUE);
+    nccell_set_bg_alpha(cell, NCCELL_ALPHA_OPAQUE);
     cell.channels &= 0xffffffffff000000;
     cell.channels |= index as NcChannelPair;
 }
@@ -244,7 +244,7 @@ pub fn cell_set_bg_palindex(cell: &mut NcCell, index: NcPaletteIndex) {
 ///
 /// *Method: NcCell.[cell_styles()][NcCell#method.cell_styles].*
 #[inline]
-pub const fn cell_styles(cell: &NcCell) -> NcStyleMask {
+pub const fn nccell_styles(cell: &NcCell) -> NcStyleMask {
     cell.stylemask
 }
 
@@ -253,7 +253,7 @@ pub const fn cell_styles(cell: &NcCell) -> NcStyleMask {
 ///
 /// *Method: NcCell.[styles_on()][NcCell#method.styles_on].*
 #[inline]
-pub fn cell_on_styles(cell: &mut NcCell, stylebits: NcStyleMask) {
+pub fn nccell_on_styles(cell: &mut NcCell, stylebits: NcStyleMask) {
     cell.stylemask |= stylebits & NCSTYLE_MASK as u16;
 }
 
@@ -261,7 +261,7 @@ pub fn cell_on_styles(cell: &mut NcCell, stylebits: NcStyleMask) {
 ///
 /// *Method: NcCell.[styles_off()][NcCell#method.styles_off].*
 #[inline]
-pub fn cell_off_styles(cell: &mut NcCell, stylebits: NcStyleMask) {
+pub fn nccell_off_styles(cell: &mut NcCell, stylebits: NcStyleMask) {
     cell.stylemask &= !(stylebits & NCSTYLE_MASK as u16);
 }
 
@@ -270,7 +270,7 @@ pub fn cell_off_styles(cell: &mut NcCell, stylebits: NcStyleMask) {
 ///
 /// *Method: NcCell.[styles_set()][NcCell#method.styles_set].*
 #[inline]
-pub fn cell_set_styles(cell: &mut NcCell, stylebits: NcStyleMask) {
+pub fn nccell_set_styles(cell: &mut NcCell, stylebits: NcStyleMask) {
     cell.stylemask = stylebits & NCSTYLE_MASK as u16;
 }
 
@@ -280,7 +280,7 @@ pub fn cell_set_styles(cell: &mut NcCell, stylebits: NcStyleMask) {
 ///
 /// *Method: NcCell.[double_wide_p()][NcCell#method.double_wide_p].*
 #[inline]
-pub const fn cell_double_wide_p(cell: &NcCell) -> bool {
+pub const fn nccell_double_wide_p(cell: &NcCell) -> bool {
     cell.width > 0
 }
 
@@ -288,16 +288,16 @@ pub const fn cell_double_wide_p(cell: &NcCell) -> bool {
 ///
 /// *Method: NcCell.[wide_right_p()][NcCell#method.wide_right_p].*
 #[inline]
-pub const fn cell_wide_right_p(cell: &NcCell) -> bool {
-    cell_double_wide_p(cell) && cell.gcluster == 0
+pub const fn nccell_wide_right_p(cell: &NcCell) -> bool {
+    nccell_double_wide_p(cell) && cell.gcluster == 0
 }
 
 /// Is this the left half of a wide character?
 ///
 /// *Method: NcCell.[wide_left_p()][NcCell#method.wide_left_p].*
 #[inline]
-pub const fn cell_wide_left_p(cell: &NcCell) -> bool {
-    cell_double_wide_p(cell) && cell.gcluster != 0
+pub const fn nccell_wide_left_p(cell: &NcCell) -> bool {
+    nccell_double_wide_p(cell) && cell.gcluster != 0
 }
 
 // /// Loads a 7-bit [NcEgc] character into the [NcCell].
@@ -391,7 +391,7 @@ pub fn nccell_extract(
 //
 // NOTE: FIXME: it would probably be better to test whether they're Unicode-equal
 #[inline]
-pub fn cellcmp(plane1: &NcPlane, cell1: &NcCell, plane2: &NcPlane, cell2: &NcCell) -> bool {
+pub fn nccellcmp(plane1: &NcPlane, cell1: &NcCell, plane2: &NcPlane, cell2: &NcCell) -> bool {
     if cell1.stylemask != cell2.stylemask {
         return true;
     }
