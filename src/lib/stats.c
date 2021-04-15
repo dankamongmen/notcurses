@@ -1,5 +1,75 @@
 #include "internal.h"
 
+// update timings for writeout. only call on success. call only under statlock.
+void update_write_stats(const struct timespec* time1, const struct timespec* time0,
+                        ncstats* stats, int bytes){
+  if(bytes >= 0){
+    const int64_t elapsed = timespec_to_ns(time1) - timespec_to_ns(time0);
+    if(elapsed > 0){ // don't count clearly incorrect information, egads
+      ++stats->writeouts;
+      stats->writeout_ns += elapsed;
+      if(elapsed > stats->writeout_max_ns){
+        stats->writeout_max_ns = elapsed;
+      }
+      if(elapsed < stats->writeout_min_ns){
+        stats->writeout_min_ns = elapsed;
+      }
+    }
+  }else{
+    ++stats->failed_writeouts;
+  }
+}
+
+// negative 'bytes' is recorded as a failure. call only while holding statlock.
+void update_render_bytes(ncstats* stats, int bytes){
+  if(bytes >= 0){
+    stats->render_bytes += bytes;
+    if(bytes > stats->render_max_bytes){
+      stats->render_max_bytes = bytes;
+    }
+    if(bytes < stats->render_min_bytes){
+      stats->render_min_bytes = bytes;
+    }
+  }else{
+    ++stats->failed_renders;
+  }
+}
+
+// call only while holding statlock.
+void update_render_stats(const struct timespec* time1, const struct timespec* time0,
+                         ncstats* stats){
+  const int64_t elapsed = timespec_to_ns(time1) - timespec_to_ns(time0);
+  //fprintf(stderr, "Rendering took %ld.%03lds\n", elapsed / NANOSECS_IN_SEC,
+  //        (elapsed % NANOSECS_IN_SEC) / 1000000);
+  if(elapsed > 0){ // don't count clearly incorrect information, egads
+    ++stats->renders;
+    stats->render_ns += elapsed;
+    if(elapsed > stats->render_max_ns){
+      stats->render_max_ns = elapsed;
+    }
+    if(elapsed < stats->render_min_ns){
+      stats->render_min_ns = elapsed;
+    }
+  }
+}
+
+// call only while holding statlock.
+void update_raster_stats(const struct timespec* time1, const struct timespec* time0,
+                         ncstats* stats){
+  const int64_t elapsed = timespec_to_ns(time1) - timespec_to_ns(time0);
+  //fprintf(stderr, "Rasterizing took %ld.%03lds\n", elapsed / NANOSECS_IN_SEC,
+  //        (elapsed % NANOSECS_IN_SEC) / 1000000);
+  if(elapsed > 0){ // don't count clearly incorrect information, egads
+    stats->raster_ns += elapsed;
+    if(elapsed > stats->raster_max_ns){
+      stats->raster_max_ns = elapsed;
+    }
+    if(elapsed < stats->raster_min_ns){
+      stats->raster_min_ns = elapsed;
+    }
+  }
+}
+
 void reset_stats(ncstats* stats){
   uint64_t fbbytes = stats->fbbytes;
   unsigned planes = stats->planes;
