@@ -97,7 +97,7 @@ namespace ncpp
 
 		bool is_double_wide () const noexcept
 		{
-			return cell_double_wide_p (&_cell);
+			return nccell_double_wide_p (&_cell);
 		}
 
 		unsigned get_fg_rgb () const noexcept
@@ -112,12 +112,12 @@ namespace ncpp
 
 		unsigned get_fg_alpha () const noexcept
 		{
-			return cell_fg_alpha (&_cell);
+			return nccell_fg_alpha (&_cell);
 		}
 
 		bool is_fg_default () const noexcept
 		{
-			return cell_fg_default_p (&_cell);
+			return nccell_fg_default_p (&_cell);
 		}
 
 		bool set_fg_alpha (unsigned alpha) noexcept
@@ -127,7 +127,7 @@ namespace ncpp
 
 		unsigned get_bg_alpha () const noexcept
 		{
-			return cell_bg_alpha (&_cell);
+			return nccell_bg_alpha (&_cell);
 		}
 
 		bool set_bg_alpha (unsigned alpha) noexcept
@@ -187,17 +187,17 @@ namespace ncpp
 
 		bool is_bg_default () const noexcept
 		{
-			return cell_bg_default_p (&_cell);
+			return nccell_bg_default_p (&_cell);
 		}
 
 		bool is_wide_right () const noexcept
 		{
-			return cell_wide_right_p (&_cell);
+			return nccell_wide_right_p (&_cell);
 		}
 
 		bool is_wide_left () const noexcept
 		{
-			return cell_wide_left_p (&_cell);
+			return nccell_wide_left_p (&_cell);
 		}
 
 	private:

@@ -362,8 +362,8 @@ TEST_CASE("Plane") {
     REQUIRE(0 < u2);
     REQUIRE(strlen(w1) == u1);
     REQUIRE(strlen(w2) == u2);
-    CHECK(ncstrwidth(w1) == 1 + cell_double_wide_p(&c1));
-    CHECK_FALSE(cell_double_wide_p(&c2));
+    CHECK(ncstrwidth(w1) == 1 + nccell_double_wide_p(&c1));
+    CHECK_FALSE(nccell_double_wide_p(&c2));
     nccell_release(n_, &c1);
     nccell_release(n_, &c2);
   }

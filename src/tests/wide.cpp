@@ -125,13 +125,13 @@ TEST_CASE("Wide") {
     ncplane_at_yx_cell(n_, 0, 0, &c);
     CHECK(0 == strcmp(nccell_extended_gcluster(n_, &c), FROG));
     ncplane_at_yx_cell(n_, 0, 1, &c);
-    CHECK(ncstrwidth(FROG) == 1 + cell_double_wide_p(&c)); // should be wide
+    CHECK(ncstrwidth(FROG) == 1 + nccell_double_wide_p(&c)); // should be wide
     ncplane_at_yx_cell(n_, 0, 2, &c);
     CHECK(0 == strlen(nccell_extended_gcluster(n_, &c))); // should be nothing
     ncplane_at_yx_cell(n_, 1, 0, &c);
     CHECK(0 == strcmp(nccell_extended_gcluster(n_, &c), FROG));
     ncplane_at_yx_cell(n_, 1, 1, &c);
-    CHECK(ncstrwidth(FROG) == 1 + cell_double_wide_p(&c)); //should be wide
+    CHECK(ncstrwidth(FROG) == 1 + nccell_double_wide_p(&c)); //should be wide
     CHECK(0 == notcurses_render(nc_)); // should be nothing
   }
 
@@ -157,7 +157,7 @@ TEST_CASE("Wide") {
     ncplane_at_yx_cell(n_, 0, 1, &c);
     CHECK(0 == strcmp(nccell_extended_gcluster(n_, &c), SNAKE));
     ncplane_at_yx_cell(n_, 0, 2, &c);
-    CHECK(ncstrwidth(SNAKE) == 1 + cell_double_wide_p(&c)); // should be wide
+    CHECK(ncstrwidth(SNAKE) == 1 + nccell_double_wide_p(&c)); // should be wide
     CHECK(0 == notcurses_render(nc_));
   }
 
@@ -210,13 +210,13 @@ TEST_CASE("Wide") {
     ncplane_at_yx_cell(n_, 0, 0, &c);
     CHECK(0 == strcmp(nccell_extended_gcluster(n_, &c), SNAKE));
     ncplane_at_yx_cell(n_, 0, 1, &c);
-    CHECK(ncstrwidth(SNAKE) == 1 + cell_double_wide_p(&c));
+    CHECK(ncstrwidth(SNAKE) == 1 + nccell_double_wide_p(&c));
     ncplane_at_yx_cell(n_, 0, 2, &c);
     CHECK(0 == strcmp(cc, nccell_extended_gcluster(n_, &c))); // should be 'X'
     ncplane_at_yx_cell(n_, 0, 3, &c);
     CHECK(0 == strcmp(nccell_extended_gcluster(n_, &c), SCORPION));
     ncplane_at_yx_cell(n_, 0, 4, &c);
-    CHECK(ncstrwidth(SCORPION) == 1 + cell_double_wide_p(&c));
+    CHECK(ncstrwidth(SCORPION) == 1 + nccell_double_wide_p(&c));
     CHECK(0 == notcurses_render(nc_));
   }
 
@@ -261,15 +261,15 @@ TEST_CASE("Wide") {
     CHECK(0 <= ncplane_putstr(n_, "\u5f62\u5168"));
     nccell c = CELL_TRIVIAL_INITIALIZER;
     ncplane_at_yx_cell(n_, 0, 0, &c);
-    CHECK(cell_double_wide_p(&c));
+    CHECK(nccell_double_wide_p(&c));
     ncplane_at_yx_cell(n_, 0, 1, &c);
-    CHECK(cell_double_wide_p(&c));
+    CHECK(nccell_double_wide_p(&c));
     ncplane_at_yx_cell(n_, 0, 2, &c);
-    CHECK(cell_double_wide_p(&c));
+    CHECK(nccell_double_wide_p(&c));
     ncplane_at_yx_cell(n_, 0, 3, &c);
-    CHECK(cell_double_wide_p(&c));
+    CHECK(nccell_double_wide_p(&c));
     ncplane_at_yx_cell(n_, 0, 4, &c);
-    CHECK(!cell_double_wide_p(&c));
+    CHECK(!nccell_double_wide_p(&c));
     CHECK(0 == notcurses_render(nc_));
     auto egc = notcurses_at_yx(nc_, 0, 0, &c.stylemask, &c.channels);
     REQUIRE(nullptr != egc);
@@ -310,42 +310,42 @@ TEST_CASE("Wide") {
     // should be wide char 1
     CHECK(3 == ncplane_at_yx_cell(n_, 0, 0, &c));
     CHECK(!strcmp("\xe5\x85\xa8", nccell_extended_gcluster(n_, &c)));
-    CHECK(cell_double_wide_p(&c));
+    CHECK(nccell_double_wide_p(&c));
     egc = notcurses_at_yx(nc_, 0, 0, &c.stylemask, &c.channels);
     REQUIRE(egc);
     CHECK(!strcmp("\xe5\x85\xa8", egc));
-    CHECK(cell_double_wide_p(&c));
+    CHECK(nccell_double_wide_p(&c));
     free(egc);
     nccell_init(&c);
     // should be wide char 1 right side
     REQUIRE(0 == ncplane_at_yx_cell(n_, 0, 1, &c));
     CHECK(!strcmp("", nccell_extended_gcluster(n_, &c)));
-    CHECK(cell_double_wide_p(&c));
+    CHECK(nccell_double_wide_p(&c));
     egc = notcurses_at_yx(nc_, 0, 1, &c.stylemask, &c.channels);
     REQUIRE(egc);
     CHECK(!strcmp("", egc));
-    CHECK(cell_double_wide_p(&c));
+    CHECK(nccell_double_wide_p(&c));
     free(egc);
     nccell_init(&c);
 
     // should be wide char 2
     REQUIRE(3 == ncplane_at_yx_cell(n_, 0, 2, &c));
     CHECK(!strcmp("\xe5\xbd\xa2", nccell_extended_gcluster(n_, &c)));
-    CHECK(cell_double_wide_p(&c));
+    CHECK(nccell_double_wide_p(&c));
     egc = notcurses_at_yx(nc_, 0, 2, &c.stylemask, &c.channels);
     REQUIRE(egc);
     CHECK(!strcmp("\xe5\xbd\xa2", egc));
-    CHECK(cell_double_wide_p(&c));
+    CHECK(nccell_double_wide_p(&c));
     free(egc);
     nccell_init(&c);
     // should be wide char 2 right side
     CHECK(0 == ncplane_at_yx_cell(n_, 0, 3, &c));
     CHECK(!strcmp("", nccell_extended_gcluster(n_, &c)));
-    CHECK(cell_double_wide_p(&c));
+    CHECK(nccell_double_wide_p(&c));
     egc = notcurses_at_yx(nc_, 0, 3, &c.stylemask, &c.channels);
     REQUIRE(egc);
     CHECK(!strcmp("", egc));
-    CHECK(cell_double_wide_p(&c));
+    CHECK(nccell_double_wide_p(&c));
     free(egc);
     nccell_init(&c);
 

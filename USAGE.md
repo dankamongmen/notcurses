@@ -1657,8 +1657,8 @@ Unlike the `notcurses` or `ncplane` objects, the definition of `nccell` is
 available to the user. It is somewhat ironic, then, that the user typically
 needn't (and shouldn't) use `nccell`s directly. Use an `nccell` when the EGC
 being output is used several times. In this case, time otherwise spent running
-`cell_load()` (which tokenizes and verifies EGCs) can be saved. It can also be
-useful to use an `ncell` when the same styling is used in a discontinuous
+`nccell_load()` (which tokenizes and verifies EGCs) can be saved. It can also
+be useful to use an `nccell` when the same styling is used in a discontinuous
 manner.
 
 ```c
@@ -1813,10 +1813,10 @@ An `nccell` has three fundamental elements:
 * The Curses-style attributes of the text.
 * The 52 bits of foreground and background RGBA (2x8/8/8/2), plus a few flags.
 
-The EGC should be loaded using `cell_load()`. Either a single NUL-terminated
+The EGC should be loaded using `nccell_load()`. Either a single NUL-terminated
 EGC can be provided, or a string composed of multiple EGCs. In the latter case,
 the first EGC from the string is loaded. Remember, backing storage for the EGC
-is provided by the `ncplane` passed to `cell_load()`; if this `ncplane` is
+is provided by the `ncplane` passed to `nccell_load()`; if this `ncplane` is
 destroyed (or even erased), the `nccell` cannot safely be used. If you're done
 using the `nccell` before being done with the `ncplane`, call `nccell_release()`
 to free up the EGC resources.
@@ -1825,15 +1825,15 @@ to free up the EGC resources.
 // Breaks the UTF-8 string in 'gcluster' down, setting up the nccell 'c'.
 // Returns the number of bytes copied out of 'gcluster', or -1 on failure. The
 // styling of the cell is left untouched, but any resources are released.
-int cell_load(struct ncplane* n, nccell* c, const char* gcluster);
+int nccell_load(struct ncplane* n, nccell* c, const char* gcluster);
 
-// cell_load(), plus blast the styling with 'attr' and 'channels'.
+// nccell_load(), plus blast the styling with 'attr' and 'channels'.
 static inline int
 nccell_prime(struct ncplane* n, nccell* c, const char* gcluster,
            uint32_t stylemask, uint64_t channels){
   c->stylemask = stylemask;
   c->channels = channels;
-  int ret = cell_load(n, c, gcluster);
+  int ret = nccell_load(n, c, gcluster);
   return ret;
 }
 
@@ -1879,19 +1879,19 @@ nccell_styles(const nccell* c){
 // Add the specified styles (in the LSBs) to the cell's existing spec, whether
 // they're actively supported or not.
 static inline void
-cell_on_styles(nccell* c, unsigned stylebits){
+nccell_on_styles(nccell* c, unsigned stylebits){
   c->stylemask |= (stylebits & NCSTYLE_MASK);
 }
 
 // Remove the specified styles (in the LSBs) from the cell's existing spec.
 static inline void
-cell_off_styles(nccell* c, unsigned stylebits){
+nccell_off_styles(nccell* c, unsigned stylebits){
   c->stylemask &= ~(stylebits & NCSTYLE_MASK);
 }
 
 // Is the cell part of a multicolumn element?
 static inline bool
-cell_double_wide_p(const nccell* c){
+nccell_double_wide_p(const nccell* c){
   return (c->width >= 2);
 }
 
@@ -1902,7 +1902,7 @@ nccell_load_char(struct ncplane* n, nccell* c, char ch){
   char gcluster[2];
   gcluster[0] = ch;
   gcluster[1] = '\0';
-  return cell_load(n, c, gcluster);
+  return nccell_load(n, c, gcluster);
 }
 
 // Load a UTF-8 encoded EGC of up to 4 bytes into the nccell 'c'. Returns the
@@ -1913,7 +1913,7 @@ nccell_load_egc32(struct ncplane* n, nccell* c, uint32_t egc){
   egc = htole(egc);
   memcpy(gcluster, &egc, sizeof(egc));
   gcluster[4] = '\0';
-  return cell_load(n, c, gcluster);
+  return nccell_load(n, c, gcluster);
 }
 
 // return a pointer to the NUL-terminated EGC referenced by 'c'. this pointer
@@ -1989,103 +1989,103 @@ all implemented in terms of the lower-level [Channels API](#channels).
 ```c
 // Extract the 32-bit background channel from a cell.
 static inline uint32_t
-cell_bchannel(const nccell* cl){
+nccell_bchannel(const nccell* cl){
   return channels_bchannel(cl->channels);
 }
 
 // Extract the 32-bit foreground channel from a cell.
 static inline uint32_t
-cell_fchannel(const nccell* cl){
+nccell_fchannel(const nccell* cl){
   return channels_fchannel(cl->channels);
 }
 
 // Extract 24 bits of foreground RGB from 'cl', shifted to LSBs.
 static inline uint32_t
-cell_fg_rgb(const nccell* cl){
+nccell_fg_rgb(const nccell* cl){
   return channels_fg_rgb(cl->channels);
 }
 
 // Extract 24 bits of background RGB from 'cl', shifted to LSBs.
 static inline uint32_t
-cell_bg_rgb(const nccell* cl){
+nccell_bg_rgb(const nccell* cl){
   return channels_bg_rgb(cl->channels);
 }
 
 // Extract 2 bits of foreground alpha from 'cl', shifted to LSBs.
 static inline unsigned
-cell_fg_alpha(const nccell* cl){
+nccell_fg_alpha(const nccell* cl){
   return channels_fg_alpha(cl->channels);
 }
 
 // Extract 2 bits of background alpha from 'cl', shifted to LSBs.
 static inline unsigned
-cell_bg_alpha(const nccell* cl){
+nccell_bg_alpha(const nccell* cl){
   return channels_bg_alpha(cl->channels);
 }
 
 // Extract 24 bits of foreground RGB from 'cl', split into subcell.
 static inline uint32_t
-cell_fg_rgb8(const nccell* cl, unsigned* r, unsigned* g, unsigned* b){
+nccell_fg_rgb8(const nccell* cl, unsigned* r, unsigned* g, unsigned* b){
   return channels_fg_rgb8(cl->channels, r, g, b);
 }
 
 // Extract 24 bits of background RGB from 'cl', split into subcell.
 static inline uint32_t
-cell_bg_rgb8(const nccell* cl, unsigned* r, unsigned* g, unsigned* b){
+nccell_bg_rgb8(const nccell* cl, unsigned* r, unsigned* g, unsigned* b){
   return channels_bg_rgb8(cl->channels, r, g, b);
 }
 
 // Set the r, g, and b cell for the foreground component of this 64-bit
 // 'cell' variable, and mark it as not using the default color.
 static inline int
-cell_set_fg_rgb8(nccell* cl, int r, int g, int b){
+nccell_set_fg_rgb8(nccell* cl, int r, int g, int b){
   return channels_set_fg_rgb8(&cl->channels, r, g, b);
 }
 
 // Same, but clipped to [0..255].
 static inline void
-cell_set_fg_rgb8_clipped(nccell* cl, int r, int g, int b){
+nccell_set_fg_rgb8_clipped(nccell* cl, int r, int g, int b){
   channels_set_fg_rgb8_clipped(&cl->channels, r, g, b);
 }
 
 // Same, but with an assembled 24-bit RGB value.
 static inline int
-cell_set_fg_rgb(nccell* c, uint32_t channel){
+nccell_set_fg_rgb(nccell* c, uint32_t channel){
   return channels_set_fg_rgb(&c->channels, channel);
 }
 
 // Set the r, g, and b cell for the background component of this 64-bit
 // 'cell' variable, and mark it as not using the default color.
 static inline int
-cell_set_bg_rgb8(nccell* cl, int r, int g, int b){
+nccell_set_bg_rgb8(nccell* cl, int r, int g, int b){
   return channels_set_bg_rgb8(&cl->channels, r, g, b);
 }
 
 // Same, but clipped to [0..255].
 static inline void
-cell_set_bg_rgb8_clipped(nccell* cl, int r, int g, int b){
+nccell_set_bg_rgb8_clipped(nccell* cl, int r, int g, int b){
   channels_set_bg_rgb8_clipped(&cl->channels, r, g, b);
 }
 
 // Same, but with an assembled 24-bit RGB value.
 static inline int
-cell_set_bg_rgb(nccell* c, uint32_t channel){
+nccell_set_bg_rgb(nccell* c, uint32_t channel){
   return channels_set_bg_rgb(&c->channels, channel);
 }
 
 static inline int
-cell_set_fg_alpha(nccell* c, unsigned alpha){
+nccell_set_fg_alpha(nccell* c, unsigned alpha){
   return channels_set_fg_alpha(&c->channels, alpha);
 }
 
 static inline int
-cell_set_bg_alpha(nccell* c, unsigned alpha){
+nccell_set_bg_alpha(nccell* c, unsigned alpha){
   return channels_set_bg_alpha(&c->channels, alpha);
 }
 
 // Is the foreground using the "default foreground color"?
 static inline bool
-cell_fg_default_p(const nccell* cl){
+nccell_fg_default_p(const nccell* cl){
   return channels_fg_default_p(cl->channels);
 }
 
@@ -2093,19 +2093,19 @@ cell_fg_default_p(const nccell* cl){
 // background color" must generally be used to take advantage of
 // terminal-effected transparency.
 static inline bool
-cell_bg_default_p(const nccell* cl){
+nccell_bg_default_p(const nccell* cl){
   return channels_bg_default_p(cl->channels);
 }
 
 // Use the default color for the foreground.
 static inline void
-cell_set_fg_default(nccell* c){
+nccell_set_fg_default(nccell* c){
   channels_set_fg_default(&c->channels);
 }
 
 // Use the default color for the background.
 static inline void
-cell_set_bg_default(nccell* c){
+nccell_set_bg_default(nccell* c){
   channels_set_bg_default(&c->channels);
 }
 

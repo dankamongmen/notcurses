@@ -41,50 +41,50 @@ TEST_CASE("Palette256") {
   // when we set a palette index, it ought change us from using default
   SUBCASE("FAttributes") {
     nccell c = CELL_TRIVIAL_INITIALIZER;
-    CHECK(cell_fg_default_p(&c));
+    CHECK(nccell_fg_default_p(&c));
     nccell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT);
-    CHECK(0 == cell_set_fg_palindex(&c, 0x20));
-    CHECK(!cell_fg_default_p(&c));
-    CHECK(cell_fg_palindex_p(&c));
-    CHECK(CELL_ALPHA_OPAQUE == cell_fg_alpha(&c));
-    CHECK(0x20 == cell_fg_palindex(&c));
+    CHECK(0 == nccell_set_fg_palindex(&c, 0x20));
+    CHECK(!nccell_fg_default_p(&c));
+    CHECK(nccell_fg_palindex_p(&c));
+    CHECK(CELL_ALPHA_OPAQUE == nccell_fg_alpha(&c));
+    CHECK(0x20 == nccell_fg_palindex(&c));
   }
 
   SUBCASE("BAttributes") {
     nccell c = CELL_TRIVIAL_INITIALIZER;
-    CHECK(cell_bg_default_p(&c));
+    CHECK(nccell_bg_default_p(&c));
     nccell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT);
-    CHECK(0 == cell_set_bg_palindex(&c, 0x20));
-    CHECK(!cell_bg_default_p(&c));
-    CHECK(cell_bg_palindex_p(&c));
-    CHECK(CELL_ALPHA_OPAQUE == cell_bg_alpha(&c));
-    CHECK(0x20 == cell_bg_palindex(&c));
+    CHECK(0 == nccell_set_bg_palindex(&c, 0x20));
+    CHECK(!nccell_bg_default_p(&c));
+    CHECK(nccell_bg_palindex_p(&c));
+    CHECK(CELL_ALPHA_OPAQUE == nccell_bg_alpha(&c));
+    CHECK(0x20 == nccell_bg_palindex(&c));
   }
 
   // write it to an ncplane, and verify attributes via reflection
   SUBCASE("PutCAttrs") {
     nccell c = CELL_TRIVIAL_INITIALIZER;
     CHECK(1 == nccell_load_char(n_, &c, 'X'));
-    CHECK(0 == cell_set_fg_palindex(&c, 0x20));
-    CHECK(0 == cell_set_bg_palindex(&c, 0x40));
+    CHECK(0 == nccell_set_fg_palindex(&c, 0x20));
+    CHECK(0 == nccell_set_bg_palindex(&c, 0x40));
     CHECK(1 == ncplane_putc_yx(n_, 0, 0, &c));
     nccell_release(n_, &c);
     nccell r = CELL_TRIVIAL_INITIALIZER;
     CHECK(0 < ncplane_at_yx_cell(n_, 0, 0, &r));
-    CHECK(cell_fg_palindex_p(&r));
-    CHECK(cell_bg_palindex_p(&r));
-    CHECK(CELL_ALPHA_OPAQUE == cell_fg_alpha(&r));
-    CHECK(CELL_ALPHA_OPAQUE == cell_bg_alpha(&r));
-    CHECK(0x20 == cell_fg_palindex(&r));
-    CHECK(0x40 == cell_bg_palindex(&r));
+    CHECK(nccell_fg_palindex_p(&r));
+    CHECK(nccell_bg_palindex_p(&r));
+    CHECK(CELL_ALPHA_OPAQUE == nccell_fg_alpha(&r));
+    CHECK(CELL_ALPHA_OPAQUE == nccell_bg_alpha(&r));
+    CHECK(0x20 == nccell_fg_palindex(&r));
+    CHECK(0x40 == nccell_bg_palindex(&r));
     nccell_release(n_, &r);
   }
 
   SUBCASE("RenderCAttrs") {
     nccell c = CELL_TRIVIAL_INITIALIZER;
     nccell_load_char(n_, &c, 'X');
-    CHECK(0 == cell_set_fg_palindex(&c, 0x20));
-    CHECK(0 == cell_set_bg_palindex(&c, 0x40));
+    CHECK(0 == nccell_set_fg_palindex(&c, 0x20));
+    CHECK(0 == nccell_set_bg_palindex(&c, 0x40));
     CHECK(0 == ncplane_set_fg_palindex(n_, 0x20));
     CHECK(0 == ncplane_set_bg_palindex(n_, 0x40));
     CHECK(0 < ncplane_putc_yx(n_, 0, 0, &c));
@@ -92,12 +92,12 @@ TEST_CASE("Palette256") {
     CHECK(0 == notcurses_render(nc_));
     nccell r = CELL_TRIVIAL_INITIALIZER;
     CHECK(nullptr != notcurses_at_yx(nc_, 0, 0, &r.stylemask, &r.channels));
-    CHECK(cell_fg_palindex_p(&r));
-    CHECK(cell_bg_palindex_p(&r));
-    CHECK(CELL_ALPHA_OPAQUE == cell_fg_alpha(&r));
-    CHECK(CELL_ALPHA_OPAQUE == cell_bg_alpha(&r));
-    CHECK(0x20 == cell_fg_palindex(&r));
-    CHECK(0x40 == cell_bg_palindex(&r));
+    CHECK(nccell_fg_palindex_p(&r));
+    CHECK(nccell_bg_palindex_p(&r));
+    CHECK(CELL_ALPHA_OPAQUE == nccell_fg_alpha(&r));
+    CHECK(CELL_ALPHA_OPAQUE == nccell_bg_alpha(&r));
+    CHECK(0x20 == nccell_fg_palindex(&r));
+    CHECK(0x40 == nccell_bg_palindex(&r));
     nccell_release(n_, &r);
   }
 

@@ -49,7 +49,7 @@ mathplane(struct notcurses* nc){
 // the closer the coordinate is (lower distance), the more we lighten the cell
 static inline int
 lighten(struct ncplane* n, nccell* c, int distance, int y, int x){
-  if(cell_wide_right_p(c)){ // not really a character
+  if(nccell_wide_right_p(c)){ // not really a character
     return 0;
   }
   unsigned r, g, b;

@@ -788,20 +788,35 @@ cell_set_bg_alpha(nccell* c, int alpha){
 
 // Is the cell part of a multicolumn element?
 static inline bool
-cell_double_wide_p(const nccell* c){
+nccell_double_wide_p(const nccell* c){
   return (c->width >= 2);
+}
+
+__attribute__ ((deprecated)) static inline bool
+cell_double_wide_p(const nccell* c){
+  return nccell_double_wide_p(c);
 }
 
 // Is this the right half of a wide character?
 static inline bool
+nccell_wide_right_p(const nccell* c){
+  return nccell_double_wide_p(c) && c->gcluster == 0;
+}
+
+__attribute__ ((deprecated)) static inline bool
 cell_wide_right_p(const nccell* c){
-  return cell_double_wide_p(c) && c->gcluster == 0;
+  return nccell_wide_right_p(c);
 }
 
 // Is this the left half of a wide character?
 static inline bool
+nccell_wide_left_p(const nccell* c){
+  return nccell_double_wide_p(c) && c->gcluster;
+}
+
+__attribute__ ((deprecated)) static inline bool
 cell_wide_left_p(const nccell* c){
-  return cell_double_wide_p(c) && c->gcluster;
+  return nccell_wide_left_p(c);
 }
 
 // return a pointer to the NUL-terminated EGC referenced by 'c'. this pointer
@@ -2083,14 +2098,24 @@ cell_bg_rgb(const nccell* cl){
 
 // Extract 2 bits of foreground alpha from 'cl', shifted to LSBs.
 static inline uint32_t
-cell_fg_alpha(const nccell* cl){
+nccell_fg_alpha(const nccell* cl){
   return channels_fg_alpha(cl->channels);
+}
+
+__attribute__ ((deprecated)) static inline uint32_t
+cell_fg_alpha(const nccell* cl){
+  return nccell_fg_alpha(cl);
 }
 
 // Extract 2 bits of background alpha from 'cl', shifted to LSBs.
 static inline uint32_t
-cell_bg_alpha(const nccell* cl){
+nccell_bg_alpha(const nccell* cl){
   return channels_bg_alpha(cl->channels);
+}
+
+__attribute__ ((deprecated)) static inline uint32_t
+cell_bg_alpha(const nccell* cl){
+  return nccell_bg_alpha(cl);
 }
 
 // Extract 24 bits of foreground RGB from 'cl', split into components.
@@ -2153,13 +2178,23 @@ cell_set_fg_rgb(nccell* c, uint32_t channel){
 // Set the cell's foreground palette index, set the foreground palette index
 // bit, set it foreground-opaque, and clear the foreground default color bit.
 static inline int
-cell_set_fg_palindex(nccell* cl, int idx){
+nccell_set_fg_palindex(nccell* cl, int idx){
   return channels_set_fg_palindex(&cl->channels, idx);
 }
 
+__attribute__ ((deprecated)) static inline int
+cell_set_fg_palindex(nccell* cl, int idx){
+  return nccell_set_fg_palindex(cl, idx);
+}
+
 static inline uint32_t
-cell_fg_palindex(const nccell* cl){
+nccell_fg_palindex(const nccell* cl){
   return channels_fg_palindex(cl->channels);
+}
+
+__attribute__ ((deprecated)) static inline uint32_t
+cell_fg_palindex(const nccell* cl){
+  return nccell_fg_palindex(cl);
 }
 
 // Set the r, g, and b cell for the background component of this 64-bit
@@ -2195,37 +2230,67 @@ cell_set_bg_rgb(nccell* c, uint32_t channel){
 // Set the cell's background palette index, set the background palette index
 // bit, set it background-opaque, and clear the background default color bit.
 static inline int
-cell_set_bg_palindex(nccell* cl, int idx){
+nccell_set_bg_palindex(nccell* cl, int idx){
   return channels_set_bg_palindex(&cl->channels, idx);
 }
 
+__attribute__ ((deprecated)) static inline int
+cell_set_bg_palindex(nccell* cl, int idx){
+  return nccell_set_bg_palindex(cl, idx);
+}
+
 static inline uint32_t
-cell_bg_palindex(const nccell* cl){
+nccell_bg_palindex(const nccell* cl){
   return channels_bg_palindex(cl->channels);
+}
+
+__attribute__ ((deprecated)) static inline uint32_t
+cell_bg_palindex(const nccell* cl){
+  return nccell_bg_palindex(cl);
 }
 
 // Is the foreground using the "default foreground color"?
 static inline bool
-cell_fg_default_p(const nccell* cl){
+nccell_fg_default_p(const nccell* cl){
   return channels_fg_default_p(cl->channels);
 }
 
+__attribute__ ((deprecated)) static inline bool
+cell_fg_default_p(const nccell* cl){
+  return nccell_fg_default_p(cl);
+}
+
 static inline bool
-cell_fg_palindex_p(const nccell* cl){
+nccell_fg_palindex_p(const nccell* cl){
   return channels_fg_palindex_p(cl->channels);
+}
+
+__attribute__ ((deprecated)) static inline bool
+cell_fg_palindex_p(const nccell* cl){
+  return nccell_fg_palindex_p(cl);
 }
 
 // Is the background using the "default background color"? The "default
 // background color" must generally be used to take advantage of
 // terminal-effected transparency.
 static inline bool
-cell_bg_default_p(const nccell* cl){
+nccell_bg_default_p(const nccell* cl){
   return channels_bg_default_p(cl->channels);
 }
 
+__attribute__ ((deprecated)) static inline bool
+cell_bg_default_p(const nccell* cl){
+  return nccell_bg_default_p(cl);
+}
+
 static inline bool
-cell_bg_palindex_p(const nccell* cl){
+nccell_bg_palindex_p(const nccell* cl){
   return channels_bg_palindex_p(cl->channels);
+}
+
+__attribute__ ((deprecated)) static inline bool
+cell_bg_palindex_p(const nccell* cl){
+  return nccell_bg_palindex_p(cl);
 }
 
 // Extract the 32-bit working background channel from an ncplane.

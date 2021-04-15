@@ -205,7 +205,7 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
       struct crender* crender = &rvec[fbcellidx(absy, dstlenx, absx)];
 //fprintf(stderr, "p: %p damaged: %u %d/%d\n", p, crender->s.damaged, y, x);
       nccell* targc = &crender->c;
-      if(cell_wide_right_p(targc)){
+      if(nccell_wide_right_p(targc)){
         continue;
       }
       const nccell* vis = &p->fb[nfbcellidx(p, y, x)];
@@ -218,17 +218,17 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
         continue;
       }
 
-      if(cell_fg_alpha(targc) > CELL_ALPHA_OPAQUE){
+      if(nccell_fg_alpha(targc) > CELL_ALPHA_OPAQUE){
         vis = &p->fb[nfbcellidx(p, y, x)];
-        if(cell_fg_default_p(vis)){
+        if(nccell_fg_default_p(vis)){
           vis = &p->basecell;
         }
-        if(cell_fg_palindex_p(vis)){
-          if(cell_fg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
-            cell_set_fg_palindex(targc, cell_fg_palindex(vis));
+        if(nccell_fg_palindex_p(vis)){
+          if(nccell_fg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
+            nccell_set_fg_palindex(targc, nccell_fg_palindex(vis));
           }
         }else{
-          if(cell_fg_alpha(vis) == CELL_ALPHA_HIGHCONTRAST){
+          if(nccell_fg_alpha(vis) == CELL_ALPHA_HIGHCONTRAST){
             crender->s.highcontrast = true;
             crender->s.hcfgblends = crender->s.fgblends;
             crender->hcfg = cell_fchannel(targc);
@@ -250,19 +250,19 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
       // If it's transparent, it has no effect. Otherwise, update the
       // background channel and balpha.
       // Evaluate the background first, in case we have HIGHCONTRAST fg text.
-      if(cell_bg_alpha(targc) > CELL_ALPHA_OPAQUE){
+      if(nccell_bg_alpha(targc) > CELL_ALPHA_OPAQUE){
         vis = &p->fb[nfbcellidx(p, y, x)];
         // to be on the blitter stacking path, we need
         //  1) crender->s.blittedquads to be non-zero (we're below semigraphics)
         //  2) cell_blittedquadrants(vis) to be non-zero (we're semigraphics)
         //  3) somewhere crender is 0, blittedquads is 1 (we're visible)
         if(!crender->s.blittedquads || !((~crender->s.blittedquads) & cell_blittedquadrants(vis))){
-          if(cell_bg_default_p(vis)){
+          if(nccell_bg_default_p(vis)){
             vis = &p->basecell;
           }
-          if(cell_bg_palindex_p(vis)){
-            if(cell_bg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
-              cell_set_bg_palindex(targc, cell_bg_palindex(vis));
+          if(nccell_bg_palindex_p(vis)){
+            if(nccell_bg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
+              nccell_set_bg_palindex(targc, nccell_bg_palindex(vis));
             }
           }else{
             unsigned bgblends = crender->s.bgblends;
@@ -270,12 +270,12 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
             crender->s.bgblends = bgblends;
           }
         }else{ // use the local foreground; we're stacking blittings
-          if(cell_fg_default_p(vis)){
+          if(nccell_fg_default_p(vis)){
             vis = &p->basecell;
           }
-          if(cell_fg_palindex_p(vis)){
-            if(cell_bg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
-              cell_set_bg_palindex(targc, cell_fg_palindex(vis));
+          if(nccell_fg_palindex_p(vis)){
+            if(nccell_bg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
+              nccell_set_bg_palindex(targc, nccell_fg_palindex(vis));
             }
           }else{
             unsigned bgblends = crender->s.bgblends;
@@ -295,7 +295,7 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
       // from cells underneath us.
       if(!crender->p){
         vis = &p->fb[nfbcellidx(p, y, x)];
-        if(vis->gcluster == 0 && !cell_double_wide_p(vis)){
+        if(vis->gcluster == 0 && !nccell_double_wide_p(vis)){
           vis = &p->basecell;
         }
         // if the following is true, we're a real glyph, and not the right-hand
@@ -307,7 +307,7 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
           crender->s.blittedquads = cell_blittedquadrants(vis);
           // we can't plop down a wide glyph if the next cell is beyond the
           // screen, nor if we're bisected by a higher plane.
-          if(cell_double_wide_p(vis)){
+          if(nccell_double_wide_p(vis)){
             // are we on the last column of the real screen? if so, 0x20 us
             if(absx >= dstlenx - 1){
               targc->gcluster = htole(' ');
@@ -326,7 +326,7 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
             targc->width = vis->width;
           }
           crender->p = p;
-        }else if(cell_wide_right_p(vis)){
+        }else if(nccell_wide_right_p(vis)){
           crender->p = p;
           targc->width = 0;
         }
@@ -352,15 +352,15 @@ init_rvec(struct crender* rvec, int totalcells){
 // against the real background.
 static inline void
 lock_in_highcontrast(nccell* targc, struct crender* crender){
-  if(cell_fg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
+  if(nccell_fg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
     nccell_set_fg_default(targc);
   }
-  if(cell_bg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
+  if(nccell_bg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
     nccell_set_bg_default(targc);
   }
   if(crender->s.highcontrast){
     // highcontrast weighs the original at 1/4 and the contrast at 3/4
-    if(!cell_fg_default_p(targc)){
+    if(!nccell_fg_default_p(targc)){
       unsigned fgblends = 3;
       uint32_t fchan = cell_fchannel(targc);
       uint32_t bchan = cell_bchannel(targc);
@@ -387,7 +387,7 @@ postpaint_cell(nccell* lastframe, int dimx, struct crender* crender,
   if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc) > 0){
 //fprintf(stderr, "damaging due to cmp\n");
     crender->s.damaged = 1;
-    assert(!cell_wide_right_p(targc));
+    assert(!nccell_wide_right_p(targc));
     const int width = targc->width;
     for(int i = 1 ; i < width ; ++i){
       const ncplane* tmpp = crender->p;
@@ -808,7 +808,7 @@ raster_defaults(notcurses* nc, bool fgdef, bool bgdef, FILE* out){
 // these are unlikely, so we leave it uninlined
 static int
 emit_fg_palindex(notcurses* nc, FILE* out, const nccell* srccell){
-  unsigned palfg = cell_fg_palindex(srccell);
+  unsigned palfg = nccell_fg_palindex(srccell);
   // we overload lastr for the palette index; both are 8 bits
   if(nc->rstate.fgpalelidable && nc->rstate.lastr == palfg){
     ++nc->stats.fgelisions;
@@ -827,7 +827,7 @@ emit_fg_palindex(notcurses* nc, FILE* out, const nccell* srccell){
 
 static int
 emit_bg_palindex(notcurses* nc, FILE* out, const nccell* srccell){
-  unsigned palbg = cell_bg_palindex(srccell);
+  unsigned palbg = nccell_bg_palindex(srccell);
   if(nc->rstate.bgpalelidable && nc->rstate.lastbr == palbg){
     ++nc->stats.bgelisions;
   }else{
@@ -930,7 +930,7 @@ rasterize_core(notcurses* nc, const ncpile* p, FILE* out, unsigned phase){
         // no need to emit a cell; what we rendered appears to already be
         // here. no updates are performed to elision state nor lastframe.
         ++nc->stats.cellelisions;
-        if(cell_wide_left_p(srccell)){
+        if(nccell_wide_left_p(srccell)){
           ++x;
         }
       }else if(phase != 0 || !rvec[damageidx].s.p_beats_sprixel){
@@ -952,9 +952,9 @@ rasterize_core(notcurses* nc, const ncpile* p, FILE* out, unsigned phase){
         //  * we are a no-foreground glyph, and the previous was default background, or
         //  * we are a no-background glyph, and the previous was default foreground
         bool nobackground = cell_nobackground_p(srccell);
-        if((cell_fg_default_p(srccell)) || (!nobackground && cell_bg_default_p(srccell))){
-          if(raster_defaults(nc, cell_fg_default_p(srccell),
-                            !nobackground && cell_bg_default_p(srccell), out)){
+        if((nccell_fg_default_p(srccell)) || (!nobackground && nccell_bg_default_p(srccell))){
+          if(raster_defaults(nc, nccell_fg_default_p(srccell),
+                            !nobackground && nccell_bg_default_p(srccell), out)){
             return -1;
           }
         }
@@ -962,11 +962,11 @@ rasterize_core(notcurses* nc, const ncpile* p, FILE* out, unsigned phase){
         // non-default foreground set iff either:
         //  * the previous was non-default, and matches what we have now, or
         //  * we are a no-foreground glyph (iswspace() is true)
-        if(cell_fg_palindex_p(srccell)){ // palette-indexed foreground
+        if(nccell_fg_palindex_p(srccell)){ // palette-indexed foreground
           if(emit_fg_palindex(nc, out, srccell)){
             return -1;
           }
-        }else if(!cell_fg_default_p(srccell)){ // rgb foreground
+        }else if(!nccell_fg_default_p(srccell)){ // rgb foreground
           nccell_fg_rgb8(srccell, &r, &g, &b);
           if(nc->rstate.fgelidable && nc->rstate.lastr == r && nc->rstate.lastg == g && nc->rstate.lastb == b){
             ++nc->stats.fgelisions;
@@ -987,11 +987,11 @@ rasterize_core(notcurses* nc, const ncpile* p, FILE* out, unsigned phase){
         //  * the previous was non-default, and matches what we have now, or
         if(nobackground){
           ++nc->stats.bgelisions;
-        }else if(cell_bg_palindex_p(srccell)){ // palette-indexed background
+        }else if(nccell_bg_palindex_p(srccell)){ // palette-indexed background
           if(emit_bg_palindex(nc, out, srccell)){
             return -1;
           }
-        }else if(!cell_bg_default_p(srccell)){ // rgb background
+        }else if(!nccell_bg_default_p(srccell)){ // rgb background
           nccell_bg_rgb8(srccell, &br, &bg, &bb);
           if(nc->rstate.bgelidable && nc->rstate.lastbr == br && nc->rstate.lastbg == bg && nc->rstate.lastbb == bb){
             ++nc->stats.bgelisions;

@@ -57,19 +57,19 @@ typedef struct nccell {
 
 **bool nccellcmp(const struct ncplane* ***n1***, const nccell* ***c1***, const struct ncplane* ***n2***, const nccell* ***c2***);**
 
-**void cell_on_styles(nccell* ***c***, unsigned ***stylebits***);**
+**void nccell_on_styles(nccell* ***c***, unsigned ***stylebits***);**
 
-**void cell_off_styles(nccell* ***c***, unsigned ***stylebits***);**
+**void nccell_off_styles(nccell* ***c***, unsigned ***stylebits***);**
 
-**void cell_set_fg_default(nccell* ***c***);**
+**void nccell_set_fg_default(nccell* ***c***);**
 
-**void cell_set_bg_default(nccell* ***c***);**
+**void nccell_set_bg_default(nccell* ***c***);**
 
-**int cell_set_fg_alpha(nccell* ***c***, unsigned ***alpha***);**
+**int nccell_set_fg_alpha(nccell* ***c***, unsigned ***alpha***);**
 
-**int cell_set_bg_alpha(nccell* ***c***, unsigned ***alpha***);**
+**int nccell_set_bg_alpha(nccell* ***c***, unsigned ***alpha***);**
 
-**bool cell_double_wide_p(const nccell* ***c***);**
+**bool nccell_double_wide_p(const nccell* ***c***);**
 
 **const char* nccell_extended_gcluster(const struct ncplane* ***n***, const nccell* ***c***);**
 
@@ -79,43 +79,43 @@ typedef struct nccell {
 
 **int nccell_load_egc32(struct ncplane* ***n***, nccell* ***c***, uint32_t ***egc***);**
 
-**char* cell_extract(const struct ncplane* ***n***, const nccell* ***c***, uint16_t* ***stylemask***, uint64_t* ***channels***);**
+**char* nccell_extract(const struct ncplane* ***n***, const nccell* ***c***, uint16_t* ***stylemask***, uint64_t* ***channels***);**
 
-**uint32_t cell_bchannel(const nccell* ***c***);**
+**uint32_t nccell_bchannel(const nccell* ***c***);**
 
-**uint32_t cell_fchannel(const nccell* ***c***);**
+**uint32_t nccell_fchannel(const nccell* ***c***);**
 
-**uint64_t cell_set_bchannel(nccell* ***c***, uint32_t ***channel***);**
+**uint64_t nccell_set_bchannel(nccell* ***c***, uint32_t ***channel***);**
 
-**uint64_t cell_set_fchannel(nccell* ***c***, uint32_t ***channel***);**
+**uint64_t nccell_set_fchannel(nccell* ***c***, uint32_t ***channel***);**
 
-**uint32_t cell_fg_rgb(const nccell* ***c***);**
+**uint32_t nccell_fg_rgb(const nccell* ***c***);**
 
-**uint32_t cell_bg_rgb(const nccell* ***c***);**
+**uint32_t nccell_bg_rgb(const nccell* ***c***);**
 
-**unsigned cell_fg_alpha(const nccell* ***c***);**
+**unsigned nccell_fg_alpha(const nccell* ***c***);**
 
-**unsigned cell_bg_alpha(const nccell* ***c***);**
+**unsigned nccell_bg_alpha(const nccell* ***c***);**
 
-**unsigned cell_fg_rgb8(const nccell* ***c***, unsigned* ***r***, unsigned* ***g***, unsigned* ***b***);**
+**unsigned nccell_fg_rgb8(const nccell* ***c***, unsigned* ***r***, unsigned* ***g***, unsigned* ***b***);**
 
-**unsigned cell_bg_rgb8(const ncell* ***c***, unsigned* ***r***, unsigned* ***g***, unsigned* ***b***);**
+**unsigned nccell_bg_rgb8(const ncell* ***c***, unsigned* ***r***, unsigned* ***g***, unsigned* ***b***);**
 
-**int cell_set_fg_rgb8(nccell* ***c***, int ***r***, int ***g***, int ***b***);**
+**int nccell_set_fg_rgb8(nccell* ***c***, int ***r***, int ***g***, int ***b***);**
 
-**int cell_set_bg_rgb8(nccell* ***c***, int ***r***, int ***g***, int ***b***);**
+**int nccell_set_bg_rgb8(nccell* ***c***, int ***r***, int ***g***, int ***b***);**
 
-**void cell_set_fg_rgb8_clipped(nccell* ***c***, int ***r***, int ***g***, int ***b***);**
+**void nccell_set_fg_rgb8_clipped(nccell* ***c***, int ***r***, int ***g***, int ***b***);**
 
-**void cell_set_bg_rgb8_clipped(nccell* ***c***, int ***r***, int ***g***, int ***b***);**
+**void nccell_set_bg_rgb8_clipped(nccell* ***c***, int ***r***, int ***g***, int ***b***);**
 
-**int cell_set_fg_rgb(nccell* ***c***, uint32_t ***channel***);**
+**int nccell_set_fg_rgb(nccell* ***c***, uint32_t ***channel***);**
 
-**int cell_set_bg_rgb(nccell* ***c***, uint32_t ***channel***);**
+**int nccell_set_bg_rgb(nccell* ***c***, uint32_t ***channel***);**
 
-**bool cell_fg_default_p(const nccell* ***c***);**
+**bool nccell_fg_default_p(const nccell* ***c***);**
 
-**bool cell_bg_default_p(const nccell* ***c***);**
+**bool nccell_bg_default_p(const nccell* ***c***);**
 
 **int ncstrwidth(const char* ***text***)**;
 
@@ -151,7 +151,7 @@ A heap-allocated copy can be acquired with **nccell_strdup**.
 EGC, or -1 on failure. They can fail due to either an invalid UTF-8 input, or the
 backing egcpool reaching its maximum size.
 
-**cell_set_fg_rgb8** and similar functions will return -1 if provided invalid
+**nccell_set_fg_rgb8** and similar functions will return -1 if provided invalid
 inputs, and 0 otherwise.
 
 **nccellcmp** returns a negative integer, 0, or a positive integer if ***c1*** is

@@ -353,7 +353,7 @@ query_sixel(tinfo* ti, int fd){
   // perhaps the most lackadaisical response is that of st, which returns a
   // bare ESC[?6c (note no semicolon). this is equivalent to alacritty's
   // return, both suggesting a VT102. alacritty's miraculous technicolor VT102
-  // can display sixel, but real VT102s can even reply to XTSMGRAPHICS, so we
+  // can display sixel, but real VT102s don't even reply to XTSMGRAPHICS, so we
   // detect VT102 + TERM including alacritty, and special-case that.
   // FIXME need unit tests on this
   enum {

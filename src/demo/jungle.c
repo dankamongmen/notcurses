@@ -26622,15 +26622,15 @@ int jungle_demo(struct notcurses* nc){
       for(size_t x = 1 ; x < ORIGWIDTH ; x += xiter){
         int idx = y * ORIGWIDTH + x;
         int idx2 = (y + yiter) * ORIGWIDTH + x;
-        if(cell_set_fg_palindex(&c, buf[idx])){
+        if(nccell_set_fg_palindex(&c, buf[idx])){
                 return -1;
         }
         if(y + yiter < ORIGHEIGHT){
-          if(cell_set_bg_palindex(&c, buf[idx2])){
+          if(nccell_set_bg_palindex(&c, buf[idx2])){
             return -1;
           }
         }else{
-          if(cell_set_bg_palindex(&c, 0)){
+          if(nccell_set_bg_palindex(&c, 0)){
             return -1;
           }
         }

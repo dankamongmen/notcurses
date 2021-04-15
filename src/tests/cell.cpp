@@ -125,13 +125,13 @@ TEST_CASE("Cell") {
     CHECK(0 > nccell_set_fg_alpha(&c, -1));
     CHECK(0 > nccell_set_fg_alpha(&c, 4));
     CHECK(0 == nccell_set_fg_alpha(&c, CELL_ALPHA_OPAQUE));
-    CHECK(cell_fg_default_p(&c));
-    CHECK(cell_bg_default_p(&c));
-    CHECK(CELL_ALPHA_OPAQUE == cell_fg_alpha(&c));
+    CHECK(nccell_fg_default_p(&c));
+    CHECK(nccell_bg_default_p(&c));
+    CHECK(CELL_ALPHA_OPAQUE == nccell_fg_alpha(&c));
     CHECK(0 == nccell_set_fg_alpha(&c, CELL_ALPHA_HIGHCONTRAST));
-    CHECK(CELL_ALPHA_HIGHCONTRAST == cell_fg_alpha(&c));
-    CHECK(!cell_fg_default_p(&c));
-    CHECK(cell_bg_default_p(&c));
+    CHECK(CELL_ALPHA_HIGHCONTRAST == nccell_fg_alpha(&c));
+    CHECK(!nccell_fg_default_p(&c));
+    CHECK(nccell_bg_default_p(&c));
   }
 
   SUBCASE("CellSetBGAlpha"){
@@ -139,12 +139,12 @@ TEST_CASE("Cell") {
     CHECK(0 > nccell_set_bg_alpha(&c, -1));
     CHECK(0 > nccell_set_bg_alpha(&c, 4));
     CHECK(0 == nccell_set_bg_alpha(&c, CELL_ALPHA_OPAQUE));
-    CHECK(CELL_ALPHA_OPAQUE == cell_bg_alpha(&c));
+    CHECK(CELL_ALPHA_OPAQUE == nccell_bg_alpha(&c));
     CHECK(0 != nccell_set_bg_alpha(&c, CELL_ALPHA_HIGHCONTRAST));
     CHECK(0 == nccell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT));
-    CHECK(CELL_ALPHA_TRANSPARENT == cell_bg_alpha(&c));
-    CHECK(cell_fg_default_p(&c));
-    CHECK(!cell_bg_default_p(&c));
+    CHECK(CELL_ALPHA_TRANSPARENT == nccell_bg_alpha(&c));
+    CHECK(nccell_fg_default_p(&c));
+    CHECK(!nccell_bg_default_p(&c));
   }
 
   // white on a black background ought be unmolested for highcontrast

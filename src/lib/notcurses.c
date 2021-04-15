@@ -1280,7 +1280,7 @@ int ncplane_set_bg_palindex(ncplane* n, int idx){
 }
 
 int ncplane_set_base_cell(ncplane* ncp, const nccell* c){
-  if(cell_wide_right_p(c)){
+  if(nccell_wide_right_p(c)){
     return -1;
   }
   return nccell_duplicate(ncp, &ncp->basecell, c);
@@ -1475,7 +1475,7 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
   // wide chars, totalling four columns.
   nccell* targ = ncplane_cell_ref_yx(n, n->y, n->x);
   if(n->x > 0){
-    if(cell_double_wide_p(targ)){ // replaced cell is half of a wide char
+    if(nccell_double_wide_p(targ)){ // replaced cell is half of a wide char
       nccell* sacrifice = targ->gcluster == 0 ?
         // right half will never be on the first column of a row
         &n->fb[nfbcellidx(n, n->y, n->x - 1)] :
@@ -1489,12 +1489,12 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
   if(cell_load_direct(n, targ, egc, bytes, cols) < 0){
     return -1;
   }
-//fprintf(stderr, "%08x %016lx %c %d %d\n", targ->gcluster, targ->channels, cell_double_wide_p(targ) ? 'D' : 'd', bytes, cols);
+//fprintf(stderr, "%08x %016lx %c %d %d\n", targ->gcluster, targ->channels, nccell_double_wide_p(targ) ? 'D' : 'd', bytes, cols);
   // must set our right hand sides wide, and check for further damage
   ++n->x;
   for(int i = 1 ; i < cols ; ++i){
     nccell* candidate = &n->fb[nfbcellidx(n, n->y, n->x)];
-    if(cell_wide_left_p(candidate)){
+    if(nccell_wide_left_p(candidate)){
       nccell_obliterate(n, &n->fb[nfbcellidx(n, n->y, n->x + 1)]);
     }
     nccell_release(n, candidate);
@@ -1507,7 +1507,7 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
 }
 
 int ncplane_putc_yx(ncplane* n, int y, int x, const nccell* c){
-  const int cols = cell_double_wide_p(c) ? 2 : 1;
+  const int cols = nccell_double_wide_p(c) ? 2 : 1;
   const char* egc = nccell_extended_gcluster(n, c);
   return ncplane_put(n, y, x, egc, cols, c->stylemask, c->channels, strlen(egc));
 }
