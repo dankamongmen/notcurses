@@ -59,7 +59,12 @@ base64_rgba3(const uint32_t* pixels, size_t pcount, char* b64, bool wipe[static 
   unsigned r = ncpixel_r(pixel);
   unsigned g = ncpixel_g(pixel);
   unsigned b = ncpixel_b(pixel);
-  unsigned a = wipe[0] ? 0 : rgba_trans_p(pixel, transcolor) ? 0 : 255;
+  // we go ahead and take advantage of kitty's ability to reproduce 8-bit
+  // alphas by copying it in directly, rather than mapping to {0, 255}.
+  unsigned a = ncpixel_a(pixel);
+  if(wipe[0] || rgba_trans_p(pixel, transcolor)){
+    a = 0;
+  }
   b64[0] = b64subs[(r & 0xfc) >> 2];
   b64[1] = b64subs[(r & 0x3 << 4) | ((g & 0xf0) >> 4)];
   b64[2] = b64subs[((g & 0xf) << 2) | ((b & 0xc0) >> 6)];
