@@ -111,7 +111,8 @@ typedef enum {
 //
 // when a sprixel is removed from the rendering pile, in Sixel all cells it
 // covered must be marked damaged, so that they are rendered, obliterating
-// the bitmap. in Kitty the bitmap can simply be deleted.
+// the bitmap. in Kitty the bitmap can simply be deleted, except for those
+// cells which were SPRIXCELL_OPAQUE (they must be damaged).
 //
 // when a sprixel is moved, its TAM must be updated. OPAQUE, MIXED, and
 // TRANSPARENT cells retain their entries. ANNIHILATED cells remain
@@ -922,7 +923,8 @@ int sprite_draw(const notcurses* n, const ncpile *p, sprixel* s, FILE* out);
 int kitty_draw(const notcurses* n, const ncpile *p, sprixel* s, FILE* out);
 int sixel_draw(const notcurses* n, const ncpile *p, sprixel* s, FILE* out);
 // dimy and dimx are cell geometry, not pixel. takes ownership of s on success.
-sprixel* sprixel_alloc(ncplane* n, struct ncvisual* ncv, int dimy, int dimx);
+sprixel* sprixel_alloc(ncplane* n, struct ncvisual* ncv, int dimy, int dimx,
+                       int placey, int placex);
 sprixel* sprixel_recycle(ncplane* n, struct ncvisual* ncv);
 int sprixel_load(sprixel* spx, char* s, int bytes, int placey, int placex,
                  int pixy, int pixx, int parse_start);

@@ -694,7 +694,7 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
     if(n->sprite){
       sprixel_hide(n->sprite);
     }
-    if((ncv->spx = sprixel_alloc(n, ncv, rows, cols)) == NULL){
+    if((ncv->spx = sprixel_alloc(n, ncv, rows, cols, placey, placex)) == NULL){
       goto err;
     }
   }else{
