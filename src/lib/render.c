@@ -386,7 +386,13 @@ postpaint_cell(nccell* lastframe, int dimx, struct crender* crender,
   nccell* prevcell = &lastframe[fbcellidx(y, dimx, *x)];
   if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc) > 0){
 //fprintf(stderr, "damaging due to cmp\n");
-    crender->s.damaged = 1;
+    if(crender->sprixel){
+      if(!crender->s.p_beats_sprixel && sprixel_state(crender->sprixel, y, *x) != SPRIXCELL_OPAQUE){
+        crender->s.damaged = 1;
+      }
+    }else{
+      crender->s.damaged = 1;
+    }
     assert(!nccell_wide_right_p(targc));
     const int width = targc->width;
     for(int i = 1 ; i < width ; ++i){

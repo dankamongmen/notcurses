@@ -948,6 +948,7 @@ static inline bool sprixel_kitty_p(const tinfo* t){
 static inline sprixcell_e sprixel_state(sprixel* s, int y, int x){
   int localy = y - s->n->absy;
   int localx = x - s->n->absx;
+//fprintf(stderr, "TAM %d at %d/%d (%d/%d)\n", s->n->tacache[localy * s->dimx + localx], localy, localx, y, x);
   return s->n->tacache[localy * s->dimx + localx];
 }
 
