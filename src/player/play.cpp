@@ -323,18 +323,16 @@ int direct_mode_player(int argc, char** argv, ncscale_e scalemode,
     }
   }
   for(auto i = 0 ; i < argc ; ++i){
-    /*
     auto faken = dm.prep_image(argv[i], blitter, scalemode, -1,
                                dm.get_dim_x() - (lmargin + rmargin));
     if(!faken){
       failed = true;
       break;
     }
-    */
+    // FIXME need to free faken
     // FIXME we want to honor the different left and right margins, but that
     // would require raster_image() knowing how far over we were starting for
     // multiline cellular blittings...
-    (void)rmargin;
     ncpp::NCAlign a;
     if(blitter == NCBLIT_PIXEL){
       printf("%*.*s", lmargin, lmargin, "");
@@ -342,12 +340,6 @@ int direct_mode_player(int argc, char** argv, ncscale_e scalemode,
     }else{
       a = NCAlign::Center;
     }
-    /*
-    if(dm.raster_image(faken, a)){
-      failed = true;
-      break;
-    }
-    */
     int y, x;
     dm.get_cursor_yx(&y, &x);
     if(x){
