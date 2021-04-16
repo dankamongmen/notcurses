@@ -322,6 +322,7 @@ int direct_mode_player(int argc, char** argv, ncscale_e scalemode,
       blitter = NCBLIT_DEFAULT;
     }
   }
+  dm.cursor_disable();
   for(auto i = 0 ; i < argc ; ++i){
     auto faken = dm.prep_image(argv[i], blitter, scalemode, -1,
                                dm.get_dim_x() - (lmargin + rmargin));
@@ -354,6 +355,7 @@ int direct_mode_player(int argc, char** argv, ncscale_e scalemode,
       failed = true;
     }
   }
+  dm.cursor_enable();
   return failed ? -1 : 0;
 }
 
