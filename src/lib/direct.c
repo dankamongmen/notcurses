@@ -509,7 +509,7 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv, ncblitter_e blitfxn,
       disprows = dimy * encoding_y_scale(&n->tcache, bset);
     }else{
       dispcols = dimx * n->tcache.cellpixx;
-      disprows = dimy * n->tcache.cellpixy;
+      disprows = (dimy - 1) * n->tcache.cellpixy;
     }
     if(scale == NCSCALE_SCALE || scale == NCSCALE_SCALE_HIRES){
       scale_visual(ncv, &disprows, &dispcols);
