@@ -27,7 +27,7 @@ Only applies to multiframe media such as video and animated images. Not supporte
 the "press any key to continue" prompt will not be displayed. **seconds** may
 be any non-negative number.
 
-**-l** ***loglevel***: Log everything (high log level) or nothing (log level 0) to stderr.
+**-l** ***loglevel***: Log between everything (loglevel 8) and nothing (loglevel 0) to stderr.
 
 **-s** ***scalemode***: Scaling mode, one of **none**, **hires**, **scale**, **scalehi**, or **stretch**.
 
