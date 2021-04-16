@@ -917,8 +917,6 @@ int sprite_kitty_cell_wipe(const notcurses* nc, sprixel* s, int y, int x);
 int sixel_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell);
 int sprite_destroy(const struct notcurses* nc, const struct ncpile* p, FILE* out, sprixel* s);
 void sprixel_free(sprixel* s);
-void sprixel_invalidate(sprixel* s, int y, int x);
-void sprixel_movefrom(sprixel* s, int y, int x);
 void sprixel_hide(sprixel* s);
 int sprite_draw(const notcurses* n, const ncpile *p, sprixel* s, FILE* out);
 int kitty_draw(const notcurses* n, const ncpile *p, sprixel* s, FILE* out);
@@ -937,6 +935,22 @@ int sprite_init(const notcurses* nc);
 int kitty_shutdown(int fd);
 int sixel_shutdown(int fd);
 sprixel* sprixel_by_id(const notcurses* nc, uint32_t id);
+// these three all use absolute coordinates
+void sprixel_invalidate(sprixel* s, int y, int x);
+void sprixel_movefrom(sprixel* s, int y, int x);
+
+// is the sprixel backend kitty?
+static inline bool sprixel_kitty_p(const tinfo* t){
+  return t->pixel_shutdown == kitty_shutdown;
+}
+
+// get the TAM entry for these (absolute) coordinates
+static inline sprixcell_e sprixel_state(sprixel* s, int y, int x){
+  int localy = y - s->n->absy;
+  int localx = x - s->n->absx;
+  return s->n->tacache[localy * s->dimx + localx];
+}
+
 
 static inline void
 pool_release(egcpool* pool, nccell* c){
