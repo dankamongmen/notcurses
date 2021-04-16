@@ -324,12 +324,6 @@ int direct_mode_player(int argc, char** argv, ncscale_e scalemode,
   }
   dm.cursor_disable();
   for(auto i = 0 ; i < argc ; ++i){
-    auto faken = dm.prep_image(argv[i], blitter, scalemode, -1,
-                               dm.get_dim_x() - (lmargin + rmargin));
-    if(!faken){
-      failed = true;
-      break;
-    }
     // FIXME need to free faken
     // FIXME we want to honor the different left and right margins, but that
     // would require raster_image() knowing how far over we were starting for
@@ -341,11 +335,6 @@ int direct_mode_player(int argc, char** argv, ncscale_e scalemode,
     }else{
       a = NCAlign::Center;
     }
-    int y, x;
-    dm.get_cursor_yx(&y, &x);
-    if(x){
-      std::cout << std::endl;
-    }
     struct ncvisual_options vopts{};
     vopts.blitter = blitter;
     vopts.scaling = scalemode;
@@ -353,6 +342,11 @@ int direct_mode_player(int argc, char** argv, ncscale_e scalemode,
     vopts.flags = NCVISUAL_OPTION_HORALIGNED;
     if(dm.streamfile(argv[i], perframe_direct, &vopts, NULL)){
       failed = true;
+    }
+    int y, x;
+    dm.get_cursor_yx(&y, &x);
+    if(x){
+      std::cout << std::endl;
     }
   }
   dm.cursor_enable();

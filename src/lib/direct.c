@@ -1148,5 +1148,6 @@ int ncdirect_stream(ncdirect* n, const char* filename, ncstreamcb streamer,
     streamer(ncv, vopts, NULL, curry);
   }while(ncvisual_decode(ncv) == 0);
   ncvisual_destroy(ncv);
+  // FIXME needn't we free v also?
   return 0;
 }
