@@ -24,10 +24,8 @@ sprixel* sprixel_recycle(ncplane* n, ncvisual* ncv){
     assert(hides);
     int dimy = hides->dimy;
     int dimx = hides->dimx;
-    int y = hides->y;
-    int x = hides->x;
     sprixel_hide(hides);
-    return sprixel_alloc(n, ncv, dimy, dimx, y, x);
+    return sprixel_alloc(n, ncv, dimy, dimx);
   }
   return n->sprite;
 }
@@ -37,7 +35,6 @@ sprixel* sprixel_recycle(ncplane* n, ncvisual* ncv){
 void sprixel_movefrom(sprixel* s, int y, int x){
   if(s->invalidated != SPRIXEL_HIDE){
     if(s->invalidated != SPRIXEL_MOVED){
-//fprintf(stderr, "SETTING TO MOVE: %d/%d was: %d\n", y, x, s->invalidated);
       s->invalidated = SPRIXEL_MOVED;
       s->movedfromy = y;
       s->movedfromx = x;
@@ -86,8 +83,7 @@ sprixel* sprixel_by_id(const notcurses* nc, uint32_t id){
   return NULL;
 }
 
-sprixel* sprixel_alloc(ncplane* n, ncvisual* ncv, int dimy, int dimx,
-                       int placey, int placex){
+sprixel* sprixel_alloc(ncplane* n, ncvisual* ncv, int dimy, int dimx){
   sprixel* ret = malloc(sizeof(sprixel));
   if(ret){
     memset(ret, 0, sizeof(*ret));
@@ -95,8 +91,6 @@ sprixel* sprixel_alloc(ncplane* n, ncvisual* ncv, int dimy, int dimx,
     ret->ncv = ncv;
     ret->dimy = dimy;
     ret->dimx = dimx;
-    ret->y = placey;
-    ret->x = placex;
     ret->id = ++sprixelid_nonce;
 //fprintf(stderr, "LOOKING AT %p (p->n = %p)\n", ret, ret->n);
     if(ncplane_pile(ret->n)){

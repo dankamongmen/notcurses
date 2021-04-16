@@ -866,10 +866,7 @@ clean_sprixels(notcurses* nc, const ncpile* p, FILE* out){
         ret = -1;
       }
     }else if(s->invalidated == SPRIXEL_MOVED || s->invalidated == SPRIXEL_INVALIDATED){
-      // FIXME clean this up, don't use sprite_draw, etc.
-      if(s->invalidated == SPRIXEL_MOVED){
-        sprite_destroy(nc, p, out, s);
-      }
+      // FIXME clean this up, don't use sprite_draw, don't always move, etc.
       int y, x;
       ncplane_yx(s->n, &y, &x);
       y += s->y;

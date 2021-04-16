@@ -209,7 +209,7 @@ int sprite_kitty_cell_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell
       if(thisrow == 0){
 //fprintf(stderr, "CLEARED ROW, TARGY: %d\n", targy - 1);
         if(--targy == 0){
-          //s->invalidated = SPRIXEL_INVALIDATED;
+          s->invalidated = SPRIXEL_INVALIDATED;
           return 0;
         }
         thisrow = targx;
@@ -367,26 +367,12 @@ int kitty_blit(ncplane* n, int linesize, const void* data,
   return 1;
 }
 
-// removes the kitty bitmap graphic identified by s->id, and damages those
-// cells which were SPRIXCEL_OPAQUE
+// removes the kitty bitmap graphic identified by s->id
 int sprite_kitty_annihilate(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
   (void)p;
   (void)nc;
   if(fprintf(out, "\e_Ga=d,d=i,i=%d\e\\", s->id) < 0){
     return 0;
-  }
-//fprintf(stderr, "MOVED FROM: %d/%d\n", s->movedfromy, s->movedfromx);
-  for(int yy = s->movedfromy ; yy < s->movedfromy + s->dimy && yy < p->dimy ; ++yy){
-    for(int xx = s->movedfromx ; xx < s->movedfromx + s->dimx && xx < p->dimx ; ++xx){
-      struct crender *r = &p->crender[yy * p->dimx + xx];
-      if(s->n){
-//fprintf(stderr, "CHECKING %d/%d\n", yy - s->movedfromy, xx - s->movedfromx);
-        if(s->n->tacache[(yy - s->movedfromy) * s->dimx + (xx - s->movedfromx)] == SPRIXCELL_OPAQUE){
-//fprintf(stderr, "DAMAGING %d/%d!\n", yy, xx);
-          r->s.damaged = 1;
-        }
-      }
-    }
   }
   return 0;
 }
