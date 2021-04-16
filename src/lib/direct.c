@@ -1123,8 +1123,7 @@ int ncdirect_check_pixel_support(ncdirect* n){
 
 int ncdirect_stream(ncdirect* n, const char* filename, ncstreamcb streamer,
                     struct ncvisual_options* vopts, void* curry){
-  int y, x;
-  if(ncdirect_cursor_yx(n, &y, &x)){
+  if(ncdirect_cursor_push(n)){
     return -1;
   }
   ncvisual* ncv = ncvisual_from_file(filename);
@@ -1132,7 +1131,11 @@ int ncdirect_stream(ncdirect* n, const char* filename, ncstreamcb streamer,
     return -1;
   }
   do{
-    if(ncdirect_cursor_move_yx(n, y, x)){
+    if(ncdirect_cursor_pop(n)){
+      ncvisual_destroy(ncv);
+      return -1;
+    }
+    if(ncdirect_cursor_push(n)){
       ncvisual_destroy(ncv);
       return -1;
     }
