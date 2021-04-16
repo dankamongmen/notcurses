@@ -57,7 +57,7 @@ terminal, and will refuse to run in anything smaller than 80x24.
 
 **-d** ***delaymult***: Apply a non-negative rational multiplier to the standard delay of 1s.
 
-**-l** ***loglevel***: Log everything (log level 8) or nothing (log level 0) to stderr.
+**-l** ***loglevel***: Log between everything (loglevel 8) and nothing (loglevel 0) to stderr.
 
 **-f** ***renderfile***: Render each frame to ***renderfile*** in addition to the screen.
 
