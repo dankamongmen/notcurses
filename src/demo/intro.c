@@ -69,20 +69,16 @@ orcashow(struct notcurses* nc, int dimy, int dimx){
     .blitter = NCBLIT_PIXEL,
     .flags = NCVISUAL_OPTION_NODEGRADE,
   };
+  int odimy, odimx;
+  ncvisual_blitter_geom(nc, ncv, &vopts, NULL, NULL, &odimy, &odimx, NULL);
+  vopts.y = dimy - odimy - 1;
+  vopts.x = dimx - odimx;
+  if(odimx > dimx || odimy > dimy - 1){
+    ncvisual_destroy(ncv);
+    return NULL;
+  }
   struct ncplane* n = ncvisual_render(nc, ncv, &vopts);
   ncvisual_destroy(ncv);
-  int odimy, odimx, oy, ox;
-  ncplane_yx(n, &oy, &ox);
-  ncplane_dim_yx(n, &odimy, &odimx);
-  if(odimy > dimy - 2){
-    ncplane_destroy(n);
-    return NULL;
-  }
-  if(odimx > dimx){
-    ncplane_destroy(n);
-    return NULL;
-  }
-  ncplane_move_yx(n, dimy - odimy - 2, dimx - odimx);
   return n;
 }
 
@@ -243,7 +239,7 @@ int intro(struct notcurses* nc){
         orcaride(nc, on);
       }
     }
-  }while(timespec_to_ns(&now) < deadline);
+  }while(timespec_to_ns(&now) < deadline || flipmode < 20);
   ncplane_destroy(on);
   if(notcurses_check_pixel_support(nc) && notcurses_canopen_images(nc)){
     int err;
