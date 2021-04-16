@@ -560,7 +560,11 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
   lenx = (lenx / (double)ncv->cols) * ((double)dispcols);
 //fprintf(stderr, "blit: %dx%d:%d+%d of %d/%d stride %u %p\n", begy, begx, leny, lenx, ncv->rows, ncv->cols, ncv->rowstride, ncv->data);
   blitterargs bargs;
-  bargs.transcolor = transcolor;
+  if(flags & NCVISUAL_OPTION_ADDALPHA){
+    bargs.transcolor = transcolor | 0x1000000ul;
+  }else{
+    bargs.transcolor = 0;
+  }
   bargs.begy = begy;
   bargs.begx = begx;
   bargs.placey = placey;
@@ -669,7 +673,11 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
   }
 //fprintf(stderr, "pblit: %dx%d <- %dx%d of %d/%d stride %u @%dx%d %p %u\n", disprows, dispcols, begy, begx, ncv->rows, ncv->cols, ncv->rowstride, placey, placex, ncv->data, nc->tcache.cellpixx);
   blitterargs bargs;
-  bargs.transcolor = transcolor;
+  if(flags & NCVISUAL_OPTION_ADDALPHA){
+    bargs.transcolor = transcolor | 0x1000000ul;
+  }else{
+    bargs.transcolor = 0;
+  }
   bargs.begy = begy;
   bargs.begx = begx;
   bargs.placey = placey;
