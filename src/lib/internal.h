@@ -1472,12 +1472,15 @@ int drop_signals(void* nc);
 
 void ncvisual_printbanner(const notcurses* nc);
 
-// alpha comes to us 0--255, but we have only 3 alpha values to map them to.
-// settled on experimentally. if transcolor is non-zero, match its lower 24
-// bits against the color, and treat a match as transparent.
+// alpha comes to us 0--255, but we have only 3 alpha values to map them to
+// (opaque, blended, and transparent). it's necessary that we display
+// something for any non-zero alpha (see #1540), so the threshold is 1.
+// we might want to map this to blended, but we only use opaque and
+// transparent for now. if |transcolor| is non-zero, match its lower 24
+// bits against each pixel's RGB value, and treat a match as transparent.
 static inline bool
 rgba_trans_p(uint32_t p, uint32_t transcolor){
-  if(ncpixel_a(p) < 192){
+  if(ncpixel_a(p) == 0){
     return true;
   }
   if(transcolor && 
