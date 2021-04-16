@@ -2086,14 +2086,24 @@ API void ncplane_erase(struct ncplane* n);
 
 // Extract 24 bits of foreground RGB from 'cl', shifted to LSBs.
 static inline uint32_t
-cell_fg_rgb(const nccell* cl){
+nccell_fg_rgb(const nccell* cl){
   return channels_fg_rgb(cl->channels);
+}
+
+__attribute__ ((deprecated)) static inline uint32_t
+cell_fg_rgb(const nccell* cl){
+  return nccell_fg_rgb(cl);
 }
 
 // Extract 24 bits of background RGB from 'cl', shifted to LSBs.
 static inline uint32_t
-cell_bg_rgb(const nccell* cl){
+nccell_bg_rgb(const nccell* cl){
   return channels_bg_rgb(cl->channels);
+}
+
+__attribute__ ((deprecated)) static inline uint32_t
+cell_bg_rgb(const nccell* cl){
+  return nccell_bg_rgb(cl);
 }
 
 // Extract 2 bits of foreground alpha from 'cl', shifted to LSBs.
@@ -2211,8 +2221,13 @@ cell_set_bg_rgb8(nccell* cl, int r, int g, int b){
 
 // Same, but clipped to [0..255].
 static inline void
-cell_set_bg_rgb8_clipped(nccell* cl, int r, int g, int b){
+nccell_set_bg_rgb8_clipped(nccell* cl, int r, int g, int b){
   channels_set_bg_rgb8_clipped(&cl->channels, r, g, b);
+}
+
+__attribute__ ((deprecated)) static inline void
+cell_set_bg_rgb8_clipped(nccell* cl, int r, int g, int b){
+  nccell_set_bg_rgb8_clipped(cl, r, g, b);
 }
 
 // Same, but with an assembled 24-bit RGB value. A value over 0xffffff

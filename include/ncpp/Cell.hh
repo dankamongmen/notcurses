@@ -102,12 +102,12 @@ namespace ncpp
 
 		unsigned get_fg_rgb () const noexcept
 		{
-			return cell_fg_rgb (&_cell);
+			return nccell_fg_rgb (&_cell);
 		}
 
 		unsigned get_bg_rgb () const noexcept
 		{
-			return cell_bg_rgb (&_cell);
+			return nccell_bg_rgb (&_cell);
 		}
 
 		unsigned get_fg_alpha () const noexcept
@@ -168,7 +168,7 @@ namespace ncpp
 		bool set_bg_rgb8 (int r, int g, int b, bool clipped = false) noexcept
 		{
 			if (clipped) {
-				cell_set_bg_rgb8_clipped (&_cell, r, g, b);
+				nccell_set_bg_rgb8_clipped (&_cell, r, g, b);
 				return true;
 			}
 

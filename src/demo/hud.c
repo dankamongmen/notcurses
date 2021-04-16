@@ -370,7 +370,7 @@ hud_print_finished(elem* list){
     if(hud){
       nccell c = CELL_TRIVIAL_INITIALIZER;
       ncplane_base(hud, &c);
-      ncplane_set_bg_rgb(hud, cell_bg_rgb(&c));
+      ncplane_set_bg_rgb(hud, nccell_bg_rgb(&c));
       ncplane_set_bg_alpha(hud, CELL_ALPHA_BLEND);
       ncplane_set_fg_rgb(hud, 0xffffff);
       ncplane_set_fg_alpha(hud, CELL_ALPHA_OPAQUE);
@@ -585,7 +585,7 @@ int demo_render(struct notcurses* nc){
     ++elems->frames;
     nccell c = CELL_TRIVIAL_INITIALIZER;
     ncplane_base(hud, &c);
-    ncplane_set_bg_rgb(hud, cell_bg_rgb(&c));
+    ncplane_set_bg_rgb(hud, nccell_bg_rgb(&c));
     ncplane_set_bg_alpha(hud, CELL_ALPHA_BLEND);
     ncplane_set_fg_rgb(hud, 0x80d0ff);
     ncplane_set_fg_alpha(hud, CELL_ALPHA_OPAQUE);

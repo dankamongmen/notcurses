@@ -255,7 +255,7 @@ TEST_CASE("Fills") {
     nccell d = CELL_TRIVIAL_INITIALIZER;
     CHECK(1 == ncplane_at_yx_cell(n_, 0, 0, &d));
     CHECK(d.stylemask == c.stylemask);
-    CHECK(0x444444 == cell_fg_rgb(&d));
+    CHECK(0x444444 == nccell_fg_rgb(&d));
   }
 
   SUBCASE("Ncplane_Stain") {
