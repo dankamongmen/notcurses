@@ -1,7 +1,7 @@
 #include "main.h"
 #include <vector>
 
-TEST_CASE("Pixel") {
+TEST_CASE("Bitmaps") {
   auto nc_ = testing_notcurses();
   REQUIRE(nullptr != nc_);
   ncplane* ncp_ = notcurses_stdplane(nc_);
@@ -169,7 +169,7 @@ TEST_CASE("Pixel") {
     struct ncvisual_options vopts = {
       .n = nullptr,
       .scaling = NCSCALE_NONE,
-      .y = 0, .x = 0,
+      .y = 2, .x = 2,
       .begy = 0, .begx = 0,
       .leny = y, .lenx = x,
       .blitter = NCBLIT_PIXEL,
@@ -192,6 +192,11 @@ TEST_CASE("Pixel") {
       // cells without one ought be SPRIXCELL_OPAQUE.
       CHECK((i % 2) == tam[(i / dimx) + (i % dimx)]);
       ncpixel_set_a(&v[py * x + px], 0);
+    }
+    for(int yy = vopts.y ; yy < vopts.y + dimy ; ++yy){
+      for(int xx = vopts.x ; xx < vopts.x + dimx ; ++xx){
+        CHECK(((yy * dimx + xx) % 2) == sprixel_state(s, yy, xx));
+      }
     }
     ncplane_destroy(n);
   }
