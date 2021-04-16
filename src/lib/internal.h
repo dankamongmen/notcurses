@@ -592,25 +592,25 @@ typedef struct notcurses {
 } notcurses;
 
 typedef struct {
-  int begy;             // upper left start within visual
+  int begy;            // upper left start within visual
   int begx;
-  int placey;           // placement within ncplane
+  int placey;          // placement within ncplane
   int placex;
-  uint32_t transcolor;  // if non-zero, treat the lower 24 bits as a transparent color
+  uint32_t transcolor; // if non-zero, treat the lower 24 bits as a transparent color
   union { // cell vs pixel-specific arguments
     struct {
-      int blendcolors;    // use CELL_ALPHA_BLEND
-    } cell;               // for cells
+      int blendcolors; // use CELL_ALPHA_BLEND
+    } cell;            // for cells
     struct {
-      int celldimx;       // horizontal pixels per cell
-      int celldimy;       // vertical pixels per cell
-      int colorregs;      // number of color registers
-      sprixel* spx;       // sprixel object
+      int celldimx;    // horizontal pixels per cell
+      int celldimy;    // vertical pixels per cell
+      int colorregs;   // number of color registers
+      sprixel* spx;    // sprixel object
       // in at least mlterm, emitting a sixel makes the cursor visible.
       // if the cursor is hidden, and sprixel_cursor_hack is set, this
       // is set to the civis capability.
       const char* cursor_hack;
-    } pixel;              // for pixels
+    } pixel;           // for pixels
   } u;
 } blitterargs;
 
