@@ -310,7 +310,7 @@ int perframe_direct(struct ncvisual* ncv, struct ncvisual_options* vopts,
 
 // argc/argv ought already be reduced to only the media arguments
 int direct_mode_player(int argc, char** argv, ncscale_e scalemode,
-                       ncblitter_e blitter, int lmargin, int rmargin){
+                       ncblitter_e blitter, int lmargin){
   Direct dm{};
   if(!dm.canopen_images()){
     std::cerr << "Notcurses was compiled without multimedia support\n";
@@ -504,7 +504,7 @@ auto main(int argc, char** argv) -> int {
   // if -k was provided, we now use direct mode rather than simply not using the
   // alternate screen, so that output is inline with the shell.
   if(ncopts.flags & NCOPTION_NO_ALTERNATE_SCREEN){
-    r = direct_mode_player(argc - nonopt, argv + nonopt, scalemode, blitter, ncopts.margin_l, ncopts.margin_r);
+    r = direct_mode_player(argc - nonopt, argv + nonopt, scalemode, blitter, ncopts.margin_l);
   }else{
     r = rendered_mode_player(argc - nonopt, argv + nonopt, scalemode, blitter, ncopts,
                              quiet, loop, timescale, displaytime, transcolor);
