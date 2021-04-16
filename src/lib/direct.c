@@ -487,7 +487,8 @@ int ncdirect_raster_frame(ncdirect* n, ncdirectv* ncdv, ncalign_e align){
 
 static ncdirectv*
 ncdirect_render_visual(ncdirect* n, ncvisual* ncv, ncblitter_e blitfxn,
-                       ncscale_e scale, int ymax, int xmax){
+                       ncscale_e scale, int ymax, int xmax,
+                       uint32_t transcolor){
   int dimy = ymax > 0 ? ymax : ncdirect_dim_y(n);
   int dimx = xmax > 0 ? xmax : ncdirect_dim_x(n);
 //fprintf(stderr, "OUR DATA: %p rows/cols: %d/%d\n", ncv->data, ncv->rows, ncv->cols);
@@ -539,6 +540,7 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv, ncblitter_e blitfxn,
     return NULL;
   }
   blitterargs bargs = {};
+  bargs.transcolor = transcolor;
   if(bset->geom == NCBLIT_PIXEL){
     bargs.u.pixel.celldimx = n->tcache.cellpixx;
     bargs.u.pixel.celldimy = n->tcache.cellpixy;
@@ -564,7 +566,7 @@ ncdirectv* ncdirect_render_frame(ncdirect* n, const char* file,
   if(ncv == NULL){
     return NULL;
   }
-  ncdirectv* v = ncdirect_render_visual(n, ncv, blitfxn, scale, ymax, xmax);
+  ncdirectv* v = ncdirect_render_visual(n, ncv, blitfxn, scale, ymax, xmax, 0);
   ncvisual_destroy(ncv);
   return v;
 }
@@ -1137,7 +1139,9 @@ int ncdirect_stream(ncdirect* n, const char* filename, ncstreamcb streamer,
     if(x > 0){
       ncdirect_cursor_left(n, x);
     }
-    ncdirectv* v = ncdirect_render_visual(n, ncv, vopts->blitter, vopts->scaling, 0, 0);
+    ncdirectv* v = ncdirect_render_visual(n, ncv, vopts->blitter, vopts->scaling,
+                                          0, 0, (vopts->flags & NCVISUAL_OPTION_ADDALPHA) ?
+                                                 vopts->transcolor | 0x1000000ul : 0);
     if(v == NULL){
       ncvisual_destroy(ncv);
       return -1;
