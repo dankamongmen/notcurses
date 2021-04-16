@@ -531,8 +531,8 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv, ncblitter_e blitfxn,
     .flags = 0,
   };
   if(bset->geom == NCBLIT_PIXEL){
-    nopts.rows = 1;
-    nopts.cols = dispcols / n->tcache.cellpixx;
+    nopts.rows = disprows / n->tcache.cellpixy + !!(disprows % n->tcache.cellpixy);
+    nopts.cols = dispcols / n->tcache.cellpixx + !!(dispcols % n->tcache.cellpixx);
   }
   struct ncplane* ncdv = ncplane_new_internal(NULL, NULL, &nopts);
   if(!ncdv){
@@ -1123,27 +1123,26 @@ int ncdirect_check_pixel_support(ncdirect* n){
 
 int ncdirect_stream(ncdirect* n, const char* filename, ncstreamcb streamer,
                     struct ncvisual_options* vopts, void* curry){
-  if(ncdirect_cursor_push(n)){
-    return -1;
-  }
   ncvisual* ncv = ncvisual_from_file(filename);
   if(ncv == NULL){
     return -1;
   }
+  // starting position *after displaying one frame* so as to effect any
+  // necessary scrolling.
+  int y = -1, x = -1;
   do{
-    if(ncdirect_cursor_pop(n)){
-      ncvisual_destroy(ncv);
-      return -1;
+    if(y > 0){
+      ncdirect_cursor_up(n, y);
     }
-    if(ncdirect_cursor_push(n)){
-      ncvisual_destroy(ncv);
-      return -1;
+    if(x > 0){
+      ncdirect_cursor_left(n, x);
     }
     ncdirectv* v = ncdirect_render_visual(n, ncv, vopts->blitter, vopts->scaling, 0, 0);
     if(v == NULL){
       ncvisual_destroy(ncv);
       return -1;
     }
+    ncplane_dim_yx(v, &y, &x);
     ncdirect_raster_frame(n, v, (vopts->flags & NCVISUAL_OPTION_HORALIGNED) ? vopts->x : 0);
     streamer(ncv, vopts, NULL, curry);
   }while(ncvisual_decode(ncv) == 0);
