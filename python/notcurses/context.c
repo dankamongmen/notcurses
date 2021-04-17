@@ -184,17 +184,27 @@ Notcurses_render_to_file(NotcursesObject *self, PyObject *args)
 }
 
 static PyObject *
-Notcurses_top(NotcursesObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
+Notcurses_top(NotcursesObject *self, PyObject *Py_UNUSED(args))
 {
-    PyErr_SetString(PyExc_NotImplementedError, "TODO when ncplane is implemented");
-    return NULL;
+    PyObject *new_object CLEANUP_PY_OBJ = NcPlane_Type.tp_alloc((PyTypeObject *)&NcPlane_Type, 0);
+    NcPlaneObject *new_plane = (NcPlaneObject *)new_object;
+    new_plane->is_stdplane = true;
+    new_plane->ncplane_ptr = CHECK_NOTCURSES_PTR(notcurses_top(self->notcurses_ptr));
+
+    Py_INCREF(new_object);
+    return new_object;
 }
 
 static PyObject *
-Notcurses_bottom(NotcursesObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
+Notcurses_bottom(NotcursesObject *self, PyObject *Py_UNUSED(args))
 {
-    PyErr_SetString(PyExc_NotImplementedError, "TODO when ncplane is implemented");
-    return NULL;
+    PyObject *new_object CLEANUP_PY_OBJ = NcPlane_Type.tp_alloc((PyTypeObject *)&NcPlane_Type, 0);
+    NcPlaneObject *new_plane = (NcPlaneObject *)new_object;
+    new_plane->is_stdplane = true;
+    new_plane->ncplane_ptr = CHECK_NOTCURSES_PTR(notcurses_bottom(self->notcurses_ptr));
+
+    Py_INCREF(new_object);
+    return new_object;
 }
 
 static PyObject *
@@ -263,17 +273,28 @@ Notcurses_refresh(NotcursesObject *self, PyObject *Py_UNUSED(args))
 }
 
 static PyObject *
-Notcurses_stdplane(NotcursesObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
+Notcurses_stdplane(NotcursesObject *self, PyObject *Py_UNUSED(args))
 {
-    PyErr_SetString(PyExc_NotImplementedError, "TODO when ncplane is implemented");
-    return NULL;
+    PyObject *new_object CLEANUP_PY_OBJ = NcPlane_Type.tp_alloc((PyTypeObject *)&NcPlane_Type, 0);
+    NcPlaneObject *new_plane = (NcPlaneObject *)new_object;
+    new_plane->is_stdplane = true;
+    new_plane->ncplane_ptr = CHECK_NOTCURSES_PTR(notcurses_stdplane(self->notcurses_ptr));
+
+    Py_INCREF(new_object);
+    return new_object;
 }
 
 static PyObject *
-Notcurses_stddim_yx(NotcursesObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
+Notcurses_stddim_yx(NotcursesObject *self, PyObject *Py_UNUSED(args))
 {
-    PyErr_SetString(PyExc_NotImplementedError, "TODO when ncplane is implemented");
-    return NULL;
+    int y = 0, x = 0;
+    PyObject *new_object CLEANUP_PY_OBJ = NcPlane_Type.tp_alloc((PyTypeObject *)&NcPlane_Type, 0);
+    NcPlaneObject *new_plane = (NcPlaneObject *)new_object;
+    new_plane->is_stdplane = true;
+    new_plane->ncplane_ptr = CHECK_NOTCURSES_PTR(notcurses_stddim_yx(self->notcurses_ptr, &y, &x));
+
+    Py_INCREF(new_object);
+    return Py_BuildValue("Oii", new_object, y, x);
 }
 
 static PyObject *
@@ -293,10 +314,46 @@ Notcurses_at_yx(NotcursesObject *Py_UNUSED(self), PyObject *Py_UNUSED(args), PyO
 }
 
 static PyObject *
-Notcurses_ncpile_create(NotcursesObject *Py_UNUSED(self), PyObject *Py_UNUSED(args), PyObject *Py_UNUSED(kwds))
+Notcurses_ncpile_create(NotcursesObject *self, PyObject *args, PyObject *kwds)
 {
-    PyErr_SetString(PyExc_NotImplementedError, "TODO when Pile is implemented");
-    return NULL;
+    int y = 0, x = 0;
+    int rows = 0, cols = 0;
+    const char *name = NULL;
+    // TODO reseize callback
+    unsigned long long flags = 0;
+    int margin_b = 0, margin_r = 0;
+
+    char *keywords[] = {"y_pos", "x_pos",
+                        "rows", "cols",
+                        "name",
+                        "flags",
+                        "margin_b", "margin_r", NULL};
+
+    GNU_PY_CHECK_INT(PyArg_ParseTupleAndKeywords(args, kwds, "|ii ii s K ii", keywords,
+                                                 &y, &x,
+                                                 &rows, &cols,
+                                                 &name,
+                                                 &flags,
+                                                 &margin_b, &margin_r));
+
+    ncplane_options options = {
+        .y = y,
+        .x = x,
+        .rows = rows,
+        .cols = cols,
+        .name = name,
+        .flags = (uint64_t)flags,
+        .margin_b = margin_b,
+        .margin_r = margin_r,
+    };
+
+    PyObject *new_object CLEANUP_PY_OBJ = NcPlane_Type.tp_alloc((PyTypeObject *)&NcPlane_Type, 0);
+    NcPlaneObject *new_plane = (NcPlaneObject *)new_object;
+    new_plane->ncplane_ptr = CHECK_NOTCURSES_PTR(ncpile_create(self->notcurses_ptr, &options));
+    new_plane->is_stdplane = false;
+
+    Py_INCREF(new_object);
+    return new_object;
 }
 
 static PyObject *
