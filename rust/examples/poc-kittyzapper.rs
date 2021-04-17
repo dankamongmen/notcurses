@@ -3,7 +3,7 @@
 use libnotcurses_sys::*;
 
 fn main() -> NcResult<()> {
-    let mut dm = DirectMode::new()?;
+    let mut dm = NcD::new()?;
 
     dm.set_fg_rgb8(100, 100, 100)?;
     dm.set_bg_rgb8(0xff, 0xff, 0xff)?;

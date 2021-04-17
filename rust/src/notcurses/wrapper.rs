@@ -1,4 +1,4 @@
-//! `FullMode` wrapper struct and traits implementations.
+//! `Nc` wrapper struct and traits implementations.
 
 use std::ops::{Deref, DerefMut};
 
@@ -7,23 +7,23 @@ use crate::{
 };
 
 /// Safe wrapper around [Notcurses], the main struct of the TUI library.
-pub struct FullMode<'a> {
+pub struct Nc<'a> {
     pub(crate) raw: &'a mut Notcurses,
 }
 
-impl<'a> AsRef<Notcurses> for FullMode<'a> {
+impl<'a> AsRef<Notcurses> for Nc<'a> {
     fn as_ref(&self) -> &Notcurses {
         self.raw
     }
 }
 
-impl<'a> AsMut<Notcurses> for FullMode<'a> {
+impl<'a> AsMut<Notcurses> for Nc<'a> {
     fn as_mut(&mut self) -> &mut Notcurses {
         self.raw
     }
 }
 
-impl<'a> Deref for FullMode<'a> {
+impl<'a> Deref for Nc<'a> {
     type Target = Notcurses;
 
     fn deref(&self) -> &Self::Target {
@@ -31,56 +31,56 @@ impl<'a> Deref for FullMode<'a> {
     }
 }
 
-impl<'a> DerefMut for FullMode<'a> {
+impl<'a> DerefMut for Nc<'a> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         self.as_mut()
     }
 }
 
-impl<'a> Drop for FullMode<'a> {
-    /// Destroys the FullMode context.
+impl<'a> Drop for Nc<'a> {
+    /// Destroys the Nc context.
     fn drop(&mut self) {
         let _ = self.raw.stop();
     }
 }
 
 /// # Constructors and methods overriden from Notcurses
-impl<'a> FullMode<'a> {
+impl<'a> Nc<'a> {
     // wrap constructors
 
-    /// New FullMode (without banners).
+    /// New Nc (without banners).
     pub fn new() -> NcResult<Self> {
         raw_wrap![Notcurses::new()]
     }
 
-    /// New FullMode, with banners.
+    /// New Nc, with banners.
     pub fn with_banners() -> NcResult<Self> {
         raw_wrap![Notcurses::with_banners()]
     }
 
-    /// New FullMode, without an alternate screen (nor banners).
+    /// New Nc, without an alternate screen (nor banners).
     pub fn without_altscreen() -> NcResult<Self> {
         raw_wrap![Notcurses::without_altscreen()]
     }
 
-    /// New FullMode, expects `NCOPTION_*` flags.
+    /// New Nc, expects `NCOPTION_*` flags.
     pub fn with_flags(flags: u64) -> NcResult<Self> {
         raw_wrap![Notcurses::with_flags(flags)]
     }
 
-    /// New FullMode, expects [NotcursesOptions].
+    /// New Nc, expects [NotcursesOptions].
     pub fn with_options(options: NotcursesOptions) -> NcResult<Self> {
         raw_wrap![Notcurses::with_options(options)]
     }
 
-    /// New FullMode, expects [NcLogLevel] and flags.
+    /// New Nc, expects [NcLogLevel] and flags.
     pub fn with_debug(loglevel: NcLogLevel, flags: u64) -> NcResult<Self> {
         raw_wrap![Notcurses::with_debug(loglevel, flags)]
     }
 
     // disable destructor
 
-    /// Since FullMode already implements [Drop](#impl-Drop),
+    /// Since Nc already implements [Drop](#impl-Drop),
     /// this function is made no-op.
     pub fn stop(&mut self) -> NcResult<()> {
         Ok(())
@@ -123,7 +123,7 @@ impl<'a> FullMode<'a> {
         Notcurses::lex_scalemode(op)
     }
 
-    /// Returns a human-readable string describing the running FullMode version.
+    /// Returns a human-readable string describing the running Nc version.
     pub fn version() -> String {
         Notcurses::version()
     }

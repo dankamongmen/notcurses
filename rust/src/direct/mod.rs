@@ -15,7 +15,7 @@
 // col 2: 43
 // --------------
 //         41  m: impl as an `NcDirect` method
-//          2  M: impl for the `DirectMode` wrapper struct too
+//          2  M: impl for the `NcD` wrapper struct too
 //
 // col 3:
 // --------------
@@ -87,7 +87,7 @@ pub use wrapper::*;
 
 /// Minimal notcurses instance for styling text.
 ///
-/// This is the internal type safely wrapped by [DirectMode].
+/// This is the internal type safely wrapped by [NcD][crate::NcD].
 pub type NcDirect = crate::bindings::ffi::ncdirect;
 
 /// Flags (options) for [`NcDirect`]

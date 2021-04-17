@@ -22,7 +22,7 @@
 //! use libnotcurses_sys::*;
 //!
 //! fn main() -> NcResult<()> {
-//!     let mut nc = FullMode::with_flags(NCOPTION_NO_ALTERNATE_SCREEN)?;
+//!     let mut nc = Nc::with_flags(NCOPTION_NO_ALTERNATE_SCREEN)?;
 //!     let plane = nc.stdplane();
 //!     plane.putstr("hello world")?;
 //!     nc.render()?;
@@ -30,22 +30,21 @@
 //! }
 //! ```
 //!
-//! Specifically [`FullMode`] and [`DirectMode`] are safe wrappers
-//! over [`Notcurses`] and [`NcDirect`], respectively.
+//! Specifically [`Nc`] and [`NcD`] are safe wrappers over [`Notcurses`]
+//! and [`NcDirect`], respectively.
 //!
-//! `FullMode` and `DirectMode` both implement the [Drop], [AsRef], [AsMut],
+//! `Nc` and `NcD` both implement the [Drop], [AsRef], [AsMut],
 //! [Deref][std::ops::Deref] and [DerefMut][std::ops::DerefMut] traits.
 //!
 //! Their destructors are called automatically at the end of their scope.
 //!
-//! Methods are directly implemented for `Notcurses` and `NcDirect`, and
-//! are made automatically available to `FullMode` & `DirectMode`,
-//! minus some function overrides, like their destructors,
-//! plus the static methods that have to be recreated.
+//! Methods are directly implemented for `Notcurses` and `NcDirect`, and are
+//! made automatically available to `Nc` & `NcD`, minus some function overrides,
+//! like their destructors, plus the static methods that have to be recreated.
 //!
-//! The rest of the types that allocate, like [`NcPlane`], [`NcMenu`], [`NcReader`]…
-//! have no higher level wrapping struct, they don't implement Drop,
-//! so they have to be `*.destroy()`ed manually.
+//! The rest of the types that allocate, like [`NcPlane`], [`NcMenu`],
+//! [`NcReader`]… have no higher level wrapping struct, they don't
+//! implement Drop, so they have to be `*.destroy()`ed manually.
 //!
 //! But they do implement methods and use [`NcResult`] as the return type,
 //! for handling errors in the way we are used to in Rust.

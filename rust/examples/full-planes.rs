@@ -1,7 +1,7 @@
 use libnotcurses_sys::*;
 
 fn main() -> NcResult<()> {
-    let mut nc = FullMode::new()?;
+    let mut nc = Nc::new()?;
 
     // get the terminal size in character rows & columns
     let (t_rows, t_cols) = nc.term_dim_yx();

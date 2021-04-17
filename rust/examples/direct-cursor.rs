@@ -10,7 +10,7 @@ use libnotcurses_sys::*;
 fn main() -> NcResult<()> {
     let mut rng = thread_rng();
 
-    let mut dm = DirectMode::new()?;
+    let mut dm = NcD::new()?;
 
     let cols = dm.dim_x();
     let rows = dm.dim_y();

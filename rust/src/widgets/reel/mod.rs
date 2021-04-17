@@ -5,7 +5,7 @@
 /// An `NcReel` is projected onto the 2d rendering area, showing some portion of
 /// the `NcReel`, and zero or more `NcTablet`s.
 ///
-/// An `NcReel` is a [`FullMode`][crate::FullMode] region devoted to displaying
+/// An `NcReel` is an [`Nc`][crate::Nc] region devoted to displaying
 /// zero or more line-oriented, contained [`NcTablet`]s
 /// between which the user may navigate.
 ///

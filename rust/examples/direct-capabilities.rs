@@ -1,7 +1,7 @@
 use libnotcurses_sys::*;
 
 fn main() -> NcResult<()> {
-    let mut dm = DirectMode::new()?;
+    let mut dm = NcD::new()?;
 
     let (t_rows, t_cols) = dm.dim_yx();
     println!("Terminal rows={0}, cols={1}", t_rows, t_cols);
