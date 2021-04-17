@@ -34,7 +34,10 @@ typedef struct
 {
     PyObject_HEAD;
     struct ncplane *ncplane_ptr;
+    bool is_stdplane;
 } NcPlaneObject;
+
+extern PyTypeObject NcPlane_Type;
 
 typedef struct
 {
