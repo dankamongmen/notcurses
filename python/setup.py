@@ -39,6 +39,7 @@ setup(
                 'notcurses/context.c',
                 'notcurses/main.c',
                 'notcurses/misc.c',
+                'notcurses/plane.c',
             ],
             libraries=['notcurses'],
             language='c',

@@ -36,9 +36,11 @@ PyInit_notcurses(void)
 
     // Type ready?
     GNU_PY_TYPE_READY(&Notcurses_Type);
+    GNU_PY_TYPE_READY(&NcPlane_Type);
 
     // Add objects
     GNU_PY_MODULE_ADD_OBJECT(py_module, (PyObject *)&Notcurses_Type, "Notcurses");
+    GNU_PY_MODULE_ADD_OBJECT(py_module, (PyObject *)&NcPlane_Type, "NcPlane");
 
     // background cannot be highcontrast, only foreground
     GNU_PY_CHECK_INT(PyModule_AddIntMacro(py_module, CELL_ALPHA_HIGHCONTRAST));
