@@ -17,17 +17,6 @@ limitations under the License.
 
 #include "notcurses-python.h"
 
-static void
-NcPlane_dealloc(NcPlaneObject *self)
-{
-    if (NULL != self->ncplane_ptr && !self->is_stdplane)
-    {
-        ncplane_destroy(self->ncplane_ptr);
-    }
-
-    Py_TYPE(self)->tp_free(self);
-}
-
 static PyObject *
 NcPlane_new(PyTypeObject *Py_UNUSED(subtype), PyObject *Py_UNUSED(args), PyObject *Py_UNUSED(kwds))
 {
@@ -67,19 +56,1072 @@ Ncplane_create(NcPlaneObject *self, PyObject *args, PyObject *kwds)
         .flags = (uint64_t)flags,
         .margin_b = margin_b,
         .margin_r = margin_r,
+        .resizecb = ncplane_resize_maximize,
     };
 
     PyObject *new_object CLEANUP_PY_OBJ = NcPlane_Type.tp_alloc((PyTypeObject *)&NcPlane_Type, 0);
     NcPlaneObject *new_plane = (NcPlaneObject *)new_object;
     new_plane->ncplane_ptr = CHECK_NOTCURSES_PTR(ncplane_create(self->ncplane_ptr, &options));
-    new_plane->is_stdplane = false;
 
     Py_INCREF(new_object);
     return new_object;
 }
 
+static PyObject *
+NcPlane_destroy(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+{
+    struct ncplane *temp_ptr = self->ncplane_ptr;
+    self->ncplane_ptr = NULL;
+    CHECK_NOTCURSES(ncplane_destroy(temp_ptr));
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_notcurses(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+{
+    PyObject *new_object CLEANUP_PY_OBJ = Notcurses_Type.tp_alloc((PyTypeObject *)&Notcurses_Type, 0);
+    NotcursesObject *new_notcurses = (NotcursesObject *)new_object;
+    new_notcurses->notcurses_ptr = CHECK_NOTCURSES_PTR(ncplane_notcurses(self->ncplane_ptr));
+
+    Py_INCREF(new_object);
+    return new_object;
+}
+
+static PyObject *
+NcPlane_dim_yx(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+{
+    int y = 0, x = 0;
+    ncplane_dim_yx(self->ncplane_ptr, &y, &x);
+
+    return Py_BuildValue("ii", y, x);
+}
+
+static PyObject *
+NcPlane_dim_x(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+{
+    return Py_BuildValue("i", ncplane_dim_x(self->ncplane_ptr));
+}
+
+static PyObject *
+NcPlane_dim_y(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+{
+    return Py_BuildValue("i", ncplane_dim_y(self->ncplane_ptr));
+}
+
+static PyObject *
+NcPlane_pixelgeom(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+{
+    int pxy = 0, pxx = 0, celldimy = 0, celldimx = 0, maxbmapy = 0, maxbmapx = 0;
+    ncplane_pixelgeom(self->ncplane_ptr, &pxy, &pxx, &celldimy, &celldimx, &maxbmapy, &maxbmapx);
+
+    return Py_BuildValue("ii ii ii", pxy, pxx, celldimy, celldimx, maxbmapy, maxbmapx);
+}
+
+static PyObject *
+NcPlane_set_resizecb(NcPlaneObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO");
+    return NULL;
+}
+
+static PyObject *
+NcPlane_reparent(NcPlaneObject *self, PyObject *args)
+{
+    NcPlaneObject *new_parent = NULL;
+
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "O!", &NcPlane_Type, &new_parent));
+
+    CHECK_NOTCURSES_PTR(ncplane_reparent(self->ncplane_ptr, new_parent->ncplane_ptr));
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_reparent_family(NcPlaneObject *self, PyObject *args)
+{
+    NcPlaneObject *new_parent = NULL;
+
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "O!", &NcPlane_Type, &new_parent));
+
+    CHECK_NOTCURSES_PTR(ncplane_reparent_family(self->ncplane_ptr, new_parent->ncplane_ptr));
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_dup(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+{
+    PyObject *new_object CLEANUP_PY_OBJ = NcPlane_Type.tp_alloc((PyTypeObject *)&NcPlane_Type, 0);
+    NcPlaneObject *new_plane = (NcPlaneObject *)new_object;
+    new_plane->ncplane_ptr = CHECK_NOTCURSES_PTR(ncplane_dup(self->ncplane_ptr, NULL));
+
+    Py_INCREF(new_object);
+    return new_object;
+}
+
+static PyObject *
+NcPlane_translate(NcPlaneObject *self, PyObject *args, PyObject *kwds)
+{
+    NcPlaneObject *dst_obj = NULL;
+    int y = 0, x = 0;
+
+    char *keywords[] = {"dst", "y_pos", "x_pos",
+                        NULL};
+
+    GNU_PY_CHECK_INT(PyArg_ParseTupleAndKeywords(args, kwds, "|O! ii", keywords,
+                                                 &NcPlane_Type, &dst_obj,
+                                                 &y, &x));
+
+    struct ncplane *dst = NULL;
+    if (NULL != dst_obj)
+    {
+        dst = dst_obj->ncplane_ptr;
+    }
+
+    ncplane_translate(self->ncplane_ptr, dst, &y, &x);
+
+    return Py_BuildValue("ii", &y, &x);
+}
+
+static PyObject *
+NcPlane_translate_abs(NcPlaneObject *self, PyObject *args)
+{
+    int x = 0, y = 0;
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "ii", &y, &x));
+
+    return PyBool_FromLong((long)ncplane_translate_abs(self->ncplane_ptr, &y, &x));
+}
+
+static PyObject *
+NcPlane_set_scrolling(NcPlaneObject *self, PyObject *args)
+{
+    int scrollp_int = 0;
+
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "p", &scrollp_int));
+
+    return PyBool_FromLong((long)ncplane_set_scrolling(self->ncplane_ptr, (bool)scrollp_int));
+}
+
+static PyObject *
+NcPlane_resize(NcPlaneObject *self, PyObject *args, PyObject *kwds)
+{
+    int keepy = 0, keepx = 0, keepleny = 0, keeplenx = 0, yoff = 0, xoff = 0, ylen = 0, xlen = 0;
+
+    char *keywords[] = {"keepy", "keepx",
+                        "keepleny", "keeplenx",
+                        "yoff", "xoff",
+                        "ylen", "xlen",
+                        NULL};
+
+    GNU_PY_CHECK_INT(PyArg_ParseTupleAndKeywords(args, kwds, "ii ii ii ii", keywords,
+                                                 &keepy, &keepx,
+                                                 &keepleny, &keeplenx,
+                                                 &yoff, &xoff,
+                                                 &ylen, &xlen));
+
+    CHECK_NOTCURSES(ncplane_resize(self->ncplane_ptr, keepy, keepx, keepleny, keeplenx, yoff, xoff, ylen, xlen));
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_resize_simple(NcPlaneObject *self, PyObject *args)
+{
+    int ylen = 0, xlen = 0;
+
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "ii", &ylen, &xlen));
+
+    CHECK_NOTCURSES(ncplane_resize_simple(self->ncplane_ptr, ylen, xlen));
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_set_base_cell(NcPlaneObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when cells are added");
+    return NULL;
+}
+
+static PyObject *
+NcPlane_set_base(NcPlaneObject *Py_UNUSED(self), PyObject *Py_UNUSED(args), PyObject *Py_UNUSED(kwds))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when cells are added");
+    return NULL;
+}
+
+static PyObject *
+NcPlane_base(NcPlaneObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when cells are added");
+    return NULL;
+}
+
+static PyObject *
+NcPlane_move_yx(NcPlaneObject *self, PyObject *args)
+{
+    int y = 0, x = 0;
+
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "ii", &y, &x));
+
+    CHECK_NOTCURSES(ncplane_move_yx(self->ncplane_ptr, y, x));
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_yx(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+{
+    int y = 0, x = 0;
+
+    ncplane_yx(self->ncplane_ptr, &y, &x);
+
+    return Py_BuildValue("ii", y, x);
+}
+
+static PyObject *
+NcPlane_y(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+{
+    return PyLong_FromLong((long)ncplane_y(self->ncplane_ptr));
+}
+
+static PyObject *
+NcPlane_x(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+{
+    return PyLong_FromLong((long)ncplane_x(self->ncplane_ptr));
+}
+
+static PyObject *
+NcPlane_abs_yx(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+{
+    int y = 0, x = 0;
+
+    ncplane_abs_yx(self->ncplane_ptr, &y, &x);
+
+    return Py_BuildValue("ii", y, x);
+}
+
+static PyObject *
+NcPlane_abs_y(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+{
+    return PyLong_FromLong((long)ncplane_abs_y(self->ncplane_ptr));
+}
+
+static PyObject *
+NcPlane_abs_x(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+{
+    return PyLong_FromLong((long)ncplane_abs_x(self->ncplane_ptr));
+}
+
+static PyObject *
+NcPlane_parent(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+{
+    struct ncplane *possible_parent = ncplane_parent(self->ncplane_ptr);
+
+    if (NULL == possible_parent)
+    {
+        Py_RETURN_NONE;
+    }
+    else
+    {
+        PyObject *new_object CLEANUP_PY_OBJ = NcPlane_Type.tp_alloc((PyTypeObject *)&Notcurses_Type, 0);
+        NcPlaneObject *new_plane = (NcPlaneObject *)new_object;
+        new_plane->ncplane_ptr = possible_parent;
+
+        Py_INCREF(new_object);
+        return new_object;
+    }
+}
+
+static PyObject *
+NcPlane_descendant_p(NcPlaneObject *self, PyObject *args)
+{
+    NcPlaneObject *ancestor_obj = NULL;
+
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "O!", &NcPlane_Type, &ancestor_obj));
+
+    return PyBool_FromLong((long)ncplane_descendant_p(self->ncplane_ptr, ancestor_obj->ncplane_ptr));
+}
+
+static PyObject *
+NcPlane_move_top(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+{
+    ncplane_move_top(self->ncplane_ptr);
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_move_bottom(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+{
+    ncplane_move_bottom(self->ncplane_ptr);
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_move_above(NcPlaneObject *self, PyObject *args)
+{
+    NcPlaneObject *above_obj = NULL;
+
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "O!", &NcPlane_Type, &above_obj));
+
+    CHECK_NOTCURSES(ncplane_move_above(self->ncplane_ptr, above_obj->ncplane_ptr));
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_move_below(NcPlaneObject *self, PyObject *args)
+{
+    NcPlaneObject *bellow_obj = NULL;
+
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "O!", &NcPlane_Type, &bellow_obj));
+
+    CHECK_NOTCURSES(ncplane_move_below(self->ncplane_ptr, bellow_obj->ncplane_ptr));
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_below(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+{
+    struct ncplane *possible_bellow = ncplane_below(self->ncplane_ptr);
+
+    if (NULL == possible_bellow)
+    {
+        Py_RETURN_NONE;
+    }
+    else
+    {
+        NcPlaneObject *new_plane = (NcPlaneObject *)NcPlane_Type.tp_alloc((PyTypeObject *)&Notcurses_Type, 0);
+        new_plane->ncplane_ptr = possible_bellow;
+
+        return (PyObject *)new_plane;
+    }
+}
+
+static PyObject *
+NcPlane_above(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+{
+    struct ncplane *possible_above = ncplane_above(self->ncplane_ptr);
+
+    if (NULL == possible_above)
+    {
+        Py_RETURN_NONE;
+    }
+    else
+    {
+        NcPlaneObject *new_plane = (NcPlaneObject *)NcPlane_Type.tp_alloc((PyTypeObject *)&Notcurses_Type, 0);
+        new_plane->ncplane_ptr = possible_above;
+
+        return (PyObject *)new_plane;
+    }
+}
+
+static PyObject *
+NcPlane_rotate_cw(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+{
+    CHECK_NOTCURSES(ncplane_rotate_cw(self->ncplane_ptr));
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_rotate_ccw(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+{
+    CHECK_NOTCURSES(ncplane_rotate_ccw(self->ncplane_ptr));
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_at_cursor(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+{
+    uint16_t style_mask = 0;
+    uint64_t channels = 0;
+    char *egc = CHECK_NOTCURSES_PTR(ncplane_at_cursor(self->ncplane_ptr, &style_mask, &channels));
+
+    PyObject *egc_str CLEANUP_PY_OBJ = GNU_PY_CHECK(PyUnicode_FromString(egc));
+    free(egc);
+
+    return Py_BuildValue("OHK", egc_str, (unsigned short)style_mask, (unsigned long long)channels);
+}
+
+static PyObject *
+NcPlane_at_cursor_cell(NcPlaneObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when cells are added");
+    return NULL;
+    // ncplane_at_cursor_cell();
+}
+
+static PyObject *
+NcPlane_at_yx(NcPlaneObject *self, PyObject *args)
+{
+    uint16_t style_mask = 0;
+    uint64_t channels = 0;
+    int y = 0, x = 0;
+
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "ii", &y, &x));
+
+    char *egc = CHECK_NOTCURSES_PTR(ncplane_at_yx(self->ncplane_ptr, y, x, &style_mask, &channels));
+
+    PyObject *egc_str CLEANUP_PY_OBJ = GNU_PY_CHECK(PyUnicode_FromString(egc));
+    free(egc);
+
+    return Py_BuildValue("OHK", egc_str, (unsigned short)style_mask, (unsigned long long)channels);
+}
+
+static PyObject *
+NcPlane_at_yx_cell(NcPlaneObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when cells are added");
+    return NULL;
+    // ncplane_at_yx_cell();
+}
+
+static PyObject *
+NcPlane_contents(NcPlaneObject *self, PyObject *args, PyObject *kwds)
+{
+    int beg_y = 0, beg_x = 0, len_y = -1, len_x = -1;
+
+    char *keywords[] = {"begy", "begx", "leny", "lenx", NULL};
+
+    GNU_PY_CHECK_INT(PyArg_ParseTupleAndKeywords(args, kwds, "ii|ii", keywords,
+                                                 &beg_y, &beg_x,
+                                                 &len_y, &len_x));
+
+    char *egcs = CHECK_NOTCURSES_PTR(ncplane_contents(self->ncplane_ptr, beg_y, beg_x, len_y, len_x));
+
+    PyObject *egcs_str CLEANUP_PY_OBJ = GNU_PY_CHECK(PyUnicode_FromString(egcs));
+    free(egcs);
+
+    return Py_BuildValue("s", egcs_str);
+}
+
+static PyObject *
+NcPlane_center_abs(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+{
+    int y = 0, x = 0;
+    ncplane_center_abs(self->ncplane_ptr, &y, &x);
+
+    return Py_BuildValue("ii", y, x);
+}
+
+static PyObject *
+NcPlane_halign(NcPlaneObject *self, PyObject *args)
+{
+    int align = 0, c = 0;
+
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "ii", &align, &c));
+    int collumn = CHECK_NOTCURSES(ncplane_halign(self->ncplane_ptr, (ncalign_e)align, c));
+
+    return Py_BuildValue("i", collumn);
+}
+
+static PyObject *
+NcPlane_valign(NcPlaneObject *self, PyObject *args)
+{
+    int align = 0, r = 0;
+
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "ii", &align, &r));
+    int row = CHECK_NOTCURSES(ncplane_valign(self->ncplane_ptr, (ncalign_e)align, r));
+
+    return Py_BuildValue("i", row);
+}
+
+static PyObject *
+NcPlane_cursor_move_yx(NcPlaneObject *self, PyObject *args)
+{
+    int y = 0, x = 0;
+
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "ii", &y, &x));
+
+    CHECK_NOTCURSES(ncplane_cursor_move_yx(self->ncplane_ptr, y, x));
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_home(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+{
+    ncplane_home(self->ncplane_ptr);
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_cursor_yx(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+{
+    int y = 0, x = 0;
+
+    ncplane_cursor_yx(self->ncplane_ptr, &y, &x);
+
+    return Py_BuildValue("ii", y, x);
+}
+
+static PyObject *
+NcPlane_channels(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+{
+    uint64_t channels = ncplane_channels(self->ncplane_ptr);
+    return Py_BuildValue("K", (unsigned long long)channels);
+}
+
+static PyObject *
+NcPlane_styles(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+{
+    uint16_t styles = ncplane_styles(self->ncplane_ptr);
+    return Py_BuildValue("H", (unsigned short)styles);
+}
+
+static PyObject *
+NcPlane_putc_yx(NcPlaneObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when cells are added");
+    return NULL;
+}
+
+static PyObject *
+NcPlane_putc(NcPlaneObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when cells are added");
+    return NULL;
+}
+
+static PyObject *
+NcPlane_putchar_yx(NcPlaneObject *self, PyObject *args)
+{
+    int y = 0, x = 0;
+    const char *c_str = NULL;
+
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "s", &c_str));
+
+    CHECK_NOTCURSES(ncplane_putchar_yx(self->ncplane_ptr, y, x, c_str[0]));
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_putchar(NcPlaneObject *self, PyObject *args)
+{
+    const char *c_str = NULL;
+
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "s", &c_str));
+
+    CHECK_NOTCURSES(ncplane_putchar(self->ncplane_ptr, c_str[0]));
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_putchar_stained(NcPlaneObject *self, PyObject *args)
+{
+    const char *c_str = NULL;
+
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "s", &c_str));
+
+    CHECK_NOTCURSES(ncplane_putchar_stained(self->ncplane_ptr, c_str[0]));
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_putegc_yx(NcPlaneObject *self, PyObject *args)
+{
+    int y = 0, x = 0;
+    const char *egc = NULL;
+    int sbytes = 0;
+
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "ii s",
+                                      &y, &x,
+                                      &egc));
+
+    CHECK_NOTCURSES(ncplane_putegc_yx(self->ncplane_ptr, y, x, egc, &sbytes));
+
+    return Py_BuildValue("i", sbytes);
+}
+
+static PyObject *
+NcPlane_putegc(NcPlaneObject *self, PyObject *args)
+{
+    const char *egc = NULL;
+    int sbytes = 0;
+
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "s",
+                                      &egc));
+
+    CHECK_NOTCURSES(ncplane_putegc(self->ncplane_ptr, egc, &sbytes));
+
+    return Py_BuildValue("i", sbytes);
+}
+
+static PyObject *
+NcPlane_putegc_stained(NcPlaneObject *self, PyObject *args)
+{
+    const char *egc = NULL;
+    int sbytes = 0;
+
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "s",
+                                      &egc));
+
+    CHECK_NOTCURSES(ncplane_putegc(self->ncplane_ptr, egc, &sbytes));
+
+    return Py_BuildValue("i", sbytes);
+}
+
+static PyObject *
+NcPlane_putstr_yx(NcPlaneObject *self, PyObject *args)
+{
+    int y = 0, x = 0;
+    const char *egc = NULL;
+
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "ii s",
+                                      &y, &x,
+                                      &egc));
+
+    CHECK_NOTCURSES(ncplane_putstr_yx(self->ncplane_ptr, y, x, egc));
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_putstr(NcPlaneObject *self, PyObject *args)
+{
+    const char *egc = NULL;
+
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "s",
+                                      &egc));
+
+    CHECK_NOTCURSES(ncplane_putstr(self->ncplane_ptr, egc));
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_putstr_aligned(NcPlaneObject *self, PyObject *args)
+{
+    int y = 0, align_int = 0;
+    const char *egc = NULL;
+
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "ii s",
+                                      &y, &align_int,
+                                      &egc));
+
+    CHECK_NOTCURSES(ncplane_putstr_aligned(self->ncplane_ptr, y, (ncalign_e)align_int, egc));
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_putstr_stained(NcPlaneObject *self, PyObject *args)
+{
+    const char *egc = NULL;
+
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "s",
+                                      &egc));
+
+    CHECK_NOTCURSES(ncplane_putstr_stained(self->ncplane_ptr, egc));
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_putnstr_yx(NcPlaneObject *self, PyObject *args)
+{
+    int y = 0, x = 0;
+    Py_ssize_t s = 0;
+    const char *egc = NULL;
+
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "ii n s",
+                                      &y, &x,
+                                      &s,
+                                      &egc));
+
+    CHECK_NOTCURSES(ncplane_putnstr_yx(self->ncplane_ptr, y, x, (size_t)s, egc));
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_putnstr(NcPlaneObject *self, PyObject *args)
+{
+    Py_ssize_t s = 0;
+    const char *egc = NULL;
+
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "n s",
+                                      &s,
+                                      &egc));
+
+    CHECK_NOTCURSES(ncplane_putnstr(self->ncplane_ptr, (size_t)s, egc));
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_putnstr_aligned(NcPlaneObject *self, PyObject *args)
+{
+    int y = 0, align_int = 0;
+    Py_ssize_t s = 0;
+    const char *egc = NULL;
+
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "ii n s",
+                                      &y, &align_int,
+                                      &s,
+                                      &egc));
+
+    CHECK_NOTCURSES(ncplane_putnstr_aligned(self->ncplane_ptr, y, (ncalign_e)align_int, (size_t)s, egc));
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_puttext(NcPlaneObject *self, PyObject *args)
+{
+    int y = 0, align_int = 0;
+    const char *text = NULL;
+    size_t bytes_written = 0;
+
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "ii s",
+                                      &y, &align_int,
+                                      &text));
+
+    CHECK_NOTCURSES(ncplane_puttext(self->ncplane_ptr, y, (ncalign_e)align_int, text, &bytes_written));
+
+    return Py_BuildValue("n", (Py_ssize_t)bytes_written);
+}
+
+static PyObject *
+NcPlane_box(NcPlaneObject *Py_UNUSED(self), PyObject *Py_UNUSED(args), PyObject *Py_UNUSED(kwds))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when cells are added");
+    return NULL;
+    // ncplane_box
+}
+
+static PyObject *
+NcPlane_box_sized(NcPlaneObject *Py_UNUSED(self), PyObject *Py_UNUSED(args), PyObject *Py_UNUSED(kwds))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when cells are added");
+    return NULL;
+    // ncplane_box_sized
+}
+
+static PyObject *
+NcPlane_perimeter(NcPlaneObject *Py_UNUSED(self), PyObject *Py_UNUSED(args), PyObject *Py_UNUSED(kwds))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when cells are added");
+    return NULL;
+    // ncplane_perimeter
+}
+
+static PyObject *
+NcPlane_polyfill_yx(NcPlaneObject *Py_UNUSED(self), PyObject *Py_UNUSED(args), PyObject *Py_UNUSED(kwds))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when cells are added");
+    return NULL;
+    // ncplane_polyfill_yx
+}
+
+static PyObject *
+NcPlane_gradient(NcPlaneObject *self, PyObject *args, PyObject *kwds)
+{
+    const char *egc = NULL;
+    unsigned long stylemask = 0;
+    unsigned long long ul = 0, ur = 0, ll = 0, lr = 0;
+    int ystop = 0, xstop = 0;
+
+    char *keywords[] = {"egc",
+                        "stylemask",
+                        "ul", "ur", "ll", "lr",
+                        "ystop", "xstop",
+                        NULL};
+    GNU_PY_CHECK_INT(PyArg_ParseTupleAndKeywords(args, kwds, "s k KKKK ii", keywords,
+                                                 &egc,
+                                                 &stylemask,
+                                                 &ul, &ur, &ll, &lr,
+                                                 &ystop, &xstop));
+
+    int cells_filled = CHECK_NOTCURSES(
+        ncplane_gradient(
+            self->ncplane_ptr, egc,
+            (uint32_t)stylemask,
+            (uint64_t)ul, (uint64_t)ur, (uint64_t)ll, (uint64_t)lr,
+            ystop, xstop));
+
+    return Py_BuildValue("i", cells_filled);
+}
+
+static PyObject *
+NcPlane_highgradient(NcPlaneObject *self, PyObject *args, PyObject *kwds)
+{
+    unsigned long ul = 0, ur = 0, ll = 0, lr = 0;
+    int ystop = 0, xstop = 0;
+
+    char *keywords[] = {"ul", "ur", "ll", "lr",
+                        "ystop", "xstop",
+                        NULL};
+    GNU_PY_CHECK_INT(PyArg_ParseTupleAndKeywords(args, kwds, "kkkk ii", keywords,
+                                                 &ul, &ur, &ll, &lr,
+                                                 &ystop, &xstop));
+
+    int cells_filled = CHECK_NOTCURSES(
+        ncplane_highgradient(
+            self->ncplane_ptr,
+            (uint32_t)ul, (uint32_t)ur, (uint32_t)ll, (uint32_t)lr,
+            ystop, xstop));
+
+    return Py_BuildValue("i", cells_filled);
+}
+
+static PyObject *
+NcPlane_gradient_sized(NcPlaneObject *self, PyObject *args, PyObject *kwds)
+{
+    const char *egc = NULL;
+    unsigned long stylemask = 0;
+    unsigned long long ul = 0, ur = 0, ll = 0, lr = 0;
+    int ylen = 0, xlen = 0;
+
+    char *keywords[] = {"egc",
+                        "stylemask",
+                        "ul", "ur", "ll", "lr",
+                        "ylen", "xlen",
+                        NULL};
+    GNU_PY_CHECK_INT(PyArg_ParseTupleAndKeywords(args, kwds, "s k KKKK ii", keywords,
+                                                 &egc,
+                                                 &stylemask,
+                                                 &ul, &ur, &ll, &lr,
+                                                 &ylen, &xlen));
+
+    int cells_filled = CHECK_NOTCURSES(
+        ncplane_gradient_sized(
+            self->ncplane_ptr, egc,
+            (uint32_t)stylemask,
+            (uint64_t)ul, (uint64_t)ur, (uint64_t)ll, (uint64_t)lr,
+            ylen, xlen));
+
+    return Py_BuildValue("i", cells_filled);
+}
+
+static PyObject *
+NcPlane_highgradient_sized(NcPlaneObject *self, PyObject *args, PyObject *kwds)
+{
+    unsigned long ul = 0, ur = 0, ll = 0, lr = 0;
+    int ylen = 0, xlen = 0;
+
+    char *keywords[] = {"ul", "ur", "ll", "lr",
+                        "ylen", "xlen",
+                        NULL};
+    GNU_PY_CHECK_INT(PyArg_ParseTupleAndKeywords(args, kwds, "kkkk ii", keywords,
+                                                 &ul, &ur, &ll, &lr,
+                                                 &ylen, &xlen));
+
+    int cells_filled = CHECK_NOTCURSES(
+        ncplane_highgradient_sized(
+            self->ncplane_ptr,
+            (uint32_t)ul, (uint32_t)ur, (uint32_t)ll, (uint32_t)lr,
+            ylen, xlen));
+
+    return Py_BuildValue("i", cells_filled);
+}
+
+static PyObject *
+NcPlane_format(NcPlaneObject *self, PyObject *args)
+{
+    int ystop = 0, xstop = 0;
+    unsigned long stylemark = 0;
+
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "ii k",
+                                      &ystop, &xstop,
+                                      &stylemark));
+
+    int cells_set = CHECK_NOTCURSES(ncplane_format(self->ncplane_ptr, ystop, xstop, (uint32_t)stylemark));
+
+    return Py_BuildValue("i", cells_set);
+}
+
+static PyObject *
+NcPlane_stain(NcPlaneObject *self, PyObject *args, PyObject *kwds)
+{
+    int ystop = 0, xstop = 0;
+    unsigned long long ul = 0, ur = 0, ll = 0, lr = 0;
+
+    char *keywords[] = {
+        "ystop", "xstop",
+        "ul", "ur", "ll", "lr",
+        NULL};
+
+    GNU_PY_CHECK_INT(PyArg_ParseTupleAndKeywords(args, kwds, "ii KKKK", keywords,
+                                                 &ystop, &xstop,
+                                                 &ul, &ur, &ll, &lr));
+
+    int cells_set = CHECK_NOTCURSES(
+        ncplane_stain(
+            self->ncplane_ptr,
+            ystop, xstop,
+            (uint64_t)ul, (uint64_t)ur, (uint64_t)ll, (uint64_t)lr));
+
+    return Py_BuildValue("i", cells_set);
+}
+
+static PyObject *
+NcPlane_mergedown_simple(NcPlaneObject *self, PyObject *args)
+{
+    NcPlaneObject *dst_obj = NULL;
+
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "|O!", &NcPlane_Type, &dst_obj));
+
+    if (NULL != dst_obj)
+    {
+        CHECK_NOTCURSES(ncplane_mergedown_simple(self->ncplane_ptr, dst_obj->ncplane_ptr));
+    }
+    else
+    {
+        CHECK_NOTCURSES(ncplane_mergedown_simple(self->ncplane_ptr, NULL));
+    }
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_mergedown(NcPlaneObject *self, PyObject *args, PyObject *kwds)
+{
+    NcPlaneObject *dst_obj = NULL;
+    int begsrcy = 0, begsrcx = 0, leny = 0, lenx = 0;
+    int dsty = 0, dstx = 0;
+
+    char *keywords[] = {"dst",
+                        "begsrcy", "begsrcx", "leny", "lenx",
+                        "dsty", "dstx",
+                        NULL};
+    GNU_PY_CHECK_INT(PyArg_ParseTupleAndKeywords(args, kwds, "O! iiii ii", keywords,
+                                                 &NcPlane_Type, &dst_obj,
+                                                 &begsrcy, &begsrcx, &leny, &lenx,
+                                                 &dsty, &dstx));
+
+    CHECK_NOTCURSES(ncplane_mergedown(
+        self->ncplane_ptr, dst_obj->ncplane_ptr,
+        begsrcy, begsrcx, leny, lenx,
+        dsty, dstx));
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_erase(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+{
+    ncplane_erase(self->ncplane_ptr);
+    Py_RETURN_NONE;
+}
+
+/*
+static PyObject *
+NcPlane_(NcPlaneObject *self, PyObject *args)
+{
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "", ));
+}
+*/
+
 static PyMethodDef NcPlane_methods[] = {
     {"create", (void *)Ncplane_create, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Create a new ncplane bound to plane 'n', at the offset 'y'x'x' (relative to the origin of 'n') and the specified size. The number of 'rows' and 'cols' must both be positive. This plane is initially at the top of the z-buffer, as if ncplane_move_top() had been called on it. The void* 'userptr' can be retrieved (and reset) later. A 'name' can be set, used in debugging.")},
+    {"destroy", (PyCFunction)NcPlane_destroy, METH_NOARGS, "Destroy the plane."},
+
+    {"notcurses", (PyCFunction)NcPlane_notcurses, METH_NOARGS, PyDoc_STR("Extract the Notcurses context to which this plane is attached.")},
+    {"dim_yx", (PyCFunction)NcPlane_dim_yx, METH_NOARGS, PyDoc_STR("Return the dimensions of this ncplane.")},
+    {"dim_x", (PyCFunction)NcPlane_dim_x, METH_NOARGS, PyDoc_STR("Return X dimension of this ncplane.")},
+    {"dim_y", (PyCFunction)NcPlane_dim_y, METH_NOARGS, PyDoc_STR("Return Y dimension of this ncplane.")},
+    {"pixelgeom", (PyCFunction)NcPlane_pixelgeom, METH_NOARGS, PyDoc_STR("Retrieve pixel geometry for the display region ('pxy', 'pxx'), each cell ('celldimy', 'celldimx'), and the maximum displayable bitmap ('maxbmapy', 'maxbmapx'). Note that this will call notcurses_check_pixel_support(), possibly leading to an interrogation of the terminal. If bitmaps are not supported, 'maxbmapy' and 'maxbmapx' will be 0. Any of the geometry arguments may be NULL.")},
+
+    {"set_resizecb", (PyCFunction)NcPlane_set_resizecb, METH_VARARGS, PyDoc_STR("Replace the ncplane's existing resizecb with 'resizecb' (which may be NULL). The standard plane's resizecb may not be changed.")},
+    {"reparent", (PyCFunction)NcPlane_reparent, METH_VARARGS, PyDoc_STR("Plane 'n' will be unbound from its parent plane, and will be made a bound child of 'newparent'.")},
+    {"reparent_family", (PyCFunction)NcPlane_reparent_family, METH_VARARGS, PyDoc_STR("The same as reparent(), except any planes bound to 'n' come along with it to its new destination.")},
+    {"dup", (PyCFunction)NcPlane_dup, METH_NOARGS, PyDoc_STR("Duplicate an existing ncplane.")},
+
+    {"translate", (void *)NcPlane_translate, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("provided a coordinate relative to the origin of 'src', map it to the same absolute coordinate relative to the origin of 'dst'.")},
+    {"translate_abs", (PyCFunction)NcPlane_translate_abs, METH_VARARGS, PyDoc_STR("Fed absolute 'y'/'x' coordinates, determine whether that coordinate is within the ncplane.")},
+    {"set_scrolling", (PyCFunction)NcPlane_set_scrolling, METH_NOARGS, PyDoc_STR("All planes are created with scrolling disabled. Returns true if scrolling was previously enabled, or false if it was disabled.")},
+
+    {"resize", (void *)NcPlane_resize, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Resize the specified ncplane.")},
+    {"resize_simple", (PyCFunction)NcPlane_resize_simple, METH_VARARGS, PyDoc_STR("Resize the plane, retaining what data we can (everything, unless we're shrinking in some dimension). Keep the origin where it is.")},
+
+    {"set_base_cell", (PyCFunction)NcPlane_set_base_cell, METH_VARARGS, PyDoc_STR("Set the ncplane's base nccell to 'c'.")},
+    {"set_base", (void *)NcPlane_set_base, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Set the ncplane's base nccell.")},
+    {"base", (PyCFunction)NcPlane_base, METH_NOARGS, PyDoc_STR("Extract the ncplane's base nccell.")},
+
+    {"move_yx", (PyCFunction)NcPlane_move_yx, METH_VARARGS, PyDoc_STR("Move this plane relative to the standard plane, or the plane to which it is bound (if it is bound to a plane).")},
+    {"yx", (PyCFunction)NcPlane_yx, METH_NOARGS, PyDoc_STR("Get the origin of plane 'n' relative to its bound plane, or pile.")},
+    {"y", (PyCFunction)NcPlane_y, METH_NOARGS, PyDoc_STR("Get the Y origin of plane 'n' relative to its bound plane, or pile.")},
+    {"x", (PyCFunction)NcPlane_x, METH_NOARGS, PyDoc_STR("Get the X origin of plane 'n' relative to its bound plane, or pile.")},
+    {"abs_yx", (PyCFunction)NcPlane_abs_yx, METH_NOARGS, PyDoc_STR("Get the origin of plane 'n' relative to its pile.")},
+    {"abs_y", (PyCFunction)NcPlane_abs_y, METH_NOARGS, PyDoc_STR("Get the Y origin of plane 'n' relative to its pile.")},
+    {"abs_x", (PyCFunction)NcPlane_abs_x, METH_NOARGS, PyDoc_STR("Get the X origin of plane 'n' relative to its pile.")},
+
+    {"parent", (PyCFunction)NcPlane_parent, METH_NOARGS, PyDoc_STR("Get the plane to which the plane 'n' is bound, if any.")},
+    {"descendant_p", (PyCFunction)NcPlane_descendant_p, METH_VARARGS, PyDoc_STR("Return True if 'n' is a proper descendent of 'ancestor'.")},
+
+    {"move_top", (PyCFunction)NcPlane_move_top, METH_NOARGS, PyDoc_STR("Splice ncplane out of the z-buffer, and reinsert it at the top.")},
+    {"move_bottom", (PyCFunction)NcPlane_move_bottom, METH_NOARGS, PyDoc_STR("Splice ncplane out of the z-buffer, and reinsert it at the bottom.")},
+    {"move_above", (PyCFunction)NcPlane_move_above, METH_VARARGS, PyDoc_STR("Splice ncplane out of the z-buffer, and reinsert it above passed plane.")},
+    {"move_below", (PyCFunction)NcPlane_move_below, METH_VARARGS, PyDoc_STR("Splice ncplane out of the z-buffer, and reinsert it bellow passed plane.")},
+    {"below", (PyCFunction)NcPlane_below, METH_NOARGS, PyDoc_STR("Return the plane below this one, or None if this is at the bottom.")},
+    {"above", (PyCFunction)NcPlane_above, METH_NOARGS, PyDoc_STR("Return the plane above this one, or None if this is at the top.")},
+
+    {"rotate_cw", (PyCFunction)NcPlane_rotate_cw, METH_NOARGS, PyDoc_STR("Rotate the plane π/2 radians clockwise.")},
+    {"rotate_ccw", (PyCFunction)NcPlane_rotate_ccw, METH_NOARGS, PyDoc_STR("Rotate the plane π/2 radians counterclockwise.")},
+
+    {"at_cursor", (PyCFunction)NcPlane_at_cursor, METH_NOARGS, PyDoc_STR("Retrieve the current contents of the cell under the cursor.")},
+    {"at_cursor_cell", (PyCFunction)NcPlane_at_cursor_cell, METH_NOARGS, PyDoc_STR("Retrieve the current contents of the cell under the cursor.")},
+    {"at_yx", (PyCFunction)NcPlane_at_yx, METH_VARARGS, PyDoc_STR("Retrieve the current contents of the specified cell.")},
+    {"at_yx_cell", (PyCFunction)NcPlane_at_yx_cell, METH_VARARGS, PyDoc_STR("Retrieve the current contents of the specified cell")},
+    {"contents", (void *)NcPlane_contents, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Create a flat string from the EGCs of the selected region of the ncplane.")},
+
+    {"center_abs", (PyCFunction)NcPlane_center_abs, METH_NOARGS, PyDoc_STR("Return the plane center absolute coordiantes.")},
+
+    {"halign", (PyCFunction)NcPlane_halign, METH_VARARGS, PyDoc_STR("Return the column at which cols ought start in order to be aligned.")},
+    {"valign", (PyCFunction)NcPlane_valign, METH_VARARGS, PyDoc_STR("Return the row at which rows ought start in order to be aligned.")},
+
+    {"cursor_move_yx", (PyCFunction)NcPlane_cursor_move_yx, METH_VARARGS, PyDoc_STR("Move the cursor to the specified position (the cursor needn't be visible).")},
+    {"home", (PyCFunction)NcPlane_home, METH_NOARGS, PyDoc_STR("Move the cursor to 0, 0.")},
+    {"cursor_yx", (PyCFunction)NcPlane_cursor_yx, METH_NOARGS, PyDoc_STR("Get the current position of the cursor within plane.")},
+
+    {"channels", (PyCFunction)NcPlane_channels, METH_NOARGS, PyDoc_STR("Get the current channels or attribute word.")},
+    {"styles", (PyCFunction)NcPlane_styles, METH_NOARGS, PyDoc_STR("Return the current styling for this ncplane.")},
+
+    {"putc_yx", (PyCFunction)NcPlane_putc_yx, METH_VARARGS, PyDoc_STR("Replace the cell at the specified coordinates with the provided cell.")},
+    {"putc", (PyCFunction)NcPlane_putc, METH_VARARGS, PyDoc_STR("Replace cell at the current cursor location.")},
+
+    {"putchar_yx", (PyCFunction)NcPlane_putchar_yx, METH_VARARGS, PyDoc_STR("Replace the cell at the specified coordinates with the provided 7-bit char.")},
+    {"putchar", (PyCFunction)NcPlane_putchar, METH_VARARGS, PyDoc_STR("Replace the cell at the current cursor location.")},
+    {"putchar_stained", (PyCFunction)NcPlane_putchar_stained, METH_VARARGS, PyDoc_STR("Replace the EGC underneath us, but retain the styling.")},
+
+    {"putegc_yx", (PyCFunction)NcPlane_putegc_yx, METH_VARARGS, PyDoc_STR("Replace the cell at the specified coordinates with the provided EGC.")},
+    {"putegc", (PyCFunction)NcPlane_putegc, METH_VARARGS, PyDoc_STR("Replace the cell at the current cursor location with the provided EGC")},
+    {"putegc_stained", (PyCFunction)NcPlane_putegc_stained, METH_VARARGS, PyDoc_STR("Replace the EGC underneath us, but retain the styling.")},
+
+    {"putstr_yx", (PyCFunction)NcPlane_putstr_yx, METH_VARARGS, PyDoc_STR("Write a series of EGCs to the location, using the current style.")},
+    {"putstr", (PyCFunction)NcPlane_putstr, METH_VARARGS, PyDoc_STR("Write a series of EGCs to the current location, using the current style.")},
+    {"putstr_aligned", (PyCFunction)NcPlane_putstr_aligned, METH_VARARGS, PyDoc_STR("Write a series of EGCs to the current location, using the alignment.")},
+    {"putstr_stained", (PyCFunction)NcPlane_putstr_stained, METH_VARARGS, PyDoc_STR("Replace a string's worth of glyphs at the current cursor location, but retain the styling.")},
+    {"putnstr_yx", (PyCFunction)NcPlane_putnstr_yx, METH_VARARGS, PyDoc_STR("Write a series of EGCs to the location, using the current style.")},
+    {"putnstr", (PyCFunction)NcPlane_putnstr, METH_VARARGS, PyDoc_STR("Write a series of EGCs to the current location, using the current style.")},
+    {"putnstr_aligned", (PyCFunction)NcPlane_putnstr_aligned, METH_VARARGS, PyDoc_STR("Write a series of EGCs to the current location, using the alignment.")},
+
+    {"puttext", (PyCFunction)NcPlane_puttext, METH_VARARGS, PyDoc_STR("Write the specified text to the plane, breaking lines sensibly, beginning at the specified line.")},
+
+    {"box", (void *)NcPlane_box, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Draw a box with its upper-left corner at the current cursor position.")},
+    {"box_sized", (void *)NcPlane_box_sized, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Draw a box with its upper-left corner at the current cursor position, having dimensions.")},
+    {"perimeter", (void *)NcPlane_perimeter, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Draw a perimeter with its upper-left corner at the current cursor position")},
+    {"polyfill_yx", (void *)NcPlane_polyfill_yx, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Starting at the specified coordinate, if its glyph is different from that of is copied into it, and the original glyph is considered the fill target.")},
+
+    {"gradient", (void *)NcPlane_gradient, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Draw a gradient with its upper-left corner at the current cursor position.")},
+    {"highgradient", (void *)NcPlane_highgradient, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Do a high-resolution gradient using upper blocks and synced backgrounds.")},
+    {"gradient_sized", (void *)NcPlane_gradient_sized, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Draw a gradient with its upper-left corner at the current cursor position.")},
+    {"highgradient_sized", (void *)NcPlane_highgradient_sized, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("NcPlane.gradent_sized() meets NcPlane.highgradient().")},
+
+    {"format", (PyCFunction)NcPlane_format, METH_VARARGS, PyDoc_STR("Set the given style throughout the specified region, keeping content and attributes unchanged. Returns the number of cells set.")},
+    {"stain", (void *)NcPlane_stain, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Set the given style throughout the specified region, keeping content and attributes unchanged. Returns the number of cells set.")},
+
+    {"mergedown_simple", (PyCFunction)NcPlane_mergedown_simple, METH_VARARGS, PyDoc_STR("Merge the ncplane down onto the passed ncplane.")},
+    {"mergedown", (void *)NcPlane_mergedown, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Merge with parameters the ncplane down onto the passed ncplane.")},
+    {"erase", (PyCFunction)NcPlane_erase, METH_NOARGS, PyDoc_STR("Erase every cell in the ncplane.")},
+
+    //  {"", () NULL, METH_VARARGS, PyDoc_STR("")},
     {NULL, NULL, 0, NULL},
 };
 
@@ -91,6 +1133,5 @@ PyTypeObject NcPlane_Type = {
     .tp_itemsize = 0,
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_new = NcPlane_new,
-    .tp_dealloc = (destructor)NcPlane_dealloc,
     .tp_methods = NcPlane_methods,
 };
