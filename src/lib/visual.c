@@ -700,22 +700,17 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
   bargs.u.pixel.celldimx = nc->tcache.cellpixx;
   bargs.u.pixel.celldimy = nc->tcache.cellpixy;
   bargs.u.pixel.colorregs = nc->tcache.color_registers;
-  if(ncv->spx == NULL || n->sprite == NULL){
+  if(n->sprite == NULL){
     int cols = dispcols / bargs.u.pixel.celldimx + !!(dispcols % bargs.u.pixel.celldimx);
     int rows = disprows / bargs.u.pixel.celldimy + !!(disprows % bargs.u.pixel.celldimy);
-    if(ncv->spx){
-      sprixel_hide(ncv->spx);
-    }
-    if(n->sprite){
-      sprixel_hide(n->sprite);
-    }
-    if((ncv->spx = sprixel_alloc(n, ncv, rows, cols, placey, placex)) == NULL){
-      goto err;
+    if((n->sprite = sprixel_alloc(n, rows, cols, placey, placex)) == NULL){
+      ncplane_destroy(createdn);
+      return NULL;
     }
   }else{
-    ncv->spx = sprixel_recycle(n, ncv);
+    n->sprite = sprixel_recycle(n);
   }
-  bargs.u.pixel.spx = ncv->spx;
+  bargs.u.pixel.spx = n->sprite;
   // FIXME only set this if cursor is indeed hidden
   if(nc->tcache.sprixel_cursor_hack){
     bargs.u.pixel.cursor_hack = nc->tcache.civis;
@@ -723,16 +718,10 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
     bargs.u.pixel.cursor_hack = NULL;
   }
   if(ncvisual_blit(ncv, disprows, dispcols, n, bset, disprows, dispcols, &bargs)){
-    goto err;
+    ncplane_destroy(createdn);
+    return NULL;
   }
   return n;
-
-err:
-  if(ncv->spx){
-    sprixel_free(ncv->spx);
-  }
-  ncplane_destroy(createdn);
-  return NULL;
 }
 
 ncplane* ncvisual_render(notcurses* nc, ncvisual* ncv, const struct ncvisual_options* vopts){
@@ -788,9 +777,6 @@ ncvisual* ncvisual_from_plane(const ncplane* n, ncblitter_e blit, int begy, int 
 }
 
 void ncvisual_destroy(ncvisual* ncv){
-  if(ncv->spx){
-    ncv->spx->ncv = NULL;
-  }
   if(visual_implementation){
     visual_implementation->visual_destroy(ncv);
   }

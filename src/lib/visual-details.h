@@ -25,8 +25,6 @@ typedef struct ncvisual {
   // lines are sometimes padded. this many true bytes per row in data.
   int rowstride;
   bool owndata; // we own data iff owndata == true
-  // FIXME this cannot live here! it breaks wiping. associate with plane.
-  struct sprixel* spx; // non-NULL if this is NCBLIT_PIXEL
 } ncvisual;
 
 static inline void

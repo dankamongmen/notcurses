@@ -922,10 +922,10 @@ void sprixel_hide(sprixel* s);
 int sprite_draw(const notcurses* n, const ncpile *p, sprixel* s, FILE* out);
 int kitty_draw(const notcurses* n, const ncpile *p, sprixel* s, FILE* out);
 int sixel_draw(const notcurses* n, const ncpile *p, sprixel* s, FILE* out);
-// dimy and dimx are cell geometry, not pixel. takes ownership of s on success.
-sprixel* sprixel_alloc(ncplane* n, struct ncvisual* ncv, int dimy, int dimx,
-                       int placey, int placex);
-sprixel* sprixel_recycle(ncplane* n, struct ncvisual* ncv);
+// dimy and dimx are cell geometry, not pixel.
+sprixel* sprixel_alloc(ncplane* n, int dimy, int dimx, int placey, int placex);
+sprixel* sprixel_recycle(ncplane* n);
+// takes ownership of s on success.
 int sprixel_load(sprixel* spx, char* s, int bytes, int placey, int placex,
                  int pixy, int pixx, int parse_start);
 int sprite_wipe_cell(const notcurses* nc, sprixel* s, int y, int x);
