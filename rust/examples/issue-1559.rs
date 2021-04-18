@@ -24,7 +24,9 @@ fn main() -> NcResult<()> {
     let voptions =
         NcVisualOptions::without_plane(0, 0, 0, 0, HEIGHT, WIDTH, NCBLIT_PIXEL, 0, 0);
 
-    vframe.resize(1, 1)?; // it doesn't matter which values we put here 
+    // vframe.inflate(1)?; // this works
+
+    vframe.resize(1, 1)?; // but it doesn't matter which values we put here 
 
     // FIXME: render always gives an error
     vframe.render(&mut nc, &voptions)?;
