@@ -936,9 +936,10 @@ int ncvisual_inflate(ncvisual* n, int scale){
   if(inflaton == NULL){
     return -1;
   }
+  ncvisual_set_data(n, inflaton, true);
   n->rows *= scale;
   n->cols *= scale;
   n->rowstride = 4 * n->cols;
-  ncvisual_set_data(n, inflaton, true);
+  ncvisual_details_seed(n);
   return 0;
 }

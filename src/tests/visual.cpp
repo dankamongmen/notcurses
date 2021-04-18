@@ -36,9 +36,21 @@ TEST_CASE("Visual") {
   }
 
   SUBCASE("InflateBitmap") {
-    const uint32_t pixels[4] = { htole(0xffff0000), htole(0xff00ff00), htole(0xff0000ff), htole(0xffffffff) };
+    const uint32_t pixels[4] = { htole(0xffff00ff), htole(0xff00ffff), htole(0xff0000ff), htole(0xffffffff) };
     auto ncv = ncvisual_from_rgba(pixels, 2, 8, 2);
     REQUIRE(ncv);
+    ncvisual_options vopts = {
+      .n = nullptr,
+      .scaling = NCSCALE_NONE,
+      .y = 0, .x = 0,
+      .begy = 0, .begx = 0,
+      .leny = 0, .lenx = 0,
+      .blitter = NCBLIT_1x1,
+      .flags = 0, .transcolor = 0,
+    };
+    auto newn = ncvisual_render(nc_, ncv, &vopts);
+    CHECK(0 == notcurses_render(nc_));
+sleep(2);
     CHECK(0 == ncvisual_inflate(ncv, 3));
     CHECK(6 == ncv->rows);
     CHECK(6 == ncv->cols);
@@ -58,23 +70,16 @@ TEST_CASE("Visual") {
         CHECK(pixels[3] == ncv->data[y * ncv->cols + x]);
       }
     }
-    ncvisual_options vopts = {
-      .n = nullptr,
-      .scaling = NCSCALE_NONE,
-      .y = 0, .x = 0,
-      .begy = 0, .begx = 0,
-      .leny = 0, .lenx = 0,
-      .blitter = NCBLIT_1x1,
-      .flags = 0, .transcolor = 0,
-    };
-    auto newn = ncvisual_render(nc_, ncv, &vopts);
     REQUIRE(newn);
+    auto enewn = ncvisual_render(nc_, ncv, &vopts);
     int newy, newx;
-    ncplane_dim_yx(newn, &newy, &newx);
+    ncplane_dim_yx(enewn, &newy, &newx);
     CHECK(6 == newy);
     CHECK(6 == newx);
-    CHECK(0 == ncplane_destroy(newn));
     CHECK(0 == notcurses_render(nc_));
+    CHECK(0 == ncplane_destroy(newn));
+    CHECK(0 == ncplane_destroy(enewn));
+sleep(2);
     ncvisual_destroy(ncv);
   }
 
@@ -552,14 +557,18 @@ TEST_CASE("Visual") {
     ncplane_dim_yx(ncp_, &dimy, &dimx);
     auto ncv = ncvisual_from_file(find_data("changes.jpg"));
     REQUIRE(ncv);
-    /*CHECK(dimy * 2 == frame->height);
-    CHECK(dimx == frame->width); FIXME */
+    int odimy, odimx, ndimy, ndimx;
     struct ncvisual_options opts{};
-    opts.scaling = NCSCALE_STRETCH;
     opts.n = ncp_;
+    CHECK(0 == ncvisual_blitter_geom(nc_, ncv, &opts, &odimy, &odimx, nullptr, nullptr, nullptr));
     CHECK(ncvisual_render(nc_, ncv, &opts));
     CHECK(0 == notcurses_render(nc_));
-    CHECK(1 == ncvisual_decode(ncv));
+    CHECK(0 == ncvisual_inflate(ncv, 2));
+    CHECK(0 == ncvisual_blitter_geom(nc_, ncv, &opts, &ndimy, &ndimx, nullptr, nullptr, nullptr));
+    CHECK(ndimy == odimy * 2);
+    CHECK(ndimx == odimx * 2);
+    CHECK(ncvisual_render(nc_, ncv, &opts));
+    CHECK(0 == notcurses_render(nc_));
     ncvisual_destroy(ncv);
   }
 
