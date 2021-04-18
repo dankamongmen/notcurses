@@ -3068,8 +3068,8 @@ int ncvisual_blitter_geom(const struct notcurses* nc, const struct ncvisual* n,
                           const struct ncvisual_options* vopts, int* y, int* x,
                           int* scaley, int* scalex, ncblitter_e* blitter);
 
-// Rotate the visual 'rads' radians. Only M_PI/2 and -M_PI/2 are
-// supported at the moment, but this will change FIXME.
+// Scale the visual to 'rows' X 'columns' pixels, using the best scheme
+// available. This is a lossy transformation, unless the size is unchanged.
 int ncvisual_rotate(struct ncvisual* n, double rads);
 
 // Resize the visual so that it is 'rows' X 'columns'. This is a lossy

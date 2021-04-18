@@ -50,7 +50,7 @@ TEST_CASE("Bitmaps") {
       .scaling = NCSCALE_NONE,
       .y = 0, .x = 0,
       .begy = 0, .begx = 0,
-      .leny = y, .lenx = x,
+      .leny = 0, .lenx = 0,
       .blitter = NCBLIT_PIXEL,
       .flags = NCVISUAL_OPTION_NODEGRADE,
       .transcolor = 0,
@@ -71,10 +71,11 @@ TEST_CASE("Bitmaps") {
       .flags = 0, .margin_b = 0, .margin_r = 0,
     };
     vopts.scaling = NCSCALE_SCALE;
-    vopts.n = ncplane_create(n_, &nopts);
-    REQUIRE(vopts.n);
+    auto bigp = ncplane_create(n_, &nopts);
+    REQUIRE(bigp);
+    vopts.n = bigp;
     uint64_t white = CHANNELS_RGB_INITIALIZER(0xff, 0xff, 0xff, 0xff, 0xff, 0xff);
-    ncplane_set_base(vopts.n, "x", 0, white);
+    ncplane_set_base(bigp, "x", 0, white);
     CHECK(vopts.n == ncvisual_render(nc_, ncv, &vopts));
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncvisual_inflate(ncv, 4));
@@ -89,7 +90,18 @@ TEST_CASE("Bitmaps") {
     CHECK(4 == ncplane_dim_y(infn));
     CHECK(4 == ncplane_dim_x(infn));
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == ncplane_destroy(vopts.n));
+    CHECK(0 == ncvisual_resize(ncv, 8, 8));
+    CHECK(ncv->rows == 8);
+    CHECK(ncv->cols == 8);
+    vopts.x = 11;
+    auto resizen = ncvisual_render(nc_, ncv, &vopts);
+    REQUIRE(resizen);
+    CHECK((8 + nc_->tcache.cellpixy - 1) / nc_->tcache.cellpixy == ncplane_dim_y(resizen));
+    CHECK((8 + nc_->tcache.cellpixx - 1) / nc_->tcache.cellpixx == ncplane_dim_x(resizen));
+    CHECK(0 == notcurses_render(nc_));
+    CHECK(0 == ncplane_destroy(bigp));
+    CHECK(0 == ncplane_destroy(resizen));
+    CHECK(0 == ncplane_destroy(infn));
     CHECK(0 == ncplane_destroy(n));
     ncvisual_destroy(ncv);
   }

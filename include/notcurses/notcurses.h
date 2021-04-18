@@ -2735,7 +2735,7 @@ API int ncvisual_decode_loop(struct ncvisual* nc)
 API int ncvisual_rotate(struct ncvisual* n, double rads)
   __attribute__ ((nonnull (1)));
 
-// Resize the visual so that it is 'rows' X 'columns', using the best scheme
+// Scale the visual to 'rows' X 'columns' pixels, using the best scheme
 // available. This is a lossy transformation, unless the size is unchanged.
 API int ncvisual_resize(struct ncvisual* n, int rows, int cols)
   __attribute__ ((nonnull (1)));

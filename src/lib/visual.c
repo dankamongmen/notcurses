@@ -106,7 +106,7 @@ ncvisual_blitset_geom(const notcurses* nc, const ncvisual* n,
     return -1;
   }
   if(n){
-//fprintf(stderr, "OUR DATA: %p rows/cols: %d/%d\n", ncv->data, ncv->rows, ncv->cols);
+//fprintf(stderr, "OUR DATA: %p rows/cols: %d/%d\n", n->data, n->rows, n->cols);
     if(n->data == NULL){
       logerror(nc, "No data in visual\n");
       return -1;
@@ -906,7 +906,10 @@ int ncvisual_resize(ncvisual* nc, int rows, int cols){
   if(!visual_implementation){
     return -1;
   }
-  return visual_implementation->visual_resize(nc, rows, cols);
+  if(visual_implementation->visual_resize(nc, rows, cols)){
+    return -1;
+  }
+  return 0;
 }
 
 // Inflate each pixel of 'bmap' to 'scale'x'scale' pixels square, using the

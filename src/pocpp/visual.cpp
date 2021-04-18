@@ -51,7 +51,9 @@ int main(int argc, char** argv){
 
   ncplane_erase(n);
   ncvisual_blitter_geom(nc, ncv, &vopts, nullptr, nullptr, &scaley, &scalex, nullptr);
-  ncvisual_resize(ncv, dimy * scaley, dimx * scalex);
+  if(ncvisual_resize(ncv, dimy * scaley, dimx * scalex)){
+    goto err;
+  }
   vopts.n = n;
   if(ncvisual_render(nc, ncv, &vopts) == nullptr){
     goto err;
