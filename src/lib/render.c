@@ -134,6 +134,7 @@ highcontrast(uint32_t bchannel){
   return conrgb;
 }
 
+// wants coordinates within the sprixel, not absolute
 static void
 paint_sprixel(const ncplane* p, const nccell* vis, struct crender* crender,
               int y, int x){
@@ -145,8 +146,8 @@ paint_sprixel(const ncplane* p, const nccell* vis, struct crender* crender,
   if(crender->p || crender->s.bgblends){
     // if sprite_wipe_cell() fails, we presumably do not have the
     // ability to wipe, and must reprint the character
-    if(sprite_wipe_cell(nc, p->sprite, y, x)){
-//fprintf(stderr, "damaging due to wipe %d/%d\n", y, x);
+    if(sprite_wipe(nc, p->sprite, y, x)){
+//fprintf(stderr, "damaging due to wipe [%s] %d/%d\n", nccell_extended_gcluster(crender->p, &crender->c), y, x);
       crender->s.damaged = 1;
     }
     crender->s.p_beats_sprixel = 1;
@@ -385,7 +386,7 @@ postpaint_cell(nccell* lastframe, int dimx, struct crender* crender,
   lock_in_highcontrast(targc, crender);
   nccell* prevcell = &lastframe[fbcellidx(y, dimx, *x)];
   if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc) > 0){
-//fprintf(stderr, "damaging due to cmp\n");
+//fprintf(stderr, "damaging due to cmp [%s] %d %d\n", nccell_extended_gcluster(crender->p, &crender->c), y, *x);
     if(crender->sprixel){
       if(!crender->s.p_beats_sprixel && sprixel_state(crender->sprixel, y, *x) != SPRIXCELL_OPAQUE){
         crender->s.damaged = 1;

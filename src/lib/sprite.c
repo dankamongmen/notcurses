@@ -123,7 +123,7 @@ int sprixel_load(sprixel* spx, char* s, int bytes, int placey, int placex,
 
 // returns 1 if already annihilated, 0 if we successfully annihilated the cell,
 // or -1 if we could not annihilate the cell (i.e. we're sixel).
-int sprite_wipe_cell(const notcurses* nc, sprixel* s, int ycell, int xcell){
+int sprite_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
   if(s->invalidated == SPRIXEL_HIDE){ // no need to do work if we're killing it
     return 0;
   }
