@@ -4,6 +4,22 @@
 // FIXME needs be atomic
 static uint32_t sprixelid_nonce;
 
+static inline void
+sprixel_debug(FILE* out, const sprixel* s){
+  fprintf(out, "Sprixel %d (%p) %dx%d (%dx%d) n: %p state: %d\n",
+          s->id, s, s->dimy, s->dimx, s->pixy, s->pixx, s->n, s->invalidated);
+  if(s->n){
+    int idx = 0;
+    for(int y = 0 ; y < s->dimy ; ++y){
+      for(int x = 0 ; x < s->dimx ; ++x){
+        fprintf(out, "%d ", s->n->tacache[idx]);
+        ++idx;
+      }
+      fprintf(out, "\n");
+    }
+  }
+}
+
 void sprixel_free(sprixel* s){
   if(s){
     if(s->n){
@@ -138,6 +154,7 @@ int sprite_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
 
 // precondition: s->invalidated is SPRIXEL_INVALIDATED or SPRIXEL_MOVED.
 int sprite_draw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
+//sprixel_debug(stderr, s);
   int r = n->tcache.pixel_draw(n, p, s, out);
   return r;
 }
