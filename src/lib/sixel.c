@@ -516,7 +516,7 @@ int sixel_delete(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
   for(int yy = s->movedfromy ; yy < s->movedfromy + s->dimy && yy < p->dimy ; ++yy){
     for(int xx = s->movedfromx ; xx < s->movedfromx + s->dimx && xx < p->dimx ; ++xx){
       struct crender *r = &p->crender[yy * p->dimx + xx];
-      if(!r->sprixel || sprixel_state(r->sprixel, yy, xx) != SPRIXCELL_OPAQUE){
+      if(!r->sprixel){
         r->s.damaged = 1;
       }
     }
@@ -527,7 +527,14 @@ int sixel_delete(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
 int sixel_draw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
   (void)n;
   if(s->invalidated == SPRIXEL_MOVED){
-    sixel_delete(n, p, out, s);
+    for(int yy = s->movedfromy ; yy < s->movedfromy + s->dimy && yy < p->dimy ; ++yy){
+      for(int xx = s->movedfromx ; xx < s->movedfromx + s->dimx && xx < p->dimx ; ++xx){
+        struct crender *r = &p->crender[yy * p->dimx + xx];
+        if(!r->sprixel || sprixel_state(r->sprixel, yy, xx) != SPRIXCELL_OPAQUE){
+          r->s.damaged = 1;
+        }
+      }
+    }
     s->invalidated = SPRIXEL_INVALIDATED;
   }else{
     if(fwrite(s->glyph, s->glyphlen, 1, out) != 1){

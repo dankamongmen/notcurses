@@ -153,7 +153,6 @@ typedef struct sprixel {
   // both the plane and visual can die before the sprixel does. they are
   // responsible in such a case for NULLing out this link themselves.
   struct ncplane* n;    // associated ncplane
-  struct ncvisual* ncv; // associated ncvisual
   sprixel_e invalidated;// sprixel invalidation state
   struct sprixel* next;
   int y, x;
