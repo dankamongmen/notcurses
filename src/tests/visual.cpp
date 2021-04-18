@@ -1,4 +1,5 @@
 #include "main.h"
+#include "visual-details.h"
 #include <vector>
 
 TEST_CASE("Visual") {
@@ -32,6 +33,33 @@ TEST_CASE("Visual") {
     CHECK(0 == notcurses_render(nc_));
     ncvisual_destroy(ncv);
     ncplane_destroy(n);
+  }
+
+  SUBCASE("InflateBitmap") {
+    const uint32_t pixels[4] = { htole(0xffff0000), htole(0xff00ff00), htole(0xff0000ff), htole(0xffffffff) };
+    auto ncv = ncvisual_from_rgba(pixels, 2, 8, 2);
+    REQUIRE(ncv);
+    CHECK(0 == ncvisual_inflate(ncv, 3));
+    CHECK(0 == notcurses_render(nc_));
+    CHECK(6 == ncv->rows);
+    CHECK(6 == ncv->cols);
+    for(int y = 0 ; y < 3 ; ++y){
+      for(int x = 0 ; x < 3 ; ++x){
+        CHECK(pixels[0] == ncv->data[y * ncv->cols + x]);
+      }
+      for(int x = 3 ; x < 6 ; ++x){
+        CHECK(pixels[1] == ncv->data[y * ncv->cols + x]);
+      }
+    }
+    for(int y = 3 ; y < 6 ; ++y){
+      for(int x = 0 ; x < 3 ; ++x){
+        CHECK(pixels[2] == ncv->data[y * ncv->cols + x]);
+      }
+      for(int x = 3 ; x < 6 ; ++x){
+        CHECK(pixels[3] == ncv->data[y * ncv->cols + x]);
+      }
+    }
+    ncvisual_destroy(ncv);
   }
 
   SUBCASE("LoadRGBAFromMemory") {
