@@ -188,7 +188,6 @@ Notcurses_top(NotcursesObject *self, PyObject *Py_UNUSED(args))
 {
     PyObject *new_object CLEANUP_PY_OBJ = NcPlane_Type.tp_alloc((PyTypeObject *)&NcPlane_Type, 0);
     NcPlaneObject *new_plane = (NcPlaneObject *)new_object;
-    new_plane->is_stdplane = true;
     new_plane->ncplane_ptr = CHECK_NOTCURSES_PTR(notcurses_top(self->notcurses_ptr));
 
     Py_INCREF(new_object);
@@ -200,7 +199,6 @@ Notcurses_bottom(NotcursesObject *self, PyObject *Py_UNUSED(args))
 {
     PyObject *new_object CLEANUP_PY_OBJ = NcPlane_Type.tp_alloc((PyTypeObject *)&NcPlane_Type, 0);
     NcPlaneObject *new_plane = (NcPlaneObject *)new_object;
-    new_plane->is_stdplane = true;
     new_plane->ncplane_ptr = CHECK_NOTCURSES_PTR(notcurses_bottom(self->notcurses_ptr));
 
     Py_INCREF(new_object);
@@ -277,7 +275,6 @@ Notcurses_stdplane(NotcursesObject *self, PyObject *Py_UNUSED(args))
 {
     PyObject *new_object CLEANUP_PY_OBJ = NcPlane_Type.tp_alloc((PyTypeObject *)&NcPlane_Type, 0);
     NcPlaneObject *new_plane = (NcPlaneObject *)new_object;
-    new_plane->is_stdplane = true;
     new_plane->ncplane_ptr = CHECK_NOTCURSES_PTR(notcurses_stdplane(self->notcurses_ptr));
 
     Py_INCREF(new_object);
@@ -290,7 +287,6 @@ Notcurses_stddim_yx(NotcursesObject *self, PyObject *Py_UNUSED(args))
     int y = 0, x = 0;
     PyObject *new_object CLEANUP_PY_OBJ = NcPlane_Type.tp_alloc((PyTypeObject *)&NcPlane_Type, 0);
     NcPlaneObject *new_plane = (NcPlaneObject *)new_object;
-    new_plane->is_stdplane = true;
     new_plane->ncplane_ptr = CHECK_NOTCURSES_PTR(notcurses_stddim_yx(self->notcurses_ptr, &y, &x));
 
     Py_INCREF(new_object);
@@ -350,7 +346,6 @@ Notcurses_ncpile_create(NotcursesObject *self, PyObject *args, PyObject *kwds)
     PyObject *new_object CLEANUP_PY_OBJ = NcPlane_Type.tp_alloc((PyTypeObject *)&NcPlane_Type, 0);
     NcPlaneObject *new_plane = (NcPlaneObject *)new_object;
     new_plane->ncplane_ptr = CHECK_NOTCURSES_PTR(ncpile_create(self->notcurses_ptr, &options));
-    new_plane->is_stdplane = false;
 
     Py_INCREF(new_object);
     return new_object;
