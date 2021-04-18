@@ -592,9 +592,7 @@ int main(int argc, char** argv){
     about_destroy(nc);
   }while(restart_demos);
   ncmenu_destroy(menu);
-  if(stop_input()){
-    goto err;
-  }
+  stop_input();
   if(notcurses_stop(nc)){
     return EXIT_FAILURE;
   }
@@ -620,6 +618,7 @@ int main(int argc, char** argv){
   return EXIT_SUCCESS;
 
 err:
+  stop_input();
   notcurses_term_dim_yx(nc, &dimy, &dimx);
   notcurses_stop(nc);
   if(dimy < MIN_SUPPORTED_ROWS || dimx < MIN_SUPPORTED_COLS){
