@@ -62,6 +62,9 @@ int main(int argc, char** argv){
   clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);
 
   vopts.n = NULL;
+  vopts.x = NCALIGN_CENTER;
+  vopts.y = NCALIGN_CENTER;
+  vopts.flags |= NCVISUAL_OPTION_HORALIGNED | NCVISUAL_OPTION_VERALIGNED;
   ncplane_destroy(n);
   for(double i = 0 ; i < 256 ; ++i){
     clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);
@@ -69,10 +72,6 @@ int main(int argc, char** argv){
       failed = true;
       break;
     }
-    int vy, vx;
-    ncvisual_blitter_geom(nc, ncv, &vopts, &vy, &vx, &scaley, &scalex, nullptr);
-    vopts.x = (dimx - (vx / scalex)) / 2;
-    vopts.y = (dimy - (vy / scaley)) / 2;
     struct ncplane* newn;
     if((newn = ncvisual_render(nc, ncv, &vopts)) == nullptr){
       failed = true;

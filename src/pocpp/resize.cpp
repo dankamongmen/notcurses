@@ -24,14 +24,12 @@ int main(int argc, char** argv){
   struct ncvisual_options vopts{};
   bool failed = false;
   int dimy, dimx;
-  int scaley, scalex;
   int top = 0;
   int bot;
   auto ncv = ncvisual_from_file(file);
   if(!ncv){
     goto err;
   }
-  ncvisual_blitter_geom(nc, ncv, &vopts, nullptr, nullptr, &scaley, &scalex, nullptr);
   vopts.scaling = NCSCALE_STRETCH;
   struct ncplane* ntarg;
   if((ntarg = ncvisual_render(nc, ncv, &vopts)) == nullptr){
