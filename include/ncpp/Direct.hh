@@ -166,7 +166,7 @@ namespace ncpp
 
 		int streamfile (const char* filename, ncstreamcb streamer, struct ncvisual_options* vopts, void* curry) const NOEXCEPT_MAYBE
 		{
-			return error_guard (ncdirect_stream(direct, filename, streamer, vopts, curry), -1);
+			return error_guard<int> (ncdirect_stream(direct, filename, streamer, vopts, curry), -1);
 		}
 
 		bool putstr (uint64_t channels, const char* utf8) const NOEXCEPT_MAYBE
