@@ -3058,14 +3058,15 @@ it was built up:
 
 ```c
 // Get the size and ratio of ncvisual pixels to output cells along the y
-// ('toy') and x ('tox') axes. A ncvisual of '*y'X'*x' pixels will require
-// ('*y' * '*toy')X('*x' * '*tox') cells for full output. Returns non-zero
-// for an invalid 'blitter' in 'vopts'. Scaling is taken into account. The
-// blitter that will be used is returned in 'blitter'.
+// and x axes. The input size (in pixels) will be written to 'y' and 'x'.
+// The scaling will be written to 'scaley' and 'scalex'. With these:
+//  rows = (y / scaley) + !!(y % scaley)
+//  cols = (x / scalex) + !!(x % scalex)
+// Returns non-zero for an invalid 'vopts'. The blitter that will be used
+// is returned in '*blitter'.
 int ncvisual_blitter_geom(const struct notcurses* nc, const struct ncvisual* n,
-                          const struct ncvisual_options* vopts,
-                          int* y, int* x, int* toy, int* tox,
-                          ncblitter_e* blitter);
+                          const struct ncvisual_options* vopts, int* y, int* x,
+                          int* scaley, int* scalex, ncblitter_e* blitter);
 
 // Rotate the visual 'rads' radians. Only M_PI/2 and -M_PI/2 are
 // supported at the moment, but this will change FIXME.
