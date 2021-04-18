@@ -32,7 +32,7 @@ TEST_CASE("Visual") {
     REQUIRE(nullptr != n);
     CHECK(0 == notcurses_render(nc_));
     ncvisual_destroy(ncv);
-    ncplane_destroy(n);
+    CHECK(0 == ncplane_destroy(n));
   }
 
   SUBCASE("InflateBitmap") {
@@ -40,7 +40,6 @@ TEST_CASE("Visual") {
     auto ncv = ncvisual_from_rgba(pixels, 2, 8, 2);
     REQUIRE(ncv);
     CHECK(0 == ncvisual_inflate(ncv, 3));
-    CHECK(0 == notcurses_render(nc_));
     CHECK(6 == ncv->rows);
     CHECK(6 == ncv->cols);
     for(int y = 0 ; y < 3 ; ++y){
@@ -59,6 +58,23 @@ TEST_CASE("Visual") {
         CHECK(pixels[3] == ncv->data[y * ncv->cols + x]);
       }
     }
+    ncvisual_options vopts = {
+      .n = nullptr,
+      .scaling = NCSCALE_NONE,
+      .y = 0, .x = 0,
+      .begy = 0, .begx = 0,
+      .leny = 0, .lenx = 0,
+      .blitter = NCBLIT_1x1,
+      .flags = 0, .transcolor = 0,
+    };
+    auto newn = ncvisual_render(nc_, ncv, &vopts);
+    REQUIRE(newn);
+    int newy, newx;
+    ncplane_dim_yx(newn, &newy, &newx);
+    CHECK(6 == newy);
+    CHECK(6 == newx);
+    CHECK(0 == ncplane_destroy(newn));
+    CHECK(0 == notcurses_render(nc_));
     ncvisual_destroy(ncv);
   }
 
@@ -511,11 +527,27 @@ TEST_CASE("Visual") {
     CHECK(newn);
     CHECK(0 == notcurses_render(nc_));
     CHECK(1 == ncvisual_decode(ncv));
-    ncplane_destroy(newn);
+    CHECK(0 == ncplane_destroy(newn));
     ncvisual_destroy(ncv);
   }
 
   SUBCASE("LoadImage") {
+    int dimy, dimx;
+    ncplane_dim_yx(ncp_, &dimy, &dimx);
+    auto ncv = ncvisual_from_file(find_data("changes.jpg"));
+    REQUIRE(ncv);
+    /*CHECK(dimy * 2 == frame->height);
+    CHECK(dimx == frame->width); FIXME */
+    struct ncvisual_options opts{};
+    opts.scaling = NCSCALE_STRETCH;
+    opts.n = ncp_;
+    CHECK(ncvisual_render(nc_, ncv, &opts));
+    CHECK(0 == notcurses_render(nc_));
+    CHECK(1 == ncvisual_decode(ncv));
+    ncvisual_destroy(ncv);
+  }
+
+  SUBCASE("InflateImage") {
     int dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
     auto ncv = ncvisual_from_file(find_data("changes.jpg"));
@@ -695,7 +727,7 @@ TEST_CASE("Visual") {
           REQUIRE(nullptr != n);
           CHECK(0 == notcurses_render(nc_));
         }
-        ncplane_destroy(n);
+        CHECK(0 == ncplane_destroy(n));
         ncvisual_destroy(ncv);
       }
     }
@@ -741,13 +773,13 @@ TEST_CASE("Visual") {
       CHECK(1 == ret);
       struct ncplane* ncp = ncvisual_render(nc_, ncv, nullptr);
       CHECK(nullptr != ncp);
-      ncplane_destroy(ncp);
+      CHECK(0 == ncplane_destroy(ncp));
       // FIXME verify that it is first frame, not last?
       ret = ncvisual_decode_loop(ncv);
       CHECK(0 == ret);
       ncp = ncvisual_render(nc_, ncv, nullptr);
       CHECK(nullptr != ncp);
-      ncplane_destroy(ncp);
+      CHECK(0 == ncplane_destroy(ncp));
       ncvisual_destroy(ncv);
     }
   }
@@ -766,7 +798,7 @@ TEST_CASE("Visual") {
       auto newn = ncvisual_render(nc_, ncv, &opts);
       CHECK(newn);
       CHECK(0 == notcurses_render(nc_));
-      ncplane_destroy(newn);
+      CHECK(0 == ncplane_destroy(newn));
       ncvisual_destroy(ncv);
     }
   }
