@@ -1,4 +1,5 @@
 #include "main.h"
+#include "visual-details.h"
 #include <vector>
 
 TEST_CASE("Bitmaps") {
@@ -31,17 +32,73 @@ TEST_CASE("Bitmaps") {
     auto newn = ncvisual_render(nc_, ncv, &vopts);
     CHECK(newn);
     CHECK(0 == notcurses_render(nc_));
-    ncplane_destroy(newn);
+    CHECK(0 == ncplane_destroy(newn));
     CHECK(0 == notcurses_render(nc_));
     ncvisual_destroy(ncv);
   }
 #endif
 
+  SUBCASE("BitmapStretch") {
+    // first, assemble a visual equivalent to 1 cell
+    auto y = nc_->tcache.cellpixy;
+    auto x = nc_->tcache.cellpixx;
+    std::vector<uint32_t> v(x * y, htole(0xffffff00));
+    auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
+    REQUIRE(nullptr != ncv);
+    struct ncvisual_options vopts = {
+      .n = nullptr,
+      .scaling = NCSCALE_NONE,
+      .y = 0, .x = 0,
+      .begy = 0, .begx = 0,
+      .leny = y, .lenx = x,
+      .blitter = NCBLIT_PIXEL,
+      .flags = NCVISUAL_OPTION_NODEGRADE,
+      .transcolor = 0,
+    };
+    auto n = ncvisual_render(nc_, ncv, &vopts);
+    REQUIRE(nullptr != n);
+    auto s = n->sprite;
+    REQUIRE(nullptr != s);
+    CHECK(nc_->tcache.cellpixy == ncv->rows);
+    CHECK(nc_->tcache.cellpixx == ncv->cols);
+    CHECK(0 == notcurses_render(nc_));
+    struct ncplane_options nopts = {
+      .y = 1,
+      .x = 1,
+      .rows = 4,
+      .cols = 4,
+      .userptr = nullptr, .name = "bigp", .resizecb = nullptr,
+      .flags = 0, .margin_b = 0, .margin_r = 0,
+    };
+    vopts.scaling = NCSCALE_STRETCH;
+    vopts.n = ncplane_create(n_, &nopts);
+    REQUIRE(vopts.n);
+    uint64_t white = CHANNELS_RGB_INITIALIZER(0xff, 0xff, 0xff, 0xff, 0xff, 0xff);
+    ncplane_set_base(vopts.n, "x", 0, white);
+    CHECK(vopts.n == ncvisual_render(nc_, ncv, &vopts));
+    CHECK(0 == notcurses_render(nc_));
+    CHECK(0 == ncvisual_inflate(ncv, 4));
+    CHECK(4 * nc_->tcache.cellpixy == ncv->rows);
+    CHECK(4 * nc_->tcache.cellpixx == ncv->cols);
+    vopts.y = 1;
+    vopts.x = 6;
+    vopts.n = nullptr;
+    vopts.scaling = NCSCALE_NONE;
+    auto infn = ncvisual_render(nc_, ncv, &vopts);
+    REQUIRE(infn);
+    CHECK(4 == ncplane_dim_y(infn));
+    CHECK(4 == ncplane_dim_x(infn));
+    CHECK(0 == notcurses_render(nc_));
+    CHECK(0 == ncplane_destroy(vopts.n));
+    CHECK(0 == ncplane_destroy(n));
+    ncvisual_destroy(ncv);
+  }
+
   SUBCASE("PixelCellWipe") {
     // first, assemble a visual equivalent to 4 cells
     auto y = 2 * nc_->tcache.cellpixy;
     auto x = 2 * nc_->tcache.cellpixx;
-    std::vector<uint32_t> v(x * y, 0xffffffff);
+    std::vector<uint32_t> v(x * y, htole(0xffffffff));
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
     struct ncvisual_options vopts = {
@@ -67,7 +124,7 @@ TEST_CASE("Bitmaps") {
     CHECK(0 == notcurses_render(nc_));
     CHECK(1 == ncplane_putchar_yx(n_, 0, 1, 'x'));
     CHECK(0 == notcurses_render(nc_));
-    ncplane_destroy(n);
+    CHECK(0 == ncplane_destroy(n));
     ncvisual_destroy(ncv);
     CHECK(0 == notcurses_render(nc_));
   }
@@ -76,7 +133,7 @@ TEST_CASE("Bitmaps") {
     // first, assemble a visual equivalent to 4 cells
     auto y = 2 * nc_->tcache.cellpixy;
     auto x = 2 * nc_->tcache.cellpixx;
-    std::vector<uint32_t> v(x * y, 0xffffffff);
+    std::vector<uint32_t> v(x * y, htole(0xffffffff));
     for(auto& e : v){
       e -= random() % 0x1000000;
     }
@@ -105,7 +162,7 @@ TEST_CASE("Bitmaps") {
     CHECK(0 == notcurses_render(nc_));
     CHECK(1 == ncplane_putchar_yx(n_, 0, 1, 'x'));
     CHECK(0 == notcurses_render(nc_));
-    ncplane_destroy(n);
+    CHECK(0 == ncplane_destroy(n));
     ncvisual_destroy(ncv);
     CHECK(0 == notcurses_render(nc_));
   }
@@ -114,7 +171,7 @@ TEST_CASE("Bitmaps") {
     // first, assemble a visual equivalent to 100 cells
     auto y = 10 * nc_->tcache.cellpixy;
     auto x = 10 * nc_->tcache.cellpixx;
-    std::vector<uint32_t> v(x * y, 0xffffffff);
+    std::vector<uint32_t> v(x * y, htole(0xffffffff));
     for(auto& e : v){
       e -= random() % 0x1000000;
     }
@@ -143,7 +200,7 @@ TEST_CASE("Bitmaps") {
     CHECK(0 == notcurses_render(nc_));
     CHECK(1 == ncplane_putchar_yx(n_, 8, 3, 'x'));
     CHECK(0 == notcurses_render(nc_));
-    ncplane_destroy(n);
+    CHECK(0 == ncplane_destroy(n));
     ncvisual_destroy(ncv);
     CHECK(0 == notcurses_render(nc_));
   }
@@ -155,7 +212,7 @@ TEST_CASE("Bitmaps") {
     auto dimx = 9;
     auto y = dimy * nc_->tcache.cellpixy;
     auto x = dimx * nc_->tcache.cellpixx;
-    std::vector<uint32_t> v(x * y, 0xffffffff);
+    std::vector<uint32_t> v(x * y, htole(0xffffffff));
     // every other cell, set some pixels transparent
     for(int i = 0 ; i < dimy * dimx ; ++i){
       if(i % 2){
@@ -198,7 +255,7 @@ TEST_CASE("Bitmaps") {
         CHECK(((yy * dimx + xx) % 2) == sprixel_state(s, yy, xx));
       }
     }
-    ncplane_destroy(n);
+    CHECK(0 == ncplane_destroy(n));
   }
 
   // too much output -- OOMs ctest FIXME
@@ -225,7 +282,7 @@ TEST_CASE("Bitmaps") {
         CHECK(0 == notcurses_render(nc_));
       }
     }
-    ncplane_destroy(newn);
+    CHECK(0 == ncplane_destroy(newn));
     CHECK(0 == notcurses_render(nc_));
     ncvisual_destroy(ncv);
   }
