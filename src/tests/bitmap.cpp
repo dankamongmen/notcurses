@@ -70,7 +70,7 @@ TEST_CASE("Bitmaps") {
       .userptr = nullptr, .name = "bigp", .resizecb = nullptr,
       .flags = 0, .margin_b = 0, .margin_r = 0,
     };
-    vopts.scaling = NCSCALE_STRETCH;
+    vopts.scaling = NCSCALE_SCALE;
     vopts.n = ncplane_create(n_, &nopts);
     REQUIRE(vopts.n);
     uint64_t white = CHANNELS_RGB_INITIALIZER(0xff, 0xff, 0xff, 0xff, 0xff, 0xff);

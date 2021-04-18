@@ -665,10 +665,10 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
       disprows *= nc->tcache.cellpixy;
       clamp_to_sixelmax(&nc->tcache, &disprows, &dispcols);
       if(!(flags & NCVISUAL_OPTION_HORALIGNED)){
-        dispcols -= (placex * nc->tcache.cellpixx + 1);
+        dispcols -= placex * nc->tcache.cellpixx;
       }
       if(!(flags & NCVISUAL_OPTION_VERALIGNED)){
-        disprows -= (placey * nc->tcache.cellpixy + 1);
+        disprows -= placey * nc->tcache.cellpixy;
       }
     }
   }
