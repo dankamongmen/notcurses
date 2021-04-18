@@ -101,7 +101,7 @@ ncvisual_blitset_geom(const notcurses* nc, const ncvisual* n,
   *lenx = vopts ? vopts->lenx : 0;
   *leny = vopts ? vopts->leny : 0;
 //fprintf(stderr, "blit %dx%d+%dx%d %p\n", begy, begx, *leny, *lenx, ncv->data);
-  if(begy < 0 || begx < 0 || *lenx < -1 || *leny < -1){
+  if(begy < 0 || begx < 0 || *lenx <= -1 || *leny <= -1){
     logerror(nc, "Invalid geometry for visual %d %d %d %d\n", begy, begx, *leny, *lenx);
     return -1;
   }
@@ -172,7 +172,13 @@ ncvisual_blitset_geom(const notcurses* nc, const ncvisual* n,
   }
   if(vopts && vopts->flags & NCVISUAL_OPTION_HORALIGNED){
     if(vopts->x < NCALIGN_UNALIGNED || vopts->x > NCALIGN_RIGHT){
-      logerror(nc, "Bad x value %d for horizontal alignment\n", vopts->x);
+      logerror(nc, "Bad x %d for horizontal alignment\n", vopts->x);
+      return -1;
+    }
+  }
+  if(vopts && vopts->flags & NCVISUAL_OPTION_VERALIGNED){
+    if(vopts->y < NCALIGN_UNALIGNED || vopts->y > NCALIGN_RIGHT){
+      logerror(nc, "Bad y %d for vertical alignment\n", vopts->y);
       return -1;
     }
   }
