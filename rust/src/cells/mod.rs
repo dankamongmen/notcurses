@@ -19,48 +19,48 @@
 // (W) wrap: 40
 // (#) test: 26
 // ------------------------------------------
-//W# cell_bg_alpha
-//W# cell_bg_default_p
-//W# cell_bg_palindex
-//W# cell_bg_palindex_p
-//W# cell_bg_rgb
-//W# cell_bg_rgb8
-//W+ cell_double_wide_p
-//W+ cell_extract
-//W# cell_fchannel
-//W# cell_fg_alpha
-//W# cell_fg_default_p
-//W# cell_fg_palindex
-//W# cell_fg_palindex_p
-//W# cell_fg_rgb
-//W# cell_fg_rgb8
-//W+ cell_off_styles
-//W+ cell_on_styles
-//W+ cell_prime
-//W# cell_set_bchannel
-//W# cell_set_bg_alpha
-//W# cell_set_bg_default
-//W# cell_set_bg_palindex
-//W# cell_set_bg_rgb
-//W# cell_set_bg_rgb8
-// X cell_set_bg_rgb8_clipped   // unneeded
-//W# cell_set_fchannel
-//W# cell_set_fg_alpha
-//W# cell_set_fg_default
-//W# cell_set_fg_palindex
-//W# cell_set_fg_rgb
-//W# cell_set_fg_rgb8
-// X cell_set_fg_rgb8_clipped   // unneeded
-//W+ cell_set_styles
-//W+ cell_styles
-//W+ cell_wide_left_p
-//W+ cell_wide_right_p
-//W+ nccellcmp
-//W+ nccells_load_box
+//W# nccell_bg_alpha
+//W# nccell_bg_default_p
+//W# nccell_bg_palindex
+//W# nccell_bg_palindex_p
+//W# nccell_bg_rgb
+//W# nccell_bg_rgb8
+//W+ nccell_double_wide_p
+//W+ nccell_extract
+//W# nccell_fchannel
+//W# nccell_fg_alpha
+//W# nccell_fg_default_p
+//W# nccell_fg_palindex
+//W# nccell_fg_palindex_p
+//W# nccell_fg_rgb
+//W# nccell_fg_rgb8
 //W+ nccell_init
 //…… nccell_load_char
 //   nccell_load_egc32
+//W+ nccell_off_styles
+//W+ nccell_on_styles
+//W+ nccell_prime
+//W# nccell_set_bchannel
+//W# nccell_set_bg_alpha
+//W# nccell_set_bg_default
+//W# nccell_set_bg_palindex
+//W# nccell_set_bg_rgb
+//W# nccell_set_bg_rgb8
+// X nccell_set_bg_rgb8_clipped   // unneeded
+//W# nccell_set_fchannel
+//W# nccell_set_fg_alpha
+//W# nccell_set_fg_default
+//W# nccell_set_fg_palindex
+//W# nccell_set_fg_rgb
+//W# nccell_set_fg_rgb8
+// X nccell_set_fg_rgb8_clipped   // unneeded
+//W+ nccell_set_styles
 //W+ nccell_strdup
+//W+ nccell_styles
+//W+ nccell_wide_left_p
+//W+ nccell_wide_right_p
+//W+ nccellcmp
+//W+ nccells_load_box
 
 #[cfg(test)]
 mod test;

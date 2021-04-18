@@ -5,8 +5,7 @@ use crate::{
     NcPaletteIndex, NcPlane, NcResult, NcRgb, NcStyleMask, NCRESULT_ERR,
 };
 
-#[allow(unused_imports)]
-// imports for doc comments
+#[allow(unused_imports)] // for the doc comments
 use crate::NcChannel;
 
 /// # NcCell constructors

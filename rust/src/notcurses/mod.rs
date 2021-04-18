@@ -15,7 +15,7 @@
 // col 2:  48
 // --------------
 //         38  m: impl as a `Notcurses` method
-//         10  M: impl for the `FullMode` wrapper struct too
+//         10  M: impl for the `Nc` wrapper struct too
 //
 // col 3:  13
 // --------------
@@ -93,7 +93,7 @@ pub use wrapper::*;
 /// Notcurses builds atop the terminfo abstraction layer to
 /// provide reasonably portable vivid character displays.
 ///
-/// This is the internal type safely wrapped by [FullMode].
+/// This is the internal type safely wrapped by [Nc].
 pub type Notcurses = crate::bindings::ffi::notcurses;
 
 /// Options struct for [`Notcurses`]

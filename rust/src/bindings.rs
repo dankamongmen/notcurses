@@ -674,6 +674,7 @@ pub use ffi::{
     ncvisual_from_file,
     ncvisual_from_plane,
     ncvisual_from_rgba,
+    ncvisual_inflate,
     ncvisual_media_defblitter,
     ncvisual_polyfill_yx,
     ncvisual_render,

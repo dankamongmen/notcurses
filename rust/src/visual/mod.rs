@@ -1,6 +1,6 @@
 // functions already exported by bindgen : 18
 // -----------------------------------------
-// (W) wrap: 17
+// (W) wrap: 18
 // (#) test: 0
 // -----------------------------------------
 //W  ncvisual_at_yx
@@ -11,6 +11,7 @@
 //W  ncvisual_from_file
 //W  ncvisual_from_plane
 //W  ncvisual_from_rgba
+//W  ncvisual_inflate
 //W  ncvisual_blitter_geom
 //W  ncvisual_media_defblitter
 //W  ncvisual_polyfill_yx
@@ -21,6 +22,9 @@
 //W  ncvisual_simple_streamer
 //~  ncvisual_stream
 //W  ncvisual_subtitle
+
+#[allow(unused_imports)] // for the doc comments
+use crate::{NcChannel, NcRgb};
 
 mod methods;
 

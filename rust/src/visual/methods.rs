@@ -250,6 +250,14 @@ impl NcVisual {
         }
     }
 
+    /// Inflates each pixel in the image to 'scale'x'scale' pixels.
+    ///
+    /// The original color is retained.
+    pub fn inflate(&mut self, scale: u32) -> NcResult<NcIntResult> {
+        let res = unsafe { crate::ncvisual_inflate(self, scale as i32) };
+        error![res, &format!["NcVisual.inflate({})", scale], res]
+    }
+
     /// Gets the size and ratio of NcVisual pixels to output cells along the
     /// `y→to_y` and `x→to_x` axes.
     ///
