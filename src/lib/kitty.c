@@ -307,6 +307,23 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx,
   if(fclose(fp) == EOF){
     return -1;
   }
+  // any sprixcells which don't cover the full cell underneath them cannot
+  // be SPRIXCELL_OPAQUE
+  if(lenx % cdimx){
+    for(y = 0 ; y < (leny + cdimy - 1) / cdimy ; ++y){
+      if(tacache[y * cols + cols - 1] == SPRIXCELL_OPAQUE){
+        tacache[y * cols + cols - 1] = SPRIXCELL_MIXED;
+      }
+    }
+  }
+  if(leny % cdimy){
+    y = (leny + cdimy - 1) / cdimy - 1;
+    for(x = 0 ; x < cols ; ++x){
+      if(tacache[y * cols + x] == SPRIXCELL_OPAQUE){
+        tacache[y * cols + x] = SPRIXCELL_MIXED;
+      }
+    }
+  }
   return 0;
 }
 #undef RGBA_MAXLEN
