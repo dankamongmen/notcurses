@@ -16,6 +16,10 @@ fn main() {
 
     // The bindgen::Builder is the main entry point to bindgen, and lets you
     // build up options for the resulting bindings.
+    //
+    // allow .blacklist_function instead of .blocklist_function for now,
+    // until we update bindgen to >= 0.58.
+    #[allow(deprecated)]
     let mut builder = bindgen::Builder::default()
         .use_core()
         .ctypes_prefix("cty")
@@ -27,8 +31,8 @@ fn main() {
         .clang_arg("-fretain-comments-from-system-headers")
         .clang_arg("-fparse-all-comments")
         // Remove warnings about improper_ctypes
-        .blocklist_function("strtold")
-        .blocklist_function("wcstold")
+        .blacklist_function("strtold")
+        .blacklist_function("wcstold")
         // Don't derive the Copy trait on types with destructors.
         .no_copy("ncdirect")
         .no_copy("ncdplot")
