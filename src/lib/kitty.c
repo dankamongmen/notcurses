@@ -381,8 +381,10 @@ int kitty_delete(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
     for(int xx = s->movedfromx ; xx < s->movedfromx + s->dimx && xx < p->dimx ; ++xx){
       struct crender *r = &p->crender[yy * p->dimx + xx];
       if(s->n){
+        const ncplane* stdn = notcurses_stdplane_const(nc);
 //fprintf(stderr, "CHECKING %d/%d\n", yy - s->movedfromy, xx - s->movedfromx);
-        sprixcell_e state = sprixel_state(s, yy, xx);
+        sprixcell_e state = sprixel_state(s, yy - s->movedfromy + s->n->absy - stdn->absy,
+                                             xx - s->movedfromx + s->n->absx - stdn->absx);
         if(state != SPRIXCELL_OPAQUE){
 //fprintf(stderr, "DAMAGING %d/%d!\n", yy, xx);
           r->s.damaged = 1;
