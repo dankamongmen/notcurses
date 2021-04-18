@@ -2698,8 +2698,8 @@ ncplane_rgba(const struct ncplane* n, ncblitter_e blit,
 // Get the size and ratio of ncvisual pixels to output cells along the y
 // and x axes. The input size (in pixels) will be written to 'y' and 'x'.
 // The scaling will be written to 'scaley' and 'scalex'. With these:
-//  rows = (y / scaley) + !!(y % scaley)
-//  cols = (x / scalex) + !!(x % scalex)
+//  rows = (y / scaley) + !!(y % scaley) or (y + scaley - 1) / scaley
+//  cols = (x / scalex) + !!(x % scalex) or (x + scalex - 1) / scalex
 // Returns non-zero for an invalid 'vopts'. The blitter that will be used
 // is returned in '*blitter'.
 API int ncvisual_blitter_geom(const struct notcurses* nc, const struct ncvisual* n,

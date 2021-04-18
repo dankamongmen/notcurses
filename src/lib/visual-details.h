@@ -36,6 +36,7 @@ ncvisual_set_data(ncvisual* ncv, void* data, bool owned){
   ncv->owndata = owned;
 }
 
+// shrink one dimension to retrieve the original aspect ratio
 static inline void
 scale_visual(const ncvisual* ncv, int* disprows, int* dispcols){
   float xratio = (float)(*dispcols) / ncv->cols;

@@ -510,6 +510,7 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv, ncblitter_e blitfxn,
     }else{
       dispcols = dimx * n->tcache.cellpixx;
       disprows = (dimy - 1) * n->tcache.cellpixy;
+      clamp_to_sixelmax(&n->tcache, &disprows, &dispcols);
     }
     if(scale == NCSCALE_SCALE || scale == NCSCALE_SCALE_HIRES){
       scale_visual(ncv, &disprows, &dispcols);

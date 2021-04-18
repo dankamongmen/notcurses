@@ -618,26 +618,25 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
     dispcols = ncv->cols;
     disprows = ncv->rows;
   }
+  clamp_to_sixelmax(&nc->tcache, &disprows, &dispcols);
   ncplane* createdn = NULL;
 //fprintf(stderr, "INPUT N: %p rows: %d cols: %d 0x%016lx\n", n ? n : NULL, disprows, dispcols, flags);
   if(n == NULL){ // create plane
-    if(scaling == NCSCALE_NONE || scaling == NCSCALE_NONE_HIRES){
-      dispcols = ncv->cols;
-      disprows = ncv->rows;
-    }else{
+    if(scaling != NCSCALE_NONE && scaling != NCSCALE_NONE_HIRES){
       notcurses_term_dim_yx(nc, &disprows, &dispcols);
       --disprows; // some terminals scroll when bitmaps hit the last line
       dispcols *= nc->tcache.cellpixx;
       disprows *= nc->tcache.cellpixy;
+      clamp_to_sixelmax(&nc->tcache, &disprows, &dispcols);
       if(scaling == NCSCALE_SCALE || scaling == NCSCALE_SCALE_HIRES){
-        scale_visual(ncv, &disprows, &dispcols);
-      } // else stretch
+        scale_visual(ncv, &disprows, &dispcols); // can only shrink
+      }
     }
     struct ncplane_options nopts = {
       .y = placey,
       .x = placex,
-      .rows = disprows / nc->tcache.cellpixy + !!(disprows % nc->tcache.cellpixy),
-      .cols = dispcols / nc->tcache.cellpixx + !!(dispcols % nc->tcache.cellpixx),
+      .rows = (disprows + nc->tcache.cellpixy - 1) / nc->tcache.cellpixy,
+      .cols = (dispcols + nc->tcache.cellpixx - 1) / nc->tcache.cellpixx,
       .userptr = NULL,
       .name = "bmap",
       .resizecb = NULL,
@@ -661,6 +660,7 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
       ncplane_dim_yx(n, &disprows, &dispcols);
       dispcols *= nc->tcache.cellpixx;
       disprows *= nc->tcache.cellpixy;
+      clamp_to_sixelmax(&nc->tcache, &disprows, &dispcols);
       if(!(flags & NCVISUAL_OPTION_HORALIGNED)){
         dispcols -= (placex * nc->tcache.cellpixx + 1);
       }

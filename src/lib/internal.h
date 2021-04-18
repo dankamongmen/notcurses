@@ -946,6 +946,16 @@ static inline bool sprixel_kitty_p(const tinfo* t){
   return t->pixel_shutdown == kitty_shutdown;
 }
 
+static inline void
+clamp_to_sixelmax(const tinfo* t, int* y, int* x){
+  if(t->sixel_maxy && *y > t->sixel_maxy){
+    *y = t->sixel_maxy;
+  }
+  if(t->sixel_maxx && *x > t->sixel_maxx){
+    *x = t->sixel_maxx;
+  }
+}
+
 // get the TAM entry for these (absolute) coordinates
 static inline sprixcell_e
 sprixel_state(sprixel* s, int y, int x){
