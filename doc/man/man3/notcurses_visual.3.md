@@ -76,6 +76,8 @@ typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 
 **int ncvisual_resize(struct ncvisual* ***n***, int ***rows***, int ***cols***);**
 
+**int ncvisual_inflate(struct ncvisual* ***n***, int ***scale***);**
+
 **int ncvisual_polyfill_yx(struct ncvisual* ***n***, int ***y***, int ***x***, uint32_t ***rgba***);**
 
 **int ncvisual_at_yx(const struct ncvisual* ***n***, int ***y***, int ***x***, uint32_t* ***pixel***);**
@@ -109,10 +111,14 @@ and codecs, but does not verify that the entire file is well-formed.
 per frame. **ncvisual_decode_loop** will return to the first frame,
 as if **ncvisual_decode** had never been called.
 
-Once the visual is loaded, it can be transformed using **ncvisual_rotate**
-and **ncvisual_resize**. These are persistent operations, unlike any scaling
-that takes place at render time. If a subtitle is associated with the frame,
-it can be acquired with **ncvisual_subtitle**.
+Once the visual is loaded, it can be transformed using **ncvisual_rotate**,
+**ncvisual_resize**, and **ncvisual_inflate**. These are persistent operations,
+unlike any scaling that takes place at render time. If a subtitle is associated
+with the frame, it can be acquired with **ncvisual_subtitle**.
+**ncvisual_resize** uses the media layer's best scheme to enlarge or shrink the
+original data, typically involving some interpolation. **ncvisual_inflate**
+maps each pixel to ***scale***x***scale*** pixels square, retaining the
+original color; it is an error if ***scale*** is less than one.
 
 **ncvisual_from_rgba** and **ncvisual_from_bgra** both require a number of
 **rows**, a number of image columns **cols**, and a virtual row length of
