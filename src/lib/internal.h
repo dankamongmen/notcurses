@@ -947,13 +947,17 @@ static inline bool sprixel_kitty_p(const tinfo* t){
 }
 
 // get the TAM entry for these (absolute) coordinates
-static inline sprixcell_e sprixel_state(sprixel* s, int y, int x){
+static inline sprixcell_e
+sprixel_state(sprixel* s, int y, int x){
   int localy = y - s->n->absy;
   int localx = x - s->n->absx;
+  assert(localy >= 0);
+  assert(localy < s->dimy);
+  assert(localx >= 0);
+  assert(localx < s->dimx);
 //fprintf(stderr, "TAM %d at %d/%d (%d/%d)\n", s->n->tacache[localy * s->dimx + localx], localy, localx, y, x);
   return s->n->tacache[localy * s->dimx + localx];
 }
-
 
 static inline void
 pool_release(egcpool* pool, nccell* c){

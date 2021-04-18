@@ -75,11 +75,24 @@ ncvisual_origin(const struct ncvisual_options* vopts, int* restrict begy, int* r
   *begx = vopts ? vopts->begx : 0;
 }
 
+// 'leny' and 'lenx' get the number of pixels to actually be rendered, 'y' and
+// 'x' get the original size of the visual in pixels, and 'scaley' and 'scalex'
+// get the number of pixels per cell with the selected 'blitter'.
+// FIXME we ought also do the output calculations here (how many rows x cols,
+//   given the input plane vopts->n and scaling vopts->scaling)--but do not
+//   perform any actual scaling, nor create any planes!
 static int
 ncvisual_blitset_geom(const notcurses* nc, const ncvisual* n,
                       const struct ncvisual_options* vopts,
-                      int* y, int* x, int* toy, int* tox,
+                      int* y, int* x, int* scaley, int* scalex,
                       int* leny, int* lenx, const struct blitset** blitter){
+  int fakeleny, fakelenx;
+  if(leny == NULL){
+    leny = &fakeleny;
+  }
+  if(lenx == NULL){
+    lenx = &fakelenx;
+  }
   if(vopts && vopts->flags >= (NCVISUAL_OPTION_ADDALPHA << 1u)){
     logwarn(nc, "Warning: unknown ncvisual options %016jx\n", (uintmax_t)vopts->flags);
   }
@@ -140,8 +153,10 @@ ncvisual_blitset_geom(const notcurses* nc, const ncvisual* n,
       *y = n->rows;
       *x = n->cols;
     }else{
-      int rows = vopts->n ? ncplane_dim_y(vopts->n) : ncplane_dim_y(nc->stdplane);
-      int cols = vopts->n ? ncplane_dim_x(vopts->n) : ncplane_dim_x(nc->stdplane);
+      int rows = (vopts && vopts->n) ? ncplane_dim_y(vopts->n) :
+                                       ncplane_dim_y(nc->stdplane);
+      int cols = (vopts && vopts->n) ? ncplane_dim_x(vopts->n) :
+                                       ncplane_dim_x(nc->stdplane);
       *y = rows * encoding_y_scale(&nc->tcache, bset);
       *x = cols * encoding_x_scale(&nc->tcache, bset);
     }
@@ -149,11 +164,11 @@ ncvisual_blitset_geom(const notcurses* nc, const ncvisual* n,
       scale_visual(n, y, x);
     }
   }
-  if(toy){
-    *toy = encoding_y_scale(&nc->tcache, bset);
+  if(scaley){
+    *scaley = encoding_y_scale(&nc->tcache, bset);
   }
-  if(tox){
-    *tox = encoding_x_scale(&nc->tcache, bset);
+  if(scalex){
+    *scalex = encoding_x_scale(&nc->tcache, bset);
   }
   if(vopts && vopts->flags & NCVISUAL_OPTION_HORALIGNED){
     if(vopts->x < NCALIGN_UNALIGNED || vopts->x > NCALIGN_RIGHT){
@@ -166,12 +181,12 @@ ncvisual_blitset_geom(const notcurses* nc, const ncvisual* n,
 
 int ncvisual_blitter_geom(const notcurses* nc, const ncvisual* n,
                           const struct ncvisual_options* vopts,
-                          int* y, int* x, int* toy, int* tox,
+                          int* y, int* x, int* scaley, int* scalex,
                           ncblitter_e* blitter){
   const struct blitset* bset;
-  int leny, lenx;
-  int ret = ncvisual_blitset_geom(nc, n, vopts, y, x, toy, tox, &leny, &lenx, &bset);
-  if(blitter){
+  int ret = ncvisual_blitset_geom(nc, n, vopts, y, x, scaley, scalex,
+                                  NULL, NULL, &bset);
+  if(ret == 0 && blitter){
     *blitter = bset->geom;
   }
   return ret;
@@ -722,8 +737,9 @@ err:
 
 ncplane* ncvisual_render(notcurses* nc, ncvisual* ncv, const struct ncvisual_options* vopts){
   const struct blitset* bset;
-  int srcy, srcx, toy, tox, leny, lenx;
-  if(ncvisual_blitset_geom(nc, ncv, vopts, &srcy, &srcx, &toy, &tox, &leny, &lenx, &bset) < 0){
+  int leny, lenx;
+  if(ncvisual_blitset_geom(nc, ncv, vopts, NULL, NULL, NULL, NULL,
+                           &leny, &lenx, &bset) < 0){
     // ncvisual_blitset_geom() emits its own diagnostics, no need for an error here
     return NULL;
   }

@@ -36,15 +36,16 @@ zoom_map(struct notcurses* nc, const char* map, int* ret){
   if(ncv == NULL){
     return NULL;
   }
-  int vheight, yscale;
-  int vwidth, xscale;
+  // true height and width of visual, and blitter scaling parameters
+  int vheight, yscale, vwidth, xscale;
   // first we want to get the true size, so don't supply NCSSCALE_STRETCH yet,
   // but *do* explicitly supply NCBLIT_2x2 since we're not scaling.
   struct ncvisual_options vopts = {
     .y = 1,
     .blitter = NCBLIT_2x2,
   };
-  if(ncvisual_blitter_geom(nc, ncv, &vopts, &vheight, &vwidth, &yscale, &xscale, NULL)){
+  if(ncvisual_blitter_geom(nc, ncv, &vopts, &vheight, &vwidth,
+                           &yscale, &xscale, NULL)){
     ncvisual_destroy(ncv);
     return NULL;
   }
