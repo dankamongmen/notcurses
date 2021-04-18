@@ -28,16 +28,16 @@ animate(struct notcurses* nc, struct ncplane* ncp, void* curry){
   return 0;
 }
 
-static int
+static struct ncplane*
 greatscott(struct notcurses* nc){
   char* path = find_data("greatscott.jpg");
   if(path == NULL){
-    return -1;
+    return NULL;
   }
   struct ncvisual* ncv = ncvisual_from_file(path);
   free(path);
   if(ncv == NULL){
-    return -1;
+    return NULL;
   }
   struct ncvisual_options vopts = {
     .y = 1,
@@ -48,10 +48,7 @@ greatscott(struct notcurses* nc){
   };
   struct ncplane* n = ncvisual_render(nc, ncv, &vopts);
   ncvisual_destroy(ncv);
-  DEMO_RENDER(nc);
-  demo_nanosleep(nc, &demodelay);
-  ncplane_destroy(n);
-  return 0;
+  return n;
 }
 
 static struct ncplane*
@@ -243,11 +240,13 @@ int intro(struct notcurses* nc){
     }
   }while(timespec_to_ns(&now) < deadline || flipmode < 20);
   ncplane_destroy(on);
+  struct ncplane* gscott = NULL;
   if(notcurses_check_pixel_support(nc) && notcurses_canopen_images(nc)){
-    int err;
-    if((err = greatscott(nc))){
-      return err;
+    if((gscott = greatscott(nc)) == NULL){
+      return -1;
     }
+    DEMO_RENDER(nc);
+    demo_nanosleep(nc, &demodelay);
   }
   if(notcurses_canfade(nc)){
     struct timespec fade = demodelay;
@@ -256,5 +255,6 @@ int intro(struct notcurses* nc){
       return err;
     }
   }
+  ncplane_destroy(gscott);
   return 0;
 }
