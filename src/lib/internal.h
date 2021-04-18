@@ -910,16 +910,17 @@ plane_debug(const ncplane* n, bool details){
   }
 }
 
-// nulls out a cell from a kitty bitmap via changing the alpha value
-// throughout to 0. the same trick doesn't work on sixel, but there we
-// can just print directly over the bitmap.
-int sprite_kitty_cell_wipe(const notcurses* nc, sprixel* s, int y, int x);
-
 // cell coordinates *within the sprixel*, not absolute
 int sprite_wipe(const notcurses* nc, sprixel* s, int y, int x);
 int sixel_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell);
+// nulls out a cell from a kitty bitmap via changing the alpha value
+// throughout to 0. the same trick doesn't work on sixel, but there we
+// can just print directly over the bitmap.
+int kitty_wipe(const notcurses* nc, sprixel* s, int y, int x);
+
 void sprixel_free(sprixel* s);
 void sprixel_hide(sprixel* s);
+
 int sprite_draw(const notcurses* n, const ncpile *p, sprixel* s, FILE* out);
 int kitty_draw(const notcurses* n, const ncpile *p, sprixel* s, FILE* out);
 int sixel_draw(const notcurses* n, const ncpile *p, sprixel* s, FILE* out);
@@ -988,9 +989,10 @@ scrub_tam_boundaries(sprixcell_e* tam, int leny, int lenx, int cdimy, int cdimx)
 
 // get the TAM entry for these (absolute) coordinates
 static inline sprixcell_e
-sprixel_state(sprixel* s, int y, int x){
-  int localy = y - s->n->absy;
-  int localx = x - s->n->absx;
+sprixel_state(const sprixel* s, int y, int x){
+  const ncplane* stdn = notcurses_stdplane_const(ncplane_notcurses_const(s->n));
+  int localy = y - (s->n->absy - stdn->absy);
+  int localx = x - (s->n->absx - stdn->absx);
   assert(localy >= 0);
   assert(localy < s->dimy);
   assert(localx >= 0);

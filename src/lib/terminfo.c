@@ -61,7 +61,7 @@ apply_term_heuristics(tinfo* ti, const char* termname){
     ti->quadrants = true;
     ti->pixel_query_done = true;
     ti->bitmap_supported = true;
-    ti->pixel_cell_wipe = sprite_kitty_cell_wipe;
+    ti->pixel_cell_wipe = kitty_wipe;
     ti->pixel_destroy = kitty_delete;
     ti->pixel_init = kitty_init;
     ti->pixel_draw = kitty_draw;
