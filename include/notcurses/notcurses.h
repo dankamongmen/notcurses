@@ -2735,9 +2735,14 @@ API int ncvisual_decode_loop(struct ncvisual* nc)
 API int ncvisual_rotate(struct ncvisual* n, double rads)
   __attribute__ ((nonnull (1)));
 
-// Resize the visual so that it is 'rows' X 'columns'. This is a lossy
-// transformation, unless the size is unchanged.
+// Resize the visual so that it is 'rows' X 'columns', using the best scheme
+// available. This is a lossy transformation, unless the size is unchanged.
 API int ncvisual_resize(struct ncvisual* n, int rows, int cols)
+  __attribute__ ((nonnull (1)));
+
+// Inflate each pixel in the image to 'scale'x'scale' pixels. It is an error
+// if 'scale' is less than 1. The original color is retained.
+API int ncvisual_inflate(struct ncvisual* n, int scale)
   __attribute__ ((nonnull (1)));
 
 // Polyfill at the specified location within the ncvisual 'n', using 'rgba'.

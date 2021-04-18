@@ -2,11 +2,12 @@ This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
 * 2.2.7 (not yet released)
-  * `cell_extended_gcluster()` has been deprecated in favor of the new
-    function `nccell_extended_gcluster()`, which the former now wraps.
-    It will be removed in ABI3. The same treatment has been applied to
-    `cell_load_egc32()`, `cell_load_char()`, `cellcmp()`, `cell_init()`,
-    `cell_extract()`, `cell_load()`, and `cell_prime()`.
+  * All remaining functions prefixed with `cell_` or `cells_` have been
+    deprecated in favor of versions prefixed with `nccell_` or `nccell_`,
+    respectively, which the former now wrap. The old versions will be
+    removed in ABI3.
+  * `ncvisual_inflate()` has been added to perform non-interpolative
+    enlarging. It is intended for use with pixel art.
 
 * 2.2.6 (2021-04-12)
   * `ncplane_rgba()` has been deprecated in favor of the new function
