@@ -1,3 +1,3 @@
 (function() {var implementors = {};
-implementors["libnotcurses_sys"] = [{"text":"impl&lt;'a&gt; Drop for DirectMode&lt;'a&gt;","synthetic":false,"types":[]},{"text":"impl Drop for NcFile","synthetic":false,"types":[]},{"text":"impl&lt;'a&gt; Drop for FullMode&lt;'a&gt;","synthetic":false,"types":[]}];
+implementors["libnotcurses_sys"] = [{"text":"impl&lt;'a&gt; Drop for NcD&lt;'a&gt;","synthetic":false,"types":[]},{"text":"impl Drop for NcFile","synthetic":false,"types":[]},{"text":"impl&lt;'a&gt; Drop for Nc&lt;'a&gt;","synthetic":false,"types":[]}];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

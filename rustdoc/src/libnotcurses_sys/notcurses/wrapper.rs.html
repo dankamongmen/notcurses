@@ -138,7 +138,7 @@
 <span id="135">135</span>
 <span id="136">136</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="doccomment">//! `FullMode` wrapper struct and traits implementations.</span>
+<span class="doccomment">//! `Nc` wrapper struct and traits implementations.</span>
 
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ops</span>::{<span class="ident">Deref</span>, <span class="ident">DerefMut</span>};
 
@@ -147,23 +147,23 @@
 };
 
 <span class="doccomment">/// Safe wrapper around [Notcurses], the main struct of the TUI library.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FullMode</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Nc</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">raw</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Notcurses</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Notcurses</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">FullMode</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Notcurses</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Nc</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Notcurses</span> {
         <span class="self">self</span>.<span class="ident">raw</span>
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">AsMut</span><span class="op">&lt;</span><span class="ident">Notcurses</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">FullMode</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">AsMut</span><span class="op">&lt;</span><span class="ident">Notcurses</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Nc</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">as_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Notcurses</span> {
         <span class="self">self</span>.<span class="ident">raw</span>
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Deref</span> <span class="kw">for</span> <span class="ident">FullMode</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Deref</span> <span class="kw">for</span> <span class="ident">Nc</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">Notcurses</span>;
 
     <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="self">Self</span>::<span class="ident">Target</span> {
@@ -171,56 +171,56 @@
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">DerefMut</span> <span class="kw">for</span> <span class="ident">FullMode</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">DerefMut</span> <span class="kw">for</span> <span class="ident">Nc</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>::<span class="ident">Target</span> {
         <span class="self">self</span>.<span class="ident">as_mut</span>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">FullMode</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Destroys the FullMode context.</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">Nc</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Destroys the Nc context.</span>
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
         <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">raw</span>.<span class="ident">stop</span>();
     }
 }
 
 <span class="doccomment">/// # Constructors and methods overriden from Notcurses</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">FullMode</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Nc</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="comment">// wrap constructors</span>
 
-    <span class="doccomment">/// New FullMode (without banners).</span>
+    <span class="doccomment">/// New Nc (without banners).</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="macro">raw_wrap</span><span class="macro">!</span>[<span class="ident">Notcurses</span>::<span class="ident">new</span>()]
     }
 
-    <span class="doccomment">/// New FullMode, with banners.</span>
+    <span class="doccomment">/// New Nc, with banners.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_banners</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="macro">raw_wrap</span><span class="macro">!</span>[<span class="ident">Notcurses</span>::<span class="ident">with_banners</span>()]
     }
 
-    <span class="doccomment">/// New FullMode, without an alternate screen (nor banners).</span>
+    <span class="doccomment">/// New Nc, without an alternate screen (nor banners).</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">without_altscreen</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="macro">raw_wrap</span><span class="macro">!</span>[<span class="ident">Notcurses</span>::<span class="ident">without_altscreen</span>()]
     }
 
-    <span class="doccomment">/// New FullMode, expects `NCOPTION_*` flags.</span>
+    <span class="doccomment">/// New Nc, expects `NCOPTION_*` flags.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_flags</span>(<span class="ident">flags</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="macro">raw_wrap</span><span class="macro">!</span>[<span class="ident">Notcurses</span>::<span class="ident">with_flags</span>(<span class="ident">flags</span>)]
     }
 
-    <span class="doccomment">/// New FullMode, expects [NotcursesOptions].</span>
+    <span class="doccomment">/// New Nc, expects [NotcursesOptions].</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_options</span>(<span class="ident">options</span>: <span class="ident">NotcursesOptions</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="macro">raw_wrap</span><span class="macro">!</span>[<span class="ident">Notcurses</span>::<span class="ident">with_options</span>(<span class="ident">options</span>)]
     }
 
-    <span class="doccomment">/// New FullMode, expects [NcLogLevel] and flags.</span>
+    <span class="doccomment">/// New Nc, expects [NcLogLevel] and flags.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_debug</span>(<span class="ident">loglevel</span>: <span class="ident">NcLogLevel</span>, <span class="ident">flags</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="macro">raw_wrap</span><span class="macro">!</span>[<span class="ident">Notcurses</span>::<span class="ident">with_debug</span>(<span class="ident">loglevel</span>, <span class="ident">flags</span>)]
     }
 
     <span class="comment">// disable destructor</span>
 
-    <span class="doccomment">/// Since FullMode already implements [Drop](#impl-Drop),</span>
+    <span class="doccomment">/// Since Nc already implements [Drop](#impl-Drop),</span>
     <span class="doccomment">/// this function is made no-op.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(())
@@ -263,7 +263,7 @@
         <span class="ident">Notcurses</span>::<span class="ident">lex_scalemode</span>(<span class="ident">op</span>)
     }
 
-    <span class="doccomment">/// Returns a human-readable string describing the running FullMode version.</span>
+    <span class="doccomment">/// Returns a human-readable string describing the running Nc version.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">version</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
         <span class="ident">Notcurses</span>::<span class="ident">version</span>()
     }

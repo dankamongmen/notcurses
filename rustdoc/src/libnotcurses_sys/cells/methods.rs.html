@@ -468,17 +468,15 @@
 <span id="465">465</span>
 <span id="466">466</span>
 <span id="467">467</span>
-<span id="468">468</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcCell` methods and associated functions.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">cell_load</span>, <span class="ident">cstring</span>, <span class="ident">error</span>, <span class="ident">NcAlphaBits</span>, <span class="ident">NcCell</span>, <span class="ident">NcChannelPair</span>, <span class="ident">NcColor</span>, <span class="ident">NcEgc</span>, <span class="ident">NcEgcBackstop</span>,
+    <span class="ident">cstring</span>, <span class="ident">error</span>, <span class="ident">nccell_load</span>, <span class="ident">NcAlphaBits</span>, <span class="ident">NcCell</span>, <span class="ident">NcChannelPair</span>, <span class="ident">NcColor</span>, <span class="ident">NcEgc</span>, <span class="ident">NcEgcBackstop</span>,
     <span class="ident">NcPaletteIndex</span>, <span class="ident">NcPlane</span>, <span class="ident">NcResult</span>, <span class="ident">NcRgb</span>, <span class="ident">NcStyleMask</span>, <span class="ident">NCRESULT_ERR</span>,
 };
 
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_imports</span>)]</span>
-<span class="comment">// imports for doc comments</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_imports</span>)]</span> <span class="comment">// for the doc comments</span>
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">NcChannel</span>;
 
 <span class="doccomment">/// # NcCell constructors</span>
@@ -499,7 +497,7 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_char</span>(<span class="ident">ch</span>: <span class="ident">char</span>, <span class="ident">plane</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cell</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">new</span>();
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">cell_load</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">cell</span>, <span class="macro">cstring</span><span class="macro">!</span>[<span class="ident">ch</span>.<span class="ident">to_string</span>()]) };
+        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">nccell_load</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">cell</span>, <span class="macro">cstring</span><span class="macro">!</span>[<span class="ident">ch</span>.<span class="ident">to_string</span>()]) };
         <span class="macro">debug_assert_ne</span><span class="macro">!</span>[<span class="ident">NCRESULT_ERR</span>, <span class="ident">result</span>];
         <span class="ident">cell</span>
     }
@@ -508,7 +506,7 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_str</span>(<span class="ident">plane</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span>, <span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cell</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">new</span>();
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">cell_load</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">cell</span>, <span class="macro">cstring</span><span class="macro">!</span>[<span class="ident">string</span>]) };
+        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">nccell_load</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">cell</span>, <span class="macro">cstring</span><span class="macro">!</span>[<span class="ident">string</span>]) };
         <span class="macro">debug_assert_ne</span><span class="macro">!</span>[<span class="ident">NCRESULT_ERR</span>, <span class="ident">result</span>];
         <span class="ident">cell</span>
     }
@@ -523,9 +521,9 @@
     <span class="doccomment">/// and returns the number of bytes copied out of `egc`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The styling of the cell is left untouched, but any resources are released.</span>
-    <span class="doccomment">/// *C style function: [cell_load()][crate::cell_load].*</span>
+    <span class="doccomment">/// *C style function: [nccell_load()][crate::nccell_load].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">load</span>(<span class="ident">plane</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span>, <span class="ident">cell</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcCell</span>, <span class="ident">egc</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">cell_load</span>(<span class="ident">plane</span>, <span class="ident">cell</span>, <span class="macro">cstring</span><span class="macro">!</span>[<span class="ident">egc</span>]) };
+        <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">nccell_load</span>(<span class="ident">plane</span>, <span class="ident">cell</span>, <span class="macro">cstring</span><span class="macro">!</span>[<span class="ident">egc</span>]) };
         <span class="macro">error</span><span class="macro">!</span>[
             <span class="ident">bytes</span>,
             <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>[<span class="string">&quot;NcCell.load(NcPlane, NcCell, {:?})&quot;</span>, <span class="ident">egc</span>],
@@ -541,7 +539,7 @@
     <span class="doccomment">/// - Any resources are released.</span>
     <span class="doccomment">/// - Blasts the styling with `style` and `channels`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [cell_prime()][crate::cell_prime].*</span>
+    <span class="doccomment">/// *C style function: [nccell_prime()][crate::nccell_prime].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prime</span>(
         <span class="ident">plane</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span>,
         <span class="ident">cell</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcCell</span>,
@@ -549,7 +547,7 @@
         <span class="ident">style</span>: <span class="ident">NcStyleMask</span>,
         <span class="ident">channels</span>: <span class="ident">NcChannelPair</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">cell_prime</span>(<span class="ident">plane</span>, <span class="ident">cell</span>, <span class="ident">gcluster</span>, <span class="ident">style</span>, <span class="ident">channels</span>);
+        <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">nccell_prime</span>(<span class="ident">plane</span>, <span class="ident">cell</span>, <span class="ident">gcluster</span>, <span class="ident">style</span>, <span class="ident">channels</span>);
         <span class="macro">error</span><span class="macro">!</span>[<span class="ident">bytes</span>, <span class="string">&quot;&quot;</span>, <span class="ident">bytes</span> <span class="kw">as</span> <span class="ident">u32</span>]
     }
 
@@ -564,10 +562,10 @@
 
     <span class="doccomment">/// Initializes (zeroes out) the NcCell.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [cell_init()][crate::cell_init].*</span>
+    <span class="doccomment">/// *C style function: [nccell_init()][crate::nccell_init].*</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="kw">crate</span>::<span class="ident">cell_init</span>(<span class="self">self</span>);
+        <span class="kw">crate</span>::<span class="ident">nccell_init</span>(<span class="self">self</span>);
     }
 
     <span class="doccomment">/// Releases resources held by the current cell in the [NcPlane] `plane`.</span>
@@ -588,112 +586,112 @@
     <span class="doccomment">/// *(No equivalent C style function)*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channels</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">plane</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannelPair</span> {
         <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">_styles</span>, <span class="kw-2">mut</span> <span class="ident">channels</span>) <span class="op">=</span> (<span class="number">0</span>, <span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">_char</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">cell_extract</span>(<span class="ident">plane</span>, <span class="self">self</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">_styles</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">channels</span>);
+        <span class="kw">let</span> <span class="ident">_char</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">nccell_extract</span>(<span class="ident">plane</span>, <span class="self">self</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">_styles</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">channels</span>);
         <span class="ident">channels</span>
     }
 
     <span class="doccomment">/// Extracts the background [NcAlphaBits] (shifted to LSBs).</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [cell_bg_alpha()][crate::cell_bg_alpha].*</span>
+    <span class="doccomment">/// *C style function: [nccell_bg_alpha()][crate::nccell_bg_alpha].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bg_alpha</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcAlphaBits</span> {
-        <span class="kw">crate</span>::<span class="ident">cell_bg_alpha</span>(<span class="self">self</span>)
+        <span class="kw">crate</span>::<span class="ident">nccell_bg_alpha</span>(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Is the background [NcChannel] using the &quot;default background color&quot;?</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [cell_bg_default_p()][crate::cell_bg_default_p].*</span>
+    <span class="doccomment">/// *C style function: [nccell_bg_default_p()][crate::nccell_bg_default_p].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bg_default_p</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">crate</span>::<span class="ident">cell_bg_default_p</span>(<span class="self">self</span>)
+        <span class="kw">crate</span>::<span class="ident">nccell_bg_default_p</span>(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Gets the [NcPaletteIndex] of the background [NcChannel].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [cell_bg_palindex()][crate::cell_bg_palindex].*</span>
+    <span class="doccomment">/// *C style function: [nccell_bg_palindex()][crate::nccell_bg_palindex].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bg_palindex</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcPaletteIndex</span> {
-        <span class="kw">crate</span>::<span class="ident">cell_bg_palindex</span>(<span class="self">self</span>)
+        <span class="kw">crate</span>::<span class="ident">nccell_bg_palindex</span>(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Is the background [NcChannel] using an [NcPaletteIndex] indexed</span>
     <span class="doccomment">/// [NcPalette][crate::NcPalette] color?</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [cell_bg_palindex_p()][crate::cell_bg_palindex_p].*</span>
+    <span class="doccomment">/// *C style function: [nccell_bg_palindex_p()][crate::nccell_bg_palindex_p].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bg_palindex_p</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">crate</span>::<span class="ident">cell_bg_palindex_p</span>(<span class="self">self</span>)
+        <span class="kw">crate</span>::<span class="ident">nccell_bg_palindex_p</span>(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Gets the background [NcRgb] (shifted to LSBs).</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [cell_bg_rgb()][crate::cell_bg_rgb].*</span>
+    <span class="doccomment">/// *C style function: [nccell_bg_rgb()][crate::nccell_bg_rgb].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bg_rgb</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcRgb</span> {
-        <span class="kw">crate</span>::<span class="ident">cell_bg_rgb</span>(<span class="self">self</span>)
+        <span class="kw">crate</span>::<span class="ident">nccell_bg_rgb</span>(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Gets the background [NcColor] RGB components.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [cell_bg_rgb8()][crate::cell_bg_rgb8].*</span>
+    <span class="doccomment">/// *C style function: [nccell_bg_rgb8()][crate::nccell_bg_rgb8].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bg_rgb8</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">NcColor</span>, <span class="ident">NcColor</span>, <span class="ident">NcColor</span>) {
         <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">r</span>, <span class="kw-2">mut</span> <span class="ident">g</span>, <span class="kw-2">mut</span> <span class="ident">b</span>) <span class="op">=</span> (<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);
-        <span class="kw">crate</span>::<span class="ident">cell_bg_rgb8</span>(<span class="self">self</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">r</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">g</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">b</span>);
+        <span class="kw">crate</span>::<span class="ident">nccell_bg_rgb8</span>(<span class="self">self</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">r</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">g</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">b</span>);
         (<span class="ident">r</span>, <span class="ident">g</span>, <span class="ident">b</span>)
     }
 
     <span class="doccomment">/// Extracts the foreground [NcAlphaBits] (shifted to LSBs).</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [cell_fg_alpha()][crate::cell_fg_alpha].*</span>
+    <span class="doccomment">/// *C style function: [nccell_fg_alpha()][crate::nccell_fg_alpha].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fg_alpha</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcAlphaBits</span> {
-        <span class="kw">crate</span>::<span class="ident">cell_fg_alpha</span>(<span class="self">self</span>)
+        <span class="kw">crate</span>::<span class="ident">nccell_fg_alpha</span>(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Is the foreground [NcChannel] using the &quot;default foreground color&quot;?</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [cell_fg_default_p()][crate::cell_fg_default_p].*</span>
+    <span class="doccomment">/// *C style function: [nccell_fg_default_p()][crate::nccell_fg_default_p].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fg_default_p</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">crate</span>::<span class="ident">cell_fg_default_p</span>(<span class="self">self</span>)
+        <span class="kw">crate</span>::<span class="ident">nccell_fg_default_p</span>(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Gets the [NcPaletteIndex] of the foreground [NcChannel].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [cell_fg_palindex()][crate::cell_fg_palindex].*</span>
+    <span class="doccomment">/// *C style function: [nccell_fg_palindex()][crate::nccell_fg_palindex].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fg_palindex</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcPaletteIndex</span> {
-        <span class="kw">crate</span>::<span class="ident">cell_fg_palindex</span>(<span class="self">self</span>)
+        <span class="kw">crate</span>::<span class="ident">nccell_fg_palindex</span>(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Is the foreground [NcChannel] using an [NcPaletteIndex] indexed</span>
     <span class="doccomment">/// [NcPalette][crate::NcPalette] color?</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [cell_fg_palindex_p()][crate::cell_fg_palindex_p].*</span>
+    <span class="doccomment">/// *C style function: [nccell_fg_palindex_p()][crate::nccell_fg_palindex_p].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fg_palindex_p</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">crate</span>::<span class="ident">cell_fg_palindex_p</span>(<span class="self">self</span>)
+        <span class="kw">crate</span>::<span class="ident">nccell_fg_palindex_p</span>(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Gets the foreground [NcRgb] (shifted to LSBs).</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [cell_fg_rgb()][crate::cell_fg_rgb].*</span>
+    <span class="doccomment">/// *C style function: [nccell_fg_rgb()][crate::nccell_fg_rgb].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fg_rgb</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcRgb</span> {
-        <span class="kw">crate</span>::<span class="ident">cell_fg_rgb</span>(<span class="self">self</span>)
+        <span class="kw">crate</span>::<span class="ident">nccell_fg_rgb</span>(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Gets the foreground [NcColor] RGB components.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [cell_fg_rgb8()][crate::cell_fg_rgb8].*</span>
+    <span class="doccomment">/// *C style function: [nccell_fg_rgb8()][crate::nccell_fg_rgb8].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fg_rgb8</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">NcColor</span>, <span class="ident">NcColor</span>, <span class="ident">NcColor</span>) {
         <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">r</span>, <span class="kw-2">mut</span> <span class="ident">g</span>, <span class="kw-2">mut</span> <span class="ident">b</span>) <span class="op">=</span> (<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);
-        <span class="kw">crate</span>::<span class="ident">cell_fg_rgb8</span>(<span class="self">self</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">r</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">g</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">b</span>);
+        <span class="kw">crate</span>::<span class="ident">nccell_fg_rgb8</span>(<span class="self">self</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">r</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">g</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">b</span>);
         (<span class="ident">r</span>, <span class="ident">g</span>, <span class="ident">b</span>)
     }
 
     <span class="doccomment">/// Sets the background [NcAlphaBits].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [cell_set_bg_alpha()][crate::cell_set_bg_alpha].*</span>
+    <span class="doccomment">/// *C style function: [nccell_set_bg_alpha()][crate::nccell_set_bg_alpha].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_bg_alpha</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">alpha</span>: <span class="ident">NcAlphaBits</span>) {
-        <span class="kw">crate</span>::<span class="ident">cell_set_bg_alpha</span>(<span class="self">self</span>, <span class="ident">alpha</span>);
+        <span class="kw">crate</span>::<span class="ident">nccell_set_bg_alpha</span>(<span class="self">self</span>, <span class="ident">alpha</span>);
     }
 
     <span class="doccomment">/// Indicates to use the &quot;default color&quot; for the background [NcChannel].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [cell_set_bg_default()][crate::cell_set_bg_default].*</span>
+    <span class="doccomment">/// *C style function: [nccell_set_bg_default()][crate::nccell_set_bg_default].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_bg_default</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="kw">crate</span>::<span class="ident">cell_set_bg_default</span>(<span class="self">self</span>);
+        <span class="kw">crate</span>::<span class="ident">nccell_set_bg_default</span>(<span class="self">self</span>);
     }
 
     <span class="doccomment">/// Sets the background [NcPaletteIndex].</span>
@@ -702,38 +700,38 @@
     <span class="doccomment">/// [NCCELL_ALPHA_OPAQUE][crate::NCCELL_ALPHA_OPAQUE], and clears out</span>
     <span class="doccomment">/// [NCCELL_BGDEFAULT_MASK][crate::NCCELL_BGDEFAULT_MASK].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [cell_set_bg_palindex()][crate::cell_set_bg_palindex].*</span>
+    <span class="doccomment">/// *C style function: [nccell_set_bg_palindex()][crate::nccell_set_bg_palindex].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_bg_palindex</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">NcPaletteIndex</span>) {
-        <span class="kw">crate</span>::<span class="ident">cell_set_bg_palindex</span>(<span class="self">self</span>, <span class="ident">index</span>);
+        <span class="kw">crate</span>::<span class="ident">nccell_set_bg_palindex</span>(<span class="self">self</span>, <span class="ident">index</span>);
     }
 
     <span class="doccomment">/// Sets the background [NcRgb] and marks it as not using the default color.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [cell_set_bg_rgb()][crate::cell_set_bg_rgb].*</span>
+    <span class="doccomment">/// *C style function: [nccell_set_bg_rgb()][crate::nccell_set_bg_rgb].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_bg_rgb</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">rgb</span>: <span class="ident">NcRgb</span>) {
-        <span class="kw">crate</span>::<span class="ident">cell_set_bg_rgb</span>(<span class="self">self</span>, <span class="ident">rgb</span>);
+        <span class="kw">crate</span>::<span class="ident">nccell_set_bg_rgb</span>(<span class="self">self</span>, <span class="ident">rgb</span>);
     }
 
     <span class="doccomment">/// Sets the background [NcColor] RGB components, and marks it as not using</span>
     <span class="doccomment">/// the &quot;default color&quot;.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [cell_set_bg_rgb8()][crate::cell_set_bg_rgb8].*</span>
+    <span class="doccomment">/// *C style function: [nccell_set_bg_rgb8()][crate::nccell_set_bg_rgb8].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_bg_rgb8</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">red</span>: <span class="ident">NcColor</span>, <span class="ident">green</span>: <span class="ident">NcColor</span>, <span class="ident">blue</span>: <span class="ident">NcColor</span>) {
-        <span class="kw">crate</span>::<span class="ident">cell_set_bg_rgb8</span>(<span class="self">self</span>, <span class="ident">red</span>, <span class="ident">green</span>, <span class="ident">blue</span>);
+        <span class="kw">crate</span>::<span class="ident">nccell_set_bg_rgb8</span>(<span class="self">self</span>, <span class="ident">red</span>, <span class="ident">green</span>, <span class="ident">blue</span>);
     }
 
     <span class="doccomment">/// Sets the foreground [NcAlphaBits].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [cell_set_fg_alpha()][crate::cell_set_fg_alpha].*</span>
+    <span class="doccomment">/// *C style function: [nccell_set_fg_alpha()][crate::nccell_set_fg_alpha].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_fg_alpha</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">alpha</span>: <span class="ident">NcAlphaBits</span>) {
-        <span class="kw">crate</span>::<span class="ident">cell_set_fg_alpha</span>(<span class="self">self</span>, <span class="ident">alpha</span>);
+        <span class="kw">crate</span>::<span class="ident">nccell_set_fg_alpha</span>(<span class="self">self</span>, <span class="ident">alpha</span>);
     }
 
     <span class="doccomment">/// Indicates to use the &quot;default color&quot; for the foreground [NcChannel].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [cell_set_fg_default()][crate::cell_set_fg_default].*</span>
+    <span class="doccomment">/// *C style function: [nccell_set_fg_default()][crate::nccell_set_fg_default].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_fg_default</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="kw">crate</span>::<span class="ident">cell_set_fg_default</span>(<span class="self">self</span>);
+        <span class="kw">crate</span>::<span class="ident">nccell_set_fg_default</span>(<span class="self">self</span>);
     }
 
     <span class="doccomment">/// Sets the foreground [NcPaletteIndex].</span>
@@ -742,24 +740,24 @@
     <span class="doccomment">/// [NCCELL_ALPHA_OPAQUE][crate::NCCELL_ALPHA_OPAQUE], and clears out</span>
     <span class="doccomment">/// [NCCELL_BGDEFAULT_MASK][crate::NCCELL_BGDEFAULT_MASK].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [cell_set_fg_palindex()][crate::cell_set_fg_palindex].*</span>
+    <span class="doccomment">/// *C style function: [nccell_set_fg_palindex()][crate::nccell_set_fg_palindex].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_fg_palindex</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">NcPaletteIndex</span>) {
-        <span class="kw">crate</span>::<span class="ident">cell_set_fg_palindex</span>(<span class="self">self</span>, <span class="ident">index</span>);
+        <span class="kw">crate</span>::<span class="ident">nccell_set_fg_palindex</span>(<span class="self">self</span>, <span class="ident">index</span>);
     }
 
     <span class="doccomment">/// Sets the foreground [NcRgb] and marks it as not using the default color.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [cell_set_fg_rgb()][crate::cell_set_fg_rgb].*</span>
+    <span class="doccomment">/// *C style function: [nccell_set_fg_rgb()][crate::nccell_set_fg_rgb].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_fg_rgb</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">rgb</span>: <span class="ident">NcRgb</span>) {
-        <span class="kw">crate</span>::<span class="ident">cell_set_fg_rgb</span>(<span class="self">self</span>, <span class="ident">rgb</span>);
+        <span class="kw">crate</span>::<span class="ident">nccell_set_fg_rgb</span>(<span class="self">self</span>, <span class="ident">rgb</span>);
     }
 
     <span class="doccomment">/// Sets the foreground [NcColor] RGB components, and marks it as not using</span>
     <span class="doccomment">/// the &quot;default color&quot;.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [cell_set_fg_rgb8()][crate::cell_set_fg_rgb8].*</span>
+    <span class="doccomment">/// *C style function: [nccell_set_fg_rgb8()][crate::nccell_set_fg_rgb8].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_fg_rgb8</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">red</span>: <span class="ident">NcColor</span>, <span class="ident">green</span>: <span class="ident">NcColor</span>, <span class="ident">blue</span>: <span class="ident">NcColor</span>) {
-        <span class="kw">crate</span>::<span class="ident">cell_set_fg_rgb8</span>(<span class="self">self</span>, <span class="ident">red</span>, <span class="ident">green</span>, <span class="ident">blue</span>);
+        <span class="kw">crate</span>::<span class="ident">nccell_set_fg_rgb8</span>(<span class="self">self</span>, <span class="ident">red</span>, <span class="ident">green</span>, <span class="ident">blue</span>);
     }
 }
 
@@ -771,22 +769,22 @@
     <span class="doccomment">/// The actual egcpool index needn&#39;t be the same--indeed, the planes</span>
     <span class="doccomment">/// needn&#39;t even be the same. Only the expanded NcEgc must be bit-equal.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [cellcmp()][crate::cellcmp].*</span>
+    <span class="doccomment">/// *C style function: [nccellcmp()][crate::nccellcmp].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compare</span>(<span class="ident">plane1</span>: <span class="kw-2">&amp;</span><span class="ident">NcPlane</span>, <span class="ident">cell1</span>: <span class="kw-2">&amp;</span><span class="ident">NcCell</span>, <span class="ident">plane2</span>: <span class="kw-2">&amp;</span><span class="ident">NcPlane</span>, <span class="ident">cell2</span>: <span class="kw-2">&amp;</span><span class="ident">NcCell</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">crate</span>::<span class="ident">cellcmp</span>(<span class="ident">plane1</span>, <span class="ident">cell1</span>, <span class="ident">plane2</span>, <span class="ident">cell2</span>)
+        <span class="kw">crate</span>::<span class="ident">nccellcmp</span>(<span class="ident">plane1</span>, <span class="ident">cell1</span>, <span class="ident">plane2</span>, <span class="ident">cell2</span>)
     }
 
     <span class="doccomment">/// Saves the [NcStyleMask] and the [NcChannelPair], and returns the [NcEgc].</span>
     <span class="doccomment">/// (These are the three elements of an NcCell).</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [cell_fg_alpha()][crate::cell_fg_alpha].*</span>
+    <span class="doccomment">/// *C style function: [nccell_fg_alpha()][crate::nccell_fg_alpha].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">extract</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">plane</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span>,
         <span class="ident">styles</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcStyleMask</span>,
         <span class="ident">channels</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcChannelPair</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcEgc</span> {
-        <span class="kw">crate</span>::<span class="ident">cell_extract</span>(<span class="ident">plane</span>, <span class="self">self</span>, <span class="ident">styles</span>, <span class="ident">channels</span>)
+        <span class="kw">crate</span>::<span class="ident">nccell_extract</span>(<span class="ident">plane</span>, <span class="self">self</span>, <span class="ident">styles</span>, <span class="ident">channels</span>)
     }
 
     <span class="doccomment">/// Returns the [NcEgc] of the NcCell.</span>
@@ -796,35 +794,35 @@
     <span class="doccomment">/// *(No equivalent C style function)*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">egc</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">plane</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcEgc</span> {
         <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">_styles</span>, <span class="kw-2">mut</span> <span class="ident">_channels</span>) <span class="op">=</span> (<span class="number">0</span>, <span class="number">0</span>);
-        <span class="kw">crate</span>::<span class="ident">cell_extract</span>(<span class="ident">plane</span>, <span class="self">self</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">_styles</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">_channels</span>)
+        <span class="kw">crate</span>::<span class="ident">nccell_extract</span>(<span class="ident">plane</span>, <span class="self">self</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">_styles</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">_channels</span>)
     }
 
     <span class="doccomment">/// Returns the [NcStyleMask] bits.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [cell_styles()][crate::cell_styles].*</span>
+    <span class="doccomment">/// *C style function: [nccell_styles()][crate::nccell_styles].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">styles</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcStyleMask</span> {
-        <span class="kw">crate</span>::<span class="ident">cell_styles</span>(<span class="self">self</span>)
+        <span class="kw">crate</span>::<span class="ident">nccell_styles</span>(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Removes the specified [NcStyleMask] bits.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [cell_off()][crate::cell_off_styles].*</span>
+    <span class="doccomment">/// *C style function: [nccell_off()][crate::nccell_off_styles].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">off_styles</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">stylebits</span>: <span class="ident">NcStyleMask</span>) {
-        <span class="kw">crate</span>::<span class="ident">cell_off_styles</span>(<span class="self">self</span>, <span class="ident">stylebits</span>)
+        <span class="kw">crate</span>::<span class="ident">nccell_off_styles</span>(<span class="self">self</span>, <span class="ident">stylebits</span>)
     }
 
     <span class="doccomment">/// Adds the specified [NcStyleMask] bits.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [cell_on()][crate::cell_on_styles].*</span>
+    <span class="doccomment">/// *C style function: [nccell_on()][crate::nccell_on_styles].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">on_styles</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">stylebits</span>: <span class="ident">NcStyleMask</span>) {
-        <span class="kw">crate</span>::<span class="ident">cell_on_styles</span>(<span class="self">self</span>, <span class="ident">stylebits</span>)
+        <span class="kw">crate</span>::<span class="ident">nccell_on_styles</span>(<span class="self">self</span>, <span class="ident">stylebits</span>)
     }
 
     <span class="doccomment">/// Sets just the specified [NcStyleMask] bits.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [cell_set_styles()][crate::cell_set_styles].*</span>
+    <span class="doccomment">/// *C style function: [nccell_set_styles()][crate::nccell_set_styles].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_styles</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">stylebits</span>: <span class="ident">NcStyleMask</span>) {
-        <span class="kw">crate</span>::<span class="ident">cell_set_styles</span>(<span class="self">self</span>, <span class="ident">stylebits</span>)
+        <span class="kw">crate</span>::<span class="ident">nccell_set_styles</span>(<span class="self">self</span>, <span class="ident">stylebits</span>)
     }
 }
 
@@ -835,9 +833,9 @@
     <span class="comment">// /// This pointer can be invalidated by any further operation on the referred</span>
     <span class="comment">// /// plane, so… watch out!</span>
     <span class="comment">// ///</span>
-    <span class="comment">// /// *C style function: [cell_extended_gcluster()][crate::cell_wide_left_p].*</span>
+    <span class="comment">// /// *C style function: [nccell_extended_gcluster()][crate::nccell_wide_left_p].*</span>
     <span class="comment">// pub fn extended_gcluster(&amp;self, plane: &amp;NcPlane) -&gt; u32 {</span>
-    <span class="comment">//     let egcpointer = unsafe { crate::cell_extended_gcluster(plane, self) };</span>
+    <span class="comment">//     let egcpointer = unsafe { crate::nccell_extended_gcluster(plane, self) };</span>
     <span class="comment">//     egcpointer</span>
     <span class="comment">// }</span>
 
@@ -854,23 +852,23 @@
 
     <span class="doccomment">/// Does this NcCell contain a wide codepoint?</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [cell_double_wide_p()][crate::cell_double_wide_p].*</span>
+    <span class="doccomment">/// *C style function: [nccell_double_wide_p()][crate::nccell_double_wide_p].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">double_wide_p</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">crate</span>::<span class="ident">cell_double_wide_p</span>(<span class="self">self</span>)
+        <span class="kw">crate</span>::<span class="ident">nccell_double_wide_p</span>(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Is this the left half of a wide character?</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [cell_wide_left_p()][crate::cell_wide_left_p].*</span>
+    <span class="doccomment">/// *C style function: [nccell_wide_left_p()][crate::nccell_wide_left_p].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wide_left_p</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">crate</span>::<span class="ident">cell_wide_right_p</span>(<span class="self">self</span>)
+        <span class="kw">crate</span>::<span class="ident">nccell_wide_right_p</span>(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Is this the right side of a wide character?</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [cell_wide_right_p()][crate::cell_wide_right_p].*</span>
+    <span class="doccomment">/// *C style function: [nccell_wide_right_p()][crate::nccell_wide_right_p].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wide_right_p</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">crate</span>::<span class="ident">cell_wide_right_p</span>(<span class="self">self</span>)
+        <span class="kw">crate</span>::<span class="ident">nccell_wide_right_p</span>(<span class="self">self</span>)
     }
 }
 
@@ -882,7 +880,7 @@
     <span class="doccomment">/// are [release][NcCell#method.release]d.</span>
     <span class="doccomment">/// There must be at least six [NcEgc]s in `gcluster`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [cells_load_box()][crate::cells_load_box].*</span>
+    <span class="doccomment">/// *C style function: [nccells_load_box()][crate::nccells_load_box].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">load_box</span>(
         <span class="ident">plane</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span>,
         <span class="ident">style</span>: <span class="ident">NcStyleMask</span>,
@@ -895,14 +893,14 @@
         <span class="ident">vl</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcCell</span>,
         <span class="ident">gcluster</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="macro">error</span><span class="macro">!</span>[<span class="kw">crate</span>::<span class="ident">cells_load_box</span>(
+        <span class="macro">error</span><span class="macro">!</span>[<span class="kw">crate</span>::<span class="ident">nccells_load_box</span>(
             <span class="ident">plane</span>, <span class="ident">style</span>, <span class="ident">channels</span>, <span class="ident">ul</span>, <span class="ident">ur</span>, <span class="ident">ll</span>, <span class="ident">lr</span>, <span class="ident">hl</span>, <span class="ident">vl</span>, <span class="ident">gcluster</span>
         )]
     }
 
     <span class="doccomment">/// NcCell.[load_box()][NcCell#method.box] with the double box-drawing characters.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [cells_double_box()][crate::cells_double_box].*</span>
+    <span class="doccomment">/// *C style function: [nccells_double_box()][crate::nccells_double_box].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">double_box</span>(
         <span class="ident">plane</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span>,
         <span class="ident">style</span>: <span class="ident">NcStyleMask</span>,
@@ -915,13 +913,13 @@
         <span class="ident">vl</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcCell</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">error</span><span class="macro">!</span>[<span class="kw">unsafe</span> {
-            <span class="kw">crate</span>::<span class="ident">cells_double_box</span>(<span class="ident">plane</span>, <span class="ident">style</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">channels</span>, <span class="ident">ul</span>, <span class="ident">ur</span>, <span class="ident">ll</span>, <span class="ident">lr</span>, <span class="ident">hl</span>, <span class="ident">vl</span>)
+            <span class="kw">crate</span>::<span class="ident">nccells_double_box</span>(<span class="ident">plane</span>, <span class="ident">style</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">channels</span>, <span class="ident">ul</span>, <span class="ident">ur</span>, <span class="ident">ll</span>, <span class="ident">lr</span>, <span class="ident">hl</span>, <span class="ident">vl</span>)
         }]
     }
 
     <span class="doccomment">/// NcCell.[load_box()][NcCell#method.box] with the rounded box-drawing characters.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [cells_rounded_box()][crate::cells_double_box].*</span>
+    <span class="doccomment">/// *C style function: [nccells_rounded_box()][crate::nccells_double_box].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rounded_box</span>(
         <span class="ident">plane</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span>,
         <span class="ident">style</span>: <span class="ident">NcStyleMask</span>,
@@ -934,7 +932,7 @@
         <span class="ident">vl</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcCell</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">error</span><span class="macro">!</span>[<span class="kw">unsafe</span> {
-            <span class="kw">crate</span>::<span class="ident">cells_rounded_box</span>(<span class="ident">plane</span>, <span class="ident">style</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">channels</span>, <span class="ident">ul</span>, <span class="ident">ur</span>, <span class="ident">ll</span>, <span class="ident">lr</span>, <span class="ident">hl</span>, <span class="ident">vl</span>)
+            <span class="kw">crate</span>::<span class="ident">nccells_rounded_box</span>(<span class="ident">plane</span>, <span class="ident">style</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">channels</span>, <span class="ident">ul</span>, <span class="ident">ur</span>, <span class="ident">ll</span>, <span class="ident">lr</span>, <span class="ident">hl</span>, <span class="ident">vl</span>)
         }]
     }
 }

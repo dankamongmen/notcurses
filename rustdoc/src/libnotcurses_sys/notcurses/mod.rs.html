@@ -238,7 +238,7 @@
 <span class="comment">// col 2:  48</span>
 <span class="comment">// --------------</span>
 <span class="comment">//         38  m: impl as a `Notcurses` method</span>
-<span class="comment">//         10  M: impl for the `FullMode` wrapper struct too</span>
+<span class="comment">//         10  M: impl for the `Nc` wrapper struct too</span>
 <span class="comment">//</span>
 <span class="comment">// col 3:  13</span>
 <span class="comment">// --------------</span>
@@ -316,7 +316,7 @@
 <span class="doccomment">/// Notcurses builds atop the terminfo abstraction layer to</span>
 <span class="doccomment">/// provide reasonably portable vivid character displays.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// This is the internal type safely wrapped by [FullMode].</span>
+<span class="doccomment">/// This is the internal type safely wrapped by [Nc].</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Notcurses</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">notcurses</span>;
 
 <span class="doccomment">/// Options struct for [`Notcurses`]</span>

@@ -1067,7 +1067,7 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hl</span> <span class="op">=</span> <span class="ident">NcCell</span>::<span class="ident">new</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">vl</span> <span class="op">=</span> <span class="ident">NcCell</span>::<span class="ident">new</span>();
     <span class="kw">if</span> <span class="kw">unsafe</span> {
-        <span class="kw">crate</span>::<span class="ident">cells_double_box</span>(
+        <span class="kw">crate</span>::<span class="ident">nccells_double_box</span>(
             <span class="ident">plane</span>,
             <span class="ident">stylemask</span> <span class="kw">as</span> <span class="ident">u32</span>,
             <span class="ident">channels</span>,
@@ -1129,7 +1129,7 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hl</span> <span class="op">=</span> <span class="ident">NcCell</span>::<span class="ident">new</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">vl</span> <span class="op">=</span> <span class="ident">NcCell</span>::<span class="ident">new</span>();
     <span class="kw">if</span> <span class="kw">unsafe</span> {
-        <span class="kw">crate</span>::<span class="ident">cells_rounded_box</span>(
+        <span class="kw">crate</span>::<span class="ident">nccells_rounded_box</span>(
             <span class="ident">plane</span>,
             <span class="ident">stylemask</span> <span class="kw">as</span> <span class="ident">u32</span>,
             <span class="ident">channels</span>,
@@ -1231,7 +1231,7 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">vl</span> <span class="op">=</span> <span class="ident">NcCell</span>::<span class="ident">new</span>();
 
     <span class="kw">unsafe</span> {
-        <span class="ident">ret</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">cells_double_box</span>(
+        <span class="ident">ret</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">nccells_double_box</span>(
             <span class="ident">plane</span>,
             <span class="ident">stylemask</span> <span class="kw">as</span> <span class="ident">u32</span>,
             <span class="ident">channels</span>,
@@ -1316,7 +1316,7 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">vl</span> <span class="op">=</span> <span class="ident">NcCell</span>::<span class="ident">new</span>();
 
     <span class="kw">unsafe</span> {
-        <span class="ident">ret</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">cells_rounded_box</span>(
+        <span class="ident">ret</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">nccells_rounded_box</span>(
             <span class="ident">plane</span>,
             <span class="ident">stylemask</span> <span class="kw">as</span> <span class="ident">u32</span>,
             <span class="ident">channels</span>,

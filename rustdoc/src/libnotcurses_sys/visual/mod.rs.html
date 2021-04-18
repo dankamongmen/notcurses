@@ -117,10 +117,14 @@
 <span id="114">114</span>
 <span id="115">115</span>
 <span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// functions already exported by bindgen : 18</span>
 <span class="comment">// -----------------------------------------</span>
-<span class="comment">// (W) wrap: 17</span>
+<span class="comment">// (W) wrap: 18</span>
 <span class="comment">// (#) test: 0</span>
 <span class="comment">// -----------------------------------------</span>
 <span class="comment">//W  ncvisual_at_yx</span>
@@ -131,6 +135,7 @@
 <span class="comment">//W  ncvisual_from_file</span>
 <span class="comment">//W  ncvisual_from_plane</span>
 <span class="comment">//W  ncvisual_from_rgba</span>
+<span class="comment">//W  ncvisual_inflate</span>
 <span class="comment">//W  ncvisual_blitter_geom</span>
 <span class="comment">//W  ncvisual_media_defblitter</span>
 <span class="comment">//W  ncvisual_polyfill_yx</span>
@@ -141,6 +146,9 @@
 <span class="comment">//W  ncvisual_simple_streamer</span>
 <span class="comment">//~  ncvisual_stream</span>
 <span class="comment">//W  ncvisual_subtitle</span>
+
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_imports</span>)]</span> <span class="comment">// for the doc comments</span>
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">NcChannel</span>, <span class="ident">NcRgb</span>};
 
 <span class="kw">mod</span> <span class="ident">methods</span>;
 

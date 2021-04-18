@@ -224,6 +224,9 @@
 <span id="221">221</span>
 <span id="222">222</span>
 <span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcChannel*`</span>
 
@@ -286,6 +289,9 @@
 <span class="comment">//W+ channels_set_fg_rgb</span>
 <span class="comment">//W+ channels_set_fg_rgb8</span>
 <span class="comment">// X channels_set_fg_rgb8_clipped    // not needed</span>
+
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_imports</span>)]</span> <span class="comment">// for the doc comments</span>
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">NcRgba</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">test</span>;

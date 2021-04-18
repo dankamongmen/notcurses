@@ -2594,10 +2594,10 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncplane_set_base()][crate::ncplane_set_base].*</span>
     <span class="comment">// call stack:</span>
-    <span class="comment">// - ncplane_set_base calls cell_prime:</span>
-    <span class="comment">//      return cell_prime(ncp, &amp;ncp-&gt;basecell, egc, stylemask, channels);</span>
-    <span class="comment">// - cell_prime calls notcurses.c/cell_load:</span>
-    <span class="comment">//      return cell_load(n, c, gcluster);</span>
+    <span class="comment">// - ncplane_set_base calls nccell_prime:</span>
+    <span class="comment">//      return nccell_prime(ncp, &amp;ncp-&gt;basecell, egc, stylemask, channels);</span>
+    <span class="comment">// - nccell_prime calls notcurses.c/nccell_load:</span>
+    <span class="comment">//      return nccell_load(n, c, gcluster);</span>
     <span class="comment">// - cell-load calls internal.h/pool load:</span>
     <span class="comment">//      return pool_load(&amp;n-&gt;pool, c, gcluster);</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_base</span>(

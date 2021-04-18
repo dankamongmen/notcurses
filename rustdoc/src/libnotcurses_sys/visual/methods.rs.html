@@ -451,6 +451,14 @@
 <span id="448">448</span>
 <span id="449">449</span>
 <span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcVisual*` methods and associated functions.</span>
 
@@ -702,6 +710,14 @@
         } <span class="kw">else</span> {
             <span class="prelude-val">Ok</span>(<span class="ident">res</span>)
         }
+    }
+
+    <span class="doccomment">/// Inflates each pixel in the image to &#39;scale&#39;x&#39;scale&#39; pixels.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The original color is retained.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inflate</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">scale</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">NcIntResult</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncvisual_inflate</span>(<span class="self">self</span>, <span class="ident">scale</span> <span class="kw">as</span> <span class="ident">i32</span>) };
+        <span class="macro">error</span><span class="macro">!</span>[<span class="ident">res</span>, <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>[<span class="string">&quot;NcVisual.inflate({})&quot;</span>, <span class="ident">scale</span>], <span class="ident">res</span>]
     }
 
     <span class="doccomment">/// Gets the size and ratio of NcVisual pixels to output cells along the</span>

@@ -168,7 +168,6 @@
 <span id="165">165</span>
 <span id="166">166</span>
 <span id="167">167</span>
-<span id="168">168</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `libnotcurses-sys` is a Rust wrapper for the [notcurses</span>
 <span class="doccomment">//! C library](https://www.github.com/dankamongmen/notcurses/)</span>
@@ -194,7 +193,7 @@
 <span class="doccomment">//! use libnotcurses_sys::*;</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! fn main() -&gt; NcResult&lt;()&gt; {</span>
-<span class="doccomment">//!     let mut nc = FullMode::with_flags(NCOPTION_NO_ALTERNATE_SCREEN)?;</span>
+<span class="doccomment">//!     let mut nc = Nc::with_flags(NCOPTION_NO_ALTERNATE_SCREEN)?;</span>
 <span class="doccomment">//!     let plane = nc.stdplane();</span>
 <span class="doccomment">//!     plane.putstr(&quot;hello world&quot;)?;</span>
 <span class="doccomment">//!     nc.render()?;</span>
@@ -202,22 +201,21 @@
 <span class="doccomment">//! }</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! Specifically [`FullMode`] and [`DirectMode`] are safe wrappers</span>
-<span class="doccomment">//! over [`Notcurses`] and [`NcDirect`], respectively.</span>
+<span class="doccomment">//! Specifically [`Nc`] and [`NcD`] are safe wrappers over [`Notcurses`]</span>
+<span class="doccomment">//! and [`NcDirect`], respectively.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! `FullMode` and `DirectMode` both implement the [Drop], [AsRef], [AsMut],</span>
+<span class="doccomment">//! `Nc` and `NcD` both implement the [Drop], [AsRef], [AsMut],</span>
 <span class="doccomment">//! [Deref][std::ops::Deref] and [DerefMut][std::ops::DerefMut] traits.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Their destructors are called automatically at the end of their scope.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! Methods are directly implemented for `Notcurses` and `NcDirect`, and</span>
-<span class="doccomment">//! are made automatically available to `FullMode` &amp; `DirectMode`,</span>
-<span class="doccomment">//! minus some function overrides, like their destructors,</span>
-<span class="doccomment">//! plus the static methods that have to be recreated.</span>
+<span class="doccomment">//! Methods are directly implemented for `Notcurses` and `NcDirect`, and are</span>
+<span class="doccomment">//! made automatically available to `Nc` &amp; `NcD`, minus some function overrides,</span>
+<span class="doccomment">//! like their destructors, plus the static methods that have to be recreated.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! The rest of the types that allocate, like [`NcPlane`], [`NcMenu`], [`NcReader`]…</span>
-<span class="doccomment">//! have no higher level wrapping struct, they don&#39;t implement Drop,</span>
-<span class="doccomment">//! so they have to be `*.destroy()`ed manually.</span>
+<span class="doccomment">//! The rest of the types that allocate, like [`NcPlane`], [`NcMenu`],</span>
+<span class="doccomment">//! [`NcReader`]… have no higher level wrapping struct, they don&#39;t</span>
+<span class="doccomment">//! implement Drop, so they have to be `*.destroy()`ed manually.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! But they do implement methods and use [`NcResult`] as the return type,</span>
 <span class="doccomment">//! for handling errors in the way we are used to in Rust.</span>
