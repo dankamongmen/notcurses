@@ -420,7 +420,7 @@ struct ncplane* hud_create(struct notcurses* nc){
   ncplane_set_bg_rgb(n, 0);
   ncplane_set_bg_alpha(n, CELL_ALPHA_BLEND);
   if(hud_hidden){
-    ncplane_move_bottom(n);
+    ncplane_reparent(n, n);
   }
   return (hud = n);
 }
@@ -665,7 +665,7 @@ int fpsgraph_init(struct notcurses* nc){
   clock_gettime(CLOCK_MONOTONIC, &ts);
   plottimestart = timespec_to_ns(&ts);
   if(plot_hidden){
-    ncplane_move_bottom(newp);
+    ncplane_reparent(ncuplot_plane(plot), ncuplot_plane(plot));
   }
   return 0;
 }
