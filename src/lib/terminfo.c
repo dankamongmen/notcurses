@@ -52,7 +52,10 @@ apply_term_heuristics(tinfo* ti, const char* termname){
     termname = "unknown";
   }
   ti->braille = true; // most everyone has working braille, even from fonts
-  if(strstr(termname, "kitty")){ // kitty (https://sw.kovidgoyal.net/kitty/)
+  if(strcmp(termname, "foot") == 0){
+    ti->sextants = true;
+    ti->quadrants = true;
+  }else if(strstr(termname, "kitty")){ // kitty (https://sw.kovidgoyal.net/kitty/)
     // see https://sw.kovidgoyal.net/kitty/protocol-extensions.html
     // FIXME detect the actual default background color; this assumes it to
     // be RGB(0, 0, 0) (the default). we could also just set it, i guess.
