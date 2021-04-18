@@ -2734,11 +2734,7 @@ API int ncvisual_rotate(struct ncvisual* n, double rads)
   __attribute__ ((nonnull (1)));
 
 // Scale the visual to 'rows' X 'columns' pixels, using the best scheme
-// available.
-//
-// This is a lossy transformation, unless the size is unchanged.
-//
-// Returns -1 if the number of rows or columns is less than the current ones.
+// available. This is a lossy transformation, unless the size is unchanged.
 API int ncvisual_resize(struct ncvisual* n, int rows, int cols)
   __attribute__ ((nonnull (1)));
 

@@ -339,10 +339,7 @@ impl NcVisual {
         ]
     }
 
-    /// Resizes the visual to `rows` X `olumns` pixels.
-    ///
-    /// Returns an error if the number of either rows or columns is less than
-    /// the current ones.
+    /// Resizes the visual to `rows` X `columns` pixels.
     ///
     /// This is a lossy transformation, unless the size is unchanged.
     ///
