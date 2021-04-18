@@ -58,7 +58,7 @@ typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 
 **struct ncvisual* ncvisual_from_plane(struct ncplane* ***n***, ncblitter_e ***blit***, int ***begy***, int ***begx***, int ***leny***, int ***lenx***);**
 
-**int ncvisual_geom(const struct notcurses* ***nc***, const struct ncvisual* ***n***, const struct ncvisual_options* ***vopts***, int* ***y***, int* ***x***, int* ***toy***, int* ***tox***);**
+**int ncvisual_blitter_geom(const struct notcurses* ***nc***, const struct ncvisual* ***n***, const struct ncvisual_options* ***vopts***, int* ***y***, int* ***x***, int* ***scaley***, int* ***scalex***, ncblitter_e* ***blitter***);**
 
 **void ncvisual_destroy(struct ncvisual* ***ncv***);**
 
@@ -143,6 +143,12 @@ geometry of same. **flags** is a bitfield over:
 
 * **NCVISUAL_OPTION_NODEGRADE** If the specified blitter is not available, fail rather than degrading.
 * **NCVISUAL_OPTION_BLEND**: Render with **CELL_ALPHA_BLEND**.
+* **NCVISUAL_OPTION_HORALIGNED**: Interpret ***x*** as an **ncalign_e**.
+* **NCVISUAL_OPTION_VERALIGNED**: Interpret ***y*** as an **ncalign_e**.
+
+**ncvisual_blitter_geom** allows the caller to determine any or all of the
+visual's pixel geometry, the blitter to be used, and that blitter's scaling
+in both dimensions. Any but the first argument may be **NULL**.
 
 **ncplane_qrcode** draws an ISO/IEC 18004:2015 QR Code for the **len** bytes of
 **data** using **NCBLIT_2x1** (this is the only blitter that will work with QR
@@ -267,7 +273,7 @@ which the visual was rendered. If **opts->n** is provided, this will be
 **opts->n**. Otherwise, a plane will be created, perfectly sized for the
 visual and the specified blitter.
 
-**ncvisual_geom** returns non-zero if the **blitter** is invalid.
+**ncvisual_blitter_geom** returns non-zero if the specified blitter is invalid.
 
 **ncvisual_media_defblitter** returns the blitter selected by **NCBLIT_DEFAULT**
 in the specified configuration. If UTF8 is not enabled, this will always be
