@@ -110,11 +110,9 @@ rotate_visual(struct notcurses* nc, struct ncplane* n, int dy, int dx){
       r = -1;
       break;
     }
-    int vy, vx, vyscale, vxscale;
-    ncvisual_blitter_geom(nc, ncv, &vopts, &vy, &vx, &vyscale, &vxscale, NULL);
     vopts.x = NCALIGN_CENTER;
-    vopts.y = (dimy - (vy / vyscale)) / 2;
-    vopts.flags |= NCVISUAL_OPTION_HORALIGNED;
+    vopts.y = NCALIGN_CENTER;
+    vopts.flags |= NCVISUAL_OPTION_HORALIGNED | NCVISUAL_OPTION_VERALIGNED;
     struct ncplane* newn;
     if((newn = ncvisual_render(nc, ncv, &vopts)) == NULL){
       r = -1;
