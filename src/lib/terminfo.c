@@ -62,8 +62,8 @@ apply_term_heuristics(tinfo* ti, const char* termname){
     ti->pixel_query_done = true;
     ti->bitmap_supported = true;
     ti->pixel_cell_wipe = sprite_kitty_cell_wipe;
-    ti->pixel_destroy = sprite_kitty_annihilate;
-    ti->pixel_init = sprite_kitty_init;
+    ti->pixel_destroy = kitty_delete;
+    ti->pixel_init = kitty_init;
     ti->pixel_draw = kitty_draw;
     ti->pixel_shutdown = kitty_shutdown;
     set_pixel_blitter(kitty_blit);
@@ -334,7 +334,7 @@ static void
 setup_sixel(tinfo* ti){
   ti->bitmap_supported = true;
   ti->color_registers = 256;  // assumed default [shrug]
-  ti->pixel_init = sprite_sixel_init;
+  ti->pixel_init = sixel_init;
   ti->pixel_draw = sixel_draw;
   ti->sixel_maxx = 4096; // whee!
   ti->sixel_maxy = 4096;

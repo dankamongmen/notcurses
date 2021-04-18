@@ -915,7 +915,6 @@ plane_debug(const ncplane* n, bool details){
 // can just print directly over the bitmap.
 int sprite_kitty_cell_wipe(const notcurses* nc, sprixel* s, int y, int x);
 int sixel_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell);
-int sprite_destroy(const struct notcurses* nc, const struct ncpile* p, FILE* out, sprixel* s);
 void sprixel_free(sprixel* s);
 void sprixel_hide(sprixel* s);
 int sprite_draw(const notcurses* n, const ncpile *p, sprixel* s, FILE* out);
@@ -929,9 +928,9 @@ int sprixel_load(sprixel* spx, char* s, int bytes, int placey, int placex,
                  int pixy, int pixx, int parse_start);
 int sprite_wipe_cell(const notcurses* nc, sprixel* s, int y, int x);
 int sixel_delete(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
-int sprite_kitty_annihilate(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
-int sprite_kitty_init(int fd);
-int sprite_sixel_init(int fd);
+int kitty_delete(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
+int kitty_init(int fd);
+int sixel_init(int fd);
 int sprite_init(const notcurses* nc);
 int kitty_shutdown(int fd);
 int sixel_shutdown(int fd);
@@ -943,6 +942,11 @@ void sprixel_movefrom(sprixel* s, int y, int x);
 // is the sprixel backend kitty?
 static inline bool sprixel_kitty_p(const tinfo* t){
   return t->pixel_shutdown == kitty_shutdown;
+}
+
+static inline int
+sprite_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
+  return nc->tcache.pixel_destroy(nc, p, out, s);
 }
 
 static inline void

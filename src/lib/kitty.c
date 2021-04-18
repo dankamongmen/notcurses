@@ -369,8 +369,8 @@ int kitty_blit(ncplane* n, int linesize, const void* data,
 }
 
 // removes the kitty bitmap graphic identified by s->id, and damages those
-// cells which were SPRIXCEL_OPAQUE
-int sprite_kitty_annihilate(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
+// cells which weren't SPRIXCEL_OPAQUE
+int kitty_delete(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
   (void)p;
   (void)nc;
   if(fprintf(out, "\e_Ga=d,d=i,i=%d\e\\", s->id) < 0){
@@ -382,7 +382,8 @@ int sprite_kitty_annihilate(const notcurses* nc, const ncpile* p, FILE* out, spr
       struct crender *r = &p->crender[yy * p->dimx + xx];
       if(s->n){
 //fprintf(stderr, "CHECKING %d/%d\n", yy - s->movedfromy, xx - s->movedfromx);
-        if(s->n->tacache[(yy - s->movedfromy) * s->dimx + (xx - s->movedfromx)] == SPRIXCELL_OPAQUE){
+        sprixcell_e state = sprixel_state(s, yy, xx);
+        if(state != SPRIXCELL_OPAQUE){
 //fprintf(stderr, "DAMAGING %d/%d!\n", yy, xx);
           r->s.damaged = 1;
         }
@@ -405,7 +406,7 @@ int kitty_draw(const notcurses* nc, const ncpile* p, sprixel* s, FILE* out){
 }
 
 // clears all kitty bitmaps
-int sprite_kitty_init(int fd){
+int kitty_init(int fd){
   return tty_emit("\e_Ga=d\e\\", fd);
 }
 
