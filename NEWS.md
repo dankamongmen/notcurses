@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 2.2.7 (2021-04-18)
+* 2.2.8 (2021-04-18)
   * All remaining functions prefixed with `cell_` or `cells_` have been
     deprecated in favor of versions prefixed with `nccell_` or `nccell_`,
     respectively, which the former now wrap. The old versions will be
