@@ -824,10 +824,8 @@ cell_wide_left_p(const nccell* c){
 // returns NULL if called on a pixel graphic.
 API const char* nccell_extended_gcluster(const struct ncplane* n, const nccell* c);
 
-__attribute__ ((deprecated)) static inline const char*
-cell_extended_gcluster(const struct ncplane* n, const nccell* c){
-  return nccell_extended_gcluster(n, c);
-}
+__attribute__ ((deprecated)) API const char*
+cell_extended_gcluster(const struct ncplane* n, const nccell* c);
 
 // copy the UTF8-encoded EGC out of the nccell. the result is not tied to any
 // ncplane, and persists across erases / destruction.

@@ -1307,6 +1307,10 @@ const char* nccell_extended_gcluster(const ncplane* n, const nccell* c){
   return egcpool_extended_gcluster(&n->pool, c);
 }
 
+const char* cell_extended_gcluster(const struct ncplane* n, const nccell* c){
+  return nccell_extended_gcluster(n, c);
+}
+
 // 'n' ends up above 'above'
 int ncplane_move_above(ncplane* restrict n, ncplane* restrict above){
   if(n == above){
