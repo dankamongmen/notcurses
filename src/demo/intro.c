@@ -40,7 +40,7 @@ greatscott(struct notcurses* nc){
     return NULL;
   }
   struct ncvisual_options vopts = {
-    .y = 1,
+    .y = 2,
     .x = NCALIGN_CENTER,
     .blitter = NCBLIT_PIXEL,
     .scaling = NCSCALE_SCALE,

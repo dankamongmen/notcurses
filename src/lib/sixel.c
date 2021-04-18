@@ -559,7 +559,7 @@ int sixel_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
   (void)nc;
   if(s->n->tacache[s->dimx * ycell + xcell] == SPRIXCELL_ANNIHILATED){
 //fprintf(stderr, "CACHED WIPE %d %d/%d\n", s->id, ycell, xcell);
-    return 1; // already annihilated, but still must draw glyph
+    return 1; // already annihilated FIXME but 0 breaks things
   }
   change_p2(s->glyph, SIXEL_P2_TRANS);
   return -1;
