@@ -956,6 +956,31 @@ clamp_to_sixelmax(const tinfo* t, int* y, int* x){
   }
 }
 
+// any sprixcell which does not cover the entirety of the underlying cell
+// cannot be SPRIXCELL_OPAQUE. this postprocesses the TAM, flipping any
+// such sprixcells to SPRIXCELL_MIXED.
+static inline void
+scrub_tam_boundaries(sprixcell_e* tam, int leny, int lenx, int cdimy, int cdimx){
+  // any sprixcells which don't cover the full cell underneath them cannot
+  // be SPRIXCELL_OPAQUE
+  const int cols = (lenx + cdimx - 1) / cdimx;
+  if(lenx % cdimx){
+    for(int y = 0 ; y < (leny + cdimy - 1) / cdimy ; ++y){
+      if(tam[y * cols + cols - 1] == SPRIXCELL_OPAQUE){
+        tam[y * cols + cols - 1] = SPRIXCELL_MIXED;
+      }
+    }
+  }
+  if(leny % cdimy){
+    const int y = (leny + cdimy - 1) / cdimy - 1;
+    for(int x = 0 ; x < cols ; ++x){
+      if(tam[y * cols + x] == SPRIXCELL_OPAQUE){
+        tam[y * cols + x] = SPRIXCELL_MIXED;
+      }
+    }
+  }
+}
+
 // get the TAM entry for these (absolute) coordinates
 static inline sprixcell_e
 sprixel_state(sprixel* s, int y, int x){

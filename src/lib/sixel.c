@@ -431,6 +431,8 @@ sixel_blit_inner(int leny, int lenx, const sixeltable* stab, int rows, int cols,
     free(buf);
     return -1;
   }
+  scrub_tam_boundaries(tacache, leny, lenx, bargs->u.pixel.celldimy,
+                       bargs->u.pixel.celldimx);
   // take ownership of buf on success
   if(plane_blit_sixel(bargs->u.pixel.spx, buf, size, rows, cols,
                       bargs->placey, bargs->placex,
@@ -514,7 +516,7 @@ int sixel_delete(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
   for(int yy = s->movedfromy ; yy < s->movedfromy + s->dimy && yy < p->dimy ; ++yy){
     for(int xx = s->movedfromx ; xx < s->movedfromx + s->dimx && xx < p->dimx ; ++xx){
       struct crender *r = &p->crender[yy * p->dimx + xx];
-      if(!r->sprixel){
+      if(!r->sprixel || sprixel_state(r->sprixel, yy, xx) != SPRIXCELL_OPAQUE){
         r->s.damaged = 1;
       }
     }
@@ -525,12 +527,7 @@ int sixel_delete(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
 int sixel_draw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
   (void)n;
   if(s->invalidated == SPRIXEL_MOVED){
-    for(int yy = s->movedfromy ; yy < s->movedfromy + s->dimy && yy < p->dimy ; ++yy){
-      for(int xx = s->movedfromx ; xx < s->movedfromx + s->dimx && xx < p->dimx ; ++xx){
-//fprintf(stderr, "DAMAGING DUE TO MOVE: %d/%d (%d)\n", yy, xx, yy * p->dimx + xx);
-        p->crender[yy * p->dimx + xx].s.damaged = 1;
-      }
-    }
+    sixel_delete(n, p, out, s);
     s->invalidated = SPRIXEL_INVALIDATED;
   }else{
     if(fwrite(s->glyph, s->glyphlen, 1, out) != 1){

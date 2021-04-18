@@ -34,6 +34,10 @@ sprixel* sprixel_recycle(ncplane* n){
 void sprixel_movefrom(sprixel* s, int y, int x){
   if(s->invalidated != SPRIXEL_HIDE){
     if(s->invalidated != SPRIXEL_MOVED){
+    // FIXME if we're Sixel, we need to effect any wipes that were run
+    // (we normally don't because redisplaying sixel doesn't change
+    // what's there--you can't "write transparency"). this is probably
+    // best done by conditionally reblitting the sixel(?).
 //fprintf(stderr, "SETTING TO MOVE: %d/%d was: %d\n", y, x, s->invalidated);
       s->invalidated = SPRIXEL_MOVED;
       s->movedfromy = y;
