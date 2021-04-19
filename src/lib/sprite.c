@@ -12,7 +12,7 @@ sprixel_debug(FILE* out, const sprixel* s){
     int idx = 0;
     for(int y = 0 ; y < s->dimy ; ++y){
       for(int x = 0 ; x < s->dimx ; ++x){
-        fprintf(out, "%d ", s->n->tacache[idx]);
+        fprintf(out, "%d", s->n->tacache[idx]);
         ++idx;
       }
       fprintf(out, "\n");

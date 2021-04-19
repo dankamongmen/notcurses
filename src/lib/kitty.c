@@ -291,8 +291,12 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx,
             }else if(tacache[tyx] == SPRIXCELL_OPAQUE){
               tacache[tyx] = SPRIXCELL_MIXED;
             }
-          }else if(tacache[tyx] == SPRIXCELL_TRANSPARENT){
-            tacache[tyx] = SPRIXCELL_MIXED;
+          }else{
+            if(x % cdimx == 0 && y % cdimy == 0){
+              tacache[tyx] = SPRIXCELL_OPAQUE;
+            }else if(tacache[tyx] == SPRIXCELL_TRANSPARENT){
+              tacache[tyx] = SPRIXCELL_MIXED;
+            }
           }
         }
         ++x;

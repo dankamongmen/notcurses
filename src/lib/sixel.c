@@ -170,22 +170,24 @@ extract_color_table(const uint32_t* data, int linesize, int cols,
       for(int sy = visy ; sy < (begy + leny) && sy < visy + 6 ; ++sy){ // offset within sprixel
         const uint32_t* rgb = (data + (linesize / 4 * sy) + visx);
         int txyidx = (sy / cdimy) * cols + (visx / cdimx);
-        if(rgba_trans_p(*rgb, bargs->transcolor)){
-          if(tacache[txyidx] == SPRIXCELL_OPAQUE){
-            if(sy % cdimy == 0 && visx % cdimx == 0){
-              tacache[txyidx] = SPRIXCELL_TRANSPARENT;
-            }else{
-              tacache[txyidx] = SPRIXCELL_MIXED;
-            }
-          }
-          stab->p2 = SIXEL_P2_TRANS;
-          continue;
-        }else if(tacache[txyidx] == SPRIXCELL_TRANSPARENT){
-          tacache[txyidx] = SPRIXCELL_MIXED;
-        }
         if(tacache[txyidx] == SPRIXCELL_ANNIHILATED){
 //fprintf(stderr, "TRANS SKIP %d %d %d %d (cell: %d %d)\n", visy, visx, sy, txyidx, sy / cdimy, visx / cdimx);
           continue;
+        }
+        if(rgba_trans_p(*rgb, bargs->transcolor)){
+          if(sy % cdimy == 0 && visx % cdimx == 0){
+            tacache[txyidx] = SPRIXCELL_TRANSPARENT;
+          }else if(tacache[txyidx] == SPRIXCELL_OPAQUE){
+            tacache[txyidx] = SPRIXCELL_MIXED;
+          }
+          stab->p2 = SIXEL_P2_TRANS; // even one forces P2=1
+          continue;
+        }else{
+          if(sy % cdimy == 0 && visx % cdimx == 0){
+            tacache[txyidx] = SPRIXCELL_OPAQUE;
+          }else if(tacache[txyidx] == SPRIXCELL_TRANSPARENT){
+            tacache[txyidx] = SPRIXCELL_MIXED;
+          }
         }
         unsigned char comps[RGBSIZE];
         break_sixel_comps(comps, *rgb, mask);

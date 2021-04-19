@@ -7,7 +7,8 @@
 
 // Check whether the terminal geometry has changed, and if so, copies what can
 // be copied from the old lastframe. Assumes that the screen is always anchored
-// at the same origin.
+// at the same origin. Initiates a resize cascade for the pile containing |pp|.
+// The current terminal geometry, changed or not, is written to |rows|/|cols|.
 static int
 notcurses_resize_internal(ncplane* pp, int* restrict rows, int* restrict cols){
   notcurses* n = ncplane_notcurses(pp);
@@ -64,6 +65,7 @@ notcurses_resize_internal(ncplane* pp, int* restrict rows, int* restrict cols){
   return ret;
 }
 
+// Check for a window resize on the standard pile.
 static int
 notcurses_resize(notcurses* n, int* restrict rows, int* restrict cols){
   pthread_mutex_lock(&n->pilelock);
@@ -72,6 +74,8 @@ notcurses_resize(notcurses* n, int* restrict rows, int* restrict cols){
   return ret;
 }
 
+// write(2) until we've written it all. Uses poll(2) to avoid spinning on
+// EAGAIN, at a small cost of latency.
 static int
 blocking_write(int fd, const char* buf, size_t buflen){
 //fprintf(stderr, "writing %zu to %d...\n", buflen, fd);
@@ -115,6 +119,7 @@ int nccell_duplicate(ncplane* n, nccell* targ, const nccell* c){
   return 0;
 }
 
+// deprecated, goes away in abi3
 int cell_duplicate(struct ncplane* n, nccell* targ, const nccell* c){
   return nccell_duplicate(n, targ, c);
 }
