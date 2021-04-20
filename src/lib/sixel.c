@@ -536,18 +536,16 @@ int sixel_delete(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
 static int
 deepclean_output(FILE* fp, const sprixel* s, int y, int *x, int* rle,
                  int* printed, int color, int* needclosure, char c){
+  c -= 63;
   int rlei = 0;
-fprintf(stderr, "handling %d to %d color %d\n", *x, *x + *rle - 1, color);
   // xi loops over the section we cover, a minimum of 1 pixel and a maximum
   // of one line. FIXME can skip (celldimx - 1) / celldimx checks, do so!
   for(int xi = *x ; xi < *x + *rle ; ++xi){
-    // FIXME need to check all 6 pixels, might be multiple cells
     unsigned char mask = 0x3f; // assume all six bits are valid
     for(int yi = y ; yi < y + 6 ; ++yi){
       const int tidx = (yi / s->cellpxy) * s->dimx + (xi / s->cellpxx);
       const bool nihil = (s->n->tacache[tidx] == SPRIXCELL_ANNIHILATED);
       if(nihil){
-fprintf(stderr, "DEEPCLEAN MASK: %u -> %u (%d %d) rle: %d\n", mask, mask & ~(1u << (yi - y)), yi, xi, *rle);
         mask &= ~(1u << (yi - y));
       }
     }
@@ -569,7 +567,7 @@ fprintf(stderr, "DEEPCLEAN MASK: %u -> %u (%d %d) rle: %d\n", mask, mask & ~(1u 
     }
     rlei = 0;
   }
-  *rle = rlei;
+  *rle = 1;
   return 0;
 }
 
@@ -592,11 +590,11 @@ deepclean_stream(sprixel* s, FILE* fp){
     SIXEL_EAT_DATA   // we're reading data until we hit EOL
   } state = SIXEL_WANT_HASH;
   int color = 0;
-  int rle = 0;
+  int rle = 1;
   int y = 0;
   int x = 0;
   int printed;
-  int needclosure;
+  int needclosure = 0;
   while(idx + 2 < s->glyphlen){
     const char c = s->glyph[idx];
 //fprintf(stderr, "%d] %c (%d) (%d/%d)\n", state, c, c, idx, s->glyphlen);
@@ -605,7 +603,6 @@ deepclean_stream(sprixel* s, FILE* fp){
         state = SIXEL_EAT_COLOR;
         color = 0;
         printed = 0;
-        needclosure = 0;
       }else if(c == '-'){
         y += 6;
         x = 0;
@@ -638,6 +635,7 @@ deepclean_stream(sprixel* s, FILE* fp){
         color += c - '0';
       }else{
         state = SIXEL_EAT_DATA;
+        rle = 1;
       }
     }else if(state == SIXEL_EAT_RLE_EPSILON){
       if(isdigit(c)){
@@ -651,11 +649,13 @@ deepclean_stream(sprixel* s, FILE* fp){
     if(state == SIXEL_EAT_DATA){
       if(c == '!'){
         state = SIXEL_EAT_RLE;
+        rle = 0;
       }else if(c == '-'){
         y += 6;
         x = 0;
         state = SIXEL_WANT_HASH;
         needclosure = needclosure | printed;
+        fputc('-', fp);
       }else if(c == '$'){
         x = 0;
         state = SIXEL_WANT_HASH;
@@ -667,10 +667,8 @@ deepclean_stream(sprixel* s, FILE* fp){
                             &needclosure, c)){
           return -1;
         }
-fprintf(stderr, "came back with %d/%d\n", x, rle);
       }
     }
-    fprintf(fp, "%c", c);
     ++idx;
   }
   fprintf(fp, "\e\\");
