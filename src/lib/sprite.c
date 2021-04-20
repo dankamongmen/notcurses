@@ -115,7 +115,12 @@ sprixel* sprixel_alloc(ncplane* n, int dimy, int dimx, int placey, int placex){
       notcurses* nc = ncplane_notcurses(ret->n);
       ret->next = nc->sprixelcache;
       nc->sprixelcache = ret;
+      ret->cellpxy = nc->tcache.cellpixy;
+      ret->cellpxx = nc->tcache.cellpixx;
 //fprintf(stderr, "%p %p %p\n", nc->sprixelcache, ret, nc->sprixelcache->next);
+    }else{
+      ret->next = NULL;
+      ret->cellpxy = ret->cellpxx = -1;
     }
   }
   return ret;
@@ -155,7 +160,7 @@ int sprite_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
 
 // precondition: s->invalidated is SPRIXEL_INVALIDATED or SPRIXEL_MOVED.
 int sprite_draw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
-sprixel_debug(stderr, s);
+//sprixel_debug(stderr, s);
   int r = n->tcache.pixel_draw(n, p, s, out);
   return r;
 }
