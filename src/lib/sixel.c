@@ -446,6 +446,7 @@ sixel_blit_inner(int leny, int lenx, const sixeltable* stab, int rows, int cols,
 int sixel_blit(ncplane* n, int linesize, const void* data,
                int leny, int lenx, const blitterargs* bargs){
   if((leny - bargs->begy) % 6){
+    logerror(ncplane_notcurses_const(n), "Sixel height %d invalid\n", leny - bargs->begy);
     return -1;
   }
   int sixelcount = (lenx - bargs->begx) * (leny - bargs->begy);
@@ -528,24 +529,40 @@ int sixel_delete(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
 }
 
 static int
+deepclean_stream(sprixel* s, FILE* fp){
+  for(int y = 0 ; y < s->dimy ; ++y){
+    for(int x = 0 ; x < s->dimx ; ++x){
+      (void)fp; // FIXME
+    }
+  }
+  return 0;
+}
+
+static int
 sixel_deepclean(sprixel* s){
   char* buf = NULL;
   size_t size = 0;
   FILE* fp = open_memstream(&buf, &size);
   if(fwrite(s->glyph, 1, s->parse_start, fp) != (size_t)s->parse_start){
-    fclose(fp);
-    free(buf);
-    return -1;
+    goto err;
   }
-  // FIXME stream
+  if(deepclean_stream(s, fp)){
+    goto err;
+  }
   if(fclose(fp) == EOF){
+    free(buf);
     return -1;
   }
   free(s->glyph);
   s->glyph = buf;
-fprintf(stderr, "Deepclean! %d -> %zu\n", s->glyphlen, size);
+//fprintf(stderr, "Deepclean! %d -> %zu\n", s->glyphlen, size);
   s->glyphlen = size;
   return 0;
+
+err:
+  fclose(fp);
+  free(buf);
+  return -1;
 }
 
 int sixel_draw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
@@ -554,14 +571,19 @@ int sixel_draw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
     for(int yy = s->movedfromy ; yy < s->movedfromy + s->dimy && yy < p->dimy ; ++yy){
       for(int xx = s->movedfromx ; xx < s->movedfromx + s->dimx && xx < p->dimx ; ++xx){
         struct crender *r = &p->crender[yy * p->dimx + xx];
-        if(!r->sprixel || sprixel_state(r->sprixel, yy, xx) != SPRIXCELL_OPAQUE){
+        if(!r->sprixel || sprixel_state(r->sprixel, yy, xx) == SPRIXCELL_OPAQUE){
           r->s.damaged = 1;
         }
       }
     }
     // if we've wiped any cells, we need actually wipe them out now, or else
     // we'll get flicker when we move to the new location
-    sixel_deepclean(s);
+    if(s->wipes_outstanding){
+      if(sixel_deepclean(s)){
+        return -1;
+      }
+      s->wipes_outstanding = false;
+    }
     s->invalidated = SPRIXEL_INVALIDATED;
   }else{
     if(fwrite(s->glyph, s->glyphlen, 1, out) != 1){
@@ -588,6 +610,7 @@ int sixel_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
 //fprintf(stderr, "CACHED WIPE %d %d/%d\n", s->id, ycell, xcell);
     return 1; // already annihilated FIXME but 0 breaks things
   }
+  s->wipes_outstanding = true;
   change_p2(s->glyph, SIXEL_P2_TRANS);
   return -1;
 }

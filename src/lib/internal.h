@@ -163,6 +163,7 @@ typedef struct sprixel {
   int parse_start;   // where to start parsing for cell wipes
   int movedfromy;       // for SPRIXEL_MOVED, the starting absolute position,
   int movedfromx;       // so that we can damage old cells when redrawn
+  bool wipes_outstanding; // do we need execute wipes on move?
 } sprixel;
 
 // A plane is memory for some rectilinear virtual window, plus current cursor

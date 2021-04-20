@@ -109,6 +109,7 @@ sprixel* sprixel_alloc(ncplane* n, int dimy, int dimx, int placey, int placex){
     ret->y = placey;
     ret->x = placex;
     ret->id = ++sprixelid_nonce;
+    ret->wipes_outstanding = false;
 //fprintf(stderr, "LOOKING AT %p (p->n = %p)\n", ret, ret->n);
     if(ncplane_pile(ret->n)){
       notcurses* nc = ncplane_notcurses(ret->n);
