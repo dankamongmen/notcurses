@@ -323,10 +323,12 @@ refine_color_table(const uint32_t* data, int linesize, int begy, int begx,
 // Emit some number of equivalent, subsequent sixels, using sixel RLE. We've
 // seen the sixel |crle| for |seenrle| columns in a row. |seenrle| must > 0.
 static int
-write_rle(int* printed, int color, FILE* fp, int seenrle, unsigned char crle){
+write_rle(int* printed, int color, FILE* fp, int seenrle, unsigned char crle,
+          int* needclosure){
   if(!*printed){
-    fprintf(fp, "#%d", color);
+    fprintf(fp, "%s#%d", *needclosure ? "$" : "", color);
     *printed = 1;
+    *needclosure = 0;
   }
   crle += 63;
   if(seenrle == 1){
@@ -365,11 +367,12 @@ write_sixel_data(FILE* fp, int leny, int lenx, const sixeltable* stab, int* pars
   }
   int p = 0;
   while(p < stab->sixelcount){
+    int needclosure = 0;
     for(int i = 0 ; i < stab->colors ; ++i){
-      int printed = 0;
       int seenrle = 0; // number of repetitions
       unsigned char crle = 0; // character being repeated
       int idx = ctable_to_dtable(stab->table + i * CENTSIZE);
+      int printed = 0;
       for(int m = p ; m < stab->sixelcount && m < p + lenx ; ++m){
 //fprintf(stderr, "%d ", idx * stab->sixelcount + m);
 //fputc(stab->data[idx * stab->sixelcount + m] + 63, stderr);
@@ -377,7 +380,7 @@ write_sixel_data(FILE* fp, int leny, int lenx, const sixeltable* stab, int* pars
           if(stab->data[idx * stab->sixelcount + m] == crle){
             ++seenrle;
           }else{
-            write_rle(&printed, i, fp, seenrle, crle);
+            write_rle(&printed, i, fp, seenrle, crle, &needclosure);
             seenrle = 1;
             crle = stab->data[idx * stab->sixelcount + m];
           }
@@ -387,17 +390,12 @@ write_sixel_data(FILE* fp, int leny, int lenx, const sixeltable* stab, int* pars
         }
       }
       if(crle){
-        write_rle(&printed, i, fp, seenrle, crle);
+        write_rle(&printed, i, fp, seenrle, crle, &needclosure);
       }
-      if(i + 1 < stab->colors){
-        if(printed){
-          fputc('$', fp);
-        }
-      }else{
-        if(p + lenx < stab->sixelcount){
-          fputc('-', fp);
-        }
-      }
+      needclosure = needclosure | printed;
+    }
+    if(p + lenx < stab->sixelcount){
+      fputc('-', fp);
     }
     p += lenx;
   }
