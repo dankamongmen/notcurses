@@ -351,6 +351,7 @@ setup_sixel(tinfo* ti){
 // query for Sixel support
 static int
 query_sixel(tinfo* ti, int fd){
+  // Send Device Attributes (see decTerminalID resource)
   if(writen(fd, "\x1b[c", 3) != 3){
     return -1;
   }

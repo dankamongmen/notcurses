@@ -445,7 +445,10 @@ sixel_blit_inner(int leny, int lenx, const sixeltable* stab, int rows, int cols,
 
 int sixel_blit(ncplane* n, int linesize, const void* data,
                int leny, int lenx, const blitterargs* bargs){
-  int sixelcount = (lenx - bargs->begx) * ((leny - bargs->begy + 5) / 6);
+  if((leny - bargs->begy) % 6){
+    return -1;
+  }
+  int sixelcount = (lenx - bargs->begx) * (leny - bargs->begy) / 6;
   int colorregs = bargs->u.pixel.colorregs;
   if(colorregs <= 0){
     return -1;
@@ -524,6 +527,181 @@ int sixel_delete(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
   return 0;
 }
 
+// offered 'rle' instances of 'c', up through 'y'x'x' (pixel coordinates)
+// within 's', determine if any of these bytes need be elided due to recent
+// annihilation. note that annihilation could have taken place anywhere along
+// the continuous 'rle' instances. see deepclean_stream() regarding trusting
+// our input, and keep your CVEs to yourselves. remember that this covers six
+// rows at a time, [y..y + 5].
+static int
+deepclean_output(FILE* fp, const sprixel* s, int y, int *x, int* rle,
+                 int* printed, int color, int* needclosure, char c){
+  c -= 63;
+  int rlei = 0;
+  // xi loops over the section we cover, a minimum of 1 pixel and a maximum
+  // of one line. FIXME can skip (celldimx - 1) / celldimx checks, do so!
+  for(int xi = *x ; xi < *x + *rle ; ++xi){
+    unsigned char mask = 0x3f; // assume all six bits are valid
+    for(int yi = y ; yi < y + 6 ; ++yi){
+      const int tidx = (yi / s->cellpxy) * s->dimx + (xi / s->cellpxx);
+      const bool nihil = (s->n->tacache[tidx] == SPRIXCELL_ANNIHILATED);
+      if(nihil){
+        mask &= ~(1u << (yi - y));
+      }
+    }
+    if((c & mask) != c){
+      if(rlei){
+        if(write_rle(printed, color, fp, rlei, c & mask, needclosure)){
+          return -1;
+        }
+        rlei = 0;
+      }
+    }else{
+      ++rlei;
+    }
+  }
+  *x += *rle;
+  if(rlei){
+    if(write_rle(printed, color, fp, rlei, c, needclosure)){
+      return -1;
+    }
+    rlei = 0;
+  }
+  *rle = 1;
+  return 0;
+}
+
+// we should have already copied everything up through parse_start. we now
+// read from the old sixel, copying through whatever we find, unless it's been
+// obliterated by a SPRIXCELL_ANNIHILATED. this is *not* suitable as a general
+// sixel lexer, but it works for all sixels we generate. we explicitly do not
+// protect against e.g. overflow of the color/RLE specs, or an RLE that takes
+// us past data boundaries, because we're not taking random external data. i'm
+// sure this will one day bite me in my ass and lead to president celine dion.
+static int
+deepclean_stream(sprixel* s, FILE* fp){
+  int idx = s->parse_start;
+  enum {
+    SIXEL_WANT_HASH, // we ought get a '#' or '-'
+    SIXEL_EAT_COLOR, // we're reading the color until we hit data
+    SIXEL_EAT_COLOR_EPSILON, // actually process color
+    SIXEL_EAT_RLE,   // we're reading the repetition count
+    SIXEL_EAT_RLE_EPSILON, // actually process rle
+    SIXEL_EAT_DATA   // we're reading data until we hit EOL
+  } state = SIXEL_WANT_HASH;
+  int color = 0;
+  int rle = 1;
+  int y = 0;
+  int x = 0;
+  int printed;
+  int needclosure = 0;
+  while(idx + 2 < s->glyphlen){
+    const char c = s->glyph[idx];
+//fprintf(stderr, "%d] %c (%d) (%d/%d)\n", state, c, c, idx, s->glyphlen);
+    if(state == SIXEL_WANT_HASH){
+      if(c == '#'){
+        state = SIXEL_EAT_COLOR;
+        color = 0;
+        printed = 0;
+      }else if(c == '-'){
+        y += 6;
+        x = 0;
+      }else{
+        return -1;
+      }
+    }
+    // we require an actual digit where a color or an RLE is expected,
+    // so verify that the first char in the state is indeed a digit,
+    // and fall through to epsilon states below to actually process it.
+    else if(state == SIXEL_EAT_COLOR){
+      if(isdigit(c)){
+        state = SIXEL_EAT_COLOR_EPSILON;
+      }else{
+        return -1;
+      }
+    }else if(state == SIXEL_EAT_RLE){
+      if(isdigit(c)){
+        state = SIXEL_EAT_RLE_EPSILON;
+      }else{
+        return -1;
+      }
+    }
+
+    // handle the color/rle digits, with implicit fallthrough from
+    // the EAT_COLOR/EAT_RLE states above.
+    if(state == SIXEL_EAT_COLOR_EPSILON){
+      if(isdigit(c)){
+        color *= 10;
+        color += c - '0';
+      }else{
+        state = SIXEL_EAT_DATA;
+        rle = 1;
+      }
+    }else if(state == SIXEL_EAT_RLE_EPSILON){
+      if(isdigit(c)){
+        rle *= 10;
+        rle += c - '0';
+      }else{
+        state = SIXEL_EAT_DATA;
+      }
+    }
+
+    if(state == SIXEL_EAT_DATA){
+      if(c == '!'){
+        state = SIXEL_EAT_RLE;
+        rle = 0;
+      }else if(c == '-'){
+        y += 6;
+        x = 0;
+        state = SIXEL_WANT_HASH;
+        needclosure = needclosure | printed;
+        fputc('-', fp);
+      }else if(c == '$'){
+        x = 0;
+        state = SIXEL_WANT_HASH;
+        needclosure = needclosure | printed;
+      }else if(c < 63 || c > 126){
+        return -1;
+      }else{ // data byte
+        if(deepclean_output(fp, s, y, &x, &rle, &printed, color,
+                            &needclosure, c)){
+          return -1;
+        }
+      }
+    }
+    ++idx;
+  }
+  fprintf(fp, "\e\\");
+  return 0;
+}
+
+static int
+sixel_deepclean(sprixel* s){
+  char* buf = NULL;
+  size_t size = 0;
+  FILE* fp = open_memstream(&buf, &size);
+  if(fwrite(s->glyph, 1, s->parse_start, fp) != (size_t)s->parse_start){
+    goto err;
+  }
+  if(deepclean_stream(s, fp)){
+    goto err;
+  }
+  if(fclose(fp) == EOF){
+    free(buf);
+    return -1;
+  }
+  free(s->glyph);
+  s->glyph = buf;
+//fprintf(stderr, "Deepclean! %d -> %zu\n", s->glyphlen, size);
+  s->glyphlen = size;
+  return 0;
+
+err:
+  fclose(fp);
+  free(buf);
+  return -1;
+}
+
 int sixel_draw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
   (void)n;
   if(s->invalidated == SPRIXEL_MOVED){
@@ -534,6 +712,14 @@ int sixel_draw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
           r->s.damaged = 1;
         }
       }
+    }
+    // if we've wiped any cells, we need actually wipe them out now, or else
+    // we'll get flicker when we move to the new location
+    if(s->wipes_outstanding){
+      if(sixel_deepclean(s)){
+        return -1;
+      }
+      s->wipes_outstanding = false;
     }
     s->invalidated = SPRIXEL_INVALIDATED;
   }else{
@@ -561,6 +747,7 @@ int sixel_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
 //fprintf(stderr, "CACHED WIPE %d %d/%d\n", s->id, ycell, xcell);
     return 1; // already annihilated FIXME but 0 breaks things
   }
+  s->wipes_outstanding = true;
   change_p2(s->glyph, SIXEL_P2_TRANS);
   return -1;
 }

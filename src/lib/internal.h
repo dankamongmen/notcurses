@@ -158,11 +158,13 @@ typedef struct sprixel {
   int y, x;
   int dimy, dimx;       // cell geometry
   int pixy, pixx;       // pixel geometry (might be smaller than cell geo)
+  int cellpxy, cellpxx; // cell-pixel geometry at time of creation
   // each tacache entry is one of 0 (standard opaque cell), 1 (cell with
   // some transparency), 2 (annihilated, excised)
   int parse_start;   // where to start parsing for cell wipes
   int movedfromy;       // for SPRIXEL_MOVED, the starting absolute position,
   int movedfromx;       // so that we can damage old cells when redrawn
+  bool wipes_outstanding; // do we need execute wipes on move?
 } sprixel;
 
 // A plane is memory for some rectilinear virtual window, plus current cursor

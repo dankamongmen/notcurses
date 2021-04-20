@@ -514,10 +514,16 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv, ncblitter_e blitfxn,
     }
     if(scale == NCSCALE_SCALE || scale == NCSCALE_SCALE_HIRES){
       scale_visual(ncv, &disprows, &dispcols);
+      if(bset->geom == NCBLIT_PIXEL){
+        clamp_to_sixelmax(&n->tcache, &disprows, &dispcols);
+      }
     }
   }else{
     disprows = ncv->rows;
     dispcols = ncv->cols;
+    if(bset->geom == NCBLIT_PIXEL){
+      clamp_to_sixelmax(&n->tcache, &disprows, &dispcols);
+    }
   }
   leny = (leny / (double)ncv->rows) * ((double)disprows);
   lenx = (lenx / (double)ncv->cols) * ((double)dispcols);
