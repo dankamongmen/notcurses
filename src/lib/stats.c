@@ -20,7 +20,9 @@ void update_write_stats(const struct timespec* time1, const struct timespec* tim
   }
 }
 
-// negative 'bytes' is recorded as a failure. call only while holding statlock.
+// negative 'bytes' are ignored as failures. call only while holding statlock.
+// we don't increment failed_renders here because 'bytes' < 0 actually indicates
+// a rasterization failure -- we can't fail in rendering anymore.
 void update_render_bytes(ncstats* stats, int bytes){
   if(bytes >= 0){
     stats->render_bytes += bytes;
@@ -30,8 +32,6 @@ void update_render_bytes(ncstats* stats, int bytes){
     if(bytes < stats->render_min_bytes){
       stats->render_min_bytes = bytes;
     }
-  }else{
-    ++stats->failed_renders;
   }
 }
 
@@ -184,7 +184,7 @@ void summarize_stats(notcurses* nc){
             totalbuf, minbuf, avgbuf, maxbuf);
   }
   if(stats->renders || stats->failed_renders){
-    fprintf(stderr, "%ju failed render%s, %ju failed write%s, %ju refresh%s\n",
+    fprintf(stderr, "%ju failed render%s, %ju failed rasters%s, %ju refresh%s\n",
             stats->failed_renders,
             stats->failed_renders == 1 ? "" : "s",
             stats->failed_writeouts,
