@@ -446,10 +446,9 @@ sixel_blit_inner(int leny, int lenx, const sixeltable* stab, int rows, int cols,
 int sixel_blit(ncplane* n, int linesize, const void* data,
                int leny, int lenx, const blitterargs* bargs){
   if((leny - bargs->begy) % 6){
-    logerror(ncplane_notcurses_const(n), "Sixel height %d invalid\n", leny - bargs->begy);
     return -1;
   }
-  int sixelcount = (lenx - bargs->begx) * (leny - bargs->begy);
+  int sixelcount = (lenx - bargs->begx) * (leny - bargs->begy) / 6;
   int colorregs = bargs->u.pixel.colorregs;
   if(colorregs <= 0){
     return -1;
@@ -528,13 +527,78 @@ int sixel_delete(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
   return 0;
 }
 
+// we should have already copied everything up through parse_start. we now
+// read from the old sixel, copying through whatever we find, unless it's been
+// obliterated by a SPRIXCELL_ANNIHILATED. this is *not* suitable as a general
+// sixel lexer, but it works for all sixels we generate.
 static int
 deepclean_stream(sprixel* s, FILE* fp){
-  for(int y = 0 ; y < s->dimy ; ++y){
-    for(int x = 0 ; x < s->dimx ; ++x){
+  /*
+  for(int y = 0 ; y < s->pixy ; ++y){
+    for(int x = 0 ; x < s->pixx ; ++x){
+      // index in the TAM
+      const int tidx = (y / s->cellpxy) * s->dimx + (x / s->cellpxx);
+      const bool nihil = (s->n->tacache[tidx] == SPRIXCELL_ANNIHILATED);
       (void)fp; // FIXME
     }
   }
+  */
+  int idx = s->parse_start;
+  enum {
+    SIXEL_WANT_HASH, // we ought get a '#' or '-'
+    SIXEL_EAT_COLOR, // we're reading the color until we hit data
+    SIXEL_EAT_RLE,   // we're reading the repetition count
+    SIXEL_EAT_DATA   // we're reading data until we hit EOL
+  } state = SIXEL_WANT_HASH;
+  int color;
+  int rle;
+  while(idx + 2 < s->glyphlen){
+    const char c = s->glyph[idx];
+//fprintf(stderr, "%d] %c (%d) (%d/%d)\n", state, c, c, idx, s->glyphlen);
+    if(state == SIXEL_WANT_HASH){
+      if(c == '#'){
+        state = SIXEL_EAT_COLOR;
+        color = 0;
+      }else if(c == '-'){
+        // FIXME advance y
+      }else{
+        return -1;
+      }
+    }else if(state == SIXEL_EAT_COLOR){
+      if(isdigit(c)){
+        color *= 10;
+        color += c - '0';
+      }else{
+        state = SIXEL_EAT_DATA;
+        rle = 0;
+      }
+    }else if(state == SIXEL_EAT_RLE){
+      if(isdigit(c)){
+        rle *= 10;
+        rle += c - '0';
+      }else{
+        state = SIXEL_EAT_DATA;
+      }
+    }
+    if(state == SIXEL_EAT_DATA){
+      if(c == '!'){
+        state = SIXEL_EAT_RLE;
+      }else if(c == '-'){
+        // FIXME advance y
+        state = SIXEL_WANT_HASH;
+      }else if(c == '$'){
+        // FIXME
+        state = SIXEL_WANT_HASH;
+      }else if(c < 63 || c > 126){
+        return -1;
+      }else{ // data byte
+        // FIXME
+      }
+    }
+    fprintf(fp, "%c", c);
+    ++idx;
+  }
+  fprintf(fp, "\e\\");
   return 0;
 }
 
