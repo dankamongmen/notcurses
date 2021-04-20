@@ -633,6 +633,8 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
       clamp_to_sixelmax(&nc->tcache, &disprows, &dispcols);
       if(scaling == NCSCALE_SCALE || scaling == NCSCALE_SCALE_HIRES){
         scale_visual(ncv, &disprows, &dispcols); // can only shrink
+        // FIXME can't we keep this limited to one clamp-to-6 max?
+        clamp_to_sixelmax(&nc->tcache, &disprows, &dispcols);
       }
     }
     struct ncplane_options nopts = {
