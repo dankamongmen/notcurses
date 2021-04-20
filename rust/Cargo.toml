@@ -21,12 +21,15 @@ categories = [
 	"rendering",
 	]
 keywords = ["tui", "cli", "terminal", "ncurses", "ffi"]
+include = ["build/", "examples/", "src/", "LICENSE*", "README.md"]
 
 [dependencies]
 libc = { version = "^0.2.80", default-features = false }
 cty = "^0.2.1"
 
 [build-dependencies]
+# https://github.com/rust-lang/rust-bindgen/blob/master/CHANGELOG.md#0551
+# https://pkgs.org/search/?q=bindgen
 bindgen = "^0.55.1"
 pkg-config = "^0.3.18"
 
