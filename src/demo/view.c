@@ -1,5 +1,37 @@
 #include "demo.h"
 
+static struct marshal {
+  struct ncvisual_options pipopts;
+} marsh;
+
+// pip is non-NULL iff we can do pixel rendering
+static inline int
+streamer(struct ncvisual* ncv, struct ncvisual_options* vopts,
+         const struct timespec* tspec, void* vpip){
+  if(vpip){
+    if(!marsh.pipopts.n){
+      struct ncplane_options nopts = {
+        .y = NCALIGN_TOP,
+        .x = NCALIGN_RIGHT,
+        .rows = 12,
+        .cols = 18,
+        .flags = NCPLANE_OPTION_HORALIGNED | NCPLANE_OPTION_VERALIGNED,
+      };
+      marsh.pipopts.n = ncplane_create(vopts->n, &nopts);
+      if(marsh.pipopts.n == NULL){
+        return -1;
+      }
+      marsh.pipopts.blitter = NCBLIT_PIXEL;
+      marsh.pipopts.scaling = NCSCALE_STRETCH;
+    }
+    if(marsh.pipopts.n){
+      ncvisual_render(ncplane_notcurses(marsh.pipopts.n), ncv, &marsh.pipopts);
+      ncplane_move_above(marsh.pipopts.n, vopts->n);
+    }
+  }
+  return demo_simple_streamer(ncv, vopts, tspec, NULL);
+}
+
 static int
 view_video_demo(struct notcurses* nc){
   struct ncplane* ncp = notcurses_stdplane(nc);
@@ -16,9 +48,14 @@ view_video_demo(struct notcurses* nc){
     .n = ncp,
     .y = 1,
   };
+  void* pip = NULL;
+  if(notcurses_check_pixel_support(nc)){
+    pip = nc;
+  }
   int ret = ncvisual_stream(nc, ncv, 0.5 * delaymultiplier,
-                            demo_simple_streamer, &vopts, NULL);
+                            streamer, &vopts, pip);
   ncvisual_destroy(ncv);
+  ret |= ncplane_destroy(marsh.pipopts.n);
   return ret;
 }
 
