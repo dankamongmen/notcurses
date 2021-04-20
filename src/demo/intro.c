@@ -29,7 +29,7 @@ animate(struct notcurses* nc, struct ncplane* ncp, void* curry){
 }
 
 static struct ncplane*
-greatscott(struct notcurses* nc){
+greatscott(struct notcurses* nc, int dimx){
   char* path = find_data("greatscott.jpg");
   if(path == NULL){
     return NULL;
@@ -39,11 +39,17 @@ greatscott(struct notcurses* nc){
   if(ncv == NULL){
     return NULL;
   }
+  int celldimy, celldimx;
+  ncplane_pixelgeom(notcurses_stdplane(nc), NULL, NULL, &celldimy, &celldimx, NULL, NULL);
+  if(ncvisual_resize(ncv, 18 * celldimy, celldimx * (dimx - 2))){
+    ncvisual_destroy(ncv);
+    return NULL;
+  }
   struct ncvisual_options vopts = {
     .y = 2,
     .x = NCALIGN_CENTER,
     .blitter = NCBLIT_PIXEL,
-    .scaling = NCSCALE_SCALE,
+    .scaling = NCSCALE_NONE,
     .flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_HORALIGNED,
   };
   struct ncplane* n = ncvisual_render(nc, ncv, &vopts);
@@ -242,7 +248,7 @@ int intro(struct notcurses* nc){
   ncplane_destroy(on);
   struct ncplane* gscott = NULL;
   if(notcurses_check_pixel_support(nc) && notcurses_canopen_images(nc)){
-    if((gscott = greatscott(nc)) == NULL){
+    if((gscott = greatscott(nc, cols)) == NULL){
       return -1;
     }
     DEMO_RENDER(nc);
