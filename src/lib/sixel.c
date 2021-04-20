@@ -527,31 +527,76 @@ int sixel_delete(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
   return 0;
 }
 
+// offered 'rle' instances of 'c', up through 'y'x'x' (pixel coordinates)
+// within 's', determine if any of these bytes need be elided due to recent
+// annihilation. note that annihilation could have taken place anywhere along
+// the continuous 'rle' instances. see deepclean_stream() regarding trusting
+// our input, and keep your CVEs to yourselves. remember that this covers six
+// rows at a time, [y..y + 5].
+static int
+deepclean_output(FILE* fp, const sprixel* s, int y, int *x, int* rle,
+                 int* printed, int color, int* needclosure, char c){
+  int rlei = 0;
+fprintf(stderr, "handling %d to %d color %d\n", *x, *x + *rle - 1, color);
+  // xi loops over the section we cover, a minimum of 1 pixel and a maximum
+  // of one line. FIXME can skip (celldimx - 1) / celldimx checks, do so!
+  for(int xi = *x ; xi < *x + *rle ; ++xi){
+    // FIXME need to check all 6 pixels, might be multiple cells
+    unsigned char mask = 0x3f; // assume all six bits are valid
+    for(int yi = y ; yi < y + 6 ; ++yi){
+      const int tidx = (yi / s->cellpxy) * s->dimx + (xi / s->cellpxx);
+      const bool nihil = (s->n->tacache[tidx] == SPRIXCELL_ANNIHILATED);
+      if(nihil){
+fprintf(stderr, "DEEPCLEAN MASK: %u -> %u (%d %d) rle: %d\n", mask, mask & ~(1u << (yi - y)), yi, xi, *rle);
+        mask &= ~(1u << (yi - y));
+      }
+    }
+    if((c & mask) != c){
+      if(rlei){
+        if(write_rle(printed, color, fp, rlei, c & mask, needclosure)){
+          return -1;
+        }
+        rlei = 0;
+      }
+    }else{
+      ++rlei;
+    }
+  }
+  *x += *rle;
+  if(rlei){
+    if(write_rle(printed, color, fp, rlei, c, needclosure)){
+      return -1;
+    }
+    rlei = 0;
+  }
+  *rle = rlei;
+  return 0;
+}
+
 // we should have already copied everything up through parse_start. we now
 // read from the old sixel, copying through whatever we find, unless it's been
 // obliterated by a SPRIXCELL_ANNIHILATED. this is *not* suitable as a general
-// sixel lexer, but it works for all sixels we generate.
+// sixel lexer, but it works for all sixels we generate. we explicitly do not
+// protect against e.g. overflow of the color/RLE specs, or an RLE that takes
+// us past data boundaries, because we're not taking random external data. i'm
+// sure this will one day bite me in my ass and lead to president celine dion.
 static int
 deepclean_stream(sprixel* s, FILE* fp){
-  /*
-  for(int y = 0 ; y < s->pixy ; ++y){
-    for(int x = 0 ; x < s->pixx ; ++x){
-      // index in the TAM
-      const int tidx = (y / s->cellpxy) * s->dimx + (x / s->cellpxx);
-      const bool nihil = (s->n->tacache[tidx] == SPRIXCELL_ANNIHILATED);
-      (void)fp; // FIXME
-    }
-  }
-  */
   int idx = s->parse_start;
   enum {
     SIXEL_WANT_HASH, // we ought get a '#' or '-'
     SIXEL_EAT_COLOR, // we're reading the color until we hit data
+    SIXEL_EAT_COLOR_EPSILON, // actually process color
     SIXEL_EAT_RLE,   // we're reading the repetition count
+    SIXEL_EAT_RLE_EPSILON, // actually process rle
     SIXEL_EAT_DATA   // we're reading data until we hit EOL
   } state = SIXEL_WANT_HASH;
-  int color;
-  int rle;
+  int color = 0;
+  int rle = 0;
+  int y = 0;
+  int x = 0;
+  int printed;
+  int needclosure;
   while(idx + 2 < s->glyphlen){
     const char c = s->glyph[idx];
 //fprintf(stderr, "%d] %c (%d) (%d/%d)\n", state, c, c, idx, s->glyphlen);
@@ -559,20 +604,42 @@ deepclean_stream(sprixel* s, FILE* fp){
       if(c == '#'){
         state = SIXEL_EAT_COLOR;
         color = 0;
+        printed = 0;
+        needclosure = 0;
       }else if(c == '-'){
-        // FIXME advance y
+        y += 6;
+        x = 0;
       }else{
         return -1;
       }
-    }else if(state == SIXEL_EAT_COLOR){
+    }
+    // we require an actual digit where a color or an RLE is expected,
+    // so verify that the first char in the state is indeed a digit,
+    // and fall through to epsilon states below to actually process it.
+    else if(state == SIXEL_EAT_COLOR){
+      if(isdigit(c)){
+        state = SIXEL_EAT_COLOR_EPSILON;
+      }else{
+        return -1;
+      }
+    }else if(state == SIXEL_EAT_RLE){
+      if(isdigit(c)){
+        state = SIXEL_EAT_RLE_EPSILON;
+      }else{
+        return -1;
+      }
+    }
+
+    // handle the color/rle digits, with implicit fallthrough from
+    // the EAT_COLOR/EAT_RLE states above.
+    if(state == SIXEL_EAT_COLOR_EPSILON){
       if(isdigit(c)){
         color *= 10;
         color += c - '0';
       }else{
         state = SIXEL_EAT_DATA;
-        rle = 0;
       }
-    }else if(state == SIXEL_EAT_RLE){
+    }else if(state == SIXEL_EAT_RLE_EPSILON){
       if(isdigit(c)){
         rle *= 10;
         rle += c - '0';
@@ -580,19 +647,27 @@ deepclean_stream(sprixel* s, FILE* fp){
         state = SIXEL_EAT_DATA;
       }
     }
+
     if(state == SIXEL_EAT_DATA){
       if(c == '!'){
         state = SIXEL_EAT_RLE;
       }else if(c == '-'){
-        // FIXME advance y
+        y += 6;
+        x = 0;
         state = SIXEL_WANT_HASH;
+        needclosure = needclosure | printed;
       }else if(c == '$'){
-        // FIXME
+        x = 0;
         state = SIXEL_WANT_HASH;
+        needclosure = needclosure | printed;
       }else if(c < 63 || c > 126){
         return -1;
       }else{ // data byte
-        // FIXME
+        if(deepclean_output(fp, s, y, &x, &rle, &printed, color,
+                            &needclosure, c)){
+          return -1;
+        }
+fprintf(stderr, "came back with %d/%d\n", x, rle);
       }
     }
     fprintf(fp, "%c", c);
