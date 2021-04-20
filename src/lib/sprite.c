@@ -154,7 +154,7 @@ int sprite_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
 
 // precondition: s->invalidated is SPRIXEL_INVALIDATED or SPRIXEL_MOVED.
 int sprite_draw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
-//sprixel_debug(stderr, s);
+sprixel_debug(stderr, s);
   int r = n->tcache.pixel_draw(n, p, s, out);
   return r;
 }
