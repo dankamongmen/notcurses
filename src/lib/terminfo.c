@@ -66,6 +66,7 @@ apply_term_heuristics(tinfo* ti, const char* termname){
     ti->pixel_init = kitty_init;
     ti->pixel_draw = kitty_draw;
     ti->pixel_shutdown = kitty_shutdown;
+    ti->sprixel_height_factor = 1;
     set_pixel_blitter(kitty_blit);
   }else if(strstr(termname, "alacritty")){
     ti->alacritty_sixel_hack = true;
@@ -215,7 +216,9 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8)
       }
     }
   }
-  // if op is defined as ansi 39 + ansi 49, make the split definitions available
+  // if op is defined as ansi 39 + ansi 49, make the split definitions
+  // available. this ought be asserted by extension capability "ax", but
+  // no terminal i've found seems to do so. =[
   if(ti->op && strcmp(ti->op, "\x1b[39;49m") == 0){
     ti->fgop = "\x1b[39m";
     ti->bgop = "\x1b[49m";
@@ -230,6 +233,7 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8)
 }
 
 // FIXME need unit tests on this
+// FIXME can read a character not intended for it
 static int
 read_xtsmgraphics_reply(int fd, int* val2){
   char in;
@@ -341,6 +345,7 @@ setup_sixel(tinfo* ti){
   ti->pixel_destroy = sixel_delete;
   ti->pixel_cell_wipe = sixel_wipe;
   ti->pixel_shutdown = sixel_shutdown;
+  ti->sprixel_height_factor = 6;
 }
 
 // query for Sixel support

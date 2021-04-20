@@ -219,8 +219,8 @@ TEST_CASE("Bitmaps") {
 
   // verify that the sprixel's TAM is properly initialized
   SUBCASE("PixelTAMSetup") {
-    // first, assemble a visual equivalent to 81 cells
-    auto dimy = 9;
+    // first, assemble a visual equivalent to 54 cells
+    auto dimy = 6;
     auto dimx = 9;
     auto y = dimy * nc_->tcache.cellpixy;
     auto x = dimx * nc_->tcache.cellpixx;

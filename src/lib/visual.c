@@ -687,6 +687,7 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
   }
   if(flags & NCVISUAL_OPTION_VERALIGNED){
     if(placey == NCALIGN_CENTER){
+      // FIXME why are these calculations structurally different from HORALIGNED above?
       placey = ((ncplane_dim_y(n) * nc->tcache.cellpixy - disprows) / 2) / nc->tcache.cellpixy;
     }else if(placey == NCALIGN_BOTTOM){
       placey = ncplane_dim_y(n) * nc->tcache.cellpixy - disprows / nc->tcache.cellpixy;

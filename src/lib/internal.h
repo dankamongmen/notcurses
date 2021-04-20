@@ -437,6 +437,7 @@ typedef struct tinfo {
   // query the details of the implementation.
   pthread_mutex_t pixel_query; // only query for pixel support once
   int color_registers; // sixel color registers (post pixel_query_done)
+  int sprixel_height_factor; // sprixel height must be multiple of this
   int sixel_maxx, sixel_maxy; // sixel size maxima (post pixel_query_done)
   int sprixelnonce;      // next sprixel id
   int (*pixel_destroy)(const struct notcurses* nc, const struct ncpile* p, FILE* out, sprixel* s);
@@ -956,6 +957,9 @@ static inline void
 clamp_to_sixelmax(const tinfo* t, int* y, int* x){
   if(t->sixel_maxy && *y > t->sixel_maxy){
     *y = t->sixel_maxy;
+  }
+  if(*y % t->sprixel_height_factor){
+    *y -= (*y % t->sprixel_height_factor);
   }
   if(t->sixel_maxx && *x > t->sixel_maxx){
     *x = t->sixel_maxx;
