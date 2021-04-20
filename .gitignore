@@ -8,6 +8,7 @@ python/notcurses-pydemo.1
 python/notcurses-direct-pydemo.1
 python/src/notcurses.egg-info/
 python/src/_notcurses.so
+tools/function-summary/out-*
 rust/target
 rust/Cargo.lock
 *.pyc
