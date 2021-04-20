@@ -635,7 +635,7 @@ int sixel_draw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
     for(int yy = s->movedfromy ; yy < s->movedfromy + s->dimy && yy < p->dimy ; ++yy){
       for(int xx = s->movedfromx ; xx < s->movedfromx + s->dimx && xx < p->dimx ; ++xx){
         struct crender *r = &p->crender[yy * p->dimx + xx];
-        if(!r->sprixel || sprixel_state(r->sprixel, yy, xx) == SPRIXCELL_OPAQUE){
+        if(!r->sprixel || sprixel_state(r->sprixel, yy, xx) != SPRIXCELL_OPAQUE){
           r->s.damaged = 1;
         }
       }
