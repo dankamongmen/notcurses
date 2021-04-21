@@ -378,7 +378,7 @@ int kitty_delete(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
   (void)p;
   (void)nc;
   if(fprintf(out, "\e_Ga=d,d=i,i=%d\e\\", s->id) < 0){
-    return 0;
+    return -1;
   }
 //fprintf(stderr, "MOVED FROM: %d/%d\n", s->movedfromy, s->movedfromx);
   for(int yy = s->movedfromy ; yy < s->movedfromy + s->dimy && yy < p->dimy ; ++yy){
