@@ -645,16 +645,10 @@ nccell_init(nccell* c){
   memset(c, 0, sizeof(*c));
 }
 
-__attribute__ ((deprecated)) static inline void
-cell_init(nccell* c){
-  nccell_init(c);
-}
-
 // Breaks the UTF-8 string in 'gcluster' down, setting up the nccell 'c'.
 // Returns the number of bytes copied out of 'gcluster', or -1 on failure. The
 // styling of the cell is left untouched, but any resources are released.
 API int nccell_load(struct ncplane* n, nccell* c, const char* gcluster);
-__attribute__ ((deprecated)) API int cell_load(struct ncplane* n, nccell* c, const char* gcluster);
 
 // nccell_load(), plus blast the styling with 'attr' and 'channels'.
 static inline int
@@ -666,23 +660,12 @@ nccell_prime(struct ncplane* n, nccell* c, const char* gcluster,
   return ret;
 }
 
-// nccell_load(), plus blast the styling with 'attr' and 'channels'.
-__attribute__ ((deprecated)) static inline int
-cell_prime(struct ncplane* n, nccell* c, const char* gcluster,
-           uint32_t stylemask, uint64_t channels){
-  return nccell_prime(n, c, gcluster, stylemask, channels);
-}
-
 // Duplicate 'c' into 'targ'; both must be/will be bound to 'n'. Returns -1 on
 // failure, and 0 on success.
 API int nccell_duplicate(struct ncplane* n, nccell* targ, const nccell* c);
 
-__attribute__ ((deprecated)) API int cell_duplicate(struct ncplane* n, nccell* targ, const nccell* c);
-
 // Release resources held by the nccell 'c'.
 API void nccell_release(struct ncplane* n, nccell* c);
-
-__attribute__ ((deprecated)) API void cell_release(struct ncplane* n, nccell* c);
 
 #define NCSTYLE_MASK      0x03ffu
 #define NCSTYLE_STANDOUT  0x0080u
@@ -704,21 +687,10 @@ nccell_set_styles(nccell* c, unsigned stylebits){
   c->stylemask = stylebits & NCSTYLE_MASK;
 }
 
-__attribute__ ((deprecated)) static inline void
-cell_set_styles(nccell* c, unsigned stylebits){
-  nccell_set_styles(c, stylebits);
-}
-
 // Extract the style bits from the nccell.
 static inline unsigned
 nccell_styles(const nccell* c){
   return c->stylemask;
-}
-
-// Extract the style bits from the nccell.
-__attribute__ ((deprecated)) static inline unsigned
-cell_styles(const nccell* c){
-  return nccell_styles(c);
 }
 
 // Add the specified styles (in the LSBs) to the nccell's existing spec,
@@ -728,20 +700,10 @@ nccell_on_styles(nccell* c, unsigned stylebits){
   c->stylemask |= (stylebits & NCSTYLE_MASK);
 }
 
-__attribute__ ((deprecated)) static inline void
-cell_on_styles(nccell* c, unsigned stylebits){
-  nccell_on_styles(c, stylebits);
-}
-
 // Remove the specified styles (in the LSBs) from the nccell's existing spec.
 static inline void
 nccell_off_styles(nccell* c, unsigned stylebits){
   c->stylemask &= ~(stylebits & NCSTYLE_MASK);
-}
-
-__attribute__ ((deprecated)) static inline void
-cell_off_styles(nccell* c, unsigned stylebits){
-  nccell_off_styles(c, stylebits);
 }
 
 // Use the default color for the foreground.
@@ -750,20 +712,10 @@ nccell_set_fg_default(nccell* c){
   channels_set_fg_default(&c->channels);
 }
 
-__attribute__ ((deprecated)) static inline void
-cell_set_fg_default(nccell* c){
-  nccell_set_fg_default(c);
-}
-
 // Use the default color for the background.
 static inline void
 nccell_set_bg_default(nccell* c){
   channels_set_bg_default(&c->channels);
-}
-
-__attribute__ ((deprecated)) static inline void
-cell_set_bg_default(nccell* c){
-  nccell_set_bg_default(c);
 }
 
 static inline int
@@ -771,19 +723,9 @@ nccell_set_fg_alpha(nccell* c, int alpha){
   return channels_set_fg_alpha(&c->channels, alpha);
 }
 
-__attribute__ ((deprecated)) static inline int
-cell_set_fg_alpha(nccell* c, int alpha){
-  return nccell_set_fg_alpha(c, alpha);
-}
-
 static inline int
 nccell_set_bg_alpha(nccell* c, int alpha){
   return channels_set_bg_alpha(&c->channels, alpha);
-}
-
-__attribute__ ((deprecated)) static inline int
-cell_set_bg_alpha(nccell* c, int alpha){
-  return nccell_set_bg_alpha(c, alpha);
 }
 
 // Is the cell part of a multicolumn element?
@@ -792,20 +734,10 @@ nccell_double_wide_p(const nccell* c){
   return (c->width >= 2);
 }
 
-__attribute__ ((deprecated)) static inline bool
-cell_double_wide_p(const nccell* c){
-  return nccell_double_wide_p(c);
-}
-
 // Is this the right half of a wide character?
 static inline bool
 nccell_wide_right_p(const nccell* c){
   return nccell_double_wide_p(c) && c->gcluster == 0;
-}
-
-__attribute__ ((deprecated)) static inline bool
-cell_wide_right_p(const nccell* c){
-  return nccell_wide_right_p(c);
 }
 
 // Is this the left half of a wide character?
@@ -814,29 +746,16 @@ nccell_wide_left_p(const nccell* c){
   return nccell_double_wide_p(c) && c->gcluster;
 }
 
-__attribute__ ((deprecated)) static inline bool
-cell_wide_left_p(const nccell* c){
-  return nccell_wide_left_p(c);
-}
-
 // return a pointer to the NUL-terminated EGC referenced by 'c'. this pointer
 // can be invalidated by any further operation on the plane 'n', so...watch out!
 // returns NULL if called on a pixel graphic.
 API const char* nccell_extended_gcluster(const struct ncplane* n, const nccell* c);
-
-__attribute__ ((deprecated)) API const char*
-cell_extended_gcluster(const struct ncplane* n, const nccell* c);
 
 // copy the UTF8-encoded EGC out of the nccell. the result is not tied to any
 // ncplane, and persists across erases / destruction.
 ALLOC static inline char*
 nccell_strdup(const struct ncplane* n, const nccell* c){
   return strdup(nccell_extended_gcluster(n, c));
-}
-
-__attribute__ ((deprecated)) ALLOC static inline char*
-cell_strdup(const struct ncplane* n, const nccell* c){
-  return nccell_strdup(n, c);
 }
 
 // Extract the three elements of a nccell.
@@ -850,12 +769,6 @@ nccell_extract(const struct ncplane* n, const nccell* c,
     *channels = c->channels;
   }
   return nccell_strdup(n, c);
-}
-
-__attribute__ ((deprecated)) static inline char*
-cell_extract(const struct ncplane* n, const nccell* c,
-             uint16_t* stylemask, uint64_t* channels){
-  return nccell_extract(n, c, stylemask, channels);
 }
 
 // Returns true if the two nccells are distinct EGCs, attributes, or channels.
@@ -875,12 +788,6 @@ nccellcmp(const struct ncplane* n1, const nccell* RESTRICT c1,
   return strcmp(nccell_extended_gcluster(n1, c1), nccell_extended_gcluster(n2, c2));
 }
 
-__attribute__ ((deprecated)) static inline bool
-cellcmp(const struct ncplane* n1, const nccell* RESTRICT c1,
-        const struct ncplane* n2, const nccell* RESTRICT c2){
-  return nccellcmp(n1, c1, n2, c2);
-}
-
 // Load a 7-bit char 'ch' into the nccell 'c'. Returns the number of bytes
 // used, or -1 on error.
 static inline int
@@ -889,11 +796,6 @@ nccell_load_char(struct ncplane* n, nccell* c, char ch){
   gcluster[0] = ch;
   gcluster[1] = '\0';
   return nccell_load(n, c, gcluster);
-}
-
-__attribute__ ((deprecated)) static inline int
-cell_load_char(struct ncplane* n, nccell* c, char ch){
-  return nccell_load_char(n, c, ch);
 }
 
 // Load a UTF-8 encoded EGC of up to 4 bytes into the nccell 'c'. Returns the
@@ -905,11 +807,6 @@ nccell_load_egc32(struct ncplane* n, nccell* c, uint32_t egc){
   memcpy(gcluster, &egc, sizeof(egc));
   gcluster[4] = '\0';
   return nccell_load(n, c, gcluster);
-}
-
-__attribute__ ((deprecated)) static inline int
-cell_load_egc32(struct ncplane* n, nccell* c, uint32_t egc){
-  return nccell_load_egc32(n, c, egc);
 }
 
 // These log levels consciously map cleanly to those of libav; Notcurses itself
@@ -1276,11 +1173,6 @@ API ALLOC struct ncplane* ncplane_create(struct ncplane* n, const ncplane_option
 // be the top, bottom, and root of this new pile.
 API ALLOC struct ncplane* ncpile_create(struct notcurses* nc, const ncplane_options* nopts);
 
-// This function will be removed in ABI3 in favor of ncplane_create().
-// It persists in ABI2 only for backwards compatibility.
-API ALLOC struct ncplane* ncplane_new(struct ncplane* n, int rows, int cols, int y, int x, void* opaque, const char* name)
-  __attribute__ ((deprecated));
-
 // Suitable for use as a 'resizecb', this will resize the plane to the visual
 // region's size. It is used for the standard plane.
 API int ncplane_resize_maximize(struct ncplane* n);
@@ -1608,10 +1500,6 @@ static inline int
 ncplane_halign(const struct ncplane* n, ncalign_e align, int c){
   return notcurses_align(ncplane_dim_x(n), align, c);
 }
-
-static inline int
-ncplane_align(const struct ncplane* n, ncalign_e align, int c)
-__attribute__ ((deprecated));
 
 static inline int
 ncplane_align(const struct ncplane* n, ncalign_e align, int c){
@@ -2090,20 +1978,10 @@ nccell_fg_rgb(const nccell* cl){
   return channels_fg_rgb(cl->channels);
 }
 
-__attribute__ ((deprecated)) static inline uint32_t
-cell_fg_rgb(const nccell* cl){
-  return nccell_fg_rgb(cl);
-}
-
 // Extract 24 bits of background RGB from 'cl', shifted to LSBs.
 static inline uint32_t
 nccell_bg_rgb(const nccell* cl){
   return channels_bg_rgb(cl->channels);
-}
-
-__attribute__ ((deprecated)) static inline uint32_t
-cell_bg_rgb(const nccell* cl){
-  return nccell_bg_rgb(cl);
 }
 
 // Extract 2 bits of foreground alpha from 'cl', shifted to LSBs.
@@ -2112,20 +1990,10 @@ nccell_fg_alpha(const nccell* cl){
   return channels_fg_alpha(cl->channels);
 }
 
-__attribute__ ((deprecated)) static inline uint32_t
-cell_fg_alpha(const nccell* cl){
-  return nccell_fg_alpha(cl);
-}
-
 // Extract 2 bits of background alpha from 'cl', shifted to LSBs.
 static inline uint32_t
 nccell_bg_alpha(const nccell* cl){
   return channels_bg_alpha(cl->channels);
-}
-
-__attribute__ ((deprecated)) static inline uint32_t
-cell_bg_alpha(const nccell* cl){
-  return nccell_bg_alpha(cl);
 }
 
 // Extract 24 bits of foreground RGB from 'cl', split into components.
@@ -2134,21 +2002,10 @@ nccell_fg_rgb8(const nccell* cl, unsigned* r, unsigned* g, unsigned* b){
   return channels_fg_rgb8(cl->channels, r, g, b);
 }
 
-__attribute__ ((deprecated)) static inline uint32_t
-cell_fg_rgb8(const nccell* cl, unsigned* r, unsigned* g, unsigned* b){
-  return nccell_fg_rgb8(cl, r, g, b);
-}
-
 // Extract 24 bits of background RGB from 'cl', split into components.
 static inline uint32_t
 nccell_bg_rgb8(const nccell* cl, unsigned* r, unsigned* g, unsigned* b){
   return channels_bg_rgb8(cl->channels, r, g, b);
-}
-
-// Extract 24 bits of background RGB from 'cl', split into components.
-__attribute__ ((deprecated)) static inline uint32_t
-cell_bg_rgb8(const nccell* cl, unsigned* r, unsigned* g, unsigned* b){
-  return nccell_bg_rgb8(cl, r, g, b);
 }
 
 // Set the r, g, and b cell for the foreground component of this 64-bit
@@ -2158,31 +2015,16 @@ nccell_set_fg_rgb8(nccell* cl, int r, int g, int b){
   return channels_set_fg_rgb8(&cl->channels, r, g, b);
 }
 
-__attribute__ ((deprecated)) static inline int
-cell_set_fg_rgb8(nccell* cl, int r, int g, int b){
-  return nccell_set_fg_rgb8(cl, r, g, b);
-}
-
 // Same, but clipped to [0..255].
 static inline void
 nccell_set_fg_rgb8_clipped(nccell* cl, int r, int g, int b){
   channels_set_fg_rgb8_clipped(&cl->channels, r, g, b);
 }
 
-__attribute__ ((deprecated)) static inline void
-cell_set_fg_rgb8_clipped(nccell* cl, int r, int g, int b){
-  nccell_set_fg_rgb8_clipped(cl, r, g, b);
-}
-
 // Same, but with an assembled 24-bit RGB value.
 static inline int
 nccell_set_fg_rgb(nccell* c, uint32_t channel){
   return channels_set_fg_rgb(&c->channels, channel);
-}
-
-__attribute__ ((deprecated)) static inline int
-cell_set_fg_rgb(nccell* c, uint32_t channel){
-  return nccell_set_fg_rgb(c, channel);
 }
 
 // Set the cell's foreground palette index, set the foreground palette index
@@ -2192,19 +2034,9 @@ nccell_set_fg_palindex(nccell* cl, int idx){
   return channels_set_fg_palindex(&cl->channels, idx);
 }
 
-__attribute__ ((deprecated)) static inline int
-cell_set_fg_palindex(nccell* cl, int idx){
-  return nccell_set_fg_palindex(cl, idx);
-}
-
 static inline uint32_t
 nccell_fg_palindex(const nccell* cl){
   return channels_fg_palindex(cl->channels);
-}
-
-__attribute__ ((deprecated)) static inline uint32_t
-cell_fg_palindex(const nccell* cl){
-  return nccell_fg_palindex(cl);
 }
 
 // Set the r, g, and b cell for the background component of this 64-bit
@@ -2214,20 +2046,10 @@ nccell_set_bg_rgb8(nccell* cl, int r, int g, int b){
   return channels_set_bg_rgb8(&cl->channels, r, g, b);
 }
 
-__attribute__ ((deprecated)) static inline int
-cell_set_bg_rgb8(nccell* cl, int r, int g, int b){
-  return nccell_set_bg_rgb8(cl, r, g, b);
-}
-
 // Same, but clipped to [0..255].
 static inline void
 nccell_set_bg_rgb8_clipped(nccell* cl, int r, int g, int b){
   channels_set_bg_rgb8_clipped(&cl->channels, r, g, b);
-}
-
-__attribute__ ((deprecated)) static inline void
-cell_set_bg_rgb8_clipped(nccell* cl, int r, int g, int b){
-  nccell_set_bg_rgb8_clipped(cl, r, g, b);
 }
 
 // Same, but with an assembled 24-bit RGB value. A value over 0xffffff
@@ -2237,11 +2059,6 @@ nccell_set_bg_rgb(nccell* c, uint32_t channel){
   return channels_set_bg_rgb(&c->channels, channel);
 }
 
-__attribute__ ((deprecated)) static inline int
-cell_set_bg_rgb(nccell* c, uint32_t channel){
-  return nccell_set_bg_rgb(c, channel);
-}
-
 // Set the cell's background palette index, set the background palette index
 // bit, set it background-opaque, and clear the background default color bit.
 static inline int
@@ -2249,19 +2066,9 @@ nccell_set_bg_palindex(nccell* cl, int idx){
   return channels_set_bg_palindex(&cl->channels, idx);
 }
 
-__attribute__ ((deprecated)) static inline int
-cell_set_bg_palindex(nccell* cl, int idx){
-  return nccell_set_bg_palindex(cl, idx);
-}
-
 static inline uint32_t
 nccell_bg_palindex(const nccell* cl){
   return channels_bg_palindex(cl->channels);
-}
-
-__attribute__ ((deprecated)) static inline uint32_t
-cell_bg_palindex(const nccell* cl){
-  return nccell_bg_palindex(cl);
 }
 
 // Is the foreground using the "default foreground color"?
@@ -2270,19 +2077,9 @@ nccell_fg_default_p(const nccell* cl){
   return channels_fg_default_p(cl->channels);
 }
 
-__attribute__ ((deprecated)) static inline bool
-cell_fg_default_p(const nccell* cl){
-  return nccell_fg_default_p(cl);
-}
-
 static inline bool
 nccell_fg_palindex_p(const nccell* cl){
   return channels_fg_palindex_p(cl->channels);
-}
-
-__attribute__ ((deprecated)) static inline bool
-cell_fg_palindex_p(const nccell* cl){
-  return nccell_fg_palindex_p(cl);
 }
 
 // Is the background using the "default background color"? The "default
@@ -2293,19 +2090,9 @@ nccell_bg_default_p(const nccell* cl){
   return channels_bg_default_p(cl->channels);
 }
 
-__attribute__ ((deprecated)) static inline bool
-cell_bg_default_p(const nccell* cl){
-  return nccell_bg_default_p(cl);
-}
-
 static inline bool
 nccell_bg_palindex_p(const nccell* cl){
   return channels_bg_palindex_p(cl->channels);
-}
-
-__attribute__ ((deprecated)) static inline bool
-cell_bg_palindex_p(const nccell* cl){
-  return nccell_bg_palindex_p(cl);
 }
 
 // Extract the 32-bit working background channel from an ncplane.
@@ -2331,14 +2118,6 @@ API void ncplane_on_styles(struct ncplane* n, unsigned stylebits);
 
 // Remove the specified styles from the ncplane's existing spec.
 API void ncplane_off_styles(struct ncplane* n, unsigned stylebits);
-
-// Deprecated forms of above.
-API void ncplane_styles_set(struct ncplane* n, unsigned stylebits)
-  __attribute__ ((deprecated));
-API void ncplane_styles_on(struct ncplane* n, unsigned stylebits)
-  __attribute__ ((deprecated));
-API void ncplane_styles_off(struct ncplane* n, unsigned stylebits)
-  __attribute__ ((deprecated));
 
 // Extract 24 bits of working foreground RGB from an ncplane, shifted to LSBs.
 static inline uint32_t
@@ -2502,11 +2281,6 @@ API int nccells_rounded_box(struct ncplane* n, uint32_t styles, uint64_t channel
                             nccell* ul, nccell* ur, nccell* ll,
                             nccell* lr, nccell* hl, nccell* vl);
 
-__attribute__ ((deprecated)) API int
-cells_rounded_box(struct ncplane* n, uint32_t styles, uint64_t channels,
-                  nccell* ul, nccell* ur, nccell* ll,
-                  nccell* lr, nccell* hl, nccell* vl);
-
 static inline int
 ncplane_rounded_box(struct ncplane* n, uint32_t styles, uint64_t channels,
                     int ystop, int xstop, unsigned ctlword){
@@ -2559,11 +2333,6 @@ ncplane_rounded_box_sized(struct ncplane* n, uint32_t styles, uint64_t channels,
 API int nccells_double_box(struct ncplane* n, uint32_t styles, uint64_t channels,
                            nccell* ul, nccell* ur, nccell* ll,
                            nccell* lr, nccell* hl, nccell* vl);
-
-__attribute__ ((deprecated)) API int
-cells_double_box(struct ncplane* n, uint32_t styles, uint64_t channels,
-                 nccell* ul, nccell* ur, nccell* ll,
-                 nccell* lr, nccell* hl, nccell* vl);
 
 static inline int
 ncplane_double_box(struct ncplane* n, uint32_t styles, uint64_t channels,
@@ -2687,14 +2456,6 @@ API ALLOC uint32_t* ncplane_as_rgba(const struct ncplane* n, ncblitter_e blit,
                                     int* pxdimy, int* pxdimx)
   __attribute__ ((nonnull (1)));
 
-// Deprecated in favor of ncplane_as_rgba. This will be removed in ABI3.
-ALLOC __attribute__ ((deprecated)) __attribute__ ((nonnull (1)))
-static inline uint32_t*
-ncplane_rgba(const struct ncplane* n, ncblitter_e blit,
-             int begy, int begx, int leny, int lenx){
-  return ncplane_as_rgba(n, blit, begy, begx, leny, lenx, NULL, NULL);
-}
-
 // Get the size and ratio of ncvisual pixels to output cells along the y
 // and x axes. The input size (in pixels) will be written to 'y' and 'x'.
 // The scaling will be written to 'scaley' and 'scalex'. With these:
@@ -2706,13 +2467,6 @@ API int ncvisual_blitter_geom(const struct notcurses* nc, const struct ncvisual*
                               const struct ncvisual_options* vopts, int* y, int* x,
                               int* scaley, int* scalex, ncblitter_e* blitter)
   __attribute__ ((nonnull (1)));
-
-__attribute__ ((deprecated)) static inline int
-ncvisual_geom(const struct notcurses* nc, const struct ncvisual* n,
-              const struct ncvisual_options* vopts,
-              int* y, int* x, int* scaley, int* scalex){
-  return ncvisual_blitter_geom(nc, n, vopts, y, x, scaley, scalex, NULL);
-}
 
 // Destroy an ncvisual. Rendered elements will not be disrupted, but the visual
 // can be neither decoded nor rendered any further.
@@ -2771,6 +2525,16 @@ API struct ncplane* ncvisual_render(struct notcurses* nc, struct ncvisual* ncv,
 // of the UTF8 text.
 API ALLOC char* ncvisual_subtitle(const struct ncvisual* ncv)
   __attribute__ ((nonnull (1)));
+
+// Get the default *media* (not plot) blitter for this environment when using
+// the specified scaling method. Currently, this means:
+//  - if lacking UTF-8, NCBLIT_1x1
+//  - otherwise, if not NCSCALE_STRETCH, NCBLIT_2x1
+//  - otherwise, if sextants are not known to be good, NCBLIT_2x2
+//  - otherwise NCBLIT_3x2
+// NCBLIT_2x2 and NCBLIT_3x2 both distort the original aspect ratio, thus
+// NCBLIT_2x1 is used outside of NCSCALE_STRETCH.
+API ncblitter_e ncvisual_media_defblitter(const struct notcurses* nc, ncscale_e scale);
 
 // Called for each frame rendered from 'ncv'. If anything but 0 is returned,
 // the streaming operation ceases immediately, and that value is propagated out.
@@ -3017,10 +2781,6 @@ API void* nctablet_userptr(struct nctablet* t);
 
 // Access the ncplane associated with nctablet 't', if one exists.
 API struct ncplane* nctablet_plane(struct nctablet* t);
-
-// Deprecated form of nctablet_plane().
-API struct ncplane* nctablet_ncplane(struct nctablet* t)
-  __attribute__ ((deprecated));
 
 // Takes an arbitrarily large number, and prints it into a fixed-size buffer by
 // adding the necessary SI suffix. Usually, pass a |[IB]PREFIXSTRLEN+1|-sized
@@ -3908,26 +3668,43 @@ API char* ncreader_contents(const struct ncreader* n)
 API void ncreader_destroy(struct ncreader* n, char** contents);
 
 // Dump selected Notcurses state to the supplied 'debugfp'. Output is freeform,
-// and subject to change. It includes geometry of all planes, from all piles.
+// newline-delimited, and subject to change. It includes geometry of all
+// planes, from all piles. No line has more than 79 columns' worth of output.
 API void notcurses_debug(const struct notcurses* nc, FILE* debugfp)
   __attribute__ ((nonnull (1, 2)));
 
 // Dump selected configuration capabilities to 'debugfp'. Output is freeform,
-// and subject to change.
+// newline-delimited, and subject to change.
 API void notcurses_debug_caps(const struct notcurses* nc, FILE* debugfp)
   __attribute__ ((nonnull (1, 2)));
 
-// replaced by ncvisual_media_defblitter(). this original version never returns
-// NCBLIT_3x2.
-static inline ncblitter_e
-ncvisual_default_blitter(bool utf8, ncscale_e scale)
-  __attribute__ ((deprecated));
+// DEPRECATED MATERIAL, GOING AWAY IN ABI3
 
-static inline ncblitter_e
+__attribute__ ((deprecated)) static inline void
+cell_init(nccell* c){
+  nccell_init(c);
+}
+
+__attribute__ ((deprecated)) API int cell_load(struct ncplane* n, nccell* c, const char* gcluster);
+// nccell_load(), plus blast the styling with 'attr' and 'channels'.
+
+__attribute__ ((deprecated)) static inline int
+cell_prime(struct ncplane* n, nccell* c, const char* gcluster,
+           uint32_t stylemask, uint64_t channels){
+  return nccell_prime(n, c, gcluster, stylemask, channels);
+}
+
+__attribute__ ((deprecated)) API int cell_duplicate(struct ncplane* n, nccell* targ, const nccell* c);
+
+__attribute__ ((deprecated)) API void cell_release(struct ncplane* n, nccell* c);
+
+// replaced by ncvisual_media_defblitter(). this original version never returns
+// NCBLIT_3x2. deprecated, going away in ABI3.
+__attribute__ ((deprecated)) static inline ncblitter_e
 ncvisual_default_blitter(bool utf8, ncscale_e scale){
   if(utf8){
     // NCBLIT_3x2/NCBLIT_2x2 are better image quality, especially for large
-    // images, but it's not the general default because it doesn't preserve
+    // images, but not the general default because they doesn't preserve
     // aspect ratio (as does NCBLIT_2x1). NCSCALE_STRETCH throws away aspect
     // ratio, and can safely use NCBLIT_3x2/2x2.
     if(scale == NCSCALE_STRETCH){
@@ -3938,15 +3715,237 @@ ncvisual_default_blitter(bool utf8, ncscale_e scale){
   return NCBLIT_1x1;
 }
 
-// Get the default *media* (not plot) blitter for this environment when using
-// the specified scaling method. Currently, this means:
-//  - if lacking UTF-8, NCBLIT_1x1
-//  - otherwise, if not NCSCALE_STRETCH, NCBLIT_2x1
-//  - otherwise, if sextants are not known to be good, NCBLIT_2x2
-//  - otherwise NCBLIT_3x2
-// NCBLIT_2x2 and NCBLIT_3x2 both distort the original aspect ratio, thus
-// NCBLIT_2x1 is used outside of NCSCALE_STRETCH.
-API ncblitter_e ncvisual_media_defblitter(const struct notcurses* nc, ncscale_e scale);
+__attribute__ ((deprecated)) static inline void
+cell_set_styles(nccell* c, unsigned stylebits){
+  nccell_set_styles(c, stylebits);
+}
+
+// Extract the style bits from the nccell.
+__attribute__ ((deprecated)) static inline unsigned
+cell_styles(const nccell* c){
+  return nccell_styles(c);
+}
+
+__attribute__ ((deprecated)) static inline void
+cell_on_styles(nccell* c, unsigned stylebits){
+  nccell_on_styles(c, stylebits);
+}
+
+__attribute__ ((deprecated)) static inline void
+cell_off_styles(nccell* c, unsigned stylebits){
+  nccell_off_styles(c, stylebits);
+}
+
+__attribute__ ((deprecated)) static inline void
+cell_set_fg_default(nccell* c){
+  nccell_set_fg_default(c);
+}
+
+__attribute__ ((deprecated)) static inline void
+cell_set_bg_default(nccell* c){
+  nccell_set_bg_default(c);
+}
+
+__attribute__ ((deprecated)) static inline int
+cell_set_fg_alpha(nccell* c, int alpha){
+  return nccell_set_fg_alpha(c, alpha);
+}
+
+__attribute__ ((deprecated)) static inline int
+cell_set_bg_alpha(nccell* c, int alpha){
+  return nccell_set_bg_alpha(c, alpha);
+}
+
+__attribute__ ((deprecated)) static inline bool
+cell_double_wide_p(const nccell* c){
+  return nccell_double_wide_p(c);
+}
+
+__attribute__ ((deprecated)) static inline bool
+cell_wide_right_p(const nccell* c){
+  return nccell_wide_right_p(c);
+}
+
+__attribute__ ((deprecated)) static inline bool
+cell_wide_left_p(const nccell* c){
+  return nccell_wide_left_p(c);
+}
+
+__attribute__ ((deprecated)) API const char*
+cell_extended_gcluster(const struct ncplane* n, const nccell* c);
+
+__attribute__ ((deprecated)) ALLOC static inline char*
+cell_strdup(const struct ncplane* n, const nccell* c){
+  return nccell_strdup(n, c);
+}
+
+__attribute__ ((deprecated)) static inline char*
+cell_extract(const struct ncplane* n, const nccell* c,
+             uint16_t* stylemask, uint64_t* channels){
+  return nccell_extract(n, c, stylemask, channels);
+}
+
+__attribute__ ((deprecated)) static inline bool
+cellcmp(const struct ncplane* n1, const nccell* RESTRICT c1,
+        const struct ncplane* n2, const nccell* RESTRICT c2){
+  return nccellcmp(n1, c1, n2, c2);
+}
+
+__attribute__ ((deprecated)) static inline int
+cell_load_char(struct ncplane* n, nccell* c, char ch){
+  return nccell_load_char(n, c, ch);
+}
+
+__attribute__ ((deprecated)) static inline int
+cell_load_egc32(struct ncplane* n, nccell* c, uint32_t egc){
+  return nccell_load_egc32(n, c, egc);
+}
+
+// This function will be removed in ABI3 in favor of ncplane_create().
+// It persists in ABI2 only for backwards compatibility.
+API ALLOC struct ncplane* ncplane_new(struct ncplane* n, int rows, int cols, int y, int x, void* opaque, const char* name)
+  __attribute__ ((deprecated));
+
+static inline int
+ncplane_align(const struct ncplane* n, ncalign_e align, int c)
+__attribute__ ((deprecated));
+
+__attribute__ ((deprecated)) static inline uint32_t
+cell_fg_rgb(const nccell* cl){
+  return nccell_fg_rgb(cl);
+}
+
+__attribute__ ((deprecated)) static inline uint32_t
+cell_bg_rgb(const nccell* cl){
+  return nccell_bg_rgb(cl);
+}
+
+__attribute__ ((deprecated)) static inline uint32_t
+cell_fg_alpha(const nccell* cl){
+  return nccell_fg_alpha(cl);
+}
+
+__attribute__ ((deprecated)) static inline uint32_t
+cell_bg_alpha(const nccell* cl){
+  return nccell_bg_alpha(cl);
+}
+
+__attribute__ ((deprecated)) static inline uint32_t
+cell_fg_rgb8(const nccell* cl, unsigned* r, unsigned* g, unsigned* b){
+  return nccell_fg_rgb8(cl, r, g, b);
+}
+
+// Extract 24 bits of background RGB from 'cl', split into components.
+__attribute__ ((deprecated)) static inline uint32_t
+cell_bg_rgb8(const nccell* cl, unsigned* r, unsigned* g, unsigned* b){
+  return nccell_bg_rgb8(cl, r, g, b);
+}
+
+__attribute__ ((deprecated)) static inline int
+cell_set_fg_rgb8(nccell* cl, int r, int g, int b){
+  return nccell_set_fg_rgb8(cl, r, g, b);
+}
+
+__attribute__ ((deprecated)) static inline void
+cell_set_fg_rgb8_clipped(nccell* cl, int r, int g, int b){
+  nccell_set_fg_rgb8_clipped(cl, r, g, b);
+}
+
+__attribute__ ((deprecated)) static inline int
+cell_set_fg_rgb(nccell* c, uint32_t channel){
+  return nccell_set_fg_rgb(c, channel);
+}
+
+__attribute__ ((deprecated)) static inline int
+cell_set_fg_palindex(nccell* cl, int idx){
+  return nccell_set_fg_palindex(cl, idx);
+}
+
+__attribute__ ((deprecated)) static inline uint32_t
+cell_fg_palindex(const nccell* cl){
+  return nccell_fg_palindex(cl);
+}
+
+__attribute__ ((deprecated)) static inline int
+cell_set_bg_rgb8(nccell* cl, int r, int g, int b){
+  return nccell_set_bg_rgb8(cl, r, g, b);
+}
+
+__attribute__ ((deprecated)) static inline void
+cell_set_bg_rgb8_clipped(nccell* cl, int r, int g, int b){
+  nccell_set_bg_rgb8_clipped(cl, r, g, b);
+}
+
+__attribute__ ((deprecated)) static inline int
+cell_set_bg_rgb(nccell* c, uint32_t channel){
+  return nccell_set_bg_rgb(c, channel);
+}
+
+__attribute__ ((deprecated)) static inline int
+cell_set_bg_palindex(nccell* cl, int idx){
+  return nccell_set_bg_palindex(cl, idx);
+}
+
+__attribute__ ((deprecated)) static inline uint32_t
+cell_bg_palindex(const nccell* cl){
+  return nccell_bg_palindex(cl);
+}
+
+__attribute__ ((deprecated)) static inline bool
+cell_fg_default_p(const nccell* cl){
+  return nccell_fg_default_p(cl);
+}
+
+__attribute__ ((deprecated)) static inline bool
+cell_fg_palindex_p(const nccell* cl){
+  return nccell_fg_palindex_p(cl);
+}
+
+__attribute__ ((deprecated)) static inline bool
+cell_bg_default_p(const nccell* cl){
+  return nccell_bg_default_p(cl);
+}
+
+__attribute__ ((deprecated)) static inline bool
+cell_bg_palindex_p(const nccell* cl){
+  return nccell_bg_palindex_p(cl);
+}
+
+API void ncplane_styles_set(struct ncplane* n, unsigned stylebits)
+  __attribute__ ((deprecated));
+API void ncplane_styles_on(struct ncplane* n, unsigned stylebits)
+  __attribute__ ((deprecated));
+API void ncplane_styles_off(struct ncplane* n, unsigned stylebits)
+  __attribute__ ((deprecated));
+
+__attribute__ ((deprecated)) API int
+cells_rounded_box(struct ncplane* n, uint32_t styles, uint64_t channels,
+                  nccell* ul, nccell* ur, nccell* ll,
+                  nccell* lr, nccell* hl, nccell* vl);
+
+__attribute__ ((deprecated)) API int
+cells_double_box(struct ncplane* n, uint32_t styles, uint64_t channels,
+                 nccell* ul, nccell* ur, nccell* ll,
+                 nccell* lr, nccell* hl, nccell* vl);
+
+// Deprecated in favor of ncplane_as_rgba. This will be removed in ABI3.
+ALLOC __attribute__ ((deprecated)) __attribute__ ((nonnull (1)))
+static inline uint32_t*
+ncplane_rgba(const struct ncplane* n, ncblitter_e blit,
+             int begy, int begx, int leny, int lenx){
+  return ncplane_as_rgba(n, blit, begy, begx, leny, lenx, NULL, NULL);
+}
+
+__attribute__ ((deprecated)) static inline int
+ncvisual_geom(const struct notcurses* nc, const struct ncvisual* n,
+              const struct ncvisual_options* vopts,
+              int* y, int* x, int* scaley, int* scalex){
+  return ncvisual_blitter_geom(nc, n, vopts, y, x, scaley, scalex, NULL);
+}
+
+// Deprecated form of nctablet_plane().
+API struct ncplane* nctablet_ncplane(struct nctablet* t)
+  __attribute__ ((deprecated));
 
 #undef ALLOC
 #undef API
