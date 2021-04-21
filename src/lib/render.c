@@ -917,6 +917,7 @@ rasterize_sprixels(notcurses* nc, const ncpile* p, FILE* out){
       }else{
         ret = -1;
       }
+      ++nc->stats.sprixelemissions;
     }
   }
   return ret;
