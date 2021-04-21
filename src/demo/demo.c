@@ -589,7 +589,7 @@ int main(int argc, char** argv){
     if(fpsgraph_stop()){
       goto err;
     }
-    about_destroy(nc);
+    about_destroy(nc); // also kills debug window
   }while(restart_demos);
   ncmenu_destroy(menu);
   stop_input();

@@ -101,8 +101,7 @@ debug_toggle(struct notcurses* nc){
     .y = 3,
     .x = NCALIGN_CENTER,
     .rows = count_debug_lines(output, outputlen) + 1,
-    // 1 plus the max len of debug output so it can print against right border
-    .cols = 81,
+    .cols = 80,
     .flags = NCPLANE_OPTION_HORALIGNED,
   };
   struct ncplane* n = ncplane_create(notcurses_stdplane(nc), &nopts);
@@ -184,9 +183,13 @@ about_toggle(struct notcurses* nc){
   ncplane_destroy(n);
 }
 
+// kills about window *and* debug window
 void about_destroy(struct notcurses* nc){
   if(about){
     about_toggle(nc);
+  }
+  if(debug){
+    debug_toggle(nc);
   }
 }
 

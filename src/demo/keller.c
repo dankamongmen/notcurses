@@ -32,7 +32,7 @@ visualize(struct notcurses* nc, struct ncvisual* ncv){
     vopts.x = NCALIGN_CENTER;
     vopts.y = NCALIGN_CENTER;
 //fprintf(stderr, "X: %d truex: %d scalex: %d\n", vopts.x, truex, scalex);
-    ncplane_erase(stdn);
+    ncplane_erase(stdn); // to clear out old text
     struct ncplane* n;
     if((n = ncvisual_render(nc, ncv, &vopts)) == NULL){
       ncplane_printf_aligned(stdn, ncplane_dim_y(stdn) / 2 - 1, NCALIGN_CENTER, "not available");
