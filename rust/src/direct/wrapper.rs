@@ -5,6 +5,7 @@ use std::ops::{Deref, DerefMut};
 use crate::{raw_wrap, NcDirect, NcResult};
 
 /// Safe wrapper around [NcDirect], minimal notcurses instance for styling text.
+#[derive(Debug)]
 pub struct NcD<'a> {
     pub(crate) raw: &'a mut NcDirect,
 }
