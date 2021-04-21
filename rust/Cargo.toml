@@ -5,12 +5,13 @@ authors = [
     "nick black <dankamongmen@gmail.com>",
 		"José Luis Cruz <joseluis@andamira.net>"
 ]
-license = "Apache-2.0"
+license = "MIT OR Apache-2.0"
 edition = "2018"
 description = "Low-level Rust bindings for the notcurses C library."
 documentation = "https://dankamongmen.github.io/notcurses/rustdoc/libnotcurses_sys/"
 repository = "https://github.com/dankamongmen/notcurses"
 homepage = "https://nick-black.com/dankwiki/index.php/Notcurses"
+readme = "./README.md"
 links = "notcurses"
 build = "build/build.rs"
 categories = [
@@ -21,7 +22,7 @@ categories = [
 	"rendering",
 	]
 keywords = ["tui", "cli", "terminal", "ncurses", "ffi"]
-include = ["build/", "examples/", "src/", "LICENSE*", "README.md"]
+include = ["build/", "examples/", "src/", "LICENSE-*", "README.md"]
 
 [dependencies]
 libc = { version = "^0.2.80", default-features = false }
@@ -37,7 +38,6 @@ pkg-config = "^0.3.18"
 serial_test = "^0.5.0"
 serial_test_derive = "^0.5.0"
 
-# for the examples
 rand = "^0.8"
 
 # https://doc.rust-lang.org/cargo/reference/profiles.html
