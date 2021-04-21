@@ -190,13 +190,13 @@ int nccell_load(struct ncplane* n, cell* c, const char* gcluster);
 int nccell_duplicate(struct ncplane* n, cell* targ, const cell* c);
 void nccell_release(struct ncplane* n, cell* c);
 const char* nccell_extended_gcluster(const struct ncplane* n, const cell* c);
-typedef struct palette256 {
+typedef struct ncpalette256 {
   // We store the RGB values as a regular ol' channel
   uint32_t chans[256];
-} palette256;
-palette256* palette256_new(struct notcurses* nc);
-int palette256_use(struct notcurses* nc, const palette256* p);
-void palette256_free(palette256* p);
+} ncpalette256;
+ncpalette256* ncpalette256_new(struct notcurses* nc);
+int ncpalette256_use(struct notcurses* nc, const ncpalette256* p);
+void ncpalette256_free(ncpalette256* p);
 typedef enum {
   NCSCALE_NONE,
   NCSCALE_SCALE,
