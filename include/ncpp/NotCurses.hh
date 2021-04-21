@@ -192,7 +192,7 @@ namespace ncpp
 
 		bool use (const Palette256 &p) const NOEXCEPT_MAYBE
 		{
-			return error_guard (palette256_use (nc, reinterpret_cast<const palette256*>(&p)), -1);
+			return error_guard (ncpalette256_use (nc, reinterpret_cast<const palette256*>(&p)), -1);
 		}
 
 		bool render () const NOEXCEPT_MAYBE

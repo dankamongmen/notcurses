@@ -631,8 +631,6 @@ typedef struct nccell {
   uint64_t channels;          // + 8B == 16B
 } nccell;
 
-typedef nccell cell; // FIXME backwards-compat, remove in ABI3
-
 #define CELL_TRIVIAL_INITIALIZER { .gcluster = 0, .gcluster_backstop = 0, .width = 0, .stylemask = 0, .channels = 0, }
 // do *not* load invalid EGCs using these macros! there is no way for us to
 // protect against such misuse here. problems *will* ensue. similarly, do not
@@ -2857,22 +2855,17 @@ API int notcurses_cursor_disable(struct notcurses* nc);
 // performant to use indexed colors, since it's much less data to write to the
 // terminal. If you can limit yourself to 256 colors, that's probably best.
 
-typedef struct palette256 {
+typedef struct ncpalette256 {
   uint32_t chans[NCPALETTESIZE]; // RGB values as regular ol' channels
-} palette256;
-
-// Create a new palette store. It will be initialized with notcurses' best
-// knowledge of the currently configured palette. The palette upon startup
-// cannot be reliably detected, sadly.
-API ALLOC palette256* palette256_new(struct notcurses* nc);
+} ncpalette256;
 
 // Attempt to configure the terminal with the provided palette 'p'. Does not
 // transfer ownership of 'p'; palette256_free() can (ought) still be called.
-API int palette256_use(struct notcurses* nc, const palette256* p);
+API int ncpalette256_use(struct notcurses* nc, const ncpalette256* p);
 
 // Manipulate entries in the palette store 'p'. These are *not* locked.
 static inline int
-palette256_set_rgb8(palette256* p, int idx, int r, int g, int b){
+ncpalette256_set_rgb8(ncpalette256* p, int idx, int r, int g, int b){
   if(idx < 0 || (size_t)idx > sizeof(p->chans) / sizeof(*p->chans)){
     return -1;
   }
@@ -2880,7 +2873,7 @@ palette256_set_rgb8(palette256* p, int idx, int r, int g, int b){
 }
 
 static inline int
-palette256_set(palette256* p, int idx, unsigned rgb){
+ncpalette256_set(ncpalette256* p, int idx, unsigned rgb){
   if(idx < 0 || (size_t)idx > sizeof(p->chans) / sizeof(*p->chans)){
     return -1;
   }
@@ -2888,7 +2881,7 @@ palette256_set(palette256* p, int idx, unsigned rgb){
 }
 
 static inline int
-palette256_get_rgb8(const palette256* p, int idx, unsigned* RESTRICT r, unsigned* RESTRICT g, unsigned* RESTRICT b){
+ncpalette256_get_rgb8(const ncpalette256* p, int idx, unsigned* RESTRICT r, unsigned* RESTRICT g, unsigned* RESTRICT b){
   if(idx < 0 || (size_t)idx > sizeof(p->chans) / sizeof(*p->chans)){
     return -1;
   }
@@ -2896,7 +2889,7 @@ palette256_get_rgb8(const palette256* p, int idx, unsigned* RESTRICT r, unsigned
 }
 
 // Free the palette store 'p'.
-API void palette256_free(palette256* p);
+API void ncpalette256_free(ncpalette256* p);
 
 // Convert the plane's content to greyscale.
 API void ncplane_greyscale(struct ncplane* n);
@@ -3946,6 +3939,38 @@ ncvisual_geom(const struct notcurses* nc, const struct ncvisual* n,
 // Deprecated form of nctablet_plane().
 API struct ncplane* nctablet_ncplane(struct nctablet* t)
   __attribute__ ((deprecated));
+
+API ALLOC ncpalette256* palette256_new(struct notcurses* nc)
+  __attribute__ ((deprecated));
+
+API int palette256_use(struct notcurses* nc, const ncpalette256* p)
+  __attribute__ ((deprecated));
+
+// Create a new palette store. It will be initialized with notcurses' best
+// knowledge of the currently configured palette. The palette upon startup
+// cannot be reliably detected, sadly.
+API ALLOC ncpalette256* ncpalette256_new(struct notcurses* nc);
+
+__attribute__ ((deprecated)) static inline int
+palette256_set_rgb8(ncpalette256* p, int idx, int r, int g, int b){
+  return ncpalette256_set_rgb8(p, idx, r, g, b);
+}
+
+__attribute__ ((deprecated)) static inline int
+palette256_set(ncpalette256* p, int idx, unsigned rgb){
+  return ncpalette256_set(p, idx, rgb);
+}
+
+__attribute__ ((deprecated)) static inline int
+palette256_get_rgb8(const ncpalette256* p, int idx, unsigned* RESTRICT r, unsigned* RESTRICT g, unsigned* RESTRICT b){
+  return ncpalette256_get_rgb8(p, idx, r, g, b);
+}
+
+API void palette256_free(ncpalette256* p) __attribute__ ((deprecated));
+
+typedef ncpalette256 palette256;
+
+typedef nccell cell; // FIXME backwards-compat, remove in ABI3
 
 #undef ALLOC
 #undef API
