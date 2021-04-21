@@ -187,7 +187,7 @@ void summarize_stats(notcurses* nc){
             totalbuf, minbuf, avgbuf, maxbuf);
   }
   if(stats->renders || stats->failed_renders){
-    fprintf(stderr, "%ju failed render%s, %ju failed rasters%s, %ju refresh%s\n",
+    fprintf(stderr, "%ju failed render%s, %ju failed raster%s, %ju refresh%s\n",
             stats->failed_renders,
             stats->failed_renders == 1 ? "" : "s",
             stats->failed_writeouts,
