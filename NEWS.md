@@ -1,6 +1,9 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 2.2.9 (not yet released)
+  * Added two new stats, `sprixelemissions` and `sprixelelisions`.
+
 * 2.2.8 (2021-04-18)
   * All remaining functions prefixed with `cell_` or `cells_` have been
     deprecated in favor of versions prefixed with `nccell_` or `nccell_`,

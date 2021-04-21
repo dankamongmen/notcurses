@@ -1417,6 +1417,8 @@ typedef struct ncstats {
   uint64_t raster_ns;        // nanoseconds spent rasterizing
   int64_t raster_max_ns;     // max ns spent in raster for a frame
   int64_t raster_min_ns;     // min ns spent in raster for a frame
+  uint64_t sprixelemissions; // sprixel draw count
+  uint64_t sprixelelisions;  // sprixel elision count
 } ncstats;
 
 // Allocate an ncstats object. Use this rather than allocating your own, since
