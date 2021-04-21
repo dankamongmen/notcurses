@@ -7,6 +7,7 @@ use crate::{
 };
 
 /// Safe wrapper around [Notcurses], the main struct of the TUI library.
+#[derive(Debug)]
 pub struct Nc<'a> {
     pub(crate) raw: &'a mut Notcurses,
 }
