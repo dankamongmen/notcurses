@@ -654,7 +654,7 @@ deepclean_stream(sprixel* s, FILE* fp){
         y += 6;
         x = 0;
         state = SIXEL_WANT_HASH;
-        needclosure = needclosure | printed;
+        needclosure = 0;
         fputc('-', fp);
       }else if(c == '$'){
         x = 0;
@@ -704,6 +704,14 @@ err:
 
 int sixel_draw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
   (void)n;
+  // if we've wiped any cells, we need actually wipe them out now, or else
+  // we'll get flicker when we move to the new location
+  if(s->wipes_outstanding){
+    if(sixel_deepclean(s)){
+      return -1;
+    }
+    s->wipes_outstanding = false;
+  }
   if(s->invalidated == SPRIXEL_MOVED){
     for(int yy = s->movedfromy ; yy < s->movedfromy + s->dimy && yy < p->dimy ; ++yy){
       for(int xx = s->movedfromx ; xx < s->movedfromx + s->dimx && xx < p->dimx ; ++xx){
@@ -712,14 +720,6 @@ int sixel_draw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
           r->s.damaged = 1;
         }
       }
-    }
-    // if we've wiped any cells, we need actually wipe them out now, or else
-    // we'll get flicker when we move to the new location
-    if(s->wipes_outstanding){
-      if(sixel_deepclean(s)){
-        return -1;
-      }
-      s->wipes_outstanding = false;
     }
     s->invalidated = SPRIXEL_INVALIDATED;
   }else{
