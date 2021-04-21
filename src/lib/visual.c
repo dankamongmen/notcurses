@@ -678,6 +678,7 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
       clamp_to_sixelmax(&nc->tcache, &disprows, &dispcols);
     }
   }
+  // FIXME why are we allowing arbitrary location within a plane?
   if(flags & NCVISUAL_OPTION_HORALIGNED){
     if(placex == NCALIGN_CENTER){
       placex = (ncplane_dim_x(n) - dispcols / nc->tcache.cellpixx) / 2;

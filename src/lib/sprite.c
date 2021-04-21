@@ -6,8 +6,10 @@ static uint32_t sprixelid_nonce;
 
 static inline void
 sprixel_debug(FILE* out, const sprixel* s){
-  fprintf(out, "Sprixel %d (%p) %dx%d (%dx%d) n: %p state: %d\n",
-          s->id, s, s->dimy, s->dimx, s->pixy, s->pixx, s->n, s->invalidated);
+  fprintf(out, "Sprixel %d (%p) %dx%d (%dx%d) @%d/%d state: %d\n",
+          s->id, s, s->dimy, s->dimx, s->pixy, s->pixx,
+          s->n ? s->n->absy : 0, s->n ? s->n->absx : 0,
+          s->invalidated);
   if(s->n){
     int idx = 0;
     for(int y = 0 ; y < s->dimy ; ++y){

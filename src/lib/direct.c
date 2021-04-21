@@ -1156,6 +1156,7 @@ int ncdirect_stream(ncdirect* n, const char* filename, ncstreamcb streamer,
     ncplane_dim_yx(v, &y, &x);
     ncdirect_raster_frame(n, v, (vopts->flags & NCVISUAL_OPTION_HORALIGNED) ? vopts->x : 0);
     streamer(ncv, vopts, NULL, curry);
+    // FIXME need to issue a kitty-kill when appropriate, how?
   }while(ncvisual_decode(ncv) == 0);
   ncvisual_destroy(ncv);
   return 0;
