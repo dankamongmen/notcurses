@@ -625,9 +625,10 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
     if(scaling != NCSCALE_NONE && scaling != NCSCALE_NONE_HIRES){
       notcurses_term_dim_yx(nc, &disprows, &dispcols);
       if(!(flags & NCVISUAL_OPTION_VERALIGNED)){
-        // some terminals scroll when bitmaps hit the last line
-        disprows -= (placey + 1);
+        disprows -= placey;
       }
+      // some terminals scroll when bitmaps hit the last line
+      --disprows;
       dispcols *= nc->tcache.cellpixx;
       disprows *= nc->tcache.cellpixy;
       clamp_to_sixelmax(&nc->tcache, &disprows, &dispcols);

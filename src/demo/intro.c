@@ -96,6 +96,9 @@ orcaride(struct notcurses* nc, struct ncplane* on){
   if(ox >= (dimx - odimx) / 4){
     ox -= (dimx - odimx) / 4;
   }
+  if(ox < 1){
+    ox = 1;
+  }
   if(ncplane_move_yx(on, oy, ox)){
     return -1;
   }
