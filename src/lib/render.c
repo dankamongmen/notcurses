@@ -159,8 +159,8 @@ paint_sprixel(const ncplane* p, const nccell* vis, struct crender* crender,
   }else if(!crender->p){
     // if we are a bitmap, and above a cell that has changed (and
     // will thus be printed), we'll need redraw the sprixel.
-    if(crender->sprixel == NULL /*|| rvec->sprixel->invalidated == SPRIXEL_HIDE*/){
-      crender->sprixel = sprixel_by_id(nc, cell_sprixel_id(vis));
+    if(crender->sprixel == NULL){
+      crender->sprixel = sprixel_by_id(ncplane_pile_const(p), cell_sprixel_id(vis));
     }
   }
 }
@@ -858,9 +858,9 @@ emit_bg_palindex(notcurses* nc, FILE* out, const nccell* srccell){
 // remove any sprixels which are no longer desired. for kitty, this will be
 // a pure erase; for sixel, we must overwrite.
 static int
-clean_sprixels(notcurses* nc, const ncpile* p, FILE* out){
+clean_sprixels(notcurses* nc, ncpile* p, FILE* out){
   sprixel* s;
-  sprixel** parent = &nc->sprixelcache;
+  sprixel** parent = &p->sprixelcache;
   int ret = 0;
   while( (s = *parent) ){
     if(s->invalidated == SPRIXEL_HIDE){
@@ -900,9 +900,9 @@ clean_sprixels(notcurses* nc, const ncpile* p, FILE* out){
 // returns -1 on error, 0 on success. draw any sprixels. any material
 // underneath them has already been updated.
 static int
-rasterize_sprixels(notcurses* nc, const ncpile* p, FILE* out){
+rasterize_sprixels(notcurses* nc, ncpile* p, FILE* out){
   int ret = 0;
-  for(sprixel* s = nc->sprixelcache ; s ; s = s->next){
+  for(sprixel* s = p->sprixelcache ; s ; s = s->next){
     if(s->invalidated == SPRIXEL_INVALIDATED){
       int y, x;
       ncplane_yx(s->n, &y, &x);
@@ -1056,7 +1056,7 @@ rasterize_core(notcurses* nc, const ncpile* p, FILE* out, unsigned phase){
 }
 
 static int
-notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
+notcurses_rasterize_inner(notcurses* nc, ncpile* p, FILE* out){
   fseeko(out, 0, SEEK_SET);
   // we only need to emit a coordinate if it was damaged. the damagemap is a
   // bit per coordinate, one per struct crender.
@@ -1088,7 +1088,7 @@ notcurses_rasterize_inner(notcurses* nc, const ncpile* p, FILE* out){
 
 // rasterize the rendered frame, and blockingly write it out to the terminal.
 static int
-raster_and_write(notcurses* nc, const ncpile* p, FILE* out){
+raster_and_write(notcurses* nc, ncpile* p, FILE* out){
   if(notcurses_rasterize_inner(nc, p, out) < 0){
     return -1;
   }
@@ -1112,7 +1112,7 @@ raster_and_write(notcurses* nc, const ncpile* p, FILE* out){
 // during rasterization, we'll get grotesque flicker. 'out' is a memstream
 // used to collect a buffer.
 static inline int
-notcurses_rasterize(notcurses* nc, const ncpile* p, FILE* out){
+notcurses_rasterize(notcurses* nc, ncpile* p, FILE* out){
   const int cursory = nc->cursory;
   const int cursorx = nc->cursorx;
   if(cursory >= 0){ // either both are good, or neither is
@@ -1154,7 +1154,7 @@ int notcurses_refresh(notcurses* nc, int* restrict dimy, int* restrict dimx){
   if(home_cursor(nc, true)){
     return -1;
   }
-  ncpile p;
+  ncpile p = {};
   p.dimy = nc->stdplane->leny;
   p.dimx = nc->stdplane->lenx;
   const int count = (nc->lfdimx > p.dimx ? nc->lfdimx : p.dimx) *
@@ -1234,7 +1234,7 @@ ncpile_render_internal(ncplane* n, struct crender* rvec, int leny, int lenx,
 int ncpile_rasterize(ncplane* n){
   struct timespec start, rasterdone, writedone;
   clock_gettime(CLOCK_MONOTONIC, &start);
-  const ncpile* pile = ncplane_pile(n);
+  ncpile* pile = ncplane_pile(n);
   struct notcurses* nc = ncplane_notcurses(n);
   const int miny = pile->dimy < nc->lfdimy ? pile->dimy : nc->lfdimy;
   const int minx = pile->dimx < nc->lfdimx ? pile->dimx : nc->lfdimx;

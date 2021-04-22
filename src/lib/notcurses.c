@@ -229,12 +229,23 @@ int update_term_dimensions(int fd, int* rows, int* cols, tinfo* tcache){
   return 0;
 }
 
+// destroy the sprixels of an ncpile (this will not hide the sprixels)
+static void
+free_sprixels(ncpile* n){
+  while(n->sprixelcache){
+    sprixel* tmp = n->sprixelcache->next;
+    sprixel_free(n->sprixelcache);
+    n->sprixelcache = tmp;
+  }
+}
+
 // destroy an empty ncpile. only call with pilelock held.
 static void
 ncpile_destroy(ncpile* pile){
   if(pile){
     pile->prev->next = pile->next;
     pile->next->prev = pile->prev;
+    free_sprixels(pile);
     free(pile->crender);
     free(pile);
   }
@@ -292,6 +303,7 @@ make_ncpile(notcurses* nc, ncplane* n){
     ret->dimx = 0;
     ret->crender = NULL;
     ret->crenderlen = 0;
+    ret->sprixelcache = NULL;
   }
   return ret;
 }
@@ -968,7 +980,6 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   ret->margin_l = opts->margin_l;
   ret->margin_r = opts->margin_r;
   ret->cursory = ret->cursorx = -1;
-  ret->sprixelcache = NULL;
   memset(&ret->stats, 0, sizeof(ret->stats));
   memset(&ret->stashed_stats, 0, sizeof(ret->stashed_stats));
   reset_stats(&ret->stats);
@@ -1136,15 +1147,6 @@ ncpile_drop(notcurses* nc, ncpile** pile){
   }
 }
 
-static void
-free_sprixels(notcurses* nc){
-  while(nc->sprixelcache){
-    sprixel* tmp = nc->sprixelcache->next;
-    sprixel_free(nc->sprixelcache);
-    nc->sprixelcache = tmp;
-  }
-}
-
 // drop all piles and all planes, save the standard plane and its pile
 void notcurses_drop_planes(notcurses* nc){
   pthread_mutex_lock(&nc->pilelock);
@@ -1179,7 +1181,6 @@ int notcurses_stop(notcurses* nc){
     if(nc->ttyfd >= 0){
       ret |= close(nc->ttyfd);
     }
-    free_sprixels(nc);
     egcpool_dump(&nc->pool);
     free(nc->lastframe);
     free(nc->rstate.mstream);
