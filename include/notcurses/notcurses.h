@@ -3668,7 +3668,7 @@ API void ncreader_destroy(struct ncreader* n, char** contents);
 
 // Dump selected Notcurses state to the supplied 'debugfp'. Output is freeform,
 // newline-delimited, and subject to change. It includes geometry of all
-// planes, from all piles. No line has more than 79 columns' worth of output.
+// planes, from all piles. No line has more than 80 columns' worth of output.
 API void notcurses_debug(const struct notcurses* nc, FILE* debugfp)
   __attribute__ ((nonnull (1, 2)));
 

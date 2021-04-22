@@ -101,8 +101,12 @@ debug_toggle(struct notcurses* nc){
     .y = 3,
     .x = NCALIGN_CENTER,
     .rows = count_debug_lines(output, outputlen) + 1,
-    .cols = 80,
+    // make it one column longer than the maximum debug output, so that a full
+    // line of output doesn't cause trigger a newline. we'll make the last
+    // column transparent.
+    .cols = 81,
     .flags = NCPLANE_OPTION_HORALIGNED,
+    .name = "dbg",
   };
   struct ncplane* n = ncplane_create(notcurses_stdplane(nc), &nopts);
   if(n == NULL){
@@ -120,6 +124,13 @@ debug_toggle(struct notcurses* nc){
     free(output);
     ncplane_destroy(n);
     return;
+  }
+  for(int y = 0 ; y < ncplane_dim_y(n) ; ++y){
+    nccell c = CELL_TRIVIAL_INITIALIZER;
+    nccell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT);
+    nccell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT);
+    ncplane_putc_yx(n, y, ncplane_dim_x(n) - 1, &c);
+    nccell_release(n, &c);
   }
   ncplane_putstr_aligned(n, ncplane_dim_y(n) - 1, NCALIGN_CENTER, "Press Alt+d to hide this window");
   free(output);
