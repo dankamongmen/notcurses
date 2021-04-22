@@ -447,6 +447,7 @@ typedef struct tinfo {
   // means leaving out the pixels (and likely resizes the string). for kitty,
   // this means dialing down their alpha to 0 (in equivalent space).
   int (*pixel_cell_wipe)(const struct notcurses* nc, sprixel* s, int y, int x);
+  int (*pixel_remove)(int id, FILE* out); // kitty only, issue actual delete command
   int (*pixel_init)(int fd);     // called when support is detected
   int (*pixel_draw)(const struct notcurses* n, const struct ncpile* p, sprixel* s, FILE* out);
   int (*pixel_shutdown)(int fd); // called during context shutdown
@@ -935,6 +936,7 @@ int sprixel_load(sprixel* spx, char* s, int bytes, int placey, int placex,
                  int pixy, int pixx, int parse_start);
 int sixel_delete(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
 int kitty_delete(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
+int kitty_remove(int id, FILE* out);
 int kitty_init(int fd);
 int sixel_init(int fd);
 int sprite_init(const notcurses* nc);

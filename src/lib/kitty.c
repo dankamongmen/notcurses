@@ -372,12 +372,19 @@ int kitty_blit(ncplane* n, int linesize, const void* data,
   return 1;
 }
 
+int kitty_remove(int id, FILE* out){
+  if(fprintf(out, "\e_Ga=d,d=i,i=%d\e\\", id) < 0){
+    return -1;
+  }
+  return 0;
+}
+
 // removes the kitty bitmap graphic identified by s->id, and damages those
 // cells which weren't SPRIXCEL_OPAQUE
 int kitty_delete(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
   (void)p;
   (void)nc;
-  if(fprintf(out, "\e_Ga=d,d=i,i=%d\e\\", s->id) < 0){
+  if(kitty_remove(s->id, out)){
     return -1;
   }
 //fprintf(stderr, "MOVED FROM: %d/%d\n", s->movedfromy, s->movedfromx);

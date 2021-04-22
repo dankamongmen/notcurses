@@ -558,6 +558,7 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv, ncblitter_e blitfxn,
       free_plane(ncdv);
       return NULL;
     }
+    ncdv->sprite = bargs.u.pixel.spx;
   }
   if(ncvisual_blit(ncv, disprows, dispcols, ncdv, bset, leny, lenx, &bargs)){
     free_plane(ncdv);
@@ -1139,6 +1140,8 @@ int ncdirect_stream(ncdirect* n, const char* filename, ncstreamcb streamer,
   // starting position *after displaying one frame* so as to effect any
   // necessary scrolling.
   int y = -1, x = -1;
+  int lastid = -1;
+  int thisid = -1;
   do{
     if(y > 0){
       ncdirect_cursor_up(n, y);
@@ -1154,9 +1157,20 @@ int ncdirect_stream(ncdirect* n, const char* filename, ncstreamcb streamer,
       return -1;
     }
     ncplane_dim_yx(v, &y, &x);
+    if(v->sprite){
+      thisid = v->sprite->id;
+    }
     ncdirect_raster_frame(n, v, (vopts->flags & NCVISUAL_OPTION_HORALIGNED) ? vopts->x : 0);
+    if(lastid > -1){
+      if(n->tcache.pixel_remove){
+        if(n->tcache.pixel_remove(lastid, n->ttyfp)){
+          ncvisual_destroy(ncv);
+          return -1;
+        }
+      }
+    }
     streamer(ncv, vopts, NULL, curry);
-    // FIXME need to issue a kitty-kill when appropriate, how?
+    lastid = thisid;
   }while(ncvisual_decode(ncv) == 0);
   ncvisual_destroy(ncv);
   return 0;

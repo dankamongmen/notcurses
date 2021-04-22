@@ -64,6 +64,7 @@ apply_term_heuristics(tinfo* ti, const char* termname){
     ti->pixel_cell_wipe = kitty_wipe;
     ti->pixel_destroy = kitty_delete;
     ti->pixel_init = kitty_init;
+    ti->pixel_remove = kitty_remove;
     ti->pixel_draw = kitty_draw;
     ti->pixel_shutdown = kitty_shutdown;
     ti->sprixel_height_factor = 1;
@@ -342,6 +343,7 @@ setup_sixel(tinfo* ti){
   ti->pixel_draw = sixel_draw;
   ti->sixel_maxx = 4096; // whee!
   ti->sixel_maxy = 4096;
+  ti->pixel_remove = NULL;
   ti->pixel_destroy = sixel_delete;
   ti->pixel_cell_wipe = sixel_wipe;
   ti->pixel_shutdown = sixel_shutdown;
