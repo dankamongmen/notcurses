@@ -142,7 +142,7 @@ pub const NCVISUAL_OPTION_HORALIGNED: u32 = crate::bindings::ffi::NCVISUAL_OPTIO
 /// - without sextant support, NCBLIT_3x2 decays to NCBLIT_2x2
 /// - without quadrant support, NCBLIT_2x2 decays to NCBLIT_2x1
 /// - the only viable blitters in ASCII are NCBLIT_1x1 and NCBLIT_PIXEL
-/// 
+///
 /// If you don't want this behaviour you have to use [NCVISUAL_OPTION_NODEGRADE]
 ///
 pub type NcBlitter = crate::bindings::ffi::ncblitter_e;

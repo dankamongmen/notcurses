@@ -162,6 +162,8 @@ impl Notcurses {
 
     /// Returns true if we can reliably use Unicode Braille.
     ///
+    /// See also [NCBLIT_BRAILLE][crate::NCBLIT_BRAILLE].
+    ///
     /// *C style function: [notcurses_canbraille()][crate::notcurses_canbraille].*
     pub fn canbraille(&self) -> bool {
         unsafe { crate::notcurses_canbraille(self) }
@@ -185,6 +187,15 @@ impl Notcurses {
         unsafe { crate::notcurses_canfade(self) }
     }
 
+    /// Returns true if we can reliably use Unicode half blocks.
+    ///
+    /// See also [NCBLIT_2x1][crate::NCBLIT_2x1].
+    ///
+    /// *C style function: [notcurses_canhalfblock()][crate::notcurses_canhalfblock].*
+    pub fn canhalfblock(&self) -> bool {
+        unsafe { crate::notcurses_canhalfblock(self) }
+    }
+
     /// Returns true if loading images is possible.
     ///
     /// This requires being built against FFmpeg/OIIO.
@@ -203,7 +214,18 @@ impl Notcurses {
         unsafe { crate::notcurses_canopen_videos(self) }
     }
 
+    /// Returns true if we can reliably use Unicode quadrant blocks.
+    ///
+    /// See also [NCBLIT_2x2][crate::NCBLIT_2x2].
+    ///
+    /// *C style function: [notcurses_canquadrant()][crate::notcurses_canquadrant].*
+    pub fn canquadrant(&self) -> bool {
+        unsafe { crate::notcurses_canquadrant(self) }
+    }
+
     /// Returns true if we can reliably use Unicode 13 sextants.
+    ///
+    /// See also [NCBLIT_3x2][crate::NCBLIT_3x2].
     ///
     /// *C style function: [notcurses_cansextant()][crate::notcurses_cansextant].*
     pub fn cansextant(&self) -> bool {
@@ -231,7 +253,8 @@ impl Notcurses {
     ///
     /// Returns `false` for no support, or `true` if pixel output is supported.
     ///
-    /// This function must successfully return before NCBLIT_PIXEL is available.
+    /// This function must successfully return before
+    /// [NCBLIT_PIXEL][crate::NCBLIT_PIXEL] is available.
     ///
     /// Must not be called concurrently with either input or rasterization.
     ///

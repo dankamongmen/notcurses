@@ -61,7 +61,7 @@
 // X channels_set_fg_rgb8_clipped    // not needed
 
 #[allow(unused_imports)] // for the doc comments
-use crate::{NcRgba};
+use crate::NcRgba;
 
 #[cfg(test)]
 mod test;

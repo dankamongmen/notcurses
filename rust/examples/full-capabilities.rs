@@ -10,19 +10,27 @@ fn main() -> NcResult<()> {
         "Can display UTF-8: {0}
 Can display braille characters: {1}
 Can display sextant characters: {2}
-Can open images: {3}
-Can open videos: {4}
-Supports Pixels: {5:?}
-Supports True Color: {6}
-Palette size: {7:?}
+Can display quadrant characters: {3}
+Can display half block characters: {4}
+Can open images: {5}
+Can open videos: {6}
+Supports Pixels: {7:?}
+Supports True Color: {8}
+Supports fading: {9}
+Supports changing the palette: {10}
+Palette size: {11:?}
 ",
         nc.canutf8(),
         nc.canbraille(),
         nc.cansextant(),
+        nc.canquadrant(),
+        nc.canhalfblock(),
         nc.canopen_images(),
         nc.canopen_videos(),
         nc.check_pixel_support(),
         nc.cantruecolor(),
+        nc.canfade(),
+        nc.canchangecolor(),
         nc.palette_size(),
     );
 
