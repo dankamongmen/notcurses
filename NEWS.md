@@ -3,6 +3,7 @@ rearrangements of Notcurses.
 
 * 2.2.9 (not yet released)
   * Added two new stats, `sprixelemissions` and `sprixelelisions`.
+  * Added `notcurses_canhalfblock()` and `notcurses_canquadrant()`.
 
 * 2.2.8 (2021-04-18)
   * All remaining functions prefixed with `cell_` or `cells_` have been

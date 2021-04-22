@@ -297,6 +297,12 @@ bool notcurses_canchangecolor(const struct notcurses* nc);
 // Is our encoding UTF-8? Requires LANG being set to a UTF-8 locale.
 bool notcurses_canutf8(const struct notcurses* nc);
 
+// Can we reliably use Unicode halfblocks?
+bool notcurses_canhalfblock(const struct notcurses* nc);
+
+// Can we reliably use Unicode quadrants?
+bool notcurses_canquadrant(const struct notcurses* nc);
+
 // Can we draw sextants? This requires Unicode 13.
 bool notcurses_cansextants(const struct notcurses* nc);
 
