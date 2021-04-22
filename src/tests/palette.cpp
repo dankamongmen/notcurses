@@ -9,33 +9,33 @@ TEST_CASE("Palette256") {
   REQUIRE(n_);
 
   SUBCASE("AllocAndFree") {
-    palette256* p = palette256_new(nc_);
+    ncpalette* p = ncpalette_new(nc_);
     REQUIRE(nullptr != p);
-    palette256_free(p);
+    ncpalette_free(p);
   }
 
   SUBCASE("SetIndexZero") {
-    palette256* p = palette256_new(nc_);
+    ncpalette* p = ncpalette_new(nc_);
     REQUIRE(nullptr != p);
-    palette256_set_rgb8(p, 0, 0x80, 0x90, 0xa0);
+    ncpalette_set_rgb8(p, 0, 0x80, 0x90, 0xa0);
     unsigned r, g, b;
-    palette256_get_rgb8(p, 0, &r, &g, &b);
+    ncpalette_get_rgb8(p, 0, &r, &g, &b);
     CHECK(r == 0x80);
     CHECK(g == 0x90);
     CHECK(b == 0xa0);
-    palette256_free(p);
+    ncpalette_free(p);
   }
 
   SUBCASE("SetIndex255") {
-    palette256* p = palette256_new(nc_);
+    ncpalette* p = ncpalette_new(nc_);
     REQUIRE(nullptr != p);
-    palette256_set_rgb8(p, 255, 0xa0, 0x70, 0x50);
+    ncpalette_set_rgb8(p, 255, 0xa0, 0x70, 0x50);
     unsigned r, g, b;
-    palette256_get_rgb8(p, 255, &r, &g, &b);
+    ncpalette_get_rgb8(p, 255, &r, &g, &b);
     CHECK(r == 0xa0);
     CHECK(g == 0x70);
     CHECK(b == 0x50);
-    palette256_free(p);
+    ncpalette_free(p);
   }
 
   // when we set a palette index, it ought change us from using default

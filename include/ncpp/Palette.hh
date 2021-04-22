@@ -1,5 +1,5 @@
-#ifndef __NCPP_PALETTE256_HH
-#define __NCPP_PALETTE256_HH
+#ifndef __NCPP_PALETTE_HH
+#define __NCPP_PALETTE_HH
 
 #include "Root.hh"
 #include "_helpers.hh"
@@ -8,40 +8,40 @@ namespace ncpp
 {
 	class NotCurses;
 
-	class NCPP_API_EXPORT Palette256 : public Root
+	class NCPP_API_EXPORT Palette : public Root
 	{
 	public:
-		Palette256 (NotCurses *ncinst = nullptr)
+		Palette (NotCurses *ncinst = nullptr)
 			: Root (ncinst)
 		{
-			palette = palette256_new (get_notcurses ());
+			palette = ncpalette_new (get_notcurses ());
 			if (palette == nullptr)
 				throw init_error ("Notcurses failed to create a new palette");
 		}
 
-		~Palette256 ()
+		~Palette ()
 		{
-			palette256_free (palette);
+			ncpalette_free (palette);
 		}
 
-		operator palette256* () noexcept
+		operator ncpalette* () noexcept
 		{
 			return palette;
 		}
 
-		operator palette256 const* () const noexcept
+		operator ncpalette const* () const noexcept
 		{
 			return palette;
 		}
 
 		bool set (int idx, int r, int g, int b) const NOEXCEPT_MAYBE
 		{
-			return error_guard (palette256_set_rgb8 (palette, idx, r, g, b), -1);
+			return error_guard (ncpalette_set_rgb8 (palette, idx, r, g, b), -1);
 		}
 
 		bool set (int idx, unsigned rgb) const NOEXCEPT_MAYBE
 		{
-			return error_guard (palette256_set (palette, idx, rgb), -1);
+			return error_guard (ncpalette_set (palette, idx, rgb), -1);
 		}
 
 		bool get (int idx, unsigned *r, unsigned *g, unsigned *b) const
@@ -58,11 +58,11 @@ namespace ncpp
 
 		bool get (int idx, unsigned &r, unsigned &g, unsigned &b) const NOEXCEPT_MAYBE
 		{
-			return error_guard (palette256_get_rgb8 (palette, idx, &r, &g, &b), -1);
+			return error_guard (ncpalette_get_rgb8 (palette, idx, &r, &g, &b), -1);
 		}
 
 	private:
-		palette256 *palette;
+		ncpalette *palette;
 	};
 }
 #endif

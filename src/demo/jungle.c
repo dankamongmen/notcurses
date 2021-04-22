@@ -26492,31 +26492,31 @@ const size_t ORIGWIDTH = 640;
 // unsigned char, which must be exactly 769 bytes (256 entries * 24bpp + 1).
 // this last byte ought indeed be a zero (for checking), but zeros may occur
 // earlier (unlike a proper c string).
-static palette256*
+static ncpalette*
 load_palette(struct notcurses* nc, const unsigned char* pal, size_t size){
   if(size != NCPALETTESIZE * 3 + 1){
     return NULL;
   }
-  palette256* p256 = palette256_new(nc);
+  ncpalette* p256 = ncpalette_new(nc);
   for(int idx = 0 ; idx < NCPALETTESIZE ; ++idx){
-    if(palette256_set_rgb8(p256, idx, pal[idx * 3], pal[idx * 3 + 1], pal[idx * 3 + 2])){
-      palette256_free(p256);
+    if(ncpalette_set_rgb8(p256, idx, pal[idx * 3], pal[idx * 3 + 1], pal[idx * 3 + 2])){
+      ncpalette_free(p256);
       return NULL;
     }
   }
   if(pal[NCPALETTESIZE * 3] != '\0'){
-    palette256_free(p256);
+    ncpalette_free(p256);
     return NULL;
   }
-  if(palette256_use(nc, p256)){
-    palette256_free(p256);
+  if(ncpalette_use(nc, p256)){
+    ncpalette_free(p256);
     return NULL;
   }
   return p256;
 }
 
 static int
-cycle_palettes(struct notcurses* nc, palette256* p){
+cycle_palettes(struct notcurses* nc, ncpalette* p){
   // these ranges [lower, upper] are cycling amongst themselves
   static const struct {
     int l, u;
@@ -26539,16 +26539,16 @@ cycle_palettes(struct notcurses* nc, palette256* p){
   for(s = sets ; s->l ; ++s){
     unsigned tr, tg, tb;
     // first grab the top rgbs (u), for use in bottom (l)
-    if(palette256_get_rgb8(p, s->u, &tr, &tg, &tb) < 0){
+    if(ncpalette_get_rgb8(p, s->u, &tr, &tg, &tb) < 0){
       return -1;
     }
     // shift each range up one
     for(int i = s->l ; i <= s->u ; ++i){
       unsigned r, g, b;
-      if(palette256_get_rgb8(p, i, &r, &g, &b) < 0){
+      if(ncpalette_get_rgb8(p, i, &r, &g, &b) < 0){
         return -1;
       }
-      if(palette256_set_rgb8(p, i, tr, tg, tb)){
+      if(ncpalette_set_rgb8(p, i, tr, tg, tb)){
         return -1;
       }
       tr = r;
@@ -26556,7 +26556,7 @@ cycle_palettes(struct notcurses* nc, palette256* p){
       tb = b;
     }
   }
-  if(palette256_use(nc, p)){
+  if(ncpalette_use(nc, p)){
     return -1;
   }
   return 0;
@@ -26574,7 +26574,7 @@ int jungle_demo(struct notcurses* nc){
   struct timespec start, now;
   clock_gettime(CLOCK_MONOTONIC, &start);
   size_t have = 0, out = 0;
-  palette256* pal;
+  ncpalette* pal;
   if((pal = load_palette(nc, palette, sizeof(palette))) == NULL){
     return -1;
   }
@@ -26657,7 +26657,7 @@ int jungle_demo(struct notcurses* nc){
     clock_gettime(CLOCK_MONOTONIC, &now);
     nsrunning = timespec_to_ns(&now) - timespec_to_ns(&start);
   }while(nsrunning > 0 && (uint64_t)nsrunning < 5 * timespec_to_ns(&demodelay));
-  palette256_free(pal);
+  ncpalette_free(pal);
   return 0;
 }
 #endif
