@@ -2047,6 +2047,14 @@ bool notcurses_canutf8(const notcurses* nc){
   return nc->tcache.utf8;
 }
 
+bool notcurses_canhalfblock(const notcurses* nc){
+  return nc->tcache.utf8;
+}
+
+bool notcurses_canquadrant(const notcurses* nc){
+  return nc->tcache.quadrants && nc->tcache.utf8;
+}
+
 bool notcurses_cansextant(const notcurses* nc){
   return nc->tcache.sextants && nc->tcache.utf8;
 }

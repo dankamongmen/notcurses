@@ -1260,6 +1260,12 @@ API bool notcurses_canopen_videos(const struct notcurses* nc);
 // Is our encoding UTF-8? Requires LANG being set to a UTF8 locale.
 API bool notcurses_canutf8(const struct notcurses* nc);
 
+// Can we reliably use Unicode halfblocks?
+API bool notcurses_canhalfblock(const struct notcurses* nc);
+
+// Can we reliably use Unicode quadrants?
+API bool notcurses_canquadrant(const struct notcurses* nc);
+
 // Can we reliably use Unicode 13 sextants?
 API bool notcurses_cansextant(const struct notcurses* nc);
 
