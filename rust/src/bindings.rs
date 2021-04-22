@@ -758,14 +758,14 @@ pub use ffi::{
 // already wrapped:
 //
 // // structs
-// palette256,
+// ncpalette,
 
 #[doc(inline)]
 pub use ffi::{
     // functions
-    palette256_free,
-    palette256_new,
-    palette256_use,
+    ncpalette_free,
+    ncpalette_new,
+    ncpalette_use,
 
     // constants
     NCPALETTESIZE,

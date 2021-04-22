@@ -1,4 +1,4 @@
-//! `palette256_*` reimplemented functions.
+//! `ncpalette_*` reimplemented functions.
 
 use crate::{NcChannel, NcColor, NcPalette, NcPaletteIndex, NcRgb};
 
@@ -8,7 +8,7 @@ use crate::{NcChannel, NcColor, NcPalette, NcPaletteIndex, NcRgb};
 /// *Method: NcPalette.[get_rgb()][NcPalette#method.get_rgb].*
 /// *Method: NcPalette.[get_rgb8()][NcPalette#method.get_rgb8].*
 #[inline]
-pub fn palette256_get_rgb(
+pub fn ncpalette_get_rgb(
     palette: &NcPalette,
     index: NcPaletteIndex,
     red: &mut NcColor,
@@ -22,7 +22,7 @@ pub fn palette256_get_rgb(
 ///
 /// *Method: NcPalette.[set()][NcPalette#method.set].*
 #[inline]
-pub fn palette256_set(palette: &mut NcPalette, index: NcPaletteIndex, rgb: NcRgb) {
+pub fn ncpalette_set(palette: &mut NcPalette, index: NcPaletteIndex, rgb: NcRgb) {
     crate::channel_set(&mut palette.chans[index as usize], rgb);
 }
 
@@ -30,7 +30,7 @@ pub fn palette256_set(palette: &mut NcPalette, index: NcPaletteIndex, rgb: NcRgb
 ///
 /// *Method: NcPalette.[set_rgb()][NcPalette#method.set_rgb].*
 #[inline]
-pub fn palette256_set_rgb(
+pub fn ncpalette_set_rgb(
     palette: &mut NcPalette,
     index: NcPaletteIndex,
     red: NcColor,

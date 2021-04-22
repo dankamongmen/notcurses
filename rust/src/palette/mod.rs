@@ -9,9 +9,9 @@
 // (#) test: 0
 // (W) wrap: 3 / 0
 // -----------------------------------------
-//W  palette256_free
-//W  palette256_new
-//W  palette256_use
+//W  ncpalette_free
+//W  ncpalette_new
+//W  ncpalette_use
 //
 // functions manually reimplemented: 3
 // -----------------------------------------
@@ -19,9 +19,9 @@
 // (#) test: 0
 // (W) wrap: 3 / 0
 // -----------------------------------------
-//W+ palette256_get_rgb
-//W+ palette256_set
-//W+ palette256_set_rgb
+//W+ ncpalette_get_rgb
+//W+ ncpalette_set
+//W+ ncpalette_set_rgb
 
 mod methods;
 mod reimplemented;
@@ -38,9 +38,9 @@ pub use reimplemented::*;
 /// performant to use indexed colors, since it's much less data to write to the
 /// terminal. If you can limit yourself to 256 colors, that's probably best.
 ///
-/// `type in C: ncpalette256 (struct)`
+/// `type in C: ncncpalette (struct)`
 ///
-pub type NcPalette = crate::bindings::ffi::palette256;
+pub type NcPalette = crate::bindings::ffi::ncpalette;
 
 /// 8-bit value used for indexing into a [`NcPalette`]
 ///
