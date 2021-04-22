@@ -163,8 +163,8 @@ pub fn ncplane_putstr(plane: &mut NcPlane, string: &str) -> NcIntResult {
 ///
 /// *Method: NcPlane.[putnstr()][NcPlane#method.putnstr].*
 #[inline]
-pub fn ncplane_putnstr(plane: &mut NcPlane, size: u64, gclustarr: &[u8]) -> NcIntResult {
-    unsafe { crate::ncplane_putnstr_yx(plane, -1, -1, size, cstring![gclustarr]) }
+pub fn ncplane_putnstr(plane: &mut NcPlane, size: u32, gclustarr: &[u8]) -> NcIntResult {
+    unsafe { crate::ncplane_putnstr_yx(plane, -1, -1, size.into(), cstring![gclustarr]) }
 }
 
 /// The [NcPlane] equivalent of `vprintf(3)`.
@@ -689,12 +689,18 @@ pub fn ncplane_gradient_sized(
     if y_len < 1 || x_len < 1 {
         return NCRESULT_ERR;
     }
+    // https://github.com/dankamongmen/notcurses/issues/1339
+    #[cfg(any(target_arch = "x86_64", target_arch = "i686"))]
+    let egc_ptr = &(*egc as i8);
+    #[cfg(not(any(target_arch = "x86_64", target_arch = "i686")))]
+    let egc_ptr = &(*egc as u8);
+
     let (mut y, mut x) = (0, 0);
     unsafe {
         crate::ncplane_cursor_yx(plane, &mut y, &mut x);
         crate::ncplane_gradient(
             plane,
-            &(*egc as i8),
+            egc_ptr,
             stylemask as u32,
             ul as u64,
             ur as u64,

@@ -549,9 +549,16 @@ impl Notcurses {
     //
     // CHECK that this works.
     pub fn render_to_buffer(&mut self, buffer: &mut Vec<u8>) -> NcResult<()> {
-        let mut len = buffer.len() as u64;
+        #[allow(unused_mut)] // CHECK whether it actually works without the mut
+        let mut len = buffer.len() as u32;
+
+        // https://github.com/dankamongmen/notcurses/issues/1339
+        #[cfg(any(target_arch = "x86_64", target_arch = "i686"))]
         let mut buf = buffer.as_mut_ptr() as *mut i8;
-        error![unsafe { crate::notcurses_render_to_buffer(self, &mut buf, &mut len) }]
+        #[cfg(not(any(target_arch = "x86_64", target_arch = "i686")))]
+        let mut buf = buffer.as_mut_ptr() as *mut u8;
+
+        error![unsafe { crate::notcurses_render_to_buffer(self, &mut buf, &mut len.into()) }]
     }
 
     /// Writes the last rendered frame, in its entirety, to 'fp'.

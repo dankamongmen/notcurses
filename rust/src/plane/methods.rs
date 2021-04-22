@@ -1895,10 +1895,17 @@ impl NcPlane {
         y_stop: NcDim,
         x_stop: NcDim,
     ) -> NcResult<NcDim> {
+
+        // https://github.com/dankamongmen/notcurses/issues/1339
+        #[cfg(any(target_arch = "x86_64", target_arch = "i686"))]
+        let egc_ptr = &(*egc as i8);
+        #[cfg(not(any(target_arch = "x86_64", target_arch = "i686")))]
+        let egc_ptr = &(*egc as u8);
+
         let res = unsafe {
             crate::ncplane_gradient(
                 self,
-                &(*egc as i8),
+                egc_ptr,
                 stylemask as u32,
                 ul,
                 ur,
