@@ -11,25 +11,25 @@ notcurses_palette - operations on notcurses palettes
 **#include <notcurses/notcurses.h>**
 
 ```c
-typedef struct palette256 {
+typedef struct ncpalette {
   // We store the RGB values as a regular ol' channel
   uint32_t chans[256];
-} palette256;
+} ncpalette;
 ```
 
 **bool notcurses_cantruecolor(const struct notcurses* ***nc***);**
 
-**palette256* palette256_new(struct notcurses* ***nc***);**
+**ncpalette* ncpalette_new(struct notcurses* ***nc***);**
 
-**int palette256_use(struct notcurses* ***nc***, const palette256* ***p***);**
+**int ncpalette_use(struct notcurses* ***nc***, const ncpalette* ***p***);**
 
-**int palette256_set_rgb8(palette256* ***p***, int ***idx***, int ***r***, int ***g***, int ***b***);**
+**int ncpalette_set_rgb8(ncpalette* ***p***, int ***idx***, int ***r***, int ***g***, int ***b***);**
 
-**int palette256_set(palette256* ***p***, int ***idx***, unsigned ***rgb***);**
+**int ncpalette_set(ncpalette* ***p***, int ***idx***, unsigned ***rgb***);**
 
-**int palette256_get_rgb8(const palette256* ***p***, int ***idx***, int* restrict ***r***, int* restrict ***g***, int* restrict ***b***);**
+**int ncpalette_get_rgb8(const ncpalette* ***p***, int ***idx***, int* restrict ***r***, int* restrict ***g***, int* restrict ***b***);**
 
-**void palette256_free(palette256* ***p***);**
+**void ncpalette_free(ncpalette* ***p***);**
 
 **bool notcurses_canchangecolors(const struct notcurses* ***nc***);**
 
@@ -45,9 +45,9 @@ since a single command can affect many cells on the screen.
 
 # RETURN VALUES
 
-Functions returning `int` return -1 on failure, or 0 on success. Failure is
-always due to invalid inputs. Functions returning `bool` are predicates, and
-return the requested value. Functions returning `unsigned` forms return the
+Functions returning **int** return -1 on failure, or 0 on success. Failure is
+always due to invalid inputs. Functions returning **bool** are predicates, and
+return the requested value. Functions returning **unsigned** forms return the
 input, modified as requested.
 
 # SEE ALSO

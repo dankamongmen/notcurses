@@ -2072,14 +2072,14 @@ bool notcurses_canchangecolor(const notcurses* nc){
   if(!nc->tcache.CCCflag){
     return false;
   }
-  ncpalette256* p;
+  ncpalette* p;
   if((unsigned)nc->tcache.colors < sizeof(p->chans) / sizeof(*p->chans)){
     return false;
   }
   return true;
 }
 
-ncpalette256* ncpalette256_new(notcurses* nc){
+ncpalette* ncpalette_new(notcurses* nc){
   palette256* p = malloc(sizeof(*p));
   if(p){
     memcpy(p, &nc->palette, sizeof(*p));
@@ -2087,11 +2087,11 @@ ncpalette256* ncpalette256_new(notcurses* nc){
   return p;
 }
 
-ncpalette256* palette256_new(notcurses* nc){
-  return ncpalette256_new(nc);
+ncpalette* palette256_new(notcurses* nc){
+  return ncpalette_new(nc);
 }
 
-int ncpalette256_use(notcurses* nc, const ncpalette256* p){
+int ncpalette_use(notcurses* nc, const ncpalette* p){
   int ret = -1;
   if(!notcurses_canchangecolor(nc)){
     return -1;
@@ -2107,15 +2107,15 @@ int ncpalette256_use(notcurses* nc, const ncpalette256* p){
 }
 
 int palette256_use(notcurses* nc, const palette256* p){
-  return ncpalette256_use(nc, p);
+  return ncpalette_use(nc, p);
 }
 
-void ncpalette256_free(ncpalette256* p){
+void ncpalette_free(ncpalette* p){
   free(p);
 }
 
-void palette256_free(ncpalette256* p){
-  ncpalette256_free(p);
+void palette256_free(ncpalette* p){
+  ncpalette_free(p);
 }
 
 bool ncplane_translate_abs(const ncplane* n, int* restrict y, int* restrict x){

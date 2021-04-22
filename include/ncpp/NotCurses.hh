@@ -11,7 +11,7 @@
 #include "CellStyle.hh"
 #include "NCKey.hh"
 #include "NCLogLevel.hh"
-#include "Palette256.hh"
+#include "Palette.hh"
 #include "Plane.hh"
 #include "Root.hh"
 #include "_helpers.hh"
@@ -182,7 +182,7 @@ namespace ncpp
 			notcurses_stats_reset (nc, stats);
 		}
 
-		bool use (const Palette256 *p) const
+		bool use (const Palette *p) const
 		{
 			if (p == nullptr)
 				throw invalid_argument ("'p' must be a valid pointer");
@@ -190,9 +190,9 @@ namespace ncpp
 			return use (*p);
 		}
 
-		bool use (const Palette256 &p) const NOEXCEPT_MAYBE
+		bool use (const Palette &p) const NOEXCEPT_MAYBE
 		{
-			return error_guard (ncpalette256_use (nc, reinterpret_cast<const palette256*>(&p)), -1);
+			return error_guard (ncpalette_use (nc, reinterpret_cast<const ncpalette*>(&p)), -1);
 		}
 
 		bool render () const NOEXCEPT_MAYBE
