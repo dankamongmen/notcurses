@@ -12,7 +12,11 @@ pub type NcSignalSet = crate::bindings::ffi::sigset_t;
 impl NcSignalSet {
     /// New NcSignalSet.
     pub fn new() -> Self {
-        Self { __val: [0; 16] }
+        // https://github.com/dankamongmen/notcurses/issues/1339
+        #[cfg(any(target_arch = "armv7l", target_arch = "i686"))]
+        return Self { __val: [0; 32] };
+        #[cfg(not(any(target_arch = "armv7l", target_arch = "i686")))]
+        return Self { __val: [0; 16] };
     }
 
     /// Adds `signum` to this set.

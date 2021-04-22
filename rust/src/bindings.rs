@@ -18,14 +18,31 @@ pub mod ffi {
 
 // Miscellaneous ---------------------------------------------------------------
 
+#[rustfmt::skip]
 #[doc(inline)]
 pub use ffi::{
-    // structs
-    __va_list_tag,
-
     // functions
     ncstrwidth,
 };
+
+// https://github.com/dankamongmen/notcurses/issues/1339
+//
+// Let's first see whether this works for: i686, aarch64, armv7l & ppc64le.
+//
+// #[cfg(target_arch = "x86_64")]
+// #[cfg(target_arch = "s390x")]
+// pub use ffi::{__va_list_tag};
+//
+// #[cfg(not(target_arch = "x86_64"))]
+// #[cfg(not(target_arch = "s390x"))]
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct __va_list_tag {
+    pub gp_offset: cty::c_uint,
+    pub fp_offset: cty::c_uint,
+    pub overflow_arg_area: *mut cty::c_void,
+    pub reg_save_area: *mut cty::c_void,
+}
 
 // blitset ---------------------------------------------------------------------
 //

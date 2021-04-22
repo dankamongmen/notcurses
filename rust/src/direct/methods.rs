@@ -660,7 +660,13 @@ impl NcDirect {
         h1: NcChannelPair,
         h2: NcChannelPair,
     ) -> NcResult<()> {
-        error![unsafe { crate::ncdirect_hline_interp(self, &(*egc as i8), len as i32, h1, h2) }]
+        // https://github.com/dankamongmen/notcurses/issues/1339
+        #[cfg(any(target_arch = "x86_64", target_arch = "i686"))]
+        let egc_ptr = &(*egc as i8);
+        #[cfg(not(any(target_arch = "x86_64", target_arch = "i686")))]
+        let egc_ptr = &(*egc as u8);
+
+        error![unsafe { crate::ncdirect_hline_interp(self, egc_ptr, len as i32, h1, h2) }]
     }
 
     /// Draws horizontal lines using the specified [NcChannelPair]s, interpolating
@@ -682,6 +688,12 @@ impl NcDirect {
         h1: NcChannelPair,
         h2: NcChannelPair,
     ) -> NcResult<()> {
-        error![unsafe { crate::ncdirect_vline_interp(self, &(*egc as i8), len as i32, h1, h2) }]
+        // https://github.com/dankamongmen/notcurses/issues/1339
+        #[cfg(any(target_arch = "x86_64", target_arch = "i686"))]
+        let egc_ptr = &(*egc as i8);
+        #[cfg(not(any(target_arch = "x86_64", target_arch = "i686")))]
+        let egc_ptr = &(*egc as u8);
+
+        error![unsafe { crate::ncdirect_vline_interp(self, egc_ptr, len as i32, h1, h2) }]
     }
 }
