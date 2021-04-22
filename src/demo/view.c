@@ -16,6 +16,7 @@ streamer(struct ncvisual* ncv, struct ncvisual_options* vopts,
         .rows = 12,
         .cols = 18,
         .flags = NCPLANE_OPTION_HORALIGNED | NCPLANE_OPTION_VERALIGNED,
+        .name = "pip",
       };
       marsh.pipopts.n = ncplane_create(vopts->n, &nopts);
       if(marsh.pipopts.n == NULL){
@@ -66,6 +67,7 @@ legend(struct ncplane* stdn, int dimy, int dimx){
     .x = (dimx - 25) / 2,
     .rows = 4,
     .cols = 25,
+    .name = "lgd",
   };
   struct ncplane* n = ncplane_create(stdn, &nopts);
   ncplane_set_bg_alpha(n, CELL_ALPHA_TRANSPARENT);
@@ -109,6 +111,7 @@ view_images(struct notcurses* nc, struct ncplane* nstd, int dimy, int dimx){
   struct ncplane_options nopts = {
     .rows = dimy,
     .cols = dimx,
+    .name = "cblt",
   };
   struct ncplane* dsplane = ncplane_create(nstd, &nopts);
   if(dsplane == NULL){
