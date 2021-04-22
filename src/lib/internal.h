@@ -552,6 +552,7 @@ typedef struct ncpile {
   struct ncpile *prev, *next; // circular list
   size_t crenderlen;          // size of crender vector
   int dimy, dimx;             // rows and cols at time of render
+  sprixel* sprixelcache;      // list of sprixels
 } ncpile;
 
 // the standard pile can be reached through ->stdplane.
@@ -584,8 +585,6 @@ typedef struct notcurses {
   struct termios tpreserved; // terminal state upon entry
   pthread_mutex_t pilelock; // guards pile list, locks resize in render
   bool suppress_banner; // from notcurses_options
-
-  sprixel* sprixelcache; // list of pixel graphics currently displayed
 
   // desired margins (best-effort only), copied in from notcurses_options
   int margin_t, margin_b, margin_r, margin_l;
@@ -942,7 +941,7 @@ int sixel_init(int fd);
 int sprite_init(const notcurses* nc);
 int kitty_shutdown(int fd);
 int sixel_shutdown(int fd);
-sprixel* sprixel_by_id(const notcurses* nc, uint32_t id);
+sprixel* sprixel_by_id(const ncpile* n, uint32_t id);
 // these three all use absolute coordinates
 void sprixel_invalidate(sprixel* s, int y, int x);
 void sprixel_movefrom(sprixel* s, int y, int x);

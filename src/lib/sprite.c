@@ -92,8 +92,8 @@ void sprixel_invalidate(sprixel* s, int y, int x){
   }
 }
 
-sprixel* sprixel_by_id(const notcurses* nc, uint32_t id){
-  for(sprixel* cur = nc->sprixelcache ; cur ; cur = cur->next){
+sprixel* sprixel_by_id(const ncpile* n, uint32_t id){
+  for(sprixel* cur = n->sprixelcache ; cur ; cur = cur->next){
     if(cur->id == id){
       return cur;
     }
@@ -114,9 +114,10 @@ sprixel* sprixel_alloc(ncplane* n, int dimy, int dimx, int placey, int placex){
     ret->wipes_outstanding = false;
 //fprintf(stderr, "LOOKING AT %p (p->n = %p)\n", ret, ret->n);
     if(ncplane_pile(ret->n)){
-      notcurses* nc = ncplane_notcurses(ret->n);
-      ret->next = nc->sprixelcache;
-      nc->sprixelcache = ret;
+      ncpile* np = ncplane_pile(ret->n);
+      ret->next = np->sprixelcache;
+      np->sprixelcache = ret;
+      const notcurses* nc = ncplane_notcurses_const(ret->n);
       ret->cellpxy = nc->tcache.cellpixy;
       ret->cellpxx = nc->tcache.cellpixx;
 //fprintf(stderr, "%p %p %p\n", nc->sprixelcache, ret, nc->sprixelcache->next);
