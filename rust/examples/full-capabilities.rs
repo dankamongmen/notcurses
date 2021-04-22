@@ -8,14 +8,16 @@ fn main() -> NcResult<()> {
 
     println!(
         "Can display UTF-8: {0}
-Can display sextant characters: {1}
-Can open images: {2}
-Can open videos: {3}
-Supports Pixels: {4:?}
-Supports True Color: {5}
-Palette size: {6:?}
+Can display braille characters: {1}
+Can display sextant characters: {2}
+Can open images: {3}
+Can open videos: {4}
+Supports Pixels: {5:?}
+Supports True Color: {6}
+Palette size: {7:?}
 ",
         nc.canutf8(),
+        nc.canbraille(),
         nc.cansextant(),
         nc.canopen_images(),
         nc.canopen_videos(),
@@ -27,6 +29,6 @@ Palette size: {6:?}
     let pixelgeom = nc.stdplane().pixelgeom();
     println!("{:#?}", pixelgeom);
 
-    rsleep![&mut nc, 1];
+    nc.render()?;
     Ok(())
 }
