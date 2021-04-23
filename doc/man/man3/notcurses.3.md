@@ -106,6 +106,17 @@ are typically encountered when retrieving data from ncplanes or the rendered
 scene (see e.g. **ncplane_at_yx(3)**), or to achieve peak performance when a
 particular EGC is heavily reused within a plane.
 
+## Visuals
+
+Bitmaps can be loaded from disk or memory, or even synthesized from the
+content of existing planes. These are stored in **ncvisual** objects, described
+in **notcurses_visual(3)**. Visuals can be rendered to arbitrarily many
+planes using a variety of blitters, varying in their aspect ratios and
+resolution. If the terminal supports a pixel protocol such as Sixel or
+Kitty, it is possible to render bitmaps at the pixel level (as opposed to
+the cell level, using geometric glyphs). Otherwise, various Unicode-based
+blitters are available to render bitmaps in the text paradigm.
+
 ## Widgets
 
 A few high-level widgets are included, all built atop ncplanes:
