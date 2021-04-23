@@ -475,7 +475,7 @@ int ffmpeg_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
     }
     //fprintf(stderr, "WHN NCV: %d/%d\n", inframe->width, inframe->height);
     ncv->details->swsctx = sws_getCachedContext(ncv->details->swsctx,
-                                               ncv->cols, ncv->rows,
+                                               inframe->width, inframe->height,
                                                inframe->format,
                                                cols, rows,
                                                targformat,

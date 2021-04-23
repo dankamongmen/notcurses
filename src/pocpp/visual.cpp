@@ -71,7 +71,7 @@ int main(int argc, char** argv){
   for(double i = 0 ; i < 256 ; ++i){
     clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);
     if(ncvisual_rotate(ncv, M_PI / ((i / 32) + 2))){
-      failed = true;
+      failed = true; // FIXME fails after a few dozen iterations
       break;
     }
     struct ncplane* newn;
