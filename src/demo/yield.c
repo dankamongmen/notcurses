@@ -21,6 +21,7 @@ int yield_demo(struct notcurses* nc){
     .y = 1,
     .rows = dimy - 2,
     .cols = dimx,
+    .name = "wmap",
   };
   struct ncvisual_options vopts = {
     .scaling = scale,
@@ -56,7 +57,8 @@ int yield_demo(struct notcurses* nc){
     .y = 3,
     .x = NCALIGN_CENTER,
     .rows = 1,
-    .cols = 12,
+    .cols = 13,
+    .name = "pcnt",
     .flags = NCPLANE_OPTION_HORALIGNED,
   };
   struct ncplane* label = ncplane_create(std, &labopts);
@@ -68,7 +70,7 @@ int yield_demo(struct notcurses* nc){
   uint64_t basechan = 0;
   channels_set_bg_alpha(&basechan, CELL_ALPHA_TRANSPARENT);
   channels_set_fg_alpha(&basechan, CELL_ALPHA_TRANSPARENT);
-  ncplane_set_base(label, " ", NCSTYLE_BOLD, basechan);
+  ncplane_set_base(label, "", 0, basechan);
   ncplane_set_bg_alpha(label, CELL_ALPHA_TRANSPARENT);
   ncplane_set_fg_rgb8(label, 0xff, 0xff, 0xff);
   ncplane_set_styles(label, NCSTYLE_BOLD);
@@ -80,6 +82,7 @@ int yield_demo(struct notcurses* nc){
   demo_nanosleep(nc, &delay);
 
   int iters = 0;
+  // FIXME resize the background once rather than scaling every blit
   while(tfilled < threshold_painted && iters < MAXITER){
 //fprintf(stderr, "%d/%d x %d/%d tfilled: %ld thresh: %ld total: %ld\n", vy, vx, vscaley, vscalex, tfilled, threshold_painted, total);
     int pfilled = 0;
