@@ -534,40 +534,45 @@ int sixel_delete(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
 // our input, and keep your CVEs to yourselves. remember that this covers six
 // rows at a time, [y..y + 5].
 static int
-deepclean_output(FILE* fp, const sprixel* s, int y, int *x, int* rle,
+deepclean_output(FILE* fp, const sprixel* s, int y, int *x, int rle,
                  int* printed, int color, int* needclosure, char c){
   c -= 63;
   int rlei = 0;
   // xi loops over the section we cover, a minimum of 1 pixel and a maximum
   // of one line. FIXME can skip (celldimx - 1) / celldimx checks, do so!
-  for(int xi = *x ; xi < *x + *rle ; ++xi){
-    unsigned char mask = 0x3f; // assume all six bits are valid
+  for(int xi = *x ; xi < *x + rle ; ++xi){
+    unsigned char mask = 0;
     for(int yi = y ; yi < y + 6 ; ++yi){
       const int tidx = (yi / s->cellpxy) * s->dimx + (xi / s->cellpxx);
       const bool nihil = (s->n->tacache[tidx] == SPRIXCELL_ANNIHILATED);
-      if(nihil){
-        mask &= ~(1u << (yi - y));
+      if(!nihil){
+        mask |= (1u << (yi - y));
       }
     }
     if((c & mask) != c){
       if(rlei){
-        if(write_rle(printed, color, fp, rlei, c & mask, needclosure)){
+//fprintf(stderr, "writing %d:%d..%d (%c)\n", y, xi, xi + rlei - 1, c + 63);
+        if(write_rle(printed, color, fp, rlei, c, needclosure)){
           return -1;
         }
         rlei = 0;
+      }
+      // FIXME can rle on this
+      if(write_rle(printed, color, fp, 1, c & mask, needclosure)){
+        return -1;
       }
     }else{
       ++rlei;
     }
   }
-  *x += *rle;
   if(rlei){
+//fprintf(stderr, "writing %d:%d..%d (%c)\n", y, *x - (rle - rlei), *x + rlei - 1, c + 63);
     if(write_rle(printed, color, fp, rlei, c, needclosure)){
       return -1;
     }
     rlei = 0;
   }
-  *rle = 1;
+  *x += rle;
   return 0;
 }
 
@@ -663,10 +668,11 @@ deepclean_stream(sprixel* s, FILE* fp){
       }else if(c < 63 || c > 126){
         return -1;
       }else{ // data byte
-        if(deepclean_output(fp, s, y, &x, &rle, &printed, color,
+        if(deepclean_output(fp, s, y, &x, rle, &printed, color,
                             &needclosure, c)){
           return -1;
         }
+        rle = 1;
       }
     }
     ++idx;
