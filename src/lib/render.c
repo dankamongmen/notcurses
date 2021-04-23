@@ -234,7 +234,7 @@ paint(ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
     if(p->sprite->prev){
       p->sprite->prev->next = p->sprite->next;
     }else{
-      ncplane_pile(p)->sprixelcache = NULL;
+      ncplane_pile(p)->sprixelcache = p->sprite->next;
     }
     // stick on the head of the running list: top sprixel is at end
     if(*sprixelstack){
@@ -908,7 +908,7 @@ clean_sprixels(notcurses* nc, ncpile* p, FILE* out){
   int ret = 0;
   while( (s = *parent) ){
     if(s->invalidated == SPRIXEL_HIDE){
-//fprintf(stderr, "OUGHT HIDE %d [%dx%d @ %d/%d] %p\n", s->id, s->dimy, s->dimx, s->y, s->x, s);
+fprintf(stderr, "OUGHT HIDE %d [%dx%d @ %d/%d] %p\n", s->id, s->dimy, s->dimx, s->y, s->x, s);
       if(sprite_destroy(nc, p, out, s) == 0){
         if( (*parent = s->next) ){
           s->next->prev = s->prev;
@@ -1274,20 +1274,28 @@ ncpile_render_internal(ncplane* n, struct crender* rvec, int leny, int lenx,
   ncpile* np = ncplane_pile(n);
   ncplane* p = np->top;
   sprixel* sprixel_list = NULL;
+for(const sprixel* erp = np->sprixelcache ; erp ; erp = erp->next){
+fprintf(stderr, "SPRIXELCACHE PRE-PAINT: %p\n", erp);
+}
   while(p){
     paint(p, rvec, leny, lenx, absy, absx, &sprixel_list);
     p = p->below;
   }
-  if(!np->sprixelcache){
+for(const sprixel* erp = sprixel_list ; erp ; erp = erp->next){
+fprintf(stderr, "SPRIXELLIST POST-PAINT: %p\n", erp);
+}
+fprintf(stderr, "SPRIXELCACHE POST-PAINT: %p LIST: %p\n", np->sprixelcache, sprixel_list);
+  if(sprixel_list){
+    if(np->sprixelcache){
+      sprixel* s = sprixel_list;
+      while(s->next){
+        s = s->next;
+      }
+      if( (s->next = np->sprixelcache) ){
+        np->sprixelcache->prev = s;
+      }
+    }
     np->sprixelcache = sprixel_list;
-  }else{
-    sprixel* s = np->sprixelcache;
-    while(s->next){
-      s = s->next;
-    }
-    if( (s->next = sprixel_list) ){
-      sprixel_list->prev = s;
-    }
   }
 }
 
