@@ -11,11 +11,11 @@ streamer(struct ncvisual* ncv, struct ncvisual_options* vopts,
   if(vpip){
     if(!marsh.pipopts.n){
       struct ncplane_options nopts = {
-        .y = NCALIGN_TOP,
+        .y = 1,
         .x = NCALIGN_RIGHT,
         .rows = 12,
         .cols = 18,
-        .flags = NCPLANE_OPTION_HORALIGNED | NCPLANE_OPTION_VERALIGNED,
+        .flags = NCPLANE_OPTION_HORALIGNED,
         .name = "pip",
       };
       marsh.pipopts.n = ncplane_create(vopts->n, &nopts);
@@ -50,7 +50,7 @@ view_video_demo(struct notcurses* nc){
     .y = 1,
   };
   void* pip = NULL;
-  if(notcurses_check_pixel_support(nc)){
+  if(notcurses_check_pixel_support(nc) > 0){
     pip = nc;
   }
   int ret = ncvisual_stream(nc, ncv, 0.5 * delaymultiplier,
