@@ -621,6 +621,10 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
     return -1;
   }
   loginfo(ncplane_notcurses_const(n), "%dx%d @ %d/%d → %d/%d @ %d/%d (keeping %dx%d from %d/%d)\n", rows, cols, n->absy, n->absx, ylen, xlen, n->absy + keepy + yoff, n->absx + keepx + xoff, keepleny, keeplenx, keepy, keepx);
+  if(n->absy == n->absy + keepy && n->absx == n->absx + keepx &&
+      rows == ylen && cols == xlen){
+    return 0;
+  }
   notcurses* nc = ncplane_notcurses(n);
   if(n->sprite){
     sprixel_hide(n->sprite);
