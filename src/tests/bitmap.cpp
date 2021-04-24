@@ -161,7 +161,6 @@ TEST_CASE("Bitmaps") {
     REQUIRE(nullptr != botn);
     // should just have a red plane
     CHECK(0 == notcurses_render(nc_));
-sleep(2);
     y = nc_->tcache.cellpixy * 5;
     x = nc_->tcache.cellpixx * 5;
     std::vector<uint32_t> v2(x * y, htole(0x8142f1ff));
@@ -171,25 +170,20 @@ sleep(2);
     REQUIRE(nullptr != topn);
     // should have a yellow plane partially obscuring a red one
     CHECK(0 == notcurses_render(nc_));
-sleep(2);
     ncplane_move_yx(topn, 5, 5);
     // yellow bitmap ought move to lower right, but remain visible
     CHECK(0 == notcurses_render(nc_));
-sleep(2);
     ncplane_move_top(botn);
     // should see only the red one now
     CHECK(0 == notcurses_render(nc_));
-sleep(2);
     CHECK(0 == ncplane_destroy(botn));
     ncvisual_destroy(ncv);
     // now we see only yellow
     CHECK(0 == notcurses_render(nc_));
-sleep(2);
     CHECK(0 == ncplane_destroy(topn));
     ncvisual_destroy(ncv2);
     // and now we see none
     CHECK(0 == notcurses_render(nc_));
-sleep(2);
   }
 
 #ifdef NOTCURSES_USE_MULTIMEDIA
