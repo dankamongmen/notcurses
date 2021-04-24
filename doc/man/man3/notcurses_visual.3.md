@@ -260,18 +260,16 @@ plane, it must be perfectly sized for the bitmap (i.e. large enough, and not
 more than a full cell larger in either dimension--the bitmap, always placed at
 the origin, must at least partially cover every cell of the plane). Using
 **NCSCALE_STRETCH** means that the second condition will always be met. Once a
-sprixel is blitted to a plane, that plane may not be resized, a resize callback
-may not be set, the base cell may not be set, and cell methods (including cell
-blitting) may not be used with it. The only way to change the plane's contents
-is to destroy the plane. Notcurses will automatically set the plane's base cell
-to the null glyph, **NCSTYLE_NONE**, and transparent in both the fore- and
-background. A sprixelated plane may be moved in all three dimensions,
-duplicated, and reparented.
+sprixel is blitted to a plane, cell methods (including cell blitting) may not
+be used with it. Resizing the plane eliminates the sprixel, as does destroying
+the plane. A sprixelated plane may be moved in all three dimensions,
+duplicated, and reparented. The base cell of a sprixelated plane is
+meaningless; if the sprixel is not an even multiple of the cell geometry, any
+excess cell material is ignored during rendering.
 
 Only one bitmap can be blitted onto a plane at a time (but multiple planes
 with bitmaps may be visible); blitting a second to the same plane will delete
-the original. Destroying the plane with which a bitmap is associated will
-delete the bitmap.
+the original.
 
 # RETURN VALUES
 

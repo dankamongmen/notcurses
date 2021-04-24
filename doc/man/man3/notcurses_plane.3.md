@@ -362,10 +362,11 @@ displayed in the plane. This function transitively calls
 parameter (save **n**) may be **NULL**.
 
 When a plane is blitted to using **ncvisual_render** and **NCBLIT_PIXEL** (see
-**notcurses_visual(3)**), it loses many capabilities. Such a "sprixelated"
-plane cannot be resized, nor can cell-based output be applied to it. The
-sprixel will remain associated until a new sprixel is blitted to the plane, or
-the plane is destroyed.
+**notcurses_visual(3)**), it ceases to accept cell-based output. The sprixel
+will remain associated until a new sprixel is blitted to the plane, the plane
+is resized, or the plane is destroyed. The base cell of a sprixelated plane
+has no effect; if the sprixel is not even multiples of the cell geometry, the
+"excess plane" is ignored during rendering.
 
 # RETURN VALUES
 
