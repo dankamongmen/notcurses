@@ -35,7 +35,7 @@ void sprixel_free(sprixel* s){
 sprixel* sprixel_recycle(ncplane* n){
   assert(n->sprite);
   const notcurses* nc = ncplane_notcurses_const(n);
-  if(nc->tcache.pixel_destroy == kitty_delete){
+  if(sprixel_kitty_p(&nc->tcache)){
     sprixel* hides = n->sprite;
     int dimy = hides->dimy;
     int dimx = hides->dimx;

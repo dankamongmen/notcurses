@@ -932,8 +932,8 @@ sprixel* sprixel_recycle(ncplane* n);
 // takes ownership of s on success.
 int sprixel_load(sprixel* spx, char* s, int bytes, int placey, int placex,
                  int pixy, int pixx, int parse_start);
-int sixel_delete(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
-int kitty_delete(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
+int sixel_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
+int kitty_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
 int kitty_remove(int id, FILE* out);
 int kitty_init(int fd);
 int sixel_init(int fd);
