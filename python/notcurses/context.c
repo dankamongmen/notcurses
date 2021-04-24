@@ -310,7 +310,7 @@ Notcurses_at_yx(NotcursesObject *Py_UNUSED(self), PyObject *Py_UNUSED(args), PyO
 }
 
 static PyObject *
-Notcurses_ncpile_create(NotcursesObject *self, PyObject *args, PyObject *kwds)
+Notcurses_pile_create(NotcursesObject *self, PyObject *args, PyObject *kwds)
 {
     int y = 0, x = 0;
     int rows = 0, cols = 0;
@@ -482,7 +482,7 @@ static PyMethodDef Notcurses_methods[] = {
     {"term_dim_yx", (PyCFunction)Notcurses_term_dim_yx, METH_NOARGS, "Return our current idea of the terminal dimensions in rows and cols."},
 
     {"at_yx", (void *)Notcurses_at_yx, METH_VARARGS | METH_KEYWORDS, "Retrieve the contents of the specified cell as last rendered."},
-    {"ncpile_create", (void *)Notcurses_ncpile_create, METH_VARARGS | METH_KEYWORDS, "Same as ncplane_create(), but creates a new pile. The returned plane will be the top, bottom, and root of this new pile."},
+    {"pile_create", (void *)Notcurses_pile_create, METH_VARARGS | METH_KEYWORDS, "Same as ncplane_create(), but creates a new pile. The returned plane will be the top, bottom, and root of this new pile."},
 
     {"supported_styles", (PyCFunction)Notcurses_supported_styles, METH_NOARGS, PyDoc_STR("Returns a 16-bit bitmask of supported curses-style attributes (NCSTYLE_UNDERLINE, NCSTYLE_BOLD, etc.) The attribute is only indicated as supported if the terminal can support it together with color. For more information, see the \"ncv\" capability in terminfo(5).")},
     {"palette_size", (PyCFunction)Notcurses_palette_size, METH_NOARGS, PyDoc_STR("Returns the number of simultaneous colors claimed to be supported, or 1 if there is no color support. Note that several terminal emulators advertise more colors than they actually support, downsampling internally.")},
