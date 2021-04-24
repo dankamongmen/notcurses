@@ -1454,19 +1454,24 @@ int cell_load(ncplane* n, nccell* c, const char* gcluster){
 static inline int
 ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
             uint16_t stylemask, uint64_t channels, int bytes){
+  const notcurses* nc = ncplane_notcurses_const(n);
+  if(n->sprite){
+    logerror(nc, "Can't write glyphs (%s) to sprixelated plane\n", egc);
+    return -1;
+  }
   // FIXME reject any control or space characters here--should be iswgraph()
   // check *before ncplane_cursor_move_yx()* whether we're past the end of the
   // line. if scrolling is enabled, move to the next line if so. if x or y are
   // specified, we must always try to print at exactly that location.
   if(x != -1){
     if(x + cols > n->lenx){
-      logerror(ncplane_notcurses(n), "Target x %d + %d cols >= length %d\n", x, cols, n->lenx);
+      logerror(nc, "Target x %d + %d cols >= length %d\n", x, cols, n->lenx);
       ncplane_cursor_move_yx(n, y, x); // update cursor, though
       return -1;
     }
   }else if(y == -1 && n->x + cols > n->lenx){
     if(!n->scrolling){
-      logerror(ncplane_notcurses(n), "No room to output [%.*s] %d/%d\n", bytes, egc, n->y, n->x);
+      logerror(nc, "No room to output [%.*s] %d/%d\n", bytes, egc, n->y, n->x);
       return -1;
     }
     scroll_down(n);

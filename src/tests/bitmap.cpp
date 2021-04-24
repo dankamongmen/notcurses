@@ -47,8 +47,38 @@ TEST_CASE("Bitmaps") {
   }
 
   // a sprixel requires a plane large enough to hold it
-  SUBCASE("SprixelTooBig") {
+  SUBCASE("SprixelTooTall") {
     auto y = nc_->tcache.cellpixy + 1;
+    auto x = nc_->tcache.cellpixx;
+    std::vector<uint32_t> v(x * y, htole(0xe61c28ff));
+    auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
+    REQUIRE(nullptr != ncv);
+    struct ncplane_options nopts = {
+      .y = 0, .x = 0,
+      .rows = 1, .cols = 1,
+      .userptr = nullptr, .name = "small", .resizecb = nullptr,
+      .flags = 0, .margin_b = 0, .margin_r = 0,
+    };
+    auto n = ncplane_create(n_, &nopts);
+    struct ncvisual_options vopts = {
+      .n = n,
+      .scaling = NCSCALE_NONE,
+      .y = 0,
+      .x = 0,
+      .begy = 0, .begx = 0,
+      .leny = 0, .lenx = 0,
+      .blitter = NCBLIT_PIXEL,
+      .flags = NCVISUAL_OPTION_NODEGRADE,
+      .transcolor = 0,
+    };
+    CHECK(nullptr == ncvisual_render(nc_, ncv, &vopts));
+    CHECK(0 == notcurses_render(nc_));
+    ncvisual_destroy(ncv);
+    CHECK(0 == ncplane_destroy(n));
+  }
+
+  SUBCASE("SprixelTooWide") {
+    auto y = nc_->tcache.cellpixy;
     auto x = nc_->tcache.cellpixx + 1;
     std::vector<uint32_t> v(x * y, htole(0xe61c28ff));
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
@@ -73,7 +103,38 @@ TEST_CASE("Bitmaps") {
     };
     CHECK(nullptr == ncvisual_render(nc_, ncv, &vopts));
     CHECK(0 == notcurses_render(nc_));
-sleep(2);
+    ncvisual_destroy(ncv);
+    CHECK(0 == ncplane_destroy(n));
+  }
+
+  // should not be able to emit glyphs to a sprixelated plane
+  SUBCASE("SprixelNoGlyphs") {
+    auto y = nc_->tcache.cellpixy;
+    auto x = nc_->tcache.cellpixx;
+    std::vector<uint32_t> v(x * y, htole(0xe61c28ff));
+    auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
+    REQUIRE(nullptr != ncv);
+    struct ncplane_options nopts = {
+      .y = 0, .x = 0,
+      .rows = 1, .cols = 1,
+      .userptr = nullptr, .name = "small", .resizecb = nullptr,
+      .flags = 0, .margin_b = 0, .margin_r = 0,
+    };
+    auto n = ncplane_create(n_, &nopts);
+    struct ncvisual_options vopts = {
+      .n = n,
+      .scaling = NCSCALE_NONE,
+      .y = 0,
+      .x = 0,
+      .begy = 0, .begx = 0,
+      .leny = 0, .lenx = 0,
+      .blitter = NCBLIT_PIXEL,
+      .flags = NCVISUAL_OPTION_NODEGRADE,
+      .transcolor = 0,
+    };
+    CHECK(nullptr != ncvisual_render(nc_, ncv, &vopts));
+    CHECK(0 > ncplane_putchar_yx(n, ' ', 0, 0));
+    CHECK(0 == notcurses_render(nc_));
     ncvisual_destroy(ncv);
     CHECK(0 == ncplane_destroy(n));
   }
