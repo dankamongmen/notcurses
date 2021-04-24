@@ -26,9 +26,8 @@ fn main() -> NcResult<()> {
 
     // vframe.inflate(1)?; // this works
 
-    vframe.resize(1, 1)?; // but it doesn't matter which values we put here 
+    vframe.resize(6, 1)?;
 
-    // FIXME: render always gives an error
     vframe.render(&mut nc, &voptions)?;
 
     rsleep![&mut nc, 2];

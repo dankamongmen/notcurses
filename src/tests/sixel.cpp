@@ -6,7 +6,6 @@
 // convert the sprixel at s having pixel dimensions dimyXdimx to an rgb(a)
 // matrix for easier analysis. breaks on malformed sixels.
 std::vector<uint32_t> sixel_to_rgb(const char* s, int dimy, int dimx) {
-  std::cerr << "Got sprixel " << dimy << "*" << dimx << std::endl;
   std::vector<uint32_t> bmap(dimy * dimx, 0x00000000ull);
   std::vector<uint32_t> colors;
   // first we skip the header
@@ -147,10 +146,11 @@ TEST_CASE("Sixels") {
   auto n_ = notcurses_stdplane(nc_);
   REQUIRE(n_);
 
-  // FIXME force Sixel support
+  // this can only run with a Sixel backend
   if(notcurses_check_pixel_support(nc_) <= 0){
-    CHECK(0 == nc_->tcache.bitmap_supported);
-    CHECK(!notcurses_stop(nc_));
+    return;
+  }
+  if(nc_->tcache.color_registers <= 0){
     return;
   }
 

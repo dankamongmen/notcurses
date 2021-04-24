@@ -2,6 +2,34 @@
 #include <ncurses.h> // needed for some definitions, see terminfo(3ncurses)
 #include "internal.h"
 
+// we found Sixel support -- set up the API
+static inline void
+setup_sixel_bitmaps(tinfo* ti){
+  ti->bitmap_supported = true;
+  ti->color_registers = 256;  // assumed default [shrug]
+  ti->pixel_init = sixel_init;
+  ti->pixel_draw = sixel_draw;
+  ti->sixel_maxx = 4096; // whee!
+  ti->sixel_maxy = 4096;
+  ti->pixel_remove = NULL;
+  ti->pixel_destroy = sixel_delete;
+  ti->pixel_cell_wipe = sixel_wipe;
+  ti->pixel_shutdown = sixel_shutdown;
+  ti->sprixel_height_factor = 6;
+}
+
+static inline void
+setup_kitty_bitmaps(tinfo* ti){
+  ti->pixel_cell_wipe = kitty_wipe;
+  ti->pixel_destroy = kitty_delete;
+  ti->pixel_init = kitty_init;
+  ti->pixel_remove = kitty_remove;
+  ti->pixel_draw = kitty_draw;
+  ti->pixel_shutdown = kitty_shutdown;
+  ti->sprixel_height_factor = 1;
+  set_pixel_blitter(kitty_blit);
+}
+
 static bool
 query_rgb(void){
   bool rgb = tigetflag("RGB") == 1;
@@ -61,14 +89,7 @@ apply_term_heuristics(tinfo* ti, const char* termname){
     ti->quadrants = true;
     ti->pixel_query_done = true;
     ti->bitmap_supported = true;
-    ti->pixel_cell_wipe = kitty_wipe;
-    ti->pixel_destroy = kitty_delete;
-    ti->pixel_init = kitty_init;
-    ti->pixel_remove = kitty_remove;
-    ti->pixel_draw = kitty_draw;
-    ti->pixel_shutdown = kitty_shutdown;
-    ti->sprixel_height_factor = 1;
-    set_pixel_blitter(kitty_blit);
+    setup_kitty_bitmaps(ti);
   }else if(strstr(termname, "alacritty")){
     ti->alacritty_sixel_hack = true;
     ti->quadrants = true;
@@ -334,22 +355,6 @@ query_sixel_details(tinfo* ti, int fd){
   return 0;
 }
 
-// we found Sixel support -- set up the API
-static void
-setup_sixel(tinfo* ti){
-  ti->bitmap_supported = true;
-  ti->color_registers = 256;  // assumed default [shrug]
-  ti->pixel_init = sixel_init;
-  ti->pixel_draw = sixel_draw;
-  ti->sixel_maxx = 4096; // whee!
-  ti->sixel_maxy = 4096;
-  ti->pixel_remove = NULL;
-  ti->pixel_destroy = sixel_delete;
-  ti->pixel_cell_wipe = sixel_wipe;
-  ti->pixel_shutdown = sixel_shutdown;
-  ti->sprixel_height_factor = 6;
-}
-
 // query for Sixel support
 static int
 query_sixel(tinfo* ti, int fd){
@@ -389,7 +394,7 @@ query_sixel(tinfo* ti, int fd){
       case WANT_SEMI:
         if(in == ';'){
           if(in4){
-            setup_sixel(ti);
+            setup_sixel_bitmaps(ti);
           }
           state = WANT_C4;
         }else if(in == 'c'){
@@ -404,7 +409,7 @@ query_sixel(tinfo* ti, int fd){
           // until graphics/ayosec is merged, alacritty doesn't actually
           // have sixel support. enable this then. FIXME
           /*if(ti->alacritty_sixel_hack){
-            setup_sixel(ti);
+            setup_sixel_bitmaps(ti);
           }*/
           state = DONE;
         }else if(in == ';'){
