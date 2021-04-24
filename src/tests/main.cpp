@@ -18,6 +18,7 @@ auto testing_notcurses() -> struct notcurses* {
   notcurses_options nopts{};
   // FIXME get loglevel from command line. enabling it by default leads to
   // more confusion than useful information, so leave it off by default.
+  //nopts.loglevel = NCLOGLEVEL_TRACE;
   nopts.flags = NCOPTION_SUPPRESS_BANNERS | NCOPTION_NO_ALTERNATE_SCREEN;
   auto nc = notcurses_init(&nopts, nullptr);
   return nc;
@@ -80,6 +81,11 @@ reset_terminal(){
     }
     fflush(stdout);
     str = tigetstr("oc");
+    if(str != (char*)-1){
+      printf("%s", str);
+    }
+    fflush(stdout);
+    str = tigetstr("cnorm");
     if(str != (char*)-1){
       printf("%s", str);
     }

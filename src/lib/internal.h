@@ -946,10 +946,11 @@ sprixel* sprixel_by_id(const ncpile* n, uint32_t id);
 void sprixel_invalidate(sprixel* s, int y, int x);
 void sprixel_movefrom(sprixel* s, int y, int x);
 
-// is the sprixel backend kitty?
-static inline bool sprixel_kitty_p(const tinfo* t){
-  return t->pixel_shutdown == kitty_shutdown;
-}
+int sixel_blit(ncplane* nc, int linesize, const void* data,
+               int leny, int lenx, const blitterargs* bargs);
+
+int kitty_blit(ncplane* nc, int linesize, const void* data,
+               int leny, int lenx, const blitterargs* bargs);
 
 static inline int
 sprite_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
@@ -1006,6 +1007,12 @@ sprixel_state(const sprixel* s, int y, int x){
   assert(localx >= 0);
   assert(localx < s->dimx);
   return s->n->tacache[localy * s->dimx + localx];
+}
+
+// is sprixel backend kitty (only valid after calling setup_kitty_bitmaps())?
+// FIXME kill this off, and use different states instead
+static inline bool sprixel_kitty_p(const tinfo* t){
+  return t->pixel_shutdown == kitty_shutdown;
 }
 
 static inline void
@@ -1587,12 +1594,6 @@ static inline bool
 ncdirect_bg_default_p(const struct ncdirect* nc){
   return channels_bg_default_p(ncdirect_channels(nc));
 }
-
-int sixel_blit(ncplane* nc, int linesize, const void* data,
-               int leny, int lenx, const blitterargs* bargs);
-
-int kitty_blit(ncplane* nc, int linesize, const void* data,
-               int leny, int lenx, const blitterargs* bargs);
 
 int term_fg_rgb8(bool RGBflag, const char* setaf, int colors, FILE* out,
                  unsigned r, unsigned g, unsigned b);

@@ -1029,14 +1029,15 @@ rasterize_core(notcurses* nc, const ncpile* p, FILE* out, unsigned phase){
 //fprintf(stderr, "RAST %08x [%s] to %d/%d cols: %u %016lx\n", srccell->gcluster, pool_extended_gcluster(&nc->pool, srccell), y, x, srccell->width, srccell->channels);
         // this is used to invalidate the sprixel in the first text round,
         // which is only necessary for sixel, not kitty.
-        if(rvec[damageidx].sprixel
-            && sprixel_state(rvec[damageidx].sprixel, y - nc->stdplane->absy, x - nc->stdplane->absx) != SPRIXCELL_TRANSPARENT
-            && sprixel_state(rvec[damageidx].sprixel, y - nc->stdplane->absy, x - nc->stdplane->absx) != SPRIXCELL_ANNIHILATED
-            && !rvec[damageidx].s.p_beats_sprixel
-            && !sprixel_kitty_p(&nc->tcache)){
+        if(rvec[damageidx].sprixel){
+          sprixcell_e scstate = sprixel_state(rvec[damageidx].sprixel, y - nc->stdplane->absy, x - nc->stdplane->absx);
+          if(scstate != SPRIXCELL_TRANSPARENT
+              && scstate != SPRIXCELL_ANNIHILATED && !rvec[damageidx].s.p_beats_sprixel
+              && !sprixel_kitty_p(&nc->tcache)){
 //fprintf(stderr, "INVALIDATING at %d/%d (%u)\n", y, x, rvec[damageidx].s.p_beats_sprixel);
 
-          sprixel_invalidate(rvec[damageidx].sprixel, y, x);
+            sprixel_invalidate(rvec[damageidx].sprixel, y, x);
+          }
         }
         if(term_putc(out, &nc->pool, srccell)){
           return -1;
