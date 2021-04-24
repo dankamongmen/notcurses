@@ -158,15 +158,19 @@ ncvisual_blitset_geom(const notcurses* nc, const ncvisual* n,
         logerror(nc, "Non-origin x placement %d for sprixel\n", vopts->x);
         return -1;
       }
-      int rows = (*leny + nc->tcache.cellpixy - 1) / nc->tcache.cellpixy;
-      if(rows > ncplane_dim_y(vopts->n) * nc->tcache.cellpixy){
-        logerror(nc, "Sprixel too tall %d for plane %d\n", *leny, ncplane_dim_y(vopts->n) * nc->tcache.cellpixy);
-        return -1;
-      }
-      int cols = (*lenx + nc->tcache.cellpixx - 1) / nc->tcache.cellpixx;
-      if(cols > ncplane_dim_x(vopts->n) * nc->tcache.cellpixx){
-        logerror(nc, "Sprixel too wide %d for plane %d\n", *lenx, ncplane_dim_x(vopts->n) * nc->tcache.cellpixx);
-        return -1;
+      // FIXME clamp to sprixel limits
+      if(vopts->scaling == NCSCALE_NONE || vopts->scaling == NCSCALE_NONE_HIRES){
+        int rows = (*leny + nc->tcache.cellpixy - 1) / nc->tcache.cellpixy;
+fprintf(stderr, "rows: %d dim: %d\n", rows, ncplane_dim_y(vopts->n));
+        if(rows > ncplane_dim_y(vopts->n)){
+          logerror(nc, "Sprixel too tall %d for plane %d\n", *leny, ncplane_dim_y(vopts->n) * nc->tcache.cellpixy);
+          return -1;
+        }
+        int cols = (*lenx + nc->tcache.cellpixx - 1) / nc->tcache.cellpixx;
+        if(cols > ncplane_dim_x(vopts->n)){
+          logerror(nc, "Sprixel too wide %d for plane %d\n", *lenx, ncplane_dim_x(vopts->n) * nc->tcache.cellpixx);
+          return -1;
+        }
       }
     }
   }

@@ -48,7 +48,7 @@ TEST_CASE("Bitmaps") {
 
   // a sprixel requires a plane large enough to hold it
   SUBCASE("SprixelTooTall") {
-    auto y = nc_->tcache.cellpixy + 1;
+    auto y = nc_->tcache.cellpixy + 6;
     auto x = nc_->tcache.cellpixx;
     std::vector<uint32_t> v(x * y, htole(0xe61c28ff));
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
