@@ -167,7 +167,6 @@ TEST_CASE("Sixels") {
     auto rgbold = sixel_to_rgb(newn->sprite->glyph, newn->sprite->pixy, newn->sprite->pixx);
 //print_bmap(rgbold, newn->sprite->pixy, newn->sprite->pixx);
     CHECK(0 == notcurses_render(nc_));
-sleep(2);
     struct ncplane_options nopts = {
       .y = ncplane_dim_y(newn) * 3 / 4,
       .x = 0,
@@ -190,7 +189,6 @@ sleep(2);
     auto rgbnew = sixel_to_rgb(newn->sprite->glyph, newn->sprite->pixy, newn->sprite->pixx);
 //print_bmap(rgbnew, newn->sprite->pixy, newn->sprite->pixx);
     CHECK(0 == ncplane_destroy(newn));
-sleep(2);
     CHECK(0 == ncplane_destroy(blockerplane));
     ncvisual_destroy(ncv);
   }

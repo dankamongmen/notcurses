@@ -22,6 +22,30 @@ TEST_CASE("Bitmaps") {
     CHECK(nc_->tcache.bitmap_supported);
   }
 
+  SUBCASE("SprixelResize") {
+    auto y = 10;
+    auto x = 10;
+    std::vector<uint32_t> v(x * y, htole(0xe61c28ff));
+    auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
+    REQUIRE(nullptr != ncv);
+    struct ncvisual_options vopts = {
+      .n = nullptr,
+      .scaling = NCSCALE_NONE,
+      .y = 0, .x = 0,
+      .begy = 0, .begx = 0,
+      .leny = 0, .lenx = 0,
+      .blitter = NCBLIT_PIXEL,
+      .flags = NCVISUAL_OPTION_NODEGRADE,
+      .transcolor = 0,
+    };
+    CHECK(0 == ncvisual_resize(ncv, 6, 1)); // FIXME get down to 1, 1
+    auto n = ncvisual_render(nc_, ncv, &vopts);
+    REQUIRE(nullptr != n);
+    auto s = n->sprite;
+    REQUIRE(nullptr != s);
+    ncvisual_destroy(ncv);
+  }
+
 #ifdef NOTCURSES_USE_MULTIMEDIA
   SUBCASE("PixelRender") {
     auto ncv = ncvisual_from_file(find_data("worldmap.png"));
