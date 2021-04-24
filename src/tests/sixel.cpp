@@ -30,9 +30,8 @@ std::vector<uint32_t> sixel_to_rgb(const char* s, int dimy, int dimx) {
       break;
     }
     if(state == STATE_WANT_HASH){
-      if(*s == '#'){
-        state = STATE_WANT_COLOR;
-      }
+      REQUIRE('#' == *s);
+      state = STATE_WANT_COLOR;
     }else if(state == STATE_WANT_COLOR){
       CHECK(isdigit(*s));
       color = 0;
@@ -75,7 +74,7 @@ std::vector<uint32_t> sixel_to_rgb(const char* s, int dimy, int dimx) {
         b += *s - '0';
         ++s;
       }while(isdigit(*s));
-      uint32_t rgb = (r << 24u) + (g << 16u) + (b << 8u);
+      uint32_t rgb = 0xff000000 + (r << 16u) * 255 / 100 + (g << 8u) * 255 / 100 + b * 255 / 100;
 //std::cerr << "Got color " << color << ": " << r << "/" << g << "/" << b << std::endl;
       if(color >= colors.capacity()){
         colors.resize(color + 1);
@@ -98,6 +97,7 @@ std::vector<uint32_t> sixel_to_rgb(const char* s, int dimy, int dimx) {
           rle += *s - '0';
           ++s;
         }while(isdigit(*s));
+        CHECK(2 < rle);
         --s;
       }else if(*s == '$'){
         x = 0;
@@ -113,12 +113,11 @@ std::vector<uint32_t> sixel_to_rgb(const char* s, int dimy, int dimx) {
             if((*s - 63) & (1u << (ypos - y))){
               // ought be an empty pixel
               CHECK(0x00000000ull == bmap[ypos * dimx + xpos]);
-//std::cerr << *s << " BMAP[" << ypos << "][" << xpos << "] = " << colors[color] << std::endl;
+//std::cerr << *s << " BMAP[" << ypos << "][" << xpos << "] = " << std::hex << colors[color] << std::dec << std::endl;
               bmap[ypos * dimx + xpos] = colors[color];
             }
           }
         }
-        // FIXME data, sweet data! write to y/x
         x += rle;
         rle = 1;
       }
@@ -132,7 +131,7 @@ std::vector<uint32_t> sixel_to_rgb(const char* s, int dimy, int dimx) {
 void print_bmap(const std::vector<uint32_t> rgba, int pixy, int pixx){
   for(int y = 0 ; y < pixy ; ++y){
     for(int x = 0 ; x < pixx ; ++x){
-      std::cerr << "rgba[" << y << "][" << x << "] (" << y * x << "): " << std::hex << rgba[y * pixx + x] << std::endl;
+      std::cerr << "rgba[" << y << "][" << x << "] (" << y * x << "): " << std::hex << rgba[y * pixx + x] << std::dec << std::endl;
     }
   }
 }
@@ -155,6 +154,27 @@ TEST_CASE("Sixels") {
   }
 
 #ifdef NOTCURSES_USE_MULTIMEDIA
+  SUBCASE("SixelRoundtrip") {
+    CHECK(1 == ncplane_set_base(n_, "&", 0, 0));
+    auto ncv = ncvisual_from_file(find_data("worldmap.png"));
+    REQUIRE(ncv);
+    struct ncvisual_options vopts{};
+    vopts.blitter = NCBLIT_PIXEL;
+    vopts.flags = NCVISUAL_OPTION_NODEGRADE;
+    auto newn = ncvisual_render(nc_, ncv, &vopts);
+    CHECK(newn);
+    CHECK(0 == notcurses_render(nc_));
+    auto rgb = sixel_to_rgb(newn->sprite->glyph, newn->sprite->pixy, newn->sprite->pixx);
+    for(int y = 0 ; y < newn->sprite->pixy ; ++y){
+      for(int x = 0 ; x < newn->sprite->pixx ; ++x){
+//fprintf(stderr, "%03d/%03d NCV: %08x RGB: %08x\n", y, x, ncv->data[y * newn->sprite->pixx + x], rgb[y * newn->sprite->pixx + x]);
+        // FIXME
+        //CHECK(ncv->data[y * newn->sprite->pixx + x] == rgb[y * newn->sprite->pixx + x]);
+      }
+    }
+    ncvisual_destroy(ncv);
+  }
+
   SUBCASE("SixelBlit") {
     CHECK(1 == ncplane_set_base(n_, "&", 0, 0));
     auto ncv = ncvisual_from_file(find_data("natasha-blur.png"));
