@@ -244,19 +244,33 @@ information.
 
 # PIXEL BLITTING
 
-Some terminals support pixel-based output, either via Sixel or some bespoke
-mechanism. Checking for Sixel support requires interrogating the terminal and
-reading a response. This takes time, and will never complete if the terminal
-doesn't respond. Before **NCBLIT_PIXEL** can be used, it is thus necessary to
-check for support with **notcurses_check_pixel_support**. If this function has
-not successfully returned, attempts to use **NCBLIT_PIXEL** will fall back to
-**NCBLIT_3x2** (or fail, if **NCVISUAL_OPTION_NODEGRADE** is used).
+Some terminals support pixel-based output via one of a number of protocols.
+Checking for bitmap support requires interrogating the terminal and reading a
+response. This takes time, and will never complete if the terminal doesn't
+respond. Notcurses will not do so without an explicit request from the client
+code. Before **NCBLIT_PIXEL** can be used, it is thus necessary to call
+**notcurses_check_pixel_support**. If this function has not successfully
+returned, attempts to use **NCBLIT_PIXEL** will fall back to cell-based
+blitting (or fail, if **NCVISUAL_OPTION_NODEGRADE** is used).
 
-Bitmaps cannot be blitted to the standard plane; an attempt to do so will be
-rejected as an error. Only one bitmap can be blitted onto a plane at a time
-(but multiple planes with bitmaps may be visible); blitting a second to the
-same plane will delete the original. Destroying the plane with which a bitmap
-is associated will delete the bitmap.
+**NCBLIT_PIXEL** has some stringent requirements on the type of planes it can
+be used with; it is usually best to let **ncvisual_render** create the backing
+plane by providing a **NULL** value for **n**. If you must bring your own
+plane, that plane must not have a resize callback, and must be perfectly sized
+for the bitmap (i.e. large enough, and not more than a full cell larger in
+either dimension). Using **NCSCALE_STRETCH** means that the second condition
+will always be met. Once a sprixel is blitted to a plane, that plane may not
+be resized, a resize callback may not be set, the base cell may not be set,
+and cell methods (including cell blitting) may not be used with it. The only
+way to change the plane's contents is to destroy the plane. Notcurses will
+automatically set the plane's base cell to the null glyph, **NCSTYLE_NONE**,
+and transparent in both the fore- and background. A sprixelated plane may be
+moved in all three dimensions, duplicated, and reparented.
+
+Only one bitmap can be blitted onto a plane at a time (but multiple planes
+with bitmaps may be visible); blitting a second to the same plane will delete
+the original. Destroying the plane with which a bitmap is associated will
+delete the bitmap.
 
 # RETURN VALUES
 
@@ -297,18 +311,37 @@ linked library. OpenImageIO does not support subtitles.
 Sixel documentation can be found at [Dankwiki](https://nick-black.com/dankwiki/index.php?title=Sixel).
 Kitty's graphics protocol is specified in [its documentation](https://sw.kovidgoyal.net/kitty/graphics-protocol.html).
 
-# BUGS
-
-**ncvisual_rotate** currently supports only **M_PI**/2 and -**M_PI**/2
-radians for **rads**, but this will change soon.
-
 Bad font support can ruin **NCBLIT_2x2**, **NCBLIT_3x2**, **NCBLIT_4x1**,
 **NCBLIT_BRAILLE**, and **NCBLIT_8x1**. Braille glyphs ought ideally draw only
 the raised dots, rather than drawing all eight dots with two different styles.
 It's often best for the emulator to draw these glyphs itself.
 
-**ncvisual_render** ought be able to create new planes in piles other than
+Several emulators claim to implement Sixel, but do so in a more or less broken
+fashion. I consider **XTerm** and **foot** to be reference Sixel
+implementations on X.org and Wayland, respectively.
+
+Sixels are fundamentally expressed in terms of six-line bands. If the rendered
+bitmap is not a multiple of six rows, the necessary rows will be faked via
+transparent rows. All sprixels have a height in rows, and if this height is
+not a multiple of the cell height in rows, the last rows will only partially
+obstruct a row of cells. This can lead to undesirable redraws and flicker if
+the cells underneath the sprixel change. A sprixel which is both a multiple of
+the cell height and a multiple of six is the most predictable possible sprixel.
+
+# BUGS
+
+Functions which describe rendered state such as **ncplane_at_yx** and
+**notcurses_at_yx** will return an **nccell** with a sprixel ID, but this
+sprixel cannot be accessed.
+
+**ncvisual_rotate** currently supports only **M_PI**/2 and -**M_PI**/2
+radians for **rads**, but this will change soon.
+
+**ncvisual_render** should be able to create new planes in piles other than
 the standard pile. This ought become a reality soon.
+
+Sprixels interact poorly with multiple planes, and such usage is discouraged.
+This situation might improve in the future.
 
 # SEE ALSO
 
