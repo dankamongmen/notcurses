@@ -333,7 +333,7 @@ int kitty_blit(ncplane* n, int linesize, const void* data,
   // if we have a sprixel attached to this plane, see if we can reuse it
   // (we need the same dimensions) and thus immediately apply its T-A table.
   if(n->tacache){
-    if(n->tacachey == rows && n->tacachex == cols){
+    if(n->leny == rows && n->lenx == cols){
       tacache = n->tacache;
       reuse = true;
     }

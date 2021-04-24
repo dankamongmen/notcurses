@@ -212,7 +212,6 @@ typedef struct ncplane {
 
   sprixel* sprite;       // pointer into the sprixel cache
   sprixcell_e* tacache;  // transparency-annihilation sprite matrix
-  int tacachey, tacachex;// tacache geometry FIXME get rid of this
 
   void* userptr;         // slot for the user to stick some opaque pointer
   int (*resizecb)(struct ncplane*); // callback after parent is resized
@@ -1431,8 +1430,6 @@ plane_blit_sixel(sprixel* spx, char* s, int bytes, int rows, int cols,
       free(n->tacache);
     }
     n->tacache = tacache;
-    n->tacachey = rows;
-    n->tacachex = cols;
     n->sprite = spx;
   }
   return 0;

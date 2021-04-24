@@ -482,7 +482,7 @@ int sixel_blit(ncplane* n, int linesize, const void* data,
   // (we need the same dimensions) and thus immediately apply its T-A table.
   if(n->tacache){
 //fprintf(stderr, "IT'S A REUSE %d %d %d %d\n", n->tacachey, rows, n->tacachex, cols);
-    if(n->tacachey == rows && n->tacachex == cols){
+    if(n->leny == rows && n->lenx == cols){
       tacache = n->tacache;
       reuse = true;
     }
