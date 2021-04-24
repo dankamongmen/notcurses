@@ -38,12 +38,44 @@ TEST_CASE("Bitmaps") {
       .flags = NCVISUAL_OPTION_NODEGRADE,
       .transcolor = 0,
     };
-    CHECK(0 == ncvisual_resize(ncv, 6, 1)); // FIXME get down to 1, 1
+    CHECK(0 == ncvisual_resize(ncv, 6, 1)); // FIXME get down to 1, 1 (sixel needs handle)
     auto n = ncvisual_render(nc_, ncv, &vopts);
     REQUIRE(nullptr != n);
     auto s = n->sprite;
     REQUIRE(nullptr != s);
     ncvisual_destroy(ncv);
+  }
+
+  // a sprixel requires a plane large enough to hold it
+  SUBCASE("SprixelTooBig") {
+    auto y = nc_->tcache.cellpixy + 1;
+    auto x = nc_->tcache.cellpixx + 1;
+    std::vector<uint32_t> v(x * y, htole(0xe61c28ff));
+    auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
+    REQUIRE(nullptr != ncv);
+    struct ncplane_options nopts = {
+      .y = 0, .x = 0,
+      .rows = 1, .cols = 1,
+      .userptr = nullptr, .name = "small", .resizecb = nullptr,
+      .flags = 0, .margin_b = 0, .margin_r = 0,
+    };
+    auto n = ncplane_create(n_, &nopts);
+    struct ncvisual_options vopts = {
+      .n = n,
+      .scaling = NCSCALE_NONE,
+      .y = 0,
+      .x = 0,
+      .begy = 0, .begx = 0,
+      .leny = 0, .lenx = 0,
+      .blitter = NCBLIT_PIXEL,
+      .flags = NCVISUAL_OPTION_NODEGRADE,
+      .transcolor = 0,
+    };
+    CHECK(nullptr == ncvisual_render(nc_, ncv, &vopts));
+    CHECK(0 == notcurses_render(nc_));
+sleep(2);
+    ncvisual_destroy(ncv);
+    CHECK(0 == ncplane_destroy(n));
   }
 
 #ifdef NOTCURSES_USE_MULTIMEDIA
@@ -294,8 +326,6 @@ TEST_CASE("Bitmaps") {
     CHECK(0 == ncplane_destroy(n));
   }
 
-  // too much output -- OOMs ctest FIXME
-  /*
 #ifdef NOTCURSES_USE_MULTIMEDIA
   SUBCASE("PixelWipeImage") {
     uint64_t channels = 0;
@@ -315,7 +345,8 @@ TEST_CASE("Bitmaps") {
     for(int y = 0 ; y < s->dimy ; ++y){
       for(int x = 0 ; x < s->dimx ; ++x){
         CHECK(1 == ncplane_putchar_yx(n_, y, x, 'x'));
-        CHECK(0 == notcurses_render(nc_));
+        // FIXME generates too much output, OOMing ctest
+        // CHECK(0 == notcurses_render(nc_));
       }
     }
     CHECK(0 == ncplane_destroy(newn));
@@ -323,7 +354,6 @@ TEST_CASE("Bitmaps") {
     ncvisual_destroy(ncv);
   }
 #endif
-*/
 
   CHECK(!notcurses_stop(nc_));
 }

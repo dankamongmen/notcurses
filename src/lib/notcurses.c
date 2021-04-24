@@ -583,10 +583,6 @@ int resize_callbacks_children(ncplane* n){
 // can be used on stdplane, unlike ncplane_resize() which prohibits it.
 int ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
                             int keeplenx, int yoff, int xoff, int ylen, int xlen){
-  if(n->sprite){
-    logerror(ncplane_notcurses_const(n), "Can't resize sprixelated (id %d) plane\n", n->sprite->id);
-    return -1;
-  }
   if(keepleny < 0 || keeplenx < 0){ // can't retain negative size
     logerror(ncplane_notcurses_const(n), "Can't retain negative size %dx%d\n", keepleny, keeplenx);
     return -1;
@@ -626,6 +622,9 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
   }
   loginfo(ncplane_notcurses_const(n), "%dx%d @ %d/%d → %d/%d @ %d/%d (keeping %dx%d from %d/%d)\n", rows, cols, n->absy, n->absx, ylen, xlen, n->absy + keepy + yoff, n->absx + keepx + xoff, keepleny, keeplenx, keepy, keepx);
   notcurses* nc = ncplane_notcurses(n);
+  if(n->sprite){
+    sprixel_hide(n->sprite);
+  }
   // we're good to resize. we'll need alloc up a new framebuffer, and copy in
   // those elements we're retaining, zeroing out the rest. alternatively, if
   // we've shrunk, we will be filling the new structure.

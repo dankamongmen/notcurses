@@ -158,6 +158,16 @@ ncvisual_blitset_geom(const notcurses* nc, const ncvisual* n,
         logerror(nc, "Non-origin x placement %d for sprixel\n", vopts->x);
         return -1;
       }
+      int rows = (*leny + nc->tcache.cellpixy - 1) / nc->tcache.cellpixy;
+      if(rows > ncplane_dim_y(vopts->n)){
+        logerror(nc, "Sprixel too tall %d for plane %d\n", *leny, ncplane_dim_y(vopts->n) * nc->tcache.cellpixy);
+        return -1;
+      }
+      int cols = (*lenx + nc->tcache.cellpixx - 1) / nc->tcache.cellpixx;
+      if(cols > ncplane_dim_x(vopts->n)){
+        logerror(nc, "Sprixel too wide %d for plane %d\n", *lenx, ncplane_dim_x(vopts->n) * nc->tcache.cellpixx);
+        return -1;
+      }
     }
   }
   if(n){

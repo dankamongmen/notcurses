@@ -352,6 +352,8 @@ last row is cleared, and output begins at the beginning of the last row. This
 does not take place until output is generated (i.e. it is possible to fill a
 plane when scrolling is enabled).
 
+## Bitmaps
+
 **ncplane_pixelgeom** retrieves pixel geometry details. **pxy** and **pxx**
 return the size of the plane in pixels. **celldimy** and **celldimx** return
 the size of a cell in pixels (these ought be the same across planes).
@@ -364,9 +366,9 @@ parameter (save **n**) may be **NULL**.
 When a plane is blitted to using **ncvisual_render** and **NCBLIT_PIXEL** (see
 **notcurses_visual(3)**), it ceases to accept cell-based output. The sprixel
 will remain associated until a new sprixel is blitted to the plane, the plane
-is resized, or the plane is destroyed. The base cell of a sprixelated plane
-has no effect; if the sprixel is not even multiples of the cell geometry, the
-"excess plane" is ignored during rendering.
+is resized, the plane is erased, or the plane is destroyed. The base cell of a
+sprixelated plane has no effect; if the sprixel is not even multiples of the
+cell geometry, the "excess plane" is ignored during rendering.
 
 # RETURN VALUES
 
