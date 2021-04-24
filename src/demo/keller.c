@@ -28,29 +28,33 @@ visualize(struct notcurses* nc, struct ncvisual* ncv){
                 | NCVISUAL_OPTION_VERALIGNED,
     };
     int scalex, scaley, truey, truex;
-    ncvisual_blitter_geom(nc, ncv, &vopts, &truey, &truex, &scaley, &scalex, NULL);
     vopts.x = NCALIGN_CENTER;
     vopts.y = NCALIGN_CENTER;
-//fprintf(stderr, "X: %d truex: %d scalex: %d\n", vopts.x, truex, scalex);
     ncplane_erase(stdn); // to clear out old text
-    struct ncplane* n;
-    if((n = ncvisual_render(nc, ncv, &vopts)) == NULL){
+    struct ncplane* n = NULL;
+    if(ncvisual_blitter_geom(nc, ncv, &vopts, &truey, &truex, &scaley, &scalex, NULL) == 0){
+      if( (n = ncvisual_render(nc, ncv, &vopts)) ){
+        ncplane_move_below(n, stdn);
+        ncplane_printf_aligned(stdn, ncplane_dim_y(stdn) / 2 - 1, NCALIGN_CENTER,
+                              "%03dx%03d", truex, truey);
+        ncplane_printf_aligned(stdn, ncplane_dim_y(stdn) / 2 + 1, NCALIGN_CENTER,
+                              "%d:%d pixels -> cell", scalex, scaley);
+      }
+    }
+//fprintf(stderr, "X: %d truex: %d scalex: %d\n", vopts.x, truex, scalex);
+    if(!n){
       ncplane_printf_aligned(stdn, ncplane_dim_y(stdn) / 2 - 1, NCALIGN_CENTER, "not available");
-    }else{
-      ncplane_move_below(n, stdn);
-      ncplane_printf_aligned(stdn, ncplane_dim_y(stdn) / 2 - 1, NCALIGN_CENTER,
-                             "%03dx%03d", truex, truey);
-      ncplane_printf_aligned(stdn, ncplane_dim_y(stdn) / 2 + 1, NCALIGN_CENTER,
-                             "%d:%d pixels -> cell", scalex, scaley);
     }
     const char* name = notcurses_str_blitter(bs[i]);
     ncplane_printf_aligned(stdn, ncplane_dim_y(stdn) / 2 - 3, NCALIGN_CENTER, "%sblitter", name);
     int ret = demo_render(nc);
     if(ret){
+      ncplane_destroy(n);
       return ret;
     }
     ret = demo_nanosleep(nc, &kdelay);
     if(ret){
+      ncplane_destroy(n);
       return ret;
     }
     ncplane_destroy(n);
