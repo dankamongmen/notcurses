@@ -16,15 +16,16 @@ int yield_demo(struct notcurses* nc){
   if(wmv == NULL){
     return -1;
   }
-  ncscale_e scale = NCSCALE_STRETCH;
+  // can we do bitmaps?
+  const bool bitmaps = (notcurses_check_pixel_support(nc) > 0);
   struct ncplane_options nopts = {
     .y = 1,
-    .rows = dimy - 2,
+    .rows = dimy - 1 - bitmaps,
     .cols = dimx,
     .name = "wmap",
   };
   struct ncvisual_options vopts = {
-    .scaling = scale,
+    .scaling = NCSCALE_STRETCH,
     .blitter = NCBLIT_PIXEL,
   };
   vopts.n = ncplane_create(std, &nopts);
@@ -32,23 +33,33 @@ int yield_demo(struct notcurses* nc){
     ncvisual_destroy(wmv);
     return -1;
   }
+  int maxy, maxx;
+  if(bitmaps){
+    ncplane_pixelgeom(vopts.n, NULL, NULL, NULL, NULL, &maxy, &maxx);
+    if(ncvisual_resize(wmv, maxy, maxx)){
+      ncvisual_destroy(wmv);
+      ncplane_destroy(vopts.n);
+      return -1;
+    }
+  }else{
+    if(ncvisual_blitter_geom(nc, wmv, &vopts, &maxy, &maxx, NULL, NULL, NULL)){
+      ncvisual_destroy(wmv);
+      ncplane_destroy(vopts.n);
+      return -1;
+    }
+  }
   if(ncvisual_render(nc, wmv, &vopts) == NULL){
-    ncplane_destroy(vopts.n);
     ncvisual_destroy(wmv);
+    ncplane_destroy(vopts.n);
     return -1;
   }
-  
-  int vy, vx, vscaley, vscalex;
-  vopts.scaling = NCSCALE_NONE;
-  ncvisual_blitter_geom(nc, wmv, &vopts, &vy, &vx, &vscaley, &vscalex, NULL);
-  vopts.scaling = scale;
   struct timespec scaled;
-  const long total = vy * vx;
+  const long total = maxy * maxx;
   // less than this, and we exit almost immediately. more than this, and we
   // run closer to twenty seconds. 11/50 it is, then. pixels are different.
   // it would be nice to hit this all with a rigor stick. yes, the 1 makes
   // all the difference in cells v pixels. FIXME
-  const long threshold_painted = total * (10 + (notcurses_check_pixel_support(nc) <= 0)) / 50;
+  const long threshold_painted = total * (10 + !bitmaps) / 50;
   const int MAXITER = 256;
   timespec_div(&demodelay, MAXITER, &scaled);
   long tfilled = 0;
@@ -84,11 +95,11 @@ int yield_demo(struct notcurses* nc){
   int iters = 0;
   // FIXME resize the background once rather than scaling every blit
   while(tfilled < threshold_painted && iters < MAXITER){
-//fprintf(stderr, "%d/%d x %d/%d tfilled: %ld thresh: %ld total: %ld\n", vy, vx, vscaley, vscalex, tfilled, threshold_painted, total);
+//fprintf(stderr, "%d/%d tfilled: %ld thresh: %ld total: %ld\n", maxy, maxx, tfilled, threshold_painted, total);
     int pfilled = 0;
     do{
-      int x = random() % (vx);
-      int y = random() % (vy);
+      int x = random() % maxx;
+      int y = random() % maxy;
       uint32_t pixel = 0;
       if(ncvisual_at_yx(wmv, y, x, &pixel) < 0){
         ncvisual_destroy(wmv);
