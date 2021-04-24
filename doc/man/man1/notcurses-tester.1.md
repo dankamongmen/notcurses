@@ -8,7 +8,7 @@ notcurses-tester - Notcurses unit testing
 
 # SYNOPSIS
 
-**notcurses-tester** [**-p datadir**]
+**notcurses-tester** [**-p datadir**] [**-l**]
 
 # DESCRIPTION
 
@@ -18,7 +18,12 @@ if these are in an irregular location, supply **-p**.
 
 # OPTIONS
 
+**-p** ***path***: Look in the specified ***path*** for data files.
+
+**-l**: Enable all possible diagnostics/logging.
+
 # NOTES
+
 Valid **TERM** and **LANG** environment variables are necessary for
 **notcurses-tester**'s correct operation.
 

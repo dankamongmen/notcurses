@@ -140,6 +140,8 @@ highcontrast(uint32_t bchannel){
 }
 
 // wants coordinates within the sprixel, not absolute
+// FIXME if plane is not wholly on-screen, probably need to toss plane,
+// at least for this rendering cycle
 static void
 paint_sprixel(const ncplane* p, const nccell* vis, struct crender* crender,
               int y, int x){

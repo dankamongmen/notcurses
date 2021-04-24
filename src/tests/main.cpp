@@ -12,13 +12,14 @@
 #include <filesystem>
 #include <langinfo.h>
 
-static const char* datadir = NOTCURSES_SHARE;
+const char* datadir = NOTCURSES_SHARE;
+ncloglevel_e loglevel = NCLOGLEVEL_SILENT;
 
 auto testing_notcurses() -> struct notcurses* {
   notcurses_options nopts{};
-  // FIXME get loglevel from command line. enabling it by default leads to
+  // get loglevel from command line. enabling it by default leads to
   // more confusion than useful information, so leave it off by default.
-  //nopts.loglevel = NCLOGLEVEL_TRACE;
+  nopts.loglevel = loglevel;
   nopts.flags = NCOPTION_SUPPRESS_BANNERS | NCOPTION_NO_ALTERNATE_SCREEN;
   auto nc = notcurses_init(&nopts, nullptr);
   return nc;
@@ -39,6 +40,8 @@ handle_opts(const char** argv){
       inarg = false;
     }else if(strcmp(*argv, "-p") == 0){
       inarg = true;
+    }else if(strcmp(*argv, "-l") == 0){
+      loglevel = NCLOGLEVEL_TRACE;
     }
     ++argv;
   }
