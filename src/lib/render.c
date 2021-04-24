@@ -177,6 +177,10 @@ paint_sprixel(ncplane* p, struct crender* rvec, int starty, int startx,
         if(crender->sprixel == NULL){
           crender->sprixel = s;
         }
+        if(sprixel_state(s, absy, absx) == SPRIXCELL_ANNIHILATED){
+          // FIXME rebuild!
+fprintf(stderr, "annihilation UNDONE at %d/%d\n", y, x);
+        }
       }
     }
   }
