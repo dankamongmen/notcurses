@@ -148,6 +148,18 @@ ncvisual_blitset_geom(const notcurses* nc, const ncvisual* n,
   if(!x){
     x = &fauxx;
   }
+  if(bset->geom == NCBLIT_PIXEL && vopts){
+    if(vopts->n){
+      if(vopts->y && !(vopts->flags & NCVISUAL_OPTION_VERALIGNED)){
+        logerror(nc, "Non-origin y placement %d for sprixel\n", vopts->y);
+        return -1;
+      }
+      if(vopts->x && !(vopts->flags & NCVISUAL_OPTION_HORALIGNED)){
+        logerror(nc, "Non-origin x placement %d for sprixel\n", vopts->x);
+        return -1;
+      }
+    }
+  }
   if(n){
     if(scale == NCSCALE_NONE || scale == NCSCALE_NONE_HIRES){
       *y = n->rows;
@@ -600,6 +612,8 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
 
 // by the end, disprows/dispcols refer to the number of source rows/cols (in
 // pixels), which will be mapped to a region of cells scaled by the encodings).
+// sprixels are only blit to the origin; placey and placex may be non-zero
+// only if the target plane is being created.
 // the blit will begin at placey/placex (in terms of cells). begy/begx define
 // the origin of the source region to draw (in pixels). leny/lenx defined the
 // geometry of the source region to draw, again in pixels. ncv->rows and
@@ -609,10 +623,6 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
                                 ncplane* n, ncscale_e scaling, uint64_t flags,
                                 uint32_t transcolor){
   ncplane* stdn = notcurses_stdplane(nc);
-  if(stdn == n){
-    logerror(nc, "Won't render bitmaps to the standard plane\n");
-    return NULL;
-  }
   int disprows = 0, dispcols = 0;
   if(scaling == NCSCALE_NONE || scaling == NCSCALE_NONE_HIRES){
     dispcols = ncv->cols;
