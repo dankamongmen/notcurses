@@ -1010,6 +1010,660 @@ NcPlane_erase(NcPlaneObject *self, PyObject *Py_UNUSED(args))
     Py_RETURN_NONE;
 }
 
+static PyObject *
+NcPlane_bchannel(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+{
+    return Py_BuildValue("k", (unsigned long)ncplane_bchannel(self->ncplane_ptr));
+}
+
+static PyObject *
+NcPlane_fchannel(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+{
+    return Py_BuildValue("k", (unsigned long)ncplane_fchannel(self->ncplane_ptr));
+}
+
+static PyObject *
+NcPlane_set_channels(NcPlaneObject *self, PyObject *args)
+{
+    unsigned long long channels = 0;
+
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "K", &channels));
+
+    ncplane_set_channels(self->ncplane_ptr, (uint64_t)channels);
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_set_styles(NcPlaneObject *self, PyObject *args)
+{
+    unsigned int stylebits = 0;
+
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "I", &stylebits));
+
+    ncplane_set_styles(self->ncplane_ptr, stylebits);
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_on_styles(NcPlaneObject *self, PyObject *args)
+{
+    unsigned int stylebits = 0;
+
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "I", &stylebits));
+
+    ncplane_on_styles(self->ncplane_ptr, stylebits);
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_off_styles(NcPlaneObject *self, PyObject *args)
+{
+    unsigned int stylebits = 0;
+
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "I", &stylebits));
+
+    ncplane_off_styles(self->ncplane_ptr, stylebits);
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_fg_rgb(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+{
+    return Py_BuildValue("k", (unsigned long)ncplane_fg_rgb(self->ncplane_ptr));
+}
+
+static PyObject *
+NcPlane_bg_rgb(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+{
+    return Py_BuildValue("k", (unsigned long)ncplane_bg_rgb(self->ncplane_ptr));
+}
+
+static PyObject *
+NcPlane_fg_alpha(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+{
+    return Py_BuildValue("k", (unsigned long)ncplane_fg_alpha(self->ncplane_ptr));
+}
+
+static PyObject *
+NcPlane_fg_default_p(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+{
+    return PyBool_FromLong((long)ncplane_fg_default_p(self->ncplane_ptr));
+}
+
+static PyObject *
+NcPlane_bg_alpha(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+{
+    return Py_BuildValue("k", (unsigned long)ncplane_bg_alpha(self->ncplane_ptr));
+}
+
+static PyObject *
+NcPlane_bg_default_p(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+{
+    return PyBool_FromLong((long)ncplane_bg_default_p(self->ncplane_ptr));
+}
+
+static PyObject *
+NcPlane_fg_rgb8(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+{
+    unsigned int r = 0, g = 0, b = 0;
+    ncplane_fg_rgb8(self->ncplane_ptr, &r, &g, &b);
+
+    return Py_BuildValue("III", r, g, b);
+}
+
+static PyObject *
+NcPlane_bg_rgb8(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+{
+    unsigned int r = 0, g = 0, b = 0;
+    ncplane_bg_rgb8(self->ncplane_ptr, &r, &g, &b);
+
+    return Py_BuildValue("III", r, g, b);
+}
+
+static PyObject *
+NcPlane_set_fchannel(NcPlaneObject *self, PyObject *args)
+{
+    unsigned long channel = 0;
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "k", &channel));
+
+    return Py_BuildValue("K", (unsigned long long)ncplane_set_fchannel(self->ncplane_ptr, (uint32_t)channel));
+}
+
+static PyObject *
+NcPlane_set_bchannel(NcPlaneObject *self, PyObject *args)
+{
+    unsigned long channel = 0;
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "k", &channel));
+
+    return Py_BuildValue("K", (unsigned long long)ncplane_set_bchannel(self->ncplane_ptr, (uint32_t)channel));
+}
+
+static PyObject *
+NcPlane_set_fg_rgb8(NcPlaneObject *self, PyObject *args)
+{
+    int r = 0, g = 0, b = 0;
+
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "iii", &r, &g, &b));
+
+    CHECK_NOTCURSES(ncplane_set_fg_rgb8(self->ncplane_ptr, r, g, b));
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_set_bg_rgb8(NcPlaneObject *self, PyObject *args)
+{
+    int r = 0, g = 0, b = 0;
+
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "iii", &r, &g, &b));
+
+    CHECK_NOTCURSES(ncplane_set_bg_rgb8(self->ncplane_ptr, r, g, b));
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_set_bg_rgb8_clipped(NcPlaneObject *self, PyObject *args)
+{
+    int r = 0, g = 0, b = 0;
+
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "iii", &r, &g, &b));
+
+    ncplane_set_bg_rgb8_clipped(self->ncplane_ptr, r, g, b);
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_set_fg_rgb8_clipped(NcPlaneObject *self, PyObject *args)
+{
+    int r = 0, g = 0, b = 0;
+
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "iii", &r, &g, &b));
+
+    ncplane_set_fg_rgb8_clipped(self->ncplane_ptr, r, g, b);
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_set_fg_rgb(NcPlaneObject *self, PyObject *args)
+{
+    unsigned long channel = 0;
+
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "k", &channel));
+
+    CHECK_NOTCURSES(ncplane_set_fg_rgb(self->ncplane_ptr, (uint32_t)channel));
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_set_bg_rgb(NcPlaneObject *self, PyObject *args)
+{
+    unsigned long channel = 0;
+
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "k", &channel));
+
+    CHECK_NOTCURSES(ncplane_set_bg_rgb(self->ncplane_ptr, (uint32_t)channel));
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_set_fg_default(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+{
+    ncplane_set_fg_default(self->ncplane_ptr);
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_set_bg_default(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+{
+    ncplane_set_bg_default(self->ncplane_ptr);
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_set_fg_palindex(NcPlaneObject *self, PyObject *args)
+{
+    int idx = 0;
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "i", &idx));
+    ncplane_set_fg_palindex(self->ncplane_ptr, idx);
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_set_bg_palindex(NcPlaneObject *self, PyObject *args)
+{
+    int idx = 0;
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "i", &idx));
+    ncplane_set_bg_palindex(self->ncplane_ptr, idx);
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_set_fg_alpha(NcPlaneObject *self, PyObject *args)
+{
+    int alpha = 0;
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "i", &alpha));
+    ncplane_set_fg_alpha(self->ncplane_ptr, alpha);
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_set_bg_alpha(NcPlaneObject *self, PyObject *args)
+{
+    int alpha = 0;
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "i", &alpha));
+    ncplane_set_bg_alpha(self->ncplane_ptr, alpha);
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_fadeout(NcPlaneObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when fader is added");
+    return NULL;
+    // ncplane_fadeout
+}
+
+static PyObject *
+NcPlane_fadein(NcPlaneObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when fader is added");
+    return NULL;
+    // ncplane_fadein
+}
+
+static PyObject *
+NcPlane_fade_setup(NcPlaneObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when fader is added");
+    return NULL;
+    // ncfadectx_setup
+}
+
+static PyObject *
+NcPlane_fadeout_iteration(NcPlaneObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when fader is added");
+    return NULL;
+    // ncplane_fadeout_iteration
+}
+
+static PyObject *
+NcPlane_fadein_iteration(NcPlaneObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when fader is added");
+    return NULL;
+    // ncplane_fadein_iteration
+}
+
+static PyObject *
+NcPlane_pulse(NcPlaneObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when fader is added");
+    return NULL;
+    // ncplane_pulse
+}
+
+static PyObject *
+NcPlane_cells_load_box(NcPlaneObject *Py_UNUSED(self), PyObject *Py_UNUSED(args), PyObject *Py_UNUSED(kwds))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when cells are added");
+    return NULL;
+    // nccells_load_box
+}
+
+static PyObject *
+NcPlane_cells_rounded_box(NcPlaneObject *Py_UNUSED(self), PyObject *Py_UNUSED(args), PyObject *Py_UNUSED(kwds))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when cells are added");
+    return NULL;
+    // nccells_rounded_box
+}
+
+static PyObject *
+NcPlane_perimeter_rounded(NcPlaneObject *self, PyObject *args, PyObject *kwds)
+{
+    unsigned long stylemask = 0;
+    unsigned long long channels = 0;
+    unsigned int ctlword = 0;
+
+    char *keywords[] = {"stylemask", "channels", "ctlword", NULL};
+
+    GNU_PY_CHECK_INT(PyArg_ParseTupleAndKeywords(args, kwds, "", keywords,
+                                                 &stylemask,
+                                                 &channels,
+                                                 &ctlword));
+
+    CHECK_NOTCURSES(ncplane_perimeter_rounded(self->ncplane_ptr, (uint32_t)stylemask, (uint64_t)channels, ctlword));
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_rounded_box_sized(NcPlaneObject *self, PyObject *args, PyObject *kwds)
+{
+    unsigned long styles = 0;
+    unsigned long long channels = 0;
+    int ylen = 0, xlen = 0;
+    unsigned int ctlword = 0;
+
+    char *keywords[] = {"styles",
+                        "channels",
+                        "ylen", "xlen",
+                        "ctlword",
+                        NULL};
+
+    GNU_PY_CHECK_INT(
+        PyArg_ParseTupleAndKeywords(
+            args, kwds, "kK ii I", keywords,
+            &styles, &channels,
+            &ylen, &xlen,
+            &ctlword));
+
+    CHECK_NOTCURSES(ncplane_rounded_box_sized(
+        self->ncplane_ptr,
+        (uint32_t)styles,
+        (uint64_t)channels,
+        ylen, xlen,
+        ctlword));
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_cells_double_box(NcPlaneObject *Py_UNUSED(self), PyObject *Py_UNUSED(args), PyObject *Py_UNUSED(kwds))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when cells are added");
+    return NULL;
+    // nccells_double_box
+}
+
+static PyObject *
+NcPlane_double_box(NcPlaneObject *self, PyObject *args, PyObject *kwds)
+{
+    unsigned long styles = 0;
+    unsigned long long channels = 0;
+    int ylen = 0, xlen = 0;
+    unsigned int ctlword = 0;
+
+    char *keywords[] = {"styles",
+                        "channels",
+                        "ylen", "xlen",
+                        "ctlword",
+                        NULL};
+
+    GNU_PY_CHECK_INT(
+        PyArg_ParseTupleAndKeywords(
+            args, kwds, "kK ii I", keywords,
+            &styles, &channels,
+            &ylen, &xlen,
+            &ctlword));
+
+    CHECK_NOTCURSES(ncplane_double_box(
+        self->ncplane_ptr,
+        (uint32_t)styles,
+        (uint64_t)channels,
+        ylen, xlen,
+        ctlword));
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_perimeter_double(NcPlaneObject *self, PyObject *args, PyObject *kwds)
+{
+    unsigned long styles = 0;
+    unsigned long long channels = 0;
+    unsigned int ctlword = 0;
+
+    char *keywords[] = {"styles",
+                        "channels",
+                        "ctlword",
+                        NULL};
+
+    GNU_PY_CHECK_INT(
+        PyArg_ParseTupleAndKeywords(
+            args, kwds, "kK I", keywords,
+            &styles, &channels,
+            &ctlword));
+
+    CHECK_NOTCURSES(ncplane_perimeter_double(
+        self->ncplane_ptr,
+        (uint32_t)styles,
+        (uint64_t)channels,
+        ctlword));
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_double_box_sized(NcPlaneObject *self, PyObject *args, PyObject *kwds)
+{
+
+    unsigned long styles = 0;
+    unsigned long long channels = 0;
+    int ylen = 0, xlen = 0;
+    unsigned int ctlword = 0;
+
+    char *keywords[] = {"styles",
+                        "channels",
+                        "ylen", "xlen",
+                        "ctlword",
+                        NULL};
+
+    GNU_PY_CHECK_INT(
+        PyArg_ParseTupleAndKeywords(
+            args, kwds, "kK ii I", keywords,
+            &styles, &channels,
+            &ylen, &xlen,
+            &ctlword));
+
+    CHECK_NOTCURSES(ncplane_double_box_sized(
+        self->ncplane_ptr,
+        (uint32_t)styles,
+        (uint64_t)channels,
+        ylen, xlen,
+        ctlword));
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_ncvisual_from_plane(NcPlaneObject *Py_UNUSED(self), PyObject *Py_UNUSED(args), PyObject *Py_UNUSED(kwds))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when visual is added");
+    return NULL;
+    // ncvisual_from_plane
+}
+
+static PyObject *
+NcPlane_as_rgba(NcPlaneObject *Py_UNUSED(self), PyObject *Py_UNUSED(args), PyObject *Py_UNUSED(kwds))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when visual is added");
+    return NULL;
+    // ncplane_as_rgba
+}
+
+static PyObject *
+NcPlane_reel_create(NcPlaneObject *Py_UNUSED(self), PyObject *Py_UNUSED(args), PyObject *Py_UNUSED(kwds))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when NcReel is added");
+    return NULL;
+    // ncreel_create
+}
+
+static PyObject *
+NcPlane_greyscale(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+{
+    ncplane_greyscale(self->ncplane_ptr);
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_selector_create(NcPlaneObject *Py_UNUSED(self), PyObject *Py_UNUSED(args), PyObject *Py_UNUSED(kwds))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when NcSelector is added");
+    return NULL;
+    // ncselector_create
+}
+
+static PyObject *
+NcPlane_multiselector_create(NcPlaneObject *Py_UNUSED(self), PyObject *Py_UNUSED(args), PyObject *Py_UNUSED(kwds))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when NcSelector is added");
+    return NULL;
+    // ncmultiselector_create
+}
+
+static PyObject *
+NcPlane_tree_create(NcPlaneObject *Py_UNUSED(self), PyObject *Py_UNUSED(args), PyObject *Py_UNUSED(kwds))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when NcTree is added");
+    return NULL;
+    // nctree_create
+}
+
+static PyObject *
+NcPlane_menu_create(NcPlaneObject *Py_UNUSED(self), PyObject *Py_UNUSED(args), PyObject *Py_UNUSED(kwds))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when NcMenu is added");
+    return NULL;
+    // ncmenu_create
+}
+
+static PyObject *
+NcPlane_progbar_create(NcPlaneObject *Py_UNUSED(self), PyObject *Py_UNUSED(args), PyObject *Py_UNUSED(kwds))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when NcProgbar is added");
+    return NULL;
+    // ncprogbar_create
+}
+
+static PyObject *
+NcPlane_tabbed_create(NcPlaneObject *Py_UNUSED(self), PyObject *Py_UNUSED(args), PyObject *Py_UNUSED(kwds))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when NcTabbed is added");
+    return NULL;
+    // nctabbed_create
+}
+
+static PyObject *
+NcPlane_uplot_create(NcPlaneObject *Py_UNUSED(self), PyObject *Py_UNUSED(args), PyObject *Py_UNUSED(kwds))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when NcUplot is added");
+    return NULL;
+    // ncuplot_create
+}
+
+static PyObject *
+NcPlane_dplot_create(NcPlaneObject *Py_UNUSED(self), PyObject *Py_UNUSED(args), PyObject *Py_UNUSED(kwds))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when NcDplot is added");
+    return NULL;
+    // ncdplot_create
+}
+
+static PyObject *
+NcPlane_fdplane_create(NcPlaneObject *Py_UNUSED(self), PyObject *Py_UNUSED(args), PyObject *Py_UNUSED(kwds))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when NcFdPlane is added");
+    return NULL;
+    // ncfdplane_create
+}
+
+static PyObject *
+NcPlane_subproc_createv(NcPlaneObject *Py_UNUSED(self), PyObject *Py_UNUSED(args), PyObject *Py_UNUSED(kwds))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when NcFdPlane is added");
+    return NULL;
+    // ncsubproc_createv
+}
+
+static PyObject *
+NcPlane_subproc_createvp(NcPlaneObject *Py_UNUSED(self), PyObject *Py_UNUSED(args), PyObject *Py_UNUSED(kwds))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when NcFdPlane is added");
+    return NULL;
+    // ncsubproc_createvp
+}
+
+static PyObject *
+NcPlane_subproc_createvpe(NcPlaneObject *Py_UNUSED(self), PyObject *Py_UNUSED(args), PyObject *Py_UNUSED(kwds))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when NcFdPlane is added");
+    return NULL;
+    // ncsubproc_createvpe
+}
+
+static PyObject *
+NcPlane_qrcode(NcPlaneObject *self, PyObject *args)
+{
+    const char *data = NULL;
+    Py_ssize_t len = 0;
+
+    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "s#", &data, &len));
+
+    int ymax = 0, xmax = 0;
+
+    CHECK_NOTCURSES(ncplane_qrcode(self->ncplane_ptr, &ymax, &xmax, (void *)data, (size_t)len));
+
+    return Py_BuildValue("ii", &ymax, &xmax);
+}
+
+static PyObject *
+NcPlane_reader_create(NcPlaneObject *Py_UNUSED(self), PyObject *Py_UNUSED(args), PyObject *Py_UNUSED(kwds))
+{
+    PyErr_SetString(PyExc_NotImplementedError, "TODO when NcReader is added");
+    return NULL;
+    // ncreader_create
+}
+
+static PyObject *
+NcPlane_pile_top(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+{
+    PyObject *new_object = NcPlane_Type.tp_alloc((PyTypeObject *)&NcPlane_Type, 0);
+    NcPlaneObject *new_plane = (NcPlaneObject *)new_object;
+    new_plane->ncplane_ptr = ncpile_top(self->ncplane_ptr);
+    return new_object;
+}
+
+static PyObject *
+NcPlane_pile_bottom(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+{
+    PyObject *new_object = NcPlane_Type.tp_alloc((PyTypeObject *)&NcPlane_Type, 0);
+    NcPlaneObject *new_plane = (NcPlaneObject *)new_object;
+    new_plane->ncplane_ptr = ncpile_bottom(self->ncplane_ptr);
+    return new_object;
+}
+
+static PyObject *
+NcPlane_pile_render(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+{
+    ncpile_render(self->ncplane_ptr);
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+NcPlane_pile_rasterize(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+{
+    ncpile_rasterize(self->ncplane_ptr);
+    Py_RETURN_NONE;
+}
+
 /*
 static PyObject *
 NcPlane_(NcPlaneObject *self, PyObject *args)
@@ -1121,7 +1775,85 @@ static PyMethodDef NcPlane_methods[] = {
     {"mergedown", (void *)NcPlane_mergedown, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Merge with parameters the ncplane down onto the passed ncplane.")},
     {"erase", (PyCFunction)NcPlane_erase, METH_NOARGS, PyDoc_STR("Erase every cell in the ncplane.")},
 
-    //  {"", () NULL, METH_VARARGS, PyDoc_STR("")},
+    {"bchannel", (PyCFunction)NcPlane_bchannel, METH_NOARGS, PyDoc_STR("Extract the 32-bit working background channel from an ncplane.")},
+    {"fchannel", (PyCFunction)NcPlane_fchannel, METH_NOARGS, PyDoc_STR("Extract the 32-bit working foreground channel from an ncplane.")},
+    {"set_channels", (PyCFunction)NcPlane_set_channels, METH_VARARGS, PyDoc_STR("Set both foreground and background channels of the plane.")},
+
+    {"set_styles", (PyCFunction)NcPlane_set_styles, METH_VARARGS, PyDoc_STR("Set the specified style bits for the ncplane 'n', whether they're actively supported or not.")},
+    {"on_styles", (PyCFunction)NcPlane_on_styles, METH_VARARGS, PyDoc_STR("Add the specified styles to the ncplane's existing spec.")},
+    {"off_styles", (PyCFunction)NcPlane_off_styles, METH_VARARGS, PyDoc_STR("Remove the specified styles from the ncplane's existing spec.")},
+
+    {"fg_rgb", (PyCFunction)NcPlane_fg_rgb, METH_NOARGS, PyDoc_STR("Extract 24 bits of working foreground RGB from an ncplane, shifted to LSBs.")},
+    {"bg_rgb", (PyCFunction)NcPlane_bg_rgb, METH_NOARGS, PyDoc_STR("Extract 24 bits of working background RGB from an ncplane, shifted to LSBs.")},
+    {"fg_alpha", (PyCFunction)NcPlane_fg_alpha, METH_NOARGS, PyDoc_STR("Extract 2 bits of foreground alpha from 'struct ncplane', shifted to LSBs.")},
+    {"fg_default_p", (PyCFunction)NcPlane_fg_default_p, METH_NOARGS, PyDoc_STR("Is the plane's foreground using the \"default foreground color\"?")},
+    {"bg_alpha", (PyCFunction)NcPlane_bg_alpha, METH_NOARGS, PyDoc_STR("Extract 2 bits of background alpha from 'struct ncplane', shifted to LSBs.")},
+    {"bg_default_p", (PyCFunction)NcPlane_bg_default_p, METH_NOARGS, PyDoc_STR("Is the plane's background using the \"default background color\"?")},
+
+    {"fg_rgb8", (PyCFunction)NcPlane_fg_rgb8, METH_NOARGS, PyDoc_STR("Extract 24 bits of foreground RGB from 'n', split into components.")},
+    {"bg_rgb8", (PyCFunction)NcPlane_bg_rgb8, METH_NOARGS, PyDoc_STR("Extract 24 bits of background RGB from 'n', split into components.")},
+    {"set_fchannel", (PyCFunction)NcPlane_set_fchannel, METH_VARARGS, PyDoc_STR("Set an entire foreground channel of the plane, return new channels.")},
+    {"set_bchannel", (PyCFunction)NcPlane_set_bchannel, METH_VARARGS, PyDoc_STR("Set an entire background channel of the plane, return new channels.")},
+
+    {"set_fg_rgb8", (PyCFunction)NcPlane_set_fg_rgb8, METH_VARARGS, PyDoc_STR("Set the current foreground color using RGB specifications.")},
+    {"set_bg_rgb8", (PyCFunction)NcPlane_set_bg_rgb8, METH_VARARGS, PyDoc_STR("Set the current background color using RGB specifications.")},
+    {"set_bg_rgb8_clipped", (PyCFunction)NcPlane_set_bg_rgb8_clipped, METH_VARARGS, PyDoc_STR("Set the current foreground color using RGB specifications but clipped to [0..255].")},
+    {"set_fg_rgb8_clipped", (PyCFunction)NcPlane_set_fg_rgb8_clipped, METH_VARARGS, PyDoc_STR("Set the current background color using RGB specifications but clipped to [0..255].")},
+    {"set_fg_rgb", (PyCFunction)NcPlane_set_fg_rgb, METH_VARARGS, PyDoc_STR("Set the current foreground color using channel.")},
+    {"set_bg_rgb", (PyCFunction)NcPlane_set_bg_rgb, METH_VARARGS, PyDoc_STR("Set the current background color using channel.")},
+
+    {"set_fg_default", (PyCFunction)NcPlane_set_fg_default, METH_NOARGS, PyDoc_STR("Use the default color for the foreground.")},
+    {"set_bg_default", (PyCFunction)NcPlane_set_bg_default, METH_NOARGS, PyDoc_STR("Use the default color for the background.")},
+    {"set_fg_palindex", (PyCFunction)NcPlane_set_fg_palindex, METH_VARARGS, PyDoc_STR("Set the ncplane's foreground palette index.")},
+    {"set_bg_palindex", (PyCFunction)NcPlane_set_bg_palindex, METH_VARARGS, PyDoc_STR("Set the ncplane's background palette index.")},
+    {"set_fg_alpha", (PyCFunction)NcPlane_set_fg_alpha, METH_VARARGS, PyDoc_STR("Set the foreground alpha parameters for the plane.")},
+    {"set_bg_alpha", (PyCFunction)NcPlane_set_bg_alpha, METH_VARARGS, PyDoc_STR("Set the background alpha parameters for the plane.")},
+
+    {"fadeout", (PyCFunction)NcPlane_fadeout, METH_VARARGS, PyDoc_STR("Fade the ncplane out over the provided time, calling 'fader' at each iteration.")},
+    {"fadein", (PyCFunction)NcPlane_fadein, METH_VARARGS, PyDoc_STR("Fade the ncplane in over the specified time. ")},
+    {"fade_setup", (PyCFunction)NcPlane_fade_setup, METH_VARARGS, PyDoc_STR("Create NcFadeCtx.")},
+    {"fadeout_iteration", (PyCFunction)NcPlane_fadeout_iteration, METH_VARARGS, PyDoc_STR("TODO")},
+    {"fadein_iteration", (PyCFunction)NcPlane_fadein_iteration, METH_VARARGS, PyDoc_STR("TODO")},
+    {"pulse", (PyCFunction)NcPlane_pulse, METH_VARARGS, PyDoc_STR("Pulse the plane in and out until the callback returns non-zero.")},
+
+    {"cells_load_box", (void *)NcPlane_cells_load_box, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Load up six cells with the EGCs necessary to draw a box.")},
+    {"cells_rounded_box", (void *)NcPlane_cells_rounded_box, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Load up six cells with the EGCs necessary to draw a round box.")},
+    {"perimeter_rounded", (void *)NcPlane_perimeter_rounded, METH_VARARGS, PyDoc_STR("Draw a perimeter around plane.")},
+
+    {"rounded_box_sized", (void *)NcPlane_rounded_box_sized, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Draw a round box around plane.")},
+    {"cells_double_box", (void *)NcPlane_cells_double_box, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Draw a double box with cells.")},
+    {"double_box", (void *)NcPlane_double_box, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Draw a double box.")},
+    {"perimeter_double", (void *)NcPlane_perimeter_double, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Draw a double perimeter.")},
+    {"double_box_sized", (void *)NcPlane_double_box_sized, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Draw a double box sized.")},
+
+    {"ncvisual_from_plane", (void *)NcPlane_ncvisual_from_plane, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Promote an plane to an NcVisual.")},
+    {"as_rgba", (void *)NcPlane_as_rgba, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Create an RGBA flat array from the selected region of the plane.")},
+    {"reel_create", (void *)NcPlane_reel_create, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Take over the plane and use it to draw a reel.")},
+    {"greyscale", (PyCFunction)NcPlane_greyscale, METH_NOARGS, PyDoc_STR("Convert the plane's content to greyscale.")},
+    {"selector_create", (void *)NcPlane_selector_create, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Create NcSelector.")},
+    {"multiselector_create", (void *)NcPlane_multiselector_create, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Create MultiSelector.")},
+    {"tree_create", (void *)NcPlane_tree_create, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Create NcTree.")},
+    {"menu_create", (void *)NcPlane_menu_create, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Create NcMenu.")},
+    {"progbar_create", (void *)NcPlane_progbar_create, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Create NcProgbar.")},
+    {"tabbed_create", (void *)NcPlane_tabbed_create, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Create NcProgbar.")},
+    {"uplot_create", (void *)NcPlane_uplot_create, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Create NcUplot.")},
+    {"dplot_create", (void *)NcPlane_dplot_create, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Create NcDplot.")},
+    {"fdplane_create", (void *)NcPlane_fdplane_create, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Create NcFdPlane.")},
+
+    {"subproc_createv", (void *)NcPlane_subproc_createv, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Create subprocess plane.")},
+    {"subproc_createvp", (void *)NcPlane_subproc_createvp, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Create subprocess plane.")},
+    {"subproc_createvpe", (void *)NcPlane_subproc_createvpe, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Create subprocess plane.")},
+
+    {"qrcode", (void *)NcPlane_qrcode, METH_VARARGS, PyDoc_STR("Create QR code, return y and x size.")},
+
+    {"reader_create", (void *)NcPlane_reader_create, METH_VARARGS | METH_KEYWORDS, PyDoc_STR("Create NcReader.")},
+
+    {"pile_top", (PyCFunction)NcPlane_pile_top, METH_NOARGS, PyDoc_STR("Return the topmost plane of the pile.")},
+    {"pile_bottom", (PyCFunction)NcPlane_pile_bottom, METH_NOARGS, PyDoc_STR("Return the bottommost plane of the pile.")},
+    {"pile_render", (PyCFunction)NcPlane_pile_render, METH_NOARGS, PyDoc_STR("Renders the pile of which plane is a part.")},
+    {"pile_rasterize", (PyCFunction)NcPlane_pile_rasterize, METH_NOARGS, PyDoc_STR("Make the physical screen match the last rendered frame from the pile.")},
+
+    //  {"", (PyCFunction) NULL, METH_VARARGS, PyDoc_STR("")},
     {NULL, NULL, 0, NULL},
 };
 
