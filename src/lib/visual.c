@@ -460,7 +460,6 @@ int ncvisual_rotate(ncvisual* ncv, double rads){
   ncv->cols = bbx;
   ncv->rows = bby;
   ncv->rowstride = bbx * 4;
-  ncvisual_details_seed(ncv);
   return 0;
 }
 

@@ -139,6 +139,47 @@ TEST_CASE("Bitmaps") {
     CHECK(0 == ncplane_destroy(n));
   }
 
+  SUBCASE("BitmapStack") {
+    auto y = nc_->tcache.cellpixy * 10;
+    auto x = nc_->tcache.cellpixx * 10;
+    std::vector<uint32_t> v(x * y, htole(0xe61c28ff));
+    auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
+    REQUIRE(nullptr != ncv);
+    struct ncvisual_options vopts = {
+      .n = nullptr, .scaling = NCSCALE_NONE,
+      .y = 0,
+      .x = 0,
+      .begy = 0, .begx = 0,
+      .leny = 0, .lenx = 0,
+      .blitter = NCBLIT_PIXEL,
+      .flags = NCVISUAL_OPTION_NODEGRADE,
+      .transcolor = 0,
+    };
+    auto botn = ncvisual_render(nc_, ncv, &vopts);
+    REQUIRE(nullptr != botn);
+    // should just have a red plane
+    CHECK(0 == notcurses_render(nc_));
+    y = nc_->tcache.cellpixy * 5;
+    x = nc_->tcache.cellpixx * 5;
+    std::vector<uint32_t> v2(x * y, htole(0x8142f1ff));
+    auto ncv2 = ncvisual_from_rgba(v2.data(), y, sizeof(decltype(v2)::value_type) * x, x);
+    REQUIRE(nullptr != ncv2);
+    auto topn = ncvisual_render(nc_, ncv2, &vopts);
+    REQUIRE(nullptr != topn);
+    // should have a yellow plane partially obscuring a red one
+    CHECK(0 == notcurses_render(nc_));
+    ncplane_move_yx(topn, 5, 5);
+    // yellow bitmap ought move to lower right, but remain visible
+    CHECK(0 == notcurses_render(nc_));
+    ncplane_move_top(botn);
+    // should see only the red one now
+    CHECK(0 == notcurses_render(nc_));
+    CHECK(0 == ncplane_destroy(botn));
+    CHECK(0 == ncplane_destroy(topn));
+    ncvisual_destroy(ncv);
+    ncvisual_destroy(ncv2);
+  }
+
 #ifdef NOTCURSES_USE_MULTIMEDIA
   SUBCASE("PixelRender") {
     auto ncv = ncvisual_from_file(find_data("worldmap.png"));
