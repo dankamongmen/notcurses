@@ -1953,7 +1953,7 @@ API int ncplane_stain(struct ncplane* n, int ystop, int xstop, uint64_t ul,
 
 // If 'src' does not intersect with 'dst', 'dst' will not be changed, but it is
 // not an error. If 'dst' is NULL, the operation will target the standard plane.
-API int ncplane_mergedown_simple(const struct ncplane* RESTRICT src,
+API int ncplane_mergedown_simple(struct ncplane* RESTRICT src,
                                  struct ncplane* RESTRICT dst);
 
 // Merge the ncplane 'src' down onto the ncplane 'dst'. This is most rigorously
@@ -1965,7 +1965,7 @@ API int ncplane_mergedown_simple(const struct ncplane* RESTRICT src,
 // is an error to define a target origin such that the projected subregion is
 // not entirely contained within 'dst'.  Behavior is undefined if 'src' and
 // 'dst' are equivalent. 'dst' is modified, but 'src' remains unchanged.
-API int ncplane_mergedown(const struct ncplane* RESTRICT src,
+API int ncplane_mergedown(struct ncplane* RESTRICT src,
                           struct ncplane* RESTRICT dst,
                           int begsrcy, int begsrcx, int leny, int lenx,
                           int dsty, int dstx);

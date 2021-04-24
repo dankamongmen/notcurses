@@ -515,7 +515,7 @@ int sixel_blit(ncplane* n, int linesize, const void* data,
 int sixel_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
 //fprintf(stderr, "%d] %d %p\n", s->id, s->invalidated, s->n);
   (void)out;
-  const ncplane* stdn = notcurses_stdplane_const(nc);
+  (void)nc;
   int starty = s->movedfromy;
   int startx = s->movedfromx;
   for(int yy = starty ; yy < starty + s->dimy && yy < p->dimy ; ++yy){

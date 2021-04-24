@@ -277,7 +277,7 @@ cell_simple_p(const nccell* c){
 // only applies to complex cells, do not use on simple cells
 __attribute__ ((__returns_nonnull__)) static inline const char*
 egcpool_extended_gcluster(const egcpool* pool, const nccell* c) {
-  assert(!cell_simple_p(c));
+  assert(cell_extended_p(c));
   uint32_t idx = cell_egc_idx(c);
   return pool->pool + idx;
 }

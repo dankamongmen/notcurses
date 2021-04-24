@@ -143,26 +143,41 @@ highcontrast(uint32_t bchannel){
 // FIXME if plane is not wholly on-screen, probably need to toss plane,
 // at least for this rendering cycle
 static void
-paint_sprixel(const ncplane* p, const nccell* vis, struct crender* crender,
-              int y, int x){
+paint_sprixel(ncplane* p, struct crender* rvec, int starty, int startx,
+              int dimy, int dimx, int offy, int offx, int dstleny, int dstlenx){
   const notcurses* nc = ncplane_notcurses_const(p);
-//fprintf(stderr, "presprixel: %p preid: %d id: %d state: %d\n", rvec->sprixel, rvec->sprixel ? rvec->sprixel->id : 0, cell_sprixel_id(vis), sprixel_by_id(ncplane_notcurses_const(p), cell_sprixel_id(vis))->invalidated);
-  // if we already have a glyph solved (meaning said glyph is above this
-  // sprixel), and we run into a bitmap cell, we need to null that cell out
-  // of the bitmap.
-  if(crender->p || crender->s.bgblends){
-    // if sprite_wipe_cell() fails, we presumably do not have the
-    // ability to wipe, and must reprint the character
-    if(sprite_wipe(nc, p->sprite, y, x)){
-//fprintf(stderr, "damaging due to wipe [%s] %d/%d\n", nccell_extended_gcluster(crender->p, &crender->c), y, x);
-      crender->s.damaged = 1;
+  sprixel* s = p->sprite;
+  for(int y = starty ; y < dimy ; ++y){
+    const int absy = y + offy;
+    // once we've passed the physical screen's bottom, we're done
+    if(absy >= dstleny || absy < 0){
+      break;
     }
-    crender->s.p_beats_sprixel = 1;
-  }else if(!crender->p){
-    // if we are a bitmap, and above a cell that has changed (and
-    // will thus be printed), we'll need redraw the sprixel.
-    if(crender->sprixel == NULL){
-      crender->sprixel = sprixel_by_id(ncplane_pile_const(p), cell_sprixel_id(vis));
+    for(int x = startx ; x < dimx ; ++x){ // iteration for each cell
+      const int absx = x + offx;
+      if(absx >= dstlenx || absx < 0){
+        break;
+      }
+      struct crender* crender = &rvec[fbcellidx(absy, dstlenx, absx)];
+//fprintf(stderr, "presprixel: %p preid: %d id: %d state: %d\n", rvec->sprixel, rvec->sprixel ? rvec->sprixel->id : 0, cell_sprixel_id(vis), sprixel_by_id(ncplane_notcurses_const(p), cell_sprixel_id(vis))->invalidated);
+      // if we already have a glyph solved (meaning said glyph is above this
+      // sprixel), and we run into a bitmap cell, we need to null that cell out
+      // of the bitmap.
+      if(crender->p || crender->s.bgblends){
+        // if sprite_wipe_cell() fails, we presumably do not have the
+        // ability to wipe, and must reprint the character
+        if(sprite_wipe(nc, p->sprite, y, x)){
+    //fprintf(stderr, "damaging due to wipe [%s] %d/%d\n", nccell_extended_gcluster(crender->p, &crender->c), y, x);
+          crender->s.damaged = 1;
+        }
+        crender->s.p_beats_sprixel = 1;
+      }else if(!crender->p){
+        // if we are a bitmap, and above a cell that has changed (and
+        // will thus be printed), we'll need redraw the sprixel.
+        if(crender->sprixel == NULL){
+          crender->sprixel = s;
+        }
+      }
     }
   }
 }
@@ -180,7 +195,7 @@ paint_sprixel(const ncplane* p, const nccell* vis, struct crender* crender,
 // rendered.
 //
 static void
-paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
+paint(ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
       int dstabsy, int dstabsx){
   int y, x, dimy, dimx, offy, offx;
   ncplane_dim_yx(p, &dimy, &dimx);
@@ -198,6 +213,14 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
     startx = -offx;
   }else{
     startx = 0;
+  }
+  // if we're a sprixel, we must not register ourselves as the active
+  // glyph, but we *do* need to null out any cellregions that we've
+  // scribbled upon.
+  if(p->sprite){
+    paint_sprixel(p, rvec, starty, startx, dimy, dimx, offy, offx,
+                  dstleny, dstlenx);
+    return;
   }
   for(y = starty ; y < dimy ; ++y){
     const int absy = y + offy;
@@ -217,14 +240,6 @@ paint(const ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
         continue;
       }
       const nccell* vis = &p->fb[nfbcellidx(p, y, x)];
-
-      // if we're a sprixel, we must not register ourselves as the active
-      // glyph, but we *do* need to null out any cellregions that we've
-      // scribbled upon.
-      if(cell_sprixel_p(vis)){
-        paint_sprixel(p, vis, crender, y, x);
-        continue;
-      }
 
       if(nccell_fg_alpha(targc) > CELL_ALPHA_OPAQUE){
         vis = &p->fb[nfbcellidx(p, y, x)];
@@ -443,7 +458,7 @@ postpaint(nccell* lastframe, int dimy, int dimx, struct crender* rvec, egcpool* 
 
 // merging one plane down onto another is basically just performing a render
 // using only these two planes, with the result written to the lower plane.
-int ncplane_mergedown(const ncplane* restrict src, ncplane* restrict dst,
+int ncplane_mergedown(ncplane* restrict src, ncplane* restrict dst,
                       int begsrcy, int begsrcx, int leny, int lenx,
                       int dsty, int dstx){
 //fprintf(stderr, "Merging down %d/%d @ %d/%d to %d/%d\n", leny, lenx, begsrcy, begsrcx, dsty, dstx);
@@ -489,7 +504,7 @@ int ncplane_mergedown(const ncplane* restrict src, ncplane* restrict dst,
   return 0;
 }
 
-int ncplane_mergedown_simple(const ncplane* restrict src, ncplane* restrict dst){
+int ncplane_mergedown_simple(ncplane* restrict src, ncplane* restrict dst){
   const notcurses* nc = ncplane_notcurses_const(src);
   if(dst == NULL){
     dst = nc->stdplane;
