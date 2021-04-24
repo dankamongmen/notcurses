@@ -137,7 +137,7 @@ typedef struct
 typedef struct
 {
     PyObject_HEAD;
-    struct palette256 palette256;
+    struct ncpalette ncpalette;
 } Palette256Object;
 
 // Functions
