@@ -224,10 +224,6 @@ int intro(struct notcurses* nc){
     }
     ncplane_off_styles(ncp, NCSTYLE_BLINK); // heh FIXME replace with pulse
   }
-  struct ncplane* on = NULL;
-  if(notcurses_check_pixel_support(nc) && notcurses_canopen_images(nc)){
-    on = orcashow(nc, rows, cols);
-  }
   struct timespec now;
   clock_gettime(CLOCK_MONOTONIC, &now);
   // there ought be 20 iterations
@@ -235,6 +231,7 @@ int intro(struct notcurses* nc){
   struct timespec iter;
   timespec_div(&demodelay, 10, &iter);
   int flipmode = 0;
+  struct ncplane* on = NULL;
   do{
     int err;
     if( (err = animate(nc, ncp, &flipmode)) ){
@@ -242,8 +239,12 @@ int intro(struct notcurses* nc){
     }
     demo_nanosleep(nc, &iter);
     clock_gettime(CLOCK_MONOTONIC, &now);
-    if(on){
-      if(flipmode % 4 == 0){
+    if(flipmode % 4 == 1){
+      if(!on){
+        if(notcurses_check_pixel_support(nc) && notcurses_canopen_images(nc)){
+          on = orcashow(nc, rows, cols);
+        }
+      }else{
         orcaride(nc, on);
       }
     }
