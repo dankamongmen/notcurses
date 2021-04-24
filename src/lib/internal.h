@@ -141,11 +141,12 @@ typedef enum {
   SPRIXCELL_ANNIHILATED,    // this cell has been wiped (all trans)
 } sprixcell_e;
 
-// there is a context-wide set of displayed pixel glyphs ("sprixels"); i.e.
-// these are independent of particular piles. there should never be very many
+// a sprixel represents a bitmap, using whatever local protocol is available.
+// there is a list of sprixels per ncpile. there ought never be very many
 // associated with a context (a dozen or so at max). with the kitty protocol,
 // we can register them, and then manipulate them by id. with the sixel
-// protocol, we just have to rewrite them.
+// protocol, we just have to rewrite them. there's a doubly-linked list of
+// sprixels per ncpile, to which the pile keeps a head link.
 typedef struct sprixel {
   char* glyph;          // glyph; can be quite large
   int glyphlen;         // length of the glyph in bytes
@@ -155,6 +156,7 @@ typedef struct sprixel {
   struct ncplane* n;    // associated ncplane
   sprixel_e invalidated;// sprixel invalidation state
   struct sprixel* next;
+  struct sprixel* prev;
   int y, x;
   int dimy, dimx;       // cell geometry
   int pixy, pixx;       // pixel geometry (might be smaller than cell geo)

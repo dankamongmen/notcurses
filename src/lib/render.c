@@ -194,9 +194,16 @@ paint_sprixel(ncplane* p, struct crender* rvec, int starty, int startx,
 // only those cells where 'p' intersects with the target rendering area are
 // rendered.
 //
+// the sprixelstack orders sprixels of the plane (so we needn't keep them
+// ordered between renders). each time we meet a sprixel, extract it from
+// the pile's sprixel list, and update the sprixelstack.
+//
+// FIXME lift the cell_sprixel_p() variant out and run it its own way
+// (unless we want to let sprixels live off-origin in ncplanes), eliminating
+// per-cell sprixel_by_id() check
 static void
 paint(ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
-      int dstabsy, int dstabsx){
+      int dstabsy, int dstabsx, sprixel** sprixelstack){
   int y, x, dimy, dimx, offy, offx;
   ncplane_dim_yx(p, &dimy, &dimx);
   offy = p->absy - dstabsy;
@@ -220,6 +227,22 @@ paint(ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
   if(p->sprite){
     paint_sprixel(p, rvec, starty, startx, dimy, dimx, offy, offx,
                   dstleny, dstlenx);
+    // decouple from the pile's sixel list
+    if(p->sprite->next){
+      p->sprite->next->prev = p->sprite->prev;
+    }
+    if(p->sprite->prev){
+      p->sprite->prev->next = p->sprite->next;
+    }else{
+      ncplane_pile(p)->sprixelcache = p->sprite->next;
+    }
+    // stick on the head of the running list: top sprixel is at end
+    if(*sprixelstack){
+      (*sprixelstack)->prev = p->sprite;
+    }
+    p->sprite->next = *sprixelstack;
+    p->sprite->prev = NULL;
+    *sprixelstack = p->sprite;
     return;
   }
   for(y = starty ; y < dimy ; ++y){
@@ -482,6 +505,10 @@ int ncplane_mergedown(ncplane* restrict src, ncplane* restrict dst,
              leny, lenx, src->leny, src->lenx);
     return -1;
   }
+  if(src->sprite || dst->sprite){
+    logerror(ncplane_notcurses_const(dst), "Can't merge sprixel planes\n");
+    return -1;
+  }
   const int totalcells = dst->leny * dst->lenx;
   nccell* rendfb = calloc(sizeof(*rendfb), totalcells);
   const size_t crenderlen = sizeof(struct crender) * totalcells;
@@ -493,8 +520,8 @@ int ncplane_mergedown(ncplane* restrict src, ncplane* restrict dst,
     return -1;
   }
   init_rvec(rvec, totalcells);
-  paint(src, rvec, dst->leny, dst->lenx, dst->absy, dst->absx);
-  paint(dst, rvec, dst->leny, dst->lenx, dst->absy, dst->absx);
+  paint(src, rvec, dst->leny, dst->lenx, dst->absy, dst->absx, NULL);
+  paint(dst, rvec, dst->leny, dst->lenx, dst->absy, dst->absx, NULL);
 //fprintf(stderr, "Postpaint start (%dx%d)\n", dst->leny, dst->lenx);
   postpaint(rendfb, dst->leny, dst->lenx, rvec, &dst->pool);
 //fprintf(stderr, "Postpaint done (%dx%d)\n", dst->leny, dst->lenx);
@@ -883,7 +910,9 @@ clean_sprixels(notcurses* nc, ncpile* p, FILE* out){
     if(s->invalidated == SPRIXEL_HIDE){
 //fprintf(stderr, "OUGHT HIDE %d [%dx%d @ %d/%d] %p\n", s->id, s->dimy, s->dimx, s->y, s->x, s);
       if(sprite_destroy(nc, p, out, s) == 0){
-        *parent = s->next;
+        if( (*parent = s->next) ){
+          s->next->prev = s->prev;
+        }
         sprixel_free(s);
       }else{
         ret = -1;
@@ -1242,10 +1271,24 @@ int notcurses_render_to_file(notcurses* nc, FILE* fp){
 static void
 ncpile_render_internal(ncplane* n, struct crender* rvec, int leny, int lenx,
                        int absy, int absx){
-  ncplane* p = ncplane_pile(n)->top;
+  ncpile* np = ncplane_pile(n);
+  ncplane* p = np->top;
+  sprixel* sprixel_list = NULL;
   while(p){
-    paint(p, rvec, leny, lenx, absy, absx);
+    paint(p, rvec, leny, lenx, absy, absx, &sprixel_list);
     p = p->below;
+  }
+  if(sprixel_list){
+    if(np->sprixelcache){
+      sprixel* s = sprixel_list;
+      while(s->next){
+        s = s->next;
+      }
+      if( (s->next = np->sprixelcache) ){
+        np->sprixelcache->prev = s;
+      }
+    }
+    np->sprixelcache = sprixel_list;
   }
 }
 

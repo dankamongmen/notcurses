@@ -811,6 +811,10 @@ struct ncplane* ncplane_dup(struct ncplane* n, void* opaque);
 // this operation. Do not supply the same plane for both 'src' and 'dst'.
 int ncplane_mergedown(struct ncplane* restrict src, struct ncplane* restrict dst);
 
+// If 'src' does not intersect with 'dst', 'dst' will not be changed, but it is
+// not an error. If 'dst' is NULL, the operation will target the standard plane.
+int ncplane_mergedown_simple(const ncplane* restrict src, ncplane* restrict dst);
+
 // Erase every cell in the ncplane, resetting all attributes to normal, all
 // colors to the default color, and all cells to undrawn. All cells associated
 // with this ncplane are invalidated, and must not be used after the call,

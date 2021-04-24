@@ -998,7 +998,7 @@ impl NcPlane {
     /// *C style function: [ncplane_mergedown()][crate::ncplane_mergedown].*
     pub fn mergedown(
         &mut self,
-        source: &NcPlane,
+        source: &mut NcPlane,
         source_y: NcDim,
         source_x: NcDim,
         len_y: NcDim,
@@ -1038,7 +1038,7 @@ impl NcPlane {
     //
     // TODO: maybe create a reversed method, and/or an associated function,
     // for `mergedown` too.
-    pub fn mergedown_simple(&mut self, source: &NcPlane) -> NcResult<()> {
+    pub fn mergedown_simple(&mut self, source: &mut NcPlane) -> NcResult<()> {
         error![
             unsafe { crate::ncplane_mergedown_simple(source, self) },
             "NcPlane.mergedown_simple(NcPlane)"

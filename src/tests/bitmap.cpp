@@ -105,6 +105,7 @@ TEST_CASE("Bitmaps") {
     CHECK(0 == notcurses_render(nc_));
     ncvisual_destroy(ncv);
     CHECK(0 == ncplane_destroy(n));
+    CHECK(0 == notcurses_render(nc_));
   }
 
   // should not be able to emit glyphs to a sprixelated plane
@@ -137,6 +138,7 @@ TEST_CASE("Bitmaps") {
     CHECK(0 == notcurses_render(nc_));
     ncvisual_destroy(ncv);
     CHECK(0 == ncplane_destroy(n));
+    CHECK(0 == notcurses_render(nc_));
   }
 
   SUBCASE("BitmapStack") {
@@ -175,9 +177,13 @@ TEST_CASE("Bitmaps") {
     // should see only the red one now
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncplane_destroy(botn));
-    CHECK(0 == ncplane_destroy(topn));
     ncvisual_destroy(ncv);
+    // now we see only yellow
+    CHECK(0 == notcurses_render(nc_));
+    CHECK(0 == ncplane_destroy(topn));
     ncvisual_destroy(ncv2);
+    // and now we see none
+    CHECK(0 == notcurses_render(nc_));
   }
 
 #ifdef NOTCURSES_USE_MULTIMEDIA
@@ -193,6 +199,7 @@ TEST_CASE("Bitmaps") {
     CHECK(0 == ncplane_destroy(newn));
     CHECK(0 == notcurses_render(nc_));
     ncvisual_destroy(ncv);
+    CHECK(0 == notcurses_render(nc_));
   }
 #endif
 
@@ -262,6 +269,7 @@ TEST_CASE("Bitmaps") {
     CHECK(0 == ncplane_destroy(infn));
     CHECK(0 == ncplane_destroy(n));
     ncvisual_destroy(ncv);
+    CHECK(0 == notcurses_render(nc_));
   }
 
   SUBCASE("PixelCellWipe") {
@@ -426,6 +434,7 @@ TEST_CASE("Bitmaps") {
       }
     }
     CHECK(0 == ncplane_destroy(n));
+    CHECK(0 == notcurses_render(nc_));
   }
 
 #ifdef NOTCURSES_USE_MULTIMEDIA
@@ -454,6 +463,7 @@ TEST_CASE("Bitmaps") {
     CHECK(0 == ncplane_destroy(newn));
     CHECK(0 == notcurses_render(nc_));
     ncvisual_destroy(ncv);
+    CHECK(0 == notcurses_render(nc_));
   }
 #endif
 

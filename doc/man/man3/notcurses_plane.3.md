@@ -186,9 +186,9 @@ typedef struct ncplane_options {
 
 **void notcurses_drop_planes(struct notcurses* ***nc***);**
 
-**int ncplane_mergedown(const struct ncplane* ***src***, struct ncplane* ***dst***, int ***begsrcy***, int ***begsrcx***, int ***leny***, int ***lenx***, int ***dsty***, int ***dstx***);**
+**int ncplane_mergedown(struct ncplane* ***src***, struct ncplane* ***dst***, int ***begsrcy***, int ***begsrcx***, int ***leny***, int ***lenx***, int ***dsty***, int ***dstx***);**
 
-**int ncplane_mergedown_simple(const struct ncplane* restrict ***src***, struct ncplane* restrict ***dst***);**
+**int ncplane_mergedown_simple(struct ncplane* restrict ***src***, struct ncplane* restrict ***dst***);**
 
 **void ncplane_erase(struct ncplane* ***n***);**
 

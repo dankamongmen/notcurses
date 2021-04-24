@@ -22,6 +22,7 @@ sprixel_debug(FILE* out, const sprixel* s){
   }
 }
 
+// doesn't splice us out of any lists, just frees
 void sprixel_free(sprixel* s){
   if(s){
     if(s->n){
@@ -115,14 +116,17 @@ sprixel* sprixel_alloc(ncplane* n, int dimy, int dimx, int placey, int placex){
 //fprintf(stderr, "LOOKING AT %p (p->n = %p)\n", ret, ret->n);
     if(ncplane_pile(ret->n)){
       ncpile* np = ncplane_pile(ret->n);
-      ret->next = np->sprixelcache;
+      if( (ret->next = np->sprixelcache) ){
+        ret->next->prev = ret;
+      }
       np->sprixelcache = ret;
+      ret->prev = NULL;
       const notcurses* nc = ncplane_notcurses_const(ret->n);
       ret->cellpxy = nc->tcache.cellpixy;
       ret->cellpxx = nc->tcache.cellpixx;
 //fprintf(stderr, "%p %p %p\n", nc->sprixelcache, ret, nc->sprixelcache->next);
-    }else{
-      ret->next = NULL;
+    }else{ // ncdirect case
+      ret->next = ret->prev = NULL;
       ret->cellpxy = ret->cellpxx = -1;
     }
   }

@@ -1965,6 +1965,7 @@ API int ncplane_mergedown_simple(struct ncplane* RESTRICT src,
 // is an error to define a target origin such that the projected subregion is
 // not entirely contained within 'dst'.  Behavior is undefined if 'src' and
 // 'dst' are equivalent. 'dst' is modified, but 'src' remains unchanged.
+// neither 'src' nor 'dst' may have sprixels.
 API int ncplane_mergedown(struct ncplane* RESTRICT src,
                           struct ncplane* RESTRICT dst,
                           int begsrcy, int begsrcx, int leny, int lenx,
