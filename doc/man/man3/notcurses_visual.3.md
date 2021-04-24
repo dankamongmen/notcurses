@@ -256,16 +256,17 @@ blitting (or fail, if **NCVISUAL_OPTION_NODEGRADE** is used).
 **NCBLIT_PIXEL** has some stringent requirements on the type of planes it can
 be used with; it is usually best to let **ncvisual_render** create the backing
 plane by providing a **NULL** value for **n**. If you must bring your own
-plane, that plane must not have a resize callback, and must be perfectly sized
-for the bitmap (i.e. large enough, and not more than a full cell larger in
-either dimension). Using **NCSCALE_STRETCH** means that the second condition
-will always be met. Once a sprixel is blitted to a plane, that plane may not
-be resized, a resize callback may not be set, the base cell may not be set,
-and cell methods (including cell blitting) may not be used with it. The only
-way to change the plane's contents is to destroy the plane. Notcurses will
-automatically set the plane's base cell to the null glyph, **NCSTYLE_NONE**,
-and transparent in both the fore- and background. A sprixelated plane may be
-moved in all three dimensions, duplicated, and reparented.
+plane, it must be perfectly sized for the bitmap (i.e. large enough, and not
+more than a full cell larger in either dimension--the bitmap, always placed at
+the origin, must at least partially cover every cell of the plane). Using
+**NCSCALE_STRETCH** means that the second condition will always be met. Once a
+sprixel is blitted to a plane, that plane may not be resized, a resize callback
+may not be set, the base cell may not be set, and cell methods (including cell
+blitting) may not be used with it. The only way to change the plane's contents
+is to destroy the plane. Notcurses will automatically set the plane's base cell
+to the null glyph, **NCSTYLE_NONE**, and transparent in both the fore- and
+background. A sprixelated plane may be moved in all three dimensions,
+duplicated, and reparented.
 
 Only one bitmap can be blitted onto a plane at a time (but multiple planes
 with bitmaps may be visible); blitting a second to the same plane will delete

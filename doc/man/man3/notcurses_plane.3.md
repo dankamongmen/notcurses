@@ -218,6 +218,7 @@ anywhere. In addition to its framebuffer--a rectilinear matrix of **nccell**s
 * the next plane bound by the plane to which it is bound,
 * the head of the list of its bound planes,
 * its resize methodology,
+* whether a sprixel (see **notcurses_visual(3)**) is associated,
 * its z-index, and
 * a name (used only for debugging).
 
@@ -359,6 +360,12 @@ displayed in the plane. This function transitively calls
 **notcurses_check_pixel_support**, possibly leading to terminal interrogation
 (see **notcurses_capabilities(3)** for why this may be undesirable). Any
 parameter (save **n**) may be **NULL**.
+
+When a plane is blitted to using **ncvisual_render** and **NCBLIT_PIXEL** (see
+**notcurses_visual(3)**), it loses many capabilities. Such a "sprixelated"
+plane cannot be resized, nor can cell-based output be applied to it. The
+sprixel will remain associated until a new sprixel is blitted to the plane, or
+the plane is destroyed.
 
 # RETURN VALUES
 
