@@ -132,7 +132,6 @@ ncvisual_blitset_geom(const notcurses* nc, const ncvisual* n,
       return -1;
     }
   }
-  const ncscale_e scale = vopts ? vopts->scaling : NCSCALE_NONE;
   const struct blitset* bset = rgba_blitter(nc, vopts);
   if(!bset){
     logerror(nc, "Couldn't get a blitter for %d\n", vopts ? vopts->blitter : NCBLIT_DEFAULT);
@@ -140,13 +139,6 @@ ncvisual_blitset_geom(const notcurses* nc, const ncvisual* n,
   }
   if(blitter){
     *blitter = bset;
-  }
-  int fauxy, fauxx;
-  if(!y){
-    y = &fauxy;
-  }
-  if(!x){
-    x = &fauxx;
   }
   if(bset->geom == NCBLIT_PIXEL && vopts){
     if(vopts->n){
@@ -161,7 +153,6 @@ ncvisual_blitset_geom(const notcurses* nc, const ncvisual* n,
       // FIXME clamp to sprixel limits
       if(vopts->scaling == NCSCALE_NONE || vopts->scaling == NCSCALE_NONE_HIRES){
         int rows = (*leny + nc->tcache.cellpixy - 1) / nc->tcache.cellpixy;
-fprintf(stderr, "rows: %d dim: %d\n", rows, ncplane_dim_y(vopts->n));
         if(rows > ncplane_dim_y(vopts->n)){
           logerror(nc, "Sprixel too tall %d for plane %d\n", *leny, ncplane_dim_y(vopts->n) * nc->tcache.cellpixy);
           return -1;
@@ -175,19 +166,11 @@ fprintf(stderr, "rows: %d dim: %d\n", rows, ncplane_dim_y(vopts->n));
     }
   }
   if(n){
-    if(scale == NCSCALE_NONE || scale == NCSCALE_NONE_HIRES){
+    if(y){
       *y = n->rows;
-      *x = n->cols;
-    }else{
-      int rows = (vopts && vopts->n) ? ncplane_dim_y(vopts->n) :
-                                       ncplane_dim_y(nc->stdplane);
-      int cols = (vopts && vopts->n) ? ncplane_dim_x(vopts->n) :
-                                       ncplane_dim_x(nc->stdplane);
-      *y = rows * encoding_y_scale(&nc->tcache, bset);
-      *x = cols * encoding_x_scale(&nc->tcache, bset);
     }
-    if(scale == NCSCALE_SCALE || scale == NCSCALE_SCALE_HIRES){
-      scale_visual(n, y, x);
+    if(x){
+      *x = n->cols;
     }
   }
   if(scaley){
