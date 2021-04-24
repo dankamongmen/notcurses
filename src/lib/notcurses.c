@@ -583,44 +583,48 @@ int resize_callbacks_children(ncplane* n){
 // can be used on stdplane, unlike ncplane_resize() which prohibits it.
 int ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
                             int keeplenx, int yoff, int xoff, int ylen, int xlen){
+  if(n->sprite){
+    logerror(ncplane_notcurses_const(n), "Can't resize sprixelated (id %d) plane\n", n->sprite->id);
+    return -1;
+  }
   if(keepleny < 0 || keeplenx < 0){ // can't retain negative size
-    logerror(ncplane_notcurses(n), "Can't retain negative size %dx%d\n", keepleny, keeplenx);
+    logerror(ncplane_notcurses_const(n), "Can't retain negative size %dx%d\n", keepleny, keeplenx);
     return -1;
   }
   if(keepy < 0 || keepx < 0){ // can't start at negative origin
-    logerror(ncplane_notcurses(n), "Can't retain negative offset %dx%d\n", keepy, keepx);
+    logerror(ncplane_notcurses_const(n), "Can't retain negative offset %dx%d\n", keepy, keepx);
     return -1;
   }
   if((!keepleny && keeplenx) || (keepleny && !keeplenx)){ // both must be 0
-    logerror(ncplane_notcurses(n), "Can't retain null dimension %dx%d\n", keepleny, keeplenx);
+    logerror(ncplane_notcurses_const(n), "Can't retain null dimension %dx%d\n", keepleny, keeplenx);
     return -1;
   }
   // can't be smaller than keep length + abs(offset from keep area)
   const int yprescribed = keepleny + (yoff < 0 ? -yoff : yoff);
   if(ylen < yprescribed){
-    logerror(ncplane_notcurses(n), "Can't map in y dimension: %d < %d\n", ylen, yprescribed);
+    logerror(ncplane_notcurses_const(n), "Can't map in y dimension: %d < %d\n", ylen, yprescribed);
     return -1;
   }
   const int xprescribed = keeplenx + (xoff < 0 ? -xoff : xoff);
   if(xlen < xprescribed){
-    logerror(ncplane_notcurses(n), "Can't map in x dimension: %d < %d\n", xlen, xprescribed);
+    logerror(ncplane_notcurses_const(n), "Can't map in x dimension: %d < %d\n", xlen, xprescribed);
     return -1;
   }
   if(ylen <= 0 || xlen <= 0){ // can't resize to trivial or negative size
-    logerror(ncplane_notcurses(n), "Can't achieve meaningless size %dx%d\n", ylen, xlen);
+    logerror(ncplane_notcurses_const(n), "Can't achieve meaningless size %dx%d\n", ylen, xlen);
     return -1;
   }
   int rows, cols;
   ncplane_dim_yx(n, &rows, &cols);
   if(keepleny + keepy > rows){
-    logerror(ncplane_notcurses(n), "Can't keep %d@%d rows from %d\n", keepleny, keepy, rows);
+    logerror(ncplane_notcurses_const(n), "Can't keep %d@%d rows from %d\n", keepleny, keepy, rows);
     return -1;
   }
   if(keeplenx + keepx > cols){
-    logerror(ncplane_notcurses(n), "Can't keep %d@%d cols from %d\n", keeplenx, keepx, cols);
+    logerror(ncplane_notcurses_const(n), "Can't keep %d@%d cols from %d\n", keeplenx, keepx, cols);
     return -1;
   }
-  loginfo(ncplane_notcurses(n), "%dx%d @ %d/%d → %d/%d @ %d/%d (keeping %dx%d from %d/%d)\n", rows, cols, n->absy, n->absx, ylen, xlen, n->absy + keepy + yoff, n->absx + keepx + xoff, keepleny, keeplenx, keepy, keepx);
+  loginfo(ncplane_notcurses_const(n), "%dx%d @ %d/%d → %d/%d @ %d/%d (keeping %dx%d from %d/%d)\n", rows, cols, n->absy, n->absx, ylen, xlen, n->absy + keepy + yoff, n->absx + keepx + xoff, keepleny, keeplenx, keepy, keepx);
   notcurses* nc = ncplane_notcurses(n);
   // we're good to resize. we'll need alloc up a new framebuffer, and copy in
   // those elements we're retaining, zeroing out the rest. alternatively, if
