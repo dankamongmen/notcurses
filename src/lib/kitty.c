@@ -162,7 +162,7 @@ int kitty_rebuild(const notcurses* nc, sprixel* s, int ycell, int xcell){
 }
 
 int kitty_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
-  if(s->n->tacache[s->dimx * ycell + xcell] == SPRIXCELL_ANNIHILATED){
+  if(s->n->tam[s->dimx * ycell + xcell].state == SPRIXCELL_ANNIHILATED){
 //fprintf(stderr, "CACHED WIPE %d %d/%d\n", s->id, ycell, xcell);
     return 0; // already annihilated, needn't draw glyph in kitty
   }
@@ -246,7 +246,7 @@ int kitty_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
 static int
 write_kitty_data(FILE* fp, int linesize, int leny, int lenx,
                  int cols, const uint32_t* data, int cdimy, int cdimx,
-                 int sprixelid, sprixcell_e* tacache, int* parse_start,
+                 int sprixelid, tament* tam, int* parse_start,
                  uint32_t transcolor){
   if(linesize % sizeof(*data)){
     fclose(fp);
@@ -289,21 +289,21 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx,
         int ycell = y / cdimy;
         int tyx = xcell + ycell * cols;
 //fprintf(stderr, "Tyx: %d y: %d (%d) * %d x: %d (%d)\n", tyx, y, y / cdimy, cols, x, x / cdimx);
-        if(tacache[tyx] == SPRIXCELL_ANNIHILATED){
+        if(tam[tyx].state == SPRIXCELL_ANNIHILATED){
           wipe[e] = 1;
         }else{
           wipe[e] = 0;
           if(rgba_trans_p(source[e], transcolor)){
             if(x % cdimx == 0 && y % cdimy == 0){
-              tacache[tyx] = SPRIXCELL_TRANSPARENT;
-            }else if(tacache[tyx] == SPRIXCELL_OPAQUE_KITTY){
-              tacache[tyx] = SPRIXCELL_MIXED_KITTY;
+              tam[tyx].state = SPRIXCELL_TRANSPARENT;
+            }else if(tam[tyx].state == SPRIXCELL_OPAQUE_KITTY){
+              tam[tyx].state = SPRIXCELL_MIXED_KITTY;
             }
           }else{
             if(x % cdimx == 0 && y % cdimy == 0){
-              tacache[tyx] = SPRIXCELL_OPAQUE_KITTY;
-            }else if(tacache[tyx] == SPRIXCELL_TRANSPARENT){
-              tacache[tyx] = SPRIXCELL_MIXED_KITTY;
+              tam[tyx].state = SPRIXCELL_OPAQUE_KITTY;
+            }else if(tam[tyx].state == SPRIXCELL_TRANSPARENT){
+              tam[tyx].state = SPRIXCELL_MIXED_KITTY;
             }
           }
         }
@@ -319,7 +319,7 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx,
   if(fclose(fp) == EOF){
     return -1;
   }
-  scrub_tam_boundaries(tacache, leny, lenx, cdimy, cdimx);
+  scrub_tam_boundaries(tam, leny, lenx, cdimy, cdimx);
   return 0;
 }
 #undef RGBA_MAXLEN
@@ -336,43 +336,43 @@ int kitty_blit(ncplane* n, int linesize, const void* data,
   if(fp == NULL){
     return -1;
   }
-  sprixcell_e* tacache = NULL;
+  tament* tam = NULL;
   bool reuse = false;
   // if we have a sprixel attached to this plane, see if we can reuse it
   // (we need the same dimensions) and thus immediately apply its T-A table.
-  if(n->tacache){
+  if(n->tam){
     if(n->leny == rows && n->lenx == cols){
-      tacache = n->tacache;
+      tam = n->tam;
       reuse = true;
     }
   }
   int parse_start = 0;
   if(!reuse){
-    tacache = malloc(sizeof(*tacache) * rows * cols);
-    if(tacache == NULL){
+    tam = malloc(sizeof(*tam) * rows * cols);
+    if(tam == NULL){
       fclose(fp);
       free(buf);
       return -1;
     }
-    memset(tacache, 0, sizeof(*tacache) * rows * cols);
+    memset(tam, 0, sizeof(*tam) * rows * cols);
   }
   // closes fp on all paths
   if(write_kitty_data(fp, linesize, leny, lenx, cols, data,
                       bargs->u.pixel.celldimy, bargs->u.pixel.celldimx,
-                      bargs->u.pixel.spx->id, tacache, &parse_start,
+                      bargs->u.pixel.spx->id, tam, &parse_start,
                       bargs->transcolor)){
     if(!reuse){
-      free(tacache);
+      free(tam);
     }
     free(buf);
     return -1;
   }
-  // take ownership of |buf| and |tacache| on success
+  // take ownership of |buf| and |tam| on success
   if(plane_blit_sixel(bargs->u.pixel.spx, buf, size, rows, cols,
                       bargs->placey, bargs->placex,
-                      leny, lenx, parse_start, tacache) < 0){
+                      leny, lenx, parse_start, tam) < 0){
     if(!reuse){
-      free(tacache);
+      free(tam);
     }
     free(buf);
     return -1;

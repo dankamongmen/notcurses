@@ -158,7 +158,7 @@ update_deets(uint32_t rgb, cdetails* deets){
 static inline int
 extract_color_table(const uint32_t* data, int linesize, int cols,
                     int leny, int lenx, sixeltable* stab,
-                    sprixcell_e* tacache, const blitterargs* bargs){
+                    tament* tam, const blitterargs* bargs){
   const int begx = bargs->begx;
   const int begy = bargs->begy;
   const int cdimy = bargs->u.pixel.celldimy;
@@ -170,23 +170,23 @@ extract_color_table(const uint32_t* data, int linesize, int cols,
       for(int sy = visy ; sy < (begy + leny) && sy < visy + 6 ; ++sy){ // offset within sprixel
         const uint32_t* rgb = (data + (linesize / 4 * sy) + visx);
         int txyidx = (sy / cdimy) * cols + (visx / cdimx);
-        if(tacache[txyidx] == SPRIXCELL_ANNIHILATED){
+        if(tam[txyidx].state == SPRIXCELL_ANNIHILATED){
 //fprintf(stderr, "TRANS SKIP %d %d %d %d (cell: %d %d)\n", visy, visx, sy, txyidx, sy / cdimy, visx / cdimx);
           continue;
         }
         if(rgba_trans_p(*rgb, bargs->transcolor)){
           if(sy % cdimy == 0 && visx % cdimx == 0){
-            tacache[txyidx] = SPRIXCELL_TRANSPARENT;
-          }else if(tacache[txyidx] == SPRIXCELL_OPAQUE_SIXEL){
-            tacache[txyidx] = SPRIXCELL_MIXED_SIXEL;
+            tam[txyidx].state = SPRIXCELL_TRANSPARENT;
+          }else if(tam[txyidx].state == SPRIXCELL_OPAQUE_SIXEL){
+            tam[txyidx].state = SPRIXCELL_MIXED_SIXEL;
           }
           stab->p2 = SIXEL_P2_TRANS; // even one forces P2=1
           continue;
         }else{
           if(sy % cdimy == 0 && visx % cdimx == 0){
-            tacache[txyidx] = SPRIXCELL_OPAQUE_SIXEL;
-          }else if(tacache[txyidx] == SPRIXCELL_TRANSPARENT){
-            tacache[txyidx] = SPRIXCELL_MIXED_SIXEL;
+            tam[txyidx].state = SPRIXCELL_OPAQUE_SIXEL;
+          }else if(tam[txyidx].state == SPRIXCELL_TRANSPARENT){
+            tam[txyidx].state = SPRIXCELL_MIXED_SIXEL;
           }
         }
         unsigned char comps[RGBSIZE];
@@ -417,7 +417,7 @@ write_sixel_data(FILE* fp, int leny, int lenx, const sixeltable* stab, int* pars
 // A pixel block is indicated by setting cell_pixels_p().
 static inline int
 sixel_blit_inner(int leny, int lenx, const sixeltable* stab, int rows, int cols,
-                 const blitterargs* bargs, sprixcell_e* tacache){
+                 const blitterargs* bargs, tament* tam){
   char* buf = NULL;
   size_t size = 0;
   FILE* fp = open_memstream(&buf, &size);
@@ -431,12 +431,12 @@ sixel_blit_inner(int leny, int lenx, const sixeltable* stab, int rows, int cols,
     free(buf);
     return -1;
   }
-  scrub_tam_boundaries(tacache, leny, lenx, bargs->u.pixel.celldimy,
+  scrub_tam_boundaries(tam, leny, lenx, bargs->u.pixel.celldimy,
                        bargs->u.pixel.celldimx);
   // take ownership of buf on success
   if(plane_blit_sixel(bargs->u.pixel.spx, buf, size, rows, cols,
                       bargs->placey, bargs->placex,
-                      leny, lenx, parse_start, tacache) < 0){
+                      leny, lenx, parse_start, tam) < 0){
     free(buf);
     return -1;
   }
@@ -476,28 +476,28 @@ int sixel_blit(ncplane* n, int linesize, const void* data,
   memset(stable.deets, 0, sizeof(*stable.deets) * colorregs);
   int cols = bargs->u.pixel.spx->dimx;
   int rows = bargs->u.pixel.spx->dimy;
-  sprixcell_e* tacache = NULL;
+  tament* tam = NULL;
   bool reuse = false;
   // if we have a sprixel attached to this plane, see if we can reuse it
   // (we need the same dimensions) and thus immediately apply its T-A table.
-  if(n->tacache){
-//fprintf(stderr, "IT'S A REUSE %d %d %d %d\n", n->tacachey, rows, n->tacachex, cols);
+  if(n->tam){
+//fprintf(stderr, "IT'S A REUSE %d %d\n", rows, cols);
     if(n->leny == rows && n->lenx == cols){
-      tacache = n->tacache;
+      tam = n->tam;
       reuse = true;
     }
   }
   if(!reuse){
-    tacache = malloc(sizeof(*tacache) * rows * cols);
-    if(tacache == NULL){
+    tam = malloc(sizeof(*tam) * rows * cols);
+    if(tam == NULL){
       return -1;
     }
-    memset(tacache, 0, sizeof(*tacache) * rows * cols);
+    memset(tam, 0, sizeof(*tam) * rows * cols);
   }
   if(extract_color_table(data, linesize, cols, leny, lenx,
-                         &stable, tacache, bargs)){
+                         &stable, tam, bargs)){
     if(!reuse){
-      free(tacache);
+      free(tam);
     }
     free(stable.table);
     free(stable.data);
@@ -505,7 +505,7 @@ int sixel_blit(ncplane* n, int linesize, const void* data,
     return -1;
   }
   refine_color_table(data, linesize, bargs->begy, bargs->begx, leny, lenx, &stable);
-  int r = sixel_blit_inner(leny, lenx, &stable, rows, cols, bargs, tacache);
+  int r = sixel_blit_inner(leny, lenx, &stable, rows, cols, bargs, tam);
   free(stable.data);
   free(stable.deets);
   free(stable.table);
@@ -546,7 +546,7 @@ deepclean_output(FILE* fp, const sprixel* s, int y, int *x, int rle,
     unsigned char mask = 0;
     for(int yi = y ; yi < y + 6 ; ++yi){
       const int tidx = (yi / s->cellpxy) * s->dimx + (xi / s->cellpxx);
-      const bool nihil = (s->n->tacache[tidx] == SPRIXCELL_ANNIHILATED);
+      const bool nihil = (s->n->tam[tidx].state == SPRIXCELL_ANNIHILATED);
       if(!nihil){
         mask |= (1u << (yi - y));
       }
@@ -759,7 +759,7 @@ int sixel_rebuild(const notcurses* nc, sprixel* s, int ycell, int xcell){
 // redrawn, it's redrawn using P2=1.
 int sixel_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
   (void)nc;
-  if(s->n->tacache[s->dimx * ycell + xcell] == SPRIXCELL_ANNIHILATED){
+  if(s->n->tam[s->dimx * ycell + xcell].state == SPRIXCELL_ANNIHILATED){
 //fprintf(stderr, "CACHED WIPE %d %d/%d\n", s->id, ycell, xcell);
     return 1; // already annihilated FIXME but 0 breaks things
   }

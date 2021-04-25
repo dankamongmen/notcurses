@@ -14,7 +14,7 @@ sprixel_debug(FILE* out, const sprixel* s){
     int idx = 0;
     for(int y = 0 ; y < s->dimy ; ++y){
       for(int x = 0 ; x < s->dimx ; ++x){
-        fprintf(out, "%d", s->n->tacache[idx]);
+        fprintf(out, "%d", s->n->tam[idx].state);
         ++idx;
       }
       fprintf(out, "\n");
@@ -85,9 +85,9 @@ void sprixel_invalidate(sprixel* s, int y, int x){
   if(s->invalidated != SPRIXEL_HIDE && s->n){
     int localy = y - s->n->absy;
     int localx = x - s->n->absx;
-//fprintf(stderr, "INVALIDATING AT %d/%d (%d/%d) TAM: %d\n", y, x, localy, localx, s->n->tacache[localy * s->dimx + localx]);
-    if(s->n->tacache[localy * s->dimx + localx] != SPRIXCELL_TRANSPARENT &&
-       s->n->tacache[localy * s->dimx + localx] != SPRIXCELL_ANNIHILATED){
+//fprintf(stderr, "INVALIDATING AT %d/%d (%d/%d) TAM: %d\n", y, x, localy, localx, s->n->tam[localy * s->dimx + localx].state);
+    if(s->n->tam[localy * s->dimx + localx].state != SPRIXCELL_TRANSPARENT &&
+       s->n->tam[localy * s->dimx + localx].state != SPRIXCELL_ANNIHILATED){
       s->invalidated = SPRIXEL_INVALIDATED;
     }
   }
@@ -156,19 +156,12 @@ int sprite_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
   if(s->invalidated == SPRIXEL_HIDE){ // no need to do work if we're killing it
     return 0;
   }
-//fprintf(stderr, "ANNIHILATED %p %d\n", s->n->tacache, s->dimx * ycell + xcell);
+//fprintf(stderr, "ANNIHILATED %p %d\n", s->n->tam, s->dimx * ycell + xcell);
   int r = nc->tcache.pixel_cell_wipe(nc, s, ycell, xcell);
 //fprintf(stderr, "WIPED %d %d/%d ret=%d\n", s->id, ycell, xcell, r);
   // mark the cell as annihilated whether we actually scrubbed it or not,
   // so that we use this fact should we move to another frame
-  s->n->tacache[s->dimx * ycell + xcell] = SPRIXCELL_ANNIHILATED;
-  return r;
-}
-
-// precondition: s->invalidated is SPRIXEL_INVALIDATED or SPRIXEL_MOVED.
-int sprite_draw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
-//sprixel_debug(stderr, s);
-  int r = n->tcache.pixel_draw(n, p, s, out);
+  s->n->tam[s->dimx * ycell + xcell].state = SPRIXCELL_ANNIHILATED;
   return r;
 }
 
