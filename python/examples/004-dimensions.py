@@ -15,21 +15,23 @@
 # limitations under the License.
 from time import sleep
 
-from notcurses import get_std_plane
+from notcurses import Notcurses
 
-std_plane = get_std_plane()
+nc = Notcurses()
+
+stdplane = nc.stdplane()
 
 red = 0x80
 green = 0x80
 blue = 0x80
 
-y_dimension, x_dimension = std_plane.dimensions_yx
+y_dimension, x_dimension = stdplane.dim_yx()
 
 for y in range(y_dimension):
     for x in range(x_dimension):
-        std_plane.set_foreground_rgb(red, green, blue)
-        std_plane.set_background_rgb(blue, red, green)
-        std_plane.putstr('X', y_pos=y, x_pos=x)
+        stdplane.set_fg_rgb8(red, green, blue)
+        stdplane.set_bg_rgb8(blue, red, green)
+        stdplane.putstr_yx(y, x, 'X')
         blue += 2
         if blue == 256:
             blue = 0
@@ -39,6 +41,6 @@ for y in range(y_dimension):
                 red = (red + 2) % 256
 
 
-std_plane.context.render()
+nc.render()
 
 sleep(5)

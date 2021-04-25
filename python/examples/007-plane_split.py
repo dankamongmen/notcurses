@@ -17,21 +17,29 @@
 
 from time import sleep
 
-from notcurses import get_std_plane
+from notcurses import Notcurses
 
-std_plane = get_std_plane()
+nc = Notcurses()
 
-sub_plane_left = std_plane.create_sub_plane()
+stdplane = nc.stdplane()
 
-sub_plane_right = std_plane.create_sub_plane(
-    x_pos=(std_plane.dimensions_yx[1] // 2))
+sub_plane_left = stdplane.create(
+    rows=5,
+    cols=5,
+)
 
-sub_plane_left.set_foreground_rgb(0, 255, 0)
+sub_plane_right = stdplane.create(
+    x_pos=(stdplane.dim_x() // 2),
+    rows=5,
+    cols=5,
+)
+
+sub_plane_left.set_fg_rgb8(0, 255, 0)
 sub_plane_left.putstr("Left")
 
-sub_plane_right.set_foreground_rgb(255, 0, 0)
+sub_plane_right.set_fg_rgb8(255, 0, 0)
 sub_plane_right.putstr("Right")
 
-std_plane.context.render()
+nc.render()
 
-sleep(4)
+sleep(3)
