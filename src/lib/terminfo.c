@@ -15,6 +15,7 @@ setup_sixel_bitmaps(tinfo* ti){
   ti->pixel_destroy = sixel_destroy;
   ti->pixel_cell_wipe = sixel_wipe;
   ti->pixel_shutdown = sixel_shutdown;
+  ti->pixel_rebuild = sixel_rebuild;
   ti->sprixel_height_factor = 6;
 }
 
@@ -27,6 +28,7 @@ setup_kitty_bitmaps(tinfo* ti){
   ti->pixel_draw = kitty_draw;
   ti->pixel_shutdown = kitty_shutdown;
   ti->sprixel_height_factor = 1;
+  ti->pixel_rebuild = kitty_rebuild;
   set_pixel_blitter(kitty_blit);
 }
 

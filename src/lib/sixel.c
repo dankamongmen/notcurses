@@ -746,6 +746,14 @@ int sixel_init(int fd){
   return tty_emit("\e[?80;8452h", fd);
 }
 
+int sixel_rebuild(const notcurses* nc, sprixel* s, int ycell, int xcell){
+  (void)nc;
+  (void)s;
+  (void)ycell;
+  (void)xcell;
+  return 0;
+}
+
 // we return -1 because we're not doing a proper wipe -- that's not possible
 // using sixel. we just mark it as partially transparent, so that if it's
 // redrawn, it's redrawn using P2=1.
