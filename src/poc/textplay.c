@@ -23,6 +23,7 @@ colorize(struct ncplane* n){
   int y, x;
   ncplane_cursor_yx(n, &y, &x);
   uint32_t c = HICOLOR;
+  ncplane_set_bg_rgb(n, 0x222222);
   while(y >= 0){
     while(x >= 0){
       uint16_t stylemask;
@@ -56,13 +57,24 @@ colorize(struct ncplane* n){
 }
 
 static int
-textplay(struct notcurses* nc){
+textplay(struct notcurses* nc, struct ncplane* tplane, struct ncvisual* ncv){
   char* buf = NULL;
   size_t buflen = 1;
   int c;
   struct ncplane* stdn = notcurses_stdplane(nc);
-  ncplane_set_scrolling(stdn, true);
+  ncplane_set_scrolling(tplane, true);
+  struct ncvisual_options vopts = {
+    .n = stdn,
+    .scaling = NCSCALE_STRETCH,
+    .blitter = NCBLIT_PIXEL,
+  };
   while((c = getc(stdin)) != EOF){
+    if(ncv){
+      if(ncvisual_render(nc, ncv, &vopts) == NULL){
+        return -1;
+      }
+    }
+    ncplane_erase(tplane);
     char* tmp = realloc(buf, buflen + 1);
     if(tmp == NULL){
       free(buf);
@@ -71,13 +83,12 @@ textplay(struct notcurses* nc){
     buf = tmp;
     buf[buflen - 1] = c;
     buf[buflen++] = '\0';
-    ncplane_home(stdn);
-    int pt = ncplane_puttext(stdn, 0, NCALIGN_LEFT, buf, NULL);
+    int pt = ncplane_puttext(tplane, 0, NCALIGN_LEFT, buf, NULL);
     if(pt < 0){
       free(buf);
       return -1;
     }
-    if(colorize(stdn)){
+    if(colorize(tplane)){
       free(buf);
       return -1;
     }
@@ -88,17 +99,61 @@ textplay(struct notcurses* nc){
     struct timespec ts = {
       .tv_sec = 0, .tv_nsec = NANOSEC,
     };
-    clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);
+    if(!ncv){
+      clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);
+    }else{
+      ncvisual_decode(ncv);
+    }
   }
   return 0;
 }
 
-int main(void){
+static struct ncplane*
+textplane(struct notcurses* nc){
+  int dimy, dimx;
+  struct ncplane* stdn = notcurses_stddim_yx(nc, &dimy, &dimx);
+  struct ncplane_options nopts = {
+    .y = MARGIN,
+    .x = MARGIN * 2,
+    .rows = dimy - MARGIN * 2,
+    .cols = dimx - MARGIN * 4,
+    .name = "text",
+  };
+  return ncplane_create(stdn, &nopts);
+}
+
+static void
+usage(FILE* fp){
+  fprintf(fp, "usage: textplay [ media ]\n");
+}
+
+int main(int argc, char** argv){
+  const char* media = NULL;
+  if(argc > 3){
+    usage(stderr);
+    return EXIT_FAILURE;
+  }else if(argc == 2){
+    media = argv[1];
+  }
   struct notcurses* nc = init();
   if(nc == NULL){
     return EXIT_FAILURE;
   }
-  textplay(nc);
+  struct ncvisual* ncv = NULL;
+  if(media){
+    notcurses_check_pixel_support(nc);
+    if((ncv = ncvisual_from_file(media)) == NULL){
+      notcurses_stop(nc);
+      return EXIT_FAILURE;
+    }
+  }
+  struct ncplane* tplane = textplane(nc);
+  if(tplane == NULL){
+    notcurses_stop(nc);
+    return EXIT_FAILURE;
+  }
+  textplay(nc, tplane, ncv);
+  ncvisual_destroy(ncv);
   if(notcurses_stop(nc)){
     return EXIT_FAILURE;
   }
