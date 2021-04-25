@@ -196,6 +196,16 @@ static inline void PyObject_cleanup(PyObject **object)
         return_value;                   \
     })
 
+#define GNU_PY_CHECK_BOOL(py_function)  \
+    ({                                  \
+        int return_value = py_function; \
+        if (!return_value)              \
+        {                               \
+            return NULL;                \
+        }                               \
+        return_value;                   \
+    })
+
 #define GNU_PY_CHECK_INT_RET_NEG1(py_function) \
     ({                                         \
         int return_value = py_function;        \

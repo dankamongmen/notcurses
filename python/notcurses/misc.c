@@ -39,7 +39,7 @@ python_ncstrwidth(PyObject *Py_UNUSED(self), PyObject *args)
 {
     const char *s = NULL;
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "s", &s));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "s", &s));
 
     return Py_BuildValue("i", ncstrwidth(s));
 }
