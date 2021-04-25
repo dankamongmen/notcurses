@@ -135,8 +135,10 @@ typedef enum {
 // ANNIHILATED cells which are no longer ANNIHILATED), or at blittime for
 // a new RGBA frame.
 typedef enum {
-  SPRIXCELL_OPAQUE,         // no transparent pixels in this cell
-  SPRIXCELL_MIXED,          // this cell has both opaque and transparent pixels
+  SPRIXCELL_OPAQUE_SIXEL,   // no transparent pixels in this cell
+  SPRIXCELL_OPAQUE_KITTY,
+  SPRIXCELL_MIXED_SIXEL,    // this cell has both opaque and transparent pixels
+  SPRIXCELL_MIXED_KITTY,
   SPRIXCELL_TRANSPARENT,    // all pixels are naturally transparent
   SPRIXCELL_ANNIHILATED,    // this cell has been wiped (all trans)
 } sprixcell_e;
@@ -981,16 +983,20 @@ scrub_tam_boundaries(sprixcell_e* tam, int leny, int lenx, int cdimy, int cdimx)
   const int cols = (lenx + cdimx - 1) / cdimx;
   if(lenx % cdimx){
     for(int y = 0 ; y < (leny + cdimy - 1) / cdimy ; ++y){
-      if(tam[y * cols + cols - 1] == SPRIXCELL_OPAQUE){
-        tam[y * cols + cols - 1] = SPRIXCELL_MIXED;
+      if(tam[y * cols + cols - 1] == SPRIXCELL_OPAQUE_KITTY){
+        tam[y * cols + cols - 1] = SPRIXCELL_MIXED_KITTY;
+      }else if(tam[y * cols + cols - 1] == SPRIXCELL_OPAQUE_SIXEL){
+        tam[y * cols + cols - 1] = SPRIXCELL_MIXED_SIXEL;
       }
     }
   }
   if(leny % cdimy){
     const int y = (leny + cdimy - 1) / cdimy - 1;
     for(int x = 0 ; x < cols ; ++x){
-      if(tam[y * cols + x] == SPRIXCELL_OPAQUE){
-        tam[y * cols + x] = SPRIXCELL_MIXED;
+      if(tam[y * cols + x] == SPRIXCELL_OPAQUE_KITTY){
+        tam[y * cols + x] = SPRIXCELL_MIXED_KITTY;
+      }else if(tam[y * cols + x] == SPRIXCELL_OPAQUE_SIXEL){
+        tam[y * cols + x] = SPRIXCELL_MIXED_SIXEL;
       }
     }
   }
