@@ -269,7 +269,7 @@ void free_plane(ncplane* p){
     if(p->sprite){
       sprixel_hide(p->sprite);
     }
-    free(p->tacache);
+    free(p->tam);
     egcpool_dump(&p->pool);
     free(p->name);
     free(p->fb);
@@ -381,7 +381,7 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
   p->name = strdup(nopts->name ? nopts->name : "");
   p->halign = NCALIGN_UNALIGNED;
   p->valign = NCALIGN_UNALIGNED;
-  p->tacache = NULL;
+  p->tam = NULL;
   if(!n){ // new root/standard plane
     p->absy = nopts->y;
     p->absx = nopts->x;

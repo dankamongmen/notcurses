@@ -419,13 +419,13 @@ TEST_CASE("Bitmaps") {
     REQUIRE(s);
     CHECK(s->dimy == dimy);
     CHECK(s->dimx == dimx);
-    const auto tam = n->tacache;
+    const auto tam = n->tam;
     for(int i = 0 ; i < s->dimy * s->dimx ; ++i){
       int py = (i / dimx) * nc_->tcache.cellpixy;
       int px = (i % dimx) * nc_->tcache.cellpixx;
       // cells with a transparent pixel ought be SPRIXCELL_MIXED;
       // cells without one ought be SPRIXCELL_OPAQUE.
-      sprixcell_e state = tam[(i / dimx) + (i % dimx)];
+      sprixcell_e state = tam[(i / dimx) + (i % dimx)].state;
       if(i % 2){
         if(state == SPRIXCELL_MIXED_SIXEL){
           state = SPRIXCELL_MIXED_KITTY;

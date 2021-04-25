@@ -143,6 +143,13 @@ typedef enum {
   SPRIXCELL_ANNIHILATED,    // this cell has been wiped (all trans)
 } sprixcell_e;
 
+// a TAM entry is a sprixcell_e state plus a possible auxiliary vector for
+// reconstruction of annihilated cells, valid only for SPRIXCELL_ANNIHILATED.
+typedef struct tament {
+  sprixcell_e state;
+  uint8_t auxvector; // palette entries for sixel, alphas for kitty
+} tament;
+
 // a sprixel represents a bitmap, using whatever local protocol is available.
 // there is a list of sprixels per ncpile. there ought never be very many
 // associated with a context (a dozen or so at max). with the kitty protocol,
@@ -215,7 +222,7 @@ typedef struct ncplane {
   struct ncplane* boundto;// plane to which we are bound (ourself for roots)
 
   sprixel* sprite;       // pointer into the sprixel cache
-  sprixcell_e* tacache;  // transparency-annihilation sprite matrix
+  tament* tam;           // transparency-annihilation sprite matrix
 
   void* userptr;         // slot for the user to stick some opaque pointer
   int (*resizecb)(struct ncplane*); // callback after parent is resized
@@ -931,7 +938,6 @@ int kitty_rebuild(const notcurses* nc, sprixel* s, int ycell, int xcell);
 void sprixel_free(sprixel* s);
 void sprixel_hide(sprixel* s);
 
-int sprite_draw(const notcurses* n, const ncpile *p, sprixel* s, FILE* out);
 int kitty_draw(const notcurses* n, const ncpile *p, sprixel* s, FILE* out);
 int sixel_draw(const notcurses* n, const ncpile *p, sprixel* s, FILE* out);
 // dimy and dimx are cell geometry, not pixel.
@@ -964,6 +970,13 @@ sprite_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
   return nc->tcache.pixel_destroy(nc, p, out, s);
 }
 
+// precondition: s->invalidated is SPRIXEL_INVALIDATED or SPRIXEL_MOVED.
+static inline int
+sprite_draw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
+//sprixel_debug(stderr, s);
+  return n->tcache.pixel_draw(n, p, s, out);
+}
+
 static inline int
 sprite_rebuild(const notcurses* nc, sprixel* s, int ycell, int xcell){
   return nc->tcache.pixel_rebuild(nc, s, ycell, xcell);
@@ -986,26 +999,26 @@ clamp_to_sixelmax(const tinfo* t, int* y, int* x){
 // cannot be SPRIXCELL_OPAQUE. this postprocesses the TAM, flipping any
 // such sprixcells to SPRIXCELL_MIXED.
 static inline void
-scrub_tam_boundaries(sprixcell_e* tam, int leny, int lenx, int cdimy, int cdimx){
+scrub_tam_boundaries(tament* tam, int leny, int lenx, int cdimy, int cdimx){
   // any sprixcells which don't cover the full cell underneath them cannot
   // be SPRIXCELL_OPAQUE
   const int cols = (lenx + cdimx - 1) / cdimx;
   if(lenx % cdimx){
     for(int y = 0 ; y < (leny + cdimy - 1) / cdimy ; ++y){
-      if(tam[y * cols + cols - 1] == SPRIXCELL_OPAQUE_KITTY){
-        tam[y * cols + cols - 1] = SPRIXCELL_MIXED_KITTY;
-      }else if(tam[y * cols + cols - 1] == SPRIXCELL_OPAQUE_SIXEL){
-        tam[y * cols + cols - 1] = SPRIXCELL_MIXED_SIXEL;
+      if(tam[y * cols + cols - 1].state == SPRIXCELL_OPAQUE_KITTY){
+        tam[y * cols + cols - 1].state = SPRIXCELL_MIXED_KITTY;
+      }else if(tam[y * cols + cols - 1].state == SPRIXCELL_OPAQUE_SIXEL){
+        tam[y * cols + cols - 1].state = SPRIXCELL_MIXED_SIXEL;
       }
     }
   }
   if(leny % cdimy){
     const int y = (leny + cdimy - 1) / cdimy - 1;
     for(int x = 0 ; x < cols ; ++x){
-      if(tam[y * cols + x] == SPRIXCELL_OPAQUE_KITTY){
-        tam[y * cols + x] = SPRIXCELL_MIXED_KITTY;
-      }else if(tam[y * cols + x] == SPRIXCELL_OPAQUE_SIXEL){
-        tam[y * cols + x] = SPRIXCELL_MIXED_SIXEL;
+      if(tam[y * cols + x].state == SPRIXCELL_OPAQUE_KITTY){
+        tam[y * cols + x].state = SPRIXCELL_MIXED_KITTY;
+      }else if(tam[y * cols + x].state == SPRIXCELL_OPAQUE_SIXEL){
+        tam[y * cols + x].state = SPRIXCELL_MIXED_SIXEL;
       }
     }
   }
@@ -1022,7 +1035,7 @@ sprixel_state(const sprixel* s, int y, int x){
   assert(localy < s->dimy);
   assert(localx >= 0);
   assert(localx < s->dimx);
-  return s->n->tacache[localy * s->dimx + localx];
+  return s->n->tam[localy * s->dimx + localx].state;
 }
 
 // is sprixel backend kitty (only valid after calling setup_kitty_bitmaps())?
@@ -1426,7 +1439,7 @@ egc_rtl(const char* egc, int* bytes){
 static inline int
 plane_blit_sixel(sprixel* spx, char* s, int bytes, int rows, int cols,
                  int placey, int placex, int leny, int lenx,
-                 int parse_start, sprixcell_e* tacache){
+                 int parse_start, tament* tam){
   if(sprixel_load(spx, s, bytes, placey, placex, leny, lenx, parse_start)){
     return -1;
   }
@@ -1442,11 +1455,11 @@ plane_blit_sixel(sprixel* spx, char* s, int bytes, int rows, int cols,
     }
   }
   if(n){
-//fprintf(stderr, "TACACHE WAS: %p NOW: %p size: %d/%d\n", n->tacache, tacache, rows, cols);
-    if(n->tacache != tacache){
-      free(n->tacache);
+//fprintf(stderr, "TAM WAS: %p NOW: %p size: %d/%d\n", n->tam, tam, rows, cols);
+    if(n->tam != tam){
+      free(n->tam);
     }
-    n->tacache = tacache;
+    n->tam = tam;
     n->sprite = spx;
   }
   return 0;
