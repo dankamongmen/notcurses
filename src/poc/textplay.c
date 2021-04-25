@@ -119,7 +119,14 @@ textplane(struct notcurses* nc){
     .cols = dimx - MARGIN * 4,
     .name = "text",
   };
-  return ncplane_create(stdn, &nopts);
+  struct ncplane* n = ncplane_create(stdn, &nopts);
+  uint64_t channels = 0;
+  channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+  channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+  if(n){
+    ncplane_set_base(n, "", 0, channels);
+  }
+  return n;
 }
 
 static void
