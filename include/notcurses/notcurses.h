@@ -1505,7 +1505,7 @@ ncplane_halign(const struct ncplane* n, ncalign_e align, int c){
   return notcurses_align(ncplane_dim_x(n), align, c);
 }
 
-static inline int
+__attribute__ ((deprecated)) static inline int
 ncplane_align(const struct ncplane* n, ncalign_e align, int c){
   return ncplane_halign(n, align, c);
 }
@@ -3810,10 +3810,6 @@ cell_load_egc32(struct ncplane* n, nccell* c, uint32_t egc){
 // It persists in ABI2 only for backwards compatibility.
 API ALLOC struct ncplane* ncplane_new(struct ncplane* n, int rows, int cols, int y, int x, void* opaque, const char* name)
   __attribute__ ((deprecated));
-
-static inline int
-ncplane_align(const struct ncplane* n, ncalign_e align, int c)
-__attribute__ ((deprecated));
 
 __attribute__ ((deprecated)) static inline uint32_t
 cell_fg_rgb(const nccell* cl){
