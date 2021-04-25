@@ -14,9 +14,49 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .notcurses import (ncstrwidth, notcurses_version,
-                        notcurses_version_components)
+from .notcurses import (
+    NcPlane, Notcurses, channel_alpha, channel_b, channel_default_p,
+    channel_g, channel_palindex, channel_palindex_p, channel_r,
+    channel_rgb8, channel_rgb_initializer, channel_set,
+    channel_set_alpha, channel_set_default, channel_set_palindex,
+    channel_set_rgb8, channel_set_rgb8_clipped, channels_bchannel,
+    channels_bg_alpha, channels_bg_default_p, channels_bg_palindex,
+    channels_bg_palindex_p, channels_bg_rgb, channels_bg_rgb8,
+    channels_combine, channels_fchannel, channels_fg_alpha,
+    channels_fg_default_p, channels_fg_palindex,
+    channels_fg_palindex_p, channels_fg_rgb, channels_fg_rgb8,
+    channels_rgb_initializer, channels_set_bchannel,
+    channels_set_bg_alpha, channels_set_bg_default,
+    channels_set_bg_palindex, channels_set_bg_rgb,
+    channels_set_bg_rgb8, channels_set_bg_rgb8_clipped,
+    channels_set_fchannel, channels_set_fg_alpha,
+    channels_set_fg_default, channels_set_fg_palindex,
+    channels_set_fg_rgb, channels_set_fg_rgb8,
+    channels_set_fg_rgb8_clipped, ncstrwidth, notcurses_version,
+    notcurses_version_components,
+)
 
 __all__ = (
-    'ncstrwidth', 'notcurses_version', 'notcurses_version_components'
+    'NcPlane', 'Notcurses',
+
+    'channel_alpha', 'channel_b', 'channel_default_p', 'channel_g',
+    'channel_palindex', 'channel_palindex_p', 'channel_r', 'channel_rgb8',
+    'channel_rgb_initializer', 'channel_set', 'channel_set_alpha',
+    'channel_set_default', 'channel_set_palindex', 'channel_set_rgb8',
+    'channel_set_rgb8_clipped', 'channels_bchannel', 'channels_bg_alpha',
+    'channels_bg_default_p', 'channels_bg_palindex',
+    'channels_bg_palindex_p', 'channels_bg_rgb', 'channels_bg_rgb8',
+    'channels_combine', 'channels_fchannel', 'channels_fg_alpha',
+    'channels_fg_default_p', 'channels_fg_palindex',
+    'channels_fg_palindex_p', 'channels_fg_rgb', 'channels_fg_rgb8',
+    'channels_rgb_initializer', 'channels_set_bchannel',
+    'channels_set_bg_alpha', 'channels_set_bg_default',
+    'channels_set_bg_palindex', 'channels_set_bg_rgb',
+    'channels_set_bg_rgb8', 'channels_set_bg_rgb8_clipped',
+    'channels_set_fchannel', 'channels_set_fg_alpha',
+    'channels_set_fg_default', 'channels_set_fg_palindex',
+    'channels_set_fg_rgb', 'channels_set_fg_rgb8',
+    'channels_set_fg_rgb8_clipped',
+
+    'ncstrwidth', 'notcurses_version', 'notcurses_version_components',
 )
