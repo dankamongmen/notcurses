@@ -4,7 +4,7 @@
 // FIXME needs be atomic
 static uint32_t sprixelid_nonce;
 
-static inline void
+__attribute__ ((unused)) static inline void
 sprixel_debug(FILE* out, const sprixel* s){
   fprintf(out, "Sprixel %d (%p) %dx%d (%dx%d) @%d/%d state: %d\n",
           s->id, s, s->dimy, s->dimx, s->pixy, s->pixx,
