@@ -3,7 +3,7 @@
 
 static const uint32_t LOWCOLOR = 0x004080;
 static const uint32_t HICOLOR = 0x00ff80;
-static const uint32_t NANOSEC = 1000000000ull / 600; // 600 cps
+static const uint32_t NANOSEC = 1000000000ull / 60; // 60 cps
 #define MARGIN 4
 
 static struct notcurses*
@@ -30,6 +30,11 @@ colorize(struct ncplane* n){
       char* egc = ncplane_at_yx(n, y, x, &stylemask, &channels);
       if(egc == NULL){
         return -1;
+      }
+      if(strcmp(egc, "") == 0){
+        free(egc);
+        --x;
+        continue;
       }
       ncplane_set_fg_rgb(n, c);
       if(ncplane_putegc_yx(n, y, x, egc, NULL) < 0){
