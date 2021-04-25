@@ -26,6 +26,13 @@ auto oiio_details_destroy(ncvisual_details* deets) -> void {
   delete deets;
 }
 
+auto oiio_details_seed(ncvisual* ncv) -> void {
+  int pixels = ncv->rows * ncv->cols;
+  ncv->details->frame = std::make_unique<uint32_t[]>(pixels);
+  OIIO::ImageSpec rgbaspec{ncv->cols, ncv->rows, 4, OIIO::TypeDesc(OIIO::TypeDesc::UINT8, 4)};
+  ncv->details->ibuf = std::make_unique<OIIO::ImageBuf>(rgbaspec, ncv->data);
+}
+
 auto oiio_create() -> ncvisual* {
   auto nc = new ncvisual{};
   if((nc->details = oiio_details_init()) == nullptr){
@@ -119,7 +126,7 @@ int oiio_decode_loop(ncvisual* ncv){
 
 // resize, converting to RGBA (if necessary) along the way
 int oiio_resize(ncvisual* nc, int rows, int cols) {
-//fprintf(stderr, "%d/%d -> %d/%d on the resize\n", ncv->rows, ncv->cols, rows, cols);
+//fprintf(stderr, "%d/%d -> %d/%d on the resize\n", nc->rows, nc->cols, rows, cols);
   auto ibuf = std::make_unique<OIIO::ImageBuf>();
   if(nc->details->ibuf && (nc->cols != cols || nc->rows != rows)){ // scale it
     OIIO::ImageSpec sp{};

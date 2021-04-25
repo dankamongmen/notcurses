@@ -10,6 +10,7 @@ extern "C" {
 int oiio_decode(ncvisual* nc);
 struct ncvisual_details* oiio_details_init(void);
 void oiio_printbanner(const struct notcurses* nc);
+void oiio_details_seed(struct ncvisual* ncv);
 int oiio_blit(ncvisual* ncv, int rows, int cols,
               struct ncplane* n, const struct blitset* bset,
               int leny, int lenx, const blitterargs* bargs);

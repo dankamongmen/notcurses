@@ -69,11 +69,6 @@ char* oiio_subtitle(const ncvisual* ncv) { // no support in OIIO
   return NULL;
 }
 
-void oiio_details_seed(ncvisual* ncv) {
-  (void)ncv;
-  // FIXME?
-}
-
 int oiio_init(int loglevel __attribute__ ((unused))) {
   // FIXME set OIIO global attribute "debug" based on loglevel
   // FIXME check OIIO_VERSION_STRING components against linked openimageio_version()
