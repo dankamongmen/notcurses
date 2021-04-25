@@ -15,8 +15,8 @@
 # limitations under the License.
 from time import sleep
 
-from notcurses import get_std_plane
+from notcurses import Notcurses
 
-std_plane = get_std_plane()
+Notcurses()
 
 sleep(1)

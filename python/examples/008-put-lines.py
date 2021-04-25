@@ -17,8 +17,11 @@
 
 from time import sleep
 
-from notcurses import get_std_plane
+from notcurses import Notcurses
 
+nc = Notcurses()
+
+stdplane = nc.stdplane()
 
 test_str = '''Sapiente quaerat expedita repellendus ea quae. Ut enim natus iure laborum. Assumenda sed placeat provident similique cum quidem. Sit voluptas facilis vitae culpa asperiores eos neque.
 Aspernatur rerum quae minus natus. Vero autem suscipit nisi eligendi dolorum sed vero. Illum odio repudiandae odit in voluptas reiciendis amet.
@@ -27,10 +30,8 @@ Laboriosam expedita ut enim velit occaecati qui neque. Et voluptatem eligendi ha
 Dolores quaerat sint dolorum. Corrupti temporibus nam corrupti. Iusto non perspiciatis et quisquam minima nesciunt quia esse.
 '''
 
-std_plane = get_std_plane()
+wr = stdplane.puttext(-1, 0, test_str)
 
-std_plane.put_lines(test_str.splitlines(), wrap_lines=True)
-
-std_plane.context.render()
+nc.render()
 
 sleep(3)

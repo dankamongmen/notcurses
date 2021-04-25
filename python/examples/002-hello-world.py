@@ -16,11 +16,13 @@
 
 from time import sleep
 
-from notcurses import get_std_plane
+from notcurses import Notcurses
 
-std_plane = get_std_plane()
-std_plane.putstr("Hello, World!")
+nc = Notcurses()
 
-std_plane.context.render()
+stdplane = nc.stdplane()
+stdplane.putstr("Hello, World!")
 
-sleep(5)
+nc.render()
+
+sleep(3)

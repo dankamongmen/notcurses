@@ -16,21 +16,24 @@
 
 from time import sleep
 
-from notcurses import get_std_plane
+from notcurses import Notcurses
 
-std_plane = get_std_plane()
-std_plane.set_background_rgb(0, 0, 255)
-std_plane.set_foreground_rgb(255, 0, 0)
-std_plane.putstr("Red on blue", y_pos=0)
 
-std_plane.set_background_rgb(0, 255, 0)
-std_plane.set_foreground_rgb(255, 255, 255)
-std_plane.putstr("White on green", y_pos=1, x_pos=0)
+nc = Notcurses()
 
-std_plane.set_background_rgb(0, 0, 0)
-std_plane.set_foreground_rgb(255, 0, 255)
-std_plane.putstr("Purple on black", y_pos=2, x_pos=0)
+stdplane = nc.stdplane()
+stdplane.set_bg_rgb8_clipped(0, 0, 255)
+stdplane.set_fg_rgb8_clipped(255, 0, 0)
+stdplane.putstr_yx(0, 0, "Red on blue")
 
-std_plane.context.render()
+stdplane.set_bg_rgb8(0, 255, 0)
+stdplane.set_fg_rgb8(255, 255, 255)
+stdplane.putstr_yx(1, 0, "White on green")
+
+stdplane.set_bg_rgb8(0, 0, 0)
+stdplane.set_fg_rgb8(255, 0, 255)
+stdplane.putstr_yx(2, 0, "Purple on black")
+
+nc.render()
 
 sleep(5)
