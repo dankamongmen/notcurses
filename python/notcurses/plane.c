@@ -40,7 +40,7 @@ Ncplane_create(NcPlaneObject *self, PyObject *args, PyObject *kwds)
                         "flags",
                         "margin_b", "margin_r", NULL};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTupleAndKeywords(args, kwds, "|ii ii s K ii", keywords,
+    GNU_PY_CHECK_BOOL(PyArg_ParseTupleAndKeywords(args, kwds, "|iiiisKii", keywords,
                                                  &y, &x,
                                                  &rows, &cols,
                                                  &name,
@@ -130,7 +130,7 @@ NcPlane_reparent(NcPlaneObject *self, PyObject *args)
 {
     NcPlaneObject *new_parent = NULL;
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "O!", &NcPlane_Type, &new_parent));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "O!", &NcPlane_Type, &new_parent));
 
     CHECK_NOTCURSES_PTR(ncplane_reparent(self->ncplane_ptr, new_parent->ncplane_ptr));
 
@@ -142,7 +142,7 @@ NcPlane_reparent_family(NcPlaneObject *self, PyObject *args)
 {
     NcPlaneObject *new_parent = NULL;
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "O!", &NcPlane_Type, &new_parent));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "O!", &NcPlane_Type, &new_parent));
 
     CHECK_NOTCURSES_PTR(ncplane_reparent_family(self->ncplane_ptr, new_parent->ncplane_ptr));
 
@@ -169,7 +169,7 @@ NcPlane_translate(NcPlaneObject *self, PyObject *args, PyObject *kwds)
     char *keywords[] = {"dst", "y_pos", "x_pos",
                         NULL};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTupleAndKeywords(args, kwds, "|O! ii", keywords,
+    GNU_PY_CHECK_BOOL(PyArg_ParseTupleAndKeywords(args, kwds, "|O!ii", keywords,
                                                  &NcPlane_Type, &dst_obj,
                                                  &y, &x));
 
@@ -188,7 +188,7 @@ static PyObject *
 NcPlane_translate_abs(NcPlaneObject *self, PyObject *args)
 {
     int x = 0, y = 0;
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "ii", &y, &x));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "ii", &y, &x));
 
     return PyBool_FromLong((long)ncplane_translate_abs(self->ncplane_ptr, &y, &x));
 }
@@ -198,7 +198,7 @@ NcPlane_set_scrolling(NcPlaneObject *self, PyObject *args)
 {
     int scrollp_int = 0;
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "p", &scrollp_int));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "p", &scrollp_int));
 
     return PyBool_FromLong((long)ncplane_set_scrolling(self->ncplane_ptr, (bool)scrollp_int));
 }
@@ -214,7 +214,7 @@ NcPlane_resize(NcPlaneObject *self, PyObject *args, PyObject *kwds)
                         "ylen", "xlen",
                         NULL};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTupleAndKeywords(args, kwds, "ii ii ii ii", keywords,
+    GNU_PY_CHECK_BOOL(PyArg_ParseTupleAndKeywords(args, kwds, "iiiiiiii", keywords,
                                                  &keepy, &keepx,
                                                  &keepleny, &keeplenx,
                                                  &yoff, &xoff,
@@ -230,7 +230,7 @@ NcPlane_resize_simple(NcPlaneObject *self, PyObject *args)
 {
     int ylen = 0, xlen = 0;
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "ii", &ylen, &xlen));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "ii", &ylen, &xlen));
 
     CHECK_NOTCURSES(ncplane_resize_simple(self->ncplane_ptr, ylen, xlen));
 
@@ -263,7 +263,7 @@ NcPlane_move_yx(NcPlaneObject *self, PyObject *args)
 {
     int y = 0, x = 0;
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "ii", &y, &x));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "ii", &y, &x));
 
     CHECK_NOTCURSES(ncplane_move_yx(self->ncplane_ptr, y, x));
 
@@ -339,7 +339,7 @@ NcPlane_descendant_p(NcPlaneObject *self, PyObject *args)
 {
     NcPlaneObject *ancestor_obj = NULL;
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "O!", &NcPlane_Type, &ancestor_obj));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "O!", &NcPlane_Type, &ancestor_obj));
 
     return PyBool_FromLong((long)ncplane_descendant_p(self->ncplane_ptr, ancestor_obj->ncplane_ptr));
 }
@@ -363,7 +363,7 @@ NcPlane_move_above(NcPlaneObject *self, PyObject *args)
 {
     NcPlaneObject *above_obj = NULL;
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "O!", &NcPlane_Type, &above_obj));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "O!", &NcPlane_Type, &above_obj));
 
     CHECK_NOTCURSES(ncplane_move_above(self->ncplane_ptr, above_obj->ncplane_ptr));
 
@@ -375,7 +375,7 @@ NcPlane_move_below(NcPlaneObject *self, PyObject *args)
 {
     NcPlaneObject *bellow_obj = NULL;
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "O!", &NcPlane_Type, &bellow_obj));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "O!", &NcPlane_Type, &bellow_obj));
 
     CHECK_NOTCURSES(ncplane_move_below(self->ncplane_ptr, bellow_obj->ncplane_ptr));
 
@@ -460,7 +460,7 @@ NcPlane_at_yx(NcPlaneObject *self, PyObject *args)
     uint64_t channels = 0;
     int y = 0, x = 0;
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "ii", &y, &x));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "ii", &y, &x));
 
     char *egc = CHECK_NOTCURSES_PTR(ncplane_at_yx(self->ncplane_ptr, y, x, &style_mask, &channels));
 
@@ -485,7 +485,7 @@ NcPlane_contents(NcPlaneObject *self, PyObject *args, PyObject *kwds)
 
     char *keywords[] = {"begy", "begx", "leny", "lenx", NULL};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTupleAndKeywords(args, kwds, "ii|ii", keywords,
+    GNU_PY_CHECK_BOOL(PyArg_ParseTupleAndKeywords(args, kwds, "ii|ii", keywords,
                                                  &beg_y, &beg_x,
                                                  &len_y, &len_x));
 
@@ -511,7 +511,7 @@ NcPlane_halign(NcPlaneObject *self, PyObject *args)
 {
     int align = 0, c = 0;
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "ii", &align, &c));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "ii", &align, &c));
     int collumn = CHECK_NOTCURSES(ncplane_halign(self->ncplane_ptr, (ncalign_e)align, c));
 
     return Py_BuildValue("i", collumn);
@@ -522,7 +522,7 @@ NcPlane_valign(NcPlaneObject *self, PyObject *args)
 {
     int align = 0, r = 0;
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "ii", &align, &r));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "ii", &align, &r));
     int row = CHECK_NOTCURSES(ncplane_valign(self->ncplane_ptr, (ncalign_e)align, r));
 
     return Py_BuildValue("i", row);
@@ -533,7 +533,7 @@ NcPlane_cursor_move_yx(NcPlaneObject *self, PyObject *args)
 {
     int y = 0, x = 0;
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "ii", &y, &x));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "ii", &y, &x));
 
     CHECK_NOTCURSES(ncplane_cursor_move_yx(self->ncplane_ptr, y, x));
 
@@ -591,7 +591,7 @@ NcPlane_putchar_yx(NcPlaneObject *self, PyObject *args)
     int y = 0, x = 0;
     const char *c_str = NULL;
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "s", &c_str));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "s", &c_str));
 
     CHECK_NOTCURSES(ncplane_putchar_yx(self->ncplane_ptr, y, x, c_str[0]));
 
@@ -603,7 +603,7 @@ NcPlane_putchar(NcPlaneObject *self, PyObject *args)
 {
     const char *c_str = NULL;
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "s", &c_str));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "s", &c_str));
 
     CHECK_NOTCURSES(ncplane_putchar(self->ncplane_ptr, c_str[0]));
 
@@ -615,7 +615,7 @@ NcPlane_putchar_stained(NcPlaneObject *self, PyObject *args)
 {
     const char *c_str = NULL;
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "s", &c_str));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "s", &c_str));
 
     CHECK_NOTCURSES(ncplane_putchar_stained(self->ncplane_ptr, c_str[0]));
 
@@ -629,7 +629,7 @@ NcPlane_putegc_yx(NcPlaneObject *self, PyObject *args)
     const char *egc = NULL;
     int sbytes = 0;
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "ii s",
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "iis",
                                       &y, &x,
                                       &egc));
 
@@ -644,7 +644,7 @@ NcPlane_putegc(NcPlaneObject *self, PyObject *args)
     const char *egc = NULL;
     int sbytes = 0;
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "s",
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "s",
                                       &egc));
 
     CHECK_NOTCURSES(ncplane_putegc(self->ncplane_ptr, egc, &sbytes));
@@ -658,7 +658,7 @@ NcPlane_putegc_stained(NcPlaneObject *self, PyObject *args)
     const char *egc = NULL;
     int sbytes = 0;
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "s",
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "s",
                                       &egc));
 
     CHECK_NOTCURSES(ncplane_putegc(self->ncplane_ptr, egc, &sbytes));
@@ -672,7 +672,7 @@ NcPlane_putstr_yx(NcPlaneObject *self, PyObject *args)
     int y = 0, x = 0;
     const char *egc = NULL;
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "ii s",
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "iis",
                                       &y, &x,
                                       &egc));
 
@@ -686,7 +686,7 @@ NcPlane_putstr(NcPlaneObject *self, PyObject *args)
 {
     const char *egc = NULL;
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "s",
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "s",
                                       &egc));
 
     CHECK_NOTCURSES(ncplane_putstr(self->ncplane_ptr, egc));
@@ -700,7 +700,7 @@ NcPlane_putstr_aligned(NcPlaneObject *self, PyObject *args)
     int y = 0, align_int = 0;
     const char *egc = NULL;
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "ii s",
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "iis",
                                       &y, &align_int,
                                       &egc));
 
@@ -714,7 +714,7 @@ NcPlane_putstr_stained(NcPlaneObject *self, PyObject *args)
 {
     const char *egc = NULL;
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "s",
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "s",
                                       &egc));
 
     CHECK_NOTCURSES(ncplane_putstr_stained(self->ncplane_ptr, egc));
@@ -729,7 +729,7 @@ NcPlane_putnstr_yx(NcPlaneObject *self, PyObject *args)
     Py_ssize_t s = 0;
     const char *egc = NULL;
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "ii n s",
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "iins",
                                       &y, &x,
                                       &s,
                                       &egc));
@@ -745,7 +745,7 @@ NcPlane_putnstr(NcPlaneObject *self, PyObject *args)
     Py_ssize_t s = 0;
     const char *egc = NULL;
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "n s",
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "ns",
                                       &s,
                                       &egc));
 
@@ -761,7 +761,7 @@ NcPlane_putnstr_aligned(NcPlaneObject *self, PyObject *args)
     Py_ssize_t s = 0;
     const char *egc = NULL;
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "ii n s",
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "iins",
                                       &y, &align_int,
                                       &s,
                                       &egc));
@@ -778,7 +778,7 @@ NcPlane_puttext(NcPlaneObject *self, PyObject *args)
     const char *text = NULL;
     size_t bytes_written = 0;
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "ii s",
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "iis",
                                       &y, &align_int,
                                       &text));
 
@@ -832,7 +832,7 @@ NcPlane_gradient(NcPlaneObject *self, PyObject *args, PyObject *kwds)
                         "ul", "ur", "ll", "lr",
                         "ystop", "xstop",
                         NULL};
-    GNU_PY_CHECK_INT(PyArg_ParseTupleAndKeywords(args, kwds, "s k KKKK ii", keywords,
+    GNU_PY_CHECK_BOOL(PyArg_ParseTupleAndKeywords(args, kwds, "skKKKKii", keywords,
                                                  &egc,
                                                  &stylemask,
                                                  &ul, &ur, &ll, &lr,
@@ -857,7 +857,7 @@ NcPlane_highgradient(NcPlaneObject *self, PyObject *args, PyObject *kwds)
     char *keywords[] = {"ul", "ur", "ll", "lr",
                         "ystop", "xstop",
                         NULL};
-    GNU_PY_CHECK_INT(PyArg_ParseTupleAndKeywords(args, kwds, "kkkk ii", keywords,
+    GNU_PY_CHECK_BOOL(PyArg_ParseTupleAndKeywords(args, kwds, "kkkkii", keywords,
                                                  &ul, &ur, &ll, &lr,
                                                  &ystop, &xstop));
 
@@ -883,7 +883,7 @@ NcPlane_gradient_sized(NcPlaneObject *self, PyObject *args, PyObject *kwds)
                         "ul", "ur", "ll", "lr",
                         "ylen", "xlen",
                         NULL};
-    GNU_PY_CHECK_INT(PyArg_ParseTupleAndKeywords(args, kwds, "s k KKKK ii", keywords,
+    GNU_PY_CHECK_BOOL(PyArg_ParseTupleAndKeywords(args, kwds, "skKKKKii", keywords,
                                                  &egc,
                                                  &stylemask,
                                                  &ul, &ur, &ll, &lr,
@@ -908,7 +908,7 @@ NcPlane_highgradient_sized(NcPlaneObject *self, PyObject *args, PyObject *kwds)
     char *keywords[] = {"ul", "ur", "ll", "lr",
                         "ylen", "xlen",
                         NULL};
-    GNU_PY_CHECK_INT(PyArg_ParseTupleAndKeywords(args, kwds, "kkkk ii", keywords,
+    GNU_PY_CHECK_BOOL(PyArg_ParseTupleAndKeywords(args, kwds, "kkkkii", keywords,
                                                  &ul, &ur, &ll, &lr,
                                                  &ylen, &xlen));
 
@@ -927,7 +927,7 @@ NcPlane_format(NcPlaneObject *self, PyObject *args)
     int ystop = 0, xstop = 0;
     unsigned long stylemark = 0;
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "ii k",
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "iik",
                                       &ystop, &xstop,
                                       &stylemark));
 
@@ -947,7 +947,7 @@ NcPlane_stain(NcPlaneObject *self, PyObject *args, PyObject *kwds)
         "ul", "ur", "ll", "lr",
         NULL};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTupleAndKeywords(args, kwds, "ii KKKK", keywords,
+    GNU_PY_CHECK_BOOL(PyArg_ParseTupleAndKeywords(args, kwds, "iiKKKK", keywords,
                                                  &ystop, &xstop,
                                                  &ul, &ur, &ll, &lr));
 
@@ -965,7 +965,7 @@ NcPlane_mergedown_simple(NcPlaneObject *self, PyObject *args)
 {
     NcPlaneObject *dst_obj = NULL;
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "|O!", &NcPlane_Type, &dst_obj));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "|O!", &NcPlane_Type, &dst_obj));
 
     if (NULL != dst_obj)
     {
@@ -990,7 +990,7 @@ NcPlane_mergedown(NcPlaneObject *self, PyObject *args, PyObject *kwds)
                         "begsrcy", "begsrcx", "leny", "lenx",
                         "dsty", "dstx",
                         NULL};
-    GNU_PY_CHECK_INT(PyArg_ParseTupleAndKeywords(args, kwds, "O! iiii ii", keywords,
+    GNU_PY_CHECK_BOOL(PyArg_ParseTupleAndKeywords(args, kwds, "O!iiiiii", keywords,
                                                  &NcPlane_Type, &dst_obj,
                                                  &begsrcy, &begsrcx, &leny, &lenx,
                                                  &dsty, &dstx));
@@ -1027,7 +1027,7 @@ NcPlane_set_channels(NcPlaneObject *self, PyObject *args)
 {
     unsigned long long channels = 0;
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "K", &channels));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "K", &channels));
 
     ncplane_set_channels(self->ncplane_ptr, (uint64_t)channels);
 
@@ -1039,7 +1039,7 @@ NcPlane_set_styles(NcPlaneObject *self, PyObject *args)
 {
     unsigned int stylebits = 0;
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "I", &stylebits));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "I", &stylebits));
 
     ncplane_set_styles(self->ncplane_ptr, stylebits);
 
@@ -1051,7 +1051,7 @@ NcPlane_on_styles(NcPlaneObject *self, PyObject *args)
 {
     unsigned int stylebits = 0;
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "I", &stylebits));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "I", &stylebits));
 
     ncplane_on_styles(self->ncplane_ptr, stylebits);
 
@@ -1063,7 +1063,7 @@ NcPlane_off_styles(NcPlaneObject *self, PyObject *args)
 {
     unsigned int stylebits = 0;
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "I", &stylebits));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "I", &stylebits));
 
     ncplane_off_styles(self->ncplane_ptr, stylebits);
 
@@ -1128,7 +1128,7 @@ static PyObject *
 NcPlane_set_fchannel(NcPlaneObject *self, PyObject *args)
 {
     unsigned long channel = 0;
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "k", &channel));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "k", &channel));
 
     return Py_BuildValue("K", (unsigned long long)ncplane_set_fchannel(self->ncplane_ptr, (uint32_t)channel));
 }
@@ -1137,7 +1137,7 @@ static PyObject *
 NcPlane_set_bchannel(NcPlaneObject *self, PyObject *args)
 {
     unsigned long channel = 0;
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "k", &channel));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "k", &channel));
 
     return Py_BuildValue("K", (unsigned long long)ncplane_set_bchannel(self->ncplane_ptr, (uint32_t)channel));
 }
@@ -1147,7 +1147,7 @@ NcPlane_set_fg_rgb8(NcPlaneObject *self, PyObject *args)
 {
     int r = 0, g = 0, b = 0;
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "iii", &r, &g, &b));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "iii", &r, &g, &b));
 
     CHECK_NOTCURSES(ncplane_set_fg_rgb8(self->ncplane_ptr, r, g, b));
 
@@ -1159,7 +1159,7 @@ NcPlane_set_bg_rgb8(NcPlaneObject *self, PyObject *args)
 {
     int r = 0, g = 0, b = 0;
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "iii", &r, &g, &b));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "iii", &r, &g, &b));
 
     CHECK_NOTCURSES(ncplane_set_bg_rgb8(self->ncplane_ptr, r, g, b));
 
@@ -1171,7 +1171,7 @@ NcPlane_set_bg_rgb8_clipped(NcPlaneObject *self, PyObject *args)
 {
     int r = 0, g = 0, b = 0;
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "iii", &r, &g, &b));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "iii", &r, &g, &b));
 
     ncplane_set_bg_rgb8_clipped(self->ncplane_ptr, r, g, b);
 
@@ -1183,7 +1183,7 @@ NcPlane_set_fg_rgb8_clipped(NcPlaneObject *self, PyObject *args)
 {
     int r = 0, g = 0, b = 0;
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "iii", &r, &g, &b));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "iii", &r, &g, &b));
 
     ncplane_set_fg_rgb8_clipped(self->ncplane_ptr, r, g, b);
 
@@ -1195,7 +1195,7 @@ NcPlane_set_fg_rgb(NcPlaneObject *self, PyObject *args)
 {
     unsigned long channel = 0;
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "k", &channel));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "k", &channel));
 
     CHECK_NOTCURSES(ncplane_set_fg_rgb(self->ncplane_ptr, (uint32_t)channel));
 
@@ -1207,7 +1207,7 @@ NcPlane_set_bg_rgb(NcPlaneObject *self, PyObject *args)
 {
     unsigned long channel = 0;
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "k", &channel));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "k", &channel));
 
     CHECK_NOTCURSES(ncplane_set_bg_rgb(self->ncplane_ptr, (uint32_t)channel));
 
@@ -1234,7 +1234,7 @@ static PyObject *
 NcPlane_set_fg_palindex(NcPlaneObject *self, PyObject *args)
 {
     int idx = 0;
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "i", &idx));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "i", &idx));
     ncplane_set_fg_palindex(self->ncplane_ptr, idx);
 
     Py_RETURN_NONE;
@@ -1244,7 +1244,7 @@ static PyObject *
 NcPlane_set_bg_palindex(NcPlaneObject *self, PyObject *args)
 {
     int idx = 0;
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "i", &idx));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "i", &idx));
     ncplane_set_bg_palindex(self->ncplane_ptr, idx);
 
     Py_RETURN_NONE;
@@ -1254,7 +1254,7 @@ static PyObject *
 NcPlane_set_fg_alpha(NcPlaneObject *self, PyObject *args)
 {
     int alpha = 0;
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "i", &alpha));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "i", &alpha));
     ncplane_set_fg_alpha(self->ncplane_ptr, alpha);
 
     Py_RETURN_NONE;
@@ -1264,7 +1264,7 @@ static PyObject *
 NcPlane_set_bg_alpha(NcPlaneObject *self, PyObject *args)
 {
     int alpha = 0;
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "i", &alpha));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "i", &alpha));
     ncplane_set_bg_alpha(self->ncplane_ptr, alpha);
 
     Py_RETURN_NONE;
@@ -1343,7 +1343,7 @@ NcPlane_perimeter_rounded(NcPlaneObject *self, PyObject *args, PyObject *kwds)
 
     char *keywords[] = {"stylemask", "channels", "ctlword", NULL};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTupleAndKeywords(args, kwds, "", keywords,
+    GNU_PY_CHECK_BOOL(PyArg_ParseTupleAndKeywords(args, kwds, "kKI", keywords,
                                                  &stylemask,
                                                  &channels,
                                                  &ctlword));
@@ -1367,9 +1367,9 @@ NcPlane_rounded_box_sized(NcPlaneObject *self, PyObject *args, PyObject *kwds)
                         "ctlword",
                         NULL};
 
-    GNU_PY_CHECK_INT(
+    GNU_PY_CHECK_BOOL(
         PyArg_ParseTupleAndKeywords(
-            args, kwds, "kK ii I", keywords,
+            args, kwds, "kKiiI", keywords,
             &styles, &channels,
             &ylen, &xlen,
             &ctlword));
@@ -1406,9 +1406,9 @@ NcPlane_double_box(NcPlaneObject *self, PyObject *args, PyObject *kwds)
                         "ctlword",
                         NULL};
 
-    GNU_PY_CHECK_INT(
+    GNU_PY_CHECK_BOOL(
         PyArg_ParseTupleAndKeywords(
-            args, kwds, "kK ii I", keywords,
+            args, kwds, "kKiiI", keywords,
             &styles, &channels,
             &ylen, &xlen,
             &ctlword));
@@ -1435,9 +1435,9 @@ NcPlane_perimeter_double(NcPlaneObject *self, PyObject *args, PyObject *kwds)
                         "ctlword",
                         NULL};
 
-    GNU_PY_CHECK_INT(
+    GNU_PY_CHECK_BOOL(
         PyArg_ParseTupleAndKeywords(
-            args, kwds, "kK I", keywords,
+            args, kwds, "kKI", keywords,
             &styles, &channels,
             &ctlword));
 
@@ -1465,9 +1465,9 @@ NcPlane_double_box_sized(NcPlaneObject *self, PyObject *args, PyObject *kwds)
                         "ctlword",
                         NULL};
 
-    GNU_PY_CHECK_INT(
+    GNU_PY_CHECK_BOOL(
         PyArg_ParseTupleAndKeywords(
-            args, kwds, "kK ii I", keywords,
+            args, kwds, "kKiiI", keywords,
             &styles, &channels,
             &ylen, &xlen,
             &ctlword));
@@ -1615,7 +1615,7 @@ NcPlane_qrcode(NcPlaneObject *self, PyObject *args)
     const char *data = NULL;
     Py_ssize_t len = 0;
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "s#", &data, &len));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "s#", &data, &len));
 
     int ymax = 0, xmax = 0;
 
@@ -1668,7 +1668,7 @@ NcPlane_pile_rasterize(NcPlaneObject *self, PyObject *Py_UNUSED(args))
 static PyObject *
 NcPlane_(NcPlaneObject *self, PyObject *args)
 {
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "", ));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "", ));
 }
 */
 

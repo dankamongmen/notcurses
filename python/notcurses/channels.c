@@ -22,7 +22,7 @@ python_channels_rgb_initializer(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long fr, fg, fb, br, bg, bb = {0};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "KKKKKK", &fr, &fg, &fb, &br, &bg, &bb));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "KKKKKK", &fr, &fg, &fb, &br, &bg, &bb));
 
     unsigned long long channels = CHANNELS_RGB_INITIALIZER(fr, fg, fb, br, bg, bb);
 
@@ -34,7 +34,7 @@ python_channel_rgb_initializer(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long r, g, b = {0};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "kkk", &r, &g, &b));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "kkk", &r, &g, &b));
 
     unsigned long channel = CHANNEL_RGB_INITIALIZER(r, g, b);
 
@@ -46,7 +46,7 @@ python_channel_r(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long channel = {0};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "k", &channel));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "k", &channel));
 
     unsigned long r = channel_r((uint32_t)channel);
 
@@ -58,7 +58,7 @@ python_channel_g(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long channel = {0};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "k", &channel));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "k", &channel));
 
     unsigned long g = channel_r((uint32_t)channel);
 
@@ -70,7 +70,7 @@ python_channel_b(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long channel = {0};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "k", &channel));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "k", &channel));
 
     unsigned long b = channel_b((uint32_t)channel);
 
@@ -83,7 +83,7 @@ python_channel_rgb8(PyObject *Py_UNUSED(self), PyObject *args)
     unsigned long channel = {0};
     unsigned int r, g, b = {0};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "k", &channel));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "k", &channel));
 
     channel_rgb8((uint32_t)channel, &r, &g, &b);
 
@@ -96,7 +96,7 @@ python_channel_set_rgb8(PyObject *Py_UNUSED(self), PyObject *args)
     unsigned long channel = {0};
     int r, g, b = {0};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "kiii", &channel, &r, &g, &b));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "kiii", &channel, &r, &g, &b));
 
     uint32_t channel_fixed_size = (uint32_t)channel;
 
@@ -111,7 +111,7 @@ python_channel_set_rgb8_clipped(PyObject *Py_UNUSED(self), PyObject *args)
     unsigned int channel = {0};
     int r, g, b = {0};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "Iiii", &channel, &r, &g, &b));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "Iiii", &channel, &r, &g, &b));
 
     channel_set_rgb8_clipped(&channel, r, g, b);
 
@@ -123,7 +123,7 @@ python_channel_set(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned int channel, rgb = {0};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "II", &channel, &rgb));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "II", &channel, &rgb));
 
     CHECK_NOTCURSES(channel_set(&channel, rgb));
 
@@ -135,7 +135,7 @@ python_channel_alpha(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned int channel = {0};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "I", &channel));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "I", &channel));
 
     return Py_BuildValue("I", channel_alpha(channel));
 }
@@ -145,7 +145,7 @@ python_channel_palindex(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long channel = {0};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "k", &channel));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "k", &channel));
 
     return Py_BuildValue("I", channel_palindex((uint32_t)channel));
 }
@@ -155,7 +155,7 @@ python_channel_set_alpha(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned int channel, alpha = {0};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "II", &channel, &alpha));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "II", &channel, &alpha));
 
     CHECK_NOTCURSES(channel_set_alpha(&channel, alpha));
 
@@ -168,7 +168,7 @@ python_channel_set_palindex(PyObject *Py_UNUSED(self), PyObject *args)
     unsigned long channel = {0};
     int idx = {0};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "ki", &channel, &idx));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "ki", &channel, &idx));
 
     uint32_t channel_fixed_size = (uint32_t)channel;
 
@@ -182,7 +182,7 @@ python_channel_default_p(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned int channel = {0};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "I", &channel));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "I", &channel));
 
     return PyBool_FromLong((long)channel_default_p(channel));
 }
@@ -192,7 +192,7 @@ python_channel_palindex_p(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned int channel = {0};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "I", &channel));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "I", &channel));
 
     return PyBool_FromLong((long)channel_palindex_p(channel));
 }
@@ -202,7 +202,7 @@ python_channel_set_default(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned int channel = {0};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "I", &channel));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "I", &channel));
 
     return Py_BuildValue("I", channel_set_default(&channel));
 }
@@ -212,7 +212,7 @@ python_channels_bchannel(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long channels = {0};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "K", &channels));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "K", &channels));
 
     return Py_BuildValue("k", (unsigned long)channels_bchannel((uint64_t)channels));
 }
@@ -222,7 +222,7 @@ python_channels_fchannel(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long channels = {0};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "K", &channels));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "K", &channels));
 
     return Py_BuildValue("k", (unsigned long)channels_fchannel((uint64_t)channels));
 }
@@ -233,7 +233,7 @@ python_channels_set_bchannel(PyObject *Py_UNUSED(self), PyObject *args)
     unsigned long long channels = {0};
     unsigned long channel = {0};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "Kk", &channels, &channel));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "Kk", &channels, &channel));
 
     uint64_t channels_fixed_size = (uint64_t)channels;
 
@@ -246,7 +246,7 @@ python_channels_set_fchannel(PyObject *Py_UNUSED(self), PyObject *args)
     unsigned long long channels = {0};
     unsigned long channel = {0};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "Kk", &channels, &channel));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "Kk", &channels, &channel));
 
     uint64_t channels_fixed_size = (uint64_t)channels;
 
@@ -258,7 +258,7 @@ python_channels_combine(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long fchan, bchan = {0};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "kk", &fchan, &bchan));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "kk", &fchan, &bchan));
 
     return Py_BuildValue("K", (unsigned long long)channels_combine((uint32_t)fchan, (uint32_t)bchan));
 }
@@ -268,7 +268,7 @@ python_channels_fg_palindex(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long channels = {0};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "K", &channels));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "K", &channels));
 
     return Py_BuildValue("k", (unsigned long)channels_fg_palindex((uint64_t)channels));
 }
@@ -278,7 +278,7 @@ python_channels_bg_palindex(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long channels = {0};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "K", &channels));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "K", &channels));
 
     return Py_BuildValue("k", (unsigned long)channels_bg_palindex((uint64_t)channels));
 }
@@ -288,7 +288,7 @@ python_channels_fg_rgb(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long channels = {0};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "K", &channels));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "K", &channels));
 
     return Py_BuildValue("I", channels_fg_rgb(channels));
 }
@@ -298,7 +298,7 @@ python_channels_bg_rgb(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long channels = {0};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "K", &channels));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "K", &channels));
 
     return Py_BuildValue("I", channels_bg_rgb(channels));
 }
@@ -308,7 +308,7 @@ python_channels_fg_alpha(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long channels = {0};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "K", &channels));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "K", &channels));
 
     return Py_BuildValue("I", channels_fg_alpha(channels));
 }
@@ -318,7 +318,7 @@ python_channels_bg_alpha(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long channels = {0};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "K", &channels));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "K", &channels));
 
     return Py_BuildValue("I", channels_bg_alpha(channels));
 }
@@ -329,7 +329,7 @@ python_channels_fg_rgb8(PyObject *Py_UNUSED(self), PyObject *args)
     unsigned long long channels = {0};
     unsigned int r, g, b = {0};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "K", &channels));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "K", &channels));
 
     channels_fg_rgb8((uint64_t)channels, &r, &g, &b);
 
@@ -342,7 +342,7 @@ python_channels_bg_rgb8(PyObject *Py_UNUSED(self), PyObject *args)
     unsigned long long channels = {0};
     unsigned int r, g, b = {0};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "K", &channels));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "K", &channels));
 
     channels_bg_rgb8((uint64_t)channels, &r, &g, &b);
 
@@ -355,7 +355,7 @@ python_channels_set_fg_rgb8(PyObject *Py_UNUSED(self), PyObject *args)
     unsigned long long channels = {0};
     int r, g, b = {0};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "Kiii", &channels, &r, &g, &b));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "Kiii", &channels, &r, &g, &b));
 
     uint64_t channels_fixed_size = (uint64_t)channels;
 
@@ -370,7 +370,7 @@ python_channels_set_fg_rgb8_clipped(PyObject *Py_UNUSED(self), PyObject *args)
     unsigned long long channels = {0};
     int r, g, b = {0};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "Kiii", &channels, &r, &g, &b));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "Kiii", &channels, &r, &g, &b));
 
     uint64_t channels_fixed_size = (uint64_t)channels;
 
@@ -385,7 +385,7 @@ python_channels_set_fg_alpha(PyObject *Py_UNUSED(self), PyObject *args)
     unsigned long long channels = {0};
     unsigned int alpha = {0};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "KI", &channels, &alpha));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "KI", &channels, &alpha));
 
     uint64_t channels_fixed_size = (uint64_t)channels;
 
@@ -400,7 +400,7 @@ python_channels_set_fg_palindex(PyObject *Py_UNUSED(self), PyObject *args)
     unsigned long long channels = {0};
     int idx = {0};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "Ki", &channels, &idx));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "Ki", &channels, &idx));
 
     uint64_t channels_fixed_size = (uint64_t)channels;
 
@@ -415,7 +415,7 @@ python_channels_set_fg_rgb(PyObject *Py_UNUSED(self), PyObject *args)
     unsigned long long channels = {0};
     unsigned int rgb = {0};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "KI", &channels, &rgb));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "KI", &channels, &rgb));
 
     uint64_t channels_fixed_size = (uint64_t)channels;
 
@@ -430,7 +430,7 @@ python_channels_set_bg_rgb8(PyObject *Py_UNUSED(self), PyObject *args)
     unsigned long long channels = {0};
     int r, g, b = {0};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "Kiii", &channels, &r, &g, &b));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "Kiii", &channels, &r, &g, &b));
 
     uint64_t channels_fixed_size = (uint64_t)channels;
 
@@ -445,7 +445,7 @@ python_channels_set_bg_rgb8_clipped(PyObject *Py_UNUSED(self), PyObject *args)
     unsigned long long channels = {0};
     int r, g, b = {0};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "Kiii", &channels, &r, &g, &b));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "Kiii", &channels, &r, &g, &b));
 
     uint64_t channels_fixed_size = (uint64_t)channels;
 
@@ -460,7 +460,7 @@ python_channels_set_bg_alpha(PyObject *Py_UNUSED(self), PyObject *args)
     unsigned long long channels = {0};
     unsigned int alpha = {0};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "KI", &channels, &alpha));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "KI", &channels, &alpha));
 
     uint64_t channels_fixed_size = (uint64_t)channels;
 
@@ -475,7 +475,7 @@ python_channels_set_bg_palindex(PyObject *Py_UNUSED(self), PyObject *args)
     unsigned long long channels = {0};
     int idx = {0};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "Ki", &channels, &idx));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "Ki", &channels, &idx));
 
     uint64_t channels_fixed_size = (uint64_t)channels;
 
@@ -490,7 +490,7 @@ python_channels_set_bg_rgb(PyObject *Py_UNUSED(self), PyObject *args)
     unsigned long long channels = {0};
     unsigned int rgb = {0};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "KI", &channels, &rgb));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "KI", &channels, &rgb));
 
     uint64_t channels_fixed_size = (uint64_t)channels;
 
@@ -504,7 +504,7 @@ python_channels_fg_default_p(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long channels = {0};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "K", &channels));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "K", &channels));
 
     return PyBool_FromLong((long)channels_fg_default_p((uint64_t)channels));
 }
@@ -514,7 +514,7 @@ python_channels_fg_palindex_p(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long channels = {0};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "K", &channels));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "K", &channels));
 
     return PyBool_FromLong((long)channels_fg_palindex_p((uint64_t)channels));
 }
@@ -524,7 +524,7 @@ python_channels_bg_default_p(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long channels = {0};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "K", &channels));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "K", &channels));
 
     return PyBool_FromLong((long)channels_bg_default_p((uint64_t)channels));
 }
@@ -534,7 +534,7 @@ python_channels_bg_palindex_p(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long channels = {0};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "K", &channels));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "K", &channels));
 
     return PyBool_FromLong((long)channels_bg_palindex_p((uint64_t)channels));
 }
@@ -544,7 +544,7 @@ python_channels_set_fg_default(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long channels = {0};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "K", &channels));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "K", &channels));
 
     uint64_t channels_fixed_size = (uint64_t)channels;
 
@@ -556,7 +556,7 @@ python_channels_set_bg_default(PyObject *Py_UNUSED(self), PyObject *args)
 {
     unsigned long long channels = {0};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "K", &channels));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "K", &channels));
 
     uint64_t channels_fixed_size = (uint64_t)channels;
 

@@ -80,7 +80,7 @@ Notcurses_new(PyTypeObject *subtype, PyObject *args, PyObject *kwds)
                         "margin_t", "margin_r", "margin_b", "margin_l",
                         "flags", NULL};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTupleAndKeywords(args, kwds, "|O! sO!i s O!O!O!O! K", keywords,
+    GNU_PY_CHECK_BOOL(PyArg_ParseTupleAndKeywords(args, kwds, "|O!sO!isO!O!O!O!K", keywords,
                                                  &PyLong_Type, &main_fd_object,
                                                  &term_type, &PyLong_Type, &render_fd_object, &log_level,
                                                  &margins_str,
@@ -204,7 +204,7 @@ static PyObject *
 Notcurses_render_to_file(NotcursesObject *self, PyObject *args)
 {
     int fd = INT_MAX;
-    GNU_PY_CHECK_INT(PyArg_ParseTuple(args, "i", &fd));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "i", &fd));
 
     FILE *new_render_file __attribute__((cleanup(cleanup_file))) = fdopen(fd, "w");
 
@@ -360,7 +360,7 @@ Notcurses_pile_create(NotcursesObject *self, PyObject *args, PyObject *kwds)
                         "flags",
                         "margin_b", "margin_r", NULL};
 
-    GNU_PY_CHECK_INT(PyArg_ParseTupleAndKeywords(args, kwds, "|ii ii s K ii", keywords,
+    GNU_PY_CHECK_BOOL(PyArg_ParseTupleAndKeywords(args, kwds, "|iiiisKii", keywords,
                                                  &y, &x,
                                                  &rows, &cols,
                                                  &name,
@@ -476,7 +476,7 @@ Notcurses_cursor_enable(NotcursesObject *self, PyObject *args, PyObject *kwds)
 
     char *keywords[] = {"y", "x", NULL};
 
-    GNU_PY_CHECK_INT(
+    GNU_PY_CHECK_BOOL(
         PyArg_ParseTupleAndKeywords(args, kwds, "|ii", keywords,
                                     &y, &x));
 
