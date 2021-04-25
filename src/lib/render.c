@@ -433,7 +433,8 @@ postpaint_cell(nccell* lastframe, int dimx, struct crender* crender,
   if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc) > 0){
 //fprintf(stderr, "damaging due to cmp [%s] %d %d\n", nccell_extended_gcluster(crender->p, &crender->c), y, *x);
     if(crender->sprixel){
-      if(!crender->s.p_beats_sprixel && sprixel_state(crender->sprixel, y, *x) != SPRIXCELL_OPAQUE){
+      sprixcell_e state = sprixel_state(crender->sprixel, y, *x);
+      if(!crender->s.p_beats_sprixel && state != SPRIXCELL_OPAQUE_KITTY && state != SPRIXCELL_OPAQUE_SIXEL){
         crender->s.damaged = 1;
       }
     }else{
@@ -1077,11 +1078,9 @@ rasterize_core(notcurses* nc, const ncpile* p, FILE* out, unsigned phase){
         // which is only necessary for sixel, not kitty.
         if(rvec[damageidx].sprixel){
           sprixcell_e scstate = sprixel_state(rvec[damageidx].sprixel, y - nc->stdplane->absy, x - nc->stdplane->absx);
-          if(scstate != SPRIXCELL_TRANSPARENT
-              && scstate != SPRIXCELL_ANNIHILATED && !rvec[damageidx].s.p_beats_sprixel
-              && !sprixel_kitty_p(&nc->tcache)){
+          if((scstate == SPRIXCELL_MIXED_SIXEL || scstate == SPRIXCELL_OPAQUE_SIXEL)
+             && !rvec[damageidx].s.p_beats_sprixel){
 //fprintf(stderr, "INVALIDATING at %d/%d (%u)\n", y, x, rvec[damageidx].s.p_beats_sprixel);
-
             sprixel_invalidate(rvec[damageidx].sprixel, y, x);
           }
         }

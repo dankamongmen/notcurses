@@ -423,14 +423,36 @@ TEST_CASE("Bitmaps") {
     for(int i = 0 ; i < s->dimy * s->dimx ; ++i){
       int py = (i / dimx) * nc_->tcache.cellpixy;
       int px = (i % dimx) * nc_->tcache.cellpixx;
-      // cells with a transparent pixel ought be SPRIXCELL_CONTAINS_TRANS;
+      // cells with a transparent pixel ought be SPRIXCELL_MIXED;
       // cells without one ought be SPRIXCELL_OPAQUE.
-      CHECK((i % 2) == tam[(i / dimx) + (i % dimx)]);
+      sprixcell_e state = tam[(i / dimx) + (i % dimx)];
+      if(i % 2){
+        if(state == SPRIXCELL_MIXED_SIXEL){
+          state = SPRIXCELL_MIXED_KITTY;
+        }
+        CHECK(SPRIXCELL_MIXED_KITTY == state);
+      }else{
+        if(state == SPRIXCELL_OPAQUE_SIXEL){
+          state = SPRIXCELL_OPAQUE_KITTY;
+        }
+        CHECK(SPRIXCELL_OPAQUE_KITTY == state);
+      }
       ncpixel_set_a(&v[py * x + px], 0);
     }
     for(int yy = vopts.y ; yy < vopts.y + dimy ; ++yy){
       for(int xx = vopts.x ; xx < vopts.x + dimx ; ++xx){
-        CHECK(((yy * dimx + xx) % 2) == sprixel_state(s, yy, xx));
+        sprixcell_e state = sprixel_state(s, yy, xx);
+        if((yy * dimx + xx) % 2){
+          if(state == SPRIXCELL_MIXED_SIXEL){
+            state = SPRIXCELL_MIXED_KITTY;
+          }
+          CHECK(SPRIXCELL_MIXED_KITTY == state);
+        }else{
+          if(state == SPRIXCELL_OPAQUE_SIXEL){
+            state = SPRIXCELL_OPAQUE_KITTY;
+          }
+          CHECK(SPRIXCELL_OPAQUE_KITTY == state);
+        }
       }
     }
     CHECK(0 == ncplane_destroy(n));

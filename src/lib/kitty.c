@@ -288,14 +288,14 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx,
           if(rgba_trans_p(source[e], transcolor)){
             if(x % cdimx == 0 && y % cdimy == 0){
               tacache[tyx] = SPRIXCELL_TRANSPARENT;
-            }else if(tacache[tyx] == SPRIXCELL_OPAQUE){
-              tacache[tyx] = SPRIXCELL_MIXED;
+            }else if(tacache[tyx] == SPRIXCELL_OPAQUE_KITTY){
+              tacache[tyx] = SPRIXCELL_MIXED_KITTY;
             }
           }else{
             if(x % cdimx == 0 && y % cdimy == 0){
-              tacache[tyx] = SPRIXCELL_OPAQUE;
+              tacache[tyx] = SPRIXCELL_OPAQUE_KITTY;
             }else if(tacache[tyx] == SPRIXCELL_TRANSPARENT){
-              tacache[tyx] = SPRIXCELL_MIXED;
+              tacache[tyx] = SPRIXCELL_MIXED_KITTY;
             }
           }
         }
@@ -396,7 +396,7 @@ int kitty_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
 //fprintf(stderr, "CHECKING %d/%d\n", yy - s->movedfromy, xx - s->movedfromx);
         sprixcell_e state = sprixel_state(s, yy - s->movedfromy + s->n->absy - stdn->absy,
                                              xx - s->movedfromx + s->n->absx - stdn->absx);
-        if(state == SPRIXCELL_OPAQUE){
+        if(state == SPRIXCELL_OPAQUE_KITTY){
           r->s.damaged = 1;
         }else if(s->invalidated == SPRIXEL_MOVED){
           // ideally, we wouldn't damage our annihilated sprixcells, but if

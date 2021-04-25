@@ -177,16 +177,16 @@ extract_color_table(const uint32_t* data, int linesize, int cols,
         if(rgba_trans_p(*rgb, bargs->transcolor)){
           if(sy % cdimy == 0 && visx % cdimx == 0){
             tacache[txyidx] = SPRIXCELL_TRANSPARENT;
-          }else if(tacache[txyidx] == SPRIXCELL_OPAQUE){
-            tacache[txyidx] = SPRIXCELL_MIXED;
+          }else if(tacache[txyidx] == SPRIXCELL_OPAQUE_SIXEL){
+            tacache[txyidx] = SPRIXCELL_MIXED_SIXEL;
           }
           stab->p2 = SIXEL_P2_TRANS; // even one forces P2=1
           continue;
         }else{
           if(sy % cdimy == 0 && visx % cdimx == 0){
-            tacache[txyidx] = SPRIXCELL_OPAQUE;
+            tacache[txyidx] = SPRIXCELL_OPAQUE_SIXEL;
           }else if(tacache[txyidx] == SPRIXCELL_TRANSPARENT){
-            tacache[txyidx] = SPRIXCELL_MIXED;
+            tacache[txyidx] = SPRIXCELL_MIXED_SIXEL;
           }
         }
         unsigned char comps[RGBSIZE];
@@ -724,7 +724,7 @@ int sixel_draw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
     for(int yy = s->movedfromy ; yy < s->movedfromy + s->dimy && yy < p->dimy ; ++yy){
       for(int xx = s->movedfromx ; xx < s->movedfromx + s->dimx && xx < p->dimx ; ++xx){
         struct crender *r = &p->crender[yy * p->dimx + xx];
-        if(!r->sprixel || sprixel_state(r->sprixel, yy, xx) != SPRIXCELL_OPAQUE){
+        if(!r->sprixel || sprixel_state(r->sprixel, yy, xx) != SPRIXCELL_OPAQUE_SIXEL){
           r->s.damaged = 1;
         }
       }
