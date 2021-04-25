@@ -470,6 +470,7 @@ TEST_CASE("Bitmaps") {
     struct ncvisual_options vopts{};
     vopts.blitter = NCBLIT_PIXEL;
     vopts.flags = NCVISUAL_OPTION_NODEGRADE;
+    vopts.scaling = NCSCALE_STRETCH;
     auto newn = ncvisual_render(nc_, ncv, &vopts);
     CHECK(newn);
     ncplane_move_bottom(newn);
