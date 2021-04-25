@@ -17,6 +17,30 @@ limitations under the License.
 
 #include "notcurses-python.h"
 
+static PyObject *uncaught_exception_unicode = NULL;
+
+static int
+Notcurses_uncaught_audit(const char *event, PyObject *args, void *Py_UNUSED(userData))
+{
+    if (0 != strcmp(event, "sys.excepthook"))
+    {
+        return 0;
+    }
+
+    Py_XDECREF(uncaught_exception_unicode);
+    uncaught_exception_unicode = NULL;
+
+    PyObject *uncaught_type = GNU_PY_CHECK_RET_NEG1(PyTuple_GetItem(args, 1));
+    PyObject *uncaught_value = GNU_PY_CHECK_RET_NEG1(PyTuple_GetItem(args, 2));
+    PyObject *uncaught_traceback = GNU_PY_CHECK_RET_NEG1(PyTuple_GetItem(args, 3));
+
+    PyObject *uncaught_expection_format_list CLEANUP_PY_OBJ = GNU_PY_CHECK_RET_NEG1(PyObject_CallFunctionObjArgs(traceback_format_exception, uncaught_type, uncaught_value, uncaught_traceback, NULL));
+
+    uncaught_exception_unicode = GNU_PY_CHECK_RET_NEG1(PyUnicode_Join(new_line_unicode, uncaught_expection_format_list));
+
+    return 0;
+}
+
 static void
 Notcurses_dealloc(NotcursesObject *self)
 {
@@ -26,7 +50,16 @@ Notcurses_dealloc(NotcursesObject *self)
     }
 
     Py_TYPE(self)->tp_free(self);
-}
+
+    if (NULL != uncaught_exception_unicode)
+    {
+        fprintf(stderr, "While Notcurses was running the following exception was uncaught:\n");
+        PyObject_Print(uncaught_exception_unicode, stderr, 1);
+
+        Py_XDECREF(uncaught_exception_unicode);
+        uncaught_exception_unicode = NULL;
+    }
+};
 
 static PyObject *
 Notcurses_new(PyTypeObject *subtype, PyObject *args, PyObject *kwds)
@@ -120,6 +153,8 @@ Notcurses_new(PyTypeObject *subtype, PyObject *args, PyObject *kwds)
     NotcursesObject *new_context = (NotcursesObject *)GNU_PY_CHECK(subtype->tp_alloc(subtype, 0));
 
     new_context->notcurses_ptr = new_notcurses;
+
+    GNU_PY_CHECK_INT(PySys_AddAuditHook(Notcurses_uncaught_audit, NULL));
 
     return (PyObject *)new_context;
 }

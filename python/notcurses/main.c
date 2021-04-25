@@ -17,12 +17,23 @@ limitations under the License.
 
 #include "notcurses-python.h"
 
+PyObject *traceback_format_exception = NULL;
+PyObject *new_line_unicode = NULL;
+
+static void
+Notcurses_module_free(PyObject *Py_UNUSED(self))
+{
+    Py_XDECREF(traceback_format_exception);
+    Py_XDECREF(new_line_unicode);
+}
+
 static struct PyModuleDef NotcursesMiscModule = {
     PyModuleDef_HEAD_INIT,
     .m_name = "Notcurses",
     .m_doc = "Notcurses python module",
     .m_size = -1,
     .m_methods = NULL,
+    .m_free = (freefunc)Notcurses_module_free,
 };
 
 PyMODINIT_FUNC
@@ -67,6 +78,10 @@ PyInit_notcurses(void)
     GNU_PY_CHECK_INT(PyModule_AddIntMacro(py_module, CELL_BG_ALPHA_MASK));
     // extract these bits to get the foreground alpha mask
     GNU_PY_CHECK_INT(PyModule_AddIntMacro(py_module, CELL_FG_ALPHA_MASK));
+
+    PyObject *traceback_module CLEANUP_PY_OBJ = GNU_PY_CHECK(PyImport_ImportModule("traceback"));
+    traceback_format_exception = GNU_PY_CHECK(PyObject_GetAttrString(traceback_module, "format_exception"));
+    new_line_unicode = GNU_PY_CHECK(PyUnicode_FromString("\n"));
 
     Py_INCREF(py_module);
     return py_module;

@@ -140,6 +140,11 @@ typedef struct
     struct ncpalette ncpalette;
 } Palette256Object;
 
+// Imports
+
+extern PyObject *traceback_format_exception;
+extern PyObject *new_line_unicode;
+
 // Functions
 
 PyMODINIT_FUNC PyInit_notcurses(void);
