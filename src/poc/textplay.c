@@ -20,7 +20,33 @@ init(void){
 
 static int
 colorize(struct ncplane* n){
-  (void)n;
+  int y, x;
+  ncplane_cursor_yx(n, &y, &x);
+  uint32_t c = HICOLOR;
+  while(y >= 0){
+    while(x >= 0){
+      uint16_t stylemask;
+      uint64_t channels;
+      char* egc = ncplane_at_yx(n, y, x, &stylemask, &channels);
+      if(egc == NULL){
+        return -1;
+      }
+      ncplane_set_fg_rgb(n, c);
+      if(ncplane_putegc_yx(n, y, x, egc, NULL) < 0){
+        free(egc);
+        return -1;
+      }
+      if(c != LOWCOLOR){
+        unsigned g = (c & 0xff00) >> 8u;
+        --g;
+        c = (c & 0xff00ff) | (g << 8u);
+      }
+      free(egc);
+      --x;
+    }
+    --y;
+    x = ncplane_dim_x(n) - 1;
+  }
   return 0;
 }
 
@@ -43,6 +69,10 @@ textplay(struct notcurses* nc){
     ncplane_home(stdn);
     int pt = ncplane_puttext(stdn, 0, NCALIGN_LEFT, buf, NULL);
     if(pt < 0){
+      free(buf);
+      return -1;
+    }
+    if(colorize(stdn)){
       free(buf);
       return -1;
     }
