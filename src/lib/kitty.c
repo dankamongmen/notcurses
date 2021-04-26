@@ -113,7 +113,25 @@ base64_rgba3(const uint32_t* pixels, size_t pcount, char* b64, bool wipe[static 
 // 16 bytes when base64 encoded). skip the initial |skip| pixels, and null out a maximum
 // of |max| pixels after that. returns the number of pixels nulled out. |max| must be
 // positive. |skip| must be non-negative, and less than 3. |pleft| is the number of pixels
-// available in the chunk.
+// available in the chunk. the RGB is 24 bits, and thus 4 base64 bytes, but
+// unfortunately don't always start on a byte boundary =[.
+// 0: R1(0..5)
+// 1: R1(6..7), G1(0..3)
+// 2: G1(4..7), B1(0..1)
+// 3: B1(2..7)
+// 4: A1(0..5)
+// 5: A1(6..7), R2(0..3)
+// 6: R2(4..7), G2(0..1)
+// 7: G2(2..7)
+// 8: B2(0..5)
+// 9: B2(6..7), A2(0..3)
+// A: A2(4..7), R3(0..1)
+// B: R3(2..7)
+// C: G3(0..5)
+// D: G3(6..7), B3(0..3)
+// E: B3(4..7), A3(0..1)
+// F: A3(2..7)
+// so we will only ever zero out bytes 4, 5, 9, A, E, and F
 static inline int
 kitty_null(char* triplet, int skip, int max, int pleft){
 //fprintf(stderr, "SKIP/MAX/PLEFT %d/%d/%d\n", skip, max, pleft);
@@ -125,29 +143,26 @@ kitty_null(char* triplet, int skip, int max, int pleft){
   }
 //fprintf(stderr, "alpha-nulling %d after %d\n", max, skip);
   if(skip == 0){
-    if(max == 1){
-      memset(triplet, b64subs[0], 5);
-      triplet[5] = b64subs[b64idx(triplet[5]) & 0xf];
-    }else if(max == 2){
-      memset(triplet, b64subs[0], 10);
-      triplet[10] = b64subs[b64idx(triplet[10]) & 0x3];
-    }else{ // max == 3
-      memset(triplet, b64subs[0], 16);
+    triplet[0x4] = b64subs[0];
+    triplet[0x5] = b64subs[b64idx(triplet[0x5]) & 0xf];
+    if(max > 1){
+      triplet[0x9] = b64subs[b64idx(triplet[0x9]) & 0x30];
+      triplet[0xA] = b64subs[b64idx(triplet[0xA]) & 0x3];
+    }
+    if(max == 3){
+      triplet[0xE] = b64subs[b64idx(triplet[0xE]) & 0x3c];
+      triplet[0xF] = b64subs[0];
     }
   }else if(skip == 1){
-    if(max == 1){
-      triplet[5] = b64subs[b64idx(triplet[5]) & 0x30];
-      memset(triplet + 6, b64subs[0], 4);
-      triplet[10] = b64subs[b64idx(triplet[10]) & 0x3];
-    }else{
-      triplet[5] = b64subs[b64idx(triplet[5]) & 0x30];
-      memset(triplet + 6, b64subs[0], 10);
+    triplet[0x9] = b64subs[b64idx(triplet[0x9]) & 0x30];
+    triplet[0xA] = b64subs[b64idx(triplet[0xA]) & 0x3];
+    if(max == 2){
+      triplet[0xE] = b64subs[b64idx(triplet[0xE]) & 0x3c];
+      triplet[0xF] = b64subs[0];
     }
   }else{ // skip == 2
-    if(max == 1){
-      triplet[10] = b64subs[b64idx(triplet[10]) & 0xf];
-      memset(triplet + 11, b64subs[0], 5);
-    }
+    triplet[0xE] = b64subs[b64idx(triplet[0xE]) & 0x3c];
+    triplet[0xF] = b64subs[0];
   }
   return max;
 }
