@@ -152,7 +152,6 @@ ncvisual_blitset_geom(const notcurses* nc, const ncvisual* n,
       }
       // FIXME clamp to sprixel limits
       if(vopts->scaling == NCSCALE_NONE || vopts->scaling == NCSCALE_NONE_HIRES){
-        /*
         int rows = (*leny + nc->tcache.cellpixy - 1) / nc->tcache.cellpixy;
         if(rows > ncplane_dim_y(vopts->n)){
           logerror(nc, "Sprixel too tall %d for plane %d\n", *leny, ncplane_dim_y(vopts->n) * nc->tcache.cellpixy);
@@ -163,7 +162,6 @@ ncvisual_blitset_geom(const notcurses* nc, const ncvisual* n,
           logerror(nc, "Sprixel too wide %d for plane %d\n", *lenx, ncplane_dim_x(vopts->n) * nc->tcache.cellpixx);
           return -1;
         }
-        */
       }
     }
   }
@@ -615,7 +613,8 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
 // the blit will begin at placey/placex (in terms of cells). begy/begx define
 // the origin of the source region to draw (in pixels). leny/lenx defined the
 // geometry of the source region to draw, again in pixels. ncv->rows and
-// ncv->cols define the source geometry in pixels.
+// ncv->cols define the source geometry in pixels. if a plane is provided, it
+// is shrunk to fit the sprixel, if necessary.
 ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blitset* bset,
                                 int placey, int placex, int begy, int begx,
                                 ncplane* n, ncscale_e scaling, uint64_t flags,
@@ -744,6 +743,16 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
     ncplane_destroy(createdn);
     return NULL;
   }
+  // ncplane_resize() hides any attached sprixel, so lift it out for a moment
+  sprixel* s = n->sprite;
+  n->sprite = NULL;
+  if(ncplane_resize(n, placey, placex, s->dimy, s->dimx, 0, 0, s->dimy, s->dimx)){
+    sprixel_hide(bargs.u.pixel.spx);
+    ncplane_destroy(createdn);
+    return NULL;
+  }
+  n->sprite = bargs.u.pixel.spx;
+//fprintf(stderr, "RESIZED: %d/%d at %d/%d %p\n", ncplane_dim_y(n), ncplane_dim_x(n), ncplane_y(n), ncplane_x(n), n->sprite);
   return n;
 }
 

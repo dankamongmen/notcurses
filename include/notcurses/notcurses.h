@@ -2526,6 +2526,29 @@ API struct ncplane* ncvisual_render(struct notcurses* nc, struct ncvisual* ncv,
                                     const struct ncvisual_options* vopts)
   __attribute__ ((nonnull (2)));
 
+__attribute__ ((nonnull (1, 2, 3))) static inline struct ncplane*
+ncvisualplane_create(struct ncplane* n, const struct ncplane_options* opts,
+                     struct ncvisual* ncv, struct ncvisual_options* vopts){
+  if(vopts && vopts->n){ // the whole point is to create a new plane
+    return NULL;
+  }
+  struct ncplane* newn = ncplane_create(n, opts);
+  if(newn){
+    struct ncvisual_options v;
+    if(!vopts){
+      vopts = &v;
+      memset(vopts, 0, sizeof(*vopts));
+    }
+    vopts->n = newn;
+    if(ncvisual_render(ncplane_notcurses(n), ncv, vopts) == NULL){
+      ncplane_destroy(newn);
+      vopts->n = NULL;
+      return NULL;
+    }
+  }
+  return newn;
+}
+
 // If a subtitle ought be displayed at this time, return a heap-allocated copy
 // of the UTF8 text.
 API ALLOC char* ncvisual_subtitle(const struct ncvisual* ncv)
