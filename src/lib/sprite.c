@@ -4,24 +4,6 @@
 // FIXME needs be atomic
 static uint32_t sprixelid_nonce;
 
-__attribute__ ((unused)) static inline void
-sprixel_debug(FILE* out, const sprixel* s){
-  fprintf(out, "Sprixel %d (%p) %dx%d (%dx%d) @%d/%d state: %d\n",
-          s->id, s, s->dimy, s->dimx, s->pixy, s->pixx,
-          s->n ? s->n->absy : 0, s->n ? s->n->absx : 0,
-          s->invalidated);
-  if(s->n){
-    int idx = 0;
-    for(int y = 0 ; y < s->dimy ; ++y){
-      for(int x = 0 ; x < s->dimx ; ++x){
-        fprintf(out, "%d", s->n->tam[idx].state);
-        ++idx;
-      }
-      fprintf(out, "\n");
-    }
-  }
-}
-
 // doesn't splice us out of any lists, just frees
 void sprixel_free(sprixel* s){
   if(s){

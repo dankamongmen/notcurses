@@ -153,12 +153,80 @@ kitty_null(char* triplet, int skip, int max, int pleft){
 }
 
 #define RGBA_MAXLEN 768 // 768 base64-encoded pixels in 4096 bytes
+// restore an annihilated sprixcell by copying the alpha values from the
+// auxiliary vector back into the actual data. we then free the auxvector.
 int kitty_rebuild(const notcurses* nc, sprixel* s, int ycell, int xcell){
-  (void)nc;
-  (void)s;
-  (void)ycell;
-  (void)xcell;
-  return 0;
+  if(s->n->tam[s->dimx * ycell + xcell].state != SPRIXCELL_ANNIHILATED){
+//fprintf(stderr, "CACHED WIPE %d %d/%d\n", s->id, ycell, xcell);
+    return 0; // already annihilated, needn't draw glyph in kitty
+  }
+  (void)nc; // FIXME
+  const int totalpixels = s->pixy * s->pixx;
+  const int xpixels = nc->tcache.cellpixx;
+  const int ypixels = nc->tcache.cellpixy;
+  int targx = xpixels;
+  if((xcell + 1) * xpixels > s->pixx){
+    targx = s->pixx - xcell * xpixels;
+  }
+  int targy = ypixels;
+  if((ycell + 1) * ypixels > s->pixy){
+    targy = s->pixy - ycell * ypixels;
+  }
+  char* c = s->glyph + s->parse_start;
+  int nextpixel = (s->pixx * ycell * ypixels) + (xpixels * xcell);
+  int thisrow = targx;
+  int chunkedhandled = 0;
+  const int chunks = totalpixels / RGBA_MAXLEN + !!(totalpixels % RGBA_MAXLEN);
+  while(targy && chunkedhandled < chunks){ // need to null out |targy| rows of |targx| pixels, track with |thisrow|
+    int inchunk = totalpixels - chunkedhandled * RGBA_MAXLEN;
+    if(inchunk > RGBA_MAXLEN){
+      inchunk = RGBA_MAXLEN;
+    }
+    const int curpixel = chunkedhandled * RGBA_MAXLEN;
+    // a full chunk is 4096 + 2 + 7 (5005)
+    while(nextpixel - curpixel < RGBA_MAXLEN && thisrow){
+      // our next pixel is within this chunk. find the pixel offset of the
+      // first pixel (within the chunk).
+      //int pixoffset = nextpixel - curpixel;
+      //int triples = pixoffset / 3;
+      //int tripbytes = triples * 16;
+      //int tripskip = pixoffset - triples * 3;
+      // we start within a 16-byte chunk |tripbytes| into the chunk. determine
+      // the number of bits.
+//fprintf(stderr, "pixoffset: %d next: %d tripbytes: %d tripskip: %d thisrow: %d\n", pixoffset, nextpixel, tripbytes, tripskip, thisrow);
+      // the maximum number of pixels we can convert is the minimum of the
+      // pixels remaining in the target row, and the pixels left in the chunk.
+//fprintf(stderr, "inchunk: %d total: %d triples: %d\n", inchunk, totalpixels, triples);
+      // FIXME
+      int chomped = -1;
+      // kitty_restore(c + tripbytes, tripskip, thisrow, inchunk - triples * 3);
+      return 0;
+      assert(chomped >= 0);
+      thisrow -= chomped;
+//fprintf(stderr, "POSTCHIMP CHOMP: %d pixoffset: %d next: %d tripbytes: %d tripskip: %d thisrow: %d\n", chomped, pixoffset, nextpixel, tripbytes, tripskip, thisrow);
+      if(thisrow == 0){
+//fprintf(stderr, "CLEARED ROW, TARGY: %d\n", targy - 1);
+        if(--targy == 0){
+          //s->invalidated = SPRIXEL_INVALIDATED;
+          return 0;
+        }
+        thisrow = targx;
+//fprintf(stderr, "BUMP IT: %d %d %d %d\n", nextpixel, s->pixx, targx, chomped);
+        nextpixel += s->pixx - targx + chomped;
+      }else{
+        nextpixel += chomped;
+      }
+    }
+    c += RGBA_MAXLEN * 4 * 4 / 3; // 4bpp * 4/3 for base64, 4096b per chunk
+    c += 8; // new chunk header
+    ++chunkedhandled;
+//fprintf(stderr, "LOOKING NOW AT %u [%s]\n", c - s->glyph, c);
+    while(*c != ';'){
+      ++c;
+    }
+    ++c;
+  }
+  return -1;
 }
 
 int kitty_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){

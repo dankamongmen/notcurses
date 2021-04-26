@@ -171,13 +171,14 @@ paint_sprixel(ncplane* p, struct crender* rvec, int starty, int startx,
           crender->s.damaged = 1;
         }
         crender->s.p_beats_sprixel = 1;
-      }else if(!crender->p){
+      }else if(!crender->p && !crender->s.bgblends){
         // if we are a bitmap, and above a cell that has changed (and
         // will thus be printed), we'll need redraw the sprixel.
         if(crender->sprixel == NULL){
           crender->sprixel = s;
         }
         if(sprixel_state(s, absy, absx) == SPRIXCELL_ANNIHILATED){
+fprintf(stderr, "REBUILDING AT %d/%d\n", y, x);
           sprite_rebuild(nc, s, y, x);
         }
       }
