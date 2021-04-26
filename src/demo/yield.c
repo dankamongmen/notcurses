@@ -34,19 +34,10 @@ int yield_demo(struct notcurses* nc){
     return -1;
   }
   int maxy, maxx;
-  if(bitmaps){
-    ncplane_pixelgeom(vopts.n, NULL, NULL, NULL, NULL, &maxy, &maxx);
-    if(ncvisual_resize(wmv, maxy, maxx)){
-      ncvisual_destroy(wmv);
-      ncplane_destroy(vopts.n);
-      return -1;
-    }
-  }else{
-    if(ncvisual_blitter_geom(nc, wmv, &vopts, &maxy, &maxx, NULL, NULL, NULL)){
-      ncvisual_destroy(wmv);
-      ncplane_destroy(vopts.n);
-      return -1;
-    }
+  if(ncvisual_blitter_geom(nc, wmv, &vopts, &maxy, &maxx, NULL, NULL, NULL)){
+    ncvisual_destroy(wmv);
+    ncplane_destroy(vopts.n);
+    return -1;
   }
   if(ncvisual_render(nc, wmv, &vopts) == NULL){
     ncvisual_destroy(wmv);
@@ -57,13 +48,10 @@ int yield_demo(struct notcurses* nc){
   const long total = maxy * maxx;
   // less than this, and we exit almost immediately. more than this, and we
   // run closer to twenty seconds. 11/50 it is, then. pixels are different.
-  // it would be nice to hit this all with a rigor stick. yes, the 1 makes
-  // all the difference in cells v pixels. FIXME
-  const long threshold_painted = total * (10 + !bitmaps) / 50;
-  const int MAXITER = 256;
-  timespec_div(&demodelay, MAXITER, &scaled);
+  const long threshold_painted = total * 11 / 50;
+  const int MAXITER = 1024;
+  timespec_div(&demodelay, 10, &scaled);
   long tfilled = 0;
-
   struct ncplane_options labopts = {
     .y = 3,
     .x = NCALIGN_CENTER,
@@ -88,16 +76,14 @@ int yield_demo(struct notcurses* nc){
   ncplane_printf_aligned(label, 0, NCALIGN_CENTER, "Yield: %03.1f%%", ((double)tfilled * 100) / threshold_painted);
 
   DEMO_RENDER(nc);
-  struct timespec delay;
-  timespec_div(&demodelay, 2, &delay);
-  demo_nanosleep(nc, &delay);
+  demo_nanosleep(nc, &demodelay);
 
   int iters = 0;
-  // FIXME resize the background once rather than scaling every blit
   while(tfilled < threshold_painted && iters < MAXITER){
 //fprintf(stderr, "%d/%d tfilled: %ld thresh: %ld total: %ld\n", maxy, maxx, tfilled, threshold_painted, total);
     int pfilled = 0;
     do{
+      ++iters;
       int x = random() % maxx;
       int y = random() % maxy;
       uint32_t pixel = 0;
@@ -135,8 +121,9 @@ int yield_demo(struct notcurses* nc){
     }
     ncplane_printf_aligned(label, 0, NCALIGN_CENTER, "Yield: %3.1f%%", ((double)tfilled * 100) / threshold_painted);
     DEMO_RENDER(nc);
-    demo_nanosleep(nc, &scaled);
-    ++iters;
+    if(!bitmaps){
+      demo_nanosleep(nc, &scaled);
+    }
   }
   ncplane_destroy(label);
   ncvisual_destroy(wmv);
