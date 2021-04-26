@@ -760,8 +760,7 @@ int sixel_rebuild(sprixel* s, int ycell, int xcell, const uint8_t* auxvec){
 // redrawn, it's redrawn using P2=1.
 int sixel_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
   (void)nc;
-  if(s->n->tam[s->dimx * ycell + xcell].state == SPRIXCELL_ANNIHILATED ||
-     s->n->tam[s->dimx * ycell + xcell].state == SPRIXCELL_ANNIHILATED_TRANS){
+  if(s->n->tam[s->dimx * ycell + xcell].state == SPRIXCELL_ANNIHILATED){
 //fprintf(stderr, "CACHED WIPE %d %d/%d\n", s->id, ycell, xcell);
     return 1; // already annihilated FIXME but 0 breaks things
   }
