@@ -813,6 +813,7 @@ extract_palette(const sprixel* spx, sixeltable* stable){
 // is redrawn, and annihilated sprixcells still require a glyph to be emitted.
 static int
 sixel_update(const notcurses* n, sprixel* s){
+  /* FIXME
   int sixelcount = s->pixx * (s->pixy + 5) / 6;
   sixeltable stable = {
     .colorregs = n->tcache.color_registers,
@@ -830,6 +831,7 @@ sixel_update(const notcurses* n, sprixel* s){
     return -1;
   }
   free(stable.table);
+  */
   return 0;
 }
 
