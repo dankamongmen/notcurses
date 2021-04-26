@@ -50,7 +50,6 @@ TEST_CASE("Visual") {
     };
     auto newn = ncvisual_render(nc_, ncv, &vopts);
     CHECK(0 == notcurses_render(nc_));
-sleep(2);
     CHECK(0 == ncvisual_inflate(ncv, 3));
     CHECK(6 == ncv->rows);
     CHECK(6 == ncv->cols);
@@ -79,7 +78,6 @@ sleep(2);
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncplane_destroy(newn));
     CHECK(0 == ncplane_destroy(enewn));
-sleep(2);
     ncvisual_destroy(ncv);
   }
 

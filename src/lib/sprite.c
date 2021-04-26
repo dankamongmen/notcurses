@@ -153,3 +153,10 @@ int sprite_init(const notcurses* nc){
   }
   return nc->tcache.pixel_init(nc->ttyfd);
 }
+
+uint8_t* sprixel_auxiliary_vector(const sprixel* s){
+  int pixels = s->cellpxy * s->cellpxx;
+  uint8_t* ret = malloc(sizeof(*ret) * pixels);
+  memset(ret, 0, sizeof(*ret) * pixels);
+  return ret;
+}

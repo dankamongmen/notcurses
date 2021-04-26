@@ -147,7 +147,7 @@ typedef enum {
 // reconstruction of annihilated cells, valid only for SPRIXCELL_ANNIHILATED.
 typedef struct tament {
   sprixcell_e state;
-  uint8_t auxvector; // palette entries for sixel, alphas for kitty
+  uint8_t* auxvector; // palette entries for sixel, alphas for kitty
 } tament;
 
 // a sprixel represents a bitmap, using whatever local protocol is available.
@@ -959,6 +959,9 @@ sprixel* sprixel_by_id(const ncpile* n, uint32_t id);
 void sprixel_invalidate(sprixel* s, int y, int x);
 void sprixel_movefrom(sprixel* s, int y, int x);
 
+// create an auxiliary vector suitable for a sprixcell, and zero it out
+uint8_t* sprixel_auxiliary_vector(const sprixel* s);
+
 int sixel_blit(ncplane* nc, int linesize, const void* data,
                int leny, int lenx, const blitterargs* bargs);
 
@@ -991,7 +994,7 @@ sprixel_debug(FILE* out, const sprixel* s){
 // precondition: s->invalidated is SPRIXEL_INVALIDATED or SPRIXEL_MOVED.
 static inline int
 sprite_draw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
-sprixel_debug(stderr, s);
+//sprixel_debug(stderr, s);
   return n->tcache.pixel_draw(n, p, s, out);
 }
 
