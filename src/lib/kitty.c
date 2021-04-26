@@ -217,7 +217,7 @@ kitty_restore(char* triplet, int skip, int max, int pleft, const uint8_t* auxvec
     if(max > 1){
       a = auxvec[1];
       triplet[0x9] = b64subs[(b64idx(triplet[0x9]) & 0x30) | ((a & 0xf0) >> 4)];
-      triplet[0xA] = b64subs[((a & 0xf) << 2) | (b64idx(triplet[0xA]) & 0xf)];
+      triplet[0xA] = b64subs[((a & 0xf) << 2) | (b64idx(triplet[0xA]) & 0x3)];
     }
     if(max == 3){
       a = auxvec[2];
@@ -227,7 +227,7 @@ kitty_restore(char* triplet, int skip, int max, int pleft, const uint8_t* auxvec
   }else if(skip == 1){
     int a = auxvec[0];
     triplet[0x9] = b64subs[(b64idx(triplet[0x9]) & 0x30) | ((a & 0xf0) >> 4)];
-    triplet[0xA] = b64subs[((a & 0xf) << 2) | (b64idx(triplet[0xA]) & 0xf)];
+    triplet[0xA] = b64subs[((a & 0xf) << 2) | (b64idx(triplet[0xA]) & 0x3)];
     if(max == 2){
       a = auxvec[1];
       triplet[0xE] = b64subs[((a & 0xc0) >> 6) | (b64idx(triplet[0xE]) & 0x3c)];
