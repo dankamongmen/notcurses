@@ -458,7 +458,7 @@ typedef struct tinfo {
   // this means dialing down their alpha to 0 (in equivalent space).
   int (*pixel_cell_wipe)(const struct notcurses* nc, sprixel* s, int y, int x);
   // perform the inverse of pixel_cell_wipe, restoring an annihilated sprixcell.
-  int (*pixel_rebuild)(const struct notcurses* nc, sprixel* s, int y, int x);
+  int (*pixel_rebuild)(sprixel* s, int y, int x);
   int (*pixel_remove)(int id, FILE* out); // kitty only, issue actual delete command
   int (*pixel_init)(int fd);     // called when support is detected
   int (*pixel_draw)(const struct notcurses* n, const struct ncpile* p, sprixel* s, FILE* out);
@@ -932,8 +932,8 @@ int sixel_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell);
 // throughout to 0. the same trick doesn't work on sixel, but there we
 // can just print directly over the bitmap.
 int kitty_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell);
-int sixel_rebuild(const notcurses* nc, sprixel* s, int ycell, int xcell);
-int kitty_rebuild(const notcurses* nc, sprixel* s, int ycell, int xcell);
+int sixel_rebuild(sprixel* s, int ycell, int xcell);
+int kitty_rebuild(sprixel* s, int ycell, int xcell);
 
 void sprixel_free(sprixel* s);
 void sprixel_hide(sprixel* s);
@@ -958,6 +958,7 @@ sprixel* sprixel_by_id(const ncpile* n, uint32_t id);
 // these three all use absolute coordinates
 void sprixel_invalidate(sprixel* s, int y, int x);
 void sprixel_movefrom(sprixel* s, int y, int x);
+void sprixel_debug(FILE* out, const sprixel* s);
 
 // create an auxiliary vector suitable for a sprixcell, and zero it out
 uint8_t* sprixel_auxiliary_vector(const sprixel* s);
@@ -973,24 +974,6 @@ sprite_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
   return nc->tcache.pixel_destroy(nc, p, out, s);
 }
 
-__attribute__ ((unused)) static inline void
-sprixel_debug(FILE* out, const sprixel* s){
-  fprintf(out, "Sprixel %d (%p) %dx%d (%dx%d) @%d/%d state: %d\n",
-          s->id, s, s->dimy, s->dimx, s->pixy, s->pixx,
-          s->n ? s->n->absy : 0, s->n ? s->n->absx : 0,
-          s->invalidated);
-  if(s->n){
-    int idx = 0;
-    for(int y = 0 ; y < s->dimy ; ++y){
-      for(int x = 0 ; x < s->dimx ; ++x){
-        fprintf(out, "%d", s->n->tam[idx].state);
-        ++idx;
-      }
-      fprintf(out, "\n");
-    }
-  }
-}
-
 // precondition: s->invalidated is SPRIXEL_INVALIDATED or SPRIXEL_MOVED.
 static inline int
 sprite_draw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
@@ -1000,7 +983,7 @@ sprite_draw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
 
 static inline int
 sprite_rebuild(const notcurses* nc, sprixel* s, int ycell, int xcell){
-  return nc->tcache.pixel_rebuild(nc, s, ycell, xcell);
+  return nc->tcache.pixel_rebuild(s, ycell, xcell);
 }
 
 static inline void
