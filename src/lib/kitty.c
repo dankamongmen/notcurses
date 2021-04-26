@@ -152,6 +152,50 @@ kitty_null(char* triplet, int skip, int max, int pleft){
   return max;
 }
 
+// restore part of a triplet (a triplet is 3 pixels, which map to 12 bytes,
+// which map to 16 bytes when base64 encoded). skip the initial |skip| pixels,
+// and restore a maximum of |max| pixels after that. returns the number of
+// pixels restored. |max| must be positive. |skip| must be non-negative, and
+// less than 3. |pleft| is the number of pixels available in the chunk.
+// FIXME needs auxvec
+static inline int
+kitty_restore(char* triplet, int skip, int max, int pleft){
+//fprintf(stderr, "SKIP/MAX/PLEFT %d/%d/%d\n", skip, max, pleft);
+  if(pleft > 3){
+    pleft = 3;
+  }
+  if(max + skip > pleft){
+    max = pleft - skip;
+  }
+//fprintf(stderr, "alpha-nulling %d after %d\n", max, skip);
+  if(skip == 0){
+    if(max == 1){
+      memset(triplet, b64subs[0], 5);
+      triplet[5] = b64subs[b64idx(triplet[5]) & 0xf];
+    }else if(max == 2){
+      memset(triplet, b64subs[0], 10);
+      triplet[10] = b64subs[b64idx(triplet[10]) & 0x3];
+    }else{ // max == 3
+      memset(triplet, b64subs[0], 16);
+    }
+  }else if(skip == 1){
+    if(max == 1){
+      triplet[5] = b64subs[b64idx(triplet[5]) & 0x30];
+      memset(triplet + 6, b64subs[0], 4);
+      triplet[10] = b64subs[b64idx(triplet[10]) & 0x3];
+    }else{
+      triplet[5] = b64subs[b64idx(triplet[5]) & 0x30];
+      memset(triplet + 6, b64subs[0], 10);
+    }
+  }else{ // skip == 2
+    if(max == 1){
+      triplet[10] = b64subs[b64idx(triplet[10]) & 0xf];
+      memset(triplet + 11, b64subs[0], 5);
+    }
+  }
+  return max;
+}
+
 #define RGBA_MAXLEN 768 // 768 base64-encoded pixels in 4096 bytes
 // restore an annihilated sprixcell by copying the alpha values from the
 // auxiliary vector back into the actual data. we then free the auxvector.
@@ -187,27 +231,23 @@ int kitty_rebuild(const notcurses* nc, sprixel* s, int ycell, int xcell){
     while(nextpixel - curpixel < RGBA_MAXLEN && thisrow){
       // our next pixel is within this chunk. find the pixel offset of the
       // first pixel (within the chunk).
-      //int pixoffset = nextpixel - curpixel;
-      //int triples = pixoffset / 3;
-      //int tripbytes = triples * 16;
-      //int tripskip = pixoffset - triples * 3;
+      int pixoffset = nextpixel - curpixel;
+      int triples = pixoffset / 3;
+      int tripbytes = triples * 16;
+      int tripskip = pixoffset - triples * 3;
       // we start within a 16-byte chunk |tripbytes| into the chunk. determine
       // the number of bits.
 //fprintf(stderr, "pixoffset: %d next: %d tripbytes: %d tripskip: %d thisrow: %d\n", pixoffset, nextpixel, tripbytes, tripskip, thisrow);
       // the maximum number of pixels we can convert is the minimum of the
       // pixels remaining in the target row, and the pixels left in the chunk.
 //fprintf(stderr, "inchunk: %d total: %d triples: %d\n", inchunk, totalpixels, triples);
-      // FIXME
-      int chomped = -1;
-      // kitty_restore(c + tripbytes, tripskip, thisrow, inchunk - triples * 3);
-      return 0;
+      int chomped = kitty_restore(c + tripbytes, tripskip, thisrow, inchunk - triples * 3);
       assert(chomped >= 0);
       thisrow -= chomped;
 //fprintf(stderr, "POSTCHIMP CHOMP: %d pixoffset: %d next: %d tripbytes: %d tripskip: %d thisrow: %d\n", chomped, pixoffset, nextpixel, tripbytes, tripskip, thisrow);
       if(thisrow == 0){
 //fprintf(stderr, "CLEARED ROW, TARGY: %d\n", targy - 1);
         if(--targy == 0){
-          //s->invalidated = SPRIXEL_INVALIDATED;
           return 0;
         }
         thisrow = targx;
@@ -257,6 +297,7 @@ int kitty_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
   int thisrow = targx;
   int chunkedhandled = 0;
   const int chunks = totalpixels / RGBA_MAXLEN + !!(totalpixels % RGBA_MAXLEN);
+  sprixcell_e state = SPRIXCELL_OPAQUE_KITTY;
   while(targy && chunkedhandled < chunks){ // need to null out |targy| rows of |targx| pixels, track with |thisrow|
 //fprintf(stderr, "PLUCKING FROM [%s]\n", c);
     int inchunk = totalpixels - chunkedhandled * RGBA_MAXLEN;
@@ -285,7 +326,8 @@ int kitty_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
       if(thisrow == 0){
 //fprintf(stderr, "CLEARED ROW, TARGY: %d\n", targy - 1);
         if(--targy == 0){
-          //s->invalidated = SPRIXEL_INVALIDATED;
+          // FIXME make sure state is MIXED if we had any transparency
+          s->n->tam[s->dimx * ycell + xcell].state = state;
           return 0;
         }
         thisrow = targx;
