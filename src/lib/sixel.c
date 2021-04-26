@@ -21,6 +21,11 @@ change_p2(char* sixel, sixel_p2_e value){
   sixel[4] = value + '0';
 }
 
+static inline sixel_p2_e
+get_p2(const char* sixel){
+  return sixel[4] - '0';
+}
+
 // take (8-bit rgb value & mask) to sixelspace [0..100]
 static inline char
 ss(unsigned rgb, unsigned char mask){
@@ -448,7 +453,7 @@ int sixel_blit(ncplane* n, int linesize, const void* data,
   if((leny - bargs->begy) % 6){
     return -1;
   }
-  int sixelcount = (lenx - bargs->begx) * (leny - bargs->begy) / 6;
+  int sixelcount = (lenx - bargs->begx) * (leny - bargs->begy + 5) / 6;
   int colorregs = bargs->u.pixel.colorregs;
   if(colorregs <= 0){
     return -1;
@@ -712,12 +717,120 @@ err:
   return -1;
 }
 
+// extract the palette from the sprixel, and set up |stable|.
+static int
+extract_palette(const sprixel* spx, sixeltable* stable){
+  const char* s = spx->glyph;
+  stable->colors = 0;
+  // advance to palette section
+  while(*s != '#' && *s){
+    ++s;
+  }
+  enum {
+    WANT_COLOR,
+    EATING_COLOR,
+    EATING_R,
+    EATING_G,
+    EATING_B,
+  } state;
+  // the palette ends when we hit a #c without a subsequent ';', or when we
+  // hit an escape code (if there is no data)
+  while(*s == '#'){
+    state = WANT_COLOR;
+    unsigned r = 0, g = 0, b = 0;
+    int color = 0;
+    if(*s == '\e'){
+      break; // looks like an empty payload, hrmm
+    }
+    while(isdigit(*++s)){
+      color *= 10;
+      color += *s - '0';
+      state = EATING_COLOR;
+    }
+    if(state != EATING_COLOR){
+      return -1;
+    }
+    if(color >= stable->colorregs){
+      return -1; // invalid color
+    }
+    if(*s != ';' || *++s != '2' || *++s != ';'){
+      break; // reached payload
+    }
+    // we're defining a color for sure; get r/g/b
+    while(isdigit(*++s)){
+      r *= 10;
+      r += *s - '0';
+      state = EATING_R;
+    }
+    if(state != EATING_R || *s != ';'){
+      return -1;
+    }
+    while(isdigit(*++s)){
+      g *= 10;
+      g += *s - '0';
+      state = EATING_G;
+    }
+    if(state != EATING_G || *s != ';'){
+      return -1;
+    }
+    while(isdigit(*++s)){
+      b *= 10;
+      b += *s - '0';
+      state = EATING_B;
+    }
+    if(state != EATING_B){
+      return -1;
+    }
+    if(color >= stable->colors){
+      unsigned char* tmp;
+      if((tmp = realloc(stable->table, CENTSIZE * (color + 1))) == NULL){
+        return -1;
+      }
+      stable->table = tmp;
+      stable->colors = color + 1;
+    }
+    stable->table[CENTSIZE * color] = r;
+    stable->table[CENTSIZE * color + 1] = g;
+    stable->table[CENTSIZE * color + 2] = b;
+  }
+  return 0;
+}
+
+// once per render cycle (if needed), make the actual payload match the TAM. we
+// don't do these one at a time due to the complex (expensive) process involved
+// in regenerating a sixel (we can't easily do it in-place). anything newly
+// ANNIHILATED (state is ANNIHILATED, but no auxvec present) is dropped from
+// the payload, and an auxvec is generated. anything newly restored (state is
+// OPAQUE_SIXEL or MIXED_SIXEL, but an auxvec is present) is restored to the
+// payload, and the auxvec is freed. none of this takes effect until the sixel
+// is redrawn, and annihilated sprixcells still require a glyph to be emitted.
+static int
+sixel_update(const notcurses* n, sprixel* s){
+  int sixelcount = s->pixx * (s->pixy + 5) / 6;
+  sixeltable stable = {
+    .colorregs = n->tcache.color_registers,
+    .sixelcount = sixelcount,
+    .p2 = get_p2(s->glyph),
+  };
+  if(extract_palette(s, &stable)){
+    free(stable.table);
+    return -1;
+  }
+//fprintf(stderr, "EXTRACTED %d COLORS\n", stable.colors);
+  blitterargs bargs = { }; // FIXME need prep this
+  if(sixel_blit_inner(s->pixy, s->pixx, &stable, s->dimy, s->dimx, &bargs, s->n->tam)){
+    free(stable.table);
+    return -1;
+  }
+  free(stable.table);
+  return 0;
+}
+
 int sixel_draw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
-  (void)n;
   // if we've wiped or rebuilt any cells, effect those changes now, or else
   // we'll get flicker when we move to the new location.
   if(s->wipes_outstanding){
-    if(sixel_deepclean(s)){
+    if(sixel_update(n, s)){
       return -1;
     }
     s->wipes_outstanding = false;
@@ -748,7 +861,10 @@ int sixel_init(int fd){
   return tty_emit("\e[?80;8452h", fd);
 }
 
-// only called for cells in SPRIXCELL_ANNIHILATED
+// only called for cells in SPRIXCELL_ANNIHILATED. just post to
+// wipes_outstanding, so the Sixel gets regenerated the next render cycle,
+// just like wiping. this is necessary due to the complex nature of
+// modifying a Sixel -- we want to do them all in one batch.
 int sixel_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
   s->wipes_outstanding = true;
   (void)ycell;
