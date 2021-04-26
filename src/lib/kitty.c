@@ -261,6 +261,18 @@ kitty_restore(char* triplet, int skip, int max, int pleft,
   return max;
 }
 
+// is the auxvec entirely transparent? if so, we can special case a direct
+// conversion back to SPRIXCELL_TRANSPARENT with no further work.
+static int
+auxvec_all_trans_p(const sprixel* s, const uint8_t* auxvec){
+  for(int i = 0 ; i < s->cellpxx * s->cellpxy ; ++i){
+    if(auxvec[i]){
+      return 0;
+    }
+  }
+  return 1;
+}
+
 #define RGBA_MAXLEN 768 // 768 base64-encoded pixels in 4096 bytes
 // restore an annihilated sprixcell by copying the alpha values from the
 // auxiliary vector back into the actual data. we then free the auxvector.
@@ -268,6 +280,13 @@ int kitty_rebuild(sprixel* s, int ycell, int xcell){
   if(s->n->tam[s->dimx * ycell + xcell].state != SPRIXCELL_ANNIHILATED){
 //fprintf(stderr, "CACHED WIPE %d %d/%d\n", s->id, ycell, xcell);
     return 0; // already annihilated, needn't draw glyph in kitty
+  }
+  uint8_t* auxvec = s->n->tam[s->dimx * ycell + xcell].auxvector;
+  if(auxvec_all_trans_p(s, auxvec)){
+    free(auxvec);
+    s->n->tam[s->dimx * ycell + xcell].state = SPRIXCELL_TRANSPARENT;
+    s->n->tam[s->dimx * ycell + xcell].auxvector = NULL;
+    return 0;
   }
   const int totalpixels = s->pixy * s->pixx;
   const int xpixels = s->cellpxx;
@@ -284,7 +303,6 @@ int kitty_rebuild(sprixel* s, int ycell, int xcell){
   int nextpixel = (s->pixx * ycell * ypixels) + (xpixels * xcell);
   int thisrow = targx;
   int chunkedhandled = 0;
-  uint8_t* auxvec = s->n->tam[s->dimx * ycell + xcell].auxvector;
   sprixcell_e state = SPRIXCELL_OPAQUE_KITTY;
   const int chunks = totalpixels / RGBA_MAXLEN + !!(totalpixels % RGBA_MAXLEN);
   int auxvecidx = 0;
