@@ -179,7 +179,12 @@ int sprite_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
     s->n->tam[s->dimx * ycell + xcell].state = SPRIXCELL_ANNIHILATED_TRANS;
     return 1;
   }
-//fprintf(stderr, "ANNIHILATED %p %d\n", s->n->tam, s->dimx * ycell + xcell);
+  if(s->n->tam[s->dimx * ycell + xcell].state == SPRIXCELL_ANNIHILATED_TRANS){
+    // both handle this correctly; one day, we will also check for ANNIHILATED
+    // here, and return 0 (sixel currently must return 1) FIXME
+    return 0;
+  }
+//fprintf(stderr, "ANNIHILATING %p %d\n", s->n->tam, s->dimx * ycell + xcell);
   int r = nc->tcache.pixel_cell_wipe(nc, s, ycell, xcell);
 //fprintf(stderr, "WIPED %d %d/%d ret=%d\n", s->id, ycell, xcell, r);
   // mark the cell as annihilated whether we actually scrubbed it or not,
