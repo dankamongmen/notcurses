@@ -289,6 +289,7 @@ int kitty_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
 //fprintf(stderr, "CACHED WIPE %d %d/%d\n", s->id, ycell, xcell);
     return 0; // already annihilated, needn't draw glyph in kitty
   }
+  uint8_t* auxvec = sprixel_auxiliary_vector(s);
 //fprintf(stderr, "NEW WIPE %d %d/%d\n", s->id, ycell, xcell);
   const int totalpixels = s->pixy * s->pixx;
   const int xpixels = nc->tcache.cellpixx;
@@ -343,6 +344,7 @@ int kitty_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
         if(--targy == 0){
           // FIXME make sure state is MIXED if we had any transparency
           s->n->tam[s->dimx * ycell + xcell].state = state;
+          s->n->tam[s->dimx * ycell + xcell].auxvector = auxvec;
           return 0;
         }
         thisrow = targx;
@@ -361,6 +363,7 @@ int kitty_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
     }
     ++c;
   }
+  free(auxvec);
   return -1;
 }
 
