@@ -105,7 +105,8 @@ void sprixel_invalidate(sprixel* s, int y, int x){
     int localx = x - s->n->absx;
 //fprintf(stderr, "INVALIDATING AT %d/%d (%d/%d) TAM: %d\n", y, x, localy, localx, s->n->tam[localy * s->dimx + localx].state);
     if(s->n->tam[localy * s->dimx + localx].state != SPRIXCELL_TRANSPARENT &&
-       s->n->tam[localy * s->dimx + localx].state != SPRIXCELL_ANNIHILATED){
+       s->n->tam[localy * s->dimx + localx].state != SPRIXCELL_ANNIHILATED &&
+       s->n->tam[localy * s->dimx + localx].state != SPRIXCELL_ANNIHILATED_TRANS){
       s->invalidated = SPRIXEL_INVALIDATED;
     }
   }
@@ -173,6 +174,10 @@ int sprixel_load(sprixel* spx, char* s, int bytes, int placey, int placex,
 int sprite_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
   if(s->invalidated == SPRIXEL_HIDE){ // no need to do work if we're killing it
     return 0;
+  }
+  if(s->n->tam[s->dimx * ycell + xcell].state == SPRIXCELL_TRANSPARENT){
+    s->n->tam[s->dimx * ycell + xcell].state = SPRIXCELL_ANNIHILATED_TRANS;
+    return 1;
   }
 //fprintf(stderr, "ANNIHILATED %p %d\n", s->n->tam, s->dimx * ycell + xcell);
   int r = nc->tcache.pixel_cell_wipe(nc, s, ycell, xcell);

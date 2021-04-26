@@ -170,7 +170,7 @@ extract_color_table(const uint32_t* data, int linesize, int cols,
       for(int sy = visy ; sy < (begy + leny) && sy < visy + 6 ; ++sy){ // offset within sprixel
         const uint32_t* rgb = (data + (linesize / 4 * sy) + visx);
         int txyidx = (sy / cdimy) * cols + (visx / cdimx);
-        if(tam[txyidx].state == SPRIXCELL_ANNIHILATED){
+        if(tam[txyidx].state == SPRIXCELL_ANNIHILATED || tam[txyidx].state == SPRIXCELL_ANNIHILATED_TRANS){
 //fprintf(stderr, "TRANS SKIP %d %d %d %d (cell: %d %d)\n", visy, visx, sy, txyidx, sy / cdimy, visx / cdimx);
           continue;
         }
@@ -546,7 +546,8 @@ deepclean_output(FILE* fp, const sprixel* s, int y, int *x, int rle,
     unsigned char mask = 0;
     for(int yi = y ; yi < y + 6 ; ++yi){
       const int tidx = (yi / s->cellpxy) * s->dimx + (xi / s->cellpxx);
-      const bool nihil = (s->n->tam[tidx].state == SPRIXCELL_ANNIHILATED);
+      const bool nihil = (s->n->tam[tidx].state == SPRIXCELL_ANNIHILATED) ||
+                         (s->n->tam[tidx].state == SPRIXCELL_ANNIHILATED_TRANS);
       if(!nihil){
         mask |= (1u << (yi - y));
       }
@@ -746,10 +747,11 @@ int sixel_init(int fd){
   return tty_emit("\e[?80;8452h", fd);
 }
 
-int sixel_rebuild(sprixel* s, int ycell, int xcell){
+int sixel_rebuild(sprixel* s, int ycell, int xcell, const uint8_t* auxvec){
   (void)s;
   (void)ycell;
   (void)xcell;
+  (void)auxvec;
   return 0;
 }
 
@@ -758,7 +760,8 @@ int sixel_rebuild(sprixel* s, int ycell, int xcell){
 // redrawn, it's redrawn using P2=1.
 int sixel_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
   (void)nc;
-  if(s->n->tam[s->dimx * ycell + xcell].state == SPRIXCELL_ANNIHILATED){
+  if(s->n->tam[s->dimx * ycell + xcell].state == SPRIXCELL_ANNIHILATED ||
+     s->n->tam[s->dimx * ycell + xcell].state == SPRIXCELL_ANNIHILATED_TRANS){
 //fprintf(stderr, "CACHED WIPE %d %d/%d\n", s->id, ycell, xcell);
     return 1; // already annihilated FIXME but 0 breaks things
   }
