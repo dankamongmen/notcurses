@@ -85,8 +85,9 @@ typedef enum {
 //
 // a glyph above a TRANSPARENT sprixcell requires annihilating the underlying
 // cell, but this is a special annihilation which never requires a wipe nor
-// redisplay, just the state transition. a glyph below a TRANSPARENT sprixcell
-// can be emitted with no change to the sprixcell.
+// redisplay, just the O(1) state transition. a glyph below a TRANSPARENT
+// sprixcell can be emitted with no change to the sprixcell. TRANSPARENT
+// sprixcells move to ANNIHILATED_TRANS upon annihilation.
 //
 // a glyph above an ANNIHILATED sprixcell can be emitted with no change to
 // the sprixcell. it does not make sense to emit a glyph below an ANNIHILATED
@@ -101,13 +102,15 @@ typedef enum {
 //
 // an ANNIHILATED sprixcell with no glyph above it must be restored to its
 // original form (from the most recent RGBA frame). this requires the original
-// pixel data. for Sixel, we must keep the RGB values in an auxiliary vector,
-// hung off the TAM, updated each time we convert an RGBA frame into a
+// pixel data. for Sixel, we must keep the palette indices in an auxiliary
+// vector, hung off the TAM, updated each time we convert an RGBA frame into a
 // partially- or wholly-ANNIHILATED sprixel. for Kitty, we must keep the
-// original alpha values (1/3 the data necessary for Sixel). the new state
-// can be solved from this data. if the new state is either OPAQUE or MIXED,
-// the sprixel must be redisplayed. if the new state is TRANSPARENT, this cell
-// requires no such redisplay.
+// original alpha values. the new state can be solved from this data. if the
+// new state is either OPAQUE or MIXED, the sprixel must be redisplayed. if the
+// new state is TRANSPARENT, this cell requires no such redisplay, and the
+// payload needn't be modified. to special-case this O(1) conversion, we keep a
+// distinct state, ANNIHILATED_TRANS. only a TRANSPARENT sprixcell can enter
+// into this state.
 //
 // when a sprixel is removed from the rendering pile, in Sixel all cells it
 // covered must be marked damaged, so that they are rendered, obliterating
@@ -135,12 +138,13 @@ typedef enum {
 // ANNIHILATED cells which are no longer ANNIHILATED), or at blittime for
 // a new RGBA frame.
 typedef enum {
-  SPRIXCELL_OPAQUE_SIXEL,   // no transparent pixels in this cell
+  SPRIXCELL_OPAQUE_SIXEL,      // no transparent pixels in this cell
   SPRIXCELL_OPAQUE_KITTY,
-  SPRIXCELL_MIXED_SIXEL,    // this cell has both opaque and transparent pixels
+  SPRIXCELL_MIXED_SIXEL,       // this cell has both opaque and transparent pixels
   SPRIXCELL_MIXED_KITTY,
-  SPRIXCELL_TRANSPARENT,    // all pixels are naturally transparent
-  SPRIXCELL_ANNIHILATED,    // this cell has been wiped (all trans)
+  SPRIXCELL_TRANSPARENT,       // all pixels are naturally transparent
+  SPRIXCELL_ANNIHILATED,       // this cell has been wiped (all trans)
+  SPRIXCELL_ANNIHILATED_TRANS, // this transparent cell is covered
 } sprixcell_e;
 
 // a TAM entry is a sprixcell_e state plus a possible auxiliary vector for
@@ -458,7 +462,7 @@ typedef struct tinfo {
   // this means dialing down their alpha to 0 (in equivalent space).
   int (*pixel_cell_wipe)(const struct notcurses* nc, sprixel* s, int y, int x);
   // perform the inverse of pixel_cell_wipe, restoring an annihilated sprixcell.
-  int (*pixel_rebuild)(sprixel* s, int y, int x);
+  int (*pixel_rebuild)(sprixel* s, int y, int x, const uint8_t* auxvec);
   int (*pixel_remove)(int id, FILE* out); // kitty only, issue actual delete command
   int (*pixel_init)(int fd);     // called when support is detected
   int (*pixel_draw)(const struct notcurses* n, const struct ncpile* p, sprixel* s, FILE* out);
@@ -935,8 +939,8 @@ int sixel_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell);
 // throughout to 0. the same trick doesn't work on sixel, but there we
 // can just print directly over the bitmap.
 int kitty_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell);
-int sixel_rebuild(sprixel* s, int ycell, int xcell);
-int kitty_rebuild(sprixel* s, int ycell, int xcell);
+int sixel_rebuild(sprixel* s, int ycell, int xcell, const uint8_t* auxvec);
+int kitty_rebuild(sprixel* s, int ycell, int xcell, const uint8_t* auxvec);
 
 void sprixel_free(sprixel* s);
 void sprixel_hide(sprixel* s);
@@ -986,7 +990,19 @@ sprite_draw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
 
 static inline int
 sprite_rebuild(const notcurses* nc, sprixel* s, int ycell, int xcell){
-  return nc->tcache.pixel_rebuild(s, ycell, xcell);
+  int ret = 0;
+  uint8_t* auxvec = s->n->tam[s->dimx * ycell + xcell].auxvector;
+  // special case the transition back to SPRIXCELL_TRANSPARENT; this can be
+  // done in O(1), since the actual glyph needn't change.
+  if(s->n->tam[s->dimx * ycell + xcell].state == SPRIXCELL_ANNIHILATED_TRANS){
+    s->n->tam[s->dimx * ycell + xcell].state = SPRIXCELL_TRANSPARENT;
+  }else if(s->n->tam[s->dimx * ycell + xcell].state == SPRIXCELL_ANNIHILATED){
+    // sets the new state itself
+    ret = nc->tcache.pixel_rebuild(s, ycell, xcell, auxvec);
+  }
+  s->n->tam[s->dimx * ycell + xcell].auxvector = NULL;
+  free(auxvec);
+  return ret;
 }
 
 static inline void

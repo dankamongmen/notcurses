@@ -261,33 +261,10 @@ kitty_restore(char* triplet, int skip, int max, int pleft,
   return max;
 }
 
-// is the auxvec entirely transparent? if so, we can special case a direct
-// conversion back to SPRIXCELL_TRANSPARENT with no further work.
-static int
-auxvec_all_trans_p(const sprixel* s, const uint8_t* auxvec){
-  for(int i = 0 ; i < s->cellpxx * s->cellpxy ; ++i){
-    if(auxvec[i]){
-      return 0;
-    }
-  }
-  return 1;
-}
-
 #define RGBA_MAXLEN 768 // 768 base64-encoded pixels in 4096 bytes
 // restore an annihilated sprixcell by copying the alpha values from the
 // auxiliary vector back into the actual data. we then free the auxvector.
-int kitty_rebuild(sprixel* s, int ycell, int xcell){
-  if(s->n->tam[s->dimx * ycell + xcell].state != SPRIXCELL_ANNIHILATED){
-//fprintf(stderr, "CACHED WIPE %d %d/%d\n", s->id, ycell, xcell);
-    return 0; // already annihilated, needn't draw glyph in kitty
-  }
-  uint8_t* auxvec = s->n->tam[s->dimx * ycell + xcell].auxvector;
-  if(auxvec_all_trans_p(s, auxvec)){
-    free(auxvec);
-    s->n->tam[s->dimx * ycell + xcell].state = SPRIXCELL_TRANSPARENT;
-    s->n->tam[s->dimx * ycell + xcell].auxvector = NULL;
-    return 0;
-  }
+int kitty_rebuild(sprixel* s, int ycell, int xcell, const uint8_t* auxvec){
   const int totalpixels = s->pixy * s->pixx;
   const int xpixels = s->cellpxx;
   const int ypixels = s->cellpxy;
@@ -336,9 +313,7 @@ int kitty_rebuild(sprixel* s, int ycell, int xcell){
       if(thisrow == 0){
 //fprintf(stderr, "CLEARED ROW, TARGY: %d\n", targy - 1);
         if(--targy == 0){
-          free(auxvec);
           s->n->tam[s->dimx * ycell + xcell].state = state;
-          s->n->tam[s->dimx * ycell + xcell].auxvector = NULL;
           return 0;
         }
         thisrow = targx;
@@ -494,7 +469,7 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx,
         int ycell = y / cdimy;
         int tyx = xcell + ycell * cols;
 //fprintf(stderr, "Tyx: %d y: %d (%d) * %d x: %d (%d)\n", tyx, y, y / cdimy, cols, x, x / cdimx);
-        if(tam[tyx].state == SPRIXCELL_ANNIHILATED){
+        if(tam[tyx].state == SPRIXCELL_ANNIHILATED || tam[tyx].state == SPRIXCELL_ANNIHILATED_TRANS){
           wipe[e] = 1;
         }else{
           wipe[e] = 0;

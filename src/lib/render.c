@@ -179,7 +179,8 @@ paint_sprixel(ncplane* p, struct crender* rvec, int starty, int startx,
         if(crender->sprixel == NULL){
           crender->sprixel = s;
         }
-        if(sprixel_state(s, absy, absx) == SPRIXCELL_ANNIHILATED){
+        sprixcell_e state = sprixel_state(s, absy, absx);
+        if(state == SPRIXCELL_ANNIHILATED || state == SPRIXCELL_ANNIHILATED_TRANS){
 //fprintf(stderr, "REBUILDING AT %d/%d\n", y, x);
           sprite_rebuild(nc, s, y, x);
         }
