@@ -13,7 +13,7 @@ setup_sixel_bitmaps(tinfo* ti){
   ti->sixel_maxy = 4096;
   ti->pixel_remove = NULL;
   ti->pixel_destroy = sixel_destroy;
-  ti->pixel_cell_wipe = sixel_wipe;
+  ti->pixel_wipe = sixel_wipe;
   ti->pixel_shutdown = sixel_shutdown;
   ti->pixel_rebuild = sixel_rebuild;
   ti->sprixel_height_factor = 6;
@@ -21,7 +21,7 @@ setup_sixel_bitmaps(tinfo* ti){
 
 static inline void
 setup_kitty_bitmaps(tinfo* ti){
-  ti->pixel_cell_wipe = kitty_wipe;
+  ti->pixel_wipe = kitty_wipe;
   ti->pixel_destroy = kitty_destroy;
   ti->pixel_init = kitty_init;
   ti->pixel_remove = kitty_remove;

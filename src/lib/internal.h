@@ -460,8 +460,8 @@ typedef struct tinfo {
   // wipe out a cell's worth of pixels from within a sprixel. for sixel, this
   // means leaving out the pixels (and likely resizes the string). for kitty,
   // this means dialing down their alpha to 0 (in equivalent space).
-  int (*pixel_cell_wipe)(const struct notcurses* nc, sprixel* s, int y, int x);
-  // perform the inverse of pixel_cell_wipe, restoring an annihilated sprixcell.
+  int (*pixel_wipe)(sprixel* s, int y, int x);
+  // perform the inverse of pixel_wipe, restoring an annihilated sprixcell.
   int (*pixel_rebuild)(sprixel* s, int y, int x, const uint8_t* auxvec);
   int (*pixel_remove)(int id, FILE* out); // kitty only, issue actual delete command
   int (*pixel_init)(int fd);     // called when support is detected
@@ -934,11 +934,11 @@ plane_debug(const ncplane* n, bool details){
 
 // cell coordinates *within the sprixel*, not absolute
 int sprite_wipe(const notcurses* nc, sprixel* s, int y, int x);
-int sixel_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell);
+int sixel_wipe(sprixel* s, int ycell, int xcell);
 // nulls out a cell from a kitty bitmap via changing the alpha value
 // throughout to 0. the same trick doesn't work on sixel, but there we
 // can just print directly over the bitmap.
-int kitty_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell);
+int kitty_wipe(sprixel* s, int ycell, int xcell);
 int sixel_rebuild(sprixel* s, int ycell, int xcell, const uint8_t* auxvec);
 int kitty_rebuild(sprixel* s, int ycell, int xcell, const uint8_t* auxvec);
 
@@ -1059,12 +1059,6 @@ sprixel_state(const sprixel* s, int y, int x){
   assert(localx >= 0);
   assert(localx < s->dimx);
   return s->n->tam[localy * s->dimx + localx].state;
-}
-
-// is sprixel backend kitty (only valid after calling setup_kitty_bitmaps())?
-// FIXME kill this off, and use different states instead
-static inline bool sprixel_kitty_p(const tinfo* t){
-  return t->pixel_shutdown == kitty_shutdown;
 }
 
 static inline void
