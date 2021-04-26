@@ -546,6 +546,7 @@ deepclean_output(FILE* fp, const sprixel* s, int y, int *x, int rle,
     unsigned char mask = 0;
     for(int yi = y ; yi < y + 6 ; ++yi){
       const int tidx = (yi / s->cellpxy) * s->dimx + (xi / s->cellpxx);
+      // FIXME need to make auxvec here
       const bool nihil = (s->n->tam[tidx].state == SPRIXCELL_ANNIHILATED) ||
                          (s->n->tam[tidx].state == SPRIXCELL_ANNIHILATED_TRANS);
       if(!nihil){
@@ -713,8 +714,8 @@ err:
 
 int sixel_draw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
   (void)n;
-  // if we've wiped any cells, we need actually wipe them out now, or else
-  // we'll get flicker when we move to the new location
+  // if we've wiped or rebuilt any cells, effect those changes now, or else
+  // we'll get flicker when we move to the new location.
   if(s->wipes_outstanding){
     if(sixel_deepclean(s)){
       return -1;
@@ -747,8 +748,9 @@ int sixel_init(int fd){
   return tty_emit("\e[?80;8452h", fd);
 }
 
-int sixel_rebuild(sprixel* s, int ycell, int xcell, const uint8_t* auxvec){
-  (void)s;
+// only called for cells in SPRIXCELL_ANNIHILATED
+int sixel_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
+  s->wipes_outstanding = true;
   (void)ycell;
   (void)xcell;
   (void)auxvec;
