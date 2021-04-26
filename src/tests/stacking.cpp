@@ -28,7 +28,10 @@ TEST_CASE("Stacking") {
 
   SUBCASE("LowerAtopUpperWhite") {
     struct ncplane_options opts = {
-      0, 0, 1, 1, nullptr, "top", nullptr, 0,
+      .y = 0, .x = 0, .rows = 1, .cols = 1,
+      .userptr = nullptr, .name = "top",
+      .resizecb = nullptr,
+      .flags = 0,
       .margin_b = 0, .margin_r = 0,
     };
     auto top = ncplane_create(n_, &opts);

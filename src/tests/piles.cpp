@@ -12,7 +12,13 @@ TEST_CASE("Piles") {
   // create a plane bigger than the standard plane, and render it as a pile
   SUBCASE("SmallerPileRender") {
     struct ncplane_options nopts = {
-      1, 1, dimy - 2, dimx - 2, nullptr, "small", nullptr, 0,
+      .y = 1, .x = 1,
+      .rows = dimy - 2,
+      .cols = dimx - 2,
+      .userptr = nullptr,
+      .name = "small",
+      .resizecb = nullptr,
+      .flags = 0,
       .margin_b = 0, .margin_r = 0,
     };
     auto np = ncpile_create(nc_, &nopts);
