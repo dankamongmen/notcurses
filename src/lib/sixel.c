@@ -746,8 +746,7 @@ int sixel_init(int fd){
   return tty_emit("\e[?80;8452h", fd);
 }
 
-int sixel_rebuild(const notcurses* nc, sprixel* s, int ycell, int xcell){
-  (void)nc;
+int sixel_rebuild(sprixel* s, int ycell, int xcell){
   (void)s;
   (void)ycell;
   (void)xcell;

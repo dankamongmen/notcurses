@@ -132,8 +132,31 @@ base64_rgba3(const uint32_t* pixels, size_t pcount, char* b64, bool wipe[static 
 // E: B3(4..7), A3(0..1)
 // F: A3(2..7)
 // so we will only ever zero out bytes 4, 5, 9, A, E, and F
+
+// get the first alpha from the triplet
+static inline uint8_t
+triplet_alpha1(const char* triplet){
+  uint8_t c1 = b64idx(triplet[0x4]);
+  uint8_t c2 = b64idx(triplet[0x5]);
+  return (c1 << 2u) | ((c2 & 0x3) >> 4);
+}
+
+static inline uint8_t
+triplet_alpha2(const char* triplet){
+  uint8_t c1 = b64idx(triplet[0x9]);
+  uint8_t c2 = b64idx(triplet[0xA]);
+  return ((c1 & 0xf) << 4u) | ((c2 & 0x3c) >> 2);
+}
+
+static inline uint8_t
+triplet_alpha3(const char* triplet){
+  uint8_t c1 = b64idx(triplet[0xE]);
+  uint8_t c2 = b64idx(triplet[0xF]);
+  return ((c1 & 0x3) << 6u) | c2;
+}
+
 static inline int
-kitty_null(char* triplet, int skip, int max, int pleft){
+kitty_null(char* triplet, int skip, int max, int pleft, uint8_t* auxvec){
 //fprintf(stderr, "SKIP/MAX/PLEFT %d/%d/%d\n", skip, max, pleft);
   if(pleft > 3){
     pleft = 3;
@@ -143,24 +166,30 @@ kitty_null(char* triplet, int skip, int max, int pleft){
   }
 //fprintf(stderr, "alpha-nulling %d after %d\n", max, skip);
   if(skip == 0){
+    auxvec[0] = triplet_alpha1(triplet);
     triplet[0x4] = b64subs[0];
     triplet[0x5] = b64subs[b64idx(triplet[0x5]) & 0xf];
     if(max > 1){
+      auxvec[1] = triplet_alpha2(triplet);
       triplet[0x9] = b64subs[b64idx(triplet[0x9]) & 0x30];
       triplet[0xA] = b64subs[b64idx(triplet[0xA]) & 0x3];
     }
     if(max == 3){
+      auxvec[2] = triplet_alpha3(triplet);
       triplet[0xE] = b64subs[b64idx(triplet[0xE]) & 0x3c];
       triplet[0xF] = b64subs[0];
     }
   }else if(skip == 1){
+    auxvec[0] = triplet_alpha2(triplet);
     triplet[0x9] = b64subs[b64idx(triplet[0x9]) & 0x30];
     triplet[0xA] = b64subs[b64idx(triplet[0xA]) & 0x3];
     if(max == 2){
+      auxvec[1] = triplet_alpha3(triplet);
       triplet[0xE] = b64subs[b64idx(triplet[0xE]) & 0x3c];
       triplet[0xF] = b64subs[0];
     }
   }else{ // skip == 2
+    auxvec[0] = triplet_alpha3(triplet);
     triplet[0xE] = b64subs[b64idx(triplet[0xE]) & 0x3c];
     triplet[0xF] = b64subs[0];
   }
@@ -214,15 +243,14 @@ kitty_restore(char* triplet, int skip, int max, int pleft){
 #define RGBA_MAXLEN 768 // 768 base64-encoded pixels in 4096 bytes
 // restore an annihilated sprixcell by copying the alpha values from the
 // auxiliary vector back into the actual data. we then free the auxvector.
-int kitty_rebuild(const notcurses* nc, sprixel* s, int ycell, int xcell){
+int kitty_rebuild(sprixel* s, int ycell, int xcell){
   if(s->n->tam[s->dimx * ycell + xcell].state != SPRIXCELL_ANNIHILATED){
 //fprintf(stderr, "CACHED WIPE %d %d/%d\n", s->id, ycell, xcell);
     return 0; // already annihilated, needn't draw glyph in kitty
   }
-  (void)nc; // FIXME
   const int totalpixels = s->pixy * s->pixx;
-  const int xpixels = nc->tcache.cellpixx;
-  const int ypixels = nc->tcache.cellpixy;
+  const int xpixels = s->cellpxx;
+  const int ypixels = s->cellpxy;
   int targx = xpixels;
   if((xcell + 1) * xpixels > s->pixx){
     targx = s->pixx - xcell * xpixels;
@@ -314,6 +342,7 @@ int kitty_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
   int chunkedhandled = 0;
   const int chunks = totalpixels / RGBA_MAXLEN + !!(totalpixels % RGBA_MAXLEN);
   sprixcell_e state = SPRIXCELL_OPAQUE_KITTY;
+  int auxvecidx = 0;
   while(targy && chunkedhandled < chunks){ // need to null out |targy| rows of |targx| pixels, track with |thisrow|
 //fprintf(stderr, "PLUCKING FROM [%s]\n", c);
     int inchunk = totalpixels - chunkedhandled * RGBA_MAXLEN;
@@ -335,8 +364,11 @@ int kitty_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
       // the maximum number of pixels we can convert is the minimum of the
       // pixels remaining in the target row, and the pixels left in the chunk.
 //fprintf(stderr, "inchunk: %d total: %d triples: %d\n", inchunk, totalpixels, triples);
-      int chomped = kitty_null(c + tripbytes, tripskip, thisrow, inchunk - triples * 3);
+      int chomped = kitty_null(c + tripbytes, tripskip, thisrow,
+                               inchunk - triples * 3, auxvec + auxvecidx);
       assert(chomped >= 0);
+      auxvecidx += chomped;
+      assert(auxvecidx <= s->cellpxy * s->cellpxx);
       thisrow -= chomped;
 //fprintf(stderr, "POSTCHIMP CHOMP: %d pixoffset: %d next: %d tripbytes: %d tripskip: %d thisrow: %d\n", chomped, pixoffset, nextpixel, tripbytes, tripskip, thisrow);
       if(thisrow == 0){
