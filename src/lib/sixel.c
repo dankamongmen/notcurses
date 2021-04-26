@@ -361,14 +361,21 @@ write_sixel_data(FILE* fp, int leny, int lenx, const sixeltable* stab, int* pars
   *parse_start = fprintf(fp, "\eP0;%d;0q\"1;1;%d;%d", p2, lenx, leny);
   for(int i = 0 ; i < stab->colors ; ++i){
     const unsigned char* rgb = stab->table + i * CENTSIZE;
-    int idx = ctable_to_dtable(rgb);
-    int count = stab->deets[idx].count;
-//fprintf(stderr, "RGB: %3u %3u %3u DT: %d SUMS: %3d %3d %3d COUNT: %d\n", rgb[0], rgb[1], rgb[2], idx, stab->deets[idx].sums[0] / count * 100 / 255, stab->deets[idx].sums[1] / count * 100 / 255, stab->deets[idx].sums[2] / count * 100 / 255, count);
-    //fprintf(fp, "#%d;2;%u;%u;%u", i, rgb[0], rgb[1], rgb[2]);
-    *parse_start += fprintf(fp, "#%d;2;%jd;%jd;%jd", i,
-                            (intmax_t)(stab->deets[idx].sums[0] * 100 / count / 255),
-                            (intmax_t)(stab->deets[idx].sums[1] * 100 / count / 255),
-                            (intmax_t)(stab->deets[idx].sums[2] * 100 / count / 255));
+    if(stab->deets){
+      int idx = ctable_to_dtable(rgb);
+      int count = stab->deets[idx].count;
+  //fprintf(stderr, "RGB: %3u(%d) %3u(%d) %3u(%d) DT: %d SUMS: %3ld %3ld %3ld COUNT: %d\n", rgb[0], ss(rgb[0], 0xff), rgb[1], ss(rgb[1], 0xff), rgb[2], ss(rgb[2], 0xff), idx, stab->deets[idx].sums[0] / count * 100 / 255, stab->deets[idx].sums[1] / count * 100 / 255, stab->deets[idx].sums[2] / count * 100 / 255, count);
+      //fprintf(fp, "#%d;2;%u;%u;%u", i, rgb[0], rgb[1], rgb[2]);
+      // we emit the average of the actual sums rather than the RGB clustering
+      // point, as it can be (and usually is) much more accurate.
+      *parse_start += fprintf(fp, "#%d;2;%jd;%jd;%jd", i,
+                              (intmax_t)(stab->deets[idx].sums[0] * 100 / count / 255),
+                              (intmax_t)(stab->deets[idx].sums[1] * 100 / count / 255),
+                              (intmax_t)(stab->deets[idx].sums[2] * 100 / count / 255));
+    }else{ // RGB values were taken from existing solution; reproduce directly
+      *parse_start += fprintf(fp, "#%d;2;%d;%d;%d", i,
+                              ss(rgb[0], 0xff), ss(rgb[1], 0xff), ss(rgb[2], 0xff));
+    }
   }
   int p = 0;
   while(p < stab->sixelcount){
