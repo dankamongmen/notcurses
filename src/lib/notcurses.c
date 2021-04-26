@@ -269,14 +269,7 @@ void free_plane(ncplane* p){
     if(p->sprite){
       sprixel_hide(p->sprite);
     }
-    if(p->tam){
-      for(int y = 0 ; y < p->leny ; ++y){
-        for(int x = 0 ; x < p->lenx ; ++x){
-          free(p->tam[y * p->lenx + x].auxvector);
-        }
-      }
-      free(p->tam);
-    }
+    free(p->tam);
     egcpool_dump(&p->pool);
     free(p->name);
     free(p->fb);

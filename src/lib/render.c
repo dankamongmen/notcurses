@@ -144,9 +144,11 @@ highcontrast(uint32_t bchannel){
 // at least for this rendering cycle
 static void
 paint_sprixel(ncplane* p, struct crender* rvec, int starty, int startx,
-              int dimy, int dimx, int offy, int offx, int dstleny, int dstlenx){
+              int offy, int offx, int dstleny, int dstlenx){
   const notcurses* nc = ncplane_notcurses_const(p);
   sprixel* s = p->sprite;
+  int dimy = s->dimy;
+  int dimx = s->dimx;
   for(int y = starty ; y < dimy ; ++y){
     const int absy = y + offy;
     // once we've passed the physical screen's bottom, we're done
@@ -229,8 +231,7 @@ paint(ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
   // glyph, but we *do* need to null out any cellregions that we've
   // scribbled upon.
   if(p->sprite){
-    paint_sprixel(p, rvec, starty, startx, dimy, dimx, offy, offx,
-                  dstleny, dstlenx);
+    paint_sprixel(p, rvec, starty, startx, offy, offx, dstleny, dstlenx);
     // decouple from the pile's sixel list
     if(p->sprite->next){
       p->sprite->next->prev = p->sprite->prev;

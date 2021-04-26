@@ -85,6 +85,12 @@ void sprixel_hide(sprixel* s){
     s->movedfromy = ncplane_abs_y(s->n);
     s->movedfromx = ncplane_abs_x(s->n);
     if(s->n){
+      for(int y = 0 ; y < s->dimy ; ++y){
+        for(int x = 0 ; x < s->dimx ; ++x){
+          free(s->n->tam[y * s->dimx + x].auxvector);
+          s->n->tam[y * s->dimx + x].auxvector = NULL;
+        }
+      }
       s->n->sprite = NULL;
       s->n = NULL;
     }
