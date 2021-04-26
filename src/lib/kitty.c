@@ -335,7 +335,7 @@ int kitty_rebuild(sprixel* s, int ycell, int xcell, const uint8_t* auxvec){
   return -1;
 }
 
-int kitty_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
+int kitty_wipe(sprixel* s, int ycell, int xcell){
   if(s->n->tam[s->dimx * ycell + xcell].state == SPRIXCELL_ANNIHILATED){
 //fprintf(stderr, "CACHED WIPE %d %d/%d\n", s->id, ycell, xcell);
     return 0; // already annihilated, needn't draw glyph in kitty
@@ -343,8 +343,8 @@ int kitty_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
   uint8_t* auxvec = sprixel_auxiliary_vector(s);
 //fprintf(stderr, "NEW WIPE %d %d/%d\n", s->id, ycell, xcell);
   const int totalpixels = s->pixy * s->pixx;
-  const int xpixels = nc->tcache.cellpixx;
-  const int ypixels = nc->tcache.cellpixy;
+  const int xpixels = s->cellpxx;
+  const int ypixels = s->cellpxy;
   // if the cell is on the right or bottom borders, it might only be partially
   // filled by actual graphic data, and we need to cap our target area.
   int targx = xpixels;

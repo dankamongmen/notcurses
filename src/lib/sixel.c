@@ -758,8 +758,7 @@ int sixel_rebuild(sprixel* s, int ycell, int xcell, const uint8_t* auxvec){
 // we return -1 because we're not doing a proper wipe -- that's not possible
 // using sixel. we just mark it as partially transparent, so that if it's
 // redrawn, it's redrawn using P2=1.
-int sixel_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
-  (void)nc;
+int sixel_wipe(sprixel* s, int ycell, int xcell){
   if(s->n->tam[s->dimx * ycell + xcell].state == SPRIXCELL_ANNIHILATED){
 //fprintf(stderr, "CACHED WIPE %d %d/%d\n", s->id, ycell, xcell);
     return 1; // already annihilated FIXME but 0 breaks things

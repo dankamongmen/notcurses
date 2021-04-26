@@ -48,7 +48,7 @@ void sprixel_free(sprixel* s){
 sprixel* sprixel_recycle(ncplane* n){
   assert(n->sprite);
   const notcurses* nc = ncplane_notcurses_const(n);
-  if(sprixel_kitty_p(&nc->tcache)){
+  if(nc->tcache.pixel_shutdown == kitty_shutdown){
     sprixel* hides = n->sprite;
     int dimy = hides->dimy;
     int dimx = hides->dimx;
@@ -185,7 +185,7 @@ int sprite_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
     return 0;
   }
 //fprintf(stderr, "ANNIHILATING %p %d\n", s->n->tam, s->dimx * ycell + xcell);
-  int r = nc->tcache.pixel_cell_wipe(nc, s, ycell, xcell);
+  int r = nc->tcache.pixel_wipe(s, ycell, xcell);
 //fprintf(stderr, "WIPED %d %d/%d ret=%d\n", s->id, ycell, xcell, r);
   // mark the cell as annihilated whether we actually scrubbed it or not,
   // so that we use this fact should we move to another frame
