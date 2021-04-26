@@ -21,16 +21,13 @@ int main(int argc, char** argv){
     return EXIT_FAILURE;
   }
   struct ncplane* std = notcurses_stdplane(nc);
-  // FIXME not all work yet; this subset does
   const int blitters[] = {
     NCBLIT_DEFAULT, // let the ncvisual pick
     NCBLIT_1x1,     // full block
     NCBLIT_2x1,     // full/(upper|left) blocks
     NCBLIT_2x2,     // quadrants
     NCBLIT_3x2,     // sextants
-    // NCBLIT_4x1,     // four vert/horz levels
     NCBLIT_BRAILLE, // 4 rows, 2 cols (braille)
-    // NCBLIT_8x1,     // eight vert/horz levels
     NCBLIT_PIXEL,   // pixel graphics
     -1,
   };
@@ -46,11 +43,11 @@ int main(int argc, char** argv){
         }
         notcurses_render(nc);
         struct ncvisual_options vopts = {
-          .n = std,
           .scaling = scaling,
           .blitter = *blitter,
         };
-        if(!ncvisual_render(nc, ncv, &vopts)){
+        struct ncplane* cn;
+        if((cn = ncvisual_render(nc, ncv, &vopts)) == NULL){
           ncvisual_destroy(ncv);
           goto err;
         }
@@ -61,6 +58,7 @@ int main(int argc, char** argv){
         };
         clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);
         ncvisual_destroy(ncv);
+        ncplane_destroy(cn);
       }
     }
   }
