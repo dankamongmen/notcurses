@@ -449,7 +449,7 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
       }
     }while(loop && r == 0);
     if(r < 0){ // positive is intentional abort
-      std::cerr << "Error decoding " << argv[i] << std::endl;
+      std::cerr << "Error while playing " << argv[i] << std::endl;
       return -1;
     }
   }
