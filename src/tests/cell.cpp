@@ -23,10 +23,18 @@ TEST_CASE("Cell") {
     CHECK(1 == cols);
     bytes = utf8_egc_len(" ி", &cols);
     CHECK(4 == bytes);
+#ifdef __linux__
     CHECK(2 == cols);
+#else
+    CHECK(1 == cols);
+#endif
     bytes = utf8_egc_len(" ि", &cols);
     CHECK(4 == bytes);
+#ifdef __linux__
     CHECK(2 == cols);
+#else
+    CHECK(1 == cols);
+#endif
     bytes = utf8_egc_len("◌̈", &cols);
     CHECK(5 == bytes);
     CHECK(1 == cols);
@@ -55,16 +63,9 @@ TEST_CASE("Cell") {
 
   // test combining characters and ZWJs
   SUBCASE("MultiglyphWidth") {
-#ifdef __linux__
     CHECK(2 == ncstrwidth("\U0001F471"));
     CHECK(2 == ncstrwidth("\U0001F471\u200D"));
     CHECK(3 == ncstrwidth("\U0001F471\u200D\u2640")); // *not* a single EGC!
-#else
-    // FreeBSD doesn't think these wide
-    CHECK(1 == ncstrwidth("\U0001F471"));
-    CHECK(1 == ncstrwidth("\U0001F471\u200D"));
-    CHECK(2 == ncstrwidth("\U0001F471\u200D\u2640")); // *not* a single EGC!
-#endif
   }
 
   SUBCASE("SetItalic") {
