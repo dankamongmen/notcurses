@@ -201,9 +201,8 @@ kitty_null(char* triplet, int skip, int max, int pleft, uint8_t* auxvec){
 // and restore a maximum of |max| pixels after that. returns the number of
 // pixels restored. |max| must be positive. |skip| must be non-negative, and
 // less than 3. |pleft| is the number of pixels available in the chunk.
-// FIXME needs auxvec
 static inline int
-kitty_restore(char* triplet, int skip, int max, int pleft){
+kitty_restore(char* triplet, int skip, int max, int pleft, const uint8_t* auxvec){
 //fprintf(stderr, "SKIP/MAX/PLEFT %d/%d/%d\n", skip, max, pleft);
   if(pleft > 3){
     pleft = 3;
@@ -211,31 +210,33 @@ kitty_restore(char* triplet, int skip, int max, int pleft){
   if(max + skip > pleft){
     max = pleft - skip;
   }
-//fprintf(stderr, "alpha-nulling %d after %d\n", max, skip);
   if(skip == 0){
-    if(max == 1){
-      memset(triplet, b64subs[0], 5);
-      triplet[5] = b64subs[b64idx(triplet[5]) & 0xf];
-    }else if(max == 2){
-      memset(triplet, b64subs[0], 10);
-      triplet[10] = b64subs[b64idx(triplet[10]) & 0x3];
-    }else{ // max == 3
-      memset(triplet, b64subs[0], 16);
+    int a = auxvec[0];
+    triplet[0x4] = b64subs[(a & 0xfc) >> 2];
+    triplet[0x5] = b64subs[((a & 0x3) << 4) | (b64idx(triplet[0x5]) & 0xf)];
+    if(max > 1){
+      a = auxvec[1];
+      triplet[0x9] = b64subs[(b64idx(triplet[0x9]) & 0x30) | ((a & 0xf0) >> 4)];
+      triplet[0xA] = b64subs[((a & 0xf) << 2) | (b64idx(triplet[0xA]) & 0xf)];
+    }
+    if(max == 3){
+      a = auxvec[2];
+      triplet[0xE] = b64subs[((a & 0xc0) >> 6) | (b64idx(triplet[0xE]) & 0x3c)];
+      triplet[0xF] = b64subs[(a & 0x3f)];
     }
   }else if(skip == 1){
-    if(max == 1){
-      triplet[5] = b64subs[b64idx(triplet[5]) & 0x30];
-      memset(triplet + 6, b64subs[0], 4);
-      triplet[10] = b64subs[b64idx(triplet[10]) & 0x3];
-    }else{
-      triplet[5] = b64subs[b64idx(triplet[5]) & 0x30];
-      memset(triplet + 6, b64subs[0], 10);
+    int a = auxvec[0];
+    triplet[0x9] = b64subs[(b64idx(triplet[0x9]) & 0x30) | ((a & 0xf0) >> 4)];
+    triplet[0xA] = b64subs[((a & 0xf) << 2) | (b64idx(triplet[0xA]) & 0xf)];
+    if(max == 2){
+      a = auxvec[1];
+      triplet[0xE] = b64subs[((a & 0xc0) >> 6) | (b64idx(triplet[0xE]) & 0x3c)];
+      triplet[0xF] = b64subs[(a & 0x3f)];
     }
   }else{ // skip == 2
-    if(max == 1){
-      triplet[10] = b64subs[b64idx(triplet[10]) & 0xf];
-      memset(triplet + 11, b64subs[0], 5);
-    }
+    int a = auxvec[0];
+    triplet[0xE] = b64subs[((a & 0xc0) >> 6) | (b64idx(triplet[0xE]) & 0x3c)];
+    triplet[0xF] = b64subs[(a & 0x3f)];
   }
   return max;
 }
@@ -263,7 +264,10 @@ int kitty_rebuild(sprixel* s, int ycell, int xcell){
   int nextpixel = (s->pixx * ycell * ypixels) + (xpixels * xcell);
   int thisrow = targx;
   int chunkedhandled = 0;
+  uint8_t* auxvec = s->n->tam[s->dimx * ycell + xcell].auxvector;
+  sprixcell_e state = SPRIXCELL_OPAQUE_KITTY;
   const int chunks = totalpixels / RGBA_MAXLEN + !!(totalpixels % RGBA_MAXLEN);
+  int auxvecidx = 0;
   while(targy && chunkedhandled < chunks){ // need to null out |targy| rows of |targx| pixels, track with |thisrow|
     int inchunk = totalpixels - chunkedhandled * RGBA_MAXLEN;
     if(inchunk > RGBA_MAXLEN){
@@ -284,13 +288,19 @@ int kitty_rebuild(sprixel* s, int ycell, int xcell){
       // the maximum number of pixels we can convert is the minimum of the
       // pixels remaining in the target row, and the pixels left in the chunk.
 //fprintf(stderr, "inchunk: %d total: %d triples: %d\n", inchunk, totalpixels, triples);
-      int chomped = kitty_restore(c + tripbytes, tripskip, thisrow, inchunk - triples * 3);
+      int chomped = kitty_restore(c + tripbytes, tripskip, thisrow,
+                                  inchunk - triples * 3, auxvec + auxvecidx);
       assert(chomped >= 0);
+      auxvecidx += chomped;
       thisrow -= chomped;
 //fprintf(stderr, "POSTCHIMP CHOMP: %d pixoffset: %d next: %d tripbytes: %d tripskip: %d thisrow: %d\n", chomped, pixoffset, nextpixel, tripbytes, tripskip, thisrow);
       if(thisrow == 0){
 //fprintf(stderr, "CLEARED ROW, TARGY: %d\n", targy - 1);
         if(--targy == 0){
+          free(auxvec);
+          // FIXME needs be MIXED_KITTY if we got transparent pixels
+          s->n->tam[s->dimx * ycell + xcell].state = state;
+          s->n->tam[s->dimx * ycell + xcell].auxvector = NULL;
           return 0;
         }
         thisrow = targx;
@@ -341,7 +351,6 @@ int kitty_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
   int thisrow = targx;
   int chunkedhandled = 0;
   const int chunks = totalpixels / RGBA_MAXLEN + !!(totalpixels % RGBA_MAXLEN);
-  sprixcell_e state = SPRIXCELL_OPAQUE_KITTY;
   int auxvecidx = 0;
   while(targy && chunkedhandled < chunks){ // need to null out |targy| rows of |targx| pixels, track with |thisrow|
 //fprintf(stderr, "PLUCKING FROM [%s]\n", c);
@@ -374,8 +383,6 @@ int kitty_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
       if(thisrow == 0){
 //fprintf(stderr, "CLEARED ROW, TARGY: %d\n", targy - 1);
         if(--targy == 0){
-          // FIXME make sure state is MIXED if we had any transparency
-          s->n->tam[s->dimx * ycell + xcell].state = state;
           s->n->tam[s->dimx * ycell + xcell].auxvector = auxvec;
           return 0;
         }
