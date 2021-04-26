@@ -970,10 +970,28 @@ sprite_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
   return nc->tcache.pixel_destroy(nc, p, out, s);
 }
 
+__attribute__ ((unused)) static inline void
+sprixel_debug(FILE* out, const sprixel* s){
+  fprintf(out, "Sprixel %d (%p) %dx%d (%dx%d) @%d/%d state: %d\n",
+          s->id, s, s->dimy, s->dimx, s->pixy, s->pixx,
+          s->n ? s->n->absy : 0, s->n ? s->n->absx : 0,
+          s->invalidated);
+  if(s->n){
+    int idx = 0;
+    for(int y = 0 ; y < s->dimy ; ++y){
+      for(int x = 0 ; x < s->dimx ; ++x){
+        fprintf(out, "%d", s->n->tam[idx].state);
+        ++idx;
+      }
+      fprintf(out, "\n");
+    }
+  }
+}
+
 // precondition: s->invalidated is SPRIXEL_INVALIDATED or SPRIXEL_MOVED.
 static inline int
 sprite_draw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
-//sprixel_debug(stderr, s);
+sprixel_debug(stderr, s);
   return n->tcache.pixel_draw(n, p, s, out);
 }
 
