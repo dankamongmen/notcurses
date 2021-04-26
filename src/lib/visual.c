@@ -152,6 +152,7 @@ ncvisual_blitset_geom(const notcurses* nc, const ncvisual* n,
       }
       // FIXME clamp to sprixel limits
       if(vopts->scaling == NCSCALE_NONE || vopts->scaling == NCSCALE_NONE_HIRES){
+        /*
         int rows = (*leny + nc->tcache.cellpixy - 1) / nc->tcache.cellpixy;
         if(rows > ncplane_dim_y(vopts->n)){
           logerror(nc, "Sprixel too tall %d for plane %d\n", *leny, ncplane_dim_y(vopts->n) * nc->tcache.cellpixy);
@@ -162,6 +163,7 @@ ncvisual_blitset_geom(const notcurses* nc, const ncvisual* n,
           logerror(nc, "Sprixel too wide %d for plane %d\n", *lenx, ncplane_dim_x(vopts->n) * nc->tcache.cellpixx);
           return -1;
         }
+        */
       }
     }
   }

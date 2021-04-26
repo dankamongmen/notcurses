@@ -149,6 +149,7 @@ paint_sprixel(ncplane* p, struct crender* rvec, int starty, int startx,
   sprixel* s = p->sprite;
   int dimy = s->dimy;
   int dimx = s->dimx;
+//fprintf(stderr, "STARTY: %d DIMY: %d dim(p): %d/%d dim(s): %d/%d\n", starty, dimy, ncplane_dim_y(p), ncplane_dim_x(p), s->dimy, s->dimx);
   for(int y = starty ; y < dimy ; ++y){
     const int absy = y + offy;
     // once we've passed the physical screen's bottom, we're done

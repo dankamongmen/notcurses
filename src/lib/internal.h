@@ -1052,7 +1052,7 @@ sprixel_state(const sprixel* s, int y, int x){
   const ncplane* stdn = notcurses_stdplane_const(ncplane_notcurses_const(s->n));
   int localy = y - (s->n->absy - stdn->absy);
   int localx = x - (s->n->absx - stdn->absx);
-//fprintf(stderr, "TAM %d at %d/%d (%d/%d)\n", s->n->tacache[localy * s->dimx + localx], localy, localx, y, x);
+//fprintf(stderr, "TAM %d at %d/%d (%d/%d)\n", s->n->tam[localy * s->dimx + localx].state, localy, localx, y, x);
   assert(localy >= 0);
   assert(localy < s->dimy);
   assert(localx >= 0);
