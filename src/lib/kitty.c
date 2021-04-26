@@ -264,7 +264,7 @@ kitty_restore(char* triplet, int skip, int max, int pleft,
 #define RGBA_MAXLEN 768 // 768 base64-encoded pixels in 4096 bytes
 // restore an annihilated sprixcell by copying the alpha values from the
 // auxiliary vector back into the actual data. we then free the auxvector.
-int kitty_rebuild(sprixel* s, int ycell, int xcell, const uint8_t* auxvec){
+int kitty_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
   const int totalpixels = s->pixy * s->pixx;
   const int xpixels = s->cellpxx;
   const int ypixels = s->cellpxy;
@@ -314,6 +314,7 @@ int kitty_rebuild(sprixel* s, int ycell, int xcell, const uint8_t* auxvec){
 //fprintf(stderr, "CLEARED ROW, TARGY: %d\n", targy - 1);
         if(--targy == 0){
           s->n->tam[s->dimx * ycell + xcell].state = state;
+          free(auxvec);
           return 0;
         }
         thisrow = targx;

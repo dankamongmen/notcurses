@@ -169,7 +169,7 @@ paint_sprixel(ncplane* p, struct crender* rvec, int starty, int startx,
         // if sprite_wipe_cell() fails, we presumably do not have the
         // ability to wipe, and must reprint the character
         if(sprite_wipe(nc, p->sprite, y, x)){
-    //fprintf(stderr, "damaging due to wipe [%s] %d/%d\n", nccell_extended_gcluster(crender->p, &crender->c), y, x);
+//fprintf(stderr, "damaging due to wipe [%s] %d/%d\n", nccell_extended_gcluster(crender->p, &crender->c), y, x);
           crender->s.damaged = 1;
         }
         crender->s.p_beats_sprixel = 1;
