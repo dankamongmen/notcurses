@@ -216,7 +216,7 @@ paint(ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
   ncplane_dim_yx(p, &dimy, &dimx);
   offy = p->absy - dstabsy;
   offx = p->absx - dstabsx;
-//fprintf(stderr, "PLANE %p %d %d %d %d %d %d\n", p, dimy, dimx, offy, offx, dstleny, dstlenx);
+//fprintf(stderr, "PLANE %p %d %d %d %d %d %d %p\n", p, dimy, dimx, offy, offx, dstleny, dstlenx, p->sprite);
   // skip content above or to the left of the physical screen
   int starty, startx;
   if(offy < 0){
@@ -437,6 +437,7 @@ postpaint_cell(nccell* lastframe, int dimx, struct crender* crender,
   nccell* targc = &crender->c;
   lock_in_highcontrast(targc, crender);
   nccell* prevcell = &lastframe[fbcellidx(y, dimx, *x)];
+//fprintf(stderr, "taking a look at %d/%d %08x\n", y, *x, crender->c.gcluster);
   if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc) > 0){
 //fprintf(stderr, "damaging due to cmp [%s] %d %d\n", nccell_extended_gcluster(crender->p, &crender->c), y, *x);
     if(crender->sprixel){
