@@ -40,6 +40,7 @@ void sprixel_free(sprixel* s){
     if(s->n){
       s->n->sprite = NULL;
     }
+    free_sixelmap(s->smap);
     free(s->glyph);
     free(s);
   }
@@ -131,7 +132,6 @@ sprixel* sprixel_alloc(ncplane* n, int dimy, int dimx, int placey, int placex){
     ret->y = placey;
     ret->x = placex;
     ret->id = ++sprixelid_nonce;
-    ret->wipes_outstanding = false;
 //fprintf(stderr, "LOOKING AT %p (p->n = %p)\n", ret, ret->n);
     if(ncplane_pile(ret->n)){
       ncpile* np = ncplane_pile(ret->n);

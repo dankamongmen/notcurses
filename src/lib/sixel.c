@@ -10,6 +10,51 @@ typedef enum {
   SIXEL_P2_TRANS = 1,
 } sixel_p2_e;
 
+// we keep a copy of the visual data, reduced to a color index and a
+// transparency bit per pixel. we keep the two arrays separate so the
+// transparency bits don't absolutely destroy cache efficiency for the
+// data array. this allows us to rebuild wiped sprixcells by simply
+// rerunning the sprixel generation process following palette quantization,
+// which is much, much easier than rebuilding inline, and can be done at
+// the same time as wiping, and batches them both, and is probably just as
+// fast (slow) as the complex in-place rebuild would be. there is, of course,
+// a memory cost of about 1.125MB for a 1024x1024 sixel, but at least we
+// needn't muck with auxvectors.
+typedef struct sixelmap {
+  uint8_t* pixels;   // 1 byte per pixel, index into color table
+  uint8_t* transmap; // 1 bit per pixel, 1 == transparent, 0 == opaque
+} sixelmap;
+
+// whip up an all-zero sixelmap for the specified number of pixels
+static sixelmap*
+create_sixelmap(int pixels){
+  sixelmap* ret = malloc(sizeof(*ret));
+  if(ret){
+    size_t pixsize = sizeof(*ret->pixels) * pixels;
+    ret->pixels = malloc(pixsize);
+    if(ret->pixels){
+      size_t transsize = (pixels + 7) / 8;
+      ret->transmap = malloc(transsize);
+      if(ret->transmap){
+        memset(ret->transmap, 0, transsize);
+        memset(ret->pixels, 0, pixsize);
+        return ret;
+      }
+      free(ret->pixels);
+    }
+    free(ret);
+  }
+  return NULL;
+}
+
+void free_sixelmap(sixelmap *s){
+  if(s){
+    free(s->transmap);
+    free(s->pixels);
+    free(s);
+  }
+}
+
 // the P2 parameter on a sixel specifies how unspecified pixels are drawn.
 // if P2 is 1, unspecified pixels are transparent. otherwise, they're drawn
 // as something else. some terminals (e.g. foot) can draw more quickly if
@@ -49,6 +94,7 @@ typedef struct cdetails {
 
 // second pass: construct data for extracted colors over the sixels
 typedef struct sixeltable {
+  sixelmap* map;        // copy of palette indices / transparency bits
   // FIXME keep these internal to palette extraction; finalize there
   int colors;
   cdetails* deets;      // |colorregs| cdetails structures
@@ -469,6 +515,7 @@ int sixel_blit(ncplane* n, int linesize, const void* data,
     colorregs = 256;
   }
   sixeltable stable = {
+    .map = create_sixelmap(sixelcount * 6),
     .data = malloc(colorregs * sixelcount),
     .deets = malloc(colorregs * sizeof(cdetails)),
     .table = malloc(colorregs * CENTSIZE),
@@ -477,7 +524,9 @@ int sixel_blit(ncplane* n, int linesize, const void* data,
     .colors = 0,
     .p2 = SIXEL_P2_ALLOPAQUE,
   };
-  if(stable.data == NULL || stable.deets == NULL || stable.table == NULL){
+  if(stable.data == NULL || stable.deets == NULL || stable.table == NULL
+      || stable.map == NULL){
+    free_sixelmap(stable.map);
     free(stable.table);
     free(stable.deets);
     free(stable.data);
