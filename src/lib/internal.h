@@ -603,6 +603,9 @@ typedef struct notcurses {
   int loglevel;
   palette256 palette; // 256-indexed palette can be used instead of/with RGB
   bool palette_damage[NCPALETTESIZE];
+  // we block many signals while writing out a frame, since interrupted escapes
+  // can lock up a terminal. this preserves the signal mask on entry.
+  sigset_t old_blocked_signals;
   unsigned stdio_blocking_save; // was stdio blocking at entry? restore on stop.
 } notcurses;
 
@@ -1577,6 +1580,10 @@ bool check_gradient_args(uint64_t ul, uint64_t ur, uint64_t bl, uint64_t br);
 int setup_signals(void* nc, bool no_quit_sigs, bool no_winch_sig,
                   int(*handler)(void*));
 int drop_signals(void* nc);
+
+// block a few signals for the duration of a write to the terminal.
+int block_signals(struct notcurses* nc);
+int unblock_signals(struct notcurses* nc);
 
 void ncvisual_printbanner(const notcurses* nc);
 

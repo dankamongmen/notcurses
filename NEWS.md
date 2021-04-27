@@ -11,6 +11,14 @@ rearrangements of Notcurses.
   * All functions prefixed with `channel_` have been deprecated in favor of
     versions prefixed with `ncchannel_`, which the former now wrap. The old
     versions will be removed in ABI3.
+  * `SIGINT`, `SIGQUIT`, and `SIGTERM` are now masked for the calling thread
+    when writing starts, and unmasked when writing has ended. This prevents
+    the writing thread from handling these signals in the middle of a write,
+    which could otherwise leave the terminal locked up (if it resulted in
+    aborting an escape sequence). The signal will be delivered when unblocked.
+    For this to work properly, other threads ought also have these signals
+    blocked. `notcurses_getc()` and friends thus no longer drop these signals
+    from the provided `sigset_t`; they are instead added if not present.
 
 * 2.2.8 (2021-04-18)
   * All remaining functions prefixed with `cell_` or `cells_` have been

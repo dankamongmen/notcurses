@@ -322,7 +322,7 @@ handle_getc(ncinputlayer* nc, int kpress, ncinput* ni, int leftmargin, int topma
 // blocks up through ts (infinite with NULL ts), returning number of events
 // (0 on timeout) or -1 on error/interruption.
 static int
-block_on_input(int fd, const struct timespec* ts, sigset_t* sigmask){
+block_on_input(int fd, const struct timespec* ts, const sigset_t* sigmask){
   struct pollfd pfd = {
     .fd = fd,
     .events = POLLIN,
@@ -335,20 +335,20 @@ block_on_input(int fd, const struct timespec* ts, sigset_t* sigmask){
   }else{
     pthread_sigmask(0, NULL, &scratchmask);
   }
-  sigmask = &scratchmask;
-  sigdelset(sigmask, SIGCONT);
-  sigdelset(sigmask, SIGWINCH);
-  sigdelset(sigmask, SIGINT);
-  sigdelset(sigmask, SIGILL);
-  sigdelset(sigmask, SIGQUIT);
-  sigdelset(sigmask, SIGSEGV);
-  sigdelset(sigmask, SIGABRT);
-  sigdelset(sigmask, SIGTERM);
+  sigdelset(&scratchmask, SIGCONT);
+  sigdelset(&scratchmask, SIGWINCH);
+  sigdelset(&scratchmask, SIGILL);
+  sigdelset(&scratchmask, SIGSEGV);
+  sigdelset(&scratchmask, SIGABRT);
+  // now add those which we don't want while writing
+  sigaddset(&scratchmask, SIGINT);
+  sigaddset(&scratchmask, SIGQUIT);
+  sigaddset(&scratchmask, SIGTERM);
 #ifdef POLLRDHUP
   pfd.events |= POLLRDHUP;
 #endif
   int events;
-  while((events = ppoll(&pfd, 1, ts, sigmask)) < 0){
+  while((events = ppoll(&pfd, 1, ts, &scratchmask)) < 0){
     if(events == 0){
       return 0;
     }
@@ -382,7 +382,8 @@ handle_queued_input(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin
 }
 
 static char32_t
-handle_input(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin, sigset_t* sigmask){
+handle_input(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin,
+             const sigset_t* sigmask){
   // we once used getc() here (and kept ttyinfp, a FILE*, instead of the file
   // descriptor ttyinfd), but under tmux, the first time running getc() would
   // (bewilderingly) see a series of terminal reset codes emitted. this has
@@ -412,7 +413,7 @@ handle_input(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin, sigse
 
 static char32_t
 handle_ncinput(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin,
-               sigset_t* sigmask){
+               const sigset_t* sigmask){
   if(ni){
     memset(ni, 0, sizeof(*ni));
   }
@@ -445,7 +446,7 @@ handle_ncinput(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin,
 // helper so we can do counter increment at a single location
 static inline char32_t
 ncinputlayer_prestamp(ncinputlayer* nc, const struct timespec *ts,
-                      sigset_t* sigmask, ncinput* ni, int leftmargin,
+                      const sigset_t* sigmask, ncinput* ni, int leftmargin,
                       int topmargin){
 //fprintf(stderr, "PRESTAMP OCCUPADO: %d\n", nc->inputbuf_occupied);
   if(nc->inputbuf_occupied){
@@ -462,7 +463,7 @@ ncinputlayer_prestamp(ncinputlayer* nc, const struct timespec *ts,
 
 // infp has already been set non-blocking
 char32_t notcurses_getc(notcurses* nc, const struct timespec *ts,
-                        sigset_t* sigmask, ncinput* ni){
+                        const sigset_t* sigmask, ncinput* ni){
   char32_t r = ncinputlayer_prestamp(&nc->input, ts, sigmask, ni,
                                      nc->margin_l, nc->margin_t);
   if(r != (char32_t)-1){

@@ -27,7 +27,7 @@ typedef struct ncinput {
 
 **bool nckey_mouse_p(char32_t ***r***);**
 
-**char32_t notcurses_getc(struct notcurses* ***n***, const struct timespec* ***ts***, sigset_t* ***sigmask***, ncinput* ***ni***);**
+**char32_t notcurses_getc(struct notcurses* ***n***, const struct timespec* ***ts***, const sigset_t* ***sigmask***, ncinput* ***ni***);**
 
 **char32_t notcurses_getc_nblock(struct notcurses* ***n***, ncinput* ***ni***);**
 

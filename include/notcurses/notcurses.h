@@ -1020,7 +1020,7 @@ ncinput_equal_p(const ncinput* n1, const ncinput* n2){
 // be NULL. Returns 0 on a timeout. If an event is processed, the return value
 // is the 'id' field from that event. 'ni' may be NULL.
 API char32_t notcurses_getc(struct notcurses* n, const struct timespec* ts,
-                            sigset_t* sigmask, ncinput* ni)
+                            const sigset_t* sigmask, ncinput* ni)
   __attribute__ ((nonnull (1)));
 
 // Get a file descriptor suitable for input event poll()ing. When this

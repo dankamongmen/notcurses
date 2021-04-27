@@ -23,7 +23,28 @@ static struct sigaction old_segv;
 static struct sigaction old_abrt;
 static struct sigaction old_term;
 
+// Signals we block when we start writing out a frame, so as not to be
+// interrupted in media res (interrupting an escape can lock up a terminal).
+// Prepared in setup_signals(), and never changes across our lifetime.
+static sigset_t wblock_signals;
+
 static int(*fatal_callback)(void*); // fatal handler callback
+
+int block_signals(notcurses* nc){
+  if(pthread_sigmask(SIG_BLOCK, &wblock_signals, &nc->old_blocked_signals)){
+    logerror(nc, "Couldn't block signals prior to write (%s)\n", strerror(errno));
+    return -1;
+  }
+  return 0;
+}
+
+int unblock_signals(notcurses* nc){
+  if(pthread_sigmask(SIG_SETMASK, &nc->old_blocked_signals, NULL)){
+    logerror(nc, "Error restoring signal mask after write (%s)\n", strerror(errno));
+    return -1;
+  }
+  return 0;
+}
 
 int drop_signals(void* nc){
   int ret = -1;
@@ -132,5 +153,10 @@ int setup_signals(void* nc, bool no_quit_sigs, bool no_winch_sig,
     }
     handling_fatals = true;
   }
+  // we don't really want to go blocking SIGSEGV etc while we write, but
+  // we *do* temporarily block user-inititated signals.
+  sigaddset(&wblock_signals, SIGINT);
+  sigaddset(&wblock_signals, SIGTERM);
+  sigaddset(&wblock_signals, SIGQUIT);
   return 0;
 }
