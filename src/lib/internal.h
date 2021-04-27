@@ -32,6 +32,7 @@ extern "C" {
 #define ALLOC __attribute__((malloc)) __attribute__((warn_unused_result))
 
 struct esctrie;
+struct sixelmap;
 struct ncvisual_details;
 
 // Does this glyph completely obscure the background? If so, there's no need
@@ -163,7 +164,7 @@ typedef struct tament {
 typedef struct sprixel {
   char* glyph;          // glyph; can be quite large
   int glyphlen;         // length of the glyph in bytes
-  uint32_t id;          // embedded into glusters field of nccell, 24 bits
+  uint32_t id;          // embedded into gcluster field of nccell, 24 bits
   // both the plane and visual can die before the sprixel does. they are
   // responsible in such a case for NULLing out this link themselves.
   struct ncplane* n;    // associated ncplane
@@ -176,10 +177,13 @@ typedef struct sprixel {
   int cellpxy, cellpxx; // cell-pixel geometry at time of creation
   // each tacache entry is one of 0 (standard opaque cell), 1 (cell with
   // some transparency), 2 (annihilated, excised)
-  int parse_start;   // where to start parsing for cell wipes
   int movedfromy;       // for SPRIXEL_MOVED, the starting absolute position,
   int movedfromx;       // so that we can damage old cells when redrawn
-  bool wipes_outstanding; // do we need execute wipes on move?
+  // only used for kitty-based sprixels
+  int parse_start;      // where to start parsing for cell wipes
+  // only used for sixel-based sprixels
+  struct sixelmap* smap;  // copy of palette indices + transparency bits
+  bool wipes_outstanding; // do we need rebuild the sixel next render?
 } sprixel;
 
 // A plane is memory for some rectilinear virtual window, plus current cursor
@@ -966,6 +970,7 @@ sprixel* sprixel_by_id(const ncpile* n, uint32_t id);
 void sprixel_invalidate(sprixel* s, int y, int x);
 void sprixel_movefrom(sprixel* s, int y, int x);
 void sprixel_debug(FILE* out, const sprixel* s);
+void free_sixelmap(struct sixelmap *s);
 
 // create an auxiliary vector suitable for a sprixcell, and zero it out
 uint8_t* sprixel_auxiliary_vector(const sprixel* s);
