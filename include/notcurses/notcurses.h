@@ -145,41 +145,47 @@ API int notcurses_ucs32_to_utf8(const char32_t* ucs32, unsigned ucs32count,
   (((uint32_t)r << 16u) + ((uint32_t)g << 8u) + (b) + CELL_BGDEFAULT_MASK)
 
 // These lowest-level functions manipulate a 64-bit channel encoding directly.
-// Users will typically manipulate ncplane and cell channels through those APIs,
-// rather than calling these directly.
+// Users will typically manipulate ncplane and nccell channels through those
+// APIs, rather than calling these explicitly.
 
 // Extract the 8-bit red component from a 32-bit channel.
 static inline unsigned
-channel_r(uint32_t channel){
+ncchannel_r(uint32_t channel){
   return (channel & 0xff0000u) >> 16u;
 }
 
 // Extract the 8-bit green component from a 32-bit channel.
 static inline unsigned
-channel_g(uint32_t channel){
+ncchannel_g(uint32_t channel){
   return (channel & 0x00ff00u) >> 8u;
 }
 
 // Extract the 8-bit blue component from a 32-bit channel.
 static inline unsigned
-channel_b(uint32_t channel){
+ncchannel_b(uint32_t channel){
   return (channel & 0x0000ffu);
+}
+
+// Extract the 2-bit alpha component from a 32-bit channel.
+static inline unsigned
+ncchannel_alpha(unsigned channel){
+  return channel & CELL_BG_ALPHA_MASK;
 }
 
 // Extract the three 8-bit R/G/B components from a 32-bit channel.
 static inline unsigned
-channel_rgb8(uint32_t channel, unsigned* RESTRICT r, unsigned* RESTRICT g,
-            unsigned* RESTRICT b){
-  *r = channel_r(channel);
-  *g = channel_g(channel);
-  *b = channel_b(channel);
+ncchannel_rgb8(uint32_t channel, unsigned* RESTRICT r, unsigned* RESTRICT g,
+               unsigned* RESTRICT b){
+  *r = ncchannel_r(channel);
+  *g = ncchannel_g(channel);
+  *b = ncchannel_b(channel);
   return channel;
 }
 
 // Set the three 8-bit components of a 32-bit channel, and mark it as not using
 // the default color. Retain the other bits unchanged.
 static inline int
-channel_set_rgb8(uint32_t* channel, int r, int g, int b){
+ncchannel_set_rgb8(uint32_t* channel, int r, int g, int b){
   if(r >= 256 || g >= 256 || b >= 256){
     return -1;
   }
@@ -195,7 +201,7 @@ channel_set_rgb8(uint32_t* channel, int r, int g, int b){
 // the default color. Retain the other bits unchanged. r, g, and b will be
 // clipped to the range [0..255].
 static inline void
-channel_set_rgb8_clipped(unsigned* channel, int r, int g, int b){
+ncchannel_set_rgb8_clipped(unsigned* channel, int r, int g, int b){
   if(r >= 256){
     r = 255;
   }
@@ -220,7 +226,7 @@ channel_set_rgb8_clipped(unsigned* channel, int r, int g, int b){
 
 // Same, but provide an assembled, packed 24 bits of rgb.
 static inline int
-channel_set(unsigned* channel, unsigned rgb){
+ncchannel_set(unsigned* channel, unsigned rgb){
   if(rgb > 0xffffffu){
     return -1;
   }
@@ -228,20 +234,14 @@ channel_set(unsigned* channel, unsigned rgb){
   return 0;
 }
 
-// Extract the 2-bit alpha component from a 32-bit channel.
 static inline unsigned
-channel_alpha(unsigned channel){
-  return channel & CELL_BG_ALPHA_MASK;
-}
-
-static inline unsigned
-channel_palindex(uint32_t channel){
+ncchannel_palindex(uint32_t channel){
   return channel & 0xff;
 }
 
 // Set the 2-bit alpha component of the 32-bit channel.
 static inline int
-channel_set_alpha(unsigned* channel, unsigned alpha){
+ncchannel_set_alpha(unsigned* channel, unsigned alpha){
   if(alpha & ~CELL_BG_ALPHA_MASK){
     return -1;
   }
@@ -253,33 +253,33 @@ channel_set_alpha(unsigned* channel, unsigned alpha){
 }
 
 static inline int
-channel_set_palindex(uint32_t* channel, int idx){
+ncchannel_set_palindex(uint32_t* channel, int idx){
   if(idx < 0 || idx >= NCPALETTESIZE){
     return -1;
   }
   *channel |= CELL_BGDEFAULT_MASK;
   *channel |= CELL_BG_PALETTE;
-  channel_set_alpha(channel, CELL_ALPHA_OPAQUE);
+  ncchannel_set_alpha(channel, CELL_ALPHA_OPAQUE);
   *channel &= 0xff000000ull;
   *channel |= idx;
   return 0;
 }
 
-// Is this channel using the "default color" rather than RGB/palette-indexed?
+// Is this ncchannel using the "default color" rather than RGB/palette-indexed?
 static inline bool
-channel_default_p(unsigned channel){
+ncchannel_default_p(unsigned channel){
   return !(channel & CELL_BGDEFAULT_MASK);
 }
 
 // Is this channel using palette-indexed color rather than RGB?
 static inline bool
-channel_palindex_p(unsigned channel){
-  return !channel_default_p(channel) && (channel & CELL_BG_PALETTE);
+ncchannel_palindex_p(unsigned channel){
+  return !ncchannel_default_p(channel) && (channel & CELL_BG_PALETTE);
 }
 
 // Mark the channel as using its default color, which also marks it opaque.
 static inline unsigned
-channel_set_default(unsigned* channel){
+ncchannel_set_default(unsigned* channel){
   return *channel &= ~(CELL_BGDEFAULT_MASK | CELL_ALPHA_HIGHCONTRAST);
 }
 
@@ -317,12 +317,12 @@ channels_combine(uint32_t fchan, uint32_t bchan){
 
 static inline unsigned
 channels_fg_palindex(uint64_t channels){
-  return channel_palindex(channels_fchannel(channels));
+  return ncchannel_palindex(channels_fchannel(channels));
 }
 
 static inline unsigned
 channels_bg_palindex(uint64_t channels){
-  return channel_palindex(channels_bchannel(channels));
+  return ncchannel_palindex(channels_bchannel(channels));
 }
 
 // Extract 24 bits of foreground RGB from 'channels', shifted to LSBs.
@@ -340,25 +340,25 @@ channels_bg_rgb(uint64_t channels){
 // Extract 2 bits of foreground alpha from 'channels', shifted to LSBs.
 static inline unsigned
 channels_fg_alpha(uint64_t channels){
-  return channel_alpha(channels_fchannel(channels));
+  return ncchannel_alpha(channels_fchannel(channels));
 }
 
 // Extract 2 bits of background alpha from 'channels', shifted to LSBs.
 static inline unsigned
 channels_bg_alpha(uint64_t channels){
-  return channel_alpha(channels_bchannel(channels));
+  return ncchannel_alpha(channels_bchannel(channels));
 }
 
 // Extract 24 bits of foreground RGB from 'channels', split into subchannels.
 static inline unsigned
 channels_fg_rgb8(uint64_t channels, unsigned* r, unsigned* g, unsigned* b){
-  return channel_rgb8(channels_fchannel(channels), r, g, b);
+  return ncchannel_rgb8(channels_fchannel(channels), r, g, b);
 }
 
 // Extract 24 bits of background RGB from 'channels', split into subchannels.
 static inline unsigned
 channels_bg_rgb8(uint64_t channels, unsigned* r, unsigned* g, unsigned* b){
-  return channel_rgb8(channels_bchannel(channels), r, g, b);
+  return ncchannel_rgb8(channels_bchannel(channels), r, g, b);
 }
 
 // Set the r, g, and b channels for the foreground component of this 64-bit
@@ -366,7 +366,7 @@ channels_bg_rgb8(uint64_t channels, unsigned* r, unsigned* g, unsigned* b){
 static inline int
 channels_set_fg_rgb8(uint64_t* channels, int r, int g, int b){
   uint32_t channel = channels_fchannel(*channels);
-  if(channel_set_rgb8(&channel, r, g, b) < 0){
+  if(ncchannel_set_rgb8(&channel, r, g, b) < 0){
     return -1;
   }
   *channels = ((uint64_t)channel << 32llu) | (*channels & 0xffffffffllu);
@@ -377,7 +377,7 @@ channels_set_fg_rgb8(uint64_t* channels, int r, int g, int b){
 static inline void
 channels_set_fg_rgb8_clipped(uint64_t* channels, int r, int g, int b){
   uint32_t channel = channels_fchannel(*channels);
-  channel_set_rgb8_clipped(&channel, r, g, b);
+  ncchannel_set_rgb8_clipped(&channel, r, g, b);
   *channels = ((uint64_t)channel << 32llu) | (*channels & 0xffffffffllu);
 }
 
@@ -385,7 +385,7 @@ channels_set_fg_rgb8_clipped(uint64_t* channels, int r, int g, int b){
 static inline int
 channels_set_fg_alpha(uint64_t* channels, unsigned alpha){
   uint32_t channel = channels_fchannel(*channels);
-  if(channel_set_alpha(&channel, alpha) < 0){
+  if(ncchannel_set_alpha(&channel, alpha) < 0){
     return -1;
   }
   *channels = ((uint64_t)channel << 32llu) | (*channels & 0xffffffffllu);
@@ -395,7 +395,7 @@ channels_set_fg_alpha(uint64_t* channels, unsigned alpha){
 static inline int
 channels_set_fg_palindex(uint64_t* channels, int idx){
   uint32_t channel = channels_fchannel(*channels);
-  if(channel_set_palindex(&channel, idx) < 0){
+  if(ncchannel_set_palindex(&channel, idx) < 0){
     return -1;
   }
   *channels = ((uint64_t)channel << 32llu) | (*channels & 0xffffffffllu);
@@ -406,7 +406,7 @@ channels_set_fg_palindex(uint64_t* channels, int idx){
 static inline int
 channels_set_fg_rgb(uint64_t* channels, unsigned rgb){
   uint32_t channel = channels_fchannel(*channels);
-  if(channel_set(&channel, rgb) < 0){
+  if(ncchannel_set(&channel, rgb) < 0){
     return -1;
   }
   *channels = ((uint64_t)channel << 32llu) | (*channels & 0xffffffffllu);
@@ -418,7 +418,7 @@ channels_set_fg_rgb(uint64_t* channels, unsigned rgb){
 static inline int
 channels_set_bg_rgb8(uint64_t* channels, int r, int g, int b){
   uint32_t channel = channels_bchannel(*channels);
-  if(channel_set_rgb8(&channel, r, g, b) < 0){
+  if(ncchannel_set_rgb8(&channel, r, g, b) < 0){
     return -1;
   }
   channels_set_bchannel(channels, channel);
@@ -429,7 +429,7 @@ channels_set_bg_rgb8(uint64_t* channels, int r, int g, int b){
 static inline void
 channels_set_bg_rgb8_clipped(uint64_t* channels, int r, int g, int b){
   uint32_t channel = channels_bchannel(*channels);
-  channel_set_rgb8_clipped(&channel, r, g, b);
+  ncchannel_set_rgb8_clipped(&channel, r, g, b);
   channels_set_bchannel(channels, channel);
 }
 
@@ -440,7 +440,7 @@ channels_set_bg_alpha(uint64_t* channels, unsigned alpha){
     return -1;
   }
   uint32_t channel = channels_bchannel(*channels);
-  if(channel_set_alpha(&channel, alpha) < 0){
+  if(ncchannel_set_alpha(&channel, alpha) < 0){
     return -1;
   }
   channels_set_bchannel(channels, channel);
@@ -452,7 +452,7 @@ channels_set_bg_alpha(uint64_t* channels, unsigned alpha){
 static inline int
 channels_set_bg_palindex(uint64_t* channels, int idx){
   uint32_t channel = channels_bchannel(*channels);
-  if(channel_set_palindex(&channel, idx) < 0){
+  if(ncchannel_set_palindex(&channel, idx) < 0){
     return -1;
   }
   channels_set_bchannel(channels, channel);
@@ -463,7 +463,7 @@ channels_set_bg_palindex(uint64_t* channels, int idx){
 static inline int
 channels_set_bg_rgb(uint64_t* channels, unsigned rgb){
   uint32_t channel = channels_bchannel(*channels);
-  if(channel_set(&channel, rgb) < 0){
+  if(ncchannel_set(&channel, rgb) < 0){
     return -1;
   }
   channels_set_bchannel(channels, channel);
@@ -473,13 +473,13 @@ channels_set_bg_rgb(uint64_t* channels, unsigned rgb){
 // Is the foreground using the "default foreground color"?
 static inline bool
 channels_fg_default_p(uint64_t channels){
-  return channel_default_p(channels_fchannel(channels));
+  return ncchannel_default_p(channels_fchannel(channels));
 }
 
 // Is the foreground using indexed palette color?
 static inline bool
 channels_fg_palindex_p(uint64_t channels){
-  return channel_palindex_p(channels_fchannel(channels));
+  return ncchannel_palindex_p(channels_fchannel(channels));
 }
 
 // Is the background using the "default background color"? The "default
@@ -487,20 +487,20 @@ channels_fg_palindex_p(uint64_t channels){
 // terminal-effected transparency.
 static inline bool
 channels_bg_default_p(uint64_t channels){
-  return channel_default_p(channels_bchannel(channels));
+  return ncchannel_default_p(channels_bchannel(channels));
 }
 
 // Is the background using indexed palette color?
 static inline bool
 channels_bg_palindex_p(uint64_t channels){
-  return channel_palindex_p(channels_bchannel(channels));
+  return ncchannel_palindex_p(channels_bchannel(channels));
 }
 
 // Mark the foreground channel as using its default color.
 static inline uint64_t
 channels_set_fg_default(uint64_t* channels){
   uint32_t channel = channels_fchannel(*channels);
-  channel_set_default(&channel);
+  ncchannel_set_default(&channel);
   *channels = ((uint64_t)channel << 32llu) | (*channels & 0xffffffffllu);
   return *channels;
 }
@@ -509,7 +509,7 @@ channels_set_fg_default(uint64_t* channels){
 static inline uint64_t
 channels_set_bg_default(uint64_t* channels){
   uint32_t channel = channels_bchannel(*channels);
-  channel_set_default(&channel);
+  ncchannel_set_default(&channel);
   channels_set_bchannel(channels, channel);
   return *channels;
 }
@@ -2881,7 +2881,7 @@ ncpalette_set_rgb8(ncpalette* p, int idx, int r, int g, int b){
   if(idx < 0 || (size_t)idx > sizeof(p->chans) / sizeof(*p->chans)){
     return -1;
   }
-  return channel_set_rgb8(&p->chans[idx], r, g, b);
+  return ncchannel_set_rgb8(&p->chans[idx], r, g, b);
 }
 
 static inline int
@@ -2889,7 +2889,7 @@ ncpalette_set(ncpalette* p, int idx, unsigned rgb){
   if(idx < 0 || (size_t)idx > sizeof(p->chans) / sizeof(*p->chans)){
     return -1;
   }
-  return channel_set(&p->chans[idx], rgb);
+  return ncchannel_set(&p->chans[idx], rgb);
 }
 
 static inline int
@@ -2897,7 +2897,7 @@ ncpalette_get_rgb8(const ncpalette* p, int idx, unsigned* RESTRICT r, unsigned* 
   if(idx < 0 || (size_t)idx > sizeof(p->chans) / sizeof(*p->chans)){
     return -1;
   }
-  return channel_rgb8(p->chans[idx], r, g, b);
+  return ncchannel_rgb8(p->chans[idx], r, g, b);
 }
 
 // Free the palette store 'p'.
@@ -3970,6 +3970,91 @@ palette256_get_rgb8(const ncpalette* p, int idx, unsigned* RESTRICT r, unsigned*
 }
 
 API void palette256_free(ncpalette* p) __attribute__ ((deprecated));
+
+__attribute__ ((deprecated)) static inline unsigned
+channel_r(uint32_t channel){
+  return ncchannel_r(channel);
+}
+
+// Extract the 8-bit green component from a 32-bit channel.
+__attribute__ ((deprecated)) static inline unsigned
+channel_g(uint32_t channel){
+  return ncchannel_g(channel);
+}
+
+// Extract the 8-bit blue component from a 32-bit channel.
+__attribute__ ((deprecated)) static inline unsigned
+channel_b(uint32_t channel){
+  return ncchannel_b(channel);
+}
+
+// Extract the three 8-bit R/G/B components from a 32-bit channel.
+__attribute__ ((deprecated)) static inline unsigned
+channel_rgb8(uint32_t channel, unsigned* RESTRICT r, unsigned* RESTRICT g,
+             unsigned* RESTRICT b){
+  return ncchannel_rgb8(channel, r, g, b);
+}
+
+// Set the three 8-bit components of a 32-bit channel, and mark it as not using
+// the default color. Retain the other bits unchanged.
+__attribute__ ((deprecated)) static inline int
+channel_set_rgb8(uint32_t* channel, int r, int g, int b){
+  return ncchannel_set_rgb8(channel, r, g, b);
+}
+
+// Set the three 8-bit components of a 32-bit channel, and mark it as not using
+// the default color. Retain the other bits unchanged. r, g, and b will be
+// clipped to the range [0..255].
+__attribute__ ((deprecated)) static inline void
+channel_set_rgb8_clipped(unsigned* channel, int r, int g, int b){
+  return ncchannel_set_rgb8_clipped(channel, r, g, b);
+}
+
+// Same, but provide an assembled, packed 24 bits of rgb.
+__attribute__ ((deprecated)) static inline int
+channel_set(unsigned* channel, unsigned rgb){
+  return ncchannel_set(channel, rgb);
+}
+
+// Extract the 2-bit alpha component from a 32-bit channel.
+__attribute__ ((deprecated)) static inline unsigned
+channel_alpha(unsigned channel){
+  return ncchannel_alpha(channel);
+}
+
+__attribute__ ((deprecated)) static inline unsigned
+channel_palindex(uint32_t channel){
+  return ncchannel_palindex(channel);
+}
+
+// Set the 2-bit alpha component of the 32-bit channel.
+__attribute__ ((deprecated)) static inline int
+channel_set_alpha(unsigned* channel, unsigned alpha){
+  return ncchannel_set_alpha(channel, alpha);
+}
+
+__attribute__ ((deprecated)) static inline int
+channel_set_palindex(uint32_t* channel, int idx){
+  return ncchannel_set_palindex(channel, idx);
+}
+
+// Is this channel using the "default color" rather than RGB/palette-indexed?
+__attribute__ ((deprecated)) static inline bool
+channel_default_p(unsigned channel){
+  return ncchannel_default_p(channel);
+}
+
+// Is this channel using palette-indexed color rather than RGB?
+__attribute__ ((deprecated)) static inline bool
+channel_palindex_p(unsigned channel){
+  return ncchannel_palindex_p(channel);
+}
+
+// Mark the channel as using its default color, which also marks it opaque.
+__attribute__ ((deprecated)) static inline unsigned
+channel_set_default(unsigned* channel){
+  return ncchannel_set_default(channel);
+}
 
 typedef ncpalette palette256;
 

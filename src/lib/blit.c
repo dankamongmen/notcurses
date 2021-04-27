@@ -9,9 +9,9 @@ static inline uint32_t
 lerp(uint32_t c0, uint32_t c1){
   uint32_t ret = 0;
   unsigned r0, g0, b0, r1, g1, b1;
-  channel_rgb8(c0, &r0, &g0, &b0);
-  channel_rgb8(c1, &r1, &g1, &b1);
-  channel_set_rgb8(&ret, (r0 + r1 + 1) / 2,
+  ncchannel_rgb8(c0, &r0, &g0, &b0);
+  ncchannel_rgb8(c1, &r1, &g1, &b1);
+  ncchannel_set_rgb8(&ret, (r0 + r1 + 1) / 2,
                          (g0 + g1 + 1) / 2,
                          (b0 + b1 + 1) / 2);
   return ret;
@@ -22,10 +22,10 @@ static inline uint32_t
 trilerp(uint32_t c0, uint32_t c1, uint32_t c2){
   uint32_t ret = 0;
   unsigned r0, g0, b0, r1, g1, b1, r2, g2, b2;
-  channel_rgb8(c0, &r0, &g0, &b0);
-  channel_rgb8(c1, &r1, &g1, &b1);
-  channel_rgb8(c2, &r2, &g2, &b2);
-  channel_set_rgb8(&ret, (r0 + r1 + r2 + 2) / 3,
+  ncchannel_rgb8(c0, &r0, &g0, &b0);
+  ncchannel_rgb8(c1, &r1, &g1, &b1);
+  ncchannel_rgb8(c2, &r2, &g2, &b2);
+  ncchannel_set_rgb8(&ret, (r0 + r1 + r2 + 2) / 3,
                          (g0 + g1 + g2 + 2) / 3,
                          (b0 + b1 + b2 + 2) / 3);
   return ret;
@@ -199,10 +199,10 @@ rgb_4diff(uint32_t* diffs, uint32_t tl, uint32_t tr, uint32_t bl, uint32_t br){
   struct rgb {
     unsigned r, g, b;
   } colors[4];
-  channel_rgb8(tl, &colors[0].r, &colors[0].g, &colors[0].b);
-  channel_rgb8(tr, &colors[1].r, &colors[1].g, &colors[1].b);
-  channel_rgb8(bl, &colors[2].r, &colors[2].g, &colors[2].b);
-  channel_rgb8(br, &colors[3].r, &colors[3].g, &colors[3].b);
+  ncchannel_rgb8(tl, &colors[0].r, &colors[0].g, &colors[0].b);
+  ncchannel_rgb8(tr, &colors[1].r, &colors[1].g, &colors[1].b);
+  ncchannel_rgb8(bl, &colors[2].r, &colors[2].g, &colors[2].b);
+  ncchannel_rgb8(br, &colors[3].r, &colors[3].g, &colors[3].b);
   for(size_t idx = 0 ; idx < sizeof(quadrant_drivers) / sizeof(*quadrant_drivers) ; ++idx){
     const struct qdriver* qd = quadrant_drivers + idx;
     const struct rgb* rgb0 = colors + qd->pair[0];
@@ -255,19 +255,19 @@ quadrant_solver(uint32_t tl, uint32_t tr, uint32_t bl, uint32_t br,
   // break down the excluded pair and lerp
   unsigned r0, r1, r2, g0, g1, g2, b0, b1, b2;
   unsigned roth, goth, both, rlerp, glerp, blerp;
-  channel_rgb8(*back, &roth, &goth, &both);
-  channel_rgb8(*fore, &rlerp, &glerp, &blerp);
+  ncchannel_rgb8(*back, &roth, &goth, &both);
+  ncchannel_rgb8(*fore, &rlerp, &glerp, &blerp);
 //fprintf(stderr, "rgbs: %02x %02x %02x / %02x %02x %02x\n", r0, g0, b0, r1, g1, b1);
   // get diffs of the excluded two from both lerps
-  channel_rgb8(colors[qd->others[0]], &r0, &g0, &b0);
-  channel_rgb8(colors[qd->others[1]], &r1, &g1, &b1);
+  ncchannel_rgb8(colors[qd->others[0]], &r0, &g0, &b0);
+  ncchannel_rgb8(colors[qd->others[1]], &r1, &g1, &b1);
   diffs[0] = rgb_diff(r0, g0, b0, roth, goth, both);
   diffs[1] = rgb_diff(r1, g1, b1, roth, goth, both);
   diffs[2] = rgb_diff(r0, g0, b0, rlerp, glerp, blerp);
   diffs[3] = rgb_diff(r1, g1, b1, rlerp, glerp, blerp);
   // get diffs of the included two from their lerp
-  channel_rgb8(colors[qd->pair[0]], &r0, &g0, &b0);
-  channel_rgb8(colors[qd->pair[1]], &r1, &g1, &b1);
+  ncchannel_rgb8(colors[qd->pair[0]], &r0, &g0, &b0);
+  ncchannel_rgb8(colors[qd->pair[1]], &r1, &g1, &b1);
   diffs[4] = rgb_diff(r0, g0, b0, rlerp, glerp, blerp);
   diffs[5] = rgb_diff(r1, g1, b1, rlerp, glerp, blerp);
   unsigned curdiff = diffs[0] + diffs[1] + diffs[4] + diffs[5];
@@ -276,8 +276,8 @@ quadrant_solver(uint32_t tl, uint32_t tr, uint32_t bl, uint32_t br,
   // closer to the primary lerp. recalculate total diff; merge if lower.
   if(diffs[2] < diffs[3]){
     unsigned tri = trilerp(colors[qd->pair[0]], colors[qd->pair[1]], colors[qd->others[0]]);
-    channel_rgb8(colors[qd->others[0]], &r2, &g2, &b2);
-    channel_rgb8(tri, &roth, &goth, &both);
+    ncchannel_rgb8(colors[qd->others[0]], &r2, &g2, &b2);
+    ncchannel_rgb8(tri, &roth, &goth, &both);
     if(rgb_diff(r0, g0, b0, roth, goth, both) +
        rgb_diff(r1, g1, b1, roth, goth, both) +
        rgb_diff(r2, g2, b2, roth, goth, both) < curdiff){
@@ -288,8 +288,8 @@ quadrant_solver(uint32_t tl, uint32_t tr, uint32_t bl, uint32_t br,
 //fprintf(stderr, "quadblitter swap type 1\n");
   }else{
     unsigned tri = trilerp(colors[qd->pair[0]], colors[qd->pair[1]], colors[qd->others[1]]);
-    channel_rgb8(colors[qd->others[1]], &r2, &g2, &b2);
-    channel_rgb8(tri, &roth, &goth, &both);
+    ncchannel_rgb8(colors[qd->others[1]], &r2, &g2, &b2);
+    ncchannel_rgb8(tri, &roth, &goth, &both);
     if(rgb_diff(r0, g0, b0, roth, goth, both) +
        rgb_diff(r1, g1, b1, roth, goth, both) +
        rgb_diff(r2, g2, b2, roth, goth, both) < curdiff){
@@ -316,10 +316,10 @@ qtrans_check(nccell* c, unsigned blendcolors,
              const unsigned char* rgbbase_bl, const unsigned char* rgbbase_br,
              uint32_t transcolor){
   uint32_t tl = 0, tr = 0, bl = 0, br = 0;
-  channel_set_rgb8(&tl, rgbbase_tl[0], rgbbase_tl[1], rgbbase_tl[2]);
-  channel_set_rgb8(&tr, rgbbase_tr[0], rgbbase_tr[1], rgbbase_tr[2]);
-  channel_set_rgb8(&bl, rgbbase_bl[0], rgbbase_bl[1], rgbbase_bl[2]);
-  channel_set_rgb8(&br, rgbbase_br[0], rgbbase_br[1], rgbbase_br[2]);
+  ncchannel_set_rgb8(&tl, rgbbase_tl[0], rgbbase_tl[1], rgbbase_tl[2]);
+  ncchannel_set_rgb8(&tr, rgbbase_tr[0], rgbbase_tr[1], rgbbase_tr[2]);
+  ncchannel_set_rgb8(&bl, rgbbase_bl[0], rgbbase_bl[1], rgbbase_bl[2]);
+  ncchannel_set_rgb8(&br, rgbbase_br[0], rgbbase_br[1], rgbbase_br[2]);
   const char* egc = NULL;
   if(rgba_trans_q(rgbbase_tl, transcolor)){
     // top left is transparent
@@ -464,10 +464,10 @@ quadrant_blit(ncplane* nc, int linesize, const void* data,
       const char* egc = qtrans_check(c, bargs->u.cell.blendcolors, rgbbase_tl, rgbbase_tr, rgbbase_bl, rgbbase_br, bargs->transcolor);
       if(egc == NULL){
         uint32_t tl = 0, tr = 0, bl = 0, br = 0;
-        channel_set_rgb8(&tl, rgbbase_tl[0], rgbbase_tl[1], rgbbase_tl[2]);
-        channel_set_rgb8(&tr, rgbbase_tr[0], rgbbase_tr[1], rgbbase_tr[2]);
-        channel_set_rgb8(&bl, rgbbase_bl[0], rgbbase_bl[1], rgbbase_bl[2]);
-        channel_set_rgb8(&br, rgbbase_br[0], rgbbase_br[1], rgbbase_br[2]);
+        ncchannel_set_rgb8(&tl, rgbbase_tl[0], rgbbase_tl[1], rgbbase_tl[2]);
+        ncchannel_set_rgb8(&tr, rgbbase_tr[0], rgbbase_tr[1], rgbbase_tr[2]);
+        ncchannel_set_rgb8(&bl, rgbbase_bl[0], rgbbase_bl[1], rgbbase_bl[2]);
+        ncchannel_set_rgb8(&br, rgbbase_br[0], rgbbase_br[1], rgbbase_br[2]);
         uint32_t bg, fg;
 //fprintf(stderr, "qtrans check: %d/%d\n%08x %08x\n%08x %08x\n", y, x, *(const uint32_t*)rgbbase_tl, *(const uint32_t*)rgbbase_tr, *(const uint32_t*)rgbbase_bl, *(const uint32_t*)rgbbase_br);
         egc = quadrant_solver(tl, tr, bl, br, &fg, &bg);
@@ -564,9 +564,9 @@ sex_solver(const uint32_t rgbas[6], uint64_t* channels, unsigned blendcolors){
     for(unsigned mask = 0 ; mask < 6 ; ++mask){
       unsigned r, g, b;
       if(partitions[glyph] & (1u << mask)){
-        channel_rgb8(l0, &r, &g, &b);
+        ncchannel_rgb8(l0, &r, &g, &b);
       }else{
-        channel_rgb8(l1, &r, &g, &b);
+        ncchannel_rgb8(l1, &r, &g, &b);
       }
       uint32_t rdiff = rgb_diff(ncpixel_r(rgbas[mask]), ncpixel_g(rgbas[mask]),
                                 ncpixel_b(rgbas[mask]), r, g, b);

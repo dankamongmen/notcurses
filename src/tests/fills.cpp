@@ -336,10 +336,10 @@ TEST_CASE("Fills") {
   SUBCASE("HighGradient2Colors1Row") {
     uint32_t ul, ur, ll, lr;
     ul = ur = ll = lr = 0;
-    channel_set(&ul, 0xffffff);
-    channel_set(&lr, 0x000000);
-    channel_set(&ll, 0x00ffff);
-    channel_set(&ur, 0xff00ff);
+    ncchannel_set(&ul, 0xffffff);
+    ncchannel_set(&lr, 0x000000);
+    ncchannel_set(&ll, 0x00ffff);
+    ncchannel_set(&ur, 0xff00ff);
     int dimy, dimx;
     ncplane_dim_yx(n_, &dimy, &dimx);
     REQUIRE(0 < ncplane_highgradient_sized(n_, ul, ur, ll, lr, dimy, dimx));
@@ -349,10 +349,10 @@ TEST_CASE("Fills") {
   SUBCASE("HighGradient") {
     uint32_t ul, ur, ll, lr;
     ul = ur = ll = lr = 0;
-    channel_set(&ul, 0xffffff);
-    channel_set(&lr, 0x000000);
-    channel_set(&ll, 0x00ffff);
-    channel_set(&ur, 0xff00ff);
+    ncchannel_set(&ul, 0xffffff);
+    ncchannel_set(&lr, 0x000000);
+    ncchannel_set(&ll, 0x00ffff);
+    ncchannel_set(&ur, 0xff00ff);
     int dimy, dimx;
     ncplane_dim_yx(n_, &dimy, &dimx);
     REQUIRE(0 < ncplane_highgradient_sized(n_, ul, ur, ll, lr, dimy, dimx));

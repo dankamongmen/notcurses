@@ -53,10 +53,10 @@ pbar_make(struct notcurses* nc, int row){
     return NULL;
   }
   struct ncprogbar_options popts = {0};
-  channel_set_rgb8(&popts.ulchannel, 0x22, 0x22, 0x80);
-  channel_set_rgb8(&popts.urchannel, 0x22, 0x22, 0x80);
-  channel_set_rgb8(&popts.blchannel, 0x80, 0x80, 0x22);
-  channel_set_rgb8(&popts.brchannel, 0x80, 0x80, 0x22);
+  ncchannel_set_rgb8(&popts.ulchannel, 0x22, 0x22, 0x80);
+  ncchannel_set_rgb8(&popts.urchannel, 0x22, 0x22, 0x80);
+  ncchannel_set_rgb8(&popts.blchannel, 0x80, 0x80, 0x22);
+  ncchannel_set_rgb8(&popts.brchannel, 0x80, 0x80, 0x22);
   struct ncprogbar* ncp = ncprogbar_create(pbar, &popts);
   if(ncp == NULL){
     return NULL;

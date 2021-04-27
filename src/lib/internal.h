@@ -1177,17 +1177,17 @@ static inline uint32_t
 calc_gradient_channel(uint32_t ul, uint32_t ur, uint32_t ll, uint32_t lr,
                       int y, int x, int ylen, int xlen){
   uint32_t chan = 0;
-  channel_set_rgb8_clipped(&chan,
-                           calc_gradient_component(channel_r(ul), channel_r(ur),
-                                                   channel_r(ll), channel_r(lr),
+  ncchannel_set_rgb8_clipped(&chan,
+                           calc_gradient_component(ncchannel_r(ul), ncchannel_r(ur),
+                                                   ncchannel_r(ll), ncchannel_r(lr),
                                                    y, x, ylen, xlen),
-                           calc_gradient_component(channel_g(ul), channel_g(ur),
-                                                   channel_g(ll), channel_g(lr),
+                           calc_gradient_component(ncchannel_g(ul), ncchannel_g(ur),
+                                                   ncchannel_g(ll), ncchannel_g(lr),
                                                    y, x, ylen, xlen),
-                           calc_gradient_component(channel_b(ul), channel_b(ur),
-                                                   channel_b(ll), channel_b(lr),
+                           calc_gradient_component(ncchannel_b(ul), ncchannel_b(ur),
+                                                   ncchannel_b(ll), ncchannel_b(lr),
                                                    y, x, ylen, xlen));
-  channel_set_alpha(&chan, channel_alpha(ul)); // precondition: all αs are equal
+  ncchannel_set_alpha(&chan, ncchannel_alpha(ul)); // precondition: all αs are equal
   return chan;
 }
 
@@ -1374,26 +1374,26 @@ cell_set_fchannel(nccell* cl, uint32_t channel){
 // Palette-indexed colors do not blend. Do not pass me palette-indexed channels!
 static inline unsigned
 channels_blend(unsigned c1, unsigned c2, unsigned* blends){
-  if(channel_alpha(c2) == CELL_ALPHA_TRANSPARENT){
+  if(ncchannel_alpha(c2) == CELL_ALPHA_TRANSPARENT){
     return c1; // do *not* increment *blends
   }
-  bool c2default = channel_default_p(c2);
+  bool c2default = ncchannel_default_p(c2);
   if(*blends == 0){
     // don't just return c2, or you set wide status and all kinds of crap
-    if(channel_default_p(c2)){
-      channel_set_default(&c1);
+    if(ncchannel_default_p(c2)){
+      ncchannel_set_default(&c1);
     }else{
-      channel_set(&c1, c2 & CELL_BG_RGB_MASK);
+      ncchannel_set(&c1, c2 & CELL_BG_RGB_MASK);
     }
-    channel_set_alpha(&c1, channel_alpha(c2));
-  }else if(!c2default && !channel_default_p(c1)){
+    ncchannel_set_alpha(&c1, ncchannel_alpha(c2));
+  }else if(!c2default && !ncchannel_default_p(c1)){
     unsigned rsum, gsum, bsum;
-    channel_rgb8(c2, &rsum, &gsum, &bsum);
-    rsum = (channel_r(c1) * *blends + rsum) / (*blends + 1);
-    gsum = (channel_g(c1) * *blends + gsum) / (*blends + 1);
-    bsum = (channel_b(c1) * *blends + bsum) / (*blends + 1);
-    channel_set_rgb8(&c1, rsum, gsum, bsum);
-    channel_set_alpha(&c1, channel_alpha(c2));
+    ncchannel_rgb8(c2, &rsum, &gsum, &bsum);
+    rsum = (ncchannel_r(c1) * *blends + rsum) / (*blends + 1);
+    gsum = (ncchannel_g(c1) * *blends + gsum) / (*blends + 1);
+    bsum = (ncchannel_b(c1) * *blends + bsum) / (*blends + 1);
+    ncchannel_set_rgb8(&c1, rsum, gsum, bsum);
+    ncchannel_set_alpha(&c1, ncchannel_alpha(c2));
   }
   ++*blends;
   return c1;

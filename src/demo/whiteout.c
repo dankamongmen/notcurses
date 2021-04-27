@@ -484,7 +484,7 @@ int witherworm_demo(struct notcurses* nc){
         size_t idx = 0;
         ncplane_cursor_yx(n, &y, &x);
         while((*s)[idx]){ // each multibyte char of string
-          if(ncplane_set_fg_rgb8(n, channel_r(rgb), channel_g(rgb), channel_b(rgb))){
+          if(ncplane_set_fg_rgb8(n, ncchannel_r(rgb), ncchannel_g(rgb), ncchannel_b(rgb))){
             return -1;
           }
           if(x >= maxx){

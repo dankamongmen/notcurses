@@ -19,29 +19,29 @@ notcurses_channels - operations on notcurses channels
   (((uint32_t)r << 16u) + ((uint32_t)g << 8u) + (b) + CELL_BGDEFAULT_MASK)
 ```
 
-**uint32_t channel_r(uint32_t ***channel***);**
+**uint32_t ncchannel_r(uint32_t ***channel***);**
 
-**uint32_t channel_g(uint32_t ***channel***);**
+**uint32_t ncchannel_g(uint32_t ***channel***);**
 
-**uint32_t channel_b(uint32_t ***channel***);**
+**uint32_t ncchannel_b(uint32_t ***channel***);**
 
-**uint32_t channel_rgb8(uint32_t ***channel***, uint32_t* restrict ***r***, uint32_t* restrict ***g***, uint32_t* restrict ***b***);**
+**uint32_t ncchannel_rgb8(uint32_t ***channel***, uint32_t* restrict ***r***, uint32_t* restrict ***g***, uint32_t* restrict ***b***);**
 
-**int channel_set_rgb8(uint32_t* ***channel***, int ***r***, int ***g***, int ***b***);**
+**int ncchannel_set_rgb8(uint32_t* ***channel***, int ***r***, int ***g***, int ***b***);**
 
-**int channel_set(uint32_t* ***channel***, uint32_t ***rgb***);**
+**int ncchannel_set(uint32_t* ***channel***, uint32_t ***rgb***);**
 
-**unsigned channel_palindex(uint32_t ***channel***);**
+**unsigned ncchannel_palindex(uint32_t ***channel***);**
 
-**int channel_set_palindex(uint32_t* ***channel***, int ***idx***);**
+**int ncchannel_set_palindex(uint32_t* ***channel***, int ***idx***);**
 
-**uint32_t channel_alpha(uint32_t ***channel***);**
+**uint32_t ncchannel_alpha(uint32_t ***channel***);**
 
-**int channel_set_alpha(uint32_t* ***channel***, unsigned ***alpha***);**
+**int ncchannel_set_alpha(uint32_t* ***channel***, unsigned ***alpha***);**
 
-**bool channel_default_p(uint32_t ***channel***);**
+**bool ncchannel_default_p(uint32_t ***channel***);**
 
-**uint32_t channel_set_default(uint32_t* ***channel***);**
+**uint32_t ncchannel_set_default(uint32_t* ***channel***);**
 
 **unsigned channels_fg_rgb(uint64_t ***channels***);**
 

@@ -268,10 +268,10 @@ make_pbars(struct ncplane* column, struct ncprogbar** left, struct ncprogbar** r
   }
   ncplane_set_base(leftp, " ", 0, CHANNELS_RGB_INITIALIZER(0xdd, 0xdd, 0xdd, 0x1b, 0x1b, 0x1b));
   ncprogbar_options popts = { };
-  channel_set_rgb8(&popts.brchannel, 0, 0, 0);
-  channel_set_rgb8(&popts.blchannel, 0, 0xff, 0);
-  channel_set_rgb8(&popts.urchannel, 0, 0, 0xff);
-  channel_set_rgb8(&popts.ulchannel, 0, 0xff, 0xff);
+  ncchannel_set_rgb8(&popts.brchannel, 0, 0, 0);
+  ncchannel_set_rgb8(&popts.blchannel, 0, 0xff, 0);
+  ncchannel_set_rgb8(&popts.urchannel, 0, 0, 0xff);
+  ncchannel_set_rgb8(&popts.ulchannel, 0, 0xff, 0xff);
   *left = ncprogbar_create(leftp, &popts);
   if(*left == NULL){
     return -1;
@@ -300,10 +300,10 @@ int animate_demo(struct notcurses* nc){
   ncplane_erase(n);
   ncplane_home(n);
   uint32_t tl = 0, tr = 0, bl = 0, br = 0;
-  channel_set_rgb8(&tl, 0, 0, 0);
-  channel_set_rgb8(&tr, 0, 0xff, 0);
-  channel_set_rgb8(&bl, 0, 0, 0xff);
-  channel_set_rgb8(&br, 0, 0xff, 0xff);
+  ncchannel_set_rgb8(&tl, 0, 0, 0);
+  ncchannel_set_rgb8(&tr, 0, 0xff, 0);
+  ncchannel_set_rgb8(&bl, 0, 0, 0xff);
+  ncchannel_set_rgb8(&br, 0, 0xff, 0xff);
   if(ncplane_highgradient(n, tl, tr, bl, br, dimy - 1, dimx - 1) < 0){
     return -1;
   }

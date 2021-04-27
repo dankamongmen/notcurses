@@ -127,14 +127,14 @@ int cell_duplicate(struct ncplane* n, nccell* targ, const nccell* c){
 // Emit fchannel with RGB changed to contrast effectively against bchannel.
 static uint32_t
 highcontrast(uint32_t bchannel){
-  unsigned r = channel_r(bchannel);
-  unsigned g = channel_g(bchannel);
-  unsigned b = channel_b(bchannel);
+  unsigned r = ncchannel_r(bchannel);
+  unsigned g = ncchannel_g(bchannel);
+  unsigned b = ncchannel_b(bchannel);
   uint32_t conrgb = 0;
   if(r + g + b < 320){
-    channel_set(&conrgb, 0xffffff);
+    ncchannel_set(&conrgb, 0xffffff);
   }else{
-    channel_set(&conrgb, 0);
+    ncchannel_set(&conrgb, 0);
   }
   return conrgb;
 }
@@ -779,7 +779,7 @@ update_palette(notcurses* nc, FILE* out){
     for(size_t damageidx = 0 ; damageidx < sizeof(nc->palette.chans) / sizeof(*nc->palette.chans) ; ++damageidx){
       unsigned r, g, b;
       if(nc->palette_damage[damageidx]){
-        channel_rgb8(nc->palette.chans[damageidx], &r, &g, &b);
+        ncchannel_rgb8(nc->palette.chans[damageidx], &r, &g, &b);
         // Need convert RGB values [0..256) to [0..1000], ugh
         // FIXME need handle HSL case also
         r = r * 1000 / 255;

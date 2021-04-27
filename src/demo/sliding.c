@@ -102,10 +102,10 @@ fill_chunk(struct ncplane* n, int idx){
   int g = 225 - ((hidx + vidx) * 12);
   channels_set_fg_rgb8(&channels, r, g, b);
   uint32_t ul = 0, ur = 0, ll = 0, lr = 0;
-  channel_set_rgb8(&ul, r, g, b);
-  channel_set_rgb8(&lr, r, g, b);
-  channel_set_rgb8(&ur, g, b, r);
-  channel_set_rgb8(&ll, b, r, g);
+  ncchannel_set_rgb8(&ul, r, g, b);
+  ncchannel_set_rgb8(&lr, r, g, b);
+  ncchannel_set_rgb8(&ur, g, b, r);
+  ncchannel_set_rgb8(&ll, b, r, g);
   int ret = 0;
   if(ncplane_highgradient_sized(n, ul, ur, ll, lr, maxy, maxx) <= 0){
     ret = -1;

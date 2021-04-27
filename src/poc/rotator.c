@@ -15,10 +15,10 @@ rotate_grad(struct notcurses* nc){
   struct ncplane* n = notcurses_stddim_yx(nc, &dimy, &dimx);
   ncplane_home(n);
   uint32_t tl = 0, tr = 0, bl = 0, br = 0;
-  channel_set_rgb8(&tl, 0xff, 0, 0);
-  channel_set_rgb8(&tr, 0, 0, 0xff);
-  channel_set_rgb8(&bl, 0, 0xff, 0);
-  channel_set_rgb8(&br, 0, 0xff, 0xff);
+  ncchannel_set_rgb8(&tl, 0xff, 0, 0);
+  ncchannel_set_rgb8(&tr, 0, 0, 0xff);
+  ncchannel_set_rgb8(&bl, 0, 0xff, 0);
+  ncchannel_set_rgb8(&br, 0, 0xff, 0xff);
   if(ncplane_highgradient(n, tl, tr, bl, br, dimy - 1, dimx - 1) <= 0){
     return -1;
   }

@@ -94,20 +94,20 @@ int ncplane_polyfill_yx(ncplane* n, int y, int x, const nccell* c){
 
 static bool
 check_gradient_channel_args(uint32_t ul, uint32_t ur, uint32_t bl, uint32_t br){
-  if(channel_default_p(ul) || channel_default_p(ur) ||
-     channel_default_p(bl) || channel_default_p(br)){
-    if(!(channel_default_p(ul) && channel_default_p(ur) &&
-         channel_default_p(bl) && channel_default_p(br))){
+  if(ncchannel_default_p(ul) || ncchannel_default_p(ur) ||
+     ncchannel_default_p(bl) || ncchannel_default_p(br)){
+    if(!(ncchannel_default_p(ul) && ncchannel_default_p(ur) &&
+         ncchannel_default_p(bl) && ncchannel_default_p(br))){
       return true;
     }
   }
-  if(channel_alpha(ul) != channel_alpha(ur) ||
-     channel_alpha(ur) != channel_alpha(bl) ||
-     channel_alpha(bl) != channel_alpha(br)){
+  if(ncchannel_alpha(ul) != ncchannel_alpha(ur) ||
+     ncchannel_alpha(ur) != ncchannel_alpha(bl) ||
+     ncchannel_alpha(bl) != ncchannel_alpha(br)){
     return true;
   }
-  if(channel_palindex_p(ul) || channel_palindex_p(bl) ||
-     channel_palindex_p(br) || channel_palindex_p(ur)){
+  if(ncchannel_palindex_p(ul) || ncchannel_palindex_p(bl) ||
+     ncchannel_palindex_p(br) || ncchannel_palindex_p(ur)){
     return true;
   }
   return false;
@@ -137,7 +137,7 @@ bool check_gradient_args(uint64_t ul, uint64_t ur, uint64_t bl, uint64_t br){
 static inline void
 calc_highgradient(nccell* c, uint32_t ul, uint32_t ur, uint32_t ll,
                   uint32_t lr, int y, int x, int ylen, int xlen){
-  if(!channel_default_p(ul)){
+  if(!ncchannel_default_p(ul)){
     cell_set_fchannel(c, calc_gradient_channel(ul, ur, ll, lr,
                                                y * 2, x, ylen, xlen));
     cell_set_bchannel(c, calc_gradient_channel(ul, ur, ll, lr,
@@ -361,9 +361,9 @@ rotate_output(ncplane* dst, uint32_t tchan, uint32_t bchan){
   if(tchan != bchan){
     return ncplane_putegc(dst, "▀", NULL);
   }
-  if(channel_default_p(tchan) && channel_default_p(bchan)){
+  if(ncchannel_default_p(tchan) && ncchannel_default_p(bchan)){
     return ncplane_putegc(dst, "", NULL);
-  }else if(channel_default_p(tchan)){
+  }else if(ncchannel_default_p(tchan)){
     return ncplane_putegc(dst, " ", NULL);
   }
   return ncplane_putegc(dst, "█", NULL);

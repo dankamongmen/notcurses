@@ -3,9 +3,9 @@
 
 static void
 grow_rgb8(uint32_t* rgb){
-  int r = channel_r(*rgb);
-  int g = channel_g(*rgb);
-  int b = channel_b(*rgb);
+  int r = ncchannel_r(*rgb);
+  int g = ncchannel_g(*rgb);
+  int b = ncchannel_b(*rgb);
   int delta = (*rgb & 0x80000000ul) ? -1 : 1;
   if(b == r){
     b += delta;

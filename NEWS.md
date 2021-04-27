@@ -8,6 +8,9 @@ rearrangements of Notcurses.
     prefixed with `palette256_` have been deprecated in favor of versions
     prefixed with `ncpalette_`, which the former now wrap. The old versions
     will be removed in ABI3.
+  * All functions prefixed with `channel_` have been deprecated in favor of
+    versions prefixed with `ncchannel_`, which the former now wrap. The old
+    versions will be removed in ABI3.
 
 * 2.2.8 (2021-04-18)
   * All remaining functions prefixed with `cell_` or `cells_` have been

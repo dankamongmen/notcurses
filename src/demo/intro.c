@@ -114,10 +114,10 @@ int intro(struct notcurses* nc){
   struct ncplane* ncp = notcurses_stddim_yx(nc, &rows, &cols);
   uint32_t ccul, ccur, ccll, cclr;
   ccul = ccur = ccll = cclr = 0;
-  channel_set_rgb8(&ccul, 0, 0xff, 0xff);
-  channel_set_rgb8(&ccur, 0xff, 0xff, 0);
-  channel_set_rgb8(&ccll, 0xff, 0, 0);
-  channel_set_rgb8(&cclr, 0, 0, 0xff);
+  ncchannel_set_rgb8(&ccul, 0, 0xff, 0xff);
+  ncchannel_set_rgb8(&ccur, 0xff, 0xff, 0);
+  ncchannel_set_rgb8(&ccll, 0xff, 0, 0);
+  ncchannel_set_rgb8(&cclr, 0, 0, 0xff);
   // we use full block rather+fg than space+bg to conflict less with the menu
   ncplane_home(ncp);
   if(ncplane_highgradient_sized(ncp, ccul, ccur, ccll, cclr, rows, cols) <= 0){

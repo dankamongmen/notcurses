@@ -15,7 +15,7 @@ TEST_CASE("ChannelGetRGB") {
   };
   for(auto i = 0u ; i < sizeof(test) / sizeof(*test) ; ++i){
     unsigned r, g, b;
-    CHECK(test[i].channel == channel_rgb8(test[i].channel, &r, &g, &b));
+    CHECK(test[i].channel == ncchannel_rgb8(test[i].channel, &r, &g, &b));
     CHECK(test[i].r == r);
     CHECK(test[i].g == g);
     CHECK(test[i].b == b);
@@ -35,7 +35,7 @@ TEST_CASE("ChannelGetAlpha") {
     { .channel = 0xffffffff, .a = CELL_ALPHA_HIGHCONTRAST, },
   };
   for(auto i = 0u ; i < sizeof(test) / sizeof(*test) ; ++i){
-    CHECK(test[i].a == channel_alpha(test[i].channel));
+    CHECK(test[i].a == ncchannel_alpha(test[i].channel));
   }
 }
 
@@ -52,7 +52,7 @@ TEST_CASE("ChannelGetDefault") {
     { .channel = 0xffffffff, .def = false, },
   };
   for(auto i = 0u ; i < sizeof(test) / sizeof(*test) ; ++i){
-    CHECK(test[i].def == channel_default_p(test[i].channel));
+    CHECK(test[i].def == ncchannel_default_p(test[i].channel));
   }
 }
 
@@ -63,9 +63,9 @@ TEST_CASE("ChannelSetDefault") {
   };
   for(auto i = 0u ; i < sizeof(channels) / sizeof(*channels) ; ++i){
     uint32_t channel = channels[i];
-    CHECK(!channel_default_p(channel));
-    channel_set_default(&channel);
-    CHECK(channel_default_p(channel));
+    CHECK(!ncchannel_default_p(channel));
+    ncchannel_set_default(&channel);
+    CHECK(ncchannel_default_p(channel));
   }
 }
 
@@ -73,13 +73,13 @@ TEST_CASE("ChannelSetDefault") {
 TEST_CASE("ChannelBlend0") {
   uint32_t c1 = 0;
   uint32_t c2 = 0;
-  channel_set_rgb8(&c1, 0x80, 0x40, 0x20);
-  channel_set_rgb8(&c2, 0x88, 0x44, 0x22);
+  ncchannel_set_rgb8(&c1, 0x80, 0x40, 0x20);
+  ncchannel_set_rgb8(&c2, 0x88, 0x44, 0x22);
   unsigned blends = 0;
   uint32_t c = channels_blend(c1, c2, &blends);
-  CHECK(!channel_default_p(c));
+  CHECK(!ncchannel_default_p(c));
   unsigned r, g, b;
-  channel_rgb8(c, &r, &g, &b);
+  ncchannel_rgb8(c, &r, &g, &b);
   CHECK(0x88 == r);
   CHECK(0x44 == g);
   CHECK(0x22 == b);
@@ -90,13 +90,13 @@ TEST_CASE("ChannelBlend0") {
 TEST_CASE("ChannelBlend1") {
   uint32_t c1 = 0;
   uint32_t c2 = 0;
-  channel_set_rgb8(&c1, 0x80, 0x40, 0x20);
-  channel_set_rgb8(&c2, 0x0, 0x0, 0x0);
+  ncchannel_set_rgb8(&c1, 0x80, 0x40, 0x20);
+  ncchannel_set_rgb8(&c2, 0x0, 0x0, 0x0);
   unsigned blends = 1;
   uint32_t c = channels_blend(c1, c2, &blends);
-  CHECK(!channel_default_p(c));
+  CHECK(!ncchannel_default_p(c));
   unsigned r, g, b;
-  channel_rgb8(c, &r, &g, &b);
+  ncchannel_rgb8(c, &r, &g, &b);
   CHECK(0x40 == r);
   CHECK(0x20 == g);
   CHECK(0x10 == b);
@@ -107,13 +107,13 @@ TEST_CASE("ChannelBlend1") {
 TEST_CASE("ChannelBlend2") {
   uint32_t c1 = 0;
   uint32_t c2 = 0;
-  channel_set_rgb8(&c1, 0x60, 0x30, 0x0f);
-  channel_set_rgb8(&c2, 0x0, 0x0, 0x0);
+  ncchannel_set_rgb8(&c1, 0x60, 0x30, 0x0f);
+  ncchannel_set_rgb8(&c2, 0x0, 0x0, 0x0);
   unsigned blends = 2;
   uint32_t c = channels_blend(c1, c2, &blends);
-  CHECK(!channel_default_p(c));
+  CHECK(!ncchannel_default_p(c));
   unsigned r, g, b;
-  channel_rgb8(c, &r, &g, &b);
+  ncchannel_rgb8(c, &r, &g, &b);
   CHECK(0x40 == r);
   CHECK(0x20 == g);
   CHECK(0x0a == b);
@@ -124,26 +124,26 @@ TEST_CASE("ChannelBlend2") {
 TEST_CASE("ChannelBlendDefaultLeft") {
   uint32_t c1 = 0;
   uint32_t c2 = 0;
-  channel_set_rgb8(&c2, 0x80, 0x40, 0x20);
+  ncchannel_set_rgb8(&c2, 0x80, 0x40, 0x20);
   unsigned blends = 0;
   uint32_t c = channels_blend(c1, c2, &blends); // will replace
-  CHECK(!channel_default_p(c));
+  CHECK(!ncchannel_default_p(c));
   unsigned r, g, b;
-  channel_rgb8(c, &r, &g, &b);
+  ncchannel_rgb8(c, &r, &g, &b);
   CHECK(0x80 == r);
   CHECK(0x40 == g);
   CHECK(0x20 == b);
   CHECK(1 == blends);
   c = channels_blend(c1, c2, &blends); // will not replace
-  CHECK(channel_default_p(c));
-  channel_rgb8(c, &r, &g, &b);
+  CHECK(ncchannel_default_p(c));
+  ncchannel_rgb8(c, &r, &g, &b);
   CHECK(0 == r);
   CHECK(0 == g);
   CHECK(0 == b);
   CHECK(2 == blends);
   c = channels_blend(c1, c2, &blends); // will not replace
-  CHECK(channel_default_p(c));
-  channel_rgb8(c, &r, &g, &b);
+  CHECK(ncchannel_default_p(c));
+  ncchannel_rgb8(c, &r, &g, &b);
   CHECK(0 == r);
   CHECK(0 == g);
   CHECK(0 == b);
@@ -154,17 +154,17 @@ TEST_CASE("ChannelBlendDefaultLeft") {
 TEST_CASE("ChannelBlendDefaultRight") {
   uint32_t c1 = 0;
   uint32_t c2 = 0;
-  channel_set_rgb8(&c1, 0x80, 0x40, 0x20);
-  CHECK(!channel_default_p(c1));
-  CHECK(channel_default_p(c2));
+  ncchannel_set_rgb8(&c1, 0x80, 0x40, 0x20);
+  CHECK(!ncchannel_default_p(c1));
+  CHECK(ncchannel_default_p(c2));
   unsigned blends = 0;
   uint32_t c = channels_blend(c1, c2, &blends);
-  CHECK(channel_default_p(c));
+  CHECK(ncchannel_default_p(c));
   CHECK(1 == blends);
   c = channels_blend(c1, c2, &blends);
-  CHECK(!channel_default_p(c));
+  CHECK(!ncchannel_default_p(c));
   unsigned r, g, b;
-  channel_rgb8(c, &r, &g, &b);
+  ncchannel_rgb8(c, &r, &g, &b);
   CHECK(0x80 == r);
   CHECK(0x40 == g);
   CHECK(0x20 == b);
