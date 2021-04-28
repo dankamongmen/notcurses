@@ -548,7 +548,7 @@ sixel_reblit(sprixel* s, tament* tam){
   if(fp == NULL){
     return -1;
   }
-  if(fwrite(s->glyph, s->parse_start, 1, fp) != (size_t)s->parse_start){
+  if(fwrite(s->glyph, s->parse_start, 1, fp) != 1){
     fclose(fp);
     free(buf);
     return -1;
