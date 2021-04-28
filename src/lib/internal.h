@@ -970,7 +970,7 @@ sprixel* sprixel_by_id(const ncpile* n, uint32_t id);
 void sprixel_invalidate(sprixel* s, int y, int x);
 void sprixel_movefrom(sprixel* s, int y, int x);
 void sprixel_debug(FILE* out, const sprixel* s);
-void free_sixelmap(struct sixelmap *s);
+void sixelmap_free(struct sixelmap *s);
 
 // create an auxiliary vector suitable for a sprixcell, and zero it out
 uint8_t* sprixel_auxiliary_vector(const sprixel* s);
