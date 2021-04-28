@@ -40,7 +40,7 @@ void sprixel_free(sprixel* s){
     if(s->n){
       s->n->sprite = NULL;
     }
-    free_sixelmap(s->smap);
+    sixelmap_free(s->smap);
     free(s->glyph);
     free(s);
   }
