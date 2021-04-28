@@ -746,7 +746,7 @@ wipe_color(sixelmap* smap, int color, int sband, int eband,
       }
 //fprintf(stderr, "s/e: %d/%d mask: %02x\n", starty, endy, mask);
     }
-    for(int x = startx ; x < endx ; ++x){
+    for(int x = startx ; x <= endx ; ++x){
       const int xoff = boff + x;
 //fprintf(stderr, "band: %d color: %d idx: %d\n", b, color, color * smap->sixelcount + xoff);
 //fprintf(stderr, "color: %d idx: %d data: %02x\n", color, color * smap->sixelcount + xoff, smap->data[color * smap->sixelcount + xoff]);
