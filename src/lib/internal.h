@@ -617,7 +617,7 @@ typedef struct notcurses {
   unsigned stdio_blocking_save; // was stdio blocking at entry? restore on stop.
 } notcurses;
 
-typedef struct {
+typedef struct blitterargs {
   int begy;            // upper left start within visual
   int begx;
   int placey;          // placement within ncplane
@@ -1002,6 +1002,7 @@ sprite_rebuild(const notcurses* nc, sprixel* s, int ycell, int xcell){
     s->n->tam[s->dimx * ycell + xcell].state = SPRIXCELL_TRANSPARENT;
   }else if(s->n->tam[s->dimx * ycell + xcell].state == SPRIXCELL_ANNIHILATED){
     uint8_t* auxvec = s->n->tam[s->dimx * ycell + xcell].auxvector;
+    assert(auxvec);
     // sets the new state itself
     ret = nc->tcache.pixel_rebuild(s, ycell, xcell, auxvec);
   }

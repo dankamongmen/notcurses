@@ -205,7 +205,7 @@ kitty_null(char* triplet, int skip, int max, int pleft, uint8_t* auxvec){
 static inline int
 kitty_restore(char* triplet, int skip, int max, int pleft,
               const uint8_t* auxvec, sprixcell_e* state){
-//fprintf(stderr, "SKIP/MAX/PLEFT %d/%d/%d\n", skip, max, pleft);
+//fprintf(stderr, "SKIP/MAX/PLEFT %d/%d/%d auxvec %p\n", skip, max, pleft, auxvec);
   if(pleft > 3){
     pleft = 3;
   }
