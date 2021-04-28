@@ -469,7 +469,8 @@ write_sixel_header(FILE* fp, int leny, int lenx, const sixeltable* stab, sixel_p
 }
 
 static int
-write_sixel_payload(FILE* fp, int lenx, const sixelmap* map, const char* cursor_hack){
+write_sixel_payload(FILE* fp, int lenx, const sixelmap* map,
+                    const char* cursor_hack){
   int p = 0;
   while(p < map->sixelcount){
     int needclosure = 0;
@@ -541,7 +542,7 @@ write_sixel(FILE* fp, int leny, int lenx, const sixeltable* stab, int* parse_sta
 // payload, and the auxvec is freed. none of this takes effect until the sixel
 // is redrawn, and annihilated sprixcells still require a glyph to be emitted.
 static inline int
-sixel_reblit(sprixel* s, tament* tam){
+sixel_reblit(sprixel* s){
   char* buf = NULL;
   size_t size = 0;
   FILE* fp = open_memstream(&buf, &size);
@@ -554,7 +555,6 @@ sixel_reblit(sprixel* s, tament* tam){
     return -1;
   }
   // FIXME need to get cursor_hack in here for shitty mlterm!
-  (void)tam; // FIXME needs to update with tam! or hit with tam at wipe time!
   if(write_sixel_payload(fp, s->pixx, s->smap, NULL) < 0){
     fclose(fp);
     free(buf);
@@ -689,7 +689,7 @@ int sixel_draw(const ncpile* p, sprixel* s, FILE* out){
   // if we've wiped or rebuilt any cells, effect those changes now, or else
   // we'll get flicker when we move to the new location.
   if(s->wipes_outstanding){
-    if(sixel_reblit(s, s->n->tam)){
+    if(sixel_reblit(s)){
       return -1;
     }
     s->wipes_outstanding = false;
@@ -732,6 +732,32 @@ int sixel_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
   return 0;
 }
 
+// wipe the color from startx to endx, from starty to endy
+static inline void
+wipe_color(sixelmap* smap, int color, int sband, int eband,
+           int startx, int endx, int starty, int endy, int dimx){
+//fprintf(stderr, "B: %d-%d Y: %d-%d X: %d-%d\n", sband, eband, starty, endy, startx, endx);
+  for(int b = sband ; b < eband ; ++b){
+    const int boff = b * dimx; // offset in data where band starts
+    unsigned char mask = 63;
+    for(int i = 0 ; i < 6 ; ++i){
+      if(b * 6 + i >= starty && b * 6 + i <= endy){
+        mask &= ~(1u << i);
+      }
+//fprintf(stderr, "s/e: %d/%d mask: %02x\n", starty, endy, mask);
+    }
+    for(int x = startx ; x < endx ; ++x){
+      const int xoff = boff + x;
+//fprintf(stderr, "band: %d color: %d idx: %d\n", b, color, color * smap->sixelcount + xoff);
+//fprintf(stderr, "color: %d idx: %d data: %02x\n", color, color * smap->sixelcount + xoff, smap->data[color * smap->sixelcount + xoff]);
+      //smap->data[color * smap->sixelcount + xoff] |= mask;
+      smap->data[color * smap->sixelcount + xoff] = 0;
+//fprintf(stderr, "post: %02x\n", smap->data[color * smap->sixelcount + xoff]);
+    }
+    starty = (starty + 6) / 6 * 6;
+  }
+}
+
 // we return -1 because we're not doing a proper wipe -- that's not possible
 // using sixel. we just mark it as partially transparent, so that if it's
 // redrawn, it's redrawn using P2=1.
@@ -739,6 +765,24 @@ int sixel_wipe(sprixel* s, int ycell, int xcell){
   if(s->n->tam[s->dimx * ycell + xcell].state == SPRIXCELL_ANNIHILATED){
 //fprintf(stderr, "CACHED WIPE %d %d/%d\n", s->id, ycell, xcell);
     return 1; // already annihilated FIXME but 0 breaks things
+  }
+  sixelmap* smap = s->smap;
+  const int startx = xcell * s->cellpxx;
+  const int starty = ycell * s->cellpxy;
+  int endx = ((xcell + 1) * s->cellpxx) - 1;
+  if(endx > s->pixx){
+    endx = s->pixx;
+  }
+  int endy = ((ycell + 1) * s->cellpxy) - 1;
+  if(endy > s->pixy){
+    endy = s->pixy;
+  }
+  const int startband = starty / 6;
+  const int endband = endy / 6;
+//fprintf(stderr, "y/x: %d/%d start: %d/%d end: %d/%d\n", ycell, xcell, starty, startx, endy, endx);
+  // walk through each color, and wipe the necessary sixels from each band
+  for(int c = 0 ; c < smap->colors ; ++c){
+    wipe_color(smap, c, startband, endband, startx, endx, starty, endy, s->pixx);
   }
   s->wipes_outstanding = true;
   change_p2(s->glyph, SIXEL_P2_TRANS);
