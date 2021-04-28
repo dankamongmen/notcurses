@@ -941,8 +941,8 @@ clean_sprixels(notcurses* nc, ncpile* p, FILE* out){
           return -1;
         }
         nc->rstate.hardcursorpos = true;
-        parent = &s->next;
       }
+      parent = &s->next;
       ++nc->stats.sprixelemissions;
     }else{
       ++nc->stats.sprixelelisions;

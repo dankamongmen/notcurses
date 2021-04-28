@@ -51,22 +51,22 @@ TEST_CASE("Visual") {
     auto newn = ncvisual_render(nc_, ncv, &vopts);
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncvisual_inflate(ncv, 3));
-    CHECK(6 == ncv->rows);
-    CHECK(6 == ncv->cols);
+    CHECK(6 == ncv->pixy);
+    CHECK(6 == ncv->pixx);
     for(int y = 0 ; y < 3 ; ++y){
       for(int x = 0 ; x < 3 ; ++x){
-        CHECK(pixels[0] == ncv->data[y * ncv->cols + x]);
+        CHECK(pixels[0] == ncv->data[y * ncv->pixx + x]);
       }
       for(int x = 3 ; x < 6 ; ++x){
-        CHECK(pixels[1] == ncv->data[y * ncv->cols + x]);
+        CHECK(pixels[1] == ncv->data[y * ncv->pixx + x]);
       }
     }
     for(int y = 3 ; y < 6 ; ++y){
       for(int x = 0 ; x < 3 ; ++x){
-        CHECK(pixels[2] == ncv->data[y * ncv->cols + x]);
+        CHECK(pixels[2] == ncv->data[y * ncv->pixx + x]);
       }
       for(int x = 3 ; x < 6 ; ++x){
-        CHECK(pixels[3] == ncv->data[y * ncv->cols + x]);
+        CHECK(pixels[3] == ncv->data[y * ncv->pixx + x]);
       }
     }
     REQUIRE(newn);

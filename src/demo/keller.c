@@ -16,6 +16,7 @@ visualize(struct notcurses* nc, struct ncvisual* ncv){
   struct ncplane* stdn = notcurses_stdplane(nc);
   ncplane_set_fg_rgb(stdn, 0xffffff);
   ncplane_set_bg_rgb(stdn, 0);
+  ncplane_set_styles(stdn, NCSTYLE_BOLD);
   uint64_t channels = 0;
   ncchannels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
   ncchannels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
@@ -43,7 +44,9 @@ visualize(struct notcurses* nc, struct ncvisual* ncv){
     }
 //fprintf(stderr, "X: %d truex: %d scalex: %d\n", vopts.x, truex, scalex);
     if(!n){
+      ncplane_on_styles(stdn, NCSTYLE_ITALIC);
       ncplane_printf_aligned(stdn, ncplane_dim_y(stdn) / 2 - 1, NCALIGN_CENTER, "not available");
+      ncplane_off_styles(stdn, NCSTYLE_ITALIC);
     }
     const char* name = notcurses_str_blitter(bs[i]);
     ncplane_printf_aligned(stdn, ncplane_dim_y(stdn) / 2 - 3, NCALIGN_CENTER, "%sblitter", name);

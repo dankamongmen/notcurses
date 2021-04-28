@@ -93,7 +93,7 @@ orcaride(struct notcurses* nc, struct ncplane* on){
   ncplane_dim_yx(notcurses_stdplane(nc), NULL, &dimx);
   ncplane_yx(on, &oy, &ox);
   ncplane_dim_yx(on, &odimy, &odimx);
-  ox -= 3;
+  ox -= 14;
   if(ox < 1){
     ox = 1;
   }

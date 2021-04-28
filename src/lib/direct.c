@@ -491,13 +491,13 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv, ncblitter_e blitfxn,
                        uint32_t transcolor){
   int dimy = ymax > 0 ? ymax : ncdirect_dim_y(n);
   int dimx = xmax > 0 ? xmax : ncdirect_dim_x(n);
-//fprintf(stderr, "OUR DATA: %p rows/cols: %d/%d\n", ncv->data, ncv->rows, ncv->cols);
-  int leny = ncv->rows; // we allow it to freely scroll
-  int lenx = ncv->cols;
+//fprintf(stderr, "OUR DATA: %p rows/cols: %d/%d\n", ncv->data, ncv->pixy, ncv->pixx);
+  int leny = ncv->pixy; // we allow it to freely scroll
+  int lenx = ncv->pixx;
   if(leny == 0 || lenx == 0){
     return NULL;
   }
-//fprintf(stderr, "render %d/%d to %d+%d scaling: %d\n", ncv->rows, ncv->cols, leny, lenx, scale);
+//fprintf(stderr, "render %d/%d to %d+%d scaling: %d\n", ncv->pixy, ncv->pixx, leny, lenx, scale);
   const struct blitset* bset = rgba_blitter_low(&n->tcache, scale, true, blitfxn);
   if(!bset){
     return NULL;
@@ -519,15 +519,15 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv, ncblitter_e blitfxn,
       }
     }
   }else{
-    disprows = ncv->rows;
-    dispcols = ncv->cols;
+    disprows = ncv->pixy;
+    dispcols = ncv->pixx;
     if(bset->geom == NCBLIT_PIXEL){
       clamp_to_sixelmax(&n->tcache, &disprows, &dispcols);
     }
   }
-  leny = (leny / (double)ncv->rows) * ((double)disprows);
-  lenx = (lenx / (double)ncv->cols) * ((double)dispcols);
-//fprintf(stderr, "render: %d+%d of %d/%d stride %u %p\n", leny, lenx, ncv->rows, ncv->cols, ncv->rowstride, ncv->data);
+  leny = (leny / (double)ncv->pixy) * ((double)disprows);
+  lenx = (lenx / (double)ncv->pixx) * ((double)dispcols);
+//fprintf(stderr, "render: %d+%d of %d/%d stride %u %p\n", leny, lenx, ncv->pixy, ncv->pixx, ncv->pixytride, ncv->data);
   ncplane_options nopts = {
     .y = 0,
     .x = 0,

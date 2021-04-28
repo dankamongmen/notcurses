@@ -38,7 +38,7 @@ TEST_CASE("Bitmaps") {
       .flags = NCVISUAL_OPTION_NODEGRADE,
       .transcolor = 0,
     };
-    CHECK(0 == ncvisual_resize(ncv, 6, 1)); // FIXME get down to 1, 1 (sixel needs handle)
+    CHECK(0 == ncvisual_resize(ncv, 6, 1)); // FIXME get down to (1, 1)
     auto n = ncvisual_render(nc_, ncv, &vopts);
     REQUIRE(nullptr != n);
     auto s = n->sprite;
@@ -224,8 +224,8 @@ TEST_CASE("Bitmaps") {
     REQUIRE(nullptr != n);
     auto s = n->sprite;
     REQUIRE(nullptr != s);
-    CHECK(nc_->tcache.cellpixy == ncv->rows);
-    CHECK(nc_->tcache.cellpixx == ncv->cols);
+    CHECK(nc_->tcache.cellpixy == ncv->pixy);
+    CHECK(nc_->tcache.cellpixx == ncv->pixx);
     CHECK(0 == notcurses_render(nc_));
     struct ncplane_options nopts = {
       .y = 1,
@@ -244,8 +244,8 @@ TEST_CASE("Bitmaps") {
     CHECK(vopts.n == ncvisual_render(nc_, ncv, &vopts));
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncvisual_inflate(ncv, 4));
-    CHECK(4 * nc_->tcache.cellpixy == ncv->rows);
-    CHECK(4 * nc_->tcache.cellpixx == ncv->cols);
+    CHECK(4 * nc_->tcache.cellpixy == ncv->pixy);
+    CHECK(4 * nc_->tcache.cellpixx == ncv->pixx);
     vopts.y = 1;
     vopts.x = 6;
     vopts.n = nullptr;
@@ -256,8 +256,8 @@ TEST_CASE("Bitmaps") {
     CHECK(4 == ncplane_dim_x(infn));
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncvisual_resize(ncv, 8, 8));
-    CHECK(ncv->rows == 8);
-    CHECK(ncv->cols == 8);
+    CHECK(ncv->pixy == 8);
+    CHECK(ncv->pixx == 8);
     vopts.x = 11;
     auto resizen = ncvisual_render(nc_, ncv, &vopts);
     REQUIRE(resizen);

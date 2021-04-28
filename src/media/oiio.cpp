@@ -27,9 +27,9 @@ auto oiio_details_destroy(ncvisual_details* deets) -> void {
 }
 
 auto oiio_details_seed(ncvisual* ncv) -> void {
-  int pixels = ncv->rows * ncv->cols;
+  int pixels = ncv->pixy * ncv->pixx;
   ncv->details->frame = std::make_unique<uint32_t[]>(pixels);
-  OIIO::ImageSpec rgbaspec{ncv->cols, ncv->rows, 4, OIIO::TypeDesc(OIIO::TypeDesc::UINT8, 4)};
+  OIIO::ImageSpec rgbaspec{ncv->pixx, ncv->pixy, 4, OIIO::TypeDesc(OIIO::TypeDesc::UINT8, 4)};
   ncv->details->ibuf = std::make_unique<OIIO::ImageBuf>(rgbaspec, ncv->data);
 }
 
@@ -76,15 +76,15 @@ int oiio_decode(ncvisual* nc) {
       nc->details->frame[i] >> 24
       );
 }*/
-  nc->cols = spec.width;
-  nc->rows = spec.height;
-  nc->rowstride = nc->cols * 4;
+  nc->pixx = spec.width;
+  nc->pixy = spec.height;
+  nc->rowstride = nc->pixx * 4;
   OIIO::ImageSpec rgbaspec = spec;
   rgbaspec.nchannels = 4;
   nc->details->ibuf = std::make_unique<OIIO::ImageBuf>(rgbaspec, nc->details->frame.get());
 //fprintf(stderr, "SUBS: %d\n", nc->details->ibuf->nsubimages());
   ncvisual_set_data(nc, static_cast<uint32_t*>(nc->details->ibuf->localpixels()), false);
-//fprintf(stderr, "POST-DECODE DATA: %d %d %p %p\n", nc->rows, nc->cols, nc->data, nc->details->ibuf->localpixels());
+//fprintf(stderr, "POST-DECODE DATA: %d %d %p %p\n", nc->pixy, nc->pixx, nc->data, nc->details->ibuf->localpixels());
   return 0;
 }
 
@@ -126,9 +126,9 @@ int oiio_decode_loop(ncvisual* ncv){
 
 // resize, converting to RGBA (if necessary) along the way
 int oiio_resize(ncvisual* nc, int rows, int cols) {
-//fprintf(stderr, "%d/%d -> %d/%d on the resize\n", nc->rows, nc->cols, rows, cols);
+//fprintf(stderr, "%d/%d -> %d/%d on the resize\n", nc->pixy, nc->pixx, rows, cols);
   auto ibuf = std::make_unique<OIIO::ImageBuf>();
-  if(nc->details->ibuf && (nc->cols != cols || nc->rows != rows)){ // scale it
+  if(nc->details->ibuf && (nc->pixx != cols || nc->pixy != rows)){ // scale it
     OIIO::ImageSpec sp{};
     sp.width = cols;
     sp.height = rows;
@@ -137,8 +137,8 @@ int oiio_resize(ncvisual* nc, int rows, int cols) {
     if(!OIIO::ImageBufAlgo::resize(*ibuf, *nc->details->ibuf, "", 0, roi)){
       return -1;
     }
-    nc->cols = cols;
-    nc->rows = rows;
+    nc->pixx = cols;
+    nc->pixy = rows;
     nc->rowstride = cols * 4;
     ncvisual_set_data(nc, static_cast<uint32_t*>(ibuf->localpixels()), false);
 //fprintf(stderr, "HAVE SOME NEW DATA: %p\n", ibuf->localpixels());
@@ -150,11 +150,11 @@ int oiio_resize(ncvisual* nc, int rows, int cols) {
 int oiio_blit(struct ncvisual* ncv, int rows, int cols,
               ncplane* n, const struct blitset* bset,
               int leny, int lenx, const blitterargs* bargs) {
-//fprintf(stderr, "%d/%d -> %d/%d on the resize\n", ncv->rows, ncv->cols, rows, cols);
+//fprintf(stderr, "%d/%d -> %d/%d on the resize\n", ncv->pixy, ncv->pixx, rows, cols);
   void* data = nullptr;
   int stride = 0;
   auto ibuf = std::make_unique<OIIO::ImageBuf>();
-  if(ncv->details->ibuf && (ncv->cols != cols || ncv->rows != rows)){ // scale it
+  if(ncv->details->ibuf && (ncv->pixx != cols || ncv->pixy != rows)){ // scale it
     OIIO::ImageSpec sp{};
     sp.width = cols;
     sp.height = rows;
@@ -177,7 +177,7 @@ int oiio_blit(struct ncvisual* ncv, int rows, int cols,
 // ImageBuf in ncvisual in ncvisual_from_rgba().
 /*
 auto ncvisual_rotate(ncvisual* ncv, double rads) -> int {
-  OIIO::ROI roi(0, ncv->cols, 0, ncv->rows, 0, 1, 0, 4);
+  OIIO::ROI roi(0, ncv->pixx, 0, ncv->pixy, 0, 1, 0, 4);
   auto tmpibuf = std::move(*ncv->details->ibuf);
   ncv->details->ibuf = std::make_unique<OIIO::ImageBuf>();
   OIIO::ImageSpec sp{};
@@ -187,7 +187,7 @@ auto ncvisual_rotate(ncvisual* ncv, double rads) -> int {
   if(!OIIO::ImageBufAlgo::rotate(*ncv->details->ibuf, tmpibuf, rads, "", 0, true, roi)){
     return NCERR_DECODE; // FIXME need we do anything further?
   }
-  ncv->rowstride = ncv->cols * 4;
+  ncv->rowstride = ncv->pixx * 4;
   ncvisual_set_data(ncv, static_cast<uint32_t*>(ncv->details->ibuf->localpixels()), false);
   return NCERR_SUCCESS;
 }

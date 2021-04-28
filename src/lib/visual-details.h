@@ -21,7 +21,7 @@ struct ncvisual_details;
 typedef struct ncvisual {
   struct ncvisual_details* details;// implementation-specific details
   uint32_t* data; // (scaled) RGBA image data, rowstride bytes per row
-  int cols, rows; // pixel geometry, *not* cell geometry
+  int pixx, pixy; // pixel geometry, *not* cell geometry
   // lines are sometimes padded. this many true bytes per row in data.
   int rowstride;
   bool owndata; // we own data iff owndata == true
@@ -39,12 +39,12 @@ ncvisual_set_data(ncvisual* ncv, void* data, bool owned){
 // shrink one dimension to retrieve the original aspect ratio
 static inline void
 scale_visual(const ncvisual* ncv, int* disprows, int* dispcols){
-  float xratio = (float)(*dispcols) / ncv->cols;
-  if(xratio * ncv->rows > *disprows){
-    xratio = (float)(*disprows) / ncv->rows;
+  float xratio = (float)(*dispcols) / ncv->pixx;
+  if(xratio * ncv->pixy > *disprows){
+    xratio = (float)(*disprows) / ncv->pixy;
   }
-  *disprows = xratio * (ncv->rows);
-  *dispcols = xratio * (ncv->cols);
+  *disprows = xratio * (ncv->pixy);
+  *dispcols = xratio * (ncv->pixx);
 }
 
 #ifdef __cplusplus
