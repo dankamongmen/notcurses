@@ -19,19 +19,22 @@ sixelcount(int dimy, int dimx){
   return (dimy + 5) / 6 * dimx;
 }
 
-// We keep a color-indexed set of sixels (a single-row column of six pixels,
+// we keep a color-indexed set of sixels (a single-row column of six pixels,
 // encoded as a byte) across the life of the sprixel. This provides a good
 // combination of easy-to-edit (for wipes and restores) -- you can index by
 // color, and then by position, in O(1) -- and a form which can easily be
-// converted to the actual Sixel encoding. Wipes and restores come in and edit
+// converted to the actual Sixel encoding. wipes and restores come in and edit
 // these sixels in O(1), and then at display time we recreate the encoded
-// bitmap in one go if necessary. We could just wipe and restore directly using
-// the encoded form, but it's a tremendous pain in the ass. This sixelmap will
-// be kept in the sprixel.
+// bitmap in one go if necessary. we could just wipe and restore directly using
+// the encoded form, but it's a tremendous pain in the ass. this sixelmap will
+// be kept in the sprixel. when first encoding, data and table each have an
+// entry for every color register; call sixelmap_trim() when done to cut them
+// down to the actual number of colors used.
 typedef struct sixelmap {
   int colors;
   int sixelcount;
   unsigned char* data;  // |colors| x |sixelcount|-byte arrays
+  unsigned char* table; // |colors| x CENTSIZE: components + dtable index
 } sixelmap;
 
 // whip up an all-zero sixelmap for the specified pixel geometry and color
@@ -42,12 +45,20 @@ sixelmap_create(int cregs, int dimy, int dimx){
   sixelmap* ret = malloc(sizeof(*ret));
   if(ret){
     ret->sixelcount = sixelcount(dimy, dimx);
-    size_t dsize = sizeof(*ret->data) * cregs * ret->sixelcount;
-    ret->data = malloc(dsize);
-    if(ret->data){
-      memset(ret->data, 0, dsize);
-      ret->colors = 0;
-      return ret;
+    if(ret->sixelcount){
+      size_t dsize = sizeof(*ret->data) * cregs * ret->sixelcount;
+      ret->data = malloc(dsize);
+      if(ret->data){
+        size_t tsize = CENTSIZE * cregs;
+        ret->table = malloc(tsize);
+        if(ret->table){
+          memset(ret->table, 0, tsize);
+          memset(ret->data, 0, dsize);
+          ret->colors = 0;
+          return ret;
+        }
+        free(ret->data);
+      }
     }
     free(ret);
   }
@@ -58,7 +69,9 @@ sixelmap_create(int cregs, int dimy, int dimx){
 // number of color registers available).
 static int
 sixelmap_trim(sixelmap* s){
-  if(s->colors == 0 || s->sixelcount == 0){
+  if(s->colors == 0){
+    free(s->table);
+    s->table = NULL;
     free(s->data);
     s->data = NULL;
     return 0;
@@ -69,11 +82,17 @@ sixelmap_trim(sixelmap* s){
     return -1;
   }
   s->data = tmp;
+  size_t tsize = CENTSIZE * s->colors;
+  if((tmp = realloc(s->table, tsize)) == NULL){
+    return -1;
+  }
+  s->table = tmp;
   return 0;
 }
 
 void sixelmap_free(sixelmap *s){
   if(s){
+    free(s->table);
     free(s->data);
     free(s);
   }
@@ -91,7 +110,6 @@ typedef struct sixeltable {
   sixelmap* map;        // copy of palette indices / transparency bits
   // FIXME keep these internal to palette extraction; finalize there
   cdetails* deets;      // |colorregs| cdetails structures
-  unsigned char* table; // |colorregs| x CENTSIZE: components + dtable index
   int colorregs;
   sixel_p2_e p2;        // set to SIXEL_P2_TRANS if we have transparent pixels
 } sixeltable;
@@ -151,9 +169,9 @@ find_color(sixeltable* stab, unsigned char comps[static RGBSIZE]){
     do{
       i = l + (r - l) / 2;
 //fprintf(stderr, "%02x%02x%02x L %d R %d m %d\n", comps[0], comps[1], comps[2], l, r, i);
-      int cmp = memcmp(stab->table + i * CENTSIZE, comps, RGBSIZE);
+      int cmp = memcmp(stab->map->table + i * CENTSIZE, comps, RGBSIZE);
       if(cmp == 0){
-        return ctable_to_dtable(stab->table + i * CENTSIZE);
+        return ctable_to_dtable(stab->map->table + i * CENTSIZE);
       }
       if(cmp < 0){
         l = i + 1;
@@ -174,18 +192,19 @@ find_color(sixeltable* stab, unsigned char comps[static RGBSIZE]){
     }
     if(i < stab->map->colors){
 //fprintf(stderr, "INSERTING COLOR %u %u %u AT %d\n", comps[0], comps[1], comps[2], i);
-      memmove(stab->table + (i + 1) * CENTSIZE, stab->table + i * CENTSIZE,
+      memmove(stab->map->table + (i + 1) * CENTSIZE,
+              stab->map->table + i * CENTSIZE,
               (stab->map->colors - i) * CENTSIZE);
     }
   }else{
     i = 0;
   }
 //fprintf(stderr, "NEW COLOR CONCAT %u %u %u AT %d\n", comps[0], comps[1], comps[2], i);
-  memcpy(stab->table + i * CENTSIZE, comps, RGBSIZE);
-  dtable_to_ctable(stab->map->colors, stab->table + i * CENTSIZE);
+  memcpy(stab->map->table + i * CENTSIZE, comps, RGBSIZE);
+  dtable_to_ctable(stab->map->colors, stab->map->table + i * CENTSIZE);
   ++stab->map->colors;
   return stab->map->colors - 1;
-  //return ctable_to_dtable(stab->table + i * CENTSIZE);
+  //return ctable_to_dtable(stab->map->table + i * CENTSIZE);
 }
 
 static void
@@ -286,10 +305,10 @@ static void
 unzip_color(const uint32_t* data, int linesize, int begy, int begx,
             int leny, int lenx, sixeltable* stab, int src,
             unsigned char rgb[static 3]){
-  unsigned char* tcrec = stab->table + CENTSIZE * stab->map->colors;
+  unsigned char* tcrec = stab->map->table + CENTSIZE * stab->map->colors;
   dtable_to_ctable(stab->map->colors, tcrec);
   cdetails* targdeets = stab->deets + stab->map->colors;
-  unsigned char* crec = stab->table + CENTSIZE * src;
+  unsigned char* crec = stab->map->table + CENTSIZE * src;
   int didx = ctable_to_dtable(crec);
   cdetails* deets = stab->deets + didx;
   unsigned char* srcsixels = stab->map->data + stab->map->sixelcount * didx;
@@ -332,7 +351,7 @@ unzip_color(const uint32_t* data, int linesize, int begy, int begx,
 static int
 refine_color(const uint32_t* data, int linesize, int begy, int begx,
              int leny, int lenx, sixeltable* stab, int color){
-  unsigned char* crec = stab->table + CENTSIZE * color;
+  unsigned char* crec = stab->map->table + CENTSIZE * color;
   int didx = ctable_to_dtable(crec);
   cdetails* deets = stab->deets + didx;
   int rdelt = deets->hi[0] - deets->lo[0];
@@ -371,7 +390,7 @@ refine_color_table(const uint32_t* data, int linesize, int begy, int begx,
     bool refined = false;
     int tmpcolors = stab->map->colors; // force us to come back through
     for(int i = 0 ; i < tmpcolors ; ++i){
-      unsigned char* crec = stab->table + CENTSIZE * i;
+      unsigned char* crec = stab->map->table + CENTSIZE * i;
       int didx = ctable_to_dtable(crec);
       cdetails* deets = stab->deets + didx;
 //fprintf(stderr, "[%d->%d] hi: %d %d %d lo: %d %d %d\n", i, didx, deets->hi[0], deets->hi[1], deets->hi[2], deets->lo[0], deets->lo[1], deets->lo[2]);
@@ -430,7 +449,7 @@ write_sixel_header(FILE* fp, int leny, int lenx, const sixeltable* stab, sixel_p
     return -1;
   }
   for(int i = 0 ; i < stab->map->colors ; ++i){
-    const unsigned char* rgb = stab->table + i * CENTSIZE;
+    const unsigned char* rgb = stab->map->table + i * CENTSIZE;
     int idx = ctable_to_dtable(rgb);
     int count = stab->deets[idx].count;
 //fprintf(stderr, "RGB: %3u(%d) %3u(%d) %3u(%d) DT: %d SUMS: %3ld %3ld %3ld COUNT: %d\n", rgb[0], ss(rgb[0], 0xff), rgb[1], ss(rgb[1], 0xff), rgb[2], ss(rgb[2], 0xff), idx, stab->deets[idx].sums[0] / count * 100 / 255, stab->deets[idx].sums[1] / count * 100 / 255, stab->deets[idx].sums[2] / count * 100 / 255, count);
@@ -449,35 +468,30 @@ write_sixel_header(FILE* fp, int leny, int lenx, const sixeltable* stab, sixel_p
   return r;
 }
 
-// emit the sixel in its entirety, plus enable and disable pixel mode. closes
-// |fp| on all paths. only called the first time we encode; after that, the
-// palette remains constant.
 static int
-write_sixel(FILE* fp, int leny, int lenx, const sixeltable* stab, int* parse_start,
-            const char* cursor_hack, sixel_p2_e p2){
-  *parse_start = write_sixel_header(fp, leny, lenx, stab, p2);
+write_sixel_payload(FILE* fp, int lenx, const sixelmap* map, const char* cursor_hack){
   int p = 0;
-  while(p < stab->map->sixelcount){
+  while(p < map->sixelcount){
     int needclosure = 0;
-    for(int i = 0 ; i < stab->map->colors ; ++i){
+    for(int i = 0 ; i < map->colors ; ++i){
       int seenrle = 0; // number of repetitions
       unsigned char crle = 0; // character being repeated
-      int idx = ctable_to_dtable(stab->table + i * CENTSIZE);
+      int idx = ctable_to_dtable(map->table + i * CENTSIZE);
       int printed = 0;
-      for(int m = p ; m < stab->map->sixelcount && m < p + lenx ; ++m){
-//fprintf(stderr, "%d ", idx * stab->map->sixelcount + m);
-//fputc(stab->map->data[idx * stab->map->sixelcount + m] + 63, stderr);
+      for(int m = p ; m < map->sixelcount && m < p + lenx ; ++m){
+//fprintf(stderr, "%d ", idx * map->sixelcount + m);
+//fputc(map->data[idx * map->sixelcount + m] + 63, stderr);
         if(seenrle){
-          if(stab->map->data[idx * stab->map->sixelcount + m] == crle){
+          if(map->data[idx * map->sixelcount + m] == crle){
             ++seenrle;
           }else{
             write_rle(&printed, i, fp, seenrle, crle, &needclosure);
             seenrle = 1;
-            crle = stab->map->data[idx * stab->map->sixelcount + m];
+            crle = map->data[idx * map->sixelcount + m];
           }
         }else{
           seenrle = 1;
-          crle = stab->map->data[idx * stab->map->sixelcount + m];
+          crle = map->data[idx * map->sixelcount + m];
         }
       }
       if(crle){
@@ -485,7 +499,7 @@ write_sixel(FILE* fp, int leny, int lenx, const sixeltable* stab, int* parse_sta
       }
       needclosure = needclosure | printed;
     }
-    if(p + lenx < stab->map->sixelcount){
+    if(p + lenx < map->sixelcount){
       fputc('-', fp);
     }
     p += lenx;
@@ -495,6 +509,22 @@ write_sixel(FILE* fp, int leny, int lenx, const sixeltable* stab, int* parse_sta
   fprintf(fp, "\e\\");
   if(cursor_hack){
     fprintf(fp, "%s", cursor_hack);
+  }
+  return 0;
+}
+
+// emit the sixel in its entirety, plus escapes to start and end pixel mode.
+// only called the first time we encode; after that, the palette remains
+// constant, and is simply copied. fclose()s |fp| on success.
+static int
+write_sixel(FILE* fp, int leny, int lenx, const sixeltable* stab, int* parse_start,
+            const char* cursor_hack, sixel_p2_e p2){
+  *parse_start = write_sixel_header(fp, leny, lenx, stab, p2);
+  if(*parse_start < 0){
+    return -1;
+  }
+  if(write_sixel_payload(fp, lenx, stab->map, cursor_hack) < 0){
+    return -1;
   }
   if(fclose(fp) == EOF){
     return -1;
@@ -519,6 +549,7 @@ sixel_blit_inner(int leny, int lenx, const sixeltable* stab, int rows, int cols,
   // calls fclose() on success
   if(write_sixel(fp, leny, lenx, stab, &parse_start,
                  bargs->u.pixel.cursor_hack, stab->p2)){
+    fclose(fp);
     free(buf);
     return -1;
   }
@@ -546,13 +577,11 @@ int sixel_blit(ncplane* n, int linesize, const void* data,
   sixeltable stable = {
     .map = sixelmap_create(colorregs, leny - bargs->begy, lenx - bargs->begx),
     .deets = malloc(colorregs * sizeof(cdetails)),
-    .table = malloc(colorregs * CENTSIZE),
     .colorregs = colorregs,
     .p2 = SIXEL_P2_ALLOPAQUE,
   };
-  if(stable.deets == NULL || stable.table == NULL || stable.map == NULL){
+  if(stable.deets == NULL || stable.map == NULL){
     sixelmap_free(stable.map);
-    free(stable.table);
     free(stable.deets);
     return -1;
   }
@@ -575,7 +604,6 @@ int sixel_blit(ncplane* n, int linesize, const void* data,
     tam = malloc(sizeof(*tam) * rows * cols);
     if(tam == NULL){
       sixelmap_free(stable.map);
-      free(stable.table);
       free(stable.deets);
       return -1;
     }
@@ -586,7 +614,6 @@ int sixel_blit(ncplane* n, int linesize, const void* data,
       free(tam);
     }
     sixelmap_free(stable.map);
-    free(stable.table);
     free(stable.deets);
     return -1;
   }
@@ -594,7 +621,6 @@ int sixel_blit(ncplane* n, int linesize, const void* data,
   int r = sixel_blit_inner(leny, lenx, &stable, rows, cols, bargs, tam);
   // FIXME give stable.map to sprixel after trimming it
   free(stable.deets);
-  free(stable.table);
   return r;
 }
 
