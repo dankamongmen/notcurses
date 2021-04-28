@@ -532,6 +532,45 @@ write_sixel(FILE* fp, int leny, int lenx, const sixeltable* stab, int* parse_sta
   return 0;
 }
 
+// once per render cycle (if needed), make the actual payload match the TAM. we
+// don't do these one at a time due to the complex (expensive) process involved
+// in regenerating a sixel (we can't easily do it in-place). anything newly
+// ANNIHILATED (state is ANNIHILATED, but no auxvec present) is dropped from
+// the payload, and an auxvec is generated. anything newly restored (state is
+// OPAQUE_SIXEL or MIXED_SIXEL, but an auxvec is present) is restored to the
+// payload, and the auxvec is freed. none of this takes effect until the sixel
+// is redrawn, and annihilated sprixcells still require a glyph to be emitted.
+static inline int
+sixel_reblit(sprixel* s, tament* tam){
+  char* buf = NULL;
+  size_t size = 0;
+  FILE* fp = open_memstream(&buf, &size);
+  if(fp == NULL){
+    return -1;
+  }
+  if(fwrite(s->glyph, s->parse_start, 1, fp) != (size_t)s->parse_start){
+    fclose(fp);
+    free(buf);
+    return -1;
+  }
+  // FIXME need to get cursor_hack in here for shitty mlterm!
+  (void)tam; // FIXME needs to update with tam! or hit with tam at wipe time!
+  if(write_sixel_payload(fp, s->pixx, s->smap, NULL) < 0){
+    fclose(fp);
+    free(buf);
+    return -1;
+  }
+  if(fclose(fp) == EOF){
+    free(buf);
+    return -1;
+  }
+  free(s->glyph);
+  // FIXME update P2 if necessary
+  s->glyph = buf;
+  s->glyphlen = size;
+  return 0;
+}
+
 // Sixel blitter. Sixels are stacks 6 pixels high, and 1 pixel wide. RGB colors
 // are programmed as a set of registers, which are then referenced by the
 // stacks. There is also a RLE component, handled in rasterization.
@@ -620,16 +659,19 @@ int sixel_blit(ncplane* n, int linesize, const void* data,
     return -1;
   }
   refine_color_table(data, linesize, bargs->begy, bargs->begx, leny, lenx, &stable);
+  // takes ownership of sixelmap on success
   int r = sixel_blit_inner(leny, lenx, &stable, rows, cols, bargs, tam);
-  // FIXME give stable.map to sprixel after trimming it
+  if(r < 0){
+    sixelmap_free(stable.map);
+  }
   free(stable.deets);
   return r;
 }
 
 int sixel_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
 //fprintf(stderr, "%d] %d %p\n", s->id, s->invalidated, s->n);
-  (void)out;
   (void)nc;
+  (void)out;
   int starty = s->movedfromy;
   int startx = s->movedfromx;
   for(int yy = starty ; yy < starty + s->dimy && yy < p->dimy ; ++yy){
@@ -643,29 +685,11 @@ int sixel_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
   return 0;
 }
 
-// once per render cycle (if needed), make the actual payload match the TAM. we
-// don't do these one at a time due to the complex (expensive) process involved
-// in regenerating a sixel (we can't easily do it in-place). anything newly
-// ANNIHILATED (state is ANNIHILATED, but no auxvec present) is dropped from
-// the payload, and an auxvec is generated. anything newly restored (state is
-// OPAQUE_SIXEL or MIXED_SIXEL, but an auxvec is present) is restored to the
-// payload, and the auxvec is freed. none of this takes effect until the sixel
-// is redrawn, and annihilated sprixcells still require a glyph to be emitted.
-static int
-sixel_update(const notcurses* n, sprixel* s){
-  blitterargs bargs = { }; // FIXME need prep this
-  // FIXME need a sixel_blit_inner() that reuses the header
-  /*if(sixel_blit_inner(s->pixy, s->pixx, s->dimy, s->dimx, &bargs, s->n->tam)){
-    return -1;
-  }*/
-  return 0;
-}
-
-int sixel_draw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
+int sixel_draw(const ncpile* p, sprixel* s, FILE* out){
   // if we've wiped or rebuilt any cells, effect those changes now, or else
   // we'll get flicker when we move to the new location.
   if(s->wipes_outstanding){
-    if(sixel_update(n, s)){
+    if(sixel_reblit(s, s->n->tam)){
       return -1;
     }
     s->wipes_outstanding = false;
