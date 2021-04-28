@@ -375,14 +375,14 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
   nopts.margin_b = 1;
   nopts.resizecb = ncplane_resize_marginalized;
   nopts.flags = NCPLANE_OPTION_MARGINALIZED;
-  auto n = ncplane_create(*stdn, &nopts);
-  if(!n){
-    return -1;
-  }
-  ncplane_move_bottom(n);
   for(auto i = 0 ; i < argc ; ++i){
     std::unique_ptr<Visual> ncv;
     ncv = std::make_unique<Visual>(argv[i]);
+    auto n = ncplane_create(*stdn, &nopts);
+    if(!n){
+      return -1;
+    }
+    ncplane_move_bottom(n);
     struct ncvisual_options vopts{};
     int r;
     vopts.flags |= NCVISUAL_OPTION_HORALIGNED | NCVISUAL_OPTION_VERALIGNED;
@@ -415,6 +415,7 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
           if(displaytime < 0){
             stdn->printf(0, NCAlign::Center, "press a key to advance");
             if(!nc.render()){
+              ncplane_destroy(n);
               return -1;
             }
             char32_t ie = nc.getc(true);
@@ -433,6 +434,7 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
             }else if(ie == NCKey::Resize){
               --i; // rerun with the new size
               if(!nc.refresh(&dimy, &dimx)){
+                ncplane_destroy(n);
                 return -1;
               }
             }
@@ -450,10 +452,12 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
     }while(loop && r == 0);
     if(r < 0){ // positive is intentional abort
       std::cerr << "Error while playing " << argv[i] << std::endl;
+      ncplane_destroy(n);
       return -1;
     }
+    free(ncplane_userptr(n));
+    ncplane_destroy(n);
   }
-  free(ncplane_userptr(n));
   return 0;
 }
 
