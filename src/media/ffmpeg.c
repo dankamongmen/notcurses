@@ -132,49 +132,49 @@ averr2ncerr(int averr){
   return -1;
 }
 
-int ffmpeg_decode(ncvisual* nc){
-  if(nc->details->fmtctx == NULL){ // not a file-backed ncvisual
+int ffmpeg_decode(ncvisual* n){
+  if(n->details->fmtctx == NULL){ // not a file-backed ncvisual
     return -1;
   }
   bool have_frame = false;
   bool unref = false;
   // FIXME what if this was set up with e.g. ncvisual_from_rgba()?
-  if(nc->details->oframe){
-    av_freep(&nc->details->oframe->data[0]);
+  if(n->details->oframe){
+    av_freep(&n->details->oframe->data[0]);
   }
   do{
     do{
-      if(nc->details->packet_outstanding){
+      if(n->details->packet_outstanding){
         break;
       }
       if(unref){
-        av_packet_unref(nc->details->packet);
+        av_packet_unref(n->details->packet);
       }
       int averr;
-      if((averr = av_read_frame(nc->details->fmtctx, nc->details->packet)) < 0){
+      if((averr = av_read_frame(n->details->fmtctx, n->details->packet)) < 0){
         /*if(averr != AVERROR_EOF){
           fprintf(stderr, "Error reading frame info (%s)\n", av_err2str(averr));
         }*/
         return averr2ncerr(averr);
       }
       unref = true;
-      if(nc->details->packet->stream_index == nc->details->sub_stream_index){
+      if(n->details->packet->stream_index == n->details->sub_stream_index){
         int result = 0, ret;
-        ret = avcodec_decode_subtitle2(nc->details->subtcodecctx, &nc->details->subtitle, &result, nc->details->packet);
+        ret = avcodec_decode_subtitle2(n->details->subtcodecctx, &n->details->subtitle, &result, n->details->packet);
         if(ret >= 0 && result){
           // FIXME?
         }
       }
-    }while(nc->details->packet->stream_index != nc->details->stream_index);
-    ++nc->details->packet_outstanding;
-    int averr = avcodec_send_packet(nc->details->codecctx, nc->details->packet);
+    }while(n->details->packet->stream_index != n->details->stream_index);
+    ++n->details->packet_outstanding;
+    int averr = avcodec_send_packet(n->details->codecctx, n->details->packet);
     if(averr < 0){
 //fprintf(stderr, "Error processing AVPacket\n");
       return averr2ncerr(averr);
     }
-    --nc->details->packet_outstanding;
-    av_packet_unref(nc->details->packet);
-    averr = avcodec_receive_frame(nc->details->codecctx, nc->details->frame);
+    --n->details->packet_outstanding;
+    av_packet_unref(n->details->packet);
+    averr = avcodec_receive_frame(n->details->codecctx, n->details->frame);
     if(averr >= 0){
       have_frame = true;
     }else if(averr == AVERROR(EAGAIN) || averr == AVERROR_EOF){
@@ -184,22 +184,22 @@ int ffmpeg_decode(ncvisual* nc){
       return averr2ncerr(averr);
     }
   }while(!have_frame);
-//print_frame_summary(nc->details->codecctx, nc->details->frame);
-  const AVFrame* f = nc->details->frame;
-  nc->rowstride = f->linesize[0];
-  nc->cols = nc->details->frame->width;
-  nc->rows = nc->details->frame->height;
-//fprintf(stderr, "good decode! %d/%d %d %p\n", nc->details->frame->height, nc->details->frame->width, nc->rowstride, f->data);
-  ncvisual_set_data(nc, f->data[0], false);
+//print_frame_summary(n->details->codecctx, n->details->frame);
+  const AVFrame* f = n->details->frame;
+  n->rowstride = f->linesize[0];
+  n->pixx = n->details->frame->width;
+  n->pixy = n->details->frame->height;
+//fprintf(stderr, "good decode! %d/%d %d %p\n", n->details->frame->height, n->details->frame->width, n->rowstride, f->data);
+  ncvisual_set_data(n, f->data[0], false);
   return 0;
 }
 
 // resize frame to oframe, converting to RGBA (if necessary) along the way
-int ffmpeg_resize(ncvisual* nc, int rows, int cols){
+int ffmpeg_resize(ncvisual* n, int rows, int cols){
   const int targformat = AV_PIX_FMT_RGBA;
-  AVFrame* inf = nc->details->oframe ? nc->details->oframe : nc->details->frame;
-//fprintf(stderr, "got format: %d (%d/%d) want format: %d (%d/%d)\n", inf->format, nc->rows, nc->cols, targformat, rows, cols);
-  if(inf->format == targformat && nc->rows == rows && nc->cols == cols){
+  AVFrame* inf = n->details->oframe ? n->details->oframe : n->details->frame;
+//fprintf(stderr, "got format: %d (%d/%d) want format: %d (%d/%d)\n", inf->format, n->pixy, n->pixx, targformat, rows, cols);
+  if(inf->format == targformat && n->pixy == rows && n->pixx == cols){
     return 0;
   }
   struct SwsContext* swsctx = sws_getContext(inf->width,
@@ -222,7 +222,7 @@ int ffmpeg_resize(ncvisual* nc, int rows, int cols){
   sframe->format = targformat;
   sframe->width = cols;
   sframe->height = rows;
-//fprintf(stderr, "SIZE DECODED: %d %d (%d) (want %d %d)\n", nc->rows, nc->cols, inf->linesize[0], rows, cols);
+//fprintf(stderr, "SIZE DECODED: %d %d (%d) (want %d %d)\n", n->pixy, n->pixx, inf->linesize[0], rows, cols);
   int size = av_image_alloc(sframe->data, sframe->linesize,
                             sframe->width, sframe->height,
                             sframe->format, IMGALLOCALIGN);
@@ -251,15 +251,15 @@ int ffmpeg_resize(ncvisual* nc, int rows, int cols){
     av_freep(&sframe);
     return -1;
   }
-  nc->rowstride = sframe->linesize[0];
-  nc->rows = rows;
-  nc->cols = cols;
-  ncvisual_set_data(nc, sframe->data[0], true);
-  if(nc->details->oframe){
-    //av_freep(nc->details->oframe->data);
-    av_freep(&nc->details->oframe);
+  n->rowstride = sframe->linesize[0];
+  n->pixy = rows;
+  n->pixx = cols;
+  ncvisual_set_data(n, sframe->data[0], true);
+  if(n->details->oframe){
+    //av_freep(n->details->oframe->data);
+    av_freep(&n->details->oframe);
   }
-  nc->details->oframe = sframe;
+  n->details->oframe = sframe;
 
 //fprintf(stderr, "SIZE SCALED: %d %d (%u)\n", nc->details->oframe->height, nc->details->oframe->width, nc->details->oframe->linesize[0]);
   return 0;
@@ -505,12 +505,12 @@ int ffmpeg_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
     }
     stride = sframe->linesize[0]; // FIXME check for others?
     data = sframe->data[0];
-//fprintf(stderr, "scaled %d/%d to %d/%d (%d/%d)\n", ncv->rows, ncv->cols, rows, cols, sframe->height, sframe->width);
+//fprintf(stderr, "scaled %d/%d to %d/%d (%d/%d)\n", ncv->rows, ncv->pixx, rows, cols, sframe->height, sframe->width);
   }else{
     stride = ncv->rowstride;
     data = ncv->data;
   }
-//fprintf(stderr, "place: %d/%d rows/cols: %d/%d %d/%d+%d/%d\n", bargs->cell.placey, bargs->cell.placex, rows, cols, begy, begx, leny, lenx);
+//fprintf(stderr, "rows/cols: %d/%d %d/%d\n", rows, cols, leny, lenx);
   if(rgba_blit_dispatch(n, bset, stride, data, leny, lenx, bargs) < 0){
 //fprintf(stderr, "rgba dispatch failed!\n");
     if(sframe){
@@ -532,8 +532,8 @@ void ffmpeg_details_seed(ncvisual* ncv){
   ncv->details->frame->data[1] = NULL;
   ncv->details->frame->linesize[0] = ncv->rowstride;
   ncv->details->frame->linesize[1] = 0;
-  ncv->details->frame->width = ncv->cols;
-  ncv->details->frame->height = ncv->rows;
+  ncv->details->frame->width = ncv->pixx;
+  ncv->details->frame->height = ncv->pixy;
   ncv->details->frame->format = AV_PIX_FMT_RGBA;
 }
 

@@ -106,29 +106,29 @@ ncvisual_blitset_geom(const notcurses* nc, const ncvisual* n,
     return -1;
   }
   if(n){
-//fprintf(stderr, "OUR DATA: %p rows/cols: %d/%d\n", n->data, n->rows, n->cols);
+//fprintf(stderr, "OUR DATA: %p rows/cols: %d/%d\n", n->data, n->pixy, n->pixx);
     if(n->data == NULL){
       logerror(nc, "No data in visual\n");
       return -1;
     }
-//fprintf(stderr, "blit %d/%d to %dx%d+%dx%d scaling: %d\n", n->rows, n->cols, begy, begx, *leny, *lenx, vopts ? vopts->scaling : 0);
-    if(begx >= n->cols || begy >= n->rows){
-      logerror(nc, "Visual too large %d > %d or %d > %d\n", begy, n->rows, begx, n->cols);
+//fprintf(stderr, "blit %d/%d to %dx%d+%dx%d scaling: %d\n", n->pixy, n->pixx, begy, begx, *leny, *lenx, vopts ? vopts->scaling : 0);
+    if(begx >= n->pixx || begy >= n->pixy){
+      logerror(nc, "Visual too large %d > %d or %d > %d\n", begy, n->pixy, begx, n->pixx);
       return -1;
     }
     if(*lenx == 0){ // 0 means "to the end"; use all available source material
-      *lenx = n->cols - begx;
+      *lenx = n->pixx - begx;
     }
     if(*leny == 0){
-      *leny = n->rows - begy;
+      *leny = n->pixy - begy;
     }
-//fprintf(stderr, "blit %d/%d to %dx%d+%dx%d scaling: %d flags: 0x%016lx\n", n->rows, n->cols, begy, begx, *leny, *lenx, vopts ? vopts->scaling : 0, vopts ? vopts->flags : 0);
+//fprintf(stderr, "blit %d/%d to %dx%d+%dx%d scaling: %d flags: 0x%016lx\n", n->pixy, n->pixx, begy, begx, *leny, *lenx, vopts ? vopts->scaling : 0, vopts ? vopts->flags : 0);
     if(*lenx <= 0 || *leny <= 0){ // no need to draw zero-size object, exit
       logerror(nc, "Zero-size object %d %d\n", *leny, *lenx);
       return -1;
     }
-    if(begx + *lenx > n->cols || begy + *leny > n->rows){
-      logerror(nc, "Geometry too large %d > %d or %d > %d\n", begy + *leny, n->rows, begx + *lenx, n->cols);
+    if(begx + *lenx > n->pixx || begy + *leny > n->pixy){
+      logerror(nc, "Geometry too large %d > %d or %d > %d\n", begy + *leny, n->pixy, begx + *lenx, n->pixx);
       return -1;
     }
   }
@@ -142,6 +142,10 @@ ncvisual_blitset_geom(const notcurses* nc, const ncvisual* n,
   }
   if(bset->geom == NCBLIT_PIXEL && vopts){
     if(vopts->n){
+      if(vopts->n == notcurses_stdplane_const(nc)){
+        logerror(nc, "Won't blit bitmaps to the standard plane\n");
+        return -1;
+      }
       if(vopts->y && !(vopts->flags & NCVISUAL_OPTION_VERALIGNED)){
         logerror(nc, "Non-origin y placement %d for sprixel\n", vopts->y);
         return -1;
@@ -167,10 +171,10 @@ ncvisual_blitset_geom(const notcurses* nc, const ncvisual* n,
   }
   if(n){
     if(y){
-      *y = n->rows;
+      *y = n->pixy;
     }
     if(x){
-      *x = n->cols;
+      *x = n->pixx;
     }
   }
   if(scaley){
@@ -240,15 +244,15 @@ int ncvisual_bounding_box(const ncvisual* ncv, int* leny, int* lenx,
   // this row (from the top). said leftmost and rightmost will be the leftmost
   // and rightmost pixel of whichever row has the topmost valid pixel. unlike
   // the topmost, they'll need be further verified.
-  for(trow = 0 ; trow < ncv->rows ; ++trow){
+  for(trow = 0 ; trow < ncv->pixy ; ++trow){
     int x;
-    for(x = 0 ; x < ncv->cols ; ++x){
+    for(x = 0 ; x < ncv->pixx ; ++x){
       uint32_t rgba = ncv->data[trow * ncv->rowstride / 4 + x];
       if(rgba){
         lcol = x; // leftmost pixel of topmost row
         // now find rightmost pixel of topmost row
         int xr;
-        for(xr = ncv->cols - 1 ; xr > x ; --xr){
+        for(xr = ncv->pixx - 1 ; xr > x ; --xr){
           rgba = ncv->data[trow * ncv->rowstride / 4 + xr];
           if(rgba){ // rightmost pixel of topmost row
             break;
@@ -262,27 +266,27 @@ int ncvisual_bounding_box(const ncvisual* ncv, int* leny, int* lenx,
       break;
     }
   }
-  if(trow == ncv->rows){ // no real pixels
+  if(trow == ncv->pixy){ // no real pixels
     *leny = 0;
     *lenx = 0;
     *offy = 0;
     *offx = 0;
   }else{
     assert(lcol >= 0);
-    assert(rcol < ncv->cols);
+    assert(rcol < ncv->pixx);
     // we now know topmost row, and left/rightmost through said row. now we must
     // find the bottommost row, checking left/rightmost throughout.
     int brow;
-    for(brow = ncv->rows - 1 ; brow > trow ; --brow){
+    for(brow = ncv->pixy - 1 ; brow > trow ; --brow){
       int x;
-      for(x = 0 ; x < ncv->cols ; ++x){
+      for(x = 0 ; x < ncv->pixx ; ++x){
         uint32_t rgba = ncv->data[brow * ncv->rowstride / 4 + x];
         if(rgba){
           if(x < lcol){
             lcol = x;
           }
           int xr;
-          for(xr = ncv->cols - 1 ; xr > x && xr > rcol ; --xr){
+          for(xr = ncv->pixx - 1 ; xr > x && xr > rcol ; --xr){
             rgba = ncv->data[brow * ncv->rowstride / 4 + xr];
             if(rgba){ // rightmost pixel of bottommost row
               if(xr > rcol){
@@ -294,7 +298,7 @@ int ncvisual_bounding_box(const ncvisual* ncv, int* leny, int* lenx,
           break;
         }
       }
-      if(x < ncv->cols){
+      if(x < ncv->pixx){
         break;
       }
     }
@@ -308,7 +312,7 @@ int ncvisual_bounding_box(const ncvisual* ncv, int* leny, int* lenx,
           break;
         }
       }
-      for(int x = ncv->cols - 1 ; x > rcol ; --x){
+      for(int x = ncv->pixx - 1 ; x > rcol ; --x){
         uint32_t rgba = ncv->data[y * ncv->rowstride / 4 + x];
         if(rgba){
           rcol = x;
@@ -329,8 +333,8 @@ int ncvisual_bounding_box(const ncvisual* ncv, int* leny, int* lenx,
 // cell to the bottom/right of the center.
 static inline void
 ncvisual_center(const ncvisual* n, int* RESTRICT y, int* RESTRICT x){
-  *y = n->rows;
-  *x = n->cols;
+  *y = n->pixy;
+  *x = n->pixx;
   center_box(y, x);
 }
 
@@ -403,11 +407,11 @@ rotate_bounding_box(double stheta, double ctheta, int* leny, int* lenx,
 
 int ncvisual_rotate(ncvisual* ncv, double rads){
   // done to force conversion into RGBA
-  int err = ncvisual_resize(ncv, ncv->rows, ncv->cols);
+  int err = ncvisual_resize(ncv, ncv->pixy, ncv->pixx);
   if(err){
     return err;
   }
-  assert(ncv->rowstride / 4 >= ncv->cols);
+  assert(ncv->rowstride / 4 >= ncv->pixx);
   rads = -rads; // we're a left-handed Cartesian
   if(ncv->data == NULL){
     return -1;
@@ -420,8 +424,8 @@ int ncvisual_rotate(ncvisual* ncv, double rads){
   // bounding box for real data within the ncvisual. we must only resize to
   // accommodate real data, lest we grow without band as we rotate.
   // see https://github.com/dankamongmen/notcurses/issues/599.
-  int bby = ncv->rows;
-  int bbx = ncv->cols;
+  int bby = ncv->pixy;
+  int bbx = ncv->pixx;
   int bboffy = 0;
   int bboffx = 0;
   if(ncvisual_bounding_box(ncv, &bby, &bbx, &bboffy, &bboffx) <= 0){
@@ -434,16 +438,16 @@ int ncvisual_rotate(ncvisual* ncv, double rads){
   }
   int bbcentx = bbx, bbcenty = bby;
   center_box(&bbcenty, &bbcentx);
-//fprintf(stderr, "stride: %d height: %d width: %d\n", ncv->rowstride, ncv->rows, ncv->cols);
-  assert(ncv->rowstride / 4 >= ncv->cols);
+//fprintf(stderr, "stride: %d height: %d width: %d\n", ncv->rowstride, ncv->pixy, ncv->pixx);
+  assert(ncv->rowstride / 4 >= ncv->pixx);
   uint32_t* data = malloc(bbarea * 4);
   if(data == NULL){
     return -1;
   }
   memset(data, 0, bbarea * 4);
 //fprintf(stderr, "bbarea: %d bby: %d bbx: %d centy: %d centx: %d bbcenty: %d bbcentx: %d\n", bbarea, bby, bbx, centy, centx, bbcenty, bbcentx);
-  for(int y = 0 ; y < ncv->rows ; ++y){
-      for(int x = 0 ; x < ncv->cols ; ++x){
+  for(int y = 0 ; y < ncv->pixy ; ++y){
+      for(int x = 0 ; x < ncv->pixx ; ++x){
       int targx = x, targy = y;
       rotate_point(&targy, &targx, stheta, ctheta, centy, centx);
       const int deconvx = targx - bboffx;
@@ -451,14 +455,14 @@ int ncvisual_rotate(ncvisual* ncv, double rads){
       if(deconvy >= 0 && deconvx >= 0 && deconvy < bby && deconvx < bbx){
         data[deconvy * bbx + deconvx] = ncv->data[y * (ncv->rowstride / 4) + x];
       }
- //     data[deconvy * (ncv->cols) + deconvx] = ncv->data[y * (ncv->rowstride / 4) + x];
+ //     data[deconvy * (ncv->pixx) + deconvx] = ncv->data[y * (ncv->rowstride / 4) + x];
 //fprintf(stderr, "CW: %d/%d (%08x) -> %d/%d (stride: %d)\n", y, x, ncv->data[y * (ncv->rowstride / 4) + x], targy, targx, ncv->rowstride);
-//fprintf(stderr, "wrote %08x to %d (%d)\n", data[targy * ncv->rows + targx], targy * ncv->rows + targx, (targy * ncv->rows + targx) * 4);
+//fprintf(stderr, "wrote %08x to %d (%d)\n", data[targy * ncv->pixy + targx], targy * ncv->pixy + targx, (targy * ncv->pixy + targx) * 4);
     }
   }
   ncvisual_set_data(ncv, data, true);
-  ncv->cols = bbx;
-  ncv->rows = bby;
+  ncv->pixx = bbx;
+  ncv->pixy = bby;
   ncv->rowstride = bbx * 4;
   return 0;
 }
@@ -470,10 +474,10 @@ ncvisual* ncvisual_from_rgba(const void* rgba, int rows, int rowstride, int cols
   ncvisual* ncv = ncvisual_create();
   if(ncv){
     ncv->rowstride = rowstride;
-    ncv->cols = cols;
-    ncv->rows = rows;
-    uint32_t* data = memdup(rgba, rowstride * ncv->rows);
-//fprintf(stderr, "COPY US %zu (%d)\n", rowstride * ncv->rows, ncv->rows);
+    ncv->pixx = cols;
+    ncv->pixy = rows;
+    uint32_t* data = memdup(rgba, rowstride * ncv->pixy);
+//fprintf(stderr, "COPY US %zu (%d)\n", rowstride * ncv->pixy, ncv->pixy);
     if(data == NULL){
       ncvisual_destroy(ncv);
       return NULL;
@@ -492,10 +496,10 @@ ncvisual* ncvisual_from_bgra(const void* bgra, int rows, int rowstride, int cols
   ncvisual* ncv = ncvisual_create();
   if(ncv){
     ncv->rowstride = rowstride;
-    ncv->cols = cols;
-    ncv->rows = rows;
-    uint32_t* data = memdup(bgra, rowstride * ncv->rows);
-    for(int p = 0 ; p < rowstride / 4 * ncv->rows ; ++p){
+    ncv->pixx = cols;
+    ncv->pixy = rows;
+    uint32_t* data = memdup(bgra, rowstride * ncv->pixy);
+    for(int p = 0 ; p < rowstride / 4 * ncv->pixy ; ++p){
       const unsigned r = (data[p] & 0xffllu) << 16u;
       const unsigned b = (data[p] & 0xff0000llu) >> 16u;
       data[p] = (data[p] & 0xff00ff00llu) | r | b;
@@ -514,8 +518,8 @@ ncvisual* ncvisual_from_bgra(const void* bgra, int rows, int rowstride, int cols
 // pixels), which will be mapped to a region of cells scaled by the encodings).
 // the blit will begin at placey/placex (in terms of cells). begy/begx define
 // the origin of the source region to draw (in pixels). leny/lenx defined the
-// geometry of the source region to draw, again in pixels. ncv->rows and
-// ncv->cols define the source geometry in pixels.
+// geometry of the source region to draw, again in pixels. ncv->pixy and
+// ncv->pixx define the source geometry in pixels.
 ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitset* bset,
                                int placey, int placex, int begy, int begx,
                                int leny, int lenx, ncplane* n, ncscale_e scaling,
@@ -525,8 +529,8 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
 //fprintf(stderr, "INPUT N: %p\n", n);
   if(n == NULL){ // create plane
     if(scaling == NCSCALE_NONE || scaling == NCSCALE_NONE_HIRES){
-      dispcols = ncv->cols;
-      disprows = ncv->rows;
+      dispcols = ncv->pixx;
+      disprows = ncv->pixy;
     }else{
       notcurses_term_dim_yx(nc, &disprows, &dispcols);
       dispcols *= encoding_x_scale(&nc->tcache, bset);
@@ -562,8 +566,8 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
     placex = 0;
   }else{
     if(scaling == NCSCALE_NONE || scaling == NCSCALE_NONE_HIRES){
-      dispcols = ncv->cols;
-      disprows = ncv->rows;
+      dispcols = ncv->pixx;
+      disprows = ncv->pixy;
     }else{
       ncplane_dim_yx(n, &disprows, &dispcols);
       dispcols *= encoding_x_scale(&nc->tcache, bset);
@@ -585,9 +589,9 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
       placey = ncplane_valign(n, placey, disprows / encoding_y_scale(&nc->tcache, bset));
     }
   }
-  leny = (leny / (double)ncv->rows) * ((double)disprows);
-  lenx = (lenx / (double)ncv->cols) * ((double)dispcols);
-//fprintf(stderr, "blit: %dx%d:%d+%d of %d/%d stride %u %p\n", begy, begx, leny, lenx, ncv->rows, ncv->cols, ncv->rowstride, ncv->data);
+  leny = (leny / (double)ncv->pixy) * ((double)disprows);
+  lenx = (lenx / (double)ncv->pixx) * ((double)dispcols);
+//fprintf(stderr, "blit: %dx%d:%d+%d of %d/%d stride %u %p\n", begy, begx, leny, lenx, ncv->pixy, ncv->pixx, ncv->rowstride, ncv->data);
   blitterargs bargs;
   if(flags & NCVISUAL_OPTION_ADDALPHA){
     bargs.transcolor = transcolor | 0x1000000ul;
@@ -612,18 +616,22 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
 // only if the target plane is being created.
 // the blit will begin at placey/placex (in terms of cells). begy/begx define
 // the origin of the source region to draw (in pixels). leny/lenx defined the
-// geometry of the source region to draw, again in pixels. ncv->rows and
-// ncv->cols define the source geometry in pixels. if a plane is provided, it
+// geometry of the source region to draw, again in pixels. ncv->pixy and
+// ncv->pixx define the source geometry in pixels. if a plane is provided, it
 // is shrunk to fit the sprixel, if necessary.
 ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blitset* bset,
                                 int placey, int placex, int begy, int begx,
                                 ncplane* n, ncscale_e scaling, uint64_t flags,
                                 uint32_t transcolor){
   ncplane* stdn = notcurses_stdplane(nc);
+  if(n == stdn){
+    logerror(nc, "Won't blit bitmaps to the standard plane\n");
+    return NULL;
+  }
   int disprows = 0, dispcols = 0;
   if(scaling == NCSCALE_NONE || scaling == NCSCALE_NONE_HIRES){
-    dispcols = ncv->cols;
-    disprows = ncv->rows;
+    dispcols = ncv->pixx;
+    disprows = ncv->pixy;
   }
   clamp_to_sixelmax(&nc->tcache, &disprows, &dispcols);
   ncplane* createdn = NULL;
@@ -634,14 +642,12 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
       if(!(flags & NCVISUAL_OPTION_VERALIGNED)){
         disprows -= placey;
       }
-      // some terminals scroll when bitmaps hit the last line
-      --disprows;
+      --disprows; // some terminals will scroll if we blit to the last row
       dispcols *= nc->tcache.cellpixx;
       disprows *= nc->tcache.cellpixy;
       clamp_to_sixelmax(&nc->tcache, &disprows, &dispcols);
       if(scaling == NCSCALE_SCALE || scaling == NCSCALE_SCALE_HIRES){
         scale_visual(ncv, &disprows, &dispcols); // can only shrink
-        // FIXME can't we keep this limited to one clamp-to-6 max?
         clamp_to_sixelmax(&nc->tcache, &disprows, &dispcols);
       }
     }
@@ -708,7 +714,7 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
       return NULL;
     }
   }
-//fprintf(stderr, "pblit: %dx%d <- %dx%d of %d/%d stride %u @%dx%d %p %u\n", disprows, dispcols, begy, begx, ncv->rows, ncv->cols, ncv->rowstride, placey, placex, ncv->data, nc->tcache.cellpixx);
+//fprintf(stderr, "pblit: %dx%d <- %dx%d of %d/%d stride %u @%dx%d %p %u\n", disprows, dispcols, begy, begx, ncv->pixy, ncv->pixx, ncv->rowstride, placey, placex, ncv->data, nc->tcache.cellpixx);
   blitterargs bargs;
   if(flags & NCVISUAL_OPTION_ADDALPHA){
     bargs.transcolor = transcolor | 0x1000000ul;
@@ -739,11 +745,13 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
   }else{
     bargs.u.pixel.cursor_hack = NULL;
   }
+  // FIXME need to pull off the ncpile's sprixellist if anything below fails!
   if(ncvisual_blit(ncv, disprows, dispcols, n, bset, disprows, dispcols, &bargs)){
     ncplane_destroy(createdn);
     return NULL;
   }
-  // ncplane_resize() hides any attached sprixel, so lift it out for a moment
+  // ncplane_resize() hides any attached sprixel, so lift it (the sprixel) out
+  // for a moment as we shrink the plane to fit.
   sprixel* s = n->sprite;
   n->sprite = NULL;
   if(ncplane_resize(n, placey, placex, s->dimy, s->dimx, 0, 0, s->dimy, s->dimx)){
@@ -835,10 +843,10 @@ int ncvisual_simple_streamer(ncvisual* ncv, struct ncvisual_options* vopts,
 }
 
 int ncvisual_set_yx(const struct ncvisual* n, int y, int x, uint32_t pixel){
-  if(y >= n->rows || y < 0){
+  if(y >= n->pixy || y < 0){
     return -1;
   }
-  if(x >= n->cols || x < 0){
+  if(x >= n->pixx || x < 0){
     return -1;
   }
   n->data[y * (n->rowstride / 4) + x] = pixel;
@@ -846,10 +854,10 @@ int ncvisual_set_yx(const struct ncvisual* n, int y, int x, uint32_t pixel){
 }
 
 int ncvisual_at_yx(const ncvisual* n, int y, int x, uint32_t* pixel){
-  if(y >= n->rows || y < 0){
+  if(y >= n->pixy || y < 0){
     return -1;
   }
-  if(x >= n->cols || x < 0){
+  if(x >= n->pixx || x < 0){
     return -1;
   }
   *pixel = n->data[y * (n->rowstride / 4) + x];
@@ -857,10 +865,10 @@ int ncvisual_at_yx(const ncvisual* n, int y, int x, uint32_t* pixel){
 }
 
 int ncvisual_polyfill_recurse(ncvisual* n, int y, int x, uint32_t rgba, uint32_t match){
-  if(y < 0 || y >= n->rows){
+  if(y < 0 || y >= n->pixy){
     return 0;
   }
-  if(x < 0 || x >= n->cols){
+  if(x < 0 || x >= n->pixx){
     return 0;
   }
   uint32_t* pixel = &n->data[y * (n->rowstride / 4) + x];
@@ -878,10 +886,10 @@ int ncvisual_polyfill_recurse(ncvisual* n, int y, int x, uint32_t rgba, uint32_t
 }
 
 int ncvisual_polyfill_yx(ncvisual* n, int y, int x, uint32_t rgba){
-  if(y >= n->rows || y < 0){
+  if(y >= n->pixy || y < 0){
     return -1;
   }
-  if(x >= n->cols || x < 0){
+  if(x >= n->pixx || x < 0){
     return -1;
   }
   uint32_t* pixel = &n->data[y * (n->rowstride / 4) + x];
@@ -961,14 +969,14 @@ int ncvisual_inflate(ncvisual* n, int scale){
   if(scale <= 0){
     return -1;
   }
-  void* inflaton = inflate_bitmap(n->data, scale, n->rows, n->rowstride, n->cols);
+  void* inflaton = inflate_bitmap(n->data, scale, n->pixy, n->rowstride, n->pixx);
   if(inflaton == NULL){
     return -1;
   }
   ncvisual_set_data(n, inflaton, true);
-  n->rows *= scale;
-  n->cols *= scale;
-  n->rowstride = 4 * n->cols;
+  n->pixy *= scale;
+  n->pixx *= scale;
+  n->rowstride = 4 * n->pixx;
   ncvisual_details_seed(n);
   return 0;
 }

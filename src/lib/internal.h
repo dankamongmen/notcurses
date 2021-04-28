@@ -353,7 +353,7 @@ typedef struct ncreader {
   int xproject;               // virtual x location of ncp origin on textarea
   bool horscroll;             // is there horizontal panning?
   bool no_cmd_keys;           // are shortcuts disabled?
-  bool manage_cursor;         // enable and place the terminal cursor
+  bool manage_cursor;         // enable and place a virtual cursor
 } ncreader;
 
 typedef struct ncmenu {
@@ -457,7 +457,6 @@ typedef struct tinfo {
   // query the details of the implementation.
   pthread_mutex_t pixel_query; // only query for pixel support once
   int color_registers; // sixel color registers (post pixel_query_done)
-  int sprixel_height_factor; // sprixel height must be multiple of this
   int sixel_maxx, sixel_maxy; // sixel size maxima (post pixel_query_done)
   int sprixelnonce;      // next sprixel id
   int (*pixel_destroy)(const struct notcurses* nc, const struct ncpile* p, FILE* out, sprixel* s);
@@ -471,6 +470,7 @@ typedef struct tinfo {
   int (*pixel_init)(int fd);     // called when support is detected
   int (*pixel_draw)(const struct ncpile* p, sprixel* s, FILE* out);
   int (*pixel_shutdown)(int fd); // called during context shutdown
+  int sprixel_scale_height; // sprixel must be a multiple of this many rows
   bool bitmap_supported;    // do we support bitmaps (post pixel_query_done)?
   bool sprixel_cursor_hack; // do sprixels reset the cursor? (mlterm)
   bool pixel_query_done;    // have we yet performed pixel query?
@@ -951,7 +951,7 @@ void sprixel_hide(sprixel* s);
 
 int kitty_draw(const ncpile *p, sprixel* s, FILE* out);
 int sixel_draw(const ncpile *p, sprixel* s, FILE* out);
-// dimy and dimx are cell geometry, not pixel.
+// dimy and dimx are cell geometry, not pixel. pixy/pixx are of course pixel.
 sprixel* sprixel_alloc(ncplane* n, int dimy, int dimx, int placey, int placex);
 sprixel* sprixel_recycle(ncplane* n);
 // takes ownership of s on success.
@@ -972,7 +972,10 @@ void sprixel_movefrom(sprixel* s, int y, int x);
 void sprixel_debug(FILE* out, const sprixel* s);
 void sixelmap_free(struct sixelmap *s);
 
-// create an auxiliary vector suitable for a sprixcell, and zero it out
+// create an auxiliary vector suitable for a sprixcell, and zero it out. there
+// are two bytes per pixel in the cell. kitty uses only one (for an alpha
+// value). sixel uses both (for palette index, and transparency). FIXME fold
+// the transparency vector up into 1/8th as many bytes.
 uint8_t* sprixel_auxiliary_vector(const sprixel* s);
 
 int sixel_blit(ncplane* nc, int linesize, const void* data,
@@ -1005,6 +1008,7 @@ sprite_rebuild(const notcurses* nc, sprixel* s, int ycell, int xcell){
     assert(auxvec);
     // sets the new state itself
     ret = nc->tcache.pixel_rebuild(s, ycell, xcell, auxvec);
+    free(auxvec);
   }
   s->n->tam[s->dimx * ycell + xcell].auxvector = NULL;
   return ret;
@@ -1015,8 +1019,10 @@ clamp_to_sixelmax(const tinfo* t, int* y, int* x){
   if(t->sixel_maxy && *y > t->sixel_maxy){
     *y = t->sixel_maxy;
   }
-  if(*y % t->sprixel_height_factor){
-    *y -= (*y % t->sprixel_height_factor);
+  if(*y % t->sprixel_scale_height){
+    // FIXME take it up and use transparent rows, rather than clipping FIXME
+    //*y += t->sprixel_scale_height - (*y % t->sprixel_scale_height);
+    *y -= *y % t->sprixel_scale_height;
   }
   if(t->sixel_maxx && *x > t->sixel_maxx){
     *x = t->sixel_maxx;

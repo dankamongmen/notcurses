@@ -32,7 +32,7 @@ int none_resize(ncvisual* nc, int rows, int cols){
   // we'd need to verify that it's RGBA as well, except that if we've got no
   // multimedia engine, we've only got memory-assembled ncvisuals, which are
   // RGBA-native. so we ought be good, but this is undeniably sloppy...
-  if(nc->rows == rows && nc->cols == cols){
+  if(nc->pixy == rows && nc->pixx == cols){
     return 0;
   }
   return -1;

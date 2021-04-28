@@ -615,6 +615,10 @@ int sixel_blit(ncplane* n, int linesize, const void* data,
   if(colorregs > 256){
     colorregs = 256;
   }
+  // FIXME enforce this in discovery, possibly raising the value
+  if(colorregs < 64){
+    return -1;
+  }
   sixeltable stable = {
     .map = sixelmap_create(colorregs, leny - bargs->begy, lenx - bargs->begx),
     .deets = malloc(colorregs * sizeof(cdetails)),
@@ -726,19 +730,65 @@ int sixel_init(int fd){
 // modifying a Sixel -- we want to do them all in one batch.
 int sixel_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
   s->wipes_outstanding = true;
-  (void)ycell;
-  (void)xcell;
-  (void)auxvec;
+  sixelmap* smap = s->smap;
+  const int startx = xcell * s->cellpxx;
+  const int starty = ycell * s->cellpxy;
+  int endx = ((xcell + 1) * s->cellpxx) - 1;
+  if(endx > s->pixx){
+    endx = s->pixx;
+  }
+  int endy = ((ycell + 1) * s->cellpxy) - 1;
+  if(endy > s->pixy){
+    endy = s->pixy;
+  }
+  int transparent = 0;
+//fprintf(stderr, "%d/%d start: %d/%d end: %d/%d bands: %d-%d\n", ycell, xcell, starty, startx, endy, endx, starty / 6, endy / 6);
+  for(int x = startx ; x <= endx ; ++x){
+    for(int y = starty ; y <= endy ; ++y){
+      int auxvecidx = (y - starty) * s->cellpxx + (x - startx);
+      int trans = auxvec[s->cellpxx * s->cellpxy + auxvecidx];
+      if(!trans){
+        int color = auxvec[auxvecidx];
+        int didx = ctable_to_dtable(smap->table + color * CENTSIZE);
+        int coff = smap->sixelcount * didx;
+        int band = y / 6;
+        int boff = coff + band * s->pixx;
+        int xoff = boff + x;
+//fprintf(stderr, "DIDX: %d %d/%d band: %d coff: %d boff: %d rebuild %d/%d with color %d from %d %p xoff: %d\n", didx, ycell, xcell, band, coff, boff, y, x, color, auxvecidx, auxvec, xoff);
+        s->smap->data[xoff] |= (1u << (y % 6));
+      }else{
+        ++transparent;
+      }
+    }
+  }
+  sprixcell_e newstate;
+  if(transparent == s->cellpxx * s->cellpxy){
+    newstate = SPRIXCELL_TRANSPARENT;
+  }else if(transparent){
+    newstate = SPRIXCELL_MIXED_SIXEL;
+  }else{
+    newstate = SPRIXCELL_OPAQUE_SIXEL;
+  }
+  s->n->tam[s->dimx * ycell + xcell].state = newstate;
   return 0;
 }
 
-// wipe the color from startx to endx, from starty to endy
-static inline void
+// wipe the color from startx to endx, from starty to endy. returns 1 if any
+// pixels were actually wiped.
+static inline int
 wipe_color(sixelmap* smap, int color, int sband, int eband,
-           int startx, int endx, int starty, int endy, int dimx){
-//fprintf(stderr, "B: %d-%d Y: %d-%d X: %d-%d\n", sband, eband, starty, endy, startx, endx);
-  for(int b = sband ; b < eband ; ++b){
-    const int boff = b * dimx; // offset in data where band starts
+           int startx, int endx, int starty, int endy, int dimx,
+           int cellpixy, int cellpixx, uint8_t* auxvec){
+  int wiped = 0;
+  int didx = ctable_to_dtable(smap->table + color * CENTSIZE);
+  // offset into map->data where our color starts
+  int coff = smap->sixelcount * didx;
+//fprintf(stderr, "didx: %d sixels: %d color: %d B: %d-%d Y: %d-%d X: %d-%d coff: %d\n", didx, smap->sixelcount, color, sband, eband, starty, endy, startx, endx, coff);
+  // we're going to repurpose starty as "starting row of this band", so keep it
+  // around as originy for auxvecidx computations
+  int originy = starty;
+  for(int b = sband ; b <= eband && b * 6 < endy ; ++b){
+    const int boff = coff + b * dimx; // offset in data where band starts
     unsigned char mask = 63;
     for(int i = 0 ; i < 6 ; ++i){
       if(b * 6 + i >= starty && b * 6 + i <= endy){
@@ -748,14 +798,31 @@ wipe_color(sixelmap* smap, int color, int sband, int eband,
     }
     for(int x = startx ; x <= endx ; ++x){
       const int xoff = boff + x;
-//fprintf(stderr, "band: %d color: %d idx: %d\n", b, color, color * smap->sixelcount + xoff);
+      assert(xoff < smap->sixelcount);
+//fprintf(stderr, "band: %d color: %d idx: %d mask: %02x\n", b, color, color * smap->sixelcount + xoff, mask);
 //fprintf(stderr, "color: %d idx: %d data: %02x\n", color, color * smap->sixelcount + xoff, smap->data[color * smap->sixelcount + xoff]);
-      //smap->data[color * smap->sixelcount + xoff] |= mask;
-      smap->data[color * smap->sixelcount + xoff] = 0;
+      // this is the auxvec position of the upperleftmost pixel of the sixel
+      // there will be up to five more, each cellpxx away, for the five pixels
+      // below it. there will be cellpxx - 1 after it, each with their own five.
+//fprintf(stderr, "smap->data[%d] = %02x boff: %d x: %d color: %d\n", xoff, smap->data[xoff], boff, x, color);
+      for(int i = 0 ; i < 6 && b * 6 + i <= endy ; ++i){
+        int auxvecidx = (x - startx) + ((b * 6 + i - originy) * cellpixx);
+        unsigned bit = 1u << i;
+        if(!(mask & bit) && (smap->data[xoff] & bit)){
+//fprintf(stderr, "band %d %d/%d writing %d to auxvec[%d] %p xoff: %d boff: %d\n", b, b * 6 + i, x, color, auxvecidx, auxvec, xoff, boff);
+          auxvec[auxvecidx] = color;
+          auxvec[cellpixx * cellpixy + auxvecidx] = 0;
+        }
+      }
+      if((smap->data[xoff] & mask) != smap->data[xoff]){
+        smap->data[xoff] &= mask;
+        wiped = 1;
+      }
 //fprintf(stderr, "post: %02x\n", smap->data[color * smap->sixelcount + xoff]);
     }
     starty = (starty + 6) / 6 * 6;
   }
+  return wiped;
 }
 
 // we return -1 because we're not doing a proper wipe -- that's not possible
@@ -766,6 +833,9 @@ int sixel_wipe(sprixel* s, int ycell, int xcell){
 //fprintf(stderr, "CACHED WIPE %d %d/%d\n", s->id, ycell, xcell);
     return 1; // already annihilated FIXME but 0 breaks things
   }
+//fprintf(stderr, "WIPING %d/%d\n", ycell, xcell);
+  uint8_t* auxvec = sprixel_auxiliary_vector(s);
+  memset(auxvec + s->cellpxx * s->cellpxy, 0xff, s->cellpxx * s->cellpxy);
   sixelmap* smap = s->smap;
   const int startx = xcell * s->cellpxx;
   const int starty = ycell * s->cellpxy;
@@ -781,12 +851,17 @@ int sixel_wipe(sprixel* s, int ycell, int xcell){
   const int endband = endy / 6;
 //fprintf(stderr, "y/x: %d/%d start: %d/%d end: %d/%d\n", ycell, xcell, starty, startx, endy, endx);
   // walk through each color, and wipe the necessary sixels from each band
+  int w = 0;
   for(int c = 0 ; c < smap->colors ; ++c){
-    wipe_color(smap, c, startband, endband, startx, endx, starty, endy, s->pixx);
+    w |= wipe_color(smap, c, startband, endband, startx, endx, starty, endy,
+                    s->pixx, s->cellpxy, s->cellpxx, auxvec);
   }
-  s->wipes_outstanding = true;
+  if(w){
+    s->wipes_outstanding = true;
+  }
   change_p2(s->glyph, SIXEL_P2_TRANS);
-  return -1;
+  s->n->tam[s->dimx * ycell + xcell].auxvector = auxvec;
+  return 0;
 }
 
 // 80 (sixel scrolling) is enabled by default. 8452 is not. XTSAVE/XTRESTORE

@@ -22,11 +22,15 @@ void sprixel_debug(FILE* out, const sprixel* s){
     for(int y = 0 ; y < s->dimy ; ++y){
       for(int x = 0 ; x < s->dimx ; ++x){
         if(s->n->tam[idx].state == SPRIXCELL_ANNIHILATED){
-          fprintf(out, "%03d] ", idx);
-          for(int p = 0 ; p < s->cellpxx * s->cellpxy ; ++p){
-            fprintf(out, "%02x ", s->n->tam[idx].auxvector[idx]);
+          if(s->n->tam[idx].auxvector){
+            fprintf(out, "%03d] ", idx);
+            for(int p = 0 ; p < s->cellpxx * s->cellpxy ; ++p){
+              fprintf(out, "%02x ", s->n->tam[idx].auxvector[idx]);
+            }
+            fprintf(out, "\n");
+          }else{
+            fprintf(out, "%03d] missing!\n", idx);
           }
-          fprintf(out, "\n");
         }
         ++idx;
       }
@@ -147,7 +151,7 @@ sprixel* sprixel_alloc(ncplane* n, int dimy, int dimx, int placey, int placex){
 }
 
 // 'y' and 'x' are the cell geometry, not the pixel geometry. takes
-// ownership of 's' on success.
+// ownership of 's' on success. pixel geometry ought include any Sixel excess.
 int sprixel_load(sprixel* spx, char* s, int bytes, int placey, int placex,
                  int pixy, int pixx, int parse_start){
   assert(spx->n);
@@ -196,7 +200,9 @@ int sprite_init(const notcurses* nc){
 
 uint8_t* sprixel_auxiliary_vector(const sprixel* s){
   int pixels = s->cellpxy * s->cellpxx;
-  uint8_t* ret = malloc(sizeof(*ret) * pixels);
+  // for now we just do two bytes per pixel. we ought squeeze the transparency
+  // vector down to a bit per pixel, rather than a byte FIXME.
+  uint8_t* ret = malloc(sizeof(*ret) * pixels * 2);
   memset(ret, 0, sizeof(*ret) * pixels);
   return ret;
 }
