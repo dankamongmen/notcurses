@@ -469,7 +469,7 @@ typedef struct tinfo {
   int (*pixel_rebuild)(sprixel* s, int y, int x, uint8_t* auxvec);
   int (*pixel_remove)(int id, FILE* out); // kitty only, issue actual delete command
   int (*pixel_init)(int fd);     // called when support is detected
-  int (*pixel_draw)(const struct notcurses* n, const struct ncpile* p, sprixel* s, FILE* out);
+  int (*pixel_draw)(const struct ncpile* p, sprixel* s, FILE* out);
   int (*pixel_shutdown)(int fd); // called during context shutdown
   bool bitmap_supported;    // do we support bitmaps (post pixel_query_done)?
   bool sprixel_cursor_hack; // do sprixels reset the cursor? (mlterm)
@@ -949,8 +949,8 @@ int kitty_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
 void sprixel_free(sprixel* s);
 void sprixel_hide(sprixel* s);
 
-int kitty_draw(const notcurses* n, const ncpile *p, sprixel* s, FILE* out);
-int sixel_draw(const notcurses* n, const ncpile *p, sprixel* s, FILE* out);
+int kitty_draw(const ncpile *p, sprixel* s, FILE* out);
+int sixel_draw(const ncpile *p, sprixel* s, FILE* out);
 // dimy and dimx are cell geometry, not pixel.
 sprixel* sprixel_alloc(ncplane* n, int dimy, int dimx, int placey, int placex);
 sprixel* sprixel_recycle(ncplane* n);
@@ -990,7 +990,7 @@ sprite_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
 static inline int
 sprite_draw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
 //sprixel_debug(stderr, s);
-  return n->tcache.pixel_draw(n, p, s, out);
+  return n->tcache.pixel_draw(p, s, out);
 }
 
 static inline int
