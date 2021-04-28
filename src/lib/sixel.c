@@ -562,6 +562,8 @@ sixel_blit_inner(int leny, int lenx, const sixeltable* stab, int rows, int cols,
     free(buf);
     return -1;
   }
+  sixelmap_trim(stab->map);
+  bargs->u.pixel.spx->smap = stab->map;
   return 1;
 }
 
