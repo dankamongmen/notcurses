@@ -93,9 +93,7 @@ orcaride(struct notcurses* nc, struct ncplane* on){
   ncplane_dim_yx(notcurses_stdplane(nc), NULL, &dimx);
   ncplane_yx(on, &oy, &ox);
   ncplane_dim_yx(on, &odimy, &odimx);
-  if(ox >= (dimx - odimx) / 4){
-    ox -= (dimx - odimx) / 4;
-  }
+  ox -= 3;
   if(ox < 1){
     ox = 1;
   }
@@ -239,14 +237,12 @@ int intro(struct notcurses* nc){
     }
     demo_nanosleep(nc, &iter);
     clock_gettime(CLOCK_MONOTONIC, &now);
-    if(flipmode % 4 == 1){
-      if(!on){
-        if(notcurses_check_pixel_support(nc) && notcurses_canopen_images(nc)){
-          on = orcashow(nc, rows, cols);
-        }
-      }else{
-        orcaride(nc, on);
+    if(!on){
+      if(notcurses_check_pixel_support(nc) && notcurses_canopen_images(nc)){
+        on = orcashow(nc, rows, cols);
       }
+    }else{
+      orcaride(nc, on);
     }
   }while(timespec_to_ns(&now) < deadline || flipmode < 20);
   ncplane_destroy(on);
