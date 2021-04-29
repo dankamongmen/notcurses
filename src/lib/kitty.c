@@ -314,7 +314,6 @@ int kitty_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
 //fprintf(stderr, "CLEARED ROW, TARGY: %d\n", targy - 1);
         if(--targy == 0){
           s->n->tam[s->dimx * ycell + xcell].state = state;
-          free(auxvec);
           return 0;
         }
         thisrow = targx;
