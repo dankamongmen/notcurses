@@ -50,7 +50,7 @@ TEST_CASE("Blitting") {
         CHECK(0 == strcmp(" ", egc));
         free(egc);
         CHECK(0 == stylemask);
-        uint32_t rgb = htole(channels_bg_rgb(channels));
+        uint32_t rgb = htole(ncchannels_bg_rgb(channels));
         CHECK(ncpixel_r(bgra) == ncpixel_r(rgb));
         CHECK(ncpixel_g(bgra) == ncpixel_g(rgb));
         CHECK(ncpixel_b(bgra) == ncpixel_b(rgb));
@@ -100,7 +100,7 @@ TEST_CASE("Blitting") {
         CHECK(0 == strcmp(" ", egc));
         free(egc);
         CHECK(0 == stylemask);
-        uint32_t rgb = htole(channels_bg_rgb(channels));
+        uint32_t rgb = htole(ncchannels_bg_rgb(channels));
         CHECK(ncpixel_r(bgra) == ncpixel_r(rgb));
         CHECK(ncpixel_g(bgra) == ncpixel_g(rgb));
         CHECK(ncpixel_b(bgra) == ncpixel_b(rgb));

@@ -1219,51 +1219,51 @@ void ncplane_set_channels(ncplane* n, uint64_t channels){
 }
 
 void ncplane_set_fg_default(ncplane* n){
-  channels_set_fg_default(&n->channels);
+  ncchannels_set_fg_default(&n->channels);
 }
 
 uint64_t ncplane_set_fchannel(ncplane* n, uint32_t channel){
-  return channels_set_fchannel(&n->channels, channel);
+  return ncchannels_set_fchannel(&n->channels, channel);
 }
 
 uint64_t ncplane_set_bchannel(ncplane* n, uint32_t channel){
-  return channels_set_bchannel(&n->channels, channel);
+  return ncchannels_set_bchannel(&n->channels, channel);
 }
 
 void ncplane_set_bg_default(ncplane* n){
-  channels_set_bg_default(&n->channels);
+  ncchannels_set_bg_default(&n->channels);
 }
 
 void ncplane_set_bg_rgb8_clipped(ncplane* n, int r, int g, int b){
-  channels_set_bg_rgb8_clipped(&n->channels, r, g, b);
+  ncchannels_set_bg_rgb8_clipped(&n->channels, r, g, b);
 }
 
 int ncplane_set_bg_rgb8(ncplane* n, int r, int g, int b){
-  return channels_set_bg_rgb8(&n->channels, r, g, b);
+  return ncchannels_set_bg_rgb8(&n->channels, r, g, b);
 }
 
 void ncplane_set_fg_rgb8_clipped(ncplane* n, int r, int g, int b){
-  channels_set_fg_rgb8_clipped(&n->channels, r, g, b);
+  ncchannels_set_fg_rgb8_clipped(&n->channels, r, g, b);
 }
 
 int ncplane_set_fg_rgb8(ncplane* n, int r, int g, int b){
-  return channels_set_fg_rgb8(&n->channels, r, g, b);
+  return ncchannels_set_fg_rgb8(&n->channels, r, g, b);
 }
 
 int ncplane_set_fg_rgb(ncplane* n, unsigned channel){
-  return channels_set_fg_rgb(&n->channels, channel);
+  return ncchannels_set_fg_rgb(&n->channels, channel);
 }
 
 int ncplane_set_bg_rgb(ncplane* n, unsigned channel){
-  return channels_set_bg_rgb(&n->channels, channel);
+  return ncchannels_set_bg_rgb(&n->channels, channel);
 }
 
 int ncplane_set_fg_alpha(ncplane* n, int alpha){
-  return channels_set_fg_alpha(&n->channels, alpha);
+  return ncchannels_set_fg_alpha(&n->channels, alpha);
 }
 
 int ncplane_set_bg_alpha(ncplane *n, int alpha){
-  return channels_set_bg_alpha(&n->channels, alpha);
+  return ncchannels_set_bg_alpha(&n->channels, alpha);
 }
 
 int ncplane_set_fg_palindex(ncplane* n, int idx){
@@ -1272,7 +1272,7 @@ int ncplane_set_fg_palindex(ncplane* n, int idx){
   }
   n->channels |= CELL_FGDEFAULT_MASK;
   n->channels |= CELL_FG_PALETTE;
-  channels_set_fg_alpha(&n->channels, CELL_ALPHA_OPAQUE);
+  ncchannels_set_fg_alpha(&n->channels, CELL_ALPHA_OPAQUE);
   n->stylemask &= 0xffff00ff;
   n->stylemask |= (idx << 8u);
   return 0;
@@ -1284,7 +1284,7 @@ int ncplane_set_bg_palindex(ncplane* n, int idx){
   }
   n->channels |= CELL_BGDEFAULT_MASK;
   n->channels |= CELL_BG_PALETTE;
-  channels_set_bg_alpha(&n->channels, CELL_ALPHA_OPAQUE);
+  ncchannels_set_bg_alpha(&n->channels, CELL_ALPHA_OPAQUE);
   n->stylemask &= 0xffffff00;
   n->stylemask |= idx;
   return 0;
@@ -1709,13 +1709,13 @@ int ncplane_hline_interp(ncplane* n, const nccell* c, int len,
   unsigned ur, ug, ub;
   int r1, g1, b1, r2, g2, b2;
   int br1, bg1, bb1, br2, bg2, bb2;
-  channels_fg_rgb8(c1, &ur, &ug, &ub);
+  ncchannels_fg_rgb8(c1, &ur, &ug, &ub);
   r1 = ur; g1 = ug; b1 = ub;
-  channels_fg_rgb8(c2, &ur, &ug, &ub);
+  ncchannels_fg_rgb8(c2, &ur, &ug, &ub);
   r2 = ur; g2 = ug; b2 = ub;
-  channels_bg_rgb8(c1, &ur, &ug, &ub);
+  ncchannels_bg_rgb8(c1, &ur, &ug, &ub);
   br1 = ur; bg1 = ug; bb1 = ub;
-  channels_bg_rgb8(c2, &ur, &ug, &ub);
+  ncchannels_bg_rgb8(c2, &ur, &ug, &ub);
   br2 = ur; bg2 = ug; bb2 = ub;
   int deltr = r2 - r1;
   int deltg = g2 - g1;
@@ -1729,10 +1729,10 @@ int ncplane_hline_interp(ncplane* n, const nccell* c, int len,
     return -1;
   }
   bool fgdef = false, bgdef = false;
-  if(channels_fg_default_p(c1) && channels_fg_default_p(c2)){
+  if(ncchannels_fg_default_p(c1) && ncchannels_fg_default_p(c2)){
     fgdef = true;
   }
-  if(channels_bg_default_p(c1) && channels_bg_default_p(c2)){
+  if(ncchannels_bg_default_p(c1) && ncchannels_bg_default_p(c2)){
     bgdef = true;
   }
   for(ret = 0 ; ret < len ; ++ret){
@@ -1761,13 +1761,13 @@ int ncplane_vline_interp(ncplane* n, const nccell* c, int len,
   unsigned ur, ug, ub;
   int r1, g1, b1, r2, g2, b2;
   int br1, bg1, bb1, br2, bg2, bb2;
-  channels_fg_rgb8(c1, &ur, &ug, &ub);
+  ncchannels_fg_rgb8(c1, &ur, &ug, &ub);
   r1 = ur; g1 = ug; b1 = ub;
-  channels_fg_rgb8(c2, &ur, &ug, &ub);
+  ncchannels_fg_rgb8(c2, &ur, &ug, &ub);
   r2 = ur; g2 = ug; b2 = ub;
-  channels_bg_rgb8(c1, &ur, &ug, &ub);
+  ncchannels_bg_rgb8(c1, &ur, &ug, &ub);
   br1 = ur; bg1 = ug; bb1 = ub;
-  channels_bg_rgb8(c2, &ur, &ug, &ub);
+  ncchannels_bg_rgb8(c2, &ur, &ug, &ub);
   br2 = ur; bg2 = ug; bb2 = ub;
   int deltr = (r2 - r1) / (len + 1);
   int deltg = (g2 - g1) / (len + 1);
@@ -1782,10 +1782,10 @@ int ncplane_vline_interp(ncplane* n, const nccell* c, int len,
     return -1;
   }
   bool fgdef = false, bgdef = false;
-  if(channels_fg_default_p(c1) && channels_fg_default_p(c2)){
+  if(ncchannels_fg_default_p(c1) && ncchannels_fg_default_p(c2)){
     fgdef = true;
   }
-  if(channels_bg_default_p(c1) && channels_bg_default_p(c2)){
+  if(ncchannels_bg_default_p(c1) && ncchannels_bg_default_p(c2)){
     bgdef = true;
   }
   for(ret = 0 ; ret < len ; ++ret){
@@ -2539,8 +2539,8 @@ uint32_t* ncplane_as_rgba(const ncplane* nc, ncblitter_e blit,
         uint32_t* top = &ret[targy * lenx + targx];
         uint32_t* bot = &ret[(targy + 1) * lenx + targx];
         unsigned fr, fg, fb, br, bg, bb;
-        channels_fg_rgb8(channels, &fr, &fb, &fg);
-        channels_bg_rgb8(channels, &br, &bb, &bg);
+        ncchannels_fg_rgb8(channels, &fr, &fb, &fg);
+        ncchannels_bg_rgb8(channels, &br, &bb, &bg);
         // FIXME how do we deal with transparency?
         uint32_t frgba = (fr) + (fg << 16u) + (fb << 8u) + 0xff000000;
         uint32_t brgba = (br) + (bg << 16u) + (bb << 8u) + 0xff000000;

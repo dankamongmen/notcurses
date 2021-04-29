@@ -37,7 +37,7 @@ alloc_ncplane_palette(ncplane* n, ncfadectx* pp, const struct timespec* ts){
     for(x = 0 ; x < pp->cols ; ++x){
       channels = n->fb[nfbcellidx(n, y, x)].channels;
       pp->channels[y * pp->cols + x] = channels;
-      channels_fg_rgb8(channels, &r, &g, &b);
+      ncchannels_fg_rgb8(channels, &r, &g, &b);
       if(r > pp->maxr){
         pp->maxr = r;
       }
@@ -47,7 +47,7 @@ alloc_ncplane_palette(ncplane* n, ncfadectx* pp, const struct timespec* ts){
       if(b > pp->maxb){
         pp->maxb = b;
       }
-      channels_bg_rgb8(channels, &br, &bg, &bb);
+      ncchannels_bg_rgb8(channels, &br, &bg, &bb);
       if(br > pp->maxbr){
         pp->maxbr = br;
       }
@@ -61,7 +61,7 @@ alloc_ncplane_palette(ncplane* n, ncfadectx* pp, const struct timespec* ts){
   }
   channels = n->basecell.channels;
   pp->channels[y * pp->cols] = channels;
-  channels_fg_rgb8(channels, &r, &g, &b);
+  ncchannels_fg_rgb8(channels, &r, &g, &b);
   if(r > pp->maxr){
     pp->maxr = r;
   }
@@ -71,7 +71,7 @@ alloc_ncplane_palette(ncplane* n, ncfadectx* pp, const struct timespec* ts){
   if(b > pp->maxb){
     pp->maxb = b;
   }
-  channels_bg_rgb8(channels, &br, &bg, &bb);
+  ncchannels_bg_rgb8(channels, &br, &bg, &bb);
   if(br > pp->maxbr){
     pp->maxbr = br;
   }
@@ -116,9 +116,9 @@ int ncplane_fadein_iteration(ncplane* n, ncfadectx* nctx, int iter,
   for(y = 0 ; y < nctx->rows && y < dimy ; ++y){
     for(x = 0 ; x < nctx->cols && x < dimx; ++x){
       unsigned r, g, b;
-      channels_fg_rgb8(nctx->channels[nctx->cols * y + x], &r, &g, &b);
+      ncchannels_fg_rgb8(nctx->channels[nctx->cols * y + x], &r, &g, &b);
       unsigned br, bg, bb;
-      channels_bg_rgb8(nctx->channels[nctx->cols * y + x], &br, &bg, &bb);
+      ncchannels_bg_rgb8(nctx->channels[nctx->cols * y + x], &br, &bg, &bb);
       nccell* c = &n->fb[dimx * y + x];
       if(!nccell_fg_default_p(c)){
         r = r * iter / nctx->maxsteps;
@@ -184,14 +184,14 @@ int ncplane_fadeout_iteration(ncplane* n, ncfadectx* nctx, int iter,
     for(x = 0 ; x < nctx->cols && x < dimx; ++x){
       nccell* c = &n->fb[dimx * y + x];
       if(!nccell_fg_default_p(c)){
-        channels_fg_rgb8(nctx->channels[nctx->cols * y + x], &r, &g, &b);
+        ncchannels_fg_rgb8(nctx->channels[nctx->cols * y + x], &r, &g, &b);
         r = r * (nctx->maxsteps - iter) / nctx->maxsteps;
         g = g * (nctx->maxsteps - iter) / nctx->maxsteps;
         b = b * (nctx->maxsteps - iter) / nctx->maxsteps;
         nccell_set_fg_rgb8(c, r, g, b);
       }
       if(!nccell_bg_default_p(c)){
-        channels_bg_rgb8(nctx->channels[nctx->cols * y + x], &br, &bg, &bb);
+        ncchannels_bg_rgb8(nctx->channels[nctx->cols * y + x], &br, &bg, &bb);
         br = br * (nctx->maxsteps - iter) / nctx->maxsteps;
         bg = bg * (nctx->maxsteps - iter) / nctx->maxsteps;
         bb = bb * (nctx->maxsteps - iter) / nctx->maxsteps;
@@ -201,14 +201,14 @@ int ncplane_fadeout_iteration(ncplane* n, ncfadectx* nctx, int iter,
   }
   nccell* c = &n->basecell;
   if(!nccell_fg_default_p(c)){
-    channels_fg_rgb8(nctx->channels[nctx->cols * y], &r, &g, &b);
+    ncchannels_fg_rgb8(nctx->channels[nctx->cols * y], &r, &g, &b);
     r = r * (nctx->maxsteps - iter) / nctx->maxsteps;
     g = g * (nctx->maxsteps - iter) / nctx->maxsteps;
     b = b * (nctx->maxsteps - iter) / nctx->maxsteps;
     nccell_set_fg_rgb8(&n->basecell, r, g, b);
   }
   if(!nccell_bg_default_p(c)){
-    channels_bg_rgb8(nctx->channels[nctx->cols * y], &br, &bg, &bb);
+    ncchannels_bg_rgb8(nctx->channels[nctx->cols * y], &br, &bg, &bb);
     br = br * (nctx->maxsteps - iter) / nctx->maxsteps;
     bg = bg * (nctx->maxsteps - iter) / nctx->maxsteps;
     bb = bb * (nctx->maxsteps - iter) / nctx->maxsteps;

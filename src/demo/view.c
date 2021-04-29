@@ -72,7 +72,7 @@ legend(struct ncplane* stdn, int dimy, int dimx){
   struct ncplane* n = ncplane_create(stdn, &nopts);
   ncplane_set_bg_alpha(n, CELL_ALPHA_TRANSPARENT);
   uint64_t channels = 0;
-  channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+  ncchannels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
   ncplane_set_base(n, " ", 0, channels);
   ncplane_set_styles(n, NCSTYLE_BOLD);
   ncplane_set_fg_rgb8(n, 0xff, 0xff, 0xff);
@@ -136,8 +136,8 @@ view_images(struct notcurses* nc, struct ncplane* nstd, int dimy, int dimx){
     return -1;
   }
   uint64_t channels = 0;
-  channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
-  channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+  ncchannels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+  ncchannels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
   ncplane_set_base(dsplane, "", 0, channels);
   ncvisual_destroy(ncv2);
   demo_render(nc);

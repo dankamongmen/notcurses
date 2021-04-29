@@ -495,8 +495,8 @@ static int
 scrub_stdplane(struct notcurses* nc){
   struct ncplane* n = notcurses_stdplane(nc);
   uint64_t channels = 0;
-  channels_set_fg_rgb(&channels, 0); // explicit black + opaque
-  channels_set_bg_rgb(&channels, 0);
+  ncchannels_set_fg_rgb(&channels, 0); // explicit black + opaque
+  ncchannels_set_bg_rgb(&channels, 0);
   if(ncplane_set_base(n, "", 0, channels)){
     return -1;
   }

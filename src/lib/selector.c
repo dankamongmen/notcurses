@@ -174,12 +174,12 @@ ncselector_draw(ncselector* n){
     }
     n->ncp->channels = n->opchannels;
     if(printidx == n->selected){
-      n->ncp->channels = (uint64_t)channels_bchannel(n->opchannels) << 32u | channels_fchannel(n->opchannels);
+      n->ncp->channels = (uint64_t)ncchannels_bchannel(n->opchannels) << 32u | ncchannels_fchannel(n->opchannels);
     }
     ncplane_printf_yx(n->ncp, yoff, bodyoffset + (n->longop - n->items[printidx].opcolumns), "%s", n->items[printidx].option);
     n->ncp->channels = n->descchannels;
     if(printidx == n->selected){
-      n->ncp->channels = (uint64_t)channels_bchannel(n->descchannels) << 32u | channels_fchannel(n->descchannels);
+      n->ncp->channels = (uint64_t)ncchannels_bchannel(n->descchannels) << 32u | ncchannels_fchannel(n->descchannels);
     }
     ncplane_printf_yx(n->ncp, yoff, bodyoffset + n->longop, " %s", n->items[printidx].desc);
     if(++printidx == n->itemcount){
@@ -652,7 +652,7 @@ ncmultiselector_draw(ncmultiselector* n){
     }
     n->ncp->channels = n->descchannels;
     if(printidx == n->current){
-      n->ncp->channels = (uint64_t)channels_bchannel(n->descchannels) << 32u | channels_fchannel(n->descchannels);
+      n->ncp->channels = (uint64_t)ncchannels_bchannel(n->descchannels) << 32u | ncchannels_fchannel(n->descchannels);
     }
     if(notcurses_canutf8(ncplane_notcurses(n->ncp))){
       ncplane_putegc_yx(n->ncp, yoff, bodyoffset, n->items[printidx].selected ? "☒" : "☐", NULL);
@@ -661,12 +661,12 @@ ncmultiselector_draw(ncmultiselector* n){
     }
     n->ncp->channels = n->opchannels;
     if(printidx == n->current){
-      n->ncp->channels = (uint64_t)channels_bchannel(n->opchannels) << 32u | channels_fchannel(n->opchannels);
+      n->ncp->channels = (uint64_t)ncchannels_bchannel(n->opchannels) << 32u | ncchannels_fchannel(n->opchannels);
     }
     ncplane_printf(n->ncp, " %s ", n->items[printidx].option);
     n->ncp->channels = n->descchannels;
     if(printidx == n->current){
-      n->ncp->channels = (uint64_t)channels_bchannel(n->descchannels) << 32u | channels_fchannel(n->descchannels);
+      n->ncp->channels = (uint64_t)ncchannels_bchannel(n->descchannels) << 32u | ncchannels_fchannel(n->descchannels);
     }
     ncplane_printf(n->ncp, "%s", n->items[printidx].desc);
     if(++printidx == n->itemcount){

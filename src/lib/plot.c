@@ -171,23 +171,23 @@ int redraw_plot_##T(nc##X##plot* ncp){ \
           } \
           utf8[bytes] = '\0'; \
           nccell* c = ncplane_cell_ref_yx(ncp->ncp, dimy - y - 1, x); \
-          cell_set_bchannel(c, channels_bchannel(channels)); \
-          cell_set_fchannel(c, channels_fchannel(channels)); \
+          cell_set_bchannel(c, ncchannels_bchannel(channels)); \
+          cell_set_fchannel(c, ncchannels_fchannel(channels)); \
           nccell_set_styles(c, NCSTYLE_NONE); \
           if(pool_blit_direct(&ncp->ncp->pool, c, utf8, bytes, 1) <= 0){ \
             return -1; \
           } \
         }else{ \
-          const uint64_t swapbg = channels_bchannel(channels); \
-          const uint64_t swapfg = channels_fchannel(channels); \
-          channels_set_bchannel(&channels, swapfg); \
-          channels_set_fchannel(&channels, swapbg); \
+          const uint64_t swapbg = ncchannels_bchannel(channels); \
+          const uint64_t swapfg = ncchannels_fchannel(channels); \
+          ncchannels_set_bchannel(&channels, swapfg); \
+          ncchannels_set_fchannel(&channels, swapbg); \
           ncplane_set_channels(ncp->ncp, channels); \
           if(ncplane_putchar_yx(ncp->ncp, dimy - y - 1, x, ' ') <= 0){ \
             return -1; \
           } \
-          channels_set_bchannel(&channels, swapbg); \
-          channels_set_fchannel(&channels, swapfg); \
+          ncchannels_set_bchannel(&channels, swapbg); \
+          ncchannels_set_fchannel(&channels, swapfg); \
           ncplane_set_channels(ncp->ncp, channels); \
         } \
       } \

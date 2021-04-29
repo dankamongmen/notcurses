@@ -67,8 +67,8 @@ int yield_demo(struct notcurses* nc){
     return -1;
   }
   uint64_t basechan = 0;
-  channels_set_bg_alpha(&basechan, CELL_ALPHA_TRANSPARENT);
-  channels_set_fg_alpha(&basechan, CELL_ALPHA_TRANSPARENT);
+  ncchannels_set_bg_alpha(&basechan, CELL_ALPHA_TRANSPARENT);
+  ncchannels_set_fg_alpha(&basechan, CELL_ALPHA_TRANSPARENT);
   ncplane_set_base(label, "", 0, basechan);
   ncplane_set_bg_alpha(label, CELL_ALPHA_TRANSPARENT);
   ncplane_set_fg_rgb8(label, 0xff, 0xff, 0xff);

@@ -50,7 +50,7 @@ hbar_make(struct notcurses* nc, uint64_t flags){
   ncplane_dim_yx(pbar, &pdimy, &pdimx);
   ncplane_cursor_move_yx(std, posy - 1, posx - 1);
   uint64_t channels = 0;
-  channels_set_fg_rgb8(&channels, 0, 0xde, 0xde);
+  ncchannels_set_fg_rgb8(&channels, 0, 0xde, 0xde);
   if(ncplane_rounded_box(std, 0, channels, posy + pdimy, posx + pdimx, 0)){
     ncplane_destroy(pbar);
     return NULL;
@@ -90,7 +90,7 @@ pbar_make(struct notcurses* nc, uint64_t flags){
   ncplane_dim_yx(pbar, &pdimy, &pdimx);
   ncplane_cursor_move_yx(std, posy - 1, posx - 1);
   uint64_t channels = 0;
-  channels_set_fg_rgb8(&channels, 0, 0xde, 0xde);
+  ncchannels_set_fg_rgb8(&channels, 0, 0xde, 0xde);
   if(ncplane_rounded_box(std, 0, channels, posy + pdimy, posx + pdimx, 0)){
     ncplane_destroy(pbar);
     return NULL;

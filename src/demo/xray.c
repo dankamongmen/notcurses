@@ -30,8 +30,8 @@ make_slider(struct notcurses* nc, int dimy, int dimx){
   };
   struct ncplane* n = ncplane_create(notcurses_stdplane(nc), &nopts);
   uint64_t channels = 0;
-  channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
-  channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+  ncchannels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+  ncchannels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
   ncplane_set_base(n, " ", 0, channels);
   ncplane_set_scrolling(n, true);
   int r = 0x5f;
@@ -99,8 +99,8 @@ int xray_demo(struct notcurses* nc){
     return -1;
   }
   uint64_t stdc = 0;
-  channels_set_fg_alpha(&stdc, CELL_ALPHA_TRANSPARENT);
-  channels_set_bg_alpha(&stdc, CELL_ALPHA_TRANSPARENT);
+  ncchannels_set_fg_alpha(&stdc, CELL_ALPHA_TRANSPARENT);
+  ncchannels_set_bg_alpha(&stdc, CELL_ALPHA_TRANSPARENT);
   ncplane_set_base(notcurses_stdplane(nc), "", 0, stdc);
   struct ncvisual_options vopts = {
     .y = NCALIGN_CENTER,

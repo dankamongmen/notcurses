@@ -100,7 +100,7 @@ fill_chunk(struct ncplane* n, int idx){
   int r = 64 + hidx * 10;
   int b = 64 + vidx * 30;
   int g = 225 - ((hidx + vidx) * 12);
-  channels_set_fg_rgb8(&channels, r, g, b);
+  ncchannels_set_fg_rgb8(&channels, r, g, b);
   uint32_t ul = 0, ur = 0, ll = 0, lr = 0;
   ncchannel_set_rgb8(&ul, r, g, b);
   ncchannel_set_rgb8(&lr, r, g, b);
@@ -122,7 +122,7 @@ static int
 draw_bounding_box(struct ncplane* n, int yoff, int xoff, int chunky, int chunkx){
   int ret;
   uint64_t channels = 0;
-  channels_set_fg_rgb8(&channels, 180, 80, 180);
+  ncchannels_set_fg_rgb8(&channels, 180, 80, 180);
   //channels_set_bg_rgb8(&channels, 0, 0, 0);
   ncplane_cursor_move_yx(n, yoff, xoff);
   ret = ncplane_rounded_box(n, 0, channels,

@@ -11,26 +11,26 @@
 #include "internal.h"
 
 int ncdirect_putstr(ncdirect* nc, uint64_t channels, const char* utf8){
-  if(channels_fg_default_p(channels)){
+  if(ncchannels_fg_default_p(channels)){
     if(ncdirect_set_fg_default(nc)){
       return -1;
     }
-  }else if(channels_fg_palindex_p(channels)){
-    if(ncdirect_set_fg_palindex(nc, channels_fg_palindex(channels))){
+  }else if(ncchannels_fg_palindex_p(channels)){
+    if(ncdirect_set_fg_palindex(nc, ncchannels_fg_palindex(channels))){
       return -1;
     }
-  }else if(ncdirect_set_fg_rgb(nc, channels_fg_rgb(channels))){
+  }else if(ncdirect_set_fg_rgb(nc, ncchannels_fg_rgb(channels))){
     return -1;
   }
-  if(channels_bg_default_p(channels)){
+  if(ncchannels_bg_default_p(channels)){
     if(ncdirect_set_bg_default(nc)){
       return -1;
     }
-  }else if(channels_bg_palindex_p(channels)){
-    if(ncdirect_set_bg_palindex(nc, channels_bg_palindex(channels))){
+  }else if(ncchannels_bg_palindex_p(channels)){
+    if(ncdirect_set_bg_palindex(nc, ncchannels_bg_palindex(channels))){
       return -1;
     }
-  }else if(ncdirect_set_bg_rgb(nc, channels_bg_rgb(channels))){
+  }else if(ncdirect_set_bg_rgb(nc, ncchannels_bg_rgb(channels))){
     return -1;
   }
   return fprintf(nc->ttyfp, "%s", utf8);
@@ -412,8 +412,8 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
   // save the existing style and colors
   const bool fgdefault = ncdirect_fg_default_p(n);
   const bool bgdefault = ncdirect_bg_default_p(n);
-  const uint32_t fgrgb = channels_fg_rgb(n->channels);
-  const uint32_t bgrgb = channels_bg_rgb(n->channels);
+  const uint32_t fgrgb = ncchannels_fg_rgb(n->channels);
+  const uint32_t bgrgb = ncchannels_bg_rgb(n->channels);
   for(int y = 0 ; y < dimy ; ++y){
     if(xoff){
       if(ncdirect_cursor_move_yx(n, -1, xoff)){
@@ -427,15 +427,15 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
       if(egc == NULL){
         return -1;
       }
-      if(channels_fg_alpha(channels) == CELL_ALPHA_TRANSPARENT){
+      if(ncchannels_fg_alpha(channels) == CELL_ALPHA_TRANSPARENT){
         ncdirect_set_fg_default(n);
       }else{
-        ncdirect_set_fg_rgb(n, channels_fg_rgb(channels));
+        ncdirect_set_fg_rgb(n, ncchannels_fg_rgb(channels));
       }
-      if(channels_bg_alpha(channels) == CELL_ALPHA_TRANSPARENT){
+      if(ncchannels_bg_alpha(channels) == CELL_ALPHA_TRANSPARENT){
         ncdirect_set_bg_default(n);
       }else{
-        ncdirect_set_bg_rgb(n, channels_bg_rgb(channels));
+        ncdirect_set_bg_rgb(n, ncchannels_bg_rgb(channels));
       }
 //fprintf(stderr, "%03d/%03d [%s] (%03dx%03d)\n", y, x, egc, dimy, dimx);
       if(fprintf(n->ttyfp, "%s", strlen(egc) == 0 ? " " : egc) < 0){
@@ -589,14 +589,14 @@ int ncdirect_render_image(ncdirect* n, const char* file, ncalign_e align,
 }
 
 int ncdirect_set_fg_palindex(ncdirect* nc, int pidx){
-  if(channels_set_fg_palindex(&nc->channels, pidx) < 0){
+  if(ncchannels_set_fg_palindex(&nc->channels, pidx) < 0){
     return -1;
   }
   return term_emit(tiparm(nc->tcache.setaf, pidx), nc->ttyfp, false);
 }
 
 int ncdirect_set_bg_palindex(ncdirect* nc, int pidx){
-  if(channels_set_bg_palindex(&nc->channels, pidx) < 0){
+  if(ncchannels_set_bg_palindex(&nc->channels, pidx) < 0){
     return -1;
   }
   return term_emit(tiparm(nc->tcache.setab, pidx), nc->ttyfp, false);
@@ -767,10 +767,10 @@ ncdirect_style_emit(ncdirect* n, unsigned stylebits, FILE* out){
   if(r == 0){
     // FIXME need to handle palette-indexed colors
     if(!ncdirect_fg_default_p(n)){
-      r |= ncdirect_set_fg_rgb(n, channels_fg_rgb(n->channels));
+      r |= ncdirect_set_fg_rgb(n, ncchannels_fg_rgb(n->channels));
     }
     if(!ncdirect_bg_default_p(n)){
-      r |= ncdirect_set_bg_rgb(n, channels_bg_rgb(n->channels));
+      r |= ncdirect_set_bg_rgb(n, ncchannels_bg_rgb(n->channels));
     }
   }
   return r;
@@ -857,12 +857,12 @@ int ncdirect_set_fg_default(ncdirect* nc){
     }
   }else if(term_emit(nc->tcache.op, nc->ttyfp, false) == 0){
     if(!ncdirect_bg_default_p(nc)){
-      if(ncdirect_set_bg_rgb(nc, channels_bg_rgb(nc->channels))){
+      if(ncdirect_set_bg_rgb(nc, ncchannels_bg_rgb(nc->channels))){
         return -1;
       }
     }
   }
-  channels_set_fg_default(&nc->channels);
+  ncchannels_set_fg_default(&nc->channels);
   return 0;
 }
 
@@ -876,12 +876,12 @@ int ncdirect_set_bg_default(ncdirect* nc){
     }
   }else if(term_emit(nc->tcache.op, nc->ttyfp, false) == 0){
     if(!ncdirect_fg_default_p(nc)){
-      if(ncdirect_set_fg_rgb(nc, channels_fg_rgb(nc->channels))){
+      if(ncdirect_set_fg_rgb(nc, ncchannels_fg_rgb(nc->channels))){
         return -1;
       }
     }
   }
-  channels_set_bg_default(&nc->channels);
+  ncchannels_set_bg_default(&nc->channels);
   return 0;
 }
 
@@ -890,13 +890,13 @@ int ncdirect_hline_interp(ncdirect* n, const char* egc, int len,
   unsigned ur, ug, ub;
   int r1, g1, b1, r2, g2, b2;
   int br1, bg1, bb1, br2, bg2, bb2;
-  channels_fg_rgb8(c1, &ur, &ug, &ub);
+  ncchannels_fg_rgb8(c1, &ur, &ug, &ub);
   r1 = ur; g1 = ug; b1 = ub;
-  channels_fg_rgb8(c2, &ur, &ug, &ub);
+  ncchannels_fg_rgb8(c2, &ur, &ug, &ub);
   r2 = ur; g2 = ug; b2 = ub;
-  channels_bg_rgb8(c1, &ur, &ug, &ub);
+  ncchannels_bg_rgb8(c1, &ur, &ug, &ub);
   br1 = ur; bg1 = ug; bb1 = ub;
-  channels_bg_rgb8(c2, &ur, &ug, &ub);
+  ncchannels_bg_rgb8(c2, &ur, &ug, &ub);
   br2 = ur; bg2 = ug; bb2 = ub;
   int deltr = r2 - r1;
   int deltg = g2 - g1;
@@ -906,10 +906,10 @@ int ncdirect_hline_interp(ncdirect* n, const char* egc, int len,
   int deltbb = bb2 - bb1;
   int ret;
   bool fgdef = false, bgdef = false;
-  if(channels_fg_default_p(c1) && channels_fg_default_p(c2)){
+  if(ncchannels_fg_default_p(c1) && ncchannels_fg_default_p(c2)){
     fgdef = true;
   }
-  if(channels_bg_default_p(c1) && channels_bg_default_p(c2)){
+  if(ncchannels_bg_default_p(c1) && ncchannels_bg_default_p(c2)){
     bgdef = true;
   }
   for(ret = 0 ; ret < len ; ++ret){
@@ -937,13 +937,13 @@ int ncdirect_vline_interp(ncdirect* n, const char* egc, int len,
   unsigned ur, ug, ub;
   int r1, g1, b1, r2, g2, b2;
   int br1, bg1, bb1, br2, bg2, bb2;
-  channels_fg_rgb8(c1, &ur, &ug, &ub);
+  ncchannels_fg_rgb8(c1, &ur, &ug, &ub);
   r1 = ur; g1 = ug; b1 = ub;
-  channels_fg_rgb8(c2, &ur, &ug, &ub);
+  ncchannels_fg_rgb8(c2, &ur, &ug, &ub);
   r2 = ur; g2 = ug; b2 = ub;
-  channels_bg_rgb8(c1, &ur, &ug, &ub);
+  ncchannels_bg_rgb8(c1, &ur, &ug, &ub);
   br1 = ur; bg1 = ug; bb1 = ub;
-  channels_bg_rgb8(c2, &ur, &ug, &ub);
+  ncchannels_bg_rgb8(c2, &ur, &ug, &ub);
   br2 = ur; bg2 = ug; bb2 = ub;
   int deltr = (r2 - r1) / (len + 1);
   int deltg = (g2 - g1) / (len + 1);
@@ -953,10 +953,10 @@ int ncdirect_vline_interp(ncdirect* n, const char* egc, int len,
   int deltbb = (bb2 - bb1) / (len + 1);
   int ret;
   bool fgdef = false, bgdef = false;
-  if(channels_fg_default_p(c1) && channels_fg_default_p(c2)){
+  if(ncchannels_fg_default_p(c1) && ncchannels_fg_default_p(c2)){
     fgdef = true;
   }
-  if(channels_bg_default_p(c1) && channels_bg_default_p(c2)){
+  if(ncchannels_bg_default_p(c1) && ncchannels_bg_default_p(c2)){
     bgdef = true;
   }
   for(ret = 0 ; ret < len ; ++ret){
@@ -968,10 +968,10 @@ int ncdirect_vline_interp(ncdirect* n, const char* egc, int len,
     bb1 += deltbb;
     uint64_t channels = 0;
     if(!fgdef){
-      channels_set_fg_rgb8(&channels, r1, g1, b1);
+      ncchannels_set_fg_rgb8(&channels, r1, g1, b1);
     }
     if(!bgdef){
-      channels_set_bg_rgb8(&channels, br1, bg1, bb1);
+      ncchannels_set_bg_rgb8(&channels, br1, bg1, bb1);
     }
     if(ncdirect_putstr(n, channels, egc) <= 0){
       break;
@@ -998,8 +998,8 @@ int ncdirect_box(ncdirect* n, uint64_t ul, uint64_t ur,
   unsigned edges;
   edges = !(ctlword & NCBOXMASK_TOP) + !(ctlword & NCBOXMASK_LEFT);
   if(edges >= box_corner_needs(ctlword)){
-    ncdirect_set_fg_rgb(n, channels_fg_rgb(ul));
-    ncdirect_set_bg_rgb(n, channels_bg_rgb(ul));
+    ncdirect_set_fg_rgb(n, ncchannels_fg_rgb(ul));
+    ncdirect_set_bg_rgb(n, ncchannels_bg_rgb(ul));
     if(fprintf(n->ttyfp, "%lc", wchars[0]) < 0){
       return -1;
     }
@@ -1028,8 +1028,8 @@ int ncdirect_box(ncdirect* n, uint64_t ul, uint64_t ur,
   }
   edges = !(ctlword & NCBOXMASK_TOP) + !(ctlword & NCBOXMASK_RIGHT);
   if(edges >= box_corner_needs(ctlword)){
-    ncdirect_set_fg_rgb(n, channels_fg_rgb(ur));
-    ncdirect_set_bg_rgb(n, channels_bg_rgb(ur));
+    ncdirect_set_fg_rgb(n, ncchannels_fg_rgb(ur));
+    ncdirect_set_bg_rgb(n, ncchannels_bg_rgb(ur));
     if(fprintf(n->ttyfp, "%lc", wchars[1]) < 0){
       return -1;
     }
@@ -1062,8 +1062,8 @@ int ncdirect_box(ncdirect* n, uint64_t ul, uint64_t ur,
   // bottom line
   edges = !(ctlword & NCBOXMASK_BOTTOM) + !(ctlword & NCBOXMASK_LEFT);
   if(edges >= box_corner_needs(ctlword)){
-    ncdirect_set_fg_rgb(n, channels_fg_rgb(ll));
-    ncdirect_set_bg_rgb(n, channels_bg_rgb(ll));
+    ncdirect_set_fg_rgb(n, ncchannels_fg_rgb(ll));
+    ncdirect_set_bg_rgb(n, ncchannels_bg_rgb(ll));
     if(fprintf(n->ttyfp, "%lc", wchars[2]) < 0){
       return -1;
     }
@@ -1081,8 +1081,8 @@ int ncdirect_box(ncdirect* n, uint64_t ul, uint64_t ur,
   }
   edges = !(ctlword & NCBOXMASK_BOTTOM) + !(ctlword & NCBOXMASK_RIGHT);
   if(edges >= box_corner_needs(ctlword)){
-    ncdirect_set_fg_rgb(n, channels_fg_rgb(lr));
-    ncdirect_set_bg_rgb(n, channels_bg_rgb(lr));
+    ncdirect_set_fg_rgb(n, ncchannels_fg_rgb(lr));
+    ncdirect_set_bg_rgb(n, ncchannels_bg_rgb(lr));
     if(fprintf(n->ttyfp, "%lc", wchars[3]) < 0){
       return -1;
     }

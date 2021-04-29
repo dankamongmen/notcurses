@@ -114,15 +114,15 @@ TEST_CASE("Fills") {
 
   SUBCASE("GradientMonochromatic") {
     uint64_t c = 0;
-    channels_set_fg_rgb(&c, 0x40f040);
-    channels_set_bg_rgb(&c, 0x40f040);
+    ncchannels_set_fg_rgb(&c, 0x40f040);
+    ncchannels_set_bg_rgb(&c, 0x40f040);
     int dimy, dimx;
     ncplane_dim_yx(n_, &dimy, &dimx);
     REQUIRE(0 < ncplane_gradient_sized(n_, "M", 0, c, c, c, c, dimy, dimx));
     nccell cl = CELL_TRIVIAL_INITIALIZER;
     uint64_t channels = 0;
-    channels_set_fg_rgb(&channels, 0x40f040);
-    channels_set_bg_rgb(&channels, 0x40f040);
+    ncchannels_set_fg_rgb(&channels, 0x40f040);
+    ncchannels_set_bg_rgb(&channels, 0x40f040);
     // check all squares 
     for(int y = 0 ; y < dimy ; ++y){
       for(int x = 0 ; x < dimx ; ++x){
@@ -138,21 +138,21 @@ TEST_CASE("Fills") {
   SUBCASE("GradientVertical") {
     uint64_t ul, ur, ll, lr;
     ul = ur = ll = lr = 0;
-    channels_set_fg_rgb(&ul, 0x40f040);
-    channels_set_bg_rgb(&ul, 0x40f040);
-    channels_set_fg_rgb(&ll, 0xf040f0);
-    channels_set_bg_rgb(&ll, 0xf040f0);
-    channels_set_fg_rgb(&ur, 0x40f040);
-    channels_set_bg_rgb(&ur, 0x40f040);
-    channels_set_fg_rgb(&lr, 0xf040f0);
-    channels_set_bg_rgb(&lr, 0xf040f0);
+    ncchannels_set_fg_rgb(&ul, 0x40f040);
+    ncchannels_set_bg_rgb(&ul, 0x40f040);
+    ncchannels_set_fg_rgb(&ll, 0xf040f0);
+    ncchannels_set_bg_rgb(&ll, 0xf040f0);
+    ncchannels_set_fg_rgb(&ur, 0x40f040);
+    ncchannels_set_bg_rgb(&ur, 0x40f040);
+    ncchannels_set_fg_rgb(&lr, 0xf040f0);
+    ncchannels_set_bg_rgb(&lr, 0xf040f0);
     int dimy, dimx;
     ncplane_dim_yx(n_, &dimy, &dimx);
     REQUIRE(0 < ncplane_gradient_sized(n_, "V", 0, ul, ur, ll, lr, dimy, dimx));
     nccell c = CELL_TRIVIAL_INITIALIZER;
     uint64_t channels = 0;
-    channels_set_fg_rgb(&channels, 0x40f040);
-    channels_set_bg_rgb(&channels, 0x40f040);
+    ncchannels_set_fg_rgb(&channels, 0x40f040);
+    ncchannels_set_bg_rgb(&channels, 0x40f040);
     // check all squares. all rows ought be the same across their breadth, and
     // the components ought be going in the correct direction.
     uint64_t lastyrgb, lastxrgb;
@@ -189,14 +189,14 @@ TEST_CASE("Fills") {
   SUBCASE("GradientHorizontal") {
     uint64_t ul, ur, ll, lr;
     ul = ur = ll = lr = 0;
-    channels_set_fg_rgb(&ul, 0x40f040);
-    channels_set_bg_rgb(&ul, 0x40f040);
-    channels_set_fg_rgb(&ur, 0xf040f0);
-    channels_set_bg_rgb(&ur, 0xf040f0);
-    channels_set_fg_rgb(&ll, 0x40f040);
-    channels_set_bg_rgb(&ll, 0x40f040);
-    channels_set_fg_rgb(&lr, 0xf040f0);
-    channels_set_bg_rgb(&lr, 0xf040f0);
+    ncchannels_set_fg_rgb(&ul, 0x40f040);
+    ncchannels_set_bg_rgb(&ul, 0x40f040);
+    ncchannels_set_fg_rgb(&ur, 0xf040f0);
+    ncchannels_set_bg_rgb(&ur, 0xf040f0);
+    ncchannels_set_fg_rgb(&ll, 0x40f040);
+    ncchannels_set_bg_rgb(&ll, 0x40f040);
+    ncchannels_set_fg_rgb(&lr, 0xf040f0);
+    ncchannels_set_bg_rgb(&lr, 0xf040f0);
     int dimy, dimx;
     ncplane_dim_yx(n_, &dimy, &dimx);
     REQUIRE(0 < ncplane_gradient_sized(n_, "H", 0, ul, ur, ll, lr, dimy, dimx));
@@ -207,14 +207,14 @@ TEST_CASE("Fills") {
   SUBCASE("GradientX") {
     uint64_t ul, ur, ll, lr;
     ul = ur = ll = lr = 0;
-    channels_set_fg_rgb(&ul, 0x000000);
-    channels_set_bg_rgb(&ul, 0xffffff);
-    channels_set_fg_rgb(&ll, 0x40f040);
-    channels_set_bg_rgb(&ll, 0x40f040);
-    channels_set_fg_rgb(&ur, 0xf040f0);
-    channels_set_bg_rgb(&ur, 0xf040f0);
-    channels_set_fg_rgb(&lr, 0xffffff);
-    channels_set_bg_rgb(&lr, 0x000000);
+    ncchannels_set_fg_rgb(&ul, 0x000000);
+    ncchannels_set_bg_rgb(&ul, 0xffffff);
+    ncchannels_set_fg_rgb(&ll, 0x40f040);
+    ncchannels_set_bg_rgb(&ll, 0x40f040);
+    ncchannels_set_fg_rgb(&ur, 0xf040f0);
+    ncchannels_set_bg_rgb(&ur, 0xf040f0);
+    ncchannels_set_fg_rgb(&lr, 0xffffff);
+    ncchannels_set_bg_rgb(&lr, 0x000000);
     int dimy, dimx;
     ncplane_dim_yx(n_, &dimy, &dimx);
     REQUIRE(0 < ncplane_gradient_sized(n_, "X", 0, ul, ur, ll, lr, dimy, dimx));
@@ -225,14 +225,14 @@ TEST_CASE("Fills") {
   SUBCASE("GradientS") {
     uint64_t ul, ur, ll, lr;
     ul = ur = ll = lr = 0;
-    channels_set_fg_rgb(&ul, 0xffffff);
-    channels_set_bg_rgb(&ul, 0xffffff);
-    channels_set_fg_rgb(&lr, 0x000000);
-    channels_set_bg_rgb(&lr, 0x000000);
-    channels_set_fg_rgb(&ll, 0x00ffff);
-    channels_set_bg_rgb(&ll, 0xff0000);
-    channels_set_fg_rgb(&ur, 0xff00ff);
-    channels_set_bg_rgb(&ur, 0x00ff00);
+    ncchannels_set_fg_rgb(&ul, 0xffffff);
+    ncchannels_set_bg_rgb(&ul, 0xffffff);
+    ncchannels_set_fg_rgb(&lr, 0x000000);
+    ncchannels_set_bg_rgb(&lr, 0x000000);
+    ncchannels_set_fg_rgb(&ll, 0x00ffff);
+    ncchannels_set_bg_rgb(&ll, 0xff0000);
+    ncchannels_set_fg_rgb(&ur, 0xff00ff);
+    ncchannels_set_bg_rgb(&ur, 0x00ff00);
     int dimy, dimx;
     ncplane_dim_yx(n_, &dimy, &dimx);
     REQUIRE(0 < ncplane_gradient_sized(n_, "S", 0, ul, ur, ll, lr, dimy, dimx));
@@ -270,8 +270,8 @@ TEST_CASE("Fills") {
     // EGC/color should change, but nothing else
     CHECK(0 == ncplane_cursor_move_yx(n_, 0, 0));
     uint64_t channels = 0;
-    channels_set_fg_rgb8(&channels, 0x88, 0x99, 0x77);
-    channels_set_bg_rgb(&channels, 0);
+    ncchannels_set_fg_rgb8(&channels, 0x88, 0x99, 0x77);
+    ncchannels_set_bg_rgb(&channels, 0);
     REQUIRE(0 < ncplane_stain(n_, 7, 7, channels, channels, channels, channels));
     CHECK(0 == notcurses_render(nc_));
     nccell d = CELL_TRIVIAL_INITIALIZER;
@@ -293,8 +293,8 @@ TEST_CASE("Fills") {
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncplane_cursor_move_yx(n_, 0, 0));
     uint64_t channels = 0;
-    channels_set_fg_rgb8(&channels, 0x88, 0x99, 0x77);
-    channels_set_bg_rgb(&channels, 0);
+    ncchannels_set_fg_rgb8(&channels, 0x88, 0x99, 0x77);
+    ncchannels_set_bg_rgb(&channels, 0);
     REQUIRE(0 < ncplane_gradient(n_, "A", 0, channels, channels, channels, channels, 0, 0));
     CHECK(0 == notcurses_render(nc_));
     nccell d = CELL_TRIVIAL_INITIALIZER;
@@ -312,10 +312,10 @@ TEST_CASE("Fills") {
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncplane_cursor_move_yx(n_, 0, 0));
     uint64_t chan1 = 0, chan2 = 0;
-    channels_set_fg_rgb8(&chan1, 0x88, 0x99, 0x77);
-    channels_set_fg_rgb8(&chan2, 0x77, 0x99, 0x88);
-    channels_set_bg_rgb(&chan1, 0);
-    channels_set_bg_rgb(&chan2, 0);
+    ncchannels_set_fg_rgb8(&chan1, 0x88, 0x99, 0x77);
+    ncchannels_set_fg_rgb8(&chan2, 0x77, 0x99, 0x88);
+    ncchannels_set_bg_rgb(&chan1, 0);
+    ncchannels_set_bg_rgb(&chan2, 0);
     REQUIRE(0 < ncplane_gradient(n_, "A", 0, chan1, chan2, chan1, chan2, 0, 3));
     CHECK(0 == notcurses_render(nc_));
     nccell d = CELL_TRIVIAL_INITIALIZER;
@@ -535,9 +535,9 @@ TEST_CASE("Fills") {
     struct ncplane* p1 = ncplane_create(n_, &nopts);
     REQUIRE(p1);
     uint64_t ul = 0, ur = 0, bl = 0, br = 0;
-    channels_set_fg_rgb(&ur, 0xff0000);
-    channels_set_fg_rgb(&bl, 0x00ff00);
-    channels_set_fg_rgb(&br, 0x0000ff);
+    ncchannels_set_fg_rgb(&ur, 0xff0000);
+    ncchannels_set_fg_rgb(&bl, 0x00ff00);
+    ncchannels_set_fg_rgb(&br, 0x0000ff);
     ncplane_highgradient_sized(p1, ul, ur, bl, br, DIMY, DIMX);
     CHECK(0 == notcurses_render(nc_));
     struct ncplane_options n2opts = {

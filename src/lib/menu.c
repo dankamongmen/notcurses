@@ -378,10 +378,10 @@ ncmenu* ncmenu_create(ncplane* n, const ncmenu_options* opts){
         ret->unrolledsection = -1;
         ret->headerchannels = opts->headerchannels;
         ret->dissectchannels = opts->headerchannels;
-        channels_set_fg_rgb(&ret->dissectchannels, 0xdddddd);
+        ncchannels_set_fg_rgb(&ret->dissectchannels, 0xdddddd);
         ret->sectionchannels = opts->sectionchannels;
         ret->disablechannels = ret->sectionchannels;
-        channels_set_fg_rgb(&ret->disablechannels, 0xdddddd);
+        ncchannels_set_fg_rgb(&ret->disablechannels, 0xdddddd);
         nccell c = CELL_TRIVIAL_INITIALIZER;
         nccell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT);
         nccell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT);

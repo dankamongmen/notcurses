@@ -661,14 +661,14 @@ TEST_CASE("Plane") {
     REQUIRE(40 < dimx);
     nccell ul{}, ll{}, lr{}, ur{}, hl{}, vl{};
     REQUIRE(0 == nccells_double_box(n_, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl));
-    CHECK(0 == channels_set_fg_rgb8(&ul.channels, 255, 0, 0));
-    CHECK(0 == channels_set_fg_rgb8(&ur.channels, 0, 255, 0));
-    CHECK(0 == channels_set_fg_rgb8(&ll.channels, 0, 0, 255));
-    CHECK(0 == channels_set_fg_rgb8(&lr.channels, 255, 255, 255));
-    CHECK(0 == channels_set_bg_rgb8(&ul.channels, 0, 255, 255));
-    CHECK(0 == channels_set_bg_rgb8(&ur.channels, 255, 0, 255));
-    CHECK(0 == channels_set_bg_rgb8(&ll.channels, 255, 255, 0));
-    CHECK(0 == channels_set_bg_rgb8(&lr.channels, 0, 0, 0));
+    CHECK(0 == ncchannels_set_fg_rgb8(&ul.channels, 255, 0, 0));
+    CHECK(0 == ncchannels_set_fg_rgb8(&ur.channels, 0, 255, 0));
+    CHECK(0 == ncchannels_set_fg_rgb8(&ll.channels, 0, 0, 255));
+    CHECK(0 == ncchannels_set_fg_rgb8(&lr.channels, 255, 255, 255));
+    CHECK(0 == ncchannels_set_bg_rgb8(&ul.channels, 0, 255, 255));
+    CHECK(0 == ncchannels_set_bg_rgb8(&ur.channels, 255, 0, 255));
+    CHECK(0 == ncchannels_set_bg_rgb8(&ll.channels, 255, 255, 0));
+    CHECK(0 == ncchannels_set_bg_rgb8(&lr.channels, 0, 0, 0));
     // we'll try all 16 gradmasks in sideszXsidesz configs in a 4x4 map
     unsigned gradmask = 0;
     for(auto y0 = 0 ; y0 < 4 ; ++y0){
@@ -700,18 +700,18 @@ TEST_CASE("Plane") {
     nccell ul{}, ll{}, lr{}, ur{}, hl{}, vl{};
     REQUIRE(0 == nccells_rounded_box(n_, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl));
     // we'll try all 16 boxmasks in sideszXsidesz configurations in a 4x4 map
-    CHECK(0 == channels_set_fg_rgb8(&ul.channels, 255, 0, 0));
-    CHECK(0 == channels_set_fg_rgb8(&ur.channels, 0, 255, 0));
-    CHECK(0 == channels_set_fg_rgb8(&ll.channels, 0, 0, 255));
-    CHECK(0 == channels_set_fg_rgb8(&lr.channels, 0, 0, 0));
-    CHECK(0 == channels_set_bg_rgb8(&ul.channels, 0, 255, 255));
-    CHECK(0 == channels_set_bg_rgb8(&ur.channels, 255, 0, 255));
-    CHECK(0 == channels_set_bg_rgb8(&ll.channels, 255, 255, 0));
-    CHECK(0 == channels_set_bg_rgb8(&lr.channels, 0, 0, 0));
-    CHECK(0 == channels_set_fg_rgb8(&hl.channels, 255, 0, 255));
-    CHECK(0 == channels_set_fg_rgb8(&vl.channels, 255, 255, 255));
-    CHECK(0 == channels_set_bg_rgb8(&hl.channels, 0, 255, 0));
-    CHECK(0 == channels_set_bg_rgb8(&vl.channels, 0, 0, 0));
+    CHECK(0 == ncchannels_set_fg_rgb8(&ul.channels, 255, 0, 0));
+    CHECK(0 == ncchannels_set_fg_rgb8(&ur.channels, 0, 255, 0));
+    CHECK(0 == ncchannels_set_fg_rgb8(&ll.channels, 0, 0, 255));
+    CHECK(0 == ncchannels_set_fg_rgb8(&lr.channels, 0, 0, 0));
+    CHECK(0 == ncchannels_set_bg_rgb8(&ul.channels, 0, 255, 255));
+    CHECK(0 == ncchannels_set_bg_rgb8(&ur.channels, 255, 0, 255));
+    CHECK(0 == ncchannels_set_bg_rgb8(&ll.channels, 255, 255, 0));
+    CHECK(0 == ncchannels_set_bg_rgb8(&lr.channels, 0, 0, 0));
+    CHECK(0 == ncchannels_set_fg_rgb8(&hl.channels, 255, 0, 255));
+    CHECK(0 == ncchannels_set_fg_rgb8(&vl.channels, 255, 255, 255));
+    CHECK(0 == ncchannels_set_bg_rgb8(&hl.channels, 0, 255, 0));
+    CHECK(0 == ncchannels_set_bg_rgb8(&vl.channels, 0, 0, 0));
     for(auto y0 = 0 ; y0 < 4 ; ++y0){
       for(auto x0 = 0 ; x0 < 4 ; ++x0){
         CHECK(0 == ncplane_cursor_move_yx(n_, y0 * sidesz, x0 * (sidesz + 1)));
@@ -815,12 +815,12 @@ TEST_CASE("Plane") {
     CHECK(1 == ncplane_at_yx_cell(n_, 0, 0, &c));
     CHECK(cell_simple_p(&c));
     CHECK(htole('C') == c.gcluster);
-    CHECK(0 == channels_set_fg_rgb(&channels, 0x444444));
+    CHECK(0 == ncchannels_set_fg_rgb(&channels, 0x444444));
     CHECK(channels == c.channels);
     CHECK(1 == ncplane_at_yx_cell(n_, 0, 1, &c));
     CHECK(cell_simple_p(&c));
     CHECK(htole('D') == c.gcluster);
-    CHECK(0 == channels_set_fg_rgb(&channels, 0x888888));
+    CHECK(0 == ncchannels_set_fg_rgb(&channels, 0x888888));
     CHECK(channels == c.channels);
     CHECK(0 == notcurses_render(nc_));
   }

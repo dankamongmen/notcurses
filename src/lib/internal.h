@@ -1200,25 +1200,25 @@ static inline void
 calc_gradient_channels(uint64_t* channels, uint64_t ul, uint64_t ur,
                        uint64_t ll, uint64_t lr, int y, int x,
                        int ylen, int xlen){
-  if(!channels_fg_default_p(ul)){
-    channels_set_fchannel(channels,
-                          calc_gradient_channel(channels_fchannel(ul),
-                                                channels_fchannel(ur),
-                                                channels_fchannel(ll),
-                                                channels_fchannel(lr),
-                                                y, x, ylen, xlen));
+  if(!ncchannels_fg_default_p(ul)){
+    ncchannels_set_fchannel(channels,
+                            calc_gradient_channel(ncchannels_fchannel(ul),
+                                                  ncchannels_fchannel(ur),
+                                                  ncchannels_fchannel(ll),
+                                                  ncchannels_fchannel(lr),
+                                                  y, x, ylen, xlen));
   }else{
-    channels_set_fg_default(channels);
+    ncchannels_set_fg_default(channels);
   }
-  if(!channels_bg_default_p(ul)){
-    channels_set_bchannel(channels,
-                          calc_gradient_channel(channels_bchannel(ul),
-                                                channels_bchannel(ur),
-                                                channels_bchannel(ll),
-                                                channels_bchannel(lr),
-                                                y, x, ylen, xlen));
+  if(!ncchannels_bg_default_p(ul)){
+    ncchannels_set_bchannel(channels,
+                            calc_gradient_channel(ncchannels_bchannel(ul),
+                                                  ncchannels_bchannel(ur),
+                                                  ncchannels_bchannel(ll),
+                                                  ncchannels_bchannel(lr),
+                                                  y, x, ylen, xlen));
   }else{
-    channels_set_bg_default(channels);
+    ncchannels_set_bg_default(channels);
   }
 }
 
@@ -1325,7 +1325,7 @@ int ncplane_genocide(ncplane *ncp);
 // Extract the 32-bit background channel from a cell.
 static inline uint32_t
 cell_bchannel(const nccell* cl){
-  return channels_bchannel(cl->channels);
+  return ncchannels_bchannel(cl->channels);
 }
 
 // Extract those elements of the channel which are common to both foreground
@@ -1346,7 +1346,7 @@ cell_bchannel_common(const nccell* cl){
 // Extract the 32-bit foreground channel from a cell.
 static inline uint32_t
 cell_fchannel(const nccell* cl){
-  return channels_fchannel(cl->channels);
+  return ncchannels_fchannel(cl->channels);
 }
 
 // Extract those elements of the foreground channel which may be freely swapped
@@ -1359,13 +1359,13 @@ cell_fchannel_common(const nccell* cl){
 // Set the 32-bit background channel of an nccell.
 static inline uint64_t
 cell_set_bchannel(nccell* cl, uint32_t channel){
-  return channels_set_bchannel(&cl->channels, channel);
+  return ncchannels_set_bchannel(&cl->channels, channel);
 }
 
 // Set the 32-bit foreground channel of an nccell.
 static inline uint64_t
 cell_set_fchannel(nccell* cl, uint32_t channel){
-  return channels_set_fchannel(&cl->channels, channel);
+  return ncchannels_set_fchannel(&cl->channels, channel);
 }
 
 // Returns the result of blending two channels. 'blends' indicates how heavily
@@ -1625,12 +1625,12 @@ ncdirect_channels(const ncdirect* nc){
 
 static inline bool
 ncdirect_fg_default_p(const struct ncdirect* nc){
-  return channels_fg_default_p(ncdirect_channels(nc));
+  return ncchannels_fg_default_p(ncdirect_channels(nc));
 }
 
 static inline bool
 ncdirect_bg_default_p(const struct ncdirect* nc){
-  return channels_bg_default_p(ncdirect_channels(nc));
+  return ncchannels_bg_default_p(ncdirect_channels(nc));
 }
 
 int term_fg_rgb8(bool RGBflag, const char* setaf, int colors, FILE* out,

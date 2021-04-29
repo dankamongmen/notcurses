@@ -144,10 +144,10 @@ int intro(struct notcurses* nc){
   }
   uint64_t cul, cur, cll, clr;
   cul = cur = cll = clr = 0;
-  channels_set_fg_rgb8(&cul, 200, 0, 200); channels_set_bg_rgb8(&cul, 0, 64, 0);
-  channels_set_fg_rgb8(&cur, 200, 0, 200); channels_set_bg_rgb8(&cur, 0, 64, 0);
-  channels_set_fg_rgb8(&cll, 200, 0, 200); channels_set_bg_rgb8(&cll, 0, 128, 0);
-  channels_set_fg_rgb8(&clr, 200, 0, 200); channels_set_bg_rgb8(&clr, 0, 128, 0);
+  ncchannels_set_fg_rgb8(&cul, 200, 0, 200); ncchannels_set_bg_rgb8(&cul, 0, 64, 0);
+  ncchannels_set_fg_rgb8(&cur, 200, 0, 200); ncchannels_set_bg_rgb8(&cur, 0, 64, 0);
+  ncchannels_set_fg_rgb8(&cll, 200, 0, 200); ncchannels_set_bg_rgb8(&cll, 0, 128, 0);
+  ncchannels_set_fg_rgb8(&clr, 200, 0, 200); ncchannels_set_bg_rgb8(&clr, 0, 128, 0);
   centercols = cols > 80 ? 72 : cols - 8;
   if(ncplane_cursor_move_yx(ncp, 5, (cols - centercols) / 2 + 1)){
     return -1;

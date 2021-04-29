@@ -253,8 +253,8 @@ int trans_demo(struct notcurses* nc){
   struct ncplane* n = notcurses_stddim_yx(nc, &maxy, &maxx);
   ncplane_set_fg_rgb8(n, 255, 255, 255);
   uint64_t channels = 0;
-  channels_set_fg_rgb8(&channels, 0, 128, 128);
-  channels_set_bg_rgb8(&channels, 90, 0, 90);
+  ncchannels_set_fg_rgb8(&channels, 0, 128, 128);
+  ncchannels_set_bg_rgb8(&channels, 90, 0, 90);
   int y = 1, x = 0;
   ncplane_cursor_move_yx(n, y, x);
   if(ncplane_rounded_box_sized(n, 0, channels, maxy - 1, maxx, 0)){
