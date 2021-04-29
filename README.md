@@ -154,6 +154,10 @@ directly:
 * Abbreviated [history](doc/HISTORY.md) and thanks.
 * [Differences from](doc/CURSES.md) Curses and adapting Curses programs.
 
+If you (understandably) want to avoid the large Pandoc stack, but still enjoy
+manual page goodness, I publish a tarball with generated man/XHTML along with
+each release. Download it, and install the contents as you deem fit.
+
 ## Environment notes
 
 * If your `TERM` variable is wrong, or that terminfo definition is out-of-date,
@@ -252,6 +256,8 @@ to breaking under incorrect `TERM` values. If you're not using `xterm`, your
 * **Q:** Can I avoid manually exporting `COLORTERM=24bit` everywhere? **A:** Sure. Add `SendEnv COLORTERM` to `.ssh/config`, and `AcceptEnv COLORTERM` to `sshd_config` on the remote server. Yes, this will probably require root on the remote server. Don't blame me, man; I didn't do it.
 
 * **Q:** How about *arbitrary image manipulation here* functionality? **A:** I'm not going to beat ImageMagick et al. on image manipulation, but you can load an `ncvisual` from RGBA memory using `ncvisual_from_rgba()`.
+
+* **Q:** My program locks up when I run `notcurses_check_pixel_support()`. **A**: Detecting bitmap support requires interrogating the terminal. If the terminal doesn't reply to standard interrogations, send upstream a patch, or use a different terminal. Generally, only old and unsupported terminal emulators exhibit this behavior.
 
 ## Useful links
 
