@@ -40,14 +40,14 @@ pbar_make(struct notcurses* nc, int row){
     return NULL;
   }
   uint64_t channels = 0;
-  channels_set_bg_rgb(&channels, 0);
+  ncchannels_set_bg_rgb(&channels, 0);
   ncplane_set_base(pbar, "", 0, channels);
   int posy, posx, pdimy, pdimx;
   ncplane_yx(pbar, &posy, &posx);
   ncplane_dim_yx(pbar, &pdimy, &pdimx);
   ncplane_cursor_move_yx(std, posy - 1, posx - 1);
   channels = 0;
-  channels_set_fg_rgb8(&channels, 0, 0xde, 0xde);
+  ncchannels_set_fg_rgb8(&channels, 0, 0xde, 0xde);
   if(ncplane_rounded_box(std, 0, channels, posy + pdimy, posx + pdimx, 0)){
     ncplane_destroy(pbar);
     return NULL;
@@ -248,9 +248,9 @@ int unicodeblocks_demo(struct notcurses* nc){
     return -1;
   }
   uint64_t channels = 0;
-  channels_set_fg_alpha(&channels, CELL_ALPHA_BLEND);
-  channels_set_fg_rgb(&channels, 0x004000);
-  channels_set_bg_rgb(&channels, 0x0);
+  ncchannels_set_fg_alpha(&channels, CELL_ALPHA_BLEND);
+  ncchannels_set_fg_rgb(&channels, 0x004000);
+  ncchannels_set_bg_rgb(&channels, 0x0);
   ncplane_set_base(header, "", 0, channels);
   for(sindex = 0 ; sindex < sizeof(blocks) / sizeof(*blocks) ; ++sindex){
     ncplane_set_bg_rgb8(n, 0, 0, 0);

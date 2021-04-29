@@ -3572,7 +3572,7 @@ maketitle(struct ncplane* std){
     return NULL;
   }
   uint64_t channels = 0;
-  channels_set_bg_rgb(&channels, 0x0);
+  ncchannels_set_bg_rgb(&channels, 0x0);
   if(ncplane_set_base(title, " ", 0, channels) < 0 || ncplane_set_bg_rgb(title, 0)){
     ncplane_destroy(title);
     return NULL;

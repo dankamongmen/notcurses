@@ -1433,7 +1433,7 @@ int ncdirect_set_bg_rgb(ncdirect* nc, unsigned rgb){
     return -1;
   }
   // FIXME need verify we're not palette, either
-  if(!ncdirect_bg_default_p(nc) && channels_bg_rgb(nc->channels) == rgb){
+  if(!ncdirect_bg_default_p(nc) && ncchannels_bg_rgb(nc->channels) == rgb){
     return 0;
   }
   if(term_bg_rgb8(nc->tcache.RGBflag, nc->tcache.setab, nc->tcache.colors, nc->ttyfp,
@@ -1441,7 +1441,7 @@ int ncdirect_set_bg_rgb(ncdirect* nc, unsigned rgb){
                   nc->tcache.bg_collides_default)){
     return -1;
   }
-  channels_set_bg_rgb(&nc->channels, rgb);
+  ncchannels_set_bg_rgb(&nc->channels, rgb);
   return 0;
 }
 
@@ -1450,14 +1450,14 @@ int ncdirect_set_fg_rgb(ncdirect* nc, unsigned rgb){
     return -1;
   }
   // FIXME need verify we're not palette, either
-  if(!ncdirect_fg_default_p(nc) && channels_fg_rgb(nc->channels) == rgb){
+  if(!ncdirect_fg_default_p(nc) && ncchannels_fg_rgb(nc->channels) == rgb){
     return 0;
   }
   if(term_fg_rgb8(nc->tcache.RGBflag, nc->tcache.setaf, nc->tcache.colors, nc->ttyfp,
                   (rgb & 0xff0000u) >> 16u, (rgb & 0xff00u) >> 8u, rgb & 0xffu)){
     return -1;
   }
-  channels_set_fg_rgb(&nc->channels, rgb);
+  ncchannels_set_fg_rgb(&nc->channels, rgb);
   return 0;
 }
 

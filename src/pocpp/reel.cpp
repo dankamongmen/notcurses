@@ -231,9 +231,9 @@ int main(int argc, char** argv){
   if(ncplane_set_fg_rgb8(n, 0xb1, 0x1b, 0xb1)){
     return -1;
   }
-  channels_set_fg_rgb(&ropts.focusedchan, 0xffffff);
-  channels_set_bg_rgb(&ropts.focusedchan, 0x00c080);
-  channels_set_fg_rgb(&ropts.borderchan, 0x00c080);
+  ncchannels_set_fg_rgb(&ropts.focusedchan, 0xffffff);
+  ncchannels_set_bg_rgb(&ropts.focusedchan, 0x00c080);
+  ncchannels_set_fg_rgb(&ropts.borderchan, 0x00c080);
   auto nr = ncreel_create(n, &ropts);
   ncplane_set_userptr(n, nr);
   if(!nr){

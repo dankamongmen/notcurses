@@ -180,8 +180,8 @@ TEST_CASE("Cell") {
     REQUIRE(nullptr != negc);
     auto topegc = ncplane_at_yx(np, 0, 0, nullptr, &overchannels);
     REQUIRE(nullptr != topegc);
-    CHECK(channels_bg_rgb(channels) == channels_bg_rgb(underchannels));
-    CHECK(channels_fg_rgb(channels) == channels_fg_rgb(overchannels));
+    CHECK(ncchannels_bg_rgb(channels) == ncchannels_bg_rgb(underchannels));
+    CHECK(ncchannels_fg_rgb(channels) == ncchannels_fg_rgb(overchannels));
     ncplane_destroy(np);
     free(topegc);
     free(negc);
@@ -220,8 +220,8 @@ TEST_CASE("Cell") {
     REQUIRE(nullptr != negc);
     auto topegc = ncplane_at_yx(np, 0, 0, nullptr, &overchannels);
     REQUIRE(nullptr != topegc);
-    CHECK(channels_bg_rgb(channels) == channels_bg_rgb(underchannels));
-    CHECK(channels_fg_rgb(channels) < channels_fg_rgb(overchannels));
+    CHECK(ncchannels_bg_rgb(channels) == ncchannels_bg_rgb(underchannels));
+    CHECK(ncchannels_fg_rgb(channels) < ncchannels_fg_rgb(overchannels));
     ncplane_destroy(np);
     free(topegc);
     free(negc);
@@ -260,8 +260,8 @@ TEST_CASE("Cell") {
     REQUIRE(nullptr != negc);
     auto topegc = ncplane_at_yx(np, 0, 0, nullptr, &overchannels);
     REQUIRE(nullptr != topegc);
-    CHECK(channels_bg_rgb(channels) == channels_bg_rgb(underchannels));
-    CHECK(channels_fg_rgb(channels) > channels_fg_rgb(overchannels));
+    CHECK(ncchannels_bg_rgb(channels) == ncchannels_bg_rgb(underchannels));
+    CHECK(ncchannels_fg_rgb(channels) > ncchannels_fg_rgb(overchannels));
     ncplane_destroy(np);
     free(topegc);
     free(negc);
@@ -300,8 +300,8 @@ TEST_CASE("Cell") {
     REQUIRE(nullptr != negc);
     auto topegc = ncplane_at_yx(np, 0, 0, nullptr, &overchannels);
     REQUIRE(nullptr != topegc);
-    CHECK(channels_bg_rgb(channels) == channels_bg_rgb(underchannels));
-    CHECK(channels_fg_rgb(channels) == channels_fg_rgb(overchannels));
+    CHECK(ncchannels_bg_rgb(channels) == ncchannels_bg_rgb(underchannels));
+    CHECK(ncchannels_fg_rgb(channels) == ncchannels_fg_rgb(overchannels));
     ncplane_destroy(np);
     free(topegc);
     free(negc);
@@ -343,8 +343,8 @@ TEST_CASE("Cell") {
     REQUIRE(nullptr != negc);
     auto topegc = ncplane_at_yx(np, 0, 0, nullptr, &overchannels);
     REQUIRE(nullptr != topegc);
-    CHECK(channels_bg_rgb(channels) == channels_bg_rgb(overchannels));
-    CHECK(channels_fg_rgb(channels) < channels_fg_rgb(underchannels));
+    CHECK(ncchannels_bg_rgb(channels) == ncchannels_bg_rgb(overchannels));
+    CHECK(ncchannels_fg_rgb(channels) < ncchannels_fg_rgb(underchannels));
     free(topegc);
     free(negc);
     free(egc);

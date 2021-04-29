@@ -142,8 +142,8 @@ TEST_CASE("Visual") {
           uint64_t channels;
           char* egc = notcurses_at_yx(nc_, y, x, &stylemask, &channels);
           REQUIRE(nullptr != egc);
-          CHECK((htole(rgba[y * 2 * DIMX + x]) & 0xffffff) == channels_bg_rgb(channels));
-          CHECK((htole(rgba[(y * 2 + 1) * DIMX + x]) & 0xffffff) == channels_fg_rgb(channels));
+          CHECK((htole(rgba[y * 2 * DIMX + x]) & 0xffffff) == ncchannels_bg_rgb(channels));
+          CHECK((htole(rgba[(y * 2 + 1) * DIMX + x]) & 0xffffff) == ncchannels_fg_rgb(channels));
           free(egc);
         }
       }
@@ -183,8 +183,8 @@ TEST_CASE("Visual") {
             uint64_t channels;
             char* egc = notcurses_at_yx(nc_, y, x, &stylemask, &channels);
             REQUIRE(nullptr != egc);
-            CHECK((htole(rgba[(y * 2 * DIMX) + (x * 2)]) & 0xffffff) == channels_fg_rgb(channels));
-            CHECK((htole(rgba[(y * 2 + 1) * DIMX + (x * 2) + 1]) & 0xffffff) == channels_fg_rgb(channels));
+            CHECK((htole(rgba[(y * 2 * DIMX) + (x * 2)]) & 0xffffff) == ncchannels_fg_rgb(channels));
+            CHECK((htole(rgba[(y * 2 + 1) * DIMX + (x * 2) + 1]) & 0xffffff) == ncchannels_fg_rgb(channels));
             free(egc);
           }
         }
@@ -300,8 +300,8 @@ TEST_CASE("Visual") {
         auto egc = ncplane_at_yx(ncvp, 0, 0, &stylemask, &channels);
         CHECK(0 == strcmp(" ", egc));
         CHECK(0 == stylemask);
-        CHECK(0x405060 == channels_fg_rgb(channels));
-        CHECK(0x405060 == channels_bg_rgb(channels));
+        CHECK(0x405060 == ncchannels_fg_rgb(channels));
+        CHECK(0x405060 == ncchannels_bg_rgb(channels));
         free(egc);
         ncvisual_destroy(ncv);
       }
@@ -345,8 +345,8 @@ TEST_CASE("Visual") {
           auto egc = ncplane_at_yx(ncvp, 0, 0, &stylemask, &channels);
           CHECK(0 == strcmp(egcs[i], egc));
           CHECK(0 == stylemask);
-          CHECK(0x405060 == channels_fg_rgb(channels));
-          CHECK(0xcccccc == channels_bg_rgb(channels));
+          CHECK(0x405060 == ncchannels_fg_rgb(channels));
+          CHECK(0xcccccc == ncchannels_bg_rgb(channels));
           free(egc);
           ncvisual_destroy(ncv);
         }
@@ -394,11 +394,11 @@ TEST_CASE("Visual") {
           CHECK(0 == strcmp(egcs[i], egc));
           CHECK(0 == stylemask);
           if(i >= 3){
-            CHECK(0x405060 == channels_fg_rgb(channels));
-            CHECK(0xcccccc == channels_bg_rgb(channels));
+            CHECK(0x405060 == ncchannels_fg_rgb(channels));
+            CHECK(0xcccccc == ncchannels_bg_rgb(channels));
           }else{
-            CHECK(0x405060 == channels_bg_rgb(channels));
-            CHECK(0xcccccc == channels_fg_rgb(channels));
+            CHECK(0x405060 == ncchannels_bg_rgb(channels));
+            CHECK(0xcccccc == ncchannels_fg_rgb(channels));
           }
           free(egc);
           ncvisual_destroy(ncv);
@@ -447,11 +447,11 @@ TEST_CASE("Visual") {
           CHECK(0 == strcmp(egcs[i], egc));
           CHECK(0 == stylemask);
           if(i > 3){
-            CHECK(0x405060 == channels_fg_rgb(channels));
-            CHECK(0xdddddd == channels_bg_rgb(channels));
+            CHECK(0x405060 == ncchannels_fg_rgb(channels));
+            CHECK(0xdddddd == ncchannels_bg_rgb(channels));
           }else{
-            CHECK(0x424c57 == channels_fg_rgb(channels));
-            CHECK(0xcccccc == channels_bg_rgb(channels));
+            CHECK(0x424c57 == ncchannels_fg_rgb(channels));
+            CHECK(0xcccccc == ncchannels_bg_rgb(channels));
           }
           free(egc);
           ncvisual_destroy(ncv);
@@ -498,8 +498,8 @@ TEST_CASE("Visual") {
           auto egc = ncplane_at_yx(ncvp, 0, 0, &stylemask, &channels);
           CHECK(0 == strcmp(egcs[i], egc));
           CHECK(0 == stylemask);
-          CHECK(0x111111 == channels_fg_rgb(channels));
-          CHECK(0xdddddd == channels_bg_rgb(channels));
+          CHECK(0x111111 == ncchannels_fg_rgb(channels));
+          CHECK(0xdddddd == ncchannels_bg_rgb(channels));
           free(egc);
           ncvisual_destroy(ncv);
         }

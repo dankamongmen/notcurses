@@ -577,8 +577,8 @@ sex_solver(const uint32_t rgbas[6], uint64_t* channels, unsigned blendcolors){
     if(totaldiff < mindiff){
       mindiff = totaldiff;
       best = glyph;
-      channels_set_fchannel(channels, l0);
-      channels_set_bchannel(channels, l1);
+      ncchannels_set_fchannel(channels, l0);
+      ncchannels_set_bchannel(channels, l1);
     }
     if(totaldiff == 0){ // can't beat that!
       break;
@@ -587,8 +587,8 @@ sex_solver(const uint32_t rgbas[6], uint64_t* channels, unsigned blendcolors){
 //fprintf(stderr, "solved for best: %d (%u)\n", best, mindiff);
   assert(best >= 0 && best < 32);
   if(blendcolors){
-    channels_set_fg_alpha(channels, CELL_ALPHA_BLEND);
-    channels_set_bg_alpha(channels, CELL_ALPHA_BLEND);
+    ncchannels_set_fg_alpha(channels, CELL_ALPHA_BLEND);
+    ncchannels_set_bg_alpha(channels, CELL_ALPHA_BLEND);
   }
   return sex[best];
 }

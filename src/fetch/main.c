@@ -484,7 +484,7 @@ infoplane_notcurses(struct notcurses* nc, const fetched_info* fi, int planeheigh
   }
   ncplane_home(infop);
   uint64_t channels = 0;
-  channels_set_fg_rgb8(&channels, 0, 0xff, 0);
+  ncchannels_set_fg_rgb8(&channels, 0, 0xff, 0);
   ncplane_hline_interp(infop, &hl, planewidth / 2, ul.channels, channels);
   ncplane_hline_interp(infop, &hl, planewidth / 2, channels, ur.channels);
   nccell_release(infop, &ul); nccell_release(infop, &ur);
@@ -496,8 +496,8 @@ infoplane_notcurses(struct notcurses* nc, const fetched_info* fi, int planeheigh
                             fi->username, fi->hostname) < 0){
     return -1;
   }
-  channels_set_fg_rgb8(&channels, 0, 0, 0);
-  channels_set_bg_rgb8(&channels, 0x50, 0x50, 0x50);
+  ncchannels_set_fg_rgb8(&channels, 0, 0, 0);
+  ncchannels_set_bg_rgb8(&channels, 0x50, 0x50, 0x50);
   ncplane_set_base(infop, " ", 0, channels);
   if(notcurses_render(nc)){
     return -1;

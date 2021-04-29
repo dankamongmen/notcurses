@@ -11,6 +11,9 @@ rearrangements of Notcurses.
   * All functions prefixed with `channel_` have been deprecated in favor of
     versions prefixed with `ncchannel_`, which the former now wrap. The old
     versions will be removed in ABI3.
+  * All functions prefixed with `channels_` have been deprecated in favor of
+    versions prefixed with `ncchannels_`, which the former now wrap. The old
+    versions will be removed in ABI3.
   * `SIGINT`, `SIGQUIT`, and `SIGTERM` are now masked for the calling thread
     when writing starts, and unmasked when writing has ended. This prevents
     the writing thread from handling these signals in the middle of a write,

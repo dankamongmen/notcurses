@@ -285,87 +285,87 @@ ncchannel_set_default(unsigned* channel){
 
 // Extract the 32-bit background channel from a channel pair.
 static inline uint32_t
-channels_bchannel(uint64_t channels){
+ncchannels_bchannel(uint64_t channels){
   return channels & 0xfffffffflu;
 }
 
 // Extract the 32-bit foreground channel from a channel pair.
 static inline uint32_t
-channels_fchannel(uint64_t channels){
-  return channels_bchannel(channels >> 32u);
+ncchannels_fchannel(uint64_t channels){
+  return ncchannels_bchannel(channels >> 32u);
 }
 
 // Set the 32-bit background channel of a channel pair.
 static inline uint64_t
-channels_set_bchannel(uint64_t* channels, uint32_t channel){
+ncchannels_set_bchannel(uint64_t* channels, uint32_t channel){
   return *channels = (*channels & 0xffffffff00000000llu) | channel;
 }
 
 // Set the 32-bit foreground channel of a channel pair.
 static inline uint64_t
-channels_set_fchannel(uint64_t* channels, uint32_t channel){
+ncchannels_set_fchannel(uint64_t* channels, uint32_t channel){
   return *channels = (*channels & 0xfffffffflu) | ((uint64_t)channel << 32u);
 }
 
 static inline uint64_t
-channels_combine(uint32_t fchan, uint32_t bchan){
+ncchannels_combine(uint32_t fchan, uint32_t bchan){
   uint64_t channels = 0;
-  channels_set_fchannel(&channels, fchan);
-  channels_set_bchannel(&channels, bchan);
+  ncchannels_set_fchannel(&channels, fchan);
+  ncchannels_set_bchannel(&channels, bchan);
   return channels;
 }
 
 static inline unsigned
-channels_fg_palindex(uint64_t channels){
-  return ncchannel_palindex(channels_fchannel(channels));
+ncchannels_fg_palindex(uint64_t channels){
+  return ncchannel_palindex(ncchannels_fchannel(channels));
 }
 
 static inline unsigned
-channels_bg_palindex(uint64_t channels){
-  return ncchannel_palindex(channels_bchannel(channels));
+ncchannels_bg_palindex(uint64_t channels){
+  return ncchannel_palindex(ncchannels_bchannel(channels));
 }
 
 // Extract 24 bits of foreground RGB from 'channels', shifted to LSBs.
 static inline unsigned
-channels_fg_rgb(uint64_t channels){
-  return channels_fchannel(channels) & CELL_BG_RGB_MASK;
+ncchannels_fg_rgb(uint64_t channels){
+  return ncchannels_fchannel(channels) & CELL_BG_RGB_MASK;
 }
 
 // Extract 24 bits of background RGB from 'channels', shifted to LSBs.
 static inline unsigned
-channels_bg_rgb(uint64_t channels){
-  return channels_bchannel(channels) & CELL_BG_RGB_MASK;
+ncchannels_bg_rgb(uint64_t channels){
+  return ncchannels_bchannel(channels) & CELL_BG_RGB_MASK;
 }
 
 // Extract 2 bits of foreground alpha from 'channels', shifted to LSBs.
 static inline unsigned
-channels_fg_alpha(uint64_t channels){
-  return ncchannel_alpha(channels_fchannel(channels));
+ncchannels_fg_alpha(uint64_t channels){
+  return ncchannel_alpha(ncchannels_fchannel(channels));
 }
 
 // Extract 2 bits of background alpha from 'channels', shifted to LSBs.
 static inline unsigned
-channels_bg_alpha(uint64_t channels){
-  return ncchannel_alpha(channels_bchannel(channels));
+ncchannels_bg_alpha(uint64_t channels){
+  return ncchannel_alpha(ncchannels_bchannel(channels));
 }
 
 // Extract 24 bits of foreground RGB from 'channels', split into subchannels.
 static inline unsigned
-channels_fg_rgb8(uint64_t channels, unsigned* r, unsigned* g, unsigned* b){
-  return ncchannel_rgb8(channels_fchannel(channels), r, g, b);
+ncchannels_fg_rgb8(uint64_t channels, unsigned* r, unsigned* g, unsigned* b){
+  return ncchannel_rgb8(ncchannels_fchannel(channels), r, g, b);
 }
 
 // Extract 24 bits of background RGB from 'channels', split into subchannels.
 static inline unsigned
-channels_bg_rgb8(uint64_t channels, unsigned* r, unsigned* g, unsigned* b){
-  return ncchannel_rgb8(channels_bchannel(channels), r, g, b);
+ncchannels_bg_rgb8(uint64_t channels, unsigned* r, unsigned* g, unsigned* b){
+  return ncchannel_rgb8(ncchannels_bchannel(channels), r, g, b);
 }
 
 // Set the r, g, and b channels for the foreground component of this 64-bit
 // 'channels' variable, and mark it as not using the default color.
 static inline int
-channels_set_fg_rgb8(uint64_t* channels, int r, int g, int b){
-  uint32_t channel = channels_fchannel(*channels);
+ncchannels_set_fg_rgb8(uint64_t* channels, int r, int g, int b){
+  uint32_t channel = ncchannels_fchannel(*channels);
   if(ncchannel_set_rgb8(&channel, r, g, b) < 0){
     return -1;
   }
@@ -375,16 +375,16 @@ channels_set_fg_rgb8(uint64_t* channels, int r, int g, int b){
 
 // Same, but clips to [0..255].
 static inline void
-channels_set_fg_rgb8_clipped(uint64_t* channels, int r, int g, int b){
-  uint32_t channel = channels_fchannel(*channels);
+ncchannels_set_fg_rgb8_clipped(uint64_t* channels, int r, int g, int b){
+  uint32_t channel = ncchannels_fchannel(*channels);
   ncchannel_set_rgb8_clipped(&channel, r, g, b);
   *channels = ((uint64_t)channel << 32llu) | (*channels & 0xffffffffllu);
 }
 
 // Set the 2-bit alpha component of the foreground channel.
 static inline int
-channels_set_fg_alpha(uint64_t* channels, unsigned alpha){
-  uint32_t channel = channels_fchannel(*channels);
+ncchannels_set_fg_alpha(uint64_t* channels, unsigned alpha){
+  uint32_t channel = ncchannels_fchannel(*channels);
   if(ncchannel_set_alpha(&channel, alpha) < 0){
     return -1;
   }
@@ -393,8 +393,8 @@ channels_set_fg_alpha(uint64_t* channels, unsigned alpha){
 }
 
 static inline int
-channels_set_fg_palindex(uint64_t* channels, int idx){
-  uint32_t channel = channels_fchannel(*channels);
+ncchannels_set_fg_palindex(uint64_t* channels, int idx){
+  uint32_t channel = ncchannels_fchannel(*channels);
   if(ncchannel_set_palindex(&channel, idx) < 0){
     return -1;
   }
@@ -404,8 +404,8 @@ channels_set_fg_palindex(uint64_t* channels, int idx){
 
 // Same, but set an assembled 24 bit channel at once.
 static inline int
-channels_set_fg_rgb(uint64_t* channels, unsigned rgb){
-  uint32_t channel = channels_fchannel(*channels);
+ncchannels_set_fg_rgb(uint64_t* channels, unsigned rgb){
+  uint32_t channel = ncchannels_fchannel(*channels);
   if(ncchannel_set(&channel, rgb) < 0){
     return -1;
   }
@@ -416,90 +416,90 @@ channels_set_fg_rgb(uint64_t* channels, unsigned rgb){
 // Set the r, g, and b channels for the background component of this 64-bit
 // 'channels' variable, and mark it as not using the default color.
 static inline int
-channels_set_bg_rgb8(uint64_t* channels, int r, int g, int b){
-  uint32_t channel = channels_bchannel(*channels);
+ncchannels_set_bg_rgb8(uint64_t* channels, int r, int g, int b){
+  uint32_t channel = ncchannels_bchannel(*channels);
   if(ncchannel_set_rgb8(&channel, r, g, b) < 0){
     return -1;
   }
-  channels_set_bchannel(channels, channel);
+  ncchannels_set_bchannel(channels, channel);
   return 0;
 }
 
 // Same, but clips to [0..255].
 static inline void
-channels_set_bg_rgb8_clipped(uint64_t* channels, int r, int g, int b){
-  uint32_t channel = channels_bchannel(*channels);
+ncchannels_set_bg_rgb8_clipped(uint64_t* channels, int r, int g, int b){
+  uint32_t channel = ncchannels_bchannel(*channels);
   ncchannel_set_rgb8_clipped(&channel, r, g, b);
-  channels_set_bchannel(channels, channel);
+  ncchannels_set_bchannel(channels, channel);
 }
 
 // Set the 2-bit alpha component of the background channel.
 static inline int
-channels_set_bg_alpha(uint64_t* channels, unsigned alpha){
+ncchannels_set_bg_alpha(uint64_t* channels, unsigned alpha){
   if(alpha == CELL_ALPHA_HIGHCONTRAST){ // forbidden for background alpha
     return -1;
   }
-  uint32_t channel = channels_bchannel(*channels);
+  uint32_t channel = ncchannels_bchannel(*channels);
   if(ncchannel_set_alpha(&channel, alpha) < 0){
     return -1;
   }
-  channels_set_bchannel(channels, channel);
+  ncchannels_set_bchannel(channels, channel);
   return 0;
 }
 
 // Set the cell's background palette index, set the background palette index
 // bit, set it background-opaque, and clear the background default color bit.
 static inline int
-channels_set_bg_palindex(uint64_t* channels, int idx){
-  uint32_t channel = channels_bchannel(*channels);
+ncchannels_set_bg_palindex(uint64_t* channels, int idx){
+  uint32_t channel = ncchannels_bchannel(*channels);
   if(ncchannel_set_palindex(&channel, idx) < 0){
     return -1;
   }
-  channels_set_bchannel(channels, channel);
+  ncchannels_set_bchannel(channels, channel);
   return 0;
 }
 
 // Same, but set an assembled 24 bit channel at once.
 static inline int
-channels_set_bg_rgb(uint64_t* channels, unsigned rgb){
-  uint32_t channel = channels_bchannel(*channels);
+ncchannels_set_bg_rgb(uint64_t* channels, unsigned rgb){
+  uint32_t channel = ncchannels_bchannel(*channels);
   if(ncchannel_set(&channel, rgb) < 0){
     return -1;
   }
-  channels_set_bchannel(channels, channel);
+  ncchannels_set_bchannel(channels, channel);
   return 0;
 }
 
 // Is the foreground using the "default foreground color"?
 static inline bool
-channels_fg_default_p(uint64_t channels){
-  return ncchannel_default_p(channels_fchannel(channels));
+ncchannels_fg_default_p(uint64_t channels){
+  return ncchannel_default_p(ncchannels_fchannel(channels));
 }
 
 // Is the foreground using indexed palette color?
 static inline bool
-channels_fg_palindex_p(uint64_t channels){
-  return ncchannel_palindex_p(channels_fchannel(channels));
+ncchannels_fg_palindex_p(uint64_t channels){
+  return ncchannel_palindex_p(ncchannels_fchannel(channels));
 }
 
 // Is the background using the "default background color"? The "default
 // background color" must generally be used to take advantage of
 // terminal-effected transparency.
 static inline bool
-channels_bg_default_p(uint64_t channels){
-  return ncchannel_default_p(channels_bchannel(channels));
+ncchannels_bg_default_p(uint64_t channels){
+  return ncchannel_default_p(ncchannels_bchannel(channels));
 }
 
 // Is the background using indexed palette color?
 static inline bool
-channels_bg_palindex_p(uint64_t channels){
-  return ncchannel_palindex_p(channels_bchannel(channels));
+ncchannels_bg_palindex_p(uint64_t channels){
+  return ncchannel_palindex_p(ncchannels_bchannel(channels));
 }
 
 // Mark the foreground channel as using its default color.
 static inline uint64_t
-channels_set_fg_default(uint64_t* channels){
-  uint32_t channel = channels_fchannel(*channels);
+ncchannels_set_fg_default(uint64_t* channels){
+  uint32_t channel = ncchannels_fchannel(*channels);
   ncchannel_set_default(&channel);
   *channels = ((uint64_t)channel << 32llu) | (*channels & 0xffffffffllu);
   return *channels;
@@ -507,10 +507,10 @@ channels_set_fg_default(uint64_t* channels){
 
 // Mark the background channel as using its default color.
 static inline uint64_t
-channels_set_bg_default(uint64_t* channels){
-  uint32_t channel = channels_bchannel(*channels);
+ncchannels_set_bg_default(uint64_t* channels){
+  uint32_t channel = ncchannels_bchannel(*channels);
   ncchannel_set_default(&channel);
-  channels_set_bchannel(channels, channel);
+  ncchannels_set_bchannel(channels, channel);
   return *channels;
 }
 
@@ -707,23 +707,23 @@ nccell_off_styles(nccell* c, unsigned stylebits){
 // Use the default color for the foreground.
 static inline void
 nccell_set_fg_default(nccell* c){
-  channels_set_fg_default(&c->channels);
+  ncchannels_set_fg_default(&c->channels);
 }
 
 // Use the default color for the background.
 static inline void
 nccell_set_bg_default(nccell* c){
-  channels_set_bg_default(&c->channels);
+  ncchannels_set_bg_default(&c->channels);
 }
 
 static inline int
 nccell_set_fg_alpha(nccell* c, int alpha){
-  return channels_set_fg_alpha(&c->channels, alpha);
+  return ncchannels_set_fg_alpha(&c->channels, alpha);
 }
 
 static inline int
 nccell_set_bg_alpha(nccell* c, int alpha){
-  return channels_set_bg_alpha(&c->channels, alpha);
+  return ncchannels_set_bg_alpha(&c->channels, alpha);
 }
 
 // Is the cell part of a multicolumn element?
@@ -1980,111 +1980,111 @@ API void ncplane_erase(struct ncplane* n);
 // Extract 24 bits of foreground RGB from 'cl', shifted to LSBs.
 static inline uint32_t
 nccell_fg_rgb(const nccell* cl){
-  return channels_fg_rgb(cl->channels);
+  return ncchannels_fg_rgb(cl->channels);
 }
 
 // Extract 24 bits of background RGB from 'cl', shifted to LSBs.
 static inline uint32_t
 nccell_bg_rgb(const nccell* cl){
-  return channels_bg_rgb(cl->channels);
+  return ncchannels_bg_rgb(cl->channels);
 }
 
 // Extract 2 bits of foreground alpha from 'cl', shifted to LSBs.
 static inline uint32_t
 nccell_fg_alpha(const nccell* cl){
-  return channels_fg_alpha(cl->channels);
+  return ncchannels_fg_alpha(cl->channels);
 }
 
 // Extract 2 bits of background alpha from 'cl', shifted to LSBs.
 static inline uint32_t
 nccell_bg_alpha(const nccell* cl){
-  return channels_bg_alpha(cl->channels);
+  return ncchannels_bg_alpha(cl->channels);
 }
 
 // Extract 24 bits of foreground RGB from 'cl', split into components.
 static inline uint32_t
 nccell_fg_rgb8(const nccell* cl, unsigned* r, unsigned* g, unsigned* b){
-  return channels_fg_rgb8(cl->channels, r, g, b);
+  return ncchannels_fg_rgb8(cl->channels, r, g, b);
 }
 
 // Extract 24 bits of background RGB from 'cl', split into components.
 static inline uint32_t
 nccell_bg_rgb8(const nccell* cl, unsigned* r, unsigned* g, unsigned* b){
-  return channels_bg_rgb8(cl->channels, r, g, b);
+  return ncchannels_bg_rgb8(cl->channels, r, g, b);
 }
 
 // Set the r, g, and b cell for the foreground component of this 64-bit
 // 'cl' variable, and mark it as not using the default color.
 static inline int
 nccell_set_fg_rgb8(nccell* cl, int r, int g, int b){
-  return channels_set_fg_rgb8(&cl->channels, r, g, b);
+  return ncchannels_set_fg_rgb8(&cl->channels, r, g, b);
 }
 
 // Same, but clipped to [0..255].
 static inline void
 nccell_set_fg_rgb8_clipped(nccell* cl, int r, int g, int b){
-  channels_set_fg_rgb8_clipped(&cl->channels, r, g, b);
+  ncchannels_set_fg_rgb8_clipped(&cl->channels, r, g, b);
 }
 
 // Same, but with an assembled 24-bit RGB value.
 static inline int
 nccell_set_fg_rgb(nccell* c, uint32_t channel){
-  return channels_set_fg_rgb(&c->channels, channel);
+  return ncchannels_set_fg_rgb(&c->channels, channel);
 }
 
 // Set the cell's foreground palette index, set the foreground palette index
 // bit, set it foreground-opaque, and clear the foreground default color bit.
 static inline int
 nccell_set_fg_palindex(nccell* cl, int idx){
-  return channels_set_fg_palindex(&cl->channels, idx);
+  return ncchannels_set_fg_palindex(&cl->channels, idx);
 }
 
 static inline uint32_t
 nccell_fg_palindex(const nccell* cl){
-  return channels_fg_palindex(cl->channels);
+  return ncchannels_fg_palindex(cl->channels);
 }
 
 // Set the r, g, and b cell for the background component of this 64-bit
 // 'cl' variable, and mark it as not using the default color.
 static inline int
 nccell_set_bg_rgb8(nccell* cl, int r, int g, int b){
-  return channels_set_bg_rgb8(&cl->channels, r, g, b);
+  return ncchannels_set_bg_rgb8(&cl->channels, r, g, b);
 }
 
 // Same, but clipped to [0..255].
 static inline void
 nccell_set_bg_rgb8_clipped(nccell* cl, int r, int g, int b){
-  channels_set_bg_rgb8_clipped(&cl->channels, r, g, b);
+  ncchannels_set_bg_rgb8_clipped(&cl->channels, r, g, b);
 }
 
 // Same, but with an assembled 24-bit RGB value. A value over 0xffffff
 // will be rejected, with a non-zero return value.
 static inline int
 nccell_set_bg_rgb(nccell* c, uint32_t channel){
-  return channels_set_bg_rgb(&c->channels, channel);
+  return ncchannels_set_bg_rgb(&c->channels, channel);
 }
 
 // Set the cell's background palette index, set the background palette index
 // bit, set it background-opaque, and clear the background default color bit.
 static inline int
 nccell_set_bg_palindex(nccell* cl, int idx){
-  return channels_set_bg_palindex(&cl->channels, idx);
+  return ncchannels_set_bg_palindex(&cl->channels, idx);
 }
 
 static inline uint32_t
 nccell_bg_palindex(const nccell* cl){
-  return channels_bg_palindex(cl->channels);
+  return ncchannels_bg_palindex(cl->channels);
 }
 
 // Is the foreground using the "default foreground color"?
 static inline bool
 nccell_fg_default_p(const nccell* cl){
-  return channels_fg_default_p(cl->channels);
+  return ncchannels_fg_default_p(cl->channels);
 }
 
 static inline bool
 nccell_fg_palindex_p(const nccell* cl){
-  return channels_fg_palindex_p(cl->channels);
+  return ncchannels_fg_palindex_p(cl->channels);
 }
 
 // Is the background using the "default background color"? The "default
@@ -2092,24 +2092,24 @@ nccell_fg_palindex_p(const nccell* cl){
 // terminal-effected transparency.
 static inline bool
 nccell_bg_default_p(const nccell* cl){
-  return channels_bg_default_p(cl->channels);
+  return ncchannels_bg_default_p(cl->channels);
 }
 
 static inline bool
 nccell_bg_palindex_p(const nccell* cl){
-  return channels_bg_palindex_p(cl->channels);
+  return ncchannels_bg_palindex_p(cl->channels);
 }
 
 // Extract the 32-bit working background channel from an ncplane.
 static inline uint32_t
 ncplane_bchannel(const struct ncplane* n){
-  return channels_bchannel(ncplane_channels(n));
+  return ncchannels_bchannel(ncplane_channels(n));
 }
 
 // Extract the 32-bit working foreground channel from an ncplane.
 static inline uint32_t
 ncplane_fchannel(const struct ncplane* n){
-  return channels_fchannel(ncplane_channels(n));
+  return ncchannels_fchannel(ncplane_channels(n));
 }
 
 API void ncplane_set_channels(struct ncplane* n, uint64_t channels);
@@ -2127,49 +2127,49 @@ API void ncplane_off_styles(struct ncplane* n, unsigned stylebits);
 // Extract 24 bits of working foreground RGB from an ncplane, shifted to LSBs.
 static inline uint32_t
 ncplane_fg_rgb(const struct ncplane* n){
-  return channels_fg_rgb(ncplane_channels(n));
+  return ncchannels_fg_rgb(ncplane_channels(n));
 }
 
 // Extract 24 bits of working background RGB from an ncplane, shifted to LSBs.
 static inline uint32_t
 ncplane_bg_rgb(const struct ncplane* n){
-  return channels_bg_rgb(ncplane_channels(n));
+  return ncchannels_bg_rgb(ncplane_channels(n));
 }
 
 // Extract 2 bits of foreground alpha from 'struct ncplane', shifted to LSBs.
 static inline uint32_t
 ncplane_fg_alpha(const struct ncplane* n){
-  return channels_fg_alpha(ncplane_channels(n));
+  return ncchannels_fg_alpha(ncplane_channels(n));
 }
 
 // Is the plane's foreground using the "default foreground color"?
 static inline bool
 ncplane_fg_default_p(const struct ncplane* n){
-  return channels_fg_default_p(ncplane_channels(n));
+  return ncchannels_fg_default_p(ncplane_channels(n));
 }
 
 // Extract 2 bits of background alpha from 'struct ncplane', shifted to LSBs.
 static inline uint32_t
 ncplane_bg_alpha(const struct ncplane* n){
-  return channels_bg_alpha(ncplane_channels(n));
+  return ncchannels_bg_alpha(ncplane_channels(n));
 }
 
 // Is the plane's background using the "default background color"?
 static inline bool
 ncplane_bg_default_p(const struct ncplane* n){
-  return channels_bg_default_p(ncplane_channels(n));
+  return ncchannels_bg_default_p(ncplane_channels(n));
 }
 
 // Extract 24 bits of foreground RGB from 'n', split into components.
 static inline uint32_t
 ncplane_fg_rgb8(const struct ncplane* n, unsigned* r, unsigned* g, unsigned* b){
-  return channels_fg_rgb8(ncplane_channels(n), r, g, b);
+  return ncchannels_fg_rgb8(ncplane_channels(n), r, g, b);
 }
 
 // Extract 24 bits of background RGB from 'n', split into components.
 static inline uint32_t
 ncplane_bg_rgb8(const struct ncplane* n, unsigned* r, unsigned* g, unsigned* b){
-  return channels_bg_rgb8(ncplane_channels(n), r, g, b);
+  return ncchannels_bg_rgb8(ncplane_channels(n), r, g, b);
 }
 
 // Set an entire 32-bit channel of the plane
@@ -4038,22 +4038,164 @@ channel_set_palindex(uint32_t* channel, int idx){
   return ncchannel_set_palindex(channel, idx);
 }
 
-// Is this channel using the "default color" rather than RGB/palette-indexed?
 __attribute__ ((deprecated)) static inline bool
 channel_default_p(unsigned channel){
   return ncchannel_default_p(channel);
 }
 
-// Is this channel using palette-indexed color rather than RGB?
 __attribute__ ((deprecated)) static inline bool
 channel_palindex_p(unsigned channel){
   return ncchannel_palindex_p(channel);
 }
 
-// Mark the channel as using its default color, which also marks it opaque.
 __attribute__ ((deprecated)) static inline unsigned
 channel_set_default(unsigned* channel){
   return ncchannel_set_default(channel);
+}
+
+__attribute__ ((deprecated)) static inline uint32_t
+channels_bchannel(uint64_t channels){
+  return ncchannels_bchannel(channels);
+}
+
+__attribute__ ((deprecated)) static inline uint32_t
+channels_fchannel(uint64_t channels){
+  return ncchannels_fchannel(channels);
+}
+
+__attribute__ ((deprecated)) static inline uint64_t
+channels_set_bchannel(uint64_t* channels, uint32_t channel){
+  return ncchannels_set_bchannel(channels, channel);
+}
+
+__attribute__ ((deprecated)) static inline uint64_t
+channels_set_fchannel(uint64_t* channels, uint32_t channel){
+  return ncchannels_set_fchannel(channels, channel);
+}
+
+__attribute__ ((deprecated)) static inline uint64_t
+channels_combine(uint32_t fchan, uint32_t bchan){
+  return ncchannels_combine(fchan, bchan);
+}
+
+__attribute__ ((deprecated)) static inline unsigned
+channels_fg_palindex(uint64_t channels){
+  return ncchannels_fg_palindex(channels);
+}
+
+__attribute__ ((deprecated)) static inline unsigned
+channels_bg_palindex(uint64_t channels){
+  return ncchannels_bg_palindex(channels);
+}
+
+__attribute__ ((deprecated)) static inline unsigned
+channels_fg_rgb(uint64_t channels){
+  return ncchannels_fg_rgb(channels);
+}
+
+__attribute__ ((deprecated)) static inline unsigned
+channels_bg_rgb(uint64_t channels){
+  return ncchannels_bg_rgb(channels);
+}
+
+__attribute__ ((deprecated)) static inline unsigned
+channels_fg_alpha(uint64_t channels){
+  return ncchannels_fg_alpha(channels);
+}
+
+__attribute__ ((deprecated)) static inline unsigned
+channels_bg_alpha(uint64_t channels){
+  return ncchannels_bg_alpha(channels);
+}
+
+__attribute__ ((deprecated)) static inline unsigned
+channels_fg_rgb8(uint64_t channels, unsigned* r, unsigned* g, unsigned* b){
+  return ncchannels_fg_rgb8(channels, r, g, b);
+}
+
+__attribute__ ((deprecated)) static inline unsigned
+channels_bg_rgb8(uint64_t channels, unsigned* r, unsigned* g, unsigned* b){
+  return ncchannels_bg_rgb8(channels, r, g, b);
+}
+
+__attribute__ ((deprecated)) static inline int
+channels_set_fg_rgb8(uint64_t* channels, int r, int g, int b){
+  return ncchannels_set_fg_rgb8(channels, r, g, b);
+}
+
+__attribute__ ((deprecated)) static inline void
+channels_set_fg_rgb8_clipped(uint64_t* channels, int r, int g, int b){
+  ncchannels_set_fg_rgb8_clipped(channels, r, g, b);
+}
+
+__attribute__ ((deprecated)) static inline int
+channels_set_fg_alpha(uint64_t* channels, unsigned alpha){
+  return ncchannels_set_fg_alpha(channels, alpha);
+}
+
+__attribute__ ((deprecated)) static inline int
+channels_set_fg_palindex(uint64_t* channels, int idx){
+  return ncchannels_set_bg_palindex(channels, idx);
+}
+
+__attribute__ ((deprecated)) static inline int
+channels_set_fg_rgb(uint64_t* channels, unsigned rgb){
+  return ncchannels_set_fg_rgb(channels, rgb);
+}
+
+__attribute__ ((deprecated)) static inline int
+channels_set_bg_rgb8(uint64_t* channels, int r, int g, int b){
+  return ncchannels_set_bg_rgb8(channels, r, g, b);
+}
+
+__attribute__ ((deprecated)) static inline void
+channels_set_bg_rgb8_clipped(uint64_t* channels, int r, int g, int b){
+  ncchannels_set_bg_rgb8_clipped(channels, r, g, b);
+}
+
+__attribute__ ((deprecated)) static inline int
+channels_set_bg_alpha(uint64_t* channels, unsigned alpha){
+  return ncchannels_set_bg_alpha(channels, alpha);
+}
+
+__attribute__ ((deprecated)) static inline int
+channels_set_bg_palindex(uint64_t* channels, int idx){
+  return ncchannels_set_bg_palindex(channels, idx);
+}
+
+__attribute__ ((deprecated)) static inline int
+channels_set_bg_rgb(uint64_t* channels, unsigned rgb){
+  return ncchannels_set_bg_rgb(channels, rgb);
+}
+
+__attribute__ ((deprecated)) static inline bool
+channels_fg_default_p(uint64_t channels){
+  return ncchannels_fg_default_p(channels);
+}
+
+__attribute__ ((deprecated)) static inline bool
+channels_fg_palindex_p(uint64_t channels){
+  return ncchannels_fg_palindex_p(channels);
+}
+
+__attribute__ ((deprecated)) static inline bool
+channels_bg_default_p(uint64_t channels){
+  return ncchannels_bg_default_p(channels);
+}
+
+__attribute__ ((deprecated)) static inline bool
+channels_bg_palindex_p(uint64_t channels){
+  return ncchannels_bg_palindex_p(channels);
+}
+
+__attribute__ ((deprecated)) static inline uint64_t
+channels_set_fg_default(uint64_t* channels){
+  return ncchannels_set_fg_default(channels);
+}
+
+__attribute__ ((deprecated)) static inline uint64_t
+channels_set_bg_default(uint64_t* channels){
+  return ncchannels_set_bg_default(channels);
 }
 
 typedef ncpalette palette256;

@@ -212,18 +212,18 @@ ncreel_demo_core(struct notcurses* nc){
     .focusedchan = 0,
     .flags = NCREEL_OPTION_INFINITESCROLL | NCREEL_OPTION_CIRCULAR,
   };
-  channels_set_fg_rgb8(&popts.focusedchan, 58, 150, 221);
-  channels_set_bg_rgb8(&popts.focusedchan, 97, 214, 214);
-  channels_set_fg_rgb8(&popts.tabletchan, 19, 161, 14);
-  channels_set_bg_rgb8(&popts.borderchan, 0, 0, 0);
-  channels_set_fg_rgb8(&popts.borderchan, 136, 23, 152);
-  channels_set_bg_rgb8(&popts.borderchan, 0, 0, 0);
+  ncchannels_set_fg_rgb8(&popts.focusedchan, 58, 150, 221);
+  ncchannels_set_bg_rgb8(&popts.focusedchan, 97, 214, 214);
+  ncchannels_set_fg_rgb8(&popts.tabletchan, 19, 161, 14);
+  ncchannels_set_bg_rgb8(&popts.borderchan, 0, 0, 0);
+  ncchannels_set_fg_rgb8(&popts.borderchan, 136, 23, 152);
+  ncchannels_set_bg_rgb8(&popts.borderchan, 0, 0, 0);
   uint64_t bgchannels = 0;
-  if(channels_set_fg_alpha(&bgchannels, CELL_ALPHA_TRANSPARENT)){
+  if(ncchannels_set_fg_alpha(&bgchannels, CELL_ALPHA_TRANSPARENT)){
     ncplane_destroy(n);
     return -1;
   }
-  if(channels_set_bg_alpha(&bgchannels, CELL_ALPHA_TRANSPARENT)){
+  if(ncchannels_set_bg_alpha(&bgchannels, CELL_ALPHA_TRANSPARENT)){
     ncplane_destroy(n);
     return -1;
   }

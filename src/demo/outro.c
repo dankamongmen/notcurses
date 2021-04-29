@@ -94,8 +94,8 @@ videothread(void* vnc){
     return PTHREAD_CANCELED;
   }
   uint64_t trans_channel = 0;
-  channels_set_bg_alpha(&trans_channel, CELL_ALPHA_TRANSPARENT);
-  channels_set_fg_alpha(&trans_channel, CELL_ALPHA_TRANSPARENT);
+  ncchannels_set_bg_alpha(&trans_channel, CELL_ALPHA_TRANSPARENT);
+  ncchannels_set_fg_alpha(&trans_channel, CELL_ALPHA_TRANSPARENT);
   ncplane_set_base(apiap, "", 0, trans_channel);
   ncplane_set_fg_rgb8(apiap, 0xc0, 0x40, 0x80);
   ncplane_set_bg_rgb8(apiap, 0, 0, 0);
@@ -130,7 +130,7 @@ outro_message(struct notcurses* nc, int* rows, int* cols){
   int xs;
   ncplane_yx(non, NULL, &xs);
   uint64_t channels = 0;
-  channels_set_bg_rgb8(&channels, 0x58, 0x36, 0x58);
+  ncchannels_set_bg_rgb8(&channels, 0x58, 0x36, 0x58);
   if(ncplane_set_base(non, " ", 0, channels) < 0){
     return NULL;
   }

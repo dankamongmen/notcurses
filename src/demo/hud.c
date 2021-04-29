@@ -56,10 +56,10 @@ static struct ncplane* debug; // "debug info" modal popup
 static int
 hud_standard_bg_rgb(struct ncplane* n){
   uint64_t channels = 0;
-  channels_set_fg_alpha(&channels, CELL_ALPHA_BLEND);
-  channels_set_fg_rgb8(&channels, 0x80, 0x80, 0x80);
-  channels_set_bg_alpha(&channels, CELL_ALPHA_BLEND);
-  channels_set_bg_rgb8(&channels, 0x80, 0x80, 0x80);
+  ncchannels_set_fg_alpha(&channels, CELL_ALPHA_BLEND);
+  ncchannels_set_fg_rgb8(&channels, 0x80, 0x80, 0x80);
+  ncchannels_set_bg_alpha(&channels, CELL_ALPHA_BLEND);
+  ncchannels_set_bg_rgb8(&channels, 0x80, 0x80, 0x80);
   if(ncplane_set_base(n, "", 0, channels) >= 0){
     return -1;
   }
@@ -114,8 +114,8 @@ debug_toggle(struct notcurses* nc){
     return;
   }
   uint64_t channels = 0;
-  channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
-  channels_set_bg_rgb(&channels, 0xffffe5);
+  ncchannels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+  ncchannels_set_bg_rgb(&channels, 0xffffe5);
   ncplane_set_base(n, " ", 0, channels);
   ncplane_set_scrolling(n, true);
   ncplane_set_fg_rgb(n, 0x0a0a0a);
@@ -159,10 +159,10 @@ about_toggle(struct notcurses* nc){
   struct ncplane* n = ncplane_create(notcurses_stdplane(nc), &nopts);
   // let the glyphs below show through, but only dimly
   uint64_t channels = 0;
-  channels_set_fg_alpha(&channels, CELL_ALPHA_BLEND);
-  channels_set_fg_rgb8(&channels, 0x0, 0x0, 0x0);
-  channels_set_bg_alpha(&channels, CELL_ALPHA_BLEND);
-  channels_set_bg_rgb8(&channels, 0x0, 0x0, 0x0);
+  ncchannels_set_fg_alpha(&channels, CELL_ALPHA_BLEND);
+  ncchannels_set_fg_rgb8(&channels, 0x0, 0x0, 0x0);
+  ncchannels_set_bg_alpha(&channels, CELL_ALPHA_BLEND);
+  ncchannels_set_bg_rgb8(&channels, 0x0, 0x0, 0x0);
   if(ncplane_set_base(n, "", 0, channels) >= 0){
     ncplane_set_fg_rgb(n, 0x11ffff);
     ncplane_set_bg_rgb(n, 0);
@@ -178,8 +178,8 @@ about_toggle(struct notcurses* nc){
     nccell lr = CELL_TRIVIAL_INITIALIZER, ll = CELL_TRIVIAL_INITIALIZER;
     nccell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
     channels = 0;
-    channels_set_fg_rgb(&channels, 0xc020c0);
-    channels_set_bg_rgb(&channels, 0);
+    ncchannels_set_fg_rgb(&channels, 0xc020c0);
+    ncchannels_set_bg_rgb(&channels, 0);
     if(nccells_rounded_box(n, NCSTYLE_NONE, channels, &ul, &ur, &ll, &lr, &hl, &vl) == 0){
       if(ncplane_perimeter(n, &ul, &ur, &ll, &lr, &hl, &vl, 0) == 0){
         nccell_release(n, &ul); nccell_release(n, &ur); nccell_release(n, &hl);
@@ -316,13 +316,13 @@ struct ncmenu* menu_create(struct notcurses* nc){
   };
   uint64_t headerchannels = 0;
   uint64_t sectionchannels = 0;
-  channels_set_fg_rgb(&sectionchannels, 0xffffff);
-  channels_set_bg_rgb(&sectionchannels, 0x000000);
-  channels_set_fg_alpha(&sectionchannels, CELL_ALPHA_HIGHCONTRAST);
-  channels_set_bg_alpha(&sectionchannels, CELL_ALPHA_BLEND);
-  channels_set_fg_rgb(&headerchannels, 0xffffff);
-  channels_set_bg_rgb(&headerchannels, 0x7f347f);
-  channels_set_bg_alpha(&headerchannels, CELL_ALPHA_BLEND);
+  ncchannels_set_fg_rgb(&sectionchannels, 0xffffff);
+  ncchannels_set_bg_rgb(&sectionchannels, 0x000000);
+  ncchannels_set_fg_alpha(&sectionchannels, CELL_ALPHA_HIGHCONTRAST);
+  ncchannels_set_bg_alpha(&sectionchannels, CELL_ALPHA_BLEND);
+  ncchannels_set_fg_rgb(&headerchannels, 0xffffff);
+  ncchannels_set_bg_rgb(&headerchannels, 0x7f347f);
+  ncchannels_set_bg_alpha(&headerchannels, CELL_ALPHA_BLEND);
   const ncmenu_options mopts = {
     .sections = sections,
     .sectioncount = sizeof(sections) / sizeof(*sections),
@@ -650,10 +650,10 @@ int fpsgraph_init(struct notcurses* nc){
   }
   uint32_t style = 0;
   uint64_t channels = 0;
-  channels_set_fg_alpha(&channels, CELL_ALPHA_BLEND);
-  channels_set_fg_rgb(&channels, 0x201020);
-  channels_set_bg_alpha(&channels, CELL_ALPHA_BLEND);
-  channels_set_bg_rgb(&channels, 0x201020);
+  ncchannels_set_fg_alpha(&channels, CELL_ALPHA_BLEND);
+  ncchannels_set_fg_rgb(&channels, 0x201020);
+  ncchannels_set_bg_alpha(&channels, CELL_ALPHA_BLEND);
+  ncchannels_set_bg_rgb(&channels, 0x201020);
   ncplane_set_base(newp, "", style, channels);
   ncplot_options opts;
   memset(&opts, 0, sizeof(opts));
@@ -663,12 +663,12 @@ int fpsgraph_init(struct notcurses* nc){
   opts.gridtype = NCBLIT_BRAILLE;
   opts.legendstyle = NCSTYLE_ITALIC | NCSTYLE_BOLD;
   opts.title = "frames per semisecond";
-  channels_set_fg_rgb8(&opts.minchannels, 0x80, 0x80, 0xff);
-  channels_set_bg_rgb(&opts.minchannels, 0x201020);
-  channels_set_bg_alpha(&opts.minchannels, CELL_ALPHA_BLEND);
-  channels_set_fg_rgb8(&opts.maxchannels, 0x80, 0xff, 0x80);
-  channels_set_bg_rgb(&opts.maxchannels, 0x201020);
-  channels_set_bg_alpha(&opts.maxchannels, CELL_ALPHA_BLEND);
+  ncchannels_set_fg_rgb8(&opts.minchannels, 0x80, 0x80, 0xff);
+  ncchannels_set_bg_rgb(&opts.minchannels, 0x201020);
+  ncchannels_set_bg_alpha(&opts.minchannels, CELL_ALPHA_BLEND);
+  ncchannels_set_fg_rgb8(&opts.maxchannels, 0x80, 0xff, 0x80);
+  ncchannels_set_bg_rgb(&opts.maxchannels, 0x201020);
+  ncchannels_set_bg_alpha(&opts.maxchannels, CELL_ALPHA_BLEND);
   struct ncuplot* fpsplot = ncuplot_create(newp, &opts, 0, 0);
   if(!fpsplot){
     ncplane_destroy(newp);

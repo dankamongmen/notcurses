@@ -43,45 +43,45 @@ notcurses_channels - operations on notcurses channels
 
 **uint32_t ncchannel_set_default(uint32_t* ***channel***);**
 
-**unsigned channels_fg_rgb(uint64_t ***channels***);**
+**unsigned ncchannels_fg_rgb(uint64_t ***channels***);**
 
-**unsigned channels_bg_rgb(uint64_t ***channels***);**
+**unsigned ncchannels_bg_rgb(uint64_t ***channels***);**
 
-**int channels_set_fg_rgb(uint64_t* ***channels***, unsigned ***rgb***);**
+**int ncchannels_set_fg_rgb(uint64_t* ***channels***, unsigned ***rgb***);**
 
-**int channels_set_bg_rgb(uint64_t* ***channels***, unsigned ***rgb***);**
+**int ncchannels_set_bg_rgb(uint64_t* ***channels***, unsigned ***rgb***);**
 
-**unsigned channels_fg_alpha(uint64_t ***channels***);**
+**unsigned ncchannels_fg_alpha(uint64_t ***channels***);**
 
-**unsigned channels_bg_alpha(uint64_t ***channels***);**
+**unsigned ncchannels_bg_alpha(uint64_t ***channels***);**
 
-**int channels_set_fg_alpha(uint64_t* ***channels***, int ***alpha***);**
+**int ncchannels_set_fg_alpha(uint64_t* ***channels***, int ***alpha***);**
 
-**int channels_set_bg_alpha(uint64_t* ***channels***, int ***alpha***);**
+**int ncchannels_set_bg_alpha(uint64_t* ***channels***, int ***alpha***);**
 
-**unsigned channels_fg_palindex(uint64_t ***channels***);**
+**unsigned ncchannels_fg_palindex(uint64_t ***channels***);**
 
-**unsigned channels_bg_palindex(uint64_t ***channels***);**
+**unsigned ncchannels_bg_palindex(uint64_t ***channels***);**
 
-**int channels_set_fg_palindex(uint64_t* ***channels***, int ***idx***);**
+**int ncchannels_set_fg_palindex(uint64_t* ***channels***, int ***idx***);**
 
-**int channels_set_bg_palindex(uint64_t* ***channels***, int ***idx***);**
+**int ncchannels_set_bg_palindex(uint64_t* ***channels***, int ***idx***);**
 
-**unsigned channels_fg_rgb8(uint64_t ***channels***, unsigned* ***r***, unsigned* ***g***, unsigned* ***b***);**
+**unsigned ncchannels_fg_rgb8(uint64_t ***channels***, unsigned* ***r***, unsigned* ***g***, unsigned* ***b***);**
 
-**unsigned channels_bg_rgb8(uint64_t ***channels***, unsigned* ***r***, unsigned* ***g***, unsigned* ***b***);**
+**unsigned ncchannels_bg_rgb8(uint64_t ***channels***, unsigned* ***r***, unsigned* ***g***, unsigned* ***b***);**
 
-**int channels_set_fg_rgb8(uint64_t* ***channels***, int ***r***, int ***g***, int ***b***);**
+**int ncchannels_set_fg_rgb8(uint64_t* ***channels***, int ***r***, int ***g***, int ***b***);**
 
-**int channels_set_bg_rgb8(uint64_t* ***channels***, int ***r***, int ***g***, int ***b***);**
+**int ncchannels_set_bg_rgb8(uint64_t* ***channels***, int ***r***, int ***g***, int ***b***);**
 
-**bool channels_fg_default_p(uint64_t ***channels***);**
+**bool ncchannels_fg_default_p(uint64_t ***channels***);**
 
-**bool channels_bg_default_p(uint64_t ***channels***);**
+**bool ncchannels_bg_default_p(uint64_t ***channels***);**
 
-**uint64_t channels_set_fg_default(uint64_t* ***channels***);**
+**uint64_t ncchannels_set_fg_default(uint64_t* ***channels***);**
 
-**uint64_t channels_set_bg_default(uint64_t* ***channels***);**
+**uint64_t ncchannels_set_bg_default(uint64_t* ***channels***);**
 
 # DESCRIPTION
 

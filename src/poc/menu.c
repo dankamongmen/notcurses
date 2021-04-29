@@ -20,8 +20,8 @@ run_menu(struct notcurses* nc, struct ncmenu* ncm){
   ncplane_set_fg_rgb(selplane, 0x0);
   ncplane_set_bg_rgb(selplane, 0xdddddd);
   uint64_t channels = 0;
-  channels_set_fg_rgb(&channels, 0x000088);
-  channels_set_bg_rgb(&channels, 0x88aa00);
+  ncchannels_set_fg_rgb(&channels, 0x000088);
+  ncchannels_set_bg_rgb(&channels, 0x88aa00);
   if(ncplane_set_base(selplane, " ", 0, channels) < 0){
     goto err;
   }
@@ -101,10 +101,10 @@ int main(void){
   memset(&mopts, 0, sizeof(mopts));
   mopts.sections = sections;
   mopts.sectioncount = sizeof(sections) / sizeof(*sections);
-  channels_set_fg_rgb(&mopts.headerchannels, 0x00ff00);
-  channels_set_bg_rgb(&mopts.headerchannels, 0x440000);
-  channels_set_fg_rgb(&mopts.sectionchannels, 0xb0d700);
-  channels_set_bg_rgb(&mopts.sectionchannels, 0x002000);
+  ncchannels_set_fg_rgb(&mopts.headerchannels, 0x00ff00);
+  ncchannels_set_bg_rgb(&mopts.headerchannels, 0x440000);
+  ncchannels_set_fg_rgb(&mopts.sectionchannels, 0xb0d700);
+  ncchannels_set_bg_rgb(&mopts.sectionchannels, 0x002000);
   int dimy, dimx;
   struct ncplane* n = notcurses_stddim_yx(nc, &dimy, &dimx);
   struct ncmenu* top = ncmenu_create(n, &mopts);
@@ -118,8 +118,8 @@ int main(void){
     goto err;
   }
   uint64_t channels = 0;
-  channels_set_fg_rgb(&channels, 0x88aa00);
-  channels_set_bg_rgb(&channels, 0x000088);
+  ncchannels_set_fg_rgb(&channels, 0x88aa00);
+  ncchannels_set_bg_rgb(&channels, 0x000088);
   if(ncplane_set_base(n, "x", 0, channels) < 0){
     return EXIT_FAILURE;
   }

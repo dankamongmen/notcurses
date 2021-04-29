@@ -416,8 +416,8 @@ TEST_CASE("Wide") {
     int sbytes;
     CHECK(2 == ncplane_putegc_yx(n_, 1, 1, "六", &sbytes));
     uint64_t channels = 0;
-    channels_set_bg_alpha(&channels, CELL_ALPHA_BLEND);
-    channels_set_bg_rgb8(&channels, 0x80, 0xf0, 0x10);
+    ncchannels_set_bg_alpha(&channels, CELL_ALPHA_BLEND);
+    ncchannels_set_bg_rgb8(&channels, 0x80, 0xf0, 0x10);
     CHECK(1 == ncplane_set_base(p, " ", 0, channels));
     CHECK(0 == notcurses_render(nc_));
     uint16_t stylemask;
@@ -1011,7 +1011,7 @@ TEST_CASE("Wide") {
     char* egc = notcurses_at_yx(nc_, 0, 0, &stylemask, &channels);
     REQUIRE(egc);
     CHECK(0 == stylemask);
-    CHECK(0xff00ff == channels_fg_rgb(channels));
+    CHECK(0xff00ff == ncchannels_fg_rgb(channels));
     CHECK(0 == strcmp("\u2658", egc));
     free(egc);
   }
@@ -1030,7 +1030,7 @@ TEST_CASE("Wide") {
     char* egc = notcurses_at_yx(nc_, 0, 0, &stylemask, &channels);
     REQUIRE(egc);
     CHECK(0 == stylemask);
-    CHECK(0xff00ff == channels_fg_rgb(channels));
+    CHECK(0xff00ff == ncchannels_fg_rgb(channels));
     CHECK(0 == strcmp("\u2658", egc));
     free(egc);
   }

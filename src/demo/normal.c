@@ -234,10 +234,10 @@ int normal_demo(struct notcurses* nc){
   ncplane_home(n);
   uint64_t tl, tr, bl, br;
   tl = tr = bl = br = 0;
-  channels_set_fg_rgb8(&tl, 0, 0, 0);
-  channels_set_fg_rgb8(&tr, 0, 0xff, 0);
-  channels_set_fg_rgb8(&bl, 0xff, 0, 0xff);
-  channels_set_fg_rgb8(&br, 0, 0, 0);
+  ncchannels_set_fg_rgb8(&tl, 0, 0, 0);
+  ncchannels_set_fg_rgb8(&tr, 0, 0xff, 0);
+  ncchannels_set_fg_rgb8(&bl, 0xff, 0, 0xff);
+  ncchannels_set_fg_rgb8(&br, 0, 0, 0);
   ncplane_dim_yx(n, &dy, &dx);
   if(ncplane_stain(n, dy - 1, dx - 1, tl, tr, bl, br) < 0){
     goto err;

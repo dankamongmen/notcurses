@@ -121,12 +121,12 @@ check_gradient_channel_args(uint32_t ul, uint32_t ur, uint32_t bl, uint32_t br){
 // - all backgrounds must have the same alpha
 // - palette-indexed color must not be used
 bool check_gradient_args(uint64_t ul, uint64_t ur, uint64_t bl, uint64_t br){
-  if(check_gradient_channel_args(channels_fchannel(ul), channels_fchannel(ur),
-                                 channels_fchannel(bl), channels_fchannel(br))){
+  if(check_gradient_channel_args(ncchannels_fchannel(ul), ncchannels_fchannel(ur),
+                                 ncchannels_fchannel(bl), ncchannels_fchannel(br))){
     return true;
   }
-  if(check_gradient_channel_args(channels_bchannel(ul), channels_bchannel(ur),
-                                 channels_bchannel(bl), channels_bchannel(br))){
+  if(check_gradient_channel_args(ncchannels_bchannel(ul), ncchannels_bchannel(ur),
+                                 ncchannels_bchannel(bl), ncchannels_bchannel(br))){
     return true;
   }
   return false;
@@ -357,7 +357,7 @@ rotate_channels(ncplane* src, const nccell* c, uint32_t* fchan, uint32_t* bchan)
 
 static int
 rotate_output(ncplane* dst, uint32_t tchan, uint32_t bchan){
-  dst->channels = channels_combine(tchan, bchan);
+  dst->channels = ncchannels_combine(tchan, bchan);
   if(tchan != bchan){
     return ncplane_putegc(dst, "▀", NULL);
   }

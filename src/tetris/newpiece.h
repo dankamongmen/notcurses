@@ -19,8 +19,8 @@ std::unique_ptr<ncpp::Plane> NewPiece() {
   std::unique_ptr<ncpp::Plane> n = std::make_unique<ncpp::Plane>(2, cols, board_top_y_ - 1, xoff, nullptr);
   if(n){
     uint64_t channels = 0;
-    channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
-    channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+    ncchannels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+    ncchannels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
     n->set_fg_rgb(t->color);
     n->set_bg_alpha(CELL_ALPHA_TRANSPARENT);
     n->set_base("", 0, channels);

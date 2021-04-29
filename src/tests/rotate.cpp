@@ -41,14 +41,14 @@ TEST_CASE("Rotate") {
 
   uint64_t ul, ur, ll, lr;
   ul = ur = ll = lr = 0;
-  channels_set_fg_rgb(&ul, 0x40f040);
-  channels_set_bg_rgb(&ul, 0x40f040);
-  channels_set_fg_rgb(&ll, 0xf040f0);
-  channels_set_bg_rgb(&ll, 0xf040f0);
-  channels_set_fg_rgb(&ur, 0x40f040);
-  channels_set_bg_rgb(&ur, 0x40f040);
-  channels_set_fg_rgb(&lr, 0xf040f0);
-  channels_set_bg_rgb(&lr, 0xf040f0);
+  ncchannels_set_fg_rgb(&ul, 0x40f040);
+  ncchannels_set_bg_rgb(&ul, 0x40f040);
+  ncchannels_set_fg_rgb(&ll, 0xf040f0);
+  ncchannels_set_bg_rgb(&ll, 0xf040f0);
+  ncchannels_set_fg_rgb(&ur, 0x40f040);
+  ncchannels_set_bg_rgb(&ur, 0x40f040);
+  ncchannels_set_fg_rgb(&lr, 0xf040f0);
+  ncchannels_set_bg_rgb(&lr, 0xf040f0);
 
   SUBCASE("RotateTransparentCW") {
     struct ncplane_options nopts = {
@@ -64,8 +64,8 @@ TEST_CASE("Rotate") {
     };
     struct ncplane* testn = ncplane_create(n_, &nopts);
     uint64_t channels = 0;
-    CHECK(0 == channels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT));
-    CHECK(0 == channels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT));
+    CHECK(0 == ncchannels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT));
+    CHECK(0 == ncchannels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT));
     REQUIRE(0 >= ncplane_set_base(testn, "", 0, channels));
     nccell tl = CELL_TRIVIAL_INITIALIZER, tr = CELL_TRIVIAL_INITIALIZER;
     nccell bl = CELL_TRIVIAL_INITIALIZER, br = CELL_TRIVIAL_INITIALIZER;
@@ -195,11 +195,11 @@ TEST_CASE("Rotate") {
       char* c = notcurses_at_yx(nc_, 0, x, &stylemask, &channels);
       REQUIRE(c);
       CHECK(0 == strcmp(c, " "));
-      if(channels_fg_rgb(channels) & CELL_BG_RGB_MASK){
-        CHECK(0xffccbb == channels_fg_rgb(channels));
+      if(ncchannels_fg_rgb(channels) & CELL_BG_RGB_MASK){
+        CHECK(0xffccbb == ncchannels_fg_rgb(channels));
       }
-      if(channels_bg_rgb(channels) & CELL_BG_RGB_MASK){
-        CHECK(0xffccbb == channels_bg_rgb(channels));
+      if(ncchannels_bg_rgb(channels) & CELL_BG_RGB_MASK){
+        CHECK(0xffccbb == ncchannels_bg_rgb(channels));
       }
       free(c);
     }
@@ -255,11 +255,11 @@ TEST_CASE("Rotate") {
       char* c = notcurses_at_yx(nc_, 0, x, &stylemask, &channels);
       REQUIRE(c);
       CHECK(0 == strcmp(c, " "));
-      if(channels_fg_rgb(channels) & CELL_BG_RGB_MASK){
-        CHECK(0xffccbb == channels_fg_rgb(channels));
+      if(ncchannels_fg_rgb(channels) & CELL_BG_RGB_MASK){
+        CHECK(0xffccbb == ncchannels_fg_rgb(channels));
       }
-      if(channels_bg_rgb(channels) & CELL_BG_RGB_MASK){
-        CHECK(0xffccbb == channels_bg_rgb(channels));
+      if(ncchannels_bg_rgb(channels) & CELL_BG_RGB_MASK){
+        CHECK(0xffccbb == ncchannels_bg_rgb(channels));
       }
       free(c);
     }

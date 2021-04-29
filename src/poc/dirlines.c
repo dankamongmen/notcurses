@@ -10,8 +10,8 @@ int main(void){
   putchar('\n');
   for(int i = 0 ; i < 15 ; ++i){
     uint64_t c1 = 0, c2 = 0;
-    channels_set_fg_rgb8(&c1, 0x0, 0x10 * i, 0xff);
-    channels_set_fg_rgb8(&c2, 0x10 * i, 0x0, 0x0);
+    ncchannels_set_fg_rgb8(&c1, 0x0, 0x10 * i, 0xff);
+    ncchannels_set_fg_rgb8(&c2, 0x10 * i, 0x0, 0x0);
     if(ncdirect_hline_interp(n, "-", i, c1, c2) < i){
       return EXIT_FAILURE;
     }
@@ -21,8 +21,8 @@ int main(void){
   }
   for(int i = 0 ; i < 15 ; ++i){
     uint64_t c1 = 0, c2 = 0;
-    channels_set_fg_rgb8(&c1, 0x0, 0x10 * i, 0xff);
-    channels_set_fg_rgb8(&c2, 0x10 * i, 0x0, 0x0);
+    ncchannels_set_fg_rgb8(&c1, 0x0, 0x10 * i, 0xff);
+    ncchannels_set_fg_rgb8(&c2, 0x10 * i, 0x0, 0x0);
     if(ncdirect_vline_interp(n, "|", i, c1, c2) < i){
       return EXIT_FAILURE;
     }
@@ -37,10 +37,10 @@ int main(void){
   printf("\n");
   uint64_t ul, ur, ll, lr;
   ul = ur = ll = lr = 0;
-  channels_set_fg_rgb8(&ul, 0xff, 0x0, 0xff);
-  channels_set_fg_rgb8(&ur, 0x0, 0xff, 0x0);
-  channels_set_fg_rgb8(&ll, 0x0, 0x0, 0xff);
-  channels_set_fg_rgb8(&lr, 0xff, 0x0, 0x0);
+  ncchannels_set_fg_rgb8(&ul, 0xff, 0x0, 0xff);
+  ncchannels_set_fg_rgb8(&ur, 0x0, 0xff, 0x0);
+  ncchannels_set_fg_rgb8(&ll, 0x0, 0x0, 0xff);
+  ncchannels_set_fg_rgb8(&lr, 0xff, 0x0, 0x0);
   if(ncdirect_rounded_box(n, ul, ur, ll, lr, 10, 10, 0) < 0){
     return EXIT_FAILURE;
   }

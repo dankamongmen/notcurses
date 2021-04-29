@@ -158,8 +158,8 @@ TEST_CASE("Plot") {
     memset(&popts, 0, sizeof(popts));
     popts.maxchannels = CHANNELS_RGB_INITIALIZER(0xff, 0xff, 0xff, 0, 0, 0);
     popts.minchannels = CHANNELS_RGB_INITIALIZER(0, 0xff, 0, 0, 0, 0);
-    channels_set_bg_alpha(&popts.minchannels, CELL_ALPHA_BLEND);
-    channels_set_fg_alpha(&popts.minchannels, CELL_ALPHA_BLEND);
+    ncchannels_set_bg_alpha(&popts.minchannels, CELL_ALPHA_BLEND);
+    ncchannels_set_fg_alpha(&popts.minchannels, CELL_ALPHA_BLEND);
     popts.gridtype = NCBLIT_BRAILLE;
     auto p = ncuplot_create(ncp, &popts, 0, 0);
     REQUIRE(p);
@@ -189,8 +189,8 @@ TEST_CASE("Plot") {
     memset(&popts, 0, sizeof(popts));
     popts.maxchannels = CHANNELS_RGB_INITIALIZER(0xff, 0xff, 0xff, 0, 0, 0);
     popts.minchannels = CHANNELS_RGB_INITIALIZER(0, 0xff, 0, 0, 0, 0);
-    channels_set_bg_alpha(&popts.minchannels, CELL_ALPHA_BLEND);
-    channels_set_fg_alpha(&popts.minchannels, CELL_ALPHA_BLEND);
+    ncchannels_set_bg_alpha(&popts.minchannels, CELL_ALPHA_BLEND);
+    ncchannels_set_fg_alpha(&popts.minchannels, CELL_ALPHA_BLEND);
     popts.gridtype = NCBLIT_2x2;
     auto p = ncuplot_create(ncp, &popts, 0, 0);
     REQUIRE(p);
@@ -216,8 +216,8 @@ TEST_CASE("Plot") {
     memset(&popts, 0, sizeof(popts));
     popts.maxchannels = CHANNELS_RGB_INITIALIZER(0xff, 0xff, 0xff, 0, 0, 0);
     popts.minchannels = CHANNELS_RGB_INITIALIZER(0, 0xff, 0, 0, 0, 0);
-    channels_set_bg_alpha(&popts.minchannels, CELL_ALPHA_BLEND);
-    channels_set_fg_alpha(&popts.minchannels, CELL_ALPHA_BLEND);
+    ncchannels_set_bg_alpha(&popts.minchannels, CELL_ALPHA_BLEND);
+    ncchannels_set_fg_alpha(&popts.minchannels, CELL_ALPHA_BLEND);
     popts.gridtype = NCBLIT_8x1;
     auto p = ncuplot_create(ncp, &popts, 0, 0);
     REQUIRE(p);
@@ -240,8 +240,8 @@ TEST_CASE("Plot") {
     memset(&popts, 0, sizeof(popts));
     popts.maxchannels = CHANNELS_RGB_INITIALIZER(0xff, 0xff, 0xff, 0, 0, 0);
     popts.minchannels = CHANNELS_RGB_INITIALIZER(0, 0xff, 0, 0, 0, 0);
-    channels_set_bg_alpha(&popts.minchannels, CELL_ALPHA_BLEND);
-    channels_set_fg_alpha(&popts.minchannels, CELL_ALPHA_BLEND);
+    ncchannels_set_bg_alpha(&popts.minchannels, CELL_ALPHA_BLEND);
+    ncchannels_set_fg_alpha(&popts.minchannels, CELL_ALPHA_BLEND);
     popts.gridtype = NCBLIT_3x2;
     auto p = ncuplot_create(ncp, &popts, 0, 0);
     REQUIRE(p);
@@ -267,8 +267,8 @@ TEST_CASE("Plot") {
     memset(&popts, 0, sizeof(popts));
     popts.maxchannels = CHANNELS_RGB_INITIALIZER(0xff, 0xff, 0xff, 0, 0, 0);
     popts.minchannels = CHANNELS_RGB_INITIALIZER(0, 0xff, 0, 0, 0, 0);
-    channels_set_bg_alpha(&popts.minchannels, CELL_ALPHA_BLEND);
-    channels_set_fg_alpha(&popts.minchannels, CELL_ALPHA_BLEND);
+    ncchannels_set_bg_alpha(&popts.minchannels, CELL_ALPHA_BLEND);
+    ncchannels_set_fg_alpha(&popts.minchannels, CELL_ALPHA_BLEND);
     popts.gridtype = NCBLIT_BRAILLE;
     auto p = ncuplot_create(ncp, &popts, 0, 0);
     REQUIRE(p);

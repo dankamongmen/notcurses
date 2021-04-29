@@ -10,14 +10,14 @@ TEST_CASE("Resize") {
   REQUIRE(n_);
   uint64_t ul, ur, ll, lr;
   ul = ur = ll = lr = 0;
-  channels_set_fg_rgb(&ul, 0x40f040);
-  channels_set_bg_rgb(&ul, 0x40f040);
-  channels_set_fg_rgb(&ll, 0xf040f0);
-  channels_set_bg_rgb(&ll, 0xf040f0);
-  channels_set_fg_rgb(&ur, 0x40f040);
-  channels_set_bg_rgb(&ur, 0x40f040);
-  channels_set_fg_rgb(&lr, 0xf040f0);
-  channels_set_bg_rgb(&lr, 0xf040f0);
+  ncchannels_set_fg_rgb(&ul, 0x40f040);
+  ncchannels_set_bg_rgb(&ul, 0x40f040);
+  ncchannels_set_fg_rgb(&ll, 0xf040f0);
+  ncchannels_set_bg_rgb(&ll, 0xf040f0);
+  ncchannels_set_fg_rgb(&ur, 0x40f040);
+  ncchannels_set_bg_rgb(&ur, 0x40f040);
+  ncchannels_set_fg_rgb(&lr, 0xf040f0);
+  ncchannels_set_bg_rgb(&lr, 0xf040f0);
 
   // start at full size, and shrink to a nothing
   SUBCASE("ResizeShrink") {
