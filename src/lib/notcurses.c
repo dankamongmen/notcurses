@@ -1966,12 +1966,14 @@ int ncplane_move_yx(ncplane* n, int y, int x){
   int dy, dx; // amount moved
   dy = (n->boundto->absy + y) - n->absy;
   dx = (n->boundto->absx + x) - n->absx;
-  if(n->sprite){
-    sprixel_movefrom(n->sprite, n->absy, n->absx);
+  if(dy || dx){ // don't want to trigger sprixel_movefrom() if unneeded
+    if(n->sprite){
+      sprixel_movefrom(n->sprite, n->absy, n->absx);
+    }
+    n->absx += dx;
+    n->absy += dy;
+    move_bound_planes(n->blist, dy, dx);
   }
-  n->absx += dx;
-  n->absy += dy;
-  move_bound_planes(n->blist, dy, dx);
   return 0;
 }
 
