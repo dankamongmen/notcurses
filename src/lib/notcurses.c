@@ -2255,13 +2255,14 @@ int ncplane_resize_maximize(ncplane* n){
 }
 
 int ncplane_resize_realign(ncplane* n){
+  const notcurses* nc = ncplane_notcurses_const(n);
   const ncplane* parent = ncplane_parent_const(n);
   if(parent == n){
-    logerror(ncplane_notcurses(n), "Can't realign a root plane");
+    logerror(nc, "Can't realign a root plane\n");
     return 0;
   }
   if(n->halign == NCALIGN_UNALIGNED && n->valign == NCALIGN_UNALIGNED){
-    logerror(ncplane_notcurses(n), "Passed a non-aligned plane");
+    logerror(nc, "Passed a non-aligned plane\n");
     return -1;
   }
   int xpos = ncplane_x(n);
@@ -2282,10 +2283,13 @@ int ncplane_resize_realign(ncplane* n){
 // reparents any children to the parent of 'n', or makes them root planes if
 // 'n' is a root plane.
 ncplane* ncplane_reparent(ncplane* n, ncplane* newparent){
-  if(n == ncplane_notcurses(n)->stdplane){
+  const notcurses* nc = ncplane_notcurses_const(n);
+  if(n == nc->stdplane){
+    logerror(nc, "Won't reparent standard plane\n");
     return NULL; // can't reparent standard plane
   }
   if(n->boundto == newparent){
+    loginfo(nc, "Won't reparent plane to itself\n");
     return n;
   }
 //notcurses_debug(ncplane_notcurses(n), stderr);
