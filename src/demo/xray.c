@@ -18,13 +18,12 @@ static const char* leg[] = {
 };
 
 static struct ncplane*
-make_slider(struct notcurses* nc, int dimy, int dimx){
+make_slider(struct notcurses* nc, int dimx){
   // 487 frames in the video
   const int len = strlen(leg[0]);
   const int REPS = 487 / len + dimx / len;
-  int y = dimy - sizeof(leg) / sizeof(*leg);
   struct ncplane_options nopts = {
-    .y = y,
+    .y = 1,
     .x = 0,
     .rows = sizeof(leg) / sizeof(*leg),
     .cols = len * REPS,
@@ -116,7 +115,7 @@ xray_thread(void *vplane){
   struct ncvisual_options vopts = {
     .x = NCALIGN_CENTER,
     .y = NCALIGN_CENTER,
-    .scaling = NCSCALE_STRETCH,
+    .scaling = NCSCALE_SCALE_HIRES,
     .n = vplane,
     .blitter = NCBLIT_PIXEL,
     .flags = NCVISUAL_OPTION_VERALIGNED | NCVISUAL_OPTION_HORALIGNED
@@ -134,12 +133,13 @@ xray_thread(void *vplane){
     while(marsh.last_frame_rendered + 1 != frame){
       pthread_cond_wait(&cond, &render_lock);
     }
-    pthread_mutex_unlock(&render_lock);
     int x = ncplane_x(marsh.slider);
-    if(ncplane_move_yx(marsh.slider, -1, x - 1)){
+    if(ncplane_move_yx(marsh.slider, 1, x - 1)){
       cancelled = true;
       return NULL;
     }
+    pthread_mutex_unlock(&render_lock);
+    ncplane_reparent(vopts.n, notcurses_stdplane(marsh.nc));
     // FIXME swap our plane into stdplane, and swap old one out
     if(ncpile_render(vopts.n)){
       cancelled = true;
@@ -166,28 +166,6 @@ xray_thread(void *vplane){
     pthread_cond_signal(&cond);
   }
   return NULL;
-}
-
-static int
-perframecb(struct ncvisual* ncv, struct ncvisual_options* vopts,
-           const struct timespec* tspec, void* vnewplane){
-  (void)ncv;
-  // only need these two steps done once, but we can't do them in
-  // main() due to the plane being created in ncvisual_stream() =[
-  ncplane_set_resizecb(vopts->n, ncplane_resize_maximize);
-  ncplane_move_above(vopts->n, vnewplane);
-
-  struct notcurses* nc = ncplane_notcurses(vopts->n);
-  static int frameno = 0;
-  int x;
-  struct ncplane* n = vnewplane;
-  assert(n);
-  ncplane_yx(n, NULL, &x);
-  ncplane_move_yx(n, 1, x - 1);
-  ++frameno;
-  DEMO_RENDER(nc);
-  clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, tspec, NULL);
-  return 0;
 }
 
 // make two planes, both the size of the standard plane less one row at the
@@ -224,7 +202,7 @@ int xray_demo(struct notcurses* nc){
   if(ncv == NULL){
     return -1;
   }
-  struct ncplane* slider = make_slider(nc, dimy, dimx);
+  struct ncplane* slider = make_slider(nc, dimx);
   if(slider == NULL){
     ncvisual_destroy(ncv);
     return -1;
