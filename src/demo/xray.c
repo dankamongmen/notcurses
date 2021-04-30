@@ -182,6 +182,7 @@ int xray_demo(struct notcurses* nc){
   marsh.ncv = ncv;
   marsh.next_frame = 0;
   marsh.last_frame_rendered = -1;
+  marsh.lplane = NULL;
   if(pthread_create(&tid1, NULL, xray_thread, NULL)){
     ncvisual_destroy(ncv);
     ncplane_destroy(slider);
@@ -195,6 +196,7 @@ int xray_demo(struct notcurses* nc){
   }
   // FIXME need wake them more reliably
   int ret = pthread_join(tid1, NULL) | pthread_join(tid2, NULL);
+  ncplane_destroy(marsh.lplane);
   ncvisual_destroy(ncv);
   ncplane_destroy(slider);
   return ret;
