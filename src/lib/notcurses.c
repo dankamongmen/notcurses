@@ -2346,6 +2346,36 @@ unsplice_zaxis_recursive(ncplane* n){
   }
 }
 
+// unsplice our sprixel from the pile's sprixellist, and then unsplice all
+// children, recursively. call before unbinding. returns a doubly-linked
+// list of any sprixels found.
+static sprixel*
+unsplice_sprixels_recursive(ncplane* n, sprixel* prev){
+  sprixel* s = n->sprite;
+  if(s){
+    if(s->prev){
+      s->prev->next = s->next;
+    }else{
+      ncplane_pile(n)->sprixelcache = s->next;
+    }
+    if(s->next){
+      s->next->prev = s->prev;
+    }
+    if( (s->prev = prev) ){
+      prev->next = s;
+    }
+    s->next = NULL;
+    prev = s;
+  }
+  for(ncplane* child = n->blist ; child ; child = child->bnext){
+    unsplice_sprixels_recursive(child, prev);
+    while(prev->next){ // FIXME lame
+      prev = prev->next;
+    }
+  }
+  return prev;
+}
+
 // recursively splice 'n' and children into the z-axis, above 'n->boundto'.
 // handles 'n' == 'n->boundto'. to be called after binding 'n' into new pile.
 static void
@@ -2380,9 +2410,11 @@ ncplane* ncplane_reparent_family(ncplane* n, ncplane* newparent){
       n->bnext->bprev = n->bprev;
     }
   }
-  // if leaving a pile, extract n from the old zaxis
+  // if leaving a pile, extract n from the old zaxis, and also any sprixel
+  sprixel* s = NULL;
   if(n == newparent || ncplane_pile(n) != ncplane_pile(newparent)){
     unsplice_zaxis_recursive(n);
+    s = unsplice_sprixels_recursive(n, NULL);
   }
   n->boundto = newparent;
   if(n == n->boundto){ // we're a new root plane
@@ -2406,6 +2438,16 @@ ncplane* ncplane_reparent_family(ncplane* n, ncplane* newparent){
       n->pile = ncplane_pile(n->boundto);
       splice_zaxis_recursive(n);
     }
+  }
+  if(s){ // must be on new plane, with sprixels to donate
+    sprixel* lame = s;
+    while(lame->next){
+      lame = lame->next;
+    }
+    if( (lame->next = n->pile->sprixelcache) ){
+      n->pile->sprixelcache->prev = lame;
+    }
+    n->pile->sprixelcache = s;
   }
   return n;
 }
