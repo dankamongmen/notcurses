@@ -342,6 +342,10 @@ the standard pile. This ought become a reality soon.
 Sprixels interact poorly with multiple planes, and such usage is discouraged.
 This situation might improve in the future.
 
+Multiple threads may not currently call **ncvisual_render** concurrently
+using the same **ncvisual**, even if targeting distinct **ncplane**s. This
+will likely change in the future.
+
 # SEE ALSO
 
 **notcurses(3)**,
