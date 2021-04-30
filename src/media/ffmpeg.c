@@ -26,7 +26,6 @@ typedef struct ncvisual_details {
   struct AVCodecContext* codecctx;     // video codec context
   struct AVCodecContext* subtcodecctx; // subtitle codec context
   struct AVFrame* frame;               // frame as read
-  struct AVFrame* oframe;              // RGBA frame
   struct AVCodec* codec;
   struct AVCodecParameters* cparams;
   struct AVCodec* subtcodec;
@@ -139,8 +138,8 @@ int ffmpeg_decode(ncvisual* n){
   bool have_frame = false;
   bool unref = false;
   // FIXME what if this was set up with e.g. ncvisual_from_rgba()?
-  if(n->details->oframe){
-    av_freep(&n->details->oframe->data[0]);
+  if(n->details->frame){
+    //av_freep(&n->details->frame->data[0]);
   }
   do{
     do{
@@ -194,11 +193,11 @@ int ffmpeg_decode(ncvisual* n){
   return 0;
 }
 
-// resize frame to oframe, converting to RGBA (if necessary) along the way
+// resize frame, converting to RGBA (if necessary) along the way
 int ffmpeg_resize(ncvisual* n, int rows, int cols){
   const int targformat = AV_PIX_FMT_RGBA;
-  AVFrame* inf = /*n->details->oframe ? n->details->oframe :*/ n->details->frame;
-//fprintf(stderr, "%p got format: %d (%d/%d) want format: %d (%d/%d)\n", n->details->oframe, inf->format, n->pixy, n->pixx, targformat, rows, cols);
+  AVFrame* inf = n->details->frame;
+//fprintf(stderr, "%p got format: %d (%d/%d) want format: %d (%d/%d)\n", n->details->frame, inf->format, n->pixy, n->pixx, targformat, rows, cols);
   if(inf->format == targformat && n->pixy == rows && n->pixx == cols){
     return 0;
   }
@@ -246,13 +245,12 @@ int ffmpeg_resize(ncvisual* n, int rows, int cols){
   n->pixy = rows;
   n->pixx = cols;
   ncvisual_set_data(n, sframe->data[0], false);
-  if(n->details->oframe){
-    //av_freep(n->details->oframe->data);
-    av_freep(&n->details->oframe);
+  if(n->details->frame){
+    av_freep(&n->details->frame);
   }
-  n->details->oframe = sframe;
+  n->details->frame = sframe;
 
-//fprintf(stderr, "SIZE SCALED: %d %d (%u)\n", nc->details->oframe->height, nc->details->oframe->width, nc->details->oframe->linesize[0]);
+//fprintf(stderr, "SIZE SCALED: %d %d (%u)\n", nc->details->frame->height, nc->details->frame->width, nc->details->frame->linesize[0]);
   return 0;
 }
 
@@ -351,8 +349,7 @@ ncvisual* ffmpeg_from_file(const char* filename){
   }*/
 //fprintf(stderr, "FRAME FRAME: %p\n", ncv->details->frame);
   // frame is set up in prep_details(), so that format can be set there, as
-  // is necessary when it is prepared from inputs other than files. oframe
-  // is set up whenever we convert to RGBA.
+  // is necessary when it is prepared from inputs other than files.
   if(ffmpeg_decode(ncv)){
     goto err;
   }
@@ -450,8 +447,8 @@ int ffmpeg_decode_loop(ncvisual* ncv){
 // rows/cols: scaled output geometry (pixels)
 int ffmpeg_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
                 const struct blitset* bset, const blitterargs* bargs){
-  const AVFrame* inframe = /*ncv->details->oframe ? ncv->details->oframe : */ncv->details->frame;
-//fprintf(stderr, "inframe: %p oframe: %p frame: %p\n", inframe, ncv->details->oframe, ncv->details->frame);
+  const AVFrame* inframe = ncv->details->frame;
+//fprintf(stderr, "inframe: %p frame: %p\n", inframe, ncv->details->frame);
   void* data = NULL;
   int stride = 0;
   AVFrame* sframe = NULL;
@@ -486,7 +483,7 @@ int ffmpeg_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
 //fprintf(stderr, "Error allocating visual data (%d X %d)\n", sframe->height, sframe->width);
       return -1;
     }
-//fprintf(stderr, "INFRAME DAA: %p SDATA: %p ODATA: %p FDATA: %p\n", inframe->data[0], sframe->data[0], ncv->details->oframe ? ncv->details->oframe->data[0] : NULL, ncv->details->frame->data[0]);
+//fprintf(stderr, "INFRAME DAA: %p SDATA: %p FDATA: %p\n", inframe->data[0], sframe->data[0], ncv->details->frame->data[0]);
     int height = sws_scale(ncv->details->swsctx, (const uint8_t* const*)inframe->data,
                            inframe->linesize, 0, inframe->height, sframe->data,
                            sframe->linesize);
@@ -518,7 +515,6 @@ int ffmpeg_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
 }
 
 void ffmpeg_details_seed(ncvisual* ncv){
-  assert(NULL == ncv->details->oframe);
   ncv->details->frame->data[0] = (uint8_t*)ncv->data;
   ncv->details->frame->data[1] = NULL;
   ncv->details->frame->linesize[0] = ncv->rowstride;
@@ -563,7 +559,6 @@ void ffmpeg_details_destroy(ncvisual_details* deets){
   avcodec_free_context(&deets->subtcodecctx);
   avcodec_free_context(&deets->codecctx);
   av_frame_free(&deets->frame);
-  av_freep(&deets->oframe);
   //avcodec_parameters_free(&ncv->cparams);
   sws_freeContext(deets->swsctx);
   av_packet_free(&deets->packet);
