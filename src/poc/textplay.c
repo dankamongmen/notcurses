@@ -2,7 +2,7 @@
 #include <notcurses/notcurses.h>
 
 static const uint32_t LOWCOLOR = 0x004080;
-static const uint32_t HICOLOR = 0x00ff80;
+static const uint32_t HICOLOR = 0xddffdd;
 static const uint32_t NANOSEC = 1000000000ull / 60; // 60 cps
 #define MARGIN 4
 
@@ -46,7 +46,8 @@ colorize(struct ncplane* n){
       if(c != LOWCOLOR){
         unsigned g = (c & 0xff00) >> 8u;
         --g;
-        c = (c & 0xff00ff) | (g << 8u);
+        // only the leading character gets the bright almost-white
+        c = (c & 0x000080) | (g << 8u);
       }
       free(egc);
       --x;
@@ -69,6 +70,7 @@ textplay(struct notcurses* nc, struct ncplane* tplane, struct ncvisual* ncv){
     .scaling = NCSCALE_STRETCH,
     .blitter = NCBLIT_PIXEL,
   };
+  ncplane_move_below(vopts.n, tplane);
   while((c = getc(stdin)) != EOF){
     if(ncv){
       if(ncvisual_render(nc, ncv, &vopts) == NULL){
@@ -127,7 +129,7 @@ textplane(struct notcurses* nc){
   ncchannels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
   ncchannels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
   if(n){
-    ncplane_set_base(n, "", 0, channels);
+    ncplane_set_base(n, " ", 0, channels);
   }
   return n;
 }
