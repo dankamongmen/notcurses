@@ -9,6 +9,7 @@ static const uint32_t NANOSEC = 1000000000ull / 60; // 60 cps
 static struct notcurses*
 init(void){
   struct notcurses_options opts = {
+    .loglevel = NCLOGLEVEL_DEBUG,
     .margin_t = MARGIN,
     .margin_r = MARGIN,
     .margin_b = MARGIN,
@@ -64,7 +65,7 @@ textplay(struct notcurses* nc, struct ncplane* tplane, struct ncvisual* ncv){
   struct ncplane* stdn = notcurses_stdplane(nc);
   ncplane_set_scrolling(tplane, true);
   struct ncvisual_options vopts = {
-    .n = stdn,
+    .n = ncplane_dup(stdn, NULL),
     .scaling = NCSCALE_STRETCH,
     .blitter = NCBLIT_PIXEL,
   };
@@ -77,7 +78,6 @@ textplay(struct notcurses* nc, struct ncplane* tplane, struct ncvisual* ncv){
     ncplane_erase(tplane);
     char* tmp = realloc(buf, buflen + 1);
     if(tmp == NULL){
-      free(buf);
       return -1;
     }
     buf = tmp;
@@ -85,15 +85,12 @@ textplay(struct notcurses* nc, struct ncplane* tplane, struct ncvisual* ncv){
     buf[buflen++] = '\0';
     int pt = ncplane_puttext(tplane, 0, NCALIGN_LEFT, buf, NULL);
     if(pt < 0){
-      free(buf);
-      return -1;
+      goto err;
     }
     if(colorize(tplane)){
-      free(buf);
-      return -1;
+      goto err;
     }
     if(notcurses_render(nc)){
-      free(buf);
       return -1;
     }
     struct timespec ts = {
@@ -105,7 +102,13 @@ textplay(struct notcurses* nc, struct ncplane* tplane, struct ncvisual* ncv){
       ncvisual_decode(ncv);
     }
   }
+  ncplane_destroy(vopts.n);
   return 0;
+
+err:
+  ncplane_destroy(vopts.n);
+  free(buf);
+  return -1;
 }
 
 static struct ncplane*
