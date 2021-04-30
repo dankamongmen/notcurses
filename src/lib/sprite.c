@@ -1,8 +1,8 @@
 #include "internal.h"
 #include "visual-details.h"
+#include <stdatomic.h>
 
-// FIXME needs be atomic
-static uint32_t sprixelid_nonce;
+static atomic_uint_fast32_t sprixelid_nonce;
 
 void sprixel_debug(FILE* out, const sprixel* s){
   fprintf(out, "Sprixel %d (%p) %dx%d (%dx%d) @%d/%d state: %d\n",
