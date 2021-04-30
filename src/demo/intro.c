@@ -39,22 +39,28 @@ greatscott(struct notcurses* nc, int dimx){
   if(ncv == NULL){
     return NULL;
   }
-  int celldimy, celldimx;
-  ncplane_pixelgeom(notcurses_stdplane(nc), NULL, NULL, &celldimy, &celldimx, NULL, NULL);
-  if(ncvisual_resize(ncv, 18 * celldimy, celldimx * (dimx - 2))){
+  struct ncplane_options opts = {
+    .y = 2,
+    .x = NCALIGN_CENTER,
+    .rows = 18,
+    .cols = dimx - 2,
+    .flags = NCPLANE_OPTION_HORALIGNED,
+    .name = "gsct",
+  };
+  struct ncplane* n = ncplane_create(notcurses_stdplane(nc), &opts);
+  if(n == NULL){
     ncvisual_destroy(ncv);
     return NULL;
   }
   struct ncvisual_options vopts = {
-    .y = 2,
-    .x = NCALIGN_CENTER,
+    .n = n,
     .blitter = NCBLIT_PIXEL,
-    .scaling = NCSCALE_NONE,
-    .flags = NCVISUAL_OPTION_NODEGRADE | NCVISUAL_OPTION_HORALIGNED,
+    .scaling = NCSCALE_STRETCH,
+    .flags = NCVISUAL_OPTION_NODEGRADE,
   };
-  struct ncplane* n = ncvisual_render(nc, ncv, &vopts);
+  struct ncplane* ret = ncvisual_render(nc, ncv, &vopts);
   ncvisual_destroy(ncv);
-  return n;
+  return ret;
 }
 
 static struct ncplane*
