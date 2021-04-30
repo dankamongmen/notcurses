@@ -59,10 +59,9 @@ make_slider(struct notcurses* nc, int dimx){
   return n;
 }
 
-static atomic_bool cancelled;
+static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t render_lock = PTHREAD_MUTEX_INITIALIZER;
-static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 
 // initialized per run
 static struct marsh {
@@ -121,13 +120,7 @@ xray_thread(void *vplane){
     .flags = NCVISUAL_OPTION_VERALIGNED | NCVISUAL_OPTION_HORALIGNED
               | NCVISUAL_OPTION_ADDALPHA,
   };
-  while(!cancelled){
-    frame = get_next_frame(marsh.ncv, &vopts, frame);
-    if(frame < 0){
-      cancelled = true;
-      return NULL;
-    }
-
+  while((frame = get_next_frame(marsh.ncv, &vopts, frame)) >= 0){
     // only one thread can render the standard pile at a time
     pthread_mutex_lock(&render_lock);
     while(marsh.last_frame_rendered + 1 != frame){
@@ -135,14 +128,11 @@ xray_thread(void *vplane){
     }
     int x = ncplane_x(marsh.slider);
     if(ncplane_move_yx(marsh.slider, 1, x - 1)){
-      cancelled = true;
       return NULL;
     }
     pthread_mutex_unlock(&render_lock);
     ncplane_reparent(vopts.n, notcurses_stdplane(marsh.nc));
-    // FIXME swap our plane into stdplane, and swap old one out
     if(ncpile_render(vopts.n)){
-      cancelled = true;
       return NULL;
     }
 
@@ -156,7 +146,6 @@ xray_thread(void *vplane){
     pthread_mutex_unlock(&render_lock);
 
     if(ncpile_rasterize(vopts.n)){
-      cancelled = true;
       return NULL;
     }
 
@@ -229,7 +218,6 @@ int xray_demo(struct notcurses* nc){
   marsh.next_frame = 0;
   marsh.last_frame_rendered = -1;
   marsh.last_frame_written = -1;
-  cancelled = false;
   if(pthread_create(&tid1, NULL, xray_thread, t1)){
     ncvisual_destroy(ncv);
     ncplane_destroy(slider);
@@ -238,7 +226,6 @@ int xray_demo(struct notcurses* nc){
     return -1;
   }
   if(pthread_create(&tid2, NULL, xray_thread, t2)){
-    cancelled = 1;
     pthread_join(tid1, NULL);
     ncvisual_destroy(ncv);
     ncplane_destroy(slider);
@@ -246,6 +233,7 @@ int xray_demo(struct notcurses* nc){
     ncplane_destroy(t2);
     return -1;
   }
+  // FIXME need wake them more reliably
   int ret = pthread_join(tid1, NULL) | pthread_join(tid2, NULL);
   ncvisual_destroy(ncv);
   ncplane_destroy(slider);
