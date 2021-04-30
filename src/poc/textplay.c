@@ -9,7 +9,7 @@ static const uint32_t NANOSEC = 1000000000ull / 60; // 60 cps
 static struct notcurses*
 init(void){
   struct notcurses_options opts = {
-    .loglevel = NCLOGLEVEL_DEBUG,
+    //.loglevel = NCLOGLEVEL_DEBUG,
     .margin_t = MARGIN,
     .margin_r = MARGIN,
     .margin_b = MARGIN,
