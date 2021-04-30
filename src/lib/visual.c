@@ -452,7 +452,6 @@ int ncvisual_rotate(ncvisual* ncv, double rads){
       if(deconvy >= 0 && deconvx >= 0 && deconvy < bby && deconvx < bbx){
         data[deconvy * bbx + deconvx] = ncv->data[y * (ncv->rowstride / 4) + x];
       }
- //     data[deconvy * (ncv->pixx) + deconvx] = ncv->data[y * (ncv->rowstride / 4) + x];
 //fprintf(stderr, "CW: %d/%d (%08x) -> %d/%d (stride: %d)\n", y, x, ncv->data[y * (ncv->rowstride / 4) + x], targy, targx, ncv->rowstride);
 //fprintf(stderr, "wrote %08x to %d (%d)\n", data[targy * ncv->pixy + targx], targy * ncv->pixy + targx, (targy * ncv->pixy + targx) * 4);
     }
@@ -461,6 +460,7 @@ int ncvisual_rotate(ncvisual* ncv, double rads){
   ncv->pixx = bbx;
   ncv->pixy = bby;
   ncv->rowstride = bbx * 4;
+  ncvisual_details_seed(ncv);
   return 0;
 }
 
