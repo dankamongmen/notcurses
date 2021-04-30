@@ -67,115 +67,87 @@ static pthread_mutex_t render_lock = PTHREAD_MUTEX_INITIALIZER;
 static struct marsh {
   struct notcurses* nc;
   struct ncvisual* ncv;     // video stream
-  // this state is guarded by the lock; always signal after an update.
-  int next_frame;           // next frame to render. first thread to get the
-                            // lock will be doing even frames, and the other
-                            // thread will be doing odd.
-  int last_frame_rendered;  // a thread cannot render the standard pile using
-                            // its plane N until last_frame_rendered >= N - 1.
-  int last_frame_written;   // a thread cannot rasterize and write its frame N
-                            // until last_frame_written >= N - 1.
   struct ncplane* slider;   // text plane at top, sliding to the left
   float dm;                 // delay multiplier
+  int next_frame;
+  int last_frame_rendered;
+  struct ncplane* lplane;   // last sprixel plane rendered
 } marsh;
 
-// returns the index of the next frame, which can immediately begin to be
-// rendered onto the thread's plane. last_frame ought be -1 the first time
-// a thread calls this function.
+// make a plane on a new pile suitable for rendering a frame of the video
 static int
-get_next_frame(struct ncvisual* ncv, struct ncvisual_options* vopts,
-               int last_frame){
+make_plane(struct notcurses* nc, struct ncplane** t){
+  int dimy, dimx;
+  notcurses_stddim_yx(nc, &dimy, &dimx);
+  // FIXME want a resizecb
+  struct ncplane_options opts = {
+    .rows = dimy - 1,
+    .cols = dimx,
+    .name = "bmap",
+  };
+  *t = ncpile_create(nc, &opts);
+  if(!*t){
+    return -1;
+  }
+  return 0;
+}
+
+// returns the index of the next frame, which can immediately begin to be
+// rendered onto the thread's plane.
+static int
+get_next_frame(struct ncvisual* ncv, struct ncvisual_options* vopts){
   int ret;
   pthread_mutex_lock(&lock);
-  if(last_frame < 0){
-    ret = marsh.next_frame++;
-  }else{
-    while(marsh.next_frame != last_frame + 2){
-      pthread_cond_wait(&cond, &lock);
-    }
-    ++marsh.next_frame;
-    ret = last_frame + 2;
-    if(ncvisual_decode(ncv)){
-      ret = -1;
-    }else if(ncvisual_render(marsh.nc, ncv, vopts) == NULL){
-      ret = -1;
-    }
+  ret = marsh.next_frame++;
+  if(ncvisual_decode(ncv)){
+    ret = -1;
+  }else if(ncvisual_render(marsh.nc, ncv, vopts) == NULL){
+    ret = -1;
   }
   pthread_mutex_unlock(&lock);
-  if(ret == last_frame + 2 || ret == -1){
-    pthread_cond_signal(&cond);
-  }
   return ret;
 }
 
 static void*
-xray_thread(void *vplane){
+xray_thread(void *v){
+  (void)v;
   int frame = -1;
   struct ncvisual_options vopts = {
     .x = NCALIGN_CENTER,
     .y = NCALIGN_CENTER,
     .scaling = NCSCALE_SCALE_HIRES,
-    .n = vplane,
     .blitter = NCBLIT_PIXEL,
     .flags = NCVISUAL_OPTION_VERALIGNED | NCVISUAL_OPTION_HORALIGNED
               | NCVISUAL_OPTION_ADDALPHA,
   };
-  while((frame = get_next_frame(marsh.ncv, &vopts, frame)) >= 0){
+  int ret;
+  do{
+    if(make_plane(marsh.nc, &vopts.n)){
+      return NULL;
+    }
+    if((frame = get_next_frame(marsh.ncv, &vopts)) < 0){
+      return NULL;
+    }
+    ret = -1;
     // only one thread can render the standard pile at a time
     pthread_mutex_lock(&render_lock);
     while(marsh.last_frame_rendered + 1 != frame){
       pthread_cond_wait(&cond, &render_lock);
     }
     int x = ncplane_x(marsh.slider);
-    if(ncplane_move_yx(marsh.slider, 1, x - 1)){
-      return NULL;
+    if(ncplane_move_yx(marsh.slider, 1, x - 1) == 0){
+      ncplane_reparent(vopts.n, notcurses_stdplane(marsh.nc));
+      ncplane_move_top(vopts.n);
+      ncplane_destroy(marsh.lplane);
+      ret = demo_render(marsh.nc);
     }
-    pthread_mutex_unlock(&render_lock);
-    ncplane_reparent(vopts.n, notcurses_stdplane(marsh.nc));
-    if(ncpile_render(vopts.n)){
-      return NULL;
-    }
-
-    // and only one thread can write at a time
-    pthread_mutex_lock(&render_lock);
     marsh.last_frame_rendered = frame;
-    pthread_cond_signal(&cond);
-    while(marsh.last_frame_written + 1 != frame){
-      pthread_cond_wait(&cond, &render_lock);
-    }
-    pthread_mutex_unlock(&render_lock);
-
-    if(ncpile_rasterize(vopts.n)){
-      return NULL;
-    }
-
-    pthread_mutex_lock(&render_lock);
-    marsh.last_frame_written = frame;
+    marsh.lplane = vopts.n;
     pthread_mutex_unlock(&render_lock);
     pthread_cond_signal(&cond);
-  }
+    vopts.n = NULL;
+  }while(ret == 0);
   return NULL;
-}
-
-// make two planes, both the size of the standard plane less one row at the
-// bottom. the first is in the standard pile, but the second is in its own.
-static int
-make_planes(struct notcurses* nc, struct ncplane** t1, struct ncplane** t2){
-  int dimy, dimx;
-  struct ncplane* stdn = notcurses_stddim_yx(nc, &dimy, &dimx);
-  // FIXME want a resizecb
-  struct ncplane_options opts = {
-    .rows = dimy - 1,
-    .cols = dimx,
-  };
-  *t1 = ncplane_create(stdn, &opts);
-  *t2 = ncpile_create(nc, &opts);
-  if(!*t1 || !*t2){
-    ncplane_destroy(*t1);
-    ncplane_destroy(*t2);
-    return -1;
-  }
-  return 0;
 }
 
 int xray_demo(struct notcurses* nc){
@@ -205,39 +177,25 @@ int xray_demo(struct notcurses* nc){
     marsh.dm = 0.5 * delaymultiplier;
   }
   pthread_t tid1, tid2;
-  struct ncplane* t1;
-  struct ncplane* t2;
-  if(make_planes(nc, &t1, &t2)){
-    ncvisual_destroy(ncv);
-    ncplane_destroy(slider);
-    return -1;
-  }
   marsh.slider = slider;
   marsh.nc = nc;
   marsh.ncv = ncv;
   marsh.next_frame = 0;
   marsh.last_frame_rendered = -1;
-  marsh.last_frame_written = -1;
-  if(pthread_create(&tid1, NULL, xray_thread, t1)){
+  if(pthread_create(&tid1, NULL, xray_thread, NULL)){
     ncvisual_destroy(ncv);
     ncplane_destroy(slider);
-    ncplane_destroy(t1);
-    ncplane_destroy(t2);
     return -1;
   }
-  if(pthread_create(&tid2, NULL, xray_thread, t2)){
+  if(pthread_create(&tid2, NULL, xray_thread, NULL)){
     pthread_join(tid1, NULL);
     ncvisual_destroy(ncv);
     ncplane_destroy(slider);
-    ncplane_destroy(t1);
-    ncplane_destroy(t2);
     return -1;
   }
   // FIXME need wake them more reliably
   int ret = pthread_join(tid1, NULL) | pthread_join(tid2, NULL);
   ncvisual_destroy(ncv);
   ncplane_destroy(slider);
-  ncplane_destroy(t1);
-  ncplane_destroy(t2);
   return ret;
 }
