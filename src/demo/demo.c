@@ -535,20 +535,22 @@ int main(int argc, char** argv){
   }
   const bool canimage = notcurses_canopen_images(nc);
   const bool canvideo = notcurses_canopen_videos(nc);
-  printf(" Enabling mouse...");
-  fflush(stdout);
+  int dimx, dimy;
+  struct ncplane* stdn = notcurses_stddim_yx(nc, &dimy, &dimx);
+  ncplane_cursor_move_yx(stdn, dimy - 1, 0);
+  ncplane_putstr(stdn, " Enabling mouse...");
+  notcurses_render(nc);
   if(notcurses_mouse_enable(nc)){
     goto err;
   }
-  printf("done.\n Checking for bitmap support...");
-  fflush(stdout);
+  ncplane_putstr(stdn, "done. Checking for bitmap support...");
+  notcurses_render(nc);
   notcurses_check_pixel_support(nc);
-  printf("done.\n");
+  ncplane_putstr(stdn, "done.\n");
+  notcurses_render(nc);
   if(input_dispatcher(nc)){
     goto err;
   }
-  int dimx, dimy;
-  notcurses_term_dim_yx(nc, &dimy, &dimx);
   if(dimy < MIN_SUPPORTED_ROWS || dimx < MIN_SUPPORTED_COLS){
     goto err;
   }
