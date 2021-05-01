@@ -167,396 +167,396 @@ TEST_CASE("Tree") {
     nctree_destroy(tree);
   }
 
-nctree_item alphaUs[] = {
-  {
-    .curry = const_cast<char*>("²¹⁴U"),
-    .subs = NULL,
-    .subcount = 0,
-  }, {
-    .curry = const_cast<char*>("²¹⁵U"),
-    .subs = NULL,
-    .subcount = 0,
-  }, {
-    .curry = const_cast<char*>("²¹⁶U"),
-    .subs = NULL,
-    .subcount = 0,
-  }, {
-    .curry = const_cast<char*>("²¹⁷U"),
-    .subs = NULL,
-    .subcount = 0,
-  }, {
-    .curry = const_cast<char*>("²¹⁸U"),
-    .subs = NULL,
-    .subcount = 0,
-  }, {
-    .curry = const_cast<char*>("²¹⁹U"),
-    .subs = NULL,
-    .subcount = 0,
-  }, {
-    .curry = const_cast<char*>("²²¹U"),
-    .subs = NULL,
-    .subcount = 0,
-  }, {
-    .curry = const_cast<char*>("²²²U"),
-    .subs = NULL,
-    .subcount = 0,
-  }, {
-    .curry = const_cast<char*>("²²⁸U"),
-    .subs = NULL,
-    .subcount = 0,
-  }, {
-    .curry = const_cast<char*>("²²⁹U"),
-    .subs = NULL,
-    .subcount = 0,
-  }, {
-    .curry = const_cast<char*>("²³⁰U"),
-    .subs = NULL,
-    .subcount = 0,
-  }, {
-    .curry = const_cast<char*>("²³¹U"),
-    .subs = NULL,
-    .subcount = 0,
-  }, {
-    .curry = const_cast<char*>("²³²U"),
-    .subs = NULL,
-    .subcount = 0,
-  }, {
-    .curry = const_cast<char*>("²³³U"),
-    .subs = NULL,
-    .subcount = 0,
-  }, {
-    .curry = const_cast<char*>("²³⁴U"),
-    .subs = NULL,
-    .subcount = 0,
-  }, {
-    .curry = const_cast<char*>("²³⁵U"),
-    .subs = NULL,
-    .subcount = 0,
-  }, {
-    .curry = const_cast<char*>("²³⁶U"),
-    .subs = NULL,
-    .subcount = 0,
-  }, {
-    .curry = const_cast<char*>("²³⁸U"),
-    .subs = NULL,
-    .subcount = 0,
-  }, {
-    .curry = const_cast<char*>("²⁴⁰U"),
-    .subs = NULL,
-    .subcount = 0,
-  },
-};
-
-nctree_item alphaU = {
-  .curry = const_cast<char*>("ɑ-emitting U"),
-  .subs = alphaUs,
-  .subcount = sizeof(alphaUs) / sizeof(*alphaUs),
-};
-
-nctree_item doubleUs[] = {
-  {
-    .curry = const_cast<char*>("²³⁰U"),
-    .subs = NULL,
-    .subcount = 0,
-  }
-};
-
-nctree_item doubleU = {
-  .curry = const_cast<char*>("ββ-emitting U"),
-  .subs = doubleUs,
-  .subcount = sizeof(doubleUs) / sizeof(*doubleUs),
-};
-
-nctree_item doubleminusUs[] = {
-  {
-    .curry = const_cast<char*>("²³⁸U"),
-    .subs = NULL,
-    .subcount = 0,
-  }
-};
-
-nctree_item doubleminusU = {
-  .curry = const_cast<char*>("β−β−-emitting U"),
-  .subs = doubleminusUs,
-  .subcount = sizeof(doubleminusUs) / sizeof(*doubleminusUs),
-};
-
-nctree_item betaminusUs[] = {
-  {
-    .curry = const_cast<char*>("²³⁹U"),
-    .subs = NULL,
-    .subcount = 0,
-  }, {
-    .curry = const_cast<char*>("²⁴⁰U"),
-    .subs = NULL,
-    .subcount = 0,
-  }, {
-    .curry = const_cast<char*>("²⁴²U"),
-    .subs = NULL,
-    .subcount = 0,
-  }
-};
-
-nctree_item betaminusPus[] = {
-  {
-    .curry = const_cast<char*>("²⁴¹Pu"),
-    .subs = NULL,
-    .subcount = 0,
-  }, {
-    .curry = const_cast<char*>("²⁴³Pu"),
-    .subs = NULL,
-    .subcount = 0,
-  }, {
-    .curry = const_cast<char*>("²⁴⁵Pu"),
-    .subs = NULL,
-    .subcount = 0,
-  }, {
-    .curry = const_cast<char*>("²⁴⁶Pu"),
-    .subs = NULL,
-    .subcount = 0,
-  }, {
-    .curry = const_cast<char*>("²⁴⁷Pu"),
-    .subs = NULL,
-    .subcount = 0,
-  }
-};
-
-nctree_item betaminus[] = {
-  {
-    .curry = const_cast<char*>("β−-emitting U"),
-    .subs = betaminusUs,
-    .subcount = sizeof(betaminusUs) / sizeof(*betaminusUs),
-  }, {
-    .curry = const_cast<char*>("β−-emitting Pu"),
-    .subs = betaminusPus,
-    .subcount = sizeof(betaminusPus) / sizeof(*betaminusPus),
-  },
-};
-
-nctree_item betaplusUs[] = {
-  {
-    .curry = const_cast<char*>("²²²U"),
-    .subs = NULL,
-    .subcount = 0,
-  }, {
-    .curry = const_cast<char*>("²²⁷U"),
-    .subs = NULL,
-    .subcount = 0,
-  }, {
-    .curry = const_cast<char*>("²²⁹U"),
-    .subs = NULL,
-    .subcount = 0,
-  },
-};
-
-nctree_item betaplus = {
-  .curry = const_cast<char*>("β-emitting U"),
-  .subs = betaplusUs,
-  .subcount = sizeof(betaplusUs) / sizeof(*betaplusUs),
-};
-
-nctree_item gammaUs[] = {
-  {
-    .curry = const_cast<char*>("²¹⁶Uᵐ"),
-    .subs = NULL,
-    .subcount = 0,
-  }, {
-    .curry = const_cast<char*>("²³⁴Uᵐ"),
-    .subs = NULL,
-    .subcount = 0,
-  }, {
-    .curry = const_cast<char*>("²³⁵Uᵐ"),
-    .subs = NULL,
-    .subcount = 0,
-  }, {
-    .curry = const_cast<char*>("²³⁶Uᵐ¹"),
-    .subs = NULL,
-    .subcount = 0,
-  }, {
-    .curry = const_cast<char*>("²³⁶Uᵐ²"),
-    .subs = NULL,
-    .subcount = 0,
-  }, {
-    .curry = const_cast<char*>("²³⁸Uᵐ"),
-    .subs = NULL,
-    .subcount = 0,
-  }, {
-    .curry = const_cast<char*>("²³⁹Uᵐ¹"),
-    .subs = NULL,
-    .subcount = 0,
-  }, {
-    .curry = const_cast<char*>("²³⁹Uᵐ²"),
-    .subs = NULL,
-    .subcount = 0,
-  },
-};
-
-nctree_item gammas = {
-  .curry = const_cast<char*>("γ-emitting U"),
-  .subs = gammaUs,
-  .subcount = sizeof(gammaUs) / sizeof(*gammaUs),
-};
-
-nctree_item sfissionUs[] = {
-  {
-    .curry = const_cast<char*>("²³⁰U"),
-    .subs = NULL,
-    .subcount = 0,
-  }, {
-    .curry = const_cast<char*>("²³²U"),
-    .subs = NULL,
-    .subcount = 0,
-  }, {
-    .curry = const_cast<char*>("²³³U"),
-    .subs = NULL,
-    .subcount = 0,
-  }, {
-    .curry = const_cast<char*>("²³⁴U"),
-    .subs = NULL,
-    .subcount = 0,
-  }, {
-    .curry = const_cast<char*>("²³⁵U"),
-    .subs = NULL,
-    .subcount = 0,
-  }, {
-    .curry = const_cast<char*>("²³⁶U"),
-    .subs = NULL,
-    .subcount = 0,
-  }, {
-    .curry = const_cast<char*>("²³⁸U"),
-    .subs = NULL,
-    .subcount = 0,
-  },
-};
-
-nctree_item sfissions = {
-  .curry = const_cast<char*>("spontaneously fissioning U"),
-  .subs = sfissionUs,
-  .subcount = sizeof(sfissionUs) / sizeof(*sfissionUs),
-};
-
-nctree_item ecaptureUs[] = {
-  {
-    .curry = const_cast<char*>("²²⁸U"),
-    .subs = NULL,
-    .subcount = 0,
-  }, {
-    .curry = const_cast<char*>("²³¹U"),
-    .subs = NULL,
-    .subcount = 0,
-  },
-};
-
-nctree_item ecaptures = {
-  .curry = const_cast<char*>("electron capturing U"),
-  .subs = ecaptureUs,
-  .subcount = sizeof(ecaptureUs) / sizeof(*ecaptureUs),
-};
-
-nctree_item cdecayUs[] = {
-  {
-    .curry = const_cast<char*>("²³²U"),
-    .subs = NULL,
-    .subcount = 0,
-  }, {
-    .curry = const_cast<char*>("²³³U"),
-    .subs = NULL,
-    .subcount = 0,
-  }, {
-    .curry = const_cast<char*>("²³⁴U"),
-    .subs = NULL,
-    .subcount = 0,
-  }, {
-    .curry = const_cast<char*>("²³⁵U"),
-    .subs = NULL,
-    .subcount = 0,
-  },
-};
-
-nctree_item cdecays = {
-  .curry = const_cast<char*>("cluster decaying U"),
-  .subs = cdecayUs,
-  .subcount = sizeof(cdecayUs) / sizeof(*cdecayUs),
-};
-
-nctree_item radUs[] = {
-  {
-    .curry = const_cast<char*>("ɑ emitters"),
-    .subs = &alphaU,
-    .subcount = 1,
-  }, {
-    .curry = const_cast<char*>("β− emitters"),
-    .subs = betaminus,
-    .subcount = sizeof(betaminus) / sizeof(*betaminus),
-  }, {
-    .curry = const_cast<char*>("β−β− emitters"),
-    .subs = &doubleminusU,
-    .subcount = 1,
-  }, {
-    .curry = const_cast<char*>("ββ emitters"),
-    .subs = &doubleU,
-    .subcount = 1,
-  }, {
-    .curry = const_cast<char*>("β emitters"),
-    .subs = &betaplus,
-    .subcount = 1,
-  }, {
-    .curry = const_cast<char*>("γ emitters"),
-    .subs = &gammas,
-    .subcount = 1,
-  }, {
-    .curry = const_cast<char*>("spontaneous fissions"),
-    .subs = &sfissions,
-    .subcount = 1,
-  }, {
-    .curry = const_cast<char*>("cluster decays"),
-    .subs = &cdecays,
-    .subcount = 1,
-  }, {
-    .curry = const_cast<char*>("electron captures"),
-    .subs = &ecaptures,
-    .subcount = 1,
-  },
-};
-
-nctree_item rads = {
-  .curry = const_cast<char*>("radiating isotopes"),
-  .subs = radUs,
-  .subcount = sizeof(radUs) / sizeof(*radUs),
-};
-
-SUBCASE("TraverseLongList") {
-  struct nctree_options topts = {
-    .items = &rads,
-    .count = 1,
-    .nctreecb = treecb,
-    .indentcols = 2,
-    .flags = 0,
+  nctree_item alphaUs[] = {
+    {
+      .curry = const_cast<char*>("²¹⁴U"),
+      .subs = NULL,
+      .subcount = 0,
+    }, {
+      .curry = const_cast<char*>("²¹⁵U"),
+      .subs = NULL,
+      .subcount = 0,
+    }, {
+      .curry = const_cast<char*>("²¹⁶U"),
+      .subs = NULL,
+      .subcount = 0,
+    }, {
+      .curry = const_cast<char*>("²¹⁷U"),
+      .subs = NULL,
+      .subcount = 0,
+    }, {
+      .curry = const_cast<char*>("²¹⁸U"),
+      .subs = NULL,
+      .subcount = 0,
+    }, {
+      .curry = const_cast<char*>("²¹⁹U"),
+      .subs = NULL,
+      .subcount = 0,
+    }, {
+      .curry = const_cast<char*>("²²¹U"),
+      .subs = NULL,
+      .subcount = 0,
+    }, {
+      .curry = const_cast<char*>("²²²U"),
+      .subs = NULL,
+      .subcount = 0,
+    }, {
+      .curry = const_cast<char*>("²²⁸U"),
+      .subs = NULL,
+      .subcount = 0,
+    }, {
+      .curry = const_cast<char*>("²²⁹U"),
+      .subs = NULL,
+      .subcount = 0,
+    }, {
+      .curry = const_cast<char*>("²³⁰U"),
+      .subs = NULL,
+      .subcount = 0,
+    }, {
+      .curry = const_cast<char*>("²³¹U"),
+      .subs = NULL,
+      .subcount = 0,
+    }, {
+      .curry = const_cast<char*>("²³²U"),
+      .subs = NULL,
+      .subcount = 0,
+    }, {
+      .curry = const_cast<char*>("²³³U"),
+      .subs = NULL,
+      .subcount = 0,
+    }, {
+      .curry = const_cast<char*>("²³⁴U"),
+      .subs = NULL,
+      .subcount = 0,
+    }, {
+      .curry = const_cast<char*>("²³⁵U"),
+      .subs = NULL,
+      .subcount = 0,
+    }, {
+      .curry = const_cast<char*>("²³⁶U"),
+      .subs = NULL,
+      .subcount = 0,
+    }, {
+      .curry = const_cast<char*>("²³⁸U"),
+      .subs = NULL,
+      .subcount = 0,
+    }, {
+      .curry = const_cast<char*>("²⁴⁰U"),
+      .subs = NULL,
+      .subcount = 0,
+    },
   };
-  struct nctree* tree = nctree_create(notcurses_stdplane(nc_), &topts);
-  REQUIRE(nullptr != tree);
-  CHECK(0 == notcurses_render(nc_));
-  void* curry = nctree_focused(tree);
-  void* first = curry;
-  CHECK(nullptr != curry);
-  void* tmpcurry;
-  while( (tmpcurry = nctree_next(tree)) ){
-    if(tmpcurry == curry){
-      break;
+
+  nctree_item alphaU = {
+    .curry = const_cast<char*>("ɑ-emitting U"),
+    .subs = alphaUs,
+    .subcount = sizeof(alphaUs) / sizeof(*alphaUs),
+  };
+
+  nctree_item doubleUs[] = {
+    {
+      .curry = const_cast<char*>("²³⁰U"),
+      .subs = NULL,
+      .subcount = 0,
     }
-    curry = tmpcurry;
-  }
-  CHECK(nullptr != tmpcurry);
-  while( (tmpcurry = nctree_prev(tree)) ){
-    if(tmpcurry == curry){
-      break;
+  };
+
+  nctree_item doubleU = {
+    .curry = const_cast<char*>("ββ-emitting U"),
+    .subs = doubleUs,
+    .subcount = sizeof(doubleUs) / sizeof(*doubleUs),
+  };
+
+  nctree_item doubleminusUs[] = {
+    {
+      .curry = const_cast<char*>("²³⁸U"),
+      .subs = NULL,
+      .subcount = 0,
     }
-    curry = tmpcurry;
+  };
+
+  nctree_item doubleminusU = {
+    .curry = const_cast<char*>("β−β−-emitting U"),
+    .subs = doubleminusUs,
+    .subcount = sizeof(doubleminusUs) / sizeof(*doubleminusUs),
+  };
+
+  nctree_item betaminusUs[] = {
+    {
+      .curry = const_cast<char*>("²³⁹U"),
+      .subs = NULL,
+      .subcount = 0,
+    }, {
+      .curry = const_cast<char*>("²⁴⁰U"),
+      .subs = NULL,
+      .subcount = 0,
+    }, {
+      .curry = const_cast<char*>("²⁴²U"),
+      .subs = NULL,
+      .subcount = 0,
+    }
+  };
+
+  nctree_item betaminusPus[] = {
+    {
+      .curry = const_cast<char*>("²⁴¹Pu"),
+      .subs = NULL,
+      .subcount = 0,
+    }, {
+      .curry = const_cast<char*>("²⁴³Pu"),
+      .subs = NULL,
+      .subcount = 0,
+    }, {
+      .curry = const_cast<char*>("²⁴⁵Pu"),
+      .subs = NULL,
+      .subcount = 0,
+    }, {
+      .curry = const_cast<char*>("²⁴⁶Pu"),
+      .subs = NULL,
+      .subcount = 0,
+    }, {
+      .curry = const_cast<char*>("²⁴⁷Pu"),
+      .subs = NULL,
+      .subcount = 0,
+    }
+  };
+
+  nctree_item betaminus[] = {
+    {
+      .curry = const_cast<char*>("β−-emitting U"),
+      .subs = betaminusUs,
+      .subcount = sizeof(betaminusUs) / sizeof(*betaminusUs),
+    }, {
+      .curry = const_cast<char*>("β−-emitting Pu"),
+      .subs = betaminusPus,
+      .subcount = sizeof(betaminusPus) / sizeof(*betaminusPus),
+    },
+  };
+
+  nctree_item betaplusUs[] = {
+    {
+      .curry = const_cast<char*>("²²²U"),
+      .subs = NULL,
+      .subcount = 0,
+    }, {
+      .curry = const_cast<char*>("²²⁷U"),
+      .subs = NULL,
+      .subcount = 0,
+    }, {
+      .curry = const_cast<char*>("²²⁹U"),
+      .subs = NULL,
+      .subcount = 0,
+    },
+  };
+
+  nctree_item betaplus = {
+    .curry = const_cast<char*>("β-emitting U"),
+    .subs = betaplusUs,
+    .subcount = sizeof(betaplusUs) / sizeof(*betaplusUs),
+  };
+
+  nctree_item gammaUs[] = {
+    {
+      .curry = const_cast<char*>("²¹⁶Uᵐ"),
+      .subs = NULL,
+      .subcount = 0,
+    }, {
+      .curry = const_cast<char*>("²³⁴Uᵐ"),
+      .subs = NULL,
+      .subcount = 0,
+    }, {
+      .curry = const_cast<char*>("²³⁵Uᵐ"),
+      .subs = NULL,
+      .subcount = 0,
+    }, {
+      .curry = const_cast<char*>("²³⁶Uᵐ¹"),
+      .subs = NULL,
+      .subcount = 0,
+    }, {
+      .curry = const_cast<char*>("²³⁶Uᵐ²"),
+      .subs = NULL,
+      .subcount = 0,
+    }, {
+      .curry = const_cast<char*>("²³⁸Uᵐ"),
+      .subs = NULL,
+      .subcount = 0,
+    }, {
+      .curry = const_cast<char*>("²³⁹Uᵐ¹"),
+      .subs = NULL,
+      .subcount = 0,
+    }, {
+      .curry = const_cast<char*>("²³⁹Uᵐ²"),
+      .subs = NULL,
+      .subcount = 0,
+    },
+  };
+
+  nctree_item gammas = {
+    .curry = const_cast<char*>("γ-emitting U"),
+    .subs = gammaUs,
+    .subcount = sizeof(gammaUs) / sizeof(*gammaUs),
+  };
+
+  nctree_item sfissionUs[] = {
+    {
+      .curry = const_cast<char*>("²³⁰U"),
+      .subs = NULL,
+      .subcount = 0,
+    }, {
+      .curry = const_cast<char*>("²³²U"),
+      .subs = NULL,
+      .subcount = 0,
+    }, {
+      .curry = const_cast<char*>("²³³U"),
+      .subs = NULL,
+      .subcount = 0,
+    }, {
+      .curry = const_cast<char*>("²³⁴U"),
+      .subs = NULL,
+      .subcount = 0,
+    }, {
+      .curry = const_cast<char*>("²³⁵U"),
+      .subs = NULL,
+      .subcount = 0,
+    }, {
+      .curry = const_cast<char*>("²³⁶U"),
+      .subs = NULL,
+      .subcount = 0,
+    }, {
+      .curry = const_cast<char*>("²³⁸U"),
+      .subs = NULL,
+      .subcount = 0,
+    },
+  };
+
+  nctree_item sfissions = {
+    .curry = const_cast<char*>("spontaneously fissioning U"),
+    .subs = sfissionUs,
+    .subcount = sizeof(sfissionUs) / sizeof(*sfissionUs),
+  };
+
+  nctree_item ecaptureUs[] = {
+    {
+      .curry = const_cast<char*>("²²⁸U"),
+      .subs = NULL,
+      .subcount = 0,
+    }, {
+      .curry = const_cast<char*>("²³¹U"),
+      .subs = NULL,
+      .subcount = 0,
+    },
+  };
+
+  nctree_item ecaptures = {
+    .curry = const_cast<char*>("electron capturing U"),
+    .subs = ecaptureUs,
+    .subcount = sizeof(ecaptureUs) / sizeof(*ecaptureUs),
+  };
+
+  nctree_item cdecayUs[] = {
+    {
+      .curry = const_cast<char*>("²³²U"),
+      .subs = NULL,
+      .subcount = 0,
+    }, {
+      .curry = const_cast<char*>("²³³U"),
+      .subs = NULL,
+      .subcount = 0,
+    }, {
+      .curry = const_cast<char*>("²³⁴U"),
+      .subs = NULL,
+      .subcount = 0,
+    }, {
+      .curry = const_cast<char*>("²³⁵U"),
+      .subs = NULL,
+      .subcount = 0,
+    },
+  };
+
+  nctree_item cdecays = {
+    .curry = const_cast<char*>("cluster decaying U"),
+    .subs = cdecayUs,
+    .subcount = sizeof(cdecayUs) / sizeof(*cdecayUs),
+  };
+
+  nctree_item radUs[] = {
+    {
+      .curry = const_cast<char*>("ɑ emitters"),
+      .subs = &alphaU,
+      .subcount = 1,
+    }, {
+      .curry = const_cast<char*>("β− emitters"),
+      .subs = betaminus,
+      .subcount = sizeof(betaminus) / sizeof(*betaminus),
+    }, {
+      .curry = const_cast<char*>("β−β− emitters"),
+      .subs = &doubleminusU,
+      .subcount = 1,
+    }, {
+      .curry = const_cast<char*>("ββ emitters"),
+      .subs = &doubleU,
+      .subcount = 1,
+    }, {
+      .curry = const_cast<char*>("β emitters"),
+      .subs = &betaplus,
+      .subcount = 1,
+    }, {
+      .curry = const_cast<char*>("γ emitters"),
+      .subs = &gammas,
+      .subcount = 1,
+    }, {
+      .curry = const_cast<char*>("spontaneous fissions"),
+      .subs = &sfissions,
+      .subcount = 1,
+    }, {
+      .curry = const_cast<char*>("cluster decays"),
+      .subs = &cdecays,
+      .subcount = 1,
+    }, {
+      .curry = const_cast<char*>("electron captures"),
+      .subs = &ecaptures,
+      .subcount = 1,
+    },
+  };
+
+  nctree_item rads = {
+    .curry = const_cast<char*>("radiating isotopes"),
+    .subs = radUs,
+    .subcount = sizeof(radUs) / sizeof(*radUs),
+  };
+
+  SUBCASE("TraverseLongList") {
+    struct nctree_options topts = {
+      .items = &rads,
+      .count = 1,
+      .nctreecb = treecb,
+      .indentcols = 2,
+      .flags = 0,
+    };
+    struct nctree* tree = nctree_create(notcurses_stdplane(nc_), &topts);
+    REQUIRE(nullptr != tree);
+    CHECK(0 == notcurses_render(nc_));
+    void* curry = nctree_focused(tree);
+    void* first = curry;
+    CHECK(nullptr != curry);
+    void* tmpcurry;
+    while( (tmpcurry = nctree_next(tree)) ){
+      if(tmpcurry == curry){
+        break;
+      }
+      curry = tmpcurry;
+    }
+    CHECK(nullptr != tmpcurry);
+    while( (tmpcurry = nctree_prev(tree)) ){
+      if(tmpcurry == curry){
+        break;
+      }
+      curry = tmpcurry;
+    }
+    CHECK(nullptr != tmpcurry);
+    CHECK(curry == first);
+    nctree_destroy(tree);
   }
-  CHECK(nullptr != tmpcurry);
-  CHECK(curry == first);
-  nctree_destroy(tree);
-}
 
   CHECK(0 == notcurses_stop(nc_));
 }

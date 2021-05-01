@@ -18,6 +18,7 @@ TEST_CASE("Exceptions") {
   SUBCASE("ResetStats") {
     NotCurses nc{ nopts };
     CHECK_THROWS_AS(nc.reset_stats(nullptr), invalid_argument);
+    nc.stop();
   }
 
 }
