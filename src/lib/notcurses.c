@@ -711,6 +711,8 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
   n->lenx = xlen;
   n->leny = ylen;
   free(preserved);
+/*fprintf(stderr, "RESIZE COMPLETE\n");
+notcurses_debug(nc, stderr);*/
   return resize_callbacks_children(n);
 }
 
@@ -2420,13 +2422,13 @@ ncplane* ncplane_reparent_family(ncplane* n, ncplane* newparent){
   if(n == n->boundto){ // we're a new root plane
     n->bnext = NULL;
     n->bprev = NULL;
+    splice_zaxis_recursive(n);
     pthread_mutex_lock(&ncplane_notcurses(n)->pilelock);
     if(ncplane_pile(n)->top == NULL){ // did we just empty our pile?
       ncpile_destroy(ncplane_pile(n));
     }
     make_ncpile(ncplane_notcurses(n), n);
     pthread_mutex_unlock(&ncplane_notcurses(n)->pilelock);
-    splice_zaxis_recursive(n);
   }else{ // establish ourselves as a sibling of new parent's children
     if( (n->bnext = newparent->blist) ){
       n->bnext->bprev = &n->bnext;
@@ -2435,8 +2437,13 @@ ncplane* ncplane_reparent_family(ncplane* n, ncplane* newparent){
     newparent->blist = n;
     // place it immediately above the new binding plane if crossing piles
     if(n->pile != ncplane_pile(n->boundto)){
-      n->pile = ncplane_pile(n->boundto);
       splice_zaxis_recursive(n);
+      pthread_mutex_lock(&ncplane_notcurses(n)->pilelock);
+      if(ncplane_pile(n)->top == NULL){ // did we just empty our pile?
+        ncpile_destroy(ncplane_pile(n));
+      }
+      pthread_mutex_unlock(&ncplane_notcurses(n)->pilelock);
+      n->pile = ncplane_pile(n->boundto);
     }
   }
   if(s){ // must be on new plane, with sprixels to donate
