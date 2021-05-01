@@ -373,6 +373,7 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
   // leave a line at the bottom. perhaps one day we'll put information there.
   // for now, this keeps us from scrolling when we use bitmaps.
   nopts.margin_b = 1;
+  nopts.name = "play";
   nopts.resizecb = ncplane_resize_marginalized;
   nopts.flags = NCPLANE_OPTION_MARGINALIZED;
   for(auto i = 0 ; i < argc ; ++i){
