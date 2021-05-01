@@ -147,9 +147,11 @@ TEST_CASE("Sixels") {
 
   // this can only run with a Sixel backend
   if(notcurses_check_pixel_support(nc_) <= 0){
+    CHECK(0 == notcurses_stop(nc_));
     return;
   }
   if(nc_->tcache.color_registers <= 0){
+    CHECK(0 == notcurses_stop(nc_));
     return;
   }
 
