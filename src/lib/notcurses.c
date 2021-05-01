@@ -711,8 +711,6 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
   n->lenx = xlen;
   n->leny = ylen;
   free(preserved);
-/*fprintf(stderr, "RESIZE COMPLETE\n");
-notcurses_debug(nc, stderr);*/
   return resize_callbacks_children(n);
 }
 
@@ -1043,8 +1041,10 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   if(setup_signals(ret, (opts->flags & NCOPTION_NO_QUIT_SIGHANDLERS),
                    (opts->flags & NCOPTION_NO_WINCH_SIGHANDLER),
                    notcurses_stop_minimal)){
-    // don't treat failure here as an error. it screws up unit tests, and one
-    // day we'll need support multiple notcurses contexts. FIXME
+    pthread_mutex_destroy(&ret->pilelock);
+    pthread_mutex_destroy(&ret->statlock);
+    free(ret);
+    return NULL;
   }
   int termerr;
   if(setupterm(opts->termtype, ret->ttyfd, &termerr) != OK){
