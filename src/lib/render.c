@@ -917,7 +917,7 @@ clean_sprixels(notcurses* nc, ncpile* p, FILE* out){
   int ret = 0;
   while( (s = *parent) ){
     if(s->invalidated == SPRIXEL_HIDE){
-//fprintf(stderr, "OUGHT HIDE %d [%dx%d @ %d/%d] %p\n", s->id, s->dimy, s->dimx, s->y, s->x, s);
+//fprintf(stderr, "OUGHT HIDE %d [%dx%d] %p\n", s->id, s->dimy, s->dimx, s);
       if(sprite_destroy(nc, p, out, s) == 0){
         if( (*parent = s->next) ){
           s->next->prev = s->prev;
@@ -927,13 +927,14 @@ clean_sprixels(notcurses* nc, ncpile* p, FILE* out){
         ret = -1;
       }
     }else if(s->invalidated == SPRIXEL_MOVED || s->invalidated == SPRIXEL_INVALIDATED){
+      int y, x;
+      ncplane_yx(s->n, &y, &x);
       // FIXME clean this up, don't use sprite_draw, etc.
+      // without this, kitty flickers
+//fprintf(stderr, "1 MOVING BITMAP %d STATE %d AT %d/%d for %p\n", s->id, s->invalidated, y + nc->stdplane->absy, x + nc->stdplane->absx, s->n);
       if(s->invalidated == SPRIXEL_MOVED){
         sprite_destroy(nc, p, out, s);
       }
-      int y, x;
-      ncplane_yx(s->n, &y, &x);
-//fprintf(stderr, "DRAWING BITMAP %d STATE %d AT %d/%d for %p\n", s->id, s->invalidated, y + nc->stdplane->absy, x + nc->stdplane->absx, s->n);
       if(goto_location(nc, out, y + nc->stdplane->absy, x + nc->stdplane->absx) == 0){
         if(sprite_draw(nc, p, s, out)){
           return -1;
@@ -959,7 +960,7 @@ rasterize_sprixels(notcurses* nc, ncpile* p, FILE* out){
     if(s->invalidated == SPRIXEL_INVALIDATED){
       int y, x;
       ncplane_yx(s->n, &y, &x);
-//fprintf(stderr, "DRAWING BITMAP %d STATE %d AT %d/%d for %p\n", s->id, s->invalidated, y + nc->stdplane->absy, x + nc->stdplane->absx, s->n);
+//fprintf(stderr, "3 DRAWING BITMAP %d STATE %d AT %d/%d for %p\n", s->id, s->invalidated, y + nc->stdplane->absy, x + nc->stdplane->absx, s->n);
       if(goto_location(nc, out, y + nc->stdplane->absy, x + nc->stdplane->absx) == 0){
         if(sprite_draw(nc, p, s, out)){
           return -1;
