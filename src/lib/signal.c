@@ -69,7 +69,7 @@ int drop_signals(void* nc){
   }
   pthread_mutex_unlock(&lock);
   if(ret){
-    fprintf(stderr, "Couldn't drop signals with %p\n", nc);
+    fprintf(stderr, "Couldn't drop signals with %p (had %p)\n", nc, expected);
   }
   return ret;
 }
@@ -102,13 +102,14 @@ fatal_handler(int signo, siginfo_t* siginfo, void* v){
   }
 }
 
-int setup_signals(void* nc, bool no_quit_sigs, bool no_winch_sig,
+int setup_signals(void* vnc, bool no_quit_sigs, bool no_winch_sig,
                   int(*handler)(void*)){
+  notcurses* nc = vnc;
   void* expected = NULL;
   struct sigaction sa;
-
+  // we expect NULL (nothing registered), and want to register nc
   if(!atomic_compare_exchange_strong(&signal_nc, &expected, nc)){
-    fprintf(stderr, "%p is already registered for signals\n", expected);
+    loginfo(nc, "%p is already registered for signals (provided %p)\n", expected, nc);
     return -1;
   }
   if(!no_winch_sig){
@@ -121,8 +122,7 @@ int setup_signals(void* nc, bool no_quit_sigs, bool no_winch_sig,
     ret |= sigaction(SIGCONT, &sa, &old_cont);
     if(ret){
       atomic_store(&signal_nc, NULL);
-      fprintf(stderr, "Error installing term signal handler (%s)\n",
-              strerror(errno));
+      fprintf(stderr, "Error installing term signal handler (%s)\n", strerror(errno));
       return -1;
     }
     handling_winch = true;
@@ -147,8 +147,7 @@ int setup_signals(void* nc, bool no_quit_sigs, bool no_winch_sig,
     ret |= sigaction(SIGTERM, &sa, &old_term);
     if(ret){
       atomic_store(&signal_nc, NULL);
-      fprintf(stderr, "Error installing fatal signal handlers (%s)\n",
-              strerror(errno));
+      fprintf(stderr, "Error installing fatal signal handlers (%s)\n", strerror(errno));
       return -1;
     }
     handling_fatals = true;
