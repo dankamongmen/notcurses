@@ -554,7 +554,7 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv, ncblitter_e blitfxn,
     bargs.u.pixel.colorregs = n->tcache.color_registers;
     int cols = lenx / bargs.u.pixel.celldimx + !!(lenx % bargs.u.pixel.celldimx);
     int rows = leny / bargs.u.pixel.celldimy + !!(leny % bargs.u.pixel.celldimy);
-    if((bargs.u.pixel.spx = sprixel_alloc(ncdv, rows, cols, 0, 0)) == NULL){
+    if((bargs.u.pixel.spx = sprixel_alloc(ncdv, rows, cols)) == NULL){
       free_plane(ncdv);
       return NULL;
     }

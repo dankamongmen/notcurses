@@ -933,8 +933,6 @@ clean_sprixels(notcurses* nc, ncpile* p, FILE* out){
       }
       int y, x;
       ncplane_yx(s->n, &y, &x);
-      y += s->y;
-      x += s->x;
 //fprintf(stderr, "DRAWING BITMAP %d STATE %d AT %d/%d for %p\n", s->id, s->invalidated, y + nc->stdplane->absy, x + nc->stdplane->absx, s->n);
       if(goto_location(nc, out, y + nc->stdplane->absy, x + nc->stdplane->absx) == 0){
         if(sprite_draw(nc, p, s, out)){
@@ -961,8 +959,6 @@ rasterize_sprixels(notcurses* nc, ncpile* p, FILE* out){
     if(s->invalidated == SPRIXEL_INVALIDATED){
       int y, x;
       ncplane_yx(s->n, &y, &x);
-      y += s->y;
-      x += s->x;
 //fprintf(stderr, "DRAWING BITMAP %d STATE %d AT %d/%d for %p\n", s->id, s->invalidated, y + nc->stdplane->absy, x + nc->stdplane->absx, s->n);
       if(goto_location(nc, out, y + nc->stdplane->absy, x + nc->stdplane->absx) == 0){
         if(sprite_draw(nc, p, s, out)){

@@ -723,15 +723,13 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
   }
   bargs.begy = begy;
   bargs.begx = begx;
-  bargs.placey = placey;
-  bargs.placex = placex;
   bargs.u.pixel.celldimx = nc->tcache.cellpixx;
   bargs.u.pixel.celldimy = nc->tcache.cellpixy;
   bargs.u.pixel.colorregs = nc->tcache.color_registers;
   if(n->sprite == NULL){
     int cols = dispcols / bargs.u.pixel.celldimx + !!(dispcols % bargs.u.pixel.celldimx);
     int rows = disprows / bargs.u.pixel.celldimy + !!(disprows % bargs.u.pixel.celldimy);
-    if((n->sprite = sprixel_alloc(n, rows, cols, placey, placex)) == NULL){
+    if((n->sprite = sprixel_alloc(n, rows, cols)) == NULL){
       ncplane_destroy(createdn);
       return NULL;
     }

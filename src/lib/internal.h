@@ -171,7 +171,6 @@ typedef struct sprixel {
   sprixel_e invalidated;// sprixel invalidation state
   struct sprixel* next;
   struct sprixel* prev;
-  int y, x;
   int dimy, dimx;       // cell geometry
   int pixy, pixx;       // pixel geometry (might be smaller than cell geo)
   int cellpxy, cellpxx; // cell-pixel geometry at time of creation
@@ -951,12 +950,11 @@ void sprixel_hide(sprixel* s);
 
 int kitty_draw(const ncpile *p, sprixel* s, FILE* out);
 int sixel_draw(const ncpile *p, sprixel* s, FILE* out);
-// dimy and dimx are cell geometry, not pixel. pixy/pixx are of course pixel.
-sprixel* sprixel_alloc(ncplane* n, int dimy, int dimx, int placey, int placex);
+// dimy and dimx are cell geometry, not pixel.
+sprixel* sprixel_alloc(ncplane* n, int dimy, int dimx);
 sprixel* sprixel_recycle(ncplane* n);
 // takes ownership of s on success.
-int sprixel_load(sprixel* spx, char* s, int bytes, int placey, int placex,
-                 int pixy, int pixx, int parse_start);
+int sprixel_load(sprixel* spx, char* s, int bytes, int pixy, int pixx, int parse_start);
 int sixel_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
 int kitty_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
 int kitty_remove(int id, FILE* out);
@@ -1468,7 +1466,7 @@ static inline int
 plane_blit_sixel(sprixel* spx, char* s, int bytes, int rows, int cols,
                  int placey, int placex, int leny, int lenx,
                  int parse_start, tament* tam){
-  if(sprixel_load(spx, s, bytes, placey, placex, leny, lenx, parse_start)){
+  if(sprixel_load(spx, s, bytes, leny, lenx, parse_start)){
     return -1;
   }
   ncplane* n = spx->n;

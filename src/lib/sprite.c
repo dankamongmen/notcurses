@@ -57,10 +57,8 @@ sprixel* sprixel_recycle(ncplane* n){
     sprixel* hides = n->sprite;
     int dimy = hides->dimy;
     int dimx = hides->dimx;
-    int y = hides->y;
-    int x = hides->x;
     sprixel_hide(hides);
-    return sprixel_alloc(n, dimy, dimx, y, x);
+    return sprixel_alloc(n, dimy, dimx);
   }
   return n->sprite;
 }
@@ -120,15 +118,13 @@ sprixel* sprixel_by_id(const ncpile* n, uint32_t id){
   return NULL;
 }
 
-sprixel* sprixel_alloc(ncplane* n, int dimy, int dimx, int placey, int placex){
+sprixel* sprixel_alloc(ncplane* n, int dimy, int dimx){
   sprixel* ret = malloc(sizeof(sprixel));
   if(ret){
     memset(ret, 0, sizeof(*ret));
     ret->n = n;
     ret->dimy = dimy;
     ret->dimx = dimx;
-    ret->y = placey;
-    ret->x = placex;
     ret->id = ++sprixelid_nonce;
 //fprintf(stderr, "LOOKING AT %p (p->n = %p)\n", ret, ret->n);
     if(ncplane_pile(ret->n)){
@@ -152,8 +148,8 @@ sprixel* sprixel_alloc(ncplane* n, int dimy, int dimx, int placey, int placex){
 
 // 'y' and 'x' are the cell geometry, not the pixel geometry. takes
 // ownership of 's' on success. pixel geometry ought include any Sixel excess.
-int sprixel_load(sprixel* spx, char* s, int bytes, int placey, int placex,
-                 int pixy, int pixx, int parse_start){
+int sprixel_load(sprixel* spx, char* s, int bytes, int pixy, int pixx,
+                 int parse_start){
   assert(spx->n);
   free(spx->glyph);
   spx->glyph = s;
@@ -161,8 +157,6 @@ int sprixel_load(sprixel* spx, char* s, int bytes, int placey, int placex,
   spx->invalidated = SPRIXEL_INVALIDATED;
   spx->pixx = pixx;
   spx->pixy = pixy;
-  spx->y = placey;
-  spx->x = placex;
   spx->parse_start = parse_start;
   return 0;
 }
