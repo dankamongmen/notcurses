@@ -100,6 +100,7 @@ orcaride(struct notcurses* nc, struct ncplane* on, int iterations){
   if(ncplane_move_yx(on, oy, ox)){
     return -1;
   }
+//fprintf(stderr, "ON THE MOVE (%d/%d through %d/%d)\n", ncplane_y(on), ncplane_x(on), ncplane_y(on) + ncplane_dim_y(on) - 1, ncplane_x(on) + ncplane_dim_x(on) - 1);
   DEMO_RENDER(nc);
   return 0;
 }
@@ -232,10 +233,6 @@ int intro(struct notcurses* nc){
   int flipmode = 0;
   struct ncplane* on = NULL;
   do{
-    int err;
-    if( (err = animate(nc, ncp, &flipmode)) ){
-      return err;
-    }
     demo_nanosleep(nc, &iter);
     clock_gettime(CLOCK_MONOTONIC, &now);
     if(!on){
@@ -244,6 +241,10 @@ int intro(struct notcurses* nc){
       }
     }else{
       orcaride(nc, on, expected_iter);
+    }
+    int err;
+    if( (err = animate(nc, ncp, &flipmode)) ){
+      return err;
     }
   }while(timespec_to_ns(&now) < deadline || flipmode < expected_iter);
   ncplane_destroy(on);
