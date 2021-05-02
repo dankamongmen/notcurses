@@ -491,7 +491,7 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv, ncblitter_e blitfxn,
                        uint32_t transcolor){
   int dimy = ymax > 0 ? ymax : (ncdirect_dim_y(n) - 1);
   int dimx = xmax > 0 ? xmax : ncdirect_dim_x(n);
-//fprintf(stderr, "OUR DATA: %p rows/cols: %d/%d outsize: %d/%d\n", ncv->data, ncv->pixy, ncv->pixx, dimy, dimx);
+//fprintf(stderr, "OUR DATA: %p rows/cols: %d/%d outsize: %d/%d %d\n", ncv->data, ncv->pixy, ncv->pixx, dimy, dimx, ymax);
 //fprintf(stderr, "render %d/%d to scaling: %d\n", ncv->pixy, ncv->pixx, scale);
   const struct blitset* bset = rgba_blitter_low(&n->tcache, scale, true, blitfxn);
   if(!bset){
@@ -506,21 +506,27 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv, ncblitter_e blitfxn,
     }else{
       dispcols = dimx * n->tcache.cellpixx;
       disprows = dimy * n->tcache.cellpixy;
-      clamp_to_sixelmax(&n->tcache, &disprows, &dispcols, &outy);
+      clamp_to_sixelmax(&n->tcache, &disprows, &dispcols, &outy, scale);
     }
     if(scale == NCSCALE_SCALE || scale == NCSCALE_SCALE_HIRES){
       scale_visual(ncv, &disprows, &dispcols);
       if(bset->geom == NCBLIT_PIXEL){
-        clamp_to_sixelmax(&n->tcache, &disprows, &dispcols, &outy);
+        clamp_to_sixelmax(&n->tcache, &disprows, &dispcols, &outy, scale);
       }
     }
   }else{
     disprows = ncv->pixy;
     dispcols = ncv->pixx;
     if(bset->geom == NCBLIT_PIXEL){
-      clamp_to_sixelmax(&n->tcache, &disprows, &dispcols, &outy);
+      clamp_to_sixelmax(&n->tcache, &disprows, &dispcols, &outy, scale);
     }else{
       outy = disprows;
+    }
+  }
+  if(bset->geom == NCBLIT_PIXEL){
+    while((outy + n->tcache.cellpixy - 1) / n->tcache.cellpixy > dimy){
+      outy -= n->tcache.sprixel_scale_height;
+      disprows = outy;
     }
   }
 //fprintf(stderr, "render: %d/%d stride %u %p\n", ncv->pixy, ncv->pixx, ncv->pixytride, ncv->data);
