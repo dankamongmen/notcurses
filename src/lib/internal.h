@@ -1038,7 +1038,8 @@ clamp_to_sixelmax(const tinfo* t, int* y, int* x, int* outy){
 
 // any sprixcell which does not cover the entirety of the underlying cell
 // cannot be SPRIXCELL_OPAQUE. this postprocesses the TAM, flipping any
-// such sprixcells to SPRIXCELL_MIXED.
+// such sprixcells to SPRIXCELL_MIXED. |leny| and |lenx| are output geometry
+// in pixels. |cdimy| and |cdimx| are output coverage in cells.
 static inline void
 scrub_tam_boundaries(tament* tam, int leny, int lenx, int cdimy, int cdimx){
   // any sprixcells which don't cover the full cell underneath them cannot
@@ -1470,7 +1471,8 @@ egc_rtl(const char* egc, int* bytes){
 
 // a sprixel occupies the entirety of its associated plane. each cell contains
 // a reference to the context-wide sprixel cache. this ought be an entirely
-// new, purpose-specific plane.
+// new, purpose-specific plane. |leny| and |lenx| are output geometry in pixels.
+// |cols| and |rows| are output coverage in cells.
 static inline int
 plane_blit_sixel(sprixel* spx, char* s, int bytes, int rows, int cols,
                  int leny, int lenx, int parse_start, tament* tam){
@@ -1479,9 +1481,8 @@ plane_blit_sixel(sprixel* spx, char* s, int bytes, int rows, int cols,
   }
   ncplane* n = spx->n;
   uint32_t gcluster = htole(0x02000000ul) + htole(spx->id);
-  // FIXME rows/cols ought never exceed the size, right?. why need we check?
-  for(int y = 0 ; y < rows && y < ncplane_dim_y(n) ; ++y){
-    for(int x = 0 ; x < cols && x < ncplane_dim_x(n) ; ++x){
+  for(int y = 0 ; y < rows ; ++y){
+    for(int x = 0 ; x < cols ; ++x){
       nccell* c = ncplane_cell_ref_yx(n, y, x);
       memcpy(&c->gcluster, &gcluster, sizeof(gcluster));
       c->width = cols;
