@@ -1017,15 +1017,19 @@ sprite_rebuild(const notcurses* nc, sprixel* s, int ycell, int xcell){
   return ret;
 }
 
+// |y| and |x| are scaled geometry on input, and clamped scaled geometry on
+// output. |outy| is output geometry on output, and unused on input. output
+// geometry is derived from scaled geometry and output requirements (that Sixel
+// must be a multiple of six pixels tall). output width is always equal to
+// scaled width. all are pixels.
 static inline void
-clamp_to_sixelmax(const tinfo* t, int* y, int* x){
+clamp_to_sixelmax(const tinfo* t, int* y, int* x, int* outy){
   if(t->sixel_maxy && *y > t->sixel_maxy){
     *y = t->sixel_maxy;
   }
-  if(*y % t->sprixel_scale_height){
-    // FIXME take it up and use transparent rows, rather than clipping FIXME
-    //*y += t->sprixel_scale_height - (*y % t->sprixel_scale_height);
-    *y -= *y % t->sprixel_scale_height;
+  *outy = *y;
+  if(*outy % t->sprixel_scale_height){
+    *outy += t->sprixel_scale_height - (*outy % t->sprixel_scale_height);
   }
   if(t->sixel_maxx && *x > t->sixel_maxx){
     *x = t->sixel_maxx;
