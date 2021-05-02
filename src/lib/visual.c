@@ -14,17 +14,14 @@ int ncvisual_decode(ncvisual* nc){
 }
 
 int ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
-                  const struct blitset* bset, int leny, int lenx,
-                  const blitterargs* barg){
+                  const struct blitset* bset, const blitterargs* barg){
   int ret = -1;
   if(visual_implementation){
-    if(visual_implementation->visual_blit(ncv, rows, cols, n, bset,
-                                          leny, lenx, barg) >= 0){
+    if(visual_implementation->visual_blit(ncv, rows, cols, n, bset, barg) >= 0){
       ret = 0;
     }
   }else{
-    if(rgba_blit_dispatch(n, bset, ncv->rowstride, ncv->data,
-                          leny, lenx, barg) >= 0){
+    if(rgba_blit_dispatch(n, bset, ncv->rowstride, ncv->data, rows, cols, barg) >= 0){
       ret = 0;
     }
   }
@@ -522,7 +519,7 @@ ncvisual* ncvisual_from_bgra(const void* bgra, int rows, int rowstride, int cols
 // ncv->pixx define the source geometry in pixels.
 ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitset* bset,
                                int placey, int placex, int begy, int begx,
-                               int leny, int lenx, ncplane* n, ncscale_e scaling,
+                               ncplane* n, ncscale_e scaling,
                                uint64_t flags, uint32_t transcolor){
   int disprows, dispcols;
   ncplane* createdn = NULL;
@@ -589,8 +586,6 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
       placey = ncplane_valign(n, placey, disprows / encoding_y_scale(&nc->tcache, bset));
     }
   }
-  leny = (leny / (double)ncv->pixy) * ((double)disprows);
-  lenx = (lenx / (double)ncv->pixx) * ((double)dispcols);
 //fprintf(stderr, "blit: %dx%d:%d+%d of %d/%d stride %u %p\n", begy, begx, leny, lenx, ncv->pixy, ncv->pixx, ncv->rowstride, ncv->data);
   blitterargs bargs;
   if(flags & NCVISUAL_OPTION_ADDALPHA){
@@ -603,7 +598,7 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
   bargs.u.cell.placey = placey;
   bargs.u.cell.placex = placex;
   bargs.u.cell.blendcolors = flags & NCVISUAL_OPTION_BLEND;
-  if(ncvisual_blit(ncv, disprows, dispcols, n, bset, leny, lenx, &bargs)){
+  if(ncvisual_blit(ncv, disprows, dispcols, n, bset, &bargs)){
     ncplane_destroy(createdn);
     return NULL;
   }
@@ -761,7 +756,7 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
   // at this point, disppixy/disppixx are the output geometry (might be larger
   // than scaledy/scaledx for sixel), while scaledy/scaledx are the scaled
   // geometry. cells occupied are determined based off disppixy/disppixx.
-  if(ncvisual_blit(ncv, disppixy, disppixx, n, bset, disppixy, disppixx, &bargs)){
+  if(ncvisual_blit(ncv, disppixy, disppixx, n, bset, &bargs)){
     ncplane_destroy(createdn);
     return NULL;
   }
@@ -825,7 +820,7 @@ ncplane* ncvisual_render(notcurses* nc, ncvisual* ncv, const struct ncvisual_opt
     transcolor = 0x1000000ull | vopts->transcolor;
   }
   if(bset->geom != NCBLIT_PIXEL){
-    n = ncvisual_render_cells(nc, ncv, bset, placey, placex, begy, begx, leny, lenx,
+    n = ncvisual_render_cells(nc, ncv, bset, placey, placex, begy, begx,
                               n, scaling, vopts ? vopts->flags : 0, transcolor);
   }else{
     n = ncvisual_render_pixels(nc, ncv, bset, placey, placex, begy, begx, n, scaling,

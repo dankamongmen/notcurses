@@ -1265,7 +1265,7 @@ ALLOC char* ncplane_vprintf_prep(const char* format, va_list ap);
 // change the internals of the ncvisual. Uses oframe.
 int ncvisual_blit(struct ncvisual* ncv, int rows, int cols,
                   ncplane* n, const struct blitset* bset,
-                  int leny, int lenx, const blitterargs* bargs);
+                  const blitterargs* bargs);
 
 void nclog(const char* fmt, ...);
 
@@ -1694,8 +1694,7 @@ typedef struct ncvisual_implementation {
   int (*visual_init)(int loglevel);
   void (*visual_printbanner)(const struct notcurses* nc);
   int (*visual_blit)(struct ncvisual* ncv, int rows, int cols, ncplane* n,
-                     const struct blitset* bset,
-                     int leny, int lenx, const blitterargs* barg);
+                     const struct blitset* bset, const blitterargs* barg);
   struct ncvisual* (*visual_create)(void);
   struct ncvisual* (*visual_from_file)(const char* fname);
   // ncv constructors other than ncvisual_from_file() need to set up the

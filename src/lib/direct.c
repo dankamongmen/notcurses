@@ -492,12 +492,7 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv, ncblitter_e blitfxn,
   int dimy = ymax > 0 ? ymax : ncdirect_dim_y(n);
   int dimx = xmax > 0 ? xmax : ncdirect_dim_x(n);
 //fprintf(stderr, "OUR DATA: %p rows/cols: %d/%d\n", ncv->data, ncv->pixy, ncv->pixx);
-  int leny = ncv->pixy; // we allow it to freely scroll
-  int lenx = ncv->pixx;
-  if(leny == 0 || lenx == 0){
-    return NULL;
-  }
-//fprintf(stderr, "render %d/%d to %d+%d scaling: %d\n", ncv->pixy, ncv->pixx, leny, lenx, scale);
+//fprintf(stderr, "render %d/%d to scaling: %d\n", ncv->pixy, ncv->pixx, scale);
   const struct blitset* bset = rgba_blitter_low(&n->tcache, scale, true, blitfxn);
   if(!bset){
     return NULL;
@@ -528,9 +523,7 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv, ncblitter_e blitfxn,
       outy = disprows;
     }
   }
-  leny = (leny / (double)ncv->pixy) * ((double)disprows);
-  lenx = (lenx / (double)ncv->pixx) * ((double)dispcols);
-//fprintf(stderr, "render: %d+%d of %d/%d stride %u %p\n", leny, lenx, ncv->pixy, ncv->pixx, ncv->pixytride, ncv->data);
+//fprintf(stderr, "render: %d/%d stride %u %p\n", ncv->pixy, ncv->pixx, ncv->pixytride, ncv->data);
   ncplane_options nopts = {
     .y = 0,
     .x = 0,
@@ -561,7 +554,7 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv, ncblitter_e blitfxn,
     }
     ncdv->sprite = bargs.u.pixel.spx;
   }
-  if(ncvisual_blit(ncv, disprows, dispcols, ncdv, bset, leny, lenx, &bargs)){
+  if(ncvisual_blit(ncv, disprows, dispcols, ncdv, bset, &bargs)){
     free_plane(ncdv);
     return NULL;
   }
