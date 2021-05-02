@@ -9,7 +9,6 @@
 
 static std::mutex lock;
 static std::condition_variable cond;
-static bool inline_cancelled = false;
 
 auto testfdcb(struct ncfdplane* ncfd, const void* buf, size_t s, void* curry) -> int {
   struct ncplane* n = ncfdplane_plane(ncfd);
@@ -24,8 +23,8 @@ auto testfdcb(struct ncfdplane* ncfd, const void* buf, size_t s, void* curry) ->
 }
 
 auto testfdeof(struct ncfdplane* n, int fderrno, void* curry) -> int {
-  std::unique_lock<std::mutex> lck(lock);
   bool* outofline_cancelled = static_cast<bool*>(curry);
+  std::unique_lock<std::mutex> lck(lock);
   *outofline_cancelled = true;
   lck.unlock();
   cond.notify_one();
@@ -35,12 +34,12 @@ auto testfdeof(struct ncfdplane* n, int fderrno, void* curry) -> int {
 }
 
 auto testfdeofdestroys(struct ncfdplane* n, int fderrno, void* curry) -> int {
+  bool* inline_cancelled = static_cast<bool*>(curry);
   std::unique_lock<std::mutex> lck(lock);
-  inline_cancelled = true;
   int ret = ncfdplane_destroy(n);
+  *inline_cancelled = true;
   lck.unlock();
   cond.notify_one();
-  (void)curry;
   (void)fderrno;
   return ret;
 }
@@ -77,9 +76,9 @@ TEST_CASE("FdsAndSubprocs"
 
   // destroy the ncfdplane within its own context, i.e. from the eof callback
   SUBCASE("FdPlaneDestroyInline") {
-    inline_cancelled = false;
+    bool inline_cancelled = false;
     ncfdplane_options opts{};
-    opts.curry = n_;
+    opts.curry = &inline_cancelled;
     int fd = open("/dev/null", O_RDONLY|O_CLOEXEC);
     REQUIRE(0 <= fd);
     auto ncfdp = ncfdplane_create(n_, &opts, fd, testfdcb, testfdeofdestroys);
