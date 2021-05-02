@@ -21,7 +21,7 @@ ncvisual* oiio_create(void);
 void oiio_destroy(ncvisual* ncv);
 int oiio_blit_dispatch(struct ncplane* nc, const struct blitset* bset,
                        int linesize, const void* data,
-                       int leny, int lenx, const blitterargs* bargs);
+                       const blitterargs* bargs);
 
 #ifdef __cplusplus
 }
