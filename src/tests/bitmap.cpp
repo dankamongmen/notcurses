@@ -38,7 +38,7 @@ TEST_CASE("Bitmaps") {
       .flags = NCVISUAL_OPTION_NODEGRADE,
       .transcolor = 0,
     };
-    CHECK(0 == ncvisual_resize(ncv, 6, 1)); // FIXME get down to (1, 1)
+    CHECK(0 == ncvisual_resize(ncv, 1, 1));
     auto n = ncvisual_render(nc_, ncv, &vopts);
     REQUIRE(nullptr != n);
     auto s = n->sprite;
