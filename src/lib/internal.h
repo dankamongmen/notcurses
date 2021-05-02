@@ -617,6 +617,8 @@ typedef struct notcurses {
 } notcurses;
 
 typedef struct blitterargs {
+  // FIXME begy/begx are really only of interest to scaling; they ought be
+  // consumed there, and blitters ought always work with the scaled output.
   int begy;            // upper left start within visual
   int begx;
   uint32_t transcolor; // if non-zero, treat the lower 24 bits as a transparent color
@@ -639,14 +641,17 @@ typedef struct blitterargs {
   } u;
 } blitterargs;
 
+// scaledy and scaledx are output geometry from scaling; data is output data
+// from scaling. we might actually need more pixels due to framing concerns,
+// in which case just assume transparent input pixels where needed.
 typedef int (*ncblitter)(struct ncplane* n, int linesize, const void* data,
-                         int leny, int lenx, const blitterargs* bargs);
+                         int scaledy, int scaledx, const blitterargs* bargs);
 
-// a system for rendering RGBA pixels as text glyphs
+// a system for rendering RGBA pixels as text glyphs or sixel/kitty bitmaps
 struct blitset {
   ncblitter_e geom;
-  int width;
-  int height;
+  int width;        // number of input pixels per output cell, width
+  int height;       // number of input pixels per output cell, height
   // the EGCs which form the various levels of a given plotset. if the geometry
   // is wide, things are arranged with the rightmost side increasing most
   // quickly, i.e. it can be indexed as height arrays of 1 + height glyphs. i.e.

@@ -456,6 +456,8 @@ int ffmpeg_decode_loop(ncvisual* ncv){
   return r;
 }
 
+// rows/cols: scaled output geometry (pixels)
+// leny/lenx: selected input region (pixels)
 int ffmpeg_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
                 const struct blitset* bset,
                 int leny, int lenx, const blitterargs* bargs){
