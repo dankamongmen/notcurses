@@ -529,10 +529,10 @@ postinit_checks(struct notcurses* nc, struct ncplane* n){
   if(bitmaps > 0){
     ncplane_set_fg_rgb(n, 0x22cc22);
     ncplane_set_styles(n, NCSTYLE_ITALIC);
-    ncplane_putstr(n, "yes!\n");
+    ncplane_putstr(n, "yes!");
   }else{
     ncplane_set_fg_rgb(n, 0xff9999);
-    ncplane_putstr(n, "no.\n");
+    ncplane_putstr(n, "no.");
   }
   return notcurses_render(nc);
 }
