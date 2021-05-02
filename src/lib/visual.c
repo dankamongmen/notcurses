@@ -610,6 +610,56 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
   return n;
 }
 
+// create a plane in which to blit the sprixel.
+static ncplane*
+make_sprixel_plane(notcurses* nc, ncvisual* ncv, ncscale_e scaling,
+                   int* disppixy, int* disppixx, uint64_t flags,
+                   int* placey, int* placex){
+  if(scaling != NCSCALE_NONE && scaling != NCSCALE_NONE_HIRES){
+    // FIXME this ought be based off a specified pile
+    notcurses_term_dim_yx(nc, disppixy, disppixx);
+    if(!(flags & NCVISUAL_OPTION_VERALIGNED)){
+      *disppixy -= *placey;
+    }
+    if(!(flags & NCVISUAL_OPTION_HORALIGNED)){
+      *disppixx -= *placex;
+    }
+    --*disppixy; // some terminals will scroll if we blit to the last row
+    *disppixx *= nc->tcache.cellpixx;
+    *disppixy *= nc->tcache.cellpixy;
+    clamp_to_sixelmax(&nc->tcache, disppixy, disppixx);
+    if(scaling == NCSCALE_SCALE || scaling == NCSCALE_SCALE_HIRES){
+      scale_visual(ncv, disppixy, disppixx); // can only shrink
+      clamp_to_sixelmax(&nc->tcache, disppixy, disppixx);
+    }
+  }else{
+    *disppixx = ncv->pixx;
+    *disppixy = ncv->pixy;
+    clamp_to_sixelmax(&nc->tcache, disppixy, disppixx);
+  }
+  struct ncplane_options nopts = {
+    .y = *placey,
+    .x = *placex,
+    .rows = (*disppixy + nc->tcache.cellpixy - 1) / nc->tcache.cellpixy,
+    .cols = (*disppixx + nc->tcache.cellpixx - 1) / nc->tcache.cellpixx,
+    .userptr = NULL,
+    .name = "bmap",
+    .resizecb = NULL,
+    .flags = ((flags & NCVISUAL_OPTION_HORALIGNED) ? NCPLANE_OPTION_HORALIGNED : 0)
+           | ((flags & NCVISUAL_OPTION_VERALIGNED) ? NCPLANE_OPTION_VERALIGNED : 0),
+  };
+//fprintf(stderr, "PLACING NEW PLANE: %d/%d @ %d/%d 0x%016lx\n", nopts.rows, nopts.cols, nopts.y, nopts.x, nopts.flags);
+  // FIXME might need some particular pile
+  ncplane* n = ncplane_create(notcurses_stdplane(nc), &nopts);
+  if(n == NULL){
+    return NULL;
+  }
+  // we always actually blit to the origin of the plane
+  *placey = 0;
+  *placex = 0;
+  return n;
+}
+
 // when a sprixel is blitted to a plane, that plane becomes a sprixel plane. it
 // must not be used with other output mechanisms unless erased. the plane will
 // be shrunk to fit the output, and the output is always placed at the origin.
@@ -635,51 +685,15 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
     return NULL;
   }
   int disppixy = 0, disppixx = 0;
-  if(scaling == NCSCALE_NONE || scaling == NCSCALE_NONE_HIRES){
-    disppixx = ncv->pixx;
-    disppixy = ncv->pixy;
-  }
-  clamp_to_sixelmax(&nc->tcache, &disppixy, &disppixx);
   ncplane* createdn = NULL;
 //fprintf(stderr, "INPUT N: %p rows: %d cols: %d 0x%016lx\n", n ? n : NULL, disppixy, disppixx, flags);
   if(n == NULL){ // create plane
-    if(scaling != NCSCALE_NONE && scaling != NCSCALE_NONE_HIRES){
-      notcurses_term_dim_yx(nc, &disppixy, &disppixx);
-      if(!(flags & NCVISUAL_OPTION_VERALIGNED)){
-        disppixy -= placey;
-      }
-      --disppixy; // some terminals will scroll if we blit to the last row
-      disppixx *= nc->tcache.cellpixx;
-      disppixy *= nc->tcache.cellpixy;
-      clamp_to_sixelmax(&nc->tcache, &disppixy, &disppixx);
-      if(scaling == NCSCALE_SCALE || scaling == NCSCALE_SCALE_HIRES){
-        scale_visual(ncv, &disppixy, &disppixx); // can only shrink
-        clamp_to_sixelmax(&nc->tcache, &disppixy, &disppixx);
-      }
-    }
-    struct ncplane_options nopts = {
-      .y = placey,
-      .x = placex,
-      .rows = (disppixy + nc->tcache.cellpixy - 1) / nc->tcache.cellpixy,
-      .cols = (disppixx + nc->tcache.cellpixx - 1) / nc->tcache.cellpixx,
-      .userptr = NULL,
-      .name = "bmap",
-      .resizecb = NULL,
-      .flags = 0,
-    };
-    if(flags & NCVISUAL_OPTION_HORALIGNED){
-      nopts.flags |= NCPLANE_OPTION_HORALIGNED;
-    }
-    if(flags & NCVISUAL_OPTION_VERALIGNED){
-      nopts.flags |= NCPLANE_OPTION_VERALIGNED;
-    }
-//fprintf(stderr, "PLACING NEW PLANE: %d/%d @ %d/%d 0x%016lx\n", nopts.rows, nopts.cols, nopts.y, nopts.x, nopts.flags);
-    if((n = ncplane_create(stdn, &nopts)) == NULL){
+    createdn = make_sprixel_plane(nc, ncv, scaling, &disppixy, &disppixx,
+                                  flags, &placey, &placex);
+    if(createdn == NULL){
       return NULL;
     }
-    placey = 0;
-    placex = 0;
-    createdn = n;
+    n = createdn;
   }else{
     if(scaling != NCSCALE_NONE && scaling != NCSCALE_NONE_HIRES){
       ncplane_dim_yx(n, &disppixy, &disppixx);
@@ -692,7 +706,11 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
       if(!(flags & NCVISUAL_OPTION_VERALIGNED)){
         disppixy -= placey * nc->tcache.cellpixy;
       }
+    }else{
+      disppixx = ncv->pixx;
+      disppixy = ncv->pixy;
     }
+    clamp_to_sixelmax(&nc->tcache, &disppixy, &disppixx);
     if(scaling == NCSCALE_SCALE || scaling == NCSCALE_SCALE_HIRES){
       scale_visual(ncv, &disppixy, &disppixx);
       clamp_to_sixelmax(&nc->tcache, &disppixy, &disppixx);
