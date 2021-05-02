@@ -20,7 +20,7 @@ TEST_CASE("EGCpool") {
     CHECK(0 == notcurses_stop(nc_));
     return;
   }
-  CHECK(0 == notcurses_stop(nc_));
+  auto n_ = notcurses_stdplane(nc_);
 
   SUBCASE("UTF8EGC") {
     int c = ncstrwidth("☢");
@@ -35,24 +35,21 @@ TEST_CASE("EGCpool") {
     const char* w1 = "\u00e0"; // (utf8: c3 a0)
     const char* w2 = "\u0061\u0300"; // (utf8: 61 cc 80)
     const char* w3 = "\u0061"; // (utf8: 61)
-    int c1, c2, c3;
-    auto u1 = utf8_egc_len(w1, &c1);
-    auto u2 = utf8_egc_len(w2, &c2);
-    auto u3 = utf8_egc_len(w3, &c3);
-    REQUIRE(2 == u1);
-    REQUIRE(3 == u2);
-    REQUIRE(1 == u3);
-    REQUIRE(1 == c1);
-    REQUIRE(1 == c2);
-    REQUIRE(1 == c3);
+    nccell c = CELL_TRIVIAL_INITIALIZER;
+    CHECK(2 == nccell_load(n_, &c, w1));
+    CHECK(1 == nccell_width(n_, &c));
+    CHECK(3 == nccell_load(n_, &c, w2));
+    CHECK(1 == nccell_width(n_, &c));
+    CHECK(1 == nccell_load(n_, &c, w3));
+    CHECK(1 == nccell_width(n_, &c));
   }
 
   SUBCASE("AddAndRemove") {
     const char* wstr = "\ufdfd"; // bismallih
-    int c;
-    auto ulen = utf8_egc_len(wstr, &c);
+    nccell c = CELL_TRIVIAL_INITIALIZER;
+    auto ulen = nccell_load(n_, &c, wstr);
+    CHECK(1 == nccell_width(n_, &c)); // not considered wide, believe it or not
     REQUIRE(0 <= egcpool_stash(&pool_, wstr, ulen));
-    REQUIRE(1 == c); // not considered wide, believe it or not
     CHECK(pool_.pool);
     CHECK(!strcmp(pool_.pool, wstr));
     CHECK(0 < pool_.poolsize);
@@ -68,15 +65,16 @@ TEST_CASE("EGCpool") {
 
   SUBCASE("AddTwiceRemoveFirst") {
     const char* wstr = "\u8840"; // cjk unified ideograph, wide
-    int c1, c2; // column counts
-    auto u1 = utf8_egc_len(wstr, &c1); // bytes consumed
-    auto u2 = utf8_egc_len(wstr, &c2);
+    nccell c1 = CELL_TRIVIAL_INITIALIZER;
+    nccell c2 = CELL_TRIVIAL_INITIALIZER;
+    auto u1 = nccell_load(n_, &c1, wstr); // bytes consumed
+    auto u2 = nccell_load(n_, &c2, wstr);
     int o1 = egcpool_stash(&pool_, wstr, u1);
     int o2 = egcpool_stash(&pool_, wstr, u2);
     REQUIRE(0 <= o1);
     REQUIRE(o1 < o2);
-    REQUIRE(2 == c1);
-    REQUIRE(c1 == c2);
+    CHECK(2 == nccell_width(n_, &c1));
+    CHECK(nccell_width(n_, &c1) == nccell_width(n_, &c2));
     CHECK(pool_.pool);
     CHECK(!strcmp(pool_.pool + o1, wstr));
     CHECK(!strcmp(pool_.pool + o2, wstr));
@@ -92,14 +90,15 @@ TEST_CASE("EGCpool") {
 
   SUBCASE("AddTwiceRemoveSecond") {
     const char* wstr = "\u8840"; // cjk unified ideograph, wide
-    int c1, c2; // column counts
-    auto u1 = utf8_egc_len(wstr, &c1); // bytes consumed
-    auto u2 = utf8_egc_len(wstr, &c2);
+    nccell c1 = CELL_TRIVIAL_INITIALIZER;
+    nccell c2 = CELL_TRIVIAL_INITIALIZER;
+    auto u1 = nccell_load(n_, &c1, wstr); // bytes consumed
+    auto u2 = nccell_load(n_, &c2, wstr);
     int o1 = egcpool_stash(&pool_, wstr, u1);
     int o2 = egcpool_stash(&pool_, wstr, u2);
     REQUIRE(o1 < o2);
-    REQUIRE(2 == c1);
-    REQUIRE(c1 == c2);
+    CHECK(2 == nccell_width(n_, &c1));
+    CHECK(nccell_width(n_, &c2) == nccell_width(n_, &c1));
     CHECK(pool_.pool);
     CHECK(!strcmp(pool_.pool + o1, wstr));
     CHECK(!strcmp(pool_.pool + o2, wstr));
@@ -207,6 +206,8 @@ TEST_CASE("EGCpool") {
 
   // common cleanup
   egcpool_dump(&pool_);
+
+  CHECK(0 == notcurses_stop(nc_));
 
 }
 
