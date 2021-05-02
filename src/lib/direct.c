@@ -489,9 +489,9 @@ static ncdirectv*
 ncdirect_render_visual(ncdirect* n, ncvisual* ncv, ncblitter_e blitfxn,
                        ncscale_e scale, int ymax, int xmax,
                        uint32_t transcolor){
-  int dimy = ymax > 0 ? ymax : ncdirect_dim_y(n);
+  int dimy = ymax > 0 ? ymax : (ncdirect_dim_y(n) - 1);
   int dimx = xmax > 0 ? xmax : ncdirect_dim_x(n);
-//fprintf(stderr, "OUR DATA: %p rows/cols: %d/%d\n", ncv->data, ncv->pixy, ncv->pixx);
+//fprintf(stderr, "OUR DATA: %p rows/cols: %d/%d outsize: %d/%d\n", ncv->data, ncv->pixy, ncv->pixx, dimy, dimx);
 //fprintf(stderr, "render %d/%d to scaling: %d\n", ncv->pixy, ncv->pixx, scale);
   const struct blitset* bset = rgba_blitter_low(&n->tcache, scale, true, blitfxn);
   if(!bset){
@@ -505,7 +505,7 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv, ncblitter_e blitfxn,
       outy = disprows;
     }else{
       dispcols = dimx * n->tcache.cellpixx;
-      disprows = (dimy - 1) * n->tcache.cellpixy;
+      disprows = dimy * n->tcache.cellpixy;
       clamp_to_sixelmax(&n->tcache, &disprows, &dispcols, &outy);
     }
     if(scale == NCSCALE_SCALE || scale == NCSCALE_SCALE_HIRES){
