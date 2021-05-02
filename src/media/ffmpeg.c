@@ -457,10 +457,8 @@ int ffmpeg_decode_loop(ncvisual* ncv){
 }
 
 // rows/cols: scaled output geometry (pixels)
-// leny/lenx: selected input region (pixels)
 int ffmpeg_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
-                const struct blitset* bset,
-                int leny, int lenx, const blitterargs* bargs){
+                const struct blitset* bset, const blitterargs* bargs){
   const AVFrame* inframe = ncv->details->oframe ? ncv->details->oframe : ncv->details->frame;
 //fprintf(stderr, "inframe: %p oframe: %p frame: %p\n", inframe, ncv->details->oframe, ncv->details->frame);
   void* data = NULL;
@@ -469,7 +467,7 @@ int ffmpeg_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
   const int targformat = AV_PIX_FMT_RGBA;
 //fprintf(stderr, "got format: %d want format: %d\n", inframe->format, targformat);
   if(inframe && (cols != inframe->width || rows != inframe->height || inframe->format != targformat)){
-//fprintf(stderr, "resize+render: %d/%d->%d/%d (%d/%d)\n", inframe->height, inframe->width, rows, cols, leny, lenx);
+//fprintf(stderr, "resize+render: %d/%d->%d/%d\n", inframe->height, inframe->width, rows, cols);
     sframe = av_frame_alloc();
     if(sframe == NULL){
 //fprintf(stderr, "Couldn't allocate output frame for scaled frame\n");
@@ -512,8 +510,8 @@ int ffmpeg_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
     stride = ncv->rowstride;
     data = ncv->data;
   }
-//fprintf(stderr, "rows/cols: %d/%d %d/%d\n", rows, cols, leny, lenx);
-  if(rgba_blit_dispatch(n, bset, stride, data, leny, lenx, bargs) < 0){
+//fprintf(stderr, "rows/cols: %d/%d\n", rows, cols);
+  if(rgba_blit_dispatch(n, bset, stride, data, rows, cols, bargs) < 0){
 //fprintf(stderr, "rgba dispatch failed!\n");
     if(sframe){
       av_freep(sframe->data);

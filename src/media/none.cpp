@@ -40,11 +40,9 @@ int none_resize(ncvisual* nc, int rows, int cols){
 
 int none_blit(struct ncvisual* ncv, int rows, int cols,
               ncplane* n, const struct blitset* bset,
-              int leny, int lenx, const blitterargs* bargs){
-  (void)rows;
-  (void)cols;
+              const blitterargs* bargs){
   if(rgba_blit_dispatch(n, bset, ncv->rowstride, ncv->data,
-                        leny, lenx, bargs) >= 0){
+                        rows, cols, bargs) >= 0){
     return 0;
   }
   return -1;
