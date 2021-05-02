@@ -7,16 +7,18 @@
 #include "internal.h"
 #include <condition_variable>
 
-static std::mutex lock;
-static std::condition_variable cond;
+static pthread_cond_t cond;
+static pthread_mutex_t lock;
 
 auto testfdcb(struct ncfdplane* ncfd, const void* buf, size_t s, void* curry) -> int {
   struct ncplane* n = ncfdplane_plane(ncfd);
-  std::lock_guard<std::mutex> lck(lock);
+  pthread_mutex_lock(&lock);
   if(ncplane_putnstr(n, s, static_cast<const char*>(buf)) <= 0){
+    pthread_mutex_unlock(&lock);
     return -1;
   }
   notcurses_render(ncplane_notcurses(ncfdplane_plane(ncfd)));
+  pthread_mutex_unlock(&lock);
   (void)curry;
   (void)s;
   return 0;
@@ -24,10 +26,10 @@ auto testfdcb(struct ncfdplane* ncfd, const void* buf, size_t s, void* curry) ->
 
 auto testfdeof(struct ncfdplane* n, int fderrno, void* curry) -> int {
   bool* outofline_cancelled = static_cast<bool*>(curry);
-  std::unique_lock<std::mutex> lck(lock);
+  pthread_mutex_lock(&lock);
   *outofline_cancelled = true;
-  lck.unlock();
-  cond.notify_one();
+  pthread_cond_signal(&cond);
+  pthread_mutex_unlock(&lock);
   (void)n;
   (void)fderrno;
   return 0;
@@ -35,11 +37,11 @@ auto testfdeof(struct ncfdplane* n, int fderrno, void* curry) -> int {
 
 auto testfdeofdestroys(struct ncfdplane* n, int fderrno, void* curry) -> int {
   bool* inline_cancelled = static_cast<bool*>(curry);
-  std::unique_lock<std::mutex> lck(lock);
+  pthread_mutex_lock(&lock);
   int ret = ncfdplane_destroy(n);
   *inline_cancelled = true;
-  lck.unlock();
-  cond.notify_one();
+  pthread_cond_signal(&cond);
+  pthread_mutex_unlock(&lock);
   (void)fderrno;
   return ret;
 }
@@ -47,6 +49,8 @@ auto testfdeofdestroys(struct ncfdplane* n, int fderrno, void* curry) -> int {
 // test ncfdplanes and ncsubprocs
 TEST_CASE("FdsAndSubprocs"
           * doctest::description("Fdplanes and subprocedures")) {
+  REQUIRE(0 == pthread_cond_init(&cond, NULL));
+  REQUIRE(0 == pthread_mutex_init(&lock, NULL));
   auto nc_ = testing_notcurses();
   if(!nc_){
     return;
@@ -64,12 +68,12 @@ TEST_CASE("FdsAndSubprocs"
     REQUIRE(0 <= fd);
     auto ncfdp = ncfdplane_create(n_, &opts, fd, testfdcb, testfdeof);
     REQUIRE(ncfdp);
-    std::unique_lock<std::mutex> lck(lock);
+    pthread_mutex_lock(&lock);
     CHECK(0 == notcurses_render(nc_));
     while(!outofline_cancelled){
-      cond.wait(lck);
+      pthread_cond_wait(&cond, &lock);
     }
-    lck.unlock();
+    pthread_mutex_unlock(&lock);
     CHECK(0 == ncfdplane_destroy(ncfdp));
     CHECK(0 == notcurses_render(nc_));
   }
@@ -83,12 +87,12 @@ TEST_CASE("FdsAndSubprocs"
     REQUIRE(0 <= fd);
     auto ncfdp = ncfdplane_create(n_, &opts, fd, testfdcb, testfdeofdestroys);
     REQUIRE(ncfdp);
-    std::unique_lock<std::mutex> lck(lock);
+    pthread_mutex_lock(&lock);
     CHECK(0 == notcurses_render(nc_));
     while(!inline_cancelled){
-      cond.wait(lck);
+      pthread_cond_wait(&cond, &lock);
     }
-    lck.unlock();
+    pthread_mutex_unlock(&lock);
     CHECK(0 == notcurses_render(nc_));
   }
 
@@ -100,10 +104,10 @@ TEST_CASE("FdsAndSubprocs"
     opts.curry = &outofline_cancelled;
     auto ncsubp = ncsubproc_createvp(n_, &opts, argv[0], argv, testfdcb, testfdeof);
     REQUIRE(ncsubp);
-    std::unique_lock<std::mutex> lck(lock);
+    pthread_mutex_lock(&lock);
     CHECK(0 == notcurses_render(nc_));
     while(!outofline_cancelled){
-      cond.wait(lck);
+      pthread_cond_wait(&cond, &lock);
     }
     lck.unlock();
     CHECK(0 != ncsubproc_destroy(ncsubp));
@@ -119,12 +123,12 @@ TEST_CASE("FdsAndSubprocs"
     opts.curry = &outofline_cancelled;
     auto ncsubp = ncsubproc_createvp(n_, &opts, argv[0], argv, testfdcb, testfdeof);
     REQUIRE(ncsubp);
-    std::unique_lock<std::mutex> lck(lock);
+    pthread_mutex_lock(&lock);
     CHECK(0 == notcurses_render(nc_));
     while(!outofline_cancelled){
-      cond.wait(lck);
+      pthread_cond_wait(&cond, &lock);
     }
-    lck.unlock();
+    pthread_mutex_unlock(&lock);
     CHECK(0 == ncsubproc_destroy(ncsubp));
     CHECK(0 == notcurses_render(nc_));
   }
@@ -136,12 +140,12 @@ TEST_CASE("FdsAndSubprocs"
     opts.curry = &outofline_cancelled;
     auto ncsubp = ncsubproc_createvp(n_, &opts, argv[0], argv, testfdcb, testfdeof);
     REQUIRE(ncsubp);
-    std::unique_lock<std::mutex> lck(lock);
+    pthread_mutex_lock(&lock);
     CHECK(0 == notcurses_render(nc_));
     while(!outofline_cancelled){
-      cond.wait(lck);
+      pthread_cond_wait(&cond, &lock);
     }
-    lck.unlock();
+    pthread_mutex_unlock(&lock);
     CHECK(0 != ncsubproc_destroy(ncsubp));
     CHECK(0 == notcurses_render(nc_));
   }
@@ -157,6 +161,9 @@ TEST_CASE("FdsAndSubprocs"
     WARN(0 != ncsubproc_destroy(ncsubp));
     CHECK(0 == notcurses_render(nc_));
   }
+
+  CHECK(0 == pthread_cond_destroy(&cond));
+  CHECK(0 == pthread_mutex_destroy(&lock));
 
   CHECK(0 == notcurses_stop(nc_));
 }
