@@ -323,4 +323,48 @@ There's a sort at the beginning of O(PlgP) on P planes. We then check
 P * PX * PY cells. In the worst case, where all cells actually need be used,
 our new algorithm is worse by the cost of a sort.
 
+## Ncvisuals
 
+An `ncvisual` is blitter-independent, and may be used with multiple blitters.
+Its `data` field holds RGBA pixels as provided from disk or memory. Its `pixx`,
+`pixy`, and `rowstride` fields describe this bitmap. There are `pixy` rows of
+`rowstride` bytes, each containing `pixx` RGBA pixels at the front, plus any
+necessary padding (external libraries might generate padded output).
+
+`ncvisual_render` works with at least four geometries:
+* `vopts->begy`/`begx`: offsets into unscaled data (pixels)
+* `vopts->leny`/`lenx`: lengths of unscaled data to use (pixels)
+  * These geometries, when summed, must not exceed `ncv->pixy`/`ncv->pixx`.
+  * They are usable as input to scaling.
+* `inputy`/`inputx`: Derived: `leny` - `begy` + 1 and `lenx` - `begx` + 1
+* `scaledy`/`scaledx`: size of scaled output, derived from target plane and
+  scaling type (pixels), usable as input for blitting.
+* `outputy`/`outputx`: size of blitted output (pixels)
+* `occy`/`occx`: size of blitted output (cells)
+
+`occy` and `occx` may represent a larger area than `outputy` and `outputx`,
+since a blit might not occupy the entirety of the cells with which it
+interacts. likewise, `outputy` might represent a taller area than `scaledy`,
+due to Sixel requirements. `outputx` will currently always equal `scaledx`.
+the relationship of `inputy`/`inputx` to `scaledy`/`scaledx` is as follows:
+
+* `NCSCALE_NONE`: equal
+* `NCSCALE_INFLATE`: `scaledy` = `inputy` * *N*, `scaledx` = `inputx` * *N*,
+  where *N* is an integer.
+* `NCSCALE_SCALE`: `scaledy` = `inputy` * *F*, `scaledx` = `inputx` * *F*, where
+  *F* is a float, and at least one of `outputy` and `outputx` maximize the
+  space within the target plane relative to mandatory scaling.
+* `NCSCALE_STRETCH`: no necessary relation. Both `outputy` and `outputx`
+  maximize the space within the target plane relative to mandatory scaling.
+
+"Mandatory scaling" is operative only with regards to Sixel, which must always
+be a multiple of six pixels tall.
+
+### Bitmaps
+
+`NCBLIT_PIXEL` yields a bitmap. A bitmap
+
+* occupies the entirety of its plane, by resizing if necessary
+* always starts at the origin of its plane
+* admits no other output to its plane, nor resizing
+* greatly complicates rendering
