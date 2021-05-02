@@ -146,11 +146,13 @@ sprixel* sprixel_alloc(ncplane* n, int dimy, int dimx){
   return ret;
 }
 
-// 'y' and 'x' are the cell geometry, not the pixel geometry. takes
-// ownership of 's' on success. pixel geometry ought include any Sixel excess.
+// |pixy| and |pixx| are the output pixel geometry (i.e. |pixy| must be a
+// multiple of 6 for sixel). takes ownership of 's' on success.
 int sprixel_load(sprixel* spx, char* s, int bytes, int pixy, int pixx,
                  int parse_start){
   assert(spx->n);
+  assert((pixy + s->cellpxy - 1) / s->cellpxy == s->dimy);
+  assert((pixx + s->cellpxx - 1) / s->cellpxx == s->dimx);
   free(spx->glyph);
   spx->glyph = s;
   spx->glyphlen = bytes;
