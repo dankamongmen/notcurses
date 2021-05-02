@@ -252,7 +252,16 @@ TEST_CASE("Bitmaps") {
     vopts.scaling = NCSCALE_NONE;
     auto infn = ncvisual_render(nc_, ncv, &vopts);
     REQUIRE(infn);
-    CHECK(4 == ncplane_dim_y(infn));
+    if(nc_->tcache.sprixel_scale_height == 6){
+      if(4 * nc_->tcache.cellpixy % 6){
+        CHECK(5 == ncplane_dim_y(infn));
+      }else{
+        CHECK(4 == ncplane_dim_y(infn));
+      }
+    }else{
+      CHECK(nc_->tcache.sprixel_scale_height == 1);
+      CHECK(4 == ncplane_dim_y(infn));
+    }
     CHECK(4 == ncplane_dim_x(infn));
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncvisual_resize(ncv, 8, 8));
