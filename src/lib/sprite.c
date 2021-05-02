@@ -147,12 +147,19 @@ sprixel* sprixel_alloc(ncplane* n, int dimy, int dimx){
 }
 
 // |pixy| and |pixx| are the output pixel geometry (i.e. |pixy| must be a
-// multiple of 6 for sixel). takes ownership of 's' on success.
+// multiple of 6 for sixel). output coverage ought already have been loaded.
+// takes ownership of 's' on success. frees any existing glyph.
 int sprixel_load(sprixel* spx, char* s, int bytes, int pixy, int pixx,
                  int parse_start){
   assert(spx->n);
-  assert((pixy + s->cellpxy - 1) / s->cellpxy == s->dimy);
-  assert((pixx + s->cellpxx - 1) / s->cellpxx == s->dimx);
+  if(spx->cellpxy > 0){ // don't explode on ncdirect case
+    if((pixy + spx->cellpxy - 1) / spx->cellpxy != spx->dimy){
+      return -1;
+    }
+    if((pixx + spx->cellpxx - 1) / spx->cellpxx != spx->dimx){
+      return -1;
+    }
+  }
   free(spx->glyph);
   spx->glyph = s;
   spx->glyphlen = bytes;
