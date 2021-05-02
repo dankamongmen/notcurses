@@ -1854,6 +1854,9 @@ int nccell_duplicate(struct ncplane* n, nccell* targ, const cell* c);
 // Release resources held by the cell 'c'.
 void nccell_release(struct ncplane* n, nccell* c);
 
+// Get the number of columns occupied by 'c'.
+int nccell_width(const struct ncplane* n, const nccell* c);
+
 #define NCSTYLE_MASK      0x03fful
 #define NCSTYLE_STANDOUT  0x0080ul
 #define NCSTYLE_UNDERLINE 0x0040ul

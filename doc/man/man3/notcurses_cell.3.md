@@ -51,6 +51,8 @@ typedef struct nccell {
 
 **void nccell_release(struct ncplane* ***n***, nccell* ***c***);**
 
+**int nccell_width(const struct ncplane* ***n***, const nccell* ***c***);**
+
 **void nccell_styles_set(nccell* ***c***, unsigned ***stylebits***);**
 
 **unsigned nccell_styles(const nccell* ***c***);**
@@ -160,6 +162,9 @@ less than, equal to, or more than ***c2***, respectively.
 **nccell_extended_gcluster** returns **NULL** if called on a sprixel (see
 **notcurses_visual(3)**.
 
+**nccell_width** returns the number of columns occupied by ***c***, according
+to **wcwidth(3)***. **ncstrwidth** is an equivalent for strings.
+
 # NOTES
 
 **cell** was renamed to **nccell** in Notcurses 2.2.0, so as not to bleed such
@@ -173,4 +178,5 @@ have been renamed to start with **nccell**.
 **notcurses_channels(3)**,
 **notcurses_plane(3)**,
 **notcurses_output(3)**,
-**notcurses_visual(3)**
+**notcurses_visual(3)**,
+**wcwidth(3)**

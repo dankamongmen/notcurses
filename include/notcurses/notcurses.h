@@ -749,6 +749,10 @@ nccell_wide_left_p(const nccell* c){
 // returns NULL if called on a pixel graphic.
 API const char* nccell_extended_gcluster(const struct ncplane* n, const nccell* c);
 
+// return the number of columns occupied by 'c'. returns -1 if passed a
+// sprixcell. see ncstrwidth() for an equivalent for multiple EGCs.
+API int nccell_width(const struct ncplane* n, const nccell* c);
+
 // copy the UTF8-encoded EGC out of the nccell. the result is not tied to any
 // ncplane, and persists across erases / destruction.
 ALLOC static inline char*

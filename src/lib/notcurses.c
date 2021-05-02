@@ -1450,6 +1450,16 @@ void scroll_down(ncplane* n){
   }
 }
 
+int nccell_width(const ncplane* n, const nccell* c){
+  const char* egc = nccell_extended_gcluster(n, c);
+  if(egc == NULL){
+    return -1;
+  }
+  int cols;
+  utf8_egc_len(egc, &cols);
+  return cols;
+}
+
 int nccell_load(ncplane* n, nccell* c, const char* gcluster){
   int cols;
   int bytes = utf8_egc_len(gcluster, &cols);
