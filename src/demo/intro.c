@@ -118,8 +118,8 @@ int intro(struct notcurses* nc){
   ncchannel_set_rgb8(&ccll, 0xff, 0, 0);
   ncchannel_set_rgb8(&cclr, 0, 0, 0xff);
   // we use full block rather+fg than space+bg to conflict less with the menu
-  ncplane_home(ncp);
-  if(ncplane_highgradient_sized(ncp, ccul, ccur, ccll, cclr, rows, cols) <= 0){
+  ncplane_cursor_move_yx(ncp, 2, 1);
+  if(ncplane_highgradient_sized(ncp, ccul, ccur, ccll, cclr, rows - 3, cols - 2) <= 0){
     return -1;
   }
   nccell c = CELL_TRIVIAL_INITIALIZER;
