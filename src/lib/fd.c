@@ -441,6 +441,7 @@ int ncsubproc_destroy(ncsubproc* n){
     }else{
       pthread_join(n->nfp->tid, NULL);
     }
+    pthread_mutex_destroy(&n->lock);
     free(n);
     if(vret == NULL){
       ret = -1;
