@@ -627,7 +627,7 @@ make_sprixel_plane(notcurses* nc, ncvisual* ncv, ncscale_e scaling,
     if(!(flags & NCVISUAL_OPTION_HORALIGNED)){
       *disppixx -= *placex;
     }
-    --*disppixy; // some terminals will scroll if we blit to the last row
+    --*disppixy; // most terminals will scroll if we blit to the last row
     *disppixx *= nc->tcache.cellpixx;
     *disppixy *= nc->tcache.cellpixy;
     clamp_to_sixelmax(&nc->tcache, disppixy, disppixx, outy);
@@ -643,7 +643,7 @@ make_sprixel_plane(notcurses* nc, ncvisual* ncv, ncscale_e scaling,
   struct ncplane_options nopts = {
     .y = *placey,
     .x = *placex,
-    .rows = (*disppixy + nc->tcache.cellpixy - 1) / nc->tcache.cellpixy,
+    .rows = (*outy + nc->tcache.cellpixy - 1) / nc->tcache.cellpixy,
     .cols = (*disppixx + nc->tcache.cellpixx - 1) / nc->tcache.cellpixx,
     .userptr = NULL,
     .name = "bmap",
@@ -704,19 +704,27 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
       disppixx *= nc->tcache.cellpixx;
       disppixy *= nc->tcache.cellpixy;
       clamp_to_sixelmax(&nc->tcache, &disppixy, &disppixx, &outy);
+      int absplacex = 0, absplacey = 0;
       if(!(flags & NCVISUAL_OPTION_HORALIGNED)){
-        disppixx -= placex * nc->tcache.cellpixx;
+        absplacex = placex;
       }
       if(!(flags & NCVISUAL_OPTION_VERALIGNED)){
-        disppixy -= placey * nc->tcache.cellpixy;
+        absplacey = placey;
       }
+      disppixx -= absplacex * nc->tcache.cellpixx;
+      disppixy -= absplacey * nc->tcache.cellpixy;
     }else{
       disppixx = ncv->pixx;
       disppixy = ncv->pixy;
     }
-    clamp_to_sixelmax(&nc->tcache, &disppixy, &disppixx, &outy);
     if(scaling == NCSCALE_SCALE || scaling == NCSCALE_SCALE_HIRES){
+      clamp_to_sixelmax(&nc->tcache, &disppixy, &disppixx, &outy);
       scale_visual(ncv, &disppixy, &disppixx);
+    }
+    clamp_to_sixelmax(&nc->tcache, &disppixy, &disppixx, &outy);
+    // FIXME use a closed form
+    while((outy + nc->tcache.cellpixy - 1) / nc->tcache.cellpixy > ncplane_dim_y(n)){
+      --disppixy;
       clamp_to_sixelmax(&nc->tcache, &disppixy, &disppixx, &outy);
     }
   }
@@ -734,7 +742,7 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
   bargs.u.pixel.colorregs = nc->tcache.color_registers;
   if(n->sprite == NULL){
     int cols = disppixx / bargs.u.pixel.celldimx + !!(disppixx % bargs.u.pixel.celldimx);
-    int rows = disppixy / bargs.u.pixel.celldimy + !!(disppixy % bargs.u.pixel.celldimy);
+    int rows = outy / bargs.u.pixel.celldimy + !!(outy % bargs.u.pixel.celldimy);
     if((n->sprite = sprixel_alloc(n, rows, cols)) == NULL){
       ncplane_destroy(createdn);
       return NULL;
