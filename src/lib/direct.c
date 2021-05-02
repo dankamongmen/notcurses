@@ -507,6 +507,7 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv, ncblitter_e blitfxn,
     if(bset->geom != NCBLIT_PIXEL){
       dispcols = dimx * encoding_x_scale(&n->tcache, bset);
       disprows = dimy * encoding_y_scale(&n->tcache, bset);
+      outy = disprows;
     }else{
       dispcols = dimx * n->tcache.cellpixx;
       disprows = (dimy - 1) * n->tcache.cellpixy;
@@ -523,6 +524,8 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv, ncblitter_e blitfxn,
     dispcols = ncv->pixx;
     if(bset->geom == NCBLIT_PIXEL){
       clamp_to_sixelmax(&n->tcache, &disprows, &dispcols, &outy);
+    }else{
+      outy = disprows;
     }
   }
   leny = (leny / (double)ncv->pixy) * ((double)disprows);
@@ -531,7 +534,7 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv, ncblitter_e blitfxn,
   ncplane_options nopts = {
     .y = 0,
     .x = 0,
-    .rows = disprows / encoding_y_scale(&n->tcache, bset),
+    .rows = outy / encoding_y_scale(&n->tcache, bset),
     .cols = dispcols / encoding_x_scale(&n->tcache, bset),
     .userptr = NULL,
     .name = "fake",
@@ -539,7 +542,7 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv, ncblitter_e blitfxn,
     .flags = 0,
   };
   if(bset->geom == NCBLIT_PIXEL){
-    nopts.rows = disprows / n->tcache.cellpixy + !!(disprows % n->tcache.cellpixy);
+    nopts.rows = outy / n->tcache.cellpixy + !!(outy % n->tcache.cellpixy);
     nopts.cols = dispcols / n->tcache.cellpixx + !!(dispcols % n->tcache.cellpixx);
   }
   struct ncplane* ncdv = ncplane_new_internal(NULL, NULL, &nopts);
@@ -552,9 +555,7 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv, ncblitter_e blitfxn,
     bargs.u.pixel.celldimx = n->tcache.cellpixx;
     bargs.u.pixel.celldimy = n->tcache.cellpixy;
     bargs.u.pixel.colorregs = n->tcache.color_registers;
-    int cols = lenx / bargs.u.pixel.celldimx + !!(lenx % bargs.u.pixel.celldimx);
-    int rows = leny / bargs.u.pixel.celldimy + !!(leny % bargs.u.pixel.celldimy);
-    if((bargs.u.pixel.spx = sprixel_alloc(ncdv, rows, cols)) == NULL){
+    if((bargs.u.pixel.spx = sprixel_alloc(ncdv, nopts.rows, nopts.cols)) == NULL){
       free_plane(ncdv);
       return NULL;
     }
