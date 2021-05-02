@@ -502,7 +502,7 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv, ncblitter_e blitfxn,
   if(!bset){
     return NULL;
   }
-  int disprows, dispcols;
+  int disprows, dispcols, outy;
   if(scale != NCSCALE_NONE && scale != NCSCALE_NONE_HIRES){
     if(bset->geom != NCBLIT_PIXEL){
       dispcols = dimx * encoding_x_scale(&n->tcache, bset);
@@ -510,19 +510,19 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv, ncblitter_e blitfxn,
     }else{
       dispcols = dimx * n->tcache.cellpixx;
       disprows = (dimy - 1) * n->tcache.cellpixy;
-      clamp_to_sixelmax(&n->tcache, &disprows, &dispcols);
+      clamp_to_sixelmax(&n->tcache, &disprows, &dispcols, &outy);
     }
     if(scale == NCSCALE_SCALE || scale == NCSCALE_SCALE_HIRES){
       scale_visual(ncv, &disprows, &dispcols);
       if(bset->geom == NCBLIT_PIXEL){
-        clamp_to_sixelmax(&n->tcache, &disprows, &dispcols);
+        clamp_to_sixelmax(&n->tcache, &disprows, &dispcols, &outy);
       }
     }
   }else{
     disprows = ncv->pixy;
     dispcols = ncv->pixx;
     if(bset->geom == NCBLIT_PIXEL){
-      clamp_to_sixelmax(&n->tcache, &disprows, &dispcols);
+      clamp_to_sixelmax(&n->tcache, &disprows, &dispcols, &outy);
     }
   }
   leny = (leny / (double)ncv->pixy) * ((double)disprows);
