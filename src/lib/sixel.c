@@ -13,7 +13,7 @@ typedef enum {
 // returns the number of individual sixels necessary to represent the specified
 // pixel geometry. these might encompass more pixel rows than |dimy| would
 // suggest, up to the next multiple of 6 (i.e. a single row becomes a 6-row
-// bitmap; as do two, three, four, five, or six rows).
+// bitmap; as do two, three, four, five, or six rows). input is scaled geometry.
 static inline int
 sixelcount(int dimy, int dimx){
   return (dimy + 5) / 6 * dimx;
@@ -440,9 +440,12 @@ write_rle(int* printed, int color, FILE* fp, int seenrle, unsigned char crle,
 
 // write the escape which opens a Sixel, plus the palette table. returns the
 // number of bytes written, so that this header can be directly copied in
-// future reencodings.
+// future reencodings. |leny| and |lenx| are output pixel geometry.
 static int
 write_sixel_header(FILE* fp, int leny, int lenx, const sixeltable* stab, sixel_p2_e p2){
+  if(leny % 6){
+    return -1;
+  }
   // Set Raster Attributes - pan/pad=1 (pixel aspect ratio), Ph=lenx, Pv=leny
   int r = fprintf(fp, "\eP0;%d;0q\"1;1;%d;%d", p2, lenx, leny);
   if(r < 0){
@@ -516,11 +519,12 @@ write_sixel_payload(FILE* fp, int lenx, const sixelmap* map,
 
 // emit the sixel in its entirety, plus escapes to start and end pixel mode.
 // only called the first time we encode; after that, the palette remains
-// constant, and is simply copied. fclose()s |fp| on success.
+// constant, and is simply copied. fclose()s |fp| on success. |leny| and |lenx|
+// are scaled output geometry; |outy| is output geometry.
 static int
-write_sixel(FILE* fp, int leny, int lenx, const sixeltable* stab, int* parse_start,
-            const char* cursor_hack, sixel_p2_e p2){
-  *parse_start = write_sixel_header(fp, leny, lenx, stab, p2);
+write_sixel(FILE* fp, int leny, int lenx, int outy, const sixeltable* stab,
+            int* parse_start, const char* cursor_hack, sixel_p2_e p2){
+  *parse_start = write_sixel_header(fp, outy, lenx, stab, p2);
   if(*parse_start < 0){
     return -1;
   }
@@ -574,7 +578,9 @@ sixel_reblit(sprixel* s){
 // Sixel blitter. Sixels are stacks 6 pixels high, and 1 pixel wide. RGB colors
 // are programmed as a set of registers, which are then referenced by the
 // stacks. There is also a RLE component, handled in rasterization.
-// A pixel block is indicated by setting cell_pixels_p().
+// A pixel block is indicated by setting cell_pixels_p(). |leny| and |lenx| are
+// scaled geometry in pixels. We calculate output geometry herein, and supply
+// transparent filler input for any missing rows.
 static inline int
 sixel_blit_inner(int leny, int lenx, const sixeltable* stab, int rows, int cols,
                  const blitterargs* bargs, tament* tam){
@@ -585,18 +591,22 @@ sixel_blit_inner(int leny, int lenx, const sixeltable* stab, int rows, int cols,
     return -1;
   }
   int parse_start = 0;
+  int outy = leny;
+  if(leny % 6){
+    outy += 6 - (leny % 6);
+  }
   // calls fclose() on success
-  if(write_sixel(fp, leny, lenx, stab, &parse_start,
+  if(write_sixel(fp, leny, lenx, outy, stab, &parse_start,
                  bargs->u.pixel.cursor_hack, stab->p2)){
     fclose(fp);
     free(buf);
     return -1;
   }
-  scrub_tam_boundaries(tam, leny, lenx, bargs->u.pixel.celldimy,
+  scrub_tam_boundaries(tam, outy, lenx, bargs->u.pixel.celldimy,
                        bargs->u.pixel.celldimx);
   // take ownership of buf on success
   if(plane_blit_sixel(bargs->u.pixel.spx, buf, size, rows, cols,
-                      leny, lenx, parse_start, tam) < 0){
+                      outy, lenx, parse_start, tam) < 0){
     free(buf);
     return -1;
   }
@@ -605,6 +615,8 @@ sixel_blit_inner(int leny, int lenx, const sixeltable* stab, int rows, int cols,
   return 1;
 }
 
+// |leny| and |lenx| are the scaled output geometry. we take |leny| up to the
+// nearest multiple of six greater than or equal to |leny|.
 int sixel_blit(ncplane* n, int linesize, const void* data,
                int leny, int lenx, const blitterargs* bargs){
   int colorregs = bargs->u.pixel.colorregs;
@@ -642,6 +654,8 @@ int sixel_blit(ncplane* n, int linesize, const void* data,
     if(n->leny == rows && n->lenx == cols){
       tam = n->tam;
       reuse = true;
+    }else{
+      // FIXME free up old TAM (well, shrink it anyway)
     }
   }
   if(!reuse){
