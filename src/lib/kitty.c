@@ -336,6 +336,7 @@ int kitty_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
 }
 
 int kitty_wipe(sprixel* s, int ycell, int xcell){
+//fprintf(stderr, "WIPING %d/%d\n", ycell, xcell);
   if(s->n->tam[s->dimx * ycell + xcell].state == SPRIXCELL_ANNIHILATED){
 //fprintf(stderr, "CACHED WIPE %d %d/%d\n", s->id, ycell, xcell);
     return 0; // already annihilated, needn't draw glyph in kitty
@@ -397,7 +398,8 @@ int kitty_wipe(sprixel* s, int ycell, int xcell){
 //fprintf(stderr, "CLEARED ROW, TARGY: %d\n", targy - 1);
         if(--targy == 0){
           s->n->tam[s->dimx * ycell + xcell].auxvector = auxvec;
-          return 0;
+          s->invalidated = SPRIXEL_INVALIDATED;
+          return 1;
         }
         thisrow = targx;
 //fprintf(stderr, "BUMP IT: %d %d %d %d\n", nextpixel, s->pixx, targx, chomped);
@@ -468,7 +470,7 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx,
         int xcell = x / cdimx;
         int ycell = y / cdimy;
         int tyx = xcell + ycell * cols;
-//fprintf(stderr, "Tyx: %d y: %d (%d) * %d x: %d (%d)\n", tyx, y, y / cdimy, cols, x, x / cdimx);
+//fprintf(stderr, "Tyx: %d y: %d (%d) * %d x: %d (%d) state %d\n", tyx, y, y / cdimy, cols, x, x / cdimx, tam[tyx].state);
         if(tam[tyx].state == SPRIXCELL_ANNIHILATED || tam[tyx].state == SPRIXCELL_ANNIHILATED_TRANS){
           wipe[e] = 1;
         }else{
@@ -572,25 +574,27 @@ int kitty_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
   if(kitty_remove(s->id, out)){
     return -1;
   }
-//fprintf(stderr, "MOVED FROM: %d/%d\n", s->movedfromy, s->movedfromx);
+//fprintf(stderr, "FROM: %d/%d state: %d s->n: %p\n", s->movedfromy, s->movedfromx, s->invalidated, s->n);
   for(int yy = s->movedfromy ; yy < s->movedfromy + s->dimy && yy < p->dimy ; ++yy){
     for(int xx = s->movedfromx ; xx < s->movedfromx + s->dimx && xx < p->dimx ; ++xx){
       struct crender *r = &p->crender[yy * p->dimx + xx];
-      if(s->n){
-        const ncplane* stdn = notcurses_stdplane_const(nc);
+      if(!r->sprixel){
+        if(s->n){
+          const ncplane* stdn = notcurses_stdplane_const(nc);
 //fprintf(stderr, "CHECKING %d/%d\n", yy - s->movedfromy, xx - s->movedfromx);
-        sprixcell_e state = sprixel_state(s, yy - s->movedfromy + s->n->absy - stdn->absy,
-                                             xx - s->movedfromx + s->n->absx - stdn->absx);
-        if(state == SPRIXCELL_OPAQUE_KITTY){
-          r->s.damaged = 1;
-        }else if(s->invalidated == SPRIXEL_MOVED){
-          // ideally, we wouldn't damage our annihilated sprixcells, but if
-          // we're being annihilated only during this cycle, we need to go
-          // ahead and damage it.
+          sprixcell_e state = sprixel_state(s, yy - s->movedfromy + s->n->absy - stdn->absy,
+                                              xx - s->movedfromx + s->n->absx - stdn->absx);
+          if(state == SPRIXCELL_OPAQUE_KITTY){
+            r->s.damaged = 1;
+          }else if(s->invalidated == SPRIXEL_MOVED){
+            // ideally, we wouldn't damage our annihilated sprixcells, but if
+            // we're being annihilated only during this cycle, we need to go
+            // ahead and damage it.
+            r->s.damaged = 1;
+          }
+        }else{
           r->s.damaged = 1;
         }
-      }else{
-        r->s.damaged = 1;
       }
     }
   }
@@ -598,6 +602,7 @@ int kitty_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
 }
 
 int kitty_draw(const ncpile* p, sprixel* s, FILE* out){
+//fprintf(stderr, "DRAWING %d\n", s->id);
   (void)p;
   int ret = 0;
   if(fwrite(s->glyph, s->glyphlen, 1, out) != 1){
