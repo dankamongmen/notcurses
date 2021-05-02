@@ -504,6 +504,39 @@ scrub_stdplane(struct notcurses* nc){
   return 0;
 }
 
+// mainly, we want something up on the screen indicating that terminal
+// interrogation is the culprit, should we lock up looking for bitmaps
+static int
+postinit_checks(struct notcurses* nc, struct ncplane* n){
+  if(ncplane_cursor_move_yx(n, ncplane_dim_y(n) - 1, 0)){
+    return -1;
+  }
+  ncplane_set_fg_rgb(n, 0xdddddd);
+  ncplane_set_styles(n, NCSTYLE_NONE);
+  ncplane_putstr(n, " Enabling mouse...");
+  notcurses_render(nc);
+  if(notcurses_mouse_enable(nc)){
+    return -1;
+  }
+  ncplane_set_fg_rgb(n, 0x22cc22);
+  ncplane_set_styles(n, NCSTYLE_ITALIC);
+  ncplane_putstr(n, "done.");
+  ncplane_set_fg_rgb(n, 0xdddddd);
+  ncplane_set_styles(n, NCSTYLE_NONE);
+  ncplane_putstr(n, " Checking for bitmap support...");
+  notcurses_render(nc);
+  int bitmaps = notcurses_check_pixel_support(nc);
+  if(bitmaps > 0){
+    ncplane_set_fg_rgb(n, 0x22cc22);
+    ncplane_set_styles(n, NCSTYLE_ITALIC);
+    ncplane_putstr(n, "yes!\n");
+  }else{
+    ncplane_set_fg_rgb(n, 0xff9999);
+    ncplane_putstr(n, "no.\n");
+  }
+  return notcurses_render(nc);
+}
+
 int main(int argc, char** argv){
   sigset_t sigmask;
   // ensure SIGWINCH is delivered only to a thread doing input
@@ -537,17 +570,7 @@ int main(int argc, char** argv){
   const bool canvideo = notcurses_canopen_videos(nc);
   int dimx, dimy;
   struct ncplane* stdn = notcurses_stddim_yx(nc, &dimy, &dimx);
-  ncplane_cursor_move_yx(stdn, dimy - 1, 0);
-  ncplane_putstr(stdn, " Enabling mouse...");
-  notcurses_render(nc);
-  if(notcurses_mouse_enable(nc)){
-    goto err;
-  }
-  ncplane_putstr(stdn, "done. Checking for bitmap support...");
-  notcurses_render(nc);
-  notcurses_check_pixel_support(nc);
-  ncplane_putstr(stdn, "done.\n");
-  notcurses_render(nc);
+  postinit_checks(nc, stdn);
   if(input_dispatcher(nc)){
     goto err;
   }
