@@ -511,7 +511,7 @@ postinit_checks(struct notcurses* nc, struct ncplane* n){
   if(ncplane_cursor_move_yx(n, ncplane_dim_y(n) - 1, 0)){
     return -1;
   }
-  ncplane_set_fg_rgb(n, 0xdddddd);
+  ncplane_set_fg_rgb(n, 0x888888);
   ncplane_set_styles(n, NCSTYLE_NONE);
   ncplane_putstr(n, " Enabling mouse...");
   notcurses_render(nc);
@@ -521,7 +521,7 @@ postinit_checks(struct notcurses* nc, struct ncplane* n){
   ncplane_set_fg_rgb(n, 0x22cc22);
   ncplane_set_styles(n, NCSTYLE_ITALIC);
   ncplane_putstr(n, "done.");
-  ncplane_set_fg_rgb(n, 0xdddddd);
+  ncplane_set_fg_rgb(n, 0x888888);
   ncplane_set_styles(n, NCSTYLE_NONE);
   ncplane_putstr(n, " Checking for bitmap support...");
   notcurses_render(nc);
