@@ -693,9 +693,8 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
   ncplane* createdn = NULL;
 //fprintf(stderr, "INPUT N: %p rows: %d cols: %d 0x%016lx\n", n ? n : NULL, disppixy, disppixx, flags);
   if(n == NULL){ // create plane
-    createdn = make_sprixel_plane(nc, ncv, scaling, &disppixy, &disppixx,
-                                  flags, &outy, &placey, &placex);
-    if(createdn == NULL){
+    if((createdn = make_sprixel_plane(nc, ncv, scaling, &disppixy, &disppixx,
+                                      flags, &outy, &placey, &placex)) == NULL){
       return NULL;
     }
     n = createdn;
