@@ -519,16 +519,16 @@ write_sixel_payload(FILE* fp, int lenx, const sixelmap* map,
 
 // emit the sixel in its entirety, plus escapes to start and end pixel mode.
 // only called the first time we encode; after that, the palette remains
-// constant, and is simply copied. fclose()s |fp| on success. |leny| and |lenx|
-// are scaled output geometry; |outy| is output geometry.
+// constant, and is simply copied. fclose()s |fp| on success. |outx| and |outy|
+// are output geometry.
 static int
-write_sixel(FILE* fp, int leny, int lenx, int outy, const sixeltable* stab,
+write_sixel(FILE* fp, int outy, int outx, const sixeltable* stab,
             int* parse_start, const char* cursor_hack, sixel_p2_e p2){
-  *parse_start = write_sixel_header(fp, outy, lenx, stab, p2);
+  *parse_start = write_sixel_header(fp, outy, outx, stab, p2);
   if(*parse_start < 0){
     return -1;
   }
-  if(write_sixel_payload(fp, lenx, stab->map, cursor_hack) < 0){
+  if(write_sixel_payload(fp, outx, stab->map, cursor_hack) < 0){
     return -1;
   }
   if(fclose(fp) == EOF){
@@ -596,7 +596,7 @@ sixel_blit_inner(int leny, int lenx, const sixeltable* stab, int rows, int cols,
     outy += 6 - (leny % 6);
   }
   // calls fclose() on success
-  if(write_sixel(fp, leny, lenx, outy, stab, &parse_start,
+  if(write_sixel(fp, outy, lenx, stab, &parse_start,
                  bargs->u.pixel.cursor_hack, stab->p2)){
     fclose(fp);
     free(buf);
