@@ -23,14 +23,9 @@ TEST_CASE("EGCpool") {
   CHECK(0 == notcurses_stop(nc_));
 
   SUBCASE("UTF8EGC") {
-    const char* wstr = "☢";
-    int c;
-    auto ulen = utf8_egc_len(wstr, &c);
-    REQUIRE(0 < ulen);
+    int c = ncstrwidth("☢");
     CHECK(0 < c);
-    wstr = "▓";
-    ulen = utf8_egc_len(wstr, &c);
-    REQUIRE(0 < ulen);
+    c = ncstrwidth("▓");
     CHECK(0 < c);
   }
 

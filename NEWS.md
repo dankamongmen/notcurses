@@ -22,6 +22,7 @@ rearrangements of Notcurses.
     For this to work properly, other threads ought also have these signals
     blocked. `notcurses_getc()` and friends thus no longer drop these signals
     from the provided `sigset_t`; they are instead added if not present.
+  * Added `nccell_width()` to get the column length of an `nccell`.
 
 * 2.2.8 (2021-04-18)
   * All remaining functions prefixed with `cell_` or `cells_` have been

@@ -14,33 +14,30 @@ TEST_CASE("Cell") {
   REQUIRE(nullptr != n_);
 
   SUBCASE("EGCs") {
-    int cols, bytes;
-    bytes = utf8_egc_len("é", &cols);
-    CHECK(2 == bytes);
-    CHECK(1 == cols);
-    bytes = utf8_egc_len("\x41\u0301", &cols);
-    CHECK(3 == bytes);
-    CHECK(1 == cols);
-    bytes = utf8_egc_len(" ி", &cols);
-    CHECK(4 == bytes);
+    nccell c = CELL_TRIVIAL_INITIALIZER;
+    CHECK(2 == nccell_load(n_, &c, "é"));
+    CHECK(1 == nccell_width(n_, &c));
+    int cols;
+    CHECK(3 == nccell_load(n_, &c, "\x41\u0301"));
+    CHECK(1 == nccell_width(n_, &c));
+    CHECK(4 == nccell_load(n_, &c, " ி"));
+    cols = nccell_width(n_, &c);
 #ifdef __linux__
     CHECK(2 == cols);
 #else
     CHECK(1 == cols);
 #endif
-    bytes = utf8_egc_len(" ि", &cols);
-    CHECK(4 == bytes);
+    CHECK(4 == nccell_load(n_, &c, " ि"));
+    cols = nccell_width(n_, &c);
 #ifdef __linux__
     CHECK(2 == cols);
 #else
     CHECK(1 == cols);
 #endif
-    bytes = utf8_egc_len("◌̈", &cols);
-    CHECK(5 == bytes);
-    CHECK(1 == cols);
-    bytes = utf8_egc_len("นี้", &cols);
-    CHECK(9 == bytes);
-    CHECK(1 == cols);
+    CHECK(5 == nccell_load(n_, &c, "◌̈"));
+    CHECK(1 == nccell_width(n_, &c));
+    CHECK(9 == nccell_load(n_, &c, "นี้"));
+    CHECK(1 == nccell_width(n_, &c));
   }
 
   SUBCASE("Loadchar") {
