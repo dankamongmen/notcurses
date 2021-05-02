@@ -1022,14 +1022,22 @@ sprite_rebuild(const notcurses* nc, sprixel* s, int ycell, int xcell){
 // geometry is derived from scaled geometry and output requirements (that Sixel
 // must be a multiple of six pixels tall). output width is always equal to
 // scaled width. all are pixels.
+// happy fact: common reported values for maximum sixel height are 256, 1024,
+// and 4096...not a single goddamn one of which is divisible by six. augh.
 static inline void
-clamp_to_sixelmax(const tinfo* t, int* y, int* x, int* outy){
+clamp_to_sixelmax(const tinfo* t, int* y, int* x, int* outy, ncscale_e scaling){
   if(t->sixel_maxy && *y > t->sixel_maxy){
     *y = t->sixel_maxy;
   }
   *outy = *y;
   if(*outy % t->sprixel_scale_height){
     *outy += t->sprixel_scale_height - (*outy % t->sprixel_scale_height);
+    while(*outy > t->sixel_maxy){
+      *outy -= t->sprixel_scale_height;
+    }
+    if(scaling == NCSCALE_STRETCH || *y > *outy){
+      *y = *outy;
+    }
   }
   if(t->sixel_maxx && *x > t->sixel_maxx){
     *x = t->sixel_maxx;
