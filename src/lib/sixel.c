@@ -596,7 +596,6 @@ sixel_blit_inner(int leny, int lenx, const sixeltable* stab, int rows, int cols,
                        bargs->u.pixel.celldimx);
   // take ownership of buf on success
   if(plane_blit_sixel(bargs->u.pixel.spx, buf, size, rows, cols,
-                      bargs->placey, bargs->placex,
                       leny, lenx, parse_start, tam) < 0){
     free(buf);
     return -1;

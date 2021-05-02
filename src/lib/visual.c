@@ -600,8 +600,8 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
   }
   bargs.begy = begy;
   bargs.begx = begx;
-  bargs.placey = placey;
-  bargs.placex = placex;
+  bargs.u.cell.placey = placey;
+  bargs.u.cell.placex = placex;
   bargs.u.cell.blendcolors = flags & NCVISUAL_OPTION_BLEND;
   if(ncvisual_blit(ncv, disprows, dispcols, n, bset, leny, lenx, &bargs)){
     ncplane_destroy(createdn);
@@ -692,28 +692,6 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
       clamp_to_sixelmax(&nc->tcache, &disprows, &dispcols);
     }
   }
-  // FIXME why are we allowing arbitrary location within a plane?
-  if(flags & NCVISUAL_OPTION_HORALIGNED){
-    if(placex == NCALIGN_CENTER){
-      placex = (ncplane_dim_x(n) - dispcols / nc->tcache.cellpixx) / 2;
-    }else if(placex == NCALIGN_RIGHT){
-      placex = ncplane_dim_x(n) - dispcols / nc->tcache.cellpixx;
-    }
-    if(placex < 0){
-      return NULL;
-    }
-  }
-  if(flags & NCVISUAL_OPTION_VERALIGNED){
-    if(placey == NCALIGN_CENTER){
-      // FIXME why are these calculations structurally different from HORALIGNED above?
-      placey = ((ncplane_dim_y(n) * nc->tcache.cellpixy - disprows) / 2) / nc->tcache.cellpixy;
-    }else if(placey == NCALIGN_BOTTOM){
-      placey = ncplane_dim_y(n) * nc->tcache.cellpixy - disprows / nc->tcache.cellpixy;
-    }
-    if(placey < 0){
-      return NULL;
-    }
-  }
 //fprintf(stderr, "pblit: %dx%d <- %dx%d of %d/%d stride %u @%dx%d %p %u\n", disprows, dispcols, begy, begx, ncv->pixy, ncv->pixx, ncv->rowstride, placey, placex, ncv->data, nc->tcache.cellpixx);
   blitterargs bargs;
   if(flags & NCVISUAL_OPTION_ADDALPHA){
@@ -748,11 +726,36 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
     ncplane_destroy(createdn);
     return NULL;
   }
+  // if we created the plane earlier, placex/placey were taken into account, and
+  // zeroed out, thus neither of these will have any effect.
+  if(flags & NCVISUAL_OPTION_HORALIGNED){
+    if(placex == NCALIGN_CENTER){
+      placex = (ncplane_dim_x(ncplane_parent_const(n)) * nc->tcache.cellpixx - dispcols) / 2 / nc->tcache.cellpixx;
+    }else if(placex == NCALIGN_RIGHT){
+      placex = (ncplane_dim_x(ncplane_parent_const(n)) * nc->tcache.cellpixy - dispcols) / nc->tcache.cellpixx;
+    }
+    if(placex < 0){
+      return NULL;
+    }
+  }
+  if(flags & NCVISUAL_OPTION_VERALIGNED){
+    if(placey == NCALIGN_CENTER){
+      placey = (ncplane_dim_y(ncplane_parent_const(n)) * nc->tcache.cellpixy - disprows) / 2 / nc->tcache.cellpixy;
+    }else if(placey == NCALIGN_BOTTOM){
+      placey = (ncplane_dim_y(ncplane_parent_const(n)) * nc->tcache.cellpixy - disprows) / nc->tcache.cellpixy;
+    }
+    if(placey < 0){
+      return NULL;
+    }
+  }
   // ncplane_resize() hides any attached sprixel, so lift it (the sprixel) out
-  // for a moment as we shrink the plane to fit.
+  // for a moment as we shrink the plane to fit. we keep the origin and move to
+  // the intended location.
   sprixel* s = n->sprite;
   n->sprite = NULL;
-  if(ncplane_resize(n, placey, placex, s->dimy, s->dimx, 0, 0, s->dimy, s->dimx)){
+  // FIXME might need shrink down the TAM and kill unnecessary auxvecs
+  if(ncplane_resize(n, 0, 0, s->dimy, s->dimx, placey - ncplane_y(n),
+                    placex - ncplane_x(n), s->dimy, s->dimx)){
     sprixel_hide(bargs.u.pixel.spx);
     ncplane_destroy(createdn);
     return NULL;

@@ -619,11 +619,11 @@ typedef struct notcurses {
 typedef struct blitterargs {
   int begy;            // upper left start within visual
   int begx;
-  int placey;          // placement within ncplane
-  int placex;
   uint32_t transcolor; // if non-zero, treat the lower 24 bits as a transparent color
   union { // cell vs pixel-specific arguments
     struct {
+      int placey;      // placement within ncplane
+      int placex;
       int blendcolors; // use CELL_ALPHA_BLEND
     } cell;            // for cells
     struct {
@@ -1251,7 +1251,7 @@ void free_plane(ncplane* p);
 // heap-allocated formatted output
 ALLOC char* ncplane_vprintf_prep(const char* format, va_list ap);
 
-// Resize the provided ncviusal to the specified 'rows' x 'cols', but do not
+// Resize the provided ncvisual to the specified 'rows' x 'cols', but do not
 // change the internals of the ncvisual. Uses oframe.
 int ncvisual_blit(struct ncvisual* ncv, int rows, int cols,
                   ncplane* n, const struct blitset* bset,
@@ -1464,17 +1464,15 @@ egc_rtl(const char* egc, int* bytes){
 // new, purpose-specific plane.
 static inline int
 plane_blit_sixel(sprixel* spx, char* s, int bytes, int rows, int cols,
-                 int placey, int placex, int leny, int lenx,
-                 int parse_start, tament* tam){
+                 int leny, int lenx, int parse_start, tament* tam){
   if(sprixel_load(spx, s, bytes, leny, lenx, parse_start)){
     return -1;
   }
   ncplane* n = spx->n;
   uint32_t gcluster = htole(0x02000000ul) + htole(spx->id);
-  // FIXME rows/cols ought never exceed the size, just as placey/placex
-  // ought never be negative. why need we check the former?
-  for(int y = placey ; y < placey + rows && y < ncplane_dim_y(n) ; ++y){
-    for(int x = placex ; x < placex + cols && x < ncplane_dim_x(n) ; ++x){
+  // FIXME rows/cols ought never exceed the size, right?. why need we check?
+  for(int y = 0 ; y < rows && y < ncplane_dim_y(n) ; ++y){
+    for(int x = 0 ; x < cols && x < ncplane_dim_x(n) ; ++x){
       nccell* c = ncplane_cell_ref_yx(n, y, x);
       memcpy(&c->gcluster, &gcluster, sizeof(gcluster));
       c->width = cols;

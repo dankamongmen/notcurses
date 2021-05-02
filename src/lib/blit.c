@@ -40,7 +40,7 @@ rgba_trans_q(const unsigned char* p, uint32_t transcolor){
 static inline int
 tria_blit_ascii(ncplane* nc, int linesize, const void* data,
                 int leny, int lenx, const blitterargs* bargs){
-//fprintf(stderr, "ASCII %d X %d @ %d X %d (%p) place: %d X %d\n", leny, lenx, bargs->begy, bargs->begx, data, bargs->placey, bargs->placex);
+//fprintf(stderr, "ASCII %d X %d @ %d X %d (%p) place: %d X %d\n", leny, lenx, bargs->begy, bargs->begx, data, bargs->u.cell.placey, bargs->u.cell.placex);
   const int bpp = 32;
   int dimy, dimx, x, y;
   int total = 0; // number of cells written
@@ -48,15 +48,15 @@ tria_blit_ascii(ncplane* nc, int linesize, const void* data,
   // FIXME not going to necessarily be safe on all architectures hrmmm
   const unsigned char* dat = data;
   int visy = bargs->begy;
-  for(y = bargs->placey ; visy < (bargs->begy + leny) && y < dimy ; ++y, ++visy){
+  for(y = bargs->u.cell.placey ; visy < (bargs->begy + leny) && y < dimy ; ++y, ++visy){
     if(y < 0){
       continue;
     }
-    if(ncplane_cursor_move_yx(nc, y, bargs->placex < 0 ? 0 : bargs->placex)){
+    if(ncplane_cursor_move_yx(nc, y, bargs->u.cell.placex < 0 ? 0 : bargs->u.cell.placex)){
       return -1;
     }
     int visx = bargs->begx;
-    for(x = bargs->placex ; visx < (bargs->begx + lenx) && x < dimx ; ++x, ++visx){
+    for(x = bargs->u.cell.placex ; visx < (bargs->begx + lenx) && x < dimx ; ++x, ++visx){
       if(x < 0){
         continue;
       }
@@ -94,7 +94,7 @@ tria_blit_ascii(ncplane* nc, int linesize, const void* data,
 static inline int
 tria_blit(ncplane* nc, int linesize, const void* data,
           int leny, int lenx, const blitterargs* bargs){
-//fprintf(stderr, "HALF %d X %d @ %d X %d (%p) place: %d X %d\n", leny, lenx, bargs->begy, bargs->begx, data, bargs->placey, bargs->placex);
+//fprintf(stderr, "HALF %d X %d @ %d X %d (%p) place: %d X %d\n", leny, lenx, bargs->begy, bargs->begx, data, bargs->u.cell.placey, bargs->u.cell.placex);
   uint32_t transcolor = bargs->transcolor;
   const int bpp = 32;
   int dimy, dimx, x, y;
@@ -103,15 +103,15 @@ tria_blit(ncplane* nc, int linesize, const void* data,
   // FIXME not going to necessarily be safe on all architectures hrmmm
   const unsigned char* dat = data;
   int visy = bargs->begy;
-  for(y = bargs->placey ; visy < (bargs->begy + leny) && y < dimy ; ++y, visy += 2){
+  for(y = bargs->u.cell.placey ; visy < (bargs->begy + leny) && y < dimy ; ++y, visy += 2){
     if(y < 0){
       continue;
     }
-    if(ncplane_cursor_move_yx(nc, y, bargs->placex < 0 ? 0 : bargs->placex)){
+    if(ncplane_cursor_move_yx(nc, y, bargs->u.cell.placex < 0 ? 0 : bargs->u.cell.placex)){
       return -1;
     }
     int visx = bargs->begx;
-    for(x = bargs->placex ; visx < (bargs->begx + lenx) && x < dimx ; ++x, ++visx){
+    for(x = bargs->u.cell.placex ; visx < (bargs->begx + lenx) && x < dimx ; ++x, ++visx){
       if(x < 0){
         continue;
       }
@@ -428,19 +428,19 @@ quadrant_blit(ncplane* nc, int linesize, const void* data,
   int dimy, dimx, x, y;
   int total = 0; // number of cells written
   ncplane_dim_yx(nc, &dimy, &dimx);
-//fprintf(stderr, "quadblitter %dx%d -> %d/%d+%d/%d\n", leny, lenx, dimy, dimx, bargs->placey, bargs->placex);
+//fprintf(stderr, "quadblitter %dx%d -> %d/%d+%d/%d\n", leny, lenx, dimy, dimx, bargs->u.cell.placey, bargs->u.cell.placex);
   // FIXME not going to necessarily be safe on all architectures hrmmm
   const unsigned char* dat = data;
   int visy = bargs->begy;
-  for(y = bargs->placey ; visy < (bargs->begy + leny) && y < dimy ; ++y, visy += 2){
+  for(y = bargs->u.cell.placey ; visy < (bargs->begy + leny) && y < dimy ; ++y, visy += 2){
     if(y < 0){
       continue;
     }
-    if(ncplane_cursor_move_yx(nc, y, bargs->placex < 0 ? 0 : bargs->placex)){
+    if(ncplane_cursor_move_yx(nc, y, bargs->u.cell.placex < 0 ? 0 : bargs->u.cell.placex)){
       return -1;
     }
     int visx = bargs->begx;
-    for(x = bargs->placex ; visx < (bargs->begx + lenx) && x < dimx ; ++x, visx += 2){
+    for(x = bargs->u.cell.placex ; visx < (bargs->begx + lenx) && x < dimx ; ++x, visx += 2){
       if(x < 0){
         continue;
       }
@@ -657,18 +657,18 @@ sextant_blit(ncplane* nc, int linesize, const void* data,
   int dimy, dimx, x, y;
   int total = 0; // number of cells written
   ncplane_dim_yx(nc, &dimy, &dimx);
-//fprintf(stderr, "sexblitter %dx%d -> %d/%d+%d/%d\n", leny, lenx, dimy, dimx, bargs->placey, bargs->placex);
+//fprintf(stderr, "sexblitter %dx%d -> %d/%d+%d/%d\n", leny, lenx, dimy, dimx, bargs->u.cell.placey, bargs->u.cell.placex);
   const unsigned char* dat = data;
   int visy = bargs->begy;
-  for(y = bargs->placey ; visy < (bargs->begy + leny) && y < dimy ; ++y, visy += 3){
+  for(y = bargs->u.cell.placey ; visy < (bargs->begy + leny) && y < dimy ; ++y, visy += 3){
     if(y < 0){
       continue;
     }
-    if(ncplane_cursor_move_yx(nc, y, bargs->placex < 0 ? 0 : bargs->placex)){
+    if(ncplane_cursor_move_yx(nc, y, bargs->u.cell.placex < 0 ? 0 : bargs->u.cell.placex)){
       return -1;
     }
     int visx = bargs->begx;
-    for(x = bargs->placex ; visx < (bargs->begx + lenx) && x < dimx ; ++x, visx += 2){
+    for(x = bargs->u.cell.placex ; visx < (bargs->begx + lenx) && x < dimx ; ++x, visx += 2){
       if(x < 0){
         continue;
       }
@@ -734,15 +734,15 @@ braille_blit(ncplane* nc, int linesize, const void* data,
   // FIXME not going to necessarily be safe on all architectures hrmmm
   const unsigned char* dat = data;
   int visy = bargs->begy;
-  for(y = bargs->placey ; visy < (bargs->begy + leny) && y < dimy ; ++y, visy += 4){
+  for(y = bargs->u.cell.placey ; visy < (bargs->begy + leny) && y < dimy ; ++y, visy += 4){
     if(y < 0){
       continue;
     }
-    if(ncplane_cursor_move_yx(nc, y, bargs->placex < 0 ? 0 : bargs->placex)){
+    if(ncplane_cursor_move_yx(nc, y, bargs->u.cell.placex < 0 ? 0 : bargs->u.cell.placex)){
       return -1;
     }
     int visx = bargs->begx;
-    for(x = bargs->placex ; visx < (bargs->begx + lenx) && x < dimx ; ++x, visx += 2){
+    for(x = bargs->u.cell.placex ; visx < (bargs->begx + lenx) && x < dimx ; ++x, visx += 2){
       if(x < 0){
         continue;
       }
@@ -1006,10 +1006,10 @@ int ncblit_rgba(const void* data, int linesize, const struct ncvisual_options* v
     return -1;
   }
   blitterargs bargs = {
-    .placey = vopts->y,
-    .placex = vopts->x,
     .u = {
       .cell = {
+        .placey = vopts->y,
+        .placex = vopts->x,
         .blendcolors = (vopts->flags & NCVISUAL_OPTION_BLEND),
       },
     },
