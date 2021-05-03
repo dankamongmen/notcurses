@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 2.2.9 (not yet released)
+* 2.2.9 (2021-05-03)
   * Added two new stats, `sprixelemissions` and `sprixelelisions`.
   * Added `notcurses_canhalfblock()` and `notcurses_canquadrant()`.
   * The `palette256` type has been renamed `ncpalette`, and all functions
