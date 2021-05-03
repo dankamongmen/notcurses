@@ -13,6 +13,7 @@ fn main() -> NcResult<()> {
     }
 
     let mut buffer = Vec::<u8>::with_capacity((HEIGHT * WIDTH * 4) as usize);
+    #[allow(unused_parens)]
     for _byte in (0..={ HEIGHT * WIDTH }) {
         buffer.push(230);
         buffer.push(30);
