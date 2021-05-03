@@ -1081,7 +1081,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   if(ret->ttyfd >= 0){
     reset_term_attributes(ret);
     if(!(opts->flags & NCOPTION_NO_CLEAR_BITMAPS)){
-      if(sprite_init(ret)){
+      if(sprite_clear_all(&ret->tcache, ret->ttyfd)){
         free_plane(ret->stdplane);
         goto err;
       }

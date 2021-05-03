@@ -194,11 +194,19 @@ int sprite_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
   return r;
 }
 
-int sprite_init(const notcurses* nc){
-  if(!nc->tcache.pixel_init){
+int sprite_clear_all(const tinfo* t, int fd){
+  if(t->pixel_clear_all == NULL){
     return 0;
   }
-  return nc->tcache.pixel_init(nc->ttyfd);
+  return t->pixel_clear_all(fd);
+}
+
+int sprite_init(const tinfo* t, int fd){
+  sprixelid_nonce = random() % 0xffffffu;
+  if(t->pixel_init == NULL){
+    return 0;
+  }
+  return t->pixel_init(fd);
 }
 
 uint8_t* sprixel_auxiliary_vector(const sprixel* s){

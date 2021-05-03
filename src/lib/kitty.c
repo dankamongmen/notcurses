@@ -614,7 +614,8 @@ int kitty_draw(const ncpile* p, sprixel* s, FILE* out){
 }
 
 // clears all kitty bitmaps
-int kitty_init(int fd){
+int kitty_clear_all(int fd){
+//fprintf(stderr, "KITTY UNIVERSAL ERASE\n");
   return tty_emit("\e_Ga=d\e\\", fd);
 }
 

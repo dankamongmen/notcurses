@@ -457,7 +457,6 @@ typedef struct tinfo {
   pthread_mutex_t pixel_query; // only query for pixel support once
   int color_registers; // sixel color registers (post pixel_query_done)
   int sixel_maxx, sixel_maxy; // sixel size maxima (post pixel_query_done)
-  int sprixelnonce;      // next sprixel id
   int (*pixel_destroy)(const struct notcurses* nc, const struct ncpile* p, FILE* out, sprixel* s);
   // wipe out a cell's worth of pixels from within a sprixel. for sixel, this
   // means leaving out the pixels (and likely resizes the string). for kitty,
@@ -466,9 +465,10 @@ typedef struct tinfo {
   // perform the inverse of pixel_wipe, restoring an annihilated sprixcell.
   int (*pixel_rebuild)(sprixel* s, int y, int x, uint8_t* auxvec);
   int (*pixel_remove)(int id, FILE* out); // kitty only, issue actual delete command
-  int (*pixel_init)(int fd);     // called when support is detected
+  int (*pixel_init)(int fd);      // called when support is detected
   int (*pixel_draw)(const struct ncpile* p, sprixel* s, FILE* out);
-  int (*pixel_shutdown)(int fd); // called during context shutdown
+  int (*pixel_shutdown)(int fd);  // called during context shutdown
+  int (*pixel_clear_all)(int fd); // called during startup, kitty only
   int sprixel_scale_height; // sprixel must be a multiple of this many rows
   bool bitmap_supported;    // do we support bitmaps (post pixel_query_done)?
   bool sprixel_cursor_hack; // do sprixels reset the cursor? (mlterm)
@@ -963,9 +963,10 @@ int sprixel_load(sprixel* spx, char* s, int bytes, int pixy, int pixx, int parse
 int sixel_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
 int kitty_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
 int kitty_remove(int id, FILE* out);
-int kitty_init(int fd);
+int kitty_clear_all(int fd);
 int sixel_init(int fd);
-int sprite_init(const notcurses* nc);
+int sprite_init(const tinfo* t, int fd);
+int sprite_clear_all(const tinfo* t, int fd);
 int kitty_shutdown(int fd);
 int sixel_shutdown(int fd);
 sprixel* sprixel_by_id(const ncpile* n, uint32_t id);

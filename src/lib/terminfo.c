@@ -20,16 +20,17 @@ setup_sixel_bitmaps(tinfo* ti){
 }
 
 static inline void
-setup_kitty_bitmaps(tinfo* ti){
+setup_kitty_bitmaps(tinfo* ti, int fd){
   ti->pixel_wipe = kitty_wipe;
   ti->pixel_destroy = kitty_destroy;
-  ti->pixel_init = kitty_init;
   ti->pixel_remove = kitty_remove;
   ti->pixel_draw = kitty_draw;
   ti->pixel_shutdown = kitty_shutdown;
   ti->sprixel_scale_height = 1;
   ti->pixel_rebuild = kitty_rebuild;
+  ti->pixel_clear_all = kitty_clear_all;
   set_pixel_blitter(kitty_blit);
+  sprite_init(ti, fd);
 }
 
 static bool
@@ -76,7 +77,7 @@ int terminfostr(char** gseq, const char* name){
 
 // Qui si convien lasciare ogne sospetto; ogne viltà convien che qui sia morta.
 static int
-apply_term_heuristics(tinfo* ti, const char* termname){
+apply_term_heuristics(tinfo* ti, const char* termname, int fd){
   if(!termname){
     // setupterm interprets a missing/empty TERM variable as the special value “unknown”.
     termname = "unknown";
@@ -91,7 +92,7 @@ apply_term_heuristics(tinfo* ti, const char* termname){
     ti->quadrants = true;
     ti->pixel_query_done = true;
     ti->bitmap_supported = true;
-    setup_kitty_bitmaps(ti);
+    setup_kitty_bitmaps(ti, fd);
   }else if(strstr(termname, "alacritty")){
     ti->alacritty_sixel_hack = true;
     ti->quadrants = true;
@@ -249,10 +250,9 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8)
   }
   pthread_mutex_init(&ti->pixel_query, NULL);
   ti->pixel_query_done = false;
-  if(apply_term_heuristics(ti, termname)){
+  if(apply_term_heuristics(ti, termname, fd)){
     return -1;
   }
-  ti->sprixelnonce = 1;
   return 0;
 }
 
