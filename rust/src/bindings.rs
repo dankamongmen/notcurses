@@ -337,6 +337,11 @@ pub use ffi::{
 // ncplane,
 // ncplane_options,
 //
+// // functions
+// ncplane_set_bchannel,
+// ncplane_set_fchannel,
+// ncplane_set_channels
+//
 // // constants
 // NCPLANE_OPTION_HORALIGNED,
 // NCPLANE_OPTION_MARGINALIZED,
@@ -418,15 +423,12 @@ pub use ffi::{
     ncplane_rotate_cw,
     ncplane_set_base,
     ncplane_set_base_cell,
-    ncplane_set_bchannel,
     ncplane_set_bg_alpha,
     ncplane_set_bg_default,
     ncplane_set_bg_palindex,
     ncplane_set_bg_rgb,
     ncplane_set_bg_rgb8,
     ncplane_set_bg_rgb8_clipped,
-    ncplane_set_channels,
-    ncplane_set_fchannel,
     ncplane_set_fg_alpha,
     ncplane_set_fg_default,
     ncplane_set_fg_palindex,

@@ -16,7 +16,7 @@ use crate::{
 /// *Method: NcCell.[fg_alpha()][NcCell#method.fg_alpha].*
 #[inline]
 pub fn nccell_fg_alpha(cell: &NcCell) -> NcAlphaBits {
-    crate::channels_fg_alpha(cell.channels)
+    crate::ncchannels_fg_alpha(cell.channels)
 }
 
 /// Extracts the background [NcAlphaBits] from an [NcCell] (shifted to LSBs).
@@ -24,7 +24,7 @@ pub fn nccell_fg_alpha(cell: &NcCell) -> NcAlphaBits {
 /// *Method: NcCell.[bg_alpha()][NcCell#method.bg_alpha].*
 #[inline]
 pub fn nccell_bg_alpha(cell: &NcCell) -> NcAlphaBits {
-    crate::channels_bg_alpha(cell.channels)
+    crate::ncchannels_bg_alpha(cell.channels)
 }
 
 /// Sets the foreground [NcAlphaBits] of an [NcCell].
@@ -32,7 +32,7 @@ pub fn nccell_bg_alpha(cell: &NcCell) -> NcAlphaBits {
 /// *Method: NcCell.[set_fg_alpha()][NcCell#method.set_fg_alpha].*
 #[inline]
 pub fn nccell_set_fg_alpha(cell: &mut NcCell, alpha: NcAlphaBits) {
-    crate::channels_set_fg_alpha(&mut cell.channels, alpha);
+    crate::ncchannels_set_fg_alpha(&mut cell.channels, alpha);
 }
 
 /// Sets the background [NcAlphaBits] of an [NcCell].
@@ -40,7 +40,7 @@ pub fn nccell_set_fg_alpha(cell: &mut NcCell, alpha: NcAlphaBits) {
 /// *Method: NcCell.[set_bg_alpha()][NcCell#method.set_bg_alpha].*
 #[inline]
 pub fn nccell_set_bg_alpha(cell: &mut NcCell, alpha: NcAlphaBits) {
-    crate::channels_set_bg_alpha(&mut cell.channels, alpha);
+    crate::ncchannels_set_bg_alpha(&mut cell.channels, alpha);
 }
 
 // NcColor ---------------------------------------------------------------------
@@ -56,7 +56,7 @@ pub fn nccell_fg_rgb8(
     green: &mut NcColor,
     blue: &mut NcColor,
 ) -> NcChannel {
-    crate::channels_fg_rgb8(cell.channels, red, green, blue)
+    crate::ncchannels_fg_rgb8(cell.channels, red, green, blue)
 }
 
 /// Gets the background [NcColor] RGB components of an [NcCell],
@@ -70,7 +70,7 @@ pub fn nccell_bg_rgb8(
     green: &mut NcColor,
     blue: &mut NcColor,
 ) -> NcChannel {
-    crate::channels_bg_rgb8(cell.channels, red, green, blue)
+    crate::ncchannels_bg_rgb8(cell.channels, red, green, blue)
 }
 
 /// Sets the foreground [NcColor] RGB components of the [NcCell],
@@ -79,7 +79,7 @@ pub fn nccell_bg_rgb8(
 /// *Method: NcCell.[set_fg_rgb8()][NcCell#method.set_fg_rgb8].*
 #[inline]
 pub fn nccell_set_fg_rgb8(cell: &mut NcCell, red: NcColor, green: NcColor, blue: NcColor) {
-    crate::channels_set_fg_rgb8(&mut cell.channels, red, green, blue);
+    crate::ncchannels_set_fg_rgb8(&mut cell.channels, red, green, blue);
 }
 
 /// Sets the background [NcColor] RGB components of the [NcCell],
@@ -88,7 +88,7 @@ pub fn nccell_set_fg_rgb8(cell: &mut NcCell, red: NcColor, green: NcColor, blue:
 /// *Method: NcCell.[set_bg_rgb8()][NcCell#method.set_bg_rgb8].*
 #[inline]
 pub fn nccell_set_bg_rgb8(cell: &mut NcCell, red: NcColor, green: NcColor, blue: NcColor) {
-    crate::channels_set_bg_rgb8(&mut cell.channels, red, green, blue);
+    crate::ncchannels_set_bg_rgb8(&mut cell.channels, red, green, blue);
 }
 
 // NcRgb -----------------------------------------------------------------------
@@ -98,7 +98,7 @@ pub fn nccell_set_bg_rgb8(cell: &mut NcCell, red: NcColor, green: NcColor, blue:
 /// *Method: NcCell.[fg_rgb()][NcCell#method.fg_rgb].*
 #[inline]
 pub fn nccell_fg_rgb(cell: &NcCell) -> NcRgb {
-    crate::channels_fg_rgb(cell.channels)
+    crate::ncchannels_fg_rgb(cell.channels)
 }
 
 /// Gets the background [NcRgb] from an [NcCell] (shifted to LSBs).
@@ -106,7 +106,7 @@ pub fn nccell_fg_rgb(cell: &NcCell) -> NcRgb {
 /// *Method: NcCell.[bg_rgb()][NcCell#method.bg_rgb].*
 #[inline]
 pub fn nccell_bg_rgb(cell: &NcCell) -> NcRgb {
-    crate::channels_bg_rgb(cell.channels)
+    crate::ncchannels_bg_rgb(cell.channels)
 }
 
 /// Sets the foreground [NcRgb] of an [NcCell],
@@ -115,7 +115,7 @@ pub fn nccell_bg_rgb(cell: &NcCell) -> NcRgb {
 /// *Method: NcCell.[set_fg_rgb()][NcCell#method.set_fg_rgb].*
 #[inline]
 pub fn nccell_set_fg_rgb(cell: &mut NcCell, rgb: NcRgb) {
-    crate::channels_set_fg_rgb(&mut cell.channels, rgb);
+    crate::ncchannels_set_fg_rgb(&mut cell.channels, rgb);
 }
 
 /// Sets the background [NcRgb] of an [NcCell],
@@ -124,7 +124,7 @@ pub fn nccell_set_fg_rgb(cell: &mut NcCell, rgb: NcRgb) {
 /// *Method: NcCell.[set_bg_rgb()][NcCell#method.set_bg_rgb].*
 #[inline]
 pub fn nccell_set_bg_rgb(cell: &mut NcCell, rgb: NcRgb) {
-    crate::channels_set_bg_rgb(&mut cell.channels, rgb);
+    crate::ncchannels_set_bg_rgb(&mut cell.channels, rgb);
 }
 
 // Default ---------------------------------------------------------------------
@@ -135,7 +135,7 @@ pub fn nccell_set_bg_rgb(cell: &mut NcCell, rgb: NcRgb) {
 /// *Method: NcCell.[set_fg_default()][NcCell#method.set_fg_default].*
 #[inline]
 pub fn nccell_set_fg_default(cell: &mut NcCell) {
-    crate::channels_set_fg_default(&mut cell.channels);
+    crate::ncchannels_set_fg_default(&mut cell.channels);
 }
 
 /// Indicates to use the "default color" for the background [NcChannel]
@@ -144,7 +144,7 @@ pub fn nccell_set_fg_default(cell: &mut NcCell) {
 /// *Method: NcCell.[set_bg_default()][NcCell#method.set_bg_default].*
 #[inline]
 pub fn nccell_set_bg_default(cell: &mut NcCell) {
-    crate::channels_set_bg_default(&mut cell.channels);
+    crate::ncchannels_set_bg_default(&mut cell.channels);
 }
 
 /// Is the foreground [NcChannel] of this [NcCell] using the
@@ -153,7 +153,7 @@ pub fn nccell_set_bg_default(cell: &mut NcCell) {
 /// *Method: NcCell.[fg_default_p()][NcCell#method.fg_default_p].*
 #[inline]
 pub fn nccell_fg_default_p(cell: &NcCell) -> bool {
-    crate::channels_fg_default_p(cell.channels)
+    crate::ncchannels_fg_default_p(cell.channels)
 }
 
 /// Is the background [NcChannel] of this [NcCell] using the
@@ -165,7 +165,7 @@ pub fn nccell_fg_default_p(cell: &NcCell) -> bool {
 /// *Method: NcCell.[bg_default_p()][NcCell#method.bg_default_p].*
 #[inline]
 pub fn nccell_bg_default_p(cell: &NcCell) -> bool {
-    crate::channels_bg_default_p(cell.channels)
+    crate::ncchannels_bg_default_p(cell.channels)
 }
 
 // Palette ---------------------------------------------------------------------
@@ -176,7 +176,7 @@ pub fn nccell_bg_default_p(cell: &NcCell) -> bool {
 /// *Method: NcCell.[fg_palindex_p()][NcCell#method.fg_palindex_p].*
 #[inline]
 pub fn nccell_fg_palindex_p(cell: &NcCell) -> bool {
-    crate::channels_fg_palindex_p(cell.channels)
+    crate::ncchannels_fg_palindex_p(cell.channels)
 }
 
 /// Is the background [NcChannel] of this [NcCell] using an
@@ -185,7 +185,7 @@ pub fn nccell_fg_palindex_p(cell: &NcCell) -> bool {
 /// *Method: NcCell.[bg_palindex_p()][NcCell#method.bg_palindex_p].*
 #[inline]
 pub fn nccell_bg_palindex_p(cell: &NcCell) -> bool {
-    crate::channels_bg_palindex_p(cell.channels)
+    crate::ncchannels_bg_palindex_p(cell.channels)
 }
 
 /// Gets the [NcPaletteIndex] of the foreground [NcChannel] of the [NcCell].

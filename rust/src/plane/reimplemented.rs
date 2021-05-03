@@ -16,7 +16,7 @@ use crate::{
 /// *Method: NcPlane.[fg_alpha()][NcPlane#method.fg_alpha].*
 #[inline]
 pub fn ncplane_fg_alpha(plane: &NcPlane) -> NcAlphaBits {
-    crate::channels_fg_alpha(unsafe { ncplane_channels(plane) })
+    crate::ncchannels_fg_alpha(unsafe { ncplane_channels(plane) })
 }
 
 /// Gets the background [NcAlphaBits] from the [NcPlane], shifted to LSBs.
@@ -24,7 +24,7 @@ pub fn ncplane_fg_alpha(plane: &NcPlane) -> NcAlphaBits {
 /// *Method: NcPlane.[bg_alpha()][NcPlane#method.bg_alpha].*
 #[inline]
 pub fn ncplane_bg_alpha(plane: &NcPlane) -> NcAlphaBits {
-    crate::channels_bg_alpha(unsafe { ncplane_channels(plane) })
+    crate::ncchannels_bg_alpha(unsafe { ncplane_channels(plane) })
 }
 
 // NcChannel -------------------------------------------------------------------
@@ -34,7 +34,7 @@ pub fn ncplane_bg_alpha(plane: &NcPlane) -> NcAlphaBits {
 /// *Method: NcPlane.[fchannel()][NcPlane#method.fchannel].*
 #[inline]
 pub fn ncplane_fchannel(plane: &NcPlane) -> NcChannel {
-    crate::channels_fchannel(unsafe { ncplane_channels(plane) })
+    crate::ncchannels_fchannel(unsafe { ncplane_channels(plane) })
 }
 
 /// Gets the background [NcChannel] from an [NcPlane].
@@ -42,8 +42,37 @@ pub fn ncplane_fchannel(plane: &NcPlane) -> NcChannel {
 /// *Method: NcPlane.[bchannel()][NcPlane#method.bchannel].*
 #[inline]
 pub fn ncplane_bchannel(plane: &NcPlane) -> NcChannel {
-    crate::channels_bchannel(unsafe { ncplane_channels(plane) })
+    crate::ncchannels_bchannel(unsafe { ncplane_channels(plane) })
 }
+
+/// Sets the foreground [NcChannel] on an [NcPlane],
+/// and returns the new [NcChannelPair].
+///
+/// *Method: NcPlane.[set_fchannel()][NcPlane#method.set_fchannel].*
+#[inline]
+pub fn ncplane_set_fchannel(plane: &mut NcPlane, channel: NcChannel) -> NcChannelPair {
+    unsafe { crate::ffi::ncplane_set_fchannel(plane, channel) }
+}
+
+/// Sets the background [NcChannel] on an [NcPlane],
+/// and returns the new [NcChannelPair].
+///
+/// *Method: NcPlane.[set_bchannel()][NcPlane#method.set_bchannel].*
+#[inline]
+pub fn ncplane_set_bchannel(plane: &mut NcPlane, channel: NcChannel) -> NcChannelPair {
+    unsafe { crate::ffi::ncplane_set_bchannel(plane, channel) }
+}
+
+/// Sets both the foreground and background [NcChannel]s on an [NcPlane],
+/// and returns the new [NcChannelPair].
+///
+/// *Method: NcPlane.[set_bchannel()][NcPlane#method.set_bchannel].*
+#[inline]
+pub fn ncplane_set_channels(plane: &mut NcPlane, channels: NcChannelPair) -> NcChannelPair {
+    unsafe { crate::ffi::ncplane_set_channels(plane, channels) };
+    channels
+}
+
 
 // NcColor ---------------------------------------------------------------------
 
@@ -58,7 +87,7 @@ pub fn ncplane_fg_rgb8(
     green: &mut NcColor,
     blue: &mut NcColor,
 ) -> NcChannel {
-    crate::channels_fg_rgb8(unsafe { ncplane_channels(plane) }, red, green, blue)
+    crate::ncchannels_fg_rgb8(unsafe { ncplane_channels(plane) }, red, green, blue)
 }
 
 /// Gets the background [NcColor] RGB components from an [NcPlane],
@@ -72,7 +101,7 @@ pub fn ncplane_bg_rgb8(
     green: &mut NcColor,
     blue: &mut NcColor,
 ) -> NcChannel {
-    crate::channels_bg_rgb8(unsafe { ncplane_channels(plane) }, red, green, blue)
+    crate::ncchannels_bg_rgb8(unsafe { ncplane_channels(plane) }, red, green, blue)
 }
 
 // NcRgb -----------------------------------------------------------------------
@@ -82,7 +111,7 @@ pub fn ncplane_bg_rgb8(
 /// *Method: NcPlane.[fg_rgb()][NcPlane#method.fg_rgb].*
 #[inline]
 pub fn ncplane_fg_rgb(plane: &NcPlane) -> NcRgb {
-    crate::channels_fg_rgb(unsafe { ncplane_channels(plane) })
+    crate::ncchannels_fg_rgb(unsafe { ncplane_channels(plane) })
 }
 
 /// Gets the background [NcRgb] from an [NcPlane], shifted to LSBs.
@@ -90,7 +119,7 @@ pub fn ncplane_fg_rgb(plane: &NcPlane) -> NcRgb {
 /// *Method: NcPlane.[bg_rgb()][NcPlane#method.bg_rgb].*
 #[inline]
 pub fn ncplane_bg_rgb(plane: &NcPlane) -> NcRgb {
-    crate::channels_bg_rgb(unsafe { ncplane_channels(plane) })
+    crate::ncchannels_bg_rgb(unsafe { ncplane_channels(plane) })
 }
 
 // Default ---------------------------------------------------------------------
@@ -100,7 +129,7 @@ pub fn ncplane_bg_rgb(plane: &NcPlane) -> NcRgb {
 /// *Method: NcPlane.[fg_default_p()][NcPlane#method.fg_default_p].*
 #[inline]
 pub fn ncplane_fg_default_p(plane: &NcPlane) -> bool {
-    crate::channels_fg_default_p(unsafe { ncplane_channels(plane) })
+    crate::ncchannels_fg_default_p(unsafe { ncplane_channels(plane) })
 }
 
 /// Is the plane's background using the "default background color"?
@@ -108,7 +137,53 @@ pub fn ncplane_fg_default_p(plane: &NcPlane) -> bool {
 /// *Method: NcPlane.[bg_default_p()][NcPlane#method.bg_default_p].*
 #[inline]
 pub fn ncplane_bg_default_p(plane: &NcPlane) -> bool {
-    crate::channels_bg_default_p(unsafe { ncplane_channels(plane) })
+    crate::ncchannels_bg_default_p(unsafe { ncplane_channels(plane) })
+}
+
+/// Marks both the foreground and background as using the "default color",
+/// and returns the new [NcChannelPair].
+///
+/// *Method: NcPlane.[set_default()][NcPlane#method.set_default].*
+//
+// Not in the C API.
+#[inline]
+pub fn ncplane_set_default(plane: &mut NcPlane) -> NcChannelPair {
+    let channels = crate::ncchannels_set_default(&mut unsafe { ncplane_channels(plane) });
+    ncplane_set_channels(plane, channels)
+}
+
+/// Marks both the foreground and background as NOT using the "default color",
+/// and returns the new [NcChannelPair].
+///
+/// *Method: NcPlane.[set_not_default()][NcPlane#method.set_not_default].*
+//
+// Not in the C API.
+#[inline]
+pub fn ncplane_set_not_default(plane: &mut NcPlane) -> NcChannelPair {
+    let channels = crate::ncchannels_set_not_default(&mut unsafe { ncplane_channels(plane) });
+    crate::ncplane_set_channels(plane, channels)
+}
+
+/// Marks the foreground as NOT using the "default color",
+/// and returns the new [NcChannelPair].
+///
+/// *Method: NcPlane.[set_fg_not_default()][NcPlane#method.set_fg_not_default].*
+//
+// Not in the C API.
+#[inline]
+pub fn ncplane_set_fg_not_default(plane: &NcPlane) -> NcChannelPair {
+    crate::ncchannels_set_fg_not_default(&mut unsafe { ncplane_channels(plane) })
+}
+
+/// Marks the background as NOT using the "default color",
+/// and returns the new [NcChannelPair].
+///
+/// *Method: NcPlane.[set_bg_not_default()][NcPlane#method.set_bg_not_default].*
+//
+// Not in the C API.
+#[inline]
+pub fn ncplane_set_bg_not_default(plane: &NcPlane) -> NcChannelPair {
+    crate::ncchannels_set_bg_not_default(&mut unsafe { ncplane_channels(plane) })
 }
 
 // put & print -----------------------------------------------------------------

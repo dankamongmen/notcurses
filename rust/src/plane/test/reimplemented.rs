@@ -79,10 +79,10 @@ fn ncplane_fchannel() {
 
         crate::ncplane_set_channels(plane, 0x1122334455667788);
         let channels = crate::ncplane_channels(plane);
-        assert_eq![0x11223344, crate::channels_fchannel(channels)];
+        assert_eq![0x11223344, crate::ncchannels_fchannel(channels)];
 
         let channels = crate::ncplane_set_fchannel(plane, 0x10203040);
-        assert_eq![0x10203040, crate::channels_fchannel(channels)];
+        assert_eq![0x10203040, crate::ncchannels_fchannel(channels)];
         assert_eq![0x1020304055667788, channels];
 
         notcurses_stop(nc);
@@ -98,13 +98,13 @@ fn ncplane_bchannel() {
 
         crate::ncplane_set_channels(plane, 0x1122334455667788);
         let channels = crate::ncplane_channels(plane);
-        assert_eq![0x55667788, crate::channels_bchannel(channels)];
+        assert_eq![0x55667788, crate::ncchannels_bchannel(channels)];
 
         // BUG? ncplane_set_bchannel and ncplane_set_fchannel don't get
         // applied unless they are assigned to a variable. Weird.
 
         let channels = crate::ncplane_set_bchannel(plane, 0x50607080);
-        assert_eq![0x50607080, crate::channels_bchannel(channels)];
+        assert_eq![0x50607080, crate::ncchannels_bchannel(channels)];
         assert_eq![0x1122334450607080, channels];
 
         notcurses_stop(nc);
