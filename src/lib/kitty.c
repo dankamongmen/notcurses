@@ -562,6 +562,7 @@ int kitty_blit(ncplane* n, int linesize, const void* data,
 }
 
 int kitty_remove(int id, FILE* out){
+//fprintf(stderr, "DESTROYING KITTY %d\n", id);
   if(fprintf(out, "\e_Ga=d,d=i,i=%d\e\\", id) < 0){
     return -1;
   }

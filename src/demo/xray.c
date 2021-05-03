@@ -183,19 +183,19 @@ int xray_demo(struct notcurses* nc){
   marsh.next_frame = 0;
   marsh.last_frame_rendered = -1;
   marsh.lplane = NULL;
+  int ret = -1;
+  // FIXME need do something about SIGINT here, which can leave us locked up
   if(pthread_create(&tid1, NULL, xray_thread, NULL)){
-    ncvisual_destroy(ncv);
-    ncplane_destroy(slider);
-    return -1;
+    goto err;
   }
   if(pthread_create(&tid2, NULL, xray_thread, NULL)){
     pthread_join(tid1, NULL);
-    ncvisual_destroy(ncv);
-    ncplane_destroy(slider);
-    return -1;
+    goto err;
   }
   // FIXME need wake them more reliably
-  int ret = pthread_join(tid1, NULL) | pthread_join(tid2, NULL);
+  ret = pthread_join(tid1, NULL) | pthread_join(tid2, NULL);
+
+err:
   ncplane_destroy(marsh.lplane);
   ncvisual_destroy(ncv);
   ncplane_destroy(slider);
