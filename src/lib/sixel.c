@@ -582,7 +582,7 @@ sixel_reblit(sprixel* s){
 // scaled geometry in pixels. We calculate output geometry herein, and supply
 // transparent filler input for any missing rows.
 static inline int
-sixel_blit_inner(int leny, int lenx, const sixeltable* stab, int rows, int cols,
+sixel_blit_inner(int leny, int lenx, sixeltable* stab, int rows, int cols,
                  const blitterargs* bargs, tament* tam){
   char* buf = NULL;
   size_t size = 0;
@@ -594,6 +594,7 @@ sixel_blit_inner(int leny, int lenx, const sixeltable* stab, int rows, int cols,
   int outy = leny;
   if(leny % 6){
     outy += 6 - (leny % 6);
+    stab->p2 = SIXEL_P2_TRANS;
   }
   // calls fclose() on success
   if(write_sixel(fp, outy, lenx, stab, &parse_start,
