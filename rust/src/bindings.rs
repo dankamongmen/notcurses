@@ -338,6 +338,7 @@ pub use ffi::{
 // ncplane_options,
 //
 // // functions
+// ncplane_channels,
 // ncplane_set_bchannel,
 // ncplane_set_fchannel,
 // ncplane_set_channels
@@ -363,7 +364,6 @@ pub use ffi::{
     ncplane_below,
     ncplane_box,
     ncplane_center_abs,
-    ncplane_channels,
     ncplane_contents,
     ncplane_create,
     ncplane_cursor_move_yx,
