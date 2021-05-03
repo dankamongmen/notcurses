@@ -30,7 +30,9 @@ typedef struct ncvisual {
 static inline void
 ncvisual_set_data(ncvisual* ncv, void* data, bool owned){
   if(ncv->owndata){
-    free(ncv->data);
+    if(data != ncv->data){
+      free(ncv->data);
+    }
   }
   ncv->data = (uint32_t*)data;
   ncv->owndata = owned;

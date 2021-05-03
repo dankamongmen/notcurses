@@ -244,9 +244,12 @@ int ffmpeg_resize(ncvisual* n, int rows, int cols){
   n->rowstride = sframe->linesize[0];
   n->pixy = rows;
   n->pixx = cols;
-  ncvisual_set_data(n, sframe->data[0], false);
-  if(n->details->frame){
-    av_freep(&n->details->frame);
+  if((uint32_t*)sframe->data[0] != n->data){
+//fprintf(stderr, "SETTING UP RESIZE %p\n", n->data);
+    ncvisual_set_data(n, sframe->data[0], false);
+    if(n->details->frame){
+      av_freep(&n->details->frame);
+    }
   }
   n->details->frame = sframe;
 
