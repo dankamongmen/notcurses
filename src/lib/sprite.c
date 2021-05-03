@@ -81,7 +81,12 @@ void sprixel_movefrom(sprixel* s, int y, int x){
 }
 
 void sprixel_hide(sprixel* s){
-  // guard so that a double call doesn't drop core on s->n->sprite
+  if(ncplane_pile(s->n) == NULL){ // ncdirect case; destroy now
+    sprixel_free(s);
+    return;
+  }
+  // otherwise, it'll be killed in the next rendering cycle.
+  // guard so that a double call doesn't drop core on /s->n->sprite
   if(s->invalidated != SPRIXEL_HIDE){
 //fprintf(stderr, "HIDING %d\n", s->id);
     s->invalidated = SPRIXEL_HIDE;
