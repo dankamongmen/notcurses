@@ -686,6 +686,36 @@
 <span id="683">683</span>
 <span id="684">684</span>
 <span id="685">685</span>
+<span id="686">686</span>
+<span id="687">687</span>
+<span id="688">688</span>
+<span id="689">689</span>
+<span id="690">690</span>
+<span id="691">691</span>
+<span id="692">692</span>
+<span id="693">693</span>
+<span id="694">694</span>
+<span id="695">695</span>
+<span id="696">696</span>
+<span id="697">697</span>
+<span id="698">698</span>
+<span id="699">699</span>
+<span id="700">700</span>
+<span id="701">701</span>
+<span id="702">702</span>
+<span id="703">703</span>
+<span id="704">704</span>
+<span id="705">705</span>
+<span id="706">706</span>
+<span id="707">707</span>
+<span id="708">708</span>
+<span id="709">709</span>
+<span id="710">710</span>
+<span id="711">711</span>
+<span id="712">712</span>
+<span id="713">713</span>
+<span id="714">714</span>
+<span id="715">715</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `Notcurses*` methods and associated functions.</span>
 
@@ -851,6 +881,8 @@
 
     <span class="doccomment">/// Returns true if we can reliably use Unicode Braille.</span>
     <span class="doccomment">///</span>
+    <span class="doccomment">/// See also [NCBLIT_BRAILLE][crate::NCBLIT_BRAILLE].</span>
+    <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [notcurses_canbraille()][crate::notcurses_canbraille].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">canbraille</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">notcurses_canbraille</span>(<span class="self">self</span>) }
@@ -874,6 +906,15 @@
         <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">notcurses_canfade</span>(<span class="self">self</span>) }
     }
 
+    <span class="doccomment">/// Returns true if we can reliably use Unicode half blocks.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// See also [NCBLIT_2x1][crate::NCBLIT_2x1].</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// *C style function: [notcurses_canhalfblock()][crate::notcurses_canhalfblock].*</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">canhalfblock</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">notcurses_canhalfblock</span>(<span class="self">self</span>) }
+    }
+
     <span class="doccomment">/// Returns true if loading images is possible.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This requires being built against FFmpeg/OIIO.</span>
@@ -892,7 +933,18 @@
         <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">notcurses_canopen_videos</span>(<span class="self">self</span>) }
     }
 
+    <span class="doccomment">/// Returns true if we can reliably use Unicode quadrant blocks.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// See also [NCBLIT_2x2][crate::NCBLIT_2x2].</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// *C style function: [notcurses_canquadrant()][crate::notcurses_canquadrant].*</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">canquadrant</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">notcurses_canquadrant</span>(<span class="self">self</span>) }
+    }
+
     <span class="doccomment">/// Returns true if we can reliably use Unicode 13 sextants.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// See also [NCBLIT_3x2][crate::NCBLIT_3x2].</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [notcurses_cansextant()][crate::notcurses_cansextant].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cansextant</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
@@ -920,7 +972,8 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns `false` for no support, or `true` if pixel output is supported.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// This function must successfully return before NCBLIT_PIXEL is available.</span>
+    <span class="doccomment">/// This function must successfully return before</span>
+    <span class="doccomment">/// [NCBLIT_PIXEL][crate::NCBLIT_PIXEL] is available.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Must not be called concurrently with either input or rasterization.</span>
     <span class="doccomment">///</span>
@@ -1215,9 +1268,16 @@
     <span class="comment">//</span>
     <span class="comment">// CHECK that this works.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">render_to_buffer</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">buffer</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span>;
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_mut</span>)]</span> <span class="comment">// CHECK whether it actually works without the mut</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">buffer</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>;
+
+        <span class="comment">// https://github.com/dankamongmen/notcurses/issues/1339</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;i686&quot;</span>))]</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">buffer</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">i8</span>;
-        <span class="macro">error</span><span class="macro">!</span>[<span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">notcurses_render_to_buffer</span>(<span class="self">self</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">len</span>) }]
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;i686&quot;</span>)))]</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">buffer</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>;
+
+        <span class="macro">error</span><span class="macro">!</span>[<span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">notcurses_render_to_buffer</span>(<span class="self">self</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">len</span>.<span class="ident">into</span>()) }]
     }
 
     <span class="doccomment">/// Writes the last rendered frame, in its entirety, to &#39;fp&#39;.</span>

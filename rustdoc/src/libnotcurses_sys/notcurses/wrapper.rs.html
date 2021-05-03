@@ -137,6 +137,7 @@
 <span id="134">134</span>
 <span id="135">135</span>
 <span id="136">136</span>
+<span id="137">137</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `Nc` wrapper struct and traits implementations.</span>
 
@@ -147,6 +148,7 @@
 };
 
 <span class="doccomment">/// Safe wrapper around [Notcurses], the main struct of the TUI library.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Nc</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">raw</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Notcurses</span>,
 }

@@ -688,6 +688,18 @@
 <span id="685">685</span>
 <span id="686">686</span>
 <span id="687">687</span>
+<span id="688">688</span>
+<span id="689">689</span>
+<span id="690">690</span>
+<span id="691">691</span>
+<span id="692">692</span>
+<span id="693">693</span>
+<span id="694">694</span>
+<span id="695">695</span>
+<span id="696">696</span>
+<span id="697">697</span>
+<span id="698">698</span>
+<span id="699">699</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcDirect` methods and associated functions.</span>
 
@@ -1351,7 +1363,13 @@
         <span class="ident">h1</span>: <span class="ident">NcChannelPair</span>,
         <span class="ident">h2</span>: <span class="ident">NcChannelPair</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="macro">error</span><span class="macro">!</span>[<span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirect_hline_interp</span>(<span class="self">self</span>, <span class="kw-2">&amp;</span>(<span class="kw-2">*</span><span class="ident">egc</span> <span class="kw">as</span> <span class="ident">i8</span>), <span class="ident">len</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">h1</span>, <span class="ident">h2</span>) }]
+        <span class="comment">// https://github.com/dankamongmen/notcurses/issues/1339</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;i686&quot;</span>))]</span>
+        <span class="kw">let</span> <span class="ident">egc_ptr</span> <span class="op">=</span> <span class="kw-2">&amp;</span>(<span class="kw-2">*</span><span class="ident">egc</span> <span class="kw">as</span> <span class="ident">i8</span>);
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;i686&quot;</span>)))]</span>
+        <span class="kw">let</span> <span class="ident">egc_ptr</span> <span class="op">=</span> <span class="kw-2">&amp;</span>(<span class="kw-2">*</span><span class="ident">egc</span> <span class="kw">as</span> <span class="ident">u8</span>);
+
+        <span class="macro">error</span><span class="macro">!</span>[<span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirect_hline_interp</span>(<span class="self">self</span>, <span class="ident">egc_ptr</span>, <span class="ident">len</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">h1</span>, <span class="ident">h2</span>) }]
     }
 
     <span class="doccomment">/// Draws horizontal lines using the specified [NcChannelPair]s, interpolating</span>
@@ -1373,7 +1391,13 @@
         <span class="ident">h1</span>: <span class="ident">NcChannelPair</span>,
         <span class="ident">h2</span>: <span class="ident">NcChannelPair</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="macro">error</span><span class="macro">!</span>[<span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirect_vline_interp</span>(<span class="self">self</span>, <span class="kw-2">&amp;</span>(<span class="kw-2">*</span><span class="ident">egc</span> <span class="kw">as</span> <span class="ident">i8</span>), <span class="ident">len</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">h1</span>, <span class="ident">h2</span>) }]
+        <span class="comment">// https://github.com/dankamongmen/notcurses/issues/1339</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;i686&quot;</span>))]</span>
+        <span class="kw">let</span> <span class="ident">egc_ptr</span> <span class="op">=</span> <span class="kw-2">&amp;</span>(<span class="kw-2">*</span><span class="ident">egc</span> <span class="kw">as</span> <span class="ident">i8</span>);
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;i686&quot;</span>)))]</span>
+        <span class="kw">let</span> <span class="ident">egc_ptr</span> <span class="op">=</span> <span class="kw-2">&amp;</span>(<span class="kw-2">*</span><span class="ident">egc</span> <span class="kw">as</span> <span class="ident">u8</span>);
+
+        <span class="macro">error</span><span class="macro">!</span>[<span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirect_vline_interp</span>(<span class="self">self</span>, <span class="ident">egc_ptr</span>, <span class="ident">len</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">h1</span>, <span class="ident">h2</span>) }]
     }
 }
 </pre></div>

@@ -60,9 +60,9 @@
 <span class="comment">// (#) test: 0</span>
 <span class="comment">// (W) wrap: 3 / 0</span>
 <span class="comment">// -----------------------------------------</span>
-<span class="comment">//W  palette256_free</span>
-<span class="comment">//W  palette256_new</span>
-<span class="comment">//W  palette256_use</span>
+<span class="comment">//W  ncpalette_free</span>
+<span class="comment">//W  ncpalette_new</span>
+<span class="comment">//W  ncpalette_use</span>
 <span class="comment">//</span>
 <span class="comment">// functions manually reimplemented: 3</span>
 <span class="comment">// -----------------------------------------</span>
@@ -70,9 +70,9 @@
 <span class="comment">// (#) test: 0</span>
 <span class="comment">// (W) wrap: 3 / 0</span>
 <span class="comment">// -----------------------------------------</span>
-<span class="comment">//W+ palette256_get_rgb</span>
-<span class="comment">//W+ palette256_set</span>
-<span class="comment">//W+ palette256_set_rgb</span>
+<span class="comment">//W+ ncpalette_get_rgb</span>
+<span class="comment">//W+ ncpalette_set</span>
+<span class="comment">//W+ ncpalette_set_rgb</span>
 
 <span class="kw">mod</span> <span class="ident">methods</span>;
 <span class="kw">mod</span> <span class="ident">reimplemented</span>;
@@ -89,9 +89,9 @@
 <span class="doccomment">/// performant to use indexed colors, since it&#39;s much less data to write to the</span>
 <span class="doccomment">/// terminal. If you can limit yourself to 256 colors, that&#39;s probably best.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// `type in C: ncpalette256 (struct)`</span>
+<span class="doccomment">/// `type in C: ncncpalette (struct)`</span>
 <span class="doccomment">///</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcPalette</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">palette256</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcPalette</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncpalette</span>;
 
 <span class="doccomment">/// 8-bit value used for indexing into a [`NcPalette`]</span>
 <span class="doccomment">///</span>

@@ -43,7 +43,7 @@
 <span id="40">40</span>
 <span id="41">41</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="doccomment">//! `palette256_*` reimplemented functions.</span>
+<span class="doccomment">//! `ncpalette_*` reimplemented functions.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">NcChannel</span>, <span class="ident">NcColor</span>, <span class="ident">NcPalette</span>, <span class="ident">NcPaletteIndex</span>, <span class="ident">NcRgb</span>};
 
@@ -53,7 +53,7 @@
 <span class="doccomment">/// *Method: NcPalette.[get_rgb()][NcPalette#method.get_rgb].*</span>
 <span class="doccomment">/// *Method: NcPalette.[get_rgb8()][NcPalette#method.get_rgb8].*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">palette256_get_rgb</span>(
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncpalette_get_rgb</span>(
     <span class="ident">palette</span>: <span class="kw-2">&amp;</span><span class="ident">NcPalette</span>,
     <span class="ident">index</span>: <span class="ident">NcPaletteIndex</span>,
     <span class="ident">red</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcColor</span>,
@@ -67,7 +67,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// *Method: NcPalette.[set()][NcPalette#method.set].*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">palette256_set</span>(<span class="ident">palette</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPalette</span>, <span class="ident">index</span>: <span class="ident">NcPaletteIndex</span>, <span class="ident">rgb</span>: <span class="ident">NcRgb</span>) {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncpalette_set</span>(<span class="ident">palette</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPalette</span>, <span class="ident">index</span>: <span class="ident">NcPaletteIndex</span>, <span class="ident">rgb</span>: <span class="ident">NcRgb</span>) {
     <span class="kw">crate</span>::<span class="ident">channel_set</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">palette</span>.<span class="ident">chans</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>], <span class="ident">rgb</span>);
 }
 
@@ -75,7 +75,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// *Method: NcPalette.[set_rgb()][NcPalette#method.set_rgb].*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">palette256_set_rgb</span>(
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncpalette_set_rgb</span>(
     <span class="ident">palette</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPalette</span>,
     <span class="ident">index</span>: <span class="ident">NcPaletteIndex</span>,
     <span class="ident">red</span>: <span class="ident">NcColor</span>,

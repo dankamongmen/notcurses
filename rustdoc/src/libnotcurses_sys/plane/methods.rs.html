@@ -1988,6 +1988,13 @@
 <span id="1985">1985</span>
 <span id="1986">1986</span>
 <span id="1987">1987</span>
+<span id="1988">1988</span>
+<span id="1989">1989</span>
+<span id="1990">1990</span>
+<span id="1991">1991</span>
+<span id="1992">1992</span>
+<span id="1993">1993</span>
+<span id="1994">1994</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcPlane*` methods and associated functions.</span>
 <span class="kw">use</span> <span class="ident">core</span>::{
@@ -2989,7 +2996,7 @@
     <span class="doccomment">/// *C style function: [ncplane_mergedown()][crate::ncplane_mergedown].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mergedown</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="ident">NcPlane</span>,
+        <span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span>,
         <span class="ident">source_y</span>: <span class="ident">NcDim</span>,
         <span class="ident">source_x</span>: <span class="ident">NcDim</span>,
         <span class="ident">len_y</span>: <span class="ident">NcDim</span>,
@@ -3029,7 +3036,7 @@
     <span class="comment">//</span>
     <span class="comment">// TODO: maybe create a reversed method, and/or an associated function,</span>
     <span class="comment">// for `mergedown` too.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mergedown_simple</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="ident">NcPlane</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mergedown_simple</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">error</span><span class="macro">!</span>[
             <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncplane_mergedown_simple</span>(<span class="ident">source</span>, <span class="self">self</span>) },
             <span class="string">&quot;NcPlane.mergedown_simple(NcPlane)&quot;</span>
@@ -3886,10 +3893,17 @@
         <span class="ident">y_stop</span>: <span class="ident">NcDim</span>,
         <span class="ident">x_stop</span>: <span class="ident">NcDim</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">NcDim</span><span class="op">&gt;</span> {
+
+        <span class="comment">// https://github.com/dankamongmen/notcurses/issues/1339</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;i686&quot;</span>))]</span>
+        <span class="kw">let</span> <span class="ident">egc_ptr</span> <span class="op">=</span> <span class="kw-2">&amp;</span>(<span class="kw-2">*</span><span class="ident">egc</span> <span class="kw">as</span> <span class="ident">i8</span>);
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;i686&quot;</span>)))]</span>
+        <span class="kw">let</span> <span class="ident">egc_ptr</span> <span class="op">=</span> <span class="kw-2">&amp;</span>(<span class="kw-2">*</span><span class="ident">egc</span> <span class="kw">as</span> <span class="ident">u8</span>);
+
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="kw">crate</span>::<span class="ident">ncplane_gradient</span>(
                 <span class="self">self</span>,
-                <span class="kw-2">&amp;</span>(<span class="kw-2">*</span><span class="ident">egc</span> <span class="kw">as</span> <span class="ident">i8</span>),
+                <span class="ident">egc_ptr</span>,
                 <span class="ident">stylemask</span> <span class="kw">as</span> <span class="ident">u32</span>,
                 <span class="ident">ul</span>,
                 <span class="ident">ur</span>,

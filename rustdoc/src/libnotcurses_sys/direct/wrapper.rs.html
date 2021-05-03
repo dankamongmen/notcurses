@@ -67,6 +67,7 @@
 <span id="64">64</span>
 <span id="65">65</span>
 <span id="66">66</span>
+<span id="67">67</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcD` wrapper struct and traits implementations.</span>
 
@@ -75,6 +76,7 @@
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">raw_wrap</span>, <span class="ident">NcDirect</span>, <span class="ident">NcResult</span>};
 
 <span class="doccomment">/// Safe wrapper around [NcDirect], minimal notcurses instance for styling text.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">NcD</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">raw</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">NcDirect</span>,
 }
