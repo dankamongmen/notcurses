@@ -30,17 +30,15 @@ static sigset_t wblock_signals;
 
 static int(*fatal_callback)(void*); // fatal handler callback
 
-int block_signals(notcurses* nc){
-  if(pthread_sigmask(SIG_BLOCK, &wblock_signals, &nc->old_blocked_signals)){
-    logerror(nc, "Couldn't block signals prior to write (%s)\n", strerror(errno));
+int block_signals(sigset_t* old_blocked_signals){
+  if(pthread_sigmask(SIG_BLOCK, &wblock_signals, old_blocked_signals)){
     return -1;
   }
   return 0;
 }
 
-int unblock_signals(notcurses* nc){
-  if(pthread_sigmask(SIG_SETMASK, &nc->old_blocked_signals, NULL)){
-    logerror(nc, "Error restoring signal mask after write (%s)\n", strerror(errno));
+int unblock_signals(const sigset_t* old_blocked_signals){
+  if(pthread_sigmask(SIG_SETMASK, old_blocked_signals, NULL)){
     return -1;
   }
   return 0;

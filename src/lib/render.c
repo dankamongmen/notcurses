@@ -1145,11 +1145,12 @@ raster_and_write(notcurses* nc, ncpile* p, FILE* out){
   }
   int ret = 0;
   //fflush(nc->ttyfp);
-  block_signals(nc);
+  sigset_t oldmask;
+  block_signals(&oldmask);
   if(blocking_write(fileno(nc->ttyfp), nc->rstate.mstream, nc->rstate.mstrsize)){
     ret = -1;
   }
-  unblock_signals(nc);
+  unblock_signals(&oldmask);
 //fprintf(stderr, "%lu/%lu %lu/%lu %lu/%lu %d\n", nc->stats.defaultelisions, nc->stats.defaultemissions, nc->stats.fgelisions, nc->stats.fgemissions, nc->stats.bgelisions, nc->stats.bgemissions, ret);
   if(nc->renderfp){
     fprintf(nc->renderfp, "%s\n", nc->rstate.mstream);

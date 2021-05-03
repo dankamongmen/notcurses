@@ -542,7 +542,7 @@ int main(int argc, char** argv){
   // ensure SIGWINCH is delivered only to a thread doing input
   sigemptyset(&sigmask);
   sigaddset(&sigmask, SIGWINCH);
-  pthread_sigmask(SIG_SETMASK, &sigmask, NULL);
+  pthread_sigmask(SIG_BLOCK, &sigmask, NULL);
   const char* spec;
   FILE* json = NULL; // emit JSON summary to this file? (-J)
   notcurses_options nopts = {};

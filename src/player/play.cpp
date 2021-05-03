@@ -501,6 +501,11 @@ auto main(int argc, char** argv) -> int {
     std::cerr << "Couldn't set locale based off LANG\n";
     return EXIT_FAILURE;
   }
+  sigset_t sigmask;
+  // ensure SIGWINCH is delivered only to a thread doing input
+  sigemptyset(&sigmask);
+  sigaddset(&sigmask, SIGWINCH);
+  pthread_sigmask(SIG_BLOCK, &sigmask, NULL);
   float timescale, displaytime;
   ncscale_e scalemode;
   notcurses_options ncopts{};
