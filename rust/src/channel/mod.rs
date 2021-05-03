@@ -13,12 +13,12 @@
 //   - `channels_set_bg_rgb8_clipped()`
 // -----------------------------------------------------------------------------
 //
-// functions manually reimplemented: 39
+// functions manually reimplemented: 44
 // ------------------------------------------
 // (X) wont:  3
 // (+) done: 36 / 0
-// (#) test: 19
-// (W) wrap: 36
+// (#) test: 21
+// (W) wrap: 41
 // ------------------------------------------
 //W# channel_alpha
 //W# channel_b
@@ -27,9 +27,10 @@
 //W# channel_palindex_p
 //W# channel_r
 //W# channel_rgb8
-//W+ channel_set
+//W# channel_set
 //W# channel_set_alpha
 //W# channel_set_default
+//W# channel_set_not_default         // not in the original C API
 //W# channel_set_rgb8
 // X channel_set_rgb_clipped         // not needed
 //W# channels_bchannel
@@ -48,17 +49,21 @@
 //W# channels_set_bchannel
 //W+ channels_set_bg_alpha
 //W+ channels_set_bg_default
+//W  channels_set_bg_not_default     // not in the original C API
 //W# channels_set_bg_palindex
 //W+ channels_set_bg_rgb
 //W+ channels_set_bg_rgb8
 // X channels_set_bg_rgb8_clipped    // not needed
+//W  channels_set_default            // not in the original C API
 //W# channels_set_fchannel
 //W+ channels_set_fg_alpha
 //W+ channels_set_fg_default
+//W  channels_set_fg_not_default     // not in the original C API
 //W# channels_set_fg_palindex
 //W+ channels_set_fg_rgb
 //W+ channels_set_fg_rgb8
 // X channels_set_fg_rgb8_clipped    // not needed
+//W  channels_set_not_default        // not in the original C API
 
 #[allow(unused_imports)] // for the doc comments
 use crate::NcRgba;

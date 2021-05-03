@@ -35,6 +35,7 @@ pub trait NcChannelMethods {
 
     fn default_p(&self) -> bool;
     fn set_default(&mut self) -> Self;
+    fn set_not_default(&mut self) -> Self;
 
     fn palindex_p(&self) -> bool;
 }
@@ -112,7 +113,11 @@ pub trait NcChannelPairMethods {
     fn fg_default_p(&self) -> bool;
     fn bg_default_p(&self) -> bool;
     fn set_fg_default(&mut self) -> Self;
+    fn set_fg_not_default(&mut self) -> Self;
     fn set_bg_default(&mut self) -> Self;
+    fn set_bg_not_default(&mut self) -> Self;
+    fn set_default(&mut self) -> Self;
+    fn set_not_default(&mut self) -> Self;
 
     fn fg_palindex_p(&self) -> bool;
     fn bg_palindex_p(&self) -> bool;
@@ -126,12 +131,12 @@ pub trait NcChannelPairMethods {
 impl NcChannelMethods for NcChannel {
     // Constructors
 
-    /// New NcChannel, set to black and NOT using the default color.
+    /// New NcChannel, set to black and NOT using the "default color".
     fn new() -> Self {
         0 as NcChannel | crate::NCCELL_BGDEFAULT_MASK
     }
 
-    /// New NcChannel, set to black but using the default color.
+    /// New NcChannel, set to black but using the "default color".
     fn with_default() -> Self {
         0 as NcChannel
     }
@@ -218,7 +223,7 @@ impl NcChannelMethods for NcChannel {
     }
 
     /// Sets the three [NcColor]s, and
-    /// marks the NcChannel as NOT using the default color.
+    /// marks the NcChannel as NOT using the "default color".
     ///
     /// *C style function: [channel_set_rgb8()][crate::channel_set_rgb8].*
     fn set_rgb8(&mut self, r: NcColor, g: NcColor, b: NcColor) -> Self {
@@ -285,7 +290,7 @@ impl NcChannelMethods for NcChannel {
         crate::channel_rgb(*self)
     }
 
-    /// Sets the [NcRgb] and marks it as NOT using the default color,
+    /// Sets the [NcRgb] and marks it as NOT using the "default color",
     /// retaining the other bits unchanged.
     ///
     /// *C style function: [channel_set()][crate::channel_set].*
@@ -310,6 +315,21 @@ impl NcChannelMethods for NcChannel {
         crate::channel_set_default(self)
     }
 
+    /// Marks an NcChannel as *not* using its "default color".
+    ///
+    /// The following methods also marks the channel as not using the "default color":
+    /// - [new()][NcChannel#method.new]
+    /// - [set()][NcChannel#method.set]
+    /// - [set_rgb()][NcChannel#method.set_rgb]
+    /// - [set_rgb8()][NcChannel#method.set_rgb8]
+    ///
+    /// *C style function: [channel_set_not_default()][crate::channel_set_not_default].*
+    //
+    // Not in the C API
+    fn set_not_default(&mut self) -> Self {
+        crate::channel_set_not_default(self)
+    }
+
     // NcPaletteIndex
 
     /// Is this NcChannel using palette-indexed color rather than RGB?
@@ -326,7 +346,7 @@ impl NcChannelMethods for NcChannel {
 impl NcChannelPairMethods for NcChannelPair {
     // Constructors
 
-    /// New NcChannelPair, set to black and NOT using the default color.
+    /// New NcChannelPair, set to black and NOT using the "default color".
     fn new() -> Self {
         Self::combine(
             0 as NcChannel | crate::NCCELL_BGDEFAULT_MASK,
@@ -334,7 +354,7 @@ impl NcChannelPairMethods for NcChannelPair {
         )
     }
 
-    /// New NcChannelPair, set to black but using the default color.
+    /// New NcChannelPair, set to black but using the "default color".
     fn with_default() -> Self {
         Self::combine(0 as NcChannel, 0 as NcChannel)
     }
@@ -678,6 +698,44 @@ impl NcChannelPairMethods for NcChannelPair {
     /// *C style function: [channels_set_bg_default()][crate::channels_set_bg_default].*
     fn set_bg_default(&mut self) -> Self {
         crate::channels_set_bg_default(self)
+    }
+
+    /// Marks the foreground as NOT using its "default color", and
+    /// returns the new [NcChannelPair].
+    ///
+    /// *C style function: [channels_set_fg_default()][crate::channels_set_fg_default].*
+    //
+    // Not in the C API
+    fn set_fg_not_default(&mut self) -> Self {
+        crate::channels_set_fg_not_default(self)
+    }
+
+    /// Marks the background as NOT using its "default color", and
+    /// returns the new [NcChannelPair].
+    ///
+    /// *C style function: [channels_set_bg_not_default()][crate::channels_set_bg_not_default].*
+    //
+    // Not in the C API
+    fn set_bg_not_default(&mut self) -> Self {
+        crate::channels_set_bg_not_default(self)
+    }
+
+    /// Marks both the foreground and background as using its "default color", and
+    /// returns the new [NcChannelPair].
+    ///
+    //
+    // Not in the C API
+    fn set_default(&mut self) -> Self {
+        crate::channels_set_fg_default(&mut crate::channels_set_bg_default(self))
+    }
+
+    /// Marks both the foreground and background as NOT using its "default color",
+    /// and returns the new [NcChannelPair].
+    ///
+    //
+    // Not in the C API
+    fn set_not_default(&mut self) -> Self {
+        crate::channels_set_fg_not_default(&mut crate::channels_set_bg_not_default(self))
     }
 
     // NcPaletteIndex
