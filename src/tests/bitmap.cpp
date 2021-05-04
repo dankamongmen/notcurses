@@ -302,7 +302,7 @@ TEST_CASE("Bitmaps") {
       .x = NCALIGN_CENTER,
       .begy = 0, .begx = 0,
       .leny = 0, .lenx = 0,
-      .blitter = NCBLIT_1x1,
+      .blitter = NCBLIT_PIXEL,
       .flags = NCVISUAL_OPTION_CHILDPLANE |
                NCVISUAL_OPTION_HORALIGNED |
                NCVISUAL_OPTION_VERALIGNED,
@@ -344,7 +344,7 @@ TEST_CASE("Bitmaps") {
       .x = NCALIGN_CENTER,
       .begy = 0, .begx = 0,
       .leny = 0, .lenx = 0,
-      .blitter = NCBLIT_1x1,
+      .blitter = NCBLIT_PIXEL,
       .flags = NCVISUAL_OPTION_CHILDPLANE |
                NCVISUAL_OPTION_HORALIGNED |
                NCVISUAL_OPTION_VERALIGNED,
