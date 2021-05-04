@@ -2424,11 +2424,13 @@ API ALLOC struct ncvisual* ncvisual_from_plane(const struct ncplane* n,
 #define NCVISUAL_OPTION_HORALIGNED 0x0004ull // x is an alignment, not absolute
 #define NCVISUAL_OPTION_VERALIGNED 0x0008ull // y is an alignment, not absolute
 #define NCVISUAL_OPTION_ADDALPHA   0x0010ull // transcolor is in effect
+#define NCVISUAL_OPTION_CHILDPLANE 0x0020ull // interpret n as parent
 
 struct ncvisual_options {
   // if no ncplane is provided, one will be created using the exact size
   // necessary to render the source with perfect fidelity (this might be
-  // smaller or larger than the rendering area).
+  // smaller or larger than the rendering area). if NCVISUAL_OPTION_CHILDPLANE
+  // is provided, this must be non-NULL, and will be interpreted as the parent.
   struct ncplane* n;
   // the scaling is ignored if no ncplane is provided (it ought be NCSCALE_NONE
   // in this case). otherwise, the source is stretched/scaled relative to the
