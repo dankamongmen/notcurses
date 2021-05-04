@@ -13,6 +13,7 @@ int main(void){
     ncchannels_set_fg_rgb8(&c1, 0x0, 0x10 * i, 0xff);
     ncchannels_set_fg_rgb8(&c2, 0x10 * i, 0x0, 0x0);
     if(ncdirect_hline_interp(n, "-", i, c1, c2) < i){
+      ncdirect_stop(n);
       return EXIT_FAILURE;
     }
     ncdirect_set_fg_default(n);
@@ -24,12 +25,14 @@ int main(void){
     ncchannels_set_fg_rgb8(&c1, 0x0, 0x10 * i, 0xff);
     ncchannels_set_fg_rgb8(&c2, 0x10 * i, 0x0, 0x0);
     if(ncdirect_vline_interp(n, "|", i, c1, c2) < i){
+      ncdirect_stop(n);
       return EXIT_FAILURE;
     }
     ncdirect_set_fg_default(n);
     ncdirect_set_bg_default(n);
     if(i < 14){
       if(ncdirect_cursor_up(n, i)){
+        ncdirect_stop(n);
         return EXIT_FAILURE;
       }
     }
@@ -42,10 +45,12 @@ int main(void){
   ncchannels_set_fg_rgb8(&ll, 0x0, 0x0, 0xff);
   ncchannels_set_fg_rgb8(&lr, 0xff, 0x0, 0x0);
   if(ncdirect_rounded_box(n, ul, ur, ll, lr, 10, 10, 0) < 0){
+    ncdirect_stop(n);
     return EXIT_FAILURE;
   }
   ncdirect_cursor_up(n, 9);
   if(ncdirect_double_box(n, ul, ur, ll, lr, 10, 20, 0) < 0){
+    ncdirect_stop(n);
     return EXIT_FAILURE;
   }
   if(ncdirect_stop(n)){
