@@ -3149,6 +3149,8 @@ const char* notcurses_str_blitter(ncblitter_e blitter);
 #define NCVISUAL_OPTION_BLEND      0x0002ull // use CELL_ALPHA_BLEND with visual
 #define NCVISUAL_OPTION_HORALIGNED 0x0004ull // x is an alignment, not absolute
 #define NCVISUAL_OPTION_VERALIGNED 0x0008ull // y is an alignment, not absolute
+#define NCVISUAL_OPTION_ADDALPHA   0x0010ull // transcolor is transparent
+#define NCVISUAL_OPTION_CHILDPLANE 0x0020ull // new plane is child of n
 
 struct ncvisual_options {
   // if no ncplane is provided, one will be created using the exact size
@@ -3176,6 +3178,7 @@ struct ncvisual_options {
   // chosen for NCBLIT_DEFAULT.
   ncblitter_e blitter; // glyph set to use (maps input to output cells)
   uint64_t flags; // bitmask over NCVISUAL_OPTION_*
+  uint32_t transcolor; // used only if NCVISUAL_OPTION_ADDALPHA is set
 };
 
 typedef enum {

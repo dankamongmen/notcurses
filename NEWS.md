@@ -1,6 +1,10 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 2.2.10 (not yet released)
+  * Added `NCVISUAL_OPTION_CHILDPLANE` to interpret the `n` field of
+    `ncvisual_options` as a parent plane.
+
 * 2.2.9 (2021-05-03)
   * Added two new stats, `sprixelemissions` and `sprixelelisions`.
   * Added `notcurses_canhalfblock()` and `notcurses_canquadrant()`.

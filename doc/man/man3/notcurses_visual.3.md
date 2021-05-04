@@ -35,6 +35,7 @@ typedef enum {
 #define NCVISUAL_OPTION_HORALIGNED 0x0004
 #define NCVISUAL_OPTION_VERALIGNED 0x0008
 #define NCVISUAL_OPTION_ADDALPHA   0x0010
+#define NCVISUAL_OPTION_CHILDPLANE 0x0020
 
 struct ncvisual_options {
   struct ncplane* n;
@@ -121,18 +122,18 @@ maps each pixel to ***scale***x***scale*** pixels square, retaining the
 original color; it is an error if ***scale*** is less than one.
 
 **ncvisual_from_rgba** and **ncvisual_from_bgra** both require a number of
-**rows**, a number of image columns **cols**, and a virtual row length of
-**rowstride** / 4 columns. The input data must provide 32 bits per pixel, and
-thus must be at least **rowstride** * **rows** bytes, of which a
-**cols** * **rows** * 4-byte subset is used. It is not possible to **mmap(2)** an image
+***rows***, a number of image columns **cols**, and a virtual row length of
+***rowstride*** / 4 columns. The input data must provide 32 bits per pixel, and
+thus must be at least ***rowstride*** * ***rows*** bytes, of which a
+***cols*** * ***rows*** * 4-byte subset is used. It is not possible to **mmap(2)** an image
 file and use it directly--decompressed, decoded data is necessary. The
 resulting plane will be ceil(**rows**/2) rows, and **cols** columns.
-**ncvisual_from_plane** requires specification of a rectangle via **begy**,
-**begx**, **leny**, and **lenx**. The only valid characters within this
+**ncvisual_from_plane** requires specification of a rectangle via ***begy***,
+***begx***, ***leny***, and ***lenx***. The only valid characters within this
 region are those used by the **NCBLIT_2x2** blitter, though this may change
 in the future.
 
-**ncvisual_rotate** executes a rotation of **rads** radians, in the clockwise
+**ncvisual_rotate** executes a rotation of ***rads*** radians, in the clockwise
 (positive) or counterclockwise (negative) direction.
 
 **ncvisual_subtitle** will return a UTF-8-encoded subtitle corresponding to
@@ -140,17 +141,20 @@ the current frame if such a subtitle was decoded. Note that a subtitle might
 be returned for multiple frames, or might not.
 
 **ncvisual_render** blits the visual to an **ncplane**, based on the contents
-of its **struct ncvisual_options**. If **n** is not **NULL**, it specifies the
-plane on which to render, and **y**/**x** specify a location within that plane.
-Otherwise, a new plane will be created, and placed at **y**/**x** relative to
-the rendering area. **begy**/**begx** specify the upper left corner of a
-subsection of the **ncvisual** to render, while **leny**/**lenx** specify the
-geometry of same. **flags** is a bitfield over:
+of its **struct ncvisual_options**. If ***n*** is not **NULL**, it specifies the
+plane on which to render, and ***y***/***x*** specify a location within that plane.
+Otherwise, a new plane will be created, and placed at ***y***/***x*** relative to
+the rendering area. ***begy***/***begx*** specify the upper left corner of a
+subsection of the **ncvisual** to render, while ***leny***/***lenx*** specify the
+geometry of same. ***flags*** is a bitfield over:
 
 * **NCVISUAL_OPTION_NODEGRADE** If the specified blitter is not available, fail rather than degrading.
 * **NCVISUAL_OPTION_BLEND**: Render with **CELL_ALPHA_BLEND**.
 * **NCVISUAL_OPTION_HORALIGNED**: Interpret ***x*** as an **ncalign_e**.
 * **NCVISUAL_OPTION_VERALIGNED**: Interpret ***y*** as an **ncalign_e**.
+* **NCVISUAL_OPTION_ADDALPHA**: Interpret the lower 24 bits of ***transcolor***
+  as a transparent color.
+* **NCVISUAL_OPTION_CHILDPLANE**: Make a new plane, as a child of ***n***.
 
 **ncvisual_blitter_geom** allows the caller to determine any or all of the
 visual's pixel geometry, the blitter to be used, and that blitter's scaling
@@ -162,23 +166,26 @@ Code scanners, due to its 1:1 aspect ratio).
 
 # OPTIONS
 
-**begy** and **begx** specify the upper left corner of the image to start
-drawing. **leny** and **lenx** specify the area of the subimage drawn.
-**leny** and/or **lenx** may be specified as a negative number to draw
+***begy*** and ***begx*** specify the upper left corner of the image to start
+drawing. ***leny*** and ***lenx*** specify the area of the subimage drawn.
+***leny*** and/or ***lenx*** may be specified as a negative number to draw
 through the bottom right corner of the image.
 
-The **n** field specifies the plane to use. If this is **NULL**, a new plane
+The ***n*** field specifies the plane to use. If this is **NULL**, a new plane
 will be created, having the precise geometry necessary to blit the specified
 section of the image. This might be larger (or smaller) than the visual area.
 
-**y** and **x** have different meanings depending on whether or not **n** was
-**NULL**. If not (drawing onto a preexisting plane), they specify where in
-the plane to start drawing. If **n** was **NULL** (new plane), they specify
-the origin of the new plane relative to the standard plane. If the **flags**
-field contains **NCVISUAL_OPTION_HORALIGNED**, the **x** parameter is
-interpreted as an **ncalign_e** rather than an absolute position. If the
-**flags** field contains **NCVISUAL_OPTION_VERALIGNED**, the **y** parameter
-is interpreted as an **ncalign_e** rather than an absolute position.
+***y*** and ***x*** have different meanings depending on whether or not
+***n*** is **NULL**. If not (drawing onto a preexisting plane), they specify
+where in the plane to start drawing. If **n** was **NULL** (new plane), they
+specify the origin of the new plane relative to the standard plane. If the
+***flags*** field contains **NCVISUAL_OPTION_HORALIGNED**, the ***x*** parameter
+is interpreted as an **ncalign_e** rather than an absolute position. If the
+***flags*** field contains **NCVISUAL_OPTION_VERALIGNED**, the ***y*** parameter
+is interpreted as an **ncalign_e** rather than an absolute position. If the
+***flags*** field contains **NCVISUAL_OPTION_CHILDPLANE**, ***n*** must be
+non-**NULL**, and the ***x*** and ***y*** parameters are interpreted relative
+to that plane.
 
 # BLITTERS
 
