@@ -507,13 +507,94 @@ TEST_CASE("Visual") {
     }
   }
 
+  // test NCVISUAL_OPTIONS_CHILDPLANE + stretch + (null) alignment
+  SUBCASE("ImageChildScaling") {
+    struct ncplane_options opts = {
+      .y = 0, .x = 0,
+      .rows = 5, .cols = 5,
+      .userptr = nullptr,
+      .name = "parent",
+      .resizecb = nullptr,
+      .flags = 0,
+      .margin_b = 0,
+      .margin_r = 0,
+    };
+    auto parent = ncplane_create(n_, &opts);
+    REQUIRE(parent);
+    struct ncvisual_options vopts = {
+      .n = parent,
+      .scaling = NCSCALE_STRETCH,
+      .y = NCALIGN_CENTER,
+      .x = NCALIGN_CENTER,
+      .begy = 0, .begx = 0,
+      .leny = 0, .lenx = 0,
+      .blitter = NCBLIT_1x1,
+      .flags = NCVISUAL_OPTION_CHILDPLANE |
+               NCVISUAL_OPTION_HORALIGNED |
+               NCVISUAL_OPTION_VERALIGNED,
+      .transcolor = 0,
+    };
+    const uint32_t pixels[1] = { htole(0xffffffff) };
+    auto ncv = ncvisual_from_rgba(pixels, 1, 4, 1);
+    REQUIRE(ncv);
+    auto child = ncvisual_render(nc_, ncv, &vopts);
+    REQUIRE(child);
+    CHECK(5 == ncplane_dim_y(child));
+    CHECK(5 == ncplane_dim_x(child));
+    CHECK(0 == ncplane_y(child));
+    CHECK(0 == ncplane_x(child));
+    ncvisual_destroy(ncv);
+    CHECK(0 == ncplane_destroy(parent));
+    CHECK(0 == ncplane_destroy(child));
+  }
+
+  SUBCASE("ImageChildAlignment") {
+    struct ncplane_options opts = {
+      .y = 0, .x = 0,
+      .rows = 5, .cols = 5,
+      .userptr = nullptr,
+      .name = "parent",
+      .resizecb = nullptr,
+      .flags = 0,
+      .margin_b = 0,
+      .margin_r = 0,
+    };
+    auto parent = ncplane_create(n_, &opts);
+    REQUIRE(parent);
+    struct ncvisual_options vopts = {
+      .n = parent,
+      .scaling = NCSCALE_NONE,
+      .y = NCALIGN_CENTER,
+      .x = NCALIGN_CENTER,
+      .begy = 0, .begx = 0,
+      .leny = 0, .lenx = 0,
+      .blitter = NCBLIT_1x1,
+      .flags = NCVISUAL_OPTION_CHILDPLANE |
+               NCVISUAL_OPTION_HORALIGNED |
+               NCVISUAL_OPTION_VERALIGNED,
+      .transcolor = 0,
+    };
+    const uint32_t pixels[1] = { htole(0xffffffff) };
+    auto ncv = ncvisual_from_rgba(pixels, 1, 4, 1);
+    REQUIRE(ncv);
+    auto child = ncvisual_render(nc_, ncv, &vopts);
+    REQUIRE(child);
+    CHECK(1 == ncplane_dim_y(child));
+    CHECK(1 == ncplane_dim_x(child));
+    CHECK(2 == ncplane_y(child));
+    CHECK(2 == ncplane_x(child));
+    ncvisual_destroy(ncv);
+    CHECK(0 == ncplane_destroy(parent));
+    CHECK(0 == ncplane_destroy(child));
+  }
+
 #ifndef NOTCURSES_USE_MULTIMEDIA
-  SUBCASE("VisualDisabled"){
+  SUBCASE("VisualDisabled") {
     CHECK(!notcurses_canopen_images(nc_));
     CHECK(!notcurses_canopen_videos(nc_));
   }
 #else
-  SUBCASE("ImagesEnabled"){
+  SUBCASE("ImagesEnabled") {
     CHECK(notcurses_canopen_images(nc_));
   }
 
