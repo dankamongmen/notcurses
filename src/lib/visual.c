@@ -617,19 +617,20 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
 // are used to position the new plane, and reset to 0 on output. |outy| is
 // output height on output, and unused on input.
 static ncplane*
-make_sprixel_plane(notcurses* nc, ncvisual* ncv, ncscale_e scaling,
-                   int* disppixy, int* disppixx, uint64_t flags,
-                   int* outy, int* placey, int* placex){
+make_sprixel_plane(notcurses* nc, ncplane* parent, ncvisual* ncv,
+                   ncscale_e scaling, int* disppixy, int* disppixx,
+                   uint64_t flags, int* outy, int* placey, int* placex){
   if(scaling != NCSCALE_NONE && scaling != NCSCALE_NONE_HIRES){
-    // FIXME this ought be based off a specified pile
-    notcurses_term_dim_yx(nc, disppixy, disppixx);
+    ncplane_dim_yx(parent, disppixy, disppixx);
+    if(*placey + *disppixy >= ncplane_dim_y(notcurses_stdplane_const(nc))){
+      *disppixy = ncplane_dim_y(notcurses_stdplane_const(nc)) - *placey - 1;
+    }
     if(!(flags & NCVISUAL_OPTION_VERALIGNED)){
       *disppixy -= *placey;
     }
     if(!(flags & NCVISUAL_OPTION_HORALIGNED)){
       *disppixx -= *placex;
     }
-    --*disppixy; // most terminals will scroll if we blit to the last row
     *disppixx *= nc->tcache.cellpixx;
     *disppixy *= nc->tcache.cellpixy;
     clamp_to_sixelmax(&nc->tcache, disppixy, disppixx, outy, scaling);
@@ -655,7 +656,7 @@ make_sprixel_plane(notcurses* nc, ncvisual* ncv, ncscale_e scaling,
   };
 //fprintf(stderr, "PLACING NEW PLANE: %d/%d @ %d/%d 0x%016lx\n", nopts.rows, nopts.cols, nopts.y, nopts.x, nopts.flags);
   // FIXME might need some particular pile
-  ncplane* n = ncplane_create(notcurses_stdplane(nc), &nopts);
+  ncplane* n = ncplane_create(parent, &nopts);
   if(n == NULL){
     return NULL;
   }
@@ -694,8 +695,11 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
   int disppixy = 0, disppixx = 0, outy = 0;
   ncplane* createdn = NULL;
 //fprintf(stderr, "INPUT N: %p rows: %d cols: %d 0x%016lx\n", n ? n : NULL, disppixy, disppixx, flags);
-  if(n == NULL){ // create plane
-    if((createdn = make_sprixel_plane(nc, ncv, scaling, &disppixy, &disppixx,
+  if(n == NULL || (flags & NCVISUAL_OPTION_CHILDPLANE)){ // create plane
+    if(n == NULL){
+      n = notcurses_stdplane(nc); // FIXME ought allow arbitrary plane
+    }
+    if((createdn = make_sprixel_plane(nc, n, ncv, scaling, &disppixy, &disppixx,
                                       flags, &outy, &placey, &placex)) == NULL){
       return NULL;
     }
