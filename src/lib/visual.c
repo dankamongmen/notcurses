@@ -90,8 +90,12 @@ ncvisual_blitset_geom(const notcurses* nc, const ncvisual* n,
   if(lenx == NULL){
     lenx = &fakelenx;
   }
-  if(vopts && vopts->flags >= (NCVISUAL_OPTION_ADDALPHA << 1u)){
+  if(vopts && vopts->flags >= (NCVISUAL_OPTION_CHILDPLANE << 1u)){
     logwarn(nc, "Warning: unknown ncvisual options %016jx\n", (uintmax_t)vopts->flags);
+  }
+  if(vopts && (vopts->flags & NCVISUAL_OPTION_CHILDPLANE) && !vopts->n){
+    logerror(nc, "Requested child plane with NULL n\n");
+    return -1;
   }
   int begy, begx;
   ncvisual_origin(vopts, &begy, &begx);
@@ -524,12 +528,15 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
   int disprows, dispcols;
   ncplane* createdn = NULL;
 //fprintf(stderr, "INPUT N: %p\n", n);
-  if(n == NULL){ // create plane
+  if(n == NULL || (flags & NCVISUAL_OPTION_CHILDPLANE)){ // create plane
+    if(n == NULL){
+      n = notcurses_stdplane(nc);
+    }
     if(scaling == NCSCALE_NONE || scaling == NCSCALE_NONE_HIRES){
       dispcols = ncv->pixx;
       disprows = ncv->pixy;
     }else{
-      notcurses_term_dim_yx(nc, &disprows, &dispcols);
+      ncplane_dim_yx(n, &disprows, &dispcols);
       dispcols *= encoding_x_scale(&nc->tcache, bset);
       disprows *= encoding_y_scale(&nc->tcache, bset);
       if(scaling == NCSCALE_SCALE || scaling == NCSCALE_SCALE_HIRES){
@@ -555,7 +562,7 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
     if(flags & NCVISUAL_OPTION_VERALIGNED){
       nopts.flags |= NCPLANE_OPTION_VERALIGNED;
     }
-    if((n = ncplane_create(notcurses_stdplane(nc), &nopts)) == NULL){
+    if((n = ncplane_create(n, &nopts)) == NULL){
       return NULL;
     }
     createdn = n;
