@@ -62,7 +62,6 @@ static int
 textplay(struct notcurses* nc, struct ncplane* tplane, struct ncvisual* ncv){
   char* buf = NULL;
   size_t buflen = 1;
-  int c;
   struct ncplane* stdn = notcurses_stdplane(nc);
   ncplane_set_scrolling(tplane, true);
   struct ncvisual_options vopts = {
@@ -71,20 +70,29 @@ textplay(struct notcurses* nc, struct ncplane* tplane, struct ncvisual* ncv){
     .blitter = NCBLIT_PIXEL,
   };
   ncplane_move_below(vopts.n, tplane);
-  while((c = getc(stdin)) != EOF){
+  wint_t wc;
+  while((wc = getwc(stdin)) != WEOF){
     if(ncv){
       if(ncvisual_render(nc, ncv, &vopts) == NULL){
         return -1;
       }
     }
     ncplane_erase(tplane);
-    char* tmp = realloc(buf, buflen + 1);
+    char conv[7];
+    mbstate_t mbs = {};
+    size_t w = wcrtomb(conv, wc, &mbs);
+    if(w == (size_t)-1){
+      goto err;
+    }
+    conv[w] = '\0';
+fprintf(stderr, "CONVERTED %zu: %s\n", w, conv);
+    char* tmp = realloc(buf, buflen + w);
     if(tmp == NULL){
-      return -1;
+      goto err;
     }
     buf = tmp;
-    buf[buflen - 1] = c;
-    buf[buflen++] = '\0';
+    strcpy(buf + buflen - 1, conv);
+    buflen += w;
     int pt = ncplane_puttext(tplane, 0, NCALIGN_LEFT, buf, NULL);
     if(pt < 0){
       goto err;
@@ -93,7 +101,7 @@ textplay(struct notcurses* nc, struct ncplane* tplane, struct ncvisual* ncv){
       goto err;
     }
     if(notcurses_render(nc)){
-      return -1;
+      goto err;
     }
     struct timespec ts = {
       .tv_sec = 0, .tv_nsec = NANOSEC,
