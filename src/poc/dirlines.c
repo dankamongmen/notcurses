@@ -53,6 +53,7 @@ int main(void){
     ncdirect_stop(n);
     return EXIT_FAILURE;
   }
+  printf("\n");
   if(ncdirect_stop(n)){
     return EXIT_FAILURE;
   }

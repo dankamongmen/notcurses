@@ -36,91 +36,6 @@ int ncdirect_putstr(ncdirect* nc, uint64_t channels, const char* utf8){
   return fprintf(nc->ttyfp, "%s", utf8);
 }
 
-int ncdirect_cursor_up(ncdirect* nc, int num){
-  if(num < 0){
-    return -1;
-  }
-  if(!nc->tcache.cuu){
-    return -1;
-  }
-  return term_emit(tiparm(nc->tcache.cuu, num), nc->ttyfp, false);
-}
-
-int ncdirect_cursor_left(ncdirect* nc, int num){
-  if(num < 0){
-    return -1;
-  }
-  if(!nc->tcache.cub){
-    return -1;
-  }
-  return term_emit(tiparm(nc->tcache.cub, num), nc->ttyfp, false);
-}
-
-int ncdirect_cursor_right(ncdirect* nc, int num){
-  if(num < 0){
-    return -1;
-  }
-  if(!nc->tcache.cuf){ // FIXME fall back to cuf1
-    return -1;
-  }
-  return term_emit(tiparm(nc->tcache.cuf, num), nc->ttyfp, false);
-}
-
-int ncdirect_cursor_down(ncdirect* nc, int num){
-  if(num < 0){
-    return -1;
-  }
-  if(!nc->tcache.cud){
-    return -1;
-  }
-  return term_emit(tiparm(nc->tcache.cud, num), nc->ttyfp, false);
-}
-
-int ncdirect_clear(ncdirect* nc){
-  if(!nc->tcache.clearscr){
-    return -1; // FIXME scroll output off the screen
-  }
-  return term_emit(nc->tcache.clearscr, nc->ttyfp, true);
-}
-
-int ncdirect_dim_x(const ncdirect* nc){
-  int x;
-  if(nc->ctermfd >= 0){
-    if(update_term_dimensions(nc->ctermfd, NULL, &x, NULL) == 0){
-      return x;
-    }
-  }else{
-    return 80; // lol
-  }
-  return -1;
-}
-
-int ncdirect_dim_y(const ncdirect* nc){
-  int y;
-  if(nc->ctermfd >= 0){
-    if(update_term_dimensions(nc->ctermfd, &y, NULL, NULL) == 0){
-      return y;
-    }
-  }else{
-    return 24; // lol
-  }
-  return -1;
-}
-
-int ncdirect_cursor_enable(ncdirect* nc){
-  if(!nc->tcache.cnorm){
-    return -1;
-  }
-  return term_emit(nc->tcache.cnorm, nc->ttyfp, true);
-}
-
-int ncdirect_cursor_disable(ncdirect* nc){
-  if(!nc->tcache.civis){
-    return -1;
-  }
-  return term_emit(nc->tcache.civis, nc->ttyfp, true);
-}
-
 static int
 cursor_yx_get(int ttyfd, int* y, int* x){
   if(writen(ttyfd, "\033[6n", 4) != 4){
@@ -183,6 +98,105 @@ cursor_yx_get(int ttyfd, int* y, int* x){
     *x = column;
   }
   return 0;
+}
+
+int ncdirect_cursor_up(ncdirect* nc, int num){
+  if(num < 0){
+    return -1;
+  }
+  if(num == 0){
+    return 0;
+  }
+  if(!nc->tcache.cuu){
+    return -1;
+  }
+  return term_emit(tiparm(nc->tcache.cuu, num), nc->ttyfp, false);
+}
+
+int ncdirect_cursor_left(ncdirect* nc, int num){
+  if(num < 0){
+    return -1;
+  }
+  if(num == 0){
+    return 0;
+  }
+  if(!nc->tcache.cub){
+    return -1;
+  }
+  return term_emit(tiparm(nc->tcache.cub, num), nc->ttyfp, false);
+}
+
+int ncdirect_cursor_right(ncdirect* nc, int num){
+  if(num < 0){
+    return -1;
+  }
+  if(num == 0){
+    return 0;
+  }
+  if(!nc->tcache.cuf){ // FIXME fall back to cuf1
+    return -1;
+  }
+  return term_emit(tiparm(nc->tcache.cuf, num), nc->ttyfp, false);
+}
+
+// if we're on the last line, we need some scrolling action.
+int ncdirect_cursor_down(ncdirect* nc, int num){
+
+  if(num < 0){
+    return -1;
+  }
+  if(num == 0){
+    return 0;
+  }
+  if(!nc->tcache.cud){
+    return -1;
+  }
+  return term_emit(tiparm(nc->tcache.cud, num), nc->ttyfp, false);
+}
+
+int ncdirect_clear(ncdirect* nc){
+  if(!nc->tcache.clearscr){
+    return -1; // FIXME scroll output off the screen
+  }
+  return term_emit(nc->tcache.clearscr, nc->ttyfp, true);
+}
+
+int ncdirect_dim_x(const ncdirect* nc){
+  int x;
+  if(nc->ctermfd >= 0){
+    if(update_term_dimensions(nc->ctermfd, NULL, &x, NULL) == 0){
+      return x;
+    }
+  }else{
+    return 80; // lol
+  }
+  return -1;
+}
+
+int ncdirect_dim_y(const ncdirect* nc){
+  int y;
+  if(nc->ctermfd >= 0){
+    if(update_term_dimensions(nc->ctermfd, &y, NULL, NULL) == 0){
+      return y;
+    }
+  }else{
+    return 24; // lol
+  }
+  return -1;
+}
+
+int ncdirect_cursor_enable(ncdirect* nc){
+  if(!nc->tcache.cnorm){
+    return -1;
+  }
+  return term_emit(nc->tcache.cnorm, nc->ttyfp, true);
+}
+
+int ncdirect_cursor_disable(ncdirect* nc){
+  if(!nc->tcache.civis){
+    return -1;
+  }
+  return term_emit(nc->tcache.civis, nc->ttyfp, true);
 }
 
 // if we're lacking hpa/vpa, *and* -1 is passed for one of x/y, *and* we've
