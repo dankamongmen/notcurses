@@ -118,7 +118,10 @@ impl NcVisual {
                     cols as i32,
                 )
             },
-            "NcVisual::from_bgra()"
+            &format![
+                "NcVisual::from_bgra(bgra, {}, {}, {})",
+                rows, rowstride, cols
+            ]
         ]
     }
 
@@ -163,7 +166,7 @@ impl NcVisual {
                 )
             },
             &format!(
-                "NcVisual::from_file({}, {}, {}, {}, {})",
+                "NcVisual::from_file(plane, {}, {}, {}, {}, {})",
                 blitter, beg_y, beg_x, len_y, len_x
             )
         ]
@@ -195,7 +198,10 @@ impl NcVisual {
                     cols as i32,
                 )
             },
-            &format!("NcVisual::from_rgba({}, {}, {})", rows, rowstride, cols)
+            &format!(
+                "NcVisual::from_rgba(rgba, {}, {}, {})",
+                rows, rowstride, cols
+            )
         ]
     }
 

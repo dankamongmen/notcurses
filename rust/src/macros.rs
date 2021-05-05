@@ -205,7 +205,7 @@ macro_rules! error_ref_mut {
 #[macro_export]
 macro_rules! error_str {
     ($str:expr, $msg:expr) => {
-        if $str.is_null() {
+        if !$str.is_null() {
             #[allow(unused_unsafe)]
             return Ok(unsafe { (&*$str).to_string() });
         } else {
