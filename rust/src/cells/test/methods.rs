@@ -1,6 +1,6 @@
 //! Test `NcCell` methods and associated functions.
 
-use crate::{Notcurses, NcCell, NcPlane};
+use crate::{NcCell, NcPlane, Notcurses};
 
 use serial_test::serial;
 

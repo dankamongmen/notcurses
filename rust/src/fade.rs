@@ -32,7 +32,7 @@ impl NcFadeCtx {
     /// Rather than the simple ncplane_fade{in/out}(),
     /// ncfadectx_setup() can be paired with a loop over
     /// ncplane_fade{in/out}_iteration() + ncfadectx_free().
-    pub fn setup<'a>(plane: &'a mut NcPlane) -> &'a mut NcFadeCtx {
+    pub fn setup(plane: &mut NcPlane) -> &mut NcFadeCtx {
         unsafe { &mut *crate::ncfadectx_setup(plane) }
     }
 

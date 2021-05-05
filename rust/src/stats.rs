@@ -8,7 +8,7 @@ pub type NcStats = crate::bindings::ffi::ncstats;
 /// # `NcStats` Methods.
 impl NcStats {
     /// Allocates an NcStats object.
-    pub fn new<'a>(nc: &'a Notcurses) -> &'a mut Self {
+    pub fn new(nc: &mut Notcurses) -> &mut Self {
         unsafe { &mut *crate::notcurses_stats_alloc(nc) }
     }
 

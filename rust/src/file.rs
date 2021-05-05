@@ -7,13 +7,17 @@ use core::ptr::{null_mut, NonNull};
 
 use std::io::{Error, ErrorKind, Read, Seek, SeekFrom};
 
-use libc::{c_long, c_void, fclose, feof, fread, fseek, ftell, SEEK_CUR, SEEK_END, SEEK_SET};
+use libc::{
+    c_long, c_void, fclose, /* feof, */ fread, fseek, ftell, SEEK_CUR, SEEK_END, SEEK_SET,
+};
 
 /// See [NcFile]. Notcurses functions expects this type of `*FILE` (a struct)
+#[allow(clippy::upper_case_acronyms)]
 pub type FILE_NC = crate::ffi::_IO_FILE;
 
 /// See [NcFile]. The [`libc`](https://docs.rs/libc/) crate expects this type
 /// of `*FILE` (an opaque enum)
+#[allow(clippy::upper_case_acronyms)]
 pub type FILE_LIBC = libc::FILE;
 
 // TODO: the following static strings aren't made public
@@ -22,34 +26,34 @@ pub type FILE_LIBC = libc::FILE;
 /// It will open the file in a way that will allow reading and writing,
 /// including overwriting old data.
 /// It will not create the file if it does not exist.
-pub static RANDOM_ACCESS_MODE: &'static str = "rb+";
+pub static RANDOM_ACCESS_MODE: &str = "rb+";
 
 /// Intended to be passed into the CFile::open method.
 /// It will open the file in a way that will allow reading and writing,
 /// including overwriting old data
-pub static UPDATE: &'static str = "rb+";
+pub static UPDATE: &str = "rb+";
 
 /// Intended to be passed into the CFile::open method.
 /// It will only allow reading.
-pub static READ_ONLY: &'static str = "r";
+pub static READ_ONLY: &str = "r";
 
 /// Intended to be passed into the CFile::open method.
 /// It will only allow writing.
-pub static WRITE_ONLY: &'static str = "w";
+pub static WRITE_ONLY: &str = "w";
 
 /// Intended to be passed into the CFile::open method.
 /// It will only allow data to be appended to the end of the file.
-pub static APPEND_ONLY: &'static str = "a";
+pub static APPEND_ONLY: &str = "a";
 
 /// Intended to be passed into the CFile::open method.
 /// It will allow data to be appended to the end of the file, and data to be
 /// read from the file. It will create the file if it doesn't exist.
-pub static APPEND_READ: &'static str = "a+";
+pub static APPEND_READ: &str = "a+";
 
 /// Intended to be passed into the CFile::open method.
 /// It will open the file in a way that will allow reading and writing,
 /// including overwriting old data. It will create the file if it doesn't exist
-pub static TRUNCATE_RANDOM_ACCESS_MODE: &'static str = "wb+";
+pub static TRUNCATE_RANDOM_ACCESS_MODE: &str = "wb+";
 
 /// A utility function to pull the current value of errno and put it into an
 /// Error::Errno
@@ -83,9 +87,9 @@ impl NcFile {
     }
 
     /// `NcFile` constructor from a file produced by the libc crate
-    pub fn from_libc(file: *mut FILE_LIBC) -> Self {
+    pub unsafe fn from_libc(file: *mut FILE_LIBC) -> Self {
         NcFile {
-            file_ptr: unsafe { NonNull::new_unchecked(file) },
+            file_ptr: NonNull::new_unchecked(file),
         }
     }
 
@@ -265,11 +269,13 @@ impl Read for NcFile {
                 Ok(())
             } else {
                 // Check if we hit the end of the file
-                if feof(self.as_libc_ptr()) != 0 {
-                    get_error()
-                } else {
-                    get_error()
-                }
+                // FIXME
+                // if feof(self.as_libc_ptr()) != 0 {
+                //     get_error()
+                // } else {
+                //     get_error()
+                // }
+                get_error()
             }
         }
     }

@@ -4,9 +4,8 @@ use core::ptr::null_mut;
 
 use crate::ffi::__va_list_tag;
 use crate::{
-    cstring, nccell_release, NcAlign, NcAlphaBits, NcBoxMask, NcCell, NcChannel,
-    NcChannelPair, NcColor, NcDim, NcEgc, NcIntResult, NcPlane, NcRgb, NcStyleMask, NCRESULT_ERR,
-    NCRESULT_OK,
+    cstring, nccell_release, NcAlign, NcAlphaBits, NcBoxMask, NcCell, NcChannel, NcChannelPair,
+    NcColor, NcDim, NcEgc, NcIntResult, NcPlane, NcRgb, NcStyleMask, NCRESULT_ERR, NCRESULT_OK,
 };
 
 // Alpha -----------------------------------------------------------------------
@@ -78,7 +77,6 @@ pub fn ncplane_channels(plane: &NcPlane) -> NcChannelPair {
 pub fn ncplane_set_channels(plane: &mut NcPlane, channels: NcChannelPair) {
     unsafe { crate::ffi::ncplane_set_channels(plane, channels) };
 }
-
 
 // NcColor ---------------------------------------------------------------------
 

@@ -1,5 +1,3 @@
-use core::ptr::null_mut;
-
 use crate::{
     error, error_ref_mut, nctree_create, NcError, NcInput, NcPlane, NcResult, NcTree, NcTreeItem,
     NcTreeOptions, NCRESULT_ERR,
@@ -38,8 +36,8 @@ impl NcTree {
     // /// *C style function: [nctree_goto()][crate::nctree_goto].*
     // pub fn goto(&mut self, spec: ... , failspec: ...) -> NcResult<&mut NcTreeItem> {
     //     let res = unsafe { crate::nctree_goto(self) };
-    //     if res != null_mut() {
-    //         return Ok(unsafe { &mut *(res as *mut NcTreeItem) });
+    //     if !res.is_null() {
+    //         Ok(unsafe { &mut *(res as *mut NcTreeItem) })
     //     } else {
     //         Err(NcError::with_msg(NCRESULT_ERR, "NcTree.goto()"))
     //     }
@@ -53,8 +51,8 @@ impl NcTree {
     /// *C style function: [nctree_focused()][crate::nctree_focused].*
     pub fn focused(&mut self) -> NcResult<&mut NcTreeItem> {
         let res = unsafe { crate::nctree_focused(self) };
-        if res != null_mut() {
-            return Ok(unsafe { &mut *(res as *mut NcTreeItem) });
+        if !res.is_null() {
+            Ok(unsafe { &mut *(res as *mut NcTreeItem) })
         } else {
             Err(NcError::with_msg(NCRESULT_ERR, "NcTree.focused()"))
         }
@@ -63,10 +61,11 @@ impl NcTree {
     /// Changes the focus to the next item, and returns it.
     ///
     /// *C style function: [nctree_next()][crate::nctree_next].*
+    #[allow(clippy::should_implement_trait)]
     pub fn next(&mut self) -> NcResult<&mut NcTreeItem> {
         let res = unsafe { crate::nctree_next(self) };
-        if res != null_mut() {
-            return Ok(unsafe { &mut *(res as *mut NcTreeItem) });
+        if !res.is_null() {
+            Ok(unsafe { &mut *(res as *mut NcTreeItem) })
         } else {
             Err(NcError::with_msg(NCRESULT_ERR, "NcTree.next()"))
         }
@@ -77,8 +76,8 @@ impl NcTree {
     /// *C style function: [nctree_prev()][crate::nctree_prev].*
     pub fn prev(&mut self) -> NcResult<&mut NcTreeItem> {
         let res = unsafe { crate::nctree_prev(self) };
-        if res != null_mut() {
-            return Ok(unsafe { &mut *(res as *mut NcTreeItem) });
+        if !res.is_null() {
+            Ok(unsafe { &mut *(res as *mut NcTreeItem) })
         } else {
             Err(NcError::with_msg(NCRESULT_ERR, "NcTree.prev()"))
         }

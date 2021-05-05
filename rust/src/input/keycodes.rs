@@ -1,4 +1,5 @@
 //! Special composed key definitions. These values are added to 0x100000.
+#![allow(clippy::transmute_int_to_char)]
 
 use std::mem::transmute;
 

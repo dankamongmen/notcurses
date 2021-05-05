@@ -157,10 +157,11 @@ impl NcMenu {
             ninput = null_mut();
         }
         let res = unsafe { crate::ncmenu_selected(self, ninput) };
-        if res != null_mut() {
-            return Some(unsafe { (&*res).to_string() });
+        if !res.is_null() {
+            Some(unsafe { (&*res).to_string() })
+        } else {
+            None
         }
-        None
     }
 
     /// Unrolls the specified [NcMenuSection][crate::NcMenuSection],

@@ -156,7 +156,7 @@ impl Notcurses {
     /// Returns the bottommost [NcPlane], of which there is always at least one.
     ///
     /// *C style function: [notcurses_bottom()][crate::notcurses_bottom].*
-    pub fn bottom<'a>(&'a mut self) -> &'a mut NcPlane {
+    pub fn bottom(&mut self) -> &mut NcPlane {
         unsafe { &mut *crate::notcurses_bottom(self) }
     }
 
@@ -259,14 +259,13 @@ impl Notcurses {
     /// Must not be called concurrently with either input or rasterization.
     ///
     /// *C style function: [notcurses_check_pixel_support()][crate::notcurses_check-pixel_support].*
+    #[allow(clippy::wildcard_in_or_patterns)]
     pub fn check_pixel_support(&mut self) -> NcResult<bool> {
         let res = unsafe { crate::notcurses_check_pixel_support(self) };
         match res {
-            0 => return Ok(false),
-            1 => return Ok(true),
-            NCRESULT_ERR | _ => {
-                return Err(NcError::with_msg(res, "Notcuses.check_pixel_support()"));
-            }
+            0 => Ok(false),
+            1 => Ok(true),
+            NCRESULT_ERR | _ => Err(NcError::with_msg(res, "Notcuses.check_pixel_support()")),
         }
     }
 
@@ -396,7 +395,7 @@ impl Notcurses {
 
         // An invalid read is indicated with -1
         if res as u32 as i32 != -1 {
-            return Ok(res);
+            Ok(res)
         } else {
             error![
                 -1,
@@ -586,7 +585,7 @@ impl Notcurses {
     /// Notcurses might enlarge this structure.
     ///
     /// *C style function: [notcurses_stats_alloc()][crate::notcurses_stats_alloc].*
-    pub fn stats_alloc<'a>(&'a mut self) -> &'a mut NcStats {
+    pub fn stats_alloc(&mut self) -> &mut NcStats {
         unsafe { &mut *crate::notcurses_stats_alloc(self) }
     }
 
@@ -690,7 +689,7 @@ impl Notcurses {
     /// Returns the topmost [NcPlane], of which there is always at least one.
     ///
     /// *C style function: [notcurses_top()][crate::notcurses_top].*
-    pub fn top<'a>(&'a mut self) -> &'a mut NcPlane {
+    pub fn top(&mut self) -> &mut NcPlane {
         unsafe { &mut *crate::notcurses_top(self) }
     }
 

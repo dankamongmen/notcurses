@@ -297,14 +297,13 @@ impl NcDirect {
     /// Must not be called concurrently with either input or rasterization.
     ///
     /// *C style function: [ncdirect_check_pixel_support()][crate::ncdirect_check-pixel_support].*
+    #[allow(clippy::wildcard_in_or_patterns)]
     pub fn check_pixel_support(&mut self) -> NcResult<bool> {
         let res = unsafe { crate::ncdirect_check_pixel_support(self) };
         match res {
-            0 => return Ok(false),
-            1 => return Ok(true),
-            NCRESULT_ERR | _ => {
-                return Err(NcError::with_msg(res, "NcDirect.check_pixel_support()"));
-            }
+            0 => Ok(false),
+            1 => Ok(true),
+            NCRESULT_ERR | _ => Err(NcError::with_msg(res, "NcDirect.check_pixel_support()")),
         }
     }
 
@@ -552,7 +551,7 @@ impl NcDirect {
     /// *C style function: [ncdirect_readline()][crate::ncdirect_readline].*
     pub fn readline(&mut self, prompt: &str) -> NcResult<&str> {
         let res = unsafe { crate::ncdirect_readline(self, cstring![prompt]) };
-        if res != null_mut() {
+        if !res.is_null() {
             return Ok(rstring![res]);
         } else {
             Err(NcError::with_msg(

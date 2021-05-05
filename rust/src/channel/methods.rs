@@ -1,4 +1,5 @@
 //! `NcChannel*` methods and associated functions.
+#![allow(clippy::unnecessary_cast)]
 
 use crate::{NcAlphaBits, NcChannel, NcChannelPair, NcColor, NcPaletteIndex, NcRgb};
 

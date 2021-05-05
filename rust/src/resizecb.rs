@@ -14,7 +14,7 @@ pub type NcResizeCbUnsafe = unsafe extern "C" fn(*mut NcPlane) -> NcIntResult;
 /// Converts [NcResizeCbUnsafe] to [NcResizeCb].
 pub fn ncresizecb_to_rust(resizecb: Option<NcResizeCbUnsafe>) -> Option<NcResizeCb> {
     if let Some(cb) = resizecb {
-        return Some(unsafe { core::mem::transmute(cb) });
+        Some(unsafe { core::mem::transmute(cb) })
     } else {
         None
     }
@@ -26,7 +26,7 @@ pub fn ncresizecb_to_rust(resizecb: Option<NcResizeCbUnsafe>) -> Option<NcResize
 // to make this function const, and then NcPlaneOptions constructors.
 pub fn ncresizecb_to_c(resizecb: Option<NcResizeCb>) -> Option<NcResizeCbUnsafe> {
     if let Some(cb) = resizecb {
-        return Some(unsafe { core::mem::transmute(cb) });
+        Some(unsafe { core::mem::transmute(cb) })
     } else {
         None
     }

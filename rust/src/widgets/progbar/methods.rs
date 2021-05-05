@@ -45,7 +45,7 @@ impl NcProgBar {
     /// Return a reference to the ncprogbar's underlying ncplane.
     ///
     /// *C style function: [ncprogbar_plane()][crate::ncprogbar_plane].*
-    pub fn plane<'a>(&'a mut self) -> &'a mut NcPlane {
+    pub fn plane(&mut self) -> &mut NcPlane {
         unsafe { &mut *crate::ncprogbar_plane(self) }
     }
 

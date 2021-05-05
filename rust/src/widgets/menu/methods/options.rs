@@ -18,7 +18,7 @@ impl NcMenuOptions {
         style_sections: NcChannelPair,
         flags: u64,
     ) -> Self {
-        assert![sections.len() > 0];
+        assert![!sections.is_empty()];
         Self {
             // array of 'sectioncount' `MenuSection`s
             sections: sections.as_mut_ptr(),
@@ -33,7 +33,7 @@ impl NcMenuOptions {
             sectionchannels: style_sections,
 
             // flag word of NCMENU_OPTION_*
-            flags: flags,
+            flags,
         }
     }
 }
@@ -50,7 +50,7 @@ impl NcMenuOptions {
     /// Returns a mutable reference of the styling for the sections.
     ///
     /// *(No equivalent C style function)*
-    pub fn header_channels_mut<'a>(&'a mut self) -> &'a mut NcChannelPair {
+    pub fn header_channels_mut(&mut self) -> &mut NcChannelPair {
         &mut self.headerchannels
     }
 
@@ -64,7 +64,7 @@ impl NcMenuOptions {
     /// Returns a mutable reference of the styling for the sections.
     ///
     /// *(No equivalent C style function)*
-    pub fn section_channels_mut<'a>(&'a mut self) -> &'a mut NcChannelPair {
+    pub fn section_channels_mut(&mut self) -> &mut NcChannelPair {
         &mut self.sectionchannels
     }
 }

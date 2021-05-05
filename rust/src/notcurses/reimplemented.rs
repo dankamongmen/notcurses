@@ -46,7 +46,7 @@ pub fn notcurses_getc_nblock(nc: &mut Notcurses, input: &mut NcInput) -> char {
             tv_sec: 0,
             tv_nsec: 0,
         };
-        core::char::from_u32_unchecked(crate::notcurses_getc(nc, &ts, &mut sigmask, input))
+        core::char::from_u32_unchecked(crate::notcurses_getc(nc, &ts, &sigmask, input))
     }
 }
 
@@ -68,7 +68,7 @@ pub fn notcurses_getc_blocking(nc: &mut Notcurses, input: Option<&mut NcInput>) 
     unsafe {
         let mut sigmask = NcSignalSet::new();
         sigmask.emptyset();
-        core::char::from_u32_unchecked(crate::notcurses_getc(nc, null(), &mut sigmask, input_ptr))
+        core::char::from_u32_unchecked(crate::notcurses_getc(nc, null(), &sigmask, input_ptr))
     }
 }
 
@@ -84,7 +84,7 @@ pub fn notcurses_stddim_yx<'a>(
 ) -> NcResult<&'a mut NcPlane> {
     unsafe {
         let sp = crate::notcurses_stdplane(nc);
-        if sp != null_mut() {
+        if !sp.is_null() {
             crate::ncplane_dim_yx(sp, &mut (*y as i32), &mut (*x as i32));
             return Ok(&mut *sp);
         }
@@ -104,7 +104,7 @@ pub fn notcurses_stddim_yx_const<'a>(
 ) -> NcResult<&'a NcPlane> {
     unsafe {
         let sp = crate::notcurses_stdplane_const(nc);
-        if sp != null() {
+        if !sp.is_null() {
             crate::ncplane_dim_yx(sp, &mut (*y as i32), &mut (*x as i32));
             return Ok(&*sp);
         }

@@ -12,6 +12,7 @@ use crate::NcChannel;
 impl NcCell {
     /// New NcCell, expects a 7-bit [char].
     #[inline]
+    #[allow(clippy::unnecessary_cast)]
     pub const fn with_char7b(ch: char) -> Self {
         NcCell {
             gcluster: (ch as u32).to_le(),

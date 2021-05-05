@@ -84,7 +84,6 @@ fn channel_set() {
     assert_eq!(false, crate::ncchannel_default_p(c));
 }
 
-
 /// gets the alpha component
 #[test]
 #[serial]
@@ -128,11 +127,14 @@ fn channel_set_default() {
     assert_eq!(0x_20_112233, channel_transp); // the transparent bit is now set
 
     crate::ncchannel_set_not_default(&mut channel_transp);
-     // both the "not default" & transparent bits are now set
+    // both the "not default" & transparent bits are now set
     assert_eq!(0x_60_112233, channel_transp);
 
     // and calling set_default() should make it both default & opaque again
-    assert_eq!(0x_00_112233, crate::ncchannel_set_default(&mut channel_transp));
+    assert_eq!(
+        0x_00_112233,
+        crate::ncchannel_set_default(&mut channel_transp)
+    );
 }
 
 /// sets the channel as *not* using the default color
@@ -169,7 +171,7 @@ fn channel_default_p() {
 
 // NcChannelPair tests ---------------------------------------------------------
 
-/// 
+///
 #[test]
 #[serial]
 #[allow(non_snake_case)]
@@ -180,7 +182,7 @@ fn channels_set_fchannel__channels_fchannel() {
     assert_eq!(crate::ncchannels_fchannel(cp), fc);
 }
 
-/// 
+///
 #[test]
 #[serial]
 #[allow(non_snake_case)]
@@ -191,7 +193,7 @@ fn channels_set_bchannel__channels_bchannel() {
     assert_eq!(crate::ncchannels_bchannel(cp), bc);
 }
 
-/// 
+///
 #[test]
 #[serial]
 fn channels_combine() {
@@ -205,7 +207,7 @@ fn channels_combine() {
     assert_eq!(cp1, _cp2);
 }
 
-/// 
+///
 #[test]
 #[serial]
 fn channels_palette() {

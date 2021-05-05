@@ -285,12 +285,7 @@ impl NcPlane {
     #[inline]
     pub fn fg_rgb8(&self) -> (NcColor, NcColor, NcColor) {
         let (mut r, mut g, mut b) = (0, 0, 0);
-        let _ = crate::ncchannels_fg_rgb8(
-            crate::ncplane_channels(self),
-            &mut r,
-            &mut g,
-            &mut b,
-        );
+        let _ = crate::ncchannels_fg_rgb8(crate::ncplane_channels(self), &mut r, &mut g, &mut b);
         (r, g, b)
     }
 
@@ -300,12 +295,7 @@ impl NcPlane {
     #[inline]
     pub fn bg_rgb8(&self) -> (NcColor, NcColor, NcColor) {
         let (mut r, mut g, mut b) = (0, 0, 0);
-        let _ = crate::ncchannels_bg_rgb8(
-            crate::ncplane_channels(self),
-            &mut r,
-            &mut g,
-            &mut b,
-        );
+        let _ = crate::ncchannels_bg_rgb8(crate::ncplane_channels(self), &mut r, &mut g, &mut b);
         (r, g, b)
     }
 
@@ -831,7 +821,7 @@ impl NcPlane {
         let cols = self.putstr(string)?;
         let (y, _x) = self.cursor_yx();
         self.cursor_move_yx(y + 1, 0)?;
-        return Ok(cols);
+        Ok(cols)
     }
 
     /// Same as [putstr_yx()][NcPlane#method.putstr_yx] but [NcAlign]ed on x.
@@ -929,14 +919,14 @@ impl NcPlane {
     /// *C style function: [ncplane_dup()][crate::ncplane_dup].*
     //
     // TODO: deal with the opaque field.
-    pub fn dup<'a>(&'a mut self) -> &'a mut NcPlane {
+    pub fn dup(&mut self) -> &mut NcPlane {
         unsafe { &mut *crate::ncplane_dup(self, null_mut()) }
     }
 
     /// Returns the topmost NcPlane of the current pile.
     ///
     /// *C style function: [ncpile_top()][crate::ncpile_top].*
-    pub fn top<'a>(&mut self) -> &'a mut NcPlane {
+    pub fn top(&mut self) -> &mut NcPlane {
         unsafe { &mut *crate::ncpile_top(self) }
     }
 
@@ -994,14 +984,14 @@ impl NcPlane {
     /// Returns the NcPlane above this one, or None if already at the top.
     ///
     /// *C style function: [ncplane_above()][crate::ncplane_above].*
-    pub fn above<'a>(&'a mut self) -> NcResult<&'a mut NcPlane> {
+    pub fn above(&mut self) -> NcResult<&mut NcPlane> {
         error_ref_mut![unsafe { crate::ncplane_above(self) }, "NcPlane.above()"]
     }
 
     /// Returns the NcPlane below this one, or None if already at the bottom.
     ///
     /// *C style function: [ncplane_below()][crate::ncplane_below].*
-    pub fn below<'a>(&'a mut self) -> NcResult<&'a mut NcPlane> {
+    pub fn below(&mut self) -> NcResult<&mut NcPlane> {
         error_ref_mut![unsafe { crate::ncplane_below(self) }, "NcPlane.below()"]
     }
 
@@ -1098,7 +1088,7 @@ impl NcPlane {
     /// *C style function: [ncplane_parent()][crate::ncplane_parent].*
     //
     // TODO: CHECK: what happens when it's bound to itself.
-    pub fn parent<'a>(&'a mut self) -> NcResult<&'a mut NcPlane> {
+    pub fn parent(&mut self) -> NcResult<&mut NcPlane> {
         error_ref_mut![unsafe { crate::ncplane_parent(self) }, "NcPlane.parent()"]
     }
 
@@ -1107,7 +1097,7 @@ impl NcPlane {
     /// *C style function: [ncplane_parent_const()][crate::ncplane_parent_const].*
     //
     // CHECK: what happens when it's bound to itself.
-    pub fn parent_const<'a>(&'a self) -> NcResult<&'a NcPlane> {
+    pub fn parent_const(&self) -> NcResult<&NcPlane> {
         error_ref![
             unsafe { crate::ncplane_parent_const(self) },
             "NcPlane.parent_const()"
@@ -1155,7 +1145,7 @@ impl NcPlane {
     /// rendered (doing so will likely result in a blank screen).
     ///
     /// *C style function: [ncpile_rasterize()][crate::ncpile_rasterize].*
-    pub fn rasterize<'a>(&mut self) -> NcResult<()> {
+    pub fn rasterize(&mut self) -> NcResult<()> {
         error![
             unsafe { crate::ncpile_rasterize(self) },
             "NcPlane.rasterize()"
@@ -1167,7 +1157,7 @@ impl NcPlane {
     /// To actually write out the render, call ncpile_rasterize().
     ///
     /// *C style function: [ncpile_render()][crate::ncpile_render].*
-    pub fn render<'a>(&mut self) -> NcResult<()> {
+    pub fn render(&mut self) -> NcResult<()> {
         error![unsafe { crate::ncpile_render(self) }, "NcPlane.render()"]
     }
 
@@ -1943,7 +1933,6 @@ impl NcPlane {
         y_stop: NcDim,
         x_stop: NcDim,
     ) -> NcResult<NcDim> {
-
         // https://github.com/dankamongmen/notcurses/issues/1339
         #[cfg(any(target_arch = "x86_64", target_arch = "i686"))]
         let egc_ptr = &(*egc as i8);

@@ -140,7 +140,7 @@ macro_rules! error {
 /// or an `Err(`[`NcError`]`)` if the pointer is null.
 ///
 /// In other words:
-/// Returns Ok(&*`$ptr`) if `$ptr` != `null()`, otherwise returns
+/// Returns Ok(&*`$ptr`) if `!$ptr.is_null()`, otherwise returns
 /// Err([NcError]]::[new][NcError#method.new]([NCRESULT_ERR], `$msg`)).
 ///
 /// `$msg` is optional. By default it will be an empty `&str` `""`.
@@ -169,7 +169,7 @@ macro_rules! error_ref {
 /// or an `Err(`[`NcError`]`)` if the pointer is null.
 ///
 /// In other words:
-/// Returns Ok(&mut *`$ptr`) if `$ptr` != `null_mut()`, otherwise returns
+/// Returns Ok(&mut *`$ptr`) if `!$ptr._is_null()`, otherwise returns
 /// Err([NcError]]::[new][NcError#method.new]([NCRESULT_ERR], `$msg`)).
 ///
 /// `$msg` is optional. By default it will be an empty `&str` `""`.
@@ -198,14 +198,14 @@ macro_rules! error_ref_mut {
 /// or an `Err(`[`NcError`]`)` if the pointer is null.
 ///
 /// In other words:
-/// Returns Ok((&*`$str`).to_string()) if `$str` != `null()`, otherwise returns
+/// Returns Ok((&*`$str`).to_string()) if `!$str.is_null()`, otherwise returns
 /// Err([NcError]]::[new][NcError#method.new]([NCRESULT_ERR], `$msg`)).
 ///
 /// `$msg` is optional. By default it will be an empty `&str` `""`.
 #[macro_export]
 macro_rules! error_str {
     ($str:expr, $msg:expr) => {
-        if $str != core::ptr::null_mut() {
+        if $str.is_null() {
             #[allow(unused_unsafe)]
             return Ok(unsafe { (&*$str).to_string() });
         } else {

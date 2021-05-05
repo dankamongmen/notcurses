@@ -90,7 +90,7 @@
 //!     };
 //!     unsafe {
 //!         let nc = notcurses_init(&options, null_mut());
-//!         if nc == null_mut() {
+//!         if nc.is_null() {
 //!             exit(1);
 //!         }
 //!         let plane = notcurses_stdplane(nc);
@@ -117,7 +117,7 @@
 //! - [Doxygen Documentation](https://nick-black.com/notcurses/html/index.html)
 //!
 #![allow(non_upper_case_globals, non_camel_case_types, non_snake_case)]
-#![allow(clippy::too_many_arguments)]
+#![allow(clippy::too_many_arguments, clippy::needless_doctest_main)]
 
 mod bindings;
 #[doc(inline)]

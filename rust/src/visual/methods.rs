@@ -118,7 +118,7 @@ impl NcVisual {
                     cols as i32,
                 )
             },
-            &format!("NcVisual::from_bgra()")
+            "NcVisual::from_bgra()"
         ]
     }
 
@@ -129,7 +129,7 @@ impl NcVisual {
     pub fn from_file<'a>(file: &str) -> NcResult<&'a mut NcVisual> {
         error_ref_mut![
             unsafe { crate::ncvisual_from_file(cstring![file]) },
-            &format!("NcVisual::from_file()")
+            &format!("NcVisual::from_file({})", file)
         ]
     }
 
@@ -162,7 +162,10 @@ impl NcVisual {
                     len_x as i32,
                 )
             },
-            &format!("NcVisual::from_file()")
+            &format!(
+                "NcVisual::from_file({}, {}, {}, {}, {})",
+                blitter, beg_y, beg_x, len_y, len_x
+            )
         ]
     }
 
@@ -192,7 +195,7 @@ impl NcVisual {
                     cols as i32,
                 )
             },
-            &format!("NcVisual::from_rgba()")
+            &format!("NcVisual::from_rgba({}, {}, {})", rows, rowstride, cols)
         ]
     }
 
@@ -226,7 +229,7 @@ impl NcVisual {
     pub fn decode(&mut self) -> NcResult<NcIntResult> {
         let res = unsafe { crate::ncvisual_decode(self) };
         if res == NCRESULT_ERR {
-            return Err(NcError::with_msg(res, "NcVisual.decode()"));
+            Err(NcError::with_msg(res, "NcVisual.decode()"))
         } else {
             Ok(res)
         }
@@ -244,7 +247,7 @@ impl NcVisual {
     pub fn decode_loop(&mut self) -> NcResult<NcIntResult> {
         let res = unsafe { crate::ncvisual_decode_loop(self) };
         if res == NCRESULT_ERR {
-            return Err(NcError::with_msg(res, "NcVisual.decode_loop()"));
+            Err(NcError::with_msg(res, "NcVisual.decode_loop()"))
         } else {
             Ok(res)
         }
@@ -449,8 +452,8 @@ impl NcVisual {
     /// *C style function: [ncvisual_subtitle()][crate::ncvisual_subtitle].*
     pub fn subtitle(&self) -> NcResult<&str> {
         let res = unsafe { crate::ncvisual_subtitle(self) };
-        if res != null_mut() {
-            return Ok(rstring![res]);
+        if !res.is_null() {
+            Ok(rstring![res])
         } else {
             Err(NcError::with_msg(NCRESULT_ERR, "NcVisual.subtitle()"))
         }

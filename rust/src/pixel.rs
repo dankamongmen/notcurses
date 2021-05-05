@@ -56,6 +56,7 @@ pub type NcPixel = u32;
 
 /// Constructs a libav-compatible ABGR pixel from [NcColor] RGB components.
 #[inline]
+#[allow(clippy::unnecessary_cast)]
 pub const fn ncpixel(red: NcColor, green: NcColor, blue: NcColor) -> NcPixel {
     0xff000000 as NcPixel | red as NcPixel | (blue as NcPixel) << 8 | (green as NcPixel) << 16
 }

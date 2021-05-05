@@ -487,6 +487,7 @@ pub fn ncchannels_bg_palindex_p(channels: NcChannelPair) -> bool {
 ///
 /// *Method: NcChannelPair.[set_fg_palindex()][NcChannelPair#method.set_fg_palindex]*
 #[inline]
+#[allow(clippy::unnecessary_cast)]
 pub fn ncchannels_set_fg_palindex(channels: &mut NcChannelPair, index: NcPaletteIndex) {
     *channels |= NCCELL_FGDEFAULT_MASK;
     *channels |= NCCELL_FG_PALETTE as NcChannelPair;

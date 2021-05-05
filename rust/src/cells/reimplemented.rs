@@ -192,6 +192,7 @@ pub fn nccell_bg_palindex_p(cell: &NcCell) -> bool {
 ///
 /// *Method: NcCell.[fg_palindex()][NcCell#method.fg_palindex].*
 #[inline]
+#[allow(clippy::unnecessary_cast)]
 pub const fn nccell_fg_palindex(cell: &NcCell) -> NcPaletteIndex {
     ((cell.channels & 0xff00000000 as NcChannelPair) >> 32) as NcPaletteIndex
 }
@@ -200,6 +201,7 @@ pub const fn nccell_fg_palindex(cell: &NcCell) -> NcPaletteIndex {
 ///
 /// *Method: NcCell.[bg_palindex()][NcCell#method.bg_palindex].*
 #[inline]
+#[allow(clippy::unnecessary_cast)]
 pub const fn nccell_bg_palindex(cell: &NcCell) -> NcPaletteIndex {
     (cell.channels & 0xff) as NcPaletteIndex
 }
@@ -213,6 +215,7 @@ pub const fn nccell_bg_palindex(cell: &NcCell) -> NcPaletteIndex {
 //
 // NOTE: unlike the original C function, this one can't fail
 #[inline]
+#[allow(clippy::unnecessary_cast)]
 pub fn nccell_set_fg_palindex(cell: &mut NcCell, index: NcPaletteIndex) {
     cell.channels |= NCCELL_FGDEFAULT_MASK;
     cell.channels |= NCCELL_FG_PALETTE;
