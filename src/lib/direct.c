@@ -139,7 +139,10 @@ int ncdirect_cursor_right(ncdirect* nc, int num){
   return term_emit(tiparm(nc->tcache.cuf, num), nc->ttyfp, false);
 }
 
-// if we're on the last line, we need some scrolling action.
+// if we're on the last line, we need some scrolling action. rather than
+// merely using cud, we emit newlines in raw mode. this combination has
+// the peculiar property of scrolling when necessary and not performing
+// a carriage return -- a pure line feed.
 int ncdirect_cursor_down(ncdirect* nc, int num){
 
   if(num < 0){
@@ -148,10 +151,26 @@ int ncdirect_cursor_down(ncdirect* nc, int num){
   if(num == 0){
     return 0;
   }
-  if(!nc->tcache.cud){
+  struct termios term, raw;
+  if(tcgetattr(nc->ctermfd, &term)){
     return -1;
   }
-  return term_emit(tiparm(nc->tcache.cud, num), nc->ttyfp, false);
+  memcpy(&raw, &term, sizeof(raw));
+  cfmakeraw(&raw);
+  if(tcsetattr(nc->ctermfd, TCSADRAIN, &raw)){
+    return -1;
+  }
+  int ret = 0;
+  while(num--){
+    if(ncfputc('\n', nc->ttyfp) == EOF){
+      ret = -1;
+      break;
+    }
+  }
+  if(tcsetattr(nc->ctermfd, TCSADRAIN, &term)){
+    return -1;
+  }
+  return ret;
 }
 
 int ncdirect_clear(ncdirect* nc){
