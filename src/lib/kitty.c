@@ -138,7 +138,7 @@ static inline uint8_t
 triplet_alpha1(const char* triplet){
   uint8_t c1 = b64idx(triplet[0x4]);
   uint8_t c2 = b64idx(triplet[0x5]);
-  return (c1 << 2u) | ((c2 & 0x3) >> 4);
+  return (c1 << 2u) | ((c2 & 0x30) >> 4);
 }
 
 static inline uint8_t
