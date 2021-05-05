@@ -140,35 +140,22 @@ int ncdirect_cursor_right(ncdirect* nc, int num){
 }
 
 // if we're on the last line, we need some scrolling action. rather than
-// merely using cud, we emit newlines in raw mode. this combination has
-// the peculiar property of scrolling when necessary and not performing
-// a carriage return -- a pure line feed.
+// merely using cud, we emit vertical tabs. this has the peculiar property
+// (in all terminals tested) of scrolling when necessary but performing no
+// carriage return -- a pure line feed.
 int ncdirect_cursor_down(ncdirect* nc, int num){
-
   if(num < 0){
     return -1;
   }
   if(num == 0){
     return 0;
   }
-  struct termios term, raw;
-  if(tcgetattr(nc->ctermfd, &term)){
-    return -1;
-  }
-  memcpy(&raw, &term, sizeof(raw));
-  cfmakeraw(&raw);
-  if(tcsetattr(nc->ctermfd, TCSADRAIN, &raw)){
-    return -1;
-  }
   int ret = 0;
   while(num--){
-    if(ncfputc('\n', nc->ttyfp) == EOF){
+    if(ncfputc('\v', nc->ttyfp) == EOF){
       ret = -1;
       break;
     }
-  }
-  if(tcsetattr(nc->ctermfd, TCSADRAIN, &term)){
-    return -1;
   }
   return ret;
 }
@@ -483,7 +470,7 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
     // FIXME replace with a SGR clear
     ncdirect_set_fg_default(n);
     ncdirect_set_bg_default(n);
-    if(putc('\n', n->ttyfp) == EOF){
+    if(ncfputc('\n', n->ttyfp) == EOF){
       return -1;
     }
     if(y == toty){
