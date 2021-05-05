@@ -999,20 +999,28 @@ sprite_draw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
 
 static inline int
 sprite_rebuild(const notcurses* nc, sprixel* s, int ycell, int xcell){
+  const int idx = s->dimx * ycell + xcell;
   int ret = 0;
   // special case the transition back to SPRIXCELL_TRANSPARENT; this can be
   // done in O(1), since the actual glyph needn't change.
-  if(s->n->tam[s->dimx * ycell + xcell].state == SPRIXCELL_ANNIHILATED_TRANS){
-    s->n->tam[s->dimx * ycell + xcell].state = SPRIXCELL_TRANSPARENT;
-  }else if(s->n->tam[s->dimx * ycell + xcell].state == SPRIXCELL_ANNIHILATED){
+  if(s->n->tam[idx].state == SPRIXCELL_ANNIHILATED_TRANS){
+    s->n->tam[idx].state = SPRIXCELL_TRANSPARENT;
+  }else if(s->n->tam[idx].state == SPRIXCELL_ANNIHILATED){
     // sets the new state itself
-    uint8_t* auxvec = s->n->tam[s->dimx * ycell + xcell].auxvector;
+    uint8_t* auxvec = s->n->tam[idx].auxvector;
     assert(auxvec);
     ret = nc->tcache.pixel_rebuild(s, ycell, xcell, auxvec);
     free(auxvec);
-    s->n->tam[s->dimx * ycell + xcell].auxvector = NULL;
+    s->n->tam[idx].auxvector = NULL;
   }
-  s->invalidated = SPRIXEL_INVALIDATED;
+  // don't upset SPRIXEL_MOVED
+  if(s->invalidated == SPRIXEL_QUIESCENT){
+    if(s->n->tam[idx].state != SPRIXCELL_TRANSPARENT &&
+       s->n->tam[idx].state != SPRIXCELL_ANNIHILATED &&
+       s->n->tam[idx].state != SPRIXCELL_ANNIHILATED_TRANS){
+      s->invalidated = SPRIXEL_INVALIDATED;
+    }
+  }
   return ret;
 }
 

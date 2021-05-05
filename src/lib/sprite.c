@@ -102,7 +102,7 @@ void sprixel_hide(sprixel* s){
 // y and x are absolute coordinates.
 void sprixel_invalidate(sprixel* s, int y, int x){
 //fprintf(stderr, "INVALIDATING AT %d/%d\n", y, x);
-  if(s->invalidated != SPRIXEL_HIDE && s->n){
+  if(s->invalidated == SPRIXEL_QUIESCENT && s->n){
     int localy = y - s->n->absy;
     int localx = x - s->n->absx;
 //fprintf(stderr, "INVALIDATING AT %d/%d (%d/%d) TAM: %d\n", y, x, localy, localx, s->n->tam[localy * s->dimx + localx].state);
