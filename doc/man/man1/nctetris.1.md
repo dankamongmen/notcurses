@@ -1,6 +1,6 @@
 % nctetris(1)
 % nick black <nickblack@linux.com>
-% v2.2.9
+% v2.2.10
 
 # NAME
 

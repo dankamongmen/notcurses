@@ -1,9 +1,16 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 2.2.10 (not yet released)
+* 2.2.10 (2021-05-05)
   * Added `NCVISUAL_OPTION_CHILDPLANE` to interpret the `n` field of
     `ncvisual_options` as a parent plane.
+  * Reimplemented `ncdirect_cursor_down()` using vertical tabs instead
+    of the `cud` capability, so that it now scrolls when on the last line.
+    Thanks to Daniel Eklöf for this idea, of which I was totally ignorant!
+  * Fixed several embarrassing `assert()`s which I'd not had exposed due
+    to misuse of CMake.
+  * Fixed a state machine bug that caused sprixels to sometimes not be
+    properly redisplayed following a rebuild.
 
 * 2.2.9 (2021-05-03)
   * Added two new stats, `sprixelemissions` and `sprixelelisions`.
