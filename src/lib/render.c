@@ -150,6 +150,9 @@ paint_sprixel(ncplane* p, struct crender* rvec, int starty, int startx,
   int dimy = s->dimy;
   int dimx = s->dimx;
 //fprintf(stderr, "STARTY: %d DIMY: %d dim(p): %d/%d dim(s): %d/%d\n", starty, dimy, ncplane_dim_y(p), ncplane_dim_x(p), s->dimy, s->dimx);
+  if(s->invalidated == SPRIXEL_HIDE){ // no need to do work if we're killing it
+    return;
+  }
   for(int y = starty ; y < dimy ; ++y){
     const int absy = y + offy;
     // once we've passed the physical screen's bottom, we're done
@@ -170,7 +173,7 @@ paint_sprixel(ncplane* p, struct crender* rvec, int starty, int startx,
         // if sprite_wipe_cell() fails, we presumably do not have the
         // ability to wipe, and must reprint the character
         if(sprite_wipe(nc, p->sprite, y, x)){
-//fprintf(stderr, "damaging due to wipe [%s] %d/%d\n", nccell_extended_gcluster(crender->p, &crender->c), y, x);
+//fprintf(stderr, "damaging due to wipe [%s] %d/%d\n", nccell_extended_gcluster(crender->p, &crender->c), absy, absx);
           crender->s.damaged = 1;
         }
         crender->s.p_beats_sprixel = 1;
