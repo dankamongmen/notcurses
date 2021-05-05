@@ -20,7 +20,7 @@ static int democount;
 static demoresult* results;
 static char *datadir = NOTCURSES_SHARE;
 
-static const char DEFAULT_DEMO[] = "ixezcytnhdmbkgarwuvlsfjqo";
+static const char DEFAULT_DEMO[] = "ixetnchdmbkygarwuvlsfjqzo";
 
 atomic_bool interrupted = ATOMIC_VAR_INIT(false);
 // checked following demos, whether aborted, failed, or otherwise

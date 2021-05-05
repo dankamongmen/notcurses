@@ -77,29 +77,18 @@ rotate_visual(struct notcurses* nc, struct ncplane* n, int dy, int dx){
   struct ncvisual_options vopts = { };
   ncplane_erase(stdn);
   struct ncvisual* nncv = NULL;
-  struct ncplane* np = NULL;
   if(notcurses_canopen_images(nc)){
     char* path = find_data("normal.png");
     if(path){
       nncv = ncvisual_from_file(path);
       if(nncv){
-        struct ncplane_options nopts = {
-          .y = 1,
-          .rows = dimy - 1,
-          .cols = dimx,
-        };
-        np = ncplane_create(stdn, &nopts);
-        if(np == NULL){
-          return -1;
-        }
         struct ncvisual_options nvopts = {
-          .n = np,
+          .n = stdn,
           .scaling = NCSCALE_STRETCH,
         };
         if(ncvisual_render(nc, nncv, &nvopts) == NULL){
           return -1;
         }
-        ncplane_move_below(notcurses_stdplane(nc), np);
       }
       free(path);
     }
@@ -123,7 +112,6 @@ rotate_visual(struct notcurses* nc, struct ncplane* n, int dy, int dx){
     }
     ncplane_destroy(newn);
   }
-  ncplane_destroy(np);
   ncvisual_destroy(nncv);
   ncvisual_destroy(ncv);
   return r;
