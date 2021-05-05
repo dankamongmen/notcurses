@@ -60,7 +60,7 @@
     <span class="ident">green</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcColor</span>,
     <span class="ident">blue</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcColor</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannel</span> {
-    <span class="kw">crate</span>::<span class="ident">channel_rgb8</span>(<span class="ident">palette</span>.<span class="ident">chans</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>], <span class="ident">red</span>, <span class="ident">green</span>, <span class="ident">blue</span>)
+    <span class="kw">crate</span>::<span class="ident">ncchannel_rgb8</span>(<span class="ident">palette</span>.<span class="ident">chans</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>], <span class="ident">red</span>, <span class="ident">green</span>, <span class="ident">blue</span>)
 }
 
 <span class="doccomment">/// Sets the [NcRgb] value of the [NcChannel] entry inside an [NcPalette].</span>
@@ -68,7 +68,7 @@
 <span class="doccomment">/// *Method: NcPalette.[set()][NcPalette#method.set].*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncpalette_set</span>(<span class="ident">palette</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPalette</span>, <span class="ident">index</span>: <span class="ident">NcPaletteIndex</span>, <span class="ident">rgb</span>: <span class="ident">NcRgb</span>) {
-    <span class="kw">crate</span>::<span class="ident">channel_set</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">palette</span>.<span class="ident">chans</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>], <span class="ident">rgb</span>);
+    <span class="kw">crate</span>::<span class="ident">ncchannel_set</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">palette</span>.<span class="ident">chans</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>], <span class="ident">rgb</span>);
 }
 
 <span class="doccomment">/// Sets the [NcColor] components of the [NcChannel] entry inside an [NcPalette].</span>
@@ -82,7 +82,7 @@
     <span class="ident">green</span>: <span class="ident">NcColor</span>,
     <span class="ident">blue</span>: <span class="ident">NcColor</span>,
 ) {
-    <span class="kw">crate</span>::<span class="ident">channel_set_rgb8</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">palette</span>.<span class="ident">chans</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>], <span class="ident">red</span>, <span class="ident">green</span>, <span class="ident">blue</span>)
+    <span class="kw">crate</span>::<span class="ident">ncchannel_set_rgb8</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">palette</span>.<span class="ident">chans</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>], <span class="ident">red</span>, <span class="ident">green</span>, <span class="ident">blue</span>)
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "libnotcurses_sys";</script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>

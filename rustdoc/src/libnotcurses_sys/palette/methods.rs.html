@@ -89,7 +89,7 @@
     <span class="doccomment">/// *C style function: [ncpalette_get_rgb()][crate::ncpalette_get_rgb].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_rgb8</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">NcPaletteIndex</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">NcColor</span>, <span class="ident">NcColor</span>, <span class="ident">NcColor</span>) {
         <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">r</span>, <span class="kw-2">mut</span> <span class="ident">g</span>, <span class="kw-2">mut</span> <span class="ident">b</span>) <span class="op">=</span> (<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);
-        <span class="kw">crate</span>::<span class="ident">channel_rgb8</span>(<span class="self">self</span>.<span class="ident">chans</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">r</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">g</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">b</span>);
+        <span class="kw">crate</span>::<span class="ident">ncchannel_rgb8</span>(<span class="self">self</span>.<span class="ident">chans</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">r</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">g</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">b</span>);
         (<span class="ident">r</span>, <span class="ident">g</span>, <span class="ident">b</span>)
     }
 
@@ -99,7 +99,7 @@
     <span class="doccomment">/// *C style function: [ncpalette_get_rgb()][crate::ncpalette_get_rgb].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_rgb</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">NcPaletteIndex</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannel</span> {
         <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">r</span>, <span class="kw-2">mut</span> <span class="ident">g</span>, <span class="kw-2">mut</span> <span class="ident">b</span>) <span class="op">=</span> (<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);
-        <span class="kw">crate</span>::<span class="ident">channel_rgb8</span>(<span class="self">self</span>.<span class="ident">chans</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">r</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">g</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">b</span>)
+        <span class="kw">crate</span>::<span class="ident">ncchannel_rgb8</span>(<span class="self">self</span>.<span class="ident">chans</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">r</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">g</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">b</span>)
     }
 
     <span class="doccomment">/// Sets the [NcRgb] value of the [NcChannel][crate::NcChannel] entry</span>
@@ -107,7 +107,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncpalette_set()][crate::ncpalette_set].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">NcPaletteIndex</span>, <span class="ident">rgb</span>: <span class="ident">NcRgb</span>) {
-        <span class="kw">crate</span>::<span class="ident">channel_set</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">chans</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>], <span class="ident">rgb</span>);
+        <span class="kw">crate</span>::<span class="ident">ncchannel_set</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">chans</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>], <span class="ident">rgb</span>);
     }
 }
 </pre></div>

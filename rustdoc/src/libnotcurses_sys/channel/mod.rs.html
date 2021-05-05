@@ -227,6 +227,11 @@
 <span id="224">224</span>
 <span id="225">225</span>
 <span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcChannel*`</span>
 
@@ -243,12 +248,12 @@
 <span class="comment">//   - `channels_set_bg_rgb8_clipped()`</span>
 <span class="comment">// -----------------------------------------------------------------------------</span>
 <span class="comment">//</span>
-<span class="comment">// functions manually reimplemented: 39</span>
+<span class="comment">// functions manually reimplemented: 44</span>
 <span class="comment">// ------------------------------------------</span>
 <span class="comment">// (X) wont:  3</span>
 <span class="comment">// (+) done: 36 / 0</span>
-<span class="comment">// (#) test: 19</span>
-<span class="comment">// (W) wrap: 36</span>
+<span class="comment">// (#) test: 21</span>
+<span class="comment">// (W) wrap: 41</span>
 <span class="comment">// ------------------------------------------</span>
 <span class="comment">//W# channel_alpha</span>
 <span class="comment">//W# channel_b</span>
@@ -257,9 +262,10 @@
 <span class="comment">//W# channel_palindex_p</span>
 <span class="comment">//W# channel_r</span>
 <span class="comment">//W# channel_rgb8</span>
-<span class="comment">//W+ channel_set</span>
+<span class="comment">//W# channel_set</span>
 <span class="comment">//W# channel_set_alpha</span>
 <span class="comment">//W# channel_set_default</span>
+<span class="comment">//W# channel_set_not_default         // not in the original C API</span>
 <span class="comment">//W# channel_set_rgb8</span>
 <span class="comment">// X channel_set_rgb_clipped         // not needed</span>
 <span class="comment">//W# channels_bchannel</span>
@@ -278,17 +284,21 @@
 <span class="comment">//W# channels_set_bchannel</span>
 <span class="comment">//W+ channels_set_bg_alpha</span>
 <span class="comment">//W+ channels_set_bg_default</span>
+<span class="comment">//W  channels_set_bg_not_default     // not in the original C API</span>
 <span class="comment">//W# channels_set_bg_palindex</span>
 <span class="comment">//W+ channels_set_bg_rgb</span>
 <span class="comment">//W+ channels_set_bg_rgb8</span>
 <span class="comment">// X channels_set_bg_rgb8_clipped    // not needed</span>
+<span class="comment">//W  channels_set_default            // not in the original C API</span>
 <span class="comment">//W# channels_set_fchannel</span>
 <span class="comment">//W+ channels_set_fg_alpha</span>
 <span class="comment">//W+ channels_set_fg_default</span>
+<span class="comment">//W  channels_set_fg_not_default     // not in the original C API</span>
 <span class="comment">//W# channels_set_fg_palindex</span>
 <span class="comment">//W+ channels_set_fg_rgb</span>
 <span class="comment">//W+ channels_set_fg_rgb8</span>
 <span class="comment">// X channels_set_fg_rgb8_clipped    // not needed</span>
+<span class="comment">//W  channels_set_not_default        // not in the original C API</span>
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_imports</span>)]</span> <span class="comment">// for the doc comments</span>
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">NcRgba</span>;

@@ -719,6 +719,64 @@
 <span id="716">716</span>
 <span id="717">717</span>
 <span id="718">718</span>
+<span id="719">719</span>
+<span id="720">720</span>
+<span id="721">721</span>
+<span id="722">722</span>
+<span id="723">723</span>
+<span id="724">724</span>
+<span id="725">725</span>
+<span id="726">726</span>
+<span id="727">727</span>
+<span id="728">728</span>
+<span id="729">729</span>
+<span id="730">730</span>
+<span id="731">731</span>
+<span id="732">732</span>
+<span id="733">733</span>
+<span id="734">734</span>
+<span id="735">735</span>
+<span id="736">736</span>
+<span id="737">737</span>
+<span id="738">738</span>
+<span id="739">739</span>
+<span id="740">740</span>
+<span id="741">741</span>
+<span id="742">742</span>
+<span id="743">743</span>
+<span id="744">744</span>
+<span id="745">745</span>
+<span id="746">746</span>
+<span id="747">747</span>
+<span id="748">748</span>
+<span id="749">749</span>
+<span id="750">750</span>
+<span id="751">751</span>
+<span id="752">752</span>
+<span id="753">753</span>
+<span id="754">754</span>
+<span id="755">755</span>
+<span id="756">756</span>
+<span id="757">757</span>
+<span id="758">758</span>
+<span id="759">759</span>
+<span id="760">760</span>
+<span id="761">761</span>
+<span id="762">762</span>
+<span id="763">763</span>
+<span id="764">764</span>
+<span id="765">765</span>
+<span id="766">766</span>
+<span id="767">767</span>
+<span id="768">768</span>
+<span id="769">769</span>
+<span id="770">770</span>
+<span id="771">771</span>
+<span id="772">772</span>
+<span id="773">773</span>
+<span id="774">774</span>
+<span id="775">775</span>
+<span id="776">776</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcChannel*` methods and associated functions.</span>
 
@@ -757,6 +815,7 @@
 
     <span class="kw">fn</span> <span class="ident">default_p</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
     <span class="kw">fn</span> <span class="ident">set_default</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">set_not_default</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="kw">fn</span> <span class="ident">palindex_p</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
 }
@@ -834,7 +893,11 @@
     <span class="kw">fn</span> <span class="ident">fg_default_p</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
     <span class="kw">fn</span> <span class="ident">bg_default_p</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
     <span class="kw">fn</span> <span class="ident">set_fg_default</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">set_fg_not_default</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
     <span class="kw">fn</span> <span class="ident">set_bg_default</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">set_bg_not_default</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">set_default</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">set_not_default</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="kw">fn</span> <span class="ident">fg_palindex_p</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
     <span class="kw">fn</span> <span class="ident">bg_palindex_p</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
@@ -848,12 +911,12 @@
 <span class="kw">impl</span> <span class="ident">NcChannelMethods</span> <span class="kw">for</span> <span class="ident">NcChannel</span> {
     <span class="comment">// Constructors</span>
 
-    <span class="doccomment">/// New NcChannel, set to black and NOT using the default color.</span>
+    <span class="doccomment">/// New NcChannel, set to black and NOT using the &quot;default color&quot;.</span>
     <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="number">0</span> <span class="kw">as</span> <span class="ident">NcChannel</span> <span class="op">|</span> <span class="kw">crate</span>::<span class="ident">NCCELL_BGDEFAULT_MASK</span>
     }
 
-    <span class="doccomment">/// New NcChannel, set to black but using the default color.</span>
+    <span class="doccomment">/// New NcChannel, set to black but using the &quot;default color&quot;.</span>
     <span class="kw">fn</span> <span class="ident">with_default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="number">0</span> <span class="kw">as</span> <span class="ident">NcChannel</span>
     }
@@ -883,37 +946,37 @@
     <span class="doccomment">/// Combines this [NcChannel] as foreground, with another as background</span>
     <span class="doccomment">/// into an [NcChannelPair].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [channels_combine()][crate::channels_combine].*</span>
+    <span class="doccomment">/// *C style function: [channels_combine()][crate::ncchannels_combine].*</span>
     <span class="comment">//</span>
     <span class="comment">// Not in the C API</span>
     <span class="kw">fn</span> <span class="ident">fcombine</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bchannel</span>: <span class="ident">NcChannel</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannelPair</span> {
-        <span class="kw">crate</span>::<span class="ident">channels_combine</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="ident">bchannel</span>)
+        <span class="kw">crate</span>::<span class="ident">ncchannels_combine</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="ident">bchannel</span>)
     }
 
     <span class="doccomment">/// Combines this [NcChannel] as background, with another as foreground</span>
     <span class="doccomment">/// into an [NcChannelPair].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [channels_combine()][crate::channels_combine].*</span>
+    <span class="doccomment">/// *C style function: [channels_combine()][crate::ncchannels_combine].*</span>
     <span class="comment">//</span>
     <span class="comment">// Not in the C API</span>
     <span class="kw">fn</span> <span class="ident">bcombine</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fchannel</span>: <span class="ident">NcChannel</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannelPair</span> {
-        <span class="kw">crate</span>::<span class="ident">channels_combine</span>(<span class="ident">fchannel</span>, <span class="kw-2">*</span><span class="self">self</span>)
+        <span class="kw">crate</span>::<span class="ident">ncchannels_combine</span>(<span class="ident">fchannel</span>, <span class="kw-2">*</span><span class="self">self</span>)
     }
 
     <span class="comment">// Alpha</span>
 
     <span class="doccomment">/// Gets the [NcAlphaBits].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [channel_alpha()][crate::channel_alpha].*</span>
+    <span class="doccomment">/// *C style function: [channel_alpha()][crate::ncchannel_alpha].*</span>
     <span class="kw">fn</span> <span class="ident">alpha</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcAlphaBits</span> {
-        <span class="kw">crate</span>::<span class="ident">channel_alpha</span>(<span class="kw-2">*</span><span class="self">self</span>)
+        <span class="kw">crate</span>::<span class="ident">ncchannel_alpha</span>(<span class="kw-2">*</span><span class="self">self</span>)
     }
 
     <span class="doccomment">/// Sets the [NcAlphaBits].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [channel_set_alpha()][crate::channel_set_alpha].*</span>
+    <span class="doccomment">/// *C style function: [channel_set_alpha()][crate::ncchannel_set_alpha].*</span>
     <span class="kw">fn</span> <span class="ident">set_alpha</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">alpha</span>: <span class="ident">NcAlphaBits</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">crate</span>::<span class="ident">channel_set_alpha</span>(<span class="self">self</span>, <span class="ident">alpha</span>);
+        <span class="kw">crate</span>::<span class="ident">ncchannel_set_alpha</span>(<span class="self">self</span>, <span class="ident">alpha</span>);
         <span class="kw-2">*</span><span class="self">self</span>
     }
 
@@ -922,9 +985,9 @@
     <span class="doccomment">/// Sets the [NcRgb], and marks the NcChannel as NOT using the</span>
     <span class="doccomment">/// &quot;default color&quot;, retaining the other bits unchanged.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [channel_set()][crate::channel_set].*</span>
+    <span class="doccomment">/// *C style function: [channel_set()][crate::ncchannel_set].*</span>
     <span class="kw">fn</span> <span class="ident">set</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">rgb</span>: <span class="ident">NcRgb</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">crate</span>::<span class="ident">channel_set</span>(<span class="self">self</span>, <span class="ident">rgb</span>);
+        <span class="kw">crate</span>::<span class="ident">ncchannel_set</span>(<span class="self">self</span>, <span class="ident">rgb</span>);
         <span class="kw-2">*</span><span class="self">self</span>
     }
 
@@ -932,87 +995,87 @@
 
     <span class="doccomment">/// Gets the three [NcColor]s.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [channel_rgb8()][crate::channel_rgb8].*</span>
+    <span class="doccomment">/// *C style function: [channel_rgb8()][crate::ncchannel_rgb8].*</span>
     <span class="kw">fn</span> <span class="ident">rgb8</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">NcColor</span>, <span class="ident">NcColor</span>, <span class="ident">NcColor</span>) {
         <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">r</span>, <span class="kw-2">mut</span> <span class="ident">g</span>, <span class="kw-2">mut</span> <span class="ident">b</span>) <span class="op">=</span> (<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);
-        <span class="kw">crate</span>::<span class="ident">channel_rgb8</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">r</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">g</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">b</span>);
+        <span class="kw">crate</span>::<span class="ident">ncchannel_rgb8</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">r</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">g</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">b</span>);
         (<span class="ident">r</span>, <span class="ident">g</span>, <span class="ident">b</span>)
     }
 
     <span class="doccomment">/// Sets the three [NcColor]s, and</span>
-    <span class="doccomment">/// marks the NcChannel as NOT using the default color.</span>
+    <span class="doccomment">/// marks the NcChannel as NOT using the &quot;default color&quot;.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [channel_set_rgb8()][crate::channel_set_rgb8].*</span>
+    <span class="doccomment">/// *C style function: [channel_set_rgb8()][crate::ncchannel_set_rgb8].*</span>
     <span class="kw">fn</span> <span class="ident">set_rgb8</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">r</span>: <span class="ident">NcColor</span>, <span class="ident">g</span>: <span class="ident">NcColor</span>, <span class="ident">b</span>: <span class="ident">NcColor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">crate</span>::<span class="ident">channel_set_rgb8</span>(<span class="self">self</span>, <span class="ident">r</span>, <span class="ident">g</span>, <span class="ident">b</span>);
+        <span class="kw">crate</span>::<span class="ident">ncchannel_set_rgb8</span>(<span class="self">self</span>, <span class="ident">r</span>, <span class="ident">g</span>, <span class="ident">b</span>);
         <span class="kw-2">*</span><span class="self">self</span>
     }
 
     <span class="doccomment">/// Gets the red [NcColor].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [channel_r()][crate::channel_r].*</span>
+    <span class="doccomment">/// *C style function: [channel_r()][crate::ncchannel_r].*</span>
     <span class="kw">fn</span> <span class="ident">r</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcColor</span> {
-        <span class="kw">crate</span>::<span class="ident">channel_r</span>(<span class="kw-2">*</span><span class="self">self</span>)
+        <span class="kw">crate</span>::<span class="ident">ncchannel_r</span>(<span class="kw-2">*</span><span class="self">self</span>)
     }
 
     <span class="doccomment">/// Gets the green [NcColor].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [channel_g()][crate::channel_g].*</span>
+    <span class="doccomment">/// *C style function: [channel_g()][crate::ncchannel_g].*</span>
     <span class="kw">fn</span> <span class="ident">g</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcColor</span> {
-        <span class="kw">crate</span>::<span class="ident">channel_g</span>(<span class="kw-2">*</span><span class="self">self</span>)
+        <span class="kw">crate</span>::<span class="ident">ncchannel_g</span>(<span class="kw-2">*</span><span class="self">self</span>)
     }
 
     <span class="doccomment">/// Gets the blue [NcColor].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [channel_b()][crate::channel_b].*</span>
+    <span class="doccomment">/// *C style function: [channel_b()][crate::ncchannel_b].*</span>
     <span class="kw">fn</span> <span class="ident">b</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcColor</span> {
-        <span class="kw">crate</span>::<span class="ident">channel_b</span>(<span class="kw-2">*</span><span class="self">self</span>)
+        <span class="kw">crate</span>::<span class="ident">ncchannel_b</span>(<span class="kw-2">*</span><span class="self">self</span>)
     }
 
     <span class="doccomment">/// Sets the red [NcColor], and returns the new NcChannel.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [channel_set_r()][crate::channel_set_r].*</span>
+    <span class="doccomment">/// *C style function: [channel_set_r()][crate::ncchannel_set_r].*</span>
     <span class="comment">//</span>
     <span class="comment">// Not in the C API</span>
     <span class="kw">fn</span> <span class="ident">set_r</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">r</span>: <span class="ident">NcColor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">crate</span>::<span class="ident">channel_set_r</span>(<span class="self">self</span>, <span class="ident">r</span>)
+        <span class="kw">crate</span>::<span class="ident">ncchannel_set_r</span>(<span class="self">self</span>, <span class="ident">r</span>)
     }
 
     <span class="doccomment">/// Sets the green [NcColor], and returns the new NcChannel.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [channel_set_g()][crate::channel_set_g].*</span>
+    <span class="doccomment">/// *C style function: [channel_set_g()][crate::ncchannel_set_g].*</span>
     <span class="comment">//</span>
     <span class="comment">// Not in the C API</span>
     <span class="kw">fn</span> <span class="ident">set_g</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">g</span>: <span class="ident">NcColor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">crate</span>::<span class="ident">channel_set_g</span>(<span class="self">self</span>, <span class="ident">g</span>)
+        <span class="kw">crate</span>::<span class="ident">ncchannel_set_g</span>(<span class="self">self</span>, <span class="ident">g</span>)
     }
 
     <span class="doccomment">/// Sets the blue [NcColor], and returns the new NcChannel.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [channel_set_b()][crate::channel_set_b].*</span>
+    <span class="doccomment">/// *C style function: [channel_set_b()][crate::ncchannel_set_b].*</span>
     <span class="comment">//</span>
     <span class="comment">// Not in the C API</span>
     <span class="kw">fn</span> <span class="ident">set_b</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">b</span>: <span class="ident">NcColor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">crate</span>::<span class="ident">channel_set_b</span>(<span class="self">self</span>, <span class="ident">b</span>)
+        <span class="kw">crate</span>::<span class="ident">ncchannel_set_b</span>(<span class="self">self</span>, <span class="ident">b</span>)
     }
 
     <span class="comment">// NcRgb</span>
 
     <span class="doccomment">/// Gets the [NcRgb].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [channel_rgb()][crate::channel_rgb].*</span>
+    <span class="doccomment">/// *C style function: [channel_rgb()][crate::ncchannel_rgb].*</span>
     <span class="comment">//</span>
     <span class="comment">// Not in the C API</span>
     <span class="kw">fn</span> <span class="ident">rgb</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcRgb</span> {
-        <span class="kw">crate</span>::<span class="ident">channel_rgb</span>(<span class="kw-2">*</span><span class="self">self</span>)
+        <span class="kw">crate</span>::<span class="ident">ncchannel_rgb</span>(<span class="kw-2">*</span><span class="self">self</span>)
     }
 
-    <span class="doccomment">/// Sets the [NcRgb] and marks it as NOT using the default color,</span>
+    <span class="doccomment">/// Sets the [NcRgb] and marks it as NOT using the &quot;default color&quot;,</span>
     <span class="doccomment">/// retaining the other bits unchanged.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [channel_set()][crate::channel_set].*</span>
+    <span class="doccomment">/// *C style function: [channel_set()][crate::ncchannel_set].*</span>
     <span class="kw">fn</span> <span class="ident">set_rgb</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">rgb</span>: <span class="ident">NcRgb</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">crate</span>::<span class="ident">channel_set</span>(<span class="self">self</span>, <span class="ident">rgb</span>);
+        <span class="kw">crate</span>::<span class="ident">ncchannel_set</span>(<span class="self">self</span>, <span class="ident">rgb</span>);
         <span class="kw-2">*</span><span class="self">self</span>
     }
 
@@ -1020,25 +1083,40 @@
 
     <span class="doccomment">/// Is this NcChannel using the &quot;default color&quot; rather than RGB/palette-indexed?</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [channel_default_p()][crate::channel_default_p].*</span>
+    <span class="doccomment">/// *C style function: [channel_default_p()][crate::ncchannel_default_p].*</span>
     <span class="kw">fn</span> <span class="ident">default_p</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">crate</span>::<span class="ident">channel_default_p</span>(<span class="kw-2">*</span><span class="self">self</span>)
+        <span class="kw">crate</span>::<span class="ident">ncchannel_default_p</span>(<span class="kw-2">*</span><span class="self">self</span>)
     }
 
     <span class="doccomment">/// Marks an NcChannel as using its &quot;default color&quot;, which also marks it opaque.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [channel_set_default()][crate::channel_set_default].*</span>
+    <span class="doccomment">/// *C style function: [channel_set_default()][crate::ncchannel_set_default].*</span>
     <span class="kw">fn</span> <span class="ident">set_default</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">crate</span>::<span class="ident">channel_set_default</span>(<span class="self">self</span>)
+        <span class="kw">crate</span>::<span class="ident">ncchannel_set_default</span>(<span class="self">self</span>)
+    }
+
+    <span class="doccomment">/// Marks an NcChannel as *not* using its &quot;default color&quot;.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The following methods also marks the channel as not using the &quot;default color&quot;:</span>
+    <span class="doccomment">/// - [new()][NcChannel#method.new]</span>
+    <span class="doccomment">/// - [set()][NcChannel#method.set]</span>
+    <span class="doccomment">/// - [set_rgb()][NcChannel#method.set_rgb]</span>
+    <span class="doccomment">/// - [set_rgb8()][NcChannel#method.set_rgb8]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// *C style function: [channel_set_not_default()][crate::ncchannel_set_not_default].*</span>
+    <span class="comment">//</span>
+    <span class="comment">// Not in the C API</span>
+    <span class="kw">fn</span> <span class="ident">set_not_default</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">crate</span>::<span class="ident">ncchannel_set_not_default</span>(<span class="self">self</span>)
     }
 
     <span class="comment">// NcPaletteIndex</span>
 
     <span class="doccomment">/// Is this NcChannel using palette-indexed color rather than RGB?</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [channel_set_default()][crate::channel_set_default].*</span>
+    <span class="doccomment">/// *C style function: [channel_set_default()][crate::ncchannel_set_default].*</span>
     <span class="kw">fn</span> <span class="ident">palindex_p</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">crate</span>::<span class="ident">channel_palindex_p</span>(<span class="kw-2">*</span><span class="self">self</span>)
+        <span class="kw">crate</span>::<span class="ident">ncchannel_palindex_p</span>(<span class="kw-2">*</span><span class="self">self</span>)
     }
 }
 
@@ -1048,7 +1126,7 @@
 <span class="kw">impl</span> <span class="ident">NcChannelPairMethods</span> <span class="kw">for</span> <span class="ident">NcChannelPair</span> {
     <span class="comment">// Constructors</span>
 
-    <span class="doccomment">/// New NcChannelPair, set to black and NOT using the default color.</span>
+    <span class="doccomment">/// New NcChannelPair, set to black and NOT using the &quot;default color&quot;.</span>
     <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span>::<span class="ident">combine</span>(
             <span class="number">0</span> <span class="kw">as</span> <span class="ident">NcChannel</span> <span class="op">|</span> <span class="kw">crate</span>::<span class="ident">NCCELL_BGDEFAULT_MASK</span>,
@@ -1056,7 +1134,7 @@
         )
     }
 
-    <span class="doccomment">/// New NcChannelPair, set to black but using the default color.</span>
+    <span class="doccomment">/// New NcChannelPair, set to black but using the &quot;default color&quot;.</span>
     <span class="kw">fn</span> <span class="ident">with_default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span>::<span class="ident">combine</span>(<span class="number">0</span> <span class="kw">as</span> <span class="ident">NcChannel</span>, <span class="number">0</span> <span class="kw">as</span> <span class="ident">NcChannel</span>)
     }
@@ -1144,100 +1222,100 @@
 
     <span class="doccomment">/// Combines two [NcChannel]s into an [NcChannelPair].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [channels_combine()][crate::channels_combine].*</span>
+    <span class="doccomment">/// *C style function: [channels_combine()][crate::ncchannels_combine].*</span>
     <span class="kw">fn</span> <span class="ident">combine</span>(<span class="ident">fchannel</span>: <span class="ident">NcChannel</span>, <span class="ident">bchannel</span>: <span class="ident">NcChannel</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">crate</span>::<span class="ident">channels_combine</span>(<span class="ident">fchannel</span>, <span class="ident">bchannel</span>)
+        <span class="kw">crate</span>::<span class="ident">ncchannels_combine</span>(<span class="ident">fchannel</span>, <span class="ident">bchannel</span>)
     }
 
     <span class="comment">// NcChannel</span>
 
     <span class="doccomment">/// Extracts the foreground [NcChannel].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [channels_fchannel()][crate::channels_fchannel].*</span>
+    <span class="doccomment">/// *C style function: [channels_fchannel()][crate::ncchannels_fchannel].*</span>
     <span class="kw">fn</span> <span class="ident">fchannel</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannel</span> {
-        <span class="kw">crate</span>::<span class="ident">channels_fchannel</span>(<span class="kw-2">*</span><span class="self">self</span>)
+        <span class="kw">crate</span>::<span class="ident">ncchannels_fchannel</span>(<span class="kw-2">*</span><span class="self">self</span>)
     }
 
     <span class="doccomment">/// Extracts the background [NcChannel].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [channels_bchannel()][crate::channels_bchannel].*</span>
+    <span class="doccomment">/// *C style function: [channels_bchannel()][crate::ncchannels_bchannel].*</span>
     <span class="kw">fn</span> <span class="ident">bchannel</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannel</span> {
-        <span class="kw">crate</span>::<span class="ident">channels_bchannel</span>(<span class="kw-2">*</span><span class="self">self</span>)
+        <span class="kw">crate</span>::<span class="ident">ncchannels_bchannel</span>(<span class="kw-2">*</span><span class="self">self</span>)
     }
 
     <span class="doccomment">/// Sets the foreground [NcChannel].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [channels_set_fchannel()][crate::channels_set_fchannel].*</span>
+    <span class="doccomment">/// *C style function: [channels_set_fchannel()][crate::ncchannels_set_fchannel].*</span>
     <span class="kw">fn</span> <span class="ident">set_fchannel</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">fchannel</span>: <span class="ident">NcChannel</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">crate</span>::<span class="ident">channels_set_fchannel</span>(<span class="self">self</span>, <span class="ident">fchannel</span>)
+        <span class="kw">crate</span>::<span class="ident">ncchannels_set_fchannel</span>(<span class="self">self</span>, <span class="ident">fchannel</span>)
     }
 
     <span class="doccomment">/// Sets the background [NcChannel].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [channels_set_bchannel()][crate::channels_set_bchannel].*</span>
+    <span class="doccomment">/// *C style function: [channels_set_bchannel()][crate::ncchannels_set_bchannel].*</span>
     <span class="kw">fn</span> <span class="ident">set_bchannel</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">bchannel</span>: <span class="ident">NcChannel</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">crate</span>::<span class="ident">channels_set_bchannel</span>(<span class="self">self</span>, <span class="ident">bchannel</span>)
+        <span class="kw">crate</span>::<span class="ident">ncchannels_set_bchannel</span>(<span class="self">self</span>, <span class="ident">bchannel</span>)
     }
 
     <span class="comment">// Alpha</span>
 
     <span class="doccomment">/// Gets the foreground [NcAlphaBits].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [channels_fg_alpha()][crate::channels_fg_alpha].*</span>
+    <span class="doccomment">/// *C style function: [channels_fg_alpha()][crate::ncchannels_fg_alpha].*</span>
     <span class="kw">fn</span> <span class="ident">fg_alpha</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcAlphaBits</span> {
-        <span class="kw">crate</span>::<span class="ident">channels_fg_alpha</span>(<span class="kw-2">*</span><span class="self">self</span>)
+        <span class="kw">crate</span>::<span class="ident">ncchannels_fg_alpha</span>(<span class="kw-2">*</span><span class="self">self</span>)
     }
 
     <span class="doccomment">/// Gets the background [NcAlphaBits].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [channels_bg_alpha()][crate::channels_bg_alpha].*</span>
+    <span class="doccomment">/// *C style function: [channels_bg_alpha()][crate::ncchannels_bg_alpha].*</span>
     <span class="kw">fn</span> <span class="ident">bg_alpha</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcAlphaBits</span> {
-        <span class="kw">crate</span>::<span class="ident">channels_bg_alpha</span>(<span class="kw-2">*</span><span class="self">self</span>)
+        <span class="kw">crate</span>::<span class="ident">ncchannels_bg_alpha</span>(<span class="kw-2">*</span><span class="self">self</span>)
     }
 
     <span class="doccomment">/// Sets the foreground [NcAlphaBits].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [channels_set_fg_alpha()][crate::channels_set_fg_alpha].*</span>
+    <span class="doccomment">/// *C style function: [channels_set_fg_alpha()][crate::ncchannels_set_fg_alpha].*</span>
     <span class="kw">fn</span> <span class="ident">set_fg_alpha</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">alpha</span>: <span class="ident">NcAlphaBits</span>) {
-        <span class="kw">crate</span>::<span class="ident">channels_set_fg_alpha</span>(<span class="self">self</span>, <span class="ident">alpha</span>)
+        <span class="kw">crate</span>::<span class="ident">ncchannels_set_fg_alpha</span>(<span class="self">self</span>, <span class="ident">alpha</span>)
     }
 
     <span class="doccomment">/// Sets the background [NcAlphaBits].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [channels_set_bg_alpha()][crate::channels_set_bg_alpha].*</span>
+    <span class="doccomment">/// *C style function: [channels_set_bg_alpha()][crate::ncchannels_set_bg_alpha].*</span>
     <span class="kw">fn</span> <span class="ident">set_bg_alpha</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">alpha</span>: <span class="ident">NcAlphaBits</span>) {
-        <span class="kw">crate</span>::<span class="ident">channels_set_bg_alpha</span>(<span class="self">self</span>, <span class="ident">alpha</span>)
+        <span class="kw">crate</span>::<span class="ident">ncchannels_set_bg_alpha</span>(<span class="self">self</span>, <span class="ident">alpha</span>)
     }
 
     <span class="comment">// NcRgb</span>
 
     <span class="doccomment">/// Gets the foreground [NcRgb].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [channels_fg_rgb()][crate::channels_fg_rgb].*</span>
+    <span class="doccomment">/// *C style function: [channels_fg_rgb()][crate::ncchannels_fg_rgb].*</span>
     <span class="kw">fn</span> <span class="ident">fg_rgb</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcRgb</span> {
-        <span class="kw">crate</span>::<span class="ident">channels_fg_rgb</span>(<span class="kw-2">*</span><span class="self">self</span>)
+        <span class="kw">crate</span>::<span class="ident">ncchannels_fg_rgb</span>(<span class="kw-2">*</span><span class="self">self</span>)
     }
 
     <span class="doccomment">/// Gets the background [NcRgb].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [channels_bg_rgb()][crate::channels_bg_rgb].*</span>
+    <span class="doccomment">/// *C style function: [channels_bg_rgb()][crate::ncchannels_bg_rgb].*</span>
     <span class="kw">fn</span> <span class="ident">bg_rgb</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcRgb</span> {
-        <span class="kw">crate</span>::<span class="ident">channels_bg_rgb</span>(<span class="kw-2">*</span><span class="self">self</span>)
+        <span class="kw">crate</span>::<span class="ident">ncchannels_bg_rgb</span>(<span class="kw-2">*</span><span class="self">self</span>)
     }
 
     <span class="doccomment">/// Sets the foreground [NcRgb].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [channels_set_fg_rgb()][crate::channels_set_fg_rgb].*</span>
+    <span class="doccomment">/// *C style function: [channels_set_fg_rgb()][crate::ncchannels_set_fg_rgb].*</span>
     <span class="kw">fn</span> <span class="ident">set_fg_rgb</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">rgb</span>: <span class="ident">NcRgb</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">crate</span>::<span class="ident">channels_set_fg_rgb</span>(<span class="self">self</span>, <span class="ident">rgb</span>);
+        <span class="kw">crate</span>::<span class="ident">ncchannels_set_fg_rgb</span>(<span class="self">self</span>, <span class="ident">rgb</span>);
         <span class="kw-2">*</span><span class="self">self</span>
     }
 
     <span class="doccomment">/// Sets the background [NcRgb].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [channels_set_bg_rgb()][crate::channels_set_bg_rgb].*</span>
+    <span class="doccomment">/// *C style function: [channels_set_bg_rgb()][crate::ncchannels_set_bg_rgb].*</span>
     <span class="kw">fn</span> <span class="ident">set_bg_rgb</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">rgb</span>: <span class="ident">NcRgb</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">crate</span>::<span class="ident">channels_set_bg_rgb</span>(<span class="self">self</span>, <span class="ident">rgb</span>);
+        <span class="kw">crate</span>::<span class="ident">ncchannels_set_bg_rgb</span>(<span class="self">self</span>, <span class="ident">rgb</span>);
         <span class="kw-2">*</span><span class="self">self</span>
     }
 
@@ -1245,78 +1323,78 @@
 
     <span class="doccomment">/// Gets the three foreground [NcColor]s (r, g, b).</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [channels_fg_rgb8()][crate::channels_fg_rgb8].*</span>
+    <span class="doccomment">/// *C style function: [channels_fg_rgb8()][crate::ncchannels_fg_rgb8].*</span>
     <span class="kw">fn</span> <span class="ident">fg_rgb8</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">NcColor</span>, <span class="ident">NcColor</span>, <span class="ident">NcColor</span>) {
         <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">r</span>, <span class="kw-2">mut</span> <span class="ident">g</span>, <span class="kw-2">mut</span> <span class="ident">b</span>) <span class="op">=</span> (<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);
-        <span class="kw">crate</span>::<span class="ident">channels_fg_rgb8</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">r</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">g</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">b</span>);
+        <span class="kw">crate</span>::<span class="ident">ncchannels_fg_rgb8</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">r</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">g</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">b</span>);
         (<span class="ident">r</span>, <span class="ident">g</span>, <span class="ident">b</span>)
     }
 
     <span class="doccomment">/// Gets the three background [NcColor]s (r, g, b).</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [channels_bg_rgb8()][crate::channels_bg_rgb8].*</span>
+    <span class="doccomment">/// *C style function: [channels_bg_rgb8()][crate::ncchannels_bg_rgb8].*</span>
     <span class="kw">fn</span> <span class="ident">bg_rgb8</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">NcColor</span>, <span class="ident">NcColor</span>, <span class="ident">NcColor</span>) {
         <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">r</span>, <span class="kw-2">mut</span> <span class="ident">g</span>, <span class="kw-2">mut</span> <span class="ident">b</span>) <span class="op">=</span> (<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);
-        <span class="kw">crate</span>::<span class="ident">channels_bg_rgb8</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">r</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">g</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">b</span>);
+        <span class="kw">crate</span>::<span class="ident">ncchannels_bg_rgb8</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">r</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">g</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">b</span>);
         (<span class="ident">r</span>, <span class="ident">g</span>, <span class="ident">b</span>)
     }
 
     <span class="doccomment">/// Sets the three foreground [NcColor]s (r, g, b), and</span>
     <span class="doccomment">/// marks the foreground [NcChannel] as not using the &quot;default color&quot;.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [channels_set_fg_rgb8()][crate::channels_set_fg_rgb8].*</span>
+    <span class="doccomment">/// *C style function: [channels_set_fg_rgb8()][crate::ncchannels_set_fg_rgb8].*</span>
     <span class="kw">fn</span> <span class="ident">set_fg_rgb8</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">r</span>: <span class="ident">NcColor</span>, <span class="ident">g</span>: <span class="ident">NcColor</span>, <span class="ident">b</span>: <span class="ident">NcColor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">crate</span>::<span class="ident">channels_set_fg_rgb8</span>(<span class="self">self</span>, <span class="ident">r</span>, <span class="ident">g</span>, <span class="ident">b</span>)
+        <span class="kw">crate</span>::<span class="ident">ncchannels_set_fg_rgb8</span>(<span class="self">self</span>, <span class="ident">r</span>, <span class="ident">g</span>, <span class="ident">b</span>)
     }
 
     <span class="doccomment">/// Sets the three background [NcColor]s (r, g, b), and</span>
     <span class="doccomment">/// marks the background [NcChannel] as not using the &quot;default color&quot;.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [channels_set_bg_rgb8()][crate::channels_set_bg_rgb8].*</span>
+    <span class="doccomment">/// *C style function: [channels_set_bg_rgb8()][crate::ncchannels_set_bg_rgb8].*</span>
     <span class="kw">fn</span> <span class="ident">set_bg_rgb8</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">r</span>: <span class="ident">NcColor</span>, <span class="ident">g</span>: <span class="ident">NcColor</span>, <span class="ident">b</span>: <span class="ident">NcColor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">crate</span>::<span class="ident">channels_set_bg_rgb8</span>(<span class="self">self</span>, <span class="ident">r</span>, <span class="ident">g</span>, <span class="ident">b</span>)
+        <span class="kw">crate</span>::<span class="ident">ncchannels_set_bg_rgb8</span>(<span class="self">self</span>, <span class="ident">r</span>, <span class="ident">g</span>, <span class="ident">b</span>)
     }
 
     <span class="doccomment">/// Gets the foreground red [NcColor].</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *(No equivalent C style function)*</span>
     <span class="kw">fn</span> <span class="ident">fg_r</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcColor</span> {
-        <span class="kw">crate</span>::<span class="ident">channel_r</span>(<span class="kw">crate</span>::<span class="ident">channels_fchannel</span>(<span class="kw-2">*</span><span class="self">self</span>))
+        <span class="kw">crate</span>::<span class="ident">ncchannel_r</span>(<span class="kw">crate</span>::<span class="ident">ncchannels_fchannel</span>(<span class="kw-2">*</span><span class="self">self</span>))
     }
 
     <span class="doccomment">/// Gets the foreground green [NcColor].</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *(No equivalent C style function)*</span>
     <span class="kw">fn</span> <span class="ident">fg_g</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcColor</span> {
-        <span class="kw">crate</span>::<span class="ident">channel_g</span>(<span class="kw">crate</span>::<span class="ident">channels_fchannel</span>(<span class="kw-2">*</span><span class="self">self</span>))
+        <span class="kw">crate</span>::<span class="ident">ncchannel_g</span>(<span class="kw">crate</span>::<span class="ident">ncchannels_fchannel</span>(<span class="kw-2">*</span><span class="self">self</span>))
     }
 
     <span class="doccomment">/// Gets the foreground blue [NcColor].</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *(No equivalent C style function)*</span>
     <span class="kw">fn</span> <span class="ident">fg_b</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcColor</span> {
-        <span class="kw">crate</span>::<span class="ident">channel_b</span>(<span class="kw">crate</span>::<span class="ident">channels_fchannel</span>(<span class="kw-2">*</span><span class="self">self</span>))
+        <span class="kw">crate</span>::<span class="ident">ncchannel_b</span>(<span class="kw">crate</span>::<span class="ident">ncchannels_fchannel</span>(<span class="kw-2">*</span><span class="self">self</span>))
     }
 
     <span class="doccomment">/// Gets the background red [NcColor].</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *(No equivalent C style function)*</span>
     <span class="kw">fn</span> <span class="ident">bg_r</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcColor</span> {
-        <span class="kw">crate</span>::<span class="ident">channel_r</span>(<span class="kw">crate</span>::<span class="ident">channels_bchannel</span>(<span class="kw-2">*</span><span class="self">self</span>))
+        <span class="kw">crate</span>::<span class="ident">ncchannel_r</span>(<span class="kw">crate</span>::<span class="ident">ncchannels_bchannel</span>(<span class="kw-2">*</span><span class="self">self</span>))
     }
 
     <span class="doccomment">/// Gets the background green [NcColor].</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *(No equivalent C style function)*</span>
     <span class="kw">fn</span> <span class="ident">bg_g</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcColor</span> {
-        <span class="kw">crate</span>::<span class="ident">channel_g</span>(<span class="kw">crate</span>::<span class="ident">channels_bchannel</span>(<span class="kw-2">*</span><span class="self">self</span>))
+        <span class="kw">crate</span>::<span class="ident">ncchannel_g</span>(<span class="kw">crate</span>::<span class="ident">ncchannels_bchannel</span>(<span class="kw-2">*</span><span class="self">self</span>))
     }
 
     <span class="doccomment">/// Gets the background blue [NcColor].</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *(No equivalent C style function)*</span>
     <span class="kw">fn</span> <span class="ident">bg_b</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcColor</span> {
-        <span class="kw">crate</span>::<span class="ident">channel_b</span>(<span class="kw">crate</span>::<span class="ident">channels_bchannel</span>(<span class="kw-2">*</span><span class="self">self</span>))
+        <span class="kw">crate</span>::<span class="ident">ncchannel_b</span>(<span class="kw">crate</span>::<span class="ident">ncchannels_bchannel</span>(<span class="kw-2">*</span><span class="self">self</span>))
     }
 
     <span class="doccomment">/// Sets the foreground red [NcColor], and returns the new NcChannelPair.</span>
@@ -1324,7 +1402,7 @@
     <span class="doccomment">/// *(No equivalent C style function)*</span>
     <span class="kw">fn</span> <span class="ident">fg_set_r</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">r</span>: <span class="ident">NcColor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">g</span>, <span class="ident">b</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">bg_rgb8</span>();
-        <span class="kw">crate</span>::<span class="ident">channels_set_fg_rgb8</span>(<span class="self">self</span>, <span class="ident">r</span>, <span class="ident">g</span>, <span class="ident">b</span>)
+        <span class="kw">crate</span>::<span class="ident">ncchannels_set_fg_rgb8</span>(<span class="self">self</span>, <span class="ident">r</span>, <span class="ident">g</span>, <span class="ident">b</span>)
     }
 
     <span class="doccomment">/// Sets the foreground green [NcColor], and returns the new NcChannelPair.</span>
@@ -1332,7 +1410,7 @@
     <span class="doccomment">/// *(No equivalent C style function)*</span>
     <span class="kw">fn</span> <span class="ident">fg_set_g</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">g</span>: <span class="ident">NcColor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> (<span class="ident">r</span>, <span class="kw">_</span>, <span class="ident">b</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">bg_rgb8</span>();
-        <span class="kw">crate</span>::<span class="ident">channels_set_fg_rgb8</span>(<span class="self">self</span>, <span class="ident">r</span>, <span class="ident">g</span>, <span class="ident">b</span>)
+        <span class="kw">crate</span>::<span class="ident">ncchannels_set_fg_rgb8</span>(<span class="self">self</span>, <span class="ident">r</span>, <span class="ident">g</span>, <span class="ident">b</span>)
     }
 
     <span class="doccomment">/// Sets the foreground blue [NcColor], and returns the new NcChannelPair.</span>
@@ -1340,7 +1418,7 @@
     <span class="doccomment">/// *(No equivalent C style function)*</span>
     <span class="kw">fn</span> <span class="ident">fg_set_b</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">b</span>: <span class="ident">NcColor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> (<span class="ident">r</span>, <span class="ident">g</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">bg_rgb8</span>();
-        <span class="kw">crate</span>::<span class="ident">channels_set_fg_rgb8</span>(<span class="self">self</span>, <span class="ident">r</span>, <span class="ident">g</span>, <span class="ident">b</span>)
+        <span class="kw">crate</span>::<span class="ident">ncchannels_set_fg_rgb8</span>(<span class="self">self</span>, <span class="ident">r</span>, <span class="ident">g</span>, <span class="ident">b</span>)
     }
 
     <span class="doccomment">/// Sets the background red [NcColor], and returns the new NcChannelPair.</span>
@@ -1348,7 +1426,7 @@
     <span class="doccomment">/// *(No equivalent C style function)*</span>
     <span class="kw">fn</span> <span class="ident">bg_set_r</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">r</span>: <span class="ident">NcColor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">g</span>, <span class="ident">b</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">bg_rgb8</span>();
-        <span class="kw">crate</span>::<span class="ident">channels_set_bg_rgb8</span>(<span class="self">self</span>, <span class="ident">r</span>, <span class="ident">g</span>, <span class="ident">b</span>)
+        <span class="kw">crate</span>::<span class="ident">ncchannels_set_bg_rgb8</span>(<span class="self">self</span>, <span class="ident">r</span>, <span class="ident">g</span>, <span class="ident">b</span>)
     }
 
     <span class="doccomment">/// Sets the background green [NcColor], and returns the new NcChannelPair.</span>
@@ -1356,7 +1434,7 @@
     <span class="doccomment">/// *(No equivalent C style function)*</span>
     <span class="kw">fn</span> <span class="ident">bg_set_g</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">g</span>: <span class="ident">NcColor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> (<span class="ident">r</span>, <span class="kw">_</span>, <span class="ident">b</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">bg_rgb8</span>();
-        <span class="kw">crate</span>::<span class="ident">channels_set_bg_rgb8</span>(<span class="self">self</span>, <span class="ident">r</span>, <span class="ident">g</span>, <span class="ident">b</span>)
+        <span class="kw">crate</span>::<span class="ident">ncchannels_set_bg_rgb8</span>(<span class="self">self</span>, <span class="ident">r</span>, <span class="ident">g</span>, <span class="ident">b</span>)
     }
 
     <span class="doccomment">/// Sets the background blue [NcColor], and returns the new NcChannelPair.</span>
@@ -1364,16 +1442,16 @@
     <span class="doccomment">/// *(No equivalent C style function)*</span>
     <span class="kw">fn</span> <span class="ident">bg_set_b</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">b</span>: <span class="ident">NcColor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> (<span class="ident">r</span>, <span class="ident">g</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">bg_rgb8</span>();
-        <span class="kw">crate</span>::<span class="ident">channels_set_bg_rgb8</span>(<span class="self">self</span>, <span class="ident">r</span>, <span class="ident">g</span>, <span class="ident">b</span>)
+        <span class="kw">crate</span>::<span class="ident">ncchannels_set_bg_rgb8</span>(<span class="self">self</span>, <span class="ident">r</span>, <span class="ident">g</span>, <span class="ident">b</span>)
     }
 
     <span class="comment">// default color</span>
 
     <span class="doccomment">/// Is the background using the &quot;default background color&quot;?</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [channels_fg_default_p()][crate::channels_fg_default_p].*</span>
+    <span class="doccomment">/// *C style function: [channels_fg_default_p()][crate::ncchannels_fg_default_p].*</span>
     <span class="kw">fn</span> <span class="ident">fg_default_p</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">crate</span>::<span class="ident">channels_fg_default_p</span>(<span class="kw-2">*</span><span class="self">self</span>)
+        <span class="kw">crate</span>::<span class="ident">ncchannels_fg_default_p</span>(<span class="kw-2">*</span><span class="self">self</span>)
     }
 
     <span class="doccomment">/// Is the background using the &quot;default background color&quot;?</span>
@@ -1381,25 +1459,63 @@
     <span class="doccomment">/// The &quot;default background color&quot; must generally be used to take advantage</span>
     <span class="doccomment">/// of terminal-effected transparency.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [channels_bg_default_p()][crate::channels_bg_default_p].*</span>
+    <span class="doccomment">/// *C style function: [channels_bg_default_p()][crate::ncchannels_bg_default_p].*</span>
     <span class="kw">fn</span> <span class="ident">bg_default_p</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">crate</span>::<span class="ident">channels_bg_default_p</span>(<span class="kw-2">*</span><span class="self">self</span>)
+        <span class="kw">crate</span>::<span class="ident">ncchannels_bg_default_p</span>(<span class="kw-2">*</span><span class="self">self</span>)
     }
 
     <span class="doccomment">/// Marks the foreground as using its &quot;default color&quot;, and</span>
     <span class="doccomment">/// returns the new [NcChannelPair].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [channels_set_fg_default()][crate::channels_set_fg_default].*</span>
+    <span class="doccomment">/// *C style function: [channels_set_fg_default()][crate::ncchannels_set_fg_default].*</span>
     <span class="kw">fn</span> <span class="ident">set_fg_default</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">crate</span>::<span class="ident">channels_set_fg_default</span>(<span class="self">self</span>)
+        <span class="kw">crate</span>::<span class="ident">ncchannels_set_fg_default</span>(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Marks the background as using its &quot;default color&quot;, and</span>
     <span class="doccomment">/// returns the new [NcChannelPair].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [channels_set_bg_default()][crate::channels_set_bg_default].*</span>
+    <span class="doccomment">/// *C style function: [channels_set_bg_default()][crate::ncchannels_set_bg_default].*</span>
     <span class="kw">fn</span> <span class="ident">set_bg_default</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">crate</span>::<span class="ident">channels_set_bg_default</span>(<span class="self">self</span>)
+        <span class="kw">crate</span>::<span class="ident">ncchannels_set_bg_default</span>(<span class="self">self</span>)
+    }
+
+    <span class="doccomment">/// Marks the foreground as NOT using its &quot;default color&quot;, and</span>
+    <span class="doccomment">/// returns the new [NcChannelPair].</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// *C style function: [channels_set_fg_default()][crate::ncchannels_set_fg_default].*</span>
+    <span class="comment">//</span>
+    <span class="comment">// Not in the C API</span>
+    <span class="kw">fn</span> <span class="ident">set_fg_not_default</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">crate</span>::<span class="ident">ncchannels_set_fg_not_default</span>(<span class="self">self</span>)
+    }
+
+    <span class="doccomment">/// Marks the background as NOT using its &quot;default color&quot;, and</span>
+    <span class="doccomment">/// returns the new [NcChannelPair].</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// *C style function: [channels_set_bg_not_default()][crate::ncchannels_set_bg_not_default].*</span>
+    <span class="comment">//</span>
+    <span class="comment">// Not in the C API</span>
+    <span class="kw">fn</span> <span class="ident">set_bg_not_default</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">crate</span>::<span class="ident">ncchannels_set_bg_not_default</span>(<span class="self">self</span>)
+    }
+
+    <span class="doccomment">/// Marks both the foreground and background as using its &quot;default color&quot;, and</span>
+    <span class="doccomment">/// returns the new [NcChannelPair].</span>
+    <span class="doccomment">///</span>
+    <span class="comment">//</span>
+    <span class="comment">// Not in the C API</span>
+    <span class="kw">fn</span> <span class="ident">set_default</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">crate</span>::<span class="ident">ncchannels_set_fg_default</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">crate</span>::<span class="ident">ncchannels_set_bg_default</span>(<span class="self">self</span>))
+    }
+
+    <span class="doccomment">/// Marks both the foreground and background as NOT using its &quot;default color&quot;,</span>
+    <span class="doccomment">/// and returns the new [NcChannelPair].</span>
+    <span class="doccomment">///</span>
+    <span class="comment">//</span>
+    <span class="comment">// Not in the C API</span>
+    <span class="kw">fn</span> <span class="ident">set_not_default</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">crate</span>::<span class="ident">ncchannels_set_fg_not_default</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">crate</span>::<span class="ident">ncchannels_set_bg_not_default</span>(<span class="self">self</span>))
     }
 
     <span class="comment">// NcPaletteIndex</span>
@@ -1407,34 +1523,34 @@
     <span class="doccomment">/// Is the foreground of using an [indexed][NcPaletteIndex]</span>
     <span class="doccomment">/// [NcPalette][crate::NcPalette] color?</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [channels_fg_palindex_p()][crate::channels_fg_palindex_p].*</span>
+    <span class="doccomment">/// *C style function: [channels_fg_palindex_p()][crate::ncchannels_fg_palindex_p].*</span>
     <span class="kw">fn</span> <span class="ident">fg_palindex_p</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">crate</span>::<span class="ident">channels_fg_palindex_p</span>(<span class="kw-2">*</span><span class="self">self</span>)
+        <span class="kw">crate</span>::<span class="ident">ncchannels_fg_palindex_p</span>(<span class="kw-2">*</span><span class="self">self</span>)
     }
 
     <span class="doccomment">/// Is the background of using an [indexed][NcPaletteIndex]</span>
     <span class="doccomment">/// [NcPalette][crate::NcPalette] color?</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [channels_bg_palindex_p()][crate::channels_bg_palindex_p].*</span>
+    <span class="doccomment">/// *C style function: [channels_bg_palindex_p()][crate::ncchannels_bg_palindex_p].*</span>
     <span class="kw">fn</span> <span class="ident">bg_palindex_p</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">crate</span>::<span class="ident">channels_bg_palindex_p</span>(<span class="kw-2">*</span><span class="self">self</span>)
+        <span class="kw">crate</span>::<span class="ident">ncchannels_bg_palindex_p</span>(<span class="kw-2">*</span><span class="self">self</span>)
     }
 
     <span class="doccomment">/// Sets the foreground of an [NcChannelPair] as using an</span>
     <span class="doccomment">/// [indexed][NcPaletteIndex] [NcPalette][crate::NcPalette] color.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [channels_set_fg_palindex()][crate::channels_set_fg_palindex].*</span>
+    <span class="doccomment">/// *C style function: [channels_set_fg_palindex()][crate::ncchannels_set_fg_palindex].*</span>
     <span class="kw">fn</span> <span class="ident">set_fg_palindex</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">NcPaletteIndex</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">crate</span>::<span class="ident">channels_set_fg_palindex</span>(<span class="self">self</span>, <span class="ident">index</span>);
+        <span class="kw">crate</span>::<span class="ident">ncchannels_set_fg_palindex</span>(<span class="self">self</span>, <span class="ident">index</span>);
         <span class="kw-2">*</span><span class="self">self</span>
     }
 
     <span class="doccomment">/// Sets the background of an [NcChannelPair] as using an</span>
     <span class="doccomment">/// [indexed][NcPaletteIndex] [NcPalette][crate::NcPalette] color.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [channels_set_bg_palindex()][crate::channels_set_bg_palindex].*</span>
+    <span class="doccomment">/// *C style function: [channels_set_bg_palindex()][crate::ncchannels_set_bg_palindex].*</span>
     <span class="kw">fn</span> <span class="ident">set_bg_palindex</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">NcPaletteIndex</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">crate</span>::<span class="ident">channels_set_bg_palindex</span>(<span class="self">self</span>, <span class="ident">index</span>);
+        <span class="kw">crate</span>::<span class="ident">ncchannels_set_bg_palindex</span>(<span class="self">self</span>, <span class="ident">index</span>);
         <span class="kw-2">*</span><span class="self">self</span>
     }
 }

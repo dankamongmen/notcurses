@@ -1995,6 +1995,54 @@
 <span id="1992">1992</span>
 <span id="1993">1993</span>
 <span id="1994">1994</span>
+<span id="1995">1995</span>
+<span id="1996">1996</span>
+<span id="1997">1997</span>
+<span id="1998">1998</span>
+<span id="1999">1999</span>
+<span id="2000">2000</span>
+<span id="2001">2001</span>
+<span id="2002">2002</span>
+<span id="2003">2003</span>
+<span id="2004">2004</span>
+<span id="2005">2005</span>
+<span id="2006">2006</span>
+<span id="2007">2007</span>
+<span id="2008">2008</span>
+<span id="2009">2009</span>
+<span id="2010">2010</span>
+<span id="2011">2011</span>
+<span id="2012">2012</span>
+<span id="2013">2013</span>
+<span id="2014">2014</span>
+<span id="2015">2015</span>
+<span id="2016">2016</span>
+<span id="2017">2017</span>
+<span id="2018">2018</span>
+<span id="2019">2019</span>
+<span id="2020">2020</span>
+<span id="2021">2021</span>
+<span id="2022">2022</span>
+<span id="2023">2023</span>
+<span id="2024">2024</span>
+<span id="2025">2025</span>
+<span id="2026">2026</span>
+<span id="2027">2027</span>
+<span id="2028">2028</span>
+<span id="2029">2029</span>
+<span id="2030">2030</span>
+<span id="2031">2031</span>
+<span id="2032">2032</span>
+<span id="2033">2033</span>
+<span id="2034">2034</span>
+<span id="2035">2035</span>
+<span id="2036">2036</span>
+<span id="2037">2037</span>
+<span id="2038">2038</span>
+<span id="2039">2039</span>
+<span id="2040">2040</span>
+<span id="2041">2041</span>
+<span id="2042">2042</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcPlane*` methods and associated functions.</span>
 <span class="kw">use</span> <span class="ident">core</span>::{
@@ -2165,7 +2213,7 @@
     <span class="doccomment">/// *C style function: [ncplane_fg_alpha()][crate::ncplane_fg_alpha].*</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fg_alpha</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcAlphaBits</span> {
-        <span class="kw">crate</span>::<span class="ident">channels_fg_alpha</span>(<span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncplane_channels</span>(<span class="self">self</span>) })
+        <span class="kw">crate</span>::<span class="ident">ncchannels_fg_alpha</span>(<span class="kw">crate</span>::<span class="ident">ncplane_channels</span>(<span class="self">self</span>))
     }
 
     <span class="doccomment">/// Gets the background [NcAlphaBits] for this NcPlane, shifted to LSBs.</span>
@@ -2173,7 +2221,7 @@
     <span class="doccomment">/// *C style function: [ncplane_bg_alpha()][crate::ncplane_bg_alpha].*</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bg_alpha</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcAlphaBits</span> {
-        <span class="kw">crate</span>::<span class="ident">channels_bg_alpha</span>(<span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncplane_channels</span>(<span class="self">self</span>) })
+        <span class="kw">crate</span>::<span class="ident">ncchannels_bg_alpha</span>(<span class="kw">crate</span>::<span class="ident">ncplane_channels</span>(<span class="self">self</span>))
     }
 
     <span class="doccomment">/// Sets the foreground [NcAlphaBits] from this NcPlane.</span>
@@ -2204,7 +2252,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncplane_channels()][crate::ncplane_channels].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channels</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannelPair</span> {
-        <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncplane_channels</span>(<span class="self">self</span>) }
+        <span class="kw">crate</span>::<span class="ident">ncplane_channels</span>(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Gets the foreground [NcChannel] from an [NcPlane].</span>
@@ -2212,7 +2260,7 @@
     <span class="doccomment">/// *C style function: [ncplane_fchannel()][crate::ncplane_fchannel].*</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fchannel</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannel</span> {
-        <span class="kw">crate</span>::<span class="ident">channels_fchannel</span>(<span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncplane_channels</span>(<span class="self">self</span>) })
+        <span class="kw">crate</span>::<span class="ident">ncchannels_fchannel</span>(<span class="kw">crate</span>::<span class="ident">ncplane_channels</span>(<span class="self">self</span>))
     }
 
     <span class="doccomment">/// Gets the background [NcChannel] from an [NcPlane].</span>
@@ -2220,14 +2268,14 @@
     <span class="doccomment">/// *C style function: [ncplane_bchannel()][crate::ncplane_bchannel].*</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bchannel</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannel</span> {
-        <span class="kw">crate</span>::<span class="ident">channels_bchannel</span>(<span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncplane_channels</span>(<span class="self">self</span>) })
+        <span class="kw">crate</span>::<span class="ident">ncchannels_bchannel</span>(<span class="kw">crate</span>::<span class="ident">ncplane_channels</span>(<span class="self">self</span>))
     }
 
     <span class="doccomment">/// Sets the current [NcChannelPair] for this NcPlane.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncplane_set_channels()][crate::ncplane_set_channels].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_channels</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">channels</span>: <span class="ident">NcChannelPair</span>) {
-        <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncplane_set_channels</span>(<span class="self">self</span>, <span class="ident">channels</span>) }
+        <span class="kw">crate</span>::<span class="ident">ncplane_set_channels</span>(<span class="self">self</span>, <span class="ident">channels</span>);
     }
 
     <span class="doccomment">/// Sets the current foreground [NcChannel] for this NcPlane.</span>
@@ -2235,7 +2283,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncplane_set_fchannel()][crate::ncplane_set_fchannel].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_fchannel</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">channel</span>: <span class="ident">NcChannel</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannelPair</span> {
-        <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncplane_set_fchannel</span>(<span class="self">self</span>, <span class="ident">channel</span>) }
+        <span class="kw">crate</span>::<span class="ident">ncplane_set_fchannel</span>(<span class="self">self</span>, <span class="ident">channel</span>)
     }
 
     <span class="doccomment">/// Sets the current background [NcChannel] for this NcPlane.</span>
@@ -2243,7 +2291,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncplane_set_bchannel()][crate::ncplane_set_bchannel].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_bchannel</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">channel</span>: <span class="ident">NcChannel</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannelPair</span> {
-        <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncplane_set_bchannel</span>(<span class="self">self</span>, <span class="ident">channel</span>) }
+        <span class="kw">crate</span>::<span class="ident">ncplane_set_bchannel</span>(<span class="self">self</span>, <span class="ident">channel</span>)
     }
 
     <span class="doccomment">/// Sets the given [NcChannelPair]s throughout the specified region,</span>
@@ -2283,8 +2331,8 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fg_rgb8</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">NcColor</span>, <span class="ident">NcColor</span>, <span class="ident">NcColor</span>) {
         <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">r</span>, <span class="kw-2">mut</span> <span class="ident">g</span>, <span class="kw-2">mut</span> <span class="ident">b</span>) <span class="op">=</span> (<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">channels_fg_rgb8</span>(
-            <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncplane_channels</span>(<span class="self">self</span>) },
+        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">ncchannels_fg_rgb8</span>(
+            <span class="kw">crate</span>::<span class="ident">ncplane_channels</span>(<span class="self">self</span>),
             <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">r</span>,
             <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">g</span>,
             <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">b</span>,
@@ -2298,8 +2346,8 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bg_rgb8</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">NcColor</span>, <span class="ident">NcColor</span>, <span class="ident">NcColor</span>) {
         <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">r</span>, <span class="kw-2">mut</span> <span class="ident">g</span>, <span class="kw-2">mut</span> <span class="ident">b</span>) <span class="op">=</span> (<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">channels_bg_rgb8</span>(
-            <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncplane_channels</span>(<span class="self">self</span>) },
+        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">ncchannels_bg_rgb8</span>(
+            <span class="kw">crate</span>::<span class="ident">ncplane_channels</span>(<span class="self">self</span>),
             <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">r</span>,
             <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">g</span>,
             <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">b</span>,
@@ -2346,7 +2394,7 @@
     <span class="doccomment">/// *C style function: [ncplane_fg_rgb()][crate::ncplane_fg_rgb].*</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fg_rgb</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcRgb</span> {
-        <span class="kw">crate</span>::<span class="ident">channels_fg_rgb</span>(<span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncplane_channels</span>(<span class="self">self</span>) })
+        <span class="kw">crate</span>::<span class="ident">ncchannels_fg_rgb</span>(<span class="kw">crate</span>::<span class="ident">ncplane_channels</span>(<span class="self">self</span>))
     }
 
     <span class="doccomment">/// Gets the background [NcRgb] from this NcPlane, shifted to LSBs.</span>
@@ -2354,7 +2402,7 @@
     <span class="doccomment">/// *C style function: [ncplane_bg_rgb()][crate::ncplane_bg_rgb].*</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bg_rgb</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcRgb</span> {
-        <span class="kw">crate</span>::<span class="ident">channels_bg_rgb</span>(<span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncplane_channels</span>(<span class="self">self</span>) })
+        <span class="kw">crate</span>::<span class="ident">ncchannels_bg_rgb</span>(<span class="kw">crate</span>::<span class="ident">ncplane_channels</span>(<span class="self">self</span>))
     }
 
     <span class="doccomment">/// Sets the foreground [NcRgb] for this NcPlane.</span>
@@ -2381,16 +2429,16 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncplane_fg_default_p()][crate::ncplane_fg_default_p].*</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fg_default_p</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">crate</span>::<span class="ident">channels_fg_default_p</span>(<span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncplane_channels</span>(<span class="self">self</span>) })
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fg_default</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">crate</span>::<span class="ident">ncchannels_fg_default_p</span>(<span class="kw">crate</span>::<span class="ident">ncplane_channels</span>(<span class="self">self</span>))
     }
 
     <span class="doccomment">/// Is this NcPlane&#39;s background using the &quot;default background color&quot;?</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncplane_bg_default_p()][crate::ncplane_bg_default_p].*</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bg_default_p</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">crate</span>::<span class="ident">channels_bg_default_p</span>(<span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncplane_channels</span>(<span class="self">self</span>) })
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bg_default</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">crate</span>::<span class="ident">ncchannels_bg_default_p</span>(<span class="kw">crate</span>::<span class="ident">ncplane_channels</span>(<span class="self">self</span>))
     }
 
     <span class="doccomment">/// Uses the default color for the foreground.</span>
@@ -2411,6 +2459,54 @@
         <span class="kw">unsafe</span> {
             <span class="kw">crate</span>::<span class="ident">ncplane_set_bg_default</span>(<span class="self">self</span>);
         }
+    }
+
+    <span class="doccomment">/// Marks the foreground as NOT using the default color.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Returns the new [NcChannelPair].</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// *C style function: [ncplane_set_fg_not_default()][crate::ncplane_set_fg_not_default].*</span>
+    <span class="comment">//</span>
+    <span class="comment">// Not in the C API</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_fg_not_default</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannelPair</span> {
+        <span class="kw">crate</span>::<span class="ident">ncplane_set_fg_not_default</span>(<span class="self">self</span>)
+    }
+
+    <span class="doccomment">/// Marks the background as NOT using the default color.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Returns the new [NcChannelPair].</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// *C style function: [ncplane_set_bg_not_default()][crate::ncplane_set_bg_not_default].*</span>
+    <span class="comment">//</span>
+    <span class="comment">// Not in the C API</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_bg_not_default</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannelPair</span> {
+        <span class="kw">crate</span>::<span class="ident">ncplane_set_bg_not_default</span>(<span class="self">self</span>)
+    }
+
+    <span class="doccomment">/// Marks both the foreground and background as using the default color.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Returns the new [NcChannelPair].</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// *C style function: [ncplane_set_default()][crate::ncplane_set_default].*</span>
+    <span class="comment">//</span>
+    <span class="comment">// Not in the C API</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_default</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannelPair</span> {
+        <span class="kw">crate</span>::<span class="ident">ncplane_set_default</span>(<span class="self">self</span>)
+    }
+
+    <span class="doccomment">/// Marks both the foreground and background as NOT using the default color.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Returns the new [NcChannelPair].</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// *C style function: [ncplane_set_not_default()][crate::ncplane_set_not_default].*</span>
+    <span class="comment">//</span>
+    <span class="comment">// Not in the C API</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_not_default</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannelPair</span> {
+        <span class="kw">crate</span>::<span class="ident">ncplane_set_not_default</span>(<span class="self">self</span>)
     }
 }
 
