@@ -812,7 +812,7 @@ wipe_color(sixelmap* smap, int color, int sband, int eband,
     }
     for(int x = startx ; x <= endx ; ++x){
       const int xoff = boff + x;
-      assert(xoff < smap->sixelcount);
+      assert(xoff < smap->colors * smap->sixelcount);
 //fprintf(stderr, "band: %d color: %d idx: %d mask: %02x\n", b, color, color * smap->sixelcount + xoff, mask);
 //fprintf(stderr, "color: %d idx: %d data: %02x\n", color, color * smap->sixelcount + xoff, smap->data[color * smap->sixelcount + xoff]);
       // this is the auxvec position of the upperleftmost pixel of the sixel
