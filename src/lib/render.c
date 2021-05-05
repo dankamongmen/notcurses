@@ -164,6 +164,7 @@ paint_sprixel(ncplane* p, struct crender* rvec, int starty, int startx,
       if(absx >= dstlenx || absx < 0){
         break;
       }
+      sprixcell_e state = sprixel_state(s, absy, absx);
       struct crender* crender = &rvec[fbcellidx(absy, dstlenx, absx)];
 //fprintf(stderr, "presprixel: %p preid: %d id: %d state: %d\n", rvec->sprixel, rvec->sprixel ? rvec->sprixel->id : 0, cell_sprixel_id(vis), s->invalidated);
       // if we already have a glyph solved (meaning said glyph is above this
@@ -183,7 +184,6 @@ paint_sprixel(ncplane* p, struct crender* rvec, int starty, int startx,
         if(crender->sprixel == NULL){
           crender->sprixel = s;
         }
-        sprixcell_e state = sprixel_state(s, absy, absx);
         if(state == SPRIXCELL_ANNIHILATED || state == SPRIXCELL_ANNIHILATED_TRANS){
 //fprintf(stderr, "REBUILDING AT %d/%d\n", y, x);
           sprite_rebuild(nc, s, y, x);

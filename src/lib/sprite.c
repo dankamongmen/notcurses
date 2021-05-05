@@ -181,21 +181,22 @@ int sprixel_load(sprixel* spx, char* s, int bytes, int pixy, int pixx,
 // returns 1 if already annihilated, 0 if we successfully annihilated the cell,
 // or -1 if we could not annihilate the cell (i.e. we're sixel).
 int sprite_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
-  if(s->n->tam[s->dimx * ycell + xcell].state == SPRIXCELL_TRANSPARENT){
-    s->n->tam[s->dimx * ycell + xcell].state = SPRIXCELL_ANNIHILATED_TRANS;
+  int idx = s->dimx * ycell + xcell;
+  if(s->n->tam[idx].state == SPRIXCELL_TRANSPARENT){
+    s->n->tam[idx].state = SPRIXCELL_ANNIHILATED_TRANS;
     return 1;
   }
-  if(s->n->tam[s->dimx * ycell + xcell].state == SPRIXCELL_ANNIHILATED_TRANS){
+  if(s->n->tam[idx].state == SPRIXCELL_ANNIHILATED_TRANS){
     // both handle this correctly; one day, we will also check for ANNIHILATED
     // here, and return 0 (sixel currently must return 1) FIXME
     return 0;
   }
-//fprintf(stderr, "ANNIHILATING %p %d\n", s->n->tam, s->dimx * ycell + xcell);
+//fprintf(stderr, "ANNIHILATING %p %d\n", s->n->tam, idx);
   int r = nc->tcache.pixel_wipe(s, ycell, xcell);
 //fprintf(stderr, "WIPED %d %d/%d ret=%d\n", s->id, ycell, xcell, r);
   // mark the cell as annihilated whether we actually scrubbed it or not,
   // so that we use this fact should we move to another frame
-  s->n->tam[s->dimx * ycell + xcell].state = SPRIXCELL_ANNIHILATED;
+  s->n->tam[idx].state = SPRIXCELL_ANNIHILATED;
   return r;
 }
 

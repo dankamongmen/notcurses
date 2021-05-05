@@ -1002,16 +1002,16 @@ sprite_rebuild(const notcurses* nc, sprixel* s, int ycell, int xcell){
   int ret = 0;
   // special case the transition back to SPRIXCELL_TRANSPARENT; this can be
   // done in O(1), since the actual glyph needn't change.
-  uint8_t* auxvec = s->n->tam[s->dimx * ycell + xcell].auxvector;
-  assert(auxvec);
   if(s->n->tam[s->dimx * ycell + xcell].state == SPRIXCELL_ANNIHILATED_TRANS){
     s->n->tam[s->dimx * ycell + xcell].state = SPRIXCELL_TRANSPARENT;
   }else if(s->n->tam[s->dimx * ycell + xcell].state == SPRIXCELL_ANNIHILATED){
     // sets the new state itself
+    uint8_t* auxvec = s->n->tam[s->dimx * ycell + xcell].auxvector;
+    assert(auxvec);
     ret = nc->tcache.pixel_rebuild(s, ycell, xcell, auxvec);
+    free(auxvec);
+    s->n->tam[s->dimx * ycell + xcell].auxvector = NULL;
   }
-  free(auxvec);
-  s->n->tam[s->dimx * ycell + xcell].auxvector = NULL;
   return ret;
 }
 

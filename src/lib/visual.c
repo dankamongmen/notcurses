@@ -478,7 +478,7 @@ ncvisual* ncvisual_from_rgba(const void* rgba, int rows, int rowstride, int cols
     ncv->pixx = cols;
     ncv->pixy = rows;
     uint32_t* data = memdup(rgba, rowstride * ncv->pixy);
-//fprintf(stderr, "COPY US %zu (%d)\n", rowstride * ncv->pixy, ncv->pixy);
+//fprintf(stderr, "COPY US %d (%d)\n", rowstride * ncv->pixy, ncv->pixy);
     if(data == NULL){
       ncvisual_destroy(ncv);
       return NULL;
