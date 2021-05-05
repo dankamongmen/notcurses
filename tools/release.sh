@@ -26,7 +26,7 @@ sed -i -e "s/\(PROJECT_NUMBER *= \)$OLDVERSION/\1$VERSION/" doc/Doxyfile
 for i in doc/man/man*/*.md cffi/notcurses-*.md ; do
   sed -i -e "s/% v$OLDVERSION/% v$VERSION/" "$i"
 done
-sed -i -e "s/v$OLDVERSION/v$VERSION/" doc/man/index.html
+sed -i -e "s/v$OLDVERSION/v$VERSION/g" doc/man/index.html
 sed -i -e "s/version=\"$OLDVERSION\"/version=\"$VERSION\"/" cffi/setup.py
 sed -i -e "s/^version = \"$OLDVERSION\"$/version = \"$VERSION\"/" rust/Cargo.toml
 sed -i -e "s/atleast_version(\"$OLDVERSION\")/atleast_version(\"$VERSION\")/" rust/build/build.rs
