@@ -85,7 +85,6 @@ textplay(struct notcurses* nc, struct ncplane* tplane, struct ncvisual* ncv){
       goto err;
     }
     conv[w] = '\0';
-fprintf(stderr, "CONVERTED %zu: %s\n", w, conv);
     char* tmp = realloc(buf, buflen + w);
     if(tmp == NULL){
       goto err;
