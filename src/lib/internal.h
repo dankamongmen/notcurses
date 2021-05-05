@@ -1012,6 +1012,7 @@ sprite_rebuild(const notcurses* nc, sprixel* s, int ycell, int xcell){
     free(auxvec);
     s->n->tam[s->dimx * ycell + xcell].auxvector = NULL;
   }
+  s->invalidated = SPRIXEL_INVALIDATED;
   return ret;
 }
 
