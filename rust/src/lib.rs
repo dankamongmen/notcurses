@@ -22,10 +22,11 @@
 //! use libnotcurses_sys::*;
 //!
 //! fn main() -> NcResult<()> {
-//!     let mut nc = Nc::with_flags(NCOPTION_NO_ALTERNATE_SCREEN)?;
+//!     let mut nc = Notcurses::with_flags(NCOPTION_NO_ALTERNATE_SCREEN)?;
 //!     let plane = nc.stdplane();
 //!     plane.putstr("hello world")?;
 //!     nc.render()?;
+//!     nc.stop()?;
 //!     Ok(())
 //! }
 //! ```

@@ -177,7 +177,7 @@ pub use ffi::{
     ncdirect_off_styles,
     ncdirect_on_styles,
     ncdirect_palette_size,
-    ncdirect_printf_aligned,
+    //W ncdirect_printf_aligned,
     ncdirect_putstr,
     ncdirect_raster_frame,
     ncdirect_readline,

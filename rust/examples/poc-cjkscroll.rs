@@ -3,7 +3,8 @@
 use libnotcurses_sys::*;
 
 fn main() -> NcResult<()> {
-    let mut nc = Nc::new()?;
+    let mut nc = Notcurses::new()?;
+
     let plane = nc.stdplane();
     plane.set_scrolling(true);
 
@@ -19,4 +20,6 @@ fn main() -> NcResult<()> {
         }
         rsleep![&mut nc, 0, 0, 30];
     }
+
+    // nc.stop()?;
 }

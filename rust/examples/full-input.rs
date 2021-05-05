@@ -6,7 +6,7 @@
 use libnotcurses_sys::*;
 
 fn main() -> NcResult<()> {
-    let mut nc = Nc::with_flags(
+    let mut nc = Notcurses::with_flags(
         NCOPTION_SUPPRESS_BANNERS | NCOPTION_NO_WINCH_SIGHANDLER | NCOPTION_NO_QUIT_SIGHANDLERS,
     )?;
 
@@ -32,5 +32,6 @@ fn main() -> NcResult<()> {
     println!("\nExiting...");
 
     rsleep![&mut nc, 1];
+    nc.stop()?;
     Ok(())
 }

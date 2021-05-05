@@ -3,7 +3,7 @@
 use libnotcurses_sys::*;
 
 fn main() -> NcResult<()> {
-    let mut dm = NcD::new()?;
+    let dm = NcDirect::new()?;
 
     let dimy = dm.dim_y();
     let dimx = dm.dim_x();

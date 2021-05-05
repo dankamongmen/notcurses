@@ -15,38 +15,26 @@ and the [**C way**](#2-the-c-way). (Or a mix of both).
 
 ## 1. The Rust way
 
-Where you use the safely wrapped types, with its methods and constructors,
+Where you use the more safely wrapped types, with its methods and constructors,
 and painless error handling, like this:
 
 ```rust
 use libnotcurses_sys::*;
 
 fn main() -> NcResult<()> {
-    let mut nc = Nc::with_flags(NCOPTION_NO_ALTERNATE_SCREEN)?;
+    let mut nc = Notcurses::with_flags(NCOPTION_NO_ALTERNATE_SCREEN)?;
     let plane = nc.stdplane();
     plane.putstr("hello world")?;
     nc.render()?;
+    nc.stop()?;
     Ok(())
 }
 ```
 
-Specifically `Nc` and `NcD` are safe wrappers over `Notcurses`
-and `NcDirect`, respectively.
-
-`Nc` and `NcD` both implement the Drop, AsRef, AsMut, Deref and DerefMut traits.
-
-Their destructors are called automatically at the end of their scope.
-
-Methods are directly implemented for `Notcurses` and `NcDirect`, and are
-made automatically available to `Nc` & `NcD`, minus some function overrides,
-like their destructors, plus the static methods that have to be recreated.
-
-The rest of the types that allocate, like `NcPlane`, `NcMenu`,
-`NcReader`… have no higher level wrapping struct, they don't
-implement Drop, so they have to be `*.destroy()`ed manually.
-
-But they do implement methods and use `NcResult` as the return type,
-for handling errors in the way we are used to in Rust.
+Although you still have to manually call the `stop()` method for `Notcurses`
+and `NcDirect` objects, and the `destroy()` method for the rest of types that
+allocate, (like `NcPlane`, `NcMenu`…) at the end of their scope, since the Drop
+trait is not implemented for any wrapping type in libnotcurses-sys.
 
 For the types that don't allocate, most are based on primitives like `i32`,
 `u32`, `u64`… without a name in the C library. In Rust they are type aliased

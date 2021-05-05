@@ -6,7 +6,7 @@ const WIDTH: u32 = 10;
 const HEIGHT: u32 = 10;
 
 fn main() -> NcResult<()> {
-    let mut nc = Nc::new()?;
+    let mut nc = Notcurses::new()?;
 
     if !nc.check_pixel_support()? {
         return Err(NcError::new_msg("Current terminal doesn't support pixels."));
@@ -33,5 +33,6 @@ fn main() -> NcResult<()> {
 
     rsleep![&mut nc, 2];
     vframe.destroy();
+    nc.stop()?;
     Ok(())
 }

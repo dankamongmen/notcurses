@@ -1,29 +1,19 @@
 //! `Notcurses`
-
-// --- -------------------------------------------------------------------------
-// col 0:   3
-// --------------
-//          1  X: wont do
-//          2  ~: WIP
+  
+// total: 51
+// ---------------------------------------------------
+// (X)  1 : wont do
 //
-// col 1:  50
-// --------------
-//         44  f: ffi function imported by bindgen
-//             F: ffi function wrapped safely
-//          6  r: static function reimplemented in Rust
+// (f) 44 : unsafe ffi function exported by bindgen
+// (w)  0 : safely wrapped ffi function
+// (r)  6 : static function manually reimplemented
 //
-// col 2:  48
-// --------------
-//         38  m: impl as a `Notcurses` method
-//         10  M: impl for the `Nc` wrapper struct too
+// (m) 38 : method implemented
+// (~)  3 : work in progress
 //
-// col 3:  13
-// --------------
-//         13  t: tests done for the ffi or reimplemented funtion
-//             T: tests done also for the m method
-//             Ŧ: tests done also for the M method wrapper struct
-// --- -------------------------------------------------------------------------
-//
+// (t) 13 : unit test done for the function
+// (T)  0 : unit test done also for the method
+// ---------------------------------------------------
 // fm  notcurses_at_yx
 // fm  notcurses_bottom
 // fm  notcurses_canbraille
@@ -35,18 +25,18 @@
 // fmt notcurses_cantruecolor
 // fmt notcurses_canutf8
 // fm  notcurses_check_pixel_support
-// f~  notcurses_core_init
+//~f   notcurses_core_init
 // fm  notcurses_cursor_disable
 // fm  notcurses_cursor_enable
 // fmt notcurses_debug
 // fm  notcurses_debug_caps
 // fmt notcurses_drop_planes
 // fm  notcurses_getc
-// fMt notcurses_init
+// fmt notcurses_init
 // fm  notcurses_inputready_fd
-// fM  notcurses_lex_blitter
-// fM  notcurses_lex_margins
-// fM  notcurses_lex_scalemode
+// fm  notcurses_lex_blitter
+// fm  notcurses_lex_margins
+// fm  notcurses_lex_scalemode
 // fm  notcurses_linesigs_disable
 // fm  notcurses_linesigs_enable
 // fm  notcurses_mouse_disable
@@ -61,16 +51,15 @@
 // fm  notcurses_stats_reset
 // fm  notcurses_stdplane
 // fm  notcurses_stdplane_const
-// fMt notcurses_stop
-// fM  notcurses_str_blitter
-// fM  notcurses_str_scalemode
+// fmt notcurses_stop
+// fm  notcurses_str_blitter
+// fm  notcurses_str_scalemode
 // fm  notcurses_supported_styles
 // fm  notcurses_top
 //X    notcurses_ucs32_to_utf8 (not needed in rust)
-// fMt notcurses_version
-// fM  notcurses_version_components
-//
-// rMt notcurses_align
+// fmt notcurses_version
+// fm  notcurses_version_components
+// rmt notcurses_align
 // rm  notcurses_getc_blocking
 // rm  notcurses_getc_nblock
 //~r   notcurses_stddim_yx           // multiple mutable references errors
@@ -83,12 +72,10 @@ mod test;
 mod helpers;
 mod methods;
 mod reimplemented;
-mod wrapper;
 
 #[allow(unused_imports)]
 pub(crate) use helpers::*;
 pub use reimplemented::*;
-pub use wrapper::*;
 
 /// Notcurses builds atop the terminfo abstraction layer to
 /// provide reasonably portable vivid character displays.

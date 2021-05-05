@@ -1,29 +1,19 @@
 //! `NcDirect`
 
-// --- ---------------------------------------------------------
-// col 0:
-// --------------
-//          4  X: wont do
-//             ~: WIP
+// total: 47
+// ---------------------------------------------------
+// (X)  1 : wont do
 //
-// col 1: 43
-// --------------
-//         39  f: ffi function imported by bindgen
-//             F: ffi function wrapped safely
-//          4  r: static function reimplemented in Rust
+// (f) 42 : unsafe ffi function exported by bindgen
+// (w)  0 : safely wrapped ffi function
+// (r)  4 : static function manually reimplemented
 //
-// col 2: 43
-// --------------
-//         41  m: impl as an `NcDirect` method
-//          2  M: impl for the `NcD` wrapper struct too
+// (m) 45 : method implemented
+// (~)  1 : work in progress
 //
-// col 3:
-// --------------
-//             t: tests done for the ffi or reimplemented funtion
-//             T: tests done also for the m method
-//             Ŧ: tests done also for the M method wrapper struct
-// --- ---------------------------------------------------------
-//
+// (t)  0 : unit test done for the function
+// (T)  0 : unit test done also for the method
+// ---------------------------------------------------
 // fm  ncdirect_bg_default
 // fm  ncdirect_bg_palindex
 // fm  ncdirect_bg_rgb
@@ -52,7 +42,7 @@
 // fm  ncdirect_flush
 // fm  ncdirect_getc
 // fm  ncdirect_hline_interp
-// fM  ncdirect_init
+// fm  ncdirect_init
 // fm  ncdirect_inputready_fd
 // fm  ncplane_on_styles
 // fm  ncplane_off_styles
@@ -65,10 +55,7 @@
 // fm  ncdirect_render_image
 // fm  ncdirect_rounded_box
 // fm  ncplane_set_styles
-// fM  ncdirect_stop
-//X    ncdirect_styles_off     // deprecated
-//X    ncdirect_styles_on      // deprecated
-//X    ncdirect_styles_set     // deprecated
+// fm  ncdirect_stop
 // fm  ncdirect_vline_interp
 // rm  ncdirect_bg_rgb8
 // rm  ncdirect_fg_rgb8
@@ -80,10 +67,8 @@ mod test;
 
 mod methods;
 mod reimplemented;
-mod wrapper;
 
 pub use reimplemented::*;
-pub use wrapper::*;
 
 /// Minimal notcurses instance for styling text.
 ///

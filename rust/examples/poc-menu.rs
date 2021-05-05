@@ -6,7 +6,7 @@
 use libnotcurses_sys::*;
 
 fn main() -> NcResult<()> {
-    let mut nc = Nc::new()?;
+    let mut nc = Notcurses::new()?;
     nc.mouse_enable()?;
 
     let mut demo_items = [
@@ -72,7 +72,7 @@ fn main() -> NcResult<()> {
     Ok(())
 }
 
-fn run_menu(nc: &mut Nc, menu: &mut NcMenu) -> NcResult<()> {
+fn run_menu(nc: &mut Notcurses, menu: &mut NcMenu) -> NcResult<()> {
     // yellow rectangle
     let planeopts = NcPlaneOptions::new_aligned(10, NCALIGN_CENTER, 3, 40);
     let stdplane = nc.stdplane();
@@ -104,6 +104,7 @@ fn run_menu(nc: &mut Nc, menu: &mut NcMenu) -> NcResult<()> {
                 'q' => {
                     menu.destroy()?;
                     selplane.destroy()?;
+                    nc.stop()?;
                     return Ok(());
                 }
                 NCKEY_ENTER => {
@@ -112,6 +113,7 @@ fn run_menu(nc: &mut Nc, menu: &mut NcMenu) -> NcResult<()> {
                             "Quit" => {
                                 menu.destroy()?;
                                 selplane.destroy()?;
+                                nc.stop()?;
                                 return Ok(());
                             }
                             _ => (),
