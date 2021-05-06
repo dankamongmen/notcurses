@@ -30,10 +30,18 @@ fn main() {
         .generate_comments(true)
         .clang_arg("-fretain-comments-from-system-headers")
         .clang_arg("-fparse-all-comments")
-        // Remove warnings about improper_ctypes
-        .blacklist_function("strtold")
-        .blacklist_function("wcstold")
-        .blacklist_function("socketpair")
+        // only import functions from notcurses public API
+        .blacklist_function("[^n].*")
+        .blacklist_function("n[^co].*")
+         // clean more unneeded types
+        .blacklist_item("_[A-FHJ-Z].*")
+        .blacklist_item("__[A-Z].*")
+        .blacklist_item("[ADHJ-MQ-Z].*")
+        .blacklist_item("IP[^R].*")
+        .blacklist_item("PF.*")
+        .blacklist_item("MSG_.*")
+        .blacklist_item("N[^C].*")
+        .blacklist_type("_bindgen.*")
         // Don't derive the Copy trait on types with destructors.
         .no_copy("ncdirect")
         .no_copy("ncdplot")
