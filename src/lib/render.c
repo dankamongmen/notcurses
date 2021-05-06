@@ -174,7 +174,7 @@ paint_sprixel(ncplane* p, struct crender* rvec, int starty, int startx,
         // if sprite_wipe_cell() fails, we presumably do not have the
         // ability to wipe, and must reprint the character
         if(sprite_wipe(nc, p->sprite, y, x)){
-//fprintf(stderr, "damaging due to wipe [%s] %d/%d\n", nccell_extended_gcluster(crender->p, &crender->c), absy, absx);
+fprintf(stderr, "damaging due to wipe [%s] %d/%d\n", nccell_extended_gcluster(crender->p, &crender->c), absy, absx);
           crender->s.damaged = 1;
         }
         crender->s.p_beats_sprixel = 1;
@@ -358,6 +358,7 @@ paint(ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
         // side of a wide glyph (nor the null codepoint).
         if( (targc->gcluster = vis->gcluster) ){ // index copy only
           if(crender->sprixel && crender->sprixel->invalidated == SPRIXEL_HIDE){
+//fprintf(stderr, "damaged due to hide\n");
             crender->s.damaged = 1;
           }
           crender->s.blittedquads = cell_blittedquadrants(vis);
@@ -440,15 +441,17 @@ postpaint_cell(nccell* lastframe, int dimx, struct crender* crender,
   nccell* targc = &crender->c;
   lock_in_highcontrast(targc, crender);
   nccell* prevcell = &lastframe[fbcellidx(y, dimx, *x)];
-//fprintf(stderr, "taking a look at %d/%d %08x\n", y, *x, crender->c.gcluster);
+if(y < 5 && *x < 5) fprintf(stderr, "taking a look at %d/%d %08x %08x [%u]\n", y, *x, prevcell->gcluster, crender->c.gcluster, crender->s.damaged);
   if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc) > 0){
 //fprintf(stderr, "damaging due to cmp [%s] %d %d\n", nccell_extended_gcluster(crender->p, &crender->c), y, *x);
     if(crender->sprixel){
       sprixcell_e state = sprixel_state(crender->sprixel, y, *x);
       if(!crender->s.p_beats_sprixel && state != SPRIXCELL_OPAQUE_KITTY && state != SPRIXCELL_OPAQUE_SIXEL){
+fprintf(stderr, "damaged due to opaque\n");
         crender->s.damaged = 1;
       }
     }else{
+fprintf(stderr, "damaged due to opaque else %d %d\n", y, *x);
       crender->s.damaged = 1;
     }
     assert(!nccell_wide_right_p(targc));
@@ -1007,6 +1010,7 @@ rasterize_core(notcurses* nc, const ncpile* p, FILE* out, unsigned phase){
           ++x;
         }
       }else if(phase != 0 || !rvec[damageidx].s.p_beats_sprixel){
+fprintf(stderr, "phase %u damaged at %d/%d\n", phase, innery, innerx);
         // in the first text phase, we draw only those glyphs where the glyph
         // was not above a sprixel (and the cell is damaged). in the second
         // phase, we draw everything that remains damaged.
@@ -1081,7 +1085,7 @@ rasterize_core(notcurses* nc, const ncpile* p, FILE* out, unsigned phase){
           nc->rstate.bgdefelidable = false;
           nc->rstate.bgpalelidable = false;
         }
-//fprintf(stderr, "RAST %08x [%s] to %d/%d cols: %u %016lx\n", srccell->gcluster, pool_extended_gcluster(&nc->pool, srccell), y, x, srccell->width, srccell->channels);
+fprintf(stderr, "RAST %08x [%s] to %d/%d cols: %u %016lx\n", srccell->gcluster, pool_extended_gcluster(&nc->pool, srccell), y, x, srccell->width, srccell->channels);
         // this is used to invalidate the sprixel in the first text round,
         // which is only necessary for sixel, not kitty.
         if(rvec[damageidx].sprixel){
@@ -1102,6 +1106,8 @@ rasterize_core(notcurses* nc, const ncpile* p, FILE* out, unsigned phase){
           x += srccell->width - 1;
           nc->rstate.x += srccell->width - 1;
         }
+      }else{
+fprintf(stderr, "YEET phase %u damaged at %d/%d\n", phase, innery, innerx);
       }
 //fprintf(stderr, "damageidx: %ld\n", damageidx);
     }

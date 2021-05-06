@@ -25,10 +25,10 @@ wipebitmap(struct notcurses* nc){
   if(n == NULL){
     return -1;
   }
-  ncvisual_destroy(ncv);
   ncplane_putstr_yx(notcurses_stdplane(nc), 6, 0, "Ought see full square");
+  notcurses_debug(nc, stderr);
   notcurses_render(nc);
-  sleep(3);
+  sleep(2);
 
   ncplane_erase(notcurses_stdplane(nc));
   for(int y = 1 ; y < 5 ; ++y){
@@ -43,12 +43,13 @@ wipebitmap(struct notcurses* nc){
   ncplane_move_top(notcurses_stdplane(nc));
   ncplane_putstr_yx(notcurses_stdplane(nc), 6, 0, "Ought see 16 *s");
   notcurses_render(nc);
-  sleep(3);
+  sleep(2);
 
   ncplane_erase(notcurses_stdplane(nc));
   ncplane_putstr_yx(notcurses_stdplane(nc), 6, 0, "Ought see full square");
+  notcurses_debug(nc, stderr);
   notcurses_render(nc);
-  sleep(3);
+  sleep(2);
 
   ncplane_erase(notcurses_stdplane(nc));
   for(int y = 1 ; y < 5 ; ++y){
@@ -57,31 +58,66 @@ wipebitmap(struct notcurses* nc){
     }
   }
   ncplane_putstr_yx(notcurses_stdplane(nc), 6, 0, "Ought see 16 spaces");
+  notcurses_debug(nc, stderr);
   notcurses_render(nc);
-  sleep(3);
+  sleep(2);
 
   ncplane_erase(notcurses_stdplane(nc));
   ncplane_destroy(n);
   ncplane_putstr_yx(notcurses_stdplane(nc), 6, 0, "Ought see nothing");
+  notcurses_debug(nc, stderr);
   notcurses_render(nc);
-  sleep(3);
+  sleep(2);
 
   ncplane_erase(notcurses_stdplane(nc));
   for(int i = cellpxy ; i < 5 * cellpxy ; ++i){
     memset(pixels + (i * 6 * cellpxx + cellpxx), 0, cellpxx * 4 * sizeof(*pixels));
   }
-  ncv = ncvisual_from_rgba(pixels, 6 * cellpxy, 6 * cellpxx * 4, 6 * cellpxx);
-  if(ncv == NULL){
+  struct ncvisual* ncve = ncvisual_from_rgba(pixels, 6 * cellpxy, 6 * cellpxx * 4, 6 * cellpxx);
+  if(ncve == NULL){
     return -1;
   }
-  if((n = ncvisual_render(nc, ncv, &vopts)) == NULL){
+  if((n = ncvisual_render(nc, ncve, &vopts)) == NULL){
     return -1;
   }
   ncplane_putstr_yx(notcurses_stdplane(nc), 6, 0, "Ought see empty square");
-  ncvisual_destroy(ncv);
+  notcurses_debug(nc, stderr);
   notcurses_render(nc);
+  sleep(2);
+  vopts.n = n;
+  ncplane_move_top(notcurses_stdplane(nc));
+
+  // now, actually wipe the middle with *s, and then ensure that a new render
+  // gets wiped out before being displayed
+  if(ncvisual_render(nc, ncv, &vopts) == NULL){
+    return -1;
+  }
+  ncplane_putstr_yx(notcurses_stdplane(nc), 6, 0, "Ought see full square");
+  notcurses_debug(nc, stderr);
+  notcurses_render(nc);
+  sleep(2);
+
+  for(int y = 1 ; y < 5 ; ++y){
+    for(int x = 1 ; x < 5 ; ++x){
+      ncplane_putchar_yx(notcurses_stdplane(nc), y, x, '*');
+    }
+  }
+  ncplane_putstr_yx(notcurses_stdplane(nc), 6, 0, "Ought see 16 *s");
+  notcurses_debug(nc, stderr);
+  notcurses_render(nc);
+  sleep(2);
+
+  if((n = ncvisual_render(nc, ncv, &vopts)) == NULL){
+    return -1;
+  }
+  ncplane_putstr_yx(notcurses_stdplane(nc), 6, 0, "Ought *still* see 16 *s");
+  notcurses_debug(nc, stderr);
+  notcurses_render(nc);
+  sleep(2);
+
+  ncvisual_destroy(ncve);
+  ncvisual_destroy(ncv);
   ncplane_destroy(n);
-  sleep(3);
   return 0;
 }
 

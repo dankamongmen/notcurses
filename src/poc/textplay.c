@@ -108,7 +108,9 @@ textplay(struct notcurses* nc, struct ncplane* tplane, struct ncvisual* ncv){
     if(!ncv){
       clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);
     }else{
-      ncvisual_decode(ncv);
+      for(int i = 0 ; i < 3 ; ++i){
+        ncvisual_decode(ncv);
+      }
     }
   }
   ncplane_destroy(vopts.n);
