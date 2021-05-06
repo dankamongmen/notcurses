@@ -2,7 +2,7 @@
 
 use core::ptr::null_mut;
 
-use crate::__va_list_tag;
+use crate::ffi::__va_list_tag;
 use crate::{
     cstring, nccell_release, NcAlign, NcAlphaBits, NcBoxMask, NcCell, NcChannel, NcChannelPair,
     NcColor, NcDim, NcEgc, NcIntResult, NcPlane, NcRgb, NcStyleMask, NCRESULT_ERR, NCRESULT_OK,
