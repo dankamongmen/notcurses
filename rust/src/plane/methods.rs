@@ -1020,18 +1020,24 @@ impl NcPlane {
             "NcPlane.move_below(NcPlane)"
         ]
     }
-
-    /// Merges `source` down onto this NcPlane.
+    /// Merge the NcPlane `source` down onto the current NcPlane (`self`).
     ///
-    /// Merging is independent of the position of both NcPlanes on the z-axis.
+    /// This is most rigorously defined as "write to `self` the frame that would
+    /// be rendered were the entire stack made up only of the specified subregion
+    /// of `source` and, below it, the subregion of `self` having the specified
+    /// origin.
+    ///
+    /// Merging is independent of the position of both planes on the z-axis.
     ///
     /// It is an error to define a subregion of zero area, or that is not
-    /// entirely contained within `source`.
+    /// entirely contained within `source`. It is an error to define a target
+    /// origin such that the projected subregion is not entirely contained
+    /// within `self`.
     ///
-    /// It is an error to define a target origin such that the projected
-    /// subregion is not entirely contained within 'dst'.
+    /// Behavior is undefined if both planes are equivalent. `self` is modified,
+    /// but `source` remains unchanged.
     ///
-    /// Behavior is undefined if both NcPlanes are equivalent.
+    /// neither `source` nor `self` may have sprixels.
     ///
     /// *C style function: [ncplane_mergedown()][crate::ncplane_mergedown].*
     pub fn mergedown(

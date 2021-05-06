@@ -13,11 +13,7 @@ pub type NcResizeCbUnsafe = unsafe extern "C" fn(*mut NcPlane) -> NcIntResult;
 
 /// Converts [NcResizeCbUnsafe] to [NcResizeCb].
 pub fn ncresizecb_to_rust(resizecb: Option<NcResizeCbUnsafe>) -> Option<NcResizeCb> {
-    if let Some(cb) = resizecb {
-        Some(unsafe { core::mem::transmute(cb) })
-    } else {
-        None
-    }
+    resizecb.map(|cb| unsafe { core::mem::transmute(cb) })
 }
 
 /// Converts [NcResizeCb] to [NcResizeCbUnsafe].
@@ -25,11 +21,7 @@ pub fn ncresizecb_to_rust(resizecb: Option<NcResizeCbUnsafe>) -> Option<NcResize
 // waiting for https://github.com/rust-lang/rust/issues/53605
 // to make this function const, and then NcPlaneOptions constructors.
 pub fn ncresizecb_to_c(resizecb: Option<NcResizeCb>) -> Option<NcResizeCbUnsafe> {
-    if let Some(cb) = resizecb {
-        Some(unsafe { core::mem::transmute(cb) })
-    } else {
-        None
-    }
+    resizecb.map(|cb| unsafe { core::mem::transmute(cb) })
 }
 
 /// Enables the [NcResizeCb] methods.
