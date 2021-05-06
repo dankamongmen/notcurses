@@ -336,13 +336,13 @@ int kitty_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
 }
 
 int kitty_wipe(sprixel* s, int ycell, int xcell){
-//fprintf(stderr, "WIPING %d/%d\n", ycell, xcell);
+fprintf(stderr, "WIPING %d/%d\n", ycell, xcell);
   if(s->n->tam[s->dimx * ycell + xcell].state == SPRIXCELL_ANNIHILATED){
-//fprintf(stderr, "CACHED WIPE %d %d/%d\n", s->id, ycell, xcell);
+fprintf(stderr, "CACHED WIPE %d %d/%d\n", s->id, ycell, xcell);
     return 0; // already annihilated, needn't draw glyph in kitty
   }
   uint8_t* auxvec = sprixel_auxiliary_vector(s);
-//fprintf(stderr, "NEW WIPE %d %d/%d\n", s->id, ycell, xcell);
+fprintf(stderr, "NEW WIPE %d %d/%d\n", s->id, ycell, xcell);
   const int totalpixels = s->pixy * s->pixx;
   const int xpixels = s->cellpxx;
   const int ypixels = s->cellpxy;
@@ -586,15 +586,18 @@ int kitty_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
           sprixcell_e state = sprixel_state(s, yy - s->movedfromy + s->n->absy - stdn->absy,
                                               xx - s->movedfromx + s->n->absx - stdn->absx);
           if(state == SPRIXCELL_OPAQUE_KITTY){
+fprintf(stderr, "DAMAGED 1\n");
             r->s.damaged = 1;
           }else if(s->invalidated == SPRIXEL_MOVED){
             // ideally, we wouldn't damage our annihilated sprixcells, but if
             // we're being annihilated only during this cycle, we need to go
             // ahead and damage it.
+fprintf(stderr, "DAMAGED 2\n");
             r->s.damaged = 1;
           }
         }else{
-          r->s.damaged = 1;
+fprintf(stderr, "DAMAGED 3\n");
+          //r->s.damaged = 1;
         }
       }
     }

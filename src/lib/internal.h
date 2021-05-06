@@ -993,7 +993,7 @@ sprite_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
 // precondition: s->invalidated is SPRIXEL_INVALIDATED or SPRIXEL_MOVED.
 static inline int
 sprite_draw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
-//sprixel_debug(stderr, s);
+sprixel_debug(stderr, s);
   return n->tcache.pixel_draw(p, s, out);
 }
 
