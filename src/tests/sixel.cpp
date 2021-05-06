@@ -74,7 +74,7 @@ std::vector<uint32_t> sixel_to_rgb(const char* s, int dimy, int dimx) {
         b += *s - '0';
         ++s;
       }while(isdigit(*s));
-      uint32_t rgb = 0xff000000 + (r << 16u) * 255 / 100 + (g << 8u) * 255 / 100 + b * 255 / 100;
+      uint32_t rgb = htole(0xff000000 + (r << 16u) * 255 / 100 + (g << 8u) * 255 / 100 + b * 255 / 100);
 //std::cerr << "Got color " << color << ": " << r << "/" << g << "/" << b << std::endl;
       if(color >= colors.capacity()){
         colors.resize(color + 1);
