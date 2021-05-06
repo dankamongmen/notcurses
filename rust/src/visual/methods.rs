@@ -26,7 +26,11 @@ impl NcVisualOptions {
     // y is an ncalign_e if NCVISUAL_OPTION_VERALIGNED is provided.
     // x is an ncalign_e value if NCVISUAL_OPTION_HORALIGNED is provided.
 
-    /// Specify an existing plane
+    /// Specify an existing plane.
+    ///
+    /// If [`NCVISUAL_OPTION_CHILDPLANE`][crate::NCVISUAL_OPTION_CHILDPLANE] is
+    /// used in `flags` then the `plane` is interpreted as the parent [`NcPlane`]
+    /// of the new plane created for this [`NcVisual`].
     pub fn with_plane(
         plane: &mut NcPlane,
         scale: NcScale,

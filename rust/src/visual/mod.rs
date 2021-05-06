@@ -68,7 +68,9 @@ pub type NcVisual = crate::bindings::ffi::ncvisual;
 /// Options struct for [`NcVisual`]
 ///
 /// If a plane is not provided, one will be created, having the exact size
-/// necessary to display the visual.
+/// necessary to display the visual (this might be smaller or larger than
+/// the rendering area). if NCVISUAL_OPTION_CHILDPLANE is provided, this
+/// will be interpreted as the parent.
 ///
 /// A subregion of the visual can be rendered using `begx`, `begy`, `lenx`, and `leny`.
 pub type NcVisualOptions = crate::bindings::ffi::ncvisual_options;
@@ -109,6 +111,9 @@ pub const NCVISUAL_OPTION_ADDALPHA: u32 = crate::bindings::ffi::NCVISUAL_OPTION_
 
 /// Uses [`NCCELL_ALPHA_BLEND`][crate::NCCELL_ALPHA_BLEND] with visual.
 pub const NCVISUAL_OPTION_BLEND: u32 = crate::bindings::ffi::NCVISUAL_OPTION_BLEND;
+
+/// allows you to indicate that the n field of ncvisual_options refers not to the plane onto which you'd like to blit, but the parent of a new plane. A plane will be created using the other parameters in the ncvisual_options, as a child of this parent. This means things like, say, vertically centering a sprixel relative to the standard plane can be done in one step
+pub const NCVISUAL_OPTION_CHILDPLANE: u32 = crate::bindings::ffi::NCVISUAL_OPTION_CHILDPLANE;
 
 /// Fails rather than gracefully degrade. See [NcBlitter].
 pub const NCVISUAL_OPTION_NODEGRADE: u32 = crate::bindings::ffi::NCVISUAL_OPTION_NODEGRADE;
