@@ -216,14 +216,3 @@ macro_rules! error_str {
         error_str![$str, ""];
     };
 }
-
-/// Returns an [`NcResult`]`<Self { raw: T }>` from an [`NcResult`]`<T>`.
-#[macro_export]
-macro_rules! raw_wrap {
-    ($res:expr) => {
-        match $res {
-            Ok(raw) => return Ok(Self { raw }),
-            Err(e) => return Err(e),
-        }
-    };
-}
