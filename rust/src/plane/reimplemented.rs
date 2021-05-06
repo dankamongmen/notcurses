@@ -2,7 +2,6 @@
 
 use core::ptr::null_mut;
 
-use crate::ffi::__va_list_tag;
 use crate::{
     cstring, nccell_release, NcAlign, NcAlphaBits, NcBoxMask, NcCell, NcChannel, NcChannelPair,
     NcColor, NcDim, NcEgc, NcIntResult, NcPlane, NcRgb, NcStyleMask, NCRESULT_ERR, NCRESULT_OK,
@@ -246,14 +245,6 @@ pub fn ncplane_putstr(plane: &mut NcPlane, string: &str) -> NcIntResult {
 #[inline]
 pub fn ncplane_putnstr(plane: &mut NcPlane, size: u32, gclustarr: &[u8]) -> NcIntResult {
     unsafe { crate::ncplane_putnstr_yx(plane, -1, -1, size.into(), cstring![gclustarr]) }
-}
-
-/// The [NcPlane] equivalent of `vprintf(3)`.
-///
-/// *Method: NcPlane.[vprintf()][NcPlane#method.vprintf].*
-#[inline]
-pub fn ncplane_vprintf(plane: &mut NcPlane, format: &str, ap: &mut __va_list_tag) -> NcIntResult {
-    unsafe { crate::ncplane_vprintf_yx(plane, -1, -1, cstring![format], ap) }
 }
 
 // size & alignment ------------------------------------------------------------

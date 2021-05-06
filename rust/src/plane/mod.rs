@@ -2,10 +2,10 @@
 
 // functions already exported by bindgen : 113
 // -------------------------------------------
-// (X) wont:  6
+// (X) wont: 10
 // (D) depr:  4
 // (#) test: 13
-// (W) wrap: 83 of 102 (112 - 6 - 4)
+// (W) wrap: 83
 // -------------------------------------------
 //W  ncpile_bottom
 //W# ncpile_create
@@ -114,9 +114,9 @@
 //W  ncplane_translate_abs
 //   ncplane_userptr
 //   ncplane_vline_interp
-//   ncplane_vprintf_aligned
-//   ncplane_vprintf_stained
-//   ncplane_vprintf_yx
+// X ncplane_vprintf_aligned
+// X ncplane_vprintf_stained
+// X ncplane_vprintf_yx
 //W  ncplane_x
 //W  ncplane_y
 //W  ncplane_yx
@@ -168,9 +168,7 @@
 // + ncplane_rounded_box_sized
 //W+ ncplane_halign
 // + ncplane_vline
-// + ncplane_vprintf
-//
-// NOTE: TODO: Still remains all the ncplane_printf* functions/macros (at the end)
+// X ncplane_vprintf
 
 #[cfg(test)]
 mod test;
