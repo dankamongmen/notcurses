@@ -1323,7 +1323,8 @@ typedef struct ncstats {
 
 // Allocate an ncstats object. Use this rather than allocating your own, since
 // future versions of Notcurses might enlarge this structure.
-API ALLOC ncstats* notcurses_stats_alloc(const struct notcurses* nc)
+API ALLOC ncstats* notcurses_stats_alloc(const struct notcurses* nc
+                                         __attribute__ ((unused)))
   __attribute__ ((nonnull (1)));
 
 // Acquire an atomic snapshot of the Notcurses object's stats.
