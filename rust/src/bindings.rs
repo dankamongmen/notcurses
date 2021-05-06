@@ -287,6 +287,9 @@ pub use ffi::{
 //
 // already wrapped:
 //
+// // functions
+// ncmetric
+//
 // // constants
 // PREFIXCOLUMNS,
 // PREFIXSTRLEN,
@@ -295,8 +298,6 @@ pub use ffi::{
 // IPREFIXCOLUMNS,
 // IPREFIXSTRLEN,
 
-#[doc(inline)]
-pub use ffi::ncmetric;
 
 // ncmultiselector -------------------------------------------------------------
 //

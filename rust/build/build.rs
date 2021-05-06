@@ -33,6 +33,7 @@ fn main() {
         // Remove warnings about improper_ctypes
         .blacklist_function("strtold")
         .blacklist_function("wcstold")
+        .blacklist_function("socketpair")
         // Don't derive the Copy trait on types with destructors.
         .no_copy("ncdirect")
         .no_copy("ncdplot")

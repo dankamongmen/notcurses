@@ -2821,7 +2821,7 @@ API struct ncplane* nctablet_plane(struct nctablet* t);
 // buffer to generate up to |[IB]PREFIXCOLUMNS| columns' worth of EGCs. The
 // characteristic can occupy up through |mult-1| characters (3 for 1000, 4 for
 // 1024). The mantissa can occupy either zero or two characters.
-//
+
 // Floating-point is never used, because an IEEE758 double can only losslessly
 // represent integers through 2^53-1.
 //

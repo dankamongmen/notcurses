@@ -87,6 +87,7 @@ impl NcFile {
     }
 
     /// `NcFile` constructor from a file produced by the libc crate
+    #[allow(clippy::missing_safety_doc)]
     pub unsafe fn from_libc(file: *mut FILE_LIBC) -> Self {
         NcFile {
             file_ptr: NonNull::new_unchecked(file),
