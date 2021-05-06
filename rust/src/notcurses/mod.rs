@@ -79,8 +79,6 @@ pub use reimplemented::*;
 
 /// Notcurses builds atop the terminfo abstraction layer to
 /// provide reasonably portable vivid character displays.
-///
-/// This is the internal type safely wrapped by [Nc].
 pub type Notcurses = crate::bindings::ffi::notcurses;
 
 /// Options struct for [`Notcurses`]

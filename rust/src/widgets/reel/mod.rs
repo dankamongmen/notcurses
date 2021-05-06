@@ -5,8 +5,8 @@
 /// An `NcReel` is projected onto the 2d rendering area, showing some portion of
 /// the `NcReel`, and zero or more `NcTablet`s.
 ///
-/// An `NcReel` is an [`Nc`][crate::Nc] region devoted to displaying
-/// zero or more line-oriented, contained [`NcTablet`]s
+/// An `NcReel` is a [`Notcurses`][crate::Notcurses] region devoted to
+/// displaying zero or more line-oriented, contained [`NcTablet`]s
 /// between which the user may navigate.
 ///
 /// If at least one `NcTablet`s exists, there is a "focused tablet".

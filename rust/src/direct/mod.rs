@@ -71,8 +71,6 @@ mod reimplemented;
 pub use reimplemented::*;
 
 /// Minimal notcurses instance for styling text.
-///
-/// This is the internal type safely wrapped by [NcD][crate::NcD].
 pub type NcDirect = crate::bindings::ffi::ncdirect;
 
 /// Flags (options) for [`NcDirect`]

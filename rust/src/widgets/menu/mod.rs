@@ -23,8 +23,8 @@ mod methods;
 
 /// menus on the top or bottom rows
 ///
-/// An [Nc][crate::Nc] instance supports menu bars on the top or bottom
-/// row of the true screen.
+/// A [Notcurses][crate::Notcurses] instance supports menu bars on the top or
+/// bottom row of the true screen.
 ///
 /// An NcMenu is composed of [NcMenuSection]s, which are in turn composed of
 /// [NcMenuItem]s.

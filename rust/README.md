@@ -36,6 +36,9 @@ and `NcDirect` objects, and the `destroy()` method for the rest of types that
 allocate, (like `NcPlane`, `NcMenu`…) at the end of their scope, since the Drop
 trait is not implemented for any wrapping type in libnotcurses-sys.
 
+But they do implement methods and use `NcResult` as the return type,
+for handling errors in the way we are used to in Rust.
+
 For the types that don't allocate, most are based on primitives like `i32`,
 `u32`, `u64`… without a name in the C library. In Rust they are type aliased
 (e.g.: `NcChannel`, `NcChannelPair`, `NcRgb`, `NcColor`…), to

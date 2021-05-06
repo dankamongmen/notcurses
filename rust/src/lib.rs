@@ -31,21 +31,10 @@
 //! }
 //! ```
 //!
-//! Specifically [`Nc`] and [`NcD`] are safe wrappers over [`Notcurses`]
-//! and [`NcDirect`], respectively.
-//!
-//! `Nc` and `NcD` both implement the [Drop], [AsRef], [AsMut],
-//! [Deref][std::ops::Deref] and [DerefMut][std::ops::DerefMut] traits.
-//!
-//! Their destructors are called automatically at the end of their scope.
-//!
-//! Methods are directly implemented for `Notcurses` and `NcDirect`, and are
-//! made automatically available to `Nc` & `NcD`, minus some function overrides,
-//! like their destructors, plus the static methods that have to be recreated.
-//!
-//! The rest of the types that allocate, like [`NcPlane`], [`NcMenu`],
-//! [`NcReader`]… have no higher level wrapping struct, they don't
-//! implement Drop, so they have to be `*.destroy()`ed manually.
+//! Although you still have to manually call the `stop()` method for [`Notcurses`]
+//! and [`NcDirect`] objects, and the `destroy()` method for the rest of types that
+//! allocate, (like [`NcPlane`], [`NcMenu`]…) at the end of their scope, since the
+//! Drop trait is not implemented for any wrapping type in libnotcurses-sys.
 //!
 //! But they do implement methods and use [`NcResult`] as the return type,
 //! for handling errors in the way we are used to in Rust.
