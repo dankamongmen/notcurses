@@ -1,6 +1,12 @@
 #include <unistd.h>
 #include <notcurses/notcurses.h>
 
+static void
+emit(struct ncplane* n, const char* str){
+  fprintf(stderr, "\n\n\n%s\n", str);
+  ncplane_putstr_yx(n, 6, 0, str);
+}
+
 // draw a bitmap of 6x6 cells with a cell left out
 static int
 wipebitmap(struct notcurses* nc){
@@ -25,7 +31,7 @@ wipebitmap(struct notcurses* nc){
   if(n == NULL){
     return -1;
   }
-  ncplane_putstr_yx(notcurses_stdplane(nc), 6, 0, "Ought see full square");
+  emit(notcurses_stdplane(nc), "Ought see full square");
   notcurses_debug(nc, stderr);
   notcurses_render(nc);
   sleep(2);
@@ -41,12 +47,12 @@ wipebitmap(struct notcurses* nc){
   ncchannels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
   ncplane_set_base(notcurses_stdplane(nc), "", 0, channels);
   ncplane_move_top(notcurses_stdplane(nc));
-  ncplane_putstr_yx(notcurses_stdplane(nc), 6, 0, "Ought see 16 *s");
+  emit(notcurses_stdplane(nc), "Ought see 16 *s");
   notcurses_render(nc);
   sleep(2);
 
   ncplane_erase(notcurses_stdplane(nc));
-  ncplane_putstr_yx(notcurses_stdplane(nc), 6, 0, "Ought see full square");
+  emit(notcurses_stdplane(nc), "Ought see full square");
   notcurses_debug(nc, stderr);
   notcurses_render(nc);
   sleep(2);
@@ -57,14 +63,14 @@ wipebitmap(struct notcurses* nc){
       ncplane_putchar_yx(notcurses_stdplane(nc), y, x, ' ');
     }
   }
-  ncplane_putstr_yx(notcurses_stdplane(nc), 6, 0, "Ought see 16 spaces");
+  emit(notcurses_stdplane(nc), "Ought see 16 spaces");
   notcurses_debug(nc, stderr);
   notcurses_render(nc);
   sleep(2);
 
   ncplane_erase(notcurses_stdplane(nc));
   ncplane_destroy(n);
-  ncplane_putstr_yx(notcurses_stdplane(nc), 6, 0, "Ought see nothing");
+  emit(notcurses_stdplane(nc), "Ought see nothing");
   notcurses_debug(nc, stderr);
   notcurses_render(nc);
   sleep(2);
@@ -80,7 +86,7 @@ wipebitmap(struct notcurses* nc){
   if((n = ncvisual_render(nc, ncve, &vopts)) == NULL){
     return -1;
   }
-  ncplane_putstr_yx(notcurses_stdplane(nc), 6, 0, "Ought see empty square");
+  emit(notcurses_stdplane(nc), "Ought see empty square");
   notcurses_debug(nc, stderr);
   notcurses_render(nc);
   sleep(2);
@@ -92,7 +98,7 @@ wipebitmap(struct notcurses* nc){
   if(ncvisual_render(nc, ncv, &vopts) == NULL){
     return -1;
   }
-  ncplane_putstr_yx(notcurses_stdplane(nc), 6, 0, "Ought see full square");
+  emit(notcurses_stdplane(nc), "Ought see full square");
   notcurses_debug(nc, stderr);
   notcurses_render(nc);
   sleep(2);
@@ -102,15 +108,33 @@ wipebitmap(struct notcurses* nc){
       ncplane_putchar_yx(notcurses_stdplane(nc), y, x, '*');
     }
   }
-  ncplane_putstr_yx(notcurses_stdplane(nc), 6, 0, "Ought see 16 *s");
+  emit(notcurses_stdplane(nc), "Ought see 16 *s");
   notcurses_debug(nc, stderr);
   notcurses_render(nc);
   sleep(2);
 
-  if((n = ncvisual_render(nc, ncv, &vopts)) == NULL){
+  if(ncvisual_render(nc, ncv, &vopts) == NULL){
     return -1;
   }
-  ncplane_putstr_yx(notcurses_stdplane(nc), 6, 0, "Ought *still* see 16 *s");
+  emit(notcurses_stdplane(nc), "Ought *still* see 16 *s");
+  notcurses_debug(nc, stderr);
+  notcurses_render(nc);
+  sleep(2);
+
+  ncplane_move_yx(n, 0, 7);
+  emit(notcurses_stdplane(nc), "Full square on right");
+  notcurses_debug(nc, stderr);
+  notcurses_render(nc);
+  sleep(2);
+
+  ncplane_move_yx(n, 0, 0);
+  emit(notcurses_stdplane(nc), "Ought see 16 *s");
+  notcurses_debug(nc, stderr);
+  notcurses_render(nc);
+  sleep(2);
+
+  ncplane_move_yx(n, 0, 7);
+  emit(notcurses_stdplane(nc), "Full square on right");
   notcurses_debug(nc, stderr);
   notcurses_render(nc);
   sleep(2);
