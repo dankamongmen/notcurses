@@ -1146,7 +1146,9 @@ memdup(const void* src, size_t len){
   return ret;
 }
 
-ALLOC void* bgra_to_rgba(const void* data, int rows, int rowstride, int cols);
+ALLOC void* bgra_to_rgba(const void* data, int rows, int* rowstride, int cols, int alpha);
+ALLOC void* rgb_loose_to_rgba(const void* data, int rows, int* rowstride, int cols, int alpha);
+ALLOC void* rgb_packed_to_rgba(const void* data, int rows, int* rowstride, int cols, int alpha);
 
 // find the "center" cell of two lengths. in the case of even rows/columns, we
 // place the center on the top/left. in such a case there will be one more

@@ -212,23 +212,75 @@ int ncvisual_blitter_geom(const notcurses* nc, const ncvisual* n,
   return ret;
 }
 
-void* bgra_to_rgba(const void* data, int rows, int rowstride, int cols){
-  if(rowstride % 4){ // must be a multiple of 4 bytes
+void* rgb_loose_to_rgba(const void* data, int rows, int* rowstride, int cols, int alpha){
+  if(*rowstride % 4){ // must be a multiple of 4 bytes
     return NULL;
   }
-  uint32_t* ret = malloc(rowstride * rows);
+  if(*rowstride < cols * 4){
+    return NULL;
+  }
+  uint32_t* ret = malloc(4 * cols * rows);
   if(ret){
     for(int y = 0 ; y < rows ; ++y){
       for(int x = 0 ; x < cols ; ++x){
-        const uint32_t* src = (const uint32_t*)data + (rowstride / 4) * y + x;
-        uint32_t* dst = ret + (rowstride / 4) * y + x;
-        ncpixel_set_a(dst, 0xff);
+        const uint32_t* src = (const uint32_t*)data + (*rowstride / 4) * y + x;
+        uint32_t* dst = ret + cols * y + x;
+        ncpixel_set_a(dst, alpha);
+        ncpixel_set_r(dst, ncpixel_r(*src));
+        ncpixel_set_g(dst, ncpixel_g(*src));
+        ncpixel_set_b(dst, ncpixel_b(*src));
+      }
+    }
+  }
+  *rowstride = cols * 4;
+  return ret;
+}
+
+void* rgb_packed_to_rgba(const void* data, int rows, int* rowstride, int cols, int alpha){
+  if(*rowstride % 3){ // must be a multiple of 3 bytes
+    return NULL;
+  }
+  if(*rowstride < cols * 3){
+    return NULL;
+  }
+  uint32_t* ret = malloc(4 * cols * rows);
+  if(ret){
+    for(int y = 0 ; y < rows ; ++y){
+      for(int x = 0 ; x < cols ; ++x){
+        const unsigned char* src = (const unsigned char*)data + *rowstride * y + x;
+        uint32_t* dst = ret + cols * y + x;
+        ncpixel_set_a(dst, alpha);
+        ncpixel_set_r(dst, src[0]);
+        ncpixel_set_g(dst, src[1]);
+        ncpixel_set_b(dst, src[2]);
+      }
+    }
+  }
+  *rowstride = cols * 4;
+  return ret;
+}
+
+void* bgra_to_rgba(const void* data, int rows, int* rowstride, int cols, int alpha){
+  if(*rowstride % 4){ // must be a multiple of 4 bytes
+    return NULL;
+  }
+  if(*rowstride < cols * 4){
+    return NULL;
+  }
+  uint32_t* ret = malloc(4 * cols * rows);
+  if(ret){
+    for(int y = 0 ; y < rows ; ++y){
+      for(int x = 0 ; x < cols ; ++x){
+        const uint32_t* src = (const uint32_t*)data + (*rowstride / 4) * y + x;
+        uint32_t* dst = ret + cols * y + x;
+        ncpixel_set_a(dst, alpha);
         ncpixel_set_r(dst, ncpixel_b(*src));
         ncpixel_set_g(dst, ncpixel_g(*src));
         ncpixel_set_b(dst, ncpixel_r(*src));
       }
     }
   }
+  *rowstride = cols * 4;
   return ret;
 }
 

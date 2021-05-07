@@ -2610,6 +2610,16 @@ API int ncblit_rgba(const void* data, int linesize,
 API int ncblit_bgrx(const void* data, int linesize,
                     const struct ncvisual_options* vopts);
 
+// Supply an alpha value [0..255] to be applied throughout. linesize must be
+// a multiple of 3 for this RGB data.
+API int ncblit_rgb_packed(const void* data, int linesize,
+                          const struct ncvisual_options* vopts, int alpha);
+
+// Supply an alpha value [0..255] to be applied throughout. linesize must be
+// a multiple of 4 for this RGBx data.
+API int ncblit_rgb_loose(const void* data, int linesize,
+                         const struct ncvisual_options* vopts, int alpha);
+
 // The ncpixel API facilitates direct management of the pixels within an
 // ncvisual (ncvisuals keep a backing store of 32-bit RGBA pixels, and render
 // them down to terminal graphics in ncvisual_render()).

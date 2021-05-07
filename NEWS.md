@@ -1,6 +1,10 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 2.2.11 (not yet released)
+  * Added `ncblit_rgb_loose()` and `ncblit_rgb_packed()` helpers for blitting
+    32bpp RGBx and 24bpp RGB.
+
 * 2.2.10 (2021-05-05)
   * Added `NCVISUAL_OPTION_CHILDPLANE` to interpret the `n` field of
     `ncvisual_options` as a parent plane.

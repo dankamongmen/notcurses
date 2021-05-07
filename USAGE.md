@@ -1565,6 +1565,16 @@ Raw streams of RGBA or BGRx data can be blitted directly to an ncplane:
 int ncblit_rgba(const void* data, int linesize,
                 const struct ncvisual_options* vopts);
 
+// Same as ncblit_rgba(), but for RGBx, with 'alpha' supplied as an alpha value
+// throughout, 0 <= 'alpha' <= 255. linesize ought be a multiple of 4.
+int ncblit_rgb_loose(const void* data, int linesize,
+                     const struct ncvisual_options* vopts, int alpha);
+
+// Same as ncblit_rgba(), but for RGB, with 'alpha' supplied as an alpha value
+// throughout, 0 <= 'alpha' <= 255. linesize ought be a multiple of 3.
+int ncblit_rgb_packed(const void* data, int linesize,
+                      const struct ncvisual_options* vopts, int alpha);
+
 // Same as ncblit_rgba(), but for BGRx.
 int ncblit_bgrx(const void* data, int linesize,
                 const struct ncvisual_options* vopts);

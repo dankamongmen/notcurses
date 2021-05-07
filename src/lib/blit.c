@@ -965,7 +965,35 @@ int ncblit_bgrx(const void* data, int linesize, const struct ncvisual_options* v
   if(vopts->leny <= 0 || vopts->lenx <= 0){
     return -1;
   }
-  void* rdata = bgra_to_rgba(data, vopts->leny, linesize, vopts->lenx);
+  void* rdata = bgra_to_rgba(data, vopts->leny, &linesize, vopts->lenx, 0xff);
+  if(rdata == NULL){
+    return -1;
+  }
+  int r = ncblit_rgba(rdata, linesize, vopts);
+  free(rdata);
+  return r;
+}
+
+int ncblit_rgb_loose(const void* data, int linesize,
+                     const struct ncvisual_options* vopts, int alpha){
+  if(vopts->leny <= 0 || vopts->lenx <= 0){
+    return -1;
+  }
+  void* rdata = rgb_loose_to_rgba(data, vopts->leny, &linesize, vopts->lenx, alpha);
+  if(rdata == NULL){
+    return -1;
+  }
+  int r = ncblit_rgba(rdata, linesize, vopts);
+  free(rdata);
+  return r;
+}
+
+int ncblit_rgb_packed(const void* data, int linesize,
+                      const struct ncvisual_options* vopts, int alpha){
+  if(vopts->leny <= 0 || vopts->lenx <= 0){
+    return -1;
+  }
+  void* rdata = rgb_packed_to_rgba(data, vopts->leny, &linesize, vopts->lenx, alpha);
   if(rdata == NULL){
     return -1;
   }
