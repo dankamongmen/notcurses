@@ -801,7 +801,7 @@ wipe_color(sixelmap* smap, int color, int sband, int eband,
   // we're going to repurpose starty as "starting row of this band", so keep it
   // around as originy for auxvecidx computations
   int originy = starty;
-  for(int b = sband ; b <= eband && b * 6 < endy ; ++b){
+  for(int b = sband ; b <= eband && b * 6 <= endy ; ++b){
     const int boff = coff + b * dimx; // offset in data where band starts
     unsigned char mask = 63;
     for(int i = 0 ; i < 6 ; ++i){
