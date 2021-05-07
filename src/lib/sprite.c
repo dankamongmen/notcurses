@@ -82,6 +82,7 @@ void sprixel_movefrom(sprixel* s, int y, int x){
 
 void sprixel_hide(sprixel* s){
   if(ncplane_pile(s->n) == NULL){ // ncdirect case; destroy now
+fprintf(stderr, "DESTROY IMMEDIATELY\n");
     sprixel_free(s);
     return;
   }
