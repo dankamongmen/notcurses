@@ -10,5 +10,5 @@ Version: @PROJECT_VERSION@
 Requires:
 Requires.private: tinfo
 Libs: -L${libdir} -lnotcurses-core
-Libs.private: -lunistring -lstdc++ -lm
+Libs.private: -lunistring -lm
 Cflags: -I${includedir}

@@ -10,5 +10,5 @@ Version: @PROJECT_VERSION@
 Requires: notcurses-core
 Requires.private:
 Libs: -L${libdir} -lnotcurses
-Libs.private:
+Libs.private: -lstdc++
 Cflags: -I${includedir}
