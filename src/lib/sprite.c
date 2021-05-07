@@ -25,7 +25,7 @@ void sprixel_debug(FILE* out, const sprixel* s){
           if(s->n->tam[idx].auxvector){
             fprintf(out, "%03d] ", idx);
             for(int p = 0 ; p < s->cellpxx * s->cellpxy ; ++p){
-              fprintf(out, "%02x ", s->n->tam[idx].auxvector[idx]);
+              fprintf(out, "%02x ", s->n->tam[idx].auxvector[p]);
             }
             fprintf(out, "\n");
           }else{
