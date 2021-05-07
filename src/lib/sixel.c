@@ -801,7 +801,7 @@ wipe_color(sixelmap* smap, int color, int sband, int eband,
   // we're going to repurpose starty as "starting row of this band", so keep it
   // around as originy for auxvecidx computations
   int originy = starty;
-  for(int b = sband ; b <= eband && b * 6 <= endy ; ++b){
+  for(int b = sband ; b <= eband && b * 6 < endy ; ++b){
     const int boff = coff + b * dimx; // offset in data where band starts
     unsigned char mask = 63;
     for(int i = 0 ; i < 6 ; ++i){
@@ -822,6 +822,7 @@ wipe_color(sixelmap* smap, int color, int sband, int eband,
       for(int i = 0 ; i < 6 && b * 6 + i <= endy ; ++i){
         int auxvecidx = (x - startx) + ((b * 6 + i - originy) * cellpixx);
         unsigned bit = 1u << i;
+//fprintf(stderr, "xoff: %d i: %d b: %d endy: %d mask: 0x%02x\n", xoff, i, b, endy, mask);
         if(!(mask & bit) && (smap->data[xoff] & bit)){
 //fprintf(stderr, "band %d %d/%d writing %d to auxvec[%d] %p xoff: %d boff: %d\n", b, b * 6 + i, x, color, auxvecidx, auxvec, xoff, boff);
           auxvec[auxvecidx] = color;
