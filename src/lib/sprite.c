@@ -5,8 +5,8 @@
 static atomic_uint_fast32_t sprixelid_nonce;
 
 void sprixel_debug(FILE* out, const sprixel* s){
-  fprintf(out, "Sprixel %d (%p) %dx%d (%dx%d) @%d/%d state: %d\n",
-          s->id, s, s->dimy, s->dimx, s->pixy, s->pixx,
+  fprintf(out, "Sprixel %d (%p) %dB %dx%d (%dx%d) @%d/%d state: %d\n",
+          s->id, s, s->glyphlen, s->dimy, s->dimx, s->pixy, s->pixx,
           s->n ? s->n->absy : 0, s->n ? s->n->absx : 0,
           s->invalidated);
   if(s->n){
