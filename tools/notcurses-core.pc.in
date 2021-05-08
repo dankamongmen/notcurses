@@ -8,7 +8,7 @@ Description: TUI library for modern terminal emulators (core library)
 Version: @PROJECT_VERSION@
 
 Requires:
-Requires.private: tinfo
+Requires.private: @PKGCONF_REQ_PRIV@
 Libs: -L${libdir} -lnotcurses-core
 Libs.private: -lunistring -lm
 Cflags: -I${includedir}
