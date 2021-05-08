@@ -336,13 +336,8 @@ int kitty_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
 }
 
 int kitty_wipe(sprixel* s, int ycell, int xcell){
-fprintf(stderr, "WIPING %d/%d\n", ycell, xcell);
-  if(s->n->tam[s->dimx * ycell + xcell].state == SPRIXCELL_ANNIHILATED){
-fprintf(stderr, "CACHED WIPE %d %d/%d\n", s->id, ycell, xcell);
-    return 0; // already annihilated, needn't draw glyph in kitty
-  }
+//fprintf(stderr, "NEW WIPE %d %d/%d\n", s->id, ycell, xcell);
   uint8_t* auxvec = sprixel_auxiliary_vector(s);
-fprintf(stderr, "NEW WIPE %d %d/%d\n", s->id, ycell, xcell);
   const int totalpixels = s->pixy * s->pixx;
   const int xpixels = s->cellpxx;
   const int ypixels = s->cellpxy;
