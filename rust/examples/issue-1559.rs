@@ -23,7 +23,7 @@ fn main() -> NcResult<()> {
 
     let vframe = NcVisual::from_rgba(buffer.as_slice(), HEIGHT, WIDTH * 4, WIDTH)?;
     let voptions =
-        NcVisualOptions::without_plane(0, 0, 0, 0, HEIGHT, WIDTH, NCBLIT_PIXEL, 0, 0);
+        NcVisualOptions::without_plane(0, 0, 0, 0, 0, 0, NCBLIT_PIXEL, 0, 0);
 
     // vframe.inflate(1)?; // this works
 
