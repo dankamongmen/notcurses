@@ -1454,7 +1454,9 @@ int nccell_width(const ncplane* n, const nccell* c){
     return -1;
   }
   int cols;
-  utf8_egc_len(egc, &cols);
+  if(utf8_egc_len(egc, &cols) < 0){
+    return -1;
+  }
   return cols;
 }
 
