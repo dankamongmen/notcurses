@@ -201,6 +201,11 @@
 <span id="198">198</span>
 <span id="199">199</span>
 <span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// functions already exported by bindgen : 18</span>
 <span class="comment">// -----------------------------------------</span>
@@ -272,7 +277,9 @@
 <span class="doccomment">/// Options struct for [`NcVisual`]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// If a plane is not provided, one will be created, having the exact size</span>
-<span class="doccomment">/// necessary to display the visual.</span>
+<span class="doccomment">/// necessary to display the visual (this might be smaller or larger than</span>
+<span class="doccomment">/// the rendering area). if NCVISUAL_OPTION_CHILDPLANE is provided, this</span>
+<span class="doccomment">/// will be interpreted as the parent.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// A subregion of the visual can be rendered using `begx`, `begy`, `lenx`, and `leny`.</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcVisualOptions</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncvisual_options</span>;
@@ -313,6 +320,9 @@
 
 <span class="doccomment">/// Uses [`NCCELL_ALPHA_BLEND`][crate::NCCELL_ALPHA_BLEND] with visual.</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCVISUAL_OPTION_BLEND</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCVISUAL_OPTION_BLEND</span>;
+
+<span class="doccomment">/// allows you to indicate that the n field of ncvisual_options refers not to the plane onto which you&#39;d like to blit, but the parent of a new plane. A plane will be created using the other parameters in the ncvisual_options, as a child of this parent. This means things like, say, vertically centering a sprixel relative to the standard plane can be done in one step</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCVISUAL_OPTION_CHILDPLANE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCVISUAL_OPTION_CHILDPLANE</span>;
 
 <span class="doccomment">/// Fails rather than gracefully degrade. See [NcBlitter].</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCVISUAL_OPTION_NODEGRADE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCVISUAL_OPTION_NODEGRADE</span>;

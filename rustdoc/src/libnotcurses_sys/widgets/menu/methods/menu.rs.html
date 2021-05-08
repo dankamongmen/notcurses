@@ -175,6 +175,7 @@
 <span id="172">172</span>
 <span id="173">173</span>
 <span id="174">174</span>
+<span id="175">175</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">ptr</span>::<span class="ident">null_mut</span>;
 
@@ -187,8 +188,8 @@
 <span class="kw">impl</span> <span class="ident">NcMenu</span> {
     <span class="doccomment">/// Creates an [NcMenu] with the specified options.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Menus are currently bound to an overall [Nc][crate::Nc] object</span>
-    <span class="doccomment">/// (as opposed to a particular plane), and are implemented as</span>
+    <span class="doccomment">/// Menus are currently bound to an overall [Notcurses][crate::Notcurses]</span>
+    <span class="doccomment">/// object (as opposed to a particular plane), and are implemented as</span>
     <span class="doccomment">/// [NcPlane]s kept atop other NcPlanes.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncmenu_create()][crate::ncmenu_create].*</span>
@@ -335,10 +336,11 @@
             <span class="ident">ninput</span> <span class="op">=</span> <span class="ident">null_mut</span>();
         }
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncmenu_selected</span>(<span class="self">self</span>, <span class="ident">ninput</span>) };
-        <span class="kw">if</span> <span class="ident">res</span> <span class="op">!</span><span class="op">=</span> <span class="ident">null_mut</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="kw">unsafe</span> { (<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">res</span>).<span class="ident">to_string</span>() });
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">res</span>.<span class="ident">is_null</span>() {
+            <span class="prelude-val">Some</span>(<span class="kw">unsafe</span> { (<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">res</span>).<span class="ident">to_string</span>() })
+        } <span class="kw">else</span> {
+            <span class="prelude-val">None</span>
         }
-        <span class="prelude-val">None</span>
     }
 
     <span class="doccomment">/// Unrolls the specified [NcMenuSection][crate::NcMenuSection],</span>

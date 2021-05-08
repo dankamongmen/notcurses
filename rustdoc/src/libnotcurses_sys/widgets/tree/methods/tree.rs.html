@@ -122,10 +122,7 @@
 <span id="119">119</span>
 <span id="120">120</span>
 <span id="121">121</span>
-<span id="122">122</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">ptr</span>::<span class="ident">null_mut</span>;
-
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">error</span>, <span class="ident">error_ref_mut</span>, <span class="ident">nctree_create</span>, <span class="ident">NcError</span>, <span class="ident">NcInput</span>, <span class="ident">NcPlane</span>, <span class="ident">NcResult</span>, <span class="ident">NcTree</span>, <span class="ident">NcTreeItem</span>,
     <span class="ident">NcTreeOptions</span>, <span class="ident">NCRESULT_ERR</span>,
@@ -164,8 +161,8 @@
     <span class="comment">// /// *C style function: [nctree_goto()][crate::nctree_goto].*</span>
     <span class="comment">// pub fn goto(&amp;mut self, spec: ... , failspec: ...) -&gt; NcResult&lt;&amp;mut NcTreeItem&gt; {</span>
     <span class="comment">//     let res = unsafe { crate::nctree_goto(self) };</span>
-    <span class="comment">//     if res != null_mut() {</span>
-    <span class="comment">//         return Ok(unsafe { &amp;mut *(res as *mut NcTreeItem) });</span>
+    <span class="comment">//     if !res.is_null() {</span>
+    <span class="comment">//         Ok(unsafe { &amp;mut *(res as *mut NcTreeItem) })</span>
     <span class="comment">//     } else {</span>
     <span class="comment">//         Err(NcError::with_msg(NCRESULT_ERR, &quot;NcTree.goto()&quot;))</span>
     <span class="comment">//     }</span>
@@ -179,8 +176,8 @@
     <span class="doccomment">/// *C style function: [nctree_focused()][crate::nctree_focused].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">focused</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcTreeItem</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">nctree_focused</span>(<span class="self">self</span>) };
-        <span class="kw">if</span> <span class="ident">res</span> <span class="op">!</span><span class="op">=</span> <span class="ident">null_mut</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span>(<span class="ident">res</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">NcTreeItem</span>) });
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">res</span>.<span class="ident">is_null</span>() {
+            <span class="prelude-val">Ok</span>(<span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span>(<span class="ident">res</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">NcTreeItem</span>) })
         } <span class="kw">else</span> {
             <span class="prelude-val">Err</span>(<span class="ident">NcError</span>::<span class="ident">with_msg</span>(<span class="ident">NCRESULT_ERR</span>, <span class="string">&quot;NcTree.focused()&quot;</span>))
         }
@@ -189,10 +186,11 @@
     <span class="doccomment">/// Changes the focus to the next item, and returns it.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [nctree_next()][crate::nctree_next].*</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">should_implement_trait</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcTreeItem</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">nctree_next</span>(<span class="self">self</span>) };
-        <span class="kw">if</span> <span class="ident">res</span> <span class="op">!</span><span class="op">=</span> <span class="ident">null_mut</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span>(<span class="ident">res</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">NcTreeItem</span>) });
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">res</span>.<span class="ident">is_null</span>() {
+            <span class="prelude-val">Ok</span>(<span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span>(<span class="ident">res</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">NcTreeItem</span>) })
         } <span class="kw">else</span> {
             <span class="prelude-val">Err</span>(<span class="ident">NcError</span>::<span class="ident">with_msg</span>(<span class="ident">NCRESULT_ERR</span>, <span class="string">&quot;NcTree.next()&quot;</span>))
         }
@@ -203,8 +201,8 @@
     <span class="doccomment">/// *C style function: [nctree_prev()][crate::nctree_prev].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prev</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcTreeItem</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">nctree_prev</span>(<span class="self">self</span>) };
-        <span class="kw">if</span> <span class="ident">res</span> <span class="op">!</span><span class="op">=</span> <span class="ident">null_mut</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span>(<span class="ident">res</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">NcTreeItem</span>) });
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">res</span>.<span class="ident">is_null</span>() {
+            <span class="prelude-val">Ok</span>(<span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span>(<span class="ident">res</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">NcTreeItem</span>) })
         } <span class="kw">else</span> {
             <span class="prelude-val">Err</span>(<span class="ident">NcError</span>::<span class="ident">with_msg</span>(<span class="ident">NCRESULT_ERR</span>, <span class="string">&quot;NcTree.prev()&quot;</span>))
         }

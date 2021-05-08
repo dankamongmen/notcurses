@@ -205,48 +205,23 @@
 <span id="202">202</span>
 <span id="203">203</span>
 <span id="204">204</span>
-<span id="205">205</span>
-<span id="206">206</span>
-<span id="207">207</span>
-<span id="208">208</span>
-<span id="209">209</span>
-<span id="210">210</span>
-<span id="211">211</span>
-<span id="212">212</span>
-<span id="213">213</span>
-<span id="214">214</span>
-<span id="215">215</span>
-<span id="216">216</span>
-<span id="217">217</span>
-<span id="218">218</span>
-<span id="219">219</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `Notcurses`</span>
 
-<span class="comment">// --- -------------------------------------------------------------------------</span>
-<span class="comment">// col 0:   3</span>
-<span class="comment">// --------------</span>
-<span class="comment">//          1  X: wont do</span>
-<span class="comment">//          2  ~: WIP</span>
+<span class="comment">// total: 51</span>
+<span class="comment">// ---------------------------------------------------</span>
+<span class="comment">// (X)  1 : wont do</span>
 <span class="comment">//</span>
-<span class="comment">// col 1:  50</span>
-<span class="comment">// --------------</span>
-<span class="comment">//         44  f: ffi function imported by bindgen</span>
-<span class="comment">//             F: ffi function wrapped safely</span>
-<span class="comment">//          6  r: static function reimplemented in Rust</span>
+<span class="comment">// (f) 44 : unsafe ffi function exported by bindgen</span>
+<span class="comment">// (w)  0 : safely wrapped ffi function</span>
+<span class="comment">// (r)  6 : static function manually reimplemented</span>
 <span class="comment">//</span>
-<span class="comment">// col 2:  48</span>
-<span class="comment">// --------------</span>
-<span class="comment">//         38  m: impl as a `Notcurses` method</span>
-<span class="comment">//         10  M: impl for the `Nc` wrapper struct too</span>
+<span class="comment">// (m) 38 : method implemented</span>
+<span class="comment">// (~)  3 : work in progress</span>
 <span class="comment">//</span>
-<span class="comment">// col 3:  13</span>
-<span class="comment">// --------------</span>
-<span class="comment">//         13  t: tests done for the ffi or reimplemented funtion</span>
-<span class="comment">//             T: tests done also for the m method</span>
-<span class="comment">//             Ŧ: tests done also for the M method wrapper struct</span>
-<span class="comment">// --- -------------------------------------------------------------------------</span>
-<span class="comment">//</span>
+<span class="comment">// (t) 13 : unit test done for the function</span>
+<span class="comment">// (T)  0 : unit test done also for the method</span>
+<span class="comment">// ---------------------------------------------------</span>
 <span class="comment">// fm  notcurses_at_yx</span>
 <span class="comment">// fm  notcurses_bottom</span>
 <span class="comment">// fm  notcurses_canbraille</span>
@@ -258,18 +233,18 @@
 <span class="comment">// fmt notcurses_cantruecolor</span>
 <span class="comment">// fmt notcurses_canutf8</span>
 <span class="comment">// fm  notcurses_check_pixel_support</span>
-<span class="comment">// f~  notcurses_core_init</span>
+<span class="comment">//~f   notcurses_core_init</span>
 <span class="comment">// fm  notcurses_cursor_disable</span>
 <span class="comment">// fm  notcurses_cursor_enable</span>
 <span class="comment">// fmt notcurses_debug</span>
 <span class="comment">// fm  notcurses_debug_caps</span>
 <span class="comment">// fmt notcurses_drop_planes</span>
 <span class="comment">// fm  notcurses_getc</span>
-<span class="comment">// fMt notcurses_init</span>
+<span class="comment">// fmt notcurses_init</span>
 <span class="comment">// fm  notcurses_inputready_fd</span>
-<span class="comment">// fM  notcurses_lex_blitter</span>
-<span class="comment">// fM  notcurses_lex_margins</span>
-<span class="comment">// fM  notcurses_lex_scalemode</span>
+<span class="comment">// fm  notcurses_lex_blitter</span>
+<span class="comment">// fm  notcurses_lex_margins</span>
+<span class="comment">// fm  notcurses_lex_scalemode</span>
 <span class="comment">// fm  notcurses_linesigs_disable</span>
 <span class="comment">// fm  notcurses_linesigs_enable</span>
 <span class="comment">// fm  notcurses_mouse_disable</span>
@@ -284,16 +259,15 @@
 <span class="comment">// fm  notcurses_stats_reset</span>
 <span class="comment">// fm  notcurses_stdplane</span>
 <span class="comment">// fm  notcurses_stdplane_const</span>
-<span class="comment">// fMt notcurses_stop</span>
-<span class="comment">// fM  notcurses_str_blitter</span>
-<span class="comment">// fM  notcurses_str_scalemode</span>
+<span class="comment">// fmt notcurses_stop</span>
+<span class="comment">// fm  notcurses_str_blitter</span>
+<span class="comment">// fm  notcurses_str_scalemode</span>
 <span class="comment">// fm  notcurses_supported_styles</span>
 <span class="comment">// fm  notcurses_top</span>
 <span class="comment">//X    notcurses_ucs32_to_utf8 (not needed in rust)</span>
-<span class="comment">// fMt notcurses_version</span>
-<span class="comment">// fM  notcurses_version_components</span>
-<span class="comment">//</span>
-<span class="comment">// rMt notcurses_align</span>
+<span class="comment">// fmt notcurses_version</span>
+<span class="comment">// fm  notcurses_version_components</span>
+<span class="comment">// rmt notcurses_align</span>
 <span class="comment">// rm  notcurses_getc_blocking</span>
 <span class="comment">// rm  notcurses_getc_nblock</span>
 <span class="comment">//~r   notcurses_stddim_yx           // multiple mutable references errors</span>
@@ -306,17 +280,13 @@
 <span class="kw">mod</span> <span class="ident">helpers</span>;
 <span class="kw">mod</span> <span class="ident">methods</span>;
 <span class="kw">mod</span> <span class="ident">reimplemented</span>;
-<span class="kw">mod</span> <span class="ident">wrapper</span>;
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_imports</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">helpers</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">reimplemented</span>::<span class="kw-2">*</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">wrapper</span>::<span class="kw-2">*</span>;
 
 <span class="doccomment">/// Notcurses builds atop the terminfo abstraction layer to</span>
 <span class="doccomment">/// provide reasonably portable vivid character displays.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This is the internal type safely wrapped by [Nc].</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Notcurses</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">notcurses</span>;
 
 <span class="doccomment">/// Options struct for [`Notcurses`]</span>

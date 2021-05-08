@@ -699,7 +699,6 @@
 <span id="696">696</span>
 <span id="697">697</span>
 <span id="698">698</span>
-<span id="699">699</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcDirect` methods and associated functions.</span>
 
@@ -1000,14 +999,13 @@
     <span class="doccomment">/// Must not be called concurrently with either input or rasterization.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncdirect_check_pixel_support()][crate::ncdirect_check-pixel_support].*</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">wildcard_in_or_patterns</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">check_pixel_support</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirect_check_pixel_support</span>(<span class="self">self</span>) };
         <span class="kw">match</span> <span class="ident">res</span> {
-            <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>),
-            <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>),
-            <span class="ident">NCRESULT_ERR</span> <span class="op">|</span> <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">NcError</span>::<span class="ident">with_msg</span>(<span class="ident">res</span>, <span class="string">&quot;NcDirect.check_pixel_support()&quot;</span>));
-            }
+            <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>),
+            <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>),
+            <span class="ident">NCRESULT_ERR</span> <span class="op">|</span> <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">NcError</span>::<span class="ident">with_msg</span>(<span class="ident">res</span>, <span class="string">&quot;NcDirect.check_pixel_support()&quot;</span>)),
         }
     }
 
@@ -1255,7 +1253,7 @@
     <span class="doccomment">/// *C style function: [ncdirect_readline()][crate::ncdirect_readline].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">readline</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">prompt</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirect_readline</span>(<span class="self">self</span>, <span class="macro">cstring</span><span class="macro">!</span>[<span class="ident">prompt</span>]) };
-        <span class="kw">if</span> <span class="ident">res</span> <span class="op">!</span><span class="op">=</span> <span class="ident">null_mut</span>() {
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">res</span>.<span class="ident">is_null</span>() {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="macro">rstring</span><span class="macro">!</span>[<span class="ident">res</span>]);
         } <span class="kw">else</span> {
             <span class="prelude-val">Err</span>(<span class="ident">NcError</span>::<span class="ident">with_msg</span>(

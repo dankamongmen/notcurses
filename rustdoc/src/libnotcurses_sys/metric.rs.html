@@ -36,10 +36,82 @@
 <span id="33">33</span>
 <span id="34">34</span>
 <span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcMetric`</span>
 
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">cstring_mut</span>, <span class="ident">rstring</span>};
+
 <span class="comment">// TODO: clarify, update and visibilize doc-comments</span>
+
+<span class="doccomment">/// Takes an arbitrarily large number, and prints it into a fixed-size buffer by</span>
+<span class="doccomment">/// adding the necessary SI suffix.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Usually, pass a `|[IB]PREFIXSTRLEN+1|-sized` buffer to generate up to</span>
+<span class="doccomment">/// `|[IB]PREFIXCOLUMNS|` columns&#39; worth of EGCs. The characteristic can occupy</span>
+<span class="doccomment">/// up through `|mult-1|` characters (3 for 1000, 4 for 1024).</span>
+<span class="doccomment">/// The mantissa can occupy either zero or two characters.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Floating-point is never used, because an IEEE758 double can only losslessly</span>
+<span class="doccomment">/// represent integers through 2^53-1.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// 2^64-1 is 18446744073709551615, 18.45E(xa). KMGTPEZY thus suffice to handle</span>
+<span class="doccomment">/// an 89-bit uintmax_t. Beyond Z(etta) and Y(otta) lie lands unspecified by SI.</span>
+<span class="doccomment">/// 2^-63 is 0.000000000000000000108, 1.08a(tto). val: value to print decimal:</span>
+<span class="doccomment">/// scaling. &#39;1&#39; if none has taken place. buf: buffer in which string will be</span>
+<span class="doccomment">/// generated omitdec: inhibit printing of all-0 decimal portions mult: base of</span>
+<span class="doccomment">/// suffix system (almost always 1000 or 1024) uprefix: character to print</span>
+<span class="doccomment">/// following suffix (&#39;i&#39; for kibibytes basically). only printed if suffix is</span>
+<span class="doccomment">/// actually printed (input &gt;= mult).</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// You are encouraged to consult notcurses_metric(3).</span>
+<span class="doccomment">///</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncmetric</span>(
+    <span class="ident">val</span>: <span class="ident">u64</span>,
+    <span class="ident">decimal</span>: <span class="ident">u64</span>,
+    <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+    <span class="ident">omitdec</span>: <span class="ident">i32</span>,
+    <span class="ident">mult</span>: <span class="ident">u64</span>,
+    <span class="ident">uprefix</span>: <span class="ident">i32</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
+    <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="macro">cstring_mut</span><span class="macro">!</span>[<span class="ident">buf</span>];
+    <span class="macro">rstring</span><span class="macro">!</span>[ <span class="kw">crate</span>::<span class="ident">ffi</span>::<span class="ident">ncmetric</span>(<span class="ident">val</span>, <span class="ident">decimal</span>, <span class="ident">buf</span>, <span class="ident">omitdec</span>, <span class="ident">mult</span>, <span class="ident">uprefix</span>) ]
+}
 
 <span class="comment">// The number of columns is one fewer, as the STRLEN expressions must leave</span>
 <span class="comment">// an extra byte open in case &#39;µ&#39; (U+00B5, 0xC2 0xB5) shows up.</span>

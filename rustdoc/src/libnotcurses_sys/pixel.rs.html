@@ -187,6 +187,7 @@
 <span id="184">184</span>
 <span id="185">185</span>
 <span id="186">186</span>
+<span id="187">187</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! The ncpixel API facilitates direct management of the pixels within an</span>
 <span class="doccomment">//! ncvisual (ncvisuals keep a backing store of 32-bit RGBA pixels, and render</span>
@@ -246,6 +247,7 @@
 
 <span class="doccomment">/// Constructs a libav-compatible ABGR pixel from [NcColor] RGB components.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">unnecessary_cast</span>)]</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">ncpixel</span>(<span class="ident">red</span>: <span class="ident">NcColor</span>, <span class="ident">green</span>: <span class="ident">NcColor</span>, <span class="ident">blue</span>: <span class="ident">NcColor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcPixel</span> {
     <span class="number">0xff000000</span> <span class="kw">as</span> <span class="ident">NcPixel</span> <span class="op">|</span> <span class="ident">red</span> <span class="kw">as</span> <span class="ident">NcPixel</span> <span class="op">|</span> (<span class="ident">blue</span> <span class="kw">as</span> <span class="ident">NcPixel</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span> <span class="op">|</span> (<span class="ident">green</span> <span class="kw">as</span> <span class="ident">NcPixel</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">16</span>
 }

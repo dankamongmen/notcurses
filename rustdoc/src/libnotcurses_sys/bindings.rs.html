@@ -802,23 +802,6 @@
 <span id="799">799</span>
 <span id="800">800</span>
 <span id="801">801</span>
-<span id="802">802</span>
-<span id="803">803</span>
-<span id="804">804</span>
-<span id="805">805</span>
-<span id="806">806</span>
-<span id="807">807</span>
-<span id="808">808</span>
-<span id="809">809</span>
-<span id="810">810</span>
-<span id="811">811</span>
-<span id="812">812</span>
-<span id="813">813</span>
-<span id="814">814</span>
-<span id="815">815</span>
-<span id="816">816</span>
-<span id="817">817</span>
-<span id="818">818</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! A selection of the [ffi] bindings intended to be used directly.</span>
 <span class="doccomment">//!</span>
@@ -846,25 +829,6 @@
     <span class="comment">// functions</span>
     <span class="ident">ncstrwidth</span>,
 };
-
-<span class="comment">// https://github.com/dankamongmen/notcurses/issues/1339</span>
-<span class="comment">//</span>
-<span class="comment">// Let&#39;s first see whether this works for: i686, aarch64, armv7l &amp; ppc64le.</span>
-<span class="comment">//</span>
-<span class="comment">// #[cfg(target_arch = &quot;x86_64&quot;)]</span>
-<span class="comment">// #[cfg(target_arch = &quot;s390x&quot;)]</span>
-<span class="comment">// pub use ffi::{__va_list_tag};</span>
-<span class="comment">//</span>
-<span class="comment">// #[cfg(not(target_arch = &quot;x86_64&quot;))]</span>
-<span class="comment">// #[cfg(not(target_arch = &quot;s390x&quot;))]</span>
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">__va_list_tag</span> {
-    <span class="kw">pub</span> <span class="ident">gp_offset</span>: <span class="ident">cty</span>::<span class="ident">c_uint</span>,
-    <span class="kw">pub</span> <span class="ident">fp_offset</span>: <span class="ident">cty</span>::<span class="ident">c_uint</span>,
-    <span class="kw">pub</span> <span class="ident">overflow_arg_area</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">cty</span>::<span class="ident">c_void</span>,
-    <span class="kw">pub</span> <span class="ident">reg_save_area</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">cty</span>::<span class="ident">c_void</span>,
-}
 
 <span class="comment">// blitset ---------------------------------------------------------------------</span>
 <span class="comment">//</span>
@@ -999,7 +963,7 @@
     <span class="ident">ncdirect_off_styles</span>,
     <span class="ident">ncdirect_on_styles</span>,
     <span class="ident">ncdirect_palette_size</span>,
-    <span class="ident">ncdirect_printf_aligned</span>,
+    <span class="comment">//W ncdirect_printf_aligned,</span>
     <span class="ident">ncdirect_putstr</span>,
     <span class="ident">ncdirect_raster_frame</span>,
     <span class="ident">ncdirect_readline</span>,
@@ -1109,6 +1073,9 @@
 <span class="comment">//</span>
 <span class="comment">// already wrapped:</span>
 <span class="comment">//</span>
+<span class="comment">// // functions</span>
+<span class="comment">// ncmetric</span>
+<span class="comment">//</span>
 <span class="comment">// // constants</span>
 <span class="comment">// PREFIXCOLUMNS,</span>
 <span class="comment">// PREFIXSTRLEN,</span>
@@ -1117,8 +1084,6 @@
 <span class="comment">// IPREFIXCOLUMNS,</span>
 <span class="comment">// IPREFIXSTRLEN,</span>
 
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">ffi</span>::<span class="ident">ncmetric</span>;
 
 <span class="comment">// ncmultiselector -------------------------------------------------------------</span>
 <span class="comment">//</span>
@@ -1499,6 +1464,7 @@
 <span class="comment">// // constants</span>
 <span class="comment">// NCVISUAL_OPTION_ADDALPHA,</span>
 <span class="comment">// NCVISUAL_OPTION_BLEND,</span>
+<span class="comment">// NCVISUAL_OPTION_CHILDPLANE</span>
 <span class="comment">// NCVISUAL_OPTION_HORALIGNED</span>
 <span class="comment">// NCVISUAL_OPTION_NODEGRADE,</span>
 <span class="comment">// NCVISUAL_OPTION_VERALIGNED</span>

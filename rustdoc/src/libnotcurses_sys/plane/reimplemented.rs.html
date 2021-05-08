@@ -786,27 +786,14 @@
 <span id="783">783</span>
 <span id="784">784</span>
 <span id="785">785</span>
-<span id="786">786</span>
-<span id="787">787</span>
-<span id="788">788</span>
-<span id="789">789</span>
-<span id="790">790</span>
-<span id="791">791</span>
-<span id="792">792</span>
-<span id="793">793</span>
-<span id="794">794</span>
-<span id="795">795</span>
-<span id="796">796</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `ncplane_*` reimplemented functions.</span>
 
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">ptr</span>::<span class="ident">null_mut</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ffi</span>::<span class="ident">__va_list_tag</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">cstring</span>, <span class="ident">nccell_release</span>, <span class="ident">NcAlign</span>, <span class="ident">NcAlphaBits</span>, <span class="ident">NcBoxMask</span>, <span class="ident">NcCell</span>, <span class="ident">NcChannel</span>,
-    <span class="ident">NcChannelPair</span>, <span class="ident">NcColor</span>, <span class="ident">NcDim</span>, <span class="ident">NcEgc</span>, <span class="ident">NcIntResult</span>, <span class="ident">NcPlane</span>, <span class="ident">NcRgb</span>, <span class="ident">NcStyleMask</span>, <span class="ident">NCRESULT_ERR</span>,
-    <span class="ident">NCRESULT_OK</span>,
+    <span class="ident">cstring</span>, <span class="ident">nccell_release</span>, <span class="ident">NcAlign</span>, <span class="ident">NcAlphaBits</span>, <span class="ident">NcBoxMask</span>, <span class="ident">NcCell</span>, <span class="ident">NcChannel</span>, <span class="ident">NcChannelPair</span>,
+    <span class="ident">NcColor</span>, <span class="ident">NcDim</span>, <span class="ident">NcEgc</span>, <span class="ident">NcIntResult</span>, <span class="ident">NcPlane</span>, <span class="ident">NcRgb</span>, <span class="ident">NcStyleMask</span>, <span class="ident">NCRESULT_ERR</span>, <span class="ident">NCRESULT_OK</span>,
 };
 
 <span class="comment">// Alpha -----------------------------------------------------------------------</span>
@@ -878,7 +865,6 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncplane_set_channels</span>(<span class="ident">plane</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span>, <span class="ident">channels</span>: <span class="ident">NcChannelPair</span>) {
     <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ffi</span>::<span class="ident">ncplane_set_channels</span>(<span class="ident">plane</span>, <span class="ident">channels</span>) };
 }
-
 
 <span class="comment">// NcColor ---------------------------------------------------------------------</span>
 
@@ -1048,14 +1034,6 @@
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncplane_putnstr</span>(<span class="ident">plane</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span>, <span class="ident">size</span>: <span class="ident">u32</span>, <span class="ident">gclustarr</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcIntResult</span> {
     <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncplane_putnstr_yx</span>(<span class="ident">plane</span>, <span class="op">-</span><span class="number">1</span>, <span class="op">-</span><span class="number">1</span>, <span class="ident">size</span>.<span class="ident">into</span>(), <span class="macro">cstring</span><span class="macro">!</span>[<span class="ident">gclustarr</span>]) }
-}
-
-<span class="doccomment">/// The [NcPlane] equivalent of `vprintf(3)`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// *Method: NcPlane.[vprintf()][NcPlane#method.vprintf].*</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncplane_vprintf</span>(<span class="ident">plane</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span>, <span class="ident">format</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">ap</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">__va_list_tag</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcIntResult</span> {
-    <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncplane_vprintf_yx</span>(<span class="ident">plane</span>, <span class="op">-</span><span class="number">1</span>, <span class="op">-</span><span class="number">1</span>, <span class="macro">cstring</span><span class="macro">!</span>[<span class="ident">format</span>], <span class="ident">ap</span>) }
 }
 
 <span class="comment">// size &amp; alignment ------------------------------------------------------------</span>

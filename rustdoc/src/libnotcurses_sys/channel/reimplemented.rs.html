@@ -510,6 +510,7 @@
 <span id="507">507</span>
 <span id="508">508</span>
 <span id="509">509</span>
+<span id="510">510</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `channel*_*` reimplemented functions.</span>
 
@@ -1000,6 +1001,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// *Method: NcChannelPair.[set_fg_palindex()][NcChannelPair#method.set_fg_palindex]*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">unnecessary_cast</span>)]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncchannels_set_fg_palindex</span>(<span class="ident">channels</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcChannelPair</span>, <span class="ident">index</span>: <span class="ident">NcPaletteIndex</span>) {
     <span class="kw-2">*</span><span class="ident">channels</span> <span class="op">|</span><span class="op">=</span> <span class="ident">NCCELL_FGDEFAULT_MASK</span>;
     <span class="kw-2">*</span><span class="ident">channels</span> <span class="op">|</span><span class="op">=</span> <span class="ident">NCCELL_FG_PALETTE</span> <span class="kw">as</span> <span class="ident">NcChannelPair</span>;

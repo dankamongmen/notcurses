@@ -101,50 +101,23 @@
 <span id="98"> 98</span>
 <span id="99"> 99</span>
 <span id="100">100</span>
-<span id="101">101</span>
-<span id="102">102</span>
-<span id="103">103</span>
-<span id="104">104</span>
-<span id="105">105</span>
-<span id="106">106</span>
-<span id="107">107</span>
-<span id="108">108</span>
-<span id="109">109</span>
-<span id="110">110</span>
-<span id="111">111</span>
-<span id="112">112</span>
-<span id="113">113</span>
-<span id="114">114</span>
-<span id="115">115</span>
-<span id="116">116</span>
-<span id="117">117</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcDirect`</span>
 
-<span class="comment">// --- ---------------------------------------------------------</span>
-<span class="comment">// col 0:</span>
-<span class="comment">// --------------</span>
-<span class="comment">//          4  X: wont do</span>
-<span class="comment">//             ~: WIP</span>
+<span class="comment">// total: 47</span>
+<span class="comment">// ---------------------------------------------------</span>
+<span class="comment">// (X)  1 : wont do</span>
 <span class="comment">//</span>
-<span class="comment">// col 1: 43</span>
-<span class="comment">// --------------</span>
-<span class="comment">//         39  f: ffi function imported by bindgen</span>
-<span class="comment">//             F: ffi function wrapped safely</span>
-<span class="comment">//          4  r: static function reimplemented in Rust</span>
+<span class="comment">// (f) 42 : unsafe ffi function exported by bindgen</span>
+<span class="comment">// (w)  0 : safely wrapped ffi function</span>
+<span class="comment">// (r)  4 : static function manually reimplemented</span>
 <span class="comment">//</span>
-<span class="comment">// col 2: 43</span>
-<span class="comment">// --------------</span>
-<span class="comment">//         41  m: impl as an `NcDirect` method</span>
-<span class="comment">//          2  M: impl for the `NcD` wrapper struct too</span>
+<span class="comment">// (m) 45 : method implemented</span>
+<span class="comment">// (~)  1 : work in progress</span>
 <span class="comment">//</span>
-<span class="comment">// col 3:</span>
-<span class="comment">// --------------</span>
-<span class="comment">//             t: tests done for the ffi or reimplemented funtion</span>
-<span class="comment">//             T: tests done also for the m method</span>
-<span class="comment">//             Ŧ: tests done also for the M method wrapper struct</span>
-<span class="comment">// --- ---------------------------------------------------------</span>
-<span class="comment">//</span>
+<span class="comment">// (t)  0 : unit test done for the function</span>
+<span class="comment">// (T)  0 : unit test done also for the method</span>
+<span class="comment">// ---------------------------------------------------</span>
 <span class="comment">// fm  ncdirect_bg_default</span>
 <span class="comment">// fm  ncdirect_bg_palindex</span>
 <span class="comment">// fm  ncdirect_bg_rgb</span>
@@ -173,7 +146,7 @@
 <span class="comment">// fm  ncdirect_flush</span>
 <span class="comment">// fm  ncdirect_getc</span>
 <span class="comment">// fm  ncdirect_hline_interp</span>
-<span class="comment">// fM  ncdirect_init</span>
+<span class="comment">// fm  ncdirect_init</span>
 <span class="comment">// fm  ncdirect_inputready_fd</span>
 <span class="comment">// fm  ncplane_on_styles</span>
 <span class="comment">// fm  ncplane_off_styles</span>
@@ -186,10 +159,7 @@
 <span class="comment">// fm  ncdirect_render_image</span>
 <span class="comment">// fm  ncdirect_rounded_box</span>
 <span class="comment">// fm  ncplane_set_styles</span>
-<span class="comment">// fM  ncdirect_stop</span>
-<span class="comment">//X    ncdirect_styles_off     // deprecated</span>
-<span class="comment">//X    ncdirect_styles_on      // deprecated</span>
-<span class="comment">//X    ncdirect_styles_set     // deprecated</span>
+<span class="comment">// fm  ncdirect_stop</span>
 <span class="comment">// fm  ncdirect_vline_interp</span>
 <span class="comment">// rm  ncdirect_bg_rgb8</span>
 <span class="comment">// rm  ncdirect_fg_rgb8</span>
@@ -201,14 +171,10 @@
 
 <span class="kw">mod</span> <span class="ident">methods</span>;
 <span class="kw">mod</span> <span class="ident">reimplemented</span>;
-<span class="kw">mod</span> <span class="ident">wrapper</span>;
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">reimplemented</span>::<span class="kw-2">*</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">wrapper</span>::<span class="kw-2">*</span>;
 
 <span class="doccomment">/// Minimal notcurses instance for styling text.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This is the internal type safely wrapped by [NcD][crate::NcD].</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcDirect</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncdirect</span>;
 
 <span class="doccomment">/// Flags (options) for [`NcDirect`]</span>

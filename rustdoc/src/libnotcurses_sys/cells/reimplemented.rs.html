@@ -510,6 +510,9 @@
 <span id="507">507</span>
 <span id="508">508</span>
 <span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `cell*_*` reimplemented functions.</span>
 
@@ -705,6 +708,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// *Method: NcCell.[fg_palindex()][NcCell#method.fg_palindex].*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">unnecessary_cast</span>)]</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">nccell_fg_palindex</span>(<span class="ident">cell</span>: <span class="kw-2">&amp;</span><span class="ident">NcCell</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcPaletteIndex</span> {
     ((<span class="ident">cell</span>.<span class="ident">channels</span> <span class="op">&amp;</span> <span class="number">0xff00000000</span> <span class="kw">as</span> <span class="ident">NcChannelPair</span>) <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">32</span>) <span class="kw">as</span> <span class="ident">NcPaletteIndex</span>
 }
@@ -713,6 +717,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// *Method: NcCell.[bg_palindex()][NcCell#method.bg_palindex].*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">unnecessary_cast</span>)]</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">nccell_bg_palindex</span>(<span class="ident">cell</span>: <span class="kw-2">&amp;</span><span class="ident">NcCell</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcPaletteIndex</span> {
     (<span class="ident">cell</span>.<span class="ident">channels</span> <span class="op">&amp;</span> <span class="number">0xff</span>) <span class="kw">as</span> <span class="ident">NcPaletteIndex</span>
 }
@@ -726,6 +731,7 @@
 <span class="comment">//</span>
 <span class="comment">// NOTE: unlike the original C function, this one can&#39;t fail</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">unnecessary_cast</span>)]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">nccell_set_fg_palindex</span>(<span class="ident">cell</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcCell</span>, <span class="ident">index</span>: <span class="ident">NcPaletteIndex</span>) {
     <span class="ident">cell</span>.<span class="ident">channels</span> <span class="op">|</span><span class="op">=</span> <span class="ident">NCCELL_FGDEFAULT_MASK</span>;
     <span class="ident">cell</span>.<span class="ident">channels</span> <span class="op">|</span><span class="op">=</span> <span class="ident">NCCELL_FG_PALETTE</span>;

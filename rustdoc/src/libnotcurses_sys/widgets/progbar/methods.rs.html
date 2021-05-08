@@ -116,7 +116,7 @@
     <span class="doccomment">/// Return a reference to the ncprogbar&#39;s underlying ncplane.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncprogbar_plane()][crate::ncprogbar_plane].*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">plane</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">NcPlane</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">plane</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span> {
         <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw">crate</span>::<span class="ident">ncprogbar_plane</span>(<span class="self">self</span>) }
     }
 

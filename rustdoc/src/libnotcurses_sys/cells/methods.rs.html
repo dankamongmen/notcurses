@@ -468,6 +468,7 @@
 <span id="465">465</span>
 <span id="466">466</span>
 <span id="467">467</span>
+<span id="468">468</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcCell` methods and associated functions.</span>
 
@@ -483,6 +484,7 @@
 <span class="kw">impl</span> <span class="ident">NcCell</span> {
     <span class="doccomment">/// New NcCell, expects a 7-bit [char].</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">unnecessary_cast</span>)]</span>
     <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">with_char7b</span>(<span class="ident">ch</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">NcCell</span> {
             <span class="ident">gcluster</span>: (<span class="ident">ch</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">to_le</span>(),

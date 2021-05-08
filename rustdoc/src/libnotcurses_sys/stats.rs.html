@@ -36,7 +36,7 @@
 <span class="doccomment">/// # `NcStats` Methods.</span>
 <span class="kw">impl</span> <span class="ident">NcStats</span> {
     <span class="doccomment">/// Allocates an NcStats object.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">nc</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Notcurses</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">nc</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Notcurses</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw">crate</span>::<span class="ident">notcurses_stats_alloc</span>(<span class="ident">nc</span>) }
     }
 

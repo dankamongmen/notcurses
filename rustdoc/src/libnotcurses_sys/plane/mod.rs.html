@@ -271,17 +271,15 @@
 <span id="268">268</span>
 <span id="269">269</span>
 <span id="270">270</span>
-<span id="271">271</span>
-<span id="272">272</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcPlane`</span>
 
 <span class="comment">// functions already exported by bindgen : 113</span>
 <span class="comment">// -------------------------------------------</span>
-<span class="comment">// (X) wont:  6</span>
+<span class="comment">// (X) wont: 10</span>
 <span class="comment">// (D) depr:  4</span>
 <span class="comment">// (#) test: 13</span>
-<span class="comment">// (W) wrap: 83 of 102 (112 - 6 - 4)</span>
+<span class="comment">// (W) wrap: 83</span>
 <span class="comment">// -------------------------------------------</span>
 <span class="comment">//W  ncpile_bottom</span>
 <span class="comment">//W# ncpile_create</span>
@@ -390,9 +388,9 @@
 <span class="comment">//W  ncplane_translate_abs</span>
 <span class="comment">//   ncplane_userptr</span>
 <span class="comment">//   ncplane_vline_interp</span>
-<span class="comment">//   ncplane_vprintf_aligned</span>
-<span class="comment">//   ncplane_vprintf_stained</span>
-<span class="comment">//   ncplane_vprintf_yx</span>
+<span class="comment">// X ncplane_vprintf_aligned</span>
+<span class="comment">// X ncplane_vprintf_stained</span>
+<span class="comment">// X ncplane_vprintf_yx</span>
 <span class="comment">//W  ncplane_x</span>
 <span class="comment">//W  ncplane_y</span>
 <span class="comment">//W  ncplane_yx</span>
@@ -444,9 +442,7 @@
 <span class="comment">// + ncplane_rounded_box_sized</span>
 <span class="comment">//W+ ncplane_halign</span>
 <span class="comment">// + ncplane_vline</span>
-<span class="comment">// + ncplane_vprintf</span>
-<span class="comment">//</span>
-<span class="comment">// NOTE: TODO: Still remains all the ncplane_printf* functions/macros (at the end)</span>
+<span class="comment">// X ncplane_vprintf</span>
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">test</span>;

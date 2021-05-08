@@ -459,6 +459,19 @@
 <span id="456">456</span>
 <span id="457">457</span>
 <span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcVisual*` methods and associated functions.</span>
 
@@ -488,7 +501,11 @@
     <span class="comment">// y is an ncalign_e if NCVISUAL_OPTION_VERALIGNED is provided.</span>
     <span class="comment">// x is an ncalign_e value if NCVISUAL_OPTION_HORALIGNED is provided.</span>
 
-    <span class="doccomment">/// Specify an existing plane</span>
+    <span class="doccomment">/// Specify an existing plane.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// If [`NCVISUAL_OPTION_CHILDPLANE`][crate::NCVISUAL_OPTION_CHILDPLANE] is</span>
+    <span class="doccomment">/// used in `flags` then the `plane` is interpreted as the parent [`NcPlane`]</span>
+    <span class="doccomment">/// of the new plane created for this [`NcVisual`].</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_plane</span>(
         <span class="ident">plane</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span>,
         <span class="ident">scale</span>: <span class="ident">NcScale</span>,
@@ -580,7 +597,10 @@
                     <span class="ident">cols</span> <span class="kw">as</span> <span class="ident">i32</span>,
                 )
             },
-            <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;NcVisual::from_bgra()&quot;</span>)
+            <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>[
+                <span class="string">&quot;NcVisual::from_bgra(bgra, {}, {}, {})&quot;</span>,
+                <span class="ident">rows</span>, <span class="ident">rowstride</span>, <span class="ident">cols</span>
+            ]
         ]
     }
 
@@ -591,7 +611,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_file</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">file</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">NcVisual</span><span class="op">&gt;</span> {
         <span class="macro">error_ref_mut</span><span class="macro">!</span>[
             <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncvisual_from_file</span>(<span class="macro">cstring</span><span class="macro">!</span>[<span class="ident">file</span>]) },
-            <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;NcVisual::from_file()&quot;</span>)
+            <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;NcVisual::from_file({})&quot;</span>, <span class="ident">file</span>)
         ]
     }
 
@@ -624,7 +644,10 @@
                     <span class="ident">len_x</span> <span class="kw">as</span> <span class="ident">i32</span>,
                 )
             },
-            <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;NcVisual::from_file()&quot;</span>)
+            <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(
+                <span class="string">&quot;NcVisual::from_file(plane, {}, {}, {}, {}, {})&quot;</span>,
+                <span class="ident">blitter</span>, <span class="ident">beg_y</span>, <span class="ident">beg_x</span>, <span class="ident">len_y</span>, <span class="ident">len_x</span>
+            )
         ]
     }
 
@@ -654,7 +677,10 @@
                     <span class="ident">cols</span> <span class="kw">as</span> <span class="ident">i32</span>,
                 )
             },
-            <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;NcVisual::from_rgba()&quot;</span>)
+            <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(
+                <span class="string">&quot;NcVisual::from_rgba(rgba, {}, {}, {})&quot;</span>,
+                <span class="ident">rows</span>, <span class="ident">rowstride</span>, <span class="ident">cols</span>
+            )
         ]
     }
 
@@ -688,7 +714,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decode</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">NcIntResult</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncvisual_decode</span>(<span class="self">self</span>) };
         <span class="kw">if</span> <span class="ident">res</span> <span class="op">=</span><span class="op">=</span> <span class="ident">NCRESULT_ERR</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">NcError</span>::<span class="ident">with_msg</span>(<span class="ident">res</span>, <span class="string">&quot;NcVisual.decode()&quot;</span>));
+            <span class="prelude-val">Err</span>(<span class="ident">NcError</span>::<span class="ident">with_msg</span>(<span class="ident">res</span>, <span class="string">&quot;NcVisual.decode()&quot;</span>))
         } <span class="kw">else</span> {
             <span class="prelude-val">Ok</span>(<span class="ident">res</span>)
         }
@@ -706,7 +732,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decode_loop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">NcIntResult</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncvisual_decode_loop</span>(<span class="self">self</span>) };
         <span class="kw">if</span> <span class="ident">res</span> <span class="op">=</span><span class="op">=</span> <span class="ident">NCRESULT_ERR</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">NcError</span>::<span class="ident">with_msg</span>(<span class="ident">res</span>, <span class="string">&quot;NcVisual.decode_loop()&quot;</span>));
+            <span class="prelude-val">Err</span>(<span class="ident">NcError</span>::<span class="ident">with_msg</span>(<span class="ident">res</span>, <span class="string">&quot;NcVisual.decode_loop()&quot;</span>))
         } <span class="kw">else</span> {
             <span class="prelude-val">Ok</span>(<span class="ident">res</span>)
         }
@@ -911,8 +937,8 @@
     <span class="doccomment">/// *C style function: [ncvisual_subtitle()][crate::ncvisual_subtitle].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">subtitle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncvisual_subtitle</span>(<span class="self">self</span>) };
-        <span class="kw">if</span> <span class="ident">res</span> <span class="op">!</span><span class="op">=</span> <span class="ident">null_mut</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="macro">rstring</span><span class="macro">!</span>[<span class="ident">res</span>]);
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">res</span>.<span class="ident">is_null</span>() {
+            <span class="prelude-val">Ok</span>(<span class="macro">rstring</span><span class="macro">!</span>[<span class="ident">res</span>])
         } <span class="kw">else</span> {
             <span class="prelude-val">Err</span>(<span class="ident">NcError</span>::<span class="ident">with_msg</span>(<span class="ident">NCRESULT_ERR</span>, <span class="string">&quot;NcVisual.subtitle()&quot;</span>))
         }

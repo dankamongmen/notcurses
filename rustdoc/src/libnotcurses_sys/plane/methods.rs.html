@@ -2038,11 +2038,6 @@
 <span id="2035">2035</span>
 <span id="2036">2036</span>
 <span id="2037">2037</span>
-<span id="2038">2038</span>
-<span id="2039">2039</span>
-<span id="2040">2040</span>
-<span id="2041">2041</span>
-<span id="2042">2042</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcPlane*` methods and associated functions.</span>
 <span class="kw">use</span> <span class="ident">core</span>::{
@@ -2331,12 +2326,7 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fg_rgb8</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">NcColor</span>, <span class="ident">NcColor</span>, <span class="ident">NcColor</span>) {
         <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">r</span>, <span class="kw-2">mut</span> <span class="ident">g</span>, <span class="kw-2">mut</span> <span class="ident">b</span>) <span class="op">=</span> (<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">ncchannels_fg_rgb8</span>(
-            <span class="kw">crate</span>::<span class="ident">ncplane_channels</span>(<span class="self">self</span>),
-            <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">r</span>,
-            <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">g</span>,
-            <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">b</span>,
-        );
+        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">ncchannels_fg_rgb8</span>(<span class="kw">crate</span>::<span class="ident">ncplane_channels</span>(<span class="self">self</span>), <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">r</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">g</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">b</span>);
         (<span class="ident">r</span>, <span class="ident">g</span>, <span class="ident">b</span>)
     }
 
@@ -2346,12 +2336,7 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bg_rgb8</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">NcColor</span>, <span class="ident">NcColor</span>, <span class="ident">NcColor</span>) {
         <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">r</span>, <span class="kw-2">mut</span> <span class="ident">g</span>, <span class="kw-2">mut</span> <span class="ident">b</span>) <span class="op">=</span> (<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">ncchannels_bg_rgb8</span>(
-            <span class="kw">crate</span>::<span class="ident">ncplane_channels</span>(<span class="self">self</span>),
-            <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">r</span>,
-            <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">g</span>,
-            <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">b</span>,
-        );
+        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">ncchannels_bg_rgb8</span>(<span class="kw">crate</span>::<span class="ident">ncplane_channels</span>(<span class="self">self</span>), <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">r</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">g</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">b</span>);
         (<span class="ident">r</span>, <span class="ident">g</span>, <span class="ident">b</span>)
     }
 
@@ -2877,7 +2862,7 @@
         <span class="kw">let</span> <span class="ident">cols</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">putstr</span>(<span class="ident">string</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> (<span class="ident">y</span>, <span class="ident">_x</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">cursor_yx</span>();
         <span class="self">self</span>.<span class="ident">cursor_move_yx</span>(<span class="ident">y</span> <span class="op">+</span> <span class="number">1</span>, <span class="number">0</span>)<span class="question-mark">?</span>;
-        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">cols</span>);
+        <span class="prelude-val">Ok</span>(<span class="ident">cols</span>)
     }
 
     <span class="doccomment">/// Same as [putstr_yx()][NcPlane#method.putstr_yx] but [NcAlign]ed on x.</span>
@@ -2975,14 +2960,14 @@
     <span class="doccomment">/// *C style function: [ncplane_dup()][crate::ncplane_dup].*</span>
     <span class="comment">//</span>
     <span class="comment">// TODO: deal with the opaque field.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dup</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">NcPlane</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dup</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span> {
         <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw">crate</span>::<span class="ident">ncplane_dup</span>(<span class="self">self</span>, <span class="ident">null_mut</span>()) }
     }
 
     <span class="doccomment">/// Returns the topmost NcPlane of the current pile.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncpile_top()][crate::ncpile_top].*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">top</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">NcPlane</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">top</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span> {
         <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw">crate</span>::<span class="ident">ncpile_top</span>(<span class="self">self</span>) }
     }
 
@@ -3040,14 +3025,14 @@
     <span class="doccomment">/// Returns the NcPlane above this one, or None if already at the top.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncplane_above()][crate::ncplane_above].*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">above</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">NcPlane</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">above</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span><span class="op">&gt;</span> {
         <span class="macro">error_ref_mut</span><span class="macro">!</span>[<span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncplane_above</span>(<span class="self">self</span>) }, <span class="string">&quot;NcPlane.above()&quot;</span>]
     }
 
     <span class="doccomment">/// Returns the NcPlane below this one, or None if already at the bottom.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncplane_below()][crate::ncplane_below].*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">below</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">NcPlane</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">below</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span><span class="op">&gt;</span> {
         <span class="macro">error_ref_mut</span><span class="macro">!</span>[<span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncplane_below</span>(<span class="self">self</span>) }, <span class="string">&quot;NcPlane.below()&quot;</span>]
     }
 
@@ -3076,18 +3061,24 @@
             <span class="string">&quot;NcPlane.move_below(NcPlane)&quot;</span>
         ]
     }
-
-    <span class="doccomment">/// Merges `source` down onto this NcPlane.</span>
+    <span class="doccomment">/// Merge the NcPlane `source` down onto the current NcPlane (`self`).</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Merging is independent of the position of both NcPlanes on the z-axis.</span>
+    <span class="doccomment">/// This is most rigorously defined as &quot;write to `self` the frame that would</span>
+    <span class="doccomment">/// be rendered were the entire stack made up only of the specified subregion</span>
+    <span class="doccomment">/// of `source` and, below it, the subregion of `self` having the specified</span>
+    <span class="doccomment">/// origin.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Merging is independent of the position of both planes on the z-axis.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// It is an error to define a subregion of zero area, or that is not</span>
-    <span class="doccomment">/// entirely contained within `source`.</span>
+    <span class="doccomment">/// entirely contained within `source`. It is an error to define a target</span>
+    <span class="doccomment">/// origin such that the projected subregion is not entirely contained</span>
+    <span class="doccomment">/// within `self`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// It is an error to define a target origin such that the projected</span>
-    <span class="doccomment">/// subregion is not entirely contained within &#39;dst&#39;.</span>
+    <span class="doccomment">/// Behavior is undefined if both planes are equivalent. `self` is modified,</span>
+    <span class="doccomment">/// but `source` remains unchanged.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Behavior is undefined if both NcPlanes are equivalent.</span>
+    <span class="doccomment">/// neither `source` nor `self` may have sprixels.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncplane_mergedown()][crate::ncplane_mergedown].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mergedown</span>(
@@ -3144,7 +3135,7 @@
     <span class="doccomment">/// *C style function: [ncplane_parent()][crate::ncplane_parent].*</span>
     <span class="comment">//</span>
     <span class="comment">// TODO: CHECK: what happens when it&#39;s bound to itself.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parent</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">NcPlane</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parent</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span><span class="op">&gt;</span> {
         <span class="macro">error_ref_mut</span><span class="macro">!</span>[<span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncplane_parent</span>(<span class="self">self</span>) }, <span class="string">&quot;NcPlane.parent()&quot;</span>]
     }
 
@@ -3153,7 +3144,7 @@
     <span class="doccomment">/// *C style function: [ncplane_parent_const()][crate::ncplane_parent_const].*</span>
     <span class="comment">//</span>
     <span class="comment">// CHECK: what happens when it&#39;s bound to itself.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parent_const</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">NcPlane</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parent_const</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">NcPlane</span><span class="op">&gt;</span> {
         <span class="macro">error_ref</span><span class="macro">!</span>[
             <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncplane_parent_const</span>(<span class="self">self</span>) },
             <span class="string">&quot;NcPlane.parent_const()&quot;</span>
@@ -3201,7 +3192,7 @@
     <span class="doccomment">/// rendered (doing so will likely result in a blank screen).</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncpile_rasterize()][crate::ncpile_rasterize].*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rasterize</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rasterize</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">error</span><span class="macro">!</span>[
             <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncpile_rasterize</span>(<span class="self">self</span>) },
             <span class="string">&quot;NcPlane.rasterize()&quot;</span>
@@ -3213,7 +3204,7 @@
     <span class="doccomment">/// To actually write out the render, call ncpile_rasterize().</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncpile_render()][crate::ncpile_render].*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">render</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">render</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">error</span><span class="macro">!</span>[<span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncpile_render</span>(<span class="self">self</span>) }, <span class="string">&quot;NcPlane.render()&quot;</span>]
     }
 
@@ -3989,7 +3980,6 @@
         <span class="ident">y_stop</span>: <span class="ident">NcDim</span>,
         <span class="ident">x_stop</span>: <span class="ident">NcDim</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">NcDim</span><span class="op">&gt;</span> {
-
         <span class="comment">// https://github.com/dankamongmen/notcurses/issues/1339</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;i686&quot;</span>))]</span>
         <span class="kw">let</span> <span class="ident">egc_ptr</span> <span class="op">=</span> <span class="kw-2">&amp;</span>(<span class="kw-2">*</span><span class="ident">egc</span> <span class="kw">as</span> <span class="ident">i8</span>);

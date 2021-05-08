@@ -9,7 +9,7 @@
 </div><div class='docblock'><p>Returns an <code>Ok(String)</code> from a <code>*const</code> pointer to a C string,
 or an <code>Err(</code><a href="../libnotcurses_sys/struct.NcError.html" title="NcError"><code>NcError</code></a><code>)</code> if the pointer is null.</p>
 <p>In other words:
-Returns Ok((&amp;*<code>$str</code>).to_string()) if <code>$str</code> != <code>null()</code>, otherwise returns
+Returns Ok((&amp;*<code>$str</code>).to_string()) if <code>!$str.is_null()</code>, otherwise returns
 Err(<a href="../libnotcurses_sys/struct.NcError.html" title="NcError">NcError</a>]::<a href="../libnotcurses_sys/struct.NcError.html#method.new" title="NcError">new</a>(<a href="../libnotcurses_sys/constant.NCRESULT_ERR.html" title="NCRESULT_ERR">NCRESULT_ERR</a>, <code>$msg</code>)).</p>
 <p><code>$msg</code> is optional. By default it will be an empty <code>&amp;str</code> <code>&quot;&quot;</code>.</p>
 </div></section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../";window.currentCrate = "libnotcurses_sys";</script><script src="../main.js"></script><script defer src="../search-index.js"></script></body></html>

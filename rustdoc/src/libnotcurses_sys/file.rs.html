@@ -329,6 +329,13 @@
 <span id="326">326</span>
 <span id="327">327</span>
 <span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Wrapper for `libc::FILE`, both as used by notcurses and the libc crate</span>
 <span class="doccomment">//!</span>
@@ -339,13 +346,17 @@
 
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::{<span class="ident">Error</span>, <span class="ident">ErrorKind</span>, <span class="ident">Read</span>, <span class="ident">Seek</span>, <span class="ident">SeekFrom</span>};
 
-<span class="kw">use</span> <span class="ident">libc</span>::{<span class="ident">c_long</span>, <span class="ident">c_void</span>, <span class="ident">fclose</span>, <span class="ident">feof</span>, <span class="ident">fread</span>, <span class="ident">fseek</span>, <span class="ident">ftell</span>, <span class="ident">SEEK_CUR</span>, <span class="ident">SEEK_END</span>, <span class="ident">SEEK_SET</span>};
+<span class="kw">use</span> <span class="ident">libc</span>::{
+    <span class="ident">c_long</span>, <span class="ident">c_void</span>, <span class="ident">fclose</span>, <span class="comment">/* feof, */</span> <span class="ident">fread</span>, <span class="ident">fseek</span>, <span class="ident">ftell</span>, <span class="ident">SEEK_CUR</span>, <span class="ident">SEEK_END</span>, <span class="ident">SEEK_SET</span>,
+};
 
 <span class="doccomment">/// See [NcFile]. Notcurses functions expects this type of `*FILE` (a struct)</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">upper_case_acronyms</span>)]</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">FILE_NC</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">ffi</span>::<span class="ident">_IO_FILE</span>;
 
 <span class="doccomment">/// See [NcFile]. The [`libc`](https://docs.rs/libc/) crate expects this type</span>
 <span class="doccomment">/// of `*FILE` (an opaque enum)</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">upper_case_acronyms</span>)]</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">FILE_LIBC</span> <span class="op">=</span> <span class="ident">libc</span>::<span class="ident">FILE</span>;
 
 <span class="comment">// TODO: the following static strings aren&#39;t made public</span>
@@ -354,34 +365,34 @@
 <span class="doccomment">/// It will open the file in a way that will allow reading and writing,</span>
 <span class="doccomment">/// including overwriting old data.</span>
 <span class="doccomment">/// It will not create the file if it does not exist.</span>
-<span class="kw">pub</span> <span class="kw">static</span> <span class="ident">RANDOM_ACCESS_MODE</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;rb+&quot;</span>;
+<span class="kw">pub</span> <span class="kw">static</span> <span class="ident">RANDOM_ACCESS_MODE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;rb+&quot;</span>;
 
 <span class="doccomment">/// Intended to be passed into the CFile::open method.</span>
 <span class="doccomment">/// It will open the file in a way that will allow reading and writing,</span>
 <span class="doccomment">/// including overwriting old data</span>
-<span class="kw">pub</span> <span class="kw">static</span> <span class="ident">UPDATE</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;rb+&quot;</span>;
+<span class="kw">pub</span> <span class="kw">static</span> <span class="ident">UPDATE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;rb+&quot;</span>;
 
 <span class="doccomment">/// Intended to be passed into the CFile::open method.</span>
 <span class="doccomment">/// It will only allow reading.</span>
-<span class="kw">pub</span> <span class="kw">static</span> <span class="ident">READ_ONLY</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;r&quot;</span>;
+<span class="kw">pub</span> <span class="kw">static</span> <span class="ident">READ_ONLY</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;r&quot;</span>;
 
 <span class="doccomment">/// Intended to be passed into the CFile::open method.</span>
 <span class="doccomment">/// It will only allow writing.</span>
-<span class="kw">pub</span> <span class="kw">static</span> <span class="ident">WRITE_ONLY</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;w&quot;</span>;
+<span class="kw">pub</span> <span class="kw">static</span> <span class="ident">WRITE_ONLY</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;w&quot;</span>;
 
 <span class="doccomment">/// Intended to be passed into the CFile::open method.</span>
 <span class="doccomment">/// It will only allow data to be appended to the end of the file.</span>
-<span class="kw">pub</span> <span class="kw">static</span> <span class="ident">APPEND_ONLY</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;a&quot;</span>;
+<span class="kw">pub</span> <span class="kw">static</span> <span class="ident">APPEND_ONLY</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;a&quot;</span>;
 
 <span class="doccomment">/// Intended to be passed into the CFile::open method.</span>
 <span class="doccomment">/// It will allow data to be appended to the end of the file, and data to be</span>
 <span class="doccomment">/// read from the file. It will create the file if it doesn&#39;t exist.</span>
-<span class="kw">pub</span> <span class="kw">static</span> <span class="ident">APPEND_READ</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;a+&quot;</span>;
+<span class="kw">pub</span> <span class="kw">static</span> <span class="ident">APPEND_READ</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;a+&quot;</span>;
 
 <span class="doccomment">/// Intended to be passed into the CFile::open method.</span>
 <span class="doccomment">/// It will open the file in a way that will allow reading and writing,</span>
 <span class="doccomment">/// including overwriting old data. It will create the file if it doesn&#39;t exist</span>
-<span class="kw">pub</span> <span class="kw">static</span> <span class="ident">TRUNCATE_RANDOM_ACCESS_MODE</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;wb+&quot;</span>;
+<span class="kw">pub</span> <span class="kw">static</span> <span class="ident">TRUNCATE_RANDOM_ACCESS_MODE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;wb+&quot;</span>;
 
 <span class="doccomment">/// A utility function to pull the current value of errno and put it into an</span>
 <span class="doccomment">/// Error::Errno</span>
@@ -415,9 +426,10 @@
     }
 
     <span class="doccomment">/// `NcFile` constructor from a file produced by the libc crate</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_libc</span>(<span class="ident">file</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">FILE_LIBC</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">missing_safety_doc</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_libc</span>(<span class="ident">file</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">FILE_LIBC</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">NcFile</span> {
-            <span class="ident">file_ptr</span>: <span class="kw">unsafe</span> { <span class="ident">NonNull</span>::<span class="ident">new_unchecked</span>(<span class="ident">file</span>) },
+            <span class="ident">file_ptr</span>: <span class="ident">NonNull</span>::<span class="ident">new_unchecked</span>(<span class="ident">file</span>),
         }
     }
 
@@ -597,11 +609,13 @@
                 <span class="prelude-val">Ok</span>(())
             } <span class="kw">else</span> {
                 <span class="comment">// Check if we hit the end of the file</span>
-                <span class="kw">if</span> <span class="ident">feof</span>(<span class="self">self</span>.<span class="ident">as_libc_ptr</span>()) <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-                    <span class="ident">get_error</span>()
-                } <span class="kw">else</span> {
-                    <span class="ident">get_error</span>()
-                }
+                <span class="comment">// FIXME</span>
+                <span class="comment">// if feof(self.as_libc_ptr()) != 0 {</span>
+                <span class="comment">//     get_error()</span>
+                <span class="comment">// } else {</span>
+                <span class="comment">//     get_error()</span>
+                <span class="comment">// }</span>
+                <span class="ident">get_error</span>()
             }
         }
     }
