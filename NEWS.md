@@ -2,6 +2,9 @@ This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
 * 2.2.11 (not yet released)
+  * `notcurses-core.pc` is now generated with a `Requires.private` line
+    matching the local system's source of Terminfo. This ought resolve
+    static linking on systems with libtinfo embedded into libncurses.
   * Added `ncblit_rgb_loose()` and `ncblit_rgb_packed()` helpers for blitting
     32bpp RGBx and 24bpp RGB.
 
