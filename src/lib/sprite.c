@@ -82,7 +82,6 @@ void sprixel_movefrom(sprixel* s, int y, int x){
 
 void sprixel_hide(sprixel* s){
   if(ncplane_pile(s->n) == NULL){ // ncdirect case; destroy now
-fprintf(stderr, "DESTROY IMMEDIATELY\n");
     sprixel_free(s);
     return;
   }
@@ -187,9 +186,9 @@ int sprite_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
     s->n->tam[idx].state = SPRIXCELL_ANNIHILATED_TRANS;
     return 1;
   }
-  if(s->n->tam[idx].state == SPRIXCELL_ANNIHILATED_TRANS){
-    // both handle this correctly; one day, we will also check for ANNIHILATED
-    // here, and return 0 (sixel currently must return 1) FIXME
+  if(s->n->tam[idx].state == SPRIXCELL_ANNIHILATED_TRANS ||
+      s->n->tam[idx].state == SPRIXCELL_ANNIHILATED){
+//fprintf(stderr, "CACHED WIPE %d %d/%d\n", s->id, ycell, xcell);
     return 0;
   }
 //fprintf(stderr, "ANNIHILATING %p %d\n", s->n->tam, idx);

@@ -262,7 +262,8 @@ extract_color_table(const uint32_t* data, int linesize, int cols,
         const uint32_t* rgb = (data + (linesize / 4 * sy) + visx);
         int txyidx = (sy / cdimy) * cols + (visx / cdimx);
         if(tam[txyidx].state == SPRIXCELL_ANNIHILATED || tam[txyidx].state == SPRIXCELL_ANNIHILATED_TRANS){
-fprintf(stderr, "TRANS SKIP %d %d %d %d (cell: %d %d)\n", visy, visx, sy, txyidx, sy / cdimy, visx / cdimx);
+//fprintf(stderr, "TRANS SKIP %d %d %d %d (cell: %d %d)\n", visy, visx, sy, txyidx, sy / cdimy, visx / cdimx);
+          stab->p2 = SIXEL_P2_TRANS; // even one forces P2=1
           continue;
         }
         if(rgba_trans_p(*rgb, bargs->transcolor)){
@@ -844,10 +845,6 @@ wipe_color(sixelmap* smap, int color, int sband, int eband,
 // using sixel. we just mark it as partially transparent, so that if it's
 // redrawn, it's redrawn using P2=1.
 int sixel_wipe(sprixel* s, int ycell, int xcell){
-  if(s->n->tam[s->dimx * ycell + xcell].state == SPRIXCELL_ANNIHILATED){
-//fprintf(stderr, "CACHED WIPE %d %d/%d\n", s->id, ycell, xcell);
-    return 1; // already annihilated FIXME but 0 breaks things
-  }
 //fprintf(stderr, "WIPING %d/%d\n", ycell, xcell);
   uint8_t* auxvec = sprixel_auxiliary_vector(s);
   memset(auxvec + s->cellpxx * s->cellpxy, 0xff, s->cellpxx * s->cellpxy);
