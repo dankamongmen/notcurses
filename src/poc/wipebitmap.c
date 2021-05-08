@@ -4,6 +4,7 @@
 static void
 emit(struct ncplane* n, const char* str){
   fprintf(stderr, "\n\n\n%s\n", str);
+  ncplane_erase_region(n, 6, 0, 0, 0);
   ncplane_putstr_yx(n, 6, 0, str);
 }
 
