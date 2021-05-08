@@ -581,18 +581,16 @@ int kitty_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
           sprixcell_e state = sprixel_state(s, yy - s->movedfromy + s->n->absy - stdn->absy,
                                               xx - s->movedfromx + s->n->absx - stdn->absx);
           if(state == SPRIXCELL_OPAQUE_KITTY){
-//fprintf(stderr, "DAMAGED 1\n");
             r->s.damaged = 1;
           }else if(s->invalidated == SPRIXEL_MOVED){
             // ideally, we wouldn't damage our annihilated sprixcells, but if
             // we're being annihilated only during this cycle, we need to go
             // ahead and damage it.
-//fprintf(stderr, "DAMAGED 2\n");
             r->s.damaged = 1;
           }
         }else{
-//fprintf(stderr, "DAMAGED 3\n");
-          //r->s.damaged = 1;
+          // need this to damage cells underneath a sprixel we're removing
+          r->s.damaged = 1;
         }
       }
     }
