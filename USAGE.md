@@ -820,6 +820,14 @@ int ncplane_mergedown_simple(const ncplane* restrict src, ncplane* restrict dst)
 // with this ncplane are invalidated, and must not be used after the call,
 // excluding the base cell. The cursor is homed.
 void ncplane_erase(struct ncplane* n);
+
+// Erase every cell in the region starting at {ystart, xstart} and having size
+// {ylen, xlen}. It is an error if any of ystart, xstart, ylen, or xlen is
+// negative. A value of 0 may be provided for ylen and/or xlen, meaning to
+// erase everything along that dimension. It is an error if ystart + ylen
+// or xstart + xlen is not in the plane.
+int ncplane_erase_region(struct ncplane* n, int ystart, int xstart,
+                         int ylen, int xlen);
 ```
 
 All planes, including the standard plane, are created with scrolling disabled.
