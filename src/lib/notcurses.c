@@ -2030,6 +2030,39 @@ void ncplane_erase(ncplane* n){
   n->y = n->x = 0;
 }
 
+int ncplane_erase_region(ncplane* n, int ystart, int xstart, int ylen, int xlen){
+  const notcurses* nc = ncplane_notcurses_const(n);
+  if(ylen < 0 || xlen < 0){
+    logerror(nc, "Won't erase section of negative length (%d, %d)\n", ylen, xlen);
+    return -1;
+  }
+  if(ystart < 0 || xstart < 0){
+    logerror(nc, "Illegal start of erase (%d, %d)\n", ystart, xstart);
+    return -1;
+  }
+  if(ystart >= ncplane_dim_y(n) || ystart + ylen > ncplane_dim_y(n)){
+    logerror(nc, "Illegal y spec for erase (%d, %d)\n", ystart, ylen);
+    return -1;
+  }
+  if(ylen == 0){
+    ylen = ncplane_dim_y(n) - ystart;
+  }
+  if(xstart >= ncplane_dim_x(n) || xstart + xlen > ncplane_dim_x(n)){
+    logerror(nc, "Illegal x spec for erase (%d, %d)\n", xstart, xlen);
+    return -1;
+  }
+  if(xlen == 0){
+    xlen = ncplane_dim_x(n) - ystart;
+  }
+  for(int y = ystart ; y < ystart + ylen ; ++y){
+    for(int x = xstart ; x < xstart + xlen ; ++x){
+      nccell_release(n, &n->fb[nfbcellidx(n, y, x)]);
+      nccell_init(&n->fb[nfbcellidx(n, y, x)]);
+    }
+  }
+  return 0;
+}
+
 ncplane* notcurses_top(notcurses* n){
   return ncplane_pile(n->stdplane)->top;
 }

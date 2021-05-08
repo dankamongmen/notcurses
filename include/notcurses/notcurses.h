@@ -1982,6 +1982,15 @@ API int ncplane_mergedown(struct ncplane* RESTRICT src,
 // The cursor is homed. The plane's active attributes are unaffected.
 API void ncplane_erase(struct ncplane* n);
 
+// Erase every cell in the region starting at {ystart, xstart} and having size
+// {ylen, xlen}. It is an error if any of ystart, xstart, ylen, or xlen is
+// negative. A value of 0 may be provided for ylen and/or xlen, meaning to
+// erase everything along that dimension. It is an error if ystart + ylen
+// or xstart + xlen is not in the plane.
+API int ncplane_erase_region(struct ncplane* n, int ystart, int xstart,
+                             int ylen, int xlen)
+  __attribute__ ((nonnull (1)));
+
 // Extract 24 bits of foreground RGB from 'cl', shifted to LSBs.
 static inline uint32_t
 nccell_fg_rgb(const nccell* cl){

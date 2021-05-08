@@ -7,6 +7,8 @@ rearrangements of Notcurses.
     static linking on systems with libtinfo embedded into libncurses.
   * Added `ncblit_rgb_loose()` and `ncblit_rgb_packed()` helpers for blitting
     32bpp RGBx and 24bpp RGB.
+  * Added `ncplane_erase_region()` to initialize all `nccell`s within a
+    region of a plane.
 
 * 2.2.10 (2021-05-05)
   * Added `NCVISUAL_OPTION_CHILDPLANE` to interpret the `n` field of

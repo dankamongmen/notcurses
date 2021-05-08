@@ -192,6 +192,8 @@ typedef struct ncplane_options {
 
 **void ncplane_erase(struct ncplane* ***n***);**
 
+**int ncplane_erase_region(struct ncplane* ***n***, int ***ystart***, int ***xstart***, int ***ylen***, int ***xlen***);**
+
 **bool ncplane_set_scrolling(struct ncplane* ***n***, bool ***scrollp***);**
 
 **int ncplane_rotate_cw(struct ncplane* ***n***);**
@@ -286,6 +288,9 @@ might see changes. It is an error to merge a plane onto itself.
 
 **ncplane_erase** zeroes out every cell of the plane, dumps the egcpool, and
 homes the cursor. The base cell is preserved, as are the active attributes.
+**ncplane_erase_region** does the same for a subregion of the plane. For the
+latter, supply 0 for ***ylen*** and/or ***xlen*** to erase through that
+dimension, starting at the specified point.
 
 When a plane is resized (whether by **ncplane_resize**, **SIGWINCH**, or any
 other mechanism), a depth-first recursion is performed on its children.
@@ -396,6 +401,9 @@ destroyed. The caller should release this **nccell** with **nccell_release**.
 
 **ncplane_as_rgba** returns a heap-allocated array of **uint32_t** values,
 each representing a single RGBA pixel, or **NULL** on failure.
+
+**ncplane_erase_region** returns -1 if any of its parameters are negative, or
+if they specify any area beyond the plane.
 
 Functions returning **int** return 0 on success, and non-zero on error.
 
