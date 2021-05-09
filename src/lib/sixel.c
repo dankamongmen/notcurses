@@ -698,9 +698,23 @@ int sixel_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
     for(int xx = startx ; xx < startx + s->dimx && xx < p->dimx ; ++xx){
       int ridx = (yy - stdn->absy) * p->dimx + (xx - stdn->absx);
       struct crender *r = &p->crender[ridx];
-      // FIXME this probably overdoes it -- look at kitty_destroy()
       if(!r->sprixel){
-        r->s.damaged = 1;
+        if(s->n){
+//fprintf(stderr, "CHECKING %d/%d\n", yy - s->movedfromy, xx - s->movedfromx);
+          sprixcell_e state = sprixel_state(s, yy - s->movedfromy + s->n->absy - stdn->absy,
+                                            xx - s->movedfromx + s->n->absx - stdn->absx);
+          if(state == SPRIXCELL_OPAQUE_SIXEL || state == SPRIXCELL_MIXED_SIXEL){
+            r->s.damaged = 1;
+          }else if(s->invalidated == SPRIXEL_MOVED){
+            // ideally, we wouldn't damage our annihilated sprixcells, but if
+            // we're being annihilated only during this cycle, we need to go
+            // ahead and damage it.
+            r->s.damaged = 1;
+          }
+        }else{
+          // need this to damage cells underneath a sprixel we're removing
+          r->s.damaged = 1;
+        }
       }
     }
   }
