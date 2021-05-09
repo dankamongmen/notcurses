@@ -693,9 +693,11 @@ int sixel_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
   (void)out;
   int starty = s->movedfromy;
   int startx = s->movedfromx;
+  const ncplane* stdn = notcurses_stdplane_const(nc);
   for(int yy = starty ; yy < starty + s->dimy && yy < p->dimy ; ++yy){
     for(int xx = startx ; xx < startx + s->dimx && xx < p->dimx ; ++xx){
-      struct crender *r = &p->crender[yy * p->dimx + xx];
+      int ridx = (yy - stdn->absy) * p->dimx + (xx - stdn->absx);
+      struct crender *r = &p->crender[ridx];
       // FIXME this probably overdoes it -- look at kitty_destroy()
       if(!r->sprixel){
         r->s.damaged = 1;
