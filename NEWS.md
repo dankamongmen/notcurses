@@ -1,6 +1,9 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 2.3.0 (2021-05-09) **"Triumph"**
+  * No user-visible changes.
+
 * 2.2.11 (2021-05-08)
   * `notcurses-core.pc` is now generated with a `Requires.private` line
     matching the local system's source of Terminfo. This ought resolve
