@@ -5,29 +5,6 @@ import locale
 import _cffi_backend
 from _notcurses import lib, ffi
 
-NCCHANNEL_ALPHA_MASK = 0x30000000
-CELL_ALPHA_HIGHCONTRAST = 0x30000000
-CELL_ALPHA_TRANSPARENT = 0x20000000
-CELL_ALPHA_BLEND = 0x10000000
-CELL_ALPHA_OPAQUE = 0x00000000
-NCOPTION_INHIBIT_SETLOCALE = 0x0001
-NCOPTION_NO_WINCH_SIGHANDLER = 0x0004
-NCOPTION_NO_QUIT_SIGHANDLERS = 0x0008
-NCOPTION_SUPPRESS_BANNERS = 0x0020
-NCOPTION_NO_ALTERNATE_SCREEN = 0x0040
-NCOPTION_NO_FONT_CHANGES = 0x0080
-CELL_WIDEASIAN_MASK = 0x8000000000000000
-CELL_NOBACKGROUND_MASK = 0x0400000000000000
-CELL_BGDEFAULT_MASK = 0x0000000040000000
-CELL_FGDEFAULT_MASK = (CELL_BGDEFAULT_MASK << 32)
-CELL_BG_RGB_MASK = 0x0000000000ffffff
-CELL_FG_RGB_MASK = (CELL_BG_RGB_MASK << 32)
-CELL_BG_PALETTE = 0x0000000008000000
-NCPALETTESIZE = 256
-CELL_FG_PALETTE = (CELL_BG_PALETTE << 32)
-CELL_BG_ALPHA_MASK = NCCHANNEL_ALPHA_MASK
-CELL_FG_ALPHA_MASK = (CELL_BG_ALPHA_MASK << 32)
-
 def channel_r(channel):
     return (channel & 0xff0000) >> 16;
 
@@ -43,7 +20,7 @@ def channel_rgb8(channel):
 def channel_set_rgb8(channel, r, g, b):
     checkRGB(r, g, b)
     c = (r << 16) | (g << 8) | b
-    return (channel & ~CELL_BG_RGB_MASK) | CELL_BGDEFAULT_MASK | c
+    return (channel & ~lib.CELL_BG_RGB_MASK) | lib.CELL_BGDEFAULT_MASK | c
 
 def channels_fchannel(channels):
     return channels & 0xffffffff00000000
@@ -154,7 +131,7 @@ class Ncplane:
 class Notcurses:
     def __init__(self):
         opts = ffi.new("notcurses_options *")
-        opts.flags = NCOPTION_NO_ALTERNATE_SCREEN
+        opts.flags = lib.NCOPTION_NO_ALTERNATE_SCREEN
         self.nc = lib.notcurses_init(opts, sys.stdout)
         if not self.nc:
             raise NotcursesError("Error initializing notcurses")
