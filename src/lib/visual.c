@@ -570,7 +570,7 @@ ncvisual* ncvisual_from_bgra(const void* bgra, int rows, int rowstride, int cols
 // by the end, disprows/dispcols refer to the number of source rows/cols (in
 // pixels), which will be mapped to a region of cells scaled by the encodings).
 // the blit will begin at placey/placex (in terms of cells). begy/begx define
-// the origin of the source region to draw (in pixels). leny/lenx defined the
+// the origin of the source region to draw (in pixels). leny/lenx define the
 // geometry of the source region to draw, again in pixels. ncv->pixy and
 // ncv->pixx define the source geometry in pixels.
 ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitset* bset,
@@ -749,7 +749,7 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
 //fprintf(stderr, "INPUT N: %p rows: %d cols: %d 0x%016lx\n", n ? n : NULL, disppixy, disppixx, flags);
   if(n == NULL || (flags & NCVISUAL_OPTION_CHILDPLANE)){ // create plane
     if(n == NULL){
-      n = notcurses_stdplane(nc); // FIXME ought allow arbitrary plane
+      n = notcurses_stdplane(nc);
     }
     if((createdn = make_sprixel_plane(nc, n, ncv, scaling, &disppixy, &disppixx,
                                       flags, &outy, &placey, &placex)) == NULL){

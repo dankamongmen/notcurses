@@ -4,15 +4,15 @@
 static const uint32_t LOWCOLOR = 0x004080;
 static const uint32_t HICOLOR = 0xddffdd;
 static const uint32_t NANOSEC = 1000000000ull / 60; // 60 cps
-#define MARGIN 4
+#define MARGIN 2
 
 static struct notcurses*
 init(void){
   struct notcurses_options opts = {
     //.loglevel = NCLOGLEVEL_DEBUG,
-    .margin_t = MARGIN,
+    .margin_t = MARGIN / 2,
     .margin_r = MARGIN,
-    .margin_b = MARGIN,
+    .margin_b = MARGIN / 2,
     .margin_l = MARGIN,
   };
   struct notcurses* nc = notcurses_init(&opts, stdout);
@@ -108,7 +108,7 @@ textplay(struct notcurses* nc, struct ncplane* tplane, struct ncvisual* ncv){
     if(!ncv){
       clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);
     }else{
-      for(int i = 0 ; i < 3 ; ++i){
+      for(int i = 0 ; i < 2 ; ++i){
         ncvisual_decode(ncv);
       }
     }
@@ -127,10 +127,10 @@ textplane(struct notcurses* nc){
   int dimy, dimx;
   struct ncplane* stdn = notcurses_stddim_yx(nc, &dimy, &dimx);
   struct ncplane_options nopts = {
-    .y = MARGIN,
-    .x = MARGIN * 2,
-    .rows = dimy - MARGIN * 2,
-    .cols = dimx - MARGIN * 4,
+    .y = MARGIN * 2 + 2,
+    .x = MARGIN * 4 + 2,
+    .rows = dimy - MARGIN * 4,
+    .cols = dimx - MARGIN * 8,
     .name = "text",
   };
   struct ncplane* n = ncplane_create(stdn, &nopts);
