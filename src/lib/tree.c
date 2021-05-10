@@ -461,8 +461,10 @@ void* nctree_focused(nctree* n){
   return n->curitem->curry;
 }
 
-/*
 void* nctree_goto(nctree* n, const unsigned* spec, int* failspec){
+  (void)n;
+  (void)spec;
+  (void)failspec;
   // FIXME
+  return NULL;
 }
-*/
