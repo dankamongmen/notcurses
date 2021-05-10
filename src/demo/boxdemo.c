@@ -94,21 +94,28 @@ move_ships(struct notcurses* nc, struct ship* ships, unsigned shipcount){
     if(ships[s].n == NULL){
       continue;
     }
-    int y, x;
-    ncplane_yx(ships[s].n, &y, &x);
-    y += ships[s].vely;
-    x += ships[s].velx;
-    if(x < 0){
-      x = 0;
-    }else if(x >= ncplane_dim_x(stdn) - SHIPWIDTH){
-      x = ncplane_dim_x(stdn) - SHIPWIDTH - 1;
+    int yoff, xoff, ny, nx;
+    ncplane_yx(ships[s].n, &yoff, &xoff);
+    ncplane_dim_yx(ships[s].n, &ny, &nx);
+    int dimy = ncplane_dim_y(stdn);
+    int dimx = ncplane_dim_x(stdn);
+    yoff += ships[s].vely;
+    xoff += ships[s].velx;
+    if(xoff <= 0){
+      xoff = 0;
+      ships[s].velx = -ships[s].velx;
+    }else if(xoff >= dimx - nx){
+      xoff = dimx - nx - 1;
+      ships[s].velx = -ships[s].velx;
     }
-    if(y < 0){
-      y = 0;
-    }else if(y >= ncplane_dim_y(stdn) - SHIPHEIGHT){
-      y = ncplane_dim_y(stdn) - SHIPHEIGHT - 1;
+    if(yoff <= 1){
+      yoff = 2;
+      ships[s].vely = -ships[s].vely;
+    }else if(yoff >= dimy - ny){
+      yoff = dimy - ny - 1;
+      ships[s].vely = -ships[s].vely;
     }
-    ncplane_move_yx(ships[s].n, y, x);
+    ncplane_move_yx(ships[s].n, yoff, xoff);
   }
   return 0;
 }
@@ -142,8 +149,12 @@ get_ships(struct notcurses* nc, struct ship* ships, unsigned shipcount){
       }
     }
     ncplane_move_below(ships[s].n, notcurses_stdplane(nc));
-    ships[s].vely = random() % 5 - 2;
-    ships[s].velx = random() % 5 - 2;
+    if((ships[s].vely = random() % 6 - 3) == 0){
+      ships[s].vely = 3;
+    }
+    if((ships[s].velx = random() % 6 - 3) == 0){
+      ships[s].velx = 3;
+    }
   }
   ncvisual_destroy(wmv);
   return 0;
@@ -167,10 +178,6 @@ int box_demo(struct notcurses* nc){
   const int targx = 7;
   const int targy = 7;
   int ytargbase = (ylen - targy) / 2;
-  nccell c = CELL_CHAR_INITIALIZER(' ');
-  nccell_set_bg_default(&c);
-  ncplane_set_base_cell(n, &c);
-  nccell_release(n, &c);
   ncplane_set_fg_rgb8(n, 180, 40, 180);
   ncplane_set_bg_default(n);
   if(notcurses_canutf8(nc)){
@@ -209,7 +216,7 @@ int box_demo(struct notcurses* nc){
   int y = 1, x = 0;
   ncplane_dim_yx(n, &ylen, &xlen);
   --ylen;
-  while(ylen - y >= targy * 2 && xlen - x >= targx * 2){
+  while(ylen - y >= targy && xlen - x >= targx){
     if(ncplane_cursor_move_yx(n, y, x)){
       return -1;
     }
@@ -242,7 +249,7 @@ int box_demo(struct notcurses* nc){
     ncplane_dim_yx(n, &ylen, &xlen);
     --ylen;
     move_ships(nc, ships, sizeof(ships) / sizeof(*ships));
-    while(ylen - y >= targy * 2 && xlen - x >= targx * 2){
+    while(ylen - y >= targy && xlen - x >= targx){
       if(ncplane_cursor_move_yx(n, y, x)){
         return -1;
       }
