@@ -166,20 +166,13 @@ NcPlane_translate(NcPlaneObject *self, PyObject *args, PyObject *kwds)
     NcPlaneObject *dst_obj = NULL;
     int y = 0, x = 0;
 
-    char *keywords[] = {"dst", "y_pos", "x_pos",
+    char *keywords[] = {"dst",
                         NULL};
 
-    GNU_PY_CHECK_BOOL(PyArg_ParseTupleAndKeywords(args, kwds, "|O!ii", keywords,
-                                                  &NcPlane_Type, &dst_obj,
-                                                  &y, &x));
+    GNU_PY_CHECK_BOOL(PyArg_ParseTupleAndKeywords(args, kwds, "O!", keywords,
+                                                  &NcPlane_Type, &dst_obj));
 
-    struct ncplane *dst = NULL;
-    if (NULL != dst_obj)
-    {
-        dst = dst_obj->ncplane_ptr;
-    }
-
-    ncplane_translate(self->ncplane_ptr, dst, &y, &x);
+    ncplane_translate(self->ncplane_ptr, dst_obj->ncplane_ptr, &y, &x);
 
     return Py_BuildValue("ii", &y, &x);
 }
