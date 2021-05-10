@@ -3,7 +3,9 @@
 
 static const uint32_t LOWCOLOR = 0x004080;
 static const uint32_t HICOLOR = 0xddffdd;
-static const uint32_t NANOSEC = 1000000000ull / 60; // 60 cps
+static const uint32_t GIG = 1000000000ull;
+static const uint32_t NANOSEC = GIG / 60; // 60 cps
+static const int FRAMERATIO = 2; // display 1 of every FRAMERATIO frames
 #define MARGIN 2
 
 static struct notcurses*
@@ -60,6 +62,34 @@ colorize(struct ncplane* n){
   return 0;
 }
 
+// whenever the text indicates a lengthy delay, keep the frame rolling...
+static int
+longdelay(struct notcurses* nc, struct ncvisual* ncv, struct ncvisual_options* vopts){
+  struct timespec now;
+  clock_gettime(CLOCK_MONOTONIC, &now);
+  uint64_t nowns, deadlinens;
+  nowns = now.tv_sec * GIG + now.tv_nsec;
+  deadlinens = nowns + 5ull * GIG;
+  do{
+    if(ncv){
+      for(int i = 0 ; i < FRAMERATIO ; ++i){
+        ncvisual_decode(ncv);
+      }
+      if(ncvisual_render(nc, ncv, vopts) == NULL){
+        return -1;
+      }
+      if(notcurses_render(nc)){
+        return -1;
+      }
+    }else{
+      // FIXME clock_nanosleep
+    }
+    clock_gettime(CLOCK_MONOTONIC, &now);
+    nowns = now.tv_sec * GIG + now.tv_nsec;
+  }while(nowns < deadlinens);
+  return 0;
+}
+
 static int
 textplay(struct notcurses* nc, struct ncplane* tplane, struct ncvisual* ncv){
   char* buf = NULL;
@@ -110,8 +140,13 @@ textplay(struct notcurses* nc, struct ncplane* tplane, struct ncvisual* ncv){
     if(!ncv){
       clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);
     }else{
-      for(int i = 0 ; i < 2 ; ++i){
+      for(int i = 0 ; i < FRAMERATIO ; ++i){
         ncvisual_decode(ncv);
+      }
+    }
+    if(wc == L'…'){
+      if(longdelay(nc, ncv, &vopts)){
+        goto err;
       }
     }
   }
@@ -131,16 +166,16 @@ textplane(struct notcurses* nc){
   struct ncplane_options nopts = {
     .y = MARGIN * 2 + 2,
     .x = MARGIN * 4 + 2,
-    .rows = dimy - MARGIN * 4,
+    .rows = dimy - MARGIN * 4 + 1,
     .cols = dimx - MARGIN * 8,
     .name = "text",
   };
   struct ncplane* n = ncplane_create(stdn, &nopts);
-  uint64_t channels = 0;
-  ncchannels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
-  ncchannels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+  uint64_t channels = CHANNELS_RGB_INITIALIZER(0, 0, 0, 0x22, 0x22, 0x22);
+  /*ncchannels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+  ncchannels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);*/
   if(n){
-    ncplane_set_base(n, " ", 0, channels);
+    ncplane_set_base(n, "", 0, channels);
   }
   return n;
 }
