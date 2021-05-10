@@ -14,6 +14,8 @@ init(void){
     .margin_r = MARGIN,
     .margin_b = MARGIN / 2,
     .margin_l = MARGIN,
+    .flags = NCOPTION_NO_ALTERNATE_SCREEN |
+             NCOPTION_SUPPRESS_BANNERS,
   };
   struct notcurses* nc = notcurses_init(&opts, stdout);
   return nc;

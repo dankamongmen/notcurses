@@ -1639,7 +1639,7 @@ void ncvisual_printbanner(const notcurses* nc);
 // bits against each pixel's RGB value, and treat a match as transparent.
 static inline bool
 rgba_trans_p(uint32_t p, uint32_t transcolor){
-  if(ncpixel_a(p) == 0){
+  if(ncpixel_a(p) < 192){
     return true;
   }
   if(transcolor && 
