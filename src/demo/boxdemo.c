@@ -78,10 +78,85 @@ utf8_target(struct ncplane* n, int ytargbase){
   return 0;
 }
 
+struct ship {
+  struct ncplane* n;
+  int vely, velx;
+};
+
+// we want them 6 rows tall and 12 columns wide
+const int SHIPHEIGHT = 6;
+const int SHIPWIDTH = 12;
+
+static int
+move_ships(struct notcurses* nc, struct ship* ships, unsigned shipcount){
+  const struct ncplane* stdn = notcurses_stdplane_const(nc);
+  for(unsigned s = 0 ; s < shipcount ; ++s){
+    if(ships[s].n == NULL){
+      continue;
+    }
+    int y, x;
+    ncplane_yx(ships[s].n, &y, &x);
+    y += ships[s].vely;
+    x += ships[s].velx;
+    if(x < 0){
+      x = 0;
+    }else if(x >= ncplane_dim_x(stdn) - SHIPWIDTH){
+      x = ncplane_dim_x(stdn) - SHIPWIDTH - 1;
+    }
+    if(y < 0){
+      y = 0;
+    }else if(y >= ncplane_dim_y(stdn) - SHIPHEIGHT){
+      y = ncplane_dim_y(stdn) - SHIPHEIGHT - 1;
+    }
+    ncplane_move_yx(ships[s].n, y, x);
+  }
+  return 0;
+}
+
+static int
+get_ships(struct notcurses* nc, struct ship* ships, unsigned shipcount){
+  char* pic = find_data("spaceship.png");
+  struct ncvisual* wmv = ncvisual_from_file(pic);
+  free(pic);
+  if(wmv == NULL){
+    return -1;
+  }
+  int cdimy, cdimx;
+  ncplane_pixelgeom(notcurses_stdplane(nc), NULL, NULL, &cdimy, &cdimx, NULL, NULL);
+  if(ncvisual_resize(wmv, cdimy * SHIPHEIGHT, cdimx * SHIPWIDTH)){
+    ncvisual_destroy(wmv);
+    return -1;
+  }
+  struct ncvisual_options vopts = {
+    .y = 30,//random() % (ncplane_dim_y(notcurses_stdplane_const(nc)) - SHIPHEIGHT),
+    .x = 30,//random() % (ncplane_dim_x(notcurses_stdplane_const(nc)) - SHIPWIDTH),
+    .blitter = NCBLIT_PIXEL,
+    .flags = NCVISUAL_OPTION_NODEGRADE,
+  };
+  for(unsigned s = 0 ; s < shipcount ; ++s){
+    if((ships[s].n = ncvisual_render(nc, wmv, &vopts)) == NULL){
+      while(s--){
+        ncplane_destroy(ships[s].n);
+        ncvisual_destroy(wmv);
+        return -1;
+      }
+    }
+    ncplane_move_below(ships[s].n, notcurses_stdplane(nc));
+    ships[s].vely = random() % 5 - 2;
+    ships[s].velx = random() % 5 - 2;
+  }
+  ncvisual_destroy(wmv);
+  return 0;
+}
+
 int box_demo(struct notcurses* nc){
   int ylen, xlen;
   struct ncplane* n = notcurses_stddim_yx(nc, &ylen, &xlen);
   ncplane_erase(n);
+  uint64_t transchan = 0;
+  ncchannels_set_bg_alpha(&transchan, CELL_ALPHA_TRANSPARENT);
+  ncchannels_set_fg_alpha(&transchan, CELL_ALPHA_TRANSPARENT);
+  ncplane_set_base(n, "", 0, transchan);
   nccell ul = CELL_TRIVIAL_INITIALIZER, ll = CELL_TRIVIAL_INITIALIZER;
   nccell lr = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;
   nccell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
@@ -134,7 +209,7 @@ int box_demo(struct notcurses* nc){
   int y = 1, x = 0;
   ncplane_dim_yx(n, &ylen, &xlen);
   --ylen;
-  while(ylen - y >= targy && xlen - x >= targx){
+  while(ylen - y >= targy * 2 && xlen - x >= targx * 2){
     if(ncplane_cursor_move_yx(n, y, x)){
       return -1;
     }
@@ -148,10 +223,16 @@ int box_demo(struct notcurses* nc){
     ++y;
     ++x;
   }
-  DEMO_RENDER(nc);
   int iters = 100;
   struct timespec iterdelay;
   ns_to_timespec(timespec_to_ns(&demodelay) * 3 / iters, &iterdelay);
+  int bitmaps = notcurses_check_pixel_support(nc);
+  struct ship ships[3] = {};
+  if(bitmaps > 0){
+    if(get_ships(nc, ships, sizeof(ships) / sizeof(*ships))){
+      return -1;
+    }
+  }
   while(iters--){
     if(reload_corners(n, &ul, &ur, &ll, &lr)){
       return -1;
@@ -160,7 +241,8 @@ int box_demo(struct notcurses* nc){
     x = 0;
     ncplane_dim_yx(n, &ylen, &xlen);
     --ylen;
-    while(ylen - y >= targy && xlen - x >= targx){
+    move_ships(nc, ships, sizeof(ships) / sizeof(*ships));
+    while(ylen - y >= targy * 2 && xlen - x >= targx * 2){
       if(ncplane_cursor_move_yx(n, y, x)){
         return -1;
       }
@@ -176,6 +258,9 @@ int box_demo(struct notcurses* nc){
     }
     DEMO_RENDER(nc);
     nanosleep(&iterdelay, NULL);
+  }
+  for(unsigned s = 0 ; s < sizeof(ships) / sizeof(*ships) ; ++s){
+    ncplane_destroy(ships[s].n);
   }
   nccell_release(n, &ul);
   nccell_release(n, &ur);
