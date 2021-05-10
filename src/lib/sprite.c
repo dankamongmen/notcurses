@@ -133,7 +133,8 @@ sprixel* sprixel_alloc(ncplane* n, int dimy, int dimx){
     ret->dimx = dimx;
     ret->id = ++sprixelid_nonce;
     if(ret->id >= 0x1000000){
-      ret->id = sprixelid_nonce = 1;
+      ret->id = 1;
+      sprixelid_nonce = 1;
     }
 //fprintf(stderr, "LOOKING AT %p (p->n = %p)\n", ret, ret->n);
     if(ncplane_pile(ret->n)){
