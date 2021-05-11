@@ -63,6 +63,10 @@ static distro_info distros[] = {
     // from core/filesystem
     .logofile = "/usr/share/pixmaps/archlinux.png",
   }, {
+    .name = "artix",
+    // from system/filesystem
+    .logofile = "/usr/share/pixmaps/artixlinux-logo.png",
+  }, {
     .name = "debian",
     // from desktop-base package
     .logofile = "/usr/share/desktop-base/debian-logos/logo-text-256.png",
