@@ -77,6 +77,9 @@ notcurses_stop_minimal(void* vnc){
     if(nc->tcache.rmcup && tty_emit(nc->tcache.rmcup, nc->ttyfd)){
       ret = -1;
     }
+    if(nc->tcache.rmkx && tty_emit(nc->tcache.rmkx, nc->ttyfd)){
+        ret = -1;
+    }
     if(nc->tcache.cnorm && tty_emit(nc->tcache.cnorm, nc->ttyfd)){
       ret = -1;
     }
