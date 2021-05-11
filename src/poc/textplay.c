@@ -23,11 +23,17 @@ init(void){
   return nc;
 }
 
+// normally called with hicolor of HICOLOR, but sometimes we need to dull
+// it out (when we pause, and at the end)
 static int
-colorize(struct ncplane* n){
+colorize(struct ncplane* n, uint32_t hicolor){
   int y, x;
-  ncplane_cursor_yx(n, &y, &x);
-  uint32_t c = HICOLOR;
+  // FIXME it seems we ought be able to use ncplane_cursor_yx() here, but in
+  // the presence of scrolling, it seems to give wonky results. see #1649.
+  //ncplane_cursor_yx(n, &y, &x);
+  y = ncplane_dim_y(n) - 1;
+  x = ncplane_dim_x(n) - 1;
+  uint32_t c = hicolor;
   ncplane_set_bg_rgb(n, 0x222222);
   while(y >= 0){
     while(x >= 0){
@@ -128,7 +134,7 @@ textplay(struct notcurses* nc, struct ncplane* tplane, struct ncvisual* ncv){
     if(pt < 0){
       goto err;
     }
-    if(colorize(tplane)){
+    if(colorize(tplane, HICOLOR)){
       goto err;
     }
     if(notcurses_render(nc)){
@@ -145,10 +151,24 @@ textplay(struct notcurses* nc, struct ncplane* tplane, struct ncvisual* ncv){
       }
     }
     if(wc == L'…'){
+      // first, dull out the leading character
+      if(colorize(tplane, 0x00ff80)){
+        goto err;
+      }
+      if(notcurses_render(nc)){
+        goto err;
+      }
       if(longdelay(nc, ncv, &vopts)){
         goto err;
       }
     }
+  }
+  // dull out the leading character for exit
+  if(colorize(tplane, 0x00ff80)){
+    goto err;
+  }
+  if(notcurses_render(nc)){
+    goto err;
   }
   ncplane_destroy(vopts.n);
   return 0;
