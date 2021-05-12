@@ -102,8 +102,8 @@ drawcb(struct nctablet* t, bool drawfromtop){
   if(ll){
     const int summaryy = drawfromtop ? 0 : ll - 1;
     ncplane_on_styles(p, NCSTYLE_BOLD);
-    if(ncplane_printf_yx(p, summaryy, 0, "[#%u %d lines %u available] ",
-                         tctx->id, tctx->lines, maxy) < 0){
+    if(ncplane_printf_yx(p, summaryy, 0, "[#%u %d lines] ",
+                         tctx->id, tctx->lines) < 0){
       pthread_mutex_unlock(&tctx->lock);
       return -1;
     }
