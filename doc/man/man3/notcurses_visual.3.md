@@ -16,6 +16,7 @@ typedef enum {
   NCSCALE_STRETCH,
   NCSCALE_NONE_HIRES,
   NCSCALE_SCALE_HIRES,
+  NCSCALE_INFLATE,
 } ncscale_e;
 
 typedef enum {
@@ -225,8 +226,8 @@ instance **NCSCALE_SCALE_HIRES** and a large image), more rows and columns will
 result in more effective resolution.
 
 A string can be transformed to a scaling mode with **notcurses_lex_scalemode**,
-recognizing **stretch**, **scalehi**, **hires**, **scale**, and **none**.
-Conversion in the opposite direction is performed with
+recognizing **stretch**, **scalehi**, **hires**, **scale**, **inflate**, and
+**none**. Conversion in the opposite direction is performed with
 **notcurses_str_scalemode**.
 
 Assuming a cell is twice as tall as it is wide, **NCBLIT_1x1** (and indeed

@@ -3203,9 +3203,13 @@ typedef enum {
   NCSCALE_NONE,
   NCSCALE_SCALE,
   NCSCALE_STRETCH,
+  NCSCALE_SCALE_HIRES,
+  NCSCALE_NONE_HIRES,
+  NCSCALE_INFLATE,
 } ncscale_e;
 
-// Lex a scaling mode (one of "none", "stretch", "scale", "hires", or "scalehi").
+// Lex a scaling mode (one of "none", "stretch", "scale", "hires",
+// "inflate", or "scalehi").
 int notcurses_lex_scalemode(const char* op, ncscale_e* scalemode);
 
 // Get the name of a scaling mode.

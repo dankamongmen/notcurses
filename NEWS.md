@@ -1,6 +1,9 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 2.3.1 (not yet released)
+  * Add `NCSCALE_INFLATE`.
+
 * 2.3.0 (2021-05-09) **"Triumph"**
   * No user-visible changes.
 
