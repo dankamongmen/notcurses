@@ -32,9 +32,9 @@ might surprise NCURSES programmers:
 * NCURSES has thread-ignorant and thread-semi-safe versions, trace-enabled and
   traceless versions, and versions with and without support for wide characters.
   Notcurses is one library: no tracing, UTF-8, thread safety.
-* There is no `ESCDELAY` concept; Notcurses expects that all bytes of a
-  keyboard escape sequence arrive at the same time. This improves latency
-  and simplifies the API.
+* There is no `ESCDELAY` concept; Notcurses expects that all bytes of an
+  escape sequence arrive at the same time. This improves latency and simplifies
+  the API.
 * It is an error in NCURSES to print to the bottommost, rightmost coordinate of
   the screen when scrolling is disabled (because the cursor cannot be advanced).
   Failure to advance the cursor does not result in an error in Notcurses (but
