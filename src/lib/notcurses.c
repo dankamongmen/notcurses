@@ -555,23 +555,29 @@ ncplane* ncplane_dup(const ncplane* n, void* opaque){
     .flags = 0,
   };
   ncplane* newn = ncplane_create(n->boundto, &nopts);
-  if(newn){
+  if(newn == NULL){
+    return NULL;
+  }
+  // we don't duplicate sprites...though i'm unsure why not
+  size_t fbsize = sizeof(*n->fb) * dimx * dimy;
+  if(n->sprite == NULL){
     if(egcpool_dup(&newn->pool, &n->pool)){
       ncplane_destroy(newn);
       return NULL;
-    }else{
-      if(ncplane_cursor_move_yx(newn, n->y, n->x) < 0){
-        ncplane_destroy(newn);
-        return NULL;
-      }
-      newn->halign = n->halign;
-      newn->stylemask = ncplane_styles(n);
-      newn->channels = ncplane_channels(n);
-      memmove(newn->fb, n->fb, sizeof(*n->fb) * dimx * dimy);
-      // we dupd the egcpool, so just dup the goffset
-      newn->basecell = n->basecell;
     }
+    memmove(newn->fb, n->fb, fbsize);
+  }else{
+    memset(newn->fb, 0, fbsize);
   }
+  if(ncplane_cursor_move_yx(newn, n->y, n->x) < 0){
+    ncplane_destroy(newn);
+    return NULL;
+  }
+  newn->halign = n->halign;
+  newn->stylemask = ncplane_styles(n);
+  newn->channels = ncplane_channels(n);
+  // we dupd the egcpool, so just dup the goffset
+  newn->basecell = n->basecell;
   return newn;
 }
 
