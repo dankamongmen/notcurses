@@ -9,6 +9,9 @@ rearrangements of Notcurses.
     that they will be reported by `ncplane_at_yx()`). Since no method currently
     exists to destroy a sprixel without destroying its plane, I don't think
     this will impact anyone.
+  * 8bpc RGB is unconditionally enabled if the terminal emulator is determined
+    to be Kitty, Alacritty, or foot; there is no longer any need to export
+    `COLORTERM` on these terminals.
   * Add `NCSCALE_INFLATE`.
 
 * 2.3.0 (2021-05-09) **"Triumph"**

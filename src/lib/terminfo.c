@@ -92,17 +92,20 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd){
     ti->quadrants = true;
     ti->pixel_query_done = true;
     ti->bitmap_supported = true;
+    ti->RGBflag = true;
     setup_kitty_bitmaps(ti, fd);
   }else if(strstr(termname, "alacritty")){
     ti->alacritty_sixel_hack = true;
     ti->quadrants = true;
     // ti->sextants = true; // alacritty https://github.com/alacritty/alacritty/issues/4409 */
+    ti->RGBflag = true;
   }else if(strstr(termname, "vte") || strstr(termname, "gnome") || strstr(termname, "xfce")){
     ti->sextants = true; // VTE has long enjoyed good sextant support
     ti->quadrants = true;
   }else if(strncmp(termname, "foot", 4) == 0){
     ti->sextants = true;
     ti->quadrants = true;
+    ti->RGBflag = true;
   }else if(strncmp(termname, "st", 2) == 0){
     // st had neithersextants nor quadrants last i checked (0.8.4)
   }else if(strstr(termname, "mlterm")){
@@ -140,6 +143,9 @@ void free_terminfo_cache(tinfo* ti){
 int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8){
   memset(ti, 0, sizeof(*ti));
   ti->utf8 = utf8;
+  // allow the "rgb" boolean terminfo capability, a COLORTERM environment
+  // variable of either "truecolor" or "24bit", or unconditionally enable it
+  // for several terminals known to always support 8bpc rgb setaf/setab.
   ti->RGBflag = query_rgb();
   int colors = tigetnum("colors");
   if(colors <= 0){

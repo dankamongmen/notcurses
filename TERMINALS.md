@@ -172,6 +172,8 @@ implementing `rgb` use the 3x8bpc model; XTerm for instance:
 Thus emitting `setaf` with an RGB value close to black can result, when
 using `xterm-direct`'s `setaf` and `rgb` definitions, in a bright ANSI color.
 
+Since 2.3.1, DirectColor is always enabled for Kitty, Alacritty, and foot.
+
 ## Problematic characters
 
 Some characters seem to cause problems with one terminal or another. These
