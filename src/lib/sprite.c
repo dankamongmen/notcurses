@@ -115,15 +115,6 @@ void sprixel_invalidate(sprixel* s, int y, int x){
   }
 }
 
-sprixel* sprixel_by_id(const ncpile* n, uint32_t id){
-  for(sprixel* cur = n->sprixelcache ; cur ; cur = cur->next){
-    if(cur->id == id){
-      return cur;
-    }
-  }
-  return NULL;
-}
-
 sprixel* sprixel_alloc(ncplane* n, int dimy, int dimx){
   sprixel* ret = malloc(sizeof(sprixel));
   if(ret){

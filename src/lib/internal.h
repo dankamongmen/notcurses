@@ -966,7 +966,6 @@ int sprite_init(const tinfo* t, int fd);
 int sprite_clear_all(const tinfo* t, int fd);
 int kitty_shutdown(int fd);
 int sixel_shutdown(int fd);
-sprixel* sprixel_by_id(const ncpile* n, uint32_t id);
 // these three all use absolute coordinates
 void sprixel_invalidate(sprixel* s, int y, int x);
 void sprixel_movefrom(sprixel* s, int y, int x);

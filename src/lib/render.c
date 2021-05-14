@@ -208,10 +208,6 @@ paint_sprixel(ncplane* p, struct crender* rvec, int starty, int startx,
 // the sprixelstack orders sprixels of the plane (so we needn't keep them
 // ordered between renders). each time we meet a sprixel, extract it from
 // the pile's sprixel list, and update the sprixelstack.
-//
-// FIXME lift the cell_sprixel_p() variant out and run it its own way
-// (unless we want to let sprixels live off-origin in ncplanes), eliminating
-// per-cell sprixel_by_id() check
 static void
 paint(ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
       int dstabsy, int dstabsx, sprixel** sprixelstack){
