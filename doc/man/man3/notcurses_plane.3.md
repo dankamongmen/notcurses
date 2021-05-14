@@ -417,7 +417,8 @@ It should not be used in new code.
 # BUGS
 
 **ncplane_at_yx** doesn't yet account for bitmap-based graphics (see
-**notcurses_visual**).
+**notcurses_visual**). Whatever glyph-based contents existed on the plane when
+the bitmap was blitted will continue to be returned.
 
 # SEE ALSO
 

@@ -2,6 +2,13 @@ This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
 * 2.3.1 (not yet released)
+  * Sprixels no longer interact with their associated plane's framebuffer. This
+    means plane contents are maintainted across blitting a sprixel and then
+    independently destroying that sprixel (i.e. without destroying the plane).
+    While the sprixel is bound to the plane, these contents are ignored (save
+    that they will be reported by `ncplane_at_yx()`). Since no method currently
+    exists to destroy a sprixel without destroying its plane, I don't think
+    this will impact anyone.
   * Add `NCSCALE_INFLATE`.
 
 * 2.3.0 (2021-05-09) **"Triumph"**
