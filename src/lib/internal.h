@@ -1485,27 +1485,17 @@ egc_rtl(const char* egc, int* bytes){
   return s;
 }
 
-// a sprixel occupies the entirety of its associated plane. each cell contains
-// a reference to the context-wide sprixel cache. this ought be an entirely
+// a sprixel occupies the entirety of its associated plane, usually an entirely
 // new, purpose-specific plane. |leny| and |lenx| are output geometry in pixels.
-// |cols| and |rows| are output coverage in cells.
 static inline int
-plane_blit_sixel(sprixel* spx, char* s, int bytes, int rows, int cols,
-                 int leny, int lenx, int parse_start, tament* tam){
+plane_blit_sixel(sprixel* spx, char* s, int bytes, int leny, int lenx,
+                 int parse_start, tament* tam){
   if(sprixel_load(spx, s, bytes, leny, lenx, parse_start)){
     return -1;
   }
   ncplane* n = spx->n;
-  uint32_t gcluster = htole(0x02000000ul) + htole(spx->id);
-  for(int y = 0 ; y < rows ; ++y){
-    for(int x = 0 ; x < cols ; ++x){
-      nccell* c = ncplane_cell_ref_yx(n, y, x);
-      memcpy(&c->gcluster, &gcluster, sizeof(gcluster));
-      c->width = cols;
-    }
-  }
   if(n){
-//fprintf(stderr, "TAM WAS: %p NOW: %p size: %d/%d\n", n->tam, tam, rows, cols);
+//fprintf(stderr, "TAM WAS: %p NOW: %p\n", n->tam, tam);
     if(n->tam != tam){
       free(n->tam);
     }

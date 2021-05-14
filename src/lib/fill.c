@@ -21,7 +21,6 @@ void ncplane_greyscale(ncplane *n){
 // we did some work here, filling everything we could reach. out-of-plane is 0.
 static int
 ncplane_polyfill_recurse(ncplane* n, int y, int x, const nccell* c, const char* filltarg){
-  const notcurses* nc = ncplane_notcurses_const(n);
   if(y >= n->leny || x >= n->lenx){
     return 0; // not fillable
   }
@@ -29,10 +28,6 @@ ncplane_polyfill_recurse(ncplane* n, int y, int x, const nccell* c, const char* 
     return 0; // not fillable
   }
   nccell* cur = &n->fb[nfbcellidx(n, y, x)];
-  if(cell_sprixel_p(cur)){
-    logerror(nc, "Won't polyfill a sprixel at %d/%d\n", y, x);
-    return -1;
-  }
   const char* glust = nccell_extended_gcluster(n, cur);
 //fprintf(stderr, "checking %d/%d (%s) for [%s]\n", y, x, glust, filltarg);
   if(strcmp(glust, filltarg)){

@@ -545,7 +545,7 @@ int kitty_blit(ncplane* n, int linesize, const void* data,
     return -1;
   }
   // take ownership of |buf| and |tam| on success
-  if(plane_blit_sixel(bargs->u.pixel.spx, buf, size, rows, cols,
+  if(plane_blit_sixel(bargs->u.pixel.spx, buf, size,
                       leny, lenx, parse_start, tam) < 0){
     if(!reuse){
       free(tam);

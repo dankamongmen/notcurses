@@ -560,15 +560,11 @@ ncplane* ncplane_dup(const ncplane* n, void* opaque){
   }
   // we don't duplicate sprites...though i'm unsure why not
   size_t fbsize = sizeof(*n->fb) * dimx * dimy;
-  if(n->sprite == NULL){
-    if(egcpool_dup(&newn->pool, &n->pool)){
-      ncplane_destroy(newn);
-      return NULL;
-    }
-    memmove(newn->fb, n->fb, fbsize);
-  }else{
-    memset(newn->fb, 0, fbsize);
+  if(egcpool_dup(&newn->pool, &n->pool)){
+    ncplane_destroy(newn);
+    return NULL;
   }
+  memmove(newn->fb, n->fb, fbsize);
   if(ncplane_cursor_move_yx(newn, n->y, n->x) < 0){
     ncplane_destroy(newn);
     return NULL;
@@ -1322,9 +1318,6 @@ int ncplane_base(ncplane* ncp, nccell* c){
 const char* nccell_extended_gcluster(const ncplane* n, const nccell* c){
   if(cell_simple_p(c)){
     return (const char*)&c->gcluster;
-  }
-  if(cell_sprixel_p(c)){
-    return NULL;
   }
   return egcpool_extended_gcluster(&n->pool, c);
 }

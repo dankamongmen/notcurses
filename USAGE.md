@@ -1949,7 +1949,6 @@ nccell_load_egc32(struct ncplane* n, nccell* c, uint32_t egc){
 
 // return a pointer to the NUL-terminated EGC referenced by 'c'. this pointer
 // is invalidated by any further operation on the plane 'n', so...watch out!
-// returns NULL if called on a sprixel.
 const char* nccell_extended_gcluster(const struct ncplane* n, const nccell* c);
 
 // Returns true if the two nccells are distinct EGCs, attributes, or channels.

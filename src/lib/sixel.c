@@ -583,7 +583,7 @@ sixel_reblit(sprixel* s){
 // scaled geometry in pixels. We calculate output geometry herein, and supply
 // transparent filler input for any missing rows.
 static inline int
-sixel_blit_inner(int leny, int lenx, sixeltable* stab, int rows, int cols,
+sixel_blit_inner(int leny, int lenx, sixeltable* stab,
                  const blitterargs* bargs, tament* tam){
   char* buf = NULL;
   size_t size = 0;
@@ -607,7 +607,7 @@ sixel_blit_inner(int leny, int lenx, sixeltable* stab, int rows, int cols,
   scrub_tam_boundaries(tam, outy, lenx, bargs->u.pixel.celldimy,
                        bargs->u.pixel.celldimx);
   // take ownership of buf on success
-  if(plane_blit_sixel(bargs->u.pixel.spx, buf, size, rows, cols,
+  if(plane_blit_sixel(bargs->u.pixel.spx, buf, size,
                       outy, lenx, parse_start, tam) < 0){
     free(buf);
     return -1;
@@ -679,7 +679,7 @@ int sixel_blit(ncplane* n, int linesize, const void* data,
   }
   refine_color_table(data, linesize, bargs->begy, bargs->begx, leny, lenx, &stable);
   // takes ownership of sixelmap on success
-  int r = sixel_blit_inner(leny, lenx, &stable, rows, cols, bargs, tam);
+  int r = sixel_blit_inner(leny, lenx, &stable, bargs, tam);
   if(r < 0){
     sixelmap_free(stable.map);
   }
