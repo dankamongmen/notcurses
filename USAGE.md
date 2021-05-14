@@ -720,7 +720,7 @@ In addition to its framebuffer--a rectilinear matrix of `nccell`s
 * a name (used only for debugging).
 
 If opaque, a `nccell` on a higher `ncplane` completely obstructs a corresponding
-`cell` from a lower `ncplane` from being seen. An `ncplane` corresponds loosely
+`nccell` from a lower `ncplane` from being seen. An `ncplane` corresponds loosely
 to an [NCURSES Panel](https://invisible-island.net/ncurses/ncurses-intro.html#panels),
 but is the primary drawing surface of notcurses—there is no object
 corresponding to a bare NCURSES `WINDOW`.

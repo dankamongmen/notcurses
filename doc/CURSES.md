@@ -16,7 +16,7 @@ might surprise NCURSES programmers:
 * Scrolling is disabled by default, and cannot be globally enabled (but
   see Direct Mode).
 * The Curses `cchar_t` has a fixed-size array of `wchar_t`. The Notcurses
-  `cell` instead supports a UTF-8 encoded extended grapheme cluster of
+  `nccell` instead supports a UTF-8 encoded extended grapheme cluster of
   arbitrary length. The only supported encodings are ASCII via `ANSI_X3.4-1968`
   and Unicode via `UTF-8`.
 * The cursor is disabled by default, when supported (`civis` capability).
@@ -58,7 +58,7 @@ making implicit use of `stdscr` ought be replaced with their explicit
 equivalents. `stdscr` ought then be replaced with the result of
 `notcurses_stdplane()` (the standard plane). `PANEL`s become `ncplane`s; the
 Panels API is otherwise pretty close. Anything writing a bare character will
-become a simple `cell`; multibyte or wide characters become complex `cell`s.
+become a simple `nccell`; multibyte or wide characters become complex `nccell`s.
 Color no longer uses "color pairs". You can easily enough hack together a
 simple table mapping your colors to RGB values, and color pairs to foreground
 and background indices into said table. That'll work for the duration of a
