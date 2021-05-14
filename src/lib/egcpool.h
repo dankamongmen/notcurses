@@ -262,12 +262,6 @@ cell_sprixel_p(const nccell* c){
   return (htole(c->gcluster) & htole(0xff000000ul)) == htole(0x02000000ul);
 }
 
-// Is the cell part of a sprixel?
-static inline uint32_t
-cell_sprixel_id(const nccell* c){
-  return htole(c->gcluster) & htole(0xfffffful);
-}
-
 // Is the cell simple (a UTF8-encoded EGC of four bytes or fewer)?
 static inline bool
 cell_simple_p(const nccell* c){

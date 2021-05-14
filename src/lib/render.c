@@ -166,7 +166,7 @@ paint_sprixel(ncplane* p, struct crender* rvec, int starty, int startx,
       }
       sprixcell_e state = sprixel_state(s, absy, absx);
       struct crender* crender = &rvec[fbcellidx(absy, dstlenx, absx)];
-//fprintf(stderr, "presprixel: %p preid: %d id: %d state: %d\n", rvec->sprixel, rvec->sprixel ? rvec->sprixel->id : 0, cell_sprixel_id(vis), s->invalidated);
+//fprintf(stderr, "presprixel: %p preid: %d state: %d\n", rvec->sprixel, rvec->sprixel ? rvec->sprixel->id : 0, s->invalidated);
       // if we already have a glyph solved (meaning said glyph is above this
       // sprixel), and we run into a bitmap cell, we need to null that cell out
       // of the bitmap.
