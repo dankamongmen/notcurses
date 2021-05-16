@@ -112,7 +112,7 @@ typedef struct ncvgeom {
 
 **void ncdirectf_free(struct ncdirectf* ***frame***);**
 
-**ncdirectv* ncdirectf_render(struct ncdirect* ***n***, const struct ncdirectf* ***frame***, ncblitter_e ***blitter***, ncscale_e ***scale***, int ***maxy***, int ***maxx***);**
+**ncdirectv* ncdirectf_render(struct ncdirect* ***n***, struct ncdirectf* ***frame***, ncblitter_e ***blitter***, ncscale_e ***scale***, int ***maxy***, int ***maxx***);**
 
 **int ncdirectf_geom(struct ncdirect* ***n***, struct ncdirectf* ***frame***, ncblitter_e* ***blitter***, ncscale_e ***scale***, int ***maxy***, int ***maxx***, ncvgeom* ***geom***);**
 
