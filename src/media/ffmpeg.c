@@ -201,40 +201,44 @@ int ffmpeg_resize(ncvisual* n, int rows, int cols){
   if(inf->format == targformat && n->pixy == rows && n->pixx == cols){
     return 0;
   }
-  struct SwsContext* swsctx = sws_getContext(inf->width,
-                                             inf->height,
-                                             inf->format,
-                                             cols, rows,
-                                             targformat,
-                                             SWS_LANCZOS, NULL, NULL, NULL);
-  if(swsctx == NULL){
-    //fprintf(stderr, "Error retrieving swsctx\n");
+  AVFrame* sframe = av_frame_alloc();
+  if(sframe == NULL){
+//fprintf(stderr, "Couldn't allocate output frame for scaled frame\n");
     return -1;
   }
-  AVFrame* sframe;
-  if((sframe = av_frame_alloc()) == NULL){
-    // fprintf(stderr, "Couldn't allocate frame for %s\n", filename);
-    sws_freeContext(swsctx);
-    return -1; // no need to free swsctx
+//fprintf(stderr, "WHN NCV: %d/%d\n", inf->width, inf->height);
+  n->details->swsctx = sws_getCachedContext(n->details->swsctx,
+                                            inf->width, inf->height,
+                                            inf->format,
+                                            cols, rows, targformat,
+                                            SWS_LANCZOS, NULL, NULL, NULL);
+  if(n->details->swsctx == NULL){
+//fprintf(stderr, "Error retrieving details->swsctx\n");
+    return -1;
   }
-  memcpy(sframe, inf, sizeof(*sframe));
+  memcpy(sframe, inf, sizeof(*inf));
   sframe->format = targformat;
   sframe->width = cols;
   sframe->height = rows;
-//fprintf(stderr, "SIZE DECODED: %d %d (%d) (want %d %d)\n", n->pixy, n->pixx, inf->linesize[0], rows, cols);
-  int height = sws_scale(swsctx, (const uint8_t * const*)inf->data,
-                         inf->linesize, 0,
-                         inf->height, sframe->data,
+  int size = av_image_alloc(sframe->data, sframe->linesize,
+                            sframe->width, sframe->height,
+                            sframe->format,
+                            IMGALLOCALIGN);
+  if(size < 0){
+//fprintf(stderr, "Error allocating visual data (%d X %d)\n", sframe->height, sframe->width);
+    return -1;
+  }
+//fprintf(stderr, "INFRAME DAA: %p SDATA: %p FDATA: %p\n", inframe->data[0], sframe->data[0], ncv->details->frame->data[0]);
+  int height = sws_scale(n->details->swsctx, (const uint8_t* const*)inf->data,
+                         inf->linesize, 0, inf->height, sframe->data,
                          sframe->linesize);
-  sws_freeContext(swsctx);
   if(height < 0){
-    //fprintf(stderr, "Error applying scaling (%s)\n", av_err2str(height));
+//fprintf(stderr, "Error applying scaling (%d X %d)\n", inf->height, inf->width);
     av_freep(sframe->data);
     av_freep(&sframe);
     return -1;
   }
-  const AVFrame* f = sframe;
-  int bpp = av_get_bits_per_pixel(av_pix_fmt_desc_get(f->format));
+  int bpp = av_get_bits_per_pixel(av_pix_fmt_desc_get(sframe->format));
   if(bpp != 32){
 //fprintf(stderr, "Bad bits-per-pixel (wanted 32, got %d)\n", bpp);
     av_freep(sframe->data);
@@ -253,7 +257,7 @@ int ffmpeg_resize(ncvisual* n, int rows, int cols){
   }
   n->details->frame = sframe;
 
-//fprintf(stderr, "SIZE SCALED: %d %d (%u)\n", nc->details->frame->height, nc->details->frame->width, nc->details->frame->linesize[0]);
+//fprintf(stderr, "SIZE SCALED: %d %d (%u)\n", n->details->frame->height, n->details->frame->width, n->details->frame->linesize[0]);
   return 0;
 }
 
@@ -496,7 +500,7 @@ int ffmpeg_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
     }
     stride = sframe->linesize[0]; // FIXME check for others?
     data = sframe->data[0];
-//fprintf(stderr, "scaled %d/%d to %d/%d (%d/%d)\n", ncv->rows, ncv->pixx, rows, cols, sframe->height, sframe->width);
+//fprintf(stderr, "scaled %d/%d to %d/%d (%d/%d)\n", ncv->pixy, ncv->pixx, rows, cols, sframe->height, sframe->width);
   }else{
     stride = ncv->rowstride;
     data = ncv->data;
