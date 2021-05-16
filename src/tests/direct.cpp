@@ -78,7 +78,7 @@ TEST_CASE("DirectMode") {
     CHECK(0 == ncdirectf_geom(nc_, dirf, &blitter, NCSCALE_NONE, 0, 0, &geom));
     CHECK(475 == geom.pixy);
     CHECK(860 == geom.pixx);
-    // FIXME
+    CHECK(NCBLIT_DEFAULT != blitter);
     ncdirectf_free(dirf);
   }
 
