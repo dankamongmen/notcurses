@@ -40,7 +40,7 @@ handle_opts(const char** argv){
       inarg = false;
     }else if(strcmp(*argv, "-p") == 0){
       inarg = true;
-    }else if(strcmp(*argv, "-l") == 0){
+    }else if(strncmp(*argv, "-l", 2) == 0){ // just require -l
       loglevel = NCLOGLEVEL_TRACE;
     }
     ++argv;
