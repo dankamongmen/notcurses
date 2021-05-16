@@ -565,7 +565,7 @@ void ffmpeg_details_destroy(ncvisual_details* deets){
   avcodec_close(deets->codecctx);
   avcodec_free_context(&deets->subtcodecctx);
   avcodec_free_context(&deets->codecctx);
-  av_frame_free(&deets->frame);
+  av_freep(&deets->frame);
   //avcodec_parameters_free(&ncv->cparams);
   sws_freeContext(deets->swsctx);
   av_packet_free(&deets->packet);
