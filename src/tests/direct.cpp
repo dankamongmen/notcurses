@@ -104,6 +104,41 @@ TEST_CASE("DirectMode") {
     }
   }
 
+  SUBCASE("CursorPostGlyphRender") {
+    auto dirf = ncdirectf_from_file(nc_, find_data("worldmap.png"));
+    REQUIRE(nullptr != dirf);
+    auto ncdv = ncdirectf_render(nc_, dirf, NCBLIT_1x1, NCSCALE_NONE, 0, 0);
+    CHECK(nullptr != ncdv);
+    CHECK(0 == ncdirect_raster_frame(nc_, ncdv, NCALIGN_LEFT));
+    ncdirectf_free(dirf);
+    int y, x;
+    int dimy = ncdirect_dim_y(nc_);
+    int dimx = ncdirect_dim_x(nc_);
+    CHECK(0 == ncdirect_cursor_yx(nc_, &y, &x));
+    CHECK(0 <= y);
+    CHECK(dimy > y);
+    CHECK(0 <= x);
+    CHECK(dimx > x);
+  }
+
+  SUBCASE("CursorPostSprixel") {
+    if(ncdirect_check_pixel_support(nc_) > 0){
+      auto dirf = ncdirectf_from_file(nc_, find_data("worldmap.png"));
+      REQUIRE(nullptr != dirf);
+      auto ncdv = ncdirectf_render(nc_, dirf, NCBLIT_PIXEL, NCSCALE_NONE, 0, 0);
+      CHECK(nullptr != ncdv);
+      CHECK(0 == ncdirect_raster_frame(nc_, ncdv, NCALIGN_LEFT));
+      ncdirectf_free(dirf);
+      int y, x;
+      int dimy = ncdirect_dim_y(nc_);
+      int dimx = ncdirect_dim_x(nc_);
+      CHECK(0 == ncdirect_cursor_yx(nc_, &y, &x));
+      CHECK(0 <= y);
+      CHECK(dimy > y);
+      CHECK(0 <= x);
+      CHECK(dimx > x);
+    }
+  }
 #endif
 
   CHECK(0 == ncdirect_stop(nc_));
