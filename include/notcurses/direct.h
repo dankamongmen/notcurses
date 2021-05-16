@@ -7,6 +7,7 @@
 extern "C" {
 #endif
 
+struct ncdirectf;
 typedef struct ncplane ncdirectv;
 
 #define API __attribute__((visibility("default")))
@@ -48,13 +49,16 @@ API ALLOC struct ncdirect* ncdirect_core_init(const char* termtype, FILE* fp, ui
 // Readline the first time it's called. For input to be echoed to the terminal,
 // it is necessary that NCDIRECT_OPTION_INHIBIT_CBREAK be provided to
 // ncdirect_init(). Returns NULL on error.
+__attribute__ ((nonnull (1)))
 API ALLOC char* ncdirect_readline(struct ncdirect* nc, const char* prompt);
 
 // Direct mode. This API can be used to colorize and stylize output generated
 // outside of notcurses, without ever calling notcurses_render(). These should
 // not be intermixed with standard Notcurses rendering.
-API int ncdirect_set_fg_rgb(struct ncdirect* nc, unsigned rgb);
-API int ncdirect_set_bg_rgb(struct ncdirect* nc, unsigned rgb);
+API int ncdirect_set_fg_rgb(struct ncdirect* nc, unsigned rgb)
+  __attribute__ ((nonnull (1)));
+API int ncdirect_set_bg_rgb(struct ncdirect* nc, unsigned rgb)
+  __attribute__ ((nonnull (1)));
 
 static inline int ncdirect_fg_rgb(struct ncdirect* nc, unsigned rgb)
   __attribute__ ((deprecated));
@@ -72,8 +76,10 @@ ncdirect_bg_rgb(struct ncdirect* nc, unsigned rgb){
   return ncdirect_set_bg_rgb(nc, rgb);
 }
 
-API int ncdirect_set_fg_palindex(struct ncdirect* nc, int pidx);
-API int ncdirect_set_bg_palindex(struct ncdirect* nc, int pidx);
+API int ncdirect_set_fg_palindex(struct ncdirect* nc, int pidx)
+  __attribute__ ((nonnull (1)));
+API int ncdirect_set_bg_palindex(struct ncdirect* nc, int pidx)
+  __attribute__ ((nonnull (1)));
 
 static inline int ncdirect_fg_palindex(struct ncdirect* nc, int pidx)
   __attribute__ ((deprecated));
@@ -94,21 +100,24 @@ ncdirect_bg_palindex(struct ncdirect* nc, int pidx){
 // Returns the number of simultaneous colors claimed to be supported, or 1 if
 // there is no color support. Note that several terminal emulators advertise
 // more colors than they actually support, downsampling internally.
-API unsigned ncdirect_palette_size(const struct ncdirect* nc);
+API unsigned ncdirect_palette_size(const struct ncdirect* nc)
+  __attribute__ ((nonnull (1)));
 
 // Output the string |utf8| according to the channels |channels|. Note that
 // ncdirect_putstr() does not explicitly flush output buffers, so it will not
 // necessarily be immediately visible.
-API int ncdirect_putstr(struct ncdirect* nc, uint64_t channels, const char* utf8);
+API int ncdirect_putstr(struct ncdirect* nc, uint64_t channels, const char* utf8)
+  __attribute__ ((nonnull (1, 3)));
 
 // Formatted printing (plus alignment relative to the terminal). Returns the
 // number of columns printed on success.
 API int ncdirect_printf_aligned(struct ncdirect* n, int y, ncalign_e align,
                                 const char* fmt, ...)
-  __attribute__ ((format (printf, 4, 5)));
+  __attribute__ ((nonnull (1, 4))) __attribute__ ((format (printf, 4, 5)));
 
 // Force a flush. Returns 0 on success, -1 on failure.
-API int ncdirect_flush(const struct ncdirect* nc);
+API int ncdirect_flush(const struct ncdirect* nc)
+  __attribute__ ((nonnull (1)));
 
 static inline int
 ncdirect_set_bg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b){
@@ -144,8 +153,10 @@ ncdirect_bg_rgb8(struct ncdirect* nc, unsigned r, unsigned g, unsigned b){
   return ncdirect_set_bg_rgb8(nc, r, g, b);
 }
 
-API int ncdirect_set_fg_default(struct ncdirect* nc);
-API int ncdirect_set_bg_default(struct ncdirect* nc);
+API int ncdirect_set_fg_default(struct ncdirect* nc)
+  __attribute__ ((nonnull (1)));
+API int ncdirect_set_bg_default(struct ncdirect* nc)
+  __attribute__ ((nonnull (1)));
 
 static inline int ncdirect_fg_default(struct ncdirect* nc)
   __attribute__ ((deprecated));
@@ -164,13 +175,18 @@ ncdirect_bg_default(struct ncdirect* nc){
 }
 
 // Get the current number of columns/rows.
-API int ncdirect_dim_x(const struct ncdirect* nc);
-API int ncdirect_dim_y(const struct ncdirect* nc);
+API int ncdirect_dim_x(const struct ncdirect* nc)
+  __attribute__ ((nonnull (1)));
+API int ncdirect_dim_y(const struct ncdirect* nc)
+  __attribute__ ((nonnull (1)));
 
 // ncplane_styles_*() analogues
-API int ncdirect_set_styles(struct ncdirect* n, unsigned stylebits);
-API int ncdirect_on_styles(struct ncdirect* n, unsigned stylebits);
-API int ncdirect_off_styles(struct ncdirect* n, unsigned stylebits);
+API int ncdirect_set_styles(struct ncdirect* n, unsigned stylebits)
+  __attribute__ ((nonnull (1)));
+API int ncdirect_on_styles(struct ncdirect* n, unsigned stylebits)
+  __attribute__ ((nonnull (1)));
+API int ncdirect_off_styles(struct ncdirect* n, unsigned stylebits)
+  __attribute__ ((nonnull (1)));
 
 // Deprecated forms of above.
 API int ncdirect_styles_set(struct ncdirect* n, unsigned stylebits)
@@ -181,23 +197,34 @@ API int ncdirect_styles_off(struct ncdirect* n, unsigned stylebits)
   __attribute__ ((deprecated));
 
 // Move the cursor in direct mode. -1 to retain current location on that axis.
-API int ncdirect_cursor_move_yx(struct ncdirect* n, int y, int x);
-API int ncdirect_cursor_enable(struct ncdirect* nc);
-API int ncdirect_cursor_disable(struct ncdirect* nc);
-API int ncdirect_cursor_up(struct ncdirect* nc, int num);
-API int ncdirect_cursor_left(struct ncdirect* nc, int num);
-API int ncdirect_cursor_right(struct ncdirect* nc, int num);
-API int ncdirect_cursor_down(struct ncdirect* nc, int num);
+API int ncdirect_cursor_move_yx(struct ncdirect* n, int y, int x)
+  __attribute__ ((nonnull (1)));
+API int ncdirect_cursor_enable(struct ncdirect* nc)
+  __attribute__ ((nonnull (1)));
+API int ncdirect_cursor_disable(struct ncdirect* nc)
+  __attribute__ ((nonnull (1)));
+API int ncdirect_cursor_up(struct ncdirect* nc, int num)
+  __attribute__ ((nonnull (1)));
+API int ncdirect_cursor_left(struct ncdirect* nc, int num)
+  __attribute__ ((nonnull (1)));
+API int ncdirect_cursor_right(struct ncdirect* nc, int num)
+  __attribute__ ((nonnull (1)));
+API int ncdirect_cursor_down(struct ncdirect* nc, int num)
+  __attribute__ ((nonnull (1)));
 
 // Get the cursor position, when supported. This requires writing to the
 // terminal, and then reading from it. If the terminal doesn't reply, or
 // doesn't reply in a way we understand, the results might be deleterious.
-API int ncdirect_cursor_yx(struct ncdirect* n, int* y, int* x);
+API int ncdirect_cursor_yx(struct ncdirect* n, int* y, int* x)
+  __attribute__ ((nonnull (1)));
 
 // Push or pop the cursor location to the terminal's stack. The depth of this
 // stack, and indeed its existence, is terminal-dependent.
-API int ncdirect_cursor_push(struct ncdirect* n);
-API int ncdirect_cursor_pop(struct ncdirect* n);
+API int ncdirect_cursor_push(struct ncdirect* n)
+  __attribute__ ((nonnull (1)));
+
+API int ncdirect_cursor_pop(struct ncdirect* n)
+  __attribute__ ((nonnull (1)));
 
 // Display an image using the specified blitter and scaling. The image may
 // be arbitrarily many rows -- the output will scroll -- but will only occupy
@@ -205,21 +232,26 @@ API int ncdirect_cursor_pop(struct ncdirect* n);
 // can be split by using ncdirect_render_frame() and ncdirect_raster_frame().
 API int ncdirect_render_image(struct ncdirect* n, const char* filename,
                               ncalign_e align, ncblitter_e blitter,
-                              ncscale_e scale);
+                              ncscale_e scale)
+  __attribute__ ((nonnull (1, 2)));
 
 // Clear the screen.
-API int ncdirect_clear(struct ncdirect* nc);
+API int ncdirect_clear(struct ncdirect* nc)
+  __attribute__ ((nonnull (1)));
 
 // Can we load images? This requires being built against FFmpeg/OIIO.
-API bool ncdirect_canopen_images(const struct ncdirect* n);
+API bool ncdirect_canopen_images(const struct ncdirect* n)
+  __attribute__ ((nonnull (1)));
 
 // Is our encoding UTF-8? Requires LANG being set to a UTF8 locale.
-API bool ncdirect_canutf8(const struct ncdirect* n);
+API bool ncdirect_canutf8(const struct ncdirect* n)
+  __attribute__ ((nonnull (1)));
 
 // This function must successfully return before NCBLIT_PIXEL is available.
 // Returns -1 on error, 0 for no support, or 1 if pixel output is supported.
 // Must not be called concurrently with either input or rasterization.
-API int ncdirect_check_pixel_support(struct ncdirect* n);
+API int ncdirect_check_pixel_support(struct ncdirect* n)
+  __attribute__ ((nonnull (1)));
 
 // Draw horizontal/vertical lines using the specified channels, interpolating
 // between them as we go. The EGC may not use more than one column. For a
@@ -227,9 +259,12 @@ API int ncdirect_check_pixel_support(struct ncdirect* n);
 // offset. For a vertical line, it may be as long as you'd like; the screen
 // will scroll as necessary. All lines start at the current cursor position.
 API int ncdirect_hline_interp(struct ncdirect* n, const char* egc, int len,
-                              uint64_t h1, uint64_t h2);
+                              uint64_t h1, uint64_t h2)
+  __attribute__ ((nonnull (1)));
+
 API int ncdirect_vline_interp(struct ncdirect* n, const char* egc, int len,
-                              uint64_t h1, uint64_t h2);
+                              uint64_t h1, uint64_t h2)
+  __attribute__ ((nonnull (1)));
 
 // Draw a box with its upper-left corner at the current cursor position, having
 // dimensions |ylen|x|xlen|. See ncplane_box() for more information. The
@@ -237,17 +272,20 @@ API int ncdirect_vline_interp(struct ncdirect* n, const char* egc, int len,
 // array of 6 wide characters: UL, UR, LL, LR, HL, VL.
 API int ncdirect_box(struct ncdirect* n, uint64_t ul, uint64_t ur,
                      uint64_t ll, uint64_t lr, const wchar_t* wchars,
-                     int ylen, int xlen, unsigned ctlword);
+                     int ylen, int xlen, unsigned ctlword)
+  __attribute__ ((nonnull (1)));
 
 // ncdirect_box() with the rounded box-drawing characters
 API int ncdirect_rounded_box(struct ncdirect* n, uint64_t ul, uint64_t ur,
                              uint64_t ll, uint64_t lr,
-                             int ylen, int xlen, unsigned ctlword);
+                             int ylen, int xlen, unsigned ctlword)
+  __attribute__ ((nonnull (1)));
 
 // ncdirect_box() with the double box-drawing characters
 API int ncdirect_double_box(struct ncdirect* n, uint64_t ul, uint64_t ur,
                             uint64_t ll, uint64_t lr,
-                            int ylen, int xlen, unsigned ctlword);
+                            int ylen, int xlen, unsigned ctlword)
+  __attribute__ ((nonnull (1)));
 
 // See ppoll(2) for more detail. Provide a NULL 'ts' to block at length, a 'ts'
 // of 0 for non-blocking operation, and otherwise a timespec to bound blocking.
@@ -257,13 +295,15 @@ API int ncdirect_double_box(struct ncdirect* n, uint64_t ul, uint64_t ur,
 // 'sigmask' may be NULL. Returns 0 on a timeout. If an event is processed, the
 // return value is the 'id' field from that event. 'ni' may be NULL.
 API char32_t ncdirect_getc(struct ncdirect* n, const struct timespec* ts,
-                           sigset_t* sigmask, ncinput* ni);
+                           sigset_t* sigmask, ncinput* ni)
+  __attribute__ ((nonnull (1)));
 
 // Get a file descriptor suitable for input event poll()ing. When this
 // descriptor becomes available, you can call ncdirect_getc_nblock(),
 // and input ought be ready. This file descriptor is *not* necessarily
 // the file descriptor associated with stdin (but it might be!).
-API int ncdirect_inputready_fd(struct ncdirect* n);
+API int ncdirect_inputready_fd(struct ncdirect* n)
+  __attribute__ ((nonnull (1)));
 
 // 'ni' may be NULL if the caller is uninterested in event details. If no event
 // is ready, returns 0.
@@ -295,13 +335,19 @@ API int ncdirect_stop(struct ncdirect* nc);
 // is otherwise used.
 API ALLOC ncdirectv* ncdirect_render_frame(struct ncdirect* n, const char* filename,
                                            ncblitter_e blitter, ncscale_e scale,
-                                           int maxy, int maxx);
+                                           int maxy, int maxx)
+  __attribute__ ((nonnull (1, 2)));
 
 // Takes the result of ncdirect_render_frame() and writes it to the output.
-API int ncdirect_raster_frame(struct ncdirect* n, ncdirectv* ncdv, ncalign_e align);
+API int ncdirect_raster_frame(struct ncdirect* n, ncdirectv* ncdv, ncalign_e align)
+  __attribute__ ((nonnull (1, 2)));
+
+API ALLOC struct ncdirectf* ncdirect_load_frame(struct ncdirect* n, const char* filename)
+  __attribute__ ((nonnull (1, 2)));
 
 API int ncdirect_stream(struct ncdirect* n, const char* filename, ncstreamcb streamer,
-                        struct ncvisual_options* vopts, void* curry);
+                        struct ncvisual_options* vopts, void* curry)
+  __attribute__ ((nonnull (1, 2)));
 
 #undef ALLOC
 #undef API
