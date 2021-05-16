@@ -661,6 +661,11 @@ struct blitset {
 
 #include "blitset.h"
 
+int ncvisual_blitset_geom(const notcurses* nc, const struct ncvisual* n,
+                          const struct ncvisual_options* vopts,
+                          int* y, int* x, int* scaley, int* scalex,
+                          int* leny, int* lenx, const struct blitset** blitter);
+
 static inline int
 ncfputs(const char* ext, FILE* out){
   int r;
