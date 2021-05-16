@@ -50,8 +50,10 @@ TEST_CASE("Bitmaps") {
     std::vector<uint32_t> v(x * y, htole(0xe61c28ff));
     auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
     REQUIRE(nullptr != ncv);
+    auto nn = ncplane_dup(n_, nullptr);
+    REQUIRE(nullptr != nn);
     struct ncvisual_options vopts = {
-      .n = n_,
+      .n = nn,
       .scaling = NCSCALE_NONE,
       .y = 0, .x = 0,
       .begy = 0, .begx = 0,
@@ -64,12 +66,12 @@ TEST_CASE("Bitmaps") {
     ncplane_pixelgeom(n_, nullptr, nullptr, nullptr, nullptr, &maxy, &maxx);
     CHECK(0 == ncvisual_resize(ncv, maxy, maxx));
     auto n = ncvisual_render(nc_, ncv, &vopts);
-    REQUIRE(n_ == n);
+    REQUIRE(nn == n);
     auto s = n->sprite;
     REQUIRE(nullptr != s);
     CHECK(0 == notcurses_render(nc_));
     ncvisual_destroy(ncv);
-    ncplane_erase(n);
+    CHECK(0 == ncplane_destroy(nn));
   }
 
   // a sprixel requires a plane large enough to hold it
