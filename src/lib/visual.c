@@ -78,11 +78,10 @@ ncvisual_origin(const struct ncvisual_options* vopts, int* restrict begy, int* r
 // FIXME we ought also do the output calculations here (how many rows x cols,
 //   given the input plane vopts->n and scaling vopts->scaling)--but do not
 //   perform any actual scaling, nor create any planes!
-static int
-ncvisual_blitset_geom(const notcurses* nc, const ncvisual* n,
-                      const struct ncvisual_options* vopts,
-                      int* y, int* x, int* scaley, int* scalex,
-                      int* leny, int* lenx, const struct blitset** blitter){
+int ncvisual_blitset_geom(const notcurses* nc, const ncvisual* n,
+                          const struct ncvisual_options* vopts,
+                          int* y, int* x, int* scaley, int* scalex,
+                          int* leny, int* lenx, const struct blitset** blitter){
   int fakeleny, fakelenx;
   if(leny == NULL){
     leny = &fakeleny;

@@ -1214,4 +1214,22 @@ ncdirectv* ncdirectf_render(ncdirect* n, ncdirectf* frame,
 int ncdirectf_geom(ncdirect* n, ncdirectf* frame,
                    ncblitter_e* blitter, ncscale_e scale,
                    int maxy, int maxx, ncvgeom* geom){
+  struct ncvisual_options vopts = {
+    .blitter = blitter ? *blitter : NCBLIT_DEFAULT,
+    .scaling = scale,
+    .leny = maxy,
+    .lenx = maxx,
+  };
+  geom->cdimy = n->tcache.cellpixy;
+  geom->cdimx = n->tcache.cellpixx;
+  geom->maxpixely = n->tcache.sixel_maxy;
+  geom->maxpixelx = n->tcache.sixel_maxx;
+  const struct blitset* bset;
+  int r = ncvisual_blitset_geom(NULL, frame, &vopts, &geom->pixy, &geom->pixx,
+                                &geom->scaley, &geom->scalex,
+                                &geom->rpixy, &geom->rpixx, &bset);
+  if(r == 0 && blitter){
+    *blitter = bset->geom;
+  }
+  return r;
 }
