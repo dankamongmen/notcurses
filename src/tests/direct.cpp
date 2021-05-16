@@ -92,6 +92,8 @@ TEST_CASE("DirectMode") {
       CHECK(475 == geom.pixy);
       CHECK(860 == geom.pixx);
       CHECK(NCBLIT_PIXEL == blitter);
+      CHECK(geom.cdimy == geom.scaley);
+      CHECK(geom.cdimx == geom.scalex);
       ncdirectf_free(dirf);
     }
   }
