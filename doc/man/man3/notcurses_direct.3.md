@@ -84,15 +84,38 @@ notcurses_direct - minimal notcurses instances for styling text
 
 **int ncdirect_double_box(struct ncdirect* ***n***, uint64_t ***ul***, uint64_t ***ur***, uint64_t ***ll***, uint64_t ***lr***, int ***ylen***, int ***xlen***, unsigned ***ctlword***);**
 
-**int ncdirect_render_image(struct ncdirect* ***n***, const char* ***filename***, ncblitter_e ***blitter***, ncscale_e ***scale***);**
-
 **ncdirectv* ncdirect_render_frame(struct ncdirect* ***n***, const char* ***filename***, ncblitter_e ***blitter***, ncscale_e ***scale***, int ***maxy***, int ***maxx***);**
+
+**char* ncdirect_readline(struct ncdirect* ***n***, const char* ***prompt***);**
+
+```c
+typedef struct ncvgeom {
+  int pixy, pixx;     // true pixel geometry of ncvisual data
+  int cdimy, cdimx;   // terminal cell geometry when this was calculated
+  int rpixy, rpixx;   // rendered pixel geometry
+  int rcelly, rcellx; // rendered cell geometry
+  int scaley, scalex; // pixels per filled cell
+  // only defined for NCBLIT_PIXEL
+  int maxpixely, maxpixelx;
+} ncvgeom;
+```
+
+**int ncdirect_render_image(struct ncdirect* ***n***, const char* ***filename***, ncblitter_e ***blitter***, ncscale_e ***scale***);**
 
 **int ncdirect_raster_frame(struct ncdirect* ***n***, ncdirectv* ***ncdv***, ncalign_e ***align***);**
 
 **int ncdirect_stream(struct ncdirect* ***n***, const char* ***filename***, ncstreamcb ***streamer***, struct ncvisual_options* ***vopts***, void* ***curry***);**
 
-**char* ncdirect_readline(struct ncdirect* ***n***, const char* ***prompt***);**
+**int ncdirect_raster_frame(struct ncdirect* ***n***, ncdirectv* ***ncdv***, ncalign_e ***align***);**
+
+**struct ncdirectf* ncdirectf_from_file(struct ncdirect* ***n***, const char* ***filename***);***
+
+**void ncdirectf_free(struct ncdirectf* ***frame***);**
+
+**ncdirectv* ncdirectf_render(struct ncdirect* ***n***, const struct ncdirectf* ***frame***, ncblitter_e ***blitter***, ncscale_e ***scale***, int ***maxy***, int ***maxx***);**
+
+**int ncdirectf_geom(struct ncdirect* ***n***, struct ncdirectf* ***frame***, ncblitter_e* ***blitter***, ncscale_e ***scale***, int ***maxy***, int ***maxx***, ncvgeom* ***geom***);**
+
 
 # DESCRIPTION
 

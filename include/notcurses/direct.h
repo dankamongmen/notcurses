@@ -7,9 +7,6 @@
 extern "C" {
 #endif
 
-struct ncdirectf;
-typedef struct ncplane ncdirectv;
-
 #define API __attribute__((visibility("default")))
 #define ALLOC __attribute__((malloc)) __attribute__((warn_unused_result))
 
@@ -226,15 +223,6 @@ API int ncdirect_cursor_push(struct ncdirect* n)
 API int ncdirect_cursor_pop(struct ncdirect* n)
   __attribute__ ((nonnull (1)));
 
-// Display an image using the specified blitter and scaling. The image may
-// be arbitrarily many rows -- the output will scroll -- but will only occupy
-// the column of the cursor, and those to the right. The render/raster process
-// can be split by using ncdirect_render_frame() and ncdirect_raster_frame().
-API int ncdirect_render_image(struct ncdirect* n, const char* filename,
-                              ncalign_e align, ncblitter_e blitter,
-                              ncscale_e scale)
-  __attribute__ ((nonnull (1, 2)));
-
 // Clear the screen.
 API int ncdirect_clear(struct ncdirect* nc)
   __attribute__ ((nonnull (1)));
@@ -327,6 +315,42 @@ ncdirect_getc_blocking(struct ncdirect* n, ncinput* ni){
 // Release 'nc' and any associated resources. 0 on success, non-0 on failure.
 API int ncdirect_stop(struct ncdirect* nc);
 
+struct ncdirectf;
+typedef struct ncplane ncdirectv;
+
+// FIXME this ought be used in the rendered mode API as well; it's currently
+// only used by direct mode. describes all geometries of an ncvisual--both those
+// which are inherent, and those in a given rendering regime. pixy and pixx are
+// the true internal pixel geometry, taken directly from the load (and updated
+// by ncvisual_resize()). cdimy/cdimx are the cell pixel geometry *at the time
+// of this call* (it can change with a font change, in which case all values
+// other than pixy/pixx are invalidated). rpixy/rpixx are the pixel geometry as
+// handed to the blitter, following any scaling. scaley/scalex are the number
+// of input pixels drawn to full cell; when using NCBLIT_PIXEL, they are
+// equivalent to cdimy/cdimx. rcelly/rcellx are the cell geometry as written by
+// the blitter, following any padding (there is padding whenever rpix{y, x} is
+// not evenly divided by scale{y, x}, and also sometimes for Sixel).
+// maxpixely/maxpixelx are defined only when NCBLIT_PIXEL is used, and specify
+// the largest bitmap that the terminal is willing to accept.
+typedef struct ncvgeom {
+  int pixy, pixx;     // true pixel geometry of ncvisual data
+  int cdimy, cdimx;   // terminal cell geometry when this was calculated
+  int rpixy, rpixx;   // rendered pixel geometry
+  int rcelly, rcellx; // rendered cell geometry
+  int scaley, scalex; // pixels per filled cell
+  // only defined for NCBLIT_PIXEL
+  int maxpixely, maxpixelx;
+} ncvgeom;
+
+// Display an image using the specified blitter and scaling. The image may
+// be arbitrarily many rows -- the output will scroll -- but will only occupy
+// the column of the cursor, and those to the right. The render/raster process
+// can be split by using ncdirect_render_frame() and ncdirect_raster_frame().
+API int ncdirect_render_image(struct ncdirect* n, const char* filename,
+                              ncalign_e align, ncblitter_e blitter,
+                              ncscale_e scale)
+  __attribute__ ((nonnull (1, 2)));
+
 // Render an image using the specified blitter and scaling, but do not write
 // the result. The image may be arbitrarily many rows -- the output will scroll
 // -- but will only occupy the column of the cursor, and those to the right.
@@ -338,13 +362,36 @@ API ALLOC ncdirectv* ncdirect_render_frame(struct ncdirect* n, const char* filen
                                            int maxy, int maxx)
   __attribute__ ((nonnull (1, 2)));
 
-// Takes the result of ncdirect_render_frame() and writes it to the output.
+// Takes the result of ncdirect_render_frame() and writes it to the output,
+// freeing it on all paths.
 API int ncdirect_raster_frame(struct ncdirect* n, ncdirectv* ncdv, ncalign_e align)
   __attribute__ ((nonnull (1, 2)));
 
-API ALLOC struct ncdirectf* ncdirect_load_frame(struct ncdirect* n, const char* filename)
+// Load media from disk, but do not yet render it (presumably because you want
+// to get its geometry via ncdirect_geom_frame(), or to use the same file with
+// ncdirect_render_loaded_frame() multiple times). You must destroy the result
+// with ncdirectf_free();
+API ALLOC struct ncdirectf* ncdirectf_from_file(struct ncdirect* n, const char* filename)
   __attribute__ ((nonnull (1, 2)));
 
+// Free a ncdirectf returned from ncdirectf_from_file().
+API void ncdirectf_free(struct ncdirectf* frame);
+
+// Same as ncdirect_render_frame(), except 'frame' must already have been
+// loaded. A loaded frame may be rendered in different ways before it is
+// destroyed.
+API ALLOC ncdirectv* ncdirectf_render(struct ncdirect* n, const struct ncdirectf* frame,
+                                      ncblitter_e blitter, ncscale_e scale,
+                                      int maxy, int maxx)
+  __attribute__ ((nonnull (1, 2)));
+
+// Having loaded the frame 'frame', get the geometry of a potential render.
+API int ncdirectf_geom(struct ncdirect* n, struct ncdirectf* frame,
+                       ncblitter_e* blitter, ncscale_e scale,
+                       int maxy, int maxx, ncvgeom* geom)
+  __attribute__ ((nonnull (1, 2)));
+
+// Load successive frames from a file, invoking 'streamer' on each.
 API int ncdirect_stream(struct ncdirect* n, const char* filename, ncstreamcb streamer,
                         struct ncvisual_options* vopts, void* curry)
   __attribute__ ((nonnull (1, 2)));

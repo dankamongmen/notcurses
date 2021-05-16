@@ -12,7 +12,14 @@ rearrangements of Notcurses.
   * 8bpc RGB is unconditionally enabled if the terminal emulator is determined
     to be Kitty, Alacritty, or foot; there is no longer any need to export
     `COLORTERM` on these terminals.
-  * Add `NCSCALE_INFLATE`.
+  * Fixed bad bug in `ncvisual_resize()` when growing an image. This isn't
+    relevant to enlarging an `ncvisual` via scaling, but only when persistently
+    growing one with `ncvisual_resize()`.
+  * Added `ncdirectf_from_file()`, `ncdirectf_geom()`, and `ncdirectf_render()`,
+    with the net result that you can now (efficiently) get media geometry in
+    direct mode. If you don't care about media geometry, you can keep using
+    `ncdirect_render_frame()` and/or `ncdirect_render_image()`, and Godspeed.
+    Oh yes, and `ncdirectf_free()`. Rien n'est simple, mais tout est facile....
 
 * 2.3.0 (2021-05-09) **"Triumph"**
   * No user-visible changes.
