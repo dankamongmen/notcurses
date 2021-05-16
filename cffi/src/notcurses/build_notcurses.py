@@ -23,10 +23,8 @@ with open('../include/notcurses/notcurses.h') as fp:
 # same with direct.h
 with open('../include/notcurses/direct.h') as fp:
     direct_lines = fp.read().splitlines()
-    first = next(i for i, line in enumerate(direct_lines) if 'typedef struct ncplane' in line)
-    del direct_lines[:first]
-    defs = next(i for i, line in enumerate(direct_lines) if '#define API' in line)
-    del direct_lines[defs:defs+2]
+    first = next(i for i, line in enumerate(direct_lines) if '#define ALLOC' in line)
+    del direct_lines[:first+1]
     last = next(i for i, line in enumerate(direct_lines) if '#undef' in line)
     del direct_lines[last:]
 
