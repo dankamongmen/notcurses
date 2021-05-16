@@ -2,7 +2,7 @@
 
 * **What it is**: a library facilitating complex TUIs on modern terminal
     emulators, supporting vivid colors, multimedia, threads, and Unicode to the
-    maximum degree possible. [Things](https://www.youtube.com/watch?v=cYhZ7myXyyg) can be done with
+    maximum degree possible. [Things](https://www.youtube.com/watch?v=dcjkezf1ARY) can be done with
     Notcurses that simply can't be done with NCURSES. It is furthermore
     fast as shit.
 
