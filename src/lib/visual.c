@@ -179,10 +179,10 @@ int ncvisual_blitset_geom(const notcurses* nc, const tinfo* tcache,
     }
   }
   if(scaley){
-    *scaley = encoding_y_scale(&nc->tcache, bset);
+    *scaley = encoding_y_scale(tcache, bset);
   }
   if(scalex){
-    *scalex = encoding_x_scale(&nc->tcache, bset);
+    *scalex = encoding_x_scale(tcache, bset);
   }
   if(vopts && vopts->flags & NCVISUAL_OPTION_HORALIGNED){
     if(vopts->x < NCALIGN_UNALIGNED || vopts->x > NCALIGN_RIGHT){

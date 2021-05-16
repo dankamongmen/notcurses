@@ -1214,6 +1214,8 @@ ncdirectv* ncdirectf_render(ncdirect* n, ncdirectf* frame,
 int ncdirectf_geom(ncdirect* n, ncdirectf* frame,
                    ncblitter_e* blitter, ncscale_e scale,
                    int maxy, int maxx, ncvgeom* geom){
+  // FIXME wtf do we do about flags here? why aren't we using the entire
+  // ncvisual_options apparatus? what a blunder =[.
   struct ncvisual_options vopts = {
     .blitter = blitter ? *blitter : NCBLIT_DEFAULT,
     .scaling = scale,
