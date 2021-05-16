@@ -78,8 +78,9 @@ ncvisual_origin(const struct ncvisual_options* vopts, int* restrict begy, int* r
 // FIXME we ought also do the output calculations here (how many rows x cols,
 //   given the input plane vopts->n and scaling vopts->scaling)--but do not
 //   perform any actual scaling, nor create any planes!
-int ncvisual_blitset_geom(const notcurses* nc, const ncvisual* n,
-                          const struct ncvisual_options* vopts,
+// takes tcache distinctly; nc is used only for logging, and can be NULL
+int ncvisual_blitset_geom(const notcurses* nc, const tinfo* tcache,
+                          const ncvisual* n, const struct ncvisual_options* vopts,
                           int* y, int* x, int* scaley, int* scalex,
                           int* leny, int* lenx, const struct blitset** blitter){
   int fakeleny, fakelenx;
@@ -132,7 +133,7 @@ int ncvisual_blitset_geom(const notcurses* nc, const ncvisual* n,
       return -1;
     }
   }
-  const struct blitset* bset = rgba_blitter(nc, vopts);
+  const struct blitset* bset = rgba_blitter(tcache, vopts);
   if(!bset){
     logerror(nc, "Couldn't get a blitter for %d\n", vopts ? vopts->blitter : NCBLIT_DEFAULT);
     return -1;
@@ -203,8 +204,8 @@ int ncvisual_blitter_geom(const notcurses* nc, const ncvisual* n,
                           int* y, int* x, int* scaley, int* scalex,
                           ncblitter_e* blitter){
   const struct blitset* bset;
-  int ret = ncvisual_blitset_geom(nc, n, vopts, y, x, scaley, scalex,
-                                  NULL, NULL, &bset);
+  int ret = ncvisual_blitset_geom(nc, &nc->tcache, n, vopts, y, x,
+                                  scaley, scalex, NULL, NULL, &bset);
   if(ret == 0 && blitter){
     *blitter = bset->geom;
   }
@@ -864,7 +865,7 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
 ncplane* ncvisual_render(notcurses* nc, ncvisual* ncv, const struct ncvisual_options* vopts){
   const struct blitset* bset;
   int leny, lenx;
-  if(ncvisual_blitset_geom(nc, ncv, vopts, NULL, NULL, NULL, NULL,
+  if(ncvisual_blitset_geom(nc, &nc->tcache, ncv, vopts, NULL, NULL, NULL, NULL,
                            &leny, &lenx, &bset) < 0){
     // ncvisual_blitset_geom() emits its own diagnostics, no need for an error here
     return NULL;
