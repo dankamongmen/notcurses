@@ -5,8 +5,6 @@
 TEST_CASE("Bitmaps") {
   auto nc_ = testing_notcurses();
   REQUIRE(nullptr != nc_);
-  ncplane* ncp_ = notcurses_stdplane(nc_);
-  REQUIRE(ncp_);
   auto n_ = notcurses_stdplane(nc_);
   REQUIRE(n_);
 
