@@ -1225,7 +1225,8 @@ int ncdirectf_geom(ncdirect* n, ncdirectf* frame,
   geom->maxpixely = n->tcache.sixel_maxy;
   geom->maxpixelx = n->tcache.sixel_maxx;
   const struct blitset* bset;
-  int r = ncvisual_blitset_geom(NULL, frame, &vopts, &geom->pixy, &geom->pixx,
+  int r = ncvisual_blitset_geom(NULL, &n->tcache, frame, &vopts,
+                                &geom->pixy, &geom->pixx,
                                 &geom->scaley, &geom->scalex,
                                 &geom->rpixy, &geom->rpixx, &bset);
   if(r == 0 && blitter){

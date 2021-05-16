@@ -69,6 +69,19 @@ TEST_CASE("DirectMode") {
       CHECK(0 == ncdirect_render_image(nc_, find_data("worldmap.png"), NCALIGN_RIGHT, NCBLIT_PIXEL, NCSCALE_SCALE));
     }
   }
+
+  SUBCASE("ImageGeom") {
+    auto dirf = ncdirectf_from_file(nc_, find_data("worldmap.png"));
+    REQUIRE(nullptr != dirf);
+    ncblitter_e blitter = NCBLIT_DEFAULT;
+    ncvgeom geom;
+    CHECK(0 == ncdirectf_geom(nc_, dirf, &blitter, NCSCALE_NONE, 0, 0, &geom));
+    CHECK(475 == geom.pixy);
+    CHECK(860 == geom.pixx);
+    // FIXME
+    ncdirectf_free(dirf);
+  }
+
 #endif
 
   CHECK(0 == ncdirect_stop(nc_));

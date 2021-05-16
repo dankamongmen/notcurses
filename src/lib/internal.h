@@ -661,7 +661,8 @@ struct blitset {
 
 #include "blitset.h"
 
-int ncvisual_blitset_geom(const notcurses* nc, const struct ncvisual* n,
+int ncvisual_blitset_geom(const notcurses* nc, const tinfo* tcache,
+                          const struct ncvisual* n,
                           const struct ncvisual_options* vopts,
                           int* y, int* x, int* scaley, int* scalex,
                           int* leny, int* lenx, const struct blitset** blitter);
@@ -1695,10 +1696,10 @@ rgba_blitter_low(const tinfo* tcache, ncscale_e scale, bool maydegrade,
 // RGBA visuals all use NCBLIT_2x1 by default (or NCBLIT_1x1 if not in
 // UTF-8 mode), but an alternative can be specified.
 static inline const struct blitset*
-rgba_blitter(const struct notcurses* nc, const struct ncvisual_options* opts) {
+rgba_blitter(const struct tinfo* tcache, const struct ncvisual_options* opts) {
   const bool maydegrade = !(opts && (opts->flags & NCVISUAL_OPTION_NODEGRADE));
   const ncscale_e scale = opts ? opts->scaling : NCSCALE_NONE;
-  return rgba_blitter_low(&nc->tcache, scale, maydegrade, opts ? opts->blitter : NCBLIT_DEFAULT);
+  return rgba_blitter_low(tcache, scale, maydegrade, opts ? opts->blitter : NCBLIT_DEFAULT);
 }
 
 typedef struct ncvisual_implementation {
