@@ -590,11 +590,11 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv, ncblitter_e blitfxn,
 ncdirectv* ncdirect_render_frame(ncdirect* n, const char* file,
                                  ncblitter_e blitfxn, ncscale_e scale,
                                  int ymax, int xmax){
-  struct ncvisual* ncv = ncvisual_from_file(file);
+  ncdirectf* ncv = ncdirectf_from_file(n, file);
   if(ncv == NULL){
     return NULL;
   }
-  ncdirectv* v = ncdirect_render_visual(n, ncv, blitfxn, scale, ymax, xmax, 0);
+  ncdirectv* v = ncdirectf_render(n, ncv, blitfxn, scale, ymax, xmax);
   ncvisual_destroy(ncv);
   return v;
 }
@@ -1194,4 +1194,24 @@ int ncdirect_stream(ncdirect* n, const char* filename, ncstreamcb streamer,
   }while(ncvisual_decode(ncv) == 0);
   ncvisual_destroy(ncv);
   return 0;
+}
+
+ncdirectf* ncdirectf_from_file(ncdirect* n __attribute__ ((unused)),
+                               const char* filename){
+  return ncvisual_from_file(filename);
+}
+
+void ncdirectf_free(ncdirectf* frame){
+  ncvisual_destroy(frame);
+}
+
+ncdirectv* ncdirectf_render(ncdirect* n, ncdirectf* frame,
+                            ncblitter_e blitter, ncscale_e scale,
+                            int maxy, int maxx){
+  return ncdirect_render_visual(n, frame, blitter, scale, maxy, maxx, 0);
+}
+
+int ncdirectf_geom(ncdirect* n, ncdirectf* frame,
+                   ncblitter_e* blitter, ncscale_e scale,
+                   int maxy, int maxx, ncvgeom* geom){
 }

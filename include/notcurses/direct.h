@@ -315,8 +315,8 @@ ncdirect_getc_blocking(struct ncdirect* n, ncinput* ni){
 // Release 'nc' and any associated resources. 0 on success, non-0 on failure.
 API int ncdirect_stop(struct ncdirect* nc);
 
-struct ncdirectf;
 typedef struct ncplane ncdirectv;
+typedef struct ncvisual ncdirectf;
 
 // FIXME this ought be used in the rendered mode API as well; it's currently
 // only used by direct mode. describes all geometries of an ncvisual--both those
@@ -371,22 +371,22 @@ API int ncdirect_raster_frame(struct ncdirect* n, ncdirectv* ncdv, ncalign_e ali
 // to get its geometry via ncdirect_geom_frame(), or to use the same file with
 // ncdirect_render_loaded_frame() multiple times). You must destroy the result
 // with ncdirectf_free();
-API ALLOC struct ncdirectf* ncdirectf_from_file(struct ncdirect* n, const char* filename)
+API ALLOC ncdirectf* ncdirectf_from_file(struct ncdirect* n, const char* filename)
   __attribute__ ((nonnull (1, 2)));
 
 // Free a ncdirectf returned from ncdirectf_from_file().
-API void ncdirectf_free(struct ncdirectf* frame);
+API void ncdirectf_free(ncdirectf* frame);
 
 // Same as ncdirect_render_frame(), except 'frame' must already have been
 // loaded. A loaded frame may be rendered in different ways before it is
 // destroyed.
-API ALLOC ncdirectv* ncdirectf_render(struct ncdirect* n, const struct ncdirectf* frame,
+API ALLOC ncdirectv* ncdirectf_render(struct ncdirect* n, ncdirectf* frame,
                                       ncblitter_e blitter, ncscale_e scale,
                                       int maxy, int maxx)
   __attribute__ ((nonnull (1, 2)));
 
 // Having loaded the frame 'frame', get the geometry of a potential render.
-API int ncdirectf_geom(struct ncdirect* n, struct ncdirectf* frame,
+API int ncdirectf_geom(struct ncdirect* n, ncdirectf* frame,
                        ncblitter_e* blitter, ncscale_e scale,
                        int maxy, int maxx, ncvgeom* geom)
   __attribute__ ((nonnull (1, 2)));
