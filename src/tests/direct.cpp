@@ -79,6 +79,9 @@ TEST_CASE("DirectMode") {
     CHECK(475 == geom.pixy);
     CHECK(860 == geom.pixx);
     CHECK(NCBLIT_DEFAULT != blitter);
+    auto ncdv = ncdirectf_render(nc_, dirf, blitter, NCSCALE_NONE, 0, 0);
+    CHECK(nullptr != ncdv);
+    CHECK(0 == ncdirect_raster_frame(nc_, ncdv, NCALIGN_LEFT));
     ncdirectf_free(dirf);
   }
 
@@ -94,6 +97,9 @@ TEST_CASE("DirectMode") {
       CHECK(NCBLIT_PIXEL == blitter);
       CHECK(geom.cdimy == geom.scaley);
       CHECK(geom.cdimx == geom.scalex);
+      auto ncdv = ncdirectf_render(nc_, dirf, blitter, NCSCALE_NONE, 0, 0);
+      CHECK(nullptr != ncdv);
+      CHECK(0 == ncdirect_raster_frame(nc_, ncdv, NCALIGN_LEFT));
       ncdirectf_free(dirf);
     }
   }
