@@ -31,14 +31,13 @@ auto find_data(const char* datum) -> char* {
   return strdup(p.c_str());
 }
 
-auto is_test_tty(FILE* fp) -> bool {
-  int fd = fileno(fp);
-  if(fd >= 0){
-    if(isatty(fd)){
-      return true;
-    }
+auto is_test_tty() -> bool {
+  int fd = open("/dev/tty", O_RDWR);
+  if(fd < 0){
+    return false;
   }
-  return false;
+  close(fd);
+  return true;
 }
 
 static void

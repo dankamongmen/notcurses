@@ -105,7 +105,7 @@ TEST_CASE("DirectMode") {
   }
 
   SUBCASE("CursorPostGlyphRender") {
-    if(is_test_tty(stdout)){
+    if(is_test_tty()){
       auto dirf = ncdirectf_from_file(nc_, find_data("worldmap.png"));
       REQUIRE(nullptr != dirf);
       auto ncdv = ncdirectf_render(nc_, dirf, NCBLIT_1x1, NCSCALE_NONE, 0, 0);
@@ -124,7 +124,7 @@ TEST_CASE("DirectMode") {
   }
 
   SUBCASE("CursorPostSprixel") {
-    if(is_test_tty(stdout)){
+    if(is_test_tty()){
       if(ncdirect_check_pixel_support(nc_) > 0){
         auto dirf = ncdirectf_from_file(nc_, find_data("worldmap.png"));
         REQUIRE(nullptr != dirf);
