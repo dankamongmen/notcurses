@@ -10,6 +10,7 @@
 #include <ncpp/_exceptions.hh>
 #include "internal.h"
 
+auto is_test_tty(FILE* fp) -> bool;
 auto find_data(const char* datum) -> char*;
 auto testing_notcurses() -> struct notcurses*;
 auto ncreel_validate(const ncreel* n) -> bool;
