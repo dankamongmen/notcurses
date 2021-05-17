@@ -31,6 +31,16 @@ auto find_data(const char* datum) -> char* {
   return strdup(p.c_str());
 }
 
+auto is_test_tty(FILE* fp) -> bool {
+  int fd = fileno(fp);
+  if(fd >= 0){
+    if(isatty(fd)){
+      return true;
+    }
+  }
+  return false;
+}
+
 static void
 handle_opts(const char** argv){
   bool inarg = false;
