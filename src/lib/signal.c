@@ -69,7 +69,9 @@ int drop_signals(void* nc){
   if(ret){
     fprintf(stderr, "Signals weren't registered for %p (had %p)\n", nc, expected);
   }
-  return ret;
+  // we might not have established any handlers in setup_signals(); always
+  // return 0 here, for now...
+  return 0;
 }
 
 static void
