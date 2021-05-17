@@ -45,12 +45,6 @@ int main(void){
     y += 2; // we just went down two lines
     while(y > 3){
       ret = -1;
-      const int up = y >= 3 ? 3 : y;
-      if(ncdirect_cursor_up(n, up)){
-        break;
-      }
-      fflush(stdout);
-      y -= up;
       int newy;
       if(ncdirect_cursor_yx(n, &newy, NULL)){
         break;
@@ -61,6 +55,12 @@ int main(void){
       }
       printf("\n\tRead cursor position: y: %d x: %d\n", newy, x);
       y += 2;
+      const int up = 3;
+      if(ncdirect_cursor_up(n, up)){
+        break;
+      }
+      fflush(stdout);
+      y -= up;
       ret = 0;
     }
   }else{
