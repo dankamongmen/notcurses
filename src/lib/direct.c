@@ -140,9 +140,9 @@ int ncdirect_cursor_right(ncdirect* nc, int num){
 }
 
 // if we're on the last line, we need some scrolling action. rather than
-// merely using cud, we emit vertical tabs. this has the peculiar property
-// (in all terminals tested) of scrolling when necessary but performing no
-// carriage return -- a pure line feed.
+// merely using cud (which doesn't reliably scroll), we emit vertical tabs.
+// this has the peculiar property (in all terminals tested) of scrolling when
+// necessary but performing no carriage return -- a pure line feed.
 int ncdirect_cursor_down(ncdirect* nc, int num){
   if(num < 0){
     return -1;
@@ -266,17 +266,32 @@ detect_cursor_inversion(ncdirect* n, int rows, int cols, int* y, int* x){
   if(cursor_yx_get(n->ctermfd, y, x)){
     return -1;
   }
-  if(*x == cols && *y == 1){
-    if(ncdirect_cursor_down(n, 1) || ncdirect_cursor_left(n, 1)){
-      return -1;
-    }
-  }else{
-    if(ncdirect_cursor_right(n, 1) || ncdirect_cursor_up(n, 1)){
-      return -1;
-    }
-  }
-  if(ncdirect_flush(n)){
+  // do not use normal ncdirect_cursor_*() commands, because those go to ttyfp
+  // instead of ctermfd. since we always talk directly to the terminal, we need
+  // to move the cursor directly via the terminal.
+  if(!n->tcache.cud || !n->tcache.cub || !n->tcache.cuf || !n->tcache.cuu){
     return -1;
+  }
+  int movex;
+  int movey;
+  if(*x == cols && *y == 1){
+    if(tty_emit(tiparm(n->tcache.cud, 1), n->ctermfd)){
+      return -1;
+    }
+    if(tty_emit(tiparm(n->tcache.cub, 1), n->ctermfd)){
+      return -1;
+    }
+    movex = 1;
+    movey = -1;
+  }else{
+    if(tty_emit(tiparm(n->tcache.cuu, 1), n->ctermfd)){
+      return -1;
+    }
+    if(tty_emit(tiparm(n->tcache.cuf, 1), n->ctermfd)){
+      return -1;
+    }
+    movex = -1;
+    movey = 1;
   }
   int newy, newx;
   if(cursor_yx_get(n->ctermfd, &newy, &newx)){
@@ -287,6 +302,12 @@ detect_cursor_inversion(ncdirect* n, int rows, int cols, int* y, int* x){
     newx = cols;
     *y = newy;
     newy = 1;
+  }
+  if(tty_emit(tiparm(movex == 1 ? n->tcache.cuf : n->tcache.cub, 1), n->ctermfd)){
+    return -1;
+  }
+  if(tty_emit(tiparm(movey == 1 ? n->tcache.cud : n->tcache.cuu, 1), n->ctermfd)){
+    return -1;
   }
   if(*y == newy && *x == newx){
     return -1; // hopelessly broken
@@ -315,16 +336,18 @@ detect_cursor_inversion(ncdirect* n, int rows, int cols, int* y, int* x){
 
 static int
 detect_cursor_inversion_wrapper(ncdirect* n, int* y, int* x){
+  // if we're not on a real terminal, there's no point in running this
+  if(n->ctermfd < 0){
+    return 0;
+  }
   const int toty = ncdirect_dim_y(n);
   const int totx = ncdirect_dim_x(n);
-  if(ncdirect_cursor_push(n)){
-    return -1; // FIXME work around lack of sc
-  }
-  int ret = detect_cursor_inversion(n, toty, totx, y, x);
-  if(ncdirect_cursor_pop(n)){
-    return -1;
-  }
-  return ret;
+  // there's an argument to be made that this ought be wrapped in sc/rc
+  // (push/pop cursor), rather than undoing itself. problem is, some
+  // terminals lack sc/rc (they need cursor moves to run the detection
+  // algorithm in the first place), and our versions go to ttyfp instead
+  // of ctermfd, as needed by cursor interrogation.
+  return detect_cursor_inversion(n, toty, totx, y, x);
 }
 
 // no terminfo capability for this. dangerous--it involves writing controls to
