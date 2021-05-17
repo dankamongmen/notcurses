@@ -1293,9 +1293,6 @@ void nclog(const char* fmt, ...);
 
 bool is_linux_console(const notcurses* nc, unsigned no_font_changes);
 
-// get a file descriptor for the controlling tty device, -1 on error
-int get_controlling_tty(FILE* fp);
-
 // logging
 #define logerror(nc, fmt, ...) do{ \
   if(nc){ if((nc)->loglevel >= NCLOGLEVEL_ERROR){ \
