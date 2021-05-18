@@ -43,7 +43,7 @@ lines = re.sub(r'(?m)(^(ALLOC |__attribute__ .*)?static (.*[^{]\n)+.*)\{$(?s:.*?
 
 # fix missing struct definitions
 # it doesn't actually matter what these are typedef'd to
-lines = 'typedef int sigset_t;\ntypedef int va_list;' + lines
+lines = 'typedef ... sigset_t;\ntypedef ... va_list;\n' + lines
 
 # remove various compiler/preprocessor hints that cffi doesn't understand
 lines = re.sub(r'\b(API|RESTRICT|ALLOC|static) ', '', lines)
