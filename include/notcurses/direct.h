@@ -336,7 +336,7 @@ typedef struct ncvgeom {
   int pixy, pixx;     // true pixel geometry of ncvisual data
   int cdimy, cdimx;   // terminal cell geometry when this was calculated
   int rpixy, rpixx;   // rendered pixel geometry
-  int rcelly, rcellx; // rendered cell geometry
+  int rcelly, rcellx; // rendered cell geometry FIXME not yet filled in
   int scaley, scalex; // pixels per filled cell
   // only defined for NCBLIT_PIXEL
   int maxpixely, maxpixelx;

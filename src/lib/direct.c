@@ -1261,6 +1261,7 @@ int ncdirectf_geom(ncdirect* n, ncdirectf* frame,
   geom->maxpixely = n->tcache.sixel_maxy;
   geom->maxpixelx = n->tcache.sixel_maxx;
   const struct blitset* bset;
+  geom->rcelly = geom->rcellx = -1; // FIXME
   int r = ncvisual_blitset_geom(NULL, &n->tcache, frame, &vopts,
                                 &geom->pixy, &geom->pixx,
                                 &geom->scaley, &geom->scalex,
