@@ -532,9 +532,13 @@ static ncdirectv*
 ncdirect_render_visual(ncdirect* n, ncvisual* ncv, ncblitter_e blitfxn,
                        ncscale_e scale, int ymax, int xmax,
                        uint32_t transcolor){
+  if(ymax < 0 || xmax < 0){
+    fprintf(stderr, "Invalid render geometry %d/%d\n", ymax, xmax);
+    return NULL;
+  }
   int dimy = ymax > 0 ? ymax : (ncdirect_dim_y(n) - 1);
   int dimx = xmax > 0 ? xmax : ncdirect_dim_x(n);
-//fprintf(stderr, "OUR DATA: %p rows/cols: %d/%d outsize: %d/%d %d\n", ncv->data, ncv->pixy, ncv->pixx, dimy, dimx, ymax);
+//fprintf(stderr, "OUR DATA: %p rows/cols: %d/%d outsize: %d/%d %d/%d\n", ncv->data, ncv->pixy, ncv->pixx, dimy, dimx, ymax, xmax);
 //fprintf(stderr, "render %d/%d to scaling: %d\n", ncv->pixy, ncv->pixx, scale);
   const struct blitset* bset = rgba_blitter_low(&n->tcache, scale, true, blitfxn);
   if(!bset){
@@ -572,6 +576,7 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv, ncblitter_e blitfxn,
       disprows = outy;
     }
   }
+//fprintf(stderr, "max: %d/%d out: %d/%d\n", ymax, xmax, outy, dispcols);
 //fprintf(stderr, "render: %d/%d stride %u %p\n", ncv->pixy, ncv->pixx, ncv->pixytride, ncv->data);
   ncplane_options nopts = {
     .y = 0,
@@ -586,6 +591,12 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv, ncblitter_e blitfxn,
   if(bset->geom == NCBLIT_PIXEL){
     nopts.rows = outy / n->tcache.cellpixy + !!(outy % n->tcache.cellpixy);
     nopts.cols = dispcols / n->tcache.cellpixx + !!(dispcols % n->tcache.cellpixx);
+  }
+  if(ymax && nopts.rows > ymax){
+    nopts.rows = ymax;
+  }
+  if(xmax && nopts.cols > xmax){
+    nopts.cols = xmax;
   }
   struct ncplane* ncdv = ncplane_new_internal(NULL, NULL, &nopts);
   if(!ncdv){
@@ -624,7 +635,7 @@ ncdirectv* ncdirect_render_frame(ncdirect* n, const char* file,
 
 int ncdirect_render_image(ncdirect* n, const char* file, ncalign_e align,
                           ncblitter_e blitfxn, ncscale_e scale){
-  ncdirectv* faken = ncdirect_render_frame(n, file, blitfxn, scale, -1, -1);
+  ncdirectv* faken = ncdirect_render_frame(n, file, blitfxn, scale, 0, 0);
   if(!faken){
     return -1;
   }
