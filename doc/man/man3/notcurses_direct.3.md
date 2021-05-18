@@ -179,6 +179,10 @@ must be supplied to **ncdirect_init**.
 before **NCBLIT_PIXEL** can be used to render images; see
 **notcurses_visual(3)** for more details.
 
+When rendering an image, ***maxy*** and ***maxx*** specify a maximum number
+of (cell) rows and columns to use, respectively. Passing 0 means "use as much
+space as is necessary". It is an error to pass a negative number for either.
+
 # RETURN VALUES
 
 **ncdirect_init** returns **NULL** on failure. Otherwise, the return value

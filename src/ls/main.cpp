@@ -147,7 +147,7 @@ void ncls_thread(const lsContext* ctx) {
       work.pop();
       pthread_mutex_unlock(&mtx);
       auto s = j.dir / j.p;
-      auto faken = ctx->nc.prep_image(s.c_str(), ctx->blitter, ctx->scaling, -1, -1);
+      auto faken = ctx->nc.prep_image(s.c_str(), ctx->blitter, ctx->scaling, 0, 0);
       pthread_mutex_lock(&outmtx);
       std::cout << j.p << '\n';
       if(faken){
