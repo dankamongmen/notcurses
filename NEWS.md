@@ -15,6 +15,11 @@ rearrangements of Notcurses.
   * Fixed bad bug in `ncvisual_resize()` when growing an image. This isn't
     relevant to enlarging an `ncvisual` via scaling, but only when persistently
     growing one with `ncvisual_resize()`.
+  * Direct mode image rendering now honors the `maxy` and `maxx` parameters,
+    which specify the maximum number of cell rows and columns, respectively,
+    to use for the render. They were previously ignored, contrary to
+    documentation. It is now an error to pass a negative number for either of
+    these values. Use 0 to specify "as much space as is necessary".
   * Added `ncdirectf_from_file()`, `ncdirectf_geom()`, and `ncdirectf_render()`,
     with the net result that you can now (efficiently) get media geometry in
     direct mode. If you don't care about media geometry, you can keep using
