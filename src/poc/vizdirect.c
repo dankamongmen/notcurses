@@ -2,6 +2,42 @@
 #include <unistd.h>
 #include <notcurses/direct.h>
 
+// print progressive partial subsets of the image
+static int
+partial_image(struct ncdirect* n, const char* file){
+  ncdirectf* nf = ncdirectf_from_file(n, file);
+  if(nf == NULL){
+    return -1;
+  }
+  // get the number of pixels
+  ncvgeom geom;
+  ncblitter_e blit = NCBLIT_1x1;
+  ncdirectf_geom(n, nf, &blit, NCSCALE_NONE, 0, 0, &geom);
+  if(geom.cdimy <= 0){
+    fprintf(stderr, "no cell dim information\n");
+    ncdirectf_free(nf);
+    return -1;
+  }
+  for(int y = geom.pixy ; y > 0 ; y -= 5){
+    int rows = y;
+    for(int x = geom.pixx ; x > 0 ; x -= 5){
+      int cols = x;
+      ncdirectv* v;
+      printf("Size: %dx%d\n", cols, rows);
+      if((v = ncdirectf_render(n, nf, blit, NCSCALE_NONE, rows, cols)) == NULL){
+        ncdirectf_free(nf);
+        return -1;
+      }
+      if(ncdirect_raster_frame(n, v, NCALIGN_CENTER)){
+        ncdirectf_free(nf);
+        return -1;
+      }
+    }
+  }
+  ncdirectf_free(nf);
+  return 0;
+}
+
 // can we leave what was already on the screen there? (narrator: it seems not)
 int main(void){
   if(!setlocale(LC_ALL, "")){
