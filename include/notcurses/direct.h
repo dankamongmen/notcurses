@@ -355,8 +355,8 @@ API int ncdirect_render_image(struct ncdirect* n, const char* filename,
 // the result. The image may be arbitrarily many rows -- the output will scroll
 // -- but will only occupy the column of the cursor, and those to the right.
 // To actually write (and free) this, invoke ncdirect_raster_frame(). 'maxx'
-// and 'maxy', if greater than 0, are used for scaling; the terminal's geometry
-// is otherwise used.
+// and 'maxy' (cell geometry, *not* pixel), if greater than 0, are used for
+// scaling; the terminal's geometry is otherwise used.
 API ALLOC ncdirectv* ncdirect_render_frame(struct ncdirect* n, const char* filename,
                                            ncblitter_e blitter, ncscale_e scale,
                                            int maxy, int maxx)
