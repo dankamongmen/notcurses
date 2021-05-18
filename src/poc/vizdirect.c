@@ -95,6 +95,9 @@ int main(void){
                            NCBLIT_DEFAULT, NCSCALE_NONE)){
     goto err;
   }
+  if(partial_image(n, "../data/warmech.bmp")){
+    goto err;
+  }
   if(ncdirect_stop(n)){
     return EXIT_FAILURE;
   }
