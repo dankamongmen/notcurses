@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 2.3.1 (not yet released)
+* 2.3.1 (2021-05-18)
   * Sprixels no longer interact with their associated plane's framebuffer. This
     means plane contents are maintainted across blitting a sprixel and then
     independently destroying that sprixel (i.e. without destroying the plane).
