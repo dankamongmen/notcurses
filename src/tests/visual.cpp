@@ -35,7 +35,7 @@ TEST_CASE("Visual") {
     CHECK(0 == ncplane_destroy(n));
   }
 
-  // check that leny/lenx properly limit the output
+  // check that leny/lenx properly limit the output, new plane
   SUBCASE("Partial") {
     auto y = 10;
     auto x = 10;
@@ -55,6 +55,32 @@ TEST_CASE("Visual") {
     REQUIRE(nullptr != n);
     CHECK(5 == ncplane_dim_y(n));
     CHECK(8 == ncplane_dim_x(n));
+    ncvisual_destroy(ncv);
+    CHECK(0 == ncplane_destroy(n));
+  }
+
+  // partial limit via len, offset via y/x, new plane
+  SUBCASE("PartialOffset") {
+    auto y = 10;
+    auto x = 10;
+    std::vector<uint32_t> v(x * y, htole(0xe61c28ff));
+    auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
+    REQUIRE(nullptr != ncv);
+    struct ncvisual_options vopts = {
+      .n = nullptr,
+      .scaling = NCSCALE_NONE,
+      .y = 2, .x = 4,
+      .begy = 0, .begx = 0,
+      .leny = 5, .lenx = 8,
+      .blitter = NCBLIT_1x1,
+      .flags = 0, .transcolor = 0,
+    };
+    auto n = ncvisual_render(nc_, ncv, &vopts);
+    REQUIRE(nullptr != n);
+    CHECK(5 == ncplane_dim_y(n));
+    CHECK(8 == ncplane_dim_x(n));
+    CHECK(2 == ncplane_y(n));
+    CHECK(4 == ncplane_x(n));
     ncvisual_destroy(ncv);
     CHECK(0 == ncplane_destroy(n));
   }
