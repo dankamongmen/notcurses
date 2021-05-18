@@ -42,6 +42,7 @@ TEST_CASE("Bitmaps") {
     auto s = n->sprite;
     REQUIRE(nullptr != s);
     ncvisual_destroy(ncv);
+    CHECK(0 == ncplane_destroy(n));
   }
 
   SUBCASE("SprixelMaximize") {
