@@ -575,7 +575,7 @@ ncvisual* ncvisual_from_bgra(const void* bgra, int rows, int rowstride, int cols
 // ncv->pixx define the source geometry in pixels.
 ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitset* bset,
                                int placey, int placex, int begy, int begx,
-                               ncplane* n, ncscale_e scaling,
+                               int leny, int lenx, ncplane* n, ncscale_e scaling,
                                uint64_t flags, uint32_t transcolor){
   int disprows, dispcols;
   ncplane* createdn = NULL;
@@ -737,8 +737,8 @@ make_sprixel_plane(notcurses* nc, ncplane* parent, ncvisual* ncv,
 // output width is always equal to the scaled width; it has no distinct name.
 ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blitset* bset,
                                 int placey, int placex, int begy, int begx,
-                                ncplane* n, ncscale_e scaling, uint64_t flags,
-                                uint32_t transcolor){
+                                int leny, int lenx, ncplane* n, ncscale_e scaling,
+                                uint64_t flags, uint32_t transcolor){
   ncplane* stdn = notcurses_stdplane(nc);
   if(n == stdn){
     logerror(nc, "Won't blit bitmaps to the standard plane\n");
@@ -884,9 +884,11 @@ ncplane* ncvisual_render(notcurses* nc, ncvisual* ncv, const struct ncvisual_opt
   }
   if(bset->geom != NCBLIT_PIXEL){
     n = ncvisual_render_cells(nc, ncv, bset, placey, placex, begy, begx,
-                              n, scaling, vopts ? vopts->flags : 0, transcolor);
+                              leny, leny, n, scaling,
+                              vopts ? vopts->flags : 0, transcolor);
   }else{
-    n = ncvisual_render_pixels(nc, ncv, bset, placey, placex, begy, begx, n, scaling,
+    n = ncvisual_render_pixels(nc, ncv, bset, placey, placex, begy, begx,
+                               leny, lenx, n, scaling,
                                vopts ? vopts->flags : 0, transcolor);
   }
   return n;
