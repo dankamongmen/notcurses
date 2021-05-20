@@ -467,6 +467,11 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx,
         int tyx = xcell + ycell * cols;
 //fprintf(stderr, "Tyx: %d y: %d (%d) * %d x: %d (%d) state %d\n", tyx, y, y / cdimy, cols, x, x / cdimx, tam[tyx].state);
         if(tam[tyx].state == SPRIXCELL_ANNIHILATED || tam[tyx].state == SPRIXCELL_ANNIHILATED_TRANS){
+          // this pixel is part of a cell which is currently wiped (alpha-nulled
+          // out, to present a glyph "atop" it). we will continue to mark it
+          // transparent, but we need to update the auxiliary vector.
+          const int vyx = (y % cdimy) * cdimx + (x % cdimx);
+          tam[tyx].auxvector[vyx] = ncpixel_a(source[e]);
           wipe[e] = 1;
         }else{
           wipe[e] = 0;
