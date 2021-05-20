@@ -1203,6 +1203,7 @@ int ncdirect_stream(ncdirect* n, const char* filename, ncstreamcb streamer,
     if(x > 0){
       ncdirect_cursor_left(n, x);
     }
+    // FIXME what about vopts->beg{yx} and vopts->len{yx}?
     ncdirectv* v = ncdirect_render_visual(n, ncv, vopts->blitter, vopts->scaling,
                                           0, 0, (vopts->flags & NCVISUAL_OPTION_ADDALPHA) ?
                                                  vopts->transcolor | 0x1000000ul : 0);
