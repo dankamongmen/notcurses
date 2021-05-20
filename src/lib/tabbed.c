@@ -217,7 +217,7 @@ nctab* nctabbed_add(nctabbed* nt, nctab* after, nctab* before, tabcb cb,
     after = nt->selected;
   }
   if((t = malloc(sizeof(*t))) == NULL){
-    logerror(nc, "Couldn't alocate nctab")
+    logerror(nc, "Couldn't allocate nctab")
     return NULL;
   }
   if((t->name = strdup(name)) == NULL){
