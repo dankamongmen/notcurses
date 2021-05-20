@@ -158,6 +158,7 @@ int oiio_blit(struct ncvisual* ncv, int rows, int cols,
     OIIO::ImageSpec sp{};
     sp.width = cols;
     sp.height = rows;
+    // FIXME need to honor leny/lenx and begy/begx
     ibuf->reset(sp, OIIO::InitializePixels::Yes);
     OIIO::ROI roi(0, cols, 0, rows, 0, 1, 0, 4);
     if(!OIIO::ImageBufAlgo::resize(*ibuf, *ncv->details->ibuf, "", 0, roi)){
