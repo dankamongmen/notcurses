@@ -654,6 +654,8 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
   }
   bargs.begy = begy;
   bargs.begx = begx;
+  bargs.leny = leny;
+  bargs.lenx = lenx;
   bargs.u.cell.placey = placey;
   bargs.u.cell.placex = placex;
   bargs.u.cell.blendcolors = flags & NCVISUAL_OPTION_BLEND;
@@ -772,8 +774,8 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
       disppixx -= absplacex * nc->tcache.cellpixx;
       disppixy -= absplacey * nc->tcache.cellpixy;
     }else{
-      disppixx = ncv->pixx;
-      disppixy = ncv->pixy;
+      disppixx = lenx;
+      disppixy = leny;
     }
     if(scaling == NCSCALE_SCALE || scaling == NCSCALE_SCALE_HIRES){
       clamp_to_sixelmax(&nc->tcache, &disppixy, &disppixx, &outy, scaling);
@@ -795,6 +797,8 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
   }
   bargs.begy = begy;
   bargs.begx = begx;
+  bargs.leny = leny;
+  bargs.lenx = lenx;
   bargs.u.pixel.celldimx = nc->tcache.cellpixx;
   bargs.u.pixel.celldimy = nc->tcache.cellpixy;
   bargs.u.pixel.colorregs = nc->tcache.color_registers;
