@@ -557,6 +557,7 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv, ncblitter_e blitfxn,
     }
     if(scale == NCSCALE_SCALE || scale == NCSCALE_SCALE_HIRES){
       scale_visual(ncv, &disprows, &dispcols);
+      outy = disprows;
       if(bset->geom == NCBLIT_PIXEL){
         clamp_to_sixelmax(&n->tcache, &disprows, &dispcols, &outy, scale);
       }
@@ -577,7 +578,7 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv, ncblitter_e blitfxn,
     }
   }
 //fprintf(stderr, "max: %d/%d out: %d/%d\n", ymax, xmax, outy, dispcols);
-//fprintf(stderr, "render: %d/%d stride %u %p\n", ncv->pixy, ncv->pixx, ncv->pixytride, ncv->data);
+//fprintf(stderr, "render: %d/%d stride %u %p\n", ncv->pixy, ncv->pixx, ncv->rowstride, ncv->data);
   ncplane_options nopts = {
     .y = 0,
     .x = 0,
