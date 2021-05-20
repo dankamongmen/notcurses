@@ -3,15 +3,20 @@
 set -e
 
 # export DISTRIBUTION to use something other than unstable (or whatever was
-# last used in debian/changelog). see dch(1).
+# last used in debian/changelog). see dch(1). can use a DEBVERSION exported
+# in the process's environment.
 usage() { echo "usage: `basename $0` version" ; }
 
 [ $# -eq 1 ] || { usage >&2 ; exit 1 ; }
 
 VERSION="$1"
 
+if [ -z "$DEBVERSION" ] ; then
+  DEBVERSION=1
+fi
+
 rm -fv debian/files
-dch -v $VERSION+dfsg.1-1
+dch -v $VERSION+dfsg.1-$DEBVERSION
 if [ -n "$DISTRIBUTION" ] ; then
   dch -r --distribution "$DISTRIBUTION"
 else
