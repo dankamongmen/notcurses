@@ -585,8 +585,8 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
       n = notcurses_stdplane(nc);
     }
     if(scaling == NCSCALE_NONE || scaling == NCSCALE_NONE_HIRES){
-      dispcols = ncv->pixx;
-      disprows = ncv->pixy;
+      dispcols = lenx;
+      disprows = leny;
     }else{
       ncplane_dim_yx(n, &disprows, &dispcols);
       dispcols *= encoding_x_scale(&nc->tcache, bset);
@@ -622,8 +622,8 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
     placex = 0;
   }else{
     if(scaling == NCSCALE_NONE || scaling == NCSCALE_NONE_HIRES){
-      dispcols = ncv->pixx;
-      disprows = ncv->pixy;
+      dispcols = lenx;
+      disprows = leny;
     }else{
       ncplane_dim_yx(n, &disprows, &dispcols);
       dispcols *= encoding_x_scale(&nc->tcache, bset);
@@ -884,7 +884,7 @@ ncplane* ncvisual_render(notcurses* nc, ncvisual* ncv, const struct ncvisual_opt
   }
   if(bset->geom != NCBLIT_PIXEL){
     n = ncvisual_render_cells(nc, ncv, bset, placey, placex, begy, begx,
-                              leny, leny, n, scaling,
+                              leny, lenx, n, scaling,
                               vopts ? vopts->flags : 0, transcolor);
   }else{
     n = ncvisual_render_pixels(nc, ncv, bset, placey, placex, begy, begx,
