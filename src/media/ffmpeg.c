@@ -468,9 +468,11 @@ int ffmpeg_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
 //fprintf(stderr, "Couldn't allocate output frame for scaled frame\n");
       return -1;
     }
-    //fprintf(stderr, "WHN NCV: %d/%d\n", inframe->width, inframe->height);
+//fprintf(stderr, "WHN NCV: %d/%d bargslen: %d/%d\n", inframe->width, inframe->height, bargs->leny, bargs->lenx);
+    const int srclenx = bargs->lenx ? bargs->lenx : inframe->width;
+    const int srcleny = bargs->leny ? bargs->leny : inframe->height;
     ncv->details->swsctx = sws_getCachedContext(ncv->details->swsctx,
-                                                inframe->width, inframe->height,
+                                                srclenx, srcleny,
                                                 inframe->format,
                                                 cols, rows, targformat,
                                                 SWS_LANCZOS, NULL, NULL, NULL);
@@ -492,7 +494,7 @@ int ffmpeg_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
     }
 //fprintf(stderr, "INFRAME DAA: %p SDATA: %p FDATA: %p\n", inframe->data[0], sframe->data[0], ncv->details->frame->data[0]);
     int height = sws_scale(ncv->details->swsctx, (const uint8_t* const*)inframe->data,
-                           inframe->linesize, 0, inframe->height, sframe->data,
+                           inframe->linesize, 0, srcleny, sframe->data,
                            sframe->linesize);
     if(height < 0){
 //fprintf(stderr, "Error applying scaling (%d X %d)\n", inframe->height, inframe->width);
