@@ -33,7 +33,9 @@ trilerp(uint32_t c0, uint32_t c1, uint32_t c2){
 
 static inline unsigned
 rgba_trans_q(const unsigned char* p, uint32_t transcolor){
-  return rgba_trans_p(*(const uint32_t*)p, transcolor);
+  uint32_t q;
+  memcpy(&q, p, sizeof(q));
+  return rgba_trans_p(q, transcolor);
 }
 
 // Retarded RGBA blitter (ASCII only).
