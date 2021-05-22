@@ -154,6 +154,7 @@ int main(void){
     notcurses_stop(nc);
     return EXIT_FAILURE;
   }
+  fprintf(stderr, "               stderr ought be redirected\n");
   int r = wipebitmap(nc);
   r |= notcurses_stop(nc);
   return r;
