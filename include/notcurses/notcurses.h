@@ -2643,8 +2643,8 @@ API int ncblit_rgb_loose(const void* data, int linesize,
 // Per libav, we "store as BGRA on little-endian, and ARGB on big-endian".
 // This is an RGBA *byte-order* scheme. libav emits bytes, not words. Those
 // bytes are R-G-B-A. When read as words, on little endian this will be ABGR,
-// and on big-endian this will be RGBA. force everything to LE ABGR, a no-op on
-// and thus favoring little-endian. Take that, big-endian mafia!
+// and on big-endian this will be RGBA. force everything to LE ABGR, a no-op
+// on (and thus favoring) little-endian. Take that, big-endian mafia!
 
 // Extract the 8-bit alpha component from a pixel
 static inline unsigned

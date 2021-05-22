@@ -526,15 +526,24 @@ ncvisual* ncvisual_from_rgba(const void* rgba, int rows, int rowstride, int cols
   }
   ncvisual* ncv = ncvisual_create();
   if(ncv){
+    // ffmpeg needs inputs with rows aligned on 192-byte boundaries
     ncv->rowstride = rowstride;
+    #define IMGALIGN 64
+    if(ncv->rowstride % IMGALIGN){
+      ncv->rowstride = (ncv->rowstride + IMGALIGN) / IMGALIGN * IMGALIGN;
+    }
+    #undef IMGALIGN
     ncv->pixx = cols;
     ncv->pixy = rows;
-    uint32_t* data = memdup(rgba, rowstride * ncv->pixy);
-//fprintf(stderr, "COPY US %d (%d)\n", rowstride * ncv->pixy, ncv->pixy);
+    uint32_t* data = malloc(ncv->rowstride * ncv->pixy);
     if(data == NULL){
       ncvisual_destroy(ncv);
       return NULL;
     }
+    for(int y = 0 ; y < rows ; ++y){
+      memcpy(data + (ncv->rowstride * y) / 4, rgba + rowstride * y, rowstride);
+    }
+//fprintf(stderr, "COPY US %d (%d)\n", rowstride * ncv->pixy, ncv->pixy);
 //fprintf(stderr, "ROWS: %d STRIDE: %d (%d) COLS: %d\n", rows, rowstride, rowstride / 4, cols);
     ncvisual_set_data(ncv, data, true);
     ncvisual_details_seed(ncv);

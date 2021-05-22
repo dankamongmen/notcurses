@@ -42,8 +42,8 @@ typedef struct ncvisual_details {
 print_frame_summary(const AVCodecContext* cctx, const AVFrame* f){
   char pfmt[128];
   av_get_pix_fmt_string(pfmt, sizeof(pfmt), f->format);
-  fprintf(stderr, "Frame %05d (%d? %d?) %dx%d pfmt %d (%s)\n",
-          cctx->frame_number,
+  fprintf(stderr, "Frame %05d %p (%d? %d?) %dx%d pfmt %d (%s)\n",
+          cctx ? cctx->frame_number : 0, f,
           f->coded_picture_number,
           f->display_picture_number,
           f->width, f->height,
@@ -455,12 +455,12 @@ int ffmpeg_decode_loop(ncvisual* ncv){
 int ffmpeg_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
                 const struct blitset* bset, const blitterargs* bargs){
   const AVFrame* inframe = ncv->details->frame;
-//fprintf(stderr, "inframe: %p frame: %p\n", inframe, ncv->details->frame);
+//print_frame_summary(NULL, inframe);
   void* data = NULL;
   int stride = 0;
   AVFrame* sframe = NULL;
   const int targformat = AV_PIX_FMT_RGBA;
-//fprintf(stderr, "got format: %d want format: %d\n", inframe->format, targformat);
+//fprintf(stderr, "got format: %d (%d/%d) want format: %d\n", inframe->format, inframe->height, inframe->width, targformat);
   if(inframe && (cols != inframe->width || rows != inframe->height || inframe->format != targformat)){
 //fprintf(stderr, "resize+render: %d/%d->%d/%d\n", inframe->height, inframe->width, rows, cols);
     sframe = av_frame_alloc();
@@ -471,6 +471,7 @@ int ffmpeg_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
 //fprintf(stderr, "WHN NCV: %d/%d bargslen: %d/%d\n", inframe->width, inframe->height, bargs->leny, bargs->lenx);
     const int srclenx = bargs->lenx ? bargs->lenx : inframe->width;
     const int srcleny = bargs->leny ? bargs->leny : inframe->height;
+//fprintf(stderr, "src %d/%d -> targ %d/%d ctx: %p\n", srcleny, srclenx, rows, cols, ncv->details->swsctx);
     ncv->details->swsctx = sws_getCachedContext(ncv->details->swsctx,
                                                 srclenx, srcleny,
                                                 inframe->format,
@@ -492,7 +493,7 @@ int ffmpeg_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
 //fprintf(stderr, "Error allocating visual data (%d X %d)\n", sframe->height, sframe->width);
       return -1;
     }
-//fprintf(stderr, "INFRAME DAA: %p SDATA: %p FDATA: %p\n", inframe->data[0], sframe->data[0], ncv->details->frame->data[0]);
+//fprintf(stderr, "INFRAME DAA: %p SDATA: %p FDATA: %p to %d/%d\n", inframe->data[0], sframe->data[0], ncv->details->frame->data[0], sframe->height, sframe->width);
     int height = sws_scale(ncv->details->swsctx, (const uint8_t* const*)inframe->data,
                            inframe->linesize, 0, srcleny, sframe->data,
                            sframe->linesize);
