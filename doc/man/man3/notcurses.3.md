@@ -28,7 +28,7 @@ using CMake, a support file is provided, and can be accessed as **Notcurses**
 to link against a minimal Notcurses using **pkg-config --libs notcurses-core**.
 
 **notcurses_init(3)** can then be used to initialize a Notcurses instance for a
-given **FILE** (usually **stdout**, usually attached to a terminal).
+given **FILE*** (usually **stdout**, usually attached to a terminal).
 
 ## Construction
 
