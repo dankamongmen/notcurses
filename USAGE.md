@@ -655,6 +655,11 @@ notcurses_getc_blocking(struct notcurses* n, ncinput* ni){
   sigemptyset(&sigmask);
   return notcurses_getc(n, NULL, &sigmask, ni);
 }
+
+static inline bool
+ncinput_nomod_p(const ncinput* ni){
+  return !ni->alt && !ni->ctrl && !ni->shift;
+}
 ```
 
 By default, certain keys are mapped to signals by the terminal's line

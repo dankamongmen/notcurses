@@ -1055,6 +1055,11 @@ notcurses_getc_blocking(struct notcurses* n, ncinput* ni){
   return notcurses_getc(n, NULL, &sigmask, ni);
 }
 
+static inline bool
+ncinput_nomod_p(const ncinput* ni){
+  return !ni->alt && !ni->ctrl && !ni->shift;
+}
+
 // Enable the mouse in "button-event tracking" mode with focus detection and
 // UTF8-style extended coordinates. On failure, -1 is returned. On success, 0
 // is returned, and mouse events will be published to notcurses_getc().

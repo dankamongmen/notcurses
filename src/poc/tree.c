@@ -399,9 +399,8 @@ tree_ui(struct notcurses* nc, struct nctree* tree){
       if(notcurses_render(nc)){
         return -1;
       }
-      continue;
-    }
-    if(ni.id == 'q'){
+    }else if(ni.id == '/' && ncinput_nomod_p(&ni)){
+    }else if(ni.id == 'q' && ncinput_nomod_p(&ni)){
       return 0;
     }
   }
