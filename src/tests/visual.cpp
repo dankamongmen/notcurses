@@ -354,6 +354,7 @@ TEST_CASE("Visual") {
         CHECK(0x405060 == ncchannels_bg_rgb(channels));
         free(egc);
         ncvisual_destroy(ncv);
+        CHECK(0 == notcurses_render(nc_));
       }
     }
   }
@@ -399,6 +400,7 @@ TEST_CASE("Visual") {
           CHECK(0xcccccc == ncchannels_bg_rgb(channels));
           free(egc);
           ncvisual_destroy(ncv);
+          CHECK(0 == notcurses_render(nc_));
         }
       }
     }
@@ -452,6 +454,7 @@ TEST_CASE("Visual") {
           }
           free(egc);
           ncvisual_destroy(ncv);
+          CHECK(0 == notcurses_render(nc_));
         }
       }
     }
@@ -505,6 +508,7 @@ TEST_CASE("Visual") {
           }
           free(egc);
           ncvisual_destroy(ncv);
+          CHECK(0 == notcurses_render(nc_));
         }
       }
     }
@@ -552,6 +556,7 @@ TEST_CASE("Visual") {
           CHECK(0xdddddd == ncchannels_bg_rgb(channels));
           free(egc);
           ncvisual_destroy(ncv);
+          CHECK(0 == notcurses_render(nc_));
         }
       }
     }
@@ -592,6 +597,7 @@ TEST_CASE("Visual") {
     CHECK(0 == ncplane_y(child));
     CHECK(0 == ncplane_x(child));
     ncvisual_destroy(ncv);
+    CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncplane_destroy(parent));
     CHECK(0 == ncplane_destroy(child));
   }
@@ -632,6 +638,7 @@ TEST_CASE("Visual") {
     CHECK(2 == ncplane_y(child));
     CHECK(2 == ncplane_x(child));
     ncvisual_destroy(ncv);
+    CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncplane_destroy(parent));
     CHECK(0 == ncplane_destroy(child));
   }
@@ -972,6 +979,7 @@ TEST_CASE("Visual") {
     CHECK(0 == ncplane_y(child));
     CHECK(0 == ncplane_x(child));
     ncvisual_destroy(ncv);
+    CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncplane_destroy(parent));
     CHECK(0 == ncplane_destroy(child));
   }
