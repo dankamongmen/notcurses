@@ -596,43 +596,6 @@ TEST_CASE("Visual") {
     CHECK(0 == ncplane_destroy(child));
   }
 
-  // test NCVISUAL_OPTIONS_CHILDPLANE + stretch + null alignment, using a file
-  SUBCASE("ImageFileChildScaling") {
-    struct ncplane_options opts = {
-      .y = 0, .x = 0,
-      .rows = 5, .cols = 5,
-      .userptr = nullptr,
-      .name = "parent",
-      .resizecb = nullptr,
-      .flags = 0,
-      .margin_b = 0,
-      .margin_r = 0,
-    };
-    auto parent = ncplane_create(n_, &opts);
-    REQUIRE(parent);
-    struct ncvisual_options vopts = {
-      .n = parent,
-      .scaling = NCSCALE_STRETCH,
-      .y = 0, .x = 0,
-      .begy = 0, .begx = 0,
-      .leny = 0, .lenx = 0,
-      .blitter = NCBLIT_1x1,
-      .flags = NCVISUAL_OPTION_CHILDPLANE,
-      .transcolor = 0,
-    };
-    auto ncv = ncvisual_from_file(find_data("onedot.png"));
-    REQUIRE(ncv);
-    auto child = ncvisual_render(nc_, ncv, &vopts);
-    REQUIRE(child);
-    CHECK(5 == ncplane_dim_y(child));
-    CHECK(5 == ncplane_dim_x(child));
-    CHECK(0 == ncplane_y(child));
-    CHECK(0 == ncplane_x(child));
-    ncvisual_destroy(ncv);
-    CHECK(0 == ncplane_destroy(parent));
-    CHECK(0 == ncplane_destroy(child));
-  }
-
   SUBCASE("ImageChildAlignment") {
     struct ncplane_options opts = {
       .y = 0, .x = 0,
@@ -975,6 +938,44 @@ TEST_CASE("Visual") {
       ncvisual_destroy(ncv);
     }
   }
+
+  // test NCVISUAL_OPTIONS_CHILDPLANE + stretch + null alignment, using a file
+  SUBCASE("ImageFileChildScaling") {
+    struct ncplane_options opts = {
+      .y = 0, .x = 0,
+      .rows = 5, .cols = 5,
+      .userptr = nullptr,
+      .name = "parent",
+      .resizecb = nullptr,
+      .flags = 0,
+      .margin_b = 0,
+      .margin_r = 0,
+    };
+    auto parent = ncplane_create(n_, &opts);
+    REQUIRE(parent);
+    struct ncvisual_options vopts = {
+      .n = parent,
+      .scaling = NCSCALE_STRETCH,
+      .y = 0, .x = 0,
+      .begy = 0, .begx = 0,
+      .leny = 0, .lenx = 0,
+      .blitter = NCBLIT_1x1,
+      .flags = NCVISUAL_OPTION_CHILDPLANE,
+      .transcolor = 0,
+    };
+    auto ncv = ncvisual_from_file(find_data("onedot.png"));
+    REQUIRE(ncv);
+    auto child = ncvisual_render(nc_, ncv, &vopts);
+    REQUIRE(child);
+    CHECK(5 == ncplane_dim_y(child));
+    CHECK(5 == ncplane_dim_x(child));
+    CHECK(0 == ncplane_y(child));
+    CHECK(0 == ncplane_x(child));
+    ncvisual_destroy(ncv);
+    CHECK(0 == ncplane_destroy(parent));
+    CHECK(0 == ncplane_destroy(child));
+  }
+
 #endif
 
   CHECK(!notcurses_stop(nc_));
