@@ -520,6 +520,7 @@ int ncvisual_rotate(ncvisual* ncv, double rads){
   return 0;
 }
 
+#define IMGALIGN 64
 ncvisual* ncvisual_from_rgba(const void* rgba, int rows, int rowstride, int cols){
   if(rowstride % 4){
     return NULL;
@@ -528,11 +529,9 @@ ncvisual* ncvisual_from_rgba(const void* rgba, int rows, int rowstride, int cols
   if(ncv){
     // ffmpeg needs inputs with rows aligned on 192-byte boundaries
     ncv->rowstride = rowstride;
-    #define IMGALIGN 64
     if(ncv->rowstride % IMGALIGN){
       ncv->rowstride = (ncv->rowstride + IMGALIGN) / IMGALIGN * IMGALIGN;
     }
-    #undef IMGALIGN
     ncv->pixx = cols;
     ncv->pixy = rows;
     uint32_t* data = malloc(ncv->rowstride * ncv->pixy);
@@ -558,23 +557,31 @@ ncvisual* ncvisual_from_bgra(const void* bgra, int rows, int rowstride, int cols
   ncvisual* ncv = ncvisual_create();
   if(ncv){
     ncv->rowstride = rowstride;
+    if(ncv->rowstride % IMGALIGN){
+      ncv->rowstride = (ncv->rowstride + IMGALIGN) / IMGALIGN * IMGALIGN;
+    }
     ncv->pixx = cols;
     ncv->pixy = rows;
-    uint32_t* data = memdup(bgra, rowstride * ncv->pixy);
-    for(int p = 0 ; p < rowstride / 4 * ncv->pixy ; ++p){
-      const unsigned r = (data[p] & 0xffllu) << 16u;
-      const unsigned b = (data[p] & 0xff0000llu) >> 16u;
-      data[p] = (data[p] & 0xff00ff00llu) | r | b;
-    }
+    uint32_t* data = malloc(ncv->rowstride * ncv->pixy);
     if(data == NULL){
       ncvisual_destroy(ncv);
       return NULL;
+    }
+    for(int y = 0 ; y < rows ; ++y){
+      for(int x = 0 ; x < cols ; ++x){
+        uint32_t src;
+        memcpy(&src, (const char*)bgra + y * rowstride + x, 4);
+        const uint32_t r = (src & 0xffllu) << 16u;
+        const uint32_t b = (src & 0xff0000llu) >> 16u;
+        data[ncv->rowstride * y / 4 + x] = (src & 0xff00ff00llu) | r | b;
+      }
     }
     ncvisual_set_data(ncv, data, true);
     ncvisual_details_seed(ncv);
   }
   return ncv;
 }
+#undef IMGALIGN
 
 // by the end, disprows/dispcols refer to the number of source rows/cols (in
 // pixels), which will be mapped to a region of cells scaled by the encodings).
