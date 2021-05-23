@@ -1464,6 +1464,12 @@ int ncdirect_set_fg_rgb(ncdirect* nc, unsigned rgb){
   return 0;
 }
 
+int notcurses_cursor_yx(notcurses* nc, int* y, int* x){
+  *y = nc->rstate.y;
+  *x = nc->rstate.x;
+  return 0;
+}
+
 int notcurses_cursor_enable(notcurses* nc, int y, int x){
   if(y < 0 || x < 0){
     logerror(nc, "Illegal cursor placement: %d, %d\n", y, x);
@@ -1481,6 +1487,7 @@ int notcurses_cursor_enable(notcurses* nc, int y, int x){
   if(nc->ttyfd < 0 || !nc->tcache.cnorm){
     return -1;
   }
+  // updates nc->rstate.cursor{y,x}
   if(goto_location(nc, nc->ttyfp, y + nc->stdplane->absy, x + nc->stdplane->absx)){
     return -1;
   }

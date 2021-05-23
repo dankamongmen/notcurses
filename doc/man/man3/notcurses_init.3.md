@@ -183,6 +183,26 @@ standard plane (see **notcurses_stdplane(3)**) will be resized to the new
 screen size. The next **notcurses_render(3)** call will function as expected
 across the new screen geometry.
 
+## The hardware cursor
+
+Most terminals provide a cursor, a visual indicator of where output will next
+be placed. There is usually (but not always) some degree of control over what
+glyph forms this cursor, and whether it e.g. blinks.
+
+By default, Notcurses disables this cursor in rendered mode. It can be turned
+back on with **notcurses_enable_cursor**, which has immediate effect (there is
+no need to call **notcurses_render(3)**. If already visible, this function
+updates the location. Each time the physical screen is updated, Notcurses will
+disable the cursor, write the update, move the cursor back to this location,
+and finally make the cursor visible. **notcurses_cursor_yx** retrieves the
+location of the cursor, whether visible or not. **notcurses_disable_cursor**
+hides the cursor.
+
+You generally shouldn't need to touch the terminal cursor. It's only really
+relevant with echoed user input, and you don't want echoed user input in
+rendered mode (instead, read the input, and write it to a plane yourself).
+A subprocess can be streamed to a plane with an **ncsubproc**, etc.
+
 # RETURN VALUES
 
 **NULL** is returned on failure. Otherwise, the return value points at a valid

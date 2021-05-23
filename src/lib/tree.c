@@ -462,7 +462,7 @@ void* nctree_focused(nctree* n){
 }
 
 void* nctree_goto(nctree* n, const unsigned* spec, int* failspec){
-  (void)n;
+  n->activerow = 0;
   (void)spec;
   (void)failspec;
   // FIXME
