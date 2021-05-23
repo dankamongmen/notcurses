@@ -31,6 +31,7 @@ typedef struct ncvisual_details {
   struct AVCodec* subtcodec;
   struct AVPacket* packet;
   struct SwsContext* swsctx;
+  struct SwsContext* rgbactx;
   AVSubtitle subtitle;
   int stream_index;        // match against this following av_read_frame()
   int sub_stream_index;    // subtitle stream index, can be < 0 if no subtitles
@@ -116,6 +117,8 @@ char* ffmpeg_subtitle(const ncvisual* ncv){
       return deass(rect->ass);
     }else if(rect->type == SUBTITLE_TEXT){;
       return strdup(rect->text);
+    }else if(rect->type == SUBTITLE_BITMAP){
+      // FIXME
     }
   }
   return NULL;
@@ -129,6 +132,72 @@ averr2ncerr(int averr){
   // FIXME need to map averror codes to ncerrors
 //fprintf(stderr, "AVERR: %d/%x %d/%x\n", averr, averr, -averr, -averr);
   return -1;
+}
+
+// force an AVImage to RGBA for safe use with the ncpixel API
+static int
+force_rgba(ncvisual* n){
+  const int targformat = AV_PIX_FMT_RGBA;
+  AVFrame* inf = n->details->frame;
+//fprintf(stderr, "%p got format: %d (%d/%d) want format: %d (%d/%d)\n", n->details->frame, inf->format, n->pixy, n->pixx, targformat);
+  if(inf->format == targformat){
+    return 0;
+  }
+  AVFrame* sframe = av_frame_alloc();
+  if(sframe == NULL){
+//fprintf(stderr, "Couldn't allocate output frame for scaled frame\n");
+    return -1;
+  }
+//fprintf(stderr, "WHN NCV: %d/%d\n", inf->width, inf->height);
+  n->details->rgbactx = sws_getCachedContext(n->details->rgbactx,
+                                            inf->width, inf->height, inf->format,
+                                            inf->width, inf->height, targformat,
+                                            SWS_LANCZOS, NULL, NULL, NULL);
+  if(n->details->rgbactx == NULL){
+//fprintf(stderr, "Error retrieving details->rgbactx\n");
+    return -1;
+  }
+  memcpy(sframe, inf, sizeof(*inf));
+  sframe->format = targformat;
+  sframe->width = inf->width;
+  sframe->height = inf->height;
+  int size = av_image_alloc(sframe->data, sframe->linesize,
+                            sframe->width, sframe->height,
+                            sframe->format,
+                            IMGALLOCALIGN);
+  if(size < 0){
+//fprintf(stderr, "Error allocating visual data (%d X %d)\n", sframe->height, sframe->width);
+    return -1;
+  }
+//fprintf(stderr, "INFRAME DAA: %p SDATA: %p FDATA: %p\n", inframe->data[0], sframe->data[0], ncv->details->frame->data[0]);
+  int height = sws_scale(n->details->rgbactx, (const uint8_t* const*)inf->data,
+                         inf->linesize, 0, inf->height, sframe->data,
+                         sframe->linesize);
+  if(height < 0){
+//fprintf(stderr, "Error applying converting %d\n", inf->format);
+    av_freep(sframe->data);
+    av_freep(&sframe);
+    return -1;
+  }
+  int bpp = av_get_bits_per_pixel(av_pix_fmt_desc_get(sframe->format));
+  if(bpp != 32){
+//fprintf(stderr, "Bad bits-per-pixel (wanted 32, got %d)\n", bpp);
+    av_freep(sframe->data);
+    av_freep(&sframe);
+    return -1;
+  }
+  n->rowstride = sframe->linesize[0];
+  if((uint32_t*)sframe->data[0] != n->data){
+//fprintf(stderr, "SETTING UP RESIZE %p\n", n->data);
+    if(n->details->frame){
+      if(n->owndata){
+        av_freep(&n->details->frame);
+      }
+    }
+    ncvisual_set_data(n, sframe->data[0], true);
+  }
+  n->details->frame = sframe;
+  return 0;
 }
 
 int ffmpeg_decode(ncvisual* n){
@@ -186,6 +255,7 @@ int ffmpeg_decode(ncvisual* n){
   n->pixy = n->details->frame->height;
 //fprintf(stderr, "good decode! %d/%d %d %p\n", n->details->frame->height, n->details->frame->width, n->rowstride, f->data);
   ncvisual_set_data(n, f->data[0], false);
+  force_rgba(n);
   return 0;
 }
 
@@ -566,6 +636,7 @@ void ffmpeg_details_destroy(ncvisual_details* deets){
   avcodec_free_context(&deets->codecctx);
   av_freep(&deets->frame);
   //avcodec_parameters_free(&ncv->cparams);
+  sws_freeContext(deets->rgbactx);
   sws_freeContext(deets->swsctx);
   av_packet_free(&deets->packet);
   avformat_close_input(&deets->fmtctx);
