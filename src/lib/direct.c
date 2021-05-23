@@ -1263,11 +1263,15 @@ int ncdirectf_geom(ncdirect* n, ncdirectf* frame,
   geom->maxpixely = n->tcache.sixel_maxy;
   geom->maxpixelx = n->tcache.sixel_maxx;
   const struct blitset* bset;
-  geom->rcelly = geom->rcellx = -1; // FIXME
   int r = ncvisual_blitset_geom(NULL, &n->tcache, frame, &vopts,
                                 &geom->pixy, &geom->pixx,
                                 &geom->scaley, &geom->scalex,
                                 &geom->rpixy, &geom->rpixx, &bset);
+  // FIXME ncvisual_blitset_geom() ought calculate these two for us; until
+  // then, derive them ourselves. the row count might be short by one if
+  // we're using sixel, and we're not a multiple of 6
+  geom->rcelly = geom->pixy / geom->scaley;
+  geom->rcellx = geom->pixx / geom->scalex;
   if(r == 0 && blitter){
     *blitter = bset->geom;
   }
