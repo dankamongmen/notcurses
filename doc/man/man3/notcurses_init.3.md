@@ -48,6 +48,8 @@ typedef struct notcurses_options {
 
 **int notcurses_cursor_enable(struct notcurses* ***nc***, int ***y***, int ***x***);**
 
+**int notcurses_cursor_yx(struct notcurses* ***nc***, int* ***y***, int* ***x***);**
+
 **int notcurses_cursor_disable(struct notcurses* ***nc***);**
 
 # DESCRIPTION
@@ -78,8 +80,10 @@ strong opinions regarding the alternate screen, so it's often useful to expose
 this via a command-line option.
 
 notcurses hides the cursor by default. It can be dynamically enabled, moved, or
-disabled during execution via **notcurses_cursor_enable(3)** and
-**notcurses_cursor_disable(3)**.
+disabled during execution via **notcurses_cursor_enable** and
+**notcurses_cursor_disable**. It will be hidden while updating the screen.
+The current location of the terminal cursor can be acquired with
+**notcurses_cursor_yx**, whether visible or not.
 
 **notcurses_init** typically emits some diagnostics at startup, including version
 information and some details of the configured terminal. This can be inhibited
@@ -184,6 +188,8 @@ across the new screen geometry.
 **NULL** is returned on failure. Otherwise, the return value points at a valid
 **struct notcurses**, which can be used until it is provided to
 **notcurses_stop(3)**.
+
+**notcurses_cursor_disable** returns -1 if the cursor is already invisible.
 
 # SEE ALSO
 

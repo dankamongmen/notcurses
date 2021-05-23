@@ -263,10 +263,18 @@ notcurses_term_dim_yx(const struct notcurses* n, int* restrict rows,
 // NCKEY_RESIZE event has been read and you're not ready to render.
 int notcurses_refresh(struct notcurses* n, int* restrict y, int* restrict x);
 
-// Enable or disable the terminal's cursor, if supported. Immediate effect.
-// It is an error to supply coordinates outside of the standard plane.
-void notcurses_cursor_enable(struct notcurses* nc, int y, int x);
-void notcurses_cursor_disable(struct notcurses* nc);
+// Enable or disable the terminal's cursor, if supported, placing it at
+// 'y', 'x'. Immediate effect (no need for a call to notcurses_render()).
+// It is an error if 'y', 'x' lies outside the standard plane. Can be
+// called while already visible to move the cursor.
+int notcurses_cursor_enable(struct notcurses* nc, int y, int x);
+
+// Get the current location of the terminal's cursor, whether visible or not.
+int notcurses_cursor_yx(struct notcurses* nc, int y, int x);
+
+// Disable the hardware cursor. It is an error to call this while the
+// cursor is already disabled.
+int notcurses_cursor_disable(struct notcurses* nc);
 
 // Returns a 16-bit bitmask in the LSBs of supported curses-style attributes
 // (NCSTYLE_UNDERLINE, NCSTYLE_BOLD, etc.) The attribute is only

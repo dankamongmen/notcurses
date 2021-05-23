@@ -2909,8 +2909,15 @@ bprefix(uintmax_t val, uintmax_t decimal, char* buf, int omitdec){
 
 // Enable or disable the terminal's cursor, if supported, placing it at
 // 'y', 'x'. Immediate effect (no need for a call to notcurses_render()).
-// It is an error if 'y', 'x' lies outside the standard plane.
+// It is an error if 'y', 'x' lies outside the standard plane. Can be
+// called while already visible to move the cursor.
 API int notcurses_cursor_enable(struct notcurses* nc, int y, int x);
+
+// Get the current location of the terminal's cursor, whether visible or not.
+API int notcurses_cursor_yx(struct notcurses* nc, int y, int x);
+
+// Disable the hardware cursor. It is an error to call this while the
+// cursor is already disabled.
 API int notcurses_cursor_disable(struct notcurses* nc);
 
 // Palette API. Some terminals only support 256 colors, but allow the full

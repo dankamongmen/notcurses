@@ -6,6 +6,7 @@ rearrangements of Notcurses.
     memory (e.g. `ncvisual_from_rgba()`).
   * `ncinput_nomod_p()` has been added. This function returns `true` if and
     only if its `ncinput` argument has no modifiers active.
+  * Added `notcurses_cursor_yx()` to get the current location of the cursor.
 
 * 2.3.1 (2021-05-18)
   * Sprixels no longer interact with their associated plane's framebuffer. This
