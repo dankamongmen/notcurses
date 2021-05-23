@@ -156,6 +156,116 @@ dtable_to_ctable(int dtable, unsigned char* ctable){
   ctable[4] = dtable % 256;*/
 }
 
+// wipe the color from startx to endx, from starty to endy. returns 1 if any
+// pixels were actually wiped.
+static inline int
+wipe_color(sixelmap* smap, int color, int sband, int eband,
+           int startx, int endx, int starty, int endy, int dimx,
+           int cellpixy, int cellpixx, uint8_t* auxvec){
+  int wiped = 0;
+  int didx = ctable_to_dtable(smap->table + color * CENTSIZE);
+  // offset into map->data where our color starts
+  int coff = smap->sixelcount * didx;
+//fprintf(stderr, "didx: %d sixels: %d color: %d B: %d-%d Y: %d-%d X: %d-%d coff: %d\n", didx, smap->sixelcount, color, sband, eband, starty, endy, startx, endx, coff);
+  // we're going to repurpose starty as "starting row of this band", so keep it
+  // around as originy for auxvecidx computations
+  int originy = starty;
+  for(int b = sband ; b <= eband && b * 6 <= endy ; ++b){
+    const int boff = coff + b * dimx; // offset in data where band starts
+    unsigned char mask = 63;
+    for(int i = 0 ; i < 6 ; ++i){
+      if(b * 6 + i >= starty && b * 6 + i <= endy){
+        mask &= ~(1u << i);
+      }
+//fprintf(stderr, "s/e: %d/%d mask: %02x\n", starty, endy, mask);
+    }
+    for(int x = startx ; x <= endx ; ++x){
+      const int xoff = boff + x;
+      assert(xoff < (smap->colors + 1) * smap->sixelcount);
+//fprintf(stderr, "band: %d color: %d idx: %d mask: %02x\n", b, color, color * smap->sixelcount + xoff, mask);
+//fprintf(stderr, "color: %d idx: %d data: %02x\n", color, color * smap->sixelcount + xoff, smap->data[color * smap->sixelcount + xoff]);
+      // this is the auxvec position of the upperleftmost pixel of the sixel
+      // there will be up to five more, each cellpxx away, for the five pixels
+      // below it. there will be cellpxx - 1 after it, each with their own five.
+//fprintf(stderr, "smap->data[%d] = %02x boff: %d x: %d color: %d\n", xoff, smap->data[xoff], boff, x, color);
+      for(int i = 0 ; i < 6 && b * 6 + i <= endy ; ++i){
+        int auxvecidx = (x - startx) + ((b * 6 + i - originy) * cellpixx);
+        unsigned bit = 1u << i;
+//fprintf(stderr, "xoff: %d i: %d b: %d endy: %d mask: 0x%02x\n", xoff, i, b, endy, mask);
+        if(!(mask & bit) && (smap->data[xoff] & bit)){
+//fprintf(stderr, "band %d %d/%d writing %d to auxvec[%d] %p xoff: %d boff: %d\n", b, b * 6 + i, x, color, auxvecidx, auxvec, xoff, boff);
+          auxvec[auxvecidx] = color;
+          auxvec[cellpixx * cellpixy + auxvecidx] = 0;
+        }
+      }
+      if((smap->data[xoff] & mask) != smap->data[xoff]){
+        smap->data[xoff] &= mask;
+        wiped = 1;
+      }
+//fprintf(stderr, "post: %02x\n", smap->data[color * smap->sixelcount + xoff]);
+    }
+    starty = (starty + 6) / 6 * 6;
+  }
+  return wiped;
+}
+
+// we return -1 because we're not doing a proper wipe -- that's not possible
+// using sixel. we just mark it as partially transparent, so that if it's
+// redrawn, it's redrawn using P2=1.
+int sixel_wipe(sprixel* s, int ycell, int xcell){
+//fprintf(stderr, "WIPING %d/%d\n", ycell, xcell);
+  uint8_t* auxvec = sprixel_auxiliary_vector(s);
+  memset(auxvec + s->cellpxx * s->cellpxy, 0xff, s->cellpxx * s->cellpxy);
+  sixelmap* smap = s->smap;
+  const int startx = xcell * s->cellpxx;
+  const int starty = ycell * s->cellpxy;
+  int endx = ((xcell + 1) * s->cellpxx) - 1;
+  if(endx >= s->pixx){
+    endx = s->pixx - 1;
+  }
+  int endy = ((ycell + 1) * s->cellpxy) - 1;
+  if(endy >= s->pixy){
+    endy = s->pixy - 1;
+  }
+  const int startband = starty / 6;
+  const int endband = endy / 6;
+//fprintf(stderr, "y/x: %d/%d start: %d/%d end: %d/%d\n", ycell, xcell, starty, startx, endy, endx);
+  // walk through each color, and wipe the necessary sixels from each band
+  int w = 0;
+  for(int c = 0 ; c < smap->colors ; ++c){
+    w |= wipe_color(smap, c, startband, endband, startx, endx, starty, endy,
+                    s->pixx, s->cellpxy, s->cellpxx, auxvec);
+  }
+  if(w){
+    s->wipes_outstanding = true;
+  }
+  change_p2(s->glyph, SIXEL_P2_TRANS);
+  s->n->tam[s->dimx * ycell + xcell].auxvector = auxvec;
+  return 0;
+}
+
+// rebuilds the auxiliary vectors, and scrubs the actual pixels, following
+// extraction of the palette. doing so allows the new frame's pixels to
+// contribute to the solved palette, even if they were wiped in the previous
+// frame. pixels ought thus have been set up in sixel_blit(), despite TAM
+// entries in the ANNIHILATED state.
+static int
+scrub_color_table(sprixel* s){
+  if(s->n && s->n->tam){
+    for(int y = 0 ; y < s->n->leny ; ++y){
+      for(int x = 0 ; x < s->n->lenx ; ++x){
+        int txyidx = y * s->n->lenx + x;
+        sprixcell_e state = s->n->tam[txyidx].state;
+        if(state == SPRIXCELL_ANNIHILATED || state == SPRIXCELL_ANNIHILATED_TRANS){
+//fprintf(stderr, "POSTEXRACT WIPE %d/%d\n", y, x);
+          sixel_wipe(s, y, x);
+        }
+      }
+    }
+  }
+  return 0;
+}
+
 // returns the index at which the provided color can be found *in the
 // dtable*, possibly inserting it into the ctable. returns -1 if the
 // color is not in the table and the table is full.
@@ -261,24 +371,33 @@ extract_color_table(const uint32_t* data, int linesize, int cols,
       for(int sy = visy ; sy < (begy + leny) && sy < visy + 6 ; ++sy){ // offset within sprixel
         const uint32_t* rgb = (data + (linesize / 4 * sy) + visx);
         int txyidx = (sy / cdimy) * cols + (visx / cdimx);
-        if(tam[txyidx].state == SPRIXCELL_ANNIHILATED || tam[txyidx].state == SPRIXCELL_ANNIHILATED_TRANS){
-//fprintf(stderr, "TRANS SKIP %d %d %d %d (cell: %d %d)\n", visy, visx, sy, txyidx, sy / cdimy, visx / cdimx);
-          stab->p2 = SIXEL_P2_TRANS; // even one forces P2=1
-          continue;
-        }
-        if(rgba_trans_p(*rgb, bargs->transcolor)){
-          if(sy % cdimy == 0 && visx % cdimx == 0){
-            tam[txyidx].state = SPRIXCELL_TRANSPARENT;
-          }else if(tam[txyidx].state == SPRIXCELL_OPAQUE_SIXEL){
-            tam[txyidx].state = SPRIXCELL_MIXED_SIXEL;
+        // we do *not* exempt already-wiped pixels from palette creation. once
+        // we're done, we'll call sixel_wipe() on these cells. so they remain
+        // one of SPRIXCELL_ANNIHILATED or SPRIXCELL_ANNIHILATED_TRANS.
+        if(tam[txyidx].state != SPRIXCELL_ANNIHILATED && tam[txyidx].state != SPRIXCELL_ANNIHILATED_TRANS){
+          if(rgba_trans_p(*rgb, bargs->transcolor)){
+            if(sy % cdimy == 0 && visx % cdimx == 0){
+              tam[txyidx].state = SPRIXCELL_TRANSPARENT;
+            }else if(tam[txyidx].state == SPRIXCELL_OPAQUE_SIXEL){
+              tam[txyidx].state = SPRIXCELL_MIXED_SIXEL;
+            }
+            stab->p2 = SIXEL_P2_TRANS; // even one forces P2=1
+            continue;
+          }else{
+            if(sy % cdimy == 0 && visx % cdimx == 0){
+              tam[txyidx].state = SPRIXCELL_OPAQUE_SIXEL;
+            }else if(tam[txyidx].state == SPRIXCELL_TRANSPARENT){
+              tam[txyidx].state = SPRIXCELL_MIXED_SIXEL;
+            }
           }
-          stab->p2 = SIXEL_P2_TRANS; // even one forces P2=1
-          continue;
         }else{
-          if(sy % cdimy == 0 && visx % cdimx == 0){
-            tam[txyidx].state = SPRIXCELL_OPAQUE_SIXEL;
-          }else if(tam[txyidx].state == SPRIXCELL_TRANSPARENT){
-            tam[txyidx].state = SPRIXCELL_MIXED_SIXEL;
+//fprintf(stderr, "TRANS SKIP %d %d %d %d (cell: %d %d)\n", visy, visx, sy, txyidx, sy / cdimy, visx / cdimx);
+          if(rgba_trans_p(*rgb, bargs->transcolor)){
+            if(sy % cdimy == 0 && visx % cdimx == 0){
+              tam[txyidx].state = SPRIXCELL_ANNIHILATED_TRANS;
+            }
+          }else{
+            tam[txyidx].state = SPRIXCELL_ANNIHILATED;
           }
         }
         unsigned char comps[RGBSIZE];
@@ -684,6 +803,7 @@ int sixel_blit(ncplane* n, int linesize, const void* data,
     sixelmap_free(stable.map);
   }
   free(stable.deets);
+  scrub_color_table(bargs->u.pixel.spx);
   return r;
 }
 
@@ -756,7 +876,7 @@ int sixel_init(int fd){
   return tty_emit("\e[?80;8452h", fd);
 }
 
-// only called for cells in SPRIXCELL_ANNIHILATED. just post to
+// only called for cells in SPRIXCELL_ANNIHILATED[_TRANS]. just post to
 // wipes_outstanding, so the Sixel gets regenerated the next render cycle,
 // just like wiping. this is necessary due to the complex nature of
 // modifying a Sixel -- we want to do them all in one batch.
@@ -802,94 +922,6 @@ int sixel_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
     newstate = SPRIXCELL_OPAQUE_SIXEL;
   }
   s->n->tam[s->dimx * ycell + xcell].state = newstate;
-  return 0;
-}
-
-// wipe the color from startx to endx, from starty to endy. returns 1 if any
-// pixels were actually wiped.
-static inline int
-wipe_color(sixelmap* smap, int color, int sband, int eband,
-           int startx, int endx, int starty, int endy, int dimx,
-           int cellpixy, int cellpixx, uint8_t* auxvec){
-  int wiped = 0;
-  int didx = ctable_to_dtable(smap->table + color * CENTSIZE);
-  // offset into map->data where our color starts
-  int coff = smap->sixelcount * didx;
-//fprintf(stderr, "didx: %d sixels: %d color: %d B: %d-%d Y: %d-%d X: %d-%d coff: %d\n", didx, smap->sixelcount, color, sband, eband, starty, endy, startx, endx, coff);
-  // we're going to repurpose starty as "starting row of this band", so keep it
-  // around as originy for auxvecidx computations
-  int originy = starty;
-  for(int b = sband ; b <= eband && b * 6 <= endy ; ++b){
-    const int boff = coff + b * dimx; // offset in data where band starts
-    unsigned char mask = 63;
-    for(int i = 0 ; i < 6 ; ++i){
-      if(b * 6 + i >= starty && b * 6 + i <= endy){
-        mask &= ~(1u << i);
-      }
-//fprintf(stderr, "s/e: %d/%d mask: %02x\n", starty, endy, mask);
-    }
-    for(int x = startx ; x <= endx ; ++x){
-      const int xoff = boff + x;
-      assert(xoff < (smap->colors + 1) * smap->sixelcount);
-//fprintf(stderr, "band: %d color: %d idx: %d mask: %02x\n", b, color, color * smap->sixelcount + xoff, mask);
-//fprintf(stderr, "color: %d idx: %d data: %02x\n", color, color * smap->sixelcount + xoff, smap->data[color * smap->sixelcount + xoff]);
-      // this is the auxvec position of the upperleftmost pixel of the sixel
-      // there will be up to five more, each cellpxx away, for the five pixels
-      // below it. there will be cellpxx - 1 after it, each with their own five.
-//fprintf(stderr, "smap->data[%d] = %02x boff: %d x: %d color: %d\n", xoff, smap->data[xoff], boff, x, color);
-      for(int i = 0 ; i < 6 && b * 6 + i <= endy ; ++i){
-        int auxvecidx = (x - startx) + ((b * 6 + i - originy) * cellpixx);
-        unsigned bit = 1u << i;
-//fprintf(stderr, "xoff: %d i: %d b: %d endy: %d mask: 0x%02x\n", xoff, i, b, endy, mask);
-        if(!(mask & bit) && (smap->data[xoff] & bit)){
-//fprintf(stderr, "band %d %d/%d writing %d to auxvec[%d] %p xoff: %d boff: %d\n", b, b * 6 + i, x, color, auxvecidx, auxvec, xoff, boff);
-          auxvec[auxvecidx] = color;
-          auxvec[cellpixx * cellpixy + auxvecidx] = 0;
-        }
-      }
-      if((smap->data[xoff] & mask) != smap->data[xoff]){
-        smap->data[xoff] &= mask;
-        wiped = 1;
-      }
-//fprintf(stderr, "post: %02x\n", smap->data[color * smap->sixelcount + xoff]);
-    }
-    starty = (starty + 6) / 6 * 6;
-  }
-  return wiped;
-}
-
-// we return -1 because we're not doing a proper wipe -- that's not possible
-// using sixel. we just mark it as partially transparent, so that if it's
-// redrawn, it's redrawn using P2=1.
-int sixel_wipe(sprixel* s, int ycell, int xcell){
-//fprintf(stderr, "WIPING %d/%d\n", ycell, xcell);
-  uint8_t* auxvec = sprixel_auxiliary_vector(s);
-  memset(auxvec + s->cellpxx * s->cellpxy, 0xff, s->cellpxx * s->cellpxy);
-  sixelmap* smap = s->smap;
-  const int startx = xcell * s->cellpxx;
-  const int starty = ycell * s->cellpxy;
-  int endx = ((xcell + 1) * s->cellpxx) - 1;
-  if(endx >= s->pixx){
-    endx = s->pixx - 1;
-  }
-  int endy = ((ycell + 1) * s->cellpxy) - 1;
-  if(endy >= s->pixy){
-    endy = s->pixy - 1;
-  }
-  const int startband = starty / 6;
-  const int endband = endy / 6;
-//fprintf(stderr, "y/x: %d/%d start: %d/%d end: %d/%d\n", ycell, xcell, starty, startx, endy, endx);
-  // walk through each color, and wipe the necessary sixels from each band
-  int w = 0;
-  for(int c = 0 ; c < smap->colors ; ++c){
-    w |= wipe_color(smap, c, startband, endband, startx, endx, starty, endy,
-                    s->pixx, s->cellpxy, s->cellpxx, auxvec);
-  }
-  if(w){
-    s->wipes_outstanding = true;
-  }
-  change_p2(s->glyph, SIXEL_P2_TRANS);
-  s->n->tam[s->dimx * ycell + xcell].auxvector = auxvec;
   return 0;
 }
 
