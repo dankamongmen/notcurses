@@ -2,6 +2,8 @@ This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
 * 2.3.2 (not yet released)
+  * Fixed a bug affecting certain scalings of `ncvisual` objects created from
+    memory (e.g. `ncvisual_from_rgba()`).
   * `ncinput_nomod_p()` has been added. This function returns `true` if and
     only if its `ncinput` argument has no modifiers active.
 
