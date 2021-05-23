@@ -8,7 +8,7 @@ ncprogbar* ncprogbar_create(ncplane* n, const ncprogbar_options* opts){
     opts = &default_opts;
   }
   if(opts->flags > (NCPROGBAR_OPTION_RETROGRADE << 1u)){
-    logwarn(ncplane_notcurses(n), "Invalid flags %016lx\n", opts->flags);
+    logwarn(ncplane_notcurses(n), "Invalid flags %016jx\n", (uintmax_t)opts->flags);
   }
   ncprogbar* ret = malloc(sizeof(*ret));
   if(ret){
