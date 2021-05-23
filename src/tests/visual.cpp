@@ -566,7 +566,7 @@ TEST_CASE("Visual") {
   SUBCASE("ImageChildScaling") {
     struct ncplane_options opts = {
       .y = 0, .x = 0,
-      .rows = 5, .cols = 5,
+      .rows = 20, .cols = 20,
       .userptr = nullptr,
       .name = "parent",
       .resizecb = nullptr,
@@ -577,29 +577,43 @@ TEST_CASE("Visual") {
     auto parent = ncplane_create(n_, &opts);
     REQUIRE(parent);
     struct ncvisual_options vopts = {
-      .n = parent,
-      .scaling = NCSCALE_STRETCH,
+      .n = nullptr,
+      .scaling = NCSCALE_NONE,
       .y = 0,
       .x = 0,
       .begy = 0, .begx = 0,
       .leny = 0, .lenx = 0,
       .blitter = NCBLIT_1x1,
-      .flags = NCVISUAL_OPTION_CHILDPLANE,
+      .flags = 0,
       .transcolor = 0,
     };
-    const uint32_t pixels[1] = { htole(0xffffffff) };
-    auto ncv = ncvisual_from_rgba(pixels, 1, 4, 1);
+    const uint32_t pixels[16] = {
+      htole(0xffffffff), htole(0xffffffff), htole(0xffc0ffff), htole(0xffffc0ff),
+      htole(0xffc0c0ff), htole(0xffc0c0ff), htole(0xff80c0ff), htole(0xffc080ff),
+      htole(0xff8080ff), htole(0xff8080ff), htole(0xff4080ff), htole(0xff8040ff),
+      htole(0xff4040ff), htole(0xff4040ff), htole(0xffff40ff), htole(0xff40ffff),
+    };
+    auto ncv = ncvisual_from_rgba(pixels, 4, 16, 4);
     REQUIRE(ncv);
     auto child = ncvisual_render(nc_, ncv, &vopts);
     REQUIRE(child);
-    CHECK(5 == ncplane_dim_y(child));
-    CHECK(5 == ncplane_dim_x(child));
+    CHECK(4 == ncplane_dim_y(child));
+    CHECK(4 == ncplane_dim_x(child));
     CHECK(0 == ncplane_y(child));
     CHECK(0 == ncplane_x(child));
-    ncvisual_destroy(ncv);
+    CHECK(0 == notcurses_render(nc_));
+    CHECK(0 == ncplane_destroy(child));
+    vopts.n = parent,
+    vopts.scaling = NCSCALE_STRETCH,
+    vopts.flags = NCVISUAL_OPTION_CHILDPLANE;
+    child = ncvisual_render(nc_, ncv, &vopts);
+    REQUIRE(child);
+    CHECK(20 == ncplane_dim_y(child));
+    CHECK(20 == ncplane_dim_x(child));
     CHECK(0 == notcurses_render(nc_));
     CHECK(0 == ncplane_destroy(parent));
     CHECK(0 == ncplane_destroy(child));
+    ncvisual_destroy(ncv);
   }
 
   SUBCASE("ImageChildAlignment") {
