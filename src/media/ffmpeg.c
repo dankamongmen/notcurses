@@ -137,10 +137,6 @@ int ffmpeg_decode(ncvisual* n){
   }
   bool have_frame = false;
   bool unref = false;
-  // FIXME what if this was set up with e.g. ncvisual_from_rgba()?
-  if(n->details->frame){
-    //av_freep(&n->details->frame->data[0]);
-  }
   do{
     do{
       if(n->details->packet_outstanding){
