@@ -709,6 +709,7 @@ configure_file(tools/builddef.h.in include/builddef.h)
 
 configure_package_config_file(tools/NotcursesConfig.cmake.in
   ${CMAKE_CURRENT_BINARY_DIR}/NotcursesConfig.cmake
+  INSTALL_DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/cmake/Notcurses
 )
 
 write_basic_package_version_file(
@@ -718,6 +719,7 @@ write_basic_package_version_file(
 
 configure_package_config_file(tools/NotcursesCoreConfig.cmake.in
   ${CMAKE_CURRENT_BINARY_DIR}/NotcursesCoreConfig.cmake
+  INSTALL_DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/cmake/NotcursesCore
 )
 
 write_basic_package_version_file(
@@ -727,6 +729,7 @@ write_basic_package_version_file(
 
 configure_package_config_file(tools/Notcurses++Config.cmake.in
   ${CMAKE_CURRENT_BINARY_DIR}/Notcurses++Config.cmake
+  INSTALL_DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/cmake/Notcurses++
 )
 
 write_basic_package_version_file(
@@ -766,7 +769,7 @@ install(FILES
 install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/notcurses++.pc
   DESTINATION ${PKGCONFIG_DIR}
-  )
+)
 
 if(NOT ${USE_MULTIMEDIA} STREQUAL "none")
 file(GLOB TESTDATA CONFIGURE_DEPENDS data/*)
