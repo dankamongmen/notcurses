@@ -709,7 +709,6 @@ configure_file(tools/builddef.h.in include/builddef.h)
 
 configure_package_config_file(tools/NotcursesConfig.cmake.in
   ${CMAKE_CURRENT_BINARY_DIR}/NotcursesConfig.cmake
-  INSTALL_DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/notcurses/cmake
 )
 
 write_basic_package_version_file(
@@ -719,7 +718,6 @@ write_basic_package_version_file(
 
 configure_package_config_file(tools/NotcursesCoreConfig.cmake.in
   ${CMAKE_CURRENT_BINARY_DIR}/NotcursesCoreConfig.cmake
-  INSTALL_DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/notcurses/cmake
 )
 
 write_basic_package_version_file(
@@ -729,13 +727,12 @@ write_basic_package_version_file(
 
 configure_package_config_file(tools/Notcurses++Config.cmake.in
   ${CMAKE_CURRENT_BINARY_DIR}/Notcurses++Config.cmake
-  INSTALL_DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/notcurses/cmake
-  )
+)
 
 write_basic_package_version_file(
   ${CMAKE_CURRENT_BINARY_DIR}/Notcurses++ConfigVersion.cmake
   COMPATIBILITY SameMajorVersion
-  )
+)
 
 # Installation
 install(FILES
@@ -754,7 +751,7 @@ install(FILES
   "${CMAKE_CURRENT_BINARY_DIR}/Notcurses++Config.cmake"
   "${CMAKE_CURRENT_BINARY_DIR}/Notcurses++ConfigVersion.cmake"
   DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/Notcurses++"
-  )
+)
 
 install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/notcurses-core.pc
