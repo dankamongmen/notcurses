@@ -674,7 +674,7 @@ By default, certain keys are mapped to signals by the terminal's line
 discipline. This can be disabled with `notcurses_linesigs_disable()`, and
 reenabled with `notcurses_linesigs_enable()`.
 
-```
+```c
 // Disable signals originating from the terminal's line discipline, i.e.
 // SIGINT (^C), SIGQUIT (^\), and SIGTSTP (^Z). They are enabled by default.
 int notcurses_linesigs_disable(struct notcurses* n);
