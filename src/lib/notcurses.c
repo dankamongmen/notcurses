@@ -2618,7 +2618,7 @@ uint32_t* ncplane_as_rgba(const ncplane* nc, ncblitter_e blit,
   if(leny == -1){
     leny = nc->leny - begy;
   }
-  if(lenx < 0 || leny < 0){ // no need to draw zero-size object, exit
+  if(lenx <= 0 || leny <= 0){ // no need to draw zero-size object, exit
     logerror(ncur, "Nil geometry (%dx%d)\n", leny, lenx);
     return NULL;
   }
