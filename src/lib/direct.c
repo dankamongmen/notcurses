@@ -232,15 +232,16 @@ int ncdirect_cursor_move_yx(ncdirect* n, int y, int x){
       x = 0;
     }
   }
-  if(n->tcache.cup){
-    return term_emit(tiparm(n->tcache.cup, y, x), n->ttyfp, false);
+  const char* cup = get_escape(&n->tcache, ESCAPE_CUP);
+  if(cup){
+    return term_emit(tiparm(cup, y, x), n->ttyfp, false);
   }else if(n->tcache.vpa && n->tcache.hpa){
     if(term_emit(tiparm(n->tcache.hpa, x), n->ttyfp, false) == 0 &&
        term_emit(tiparm(n->tcache.vpa, y), n->ttyfp, false) == 0){
       return 0;
     }
   }
-  return -1;
+  return -1; // we will not be moving the cursor today
 }
 
 // an algorithm to detect inverted cursor reporting on terminals 2x2 or larger:

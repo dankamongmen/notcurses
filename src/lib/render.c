@@ -821,8 +821,8 @@ goto_location(notcurses* nc, FILE* out, int y, int x){
       ret = term_emit(tiparm(nc->tcache.hpa, x), out, false);
     }
   }else{
-    // cup is required, no need to check for existence
-    ret = term_emit(tiparm(nc->tcache.cup, y, x), out, false);
+    // cup is required, no need to verify existence
+    ret = term_emit(tiparm(get_escape(&nc->tcache, ESCAPE_CUP), y, x), out, false);
     nc->rstate.hardcursorpos = 0;
   }
   nc->rstate.x = x;
@@ -1188,10 +1188,13 @@ home_cursor(notcurses* nc, bool flush){
   int ret = -1;
   if(nc->tcache.home){
     ret = term_emit(nc->tcache.home, nc->ttyfp, flush);
-  }else if(nc->tcache.cup){
-    ret = term_emit(tiparm(nc->tcache.cup, 1, 1), nc->ttyfp, flush);
-  }else if(nc->tcache.clearscr){
-    ret = term_emit(nc->tcache.clearscr, nc->ttyfp, flush);
+  }else{
+    const char* cup = get_escape(&nc->tcache, ESCAPE_CUP);
+    if(cup){
+      ret = term_emit(tiparm(cup, 1, 1), nc->ttyfp, flush);
+    }else if(nc->tcache.clearscr){
+      ret = term_emit(nc->tcache.clearscr, nc->ttyfp, flush);
+    }
   }
   if(ret >= 0){
     nc->rstate.x = 0;
