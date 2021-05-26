@@ -260,8 +260,6 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname,
   // we think sgr supports bold, which...might be valid? i'm unsure. futher,
   // some terminals cannot combine certain styles with colors. don't
   // advertise support for the style in that case.
-  // italics are never handled by sgr, so we keep those escapes, but
-  // italics *can* be locked out by ncv
   const struct style {
     unsigned s;        // NCSTYLE_* value
     const char* tinfo; // terminfo capability for conditional permit
@@ -287,6 +285,12 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname,
     if(terminfostr(&style, s->tinfo) == 0){
       ti->supported_styles |= s->s;
     }
+  }
+  // italics are never handled by sgr, but *can* be locked out by ncv. if
+  // they are, we need clear the escapes we already loaded.
+  if(!(ti->supported_styles & NCSTYLE_ITALIC)){
+    ti->escindices[ESCAPE_SITM] = 0;
+    ti->escindices[ESCAPE_RITM] = 0;
   }
   terminfostr(&ti->getm, "getm"); // get mouse events
   terminfostr(&ti->smkx, "smkx");   // enable keypad transmit
