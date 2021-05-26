@@ -647,17 +647,25 @@ int ncdirect_render_image(ncdirect* n, const char* file, ncalign_e align,
 }
 
 int ncdirect_set_fg_palindex(ncdirect* nc, int pidx){
+  const char* setaf = get_escape(&nc->tcache, ESCAPE_SETAF);
+  if(!setaf){
+    return -1;
+  }
   if(ncchannels_set_fg_palindex(&nc->channels, pidx) < 0){
     return -1;
   }
-  return term_emit(tiparm(nc->tcache.setaf, pidx), nc->ttyfp, false);
+  return term_emit(tiparm(setaf, pidx), nc->ttyfp, false);
 }
 
 int ncdirect_set_bg_palindex(ncdirect* nc, int pidx){
+  const char* setab = get_escape(&nc->tcache, ESCAPE_SETAB);
+  if(!setab){
+    return -1;
+  }
   if(ncchannels_set_bg_palindex(&nc->channels, pidx) < 0){
     return -1;
   }
-  return term_emit(tiparm(nc->tcache.setab, pidx), nc->ttyfp, false);
+  return term_emit(tiparm(setab, pidx), nc->ttyfp, false);
 }
 
 int ncdirect_vprintf_aligned(ncdirect* n, int y, ncalign_e align, const char* fmt, va_list ap){

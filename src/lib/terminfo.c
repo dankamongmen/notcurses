@@ -198,6 +198,9 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname,
     { ESCAPE_CUP, "cup", },
     { ESCAPE_HPA, "hpa", },
     { ESCAPE_VPA, "vpa", },
+    // Not all terminals support setting the fore/background independently
+    { ESCAPE_SETAF, "setaf", },
+    { ESCAPE_SETAB, "setab", },
     { ESCAPE_MAX, NULL, },
   };
   size_t tablelen = 0;
@@ -283,9 +286,6 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname,
     // can't do anything about struck! :/
   }
   terminfostr(&ti->getm, "getm"); // get mouse events
-  // Not all terminals support setting the fore/background independently
-  terminfostr(&ti->setaf, "setaf"); // set forground color
-  terminfostr(&ti->setab, "setab"); // set background color
   terminfostr(&ti->smkx, "smkx");   // enable keypad transmit
   terminfostr(&ti->rmkx, "rmkx");   // disable keypad transmit
   terminfostr(&ti->struck, "smxx"); // strikeout
