@@ -833,16 +833,19 @@ goto_location(notcurses* nc, FILE* out, int y, int x){
 // necessary return to default (if one is necessary), and update rstate.
 static inline int
 raster_defaults(notcurses* nc, bool fgdef, bool bgdef, FILE* out){
-  if(!nc->tcache.op){ // if we don't have op, we don't have fgop/bgop
+  const char* op = get_escape(&nc->tcache, ESCAPE_OP);
+  if(op == NULL){ // if we don't have op, we don't have fgop/bgop
     return 0;
   }
+  const char* fgop = get_escape(&nc->tcache, ESCAPE_FGOP);
+  const char* bgop = get_escape(&nc->tcache, ESCAPE_BGOP);
   bool mustsetfg = fgdef && !nc->rstate.fgdefelidable;
   bool mustsetbg = bgdef && !nc->rstate.bgdefelidable;
-  if(!mustsetfg && !mustsetbg){ // don't need emit anything
+  if(!mustsetfg && !mustsetbg){ // needn't emit anything
     ++nc->stats.defaultelisions;
     return 0;
-  }else if((mustsetfg && mustsetbg) || !nc->tcache.fgop){
-    if(term_emit(nc->tcache.op, out, false)){
+  }else if((mustsetfg && mustsetbg) || !fgop || !bgop){
+    if(term_emit(op, out, false)){
       return -1;
     }
     nc->rstate.fgdefelidable = true;
@@ -851,15 +854,15 @@ raster_defaults(notcurses* nc, bool fgdef, bool bgdef, FILE* out){
     nc->rstate.bgelidable = false;
     nc->rstate.fgpalelidable = false;
     nc->rstate.bgpalelidable = false;
-  }else if(mustsetfg){
-    if(term_emit(nc->tcache.fgop, out, false)){
+  }else if(mustsetfg){ // if we reach here, we must have fgop
+    if(term_emit(fgop, out, false)){
       return -1;
     }
     nc->rstate.fgdefelidable = true;
     nc->rstate.fgelidable = false;
     nc->rstate.fgpalelidable = false;
-  }else{
-    if(term_emit(nc->tcache.bgop, out, false)){
+  }else{ // mustsetbg and !mustsetfg and bgop != NULL
+    if(term_emit(bgop, out, false)){
       return -1;
     }
     nc->rstate.bgdefelidable = true;

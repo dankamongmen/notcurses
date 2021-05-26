@@ -21,7 +21,9 @@ tinfo_debug_caps(const tinfo* ti, FILE* debugfp, int rows, int cols,
   fprintf(debugfp, "%ssgr: %c sgr0: %c\n",
           indent, capyn(ti->sgr), capyn(ti->sgr0));
   fprintf(debugfp, "%sop: %c fgop: %c bgop: %c\n",
-          indent, capyn(ti->op), capyn(ti->fgop), capyn(ti->bgop));
+          indent, capyn(get_escape(ti, ESCAPE_OP)),
+                  capyn(get_escape(ti, ESCAPE_FGOP)),
+                  capyn(get_escape(ti, ESCAPE_BGOP)));
   fprintf(debugfp, "%srows: %u cols: %u rpx: %u cpx: %u (%dx%d)\n",
           indent, rows, cols, ti->cellpixy, ti->cellpixx, rows * ti->cellpixy, cols * ti->cellpixx);
   if(!ti->pixel_query_done){

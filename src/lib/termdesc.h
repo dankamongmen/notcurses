@@ -29,7 +29,9 @@ typedef enum {
   ESCAPE_VPA,      // "vpa" move cursor to absolute vertical position
   ESCAPE_SETAF,    // "setaf" set foreground color
   ESCAPE_SETAB,    // "setab" set background color
-  ESCAPE_DEFS,     // "op" set foreground and background color to defaults
+  ESCAPE_OP,       // "op" set foreground and background color to defaults
+  ESCAPE_FGOP,     // set foreground only to default
+  ESCAPE_BGOP,     // set background only to default
   ESCAPE_SGR,      // "sgr" set graphics rendering (styles)
   ESCAPE_SGR0,     // "sgr0" turn off all styles
   ESCAPE_CIVIS,    // "civis" make the cursor invisiable
@@ -45,12 +47,9 @@ typedef enum {
 typedef struct tinfo {
   uint16_t escindices[ESCAPE_MAX]; // table of 1-biased indices into esctable
   char* esctable;                  // packed table of escape sequences
-  char* op;       // set foreground and background color to default
   char* sgr;      // set many graphics properties at once
   unsigned colors;// number of colors terminfo reported usable for this screen
   char* sgr0;     // restore default presentation properties
-  char* fgop;     // set foreground to default
-  char* bgop;     // set background to default
   char* cuu;      // move N cells up
   char* cub;      // move N cells left
   char* cuf;      // move N cells right

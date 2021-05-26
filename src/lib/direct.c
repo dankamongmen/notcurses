@@ -702,15 +702,7 @@ ncdirect_stop_minimal(void* vnc){
   if(nc->initialized_readline){
     rl_deprep_terminal();
   }
-  if(nc->tcache.op && term_emit(nc->tcache.op, nc->ttyfp, true)){
-    ret = -1;
-  }
-  if(nc->tcache.sgr0 && term_emit(nc->tcache.sgr0, nc->ttyfp, true)){
-    ret = -1;
-  }
-  if(nc->tcache.oc && term_emit(nc->tcache.oc, nc->ttyfp, true)){
-    ret = -1;
-  }
+  ret |= reset_term_attributes(&nc->tcache, nc->ttyfp);
   if(nc->ctermfd >= 0){
     if(nc->tcache.pixel_shutdown){
       ret |= nc->tcache.pixel_shutdown(nc->ctermfd);
@@ -917,11 +909,15 @@ int ncdirect_set_fg_default(ncdirect* nc){
   if(ncdirect_fg_default_p(nc)){
     return 0;
   }
-  if(nc->tcache.fgop){
-    if(term_emit(nc->tcache.fgop, nc->ttyfp, false)){
+  const char* esc;
+  if((esc = get_escape(&nc->tcache, ESCAPE_FGOP)) != NULL){
+    if(term_emit(esc, nc->ttyfp, false)){
       return -1;
     }
-  }else if(term_emit(nc->tcache.op, nc->ttyfp, false) == 0){
+  }else if((esc = get_escape(&nc->tcache, ESCAPE_OP)) != NULL){
+    if(term_emit(esc, nc->ttyfp, false)){
+      return -1;
+    }
     if(!ncdirect_bg_default_p(nc)){
       if(ncdirect_set_bg_rgb(nc, ncchannels_bg_rgb(nc->channels))){
         return -1;
@@ -936,11 +932,15 @@ int ncdirect_set_bg_default(ncdirect* nc){
   if(ncdirect_bg_default_p(nc)){
     return 0;
   }
-  if(nc->tcache.bgop){
-    if(term_emit(nc->tcache.bgop, nc->ttyfp, false)){
+  const char* esc;
+  if((esc = get_escape(&nc->tcache, ESCAPE_BGOP)) != NULL){
+    if(term_emit(esc, nc->ttyfp, false)){
       return -1;
     }
-  }else if(term_emit(nc->tcache.op, nc->ttyfp, false) == 0){
+  }else if((esc = get_escape(&nc->tcache, ESCAPE_OP)) != NULL){
+    if(term_emit(esc, nc->ttyfp, false)){
+      return -1;
+    }
     if(!ncdirect_fg_default_p(nc)){
       if(ncdirect_set_fg_rgb(nc, ncchannels_fg_rgb(nc->channels))){
         return -1;
