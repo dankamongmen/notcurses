@@ -5,7 +5,7 @@ your terminal. It is critical that the `TERM` environment variable be
 correct for your shell, and that the terminfo database entry keyed
 by this variable be up-to-date. Furthermore, for 24-bit TrueColor, it
 is necessary to either use a `-direct` variant of your terminfo
-entry, or to declare `COLORTERM=24bit`. The latter instruct Notcurses
+entry, or to declare `COLORTERM=24bit`. The latter instructs Notcurses
 to use 24-bit escapes regardless of advertised support. If you define
 this variable, and your terminal doesn't actually support these sequences,
 you're going to have a bad time.
