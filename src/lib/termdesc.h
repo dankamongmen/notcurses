@@ -49,8 +49,6 @@ typedef struct tinfo {
   char* esctable;                  // packed table of escape sequences
   char* sgr;      // set many graphics properties at once
   char* sgr0;     // restore default presentation properties
-  char* civis;    // hide cursor
-  char* cnorm;    // restore cursor to default state
   unsigned colors;// number of colors terminfo reported usable for this screen
   char* cuu;      // move N cells up
   char* cub;      // move N cells left

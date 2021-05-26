@@ -831,7 +831,7 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
   bargs.u.pixel.spx = n->sprite;
   // FIXME only set this if cursor is indeed hidden
   if(nc->tcache.sprixel_cursor_hack){
-    bargs.u.pixel.cursor_hack = nc->tcache.civis;
+    bargs.u.pixel.cursor_hack = get_escape(&nc->tcache, ESCAPE_CIVIS);
   }else{
     bargs.u.pixel.cursor_hack = NULL;
   }
