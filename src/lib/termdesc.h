@@ -39,6 +39,11 @@ typedef enum {
   ESCAPE_OC,       // "oc" restore original colors
   ESCAPE_SITM,     // "sitm" start italics
   ESCAPE_RITM,     // "ritm" end italics
+  ESCAPE_CUU,      // "cuu" move n cells up
+  ESCAPE_CUB,      // "cub" move n cells back (left)
+  ESCAPE_CUF,      // "cuf" move n cells forward (right)
+  ESCAPE_CUD,      // "cud" move n cells down
+  ESCAPE_CUF1,     // "cuf1" move 1 cell forward (right)
   ESCAPE_MAX
 } escape_e;
 
@@ -51,11 +56,6 @@ typedef struct tinfo {
   uint16_t escindices[ESCAPE_MAX]; // table of 1-biased indices into esctable
   char* esctable;                  // packed table of escape sequences
   unsigned colors;// number of colors terminfo reported usable for this screen
-  char* cuu;      // move N cells up
-  char* cub;      // move N cells left
-  char* cuf;      // move N cells right
-  char* cud;      // move N cells down
-  char* cuf1;     // move 1 cell right
   char* home;     // home cursor
   char* struck;   // NCSTYLE_STRUCK
   char* struckoff;// NCSTYLE_STRUCK (disable)

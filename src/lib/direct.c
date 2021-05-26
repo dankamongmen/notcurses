@@ -107,10 +107,11 @@ int ncdirect_cursor_up(ncdirect* nc, int num){
   if(num == 0){
     return 0;
   }
-  if(!nc->tcache.cuu){
-    return -1;
+  const char* cuu = get_escape(&nc->tcache, ESCAPE_CUU);
+  if(cuu){
+    return term_emit(tiparm(cuu, num), nc->ttyfp, false);
   }
-  return term_emit(tiparm(nc->tcache.cuu, num), nc->ttyfp, false);
+  return -1;
 }
 
 int ncdirect_cursor_left(ncdirect* nc, int num){
@@ -120,10 +121,11 @@ int ncdirect_cursor_left(ncdirect* nc, int num){
   if(num == 0){
     return 0;
   }
-  if(!nc->tcache.cub){
-    return -1;
+  const char* cub = get_escape(&nc->tcache, ESCAPE_CUB);
+  if(cub){
+    return term_emit(tiparm(cub, num), nc->ttyfp, false);
   }
-  return term_emit(tiparm(nc->tcache.cub, num), nc->ttyfp, false);
+  return -1;
 }
 
 int ncdirect_cursor_right(ncdirect* nc, int num){
@@ -133,10 +135,11 @@ int ncdirect_cursor_right(ncdirect* nc, int num){
   if(num == 0){
     return 0;
   }
-  if(!nc->tcache.cuf){ // FIXME fall back to cuf1
-    return -1;
+  const char* cuf = get_escape(&nc->tcache, ESCAPE_CUF);
+  if(cuf){
+    return term_emit(tiparm(cuf, num), nc->ttyfp, false);
   }
-  return term_emit(tiparm(nc->tcache.cuf, num), nc->ttyfp, false);
+  return -1; // FIXME fall back to cuf1?
 }
 
 // if we're on the last line, we need some scrolling action. rather than
@@ -274,25 +277,30 @@ detect_cursor_inversion(ncdirect* n, int rows, int cols, int* y, int* x){
   // do not use normal ncdirect_cursor_*() commands, because those go to ttyfp
   // instead of ctermfd. since we always talk directly to the terminal, we need
   // to move the cursor directly via the terminal.
-  if(!n->tcache.cud || !n->tcache.cub || !n->tcache.cuf || !n->tcache.cuu){
+  const char* cuu = get_escape(&n->tcache, ESCAPE_CUU);
+  const char* cuf = get_escape(&n->tcache, ESCAPE_CUF);
+  const char* cub = get_escape(&n->tcache, ESCAPE_CUB);
+  // FIXME do we want to use cud here, or \v like above?
+  const char* cud = get_escape(&n->tcache, ESCAPE_CUD);
+  if(!cud || !cub || !cuf || !cuu){
     return -1;
   }
   int movex;
   int movey;
   if(*x == cols && *y == 1){
-    if(tty_emit(tiparm(n->tcache.cud, 1), n->ctermfd)){
+    if(tty_emit(tiparm(cud, 1), n->ctermfd)){
       return -1;
     }
-    if(tty_emit(tiparm(n->tcache.cub, 1), n->ctermfd)){
+    if(tty_emit(tiparm(cub, 1), n->ctermfd)){
       return -1;
     }
     movex = 1;
     movey = -1;
   }else{
-    if(tty_emit(tiparm(n->tcache.cuu, 1), n->ctermfd)){
+    if(tty_emit(tiparm(cuu, 1), n->ctermfd)){
       return -1;
     }
-    if(tty_emit(tiparm(n->tcache.cuf, 1), n->ctermfd)){
+    if(tty_emit(tiparm(cuf, 1), n->ctermfd)){
       return -1;
     }
     movex = -1;
@@ -308,10 +316,10 @@ detect_cursor_inversion(ncdirect* n, int rows, int cols, int* y, int* x){
     *y = newy;
     newy = 1;
   }
-  if(tty_emit(tiparm(movex == 1 ? n->tcache.cuf : n->tcache.cub, 1), n->ctermfd)){
+  if(tty_emit(tiparm(movex == 1 ? cuf : cub, 1), n->ctermfd)){
     return -1;
   }
-  if(tty_emit(tiparm(movey == 1 ? n->tcache.cud : n->tcache.cuu, 1), n->ctermfd)){
+  if(tty_emit(tiparm(movey == 1 ? cud : cuu, 1), n->ctermfd)){
     return -1;
   }
   if(*y == newy && *x == newx){

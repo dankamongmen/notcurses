@@ -817,8 +817,9 @@ goto_location(notcurses* nc, FILE* out, int y, int x){
     if(nc->rstate.x == x){ // needn't move shit
       return 0;
     }
-    if(x == nc->rstate.x + 1 && nc->tcache.cuf1){
-      ret = term_emit(nc->tcache.cuf1, out, false);
+    const char* cuf1 = get_escape(&nc->tcache, ESCAPE_CUF1);
+    if(x == nc->rstate.x + 1 && cuf1){
+      ret = term_emit(cuf1, out, false);
     }else{
       ret = term_emit(tiparm(hpa, x), out, false);
     }

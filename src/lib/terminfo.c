@@ -208,6 +208,11 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname,
     { ESCAPE_SGR0, "sgr0", },
     { ESCAPE_SITM, "sitm", },
     { ESCAPE_RITM, "ritm", },
+    { ESCAPE_CUD, "cud", },
+    { ESCAPE_CUU, "cuu", },
+    { ESCAPE_CUF, "cuf", },
+    { ESCAPE_CUF1, "cuf1", },
+    { ESCAPE_CUB, "cub", },
     { ESCAPE_MAX, NULL, },
   };
   size_t tablelen = 0;
@@ -248,11 +253,6 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname,
   }
   terminfostr(&ti->home, "home");     // home the cursor
   terminfostr(&ti->clearscr, "clear");// clear screen, home cursor
-  terminfostr(&ti->cuu, "cuu"); // move N up
-  terminfostr(&ti->cud, "cud"); // move N down
-  terminfostr(&ti->cuf, "cuf"); // n non-destructive spaces
-  terminfostr(&ti->cub, "cub"); // n non-destructive backspaces
-  terminfostr(&ti->cuf1, "cuf1"); // non-destructive space
   terminfostr(&ti->sc, "sc"); // push ("save") cursor
   terminfostr(&ti->rc, "rc"); // pop ("restore") cursor
   // we don't actually use the bold capability -- we use sgr exclusively.
