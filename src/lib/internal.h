@@ -613,6 +613,8 @@ void init_lang(notcurses* nc); // nc may be NULL, only used for logging
 int interrogate_terminfo(tinfo* ti, int fd, const char* termname,
                          unsigned utf8, unsigned noaltscreen);
 
+int reset_term_attributes(const tinfo* ti, FILE* fp);
+
 void free_terminfo_cache(tinfo* ti);
 
 // perform queries that require writing to the terminal, and reading a

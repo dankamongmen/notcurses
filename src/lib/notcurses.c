@@ -36,20 +36,18 @@ void notcurses_version_components(int* major, int* minor, int* patch, int* tweak
 
 // reset the current colors, styles, and palette. called on startup (to purge
 // any preexisting styling) and shutdown (to not affect further programs).
-// nc->ttyfd must be valid.
-static int
-reset_term_attributes(notcurses* nc){
+int reset_term_attributes(const tinfo* ti, FILE* fp){
   int ret = 0;
-  if(nc->tcache.op && tty_emit(nc->tcache.op, nc->ttyfd)){
+  const char* esc;
+  if((esc = get_escape(ti, ESCAPE_OP)) && term_emit(esc, fp, true)){
     ret = -1;
   }
-  if(nc->tcache.sgr0 && tty_emit(nc->tcache.sgr0, nc->ttyfd)){
+  if(ti->sgr0 && term_emit(ti->sgr0, fp, true)){
     ret = -1;
   }
-  if(nc->tcache.oc && tty_emit(nc->tcache.oc, nc->ttyfd)){
+  if(ti->oc && term_emit(ti->oc, fp, true)){
     ret = -1;
   }
-  ret |= notcurses_mouse_disable(nc);
   return ret;
 }
 
@@ -73,7 +71,8 @@ notcurses_stop_minimal(void* vnc){
     if(nc->tcache.pixel_shutdown){
       ret |= nc->tcache.pixel_shutdown(nc->ttyfd);
     }
-    ret |= reset_term_attributes(nc);
+    ret |= reset_term_attributes(&nc->tcache, nc->ttyfp);
+    ret |= notcurses_mouse_disable(nc);
     if(nc->tcache.rmcup && tty_emit(nc->tcache.rmcup, nc->ttyfd)){
       ret = -1;
     }
@@ -1081,7 +1080,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     goto err;
   }
   if(ret->ttyfd >= 0){
-    reset_term_attributes(ret);
+    reset_term_attributes(&ret->tcache, ret->ttyfp);
     if(!(opts->flags & NCOPTION_NO_CLEAR_BITMAPS)){
       if(sprite_clear_all(&ret->tcache, ret->ttyfd)){
         free_plane(ret->stdplane);

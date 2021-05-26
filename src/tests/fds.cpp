@@ -133,6 +133,8 @@ TEST_CASE("FdsAndSubprocs"
     CHECK(0 == notcurses_render(nc_));
   }
 
+  // assuming the path /dev/nope doesn't exist, cat ought be successfully
+  // launched (fork() and exec() both succeed), but then immediately fail.
   SUBCASE("SubprocDestroyCmdFailed") {
     char * const argv[] = { strdup("/bin/cat"), strdup("/dev/nope"), nullptr, };
     bool outofline_cancelled = false;

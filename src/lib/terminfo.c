@@ -201,6 +201,7 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname,
     // Not all terminals support setting the fore/background independently
     { ESCAPE_SETAF, "setaf", },
     { ESCAPE_SETAB, "setab", },
+    { ESCAPE_OP, "op", },
     { ESCAPE_MAX, NULL, },
   };
   size_t tablelen = 0;
@@ -209,8 +210,7 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname,
     char* tstr;
     if(terminfostr(&tstr, strtdesc->tinfo) == 0){
       if(grow_esc_table(ti, tstr, strtdesc->esc, &tablelen, &tableused)){
-        free(ti->esctable);
-        return -1;
+        goto err;
       }
     }else{
       ti->escindices[strtdesc->esc] = 0;
@@ -218,7 +218,7 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname,
   }
   if(ti->escindices[ESCAPE_CUP] == 0){
     fprintf(stderr, "Required terminfo capability 'cup' not defined\n");
-    return -1;
+    goto err;
   }
   // neither of these is supported on e.g. the "linux" virtual console.
   if(!noaltscreen){
@@ -229,7 +229,7 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname,
   ti->AMflag = tigetflag("am") == 1;
   if(!ti->AMflag){
     fprintf(stderr, "Required terminfo capability 'am' not defined\n");
-    return -1;
+    goto err;
   }
   ti->BCEflag = tigetflag("bce") == 1;
   terminfostr(&ti->civis, "civis"); // cursor invisible
@@ -247,7 +247,6 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname,
   terminfostr(&ti->italoff, "ritm");  // end italic mode
   terminfostr(&ti->sgr, "sgr");       // define video attributes
   terminfostr(&ti->sgr0, "sgr0");     // turn off all video attributes
-  terminfostr(&ti->op, "op");         // restore defaults to default pair
   terminfostr(&ti->oc, "oc");         // restore defaults to all colors
   terminfostr(&ti->home, "home");     // home the cursor
   terminfostr(&ti->clearscr, "clear");// clear screen, home cursor
@@ -295,23 +294,31 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname,
     if(fd >= 0){
       if(tty_emit(tiparm(ti->smkx), fd) < 0){
         fprintf(stderr, "Error entering keypad transmit mode\n");
-        return -1;
+        goto err;
       }
     }
   }
   // if op is defined as ansi 39 + ansi 49, make the split definitions
   // available. this ought be asserted by extension capability "ax", but
   // no terminal i've found seems to do so. =[
-  if(ti->op && strcmp(ti->op, "\x1b[39;49m") == 0){
-    ti->fgop = "\x1b[39m";
-    ti->bgop = "\x1b[49m";
+  const char* op = get_escape(ti, ESCAPE_OP);
+  if(op && strcmp(op, "\x1b[39;49m") == 0){
+    if(grow_esc_table(ti, "\x1b[39m", ESCAPE_FGOP, &tablelen, &tableused) ||
+       grow_esc_table(ti, "\x1b[49m", ESCAPE_BGOP, &tablelen, &tableused)){
+      goto err;
+    }
   }
   pthread_mutex_init(&ti->pixel_query, NULL);
   ti->pixel_query_done = false;
   if(apply_term_heuristics(ti, termname, fd)){
-    return -1;
+    pthread_mutex_destroy(&ti->pixel_query);
+    goto err;
   }
   return 0;
+
+err:
+  free(ti->esctable);
+  return -1;
 }
 
 // FIXME need unit tests on this
