@@ -211,9 +211,11 @@ int ncdirect_cursor_disable(ncdirect* nc){
 // tests under TERM=vt100. if we need to truly rigourize things, we could
 // cub/cub1 the width or cuu/cuu1 the height, then cuf/cub back? FIXME
 int ncdirect_cursor_move_yx(ncdirect* n, int y, int x){
+  const char* hpa = get_escape(&n->tcache, ESCAPE_HPA);
+  const char* vpa = get_escape(&n->tcache, ESCAPE_VPA);
   if(y == -1){ // keep row the same, horizontal move only
-    if(n->tcache.hpa){
-      return term_emit(tiparm(n->tcache.hpa, x), n->ttyfp, false);
+    if(hpa){
+      return term_emit(tiparm(hpa, x), n->ttyfp, false);
     }else if(n->ctermfd >= 0){
       if(cursor_yx_get(n->ctermfd, &y, NULL)){
         return -1;
@@ -222,8 +224,8 @@ int ncdirect_cursor_move_yx(ncdirect* n, int y, int x){
       y = 0;
     }
   }else if(x == -1){ // keep column the same, vertical move only
-    if(!n->tcache.vpa){
-      return term_emit(tiparm(n->tcache.vpa, y), n->ttyfp, false);
+    if(!vpa){
+      return term_emit(tiparm(vpa, y), n->ttyfp, false);
     }else if(n->ctermfd >= 0){
       if(cursor_yx_get(n->ctermfd, NULL, &x)){
         return -1;
@@ -235,9 +237,9 @@ int ncdirect_cursor_move_yx(ncdirect* n, int y, int x){
   const char* cup = get_escape(&n->tcache, ESCAPE_CUP);
   if(cup){
     return term_emit(tiparm(cup, y, x), n->ttyfp, false);
-  }else if(n->tcache.vpa && n->tcache.hpa){
-    if(term_emit(tiparm(n->tcache.hpa, x), n->ttyfp, false) == 0 &&
-       term_emit(tiparm(n->tcache.vpa, y), n->ttyfp, false) == 0){
+  }else if(vpa && hpa){
+    if(term_emit(tiparm(hpa, x), n->ttyfp, false) == 0 &&
+       term_emit(tiparm(vpa, y), n->ttyfp, false) == 0){
       return 0;
     }
   }
