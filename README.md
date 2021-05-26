@@ -97,7 +97,7 @@ Why use this non-standard library?
 
 Much of the above can be had with NCURSES, but they're not what NCURSES was
 *designed* for. On the other hand, if you're targeting industrial or critical
-applications, or wish to benefit from its time-tested reliability and
+applications, or wish to benefit from time-tested reliability and
 portability, you should by all means use that fine library.
 
 ## Requirements
