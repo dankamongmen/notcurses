@@ -55,11 +55,6 @@ typedef struct tinfo {
   char* cud;      // move N cells down
   char* cuf1;     // move 1 cell right
   char* home;     // home cursor
-  char* standout; // NCSTYLE_STANDOUT
-  char* uline;    // NCSTYLE_UNDERLINK
-  char* reverse;  // NCSTYLE_REVERSE
-  char* blink;    // NCSTYLE_BLINK
-  char* dim;      // NCSTYLE_DIM
   char* italics;  // NCSTYLE_ITALIC
   char* italoff;  // NCSTYLE_ITALIC (disable)
   char* struck;   // NCSTYLE_STRUCK
@@ -117,7 +112,13 @@ typedef struct tinfo {
   bool CCCflag;   // "CCC" flag for palette set capability
   bool BCEflag;   // "BCE" flag for erases with background color
   bool AMflag;    // "AM" flag for automatic movement to next line
-  bool bold;      // can we do bold via sgr?
+  // FIXME replace these with a single unsigned bitfield directly returned
+  bool bold;      // NCSTYLE_BOLD via sgr?
+  bool standout;  // NCSTYLE_STANDOUT via sgr?
+  bool uline;     // NCSTYLE_UNDERLINE via sgr?
+  bool reverse;   // NCSTYLE_REVERSE via sgr?
+  bool blink;     // NCSTYLE_BLINK via sgr?
+  bool dim;       // NCSTYLE_DIM via sgr?
 
   // assigned based off nl_langinfo() in notcurses_core_init()
   bool utf8;      // are we using utf-8 encoding, as hoped?

@@ -149,7 +149,7 @@ grow_esc_table(tinfo* ti, const char* tstr, escape_e esc,
   size_t slen = strlen(tstr) + 1; // count the nul term
   if(*tlen - *tused < slen){
     // guaranteed to give us enough space to add tstr (and then some)
-    size_t newsize = *tlen + 4096 + slen;
+    size_t newsize = *tlen + 4020 + slen; // don't pull two pages ideally
     char* tmp = realloc(ti->esctable, newsize);
     if(tmp == NULL){
       return -1;
@@ -244,17 +244,27 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname,
       }
     }
   }
-  terminfostr(&ti->standout, "smso"); // begin standout mode
-  terminfostr(&ti->uline, "smul");    // begin underline mode
-  terminfostr(&ti->reverse, "rev");   // begin reverse video mode
-  terminfostr(&ti->blink, "blink");   // turn on blinking
-  terminfostr(&ti->dim, "dim");       // turn on half-bright mode
   // we don't actually use the bold capability -- we use sgr exclusively.
   // but we use the presence of the bold capability to determine whether
   // we think sgr supports bold, which...might be valid? i'm unsure.
-  char* bold;
-  if(terminfostr(&bold, "bold") == 0){
+  char* escstyle;
+  if(terminfostr(&escstyle, "bold") == 0){
     ti->bold = true;
+  }
+  if(terminfostr(&escstyle, "smso") == 0){
+    ti->standout = true;
+  }
+  if(terminfostr(&escstyle, "smul") == 0){
+    ti->uline = true;
+  }
+  if(terminfostr(&escstyle, "rev") == 0){
+    ti->reverse = true;
+  }
+  if(terminfostr(&escstyle, "blink") == 0){
+    ti->blink = true;
+  }
+  if(terminfostr(&escstyle, "dim") == 0){
+    ti->dim = true;
   }
   terminfostr(&ti->italics, "sitm");  // begin italic mode
   terminfostr(&ti->italoff, "ritm");  // end italic mode
