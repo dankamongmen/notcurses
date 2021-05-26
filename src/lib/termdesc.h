@@ -5,6 +5,12 @@
 extern "C" {
 #endif
 
+#include <stdbool.h>
+
+struct ncpile;
+struct sprixel;
+struct notcurses;
+
 // terminfo cache. FIXME shrink this and kill a pointer deref by writing them
 // all into one buffer, and storing 1-biased indices with 0 for NULL.
 typedef struct tinfo {
@@ -65,16 +71,16 @@ typedef struct tinfo {
   pthread_mutex_t pixel_query; // only query for pixel support once
   int color_registers; // sixel color registers (post pixel_query_done)
   int sixel_maxx, sixel_maxy; // sixel size maxima (post pixel_query_done)
-  int (*pixel_destroy)(const struct notcurses* nc, const struct ncpile* p, FILE* out, sprixel* s);
+  int (*pixel_destroy)(const struct notcurses* nc, const struct ncpile* p, FILE* out, struct sprixel* s);
   // wipe out a cell's worth of pixels from within a sprixel. for sixel, this
   // means leaving out the pixels (and likely resizes the string). for kitty,
   // this means dialing down their alpha to 0 (in equivalent space).
-  int (*pixel_wipe)(sprixel* s, int y, int x);
+  int (*pixel_wipe)(struct sprixel* s, int y, int x);
   // perform the inverse of pixel_wipe, restoring an annihilated sprixcell.
-  int (*pixel_rebuild)(sprixel* s, int y, int x, uint8_t* auxvec);
+  int (*pixel_rebuild)(struct sprixel* s, int y, int x, uint8_t* auxvec);
   int (*pixel_remove)(int id, FILE* out); // kitty only, issue actual delete command
   int (*pixel_init)(int fd);      // called when support is detected
-  int (*pixel_draw)(const struct ncpile* p, sprixel* s, FILE* out);
+  int (*pixel_draw)(const struct ncpile* p, struct sprixel* s, FILE* out);
   int (*pixel_shutdown)(int fd);  // called during context shutdown
   int (*pixel_clear_all)(int fd); // called during startup, kitty only
   int sprixel_scale_height; // sprixel must be a multiple of this many rows
