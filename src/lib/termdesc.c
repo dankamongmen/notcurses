@@ -188,22 +188,13 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname,
   // allow the "rgb" boolean terminfo capability, a COLORTERM environment
   // variable of either "truecolor" or "24bit", or unconditionally enable it
   // for several terminals known to always support 8bpc rgb setaf/setab.
-  ti->RGBflag = query_rgb();
   int colors = tigetnum("colors");
   if(colors <= 0){
     ti->colors = 1;
-    ti->CCCflag = false;
-    ti->RGBflag = false;
-    ti->initc = NULL;
   }else{
     ti->colors = colors;
-    terminfostr(&ti->initc, "initc");
-    if(ti->initc){
-      ti->CCCflag = tigetflag("ccc") == 1;
-    }else{
-      ti->CCCflag = false;
-    }
   }
+  ti->RGBflag = query_rgb(); // independent of colors
   // verify that the terminal provides cursor addressing (absolute movement)
   const struct strtdesc {
     escape_e esc;
@@ -227,6 +218,8 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname,
     { ESCAPE_CUF, "cuf", },
     { ESCAPE_CUF1, "cuf1", },
     { ESCAPE_CUB, "cub", },
+    { ESCAPE_INITC, "initc", },
+    { ESCAPE_GETM, "getm", },
     { ESCAPE_SMKX, "smkx", },
     { ESCAPE_RMKX, "rmkx", },
     { ESCAPE_SMXX, "smxx", },
@@ -247,6 +240,14 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname,
   if(ti->escindices[ESCAPE_CUP] == 0){
     fprintf(stderr, "Required terminfo capability 'cup' not defined\n");
     goto err;
+  }
+  if(colors){
+    const char* initc = get_escape(ti, ESCAPE_INITC);
+    if(initc){
+      ti->CCCflag = tigetflag("ccc") == 1;
+    }
+  }else{ // disable initc if there's no color support
+    ti->escindices[ESCAPE_INITC] = 0;
   }
   // neither of these is supported on e.g. the "linux" virtual console.
   if(!noaltscreen){
@@ -314,7 +315,6 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname,
     ti->escindices[ESCAPE_SITM] = 0;
     ti->escindices[ESCAPE_RITM] = 0;
   }
-  terminfostr(&ti->getm, "getm"); // get mouse events
   // if the keypad neen't be explicitly enabled, smkx is not present
   const char* smkx = get_escape(ti, ESCAPE_SMKX);
   if(smkx && fd >= 0){

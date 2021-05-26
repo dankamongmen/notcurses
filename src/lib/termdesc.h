@@ -54,6 +54,8 @@ typedef enum {
   ESCAPE_RC,       // "rc" pop the cursor off the stack
   ESCAPE_CLEAR,    // "clear" clear screen and home cursor
   ESCAPE_HOME,     // "home" home cursor
+  ESCAPE_INITC,    // "initc" set up palette entry
+  ESCAPE_GETM,     // "getm" get mouse events
   ESCAPE_MAX
 } escape_e;
 
@@ -66,8 +68,6 @@ typedef struct tinfo {
   uint16_t escindices[ESCAPE_MAX]; // table of 1-biased indices into esctable
   char* esctable;                  // packed table of escape sequences
   unsigned colors;// number of colors terminfo reported usable for this screen
-  char* initc;    // set a palette entry's RGB value
-  char* getm;     // get mouse events
   // we use the cell's size in pixels for pixel blitting. this information can
   // be acquired on all terminals with pixel support.
   int cellpixy;   // cell pixel height, might be 0
