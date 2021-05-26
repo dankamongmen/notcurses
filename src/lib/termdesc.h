@@ -5,24 +5,57 @@
 extern "C" {
 #endif
 
+// internal header, not installed
+
 #include <stdbool.h>
 
 struct ncpile;
 struct sprixel;
 struct notcurses;
 
-// terminfo cache. FIXME shrink this and kill a pointer deref by writing them
-// all into one buffer, and storing 1-biased indices with 0 for NULL.
+// we store all our escape sequences in a single large block, and use
+// 16-bit one-biased byte-granularity indices to get the location in said
+// block. we'd otherwise be using 32 or 64-bit pointers to get locations
+// scattered all over memory. this way the lookup elements require two or four
+// times fewer cachelines total, and the actual escape sequences are packed
+// tightly into minimal cachelines. if an escape is not defined, that index
+// is 0. the first escape defined has an index of 1, and so on. an escape
+// thus cannot actually start at byte 65535.
+
+// indexes into the table of fixed-width (16-bit) indices
+typedef enum {
+  ESCAPE_CUP,      // "cup" move cursor to absolute x, y position
+  ESCAPE_HPA,      // "hpa" move cursor to absolute horizontal position
+  ESCAPE_VPA,      // "vpa" move cursor to absolute vertical position
+  ESCAPE_SETAF,    // "setaf" set foreground color
+  ESCAPE_SETAB,    // "setab" set background color
+  ESCAPE_DEFS,     // "op" set foreground and background color to defaults
+  ESCAPE_SGR,      // "sgr" set graphics rendering (styles)
+  ESCAPE_SGR0,     // "sgr0" turn off all styles
+  ESCAPE_CIVIS,    // "civis" make the cursor invisiable
+  ESCAPE_CNORM,    // "cnorm" restore the cursor to normal
+  ESCAPE_MAX
+} escape_e;
+
+// terminal interface description. most of these are acquired from terminfo(5)
+// (using a database entry specified by TERM). some are determined via
+// heuristics based off terminal interrogation or the TERM environment
+// variable. some are determined via ioctl(2). treat all of them as if they
+// can change over the program's life (don't cache them locally).
 typedef struct tinfo {
-  unsigned colors;// number of colors terminfo reported usable for this screen
-  char* sgr;      // set many graphics properties at once
-  char* sgr0;     // restore default presentation properties
+  uint16_t escindices[ESCAPE_MAX]; // table of 1-biased indices into esctable
+  char* esctable;                  // packed table of escape sequences
+  char* cup;      // move cursor
+  char* hpa;      // horizontal position adjusment (move cursor on row)
+  char* vpa;      // vertical position adjustment (move cursor on column)
   char* setaf;    // set foreground color (ANSI)
   char* setab;    // set background color (ANSI)
   char* op;       // set foreground and background color to default
+  char* sgr;      // set many graphics properties at once
+  unsigned colors;// number of colors terminfo reported usable for this screen
+  char* sgr0;     // restore default presentation properties
   char* fgop;     // set foreground to default
   char* bgop;     // set background to default
-  char* cup;      // move cursor
   char* cuu;      // move N cells up
   char* cub;      // move N cells left
   char* cuf;      // move N cells right
@@ -31,8 +64,6 @@ typedef struct tinfo {
   char* home;     // home cursor
   char* civis;    // hide cursor
   char* cnorm;    // restore cursor to default state
-  char* hpa;      // horizontal position adjusment (move cursor on row)
-  char* vpa;      // vertical position adjustment (move cursor on column)
   char* standout; // NCSTYLE_STANDOUT
   char* uline;    // NCSTYLE_UNDERLINK
   char* reverse;  // NCSTYLE_REVERSE
@@ -106,6 +137,16 @@ typedef struct tinfo {
   bool sextants;  // do we have (good, vetted) Unicode 13 sextant support?
   bool braille;   // do we have Braille support? (linux console does not)
 } tinfo;
+
+// retrieve the terminfo(5)-style escape 'e' from tdesc (NULL if undefined).
+static inline const char*
+get_escape(const tinfo* tdesc, escape_e e){
+  unsigned idx = tdesc->escindices[e];
+  if(idx){
+    return tdesc->esctable + idx - 1;
+  }
+  return NULL;
+}
 
 #ifdef __cplusplus
 }
