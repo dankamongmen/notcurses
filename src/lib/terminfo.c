@@ -242,7 +242,13 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname,
   terminfostr(&ti->reverse, "rev");   // begin reverse video mode
   terminfostr(&ti->blink, "blink");   // turn on blinking
   terminfostr(&ti->dim, "dim");       // turn on half-bright mode
-  terminfostr(&ti->bold, "bold");     // turn on extra-bright mode
+  // we don't actually use the bold capability -- we use sgr exclusively.
+  // but we use the presence of the bold capability to determine whether
+  // we think sgr supports bold, which...might be valid? i'm unsure.
+  char* bold;
+  if(terminfostr(&bold, "bold") == 0){
+    ti->bold = true;
+  }
   terminfostr(&ti->italics, "sitm");  // begin italic mode
   terminfostr(&ti->italoff, "ritm");  // end italic mode
   terminfostr(&ti->sgr, "sgr");       // define video attributes
@@ -277,7 +283,7 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname,
       ti->dim = NULL;
     }
     if(nocolor_stylemask & A_BOLD){
-      ti->bold = NULL;
+      ti->bold = false;
     }
     if(nocolor_stylemask & A_ITALIC){
       ti->italics = NULL;

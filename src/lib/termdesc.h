@@ -48,22 +48,21 @@ typedef struct tinfo {
   uint16_t escindices[ESCAPE_MAX]; // table of 1-biased indices into esctable
   char* esctable;                  // packed table of escape sequences
   char* sgr;      // set many graphics properties at once
-  unsigned colors;// number of colors terminfo reported usable for this screen
   char* sgr0;     // restore default presentation properties
+  char* civis;    // hide cursor
+  char* cnorm;    // restore cursor to default state
+  unsigned colors;// number of colors terminfo reported usable for this screen
   char* cuu;      // move N cells up
   char* cub;      // move N cells left
   char* cuf;      // move N cells right
   char* cud;      // move N cells down
   char* cuf1;     // move 1 cell right
   char* home;     // home cursor
-  char* civis;    // hide cursor
-  char* cnorm;    // restore cursor to default state
   char* standout; // NCSTYLE_STANDOUT
   char* uline;    // NCSTYLE_UNDERLINK
   char* reverse;  // NCSTYLE_REVERSE
   char* blink;    // NCSTYLE_BLINK
   char* dim;      // NCSTYLE_DIM
-  char* bold;     // NCSTYLE_BOLD
   char* italics;  // NCSTYLE_ITALIC
   char* italoff;  // NCSTYLE_ITALIC (disable)
   char* struck;   // NCSTYLE_STRUCK
@@ -122,6 +121,7 @@ typedef struct tinfo {
   bool CCCflag;   // "CCC" flag for palette set capability
   bool BCEflag;   // "BCE" flag for erases with background color
   bool AMflag;    // "AM" flag for automatic movement to next line
+  bool bold;      // can we do bold via sgr?
 
   // assigned based off nl_langinfo() in notcurses_core_init()
   bool utf8;      // are we using utf-8 encoding, as hoped?
