@@ -809,7 +809,7 @@ init_banner_warnings(const notcurses* nc, FILE* out){
   if(!notcurses_canutf8(nc)){
     fprintf(out, "\n Warning! Encoding is not UTF-8; output may be degraded.\n");
   }
-  if(!nc->tcache.hpa){
+  if(!get_escape(&nc->tcache, ESCAPE_HPA)){
     fprintf(out, "\n Warning! No absolute horizontal placement.\n");
   }
   if(nc->tcache.sgr0){
@@ -1189,9 +1189,11 @@ int notcurses_stop(notcurses* nc){
     // if we were not using the alternate screen, our cursor's wherever we last
     // wrote. move it to the bottom left of the screen.
     if(!nc->tcache.smcup){
-      tty_emit(tiparm(nc->tcache.hpa, 0), nc->ttyfd);
+      // if ldimy is 0, we've not yet written anything; leave it untouched
       if(nc->lfdimy){
-        tty_emit(tiparm(nc->tcache.vpa, nc->lfdimy + nc->margin_t - 1), nc->ttyfd);
+        int targy = nc->lfdimy + nc->margin_t - 1;
+        // cup is required, no need to test for existence
+        tty_emit(tiparm(get_escape(&nc->tcache, ESCAPE_CUP), targy, 0), nc->ttyfd);
       }
     }
     if(nc->ttyfd >= 0){

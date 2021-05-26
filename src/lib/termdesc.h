@@ -45,8 +45,6 @@ typedef enum {
 typedef struct tinfo {
   uint16_t escindices[ESCAPE_MAX]; // table of 1-biased indices into esctable
   char* esctable;                  // packed table of escape sequences
-  char* hpa;      // horizontal position adjusment (move cursor on row)
-  char* vpa;      // vertical position adjustment (move cursor on column)
   char* setaf;    // set foreground color (ANSI)
   char* setab;    // set background color (ANSI)
   char* op;       // set foreground and background color to default
@@ -138,7 +136,7 @@ typedef struct tinfo {
 } tinfo;
 
 // retrieve the terminfo(5)-style escape 'e' from tdesc (NULL if undefined).
-static inline const char*
+static inline __attribute__ ((pure)) const char*
 get_escape(const tinfo* tdesc, escape_e e){
   unsigned idx = tdesc->escindices[e];
   if(idx){

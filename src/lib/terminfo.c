@@ -196,6 +196,8 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname,
     const char* tinfo;
   } strtdescs[] = {
     { ESCAPE_CUP, "cup", },
+    { ESCAPE_HPA, "hpa", },
+    { ESCAPE_VPA, "vpa", },
     { ESCAPE_MAX, NULL, },
   };
   size_t tablelen = 0;
@@ -248,8 +250,6 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname,
   terminfostr(&ti->clearscr, "clear");// clear screen, home cursor
   terminfostr(&ti->cuu, "cuu"); // move N up
   terminfostr(&ti->cud, "cud"); // move N down
-  terminfostr(&ti->hpa, "hpa"); // set horizontal position
-  terminfostr(&ti->vpa, "vpa"); // set verical position
   terminfostr(&ti->cuf, "cuf"); // n non-destructive spaces
   terminfostr(&ti->cub, "cub"); // n non-destructive backspaces
   terminfostr(&ti->cuf1, "cuf1"); // non-destructive space

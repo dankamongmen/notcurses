@@ -44,7 +44,9 @@ tinfo_debug_caps(const tinfo* ti, FILE* debugfp, int rows, int cols,
     fprintf(debugfp, "%sbackground isn't interpreted as transparent\n", indent);
   }
   fprintf(debugfp, "%scup: %c vpa: %c hpa: %c\n",
-          indent, capyn(get_escape(ti, ESCAPE_CUP)), capyn(ti->vpa), capyn(ti->hpa));
+          indent, capyn(get_escape(ti, ESCAPE_CUP)),
+                  capyn(get_escape(ti, ESCAPE_VPA)),
+                  capyn(get_escape(ti, ESCAPE_HPA)));
 }
 
 void notcurses_debug_caps(const notcurses* nc, FILE* debugfp){

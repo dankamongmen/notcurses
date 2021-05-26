@@ -811,14 +811,15 @@ goto_location(notcurses* nc, FILE* out, int y, int x){
   // if we don't have hpa, force a cup even if we're only 1 char away. the only
   // terminal i know supporting cup sans hpa is vt100, and vt100 can suck it.
   // you can't use cuf for backwards moves anyway; again, vt100 can suck it.
-  if(nc->rstate.y == y && nc->tcache.hpa && !nc->rstate.hardcursorpos){ // only need move x
+  const char* hpa = get_escape(&nc->tcache, ESCAPE_HPA);
+  if(nc->rstate.y == y && hpa && !nc->rstate.hardcursorpos){ // only need move x
     if(nc->rstate.x == x){ // needn't move shit
       return 0;
     }
     if(x == nc->rstate.x + 1 && nc->tcache.cuf1){
       ret = term_emit(nc->tcache.cuf1, out, false);
     }else{
-      ret = term_emit(tiparm(nc->tcache.hpa, x), out, false);
+      ret = term_emit(tiparm(hpa, x), out, false);
     }
   }else{
     // cup is required, no need to verify existence
