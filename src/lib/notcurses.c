@@ -1108,6 +1108,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   ret->rstate.x = ret->rstate.y = -1;
   init_banner(ret, shortname_term);
   // flush on the switch to alternate screen, lest initial output be swept away
+  const char* clearscr = get_escape(&ret->tcache, ESCAPE_CLEAR);
   if(ret->ttyfd >= 0){
     const char* smcup = get_escape(&ret->tcache, ESCAPE_SMCUP);
     if(smcup){
@@ -1116,14 +1117,14 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
         goto err;
       }
       // explicit clear even though smcup *might* clear
-      if(tty_emit(ret->tcache.clearscr, ret->ttyfd)){
+      if(!clearscr || tty_emit(clearscr, ret->ttyfd)){
         notcurses_refresh(ret, NULL, NULL);
       }
     }else if(!(opts->flags & NCOPTION_NO_ALTERNATE_SCREEN)){
       // if they expected the alternate screen, but we didn't have one to
       // offer, at least clear the screen. try using "clear"; if that doesn't
       // fly, use notcurses_refresh() to force a clearing via iterated writes.
-      if(tty_emit(ret->tcache.clearscr, ret->ttyfd)){
+      if(!clearscr || tty_emit(clearscr, ret->ttyfd)){
         notcurses_refresh(ret, NULL, NULL);
       }
     }

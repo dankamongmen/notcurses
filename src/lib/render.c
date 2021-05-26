@@ -1191,14 +1191,16 @@ notcurses_rasterize(notcurses* nc, ncpile* p, FILE* out){
 static int
 home_cursor(notcurses* nc, bool flush){
   int ret = -1;
-  if(nc->tcache.home){
-    ret = term_emit(nc->tcache.home, nc->ttyfp, flush);
+  const char* home = get_escape(&nc->tcache, ESCAPE_HOME);
+  if(home){
+    ret = term_emit(home, nc->ttyfp, flush);
   }else{
     const char* cup = get_escape(&nc->tcache, ESCAPE_CUP);
+    const char* clearscr = get_escape(&nc->tcache, ESCAPE_CLEAR);
     if(cup){
       ret = term_emit(tiparm(cup, 1, 1), nc->ttyfp, flush);
-    }else if(nc->tcache.clearscr){
-      ret = term_emit(nc->tcache.clearscr, nc->ttyfp, flush);
+    }else if(clearscr){
+      ret = term_emit(clearscr, nc->ttyfp, flush);
     }
   }
   if(ret >= 0){

@@ -50,6 +50,10 @@ typedef enum {
   ESCAPE_RMCUP,    // "rmcup" leave alternate screen
   ESCAPE_SMXX,     // "smxx" start struckout
   ESCAPE_RMXX,     // "rmxx" end struckout
+  ESCAPE_SC,       // "sc" push the cursor onto the stack
+  ESCAPE_RC,       // "rc" pop the cursor off the stack
+  ESCAPE_CLEAR,    // "clear" clear screen and home cursor
+  ESCAPE_HOME,     // "home" home cursor
   ESCAPE_MAX
 } escape_e;
 
@@ -62,11 +66,7 @@ typedef struct tinfo {
   uint16_t escindices[ESCAPE_MAX]; // table of 1-biased indices into esctable
   char* esctable;                  // packed table of escape sequences
   unsigned colors;// number of colors terminfo reported usable for this screen
-  char* home;     // home cursor
   char* initc;    // set a palette entry's RGB value
-  char* clearscr; // erase screen and home cursor
-  char* sc;       // push the cursor location onto the stack
-  char* rc;       // pop the cursor location off the stack
   char* getm;     // get mouse events
   // we use the cell's size in pixels for pixel blitting. this information can
   // be acquired on all terminals with pixel support.
