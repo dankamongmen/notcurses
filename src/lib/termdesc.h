@@ -48,6 +48,8 @@ typedef enum {
   ESCAPE_RMKX,     // "rmkx" keypad_local
   ESCAPE_SMCUP,    // "smcup" enter alternate screen
   ESCAPE_RMCUP,    // "rmcup" leave alternate screen
+  ESCAPE_SMXX,     // "smxx" start struckout
+  ESCAPE_RMXX,     // "rmxx" end struckout
   ESCAPE_MAX
 } escape_e;
 
@@ -61,8 +63,6 @@ typedef struct tinfo {
   char* esctable;                  // packed table of escape sequences
   unsigned colors;// number of colors terminfo reported usable for this screen
   char* home;     // home cursor
-  char* struck;   // NCSTYLE_STRUCK
-  char* struckoff;// NCSTYLE_STRUCK (disable)
   char* initc;    // set a palette entry's RGB value
   char* clearscr; // erase screen and home cursor
   char* sc;       // push the cursor location onto the stack

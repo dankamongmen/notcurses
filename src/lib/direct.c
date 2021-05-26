@@ -860,7 +860,8 @@ int ncdirect_on_styles(ncdirect* n, unsigned stylebits){
       return 0;
     }
     if(term_setstyle(n->ttyfp, n->stylemask, stylemask, NCSTYLE_STRUCK,
-                     n->tcache.struck, n->tcache.struckoff)){
+                     get_escape(&n->tcache, ESCAPE_SMXX),
+                     get_escape(&n->tcache, ESCAPE_RMXX))){
       return -1;
     }
     n->stylemask = stylemask;
@@ -883,7 +884,8 @@ int ncdirect_off_styles(ncdirect* n, unsigned stylebits){
       return -1;
     }
     if(term_setstyle(n->ttyfp, n->stylemask, stylemask, NCSTYLE_STRUCK,
-                     n->tcache.struck, n->tcache.struckoff)){
+                     get_escape(&n->tcache, ESCAPE_SMXX),
+                     get_escape(&n->tcache, ESCAPE_RMXX))){
       return -1;
     }
     n->stylemask = stylemask;
@@ -910,7 +912,8 @@ int ncdirect_set_styles(ncdirect* n, unsigned stylebits){
       return -1;
     }
     if(term_setstyle(n->ttyfp, n->stylemask, stylemask, NCSTYLE_STRUCK,
-                     n->tcache.struck, n->tcache.struckoff)){
+                     get_escape(&n->tcache, ESCAPE_SMXX),
+                     get_escape(&n->tcache, ESCAPE_RMXX))){
       return -1;
     }
     n->stylemask = stylemask;
