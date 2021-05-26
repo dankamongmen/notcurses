@@ -45,7 +45,6 @@ typedef enum {
 typedef struct tinfo {
   uint16_t escindices[ESCAPE_MAX]; // table of 1-biased indices into esctable
   char* esctable;                  // packed table of escape sequences
-  char* cup;      // move cursor
   char* hpa;      // horizontal position adjusment (move cursor on row)
   char* vpa;      // vertical position adjustment (move cursor on column)
   char* setaf;    // set foreground color (ANSI)

@@ -137,6 +137,33 @@ void free_terminfo_cache(tinfo* ti){
   pthread_mutex_destroy(&ti->pixel_query);
 }
 
+// tlen -- size of escape table. tused -- used bytes in same.
+// returns -1 if the starting location is >= 65535. otherwise,
+// copies tstr into the table, and sets up 1-biased index.
+static int
+grow_esc_table(tinfo* ti, const char* tstr, escape_e esc,
+               size_t* tlen, size_t* tused){
+  if(*tused >= 65535){
+    return -1;
+  }
+  size_t slen = strlen(tstr) + 1; // count the nul term
+  if(*tlen - *tused < slen){
+    // guaranteed to give us enough space to add tstr (and then some)
+    size_t newsize = *tlen + 4096 + slen;
+    char* tmp = realloc(ti->esctable, newsize);
+    if(tmp == NULL){
+      return -1;
+    }
+    ti->esctable = tmp;
+    *tlen = newsize;
+  }
+  // we now are guaranteed sufficient space to copy tstr
+  memcpy(ti->esctable + *tused, tstr, slen);
+  ti->escindices[esc] = *tused + 1; // one-bias
+  *tused += slen;
+  return 0;
+}
+
 // termname is just the TERM environment variable. some details are not
 // exposed via terminfo, and we must make heuristic decisions based on
 // the detected terminal type, yuck :/.
@@ -164,8 +191,27 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname,
     }
   }
   // verify that the terminal provides cursor addressing (absolute movement)
-  terminfostr(&ti->cup, "cup");
-  if(ti->cup == NULL){
+  const struct strtdesc {
+    escape_e esc;
+    const char* tinfo;
+  } strtdescs[] = {
+    { ESCAPE_CUP, "cup", },
+    { ESCAPE_MAX, NULL, },
+  };
+  size_t tablelen = 0;
+  size_t tableused = 0;
+  for(typeof(*strtdescs)* strtdesc = strtdescs ; strtdesc->esc < ESCAPE_MAX ; ++strtdesc){
+    char* tstr;
+    if(terminfostr(&tstr, strtdesc->tinfo) == 0){
+      if(grow_esc_table(ti, tstr, strtdesc->esc, &tablelen, &tableused)){
+        free(ti->esctable);
+        return -1;
+      }
+    }else{
+      ti->escindices[strtdesc->esc] = 0;
+    }
+  }
+  if(ti->escindices[ESCAPE_CUP] == 0){
     fprintf(stderr, "Required terminfo capability 'cup' not defined\n");
     return -1;
   }
