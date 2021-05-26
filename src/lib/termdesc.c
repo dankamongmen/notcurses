@@ -229,6 +229,8 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname,
     { ESCAPE_CUB, "cub", },
     { ESCAPE_SMKX, "smkx", },
     { ESCAPE_RMKX, "rmkx", },
+    { ESCAPE_SMXX, "smxx", },
+    { ESCAPE_RMXX, "rmxx", },
     { ESCAPE_MAX, NULL, },
   };
   size_t tablelen = 0;
@@ -288,12 +290,16 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname,
     { NCSTYLE_BLINK, "blink", A_BLINK },
     { NCSTYLE_DIM, "dim", A_DIM },
     { NCSTYLE_ITALIC, "sitm", A_ITALIC },
+    { NCSTYLE_INVIS, "invis", A_INVIS },
+    { NCSTYLE_PROTECT, "prot", A_PROTECT },
+    { NCSTYLE_STRUCK, "smxx", 0 },
     { 0, NULL, 0 }
   };
   int nocolor_stylemask = tigetnum("ncv");
   for(typeof(*styles)* s = styles ; s->s ; ++s){
     if(nocolor_stylemask > 0){
       if(nocolor_stylemask & s->ncvbit){
+        ti->supported_styles &= ~s->ncvbit;
         continue;
       }
     }
@@ -309,8 +315,6 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname,
     ti->escindices[ESCAPE_RITM] = 0;
   }
   terminfostr(&ti->getm, "getm"); // get mouse events
-  terminfostr(&ti->struck, "smxx"); // strikeout
-  terminfostr(&ti->struckoff, "rmxx"); // cancel strikeout
   // if the keypad neen't be explicitly enabled, smkx is not present
   const char* smkx = get_escape(ti, ESCAPE_SMKX);
   if(smkx && fd >= 0){

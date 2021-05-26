@@ -641,7 +641,8 @@ term_setstyles(FILE* out, notcurses* nc, const nccell* c){
                        get_escape(&nc->tcache, ESCAPE_SITM),
                        get_escape(&nc->tcache, ESCAPE_RITM));
   ret |= term_setstyle(out, nc->rstate.curattr, cellattr, NCSTYLE_STRUCK,
-                       nc->tcache.struck, nc->tcache.struckoff);
+                       get_escape(&nc->tcache, ESCAPE_SMXX),
+                       get_escape(&nc->tcache, ESCAPE_RMXX));
   nc->rstate.curattr = cellattr;
   if(normalized){
     nc->rstate.fgdefelidable = true;
