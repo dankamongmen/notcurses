@@ -231,6 +231,10 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname,
     { ESCAPE_RMKX, "rmkx", },
     { ESCAPE_SMXX, "smxx", },
     { ESCAPE_RMXX, "rmxx", },
+    { ESCAPE_SC, "sc", },
+    { ESCAPE_RC, "rc", },
+    { ESCAPE_CLEAR, "clear", },
+    { ESCAPE_HOME, "home", },
     { ESCAPE_MAX, NULL, },
   };
   size_t tablelen = 0;
@@ -269,10 +273,6 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname,
       }
     }
   }
-  terminfostr(&ti->home, "home");     // home the cursor
-  terminfostr(&ti->clearscr, "clear");// clear screen, home cursor
-  terminfostr(&ti->sc, "sc"); // push ("save") cursor
-  terminfostr(&ti->rc, "rc"); // pop ("restore") cursor
   // we don't actually use the bold capability -- we use sgr exclusively.
   // but we use the presence of the bold capability to determine whether
   // we think sgr supports bold, which...might be valid? i'm unsure. futher,

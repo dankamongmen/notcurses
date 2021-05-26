@@ -164,10 +164,11 @@ int ncdirect_cursor_down(ncdirect* nc, int num){
 }
 
 int ncdirect_clear(ncdirect* nc){
-  if(!nc->tcache.clearscr){
-    return -1; // FIXME scroll output off the screen
+  const char* clearscr = get_escape(&nc->tcache, ESCAPE_CLEAR);
+  if(clearscr){
+    return term_emit(clearscr, nc->ttyfp, true);
   }
-  return term_emit(nc->tcache.clearscr, nc->ttyfp, true);
+  return -1;
 }
 
 int ncdirect_dim_x(const ncdirect* nc){
@@ -415,17 +416,19 @@ int ncdirect_cursor_yx(ncdirect* n, int* y, int* x){
 }
 
 int ncdirect_cursor_push(ncdirect* n){
-  if(n->tcache.sc == NULL){
-    return -1;
+  const char* sc = get_escape(&n->tcache, ESCAPE_SC);
+  if(sc){
+    return term_emit(sc, n->ttyfp, false);
   }
-  return term_emit(n->tcache.sc, n->ttyfp, false);
+  return -1;
 }
 
 int ncdirect_cursor_pop(ncdirect* n){
-  if(n->tcache.rc == NULL){
-    return -1;
+  const char* rc = get_escape(&n->tcache, ESCAPE_RC);
+  if(rc){
+    return term_emit(rc, n->ttyfp, false);
   }
-  return term_emit(n->tcache.rc, n->ttyfp, false);
+  return -1;
 }
 
 static inline int
