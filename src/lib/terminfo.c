@@ -206,6 +206,8 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname,
     { ESCAPE_CIVIS, "civis", },
     { ESCAPE_SGR, "sgr", },
     { ESCAPE_SGR0, "sgr0", },
+    { ESCAPE_SITM, "sitm", },
+    { ESCAPE_RITM, "ritm", },
     { ESCAPE_MAX, NULL, },
   };
   size_t tablelen = 0;
@@ -244,10 +246,6 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname,
       }
     }
   }
-  // italics are never handled by sgr, so we keep these escapes, but
-  // italics *can* be locked out by ncv
-  terminfostr(&ti->italics, "sitm");  // begin italic mode
-  terminfostr(&ti->italoff, "ritm");  // end italic mode
   terminfostr(&ti->home, "home");     // home the cursor
   terminfostr(&ti->clearscr, "clear");// clear screen, home cursor
   terminfostr(&ti->cuu, "cuu"); // move N up
@@ -262,6 +260,8 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname,
   // we think sgr supports bold, which...might be valid? i'm unsure. futher,
   // some terminals cannot combine certain styles with colors. don't
   // advertise support for the style in that case.
+  // italics are never handled by sgr, so we keep those escapes, but
+  // italics *can* be locked out by ncv
   const struct style {
     unsigned s;        // NCSTYLE_* value
     const char* tinfo; // terminfo capability for conditional permit

@@ -37,6 +37,8 @@ typedef enum {
   ESCAPE_CIVIS,    // "civis" make the cursor invisiable
   ESCAPE_CNORM,    // "cnorm" restore the cursor to normal
   ESCAPE_OC,       // "oc" restore original colors
+  ESCAPE_SITM,     // "sitm" start italics
+  ESCAPE_RITM,     // "ritm" end italics
   ESCAPE_MAX
 } escape_e;
 
@@ -55,8 +57,6 @@ typedef struct tinfo {
   char* cud;      // move N cells down
   char* cuf1;     // move 1 cell right
   char* home;     // home cursor
-  char* italics;  // NCSTYLE_ITALIC
-  char* italoff;  // NCSTYLE_ITALIC (disable)
   char* struck;   // NCSTYLE_STRUCK
   char* struckoff;// NCSTYLE_STRUCK (disable)
   char* initc;    // set a palette entry's RGB value

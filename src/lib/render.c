@@ -638,7 +638,8 @@ term_setstyles(FILE* out, notcurses* nc, const nccell* c){
     nc->rstate.curattr &= ~(NCSTYLE_ITALIC | NCSTYLE_STRUCK);
   }
   ret |= term_setstyle(out, nc->rstate.curattr, cellattr, NCSTYLE_ITALIC,
-                       nc->tcache.italics, nc->tcache.italoff);
+                       get_escape(&nc->tcache, ESCAPE_SITM),
+                       get_escape(&nc->tcache, ESCAPE_RITM));
   ret |= term_setstyle(out, nc->rstate.curattr, cellattr, NCSTYLE_STRUCK,
                        nc->tcache.struck, nc->tcache.struckoff);
   nc->rstate.curattr = cellattr;
