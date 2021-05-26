@@ -192,17 +192,19 @@ int ncdirect_dim_y(const ncdirect* nc){
 }
 
 int ncdirect_cursor_enable(ncdirect* nc){
-  if(!nc->tcache.cnorm){
-    return -1;
+  const char* cnorm = get_escape(&nc->tcache, ESCAPE_CNORM);
+  if(cnorm){
+    return term_emit(cnorm, nc->ttyfp, true);
   }
-  return term_emit(nc->tcache.cnorm, nc->ttyfp, true);
+  return -1;
 }
 
 int ncdirect_cursor_disable(ncdirect* nc){
-  if(!nc->tcache.civis){
-    return -1;
+  const char* cinvis = get_escape(&nc->tcache, ESCAPE_CIVIS);
+  if(cinvis){
+    return term_emit(cinvis, nc->ttyfp, true);
   }
-  return term_emit(nc->tcache.civis, nc->ttyfp, true);
+  return -1;
 }
 
 // if we're lacking hpa/vpa, *and* -1 is passed for one of x/y, *and* we've
@@ -707,7 +709,8 @@ ncdirect_stop_minimal(void* vnc){
     if(nc->tcache.pixel_shutdown){
       ret |= nc->tcache.pixel_shutdown(nc->ctermfd);
     }
-    if(nc->tcache.cnorm && tty_emit(nc->tcache.cnorm, nc->ctermfd)){
+    const char* cnorm = get_escape(&nc->tcache, ESCAPE_CNORM);
+    if(cnorm && tty_emit(cnorm, nc->ctermfd)){
       ret = -1;
     }
     ret |= tcsetattr(nc->ctermfd, TCSANOW, &nc->tpreserved);

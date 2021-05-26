@@ -1484,7 +1484,8 @@ int notcurses_cursor_enable(notcurses* nc, int y, int x){
   if(nc->cursory == y && nc->cursorx == x){
     return 0;
   }
-  if(nc->ttyfd < 0 || !nc->tcache.cnorm){
+  const char* cnorm = get_escape(&nc->tcache, ESCAPE_CNORM);
+  if(nc->ttyfd < 0 || !cnorm){
     return -1;
   }
   // updates nc->rstate.cursor{y,x}
@@ -1497,7 +1498,7 @@ int notcurses_cursor_enable(notcurses* nc, int y, int x){
     nc->cursorx = x;
     return 0;
   }
-  if(tty_emit(nc->tcache.cnorm, nc->ttyfd) || fflush(nc->ttyfp) == EOF){
+  if(tty_emit(cnorm, nc->ttyfd) || fflush(nc->ttyfp) == EOF){
     return -1;
   }
   nc->cursory = y;
@@ -1511,8 +1512,9 @@ int notcurses_cursor_disable(notcurses* nc){
     return -1;
   }
   if(nc->ttyfd >= 0){
-    if(nc->tcache.civis){
-      if(!tty_emit(nc->tcache.civis, nc->ttyfd) && !fflush(nc->ttyfp)){
+    const char* cinvis = get_escape(&nc->tcache, ESCAPE_CIVIS);
+    if(cinvis){
+      if(!tty_emit(cinvis, nc->ttyfd) && !fflush(nc->ttyfp)){
         nc->cursory = -1;
         nc->cursorx = -1;
         return 0;

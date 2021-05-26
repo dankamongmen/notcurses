@@ -202,6 +202,8 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname,
     { ESCAPE_SETAF, "setaf", },
     { ESCAPE_SETAB, "setab", },
     { ESCAPE_OP, "op", },
+    { ESCAPE_CNORM, "cnorm", },
+    { ESCAPE_CIVIS, "civis", },
     { ESCAPE_MAX, NULL, },
   };
   size_t tablelen = 0;
@@ -232,11 +234,14 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname,
     goto err;
   }
   ti->BCEflag = tigetflag("bce") == 1;
-  terminfostr(&ti->civis, "civis"); // cursor invisible
-  if(ti->civis == NULL){
-    terminfostr(&ti->civis, "chts");// hard-to-see cursor
+  if(get_escape(ti, ESCAPE_CIVIS) == NULL){
+    char* chts;
+    if(terminfostr(&chts, "chts") == 0){
+      if(grow_esc_table(ti, chts, ESCAPE_CIVIS, &tablelen, &tableused)){
+        goto err;
+      }
+    }
   }
-  terminfostr(&ti->cnorm, "cnorm"); // cursor normal (undo civis/cvvis)
   terminfostr(&ti->standout, "smso"); // begin standout mode
   terminfostr(&ti->uline, "smul");    // begin underline mode
   terminfostr(&ti->reverse, "rev");   // begin reverse video mode

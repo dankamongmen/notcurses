@@ -79,7 +79,8 @@ notcurses_stop_minimal(void* vnc){
     if(nc->tcache.rmkx && tty_emit(nc->tcache.rmkx, nc->ttyfd)){
         ret = -1;
     }
-    if(nc->tcache.cnorm && tty_emit(nc->tcache.cnorm, nc->ttyfd)){
+    const char* cnorm = get_escape(&nc->tcache, ESCAPE_CNORM);
+    if(cnorm && tty_emit(cnorm, nc->ttyfd)){
       ret = -1;
     }
     ret |= tcsetattr(nc->ttyfd, TCSANOW, &nc->tpreserved);
@@ -1091,7 +1092,8 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
       free_plane(ret->stdplane);
       goto err;
     }
-    if(ret->tcache.civis && tty_emit(ret->tcache.civis, ret->ttyfd)){
+    const char* cinvis = get_escape(&ret->tcache, ESCAPE_CIVIS);
+    if(cinvis && tty_emit(cinvis, ret->ttyfd)){
       free_plane(ret->stdplane);
       goto err;
     }
