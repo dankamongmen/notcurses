@@ -244,28 +244,8 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname,
       }
     }
   }
-  // we don't actually use the bold capability -- we use sgr exclusively.
-  // but we use the presence of the bold capability to determine whether
-  // we think sgr supports bold, which...might be valid? i'm unsure.
-  char* escstyle;
-  if(terminfostr(&escstyle, "bold") == 0){
-    ti->bold = true;
-  }
-  if(terminfostr(&escstyle, "smso") == 0){
-    ti->standout = true;
-  }
-  if(terminfostr(&escstyle, "smul") == 0){
-    ti->uline = true;
-  }
-  if(terminfostr(&escstyle, "rev") == 0){
-    ti->reverse = true;
-  }
-  if(terminfostr(&escstyle, "blink") == 0){
-    ti->blink = true;
-  }
-  if(terminfostr(&escstyle, "dim") == 0){
-    ti->dim = true;
-  }
+  // italics are never handled by sgr, so we keep these escapes, but
+  // italics *can* be locked out by ncv
   terminfostr(&ti->italics, "sitm");  // begin italic mode
   terminfostr(&ti->italoff, "ritm");  // end italic mode
   terminfostr(&ti->home, "home");     // home the cursor
@@ -277,32 +257,36 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname,
   terminfostr(&ti->cuf1, "cuf1"); // non-destructive space
   terminfostr(&ti->sc, "sc"); // push ("save") cursor
   terminfostr(&ti->rc, "rc"); // pop ("restore") cursor
-  // Some terminals cannot combine certain styles with colors. Don't advertise
-  // support for the style in that case.
+  // we don't actually use the bold capability -- we use sgr exclusively.
+  // but we use the presence of the bold capability to determine whether
+  // we think sgr supports bold, which...might be valid? i'm unsure. futher,
+  // some terminals cannot combine certain styles with colors. don't
+  // advertise support for the style in that case.
+  const struct style {
+    unsigned s;        // NCSTYLE_* value
+    const char* tinfo; // terminfo capability for conditional permit
+    unsigned ncvbit;   // bit in "ncv" mask for unconditional deny
+  } styles[] = {
+    { NCSTYLE_BOLD, "bold", A_BOLD },
+    { NCSTYLE_STANDOUT, "smso", A_STANDOUT },
+    { NCSTYLE_REVERSE, "rev", A_REVERSE },
+    { NCSTYLE_UNDERLINE, "smul", A_UNDERLINE },
+    { NCSTYLE_BLINK, "blink", A_BLINK },
+    { NCSTYLE_DIM, "dim", A_DIM },
+    { NCSTYLE_ITALIC, "sitm", A_ITALIC },
+    { 0, NULL, 0 }
+  };
   int nocolor_stylemask = tigetnum("ncv");
-  if(nocolor_stylemask > 0){
-    if(nocolor_stylemask & A_STANDOUT){ // ncv is composed of terminfo bits, not ours
-      ti->standout = NULL;
+  for(typeof(*styles)* s = styles ; s->s ; ++s){
+    if(nocolor_stylemask > 0){
+      if(nocolor_stylemask & s->ncvbit){
+        continue;
+      }
     }
-    if(nocolor_stylemask & A_UNDERLINE){
-      ti->uline = NULL;
+    char* style;
+    if(terminfostr(&style, s->tinfo) == 0){
+      ti->supported_styles |= s->s;
     }
-    if(nocolor_stylemask & A_REVERSE){
-      ti->reverse = NULL;
-    }
-    if(nocolor_stylemask & A_BLINK){
-      ti->blink = NULL;
-    }
-    if(nocolor_stylemask & A_DIM){
-      ti->dim = NULL;
-    }
-    if(nocolor_stylemask & A_BOLD){
-      ti->bold = false;
-    }
-    if(nocolor_stylemask & A_ITALIC){
-      ti->italics = NULL;
-    }
-    // can't do anything about struck! :/
   }
   terminfostr(&ti->getm, "getm"); // get mouse events
   terminfostr(&ti->smkx, "smkx");   // enable keypad transmit
@@ -559,17 +543,4 @@ int query_term(tinfo* ti, int fd){
   }
   pthread_mutex_unlock(&ti->pixel_query);
   return ret;
-}
-
-int term_supported_styles(const tinfo* ti){
-  unsigned styles = 0;
-  styles |= ti->standout ? NCSTYLE_STANDOUT : 0;
-  styles |= ti->uline ? NCSTYLE_UNDERLINE : 0;
-  styles |= ti->reverse ? NCSTYLE_REVERSE : 0;
-  styles |= ti->blink ? NCSTYLE_BLINK : 0;
-  styles |= ti->dim ? NCSTYLE_DIM : 0;
-  styles |= ti->bold ? NCSTYLE_BOLD : 0;
-  styles |= ti->italics ? NCSTYLE_ITALIC : 0;
-  styles |= ti->struck ? NCSTYLE_STRUCK : 0;
-  return styles;
 }

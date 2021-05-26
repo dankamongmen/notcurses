@@ -112,13 +112,7 @@ typedef struct tinfo {
   bool CCCflag;   // "CCC" flag for palette set capability
   bool BCEflag;   // "BCE" flag for erases with background color
   bool AMflag;    // "AM" flag for automatic movement to next line
-  // FIXME replace these with a single unsigned bitfield directly returned
-  bool bold;      // NCSTYLE_BOLD via sgr?
-  bool standout;  // NCSTYLE_STANDOUT via sgr?
-  bool uline;     // NCSTYLE_UNDERLINE via sgr?
-  bool reverse;   // NCSTYLE_REVERSE via sgr?
-  bool blink;     // NCSTYLE_BLINK via sgr?
-  bool dim;       // NCSTYLE_DIM via sgr?
+  unsigned supported_styles; // bitmask over NCSTYLE_* driven via sgr
 
   // assigned based off nl_langinfo() in notcurses_core_init()
   bool utf8;      // are we using utf-8 encoding, as hoped?
@@ -137,6 +131,11 @@ get_escape(const tinfo* tdesc, escape_e e){
     return tdesc->esctable + idx - 1;
   }
   return NULL;
+}
+
+static inline int
+term_supported_styles(const tinfo* ti){
+  return ti->supported_styles;
 }
 
 #ifdef __cplusplus
