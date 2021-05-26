@@ -222,7 +222,7 @@ to breaking under incorrect `TERM` values. If you're not using `xterm`, your
 
 * **Q:** Notcurses looks like absolute crap in `mosh`. **A**: Yeah it sure does. I'm not yet sure what's up.
 
-* **Q:** Why didn't you just use Sixel? **A:** Many terminal emulators don't support Sixel. Sixel doesn't work well with mouse selection. Sixel tends to be horribly inefficient, and has a limited color palette. With that said, both Sixel and the Kitty bitmap protocol are well-supported.
+* **Q:** Why didn't you just render everything to Sixel? **A:** That's not a TUI; it's a slow and inflexible GUI. Many terminal emulators don't support Sixel. Sixel doesn't work well with mouse selection. Sixel has a limited color palette. With that said, both Sixel and the Kitty bitmap protocol are well-supported.
 
 * **Q:** I'm not seeing `NCKEY_RESIZE` until I press some other key. **A:** You've almost certainly failed to mask `SIGWINCH` in some thread, and that thread is receiving the signal instead of the thread which called `notcurses_getc_blocking()`. As a result, the `poll()` is not interrupted. Call `pthread_sigmask()` before spawning any threads.
 
