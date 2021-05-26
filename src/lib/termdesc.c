@@ -164,6 +164,20 @@ grow_esc_table(tinfo* ti, const char* tstr, escape_e esc,
   return 0;
 }
 
+static int
+init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
+                  size_t* tablelen, size_t* tableused){
+  char* tstr;
+  if(terminfostr(&tstr, name) == 0){
+    if(grow_esc_table(ti, tstr, idx, tablelen, tableused)){
+      return -1;
+    }
+  }else{
+    ti->escindices[idx] = 0;
+  }
+  return 0;
+}
+
 // termname is just the TERM environment variable. some details are not
 // exposed via terminfo, and we must make heuristic decisions based on
 // the detected terminal type, yuck :/.
@@ -213,18 +227,15 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname,
     { ESCAPE_CUF, "cuf", },
     { ESCAPE_CUF1, "cuf1", },
     { ESCAPE_CUB, "cub", },
+    { ESCAPE_SMKX, "smkx", },
+    { ESCAPE_RMKX, "rmkx", },
     { ESCAPE_MAX, NULL, },
   };
   size_t tablelen = 0;
   size_t tableused = 0;
   for(typeof(*strtdescs)* strtdesc = strtdescs ; strtdesc->esc < ESCAPE_MAX ; ++strtdesc){
-    char* tstr;
-    if(terminfostr(&tstr, strtdesc->tinfo) == 0){
-      if(grow_esc_table(ti, tstr, strtdesc->esc, &tablelen, &tableused)){
-        goto err;
-      }
-    }else{
-      ti->escindices[strtdesc->esc] = 0;
+    if(init_terminfo_esc(ti, strtdesc->tinfo, strtdesc->esc, &tablelen, &tableused)){
+      goto err;
     }
   }
   if(ti->escindices[ESCAPE_CUP] == 0){
@@ -233,8 +244,13 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname,
   }
   // neither of these is supported on e.g. the "linux" virtual console.
   if(!noaltscreen){
-    terminfostr(&ti->smcup, "smcup");
-    terminfostr(&ti->rmcup, "rmcup");
+    if(init_terminfo_esc(ti, "smcup", ESCAPE_SMCUP, &tablelen, &tableused) ||
+       init_terminfo_esc(ti, "rmcup", ESCAPE_RMCUP, &tablelen, &tableused)){
+      goto err;
+    }
+  }else{
+    ti->escindices[ESCAPE_SMCUP] = 0;
+    ti->escindices[ESCAPE_RMCUP] = 0;
   }
   // check that the terminal provides automatic margins
   ti->AMflag = tigetflag("am") == 1;
@@ -293,17 +309,14 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname,
     ti->escindices[ESCAPE_RITM] = 0;
   }
   terminfostr(&ti->getm, "getm"); // get mouse events
-  terminfostr(&ti->smkx, "smkx");   // enable keypad transmit
-  terminfostr(&ti->rmkx, "rmkx");   // disable keypad transmit
   terminfostr(&ti->struck, "smxx"); // strikeout
   terminfostr(&ti->struckoff, "rmxx"); // cancel strikeout
   // if the keypad neen't be explicitly enabled, smkx is not present
-  if(ti->smkx){
-    if(fd >= 0){
-      if(tty_emit(tiparm(ti->smkx), fd) < 0){
-        fprintf(stderr, "Error entering keypad transmit mode\n");
-        goto err;
-      }
+  const char* smkx = get_escape(ti, ESCAPE_SMKX);
+  if(smkx && fd >= 0){
+    if(tty_emit(tiparm(smkx), fd) < 0){
+      fprintf(stderr, "Error entering keypad transmit mode\n");
+      goto err;
     }
   }
   // if op is defined as ansi 39 + ansi 49, make the split definitions
