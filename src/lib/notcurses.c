@@ -1617,16 +1617,7 @@ int ncplane_cursor_at(const ncplane* n, nccell* c, char** gclust){
 }
 
 unsigned notcurses_supported_styles(const notcurses* nc){
-  unsigned styles = 0;
-  styles |= nc->tcache.standout ? NCSTYLE_STANDOUT : 0;
-  styles |= nc->tcache.uline ? NCSTYLE_UNDERLINE : 0;
-  styles |= nc->tcache.reverse ? NCSTYLE_REVERSE : 0;
-  styles |= nc->tcache.blink ? NCSTYLE_BLINK : 0;
-  styles |= nc->tcache.dim ? NCSTYLE_DIM : 0;
-  styles |= nc->tcache.bold ? NCSTYLE_BOLD : 0;
-  styles |= nc->tcache.italics ? NCSTYLE_ITALIC : 0;
-  styles |= nc->tcache.struck ? NCSTYLE_STRUCK : 0;
-  return styles;
+  return term_supported_styles(&nc->tcache);
 }
 
 unsigned notcurses_palette_size(const notcurses* nc){

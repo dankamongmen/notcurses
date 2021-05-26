@@ -612,7 +612,7 @@ void init_lang(notcurses* nc); // nc may be NULL, only used for logging
 // be connected to a terminal device, or -1 if no terminal is available.
 int interrogate_terminfo(tinfo* ti, int fd, const char* termname,
                          unsigned utf8, unsigned noaltscreen);
-
+int term_supported_styles(const tinfo* ti);
 int reset_term_attributes(const tinfo* ti, FILE* fp);
 
 void free_terminfo_cache(tinfo* ti);
