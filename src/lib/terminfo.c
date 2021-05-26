@@ -54,11 +54,8 @@ query_rgb(void){
   return rgb;
 }
 
-int terminfostr(char** gseq, const char* name){
-  char* seq;
-  if(gseq == NULL){
-    gseq = &seq;
-  }
+static int
+terminfostr(char** gseq, const char* name){
   *gseq = tigetstr(name);
   if(*gseq == NULL || *gseq == (char*)-1){
     *gseq = NULL;
@@ -66,10 +63,13 @@ int terminfostr(char** gseq, const char* name){
   }
   // terminfo syntax allows a number N of milliseconds worth of pause to be
   // specified using $<N> syntax. this is then honored by tputs(). but we don't
-  // use tputs(), instead preferring the much faster stdio+tiparm(). to avoid
-  // dumping "$<N>" sequences all over stdio, we chop them out.
+  // use tputs(), instead preferring the much faster stdio+tiparm() (at the
+  // expense of terminals which do require these delays). to avoid dumping
+  // "$<N>" sequences all over stdio, we chop them out.
   char* pause;
   if( (pause = strchr(*gseq, '$')) ){
+    // FIXME can there ever be further content following a pause?
+    // tighten this up to match the precise spec in terminfo(5)!
     *pause = '\0';
   }
   return 0;
@@ -140,7 +140,8 @@ void free_terminfo_cache(tinfo* ti){
 // termname is just the TERM environment variable. some details are not
 // exposed via terminfo, and we must make heuristic decisions based on
 // the detected terminal type, yuck :/.
-int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8){
+int interrogate_terminfo(tinfo* ti, int fd, const char* termname,
+                         unsigned utf8, unsigned noaltscreen){
   memset(ti, 0, sizeof(*ti));
   ti->utf8 = utf8;
   // allow the "rgb" boolean terminfo capability, a COLORTERM environment
@@ -162,11 +163,16 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8)
       ti->CCCflag = false;
     }
   }
-  // check that the terminal provides cursor addressing (absolute movement)
+  // verify that the terminal provides cursor addressing (absolute movement)
   terminfostr(&ti->cup, "cup");
   if(ti->cup == NULL){
     fprintf(stderr, "Required terminfo capability 'cup' not defined\n");
     return -1;
+  }
+  // neither of these is supported on e.g. the "linux" virtual console.
+  if(!noaltscreen){
+    terminfostr(&ti->smcup, "smcup");
+    terminfostr(&ti->rmcup, "rmcup");
   }
   // check that the terminal provides automatic margins
   ti->AMflag = tigetflag("am") == 1;

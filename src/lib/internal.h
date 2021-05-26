@@ -605,11 +605,13 @@ void update_write_stats(const struct timespec* time1, const struct timespec* tim
 void sigwinch_handler(int signo);
 
 void init_lang(notcurses* nc); // nc may be NULL, only used for logging
-int terminfostr(char** gseq, const char* name);
 
 // load |ti| from the terminfo database, which must already have been
 // initialized. set |utf8| if we've verified UTF8 output encoding.
-int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8);
+// set |noaltscreen| to inhibit alternate screen detection. |fd| ought
+// be connected to a terminal device, or -1 if no terminal is available.
+int interrogate_terminfo(tinfo* ti, int fd, const char* termname,
+                         unsigned utf8, unsigned noaltscreen);
 
 void free_terminfo_cache(tinfo* ti);
 

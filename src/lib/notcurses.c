@@ -1056,7 +1056,8 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   }
   const char* shortname_term = termname();
 // const char* longname_term = longname();
-  if(interrogate_terminfo(&ret->tcache, ret->ttyfd, shortname_term, utf8)){
+  if(interrogate_terminfo(&ret->tcache, ret->ttyfd, shortname_term, utf8,
+                          opts->flags & NCOPTION_NO_ALTERNATE_SCREEN)){
     goto err;
   }
   int dimy, dimx;
@@ -1069,11 +1070,6 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   }
   if(set_fd_nonblocking(ret->input.ttyinfd, 1, &ret->stdio_blocking_save)){
     goto err;
-  }
-  // Neither of these is supported on e.g. the "linux" virtual console.
-  if(!(opts->flags & NCOPTION_NO_ALTERNATE_SCREEN)){
-    terminfostr(&ret->tcache.smcup, "smcup");
-    terminfostr(&ret->tcache.rmcup, "rmcup");
   }
   if(ncvisual_init(ret->loglevel)){
     goto err;
