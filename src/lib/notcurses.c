@@ -73,11 +73,12 @@ notcurses_stop_minimal(void* vnc){
     }
     ret |= reset_term_attributes(&nc->tcache, nc->ttyfp);
     ret |= notcurses_mouse_disable(nc);
-    if(nc->tcache.rmcup && tty_emit(nc->tcache.rmcup, nc->ttyfd)){
+    const char* esc;
+    if((esc = get_escape(&nc->tcache, ESCAPE_RMCUP)) && tty_emit(esc, nc->ttyfd)){
       ret = -1;
     }
-    if(nc->tcache.rmkx && tty_emit(nc->tcache.rmkx, nc->ttyfd)){
-        ret = -1;
+    if((esc = get_escape(&nc->tcache, ESCAPE_RMKX)) && tty_emit(esc, nc->ttyfd)){
+      ret = -1;
     }
     const char* cnorm = get_escape(&nc->tcache, ESCAPE_CNORM);
     if(cnorm && tty_emit(cnorm, nc->ttyfd)){
@@ -1089,7 +1090,8 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
         goto err;
       }
     }
-    if(ret->tcache.smkx && tty_emit(ret->tcache.smkx, ret->ttyfd)){
+    const char* smkx = get_escape(&ret->tcache, ESCAPE_SMKX);
+    if(smkx && tty_emit(smkx, ret->ttyfd)){
       free_plane(ret->stdplane);
       goto err;
     }
@@ -1107,8 +1109,9 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   init_banner(ret, shortname_term);
   // flush on the switch to alternate screen, lest initial output be swept away
   if(ret->ttyfd >= 0){
-    if(ret->tcache.smcup){
-      if(tty_emit(ret->tcache.smcup, ret->ttyfd)){
+    const char* smcup = get_escape(&ret->tcache, ESCAPE_SMCUP);
+    if(smcup){
+      if(tty_emit(smcup, ret->ttyfd)){
         free_plane(ret->stdplane);
         goto err;
       }
@@ -1191,7 +1194,7 @@ int notcurses_stop(notcurses* nc){
     }
     // if we were not using the alternate screen, our cursor's wherever we last
     // wrote. move it to the bottom left of the screen.
-    if(!nc->tcache.smcup){
+    if(!get_escape(&nc->tcache, ESCAPE_SMCUP)){
       // if ldimy is 0, we've not yet written anything; leave it untouched
       if(nc->lfdimy){
         int targy = nc->lfdimy + nc->margin_t - 1;

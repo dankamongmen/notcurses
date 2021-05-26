@@ -44,6 +44,10 @@ typedef enum {
   ESCAPE_CUF,      // "cuf" move n cells forward (right)
   ESCAPE_CUD,      // "cud" move n cells down
   ESCAPE_CUF1,     // "cuf1" move 1 cell forward (right)
+  ESCAPE_SMKX,     // "smkx" keypad_xmit (keypad transmit mode)
+  ESCAPE_RMKX,     // "rmkx" keypad_local
+  ESCAPE_SMCUP,    // "smcup" enter alternate screen
+  ESCAPE_RMCUP,    // "rmcup" leave alternate screen
   ESCAPE_MAX
 } escape_e;
 
@@ -63,15 +67,13 @@ typedef struct tinfo {
   char* clearscr; // erase screen and home cursor
   char* sc;       // push the cursor location onto the stack
   char* rc;       // pop the cursor location off the stack
-  char* smkx;     // enter keypad transmit mode (keypad_xmit)
-  char* rmkx;     // leave keypad transmit mode (keypad_local)
   char* getm;     // get mouse events
-  char* smcup;    // enter alternate mode
-  char* rmcup;    // restore primary mode
   // we use the cell's size in pixels for pixel blitting. this information can
   // be acquired on all terminals with pixel support.
   int cellpixy;   // cell pixel height, might be 0
   int cellpixx;   // cell pixel width, might be 0
+
+  unsigned supported_styles; // bitmask over NCSTYLE_* driven via sgr/ncv
 
   // kitty interprets an RGB background that matches the default background
   // color *as* the default background, meaning it'll be translucent if
@@ -100,19 +102,11 @@ typedef struct tinfo {
   int (*pixel_clear_all)(int fd); // called during startup, kitty only
   int sprixel_scale_height; // sprixel must be a multiple of this many rows
   bool bitmap_supported;    // do we support bitmaps (post pixel_query_done)?
-  bool sprixel_cursor_hack; // do sprixels reset the cursor? (mlterm)
   bool pixel_query_done;    // have we yet performed pixel query?
-  // alacritty went rather off the reservation for their sixel support. they
-  // reply to DSA with CSI?6c, meaning VT102, but no VT102 had Sixel support,
-  // so if the TERM variable contains "alacritty", *and* we get VT102, we go
-  // ahead and query XTSMGRAPHICS.
-  bool alacritty_sixel_hack;
-
   bool RGBflag;   // "RGB" flag for 24bpc truecolor
   bool CCCflag;   // "CCC" flag for palette set capability
   bool BCEflag;   // "BCE" flag for erases with background color
   bool AMflag;    // "AM" flag for automatic movement to next line
-  unsigned supported_styles; // bitmask over NCSTYLE_* driven via sgr
 
   // assigned based off nl_langinfo() in notcurses_core_init()
   bool utf8;      // are we using utf-8 encoding, as hoped?
@@ -121,6 +115,16 @@ typedef struct tinfo {
   bool quadrants; // do we have (good, vetted) Unicode 1 quadrant support?
   bool sextants;  // do we have (good, vetted) Unicode 13 sextant support?
   bool braille;   // do we have Braille support? (linux console does not)
+
+  // alacritty went rather off the reservation for their sixel support. they
+  // reply to DSA with CSI?6c, meaning VT102, but no VT102 had Sixel support,
+  // so if the TERM variable contains "alacritty", *and* we get VT102, we go
+  // ahead and query XTSMGRAPHICS.
+  bool alacritty_sixel_hack;
+
+  // mlterm resets the cursor (i.e. makes it visible) any time you print
+  // a sprixel. we work around this spiritedly unorthodox decision.
+  bool sprixel_cursor_hack; // do sprixels reset the cursor? (mlterm)
 } tinfo;
 
 // retrieve the terminfo(5)-style escape 'e' from tdesc (NULL if undefined).
