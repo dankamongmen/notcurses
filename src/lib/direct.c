@@ -847,7 +847,8 @@ int ncdirect_on_styles(ncdirect* n, unsigned stylebits){
   uint32_t stylemask = n->stylemask | stylebits;
   if(ncdirect_style_emit(n, stylemask, n->ttyfp) == 0){
     if(term_setstyle(n->ttyfp, n->stylemask, stylemask, NCSTYLE_ITALIC,
-                     n->tcache.italics, n->tcache.italoff)){
+                     get_escape(&n->tcache, ESCAPE_SITM),
+                     get_escape(&n->tcache, ESCAPE_RITM))){
       return 0;
     }
     if(term_setstyle(n->ttyfp, n->stylemask, stylemask, NCSTYLE_STRUCK,
@@ -869,7 +870,8 @@ int ncdirect_off_styles(ncdirect* n, unsigned stylebits){
   uint32_t stylemask = n->stylemask & ~stylebits;
   if(ncdirect_style_emit(n, stylemask, n->ttyfp) == 0){
     if(term_setstyle(n->ttyfp, n->stylemask, stylemask, NCSTYLE_ITALIC,
-                     n->tcache.italics, n->tcache.italoff)){
+                     get_escape(&n->tcache, ESCAPE_SITM),
+                     get_escape(&n->tcache, ESCAPE_RITM))){
       return -1;
     }
     if(term_setstyle(n->ttyfp, n->stylemask, stylemask, NCSTYLE_STRUCK,
@@ -892,7 +894,8 @@ int ncdirect_set_styles(ncdirect* n, unsigned stylebits){
   if(ncdirect_style_emit(n, stylemask, n->ttyfp) == 0){
     n->stylemask &= !(NCSTYLE_ITALIC | NCSTYLE_STRUCK); // sgr clears both
     if(term_setstyle(n->ttyfp, n->stylemask, stylemask, NCSTYLE_ITALIC,
-                     n->tcache.italics, n->tcache.italoff)){
+                     get_escape(&n->tcache, ESCAPE_SITM),
+                     get_escape(&n->tcache, ESCAPE_RITM))){
       return -1;
     }
     if(term_setstyle(n->ttyfp, n->stylemask, stylemask, NCSTYLE_STRUCK,
