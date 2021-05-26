@@ -60,8 +60,7 @@ a background of RGB(0, 0, 0) will be translucent. To work around this, when
 `TERM` begins with "kitty", we detect the default background color, and when
 we would write this as RGB, we alter one of the colors by 1. See
 https://github.com/kovidgoyal/kitty/issues/3185 and
-https://github.com/dankamongmen/notcurses/issues/1117. This behavior can
-be demonstrated with the `kittyzapper` binary (`src/poc/kittyzapper.c`).
+https://github.com/dankamongmen/notcurses/issues/1117.
 
 Kitty is furthermore the only terminal I know to lack the `bce` (Background
 Color Erase) capability, but Notcurses never relies on `bce` behavior.
