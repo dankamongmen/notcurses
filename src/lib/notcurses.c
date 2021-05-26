@@ -42,10 +42,10 @@ int reset_term_attributes(const tinfo* ti, FILE* fp){
   if((esc = get_escape(ti, ESCAPE_OP)) && term_emit(esc, fp, true)){
     ret = -1;
   }
-  if(ti->sgr0 && term_emit(ti->sgr0, fp, true)){
+  if((esc = get_escape(ti, ESCAPE_SGR0)) && term_emit(esc, fp, true)){
     ret = -1;
   }
-  if(ti->oc && term_emit(ti->oc, fp, true)){
+  if((esc = get_escape(ti, ESCAPE_OC)) && term_emit(esc, fp, true)){
     ret = -1;
   }
   return ret;
@@ -812,9 +812,10 @@ init_banner_warnings(const notcurses* nc, FILE* out){
   if(!get_escape(&nc->tcache, ESCAPE_HPA)){
     fprintf(out, "\n Warning! No absolute horizontal placement.\n");
   }
-  if(nc->tcache.sgr0){
+  const char* sgr0;
+  if( (sgr0 = get_escape(&nc->tcache, ESCAPE_SGR0)) ){
     if(tty){
-      term_emit(nc->tcache.sgr0, out, true);
+      term_emit(sgr0, out, true);
     }
   }
 }

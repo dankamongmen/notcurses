@@ -8,14 +8,15 @@ TEST_CASE("DirectMode") {
   }
 
   SUBCASE("SetItalic") {
-    if(nc_->tcache.sgr){
+    unsigned styles = ncdirect_supported_styles(nc_);
+    if(styles & NCSTYLE_ITALIC){
       CHECK(0 == ncdirect_set_styles(nc_, NCSTYLE_ITALIC));
     }else{
       CHECK(0 != ncdirect_set_styles(nc_, NCSTYLE_ITALIC));
     }
     printf("DirectMode *italic*!\n");
     fflush(stdout);
-    if(nc_->tcache.sgr0){
+    if(styles & NCSTYLE_ITALIC){
       CHECK(0 == ncdirect_off_styles(nc_, NCSTYLE_ITALIC));
     }else{
       CHECK(0 != ncdirect_off_styles(nc_, NCSTYLE_ITALIC));
@@ -23,7 +24,8 @@ TEST_CASE("DirectMode") {
   }
 
   SUBCASE("SetBold") {
-    if(nc_->tcache.sgr){
+    unsigned styles = ncdirect_supported_styles(nc_);
+    if(styles & NCSTYLE_BOLD){
       CHECK(0 == ncdirect_set_styles(nc_, NCSTYLE_BOLD));
       printf("DirectMode *bold*!\n");
       fflush(stdout);
@@ -32,7 +34,8 @@ TEST_CASE("DirectMode") {
   }
 
   SUBCASE("SetUnderline") {
-    if(nc_->tcache.sgr){
+    unsigned styles = ncdirect_supported_styles(nc_);
+    if(styles & NCSTYLE_UNDERLINE){
       CHECK(0 == ncdirect_set_styles(nc_, NCSTYLE_UNDERLINE));
       printf("DirectMode *underline*!\n");
       fflush(stdout);
@@ -41,7 +44,8 @@ TEST_CASE("DirectMode") {
   }
 
   SUBCASE("SetStruck") {
-    if(nc_->tcache.sgr){
+    unsigned styles = ncdirect_supported_styles(nc_);
+    if(styles & NCSTYLE_STRUCK){
       CHECK(0 == ncdirect_set_styles(nc_, NCSTYLE_STRUCK));
       printf("DirectMode *struck*!\n");
       fflush(stdout);

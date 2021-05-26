@@ -177,6 +177,12 @@ API int ncdirect_dim_x(const struct ncdirect* nc)
 API int ncdirect_dim_y(const struct ncdirect* nc)
   __attribute__ ((nonnull (1)));
 
+// Returns a 16-bit bitmask of supported curses-style attributes
+// (NCSTYLE_UNDERLINE, NCSTYLE_BOLD, etc.) The attribute is only
+// indicated as supported if the terminal can support it together with color.
+// For more information, see the "ncv" capability in terminfo(5).
+API unsigned ncdirect_supported_styles(const struct ncdirect* nc);
+
 // ncplane_styles_*() analogues
 API int ncdirect_set_styles(struct ncdirect* n, unsigned stylebits)
   __attribute__ ((nonnull (1)));

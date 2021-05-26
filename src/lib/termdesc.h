@@ -36,6 +36,7 @@ typedef enum {
   ESCAPE_SGR0,     // "sgr0" turn off all styles
   ESCAPE_CIVIS,    // "civis" make the cursor invisiable
   ESCAPE_CNORM,    // "cnorm" restore the cursor to normal
+  ESCAPE_OC,       // "oc" restore original colors
   ESCAPE_MAX
 } escape_e;
 
@@ -47,8 +48,6 @@ typedef enum {
 typedef struct tinfo {
   uint16_t escindices[ESCAPE_MAX]; // table of 1-biased indices into esctable
   char* esctable;                  // packed table of escape sequences
-  char* sgr;      // set many graphics properties at once
-  char* sgr0;     // restore default presentation properties
   unsigned colors;// number of colors terminfo reported usable for this screen
   char* cuu;      // move N cells up
   char* cub;      // move N cells left
@@ -66,7 +65,6 @@ typedef struct tinfo {
   char* struck;   // NCSTYLE_STRUCK
   char* struckoff;// NCSTYLE_STRUCK (disable)
   char* initc;    // set a palette entry's RGB value
-  char* oc;       // restore original colors
   char* clearscr; // erase screen and home cursor
   char* sc;       // push the cursor location onto the stack
   char* rc;       // pop the cursor location off the stack

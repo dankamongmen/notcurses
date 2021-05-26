@@ -812,10 +812,11 @@ char* ncdirect_readline(ncdirect* n, const char* prompt){
 static inline int
 ncdirect_style_emit(ncdirect* n, unsigned stylebits, FILE* out){
   int r = -1;
-  if(stylebits == 0 && n->tcache.sgr0){
-    r = term_emit(n->tcache.sgr0, n->ttyfp, false);
-  }else if(n->tcache.sgr){
-    r = term_emit(tiparm(n->tcache.sgr, stylebits & NCSTYLE_STANDOUT,
+  const char* esc;
+  if(stylebits == 0 && (esc = get_escape(&n->tcache, ESCAPE_SGR0))){
+    r = term_emit(esc, n->ttyfp, false);
+  }else if( (esc = get_escape(&n->tcache, ESCAPE_SGR)) ){
+    r = term_emit(tiparm(esc, stylebits & NCSTYLE_STANDOUT,
                          stylebits & NCSTYLE_UNDERLINE,
                          stylebits & NCSTYLE_REVERSE,
                          stylebits & NCSTYLE_BLINK,
@@ -1290,4 +1291,8 @@ int ncdirectf_geom(ncdirect* n, ncdirectf* frame,
     *blitter = bset->geom;
   }
   return r;
+}
+
+unsigned ncdirect_supported_styles(const ncdirect* nc){
+  return term_supported_styles(&nc->tcache);
 }
