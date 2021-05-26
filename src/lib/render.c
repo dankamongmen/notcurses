@@ -718,60 +718,58 @@ term_esc_rgb(FILE* out, bool foreground, unsigned r, unsigned g, unsigned b){
 }
 
 static inline int
-term_bg_rgb8(bool RGBflag, const char* setab, int colors, FILE* out,
-             unsigned r, unsigned g, unsigned b, uint32_t bg_collides_default){
+term_bg_rgb8(const tinfo* ti, FILE* out, unsigned r, unsigned g, unsigned b){
   // We typically want to use tputs() and tiperm() to acquire and write the
   // escapes, as these take into account terminal-specific delays, padding,
   // etc. For the case of DirectColor, there is no suitable terminfo entry, but
   // we're also in that case working with hopefully more robust terminals.
   // If it doesn't work, eh, it doesn't work. Fuck the world; save yourself.
-  if(RGBflag){
-    if(bg_collides_default){
-      if((r == (bg_collides_default & 0xff0000lu)) &&
-         (g == (bg_collides_default & 0xff00lu)) &&
-         (b == (bg_collides_default & 0xfflu))){
+  if(ti->RGBflag){
+    if(ti->bg_collides_default){
+      if((r == (ti->bg_collides_default & 0xff0000lu)) &&
+         (g == (ti->bg_collides_default & 0xff00lu)) &&
+         (b == (ti->bg_collides_default & 0xfflu))){
         ++b; // what if it's 255 FIXME
       }
     }
     return term_esc_rgb(out, false, r, g, b);
   }else{
-    if(setab == NULL){
-      return 0;
-    }
-    // For 256-color indexed mode, start constructing a palette based off
-    // the inputs *if we can change the palette*. If more than 256 are used on
-    // a single screen, start... combining close ones? For 8-color mode, simple
-    // interpolation. I have no idea what to do for 88 colors. FIXME
-    if(colors >= 256){
-      return term_emit(tiparm(setab, rgb_quantize_256(r, g, b)), out, false);
-    }else if(colors >= 8){
-      return term_emit(tiparm(setab, rgb_quantize_8(r, g, b)), out, false);
+    const char* setab = get_escape(ti, ESCAPE_SETAB);
+    if(setab){
+      // For 256-color indexed mode, start constructing a palette based off
+      // the inputs *if we can change the palette*. If more than 256 are used on
+      // a single screen, start... combining close ones? For 8-color mode, simple
+      // interpolation. I have no idea what to do for 88 colors. FIXME
+      if(ti->colors >= 256){
+        return term_emit(tiparm(setab, rgb_quantize_256(r, g, b)), out, false);
+      }else if(ti->colors >= 8){
+        return term_emit(tiparm(setab, rgb_quantize_8(r, g, b)), out, false);
+      }
     }
   }
   return 0;
 }
 
-int term_fg_rgb8(bool RGBflag, const char* setaf, int colors, FILE* out,
-                 unsigned r, unsigned g, unsigned b){
+int term_fg_rgb8(const tinfo* ti, FILE* out, unsigned r, unsigned g, unsigned b){
   // We typically want to use tputs() and tiperm() to acquire and write the
   // escapes, as these take into account terminal-specific delays, padding,
   // etc. For the case of DirectColor, there is no suitable terminfo entry, but
   // we're also in that case working with hopefully more robust terminals.
   // If it doesn't work, eh, it doesn't work. Fuck the world; save yourself.
-  if(RGBflag){
+  if(ti->RGBflag){
     return term_esc_rgb(out, true, r, g, b);
   }else{
-    if(setaf == NULL){
-      return 0;
-    }
-    // For 256-color indexed mode, start constructing a palette based off
-    // the inputs *if we can change the palette*. If more than 256 are used on
-    // a single screen, start... combining close ones? For 8-color mode, simple
-    // interpolation. I have no idea what to do for 88 colors. FIXME
-    if(colors >= 256){
-      return term_emit(tiparm(setaf, rgb_quantize_256(r, g, b)), out, false);
-    }else if(colors >= 8){
-      return term_emit(tiparm(setaf, rgb_quantize_8(r, g, b)), out, false);
+    const char* setaf = get_escape(ti, ESCAPE_SETAF);
+    if(setaf){
+      // For 256-color indexed mode, start constructing a palette based off
+      // the inputs *if we can change the palette*. If more than 256 are used on
+      // a single screen, start... combining close ones? For 8-color mode, simple
+      // interpolation. I have no idea what to do for 88 colors. FIXME
+      if(ti->colors >= 256){
+        return term_emit(tiparm(setaf, rgb_quantize_256(r, g, b)), out, false);
+      }else if(ti->colors >= 8){
+        return term_emit(tiparm(setaf, rgb_quantize_8(r, g, b)), out, false);
+      }
     }
   }
   return 0;
@@ -1044,7 +1042,7 @@ rasterize_core(notcurses* nc, const ncpile* p, FILE* out, unsigned phase){
           if(nc->rstate.fgelidable && nc->rstate.lastr == r && nc->rstate.lastg == g && nc->rstate.lastb == b){
             ++nc->stats.fgelisions;
           }else{
-            if(term_fg_rgb8(nc->tcache.RGBflag, nc->tcache.setaf, nc->tcache.colors, out, r, g, b)){
+            if(term_fg_rgb8(&nc->tcache, out, r, g, b)){
               return -1;
             }
             ++nc->stats.fgemissions;
@@ -1069,9 +1067,7 @@ rasterize_core(notcurses* nc, const ncpile* p, FILE* out, unsigned phase){
           if(nc->rstate.bgelidable && nc->rstate.lastbr == br && nc->rstate.lastbg == bg && nc->rstate.lastbb == bb){
             ++nc->stats.bgelisions;
           }else{
-            if(term_bg_rgb8(nc->tcache.RGBflag, nc->tcache.setab,
-                            nc->tcache.colors, out, br, bg, bb,
-                            nc->tcache.bg_collides_default)){
+            if(term_bg_rgb8(&nc->tcache, out, br, bg, bb)){
               return -1;
             }
             ++nc->stats.bgemissions;
@@ -1443,9 +1439,7 @@ int ncdirect_set_bg_rgb(ncdirect* nc, unsigned rgb){
   if(!ncdirect_bg_default_p(nc) && ncchannels_bg_rgb(nc->channels) == rgb){
     return 0;
   }
-  if(term_bg_rgb8(nc->tcache.RGBflag, nc->tcache.setab, nc->tcache.colors, nc->ttyfp,
-                  (rgb & 0xff0000u) >> 16u, (rgb & 0xff00u) >> 8u, rgb & 0xffu,
-                  nc->tcache.bg_collides_default)){
+  if(term_bg_rgb8(&nc->tcache, nc->ttyfp, (rgb & 0xff0000u) >> 16u, (rgb & 0xff00u) >> 8u, rgb & 0xffu)){
     return -1;
   }
   ncchannels_set_bg_rgb(&nc->channels, rgb);
@@ -1460,8 +1454,7 @@ int ncdirect_set_fg_rgb(ncdirect* nc, unsigned rgb){
   if(!ncdirect_fg_default_p(nc) && ncchannels_fg_rgb(nc->channels) == rgb){
     return 0;
   }
-  if(term_fg_rgb8(nc->tcache.RGBflag, nc->tcache.setaf, nc->tcache.colors, nc->ttyfp,
-                  (rgb & 0xff0000u) >> 16u, (rgb & 0xff00u) >> 8u, rgb & 0xffu)){
+  if(term_fg_rgb8(&nc->tcache, nc->ttyfp, (rgb & 0xff0000u) >> 16u, (rgb & 0xff00u) >> 8u, rgb & 0xffu)){
     return -1;
   }
   ncchannels_set_fg_rgb(&nc->channels, rgb);

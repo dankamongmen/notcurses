@@ -45,8 +45,6 @@ typedef enum {
 typedef struct tinfo {
   uint16_t escindices[ESCAPE_MAX]; // table of 1-biased indices into esctable
   char* esctable;                  // packed table of escape sequences
-  char* setaf;    // set foreground color (ANSI)
-  char* setab;    // set background color (ANSI)
   char* op;       // set foreground and background color to default
   char* sgr;      // set many graphics properties at once
   unsigned colors;// number of colors terminfo reported usable for this screen

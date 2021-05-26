@@ -803,18 +803,20 @@ term_emit(const char* seq, FILE* out, bool flush){
 
 static inline int
 term_bg_palindex(const notcurses* nc, FILE* out, unsigned pal){
-  if(nc->tcache.setab == NULL){
-    return 0;
+  const char* setab = get_escape(&nc->tcache, ESCAPE_SETAB);
+  if(setab){
+    return term_emit(tiparm(setab, pal), out, false);
   }
-  return term_emit(tiparm(nc->tcache.setab, pal), out, false);
+  return 0;
 }
 
 static inline int
 term_fg_palindex(const notcurses* nc, FILE* out, unsigned pal){
-  if(nc->tcache.setaf == NULL){
-    return 0;
+  const char* setaf = get_escape(&nc->tcache, ESCAPE_SETAF);
+  if(setaf){
+    return term_emit(tiparm(setaf, pal), out, false);
   }
-  return term_emit(tiparm(nc->tcache.setaf, pal), out, false);
+  return 0;
 }
 
 static inline const char*
@@ -1578,8 +1580,7 @@ ncdirect_bg_default_p(const struct ncdirect* nc){
   return ncchannels_bg_default_p(ncdirect_channels(nc));
 }
 
-int term_fg_rgb8(bool RGBflag, const char* setaf, int colors, FILE* out,
-                 unsigned r, unsigned g, unsigned b);
+int term_fg_rgb8(const tinfo* ti, FILE* out, unsigned r, unsigned g, unsigned b);
 
 const struct blitset* lookup_blitset(const tinfo* tcache, ncblitter_e setid, bool may_degrade);
 
