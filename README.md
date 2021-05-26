@@ -216,6 +216,8 @@ to breaking under incorrect `TERM` values. If you're not using `xterm`, your
 
 * **Q:** Can I have Notcurses without this huge multimedia stack? **A:** Yes! Build with `-DUSE_MULTIMEDIA=none`.
 
+* **Q:** Can I build this individual Notcurses program without aforementioned multimedia stack? **A:** Again yes! Use `notcurses_core_init()` or `ncdirect_core_init()` in place of `notcurses_init()`/`ncdirect_init()`, and link with `-lnotcurses-core`. Your application will likely start a few milliseconds faster; more importantly, it will link against minimal Notcurses installations.
+
 * **Q:** Notcurses looks like absolute crap in `screen`. **A:** `screen` doesn't support RGB colors (at least as of 4.08.00); if you have `COLORTERM` defined, you'll have a bad time. If you have a `screen` that was compiled with `--enable-colors256`, try exporting `TERM=screen-256color` as opposed to `TERM=screen`.
 
 * **Q:** Notcurses looks like absolute crap in `mosh`. **A**: Yeah it sure does. I'm not yet sure what's up.
