@@ -546,3 +546,16 @@ int query_term(tinfo* ti, int fd){
   pthread_mutex_unlock(&ti->pixel_query);
   return ret;
 }
+
+int term_supported_styles(const tinfo* ti){
+  unsigned styles = 0;
+  styles |= ti->standout ? NCSTYLE_STANDOUT : 0;
+  styles |= ti->uline ? NCSTYLE_UNDERLINE : 0;
+  styles |= ti->reverse ? NCSTYLE_REVERSE : 0;
+  styles |= ti->blink ? NCSTYLE_BLINK : 0;
+  styles |= ti->dim ? NCSTYLE_DIM : 0;
+  styles |= ti->bold ? NCSTYLE_BOLD : 0;
+  styles |= ti->italics ? NCSTYLE_ITALIC : 0;
+  styles |= ti->struck ? NCSTYLE_STRUCK : 0;
+  return styles;
+}
