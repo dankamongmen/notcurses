@@ -898,6 +898,9 @@ int ncdirect_styles_set(ncdirect* n, unsigned stylebits){
 
 // set the current stylebits to exactly those provided
 int ncdirect_set_styles(ncdirect* n, unsigned stylebits){
+  if((stylebits & n->tcache.supported_styles) < stylebits){ // unsupported styles
+    return -1;
+  }
   uint32_t stylemask = stylebits;
   if(ncdirect_style_emit(n, stylemask, n->ttyfp) == 0){
     n->stylemask &= !(NCSTYLE_ITALIC | NCSTYLE_STRUCK); // sgr clears both

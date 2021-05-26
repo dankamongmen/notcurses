@@ -19,7 +19,7 @@ TEST_CASE("DirectMode") {
     if(styles & NCSTYLE_ITALIC){
       CHECK(0 == ncdirect_off_styles(nc_, NCSTYLE_ITALIC));
     }else{
-      CHECK(0 != ncdirect_off_styles(nc_, NCSTYLE_ITALIC));
+      CHECK(0 == ncdirect_off_styles(nc_, NCSTYLE_ITALIC));
     }
   }
 
