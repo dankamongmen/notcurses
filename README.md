@@ -232,7 +232,7 @@ to breaking under incorrect `TERM` values. If you're not using `xterm`, your
 
 * **Q:** Why isn't there an `ncplane_box_yx()`? Do you hate orthogonality, you dullard? **A:** `ncplane_box()` and friends already have far too many arguments, you monster.
 
-* **Q:** Why doesn't Notcurses support 10- or 16-bit color? **A:** Notcurses supports 24 bits of color, spread across three eight-bit channels. You presumably mean 10-bit-per-channel color. Notcurses will support it when a terminal supports it.
+* **Q:** Why doesn't Notcurses support 10- or 16-bit color? **A:** Notcurses supports 24 bits of color, spread across three eight-bit channels. You presumably mean 10-bit-per-channel color. I needed those six bits for other things. When terminals support it, Notcurses might support it.
 
 * **Q:** The name is dumb. **A:** That's not a question?
 
@@ -246,7 +246,7 @@ to breaking under incorrect `TERM` values. If you're not using `xterm`, your
 
 * **Q:** I ran `notcurses-demo`, but my table numbers don't match the Notcurses banner numbers, you charlatan. **A:** `notcurses-demo` renders several frames beyond the actual demos.
 
-* **Q:** When my program exits, I don't have a cursor, or text is invisible, or colors are weird, <i>ad nauseam</i>. **A:** Ensure you're calling `notcurses_stop()`/`ncdirect_stop()` on all exit paths, including fatal signals.
+* **Q:** When my program exits, I don't have a cursor, or text is invisible, or colors are weird, <i>ad nauseam</i>. **A:** Ensure you're calling `notcurses_stop()`/`ncdirect_stop()` on all exit paths, including fatal signals (note that, by default, Notcurses installs handlers for most fatal signals to do exactly this).
 
 * **Q:** How can I use Direct Mode in conjunction with libreadline? **A:** Pass `NCDIRECT_OPTION_CBREAK` to `ncdirect_init()`, and ensure you do not pass `NCDIRECT_OPTION_NO_READLINE`. If you'd like, set `rl_readline_name` and `rl_attempted_completion_function` prior to calling `ncdirect_init()`. With that said, consider using a Notcurses `ncreader`.
 
@@ -263,6 +263,8 @@ to breaking under incorrect `TERM` values. If you're not using `xterm`, your
 * **Q:** How about *arbitrary image manipulation here* functionality? **A:** I'm not going to beat ImageMagick et al. on image manipulation, but you can load an `ncvisual` from RGBA memory using `ncvisual_from_rgba()`.
 
 * **Q:** My program locks up when I run `notcurses_check_pixel_support()`. **A**: Detecting bitmap support requires interrogating the terminal. If the terminal doesn't reply to standard interrogations, send upstream a patch, or use a different terminal. Generally, only old and unsupported terminal emulators exhibit this behavior.
+
+* **Q:** How do I mix Rendered and Direct mode? **A:** You really don't want to. You can stream a subprocess to a plane with the `ncsubproc` widget.
 
 ## Useful links
 
