@@ -135,6 +135,7 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd){
 
 void free_terminfo_cache(tinfo* ti){
   pthread_mutex_destroy(&ti->pixel_query);
+  free(ti->esctable);
 }
 
 // tlen -- size of escape table. tused -- used bytes in same.
