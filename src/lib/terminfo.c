@@ -204,6 +204,8 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname,
     { ESCAPE_OP, "op", },
     { ESCAPE_CNORM, "cnorm", },
     { ESCAPE_CIVIS, "civis", },
+    { ESCAPE_SGR, "sgr", },
+    { ESCAPE_SGR0, "sgr0", },
     { ESCAPE_MAX, NULL, },
   };
   size_t tablelen = 0;
@@ -256,9 +258,6 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname,
   }
   terminfostr(&ti->italics, "sitm");  // begin italic mode
   terminfostr(&ti->italoff, "ritm");  // end italic mode
-  terminfostr(&ti->sgr, "sgr");       // define video attributes
-  terminfostr(&ti->sgr0, "sgr0");     // turn off all video attributes
-  terminfostr(&ti->oc, "oc");         // restore defaults to all colors
   terminfostr(&ti->home, "home");     // home the cursor
   terminfostr(&ti->clearscr, "clear");// clear screen, home cursor
   terminfostr(&ti->cuu, "cuu"); // move N up

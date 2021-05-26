@@ -40,6 +40,8 @@ notcurses_direct - minimal notcurses instances for styling text
 
 **int ncdirect_dim_y(const struct ncdirect* ***nc***);**
 
+**unsigned ncdirect_supported_styles(const struct ncdirect* ***nc***);**
+
 **int ncdirect_styles_set(struct ncdirect* ***n***, unsigned ***stylebits***);**
 
 **int ncdirect_styles_on(struct ncdirect* ***n***, unsigned ***stylebits***);**

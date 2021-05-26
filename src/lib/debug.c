@@ -19,7 +19,8 @@ tinfo_debug_caps(const tinfo* ti, FILE* debugfp, int rows, int cols,
           capyn(get_escape(ti, ESCAPE_SETAF)),
           capyn(get_escape(ti, ESCAPE_SETAB)));
   fprintf(debugfp, "%ssgr: %c sgr0: %c\n",
-          indent, capyn(ti->sgr), capyn(ti->sgr0));
+          indent, capyn(get_escape(ti, ESCAPE_SGR)),
+                  capyn(get_escape(ti, ESCAPE_SGR0)));
   fprintf(debugfp, "%sop: %c fgop: %c bgop: %c\n",
           indent, capyn(get_escape(ti, ESCAPE_OP)),
                   capyn(get_escape(ti, ESCAPE_FGOP)),

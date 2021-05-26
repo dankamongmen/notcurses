@@ -610,14 +610,16 @@ term_setstyles(FILE* out, notcurses* nc, const nccell* c){
   // target ought have all 0s in the lower 8 bits if only italics changed.
   if((cellattr ^ nc->rstate.curattr) & 0xfful){
     // if everything's 0, emit the shorter sgr0
-    if(nc->tcache.sgr0 && ((cellattr & NCSTYLE_MASK) == 0)){
-      if(term_emit(nc->tcache.sgr0, out, false) < 0){
+    const char* sgr0 = get_escape(&nc->tcache, ESCAPE_SGR0);
+    const char* sgr = get_escape(&nc->tcache, ESCAPE_SGR);
+    if(sgr0 && ((cellattr & NCSTYLE_MASK) == 0)){
+      if(term_emit(sgr0, out, false) < 0){
         ret = -1;
       }else{
         normalized = true;
       }
-    }else if(nc->tcache.sgr){
-      if(term_emit(tiparm(nc->tcache.sgr,
+    }else if(sgr){
+      if(term_emit(tiparm(sgr,
                           cellattr & NCSTYLE_STANDOUT,
                           cellattr & NCSTYLE_UNDERLINE,
                           cellattr & NCSTYLE_REVERSE,
