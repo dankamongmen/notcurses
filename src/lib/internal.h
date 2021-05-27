@@ -398,23 +398,6 @@ typedef struct nctabbed {
   nctabbed_options opts; // copied in nctabbed_create()
 } nctabbed;
 
-typedef struct ncinputlayer {
-  int ttyinfd;  // file descriptor for processing input
-  unsigned char inputbuf[BUFSIZ];
-  // we keep a wee ringbuffer of input queued up for delivery. if
-  // inputbuf_occupied == sizeof(inputbuf), there is no room. otherwise, data
-  // can be read to inputbuf_write_at until we fill up. the first datum
-  // available for the app is at inputbuf_valid_starts iff inputbuf_occupied is
-  // not 0. the main purpose is working around bad predictions of escapes.
-  unsigned inputbuf_occupied;
-  unsigned inputbuf_valid_starts;
-  unsigned inputbuf_write_at;
-  // number of input events seen. does not belong in ncstats, since it must not
-  // be reset (semantics are relied upon by widgets for mouse click detection).
-  uint64_t input_events;
-  struct esctrie* inputescapes; // trie of input escapes -> ncspecial_keys
-} ncinputlayer;
-
 typedef struct ncdirect {
   palette256 palette;        // 256-indexed palette can be used instead of/with RGB
   FILE* ttyfp;               // FILE* for output tty
@@ -422,7 +405,6 @@ typedef struct ncdirect {
   tinfo tcache;              // terminfo cache
   uint64_t channels;         // current channels
   uint16_t stylemask;        // current styles
-  ncinputlayer input;        // input layer; we're in cbreak mode
   struct termios tpreserved; // terminal state upon entry
   // some terminals (e.g. kmscon) return cursor coordinates inverted from the
   // typical order. we detect it the first time ncdirect_cursor_yx() is called.
@@ -503,7 +485,6 @@ typedef struct notcurses {
 
   FILE* ttyfp;    // FILE* for writing rasterized data
   int ttyfd;      // file descriptor for controlling tty
-  ncinputlayer input; // input layer; we're in cbreak mode
   FILE* renderfp; // debugging FILE* to which renderings are written
   tinfo tcache;   // terminfo cache
   struct termios tpreserved; // terminal state upon entry

@@ -59,6 +59,23 @@ typedef enum {
   ESCAPE_MAX
 } escape_e;
 
+typedef struct ncinputlayer {
+  int ttyinfd;  // file descriptor for processing input
+  unsigned char inputbuf[BUFSIZ];
+  // we keep a wee ringbuffer of input queued up for delivery. if
+  // inputbuf_occupied == sizeof(inputbuf), there is no room. otherwise, data
+  // can be read to inputbuf_write_at until we fill up. the first datum
+  // available for the app is at inputbuf_valid_starts iff inputbuf_occupied is
+  // not 0. the main purpose is working around bad predictions of escapes.
+  unsigned inputbuf_occupied;
+  unsigned inputbuf_valid_starts;
+  unsigned inputbuf_write_at;
+  // number of input events seen. does not belong in ncstats, since it must not
+  // be reset (semantics are relied upon by widgets for mouse click detection).
+  uint64_t input_events;
+  struct esctrie* inputescapes; // trie of input escapes -> ncspecial_keys
+} ncinputlayer;
+
 // terminal interface description. most of these are acquired from terminfo(5)
 // (using a database entry specified by TERM). some are determined via
 // heuristics based off terminal interrogation or the TERM environment
@@ -101,6 +118,7 @@ typedef struct tinfo {
   int (*pixel_shutdown)(int fd);  // called during context shutdown
   int (*pixel_clear_all)(int fd); // called during startup, kitty only
   int sprixel_scale_height; // sprixel must be a multiple of this many rows
+  ncinputlayer input;       // input layer
   bool bitmap_supported;    // do we support bitmaps (post pixel_query_done)?
   bool pixel_query_done;    // have we yet performed pixel query?
   bool RGBflag;   // "RGB" flag for 24bpc truecolor

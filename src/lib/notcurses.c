@@ -1068,10 +1068,10 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     goto err;
   }
   ret->suppress_banner = opts->flags & NCOPTION_SUPPRESS_BANNERS;
-  if(ncinputlayer_init(&ret->input, stdin)){
+  if(ncinputlayer_init(&ret->tcache.input, stdin)){
     goto err;
   }
-  if(set_fd_nonblocking(ret->input.ttyinfd, 1, &ret->stdio_blocking_save)){
+  if(set_fd_nonblocking(ret->tcache.input.ttyinfd, 1, &ret->stdio_blocking_save)){
     goto err;
   }
   if(ncvisual_init(ret->loglevel)){
@@ -1185,7 +1185,7 @@ int notcurses_stop(notcurses* nc){
   int ret = 0;
   if(nc){
     ret |= notcurses_stop_minimal(nc);
-    ret |= set_fd_nonblocking(nc->input.ttyinfd, nc->stdio_blocking_save, NULL);
+    ret |= set_fd_nonblocking(nc->tcache.input.ttyinfd, nc->stdio_blocking_save, NULL);
     if(nc->stdplane){
       notcurses_drop_planes(nc);
       free_plane(nc->stdplane);
@@ -1209,7 +1209,7 @@ int notcurses_stop(notcurses* nc){
     egcpool_dump(&nc->pool);
     free(nc->lastframe);
     free(nc->rstate.mstream);
-    input_free_esctrie(&nc->input.inputescapes);
+    input_free_esctrie(&nc->tcache.input.inputescapes);
     // get any current stats loaded into stash_stats
     notcurses_stats_reset(nc, NULL);
     if(!nc->suppress_banner){
@@ -2589,11 +2589,11 @@ int notcurses_lex_margins(const char* op, notcurses_options* opts){
 }
 
 int notcurses_inputready_fd(notcurses* n){
-  return n->input.ttyinfd;
+  return n->tcache.input.ttyinfd;
 }
 
 int ncdirect_inputready_fd(ncdirect* n){
-  return n->input.ttyinfd;
+  return n->tcache.input.ttyinfd;
 }
 
 uint32_t* ncplane_as_rgba(const ncplane* nc, ncblitter_e blit,

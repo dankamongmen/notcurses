@@ -771,9 +771,6 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
       }
     }
   }
-  if(ncinputlayer_init(&ret->input, stdin)){
-    goto err;
-  }
   const char* shortname_term;
   int termerr;
   if(setupterm(termtype, ret->ctermfd, &termerr) != OK){
@@ -781,10 +778,13 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
     goto err;
   }
   shortname_term = termname();
-  if(ncvisual_init(NCLOGLEVEL_SILENT)){
+  if(interrogate_terminfo(&ret->tcache, ret->ctermfd, shortname_term, utf8, 1)){
     goto err;
   }
-  if(interrogate_terminfo(&ret->tcache, ret->ctermfd, shortname_term, utf8, 1)){
+  if(ncinputlayer_init(&ret->tcache.input, stdin)){
+    goto err;
+  }
+  if(ncvisual_init(NCLOGLEVEL_SILENT)){
     goto err;
   }
   update_term_dimensions(ret->ctermfd, NULL, NULL, &ret->tcache);
@@ -804,7 +804,7 @@ int ncdirect_stop(ncdirect* nc){
   int ret = 0;
   if(nc){
     ret |= ncdirect_stop_minimal(nc);
-    input_free_esctrie(&nc->input.inputescapes);
+    input_free_esctrie(&nc->tcache.input.inputescapes);
     free(nc);
   }
   return ret;
