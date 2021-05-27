@@ -724,7 +724,7 @@ ncdirect_stop_minimal(void* vnc){
     if(cnorm && tty_emit(cnorm, nc->ctermfd)){
       ret = -1;
     }
-    ret |= tcsetattr(nc->ctermfd, TCSANOW, &nc->tpreserved);
+    ret |= tcsetattr(nc->ctermfd, TCSANOW, &nc->tcache.tpreserved);
     ret |= close(nc->ctermfd);
   }
   ret |= ncdirect_flush(nc);
@@ -760,17 +760,7 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
     return NULL;
   }
   // we don't need a controlling tty for everything we do; allow a failure here
-  if((ret->ctermfd = get_tty_fd(NULL, ret->ttyfp)) >= 0){
-    if(tcgetattr(ret->ctermfd, &ret->tpreserved)){
-      fprintf(stderr, "Couldn't preserve terminal state for %d (%s)\n", ret->ctermfd, strerror(errno));
-      goto err;
-    }
-    if(!(flags & NCDIRECT_OPTION_INHIBIT_CBREAK)){
-      if(cbreak_mode(ret->ctermfd, &ret->tpreserved)){
-        goto err;
-      }
-    }
-  }
+  ret->ctermfd = get_tty_fd(NULL, ret->ttyfp);
   const char* shortname_term;
   int termerr;
   if(setupterm(termtype, ret->ctermfd, &termerr) != OK){
@@ -778,10 +768,8 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
     goto err;
   }
   shortname_term = termname();
-  if(interrogate_terminfo(&ret->tcache, ret->ctermfd, shortname_term, utf8, 1)){
-    goto err;
-  }
-  if(ncinputlayer_init(&ret->tcache.input, stdin)){
+  if(interrogate_terminfo(&ret->tcache, ret->ctermfd, shortname_term, utf8,
+                          1, flags & NCDIRECT_OPTION_INHIBIT_CBREAK)){
     goto err;
   }
   if(ncvisual_init(NCLOGLEVEL_SILENT)){
@@ -793,7 +781,7 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
 
 err:
   if(ret->ctermfd >= 0){
-    tcsetattr(ret->ctermfd, TCSANOW, &ret->tpreserved);
+    tcsetattr(ret->ctermfd, TCSANOW, &ret->tcache.tpreserved);
   }
   drop_signals(ret);
   free(ret);

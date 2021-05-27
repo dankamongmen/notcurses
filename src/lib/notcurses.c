@@ -84,7 +84,7 @@ notcurses_stop_minimal(void* vnc){
     if(cnorm && tty_emit(cnorm, nc->ttyfd)){
       ret = -1;
     }
-    ret |= tcsetattr(nc->ttyfd, TCSANOW, &nc->tpreserved);
+    ret |= tcsetattr(nc->ttyfd, TCSANOW, &nc->tcache.tpreserved);
   }
   return ret;
 }
@@ -1021,17 +1021,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   }
   ret->ttyfd = get_tty_fd(ret, ret->ttyfp);
   is_linux_console(ret, !!(opts->flags & NCOPTION_NO_FONT_CHANGES));
-  if(ret->ttyfd >= 0){
-    if(tcgetattr(ret->ttyfd, &ret->tpreserved)){
-      fprintf(stderr, "Couldn't preserve terminal state for %d (%s)\n", ret->ttyfd, strerror(errno));
-      free(ret);
-      return NULL;
-    }
-    if(cbreak_mode(ret->ttyfd, &ret->tpreserved)){
-      free(ret);
-      return NULL;
-    }
-  }else{
+  if(ret->ttyfd < 0){
     fprintf(stderr, "Defaulting to %dx%d (output is not to a terminal)\n", DEFAULT_ROWS, DEFAULT_COLS);
   }
   if(recursive_lock_init(&ret->pilelock)){
@@ -1060,7 +1050,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   const char* shortname_term = termname();
 // const char* longname_term = longname();
   if(interrogate_terminfo(&ret->tcache, ret->ttyfd, shortname_term, utf8,
-                          opts->flags & NCOPTION_NO_ALTERNATE_SCREEN)){
+                          opts->flags & NCOPTION_NO_ALTERNATE_SCREEN, 0)){
     goto err;
   }
   int dimy, dimx;
@@ -1068,9 +1058,6 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     goto err;
   }
   ret->suppress_banner = opts->flags & NCOPTION_SUPPRESS_BANNERS;
-  if(ncinputlayer_init(&ret->tcache.input, stdin)){
-    goto err;
-  }
   if(set_fd_nonblocking(ret->tcache.input.ttyinfd, 1, &ret->stdio_blocking_save)){
     goto err;
   }
@@ -1138,7 +1125,7 @@ err:
     fclose(ret->rstate.mstreamfp);
   }
   free(ret->rstate.mstream);
-  tcsetattr(ret->ttyfd, TCSANOW, &ret->tpreserved);
+  tcsetattr(ret->ttyfd, TCSANOW, &ret->tcache.tpreserved);
   drop_signals(ret);
   pthread_mutex_destroy(&ret->statlock);
   pthread_mutex_destroy(&ret->pilelock);
