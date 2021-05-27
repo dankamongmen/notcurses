@@ -182,10 +182,22 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 // termname is just the TERM environment variable. some details are not
 // exposed via terminfo, and we must make heuristic decisions based on
 // the detected terminal type, yuck :/.
-int interrogate_terminfo(tinfo* ti, int fd, const char* termname,
-                         unsigned utf8, unsigned noaltscreen){
+int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
+                         unsigned noaltscreen, unsigned nocbreak){
   memset(ti, 0, sizeof(*ti));
   ti->utf8 = utf8;
+  if(tcgetattr(fd, &ti->tpreserved)){
+    fprintf(stderr, "Couldn't preserve terminal state for %d (%s)\n", fd, strerror(errno));
+    return -1;
+  }
+  if(ncinputlayer_init(&ti->input, stdin)){
+    return -1;
+  }
+  if(!nocbreak){
+    if(cbreak_mode(fd, &ti->tpreserved)){
+      return -1;
+    }
+  }
   // allow the "rgb" boolean terminfo capability, a COLORTERM environment
   // variable of either "truecolor" or "24bit", or unconditionally enable it
   // for several terminals known to always support 8bpc rgb setaf/setab.

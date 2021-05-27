@@ -405,7 +405,6 @@ typedef struct ncdirect {
   tinfo tcache;              // terminfo cache
   uint64_t channels;         // current channels
   uint16_t stylemask;        // current styles
-  struct termios tpreserved; // terminal state upon entry
   // some terminals (e.g. kmscon) return cursor coordinates inverted from the
   // typical order. we detect it the first time ncdirect_cursor_yx() is called.
   bool detected_cursor_inversion; // have we performed inversion testing?
@@ -487,7 +486,6 @@ typedef struct notcurses {
   int ttyfd;      // file descriptor for controlling tty
   FILE* renderfp; // debugging FILE* to which renderings are written
   tinfo tcache;   // terminfo cache
-  struct termios tpreserved; // terminal state upon entry
   pthread_mutex_t pilelock; // guards pile list, locks resize in render
   bool suppress_banner; // from notcurses_options
 
@@ -591,8 +589,8 @@ void init_lang(notcurses* nc); // nc may be NULL, only used for logging
 // initialized. set |utf8| if we've verified UTF8 output encoding.
 // set |noaltscreen| to inhibit alternate screen detection. |fd| ought
 // be connected to a terminal device, or -1 if no terminal is available.
-int interrogate_terminfo(tinfo* ti, int fd, const char* termname,
-                         unsigned utf8, unsigned noaltscreen);
+int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
+                         unsigned noaltscreen, unsigned nocbreak);
 int term_supported_styles(const tinfo* ti);
 int reset_term_attributes(const tinfo* ti, FILE* fp);
 

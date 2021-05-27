@@ -118,6 +118,7 @@ typedef struct tinfo {
   int (*pixel_shutdown)(int fd);  // called during context shutdown
   int (*pixel_clear_all)(int fd); // called during startup, kitty only
   int sprixel_scale_height; // sprixel must be a multiple of this many rows
+  struct termios tpreserved; // terminal state upon entry
   ncinputlayer input;       // input layer
   bool bitmap_supported;    // do we support bitmaps (post pixel_query_done)?
   bool pixel_query_done;    // have we yet performed pixel query?
