@@ -20,7 +20,7 @@ void sigwinch_handler(int signo){
 }
 
 int cbreak_mode(int ttyfd, const struct termios* tpreserved){
-  if(n->ttyfd < 0){
+  if(ttyfd < 0){
     return 0;
   }
   // assume it's not a true terminal (e.g. we might be redirected to a file)
