@@ -8,6 +8,7 @@ extern "C" {
 // internal header, not installed
 
 #include <stdbool.h>
+#include <termios.h>
 
 struct ncpile;
 struct sprixel;
@@ -125,6 +126,8 @@ typedef struct tinfo {
   // mlterm resets the cursor (i.e. makes it visible) any time you print
   // a sprixel. we work around this spiritedly unorthodox decision.
   bool sprixel_cursor_hack; // do sprixels reset the cursor? (mlterm)
+
+  struct termios tpreserved; // terminal state upon entry
 } tinfo;
 
 // retrieve the terminfo(5)-style escape 'e' from tdesc (NULL if undefined).
