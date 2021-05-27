@@ -84,7 +84,7 @@ notcurses_stop_minimal(void* vnc){
     if(cnorm && tty_emit(cnorm, nc->ttyfd)){
       ret = -1;
     }
-    ret |= tcsetattr(nc->ttyfd, TCSANOW, &nc->tcache.tpreserved);
+    ret |= tcsetattr(nc->ttyfd, TCSANOW, &nc->tpreserved);
   }
   return ret;
 }
@@ -1022,12 +1022,12 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   ret->ttyfd = get_tty_fd(ret, ret->ttyfp);
   is_linux_console(ret, !!(opts->flags & NCOPTION_NO_FONT_CHANGES));
   if(ret->ttyfd >= 0){
-    if(tcgetattr(ret->ttyfd, &ret->tcache.tpreserved)){
+    if(tcgetattr(ret->ttyfd, &ret->tpreserved)){
       fprintf(stderr, "Couldn't preserve terminal state for %d (%s)\n", ret->ttyfd, strerror(errno));
       free(ret);
       return NULL;
     }
-    if(cbreak_mode(ret->ttyfd, &ret->tcache.tpreserved)){
+    if(cbreak_mode(ret->ttyfd, &ret->tpreserved)){
       free(ret);
       return NULL;
     }
@@ -1138,7 +1138,7 @@ err:
     fclose(ret->rstate.mstreamfp);
   }
   free(ret->rstate.mstream);
-  tcsetattr(ret->ttyfd, TCSANOW, &ret->tcache.tpreserved);
+  tcsetattr(ret->ttyfd, TCSANOW, &ret->tpreserved);
   drop_signals(ret);
   pthread_mutex_destroy(&ret->statlock);
   pthread_mutex_destroy(&ret->pilelock);

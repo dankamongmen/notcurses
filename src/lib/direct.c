@@ -724,7 +724,7 @@ ncdirect_stop_minimal(void* vnc){
     if(cnorm && tty_emit(cnorm, nc->ctermfd)){
       ret = -1;
     }
-    ret |= tcsetattr(nc->ctermfd, TCSANOW, &nc->tcache.tpreserved);
+    ret |= tcsetattr(nc->ctermfd, TCSANOW, &nc->tpreserved);
     ret |= close(nc->ctermfd);
   }
   ret |= ncdirect_flush(nc);
@@ -761,12 +761,12 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
   }
   // we don't need a controlling tty for everything we do; allow a failure here
   if((ret->ctermfd = get_tty_fd(NULL, ret->ttyfp)) >= 0){
-    if(tcgetattr(ret->ctermfd, &ret->tcache.tpreserved)){
+    if(tcgetattr(ret->ctermfd, &ret->tpreserved)){
       fprintf(stderr, "Couldn't preserve terminal state for %d (%s)\n", ret->ctermfd, strerror(errno));
       goto err;
     }
     if(!(flags & NCDIRECT_OPTION_INHIBIT_CBREAK)){
-      if(cbreak_mode(ret->ctermfd, &ret->tcache.tpreserved)){
+      if(cbreak_mode(ret->ctermfd, &ret->tpreserved)){
         goto err;
       }
     }
@@ -793,7 +793,7 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
 
 err:
   if(ret->ctermfd >= 0){
-    tcsetattr(ret->ctermfd, TCSANOW, &ret->tcache.tpreserved);
+    tcsetattr(ret->ctermfd, TCSANOW, &ret->tpreserved);
   }
   drop_signals(ret);
   free(ret);

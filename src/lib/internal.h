@@ -19,6 +19,7 @@ extern "C" {
 #include <signal.h>
 #include <wctype.h>
 #include <pthread.h>
+#include <termios.h>
 #include <stdbool.h>
 #include <unictype.h>
 #include <langinfo.h>
@@ -422,6 +423,7 @@ typedef struct ncdirect {
   uint64_t channels;         // current channels
   uint16_t stylemask;        // current styles
   ncinputlayer input;        // input layer; we're in cbreak mode
+  struct termios tpreserved; // terminal state upon entry
   // some terminals (e.g. kmscon) return cursor coordinates inverted from the
   // typical order. we detect it the first time ncdirect_cursor_yx() is called.
   bool detected_cursor_inversion; // have we performed inversion testing?
@@ -504,6 +506,7 @@ typedef struct notcurses {
   ncinputlayer input; // input layer; we're in cbreak mode
   FILE* renderfp; // debugging FILE* to which renderings are written
   tinfo tcache;   // terminfo cache
+  struct termios tpreserved; // terminal state upon entry
   pthread_mutex_t pilelock; // guards pile list, locks resize in render
   bool suppress_banner; // from notcurses_options
 
