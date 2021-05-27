@@ -186,9 +186,11 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
                          unsigned noaltscreen, unsigned nocbreak){
   memset(ti, 0, sizeof(*ti));
   ti->utf8 = utf8;
-  if(tcgetattr(fd, &ti->tpreserved)){
-    fprintf(stderr, "Couldn't preserve terminal state for %d (%s)\n", fd, strerror(errno));
-    return -1;
+  if(fd >= 0){
+    if(tcgetattr(fd, &ti->tpreserved)){
+      fprintf(stderr, "Couldn't preserve terminal state for %d (%s)\n", fd, strerror(errno));
+      return -1;
+    }
   }
   if(ncinputlayer_init(&ti->input, stdin)){
     return -1;
