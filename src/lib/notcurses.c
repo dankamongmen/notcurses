@@ -2611,22 +2611,26 @@ uint32_t* ncplane_as_rgba(const ncplane* nc, ncblitter_e blit,
              begx, lenx, nc->lenx, begy, leny, nc->leny);
     return NULL;
   }
-  if(blit > NCBLIT_2x1){
-    logerror(ncur, "Blitter %d is not yet supported\n", blit);
+  if(blit == NCBLIT_PIXEL){ // FIXME extend this to support sprixels
+    logerror(ncur, "Pixel blitter %d not yet supported\n", blit);
+    return NULL;
+  }
+  const struct blitset* bset = lookup_blitset(&ncur->tcache, blit, false);
+  if(bset == NULL){
+    logerror(ncur, "Blitter %d invalid in current environment\n", blit);
     return NULL;
   }
 //fprintf(stderr, "ALLOCATING %zu %d %d\n", 4u * lenx * leny * 2, leny, lenx);
-  // FIXME this all assumes NCBLIT_2x1, need blitter-specific scaling
   if(pxdimy){
-    *pxdimy = leny * 2;
+    *pxdimy = leny * bset->height;
   }
   if(pxdimx){
-    *pxdimx = lenx;
+    *pxdimx = lenx * bset->width;
   }
-  uint32_t* ret = malloc(sizeof(*ret) * lenx * leny * 2);
+  uint32_t* ret = malloc(sizeof(*ret) * lenx * bset->width * leny * bset->height);
   if(ret){
-    for(int y = begy, targy = 0 ; y < begy + leny ; ++y, targy += 2){
-      for(int x = begx, targx = 0 ; x < begx + lenx ; ++x, ++targx){
+    for(int y = begy, targy = 0 ; y < begy + leny ; ++y, targy += bset->height){
+      for(int x = begx, targx = 0 ; x < begx + lenx ; ++x, targx += bset->width){
         // FIXME what if there's a wide glyph to the left of the selection?
         uint16_t stylemask;
         uint64_t channels;
@@ -2643,7 +2647,7 @@ uint32_t* ncplane_as_rgba(const ncplane* nc, ncblitter_e blit,
         // FIXME how do we deal with transparency?
         uint32_t frgba = (fr) + (fg << 16u) + (fb << 8u) + 0xff000000;
         uint32_t brgba = (br) + (bg << 16u) + (bb << 8u) + 0xff000000;
-        // FIXME need to be able to pick up quadrants!
+        // FIXME need to be able to pick up quadrants/sextants!
         if((strcmp(c, " ") == 0) || (strcmp(c, "") == 0)){
           *top = *bot = brgba;
         }else if(strcmp(c, "▄") == 0){
