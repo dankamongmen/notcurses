@@ -93,7 +93,7 @@ TEST_CASE("Ncpp"
       // FIXME load something onto standard plane, load it into visual, erase
       // plane, render visual, check for equivalence...
       {
-        Visual v = Visual(*n, NCBLIT_DEFAULT, 0, 0, -1, -1);
+        Visual v = Visual(*n, NCBLIT_1x1, 0, 0, -1, -1);
       }
     }
     CHECK(nc.stop());
