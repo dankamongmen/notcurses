@@ -2639,6 +2639,7 @@ uint32_t* ncplane_as_rgba(const ncplane* nc, ncblitter_e blit,
           free(ret);
           return NULL;
         }
+        /*
         uint32_t* top = &ret[targy * lenx + targx];
         uint32_t* bot = &ret[(targy + 1) * lenx + targx];
         unsigned fr, fg, fb, br, bg, bb;
@@ -2664,6 +2665,7 @@ uint32_t* ncplane_as_rgba(const ncplane* nc, ncblitter_e blit,
 //fprintf(stderr, "bad rgba character: %s\n", c);
           return NULL;
         }
+        */
         free(c);
       }
     }
