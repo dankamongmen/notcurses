@@ -1427,7 +1427,7 @@ pool_blit_direct(egcpool* pool, nccell* c, const char* gcluster, int bytes, int 
 }
 
 // Do an RTL-check, reset the quadrant occupancy bits, and pass the cell down to
-// pool_blit_direct().
+// pool_blit_direct(). Returns the number of bytes loaded.
 static inline int
 pool_load_direct(egcpool* pool, nccell* c, const char* gcluster, int bytes, int cols){
   char* rtl = NULL;
