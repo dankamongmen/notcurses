@@ -748,7 +748,7 @@ nccell_wide_left_p(const nccell* c){
 
 // return a pointer to the NUL-terminated EGC referenced by 'c'. this pointer
 // can be invalidated by any further operation on the plane 'n', so...watch out!
-API const char* nccell_extended_gcluster(const struct ncplane* n, const nccell* c);
+API __attribute__ ((returns_nonnull)) const char* nccell_extended_gcluster(const struct ncplane* n, const nccell* c);
 
 // return the number of columns occupied by 'c'. returns -1 if passed a
 // sprixcell. see ncstrwidth() for an equivalent for multiple EGCs.
@@ -1486,7 +1486,7 @@ API int ncplane_at_yx_cell(struct ncplane* n, int y, int x, nccell* c);
 // 'n'. Start at the plane's 'begy'x'begx' coordinate (which must lie on the
 // plane), continuing for 'leny'x'lenx' cells. Either or both of 'leny' and
 // 'lenx' can be specified as -1 to go through the boundary of the plane.
-API char* ncplane_contents(const struct ncplane* n, int begy, int begx,
+API char* ncplane_contents(struct ncplane* n, int begy, int begx,
                            int leny, int lenx);
 
 // Manipulate the opaque user pointer associated with this plane.

@@ -17,6 +17,8 @@ rearrangements of Notcurses.
     `nccell`, and can thus continue to be used to distinguish between primary
     and secondary columns of a wide glyph. Likewise, `notcurses_at_yx()`
     now returns the EGC when called on any column of a wide glyph.
+  * Sadly, `ncplane_contents()` no longer accepts a `const ncplane*`, since it
+    might write temporaries to the plane's EGCpool during operation.
 
 * 2.3.1 (2021-05-18)
   * Sprixels no longer interact with their associated plane's framebuffer. This

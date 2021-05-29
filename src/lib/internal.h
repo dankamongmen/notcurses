@@ -809,7 +809,7 @@ pool_extended_gcluster(const egcpool* pool, const nccell* c){
 }
 
 static inline nccell*
-ncplane_cell_ref_yx(ncplane* n, int y, int x){
+ncplane_cell_ref_yx(const ncplane* n, int y, int x){
   return &n->fb[nfbcellidx(n, y, x)];
 }
 
