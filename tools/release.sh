@@ -12,6 +12,7 @@ OLDVERSION="$1"
 VERSION="$2"
 QUIP="$3"
 
+# finalize the date on the most recent version, add any last-minute notes?
 vi NEWS.md
 
 git clean -f -d -x
