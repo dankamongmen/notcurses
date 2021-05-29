@@ -375,6 +375,16 @@ is resized, the plane is erased, or the plane is destroyed. The base cell of a
 sprixelated plane has no effect; if the sprixel is not even multiples of the
 cell geometry, the "excess plane" is ignored during rendering.
 
+**ncplane_at_yx** and **ncplane_at_yx_cell** retrieve the contents of the plane
+at the specified coordinate. The content is returned as it will be used during
+rendering, and thus integrates any base cell as appropriate. If called on the
+secondary columns of a wide glyph, **ncplane_at_yx** returns the EGC, and thus
+cannot be used to distinguish between primary and secondary columns.
+**ncplane_at_yx_cell**, however, preserves this information: retrieving a
+secondary column of a wide glyph with **ncplane_at_yx_cell** will fill in
+the **nccell** argument such that **nccell_extended_gcluster(3)** returns an
+empty string, and **nccell_wide_right_p(3)** returns **true**.
+
 # RETURN VALUES
 
 **ncplane_create** and **ncplane_dup** return a new **struct ncplane** on
@@ -394,10 +404,11 @@ respectively, of the pile containing their argument. **notcurses_top** and
 **notcurses_bottom** do the same for the standard pile.
 
 **ncplane_at_yx** and **ncplane_at_cursor** return a heap-allocated copy of the
-EGC at the relevant cell, or **NULL** if the cell is invalid. The caller should free
-this result. **ncplane_at_yx_cell** and **ncplane_at_cursor_cell** instead load
-these values into an **nccell**, which is invalidated if the associated plane is
-destroyed. The caller should release this **nccell** with **nccell_release**.
+EGC at the relevant cell, or **NULL** if the cell is invalid. The caller should
+free this result. **ncplane_at_yx_cell** and **ncplane_at_cursor_cell** instead
+load these values into an **nccell**, which is invalidated if the associated
+plane is destroyed. The caller should release this **nccell** with
+**nccell_release**.
 
 **ncplane_as_rgba** returns a heap-allocated array of **uint32_t** values,
 each representing a single RGBA pixel, or **NULL** on failure.

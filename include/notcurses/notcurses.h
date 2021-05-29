@@ -653,7 +653,7 @@ API int nccell_load(struct ncplane* n, nccell* c, const char* gcluster);
 // nccell_load(), plus blast the styling with 'attr' and 'channels'.
 static inline int
 nccell_prime(struct ncplane* n, nccell* c, const char* gcluster,
-           uint32_t stylemask, uint64_t channels){
+             uint32_t stylemask, uint64_t channels){
   c->stylemask = stylemask;
   c->channels = channels;
   int ret = nccell_load(n, c, gcluster);
@@ -1467,13 +1467,19 @@ API int ncplane_at_cursor_cell(struct ncplane* n, nccell* c);
 
 // Retrieve the current contents of the specified cell. The EGC is returned, or
 // NULL on error. This EGC must be free()d by the caller. The stylemask and
-// channels are written to 'stylemask' and 'channels', respectively.
+// channels are written to 'stylemask' and 'channels', respectively. The return
+// represents how the cell will be used during rendering, and thus integrates
+// any base cell where appropriate. If called upon the secondary columns of a
+// wide glyph, the EGC will be returned (i.e. this function does not distinguish
+// between the primary and secondary columns of a wide glyph).
 API char* ncplane_at_yx(const struct ncplane* n, int y, int x,
                         uint16_t* stylemask, uint64_t* channels);
 
 // Retrieve the current contents of the specified cell into 'c'. This cell is
 // invalidated if the associated plane is destroyed. Returns the number of
-// bytes in the EGC, or -1 on error.
+// bytes in the EGC, or -1 on error. Unlike ncplane_at_yx(), when called upon
+// the secondary columns of a wide glyph, the return can be distinguished from
+// the primary column (nccell_wide_right_p(c) will return true).
 API int ncplane_at_yx_cell(struct ncplane* n, int y, int x, nccell* c);
 
 // Create a flat string from the EGCs of the selected region of the ncplane
