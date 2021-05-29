@@ -850,14 +850,20 @@ braille_blit(ncplane* nc, int linesize, const void* data,
 
 // NCBLIT_DEFAULT is not included, as it has no defined properties. It ought
 // be replaced with some real blitter implementation by the calling widget.
+// The order of contents is critical for 'egcs': ncplane_as_rgba() uses these
+// arrays to map cells to source pixels. Map the upper-left logical bit to
+// 1, and increase to the right, followed by down. The first egc ought thus
+// always be space, to indicate an empty cell (all zeroes). The last ought
+// always be the full block █ (note that this will be rendered as a space, so
+// it's safe to use even in the NCBLIT_1x1 ASCII case).
 static struct blitset notcurses_blitters[] = {
    { .geom = NCBLIT_8x1,     .width = 1, .height = 8, .egcs = L" ▁▂▃▄▅▆▇█",
      .blit = tria_blit,      .name = "eightstep",     .fill = false, },
    { .geom = NCBLIT_1x1,     .width = 1, .height = 1, .egcs = L" █",
      .blit = tria_blit_ascii,.name = "ascii",         .fill = false, },
-   { .geom = NCBLIT_2x1,     .width = 1, .height = 2, .egcs = L" ▄█▀",
+   { .geom = NCBLIT_2x1,     .width = 1, .height = 2, .egcs = L" ▀▄█",
      .blit = tria_blit,      .name = "half",          .fill = false, },
-   { .geom = NCBLIT_2x2,     .width = 2, .height = 2, .egcs = L" ▗▐▖▄▟▌▙█",
+   { .geom = NCBLIT_2x2,     .width = 2, .height = 2, .egcs = L" ▘▝▀▖	▌▞▛▗▚▐▜▄▙▟█",
      .blit = quadrant_blit,  .name = "quad",          .fill = false, },
    { .geom = NCBLIT_3x2,     .width = 2, .height = 3, .egcs = L" 🬞🬦▐🬏🬭🬵🬷🬓🬱🬹🬻▌🬲🬺█",
      .blit = sextant_blit,   .name = "sex",           .fill = false, },
