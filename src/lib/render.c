@@ -1428,6 +1428,9 @@ char* notcurses_at_yx(notcurses* nc, int yoff, int xoff, uint16_t* stylemask, ui
     if(yoff >= 0 && yoff < nc->lfdimy){
       if(xoff >= 0 || xoff < nc->lfdimx){
         const nccell* srccell = &nc->lastframe[yoff * nc->lfdimx + xoff];
+        if(nccell_wide_right_p(srccell)){
+          return notcurses_at_yx(nc, yoff, xoff - 1, stylemask, channels);
+        }
         if(stylemask){
           *stylemask = srccell->stylemask;
         }

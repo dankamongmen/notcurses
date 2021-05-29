@@ -93,8 +93,9 @@ If the algorithm concludes without an EGC, the cell is rendered with no glyph
 and a default background. If the algorithm concludes without a color locked in,
 the color as computed thus far is used.
 
-**notcurses_at_yx** retrieves a call *as rendered*. The EGC in that cell is
-copied and returned; it must be **free(3)**d by the caller.
+**notcurses_at_yx** retrieves a cell *as rendered*. The EGC in that cell is
+copied and returned; it must be **free(3)**d by the caller. If the cell is a
+secondary column of a wide glyph, the glyph is still returned.
 
 # RETURN VALUES
 
