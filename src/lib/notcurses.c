@@ -2657,7 +2657,6 @@ uint32_t* ncplane_as_rgba(const ncplane* nc, ncblitter_e blit,
         }
         int idx = get_blitter_egc_idx(bset, c);
         if(idx < 0){
-fprintf(stderr, "NO IDX %d [%s]\n", idx, c);
           free(ret);
           free(c);
           return NULL;
@@ -2667,6 +2666,7 @@ fprintf(stderr, "NO IDX %d [%s]\n", idx, c);
         fa = ncchannels_fg_alpha(channels);
         ncchannels_bg_rgb8(channels, &br, &bb, &bg);
         ba = ncchannels_bg_alpha(channels);
+        // handle each destination pixel from this cell
         for(int py = 0 ; py < bset->height ; ++py){
           for(int px = 0 ; px < bset->width ; ++px){
             // FIXME upper-left target pixel is reg[targy * lenx + targx]
@@ -2678,8 +2678,8 @@ fprintf(stderr, "NO IDX %d [%s]\n", idx, c);
               }else{
                 ncpixel_set_a(p, 0xff);
                 ncpixel_set_r(p, br);
-                ncpixel_set_g(p, bg);
-                ncpixel_set_b(p, bb);
+                ncpixel_set_g(p, bb);
+                ncpixel_set_b(p, bg);
               }
             }else{
               if(fa){
@@ -2687,8 +2687,8 @@ fprintf(stderr, "NO IDX %d [%s]\n", idx, c);
               }else{
                 ncpixel_set_a(p, 0xff);
                 ncpixel_set_r(p, fr);
-                ncpixel_set_g(p, fg);
-                ncpixel_set_b(p, fb);
+                ncpixel_set_g(p, fb);
+                ncpixel_set_b(p, fg);
               }
             }
           }
