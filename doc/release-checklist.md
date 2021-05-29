@@ -47,7 +47,7 @@
 
 ### Fedora
 
-* In pagure/notcurses master:
+* In pagure/notcurses rawhide:
   * Update notcurses.spec, bump version, add changelog entry
   * clear out any old ersatz detritus
   * spectool -g notcurses.spec
@@ -56,8 +56,9 @@
   * fedpkg commit
   * git push
   * fedpkg build
-  * fedpkg switch-branch f32
-  * git merge master
+  * for each active branch:
+    * fedpkg switch-branch f32
+    * git merge rawhide
 
 ### Arch
 
