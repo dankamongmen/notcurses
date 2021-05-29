@@ -2596,6 +2596,23 @@ int ncdirect_inputready_fd(ncdirect* n){
   return n->tcache.input.ttyinfd;
 }
 
+// FIXME speed this up, PoC
+// given an egc, get its index in the blitter's EGC set
+static int
+get_blitter_egc_idx(const struct blitset* bset, const char* egc){
+  wchar_t wc;
+  mbstate_t mbs = {};
+  size_t sret = mbrtowc(&wc, egc, strlen(egc), &mbs);
+  if(sret == (size_t)-1 || sret == (size_t)-2){
+    return -1;
+  }
+  wchar_t* wptr = wcsrchr(bset->egcs, wc);
+  if(wptr == NULL){
+    return -1;
+  }
+  return wptr - bset->egcs;
+}
+
 uint32_t* ncplane_as_rgba(const ncplane* nc, ncblitter_e blit,
                           int begy, int begx, int leny, int lenx,
                           int* pxdimy, int* pxdimx){
@@ -2644,7 +2661,6 @@ uint32_t* ncplane_as_rgba(const ncplane* nc, ncblitter_e blit,
   if(ret){
     for(int y = begy, targy = 0 ; y < begy + leny ; ++y, targy += bset->height){
       for(int x = begx, targx = 0 ; x < begx + lenx ; ++x, targx += bset->width){
-        // FIXME what if there's a wide glyph to the left of the selection?
         uint16_t stylemask;
         uint64_t channels;
         char* c = ncplane_at_yx(nc, y, x, &stylemask, &channels);
@@ -2652,33 +2668,44 @@ uint32_t* ncplane_as_rgba(const ncplane* nc, ncblitter_e blit,
           free(ret);
           return NULL;
         }
-        /*
-        uint32_t* top = &ret[targy * lenx + targx];
-        uint32_t* bot = &ret[(targy + 1) * lenx + targx];
-        unsigned fr, fg, fb, br, bg, bb;
-        ncchannels_fg_rgb8(channels, &fr, &fb, &fg);
-        ncchannels_bg_rgb8(channels, &br, &bb, &bg);
-        // FIXME how do we deal with transparency?
-        uint32_t frgba = (fr) + (fg << 16u) + (fb << 8u) + 0xff000000;
-        uint32_t brgba = (br) + (bg << 16u) + (bb << 8u) + 0xff000000;
-        // FIXME need to be able to pick up quadrants/sextants!
-        if((strcmp(c, " ") == 0) || (strcmp(c, "") == 0)){
-          *top = *bot = brgba;
-        }else if(strcmp(c, "▄") == 0){
-          *top = frgba;
-          *bot = brgba;
-        }else if(strcmp(c, "▀") == 0){
-          *top = brgba;
-          *bot = frgba;
-        }else if(strcmp(c, "█") == 0){
-          *top = *bot = frgba;
-        }else{
-          free(c);
+        int idx = get_blitter_egc_idx(bset, c);
+        if(idx < 0){
+fprintf(stderr, "NO IDX %d [%s]\n", idx, c);
           free(ret);
-//fprintf(stderr, "bad rgba character: %s\n", c);
+          free(c);
           return NULL;
         }
-        */
+        unsigned fr, fg, fb, br, bg, bb, fa, ba;
+        ncchannels_fg_rgb8(channels, &fr, &fb, &fg);
+        fa = ncchannels_fg_alpha(channels);
+        ncchannels_bg_rgb8(channels, &br, &bb, &bg);
+        ba = ncchannels_bg_alpha(channels);
+        for(int py = 0 ; py < bset->height ; ++py){
+          for(int px = 0 ; px < bset->width ; ++px){
+            // FIXME upper-left target pixel is reg[targy * lenx + targx]
+            uint32_t* p = &ret[(targy + py) * lenx + (targx + px)];
+            bool background = false; // FIXME determine pixel map for cell from glyph
+            if(background){
+              if(ba){
+                *p = 0;
+              }else{
+                ncpixel_set_a(p, 0xff);
+                ncpixel_set_r(p, br);
+                ncpixel_set_g(p, bg);
+                ncpixel_set_b(p, bb);
+              }
+            }else{
+              if(fa){
+                *p = 0;
+              }else{
+                ncpixel_set_a(p, 0xff);
+                ncpixel_set_r(p, fr);
+                ncpixel_set_g(p, fg);
+                ncpixel_set_b(p, fb);
+              }
+            }
+          }
+        }
         free(c);
       }
     }
