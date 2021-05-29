@@ -2758,7 +2758,7 @@ uint32_t* ncplane_as_rgba(const ncplane* nc, ncblitter_e blit,
 }
 
 // return a heap-allocated copy of the contents
-char* ncplane_contents(const ncplane* nc, int begy, int begx, int leny, int lenx){
+char* ncplane_contents(ncplane* nc, int begy, int begx, int leny, int lenx){
   if(begy < 0 || begx < 0){
     logerror(ncplane_notcurses_const(nc), "Beginning coordinates (%d/%d) below 0\n", begy, begx);
     return NULL;
@@ -2788,18 +2788,18 @@ char* ncplane_contents(const ncplane* nc, int begy, int begx, int leny, int lenx
   if(ret){
     for(int y = begy, targy = 0 ; y < begy + leny ; ++y, targy += 2){
       for(int x = begx, targx = 0 ; x < begx + lenx ; ++x, ++targx){
-        uint16_t stylemask;
-        uint64_t channels;
-        char* c = ncplane_at_yx(nc, y, x, &stylemask, &channels);
-        if(!c){
+        nccell ncl = CELL_TRIVIAL_INITIALIZER;
+        // we need ncplane_at_yx_cell() here instead of ncplane_at_yx(),
+        // because we should only have one copy of each wide EGC.
+        int clen;
+        if((clen = ncplane_at_yx_cell(nc, y, x, &ncl)) < 0){
           free(ret);
           return NULL;
         }
-        size_t clen = strlen(c);
+        const char* c = nccell_extended_gcluster(nc, &ncl);
         if(clen){
           char* tmp = realloc(ret, retlen + clen);
           if(!tmp){
-            free(c);
             free(ret);
             return NULL;
           }
@@ -2807,7 +2807,6 @@ char* ncplane_contents(const ncplane* nc, int begy, int begx, int leny, int lenx
           memcpy(ret + retlen - 1, c, clen);
           retlen += clen;
         }
-        free(c);
       }
     }
     ret[retlen - 1] = '\0';
