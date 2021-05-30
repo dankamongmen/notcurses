@@ -21,11 +21,14 @@ fn main() -> NcResult<()> {
         buffer.push(255);
     }
 
+    // BUG: when using from_bgra() it will draw vertical stripes 
     let vframe1 = NcVisual::from_bgra(&buffer, H, W * 4, W)?;
+    // from_rgba() does work well!
+    // let vframe1 = NcVisual::from_rgba(&buffer, H, W * 4, W)?;
 
-    // BUG: draws vertical stripes
     let voptions = NcVisualOptions::without_plane(0, 0, 0, 0, H, W, NCBLIT_1x1, 0, 0);
-    // BUG: nothing gets drawn
+
+    // BUG: nothing gets drawn when using NCBLIT_PIXEL
     // let voptions = NcVisualOptions::without_plane(0, 0, 0, 0, H, W, NCBLIT_PIXEL, 0, 0);
 
     vframe1.render(nc, &voptions)?;
