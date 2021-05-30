@@ -2,7 +2,6 @@
 // https://github.com/dankamongmen/notcurses/issues/1700
 
 use libnotcurses_sys::*;
-use raqote::*;
 
 const W: u32 = 16;
 const H: u32 = 8;
@@ -12,12 +11,17 @@ fn main() -> NcResult<()> {
 
     println!("pixel support: {:?}", nc.check_pixel_support());
 
-    // use raqote to create a purple rectangle, 16 width, 8 height
-    let mut dt = DrawTarget::new(W as i32, H as i32);
-    dt.clear(SolidSource::from_unpremultiplied_argb(255, 80, 20, 190));
-    // dt.write_png("example.png"); // to check the image is OK
+    // create a purple rectangle
+    let mut buffer = Vec::<u8>::with_capacity(H as usize * W as usize * 4);
+    #[allow(unused_parens)]
+    for _byte in (0..={ H * W }) {
+        buffer.push(190);
+        buffer.push(20);
+        buffer.push(80);
+        buffer.push(255);
+    }
 
-    let vframe1 = NcVisual::from_bgra(dt.get_data_u8(), H, W * 4, W)?;
+    let vframe1 = NcVisual::from_bgra(&buffer, H, W * 4, W)?;
 
     // BUG: draws vertical stripes
     let voptions = NcVisualOptions::without_plane(0, 0, 0, 0, H, W, NCBLIT_1x1, 0, 0);
