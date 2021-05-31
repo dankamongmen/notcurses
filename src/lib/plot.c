@@ -415,15 +415,17 @@ void destroy_##T(nc##X##plot* ncpp){ \
 CREATE(uint64_t, u)
 CREATE(double, d)
 
+// takes ownership of n on all paths
 ncuplot* ncuplot_create(ncplane* n, const ncplot_options* opts, uint64_t miny, uint64_t maxy){
   ncuplot* ret = malloc(sizeof(*ret));
-  if(ret){
-    memset(ret, 0, sizeof(*ret));
-    if(create_uint64_t(ret, n, opts, miny, maxy, 0, UINT64_MAX)){
-      return ret;
-    }
+  if(ret == NULL){
+    ncplane_destroy(n);
+    return NULL;
+  }
+  memset(ret, 0, sizeof(*ret));
+  if(!create_uint64_t(ret, n, opts, miny, maxy, 0, UINT64_MAX)){
     free(ret);
-    ret = NULL;
+    return NULL;
   }
   return ret;
 }
@@ -447,15 +449,17 @@ void ncuplot_destroy(ncuplot* n){
   }
 }
 
+// takes ownership of n on all paths
 ncdplot* ncdplot_create(ncplane* n, const ncplot_options* opts, double miny, double maxy){
   ncdplot* ret = malloc(sizeof(*ret));
-  if(ret){
-    memset(ret, 0, sizeof(*ret));
-    if(create_double(ret, n, opts, miny, maxy, -DBL_MAX, DBL_MAX)){
-      return ret;
-    }
+  if(ret == NULL){
+    ncplane_destroy(n);
+    return NULL;
+  }
+  memset(ret, 0, sizeof(*ret));
+  if(!create_double(ret, n, opts, miny, maxy, -DBL_MAX, DBL_MAX)){
     free(ret);
-    ret = NULL;
+    return NULL;
   }
   return ret;
 }
