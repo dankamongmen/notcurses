@@ -570,7 +570,7 @@ ncvisual* ncvisual_from_bgra(const void* bgra, int rows, int rowstride, int cols
     for(int y = 0 ; y < rows ; ++y){
       for(int x = 0 ; x < cols ; ++x){
         uint32_t src;
-        memcpy(&src, (const char*)bgra + y * rowstride + x, 4);
+        memcpy(&src, (const char*)bgra + y * rowstride + x * 4, 4);
         const uint32_t r = (src & 0xffllu) << 16u;
         const uint32_t b = (src & 0xff0000llu) >> 16u;
         data[ncv->rowstride * y / 4 + x] = (src & 0xff00ff00llu) | r | b;
