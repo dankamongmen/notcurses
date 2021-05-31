@@ -124,7 +124,7 @@ int redraw_plot_##T(nc##X##plot* ncp){ \
        direction, drawing egcs from the grid specification, aborting early if \
        we can't draw anything in a given cell. */ \
     T intervalbase = ncp->miny; \
-    const wchar_t* egc = ncp->bset->egcs; \
+    const wchar_t* egc = ncp->bset->plotegcs; \
     bool done = !ncp->bset->fill; \
     for(int y = 0 ; y < dimy ; ++y){ \
       uint64_t channels = 0; \
