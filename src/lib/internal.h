@@ -540,6 +540,7 @@ struct blitset {
   // quickly, i.e. it can be indexed as height arrays of 1 + height glyphs. i.e.
   // the first five braille EGCs are all 0 on the left, [0..4] on the right.
   const wchar_t* egcs;
+  const wchar_t* plotegcs;
   ncblitter blit;
   const char* name;
   bool fill;
