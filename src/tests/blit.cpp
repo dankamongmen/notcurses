@@ -1,6 +1,6 @@
 #include "main.h"
 
-TEST_CASE("Blitting") {
+TEST_CASE("Blit") {
   auto nc_ = testing_notcurses();
   REQUIRE(nullptr != nc_);
   ncplane* ncp_ = notcurses_stdplane(nc_);
@@ -158,6 +158,22 @@ TEST_CASE("Blitting") {
         free(egc);
       }
     }
+  }
+
+  // put a visual through the ascii blitter, read it back, and check equality
+  SUBCASE("AsciiRoundtrip") {
+    const uint32_t data[2] = {
+      htole(0xffffffff), htole(0xff000000),
+    };
+    auto ncv = ncvisual_from_rgba(data, 1, 8, 2);
+    REQUIRE(nullptr != ncv);
+    auto p = ncvisual_render(nc_, ncv, nullptr);
+    REQUIRE(nullptr != p);
+    CHECK(1 == ncplane_dim_y(p));
+    CHECK(2 == ncplane_dim_y(p));
+    // FIXME
+    CHECK(0 == ncplane_destroy(p));
+    ncvisual_destroy(ncv);
   }
 
   CHECK(!notcurses_stop(nc_));
