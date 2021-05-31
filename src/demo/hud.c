@@ -667,9 +667,9 @@ int fpsgraph_init(struct notcurses* nc){
   ncchannels_set_fg_rgb8(&opts.maxchannels, 0x80, 0xff, 0x80);
   ncchannels_set_bg_rgb(&opts.maxchannels, 0x201020);
   ncchannels_set_bg_alpha(&opts.maxchannels, CELL_ALPHA_BLEND);
+  // takes ownership of newp on all paths
   struct ncuplot* fpsplot = ncuplot_create(newp, &opts, 0, 0);
   if(!fpsplot){
-    ncplane_destroy(newp);
     return EXIT_FAILURE;
   }
   plot = fpsplot;
