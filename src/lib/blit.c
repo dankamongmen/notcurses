@@ -876,7 +876,7 @@ static struct blitset notcurses_blitters[] = {
      .egcs = NULL,           .plotegcs = L" ▂▄▆█",
      .blit = tria_blit,      .name = "fourstep",      .fill = false, },
    { .geom = NCBLIT_BRAILLE, .width = 2, .height = 4,
-     .egcs = L"⠀⢀⢠⢰⢸⡀⣀⣠⣰⣸⡄⣄⣤⣴⣼⡆⣆⣦⣶⣾⡇⣇⣧⣷⣿", .plotegcs = NULL,
+     .egcs = NULL, .plotegcs = L"⠀⢀⢠⢰⢸⡀⣀⣠⣰⣸⡄⣄⣤⣴⣼⡆⣆⣦⣶⣾⡇⣇⣧⣷⣿",
      .blit = braille_blit,   .name = "braille",       .fill = true,  },
    { .geom = NCBLIT_PIXEL,   .width = 1, .height = 1,
      .egcs = L"",            .plotegcs = L"",
