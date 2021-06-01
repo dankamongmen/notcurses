@@ -236,20 +236,20 @@ TEST_CASE("Blit") {
     const uint32_t data[64] = {
       htole(0xffffffff), htole(0xffffffff), htole(0xff000000), htole(0xffffffff),
       htole(0xffffffff), htole(0xff000000), htole(0xffffffff), htole(0xffffffff),
+      htole(0xffffffff), htole(0xffffffff), htole(0xff000000), htole(0xffffffff),
+      htole(0xffffffff), htole(0xff000000), htole(0xffffffff), htole(0xffffffff),
       htole(0xffffffff), htole(0xffffffff), htole(0xffffffff), htole(0xffffffff),
-      htole(0xffffffff), htole(0xffffffff), htole(0xffffffff), htole(0xffffffff),
-      htole(0xffffffff), htole(0xffffffff), htole(0xffffffff), htole(0xffffffff),
-      htole(0xffffffff), htole(0xffffffff), htole(0xffffffff), htole(0xffffffff),
-      htole(0xffffffff), htole(0xffffffff), htole(0xffffffff), htole(0xffffffff),
+      htole(0xff000000), htole(0xff000000), htole(0xff000000), htole(0xffffffff),
+      htole(0xffffffff), htole(0xff000000), htole(0xffffffff), htole(0xffffffff),
       htole(0xffffffff), htole(0xffffffff), htole(0xffffffff), htole(0xffffffff),
 
       htole(0xffffffff), htole(0xffffffff), htole(0xffffffff), htole(0xffffffff),
       htole(0xffffffff), htole(0xffffffff), htole(0xff000000), htole(0xffffffff),
+      htole(0xffffffff), htole(0xff000000), htole(0xff000000), htole(0xffffffff),
       htole(0xffffffff), htole(0xff000000), htole(0xffffffff), htole(0xffffffff),
-      htole(0xffffffff), htole(0xffffffff), htole(0xffffffff), htole(0xffffffff),
-      htole(0xffffffff), htole(0xffffffff), htole(0xffffffff), htole(0xffffffff),
-      htole(0xffffffff), htole(0xffffffff), htole(0xffffffff), htole(0xffffffff),
-      htole(0xffffffff), htole(0xffffffff), htole(0xffffffff), htole(0xffffffff),
+      htole(0xffffffff), htole(0xffffffff), htole(0xff000000), htole(0xff000000),
+      htole(0xffffffff), htole(0xffffffff), htole(0xffffffff), htole(0xff000000),
+      htole(0xff000000), htole(0xffffffff), htole(0xffffffff), htole(0xffffffff),
       htole(0xffffffff), htole(0xffffffff), htole(0xffffffff), htole(0xffffffff),
     };
     auto ncv = ncvisual_from_rgba(data, 2, 128, 32);
