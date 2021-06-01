@@ -2681,12 +2681,10 @@ ncplane_as_rgba_internal(const ncplane* nc, ncblitter_e blit,
         uint64_t channels;
         char* c = ncplane_at_yx(nc, y, x, &stylemask, &channels);
         if(c == NULL){
-fprintf(stderr, "NO CONTENT %d/%d\n", y, x);
           free(ret);
           return NULL;
         }
         int idx = get_blitter_egc_idx(bset, c);
-fprintf(stderr, "%d/%d: [%s] %d\n", y, x, c, idx);
         if(idx < 0){
           free(ret);
           free(c);
@@ -2697,6 +2695,7 @@ fprintf(stderr, "%d/%d: [%s] %d\n", y, x, c, idx);
         fa = ncchannels_fg_alpha(channels);
         ncchannels_bg_rgb8(channels, &br, &bb, &bg);
         ba = ncchannels_bg_alpha(channels);
+fprintf(stderr, "%d/%d: [%s] %d %d %d %d\n", y, x, c, idx, fr, fb, fg);
         // handle each destination pixel from this cell
         for(int py = 0 ; py < bset->height ; ++py){
           for(int px = 0 ; px < bset->width ; ++px){

@@ -167,11 +167,25 @@ TEST_CASE("Blit") {
     };
     auto ncv = ncvisual_from_rgba(data, 1, 8, 2);
     REQUIRE(nullptr != ncv);
-    auto p = ncvisual_render(nc_, ncv, nullptr);
+    struct ncvisual_options vopts = {
+      .n = nullptr,
+      .scaling = NCSCALE_NONE,
+      .y = 0, .x = 0,
+      .begy = 0, .begx = 0,
+      .leny = 0, .lenx = 0,
+      .blitter = NCBLIT_1x1,
+      .flags = 0,
+      .transcolor = 0,
+    };
+    auto p = ncvisual_render(nc_, ncv, &vopts);
     REQUIRE(nullptr != p);
     CHECK(1 == ncplane_dim_y(p));
     CHECK(2 == ncplane_dim_x(p));
-    // FIXME
+    int pxdimy, pxdimx;
+    auto edata = ncplane_as_rgba(p, vopts.blitter, 0, 0, -1, -1, &pxdimy, &pxdimx);
+    REQUIRE(nullptr != edata);
+    CHECK(0 == memcmp(data, edata, sizeof(data)));
+    free(edata);
     CHECK(0 == ncplane_destroy(p));
     ncvisual_destroy(ncv);
   }

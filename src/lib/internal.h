@@ -535,11 +535,13 @@ struct blitset {
   ncblitter_e geom;
   int width;        // number of input pixels per output cell, width
   int height;       // number of input pixels per output cell, height
+  // the EGCs which form the blitter. bits grow left to right, and then top to
+  // bottom. the first character is always a space, the last a full block.
+  const wchar_t* egcs;
   // the EGCs which form the various levels of a given plotset. if the geometry
   // is wide, things are arranged with the rightmost side increasing most
   // quickly, i.e. it can be indexed as height arrays of 1 + height glyphs. i.e.
   // the first five braille EGCs are all 0 on the left, [0..4] on the right.
-  const wchar_t* egcs;
   const wchar_t* plotegcs;
   ncblitter blit;
   const char* name;
