@@ -102,6 +102,9 @@ fatal_handler(int signo, siginfo_t* siginfo, void* v){
   }
 }
 
+// this both sets up our signal handlers (unless that behavior has been
+// inhibited), and ensures that only one notcurses/ncdirect context is active
+// at any given time.
 int setup_signals(void* vnc, bool no_quit_sigs, bool no_winch_sig,
                   int(*handler)(void*)){
   notcurses* nc = vnc;

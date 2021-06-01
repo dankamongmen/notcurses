@@ -129,7 +129,8 @@ styling. On success, a pointer to a valid **struct ncdirect** is returned.
 should be called to reset the terminal and free up resources. **ncdirect_init**
 places the terminal into "cbreak" (also known as "rare") mode, disabling
 line-buffering and echo of input. **ncdirect_stop** restores the terminal state
-as it was when the corresponding **ncdirect_init** call was made.
+as it was when the corresponding **ncdirect_init** call was made. A process
+can have only one context active at once.
 
 The following flags are defined:
 

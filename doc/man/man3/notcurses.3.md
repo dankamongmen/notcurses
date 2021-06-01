@@ -49,6 +49,9 @@ functionality. This subset is intended to be interleaved with user-generated
 output, and is limited to coloring and styling. Direct mode is documented in
 **notcurses_direct(3)**.
 
+Only one context can be active in a process at a time, whether direct mode
+(**struct ncdirect**) or rendered mode (**struct notcurses**).
+
 ## Output
 
 All output is performed on **struct ncplane**s (see [Ncplanes][] below). Output
