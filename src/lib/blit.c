@@ -939,7 +939,7 @@ const struct blitset* lookup_blitset(const tinfo* tcache, ncblitter_e setid, boo
     }
   }
   const struct blitset* bset = notcurses_blitters;
-  while(bset->egcs){
+  while(bset->geom){
     if(bset->geom == setid){
       return bset;
     }
