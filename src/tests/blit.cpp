@@ -227,5 +227,58 @@ TEST_CASE("Blit") {
     ncvisual_destroy(ncv);
   }
 
+  // put a visual through the quadblitter, read it back, and check equality
+  SUBCASE("QuadRoundtrip") {
+    if(!notcurses_canquadrant(nc_)){
+      return;
+    }
+    // two rows of 32 pixels ought become 1 cell row of 16 cell columns
+    const uint32_t data[64] = {
+      htole(0xffffffff), htole(0xffffffff), htole(0xff000000), htole(0xffffffff),
+      htole(0xffffffff), htole(0xff000000), htole(0xffffffff), htole(0xffffffff),
+      htole(0xffffffff), htole(0xffffffff), htole(0xffffffff), htole(0xffffffff),
+      htole(0xffffffff), htole(0xffffffff), htole(0xffffffff), htole(0xffffffff),
+      htole(0xffffffff), htole(0xffffffff), htole(0xffffffff), htole(0xffffffff),
+      htole(0xffffffff), htole(0xffffffff), htole(0xffffffff), htole(0xffffffff),
+      htole(0xffffffff), htole(0xffffffff), htole(0xffffffff), htole(0xffffffff),
+      htole(0xffffffff), htole(0xffffffff), htole(0xffffffff), htole(0xffffffff),
+
+      htole(0xffffffff), htole(0xffffffff), htole(0xffffffff), htole(0xffffffff),
+      htole(0xffffffff), htole(0xffffffff), htole(0xff000000), htole(0xffffffff),
+      htole(0xffffffff), htole(0xff000000), htole(0xffffffff), htole(0xffffffff),
+      htole(0xffffffff), htole(0xffffffff), htole(0xffffffff), htole(0xffffffff),
+      htole(0xffffffff), htole(0xffffffff), htole(0xffffffff), htole(0xffffffff),
+      htole(0xffffffff), htole(0xffffffff), htole(0xffffffff), htole(0xffffffff),
+      htole(0xffffffff), htole(0xffffffff), htole(0xffffffff), htole(0xffffffff),
+      htole(0xffffffff), htole(0xffffffff), htole(0xffffffff), htole(0xffffffff),
+    };
+    auto ncv = ncvisual_from_rgba(data, 2, 128, 32);
+    REQUIRE(nullptr != ncv);
+    struct ncvisual_options vopts = {
+      .n = nullptr,
+      .scaling = NCSCALE_NONE,
+      .y = 0, .x = 0,
+      .begy = 0, .begx = 0,
+      .leny = 0, .lenx = 0,
+      .blitter = NCBLIT_2x2,
+      .flags = 0,
+      .transcolor = 0,
+    };
+    auto p = ncvisual_render(nc_, ncv, &vopts);
+    REQUIRE(nullptr != p);
+    CHECK(1 == ncplane_dim_y(p));
+    CHECK(16 == ncplane_dim_x(p));
+    int pxdimy, pxdimx;
+    auto edata = ncplane_as_rgba(p, vopts.blitter, 0, 0, -1, -1, &pxdimy, &pxdimx);
+    REQUIRE(nullptr != edata);
+    for(size_t i = 0 ; i < sizeof(data) / sizeof(*data) ; ++i){
+fprintf(stderr, "%zu %08x %08x\n", i, edata[i], data[i]);
+      CHECK(edata[i] == data[i]);
+    }
+    free(edata);
+    CHECK(0 == ncplane_destroy(p));
+    ncvisual_destroy(ncv);
+  }
+
   CHECK(!notcurses_stop(nc_));
 }
