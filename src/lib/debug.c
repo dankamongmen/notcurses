@@ -18,11 +18,10 @@ tinfo_debug_caps(const tinfo* ti, FILE* debugfp, int rows, int cols,
           indent, ti->colors, capbool(ti->RGBflag), capbool(ti->CCCflag),
           capyn(get_escape(ti, ESCAPE_SETAF)),
           capyn(get_escape(ti, ESCAPE_SETAB)));
-  fprintf(debugfp, "%ssgr: %c sgr0: %c\n",
+  fprintf(debugfp, "%ssgr: %c sgr0: %c op: %c fgop: %c bgop: %c\n",
           indent, capyn(get_escape(ti, ESCAPE_SGR)),
-                  capyn(get_escape(ti, ESCAPE_SGR0)));
-  fprintf(debugfp, "%sop: %c fgop: %c bgop: %c\n",
-          indent, capyn(get_escape(ti, ESCAPE_OP)),
+                  capyn(get_escape(ti, ESCAPE_SGR0)),
+                  capyn(get_escape(ti, ESCAPE_OP)),
                   capyn(get_escape(ti, ESCAPE_FGOP)),
                   capyn(get_escape(ti, ESCAPE_BGOP)));
   fprintf(debugfp, "%srows: %u cols: %u rpx: %u cpx: %u (%dx%d)\n",
