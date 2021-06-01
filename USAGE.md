@@ -408,6 +408,7 @@ int ncdirect_bg_default(struct ncdirect* nc);
 int ncdirect_styles_set(struct ncdirect* n, unsigned stylebits);
 int ncdirect_styles_on(struct ncdirect* n, unsigned stylebits);
 int ncdirect_styles_off(struct ncdirect* n, unsigned stylebits);
+unsigned ncdirect_styles(struct ncdirect* n);
 int ncdirect_clear(struct ncdirect* nc); // clear the screen
 
 // Move the cursor in direct mode. -1 to retain current location on that axis.

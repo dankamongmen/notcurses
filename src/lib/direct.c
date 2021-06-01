@@ -826,12 +826,18 @@ ncdirect_style_emit(ncdirect* n, unsigned stylebits, FILE* out){
   }
   // sgr resets colors, so set them back up if not defaults
   if(r == 0){
-    // FIXME need to handle palette-indexed colors
+    // emitting an sgr resets colors. if we want to be default, that's no
+    // problem, and our channels remain correct. otherwise, clear our
+    // channel, and set them back up. FIXME need to handle palette colors
     if(!ncdirect_fg_default_p(n)){
-      r |= ncdirect_set_fg_rgb(n, ncchannels_fg_rgb(n->channels));
+      uint32_t fg = ncchannels_fg_rgb(n->channels);
+      ncchannels_set_fg_default(&n->channels);
+      r |= ncdirect_set_fg_rgb(n, fg);
     }
     if(!ncdirect_bg_default_p(n)){
-      r |= ncdirect_set_bg_rgb(n, ncchannels_bg_rgb(n->channels));
+      uint32_t bg = ncchannels_fg_rgb(n->channels);
+      ncchannels_set_bg_default(&n->channels);
+      r |= ncdirect_set_bg_rgb(n, bg);
     }
   }
   return r;
@@ -865,6 +871,10 @@ int ncdirect_styles_off(ncdirect* n, unsigned stylebits){
   return ncdirect_off_styles(n, stylebits);
 }
 
+unsigned ncdirect_styles(ncdirect* n){
+  return n->stylemask;
+}
+
 // turn off any specified stylebits
 int ncdirect_off_styles(ncdirect* n, unsigned stylebits){
   uint32_t stylemask = n->stylemask & ~stylebits;
@@ -895,22 +905,22 @@ int ncdirect_set_styles(ncdirect* n, unsigned stylebits){
     return -1;
   }
   uint32_t stylemask = stylebits;
-  if(ncdirect_style_emit(n, stylemask, n->ttyfp) == 0){
-    n->stylemask &= !(NCSTYLE_ITALIC | NCSTYLE_STRUCK); // sgr clears both
-    if(term_setstyle(n->ttyfp, n->stylemask, stylemask, NCSTYLE_ITALIC,
-                     get_escape(&n->tcache, ESCAPE_SITM),
-                     get_escape(&n->tcache, ESCAPE_RITM))){
-      return -1;
-    }
-    if(term_setstyle(n->ttyfp, n->stylemask, stylemask, NCSTYLE_STRUCK,
-                     get_escape(&n->tcache, ESCAPE_SMXX),
-                     get_escape(&n->tcache, ESCAPE_RMXX))){
-      return -1;
-    }
-    n->stylemask = stylemask;
-    return 0;
+  if(ncdirect_style_emit(n, stylemask, n->ttyfp)){
+    return -1;
   }
-  return -1;
+  n->stylemask &= !(NCSTYLE_ITALIC | NCSTYLE_STRUCK); // sgr clears both
+  if(term_setstyle(n->ttyfp, n->stylemask, stylemask, NCSTYLE_ITALIC,
+                    get_escape(&n->tcache, ESCAPE_SITM),
+                    get_escape(&n->tcache, ESCAPE_RITM))){
+    return -1;
+  }
+  if(term_setstyle(n->ttyfp, n->stylemask, stylemask, NCSTYLE_STRUCK,
+                    get_escape(&n->tcache, ESCAPE_SMXX),
+                    get_escape(&n->tcache, ESCAPE_RMXX))){
+    return -1;
+  }
+  n->stylemask = stylemask;
+  return 0;
 }
 
 unsigned ncdirect_palette_size(const ncdirect* nc){
