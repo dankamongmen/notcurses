@@ -190,6 +190,8 @@ API int ncdirect_on_styles(struct ncdirect* n, unsigned stylebits)
   __attribute__ ((nonnull (1)));
 API int ncdirect_off_styles(struct ncdirect* n, unsigned stylebits)
   __attribute__ ((nonnull (1)));
+API unsigned ncdirect_styles(struct ncdirect* n)
+  __attribute__ ((nonnull (1)));
 
 // Deprecated forms of above.
 API int ncdirect_styles_set(struct ncdirect* n, unsigned stylebits)

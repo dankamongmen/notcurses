@@ -48,6 +48,8 @@ notcurses_direct - minimal notcurses instances for styling text
 
 **int ncdirect_styles_off(struct ncdirect* ***n***, unsigned ***stylebits***);**
 
+**unsigned ncdirect_styles(struct ncdirect* ***n***);**
+
 **int ncdirect_clear(struct ncdirect* ***nc***)**
 
 **int ncdirect_stop(struct ncdirect* ***nc***);**
@@ -196,6 +198,9 @@ written on success. On failure, they return some negative number.
 
 **ncdirect_check_pixel_support** returns -1 on error, 0 if there is no pixel
 support, and 1 if pixel support is successfully detected.
+
+**ncdirect_styles** returns the current styling, a bitmask over the various
+**NCSTYLE_** constants.
 
 All other functions return 0 on success, and non-zero on error.
 
