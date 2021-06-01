@@ -1449,8 +1449,8 @@ int ncdirect_set_bg_rgb(ncdirect* nc, unsigned rgb){
   if(rgb > 0xffffffu){
     return -1;
   }
-  // FIXME need verify we're not palette, either
-  if(!ncdirect_bg_default_p(nc) && ncchannels_bg_rgb(nc->channels) == rgb){
+  if(!ncdirect_bg_default_p(nc) && !ncdirect_bg_palindex_p(nc)
+     && ncchannels_bg_rgb(nc->channels) == rgb){
     return 0;
   }
   if(term_bg_rgb8(&nc->tcache, nc->ttyfp, (rgb & 0xff0000u) >> 16u, (rgb & 0xff00u) >> 8u, rgb & 0xffu)){
@@ -1464,8 +1464,8 @@ int ncdirect_set_fg_rgb(ncdirect* nc, unsigned rgb){
   if(rgb > 0xffffffu){
     return -1;
   }
-  // FIXME need verify we're not palette, either
-  if(!ncdirect_fg_default_p(nc) && ncchannels_fg_rgb(nc->channels) == rgb){
+  if(!ncdirect_fg_default_p(nc) && !ncdirect_fg_palindex_p(nc)
+     && ncchannels_fg_rgb(nc->channels) == rgb){
     return 0;
   }
   if(term_fg_rgb8(&nc->tcache, nc->ttyfp, (rgb & 0xff0000u) >> 16u, (rgb & 0xff00u) >> 8u, rgb & 0xffu)){

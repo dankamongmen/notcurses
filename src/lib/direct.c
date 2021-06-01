@@ -828,16 +828,28 @@ ncdirect_style_emit(ncdirect* n, unsigned stylebits, FILE* out){
   if(r == 0){
     // emitting an sgr resets colors. if we want to be default, that's no
     // problem, and our channels remain correct. otherwise, clear our
-    // channel, and set them back up. FIXME need to handle palette colors
+    // channel, and set them back up.
     if(!ncdirect_fg_default_p(n)){
-      uint32_t fg = ncchannels_fg_rgb(n->channels);
-      ncchannels_set_fg_default(&n->channels);
-      r |= ncdirect_set_fg_rgb(n, fg);
+      if(!ncdirect_fg_palindex_p(n)){
+        uint32_t fg = ncchannels_fg_rgb(n->channels);
+        ncchannels_set_fg_default(&n->channels);
+        r |= ncdirect_set_fg_rgb(n, fg);
+      }else{ // palette-indexed
+        uint32_t fg = ncchannels_fg_palindex(n->channels);
+        ncchannels_set_fg_default(&n->channels);
+        r |= ncdirect_set_fg_palindex(n, fg);
+      }
     }
     if(!ncdirect_bg_default_p(n)){
-      uint32_t bg = ncchannels_fg_rgb(n->channels);
-      ncchannels_set_bg_default(&n->channels);
-      r |= ncdirect_set_bg_rgb(n, bg);
+      if(!ncdirect_bg_palindex_p(n)){
+        uint32_t bg = ncchannels_bg_rgb(n->channels);
+        ncchannels_set_bg_default(&n->channels);
+        r |= ncdirect_set_bg_rgb(n, bg);
+      }else{ // palette-indexed
+        uint32_t bg = ncchannels_bg_palindex(n->channels);
+        ncchannels_set_bg_default(&n->channels);
+        r |= ncdirect_set_bg_palindex(n, bg);
+      }
     }
   }
   return r;

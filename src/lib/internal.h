@@ -1555,13 +1555,23 @@ ncdirect_channels(const ncdirect* nc){
 }
 
 static inline bool
-ncdirect_fg_default_p(const struct ncdirect* nc){
+ncdirect_fg_default_p(const ncdirect* nc){
   return ncchannels_fg_default_p(ncdirect_channels(nc));
 }
 
 static inline bool
-ncdirect_bg_default_p(const struct ncdirect* nc){
+ncdirect_bg_default_p(const ncdirect* nc){
   return ncchannels_bg_default_p(ncdirect_channels(nc));
+}
+
+static inline bool
+ncdirect_fg_palindex_p(const ncdirect* nc){
+  return ncchannels_fg_palindex_p(ncdirect_channels(nc));
+}
+
+static inline bool
+ncdirect_bg_palindex_p(const ncdirect* nc){
+  return ncchannels_bg_palindex_p(ncdirect_channels(nc));
 }
 
 int term_fg_rgb8(const tinfo* ti, FILE* out, unsigned r, unsigned g, unsigned b);
