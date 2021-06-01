@@ -1,0 +1,24 @@
+(define-module (gnu packages notcurses)
+  #:use-module (guix packages)
+  #:use-module (guix download)
+  #:use-module (guix build-system gnu)
+  #:use-module (guix licenses)
+  #:use-module (gnu packages gawk))
+
+(define-public notcurses
+  (package
+    (name "notcurses")
+    (version "2.3.1")
+    (source (origin
+              (method git-fetch)
+              (uri (git-reference "https://github.com/dankamongmen/notcurses" version
+                                  ".tar.gz"))
+              (sha256
+               (base32
+                "0ssi1wpaf7plaswqqjwigppsg5fyh99vdlb9kzl7c9lng89ndq1i"))))
+    (build-system cmake)
+    (arguments '(#:configure-flags '("-DUSE_POC=off")))
+    (synopsis "Blingful library for TUIs and character semigraphics")
+    (description "Blingful library for TUIs and character semigraphics")
+    (home-page "https://notcurses.com")
+    (license asl2.0)))
