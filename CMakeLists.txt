@@ -30,6 +30,10 @@ option(USE_QRCODEGEN "Enable libqrcodegen QR code support" OFF)
 option(USE_STATIC "Build static libraries (in addition to shared)" ON)
 set(USE_MULTIMEDIA "ffmpeg" CACHE STRING "Multimedia engine, one of 'ffmpeg', 'oiio', or 'none'")
 set_property(CACHE USE_MULTIMEDIA PROPERTY STRINGS ffmpeg oiio none)
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE
+    STRING "Choose the build mode." FORCE)
+endif()
 set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release MinSizeRel RelWithDebInfo Coverage)
 ############## END (additional) USER-SELECTABLE OPTIONS ##################
 set(USE_FFMPEG OFF)
@@ -42,10 +46,6 @@ elseif(NOT ${USE_MULTIMEDIA} STREQUAL "none")
   message(FATAL_ERROR "USE_MULTIMEDIA must be one of 'oiio', 'ffmpeg', 'none' (was '${USE_MULTIMEDIA}')")
 endif()
 
-if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-  set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE
-    STRING "Choose the build mode." FORCE)
-endif()
 string(APPEND CMAKE_C_FLAGS_DEBUG " -Og")
 string(APPEND CMAKE_CXX_FLAGS_DEBUG " -Og")
 if("${USE_COVERAGE}")
