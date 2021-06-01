@@ -22,6 +22,10 @@ rearrangements of Notcurses.
   * Sadly, `ncplane_contents()` no longer accepts a `const ncplane*`, since it
     might write temporaries to the plane's EGCpool during operation.
   * Added `ncdirect_styles()`, to retrieve the current styling.
+  * In previous versions of Notcurses, a rendered-mode context
+    (`struct notcurses`) and a direct-mode context (`struct ncdirect`) could
+    be open at the same time. This was never intended, and is no longer
+    possible.
 
 * 2.3.1 (2021-05-18)
   * Sprixels no longer interact with their associated plane's framebuffer. This
