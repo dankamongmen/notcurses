@@ -170,7 +170,7 @@ TEST_CASE("Blit") {
     auto p = ncvisual_render(nc_, ncv, nullptr);
     REQUIRE(nullptr != p);
     CHECK(1 == ncplane_dim_y(p));
-    CHECK(2 == ncplane_dim_y(p));
+    CHECK(2 == ncplane_dim_x(p));
     // FIXME
     CHECK(0 == ncplane_destroy(p));
     ncvisual_destroy(ncv);
