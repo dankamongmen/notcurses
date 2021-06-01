@@ -161,7 +161,27 @@ char* ncplane_at_cursor(ncplane* n, uint16_t* stylemask, uint64_t* channels){
 char* ncplane_at_yx(const ncplane* n, int y, int x, uint16_t* stylemask, uint64_t* channels){
   if(y < n->leny && x < n->lenx){
     if(y >= 0 && x >= 0){
-      return nccell_extract(n, &n->fb[nfbcellidx(n, y, x)], stylemask, channels);
+      const cell* yx = &n->fb[nfbcellidx(n, y, x)];
+      // if we're the right side of a wide glyph, we return the main glyph
+      if(nccell_wide_right_p(yx)){
+        return ncplane_at_yx(n, y, x - 1, stylemask, channels);
+      }
+      char* ret = nccell_extract(n, yx, stylemask, channels);
+      if(ret == NULL){
+        return NULL;
+      }
+//fprintf(stderr, "GOT [%s]\n", ret);
+      if(strcmp(ret, "") == 0){
+        ret = nccell_strdup(n, &n->basecell);
+        if(ret == NULL){
+          return NULL;
+        }
+        if(stylemask){
+          *stylemask = n->basecell.stylemask;
+        }
+      }
+      // FIXME load basecell channels if appropriate
+      return ret;
     }
   }
   return NULL;
@@ -176,6 +196,7 @@ int ncplane_at_yx_cell(ncplane* n, int y, int x, nccell* c){
     if(y >= 0 && x >= 0){
       nccell* targ = ncplane_cell_ref_yx(n, y, x);
       if(nccell_duplicate(n, c, targ) == 0){
+        // FIXME take base cell into account where necessary!
         return strlen(nccell_extended_gcluster(n, targ));
       }
     }
@@ -2583,9 +2604,40 @@ int ncdirect_inputready_fd(ncdirect* n){
   return n->tcache.input.ttyinfd;
 }
 
-uint32_t* ncplane_as_rgba(const ncplane* nc, ncblitter_e blit,
-                          int begy, int begx, int leny, int lenx,
-                          int* pxdimy, int* pxdimx){
+// FIXME speed this up, PoC
+// given an egc, get its index in the blitter's EGC set
+static int
+get_blitter_egc_idx(const struct blitset* bset, const char* egc){
+  wchar_t wc;
+  mbstate_t mbs = {};
+  size_t sret = mbrtowc(&wc, egc, strlen(egc), &mbs);
+  if(sret == (size_t)-1 || sret == (size_t)-2){
+    return -1;
+  }
+  wchar_t* wptr = wcsrchr(bset->egcs, wc);
+  if(wptr == NULL){
+//fprintf(stderr, "FAILED TO FIND [%s] (%lc) in [%ls]\n", egc, wc, bset->egcs);
+    return -1;
+  }
+//fprintf(stderr, "FOUND [%s] (%lc) in [%ls] (%zu)\n", egc, wc, bset->egcs, wptr - bset->egcs);
+  return wptr - bset->egcs;
+}
+
+static bool
+is_bg_p(int idx, int py, int px, int width){
+  // bit increases to the right, and down
+  const int bpos = py * width + px; // bit corresponding to pixel, 0..|egcs|-1
+  const unsigned mask = 1u << bpos;
+  if(idx & mask){
+    return false;
+  }
+  return true;
+}
+
+static inline uint32_t*
+ncplane_as_rgba_internal(const ncplane* nc, ncblitter_e blit,
+                         int begy, int begx, int leny, int lenx,
+                         int* pxdimy, int* pxdimx){
   const notcurses* ncur = ncplane_notcurses_const(nc);
   if(begy < 0 || begx < 0){
     logerror(ncur, "Nil offset (%d,%d)\n", begy, begx);
@@ -2611,23 +2663,31 @@ uint32_t* ncplane_as_rgba(const ncplane* nc, ncblitter_e blit,
              begx, lenx, nc->lenx, begy, leny, nc->leny);
     return NULL;
   }
-  if(blit > NCBLIT_2x1){
-    logerror(ncur, "Blitter %d is not yet supported\n", blit);
+  if(blit == NCBLIT_PIXEL){ // FIXME extend this to support sprixels
+    logerror(ncur, "Pixel blitter %d not yet supported\n", blit);
     return NULL;
   }
-//fprintf(stderr, "ALLOCATING %zu %d %d\n", 4u * lenx * leny * 2, leny, lenx);
-  // FIXME this all assumes NCBLIT_2x1, need blitter-specific scaling
+  if(blit == NCBLIT_DEFAULT){
+    logerror(ncur, "Must specify exact blitter, not NCBLIT_DEFAULT\n");
+    return NULL;
+  }
+  const struct blitset* bset = lookup_blitset(&ncur->tcache, blit, false);
+  if(bset == NULL){
+    logerror(ncur, "Blitter %d invalid in current environment\n", blit);
+    return NULL;
+  }
+//fprintf(stderr, "ALLOCATING %u %d %d %p\n", 4u * lenx * leny * 2, leny, lenx, bset);
   if(pxdimy){
-    *pxdimy = leny * 2;
+    *pxdimy = leny * bset->height;
   }
   if(pxdimx){
-    *pxdimx = lenx;
+    *pxdimx = lenx * bset->width;
   }
-  uint32_t* ret = malloc(sizeof(*ret) * lenx * leny * 2);
+  uint32_t* ret = malloc(sizeof(*ret) * lenx * bset->width * leny * bset->height);
+//fprintf(stderr, "GEOM: %d/%d %d/%d ret: %p\n", bset->height, bset->width, *pxdimy, *pxdimx, ret);
   if(ret){
-    for(int y = begy, targy = 0 ; y < begy + leny ; ++y, targy += 2){
-      for(int x = begx, targx = 0 ; x < begx + lenx ; ++x, ++targx){
-        // FIXME what if there's a wide glyph to the left of the selection?
+    for(int y = begy, targy = 0 ; y < begy + leny ; ++y, targy += bset->height){
+      for(int x = begx, targx = 0 ; x < begx + lenx ; ++x, targx += bset->width){
         uint16_t stylemask;
         uint64_t channels;
         char* c = ncplane_at_yx(nc, y, x, &stylemask, &channels);
@@ -2635,30 +2695,42 @@ uint32_t* ncplane_as_rgba(const ncplane* nc, ncblitter_e blit,
           free(ret);
           return NULL;
         }
-        uint32_t* top = &ret[targy * lenx + targx];
-        uint32_t* bot = &ret[(targy + 1) * lenx + targx];
-        unsigned fr, fg, fb, br, bg, bb;
-        ncchannels_fg_rgb8(channels, &fr, &fb, &fg);
-        ncchannels_bg_rgb8(channels, &br, &bb, &bg);
-        // FIXME how do we deal with transparency?
-        uint32_t frgba = (fr) + (fg << 16u) + (fb << 8u) + 0xff000000;
-        uint32_t brgba = (br) + (bg << 16u) + (bb << 8u) + 0xff000000;
-        // FIXME need to be able to pick up quadrants!
-        if((strcmp(c, " ") == 0) || (strcmp(c, "") == 0)){
-          *top = *bot = brgba;
-        }else if(strcmp(c, "▄") == 0){
-          *top = frgba;
-          *bot = brgba;
-        }else if(strcmp(c, "▀") == 0){
-          *top = brgba;
-          *bot = frgba;
-        }else if(strcmp(c, "█") == 0){
-          *top = *bot = frgba;
-        }else{
-          free(c);
+        int idx = get_blitter_egc_idx(bset, c);
+        if(idx < 0){
           free(ret);
-//fprintf(stderr, "bad rgba character: %s\n", c);
+          free(c);
           return NULL;
+        }
+        unsigned fr, fg, fb, br, bg, bb, fa, ba;
+        ncchannels_fg_rgb8(channels, &fr, &fb, &fg);
+        fa = ncchannels_fg_alpha(channels);
+        ncchannels_bg_rgb8(channels, &br, &bb, &bg);
+        ba = ncchannels_bg_alpha(channels);
+        // handle each destination pixel from this cell
+        for(int py = 0 ; py < bset->height ; ++py){
+          for(int px = 0 ; px < bset->width ; ++px){
+            uint32_t* p = &ret[(targy + py) * (lenx * bset->width) + (targx + px)];
+            bool background = is_bg_p(idx, py, px, bset->width);
+            if(background){
+              if(ba){
+                *p = 0;
+              }else{
+                ncpixel_set_a(p, 0xff);
+                ncpixel_set_r(p, br);
+                ncpixel_set_g(p, bb);
+                ncpixel_set_b(p, bg);
+              }
+            }else{
+              if(fa){
+                *p = 0;
+              }else{
+                ncpixel_set_a(p, 0xff);
+                ncpixel_set_r(p, fr);
+                ncpixel_set_g(p, fb);
+                ncpixel_set_b(p, fg);
+              }
+            }
+          }
         }
         free(c);
       }
@@ -2667,8 +2739,21 @@ uint32_t* ncplane_as_rgba(const ncplane* nc, ncblitter_e blit,
   return ret;
 }
 
+uint32_t* ncplane_as_rgba(const ncplane* nc, ncblitter_e blit,
+                          int begy, int begx, int leny, int lenx,
+                          int* pxdimy, int* pxdimx){
+  int px, py;
+  if(!pxdimy){
+    pxdimy = &py;
+  }
+  if(!pxdimx){
+    pxdimx = &px;
+  }
+  return ncplane_as_rgba_internal(nc, blit, begy, begx, leny, lenx, pxdimy, pxdimx);
+}
+
 // return a heap-allocated copy of the contents
-char* ncplane_contents(const ncplane* nc, int begy, int begx, int leny, int lenx){
+char* ncplane_contents(ncplane* nc, int begy, int begx, int leny, int lenx){
   if(begy < 0 || begx < 0){
     logerror(ncplane_notcurses_const(nc), "Beginning coordinates (%d/%d) below 0\n", begy, begx);
     return NULL;
@@ -2698,18 +2783,18 @@ char* ncplane_contents(const ncplane* nc, int begy, int begx, int leny, int lenx
   if(ret){
     for(int y = begy, targy = 0 ; y < begy + leny ; ++y, targy += 2){
       for(int x = begx, targx = 0 ; x < begx + lenx ; ++x, ++targx){
-        uint16_t stylemask;
-        uint64_t channels;
-        char* c = ncplane_at_yx(nc, y, x, &stylemask, &channels);
-        if(!c){
+        nccell ncl = CELL_TRIVIAL_INITIALIZER;
+        // we need ncplane_at_yx_cell() here instead of ncplane_at_yx(),
+        // because we should only have one copy of each wide EGC.
+        int clen;
+        if((clen = ncplane_at_yx_cell(nc, y, x, &ncl)) < 0){
           free(ret);
           return NULL;
         }
-        size_t clen = strlen(c);
+        const char* c = nccell_extended_gcluster(nc, &ncl);
         if(clen){
           char* tmp = realloc(ret, retlen + clen);
           if(!tmp){
-            free(c);
             free(ret);
             return NULL;
           }
@@ -2717,7 +2802,6 @@ char* ncplane_contents(const ncplane* nc, int begy, int begx, int leny, int lenx
           memcpy(ret + retlen - 1, c, clen);
           retlen += clen;
         }
-        free(c);
       }
     }
     ret[retlen - 1] = '\0';

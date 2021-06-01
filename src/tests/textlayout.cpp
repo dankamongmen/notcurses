@@ -217,7 +217,7 @@ TEST_CASE("TextLayout") {
       CHECK(bytes == strlen(boundstr));
       char* line = ncplane_contents(sp, 0, 0, -1, -1);
       REQUIRE(line);
-      CHECK(0 == strcmp(line, "a 血的神"));
+      CHECK(0 == strcmp(line, boundstr));
       free(line);
       ncplane_destroy(sp);
     }

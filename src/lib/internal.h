@@ -535,11 +535,14 @@ struct blitset {
   ncblitter_e geom;
   int width;        // number of input pixels per output cell, width
   int height;       // number of input pixels per output cell, height
+  // the EGCs which form the blitter. bits grow left to right, and then top to
+  // bottom. the first character is always a space, the last a full block.
+  const wchar_t* egcs;
   // the EGCs which form the various levels of a given plotset. if the geometry
   // is wide, things are arranged with the rightmost side increasing most
   // quickly, i.e. it can be indexed as height arrays of 1 + height glyphs. i.e.
   // the first five braille EGCs are all 0 on the left, [0..4] on the right.
-  const wchar_t* egcs;
+  const wchar_t* plotegcs;
   ncblitter blit;
   const char* name;
   bool fill;
@@ -809,7 +812,7 @@ pool_extended_gcluster(const egcpool* pool, const nccell* c){
 }
 
 static inline nccell*
-ncplane_cell_ref_yx(ncplane* n, int y, int x){
+ncplane_cell_ref_yx(const ncplane* n, int y, int x){
   return &n->fb[nfbcellidx(n, y, x)];
 }
 
@@ -1425,7 +1428,7 @@ pool_blit_direct(egcpool* pool, nccell* c, const char* gcluster, int bytes, int 
 }
 
 // Do an RTL-check, reset the quadrant occupancy bits, and pass the cell down to
-// pool_blit_direct().
+// pool_blit_direct(). Returns the number of bytes loaded.
 static inline int
 pool_load_direct(egcpool* pool, nccell* c, const char* gcluster, int bytes, int cols){
   char* rtl = NULL;

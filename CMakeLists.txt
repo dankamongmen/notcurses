@@ -650,7 +650,7 @@ target_link_libraries(notcurses-tester
 )
 add_test(
   NAME notcurses-tester
-  COMMAND notcurses-tester -p ${CMAKE_CURRENT_SOURCE_DIR}/data
+  COMMAND notcurses-tester -p ${CMAKE_CURRENT_SOURCE_DIR}/data --abort-after=1
 )
 set_tests_properties(notcurses-tester PROPERTIES RUN_SERIAL TRUE)
 install(TARGETS notcurses-tester DESTINATION bin)

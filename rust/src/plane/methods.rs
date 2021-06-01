@@ -691,7 +691,7 @@ impl NcPlane {
     ///
     /// *C style function: [ncplane_contents()][crate::ncplane_contents].*
     pub fn contents(
-        &self,
+        &mut self,
         beg_y: NcDim,
         beg_x: NcDim,
         len_y: NcDim,

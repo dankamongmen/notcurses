@@ -124,7 +124,7 @@ int redraw_plot_##T(nc##X##plot* ncp){ \
        direction, drawing egcs from the grid specification, aborting early if \
        we can't draw anything in a given cell. */ \
     T intervalbase = ncp->miny; \
-    const wchar_t* egc = ncp->bset->egcs; \
+    const wchar_t* egc = ncp->bset->plotegcs; \
     bool done = !ncp->bset->fill; \
     for(int y = 0 ; y < dimy ; ++y){ \
       uint64_t channels = 0; \
@@ -204,6 +204,7 @@ int redraw_plot_##T(nc##X##plot* ncp){ \
   if(ncp->printsample){ \
     int lastslot = ncp->slotstart ? ncp->slotstart - 1 : ncp->slotcount - 1; \
     ncplane_set_styles(ncp->ncp, ncp->legendstyle); \
+    ncplane_set_channels(ncp->ncp, ncp->maxchannels); \
     ncplane_printf_aligned(ncp->ncp, 0, NCALIGN_RIGHT, "%ju", (uintmax_t)ncp->slots[lastslot]); \
   } \
   ncplane_home(ncp->ncp); \

@@ -850,24 +850,38 @@ braille_blit(ncplane* nc, int linesize, const void* data,
 
 // NCBLIT_DEFAULT is not included, as it has no defined properties. It ought
 // be replaced with some real blitter implementation by the calling widget.
+// The order of contents is critical for 'egcs': ncplane_as_rgba() uses these
+// arrays to map cells to source pixels. Map the upper-left logical bit to
+// 1, and increase to the right, followed by down. The first egc ought thus
+// always be space, to indicate an empty cell (all zeroes).
 static struct blitset notcurses_blitters[] = {
-   { .geom = NCBLIT_8x1,     .width = 1, .height = 8, .egcs = L" ▁▂▃▄▅▆▇█",
+   { .geom = NCBLIT_8x1,     .width = 1, .height = 8,
+     .egcs = NULL, .plotegcs = L" ▁▂▃▄▅▆▇█",
      .blit = tria_blit,      .name = "eightstep",     .fill = false, },
-   { .geom = NCBLIT_1x1,     .width = 1, .height = 1, .egcs = L" █",
+   { .geom = NCBLIT_1x1,     .width = 1, .height = 1,
+     .egcs = L" █", .plotegcs = L" █",
      .blit = tria_blit_ascii,.name = "ascii",         .fill = false, },
-   { .geom = NCBLIT_2x1,     .width = 1, .height = 2, .egcs = L" ▄█",
+   { .geom = NCBLIT_2x1,     .width = 1, .height = 2,
+     .egcs = L" ▀▄█", .plotegcs = L" ▄█",
      .blit = tria_blit,      .name = "half",          .fill = false, },
-   { .geom = NCBLIT_2x2,     .width = 2, .height = 2, .egcs = L" ▗▐▖▄▟▌▙█",
+   { .geom = NCBLIT_2x2,     .width = 2, .height = 2,
+     .egcs = L" ▘▝▀▖▌▞▛▗▚▐▜▄▙▟█", .plotegcs = L" ▗▐▖▄▟▌▙█",
      .blit = quadrant_blit,  .name = "quad",          .fill = false, },
-   { .geom = NCBLIT_3x2,     .width = 2, .height = 3, .egcs = L" 🬞🬦▐🬏🬭🬵🬷🬓🬱🬹🬻▌🬲🬺█",
+   { .geom = NCBLIT_3x2,     .width = 2, .height = 3,
+     .egcs = L" 🬀🬁🬂🬃🬄🬅🬆🬇🬈🬊🬋🬌🬍🬎🬏🬐🬑🬒🬓▌🬔🬕🬖🬗🬘🬙🬚🬛🬜🬝🬞🬟🬠🬡🬢🬣🬤🬥🬦🬧🬨🬩🬪🬫🬬🬭🬮🬯🬰🬱🬲🬳🬴🬵🬶🬷🬸🬹🬺🬻█",
+     .plotegcs = L" 🬞🬦▐🬏🬭🬵🬷🬓🬱🬹🬻▌🬲🬺█",
      .blit = sextant_blit,   .name = "sex",           .fill = false, },
-   { .geom = NCBLIT_4x1,     .width = 1, .height = 4, .egcs = L" ▂▄▆█",
+   { .geom = NCBLIT_4x1,     .width = 1, .height = 4,
+     .egcs = NULL, .plotegcs = L" ▂▄▆█",
      .blit = tria_blit,      .name = "fourstep",      .fill = false, },
-   { .geom = NCBLIT_BRAILLE, .width = 2, .height = 4, .egcs = L"⠀⢀⢠⢰⢸⡀⣀⣠⣰⣸⡄⣄⣤⣴⣼⡆⣆⣦⣶⣾⡇⣇⣧⣷⣿",
+   { .geom = NCBLIT_BRAILLE, .width = 2, .height = 4,
+     .egcs = NULL, .plotegcs = L"⠀⢀⢠⢰⢸⡀⣀⣠⣰⣸⡄⣄⣤⣴⣼⡆⣆⣦⣶⣾⡇⣇⣧⣷⣿", // FIXME
      .blit = braille_blit,   .name = "braille",       .fill = true,  },
-   { .geom = NCBLIT_PIXEL,   .width = 1, .height = 1, .egcs = L"",
+   { .geom = NCBLIT_PIXEL,   .width = 1, .height = 1,
+     .egcs = L"", .plotegcs = NULL,
      .blit = sixel_blit,     .name = "pixel",         .fill = true,  },
-   { .geom = 0,              .width = 0, .height = 0, .egcs = NULL,
+   { .geom = 0,              .width = 0, .height = 0,
+     .egcs = NULL, .plotegcs = NULL,
      .blit = NULL,           .name = NULL,            .fill = false,  },
 };
 
@@ -924,7 +938,7 @@ const struct blitset* lookup_blitset(const tinfo* tcache, ncblitter_e setid, boo
     }
   }
   const struct blitset* bset = notcurses_blitters;
-  while(bset->egcs){
+  while(bset->geom){
     if(bset->geom == setid){
       return bset;
     }

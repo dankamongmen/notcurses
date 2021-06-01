@@ -89,11 +89,12 @@ TEST_CASE("Ncpp"
     NotCurses nc{ nopts };
     {
       auto n = nc.get_stdplane();
+      uint64_t chan = CHANNELS_RGB_INITIALIZER(0x22, 0xdd, 0x44, 0, 0, 0);
+      n->set_base(" ", 0, chan);
       REQUIRE(n);
-      // FIXME load something onto standard plane, load it into visual, erase
-      // plane, render visual, check for equivalence...
+      // FIXME load it into visual, erase plane, render visual, check for equivalence...
       {
-        Visual v = Visual(*n, NCBLIT_DEFAULT, 0, 0, -1, -1);
+        Visual v = Visual(*n, NCBLIT_1x1, 0, 0, -1, -1);
       }
     }
     CHECK(nc.stop());

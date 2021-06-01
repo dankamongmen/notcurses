@@ -206,7 +206,22 @@ void Ticker(ncpp::NotCurses* nc) {
 int input_demo(ncpp::NotCurses* nc) {
   constexpr auto PLOTHEIGHT = 6;
   auto n = nc->get_stdplane(&dimy, &dimx);
-  ncpp::Plane pplane{PLOTHEIGHT, dimx, dimy - PLOTHEIGHT,  0, nullptr};
+  struct ncplane_options nopts = {
+    .y = dimy - PLOTHEIGHT,
+    .x = 0,
+    .rows = PLOTHEIGHT,
+    .cols = dimx,
+    .userptr = nullptr,
+    .name = "plot",
+    .resizecb = nullptr, // FIXME
+    .flags = 0,
+    .margin_b = 0,
+    .margin_r = 0,
+  };
+  struct ncplane* pplane = ncplane_create(*n, &nopts);
+  if(pplane == nullptr){
+   return EXIT_FAILURE;
+  }
   struct ncplot_options popts{};
   // FIXME would be nice to switch over to exponential at some level
   popts.flags = NCPLOT_OPTION_LABELTICKSD | NCPLOT_OPTION_PRINTSAMPLE;
@@ -222,11 +237,13 @@ int input_demo(ncpp::NotCurses* nc) {
   n->set_bg_rgb8(0xbb, 0x64, 0xbb);
   n->styles_on(CellStyle::Underline);
   if(n->putstr(0, NCAlign::Center, "mash keys, yo. give that mouse some waggle! ctrl+d exits.") <= 0){
+    ncuplot_destroy(plot);
     return -1;
   }
   n->styles_set(CellStyle::None);
   n->set_bg_default();
   if(!nc->render()){
+    ncuplot_destroy(plot);
     return -1;
   }
   int y = 2;
@@ -243,6 +260,7 @@ int input_demo(ncpp::NotCurses* nc) {
     if((r == 'D' || r == 'd') && ni.ctrl){
       done = true;
       tid.join();
+      ncuplot_destroy(plot);
       return 0;
     }
     if((r == 'L' || r == 'l') && ni.ctrl){
@@ -292,6 +310,7 @@ int input_demo(ncpp::NotCurses* nc) {
     }
     if(!nc->render()){
       mtx.unlock();
+      ncuplot_destroy(plot);
       throw std::runtime_error("error rendering");
     }
     mtx.unlock();
@@ -309,6 +328,7 @@ int input_demo(ncpp::NotCurses* nc) {
   }
   done = true;
   tid.join();
+  ncuplot_destroy(plot);
   return 0;
 }
 

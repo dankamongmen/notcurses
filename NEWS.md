@@ -10,6 +10,18 @@ rearrangements of Notcurses.
     only if its `ncinput` argument has no modifiers active.
   * Added `notcurses_cursor_yx()` to get the current location of the cursor.
   * Added `ncdirect_supported_styles()`.
+  * `ncplane_at_yx()` now properly integrates the plane's base cell when
+    appropriate, and thus represents the cell as it will be used during
+    rendering. This change cascades, affecting `ncplane_at_yx_cell()`,
+    `ncplane_contents()`, and `ncplane_as_rgba()`.
+  * `ncplane_at_yx()` now returns the EGC when called on any column of a
+    wide glyph. `ncplane_at_yx_cell()` continues to duplicate the exact
+    `nccell`, and can thus continue to be used to distinguish between primary
+    and secondary columns of a wide glyph. Likewise, `notcurses_at_yx()`
+    now returns the EGC when called on any column of a wide glyph.
+  * Sadly, `ncplane_contents()` no longer accepts a `const ncplane*`, since it
+    might write temporaries to the plane's EGCpool during operation.
+  * Added `ncdirect_styles()`, to retrieve the current styling.
 
 * 2.3.1 (2021-05-18)
   * Sprixels no longer interact with their associated plane's framebuffer. This

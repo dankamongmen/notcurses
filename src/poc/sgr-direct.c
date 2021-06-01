@@ -19,10 +19,8 @@ int main(void){
         ncdirect_stop(nc);
         return EXIT_FAILURE;
       }
-      printf("%08x ", i);
-    }else{
-      printf("         ");
     }
+    printf("%08x ", i);
     if(ncdirect_set_styles(nc, NCSTYLE_NONE)){
       ncdirect_stop(nc);
       return EXIT_FAILURE;
