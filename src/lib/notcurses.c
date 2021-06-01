@@ -2623,6 +2623,17 @@ get_blitter_egc_idx(const struct blitset* bset, const char* egc){
   return wptr - bset->egcs;
 }
 
+static bool
+is_bg_p(int idx, int py, int px, int width){
+  // bit increases to the right, and down
+  const int bpos = py * width + px; // bit corresponding to pixel, 0..|egcs|-1
+  const unsigned mask = 1u << bpos;
+  if(idx & mask){
+    return false;
+  }
+  return true;
+}
+
 static inline uint32_t*
 ncplane_as_rgba_internal(const ncplane* nc, ncblitter_e blit,
                          int begy, int begx, int leny, int lenx,
@@ -2695,13 +2706,13 @@ ncplane_as_rgba_internal(const ncplane* nc, ncblitter_e blit,
         fa = ncchannels_fg_alpha(channels);
         ncchannels_bg_rgb8(channels, &br, &bb, &bg);
         ba = ncchannels_bg_alpha(channels);
-fprintf(stderr, "%d/%d: [%s] %d %d %d %d\n", y, x, c, idx, fr, fb, fg);
+fprintf(stderr, "%d/%d (%d/%d): [%s] %d %d %d %d\n", y, x, leny, lenx, c, idx, fr, fb, fg);
         // handle each destination pixel from this cell
         for(int py = 0 ; py < bset->height ; ++py){
           for(int px = 0 ; px < bset->width ; ++px){
-            // FIXME upper-left target pixel is reg[targy * lenx + targx]
             uint32_t* p = &ret[(targy + py) * lenx + (targx + px)];
-            bool background = false; // FIXME determine pixel map for cell from glyph
+            bool background = is_bg_p(idx, py, px, bset->width);
+fprintf(stderr, "py/px: %d/%d is_bg_p: %u\n", py, px, background);
             if(background){
               if(ba){
                 *p = 0;
