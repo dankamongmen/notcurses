@@ -272,7 +272,6 @@ TEST_CASE("Blit") {
     auto edata = ncplane_as_rgba(p, vopts.blitter, 0, 0, -1, -1, &pxdimy, &pxdimx);
     REQUIRE(nullptr != edata);
     for(size_t i = 0 ; i < sizeof(data) / sizeof(*data) ; ++i){
-fprintf(stderr, "%zu %08x %08x\n", i, edata[i], data[i]);
       CHECK(edata[i] == data[i]);
     }
     free(edata);

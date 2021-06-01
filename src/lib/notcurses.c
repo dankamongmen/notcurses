@@ -2706,13 +2706,11 @@ ncplane_as_rgba_internal(const ncplane* nc, ncblitter_e blit,
         fa = ncchannels_fg_alpha(channels);
         ncchannels_bg_rgb8(channels, &br, &bb, &bg);
         ba = ncchannels_bg_alpha(channels);
-fprintf(stderr, "%d/%d (%d/%d): [%s] %d %d %d %d\n", y, x, leny, lenx, c, idx, fr, fb, fg);
         // handle each destination pixel from this cell
         for(int py = 0 ; py < bset->height ; ++py){
           for(int px = 0 ; px < bset->width ; ++px){
             uint32_t* p = &ret[(targy + py) * (lenx * bset->width) + (targx + px)];
             bool background = is_bg_p(idx, py, px, bset->width);
-fprintf(stderr, "py/px: %d/%d is_bg_p: %u p: %d\n", py, px, background, (targy + py) * (lenx * bset->width) + (targx + px));
             if(background){
               if(ba){
                 *p = 0;
