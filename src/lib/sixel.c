@@ -252,9 +252,11 @@ int sixel_wipe(sprixel* s, int ycell, int xcell){
 static int
 scrub_color_table(sprixel* s){
   if(s->n && s->n->tam){
-    for(int y = 0 ; y < s->n->leny ; ++y){
-      for(int x = 0 ; x < s->n->lenx ; ++x){
-        int txyidx = y * s->n->lenx + x;
+    // we use the sprixel cell geometry rather than the plane's because this
+    // is called during our initial blit, before we've resized the plane.
+    for(int y = 0 ; y < s->dimy ; ++y){
+      for(int x = 0 ; x < s->dimx ; ++x){
+        int txyidx = y * s->dimx + x;
         sprixcell_e state = s->n->tam[txyidx].state;
         if(state == SPRIXCELL_ANNIHILATED || state == SPRIXCELL_ANNIHILATED_TRANS){
 //fprintf(stderr, "POSTEXRACT WIPE %d/%d\n", y, x);
