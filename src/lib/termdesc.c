@@ -506,6 +506,9 @@ query_sixel(tinfo* ti, int fd){
           }
           state = WANT_C4;
         }else if(in == 'c'){
+          if(in4){
+            setup_sixel_bitmaps(ti);
+          }
           state = DONE;
         }else if(in == '6'){
           state = WANT_VT102_C;
