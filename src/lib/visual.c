@@ -520,7 +520,17 @@ int ncvisual_rotate(ncvisual* ncv, double rads){
   return 0;
 }
 
+// ffmpeg wants rows to be multiples of IMGALIGN (64)
 #define IMGALIGN 64
+static inline size_t
+pad_for_image(size_t stride){
+  if(stride % IMGALIGN == 0){
+    return stride;
+  }
+  return (stride + IMGALIGN) / IMGALIGN * IMGALIGN;
+}
+#undef IMGALIGN
+
 ncvisual* ncvisual_from_rgba(const void* rgba, int rows, int rowstride, int cols){
   if(rowstride % 4){
     return NULL;
@@ -528,10 +538,7 @@ ncvisual* ncvisual_from_rgba(const void* rgba, int rows, int rowstride, int cols
   ncvisual* ncv = ncvisual_create();
   if(ncv){
     // ffmpeg needs inputs with rows aligned on 192-byte boundaries
-    ncv->rowstride = rowstride;
-    if(ncv->rowstride % IMGALIGN){
-      ncv->rowstride = (ncv->rowstride + IMGALIGN) / IMGALIGN * IMGALIGN;
-    }
+    ncv->rowstride = pad_for_image(rowstride);
     ncv->pixx = cols;
     ncv->pixy = rows;
     uint32_t* data = malloc(ncv->rowstride * ncv->pixy);
@@ -556,10 +563,7 @@ ncvisual* ncvisual_from_bgra(const void* bgra, int rows, int rowstride, int cols
   }
   ncvisual* ncv = ncvisual_create();
   if(ncv){
-    ncv->rowstride = rowstride;
-    if(ncv->rowstride % IMGALIGN){
-      ncv->rowstride = (ncv->rowstride + IMGALIGN) / IMGALIGN * IMGALIGN;
-    }
+    ncv->rowstride = pad_for_image(rowstride);
     ncv->pixx = cols;
     ncv->pixy = rows;
     uint32_t* data = malloc(ncv->rowstride * ncv->pixy);
@@ -584,10 +588,7 @@ ncvisual* ncvisual_from_bgra(const void* bgra, int rows, int rowstride, int cols
 
 int ncvisual_resize(ncvisual* nc, int rows, int cols){
   if(!visual_implementation){
-    size_t dstride = cols * 4;
-    if(dstride % IMGALIGN){
-      dstride = (dstride + IMGALIGN) / IMGALIGN * IMGALIGN;
-    }
+    size_t dstride = pad_for_image(cols * 4);
 fprintf(stderr, "DSTRIDE: %zu\n", dstride);
     uint32_t* r = resize_bitmap(nc->data, nc->pixy, nc->pixx, nc->rowstride,
                                 rows, cols, dstride);
@@ -606,7 +607,6 @@ fprintf(stderr, "DSTRIDE: %zu\n", dstride);
   }
   return 0;
 }
-#undef IMGALIGN
 
 // by the end, disprows/dispcols refer to the number of source rows/cols (in
 // pixels), which will be mapped to a region of cells scaled by the encodings).
@@ -1105,7 +1105,9 @@ int ncvisual_inflate(ncvisual* n, int scale){
   if(scale <= 0){
     return -1;
   }
-  void* inflaton = inflate_bitmap(n->data, scale, n->pixy, n->rowstride, n->pixx);
+  size_t dstride = pad_for_image(4 * n->pixx * scale);
+  uint32_t* inflaton = resize_bitmap(n->data, n->pixy, n->pixx, n->rowstride,
+                                     n->pixy * scale, n->pixx * scale, dstride);
   if(inflaton == NULL){
     return -1;
   }
