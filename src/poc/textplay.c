@@ -1,9 +1,9 @@
 #include <stdlib.h>
 #include <notcurses/notcurses.h>
 
+#define GIG 1000000000ull
 static const uint32_t LOWCOLOR = 0x004080;
 static const uint32_t HICOLOR = 0xddffdd;
-static const uint32_t GIG = 1000000000ull;
 static const uint32_t NANOSEC = GIG / 60; // 60 cps
 static const int FRAMERATIO = 2; // display 1 of every FRAMERATIO frames
 #define MARGIN 2
