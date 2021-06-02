@@ -1091,7 +1091,7 @@ int ncvisual_inflate(ncvisual* n, int scale){
   ncvisual_set_data(n, inflaton, true);
   n->pixy *= scale;
   n->pixx *= scale;
-  n->rowstride = 4 * n->pixx;
+  n->rowstride = dstride;
   ncvisual_details_seed(n);
   return 0;
 }
