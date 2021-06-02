@@ -105,18 +105,18 @@ TEST_CASE("Visual") {
     CHECK(6 == ncv->pixx);
     for(int y = 0 ; y < 3 ; ++y){
       for(int x = 0 ; x < 3 ; ++x){
-        CHECK(pixels[0] == ncv->data[y * ncv->pixx + x]);
+        CHECK(pixels[0] == ncv->data[y * ncv->rowstride / 4 + x]);
       }
       for(int x = 3 ; x < 6 ; ++x){
-        CHECK(pixels[1] == ncv->data[y * ncv->pixx + x]);
+        CHECK(pixels[1] == ncv->data[y * ncv->rowstride / 4 + x]);
       }
     }
     for(int y = 3 ; y < 6 ; ++y){
       for(int x = 0 ; x < 3 ; ++x){
-        CHECK(pixels[2] == ncv->data[y * ncv->pixx + x]);
+        CHECK(pixels[2] == ncv->data[y * ncv->rowstride / 4 + x]);
       }
       for(int x = 3 ; x < 6 ; ++x){
-        CHECK(pixels[3] == ncv->data[y * ncv->pixx + x]);
+        CHECK(pixels[3] == ncv->data[y * ncv->rowstride / 4 + x]);
       }
     }
     REQUIRE(newn);
