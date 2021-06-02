@@ -1610,7 +1610,6 @@ rgba_blitter(const struct tinfo* tcache, const struct ncvisual_options* opts) {
 static inline uint32_t*
 resize_bitmap(const uint32_t* bmap, int srows, int scols, size_t sstride,
               int drows, int dcols, size_t dstride){
-fprintf(stderr, "sstride: %zu dstride: %zu\n", sstride, dstride);
   if(sstride < scols * sizeof(*bmap)){
     return NULL;
   }
@@ -1624,14 +1623,13 @@ fprintf(stderr, "sstride: %zu dstride: %zu\n", sstride, dstride);
   }
   float xrat = (float)dcols / scols;
   float yrat = (float)drows / srows;
-fprintf(stderr, "xrat: %f yrat: %f\n", xrat, yrat);
   int dy = 0;
   for(int y = 0 ; y < srows ; ++y){
-    float ytarg = y * yrat;
+    float ytarg = (y + 1) * yrat;
     while(ytarg > dy){
       int dx = 0;
       for(int x = 0 ; x < scols ; ++x){
-        float xtarg = x * xrat;
+        float xtarg = (x + 1) * xrat;
         while(xtarg > dx){
           ret[dy * dstride / sizeof(*ret) + dx] = bmap[y * sstride / sizeof(*ret) + x];
           ++dx;
