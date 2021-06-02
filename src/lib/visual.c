@@ -581,6 +581,31 @@ ncvisual* ncvisual_from_bgra(const void* bgra, int rows, int rowstride, int cols
   }
   return ncv;
 }
+
+int ncvisual_resize(ncvisual* nc, int rows, int cols){
+  if(!visual_implementation){
+    size_t dstride = cols * 4;
+    if(dstride % IMGALIGN){
+      dstride = (dstride + IMGALIGN) / IMGALIGN * IMGALIGN;
+    }
+fprintf(stderr, "DSTRIDE: %zu\n", dstride);
+    uint32_t* r = resize_bitmap(nc->data, nc->pixy, nc->pixx, nc->rowstride,
+                                rows, cols, dstride);
+    if(r == NULL){
+      return -1;
+    }
+    ncvisual_set_data(nc, r, true);
+    nc->rowstride = dstride;
+    nc->pixy = rows;
+    nc->pixx = cols;
+    ncvisual_details_seed(nc);
+    return 0;
+  }
+  if(visual_implementation->visual_resize(nc, rows, cols)){
+    return -1;
+  }
+  return 0;
+}
 #undef IMGALIGN
 
 // by the end, disprows/dispcols refer to the number of source rows/cols (in
@@ -1051,55 +1076,6 @@ char* ncvisual_subtitle(const ncvisual* ncv){
     return NULL;
   }
   return visual_implementation->visual_subtitle(ncv);
-}
-
-int ncvisual_resize(ncvisual* nc, int rows, int cols){
-  if(!visual_implementation){
-    return -1;
-  }
-  if(visual_implementation->visual_resize(nc, rows, cols)){
-    return -1;
-  }
-  return 0;
-}
-
-// naive resize of |bmap| from |srows|x|scols| -> |drows|x|dcols|, suitable for
-// pixel art. we either select at a constant interval (for shrinking) or duplicate
-// at a constant ratio (for inflation). in the absence of a multimedia engine, this
-// is the only kind of resizing we support.
-static inline uint32_t*
-resize_bitmap(const uint32_t* bmap, int srows, int scols, size_t sstride,
-              int drows, int dcols, size_t dstride){
-  if(sstride < scols * sizeof(*bmap)){
-    return NULL;
-  }
-  if(dstride < dcols * sizeof(*bmap)){
-    return NULL;
-  }
-  size_t size = drows * dstride;
-  uint32_t* ret = malloc(size);
-  if(ret == NULL){
-    return NULL;
-  }
-  float xrat = (float)dcols / scols;
-  float yrat = (float)drows / srows;
-fprintf(stderr, "xrat: %f yrat: %f\n", xrat, yrat);
-  int dy = 0;
-  for(int y = 0 ; y < srows ; ++y){
-    float ytarg = y * yrat;
-    while(ytarg > dy){
-      int dx = 0;
-      for(int x = 0 ; x < scols ; ++x){
-        float xtarg = x * xrat;
-        while(xtarg > dx){
-          ret[dy * dstride / sizeof(*ret) + dx] = bmap[y * sstride / sizeof(*ret) + x];
-          ++dx;
-        }
-      }
-    }
-    ++dy;
-  }
-  return ret;
 }
 
 // Inflate each pixel of 'bmap' to 'scale'x'scale' pixels square, using the

@@ -1603,6 +1603,46 @@ rgba_blitter(const struct tinfo* tcache, const struct ncvisual_options* opts) {
   return rgba_blitter_low(tcache, scale, maydegrade, opts ? opts->blitter : NCBLIT_DEFAULT);
 }
 
+// naive resize of |bmap| from |srows|x|scols| -> |drows|x|dcols|, suitable for
+// pixel art. we either select at a constant interval (for shrinking) or duplicate
+// at a constant ratio (for inflation). in the absence of a multimedia engine, this
+// is the only kind of resizing we support.
+static inline uint32_t*
+resize_bitmap(const uint32_t* bmap, int srows, int scols, size_t sstride,
+              int drows, int dcols, size_t dstride){
+fprintf(stderr, "sstride: %zu dstride: %zu\n", sstride, dstride);
+  if(sstride < scols * sizeof(*bmap)){
+    return NULL;
+  }
+  if(dstride < dcols * sizeof(*bmap)){
+    return NULL;
+  }
+  size_t size = drows * dstride;
+  uint32_t* ret = (uint32_t*)malloc(size);
+  if(ret == NULL){
+    return NULL;
+  }
+  float xrat = (float)dcols / scols;
+  float yrat = (float)drows / srows;
+fprintf(stderr, "xrat: %f yrat: %f\n", xrat, yrat);
+  int dy = 0;
+  for(int y = 0 ; y < srows ; ++y){
+    float ytarg = y * yrat;
+    while(ytarg > dy){
+      int dx = 0;
+      for(int x = 0 ; x < scols ; ++x){
+        float xtarg = x * xrat;
+        while(xtarg > dx){
+          ret[dy * dstride / sizeof(*ret) + dx] = bmap[y * sstride / sizeof(*ret) + x];
+          ++dx;
+        }
+      }
+    }
+    ++dy;
+  }
+  return ret;
+}
+
 typedef struct ncvisual_implementation {
   int (*visual_init)(int loglevel);
   void (*visual_printbanner)(const struct notcurses* nc);
