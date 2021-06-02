@@ -1637,8 +1637,8 @@ fprintf(stderr, "xrat: %f yrat: %f\n", xrat, yrat);
           ++dx;
         }
       }
+      ++dy;
     }
-    ++dy;
   }
   return ret;
 }
