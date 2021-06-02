@@ -1626,10 +1626,16 @@ resize_bitmap(const uint32_t* bmap, int srows, int scols, size_t sstride,
   int dy = 0;
   for(int y = 0 ; y < srows ; ++y){
     float ytarg = (y + 1) * yrat;
+    if(ytarg > drows){
+      ytarg = drows;
+    }
     while(ytarg > dy){
       int dx = 0;
       for(int x = 0 ; x < scols ; ++x){
         float xtarg = (x + 1) * xrat;
+        if(xtarg > dcols){
+          xtarg = dcols;
+        }
         while(xtarg > dx){
           ret[dy * dstride / sizeof(*ret) + dx] = bmap[y * sstride / sizeof(*ret) + x];
           ++dx;
