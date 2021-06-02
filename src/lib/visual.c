@@ -1078,29 +1078,6 @@ char* ncvisual_subtitle(const ncvisual* ncv){
   return visual_implementation->visual_subtitle(ncv);
 }
 
-// Inflate each pixel of 'bmap' to 'scale'x'scale' pixels square, using the
-// same color as the original pixel.
-// FIXME replace with resize_bitmap()
-static inline void*
-inflate_bitmap(const uint32_t* bmap, int scale, int rows, int stride, int cols){
-  size_t size = rows * cols * scale * scale * sizeof(*bmap);
-  uint32_t* ret = malloc(size);
-  if(ret){
-    for(int y = 0 ; y < rows ; ++y){
-      const uint32_t* src = bmap + y * (stride / sizeof(*bmap));
-      for(int yi = 0 ; yi < scale ; ++yi){
-        uint32_t* dst = ret + (y * scale + yi) * cols * scale;
-        for(int x = 0 ; x < cols ; ++x){
-          for(int xi = 0 ; xi < scale ; ++xi){
-            dst[x * scale + xi] = src[x];
-          }
-        }
-      }
-    }
-  }
-  return ret;
-}
-
 int ncvisual_inflate(ncvisual* n, int scale){
   if(scale <= 0){
     return -1;
