@@ -36,7 +36,6 @@ int none_resize(ncvisual* nc, int rows, int cols){
     return 0;
   }
   size_t dstride = cols * 4;
-fprintf(stderr, "DSTRIDE: %zu\n", dstride);
   uint32_t* r = resize_bitmap(nc->data, nc->pixy, nc->pixx, nc->rowstride,
                               rows, cols, dstride);
   if(r == NULL){

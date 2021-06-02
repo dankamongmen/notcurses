@@ -589,7 +589,6 @@ ncvisual* ncvisual_from_bgra(const void* bgra, int rows, int rowstride, int cols
 int ncvisual_resize(ncvisual* nc, int rows, int cols){
   if(!visual_implementation){
     size_t dstride = pad_for_image(cols * 4);
-fprintf(stderr, "DSTRIDE: %zu\n", dstride);
     uint32_t* r = resize_bitmap(nc->data, nc->pixy, nc->pixx, nc->rowstride,
                                 rows, cols, dstride);
     if(r == NULL){
