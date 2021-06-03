@@ -1,0 +1,470 @@
+0d0
+
+Differences between files:
+==========================
+out-20210418/bindgen/cell out-20210603/bindgen/cell
+out-20210418/bindgen/ncblit out-20210603/bindgen/ncblit
+out-20210418/bindgen/ncdirect out-20210603/bindgen/ncdirect
+out-20210418/bindgen/ncplane out-20210603/bindgen/ncplane
+out-20210418/bindgen/_NON_FILTERED out-20210603/bindgen/_NON_FILTERED
+out-20210418/bindgen/notcurses out-20210603/bindgen/notcurses
+out-20210418/bindgen/palette out-20210603/bindgen/palette
+out-20210418/static/cell out-20210603/static/cell
+out-20210418/static/ncplane out-20210603/static/ncplane
+out-20210418/static/ncvisual out-20210603/static/ncvisual
+out-20210418/static/_NON_FILTERED out-20210603/static/_NON_FILTERED
+
+broken down:
+============
+
+diff out-20210418/bindgen/cell out-20210603/bindgen/cell:
+1,5d0
+< cell_duplicate
+< cell_load
+< cell_release
+< cells_double_box
+< cells_rounded_box
+
+diff out-20210418/bindgen/ncblit out-20210603/bindgen/ncblit:
+2a3,4
+> ncblit_rgb_loose
+> ncblit_rgb_packed
+
+diff out-20210418/bindgen/ncdirect out-20210603/bindgen/ncdirect:
+19a20,22
+> ncdirectf_free
+> ncdirectf_from_file
+> ncdirectf_geom
+20a24
+> ncdirectf_render
+43a48
+> ncdirect_styles
+46a52
+> ncdirect_supported_styles
+
+diff out-20210418/bindgen/ncplane out-20210603/bindgen/ncplane:
+22a23
+> ncplane_erase_region
+
+diff out-20210418/bindgen/_NON_FILTERED out-20210603/bindgen/_NON_FILTERED:
+1,6d0
+< abort
+< abs
+< accept
+< aligned_alloc
+< asctime
+< asctime_r
+9,140d2
+< atexit
+< atof
+< atoi
+< atol
+< atoll
+< at_quick_exit
+< bind
+< bsearch
+< btowc
+< c16rtomb
+< c32rtomb
+< calloc
+< clearerr
+< clock
+< __cmsg_nxthdr
+< connect
+< ctermid
+< ctime
+< ctime_r
+< __ctype_b_loc
+< __ctype_get_mb_cur_max
+< __ctype_tolower_loc
+< __ctype_toupper_loc
+< cuserid
+< difftime
+< div
+< drand48
+< erand48
+< exit
+< _Exit
+< fclose
+< fdopen
+< feof
+< ferror
+< fflush
+< fgetc
+< fgetpos
+< fgets
+< fgetwc
+< fgetws
+< fileno
+< fopen
+< fprintf
+< fputc
+< fputs
+< fputwc
+< fputws
+< fread
+< free
+< freopen
+< fscanf
+< fscanf1
+< fseek
+< fsetpos
+< ftell
+< fwide
+< fwprintf
+< fwrite
+< fwscanf
+< fwscanf1
+< getc
+< getchar
+< getenv
+< getopt
+< getpeername
+< getsockname
+< getsockopt
+< getw
+< getwc
+< getwchar
+< gmtime
+< gmtime_r
+< htonl
+< htons
+< isalnum
+< isalpha
+< isascii
+< isblank
+< iscntrl
+< isdigit
+< isgraph
+< islower
+< isprint
+< ispunct
+< isspace
+< isupper
+< iswalnum
+< iswalpha
+< iswblank
+< iswcntrl
+< iswctype
+< iswdigit
+< iswgraph
+< iswlower
+< iswprint
+< iswpunct
+< iswspace
+< iswupper
+< iswxdigit
+< isxdigit
+< jrand48
+< kill
+< labs
+< lcong48
+< ldiv
+< __libc_current_sigrtmax
+< __libc_current_sigrtmin
+< listen
+< llabs
+< lldiv
+< localtime
+< localtime_r
+< lrand48
+< malloc
+< mblen
+< __mbrlen
+< mbrlen
+< mbrtoc16
+< mbrtoc32
+< mbrtowc
+< mbsinit
+< mbsrtowcs
+< mbstowcs
+< mbtowc
+< memccpy
+< memchr
+< memcmp
+< memcpy
+< memmove
+< memset
+< mktime
+< mrand48
+146a9,12
+> nccell_width
+> ncpalette_free
+> ncpalette_new
+> ncpalette_use
+148,183d13
+< nrand48
+< ntohl
+< ntohs
+< __overflow
+< pclose
+< perror
+< popen
+< printf
+< putc
+< putchar
+< putenv
+< puts
+< putw
+< putwc
+< putwchar
+< qsort
+< quick_exit
+< raise
+< rand
+< realloc
+< recv
+< recvfrom
+< recvmsg
+< remove
+< rename
+< rewind
+< scanf
+< scanf1
+< seed48
+< send
+< sendmsg
+< sendto
+< setbuf
+< setsockopt
+< setvbuf
+< shutdown
+189a20
+> signal
+193,305d23
+< snprintf
+< socket
+< socketpair
+< sprintf
+< srand
+< srand48
+< sscanf
+< sscanf1
+< strcat
+< strchr
+< strcmp
+< strcoll
+< strcpy
+< strcspn
+< strerror
+< strftime
+< strlen
+< strncat
+< strncmp
+< strncpy
+< strpbrk
+< strptime
+< strrchr
+< strspn
+< strstr
+< strtod
+< strtof
+< strtok
+< __strtok_r
+< strtok_r
+< strtol
+< strtoll
+< strtoul
+< strtoull
+< strxfrm
+< swprintf
+< swscanf
+< swscanf1
+< __sysconf
+< system
+< __sysv_signal
+< tempnam
+< time
+< timespec_get
+< tmpfile
+< tmpnam
+< toascii
+< _tolower
+< tolower
+< _toupper
+< toupper
+< towlower
+< towupper
+< tzset
+< __uflow
+< ungetc
+< ungetwc
+< vfprintf
+< vfscanf
+< vfscanf1
+< vfwprintf
+< vfwscanf
+< vprintf
+< vscanf
+< vscanf1
+< vsnprintf
+< vsprintf
+< vsscanf
+< vsscanf1
+< vswprintf
+< vswscanf
+< vwprintf
+< vwscanf
+< wcrtomb
+< wcscat
+< wcschr
+< wcscmp
+< wcscoll
+< wcscpy
+< wcscspn
+< wcsftime
+< wcslen
+< wcsncat
+< wcsncmp
+< wcsncpy
+< wcspbrk
+< wcsrchr
+< wcsrtombs
+< wcsspn
+< wcsstr
+< wcstod
+< wcstof
+< wcstok
+< wcstol
+< wcstoll
+< wcstombs
+< wcstoul
+< wcstoull
+< wcswcs
+< wcswidth
+< wcsxfrm
+< wctob
+< wctomb
+< wctype
+< wcwidth
+< wmemchr
+< wmemcmp
+< wmemcpy
+< wmemmove
+< wmemset
+< wprintf
+< wscanf
+< wscanf1
+
+diff out-20210418/bindgen/notcurses out-20210603/bindgen/notcurses:
+5a6
+> notcurses_canhalfblock
+7a9
+> notcurses_canquadrant
+14a17
+> notcurses_cursor_yx
+
+diff out-20210418/bindgen/palette out-20210603/bindgen/palette:
+1,3d0
+< palette256_free
+< palette256_new
+< palette256_use
+
+diff out-20210418/static/cell out-20210603/static/cell:
+9d8
+< cell_extended_gcluster
+
+diff out-20210418/static/ncplane out-20210603/static/ncplane:
+0a1
+> ncplane_align
+
+diff out-20210418/static/ncvisual out-20210603/static/ncvisual:
+0a1
+> ncvisual_default_blitter
+1a3
+> ncvisualplane_create
+
+diff out-20210418/static/_NON_FILTERED out-20210603/static/_NON_FILTERED:
+4,39d3
+< __attribute__ 
+< __attribute__ 
+< __attribute__ 
+< __attribute__ 
+< __attribute__ 
+< __attribute__ 
+< __attribute__ 
+< __attribute__ 
+< __attribute__ 
+< __attribute__ 
+< __attribute__ 
+< __attribute__ 
+< __attribute__ 
+< __attribute__ 
+< __attribute__ 
+< __attribute__ 
+< __attribute__ 
+< __attribute__ 
+< __attribute__ 
+< __attribute__ 
+< __attribute__ 
+< __attribute__ 
+< __attribute__ 
+< __attribute__ 
+< __attribute__ 
+< __attribute__ 
+< __attribute__ 
+< __attribute__ 
+< __attribute__ 
+< __attribute__ 
+< __attribute__ 
+< __attribute__ 
+< __attribute__ 
+< __attribute__ 
+< __attribute__ 
+< __attribute__ 
+80a45,87
+> ncchannel_alpha
+> ncchannel_b
+> ncchannel_default_p
+> ncchannel_g
+> ncchannel_palindex
+> ncchannel_palindex_p
+> ncchannel_r
+> ncchannel_rgb8
+> ncchannels_bchannel
+> ncchannels_bg_alpha
+> ncchannels_bg_default_p
+> ncchannels_bg_palindex
+> ncchannels_bg_palindex_p
+> ncchannels_bg_rgb
+> ncchannels_bg_rgb8
+> ncchannels_combine
+> ncchannel_set
+> ncchannel_set_alpha
+> ncchannel_set_default
+> ncchannel_set_palindex
+> ncchannel_set_rgb8
+> ncchannel_set_rgb8_clipped
+> ncchannels_fchannel
+> ncchannels_fg_alpha
+> ncchannels_fg_default_p
+> ncchannels_fg_palindex
+> ncchannels_fg_palindex_p
+> ncchannels_fg_rgb
+> ncchannels_fg_rgb8
+> ncchannels_set_bchannel
+> ncchannels_set_bg_alpha
+> ncchannels_set_bg_default
+> ncchannels_set_bg_palindex
+> ncchannels_set_bg_rgb
+> ncchannels_set_bg_rgb8
+> ncchannels_set_bg_rgb8_clipped
+> ncchannels_set_fchannel
+> ncchannels_set_fg_alpha
+> ncchannels_set_fg_default
+> ncchannels_set_fg_palindex
+> ncchannels_set_fg_rgb
+> ncchannels_set_fg_rgb8
+> ncchannels_set_fg_rgb8_clipped
+81a89,92
+> ncinput_nomod_p
+> ncpalette_set
+> ncpalette_get_rgb8
+> ncpalette_set_rgb8
+
+Only in one path:
+=================
+
+
+display contents:
+=================

@@ -7,4 +7,22 @@ PENDING changes
 bindgen add:
 - [ ] ncdirect_stream
 
-## from changes-N-M.txt …
+## from changes-20120518-20210603.txt …
+
+- ncdirect_styles
+- ncdirect_supported_styles
+
+- ncplane_erase_region
+- ncplane_align
+
+- ncvisual_default_blitter
+- ncvisualplane_create
+
+- nccell_width
+
+- ncpalette_get_rgb8
+- ncpalette_set_rgb8
+
+- notcurses_cursor_yx
+
+- ncinput_nomod_p
