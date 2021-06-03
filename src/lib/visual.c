@@ -961,8 +961,14 @@ ncvisual* ncvisual_from_plane(const ncplane* n, ncblitter_e blit, int begy, int 
 }
 
 void ncvisual_destroy(ncvisual* ncv){
-  if(visual_implementation){
-    visual_implementation->visual_destroy(ncv);
+  if(ncv){
+    if(visual_implementation){
+      visual_implementation->visual_destroy(ncv);
+    }
+    if(ncv->owndata){
+      free(ncv->data);
+    }
+    free(ncv);
   }
 }
 

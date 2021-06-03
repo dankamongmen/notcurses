@@ -197,10 +197,6 @@ auto ncvisual_rotate(ncvisual* ncv, double rads) -> int {
 auto oiio_destroy(ncvisual* ncv) -> void {
   if(ncv){
     oiio_details_destroy(ncv->details);
-    if(ncv->owndata){
-      free(ncv->data);
-    }
-    delete ncv;
   }
 }
 
