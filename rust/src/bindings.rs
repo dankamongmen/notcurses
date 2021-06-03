@@ -109,7 +109,7 @@ pub use ffi::{
     ncblit_bgrx,
     ncblit_rgb_packed,
     ncblit_rgb_loose,
-}
+};
 
 // ncbox -----------------------------------------------------------------------
 
@@ -184,6 +184,24 @@ pub use ffi::{
     ncdirect_stop,
     ncdirect_vline_interp,
 };
+
+// ncdirectf --------------------------------------------------------------------
+//
+// already wrapped:
+//
+// // type alias
+// ncdirectf,
+//
+
+#[doc(inline)]
+pub use ffi::{
+    // functions
+    ncdirectf_from_file,
+    ncdirectf_geom,
+    ncdirectf_render,
+    ncdirectf_free,
+};
+
 
 // ncfadectx -------------------------------------------------------------------
 //
