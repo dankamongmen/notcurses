@@ -167,6 +167,8 @@ int fallin_demo(struct notcurses* nc){
                 goto err;
               }
             }
+          }else{
+            free(egc);
           }
           usemap[usey * dimx + usex] = true;
           nccell_release(n, &c);
