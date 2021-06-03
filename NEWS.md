@@ -6,6 +6,8 @@ rearrangements of Notcurses.
     memory (e.g. `ncvisual_from_rgba()`).
   * Fixed a bug where setting a style in direct mode reset color. Shocked that
     such a bug could exist for so long, ugh.
+  * Fixed a memory leak when using either the `none` multimedia implementation,
+    or no multimedia implementation at all, and using the `ncvisual` API.
   * `ncinput_nomod_p()` has been added. This function returns `true` if and
     only if its `ncinput` argument has no modifiers active.
   * Added `notcurses_cursor_yx()` to get the current location of the cursor.
