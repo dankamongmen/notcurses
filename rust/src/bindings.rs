@@ -102,6 +102,15 @@ pub use ffi::{
 // ncblitter_e_NCBLIT_DEFAULT,
 // ncblitter_e_NCBLIT_PIXEL,
 
+#[doc(inline)]
+pub use ffi::{
+    // functions
+    ncblit_rgba,
+    ncblit_bgrx,
+    ncblit_rgb_packed,
+    ncblit_rgb_loose,
+}
+
 // ncbox -----------------------------------------------------------------------
 
 // // constants
