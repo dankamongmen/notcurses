@@ -580,13 +580,13 @@ int ffmpeg_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
   if(rgba_blit_dispatch(n, bset, stride, data, rows, cols, bargs) < 0){
 //fprintf(stderr, "rgba dispatch failed!\n");
     if(sframe){
-      //av_freep(sframe->data);
+      av_freep(&sframe->data[0]);
       av_freep(&sframe);
     }
     return -1;
   }
   if(sframe){
-    //av_freep(ncv->details->frame->data);
+    av_freep(&sframe->data[0]);
     av_freep(&sframe);
   }
   return 0;
