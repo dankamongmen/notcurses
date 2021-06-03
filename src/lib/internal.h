@@ -1594,6 +1594,8 @@ rgba_blitter_low(const tinfo* tcache, ncscale_e scale, bool maydegrade,
   return lookup_blitset(tcache, blitrec, maydegrade);
 }
 
+const wchar_t* get_blitter_egcs(ncblitter_e id);
+
 // RGBA visuals all use NCBLIT_2x1 by default (or NCBLIT_1x1 if not in
 // UTF-8 mode), but an alternative can be specified.
 static inline const struct blitset*

@@ -59,7 +59,8 @@ struct nctab;     // grouped item within an nctabbed
 struct nctabbed;  // widget with one tab visible at a time
 
 // we never blit full blocks, but instead spaces (more efficient) with the
-// background set to the desired foreground.
+// background set to the desired foreground. these need be kept in the same
+// order as the blitters[] definition in lib/blit.c.
 typedef enum {
   NCBLIT_DEFAULT, // let the ncvisual pick
   NCBLIT_1x1,     // space, compatible with ASCII

@@ -853,11 +853,9 @@ braille_blit(ncplane* nc, int linesize, const void* data,
 // The order of contents is critical for 'egcs': ncplane_as_rgba() uses these
 // arrays to map cells to source pixels. Map the upper-left logical bit to
 // 1, and increase to the right, followed by down. The first egc ought thus
-// always be space, to indicate an empty cell (all zeroes).
+// always be space, to indicate an empty cell (all zeroes). These need be
+// kept in the same order as the enums!
 static struct blitset notcurses_blitters[] = {
-   { .geom = NCBLIT_8x1,     .width = 1, .height = 8,
-     .egcs = NULL, .plotegcs = L" ▁▂▃▄▅▆▇█",
-     .blit = tria_blit,      .name = "eightstep",     .fill = false, },
    { .geom = NCBLIT_1x1,     .width = 1, .height = 1,
      .egcs = L" █", .plotegcs = L" █",
      .blit = tria_blit_ascii,.name = "ascii",         .fill = false, },
@@ -871,19 +869,34 @@ static struct blitset notcurses_blitters[] = {
      .egcs = L" 🬀🬁🬂🬃🬄🬅🬆🬇🬈🬊🬋🬌🬍🬎🬏🬐🬑🬒🬓▌🬔🬕🬖🬗🬘🬙🬚🬛🬜🬝🬞🬟🬠🬡🬢🬣🬤🬥🬦🬧🬨🬩🬪🬫🬬🬭🬮🬯🬰🬱🬲🬳🬴🬵🬶🬷🬸🬹🬺🬻█",
      .plotegcs = L" 🬞🬦▐🬏🬭🬵🬷🬓🬱🬹🬻▌🬲🬺█",
      .blit = sextant_blit,   .name = "sex",           .fill = false, },
-   { .geom = NCBLIT_4x1,     .width = 1, .height = 4,
-     .egcs = NULL, .plotegcs = L" ▂▄▆█",
-     .blit = tria_blit,      .name = "fourstep",      .fill = false, },
    { .geom = NCBLIT_BRAILLE, .width = 2, .height = 4,
      .egcs = NULL, .plotegcs = L"⠀⢀⢠⢰⢸⡀⣀⣠⣰⣸⡄⣄⣤⣴⣼⡆⣆⣦⣶⣾⡇⣇⣧⣷⣿", // FIXME
      .blit = braille_blit,   .name = "braille",       .fill = true,  },
    { .geom = NCBLIT_PIXEL,   .width = 1, .height = 1,
      .egcs = L"", .plotegcs = NULL,
      .blit = sixel_blit,     .name = "pixel",         .fill = true,  },
+   { .geom = NCBLIT_4x1,     .width = 1, .height = 4,
+     .egcs = NULL, .plotegcs = L" ▂▄▆█",
+     .blit = tria_blit,      .name = "fourstep",      .fill = false, },
+   { .geom = NCBLIT_8x1,     .width = 1, .height = 8,
+     .egcs = NULL, .plotegcs = L" ▁▂▃▄▅▆▇█",
+     .blit = tria_blit,      .name = "eightstep",     .fill = false, },
    { .geom = 0,              .width = 0, .height = 0,
      .egcs = NULL, .plotegcs = NULL,
      .blit = NULL,           .name = NULL,            .fill = false,  },
 };
+
+const wchar_t*
+get_blitter_egcs(ncblitter_e id){
+  if(id == NCBLIT_DEFAULT){
+    return NULL;
+  }
+  // prefer the egcs set, but return plotegcs otherwise
+  if(notcurses_blitters[id - 1].egcs){
+    return notcurses_blitters[id - 1].egcs;
+  }
+  return notcurses_blitters[id - 1].plotegcs;
+}
 
 void set_pixel_blitter(ncblitter blitfxn){
   struct blitset* b = notcurses_blitters;
@@ -937,14 +950,8 @@ const struct blitset* lookup_blitset(const tinfo* tcache, ncblitter_e setid, boo
       return NULL;
     }
   }
-  const struct blitset* bset = notcurses_blitters;
-  while(bset->geom){
-    if(bset->geom == setid){
-      return bset;
-    }
-    ++bset;
-  }
-  return NULL;
+  assert(setid == notcurses_blitters[setid - 1].geom);
+  return &notcurses_blitters[setid - 1];
 }
 
 int notcurses_lex_blitter(const char* op, ncblitter_e* blitfxn){
