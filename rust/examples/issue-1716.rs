@@ -4,7 +4,7 @@ const W: u32 = 32;
 const H: u32 = 32;
 
 fn main() {
-    let mut nc = NcDirect::new().expect("couldn’t create ncdirect");
+    let nc = NcDirect::new().expect("couldn’t create ncdirect");
     nc.check_pixel_support()
         .expect("failed to check for sixel support");
 
@@ -19,7 +19,7 @@ fn main() {
     }
 
     let vframe1 = NcVisual::from_bgra(&buffer, H, W * 4, W).expect("couldn’t create visual");
-    let voptions = NcVisualOptions::fullsize_pixel_without_plane(0, 0, H, W);
+    // let voptions = NcVisualOptions::fullsize_pixel_without_plane(0, 0, H, W);
 
     unsafe {
         let v = ffi::ncdirectf_render(nc, vframe1, NCBLIT_PIXEL, NCSCALE_NONE, 0, 0);
