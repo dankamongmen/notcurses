@@ -14,8 +14,7 @@ rearrangements of Notcurses.
   * Added `ncdirect_supported_styles()`.
   * `ncplane_at_yx()` now properly integrates the plane's base cell when
     appropriate, and thus represents the cell as it will be used during
-    rendering. This change cascades, affecting e.g. `ncplane_contents()`
-    and `ncplane_as_rgba()`.
+    rendering. This change cascades, affecting e.g. `ncplane_contents()`.
   * `ncplane_at_yx()` now returns the EGC when called on any column of a
     wide glyph. `ncplane_at_yx_cell()` continues to duplicate the exact
     `nccell`, and can thus continue to be used to distinguish between primary
