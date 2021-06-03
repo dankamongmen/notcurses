@@ -4,30 +4,30 @@
 static const uint32_t zeroes32;
 static const unsigned char zeroes[] = "\x00\x00\x00\x00";
 
-// linearly interpolate a 24-bit RGB value along each 8-bit channel
+// linearly interpolate two ncpixels along each 8-bit channel (RGB only)
 static inline uint32_t
 lerp(uint32_t c0, uint32_t c1){
   uint32_t ret = 0;
   unsigned r0, g0, b0, r1, g1, b1;
-  ncchannel_rgb8(c0, &r0, &g0, &b0);
-  ncchannel_rgb8(c1, &r1, &g1, &b1);
+  ncpixel_rgb8(c0, &r0, &g0, &b0);
+  ncpixel_rgb8(c1, &r1, &g1, &b1);
   ncchannel_set_rgb8(&ret, (r0 + r1 + 1) / 2,
-                         (g0 + g1 + 1) / 2,
-                         (b0 + b1 + 1) / 2);
+                           (g0 + g1 + 1) / 2,
+                           (b0 + b1 + 1) / 2);
   return ret;
 }
 
-// linearly interpolate a 24-bit RGB value along each 8-bit channel
+// linearly interpolate three ncpixels along each 8-bit channel (RGB only)
 static inline uint32_t
 trilerp(uint32_t c0, uint32_t c1, uint32_t c2){
   uint32_t ret = 0;
   unsigned r0, g0, b0, r1, g1, b1, r2, g2, b2;
-  ncchannel_rgb8(c0, &r0, &g0, &b0);
-  ncchannel_rgb8(c1, &r1, &g1, &b1);
-  ncchannel_rgb8(c2, &r2, &g2, &b2);
+  ncpixel_rgb8(c0, &r0, &g0, &b0);
+  ncpixel_rgb8(c1, &r1, &g1, &b1);
+  ncpixel_rgb8(c2, &r2, &g2, &b2);
   ncchannel_set_rgb8(&ret, (r0 + r1 + r2 + 2) / 3,
-                         (g0 + g1 + g2 + 2) / 3,
-                         (b0 + b1 + b2 + 2) / 3);
+                           (g0 + g1 + g2 + 2) / 3,
+                           (b0 + b1 + b2 + 2) / 3);
   return ret;
 }
 
@@ -314,96 +314,92 @@ quadrant_solver(uint32_t tl, uint32_t tr, uint32_t bl, uint32_t br,
 // FIXME pass in rgbas as array of uint32_t ala sexblitter
 static inline const char*
 qtrans_check(nccell* c, unsigned blendcolors,
-             const unsigned char* rgbbase_tl, const unsigned char* rgbbase_tr,
-             const unsigned char* rgbbase_bl, const unsigned char* rgbbase_br,
+             const uint32_t rgbbase_tl, const uint32_t rgbbase_tr,
+             const uint32_t rgbbase_bl, const uint32_t rgbbase_br,
              uint32_t transcolor){
-  uint32_t tl = 0, tr = 0, bl = 0, br = 0;
-  ncchannel_set_rgb8(&tl, rgbbase_tl[0], rgbbase_tl[1], rgbbase_tl[2]);
-  ncchannel_set_rgb8(&tr, rgbbase_tr[0], rgbbase_tr[1], rgbbase_tr[2]);
-  ncchannel_set_rgb8(&bl, rgbbase_bl[0], rgbbase_bl[1], rgbbase_bl[2]);
-  ncchannel_set_rgb8(&br, rgbbase_br[0], rgbbase_br[1], rgbbase_br[2]);
+fprintf(stderr, "QTRANS: %08x %08x %08x %08x\n", rgbbase_tl, rgbbase_tr, rgbbase_bl, rgbbase_br);
   const char* egc = NULL;
-  if(rgba_trans_q(rgbbase_tl, transcolor)){
+  if(rgba_trans_p(rgbbase_tl, transcolor)){
     // top left is transparent
-    if(rgba_trans_q(rgbbase_tr, transcolor)){
+    if(rgba_trans_p(rgbbase_tr, transcolor)){
       // all of top is transparent
-      if(rgba_trans_q(rgbbase_bl, transcolor)){
+      if(rgba_trans_p(rgbbase_bl, transcolor)){
         // top and left are transparent
-        if(rgba_trans_q(rgbbase_br, transcolor)){
+        if(rgba_trans_p(rgbbase_br, transcolor)){
           // entirety is transparent, load with nul (but not NULL)
           nccell_set_fg_default(c);
           cell_set_blitquadrants(c, 0, 0, 0, 0);
           egc = "";
         }else{
-          nccell_set_fg_rgb8(c, rgbbase_br[0], rgbbase_br[1], rgbbase_br[2]);
+          nccell_set_fg_rgb(c, ncpixel_rgb(rgbbase_br));
           cell_set_blitquadrants(c, 0, 0, 0, 1);
           egc = "▗";
         }
       }else{
-        if(rgba_trans_q(rgbbase_br, transcolor)){
-          nccell_set_fg_rgb8(c, rgbbase_bl[0], rgbbase_bl[1], rgbbase_bl[2]);
+        if(rgba_trans_p(rgbbase_br, transcolor)){
+          nccell_set_fg_rgb(c, ncpixel_rgb(rgbbase_bl));
           cell_set_blitquadrants(c, 0, 0, 1, 0);
           egc = "▖";
         }else{
-          cell_set_fchannel(c, lerp(bl, br));
+          cell_set_fchannel(c, lerp(rgbbase_bl, rgbbase_br));
           cell_set_blitquadrants(c, 0, 0, 1, 1);
           egc = "▄";
         }
       }
     }else{ // top right is foreground, top left is transparent
-      if(rgba_trans_q(rgbbase_bl, transcolor)){
-        if(rgba_trans_q(rgbbase_br, transcolor)){ // entire bottom is transparent
-          nccell_set_fg_rgb8(c, rgbbase_tr[0], rgbbase_tr[1], rgbbase_tr[2]);
+      if(rgba_trans_p(rgbbase_bl, transcolor)){
+        if(rgba_trans_p(rgbbase_br, transcolor)){ // entire bottom is transparent
+          nccell_set_fg_rgb(c, ncpixel_rgb(rgbbase_tr));
           cell_set_blitquadrants(c, 0, 1, 0, 0);
           egc = "▝";
         }else{
-          cell_set_fchannel(c, lerp(tr, br));
+          cell_set_fchannel(c, lerp(rgbbase_tr, rgbbase_br));
           cell_set_blitquadrants(c, 0, 1, 0, 1);
           egc = "▐";
         }
-      }else if(rgba_trans_q(rgbbase_br, transcolor)){ // only br is transparent
-        cell_set_fchannel(c, lerp(tr, bl));
+      }else if(rgba_trans_p(rgbbase_br, transcolor)){ // only br is transparent
+        cell_set_fchannel(c, lerp(rgbbase_tr, rgbbase_bl));
         cell_set_blitquadrants(c, 0, 1, 1, 0);
         egc = "▞";
       }else{
-        cell_set_fchannel(c, trilerp(tr, bl, br));
+        cell_set_fchannel(c, trilerp(rgbbase_tr, rgbbase_bl, rgbbase_br));
         cell_set_blitquadrants(c, 0, 1, 1, 1);
         egc = "▟";
       }
     }
   }else{ // topleft is foreground for all here
-    if(rgba_trans_q(rgbbase_tr, transcolor)){
-      if(rgba_trans_q(rgbbase_bl, transcolor)){
-        if(rgba_trans_q(rgbbase_br, transcolor)){
-          nccell_set_fg_rgb8(c, rgbbase_tl[0], rgbbase_tl[1], rgbbase_tl[2]);
+    if(rgba_trans_p(rgbbase_tr, transcolor)){
+      if(rgba_trans_p(rgbbase_bl, transcolor)){
+        if(rgba_trans_p(rgbbase_br, transcolor)){
+          nccell_set_fg_rgb(c, ncpixel_rgb(rgbbase_tl));
           cell_set_blitquadrants(c, 1, 0, 0, 0);
           egc = "▘";
         }else{
-          cell_set_fchannel(c, lerp(tl, br));
+          cell_set_fchannel(c, lerp(rgbbase_tl, rgbbase_br));
           cell_set_blitquadrants(c, 1, 0, 0, 1);
           egc = "▚";
         }
-      }else if(rgba_trans_q(rgbbase_br, transcolor)){
-        cell_set_fchannel(c, lerp(tl, bl));
+      }else if(rgba_trans_p(rgbbase_br, transcolor)){
+        cell_set_fchannel(c, lerp(rgbbase_tl, rgbbase_bl));
         cell_set_blitquadrants(c, 1, 0, 1, 0);
         egc = "▌";
       }else{
-        cell_set_fchannel(c, trilerp(tl, bl, br));
+        cell_set_fchannel(c, trilerp(rgbbase_tl, rgbbase_bl, rgbbase_br));
         cell_set_blitquadrants(c, 1, 0, 1, 1);
         egc = "▙";
       }
-    }else if(rgba_trans_q(rgbbase_bl, transcolor)){
-      if(rgba_trans_q(rgbbase_br, transcolor)){ // entire bottom is transparent
-        cell_set_fchannel(c, lerp(tl, tr));
+    }else if(rgba_trans_p(rgbbase_bl, transcolor)){
+      if(rgba_trans_p(rgbbase_br, transcolor)){ // entire bottom is transparent
+        cell_set_fchannel(c, lerp(rgbbase_tl, rgbbase_tr));
         cell_set_blitquadrants(c, 1, 1, 0, 0);
         egc = "▀";
       }else{ // only bl is transparent
-        cell_set_fchannel(c, trilerp(tl, tr, br));
+        cell_set_fchannel(c, trilerp(rgbbase_tl, rgbbase_tr, rgbbase_br));
         cell_set_blitquadrants(c, 1, 1, 0, 1);
         egc = "▜";
       }
-    }else if(rgba_trans_q(rgbbase_br, transcolor)){ // only br is transparent
-      cell_set_fchannel(c, trilerp(tl, tr, bl));
+    }else if(rgba_trans_p(rgbbase_br, transcolor)){ // only br is transparent
+      cell_set_fchannel(c, trilerp(rgbbase_tl, rgbbase_tr, rgbbase_bl));
       cell_set_blitquadrants(c, 1, 1, 1, 0);
       egc = "▛";
     }else{
@@ -417,7 +413,7 @@ qtrans_check(nccell* c, unsigned blendcolors,
   }else if(blendcolors){
     nccell_set_fg_alpha(c, CELL_ALPHA_BLEND);
   }
-//fprintf(stderr, "QBQ: 0x%x\n", cell_blittedquadrants(c));
+fprintf(stderr, "QBQ: 0x%x EGC: %s\n", cell_blittedquadrants(c), egc);
   return egc;
 }
 
@@ -426,13 +422,13 @@ qtrans_check(nccell* c, unsigned blendcolors,
 static inline int
 quadrant_blit(ncplane* nc, int linesize, const void* data,
               int leny, int lenx, const blitterargs* bargs){
-  const int bpp = 32;
+#define Bpp 4
+  const uint32_t* udat = data;
   int dimy, dimx, x, y;
   int total = 0; // number of cells written
   ncplane_dim_yx(nc, &dimy, &dimx);
 //fprintf(stderr, "quadblitter %dx%d -> %d/%d+%d/%d\n", leny, lenx, dimy, dimx, bargs->u.cell.placey, bargs->u.cell.placex);
   // FIXME not going to necessarily be safe on all architectures hrmmm
-  const unsigned char* dat = data;
   int visy = bargs->begy;
   for(y = bargs->u.cell.placey ; visy < (bargs->begy + leny) && y < dimy ; ++y, visy += 2){
     if(y < 0){
@@ -446,30 +442,34 @@ quadrant_blit(ncplane* nc, int linesize, const void* data,
       if(x < 0){
         continue;
       }
-      const unsigned char* rgbbase_tl = dat + (linesize * visy) + (visx * bpp / CHAR_BIT);
-      const unsigned char* rgbbase_tr = zeroes;
-      const unsigned char* rgbbase_bl = zeroes;
-      const unsigned char* rgbbase_br = zeroes;
+      uint32_t rgbbase_tl = udat[(linesize / Bpp * visy) + visx];
+      uint32_t rgbbase_tr = 0;
+      uint32_t rgbbase_bl = 0;
+      uint32_t rgbbase_br = 0;
       if(visx < bargs->begx + lenx - 1){
-        rgbbase_tr = dat + (linesize * visy) + ((visx + 1) * bpp / CHAR_BIT);
+        rgbbase_tr = udat[(linesize / Bpp * visy) + (visx + 1)];
         if(visy < bargs->begy + leny - 1){
-          rgbbase_br = dat + (linesize * (visy + 1)) + ((visx + 1) * bpp / CHAR_BIT);
+          rgbbase_br = udat[(linesize / Bpp * (visy + 1)) + (visx + 1)];
         }
       }
       if(visy < bargs->begy + leny - 1){
-        rgbbase_bl = dat + (linesize * (visy + 1)) + (visx * bpp / CHAR_BIT);
+        rgbbase_bl = udat[(linesize / Bpp * (visy + 1)) + visx];
       }
-//fprintf(stderr, "[%04d/%04d] bpp: %d lsize: %d %02x %02x %02x %02x\n", y, x, bpp, linesize, rgbbase_tl[0], rgbbase_tr[1], rgbbase_bl[2], rgbbase_br[3]);
+//fprintf(stderr, "[%04d/%04d] bpp: %d lsize: %d\n", y, x, bpp, linesize);
       nccell* c = ncplane_cell_ref_yx(nc, y, x);
       c->channels = 0;
       c->stylemask = 0;
-      const char* egc = qtrans_check(c, bargs->u.cell.blendcolors, rgbbase_tl, rgbbase_tr, rgbbase_bl, rgbbase_br, bargs->transcolor);
+      const char* egc = qtrans_check(c, bargs->u.cell.blendcolors,
+                                     rgbbase_tl, rgbbase_tr,
+                                     rgbbase_bl, rgbbase_br,
+                                     bargs->transcolor);
+fprintf(stderr, "POST-QTRANS: %016lx\n", c->channels);
       if(egc == NULL){
         uint32_t tl = 0, tr = 0, bl = 0, br = 0;
-        ncchannel_set_rgb8(&tl, rgbbase_tl[0], rgbbase_tl[1], rgbbase_tl[2]);
-        ncchannel_set_rgb8(&tr, rgbbase_tr[0], rgbbase_tr[1], rgbbase_tr[2]);
-        ncchannel_set_rgb8(&bl, rgbbase_bl[0], rgbbase_bl[1], rgbbase_bl[2]);
-        ncchannel_set_rgb8(&br, rgbbase_br[0], rgbbase_br[1], rgbbase_br[2]);
+        ncchannel_set_rgb8(&tl, ncpixel_r(rgbbase_tl), ncpixel_g(rgbbase_tl), ncpixel_b(rgbbase_tl));
+        ncchannel_set_rgb8(&tr, ncpixel_r(rgbbase_tr), ncpixel_g(rgbbase_tr), ncpixel_b(rgbbase_tr));
+        ncchannel_set_rgb8(&bl, ncpixel_r(rgbbase_bl), ncpixel_g(rgbbase_bl), ncpixel_b(rgbbase_bl));
+        ncchannel_set_rgb8(&br, ncpixel_r(rgbbase_br), ncpixel_g(rgbbase_br), ncpixel_b(rgbbase_br));
         uint32_t bg, fg;
 //fprintf(stderr, "qtrans check: %d/%d\n%08x %08x\n%08x %08x\n", y, x, *(const uint32_t*)rgbbase_tl, *(const uint32_t*)rgbbase_tr, *(const uint32_t*)rgbbase_bl, *(const uint32_t*)rgbbase_br);
         egc = quadrant_solver(tl, tr, bl, br, &fg, &bg);
@@ -483,6 +483,7 @@ quadrant_blit(ncplane* nc, int linesize, const void* data,
         }
         cell_set_blitquadrants(c, 1, 1, 1, 1);
       }
+fprintf(stderr, "POST-POST-QTRANS: %016lx\n", c->channels);
       if(*egc){
         if(pool_blit_direct(&nc->pool, c, egc, strlen(egc), 1) <= 0){
           return -1;

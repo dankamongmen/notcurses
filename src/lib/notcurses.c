@@ -2712,14 +2712,15 @@ ncplane_as_rgba_internal(const ncplane* nc, ncblitter_e blit,
           for(int px = 0 ; px < bset->width ; ++px){
             uint32_t* p = &ret[(targy + py) * (lenx * bset->width) + (targx + px)];
             bool background = is_bg_p(idx, py, px, bset->width);
+fprintf(stderr, "FG: %02x %02x %02x BG: %02x %02x %02x %08x\n", fr, fg, fb, br, bg, bb, *p);
             if(background){
               if(ba){
                 *p = 0;
               }else{
                 ncpixel_set_a(p, 0xff);
                 ncpixel_set_r(p, br);
-                ncpixel_set_g(p, bb);
-                ncpixel_set_b(p, bg);
+                ncpixel_set_g(p, bg);
+                ncpixel_set_b(p, bb);
               }
             }else{
               if(fa){
@@ -2727,10 +2728,11 @@ ncplane_as_rgba_internal(const ncplane* nc, ncblitter_e blit,
               }else{
                 ncpixel_set_a(p, 0xff);
                 ncpixel_set_r(p, fr);
-                ncpixel_set_g(p, fb);
-                ncpixel_set_b(p, fg);
+                ncpixel_set_g(p, fg);
+                ncpixel_set_b(p, fb);
               }
             }
+fprintf(stderr, "POST FG: %02x %02x %02x BG: %02x %02x %02x *P: %08x\n", fr, fg, fb, br, bg, bb, *p);
           }
         }
         free(c);

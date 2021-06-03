@@ -1526,6 +1526,7 @@ void ncvisual_printbanner(const notcurses* nc);
 // bits against each pixel's RGB value, and treat a match as transparent.
 static inline bool
 rgba_trans_p(uint32_t p, uint32_t transcolor){
+fprintf(stderr, "ALPHA CHECK: %08x %02x\n", p, ncpixel_a(p));
   if(ncpixel_a(p) < 192){
     return true;
   }

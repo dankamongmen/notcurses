@@ -2647,7 +2647,8 @@ API int ncblit_rgb_loose(const void* data, int linesize,
 // ncvisual (ncvisuals keep a backing store of 32-bit RGBA pixels, and render
 // them down to terminal graphics in ncvisual_render()).
 //
-// Per libav, we "store as BGRA on little-endian, and ARGB on big-endian".
+// Per libav, we "store as BGRA on little-endian, and ARGB on big-endian;
+// an RGBA color is assembled as (A << 24) | (R << 16) | (G << 8) | B".
 // This is an RGBA *byte-order* scheme. libav emits bytes, not words. Those
 // bytes are R-G-B-A. When read as words, on little endian this will be ABGR,
 // and on big-endian this will be RGBA. force everything to LE ABGR, a no-op
@@ -2655,26 +2656,40 @@ API int ncblit_rgb_loose(const void* data, int linesize,
 
 // Extract the 8-bit alpha component from a pixel
 static inline unsigned
-ncpixel_a(uint32_t pixel){
-  return (htole(pixel) & 0xff000000ul) >> 24u;
-}
-
-// Extract the 8-bit red component from an ABGR pixel
-static inline unsigned
 ncpixel_r(uint32_t pixel){
   return (htole(pixel) & 0x000000fful);
 }
 
+// Extract the 8-bit red component from an ABGR pixel
+static inline unsigned
+ncpixel_a(uint32_t pixel){
+  return (htole(pixel) & 0xff000000ul) >> 24u;
+}
+
 // Extract the 8-bit green component from an ABGR pixel
+static inline unsigned
+ncpixel_b(uint32_t pixel){
+  return (htole(pixel) & 0x00ff0000ul) >> 16u;
+}
+
+// Extract the 8-bit blue component from an ABGR pixel
 static inline unsigned
 ncpixel_g(uint32_t pixel){
   return (htole(pixel) & 0x0000ff00ul) >> 8u;
 }
 
-// Extract the 8-bit blue component from an ABGR pixel
-static inline unsigned
-ncpixel_b(uint32_t pixel){
-  return (htole(pixel) & 0x00ff0000ul) >> 16u;
+// Extract the RGB components in a form suitable for use with ncchannels.
+static inline uint32_t
+ncpixel_rgb(uint32_t pixel){
+  return pixel >> 8u;
+}
+
+// Extract the RGB components as three parts.
+static inline void
+ncpixel_rgb8(uint32_t pixel, unsigned* r, unsigned* g, unsigned* b){
+  *r = ncpixel_r(pixel);
+  *b = ncpixel_b(pixel);
+  *g = ncpixel_g(pixel);
 }
 
 // Set the 8-bit alpha component of an ABGR pixel
