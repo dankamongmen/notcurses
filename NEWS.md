@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 2.3.2 (not yet released)
+* 2.3.2 (2021-06-03)
   * Fixed a bug affecting certain scalings of `ncvisual` objects created from
     memory (e.g. `ncvisual_from_rgba()`).
   * Fixed a bug where setting a style in direct mode reset color. Shocked that
