@@ -37,7 +37,7 @@ typedef struct ncvisual_details {
   int sub_stream_index;    // subtitle stream index, can be < 0 if no subtitles
 } ncvisual_details;
 
-#define IMGALLOCALIGN 32
+#define IMGALLOCALIGN 64
 
 /*static void
 print_frame_summary(const AVCodecContext* cctx, const AVFrame* f){
@@ -175,14 +175,14 @@ force_rgba(ncvisual* n){
                          sframe->linesize);
   if(height < 0){
 //fprintf(stderr, "Error applying converting %d\n", inf->format);
-    //av_freep(&sframe->data[0]);
+    av_freep(&sframe->data[0]);
     av_freep(&sframe);
     return -1;
   }
   int bpp = av_get_bits_per_pixel(av_pix_fmt_desc_get(sframe->format));
   if(bpp != 32){
 //fprintf(stderr, "Bad bits-per-pixel (wanted 32, got %d)\n", bpp);
-    //av_freep(&sframe->data[0]);
+    av_freep(&sframe->data[0]);
     av_freep(&sframe);
     return -1;
   }
@@ -191,7 +191,8 @@ force_rgba(ncvisual* n){
 //fprintf(stderr, "SETTING UP RESIZE %p\n", n->data);
     if(n->details->frame){
       if(n->owndata){
-        //av_freep(&n->details->frame->data[0]);
+        // we don't free the frame data here, because it's going to be
+        // freed (if appropriate) by ncvisual_set_data() momentarily.
         av_freep(&n->details->frame);
       }
     }
@@ -636,7 +637,6 @@ void ffmpeg_details_destroy(ncvisual_details* deets){
   avcodec_close(deets->codecctx);
   avcodec_free_context(&deets->subtcodecctx);
   avcodec_free_context(&deets->codecctx);
-  //av_freep(&deets->frame->data[0]);
   av_frame_free(&deets->frame);
   //avcodec_parameters_free(&ncv->cparams);
   sws_freeContext(deets->rgbactx);
