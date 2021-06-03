@@ -175,14 +175,14 @@ force_rgba(ncvisual* n){
                          sframe->linesize);
   if(height < 0){
 //fprintf(stderr, "Error applying converting %d\n", inf->format);
-    //av_freep(sframe->data);
+    //av_freep(&sframe->data[0]);
     av_freep(&sframe);
     return -1;
   }
   int bpp = av_get_bits_per_pixel(av_pix_fmt_desc_get(sframe->format));
   if(bpp != 32){
 //fprintf(stderr, "Bad bits-per-pixel (wanted 32, got %d)\n", bpp);
-    //av_freep(sframe->data);
+    //av_freep(&sframe->data[0]);
     av_freep(&sframe);
     return -1;
   }
@@ -191,7 +191,7 @@ force_rgba(ncvisual* n){
 //fprintf(stderr, "SETTING UP RESIZE %p\n", n->data);
     if(n->details->frame){
       if(n->owndata){
-        // FIXME av_freep?
+        //av_freep(&n->details->frame->data[0]);
         av_freep(&n->details->frame);
       }
     }
@@ -301,7 +301,7 @@ int ffmpeg_resize(ncvisual* n, int rows, int cols){
                          sframe->linesize);
   if(height < 0){
 //fprintf(stderr, "Error applying scaling (%d X %d)\n", inf->height, inf->width);
-    //av_freep(sframe->data);
+    //av_freep(&sframe->data[0]);
     av_freep(&sframe);
     return -1;
   }
@@ -317,9 +317,9 @@ int ffmpeg_resize(ncvisual* n, int rows, int cols){
   n->pixx = cols;
   if((uint32_t*)sframe->data[0] != n->data){
 //fprintf(stderr, "SETTING UP RESIZE %p\n", n->data);
-    ncvisual_set_data(n, sframe->data[0], false);
+    ncvisual_set_data(n, sframe->data[0], true);
     if(n->details->frame){
-      // FIXME av_freep(&n->details->frame->data);
+      // FIXME av_freep(&n->details->frame->data[0]);
       av_freep(&n->details->frame);
     }
   }
@@ -636,6 +636,7 @@ void ffmpeg_details_destroy(ncvisual_details* deets){
   avcodec_close(deets->codecctx);
   avcodec_free_context(&deets->subtcodecctx);
   avcodec_free_context(&deets->codecctx);
+  //av_freep(&deets->frame->data[0]);
   av_frame_free(&deets->frame);
   //avcodec_parameters_free(&ncv->cparams);
   sws_freeContext(deets->rgbactx);
