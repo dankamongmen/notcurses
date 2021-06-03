@@ -172,6 +172,7 @@ char* ncplane_at_yx(const ncplane* n, int y, int x, uint16_t* stylemask, uint64_
       }
 //fprintf(stderr, "GOT [%s]\n", ret);
       if(strcmp(ret, "") == 0){
+        free(ret);
         ret = nccell_strdup(n, &n->basecell);
         if(ret == NULL){
           return NULL;
