@@ -18,16 +18,10 @@ fn main() {
         buffer.push(255);
     }
 
-    let vframe1 = NcVisual::from_bgra(&buffer, H, W * 4, W).expect("couldn’t create visual");
-    // let voptions = NcVisualOptions::fullsize_pixel_without_plane(0, 0, H, W);
-
-    unsafe {
-        let v = ffi::ncdirectf_render(nc, vframe1, NCBLIT_PIXEL, NCSCALE_NONE, 0, 0);
-        if !v.is_null() {
-            ncdirect_raster_frame(nc, v, NCALIGN_LEFT);
-        }
-    }
-
-    vframe1.destroy();
+    let vframe1 = NcDirectF::from_bgra(&buffer, H, W * 4, W).expect("couldn’t create visual");
+    let v = vframe1.ncdirectf_render(nc, NCBLIT_PIXEL, NCSCALE_NONE, 0, 0).expect("failed to render image to sixels");
+    nc.raster_frame(v, NCALIGN_LEFT).expect("failed to print sixels");
+    vframe1.ncdirectf_free();
     nc.stop().expect("failed to destroy ncdirect context");
+    println!();
 }
