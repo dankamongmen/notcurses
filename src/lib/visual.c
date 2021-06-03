@@ -963,6 +963,7 @@ ncvisual* ncvisual_from_plane(const ncplane* n, ncblitter_e blit, int begy, int 
 void ncvisual_destroy(ncvisual* ncv){
   if(ncv){
     if(visual_implementation == NULL){
+fprintf(stderr, "OWNDATA: %u data: %p\n", ncv->owndata, ncv->data);
       if(ncv->owndata){
         free(ncv->data);
       }

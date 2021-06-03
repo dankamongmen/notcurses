@@ -9,6 +9,9 @@ ncvisual* none_create(){
 }
 
 void none_destroy(ncvisual* ncv){
+  if(ncv->owndata){
+    free(ncv->data);
+  }
   delete ncv;
 }
 
