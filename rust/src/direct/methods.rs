@@ -5,7 +5,7 @@ use core::ptr::{null, null_mut};
 use crate::ffi::sigset_t;
 use crate::{
     cstring, error, error_ref_mut, rstring, NcAlign, NcBlitter, NcChannelPair, NcColor, NcDim,
-    NcDirect, NcDirectFlags, NcEgc, NcError, NcInput, NcPaletteIndex, NcPlane, NcResult, NcRgb,
+    NcDirect, NcDirectFlags, NcDirectV, NcEgc, NcError, NcInput, NcPaletteIndex, NcResult, NcRgb,
     NcScale, NcStyleMask, NcTime, NCRESULT_ERR,
 };
 
@@ -68,7 +68,7 @@ impl NcDirect {
     /// passed to render_frame().
     ///
     /// *C style function: [ncdirect_raster_frame()][crate::ncdirect_raster_frame].*
-    pub fn raster_frame(&mut self, faken: &mut NcPlane, align: NcAlign) -> NcResult<()> {
+    pub fn raster_frame(&mut self, faken: &mut NcDirectV, align: NcAlign) -> NcResult<()> {
         error![
             unsafe { crate::ncdirect_raster_frame(self, faken, align) },
             "NcDirect.raster_frame()"
@@ -95,7 +95,7 @@ impl NcDirect {
         scale: NcScale,
         maxy: i32,
         maxx: i32,
-    ) -> NcResult<&'a mut NcPlane> {
+    ) -> NcResult<&'a mut NcDirectV> {
         let res = unsafe {
             crate::ncdirect_render_frame(self, cstring![filename], blitter, scale, maxy, maxx)
         };

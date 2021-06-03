@@ -1,8 +1,12 @@
-// functions already exported by bindgen : 18
+// functions already exported by bindgen : 22
 // -----------------------------------------
-// (W) wrap: 18
+// (W) wrap: 20
 // (#) test: 0
 // -----------------------------------------
+//W  ncdirectf_free
+//W  ncdirectf_from_file
+//   ncdirectf_geom
+//   ncdirectf_render
 //W  ncvisual_at_yx
 //W  ncvisual_decode
 //W  ncvisual_decode_loop
@@ -64,6 +68,23 @@ pub const NCSCALE_SCALE_HIRES: NcScale = crate::bindings::ffi::ncscale_e_NCSCALE
 /// - [.render][NcVisual#method.render]
 /// - [.simple_streamer][NcVisual#method.render]
 pub type NcVisual = crate::bindings::ffi::ncvisual;
+
+/// A type alias of [`NcVisual`] (NcDirect ***F**rame*) intended to be used
+/// with its `ncdirectf_*` methods, in [`NcDirect`][crate::NcDirect] mode.
+pub type NcDirectF = NcVisual;
+
+/// Describes all geometries of an [`NcVisual`] ncvisual–both those which are inherent, and
+/// those in a given rendering regime.
+///
+/// *FIXME this ought be used in the rendered mode API as well;
+/// it’s currently only used by direct mode.*
+/// *(See [ncvgeom][1] more more information)*
+///
+/// This is the return type of the [NcDirectF.ncdirectf_geom()][0] method.
+///
+/// [0]: NcDirectF#method.ncdirectf_geom
+/// [1]: crate::bindings::ffi::ncvgeom
+pub type NcVGeom = crate::bindings::ffi::ncvgeom;
 
 /// Options struct for [`NcVisual`]
 ///

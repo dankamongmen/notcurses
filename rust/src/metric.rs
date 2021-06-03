@@ -26,16 +26,11 @@ use crate::{cstring_mut, rstring};
 ///
 /// You are encouraged to consult notcurses_metric(3).
 ///
-pub fn ncmetric(
-    val: u64,
-    decimal: u64,
-    buf: &str,
-    omitdec: i32,
-    mult: u64,
-    uprefix: i32,
-) -> &str {
+pub fn ncmetric(val: u64, decimal: u64, buf: &str, omitdec: i32, mult: u64, uprefix: i32) -> &str {
     let buf = cstring_mut![buf];
-    rstring![ crate::ffi::ncmetric(val, decimal, buf, omitdec, mult, uprefix) ]
+    rstring![crate::ffi::ncmetric(
+        val, decimal, buf, omitdec, mult, uprefix
+    )]
 }
 
 // The number of columns is one fewer, as the STRLEN expressions must leave

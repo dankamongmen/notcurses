@@ -4,9 +4,9 @@ use core::ptr::null_mut;
 use libc::c_void;
 
 use crate::{
-    cstring, error, error_ref_mut, rstring, NcBlitter, NcDim, NcError, NcIntResult, NcPixel,
-    NcPlane, NcResult, NcRgba, NcScale, NcTime, NcVisual, NcVisualOptions, Notcurses, NCBLIT_PIXEL,
-    NCRESULT_ERR,
+    cstring, error, error_ref_mut, rstring, NcBlitter, NcDim, NcDirect, NcDirectF, NcDirectV,
+    NcError, NcIntResult, NcPixel, NcPlane, NcResult, NcRgba, NcScale, NcTime, NcVGeom, NcVisual,
+    NcVisualOptions, Notcurses, NCBLIT_PIXEL, NCRESULT_ERR,
 };
 
 /// # NcVisualOptions Constructors
@@ -466,6 +466,110 @@ impl NcVisual {
             Ok(rstring![res])
         } else {
             Err(NcError::with_msg(NCRESULT_ERR, "NcVisual.subtitle()"))
+        }
+    }
+}
+
+/// # NcDirectF Constructors & destructors
+impl NcDirectF {
+    /// Loads media from disk, but do not yet renders it (presumably because you
+    /// want to get its geometry via [ncdirectf_geom()][0], or to use the same
+    /// file with [ncdirectf_render()][1] multiple times).
+    ///
+    /// You must destroy the result with [ncdirectf_free()][2];
+    ///
+    /// [0]: crate::NcDirectF#method.ncdirectf_geom
+    /// [1]: crate::NcDirectF#method.ncdirectf_render
+    /// [2]: crate::NcDirectF#method.ncdirectf_free
+    ///
+    /// *C style function: [ncdirectf_from_file()][crate::ncdirectf_from_file].*
+    pub fn ncdirectf_from_file<'a>(ncd: &mut NcDirect, file: &str) -> NcResult<&'a mut NcDirectF> {
+        error_ref_mut![
+            unsafe { crate::ncdirectf_from_file(ncd, cstring![file]) },
+            &format!("NcDirectF::ncdirectf_from_file(ncd, {})", file)
+        ]
+    }
+
+    /// Frees a [`NcDirectF`] returned from [ncdirectf_from_file()][0].
+    ///
+    /// [0]: crate::NcDirectF#method.ncdirectf_from_file
+    ///
+    /// *C style function: [ncdirectf_free()][crate::ncdirectf_free].*
+    pub fn ncdirectf_free(&mut self) {
+        unsafe { crate::ncdirectf_free(self) };
+    }
+}
+
+/// # NcDirectF Methods
+impl NcDirectF {
+    /// Same as [`NcDirect.render_frame()`][0], except `frame` must already have
+    /// been loaded.
+    ///
+    /// A loaded frame may be rendered in different ways before it is destroyed.
+    ///
+    /// [0]: NcDirect#method.render_frame
+    ///
+    /// *C style function: [ncvisual_render()][crate::ncvisual_render].*
+    pub fn ncdirectf_render(
+        &mut self,
+        ncd: &mut NcDirect,
+        blitter: NcBlitter,
+        scale: NcScale,
+        max_y: NcDim,
+        max_x: NcDim,
+    ) -> NcResult<&mut NcDirectV> {
+        error_ref_mut![
+            unsafe {
+                crate::ncdirectf_render(ncd, self, blitter, scale, max_y as i32, max_x as i32)
+            },
+            "NcVisual.render()"
+        ]
+    }
+    /// Having loaded the `frame`, get the geometry of a potential render.
+    ///
+    /// *C style function: [ncdirectf_geom()][crate::ncdirectf_geom].*
+    pub fn ncdirectf_geom(
+        &mut self,
+        ncd: &mut NcDirect,
+        blitter: &mut NcBlitter,
+        scale: NcScale,
+        max_y: NcDim,
+        max_x: NcDim,
+    ) -> NcResult<NcVGeom> {
+        let mut geom = NcVGeom::new();
+
+        let res = unsafe {
+            crate::ncdirectf_geom(
+                ncd,
+                self,
+                blitter,
+                scale,
+                max_y as i32,
+                max_x as i32,
+                &mut geom,
+            )
+        };
+        error![res, "NcDirectF.ncdirectf_geom()", geom];
+    }
+}
+
+/// # NcVGeom Constructors
+impl NcVGeom {
+    /// Returns a new `NcVGeom` with zeroed fields.
+    pub fn new() -> Self {
+        Self {
+            pixy: 0,
+            pixx: 0,
+            cdimy: 0,
+            cdimx: 0,
+            rpixy: 0,
+            rpixx: 0,
+            rcelly: 0,
+            rcellx: 0,
+            scaley: 0,
+            scalex: 0,
+            maxpixely: 0,
+            maxpixelx: 0,
         }
     }
 }

@@ -376,7 +376,7 @@ API int ncdirect_raster_frame(struct ncdirect* n, ncdirectv* ncdv, ncalign_e ali
   __attribute__ ((nonnull (1, 2)));
 
 // Load media from disk, but do not yet render it (presumably because you want
-// to get its geometry via ncdirect_geom_frame(), or to use the same file with
+// to get its geometry via ncdirectf_geom(), or to use the same file with
 // ncdirect_render_loaded_frame() multiple times). You must destroy the result
 // with ncdirectf_free();
 API ALLOC ncdirectf* ncdirectf_from_file(struct ncdirect* n, const char* filename)

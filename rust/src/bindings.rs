@@ -30,7 +30,7 @@ pub use ffi::{
 // already wrapped:
 //
 // // structs
-// blitset
+// blitset,
 
 // cell ------------------------------------------------------------------------
 //
@@ -69,7 +69,7 @@ pub use ffi::{
 // already wrapped:
 //
 // // constants
-// CHANNEL_ALPHA_MASK
+// CHANNEL_ALPHA_MASK,
 
 // ncalign ---------------------------------------------------------------------
 //
@@ -104,11 +104,11 @@ pub use ffi::{
 
 #[doc(inline)]
 pub use ffi::{
+    ncblit_bgrx,
+    ncblit_rgb_loose,
+    ncblit_rgb_packed,
     // functions
     ncblit_rgba,
-    ncblit_bgrx,
-    ncblit_rgb_packed,
-    ncblit_rgb_loose,
 };
 
 // ncbox -----------------------------------------------------------------------
@@ -195,13 +195,12 @@ pub use ffi::{
 
 #[doc(inline)]
 pub use ffi::{
+    ncdirectf_free,
     // functions
     ncdirectf_from_file,
     ncdirectf_geom,
     ncdirectf_render,
-    ncdirectf_free,
 };
-
 
 // ncfadectx -------------------------------------------------------------------
 //
@@ -306,7 +305,6 @@ pub use ffi::{
 // IPREFIXCOLUMNS,
 // IPREFIXSTRLEN,
 
-
 // ncmultiselector -------------------------------------------------------------
 //
 // already wrapped:
@@ -350,12 +348,15 @@ pub use ffi::{
 // ncplane_channels,
 // ncplane_set_bchannel,
 // ncplane_set_fchannel,
-// ncplane_set_channels
+// ncplane_set_channels,
 //
 // // constants
 // NCPLANE_OPTION_HORALIGNED,
 // NCPLANE_OPTION_MARGINALIZED,
-// NCPLANE_OPTION_VERALIGNED
+// NCPLANE_OPTION_VERALIGNED,
+//
+// // type alias
+// ncdirectv,
 
 #[doc(inline)]
 pub use ffi::{
@@ -538,7 +539,7 @@ pub use ffi::{
 // ncprogbar_options,
 //
 // // constants
-// NCPROGBAR_OPTION_RETROGRADE
+// NCPROGBAR_OPTION_RETROGRADE,
 
 #[doc(inline)]
 pub use ffi::{
@@ -675,6 +676,13 @@ pub use ffi::{
     nctree_redraw,
 };
 
+// ncvgeom ---------------------------------------------------------------------
+//
+// already wrapped:
+//
+// // structs
+// ncvgeom
+
 // ncvisual --------------------------------------------------------------------
 //
 // already wrapped:
@@ -689,7 +697,7 @@ pub use ffi::{
 // NCVISUAL_OPTION_CHILDPLANE
 // NCVISUAL_OPTION_HORALIGNED
 // NCVISUAL_OPTION_NODEGRADE,
-// NCVISUAL_OPTION_VERALIGNED
+// NCVISUAL_OPTION_VERALIGNED,
 
 #[doc(inline)]
 pub use ffi::{
@@ -825,4 +833,4 @@ pub use ffi::{
 // already wrapped:
 //
 // // types
-// fadecb
+// fadecb,
