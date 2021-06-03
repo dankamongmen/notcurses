@@ -42,6 +42,12 @@ tinfo_debug_caps(const tinfo* ti, FILE* debugfp, int rows, int cols,
           indent, capbool(ti->utf8), capbool(ti->quadrants),
           capbool(ti->sextants), capbool(ti->braille),
           capbool(images), capbool(videos));
+  if(ti->utf8){
+    fprintf(debugfp, "%sQuads: %ls\n", indent, get_blitter_egcs(NCBLIT_2x2));
+    fprintf(debugfp, "%sSextants: %ls\n", indent, get_blitter_egcs(NCBLIT_3x2));
+    fprintf(debugfp, "%sBraille: %ls\n", indent, get_blitter_egcs(NCBLIT_BRAILLE));
+    fprintf(debugfp, "%sBottom eighths: %ls\n", indent, get_blitter_egcs(NCBLIT_8x1));
+  }
   if(ti->bg_collides_default){
     fprintf(debugfp, "%sbackground of 0x%06lx is considered transparent\n", indent, ti->bg_collides_default & 0xfffffful);
   }else{
