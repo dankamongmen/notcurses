@@ -445,8 +445,8 @@ ncdirect_init(). Returns NULL on error.</p>
 the result. The image may be arbitrarily many rows -- the output will scroll
 -- but will only occupy the column of the cursor, and those to the right.
 To actually write (and free) this, invoke ncdirect_raster_frame(). 'maxx'
-and 'maxy', if greater than 0, are used for scaling; the terminal's geometry
-is otherwise used.</p>
+and 'maxy' (cell geometry, <em>not</em> pixel), if greater than 0, are used for
+scaling; the terminal's geometry is otherwise used.</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.ncdirect_render_image.html" title='libnotcurses_sys::ncdirect_render_image fn'>ncdirect_render_image</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>Display an image using the specified blitter and scaling. The image may
 be arbitrarily many rows -- the output will scroll -- but will only occupy
 the column of the cursor, and those to the right. The render/raster process
@@ -546,10 +546,16 @@ cell is invalidated if the associated plane is destroyed. Returns the number
 of bytes in the EGC, or -1 on error.</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.ncplane_at_yx.html" title='libnotcurses_sys::ncplane_at_yx fn'>ncplane_at_yx</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>Retrieve the current contents of the specified cell. The EGC is returned, or
 NULL on error. This EGC must be free()d by the caller. The stylemask and
-channels are written to 'stylemask' and 'channels', respectively.</p>
+channels are written to 'stylemask' and 'channels', respectively. The return
+represents how the cell will be used during rendering, and thus integrates
+any base cell where appropriate. If called upon the secondary columns of a
+wide glyph, the EGC will be returned (i.e. this function does not distinguish
+between the primary and secondary columns of a wide glyph).</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.ncplane_at_yx_cell.html" title='libnotcurses_sys::ncplane_at_yx_cell fn'>ncplane_at_yx_cell</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>Retrieve the current contents of the specified cell into 'c'. This cell is
 invalidated if the associated plane is destroyed. Returns the number of
-bytes in the EGC, or -1 on error.</p>
+bytes in the EGC, or -1 on error. Unlike ncplane_at_yx(), when called upon
+the secondary columns of a wide glyph, the return can be distinguished from
+the primary column (nccell_wide_right_p(c) will return true).</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.ncplane_base.html" title='libnotcurses_sys::ncplane_base fn'>ncplane_base</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>Extract the ncplane's base nccell into 'c'. The reference is invalidated if
 'ncp' is destroyed.</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.ncplane_bchannel.html" title='libnotcurses_sys::ncplane_bchannel fn'>ncplane_bchannel</a></td><td class='docblock-short'><p>Gets the background <a href="../libnotcurses_sys/type.NcChannel.html" title="NcChannel">NcChannel</a> from an <a href="../libnotcurses_sys/type.NcPlane.html" title="NcPlane">NcPlane</a>.</p>
@@ -1008,9 +1014,12 @@ Returns -1 on error, 0 for no support, or 1 if pixel output is supported.
 Must not be called concurrently with either input or rasterization.</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.notcurses_core_init.html" title='libnotcurses_sys::notcurses_core_init fn'>notcurses_core_init</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>The same as notcurses_init(), but without any multimedia functionality,
 allowing for a svelter binary. Link with notcurses-core if this is used.</p>
-</td></tr><tr class='module-item'><td><a class="fn" href="fn.notcurses_cursor_disable.html" title='libnotcurses_sys::notcurses_cursor_disable fn'>notcurses_cursor_disable</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'></td></tr><tr class='module-item'><td><a class="fn" href="fn.notcurses_cursor_enable.html" title='libnotcurses_sys::notcurses_cursor_enable fn'>notcurses_cursor_enable</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>Enable or disable the terminal's cursor, if supported, placing it at
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.notcurses_cursor_disable.html" title='libnotcurses_sys::notcurses_cursor_disable fn'>notcurses_cursor_disable</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>Disable the hardware cursor. It is an error to call this while the
+cursor is already disabled.</p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.notcurses_cursor_enable.html" title='libnotcurses_sys::notcurses_cursor_enable fn'>notcurses_cursor_enable</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>Enable or disable the terminal's cursor, if supported, placing it at
 'y', 'x'. Immediate effect (no need for a call to notcurses_render()).
-It is an error if 'y', 'x' lies outside the standard plane.</p>
+It is an error if 'y', 'x' lies outside the standard plane. Can be
+called while already visible to move the cursor.</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.notcurses_debug.html" title='libnotcurses_sys::notcurses_debug fn'>notcurses_debug</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>Dump selected Notcurses state to the supplied 'debugfp'. Output is freeform,
 newline-delimited, and subject to change. It includes geometry of all
 planes, from all piles. No line has more than 80 columns' worth of output.</p>

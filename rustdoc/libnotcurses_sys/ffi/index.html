@@ -194,8 +194,8 @@ ncdirect_init(). Returns NULL on error.</p>
 the result. The image may be arbitrarily many rows -- the output will scroll
 -- but will only occupy the column of the cursor, and those to the right.
 To actually write (and free) this, invoke ncdirect_raster_frame(). 'maxx'
-and 'maxy', if greater than 0, are used for scaling; the terminal's geometry
-is otherwise used.</p>
+and 'maxy' (cell geometry, <em>not</em> pixel), if greater than 0, are used for
+scaling; the terminal's geometry is otherwise used.</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.ncdirect_render_image.html" title='libnotcurses_sys::ffi::ncdirect_render_image fn'>ncdirect_render_image</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>Display an image using the specified blitter and scaling. The image may
 be arbitrarily many rows -- the output will scroll -- but will only occupy
 the column of the cursor, and those to the right. The render/raster process
@@ -207,7 +207,11 @@ not be intermixed with standard Notcurses rendering.</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.ncdirect_set_styles.html" title='libnotcurses_sys::ffi::ncdirect_set_styles fn'>ncdirect_set_styles</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>ncplane_styles_*() analogues</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.ncdirect_stop.html" title='libnotcurses_sys::ffi::ncdirect_stop fn'>ncdirect_stop</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>Release 'nc' and any associated resources. 0 on success, non-0 on failure.</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.ncdirect_stream.html" title='libnotcurses_sys::ffi::ncdirect_stream fn'>ncdirect_stream</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>Load successive frames from a file, invoking 'streamer' on each.</p>
-</td></tr><tr class='module-item'><td><a class="fn" href="fn.ncdirect_styles_off.html" title='libnotcurses_sys::ffi::ncdirect_styles_off fn'>ncdirect_styles_off</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'></td></tr><tr class='module-item'><td><a class="fn" href="fn.ncdirect_styles_on.html" title='libnotcurses_sys::ffi::ncdirect_styles_on fn'>ncdirect_styles_on</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'></td></tr><tr class='module-item'><td><a class="fn" href="fn.ncdirect_styles_set.html" title='libnotcurses_sys::ffi::ncdirect_styles_set fn'>ncdirect_styles_set</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>Deprecated forms of above.</p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.ncdirect_styles.html" title='libnotcurses_sys::ffi::ncdirect_styles fn'>ncdirect_styles</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'></td></tr><tr class='module-item'><td><a class="fn" href="fn.ncdirect_styles_off.html" title='libnotcurses_sys::ffi::ncdirect_styles_off fn'>ncdirect_styles_off</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'></td></tr><tr class='module-item'><td><a class="fn" href="fn.ncdirect_styles_on.html" title='libnotcurses_sys::ffi::ncdirect_styles_on fn'>ncdirect_styles_on</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'></td></tr><tr class='module-item'><td><a class="fn" href="fn.ncdirect_styles_set.html" title='libnotcurses_sys::ffi::ncdirect_styles_set fn'>ncdirect_styles_set</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>Deprecated forms of above.</p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.ncdirect_supported_styles.html" title='libnotcurses_sys::ffi::ncdirect_supported_styles fn'>ncdirect_supported_styles</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>Returns a 16-bit bitmask of supported curses-style attributes
+(NCSTYLE_UNDERLINE, NCSTYLE_BOLD, etc.) The attribute is only
+indicated as supported if the terminal can support it together with color.
+For more information, see the &quot;ncv&quot; capability in terminfo(5).</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.ncdirect_vline_interp.html" title='libnotcurses_sys::ffi::ncdirect_vline_interp fn'>ncdirect_vline_interp</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'></td></tr><tr class='module-item'><td><a class="fn" href="fn.ncdirectf_free.html" title='libnotcurses_sys::ffi::ncdirectf_free fn'>ncdirectf_free</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>Free a ncdirectf returned from ncdirectf_from_file().</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.ncdirectf_from_file.html" title='libnotcurses_sys::ffi::ncdirectf_from_file fn'>ncdirectf_from_file</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>Load media from disk, but do not yet render it (presumably because you want
 to get its geometry via ncdirect_geom_frame(), or to use the same file with
@@ -286,10 +290,16 @@ cell is invalidated if the associated plane is destroyed. Returns the number
 of bytes in the EGC, or -1 on error.</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.ncplane_at_yx.html" title='libnotcurses_sys::ffi::ncplane_at_yx fn'>ncplane_at_yx</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>Retrieve the current contents of the specified cell. The EGC is returned, or
 NULL on error. This EGC must be free()d by the caller. The stylemask and
-channels are written to 'stylemask' and 'channels', respectively.</p>
+channels are written to 'stylemask' and 'channels', respectively. The return
+represents how the cell will be used during rendering, and thus integrates
+any base cell where appropriate. If called upon the secondary columns of a
+wide glyph, the EGC will be returned (i.e. this function does not distinguish
+between the primary and secondary columns of a wide glyph).</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.ncplane_at_yx_cell.html" title='libnotcurses_sys::ffi::ncplane_at_yx_cell fn'>ncplane_at_yx_cell</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>Retrieve the current contents of the specified cell into 'c'. This cell is
 invalidated if the associated plane is destroyed. Returns the number of
-bytes in the EGC, or -1 on error.</p>
+bytes in the EGC, or -1 on error. Unlike ncplane_at_yx(), when called upon
+the secondary columns of a wide glyph, the return can be distinguished from
+the primary column (nccell_wide_right_p(c) will return true).</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.ncplane_base.html" title='libnotcurses_sys::ffi::ncplane_base fn'>ncplane_base</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>Extract the ncplane's base nccell into 'c'. The reference is invalidated if
 'ncp' is destroyed.</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.ncplane_below.html" title='libnotcurses_sys::ffi::ncplane_below fn'>ncplane_below</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>Return the plane below this one, or NULL if this is at the bottom.</p>
@@ -766,9 +776,13 @@ Returns -1 on error, 0 for no support, or 1 if pixel output is supported.
 Must not be called concurrently with either input or rasterization.</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.notcurses_core_init.html" title='libnotcurses_sys::ffi::notcurses_core_init fn'>notcurses_core_init</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>The same as notcurses_init(), but without any multimedia functionality,
 allowing for a svelter binary. Link with notcurses-core if this is used.</p>
-</td></tr><tr class='module-item'><td><a class="fn" href="fn.notcurses_cursor_disable.html" title='libnotcurses_sys::ffi::notcurses_cursor_disable fn'>notcurses_cursor_disable</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'></td></tr><tr class='module-item'><td><a class="fn" href="fn.notcurses_cursor_enable.html" title='libnotcurses_sys::ffi::notcurses_cursor_enable fn'>notcurses_cursor_enable</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>Enable or disable the terminal's cursor, if supported, placing it at
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.notcurses_cursor_disable.html" title='libnotcurses_sys::ffi::notcurses_cursor_disable fn'>notcurses_cursor_disable</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>Disable the hardware cursor. It is an error to call this while the
+cursor is already disabled.</p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.notcurses_cursor_enable.html" title='libnotcurses_sys::ffi::notcurses_cursor_enable fn'>notcurses_cursor_enable</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>Enable or disable the terminal's cursor, if supported, placing it at
 'y', 'x'. Immediate effect (no need for a call to notcurses_render()).
-It is an error if 'y', 'x' lies outside the standard plane.</p>
+It is an error if 'y', 'x' lies outside the standard plane. Can be
+called while already visible to move the cursor.</p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.notcurses_cursor_yx.html" title='libnotcurses_sys::ffi::notcurses_cursor_yx fn'>notcurses_cursor_yx</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>Get the current location of the terminal's cursor, whether visible or not.</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.notcurses_debug.html" title='libnotcurses_sys::ffi::notcurses_debug fn'>notcurses_debug</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td><td class='docblock-short'><p>Dump selected Notcurses state to the supplied 'debugfp'. Output is freeform,
 newline-delimited, and subject to change. It includes geometry of all
 planes, from all piles. No line has more than 80 columns' worth of output.</p>
