@@ -319,10 +319,6 @@ int ffmpeg_resize(ncvisual* n, int rows, int cols){
   if((uint32_t*)sframe->data[0] != n->data){
 //fprintf(stderr, "SETTING UP RESIZE %p\n", n->data);
     ncvisual_set_data(n, sframe->data[0], true);
-    if(n->details->frame){
-      // FIXME av_freep(&n->details->frame->data[0]);
-      av_freep(&n->details->frame);
-    }
   }
   n->details->frame = sframe;
 
