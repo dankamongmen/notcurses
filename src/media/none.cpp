@@ -78,10 +78,6 @@ void none_details_seed(ncvisual* ncv){
   (void)ncv;
 }
 
-void none_details_destroy(struct ncvisual_details* ncv){
-  (void)ncv;
-}
-
 int none_init(int loglevel __attribute__ ((unused))) {
   return 0; // allow success here
 }

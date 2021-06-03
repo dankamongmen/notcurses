@@ -647,6 +647,10 @@ void ffmpeg_details_destroy(ncvisual_details* deets){
 void ffmpeg_destroy(ncvisual* ncv){
   if(ncv){
     ffmpeg_details_destroy(ncv->details);
+    if(ncv->owndata){
+      free(ncv->data);
+    }
+    free(ncv);
   }
 }
 
