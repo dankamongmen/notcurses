@@ -4,13 +4,56 @@
 #include "visual-details.h"
 #include "internal.h"
 
+// ncvisual core code has a basic implementation in libnotcurses-core, and can
+// be augmented with a "multimedia engine" -- currently FFmpeg or OpenImageIO,
+// or the trivial "none" engine. all libnotcurses (built against one of these
+// engines, selected at compile time) actually does is set this
+// visual_implementation pointer, and then call libnotcurses_core_init(). the
+// "none" implementation exists to facilitate linking programs written against
+// libnotcurses in environments without a true multimedia engine, and does not
+// set this pointer. all this machination exists to support building notcurses
+// (and running notcurses programs) without the need of heavy media engines.
+
 const ncvisual_implementation* visual_implementation = NULL;
 
+// you need an actual multimedia implementation for functions which work with
+// codecs, including ncvisual_decode(), ncvisual_decode_loop(),
+// ncvisual_from_file(), ncvisual_stream(), and ncvisual_subtitle().
 int ncvisual_decode(ncvisual* nc){
   if(!visual_implementation){
     return -1;
   }
   return visual_implementation->visual_decode(nc);
+}
+
+int ncvisual_decode_loop(ncvisual* nc){
+  if(!visual_implementation){
+    return -1;
+  }
+  return visual_implementation->visual_decode_loop(nc);
+}
+
+ncvisual* ncvisual_from_file(const char* filename){
+  if(!visual_implementation){
+    return NULL;
+  }
+  return visual_implementation->visual_from_file(filename);
+}
+
+int ncvisual_stream(notcurses* nc, ncvisual* ncv, float timescale,
+                    ncstreamcb streamer, const struct ncvisual_options* vopts,
+                    void* curry){
+  if(!visual_implementation){
+    return -1;
+  }
+  return visual_implementation->visual_stream(nc, ncv, timescale, streamer, vopts, curry);
+}
+
+char* ncvisual_subtitle(const ncvisual* ncv){
+  if(!visual_implementation){
+    return NULL;
+  }
+  return visual_implementation->visual_subtitle(ncv);
 }
 
 int ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
@@ -37,18 +80,12 @@ void ncvisual_details_seed(struct ncvisual* ncv){
   }
 }
 
+// to be called at startup -- performs any necessary engine initialization.
 int ncvisual_init(int loglevel){
   if(visual_implementation){
     return visual_implementation->visual_init(loglevel);
   }
   return 0;
-}
-
-ncvisual* ncvisual_from_file(const char* filename){
-  if(!visual_implementation){
-    return NULL;
-  }
-  return visual_implementation->visual_from_file(filename);
 }
 
 ncvisual* ncvisual_create(void){
@@ -63,6 +100,9 @@ ncvisual* ncvisual_create(void){
 void ncvisual_printbanner(const notcurses* nc){
   if(visual_implementation){
     visual_implementation->visual_printbanner(nc);
+  }else{
+    term_fg_palindex(nc, stderr, nc->tcache.colors <= 88 ? 1 % nc->tcache.colors : 0xcb);
+    fprintf(stderr, "\n Warning! Notcurses was built without multimedia support.\n");
   }
 }
 
@@ -1059,29 +1099,6 @@ bool notcurses_canopen_videos(const notcurses* nc __attribute__ ((unused))){
     return false;
   }
   return visual_implementation->canopen_videos;
-}
-
-int ncvisual_decode_loop(ncvisual* nc){
-  if(!visual_implementation){
-    return -1;
-  }
-  return visual_implementation->visual_decode_loop(nc);
-}
-
-int ncvisual_stream(notcurses* nc, ncvisual* ncv, float timescale,
-                    ncstreamcb streamer, const struct ncvisual_options* vopts,
-                    void* curry){
-  if(!visual_implementation){
-    return -1;
-  }
-  return visual_implementation->visual_stream(nc, ncv, timescale, streamer, vopts, curry);
-}
-
-char* ncvisual_subtitle(const ncvisual* ncv){
-  if(!visual_implementation){
-    return NULL;
-  }
-  return visual_implementation->visual_subtitle(ncv);
 }
 
 int ncvisual_inflate(ncvisual* n, int scale){
