@@ -170,7 +170,8 @@ TEST_CASE("Visual") {
   SUBCASE("LoadRGBAFromMemory") {
     int dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
-    std::vector<uint32_t> rgba(dimx * dimy * 2, 0xff88bbcc);
+    // alpha, then b, g, r
+    std::vector<uint32_t> rgba(dimx * dimy * 2, htole(0xff88bbcc));
     auto ncv = ncvisual_from_rgba(rgba.data(), dimy * 2, dimx * 4, dimx);
     REQUIRE(ncv);
     struct ncvisual_options opts{};
@@ -195,7 +196,9 @@ TEST_CASE("Visual") {
   SUBCASE("LoadBGRAFromMemory") {
     int dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
-    std::vector<uint32_t> rgba(dimx * dimy * 2, 0xff88bbcc);
+    // A should be at the highest memory address, which would be the most
+    // significant byte on little-endian. then r, g, b.
+    std::vector<uint32_t> rgba(dimx * dimy * 2, htole(0xff88bbcc));
     auto ncv = ncvisual_from_bgra(rgba.data(), dimy * 2, dimx * 4, dimx);
     REQUIRE(ncv);
     struct ncvisual_options opts{};
