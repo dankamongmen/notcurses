@@ -364,22 +364,34 @@ err:
 
 // FIXME need unit tests on this
 // FIXME can read a character not intended for it
+// we'll get a trailing Device Attributes response, because we write
+// XTSMGRAPHICS followed by a DA query, in case the former isn't supported
+// (we'd otherwise hang looking for input).
 static int
 read_xtsmgraphics_reply(int fd, int* val2){
   char in;
-  // return is of the form CSI ? Pi ; 0 ; Pv S
+  // return is of the form CSI ? Pi ; Ps ; Pv S
+  // Pi: 1 color registers, 2 sixel, 3 regis
+  // Pa: 1 read, 2 reset, 3 set to Pv, 4 read maximum
+  // Pv: n for color registers, width;height for geometry
+  // Ps: 0 success, 1 bad Pi, 2 bad Pa, 3 failure
   enum {
     WANT_CSI,
     WANT_QMARK,
+    WANT_PI,
     WANT_SEMI1,
     WANT_SEMI2,
     WANT_PV1,
     WANT_PV2,
-    DONE
+    DONE,
   } state = WANT_CSI;
   int pv = 0;
+  int pi = 0;
   while(read(fd, &in, 1) == 1){
 //fprintf(stderr, "READ: %c 0x%02x\n", in, in);
+    if(in == 'c'){ // should match the end of DA
+      break;
+    }
     switch(state){
       case WANT_CSI:
         if(in == NCKEY_ESC){
@@ -388,6 +400,16 @@ read_xtsmgraphics_reply(int fd, int* val2){
         break;
       case WANT_QMARK:
         if(in == '?'){
+          state = WANT_PI;
+        }
+        break;
+      case WANT_PI:
+        if(!isdigit(in)){
+          break;
+        }
+        pi *= 10;
+        pi += in - '0';
+        if(pi >= 1 && pi <= 3){
           state = WANT_SEMI1;
         }
         break;
@@ -424,11 +446,10 @@ read_xtsmgraphics_reply(int fd, int* val2){
       default:
         break;
     }
-    if(state == DONE){
-      if(pv >= 0 && (!val2 || *val2 >= 0)){
-        return pv;
-      }
-      break;
+  }
+  if(state == DONE){
+    if(pv >= 0 && (!val2 || *val2 >= 0)){
+      return pv;
     }
   }
   return -1;
