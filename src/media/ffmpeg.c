@@ -526,8 +526,9 @@ int ffmpeg_resize(ncvisual* n, int rows, int cols){
   n->rowstride = sframe->linesize[0];
   n->pixy = rows;
   n->pixx = cols;
-//fprintf(stderr, "SETTING UP RESIZE %p\n", n->data);
-  av_frame_unref(n->details->frame);
+  if(n->owndata){
+    av_frame_unref(n->details->frame);
+  }
   ncvisual_set_data(n, sframe->data[0], true);
   n->details->frame = sframe;
 //fprintf(stderr, "SIZE SCALED: %d %d (%u)\n", n->details->frame->height, n->details->frame->width, n->details->frame->linesize[0]);
