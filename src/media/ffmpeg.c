@@ -523,16 +523,12 @@ int ffmpeg_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
 //print_frame_summary(NULL, inframe);
   void* data = NULL;
   int stride = 0;
-  AVFrame* sframe = NULL;
   const int targformat = AV_PIX_FMT_RGBA;
+  // necessitated by ffmpeg AVPicture API
+  uint8_t* dptrs[4] = {};
 //fprintf(stderr, "got format: %d (%d/%d) want format: %d\n", inframe->format, inframe->height, inframe->width, targformat);
   if(inframe && (cols != inframe->width || rows != inframe->height || inframe->format != targformat)){
 //fprintf(stderr, "resize+render: %d/%d->%d/%d\n", inframe->height, inframe->width, rows, cols);
-    sframe = av_frame_alloc();
-    if(sframe == NULL){
-//fprintf(stderr, "Couldn't allocate output frame for scaled frame\n");
-      return -1;
-    }
 //fprintf(stderr, "WHN NCV: %d/%d bargslen: %d/%d\n", inframe->width, inframe->height, bargs->leny, bargs->lenx);
     const int srclenx = bargs->lenx ? bargs->lenx : inframe->width;
     const int srcleny = bargs->leny ? bargs->leny : inframe->height;
@@ -546,47 +542,36 @@ int ffmpeg_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
 //fprintf(stderr, "Error retrieving details->swsctx\n");
       return -1;
     }
-    memcpy(sframe, inframe, sizeof(*inframe));
-    sframe->format = targformat;
-    sframe->width = cols;
-    sframe->height = rows;
-    int size = av_image_alloc(sframe->data, sframe->linesize,
-                              sframe->width, sframe->height,
-                              sframe->format,
-                              IMGALLOCALIGN);
+    int dlinesizes[4];
+    int size = av_image_alloc(dptrs, dlinesizes, cols, rows, targformat, IMGALLOCALIGN);
     if(size < 0){
 //fprintf(stderr, "Error allocating visual data (%d X %d)\n", sframe->height, sframe->width);
       return -1;
     }
 //fprintf(stderr, "INFRAME DAA: %p SDATA: %p FDATA: %p to %d/%d\n", inframe->data[0], sframe->data[0], ncv->details->frame->data[0], sframe->height, sframe->width);
     int height = sws_scale(ncv->details->swsctx, (const uint8_t* const*)inframe->data,
-                           inframe->linesize, 0, srcleny, sframe->data,
-                           sframe->linesize);
+                           inframe->linesize, 0, srcleny, dptrs, dlinesizes);
     if(height < 0){
 //fprintf(stderr, "Error applying scaling (%d X %d)\n", inframe->height, inframe->width);
       return -1;
     }
-    stride = sframe->linesize[0]; // FIXME check for others?
-    data = sframe->data[0];
-//fprintf(stderr, "scaled %d/%d to %d/%d (%d/%d)\n", ncv->pixy, ncv->pixx, rows, cols, sframe->height, sframe->width);
+    stride = dlinesizes[0]; // FIXME check for others?
+    data = dptrs[0];
+//fprintf(stderr, "scaled %d/%d to %d/%d\n", ncv->pixy, ncv->pixx, rows, cols);
   }else{
     stride = ncv->rowstride;
     data = ncv->data;
   }
 //fprintf(stderr, "rows/cols: %d/%d\n", rows, cols);
+  int ret = 0;
   if(rgba_blit_dispatch(n, bset, stride, data, rows, cols, bargs) < 0){
 //fprintf(stderr, "rgba dispatch failed!\n");
-    if(sframe){
-      av_freep(&sframe->data[0]);
-      av_freep(&sframe);
-    }
-    return -1;
+    ret = -1;
   }
-  if(sframe){
-    av_freep(&sframe->data[0]);
-    av_freep(&sframe);
+  if(dptrs[0]){
+    av_freep(&dptrs[0]);
   }
-  return 0;
+  return ret;
 }
 
 void ffmpeg_details_seed(ncvisual* ncv){
