@@ -87,18 +87,16 @@ typedef enum {
 
 // How to scale an ncvisual during rendering. NCSCALE_NONE will apply no
 // scaling. NCSCALE_SCALE scales a visual to the plane's size, maintaining
-// aspect ratio. NCSCALE_INFLATE does the same, but without interpolation.
-// NCSCALE_STRETCH stretches and scales the image in an attempt to fill the
-// entirety of the plane. NCSCALE_NONE_HIRES and NCSCALE_SCALE_HIRES behave
-// like their counterparts, but admit blitters which don't preserve aspect
-// ratio.
+// aspect ratio. NCSCALE_STRETCH stretches and scales the image in an attempt
+// to fill the entirety of the plane. NCSCALE_NONE_HIRES and
+// NCSCALE_SCALE_HIRES behave like their counterparts, but admit blitters
+// which don't preserve aspect ratio.
 typedef enum {
   NCSCALE_NONE,
   NCSCALE_SCALE,
   NCSCALE_STRETCH,
   NCSCALE_NONE_HIRES,
   NCSCALE_SCALE_HIRES,
-  NCSCALE_INFLATE,
 } ncscale_e;
 
 // Returns the number of columns occupied by a multibyte (UTF-8) string, or

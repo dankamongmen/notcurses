@@ -2540,8 +2540,6 @@ lex_long(const char* op, int* i, char** endptr){
 int notcurses_lex_scalemode(const char* op, ncscale_e* scalemode){
   if(strcasecmp(op, "stretch") == 0){
     *scalemode = NCSCALE_STRETCH;
-  }else if(strcasecmp(op, "inflate") == 0){
-    *scalemode = NCSCALE_INFLATE;
   }else if(strcasecmp(op, "scalehi") == 0){
     *scalemode = NCSCALE_SCALE_HIRES;
   }else if(strcasecmp(op, "hires") == 0){
@@ -2559,8 +2557,6 @@ int notcurses_lex_scalemode(const char* op, ncscale_e* scalemode){
 const char* notcurses_str_scalemode(ncscale_e scalemode){
   if(scalemode == NCSCALE_STRETCH){
     return "stretch";
-  }else if(scalemode == NCSCALE_INFLATE){
-    return "inflate";
   }else if(scalemode == NCSCALE_SCALE){
     return "scale";
   }else if(scalemode == NCSCALE_NONE){

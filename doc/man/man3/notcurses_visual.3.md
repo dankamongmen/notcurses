@@ -16,7 +16,6 @@ typedef enum {
   NCSCALE_STRETCH,
   NCSCALE_NONE_HIRES,
   NCSCALE_SCALE_HIRES,
-  NCSCALE_INFLATE,
 } ncscale_e;
 
 typedef enum {
