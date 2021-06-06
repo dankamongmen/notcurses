@@ -217,7 +217,7 @@ TEST_CASE("Bitmaps") {
 
 #ifdef NOTCURSES_USE_MULTIMEDIA
   SUBCASE("PixelRender") {
-    auto ncv = ncvisual_from_file(find_data("worldmap.png"));
+    auto ncv = ncvisual_from_file(find_data("worldmap.png").get());
     REQUIRE(ncv);
     struct ncvisual_options vopts{};
     vopts.blitter = NCBLIT_PIXEL;
@@ -588,7 +588,7 @@ TEST_CASE("Bitmaps") {
     ncchannels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
     ncchannels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
     CHECK(0 == ncplane_set_base(n_, "", 0, channels));
-    auto ncv = ncvisual_from_file(find_data("worldmap.png"));
+    auto ncv = ncvisual_from_file(find_data("worldmap.png").get());
     REQUIRE(ncv);
     struct ncvisual_options vopts{};
     vopts.blitter = NCBLIT_PIXEL;

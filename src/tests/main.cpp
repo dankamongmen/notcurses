@@ -25,10 +25,13 @@ auto testing_notcurses() -> struct notcurses* {
   return nc;
 }
 
-auto find_data(const char* datum) -> char* {
+template <typename T> using uniqptr = std::unique_ptr<T,free_deleter>;
+
+auto find_data(const char* datum) -> uniqptr<char> {
   std::filesystem::path p = datadir;
   p /= datum;
-  return strdup(p.c_str());
+  uniqptr<char> uptr(strdup(p.c_str()));
+  return uptr;
 }
 
 auto is_test_tty() -> bool {
@@ -66,12 +69,10 @@ check_data_dir(){
     return -1;
   }
   struct stat s;
-  if(stat(p, &s)){
-    std::cerr << "Couldn't open " << p << ". Supply directory with -p." << std::endl;
-    free(p);
+  if(stat(p.get(), &s)){
+    std::cerr << "Couldn't open " << p.get() << ". Supply directory with -p." << std::endl;
     return -1;
   }
-  free(p);
   return 0;
 }
 

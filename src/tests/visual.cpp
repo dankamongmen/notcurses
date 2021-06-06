@@ -670,7 +670,7 @@ TEST_CASE("Visual") {
   SUBCASE("LoadImageCreatePlane") {
     int dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
-    auto ncv = ncvisual_from_file(find_data("changes.jpg"));
+    auto ncv = ncvisual_from_file(find_data("changes.jpg").get());
     REQUIRE(ncv);
     /*CHECK(dimy * 2 == frame->height);
     CHECK(dimx == frame->width); FIXME */
@@ -687,7 +687,7 @@ TEST_CASE("Visual") {
   SUBCASE("LoadImage") {
     int dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
-    auto ncv = ncvisual_from_file(find_data("changes.jpg"));
+    auto ncv = ncvisual_from_file(find_data("changes.jpg").get());
     REQUIRE(ncv);
     /*CHECK(dimy * 2 == frame->height);
     CHECK(dimx == frame->width); FIXME */
@@ -703,7 +703,7 @@ TEST_CASE("Visual") {
   SUBCASE("InflateImage") {
     int dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
-    auto ncv = ncvisual_from_file(find_data("changes.jpg"));
+    auto ncv = ncvisual_from_file(find_data("changes.jpg").get());
     REQUIRE(ncv);
     int odimy, odimx, ndimy, ndimx;
     struct ncvisual_options opts{};
@@ -723,7 +723,7 @@ TEST_CASE("Visual") {
   SUBCASE("PlaneDuplicate") {
     int dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
-    auto ncv = ncvisual_from_file(find_data("changes.jpg"));
+    auto ncv = ncvisual_from_file(find_data("changes.jpg").get());
     REQUIRE(ncv);
     /*CHECK(dimy * 2 == frame->height);
     CHECK(dimx == frame->width); FIXME */
@@ -749,7 +749,7 @@ TEST_CASE("Visual") {
     if(notcurses_canopen_videos(nc_)){
       int dimy, dimx;
       ncplane_dim_yx(ncp_, &dimy, &dimx);
-      auto ncv = ncvisual_from_file(find_data("notcursesIII.mkv"));
+      auto ncv = ncvisual_from_file(find_data("notcursesIII.mkv").get());
       REQUIRE(ncv);
       // FIXME can't we use use ncvisual_stream() here?
       for(;;){ // run at the highest speed we can
@@ -773,7 +773,7 @@ TEST_CASE("Visual") {
     if(notcurses_canopen_videos(nc_)){
       int dimy, dimx;
       ncplane_dim_yx(ncp_, &dimy, &dimx);
-      auto ncv = ncvisual_from_file(find_data("notcursesIII.mkv"));
+      auto ncv = ncvisual_from_file(find_data("notcursesIII.mkv").get());
       REQUIRE(ncv);
       for(;;){ // run at the highest speed we can
         int ret = ncvisual_decode(ncv);
@@ -797,7 +797,7 @@ TEST_CASE("Visual") {
     if(notcurses_canopen_videos(nc_)){
       int dimy, dimx;
       ncplane_dim_yx(ncp_, &dimy, &dimx);
-      auto ncv = ncvisual_from_file(find_data("notcursesIII.mkv"));
+      auto ncv = ncvisual_from_file(find_data("notcursesIII.mkv").get());
       REQUIRE(ncv);
       for(;;){ // run at the highest speed we can
         int ret = ncvisual_decode(ncv);
@@ -820,7 +820,7 @@ TEST_CASE("Visual") {
     if(notcurses_canopen_videos(nc_)){
       int dimy, dimx;
       ncplane_dim_yx(ncp_, &dimy, &dimx);
-      auto ncv = ncvisual_from_file(find_data("notcursesIII.mkv"));
+      auto ncv = ncvisual_from_file(find_data("notcursesIII.mkv").get());
       REQUIRE(ncv);
       for(;;){ // run at the highest speed we can
         int ret = ncvisual_decode(ncv);
@@ -843,7 +843,7 @@ TEST_CASE("Visual") {
     if(notcurses_canopen_videos(nc_)){
       int dimy, dimx;
       ncplane_dim_yx(ncp_, &dimy, &dimx);
-      auto ncv = ncvisual_from_file(find_data("notcursesIII.mkv"));
+      auto ncv = ncvisual_from_file(find_data("notcursesIII.mkv").get());
       REQUIRE(ncv);
       for(;;){ // run at the highest speed we can
         int ret = ncvisual_decode(ncv);
@@ -867,7 +867,7 @@ TEST_CASE("Visual") {
       if(notcurses_canopen_videos(nc_)){
         int dimy, dimx;
         ncplane_dim_yx(ncp_, &dimy, &dimx);
-        auto ncv = ncvisual_from_file(find_data("notcursesIII.mkv"));
+        auto ncv = ncvisual_from_file(find_data("notcursesIII.mkv").get());
         REQUIRE(ncv);
         struct ncplane* n = NULL;
         for(;;){ // run at the highest speed we can
@@ -895,7 +895,7 @@ TEST_CASE("Visual") {
       if(notcurses_canopen_videos(nc_)){
         int dimy, dimx;
         ncplane_dim_yx(ncp_, &dimy, &dimx);
-        auto ncv = ncvisual_from_file(find_data("notcursesIII.mkv"));
+        auto ncv = ncvisual_from_file(find_data("notcursesIII.mkv").get());
         REQUIRE(ncv);
         for(;;){ // run at the highest speed we can
           int ret = ncvisual_decode(ncv);
@@ -918,7 +918,7 @@ TEST_CASE("Visual") {
     if(notcurses_canopen_videos(nc_)){
       int dimy, dimx;
       ncplane_dim_yx(ncp_, &dimy, &dimx);
-      auto ncv = ncvisual_from_file(find_data("notcursesIII.mkv"));
+      auto ncv = ncvisual_from_file(find_data("notcursesIII.mkv").get());
       REQUIRE(ncv);
       int ret;
       while((ret = ncvisual_decode(ncv)) == 0){
@@ -945,7 +945,7 @@ TEST_CASE("Visual") {
     if(notcurses_canopen_videos(nc_)){
       int dimy, dimx;
       ncplane_dim_yx(ncp_, &dimy, &dimx);
-      auto ncv = ncvisual_from_file(find_data("notcursesIII.mkv"));
+      auto ncv = ncvisual_from_file(find_data("notcursesIII.mkv").get());
       REQUIRE(ncv);
       CHECK(0 == ncvisual_decode(ncv));
       /*CHECK(dimy * 2 == frame->height);
@@ -984,7 +984,7 @@ TEST_CASE("Visual") {
       .flags = NCVISUAL_OPTION_CHILDPLANE,
       .transcolor = 0,
     };
-    auto ncv = ncvisual_from_file(find_data("onedot.png"));
+    auto ncv = ncvisual_from_file(find_data("onedot.png").get());
     REQUIRE(ncv);
     auto child = ncvisual_render(nc_, ncv, &vopts);
     REQUIRE(child);
