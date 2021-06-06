@@ -2429,7 +2429,9 @@ API ALLOC struct ncvisual* ncvisual_from_file(const char* file);
 API ALLOC struct ncvisual* ncvisual_from_rgba(const void* rgba, int rows,
                                               int rowstride, int cols);
 
-// ncvisual_from_rgba(), but 'bgra' is arranged as BGRA.
+// ncvisual_from_rgba(), but 'bgra' is arranged as BGRA. note that this is a
+// byte-oriented layout, despite being bunched in 32-bit pixels; the lowest
+// memory address ought be B, and A is reached by adding 3 to that address.
 API ALLOC struct ncvisual* ncvisual_from_bgra(const void* bgra, int rows,
                                               int rowstride, int cols);
 
