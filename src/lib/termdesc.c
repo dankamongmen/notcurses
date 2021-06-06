@@ -573,7 +573,9 @@ query_sixel(tinfo* ti, int fd){
     }
   }
   if(ti->bitmap_supported){
-    query_sixel_details(ti, fd);
+    if(query_sixel_details(ti, fd)){
+      ti->bitmap_supported = false;
+    }
   }
   return 0;
 }
