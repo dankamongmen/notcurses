@@ -508,8 +508,8 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx,
 
 // Kitty graphics blitter. Kitty can take in up to 4KiB at a time of (optionally
 // deflate-compressed) 24bit RGB. Returns -1 on error, 1 on success.
-int kitty_blit(ncplane* n, int linesize, const void* data,
-               int leny, int lenx, const blitterargs* bargs){
+int kitty_blit(ncplane* n, int linesize, const void* data, int leny, int lenx,
+               const blitterargs* bargs, int bpp __attribute__ ((unused))){
   int cols = bargs->u.pixel.spx->dimx;
   int rows = bargs->u.pixel.spx->dimy;
   char* buf = NULL;
