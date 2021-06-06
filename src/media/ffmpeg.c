@@ -41,6 +41,10 @@ typedef struct ncvisual_details {
 
 /*static void
 print_frame_summary(const AVCodecContext* cctx, const AVFrame* f){
+  if(f == NULL){
+    fprintf(stderr, "NULL frame\n");
+    return;
+  }
   char pfmt[128];
   av_get_pix_fmt_string(pfmt, sizeof(pfmt), f->format);
   fprintf(stderr, "Frame %05d %p (%d? %d?) %dx%d pfmt %d (%s)\n",
@@ -516,60 +520,68 @@ int ffmpeg_decode_loop(ncvisual* ncv){
   return r;
 }
 
+uint32_t* ffmpeg_resize_internal(const ncvisual* ncv, int rows, int* stride,
+                                 int cols, const blitterargs* bargs){
+  const AVFrame* inframe = ncv->details->frame;
+//print_frame_summary(NULL, inframe);
+  const int targformat = AV_PIX_FMT_RGBA;
+//fprintf(stderr, "got format: %d (%d/%d) want format: %d (%d/%d)\n", inframe->format, inframe->height, inframe->width, targformat, rows, cols);
+  // FIXME need account for beg{y,x} here, no?
+  if(cols == inframe->width && rows == inframe->height && inframe->format == targformat){
+    // no change necessary. return original data -- we don't duplicate.
+    *stride = ncv->rowstride;
+    return ncv->data;
+  }
+  const int srclenx = bargs->lenx ? bargs->lenx : inframe->width;
+  const int srcleny = bargs->leny ? bargs->leny : inframe->height;
+//fprintf(stderr, "src %d/%d -> targ %d/%d ctx: %p\n", srcleny, srclenx, rows, cols, ncv->details->swsctx);
+  ncv->details->swsctx = sws_getCachedContext(ncv->details->swsctx,
+                                              srclenx, srcleny,
+                                              inframe->format,
+                                              cols, rows, targformat,
+                                              SWS_LANCZOS, NULL, NULL, NULL);
+  if(ncv->details->swsctx == NULL){
+//fprintf(stderr, "Error retrieving details->swsctx\n");
+    return NULL;
+  }
+  // necessitated by ffmpeg AVPicture API
+  uint8_t* dptrs[4] = {}; // FIXME kill initializer?
+  int dlinesizes[4];
+  int size = av_image_alloc(dptrs, dlinesizes, cols, rows, targformat, IMGALLOCALIGN);
+  if(size < 0){
+//fprintf(stderr, "Error allocating visual data (%d X %d)\n", sframe->height, sframe->width);
+    return NULL;
+  }
+//fprintf(stderr, "INFRAME DAA: %p SDATA: %p FDATA: %p to %d/%d\n", inframe->data[0], sframe->data[0], ncv->details->frame->data[0], sframe->height, sframe->width);
+  int height = sws_scale(ncv->details->swsctx, (const uint8_t* const*)inframe->data,
+                         inframe->linesize, 0, srcleny, dptrs, dlinesizes);
+  if(height < 0){
+//fprintf(stderr, "Error applying scaling (%d X %d)\n", inframe->height, inframe->width);
+    av_freep(&dptrs[0]);
+    return NULL;
+  }
+//fprintf(stderr, "scaled %d/%d to %d/%d\n", ncv->pixy, ncv->pixx, rows, cols);
+  *stride = dlinesizes[0]; // FIXME check for others?
+  return (uint32_t*)dptrs[0];
+}
+
 // rows/cols: scaled output geometry (pixels)
 int ffmpeg_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
                 const struct blitset* bset, const blitterargs* bargs){
-  const AVFrame* inframe = ncv->details->frame;
-//print_frame_summary(NULL, inframe);
-  void* data = NULL;
+  void* data;
   int stride = 0;
-  const int targformat = AV_PIX_FMT_RGBA;
-  // necessitated by ffmpeg AVPicture API
-  uint8_t* dptrs[4] = {};
-//fprintf(stderr, "got format: %d (%d/%d) want format: %d\n", inframe->format, inframe->height, inframe->width, targformat);
-  if(inframe && (cols != inframe->width || rows != inframe->height || inframe->format != targformat)){
-//fprintf(stderr, "resize+render: %d/%d->%d/%d\n", inframe->height, inframe->width, rows, cols);
-//fprintf(stderr, "WHN NCV: %d/%d bargslen: %d/%d\n", inframe->width, inframe->height, bargs->leny, bargs->lenx);
-    const int srclenx = bargs->lenx ? bargs->lenx : inframe->width;
-    const int srcleny = bargs->leny ? bargs->leny : inframe->height;
-//fprintf(stderr, "src %d/%d -> targ %d/%d ctx: %p\n", srcleny, srclenx, rows, cols, ncv->details->swsctx);
-    ncv->details->swsctx = sws_getCachedContext(ncv->details->swsctx,
-                                                srclenx, srcleny,
-                                                inframe->format,
-                                                cols, rows, targformat,
-                                                SWS_LANCZOS, NULL, NULL, NULL);
-    if(ncv->details->swsctx == NULL){
-//fprintf(stderr, "Error retrieving details->swsctx\n");
-      return -1;
-    }
-    int dlinesizes[4];
-    int size = av_image_alloc(dptrs, dlinesizes, cols, rows, targformat, IMGALLOCALIGN);
-    if(size < 0){
-//fprintf(stderr, "Error allocating visual data (%d X %d)\n", sframe->height, sframe->width);
-      return -1;
-    }
-//fprintf(stderr, "INFRAME DAA: %p SDATA: %p FDATA: %p to %d/%d\n", inframe->data[0], sframe->data[0], ncv->details->frame->data[0], sframe->height, sframe->width);
-    int height = sws_scale(ncv->details->swsctx, (const uint8_t* const*)inframe->data,
-                           inframe->linesize, 0, srcleny, dptrs, dlinesizes);
-    if(height < 0){
-//fprintf(stderr, "Error applying scaling (%d X %d)\n", inframe->height, inframe->width);
-      return -1;
-    }
-    stride = dlinesizes[0]; // FIXME check for others?
-    data = dptrs[0];
-//fprintf(stderr, "scaled %d/%d to %d/%d\n", ncv->pixy, ncv->pixx, rows, cols);
-  }else{
-    stride = ncv->rowstride;
-    data = ncv->data;
+  data = ffmpeg_resize_internal(ncv, rows, &stride, cols, bargs);
+  if(data == NULL){
+    return -1;
   }
-//fprintf(stderr, "rows/cols: %d/%d\n", rows, cols);
+//fprintf(stderr, "WHN NCV: %d/%d bargslen: %d/%d targ: %d/%d\n", inframe->width, inframe->height, bargs->leny, bargs->lenx, rows, cols);
   int ret = 0;
   if(rgba_blit_dispatch(n, bset, stride, data, rows, cols, bargs) < 0){
 //fprintf(stderr, "rgba dispatch failed!\n");
     ret = -1;
   }
-  if(dptrs[0]){
-    av_freep(&dptrs[0]);
+  if(data != ncv->data){
+    av_freep(&data); // &dptrs[0]
   }
   return ret;
 }
