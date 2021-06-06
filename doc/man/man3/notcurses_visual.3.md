@@ -313,7 +313,8 @@ aspect-preserving **NCBLIT_2x1** will be returned. If sextants are available
 
 Multimedia decoding requires that Notcurses be built with either FFmpeg or
 OpenImageIO support. What formats can be decoded is totally dependent on the
-linked library. OpenImageIO does not support subtitles.
+linked library. OpenImageIO does not support subtitles. Functions requiring
+a multimedia backend include **ncvisual_from_file** and **ncvisual_subtitle**.
 
 Sixel documentation can be found at [Dankwiki](https://nick-black.com/dankwiki/index.php?title=Sixel).
 Kitty's graphics protocol is specified in [its documentation](https://sw.kovidgoyal.net/kitty/graphics-protocol.html).
@@ -346,6 +347,9 @@ radians for **rads**, but this will change soon.
 
 **ncvisual_render** should be able to create new planes in piles other than
 the standard pile. This ought become a reality soon.
+
+**ncvisual_stream** currently requires a multimedia engine, which is silly.
+This will change in the near future.
 
 Sprixels interact poorly with multiple planes, and such usage is discouraged.
 This situation might improve in the future.
