@@ -175,6 +175,8 @@ TEST_CASE("Visual") {
     auto ncv = ncvisual_from_rgba(rgba.data(), dimy * 2, dimx * 4, dimx);
     REQUIRE(ncv);
     struct ncvisual_options opts{};
+    opts.blitter = NCBLIT_1x1;
+    opts.scaling = NCSCALE_STRETCH;
     opts.n = ncp_;
     CHECK(ncp_ == ncvisual_render(nc_, ncv, &opts));
     CHECK(0 == notcurses_render(nc_));
@@ -185,7 +187,7 @@ TEST_CASE("Visual") {
         auto c = ncplane_at_yx(ncp_, y, x, &stylemask, &channels);
         CHECK(0 == strcmp(c, " "));
         free(c);
-        CHECK(ncchannels_bg_rgb(channels) == 0xccbb88);
+        CHECK(htole(ncchannels_bg_rgb(channels)) == htole(0xccbb88));
         CHECK(stylemask == 0);
       }
     }
@@ -202,6 +204,8 @@ TEST_CASE("Visual") {
     auto ncv = ncvisual_from_bgra(rgba.data(), dimy * 2, dimx * 4, dimx);
     REQUIRE(ncv);
     struct ncvisual_options opts{};
+    opts.blitter = NCBLIT_1x1;
+    opts.scaling = NCSCALE_STRETCH;
     opts.n = ncp_;
     CHECK(nullptr != ncvisual_render(nc_, ncv, &opts));
     CHECK(0 == notcurses_render(nc_));

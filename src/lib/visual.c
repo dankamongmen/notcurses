@@ -624,9 +624,12 @@ ncvisual* ncvisual_from_bgra(const void* bgra, int rows, int rowstride, int cols
       for(int x = 0 ; x < cols ; ++x){
         uint32_t src;
         memcpy(&src, (const char*)bgra + y * rowstride + x * 4, 4);
-        const uint32_t r = (src & 0xffllu) << 16u;
-        const uint32_t b = (src & 0xff0000llu) >> 16u;
-        data[ncv->rowstride * y / 4 + x] = (src & 0xff00ff00llu) | r | b;
+        uint32_t* dst = &data[ncv->rowstride * y / 4 + x];
+        ncpixel_set_a(dst, ncpixel_a(src));
+        ncpixel_set_r(dst, ncpixel_b(src));
+        ncpixel_set_g(dst, ncpixel_g(src));
+        ncpixel_set_b(dst, ncpixel_r(src));
+fprintf(stderr, "BGRA PIXEL: %02x%02x%02x%02x RGBA result: %02x%02x%02x%02x\n", ((const char*)&src)[0], ((const char*)&src)[1], ((const char*)&src)[2], ((const char*)&src)[3], ((const char*)dst)[0], ((const char*)dst)[1], ((const char*)dst)[2], ((const char*)dst)[3]);
       }
     }
     ncvisual_set_data(ncv, data, true);
