@@ -44,6 +44,7 @@ sudo apt-get update
 ![Linux](https://img.shields.io/badge/-Linux-grey?logo=linux)
 ![FreeBSD](https://img.shields.io/badge/-FreeBSD-grey?logo=freebsd)
 [![Build](https://drone.dsscaw.com:4443/api/badges/dankamongmen/notcurses/status.svg)](https://drone.dsscaw.com:4443/dankamongmen/notcurses)
+[![Tests (GitHub Actions)](https://github.com/dankamongmen/notcurses/workflows/Tests/badge.svg?branch=master)](https://github.com/dankamongmen/notcurses/actions?query=workflow%3ATests+branch%3Amaster)
 [![pypi_version](https://img.shields.io/pypi/v/notcurses?label=pypi)](https://pypi.org/project/notcurses)
 [![crates.io](https://img.shields.io/crates/v/libnotcurses-sys.svg)](https://crates.io/crates/libnotcurses-sys)
 ![Matrix](https://img.shields.io/matrix/notcursesdev:matrix.org?label=matrixchat)
