@@ -158,7 +158,7 @@ TEST_CASE("Sixels") {
 #ifdef NOTCURSES_USE_MULTIMEDIA
   SUBCASE("SixelRoundtrip") {
     CHECK(1 == ncplane_set_base(n_, "&", 0, 0));
-    auto ncv = ncvisual_from_file(find_data("worldmap.png"));
+    auto ncv = ncvisual_from_file(find_data("worldmap.png").get());
     REQUIRE(ncv);
     struct ncvisual_options vopts{};
     vopts.blitter = NCBLIT_PIXEL;
@@ -179,7 +179,7 @@ TEST_CASE("Sixels") {
 
   SUBCASE("SixelBlit") {
     CHECK(1 == ncplane_set_base(n_, "&", 0, 0));
-    auto ncv = ncvisual_from_file(find_data("natasha-blur.png"));
+    auto ncv = ncvisual_from_file(find_data("natasha-blur.png").get());
     REQUIRE(ncv);
     struct ncvisual_options vopts{};
     vopts.blitter = NCBLIT_PIXEL;

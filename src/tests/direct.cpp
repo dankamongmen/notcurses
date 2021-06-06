@@ -63,19 +63,19 @@ TEST_CASE("DirectMode") {
   }
 
   SUBCASE("LoadImage") {
-    CHECK(0 == ncdirect_render_image(nc_, find_data("changes.jpg"), NCALIGN_LEFT, NCBLIT_1x1, NCSCALE_STRETCH));
-    CHECK(0 == ncdirect_render_image(nc_, find_data("worldmap.png"), NCALIGN_RIGHT, NCBLIT_1x1, NCSCALE_SCALE));
+    CHECK(0 == ncdirect_render_image(nc_, find_data("changes.jpg").get(), NCALIGN_LEFT, NCBLIT_1x1, NCSCALE_STRETCH));
+    CHECK(0 == ncdirect_render_image(nc_, find_data("worldmap.png").get(), NCALIGN_RIGHT, NCBLIT_1x1, NCSCALE_SCALE));
   }
 
   SUBCASE("LoadSprixel") {
     if(ncdirect_check_pixel_support(nc_) > 0){
-      CHECK(0 == ncdirect_render_image(nc_, find_data("changes.jpg"), NCALIGN_LEFT, NCBLIT_PIXEL, NCSCALE_STRETCH));
-      CHECK(0 == ncdirect_render_image(nc_, find_data("worldmap.png"), NCALIGN_RIGHT, NCBLIT_PIXEL, NCSCALE_SCALE));
+      CHECK(0 == ncdirect_render_image(nc_, find_data("changes.jpg").get(), NCALIGN_LEFT, NCBLIT_PIXEL, NCSCALE_STRETCH));
+      CHECK(0 == ncdirect_render_image(nc_, find_data("worldmap.png").get(), NCALIGN_RIGHT, NCBLIT_PIXEL, NCSCALE_SCALE));
     }
   }
 
   SUBCASE("ImageGeom") {
-    auto dirf = ncdirectf_from_file(nc_, find_data("worldmap.png"));
+    auto dirf = ncdirectf_from_file(nc_, find_data("worldmap.png").get());
     REQUIRE(nullptr != dirf);
     ncblitter_e blitter = NCBLIT_DEFAULT;
     ncvgeom geom;
@@ -91,7 +91,7 @@ TEST_CASE("DirectMode") {
 
   SUBCASE("SprixelGeom") {
     if(ncdirect_check_pixel_support(nc_) > 0){
-      auto dirf = ncdirectf_from_file(nc_, find_data("worldmap.png"));
+      auto dirf = ncdirectf_from_file(nc_, find_data("worldmap.png").get());
       REQUIRE(nullptr != dirf);
       ncblitter_e blitter = NCBLIT_PIXEL;
       ncvgeom geom;
@@ -110,7 +110,7 @@ TEST_CASE("DirectMode") {
 
   SUBCASE("CursorPostGlyphRender") {
     if(is_test_tty()){
-      auto dirf = ncdirectf_from_file(nc_, find_data("worldmap.png"));
+      auto dirf = ncdirectf_from_file(nc_, find_data("worldmap.png").get());
       REQUIRE(nullptr != dirf);
       auto ncdv = ncdirectf_render(nc_, dirf, NCBLIT_1x1, NCSCALE_NONE, 0, 0);
       CHECK(nullptr != ncdv);
@@ -130,7 +130,7 @@ TEST_CASE("DirectMode") {
   SUBCASE("CursorPostSprixel") {
     if(is_test_tty()){
       if(ncdirect_check_pixel_support(nc_) > 0){
-        auto dirf = ncdirectf_from_file(nc_, find_data("worldmap.png"));
+        auto dirf = ncdirectf_from_file(nc_, find_data("worldmap.png").get());
         REQUIRE(nullptr != dirf);
         auto ncdv = ncdirectf_render(nc_, dirf, NCBLIT_PIXEL, NCSCALE_NONE, 0, 0);
         CHECK(nullptr != ncdv);

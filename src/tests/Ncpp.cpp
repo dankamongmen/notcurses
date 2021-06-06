@@ -66,7 +66,7 @@ TEST_CASE("Ncpp"
     NotCurses nc{ nopts };
     if(nc.can_open_images()){
       {
-        Visual v = Visual(find_data("changes.jpg"));
+        Visual v = Visual(find_data("changes.jpg").get());
       }
     }
     CHECK(nc.stop());
