@@ -448,15 +448,27 @@ query_xtsmgraphics(int fd, const char* seq, int* val, int* val2){
   return 0;
 }
 
+// Device Attributes; replies with (depending on decTerminalID resource):
+//   ⇒  CSI ? 1 ; 2 c  ("VT100 with Advanced Video Option")
+//   ⇒  CSI ? 1 ; 0 c  ("VT101 with No Options")
+//   ⇒  CSI ? 4 ; 6 c  ("VT132 with Advanced Video and Graphics")
+//   ⇒  CSI ? 6 c  ("VT102")
+//   ⇒  CSI ? 7 c  ("VT131")
+//   ⇒  CSI ? 1 2 ; Ps c  ("VT125")
+//   ⇒  CSI ? 6 2 ; Ps c  ("VT220")
+//   ⇒  CSI ? 6 3 ; Ps c  ("VT320")
+//   ⇒  CSI ? 6 4 ; Ps c  ("VT420")
+#define ESC_DA "\e[c"
+
 // query for Sixel details including the number of color registers and, one day
 // perhaps, maximum geometry. xterm binds its return by the current geometry,
 // making it useless for a one-time query.
 static int
 query_sixel_details(tinfo* ti, int fd){
-  if(query_xtsmgraphics(fd, "\x1b[?2;4;0S", &ti->sixel_maxx, &ti->sixel_maxy)){
+  if(query_xtsmgraphics(fd, "\x1b[?2;4;0S" ESC_DA, &ti->sixel_maxx, &ti->sixel_maxy)){
     return -1;
   }
-  if(query_xtsmgraphics(fd, "\x1b[?1;1;0S", &ti->color_registers, NULL)){
+  if(query_xtsmgraphics(fd, "\x1b[?1;1;0S" ESC_DA, &ti->color_registers, NULL)){
     return -1;
   }
 //fprintf(stderr, "Sixel ColorRegs: %d Max_x: %d Max_y: %d\n", ti->color_registers, ti->sixel_maxx, ti->sixel_maxy);
@@ -466,8 +478,7 @@ query_sixel_details(tinfo* ti, int fd){
 // query for Sixel support
 static int
 query_sixel(tinfo* ti, int fd){
-  // Send Device Attributes (see decTerminalID resource)
-  if(writen(fd, "\x1b[c", 3) != 3){
+  if(writen(fd, ESC_DA, strlen(ESC_DA)) != 3){
     return -1;
   }
   char in;
@@ -506,6 +517,9 @@ query_sixel(tinfo* ti, int fd){
           }
           state = WANT_C4;
         }else if(in == 'c'){
+          if(in4){
+            setup_sixel_bitmaps(ti);
+          }
           state = DONE;
         }else if(in == '6'){
           state = WANT_VT102_C;
@@ -514,11 +528,9 @@ query_sixel(tinfo* ti, int fd){
         break;
       case WANT_VT102_C:
         if(in == 'c'){
-          // until graphics/ayosec is merged, alacritty doesn't actually
-          // have sixel support. enable this then. FIXME
-          /*if(ti->alacritty_sixel_hack){
+          if(ti->alacritty_sixel_hack){
             setup_sixel_bitmaps(ti);
-          }*/
+          }
           state = DONE;
         }else if(in == ';'){
           state = WANT_C4;
