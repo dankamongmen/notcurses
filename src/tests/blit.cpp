@@ -179,6 +179,7 @@ TEST_CASE("Blit") {
     };
     auto p = ncvisual_render(nc_, ncv, &vopts);
     REQUIRE(nullptr != p);
+    CHECK(0 == notcurses_render(nc_));
     CHECK(1 == ncplane_dim_y(p));
     CHECK(2 == ncplane_dim_x(p));
     int pxdimy, pxdimx;
