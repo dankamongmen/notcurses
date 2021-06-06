@@ -596,10 +596,9 @@ ncvisual* ncvisual_from_rgba(const void* rgba, int rows, int rowstride, int cols
       return NULL;
     }
     for(int y = 0 ; y < rows ; ++y){
-      memcpy(data + (ncv->rowstride * y) / 4, rgba + rowstride * y, rowstride);
+      memcpy(data + (ncv->rowstride * y) / 4, (const char*)rgba + rowstride * y, rowstride);
+//fprintf(stderr, "ROWS: %d STRIDE: %d (%d) COLS: %d %08x\n", ncv->pixy, ncv->rowstride, ncv->rowstride / 4, cols, data[ncv->rowstride * y / 4]);
     }
-//fprintf(stderr, "COPY US %d (%d)\n", rowstride * ncv->pixy, ncv->pixy);
-//fprintf(stderr, "ROWS: %d STRIDE: %d (%d) COLS: %d\n", rows, rowstride, rowstride / 4, cols);
     ncvisual_set_data(ncv, data, true);
     ncvisual_details_seed(ncv);
   }
@@ -629,7 +628,7 @@ ncvisual* ncvisual_from_bgra(const void* bgra, int rows, int rowstride, int cols
         ncpixel_set_r(dst, ncpixel_b(src));
         ncpixel_set_g(dst, ncpixel_g(src));
         ncpixel_set_b(dst, ncpixel_r(src));
-fprintf(stderr, "BGRA PIXEL: %02x%02x%02x%02x RGBA result: %02x%02x%02x%02x\n", ((const char*)&src)[0], ((const char*)&src)[1], ((const char*)&src)[2], ((const char*)&src)[3], ((const char*)dst)[0], ((const char*)dst)[1], ((const char*)dst)[2], ((const char*)dst)[3]);
+//fprintf(stderr, "BGRA PIXEL: %02x%02x%02x%02x RGBA result: %02x%02x%02x%02x\n", ((const char*)&src)[0], ((const char*)&src)[1], ((const char*)&src)[2], ((const char*)&src)[3], ((const char*)dst)[0], ((const char*)dst)[1], ((const char*)dst)[2], ((const char*)dst)[3]);
       }
     }
     ncvisual_set_data(ncv, data, true);

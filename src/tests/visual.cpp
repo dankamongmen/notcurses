@@ -171,17 +171,16 @@ TEST_CASE("Visual") {
     int dimy, dimx;
     ncplane_dim_yx(ncp_, &dimy, &dimx);
     // alpha, then b, g, r
-    std::vector<uint32_t> rgba(dimx * dimy * 2, htole(0xff88bbcc));
+    std::vector<uint32_t> rgba(dimx * dimy * 2, htole(0xff88bbccull));
     auto ncv = ncvisual_from_rgba(rgba.data(), dimy * 2, dimx * 4, dimx);
     REQUIRE(ncv);
     struct ncvisual_options opts{};
     opts.blitter = NCBLIT_1x1;
-    opts.scaling = NCSCALE_STRETCH;
     opts.n = ncp_;
     CHECK(ncp_ == ncvisual_render(nc_, ncv, &opts));
     CHECK(0 == notcurses_render(nc_));
-    for(int y = 0 ; y < ncplane_dim_y(ncp_) ; ++y){
-      for(int x = 0 ; x < ncplane_dim_x(ncp_) ; ++x){
+    for(int y = 0 ; y < dimy ; ++y){
+      for(int x = 0 ; x < dimx ; ++x){
         uint16_t stylemask;
         uint64_t channels;
         auto c = ncplane_at_yx(ncp_, y, x, &stylemask, &channels);
@@ -205,12 +204,11 @@ TEST_CASE("Visual") {
     REQUIRE(ncv);
     struct ncvisual_options opts{};
     opts.blitter = NCBLIT_1x1;
-    opts.scaling = NCSCALE_STRETCH;
     opts.n = ncp_;
     CHECK(nullptr != ncvisual_render(nc_, ncv, &opts));
     CHECK(0 == notcurses_render(nc_));
-    for(int y = 0 ; y < ncplane_dim_y(ncp_) ; ++y){
-      for(int x = 0 ; x < ncplane_dim_x(ncp_) ; ++x){
+    for(int y = 0 ; y < dimy ; ++y){
+      for(int x = 0 ; x < dimx ; ++x){
         uint16_t stylemask;
         uint64_t channels;
         auto c = ncplane_at_yx(ncp_, y, x, &stylemask, &channels);
