@@ -184,7 +184,7 @@ TEST_CASE("Rotate") {
     CHECK(pxdimy == height);
     for(int i = 0 ; i < height * width / 2 ; ++i){
       if(rgbaret[i] & CELL_BG_RGB_MASK){
-        CHECK(htole(rgbaret[i]) == rgba[i]);
+        CHECK(htole(rgbaret[i]) == htole(rgba[i]));
       }
     }
     free(rgbaret);
@@ -244,7 +244,7 @@ TEST_CASE("Rotate") {
     CHECK(pxdimx == width);
     for(int i = 0 ; i < height * width / 2 ; ++i){
       if(rgbaret[i] & CELL_BG_RGB_MASK){
-        CHECK(htole(rgbaret[i]) == rgba[i]);
+        CHECK(htole(rgbaret[i]) == htole(rgba[i]));
       }
     }
     free(rgbaret);
