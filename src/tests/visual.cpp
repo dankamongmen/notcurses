@@ -59,6 +59,42 @@ TEST_CASE("Visual") {
     CHECK(0 == ncplane_destroy(n));
   }
 
+  // ensure that NCSCALE_STRETCH gives us a full plane, and that we write
+  // everywhere within that plane
+  SUBCASE("Stretch") {
+    std::vector<uint32_t> v(1, htole(0xe61c28ff));
+    int dimy, dimx;
+    ncplane_dim_yx(ncp_, &dimy, &dimx);
+    auto ncv = ncvisual_from_rgba(v.data(), 1, sizeof(decltype(v)::value_type), 1);
+    REQUIRE(nullptr != ncv);
+    struct ncvisual_options vopts = {
+      .n = nullptr,
+      .scaling = NCSCALE_STRETCH,
+      .y = 0, .x = 0,
+      .begy = 0, .begx = 0,
+      .leny = 0, .lenx = 0,
+      .blitter = NCBLIT_1x1,
+      .flags = 0, .transcolor = 0,
+    };
+    auto n = ncvisual_render(nc_, ncv, &vopts);
+    REQUIRE(nullptr != n);
+    CHECK(dimy == ncplane_dim_y(n));
+    CHECK(dimx == ncplane_dim_x(n));
+    ncvisual_destroy(ncv);
+    for(int y = 0 ; y < dimy ; ++y){
+      for(int x = 0 ; x < dimx ; ++x){
+        uint16_t stylemask;
+        uint64_t channels;
+        auto c = ncplane_at_yx(n, y, x, &stylemask, &channels);
+        CHECK(0 == strcmp(c, " "));
+        free(c);
+        CHECK(ncchannels_bg_rgb(channels) == 0xff281c);
+        CHECK(stylemask == 0);
+      }
+    }
+    CHECK(0 == ncplane_destroy(n));
+  }
+
   // partial limit via len, offset via y/x, new plane
   SUBCASE("PartialOffset") {
     auto y = 10;
@@ -139,9 +175,19 @@ TEST_CASE("Visual") {
     REQUIRE(ncv);
     struct ncvisual_options opts{};
     opts.n = ncp_;
-    CHECK(nullptr != ncvisual_render(nc_, ncv, &opts));
+    CHECK(ncp_ == ncvisual_render(nc_, ncv, &opts));
     CHECK(0 == notcurses_render(nc_));
-    // FIXME check cell for color -- want ccbb88
+    for(int y = 0 ; y < ncplane_dim_y(ncp_) ; ++y){
+      for(int x = 0 ; x < ncplane_dim_x(ncp_) ; ++x){
+        uint16_t stylemask;
+        uint64_t channels;
+        auto c = ncplane_at_yx(ncp_, y, x, &stylemask, &channels);
+        CHECK(0 == strcmp(c, " "));
+        free(c);
+        CHECK(ncchannels_bg_rgb(channels) == 0xccbb88);
+        CHECK(stylemask == 0);
+      }
+    }
     ncvisual_destroy(ncv);
     CHECK(0 == notcurses_render(nc_));
   }
@@ -156,7 +202,17 @@ TEST_CASE("Visual") {
     opts.n = ncp_;
     CHECK(nullptr != ncvisual_render(nc_, ncv, &opts));
     CHECK(0 == notcurses_render(nc_));
-    // FIXME check cell for color -- want 88bbcc
+    for(int y = 0 ; y < ncplane_dim_y(ncp_) ; ++y){
+      for(int x = 0 ; x < ncplane_dim_x(ncp_) ; ++x){
+        uint16_t stylemask;
+        uint64_t channels;
+        auto c = ncplane_at_yx(ncp_, y, x, &stylemask, &channels);
+        CHECK(0 == strcmp(c, " "));
+        free(c);
+        CHECK(ncchannels_bg_rgb(channels) == 0x88bbcc);
+        CHECK(stylemask == 0);
+      }
+    }
     ncvisual_destroy(ncv);
     CHECK(0 == notcurses_render(nc_));
   }
@@ -725,8 +781,6 @@ TEST_CASE("Visual") {
     ncplane_dim_yx(ncp_, &dimy, &dimx);
     auto ncv = ncvisual_from_file(find_data("changes.jpg").get());
     REQUIRE(ncv);
-    /*CHECK(dimy * 2 == frame->height);
-    CHECK(dimx == frame->width); FIXME */
     struct ncvisual_options opts{};
     opts.n = ncp_;
     opts.scaling = NCSCALE_STRETCH;
