@@ -1667,13 +1667,6 @@ typedef struct ncvisual_implementation {
   int (*visual_stream)(notcurses* nc, struct ncvisual* ncv, float timescale,
                        ncstreamcb streamer, const struct ncvisual_options* vopts, void* curry);
   char* (*visual_subtitle)(const struct ncvisual* ncv);
-  // do a resize, without updating the ncvisual structure. if the target
-  // parameters are already matched, the existing data will be returned.
-  // otherwise, a scaled copy will be returned. they can be differentiated
-  // by comparing the result against ncv->data.
-  uint32_t* (*visual_resize_internal)(const struct ncvisual* ncv, int rows,
-                                      int* stride, int cols,
-                                      const struct blitterargs* bargs);
   // do a persistent resize, changing the ncv itself
   int (*visual_resize)(struct ncvisual* ncv, int rows, int cols);
   void (*visual_destroy)(struct ncvisual* ncv);

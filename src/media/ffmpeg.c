@@ -455,8 +455,13 @@ int ffmpeg_decode_loop(ncvisual* ncv){
   return r;
 }
 
-uint32_t* ffmpeg_resize_internal(const ncvisual* ncv, int rows, int* stride,
-                                 int cols, const blitterargs* bargs){
+// do a resize *without* updating the ncvisual structure. if the target
+// parameters are already matched, the existing data will be returned.
+// otherwise, a scaled copy will be returned. they can be differentiated by
+// comparing the result against ncv->data.
+static uint32_t*
+ffmpeg_resize_internal(const ncvisual* ncv, int rows, int* stride, int cols,
+                       const blitterargs* bargs){
   const AVFrame* inframe = ncv->details->frame;
 //print_frame_summary(NULL, inframe);
   const int targformat = AV_PIX_FMT_RGBA;
@@ -631,7 +636,6 @@ static const ncvisual_implementation ffmpeg_impl = {
   .visual_decode_loop = ffmpeg_decode_loop,
   .visual_stream = ffmpeg_stream,
   .visual_subtitle = ffmpeg_subtitle,
-  .visual_resize_internal = ffmpeg_resize_internal,
   .visual_resize = ffmpeg_resize,
   .visual_destroy = ffmpeg_destroy,
   .canopen_images = true,
