@@ -4,7 +4,7 @@
 #include "internal.h"
 #include "visual-details.h"
 
-const ncvisual_implementation* local_visual_implementation = nullptr;
+const ncvisual_implementation* local_visual_implementation = NULL;
 
 #endif
 #endif
