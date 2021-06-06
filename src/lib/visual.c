@@ -64,8 +64,17 @@ int ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
       ret = 0;
     }
   }else{
-    if(rgba_blit_dispatch(n, bset, ncv->rowstride, ncv->data, rows, cols, barg) >= 0){
+    int stride = 4 * cols;
+    uint32_t* data = resize_bitmap(ncv->data, ncv->pixy, ncv->pixx,
+                                   ncv->rowstride, rows, cols, stride);
+    if(data == NULL){
+      return -1;
+    }
+    if(rgba_blit_dispatch(n, bset, stride, data, rows, cols, barg) >= 0){
       ret = 0;
+    }
+    if(data != ncv->data){
+      free(data);
     }
   }
   return ret;
