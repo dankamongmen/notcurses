@@ -310,6 +310,58 @@ TEST_CASE("Bitmaps") {
     CHECK(0 == notcurses_render(nc_));
   }
 
+  // create an image of exactly 1 cell, inflate it, scale it, and compare the
+  // resulting geometries for equality
+  SUBCASE("InflateVsScale") {
+    // first, assemble a visual equivalent to 1 cell
+    auto y = nc_->tcache.cellpixy;
+    auto x = nc_->tcache.cellpixx;
+    std::vector<uint32_t> v(x * y, htole(0xff7799dd));
+    auto ncv = ncvisual_from_rgba(v.data(), y, sizeof(decltype(v)::value_type) * x, x);
+    REQUIRE(nullptr != ncv);
+    struct ncvisual_options vopts = {
+      .n = nullptr,
+      .scaling = NCSCALE_NONE,
+      .y = 0, .x = 0,
+      .begy = 0, .begx = 0,
+      .leny = 0, .lenx = 0,
+      .blitter = NCBLIT_PIXEL,
+      .flags = NCVISUAL_OPTION_NODEGRADE,
+      .transcolor = 0,
+    };
+    auto n = ncvisual_render(nc_, ncv, &vopts);
+    REQUIRE(nullptr != n);
+    struct ncplane_options nopts = {
+      .y = 2,
+      .x = 0,
+      .rows = 5,
+      .cols = 4,
+      .userptr = nullptr, .name = "scale", .resizecb = nullptr,
+      .flags = 0, .margin_b = 0, .margin_r = 0,
+    };
+    auto nres = ncplane_create(n_, &nopts);
+    REQUIRE(nullptr != nres);
+    vopts.n = nres;
+    vopts.scaling = NCSCALE_SCALE;
+    ncvisual_render(nc_, ncv, &vopts);
+    CHECK(5 == ncplane_dim_y(vopts.n));
+    CHECK(4 == ncplane_dim_x(vopts.n));
+    ncvisual_inflate(ncv, 4);
+    vopts.n = nullptr;
+    vopts.y = 2;
+    vopts.x = 5;
+    vopts.scaling = NCSCALE_NONE;
+    auto ninf = ncvisual_render(nc_, ncv, &vopts);
+    REQUIRE(nullptr != ninf);
+    CHECK(5 == ncplane_dim_y(ninf));
+    CHECK(4 == ncplane_dim_x(ninf));
+    CHECK(0 == notcurses_render(nc_));
+    ncvisual_destroy(ncv);
+    CHECK(0 == ncplane_destroy(n));
+    CHECK(0 == ncplane_destroy(ninf));
+    CHECK(0 == ncplane_destroy(nres));
+  }
+
   // test NCVISUAL_OPTIONS_CHILDPLANE + stretch + (null) alignment
   SUBCASE("ImageChildScaling") {
     struct ncplane_options opts = {
