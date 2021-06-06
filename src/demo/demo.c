@@ -42,7 +42,6 @@ const demoresult* demoresult_lookup(int idx){
   return &results[idx];
 }
 
-// FIXME change to unique_ptr
 char* find_data(const char* datum){
   char* path = malloc(strlen(datadir) + 1 + strlen(datum) + 1);
   strcpy(path, datadir);
