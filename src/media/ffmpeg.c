@@ -631,6 +631,7 @@ static const ncvisual_implementation ffmpeg_impl = {
   .visual_decode_loop = ffmpeg_decode_loop,
   .visual_stream = ffmpeg_stream,
   .visual_subtitle = ffmpeg_subtitle,
+  .visual_resize_internal = ffmpeg_resize_internal,
   .visual_resize = ffmpeg_resize,
   .visual_destroy = ffmpeg_destroy,
   .canopen_images = true,
