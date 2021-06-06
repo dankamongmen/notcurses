@@ -349,8 +349,6 @@ due to Sixel requirements. `outputx` will currently always equal `scaledx`.
 the relationship of `inputy`/`inputx` to `scaledy`/`scaledx` is as follows:
 
 * `NCSCALE_NONE`: equal
-* `NCSCALE_INFLATE`: `scaledy` = `inputy` * *N*, `scaledx` = `inputx` * *N*,
-  where *N* is an integer.
 * `NCSCALE_SCALE`: `scaledy` = `inputy` * *F*, `scaledx` = `inputx` * *F*, where
   *F* is a float, and at least one of `outputy` and `outputx` maximize the
   space within the target plane relative to mandatory scaling.
