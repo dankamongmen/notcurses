@@ -70,7 +70,7 @@ int ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
     if(data == NULL){
       return -1;
     }
-    if(rgba_blit_dispatch(n, bset, stride, data, rows, cols, barg) >= 0){
+    if(rgba_blit_dispatch(n, bset, stride, data, rows, cols, barg, 32) >= 0){
       ret = 0;
     }
     if(data != ncv->data){

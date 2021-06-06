@@ -129,10 +129,6 @@ int oiio_resize(ncvisual* nc, int rows, int cols) {
 //fprintf(stderr, "%d/%d -> %d/%d on the resize\n", nc->pixy, nc->pixx, rows, cols);
   auto ibuf = std::make_unique<OIIO::ImageBuf>();
   if(nc->details->ibuf && (nc->pixx != cols || nc->pixy != rows)){ // scale it
-    OIIO::ImageSpec sp{};
-    sp.width = cols;
-    sp.height = rows;
-    ibuf->reset(sp, OIIO::InitializePixels::Yes);
     OIIO::ROI roi(0, cols, 0, rows, 0, 1, 0, 4);
     if(!OIIO::ImageBufAlgo::resize(*ibuf, *nc->details->ibuf, "", 0, roi)){
       return -1;
@@ -155,23 +151,20 @@ int oiio_blit(struct ncvisual* ncv, int rows, int cols,
   int stride = 0;
   auto ibuf = std::make_unique<OIIO::ImageBuf>();
   if(ncv->details->ibuf && (ncv->pixx != cols || ncv->pixy != rows)){ // scale it
-    OIIO::ImageSpec sp{};
-    sp.width = cols;
-    sp.height = rows;
     // FIXME need to honor leny/lenx and begy/begx
-    ibuf->reset(sp, OIIO::InitializePixels::Yes);
     OIIO::ROI roi(0, cols, 0, rows, 0, 1, 0, 4);
     if(!OIIO::ImageBufAlgo::resize(*ibuf, *ncv->details->ibuf, "", 0, roi)){
       return -1;
     }
-    stride = cols * 4;
+    stride = ibuf->scanline_stride();
+//std::cerr << "output: " << ibuf->roi() << " stride: " << stride << std::endl;
     data = ibuf->localpixels();
 //fprintf(stderr, "HAVE SOME NEW DATA: %p\n", ibuf->localpixels());
   }else{
     data = ncv->data;
     stride = ncv->rowstride;
   }
-  return oiio_blit_dispatch(n, bset, stride, data, rows, cols, bargs);
+  return oiio_blit_dispatch(n, bset, stride, data, rows, cols, bargs, ibuf->pixel_stride() * CHAR_BIT);
 }
 
 // FIXME before we can enable this, we need build an OIIO::APPBUFFER-style

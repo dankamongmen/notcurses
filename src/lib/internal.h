@@ -528,7 +528,8 @@ typedef struct blitterargs {
 // from scaling. we might actually need more pixels due to framing concerns,
 // in which case just assume transparent input pixels where needed.
 typedef int (*ncblitter)(struct ncplane* n, int linesize, const void* data,
-                         int scaledy, int scaledx, const blitterargs* bargs);
+                         int scaledy, int scaledx, const blitterargs* bargs,
+                         int bpp);
 
 // a system for rendering RGBA pixels as text glyphs or sixel/kitty bitmaps
 struct blitset {
@@ -819,7 +820,7 @@ ncplane_cell_ref_yx(const ncplane* n, int y, int x){
 static inline void
 cell_debug(const egcpool* p, const nccell* c){
   fprintf(stderr, "gcluster: %08x %s style: 0x%04x chan: 0x%016jx\n",
-				  c->gcluster, egcpool_extended_gcluster(p, c), c->stylemask, c->channels);
+          c->gcluster, egcpool_extended_gcluster(p, c), c->stylemask, c->channels);
 }
 
 static inline void
@@ -879,11 +880,11 @@ void sixelmap_free(struct sixelmap *s);
 // the transparency vector up into 1/8th as many bytes.
 uint8_t* sprixel_auxiliary_vector(const sprixel* s);
 
-int sixel_blit(ncplane* nc, int linesize, const void* data,
-               int leny, int lenx, const blitterargs* bargs);
+int sixel_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
+               const blitterargs* bargs, int bpp);
 
-int kitty_blit(ncplane* nc, int linesize, const void* data,
-               int leny, int lenx, const blitterargs* bargs);
+int kitty_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
+               const blitterargs* bargs, int bpp);
 
 static inline int
 sprite_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
@@ -1581,8 +1582,9 @@ const struct blitset* lookup_blitset(const tinfo* tcache, ncblitter_e setid, boo
 static inline int
 rgba_blit_dispatch(ncplane* nc, const struct blitset* bset,
                    int linesize, const void* data,
-                   int leny, int lenx, const blitterargs* bargs){
-  return bset->blit(nc, linesize, data, leny, lenx, bargs);
+                   int leny, int lenx, const blitterargs* bargs,
+                   int bpp){
+  return bset->blit(nc, linesize, data, leny, lenx, bargs, bpp);
 }
 
 static inline const struct blitset*

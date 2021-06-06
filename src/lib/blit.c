@@ -41,9 +41,9 @@ rgba_trans_q(const unsigned char* p, uint32_t transcolor){
 // Retarded RGBA blitter (ASCII only).
 static inline int
 tria_blit_ascii(ncplane* nc, int linesize, const void* data,
-                int leny, int lenx, const blitterargs* bargs){
+                int leny, int lenx, const blitterargs* bargs,
+                int bpp){
 //fprintf(stderr, "ASCII %d X %d @ %d X %d (%p) place: %d X %d\n", leny, lenx, bargs->begy, bargs->begx, data, bargs->u.cell.placey, bargs->u.cell.placex);
-  const int bpp = 32;
   int dimy, dimx, x, y;
   int total = 0; // number of cells written
   ncplane_dim_yx(nc, &dimy, &dimx);
@@ -94,11 +94,10 @@ tria_blit_ascii(ncplane* nc, int linesize, const void* data,
 // RGBA half-block blitter. Best for most images/videos. Full fidelity
 // combined with 1:1 pixel aspect ratio.
 static inline int
-tria_blit(ncplane* nc, int linesize, const void* data,
-          int leny, int lenx, const blitterargs* bargs){
+tria_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
+          const blitterargs* bargs, int bpp){
 //fprintf(stderr, "HALF %d X %d @ %d X %d (%p) place: %d X %d\n", leny, lenx, bargs->begy, bargs->begx, data, bargs->u.cell.placey, bargs->u.cell.placex);
   uint32_t transcolor = bargs->transcolor;
-  const int bpp = 32;
   int dimy, dimx, x, y;
   int total = 0; // number of cells written
   ncplane_dim_yx(nc, &dimy, &dimx);
@@ -424,9 +423,8 @@ qtrans_check(nccell* c, unsigned blendcolors,
 // quadrant blitter. maps 2x2 to each cell. since we only have two colors at
 // our disposal (foreground and background), we lose some fidelity.
 static inline int
-quadrant_blit(ncplane* nc, int linesize, const void* data,
-              int leny, int lenx, const blitterargs* bargs){
-  const int bpp = 32;
+quadrant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
+              const blitterargs* bargs, int bpp){
   int dimy, dimx, x, y;
   int total = 0; // number of cells written
   ncplane_dim_yx(nc, &dimy, &dimx);
@@ -653,9 +651,8 @@ sex_trans_check(cell* c, const uint32_t rgbas[6], unsigned blendcolors,
 // sextant blitter. maps 3x2 to each cell. since we only have two colors at
 // our disposal (foreground and background), we lose some fidelity.
 static inline int
-sextant_blit(ncplane* nc, int linesize, const void* data,
-             int leny, int lenx, const blitterargs* bargs){
-  const int bpp = 32;
+sextant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
+             const blitterargs* bargs, int bpp){
   int dimy, dimx, x, y;
   int total = 0; // number of cells written
   ncplane_dim_yx(nc, &dimy, &dimx);
@@ -727,9 +724,8 @@ fold_rgb8(unsigned* restrict r, unsigned* restrict g, unsigned* restrict b,
 // visuals with only two colors in a given area, as it packs lots of
 // resolution. always transparent background.
 static inline int
-braille_blit(ncplane* nc, int linesize, const void* data,
-             int leny, int lenx, const blitterargs* bargs){
-  const int bpp = 32;
+braille_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
+             const blitterargs* bargs, int bpp){
   int dimy, dimx, x, y;
   int total = 0; // number of cells written
   ncplane_dim_yx(nc, &dimy, &dimx);
@@ -1065,7 +1061,7 @@ int ncblit_rgba(const void* data, int linesize, const struct ncvisual_options* v
       },
     },
   };
-  return bset->blit(nc, linesize, data, leny, lenx, &bargs);
+  return bset->blit(nc, linesize, data, leny, lenx, &bargs, 32);
 }
 
 ncblitter_e ncvisual_media_defblitter(const notcurses* nc, ncscale_e scale){
