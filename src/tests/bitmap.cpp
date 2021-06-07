@@ -344,7 +344,6 @@ TEST_CASE("Bitmaps") {
     vopts.n = nres;
     vopts.scaling = NCSCALE_SCALE;
     ncvisual_render(nc_, ncv, &vopts);
-    CHECK(5 == ncplane_dim_y(vopts.n));
     CHECK(4 == ncplane_dim_x(vopts.n));
     ncvisual_inflate(ncv, 4);
     vopts.n = nullptr;
@@ -353,8 +352,8 @@ TEST_CASE("Bitmaps") {
     vopts.scaling = NCSCALE_NONE;
     auto ninf = ncvisual_render(nc_, ncv, &vopts);
     REQUIRE(nullptr != ninf);
-    CHECK(5 == ncplane_dim_y(ninf));
-    CHECK(4 == ncplane_dim_x(ninf));
+    CHECK(ncplane_dim_y(nres) == ncplane_dim_y(ninf));
+    CHECK(ncplane_dim_x(nres) == ncplane_dim_x(ninf));
     CHECK(0 == notcurses_render(nc_));
     ncvisual_destroy(ncv);
     CHECK(0 == ncplane_destroy(n));

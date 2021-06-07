@@ -918,6 +918,7 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
     ncplane_destroy(createdn);
     return NULL;
   }
+//fprintf(stderr, "FOLLOWING PLANE: %d %d %d %d\n", n->absy, n->absx, n->leny, n->lenx);
   // if we created the plane earlier, placex/placey were taken into account, and
   // zeroed out, thus neither of these will have any effect.
   if(flags & NCVISUAL_OPTION_HORALIGNED){
@@ -945,9 +946,9 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
   // the intended location.
   sprixel* s = n->sprite;
   n->sprite = NULL;
+//fprintf(stderr, "ABOUT TO RESIZE: yoff/xoff: %d/%d\n",  placey, placex);
   // FIXME might need shrink down the TAM and kill unnecessary auxvecs
-  if(ncplane_resize(n, 0, 0, s->dimy, s->dimx, placey - ncplane_y(n),
-                    placex - ncplane_x(n), s->dimy, s->dimx)){
+  if(ncplane_resize(n, 0, 0, s->dimy, s->dimx, placey, placex, s->dimy, s->dimx)){
     sprixel_hide(bargs.u.pixel.spx);
     ncplane_destroy(createdn);
     return NULL;

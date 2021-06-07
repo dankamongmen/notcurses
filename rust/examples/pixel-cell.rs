@@ -46,7 +46,7 @@ fn main() -> NcResult<()> {
     rsleep![&mut nc, 1];
 
     // show the ncvisual, scaled
-    let mut vplane2 = NcPlane::new_bound(&mut stdplane, 6, 2, 4, 4)?;
+    let mut vplane2 = NcPlane::new_bound(&mut stdplane, 6, 2, 5, 4)?;
     let voptions2 = NcVisualOptions::with_plane(
         &mut vplane2,
         NCSCALE_SCALE,
