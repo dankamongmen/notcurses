@@ -8,17 +8,17 @@ fn main() -> NcResult<()> {
 
     // FIXME: this doesn't show at all :/
     let plane1 = NcPlane::new(&mut nc, 0, 0, 20, 40)?;
-    plane1.set_base("·", 0, chan_green)?;
+    plane1.set_base("1", 0, chan_green)?;
     let plane2 = NcPlane::new_bound(plane1, 0, 0, 2, 4)?;
-    plane2.set_base("·", 0, chan_blue)?;
+    plane2.set_base("2", 0, chan_blue)?;
     plane1.render()?;
     plane1.rasterize()?;
     rsleep![&mut nc, 2];
 
     // but the stdplane does show
-    nc.stdplane().set_base("x", 0, chan_blue)?;
+    nc.stdplane().set_base("s", 0, chan_blue)?;
     let substdplane = NcPlane::new_bound(nc.stdplane(), 5, 10, 10, 20)?;
-    substdplane.set_base("~", 0, chan_green)?;
+    substdplane.set_base("u", 0, chan_green)?;
     rsleep![&mut nc, 2];
 
     nc.stop()?;

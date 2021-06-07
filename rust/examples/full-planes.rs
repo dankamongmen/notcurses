@@ -11,7 +11,7 @@ fn main() -> NcResult<()> {
     assert_eq![(t_rows, t_cols), stdplane.dim_yx()];
 
     // set the standard plane's base cell's foreground and background colors
-    let channels = NcChannelPair::with_rgb(0x88aa00, 0x2222288);
+    let channels = NcChannelPair::with_rgb(0x88aa00, 0x222288);
     stdplane.set_base("x", 0, channels)?;
     rsleep![&mut nc, 0, 500];
 
