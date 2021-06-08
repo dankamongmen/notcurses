@@ -81,6 +81,8 @@ of a pile. A pile is destroyed when all its planes are destroyed, or moved to
 other piles. Since the standard plane (see below) always exists, and cannot be
 moved to another pile, one pile always exists, known as the standard pile.
 
+Note that rasterizing a pile will replace all content within its margins.
+
 ## Ncplanes
 
 Following initialization, a single ncplane exists, the "standard plane" (see
