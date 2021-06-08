@@ -139,7 +139,7 @@ int ncvisual_blitset_geom(const notcurses* nc, const tinfo* tcache,
   if(lenx == NULL){
     lenx = &fakelenx;
   }
-  if(vopts && vopts->flags >= (NCVISUAL_OPTION_CHILDPLANE << 1u)){
+  if(vopts && vopts->flags >= (NCVISUAL_OPTION_NOINTERPOLATE << 1u)){
     logwarn(nc, "Warning: unknown ncvisual options %016jx\n", (uintmax_t)vopts->flags);
   }
   if(vopts && (vopts->flags & NCVISUAL_OPTION_CHILDPLANE) && !vopts->n){

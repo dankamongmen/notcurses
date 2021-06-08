@@ -3183,12 +3183,13 @@ int notcurses_lex_blitter(const char* op, ncblitter_e* blitter);
 // Get the name of a blitter.
 const char* notcurses_str_blitter(ncblitter_e blitter);
 
-#define NCVISUAL_OPTION_NODEGRADE  0x0001ull // fail rather than degrade
-#define NCVISUAL_OPTION_BLEND      0x0002ull // use CELL_ALPHA_BLEND with visual
-#define NCVISUAL_OPTION_HORALIGNED 0x0004ull // x is an alignment, not absolute
-#define NCVISUAL_OPTION_VERALIGNED 0x0008ull // y is an alignment, not absolute
-#define NCVISUAL_OPTION_ADDALPHA   0x0010ull // transcolor is transparent
-#define NCVISUAL_OPTION_CHILDPLANE 0x0020ull // new plane is child of n
+#define NCVISUAL_OPTION_NODEGRADE     0x0001ull // fail rather than degrade
+#define NCVISUAL_OPTION_BLEND         0x0002ull // use CELL_ALPHA_BLEND
+#define NCVISUAL_OPTION_HORALIGNED    0x0004ull // x is an alignment, not abs
+#define NCVISUAL_OPTION_VERALIGNED    0x0008ull // y is an alignment, not abs
+#define NCVISUAL_OPTION_ADDALPHA      0x0010ull // transcolor is in effect
+#define NCVISUAL_OPTION_CHILDPLANE    0x0020ull // interpret n as parent
+#define NCVISUAL_OPTION_NOINTERPOLATE 0x0040ull // non-interpolative scaling
 
 struct ncvisual_options {
   // if no ncplane is provided, one will be created using the exact size

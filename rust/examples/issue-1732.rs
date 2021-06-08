@@ -3,7 +3,7 @@ use libnotcurses_sys::*;
 fn main() -> NcResult<()> {
     let mut nc = Notcurses::new()?;
 
-    let chan_blue = NcChannelPair::with_rgb(0x88aa00, 0x2222287);
+    let chan_blue = NcChannelPair::with_rgb(0x88aa00, 0x22287);
     let chan_green = NcChannelPair::with_rgb(0x224411, 0x229922);
 
     // FIXME: this doesn't show at all :/

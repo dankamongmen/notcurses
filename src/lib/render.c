@@ -1366,7 +1366,7 @@ int ncpile_render(ncplane* n){
   if(engorge_crender_vector(pile)){
     return -1;
   }
-  // FIXME notcurses_stdplane() doesn't belong here
+  // FIXME notcurses_stdplane() doesn't belong here #1615
   ncpile_render_internal(n, pile->crender, pile->dimy, pile->dimx,
                          notcurses_stdplane(nc)->absy,
                          notcurses_stdplane(nc)->absx);
