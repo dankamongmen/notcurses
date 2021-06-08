@@ -428,6 +428,7 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
     fclose(fp);
     return -1;
   }
+  bool translucent = bargs->flags & NCVISUAL_OPTION_BLEND;
   int sprixelid = bargs->u.pixel.spx->id;
   int cdimy = bargs->u.pixel.celldimy;
   int cdimx = bargs->u.pixel.celldimx;
@@ -464,6 +465,9 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
         }
         const uint32_t* line = data + (linesize / sizeof(*data)) * y;
         source[e] = line[x];
+        if(translucent){
+          ncpixel_set_a(&source[e], ncpixel_a(source[e]) / 2);
+        }
 //fprintf(stderr, "%u/%u/%u -> %c%c%c%c %u %u %u %u\n", r, g, b, b64[0], b64[1], b64[2], b64[3], b64[0], b64[1], b64[2], b64[3]);
         int xcell = x / cdimx;
         int ycell = y / cdimy;
