@@ -2,8 +2,10 @@ This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
 * 2.3.3 (not yet released)
-  * `ncvisual_blit()` without a multimedia engine will now properly scale
-    the output according to the provided `ncvisual_options`.
+  * Added the flag `NCVISUAL_OPTION_NOINTERPOLATE` to use non-interpolative
+    scaling in `ncvisual_render()`. `ncvisual_render()` without a multimedia
+    engine will now use this method for any requested scaling (previously,
+    scaling was not performed without a linked multimedia backend).
 
 * 2.3.2 (2021-06-03)
   * Fixed a bug affecting certain scalings of `ncvisual` objects created from
