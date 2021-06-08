@@ -443,7 +443,7 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
 //fprintf(stderr, "total: %d chunks = %d, s=%d,v=%d\n", total, chunks, lenx, leny);
   while(chunks--){
     if(totalout == 0){
-      *parse_start = fprintf(fp, "\e_Gf=32,s=%d,v=%d,i=%d,a=T,%C=1;",
+      *parse_start = fprintf(fp, "\e_Gf=32,s=%d,v=%d,i=%d,a=T,%c=1;",
                              lenx, leny, sprixelid, chunks ? 'm' : 'q');
     }else{
       fprintf(fp, "\e_G%sm=%d;", chunks ? "" : "q=2,", chunks ? 1 : 0);
