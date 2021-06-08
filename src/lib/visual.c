@@ -773,7 +773,10 @@ make_sprixel_plane(notcurses* nc, ncplane* parent, ncvisual* ncv,
   if(scaling != NCSCALE_NONE && scaling != NCSCALE_NONE_HIRES){
     ncplane_dim_yx(parent, disppixy, disppixx);
     if(*placey + *disppixy >= ncplane_dim_y(notcurses_stdplane_const(nc))){
-      *disppixy = ncplane_dim_y(notcurses_stdplane_const(nc)) - *placey - 1;
+      *disppixy = ncplane_dim_y(notcurses_stdplane_const(nc)) - *placey;
+      if(!nc->tcache.bitmap_lowest_line){
+        --*disppixy;
+      }
     }
     if(!(flags & NCVISUAL_OPTION_VERALIGNED)){
       *disppixy -= *placey;

@@ -21,6 +21,7 @@ setup_sixel_bitmaps(tinfo* ti){
 
 static inline void
 setup_kitty_bitmaps(tinfo* ti, int fd){
+  ti->bitmap_supported = true;
   ti->pixel_wipe = kitty_wipe;
   ti->pixel_destroy = kitty_destroy;
   ti->pixel_remove = kitty_remove;
@@ -29,6 +30,7 @@ setup_kitty_bitmaps(tinfo* ti, int fd){
   ti->sprixel_scale_height = 1;
   ti->pixel_rebuild = kitty_rebuild;
   ti->pixel_clear_all = kitty_clear_all;
+  ti->bitmap_lowest_line = true;
   set_pixel_blitter(kitty_blit);
   sprite_init(ti, fd);
 }
@@ -91,7 +93,6 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd){
     ti->sextants = true; // work since bugfix in 0.19.3
     ti->quadrants = true;
     ti->pixel_query_done = true;
-    ti->bitmap_supported = true;
     ti->RGBflag = true;
     setup_kitty_bitmaps(ti, fd);
   }else if(strstr(termname, "alacritty")){
