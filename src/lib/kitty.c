@@ -421,14 +421,17 @@ int kitty_wipe(sprixel* s, int ycell, int xcell){
 // 16 base64-encoded bytes. 4096 / 16 == 256 3-pixel groups, or 768 pixels.
 // closes |fp| on all paths.
 static int
-write_kitty_data(FILE* fp, int linesize, int leny, int lenx,
-                 int cols, const uint32_t* data, int cdimy, int cdimx,
-                 int sprixelid, tament* tam, int* parse_start,
-                 uint32_t transcolor){
+write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
+                 const uint32_t* data, const blitterargs* bargs,
+                 tament* tam, int* parse_start){
   if(linesize % sizeof(*data)){
     fclose(fp);
     return -1;
   }
+  int sprixelid = bargs->u.pixel.spx->id;
+  int cdimy = bargs->u.pixel.celldimy;
+  int cdimx = bargs->u.pixel.celldimx;
+  uint32_t transcolor = bargs->transcolor;
   int total = leny * lenx; // total number of pixels (4 * total == bytecount)
   // number of 4KiB chunks we'll need
   int chunks = (total + (RGBA_MAXLEN - 1)) / RGBA_MAXLEN;
@@ -539,10 +542,7 @@ int kitty_blit(ncplane* n, int linesize, const void* data, int leny, int lenx,
     memset(tam, 0, sizeof(*tam) * rows * cols);
   }
   // closes fp on all paths
-  if(write_kitty_data(fp, linesize, leny, lenx, cols, data,
-                      bargs->u.pixel.celldimy, bargs->u.pixel.celldimx,
-                      bargs->u.pixel.spx->id, tam, &parse_start,
-                      bargs->transcolor)){
+  if(write_kitty_data(fp, linesize, leny, lenx, cols, data, bargs, tam, &parse_start)){
     if(!reuse){
       free(tam);
     }
