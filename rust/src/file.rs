@@ -65,7 +65,7 @@ fn get_error<T>() -> Result<T, Error> {
 /// [`libc::FILE`](https://docs.rs/libc/0.2.80/libc/enum.FILE.html)
 ///
 /// The notcurses `FILE` type [`FILE_NC`] a struct imported through bindgen,
-/// while the equivalent [`libc`][https://docs.rs/libc] crate FILE
+/// while the equivalent [`libc`](https://docs.rs/libc) crate FILE
 /// ([`FILE_LIBC`]) is an opaque enum.
 ///
 /// Several methods are provided to cast back and forth between both types,

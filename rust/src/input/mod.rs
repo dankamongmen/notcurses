@@ -122,8 +122,8 @@ impl NcInput {
 /// Is this [char] a Supplementary Private Use Area-B codepoint?
 ///
 /// Links:
-/// - https://en.wikipedia.org/wiki/Private_Use_Areas
-/// - https://codepoints.net/supplementary_private_use_area-b
+/// - <https://en.wikipedia.org/wiki/Private_Use_Areas>
+/// - <https://codepoints.net/supplementary_private_use_area-b>
 #[inline]
 pub const fn nckey_supppuab_p(w: char) -> bool {
     w as u32 >= 0x100000_u32 && w as u32 <= 0x10fffd_u32
