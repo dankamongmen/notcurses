@@ -3127,9 +3127,9 @@ int ncvisual_rotate(struct ncvisual* n, double rads);
 // transformation, unless the size is unchanged.
 int ncvisual_resize(struct ncvisual* n, int rows, int cols);
 
-// Inflate each pixel in the image to 'scale'x'scale' pixels. It is an error
-// if 'scale' is less than 1. The original color is retained.
-int ncvisual_inflate(struct ncvisual* n, int scale);
+// Scale the visual to 'rows' X 'columns' pixels, using non-interpolative
+// (naive) scaling. No new colors will be introduced as a result.
+int ncvisual_resize_noninterpolative(struct ncvisual* n, int rows, int cols);
 
 // Polyfill at the specified location within the ncvisual 'n', using 'rgba'.
 int ncvisual_polyfill_yx(struct ncvisual* n, int y, int x, uint32_t rgba);

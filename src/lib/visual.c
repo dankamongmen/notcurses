@@ -640,22 +640,26 @@ ncvisual* ncvisual_from_bgra(const void* bgra, int rows, int rowstride, int cols
 
 int ncvisual_resize(ncvisual* nc, int rows, int cols){
   if(!visual_implementation){
-    size_t dstride = pad_for_image(cols * 4);
-    uint32_t* r = resize_bitmap(nc->data, nc->pixy, nc->pixx, nc->rowstride,
-                                rows, cols, dstride);
-    if(r == NULL){
-      return -1;
-    }
-    ncvisual_set_data(nc, r, true);
-    nc->rowstride = dstride;
-    nc->pixy = rows;
-    nc->pixx = cols;
-    ncvisual_details_seed(nc);
-    return 0;
+    return ncvisual_resize_noninterpolative(nc, rows, cols);
   }
   if(visual_implementation->visual_resize(nc, rows, cols)){
     return -1;
   }
+  return 0;
+}
+
+int ncvisual_resize_noninterpolative(ncvisual* n, int rows, int cols){
+  size_t dstride = pad_for_image(cols * 4);
+  uint32_t* r = resize_bitmap(n->data, n->pixy, n->pixx, n->rowstride,
+                              rows, cols, dstride);
+  if(r == NULL){
+    return -1;
+  }
+  ncvisual_set_data(n, r, true);
+  n->rowstride = dstride;
+  n->pixy = rows;
+  n->pixx = cols;
+  ncvisual_details_seed(n);
   return 0;
 }
 
@@ -1119,16 +1123,5 @@ int ncvisual_inflate(ncvisual* n, int scale){
   if(scale <= 0){
     return -1;
   }
-  size_t dstride = pad_for_image(4 * n->pixx * scale);
-  uint32_t* inflaton = resize_bitmap(n->data, n->pixy, n->pixx, n->rowstride,
-                                     n->pixy * scale, n->pixx * scale, dstride);
-  if(inflaton == NULL){
-    return -1;
-  }
-  ncvisual_set_data(n, inflaton, true);
-  n->pixy *= scale;
-  n->pixx *= scale;
-  n->rowstride = dstride;
-  ncvisual_details_seed(n);
-  return 0;
+  return ncvisual_resize_noninterpolative(n, n->pixy * scale, n->pixx * scale);
 }

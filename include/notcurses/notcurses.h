@@ -2530,9 +2530,9 @@ API int ncvisual_rotate(struct ncvisual* n, double rads)
 API int ncvisual_resize(struct ncvisual* n, int rows, int cols)
   __attribute__ ((nonnull (1)));
 
-// Inflate each pixel in the image to 'scale'x'scale' pixels. It is an error
-// if 'scale' is less than 1. The original color is retained.
-API int ncvisual_inflate(struct ncvisual* n, int scale)
+// Scale the visual to 'rows' X 'columns' pixels, using non-interpolative
+// (naive) scaling. No new colors will be introduced as a result.
+API int ncvisual_resize_noninterpolative(struct ncvisual* n, int rows, int cols)
   __attribute__ ((nonnull (1)));
 
 // Polyfill at the specified location within the ncvisual 'n', using 'rgba'.
@@ -4268,6 +4268,12 @@ __attribute__ ((deprecated)) static inline uint64_t
 channels_set_bg_default(uint64_t* channels){
   return ncchannels_set_bg_default(channels);
 }
+
+// Inflate each pixel in the image to 'scale'x'scale' pixels. It is an error
+// if 'scale' is less than 1. The original color is retained.
+// Deprecated; use ncvisual_resize_noninterpolative(), which this now wraps.
+API __attribute__ ((deprecated)) int ncvisual_inflate(struct ncvisual* n, int scale)
+  __attribute__ ((nonnull (1)));
 
 typedef ncpalette palette256;
 

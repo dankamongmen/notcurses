@@ -272,7 +272,7 @@ TEST_CASE("Bitmaps") {
     ncplane_set_base(bigp, "x", 0, white);
     CHECK(vopts.n == ncvisual_render(nc_, ncv, &vopts));
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == ncvisual_inflate(ncv, 4));
+    CHECK(0 == ncvisual_resize_noninterpolative(ncv, ncv->pixy * 4, ncv->pixx * 4));
     CHECK(4 * nc_->tcache.cellpixy == ncv->pixy);
     CHECK(4 * nc_->tcache.cellpixx == ncv->pixx);
     vopts.y = 1;
@@ -345,7 +345,7 @@ TEST_CASE("Bitmaps") {
     vopts.scaling = NCSCALE_SCALE;
     ncvisual_render(nc_, ncv, &vopts);
     CHECK(4 == ncplane_dim_x(vopts.n));
-    ncvisual_inflate(ncv, 4);
+    CHECK(0 == ncvisual_resize_noninterpolative(ncv, ncv->pixy * 4, ncv->pixx * 4));
     vopts.n = nullptr;
     vopts.y = 2;
     vopts.x = 5;

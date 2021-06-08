@@ -1620,6 +1620,7 @@ resize_bitmap(const uint32_t* bmap, int srows, int scols, size_t sstride,
   if(dstride < dcols * sizeof(*bmap)){
     return NULL;
   }
+  // FIXME if parameters match current setup, do nothing, and return bmap
   size_t size = drows * dstride;
   uint32_t* ret = (uint32_t*)malloc(size);
   if(ret == NULL){

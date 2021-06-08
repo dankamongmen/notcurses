@@ -136,7 +136,7 @@ TEST_CASE("Visual") {
     };
     auto newn = ncvisual_render(nc_, ncv, &vopts);
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == ncvisual_inflate(ncv, 3));
+    CHECK(0 == ncvisual_resize_noninterpolative(ncv, ncv->pixy * 3, ncv->pixx * 3));
     CHECK(6 == ncv->pixy);
     CHECK(6 == ncv->pixx);
     for(int y = 0 ; y < 3 ; ++y){
@@ -772,7 +772,7 @@ TEST_CASE("Visual") {
     CHECK(0 == ncvisual_blitter_geom(nc_, ncv, &opts, &odimy, &odimx, nullptr, nullptr, nullptr));
     CHECK(ncvisual_render(nc_, ncv, &opts));
     CHECK(0 == notcurses_render(nc_));
-    CHECK(0 == ncvisual_inflate(ncv, 2));
+    CHECK(0 == ncvisual_resize_noninterpolative(ncv, ncv->pixy * 2, ncv->pixx * 2));
     CHECK(0 == ncvisual_blitter_geom(nc_, ncv, &opts, &ndimy, &ndimx, nullptr, nullptr, nullptr));
     CHECK(ndimy == odimy * 2);
     CHECK(ndimx == odimx * 2);

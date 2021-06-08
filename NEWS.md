@@ -8,6 +8,9 @@ rearrangements of Notcurses.
     scaling was not performed without a linked multimedia backend).
   * `NCVISUAL_OPTION_BLEND` used with `NCBLIT_PIXEL` will now, when the Kitty
     graphics protocol is in use, cut the alpha of each pixel in half.
+  * `ncvisual_inflate()` has been rewritten as a wrapper around the new
+    function `ncvisual_resize_noninterpolative()`, and deprecated. It will be
+    removed for ABI3. Godspeed, `ncvisual_inflate()`; we hardly knew ye.
 
 * 2.3.2 (2021-06-03)
   * Fixed a bug affecting certain scalings of `ncvisual` objects created from
