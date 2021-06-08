@@ -121,6 +121,7 @@ typedef struct tinfo {
   struct termios tpreserved; // terminal state upon entry
   ncinputlayer input;       // input layer
   bool bitmap_supported;    // do we support bitmaps (post pixel_query_done)?
+  bool bitmap_lowest_line;  // can we render pixels to the bottom row?
   bool pixel_query_done;    // have we yet performed pixel query?
   bool RGBflag;   // "RGB" flag for 24bpc truecolor
   bool CCCflag;   // "CCC" flag for palette set capability
