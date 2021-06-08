@@ -6,6 +6,8 @@ rearrangements of Notcurses.
     scaling in `ncvisual_render()`. `ncvisual_render()` without a multimedia
     engine will now use this method for any requested scaling (previously,
     scaling was not performed without a linked multimedia backend).
+  * `NCVISUAL_OPTION_BLEND` used with `NCBLIT_PIXEL` will now, when the Kitty
+    graphics protocol is in use, cut the alpha of each pixel in half.
 
 * 2.3.2 (2021-06-03)
   * Fixed a bug affecting certain scalings of `ncvisual` objects created from
