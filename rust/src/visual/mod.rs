@@ -133,7 +133,12 @@ pub const NCVISUAL_OPTION_ADDALPHA: u32 = crate::bindings::ffi::NCVISUAL_OPTION_
 /// Uses [`NCCELL_ALPHA_BLEND`][crate::NCCELL_ALPHA_BLEND] with visual.
 pub const NCVISUAL_OPTION_BLEND: u32 = crate::bindings::ffi::NCVISUAL_OPTION_BLEND;
 
-/// allows you to indicate that the n field of ncvisual_options refers not to the plane onto which you'd like to blit, but the parent of a new plane. A plane will be created using the other parameters in the ncvisual_options, as a child of this parent. This means things like, say, vertically centering a sprixel relative to the standard plane can be done in one step
+/// allows you to indicate that the n field of ncvisual_options refers not to
+/// the plane onto which you'd like to blit, but the parent of a new plane.
+///
+/// A plane will be created using the other parameters in the ncvisual_options,
+/// as a child of this parent. This means things like, say, vertically centering
+/// a sprixel relative to the standard plane can be done in one step.
 pub const NCVISUAL_OPTION_CHILDPLANE: u32 = crate::bindings::ffi::NCVISUAL_OPTION_CHILDPLANE;
 
 /// Fails rather than gracefully degrade. See [NcBlitter].
@@ -144,6 +149,9 @@ pub const NCVISUAL_OPTION_VERALIGNED: u32 = crate::bindings::ffi::NCVISUAL_OPTIO
 
 /// X is an alignment, not absolute.
 pub const NCVISUAL_OPTION_HORALIGNED: u32 = crate::bindings::ffi::NCVISUAL_OPTION_HORALIGNED;
+
+/// Uses non-interpolative scaling.
+pub const NCVISUAL_OPTION_NOINTERPOLATE: u32 = crate::bindings::ffi::NCVISUAL_OPTION_NOINTERPOLATE;
 
 /// Blitter Mode (`NCBLIT_*`)
 ///

@@ -41,7 +41,7 @@ impl NcVisualOptions {
         leny: NcDim,
         lenx: NcDim,
         blitter: NcBlitter,
-        flags: u64,
+        flags: u32,
         transcolor: NcRgba,
     ) -> Self {
         Self {
@@ -60,7 +60,7 @@ impl NcVisualOptions {
             // glyph set to use
             blitter,
             // bitmask over NCVISUAL_OPTION_*
-            flags,
+            flags: flags as u64,
             transcolor,
         }
     }
@@ -73,7 +73,7 @@ impl NcVisualOptions {
         leny: NcDim,
         lenx: NcDim,
         blitter: NcBlitter,
-        flags: u64,
+        flags: u32,
         transcolor: u32,
     ) -> Self {
         Self {
@@ -91,7 +91,7 @@ impl NcVisualOptions {
             // glyph set to use
             blitter,
             // bitmask over NCVISUAL_OPTION_*
-            flags,
+            flags: flags as u64,
             // This color will be treated as transparent with flag [NCVISUAL_OPTION_ADDALPHA].
             transcolor,
         }
