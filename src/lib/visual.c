@@ -58,6 +58,7 @@ char* ncvisual_subtitle(const ncvisual* ncv){
 
 int ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
                   const struct blitset* bset, const blitterargs* barg){
+  // FIMXE see #1576 -- if requested, do scaling here, with resize_bitmap()
   int ret = -1;
   if(visual_implementation){
     if(visual_implementation->visual_blit(ncv, rows, cols, n, bset, barg) >= 0){
