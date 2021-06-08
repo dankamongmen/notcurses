@@ -504,12 +504,12 @@ typedef struct blitterargs {
   int begx;
   int leny;            // number of source pixels to use
   int lenx;
+  uint64_t flags;      // flags (as selected from ncvisual_options->flags)
   uint32_t transcolor; // if non-zero, treat the lower 24 bits as a transparent color
   union { // cell vs pixel-specific arguments
     struct {
       int placey;      // placement within ncplane
       int placex;
-      int blendcolors; // use CELL_ALPHA_BLEND
     } cell;            // for cells
     struct {
       int celldimx;    // horizontal pixels per cell

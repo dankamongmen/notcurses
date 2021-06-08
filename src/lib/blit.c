@@ -44,6 +44,7 @@ tria_blit_ascii(ncplane* nc, int linesize, const void* data,
                 int leny, int lenx, const blitterargs* bargs,
                 int bpp){
 //fprintf(stderr, "ASCII %d X %d @ %d X %d (%p) place: %d X %d\n", leny, lenx, bargs->begy, bargs->begx, data, bargs->u.cell.placey, bargs->u.cell.placex);
+  const bool blendcolors = bargs->flags & NCVISUAL_OPTION_BLEND;
   int dimy, dimx, x, y;
   int total = 0; // number of cells written
   ncplane_dim_yx(nc, &dimy, &dimx);
@@ -69,7 +70,7 @@ tria_blit_ascii(ncplane* nc, int linesize, const void* data,
       // effective in that case anyway
       c->channels = 0;
       c->stylemask = 0;
-      if(bargs->u.cell.blendcolors){
+      if(blendcolors){
         nccell_set_bg_alpha(c, CELL_ALPHA_BLEND);
         nccell_set_fg_alpha(c, CELL_ALPHA_BLEND);
       }
@@ -96,6 +97,7 @@ tria_blit_ascii(ncplane* nc, int linesize, const void* data,
 static inline int
 tria_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
           const blitterargs* bargs, int bpp){
+  const bool blendcolors = bargs->flags & NCVISUAL_OPTION_BLEND;
 //fprintf(stderr, "HALF %d X %d @ %d X %d (%p) place: %d X %d\n", leny, lenx, bargs->begy, bargs->begx, data, bargs->u.cell.placey, bargs->u.cell.placex);
   uint32_t transcolor = bargs->transcolor;
   int dimy, dimx, x, y;
@@ -127,7 +129,7 @@ tria_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
       // effective in that case anyway
       c->channels = 0;
       c->stylemask = 0;
-      if(bargs->u.cell.blendcolors){
+      if(blendcolors){
         nccell_set_bg_alpha(c, CELL_ALPHA_BLEND);
         nccell_set_fg_alpha(c, CELL_ALPHA_BLEND);
       }
@@ -425,6 +427,7 @@ qtrans_check(nccell* c, unsigned blendcolors,
 static inline int
 quadrant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
               const blitterargs* bargs, int bpp){
+  const bool blendcolors = bargs->flags & NCVISUAL_OPTION_BLEND;
   int dimy, dimx, x, y;
   int total = 0; // number of cells written
   ncplane_dim_yx(nc, &dimy, &dimx);
@@ -461,7 +464,7 @@ quadrant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
       nccell* c = ncplane_cell_ref_yx(nc, y, x);
       c->channels = 0;
       c->stylemask = 0;
-      const char* egc = qtrans_check(c, bargs->u.cell.blendcolors, rgbbase_tl, rgbbase_tr, rgbbase_bl, rgbbase_br, bargs->transcolor);
+      const char* egc = qtrans_check(c, blendcolors, rgbbase_tl, rgbbase_tr, rgbbase_bl, rgbbase_br, bargs->transcolor);
       if(egc == NULL){
         uint32_t tl = 0, tr = 0, bl = 0, br = 0;
         ncchannel_set_rgb8(&tl, rgbbase_tl[0], rgbbase_tl[1], rgbbase_tl[2]);
@@ -475,7 +478,7 @@ quadrant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
 //fprintf(stderr, "%d/%d %08x/%08x\n", y, x, fg, bg);
         cell_set_fchannel(c, fg);
         cell_set_bchannel(c, bg);
-        if(bargs->u.cell.blendcolors){
+        if(blendcolors){
           nccell_set_bg_alpha(c, CELL_ALPHA_BLEND);
           nccell_set_fg_alpha(c, CELL_ALPHA_BLEND);
         }
@@ -653,6 +656,7 @@ sex_trans_check(cell* c, const uint32_t rgbas[6], unsigned blendcolors,
 static inline int
 sextant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
              const blitterargs* bargs, int bpp){
+  const bool blendcolors = bargs->flags & NCVISUAL_OPTION_BLEND;
   int dimy, dimx, x, y;
   int total = 0; // number of cells written
   ncplane_dim_yx(nc, &dimy, &dimx);
@@ -691,9 +695,9 @@ sextant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
       nccell* c = ncplane_cell_ref_yx(nc, y, x);
       c->channels = 0;
       c->stylemask = 0;
-      const char* egc = sex_trans_check(c, rgbas, bargs->u.cell.blendcolors, bargs->transcolor);
+      const char* egc = sex_trans_check(c, rgbas, blendcolors, bargs->transcolor);
       if(egc == NULL){ // no transparency; run a full solver
-        egc = sex_solver(rgbas, &c->channels, bargs->u.cell.blendcolors);
+        egc = sex_solver(rgbas, &c->channels, blendcolors);
         cell_set_blitquadrants(c, 1, 1, 1, 1);
       }
 //fprintf(stderr, "sex EGC: %s channels: %016lx\n", egc, c->channels);
@@ -726,6 +730,7 @@ fold_rgb8(unsigned* restrict r, unsigned* restrict g, unsigned* restrict b,
 static inline int
 braille_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
              const blitterargs* bargs, int bpp){
+  const bool blendcolors = bargs->flags & NCVISUAL_OPTION_BLEND;
   int dimy, dimx, x, y;
   int total = 0; // number of cells written
   ncplane_dim_yx(nc, &dimy, &dimx);
@@ -815,7 +820,7 @@ braille_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
       // effective in that case anyway
       c->channels = 0;
       c->stylemask = 0;
-      if(bargs->u.cell.blendcolors){
+      if(blendcolors){
         nccell_set_fg_alpha(c, CELL_ALPHA_BLEND);
       }
       // FIXME for now, we just sample, color-wise, and always draw crap.
@@ -1053,11 +1058,11 @@ int ncblit_rgba(const void* data, int linesize, const struct ncvisual_options* v
     return -1;
   }
   blitterargs bargs = {
+    .flags = vopts->flags,
     .u = {
       .cell = {
         .placey = vopts->y,
         .placex = vopts->x,
-        .blendcolors = (vopts->flags & NCVISUAL_OPTION_BLEND),
       },
     },
   };

@@ -748,9 +748,9 @@ ncplane* ncvisual_render_cells(notcurses* nc, ncvisual* ncv, const struct blitse
   bargs.begx = begx;
   bargs.leny = leny;
   bargs.lenx = lenx;
+  bargs.flags = flags;
   bargs.u.cell.placey = placey;
   bargs.u.cell.placex = placex;
-  bargs.u.cell.blendcolors = flags & NCVISUAL_OPTION_BLEND;
   if(ncvisual_blit(ncv, disprows, dispcols, n, bset, &bargs)){
     ncplane_destroy(createdn);
     return NULL;
@@ -891,6 +891,7 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
   bargs.begx = begx;
   bargs.leny = leny;
   bargs.lenx = lenx;
+  bargs.flags = flags;
   bargs.u.pixel.celldimx = nc->tcache.cellpixx;
   bargs.u.pixel.celldimy = nc->tcache.cellpixy;
   bargs.u.pixel.colorregs = nc->tcache.color_registers;
