@@ -36,10 +36,9 @@ is a part. The output is maintained internally; calling **ncpile_render** again
 on the same pile will replace this state with a fresh render. Multiple piles
 can be concurrently rendered. **ncpile_rasterize** performs rasterization, and
 writes the result to the terminal. It is a blocking call, and only one
-rasterization operation may proceed at a time. It does not destroy the
-render output, and can be called multiple times on the same render.
-**notcurses_render** calls **ncpile_render** and **ncpile_rasterize** on the
-standard plane, for backwards compatibility. It is an exclusive blocking call.
+rasterization operation may proceed at a time. **notcurses_render** calls
+**ncpile_render** and **ncpile_rasterize** on the standard plane, for backwards
+compatibility. It is an exclusive blocking call.
 
 It is necessary to call **ncpile_rasterize** or **notcurses_render** to
 generate any visible output; the various notcurses_output(3) calls only draw to
