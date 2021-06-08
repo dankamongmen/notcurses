@@ -5,11 +5,11 @@
 
 #[allow(unused_imports)]
 // enjoy briefer doc comments
-use crate::{NcDirect, NcError, NcResult, Notcurses, NCRESULT_ERR, NCRESULT_OK};
+use crate::{NcDirect, NcError, NcPlane, NcResult, Notcurses, NCRESULT_ERR, NCRESULT_OK};
 
 // Sleep, Render & Flush Macros ------------------------------------------------
 
-/// Sleeps for `$ns` seconds + `$ms` milliseconds
+/// Sleeps for `$s` seconds + `$ms` milliseconds
 /// + `$us` microseconds + `$ns` nanoseconds
 #[macro_export]
 macro_rules! sleep {
@@ -32,17 +32,37 @@ macro_rules! sleep {
     };
 }
 
-/// [`Notcurses.render`][Notcurses#method.render]\(`$nc`\)? plus [`sleep!`]`[$sleep_args]`.
+/// [`Notcurses.render`][Notcurses#method.render]\(`$nc`\)? plus
+/// [`sleep!`]`[$sleep_args]`.
 ///
-/// Renders the `$nc` [Notcurses] object and, if there's no error,
-/// calls the sleep macro with the rest of the arguments.
+/// Renders the `$nc` [Notcurses] object's standard plane pile and then,
+/// if there's no error, calls the sleep macro with the rest of the arguments.
 ///
 /// Returns [NcResult].
 #[macro_export]
 macro_rules! rsleep {
     ($nc:expr, $( $sleep_args:expr),+ ) => {
-        // Rust style, with methods & NcResult
-        Notcurses::render($nc)?;
+        crate::Notcurses::render($nc)?;
+        sleep![$( $sleep_args ),+];
+    };
+    ($nc:expr, $( $sleep_args:expr),+ ,) => {
+        rsleep![$nc, $( $sleep_args ),* ]
+    };
+}
+
+/// [`NcPlane.render`][NcPlane#method.render]\(`$p`\)? and
+/// [`NcPlane.rasterize`][NcPlane#method.rasterize]\(`$p`\)? plus
+/// [`sleep!`]`[$sleep_args]`.
+///
+/// Renders and rasterizes the `$p` [NcPlane] pile and then, if there are
+/// no errors, calls the sleep macro with the rest of the arguments.  
+///
+/// Returns [NcResult].
+#[macro_export]
+macro_rules! prsleep {
+    ($p:expr, $( $sleep_args:expr),+ ) => {
+        crate::NcPlane::render($p)?;
+        crate::NcPlane::rasterize($p)?;
         sleep![$( $sleep_args ),+];
     };
     ($nc:expr, $( $sleep_args:expr),+ ,) => {
@@ -60,7 +80,7 @@ macro_rules! rsleep {
 macro_rules! fsleep {
     ($ncd:expr, $( $sleep_args:expr),+ ) => {
         // Rust style, with methods & NcResult
-        NcDirect::flush($ncd)?;
+        crate::NcDirect::flush($ncd)?;
         sleep![$( $sleep_args ),+];
     };
     ($ncd:expr, $( $sleep_args:expr),+ ,) => {
