@@ -11,6 +11,11 @@ rearrangements of Notcurses.
   * `ncvisual_inflate()` has been rewritten as a wrapper around the new
     function `ncvisual_resize_noninterpolative()`, and deprecated. It will be
     removed for ABI3. Godspeed, `ncvisual_inflate()`; we hardly knew ye.
+  * `ncdirect_renderf()` has been changed to accept a `ncvisual_options`,
+    replacing and extending its four final arguments. Sorry about the breakage
+    here, but `ncdirect_renderf()` was introduced pretty recently (2.3.1).
+    As a result, `ncdirect_renderf()` and `ncdirect_stream()` now honor
+    `NCVISUAL_OPTION_BLEND` and `NCVISUAL_OPTION_NOINTERPOLATE`.
 
 * 2.3.2 (2021-06-03)
   * Fixed a bug affecting certain scalings of `ncvisual` objects created from

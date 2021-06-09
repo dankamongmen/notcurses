@@ -24,7 +24,12 @@ partial_image(struct ncdirect* n, const char* file){
       int cols = x;
       ncdirectv* v;
       printf("Size: %dx%d\n", cols, rows);
-      if((v = ncdirectf_render(n, nf, blit, NCSCALE_NONE, rows, cols)) == NULL){
+      struct ncvisual_options vopts = {
+        .blitter = blit,
+        .leny = rows * geom.scaley,
+        .lenx = cols * geom.scalex,
+      };
+      if((v = ncdirectf_render(n, nf, &vopts)) == NULL){
         ncdirectf_free(nf);
         return -1;
       }
