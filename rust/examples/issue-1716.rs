@@ -19,7 +19,9 @@ fn main() {
     }
 
     let vframe1 = NcDirectF::from_bgra(&buffer, H, W * 4, W).expect("couldn’t create visual");
-    let v = vframe1.ncdirectf_render(nc, NCBLIT_PIXEL, NCSCALE_NONE, 0, 0).expect("failed to render image to sixels");
+    let mut voptions1 = NcVisualOptions::without_plane(0, 0, 0, 0, H, W, NCBLIT_PIXEL, 0, 0);
+    let v = vframe1.ncdirectf_render(nc, &mut voptions1)
+        .expect("failed to render image to sixels");
     nc.raster_frame(v, NCALIGN_LEFT).expect("failed to print sixels");
     vframe1.ncdirectf_free();
     nc.stop().expect("failed to destroy ncdirect context");
