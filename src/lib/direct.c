@@ -545,7 +545,8 @@ int ncdirect_raster_frame(ncdirect* n, ncdirectv* ncdv, ncalign_e align){
 }
 
 static ncdirectv*
-ncdirect_render_visual(ncdirect* n, ncvisual* ncv, struct ncvisual_options* vopts){
+ncdirect_render_visual(ncdirect* n, ncvisual* ncv,
+                       const struct ncvisual_options* vopts){
   struct ncvisual_options defvopts = {};
   if(!vopts){
     vopts = &defvopts;
@@ -1313,7 +1314,7 @@ void ncdirectf_free(ncdirectf* frame){
   ncvisual_destroy(frame);
 }
 
-ncdirectv* ncdirectf_render(ncdirect* n, ncdirectf* frame, struct ncvisual_options* vopts){
+ncdirectv* ncdirectf_render(ncdirect* n, ncdirectf* frame, const struct ncvisual_options* vopts){
   return ncdirect_render_visual(n, frame, vopts);
 }
 
