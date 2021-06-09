@@ -556,7 +556,9 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv, struct ncvisual_options* vopt
   }
 //fprintf(stderr, "OUR DATA: %p rows/cols: %d/%d outsize: %d/%d %d/%d\n", ncv->data, ncv->pixy, ncv->pixx, dimy, dimx, ymax, xmax);
 //fprintf(stderr, "render %d/%d to scaling: %d\n", ncv->pixy, ncv->pixx, vopts->scaling);
-  const struct blitset* bset = rgba_blitter_low(&n->tcache, vopts->scaling, true, vopts->blitter);
+  const struct blitset* bset = rgba_blitter_low(&n->tcache, vopts->scaling,
+                                                !(vopts->flags & NCVISUAL_OPTION_NODEGRADE),
+                                                vopts->blitter);
   if(!bset){
     return NULL;
   }
@@ -647,14 +649,31 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv, struct ncvisual_options* vopt
 ncdirectv* ncdirect_render_frame(ncdirect* n, const char* file,
                                  ncblitter_e blitfxn, ncscale_e scale,
                                  int ymax, int xmax){
+  if(ymax < 0 || xmax < 0){
+    return NULL;
+  }
   ncdirectf* ncv = ncdirectf_from_file(n, file);
   if(ncv == NULL){
     return NULL;
   }
   struct ncvisual_options vopts = {};
-  vopts.blitter = blitfxn;
+  const struct blitset* bset = rgba_blitter_low(&n->tcache, scale, true, blitfxn);
+  if(!bset){
+    return NULL;
+  }
+  vopts.blitter = bset->geom;
+  vopts.flags = NCVISUAL_OPTION_NODEGRADE;
   vopts.scaling = scale;
-  // FIXME convery ymax, xmax into leny/lenx, or something
+  if(ymax > 0){
+    if((vopts.leny = ymax * bset->height) > ncv->pixy){
+      vopts.leny = 0;
+    }
+  }
+  if(xmax > 0){
+    if((vopts.lenx = xmax * bset->width) > ncv->pixx){
+      vopts.lenx = 0;
+    }
+  }
   ncdirectv* v = ncdirectf_render(n, ncv, &vopts);
   ncvisual_destroy(ncv);
   return v;
