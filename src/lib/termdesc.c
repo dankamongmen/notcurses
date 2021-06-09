@@ -493,6 +493,9 @@ query_sixel_details(tinfo* ti, int fd){
     return -1;
   }
 //fprintf(stderr, "Sixel ColorRegs: %d Max_x: %d Max_y: %d\n", ti->color_registers, ti->sixel_maxx, ti->sixel_maxy);
+  if(ti->color_registers < 64){ // FIXME try to drive it higher
+    return -1;
+  }
   return 0;
 }
 

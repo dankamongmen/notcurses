@@ -743,16 +743,10 @@ sixel_blit_inner(int leny, int lenx, sixeltable* stab,
 int sixel_blit(ncplane* n, int linesize, const void* data, int leny, int lenx,
                const blitterargs* bargs, int bpp __attribute__ ((unused))){
   int colorregs = bargs->u.pixel.colorregs;
-  if(colorregs <= 0){
-    return -1;
-  }
   if(colorregs > 256){
     colorregs = 256;
   }
-  // FIXME enforce this in discovery, possibly raising the value
-  if(colorregs < 64){
-    return -1;
-  }
+  assert(colorregs >= 64);
   sixeltable stable = {
     .map = sixelmap_create(colorregs, leny - bargs->begy, lenx - bargs->begx),
     .deets = malloc(colorregs * sizeof(cdetails)),
