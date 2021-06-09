@@ -545,23 +545,27 @@ int ncdirect_raster_frame(ncdirect* n, ncdirectv* ncdv, ncalign_e align){
 }
 
 static ncdirectv*
-ncdirect_render_visual(ncdirect* n, ncvisual* ncv, ncblitter_e blitfxn,
-                       ncscale_e scale, int ymax, int xmax,
-                       uint32_t transcolor){
-  if(ymax < 0 || xmax < 0){
-    fprintf(stderr, "Invalid render geometry %d/%d\n", ymax, xmax);
+ncdirect_render_visual(ncdirect* n, ncvisual* ncv, struct ncvisual_options* vopts){
+  struct ncvisual_options defvopts = {};
+  if(!vopts){
+    vopts = &defvopts;
+  }
+  if(vopts->leny < 0 || vopts->lenx < 0){
+    fprintf(stderr, "Invalid render geometry %d/%d\n", vopts->leny, vopts->lenx);
     return NULL;
   }
-  int dimy = ymax > 0 ? ymax : (ncdirect_dim_y(n) - 1);
-  int dimx = xmax > 0 ? xmax : ncdirect_dim_x(n);
 //fprintf(stderr, "OUR DATA: %p rows/cols: %d/%d outsize: %d/%d %d/%d\n", ncv->data, ncv->pixy, ncv->pixx, dimy, dimx, ymax, xmax);
-//fprintf(stderr, "render %d/%d to scaling: %d\n", ncv->pixy, ncv->pixx, scale);
-  const struct blitset* bset = rgba_blitter_low(&n->tcache, scale, true, blitfxn);
+//fprintf(stderr, "render %d/%d to scaling: %d\n", ncv->pixy, ncv->pixx, vopts->scaling);
+  const struct blitset* bset = rgba_blitter_low(&n->tcache, vopts->scaling, true, vopts->blitter);
   if(!bset){
     return NULL;
   }
+  int ymax = vopts->leny / bset->height;
+  int xmax = vopts->lenx / bset->width;
+  int dimy = vopts->leny > 0 ? ymax : ncdirect_dim_y(n);
+  int dimx = vopts->lenx > 0 ? xmax : ncdirect_dim_x(n);
   int disprows, dispcols, outy;
-  if(scale != NCSCALE_NONE && scale != NCSCALE_NONE_HIRES){
+  if(vopts->scaling != NCSCALE_NONE && vopts->scaling != NCSCALE_NONE_HIRES){
     if(bset->geom != NCBLIT_PIXEL){
       dispcols = dimx * encoding_x_scale(&n->tcache, bset);
       disprows = dimy * encoding_y_scale(&n->tcache, bset);
@@ -569,20 +573,20 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv, ncblitter_e blitfxn,
     }else{
       dispcols = dimx * n->tcache.cellpixx;
       disprows = dimy * n->tcache.cellpixy;
-      clamp_to_sixelmax(&n->tcache, &disprows, &dispcols, &outy, scale);
+      clamp_to_sixelmax(&n->tcache, &disprows, &dispcols, &outy, vopts->scaling);
     }
-    if(scale == NCSCALE_SCALE || scale == NCSCALE_SCALE_HIRES){
+    if(vopts->scaling == NCSCALE_SCALE || vopts->scaling == NCSCALE_SCALE_HIRES){
       scale_visual(ncv, &disprows, &dispcols);
       outy = disprows;
       if(bset->geom == NCBLIT_PIXEL){
-        clamp_to_sixelmax(&n->tcache, &disprows, &dispcols, &outy, scale);
+        clamp_to_sixelmax(&n->tcache, &disprows, &dispcols, &outy, vopts->scaling);
       }
     }
   }else{
     disprows = ncv->pixy;
     dispcols = ncv->pixx;
     if(bset->geom == NCBLIT_PIXEL){
-      clamp_to_sixelmax(&n->tcache, &disprows, &dispcols, &outy, scale);
+      clamp_to_sixelmax(&n->tcache, &disprows, &dispcols, &outy, vopts->scaling);
     }else{
       outy = disprows;
     }
@@ -620,7 +624,9 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv, ncblitter_e blitfxn,
     return NULL;
   }
   blitterargs bargs = {};
-  bargs.transcolor = transcolor;
+  if(vopts->flags & NCVISUAL_OPTION_ADDALPHA){
+    bargs.transcolor = vopts->transcolor | 0x1000000ull;
+  }
   if(bset->geom == NCBLIT_PIXEL){
     bargs.u.pixel.celldimx = n->tcache.cellpixx;
     bargs.u.pixel.celldimy = n->tcache.cellpixy;
@@ -645,7 +651,11 @@ ncdirectv* ncdirect_render_frame(ncdirect* n, const char* file,
   if(ncv == NULL){
     return NULL;
   }
-  ncdirectv* v = ncdirectf_render(n, ncv, blitfxn, scale, ymax, xmax);
+  struct ncvisual_options vopts = {};
+  vopts.blitter = blitfxn;
+  vopts.scaling = scale;
+  // FIXME convery ymax, xmax into leny/lenx, or something
+  ncdirectv* v = ncdirectf_render(n, ncv, &vopts);
   ncvisual_destroy(ncv);
   return v;
 }
@@ -1249,10 +1259,7 @@ int ncdirect_stream(ncdirect* n, const char* filename, ncstreamcb streamer,
     if(x > 0){
       ncdirect_cursor_left(n, x);
     }
-    // FIXME what about vopts->beg{yx} and vopts->len{yx}?
-    ncdirectv* v = ncdirect_render_visual(n, ncv, vopts->blitter, vopts->scaling,
-                                          0, 0, (vopts->flags & NCVISUAL_OPTION_ADDALPHA) ?
-                                                 vopts->transcolor | 0x1000000ul : 0);
+    ncdirectv* v = ncdirect_render_visual(n, ncv, vopts);
     if(v == NULL){
       ncvisual_destroy(ncv);
       return -1;
@@ -1286,10 +1293,8 @@ void ncdirectf_free(ncdirectf* frame){
   ncvisual_destroy(frame);
 }
 
-ncdirectv* ncdirectf_render(ncdirect* n, ncdirectf* frame,
-                            ncblitter_e blitter, ncscale_e scale,
-                            int maxy, int maxx){
-  return ncdirect_render_visual(n, frame, blitter, scale, maxy, maxx, 0);
+ncdirectv* ncdirectf_render(ncdirect* n, ncdirectf* frame, struct ncvisual_options* vopts){
+  return ncdirect_render_visual(n, frame, vopts);
 }
 
 int ncdirectf_geom(ncdirect* n, ncdirectf* frame,

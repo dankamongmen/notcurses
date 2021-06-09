@@ -83,7 +83,9 @@ TEST_CASE("DirectMode") {
     CHECK(475 == geom.pixy);
     CHECK(860 == geom.pixx);
     CHECK(NCBLIT_DEFAULT != blitter);
-    auto ncdv = ncdirectf_render(nc_, dirf, blitter, NCSCALE_NONE, 0, 0);
+    struct ncvisual_options vopts{};
+    vopts.blitter = blitter;
+    auto ncdv = ncdirectf_render(nc_, dirf, &vopts);
     CHECK(nullptr != ncdv);
     CHECK(0 == ncdirect_raster_frame(nc_, ncdv, NCALIGN_LEFT));
     ncdirectf_free(dirf);
@@ -101,7 +103,9 @@ TEST_CASE("DirectMode") {
       CHECK(NCBLIT_PIXEL == blitter);
       CHECK(geom.cdimy == geom.scaley);
       CHECK(geom.cdimx == geom.scalex);
-      auto ncdv = ncdirectf_render(nc_, dirf, blitter, NCSCALE_NONE, 0, 0);
+      struct ncvisual_options vopts{};
+      vopts.blitter = blitter;
+      auto ncdv = ncdirectf_render(nc_, dirf, &vopts);
       CHECK(nullptr != ncdv);
       CHECK(0 == ncdirect_raster_frame(nc_, ncdv, NCALIGN_LEFT));
       ncdirectf_free(dirf);
@@ -112,7 +116,9 @@ TEST_CASE("DirectMode") {
     if(is_test_tty()){
       auto dirf = ncdirectf_from_file(nc_, find_data("worldmap.png").get());
       REQUIRE(nullptr != dirf);
-      auto ncdv = ncdirectf_render(nc_, dirf, NCBLIT_1x1, NCSCALE_NONE, 0, 0);
+      struct ncvisual_options vopts{};
+      vopts.blitter = NCBLIT_1x1;
+      auto ncdv = ncdirectf_render(nc_, dirf, &vopts);
       CHECK(nullptr != ncdv);
       CHECK(0 == ncdirect_raster_frame(nc_, ncdv, NCALIGN_LEFT));
       ncdirectf_free(dirf);
@@ -132,7 +138,10 @@ TEST_CASE("DirectMode") {
       if(ncdirect_check_pixel_support(nc_) > 0){
         auto dirf = ncdirectf_from_file(nc_, find_data("worldmap.png").get());
         REQUIRE(nullptr != dirf);
-        auto ncdv = ncdirectf_render(nc_, dirf, NCBLIT_PIXEL, NCSCALE_NONE, 0, 0);
+        struct ncvisual_options vopts{};
+        vopts.blitter = NCBLIT_PIXEL;
+        vopts.flags = NCVISUAL_OPTION_NODEGRADE;
+        auto ncdv = ncdirectf_render(nc_, dirf, &vopts);
         CHECK(nullptr != ncdv);
         CHECK(0 == ncdirect_raster_frame(nc_, ncdv, NCALIGN_LEFT));
         ncdirectf_free(dirf);
