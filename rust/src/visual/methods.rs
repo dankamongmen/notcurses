@@ -513,7 +513,7 @@ impl NcDirectF {
     pub fn ncdirectf_render(
         &mut self,
         ncd: &mut NcDirect,
-        options: &mut NcVisualOptions,
+        options: &NcVisualOptions,
     ) -> NcResult<&mut NcDirectV> {
         error_ref_mut![
             unsafe {
