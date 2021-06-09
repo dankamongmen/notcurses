@@ -16,6 +16,7 @@ rearrangements of Notcurses.
     here, but `ncdirect_renderf()` was introduced pretty recently (2.3.1).
     As a result, `ncdirect_renderf()` and `ncdirect_stream()` now honor
     `NCVISUAL_OPTION_BLEND` and `NCVISUAL_OPTION_NOINTERPOLATE`.
+  * `ncplayer` now accepts `-n` to force non-interpolative scaling.
 
 * 2.3.2 (2021-06-03)
   * Fixed a bug affecting certain scalings of `ncvisual` objects created from
