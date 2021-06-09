@@ -486,7 +486,7 @@ query_xtsmgraphics(int fd, const char* seq, int* val, int* val2){
 // making it useless for a one-time query.
 static int
 query_sixel_details(tinfo* ti, int fd){
-  if(query_xtsmgraphics(fd, "\x1b[?2;4;0S" ESC_DA, &ti->sixel_maxx, &ti->sixel_maxy)){
+  if(query_xtsmgraphics(fd, "\x1b[?2;1;0S" ESC_DA, &ti->sixel_maxx, &ti->sixel_maxy)){
     return -1;
   }
   if(query_xtsmgraphics(fd, "\x1b[?1;1;0S" ESC_DA, &ti->color_registers, NULL)){
