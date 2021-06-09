@@ -513,14 +513,11 @@ impl NcDirectF {
     pub fn ncdirectf_render(
         &mut self,
         ncd: &mut NcDirect,
-        blitter: NcBlitter,
-        scale: NcScale,
-        max_y: NcDim,
-        max_x: NcDim,
+        options: &mut NcVisualOptions,
     ) -> NcResult<&mut NcDirectV> {
         error_ref_mut![
             unsafe {
-                crate::ncdirectf_render(ncd, self, blitter, scale, max_y as i32, max_x as i32)
+                crate::ncdirectf_render(ncd, self, options)
             },
             "NcVisual.render()"
         ]
