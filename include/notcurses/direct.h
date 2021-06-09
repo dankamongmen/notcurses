@@ -389,7 +389,7 @@ API void ncdirectf_free(ncdirectf* frame);
 // loaded. A loaded frame may be rendered in different ways before it is
 // destroyed.
 API ALLOC ncdirectv* ncdirectf_render(struct ncdirect* n, ncdirectf* frame,
-                                      struct ncvisual_options* vopts)
+                                      const struct ncvisual_options* vopts)
   __attribute__ ((nonnull (1, 2)));
 
 // Having loaded the frame 'frame', get the geometry of a potential render.
