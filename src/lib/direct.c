@@ -626,6 +626,7 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv, struct ncvisual_options* vopt
     return NULL;
   }
   blitterargs bargs = {};
+  bargs.flags = vopts->flags;
   if(vopts->flags & NCVISUAL_OPTION_ADDALPHA){
     bargs.transcolor = vopts->transcolor | 0x1000000ull;
   }
