@@ -634,6 +634,8 @@ impl NcPlane {
 
     /// Sets this NcPlane's base [NcCell] from its components.
     ///
+    /// Returns the number of bytes copied out of `egc` if succesful.
+    ///
     /// It will be used for purposes of rendering anywhere that the NcPlane's
     /// gcluster is 0.
     ///

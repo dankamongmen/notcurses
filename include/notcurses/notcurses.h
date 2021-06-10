@@ -1384,6 +1384,7 @@ API int ncplane_set_base_cell(struct ncplane* n, const nccell* c);
 // Set the ncplane's base nccell. It will be used for purposes of rendering
 // anywhere that the ncplane's gcluster is 0. Note that the base cell is not
 // affected by ncplane_erase(). 'egc' must be an extended grapheme cluster.
+// Returns the number of bytes copied out of 'gcluster', or -1 on failure.
 API int ncplane_set_base(struct ncplane* n, const char* egc,
                          uint32_t stylemask, uint64_t channels);
 
