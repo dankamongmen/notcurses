@@ -75,8 +75,8 @@ multiselector_demo(struct ncplane* n, struct ncplane* under, int y){
     .titlechannels = CHANNELS_RGB_INITIALIZER(0x80, 0x80, 0xff, 0, 0, 0x20),
   };
   uint64_t bgchannels = CHANNELS_RGB_INITIALIZER(0, 0x40, 0, 0, 0x40, 0);
-  ncchannels_set_fg_alpha(&bgchannels, CELL_ALPHA_BLEND);
-  ncchannels_set_bg_alpha(&bgchannels, CELL_ALPHA_BLEND);
+  ncchannels_set_fg_alpha(&bgchannels, NCALPHA_BLEND);
+  ncchannels_set_bg_alpha(&bgchannels, NCALPHA_BLEND);
   struct ncplane_options nopts = {
     .y = y,
     .x = 0,
@@ -112,8 +112,8 @@ selector_demo(struct ncplane* n, struct ncplane* under, int dimx, int y){
     .titlechannels = CHANNELS_RGB_INITIALIZER(0xff, 0xff, 0x80, 0, 0, 0x20),
   };
   uint64_t bgchannels = CHANNELS_RGB_INITIALIZER(0, 0, 0x40, 0, 0, 0x40);
-  ncchannels_set_fg_alpha(&bgchannels, CELL_ALPHA_BLEND);
-  ncchannels_set_bg_alpha(&bgchannels, CELL_ALPHA_BLEND);
+  ncchannels_set_fg_alpha(&bgchannels, NCALPHA_BLEND);
+  ncchannels_set_bg_alpha(&bgchannels, NCALPHA_BLEND);
   struct ncplane_options nopts = {
     .y = y,
     .x = dimx,
@@ -392,8 +392,8 @@ reader_demo(struct notcurses* nc){
   }
   ncplane_set_fg_rgb8(rp, 0x20, 0xe0, 0xe0);
   uint64_t echannels = 0;
-  ncchannels_set_fg_alpha(&echannels, CELL_ALPHA_BLEND);
-  ncchannels_set_bg_alpha(&echannels, CELL_ALPHA_BLEND);
+  ncchannels_set_fg_alpha(&echannels, NCALPHA_BLEND);
+  ncchannels_set_bg_alpha(&echannels, NCALPHA_BLEND);
   ncplane_set_base(rp, "", 0, echannels);
   ncplane_set_scrolling(rp, true);
   // Bring the selector left across the top, while raising the exposition

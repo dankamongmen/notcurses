@@ -165,8 +165,8 @@ int box_demo(struct notcurses* nc){
   struct ncplane* n = notcurses_stddim_yx(nc, &ylen, &xlen);
   ncplane_erase(n);
   uint64_t transchan = 0;
-  ncchannels_set_bg_alpha(&transchan, CELL_ALPHA_TRANSPARENT);
-  ncchannels_set_fg_alpha(&transchan, CELL_ALPHA_TRANSPARENT);
+  ncchannels_set_bg_alpha(&transchan, NCALPHA_TRANSPARENT);
+  ncchannels_set_fg_alpha(&transchan, NCALPHA_TRANSPARENT);
   ncplane_set_base(n, "", 0, transchan);
   nccell ul = CELL_TRIVIAL_INITIALIZER, ll = CELL_TRIVIAL_INITIALIZER;
   nccell lr = CELL_TRIVIAL_INITIALIZER, ur = CELL_TRIVIAL_INITIALIZER;

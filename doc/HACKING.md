@@ -193,7 +193,7 @@ there is no resize step between rasterizing and writing, writing deals with
 the same geometries as rasterization, so we ignore it.
 
 Rasterization can be split into two virtual phases: *postpaint* and *rastering*.
-*postpaint* corrects for `CELL_ALPHA_HIGHCONTRAST`, performs damage detection,
+*postpaint* corrects for `NCALPHA_HIGHCONTRAST`, performs damage detection,
 and copies any necessary EGCs from their source pools to the common pool
 (copying these EGCs is why a pile cannot be modified between rendering and
 rasterizing--such modifications might invalidate the EGC references). The

@@ -41,8 +41,8 @@ legend(struct notcurses* nc, const char* msg){
   }
   nccell c = CELL_TRIVIAL_INITIALIZER;
   nccell_set_fg_rgb8(&c, 0, 0, 0); // darken surrounding characters by half
-  nccell_set_fg_alpha(&c, CELL_ALPHA_BLEND);
-  nccell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT); // don't touch background
+  nccell_set_fg_alpha(&c, NCALPHA_BLEND);
+  nccell_set_bg_alpha(&c, NCALPHA_TRANSPARENT); // don't touch background
   if(ncplane_set_base_cell(n, &c)){
     ncplane_destroy(n);
     return NULL;
@@ -150,7 +150,7 @@ slidepanel(struct notcurses* nc, struct ncplane* stdn){
 
   // Next, we set our foreground transparent, allowing characters underneath to
   // be seen in their natural colors. Our background remains opaque+default.
-  nccell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT);
+  nccell_set_fg_alpha(&c, NCALPHA_TRANSPARENT);
   ncplane_set_base_cell(n, &c);
   clock_gettime(CLOCK_MONOTONIC, &cur);
   deadlinens = timespec_to_ns(&cur) + timespec_to_ns(&demodelay);
@@ -165,7 +165,7 @@ slidepanel(struct notcurses* nc, struct ncplane* stdn){
   // Set the foreground color, setting it to blend. We should get the underlying
   // glyphs in a blended color, with the default background color.
   nccell_set_fg_rgb(&c, 0x80c080);
-  nccell_set_fg_alpha(&c, CELL_ALPHA_BLEND);
+  nccell_set_fg_alpha(&c, NCALPHA_BLEND);
   ncplane_set_base_cell(n, &c);
   clock_gettime(CLOCK_MONOTONIC, &cur);
   l = legend(nc, "default background, fg blended, no glyph");
@@ -180,7 +180,7 @@ slidepanel(struct notcurses* nc, struct ncplane* stdn){
   // Opaque foreground color. This produces underlying glyphs in the specified,
   // fixed color, with the default background color.
   nccell_set_fg_rgb(&c, 0x80c080);
-  nccell_set_fg_alpha(&c, CELL_ALPHA_OPAQUE);
+  nccell_set_fg_alpha(&c, NCALPHA_OPAQUE);
   ncplane_set_base_cell(n, &c);
   clock_gettime(CLOCK_MONOTONIC, &cur);
   l = legend(nc, "default background, fg colored opaque, no glyph");
@@ -196,8 +196,8 @@ slidepanel(struct notcurses* nc, struct ncplane* stdn){
   // Our background color remains opaque default.
   nccell_load_char(n, &c, 'X');
   nccell_set_fg_default(&c);
-  nccell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT);
-  nccell_set_bg_alpha(&c, CELL_ALPHA_OPAQUE);
+  nccell_set_fg_alpha(&c, NCALPHA_TRANSPARENT);
+  nccell_set_bg_alpha(&c, NCALPHA_OPAQUE);
   ncplane_set_base_cell(n, &c);
   clock_gettime(CLOCK_MONOTONIC, &cur);
   l = legend(nc, "default colors, fg transparent, print glyph");
@@ -211,8 +211,8 @@ slidepanel(struct notcurses* nc, struct ncplane* stdn){
 
   // Now we replace the characters with X's, but draw the foreground and
   // background color from below us.
-  nccell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT);
-  nccell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT);
+  nccell_set_fg_alpha(&c, NCALPHA_TRANSPARENT);
+  nccell_set_bg_alpha(&c, NCALPHA_TRANSPARENT);
   ncplane_set_base_cell(n, &c);
   clock_gettime(CLOCK_MONOTONIC, &cur);
   l = legend(nc, "all transparent, print glyph");
@@ -226,8 +226,8 @@ slidepanel(struct notcurses* nc, struct ncplane* stdn){
 
   // Finally, we populate the plane for the first time with non-transparent
   // characters. We blend, however, to show the underlying color in our glyphs.
-  nccell_set_fg_alpha(&c, CELL_ALPHA_BLEND);
-  nccell_set_bg_alpha(&c, CELL_ALPHA_BLEND);
+  nccell_set_fg_alpha(&c, NCALPHA_BLEND);
+  nccell_set_bg_alpha(&c, NCALPHA_BLEND);
   nccell_set_fg_rgb(&c, 0x80c080);
   nccell_set_bg_rgb(&c, 0x204080);
   ncplane_set_base_cell(n, &c);

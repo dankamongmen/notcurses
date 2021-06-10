@@ -495,12 +495,12 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
       if(egc == NULL){
         return -1;
       }
-      if(ncchannels_fg_alpha(channels) == CELL_ALPHA_TRANSPARENT){
+      if(ncchannels_fg_alpha(channels) == NCALPHA_TRANSPARENT){
         ncdirect_set_fg_default(n);
       }else{
         ncdirect_set_fg_rgb(n, ncchannels_fg_rgb(channels));
       }
-      if(ncchannels_bg_alpha(channels) == CELL_ALPHA_TRANSPARENT){
+      if(ncchannels_bg_alpha(channels) == NCALPHA_TRANSPARENT){
         ncdirect_set_bg_default(n);
       }else{
         ncdirect_set_bg_rgb(n, ncchannels_bg_rgb(channels));
@@ -1278,9 +1278,6 @@ int ncdirect_flush(const ncdirect* nc){
 }
 
 int ncdirect_check_pixel_support(ncdirect* n){
-  if(query_term(&n->tcache, n->ctermfd)){
-    return -1;
-  }
   if(n->tcache.bitmap_supported){
     return 1;
   }

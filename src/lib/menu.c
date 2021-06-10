@@ -383,8 +383,8 @@ ncmenu* ncmenu_create(ncplane* n, const ncmenu_options* opts){
         ret->disablechannels = ret->sectionchannels;
         ncchannels_set_fg_rgb(&ret->disablechannels, 0xdddddd);
         nccell c = CELL_TRIVIAL_INITIALIZER;
-        nccell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT);
-        nccell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT);
+        nccell_set_fg_alpha(&c, NCALPHA_TRANSPARENT);
+        nccell_set_bg_alpha(&c, NCALPHA_TRANSPARENT);
         ncplane_set_base_cell(ret->ncp, &c);
         nccell_release(ret->ncp, &c);
         if(write_header(ret) == 0){

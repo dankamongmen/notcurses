@@ -1832,10 +1832,10 @@ typedef struct nccell {
 #define CELL_BG_PALETTE         0x0000000008000000ull
 #define CELL_FG_PALETTE         (CELL_BG_PALETTE << 32u)
 #define NCCHANNEL_ALPHA_MASK    0x30000000ull
-#define CELL_ALPHA_HIGHCONTRAST 0x30000000ull
-#define CELL_ALPHA_TRANSPARENT  0x20000000ull
-#define CELL_ALPHA_BLEND        0x10000000ull
-#define CELL_ALPHA_OPAQUE       0x00000000ull
+#define NCALPHA_HIGHCONTRAST 0x30000000ull
+#define NCALPHA_TRANSPARENT  0x20000000ull
+#define NCALPHA_BLEND        0x10000000ull
+#define NCALPHA_OPAQUE       0x00000000ull
 ```
 
 `nccell`s must be initialized with an initialization macro or `nccell_init()`
@@ -2888,7 +2888,7 @@ channel_set_alpha(unsigned* channel, unsigned alpha){
     return -1;
   }
   *channel = alpha | (*channel & ~CHANNEL_ALPHA_MASK);
-  if(alpha != CELL_ALPHA_OPAQUE){
+  if(alpha != NCALPHA_OPAQUE){
     *channel |= CELL_BGDEFAULT_MASK;
   }
   return 0;
@@ -3013,7 +3013,7 @@ ncchannels_set_fg_alpha(uint64_t* channels, unsigned alpha){
 // Set the 2-bit alpha component of the background channel.
 static inline int
 ncchannels_set_bg_alpha(uint64_t* channels, unsigned alpha){
-  if(alpha == CELL_ALPHA_HIGHCONTRAST){ // forbidden for background alpha
+  if(alpha == NCALPHA_HIGHCONTRAST){ // forbidden for background alpha
     return -1;
   }
   unsigned channel = ncchannels_bchannel(*channels);
@@ -3185,7 +3185,7 @@ int notcurses_lex_blitter(const char* op, ncblitter_e* blitter);
 const char* notcurses_str_blitter(ncblitter_e blitter);
 
 #define NCVISUAL_OPTION_NODEGRADE     0x0001ull // fail rather than degrade
-#define NCVISUAL_OPTION_BLEND         0x0002ull // use CELL_ALPHA_BLEND
+#define NCVISUAL_OPTION_BLEND         0x0002ull // use NCALPHA_BLEND
 #define NCVISUAL_OPTION_HORALIGNED    0x0004ull // x is an alignment, not abs
 #define NCVISUAL_OPTION_VERALIGNED    0x0008ull // y is an alignment, not abs
 #define NCVISUAL_OPTION_ADDALPHA      0x0010ull // transcolor is in effect

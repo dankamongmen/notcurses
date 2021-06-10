@@ -93,7 +93,6 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd){
     ti->bg_collides_default = 0x1000000;
     ti->sextants = true; // work since bugfix in 0.19.3
     ti->quadrants = true;
-    ti->pixel_query_done = true;
     ti->RGBflag = true;
     setup_kitty_bitmaps(ti, fd);
   }else if(strstr(termname, "alacritty")){
@@ -156,7 +155,6 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd){
 }
 
 void free_terminfo_cache(tinfo* ti){
-  pthread_mutex_destroy(&ti->pixel_query);
   free(ti->esctable);
 }
 
@@ -201,9 +199,59 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
   return 0;
 }
 
+// Device Attributes; replies with (depending on decTerminalID resource):
+//   ⇒  CSI ? 1 ; 2 c  ("VT100 with Advanced Video Option")
+//   ⇒  CSI ? 1 ; 0 c  ("VT101 with No Options")
+//   ⇒  CSI ? 4 ; 6 c  ("VT132 with Advanced Video and Graphics")
+//   ⇒  CSI ? 6 c  ("VT102")
+//   ⇒  CSI ? 7 c  ("VT131")
+//   ⇒  CSI ? 1 2 ; Ps c  ("VT125")
+//   ⇒  CSI ? 6 2 ; Ps c  ("VT220")
+//   ⇒  CSI ? 6 3 ; Ps c  ("VT320")
+//   ⇒  CSI ? 6 4 ; Ps c  ("VT420")
+#define ESC_DA "\e[c"
+
+/*
+// query for Sixel details including the number of color registers and, one day
+// perhaps, maximum geometry. xterm binds its return by the current geometry,
+// making it useless for a one-time query.
+static int
+query_sixel_details(tinfo* ti, int fd){
+  if(query_xtsmgraphics(fd, "\x1b[?2;1;0S" ESC_DA, &ti->sixel_maxx, &ti->sixel_maxy)){
+    return -1;
+  }
+  if(query_xtsmgraphics(fd, "\x1b[?1;1;0S" ESC_DA, &ti->color_registers, NULL)){
+    return -1;
+  }
+//fprintf(stderr, "Sixel ColorRegs: %d Max_x: %d Max_y: %d\n", ti->color_registers, ti->sixel_maxx, ti->sixel_maxy);
+  if(ti->color_registers < 64){ // FIXME try to drive it higher
+    return -1;
+  }
+  return 0;
+}
+*/
+
+// we send an XTSMGRAPHICS to set up 256 color registers (the most we can
+// currently take advantage of; we need at least 64 to use sixel at all.
+// maybe that works, maybe it doesn't. then query both color registers
+// and geometry.
+static int
+send_initial_queries(int fd){
+  const char queries[] = "\x1b[?1;3;256S\x1b[?2;1;0S\x1b[?1;1;0S" ESC_DA;
+  if(blocking_write(fd, queries, strlen(queries))){
+    return -1;
+  }
+  return 0;
+}
+
 // termname is just the TERM environment variable. some details are not
 // exposed via terminfo, and we must make heuristic decisions based on
 // the detected terminal type, yuck :/.
+// the first thing we do is fire off any queries we have (XTSMGRAPHICS, etc.)
+// with a trailing Device Attributes. all known terminals will reply to a
+// Device Attributes, allowing us to get a negative response if our queries
+// aren't supported by the terminal. we fire it off early because we have a
+// full round trip before getting the reply, which is likely to pace init.
 int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
                          unsigned noaltscreen, unsigned nocbreak){
   memset(ti, 0, sizeof(*ti));
@@ -211,6 +259,10 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
   if(fd >= 0){
     if(tcgetattr(fd, &ti->tpreserved)){
       fprintf(stderr, "Couldn't preserve terminal state for %d (%s)\n", fd, strerror(errno));
+      return -1;
+    }
+    if(send_initial_queries(fd)){
+      fprintf(stderr, "Error issuing terminal queries on %d\n", fd);
       return -1;
     }
   }
@@ -371,10 +423,7 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
       goto err;
     }
   }
-  pthread_mutex_init(&ti->pixel_query, NULL);
-  ti->pixel_query_done = false;
   if(apply_term_heuristics(ti, termname, fd)){
-    pthread_mutex_destroy(&ti->pixel_query);
     goto err;
   }
   return 0;
@@ -384,6 +433,7 @@ err:
   return -1;
 }
 
+/*
 // FIXME need unit tests on this
 // FIXME can read a character not intended for it
 // we'll get a trailing Device Attributes response, because we write
@@ -490,36 +540,6 @@ query_xtsmgraphics(int fd, const char* seq, int* val, int* val2){
   return 0;
 }
 
-// Device Attributes; replies with (depending on decTerminalID resource):
-//   ⇒  CSI ? 1 ; 2 c  ("VT100 with Advanced Video Option")
-//   ⇒  CSI ? 1 ; 0 c  ("VT101 with No Options")
-//   ⇒  CSI ? 4 ; 6 c  ("VT132 with Advanced Video and Graphics")
-//   ⇒  CSI ? 6 c  ("VT102")
-//   ⇒  CSI ? 7 c  ("VT131")
-//   ⇒  CSI ? 1 2 ; Ps c  ("VT125")
-//   ⇒  CSI ? 6 2 ; Ps c  ("VT220")
-//   ⇒  CSI ? 6 3 ; Ps c  ("VT320")
-//   ⇒  CSI ? 6 4 ; Ps c  ("VT420")
-#define ESC_DA "\e[c"
-
-// query for Sixel details including the number of color registers and, one day
-// perhaps, maximum geometry. xterm binds its return by the current geometry,
-// making it useless for a one-time query.
-static int
-query_sixel_details(tinfo* ti, int fd){
-  if(query_xtsmgraphics(fd, "\x1b[?2;1;0S" ESC_DA, &ti->sixel_maxx, &ti->sixel_maxy)){
-    return -1;
-  }
-  if(query_xtsmgraphics(fd, "\x1b[?1;1;0S" ESC_DA, &ti->color_registers, NULL)){
-    return -1;
-  }
-//fprintf(stderr, "Sixel ColorRegs: %d Max_x: %d Max_y: %d\n", ti->color_registers, ti->sixel_maxx, ti->sixel_maxy);
-  if(ti->color_registers < 64){ // FIXME try to drive it higher
-    return -1;
-  }
-  return 0;
-}
-
 // query for Sixel support
 static int
 query_sixel(tinfo* ti, int fd){
@@ -597,46 +617,10 @@ query_sixel(tinfo* ti, int fd){
     }
   }
   if(ti->bitmap_supported){
-    if(query_sixel_details(ti, fd)){
+    if(ti->color_registers < 64){
       ti->bitmap_supported = false;
     }
   }
   return 0;
 }
-
-// fd must be a real terminal. uses the query lock of |ti| to only act once.
-// we ought already have performed a TIOCGWINSZ ioctl() to verify that the
-// terminal reports cell area in pixels, as that's necessary for our use of
-// sixel (or any other bitmap protocol).
-int query_term(tinfo* ti, int fd){
-  if(fd < 0){
-    return -1;
-  }
-  int flags = fcntl(fd, F_GETFL, 0);
-  if(flags < 0){
-    return -1;
-  }
-  int ret = 0;
-  pthread_mutex_lock(&ti->pixel_query);
-  if(!ti->pixel_query_done){
-    // if the terminal reported 0 pixels for cell dimensions, bypass any
-    // interrogation, and assume no bitmap support.
-    if(!ti->cellpixx || !ti->cellpixy){
-      ti->pixel_query_done = true;
-    }else{
-      if(flags & O_NONBLOCK){
-        fcntl(fd, F_SETFL, flags & ~O_NONBLOCK);
-      }
-      ret = query_sixel(ti, fd);
-      ti->pixel_query_done = true;
-      if(ti->bitmap_supported){
-        ti->pixel_init(fd);
-      }
-      if(flags & O_NONBLOCK){
-        fcntl(fd, F_SETFL, flags);
-      }
-    }
-  }
-  pthread_mutex_unlock(&ti->pixel_query);
-  return ret;
-}
+*/

@@ -18,8 +18,8 @@ visualize(struct notcurses* nc, struct ncvisual* ncv){
   ncplane_set_bg_rgb(stdn, 0);
   ncplane_set_styles(stdn, NCSTYLE_BOLD);
   uint64_t channels = 0;
-  ncchannels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
-  ncchannels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+  ncchannels_set_fg_alpha(&channels, NCALPHA_TRANSPARENT);
+  ncchannels_set_bg_alpha(&channels, NCALPHA_TRANSPARENT);
   ncplane_set_base(stdn, "", 0, channels);
   for(size_t i = 0 ; i < sizeof(bs) / sizeof(*bs) ; ++i){
     struct ncvisual_options vopts = {

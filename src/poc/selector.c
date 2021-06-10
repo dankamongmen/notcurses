@@ -77,8 +77,8 @@ int main(void){
   sopts.footchannels = CHANNELS_RGB_INITIALIZER(0xe0, 0, 0x40, 0x20, 0, 0);
   sopts.titlechannels = CHANNELS_RGB_INITIALIZER(0xff, 0xff, 0x80, 0, 0, 0x20);
   uint64_t bgchannels = CHANNELS_RGB_INITIALIZER(0, 0x20, 0, 0, 0x20, 0);
-  ncchannels_set_fg_alpha(&bgchannels, CELL_ALPHA_BLEND);
-  ncchannels_set_bg_alpha(&bgchannels, CELL_ALPHA_BLEND);
+  ncchannels_set_fg_alpha(&bgchannels, NCALPHA_BLEND);
+  ncchannels_set_bg_alpha(&bgchannels, NCALPHA_BLEND);
   struct ncplane* n = notcurses_stdplane(nc);
 
   if(notcurses_canopen_images(nc)){

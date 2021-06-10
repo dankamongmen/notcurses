@@ -31,14 +31,14 @@ make_slider(struct notcurses* nc, int dimx){
   };
   struct ncplane* n = ncplane_create(notcurses_stdplane(nc), &nopts);
   uint64_t channels = 0;
-  ncchannels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
-  ncchannels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+  ncchannels_set_fg_alpha(&channels, NCALPHA_TRANSPARENT);
+  ncchannels_set_bg_alpha(&channels, NCALPHA_TRANSPARENT);
   ncplane_set_base(n, " ", 0, channels);
   ncplane_set_scrolling(n, true);
   int r = 0x5f;
   int g = 0xaf;
   int b = 0x84;
-  ncplane_set_bg_alpha(n, CELL_ALPHA_TRANSPARENT);
+  ncplane_set_bg_alpha(n, NCALPHA_TRANSPARENT);
   for(int x = 0 ; x < REPS ; ++x){
     for(size_t l = 0 ; l < sizeof(leg) / sizeof(*leg) ; ++l){
       ncplane_set_fg_rgb8_clipped(n, r + 0x8 * l, g + 0x8 * l, b + 0x8 * l);
@@ -169,8 +169,8 @@ int xray_demo(struct notcurses* nc){
     return -1;
   }
   uint64_t stdc = 0;
-  ncchannels_set_fg_alpha(&stdc, CELL_ALPHA_TRANSPARENT);
-  ncchannels_set_bg_alpha(&stdc, CELL_ALPHA_TRANSPARENT);
+  ncchannels_set_fg_alpha(&stdc, NCALPHA_TRANSPARENT);
+  ncchannels_set_bg_alpha(&stdc, NCALPHA_TRANSPARENT);
   ncplane_set_base(notcurses_stdplane(nc), "", 0, stdc);
   // returns non-zero if the selected blitter isn't available
   if(notcurses_check_pixel_support(nc) < 1){

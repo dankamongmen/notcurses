@@ -113,10 +113,10 @@ API int notcurses_ucs32_to_utf8(const char32_t* ucs32, unsigned ucs32count,
                                 unsigned char* resultbuf, size_t buflen);
 
 // background cannot be highcontrast, only foreground
-#define CELL_ALPHA_HIGHCONTRAST 0x30000000ull
-#define CELL_ALPHA_TRANSPARENT  0x20000000ull
-#define CELL_ALPHA_BLEND        0x10000000ull
-#define CELL_ALPHA_OPAQUE       0x00000000ull
+#define NCALPHA_HIGHCONTRAST    0x30000000ull
+#define NCALPHA_TRANSPARENT     0x20000000ull
+#define NCALPHA_BLEND           0x10000000ull
+#define NCALPHA_OPAQUE          0x00000000ull
 
 // if this bit is set, we are *not* using the default background color
 #define CELL_BGDEFAULT_MASK     0x0000000040000000ull
@@ -248,7 +248,7 @@ ncchannel_set_alpha(unsigned* channel, unsigned alpha){
     return -1;
   }
   *channel = alpha | (*channel & ~CELL_BG_ALPHA_MASK);
-  if(alpha != CELL_ALPHA_OPAQUE){
+  if(alpha != NCALPHA_OPAQUE){
     *channel |= CELL_BGDEFAULT_MASK;
   }
   return 0;
@@ -261,7 +261,7 @@ ncchannel_set_palindex(uint32_t* channel, int idx){
   }
   *channel |= CELL_BGDEFAULT_MASK;
   *channel |= CELL_BG_PALETTE;
-  ncchannel_set_alpha(channel, CELL_ALPHA_OPAQUE);
+  ncchannel_set_alpha(channel, NCALPHA_OPAQUE);
   *channel &= 0xff000000ull;
   *channel |= idx;
   return 0;
@@ -282,7 +282,7 @@ ncchannel_palindex_p(unsigned channel){
 // Mark the channel as using its default color, which also marks it opaque.
 static inline unsigned
 ncchannel_set_default(unsigned* channel){
-  return *channel &= ~(CELL_BGDEFAULT_MASK | CELL_ALPHA_HIGHCONTRAST);
+  return *channel &= ~(CELL_BGDEFAULT_MASK | NCALPHA_HIGHCONTRAST);
 }
 
 // Extract the 32-bit background channel from a channel pair.
@@ -438,7 +438,7 @@ ncchannels_set_bg_rgb8_clipped(uint64_t* channels, int r, int g, int b){
 // Set the 2-bit alpha component of the background channel.
 static inline int
 ncchannels_set_bg_alpha(uint64_t* channels, unsigned alpha){
-  if(alpha == CELL_ALPHA_HIGHCONTRAST){ // forbidden for background alpha
+  if(alpha == NCALPHA_HIGHCONTRAST){ // forbidden for background alpha
     return -1;
   }
   uint32_t channel = ncchannels_bchannel(*channels);
@@ -2480,7 +2480,7 @@ API ALLOC struct ncvisual* ncvisual_from_plane(const struct ncplane* n,
                                                int leny, int lenx);
 
 #define NCVISUAL_OPTION_NODEGRADE     0x0001ull // fail rather than degrade
-#define NCVISUAL_OPTION_BLEND         0x0002ull // use CELL_ALPHA_BLEND with visual
+#define NCVISUAL_OPTION_BLEND         0x0002ull // use NCALPHA_BLEND with visual
 #define NCVISUAL_OPTION_HORALIGNED    0x0004ull // x is an alignment, not absolute
 #define NCVISUAL_OPTION_VERALIGNED    0x0008ull // y is an alignment, not absolute
 #define NCVISUAL_OPTION_ADDALPHA      0x0010ull // transcolor is in effect
@@ -4315,6 +4315,11 @@ API __attribute__ ((deprecated)) int ncvisual_inflate(struct ncvisual* n, int sc
 typedef ncpalette palette256;
 
 typedef nccell cell; // FIXME backwards-compat, remove in ABI3
+
+#define CELL_ALPHA_HIGHCONTRAST NCALPHA_HIGHCONTRAST
+#define CELL_ALPHA_TRANSPARENT  NCALPHA_TRANSPARENT
+#define CELL_ALPHA_BLEND        NCALPHA_BLEND
+#define CELL_ALPHA_OPAQUE       NCALPHA_OPAQUE
 
 #undef ALLOC
 #undef API

@@ -64,8 +64,8 @@ TEST_CASE("Rotate") {
     };
     struct ncplane* testn = ncplane_create(n_, &nopts);
     uint64_t channels = 0;
-    CHECK(0 == ncchannels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT));
-    CHECK(0 == ncchannels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT));
+    CHECK(0 == ncchannels_set_fg_alpha(&channels, NCALPHA_TRANSPARENT));
+    CHECK(0 == ncchannels_set_bg_alpha(&channels, NCALPHA_TRANSPARENT));
     REQUIRE(0 >= ncplane_set_base(testn, "", 0, channels));
     nccell tl = CELL_TRIVIAL_INITIALIZER, tr = CELL_TRIVIAL_INITIALIZER;
     nccell bl = CELL_TRIVIAL_INITIALIZER, br = CELL_TRIVIAL_INITIALIZER;

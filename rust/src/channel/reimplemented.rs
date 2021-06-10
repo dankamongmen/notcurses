@@ -2,7 +2,7 @@
 
 use crate::{
     NcAlphaBits, NcChannel, NcChannelPair, NcColor, NcPaletteIndex, NcRgb,
-    NCCELL_ALPHA_HIGHCONTRAST, NCCELL_ALPHA_OPAQUE, NCCELL_BGDEFAULT_MASK, NCCELL_BG_PALETTE,
+    NCNCALPHA_HIGHCONTRAST, NCNCALPHA_OPAQUE, NCCELL_BGDEFAULT_MASK, NCCELL_BG_PALETTE,
     NCCELL_BG_RGB_MASK, NCCELL_FGDEFAULT_MASK, NCCELL_FG_PALETTE, NCCHANNEL_ALPHA_MASK,
 };
 
@@ -24,7 +24,7 @@ pub fn ncchannel_set_alpha(channel: &mut NcChannel, alpha: NcAlphaBits) {
     let alpha_clean = alpha & NCCHANNEL_ALPHA_MASK;
     *channel = alpha_clean | (*channel & !NCCHANNEL_ALPHA_MASK);
 
-    if alpha != NCCELL_ALPHA_OPAQUE {
+    if alpha != NCNCALPHA_OPAQUE {
         // indicate that we are *not* using the default background color
         *channel |= NCCELL_BGDEFAULT_MASK;
     }
@@ -62,9 +62,9 @@ pub fn ncchannels_set_fg_alpha(channels: &mut NcChannelPair, alpha: NcAlphaBits)
 #[inline]
 pub fn ncchannels_set_bg_alpha(channels: &mut NcChannelPair, alpha: NcAlphaBits) {
     let mut alpha_clean = alpha;
-    if alpha == NCCELL_ALPHA_HIGHCONTRAST {
+    if alpha == NCNCALPHA_HIGHCONTRAST {
         // forbidden for background alpha, so makes it opaque
-        alpha_clean = NCCELL_ALPHA_OPAQUE;
+        alpha_clean = NCNCALPHA_OPAQUE;
     }
     let mut channel = ncchannels_bchannel(*channels);
     ncchannel_set_alpha(&mut channel, alpha_clean);
@@ -345,7 +345,7 @@ pub const fn ncchannel_default_p(channel: NcChannel) -> bool {
 /// *Method: NcChannel.[set_default()][NcChannel#method.set_default]*
 #[inline]
 pub fn ncchannel_set_default(channel: &mut NcChannel) -> NcChannel {
-    *channel &= !(NCCELL_BGDEFAULT_MASK | NCCELL_ALPHA_HIGHCONTRAST);
+    *channel &= !(NCCELL_BGDEFAULT_MASK | NCNCALPHA_HIGHCONTRAST);
     *channel
 }
 
@@ -491,7 +491,7 @@ pub fn ncchannels_bg_palindex_p(channels: NcChannelPair) -> bool {
 pub fn ncchannels_set_fg_palindex(channels: &mut NcChannelPair, index: NcPaletteIndex) {
     *channels |= NCCELL_FGDEFAULT_MASK;
     *channels |= NCCELL_FG_PALETTE as NcChannelPair;
-    ncchannels_set_fg_alpha(channels, NCCELL_ALPHA_OPAQUE);
+    ncchannels_set_fg_alpha(channels, NCNCALPHA_OPAQUE);
     *channels &= 0xff000000ffffffff as NcChannelPair;
     *channels |= (index as NcChannelPair) << 32;
 }
@@ -504,7 +504,7 @@ pub fn ncchannels_set_fg_palindex(channels: &mut NcChannelPair, index: NcPalette
 pub fn ncchannels_set_bg_palindex(channels: &mut NcChannelPair, index: NcPaletteIndex) {
     *channels |= NCCELL_BGDEFAULT_MASK as NcChannelPair;
     *channels |= NCCELL_BG_PALETTE as NcChannelPair;
-    ncchannels_set_bg_alpha(channels, NCCELL_ALPHA_OPAQUE);
+    ncchannels_set_bg_alpha(channels, NCNCALPHA_OPAQUE);
     *channels &= 0xffffffffff000000;
     *channels |= index as NcChannelPair;
 }

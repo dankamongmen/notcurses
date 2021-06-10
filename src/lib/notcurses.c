@@ -983,9 +983,6 @@ recursive_lock_init(pthread_mutex_t *lock){
 }
 
 int notcurses_check_pixel_support(notcurses* nc){
-  if(query_term(&nc->tcache, nc->ttyfd)){
-    return -1;
-  }
   if(nc->tcache.bitmap_supported){
     return 1;
   }
@@ -1311,7 +1308,7 @@ int ncplane_set_fg_palindex(ncplane* n, int idx){
   }
   n->channels |= CELL_FGDEFAULT_MASK;
   n->channels |= CELL_FG_PALETTE;
-  ncchannels_set_fg_alpha(&n->channels, CELL_ALPHA_OPAQUE);
+  ncchannels_set_fg_alpha(&n->channels, NCALPHA_OPAQUE);
   n->stylemask &= 0xffff00ff;
   n->stylemask |= (idx << 8u);
   return 0;
@@ -1323,7 +1320,7 @@ int ncplane_set_bg_palindex(ncplane* n, int idx){
   }
   n->channels |= CELL_BGDEFAULT_MASK;
   n->channels |= CELL_BG_PALETTE;
-  ncchannels_set_bg_alpha(&n->channels, CELL_ALPHA_OPAQUE);
+  ncchannels_set_bg_alpha(&n->channels, NCALPHA_OPAQUE);
   n->stylemask &= 0xffffff00;
   n->stylemask |= idx;
   return 0;

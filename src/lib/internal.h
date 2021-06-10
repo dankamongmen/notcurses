@@ -436,7 +436,7 @@ struct crender {
     // take this into account when solving the background color.
     unsigned blittedquads: 4;
     unsigned damaged: 1; // only used in rasterization
-    // if CELL_ALPHA_HIGHCONTRAST is in play, we apply the HSV flip once the
+    // if NCALPHA_HIGHCONTRAST is in play, we apply the HSV flip once the
     // background is locked in. set highcontrast to indicate this.
     unsigned highcontrast: 1;
     unsigned fgblends: 8;
@@ -605,11 +605,6 @@ int term_supported_styles(const tinfo* ti);
 int reset_term_attributes(const tinfo* ti, FILE* fp);
 
 void free_terminfo_cache(tinfo* ti);
-
-// perform queries that require writing to the terminal, and reading a
-// response, rather than simply reading the terminfo database. can result
-// in a lengthy delay or even block if the terminal doesn't respond.
-int query_term(tinfo* ti, int fd);
 
 // if there were missing elements we wanted from terminfo, bitch about them here
 void warn_terminfo(const notcurses* nc, const tinfo* ti);
@@ -1337,7 +1332,7 @@ cell_set_fchannel(nccell* cl, uint32_t channel){
 // Palette-indexed colors do not blend. Do not pass me palette-indexed channels!
 static inline unsigned
 channels_blend(unsigned c1, unsigned c2, unsigned* blends){
-  if(ncchannel_alpha(c2) == CELL_ALPHA_TRANSPARENT){
+  if(ncchannel_alpha(c2) == NCALPHA_TRANSPARENT){
     return c1; // do *not* increment *blends
   }
   bool c2default = ncchannel_default_p(c2);

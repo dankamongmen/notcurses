@@ -105,12 +105,12 @@ TEST_CASE("NotcursesBase") {
     uint64_t channel = 0;
     CHECK(0 > ncchannels_set_fg_alpha(&channel, -1));
     CHECK(0 > ncchannels_set_fg_alpha(&channel, 4));
-    CHECK(0 == ncchannels_set_fg_alpha(&channel, CELL_ALPHA_OPAQUE));
-    CHECK(CELL_ALPHA_OPAQUE == ncchannels_fg_alpha(channel));
+    CHECK(0 == ncchannels_set_fg_alpha(&channel, NCALPHA_OPAQUE));
+    CHECK(NCALPHA_OPAQUE == ncchannels_fg_alpha(channel));
     CHECK(ncchannels_fg_default_p(channel));
     CHECK(ncchannels_bg_default_p(channel));
-    CHECK(0 == ncchannels_set_fg_alpha(&channel, CELL_ALPHA_HIGHCONTRAST));
-    CHECK(CELL_ALPHA_HIGHCONTRAST == ncchannels_fg_alpha(channel));
+    CHECK(0 == ncchannels_set_fg_alpha(&channel, NCALPHA_HIGHCONTRAST));
+    CHECK(NCALPHA_HIGHCONTRAST == ncchannels_fg_alpha(channel));
     CHECK(!ncchannels_fg_default_p(channel));
     CHECK(ncchannels_bg_default_p(channel));
   }
@@ -119,11 +119,11 @@ TEST_CASE("NotcursesBase") {
     uint64_t channel = 0;
     CHECK(0 > ncchannels_set_bg_alpha(&channel, -1));
     CHECK(0 > ncchannels_set_bg_alpha(&channel, 4));
-    CHECK(0 == ncchannels_set_bg_alpha(&channel, CELL_ALPHA_OPAQUE));
-    CHECK(CELL_ALPHA_OPAQUE == ncchannels_bg_alpha(channel));
-    CHECK(0 == ncchannels_set_bg_alpha(&channel, CELL_ALPHA_TRANSPARENT));
-    CHECK(0 > ncchannels_set_bg_alpha(&channel, CELL_ALPHA_HIGHCONTRAST));
-    CHECK(CELL_ALPHA_TRANSPARENT == ncchannels_bg_alpha(channel));
+    CHECK(0 == ncchannels_set_bg_alpha(&channel, NCALPHA_OPAQUE));
+    CHECK(NCALPHA_OPAQUE == ncchannels_bg_alpha(channel));
+    CHECK(0 == ncchannels_set_bg_alpha(&channel, NCALPHA_TRANSPARENT));
+    CHECK(0 > ncchannels_set_bg_alpha(&channel, NCALPHA_HIGHCONTRAST));
+    CHECK(NCALPHA_TRANSPARENT == ncchannels_bg_alpha(channel));
     CHECK(ncchannels_fg_default_p(channel));
     CHECK(!ncchannels_bg_default_p(channel));
   }

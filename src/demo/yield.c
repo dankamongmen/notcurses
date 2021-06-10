@@ -67,10 +67,10 @@ int yield_demo(struct notcurses* nc){
     return -1;
   }
   uint64_t basechan = 0;
-  ncchannels_set_bg_alpha(&basechan, CELL_ALPHA_TRANSPARENT);
-  ncchannels_set_fg_alpha(&basechan, CELL_ALPHA_TRANSPARENT);
+  ncchannels_set_bg_alpha(&basechan, NCALPHA_TRANSPARENT);
+  ncchannels_set_fg_alpha(&basechan, NCALPHA_TRANSPARENT);
   ncplane_set_base(label, "", 0, basechan);
-  ncplane_set_bg_alpha(label, CELL_ALPHA_TRANSPARENT);
+  ncplane_set_bg_alpha(label, NCALPHA_TRANSPARENT);
   ncplane_set_fg_rgb8(label, 0xff, 0xff, 0xff);
   ncplane_set_styles(label, NCSTYLE_BOLD);
   ncplane_printf_aligned(label, 0, NCALIGN_CENTER, "Yield: %03.1f%%", ((double)tfilled * 100) / threshold_painted);

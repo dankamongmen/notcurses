@@ -27,8 +27,8 @@ mathplane(struct notcurses* nc){
   struct ncplane* n = ncplane_create(stdn, &nopts);
   uint64_t channels = 0;
   ncchannels_set_fg_rgb(&channels, 0x2b50c8); // metallic gold, inverted
-  ncchannels_set_fg_alpha(&channels, CELL_ALPHA_BLEND);
-  ncchannels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+  ncchannels_set_fg_alpha(&channels, NCALPHA_BLEND);
+  ncchannels_set_bg_alpha(&channels, NCALPHA_TRANSPARENT);
   ncplane_set_base(n, "", 0, channels);
   ncplane_set_fg_rgb(n, 0xd4af37); // metallic gold
   ncplane_set_bg_rgb(n, 0x0);
@@ -168,8 +168,8 @@ static int
 message(struct ncplane* n, int maxy, int maxx, int num, int total,
         int bytes_out, int egs_out, int cols_out){
   uint64_t channels = 0;
-  ncchannels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
-  ncchannels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+  ncchannels_set_fg_alpha(&channels, NCALPHA_TRANSPARENT);
+  ncchannels_set_bg_alpha(&channels, NCALPHA_TRANSPARENT);
   ncplane_set_base(n, "", 0, channels);
   ncplane_set_fg_rgb8(n, 255, 255, 255);
   ncplane_set_bg_rgb8(n, 32, 64, 32);

@@ -219,11 +219,11 @@ ncreel_demo_core(struct notcurses* nc){
   ncchannels_set_fg_rgb8(&popts.borderchan, 136, 23, 152);
   ncchannels_set_bg_rgb8(&popts.borderchan, 0, 0, 0);
   uint64_t bgchannels = 0;
-  if(ncchannels_set_fg_alpha(&bgchannels, CELL_ALPHA_TRANSPARENT)){
+  if(ncchannels_set_fg_alpha(&bgchannels, NCALPHA_TRANSPARENT)){
     ncplane_destroy(n);
     return -1;
   }
-  if(ncchannels_set_bg_alpha(&bgchannels, CELL_ALPHA_TRANSPARENT)){
+  if(ncchannels_set_bg_alpha(&bgchannels, NCALPHA_TRANSPARENT)){
     ncplane_destroy(n);
     return -1;
   }
