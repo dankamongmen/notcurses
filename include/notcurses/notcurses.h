@@ -593,13 +593,9 @@ typedef struct nccell {
   // are single-byte ASCII-derived values. The XXXXXX is interpreted as a 24-bit
   // index into the egcpool. These pools may thus be up to 16MB.
   //
-  // A pixel graphic is indicated by the value 0x02XXXXXX. This is safe for the
-  // same reasons listed above. The XXXXXX is interpreted as a unique 24-bit
-  // sprixel identifier, and can be used to search the sprixel cache.
-  //
-  // The cost of this scheme is that the characters 0x01 (SOH) and 0x02 (STX)
-  // cannot be encoded in a nccell, which we want anyway. They must not be
-  // allowed through the API, or havoc will result.
+  // The cost of this scheme is that the character 0x01 (SOH) cannot be encoded
+  // in a nccell, which we want anyway. It must not be allowed through the API,
+  // or havoc will result.
   uint32_t gcluster;          // 4B → 4B little endian EGC
   uint8_t gcluster_backstop;  // 1B → 5B (8 bits of zero)
   // we store the column width in this field. for a multicolumn EGC of N
