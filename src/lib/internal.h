@@ -8,6 +8,7 @@ extern "C" {
 #include "version.h"
 #include "builddef.h"
 
+#include <poll.h>
 #include <term.h>
 #include <time.h>
 #include <stdio.h>
@@ -741,21 +742,31 @@ rgb_greyscale(int r, int g, int b){
   return fg * 255;
 }
 
-// write(2) with retry on partial write or interrupted write
-static inline ssize_t
-writen(int fd, const void* buf, size_t len){
-  ssize_t r;
-  size_t w = 0;
-  while(w < len){
-    if((r = write(fd, (const char*)buf + w, len - w)) < 0){
-      if(errno == EAGAIN || errno == EBUSY || errno == EINTR){
-        continue;
+// write(2) until we've written it all. uses poll(2) to avoid spinning on
+// EAGAIN, at the possible cost of some small latency.
+static inline int
+blocking_write(int fd, const char* buf, size_t buflen){
+//fprintf(stderr, "writing %zu to %d...\n", buflen, fd);
+  size_t written = 0;
+  while(written < buflen){
+    ssize_t w = write(fd, buf + written, buflen - written);
+    if(w < 0){
+      if(errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR){
+        return -1;
       }
-      return -1;
+    }else{
+      written += w;
     }
-    w += r;
+    if(written < buflen){
+      struct pollfd pfd = {
+        .fd = fd,
+        .events = POLLOUT,
+        .revents = 0,
+      };
+      poll(&pfd, 1, -1);
+    }
   }
-  return w;
+  return 0;
 }
 
 static inline int
@@ -764,7 +775,7 @@ tty_emit(const char* seq, int fd){
     return -1;
   }
   size_t slen = strlen(seq);
-  if(writen(fd, seq, slen) < 0){
+  if(blocking_write(fd, seq, slen)){
     return -1;
   }
   return 0;

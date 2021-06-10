@@ -458,8 +458,7 @@ read_xtsmgraphics_reply(int fd, int* val2){
 
 static int
 query_xtsmgraphics(int fd, const char* seq, int* val, int* val2){
-  ssize_t w = writen(fd, seq, strlen(seq));
-  if(w < 0 || (size_t)w != strlen(seq)){
+  if(blocking_write(fd, seq, strlen(seq))){
     return -1;
   }
   int r = read_xtsmgraphics_reply(fd, val2);

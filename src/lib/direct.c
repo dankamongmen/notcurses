@@ -38,7 +38,7 @@ int ncdirect_putstr(ncdirect* nc, uint64_t channels, const char* utf8){
 
 static int
 cursor_yx_get(int ttyfd, int* y, int* x){
-  if(writen(ttyfd, "\033[6n", 4) != 4){
+  if(blocking_write(ttyfd, "\033[6n", 4)){
     return -1;
   }
   bool done = false;

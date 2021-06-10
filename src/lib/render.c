@@ -1,4 +1,3 @@
-#include <poll.h>
 #include <ctype.h>
 #include <limits.h>
 #include <unistd.h>
@@ -72,33 +71,6 @@ notcurses_resize(notcurses* n, int* restrict rows, int* restrict cols){
   int ret = notcurses_resize_internal(notcurses_stdplane(n), rows, cols);
   pthread_mutex_unlock(&n->pilelock);
   return ret;
-}
-
-// write(2) until we've written it all. Uses poll(2) to avoid spinning on
-// EAGAIN, at a small cost of latency.
-static int
-blocking_write(int fd, const char* buf, size_t buflen){
-//fprintf(stderr, "writing %zu to %d...\n", buflen, fd);
-  size_t written = 0;
-  while(written < buflen){
-    ssize_t w = write(fd, buf + written, buflen - written);
-    if(w < 0){
-      if(errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR){
-        return -1;
-      }
-    }else{
-      written += w;
-    }
-    if(written < buflen){
-      struct pollfd pfd = {
-        .fd = fd,
-        .events = POLLOUT,
-        .revents = 0,
-      };
-      poll(&pfd, 1, -1);
-    }
-  }
-  return 0;
 }
 
 void nccell_release(ncplane* n, nccell* c){
