@@ -118,7 +118,7 @@ typedef struct ncvgeom {
 
 **ncdirectv* ncdirectf_render(struct ncdirect* ***n***, struct ncdirectf* ***frame***, const struct ncvisual_options ***vopts***);**
 
-**int ncdirectf_geom(struct ncdirect* ***n***, struct ncdirectf* ***frame***, ncblitter_e* ***blitter***, ncscale_e ***scale***, int ***maxy***, int ***maxx***, ncvgeom* ***geom***);**
+**int ncdirectf_geom(struct ncdirect* ***n***, struct ncdirectf* ***frame***, const struct ncvisual_options ***vopts***, ncvgeom* ***geom***);**
 
 
 # DESCRIPTION

@@ -348,6 +348,7 @@ typedef struct ncvgeom {
   int scaley, scalex; // pixels per filled cell
   // only defined for NCBLIT_PIXEL
   int maxpixely, maxpixelx;
+  ncblitter_e blitter;// blitter that will be used
 } ncvgeom;
 
 // Display an image using the specified blitter and scaling. The image may
@@ -394,8 +395,7 @@ API ALLOC ncdirectv* ncdirectf_render(struct ncdirect* n, ncdirectf* frame,
 
 // Having loaded the frame 'frame', get the geometry of a potential render.
 API int ncdirectf_geom(struct ncdirect* n, ncdirectf* frame,
-                       ncblitter_e* blitter, ncscale_e scale,
-                       int maxy, int maxx, ncvgeom* geom)
+                       const struct ncvisual_options* vopts, ncvgeom* geom)
   __attribute__ ((nonnull (1, 2)));
 
 // Load successive frames from a file, invoking 'streamer' on each.

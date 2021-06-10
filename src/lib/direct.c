@@ -1319,32 +1319,23 @@ ncdirectv* ncdirectf_render(ncdirect* n, ncdirectf* frame, const struct ncvisual
 }
 
 int ncdirectf_geom(ncdirect* n, ncdirectf* frame,
-                   ncblitter_e* blitter, ncscale_e scale,
-                   int maxy, int maxx, ncvgeom* geom){
-  // FIXME wtf do we do about flags here? why aren't we using the entire
-  // ncvisual_options apparatus? what a blunder =[. #1746
-  struct ncvisual_options vopts = {
-    .blitter = blitter ? *blitter : NCBLIT_DEFAULT,
-    .scaling = scale,
-    .leny = maxy,
-    .lenx = maxx,
-  };
+                   const struct ncvisual_options* vopts, ncvgeom* geom){
   geom->cdimy = n->tcache.cellpixy;
   geom->cdimx = n->tcache.cellpixx;
   geom->maxpixely = n->tcache.sixel_maxy;
   geom->maxpixelx = n->tcache.sixel_maxx;
   const struct blitset* bset;
-  int r = ncvisual_blitset_geom(NULL, &n->tcache, frame, &vopts,
+  int r = ncvisual_blitset_geom(NULL, &n->tcache, frame, vopts,
                                 &geom->pixy, &geom->pixx,
                                 &geom->scaley, &geom->scalex,
                                 &geom->rpixy, &geom->rpixx, &bset);
-  // FIXME ncvisual_blitset_geom() ought calculate these two for us; until
-  // then, derive them ourselves. the row count might be short by one if
-  // we're using sixel, and we're not a multiple of 6
-  geom->rcelly = geom->pixy / geom->scaley;
-  geom->rcellx = geom->pixx / geom->scalex;
-  if(r == 0 && blitter){
-    *blitter = bset->geom;
+  if(r == 0){
+    // FIXME ncvisual_blitset_geom() ought calculate these two for us; until
+    // then, derive them ourselves. the row count might be short by one if
+    // we're using sixel, and we're not a multiple of 6
+    geom->rcelly = geom->pixy / geom->scaley;
+    geom->rcellx = geom->pixx / geom->scalex;
+    geom->blitter = bset->geom;
   }
   return r;
 }
