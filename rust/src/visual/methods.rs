@@ -348,7 +348,7 @@ impl NcVisual {
     ) -> NcResult<&mut NcPlane> {
         error_ref_mut![
             unsafe { crate::ncvisual_render(nc, self, options) },
-            "NcVisual.render()"
+            "NcVisual.render(Notcurses, &NcVisualOptions)"
         ]
     }
 
