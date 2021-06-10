@@ -497,6 +497,10 @@ typedef struct notcurses {
   unsigned stdio_blocking_save; // was stdio blocking at entry? restore on stop.
 } notcurses;
 
+// this flag is used internally, by direct mode (which might want
+// to scroll with the output). rendered mode never sets it.
+#define NCVISUAL_OPTION_SCROLL 0x0080ull // ought we scroll with the output?
+
 typedef struct blitterargs {
   // FIXME begy/begx are really only of interest to scaling; they ought be
   // consumed there, and blitters ought always work with the scaled output.

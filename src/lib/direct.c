@@ -627,7 +627,7 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv,
     return NULL;
   }
   blitterargs bargs = {};
-  bargs.flags = vopts->flags;
+  bargs.flags = vopts->flags | NCVISUAL_OPTION_SCROLL;
   if(vopts->flags & NCVISUAL_OPTION_ADDALPHA){
     bargs.transcolor = vopts->transcolor | 0x1000000ull;
   }
@@ -1322,7 +1322,7 @@ int ncdirectf_geom(ncdirect* n, ncdirectf* frame,
                    ncblitter_e* blitter, ncscale_e scale,
                    int maxy, int maxx, ncvgeom* geom){
   // FIXME wtf do we do about flags here? why aren't we using the entire
-  // ncvisual_options apparatus? what a blunder =[.
+  // ncvisual_options apparatus? what a blunder =[. #1746
   struct ncvisual_options vopts = {
     .blitter = blitter ? *blitter : NCBLIT_DEFAULT,
     .scaling = scale,
