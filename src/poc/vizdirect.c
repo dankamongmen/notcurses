@@ -11,8 +11,7 @@ partial_image(struct ncdirect* n, const char* file){
   }
   // get the number of pixels
   ncvgeom geom;
-  ncblitter_e blit = NCBLIT_1x1;
-  ncdirectf_geom(n, nf, &blit, NCSCALE_NONE, 0, 0, &geom);
+  ncdirectf_geom(n, nf, NULL, &geom);
   if(geom.cdimy <= 0){
     fprintf(stderr, "no cell dim information\n");
     ncdirectf_free(nf);
@@ -25,7 +24,7 @@ partial_image(struct ncdirect* n, const char* file){
       ncdirectv* v;
       printf("Size: %dx%d\n", cols, rows);
       struct ncvisual_options vopts = {
-        .blitter = blit,
+        .blitter = NCBLIT_1x1,
         .leny = rows * geom.scaley,
         .lenx = cols * geom.scalex,
       };

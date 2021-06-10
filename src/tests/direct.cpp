@@ -77,15 +77,12 @@ TEST_CASE("DirectMode") {
   SUBCASE("ImageGeom") {
     auto dirf = ncdirectf_from_file(nc_, find_data("worldmap.png").get());
     REQUIRE(nullptr != dirf);
-    ncblitter_e blitter = NCBLIT_DEFAULT;
     ncvgeom geom;
-    CHECK(0 == ncdirectf_geom(nc_, dirf, &blitter, NCSCALE_NONE, 0, 0, &geom));
+    CHECK(0 == ncdirectf_geom(nc_, dirf, nullptr, &geom));
     CHECK(475 == geom.pixy);
     CHECK(860 == geom.pixx);
-    CHECK(NCBLIT_DEFAULT != blitter);
-    struct ncvisual_options vopts{};
-    vopts.blitter = blitter;
-    auto ncdv = ncdirectf_render(nc_, dirf, &vopts);
+    CHECK(NCBLIT_DEFAULT != geom.blitter);
+    auto ncdv = ncdirectf_render(nc_, dirf, nullptr);
     CHECK(nullptr != ncdv);
     CHECK(0 == ncdirect_raster_frame(nc_, ncdv, NCALIGN_LEFT));
     ncdirectf_free(dirf);
@@ -95,16 +92,15 @@ TEST_CASE("DirectMode") {
     if(ncdirect_check_pixel_support(nc_) > 0){
       auto dirf = ncdirectf_from_file(nc_, find_data("worldmap.png").get());
       REQUIRE(nullptr != dirf);
-      ncblitter_e blitter = NCBLIT_PIXEL;
+      struct ncvisual_options vopts{};
+      vopts.blitter = NCBLIT_PIXEL;
       ncvgeom geom;
-      CHECK(0 == ncdirectf_geom(nc_, dirf, &blitter, NCSCALE_NONE, 0, 0, &geom));
+      CHECK(0 == ncdirectf_geom(nc_, dirf, &vopts, &geom));
       CHECK(475 == geom.pixy);
       CHECK(860 == geom.pixx);
-      CHECK(NCBLIT_PIXEL == blitter);
+      CHECK(NCBLIT_PIXEL == geom.blitter);
       CHECK(geom.cdimy == geom.scaley);
       CHECK(geom.cdimx == geom.scalex);
-      struct ncvisual_options vopts{};
-      vopts.blitter = blitter;
       auto ncdv = ncdirectf_render(nc_, dirf, &vopts);
       CHECK(nullptr != ncdv);
       CHECK(0 == ncdirect_raster_frame(nc_, ncdv, NCALIGN_LEFT));
