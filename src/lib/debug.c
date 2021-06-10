@@ -43,7 +43,8 @@ tinfo_debug_caps(const tinfo* ti, FILE* debugfp, int rows, int cols,
           capbool(ti->sextants), capbool(ti->braille),
           capbool(images), capbool(videos));
   if(ti->utf8){
-    fprintf(debugfp, "%s   Quads {%ls}\n", indent, get_blitter_egcs(NCBLIT_2x2));
+    fprintf(debugfp, "%s  Halves {%ls}   Quads {%ls}\n", indent,
+            get_blitter_egcs(NCBLIT_2x1), get_blitter_egcs(NCBLIT_2x2));
     fprintf(debugfp, "%sSextants ⎧%.120ls⎫\n", indent, get_blitter_egcs(NCBLIT_3x2));
     fprintf(debugfp, "%s         ⎩%ls⎭\n", indent, get_blitter_egcs(NCBLIT_3x2) + 32);
     fprintf(debugfp, "%s Braille {%ls}\n", indent, get_blitter_egcs(NCBLIT_BRAILLE));
