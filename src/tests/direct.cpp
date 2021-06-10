@@ -1,7 +1,7 @@
 #include "main.h"
 #include <notcurses/direct.h>
 
-TEST_CASE("DirectMode") {
+TEST_CASE("Direct") {
   struct ncdirect* nc_ = ncdirect_init(NULL, stdout, 0);
   if(!nc_){
     return;
@@ -51,6 +51,14 @@ TEST_CASE("DirectMode") {
       fflush(stdout);
       CHECK(0 == ncdirect_off_styles(nc_, NCSTYLE_STRUCK));
     }
+  }
+
+  SUBCASE("BoxDefault") {
+    uint64_t chans = CHANNELS_RGB_INITIALIZER(255, 0, 255, 0, 0, 0);
+    ncchannels_set_bg_default(&chans);
+    ncdirect_set_bg_rgb8(nc_, 0x88, 0x88, 0x88);
+    printf("test background\n");
+    CHECK(0 == ncdirect_rounded_box(nc_, chans, chans, chans, chans, 8, 8, 0));
   }
 
 #ifndef NOTCURSES_USE_MULTIMEDIA
