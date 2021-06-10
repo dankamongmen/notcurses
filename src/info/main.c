@@ -27,6 +27,9 @@ int main(void){
   if((mstream = open_memstream(&mbuf, &len)) == NULL){
     return EXIT_FAILURE;
   }
+  if(fprintf(mstream, "\n") != 1){
+    return EXIT_FAILURE;
+  }
   notcurses_options nopts = {
     .flags = NCOPTION_NO_ALTERNATE_SCREEN,
   };
