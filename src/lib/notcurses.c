@@ -2821,16 +2821,6 @@ char* ncplane_contents(ncplane* nc, int begy, int begx, int leny, int lenx){
   return ret;
 }
 
-int nccells_ascii_box(ncplane* n, uint32_t attr, uint64_t channels,
-                      nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
-  return nccells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, "/\\\\/-|");
-}
-
-int cells_ascii_box(ncplane* n, uint32_t attr, uint64_t channels,
-                    nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
-  return nccells_ascii_box(n, attr, channels, ul, ur, ll, lr, hl, vl);
-}
-
 int nccells_double_box(ncplane* n, uint32_t attr, uint64_t channels,
                        nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
   if(notcurses_canutf8(ncplane_notcurses(n))){

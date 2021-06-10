@@ -2314,6 +2314,30 @@ API int nccells_rounded_box(struct ncplane* n, uint32_t styles, uint64_t channel
                             nccell* lr, nccell* hl, nccell* vl);
 
 static inline int
+nccells_ascii_box(struct ncplane* n, uint32_t attr, uint64_t channels,
+                  nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
+  return nccells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, "/\\\\/-|");
+}
+
+static inline int
+nccells_simple_box(struct ncplane* n, uint32_t attr, uint64_t channels,
+                   nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
+  if(notcurses_canutf8(ncplane_notcurses(n))){
+    return nccells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, "┌┐└┘─│");
+  }
+  return nccells_ascii_box(n, attr, channels, ul, ur, ll, lr, hl, vl);
+}
+
+static inline int
+nccells_heavy_box(struct ncplane* n, uint32_t attr, uint64_t channels,
+                  nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
+  if(notcurses_canutf8(ncplane_notcurses(n))){
+    return nccells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, "┏┓┗┛━┃");
+  }
+  return nccells_ascii_box(n, attr, channels, ul, ur, ll, lr, hl, vl);
+}
+
+static inline int
 ncplane_rounded_box(struct ncplane* n, uint32_t styles, uint64_t channels,
                     int ystop, int xstop, unsigned ctlword){
   int ret = 0;

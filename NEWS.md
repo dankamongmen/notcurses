@@ -21,6 +21,9 @@ rearrangements of Notcurses.
   * A new binary is installed, `notcurses-info`. It prints information about
     the terminal environment in which it runs. More information is available
     from its man page, `notcurses-info(1)`.
+  * Added `ncdirect_simple_box()`, `ncdirect_heavy_box()`,
+    `nccells_simple_box()`, and `nccells_heavy_box()`. Publicized
+    `nccells_ascii_box()`. All are `static inline`.
 
 * 2.3.2 (2021-06-03)
   * Fixed a bug affecting certain scalings of `ncvisual` objects created from
