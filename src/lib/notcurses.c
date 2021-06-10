@@ -666,12 +666,27 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
   // we're good to resize. we'll need alloc up a new framebuffer, and copy in
   // those elements we're retaining, zeroing out the rest. alternatively, if
   // we've shrunk, we will be filling the new structure.
+  int oldarea = rows * cols;
   int keptarea = keepleny * keeplenx;
   int newarea = ylen * xlen;
   size_t fbsize = sizeof(nccell) * newarea;
   nccell* fb = malloc(fbsize);
   if(fb == NULL){
     return -1;
+  }
+  if(n->tam){
+    loginfo(ncplane_notcurses_const(n), "TAM realloc to %d entries\n", newarea);
+    tament* tmptam = realloc(n->tam, sizeof(*tmptam) * newarea);
+    if(tmptam == NULL){
+      free(fb);
+      return -1;
+    }
+    n->tam = tmptam;
+    // FIXME need to set up the entries based on new distribution for
+    // cell-pixel geometry change, and split across new rows
+    if(newarea > oldarea){
+      memset(n->tam + oldarea, 0, sizeof(*n->tam) * (newarea - oldarea));
+    }
   }
   // update the cursor, if it would otherwise be off-plane
   if(n->y >= ylen){
