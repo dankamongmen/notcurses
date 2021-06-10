@@ -242,17 +242,17 @@ paint(ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
       }
       const nccell* vis = &p->fb[nfbcellidx(p, y, x)];
 
-      if(nccell_fg_alpha(targc) > CELL_ALPHA_OPAQUE){
+      if(nccell_fg_alpha(targc) > NCALPHA_OPAQUE){
         vis = &p->fb[nfbcellidx(p, y, x)];
         if(nccell_fg_default_p(vis)){
           vis = &p->basecell;
         }
         if(nccell_fg_palindex_p(vis)){
-          if(nccell_fg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
+          if(nccell_fg_alpha(targc) == NCALPHA_TRANSPARENT){
             nccell_set_fg_palindex(targc, nccell_fg_palindex(vis));
           }
         }else{
-          if(nccell_fg_alpha(vis) == CELL_ALPHA_HIGHCONTRAST){
+          if(nccell_fg_alpha(vis) == NCALPHA_HIGHCONTRAST){
             crender->s.highcontrast = true;
             crender->s.hcfgblends = crender->s.fgblends;
             crender->hcfg = cell_fchannel(targc);
@@ -262,9 +262,9 @@ paint(ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
           crender->s.fgblends = fgblends;
           // crender->highcontrast can only be true if we just set it, since we're
           // about to set targc opaque based on crender->highcontrast (and this
-          // entire stanza is conditional on targc not being CELL_ALPHA_OPAQUE).
+          // entire stanza is conditional on targc not being NCALPHA_OPAQUE).
           if(crender->s.highcontrast){
-            nccell_set_fg_alpha(targc, CELL_ALPHA_OPAQUE);
+            nccell_set_fg_alpha(targc, NCALPHA_OPAQUE);
           }
         }
       }
@@ -274,7 +274,7 @@ paint(ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
       // If it's transparent, it has no effect. Otherwise, update the
       // background channel and balpha.
       // Evaluate the background first, in case we have HIGHCONTRAST fg text.
-      if(nccell_bg_alpha(targc) > CELL_ALPHA_OPAQUE){
+      if(nccell_bg_alpha(targc) > NCALPHA_OPAQUE){
         vis = &p->fb[nfbcellidx(p, y, x)];
         // to be on the blitter stacking path, we need
         //  1) crender->s.blittedquads to be non-zero (we're below semigraphics)
@@ -285,7 +285,7 @@ paint(ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
             vis = &p->basecell;
           }
           if(nccell_bg_palindex_p(vis)){
-            if(nccell_bg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
+            if(nccell_bg_alpha(targc) == NCALPHA_TRANSPARENT){
               nccell_set_bg_palindex(targc, nccell_bg_palindex(vis));
             }
           }else{
@@ -298,7 +298,7 @@ paint(ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
             vis = &p->basecell;
           }
           if(nccell_fg_palindex_p(vis)){
-            if(nccell_bg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
+            if(nccell_bg_alpha(targc) == NCALPHA_TRANSPARENT){
               nccell_set_bg_palindex(targc, nccell_fg_palindex(vis));
             }
           }else{
@@ -360,13 +360,13 @@ paint(ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
   }
 }
 
-// it's not a pure memset(), because CELL_ALPHA_OPAQUE is the zero value, and
-// we need CELL_ALPHA_TRANSPARENT
+// it's not a pure memset(), because NCALPHA_OPAQUE is the zero value, and
+// we need NCALPHA_TRANSPARENT
 static inline void
 init_rvec(struct crender* rvec, int totalcells){
   struct crender c = {};
-  nccell_set_fg_alpha(&c.c, CELL_ALPHA_TRANSPARENT);
-  nccell_set_bg_alpha(&c.c, CELL_ALPHA_TRANSPARENT);
+  nccell_set_fg_alpha(&c.c, NCALPHA_TRANSPARENT);
+  nccell_set_bg_alpha(&c.c, NCALPHA_TRANSPARENT);
   for(int t = 0 ; t < totalcells ; ++t){
     memcpy(&rvec[t], &c, sizeof(c));
   }
@@ -377,10 +377,10 @@ init_rvec(struct crender* rvec, int totalcells){
 // against the real background.
 static inline void
 lock_in_highcontrast(nccell* targc, struct crender* crender){
-  if(nccell_fg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
+  if(nccell_fg_alpha(targc) == NCALPHA_TRANSPARENT){
     nccell_set_fg_default(targc);
   }
-  if(nccell_bg_alpha(targc) == CELL_ALPHA_TRANSPARENT){
+  if(nccell_bg_alpha(targc) == NCALPHA_TRANSPARENT){
     nccell_set_bg_default(targc);
   }
   if(crender->s.highcontrast){
@@ -443,7 +443,7 @@ postpaint_cell(nccell* lastframe, int dimx, struct crender* crender,
 
 
 // iterate over the rendered frame, adjusting the foreground colors for any
-// cells marked CELL_ALPHA_HIGHCONTRAST, and clearing any cell covered by a
+// cells marked NCALPHA_HIGHCONTRAST, and clearing any cell covered by a
 // wide glyph to its left.
 //
 // FIXME this cannot be performed at render time (we don't yet know the

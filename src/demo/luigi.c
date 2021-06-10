@@ -112,8 +112,8 @@ static const char* luigis[] = {
 static int
 draw_luigi(struct ncplane* n, const char* sprite){
   uint64_t channels = 0;
-  ncchannels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
-  ncchannels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+  ncchannels_set_fg_alpha(&channels, NCALPHA_TRANSPARENT);
+  ncchannels_set_bg_alpha(&channels, NCALPHA_TRANSPARENT);
   ncplane_set_base(n, "", 0, channels);
   size_t s;
   int sbytes;
@@ -197,8 +197,8 @@ int luigi_demo(struct notcurses* nc){
     return -1;
   }
   uint64_t channels = 0;
-  ncchannels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
-  ncchannels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+  ncchannels_set_fg_alpha(&channels, NCALPHA_TRANSPARENT);
+  ncchannels_set_bg_alpha(&channels, NCALPHA_TRANSPARENT);
   struct ncplane* wmplane = ncvisual_render(nc, wmncv, NULL);
   if(wmplane == NULL){
     ncvisual_destroy(wmncv);

@@ -42,22 +42,22 @@ TEST_CASE("Palette256") {
   SUBCASE("FAttributes") {
     nccell c = CELL_TRIVIAL_INITIALIZER;
     CHECK(nccell_fg_default_p(&c));
-    nccell_set_fg_alpha(&c, CELL_ALPHA_TRANSPARENT);
+    nccell_set_fg_alpha(&c, NCALPHA_TRANSPARENT);
     CHECK(0 == nccell_set_fg_palindex(&c, 0x20));
     CHECK(!nccell_fg_default_p(&c));
     CHECK(nccell_fg_palindex_p(&c));
-    CHECK(CELL_ALPHA_OPAQUE == nccell_fg_alpha(&c));
+    CHECK(NCALPHA_OPAQUE == nccell_fg_alpha(&c));
     CHECK(0x20 == nccell_fg_palindex(&c));
   }
 
   SUBCASE("BAttributes") {
     nccell c = CELL_TRIVIAL_INITIALIZER;
     CHECK(nccell_bg_default_p(&c));
-    nccell_set_bg_alpha(&c, CELL_ALPHA_TRANSPARENT);
+    nccell_set_bg_alpha(&c, NCALPHA_TRANSPARENT);
     CHECK(0 == nccell_set_bg_palindex(&c, 0x20));
     CHECK(!nccell_bg_default_p(&c));
     CHECK(nccell_bg_palindex_p(&c));
-    CHECK(CELL_ALPHA_OPAQUE == nccell_bg_alpha(&c));
+    CHECK(NCALPHA_OPAQUE == nccell_bg_alpha(&c));
     CHECK(0x20 == nccell_bg_palindex(&c));
   }
 
@@ -73,8 +73,8 @@ TEST_CASE("Palette256") {
     CHECK(0 < ncplane_at_yx_cell(n_, 0, 0, &r));
     CHECK(nccell_fg_palindex_p(&r));
     CHECK(nccell_bg_palindex_p(&r));
-    CHECK(CELL_ALPHA_OPAQUE == nccell_fg_alpha(&r));
-    CHECK(CELL_ALPHA_OPAQUE == nccell_bg_alpha(&r));
+    CHECK(NCALPHA_OPAQUE == nccell_fg_alpha(&r));
+    CHECK(NCALPHA_OPAQUE == nccell_bg_alpha(&r));
     CHECK(0x20 == nccell_fg_palindex(&r));
     CHECK(0x40 == nccell_bg_palindex(&r));
     nccell_release(n_, &r);
@@ -94,8 +94,8 @@ TEST_CASE("Palette256") {
     CHECK(nullptr != notcurses_at_yx(nc_, 0, 0, &r.stylemask, &r.channels));
     CHECK(nccell_fg_palindex_p(&r));
     CHECK(nccell_bg_palindex_p(&r));
-    CHECK(CELL_ALPHA_OPAQUE == nccell_fg_alpha(&r));
-    CHECK(CELL_ALPHA_OPAQUE == nccell_bg_alpha(&r));
+    CHECK(NCALPHA_OPAQUE == nccell_fg_alpha(&r));
+    CHECK(NCALPHA_OPAQUE == nccell_bg_alpha(&r));
     CHECK(0x20 == nccell_fg_palindex(&r));
     CHECK(0x40 == nccell_bg_palindex(&r));
     nccell_release(n_, &r);

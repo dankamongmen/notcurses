@@ -150,7 +150,7 @@ subsection of the **ncvisual** to render, while ***leny***/***lenx*** specify th
 geometry of same. ***flags*** is a bitfield over:
 
 * **NCVISUAL_OPTION_NODEGRADE** If the specified blitter is not available, fail rather than degrading.
-* **NCVISUAL_OPTION_BLEND**: Render with **CELL_ALPHA_BLEND**. Not available with
+* **NCVISUAL_OPTION_BLEND**: Render with **NCALPHA_BLEND**. Not available with
    **NCBLIT_PIXEL** when using Sixel graphics. When used with **NCBLIT_PIXEL** when
    using Kitty graphics, the alpha channel is divided by 2 for each pixel.
 * **NCVISUAL_OPTION_HORALIGNED**: Interpret ***x*** as an **ncalign_e**.

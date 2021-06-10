@@ -72,10 +72,10 @@ draw_block(struct ncplane* nn, uint32_t blockstart){
   nccell ll = CELL_TRIVIAL_INITIALIZER, lr = CELL_TRIVIAL_INITIALIZER;
   nccell hl = CELL_TRIVIAL_INITIALIZER, vl = CELL_TRIVIAL_INITIALIZER;
   nccells_rounded_box(nn, 0, 0, &ul, &ur, &ll, &lr, &hl, &vl);
-  nccell_set_bg_alpha(&ul, CELL_ALPHA_TRANSPARENT);
-  nccell_set_bg_alpha(&ur, CELL_ALPHA_TRANSPARENT);
-  nccell_set_bg_alpha(&ll, CELL_ALPHA_TRANSPARENT);
-  nccell_set_bg_alpha(&lr, CELL_ALPHA_TRANSPARENT);
+  nccell_set_bg_alpha(&ul, NCALPHA_TRANSPARENT);
+  nccell_set_bg_alpha(&ur, NCALPHA_TRANSPARENT);
+  nccell_set_bg_alpha(&ll, NCALPHA_TRANSPARENT);
+  nccell_set_bg_alpha(&lr, NCALPHA_TRANSPARENT);
   nccell_set_fg_rgb8(&ul, 0xea, 0xaa, 0x00);
   nccell_set_fg_rgb8(&ur, 0x00, 0x30, 0x57);
   nccell_set_fg_rgb8(&ll, 0x00, 0x30, 0x57);
@@ -248,7 +248,7 @@ int unicodeblocks_demo(struct notcurses* nc){
     return -1;
   }
   uint64_t channels = 0;
-  ncchannels_set_fg_alpha(&channels, CELL_ALPHA_BLEND);
+  ncchannels_set_fg_alpha(&channels, NCALPHA_BLEND);
   ncchannels_set_fg_rgb(&channels, 0x004000);
   ncchannels_set_bg_rgb(&channels, 0x0);
   ncplane_set_base(header, "", 0, channels);

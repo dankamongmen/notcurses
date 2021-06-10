@@ -289,7 +289,7 @@ TEST_CASE("Reels") {
     int dimy, dimx;
     notcurses_term_dim_yx(nc_, &dimy, &dimx);
     uint64_t channels = 0;
-    ncchannels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+    ncchannels_set_bg_alpha(&channels, NCALPHA_TRANSPARENT);
     struct ncplane_options nopts = {
       .y = 0,
       .x = 0,

@@ -70,8 +70,8 @@ static int
 ncselector_draw(ncselector* n){
   ncplane_erase(n->ncp);
   nccell transchar = CELL_TRIVIAL_INITIALIZER;
-  nccell_set_fg_alpha(&transchar, CELL_ALPHA_TRANSPARENT);
-  nccell_set_bg_alpha(&transchar, CELL_ALPHA_TRANSPARENT);
+  nccell_set_fg_alpha(&transchar, NCALPHA_TRANSPARENT);
+  nccell_set_bg_alpha(&transchar, NCALPHA_TRANSPARENT);
   // if we have a title, we'll draw a riser. the riser is two rows tall, and
   // exactly four columns longer than the title, and aligned to the right. we
   // draw a rounded box. the body will blow part or all of the bottom away.
@@ -564,8 +564,8 @@ static int
 ncmultiselector_draw(ncmultiselector* n){
   ncplane_erase(n->ncp);
   nccell transchar = CELL_TRIVIAL_INITIALIZER;
-  nccell_set_fg_alpha(&transchar, CELL_ALPHA_TRANSPARENT);
-  nccell_set_bg_alpha(&transchar, CELL_ALPHA_TRANSPARENT);
+  nccell_set_fg_alpha(&transchar, NCALPHA_TRANSPARENT);
+  nccell_set_bg_alpha(&transchar, NCALPHA_TRANSPARENT);
   // if we have a title, we'll draw a riser. the riser is two rows tall, and
   // exactly four columns longer than the title, and aligned to the right. we
   // draw a rounded box. the body will blow part or all of the bottom away.

@@ -62,12 +62,12 @@ auto handle_subtitle(char* subtitle, struct marshal* marsh,
     };
     marsh->subtitle_plane = ncplane_create(vopts->n, &nopts);
     uint64_t channels = 0;
-    ncchannels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
-    ncchannels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
+    ncchannels_set_fg_alpha(&channels, NCALPHA_TRANSPARENT);
+    ncchannels_set_bg_alpha(&channels, NCALPHA_TRANSPARENT);
     ncplane_set_base(marsh->subtitle_plane, "", 0, channels);
     ncplane_set_fg_rgb(marsh->subtitle_plane, 0x00ffff);
-    ncplane_set_fg_alpha(marsh->subtitle_plane, CELL_ALPHA_HIGHCONTRAST);
-    ncplane_set_bg_alpha(marsh->subtitle_plane, CELL_ALPHA_TRANSPARENT);
+    ncplane_set_fg_alpha(marsh->subtitle_plane, NCALPHA_HIGHCONTRAST);
+    ncplane_set_bg_alpha(marsh->subtitle_plane, NCALPHA_TRANSPARENT);
   }else{
     ncplane_erase(marsh->subtitle_plane);
   }
@@ -378,8 +378,8 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
   int dimy, dimx;
   std::unique_ptr<Plane> stdn(nc.get_stdplane(&dimy, &dimx));
   uint64_t transchan = 0;
-  ncchannels_set_fg_alpha(&transchan, CELL_ALPHA_TRANSPARENT);
-  ncchannels_set_bg_alpha(&transchan, CELL_ALPHA_TRANSPARENT);
+  ncchannels_set_fg_alpha(&transchan, NCALPHA_TRANSPARENT);
+  ncchannels_set_bg_alpha(&transchan, NCALPHA_TRANSPARENT);
   stdn->set_base("", 0, transchan);
   struct ncplane_options nopts{};
   nopts.name = "play";

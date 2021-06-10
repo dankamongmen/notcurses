@@ -192,8 +192,8 @@ textplane(struct notcurses* nc){
   };
   struct ncplane* n = ncplane_create(stdn, &nopts);
   uint64_t channels = CHANNELS_RGB_INITIALIZER(0, 0, 0, 0x22, 0x22, 0x22);
-  /*ncchannels_set_fg_alpha(&channels, CELL_ALPHA_TRANSPARENT);
-  ncchannels_set_bg_alpha(&channels, CELL_ALPHA_TRANSPARENT);*/
+  /*ncchannels_set_fg_alpha(&channels, NCALPHA_TRANSPARENT);
+  ncchannels_set_bg_alpha(&channels, NCALPHA_TRANSPARENT);*/
   if(n){
     ncplane_set_base(n, "", 0, channels);
   }

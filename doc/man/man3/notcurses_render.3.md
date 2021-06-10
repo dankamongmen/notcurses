@@ -85,8 +85,8 @@ At each plane **P**, we consider a cell **C**. This cell is the intersecting cel
 unless that cell has no EGC. In that case, **C** is the plane's default cell.
 
 * If we have not yet determined an EGC, and **C** has a non-zero EGC, use the EGC and style of **C**.
-* If we have not yet locked in a foreground color, and **C** is not foreground-transparent, use the foreground color of **C** (see [BUGS][] below). If **C** is **CELL_ALPHA_OPAQUE**, lock the color in.
-* If we have not yet locked in a background color, and **C** is not background-transparent, use the background color of **C** (see [BUGS][] below). If **C** is **CELL_ALPHA_OPAQUE**, lock the color in.
+* If we have not yet locked in a foreground color, and **C** is not foreground-transparent, use the foreground color of **C** (see [BUGS][] below). If **C** is **NCALPHA_OPAQUE**, lock the color in.
+* If we have not yet locked in a background color, and **C** is not background-transparent, use the background color of **C** (see [BUGS][] below). If **C** is **NCALPHA_OPAQUE**, lock the color in.
 
 If the algorithm concludes without an EGC, the cell is rendered with no glyph
 and a default background. If the algorithm concludes without a color locked in,

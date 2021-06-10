@@ -26,17 +26,13 @@ tinfo_debug_caps(const tinfo* ti, FILE* debugfp, int rows, int cols,
                   capyn(get_escape(ti, ESCAPE_BGOP)));
   fprintf(debugfp, "%srows: %u cols: %u rpx: %u cpx: %u (%dx%d)\n",
           indent, rows, cols, ti->cellpixy, ti->cellpixx, rows * ti->cellpixy, cols * ti->cellpixx);
-  if(!ti->pixel_query_done){
-    fprintf(debugfp, "%sno bitmap graphics information yet\n", indent);
+  if(!ti->bitmap_supported){
+    fprintf(debugfp, "%sdidn't detect bitmap graphics support\n", indent);
+  }else if(ti->sixel_maxy || ti->color_registers){
+    fprintf(debugfp, "%smax sixel size: %dx%d colorregs: %u\n",
+            indent, ti->sixel_maxy, ti->sixel_maxx, ti->color_registers);
   }else{
-    if(!ti->bitmap_supported){
-      fprintf(debugfp, "%sdidn't detect bitmap graphics support\n", indent);
-    }else if(ti->sixel_maxy || ti->color_registers){
-      fprintf(debugfp, "%smax sixel size: %dx%d colorregs: %u\n",
-              indent, ti->sixel_maxy, ti->sixel_maxx, ti->color_registers);
-    }else{
-      fprintf(debugfp, "%sRGBA pixel graphics supported\n", indent);
-    }
+    fprintf(debugfp, "%sRGBA pixel graphics supported\n", indent);
   }
   fprintf(debugfp, "%sUTF8: %c quad: %c sex: %c braille: %c images: %c videos: %c\n",
           indent, capbool(ti->utf8), capbool(ti->quadrants),

@@ -102,7 +102,6 @@ typedef struct tinfo {
   // which we support sixel and kitty. the kitty protocol is used based
   // on TERM heuristics. otherwise, we attempt to detect sixel support, and
   // query the details of the implementation.
-  pthread_mutex_t pixel_query; // only query for pixel support once
   int color_registers; // sixel color registers (post pixel_query_done)
   int sixel_maxx, sixel_maxy; // sixel size maxima (post pixel_query_done)
   int (*pixel_destroy)(const struct notcurses* nc, const struct ncpile* p, FILE* out, struct sprixel* s);
@@ -123,7 +122,6 @@ typedef struct tinfo {
   ncinputlayer input;       // input layer
   bool bitmap_supported;    // do we support bitmaps (post pixel_query_done)?
   bool bitmap_lowest_line;  // can we render pixels to the bottom row?
-  bool pixel_query_done;    // have we yet performed pixel query?
   bool RGBflag;   // "RGB" flag for 24bpc truecolor
   bool CCCflag;   // "CCC" flag for palette set capability
   bool BCEflag;   // "BCE" flag for erases with background color

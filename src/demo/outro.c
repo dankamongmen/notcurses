@@ -95,8 +95,8 @@ videothread(void* vnc){
     return PTHREAD_CANCELED;
   }
   uint64_t trans_channel = 0;
-  ncchannels_set_bg_alpha(&trans_channel, CELL_ALPHA_TRANSPARENT);
-  ncchannels_set_fg_alpha(&trans_channel, CELL_ALPHA_TRANSPARENT);
+  ncchannels_set_bg_alpha(&trans_channel, NCALPHA_TRANSPARENT);
+  ncchannels_set_fg_alpha(&trans_channel, NCALPHA_TRANSPARENT);
   ncplane_set_base(apiap, "", 0, trans_channel);
   ncplane_set_fg_rgb8(apiap, 0xc0, 0x40, 0x80);
   ncplane_set_bg_rgb8(apiap, 0, 0, 0);
@@ -138,7 +138,7 @@ outro_message(struct notcurses* nc, int* rows, int* cols){
   ncplane_dim_yx(non, rows, cols);
   int ybase = 0;
   // bevel the upper corners
-  if(ncplane_set_bg_alpha(non, CELL_ALPHA_TRANSPARENT)){
+  if(ncplane_set_bg_alpha(non, NCALPHA_TRANSPARENT)){
     return NULL;
   }
   if(ncplane_putchar_yx(non, ybase, 0, ' ') < 0 || ncplane_putchar(non, ' ') < 0){
@@ -160,7 +160,7 @@ outro_message(struct notcurses* nc, int* rows, int* cols){
   if(ncplane_set_bg_rgb8(non, 0, 180, 180)){
     return NULL;
   }
-  if(ncplane_set_bg_alpha(non, CELL_ALPHA_BLEND)){
+  if(ncplane_set_bg_alpha(non, NCALPHA_BLEND)){
     return NULL;
   }
   ncplane_on_styles(non, NCSTYLE_BOLD);
