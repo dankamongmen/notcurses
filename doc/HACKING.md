@@ -366,3 +366,35 @@ be a multiple of six pixels tall.
 * always starts at the origin of its plane
 * admits no other output to its plane, nor resizing
 * greatly complicates rendering
+
+## Input
+
+Input is greatly complicated by rare but critical in-band signaling from the
+terminal itself. This is the method by which, for instance, terminals
+advertising Sixel indicate how many color registers they support. We must
+ensure such responses never reach the user, and that we act on them quickly.
+Such replies are generally distinguished by a (literal) escape. Unfortunately,
+the user can (and often does) generate ESC themselves.
+
+The primary instance of this signaling is on startup, when we query the
+terminal as part of capability discovery. Until we process the reply, we
+don't know what capabilities the terminal offers, particularly with regard
+to bitmap graphics.
+
+We have two potential input sources, both of which *might* correspond to
+`stdin`. If we were spawned attached to the terminal, we receive both user and
+terminal input on the same fd (corresponding to `stdin`). If our input was
+redirected from somewhere else, we need open the controlling terminal, and
+read from it. This has the happy side-effect of isolating the control plane
+from the data plane (though you mustn't rely that this will make control
+communication unforgeable; the user can likely write to the controlling
+terminal themselves).
+
+If a terminal doesn't understand or implement some query, there will typically
+be no response. If a negative response is required, follow up the query (or
+queries) with a Device Attributes (DA, `\e[c`) query, to which all known terminals
+will respond. So long as a valid response cannot be confused with a response to
+DA, this serves as a negative acknowledgement. Relying on this, at startup we
+fire off two `XTSMGRAPHICS` queries followed by a DA query, all as one write. We
+don't sit around waiting for the response, but instead continue initialization.
+Ideally, by the time we're done and need the info, it's ready for us to read.
