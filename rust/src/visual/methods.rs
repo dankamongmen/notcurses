@@ -528,10 +528,7 @@ impl NcDirectF {
     pub fn ncdirectf_geom(
         &mut self,
         ncd: &mut NcDirect,
-        blitter: &mut NcBlitter,
-        scale: NcScale,
-        max_y: NcDim,
-        max_x: NcDim,
+        options: &NcVisualOptions,
     ) -> NcResult<NcVGeom> {
         let mut geom = NcVGeom::new();
 
@@ -539,10 +536,7 @@ impl NcDirectF {
             crate::ncdirectf_geom(
                 ncd,
                 self,
-                blitter,
-                scale,
-                max_y as i32,
-                max_x as i32,
+                options,
                 &mut geom,
             )
         };
@@ -567,6 +561,7 @@ impl NcVGeom {
             scalex: 0,
             maxpixely: 0,
             maxpixelx: 0,
+            blitter: 0,
         }
     }
 }
