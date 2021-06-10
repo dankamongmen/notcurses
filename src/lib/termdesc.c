@@ -503,7 +503,7 @@ query_sixel_details(tinfo* ti, int fd){
 // query for Sixel support
 static int
 query_sixel(tinfo* ti, int fd){
-  if(writen(fd, ESC_DA, strlen(ESC_DA)) != 3){
+  if(blocking_write(fd, ESC_DA, strlen(ESC_DA))){
     return -1;
   }
   char in;
