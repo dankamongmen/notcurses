@@ -398,3 +398,18 @@ DA, this serves as a negative acknowledgement. Relying on this, at startup we
 fire off two `XTSMGRAPHICS` queries followed by a DA query, all as one write. We
 don't sit around waiting for the response, but instead continue initialization.
 Ideally, by the time we're done and need the info, it's ready for us to read.
+
+Some inputs intended for the user are transmitted to us as escapes, however.
+Any of the synthesized characters (including e.g. Home, function keys, arrows)
+arrive as escapes, which we convert to codepoints in the Private Use Area.
+These need be delivered to the user.
+
+There are no asynchronous control messages that we need watch for (the closest
+thing is `SIGWINCH` on geometry changes), so we don't generally need to watch
+the input. We *do* need to extract any control messages that arrive while the
+user is reading input (when `stdin` is connected to the tty, anyway).
+Similarly, were we reading, we'd need put aside any input intended for the
+user. We thus keep two queues at all times: received control messages, and
+received user input. The received user input is non-segmented UTF-8 (i.e.
+translated from control sequences). The received control information is stored
+as distinct multibyte escape sequences.
