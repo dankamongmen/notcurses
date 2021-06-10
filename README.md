@@ -123,12 +123,13 @@ may well be possible to use still older versions. Let me know of any successes!
 
 ## Included tools
 
-Seven binaries are installed as part of Notcurses:
+Eight binaries are installed as part of Notcurses:
 * `ncls`: an `ls` that displays multimedia in the terminal
 * `ncneofetch`: a [neofetch](https://github.com/dylanaraps/neofetch) ripoff
 * `ncplayer`: renders visual media (images/videos)
 * `nctetris`: a tetris clone
 * `notcurses-demo`: some demonstration code
+* `notcurses-info`: detect and print terminal capabilities/diagnostics
 * `notcurses-input`: decode and print keypresses
 * `notcurses-tester`: unit testing
 

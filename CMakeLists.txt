@@ -549,6 +549,21 @@ target_link_libraries(notcurses-demo
 )
 
 ############################################################################
+# notcurses-info
+file(GLOB INFOSRCS CONFIGURE_DEPENDS src/info/*.c)
+add_executable(notcurses-info ${INFOSRCS})
+target_include_directories(notcurses-info
+  PRIVATE
+    include
+    "${CMAKE_REQUIRED_INCLUDES}"
+    "${PROJECT_BINARY_DIR}/include"
+)
+target_link_libraries(notcurses-info
+  PRIVATE
+    notcurses
+)
+
+############################################################################
 # notcurses-input
 file(GLOB INPUTSRCS CONFIGURE_DEPENDS src/input/input.cpp)
 add_executable(notcurses-input ${INPUTSRCS})
@@ -786,6 +801,7 @@ list(FILTER MARKDOWN EXCLUDE REGEX "INSTALL.md")
 install(FILES ${MARKDOWN} DESTINATION ${CMAKE_INSTALL_DOCDIR})
 
 install(TARGETS notcurses-demo DESTINATION bin)
+install(TARGETS notcurses-info DESTINATION bin)
 install(TARGETS notcurses-input DESTINATION bin)
 install(TARGETS nctetris DESTINATION bin)
 install(TARGETS ncneofetch DESTINATION bin)
