@@ -382,11 +382,6 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
   ncchannels_set_bg_alpha(&transchan, CELL_ALPHA_TRANSPARENT);
   stdn->set_base("", 0, transchan);
   struct ncplane_options nopts{};
-  // leave a line at the bottom. perhaps one day we'll put information there.
-  // for now, this keeps us from scrolling when we use bitmaps.
-  if(nopts.margin_b == 0){
-    //nopts.margin_b = 1;
-  }
   nopts.name = "play";
   nopts.resizecb = ncplane_resize_marginalized;
   nopts.flags = NCPLANE_OPTION_MARGINALIZED;
