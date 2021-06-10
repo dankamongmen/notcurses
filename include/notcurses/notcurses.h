@@ -24,6 +24,7 @@
 #endif
 #include <netinet/in.h>
 #include <notcurses/nckeys.h>
+#include <notcurses/ncseqs.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -2320,10 +2321,10 @@ nccells_ascii_box(struct ncplane* n, uint32_t attr, uint64_t channels,
 }
 
 static inline int
-nccells_simple_box(struct ncplane* n, uint32_t attr, uint64_t channels,
-                   nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
+nccells_light_box(struct ncplane* n, uint32_t attr, uint64_t channels,
+                  nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
   if(notcurses_canutf8(ncplane_notcurses(n))){
-    return nccells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, "┌┐└┘─│");
+    return nccells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, NCBOXLIGHT);
   }
   return nccells_ascii_box(n, attr, channels, ul, ur, ll, lr, hl, vl);
 }
@@ -2332,7 +2333,7 @@ static inline int
 nccells_heavy_box(struct ncplane* n, uint32_t attr, uint64_t channels,
                   nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
   if(notcurses_canutf8(ncplane_notcurses(n))){
-    return nccells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, "┏┓┗┛━┃");
+    return nccells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, NCBOXHEAVY);
   }
   return nccells_ascii_box(n, attr, channels, ul, ur, ll, lr, hl, vl);
 }

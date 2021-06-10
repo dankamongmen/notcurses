@@ -2824,7 +2824,7 @@ char* ncplane_contents(ncplane* nc, int begy, int begx, int leny, int lenx){
 int nccells_double_box(ncplane* n, uint32_t attr, uint64_t channels,
                        nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
   if(notcurses_canutf8(ncplane_notcurses(n))){
-    return nccells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, "╔╗╚╝═║");
+    return nccells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, NCBOXDOUBLE);
   }
   return nccells_ascii_box(n, attr, channels, ul, ur, ll, lr, hl, vl);
 }
@@ -2837,7 +2837,7 @@ int cells_double_box(ncplane* n, uint32_t attr, uint64_t channels,
 int nccells_rounded_box(ncplane* n, uint32_t attr, uint64_t channels,
                         nccell* ul, nccell* ur, nccell* ll, nccell* lr, nccell* hl, nccell* vl){
   if(notcurses_canutf8(ncplane_notcurses(n))){
-    return nccells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, "╭╮╰╯─│");
+    return nccells_load_box(n, attr, channels, ul, ur, ll, lr, hl, vl, NCBOXROUND);
   }
   return nccells_ascii_box(n, attr, channels, ul, ur, ll, lr, hl, vl);
 }

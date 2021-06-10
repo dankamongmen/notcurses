@@ -1224,13 +1224,13 @@ int ncdirect_box(ncdirect* n, uint64_t ul, uint64_t ur,
 int ncdirect_rounded_box(ncdirect* n, uint64_t ul, uint64_t ur,
                          uint64_t ll, uint64_t lr,
                          int ylen, int xlen, unsigned ctlword){
-  return ncdirect_box(n, ul, ur, ll, lr, L"╭╮╰╯─│", ylen, xlen, ctlword);
+  return ncdirect_box(n, ul, ur, ll, lr, NCBOXROUNDW, ylen, xlen, ctlword);
 }
 
 int ncdirect_double_box(ncdirect* n, uint64_t ul, uint64_t ur,
                          uint64_t ll, uint64_t lr,
                          int ylen, int xlen, unsigned ctlword){
-  return ncdirect_box(n, ul, ur, ll, lr, L"╔╗╚╝═║", ylen, xlen, ctlword);
+  return ncdirect_box(n, ul, ur, ll, lr, NCBOXDOUBLEW, ylen, xlen, ctlword);
 }
 
 // Can we load images? This requires being built against FFmpeg/OIIO.
