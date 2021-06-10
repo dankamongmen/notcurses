@@ -428,7 +428,7 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
     fclose(fp);
     return -1;
   }
-  bool scroll = false; // FIXME
+  bool scroll = bargs->flags & NCVISUAL_OPTION_SCROLL;
   bool translucent = bargs->flags & NCVISUAL_OPTION_BLEND;
   int sprixelid = bargs->u.pixel.spx->id;
   int cdimy = bargs->u.pixel.celldimy;

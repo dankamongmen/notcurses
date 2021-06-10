@@ -2450,6 +2450,7 @@ API ALLOC struct ncvisual* ncvisual_from_plane(const struct ncplane* n,
 #define NCVISUAL_OPTION_ADDALPHA      0x0010ull // transcolor is in effect
 #define NCVISUAL_OPTION_CHILDPLANE    0x0020ull // interpret n as parent
 #define NCVISUAL_OPTION_NOINTERPOLATE 0x0040ull // non-interpolative scaling
+                                                // 0x0080 is used internally
 
 struct ncvisual_options {
   // if no ncplane is provided, one will be created using the exact size
