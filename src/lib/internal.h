@@ -23,6 +23,7 @@ extern "C" {
 #include <termios.h>
 #include <stdbool.h>
 #include <unictype.h>
+#include <sys/poll.h>
 #include <langinfo.h>
 #include <netinet/in.h>
 #include "notcurses/notcurses.h"
