@@ -1999,8 +1999,13 @@ int ncplane_move_yx(ncplane* n, int y, int x){
     return -1;
   }
   int dy, dx; // amount moved
-  dy = (n->boundto->absy + y) - n->absy;
-  dx = (n->boundto->absx + x) - n->absx;
+  if(n->boundto == n){
+    dy = y - n->absy;
+    dx = x - n->absx;
+  }else{
+    dy = (n->boundto->absy + y) - n->absy;
+    dx = (n->boundto->absx + x) - n->absx;
+  }
   if(dy || dx){ // don't want to trigger sprixel_movefrom() if unneeded
     if(n->sprite){
       sprixel_movefrom(n->sprite, n->absy, n->absx);

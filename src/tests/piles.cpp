@@ -9,6 +9,34 @@ TEST_CASE("Piles") {
   struct ncplane* n_ = notcurses_stddim_yx(nc_, &dimy, &dimx);
   REQUIRE(nullptr != n_);
 
+  // you can't move the standard plane, but you can move root planes of other
+  // piles. they ought go to the absolute specified location.
+  SUBCASE("MovePileRoot") {
+    struct ncplane_options nopts = {
+      .y = 1, .x = 1,
+      .rows = dimy - 2,
+      .cols = dimx - 2,
+      .userptr = nullptr,
+      .name = "small",
+      .resizecb = nullptr,
+      .flags = 0,
+      .margin_b = 0, .margin_r = 0,
+    };
+    auto np = ncpile_create(nc_, &nopts);
+    REQUIRE(nullptr != np);
+    CHECK(1 == ncplane_y(np));
+    CHECK(1 == ncplane_x(np));
+    CHECK(0 == ncplane_move_yx(np, 2, 2));
+    CHECK(2 == ncplane_y(np));
+    CHECK(2 == ncplane_x(np));
+    CHECK(0 == ncplane_move_yx(np, -1, -1));
+    CHECK(-1 == ncplane_y(np));
+    CHECK(-1 == ncplane_x(np));
+    CHECK(0 == ncpile_render(np));
+    CHECK(0 == ncpile_rasterize(np));
+    CHECK(0 == ncplane_destroy(np));
+  }
+
   // create a plane bigger than the standard plane, and render it as a pile
   SUBCASE("SmallerPileRender") {
     struct ncplane_options nopts = {
