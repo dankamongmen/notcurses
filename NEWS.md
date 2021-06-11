@@ -24,6 +24,8 @@ rearrangements of Notcurses.
   * Added `ncdirect_light_box()`, `ncdirect_heavy_box()`,
     `nccells_light_box()`, and `nccells_heavy_box()`. Publicized
     `nccells_ascii_box()`. All are `static inline`.
+  * A bug was fixed in `ncplane_move_yx()`: root planes were being moved
+    relatively instead of absolutely. This was never the intended behavior.
 
 * 2.3.2 (2021-06-03)
   * Fixed a bug affecting certain scalings of `ncvisual` objects created from
