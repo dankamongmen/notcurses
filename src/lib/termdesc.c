@@ -237,7 +237,7 @@ query_sixel_details(tinfo* ti, int fd){
 // and geometry. send XTGETTCAP for terminal name.
 static int
 send_initial_queries(int fd){
-  const char queries[] = "\33P+q6b697474792d71756572792d616c6c6f775f68797065726c696e6b73\33\\\x1b[?1;3;256S\x1b[?2;1;0S\x1b[?1;1;0S" ESC_DA;
+  const char queries[] = "\x1b[=0c\x1b[>c\x1bP+q544e\x1b\\\x1b[?1;3;256S\x1b[?2;1;0S\x1b[?1;1;0S" ESC_DA;
   if(blocking_write(fd, queries, strlen(queries))){
     return -1;
   }
