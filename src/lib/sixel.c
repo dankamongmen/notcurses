@@ -809,16 +809,15 @@ int sixel_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
   (void)out;
   int starty = s->movedfromy;
   int startx = s->movedfromx;
-  const ncplane* stdn = notcurses_stdplane_const(nc);
   for(int yy = starty ; yy < starty + s->dimy && yy < p->dimy ; ++yy){
     for(int xx = startx ; xx < startx + s->dimx && xx < p->dimx ; ++xx){
-      int ridx = (yy - stdn->absy) * p->dimx + (xx - stdn->absx);
+      int ridx = (yy - nc->margin_t) * p->dimx + (xx - nc->margin_l);
       struct crender *r = &p->crender[ridx];
       if(!r->sprixel){
         if(s->n){
 //fprintf(stderr, "CHECKING %d/%d\n", yy - s->movedfromy, xx - s->movedfromx);
-          sprixcell_e state = sprixel_state(s, yy - s->movedfromy + s->n->absy - stdn->absy,
-                                            xx - s->movedfromx + s->n->absx - stdn->absx);
+          sprixcell_e state = sprixel_state(s, yy - s->movedfromy + s->n->absy - nc->margin_t,
+                                            xx - s->movedfromx + s->n->absx - nc->margin_l);
           if(state == SPRIXCELL_OPAQUE_SIXEL || state == SPRIXCELL_MIXED_SIXEL){
             r->s.damaged = 1;
           }else if(s->invalidated == SPRIXEL_MOVED){
