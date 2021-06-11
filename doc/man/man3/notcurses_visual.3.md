@@ -181,7 +181,7 @@ section of the image. This might be larger (or smaller) than the visual area.
 ***y*** and ***x*** have different meanings depending on whether or not
 ***n*** is **NULL**. If not (drawing onto a preexisting plane), they specify
 where in the plane to start drawing. If **n** was **NULL** (new plane), they
-specify the origin of the new plane relative to the standard plane. If the
+specify the origin of the new plane relative to the visible area. If the
 ***flags*** field contains **NCVISUAL_OPTION_HORALIGNED**, the ***x*** parameter
 is interpreted as an **ncalign_e** rather than an absolute position. If the
 ***flags*** field contains **NCVISUAL_OPTION_VERALIGNED**, the ***y*** parameter
