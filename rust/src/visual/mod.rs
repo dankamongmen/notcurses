@@ -34,28 +34,30 @@ mod methods;
 
 /// How to scale an [`NcVisual`] during rendering
 ///
-/// - NCSCALE_NONE will apply no scaling.
-/// - NCSCALE_SCALE scales a visual to the plane's size,
+/// - [`NCSCALE_NONE`] will apply no scaling.
+/// - [`NCSCALE_SCALE`] scales a visual to the plane's size,
 ///   maintaining aspect ratio.
-/// - NCSCALE_STRETCH stretches and scales the image in an
+/// - [`NCSCALE_STRETCH`] stretches and scales the image in an
 ///   attempt to fill the entirety of the plane.
+/// - [`NCSCALE_NONE_HIRES`] like `NCSCALE_NONE` admitting high-res blitters.
+/// - [`NCSCALE_SCALE_HIRES`] like `NCSCALE_SCALE` admitting high-res blitters.
 ///
 pub type NcScale = crate::bindings::ffi::ncscale_e;
 
-/// Maintain original size.
+/// Maintains original size.
 pub const NCSCALE_NONE: NcScale = crate::bindings::ffi::ncscale_e_NCSCALE_NONE;
 
-/// Maintain aspect ratio.
+/// Maintains aspect ratio.
 pub const NCSCALE_SCALE: NcScale = crate::bindings::ffi::ncscale_e_NCSCALE_SCALE;
 
-/// Throw away aspect ratio.
+/// Throws away aspect ratio.
 pub const NCSCALE_STRETCH: NcScale = crate::bindings::ffi::ncscale_e_NCSCALE_STRETCH;
 
-/// Maintain original size, admitting high-resolution blitters
+/// Maintains original size, admitting high-resolution blitters
 /// that don't preserve aspect ratio.
 pub const NCSCALE_NONE_HIRES: NcScale = crate::bindings::ffi::ncscale_e_NCSCALE_NONE_HIRES;
 
-/// Maintain aspect ratio, admitting high-resolution blitters
+/// Maintains aspect ratio, admitting high-resolution blitters
 /// that don't preserve aspect ratio.
 pub const NCSCALE_SCALE_HIRES: NcScale = crate::bindings::ffi::ncscale_e_NCSCALE_SCALE_HIRES;
 

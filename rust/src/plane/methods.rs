@@ -979,7 +979,7 @@ impl NcPlane {
         let (y, x) = self.yx();
         error![
             unsafe { crate::ncplane_move_yx(self, y + rows, x + cols) },
-            &format!("NcPlane.move_yx({}, {})", y, x)
+            &format!("NcPlane.move_rel({}, {})", rows, cols)
         ]
     }
 
