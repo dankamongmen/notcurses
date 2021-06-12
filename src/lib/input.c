@@ -616,7 +616,8 @@ void ncinputlayer_stop(ncinputlayer* nilayer){
   input_free_esctrie(&nilayer->inputescapes);
 }
 
-int ncinputlayer_init(ncinputlayer* nilayer, FILE* infp){
+int ncinputlayer_init(tinfo* tcache, FILE* infp){
+  ncinputlayer* nilayer = &tcache->input;
   setbuffer(infp, NULL, 0);
   nilayer->inputescapes = NULL;
   nilayer->infd = fileno(infp);
@@ -628,5 +629,8 @@ int ncinputlayer_init(ncinputlayer* nilayer, FILE* infp){
   nilayer->inputbuf_valid_starts = 0;
   nilayer->inputbuf_write_at = 0;
   nilayer->input_events = 0;
+  if(nilayer->ttyfd >= 0){
+    // FIXME complete terminal detection
+  }
   return 0;
 }

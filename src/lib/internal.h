@@ -1493,7 +1493,12 @@ cellcmp_and_dupfar(egcpool* dampool, nccell* damcell,
   return 1;
 }
 
-int ncinputlayer_init(ncinputlayer* nilayer, FILE* infp);
+// sets up the input layer, building a trie of escape sequences and their
+// nckey equivalents. if we are connected to a tty, this also completes the
+// terminal detection sequence (we ought have already written our initial
+// queries, ideally as early as possible).
+int ncinputlayer_init(tinfo* tcache, FILE* infp);
+
 void ncinputlayer_stop(ncinputlayer* nilayer);
 
 // FIXME absorb into ncinputlayer_init()
