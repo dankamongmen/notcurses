@@ -1966,8 +1966,8 @@ API int ncplane_format(struct ncplane* n, int ystop, int xstop, uint32_t stylema
 API int ncplane_stain(struct ncplane* n, int ystop, int xstop, uint64_t ul,
                       uint64_t ur, uint64_t ll, uint64_t lr);
 
-// If 'src' does not intersect with 'dst', 'dst' will not be changed, but it is
-// not an error. If 'dst' is NULL, the operation will target the standard plane.
+// Merge the entirety of 'src' down onto the ncplane 'dst'. If 'src' does not
+// intersect with 'dst', 'dst' will not be changed, but it is not an error.
 API int ncplane_mergedown_simple(struct ncplane* RESTRICT src,
                                  struct ncplane* RESTRICT dst);
 
