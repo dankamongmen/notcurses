@@ -1,10 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 2.3.4 (not yet released)
-  * Added `ncdirect_ascii_box()`.
-
-* 2.3.3 (2021-06-12)
+* 2.3.4 (2021-06-12)
   * Added the flag `NCVISUAL_OPTION_NOINTERPOLATE` to use non-interpolative
     scaling in `ncvisual_render()`. `ncvisual_render()` without a multimedia
     engine will now use this method for any requested scaling (previously,
@@ -25,8 +22,8 @@ rearrangements of Notcurses.
     the terminal environment in which it runs. More information is available
     from its man page, `notcurses-info(1)`.
   * Added `ncdirect_light_box()`, `ncdirect_heavy_box()`,
-    `nccells_light_box()`, and `nccells_heavy_box()`. Publicized
-    `nccells_ascii_box()`. All are `static inline`.
+    `ncdirect_ascii_box()`, `nccells_light_box()`, and `nccells_heavy_box()`.
+    Publicized `nccells_ascii_box()`. All are `static inline`.
   * A bug was fixed in `ncplane_move_yx()`: root planes were being moved
     relatively instead of absolutely. This was never the intended behavior.
   * It used to be possible to pass `NULL` as the second parameter of
