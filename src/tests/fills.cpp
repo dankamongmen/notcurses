@@ -444,7 +444,7 @@ TEST_CASE("Fills") {
     CHECK(0 == notcurses_render(nc_));
     // make sure nulls do not replace glyphs
     auto p2 = ncplane_create(n_, &nopts);
-    CHECK(0 == ncplane_mergedown_simple(p2, nullptr));
+    CHECK(0 == ncplane_mergedown_simple(p2, n_));
     ncplane_destroy(p2);
     for(int i = 0 ; i < 10 ; ++i){
       CHECK(0 < ncplane_at_yx_cell(n_, 0, i, &cbase));
