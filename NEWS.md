@@ -26,6 +26,10 @@ rearrangements of Notcurses.
     `nccells_ascii_box()`. All are `static inline`.
   * A bug was fixed in `ncplane_move_yx()`: root planes were being moved
     relatively instead of absolutely. This was never the intended behavior.
+  * It used to be possible to pass `NULL` as the second parameter of
+    `ncplane_mergedown_simple()`, and have the standard plane be used as
+    the destination. This is no longer supported, since the source plane
+    could be in another pile. An error will instead be returned.
 
 * 2.3.2 (2021-06-03)
   * Fixed a bug affecting certain scalings of `ncvisual` objects created from

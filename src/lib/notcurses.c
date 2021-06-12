@@ -486,8 +486,7 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
 static ncplane*
 create_initial_ncplane(notcurses* nc, int dimy, int dimx){
   ncplane_options nopts = {
-    .y = nc->margin_t,
-    .x = nc->margin_l,
+    .y = 0, .x = 0,
     .rows = dimy - (nc->margin_t + nc->margin_b),
     .cols = dimx - (nc->margin_l + nc->margin_r),
     .userptr = NULL,
@@ -566,10 +565,8 @@ inline int ncplane_cursor_move_yx(ncplane* n, int y, int x){
 ncplane* ncplane_dup(const ncplane* n, void* opaque){
   int dimy = n->leny;
   int dimx = n->lenx;
-  // if we're duping the standard plane, we need adjust for marginalia
-  const struct notcurses* nc = ncplane_notcurses_const(n);
-  const int placey = n->absy - nc->margin_t;
-  const int placex = n->absx - nc->margin_l;
+  const int placey = n->absy;
+  const int placex = n->absx;
   struct ncplane_options nopts = {
     .y = placey,
     .x = placex,
@@ -2019,14 +2016,14 @@ int ncplane_move_yx(ncplane* n, int y, int x){
 
 int ncplane_y(const ncplane* n){
   if(n->boundto == n){
-    return n->absy - ncplane_notcurses_const(n)->margin_t;
+    return n->absy;
   }
   return n->absy - n->boundto->absy;
 }
 
 int ncplane_x(const ncplane* n){
   if(n->boundto == n){
-    return n->absx - ncplane_notcurses_const(n)->margin_t;
+    return n->absx;
   }
   return n->absx - n->boundto->absx;
 }

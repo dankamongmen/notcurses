@@ -514,9 +514,10 @@ int ncplane_mergedown(ncplane* restrict src, ncplane* restrict dst,
 }
 
 int ncplane_mergedown_simple(ncplane* restrict src, ncplane* restrict dst){
-  const notcurses* nc = ncplane_notcurses_const(src);
+  // have to check dst, since we used to accept a NULL dst to mean the
+  // standard plane (this was unsafe, since src might be in another pile).
   if(dst == NULL){
-    dst = nc->stdplane;
+    return -1;
   }
   int dimy, dimx;
   ncplane_dim_yx(dst, &dimy, &dimx);
@@ -912,11 +913,11 @@ clean_sprixels(notcurses* nc, ncpile* p, FILE* out){
       ncplane_yx(s->n, &y, &x);
       // FIXME clean this up, don't use sprite_draw, etc.
       // without this, kitty flickers
-//fprintf(stderr, "1 MOVING BITMAP %d STATE %d AT %d/%d for %p\n", s->id, s->invalidated, y + nc->stdplane->absy, x + nc->stdplane->absx, s->n);
+//fprintf(stderr, "1 MOVING BITMAP %d STATE %d AT %d/%d for %p\n", s->id, s->invalidated, y + nc->margin_t, x + nc->margin_l, s->n);
       if(s->invalidated == SPRIXEL_MOVED){
         sprite_destroy(nc, p, out, s);
       }
-      if(goto_location(nc, out, y + nc->stdplane->absy, x + nc->stdplane->absx) == 0){
+      if(goto_location(nc, out, y + nc->margin_t, x + nc->margin_l) == 0){
         if(sprite_draw(nc, p, s, out)){
           return -1;
         }
@@ -941,8 +942,8 @@ rasterize_sprixels(notcurses* nc, ncpile* p, FILE* out){
     if(s->invalidated == SPRIXEL_INVALIDATED){
       int y, x;
       ncplane_yx(s->n, &y, &x);
-//fprintf(stderr, "3 DRAWING BITMAP %d STATE %d AT %d/%d for %p\n", s->id, s->invalidated, y + nc->stdplane->absy, x + nc->stdplane->absx, s->n);
-      if(goto_location(nc, out, y + nc->stdplane->absy, x + nc->stdplane->absx) == 0){
+//fprintf(stderr, "3 DRAWING BITMAP %d STATE %d AT %d/%d for %p\n", s->id, s->invalidated, y + nc->margin_t, x + nc->margin_l, s->n);
+      if(goto_location(nc, out, y + nc->margin_t, x + nc->margin_l) == 0){
         if(sprite_draw(nc, p, s, out)){
           return -1;
         }
@@ -970,10 +971,10 @@ rasterize_sprixels(notcurses* nc, ncpile* p, FILE* out){
 static int
 rasterize_core(notcurses* nc, const ncpile* p, FILE* out, unsigned phase){
   struct crender* rvec = p->crender;
-  for(int y = nc->stdplane->absy ; y < p->dimy + nc->stdplane->absy ; ++y){
-    const int innery = y - nc->stdplane->absy;
-    for(int x = nc->stdplane->absx ; x < p->dimx + nc->stdplane->absx ; ++x){
-      const int innerx = x - nc->stdplane->absx;
+  for(int y = nc->margin_t; y < p->dimy + nc->margin_t ; ++y){
+    const int innery = y - nc->margin_t;
+    for(int x = nc->margin_l ; x < p->dimx + nc->margin_l ; ++x){
+      const int innerx = x - nc->margin_l;
       const size_t damageidx = innery * nc->lfdimx + innerx;
       unsigned r, g, b, br, bg, bb;
       const nccell* srccell = &nc->lastframe[damageidx];
@@ -1062,7 +1063,7 @@ rasterize_core(notcurses* nc, const ncpile* p, FILE* out, unsigned phase){
         // this is used to invalidate the sprixel in the first text round,
         // which is only necessary for sixel, not kitty.
         if(rvec[damageidx].sprixel){
-          sprixcell_e scstate = sprixel_state(rvec[damageidx].sprixel, y - nc->stdplane->absy, x - nc->stdplane->absx);
+          sprixcell_e scstate = sprixel_state(rvec[damageidx].sprixel, y - nc->margin_t, x - nc->margin_l);
           if((scstate == SPRIXCELL_MIXED_SIXEL || scstate == SPRIXCELL_OPAQUE_SIXEL)
              && !rvec[damageidx].s.p_beats_sprixel){
 //fprintf(stderr, "INVALIDATING at %d/%d (%u)\n", y, x, rvec[damageidx].s.p_beats_sprixel);
@@ -1094,7 +1095,7 @@ notcurses_rasterize_inner(notcurses* nc, ncpile* p, FILE* out){
   // don't write a clearscreen. we only update things that have been changed.
   // we explicitly move the cursor at the beginning of each output line, so no
   // need to home it expliticly.
-//fprintf(stderr, "pile %p ymax: %d xmax: %d\n", p, p->dimy + nc->stdplane->absy, p->dimx + nc->stdplane->absx);
+//fprintf(stderr, "pile %p ymax: %d xmax: %d\n", p, p->dimy + nc->margin_t, p->dimx + nc->margin_l);
   if(clean_sprixels(nc, p, out) < 0){
     return -1;
   }
@@ -1194,8 +1195,8 @@ int notcurses_refresh(notcurses* nc, int* restrict dimy, int* restrict dimx){
     return -1;
   }
   ncpile p = {};
-  p.dimy = nc->stdplane->leny;
-  p.dimx = nc->stdplane->lenx;
+  p.dimy = nc->margin_t;
+  p.dimx = nc->margin_l;
   const int count = (nc->lfdimx > p.dimx ? nc->lfdimx : p.dimx) *
                     (nc->lfdimy > p.dimy ? nc->lfdimy : p.dimy);
   p.crender = malloc(count * sizeof(*p.crender));
@@ -1226,8 +1227,8 @@ int notcurses_render_to_file(notcurses* nc, FILE* fp){
     return -1;
   }
   ncpile p;
-  p.dimy = nc->stdplane->leny;
-  p.dimx = nc->stdplane->lenx;
+  p.dimy = nc->margin_t;
+  p.dimx = nc->margin_l;
   const int count = (nc->lfdimx > p.dimx ? nc->lfdimx : p.dimx) *
                     (nc->lfdimy > p.dimy ? nc->lfdimy : p.dimy);
   p.crender = malloc(count * sizeof(*p.crender));
@@ -1261,13 +1262,13 @@ int notcurses_render_to_file(notcurses* nc, FILE* fp){
 // down the z-buffer, looking at intersections with ncplanes. This implies
 // locking down the EGC, the attributes, and the channels for each cell.
 static void
-ncpile_render_internal(ncplane* n, struct crender* rvec, int leny, int lenx,
-                       int absy, int absx){
+ncpile_render_internal(ncplane* n, struct crender* rvec, int leny, int lenx){
+//fprintf(stderr, "rendering %dx%d\n", leny, lenx);
   ncpile* np = ncplane_pile(n);
   ncplane* p = np->top;
   sprixel* sprixel_list = NULL;
   while(p){
-    paint(p, rvec, leny, lenx, absy, absx, &sprixel_list);
+    paint(p, rvec, leny, lenx, 0, 0, &sprixel_list);
     p = p->below;
   }
   if(sprixel_list){
@@ -1338,10 +1339,7 @@ int ncpile_render(ncplane* n){
   if(engorge_crender_vector(pile)){
     return -1;
   }
-  // FIXME notcurses_stdplane() doesn't belong here #1615
-  ncpile_render_internal(n, pile->crender, pile->dimy, pile->dimx,
-                         notcurses_stdplane(nc)->absy,
-                         notcurses_stdplane(nc)->absx);
+  ncpile_render_internal(n, pile->crender, pile->dimy, pile->dimx);
   clock_gettime(CLOCK_MONOTONIC, &renderdone);
   pthread_mutex_lock(&nc->statlock);
   update_render_stats(&renderdone, &start, &nc->stats);
@@ -1458,7 +1456,7 @@ int notcurses_cursor_enable(notcurses* nc, int y, int x){
     logerror(nc, "Illegal cursor placement: %d, %d\n", y, x);
     return -1;
   }
-  if(y >= nc->stdplane->leny || x >= nc->stdplane->lenx){
+  if(y >= nc->margin_t || x >= nc->margin_l){
     logerror(nc, "Illegal cursor placement: %d, %d\n", y, x);
     return -1;
   }
@@ -1472,7 +1470,7 @@ int notcurses_cursor_enable(notcurses* nc, int y, int x){
     return -1;
   }
   // updates nc->rstate.cursor{y,x}
-  if(goto_location(nc, nc->ttyfp, y + nc->stdplane->absy, x + nc->stdplane->absx)){
+  if(goto_location(nc, nc->ttyfp, y + nc->margin_t, x + nc->margin_l)){
     return -1;
   }
   // if we were already positive, we're already visible, no need to write cnorm
