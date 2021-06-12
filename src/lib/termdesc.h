@@ -59,7 +59,16 @@ typedef enum {
   ESCAPE_MAX
 } escape_e;
 
+// we read input from one or two places. if stdin is connected to our
+// controlling tty, we read only from that file descriptor. if it is
+// connected to something else, and we have a controlling tty, we will
+// read data only from stdin and control only from the tty. if we have
+// no connected tty, only data is available.
 typedef struct ncinputlayer {
+  // ttyfd is only valid if we are connected to a tty, *and* stdin is not
+  // connected to that tty. in that case, we read control sequences only
+  // from ttyfd.
+  int ttyfd; // file descriptor for connected tty
   int infd;  // file descriptor for processing input, from stdin
   unsigned char inputbuf[BUFSIZ];
   // we keep a wee ringbuffer of input queued up for delivery. if

@@ -832,7 +832,6 @@ int ncdirect_stop(ncdirect* nc){
   int ret = 0;
   if(nc){
     ret |= ncdirect_stop_minimal(nc);
-    input_free_esctrie(&nc->tcache.input.inputescapes);
     free(nc);
   }
   return ret;
