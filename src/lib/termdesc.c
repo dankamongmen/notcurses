@@ -421,7 +421,7 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
       goto err;
     }
   }
-  if(ncinputlayer_init(&ti->input, stdin)){
+  if(ncinputlayer_init(ti, stdin)){
     return -1;
   }
   if(apply_term_heuristics(ti, termname, fd)){
