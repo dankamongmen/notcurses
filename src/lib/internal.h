@@ -34,7 +34,6 @@ extern "C" {
 #define API __attribute__((visibility("default")))
 #define ALLOC __attribute__((malloc)) __attribute__((warn_unused_result))
 
-struct esctrie;
 struct sixelmap;
 struct ncvisual_details;
 
@@ -630,12 +629,6 @@ static inline const ncplane*
 ncplane_stdplane_const(const ncplane* n){
   return notcurses_stdplane_const(ncplane_notcurses_const(n));
 }
-
-// load all known special keys from terminfo, and build the input sequence trie
-int prep_special_keys(ncinputlayer* nc);
-
-// free up the input escapes trie
-void input_free_esctrie(struct esctrie** trie);
 
 // initialize libav
 int ncvisual_init(int loglevel);
@@ -1501,6 +1494,7 @@ cellcmp_and_dupfar(egcpool* dampool, nccell* damcell,
 }
 
 int ncinputlayer_init(ncinputlayer* nilayer, FILE* infp);
+void ncinputlayer_stop(ncinputlayer* nilayer);
 
 // FIXME absorb into ncinputlayer_init()
 int cbreak_mode(int ttyfd, const struct termios* tpreserved);

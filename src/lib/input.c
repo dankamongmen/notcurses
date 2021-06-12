@@ -115,7 +115,8 @@ create_esctrie_node(int special){
   return e;
 }
 
-void input_free_esctrie(esctrie** eptr){
+static void
+input_free_esctrie(esctrie** eptr){
   esctrie* e;
   if( (e = *eptr) ){
     if(e->trie){
@@ -490,7 +491,9 @@ char32_t ncdirect_getc(ncdirect* nc, const struct timespec *ts,
   return r;
 }
 
-int prep_special_keys(ncinputlayer* nc){
+// load all known special keys from terminfo, and build the input sequence trie
+static int
+prep_special_keys(ncinputlayer* nc){
   static const struct {
     const char* tinfo;
     char32_t key;
@@ -603,5 +606,27 @@ int prep_special_keys(ncinputlayer* nc){
     fprintf(stderr, "Couldn't add support for %s\n", k->tinfo);
     return -1;
   }
+  return 0;
+}
+
+void ncinputlayer_stop(ncinputlayer* nilayer){
+  if(nilayer->ttyfd >= 0){
+    close(nilayer->ttyfd);
+  }
+  input_free_esctrie(&nilayer->inputescapes);
+}
+
+int ncinputlayer_init(ncinputlayer* nilayer, FILE* infp){
+  setbuffer(infp, NULL, 0);
+  nilayer->inputescapes = NULL;
+  nilayer->infd = fileno(infp);
+  nilayer->ttyfd = isatty(nilayer->infd) ? -1 : get_tty_fd(NULL, infp);
+  if(prep_special_keys(nilayer)){
+    return -1;
+  }
+  nilayer->inputbuf_occupied = 0;
+  nilayer->inputbuf_valid_starts = 0;
+  nilayer->inputbuf_write_at = 0;
+  nilayer->input_events = 0;
   return 0;
 }

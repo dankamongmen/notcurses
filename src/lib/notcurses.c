@@ -943,20 +943,6 @@ void init_lang(struct notcurses* nc){
   }
 }
 
-int ncinputlayer_init(ncinputlayer* nilayer, FILE* infp){
-  setbuffer(infp, NULL, 0);
-  nilayer->inputescapes = NULL;
-  nilayer->infd = fileno(infp);
-  if(prep_special_keys(nilayer)){
-    return -1;
-  }
-  nilayer->inputbuf_occupied = 0;
-  nilayer->inputbuf_valid_starts = 0;
-  nilayer->inputbuf_write_at = 0;
-  nilayer->input_events = 0;
-  return 0;
-}
-
 // initialize a recursive mutex lock in a way that works on both glibc + musl
 static int
 recursive_lock_init(pthread_mutex_t *lock){
@@ -1226,7 +1212,6 @@ int notcurses_stop(notcurses* nc){
     egcpool_dump(&nc->pool);
     free(nc->lastframe);
     free(nc->rstate.mstream);
-    input_free_esctrie(&nc->tcache.input.inputescapes);
     // get any current stats loaded into stash_stats
     notcurses_stats_reset(nc, NULL);
     if(!nc->suppress_banner){

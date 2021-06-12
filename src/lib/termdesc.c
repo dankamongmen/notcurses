@@ -156,6 +156,7 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd){
 
 void free_terminfo_cache(tinfo* ti){
   free(ti->esctable);
+  ncinputlayer_stop(&ti->input);
 }
 
 // tlen -- size of escape table. tused -- used bytes in same.
