@@ -10,11 +10,13 @@ extern "C" {
 #define NCBOXHEAVY  "┏┓┗┛━┃"
 #define NCBOXROUND  "╭╮╰╯─│"
 #define NCBOXDOUBLE "╔╗╚╝═║"
+#define NCBOXASCII  "/\\\\/-|"
 // argh
 #define NCBOXLIGHTW  L"┌┐└┘─│"
 #define NCBOXHEAVYW  L"┏┓┗┛━┃"
 #define NCBOXROUNDW  L"╭╮╰╯─│"
 #define NCBOXDOUBLEW L"╔╗╚╝═║"
+#define NCBOXASCIIW  L"/\\\\/-|"
 
 #ifdef __cplusplus
 } // extern "C"

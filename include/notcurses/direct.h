@@ -288,6 +288,13 @@ ncdirect_heavy_box(struct ncdirect* n, uint64_t ul, uint64_t ur,
   return ncdirect_box(n, ul, ur, ll, lr, NCBOXHEAVYW, ylen, xlen, ctlword);
 }
 
+__attribute__ ((nonnull (1))) static inline int
+ncdirect_ascii_box(struct ncdirect* n, uint64_t ul, uint64_t ur,
+                   uint64_t ll, uint64_t lr,
+                   int ylen, int xlen, unsigned ctlword){
+  return ncdirect_box(n, ul, ur, ll, lr, NCBOXASCIIW, ylen, xlen, ctlword);
+}
+
 // ncdirect_box() with the rounded box-drawing characters
 API int ncdirect_rounded_box(struct ncdirect* n, uint64_t ul, uint64_t ur,
                              uint64_t ll, uint64_t lr,

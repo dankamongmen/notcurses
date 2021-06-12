@@ -1,6 +1,9 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 2.3.4 (not yet released)
+  * Added `ncdirect_ascii_box()`.
+
 * 2.3.3 (2021-06-12)
   * Added the flag `NCVISUAL_OPTION_NOINTERPOLATE` to use non-interpolative
     scaling in `ncvisual_render()`. `ncvisual_render()` without a multimedia

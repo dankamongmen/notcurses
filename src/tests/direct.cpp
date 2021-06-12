@@ -58,7 +58,7 @@ TEST_CASE("Direct") {
     ncchannels_set_bg_default(&chans);
     ncdirect_set_bg_rgb8(nc_, 0x88, 0x88, 0x88);
     printf("test background\n");
-    CHECK(0 == ncdirect_rounded_box(nc_, chans, chans, chans, chans, 8, 8, 0));
+    CHECK(0 == ncdirect_ascii_box(nc_, chans, chans, chans, chans, 8, 8, 0));
   }
 
 #ifndef NOTCURSES_USE_MULTIMEDIA
