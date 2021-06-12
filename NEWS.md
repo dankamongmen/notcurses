@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 2.3.3 (not yet released)
+* 2.3.3 (2021-06-12)
   * Added the flag `NCVISUAL_OPTION_NOINTERPOLATE` to use non-interpolative
     scaling in `ncvisual_render()`. `ncvisual_render()` without a multimedia
     engine will now use this method for any requested scaling (previously,
