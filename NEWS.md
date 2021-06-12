@@ -30,6 +30,8 @@ rearrangements of Notcurses.
     `ncplane_mergedown_simple()`, and have the standard plane be used as
     the destination. This is no longer supported, since the source plane
     could be in another pile. An error will instead be returned.
+  * Fixed a bug in `ncdirect_box()` where default/palette-indexed colors
+    weren't properly used on the top and bottom borders.
 
 * 2.3.2 (2021-06-03)
   * Fixed a bug affecting certain scalings of `ncvisual` objects created from
