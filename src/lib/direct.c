@@ -10,7 +10,9 @@
 #include "notcurses/direct.h"
 #include "internal.h"
 
-int ncdirect_putstr(ncdirect* nc, uint64_t channels, const char* utf8){
+// conform to the foreground and background channels of 'channels'
+static int
+activate_channels(ncdirect* nc, uint64_t channels){
   if(ncchannels_fg_default_p(channels)){
     if(ncdirect_set_fg_default(nc)){
       return -1;
@@ -31,6 +33,13 @@ int ncdirect_putstr(ncdirect* nc, uint64_t channels, const char* utf8){
       return -1;
     }
   }else if(ncdirect_set_bg_rgb(nc, ncchannels_bg_rgb(channels))){
+    return -1;
+  }
+  return 0;
+}
+
+int ncdirect_putstr(ncdirect* nc, uint64_t channels, const char* utf8){
+  if(activate_channels(nc, channels)){
     return -1;
   }
   return fprintf(nc->ttyfp, "%s", utf8);
@@ -1129,8 +1138,9 @@ int ncdirect_box(ncdirect* n, uint64_t ul, uint64_t ur,
   unsigned edges;
   edges = !(ctlword & NCBOXMASK_TOP) + !(ctlword & NCBOXMASK_LEFT);
   if(edges >= box_corner_needs(ctlword)){
-    ncdirect_set_fg_rgb(n, ncchannels_fg_rgb(ul));
-    ncdirect_set_bg_rgb(n, ncchannels_bg_rgb(ul));
+    if(activate_channels(n, ul)){
+      return -1;
+    }
     if(fprintf(n->ttyfp, "%lc", wchars[0]) < 0){
       return -1;
     }
@@ -1159,8 +1169,9 @@ int ncdirect_box(ncdirect* n, uint64_t ul, uint64_t ur,
   }
   edges = !(ctlword & NCBOXMASK_TOP) + !(ctlword & NCBOXMASK_RIGHT);
   if(edges >= box_corner_needs(ctlword)){
-    ncdirect_set_fg_rgb(n, ncchannels_fg_rgb(ur));
-    ncdirect_set_bg_rgb(n, ncchannels_bg_rgb(ur));
+    if(activate_channels(n, ur)){
+      return -1;
+    }
     if(fprintf(n->ttyfp, "%lc", wchars[1]) < 0){
       return -1;
     }
@@ -1193,8 +1204,9 @@ int ncdirect_box(ncdirect* n, uint64_t ul, uint64_t ur,
   // bottom line
   edges = !(ctlword & NCBOXMASK_BOTTOM) + !(ctlword & NCBOXMASK_LEFT);
   if(edges >= box_corner_needs(ctlword)){
-    ncdirect_set_fg_rgb(n, ncchannels_fg_rgb(ll));
-    ncdirect_set_bg_rgb(n, ncchannels_bg_rgb(ll));
+    if(activate_channels(n, ll)){
+      return -1;
+    }
     if(fprintf(n->ttyfp, "%lc", wchars[2]) < 0){
       return -1;
     }
@@ -1212,8 +1224,9 @@ int ncdirect_box(ncdirect* n, uint64_t ul, uint64_t ur,
   }
   edges = !(ctlword & NCBOXMASK_BOTTOM) + !(ctlword & NCBOXMASK_RIGHT);
   if(edges >= box_corner_needs(ctlword)){
-    ncdirect_set_fg_rgb(n, ncchannels_fg_rgb(lr));
-    ncdirect_set_bg_rgb(n, ncchannels_bg_rgb(lr));
+    if(activate_channels(n, lr)){
+      return -1;
+    }
     if(fprintf(n->ttyfp, "%lc", wchars[3]) < 0){
       return -1;
     }
