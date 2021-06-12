@@ -946,7 +946,7 @@ void init_lang(struct notcurses* nc){
 int ncinputlayer_init(ncinputlayer* nilayer, FILE* infp){
   setbuffer(infp, NULL, 0);
   nilayer->inputescapes = NULL;
-  nilayer->ttyinfd = fileno(infp);
+  nilayer->infd = fileno(infp);
   if(prep_special_keys(nilayer)){
     return -1;
   }
@@ -991,8 +991,7 @@ int notcurses_check_pixel_support(notcurses* nc){
 
 // FIXME cut this up into a few distinct pieces, yearrrgh
 notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
-  notcurses_options defaultopts;
-  memset(&defaultopts, 0, sizeof(defaultopts));
+  notcurses_options defaultopts = { };
   if(!opts){
     opts = &defaultopts;
   }
@@ -1089,7 +1088,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     goto err;
   }
   ret->suppress_banner = opts->flags & NCOPTION_SUPPRESS_BANNERS;
-  if(set_fd_nonblocking(ret->tcache.input.ttyinfd, 1, &ret->stdio_blocking_save)){
+  if(set_fd_nonblocking(ret->tcache.input.infd, 1, &ret->stdio_blocking_save)){
     goto err;
   }
   if(ncvisual_init(ret->loglevel)){
@@ -1203,7 +1202,7 @@ int notcurses_stop(notcurses* nc){
   int ret = 0;
   if(nc){
     ret |= notcurses_stop_minimal(nc);
-    ret |= set_fd_nonblocking(nc->tcache.input.ttyinfd, nc->stdio_blocking_save, NULL);
+    ret |= set_fd_nonblocking(nc->tcache.input.infd, nc->stdio_blocking_save, NULL);
     if(nc->stdplane){
       notcurses_drop_planes(nc);
       free_plane(nc->stdplane);
@@ -2612,11 +2611,11 @@ int notcurses_lex_margins(const char* op, notcurses_options* opts){
 }
 
 int notcurses_inputready_fd(notcurses* n){
-  return n->tcache.input.ttyinfd;
+  return n->tcache.input.infd;
 }
 
 int ncdirect_inputready_fd(ncdirect* n){
-  return n->tcache.input.ttyinfd;
+  return n->tcache.input.infd;
 }
 
 // FIXME speed this up, PoC

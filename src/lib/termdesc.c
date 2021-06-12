@@ -255,20 +255,17 @@ send_initial_queries(int fd){
 int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
                          unsigned noaltscreen, unsigned nocbreak){
   memset(ti, 0, sizeof(*ti));
-  ti->utf8 = utf8;
   if(fd >= 0){
-    if(tcgetattr(fd, &ti->tpreserved)){
-      fprintf(stderr, "Couldn't preserve terminal state for %d (%s)\n", fd, strerror(errno));
-      return -1;
-    }
     if(send_initial_queries(fd)){
       fprintf(stderr, "Error issuing terminal queries on %d\n", fd);
       return -1;
     }
+    if(tcgetattr(fd, &ti->tpreserved)){
+      fprintf(stderr, "Couldn't preserve terminal state for %d (%s)\n", fd, strerror(errno));
+      return -1;
+    }
   }
-  if(ncinputlayer_init(&ti->input, stdin)){
-    return -1;
-  }
+  ti->utf8 = utf8;
   if(!nocbreak){
     if(cbreak_mode(fd, &ti->tpreserved)){
       return -1;
@@ -422,6 +419,9 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
        grow_esc_table(ti, "\x1b[49m", ESCAPE_BGOP, &tablelen, &tableused)){
       goto err;
     }
+  }
+  if(ncinputlayer_init(&ti->input, stdin)){
+    return -1;
   }
   if(apply_term_heuristics(ti, termname, fd)){
     goto err;
