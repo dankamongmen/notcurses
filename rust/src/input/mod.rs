@@ -1,12 +1,13 @@
 //! `NcInput` & `NcKey`
 
-// functions manually reimplemented: 1
+// functions manually reimplemented: 4
 // ------------------------------------------
 // (+) done: 3 / 0
 // (#) test: 0 / 3
 // ------------------------------------------
 // + ncinput_equal_p
 // + nckey_mouse_p
+// + nckey_nomod_p
 // + nckey_supppuab_p
 
 use crate::NcDim;
@@ -34,21 +35,6 @@ pub use keycodes::*;
 /// For mouse events, the x and y coordinates are reported within this struct.
 /// For all events, modifiers (e.g. "Alt") are carried as bools in this struct.
 pub type NcInput = crate::bindings::ffi::ncinput;
-
-/// Compares two ncinput structs for data equality by doing a field-by-field
-/// comparison for equality (excepting seqnum).
-///
-/// Returns true if the two are data-equivalent.
-pub const fn ncinput_equal_p(n1: NcInput, n2: NcInput) -> bool {
-    if n1.id != n2.id {
-        return false;
-    }
-    if n1.y != n2.y || n1.x != n2.x {
-        return false;
-    }
-    // do not check seqnum
-    true
-}
 
 /// New NcInput.
 impl NcInput {
@@ -119,6 +105,21 @@ impl NcInput {
     }
 }
 
+/// Compares two ncinput structs for data equality by doing a field-by-field
+/// comparison for equality (excepting seqnum).
+///
+/// Returns true if the two are data-equivalent.
+pub const fn ncinput_equal_p(n1: NcInput, n2: NcInput) -> bool {
+    if n1.id != n2.id {
+        return false;
+    }
+    if n1.y != n2.y || n1.x != n2.x {
+        return false;
+    }
+    // do not check seqnum
+    true
+}
+
 /// Is this [char] a Supplementary Private Use Area-B codepoint?
 ///
 /// Links:
@@ -133,4 +134,9 @@ pub const fn nckey_supppuab_p(w: char) -> bool {
 #[inline]
 pub const fn nckey_mouse_p(r: char) -> bool {
     r >= NCKEY_BUTTON1 && r <= NCKEY_RELEASE
+}
+
+/// Are all the modifiers off (alt, control, shift)?
+pub const fn ncinput_nomod_p(input: &NcInput) -> bool {
+    !input.alt && !input.ctrl && !input.shift
 }

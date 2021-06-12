@@ -13,15 +13,17 @@
 //W  ncpalette_new
 //W  ncpalette_use
 //
-// functions manually reimplemented: 3
+// functions manually reimplemented: 5
 // -----------------------------------------
 // (+) done: 3 / 0
 // (#) test: 0
 // (W) wrap: 3 / 0
 // -----------------------------------------
 //W+ ncpalette_get_rgb
+//   ncpalette_get_rgb8
 //W+ ncpalette_set
 //W+ ncpalette_set_rgb
+//   ncpalette_set_rgb8
 
 mod methods;
 mod reimplemented;

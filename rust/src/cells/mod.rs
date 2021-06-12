@@ -1,12 +1,13 @@
 //! `NcCell`
 
-// functions already exported by bindgen : 6
+// functions already exported by bindgen : 7
 // -----------------------------------------
 // (W) wrap: 4
 // (#) test: 0
 // ------------------------------------------
 //…  nccell_extended_gcluster
 //…  nccell_load
+//   nccell_width
 //W  nccells_double_box
 //W  nccells_rounded_box
 //W  nccell_duplicate

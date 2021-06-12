@@ -1,4 +1,4 @@
-// functions already exported by bindgen : 22
+// functions already exported by bindgen : 24
 // -----------------------------------------
 // (W) wrap: 20
 // (#) test: 0
@@ -10,6 +10,7 @@
 //W  ncvisual_at_yx
 //W  ncvisual_decode
 //W  ncvisual_decode_loop
+//   ncvisual_default_blitter
 //W  ncvisual_destroy
 //W  ncvisual_from_bgra
 //W  ncvisual_from_file
@@ -19,6 +20,7 @@
 //W  ncvisual_blitter_geom
 //W  ncvisual_media_defblitter
 //W  ncvisual_polyfill_yx
+//   ncvisual_plane_create
 //W  ncvisual_render
 //W  ncvisual_resize
 //W  ncvisual_rotate
@@ -32,7 +34,7 @@ use crate::{NcChannel, NcDim, NcRgb};
 
 mod methods;
 
-/// How to scale an [`NcVisual`] during rendering
+/// How to scale an [`NcVisual`] during rendering.
 ///
 /// - [`NCSCALE_NONE`] will apply no scaling.
 /// - [`NCSCALE_SCALE`] scales a visual to the plane's size,
@@ -155,7 +157,7 @@ pub const NCVISUAL_OPTION_HORALIGNED: u32 = crate::bindings::ffi::NCVISUAL_OPTIO
 /// Uses non-interpolative scaling.
 pub const NCVISUAL_OPTION_NOINTERPOLATE: u32 = crate::bindings::ffi::NCVISUAL_OPTION_NOINTERPOLATE;
 
-/// Blitter Mode (`NCBLIT_*`)
+/// The blitter mode to use for rasterizing an [`NcVisual`].
 ///
 /// We never blit full blocks, but instead spaces (more efficient) with the
 /// background set to the desired foreground.

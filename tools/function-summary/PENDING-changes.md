@@ -5,24 +5,17 @@ PENDING changes
 
 ## from changes-20210406-20210410.txt
 bindgen add:
-- [ ] ncdirect_stream
+- [x] ncdirect_stream
 
 ## from changes-20120518-20210603.txt …
 
-- ncdirect_styles
-- ncdirect_supported_styles
+- [x] ncdirect_styles
+- [x] ncdirect_supported_styles
 
-- ncplane_erase_region
-- ncplane_align
+- [x] ncplane_erase_region
 
-- ncvisual_default_blitter
-- ncvisualplane_create
+- [x] nccell_width
 
-- nccell_width
+- [x] notcurses_cursor_yx
 
-- ncpalette_get_rgb8
-- ncpalette_set_rgb8
-
-- notcurses_cursor_yx
-
-- ncinput_nomod_p
+- [x] ncinput_nomod_p

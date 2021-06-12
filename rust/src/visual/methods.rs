@@ -516,9 +516,7 @@ impl NcDirectF {
         options: &NcVisualOptions,
     ) -> NcResult<&mut NcDirectV> {
         error_ref_mut![
-            unsafe {
-                crate::ncdirectf_render(ncd, self, options)
-            },
+            unsafe { crate::ncdirectf_render(ncd, self, options) },
             "NcVisual.render()"
         ]
     }
@@ -532,14 +530,7 @@ impl NcDirectF {
     ) -> NcResult<NcVGeom> {
         let mut geom = NcVGeom::new();
 
-        let res = unsafe {
-            crate::ncdirectf_geom(
-                ncd,
-                self,
-                options,
-                &mut geom,
-            )
-        };
+        let res = unsafe { crate::ncdirectf_geom(ncd, self, options, &mut geom) };
         error![res, "NcDirectF.ncdirectf_geom()", geom];
     }
 }

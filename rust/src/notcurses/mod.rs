@@ -1,10 +1,10 @@
 //! `Notcurses`
 
-// total: 51
+// total: 52
 // ---------------------------------------------------
 // (X)  1 : wont do
 //
-// (f) 44 : unsafe ffi function exported by bindgen
+// (f) 45 : unsafe ffi function exported by bindgen
 // (w)  0 : safely wrapped ffi function
 // (r)  6 : static function manually reimplemented
 //
@@ -28,6 +28,7 @@
 //~f   notcurses_core_init
 // fm  notcurses_cursor_disable
 // fm  notcurses_cursor_enable
+// f   notcurses_cursor_yx
 // fmt notcurses_debug
 // fm  notcurses_debug_caps
 // fmt notcurses_drop_planes

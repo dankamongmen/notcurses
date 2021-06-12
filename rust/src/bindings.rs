@@ -60,6 +60,7 @@ pub use ffi::{
     nccell_extended_gcluster,
     nccell_load,
     nccell_release,
+    nccell_width,
     nccells_double_box,
     nccells_rounded_box,
 };
@@ -182,6 +183,9 @@ pub use ffi::{
     ncdirect_set_fg_rgb,
     ncdirect_set_styles,
     ncdirect_stop,
+    ncdirect_stream,
+    ncdirect_styles,
+    ncdirect_supported_styles,
     ncdirect_vline_interp,
 };
 
@@ -382,6 +386,7 @@ pub use ffi::{
     ncplane_dim_yx,
     ncplane_dup,
     ncplane_erase,
+    ncplane_erase_region,
     ncplane_fadein,
     ncplane_fadein_iteration,
     ncplane_fadeout,
@@ -760,6 +765,7 @@ pub use ffi::{
     notcurses_core_init,
     notcurses_cursor_disable,
     notcurses_cursor_enable,
+    notcurses_cursor_yx,
     notcurses_debug,
     notcurses_debug_caps,
     notcurses_drop_planes,

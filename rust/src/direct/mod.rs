@@ -1,10 +1,10 @@
 //! `NcDirect`
 
-// total: 47
+// total: 50
 // ---------------------------------------------------
 // (X)  1 : wont do
 //
-// (f) 42 : unsafe ffi function exported by bindgen
+// (f) 45 : unsafe ffi function exported by bindgen
 // (w)  0 : safely wrapped ffi function
 // (r)  4 : static function manually reimplemented
 //
@@ -56,6 +56,9 @@
 // fm  ncdirect_rounded_box
 // fm  ncplane_set_styles
 // fm  ncdirect_stop
+// f   ncdirect_stream
+// f   ncdirect_styles
+// f   ncdirect_supported_styles
 // fm  ncdirect_vline_interp
 // rm  ncdirect_bg_rgb8
 // rm  ncdirect_fg_rgb8

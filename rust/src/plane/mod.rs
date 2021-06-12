@@ -1,6 +1,6 @@
 //! `NcPlane`
 
-// functions already exported by bindgen : 113
+// functions already exported by bindgen : 116
 // -------------------------------------------
 // (X) wont: 10
 // (D) depr:  4
@@ -33,6 +33,7 @@
 //W# ncplane_dim_yx
 //W  ncplane_dup
 //W# ncplane_erase
+//   ncplane_erase_region
 //W  ncplane_fadein
 //W  ncplane_fadein_iteration
 //W  ncplane_fadeout
@@ -40,6 +41,7 @@
 //W  ncplane_format
 //W  ncplane_gradient
 //W  ncplane_greyscale
+//   ncplane_halign
 //W  ncplane_highgradient
 //W  ncplane_highgradient_sized
 //   ncplane_hline_interp
@@ -113,6 +115,7 @@
 //W  ncplane_translate
 //W  ncplane_translate_abs
 //   ncplane_userptr
+//   ncplane_valign
 //   ncplane_vline_interp
 // X ncplane_vprintf_aligned
 // X ncplane_vprintf_stained
