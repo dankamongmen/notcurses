@@ -72,6 +72,8 @@ notcurses_direct - minimal notcurses instances for styling text
 
 **int ncdirect_printf_aligned(struct ncdirect* ***n***, int ***y***, ncalign_e ***align***, const char* ***fmt***, ***...***);**
 
+**const char* ncdirect_detected_terminal(const struct ncdirect* ***n***);**
+
 **bool ncdirect_canopen_images(const struct ncdirect* ***n***);**
 
 **bool ncdirect_canutf8(const struct ncdirect* ***n***);**

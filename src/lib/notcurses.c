@@ -858,12 +858,12 @@ init_banner_warnings(const notcurses* nc, FILE* out){
 // unless the suppress_banner flag was set, print some version information and
 // (if applicable) warnings to stdout. we are not yet on the alternate screen.
 static void
-init_banner(const notcurses* nc, const char* shortname_term){
+init_banner(const notcurses* nc){
   if(!nc->suppress_banner){
     char prefixbuf[BPREFIXSTRLEN + 1];
     term_fg_palindex(nc, stdout, 50 % nc->tcache.colors);
     printf("\n notcurses %s by nick black et al", notcurses_version());
-    printf(" on %s", shortname_term ? shortname_term : "?");
+    printf(" on %s", nc->tcache.termname ? nc->tcache.termname : "?");
     term_fg_palindex(nc, stdout, 12 % nc->tcache.colors);
     if(nc->tcache.cellpixy && nc->tcache.cellpixx){
       printf("\n  %d rows (%dpx) %d cols (%dpx) (%sB) %zuB crend %d colors",
@@ -1127,7 +1127,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     goto err;
   }
   ret->rstate.x = ret->rstate.y = -1;
-  init_banner(ret, shortname_term);
+  init_banner(ret);
   // flush on the switch to alternate screen, lest initial output be swept away
   const char* clearscr = get_escape(&ret->tcache, ESCAPE_CLEAR);
   if(ret->ttyfd >= 0){
@@ -1650,6 +1650,10 @@ unsigned notcurses_supported_styles(const notcurses* nc){
 
 unsigned notcurses_palette_size(const notcurses* nc){
   return nc->tcache.colors;
+}
+
+const char* notcurses_detected_terminal(const notcurses* nc){
+  return nc->tcache.termname;
 }
 
 bool notcurses_cantruecolor(const notcurses* nc){

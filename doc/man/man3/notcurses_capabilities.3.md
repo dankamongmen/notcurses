@@ -10,6 +10,8 @@ notcurses_capabilities - runtime capability detection
 
 **#include <notcurses/notcurses.h>**
 
+**const char* notcurses_detected_terminal(const struct notcurses* ***nc***);**
+
 **unsigned notcurses_supported_styles(const struct notcurses* ***nc***);**
 
 **unsigned notcurses_palette_size(const struct notcurses* ***nc***);**
@@ -37,6 +39,16 @@ notcurses_capabilities - runtime capability detection
 **int notcurses_check_pixel_support(struct notcurses* ***nc***);**
 
 # DESCRIPTION
+
+**notcurses_detected_terminal** returns a free-form string describing
+the detected terminal. Terminal detection takes into account any
+specified terminal database (see **notcurses_init(3)**), the **TERM**,
+**TERM_PROGRAM**, and **TERM_PROGRAM_VERSION** environment variables,
+the response to a **XTGETTCAP[TN]** Device Control String, the response
+to Primary, Secondary, and Tertiary Send Device Attributes control
+sequences, and the phase of the moon. You should not build logic around
+this response; all relevant properties of the terminal ought be
+abstracted by Notcurses. This is only made available for diagnostics.
 
 **notcurses_supported_styles** returns a bitmask representing those styles
 for which the terminal advertises support.

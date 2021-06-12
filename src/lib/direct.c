@@ -1368,3 +1368,7 @@ int ncdirectf_geom(ncdirect* n, ncdirectf* frame,
 unsigned ncdirect_supported_styles(const ncdirect* nc){
   return term_supported_styles(&nc->tcache);
 }
+
+const char* ncdirect_detected_terminal(const ncdirect* nc){
+  return nc->tcache.termname;
+}

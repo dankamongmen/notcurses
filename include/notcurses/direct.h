@@ -235,6 +235,9 @@ API int ncdirect_cursor_pop(struct ncdirect* n)
 API int ncdirect_clear(struct ncdirect* nc)
   __attribute__ ((nonnull (1)));
 
+API const char* ncdirect_detected_terminal(const struct ncdirect* n)
+  __attribute__ ((nonnull (1)));
+
 // Can we load images? This requires being built against FFmpeg/OIIO.
 API bool ncdirect_canopen_images(const struct ncdirect* n)
   __attribute__ ((nonnull (1)));

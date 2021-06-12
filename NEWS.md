@@ -32,6 +32,7 @@ rearrangements of Notcurses.
     could be in another pile. An error will instead be returned.
   * Fixed a bug in `ncdirect_box()` where default/palette-indexed colors
     weren't properly used on the top and bottom borders.
+  * Added `notcurses_detected_terminal()` and `ncdirect_detected_terminal()`.
 
 * 2.3.2 (2021-06-03)
   * Fixed a bug affecting certain scalings of `ncvisual` objects created from

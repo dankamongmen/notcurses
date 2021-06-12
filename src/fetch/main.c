@@ -32,8 +32,8 @@ typedef struct fetched_info {
   char* kernel;                // strdup(uname(2)->name)
   char* kernver;               // strdup(uname(2)->version);
   char* desktop;               // getenv("XDG_CURRENT_DESKTOP")
-  char* shell;                 // getenv("SHELL")
-  char* term;                  // getenv("TERM")
+  const char* shell;           // getenv("SHELL")
+  const char* term;            // ncdirect_detected_terminal()
   char* lang;                  // getenv("LANG")
   int dimy, dimx;              // extracted from xrandr
   char* cpu_model;             // FIXME don't handle hetero setups yet
@@ -49,10 +49,10 @@ free_fetched_info(fetched_info* fi){
 }
 
 static int
-fetch_env_vars(fetched_info* fi){
+fetch_env_vars(struct ncdirect* nc, fetched_info* fi){
   fi->desktop = getenv("XDG_CURRENT_DESKTOP");
   fi->shell = getenv("SHELL");
-  fi->term = getenv("TERM");
+  fi->term = ncdirect_detected_terminal(nc);
   fi->lang = getenv("LANG");
   return 0;
 }
@@ -628,7 +628,7 @@ ncneofetch(struct ncdirect* nc){
   const bool launched = !pthread_create(&tid, NULL, display_thread, &display_marshal);
   unix_gethostname(&fi);
   unix_getusername(&fi);
-  fetch_env_vars(&fi);
+  fetch_env_vars(nc, &fi);
   fetch_x_props(&fi);
   if(kern == NCNEO_LINUX){
     fetch_cpu_info(&fi);
