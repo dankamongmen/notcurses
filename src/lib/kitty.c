@@ -577,20 +577,21 @@ int kitty_remove(int id, FILE* out){
 
 // removes the kitty bitmap graphic identified by s->id, and damages those
 // cells which weren't SPRIXCEL_OPAQUE
-int kitty_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
+int kitty_destroy(const notcurses* nc __attribute__ ((unused)),
+                  const ncpile* p, FILE* out, sprixel* s){
   if(kitty_remove(s->id, out)){
     return -1;
   }
 //fprintf(stderr, "FROM: %d/%d state: %d s->n: %p\n", s->movedfromy, s->movedfromx, s->invalidated, s->n);
   for(int yy = s->movedfromy ; yy < s->movedfromy + s->dimy && yy < p->dimy ; ++yy){
     for(int xx = s->movedfromx ; xx < s->movedfromx + s->dimx && xx < p->dimx ; ++xx){
-      const int ridx = (yy - nc->margin_t) * p->dimx + (xx - nc->margin_l);
+      const int ridx = yy * p->dimx + xx;
       struct crender *r = &p->crender[ridx];
       if(!r->sprixel){
         if(s->n){
 //fprintf(stderr, "CHECKING %d/%d\n", yy - s->movedfromy, xx - s->movedfromx);
-          sprixcell_e state = sprixel_state(s, yy - s->movedfromy + s->n->absy - nc->margin_t,
-                                              xx - s->movedfromx + s->n->absx - nc->margin_l);
+          sprixcell_e state = sprixel_state(s, yy - s->movedfromy + s->n->absy,
+                                              xx - s->movedfromx + s->n->absx);
           if(state == SPRIXCELL_OPAQUE_KITTY){
             r->s.damaged = 1;
           }else if(s->invalidated == SPRIXEL_MOVED){
