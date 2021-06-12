@@ -388,13 +388,13 @@ static char32_t
 handle_input(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin,
              const sigset_t* sigmask){
   // we once used getc() here (and kept ttyinfp, a FILE*, instead of the file
-  // descriptor ttyinfd), but under tmux, the first time running getc() would
+  // descriptor infd), but under tmux, the first time running getc() would
   // (bewilderingly) see a series of terminal reset codes emitted. this has
   // never been explained to my satisfaction, but we can work around it by
   // using a lower-level read() anyway.
   // see https://github.com/dankamongmen/notcurses/issues/1314 for more info.
   unsigned char c;
-  while(!input_queue_full(nc) && read(nc->ttyinfd, &c, 1) > 0){
+  while(!input_queue_full(nc) && read(nc->infd, &c, 1) > 0){
     nc->inputbuf[nc->inputbuf_write_at] = c;
 //fprintf(stderr, "OCCUPY: %u@%u read: %d\n", nc->inputbuf_occupied, nc->inputbuf_write_at, nc->inputbuf[nc->inputbuf_write_at]);
     if(++nc->inputbuf_write_at == sizeof(nc->inputbuf) / sizeof(*nc->inputbuf)){
@@ -402,7 +402,7 @@ handle_input(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin,
     }
     ++nc->inputbuf_occupied;
     const struct timespec ts = {};
-    if(block_on_input(nc->ttyinfd, &ts, sigmask) < 1){
+    if(block_on_input(nc->infd, &ts, sigmask) < 1){
       break;
     }
   }
@@ -456,7 +456,7 @@ ncinputlayer_prestamp(ncinputlayer* nc, const struct timespec *ts,
     return handle_queued_input(nc, ni, leftmargin, topmargin);
   }
   errno = 0;
-  if(block_on_input(nc->ttyinfd, ts, sigmask) > 0){
+  if(block_on_input(nc->infd, ts, sigmask) > 0){
 //fprintf(stderr, "%d events from input!\n", events);
     return handle_ncinput(nc, ni, leftmargin, topmargin, sigmask);
   }

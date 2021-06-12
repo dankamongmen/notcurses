@@ -60,7 +60,7 @@ typedef enum {
 } escape_e;
 
 typedef struct ncinputlayer {
-  int ttyinfd;  // file descriptor for processing input
+  int infd;  // file descriptor for processing input, from stdin
   unsigned char inputbuf[BUFSIZ];
   // we keep a wee ringbuffer of input queued up for delivery. if
   // inputbuf_occupied == sizeof(inputbuf), there is no room. otherwise, data
