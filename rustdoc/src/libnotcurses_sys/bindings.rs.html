@@ -802,6 +802,48 @@
 <span id="799">799</span>
 <span id="800">800</span>
 <span id="801">801</span>
+<span id="802">802</span>
+<span id="803">803</span>
+<span id="804">804</span>
+<span id="805">805</span>
+<span id="806">806</span>
+<span id="807">807</span>
+<span id="808">808</span>
+<span id="809">809</span>
+<span id="810">810</span>
+<span id="811">811</span>
+<span id="812">812</span>
+<span id="813">813</span>
+<span id="814">814</span>
+<span id="815">815</span>
+<span id="816">816</span>
+<span id="817">817</span>
+<span id="818">818</span>
+<span id="819">819</span>
+<span id="820">820</span>
+<span id="821">821</span>
+<span id="822">822</span>
+<span id="823">823</span>
+<span id="824">824</span>
+<span id="825">825</span>
+<span id="826">826</span>
+<span id="827">827</span>
+<span id="828">828</span>
+<span id="829">829</span>
+<span id="830">830</span>
+<span id="831">831</span>
+<span id="832">832</span>
+<span id="833">833</span>
+<span id="834">834</span>
+<span id="835">835</span>
+<span id="836">836</span>
+<span id="837">837</span>
+<span id="838">838</span>
+<span id="839">839</span>
+<span id="840">840</span>
+<span id="841">841</span>
+<span id="842">842</span>
+<span id="843">843</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! A selection of the [ffi] bindings intended to be used directly.</span>
 <span class="doccomment">//!</span>
@@ -835,7 +877,7 @@
 <span class="comment">// already wrapped:</span>
 <span class="comment">//</span>
 <span class="comment">// // structs</span>
-<span class="comment">// blitset</span>
+<span class="comment">// blitset,</span>
 
 <span class="comment">// cell ------------------------------------------------------------------------</span>
 <span class="comment">//</span>
@@ -865,6 +907,7 @@
     <span class="ident">nccell_extended_gcluster</span>,
     <span class="ident">nccell_load</span>,
     <span class="ident">nccell_release</span>,
+    <span class="ident">nccell_width</span>,
     <span class="ident">nccells_double_box</span>,
     <span class="ident">nccells_rounded_box</span>,
 };
@@ -874,7 +917,7 @@
 <span class="comment">// already wrapped:</span>
 <span class="comment">//</span>
 <span class="comment">// // constants</span>
-<span class="comment">// CHANNEL_ALPHA_MASK</span>
+<span class="comment">// CHANNEL_ALPHA_MASK,</span>
 
 <span class="comment">// ncalign ---------------------------------------------------------------------</span>
 <span class="comment">//</span>
@@ -906,6 +949,15 @@
 <span class="comment">// ncblitter_e_NCBLIT_BRAILLE,</span>
 <span class="comment">// ncblitter_e_NCBLIT_DEFAULT,</span>
 <span class="comment">// ncblitter_e_NCBLIT_PIXEL,</span>
+
+<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">ffi</span>::{
+    <span class="ident">ncblit_bgrx</span>,
+    <span class="ident">ncblit_rgb_loose</span>,
+    <span class="ident">ncblit_rgb_packed</span>,
+    <span class="comment">// functions</span>
+    <span class="ident">ncblit_rgba</span>,
+};
 
 <span class="comment">// ncbox -----------------------------------------------------------------------</span>
 
@@ -978,7 +1030,27 @@
     <span class="ident">ncdirect_set_fg_rgb</span>,
     <span class="ident">ncdirect_set_styles</span>,
     <span class="ident">ncdirect_stop</span>,
+    <span class="ident">ncdirect_stream</span>,
+    <span class="ident">ncdirect_styles</span>,
+    <span class="ident">ncdirect_supported_styles</span>,
     <span class="ident">ncdirect_vline_interp</span>,
+};
+
+<span class="comment">// ncdirectf --------------------------------------------------------------------</span>
+<span class="comment">//</span>
+<span class="comment">// already wrapped:</span>
+<span class="comment">//</span>
+<span class="comment">// // type alias</span>
+<span class="comment">// ncdirectf,</span>
+<span class="comment">//</span>
+
+<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">ffi</span>::{
+    <span class="ident">ncdirectf_free</span>,
+    <span class="comment">// functions</span>
+    <span class="ident">ncdirectf_from_file</span>,
+    <span class="ident">ncdirectf_geom</span>,
+    <span class="ident">ncdirectf_render</span>,
 };
 
 <span class="comment">// ncfadectx -------------------------------------------------------------------</span>
@@ -1084,7 +1156,6 @@
 <span class="comment">// IPREFIXCOLUMNS,</span>
 <span class="comment">// IPREFIXSTRLEN,</span>
 
-
 <span class="comment">// ncmultiselector -------------------------------------------------------------</span>
 <span class="comment">//</span>
 <span class="comment">// already wrapped:</span>
@@ -1128,12 +1199,15 @@
 <span class="comment">// ncplane_channels,</span>
 <span class="comment">// ncplane_set_bchannel,</span>
 <span class="comment">// ncplane_set_fchannel,</span>
-<span class="comment">// ncplane_set_channels</span>
+<span class="comment">// ncplane_set_channels,</span>
 <span class="comment">//</span>
 <span class="comment">// // constants</span>
 <span class="comment">// NCPLANE_OPTION_HORALIGNED,</span>
 <span class="comment">// NCPLANE_OPTION_MARGINALIZED,</span>
-<span class="comment">// NCPLANE_OPTION_VERALIGNED</span>
+<span class="comment">// NCPLANE_OPTION_VERALIGNED,</span>
+<span class="comment">//</span>
+<span class="comment">// // type alias</span>
+<span class="comment">// ncdirectv,</span>
 
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">ffi</span>::{
@@ -1159,6 +1233,7 @@
     <span class="ident">ncplane_dim_yx</span>,
     <span class="ident">ncplane_dup</span>,
     <span class="ident">ncplane_erase</span>,
+    <span class="ident">ncplane_erase_region</span>,
     <span class="ident">ncplane_fadein</span>,
     <span class="ident">ncplane_fadein_iteration</span>,
     <span class="ident">ncplane_fadeout</span>,
@@ -1316,7 +1391,7 @@
 <span class="comment">// ncprogbar_options,</span>
 <span class="comment">//</span>
 <span class="comment">// // constants</span>
-<span class="comment">// NCPROGBAR_OPTION_RETROGRADE</span>
+<span class="comment">// NCPROGBAR_OPTION_RETROGRADE,</span>
 
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">ffi</span>::{
@@ -1453,6 +1528,13 @@
     <span class="ident">nctree_redraw</span>,
 };
 
+<span class="comment">// ncvgeom ---------------------------------------------------------------------</span>
+<span class="comment">//</span>
+<span class="comment">// already wrapped:</span>
+<span class="comment">//</span>
+<span class="comment">// // structs</span>
+<span class="comment">// ncvgeom</span>
+
 <span class="comment">// ncvisual --------------------------------------------------------------------</span>
 <span class="comment">//</span>
 <span class="comment">// already wrapped:</span>
@@ -1467,7 +1549,8 @@
 <span class="comment">// NCVISUAL_OPTION_CHILDPLANE</span>
 <span class="comment">// NCVISUAL_OPTION_HORALIGNED</span>
 <span class="comment">// NCVISUAL_OPTION_NODEGRADE,</span>
-<span class="comment">// NCVISUAL_OPTION_VERALIGNED</span>
+<span class="comment">// NCVISUAL_OPTION_NOINTERPOLATE</span>
+<span class="comment">// NCVISUAL_OPTION_VERALIGNED,</span>
 
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">ffi</span>::{
@@ -1529,6 +1612,7 @@
     <span class="ident">notcurses_core_init</span>,
     <span class="ident">notcurses_cursor_disable</span>,
     <span class="ident">notcurses_cursor_enable</span>,
+    <span class="ident">notcurses_cursor_yx</span>,
     <span class="ident">notcurses_debug</span>,
     <span class="ident">notcurses_debug_caps</span>,
     <span class="ident">notcurses_drop_planes</span>,
@@ -1603,6 +1687,6 @@
 <span class="comment">// already wrapped:</span>
 <span class="comment">//</span>
 <span class="comment">// // types</span>
-<span class="comment">// fadecb</span>
+<span class="comment">// fadecb,</span>
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "libnotcurses_sys";</script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>

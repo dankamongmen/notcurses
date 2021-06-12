@@ -472,6 +472,93 @@
 <span id="469">469</span>
 <span id="470">470</span>
 <span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcVisual*` methods and associated functions.</span>
 
@@ -479,9 +566,9 @@
 <span class="kw">use</span> <span class="ident">libc</span>::<span class="ident">c_void</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">cstring</span>, <span class="ident">error</span>, <span class="ident">error_ref_mut</span>, <span class="ident">rstring</span>, <span class="ident">NcBlitter</span>, <span class="ident">NcDim</span>, <span class="ident">NcError</span>, <span class="ident">NcIntResult</span>, <span class="ident">NcPixel</span>,
-    <span class="ident">NcPlane</span>, <span class="ident">NcResult</span>, <span class="ident">NcRgba</span>, <span class="ident">NcScale</span>, <span class="ident">NcTime</span>, <span class="ident">NcVisual</span>, <span class="ident">NcVisualOptions</span>, <span class="ident">Notcurses</span>, <span class="ident">NCBLIT_PIXEL</span>,
-    <span class="ident">NCRESULT_ERR</span>,
+    <span class="ident">cstring</span>, <span class="ident">error</span>, <span class="ident">error_ref_mut</span>, <span class="ident">rstring</span>, <span class="ident">NcBlitter</span>, <span class="ident">NcDim</span>, <span class="ident">NcDirect</span>, <span class="ident">NcDirectF</span>, <span class="ident">NcDirectV</span>,
+    <span class="ident">NcError</span>, <span class="ident">NcIntResult</span>, <span class="ident">NcPixel</span>, <span class="ident">NcPlane</span>, <span class="ident">NcResult</span>, <span class="ident">NcRgba</span>, <span class="ident">NcScale</span>, <span class="ident">NcTime</span>, <span class="ident">NcVGeom</span>, <span class="ident">NcVisual</span>,
+    <span class="ident">NcVisualOptions</span>, <span class="ident">Notcurses</span>, <span class="ident">NCBLIT_PIXEL</span>, <span class="ident">NCRESULT_ERR</span>,
 };
 
 <span class="doccomment">/// # NcVisualOptions Constructors</span>
@@ -516,7 +603,7 @@
         <span class="ident">leny</span>: <span class="ident">NcDim</span>,
         <span class="ident">lenx</span>: <span class="ident">NcDim</span>,
         <span class="ident">blitter</span>: <span class="ident">NcBlitter</span>,
-        <span class="ident">flags</span>: <span class="ident">u64</span>,
+        <span class="ident">flags</span>: <span class="ident">u32</span>,
         <span class="ident">transcolor</span>: <span class="ident">NcRgba</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
@@ -535,7 +622,7 @@
             <span class="comment">// glyph set to use</span>
             <span class="ident">blitter</span>,
             <span class="comment">// bitmask over NCVISUAL_OPTION_*</span>
-            <span class="ident">flags</span>,
+            <span class="ident">flags</span>: <span class="ident">flags</span> <span class="kw">as</span> <span class="ident">u64</span>,
             <span class="ident">transcolor</span>,
         }
     }
@@ -548,7 +635,7 @@
         <span class="ident">leny</span>: <span class="ident">NcDim</span>,
         <span class="ident">lenx</span>: <span class="ident">NcDim</span>,
         <span class="ident">blitter</span>: <span class="ident">NcBlitter</span>,
-        <span class="ident">flags</span>: <span class="ident">u64</span>,
+        <span class="ident">flags</span>: <span class="ident">u32</span>,
         <span class="ident">transcolor</span>: <span class="ident">u32</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
@@ -566,7 +653,7 @@
             <span class="comment">// glyph set to use</span>
             <span class="ident">blitter</span>,
             <span class="comment">// bitmask over NCVISUAL_OPTION_*</span>
-            <span class="ident">flags</span>,
+            <span class="ident">flags</span>: <span class="ident">flags</span> <span class="kw">as</span> <span class="ident">u64</span>,
             <span class="comment">// This color will be treated as transparent with flag [NCVISUAL_OPTION_ADDALPHA].</span>
             <span class="ident">transcolor</span>,
         }
@@ -823,7 +910,7 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span><span class="op">&gt;</span> {
         <span class="macro">error_ref_mut</span><span class="macro">!</span>[
             <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncvisual_render</span>(<span class="ident">nc</span>, <span class="self">self</span>, <span class="ident">options</span>) },
-            <span class="string">&quot;NcVisual.render()&quot;</span>
+            <span class="string">&quot;NcVisual.render(Notcurses, &amp;NcVisualOptions)&quot;</span>
         ]
     }
 
@@ -941,6 +1028,93 @@
             <span class="prelude-val">Ok</span>(<span class="macro">rstring</span><span class="macro">!</span>[<span class="ident">res</span>])
         } <span class="kw">else</span> {
             <span class="prelude-val">Err</span>(<span class="ident">NcError</span>::<span class="ident">with_msg</span>(<span class="ident">NCRESULT_ERR</span>, <span class="string">&quot;NcVisual.subtitle()&quot;</span>))
+        }
+    }
+}
+
+<span class="doccomment">/// # NcDirectF Constructors &amp; destructors</span>
+<span class="kw">impl</span> <span class="ident">NcDirectF</span> {
+    <span class="doccomment">/// Loads media from disk, but do not yet renders it (presumably because you</span>
+    <span class="doccomment">/// want to get its geometry via [ncdirectf_geom()][0], or to use the same</span>
+    <span class="doccomment">/// file with [ncdirectf_render()][1] multiple times).</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// You must destroy the result with [ncdirectf_free()][2];</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [0]: crate::NcDirectF#method.ncdirectf_geom</span>
+    <span class="doccomment">/// [1]: crate::NcDirectF#method.ncdirectf_render</span>
+    <span class="doccomment">/// [2]: crate::NcDirectF#method.ncdirectf_free</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// *C style function: [ncdirectf_from_file()][crate::ncdirectf_from_file].*</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncdirectf_from_file</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">ncd</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcDirect</span>, <span class="ident">file</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">NcDirectF</span><span class="op">&gt;</span> {
+        <span class="macro">error_ref_mut</span><span class="macro">!</span>[
+            <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirectf_from_file</span>(<span class="ident">ncd</span>, <span class="macro">cstring</span><span class="macro">!</span>[<span class="ident">file</span>]) },
+            <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;NcDirectF::ncdirectf_from_file(ncd, {})&quot;</span>, <span class="ident">file</span>)
+        ]
+    }
+
+    <span class="doccomment">/// Frees a [`NcDirectF`] returned from [ncdirectf_from_file()][0].</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [0]: crate::NcDirectF#method.ncdirectf_from_file</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// *C style function: [ncdirectf_free()][crate::ncdirectf_free].*</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncdirectf_free</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+        <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirectf_free</span>(<span class="self">self</span>) };
+    }
+}
+
+<span class="doccomment">/// # NcDirectF Methods</span>
+<span class="kw">impl</span> <span class="ident">NcDirectF</span> {
+    <span class="doccomment">/// Same as [`NcDirect.render_frame()`][0], except `frame` must already have</span>
+    <span class="doccomment">/// been loaded.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// A loaded frame may be rendered in different ways before it is destroyed.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [0]: NcDirect#method.render_frame</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// *C style function: [ncvisual_render()][crate::ncvisual_render].*</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncdirectf_render</span>(
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">ncd</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcDirect</span>,
+        <span class="ident">options</span>: <span class="kw-2">&amp;</span><span class="ident">NcVisualOptions</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcDirectV</span><span class="op">&gt;</span> {
+        <span class="macro">error_ref_mut</span><span class="macro">!</span>[
+            <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirectf_render</span>(<span class="ident">ncd</span>, <span class="self">self</span>, <span class="ident">options</span>) },
+            <span class="string">&quot;NcVisual.render()&quot;</span>
+        ]
+    }
+    <span class="doccomment">/// Having loaded the `frame`, get the geometry of a potential render.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// *C style function: [ncdirectf_geom()][crate::ncdirectf_geom].*</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncdirectf_geom</span>(
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">ncd</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcDirect</span>,
+        <span class="ident">options</span>: <span class="kw-2">&amp;</span><span class="ident">NcVisualOptions</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">NcVGeom</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">geom</span> <span class="op">=</span> <span class="ident">NcVGeom</span>::<span class="ident">new</span>();
+
+        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirectf_geom</span>(<span class="ident">ncd</span>, <span class="self">self</span>, <span class="ident">options</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">geom</span>) };
+        <span class="macro">error</span><span class="macro">!</span>[<span class="ident">res</span>, <span class="string">&quot;NcDirectF.ncdirectf_geom()&quot;</span>, <span class="ident">geom</span>];
+    }
+}
+
+<span class="doccomment">/// # NcVGeom Constructors</span>
+<span class="kw">impl</span> <span class="ident">NcVGeom</span> {
+    <span class="doccomment">/// Returns a new `NcVGeom` with zeroed fields.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span> {
+            <span class="ident">pixy</span>: <span class="number">0</span>,
+            <span class="ident">pixx</span>: <span class="number">0</span>,
+            <span class="ident">cdimy</span>: <span class="number">0</span>,
+            <span class="ident">cdimx</span>: <span class="number">0</span>,
+            <span class="ident">rpixy</span>: <span class="number">0</span>,
+            <span class="ident">rpixx</span>: <span class="number">0</span>,
+            <span class="ident">rcelly</span>: <span class="number">0</span>,
+            <span class="ident">rcellx</span>: <span class="number">0</span>,
+            <span class="ident">scaley</span>: <span class="number">0</span>,
+            <span class="ident">scalex</span>: <span class="number">0</span>,
+            <span class="ident">maxpixely</span>: <span class="number">0</span>,
+            <span class="ident">maxpixelx</span>: <span class="number">0</span>,
+            <span class="ident">blitter</span>: <span class="number">0</span>,
         }
     }
 }

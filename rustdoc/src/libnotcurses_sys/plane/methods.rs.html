@@ -2038,6 +2038,8 @@
 <span id="2035">2035</span>
 <span id="2036">2036</span>
 <span id="2037">2037</span>
+<span id="2038">2038</span>
+<span id="2039">2039</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcPlane*` methods and associated functions.</span>
 <span class="kw">use</span> <span class="ident">core</span>::{
@@ -2675,6 +2677,8 @@
 
     <span class="doccomment">/// Sets this NcPlane&#39;s base [NcCell] from its components.</span>
     <span class="doccomment">///</span>
+    <span class="doccomment">/// Returns the number of bytes copied out of `egc` if succesful.</span>
+    <span class="doccomment">///</span>
     <span class="doccomment">/// It will be used for purposes of rendering anywhere that the NcPlane&#39;s</span>
     <span class="doccomment">/// gcluster is 0.</span>
     <span class="doccomment">///</span>
@@ -3018,7 +3022,7 @@
         <span class="kw">let</span> (<span class="ident">y</span>, <span class="ident">x</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">yx</span>();
         <span class="macro">error</span><span class="macro">!</span>[
             <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncplane_move_yx</span>(<span class="self">self</span>, <span class="ident">y</span> <span class="op">+</span> <span class="ident">rows</span>, <span class="ident">x</span> <span class="op">+</span> <span class="ident">cols</span>) },
-            <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;NcPlane.move_yx({}, {})&quot;</span>, <span class="ident">y</span>, <span class="ident">x</span>)
+            <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;NcPlane.move_rel({}, {})&quot;</span>, <span class="ident">rows</span>, <span class="ident">cols</span>)
         ]
     }
 

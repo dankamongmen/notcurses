@@ -206,15 +206,53 @@
 <span id="203">203</span>
 <span id="204">204</span>
 <span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="comment">// functions already exported by bindgen : 18</span>
+<span class="comment">// functions already exported by bindgen : 24</span>
 <span class="comment">// -----------------------------------------</span>
-<span class="comment">// (W) wrap: 18</span>
+<span class="comment">// (W) wrap: 20</span>
 <span class="comment">// (#) test: 0</span>
 <span class="comment">// -----------------------------------------</span>
+<span class="comment">//W  ncdirectf_free</span>
+<span class="comment">//W  ncdirectf_from_file</span>
+<span class="comment">//   ncdirectf_geom</span>
+<span class="comment">//   ncdirectf_render</span>
 <span class="comment">//W  ncvisual_at_yx</span>
 <span class="comment">//W  ncvisual_decode</span>
 <span class="comment">//W  ncvisual_decode_loop</span>
+<span class="comment">//   ncvisual_default_blitter</span>
 <span class="comment">//W  ncvisual_destroy</span>
 <span class="comment">//W  ncvisual_from_bgra</span>
 <span class="comment">//W  ncvisual_from_file</span>
@@ -224,6 +262,7 @@
 <span class="comment">//W  ncvisual_blitter_geom</span>
 <span class="comment">//W  ncvisual_media_defblitter</span>
 <span class="comment">//W  ncvisual_polyfill_yx</span>
+<span class="comment">//   ncvisual_plane_create</span>
 <span class="comment">//W  ncvisual_render</span>
 <span class="comment">//W  ncvisual_resize</span>
 <span class="comment">//W  ncvisual_rotate</span>
@@ -237,30 +276,32 @@
 
 <span class="kw">mod</span> <span class="ident">methods</span>;
 
-<span class="doccomment">/// How to scale an [`NcVisual`] during rendering</span>
+<span class="doccomment">/// How to scale an [`NcVisual`] during rendering.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// - NCSCALE_NONE will apply no scaling.</span>
-<span class="doccomment">/// - NCSCALE_SCALE scales a visual to the plane&#39;s size,</span>
+<span class="doccomment">/// - [`NCSCALE_NONE`] will apply no scaling.</span>
+<span class="doccomment">/// - [`NCSCALE_SCALE`] scales a visual to the plane&#39;s size,</span>
 <span class="doccomment">///   maintaining aspect ratio.</span>
-<span class="doccomment">/// - NCSCALE_STRETCH stretches and scales the image in an</span>
+<span class="doccomment">/// - [`NCSCALE_STRETCH`] stretches and scales the image in an</span>
 <span class="doccomment">///   attempt to fill the entirety of the plane.</span>
+<span class="doccomment">/// - [`NCSCALE_NONE_HIRES`] like `NCSCALE_NONE` admitting high-res blitters.</span>
+<span class="doccomment">/// - [`NCSCALE_SCALE_HIRES`] like `NCSCALE_SCALE` admitting high-res blitters.</span>
 <span class="doccomment">///</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcScale</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncscale_e</span>;
 
-<span class="doccomment">/// Maintain original size.</span>
+<span class="doccomment">/// Maintains original size.</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCSCALE_NONE</span>: <span class="ident">NcScale</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncscale_e_NCSCALE_NONE</span>;
 
-<span class="doccomment">/// Maintain aspect ratio.</span>
+<span class="doccomment">/// Maintains aspect ratio.</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCSCALE_SCALE</span>: <span class="ident">NcScale</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncscale_e_NCSCALE_SCALE</span>;
 
-<span class="doccomment">/// Throw away aspect ratio.</span>
+<span class="doccomment">/// Throws away aspect ratio.</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCSCALE_STRETCH</span>: <span class="ident">NcScale</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncscale_e_NCSCALE_STRETCH</span>;
 
-<span class="doccomment">/// Maintain original size, admitting high-resolution blitters</span>
+<span class="doccomment">/// Maintains original size, admitting high-resolution blitters</span>
 <span class="doccomment">/// that don&#39;t preserve aspect ratio.</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCSCALE_NONE_HIRES</span>: <span class="ident">NcScale</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncscale_e_NCSCALE_NONE_HIRES</span>;
 
-<span class="doccomment">/// Maintain aspect ratio, admitting high-resolution blitters</span>
+<span class="doccomment">/// Maintains aspect ratio, admitting high-resolution blitters</span>
 <span class="doccomment">/// that don&#39;t preserve aspect ratio.</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCSCALE_SCALE_HIRES</span>: <span class="ident">NcScale</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncscale_e_NCSCALE_SCALE_HIRES</span>;
 
@@ -273,6 +314,23 @@
 <span class="doccomment">/// - [.render][NcVisual#method.render]</span>
 <span class="doccomment">/// - [.simple_streamer][NcVisual#method.render]</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcVisual</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncvisual</span>;
+
+<span class="doccomment">/// A type alias of [`NcVisual`] (NcDirect ***F**rame*) intended to be used</span>
+<span class="doccomment">/// with its `ncdirectf_*` methods, in [`NcDirect`][crate::NcDirect] mode.</span>
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcDirectF</span> <span class="op">=</span> <span class="ident">NcVisual</span>;
+
+<span class="doccomment">/// Describes all geometries of an [`NcVisual`] ncvisual–both those which are inherent, and</span>
+<span class="doccomment">/// those in a given rendering regime.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *FIXME this ought be used in the rendered mode API as well;</span>
+<span class="doccomment">/// it’s currently only used by direct mode.*</span>
+<span class="doccomment">/// *(See [ncvgeom][1] more more information)*</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// This is the return type of the [NcDirectF.ncdirectf_geom()][0] method.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [0]: NcDirectF#method.ncdirectf_geom</span>
+<span class="doccomment">/// [1]: crate::bindings::ffi::ncvgeom</span>
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcVGeom</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncvgeom</span>;
 
 <span class="doccomment">/// Options struct for [`NcVisual`]</span>
 <span class="doccomment">///</span>
@@ -321,7 +379,12 @@
 <span class="doccomment">/// Uses [`NCCELL_ALPHA_BLEND`][crate::NCCELL_ALPHA_BLEND] with visual.</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCVISUAL_OPTION_BLEND</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCVISUAL_OPTION_BLEND</span>;
 
-<span class="doccomment">/// allows you to indicate that the n field of ncvisual_options refers not to the plane onto which you&#39;d like to blit, but the parent of a new plane. A plane will be created using the other parameters in the ncvisual_options, as a child of this parent. This means things like, say, vertically centering a sprixel relative to the standard plane can be done in one step</span>
+<span class="doccomment">/// allows you to indicate that the n field of ncvisual_options refers not to</span>
+<span class="doccomment">/// the plane onto which you&#39;d like to blit, but the parent of a new plane.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// A plane will be created using the other parameters in the ncvisual_options,</span>
+<span class="doccomment">/// as a child of this parent. This means things like, say, vertically centering</span>
+<span class="doccomment">/// a sprixel relative to the standard plane can be done in one step.</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCVISUAL_OPTION_CHILDPLANE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCVISUAL_OPTION_CHILDPLANE</span>;
 
 <span class="doccomment">/// Fails rather than gracefully degrade. See [NcBlitter].</span>
@@ -333,7 +396,10 @@
 <span class="doccomment">/// X is an alignment, not absolute.</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCVISUAL_OPTION_HORALIGNED</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCVISUAL_OPTION_HORALIGNED</span>;
 
-<span class="doccomment">/// Blitter Mode (`NCBLIT_*`)</span>
+<span class="doccomment">/// Uses non-interpolative scaling.</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCVISUAL_OPTION_NOINTERPOLATE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCVISUAL_OPTION_NOINTERPOLATE</span>;
+
+<span class="doccomment">/// The blitter mode to use for rasterizing an [`NcVisual`].</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// We never blit full blocks, but instead spaces (more efficient) with the</span>
 <span class="doccomment">/// background set to the desired foreground.</span>
