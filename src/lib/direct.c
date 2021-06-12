@@ -1047,9 +1047,15 @@ int ncdirect_hline_interp(ncdirect* n, const char* egc, int len,
   int ret;
   bool fgdef = false, bgdef = false;
   if(ncchannels_fg_default_p(c1) && ncchannels_fg_default_p(c2)){
+    if(ncdirect_set_fg_default(n)){
+      return -1;
+    }
     fgdef = true;
   }
   if(ncchannels_bg_default_p(c1) && ncchannels_bg_default_p(c2)){
+    if(ncdirect_set_bg_default(n)){
+      return -1;
+    }
     bgdef = true;
   }
   for(ret = 0 ; ret < len ; ++ret){
