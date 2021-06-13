@@ -624,6 +624,7 @@ typedef struct init_state {
     STATE_XTGETTCAP1, // XTGETTCAP, got '0/1' (DCS 0/1 + r Pt ST)
     STATE_XTGETTCAP2, // XTGETTCAP, got '+' (DCS 0/1 + r Pt ST)
     STATE_XTGETTCAP3, // XTGETTCAP, got 'r' (DCS 0/1 + r Pt ST)
+    STATE_DCS_DRAIN,  // throw away input until we hit escape
     STATE_TDA,  // tertiary DA
     STATE_SDA,  // secondary DA (CSI > Pp ; Pv ; Pc c)
     STATE_DA,   // primary DA   (CSI ? ... c) OR XTSMGRAPHICS
@@ -651,7 +652,7 @@ static int
 pump_control_read(init_state* inits, unsigned char c){
   fprintf(stderr, "state: %2d char: %1c %3d %02x\n", inits->state, isprint(c) ? c : ' ', c, c);
   if(c == NCKEY_ESC){
-    if(inits->state != STATE_NULL && inits->state != STATE_DCS && inits->state != STATE_XTGETTCAP3){
+    if(inits->state != STATE_NULL && inits->state != STATE_DCS && inits->state != STATE_DCS_DRAIN && inits->state != STATE_XTVERSION2 && inits->state != STATE_XTGETTCAP3 && inits->state != STATE_DA_DRAIN){
       fprintf(stderr, "Unexpected escape in state %d\n", inits->state);
     }
     inits->state = STATE_ESC;
@@ -694,8 +695,11 @@ pump_control_read(init_state* inits, unsigned char c){
       }else if(c == '>'){
         inits->state = STATE_XTVERSION1;
       }else{
-        // FIXME error?
+        inits->state = STATE_DCS_DRAIN;
       }
+      break;
+    case STATE_DCS_DRAIN:
+      // we drain to ST, which is an escape, and thus already handled, so...
       break;
     case STATE_XTVERSION1:
       if(c == '|'){
@@ -703,6 +707,9 @@ pump_control_read(init_state* inits, unsigned char c){
       }else{
         // FIXME error?
       }
+      break;
+    case STATE_XTVERSION2:
+      // FIXME roll up string
       break;
     case STATE_XTGETTCAP1:
       if(c == '+'){
@@ -810,6 +817,8 @@ pump_control_read(init_state* inits, unsigned char c){
     case STATE_SIXEL_SEMI1:
       if(c == '0'){
         inits->state = STATE_SIXEL_SUCCESS;
+      }else if(c == '2'){
+        inits->state = STATE_XTSMGRAPHICS_DRAIN;
       }else{
         // FIXME error?
       }
