@@ -28,37 +28,39 @@ tinfo_debug_caps(const tinfo* ti, FILE* debugfp, int rows, int cols,
           indent, rows, cols, ti->cellpixy, ti->cellpixx, rows * ti->cellpixy, cols * ti->cellpixx);
   if(!ti->bitmap_supported){
     fprintf(debugfp, "%sdidn't detect bitmap graphics support\n", indent);
-  }else if(ti->sixel_maxy || ti->color_registers){
+  }else if(ti->sixel_maxy){
     fprintf(debugfp, "%smax sixel size: %dx%d colorregs: %u\n",
             indent, ti->sixel_maxy, ti->sixel_maxx, ti->color_registers);
+  }else if(ti->color_registers){
+    fprintf(debugfp, "%ssixel colorregs: %u\n", indent, ti->color_registers);
   }else{
-    fprintf(debugfp, "%sRGBA pixel graphics supported\n", indent);
+    fprintf(debugfp, "%srgba pixel graphics supported\n", indent);
   }
-  fprintf(debugfp, "%sUTF8: %c quad: %c sex: %c braille: %c images: %c videos: %c\n",
+  fprintf(debugfp, "%sutf8: %c quad: %c sex: %c braille: %c images: %c videos: %c\n",
           indent, capbool(ti->utf8), capbool(ti->quadrants),
           capbool(ti->sextants), capbool(ti->braille),
           capbool(images), capbool(videos));
   if(ti->utf8){
-    fprintf(debugfp, "%s  Halves {%ls}   Quads {%ls} Light ⎧%.6ls%.3ls⎫ Heavy ⎧%.6ls%.3ls⎫ ⎧█ ⎫ 🯰🯱\n", indent,
+    fprintf(debugfp, "%s  halves {%ls}   quads {%ls} light ⎧%.6ls%.3ls⎫ heavy ⎧%.6ls%.3ls⎫ ⎧█ ⎫ 🯰🯱\n", indent,
             get_blitter_egcs(NCBLIT_2x1), get_blitter_egcs(NCBLIT_2x2),
             NCBOXLIGHTW, NCBOXLIGHTW + 4,
             NCBOXHEAVYW, NCBOXHEAVYW + 4);
-    fprintf(debugfp, "%sSextants ⎧%.120ls⎫       ⎩%.6ls%.3ls⎭       ⎩%.6ls%.3ls⎭ ⎪🮋▏⎪ 🯲🯳\n", indent,
+    fprintf(debugfp, "%ssextants ⎧%.120ls⎫       ⎩%.6ls%.3ls⎭       ⎩%.6ls%.3ls⎭ ⎪🮋▏⎪ 🯲🯳\n", indent,
             get_blitter_egcs(NCBLIT_3x2),
             NCBOXLIGHTW + 2, NCBOXLIGHTW + 5,
             NCBOXHEAVYW + 2, NCBOXHEAVYW + 5);
-    fprintf(debugfp, "%s         ⎩%ls⎭ Round ⎧%.6ls%.3ls⎫ Frame ⎧%.6ls%.3ls⎫ ⎪🮊▎⎪ 🯴🯵\n", indent,
+    fprintf(debugfp, "%s         ⎩%ls⎭ round ⎧%.6ls%.3ls⎫ frame ⎧%.6ls%.3ls⎫ ⎪🮊▎⎪ 🯴🯵\n", indent,
             get_blitter_egcs(NCBLIT_3x2) + 32,
             NCBOXROUNDW, NCBOXROUNDW + 4,
             NCBOXDOUBLEW, NCBOXDOUBLEW + 4);
-    fprintf(debugfp, "%s Braille ⎡%.120ls⎤             ⎩%.6ls%.3ls⎭       ⎩%.6ls%.3ls⎭ ⎪🮉▍⎪ 🯶🯷\n", indent,
+    fprintf(debugfp, "%s braille ⎡%.120ls⎤             ⎩%.6ls%.3ls⎭       ⎩%.6ls%.3ls⎭ ⎪🮉▍⎪ 🯶🯷\n", indent,
             get_blitter_egcs(NCBLIT_BRAILLE),
             NCBOXROUNDW + 2, NCBOXROUNDW + 5,
             NCBOXDOUBLEW + 2, NCBOXDOUBLEW + 5);
     fprintf(debugfp, "%s         ⎢%ls⎥                               ⎨▐▌⎬ 🯸🯹\n", indent, get_blitter_egcs(NCBLIT_BRAILLE)); // FIXME
     fprintf(debugfp, "%s         ⎢%ls⎥                               ⎪🮈▋⎪\n", indent, get_blitter_egcs(NCBLIT_BRAILLE)); // FIXME
     fprintf(debugfp, "%s         ⎣%ls⎦                               ⎪🮇▊⎪\n", indent, get_blitter_egcs(NCBLIT_BRAILLE)); // FIXME
-    fprintf(debugfp, "%s Vert ⅛s ⎛%ls⎞ ▔🭶🭷🭸🭹🭺🭻▁                                      ⎪▕▉⎪\n", indent, get_blitter_egcs(NCBLIT_8x1));
+    fprintf(debugfp, "%s vert ⅛s ⎛%ls⎞ ▔🭶🭷🭸🭹🭺🭻▁                                      ⎪▕▉⎪\n", indent, get_blitter_egcs(NCBLIT_8x1));
     fprintf(debugfp, "%s         ⎝%s⎠                                               ⎩ █⎭\n", indent, "█🮆🮅🮄▀🮃🮂▔ ");
   }
   if(ti->bg_collides_default){
