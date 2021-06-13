@@ -94,7 +94,6 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd){
     setup_kitty_bitmaps(ti, fd);
   }else if(strstr(termname, "alacritty")){
     termname = "Alacritty";
-    ti->alacritty_sixel_hack = true;
     ti->quadrants = true;
     // ti->sextants = true; // alacritty https://github.com/alacritty/alacritty/issues/4409 */
     ti->RGBflag = true;

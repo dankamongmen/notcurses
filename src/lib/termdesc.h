@@ -144,13 +144,6 @@ typedef struct tinfo {
   bool sextants;  // do we have (good, vetted) Unicode 13 sextant support?
   bool braille;   // do we have Braille support? (linux console does not)
 
-  // alacritty went rather off the reservation for their sixel support. they
-  // reply to DSA with CSI?6c, meaning VT102, but no VT102 had Sixel support,
-  // so if the TERM variable contains "alacritty", *and* we get VT102, we go
-  // ahead and query XTSMGRAPHICS.
-  // FIXME we can get rid of this with proper input handling #1469
-  bool alacritty_sixel_hack;
-
   // mlterm resets the cursor (i.e. makes it visible) any time you print
   // a sprixel. we work around this spiritedly unorthodox decision.
   bool sprixel_cursor_hack; // do sprixels reset the cursor? (mlterm)
