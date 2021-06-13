@@ -6,11 +6,8 @@
 static inline void
 setup_sixel_bitmaps(tinfo* ti){
   ti->bitmap_supported = true;
-  ti->color_registers = 256;  // assumed default [shrug]
   ti->pixel_init = sixel_init;
   ti->pixel_draw = sixel_draw;
-  ti->sixel_maxx = 4096; // whee!
-  ti->sixel_maxy = 4096;
   ti->pixel_remove = NULL;
   ti->pixel_destroy = sixel_destroy;
   ti->pixel_wipe = sixel_wipe;
@@ -212,26 +209,6 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 //   ⇒  CSI ? 6 4 ; Ps c  ("VT420")
 #define ESC_DA "\e[c"
 
-/*
-// query for Sixel details including the number of color registers and, one day
-// perhaps, maximum geometry. xterm binds its return by the current geometry,
-// making it useless for a one-time query.
-static int
-query_sixel_details(tinfo* ti, int fd){
-  if(query_xtsmgraphics(fd, "\x1b[?2;1;0S" ESC_DA, &ti->sixel_maxx, &ti->sixel_maxy)){
-    return -1;
-  }
-  if(query_xtsmgraphics(fd, "\x1b[?1;1;0S" ESC_DA, &ti->color_registers, NULL)){
-    return -1;
-  }
-//fprintf(stderr, "Sixel ColorRegs: %d Max_x: %d Max_y: %d\n", ti->color_registers, ti->sixel_maxx, ti->sixel_maxy);
-  if(ti->color_registers < 64){ // FIXME try to drive it higher
-    return -1;
-  }
-  return 0;
-}
-*/
-
 // we send an XTSMGRAPHICS to set up 256 color registers (the most we can
 // currently take advantage of; we need at least 64 to use sixel at all.
 // maybe that works, maybe it doesn't. then query both color registers
@@ -423,6 +400,11 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
   }
   if(ncinputlayer_init(ti, stdin)){
     return -1;
+  }
+  // our current sixel quantization algorithm requires at least 64 color
+  // registers. we make use of no more than 256.
+  if(ti->color_registers >= 64){
+    setup_sixel_bitmaps(ti);
   }
   if(apply_term_heuristics(ti, termname, fd)){
     goto err;
