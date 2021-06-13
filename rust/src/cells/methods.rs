@@ -227,7 +227,7 @@ impl NcCell {
     /// Sets the background [NcPaletteIndex].
     ///
     /// Also sets [NCCELL_BG_PALETTE][crate::NCCELL_BG_PALETTE] and
-    /// [NCNCALPHA_OPAQUE][crate::NCNCALPHA_OPAQUE], and clears out
+    /// [NCCELL_OPAQUE][crate::NCCELL_OPAQUE], and clears out
     /// [NCCELL_BGDEFAULT_MASK][crate::NCCELL_BGDEFAULT_MASK].
     ///
     /// *C style function: [nccell_set_bg_palindex()][crate::nccell_set_bg_palindex].*
@@ -267,7 +267,7 @@ impl NcCell {
     /// Sets the foreground [NcPaletteIndex].
     ///
     /// Also sets [NCCELL_FG_PALETTE][crate::NCCELL_FG_PALETTE] and
-    /// [NCNCALPHA_OPAQUE][crate::NCNCALPHA_OPAQUE], and clears out
+    /// [NCCELL_OPAQUE][crate::NCCELL_OPAQUE], and clears out
     /// [NCCELL_BGDEFAULT_MASK][crate::NCCELL_BGDEFAULT_MASK].
     ///
     /// *C style function: [nccell_set_fg_palindex()][crate::nccell_set_fg_palindex].*

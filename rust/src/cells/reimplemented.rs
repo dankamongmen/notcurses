@@ -4,7 +4,7 @@ use libc::strcmp;
 
 use crate::{
     cstring, nccell_release, NcAlphaBits, NcCell, NcChannel, NcChannelPair, NcColor, NcEgc,
-    NcIntResult, NcPaletteIndex, NcPlane, NcRgb, NcStyleMask, NCNCALPHA_OPAQUE,
+    NcIntResult, NcPaletteIndex, NcPlane, NcRgb, NcStyleMask, NCCELL_OPAQUE,
     NCCELL_BGDEFAULT_MASK, NCCELL_BG_PALETTE, NCCELL_FGDEFAULT_MASK, NCCELL_FG_PALETTE,
     NCRESULT_ERR, NCRESULT_OK, NCSTYLE_MASK,
 };
@@ -208,7 +208,7 @@ pub const fn nccell_bg_palindex(cell: &NcCell) -> NcPaletteIndex {
 
 /// Sets an [NcCell]'s foreground [NcPaletteIndex].
 ///
-/// Also sets [NCCELL_FG_PALETTE] and [NCNCALPHA_OPAQUE],
+/// Also sets [NCCELL_FG_PALETTE] and [NCCELL_OPAQUE],
 /// and clears out [NCCELL_FGDEFAULT_MASK].
 ///
 /// *Method: NcCell.[set_fg_palindex()][NcCell#method.set_fg_palindex].*
@@ -219,14 +219,14 @@ pub const fn nccell_bg_palindex(cell: &NcCell) -> NcPaletteIndex {
 pub fn nccell_set_fg_palindex(cell: &mut NcCell, index: NcPaletteIndex) {
     cell.channels |= NCCELL_FGDEFAULT_MASK;
     cell.channels |= NCCELL_FG_PALETTE;
-    nccell_set_fg_alpha(cell, NCNCALPHA_OPAQUE);
+    nccell_set_fg_alpha(cell, NCCELL_OPAQUE);
     cell.channels &= 0xff000000ffffffff as NcChannelPair;
     cell.channels |= (index as NcChannelPair) << 32;
 }
 
 /// Sets an [NcCell]'s background [NcPaletteIndex].
 ///
-/// Also sets [NCCELL_BG_PALETTE] and [NCNCALPHA_OPAQUE],
+/// Also sets [NCCELL_BG_PALETTE] and [NCCELL_OPAQUE],
 /// and clears out [NCCELL_BGDEFAULT_MASK].
 ///
 /// *Method: NcCell.[set_bg_palindex()][NcCell#method.set_bg_palindex].*
@@ -236,7 +236,7 @@ pub fn nccell_set_fg_palindex(cell: &mut NcCell, index: NcPaletteIndex) {
 pub fn nccell_set_bg_palindex(cell: &mut NcCell, index: NcPaletteIndex) {
     cell.channels |= NCCELL_BGDEFAULT_MASK as NcChannelPair;
     cell.channels |= NCCELL_BG_PALETTE as NcChannelPair;
-    nccell_set_bg_alpha(cell, NCNCALPHA_OPAQUE);
+    nccell_set_bg_alpha(cell, NCCELL_OPAQUE);
     cell.channels &= 0xffffffffff000000;
     cell.channels |= index as NcChannelPair;
 }

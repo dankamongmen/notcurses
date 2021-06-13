@@ -134,7 +134,7 @@ pub type NcRgba = u32;
 /// Treats as transparent the color specified in the `transcolor` field.
 pub const NCVISUAL_OPTION_ADDALPHA: u32 = crate::bindings::ffi::NCVISUAL_OPTION_ADDALPHA;
 
-/// Uses [`NCNCALPHA_BLEND`][crate::NCNCALPHA_BLEND] with visual.
+/// Uses [`NCCELL_BLEND`][crate::NCCELL_BLEND] with visual.
 pub const NCVISUAL_OPTION_BLEND: u32 = crate::bindings::ffi::NCVISUAL_OPTION_BLEND;
 
 /// allows you to indicate that the n field of ncvisual_options refers not to
