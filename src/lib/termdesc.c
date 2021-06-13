@@ -241,13 +241,13 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
       fprintf(stderr, "Couldn't preserve terminal state for %d (%s)\n", fd, strerror(errno));
       return -1;
     }
-  }
-  ti->utf8 = utf8;
-  if(!nocbreak){
+    // enter cbreak mode regardless of user preference until we've performed
+    // terminal interrogation. at that point, we might restore original mode.
     if(cbreak_mode(fd, &ti->tpreserved)){
       return -1;
     }
   }
+  ti->utf8 = utf8;
   // allow the "rgb" boolean terminfo capability, a COLORTERM environment
   // variable of either "truecolor" or "24bit", or unconditionally enable it
   // for several terminals known to always support 8bpc rgb setaf/setab.
@@ -404,6 +404,11 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
   // registers. we make use of no more than 256.
   if(ti->color_registers >= 64){
     setup_sixel_bitmaps(ti);
+  }
+  if(!nocbreak){
+    if(tcsetattr(fd, TCSANOW, &ti->tpreserved)){
+      return -1;
+    }
   }
   if(apply_term_heuristics(ti, termname, fd)){
     goto err;
