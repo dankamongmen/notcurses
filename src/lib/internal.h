@@ -944,7 +944,7 @@ clamp_to_sixelmax(const tinfo* t, int* y, int* x, int* outy, ncscale_e scaling){
   *outy = *y;
   if(*outy % t->sprixel_scale_height){
     *outy += t->sprixel_scale_height - (*outy % t->sprixel_scale_height);
-    while(*outy > t->sixel_maxy){
+    while(t->sixel_maxy && *outy > t->sixel_maxy){
       *outy -= t->sprixel_scale_height;
     }
     if(scaling == NCSCALE_STRETCH || *y > *outy){
