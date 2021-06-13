@@ -24,5 +24,6 @@ button is held down.
 
 # SEE ALSO
 
+**tack(1)**,
 **notcurses(3)**,
 **notcurses_input(3)**

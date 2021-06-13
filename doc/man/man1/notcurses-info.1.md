@@ -31,5 +31,6 @@ and the installed **terminfo(5)** databases.
 
 # SEE ALSO
 
+**tack(1)**,
 **notcurses(3)**,
 **terminfo(5)**
