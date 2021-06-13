@@ -24,8 +24,8 @@ fn main() -> NcResult<()> {
     // print visual delimiters around our pixelized cell
     println!("0▗│▖\n│─ ─\n2▝│▘");
     println!("a cell is {}x{} pixels", pg.cell_y, pg.cell_x);
-    println!("\ninterpolated  not-interpolated");
-    println!("   SCALE          SCALE        INFLATE      RESIZE");
+    println!("\ninterpolated  not-interpolated  interpolated  not-interpolated");
+    println!("   SCALE          SCALE             RESIZE        RESIZE");
 
     // fill the buffer with random color pixels
     let mut rng = rand::thread_rng();
@@ -82,9 +82,9 @@ fn main() -> NcResult<()> {
     v1.render(&mut nc, &voptions3)?;
     rsleep![&mut nc, 1];
 
-    // inflate the ncvisual (doesn't use interpolation)
+    // resize the ncvisual (doesn't use interpolation)
     let voptions4 =
-        NcVisualOptions::without_plane(7, 33, 0, 0, pg.cell_y, pg.cell_x, NCBLIT_PIXEL, 0, 0);
+        NcVisualOptions::without_plane(7, 37, 0, 0, pg.cell_y, pg.cell_x, NCBLIT_PIXEL, 0, 0);
     v1.resize_noninterpolative(pg.cell_y * 4, pg.cell_x * 4)?;
     v1.render(&mut nc, &voptions4)?;
     rsleep![&mut nc, 1];
@@ -92,34 +92,15 @@ fn main() -> NcResult<()> {
     // resize the ncvisual (uses interpolation)
     let v5 = NcVisual::from_rgba(buffer.as_slice(), pg.cell_y, pg.cell_x * 4, pg.cell_x)?;
     let voptions5 =
-        NcVisualOptions::without_plane(7, 45, 0, 0, pg.cell_y, pg.cell_x, NCBLIT_PIXEL, 0, 0);
+        NcVisualOptions::without_plane(7, 51, 0, 0, pg.cell_y, pg.cell_x, NCBLIT_PIXEL, 0, 0);
     v5.resize(18 * 4, 9 * 4)?; // FIXME: render function fails when downsizing (y<18 | x<9)
     v5.render(&mut nc, &voptions5)?;
     rsleep![&mut nc, 1];
 
-    // resize without interpolation
-    // WIP: should this substitute the inflate method?
-    // let v6 = NcVisual::from_rgba(buffer.as_slice(), pg.cell_y, pg.cell_x * 4, pg.cell_x)?;
-    // let voptions6 = NcVisualOptions::without_plane(
-    //     7,
-    //     54,
-    //     0,
-    //     0,
-    //     pg.cell_y,
-    //     pg.cell_x,
-    //     NCBLIT_PIXEL,
-    //     NCVISUAL_OPTION_NOINTERPOLATE,
-    //     0,
-    // );
-    // v6.resize(18 * 4, 9 * 4)?;
-    // v6.render(&mut nc, &voptions6)?;
-    // rsleep![&mut nc, 1];
-
-    sleep![3];
+    sleep![2];
 
     v1.destroy();
     v5.destroy();
-    // v6.destroy();
     nc.stop()?;
     Ok(())
 }

@@ -328,7 +328,7 @@ impl NcVisual {
         ]
     }
 
-    /// Renders the decoded frame to the specified [NcPlane].
+    /// Renders the decoded frame to the specified [`NcPlane`].
     ///
     /// See [`NcVisualOptions`].
     ///
@@ -349,7 +349,7 @@ impl NcVisual {
     /// This is a lossy transformation, unless the size is unchanged.
     ///
     /// *C style function: [ncvisual_resize()][crate::ncvisual_resize].*
-    pub fn resize(&mut self, cols: NcDim, rows: NcDim) -> NcResult<()> {
+    pub fn resize(&mut self, rows: NcDim, cols: NcDim) -> NcResult<()> {
         error![
             unsafe { crate::ncvisual_resize(self, rows as i32, cols as i32) },
             &format!["NcVisual.resize({}, {})", rows, cols]
@@ -363,7 +363,7 @@ impl NcVisual {
     ///
     /// *C style function:
     /// [ncvisual_resize_noninterpolative()][crate::ncvisual_resize_noninterpolative].*
-    pub fn resize_noninterpolative(&mut self, cols: NcDim, rows: NcDim) -> NcResult<NcIntResult> {
+    pub fn resize_noninterpolative(&mut self, rows: NcDim, cols: NcDim) -> NcResult<NcIntResult> {
         let res =
             unsafe { crate::ncvisual_resize_noninterpolative(self, rows as i32, cols as i32) };
         error![
