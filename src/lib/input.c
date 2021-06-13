@@ -624,10 +624,18 @@ typedef struct init_state {
     STATE_TDA,  // tertiary DA
     STATE_SDA,  // secondary DA (CSI > Pp ; Pv ; Pc c)
     STATE_DA,   // primary DA   (CSI ? ... c) OR XTSMGRAPHICS
-    STATE_DA_1, // got '1', could be XTSMGRAPHICS color registers or primary DA
+    STATE_DA_1, // got '1', XTSMGRAPHICS color registers or primary DA
+    STATE_DA_1_SEMI, // got '1;'
+    STATE_DA_1_0, // got '1;0', XTSMGRAPHICS color registers or VT101
     STATE_DA_6, // got '6', could be VT102 or VT220/VT320/VT420
     STATE_DA_DRAIN, // drain out the primary DA to 'c'
     STATE_SIXEL,// XTSMGRAPHICS about Sixel geometry (got '2')
+    STATE_SIXEL_SEMI1,   // got first semicolon in sixel geometry, want Ps
+    STATE_SIXEL_SUCCESS, // got Ps == 0, want second semicolon
+    STATE_SIXEL_WIDTH,   // reading maximum sixel width until ';'
+    STATE_SIXEL_HEIGHT,  // reading maximum sixel height until 'S'
+    STATE_SIXEL_CREGS,   // reading max color registers until 'S'
+    STATE_XTSMGRAPHICS_DRAIN, // drain out XTSMGRAPHICS to 'S'
   } state;
   bool xtgettcap_good;  // high when we've received DCS 1
 } init_state;
@@ -737,8 +745,33 @@ pump_control_read(init_state* inits, unsigned char c){
       if(c == 'c'){
         inits->state = STATE_NULL;
         return 1;
+      }else if(c == ';'){
+        inits->state = STATE_DA_1_SEMI;
+      }else{
+        // FIXME error?
       }
-      // FIXME
+      break;
+    case STATE_DA_1_SEMI:
+      if(c == '2'){ // VT100 with Advanced Video Option
+        inits->state = STATE_DA_DRAIN;
+      }else if(c == '0'){
+        inits->state = STATE_DA_1_0;
+      }
+      break;
+    case STATE_DA_1_0:
+      if(c == 'c'){ // VT101 with No Options
+        inits->state = STATE_NULL;
+      }else if(c == ';'){
+        inits->state = STATE_SIXEL_CREGS;
+      }else{
+        // FIXME error?
+      }
+      break;
+    case STATE_SIXEL_CREGS:
+      if(c == 'S'){
+        // FIXME extract color register count
+        inits->state = STATE_NULL;
+      }
       break;
     case STATE_DA_6:
       if(c == 'c'){
@@ -754,7 +787,42 @@ pump_control_read(init_state* inits, unsigned char c){
       }
       break;
     case STATE_SIXEL:
-      // FIXME
+      if(c == ';'){
+        inits->state = STATE_SIXEL_SEMI1;
+      }else{
+        // FIXME error?
+      }
+      break;
+    case STATE_SIXEL_SEMI1:
+      if(c == '0'){
+        inits->state = STATE_SIXEL_SUCCESS;
+      }else{
+        // FIXME error?
+      }
+      break;
+    case STATE_SIXEL_SUCCESS:
+      if(c == ';'){
+        inits->state = STATE_SIXEL_WIDTH;
+      }else{
+        // FIXME error?
+      }
+      break;
+    case STATE_SIXEL_WIDTH:
+      if(c == ';'){
+        // FIXME extract width
+        inits->state = STATE_SIXEL_HEIGHT;
+      }
+      break;
+    case STATE_SIXEL_HEIGHT:
+      if(c == 'S'){
+        // FIXME extract height
+        inits->state = STATE_NULL;
+      }
+      break;
+    case STATE_XTSMGRAPHICS_DRAIN:
+      if(c == 'S'){
+        inits->state = STATE_NULL;
+      }
       break;
     default:
       fprintf(stderr, "Reached invalid init state %d\n", inits->state);
