@@ -902,7 +902,7 @@ control_read(tinfo* tcache, int ttyfd){
     }
   }
 err:
-  fprintf(stderr, "failed on %d (%s)\n", ttyfd, strerror(errno));
+  fprintf(stderr, "Reading control replies failed on %d (%s)\n", ttyfd, strerror(errno));
   free(buf);
   return -1;
 }
@@ -920,9 +920,12 @@ int ncinputlayer_init(tinfo* tcache, FILE* infp){
   nilayer->inputbuf_valid_starts = 0;
   nilayer->inputbuf_write_at = 0;
   nilayer->input_events = 0;
-  if(control_read(tcache, nilayer->ttyfd >= 0 ? nilayer->ttyfd : nilayer->infd)){
-    input_free_esctrie(&nilayer->inputescapes);
-    return -1;
+  int csifd = nilayer->ttyfd >= 0 ? nilayer->ttyfd : nilayer->infd;
+  if(isatty(csifd)){
+    if(control_read(tcache, csifd)){
+      input_free_esctrie(&nilayer->inputescapes);
+      return -1;
+    }
   }
   return 0;
 }
