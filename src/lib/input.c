@@ -610,6 +610,86 @@ void ncinputlayer_stop(ncinputlayer* nilayer){
   input_free_esctrie(&nilayer->inputescapes);
 }
 
+typedef struct init_state {
+  tinfo* tcache;
+  enum {
+    STATE_NULL,
+    STATE_ESC,
+    STATE_CSI,
+    STATE_DCS,
+    STATE_DA,
+  } state;
+} init_state;
+
+// FIXME ought implement the full Williams automaton
+// returns 1 after handling the Device Attributes response, 0 if more input
+// ought be fed to the machine, and -1 on an invalid state transition.
+static int
+pump_control_read(init_state* inits, unsigned char c){
+  fprintf(stderr, "char: %c %d %02x\n", c, c, c);
+  if(c == NCKEY_ESC){
+    if(inits->state != STATE_NULL){
+      fprintf(stderr, "Unexpected escape in state %d\n", inits->state);
+    }
+    inits->state = STATE_ESC;
+    return 0;
+  }
+  switch(inits->state){
+    case STATE_NULL:
+      // not an escape -- throw into user queue
+      break;
+    case STATE_ESC:
+      if(c == '['){
+        inits->state = STATE_CSI;
+      }else if(c == 'P'){
+        inits->state = STATE_DCS;
+      }
+      break;
+    case STATE_CSI:
+      if(c == '?'){
+        inits->state = STATE_DA;
+      }
+      break;
+    case STATE_DA:
+      if(c == 'c'){
+        inits->state = STATE_NULL;
+        return 1;
+      }
+      break;
+    default:
+      fprintf(stderr, "Reached invalid init state %d\n", inits->state);
+      return -1;
+  }
+  return 0;
+}
+
+// complete the terminal detection process
+static int
+control_read(tinfo* tcache, int ttyfd){
+  init_state inits = {
+    .tcache = tcache,
+    .state = STATE_NULL,
+  };
+  unsigned char* buf;
+  ssize_t s;
+
+  if((buf = malloc(BUFSIZ)) == NULL){
+    return -1;
+  }
+  while((s = read(ttyfd, buf, sizeof(buf))) != -1){
+    for(ssize_t idx = 0; idx < s ; ++idx){
+      if(pump_control_read(&inits, buf[idx]) == 1){ // success!
+        free(buf);
+        return 0;
+      }
+    }
+  }
+  fprintf(stderr, "failed on %d (%s)\n", ttyfd, strerror(errno));
+  free(buf);
+  return -1;
+}
+    // FIXME complete terminal detection
+
 int ncinputlayer_init(tinfo* tcache, FILE* infp){
   ncinputlayer* nilayer = &tcache->input;
   setbuffer(infp, NULL, 0);
@@ -623,8 +703,6 @@ int ncinputlayer_init(tinfo* tcache, FILE* infp){
   nilayer->inputbuf_valid_starts = 0;
   nilayer->inputbuf_write_at = 0;
   nilayer->input_events = 0;
-  if(nilayer->ttyfd >= 0){
-    // FIXME complete terminal detection
-  }
+  control_read(tcache, nilayer->ttyfd >= 0 ? nilayer->ttyfd : nilayer->infd);
   return 0;
 }
