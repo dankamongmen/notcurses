@@ -665,11 +665,11 @@ ruts_numeric(int* numeric, unsigned char c){
 // ought be fed to the machine, and -1 on an invalid state transition.
 static int
 pump_control_read(init_state* inits, unsigned char c){
-  fprintf(stderr, "state: %2d char: %1c %3d %02x\n", inits->state, isprint(c) ? c : ' ', c, c);
+//fprintf(stderr, "state: %2d char: %1c %3d %02x\n", inits->state, isprint(c) ? c : ' ', c, c);
   if(c == NCKEY_ESC){
-    if(inits->state != STATE_NULL && inits->state != STATE_DCS && inits->state != STATE_DCS_DRAIN && inits->state != STATE_XTVERSION2 && inits->state != STATE_XTGETTCAP3 && inits->state != STATE_DA_DRAIN){
+    /*if(inits->state != STATE_NULL && inits->state != STATE_DCS && inits->state != STATE_DCS_DRAIN && inits->state != STATE_XTVERSION2 && inits->state != STATE_XTGETTCAP3 && inits->state != STATE_DA_DRAIN){
       fprintf(stderr, "Unexpected escape in state %d\n", inits->state);
-    }
+    }*/
     inits->state = STATE_ESC;
     return 0;
   }
@@ -684,7 +684,7 @@ pump_control_read(init_state* inits, unsigned char c){
       }else if(c == 'P'){
         inits->state = STATE_DCS;
       }else if(c == '\\'){
-        fprintf(stderr, "string terminator -- parse previous response FIXME\n");
+//fprintf(stderr, "string terminator -- parse previous response FIXME\n");
         // FIXME only now do we parse e.g. XTGETTCAP response
         inits->state = STATE_NULL;
       }
