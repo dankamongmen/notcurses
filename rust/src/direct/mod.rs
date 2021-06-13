@@ -1,15 +1,15 @@
 //! `NcDirect`
 
-// total: 50
+// total: 53
 // ---------------------------------------------------
 // (X)  1 : wont do
+// (~)  3 : TODO / WIP
 //
 // (f) 45 : unsafe ffi function exported by bindgen
 // (w)  0 : safely wrapped ffi function
 // (r)  4 : static function manually reimplemented
 //
 // (m) 45 : method implemented
-// (~)  1 : work in progress
 //
 // (t)  0 : unit test done for the function
 // (T)  0 : unit test done also for the method
@@ -22,7 +22,7 @@
 // fm  ncdirect_canutf8
 // fm  ncdirect_check_pixel_support
 // fm  ncdirect_clear
-// f~  ncdirect_core_init
+//~f   ncdirect_core_init
 // fm  ncdirect_cursor_disable
 // fm  ncdirect_cursor_down
 // fm  ncdirect_cursor_enable
@@ -33,6 +33,7 @@
 // fm  ncdirect_cursor_right
 // fm  ncdirect_cursor_up
 // fm  ncdirect_cursor_yx
+//     ncdirect_detected_terminal
 // fm  ncdirect_dim_x
 // fm  ncdirect_dim_y
 // fm  ncdirect_double_box
@@ -41,9 +42,11 @@
 // fm  ncdirect_fg_rgb
 // fm  ncdirect_flush
 // fm  ncdirect_getc
+//~r   ncdirect_heavy_box,
 // fm  ncdirect_hline_interp
 // fm  ncdirect_init
 // fm  ncdirect_inputready_fd
+//~r   ncdirect_light_box,
 // fm  ncplane_on_styles
 // fm  ncplane_off_styles
 // fm  ncdirect_palette_size

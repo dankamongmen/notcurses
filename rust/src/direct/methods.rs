@@ -444,6 +444,13 @@ impl NcDirect {
         let x = unsafe { crate::ncdirect_dim_x(self) as NcDim };
         (y, x)
     }
+
+    /// Returns the name of the detected terminal.
+    ///
+    /// *C style function: [ncdirect_detected_terminal()][crate::ncdirect_detected_terminal].*
+    pub fn detected_terminal(&self) -> String {
+        rstring![crate::ncdirect_detected_terminal(self)].to_string()
+    }
 }
 
 /// ## NcDirect methods: I/O

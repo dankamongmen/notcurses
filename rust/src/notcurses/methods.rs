@@ -311,6 +311,13 @@ impl Notcurses {
         }
     }
 
+    /// Returns the name of the detected terminal.
+    ///
+    /// *C style function: [notcurses_detected_terminal()][crate::notcurses_detected_terminal].*
+    pub fn detected_terminal(&self) -> String {
+        rstring![crate::notcurses_detected_terminal(self)].to_string()
+    }
+
     /// Destroys all [NcPlane]s other than the stdplane.
     ///
     /// *C style function: [notcurses_drop_planes()][crate::notcurses_drop_planes].*

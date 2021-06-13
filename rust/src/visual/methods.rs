@@ -263,14 +263,6 @@ impl NcVisual {
         }
     }
 
-    /// Inflates each pixel in the image to 'scale'x'scale' pixels.
-    ///
-    /// The original color is retained.
-    pub fn inflate(&mut self, scale: u32) -> NcResult<NcIntResult> {
-        let res = unsafe { crate::ncvisual_inflate(self, scale as i32) };
-        error![res, &format!["NcVisual.inflate({})", scale], res]
-    }
-
     /// Gets the size and ratio of NcVisual pixels to output cells along the
     /// `y→to_y` and `x→to_x` axes.
     ///
@@ -352,15 +344,32 @@ impl NcVisual {
         ]
     }
 
-    /// Resizes the visual to `rows` X `columns` pixels.
+    /// Resizes the visual to `cols` X `rows` pixels.
     ///
     /// This is a lossy transformation, unless the size is unchanged.
     ///
     /// *C style function: [ncvisual_resize()][crate::ncvisual_resize].*
-    pub fn resize(&mut self, rows: NcDim, cols: NcDim) -> NcResult<()> {
+    pub fn resize(&mut self, cols: NcDim, rows: NcDim) -> NcResult<()> {
         error![
             unsafe { crate::ncvisual_resize(self, rows as i32, cols as i32) },
             &format!["NcVisual.resize({}, {})", rows, cols]
+        ]
+    }
+
+    /// Resizes the visual to  in the image to `rows` X `cols` pixels, without
+    /// interpolating the color values.
+    ///
+    /// The original color is retained.
+    ///
+    /// *C style function:
+    /// [ncvisual_resize_noninterpolative()][crate::ncvisual_resize_noninterpolative].*
+    pub fn resize_noninterpolative(&mut self, cols: NcDim, rows: NcDim) -> NcResult<NcIntResult> {
+        let res =
+            unsafe { crate::ncvisual_resize_noninterpolative(self, rows as i32, cols as i32) };
+        error![
+            res,
+            &format!["NcVisual.resize_noninterpolative({}, {})", cols, rows],
+            res
         ]
     }
 

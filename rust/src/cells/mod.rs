@@ -13,7 +13,7 @@
 //W  nccell_duplicate
 //W  nccell_release
 //
-// functions manually reimplemented: 43
+// functions manually reimplemented: 46
 // ------------------------------------------
 // (X) wont:  2
 // (+) done: 38
@@ -61,6 +61,9 @@
 //W+ nccell_wide_left_p
 //W+ nccell_wide_right_p
 //W+ nccellcmp
+//   nccells_ascii_box
+//   nccells_heavy_box
+//   nccells_light_box
 //W+ nccells_load_box
 
 #[cfg(test)]

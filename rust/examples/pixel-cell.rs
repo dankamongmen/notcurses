@@ -85,7 +85,7 @@ fn main() -> NcResult<()> {
     // inflate the ncvisual (doesn't use interpolation)
     let voptions4 =
         NcVisualOptions::without_plane(7, 33, 0, 0, pg.cell_y, pg.cell_x, NCBLIT_PIXEL, 0, 0);
-    v1.inflate(4)?;
+    v1.resize_noninterpolative(pg.cell_y * 4, pg.cell_x * 4)?;
     v1.render(&mut nc, &voptions4)?;
     rsleep![&mut nc, 1];
 
