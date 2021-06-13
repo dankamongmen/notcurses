@@ -578,7 +578,6 @@ display_thread(void* vmarshal){
   struct marshal* m = vmarshal;
   drawpalette(m->nc);
   if(ncdirect_canopen_images(m->nc)){
-    ncdirect_check_pixel_support(m->nc);
     if(m->logo){
       if(ncdirect_render_image(m->nc, m->logo, NCALIGN_CENTER,
                                NCBLIT_PIXEL, NCSCALE_SCALE_HIRES) == 0){

@@ -363,10 +363,7 @@ plane when scrolling is enabled).
 return the size of the plane in pixels. **celldimy** and **celldimx** return
 the size of a cell in pixels (these ought be the same across planes).
 **maxbmapy** and **maxbmapx** describe the largest bitmap which can be
-displayed in the plane. This function transitively calls
-**notcurses_check_pixel_support**, possibly leading to terminal interrogation
-(see **notcurses_capabilities(3)** for why this may be undesirable). Any
-parameter (save **n**) may be **NULL**.
+displayed in the plane. Any parameter (save **n**) may be **NULL**.
 
 When a plane is blitted to using **ncvisual_render** and **NCBLIT_PIXEL** (see
 **notcurses_visual(3)**), it ceases to accept cell-based output. The sprixel

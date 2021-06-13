@@ -87,8 +87,7 @@ quadrants and halfblocks, respectively. **notcurses_canbraille** returns
 these functions return **true** unless UTF-8 encoding is in use.
 
 **notcurses_check_pixel_support** returns 1 if bitmap support (via any
-mechanism) is detected; **NCBLIT_PIXEL** can be used after such a return.
-It returns 0 a lack of bitmap support was confirmed, and -1 on error.
+mechanism) has been detected, and otherwise 0.
 
 # NOTES
 
