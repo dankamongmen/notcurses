@@ -641,8 +641,23 @@ typedef struct init_state {
     STATE_SIXEL_CREGS,   // reading max color registers until 'S'
     STATE_XTSMGRAPHICS_DRAIN, // drain out XTSMGRAPHICS to 'S'
   } state;
+  int numeric;          // currently-lexed numeric
   bool xtgettcap_good;  // high when we've received DCS 1
 } init_state;
+
+static int
+ruts_numeric(int* numeric, unsigned char c){
+  if(!isdigit(c)){
+    return -1;
+  }
+  int digit = c - '0';
+  if(INT_MAX / 10 - digit < *numeric){ // would overflow
+    return -1;
+  }
+  *numeric *= 10;
+  *numeric += digit;
+  return 0;
+}
 
 // FIXME ought implement the full Williams automaton
 // FIXME doesn't handle 8-bit controls (would need convert UTF-8)
@@ -663,6 +678,7 @@ pump_control_read(init_state* inits, unsigned char c){
       // not an escape -- throw into user queue
       break;
     case STATE_ESC:
+      inits->numeric = 0;
       if(c == '['){
         inits->state = STATE_CSI;
       }else if(c == 'P'){
@@ -790,8 +806,11 @@ pump_control_read(init_state* inits, unsigned char c){
       break;
     case STATE_SIXEL_CREGS:
       if(c == 'S'){
-        // FIXME extract color register count
+fprintf(stderr, "%d color registers!\n", inits->numeric);
+        // FIXME set color register count
         inits->state = STATE_NULL;
+      }else if(ruts_numeric(&inits->numeric, c)){
+        return -1;
       }
       break;
     case STATE_DA_6:
@@ -832,14 +851,21 @@ pump_control_read(init_state* inits, unsigned char c){
       break;
     case STATE_SIXEL_WIDTH:
       if(c == ';'){
-        // FIXME extract width
+fprintf(stderr, "%d max sixel width!\n", inits->numeric);
+        // FIXME set width
         inits->state = STATE_SIXEL_HEIGHT;
+        inits->numeric = 0;
+      }else if(ruts_numeric(&inits->numeric, c)){
+        return -1;
       }
       break;
     case STATE_SIXEL_HEIGHT:
       if(c == 'S'){
-        // FIXME extract height
+fprintf(stderr, "%d max sixel height!\n", inits->numeric);
+        // FIXME set height
         inits->state = STATE_NULL;
+      }else if(ruts_numeric(&inits->numeric, c)){
+        return -1;
       }
       break;
     case STATE_XTSMGRAPHICS_DRAIN:
