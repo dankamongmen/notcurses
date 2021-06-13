@@ -806,8 +806,7 @@ pump_control_read(init_state* inits, unsigned char c){
       break;
     case STATE_SIXEL_CREGS:
       if(c == 'S'){
-fprintf(stderr, "%d color registers!\n", inits->numeric);
-        // FIXME set color register count
+        inits->tcache->color_registers = inits->numeric;
         inits->state = STATE_NULL;
       }else if(ruts_numeric(&inits->numeric, c)){
         return -1;
@@ -851,8 +850,7 @@ fprintf(stderr, "%d color registers!\n", inits->numeric);
       break;
     case STATE_SIXEL_WIDTH:
       if(c == ';'){
-fprintf(stderr, "%d max sixel width!\n", inits->numeric);
-        // FIXME set width
+        inits->tcache->sixel_maxx = inits->numeric;
         inits->state = STATE_SIXEL_HEIGHT;
         inits->numeric = 0;
       }else if(ruts_numeric(&inits->numeric, c)){
@@ -861,8 +859,7 @@ fprintf(stderr, "%d max sixel width!\n", inits->numeric);
       break;
     case STATE_SIXEL_HEIGHT:
       if(c == 'S'){
-fprintf(stderr, "%d max sixel height!\n", inits->numeric);
-        // FIXME set height
+        inits->tcache->sixel_maxy = inits->numeric;
         inits->state = STATE_NULL;
       }else if(ruts_numeric(&inits->numeric, c)){
         return -1;
