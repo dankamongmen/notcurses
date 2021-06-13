@@ -39,24 +39,27 @@ tinfo_debug_caps(const tinfo* ti, FILE* debugfp, int rows, int cols,
           capbool(ti->sextants), capbool(ti->braille),
           capbool(images), capbool(videos));
   if(ti->utf8){
-    fprintf(debugfp, "%s  Halves {%ls}   Quads {%ls} Light ⎧%.6ls%.3ls⎫ Heavy ⎧%.6ls%.3ls⎫\n", indent,
+    fprintf(debugfp, "%s  Halves {%ls}   Quads {%ls} Light ⎧%.6ls%.3ls⎫ Heavy ⎧%.6ls%.3ls⎫ ⎧█ ⎫ 🯰🯱\n", indent,
             get_blitter_egcs(NCBLIT_2x1), get_blitter_egcs(NCBLIT_2x2),
             NCBOXLIGHTW, NCBOXLIGHTW + 4,
             NCBOXHEAVYW, NCBOXHEAVYW + 4);
-    fprintf(debugfp, "%sSextants ⎧%.120ls⎫       ⎩%.6ls%.3ls⎭       ⎩%.6ls%.3ls⎭\n", indent,
+    fprintf(debugfp, "%sSextants ⎧%.120ls⎫       ⎩%.6ls%.3ls⎭       ⎩%.6ls%.3ls⎭ ⎪🮋▏⎪ 🯲🯳\n", indent,
             get_blitter_egcs(NCBLIT_3x2),
             NCBOXLIGHTW + 2, NCBOXLIGHTW + 5,
             NCBOXHEAVYW + 2, NCBOXHEAVYW + 5);
-    fprintf(debugfp, "%s         ⎩%ls⎭ Round ⎧%.6ls%.3ls⎫ Frame ⎧%.6ls%.3ls⎫\n", indent,
+    fprintf(debugfp, "%s         ⎩%ls⎭ Round ⎧%.6ls%.3ls⎫ Frame ⎧%.6ls%.3ls⎫ ⎪🮊▎⎪ 🯴🯵\n", indent,
             get_blitter_egcs(NCBLIT_3x2) + 32,
             NCBOXROUNDW, NCBOXROUNDW + 4,
             NCBOXDOUBLEW, NCBOXDOUBLEW + 4);
-    fprintf(debugfp, "%s Braille {%ls}             ⎩%.6ls%.3ls⎭       ⎩%.6ls%.3ls⎭\n", indent,
+    fprintf(debugfp, "%s Braille ⎡%.120ls⎤             ⎩%.6ls%.3ls⎭       ⎩%.6ls%.3ls⎭ ⎪🮉▍⎪ 🯶🯷\n", indent,
             get_blitter_egcs(NCBLIT_BRAILLE),
             NCBOXROUNDW + 2, NCBOXROUNDW + 5,
             NCBOXDOUBLEW + 2, NCBOXDOUBLEW + 5);
-    fprintf(debugfp, "%sLower ⅛s {%ls} Upper ⅛s {%s}\n", indent,
-            get_blitter_egcs(NCBLIT_8x1), " ▔🮂🮃▀🮄🮅🮆█");
+    fprintf(debugfp, "%s         ⎢%ls⎥                               ⎨▐▌⎬ 🯸🯹\n", indent, get_blitter_egcs(NCBLIT_BRAILLE)); // FIXME
+    fprintf(debugfp, "%s         ⎢%ls⎥                               ⎪🮈▋⎪\n", indent, get_blitter_egcs(NCBLIT_BRAILLE)); // FIXME
+    fprintf(debugfp, "%s         ⎣%ls⎦                               ⎪🮇▊⎪\n", indent, get_blitter_egcs(NCBLIT_BRAILLE)); // FIXME
+    fprintf(debugfp, "%s Vert ⅛s ⎛%ls⎞ ▔🭶🭷🭸🭹🭺🭻▁                                      ⎪▕▉⎪\n", indent, get_blitter_egcs(NCBLIT_8x1));
+    fprintf(debugfp, "%s         ⎝%s⎠                                               ⎩ █⎭\n", indent, "█🮆🮅🮄▀🮃🮂▔ ");
   }
   if(ti->bg_collides_default){
     fprintf(debugfp, "%sbackground of 0x%06lx is considered transparent\n", indent, ti->bg_collides_default & 0xfffffful);
