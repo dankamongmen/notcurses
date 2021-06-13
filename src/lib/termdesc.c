@@ -405,7 +405,7 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
   if(ti->color_registers >= 64){
     setup_sixel_bitmaps(ti);
   }
-  if(!nocbreak){
+  if(nocbreak){
     if(fd >= 0){
       if(tcsetattr(fd, TCSANOW, &ti->tpreserved)){
         ncinputlayer_stop(&ti->input);

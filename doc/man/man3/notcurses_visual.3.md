@@ -254,14 +254,6 @@ information.
 # PIXEL BLITTING
 
 Some terminals support pixel-based output via one of a number of protocols.
-Checking for bitmap support requires interrogating the terminal and reading a
-response. This takes time, and will never complete if the terminal doesn't
-respond. Notcurses will not do so without an explicit request from the client
-code. Before **NCBLIT_PIXEL** can be used, it is thus necessary to call
-**notcurses_check_pixel_support**. If this function has not successfully
-returned, attempts to use **NCBLIT_PIXEL** will fall back to cell-based
-blitting (or fail, if **NCVISUAL_OPTION_NODEGRADE** is used).
-
 **NCBLIT_PIXEL** has some stringent requirements on the type of planes it can
 be used with; it is usually best to let **ncvisual_render** create the backing
 plane by providing a **NULL** value for **n**. If you must bring your own

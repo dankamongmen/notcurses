@@ -2,6 +2,15 @@ This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
 * 2.3.5 (not yet released)
+  * Happy day! The terminal interrogation routines in the initialization code 
+    have been completely revamped. The first outcome of this is that Sixel
+    parameters are now opportunistically read at startup, and thus there is
+    no longer any need to call `notcurses_check_pixel_support()` before
+    using `NCBLIT_PIXEL`. If it's there, it'll be used; if not, it'll degrade
+    or fail. Indeed, this function will likely be removed for ABI3. The new
+    routines rely on the terminal answering the Send Device Attributes escape;
+    if it does not, Notcurses may refuse to start, or even hang. Please report
+    a bug if you run into this.
   * `CELL_ALPHA_*` macros are now `NCALPHA_*`. The former will remain
     `#define`d until ABI3.
 

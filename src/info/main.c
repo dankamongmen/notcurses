@@ -37,7 +37,6 @@ int main(void){
   if(nc == NULL){
     return EXIT_FAILURE;
   }
-  notcurses_check_pixel_support(nc);
   notcurses_debug_caps(nc, mstream);
   if(fclose(mstream)){
     notcurses_stop(nc);

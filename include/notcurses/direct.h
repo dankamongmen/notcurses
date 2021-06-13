@@ -246,9 +246,7 @@ API bool ncdirect_canopen_images(const struct ncdirect* n)
 API bool ncdirect_canutf8(const struct ncdirect* n)
   __attribute__ ((nonnull (1)));
 
-// This function must successfully return before NCBLIT_PIXEL is available.
-// Returns -1 on error, 0 for no support, or 1 if pixel output is supported.
-// Must not be called concurrently with either input or rasterization.
+// Can we blit pixel-accurate bitmaps?
 API int ncdirect_check_pixel_support(struct ncdirect* n)
   __attribute__ ((nonnull (1)));
 

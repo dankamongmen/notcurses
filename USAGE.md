@@ -942,10 +942,8 @@ ncplane_dim_x(const struct ncplane* n){
 
 // Retrieve pixel geometry for the display region ('pxy', 'pxx'), each cell
 // ('celldimy', 'celldimx'), and the maximum displayable bitmap ('maxbmapy',
-// 'maxbmapx'). Note that this will call notcurses_check_pixel_support(),
-// possibly leading to an interrogation of the terminal. If bitmaps are not
-// supported, 'maxbmapy' and 'maxbmapx' will be 0. Any of the geometry
-// arguments may be NULL.
+// 'maxbmapx'). If bitmaps are not supported, 'maxbmapy' and 'maxbmapx' will
+// be 0. Any of the geometry arguments may be NULL.
 void ncplane_pixelgeom(struct ncplane* n, int* restrict pxy, int* restrict pxx,
                        int* restrict celldimy, int* restrict celldimx,
                        int* restrict maxbmapy, int* restrict maxbmapx);
