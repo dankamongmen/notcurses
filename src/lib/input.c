@@ -733,6 +733,29 @@ pump_control_read(init_state* inits, unsigned char c){
         return 1;
       }
       break;
+    case STATE_DA_1:
+      if(c == 'c'){
+        inits->state = STATE_NULL;
+        return 1;
+      }
+      // FIXME
+      break;
+    case STATE_DA_6:
+      if(c == 'c'){
+        inits->state = STATE_NULL;
+        return 1;
+      }
+      // FIXME
+      break;
+    case STATE_DA_DRAIN:
+      if(c == 'c'){
+        inits->state = STATE_NULL;
+        return 1;
+      }
+      break;
+    case STATE_SIXEL:
+      // FIXME
+      break;
     default:
       fprintf(stderr, "Reached invalid init state %d\n", inits->state);
       return -1;
