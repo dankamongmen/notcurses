@@ -623,19 +623,24 @@ typedef struct init_state {
     STATE_XTGETTCAP3, // XTGETTCAP, got 'r' (DCS 0/1 + r Pt ST)
     STATE_TDA,  // tertiary DA
     STATE_SDA,  // secondary DA (CSI > Pp ; Pv ; Pc c)
-    STATE_DA,   // primary DA   (CSI ? ... c)
+    STATE_DA,   // primary DA   (CSI ? ... c) OR XTSMGRAPHICS
+    STATE_DA_1, // got '1', could be XTSMGRAPHICS color registers or primary DA
+    STATE_DA_6, // got '6', could be VT102 or VT220/VT320/VT420
+    STATE_DA_DRAIN, // drain out the primary DA to 'c'
+    STATE_SIXEL,// XTSMGRAPHICS about Sixel geometry (got '2')
   } state;
   bool xtgettcap_good;  // high when we've received DCS 1
 } init_state;
 
 // FIXME ought implement the full Williams automaton
+// FIXME doesn't handle 8-bit controls (would need convert UTF-8)
 // returns 1 after handling the Device Attributes response, 0 if more input
 // ought be fed to the machine, and -1 on an invalid state transition.
 static int
 pump_control_read(init_state* inits, unsigned char c){
   fprintf(stderr, "state: %2d char: %1c %3d %02x\n", inits->state, isprint(c) ? c : ' ', c, c);
   if(c == NCKEY_ESC){
-    if(inits->state != STATE_NULL){
+    if(inits->state != STATE_NULL && inits->state != STATE_XTGETTCAP3){
       fprintf(stderr, "Unexpected escape in state %d\n", inits->state);
     }
     inits->state = STATE_ESC;
@@ -650,6 +655,10 @@ pump_control_read(init_state* inits, unsigned char c){
         inits->state = STATE_CSI;
       }else if(c == 'P'){
         inits->state = STATE_DCS;
+      }else if(c == '\\'){
+        fprintf(stderr, "string terminator -- parse previous response FIXME\n");
+        // FIXME only now do we parse e.g. XTGETTCAP response
+        inits->state = STATE_NULL;
       }
       break;
     case STATE_CSI: // terminated by 0x40--0x7E ('@'--'~')
@@ -688,12 +697,7 @@ pump_control_read(init_state* inits, unsigned char c){
       }
       break;
     case STATE_XTGETTCAP3:
-      if(c == '\\'){
-        // FIXME done, go parse if good
-        inits->state = STATE_NULL;
-      }else{
-        // FIXME feed to terminfo buffer
-      }
+      // FIXME feed to terminfo buffer
       break;
     case STATE_TDA:
       // FIXME
@@ -703,8 +707,28 @@ pump_control_read(init_state* inits, unsigned char c){
         inits->state = STATE_NULL;
       }
       break;
+    // primary device attributes and XTSMGRAPHICS replies are generally
+    // indistinguishable until well into the escape. one can get:
+    // XTSMGRAPHICS: CSI ? Pi ; Ps ; Pv S {Pi: 123} {Ps: 0123}
+    // DA: CSI ? 1 ; 2 c  ("VT100 with Advanced Video Option")
+    //     CSI ? 1 ; 0 c  ("VT101 with No Options")
+    //     CSI ? 4 ; 6 c  ("VT132 with Advanced Video and Graphics")
+    //     CSI ? 6 c  ("VT102")
+    //     CSI ? 7 c  ("VT131")
+    //     CSI ? 1 2 ; Ps c  ("VT125")
+    //     CSI ? 6 2 ; Ps c  ("VT220")
+    //     CSI ? 6 3 ; Ps c  ("VT320")
+    //     CSI ? 6 4 ; Ps c  ("VT420")
     case STATE_DA: // return success on end of DA
-      if(c == 'c'){
+      if(c == '1'){
+        inits->state = STATE_DA_1;
+      }else if(c == '2'){
+        inits->state = STATE_SIXEL;
+      }else if(c == '4' || c == '7'){ // VT132, VT131
+        inits->state = STATE_DA_DRAIN;
+      }else if(c == '6'){
+        inits->state = STATE_DA_6;
+      }else if(c == 'c'){
         inits->state = STATE_NULL;
         return 1;
       }
@@ -731,17 +755,20 @@ control_read(tinfo* tcache, int ttyfd){
   }
   while((s = read(ttyfd, buf, sizeof(buf))) != -1){
     for(ssize_t idx = 0; idx < s ; ++idx){
-      if(pump_control_read(&inits, buf[idx]) == 1){ // success!
+      int r = pump_control_read(&inits, buf[idx]);
+      if(r == 1){ // success!
         free(buf);
         return 0;
+      }else if(r < 0){
+        goto err;
       }
     }
   }
+err:
   fprintf(stderr, "failed on %d (%s)\n", ttyfd, strerror(errno));
   free(buf);
   return -1;
 }
-    // FIXME complete terminal detection
 
 int ncinputlayer_init(tinfo* tcache, FILE* infp){
   ncinputlayer* nilayer = &tcache->input;
@@ -756,6 +783,9 @@ int ncinputlayer_init(tinfo* tcache, FILE* infp){
   nilayer->inputbuf_valid_starts = 0;
   nilayer->inputbuf_write_at = 0;
   nilayer->input_events = 0;
-  control_read(tcache, nilayer->ttyfd >= 0 ? nilayer->ttyfd : nilayer->infd);
+  if(control_read(tcache, nilayer->ttyfd >= 0 ? nilayer->ttyfd : nilayer->infd)){
+    input_free_esctrie(&nilayer->inputescapes);
+    return -1;
+  }
   return 0;
 }
