@@ -614,11 +614,18 @@ typedef struct init_state {
   tinfo* tcache;
   enum {
     STATE_NULL,
-    STATE_ESC,
-    STATE_CSI,
-    STATE_DCS,
-    STATE_DA,
+    STATE_ESC,  // escape; aborts any active sequence
+    STATE_CSI,  // control sequence introducer
+    STATE_DCS,  // device control string
+    // XTGETTCAP replies with DCS 1 + r for a good request, or 0 + r for bad
+    STATE_XTGETTCAP1, // XTGETTCAP, got '0/1' (DCS 0/1 + r Pt ST)
+    STATE_XTGETTCAP2, // XTGETTCAP, got '+' (DCS 0/1 + r Pt ST)
+    STATE_XTGETTCAP3, // XTGETTCAP, got 'r' (DCS 0/1 + r Pt ST)
+    STATE_TDA,  // tertiary DA
+    STATE_SDA,  // secondary DA (CSI > Pp ; Pv ; Pc c)
+    STATE_DA,   // primary DA   (CSI ? ... c)
   } state;
+  bool xtgettcap_good;  // high when we've received DCS 1
 } init_state;
 
 // FIXME ought implement the full Williams automaton
@@ -626,7 +633,7 @@ typedef struct init_state {
 // ought be fed to the machine, and -1 on an invalid state transition.
 static int
 pump_control_read(init_state* inits, unsigned char c){
-  fprintf(stderr, "char: %c %d %02x\n", c, c, c);
+  fprintf(stderr, "state: %2d char: %1c %3d %02x\n", inits->state, isprint(c) ? c : ' ', c, c);
   if(c == NCKEY_ESC){
     if(inits->state != STATE_NULL){
       fprintf(stderr, "Unexpected escape in state %d\n", inits->state);
@@ -645,12 +652,58 @@ pump_control_read(init_state* inits, unsigned char c){
         inits->state = STATE_DCS;
       }
       break;
-    case STATE_CSI:
+    case STATE_CSI: // terminated by 0x40--0x7E ('@'--'~')
       if(c == '?'){
         inits->state = STATE_DA;
+      }else if(c == '>'){
+        inits->state = STATE_SDA;
+      }else if(c >= 0x40 && c <= 0x7E){
+        inits->state = STATE_NULL;
       }
       break;
-    case STATE_DA:
+    case STATE_DCS: // terminated by ST
+      if(c == '\\'){
+        fprintf(stderr, "terminated DCS\n");
+        inits->state = STATE_NULL;
+      }else if(c == '1'){
+        inits->state = STATE_XTGETTCAP1;
+        inits->xtgettcap_good = true;
+      }else if(c == '0'){
+        inits->state = STATE_XTGETTCAP1;
+        inits->xtgettcap_good = false;
+      }
+      break;
+    case STATE_XTGETTCAP1:
+      if(c == '+'){
+        inits->state = STATE_XTGETTCAP2;
+      }else{
+        // FIXME malformed
+      }
+      break;
+    case STATE_XTGETTCAP2:
+      if(c == 'r'){
+        inits->state = STATE_XTGETTCAP3;
+      }else{
+        // FIXME malformed
+      }
+      break;
+    case STATE_XTGETTCAP3:
+      if(c == '\\'){
+        // FIXME done, go parse if good
+        inits->state = STATE_NULL;
+      }else{
+        // FIXME feed to terminfo buffer
+      }
+      break;
+    case STATE_TDA:
+      // FIXME
+      break;
+    case STATE_SDA:
+      if(c == 'c'){
+        inits->state = STATE_NULL;
+      }
+      break;
+    case STATE_DA: // return success on end of DA
       if(c == 'c'){
         inits->state = STATE_NULL;
         return 1;
