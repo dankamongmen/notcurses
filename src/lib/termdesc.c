@@ -398,7 +398,7 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
     }
   }
   if(ncinputlayer_init(ti, stdin)){
-    return -1;
+    goto err;
   }
   // our current sixel quantization algorithm requires at least 64 color
   // registers. we make use of no more than 256.
@@ -406,11 +406,15 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
     setup_sixel_bitmaps(ti);
   }
   if(!nocbreak){
-    if(tcsetattr(fd, TCSANOW, &ti->tpreserved)){
-      return -1;
+    if(fd >= 0){
+      if(tcsetattr(fd, TCSANOW, &ti->tpreserved)){
+        ncinputlayer_stop(&ti->input);
+        goto err;
+      }
     }
   }
   if(apply_term_heuristics(ti, termname, fd)){
+    ncinputlayer_stop(&ti->input);
     goto err;
   }
   return 0;
