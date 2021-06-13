@@ -617,6 +617,9 @@ typedef struct init_state {
     STATE_ESC,  // escape; aborts any active sequence
     STATE_CSI,  // control sequence introducer
     STATE_DCS,  // device control string
+    // XTVERSION replies with DCS > | ... ST
+    STATE_XTVERSION1,
+    STATE_XTVERSION2,
     // XTGETTCAP replies with DCS 1 + r for a good request, or 0 + r for bad
     STATE_XTGETTCAP1, // XTGETTCAP, got '0/1' (DCS 0/1 + r Pt ST)
     STATE_XTGETTCAP2, // XTGETTCAP, got '+' (DCS 0/1 + r Pt ST)
@@ -648,7 +651,7 @@ static int
 pump_control_read(init_state* inits, unsigned char c){
   fprintf(stderr, "state: %2d char: %1c %3d %02x\n", inits->state, isprint(c) ? c : ' ', c, c);
   if(c == NCKEY_ESC){
-    if(inits->state != STATE_NULL && inits->state != STATE_XTGETTCAP3){
+    if(inits->state != STATE_NULL && inits->state != STATE_DCS && inits->state != STATE_XTGETTCAP3){
       fprintf(stderr, "Unexpected escape in state %d\n", inits->state);
     }
     inits->state = STATE_ESC;
@@ -688,6 +691,17 @@ pump_control_read(init_state* inits, unsigned char c){
       }else if(c == '0'){
         inits->state = STATE_XTGETTCAP1;
         inits->xtgettcap_good = false;
+      }else if(c == '>'){
+        inits->state = STATE_XTVERSION1;
+      }else{
+        // FIXME error?
+      }
+      break;
+    case STATE_XTVERSION1:
+      if(c == '|'){
+        inits->state = STATE_XTVERSION2;
+      }else{
+        // FIXME error?
       }
       break;
     case STATE_XTGETTCAP1:
