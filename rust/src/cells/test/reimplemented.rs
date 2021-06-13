@@ -41,11 +41,11 @@ fn alpha() {
     assert_eq![0, crate::nccell_fg_alpha(&c1)];
     assert_eq![0, crate::nccell_bg_alpha(&c1)];
 
-    crate::nccell_set_fg_alpha(&mut c1, crate::NCNCALPHA_TRANSPARENT);
-    assert_eq![crate::NCNCALPHA_TRANSPARENT, crate::nccell_fg_alpha(&c1)];
+    crate::nccell_set_fg_alpha(&mut c1, crate::NCCELL_TRANSPARENT);
+    assert_eq![crate::NCCELL_TRANSPARENT, crate::nccell_fg_alpha(&c1)];
 
-    crate::nccell_set_bg_alpha(&mut c1, crate::NCNCALPHA_BLEND);
-    assert_eq![crate::NCNCALPHA_BLEND, crate::nccell_bg_alpha(&c1)];
+    crate::nccell_set_bg_alpha(&mut c1, crate::NCCELL_BLEND);
+    assert_eq![crate::NCCELL_BLEND, crate::nccell_bg_alpha(&c1)];
 }
 
 #[test]

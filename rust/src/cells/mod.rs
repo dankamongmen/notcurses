@@ -161,19 +161,19 @@ pub use reimplemented::*;
 /// have two bits of inverted alpha. The actual grapheme written to a cell is
 /// the topmost non-zero grapheme.
 ///
-/// - If its alpha is 00 ([`NCNCALPHA_OPAQUE`]) its foreground color is used unchanged.
+/// - If its alpha is 00 ([`NCCELL_OPAQUE`]) its foreground color is used unchanged.
 ///
-/// - If its alpha is 10 ([`NCNCALPHA_TRANSPARENT`]) its foreground color is derived
+/// - If its alpha is 10 ([`NCCELL_TRANSPARENT`]) its foreground color is derived
 ///   entirely from cells underneath it.
 ///
-/// - If its alpha is 01 ([`NCNCALPHA_BLEND`]) the result will be a composite.
+/// - If its alpha is 01 ([`NCCELL_BLEND`]) the result will be a composite.
 ///
 /// Likewise for the background. If the bottom of a coordinate's zbuffer is
 /// reached with a cumulative alpha of zero, the default is used. In this way,
 /// a terminal configured with transparent background can be supported through
 /// multiple occluding ncplanes.
 ///
-/// A foreground alpha of 11 ([`NCNCALPHA_HIGHCONTRAST`]) requests high-contrast
+/// A foreground alpha of 11 ([`NCCELL_HIGHCONTRAST`]) requests high-contrast
 /// text (relative to the computed background).
 /// A background alpha of 11 is currently forbidden.
 ///
@@ -206,21 +206,21 @@ use crate::{NcAlphaBits, NcChannel, NcPlane};
 /// [`NcAlphaBits`] bits indicating
 /// [`NcCell`]'s foreground or background color will be a composite between
 /// its color and the `NcCell`s' corresponding colors underneath it
-pub const NCNCALPHA_BLEND: u32 = crate::bindings::ffi::NCALPHA_BLEND;
+pub const NCCELL_BLEND: u32 = crate::bindings::ffi::NCALPHA_BLEND;
 
 /// [`NcAlphaBits`] bits indicating
 /// [`NcCell`]'s foreground color will be high-contrast (relative to the
 /// computed background). Background cannot be highcontrast
-pub const NCNCALPHA_HIGHCONTRAST: u32 = crate::bindings::ffi::NCALPHA_HIGHCONTRAST;
+pub const NCCELL_HIGHCONTRAST: u32 = crate::bindings::ffi::NCALPHA_HIGHCONTRAST;
 
 /// [`NcAlphaBits`] bits indicating
 /// [`NcCell`]'s foreground or background color is used unchanged
-pub const NCNCALPHA_OPAQUE: u32 = crate::bindings::ffi::NCALPHA_OPAQUE;
+pub const NCCELL_OPAQUE: u32 = crate::bindings::ffi::NCALPHA_OPAQUE;
 
 /// [`NcAlphaBits`] bits indicating
 /// [`NcCell`]'s foreground or background color is derived entirely from the
 /// `NcCell`s underneath it
-pub const NCNCALPHA_TRANSPARENT: u32 = crate::bindings::ffi::NCALPHA_TRANSPARENT;
+pub const NCCELL_TRANSPARENT: u32 = crate::bindings::ffi::NCALPHA_TRANSPARENT;
 
 /// If this bit is set, we are *not* using the default background color
 ///
