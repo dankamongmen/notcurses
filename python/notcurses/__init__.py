@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
-# Copyright 2020, 2021 igo95862
+# Copyright 2020 igo95862
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -40,7 +40,8 @@ __all__ = (
     'NcPlane', 'Notcurses',
 
     'ncchannel_alpha', 'ncchannel_b', 'ncchannel_default_p', 'ncchannel_g',
-    'ncchannel_palindex', 'ncchannel_palindex_p', 'ncchannel_r', 'ncchannel_rgb8',
+    'ncchannel_palindex', 'ncchannel_palindex_p', 'ncchannel_r',
+    'ncchannel_rgb8',
     'ncchannel_rgb_initializer', 'ncchannel_set', 'ncchannel_set_alpha',
     'ncchannel_set_default', 'ncchannel_set_palindex', 'ncchannel_set_rgb8',
     'ncchannel_set_rgb8_clipped', 'ncchannels_bchannel', 'ncchannels_bg_alpha',
