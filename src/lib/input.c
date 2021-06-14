@@ -1023,7 +1023,7 @@ pump_control_read(init_state* inits, unsigned char c){
 
 // complete the terminal detection process
 static int
-control_read(tinfo* tcache, int ttyfd){
+control_read(tinfo* tcache, int ttyfd, queried_terminals_e* detected){
   init_state inits = {
     .tcache = tcache,
     .state = STATE_NULL,
@@ -1032,6 +1032,7 @@ control_read(tinfo* tcache, int ttyfd){
   unsigned char* buf;
   ssize_t s;
 
+  *detected = TERMINAL_UNKNOWN;
   if((buf = malloc(BUFSIZ)) == NULL){
     return -1;
   }
@@ -1040,6 +1041,7 @@ control_read(tinfo* tcache, int ttyfd){
       int r = pump_control_read(&inits, buf[idx]);
       if(r == 1){ // success!
         free(buf);
+        *detected = inits.qterm;
 //fprintf(stderr, "at end, derived terminal %d\n", inits.qterm);
         return 0;
       }else if(r < 0){
@@ -1053,7 +1055,7 @@ err:
   return -1;
 }
 
-int ncinputlayer_init(tinfo* tcache, FILE* infp){
+int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected){
   ncinputlayer* nilayer = &tcache->input;
   setbuffer(infp, NULL, 0);
   nilayer->inputescapes = NULL;
@@ -1068,7 +1070,7 @@ int ncinputlayer_init(tinfo* tcache, FILE* infp){
   nilayer->input_events = 0;
   int csifd = nilayer->ttyfd >= 0 ? nilayer->ttyfd : nilayer->infd;
   if(isatty(csifd)){
-    if(control_read(tcache, csifd)){
+    if(control_read(tcache, csifd, detected)){
       input_free_esctrie(&nilayer->inputescapes);
       return -1;
     }

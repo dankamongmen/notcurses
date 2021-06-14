@@ -1496,8 +1496,9 @@ cellcmp_and_dupfar(egcpool* dampool, nccell* damcell,
 // sets up the input layer, building a trie of escape sequences and their
 // nckey equivalents. if we are connected to a tty, this also completes the
 // terminal detection sequence (we ought have already written our initial
-// queries, ideally as early as possible).
-int ncinputlayer_init(tinfo* tcache, FILE* infp);
+// queries, ideally as early as possible). if we are able to determine the
+// terminal conclusively, it will be written to |detected|.
+int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected);
 
 void ncinputlayer_stop(ncinputlayer* nilayer);
 
