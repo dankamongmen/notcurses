@@ -890,7 +890,7 @@ control_read(tinfo* tcache, int ttyfd){
   if((buf = malloc(BUFSIZ)) == NULL){
     return -1;
   }
-  while((s = read(ttyfd, buf, sizeof(buf))) != -1){
+  while((s = read(ttyfd, buf, BUFSIZ)) != -1){
     for(ssize_t idx = 0; idx < s ; ++idx){
       int r = pump_control_read(&inits, buf[idx]);
       if(r == 1){ // success!
