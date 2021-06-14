@@ -45,7 +45,7 @@ tinfo_debug_caps(const tinfo* ti, FILE* debugfp, int rows, int cols,
             get_blitter_egcs(NCBLIT_2x1), get_blitter_egcs(NCBLIT_2x2),
             NCBOXLIGHTW, NCBOXLIGHTW + 4,
             NCBOXHEAVYW, NCBOXHEAVYW + 4);
-    fprintf(debugfp, "%ssextants ⎧%.120ls⎫       ⎩%.6ls%.3ls⎭       ⎩%.6ls%.3ls⎭ ⎪🮋▏⎪ 🯲🯳\n", indent,
+    fprintf(debugfp, "%ssextants ⎧%.122ls⎫       ⎩%.6ls%.3ls⎭       ⎩%.6ls%.3ls⎭ ⎪🮋▏⎪ 🯲🯳\n", indent,
             get_blitter_egcs(NCBLIT_3x2),
             NCBOXLIGHTW + 2, NCBOXLIGHTW + 5,
             NCBOXHEAVYW + 2, NCBOXHEAVYW + 5);
@@ -53,13 +53,16 @@ tinfo_debug_caps(const tinfo* ti, FILE* debugfp, int rows, int cols,
             get_blitter_egcs(NCBLIT_3x2) + 32,
             NCBOXROUNDW, NCBOXROUNDW + 4,
             NCBOXDOUBLEW, NCBOXDOUBLEW + 4);
-    fprintf(debugfp, "%s braille ⎡%.120ls⎤             ⎩%.6ls%.3ls⎭       ⎩%.6ls%.3ls⎭ ⎪🮉▍⎪ 🯶🯷\n", indent,
+    fprintf(debugfp, "%s braille ⎡%.96ls⎤      ⎩%.6ls%.3ls⎭       ⎩%.6ls%.3ls⎭ ⎪🮉▍⎪ 🯶🯷\n", indent,
             get_blitter_egcs(NCBLIT_BRAILLE),
             NCBOXROUNDW + 2, NCBOXROUNDW + 5,
             NCBOXDOUBLEW + 2, NCBOXDOUBLEW + 5);
-    fprintf(debugfp, "%s         ⎢%ls⎥                               ⎨▐▌⎬ 🯸🯹\n", indent, get_blitter_egcs(NCBLIT_BRAILLE)); // FIXME
-    fprintf(debugfp, "%s         ⎢%ls⎥                               ⎪🮈▋⎪\n", indent, get_blitter_egcs(NCBLIT_BRAILLE)); // FIXME
-    fprintf(debugfp, "%s         ⎣%ls⎦                               ⎪🮇▊⎪\n", indent, get_blitter_egcs(NCBLIT_BRAILLE)); // FIXME
+    fprintf(debugfp, "%s         ⎢%.96ls⎥                        ⎨▐▌⎬ 🯸🯹\n", indent,
+            get_blitter_egcs(NCBLIT_BRAILLE) + 32);
+    fprintf(debugfp, "%s         ⎢%.96ls⎥                        ⎪🮈▋⎪\n", indent,
+            get_blitter_egcs(NCBLIT_BRAILLE)); // FIXME
+    fprintf(debugfp, "%s         ⎣%.96ls⎦                        ⎪🮇▊⎪\n", indent,
+            get_blitter_egcs(NCBLIT_BRAILLE) + 32); // FIXME
     fprintf(debugfp, "%s vert ⅛s ⎛%ls⎞ ▔🭶🭷🭸🭹🭺🭻▁                                      ⎪▕▉⎪\n", indent, get_blitter_egcs(NCBLIT_8x1));
     fprintf(debugfp, "%s         ⎝%s⎠                                               ⎩ █⎭\n", indent, "█🮆🮅🮄▀🮃🮂▔ ");
   }
