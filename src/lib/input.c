@@ -720,6 +720,8 @@ fprintf(stderr, "string terminator after %d [%s]\n", inits->stringstate, inits->
       int xversion;
       if(sscanf(inits->runstring, "XTerm(%d)", &xversion) == 1){
         inits->qterm = TERMINAL_XTERM;
+      }else if(strncmp(inits->runstring, "WezTerm ", strlen("WezTerm ")) == 0){
+        inits->qterm = TERMINAL_WEZTERM;
       }
       break;
     }case STATE_XTGETTCAP_TERMNAME1:
