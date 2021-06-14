@@ -714,7 +714,7 @@ ruts_string(init_state* inits, initstates_e state){
 
 static int
 stash_string(init_state* inits){
-fprintf(stderr, "string terminator after %d [%s]\n", inits->stringstate, inits->runstring);
+//fprintf(stderr, "string terminator after %d [%s]\n", inits->stringstate, inits->runstring);
   switch(inits->stringstate){
     case STATE_XTVERSION1:{
       int xversion;
@@ -1040,7 +1040,7 @@ control_read(tinfo* tcache, int ttyfd){
       int r = pump_control_read(&inits, buf[idx]);
       if(r == 1){ // success!
         free(buf);
-fprintf(stderr, "at end, derived terminal %d\n", inits.qterm);
+//fprintf(stderr, "at end, derived terminal %d\n", inits.qterm);
         return 0;
       }else if(r < 0){
         goto err;
