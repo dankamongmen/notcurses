@@ -43,6 +43,16 @@ TEST_CASE("Direct") {
     }
   }
 
+  SUBCASE("SetUndercurl") {
+    unsigned styles = ncdirect_supported_styles(nc_);
+    if(styles & NCSTYLE_UNDERCURL){
+      CHECK(0 == ncdirect_set_styles(nc_, NCSTYLE_UNDERCURL));
+      printf("DirectMode *undercurl*!\n");
+      fflush(stdout);
+      CHECK(0 == ncdirect_off_styles(nc_, NCSTYLE_UNDERCURL));
+    }
+  }
+
   SUBCASE("SetStruck") {
     unsigned styles = ncdirect_supported_styles(nc_);
     if(styles & NCSTYLE_STRUCK){
