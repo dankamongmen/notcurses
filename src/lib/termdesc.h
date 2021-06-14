@@ -170,11 +170,11 @@ term_supported_styles(const tinfo* ti){
 enum queried_terminal {
   TERMINAL_UNKNOWN,       // no useful information from queries; use termname
   TERMINAL_LINUX,         // ioctl()s
-  TERMINAL_XTERM,
-  TERMINAL_VTE,
-  TERMINAL_ALACRITTY,
-  TERMINAL_KITTY,         // XTGETTCAP['TN']
+  TERMINAL_XTERM,         // XTVERSION == 'XTerm(ver)'
+  TERMINAL_VTE,           // TDA: "~VTE"
+  TERMINAL_KITTY,         // XTGETTCAP['TN'] == 'xterm-kitty'
   TERMINAL_FOOT,          // TDA: "\EP!|464f4f54\E\\"
+  TERMINAL_MLTERM,        // XTGETTCAP['TN'] == 'mlterm'
   TERMINAL_WEZTERM,
 };
 

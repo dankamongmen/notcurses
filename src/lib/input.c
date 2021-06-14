@@ -624,8 +624,12 @@ typedef struct init_state {
     STATE_XTGETTCAP1, // XTGETTCAP, got '0/1' (DCS 0/1 + r Pt ST)
     STATE_XTGETTCAP2, // XTGETTCAP, got '+' (DCS 0/1 + r Pt ST)
     STATE_XTGETTCAP3, // XTGETTCAP, got 'r' (DCS 0/1 + r Pt ST)
+    STATE_XTGETTCAP_TERMNAME1, // got property 544E, 'TN' (terminal name) first hex nibble
+    STATE_XTGETTCAP_TERMNAME2, // got property 544E, 'TN' (terminal name) second hex nibble
     STATE_DCS_DRAIN,  // throw away input until we hit escape
-    STATE_TDA,  // tertiary DA
+    STATE_TDA1, // tertiary DA, got '!'
+    STATE_TDA2, // tertiary DA, got '|', first hex nibble
+    STATE_TDA3, // tertiary DA, second hex nibble
     STATE_SDA,  // secondary DA (CSI > Pp ; Pv ; Pc c)
     STATE_DA,   // primary DA   (CSI ? ... c) OR XTSMGRAPHICS
     STATE_DA_1, // got '1', XTSMGRAPHICS color registers or primary DA
@@ -642,6 +646,8 @@ typedef struct init_state {
     STATE_XTSMGRAPHICS_DRAIN, // drain out XTSMGRAPHICS to 'S'
   } state;
   int numeric;          // currently-lexed numeric
+  char runstring[80];   // running string
+  size_t stridx;        // position to write in string
   bool xtgettcap_good;  // high when we've received DCS 1
 } init_state;
 
@@ -659,13 +665,54 @@ ruts_numeric(int* numeric, unsigned char c){
   return 0;
 }
 
+static int
+ruts_hex(int* numeric, unsigned char c){
+  if(!isxdigit(c)){
+    return -1;
+  }
+  int digit;
+  if(isdigit(c)){
+    digit = c - '0';
+  }else if(islower(c)){
+    digit = c - 'a' + 10;
+  }else if(isupper(c)){
+    digit = c - 'A' + 10;
+  }else{
+    return -1; // should be impossible to reach
+  }
+  if(INT_MAX / 10 - digit < *numeric){ // would overflow
+    return -1;
+  }
+  *numeric *= 16;
+  *numeric += digit;
+  return 0;
+}
+
+// add a decoded hex byte to the string
+static int
+ruts_string(init_state* inits){
+  if(inits->stridx == sizeof(inits->runstring)){
+    return -1; // overflow, too long
+  }
+  if(inits->numeric > 255){
+    return -1;
+  }
+  unsigned char c = inits->numeric;
+  if(!isprint(c)){
+    return -1;
+  }
+  inits->runstring[inits->stridx] = c;
+  inits->runstring[++inits->stridx] = '\0';
+  return 0;
+}
+
 // FIXME ought implement the full Williams automaton
 // FIXME doesn't handle 8-bit controls (would need convert UTF-8)
 // returns 1 after handling the Device Attributes response, 0 if more input
 // ought be fed to the machine, and -1 on an invalid state transition.
 static int
 pump_control_read(init_state* inits, unsigned char c){
-//fprintf(stderr, "state: %2d char: %1c %3d %02x\n", inits->state, isprint(c) ? c : ' ', c, c);
+fprintf(stderr, "state: %2d char: %1c %3d %02x\n", inits->state, isprint(c) ? c : ' ', c, c);
   if(c == NCKEY_ESC){
     /*if(inits->state != STATE_NULL && inits->state != STATE_DCS && inits->state != STATE_DCS_DRAIN && inits->state != STATE_XTVERSION2 && inits->state != STATE_XTGETTCAP3 && inits->state != STATE_DA_DRAIN){
       fprintf(stderr, "Unexpected escape in state %d\n", inits->state);
@@ -684,8 +731,7 @@ pump_control_read(init_state* inits, unsigned char c){
       }else if(c == 'P'){
         inits->state = STATE_DCS;
       }else if(c == '\\'){
-//fprintf(stderr, "string terminator -- parse previous response FIXME\n");
-        // FIXME only now do we parse e.g. XTGETTCAP response
+fprintf(stderr, "string terminator after [%s]\n", inits->runstring);
         inits->state = STATE_NULL;
       }
       break;
@@ -700,7 +746,7 @@ pump_control_read(init_state* inits, unsigned char c){
       break;
     case STATE_DCS: // terminated by ST
       if(c == '\\'){
-        fprintf(stderr, "terminated DCS\n");
+//fprintf(stderr, "terminated DCS\n");
         inits->state = STATE_NULL;
       }else if(c == '1'){
         inits->state = STATE_XTGETTCAP1;
@@ -710,6 +756,8 @@ pump_control_read(init_state* inits, unsigned char c){
         inits->xtgettcap_good = false;
       }else if(c == '>'){
         inits->state = STATE_XTVERSION1;
+      }else if(c == '!'){
+        inits->state = STATE_TDA1;
       }else{
         inits->state = STATE_DCS_DRAIN;
       }
@@ -720,12 +768,17 @@ pump_control_read(init_state* inits, unsigned char c){
     case STATE_XTVERSION1:
       if(c == '|'){
         inits->state = STATE_XTVERSION2;
+        inits->stridx = 0;
+        inits->runstring[0] = '\0';
       }else{
         // FIXME error?
       }
       break;
     case STATE_XTVERSION2:
-      // FIXME roll up string
+      inits->numeric = c;
+      if(ruts_string(inits)){
+        return -1;
+      }
       break;
     case STATE_XTGETTCAP1:
       if(c == '+'){
@@ -742,10 +795,59 @@ pump_control_read(init_state* inits, unsigned char c){
       }
       break;
     case STATE_XTGETTCAP3:
-      // FIXME feed to terminfo buffer
+      if(c == '='){
+        if(inits->numeric == 0x544e){
+          inits->state = STATE_XTGETTCAP_TERMNAME1;
+          inits->stridx = 0;
+          inits->numeric = 0;
+          inits->runstring[0] = '\0';
+        }else{
+          inits->state = STATE_DCS_DRAIN;
+        }
+      }else if(ruts_hex(&inits->numeric, c)){
+        return -1;
+      }
       break;
-    case STATE_TDA:
-      // FIXME
+    case STATE_XTGETTCAP_TERMNAME1:
+      if(ruts_hex(&inits->numeric, c)){
+        return -1;
+      }
+      inits->state = STATE_XTGETTCAP_TERMNAME2;
+      break;
+    case STATE_XTGETTCAP_TERMNAME2:
+      if(ruts_hex(&inits->numeric, c)){
+        return -1;
+      }
+      inits->state = STATE_XTGETTCAP_TERMNAME1;
+      if(ruts_string(inits)){
+        return -1;
+      }
+      inits->numeric = 0;
+      break;
+    case STATE_TDA1:
+      if(c == '|'){
+        inits->state = STATE_TDA2;
+        inits->stridx = 0;
+        inits->runstring[0] = '\0';
+      }else{
+        // FIXME
+      }
+      break;
+    case STATE_TDA2:
+      if(ruts_hex(&inits->numeric, c)){
+        return -1;
+      }
+      inits->state = STATE_TDA3;
+      break;
+    case STATE_TDA3:
+      if(ruts_hex(&inits->numeric, c)){
+        return -1;
+      }
+      inits->state = STATE_TDA2;
+      if(ruts_string(inits)){
+        inits->state = STATE_DCS_DRAIN;
+      }
+      inits->numeric = 0;
       break;
     case STATE_SDA:
       if(c == 'c'){
