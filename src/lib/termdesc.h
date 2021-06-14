@@ -167,7 +167,7 @@ term_supported_styles(const tinfo* ti){
 
 // if the terminal unambiguously identifies itself in response to our
 // queries, go ahead and trust that, overriding TERM.
-enum queried_terminal {
+typedef enum {
   TERMINAL_UNKNOWN,       // no useful information from queries; use termname
   TERMINAL_LINUX,         // ioctl()s
   TERMINAL_XTERM,         // XTVERSION == 'XTerm(ver)'
@@ -176,7 +176,7 @@ enum queried_terminal {
   TERMINAL_FOOT,          // TDA: "\EP!|464f4f54\E\\"
   TERMINAL_MLTERM,        // XTGETTCAP['TN'] == 'mlterm'
   TERMINAL_WEZTERM,
-};
+} queried_terminals_e;
 
 #ifdef __cplusplus
 }
