@@ -63,7 +63,7 @@ jobs:
           sudo make install
           sudo ldconfig
 
-      - name: python wrappers
+      - name: old python wrappers
         run: |
           python3 -m pip install --upgrade pip
           pip install pypandoc
@@ -79,3 +79,10 @@ jobs:
           rustc --version
           cargo build
           cargo t_all
+
+      - name: Build new python wrappers
+        run: |
+         cd python
+         python3 setup.py build
+         sudo python3 setup.py install
+         python3 examples/000-print-version.py
