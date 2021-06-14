@@ -176,6 +176,7 @@ typedef enum {
   TERMINAL_FOOT,          // TDA: "\EP!|464f4f54\E\\"
   TERMINAL_MLTERM,        // XTGETTCAP['TN'] == 'mlterm'
   TERMINAL_WEZTERM,
+  TERMINAL_ALACRITTY,     // can't be detected; match TERM
 } queried_terminals_e;
 
 #ifdef __cplusplus

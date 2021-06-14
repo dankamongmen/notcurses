@@ -74,15 +74,31 @@ terminfostr(char** gseq, const char* name){
   return 0;
 }
 
+// we couldn't get a terminal from interrogation, so let's see if the TERM
+// matches any of our known terminals. this can only be as accurate as the
+// TERM setting is (and as up-to-date and complete as we are).
+static int
+match_termname(const char* termname, queried_terminals_e* qterm){
+  if(strstr(termname, "alacritty")){
+    *qterm = TERMINAL_ALACRITTY;
+  }
+  return 0;
+}
+
 // Qui si convien lasciare ogne sospetto; ogne viltà convien che qui sia morta.
 static int
-apply_term_heuristics(tinfo* ti, const char* termname, int fd){
+apply_term_heuristics(tinfo* ti, const char* termname, int fd,
+                      queried_terminals_e qterm){
   if(!termname){
     // setupterm interprets a missing/empty TERM variable as the special value “unknown”.
     termname = "unknown";
   }
+  if(qterm == TERMINAL_UNKNOWN){
+    match_termname(termname, &qterm);
+  }
+  // st had neithersextants nor quadrants last i checked (0.8.4)
   ti->braille = true; // most everyone has working braille, even from fonts
-  if(strstr(termname, "kitty")){ // kitty (https://sw.kovidgoyal.net/kitty/)
+  if(qterm == TERMINAL_KITTY){ // kitty (https://sw.kovidgoyal.net/kitty/)
     termname = "Kitty";
     // see https://sw.kovidgoyal.net/kitty/protocol-extensions.html
     // FIXME detect the actual default background color; this assumes it to
@@ -92,45 +108,33 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd){
     ti->quadrants = true;
     ti->RGBflag = true;
     setup_kitty_bitmaps(ti, fd);
-  }else if(strstr(termname, "alacritty")){
+  }else if(qterm == TERMINAL_ALACRITTY){
     termname = "Alacritty";
     ti->quadrants = true;
     // ti->sextants = true; // alacritty https://github.com/alacritty/alacritty/issues/4409 */
     ti->RGBflag = true;
-  }else if(strstr(termname, "vte") || strstr(termname, "gnome") || strstr(termname, "xfce")){
+  }else if(qterm == TERMINAL_VTE){
     termname = "VTE";
-    ti->sextants = true; // VTE has long enjoyed good sextant support
     ti->quadrants = true;
-  }else if(strncmp(termname, "foot", 4) == 0){
+    ti->sextants = true; // VTE has long enjoyed good sextant support
+  }else if(qterm == TERMINAL_FOOT){
     termname = "foot";
     ti->sextants = true;
     ti->quadrants = true;
     ti->RGBflag = true;
-  }else if(strncmp(termname, "st", 2) == 0){
-    termname = "simple terminal";
-    // st had neithersextants nor quadrants last i checked (0.8.4)
-  }else if(strstr(termname, "mlterm")){
+  }else if(qterm == TERMINAL_MLTERM){
     termname = "MLterm";
     ti->quadrants = true; // good quadrants, no sextants as of 3.9.0
     ti->sprixel_cursor_hack = true;
-  }else if(strstr(termname, "xterm")){
-    // xterm has nothing beyond halfblocks. this is going to catch all kinds
-    // of people using xterm when they shouldn't be, or even real database
-    // entries like "xterm-kitty" (if we don't catch them above), giving a
-    // pretty minimal (but safe) experience. set your TERM correctly!
-    // wezterm wants a TERM of xterm-256color, and identifies itself based
-    // off TERM_PROGRAM and TERM_PROGRAM_VERSION.
-    const char* term_program = getenv("TERM_PROGRAM");
-    if(term_program && strcmp(term_program, "WezTerm") == 0){
-      termname = "WezTerm";
-      ti->quadrants = true;
-      const char* termver = getenv("TERM_PROGRAM_VERSION");
-      if(termver && strcmp(termver, "20210610") >= 0){
-        ti->sextants = true; // good sextants as of 2021-06-10
-      }
-    }else{
-      termname = "XTerm";
+  }else if(qterm == TERMINAL_WEZTERM){
+    termname = "WezTerm";
+    ti->quadrants = true;
+    const char* termver = getenv("TERM_PROGRAM_VERSION");
+    if(termver && strcmp(termver, "20210610") >= 0){
+      ti->sextants = true; // good sextants as of 2021-06-10
     }
+  }else if(qterm == TERMINAL_XTERM){
+    termname = "XTerm";
   }else if(strcmp(termname, "linux") == 0){
     termname = "Linux console";
     ti->braille = false; // no braille, no sextants in linux console
@@ -399,7 +403,8 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
       goto err;
     }
   }
-  if(ncinputlayer_init(ti, stdin)){
+  queried_terminals_e detected;
+  if(ncinputlayer_init(ti, stdin, &detected)){
     goto err;
   }
   // our current sixel quantization algorithm requires at least 64 color
@@ -415,7 +420,8 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
       }
     }
   }
-  if(apply_term_heuristics(ti, termname, fd)){
+//fprintf(stderr, "DETECTED TERM: %d\n", detected);
+  if(apply_term_heuristics(ti, termname, fd, detected)){
     ncinputlayer_stop(&ti->input);
     goto err;
   }
