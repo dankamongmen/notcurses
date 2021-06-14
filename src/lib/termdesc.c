@@ -136,7 +136,8 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd){
     ti->braille = false; // no braille, no sextants in linux console
     // FIXME if the NCOPTION_NO_FONT_CHANGES, this isn't true
     // FIXME we probably want to do this based off ioctl()s in linux.c
-    ti->quadrants = true; // we program quadrants on the console
+    // FIXME until #1726 is fixed this definitely is not happening
+    ti->quadrants = false; // we program quadrants on the console
   }
   // run a wcwidth(⣿) to guarantee libc Unicode 3 support, independent of term
   if(wcwidth(L'⣿') < 0){
