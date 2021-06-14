@@ -11,6 +11,13 @@ rearrangements of Notcurses.
     routines rely on the terminal answering the Send Device Attributes escape;
     if it does not, Notcurses may refuse to start, or even hang. Please report
     a bug if you run into this.
+
+    It is still necessary to supply a correct `TERM` environment variable,
+    because this is used to index into the `terminfo(5)` database, which
+    seeds most common escapes. The extended capabilities of some modern
+    terminals, however, will be retrieved independently of `TERM`; they'll
+    be made available for use if supported by the connected terminal, and
+    others will not, even if your `TERM` variable implies they ought.
   * `CELL_ALPHA_*` macros are now `NCALPHA_*`. The former will remain
     `#define`d until ABI3.
 
