@@ -732,7 +732,7 @@ fprintf(stderr, "string terminator after %d [%s]\n", inits->stringstate, inits->
     case STATE_TDA1:
       if(strcmp(inits->runstring, "~VTE") == 0){
         inits->qterm = TERMINAL_VTE;
-      }else if(strcmp(inits->runstring, "\x1bP!|464f4f54\x1b\\") == 0){
+      }else if(strcmp(inits->runstring, "FOOT") == 0){
         inits->qterm = TERMINAL_FOOT;
       }
       break;
