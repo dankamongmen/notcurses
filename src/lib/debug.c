@@ -11,6 +11,41 @@ capbool(bool cap){
 }
 
 static void
+tinfo_debug_uline(const tinfo* ti, FILE* debugfp){
+  const char* smul = get_escape(ti, ESCAPE_SMUL);
+  if(smul){
+    term_emit(smul, debugfp, false);
+  }
+  fprintf(debugfp, "uline");
+  if(smul){
+    const char* rmul = get_escape(ti, ESCAPE_RMUL);
+    term_emit(rmul, debugfp, false);
+  }
+}
+
+static void
+tinfo_debug_ucurl(const tinfo* ti, FILE* debugfp){
+  const char* smulx = get_escape(ti, ESCAPE_SMULX);
+  if(smulx){
+    term_emit(smulx, debugfp, false);
+  }
+  fprintf(debugfp, "ucurl");
+  if(smulx){
+    const char* smulnox = get_escape(ti, ESCAPE_SMULNOX);
+    term_emit(smulnox, debugfp, false);
+  }
+}
+
+static void
+tinfo_debug_styles(const tinfo* ti, FILE* debugfp, const char* indent){
+  fprintf(debugfp, "%s", indent);
+  tinfo_debug_ucurl(ti, debugfp);
+  fprintf(debugfp, " ");
+  tinfo_debug_uline(ti, debugfp);
+  fprintf(debugfp, "\n");
+}
+
+static void
 tinfo_debug_caps(const tinfo* ti, FILE* debugfp, int rows, int cols,
                  unsigned images, unsigned videos){
   const char indent[] = " ";
@@ -36,6 +71,7 @@ tinfo_debug_caps(const tinfo* ti, FILE* debugfp, int rows, int cols,
   }else{
     fprintf(debugfp, "%srgba pixel graphics supported\n", indent);
   }
+  tinfo_debug_styles(ti, debugfp, indent);
   fprintf(debugfp, "%sutf8: %c quad: %c sex: %c braille: %c images: %c videos: %c\n",
           indent, capbool(ti->caps.utf8), capbool(ti->caps.quadrants),
           capbool(ti->caps.sextants), capbool(ti->caps.braille),
