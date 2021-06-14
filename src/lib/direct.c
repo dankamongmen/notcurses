@@ -918,6 +918,11 @@ int ncdirect_on_styles(ncdirect* n, unsigned stylebits){
                      get_escape(&n->tcache, ESCAPE_RMXX))){
       return -1;
     }
+    if(term_setstyle(n->ttyfp, n->stylemask, stylemask, NCSTYLE_UNDERCURL,
+                     get_escape(&n->tcache, ESCAPE_SMULX),
+                     get_escape(&n->tcache, ESCAPE_RMXX))){
+      return -1;
+    }
     n->stylemask = stylemask;
     return 0;
   }
