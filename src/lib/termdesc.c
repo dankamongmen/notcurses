@@ -85,79 +85,6 @@ match_termname(const char* termname, queried_terminals_e* qterm){
   return 0;
 }
 
-// Qui si convien lasciare ogne sospetto; ogne viltà convien che qui sia morta.
-static int
-apply_term_heuristics(tinfo* ti, const char* termname, int fd,
-                      queried_terminals_e qterm){
-  if(!termname){
-    // setupterm interprets a missing/empty TERM variable as the special value “unknown”.
-    termname = "unknown";
-  }
-  if(qterm == TERMINAL_UNKNOWN){
-    match_termname(termname, &qterm);
-  }
-  // st had neithercaps.sextants nor caps.quadrants last i checked (0.8.4)
-  ti->caps.braille = true; // most everyone has working caps.braille, even from fonts
-  if(qterm == TERMINAL_KITTY){ // kitty (https://sw.kovidgoyal.net/kitty/)
-    termname = "Kitty";
-    // see https://sw.kovidgoyal.net/kitty/protocol-extensions.html
-    ti->bg_collides_default |= 0x1000000;
-    ti->caps.sextants = true; // work since bugfix in 0.19.3
-    ti->caps.quadrants = true;
-    ti->caps.rgb = true;
-    setup_kitty_bitmaps(ti, fd);
-  }else if(qterm == TERMINAL_ALACRITTY){
-    termname = "Alacritty";
-    ti->caps.quadrants = true;
-    // ti->caps.sextants = true; // alacritty https://github.com/alacritty/alacritty/issues/4409 */
-    ti->caps.rgb = true;
-  }else if(qterm == TERMINAL_VTE){
-    termname = "VTE";
-    ti->caps.quadrants = true;
-    ti->caps.sextants = true; // VTE has long enjoyed good sextant support
-  }else if(qterm == TERMINAL_FOOT){
-    termname = "foot";
-    ti->caps.sextants = true;
-    ti->caps.quadrants = true;
-    ti->caps.rgb = true;
-  }else if(qterm == TERMINAL_MLTERM){
-    termname = "MLterm";
-    ti->caps.quadrants = true; // good caps.quadrants, no caps.sextants as of 3.9.0
-    ti->sprixel_cursor_hack = true;
-  }else if(qterm == TERMINAL_WEZTERM){
-    termname = "WezTerm";
-    ti->caps.quadrants = true;
-    // FIXME get version from query
-    const char* termver = getenv("TERM_PROGRAM_VERSION");
-    if(termver && strcmp(termver, "20210610") >= 0){
-      ti->caps.sextants = true; // good caps.sextants as of 2021-06-10
-    }
-  }else if(qterm == TERMINAL_XTERM){
-    termname = "XTerm";
-  }else if(qterm == TERMINAL_CONTOUR){
-    termname = "Contour";
-    ti->caps.quadrants = true;
-    ti->caps.rgb = true;
-  }else if(strcmp(termname, "linux") == 0){
-    termname = "Linux console";
-    ti->caps.braille = false; // no caps.braille, no caps.sextants in linux console
-    // FIXME if the NCOPTION_NO_FONT_CHANGES, this isn't true
-    // FIXME we probably want to do this based off ioctl()s in linux.c
-    // FIXME until #1726 is fixed this definitely is not happening
-    ti->caps.quadrants = false; // we program caps.quadrants on the console
-  }
-  // run a wcwidth(⣿) to guarantee libc Unicode 3 support, independent of term
-  if(wcwidth(L'⣿') < 0){
-    ti->caps.braille = false;
-  }
-  // run a wcwidth(🬸) to guarantee libc Unicode 13 support, independent of term
-  if(wcwidth(L'🬸') < 0){
-    ti->caps.sextants = false;
-  }
-  ti->termname = termname;
-  return 0;
-}
-
 void free_terminfo_cache(tinfo* ti){
   free(ti->esctable);
   ncinputlayer_stop(&ti->input);
@@ -169,7 +96,13 @@ void free_terminfo_cache(tinfo* ti){
 static int
 grow_esc_table(tinfo* ti, const char* tstr, escape_e esc,
                size_t* tlen, size_t* tused){
-  if(*tused >= 65535){
+  if(*tused >= 65535){ // we only have 16 bits for the index
+    fprintf(stderr, "Can't add escape %d to full table\n", esc);
+    return -1;
+  }
+  if(ti->escindices[esc] > 0){
+    fprintf(stderr, "Already defined escape %d (%s)\n",
+            esc, get_escape(ti, esc));
     return -1;
   }
   size_t slen = strlen(tstr) + 1; // count the nul term
@@ -201,6 +134,97 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
   }else{
     ti->escindices[idx] = 0;
   }
+  return 0;
+}
+
+static int
+add_smulx_escapes(tinfo* ti, size_t* tablelen, size_t* tableused){
+  if(grow_esc_table(ti, "\x1b[4:3m", ESCAPE_SMULX, tablelen, tableused) ||
+     grow_esc_table(ti, "\x1b[4:0m", ESCAPE_SMULNOX, tablelen, tableused)){
+    return -1;
+  }
+  return 0;
+}
+
+// Qui si convien lasciare ogne sospetto; ogne viltà convien che qui sia morta.
+static int
+apply_term_heuristics(tinfo* ti, const char* termname, int fd,
+                      queried_terminals_e qterm,
+                      size_t* tablelen, size_t* tableused){
+  if(!termname){
+    // setupterm interprets a missing/empty TERM variable as the special value “unknown”.
+    termname = "unknown";
+  }
+  if(qterm == TERMINAL_UNKNOWN){
+    match_termname(termname, &qterm);
+  }
+  // st had neithercaps.sextants nor caps.quadrants last i checked (0.8.4)
+  ti->caps.braille = true; // most everyone has working caps.braille, even from fonts
+  if(qterm == TERMINAL_KITTY){ // kitty (https://sw.kovidgoyal.net/kitty/)
+    termname = "Kitty";
+    // see https://sw.kovidgoyal.net/kitty/protocol-extensions.html
+    ti->bg_collides_default |= 0x1000000;
+    ti->caps.sextants = true; // work since bugfix in 0.19.3
+    ti->caps.quadrants = true;
+    ti->caps.rgb = true;
+    setup_kitty_bitmaps(ti, fd);
+    if(add_smulx_escapes(ti, tablelen, tableused)){
+      return -1;
+    }
+  }else if(qterm == TERMINAL_ALACRITTY){
+    termname = "Alacritty";
+    ti->caps.quadrants = true;
+    // ti->caps.sextants = true; // alacritty https://github.com/alacritty/alacritty/issues/4409 */
+    ti->caps.rgb = true;
+  }else if(qterm == TERMINAL_VTE){
+    termname = "VTE";
+    ti->caps.quadrants = true;
+    ti->caps.sextants = true; // VTE has long enjoyed good sextant support
+  }else if(qterm == TERMINAL_FOOT){
+    termname = "foot";
+    ti->caps.sextants = true;
+    ti->caps.quadrants = true;
+    ti->caps.rgb = true;
+  }else if(qterm == TERMINAL_MLTERM){
+    termname = "MLterm";
+    ti->caps.quadrants = true; // good caps.quadrants, no caps.sextants as of 3.9.0
+    ti->sprixel_cursor_hack = true;
+  }else if(qterm == TERMINAL_WEZTERM){
+    termname = "WezTerm";
+    ti->caps.quadrants = true;
+    // FIXME get version from query
+    const char* termver = getenv("TERM_PROGRAM_VERSION");
+    if(termver && strcmp(termver, "20210610") >= 0){
+      ti->caps.sextants = true; // good caps.sextants as of 2021-06-10
+      if(add_smulx_escapes(ti, tablelen, tableused)){
+        return -1;
+      }
+    }else{
+      termname = "XTerm";
+    }
+  }else if(qterm == TERMINAL_XTERM){
+    termname = "XTerm";
+  }else if(qterm == TERMINAL_CONTOUR){
+    termname = "Contour";
+    ti->caps.quadrants = true;
+    ti->caps.rgb = true;
+  }else if(strcmp(termname, "linux") == 0){
+    termname = "Linux console";
+    ti->caps.braille = false; // no caps.braille, no caps.sextants in linux console
+    // FIXME if the NCOPTION_NO_FONT_CHANGES, this isn't true
+    // FIXME we probably want to do this based off ioctl()s in linux.c
+    // FIXME until #1726 is fixed this definitely is not happening
+    ti->caps.quadrants = false; // we program caps.quadrants on the console
+  }
+  // run a wcwidth(⣿) to guarantee libc Unicode 3 support, independent of term
+  if(wcwidth(L'⣿') < 0){
+    ti->caps.braille = false;
+  }
+  // run a wcwidth(🬸) to guarantee libc Unicode 13 support, independent of term
+  if(wcwidth(L'🬸') < 0){
+    ti->caps.sextants = false;
+  }
+  ti->termname = termname;
   return 0;
 }
 
@@ -305,6 +329,8 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
     { ESCAPE_SMKX, "smkx", },
     { ESCAPE_SMXX, "smxx", },
     { ESCAPE_RMXX, "rmxx", },
+    { ESCAPE_SMUL, "smul", },
+    { ESCAPE_RMUL, "rmul", },
     { ESCAPE_SC, "sc", },
     { ESCAPE_RC, "rc", },
     { ESCAPE_CLEAR, "clear", },
@@ -360,9 +386,9 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
   }
   // we don't actually use the bold capability -- we use sgr exclusively.
   // but we use the presence of the bold capability to determine whether
-  // we think sgr supports bold, which...might be valid? i'm unsure. futher,
-  // some terminals cannot combine certain styles with colors. don't
-  // advertise support for the style in that case.
+  // we think sgr supports bold, which...might be valid? i'm unsure.
+  // further, some terminals cannot combine certain styles with colors.
+  // don't advertise support for the style in that case.
   const struct style {
     unsigned s;        // NCSTYLE_* value
     const char* tinfo; // terminfo capability for conditional permit
@@ -377,7 +403,6 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
     { NCSTYLE_ITALIC, "sitm", A_ITALIC },
     { NCSTYLE_INVIS, "invis", A_INVIS },
     { NCSTYLE_PROTECT, "prot", A_PROTECT },
-    { NCSTYLE_STRUCK, "smxx", 0 },
     { 0, NULL, 0 }
   };
   int nocolor_stylemask = tigetnum("ncv");
@@ -434,8 +459,7 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
       }
     }
   }
-//fprintf(stderr, "DETECTED TERM: %d\n", detected);
-  if(apply_term_heuristics(ti, termname, fd, detected)){
+  if(apply_term_heuristics(ti, termname, fd, detected, &tablelen, &tableused)){
     ncinputlayer_stop(&ti->input);
     goto err;
   }

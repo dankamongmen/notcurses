@@ -49,6 +49,10 @@ typedef enum {
   ESCAPE_SMCUP,    // "smcup" enter alternate screen
   ESCAPE_RMCUP,    // "rmcup" leave alternate screen
   ESCAPE_SMXX,     // "smxx" start struckout
+  ESCAPE_SMUL,     // "smul" start underline
+  ESCAPE_RMUL,     // "rmul" end underline
+  ESCAPE_SMULX,    // "Smulx" deparameterized: start extended underline
+  ESCAPE_SMULNOX,  // "Smulx" deparameterized: kill underline
   ESCAPE_RMXX,     // "rmxx" end struckout
   ESCAPE_SC,       // "sc" push the cursor onto the stack
   ESCAPE_RC,       // "rc" pop the cursor off the stack

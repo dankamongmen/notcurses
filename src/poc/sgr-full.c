@@ -36,6 +36,8 @@ int main(void){
   ncplane_putstr_yx(n, y++, 0, "a ═ italic reverse");
   ncplane_set_styles(n, NCSTYLE_ITALIC | NCSTYLE_UNDERLINE);
   ncplane_putstr_yx(n, y++, 0, "a ═ italic underline");
+  ncplane_set_styles(n, NCSTYLE_ITALIC | NCSTYLE_UNDERCURL);
+  ncplane_putstr_yx(n, y++, 0, "a ═ italic undercurl");
   ncplane_set_styles(n, NCSTYLE_ITALIC | NCSTYLE_BLINK);
   ncplane_putstr_yx(n, y++, 0, "a ═ italic blink");
   ncplane_set_styles(n, NCSTYLE_ITALIC | NCSTYLE_STRUCK);
@@ -46,17 +48,24 @@ int main(void){
   ncplane_putstr_yx(n, y++, 0, "a ═ struck reverse");
   ncplane_set_styles(n, NCSTYLE_STRUCK | NCSTYLE_UNDERLINE);
   ncplane_putstr_yx(n, y++, 0, "a ═ struck underline");
+  ncplane_set_styles(n, NCSTYLE_STRUCK | NCSTYLE_UNDERCURL);
+  ncplane_putstr_yx(n, y++, 0, "a ═ struck undercurl");
   ncplane_set_styles(n, NCSTYLE_STRUCK | NCSTYLE_BLINK);
   ncplane_putstr_yx(n, y++, 0, "a ═ struck blink");
   ncplane_set_styles(n, NCSTYLE_BOLD | NCSTYLE_REVERSE);
   ncplane_putstr_yx(n, y++, 0, "a ═ bold reverse");
   ncplane_set_styles(n, NCSTYLE_BOLD | NCSTYLE_UNDERLINE);
   ncplane_putstr_yx(n, y++, 0, "a ═ bold underline");
+  ncplane_set_styles(n, NCSTYLE_BOLD | NCSTYLE_UNDERCURL);
+  ncplane_putstr_yx(n, y++, 0, "a ═ bold undercurl");
   ncplane_set_styles(n, NCSTYLE_BOLD | NCSTYLE_BLINK);
   ncplane_putstr_yx(n, y++, 0, "a ═ bold blink");
   ncplane_set_styles(n, NCSTYLE_BOLD | NCSTYLE_REVERSE | NCSTYLE_UNDERLINE |
                         NCSTYLE_BLINK | NCSTYLE_ITALIC | NCSTYLE_STRUCK);
   ncplane_putstr_yx(n, y++, 0, "a ═ whoomp! there it is");
+  ncplane_set_styles(n, NCSTYLE_BOLD | NCSTYLE_REVERSE | NCSTYLE_UNDERCURL |
+                        NCSTYLE_BLINK | NCSTYLE_ITALIC | NCSTYLE_STRUCK);
+  ncplane_putstr_yx(n, y++, 0, "a ═ whoomp! there it curls");
 
   ncplane_set_styles(n, NCSTYLE_NONE);
   if(notcurses_render(nc)){
