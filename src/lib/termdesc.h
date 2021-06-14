@@ -127,7 +127,7 @@ typedef struct tinfo {
   int (*pixel_shutdown)(int fd);  // called during context shutdown
   int (*pixel_clear_all)(int fd); // called during startup, kitty only
   int sprixel_scale_height; // sprixel must be a multiple of this many rows
-  const char* termname;     // determined terminal name
+  const char* termname;     // terminal name from environment variables/init
   struct termios tpreserved; // terminal state upon entry
   ncinputlayer input;       // input layer
   bool bitmap_supported;    // do we support bitmaps (post pixel_query_done)?
@@ -164,6 +164,19 @@ static inline int
 term_supported_styles(const tinfo* ti){
   return ti->supported_styles;
 }
+
+// if the terminal unambiguously identifies itself in response to our
+// queries, go ahead and trust that, overriding TERM.
+enum queried_terminal {
+  TERMINAL_UNKNOWN,       // no useful information from queries; use termname
+  TERMINAL_LINUX,         // ioctl()s
+  TERMINAL_XTERM,
+  TERMINAL_VTE,
+  TERMINAL_ALACRITTY,
+  TERMINAL_KITTY,         // XTGETTCAP['TN']
+  TERMINAL_FOOT,          // TDA: "\EP!|464f4f54\E\\"
+  TERMINAL_WEZTERM,
+};
 
 #ifdef __cplusplus
 }
