@@ -610,41 +610,46 @@ void ncinputlayer_stop(ncinputlayer* nilayer){
   input_free_esctrie(&nilayer->inputescapes);
 }
 
+typedef enum {
+  STATE_NULL,
+  STATE_ESC,  // escape; aborts any active sequence
+  STATE_CSI,  // control sequence introducer
+  STATE_DCS,  // device control string
+  // XTVERSION replies with DCS > | ... ST
+  STATE_XTVERSION1,
+  STATE_XTVERSION2,
+  // XTGETTCAP replies with DCS 1 + r for a good request, or 0 + r for bad
+  STATE_XTGETTCAP1, // XTGETTCAP, got '0/1' (DCS 0/1 + r Pt ST)
+  STATE_XTGETTCAP2, // XTGETTCAP, got '+' (DCS 0/1 + r Pt ST)
+  STATE_XTGETTCAP3, // XTGETTCAP, got 'r' (DCS 0/1 + r Pt ST)
+  STATE_XTGETTCAP_TERMNAME1, // got property 544E, 'TN' (terminal name) first hex nibble
+  STATE_XTGETTCAP_TERMNAME2, // got property 544E, 'TN' (terminal name) second hex nibble
+  STATE_DCS_DRAIN,  // throw away input until we hit escape
+  STATE_TDA1, // tertiary DA, got '!'
+  STATE_TDA2, // tertiary DA, got '|', first hex nibble
+  STATE_TDA3, // tertiary DA, second hex nibble
+  STATE_SDA,  // secondary DA (CSI > Pp ; Pv ; Pc c)
+  STATE_DA,   // primary DA   (CSI ? ... c) OR XTSMGRAPHICS
+  STATE_DA_1, // got '1', XTSMGRAPHICS color registers or primary DA
+  STATE_DA_1_SEMI, // got '1;'
+  STATE_DA_1_0, // got '1;0', XTSMGRAPHICS color registers or VT101
+  STATE_DA_6, // got '6', could be VT102 or VT220/VT320/VT420
+  STATE_DA_DRAIN, // drain out the primary DA to 'c'
+  STATE_SIXEL,// XTSMGRAPHICS about Sixel geometry (got '2')
+  STATE_SIXEL_SEMI1,   // got first semicolon in sixel geometry, want Ps
+  STATE_SIXEL_SUCCESS, // got Ps == 0, want second semicolon
+  STATE_SIXEL_WIDTH,   // reading maximum sixel width until ';'
+  STATE_SIXEL_HEIGHT,  // reading maximum sixel height until 'S'
+  STATE_SIXEL_CREGS,   // reading max color registers until 'S'
+  STATE_XTSMGRAPHICS_DRAIN, // drain out XTSMGRAPHICS to 'S'
+} initstates_e;
+
 typedef struct init_state {
   tinfo* tcache;
-  enum {
-    STATE_NULL,
-    STATE_ESC,  // escape; aborts any active sequence
-    STATE_CSI,  // control sequence introducer
-    STATE_DCS,  // device control string
-    // XTVERSION replies with DCS > | ... ST
-    STATE_XTVERSION1,
-    STATE_XTVERSION2,
-    // XTGETTCAP replies with DCS 1 + r for a good request, or 0 + r for bad
-    STATE_XTGETTCAP1, // XTGETTCAP, got '0/1' (DCS 0/1 + r Pt ST)
-    STATE_XTGETTCAP2, // XTGETTCAP, got '+' (DCS 0/1 + r Pt ST)
-    STATE_XTGETTCAP3, // XTGETTCAP, got 'r' (DCS 0/1 + r Pt ST)
-    STATE_XTGETTCAP_TERMNAME1, // got property 544E, 'TN' (terminal name) first hex nibble
-    STATE_XTGETTCAP_TERMNAME2, // got property 544E, 'TN' (terminal name) second hex nibble
-    STATE_DCS_DRAIN,  // throw away input until we hit escape
-    STATE_TDA1, // tertiary DA, got '!'
-    STATE_TDA2, // tertiary DA, got '|', first hex nibble
-    STATE_TDA3, // tertiary DA, second hex nibble
-    STATE_SDA,  // secondary DA (CSI > Pp ; Pv ; Pc c)
-    STATE_DA,   // primary DA   (CSI ? ... c) OR XTSMGRAPHICS
-    STATE_DA_1, // got '1', XTSMGRAPHICS color registers or primary DA
-    STATE_DA_1_SEMI, // got '1;'
-    STATE_DA_1_0, // got '1;0', XTSMGRAPHICS color registers or VT101
-    STATE_DA_6, // got '6', could be VT102 or VT220/VT320/VT420
-    STATE_DA_DRAIN, // drain out the primary DA to 'c'
-    STATE_SIXEL,// XTSMGRAPHICS about Sixel geometry (got '2')
-    STATE_SIXEL_SEMI1,   // got first semicolon in sixel geometry, want Ps
-    STATE_SIXEL_SUCCESS, // got Ps == 0, want second semicolon
-    STATE_SIXEL_WIDTH,   // reading maximum sixel width until ';'
-    STATE_SIXEL_HEIGHT,  // reading maximum sixel height until 'S'
-    STATE_SIXEL_CREGS,   // reading max color registers until 'S'
-    STATE_XTSMGRAPHICS_DRAIN, // drain out XTSMGRAPHICS to 'S'
-  } state;
+  queried_terminals_e qterm;  // discovered terminal
+  initstates_e state, stringstate;
+  // stringstate is the state at which this string was initialized, and can be
+  // one of STATE_XTVERSION1, STATE_XTGETTCAP_TERMNAME1, STATE_TDA1, 
   int numeric;          // currently-lexed numeric
   char runstring[80];   // running string
   size_t stridx;        // position to write in string
@@ -690,7 +695,7 @@ ruts_hex(int* numeric, unsigned char c){
 
 // add a decoded hex byte to the string
 static int
-ruts_string(init_state* inits){
+ruts_string(init_state* inits, initstates_e state){
   if(inits->stridx == sizeof(inits->runstring)){
     return -1; // overflow, too long
   }
@@ -701,8 +706,41 @@ ruts_string(init_state* inits){
   if(!isprint(c)){
     return -1;
   }
+  inits->stringstate = state;
   inits->runstring[inits->stridx] = c;
   inits->runstring[++inits->stridx] = '\0';
+  return 0;
+}
+
+static int
+stash_string(init_state* inits){
+fprintf(stderr, "string terminator after %d [%s]\n", inits->stringstate, inits->runstring);
+  switch(inits->stringstate){
+    case STATE_XTVERSION1:{
+      int xversion;
+      if(sscanf(inits->runstring, "XTerm(%d)", &xversion) == 1){
+        inits->qterm = TERMINAL_XTERM;
+      }
+      break;
+    }case STATE_XTGETTCAP_TERMNAME1:
+      if(strcmp(inits->runstring, "xterm-kitty") == 0){
+        inits->qterm = TERMINAL_KITTY;
+      }else if(strcmp(inits->runstring, "mlterm") == 0){
+        inits->qterm = TERMINAL_MLTERM;
+      }
+      break;
+    case STATE_TDA1:
+      if(strcmp(inits->runstring, "~VTE") == 0){
+        inits->qterm = TERMINAL_VTE;
+      }else if(strcmp(inits->runstring, "\x1bP!|464f4f54\x1b\\") == 0){
+        inits->qterm = TERMINAL_FOOT;
+      }
+      break;
+    default:
+      break;
+  }
+  inits->runstring[0] = '\0';
+  inits->stridx = 0;
   return 0;
 }
 
@@ -712,7 +750,7 @@ ruts_string(init_state* inits){
 // ought be fed to the machine, and -1 on an invalid state transition.
 static int
 pump_control_read(init_state* inits, unsigned char c){
-fprintf(stderr, "state: %2d char: %1c %3d %02x\n", inits->state, isprint(c) ? c : ' ', c, c);
+//fprintf(stderr, "state: %2d char: %1c %3d %02x\n", inits->state, isprint(c) ? c : ' ', c, c);
   if(c == NCKEY_ESC){
     /*if(inits->state != STATE_NULL && inits->state != STATE_DCS && inits->state != STATE_DCS_DRAIN && inits->state != STATE_XTVERSION2 && inits->state != STATE_XTGETTCAP3 && inits->state != STATE_DA_DRAIN){
       fprintf(stderr, "Unexpected escape in state %d\n", inits->state);
@@ -731,7 +769,9 @@ fprintf(stderr, "state: %2d char: %1c %3d %02x\n", inits->state, isprint(c) ? c 
       }else if(c == 'P'){
         inits->state = STATE_DCS;
       }else if(c == '\\'){
-fprintf(stderr, "string terminator after [%s]\n", inits->runstring);
+        if(stash_string(inits)){
+          return -1;
+        }
         inits->state = STATE_NULL;
       }
       break;
@@ -776,7 +816,7 @@ fprintf(stderr, "string terminator after [%s]\n", inits->runstring);
       break;
     case STATE_XTVERSION2:
       inits->numeric = c;
-      if(ruts_string(inits)){
+      if(ruts_string(inits, STATE_XTVERSION1)){
         return -1;
       }
       break;
@@ -819,7 +859,7 @@ fprintf(stderr, "string terminator after [%s]\n", inits->runstring);
         return -1;
       }
       inits->state = STATE_XTGETTCAP_TERMNAME1;
-      if(ruts_string(inits)){
+      if(ruts_string(inits, STATE_XTGETTCAP_TERMNAME1)){
         return -1;
       }
       inits->numeric = 0;
@@ -844,7 +884,7 @@ fprintf(stderr, "string terminator after [%s]\n", inits->runstring);
         return -1;
       }
       inits->state = STATE_TDA2;
-      if(ruts_string(inits)){
+      if(ruts_string(inits, STATE_TDA1)){
         inits->state = STATE_DCS_DRAIN;
       }
       inits->numeric = 0;
@@ -985,6 +1025,7 @@ control_read(tinfo* tcache, int ttyfd){
   init_state inits = {
     .tcache = tcache,
     .state = STATE_NULL,
+    .qterm = TERMINAL_UNKNOWN,
   };
   unsigned char* buf;
   ssize_t s;
@@ -997,6 +1038,7 @@ control_read(tinfo* tcache, int ttyfd){
       int r = pump_control_read(&inits, buf[idx]);
       if(r == 1){ // success!
         free(buf);
+fprintf(stderr, "at end, derived terminal %d\n", inits.qterm);
         return 0;
       }else if(r < 0){
         goto err;
