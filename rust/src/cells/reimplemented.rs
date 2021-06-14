@@ -4,9 +4,9 @@ use libc::strcmp;
 
 use crate::{
     cstring, nccell_release, NcAlphaBits, NcCell, NcChannel, NcChannelPair, NcColor, NcEgc,
-    NcIntResult, NcPaletteIndex, NcPlane, NcRgb, NcStyleMask, NCCELL_OPAQUE,
-    NCCELL_BGDEFAULT_MASK, NCCELL_BG_PALETTE, NCCELL_FGDEFAULT_MASK, NCCELL_FG_PALETTE,
-    NCRESULT_ERR, NCRESULT_OK, NCSTYLE_MASK,
+    NcIntResult, NcPaletteIndex, NcPlane, NcRgb, NcStyleMask, NCCELL_BGDEFAULT_MASK,
+    NCCELL_BG_PALETTE, NCCELL_FGDEFAULT_MASK, NCCELL_FG_PALETTE, NCCELL_OPAQUE, NCRESULT_ERR,
+    NCRESULT_OK, NCSTYLE_MASK,
 };
 
 // Alpha -----------------------------------------------------------------------

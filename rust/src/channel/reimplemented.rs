@@ -1,9 +1,9 @@
 //! `channel*_*` reimplemented functions.
 
 use crate::{
-    NcAlphaBits, NcChannel, NcChannelPair, NcColor, NcPaletteIndex, NcRgb,
-    NCCELL_HIGHCONTRAST, NCCELL_OPAQUE, NCCELL_BGDEFAULT_MASK, NCCELL_BG_PALETTE,
-    NCCELL_BG_RGB_MASK, NCCELL_FGDEFAULT_MASK, NCCELL_FG_PALETTE, NCCHANNEL_ALPHA_MASK,
+    NcAlphaBits, NcChannel, NcChannelPair, NcColor, NcPaletteIndex, NcRgb, NCCELL_BGDEFAULT_MASK,
+    NCCELL_BG_PALETTE, NCCELL_BG_RGB_MASK, NCCELL_FGDEFAULT_MASK, NCCELL_FG_PALETTE,
+    NCCELL_HIGHCONTRAST, NCCELL_OPAQUE, NCCHANNEL_ALPHA_MASK,
 };
 
 // Alpha -----------------------------------------------------------------------

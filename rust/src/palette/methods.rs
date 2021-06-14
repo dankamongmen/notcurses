@@ -28,7 +28,7 @@ impl NcPalette {
 
     /// Returns the [NcColor] RGB components from the [NcChannel] in this NcPalette.
     ///
-    /// *C style function: [ncpalette_get_rgb()][crate::ncpalette_get_rgb].*
+    /// *C style function: [ncpalette_get_rgb()][crate::ncpalette_get_rgb8].*
     pub fn get_rgb8(&self, index: NcPaletteIndex) -> (NcColor, NcColor, NcColor) {
         let (mut r, mut g, mut b) = (0, 0, 0);
         crate::ncchannel_rgb8(self.chans[index as usize], &mut r, &mut g, &mut b);
@@ -38,7 +38,7 @@ impl NcPalette {
     /// Extracts the [NcColor] RGB components from an [NcChannel] entry inside
     /// this NcPalette, and returns the NcChannel.
     ///
-    /// *C style function: [ncpalette_get_rgb()][crate::ncpalette_get_rgb].*
+    /// *C style function: [ncpalette_get_rgb()][crate::ncpalette_get_rgb8].*
     pub fn get_rgb(&self, index: NcPaletteIndex) -> NcChannel {
         let (mut r, mut g, mut b) = (0, 0, 0);
         crate::ncchannel_rgb8(self.chans[index as usize], &mut r, &mut g, &mut b)

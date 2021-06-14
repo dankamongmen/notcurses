@@ -363,13 +363,10 @@ impl NcVisual {
     ///
     /// *C style function:
     /// [ncvisual_resize_noninterpolative()][crate::ncvisual_resize_noninterpolative].*
-    pub fn resize_noninterpolative(&mut self, rows: NcDim, cols: NcDim) -> NcResult<NcIntResult> {
-        let res =
-            unsafe { crate::ncvisual_resize_noninterpolative(self, rows as i32, cols as i32) };
+    pub fn resize_noninterpolative(&mut self, rows: NcDim, cols: NcDim) -> NcResult<()> {
         error![
-            res,
-            &format!["NcVisual.resize_noninterpolative({}, {})", cols, rows],
-            res
+            unsafe { crate::ncvisual_resize_noninterpolative(self, rows as i32, cols as i32) },
+            &format!["NcVisual.resize_noninterpolative({}, {})", cols, rows]
         ]
     }
 

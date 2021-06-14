@@ -3,8 +3,7 @@
 use serial_test::serial;
 
 use crate::{
-    NcChannel, NcChannelPair, NCCELL_BLEND, NCCELL_HIGHCONTRAST, NCCELL_OPAQUE,
-    NCCELL_TRANSPARENT,
+    NcChannel, NcChannelPair, NCCELL_BLEND, NCCELL_HIGHCONTRAST, NCCELL_OPAQUE, NCCELL_TRANSPARENT,
 };
 
 // NcChannel tests -------------------------------------------------------------
