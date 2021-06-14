@@ -56,6 +56,7 @@ typedef enum {
   ESCAPE_HOME,     // "home" home cursor
   ESCAPE_INITC,    // "initc" set up palette entry
   ESCAPE_GETM,     // "getm" get mouse events
+  ESCAPE_DSRCPR,   // "u7" cursor position report
   ESCAPE_MAX
 } escape_e;
 

@@ -46,8 +46,8 @@ int ncdirect_putstr(ncdirect* nc, uint64_t channels, const char* utf8){
 }
 
 static int
-cursor_yx_get(int ttyfd, int* y, int* x){
-  if(blocking_write(ttyfd, "\033[6n", 4)){
+cursor_yx_get(int ttyfd, const char* u7, int* y, int* x){
+  if(tty_emit(u7, ttyfd)){
     return -1;
   }
   bool done = false;
@@ -228,11 +228,12 @@ int ncdirect_cursor_disable(ncdirect* nc){
 int ncdirect_cursor_move_yx(ncdirect* n, int y, int x){
   const char* hpa = get_escape(&n->tcache, ESCAPE_HPA);
   const char* vpa = get_escape(&n->tcache, ESCAPE_VPA);
+  const char* u7 = get_escape(&n->tcache, ESCAPE_DSRCPR);
   if(y == -1){ // keep row the same, horizontal move only
     if(hpa){
       return term_emit(tiparm(hpa, x), n->ttyfp, false);
-    }else if(n->ctermfd >= 0){
-      if(cursor_yx_get(n->ctermfd, &y, NULL)){
+    }else if(n->ctermfd >= 0 && u7){
+      if(cursor_yx_get(n->ctermfd, u7, &y, NULL)){
         return -1;
       }
     }else{
@@ -241,8 +242,8 @@ int ncdirect_cursor_move_yx(ncdirect* n, int y, int x){
   }else if(x == -1){ // keep column the same, vertical move only
     if(!vpa){
       return term_emit(tiparm(vpa, y), n->ttyfp, false);
-    }else if(n->ctermfd >= 0){
-      if(cursor_yx_get(n->ctermfd, NULL, &x)){
+    }else if(n->ctermfd >= 0 && u7){
+      if(cursor_yx_get(n->ctermfd, u7, NULL, &x)){
         return -1;
       }
     }else{
@@ -277,11 +278,11 @@ int ncdirect_cursor_move_yx(ncdirect* n, int y, int x){
 //    the change. the row ought have decreased; the column ought have increased.
 //  * move back to intiial position / pop cursor position
 static int
-detect_cursor_inversion(ncdirect* n, int rows, int cols, int* y, int* x){
+detect_cursor_inversion(ncdirect* n, const char* u7, int rows, int cols, int* y, int* x){
   if(rows <= 1 || cols <= 1){ // FIXME can this be made to work in 1 dimension?
     return -1;
   }
-  if(cursor_yx_get(n->ctermfd, y, x)){
+  if(cursor_yx_get(n->ctermfd, u7, y, x)){
     return -1;
   }
   // do not use normal ncdirect_cursor_*() commands, because those go to ttyfp
@@ -317,7 +318,7 @@ detect_cursor_inversion(ncdirect* n, int rows, int cols, int* y, int* x){
     movey = 1;
   }
   int newy, newx;
-  if(cursor_yx_get(n->ctermfd, &newy, &newx)){
+  if(cursor_yx_get(n->ctermfd, u7, &newy, &newx)){
     return -1;
   }
   if(*x == cols && *y == 1){ // need to swap values, since we moved opposite
@@ -358,7 +359,7 @@ detect_cursor_inversion(ncdirect* n, int rows, int cols, int* y, int* x){
 }
 
 static int
-detect_cursor_inversion_wrapper(ncdirect* n, int* y, int* x){
+detect_cursor_inversion_wrapper(ncdirect* n, const char* u7, int* y, int* x){
   // if we're not on a real terminal, there's no point in running this
   if(n->ctermfd < 0){
     return 0;
@@ -370,7 +371,7 @@ detect_cursor_inversion_wrapper(ncdirect* n, int* y, int* x){
   // terminals lack sc/rc (they need cursor moves to run the detection
   // algorithm in the first place), and our versions go to ttyfp instead
   // of ctermfd, as needed by cursor interrogation.
-  return detect_cursor_inversion(n, toty, totx, y, x);
+  return detect_cursor_inversion(n, u7, toty, totx, y, x);
 }
 
 // no terminfo capability for this. dangerous--it involves writing controls to
@@ -380,6 +381,11 @@ int ncdirect_cursor_yx(ncdirect* n, int* y, int* x){
   struct termios termio, oldtermios;
   // this is only meaningful for real terminals
   if(n->ctermfd < 0){
+    return -1;
+  }
+  const char* u7 = get_escape(&n->tcache, ESCAPE_DSRCPR);
+  if(u7 == NULL){
+    fprintf(stderr, "Terminal doesn't support cursor reporting\n");
     return -1;
   }
   if(tcgetattr(n->ctermfd, &termio)){
@@ -403,9 +409,9 @@ int ncdirect_cursor_yx(ncdirect* n, int* y, int* x){
     x = &xval;
   }
   if(!n->detected_cursor_inversion){
-    ret = detect_cursor_inversion_wrapper(n, y, x);
+    ret = detect_cursor_inversion_wrapper(n, u7, y, x);
   }else{
-    ret = cursor_yx_get(n->ctermfd, y, x);
+    ret = cursor_yx_get(n->ctermfd, u7, y, x);
   }
   if(ret == 0){
     if(n->inverted_cursor){

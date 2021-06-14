@@ -292,6 +292,7 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
     { ESCAPE_HOME, "home", },
     { ESCAPE_OC, "oc", },
     { ESCAPE_RMKX, "rmkx", },
+    { ESCAPE_DSRCPR, "u7", },
     { ESCAPE_MAX, NULL, },
   };
   size_t tablelen = 0;
