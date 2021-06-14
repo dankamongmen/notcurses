@@ -663,7 +663,10 @@ API int nccell_duplicate(struct ncplane* n, nccell* targ, const nccell* c);
 // Release resources held by the nccell 'c'.
 API void nccell_release(struct ncplane* n, nccell* c);
 
-#define NCSTYLE_MASK      0x03ffu
+#define NCSTYLE_MASK      0x07ffu
+#define NCSTYLE_UNDERCURL 0x0400u
+#define NCSTYLE_STRUCK    0x0200u
+#define NCSTYLE_ITALIC    0x0100u
 #define NCSTYLE_STANDOUT  0x0080u
 #define NCSTYLE_UNDERLINE 0x0040u
 #define NCSTYLE_REVERSE   0x0020u
@@ -672,9 +675,6 @@ API void nccell_release(struct ncplane* n, nccell* c);
 #define NCSTYLE_BOLD      0x0004u
 #define NCSTYLE_INVIS     0x0002u
 #define NCSTYLE_PROTECT   0x0001u
-#define NCSTYLE_ITALIC    0x0100u
-#define NCSTYLE_STRUCK    0x0200u
-#define NCSTYLE_UNDERCURL 0x0400u
 #define NCSTYLE_NONE      0
 
 // Set the specified style bits for the nccell 'c', whether they're actively

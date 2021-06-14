@@ -143,6 +143,7 @@ add_smulx_escapes(tinfo* ti, size_t* tablelen, size_t* tableused){
      grow_esc_table(ti, "\x1b[4:0m", ESCAPE_SMULNOX, tablelen, tableused)){
     return -1;
   }
+  ti->supported_styles |= NCSTYLE_UNDERCURL;
   return 0;
 }
 
