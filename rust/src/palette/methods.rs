@@ -1,12 +1,12 @@
 //! `NcPalette` methods and associated functions.
 
-use crate::{error, NcChannel, NcColor, NcPalette, NcPaletteIndex, NcResult, NcRgb, Notcurses};
+use crate::{error, NcChannel, NcColor, NcPalette, NcPaletteIndex, NcResult, NcRgb, Nc};
 
 impl NcPalette {
     /// New NcPalette.
     ///
     /// *C style function: [ncpalette_new()][crate::ncpalette_new].*
-    pub fn new<'a>(nc: &mut Notcurses) -> &'a mut Self {
+    pub fn new<'a>(nc: &mut Nc) -> &'a mut Self {
         unsafe { &mut *crate::ncpalette_new(nc) }
     }
 
@@ -22,7 +22,7 @@ impl NcPalette {
     /// Attempts to configure the terminal with this NcPalette.
     ///
     /// *C style function: [ncpalette_use()][crate::ncpalette_use].*
-    pub fn r#use(&self, nc: &mut Notcurses) -> NcResult<()> {
+    pub fn r#use(&self, nc: &mut Nc) -> NcResult<()> {
         error![unsafe { crate::ncpalette_use(nc, self) }]
     }
 

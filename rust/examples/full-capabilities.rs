@@ -1,7 +1,7 @@
 use libnotcurses_sys::*;
 
 fn main() -> NcResult<()> {
-    let nc = Notcurses::without_altscreen()?;
+    let nc = Nc::without_altscreen()?;
 
     let (t_rows, t_cols) = nc.term_dim_yx();
     println!("Terminal rows={0}, cols={1}", t_rows, t_cols);

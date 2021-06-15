@@ -8,7 +8,7 @@ use crate::{
     cstring, error, error_ref, error_ref_mut, rstring, NcAlign, NcAlphaBits, NcBlitter, NcBoxMask,
     NcCell, NcChannel, NcChannelPair, NcColor, NcDim, NcEgc, NcError, NcFadeCb, NcOffset,
     NcPaletteIndex, NcPixelGeometry, NcPlane, NcPlaneOptions, NcResizeCb, NcResult, NcRgb, NcStyle,
-    NcTime, Notcurses, NCRESULT_ERR,
+    NcTime, Nc, NCRESULT_ERR,
 };
 
 /// # NcPlaneOptions Constructors
@@ -84,7 +84,7 @@ impl NcPlane {
     ///
     /// *C style function: [ncpile_create()][crate::ncpile_create].*
     pub fn new<'a>(
-        nc: &mut Notcurses,
+        nc: &mut Nc,
         y: NcOffset,
         x: NcOffset,
         rows: NcDim,
@@ -99,12 +99,12 @@ impl NcPlane {
     ///
     /// *C style function: [ncpile_create()][crate::ncpile_create].*
     pub fn with_options<'a>(
-        nc: &mut Notcurses,
+        nc: &mut Nc,
         options: NcPlaneOptions,
     ) -> NcResult<&'a mut NcPlane> {
         error_ref_mut![
             unsafe { crate::ncpile_create(nc, &options) },
-            &format!["NcPlane::with_options(Notcurses, {:?})", &options]
+            &format!["NcPlane::with_options(Nc, {:?})", &options]
         ]
     }
 
@@ -139,7 +139,7 @@ impl NcPlane {
     /// The returned plane will be the top, bottom, and root of this new pile.
     ///
     /// *(No equivalent C style function)*
-    pub fn with_termsize<'a>(nc: &mut Notcurses) -> NcResult<&'a mut NcPlane> {
+    pub fn with_termsize<'a>(nc: &mut Nc) -> NcResult<&'a mut NcPlane> {
         let (trows, tcols) = crate::notcurses_term_dim_yx(nc);
         assert![(trows > 0) & (tcols > 0)];
         Self::with_options(
@@ -306,7 +306,7 @@ impl NcPlane {
     /// the provided values will be interpreted in some lossy fashion.
     ///
     /// "HP-like" terminals require setting foreground and background at the same
-    /// time using "color pairs"; Notcurses will manage color pairs transparently.
+    /// time using "color pairs"; notcurses will manage color pairs transparently.
     ///
     /// *C style function: [ncplane_set_fg_rgb8()][crate::ncplane_set_fg_rgb8].*
     pub fn set_fg_rgb8(&mut self, red: NcColor, green: NcColor, blue: NcColor) {
@@ -323,7 +323,7 @@ impl NcPlane {
     /// the provided values will be interpreted in some lossy fashion.
     ///
     /// "HP-like" terminals require setting foreground and background at the same
-    /// time using "color pairs"; Notcurses will manage color pairs transparently.
+    /// time using "color pairs"; notcurses will manage color pairs transparently.
     ///
     /// *C style function: [ncplane_set_bg_rgb8()][crate::ncplane_set_bg_rgb8].*
     pub fn set_bg_rgb8(&mut self, red: NcColor, green: NcColor, blue: NcColor) {
@@ -876,7 +876,7 @@ impl NcPlane {
 }
 
 // -----------------------------------------------------------------------------
-/// ## NcPlane methods: `NcPlane` & `Notcurses`
+/// ## NcPlane methods: `NcPlane` & `Nc`
 impl NcPlane {
     /// Gets the origin of this plane relative to its pile.
     ///
@@ -1164,20 +1164,20 @@ impl NcPlane {
         error![unsafe { crate::ncpile_render(self) }, "NcPlane.render()"]
     }
 
-    /// Gets a mutable reference to the [Notcurses] context of this NcPlane.
+    /// Gets a mutable reference to the [`Nc`] context of this NcPlane.
     ///
     /// *C style function: [ncplane_notcurses()][crate::ncplane_notcurses].*
-    pub fn notcurses<'a>(&mut self) -> NcResult<&'a mut Notcurses> {
+    pub fn notcurses<'a>(&mut self) -> NcResult<&'a mut Nc> {
         error_ref_mut![
             unsafe { crate::ncplane_notcurses(self) },
             "NcPlane.notcurses()"
         ]
     }
 
-    /// Gets an immutable reference to the [Notcurses] context of this NcPlane.
+    /// Gets an immutable reference to the [`Nc`] context of this NcPlane.
     ///
     /// *C style function: [ncplane_notcurses_const()][crate::ncplane_notcurses_const].*
-    pub fn notcurses_const<'a>(&self) -> NcResult<&'a Notcurses> {
+    pub fn notcurses_const<'a>(&self) -> NcResult<&'a Nc> {
         error_ref![
             unsafe { crate::ncplane_notcurses_const(self) },
             "NcPlane.notcurses()"

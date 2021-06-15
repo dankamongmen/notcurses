@@ -6,7 +6,7 @@ use libc::c_void;
 use crate::{
     cstring, error, error_ref_mut, rstring, NcBlitter, NcDim, NcDirect, NcDirectF, NcDirectV,
     NcError, NcIntResult, NcPixel, NcPlane, NcResult, NcRgba, NcScale, NcTime, NcVGeom, NcVisual,
-    NcVisualOptions, Notcurses, NCBLIT_PIXEL, NCRESULT_ERR,
+    NcVisualOptions, Nc, NCBLIT_PIXEL, NCRESULT_ERR,
 };
 
 /// # NcVisualOptions Constructors
@@ -276,7 +276,7 @@ impl NcVisual {
     /// *C style function: [ncvisual_blitter_geom()][crate::ncvisual_blitter_geom].*
     pub fn geom(
         &self,
-        nc: &Notcurses,
+        nc: &Nc,
         options: &NcVisualOptions,
     ) -> NcResult<(NcDim, NcDim, NcDim, NcDim)> {
         let mut y = 0;
@@ -314,7 +314,7 @@ impl NcVisual {
     ///   aspect ratio, thus NCBLIT_2x1 is used outside of NCSCALE_STRETCH.
     ///
     /// *C style function: [ncvisual_media_defblitter()][crate::ncvisual_media_defblitter].*
-    pub fn media_defblitter(nc: &Notcurses, scale: NcScale) -> NcBlitter {
+    pub fn media_defblitter(nc: &Nc, scale: NcScale) -> NcBlitter {
         unsafe { crate::ncvisual_media_defblitter(nc, scale) }
     }
 
@@ -335,12 +335,12 @@ impl NcVisual {
     /// *C style function: [ncvisual_render()][crate::ncvisual_render].*
     pub fn render(
         &mut self,
-        nc: &mut Notcurses,
+        nc: &mut Nc,
         options: &NcVisualOptions,
     ) -> NcResult<&mut NcPlane> {
         error_ref_mut![
             unsafe { crate::ncvisual_render(nc, self, options) },
-            "NcVisual.render(Notcurses, &NcVisualOptions)"
+            "NcVisual.render(Nc, &NcVisualOptions)"
         ]
     }
 
@@ -454,7 +454,7 @@ impl NcVisual {
     // //
     // pub fn simple_streamer(
     //     &mut self,
-    //     nc: &mut Notcurses,
+    //     nc: &mut Nc,
     //     timescale: f32,
     //     //streamer: Option<streamcb>
     //     options: &NcVisualOptions,

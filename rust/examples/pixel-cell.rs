@@ -12,7 +12,7 @@ use rand::{distributions::Uniform, Rng};
 use libnotcurses_sys::*;
 
 fn main() -> NcResult<()> {
-    let mut nc = Notcurses::new()?;
+    let mut nc = Nc::new()?;
 
     if !nc.check_pixel_support()? {
         return Err(NcError::new_msg("Current terminal doesn't support pixels."));

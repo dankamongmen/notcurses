@@ -5,7 +5,7 @@
 
 #[allow(unused_imports)]
 // enjoy briefer doc comments
-use crate::{NcDirect, NcError, NcPlane, NcResult, Notcurses, NCRESULT_ERR, NCRESULT_OK};
+use crate::{NcDirect, NcError, NcPlane, NcResult, Nc, NCRESULT_ERR, NCRESULT_OK};
 
 // Sleep, Render & Flush Macros ------------------------------------------------
 
@@ -32,17 +32,17 @@ macro_rules! sleep {
     };
 }
 
-/// [`Notcurses.render`][Notcurses#method.render]\(`$nc`\)? plus
+/// [`Nc.render`][Nc#method.render]\(`$nc`\)? plus
 /// [`sleep!`]`[$sleep_args]`.
 ///
-/// Renders the `$nc` [Notcurses] object's standard plane pile and then,
+/// Renders the `$nc` [`Nc`] object's standard plane pile and then,
 /// if there's no error, calls the sleep macro with the rest of the arguments.
 ///
 /// Returns [NcResult].
 #[macro_export]
 macro_rules! rsleep {
     ($nc:expr, $( $sleep_args:expr),+ ) => {
-        crate::Notcurses::render($nc)?;
+        crate::Nc::render($nc)?;
         sleep![$( $sleep_args ),+];
     };
     ($nc:expr, $( $sleep_args:expr),+ ,) => {

@@ -22,7 +22,7 @@
 //! use libnotcurses_sys::*;
 //!
 //! fn main() -> NcResult<()> {
-//!     let mut nc = Notcurses::with_flags(NCOPTION_NO_ALTERNATE_SCREEN)?;
+//!     let mut nc = Nc::with_flags(NCOPTION_NO_ALTERNATE_SCREEN)?;
 //!     let plane = nc.stdplane();
 //!     plane.putstr("hello world")?;
 //!     nc.render()?;
@@ -31,10 +31,10 @@
 //! }
 //! ```
 //!
-//! Although you still have to manually call the `stop()` method for [`Notcurses`]
-//! and [`NcDirect`] objects, and the `destroy()` method for the rest of types that
-//! allocate, (like [`NcPlane`], [`NcMenu`]…) at the end of their scope, since the
-//! Drop trait is not implemented for any wrapping type in libnotcurses-sys.
+//! Although you still have to manually call the `stop()` method for [`Nc`] and
+//! [`NcDirect`] objects, and the `destroy()` method for the rest of types that
+//! allocate, (like [`NcPlane`], [`NcMenu`]…) at the end of their scope, since
+//! the Drop trait is not implemented for any wrapping type in libnotcurses-sys.
 //!
 //! But they do implement methods and use [`NcResult`] as the return type,
 //! for handling errors in the way we are used to in Rust.

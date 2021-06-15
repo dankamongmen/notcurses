@@ -4,7 +4,7 @@ const W: u32 = 32;
 const H: u32 = 32;
 
 fn main() -> NcResult<()> {
-    let nc = Notcurses::new()?;
+    let nc = Nc::new()?;
 
     // create a white rectangle
     let buffer = vec![255; H as usize * W as usize * 4];

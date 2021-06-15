@@ -22,7 +22,7 @@ and painless error handling, like this:
 use libnotcurses_sys::*;
 
 fn main() -> NcResult<()> {
-    let mut nc = Notcurses::with_flags(NCOPTION_NO_ALTERNATE_SCREEN)?;
+    let mut nc = Nc::with_flags(NCOPTION_NO_ALTERNATE_SCREEN)?;
     let plane = nc.stdplane();
     plane.putstr("hello world")?;
     nc.render()?;
@@ -31,7 +31,7 @@ fn main() -> NcResult<()> {
 }
 ```
 
-Although you still have to manually call the `stop()` method for `Notcurses`
+Although you still have to manually call the `stop()` method for `Nc`
 and `NcDirect` objects, and the `destroy()` method for the rest of types that
 allocate, (like `NcPlane`, `NcMenu`…) at the end of their scope, since the Drop
 trait is not implemented for any wrapping type in libnotcurses-sys.
