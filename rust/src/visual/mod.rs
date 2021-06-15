@@ -34,7 +34,7 @@ use crate::{NcChannel, NcDim, NcRgb};
 
 mod methods;
 
-/// How to scale an [`NcVisual`] during rendering.
+/// Indicates how to scale an [`NcVisual`] during rendering.
 ///
 /// - [`NCSCALE_NONE`] will apply no scaling.
 /// - [`NCSCALE_SCALE`] scales a visual to the plane's size,
@@ -43,6 +43,18 @@ mod methods;
 ///   attempt to fill the entirety of the plane.
 /// - [`NCSCALE_NONE_HIRES`] like `NCSCALE_NONE` admitting high-res blitters.
 /// - [`NCSCALE_SCALE_HIRES`] like `NCSCALE_SCALE` admitting high-res blitters.
+///
+/// The `NCSCALE_*` preferences are applied only for the context of
+/// [`NcVisual.render`][NcVisual#method.render]. You can think of it as a pipeline:
+///
+/// ```txt
+/// NcVisual::fromfile() → frame → NcVisual.render() → scaling → output frame → blit
+/// ```
+///
+/// where you still have the original frame. Whereas
+/// [`NcVisual.resize`][NcVisual#method.resize] and
+/// [`NcVisual.resize_noninterpolative`][NcVisual#method.resize_noninterpolative]
+/// are changing that original frame.
 ///
 pub type NcScale = crate::bindings::ffi::ncscale_e;
 
@@ -68,9 +80,9 @@ pub const NCSCALE_SCALE_HIRES: NcScale = crate::bindings::ffi::ncscale_e_NCSCALE
 /// It can be constructed from a rgba or bgra buffer.
 ///
 /// The [NcVisualOptions] structure is used only by the following methods:
-/// - [.geom][NcVisual#method.render]
+/// - [.geom][NcVisual#method.geom]
 /// - [.render][NcVisual#method.render]
-/// - [.simple_streamer][NcVisual#method.render]
+/// - [.simple_streamer][NcVisual#method.simple_streamer]
 pub type NcVisual = crate::bindings::ffi::ncvisual;
 
 /// A type alias of [`NcVisual`] (NcDirect ***F**rame*) intended to be used
