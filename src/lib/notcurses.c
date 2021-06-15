@@ -968,7 +968,7 @@ recursive_lock_init(pthread_mutex_t *lock){
 #endif
 }
 
-int notcurses_check_pixel_support(notcurses* nc){
+int notcurses_check_pixel_support(const notcurses* nc){
   if(nc->tcache.bitmap_supported){
     return 1;
   }

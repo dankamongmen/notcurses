@@ -1282,7 +1282,7 @@ int ncdirect_flush(const ncdirect* nc){
   return 0;
 }
 
-int ncdirect_check_pixel_support(ncdirect* n){
+int ncdirect_check_pixel_support(const ncdirect* n){
   if(n->tcache.bitmap_supported){
     return 1;
   }

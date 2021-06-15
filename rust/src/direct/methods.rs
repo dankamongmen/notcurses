@@ -298,7 +298,7 @@ impl NcDirect {
     ///
     /// *C style function: [ncdirect_check_pixel_support()][crate::ncdirect_check-pixel_support].*
     #[allow(clippy::wildcard_in_or_patterns)]
-    pub fn check_pixel_support(&mut self) -> NcResult<bool> {
+    pub fn check_pixel_support(&self) -> NcResult<bool> {
         let res = unsafe { crate::ncdirect_check_pixel_support(self) };
         match res {
             0 => Ok(false),

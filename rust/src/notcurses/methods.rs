@@ -260,7 +260,7 @@ impl Notcurses {
     ///
     /// *C style function: [notcurses_check_pixel_support()][crate::notcurses_check-pixel_support].*
     #[allow(clippy::wildcard_in_or_patterns)]
-    pub fn check_pixel_support(&mut self) -> NcResult<bool> {
+    pub fn check_pixel_support(&self) -> NcResult<bool> {
         let res = unsafe { crate::notcurses_check_pixel_support(self) };
         match res {
             0 => Ok(false),
@@ -502,7 +502,7 @@ impl Notcurses {
     /// actually support, downsampling internally.
     ///
     /// *C style function: [notcurses_palette_size()][crate::notcurses_palette_size].*
-    pub fn palette_size(&mut self) -> NcResult<u32> {
+    pub fn palette_size(&self) -> NcResult<u32> {
         let res = unsafe { crate::notcurses_palette_size(self) };
         if res == 1 {
             return Err(NcError::with_msg(

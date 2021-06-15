@@ -1291,7 +1291,7 @@ API bool notcurses_canbraille(const struct notcurses* nc)
   __attribute__ ((nonnull (1)));
 
 // Can we blit pixel-accurate bitmaps?
-API int notcurses_check_pixel_support(struct notcurses* nc)
+API int notcurses_check_pixel_support(const struct notcurses* nc)
   __attribute__ ((nonnull (1)));
 
 // whenever a new field is added here, ensure we add the proper rule to

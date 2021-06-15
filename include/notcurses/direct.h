@@ -247,7 +247,7 @@ API bool ncdirect_canutf8(const struct ncdirect* n)
   __attribute__ ((nonnull (1)));
 
 // Can we blit pixel-accurate bitmaps?
-API int ncdirect_check_pixel_support(struct ncdirect* n)
+API int ncdirect_check_pixel_support(const struct ncdirect* n)
   __attribute__ ((nonnull (1)));
 
 // Draw horizontal/vertical lines using the specified channels, interpolating
