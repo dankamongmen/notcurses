@@ -129,6 +129,7 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
   }else if(qterm == TERMINAL_WEZTERM){
     termname = "WezTerm";
     ti->quadrants = true;
+    // FIXME get version from query
     const char* termver = getenv("TERM_PROGRAM_VERSION");
     if(termver && strcmp(termver, "20210610") >= 0){
       ti->sextants = true; // good sextants as of 2021-06-10

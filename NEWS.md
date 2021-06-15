@@ -7,10 +7,9 @@ rearrangements of Notcurses.
     parameters are now opportunistically read at startup, and thus there is
     no longer any need to call `notcurses_check_pixel_support()` before
     using `NCBLIT_PIXEL`. If it's there, it'll be used; if not, it'll degrade
-    or fail. Indeed, this function will likely be removed for ABI3. The new
-    routines rely on the terminal answering the Send Device Attributes escape;
-    if it does not, Notcurses may refuse to start, or even hang. Please report
-    a bug if you run into this.
+    or fail. The new routines rely on the terminal answering the Send Device
+    Attributes escape; if it does not, Notcurses may refuse to start, or even
+    hang. Please report a bug if you run into this.
 
     It is still necessary to supply a correct `TERM` environment variable,
     because this is used to index into the `terminfo(5)` database, which
