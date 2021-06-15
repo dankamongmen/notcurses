@@ -7,8 +7,8 @@ use core::{
 use crate::{
     cstring, error, error_ref, error_ref_mut, rstring, NcAlign, NcAlphaBits, NcBlitter, NcBoxMask,
     NcCell, NcChannel, NcChannelPair, NcColor, NcDim, NcEgc, NcError, NcFadeCb, NcOffset,
-    NcPaletteIndex, NcPixelGeometry, NcPlane, NcPlaneOptions, NcResizeCb, NcResult, NcRgb,
-    NcStyleMask, NcTime, Notcurses, NCRESULT_ERR,
+    NcPaletteIndex, NcPixelGeometry, NcPlane, NcPlaneOptions, NcResizeCb, NcResult, NcRgb, NcStyle,
+    NcTime, Notcurses, NCRESULT_ERR,
 };
 
 /// # NcPlaneOptions Constructors
@@ -455,7 +455,7 @@ impl NcPlane {
 }
 
 // -----------------------------------------------------------------------------
-/// ## NcPlane methods: `NcStyleMask` & `PaletteIndex`
+/// ## NcPlane methods: `NcStyle` & `PaletteIndex`
 impl NcPlane {
     /// Sets the given style throughout the specified region, keeping content
     /// and channels unchanged.
@@ -463,12 +463,7 @@ impl NcPlane {
     /// Returns the number of cells set.
     ///
     /// *C style function: [ncplane_format()][crate::ncplane_format].*
-    pub fn format(
-        &mut self,
-        y_stop: NcDim,
-        x_stop: NcDim,
-        stylemask: NcStyleMask,
-    ) -> NcResult<NcDim> {
+    pub fn format(&mut self, y_stop: NcDim, x_stop: NcDim, stylemask: NcStyle) -> NcResult<NcDim> {
         let res =
             unsafe { crate::ncplane_format(self, y_stop as i32, x_stop as i32, stylemask as u32) };
         error![
@@ -481,14 +476,14 @@ impl NcPlane {
     /// Returns the current styling for this NcPlane.
     ///
     /// *C style function: [ncplane_styles()][crate::ncplane_styles].*
-    pub fn styles(&self) -> NcStyleMask {
+    pub fn styles(&self) -> NcStyle {
         unsafe { crate::ncplane_styles(self) }
     }
 
     /// Removes the specified styles from this NcPlane's existing spec.
     ///
     /// *C style function: [ncplane_off_styles()][crate::ncplane_off_styles].*
-    pub fn off_styles(&mut self, stylemask: NcStyleMask) {
+    pub fn off_styles(&mut self, stylemask: NcStyle) {
         unsafe {
             crate::ncplane_off_styles(self, stylemask as u32);
         }
@@ -497,7 +492,7 @@ impl NcPlane {
     /// Adds the specified styles to this NcPlane's existing spec.
     ///
     /// *C style function: [ncplane_on_styles()][crate::ncplane_on_styles].*
-    pub fn on_styles(&mut self, stylemask: NcStyleMask) {
+    pub fn on_styles(&mut self, stylemask: NcStyle) {
         unsafe {
             crate::ncplane_on_styles(self, stylemask as u32);
         }
@@ -506,7 +501,7 @@ impl NcPlane {
     /// Sets just the specified styles for this NcPlane.
     ///
     /// *C style function: [ncplane_set_styles()][crate::ncplane_set_styles].*
-    pub fn set_styles(&mut self, stylemask: NcStyleMask) {
+    pub fn set_styles(&mut self, stylemask: NcStyle) {
         unsafe {
             crate::ncplane_set_styles(self, stylemask as u32);
         }
@@ -541,14 +536,14 @@ impl NcPlane {
 /// ## NcPlane methods: `NcCell` & `NcEgc`
 impl NcPlane {
     /// Retrieves the current contents of the [NcCell] under the cursor,
-    /// returning the [NcEgc] and writing out the [NcStyleMask] and the [NcChannelPair].
+    /// returning the [NcEgc] and writing out the [NcStyle] and the [NcChannelPair].
     ///
     /// This NcEgc must be freed by the caller.
     ///
     /// *C style function: [ncplane_at_cursor()][crate::ncplane_at_cursor].*
     pub fn at_cursor(
         &mut self,
-        stylemask: &mut NcStyleMask,
+        stylemask: &mut NcStyle,
         channels: &mut NcChannelPair,
     ) -> NcResult<NcEgc> {
         let egc = unsafe { crate::ncplane_at_cursor(self, stylemask, channels) };
@@ -579,7 +574,7 @@ impl NcPlane {
     }
 
     /// Retrieves the current contents of the specified [NcCell], returning the
-    /// [NcEgc] and writing out the [NcStyleMask] and the [NcChannelPair].
+    /// [NcEgc] and writing out the [NcStyle] and the [NcChannelPair].
     ///
     /// This NcEgc must be freed by the caller.
     ///
@@ -588,7 +583,7 @@ impl NcPlane {
         &mut self,
         y: NcDim,
         x: NcDim,
-        stylemask: &mut NcStyleMask,
+        stylemask: &mut NcStyle,
         channels: &mut NcChannelPair,
     ) -> NcResult<NcEgc> {
         let egc = unsafe { crate::ncplane_at_yx(self, y as i32, x as i32, stylemask, channels) };
@@ -652,7 +647,7 @@ impl NcPlane {
     pub fn set_base(
         &mut self,
         egc: &str,
-        stylemask: NcStyleMask,
+        stylemask: NcStyle,
         channels: NcChannelPair,
     ) -> NcResult<u32> {
         let res =
@@ -1761,7 +1756,7 @@ impl NcPlane {
     #[inline]
     pub fn double_box(
         &mut self,
-        stylemask: NcStyleMask,
+        stylemask: NcStyle,
         channels: NcChannelPair,
         y_stop: NcDim,
         x_stop: NcDim,
@@ -1778,7 +1773,7 @@ impl NcPlane {
     #[inline]
     pub fn double_box_sized(
         &mut self,
-        stylemask: NcStyleMask,
+        stylemask: NcStyle,
         channels: NcChannelPair,
         y_len: NcDim,
         x_len: NcDim,
@@ -1815,7 +1810,7 @@ impl NcPlane {
     #[inline]
     pub fn perimeter_double(
         &mut self,
-        stylemask: NcStyleMask,
+        stylemask: NcStyle,
         channels: NcChannelPair,
         boxmask: NcBoxMask,
     ) -> NcResult<()> {
@@ -1831,7 +1826,7 @@ impl NcPlane {
     #[inline]
     pub fn perimeter_rounded(
         &mut self,
-        stylemask: NcStyleMask,
+        stylemask: NcStyle,
         channels: NcChannelPair,
         boxmask: NcBoxMask,
     ) -> NcResult<()> {
@@ -1933,7 +1928,7 @@ impl NcPlane {
     pub fn gradient(
         &mut self,
         egc: &NcEgc,
-        stylemask: NcStyleMask,
+        stylemask: NcStyle,
         ul: NcChannelPair,
         ur: NcChannelPair,
         ll: NcChannelPair,
@@ -1973,7 +1968,7 @@ impl NcPlane {
     pub fn gradient_sized(
         &mut self,
         egc: &NcEgc,
-        stylemask: NcStyleMask,
+        stylemask: NcStyle,
         ul: NcChannel,
         ur: NcChannel,
         ll: NcChannel,

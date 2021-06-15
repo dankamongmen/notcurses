@@ -2,7 +2,7 @@
 
 use crate::{
     cstring, error, nccell_load, NcAlphaBits, NcCell, NcChannelPair, NcColor, NcEgc, NcEgcBackstop,
-    NcPaletteIndex, NcPlane, NcResult, NcRgb, NcStyleMask, NCRESULT_ERR,
+    NcPaletteIndex, NcPlane, NcResult, NcRgb, NcStyle, NCRESULT_ERR,
 };
 
 #[allow(unused_imports)] // for the doc comments
@@ -18,7 +18,7 @@ impl NcCell {
             gcluster: (ch as u32).to_le(),
             gcluster_backstop: 0 as NcEgcBackstop,
             width: 0_u8,
-            stylemask: 0 as NcStyleMask,
+            stylemask: 0 as NcStyle,
             channels: 0 as NcChannelPair,
         }
     }
@@ -74,7 +74,7 @@ impl NcCell {
         plane: &mut NcPlane,
         cell: &mut NcCell,
         gcluster: &str,
-        style: NcStyleMask,
+        style: NcStyle,
         channels: NcChannelPair,
     ) -> NcResult<u32> {
         let bytes = crate::nccell_prime(plane, cell, gcluster, style, channels);
@@ -304,14 +304,14 @@ impl NcCell {
         crate::nccellcmp(plane1, cell1, plane2, cell2)
     }
 
-    /// Saves the [NcStyleMask] and the [NcChannelPair], and returns the [NcEgc].
+    /// Saves the [NcStyle] and the [NcChannelPair], and returns the [NcEgc].
     /// (These are the three elements of an NcCell).
     ///
     /// *C style function: [nccell_fg_alpha()][crate::nccell_fg_alpha].*
     pub fn extract(
         &mut self,
         plane: &mut NcPlane,
-        styles: &mut NcStyleMask,
+        styles: &mut NcStyle,
         channels: &mut NcChannelPair,
     ) -> NcEgc {
         crate::nccell_extract(plane, self, styles, channels)
@@ -327,31 +327,31 @@ impl NcCell {
         crate::nccell_extract(plane, self, &mut _styles, &mut _channels)
     }
 
-    /// Returns the [NcStyleMask] bits.
+    /// Returns the [NcStyle] bits.
     ///
     /// *C style function: [nccell_styles()][crate::nccell_styles].*
-    pub fn styles(&mut self) -> NcStyleMask {
+    pub fn styles(&mut self) -> NcStyle {
         crate::nccell_styles(self)
     }
 
-    /// Removes the specified [NcStyleMask] bits.
+    /// Removes the specified [NcStyle] bits.
     ///
     /// *C style function: [nccell_off()][crate::nccell_off_styles].*
-    pub fn off_styles(&mut self, stylebits: NcStyleMask) {
+    pub fn off_styles(&mut self, stylebits: NcStyle) {
         crate::nccell_off_styles(self, stylebits)
     }
 
-    /// Adds the specified [NcStyleMask] bits.
+    /// Adds the specified [NcStyle] bits.
     ///
     /// *C style function: [nccell_on()][crate::nccell_on_styles].*
-    pub fn on_styles(&mut self, stylebits: NcStyleMask) {
+    pub fn on_styles(&mut self, stylebits: NcStyle) {
         crate::nccell_on_styles(self, stylebits)
     }
 
-    /// Sets just the specified [NcStyleMask] bits.
+    /// Sets just the specified [NcStyle] bits.
     ///
     /// *C style function: [nccell_set_styles()][crate::nccell_set_styles].*
-    pub fn set_styles(&mut self, stylebits: NcStyleMask) {
+    pub fn set_styles(&mut self, stylebits: NcStyle) {
         crate::nccell_set_styles(self, stylebits)
     }
 }
@@ -413,7 +413,7 @@ impl NcCell {
     /// *C style function: [nccells_load_box()][crate::nccells_load_box].*
     pub fn load_box(
         plane: &mut NcPlane,
-        style: NcStyleMask,
+        style: NcStyle,
         channels: NcChannelPair,
         ul: &mut NcCell,
         ur: &mut NcCell,
@@ -433,7 +433,7 @@ impl NcCell {
     /// *C style function: [nccells_double_box()][crate::nccells_double_box].*
     pub fn double_box(
         plane: &mut NcPlane,
-        style: NcStyleMask,
+        style: NcStyle,
         channels: NcChannelPair,
         ul: &mut NcCell,
         ur: &mut NcCell,
@@ -452,7 +452,7 @@ impl NcCell {
     /// *C style function: [nccells_rounded_box()][crate::nccells_double_box].*
     pub fn rounded_box(
         plane: &mut NcPlane,
-        style: NcStyleMask,
+        style: NcStyle,
         channels: NcChannelPair,
         ul: &mut NcCell,
         ur: &mut NcCell,

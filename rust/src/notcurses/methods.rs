@@ -5,7 +5,7 @@ use core::ptr::{null, null_mut};
 use crate::{
     cstring, error, error_ref_mut, notcurses_init, rstring, NcAlign, NcBlitter, NcChannelPair,
     NcDim, NcEgc, NcError, NcFile, NcInput, NcLogLevel, NcPlane, NcResult, NcScale, NcSignalSet,
-    NcStats, NcStyleMask, NcTime, Notcurses, NotcursesOptions, NCOPTION_NO_ALTERNATE_SCREEN,
+    NcStats, NcStyle, NcTime, Notcurses, NotcursesOptions, NCOPTION_NO_ALTERNATE_SCREEN,
     NCOPTION_SUPPRESS_BANNERS, NCRESULT_ERR,
 };
 
@@ -133,7 +133,7 @@ impl Notcurses {
 
     /// Retrieves the current contents of the specified [NcCell][crate::NcCell]
     /// as last rendered, returning the [NcEgc] (or None on error) and writing
-    /// out the [NcStyleMask] and the [NcChannelPair].
+    /// out the [NcStyle] and the [NcChannelPair].
     ///
     /// This NcEgc must be freed by the caller.
     ///
@@ -142,7 +142,7 @@ impl Notcurses {
         &mut self,
         y: NcDim,
         x: NcDim,
-        stylemask: &mut NcStyleMask,
+        stylemask: &mut NcStyle,
         channels: &mut NcChannelPair,
     ) -> Option<NcEgc> {
         let egc = unsafe { crate::notcurses_at_yx(self, x as i32, y as i32, stylemask, channels) };
@@ -153,7 +153,8 @@ impl Notcurses {
         Some(egc)
     }
 
-    /// Returns the bottommost [NcPlane], of which there is always at least one.
+    /// Returns the bottommost [NcPlane] on the standard pile,
+    /// of which there is always at least one.
     ///
     /// *C style function: [notcurses_bottom()][crate::notcurses_bottom].*
     pub fn bottom(&mut self) -> &mut NcPlane {
@@ -674,7 +675,7 @@ impl Notcurses {
         rstring![crate::notcurses_str_scalemode(scalemode)].to_string()
     }
 
-    /// Returns an [NcStyleMask] with the supported curses-style attributes.
+    /// Returns an [NcStyle] with the supported curses-style attributes.
     ///
     /// The attribute is only indicated as supported if the terminal can support
     /// it together with color.
@@ -682,8 +683,8 @@ impl Notcurses {
     /// For more information, see the "ncv" capability in terminfo(5).
     ///
     /// *C style function: [notcurses_supported_styles()][crate::notcurses_supported_styles].*
-    pub fn supported_styles(&self) -> NcStyleMask {
-        unsafe { crate::notcurses_supported_styles(self) as NcStyleMask }
+    pub fn supported_styles(&self) -> NcStyle {
+        unsafe { crate::notcurses_supported_styles(self) as NcStyle }
     }
 
     /// Returns our current idea of the terminal dimensions in rows and cols.

@@ -6,7 +6,7 @@ use crate::ffi::sigset_t;
 use crate::{
     cstring, error, error_ref_mut, rstring, NcAlign, NcBlitter, NcChannelPair, NcColor, NcDim,
     NcDirect, NcDirectFlags, NcDirectV, NcEgc, NcError, NcInput, NcPaletteIndex, NcResult, NcRgb,
-    NcScale, NcStyleMask, NcTime, NCRESULT_ERR,
+    NcScale, NcStyle, NcTime, NCRESULT_ERR,
 };
 
 /// # `NcDirect` constructors and destructors
@@ -137,7 +137,7 @@ impl NcDirect {
     }
 }
 
-/// ## NcDirect methods: `NcPaletteIndex`, `NcRgb`, `NcStyleMask` & default color
+/// ## NcDirect methods: `NcPaletteIndex`, `NcRgb`, `NcStyle` & default color
 impl NcDirect {
     /// Sets the foreground [NcPaletteIndex].
     ///
@@ -220,7 +220,7 @@ impl NcDirect {
     /// Removes the specified styles.
     ///
     /// *C style function: [ncdirect_off_styles()][crate::ncdirect_off_styles].*
-    pub fn styles_off(&mut self, stylebits: NcStyleMask) -> NcResult<()> {
+    pub fn styles_off(&mut self, stylebits: NcStyle) -> NcResult<()> {
         error![
             unsafe { crate::ncdirect_off_styles(self, stylebits.into()) },
             &format!("NcDirect.styles_off({:0X})", stylebits)
@@ -230,7 +230,7 @@ impl NcDirect {
     /// Adds the specified styles.
     ///
     /// *C style function: [ncdirect_on_styles()][crate::ncdirect_on_styles].*
-    pub fn styles_on(&mut self, stylebits: NcStyleMask) -> NcResult<()> {
+    pub fn styles_on(&mut self, stylebits: NcStyle) -> NcResult<()> {
         error![
             unsafe { crate::ncdirect_on_styles(self, stylebits.into()) },
             &format!("NcDirect.styles_on({:0X})", stylebits)
@@ -240,7 +240,7 @@ impl NcDirect {
     /// Sets just the specified styles.
     ///
     /// *C style function: [ncdirect_set_styles()][crate::ncdirect_set_styles].*
-    pub fn styles_set(&mut self, stylebits: NcStyleMask) -> NcResult<()> {
+    pub fn styles_set(&mut self, stylebits: NcStyle) -> NcResult<()> {
         error![
             unsafe { crate::ncdirect_set_styles(self, stylebits.into()) },
             &format!("NcDirect.styles_set({:0X})", stylebits)

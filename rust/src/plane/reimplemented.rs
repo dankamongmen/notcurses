@@ -4,7 +4,7 @@ use core::ptr::null_mut;
 
 use crate::{
     cstring, nccell_release, NcAlign, NcAlphaBits, NcBoxMask, NcCell, NcChannel, NcChannelPair,
-    NcColor, NcDim, NcEgc, NcIntResult, NcPlane, NcRgb, NcStyleMask, NCRESULT_ERR, NCRESULT_OK,
+    NcColor, NcDim, NcEgc, NcIntResult, NcPlane, NcRgb, NcStyle, NCRESULT_ERR, NCRESULT_OK,
 };
 
 // Alpha -----------------------------------------------------------------------
@@ -410,7 +410,7 @@ pub fn ncplane_perimeter(
 #[inline]
 pub fn ncplane_perimeter_double(
     plane: &mut NcPlane,
-    stylemask: NcStyleMask,
+    stylemask: NcStyle,
     channels: NcChannelPair,
     boxmask: NcBoxMask,
 ) -> NcIntResult {
@@ -472,7 +472,7 @@ pub fn ncplane_perimeter_double(
 #[inline]
 pub fn ncplane_perimeter_rounded(
     plane: &mut NcPlane,
-    stylemask: NcStyleMask,
+    stylemask: NcStyle,
     channels: NcChannelPair,
     boxmask: NcBoxMask,
 ) -> NcIntResult {
@@ -575,7 +575,7 @@ pub fn ncplane_box_sized(
 #[inline]
 pub fn ncplane_double_box(
     plane: &mut NcPlane,
-    stylemask: NcStyleMask,
+    stylemask: NcStyle,
     channels: NcChannelPair,
     y_stop: NcDim,
     x_stop: NcDim,
@@ -634,7 +634,7 @@ pub fn ncplane_double_box(
 #[inline]
 pub fn ncplane_double_box_sized(
     plane: &mut NcPlane,
-    stylemask: NcStyleMask,
+    stylemask: NcStyle,
     channels: NcChannelPair,
     y_len: NcDim,
     x_len: NcDim,
@@ -660,7 +660,7 @@ pub fn ncplane_double_box_sized(
 #[inline]
 pub fn ncplane_rounded_box(
     plane: &mut NcPlane,
-    stylemask: NcStyleMask,
+    stylemask: NcStyle,
     channels: NcChannelPair,
     y_stop: NcDim,
     x_stop: NcDim,
@@ -718,7 +718,7 @@ pub fn ncplane_rounded_box(
 #[inline]
 pub fn ncplane_rounded_box_sized(
     plane: &mut NcPlane,
-    stylemask: NcStyleMask,
+    stylemask: NcStyle,
     channels: NcChannelPair,
     y_len: NcDim,
     x_len: NcDim,
@@ -750,7 +750,7 @@ pub fn ncplane_rounded_box_sized(
 pub fn ncplane_gradient_sized(
     plane: &mut NcPlane,
     egc: &NcEgc,
-    stylemask: NcStyleMask,
+    stylemask: NcStyle,
     ul: NcChannel,
     ur: NcChannel,
     ll: NcChannel,

@@ -95,7 +95,7 @@ pub use reimplemented::*;
 /// about the plane.
 ///
 /// At any `NcCell`, we can have a theoretically arbitrarily long UTF-8 string,
-/// a foreground color, a background color, and an [`NcStyleMask`] attribute set.
+/// a foreground color, a background color, and an [`NcStyle`] attribute set.
 ///
 /// Valid grapheme cluster contents include:
 ///
@@ -112,7 +112,7 @@ pub use reimplemented::*;
 /// NcCell: 128 bits structure comprised of the following 5 elements:
 ///
 /// GCLUSTER GCLUSTER GCLUSTER GCLUSTER  1. NcEgc
-/// 00000000 ~~~~~~~~ 11111111 11111111  2. NcEgcBackstop + 3. width + 4. NcStyleMask
+/// 00000000 ~~~~~~~~ 11111111 11111111  2. NcEgcBackstop + 3. width + 4. NcStyle
 /// ~~AA~~~~ RRRRRRRR GGGGGGGG BBBBBBBB  5. NcChannelPair
 /// ~~AA~~~~ RRRRRRRR GGGGGGGG BBBBBBBB  |
 ///
@@ -130,7 +130,7 @@ pub use reimplemented::*;
 /// 3. (8b) column width
 /// WWWWWWWW
 ///
-/// 4. (16b) NcStyleMask
+/// 4. (16b) NcStyle
 /// 11111111 11111111
 ///
 /// 5. (64b) NcChannelPair
@@ -352,7 +352,7 @@ pub type NcEgc = char;
 ///
 pub type NcEgcBackstop = u8;
 
-// NcStyleMask
+// NcStyle
 ///
 /// An `u16` of `NCSTYLE_*` boolean styling attribute flags
 ///
@@ -380,7 +380,7 @@ pub type NcEgcBackstop = u8;
 ///
 /// `type in C:  uint16_t`
 ///
-pub type NcStyleMask = u16;
+pub type NcStyle = u16;
 
 ///
 pub const NCSTYLE_BLINK: u16 = crate::bindings::ffi::NCSTYLE_BLINK as u16;

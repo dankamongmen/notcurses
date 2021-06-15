@@ -4,9 +4,9 @@ use libc::strcmp;
 
 use crate::{
     cstring, nccell_release, NcAlphaBits, NcCell, NcChannel, NcChannelPair, NcColor, NcEgc,
-    NcIntResult, NcPaletteIndex, NcPlane, NcRgb, NcStyleMask, NCCELL_BGDEFAULT_MASK,
-    NCCELL_BG_PALETTE, NCCELL_FGDEFAULT_MASK, NCCELL_FG_PALETTE, NCCELL_OPAQUE, NCRESULT_ERR,
-    NCRESULT_OK, NCSTYLE_MASK,
+    NcIntResult, NcPaletteIndex, NcPlane, NcRgb, NcStyle, NCCELL_BGDEFAULT_MASK, NCCELL_BG_PALETTE,
+    NCCELL_FGDEFAULT_MASK, NCCELL_FG_PALETTE, NCCELL_OPAQUE, NCRESULT_ERR, NCRESULT_OK,
+    NCSTYLE_MASK,
 };
 
 // Alpha -----------------------------------------------------------------------
@@ -243,37 +243,37 @@ pub fn nccell_set_bg_palindex(cell: &mut NcCell, index: NcPaletteIndex) {
 
 // Styles ----------------------------------------------------------------------
 
-/// Extracts the [NcStyleMask] bits from an [NcCell].
+/// Extracts the [NcStyle] bits from an [NcCell].
 ///
 /// *Method: NcCell.[cell_styles()][NcCell#method.cell_styles].*
 #[inline]
-pub const fn nccell_styles(cell: &NcCell) -> NcStyleMask {
+pub const fn nccell_styles(cell: &NcCell) -> NcStyle {
     cell.stylemask
 }
 
-/// Adds the specified [NcStyleMask] bits to an [NcCell]'s existing spec.,
+/// Adds the specified [NcStyle] bits to an [NcCell]'s existing spec.,
 /// whether they're actively supported or not.
 ///
 /// *Method: NcCell.[styles_on()][NcCell#method.styles_on].*
 #[inline]
-pub fn nccell_on_styles(cell: &mut NcCell, stylebits: NcStyleMask) {
+pub fn nccell_on_styles(cell: &mut NcCell, stylebits: NcStyle) {
     cell.stylemask |= stylebits & NCSTYLE_MASK as u16;
 }
 
-/// Removes the specified [NcStyleMask] bits from an [NcCell]'s existing spec.
+/// Removes the specified [NcStyle] bits from an [NcCell]'s existing spec.
 ///
 /// *Method: NcCell.[styles_off()][NcCell#method.styles_off].*
 #[inline]
-pub fn nccell_off_styles(cell: &mut NcCell, stylebits: NcStyleMask) {
+pub fn nccell_off_styles(cell: &mut NcCell, stylebits: NcStyle) {
     cell.stylemask &= !(stylebits & NCSTYLE_MASK as u16);
 }
 
-/// Sets *just* the specified [NcStyleMask] bits for an [NcCell],
+/// Sets *just* the specified [NcStyle] bits for an [NcCell],
 /// whether they're actively supported or not.
 ///
 /// *Method: NcCell.[styles_set()][NcCell#method.styles_set].*
 #[inline]
-pub fn nccell_set_styles(cell: &mut NcCell, stylebits: NcStyleMask) {
+pub fn nccell_set_styles(cell: &mut NcCell, stylebits: NcStyle) {
     cell.stylemask = stylebits & NCSTYLE_MASK as u16;
 }
 
@@ -365,7 +365,7 @@ pub fn nccell_strdup(plane: &NcPlane, cell: &NcCell) -> NcEgc {
 
 // Misc. -----------------------------------------------------------------------
 
-/// Saves the [NcStyleMask] and the [NcChannelPair],
+/// Saves the [NcStyle] and the [NcChannelPair],
 /// and returns the [NcEgc], of an [NcCell].
 ///
 /// *Method: NcCell.[extract()][NcCell#method.extract].*
@@ -373,7 +373,7 @@ pub fn nccell_strdup(plane: &NcPlane, cell: &NcCell) -> NcEgc {
 pub fn nccell_extract(
     plane: &NcPlane,
     cell: &NcCell,
-    stylemask: &mut NcStyleMask,
+    stylemask: &mut NcStyle,
     channels: &mut NcChannelPair,
 ) -> NcEgc {
     if *stylemask != 0 {
@@ -430,7 +430,7 @@ pub fn nccell_prime(
     plane: &mut NcPlane,
     cell: &mut NcCell,
     gcluster: &str,
-    style: NcStyleMask,
+    style: NcStyle,
     channels: NcChannelPair,
 ) -> NcIntResult {
     cell.stylemask = style;
@@ -448,7 +448,7 @@ pub fn nccell_prime(
 /// *Method: NcCell.[load_box()][NcCell#method.load_box].*
 pub fn nccells_load_box(
     plane: &mut NcPlane,
-    style: NcStyleMask,
+    style: NcStyle,
     channels: NcChannelPair,
     ul: &mut NcCell,
     ur: &mut NcCell,

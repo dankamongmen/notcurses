@@ -233,7 +233,7 @@ pub use reimplemented::*;
 /// - [`NcAlphaBits`](#ncplane-methods-ncalphabits)
 /// - [`NcChannel` & `NcChannelPair`](#ncplane-methods-ncchannel)
 /// - [`NcColor`, `NcRgb` & default color](#ncplane-methods-nccolor-ncrgb--default-color)
-/// - [`NcStyleMask` & `NcPaletteIndex`](#ncplane-methods-ncstylemask--paletteindex)
+/// - [`NcStyle` & `NcPaletteIndex`](#ncplane-methods-ncstylemask--paletteindex)
 /// - [`NcCell` & `NcEgc`](#ncplane-methods-nccell--ncegc)
 /// - [cursor](#ncplane-methods-cursor)
 /// - [`NcPlane` & `Notcurses`](#ncplane-methods-ncplane--notcurses)
