@@ -587,7 +587,7 @@ impl Notcurses {
         }
     }
 
-    /// Allocates an ncstats object.
+    /// Allocates an [`NcStats`] object.
     ///
     /// Use this rather than allocating your own, since future versions of
     /// Notcurses might enlarge this structure.

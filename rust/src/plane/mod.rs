@@ -194,36 +194,64 @@ pub use reimplemented::*;
 /// `type in C: ncplane (struct)`
 ///
 ///
-/// # Piles
+/// # About planes and piles
 ///
-/// A single notcurses context is made up of one or more piles.
+/// A given notcurses context is made up of one or more piles.
 ///
-/// A pile is a set of one or more ncplanes, including the partial orderings
-/// made up of their binding and z-axis pointers.
+/// A pile is made up of [`NcPlane`]s, totally ordered on a z-axis.
 ///
-/// A pile has a top and bottom ncplane (this might be a single plane),
-/// and one or more root planes (planes which are bound to themselves).
+/// You can't manage the piles directly, but only the `NcPlanes`.
 ///
-/// Multiple threads can concurrently operate on distinct piles, even changing
-/// one while rendering another.
+/// A pile is destroyed when all its planes are destroyed or moved to other
+/// piles.
 ///
-/// Each plane is part of one and only one pile. By default, a plane is part of
-/// the same pile containing that plane to which it is bound.
+/// A pile has a top and bottom plane (this might be a single `NcPlane`),
+/// and one or more root planes (`NcPlane`s which are bound to themselves).
 ///
-/// If ncpile_create is used in the place of ncplane_create, the returned plane
-/// becomes the root plane, top, and bottom of a new pile.  As a root plane,
+/// Multiple threads can concurrently operate on distinct piles, rendering or
+/// mutating it, while another thread concurrently renders or mutates another.
+///
+/// Each `NcPlane` is part of one and only one pile. By default, an `NcPlane` is
+/// part of the same pile that contains the `NcPlane` to which it is bound.
+///
+/// When an `NcPlane` is created without being bound to another `NcPlane`, then
+/// it becomes the root plane, top, and bottom of a new pile. As a root plane,
 /// it is bound to itself.
 ///
-/// A new pile can also be created by reparenting a plane to itself,
+/// A new pile can also be created by reparenting an `NcPlane` to itself,
 /// though if the plane is already a root plane, this is a no-op.
 ///
-/// When a plane is moved to a different pile (whether new or preexisting),
-/// any planes which were bound to it are rebound to its previous parent.
-/// If the plane was a root plane of some pile, any bound planes become root
-/// planes. The new plane is placed immediately atop its new parent on its new
-/// pile's z-axis. When ncplane_reparent_family() is used, all planes bound to
-/// the reparented plane are moved along with it. Their relative z-order is maintained.
+/// When an `NcPlane` is moved to a different pile (whether new or preexisting),
+/// any `NcPlane`s which were bound to it are rebound to its previous parent.
+/// If the `NcPlane` was a root plane of some pile, any bound planes become root
+/// planes. The new `NcPlane` is placed immediately atop its new parent on its
+/// new pile's z-axis.
 ///
+/// When [`NcPlane::reparent_family`][NcPlane#method.reparent_family] is used,
+/// all `NcPlanes` bound to the reparented `NcPlane` are moved along with it.
+/// Their relative z-order is maintained.
+//
+/// Rendering reduces a pile of `NcPlane`s to a single `NcPlane`, proceeding
+/// from the top to the bottom along a pile's z-axis. The result is a matrix of
+/// [`NcCell`][crate::NcCell]s. Rasterizing takes this matrix, together with the
+/// current state of the visual area, and produces a stream of optimized control
+/// sequences and [`NcEgc`][crate::NcEgc]s for the terminal. By writing this
+/// stream to the terminal, the physical display is synced to some pile's
+/// `NcPlane`s.
+///
+/// [`NcPlane.render`][crate::NcPlane#method.render] performs the first of these
+/// tasks for the pile of which the plane is a part. The output is maintained
+/// internally; calling `render` again on the same pile will replace this state
+/// with a fresh render. Multiple piles can be concurrently rendered.
+/// [`NcPlane.rasterize`][crate::NcPlane#method.rasterize] performs
+/// rasterization, and writes the result to the terminal. It is a blocking call,
+/// and only one rasterization operation may proceed at a time.
+///
+/// It is necessary to call `NcPlane.rasterize` to generate any visible output;
+/// the various *output calls* only draw to the virtual `NcPlane`s. Most of the
+/// notcurses `statistics` are updated as a result of a render, and screen
+/// geometry is refreshed (similarly to
+/// [`Notcurses.refresh`][crate::Notcurses#method.refresh]) following the render.
 ///
 /// # Methods & Associated Functions
 ///
