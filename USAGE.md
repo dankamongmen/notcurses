@@ -260,7 +260,8 @@ notcurses_term_dim_yx(const struct notcurses* n, int* restrict rows,
 // Refresh the physical screen to match what was last rendered (i.e., without
 // reflecting any changes since the last call to notcurses_render()). This is
 // primarily useful if the screen is externally corrupted, or if an
-// NCKEY_RESIZE event has been read and you're not ready to render.
+// NCKEY_RESIZE event has been read and you're not yet ready to render. The
+// current screen geometry is returned in 'y' and 'x', if they are not NULL.
 int notcurses_refresh(struct notcurses* n, int* restrict y, int* restrict x);
 
 // Enable or disable the terminal's cursor, if supported, placing it at

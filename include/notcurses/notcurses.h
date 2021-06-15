@@ -1075,7 +1075,8 @@ API int notcurses_linesigs_enable(struct notcurses* n);
 // Refresh the physical screen to match what was last rendered (i.e., without
 // reflecting any changes since the last call to notcurses_render()). This is
 // primarily useful if the screen is externally corrupted, or if an
-// NCKEY_RESIZE event has been read and you're not yet ready to render.
+// NCKEY_RESIZE event has been read and you're not yet ready to render. The
+// current screen geometry is returned in 'y' and 'x', if they are not NULL.
 API int notcurses_refresh(struct notcurses* n, int* RESTRICT y, int* RESTRICT x);
 
 // Extract the Notcurses context to which this plane is attached.
