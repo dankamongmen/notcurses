@@ -811,6 +811,13 @@ pump_control_read(init_state* inits, unsigned char c){
       }
       break;
     case STATE_BGSEMI: // drain string
+      if(c == '\x07'){ // contour sends this at the end for some unknown reason
+        if(stash_string(inits)){
+          return -1;
+        }
+        inits->state = STATE_NULL;
+        break;
+      }
       inits->numeric = c;
       if(ruts_string(inits, STATE_BG1)){
         return -1;
