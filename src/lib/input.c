@@ -744,12 +744,16 @@ stash_string(init_state* inits){
       break;
     case STATE_BG1:{
       int r, g, b;
-      if(sscanf(inits->runstring, "rgb:%04x/%04x/%04x", &r, &g, &b) == 3){
+      if(sscanf(inits->runstring, "rgb:%02x/%02x/%02x", &r, &g, &b) == 3){
+        // great! =]
+      }else if(sscanf(inits->runstring, "rgb:%04x/%04x/%04x", &r, &g, &b) == 3){
         r /= 256;
         g /= 256;
         b /= 256;
-        inits->bg = (r << 16u) | (g << 8u) | b;
+      }else{
+        break;
       }
+      inits->bg = (r << 16u) | (g << 8u) | b;
       break;
     }default:
       fprintf(stderr, "invalid string stashed %d\n", inits->stringstate);
