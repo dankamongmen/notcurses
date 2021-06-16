@@ -4,7 +4,7 @@ use core::ptr::{null, null_mut};
 
 use crate::ffi::sigset_t;
 use crate::{
-    cstring, error, error_ref_mut, rstring, NcAlign, NcBlitter, NcChannelPair, NcColor, NcDim,
+    cstring, error, error_ref_mut, rstring, NcAlign, NcBlitter, NcChannelPair, NcComponent, NcDim,
     NcDirect, NcDirectFlags, NcDirectV, NcEgc, NcError, NcInput, NcPaletteIndex, NcResult, NcRgb,
     NcScale, NcStyle, NcTime, NCRESULT_ERR,
 };
@@ -197,20 +197,30 @@ impl NcDirect {
         ]
     }
 
-    /// Sets the foreground [NcColor] components.
+    /// Sets the foreground [NcComponent] components.
     ///
     /// *C style function: [ncdirect_set_fg_rgb8()][crate::ncdirect_set_fg_rgb8].*
-    pub fn set_fg_rgb8(&mut self, red: NcColor, green: NcColor, blue: NcColor) -> NcResult<()> {
+    pub fn set_fg_rgb8(
+        &mut self,
+        red: NcComponent,
+        green: NcComponent,
+        blue: NcComponent,
+    ) -> NcResult<()> {
         error![
             crate::ncdirect_set_fg_rgb8(self, red, green, blue),
             &format!("NcDirect.set_fg_rgb8({}, {}, {})", red, green, blue)
         ]
     }
 
-    /// Sets the background [NcColor] components.
+    /// Sets the background [NcComponent] components.
     ///
     /// *C style function: [ncdirect_set_bg_rgb()][crate::ncdirect_set_bg_rgb].*
-    pub fn set_bg_rgb8(&mut self, red: NcColor, green: NcColor, blue: NcColor) -> NcResult<()> {
+    pub fn set_bg_rgb8(
+        &mut self,
+        red: NcComponent,
+        green: NcComponent,
+        blue: NcComponent,
+    ) -> NcResult<()> {
         error![
             crate::ncdirect_set_bg_rgb8(self, red, green, blue),
             &format!("NcDirect.set_bg_rgb8({}, {}, {})", red, green, blue)

@@ -66,7 +66,7 @@
 //W  channels_set_not_default        // not in the original C API
 
 #[allow(unused_imports)] // for the doc comments
-use crate::NcRgba;
+use crate::{NcCell, NcRgba};
 
 #[cfg(test)]
 mod test;
@@ -297,9 +297,9 @@ pub type NcChannelPair = u64;
 /// See also: [NcRgba] and [NcChannel] types.
 pub type NcRgb = u32;
 
-// NcColor
+// NcComponent
 //
-/// 8 bits representing a R/G/B color or alpha channel
+/// 8 bits representing an R/G/B color component or an alpha channel component.
 ///
 /// ## Diagram
 ///
@@ -307,4 +307,4 @@ pub type NcRgb = u32;
 /// CCCCCCCC (1 Byte)
 /// ```
 /// `type in C: no data type`
-pub type NcColor = u8;
+pub type NcComponent = u8;

@@ -9,7 +9,7 @@ use crate::{
 
 // NcChannel tests -------------------------------------------------------------
 
-/// retrieves the red NcColor component
+/// retrieves the red NcComponent component
 #[test]
 #[serial]
 fn channel_r() {
@@ -17,7 +17,7 @@ fn channel_r() {
     assert_eq!(crate::ncchannel_r(c), 0x11);
 }
 
-/// retrieves the green NcColor component
+/// retrieves the green NcComponent component
 #[test]
 #[serial]
 fn channel_g() {
@@ -25,7 +25,7 @@ fn channel_g() {
     assert_eq!(crate::ncchannel_g(c), 0x22);
 }
 
-/// retrieves the blue NcColor component
+/// retrieves the blue NcComponent component
 #[test]
 #[serial]
 fn channel_b() {
@@ -33,7 +33,7 @@ fn channel_b() {
     assert_eq!(crate::ncchannel_b(c), 0x33);
 }
 
-/// writes out the three RGB NcColor components
+/// writes out the three RGB NcComponent components
 #[test]
 #[serial]
 fn channel_rgb8() {
@@ -47,7 +47,7 @@ fn channel_rgb8() {
     assert_eq!(b, 0x33);
 }
 
-/// sets the three RGB NcColor components
+/// sets the three RGB NcComponent components
 #[test]
 #[serial]
 fn channel_set_rgb8() {

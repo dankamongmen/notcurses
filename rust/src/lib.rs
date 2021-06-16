@@ -41,7 +41,7 @@
 //!
 //! For the types that don't allocate, most are based on primitives like `i32`,
 //! `u32`, `u64`… without a name in the C library. In Rust they are type aliased
-//! (e.g.: [`NcChannel`], [`NcChannelPair`], [`NcRgb`], [`NcColor`]…), to
+//! (e.g.: [`NcChannel`], [`NcChannelPair`], [`NcRgb`], [`NcComponent`]…), to
 //! leverage type checking, and they implement methods through [traits](#traits)
 //! (e.g. [`NcChannelMethods`] must be in scope to use the `NcChannel` methods.
 //!

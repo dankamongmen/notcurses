@@ -4,7 +4,7 @@ use core::ptr::null_mut;
 
 use crate::{
     cstring, nccell_release, NcAlign, NcAlphaBits, NcBoxMask, NcCell, NcChannel, NcChannelPair,
-    NcColor, NcDim, NcEgc, NcIntResult, NcPlane, NcRgb, NcStyle, NCRESULT_ERR, NCRESULT_OK,
+    NcComponent, NcDim, NcEgc, NcIntResult, NcPlane, NcRgb, NcStyle, NCRESULT_ERR, NCRESULT_OK,
 };
 
 // Alpha -----------------------------------------------------------------------
@@ -77,32 +77,32 @@ pub fn ncplane_set_channels(plane: &mut NcPlane, channels: NcChannelPair) {
     unsafe { crate::ffi::ncplane_set_channels(plane, channels) };
 }
 
-// NcColor ---------------------------------------------------------------------
+// NcComponent ---------------------------------------------------------------------
 
-/// Gets the foreground [NcColor] RGB components from an [NcPlane].
+/// Gets the foreground RGB [NcComponent]s from an [NcPlane].
 /// and returns the background [NcChannel].
 ///
 /// *Method: NcPlane.[fg_rgb8()][NcPlane#method.fg_rgb8].*
 #[inline]
 pub fn ncplane_fg_rgb8(
     plane: &NcPlane,
-    red: &mut NcColor,
-    green: &mut NcColor,
-    blue: &mut NcColor,
+    red: &mut NcComponent,
+    green: &mut NcComponent,
+    blue: &mut NcComponent,
 ) -> NcChannel {
     crate::ncchannels_fg_rgb8(ncplane_channels(plane), red, green, blue)
 }
 
-/// Gets the background [NcColor] RGB components from an [NcPlane],
+/// Gets the background RGB [NcComponent]s from an [NcPlane],
 /// and returns the background [NcChannel].
 ///
 /// *Method: NcPlane.[bg_rgb8()][NcPlane#method.bg_rgb8].*
 #[inline]
 pub fn ncplane_bg_rgb8(
     plane: &NcPlane,
-    red: &mut NcColor,
-    green: &mut NcColor,
-    blue: &mut NcColor,
+    red: &mut NcComponent,
+    green: &mut NcComponent,
+    blue: &mut NcComponent,
 ) -> NcChannel {
     crate::ncchannels_bg_rgb8(ncplane_channels(plane), red, green, blue)
 }

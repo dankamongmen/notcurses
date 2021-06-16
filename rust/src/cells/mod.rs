@@ -164,20 +164,24 @@ use crate::{NcChannel, NcPlane};
 /// have two bits of inverted alpha. The actual grapheme written to a cell is
 /// the topmost non-zero grapheme.
 ///
-/// - If its alpha is 00 ([`NCALPHA_OPAQUE`]) its foreground color is used unchanged.
+/// - If its alpha is 00 ([`NCALPHA_OPAQUE`][crate::NCALPHA_OPAQUE])
+///   its foreground color is used unchanged.
 ///
-/// - If its alpha is 10 ([`NCALPHA_TRANSPARENT`]) its foreground color is derived
+/// - If its alpha is 10 ([`NCALPHA_TRANSPARENT`][crate::NCALPHA_TRANSPARENT])
+///   its foreground color is derived
 ///   entirely from cells underneath it.
 ///
-/// - If its alpha is 01 ([`NCALPHA_BLEND`]) the result will be a composite.
+/// - If its alpha is 01 ([`NCALPHA_BLEND`][crate::NCALPHA_BLEND])
+///   the result will be a composite.
 ///
 /// Likewise for the background. If the bottom of a coordinate's zbuffer is
 /// reached with a cumulative alpha of zero, the default is used. In this way,
 /// a terminal configured with transparent background can be supported through
 /// multiple occluding ncplanes.
 ///
-/// A foreground alpha of 11 ([`NCALPHA_HIGHCONTRAST`]) requests high-contrast
-/// text (relative to the computed background).
+/// A foreground alpha of 11
+/// ([`NCALPHA_HIGHCONTRAST`][crate::NCALPHA_HIGHCONTRAST])
+/// requests high-contrast text (relative to the computed background).
 /// A background alpha of 11 is currently forbidden.
 ///
 /// ## Precedence

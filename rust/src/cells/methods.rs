@@ -1,8 +1,8 @@
 //! `NcCell` methods and associated functions.
 
 use crate::{
-    cstring, error, nccell_load, NcAlphaBits, NcCell, NcChannelPair, NcColor, NcEgc, NcEgcBackstop,
-    NcPaletteIndex, NcPlane, NcResult, NcRgb, NcStyle, NCRESULT_ERR,
+    cstring, error, nccell_load, NcAlphaBits, NcCell, NcChannelPair, NcComponent, NcEgc,
+    NcEgcBackstop, NcPaletteIndex, NcPlane, NcResult, NcRgb, NcStyle, NCRESULT_ERR,
 };
 
 #[allow(unused_imports)] // for the doc comments
@@ -111,7 +111,7 @@ impl NcCell {
 // -----------------------------------------------------------------------------
 /// ## NcCell methods: bg|fg `NcChannel`s manipulation.
 impl NcCell {
-    /// Returns the [NcChannelPair] of the NcCell.
+    /// Returns the [`NcChannelPair`] of the NcCell.
     ///
     /// *(No equivalent C style function)*
     pub fn channels(&mut self, plane: &mut NcPlane) -> NcChannelPair {
@@ -120,111 +120,111 @@ impl NcCell {
         channels
     }
 
-    /// Extracts the background [NcAlphaBits] (shifted to LSBs).
+    /// Extracts the background [`NcAlphaBits`] (shifted to LSBs).
     ///
     /// *C style function: [nccell_bg_alpha()][crate::nccell_bg_alpha].*
     pub fn bg_alpha(&self) -> NcAlphaBits {
         crate::nccell_bg_alpha(self)
     }
 
-    /// Is the background [NcChannel] using the "default background color"?
+    /// Is the background [`NcChannel`] using the "default background color"?
     ///
     /// *C style function: [nccell_bg_default_p()][crate::nccell_bg_default_p].*
     pub fn bg_default_p(&self) -> bool {
         crate::nccell_bg_default_p(self)
     }
 
-    /// Gets the [NcPaletteIndex] of the background [NcChannel].
+    /// Gets the [`NcPaletteIndex`] of the background [`NcChannel`].
     ///
     /// *C style function: [nccell_bg_palindex()][crate::nccell_bg_palindex].*
     pub fn bg_palindex(&self) -> NcPaletteIndex {
         crate::nccell_bg_palindex(self)
     }
 
-    /// Is the background [NcChannel] using an [NcPaletteIndex] indexed
-    /// [NcPalette][crate::NcPalette] color?
+    /// Is the background [`NcChannel`] using an [`NcPaletteIndex`] indexed
+    /// [`NcPalette`][crate::NcPalette] color?
     ///
     /// *C style function: [nccell_bg_palindex_p()][crate::nccell_bg_palindex_p].*
     pub fn bg_palindex_p(&self) -> bool {
         crate::nccell_bg_palindex_p(self)
     }
 
-    /// Gets the background [NcRgb] (shifted to LSBs).
+    /// Gets the background [`NcRgb`] (shifted to LSBs).
     ///
     /// *C style function: [nccell_bg_rgb()][crate::nccell_bg_rgb].*
     pub fn bg_rgb(&self) -> NcRgb {
         crate::nccell_bg_rgb(self)
     }
 
-    /// Gets the background [NcColor] RGB components.
+    /// Gets the background RGB [`NcComponent`]s.
     ///
     /// *C style function: [nccell_bg_rgb8()][crate::nccell_bg_rgb8].*
-    pub fn bg_rgb8(&self) -> (NcColor, NcColor, NcColor) {
+    pub fn bg_rgb8(&self) -> (NcComponent, NcComponent, NcComponent) {
         let (mut r, mut g, mut b) = (0, 0, 0);
         crate::nccell_bg_rgb8(self, &mut r, &mut g, &mut b);
         (r, g, b)
     }
 
-    /// Extracts the foreground [NcAlphaBits] (shifted to LSBs).
+    /// Extracts the foreground [`NcAlphaBits`] (shifted to LSBs).
     ///
     /// *C style function: [nccell_fg_alpha()][crate::nccell_fg_alpha].*
     pub fn fg_alpha(&self) -> NcAlphaBits {
         crate::nccell_fg_alpha(self)
     }
 
-    /// Is the foreground [NcChannel] using the "default foreground color"?
+    /// Is the foreground [`NcChannel`] using the "default foreground color"?
     ///
     /// *C style function: [nccell_fg_default_p()][crate::nccell_fg_default_p].*
     pub fn fg_default_p(&self) -> bool {
         crate::nccell_fg_default_p(self)
     }
 
-    /// Gets the [NcPaletteIndex] of the foreground [NcChannel].
+    /// Gets the [`NcPaletteIndex`] of the foreground [`NcChannel`].
     ///
     /// *C style function: [nccell_fg_palindex()][crate::nccell_fg_palindex].*
     pub fn fg_palindex(&self) -> NcPaletteIndex {
         crate::nccell_fg_palindex(self)
     }
 
-    /// Is the foreground [NcChannel] using an [NcPaletteIndex] indexed
-    /// [NcPalette][crate::NcPalette] color?
+    /// Is the foreground [`NcChannel`] using an [`NcPaletteIndex`] indexed
+    /// [`NcPalette`][crate::NcPalette] color?
     ///
     /// *C style function: [nccell_fg_palindex_p()][crate::nccell_fg_palindex_p].*
     pub fn fg_palindex_p(&self) -> bool {
         crate::nccell_fg_palindex_p(self)
     }
 
-    /// Gets the foreground [NcRgb] (shifted to LSBs).
+    /// Gets the foreground [`NcRgb`] (shifted to LSBs).
     ///
     /// *C style function: [nccell_fg_rgb()][crate::nccell_fg_rgb].*
     pub fn fg_rgb(&self) -> NcRgb {
         crate::nccell_fg_rgb(self)
     }
 
-    /// Gets the foreground [NcColor] RGB components.
+    /// Gets the foreground RGB [`NcComponent`]s.
     ///
     /// *C style function: [nccell_fg_rgb8()][crate::nccell_fg_rgb8].*
-    pub fn fg_rgb8(&self) -> (NcColor, NcColor, NcColor) {
+    pub fn fg_rgb8(&self) -> (NcComponent, NcComponent, NcComponent) {
         let (mut r, mut g, mut b) = (0, 0, 0);
         crate::nccell_fg_rgb8(self, &mut r, &mut g, &mut b);
         (r, g, b)
     }
 
-    /// Sets the background [NcAlphaBits].
+    /// Sets the background [`NcAlphaBits`].
     ///
     /// *C style function: [nccell_set_bg_alpha()][crate::nccell_set_bg_alpha].*
     pub fn set_bg_alpha(&mut self, alpha: NcAlphaBits) {
         crate::nccell_set_bg_alpha(self, alpha);
     }
 
-    /// Indicates to use the "default color" for the background [NcChannel].
+    /// Indicates to use the "default color" for the background [`NcChannel`].
     ///
     /// *C style function: [nccell_set_bg_default()][crate::nccell_set_bg_default].*
     pub fn set_bg_default(&mut self) {
         crate::nccell_set_bg_default(self);
     }
 
-    /// Sets the background [NcPaletteIndex].
+    /// Sets the background [`NcPaletteIndex`].
     ///
     /// Also sets [NCALPHA_BG_PALETTE][crate::NCALPHA_BG_PALETTE] and
     /// [NCALPHA_OPAQUE][crate::NCALPHA_OPAQUE], and clears out
@@ -235,36 +235,36 @@ impl NcCell {
         crate::nccell_set_bg_palindex(self, index);
     }
 
-    /// Sets the background [NcRgb] and marks it as not using the default color.
+    /// Sets the background [`NcRgb`] and marks it as not using the default color.
     ///
     /// *C style function: [nccell_set_bg_rgb()][crate::nccell_set_bg_rgb].*
     pub fn set_bg_rgb(&mut self, rgb: NcRgb) {
         crate::nccell_set_bg_rgb(self, rgb);
     }
 
-    /// Sets the background [NcColor] RGB components, and marks it as not using
+    /// Sets the background RGB [`NcComponent`]s, and marks it as not using
     /// the "default color".
     ///
     /// *C style function: [nccell_set_bg_rgb8()][crate::nccell_set_bg_rgb8].*
-    pub fn set_bg_rgb8(&mut self, red: NcColor, green: NcColor, blue: NcColor) {
+    pub fn set_bg_rgb8(&mut self, red: NcComponent, green: NcComponent, blue: NcComponent) {
         crate::nccell_set_bg_rgb8(self, red, green, blue);
     }
 
-    /// Sets the foreground [NcAlphaBits].
+    /// Sets the foreground [`NcAlphaBits`].
     ///
     /// *C style function: [nccell_set_fg_alpha()][crate::nccell_set_fg_alpha].*
     pub fn set_fg_alpha(&mut self, alpha: NcAlphaBits) {
         crate::nccell_set_fg_alpha(self, alpha);
     }
 
-    /// Indicates to use the "default color" for the foreground [NcChannel].
+    /// Indicates to use the "default color" for the foreground [`NcChannel`].
     ///
     /// *C style function: [nccell_set_fg_default()][crate::nccell_set_fg_default].*
     pub fn set_fg_default(&mut self) {
         crate::nccell_set_fg_default(self);
     }
 
-    /// Sets the foreground [NcPaletteIndex].
+    /// Sets the foreground [`NcPaletteIndex`].
     ///
     /// Also sets [NCALPHA_FG_PALETTE][crate::NCALPHA_FG_PALETTE] and
     /// [NCALPHA_OPAQUE][crate::NCALPHA_OPAQUE], and clears out
@@ -275,26 +275,26 @@ impl NcCell {
         crate::nccell_set_fg_palindex(self, index);
     }
 
-    /// Sets the foreground [NcRgb] and marks it as not using the default color.
+    /// Sets the foreground [`NcRgb`] and marks it as not using the default color.
     ///
     /// *C style function: [nccell_set_fg_rgb()][crate::nccell_set_fg_rgb].*
     pub fn set_fg_rgb(&mut self, rgb: NcRgb) {
         crate::nccell_set_fg_rgb(self, rgb);
     }
 
-    /// Sets the foreground [NcColor] RGB components, and marks it as not using
+    /// Sets the foreground RGB [`NcComponent`]s, and marks it as not using
     /// the "default color".
     ///
     /// *C style function: [nccell_set_fg_rgb8()][crate::nccell_set_fg_rgb8].*
-    pub fn set_fg_rgb8(&mut self, red: NcColor, green: NcColor, blue: NcColor) {
+    pub fn set_fg_rgb8(&mut self, red: NcComponent, green: NcComponent, blue: NcComponent) {
         crate::nccell_set_fg_rgb8(self, red, green, blue);
     }
 }
 
 /// # `NcCell` methods: other components
 impl NcCell {
-    /// Returns true if the two cells have distinct [NcEgc]s, attributes,
-    /// or [NcChannel]s.
+    /// Returns true if the two cells have distinct [`NcEgc`]s, attributes,
+    /// or [`NcChannel`]s.
     ///
     /// The actual egcpool index needn't be the same--indeed, the planes
     /// needn't even be the same. Only the expanded NcEgc must be bit-equal.
@@ -304,7 +304,7 @@ impl NcCell {
         crate::nccellcmp(plane1, cell1, plane2, cell2)
     }
 
-    /// Saves the [NcStyle] and the [NcChannelPair], and returns the [NcEgc].
+    /// Saves the [`NcStyle`] and the [`NcChannelPair`], and returns the [`NcEgc`].
     /// (These are the three elements of an NcCell).
     ///
     /// *C style function: [nccell_fg_alpha()][crate::nccell_fg_alpha].*
@@ -317,7 +317,7 @@ impl NcCell {
         crate::nccell_extract(plane, self, styles, channels)
     }
 
-    /// Returns the [NcEgc] of the NcCell.
+    /// Returns the [`NcEgc`] of the NcCell.
     ///
     /// See also: [extended_gcluster][NcCell#method.extended_gcluster] method.
     ///
@@ -327,28 +327,28 @@ impl NcCell {
         crate::nccell_extract(plane, self, &mut _styles, &mut _channels)
     }
 
-    /// Returns the [NcStyle] bits.
+    /// Returns the [`NcStyle`] bits.
     ///
     /// *C style function: [nccell_styles()][crate::nccell_styles].*
     pub fn styles(&mut self) -> NcStyle {
         crate::nccell_styles(self)
     }
 
-    /// Removes the specified [NcStyle] bits.
+    /// Removes the specified [`NcStyle`] bits.
     ///
     /// *C style function: [nccell_off()][crate::nccell_off_styles].*
     pub fn off_styles(&mut self, stylebits: NcStyle) {
         crate::nccell_off_styles(self, stylebits)
     }
 
-    /// Adds the specified [NcStyle] bits.
+    /// Adds the specified [`NcStyle`] bits.
     ///
     /// *C style function: [nccell_on()][crate::nccell_on_styles].*
     pub fn on_styles(&mut self, stylebits: NcStyle) {
         crate::nccell_on_styles(self, stylebits)
     }
 
-    /// Sets just the specified [NcStyle] bits.
+    /// Sets just the specified [`NcStyle`] bits.
     ///
     /// *C style function: [nccell_set_styles()][crate::nccell_set_styles].*
     pub fn set_styles(&mut self, stylebits: NcStyle) {
@@ -358,7 +358,7 @@ impl NcCell {
 
 /// # `NcCell` methods: text
 impl NcCell {
-    // /// Returns a pointer to the [NcEgc] of this NcCell in the [NcPlane] `plane`.
+    // /// Returns a pointer to the [`NcEgc`] of this NcCell in the [NcPlane] `plane`.
     // ///
     // /// This pointer can be invalidated by any further operation on the referred
     // /// plane, so… watch out!
@@ -369,7 +369,7 @@ impl NcCell {
     //     egcpointer
     // }
 
-    /// Copies the UTF8-encoded [NcEgc] out of this NcCell,
+    /// Copies the UTF8-encoded [`NcEgc`] out of this NcCell,
     /// whether simple or complex.
     ///
     /// The result is not tied to the [NcPlane],
@@ -404,11 +404,11 @@ impl NcCell {
 
 /// # `NcCell` methods: boxes
 impl NcCell {
-    /// Loads up six cells with the [NcEgc]s necessary to draw a box.
+    /// Loads up six cells with the [`NcEgc`]s necessary to draw a box.
     ///
-    /// On error, any [NcCell]s this function might have loaded before the error
+    /// On error, any [`NcCell`]s this function might have loaded before the error
     /// are [release][NcCell#method.release]d.
-    /// There must be at least six [NcEgc]s in `gcluster`.
+    /// There must be at least six [`NcEgc`]s in `gcluster`.
     ///
     /// *C style function: [nccells_load_box()][crate::nccells_load_box].*
     pub fn load_box(
