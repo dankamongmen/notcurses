@@ -53,16 +53,17 @@ tinfo_debug_caps(const tinfo* ti, FILE* debugfp, int rows, int cols,
             get_blitter_egcs(NCBLIT_3x2) + 32,
             NCBOXROUNDW, NCBOXROUNDW + 4,
             NCBOXDOUBLEW, NCBOXDOUBLEW + 4);
-    fprintf(debugfp, "%s braille ⎡%.96ls⎤      ⎩%.6ls%.3ls⎭       ⎩%.6ls%.3ls⎭ ⎪🮉▍⎪ 🯶🯷\n", indent,
-            get_blitter_egcs(NCBLIT_BRAILLE),
+    fprintf(debugfp, "%s                                                 ⎩%.6ls%.3ls⎭       ⎩%.6ls%.3ls⎭ ⎪🮉▍⎪ 🯶🯷\n", indent,
             NCBOXROUNDW + 2, NCBOXROUNDW + 5,
             NCBOXDOUBLEW + 2, NCBOXDOUBLEW + 5);
-    fprintf(debugfp, "%s         ⎢%.96ls⎥                        ⎨▐▌⎬ 🯸🯹\n", indent,
-            get_blitter_egcs(NCBLIT_BRAILLE) + 32);
-    fprintf(debugfp, "%s         ⎢%.96ls⎥                        ⎪🮈▋⎪\n", indent,
-            get_blitter_egcs(NCBLIT_BRAILLE)); // FIXME
-    fprintf(debugfp, "%s         ⎣%.96ls⎦                        ⎪🮇▊⎪\n", indent,
-            get_blitter_egcs(NCBLIT_BRAILLE) + 32); // FIXME
+    fprintf(debugfp, "%s⎡%.192ls⎤ ⎪🮉▍⎪ 🯸🯹\n", indent,
+            get_blitter_egcs(NCBLIT_BRAILLE));
+    fprintf(debugfp, "%s⎢%.192ls⎥ ⎨▐▌⎬\n", indent,
+            get_blitter_egcs(NCBLIT_BRAILLE) + 64);
+    fprintf(debugfp, "%s⎢%.192ls⎥ ⎪🮈▋⎪\n", indent,
+            get_blitter_egcs(NCBLIT_BRAILLE) + 128);
+    fprintf(debugfp, "%s⎣%.192ls⎦ ⎪🮇▊⎪\n", indent,
+            get_blitter_egcs(NCBLIT_BRAILLE) + 192);
     fprintf(debugfp, "%s vert ⅛s ⎛%ls⎞ ▔🭶🭷🭸🭹🭺🭻▁                                      ⎪▕▉⎪\n", indent, get_blitter_egcs(NCBLIT_8x1));
     fprintf(debugfp, "%s         ⎝%s⎠                                               ⎩ █⎭\n", indent, "█🮆🮅🮄▀🮃🮂▔ ");
   }
