@@ -214,13 +214,24 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 //   ⇒  CSI ? 6 4 ; Ps c  ("VT420")
 #define ESC_DA "\e[c"
 
+// query background, replies in X color https://www.x.org/releases/X11R7.7/doc/man/man7/X.7.xhtml#heading11
+#define CSI_BGQ "\e]11;?\e\\\\\\"
+
 // we send an XTSMGRAPHICS to set up 256 color registers (the most we can
 // currently take advantage of; we need at least 64 to use sixel at all.
 // maybe that works, maybe it doesn't. then query both color registers
 // and geometry. send XTGETTCAP for terminal name.
 static int
 send_initial_queries(int fd){
-  const char queries[] = "\x1b[=0c\x1b[>c\x1b[>q\x1bP+q544e\x1b\\\x1b[?1;3;256S\x1b[?2;1;0S\x1b[?1;1;0S" ESC_DA;
+  const char queries[] = CSI_BGQ
+                         "\x1b[=0c"
+                         "\x1b[>c"
+                         "\x1b[>q"
+                         "\x1bP+q544e\x1b\\"
+                         "\x1b[?1;3;256S"
+                         "\x1b[?2;1;0S"
+                         "\x1b[?1;1;0S"
+                         ESC_DA;
   if(blocking_write(fd, queries, strlen(queries))){
     return -1;
   }
