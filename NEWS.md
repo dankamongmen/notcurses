@@ -17,6 +17,7 @@ rearrangements of Notcurses.
     terminals, however, will be retrieved independently of `TERM`; they'll
     be made available for use if supported by the connected terminal, and
     others will not, even if your `TERM` variable implies they ought.
+  * `ncplane_as_rgba()`/`ncvisual_from_plane()` now support `NCBLIT_BRAILLE`.
   * `CELL_ALPHA_*` macros are now `NCALPHA_*`. The former will remain
     `#define`d until ABI3.
 

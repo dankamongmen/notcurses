@@ -104,7 +104,7 @@ typedef struct ncplane_options {
 
 **int ncplane_at_yx_cell(struct ncplane* ***n***, int ***y***, int ***x***, nccell* ***c***);**
 
-**uint32_t* ncplane_as_rgba(const struct ncplane* ***nc***, int ***begy***, int ***begx***, int ***leny***, int ***lenx***, int* ***pxdimy***, int* ***pxdimx***);**
+**uint32_t* ncplane_as_rgba(const struct ncplane* ***nc***, ncblitter_e ***blit***, int ***begy***, int ***begx***, int ***leny***, int ***lenx***, int* ***pxdimy***, int* ***pxdimx***);**
 
 **char* ncplane_contents(const struct ncplane* ***nc***, int ***begy***, int ***begx***, int ***leny***, int ***lenx***);**
 
