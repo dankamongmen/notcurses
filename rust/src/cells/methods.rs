@@ -226,9 +226,9 @@ impl NcCell {
 
     /// Sets the background [NcPaletteIndex].
     ///
-    /// Also sets [NCCELL_BG_PALETTE][crate::NCCELL_BG_PALETTE] and
-    /// [NCCELL_OPAQUE][crate::NCCELL_OPAQUE], and clears out
-    /// [NCCELL_BGDEFAULT_MASK][crate::NCCELL_BGDEFAULT_MASK].
+    /// Also sets [NCALPHA_BG_PALETTE][crate::NCALPHA_BG_PALETTE] and
+    /// [NCALPHA_OPAQUE][crate::NCALPHA_OPAQUE], and clears out
+    /// [NCALPHA_BGDEFAULT_MASK][crate::NCALPHA_BGDEFAULT_MASK].
     ///
     /// *C style function: [nccell_set_bg_palindex()][crate::nccell_set_bg_palindex].*
     pub fn set_bg_palindex(&mut self, index: NcPaletteIndex) {
@@ -266,9 +266,9 @@ impl NcCell {
 
     /// Sets the foreground [NcPaletteIndex].
     ///
-    /// Also sets [NCCELL_FG_PALETTE][crate::NCCELL_FG_PALETTE] and
-    /// [NCCELL_OPAQUE][crate::NCCELL_OPAQUE], and clears out
-    /// [NCCELL_BGDEFAULT_MASK][crate::NCCELL_BGDEFAULT_MASK].
+    /// Also sets [NCALPHA_FG_PALETTE][crate::NCALPHA_FG_PALETTE] and
+    /// [NCALPHA_OPAQUE][crate::NCALPHA_OPAQUE], and clears out
+    /// [NCALPHA_BGDEFAULT_MASK][crate::NCALPHA_BGDEFAULT_MASK].
     ///
     /// *C style function: [nccell_set_fg_palindex()][crate::nccell_set_fg_palindex].*
     pub fn set_fg_palindex(&mut self, index: NcPaletteIndex) {

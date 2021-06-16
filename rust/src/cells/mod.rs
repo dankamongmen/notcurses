@@ -73,6 +73,9 @@ mod methods;
 mod reimplemented;
 pub use reimplemented::*;
 
+#[allow(unused_imports)] // TEMP
+use crate::{NcChannel, NcPlane};
+
 // NcCell
 /// A coordinate on an [`NcPlane`][crate::NcPlane] storing 128 bits of data.
 ///
@@ -86,12 +89,12 @@ pub use reimplemented::*;
 ///
 /// # Description
 ///
-/// An `NcCell` corresponds to a single character cell on some NcPlane`,
+/// An `NcCell` corresponds to a single character cell on some `NcPlane`,
 /// which can be occupied by a single [`NcEgc`] grapheme cluster (some root
 /// spacing glyph, along with possible combining characters, which might span
 /// multiple columns).
 ///
-/// An NcCell is bounded to an NcPlane, but the cell doesn't store anything
+/// An NcCell is bounded to an `NcPlane`, but the cell doesn't store anything
 /// about the plane.
 ///
 /// At any `NcCell`, we can have a theoretically arbitrarily long UTF-8 string,
@@ -161,19 +164,19 @@ pub use reimplemented::*;
 /// have two bits of inverted alpha. The actual grapheme written to a cell is
 /// the topmost non-zero grapheme.
 ///
-/// - If its alpha is 00 ([`NCCELL_OPAQUE`]) its foreground color is used unchanged.
+/// - If its alpha is 00 ([`NCALPHA_OPAQUE`]) its foreground color is used unchanged.
 ///
-/// - If its alpha is 10 ([`NCCELL_TRANSPARENT`]) its foreground color is derived
+/// - If its alpha is 10 ([`NCALPHA_TRANSPARENT`]) its foreground color is derived
 ///   entirely from cells underneath it.
 ///
-/// - If its alpha is 01 ([`NCCELL_BLEND`]) the result will be a composite.
+/// - If its alpha is 01 ([`NCALPHA_BLEND`]) the result will be a composite.
 ///
 /// Likewise for the background. If the bottom of a coordinate's zbuffer is
 /// reached with a cumulative alpha of zero, the default is used. In this way,
 /// a terminal configured with transparent background can be supported through
 /// multiple occluding ncplanes.
 ///
-/// A foreground alpha of 11 ([`NCCELL_HIGHCONTRAST`]) requests high-contrast
+/// A foreground alpha of 11 ([`NCALPHA_HIGHCONTRAST`]) requests high-contrast
 /// text (relative to the computed background).
 /// A background alpha of 11 is currently forbidden.
 ///
@@ -199,88 +202,6 @@ pub use reimplemented::*;
 /// can be determined by checking whether ->gcluster is zero.
 ///
 pub type NcCell = crate::bindings::ffi::cell;
-
-#[allow(unused_imports)]
-use crate::{NcAlphaBits, NcChannel, NcPlane};
-
-/// [`NcAlphaBits`] bits indicating
-/// [`NcCell`]'s foreground or background color will be a composite between
-/// its color and the `NcCell`s' corresponding colors underneath it
-pub const NCCELL_BLEND: u32 = crate::bindings::ffi::NCALPHA_BLEND;
-
-/// [`NcAlphaBits`] bits indicating
-/// [`NcCell`]'s foreground color will be high-contrast (relative to the
-/// computed background). Background cannot be highcontrast
-pub const NCCELL_HIGHCONTRAST: u32 = crate::bindings::ffi::NCALPHA_HIGHCONTRAST;
-
-/// [`NcAlphaBits`] bits indicating
-/// [`NcCell`]'s foreground or background color is used unchanged
-pub const NCCELL_OPAQUE: u32 = crate::bindings::ffi::NCALPHA_OPAQUE;
-
-/// [`NcAlphaBits`] bits indicating
-/// [`NcCell`]'s foreground or background color is derived entirely from the
-/// `NcCell`s underneath it
-pub const NCCELL_TRANSPARENT: u32 = crate::bindings::ffi::NCALPHA_TRANSPARENT;
-
-/// If this bit is set, we are *not* using the default background color
-///
-/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
-///
-/// NOTE: This can also be used against a single [`NcChannel`]
-pub const NCCELL_BGDEFAULT_MASK: u32 = crate::bindings::ffi::CELL_BGDEFAULT_MASK;
-
-/// Extract these bits to get the background alpha mask
-/// ([`NcAlphaBits`])
-///
-/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
-///
-/// NOTE: This can also be used against a single [`NcChannel`]
-pub const NCCELL_BG_ALPHA_MASK: u32 = crate::bindings::ffi::CELL_BG_ALPHA_MASK;
-
-/// If this bit *and* [`NCCELL_BGDEFAULT_MASK`] are set, we're using a
-/// palette-indexed background color
-///
-/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
-///
-/// NOTE: This can also be used against a single [`NcChannel`]
-pub const NCCELL_BG_PALETTE: u32 = crate::bindings::ffi::CELL_BG_PALETTE;
-
-/// Extract these bits to get the background [`NcRgb`][crate::NcRgb] value
-///
-/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
-///
-/// NOTE: This can also be used against a single [`NcChannel`]
-pub const NCCELL_BG_RGB_MASK: u32 = crate::bindings::ffi::CELL_BG_RGB_MASK;
-
-/// If this bit is set, we are *not* using the default foreground color
-///
-/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
-///
-/// NOTE: When working with a single [`NcChannel`] use [`NCCELL_BGDEFAULT_MASK`];
-pub const NCCELL_FGDEFAULT_MASK: u64 = crate::bindings::ffi::CELL_FGDEFAULT_MASK;
-
-/// Extract these bits to get the foreground alpha mask
-/// ([`NcAlphaBits`])
-///
-/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
-///
-/// NOTE: When working with a single [`NcChannel`] use [`NCCELL_BG_ALPHA_MASK`];
-pub const NCCELL_FG_ALPHA_MASK: u64 = crate::bindings::ffi::CELL_FG_ALPHA_MASK;
-
-/// If this bit *and* [`NCCELL_FGDEFAULT_MASK`] are set, we're using a
-/// palette-indexed background color
-///
-/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
-///
-/// NOTE: When working with a single [`NcChannel`] use [`NCCELL_BG_PALETTE`];
-pub const NCCELL_FG_PALETTE: u64 = crate::bindings::ffi::CELL_FG_PALETTE;
-
-/// Extract these bits to get the foreground [`NcRgb`][crate::NcRgb] value
-///
-/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
-///
-/// NOTE: When working with a single [`NcChannel`] use [`NCCELL_BG_RGB_MASK`];
-pub const NCCELL_FG_RGB_MASK: u64 = crate::bindings::ffi::CELL_FG_RGB_MASK;
 
 // NcEgc
 //
@@ -322,7 +243,7 @@ pub const NCCELL_FG_RGB_MASK: u64 = crate::bindings::ffi::CELL_FG_RGB_MASK;
 /// in a cell, and therefore it must not be allowed through the API.
 ///
 /// -----
-/// NOTE that even if the `NcEgc` is <= 4 bytes and inlined, is still interpreted as
+/// Note that even if the `NcEgc` is <= 4 bytes and inlined, is still interpreted as
 /// a NUL-terminated char * (technically, &cell->gcluster is treated as a char*).
 /// If it is more than 4 bytes, cell->gcluster has a first byte of 0x01,
 /// and the remaining 24 bits are an index into the plane's egcpool,

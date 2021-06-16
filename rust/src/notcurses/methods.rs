@@ -3,10 +3,10 @@
 use core::ptr::{null, null_mut};
 
 use crate::{
-    cstring, error, error_ref_mut, notcurses_init, rstring, NcAlign, NcBlitter, NcChannelPair,
-    NcDim, NcEgc, NcError, NcFile, NcInput, NcLogLevel, NcPlane, NcResult, NcScale, NcSignalSet,
-    NcStats, NcStyle, NcTime, Nc, NcOptions, NCOPTION_NO_ALTERNATE_SCREEN,
-    NCOPTION_SUPPRESS_BANNERS, NCRESULT_ERR,
+    cstring, error, error_ref_mut, notcurses_init, rstring, Nc, NcAlign, NcBlitter, NcChannelPair,
+    NcDim, NcEgc, NcError, NcFile, NcInput, NcLogLevel, NcOptions, NcPlane, NcResult, NcScale,
+    NcSignalSet, NcStats, NcStyle, NcTime, NCOPTION_NO_ALTERNATE_SCREEN, NCOPTION_SUPPRESS_BANNERS,
+    NCRESULT_ERR,
 };
 
 /// # `NcOptions` Constructors
@@ -110,9 +110,7 @@ impl Nc {
 
     /// New notcurses context, expects [NcLogLevel] and flags.
     pub fn with_debug<'a>(loglevel: NcLogLevel, flags: u64) -> NcResult<&'a mut Nc> {
-        Self::with_options(NcOptions::with_all_options(
-            loglevel, 0, 0, 0, 0, flags,
-        ))
+        Self::with_options(NcOptions::with_all_options(loglevel, 0, 0, 0, 0, flags))
     }
 }
 
@@ -405,11 +403,7 @@ impl Nc {
         if res as u32 as i32 != -1 {
             Ok(res)
         } else {
-            error![
-                -1,
-                &format!("Nc.getc_blocking({:?})", input_txt),
-                res
-            ]
+            error![-1, &format!("Nc.getc_blocking({:?})", input_txt), res]
         }
     }
 
@@ -506,10 +500,7 @@ impl Nc {
     pub fn palette_size(&self) -> NcResult<u32> {
         let res = unsafe { crate::notcurses_palette_size(self) };
         if res == 1 {
-            return Err(NcError::with_msg(
-                1,
-                "No color support ← Nc.palette_size()",
-            ));
+            return Err(NcError::with_msg(1, "No color support ← Nc.palette_size()"));
         }
         Ok(res)
     }
@@ -539,10 +530,7 @@ impl Nc {
     ///
     /// *C style function: [notcurses_render()][crate::notcurses_render].*
     pub fn render(&mut self) -> NcResult<()> {
-        error![
-            unsafe { crate::notcurses_render(self) },
-            "Nc.render()"
-        ]
+        error![unsafe { crate::notcurses_render(self) }, "Nc.render()"]
     }
 
     /// Performs the rendering and rasterization portion of

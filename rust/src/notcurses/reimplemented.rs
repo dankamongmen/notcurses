@@ -3,7 +3,7 @@
 use core::ptr::{null, null_mut};
 
 use crate::{
-    NcAlign, NcDim, NcError, NcInput, NcOffset, NcPlane, NcResult, NcSignalSet, NcTime, Nc,
+    Nc, NcAlign, NcDim, NcError, NcInput, NcOffset, NcPlane, NcResult, NcSignalSet, NcTime,
     NCALIGN_CENTER, NCALIGN_LEFT, NCALIGN_RIGHT, NCRESULT_MAX,
 };
 

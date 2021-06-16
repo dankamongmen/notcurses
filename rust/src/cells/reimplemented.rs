@@ -4,9 +4,9 @@ use libc::strcmp;
 
 use crate::{
     cstring, nccell_release, NcAlphaBits, NcCell, NcChannel, NcChannelPair, NcColor, NcEgc,
-    NcIntResult, NcPaletteIndex, NcPlane, NcRgb, NcStyle, NCCELL_BGDEFAULT_MASK, NCCELL_BG_PALETTE,
-    NCCELL_FGDEFAULT_MASK, NCCELL_FG_PALETTE, NCCELL_OPAQUE, NCRESULT_ERR, NCRESULT_OK,
-    NCSTYLE_MASK,
+    NcIntResult, NcPaletteIndex, NcPlane, NcRgb, NcStyle, NCALPHA_BGDEFAULT_MASK,
+    NCALPHA_BG_PALETTE, NCALPHA_FGDEFAULT_MASK, NCALPHA_FG_PALETTE, NCALPHA_OPAQUE, NCRESULT_ERR,
+    NCRESULT_OK, NCSTYLE_MASK,
 };
 
 // Alpha -----------------------------------------------------------------------
@@ -208,8 +208,8 @@ pub const fn nccell_bg_palindex(cell: &NcCell) -> NcPaletteIndex {
 
 /// Sets an [NcCell]'s foreground [NcPaletteIndex].
 ///
-/// Also sets [NCCELL_FG_PALETTE] and [NCCELL_OPAQUE],
-/// and clears out [NCCELL_FGDEFAULT_MASK].
+/// Also sets [NCALPHA_FG_PALETTE] and [NCALPHA_OPAQUE],
+/// and clears out [NCALPHA_FGDEFAULT_MASK].
 ///
 /// *Method: NcCell.[set_fg_palindex()][NcCell#method.set_fg_palindex].*
 //
@@ -217,26 +217,26 @@ pub const fn nccell_bg_palindex(cell: &NcCell) -> NcPaletteIndex {
 #[inline]
 #[allow(clippy::unnecessary_cast)]
 pub fn nccell_set_fg_palindex(cell: &mut NcCell, index: NcPaletteIndex) {
-    cell.channels |= NCCELL_FGDEFAULT_MASK;
-    cell.channels |= NCCELL_FG_PALETTE;
-    nccell_set_fg_alpha(cell, NCCELL_OPAQUE);
+    cell.channels |= NCALPHA_FGDEFAULT_MASK;
+    cell.channels |= NCALPHA_FG_PALETTE;
+    nccell_set_fg_alpha(cell, NCALPHA_OPAQUE);
     cell.channels &= 0xff000000ffffffff as NcChannelPair;
     cell.channels |= (index as NcChannelPair) << 32;
 }
 
 /// Sets an [NcCell]'s background [NcPaletteIndex].
 ///
-/// Also sets [NCCELL_BG_PALETTE] and [NCCELL_OPAQUE],
-/// and clears out [NCCELL_BGDEFAULT_MASK].
+/// Also sets [NCALPHA_BG_PALETTE] and [NCALPHA_OPAQUE],
+/// and clears out [NCALPHA_BGDEFAULT_MASK].
 ///
 /// *Method: NcCell.[set_bg_palindex()][NcCell#method.set_bg_palindex].*
 //
 // NOTE: unlike the original C function, this one can't fail
 #[inline]
 pub fn nccell_set_bg_palindex(cell: &mut NcCell, index: NcPaletteIndex) {
-    cell.channels |= NCCELL_BGDEFAULT_MASK as NcChannelPair;
-    cell.channels |= NCCELL_BG_PALETTE as NcChannelPair;
-    nccell_set_bg_alpha(cell, NCCELL_OPAQUE);
+    cell.channels |= NCALPHA_BGDEFAULT_MASK as NcChannelPair;
+    cell.channels |= NCALPHA_BG_PALETTE as NcChannelPair;
+    nccell_set_bg_alpha(cell, NCALPHA_OPAQUE);
     cell.channels &= 0xffffffffff000000;
     cell.channels |= index as NcChannelPair;
 }

@@ -5,10 +5,10 @@ use core::{
 };
 
 use crate::{
-    cstring, error, error_ref, error_ref_mut, rstring, NcAlign, NcAlphaBits, NcBlitter, NcBoxMask,
-    NcCell, NcChannel, NcChannelPair, NcColor, NcDim, NcEgc, NcError, NcFadeCb, NcOffset,
-    NcPaletteIndex, NcPixelGeometry, NcPlane, NcPlaneOptions, NcResizeCb, NcResult, NcRgb, NcStyle,
-    NcTime, Nc, NCRESULT_ERR,
+    cstring, error, error_ref, error_ref_mut, rstring, Nc, NcAlign, NcAlphaBits, NcBlitter,
+    NcBoxMask, NcCell, NcChannel, NcChannelPair, NcColor, NcDim, NcEgc, NcError, NcFadeCb,
+    NcOffset, NcPaletteIndex, NcPixelGeometry, NcPlane, NcPlaneOptions, NcResizeCb, NcResult,
+    NcRgb, NcStyle, NcTime, NCRESULT_ERR,
 };
 
 /// # NcPlaneOptions Constructors
@@ -98,10 +98,7 @@ impl NcPlane {
     /// The returned plane will be the top, bottom, and root of this new pile.
     ///
     /// *C style function: [ncpile_create()][crate::ncpile_create].*
-    pub fn with_options<'a>(
-        nc: &mut Nc,
-        options: NcPlaneOptions,
-    ) -> NcResult<&'a mut NcPlane> {
+    pub fn with_options<'a>(nc: &mut Nc, options: NcPlaneOptions) -> NcResult<&'a mut NcPlane> {
         error_ref_mut![
             unsafe { crate::ncpile_create(nc, &options) },
             &format!["NcPlane::with_options(Nc, {:?})", &options]

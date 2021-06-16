@@ -4,9 +4,9 @@ use core::ptr::null_mut;
 use libc::c_void;
 
 use crate::{
-    cstring, error, error_ref_mut, rstring, NcBlitter, NcDim, NcDirect, NcDirectF, NcDirectV,
+    cstring, error, error_ref_mut, rstring, Nc, NcBlitter, NcDim, NcDirect, NcDirectF, NcDirectV,
     NcError, NcIntResult, NcPixel, NcPlane, NcResult, NcRgba, NcScale, NcTime, NcVGeom, NcVisual,
-    NcVisualOptions, Nc, NCBLIT_PIXEL, NCRESULT_ERR,
+    NcVisualOptions, NCBLIT_PIXEL, NCRESULT_ERR,
 };
 
 /// # NcVisualOptions Constructors
@@ -333,11 +333,7 @@ impl NcVisual {
     /// See [`NcVisualOptions`].
     ///
     /// *C style function: [ncvisual_render()][crate::ncvisual_render].*
-    pub fn render(
-        &mut self,
-        nc: &mut Nc,
-        options: &NcVisualOptions,
-    ) -> NcResult<&mut NcPlane> {
+    pub fn render(&mut self, nc: &mut Nc, options: &NcVisualOptions) -> NcResult<&mut NcPlane> {
         error_ref_mut![
             unsafe { crate::ncvisual_render(nc, self, options) },
             "NcVisual.render(Nc, &NcVisualOptions)"

@@ -1,4 +1,4 @@
-use crate::{NcDim, NcOffset, NcPlane, NcPlaneOptions, Nc};
+use crate::{Nc, NcDim, NcOffset, NcPlane, NcPlaneOptions};
 
 /// Helper function for a new NcPlane on C style tests.
 #[allow(dead_code)]

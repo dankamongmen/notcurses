@@ -5,7 +5,7 @@
 
 #[allow(unused_imports)]
 // enjoy briefer doc comments
-use crate::{NcDirect, NcError, NcPlane, NcResult, Nc, NCRESULT_ERR, NCRESULT_OK};
+use crate::{Nc, NcDirect, NcError, NcPlane, NcResult, NCRESULT_ERR, NCRESULT_OK};
 
 // Sleep, Render & Flush Macros ------------------------------------------------
 

@@ -116,6 +116,85 @@ pub const NCCHANNEL_ALPHA_MASK: u32 = crate::bindings::ffi::CELL_BG_ALPHA_MASK;
 ///
 pub type NcAlphaBits = u32;
 
+/// [`NcAlphaBits`] bits indicating
+/// [`NcCell`]'s foreground or background color will be a composite between
+/// its color and the `NcCell`s' corresponding colors underneath it
+pub const NCALPHA_BLEND: u32 = crate::bindings::ffi::NCALPHA_BLEND;
+
+/// [`NcAlphaBits`] bits indicating
+/// [`NcCell`]'s foreground color will be high-contrast (relative to the
+/// computed background). Background cannot be highcontrast
+pub const NCALPHA_HIGHCONTRAST: u32 = crate::bindings::ffi::NCALPHA_HIGHCONTRAST;
+
+/// [`NcAlphaBits`] bits indicating
+/// [`NcCell`]'s foreground or background color is used unchanged
+pub const NCALPHA_OPAQUE: u32 = crate::bindings::ffi::NCALPHA_OPAQUE;
+
+/// [`NcAlphaBits`] bits indicating
+/// [`NcCell`]'s foreground or background color is derived entirely from the
+/// `NcCell`s underneath it
+pub const NCALPHA_TRANSPARENT: u32 = crate::bindings::ffi::NCALPHA_TRANSPARENT;
+
+/// If this bit is set, we are *not* using the default background color
+///
+/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
+///
+/// Note: This can also be used against a single [`NcChannel`]
+pub const NCALPHA_BGDEFAULT_MASK: u32 = crate::bindings::ffi::CELL_BGDEFAULT_MASK;
+
+/// Extract these bits to get the background alpha mask
+/// ([`NcAlphaBits`])
+///
+/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
+///
+/// Note: This can also be used against a single [`NcChannel`]
+pub const NCALPHA_BG_ALPHA_MASK: u32 = crate::bindings::ffi::CELL_BG_ALPHA_MASK;
+
+/// If this bit *and* [`NCALPHA_BGDEFAULT_MASK`] are set, we're using a
+/// palette-indexed background color
+///
+/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
+///
+/// Note: This can also be used against a single [`NcChannel`]
+pub const NCALPHA_BG_PALETTE: u32 = crate::bindings::ffi::CELL_BG_PALETTE;
+
+/// Extract these bits to get the background [`NcRgb`][crate::NcRgb] value
+///
+/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
+///
+/// Note: This can also be used against a single [`NcChannel`]
+pub const NCALPHA_BG_RGB_MASK: u32 = crate::bindings::ffi::CELL_BG_RGB_MASK;
+
+/// If this bit is set, we are *not* using the default foreground color
+///
+/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
+///
+/// Note: When working with a single [`NcChannel`] use [`NCALPHA_BGDEFAULT_MASK`];
+pub const NCALPHA_FGDEFAULT_MASK: u64 = crate::bindings::ffi::CELL_FGDEFAULT_MASK;
+
+/// Extract these bits to get the foreground alpha mask
+/// ([`NcAlphaBits`])
+///
+/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
+///
+/// Note: When working with a single [`NcChannel`] use [`NCALPHA_BG_ALPHA_MASK`];
+pub const NCALPHA_FG_ALPHA_MASK: u64 = crate::bindings::ffi::CELL_FG_ALPHA_MASK;
+
+/// If this bit *and* [`NCALPHA_FGDEFAULT_MASK`] are set, we're using a
+/// palette-indexed background color
+///
+/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
+///
+/// Note: When working with a single [`NcChannel`] use [`NCALPHA_BG_PALETTE`];
+pub const NCALPHA_FG_PALETTE: u64 = crate::bindings::ffi::CELL_FG_PALETTE;
+
+/// Extract these bits to get the foreground [`NcRgb`][crate::NcRgb] value
+///
+/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
+///
+/// Note: When working with a single [`NcChannel`] use [`NCALPHA_BG_RGB_MASK`];
+pub const NCALPHA_FG_RGB_MASK: u64 = crate::bindings::ffi::CELL_FG_RGB_MASK;
+
 // NcChannelPair
 //
 /// 64 bits containing a foreground and background [`NcChannel`]
@@ -145,25 +224,25 @@ pub type NcAlphaBits = u32;
 ///
 /// ```txt
 ///                             ~foreground channel~
-/// NCCELL_WIDEASIAN_MASK: part of a wide glyph          ↓bits view↓               ↓hex mask↓
+/// NCALPHA_WIDEASIAN_MASK: part of a wide glyph          ↓bits view↓               ↓hex mask↓
 /// 1······· ········ ········ ········ ········ ········ ········ ········  =  8······· ········
 ///
-/// NCCELL_FGDEFAULT_MASK: foreground is NOT "default color"
+/// NCALPHA_FGDEFAULT_MASK: foreground is NOT "default color"
 /// ·1······ ········ ········ ········ ········ ········ ········ ········  =  4······· ········
 ///
-/// NCCELL_FG_ALPHA_MASK: foreground alpha (2bits)
+/// NCALPHA_FG_ALPHA_MASK: foreground alpha (2bits)
 /// ··11···· ········ ········ ········ ········ ········ ········ ········  =  3······· ········
 ///
-/// NCCELL_FG_PALETTE: foreground uses palette index
+/// NCALPHA_FG_PALETTE: foreground uses palette index
 /// ····1··· ········ ········ ········ ········ ········ ········ ········  =  ·8······ ········
 ///
-/// NCCELL_NOBACKGROUND_MASK: glyph is entirely foreground
+/// NCALPHA_NOBACKGROUND_MASK: glyph is entirely foreground
 /// ·····1·· ········ ········ ········ ········ ········ ········ ········  =  ·4······ ········
 ///
 /// reserved, must be 0
 /// ······00 ········ ········ ········ ········ ········ ········ ········  =  ·3······ ········
 ///
-/// NCCELL_FG_RGB_MASK: foreground in 3x8 RGB (rrggbb)
+/// NCALPHA_FG_RGB_MASK: foreground in 3x8 RGB (rrggbb)
 /// ········ 11111111 11111111 11111111 ········ ········ ········ ········  =  ··FFFFFF ········
 /// ```
 
@@ -172,33 +251,33 @@ pub type NcAlphaBits = u32;
 /// reserved, must be 0                                  ↓bits view↓               ↓hex mask↓
 /// ········ ········ ········ ········ 0······· ········ ········ ········  =  ········ 8·······
 ///
-/// NCCELL_BGDEFAULT_MASK: background is NOT "default color"
+/// NCALPHA_BGDEFAULT_MASK: background is NOT "default color"
 /// ········ ········ ········ ········ ·1······ ········ ········ ········  =  ········ 4·······
 ///
-/// NCCELL_BG_ALPHA_MASK: background alpha (2 bits)
+/// NCALPHA_BG_ALPHA_MASK: background alpha (2 bits)
 /// ········ ········ ········ ········ ··11···· ········ ········ ········  =  ········ 3·······
 ///
-/// NCCELL_BG_PALETTE: background uses palette index
+/// NCALPHA_BG_PALETTE: background uses palette index
 /// ········ ········ ········ ········ ····1··· ········ ········ ········  =  ········ ·8······
 ///
 /// reserved, must be 0
 /// ········ ········ ········ ········ ·····000 ········ ········ ········  =  ········ ·7······
 ///
-/// NCCELL_BG_RGB_MASK: background in 3x8 RGB (rrggbb)
+/// NCALPHA_BG_RGB_MASK: background in 3x8 RGB (rrggbb)
 /// 0········ ········ ········ ········ ········11111111 11111111 11111111  =  ········ ··FFFFFF
 /// ```
 /// `type in C: channels (uint64_t)`
 ///
 /// ## `NcCell` Mask Flags
 ///
-/// - [`NCCELL_BGDEFAULT_MASK`][crate::NCCELL_BGDEFAULT_MASK]
-/// - [`NCCELL_BG_ALPHA_MASK`][crate::NCCELL_BG_ALPHA_MASK]
-/// - [`NCCELL_BG_PALETTE`][crate::NCCELL_BG_PALETTE]
-/// - [`NCCELL_BG_RGB_MASK`][crate::NCCELL_BG_RGB_MASK]
-/// - [`NCCELL_FGDEFAULT_MASK`][crate::NCCELL_FGDEFAULT_MASK]
-/// - [`NCCELL_FG_ALPHA_MASK`][crate::NCCELL_FG_ALPHA_MASK]
-/// - [`NCCELL_FG_PALETTE`][crate::NCCELL_FG_PALETTE]
-/// - [`NCCELL_FG_RGB_MASK`][crate::NCCELL_FG_RGB_MASK]
+/// - [`NCALPHA_BGDEFAULT_MASK`][crate::NCALPHA_BGDEFAULT_MASK]
+/// - [`NCALPHA_BG_ALPHA_MASK`][crate::NCALPHA_BG_ALPHA_MASK]
+/// - [`NCALPHA_BG_PALETTE`][crate::NCALPHA_BG_PALETTE]
+/// - [`NCALPHA_BG_RGB_MASK`][crate::NCALPHA_BG_RGB_MASK]
+/// - [`NCALPHA_FGDEFAULT_MASK`][crate::NCALPHA_FGDEFAULT_MASK]
+/// - [`NCALPHA_FG_ALPHA_MASK`][crate::NCALPHA_FG_ALPHA_MASK]
+/// - [`NCALPHA_FG_PALETTE`][crate::NCALPHA_FG_PALETTE]
+/// - [`NCALPHA_FG_RGB_MASK`][crate::NCALPHA_FG_RGB_MASK]
 ///
 pub type NcChannelPair = u64;
 

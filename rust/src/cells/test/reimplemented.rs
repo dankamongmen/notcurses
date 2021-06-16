@@ -26,12 +26,12 @@ fn rgb() {
     crate::nccell_set_fg_rgb8(&mut c2, 0x11, 0x22, 0x33);
     let fchannel = crate::nccell_fg_rgb8(&c2, &mut r, &mut g, &mut b);
     assert_eq!((0x11, 0x22, 0x33), (r, g, b));
-    assert_eq![0x112233, fchannel & !crate::NCCELL_BGDEFAULT_MASK];
+    assert_eq![0x112233, fchannel & !crate::NCALPHA_BGDEFAULT_MASK];
 
     crate::nccell_set_bg_rgb8(&mut c2, 0x44, 0x55, 0x66);
     let bchannel = crate::nccell_bg_rgb8(&c2, &mut r, &mut g, &mut b);
     assert_eq!((0x44, 0x55, 0x66), (r, g, b));
-    assert_eq![0x445566, bchannel & !crate::NCCELL_BGDEFAULT_MASK];
+    assert_eq![0x445566, bchannel & !crate::NCALPHA_BGDEFAULT_MASK];
 }
 
 #[test]
@@ -41,11 +41,11 @@ fn alpha() {
     assert_eq![0, crate::nccell_fg_alpha(&c1)];
     assert_eq![0, crate::nccell_bg_alpha(&c1)];
 
-    crate::nccell_set_fg_alpha(&mut c1, crate::NCCELL_TRANSPARENT);
-    assert_eq![crate::NCCELL_TRANSPARENT, crate::nccell_fg_alpha(&c1)];
+    crate::nccell_set_fg_alpha(&mut c1, crate::NCALPHA_TRANSPARENT);
+    assert_eq![crate::NCALPHA_TRANSPARENT, crate::nccell_fg_alpha(&c1)];
 
-    crate::nccell_set_bg_alpha(&mut c1, crate::NCCELL_BLEND);
-    assert_eq![crate::NCCELL_BLEND, crate::nccell_bg_alpha(&c1)];
+    crate::nccell_set_bg_alpha(&mut c1, crate::NCALPHA_BLEND);
+    assert_eq![crate::NCALPHA_BLEND, crate::nccell_bg_alpha(&c1)];
 }
 
 #[test]
