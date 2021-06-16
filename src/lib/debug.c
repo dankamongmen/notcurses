@@ -14,7 +14,7 @@ static void
 tinfo_debug_caps(const tinfo* ti, FILE* debugfp, int rows, int cols,
                  unsigned images, unsigned videos){
   const char indent[] = " ";
-  fprintf(debugfp, "%sColors: %u rgb: %c ccc: %c setaf: %c setab: %c\n",
+  fprintf(debugfp, "%scolors: %u rgb: %c ccc: %c setaf: %c setab: %c\n",
           indent, ti->colors, capbool(ti->RGBflag), capbool(ti->CCCflag),
           capyn(get_escape(ti, ESCAPE_SETAF)),
           capyn(get_escape(ti, ESCAPE_SETAB)));
