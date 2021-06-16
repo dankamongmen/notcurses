@@ -646,7 +646,7 @@ err:
   notcurses_term_dim_yx(nc, &dimy, &dimx);
   notcurses_stop(nc);
   if(dimy < MIN_SUPPORTED_ROWS || dimx < MIN_SUPPORTED_COLS){
-    fprintf(stderr, "At least an %dx%d terminal is required (current: %dx%d)\n",
+    fprintf(stderr, "At least a %dx%d terminal is required (current: %dx%d)\n",
             MIN_SUPPORTED_COLS, MIN_SUPPORTED_ROWS, dimx, dimy);
   }
   return EXIT_FAILURE;
