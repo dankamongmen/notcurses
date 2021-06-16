@@ -625,6 +625,9 @@ typedef enum {
   STATE_XTGETTCAP_TERMNAME1, // got property 544E, 'TN' (terminal name) first hex nibble
   STATE_XTGETTCAP_TERMNAME2, // got property 544E, 'TN' (terminal name) second hex nibble
   STATE_DCS_DRAIN,  // throw away input until we hit escape
+  STATE_BG1,        // got '1'
+  STATE_BG2,        // got second '1'
+  STATE_BGSEMI,     // got '11;', draining string to ESC ST
   STATE_TDA1, // tertiary DA, got '!'
   STATE_TDA2, // tertiary DA, got '|', first hex nibble
   STATE_TDA3, // tertiary DA, second hex nibble
@@ -649,10 +652,11 @@ typedef struct init_state {
   queried_terminals_e qterm;  // discovered terminal
   initstates_e state, stringstate;
   // stringstate is the state at which this string was initialized, and can be
-  // one of STATE_XTVERSION1, STATE_XTGETTCAP_TERMNAME1, STATE_TDA1, 
+  // one of STATE_XTVERSION1, STATE_XTGETTCAP_TERMNAME1, STATE_TDA1, and STATE_BG1
   int numeric;          // currently-lexed numeric
   char runstring[80];   // running string
   size_t stridx;        // position to write in string
+  uint32_t bg;          // queried default background or 0
   bool xtgettcap_good;  // high when we've received DCS 1
 } init_state;
 
@@ -714,7 +718,7 @@ ruts_string(init_state* inits, initstates_e state){
 
 static int
 stash_string(init_state* inits){
-//fprintf(stderr, "string terminator after %d [%s]\n", inits->stringstate, inits->runstring);
+fprintf(stderr, "string terminator after %d [%s]\n", inits->stringstate, inits->runstring);
   switch(inits->stringstate){
     case STATE_XTVERSION1:{
       int xversion;
@@ -738,7 +742,17 @@ stash_string(init_state* inits){
         inits->qterm = TERMINAL_FOOT;
       }
       break;
-    default:
+    case STATE_BG1:{
+      int r, g, b;
+      if(sscanf(inits->runstring, "rgb:%04x/%04x/%04x", &r, &g, &b) == 3){
+        r /= 256;
+        g /= 256;
+        b /= 256;
+        inits->bg = (r << 16u) | (g << 8u) | b;
+      }
+      break;
+    }default:
+      fprintf(stderr, "invalid string stashed %d\n", inits->stringstate);
       break;
   }
   inits->runstring[0] = '\0';
@@ -752,11 +766,8 @@ stash_string(init_state* inits){
 // ought be fed to the machine, and -1 on an invalid state transition.
 static int
 pump_control_read(init_state* inits, unsigned char c){
-fprintf(stderr, "state: %2d char: %1c %3d %02x\n", inits->state, isprint(c) ? c : ' ', c, c);
+//fprintf(stderr, "state: %2d char: %1c %3d %02x\n", inits->state, isprint(c) ? c : ' ', c, c);
   if(c == NCKEY_ESC){
-    /*if(inits->state != STATE_NULL && inits->state != STATE_DCS && inits->state != STATE_DCS_DRAIN && inits->state != STATE_XTVERSION2 && inits->state != STATE_XTGETTCAP3 && inits->state != STATE_DA_DRAIN){
-      fprintf(stderr, "Unexpected escape in state %d\n", inits->state);
-    }*/
     inits->state = STATE_ESC;
     return 0;
   }
@@ -775,6 +786,30 @@ fprintf(stderr, "state: %2d char: %1c %3d %02x\n", inits->state, isprint(c) ? c 
           return -1;
         }
         inits->state = STATE_NULL;
+      }else if(c == '1'){
+        inits->state = STATE_BG1;
+      }
+      break;
+    case STATE_BG1:
+      if(c == '1'){
+        inits->state = STATE_BG2;
+      }else{
+        // FIXME
+      }
+      break;
+    case STATE_BG2:
+      if(c == ';'){
+        inits->state = STATE_BGSEMI;
+        inits->stridx = 0;
+        inits->runstring[0] = '\0';
+      }else{
+        // FIXME
+      }
+      break;
+    case STATE_BGSEMI: // drain string
+      inits->numeric = c;
+      if(ruts_string(inits, STATE_BG1)){
+        return -1;
       }
       break;
     case STATE_CSI: // terminated by 0x40--0x7E ('@'--'~')
@@ -1023,7 +1058,7 @@ fprintf(stderr, "state: %2d char: %1c %3d %02x\n", inits->state, isprint(c) ? c 
 
 // complete the terminal detection process
 static int
-control_read(tinfo* tcache, int ttyfd, queried_terminals_e* detected){
+control_read(tinfo* tcache, int ttyfd, queried_terminals_e* detected, uint32_t* bg){
   init_state inits = {
     .tcache = tcache,
     .state = STATE_NULL,
@@ -1042,6 +1077,7 @@ control_read(tinfo* tcache, int ttyfd, queried_terminals_e* detected){
       if(r == 1){ // success!
         free(buf);
         *detected = inits.qterm;
+        *bg = inits.bg;
 //fprintf(stderr, "at end, derived terminal %d\n", inits.qterm);
         return 0;
       }else if(r < 0){
@@ -1070,10 +1106,12 @@ int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected){
   nilayer->input_events = 0;
   int csifd = nilayer->ttyfd >= 0 ? nilayer->ttyfd : nilayer->infd;
   if(isatty(csifd)){
-    if(control_read(tcache, csifd, detected)){
+    uint32_t bg;
+    if(control_read(tcache, csifd, detected, &bg)){
       input_free_esctrie(&nilayer->inputescapes);
       return -1;
     }
+    tcache->bg_collides_default = bg;
   }
   return 0;
 }

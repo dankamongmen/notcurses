@@ -105,7 +105,7 @@ typedef struct tinfo {
   // kitty interprets an RGB background that matches the default background
   // color *as* the default background, meaning it'll be translucent if
   // background_opaque is in use. detect this, and avoid the default if so.
-  // bg_collides_default is either 0x0000000 or 0x1RRGGBB.
+  // bg_collides_default is either 0x0000000 or (if in use) 0x1RRGGBB.
   uint32_t bg_collides_default;
 
   // sprixel support. there are several different sprixel protocols, of
