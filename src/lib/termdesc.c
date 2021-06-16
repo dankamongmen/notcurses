@@ -213,7 +213,7 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
 #define ESC_DA "\e[c"
 
 // query background, replies in X color https://www.x.org/releases/X11R7.7/doc/man/man7/X.7.xhtml#heading11
-#define CSI_BGQ "\e]11;?\e\\\\\\"
+#define CSI_BGQ "\e]11;?\e\\"
 
 // we send an XTSMGRAPHICS to set up 256 color registers (the most we can
 // currently take advantage of; we need at least 64 to use sixel at all.
