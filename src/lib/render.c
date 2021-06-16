@@ -706,7 +706,11 @@ term_bg_rgb8(const tinfo* ti, FILE* out, unsigned r, unsigned g, unsigned b){
       if((r == (ti->bg_collides_default & 0xff0000lu)) &&
          (g == (ti->bg_collides_default & 0xff00lu)) &&
          (b == (ti->bg_collides_default & 0xfflu))){
-        ++b; // what if it's 255 FIXME
+        if(b < 255){
+          ++b;
+        }else{
+          --b;
+        }
       }
     }
     return term_esc_rgb(out, false, r, g, b);
