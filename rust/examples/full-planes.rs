@@ -11,18 +11,18 @@ fn main() -> NcResult<()> {
     assert_eq![(t_rows, t_cols), stdplane.dim_yx()];
 
     // set the standard plane's base cell's foreground and background colors
-    let channels = NcChannelPair::with_rgb(0x88aa00, 0x222288);
+    let channels = NcChannelPair::from_rgb(0x88aa00, 0x222288);
     stdplane.set_base("x", 0, channels)?;
     rsleep![&mut nc, 0, 500];
 
     // add a green plane to the stdplane's pile
     let plane_green = NcPlane::new_bound(&mut stdplane, 0, 0, 16, 30)?;
-    plane_green.set_base("·", 0, NcChannelPair::with_rgb(0x224411, 0x229922))?;
+    plane_green.set_base("·", 0, NcChannelPair::from_rgb(0x224411, 0x229922))?;
     rsleep![&mut nc, 0, 800];
 
     // add a smaller red plane, a bit displaced to the bottom right
     let plane_red = NcPlane::new_bound(&mut stdplane, 8, 12, 10, 20)?;
-    plane_red.set_base("~", 0, NcChannelPair::with_rgb(0xaadd2b, 0x882222))?;
+    plane_red.set_base("~", 0, NcChannelPair::from_rgb(0xaadd2b, 0x882222))?;
     rsleep![&mut nc, 0, 800];
 
     // write something

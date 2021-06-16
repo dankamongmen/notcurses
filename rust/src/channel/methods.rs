@@ -8,10 +8,10 @@ pub trait NcChannelMethods {
     // constructors
     fn new() -> Self;
     fn with_default() -> Self;
-    fn with_rgb(rgb: NcRgb) -> Self;
-    fn with_rgb_alpha(rgb: NcRgb, alpha: NcAlphaBits) -> Self;
-    fn with_rgb8(r: NcComponent, g: NcComponent, b: NcComponent) -> Self;
-    fn with_rgb8_alpha(r: NcComponent, g: NcComponent, b: NcComponent, alpha: NcAlphaBits) -> Self;
+    fn from_rgb(rgb: NcRgb) -> Self;
+    fn from_rgb_alpha(rgb: NcRgb, alpha: NcAlphaBits) -> Self;
+    fn from_rgb8(r: NcComponent, g: NcComponent, b: NcComponent) -> Self;
+    fn from_rgb8_alpha(r: NcComponent, g: NcComponent, b: NcComponent, alpha: NcAlphaBits) -> Self;
 
     // methods
     fn fcombine(&self, bchannel: NcChannel) -> NcChannelPair;
@@ -46,16 +46,16 @@ pub trait NcChannelPairMethods {
     // constructors
     fn new() -> Self;
     fn with_default() -> Self;
-    fn with_rgb(fg_rgb: NcRgb, bg_rgb: NcRgb) -> Self;
-    fn with_rgb_both(rgb: NcRgb) -> Self;
-    fn with_rgb_alpha(
+    fn from_rgb(fg_rgb: NcRgb, bg_rgb: NcRgb) -> Self;
+    fn from_rgb_both(rgb: NcRgb) -> Self;
+    fn from_rgb_alpha(
         fg_rgb: NcRgb,
         fg_alpha: NcAlphaBits,
         bg_rgb: NcRgb,
         bg_alpha: NcAlphaBits,
     ) -> Self;
-    fn with_rgb_alpha_both(rgb: NcRgb, alpha: NcAlphaBits) -> Self;
-    fn with_rgb8(
+    fn from_rgb_alpha_both(rgb: NcRgb, alpha: NcAlphaBits) -> Self;
+    fn from_rgb8(
         fg_r: NcComponent,
         fg_g: NcComponent,
         fg_b: NcComponent,
@@ -63,8 +63,8 @@ pub trait NcChannelPairMethods {
         bg_g: NcComponent,
         bg_b: NcComponent,
     ) -> Self;
-    fn with_rgb8_both(r: NcComponent, g: NcComponent, b: NcComponent) -> Self;
-    fn with_rgb8_alpha(
+    fn from_rgb8_both(r: NcComponent, g: NcComponent, b: NcComponent) -> Self;
+    fn from_rgb8_alpha(
         fg_r: NcComponent,
         fg_g: NcComponent,
         fg_b: NcComponent,
@@ -74,7 +74,7 @@ pub trait NcChannelPairMethods {
         bg_b: NcComponent,
         bg_alpha: NcAlphaBits,
     ) -> Self;
-    fn with_rgb8_alpha_both(
+    fn from_rgb8_alpha_both(
         r: NcComponent,
         g: NcComponent,
         b: NcComponent,
@@ -148,22 +148,22 @@ impl NcChannelMethods for NcChannel {
     }
 
     /// New NcChannel, expects [`NcRgb`].
-    fn with_rgb(rgb: NcRgb) -> Self {
+    fn from_rgb(rgb: NcRgb) -> Self {
         Self::new().set(rgb)
     }
 
     /// New NcChannel, expects [`NcRgb`] & [`NcAlphaBits`].
-    fn with_rgb_alpha(rgb: NcRgb, alpha: NcAlphaBits) -> Self {
+    fn from_rgb_alpha(rgb: NcRgb, alpha: NcAlphaBits) -> Self {
         Self::new().set(rgb).set_alpha(alpha)
     }
 
     /// New NcChannel, expects three RGB [`NcComponent`] components.
-    fn with_rgb8(r: NcComponent, g: NcComponent, b: NcComponent) -> Self {
+    fn from_rgb8(r: NcComponent, g: NcComponent, b: NcComponent) -> Self {
         Self::new().set_rgb8(r, g, b)
     }
 
     /// New NcChannel, expects three RGB [`NcComponent`] components & [`NcAlphaBits`].
-    fn with_rgb8_alpha(r: NcComponent, g: NcComponent, b: NcComponent, alpha: NcAlphaBits) -> Self {
+    fn from_rgb8_alpha(r: NcComponent, g: NcComponent, b: NcComponent, alpha: NcAlphaBits) -> Self {
         Self::new().set_rgb8(r, g, b).set_alpha(alpha)
     }
 
@@ -367,39 +367,39 @@ impl NcChannelPairMethods for NcChannelPair {
 
     /// New NcChannel, expects two separate [`NcRgb`]s for the foreground
     /// and background channels.
-    fn with_rgb(fg_rgb: NcRgb, bg_rgb: NcRgb) -> Self {
-        Self::combine(NcChannel::with_rgb(fg_rgb), NcChannel::with_rgb(bg_rgb))
+    fn from_rgb(fg_rgb: NcRgb, bg_rgb: NcRgb) -> Self {
+        Self::combine(NcChannel::from_rgb(fg_rgb), NcChannel::from_rgb(bg_rgb))
     }
 
     /// New NcChannelPair, expects a single [`NcRgb`] for both foreground
     /// and background channels.
-    fn with_rgb_both(rgb: NcRgb) -> Self {
+    fn from_rgb_both(rgb: NcRgb) -> Self {
         let channel = NcChannel::new().set(rgb);
         Self::combine(channel, channel)
     }
 
     /// New NcChannel, expects two separate [`NcRgb`] & [`NcAlphaBits`] for the
     /// foreground and background channels.
-    fn with_rgb_alpha(
+    fn from_rgb_alpha(
         fg_rgb: NcRgb,
         fg_alpha: NcAlphaBits,
         bg_rgb: NcRgb,
         bg_alpha: NcAlphaBits,
     ) -> Self {
         Self::combine(
-            NcChannel::with_rgb(fg_rgb).set_alpha(fg_alpha),
-            NcChannel::with_rgb(bg_rgb).set_alpha(bg_alpha),
+            NcChannel::from_rgb(fg_rgb).set_alpha(fg_alpha),
+            NcChannel::from_rgb(bg_rgb).set_alpha(bg_alpha),
         )
     }
 
     /// New NcChannel, expects [`NcRgb`] & [`NcAlphaBits`] for both channels.
-    fn with_rgb_alpha_both(rgb: NcRgb, alpha: NcAlphaBits) -> Self {
+    fn from_rgb_alpha_both(rgb: NcRgb, alpha: NcAlphaBits) -> Self {
         let channel = NcChannel::new().set(rgb).set_alpha(alpha);
         Self::combine(channel, channel)
     }
 
     /// New NcChannelPair, expects three RGB [`NcComponent`] components for each channel.
-    fn with_rgb8(
+    fn from_rgb8(
         fg_r: NcComponent,
         fg_g: NcComponent,
         fg_b: NcComponent,
@@ -408,21 +408,21 @@ impl NcChannelPairMethods for NcChannelPair {
         bg_b: NcComponent,
     ) -> Self {
         Self::combine(
-            NcChannel::with_rgb8(fg_r, fg_g, fg_b),
-            NcChannel::with_rgb8(bg_r, bg_g, bg_b),
+            NcChannel::from_rgb8(fg_r, fg_g, fg_b),
+            NcChannel::from_rgb8(bg_r, bg_g, bg_b),
         )
     }
 
     /// New NcChannelPair, expects three RGB [`NcComponent`] components for both
     /// the foreground and background channels.
-    fn with_rgb8_both(r: NcComponent, g: NcComponent, b: NcComponent) -> Self {
+    fn from_rgb8_both(r: NcComponent, g: NcComponent, b: NcComponent) -> Self {
         let channel = NcChannel::new().set_rgb8(r, g, b);
         Self::combine(channel, channel)
     }
 
     /// New NcChannelPair, expects three RGB [`NcComponent`] components & [`NcAlphaBits`]
     /// for both foreground and background channels.
-    fn with_rgb8_alpha(
+    fn from_rgb8_alpha(
         fg_r: NcComponent,
         fg_g: NcComponent,
         fg_b: NcComponent,
@@ -433,13 +433,13 @@ impl NcChannelPairMethods for NcChannelPair {
         bg_alpha: NcAlphaBits,
     ) -> Self {
         Self::combine(
-            NcChannel::with_rgb8_alpha(fg_r, fg_g, fg_b, fg_alpha),
-            NcChannel::with_rgb8_alpha(bg_r, bg_g, bg_b, bg_alpha),
+            NcChannel::from_rgb8_alpha(fg_r, fg_g, fg_b, fg_alpha),
+            NcChannel::from_rgb8_alpha(bg_r, bg_g, bg_b, bg_alpha),
         )
     }
 
     /// New NcChannel, expects three RGB [`NcComponent`] components.
-    fn with_rgb8_alpha_both(
+    fn from_rgb8_alpha_both(
         r: NcComponent,
         g: NcComponent,
         b: NcComponent,

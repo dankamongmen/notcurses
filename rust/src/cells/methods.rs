@@ -10,10 +10,10 @@ use crate::NcChannel;
 
 /// # NcCell constructors
 impl NcCell {
-    /// New NcCell, expects a 7-bit [char].
+    /// New `NcCell`, expects a 7-bit [`char`].
     #[inline]
     #[allow(clippy::unnecessary_cast)]
-    pub const fn with_char7b(ch: char) -> Self {
+    pub const fn from_char7b(ch: char) -> Self {
         NcCell {
             gcluster: (ch as u32).to_le(),
             gcluster_backstop: 0 as NcEgcBackstop,
@@ -23,31 +23,31 @@ impl NcCell {
         }
     }
 
-    /// New NcCell, expects an [NcPlane] and a [char].
+    /// New `NcCell`, expects an [`NcPlane`] and a [`char`].
     #[inline]
-    pub fn with_char(ch: char, plane: &mut NcPlane) -> Self {
+    pub fn from_char(ch: char, plane: &mut NcPlane) -> Self {
         let mut cell = Self::new();
         let result = unsafe { nccell_load(plane, &mut cell, cstring![ch.to_string()]) };
         debug_assert_ne![NCRESULT_ERR, result];
         cell
     }
 
-    /// New NcCell, expects an [NcPlane] and a &[str].
+    /// New `NcCell`, expects an [`NcPlane`] and a &[`str`].
     #[inline]
-    pub fn with_str(plane: &mut NcPlane, string: &str) -> Self {
+    pub fn from_str(plane: &mut NcPlane, string: &str) -> Self {
         let mut cell = Self::new();
         let result = unsafe { nccell_load(plane, &mut cell, cstring![string]) };
         debug_assert_ne![NCRESULT_ERR, result];
         cell
     }
 
-    /// New empty NcCell.
+    /// New empty `NcCell`.
     #[inline]
     pub const fn new() -> Self {
-        Self::with_char7b(0 as char)
+        Self::from_char7b(0 as char)
     }
 
-    /// Breaks the UTF-8 string in `egc` down, setting up this NcCell,
+    /// Breaks the UTF-8 string in `egc` down, setting up this `NcCell`,
     /// and returns the number of bytes copied out of `egc`.
     ///
     /// The styling of the cell is left untouched, but any resources are released.
@@ -81,7 +81,7 @@ impl NcCell {
         error![bytes, "", bytes as u32]
     }
 
-    /// Duplicate this NcCell into another one.
+    /// Duplicate this `NcCell` into another one.
     ///
     /// Both must be or will be bound to `common_plane`.
     ///
@@ -90,7 +90,7 @@ impl NcCell {
         error![unsafe { crate::nccell_duplicate(common_plane, target, self) }]
     }
 
-    /// Initializes (zeroes out) the NcCell.
+    /// Initializes (zeroes out) this `NcCell`.
     ///
     /// *C style function: [nccell_init()][crate::nccell_init].*
     #[inline]
@@ -111,7 +111,7 @@ impl NcCell {
 // -----------------------------------------------------------------------------
 /// ## NcCell methods: bg|fg `NcChannel`s manipulation.
 impl NcCell {
-    /// Returns the [`NcChannelPair`] of the NcCell.
+    /// Returns the [`NcChannelPair`] of this `NcCell`.
     ///
     /// *(No equivalent C style function)*
     pub fn channels(&mut self, plane: &mut NcPlane) -> NcChannelPair {

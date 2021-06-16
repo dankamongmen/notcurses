@@ -44,7 +44,7 @@ fn main() -> NcResult<()> {
     menu_top.item_set_status("Schwarzgerät", "Disabled", false)?;
     menu_top.item_set_status("Schwarzgerät", "Restart", false)?;
 
-    stdplane.set_base("x", 0, NcChannelPair::with_rgb(0x88aa00, 0x000088))?;
+    stdplane.set_base("x", 0, NcChannelPair::from_rgb(0x88aa00, 0x000088))?;
 
     nc.render()?;
 
