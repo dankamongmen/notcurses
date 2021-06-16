@@ -11,6 +11,7 @@ extern "C" {
 #include <poll.h>
 #include <term.h>
 #include <time.h>
+#include <poll.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <unistd.h>
@@ -23,7 +24,6 @@ extern "C" {
 #include <termios.h>
 #include <stdbool.h>
 #include <unictype.h>
-#include <sys/poll.h>
 #include <langinfo.h>
 #include <netinet/in.h>
 #include "notcurses/notcurses.h"
