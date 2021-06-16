@@ -101,9 +101,7 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
   if(qterm == TERMINAL_KITTY){ // kitty (https://sw.kovidgoyal.net/kitty/)
     termname = "Kitty";
     // see https://sw.kovidgoyal.net/kitty/protocol-extensions.html
-    // FIXME detect the actual default background color; this assumes it to
-    // be RGB(0, 0, 0) (the default). we could also just set it, i guess.
-    ti->bg_collides_default = 0x1000000;
+    ti->bg_collides_default |= 0x1000000;
     ti->sextants = true; // work since bugfix in 0.19.3
     ti->quadrants = true;
     ti->RGBflag = true;

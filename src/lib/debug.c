@@ -67,11 +67,8 @@ tinfo_debug_caps(const tinfo* ti, FILE* debugfp, int rows, int cols,
     fprintf(debugfp, "%s ⎛%ls⎞ ▔🭶🭷🭸🭹🭺🭻▁                                                   ⎪▕▉⎪\n", indent, get_blitter_egcs(NCBLIT_8x1));
     fprintf(debugfp, "%s ⎝%s⎠ ▏🭰🭱🭲🭳🭴🭵▕                                                   ⎩ █⎭\n", indent, "█🮆🮅🮄▀🮃🮂▔ ");
   }
-  if(ti->bg_collides_default){
-    fprintf(debugfp, "%sbackground of 0x%06lx is considered transparent\n", indent, ti->bg_collides_default & 0xfffffful);
-  }else{
-    fprintf(debugfp, "%sbackground isn't interpreted as transparent\n", indent);
-  }
+  fprintf(debugfp, "%sbackground of 0x%06lx is %sconsidered transparent\n", indent, ti->bg_collides_default & 0xfffffful,
+                   (ti->bg_collides_default & 0x01000000) ? "" : "not ");
   fprintf(debugfp, "%scup: %c vpa: %c hpa: %c\n",
           indent, capyn(get_escape(ti, ESCAPE_CUP)),
                   capyn(get_escape(ti, ESCAPE_VPA)),
