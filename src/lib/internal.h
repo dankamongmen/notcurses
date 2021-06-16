@@ -1688,8 +1688,8 @@ typedef struct ncvisual_implementation {
   bool canopen_videos;
 } ncvisual_implementation;
 
-// assigned by libnotcurses.so if linked with multimedia
-API extern const ncvisual_implementation* visual_implementation;
+// populated by libnotcurses.so if linked with multimedia
+API extern ncvisual_implementation visual_implementation;
 
 #undef ALLOC
 #undef API

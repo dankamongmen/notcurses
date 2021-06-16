@@ -290,7 +290,7 @@ might see changes. It is an error to merge a plane onto itself.
 homes the cursor. The base cell is preserved, as are the active attributes.
 **ncplane_erase_region** does the same for a subregion of the plane. For the
 latter, supply 0 for ***ylen*** and/or ***xlen*** to erase through that
-dimension, starting at the specified point.
+dimension, starting at the specified point. See [BUGS][] below.
 
 When a plane is resized (whether by **ncplane_resize**, **SIGWINCH**, or any
 other mechanism), a depth-first recursion is performed on its children.
@@ -427,6 +427,18 @@ It should not be used in new code.
 **ncplane_at_yx** doesn't yet account for bitmap-based graphics (see
 **notcurses_visual**). Whatever glyph-based contents existed on the plane when
 the bitmap was blitted will continue to be returned.
+
+When the alternate screen is not used (see **notcurses_init(3)**), the contents
+of the terminal at startup remain present until obliterated on a cell-by-cell
+basis. **ncplane_erase** and **ncplane_erase_region** **cannot** be used to
+clear the terminal of startup content. If you want the screen cleared on
+startup, but do not want to use (or rely on) the alternate screen, use something
+like:
+
+```c
+ncplane_set_base(notcurses_stdplane(nc), " ", 0, 0);
+notcurses_render(nc);
+```
 
 # SEE ALSO
 

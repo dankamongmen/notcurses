@@ -76,7 +76,10 @@ If the terminal advertises support for an "alternate screen" via the **smcup**
 terminfo capability, notcurses will employ it by default. This can be prevented
 by setting **NCOPTION_NO_ALTERNATE_SCREEN** in ***flags***. Users tend to have
 strong opinions regarding the alternate screen, so it's often useful to expose
-this via a command-line option.
+this via a command-line option. When the alternate screen is not used, the
+contents of the terminal at startup remain visible until obliterated, on a
+cell-by-cell basis (see **notcurses_plane(3)** for details on clearing the
+screen at startup without using the alternate screen).
 
 notcurses hides the cursor by default. It can be dynamically enabled, moved, or
 disabled during execution via **notcurses_cursor_enable** and
@@ -95,8 +98,7 @@ will be performed on the entirety of the viewing area. This is orthogonal to
 use of the alternate screen; using the alternate screen plus margins will see
 the full screen cleared, followed by rendering to a subregion. Inhibiting the
 alternate screen plus margins will see rendering to a subregion, with the screen
-outside this region not cleared. This is the only means by which existing
-output can be undisturbed by notcurses. Margins are best-effort. Supplying any
+outside this region not cleared. Margins are best-effort. Supplying any
 negative margin is an error. **notcurses_lex_margins** provides lexing a
 margin argument expression in one of two forms:
 

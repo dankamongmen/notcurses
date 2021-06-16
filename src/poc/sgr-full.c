@@ -12,6 +12,8 @@ int main(void){
   }
   int dimy, dimx;
   struct ncplane* n = notcurses_stddim_yx(nc, &dimy, &dimx);
+  ncplane_set_base(n, " ", 0, 0);
+  notcurses_render(nc); // clear the screen
   int y = 0;
   // FIXME do full permutations?
   ncplane_set_styles(n, NCSTYLE_NONE);

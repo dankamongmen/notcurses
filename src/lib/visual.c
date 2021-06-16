@@ -14,69 +14,84 @@
 // set this pointer. all this machination exists to support building notcurses
 // (and running notcurses programs) without the need of heavy media engines.
 
-const ncvisual_implementation* visual_implementation = NULL;
+ncvisual_implementation visual_implementation = { };
+
+// to be called at startup -- performs any necessary engine initialization.
+int ncvisual_init(int loglevel){
+  if(visual_implementation.visual_init){
+    return visual_implementation.visual_init(loglevel);
+  }
+  return 0;
+}
+
+void ncvisual_printbanner(const notcurses* nc){
+  if(visual_implementation.visual_printbanner){
+    visual_implementation.visual_printbanner(nc);
+  }
+}
 
 // you need an actual multimedia implementation for functions which work with
 // codecs, including ncvisual_decode(), ncvisual_decode_loop(),
 // ncvisual_from_file(), ncvisual_stream(), and ncvisual_subtitle().
 int ncvisual_decode(ncvisual* nc){
-  if(!visual_implementation){
+  if(!visual_implementation.visual_decode){
     return -1;
   }
-  return visual_implementation->visual_decode(nc);
+  return visual_implementation.visual_decode(nc);
 }
 
 int ncvisual_decode_loop(ncvisual* nc){
-  if(!visual_implementation){
+  if(!visual_implementation.visual_decode_loop){
     return -1;
   }
-  return visual_implementation->visual_decode_loop(nc);
+  return visual_implementation.visual_decode_loop(nc);
 }
 
 ncvisual* ncvisual_from_file(const char* filename){
-  if(!visual_implementation){
+  if(!visual_implementation.visual_from_file){
     return NULL;
   }
-  return visual_implementation->visual_from_file(filename);
+  return visual_implementation.visual_from_file(filename);
 }
 
 int ncvisual_stream(notcurses* nc, ncvisual* ncv, float timescale,
                     ncstreamcb streamer, const struct ncvisual_options* vopts,
                     void* curry){
-  if(!visual_implementation){
+  if(!visual_implementation.visual_stream){
     return -1;
   }
-  return visual_implementation->visual_stream(nc, ncv, timescale, streamer, vopts, curry);
+  return visual_implementation.visual_stream(nc, ncv, timescale, streamer, vopts, curry);
 }
 
 char* ncvisual_subtitle(const ncvisual* ncv){
-  if(!visual_implementation){
+  if(!visual_implementation.visual_subtitle){
     return NULL;
   }
-  return visual_implementation->visual_subtitle(ncv);
+  return visual_implementation.visual_subtitle(ncv);
 }
 
 int ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
                   const struct blitset* bset, const blitterargs* barg){
-  // FIMXE see #1576 -- if requested, do scaling here, with resize_bitmap()
+  if(!(barg->flags & NCVISUAL_OPTION_NOINTERPOLATE)){
+    if(visual_implementation.visual_blit){
+      if(visual_implementation.visual_blit(ncv, rows, cols, n, bset, barg) < 0){
+        return -1;
+      }
+      return 0;
+    }
+  }
+  int stride = 4 * cols;
+  uint32_t* data = resize_bitmap(ncv->data, ncv->pixy, ncv->pixx,
+                                  ncv->rowstride, rows, cols, stride);
+  if(data == NULL){
+    return -1;
+  }
   int ret = -1;
-  if(visual_implementation && !(barg->flags & NCVISUAL_OPTION_NOINTERPOLATE)){
-    if(visual_implementation->visual_blit(ncv, rows, cols, n, bset, barg) >= 0){
-      ret = 0;
-    }
-  }else{
-    int stride = 4 * cols;
-    uint32_t* data = resize_bitmap(ncv->data, ncv->pixy, ncv->pixx,
-                                   ncv->rowstride, rows, cols, stride);
-    if(data == NULL){
-      return -1;
-    }
-    if(rgba_blit_dispatch(n, bset, stride, data, rows, cols, barg, 32) >= 0){
-      ret = 0;
-    }
-    if(data != ncv->data){
-      free(data);
-    }
+  if(rgba_blit_dispatch(n, bset, stride, data, rows, cols, barg, 32) >= 0){
+    ret = 0;
+  }
+  if(data != ncv->data){
+    free(data);
   }
   return ret;
 }
@@ -85,35 +100,18 @@ int ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
 // AVFrame* 'frame' according to their own data, which is assumed to
 // have been prepared already in 'ncv'.
 void ncvisual_details_seed(struct ncvisual* ncv){
-  if(visual_implementation){
-    visual_implementation->visual_details_seed(ncv);
+  if(visual_implementation.visual_details_seed){
+    visual_implementation.visual_details_seed(ncv);
   }
-}
-
-// to be called at startup -- performs any necessary engine initialization.
-int ncvisual_init(int loglevel){
-  if(visual_implementation){
-    return visual_implementation->visual_init(loglevel);
-  }
-  return 0;
 }
 
 ncvisual* ncvisual_create(void){
-  if(visual_implementation){
-    return visual_implementation->visual_create();
+  if(visual_implementation.visual_create){
+    return visual_implementation.visual_create();
   }
   ncvisual* ret = malloc(sizeof(*ret));
   memset(ret, 0, sizeof(*ret));
   return ret;
-}
-
-void ncvisual_printbanner(const notcurses* nc){
-  if(visual_implementation){
-    visual_implementation->visual_printbanner(nc);
-  }else{
-    term_fg_palindex(nc, stderr, nc->tcache.colors <= 88 ? 1 % nc->tcache.colors : 0xcb);
-    fprintf(stderr, "\n Warning! Notcurses was built without multimedia support.\n");
-  }
 }
 
 static inline void
@@ -639,10 +637,10 @@ ncvisual* ncvisual_from_bgra(const void* bgra, int rows, int rowstride, int cols
 }
 
 int ncvisual_resize(ncvisual* nc, int rows, int cols){
-  if(!visual_implementation){
+  if(!visual_implementation.visual_resize){
     return ncvisual_resize_noninterpolative(nc, rows, cols);
   }
-  if(visual_implementation->visual_resize(nc, rows, cols)){
+  if(visual_implementation.visual_resize(nc, rows, cols)){
     return -1;
   }
   return 0;
@@ -1023,13 +1021,13 @@ ncvisual* ncvisual_from_plane(const ncplane* n, ncblitter_e blit, int begy, int 
 
 void ncvisual_destroy(ncvisual* ncv){
   if(ncv){
-    if(visual_implementation == NULL){
+    if(visual_implementation.visual_destroy == NULL){
       if(ncv->owndata){
         free(ncv->data);
       }
       free(ncv);
     }else{
-      visual_implementation->visual_destroy(ncv);
+      visual_implementation.visual_destroy(ncv);
     }
   }
 }
@@ -1109,17 +1107,17 @@ int ncvisual_polyfill_yx(ncvisual* n, int y, int x, uint32_t rgba){
 }
 
 bool notcurses_canopen_images(const notcurses* nc __attribute__ ((unused))){
-  if(!visual_implementation){
+  if(!visual_implementation.canopen_images){
     return false;
   }
-  return visual_implementation->canopen_images;
+  return visual_implementation.canopen_images;
 }
 
 bool notcurses_canopen_videos(const notcurses* nc __attribute__ ((unused))){
-  if(!visual_implementation){
+  if(!visual_implementation.canopen_videos){
     return false;
   }
-  return visual_implementation->canopen_videos;
+  return visual_implementation.canopen_videos;
 }
 
 int ncvisual_inflate(ncvisual* n, int scale){

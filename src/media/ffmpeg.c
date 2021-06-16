@@ -625,7 +625,7 @@ void ffmpeg_destroy(ncvisual* ncv){
   }
 }
 
-static const ncvisual_implementation ffmpeg_impl = {
+const ncvisual_implementation local_visual_implementation = {
   .visual_init = ffmpeg_init,
   .visual_printbanner = ffmpeg_printbanner,
   .visual_blit = ffmpeg_blit,
@@ -641,7 +641,5 @@ static const ncvisual_implementation ffmpeg_impl = {
   .canopen_images = true,
   .canopen_videos = true,
 };
-
-const ncvisual_implementation* local_visual_implementation = &ffmpeg_impl;
 
 #endif

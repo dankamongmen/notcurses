@@ -76,7 +76,7 @@ int oiio_init(int loglevel __attribute__ ((unused))) {
   return 0; // allow success here
 }
 
-static const ncvisual_implementation oiio_impl = {
+const ncvisual_implementation local_visual_implementation = {
   .visual_init = oiio_init,
   .visual_printbanner = oiio_printbanner,
   .visual_blit = oiio_blit,
@@ -92,7 +92,5 @@ static const ncvisual_implementation oiio_impl = {
   .canopen_images = true,
   .canopen_videos = false,
 };
-
-const ncvisual_implementation* local_visual_implementation = &oiio_impl;
 
 #endif
