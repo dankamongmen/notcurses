@@ -64,8 +64,8 @@ tinfo_debug_caps(const tinfo* ti, FILE* debugfp, int rows, int cols,
             get_blitter_egcs(NCBLIT_BRAILLE) + 128);
     fprintf(debugfp, "%s⎣%.192ls⎦      ⎪🮇▊⎪\n", indent,
             get_blitter_egcs(NCBLIT_BRAILLE) + 192);
-    fprintf(debugfp, "%s ⎛%ls⎞ ▔🭶🭷🭸🭹🭺🭻▁                                                   ⎪▕▉⎪\n", indent, get_blitter_egcs(NCBLIT_8x1));
-    fprintf(debugfp, "%s ⎝%s⎠ ▏🭰🭱🭲🭳🭴🭵▕                                                   ⎩ █⎭\n", indent, "█🮆🮅🮄▀🮃🮂▔ ");
+    fprintf(debugfp, "%s ⎛%ls⎞ ▔🭶🭷🭸🭹🭺🭻▁ 🭁 🭂 🭃 🭄 🭅 🭆 🭑 🭐 🭏 🭎 🭍 🭌 🭅🭐 🭄🭏 🭃🭎 🭆🭑 🭂🭍 🭁🭌         ⎪▕▉⎪ 🭨🭪\n", indent, get_blitter_egcs(NCBLIT_8x1));
+    fprintf(debugfp, "%s ⎝%s⎠ ▏🭰🭱🭲🭳🭴🭵▕ 🭒 🭓 🭔 🭕 🭖 🭧 🭜 🭟 🭠 🭡 🭞 🭝 🭖🭟 🭕🭠 🭔🭡 🭧🭜 🭓🭞 🭒🭝         ⎩ █⎭ 🭪🭨\n", indent, "█🮆🮅🮄▀🮃🮂▔ ");
   }
   fprintf(debugfp, "%sbackground of 0x%06lx is %sconsidered transparent\n", indent, ti->bg_collides_default & 0xfffffful,
                    (ti->bg_collides_default & 0x01000000) ? "" : "not ");
