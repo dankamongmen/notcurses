@@ -17,7 +17,7 @@ fn main() -> NcResult<()> {
     println!("terminal size (rows, cols): {}, {}", rows, cols);
 
     let mut channels =
-        NcChannelPair::combine(NcChannel::from_rgb(0xAA2244), NcChannel::from_rgb(0x112233));
+        NcChannels::combine(NcChannel::from_rgb(0xAA2244), NcChannel::from_rgb(0x112233));
     dm.putstr(channels, "The current coordinates are")?;
 
     for _n in 0..40 {

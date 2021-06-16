@@ -1,7 +1,7 @@
 //! `NcCell` methods and associated functions.
 
 use crate::{
-    cstring, error, nccell_load, NcAlphaBits, NcCell, NcChannelPair, NcComponent, NcEgc,
+    cstring, error, nccell_load, NcAlphaBits, NcCell, NcChannels, NcComponent, NcEgc,
     NcEgcBackstop, NcPaletteIndex, NcPlane, NcResult, NcRgb, NcStyle, NCRESULT_ERR,
 };
 
@@ -19,7 +19,7 @@ impl NcCell {
             gcluster_backstop: 0 as NcEgcBackstop,
             width: 0_u8,
             stylemask: 0 as NcStyle,
-            channels: 0 as NcChannelPair,
+            channels: 0 as NcChannels,
         }
     }
 
@@ -75,7 +75,7 @@ impl NcCell {
         cell: &mut NcCell,
         gcluster: &str,
         style: NcStyle,
-        channels: NcChannelPair,
+        channels: NcChannels,
     ) -> NcResult<u32> {
         let bytes = crate::nccell_prime(plane, cell, gcluster, style, channels);
         error![bytes, "", bytes as u32]
@@ -111,10 +111,10 @@ impl NcCell {
 // -----------------------------------------------------------------------------
 /// ## NcCell methods: bg|fg `NcChannel`s manipulation.
 impl NcCell {
-    /// Returns the [`NcChannelPair`] of this `NcCell`.
+    /// Returns the [`NcChannels`] of this `NcCell`.
     ///
     /// *(No equivalent C style function)*
-    pub fn channels(&mut self, plane: &mut NcPlane) -> NcChannelPair {
+    pub fn channels(&mut self, plane: &mut NcPlane) -> NcChannels {
         let (mut _styles, mut channels) = (0, 0);
         let _char = crate::nccell_extract(plane, self, &mut _styles, &mut channels);
         channels
@@ -304,7 +304,7 @@ impl NcCell {
         crate::nccellcmp(plane1, cell1, plane2, cell2)
     }
 
-    /// Saves the [`NcStyle`] and the [`NcChannelPair`], and returns the [`NcEgc`].
+    /// Saves the [`NcStyle`] and the [`NcChannels`], and returns the [`NcEgc`].
     /// (These are the three elements of an NcCell).
     ///
     /// *C style function: [nccell_fg_alpha()][crate::nccell_fg_alpha].*
@@ -312,7 +312,7 @@ impl NcCell {
         &mut self,
         plane: &mut NcPlane,
         styles: &mut NcStyle,
-        channels: &mut NcChannelPair,
+        channels: &mut NcChannels,
     ) -> NcEgc {
         crate::nccell_extract(plane, self, styles, channels)
     }
@@ -414,7 +414,7 @@ impl NcCell {
     pub fn load_box(
         plane: &mut NcPlane,
         style: NcStyle,
-        channels: NcChannelPair,
+        channels: NcChannels,
         ul: &mut NcCell,
         ur: &mut NcCell,
         ll: &mut NcCell,
@@ -434,7 +434,7 @@ impl NcCell {
     pub fn double_box(
         plane: &mut NcPlane,
         style: NcStyle,
-        channels: NcChannelPair,
+        channels: NcChannels,
         ul: &mut NcCell,
         ur: &mut NcCell,
         ll: &mut NcCell,
@@ -453,7 +453,7 @@ impl NcCell {
     pub fn rounded_box(
         plane: &mut NcPlane,
         style: NcStyle,
-        channels: NcChannelPair,
+        channels: NcChannels,
         ul: &mut NcCell,
         ur: &mut NcCell,
         ll: &mut NcCell,

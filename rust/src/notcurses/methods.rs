@@ -3,7 +3,7 @@
 use core::ptr::{null, null_mut};
 
 use crate::{
-    cstring, error, error_ref_mut, notcurses_init, rstring, Nc, NcAlign, NcBlitter, NcChannelPair,
+    cstring, error, error_ref_mut, notcurses_init, rstring, Nc, NcAlign, NcBlitter, NcChannels,
     NcDim, NcEgc, NcError, NcFile, NcInput, NcLogLevel, NcOptions, NcPlane, NcResult, NcScale,
     NcSignalSet, NcStats, NcStyle, NcTime, NCOPTION_NO_ALTERNATE_SCREEN, NCOPTION_SUPPRESS_BANNERS,
     NCRESULT_ERR,
@@ -131,7 +131,7 @@ impl Nc {
 
     /// Retrieves the current contents of the specified [NcCell][crate::NcCell]
     /// as last rendered, returning the [NcEgc] (or None on error) and writing
-    /// out the [NcStyle] and the [NcChannelPair].
+    /// out the [NcStyle] and the [NcChannels].
     ///
     /// This NcEgc must be freed by the caller.
     ///
@@ -141,7 +141,7 @@ impl Nc {
         y: NcDim,
         x: NcDim,
         stylemask: &mut NcStyle,
-        channels: &mut NcChannelPair,
+        channels: &mut NcChannels,
     ) -> Option<NcEgc> {
         let egc = unsafe { crate::notcurses_at_yx(self, x as i32, y as i32, stylemask, channels) };
         if egc.is_null() {

@@ -4,7 +4,7 @@ use core::ptr::{null, null_mut};
 
 use crate::ffi::sigset_t;
 use crate::{
-    cstring, error, error_ref_mut, rstring, NcAlign, NcBlitter, NcChannelPair, NcComponent, NcDim,
+    cstring, error, error_ref_mut, rstring, NcAlign, NcBlitter, NcChannels, NcComponent, NcDim,
     NcDirect, NcDirectFlags, NcDirectV, NcEgc, NcError, NcInput, NcPaletteIndex, NcResult, NcRgb,
     NcScale, NcStyle, NcTime, NCRESULT_ERR,
 };
@@ -550,7 +550,7 @@ impl NcDirect {
     /// are both marked as using the default color.
     ///
     /// *C style function: [ncdirect_putstr()][crate::ncdirect_putstr].*
-    pub fn putstr(&mut self, channels: NcChannelPair, string: &str) -> NcResult<()> {
+    pub fn putstr(&mut self, channels: NcChannels, string: &str) -> NcResult<()> {
         error![
             unsafe { crate::ncdirect_putstr(self, channels, cstring![string]) },
             &format!("NcDirect.putstr({:0X}, {:?})", channels, string)
@@ -591,10 +591,10 @@ impl NcDirect {
     // TODO: CHECK, specially wchars.
     pub fn r#box(
         &mut self,
-        ul: NcChannelPair,
-        ur: NcChannelPair,
-        ll: NcChannelPair,
-        lr: NcChannelPair,
+        ul: NcChannels,
+        ur: NcChannels,
+        ll: NcChannels,
+        lr: NcChannels,
         wchars: &[char; 6],
         y_len: NcDim,
         x_len: NcDim,
@@ -627,10 +627,10 @@ impl NcDirect {
     /// *C style function: [ncdirect_double_box()][crate::ncdirect_double_box].*
     pub fn double_box(
         &mut self,
-        ul: NcChannelPair,
-        ur: NcChannelPair,
-        ll: NcChannelPair,
-        lr: NcChannelPair,
+        ul: NcChannels,
+        ur: NcChannels,
+        ll: NcChannels,
+        lr: NcChannels,
         y_len: NcDim,
         x_len: NcDim,
         ctlword: u32,
@@ -645,10 +645,10 @@ impl NcDirect {
     /// *C style function: [ncdirect_rounded_box()][crate::ncdirect_rounded_box].*
     pub fn rounded_box(
         &mut self,
-        ul: NcChannelPair,
-        ur: NcChannelPair,
-        ll: NcChannelPair,
-        lr: NcChannelPair,
+        ul: NcChannels,
+        ur: NcChannels,
+        ll: NcChannels,
+        lr: NcChannels,
         y_len: NcDim,
         x_len: NcDim,
         ctlword: u32,
@@ -657,7 +657,7 @@ impl NcDirect {
             crate::ncdirect_rounded_box(self, ul, ur, ll, lr, y_len as i32, x_len as i32, ctlword)
         }]
     }
-    /// Draws horizontal lines using the specified [NcChannelPair]s, interpolating
+    /// Draws horizontal lines using the specified [NcChannels]s, interpolating
     /// between them as we go.
     ///
     /// All lines start at the current cursor position.
@@ -673,8 +673,8 @@ impl NcDirect {
         &mut self,
         egc: &NcEgc,
         len: NcDim,
-        h1: NcChannelPair,
-        h2: NcChannelPair,
+        h1: NcChannels,
+        h2: NcChannels,
     ) -> NcResult<()> {
         // https://github.com/dankamongmen/notcurses/issues/1339
         #[cfg(any(target_arch = "x86_64", target_arch = "i686"))]
@@ -685,7 +685,7 @@ impl NcDirect {
         error![unsafe { crate::ncdirect_hline_interp(self, egc_ptr, len as i32, h1, h2) }]
     }
 
-    /// Draws horizontal lines using the specified [NcChannelPair]s, interpolating
+    /// Draws horizontal lines using the specified [NcChannels]s, interpolating
     /// between them as we go.
     ///
     /// All lines start at the current cursor position.
@@ -701,8 +701,8 @@ impl NcDirect {
         &mut self,
         egc: &NcEgc,
         len: NcDim,
-        h1: NcChannelPair,
-        h2: NcChannelPair,
+        h1: NcChannels,
+        h2: NcChannels,
     ) -> NcResult<()> {
         // https://github.com/dankamongmen/notcurses/issues/1339
         #[cfg(any(target_arch = "x86_64", target_arch = "i686"))]

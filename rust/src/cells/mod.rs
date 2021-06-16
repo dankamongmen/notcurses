@@ -116,7 +116,7 @@ use crate::{NcChannel, NcPlane};
 ///
 /// GCLUSTER GCLUSTER GCLUSTER GCLUSTER  1. NcEgc
 /// 00000000 ~~~~~~~~ 11111111 11111111  2. NcEgcBackstop + 3. width + 4. NcStyle
-/// ~~AA~~~~ RRRRRRRR GGGGGGGG BBBBBBBB  5. NcChannelPair
+/// ~~AA~~~~ RRRRRRRR GGGGGGGG BBBBBBBB  5. NcChannels
 /// ~~AA~~~~ RRRRRRRR GGGGGGGG BBBBBBBB  |
 ///
 /// 1. (32b) Extended Grapheme Cluster, presented either as:
@@ -136,7 +136,7 @@ use crate::{NcChannel, NcPlane};
 /// 4. (16b) NcStyle
 /// 11111111 11111111
 ///
-/// 5. (64b) NcChannelPair
+/// 5. (64b) NcChannels
 /// ~~AA~~~~ RRRRRRRR GGGGGGGG BBBBBBBB|~~AA~~~~ RRRRRRRR GGGGGGGG BBBBBBBB
 /// ```
 ///

@@ -1,4 +1,4 @@
-use crate::{NcChannelPair, NcMenuOptions, NcMenuSection};
+use crate::{NcChannels, NcMenuOptions, NcMenuSection};
 
 /// # `NcMenuOptions` constructors
 impl NcMenuOptions {
@@ -14,8 +14,8 @@ impl NcMenuOptions {
     /// `sections` must contain at least 1 [NcMenuSection].
     pub fn with_all_args(
         sections: &mut [NcMenuSection],
-        style_header: NcChannelPair,
-        style_sections: NcChannelPair,
+        style_header: NcChannels,
+        style_sections: NcChannels,
         flags: u64,
     ) -> Self {
         assert![!sections.is_empty()];
@@ -43,28 +43,28 @@ impl NcMenuOptions {
     /// Returns the styling for the header.
     ///
     /// *(No equivalent C style function)*
-    pub const fn header_channels(&self) -> NcChannelPair {
+    pub const fn header_channels(&self) -> NcChannels {
         self.headerchannels
     }
 
     /// Returns a mutable reference of the styling for the sections.
     ///
     /// *(No equivalent C style function)*
-    pub fn header_channels_mut(&mut self) -> &mut NcChannelPair {
+    pub fn header_channels_mut(&mut self) -> &mut NcChannels {
         &mut self.headerchannels
     }
 
     /// Returns the styling for the sections.
     ///
     /// *(No equivalent C style function)*
-    pub const fn section_channels(&self) -> NcChannelPair {
+    pub const fn section_channels(&self) -> NcChannels {
         self.sectionchannels
     }
 
     /// Returns a mutable reference of the styling for the sections.
     ///
     /// *(No equivalent C style function)*
-    pub fn section_channels_mut(&mut self) -> &mut NcChannelPair {
+    pub fn section_channels_mut(&mut self) -> &mut NcChannels {
         &mut self.sectionchannels
     }
 }

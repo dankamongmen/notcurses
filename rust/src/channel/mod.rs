@@ -73,7 +73,7 @@ mod test;
 
 mod methods;
 mod reimplemented;
-pub use methods::{NcChannelMethods, NcChannelPairMethods};
+pub use methods::{NcChannelMethods, NcChannelsMethods};
 pub use reimplemented::*;
 
 // NcChannel
@@ -87,7 +87,7 @@ pub use reimplemented::*;
 ///   - 2 bits of [`NcAlphaBits`]
 ///   - 6 bits of context-dependent info
 ///
-/// The context details are documented in [`NcChannelPair`]
+/// The context details are documented in [`NcChannels`]
 ///
 /// ## Diagram
 ///
@@ -137,7 +137,7 @@ pub const NCALPHA_TRANSPARENT: u32 = crate::bindings::ffi::NCALPHA_TRANSPARENT;
 
 /// If this bit is set, we are *not* using the default background color
 ///
-/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
+/// See the detailed diagram at [`NcChannels`][crate::NcChannels]
 ///
 /// Note: This can also be used against a single [`NcChannel`]
 pub const NCALPHA_BGDEFAULT_MASK: u32 = crate::bindings::ffi::CELL_BGDEFAULT_MASK;
@@ -145,7 +145,7 @@ pub const NCALPHA_BGDEFAULT_MASK: u32 = crate::bindings::ffi::CELL_BGDEFAULT_MAS
 /// Extract these bits to get the background alpha mask
 /// ([`NcAlphaBits`])
 ///
-/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
+/// See the detailed diagram at [`NcChannels`][crate::NcChannels]
 ///
 /// Note: This can also be used against a single [`NcChannel`]
 pub const NCALPHA_BG_ALPHA_MASK: u32 = crate::bindings::ffi::CELL_BG_ALPHA_MASK;
@@ -153,21 +153,21 @@ pub const NCALPHA_BG_ALPHA_MASK: u32 = crate::bindings::ffi::CELL_BG_ALPHA_MASK;
 /// If this bit *and* [`NCALPHA_BGDEFAULT_MASK`] are set, we're using a
 /// palette-indexed background color
 ///
-/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
+/// See the detailed diagram at [`NcChannels`][crate::NcChannels]
 ///
 /// Note: This can also be used against a single [`NcChannel`]
 pub const NCALPHA_BG_PALETTE: u32 = crate::bindings::ffi::CELL_BG_PALETTE;
 
 /// Extract these bits to get the background [`NcRgb`][crate::NcRgb] value
 ///
-/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
+/// See the detailed diagram at [`NcChannels`][crate::NcChannels]
 ///
 /// Note: This can also be used against a single [`NcChannel`]
 pub const NCALPHA_BG_RGB_MASK: u32 = crate::bindings::ffi::CELL_BG_RGB_MASK;
 
 /// If this bit is set, we are *not* using the default foreground color
 ///
-/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
+/// See the detailed diagram at [`NcChannels`][crate::NcChannels]
 ///
 /// Note: When working with a single [`NcChannel`] use [`NCALPHA_BGDEFAULT_MASK`];
 pub const NCALPHA_FGDEFAULT_MASK: u64 = crate::bindings::ffi::CELL_FGDEFAULT_MASK;
@@ -175,7 +175,7 @@ pub const NCALPHA_FGDEFAULT_MASK: u64 = crate::bindings::ffi::CELL_FGDEFAULT_MAS
 /// Extract these bits to get the foreground alpha mask
 /// ([`NcAlphaBits`])
 ///
-/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
+/// See the detailed diagram at [`NcChannels`][crate::NcChannels]
 ///
 /// Note: When working with a single [`NcChannel`] use [`NCALPHA_BG_ALPHA_MASK`];
 pub const NCALPHA_FG_ALPHA_MASK: u64 = crate::bindings::ffi::CELL_FG_ALPHA_MASK;
@@ -183,19 +183,19 @@ pub const NCALPHA_FG_ALPHA_MASK: u64 = crate::bindings::ffi::CELL_FG_ALPHA_MASK;
 /// If this bit *and* [`NCALPHA_FGDEFAULT_MASK`] are set, we're using a
 /// palette-indexed background color
 ///
-/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
+/// See the detailed diagram at [`NcChannels`][crate::NcChannels]
 ///
 /// Note: When working with a single [`NcChannel`] use [`NCALPHA_BG_PALETTE`];
 pub const NCALPHA_FG_PALETTE: u64 = crate::bindings::ffi::CELL_FG_PALETTE;
 
 /// Extract these bits to get the foreground [`NcRgb`][crate::NcRgb] value
 ///
-/// See the detailed diagram at [`NcChannelPair`][crate::NcChannelPair]
+/// See the detailed diagram at [`NcChannels`][crate::NcChannels]
 ///
 /// Note: When working with a single [`NcChannel`] use [`NCALPHA_BG_RGB_MASK`];
 pub const NCALPHA_FG_RGB_MASK: u64 = crate::bindings::ffi::CELL_FG_RGB_MASK;
 
-// NcChannelPair
+// NcChannels
 //
 /// 64 bits containing a foreground and background [`NcChannel`]
 ///
@@ -279,7 +279,10 @@ pub const NCALPHA_FG_RGB_MASK: u64 = crate::bindings::ffi::CELL_FG_RGB_MASK;
 /// - [`NCALPHA_FG_PALETTE`][crate::NCALPHA_FG_PALETTE]
 /// - [`NCALPHA_FG_RGB_MASK`][crate::NCALPHA_FG_RGB_MASK]
 ///
-pub type NcChannelPair = u64;
+pub type NcChannels = u64;
+
+#[deprecated]
+pub type NcChannelPair = NcChannels;
 
 // NcRgb
 //

@@ -3,7 +3,7 @@
 use libc::strcmp;
 
 use crate::{
-    cstring, nccell_release, NcAlphaBits, NcCell, NcChannel, NcChannelPair, NcComponent, NcEgc,
+    cstring, nccell_release, NcAlphaBits, NcCell, NcChannel, NcChannels, NcComponent, NcEgc,
     NcIntResult, NcPaletteIndex, NcPlane, NcRgb, NcStyle, NCALPHA_BGDEFAULT_MASK,
     NCALPHA_BG_PALETTE, NCALPHA_FGDEFAULT_MASK, NCALPHA_FG_PALETTE, NCALPHA_OPAQUE, NCRESULT_ERR,
     NCRESULT_OK, NCSTYLE_MASK,
@@ -204,7 +204,7 @@ pub fn nccell_bg_palindex_p(cell: &NcCell) -> bool {
 #[inline]
 #[allow(clippy::unnecessary_cast)]
 pub const fn nccell_fg_palindex(cell: &NcCell) -> NcPaletteIndex {
-    ((cell.channels & 0xff00000000 as NcChannelPair) >> 32) as NcPaletteIndex
+    ((cell.channels & 0xff00000000 as NcChannels) >> 32) as NcPaletteIndex
 }
 
 /// Gets the [`NcPaletteIndex`] of the background [`NcChannel`] of the [`NcCell`].
@@ -230,8 +230,8 @@ pub fn nccell_set_fg_palindex(cell: &mut NcCell, index: NcPaletteIndex) {
     cell.channels |= NCALPHA_FGDEFAULT_MASK;
     cell.channels |= NCALPHA_FG_PALETTE;
     nccell_set_fg_alpha(cell, NCALPHA_OPAQUE);
-    cell.channels &= 0xff000000ffffffff as NcChannelPair;
-    cell.channels |= (index as NcChannelPair) << 32;
+    cell.channels &= 0xff000000ffffffff as NcChannels;
+    cell.channels |= (index as NcChannels) << 32;
 }
 
 /// Sets an [`NcCell`]'s background [`NcPaletteIndex`].
@@ -244,11 +244,11 @@ pub fn nccell_set_fg_palindex(cell: &mut NcCell, index: NcPaletteIndex) {
 // NOTE: unlike the original C function, this one can't fail
 #[inline]
 pub fn nccell_set_bg_palindex(cell: &mut NcCell, index: NcPaletteIndex) {
-    cell.channels |= NCALPHA_BGDEFAULT_MASK as NcChannelPair;
-    cell.channels |= NCALPHA_BG_PALETTE as NcChannelPair;
+    cell.channels |= NCALPHA_BGDEFAULT_MASK as NcChannels;
+    cell.channels |= NCALPHA_BG_PALETTE as NcChannels;
     nccell_set_bg_alpha(cell, NCALPHA_OPAQUE);
     cell.channels &= 0xffffffffff000000;
-    cell.channels |= index as NcChannelPair;
+    cell.channels |= index as NcChannels;
 }
 
 // Styles ----------------------------------------------------------------------
@@ -375,7 +375,7 @@ pub fn nccell_strdup(plane: &NcPlane, cell: &NcCell) -> NcEgc {
 
 // Misc. -----------------------------------------------------------------------
 
-/// Saves the [`NcStyle`] and the [`NcChannelPair`],
+/// Saves the [`NcStyle`] and the [`NcChannels`],
 /// and returns the [`NcEgc`], of an [`NcCell`].
 ///
 /// *Method: NcCell.[extract()][NcCell#method.extract].*
@@ -384,7 +384,7 @@ pub fn nccell_extract(
     plane: &NcPlane,
     cell: &NcCell,
     stylemask: &mut NcStyle,
-    channels: &mut NcChannelPair,
+    channels: &mut NcChannels,
 ) -> NcEgc {
     if *stylemask != 0 {
         *stylemask = cell.stylemask;
@@ -441,7 +441,7 @@ pub fn nccell_prime(
     cell: &mut NcCell,
     gcluster: &str,
     style: NcStyle,
-    channels: NcChannelPair,
+    channels: NcChannels,
 ) -> NcIntResult {
     cell.stylemask = style;
     cell.channels = channels;
@@ -459,7 +459,7 @@ pub fn nccell_prime(
 pub fn nccells_load_box(
     plane: &mut NcPlane,
     style: NcStyle,
-    channels: NcChannelPair,
+    channels: NcChannels,
     ul: &mut NcCell,
     ur: &mut NcCell,
     ll: &mut NcCell,

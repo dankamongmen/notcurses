@@ -3,8 +3,7 @@
 use serial_test::serial;
 
 use crate::{
-    NcChannel, NcChannelPair, NCALPHA_BLEND, NCALPHA_HIGHCONTRAST, NCALPHA_OPAQUE,
-    NCALPHA_TRANSPARENT,
+    NcChannel, NcChannels, NCALPHA_BLEND, NCALPHA_HIGHCONTRAST, NCALPHA_OPAQUE, NCALPHA_TRANSPARENT,
 };
 
 // NcChannel tests -------------------------------------------------------------
@@ -169,7 +168,7 @@ fn channel_default_p() {
     assert_eq!(false, crate::ncchannel_default_p(c));
 }
 
-// NcChannelPair tests ---------------------------------------------------------
+// NcChannels tests ---------------------------------------------------------
 
 ///
 #[test]
@@ -177,7 +176,7 @@ fn channel_default_p() {
 #[allow(non_snake_case)]
 fn channels_set_fchannel__channels_fchannel() {
     let fc: NcChannel = 0x112233;
-    let mut cp: NcChannelPair = 0;
+    let mut cp: NcChannels = 0;
     crate::ncchannels_set_fchannel(&mut cp, fc);
     assert_eq!(crate::ncchannels_fchannel(cp), fc);
 }
@@ -188,7 +187,7 @@ fn channels_set_fchannel__channels_fchannel() {
 #[allow(non_snake_case)]
 fn channels_set_bchannel__channels_bchannel() {
     let bc: NcChannel = 0x112233;
-    let mut cp: NcChannelPair = 0;
+    let mut cp: NcChannels = 0;
     crate::ncchannels_set_bchannel(&mut cp, bc);
     assert_eq!(crate::ncchannels_bchannel(cp), bc);
 }
@@ -199,8 +198,8 @@ fn channels_set_bchannel__channels_bchannel() {
 fn channels_combine() {
     let bc: NcChannel = 0x112233;
     let fc: NcChannel = 0x445566;
-    let mut cp1: NcChannelPair = 0;
-    let mut _cp2: NcChannelPair = 0;
+    let mut cp1: NcChannels = 0;
+    let mut _cp2: NcChannels = 0;
     crate::ncchannels_set_bchannel(&mut cp1, bc);
     crate::ncchannels_set_fchannel(&mut cp1, fc);
     _cp2 = crate::ncchannels_combine(fc, bc);

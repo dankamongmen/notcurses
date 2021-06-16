@@ -6,7 +6,7 @@ use core::{
 
 use crate::{
     cstring, error, error_ref, error_ref_mut, rstring, Nc, NcAlign, NcAlphaBits, NcBlitter,
-    NcBoxMask, NcCell, NcChannel, NcChannelPair, NcComponent, NcDim, NcEgc, NcError, NcFadeCb,
+    NcBoxMask, NcCell, NcChannel, NcChannels, NcComponent, NcDim, NcEgc, NcError, NcFadeCb,
     NcOffset, NcPaletteIndex, NcPixelGeometry, NcPlane, NcPlaneOptions, NcResizeCb, NcResult,
     NcRgb, NcStyle, NcTime, NCRESULT_ERR,
 };
@@ -199,10 +199,10 @@ impl NcPlane {
 // -----------------------------------------------------------------------------
 /// ## NcPlane methods: `NcChannel`
 impl NcPlane {
-    /// Gets the current [`NcChannelPair`] from this NcPlane.
+    /// Gets the current [`NcChannels`] from this NcPlane.
     ///
     /// *C style function: [ncplane_channels()][crate::ncplane_channels].*
-    pub fn channels(&self) -> NcChannelPair {
+    pub fn channels(&self) -> NcChannels {
         crate::ncplane_channels(self)
     }
 
@@ -222,30 +222,30 @@ impl NcPlane {
         crate::ncchannels_bchannel(crate::ncplane_channels(self))
     }
 
-    /// Sets the current [`NcChannelPair`] for this NcPlane.
+    /// Sets the current [`NcChannels`] for this NcPlane.
     ///
     /// *C style function: [ncplane_set_channels()][crate::ncplane_set_channels].*
-    pub fn set_channels(&mut self, channels: NcChannelPair) {
+    pub fn set_channels(&mut self, channels: NcChannels) {
         crate::ncplane_set_channels(self, channels);
     }
 
     /// Sets the current foreground [`NcChannel`] for this NcPlane.
-    /// Returns the updated [`NcChannelPair`].
+    /// Returns the updated [`NcChannels`].
     ///
     /// *C style function: [ncplane_set_fchannel()][crate::ncplane_set_fchannel].*
-    pub fn set_fchannel(&mut self, channel: NcChannel) -> NcChannelPair {
+    pub fn set_fchannel(&mut self, channel: NcChannel) -> NcChannels {
         crate::ncplane_set_fchannel(self, channel)
     }
 
     /// Sets the current background [`NcChannel`] for this NcPlane.
-    /// Returns the updated [`NcChannelPair`].
+    /// Returns the updated [`NcChannels`].
     ///
     /// *C style function: [ncplane_set_bchannel()][crate::ncplane_set_bchannel].*
-    pub fn set_bchannel(&mut self, channel: NcChannel) -> NcChannelPair {
+    pub fn set_bchannel(&mut self, channel: NcChannel) -> NcChannels {
         crate::ncplane_set_bchannel(self, channel)
     }
 
-    /// Sets the given [`NcChannelPair`]s throughout the specified region,
+    /// Sets the given [`NcChannels`]s throughout the specified region,
     /// keeping content and attributes unchanged.
     ///
     /// Returns the number of cells set.
@@ -255,10 +255,10 @@ impl NcPlane {
         &mut self,
         y_stop: NcDim,
         x_stop: NcDim,
-        ul: NcChannelPair,
-        ur: NcChannelPair,
-        ll: NcChannelPair,
-        lr: NcChannelPair,
+        ul: NcChannels,
+        ur: NcChannels,
+        ll: NcChannels,
+        lr: NcChannels,
     ) -> NcResult<u32> {
         let res =
             unsafe { crate::ncplane_stain(self, y_stop as i32, x_stop as i32, ul, ur, ll, lr) };
@@ -404,49 +404,49 @@ impl NcPlane {
 
     /// Marks the foreground as NOT using the default color.
     ///
-    /// Returns the new [`NcChannelPair`].
+    /// Returns the new [`NcChannels`].
     ///
     /// *C style function: [ncplane_set_fg_not_default()][crate::ncplane_set_fg_not_default].*
     //
     // Not in the C API
     #[inline]
-    pub fn set_fg_not_default(&mut self) -> NcChannelPair {
+    pub fn set_fg_not_default(&mut self) -> NcChannels {
         crate::ncplane_set_fg_not_default(self)
     }
 
     /// Marks the background as NOT using the default color.
     ///
-    /// Returns the new [`NcChannelPair`].
+    /// Returns the new [`NcChannels`].
     ///
     /// *C style function: [ncplane_set_bg_not_default()][crate::ncplane_set_bg_not_default].*
     //
     // Not in the C API
     #[inline]
-    pub fn set_bg_not_default(&mut self) -> NcChannelPair {
+    pub fn set_bg_not_default(&mut self) -> NcChannels {
         crate::ncplane_set_bg_not_default(self)
     }
 
     /// Marks both the foreground and background as using the default color.
     ///
-    /// Returns the new [`NcChannelPair`].
+    /// Returns the new [`NcChannels`].
     ///
     /// *C style function: [ncplane_set_default()][crate::ncplane_set_default].*
     //
     // Not in the C API
     #[inline]
-    pub fn set_default(&mut self) -> NcChannelPair {
+    pub fn set_default(&mut self) -> NcChannels {
         crate::ncplane_set_default(self)
     }
 
     /// Marks both the foreground and background as NOT using the default color.
     ///
-    /// Returns the new [`NcChannelPair`].
+    /// Returns the new [`NcChannels`].
     ///
     /// *C style function: [ncplane_set_not_default()][crate::ncplane_set_not_default].*
     //
     // Not in the C API
     #[inline]
-    pub fn set_not_default(&mut self) -> NcChannelPair {
+    pub fn set_not_default(&mut self) -> NcChannels {
         crate::ncplane_set_not_default(self)
     }
 }
@@ -533,7 +533,7 @@ impl NcPlane {
 /// ## NcPlane methods: `NcCell` & `NcEgc`
 impl NcPlane {
     /// Retrieves the current contents of the [`NcCell`] under the cursor,
-    /// returning the [`NcEgc`] and writing out the [`NcStyle`] and the [`NcChannelPair`].
+    /// returning the [`NcEgc`] and writing out the [`NcStyle`] and the [`NcChannels`].
     ///
     /// This NcEgc must be freed by the caller.
     ///
@@ -541,7 +541,7 @@ impl NcPlane {
     pub fn at_cursor(
         &mut self,
         stylemask: &mut NcStyle,
-        channels: &mut NcChannelPair,
+        channels: &mut NcChannels,
     ) -> NcResult<NcEgc> {
         let egc = unsafe { crate::ncplane_at_cursor(self, stylemask, channels) };
         if egc.is_null() {
@@ -571,7 +571,7 @@ impl NcPlane {
     }
 
     /// Retrieves the current contents of the specified [`NcCell`], returning the
-    /// [`NcEgc`] and writing out the [`NcStyle`] and the [`NcChannelPair`].
+    /// [`NcEgc`] and writing out the [`NcStyle`] and the [`NcChannels`].
     ///
     /// This NcEgc must be freed by the caller.
     ///
@@ -581,7 +581,7 @@ impl NcPlane {
         y: NcDim,
         x: NcDim,
         stylemask: &mut NcStyle,
-        channels: &mut NcChannelPair,
+        channels: &mut NcChannels,
     ) -> NcResult<NcEgc> {
         let egc = unsafe { crate::ncplane_at_yx(self, y as i32, x as i32, stylemask, channels) };
         if egc.is_null() {
@@ -645,7 +645,7 @@ impl NcPlane {
         &mut self,
         egc: &str,
         stylemask: NcStyle,
-        channels: NcChannelPair,
+        channels: NcChannels,
     ) -> NcResult<u32> {
         let res =
             unsafe { crate::ncplane_set_base(self, cstring![egc], stylemask as u32, channels) };
@@ -1761,7 +1761,7 @@ impl NcPlane {
     pub fn double_box(
         &mut self,
         stylemask: NcStyle,
-        channels: NcChannelPair,
+        channels: NcChannels,
         y_stop: NcDim,
         x_stop: NcDim,
         boxmask: NcBoxMask,
@@ -1778,7 +1778,7 @@ impl NcPlane {
     pub fn double_box_sized(
         &mut self,
         stylemask: NcStyle,
-        channels: NcChannelPair,
+        channels: NcChannels,
         y_len: NcDim,
         x_len: NcDim,
         boxmask: NcBoxMask,
@@ -1815,7 +1815,7 @@ impl NcPlane {
     pub fn perimeter_double(
         &mut self,
         stylemask: NcStyle,
-        channels: NcChannelPair,
+        channels: NcChannels,
         boxmask: NcBoxMask,
     ) -> NcResult<()> {
         error![crate::ncplane_perimeter_double(
@@ -1831,7 +1831,7 @@ impl NcPlane {
     pub fn perimeter_rounded(
         &mut self,
         stylemask: NcStyle,
-        channels: NcChannelPair,
+        channels: NcChannels,
         boxmask: NcBoxMask,
     ) -> NcResult<()> {
         error![crate::ncplane_perimeter_rounded(
@@ -1933,10 +1933,10 @@ impl NcPlane {
         &mut self,
         egc: &NcEgc,
         stylemask: NcStyle,
-        ul: NcChannelPair,
-        ur: NcChannelPair,
-        ll: NcChannelPair,
-        lr: NcChannelPair,
+        ul: NcChannels,
+        ur: NcChannels,
+        ll: NcChannels,
+        lr: NcChannels,
         y_stop: NcDim,
         x_stop: NcDim,
     ) -> NcResult<NcDim> {
