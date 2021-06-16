@@ -1061,7 +1061,11 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   int termerr;
   if(setupterm(opts->termtype, ret->ttyfd, &termerr) != OK){
     fprintf(stderr, "Terminfo error %d (see terminfo(3ncurses))\n", termerr);
-    goto err;
+    drop_signals(ret);
+    pthread_mutex_destroy(&ret->statlock);
+    pthread_mutex_destroy(&ret->pilelock);
+    free(ret);
+    return NULL;
   }
   const char* shortname_term = termname();
 // const char* longname_term = longname();
