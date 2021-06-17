@@ -966,7 +966,7 @@ const struct blitset* lookup_blitset(const tinfo* tcache, ncblitter_e setid, boo
     }
   }
   // the only viable blitters in ASCII are NCBLIT_1x1 and NCBLIT_PIXEL
-  if(!tcache->utf8 && (setid != NCBLIT_1x1 && setid != NCBLIT_PIXEL)){
+  if(!tcache->caps.utf8 && (setid != NCBLIT_1x1 && setid != NCBLIT_PIXEL)){
     if(may_degrade){
       setid = NCBLIT_1x1;
     }else{

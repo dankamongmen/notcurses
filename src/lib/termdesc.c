@@ -262,7 +262,7 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
       return -1;
     }
   }
-  ti->utf8 = utf8;
+  ti->caps.utf8 = utf8;
   // allow the "rgb" boolean terminfo capability, a COLORTERM environment
   // variable of either "truecolor" or "24bit", or unconditionally enable it
   // for several terminals known to always support 8bpc rgb setaf/setab.
@@ -324,7 +324,7 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
   if(colors){
     const char* initc = get_escape(ti, ESCAPE_INITC);
     if(initc){
-      ti->CCCflag = tigetflag("ccc") == 1;
+      ti->caps.can_change_colors = tigetflag("ccc") == 1;
     }
   }else{ // disable initc if there's no color support
     ti->escindices[ESCAPE_INITC] = 0;

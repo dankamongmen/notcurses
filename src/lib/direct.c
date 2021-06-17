@@ -1270,7 +1270,7 @@ bool ncdirect_canopen_images(const ncdirect* n __attribute__ ((unused))){
 
 // Is our encoding UTF-8? Requires LANG being set to a UTF8 locale.
 bool ncdirect_canutf8(const ncdirect* n){
-  return n->tcache.utf8;
+  return n->tcache.caps.utf8;
 }
 
 int ncdirect_flush(const ncdirect* nc){

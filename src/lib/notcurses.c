@@ -837,7 +837,7 @@ init_banner_warnings(const notcurses* nc, FILE* out){
     fprintf(out, "\n Warning! Colors subject to https://github.com/dankamongmen/notcurses/issues/4");
     fprintf(out, "\n  Specify a (correct) TrueColor TERM, or COLORTERM=24bit.\n");
   }else{
-    if(!nc->tcache.CCCflag){
+    if(!nc->tcache.caps.can_change_colors){
       fprintf(out, "\n Warning! Advertised TrueColor but no 'ccc' flag\n");
     }
   }
@@ -2126,31 +2126,31 @@ int notcurses_mouse_disable(notcurses* n){
 }
 
 bool notcurses_canutf8(const notcurses* nc){
-  return nc->tcache.utf8;
+  return nc->tcache.caps.utf8;
 }
 
 bool notcurses_canhalfblock(const notcurses* nc){
-  return nc->tcache.utf8;
+  return nc->tcache.caps.utf8;
 }
 
 bool notcurses_canquadrant(const notcurses* nc){
-  return nc->tcache.quadrants && nc->tcache.utf8;
+  return nc->tcache.quadrants && nc->tcache.caps.utf8;
 }
 
 bool notcurses_cansextant(const notcurses* nc){
-  return nc->tcache.sextants && nc->tcache.utf8;
+  return nc->tcache.sextants && nc->tcache.caps.utf8;
 }
 
 bool notcurses_canbraille(const notcurses* nc){
-  return nc->tcache.braille && nc->tcache.utf8;
+  return nc->tcache.braille && nc->tcache.caps.utf8;
 }
 
 bool notcurses_canfade(const notcurses* nc){
-  return nc->tcache.CCCflag || nc->tcache.RGBflag;
+  return nc->tcache.caps.can_change_colors || nc->tcache.RGBflag;
 }
 
 bool notcurses_canchangecolor(const notcurses* nc){
-  if(!nc->tcache.CCCflag){
+  if(!nc->tcache.caps.can_change_colors){
     return false;
   }
   ncpalette* p;
