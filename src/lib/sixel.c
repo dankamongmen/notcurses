@@ -859,10 +859,15 @@ int sixel_draw(const ncpile* p, sprixel* s, FILE* out){
   return 0;
 }
 
-int sixel_init(int fd){
+int sixel_init(const tinfo* ti, int fd){
   // \e[?8452: DECSDM private "sixel scrolling" mode keeps the sixel from
   // scrolling, but puts it at the current cursor location (as opposed to
   // the upper left corner of the screen).
+  if(ti->sprixel_cursor_hack){
+    // except MLterm (and a few others, possibly including the physical VT340),
+    // which inverts the usual sense of DECSDM.
+    return tty_emit("\e[?80l\e[?8452h", fd);
+  }
   return tty_emit("\e[?80;8452h", fd);
 }
 
