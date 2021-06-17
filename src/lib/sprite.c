@@ -205,7 +205,7 @@ int sprite_init(const tinfo* t, int fd){
   if(t->pixel_init == NULL){
     return 0;
   }
-  return t->pixel_init(fd);
+  return t->pixel_init(t, fd);
 }
 
 uint8_t* sprixel_auxiliary_vector(const sprixel* s){

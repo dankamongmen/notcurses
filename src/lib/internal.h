@@ -867,7 +867,7 @@ int sixel_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
 int kitty_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
 int kitty_remove(int id, FILE* out);
 int kitty_clear_all(int fd);
-int sixel_init(int fd);
+int sixel_init(const tinfo* t, int fd);
 int sprite_init(const tinfo* t, int fd);
 int sprite_clear_all(const tinfo* t, int fd);
 int kitty_shutdown(int fd);
