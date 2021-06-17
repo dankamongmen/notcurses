@@ -242,6 +242,9 @@ API const char* ncdirect_detected_terminal(const struct ncdirect* n)
 API bool ncdirect_canopen_images(const struct ncdirect* n)
   __attribute__ ((nonnull (1)));
 
+API const nccapabilities* ncdirect_capabilities(const struct ncdirect* n)
+  __attribute__ ((nonnull (1)));
+
 // Is our encoding UTF-8? Requires LANG being set to a UTF8 locale.
 API bool ncdirect_canutf8(const struct ncdirect* n)
   __attribute__ ((nonnull (1)));

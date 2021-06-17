@@ -1374,3 +1374,7 @@ unsigned ncdirect_supported_styles(const ncdirect* nc){
 const char* ncdirect_detected_terminal(const ncdirect* nc){
   return nc->tcache.termname;
 }
+
+const nccapabilities* ncdirect_capabilities(const ncdirect* n){
+  return &n->tcache.caps;
+}

@@ -1236,6 +1236,12 @@ API bool ncplane_translate_abs(const struct ncplane* n, int* RESTRICT y, int* RE
 API bool ncplane_set_scrolling(struct ncplane* n, bool scrollp);
 
 // Capabilities
+// terminal capabilities exported to the user
+typedef struct nccapabilities {
+  // assigned based off nl_langinfo() in notcurses_core_init()
+  bool utf8;              // are we using utf-8 encoding? from nl_langinfo(3)
+  bool can_change_colors; // can we change the palette? terminfo ccc capability
+} nccapabilities;
 
 // Returns a 16-bit bitmask of supported curses-style attributes
 // (NCSTYLE_UNDERLINE, NCSTYLE_BOLD, etc.) The attribute is only
