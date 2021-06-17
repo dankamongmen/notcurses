@@ -95,7 +95,6 @@ typedef struct tinfo {
   uint16_t escindices[ESCAPE_MAX]; // table of 1-biased indices into esctable
   char* esctable;                  // packed table of escape sequences
   nccapabilities caps;             // exported to the user, when requested
-  unsigned colors;// number of colors terminfo reported usable for this screen
   // we use the cell's size in pixels for pixel blitting. this information can
   // be acquired on all terminals with pixel support.
   int cellpixy;   // cell pixel height, might be 0
@@ -133,14 +132,8 @@ typedef struct tinfo {
   ncinputlayer input;       // input layer
   bool bitmap_supported;    // do we support bitmaps (post pixel_query_done)?
   bool bitmap_lowest_line;  // can we render pixels to the bottom row?
-  bool RGBflag;   // "RGB" flag for 24bpc truecolor
   bool BCEflag;   // "BCE" flag for erases with background color
   bool AMflag;    // "AM" flag for automatic movement to next line
-
-  // these are assigned wholly through TERM-based heuristics
-  bool quadrants; // do we have (good, vetted) Unicode 1 quadrant support?
-  bool sextants;  // do we have (good, vetted) Unicode 13 sextant support?
-  bool braille;   // do we have Braille support? (linux console does not)
 
   // mlterm resets the cursor (i.e. makes it visible) any time you print
   // a sprixel. we work around this spiritedly unorthodox decision.

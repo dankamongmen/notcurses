@@ -981,7 +981,7 @@ int ncdirect_set_styles(ncdirect* n, unsigned stylebits){
 }
 
 unsigned ncdirect_palette_size(const ncdirect* nc){
-  return nc->tcache.colors;
+  return ncdirect_capabilities(nc)->colors;
 }
 
 int ncdirect_set_fg_default(ncdirect* nc){

@@ -831,9 +831,9 @@ init_banner_warnings(const notcurses* nc, FILE* out){
   // might be using stderr, so don't just reuse stdout decision
   const bool tty = isatty(fileno(out));
   if(tty){
-    term_fg_palindex(nc, out, nc->tcache.colors <= 88 ? 1 % nc->tcache.colors : 0xcb);
+    term_fg_palindex(nc, out, nc->tcache.caps.colors <= 88 ? 1 : 0xcb);
   }
-  if(!nc->tcache.RGBflag){ // FIXME
+  if(!nc->tcache.caps.rgb){
     fprintf(out, "\n Warning! Colors subject to https://github.com/dankamongmen/notcurses/issues/4");
     fprintf(out, "\n  Specify a (correct) TrueColor TERM, or COLORTERM=24bit.\n");
   }else{
@@ -861,24 +861,24 @@ static void
 init_banner(const notcurses* nc){
   if(!nc->suppress_banner){
     char prefixbuf[BPREFIXSTRLEN + 1];
-    term_fg_palindex(nc, stdout, 50 % nc->tcache.colors);
+    term_fg_palindex(nc, stdout, 50 % nc->tcache.caps.colors);
     printf("\n notcurses %s by nick black et al", notcurses_version());
     printf(" on %s", nc->tcache.termname ? nc->tcache.termname : "?");
-    term_fg_palindex(nc, stdout, 12 % nc->tcache.colors);
+    term_fg_palindex(nc, stdout, 12 % nc->tcache.caps.colors);
     if(nc->tcache.cellpixy && nc->tcache.cellpixx){
       printf("\n  %d rows (%dpx) %d cols (%dpx) (%sB) %zuB crend %d colors",
              nc->stdplane->leny, nc->tcache.cellpixy,
              nc->stdplane->lenx, nc->tcache.cellpixx,
              bprefix(nc->stats.fbbytes, 1, prefixbuf, 0),
-             sizeof(struct crender), nc->tcache.colors);
+             sizeof(struct crender), nc->tcache.caps.colors);
     }else{
       printf("\n  %d rows %d cols (%sB) %zuB crend %d colors",
              nc->stdplane->leny, nc->stdplane->lenx,
              bprefix(nc->stats.fbbytes, 1, prefixbuf, 0),
-             sizeof(struct crender), nc->tcache.colors);
+             sizeof(struct crender), nc->tcache.caps.colors);
     }
     const char* setaf;
-    if(nc->tcache.RGBflag && (setaf = get_escape(&nc->tcache, ESCAPE_SETAF))){
+    if(nc->tcache.caps.rgb && (setaf = get_escape(&nc->tcache, ESCAPE_SETAF))){
       putc('+', stdout);
       term_fg_rgb8(&nc->tcache, stdout, 0xe0, 0x60, 0x60);
       putc('R', stdout);
@@ -886,7 +886,8 @@ init_banner(const notcurses* nc){
       putc('G', stdout);
       term_fg_rgb8(&nc->tcache, stdout, 0x20, 0x80, 0xff);
       putc('B', stdout);
-      term_fg_palindex(nc, stdout, nc->tcache.colors <= 256 ? 12 % nc->tcache.colors : 0x2080e0);
+      term_fg_palindex(nc, stdout, nc->tcache.caps.colors <= 256 ?
+                       12 % nc->tcache.caps.colors : 0x2080e0);
     }
     printf("\n  compiled with gcc-%s, %zuB %s-endian cells\n"
            "  terminfo from %s\n",
@@ -1634,7 +1635,7 @@ unsigned notcurses_supported_styles(const notcurses* nc){
 }
 
 unsigned notcurses_palette_size(const notcurses* nc){
-  return nc->tcache.colors;
+  return nc->tcache.caps.colors;
 }
 
 const char* notcurses_detected_terminal(const notcurses* nc){
@@ -1642,7 +1643,7 @@ const char* notcurses_detected_terminal(const notcurses* nc){
 }
 
 bool notcurses_cantruecolor(const notcurses* nc){
-  return nc->tcache.RGBflag;
+  return nc->tcache.caps.rgb;
 }
 
 // conform to the specified stylebits
@@ -2134,19 +2135,19 @@ bool notcurses_canhalfblock(const notcurses* nc){
 }
 
 bool notcurses_canquadrant(const notcurses* nc){
-  return nc->tcache.quadrants && nc->tcache.caps.utf8;
+  return nc->tcache.caps.quadrants && nc->tcache.caps.utf8;
 }
 
 bool notcurses_cansextant(const notcurses* nc){
-  return nc->tcache.sextants && nc->tcache.caps.utf8;
+  return nc->tcache.caps.sextants && nc->tcache.caps.utf8;
 }
 
 bool notcurses_canbraille(const notcurses* nc){
-  return nc->tcache.braille && nc->tcache.caps.utf8;
+  return nc->tcache.caps.braille && nc->tcache.caps.utf8;
 }
 
 bool notcurses_canfade(const notcurses* nc){
-  return nc->tcache.caps.can_change_colors || nc->tcache.RGBflag;
+  return nc->tcache.caps.can_change_colors || nc->tcache.caps.rgb;
 }
 
 bool notcurses_canchangecolor(const notcurses* nc){
@@ -2154,7 +2155,7 @@ bool notcurses_canchangecolor(const notcurses* nc){
     return false;
   }
   ncpalette* p;
-  if((unsigned)nc->tcache.colors < sizeof(p->chans) / sizeof(*p->chans)){
+  if((unsigned)nc->tcache.caps.colors < sizeof(p->chans) / sizeof(*p->chans)){
     return false;
   }
   return true;

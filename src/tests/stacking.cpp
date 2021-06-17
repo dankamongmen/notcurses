@@ -107,7 +107,7 @@ TEST_CASE("Stacking") {
   }
 
   SUBCASE("StackedQuadHalves") {
-    if(nc_->tcache.quadrants){
+    if(notcurses_canquadrant(nc_)){
       struct ncplane_options opts = {
         0, 0, 1, 1, nullptr, "top", nullptr, 0, 0, 0,
       };
@@ -147,7 +147,7 @@ TEST_CASE("Stacking") {
   }
 
   SUBCASE("StackedQuadCrossed") {
-    if(nc_->tcache.quadrants){
+    if(notcurses_canquadrant(nc_)){
       ncplane_erase(n_);
       notcurses_refresh(nc_, nullptr, nullptr);
       struct ncplane_options opts = {

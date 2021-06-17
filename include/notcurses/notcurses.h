@@ -1238,9 +1238,14 @@ API bool ncplane_set_scrolling(struct ncplane* n, bool scrollp);
 // Capabilities
 // terminal capabilities exported to the user
 typedef struct nccapabilities {
-  // assigned based off nl_langinfo() in notcurses_core_init()
+  unsigned colors;        // size of palette for indexed colors
   bool utf8;              // are we using utf-8 encoding? from nl_langinfo(3)
-  bool can_change_colors; // can we change the palette? terminfo ccc capability
+  bool rgb;               // 24bit color? COLORTERM/heuristics/terminfo 'rgb'
+  bool can_change_colors; // can we change the palette? terminfo 'ccc'
+  // these are assigned wholly through TERM- and query-based heuristics
+  bool quadrants; // do we have (good, vetted) Unicode 1 quadrant support?
+  bool sextants;  // do we have (good, vetted) Unicode 13 sextant support?
+  bool braille;   // do we have Braille support? (linux console does not)
 } nccapabilities;
 
 // Returns a 16-bit bitmask of supported curses-style attributes
