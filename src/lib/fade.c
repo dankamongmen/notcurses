@@ -232,7 +232,7 @@ int ncplane_fadeout_iteration(ncplane* n, ncfadectx* nctx, int iter,
 
 static ncfadectx* 
 ncfadectx_setup_internal(ncplane* n, const struct timespec* ts){
-  if(!ncplane_notcurses(n)->tcache.RGBflag &&
+  if(!ncplane_notcurses(n)->tcache.caps.rgb &&
      !ncplane_notcurses(n)->tcache.caps.can_change_colors){ // terminal can't fade
     return NULL;
   }
@@ -301,7 +301,7 @@ int ncplane_fadein(ncplane* n, const struct timespec* ts, fadecb fader, void* cu
 int ncplane_pulse(ncplane* n, const struct timespec* ts, fadecb fader, void* curry){
   ncfadectx pp;
   int ret;
-  if(!ncplane_notcurses(n)->tcache.RGBflag &&
+  if(!ncplane_notcurses(n)->tcache.caps.rgb &&
      !ncplane_notcurses(n)->tcache.caps.can_change_colors){ // terminal can't fade
     return -1;
   }

@@ -934,7 +934,7 @@ const struct blitset* lookup_blitset(const tinfo* tcache, ncblitter_e setid, boo
     return NULL;
   }
   // without braille support, NCBLIT_BRAILLE decays to NCBLIT_3x2
-  if(!tcache->braille && setid == NCBLIT_BRAILLE){
+  if(!tcache->caps.braille && setid == NCBLIT_BRAILLE){
     if(may_degrade){
       setid = NCBLIT_3x2;
     }else{
@@ -950,7 +950,7 @@ const struct blitset* lookup_blitset(const tinfo* tcache, ncblitter_e setid, boo
     }
   }
   // without sextant support, NCBLIT_3x2 decays to NCBLIT_2x2
-  if(!tcache->sextants && setid == NCBLIT_3x2){
+  if(!tcache->caps.sextants && setid == NCBLIT_3x2){
     if(may_degrade){
       setid = NCBLIT_2x2;
     }else{
@@ -958,7 +958,7 @@ const struct blitset* lookup_blitset(const tinfo* tcache, ncblitter_e setid, boo
     }
   }
   // without quadrant support, NCBLIT_2x2 decays to NCBLIT_2x1
-  if(!tcache->quadrants && setid == NCBLIT_2x2){
+  if(!tcache->caps.quadrants && setid == NCBLIT_2x2){
     if(may_degrade){
       setid = NCBLIT_2x1;
     }else{

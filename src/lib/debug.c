@@ -15,7 +15,7 @@ tinfo_debug_caps(const tinfo* ti, FILE* debugfp, int rows, int cols,
                  unsigned images, unsigned videos){
   const char indent[] = " ";
   fprintf(debugfp, "%scolors: %u rgb: %c ccc: %c setaf: %c setab: %c\n",
-          indent, ti->colors, capbool(ti->RGBflag), capbool(ti->caps.can_change_colors),
+          indent, ti->caps.colors, capbool(ti->caps.rgb), capbool(ti->caps.can_change_colors),
           capyn(get_escape(ti, ESCAPE_SETAF)),
           capyn(get_escape(ti, ESCAPE_SETAB)));
   fprintf(debugfp, "%ssgr: %c sgr0: %c op: %c fgop: %c bgop: %c\n",
@@ -37,8 +37,8 @@ tinfo_debug_caps(const tinfo* ti, FILE* debugfp, int rows, int cols,
     fprintf(debugfp, "%srgba pixel graphics supported\n", indent);
   }
   fprintf(debugfp, "%sutf8: %c quad: %c sex: %c braille: %c images: %c videos: %c\n",
-          indent, capbool(ti->caps.utf8), capbool(ti->quadrants),
-          capbool(ti->sextants), capbool(ti->braille),
+          indent, capbool(ti->caps.utf8), capbool(ti->caps.quadrants),
+          capbool(ti->caps.sextants), capbool(ti->caps.braille),
           capbool(images), capbool(videos));
   if(ti->caps.utf8){
     fprintf(debugfp, "%s{%ls} {%ls} ⎧%.122ls⎫ ⎧%.6ls%.3ls⎫ ⎧%.6ls%.3ls⎫ ⎧█ ⎫ 🯰🯱\n", indent,

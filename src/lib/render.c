@@ -701,7 +701,7 @@ term_bg_rgb8(const tinfo* ti, FILE* out, unsigned r, unsigned g, unsigned b){
   // etc. For the case of DirectColor, there is no suitable terminfo entry, but
   // we're also in that case working with hopefully more robust terminals.
   // If it doesn't work, eh, it doesn't work. Fuck the world; save yourself.
-  if(ti->RGBflag){
+  if(ti->caps.rgb){
     if(ti->bg_collides_default){
       if((r == (ti->bg_collides_default & 0xff0000lu)) &&
          (g == (ti->bg_collides_default & 0xff00lu)) &&
@@ -721,9 +721,9 @@ term_bg_rgb8(const tinfo* ti, FILE* out, unsigned r, unsigned g, unsigned b){
       // the inputs *if we can change the palette*. If more than 256 are used on
       // a single screen, start... combining close ones? For 8-color mode, simple
       // interpolation. I have no idea what to do for 88 colors. FIXME
-      if(ti->colors >= 256){
+      if(ti->caps.colors >= 256){
         return term_emit(tiparm(setab, rgb_quantize_256(r, g, b)), out, false);
-      }else if(ti->colors >= 8){
+      }else if(ti->caps.colors >= 8){
         return term_emit(tiparm(setab, rgb_quantize_8(r, g, b)), out, false);
       }
     }
@@ -737,7 +737,7 @@ int term_fg_rgb8(const tinfo* ti, FILE* out, unsigned r, unsigned g, unsigned b)
   // etc. For the case of DirectColor, there is no suitable terminfo entry, but
   // we're also in that case working with hopefully more robust terminals.
   // If it doesn't work, eh, it doesn't work. Fuck the world; save yourself.
-  if(ti->RGBflag){
+  if(ti->caps.rgb){
     return term_esc_rgb(out, true, r, g, b);
   }else{
     const char* setaf = get_escape(ti, ESCAPE_SETAF);
@@ -746,9 +746,9 @@ int term_fg_rgb8(const tinfo* ti, FILE* out, unsigned r, unsigned g, unsigned b)
       // the inputs *if we can change the palette*. If more than 256 are used on
       // a single screen, start... combining close ones? For 8-color mode, simple
       // interpolation. I have no idea what to do for 88 colors. FIXME
-      if(ti->colors >= 256){
+      if(ti->caps.colors >= 256){
         return term_emit(tiparm(setaf, rgb_quantize_256(r, g, b)), out, false);
-      }else if(ti->colors >= 8){
+      }else if(ti->caps.colors >= 8){
         return term_emit(tiparm(setaf, rgb_quantize_8(r, g, b)), out, false);
       }
     }

@@ -113,7 +113,7 @@ TEST_CASE("Blit") {
   // original version https://github.com/dankamongmen/notcurses/issues/1354
   SUBCASE("QuadblitterMax") {
     if(notcurses_canutf8(nc_)){
-      if(nc_->tcache.quadrants){
+      if(notcurses_canquadrant(nc_)){
         uint32_t p2x2[4];
         uint32_t* ptl = &p2x2[0];
         ncpixel_set_a(ptl, 0xff);

@@ -96,41 +96,41 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
   if(qterm == TERMINAL_UNKNOWN){
     match_termname(termname, &qterm);
   }
-  // st had neithersextants nor quadrants last i checked (0.8.4)
-  ti->braille = true; // most everyone has working braille, even from fonts
+  // st had neithercaps.sextants nor caps.quadrants last i checked (0.8.4)
+  ti->caps.braille = true; // most everyone has working caps.braille, even from fonts
   if(qterm == TERMINAL_KITTY){ // kitty (https://sw.kovidgoyal.net/kitty/)
     termname = "Kitty";
     // see https://sw.kovidgoyal.net/kitty/protocol-extensions.html
     ti->bg_collides_default |= 0x1000000;
-    ti->sextants = true; // work since bugfix in 0.19.3
-    ti->quadrants = true;
-    ti->RGBflag = true;
+    ti->caps.sextants = true; // work since bugfix in 0.19.3
+    ti->caps.quadrants = true;
+    ti->caps.rgb = true;
     setup_kitty_bitmaps(ti, fd);
   }else if(qterm == TERMINAL_ALACRITTY){
     termname = "Alacritty";
-    ti->quadrants = true;
-    // ti->sextants = true; // alacritty https://github.com/alacritty/alacritty/issues/4409 */
-    ti->RGBflag = true;
+    ti->caps.quadrants = true;
+    // ti->caps.sextants = true; // alacritty https://github.com/alacritty/alacritty/issues/4409 */
+    ti->caps.rgb = true;
   }else if(qterm == TERMINAL_VTE){
     termname = "VTE";
-    ti->quadrants = true;
-    ti->sextants = true; // VTE has long enjoyed good sextant support
+    ti->caps.quadrants = true;
+    ti->caps.sextants = true; // VTE has long enjoyed good sextant support
   }else if(qterm == TERMINAL_FOOT){
     termname = "foot";
-    ti->sextants = true;
-    ti->quadrants = true;
-    ti->RGBflag = true;
+    ti->caps.sextants = true;
+    ti->caps.quadrants = true;
+    ti->caps.rgb = true;
   }else if(qterm == TERMINAL_MLTERM){
     termname = "MLterm";
-    ti->quadrants = true; // good quadrants, no sextants as of 3.9.0
+    ti->caps.quadrants = true; // good caps.quadrants, no caps.sextants as of 3.9.0
     ti->sprixel_cursor_hack = true;
   }else if(qterm == TERMINAL_WEZTERM){
     termname = "WezTerm";
-    ti->quadrants = true;
+    ti->caps.quadrants = true;
     // FIXME get version from query
     const char* termver = getenv("TERM_PROGRAM_VERSION");
     if(termver && strcmp(termver, "20210610") >= 0){
-      ti->sextants = true; // good sextants as of 2021-06-10
+      ti->caps.sextants = true; // good caps.sextants as of 2021-06-10
     }
   }else if(qterm == TERMINAL_XTERM){
     termname = "XTerm";
@@ -140,19 +140,19 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
     ti->RGBflag = true;
   }else if(strcmp(termname, "linux") == 0){
     termname = "Linux console";
-    ti->braille = false; // no braille, no sextants in linux console
+    ti->caps.braille = false; // no caps.braille, no caps.sextants in linux console
     // FIXME if the NCOPTION_NO_FONT_CHANGES, this isn't true
     // FIXME we probably want to do this based off ioctl()s in linux.c
     // FIXME until #1726 is fixed this definitely is not happening
-    ti->quadrants = false; // we program quadrants on the console
+    ti->caps.quadrants = false; // we program caps.quadrants on the console
   }
   // run a wcwidth(⣿) to guarantee libc Unicode 3 support, independent of term
   if(wcwidth(L'⣿') < 0){
-    ti->braille = false;
+    ti->caps.braille = false;
   }
   // run a wcwidth(🬸) to guarantee libc Unicode 13 support, independent of term
   if(wcwidth(L'🬸') < 0){
-    ti->sextants = false;
+    ti->caps.sextants = false;
   }
   ti->termname = termname;
   return 0;
@@ -272,11 +272,11 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
   // for several terminals known to always support 8bpc rgb setaf/setab.
   int colors = tigetnum("colors");
   if(colors <= 0){
-    ti->colors = 1;
+    ti->caps.colors = 1;
   }else{
-    ti->colors = colors;
+    ti->caps.colors = colors;
   }
-  ti->RGBflag = query_rgb(); // independent of colors
+  ti->caps.rgb = query_rgb(); // independent of colors
   // verify that the terminal provides cursor addressing (absolute movement)
   const struct strtdesc {
     escape_e esc;

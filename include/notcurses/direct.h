@@ -238,19 +238,7 @@ API int ncdirect_clear(struct ncdirect* nc)
 API const char* ncdirect_detected_terminal(const struct ncdirect* n)
   __attribute__ ((nonnull (1)));
 
-// Can we load images? This requires being built against FFmpeg/OIIO.
-API bool ncdirect_canopen_images(const struct ncdirect* n)
-  __attribute__ ((nonnull (1)));
-
 API const nccapabilities* ncdirect_capabilities(const struct ncdirect* n)
-  __attribute__ ((nonnull (1)));
-
-// Is our encoding UTF-8? Requires LANG being set to a UTF8 locale.
-API bool ncdirect_canutf8(const struct ncdirect* n)
-  __attribute__ ((nonnull (1)));
-
-// Can we blit pixel-accurate bitmaps?
-API int ncdirect_check_pixel_support(const struct ncdirect* n)
   __attribute__ ((nonnull (1)));
 
 // Draw horizontal/vertical lines using the specified channels, interpolating
@@ -427,6 +415,70 @@ API int ncdirectf_geom(struct ncdirect* n, ncdirectf* frame,
 API int ncdirect_stream(struct ncdirect* n, const char* filename, ncstreamcb streamer,
                         struct ncvisual_options* vopts, void* curry)
   __attribute__ ((nonnull (1, 2)));
+
+// Capabilites
+
+API const char* ncdirect_detected_terminal(const struct ncdirect* nc)
+  __attribute__ ((nonnull (1)));
+
+// Can we directly specify RGB values per cell, or only use palettes?
+static inline bool
+ncdirect_cantruecolor(const struct ncdirect* nc){
+  return ncdirect_capabilities(nc)->rgb;
+}
+
+// Can we set the "hardware" palette? Requires the "ccc" terminfo capability.
+static inline bool
+ncdirect_canchangecolor(const struct ncdirect* nc){
+  return ncdirect_capabilities(nc)->can_change_colors;
+}
+
+// Can we fade? Fading requires either the "rgb" or "ccc" terminfo capability.
+static inline bool
+ncdirect_canfade(const struct ncdirect* nc){
+  return ncdirect_canchangecolor(nc) || ncdirect_cantruecolor(nc);
+}
+
+// Can we load images? This requires being built against FFmpeg/OIIO.
+API bool ncdirect_canopen_images(const struct ncdirect* n);
+
+// Can we load videos? This requires being built against FFmpeg.
+static inline bool
+ncdirect_canopen_videos(const struct ncdirect* nc __attribute__ ((unused))){
+  return notcurses_canopen_videos(NULL);
+}
+
+// Is our encoding UTF-8? Requires LANG being set to a UTF8 locale.
+API bool ncdirect_canutf8(const struct ncdirect* n)
+  __attribute__ ((nonnull (1)));
+
+// Can we blit pixel-accurate bitmaps?
+API int ncdirect_check_pixel_support(const struct ncdirect* n)
+  __attribute__ ((nonnull (1)));
+
+// Can we reliably use Unicode halfblocks?
+static inline bool
+ncdirect_canhalfblock(const struct ncdirect* nc){
+  return ncdirect_canutf8(nc);
+}
+
+// Can we reliably use Unicode quadrants?
+static inline bool
+ncdirect_canquadrant(const struct ncdirect* nc){
+  return ncdirect_canutf8(nc) && ncdirect_capabilities(nc)->quadrants;
+}
+
+// Can we reliably use Unicode 13 sextants?
+static inline bool
+ncdirect_cansextant(const struct ncdirect* nc){
+  return ncdirect_canutf8(nc) && ncdirect_capabilities(nc)->sextants;
+}
+
+// Can we reliably use Unicode Braille?
+static inline bool
+ncdirect_canbraille(const struct ncdirect* nc){
+  return ncdirect_canutf8(nc) && ncdirect_capabilities(nc)->braille;
+}
 
 #undef ALLOC
 #undef API

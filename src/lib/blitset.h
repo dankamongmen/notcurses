@@ -31,10 +31,10 @@ rgba_blitter_default(const tinfo* tcache, ncscale_e scale){
   if(scale == NCSCALE_NONE || scale == NCSCALE_SCALE){
     return NCBLIT_2x1;
   }
-  if(tcache->sextants){
+  if(tcache->caps.sextants){
     return NCBLIT_3x2;
   }
-  if(tcache->quadrants){
+  if(tcache->caps.quadrants){
     return NCBLIT_2x2;
   }
   return NCBLIT_2x1;
