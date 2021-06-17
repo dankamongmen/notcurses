@@ -2151,14 +2151,7 @@ bool notcurses_canfade(const notcurses* nc){
 }
 
 bool notcurses_canchangecolor(const notcurses* nc){
-  if(!nc->tcache.caps.can_change_colors){
-    return false;
-  }
-  ncpalette* p;
-  if((unsigned)nc->tcache.caps.colors < sizeof(p->chans) / sizeof(*p->chans)){
-    return false;
-  }
-  return true;
+  return nccapability_canchangecolor(&nc->tcache.caps);
 }
 
 ncpalette* ncpalette_new(notcurses* nc){

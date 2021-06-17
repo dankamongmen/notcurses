@@ -430,7 +430,7 @@ ncdirect_cantruecolor(const struct ncdirect* nc){
 // Can we set the "hardware" palette? Requires the "ccc" terminfo capability.
 static inline bool
 ncdirect_canchangecolor(const struct ncdirect* nc){
-  return ncdirect_capabilities(nc)->can_change_colors;
+  return nccapability_canchangecolor(ncdirect_capabilities(nc));
 }
 
 // Can we fade? Fading requires either the "rgb" or "ccc" terminfo capability.

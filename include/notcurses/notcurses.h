@@ -1235,8 +1235,53 @@ API bool ncplane_translate_abs(const struct ncplane* n, int* RESTRICT y, int* RE
 // previously enabled, or false if it was disabled.
 API bool ncplane_set_scrolling(struct ncplane* n, bool scrollp);
 
-// Capabilities
-// terminal capabilities exported to the user
+// Palette API. Some terminals only support 256 colors, but allow the full
+// palette to be specified with arbitrary RGB colors. In all cases, it's more
+// performant to use indexed colors, since it's much less data to write to the
+// terminal. If you can limit yourself to 256 colors, that's probably best.
+
+typedef struct ncpalette {
+  uint32_t chans[NCPALETTESIZE]; // RGB values as regular ol' channels
+} ncpalette;
+
+// Create a new palette store. It will be initialized with notcurses' best
+// knowledge of the currently configured palette. The palette upon startup
+// cannot be reliably detected, sadly.
+API ALLOC ncpalette* ncpalette_new(struct notcurses* nc);
+
+// Attempt to configure the terminal with the provided palette 'p'. Does not
+// transfer ownership of 'p'; palette256_free() can (ought) still be called.
+API int ncpalette_use(struct notcurses* nc, const ncpalette* p);
+
+// Manipulate entries in the palette store 'p'. These are *not* locked.
+static inline int
+ncpalette_set_rgb8(ncpalette* p, int idx, int r, int g, int b){
+  if(idx < 0 || (size_t)idx > sizeof(p->chans) / sizeof(*p->chans)){
+    return -1;
+  }
+  return ncchannel_set_rgb8(&p->chans[idx], r, g, b);
+}
+
+static inline int
+ncpalette_set(ncpalette* p, int idx, unsigned rgb){
+  if(idx < 0 || (size_t)idx > sizeof(p->chans) / sizeof(*p->chans)){
+    return -1;
+  }
+  return ncchannel_set(&p->chans[idx], rgb);
+}
+
+static inline int
+ncpalette_get_rgb8(const ncpalette* p, int idx, unsigned* RESTRICT r, unsigned* RESTRICT g, unsigned* RESTRICT b){
+  if(idx < 0 || (size_t)idx > sizeof(p->chans) / sizeof(*p->chans)){
+    return -1;
+  }
+  return ncchannel_rgb8(p->chans[idx], r, g, b);
+}
+
+// Free the palette store 'p'.
+API void ncpalette_free(ncpalette* p);
+
+// Capabilities, derived from terminfo, environment variables, and queries
 typedef struct nccapabilities {
   unsigned colors;        // size of palette for indexed colors
   bool utf8;              // are we using utf-8 encoding? from nl_langinfo(3)
@@ -1272,7 +1317,21 @@ API bool notcurses_cantruecolor(const struct notcurses* nc)
 API bool notcurses_canfade(const struct notcurses* nc)
   __attribute__ ((nonnull (1)));
 
-// Can we set the "hardware" palette? Requires the "ccc" terminfo capability.
+// Can we set the "hardware" palette? Requires the "ccc" terminfo capability,
+// and that the number of colors supported is at least the size of our
+// ncpalette structure.
+static inline bool
+nccapability_canchangecolor(const nccapabilities* caps){
+  if(!caps->can_change_colors){
+    return false;
+  }
+  ncpalette* p;
+  if(caps->colors < sizeof(p->chans) / sizeof(*p->chans)){
+    return false;
+  }
+  return true;
+}
+
 API bool notcurses_canchangecolor(const struct notcurses* nc)
   __attribute__ ((nonnull (1)));
 
@@ -2972,52 +3031,6 @@ API int notcurses_cursor_yx(struct notcurses* nc, int* y, int* x);
 // Disable the hardware cursor. It is an error to call this while the
 // cursor is already disabled.
 API int notcurses_cursor_disable(struct notcurses* nc);
-
-// Palette API. Some terminals only support 256 colors, but allow the full
-// palette to be specified with arbitrary RGB colors. In all cases, it's more
-// performant to use indexed colors, since it's much less data to write to the
-// terminal. If you can limit yourself to 256 colors, that's probably best.
-
-typedef struct ncpalette {
-  uint32_t chans[NCPALETTESIZE]; // RGB values as regular ol' channels
-} ncpalette;
-
-// Create a new palette store. It will be initialized with notcurses' best
-// knowledge of the currently configured palette. The palette upon startup
-// cannot be reliably detected, sadly.
-API ALLOC ncpalette* ncpalette_new(struct notcurses* nc);
-
-// Attempt to configure the terminal with the provided palette 'p'. Does not
-// transfer ownership of 'p'; palette256_free() can (ought) still be called.
-API int ncpalette_use(struct notcurses* nc, const ncpalette* p);
-
-// Manipulate entries in the palette store 'p'. These are *not* locked.
-static inline int
-ncpalette_set_rgb8(ncpalette* p, int idx, int r, int g, int b){
-  if(idx < 0 || (size_t)idx > sizeof(p->chans) / sizeof(*p->chans)){
-    return -1;
-  }
-  return ncchannel_set_rgb8(&p->chans[idx], r, g, b);
-}
-
-static inline int
-ncpalette_set(ncpalette* p, int idx, unsigned rgb){
-  if(idx < 0 || (size_t)idx > sizeof(p->chans) / sizeof(*p->chans)){
-    return -1;
-  }
-  return ncchannel_set(&p->chans[idx], rgb);
-}
-
-static inline int
-ncpalette_get_rgb8(const ncpalette* p, int idx, unsigned* RESTRICT r, unsigned* RESTRICT g, unsigned* RESTRICT b){
-  if(idx < 0 || (size_t)idx > sizeof(p->chans) / sizeof(*p->chans)){
-    return -1;
-  }
-  return ncchannel_rgb8(p->chans[idx], r, g, b);
-}
-
-// Free the palette store 'p'.
-API void ncpalette_free(ncpalette* p);
 
 // Convert the plane's content to greyscale.
 API void ncplane_greyscale(struct ncplane* n);
