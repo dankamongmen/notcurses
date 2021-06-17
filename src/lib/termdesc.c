@@ -4,7 +4,7 @@
 
 // we found Sixel support -- set up the API
 static inline void
-setup_sixel_bitmaps(tinfo* ti){
+setup_sixel_bitmaps(tinfo* ti, int fd){
   ti->bitmap_supported = true;
   ti->pixel_init = sixel_init;
   ti->pixel_draw = sixel_draw;
@@ -14,6 +14,7 @@ setup_sixel_bitmaps(tinfo* ti){
   ti->pixel_shutdown = sixel_shutdown;
   ti->pixel_rebuild = sixel_rebuild;
   ti->sprixel_scale_height = 6;
+  sprite_init(ti, fd);
 }
 
 static inline void
@@ -449,11 +450,6 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
   if(ncinputlayer_init(ti, stdin, &detected)){
     goto err;
   }
-  // our current sixel quantization algorithm requires at least 64 color
-  // registers. we make use of no more than 256.
-  if(ti->color_registers >= 64){
-    setup_sixel_bitmaps(ti);
-  }
   if(nocbreak){
     if(fd >= 0){
       if(tcsetattr(fd, TCSANOW, &ti->tpreserved)){
@@ -465,6 +461,12 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
   if(apply_term_heuristics(ti, termname, fd, detected, &tablelen, &tableused)){
     ncinputlayer_stop(&ti->input);
     goto err;
+  }
+  // our current sixel quantization algorithm requires at least 64 color
+  // registers. we make use of no more than 256. this needs to happen
+  // after heuristics, since sixel_init() depends on sprixel_cursor_hack.
+  if(ti->color_registers >= 64){
+    setup_sixel_bitmaps(ti, fd);
   }
   return 0;
 
