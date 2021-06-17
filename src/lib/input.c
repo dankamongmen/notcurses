@@ -726,6 +726,8 @@ stash_string(init_state* inits){
         inits->qterm = TERMINAL_XTERM;
       }else if(strncmp(inits->runstring, "WezTerm ", strlen("WezTerm ")) == 0){
         inits->qterm = TERMINAL_WEZTERM;
+      }else if(strncmp(inits->runstring, "contour ", strlen("contour ")) == 0){
+        inits->qterm = TERMINAL_CONTOUR;
       }
       break;
     }case STATE_XTGETTCAP_TERMNAME1:

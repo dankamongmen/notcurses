@@ -134,6 +134,10 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
     }
   }else if(qterm == TERMINAL_XTERM){
     termname = "XTerm";
+  }else if(qterm == TERMINAL_CONTOUR){
+    termname = "Contour";
+    ti->quadrants = true;
+    ti->RGBflag = true;
   }else if(strcmp(termname, "linux") == 0){
     termname = "Linux console";
     ti->braille = false; // no braille, no sextants in linux console

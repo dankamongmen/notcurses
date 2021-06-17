@@ -195,7 +195,7 @@ exporting the `COLORTERM` environment variable as `truecolor` or `24bit`.
 Note that some terminals accept a 24-bit specification, but map it down to
 fewer colors.
 
-Since 2.3.1, 8bpc RGB is always enabled for Kitty, Alacritty, and foot.
+TrueColor is always enabled for Kitty, Alacritty, Contour, and foot.
 
 ### Fonts
 
