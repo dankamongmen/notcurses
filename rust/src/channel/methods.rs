@@ -20,6 +20,7 @@ pub trait NcChannelMethods {
     fn alpha(&self) -> NcAlphaBits;
     fn set_alpha(&mut self, alpha: NcAlphaBits) -> Self;
 
+    fn rgb(&self) -> NcRgb;
     fn set(&mut self, rgb: NcRgb) -> Self;
 
     fn rgb8(&self) -> (NcComponent, NcComponent, NcComponent);
@@ -30,9 +31,6 @@ pub trait NcChannelMethods {
     fn set_r(&mut self, r: NcComponent) -> Self;
     fn set_g(&mut self, g: NcComponent) -> Self;
     fn set_b(&mut self, b: NcComponent) -> Self;
-
-    fn rgb(&self) -> NcRgb;
-    fn set_rgb(&mut self, rgb: NcRgb) -> Self;
 
     fn default_p(&self) -> bool;
     fn set_default(&mut self) -> Self;
@@ -142,7 +140,7 @@ impl NcChannelMethods for NcChannel {
         0 as NcChannel | crate::NCALPHA_BGDEFAULT_MASK
     }
 
-    /// New `NcChannel`, set to black but using the "default color".
+    /// New `NcChannel`, set to black and using the "default color".
     fn with_default() -> Self {
         0 as NcChannel
     }
@@ -207,6 +205,15 @@ impl NcChannelMethods for NcChannel {
     }
 
     // NcRgb
+
+    /// Gets the [`NcRgb`].
+    ///
+    /// *C style function: [channel_rgb()][crate::ncchannel_rgb].*
+    //
+    // Not in the C API
+    fn rgb(&self) -> NcRgb {
+        crate::ncchannel_rgb(*self)
+    }
 
     /// Sets the [`NcRgb`], and marks the NcChannel as NOT using the
     /// "default color", retaining the other bits unchanged.
@@ -285,48 +292,28 @@ impl NcChannelMethods for NcChannel {
         crate::ncchannel_set_b(self, b)
     }
 
-    // NcRgb
-
-    /// Gets the [`NcRgb`].
-    ///
-    /// *C style function: [channel_rgb()][crate::ncchannel_rgb].*
-    //
-    // Not in the C API
-    fn rgb(&self) -> NcRgb {
-        crate::ncchannel_rgb(*self)
-    }
-
-    /// Sets the [`NcRgb`] and marks it as NOT using the "default color",
-    /// retaining the other bits unchanged.
-    ///
-    /// *C style function: [channel_set()][crate::ncchannel_set].*
-    fn set_rgb(&mut self, rgb: NcRgb) -> Self {
-        crate::ncchannel_set(self, rgb);
-        *self
-    }
-
     // default color
 
-    /// Is this NcChannel using the "default color" rather than RGB/palette-indexed?
+    /// Is this `NcChannel` using the "default color" rather than RGB/palette-indexed?
     ///
     /// *C style function: [channel_default_p()][crate::ncchannel_default_p].*
     fn default_p(&self) -> bool {
         crate::ncchannel_default_p(*self)
     }
 
-    /// Marks an NcChannel as using its "default color", which also marks it opaque.
+    /// Marks this `NcChannel` as using its "default color",
+    /// which also marks it opaque.
     ///
     /// *C style function: [channel_set_default()][crate::ncchannel_set_default].*
     fn set_default(&mut self) -> Self {
         crate::ncchannel_set_default(self)
     }
 
-    /// Marks an NcChannel as *not* using its "default color".
+    /// Marks this `NcChannel` as *not* using its "default color".
     ///
-    /// The following methods also marks the channel as not using the "default color":
+    /// The following methods also marks the channel as NOT using the "default color":
     /// - [new()][NcChannel#method.new]
     /// - [set()][NcChannel#method.set]
-    /// - [set_rgb()][NcChannel#method.set_rgb]
     /// - [set_rgb8()][NcChannel#method.set_rgb8]
     ///
     /// *C style function: [channel_set_not_default()][crate::ncchannel_set_not_default].*
@@ -360,7 +347,7 @@ impl NcChannelsMethods for NcChannels {
         )
     }
 
-    /// New `NcChannels`, set to black but using the "default color".
+    /// New `NcChannels`, set to black and using the "default color".
     fn with_default() -> Self {
         Self::combine(0 as NcChannel, 0 as NcChannel)
     }
