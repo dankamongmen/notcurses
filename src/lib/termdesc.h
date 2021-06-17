@@ -86,6 +86,13 @@ typedef struct ncinputlayer {
   struct esctrie* inputescapes; // trie of input escapes -> ncspecial_keys
 } ncinputlayer;
 
+// terminal capabilities exported to the user
+typedef struct nccapabilities {
+  // assigned based off nl_langinfo() in notcurses_core_init()
+  bool utf8;              // are we using utf-8 encoding? from nl_langinfo(3)
+  bool can_change_colors; // can we change the palette? terminfo ccc capability
+} nccapabilities;
+
 // terminal interface description. most of these are acquired from terminfo(5)
 // (using a database entry specified by TERM). some are determined via
 // heuristics based off terminal interrogation or the TERM environment
@@ -94,6 +101,7 @@ typedef struct ncinputlayer {
 typedef struct tinfo {
   uint16_t escindices[ESCAPE_MAX]; // table of 1-biased indices into esctable
   char* esctable;                  // packed table of escape sequences
+  nccapabilities caps;             // exported to the user, when requested
   unsigned colors;// number of colors terminfo reported usable for this screen
   // we use the cell's size in pixels for pixel blitting. this information can
   // be acquired on all terminals with pixel support.
@@ -133,12 +141,8 @@ typedef struct tinfo {
   bool bitmap_supported;    // do we support bitmaps (post pixel_query_done)?
   bool bitmap_lowest_line;  // can we render pixels to the bottom row?
   bool RGBflag;   // "RGB" flag for 24bpc truecolor
-  bool CCCflag;   // "CCC" flag for palette set capability
   bool BCEflag;   // "BCE" flag for erases with background color
   bool AMflag;    // "AM" flag for automatic movement to next line
-
-  // assigned based off nl_langinfo() in notcurses_core_init()
-  bool utf8;      // are we using utf-8 encoding, as hoped?
 
   // these are assigned wholly through TERM-based heuristics
   bool quadrants; // do we have (good, vetted) Unicode 1 quadrant support?

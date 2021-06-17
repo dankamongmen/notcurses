@@ -758,7 +758,7 @@ int term_fg_rgb8(const tinfo* ti, FILE* out, unsigned r, unsigned g, unsigned b)
 
 static inline int
 update_palette(notcurses* nc, FILE* out){
-  if(nc->tcache.CCCflag){
+  if(nc->tcache.caps.can_change_colors){
     const char* initc = get_escape(&nc->tcache, ESCAPE_INITC);
     for(size_t damageidx = 0 ; damageidx < sizeof(nc->palette.chans) / sizeof(*nc->palette.chans) ; ++damageidx){
       unsigned r, g, b;
