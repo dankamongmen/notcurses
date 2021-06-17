@@ -86,13 +86,6 @@ typedef struct ncinputlayer {
   struct esctrie* inputescapes; // trie of input escapes -> ncspecial_keys
 } ncinputlayer;
 
-// terminal capabilities exported to the user
-typedef struct nccapabilities {
-  // assigned based off nl_langinfo() in notcurses_core_init()
-  bool utf8;              // are we using utf-8 encoding? from nl_langinfo(3)
-  bool can_change_colors; // can we change the palette? terminfo ccc capability
-} nccapabilities;
-
 // terminal interface description. most of these are acquired from terminfo(5)
 // (using a database entry specified by TERM). some are determined via
 // heuristics based off terminal interrogation or the TERM environment
