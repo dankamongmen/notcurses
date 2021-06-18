@@ -634,18 +634,19 @@ pub use ffi::{
 // already wrapped:
 //
 // // constants
-// NCSTYLE_BLINK,
-// NCSTYLE_BOLD,
-// NCSTYLE_DIM,
-// NCSTYLE_INVIS,
-// NCSTYLE_ITALIC,
 // NCSTYLE_MASK,
-// NCSTYLE_NONE,
-// NCSTYLE_PROTECT,
-// NCSTYLE_REVERSE,
-// NCSTYLE_STANDOUT,
+// NCSTYLE_UNDERCURL,
 // NCSTYLE_STRUCK,
+// NCSTYLE_ITALIC,
+// NCSTYLE_STANDOUT,
 // NCSTYLE_UNDERLINE,
+// NCSTYLE_REVERSE,
+// NCSTYLE_BLINK,
+// NCSTYLE_DIM,
+// NCSTYLE_BOLD,
+// NCSTYLE_INVIS,
+// NCSTYLE_PROTECT,
+// NCSTYLE_NONE,
 
 // nctablet --------------------------------------------------------------------
 //
