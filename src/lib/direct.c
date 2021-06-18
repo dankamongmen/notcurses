@@ -868,6 +868,10 @@ ncdirect_style_emit(ncdirect* n, unsigned stylebits, FILE* out){
                          stylebits & NCSTYLE_BOLD,
                          stylebits & NCSTYLE_INVIS,
                          stylebits & NCSTYLE_PROTECT, 0), out, false);
+  }else{
+    // no sgr, interesting. return failure if our stylebits were provided?
+    // back off to individual enablers? FIXME
+    return 0;
   }
   // sgr resets colors, so set them back up if not defaults
   if(r == 0){
