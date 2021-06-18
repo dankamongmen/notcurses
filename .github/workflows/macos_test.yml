@@ -1,0 +1,81 @@
+---
+name: 🍎 MacOS Tests
+
+on:
+  workflow_dispatch:
+
+jobs:
+  tests:
+    env:
+      COLORTERM: truecolor
+      NPROC: 2
+      TERM: xterm
+    runs-on: macos-latest
+
+    steps:
+
+      - name: Install tools and libraries via Homebrew
+        run: |
+          brew install \
+            coreutils \
+            doctest \
+            ffmpeg \
+            libunistring \
+            ncurses \
+            pandoc \
+            readline
+
+      - uses: actions/checkout@v2
+
+      - name: cmake
+        run: |
+          pushd .
+          mkdir "${HOME}/repos" && cd "${HOME}/repos"
+          git clone https://github.com/nayuki/QR-Code-generator.git
+          cd QR-Code-generator/c
+          AR=/usr/local/opt/llvm/bin/llvm-ar
+          make AR="${AR}"
+          PREFIX=/usr/local
+          cd ${PREFIX}/include && \
+            ln -s "${HOME}/repos/QR-Code-generator/c" qrcodegen
+          cd ${PREFIX}/lib && \
+            ln -s "${HOME}/repos/QR-Code-generator/c/libqrcodegen.a" .
+          popd
+          mkdir build && cd build
+          cmake .. \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_C_FLAGS="-I/usr/local/include -L/usr/local/lib" \
+            -DUSE_QRCODEGEN=on
+
+      - name: make
+        run: |
+          cd build
+          make -j${NPROC}
+
+      - name: ctest
+        run: |
+          cd build
+          ctest --output-on-failure
+
+      - name: make install
+        run: |
+          cd build
+          sudo make install
+          sudo ldconfig
+
+      - name: python wrappers
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install pypandoc
+          cd cffi
+          python3 setup.py sdist build
+          sudo python3 setup.py install
+          notcurses-pydemo > /dev/null
+          ncdirect-pydemo > /dev/null
+
+      - name: rust wrappers
+        run: |
+          cd rust
+          rustc --version
+          cargo build
+          cargo t_all

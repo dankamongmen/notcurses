@@ -1,0 +1,89 @@
+---
+name: 🏁 Windows Tests
+
+on:
+  workflow_dispatch:
+
+jobs:
+  tests:
+    env:
+      COLORTERM: truecolor
+      NPROC: 2
+      TERM: xterm
+    runs-on: windows-latest
+    steps:
+
+      - name: Install tools and libraries via MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          # installing mingw-w64-x86_64-libxml2 is a workaround for:
+          # https://github.com/msys2/MINGW-packages/issues/8658
+          install: >
+            base-devel
+            git
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-ffmpeg
+            mingw-w64-x86_64-libunistring
+            mingw-w64-x86_64-libxml2
+            mingw-w64-x86_64-ncurses
+            mingw-w64-x86_64-rust
+            mingw-w64-x86_64-toolchain
+
+      - uses: actions/checkout@v2
+
+      - name: cmake
+        run: |
+          pushd .
+          mkdir "${HOME}/repos" && cd "${HOME}/repos"
+          git clone https://github.com/nayuki/QR-Code-generator.git
+          cd QR-Code-generator/c
+          AR="$(which ar)"
+          make AR="${AR}"
+          PREFIX=/mingw64
+          cd ${PREFIX}/include && \
+            ln -s "${HOME}/repos/QR-Code-generator/c" qrcodegen
+          cd ${PREFIX}/lib && \
+            ln -s "${HOME}/repos/QR-Code-generator/c/libqrcodegen.a" .
+          popd
+          mkdir build && cd build
+          cmake .. \
+            -G "MSYS Makefiles" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DUSE_DOCTEST=off \
+            -DUSE_PANDOC=off \
+            -DUSE_QRCODEGEN=on
+
+      - name: make
+        run: |
+          cd build
+          make -j${NPROC}
+
+      - name: ctest
+        run: |
+          cd build
+          ctest --output-on-failure
+
+      - name: make install
+        run: |
+          cd build
+          sudo make install
+          sudo ldconfig
+
+      - name: python wrappers
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install pypandoc
+          cd cffi
+          python3 setup.py sdist build
+          sudo python3 setup.py install
+          notcurses-pydemo > /dev/null
+          ncdirect-pydemo > /dev/null
+
+      - name: rust wrappers
+        run: |
+          cd rust
+          rustc --version
+          cargo build
+          cargo t_all
