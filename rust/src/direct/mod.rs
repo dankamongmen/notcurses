@@ -1,13 +1,13 @@
 //! `NcDirect`
 
-// total: 53
+// total: 61
 // ---------------------------------------------------
 // (X)  1 : wont do
 // (~)  3 : TODO / WIP
 //
 // (f) 45 : unsafe ffi function exported by bindgen
-// (w)  0 : safely wrapped ffi function
-// (r)  4 : static function manually reimplemented
+// (w)  1 : safely wrapped ffi function
+// (r) 11 : static function manually reimplemented
 //
 // (m) 45 : method implemented
 //
@@ -18,8 +18,16 @@
 // fm  ncdirect_bg_palindex
 // fm  ncdirect_bg_rgb
 // fm  ncdirect_box
+// r   ncdirect_canbraille
+// r   ncdirect_canchangecolor
+// r   ncdirect_canfade
+// r   ncdirect_canhalfblock
 // fm  ncdirect_canopen_images
+// rm  ncdirect_canopen_videos
+// r   ncdirect_canquadrant
+// r   ncdirect_cantruecolor
 // fm  ncdirect_canutf8
+// wm  ncdirect_capabilities
 // fm  ncdirect_check_pixel_support
 // fm  ncdirect_clear
 //~f   ncdirect_core_init

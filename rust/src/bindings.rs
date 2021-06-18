@@ -126,12 +126,32 @@ pub use ffi::{
 // NCBOXMASK_RIGHT,
 // NCBOXMASK_TOP,
 
+// nccapabilit* ----------------------------------------------------------------
+//
+// already wrapped:
+//
+// // structs
+// nccapabilities,
+//
+// // functions
+// nccapability_canchangecolor,
+
 // ncdirect --------------------------------------------------------------------
 //
 // already wrapped:
 //
 // // structs
 // ncdirect,
+//
+// // functions
+// ncdirect_canbraille,
+// ncdirect_canopen_videos
+// ncdirect_canchangecolor,
+// ncdirect_canfade,
+// ncdirect_canhalfblock,
+// ncdirect_canquadrant,
+// ncdirect_cantruecolor,
+// ncdirect_capabilities,
 //
 // // constants
 // NCDIRECT_OPTION_INHIBIT_CBREAK,

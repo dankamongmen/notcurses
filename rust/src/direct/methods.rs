@@ -4,9 +4,9 @@ use core::ptr::{null, null_mut};
 
 use crate::ffi::sigset_t;
 use crate::{
-    cstring, error, error_ref_mut, rstring, NcAlign, NcBlitter, NcChannels, NcComponent, NcDim,
-    NcDirect, NcDirectFlags, NcDirectV, NcEgc, NcError, NcInput, NcPaletteIndex, NcResult, NcRgb,
-    NcScale, NcStyle, NcTime, NCRESULT_ERR,
+    cstring, error, error_ref_mut, rstring, NcAlign, NcBlitter, NcCapabilities, NcChannels,
+    NcComponent, NcDim, NcDirect, NcDirectFlags, NcDirectV, NcEgc, NcError, NcInput,
+    NcPaletteIndex, NcResult, NcRgb, NcScale, NcStyle, NcTime, NCRESULT_ERR,
 };
 
 /// # `NcDirect` constructors and destructors
@@ -280,6 +280,38 @@ impl NcDirect {
 
 /// ## NcDirect methods: capabilities, cursor, dimensions
 impl NcDirect {
+    /// Can we reliably use Unicode braille?
+    ///
+    /// *C style function: [ncdirect_canbraille()][crate::ncdirect_canbraille].*
+    pub fn canbraille(&self) -> bool {
+        crate::ncdirect_canbraille(self)
+    }
+
+    /// Can we set the "hardware" palette?
+    ///
+    /// Requires the "ccc" terminfo capability.
+    ///
+    /// *C style function: [ncdirect_canchangecolor()][crate::ncdirect_canchangecolor].*
+    pub fn canchangecolor(&self) -> bool {
+        crate::ncdirect_canchangecolor(self)
+    }
+
+    /// Can we fade?
+    ///
+    /// Requires either the "rgb" or "ccc" terminfo capability.
+    ///
+    /// *C style function: [ncdirect_canfade()][crate::ncdirect_canfade].*
+    pub fn canfade(&self) -> bool {
+        crate::ncdirect_canfade(self)
+    }
+
+    /// Can we reliably use Unicode halfblocks?
+    ///
+    /// *C style function: [ncdirect_canhalfblock()][crate::ncdirect_canhalfblock].*
+    pub fn canhalfblock(&self) -> bool {
+        crate::ncdirect_canhalfblock(self)
+    }
+
     /// Can we load images?
     ///
     /// Requires being built against FFmpeg/OIIO.
@@ -289,6 +321,29 @@ impl NcDirect {
         unsafe { crate::ncdirect_canopen_images(self) }
     }
 
+    /// Can we load videos?
+    ///
+    /// Requires being built against FFmpeg/OIIO.
+    ///
+    /// *C style function: [ncdirect_canopen_videos()][crate::ncdirect_canopen_videos].*
+    pub fn canopen_videos(&self) -> bool {
+        crate::ncdirect_canopen_videos(self)
+    }
+
+    /// Can we reliably use Unicode quadrants?
+    ///
+    /// *C style function: [ncdirect_canquadrant()][crate::ncdirect_canquadrant].*
+    pub fn canquadrant(&self) -> bool {
+        crate::ncdirect_canquadrant(self)
+    }
+
+    /// Can we directly specify RGB values per cell, or only use palettes?
+    ///
+    /// *C style function: [ncdirect_cantruecolor()][crate::ncdirect_cantruecolor].*
+    pub fn cantruecolor(&self) -> bool {
+        crate::ncdirect_cantruecolor(self)
+    }
+
     /// Is our encoding UTF-8?
     ///
     /// Requires LANG being set to a UTF8 locale.
@@ -296,6 +351,13 @@ impl NcDirect {
     /// *C style function: [ncdirect_canutf8()][crate::ncdirect_canutf8].*
     pub fn canutf8(&self) -> bool {
         unsafe { crate::ncdirect_canutf8(self) }
+    }
+
+    /// Returns the [`NcCapabilities`].
+    ///
+    /// *C style function: [ncdirect_capabilities()][crate::ncdirect_capabilities].*
+    pub fn capabilities(&self) -> NcCapabilities {
+        crate::ncdirect_capabilities(self)
     }
 
     /// Checks for pixel support.

@@ -113,6 +113,7 @@ mod bindings;
 pub use bindings::*;
 
 mod r#box;
+mod capabilities;
 mod cells;
 mod channel;
 mod dimension;
@@ -135,6 +136,7 @@ mod visual;
 mod widgets;
 
 pub use crate::input::*;
+pub use capabilities::*;
 pub use cells::*;
 pub use channel::*;
 pub use dimension::*;
