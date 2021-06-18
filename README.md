@@ -47,7 +47,7 @@ sudo apt-get update
 [![🐧 Tests on Ubuntu](https://github.com/dankamongmen/notcurses/actions/workflows/ubuntu_test.yml/badge.svg)](https://github.com/dankamongmen/notcurses/actions/workflows/ubuntu_test.yml)
 [![pypi_version](https://img.shields.io/pypi/v/notcurses?label=pypi)](https://pypi.org/project/notcurses)
 [![crates.io](https://img.shields.io/crates/v/libnotcurses-sys.svg)](https://crates.io/crates/libnotcurses-sys)
-![Matrix](https://img.shields.io/matrix/notcursesdev:matrix.org?label=matrixchat)
+[![Matrix](https://img.shields.io/matrix/notcursesdev:matrix.org?label=matrixchat)](https://app.element.io/#/room/#notcursesdev:matrix.org)
 [![Sponsor](https://img.shields.io/badge/-Sponsor-red?logo=github)](https://github.com/sponsors/dankamongmen)
 
 <a href="https://repology.org/project/notcurses/versions">
