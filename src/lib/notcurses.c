@@ -2964,7 +2964,7 @@ int ncstrwidth(const char* mbs){
   return cols;
 }
 
-void ncplane_pixelgeom(ncplane* n, int* RESTRICT pxy, int* RESTRICT pxx,
+void ncplane_pixelgeom(const ncplane* n, int* RESTRICT pxy, int* RESTRICT pxx,
                        int* RESTRICT celldimy, int* RESTRICT celldimx,
                        int* RESTRICT maxbmapy, int* RESTRICT maxbmapx){
   notcurses* nc = ncplane_notcurses(n);

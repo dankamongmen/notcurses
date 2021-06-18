@@ -1519,7 +1519,7 @@ impl NcPlane {
     /// possibly leading to an interrogation of the terminal.
     ///
     /// *C style function: [ncplane_pixelgeom()][crate::ncplane_pixelgeom].*
-    pub fn pixelgeom(&mut self) -> NcPixelGeometry {
+    pub fn pixelgeom(&self) -> NcPixelGeometry {
         let mut pxy = 0;
         let mut pxx = 0;
         let mut celldimy = 0;
