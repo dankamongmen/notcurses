@@ -600,7 +600,7 @@ term_setstyles(FILE* out, notcurses* nc, const nccell* c){
                           cellattr & NCSTYLE_DIM,
                           cellattr & NCSTYLE_BOLD,
                           cellattr & NCSTYLE_INVIS,
-                          cellattr & NCSTYLE_PROTECT, 0),
+                          0 /* protect */, 0),
                           out, false) < 0){
         ret = -1;
       }else{

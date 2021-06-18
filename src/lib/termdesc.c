@@ -403,9 +403,9 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
     { NCSTYLE_DIM, "dim", A_DIM },
     { NCSTYLE_ITALIC, "sitm", A_ITALIC },
     { NCSTYLE_INVIS, "invis", A_INVIS },
-    { NCSTYLE_PROTECT, "prot", A_PROTECT },
     { 0, NULL, 0 }
   };
+  const char* sgr = get_escape(ti, ESCAPE_SGR);
   int nocolor_stylemask = tigetnum("ncv");
   for(typeof(*styles)* s = styles ; s->s ; ++s){
     if(nocolor_stylemask > 0){
@@ -414,9 +414,11 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
         continue;
       }
     }
-    char* style;
-    if(terminfostr(&style, s->tinfo) == 0){
-      ti->supported_styles |= s->s;
+    if(sgr){
+      char* style;
+      if(terminfostr(&style, s->tinfo) == 0){
+        ti->supported_styles |= s->s;
+      }
     }
   }
   // italics are never handled by sgr, but *can* be locked out by ncv. if

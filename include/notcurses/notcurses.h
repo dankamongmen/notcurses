@@ -674,7 +674,7 @@ API void nccell_release(struct ncplane* n, nccell* c);
 #define NCSTYLE_DIM       0x0008u
 #define NCSTYLE_BOLD      0x0004u
 #define NCSTYLE_INVIS     0x0002u
-#define NCSTYLE_PROTECT   0x0001u
+// 0x0001 NCSTYLE_PROTECT has been deprecated
 #define NCSTYLE_NONE      0
 
 // Set the specified style bits for the nccell 'c', whether they're actively
@@ -4342,6 +4342,7 @@ typedef nccell cell; // FIXME backwards-compat, remove in ABI3
 #define CELL_ALPHA_TRANSPARENT  NCALPHA_TRANSPARENT
 #define CELL_ALPHA_BLEND        NCALPHA_BLEND
 #define CELL_ALPHA_OPAQUE       NCALPHA_OPAQUE
+#define NCSTYLE_PROTECT   0x0001u
 
 #undef ALLOC
 #undef API

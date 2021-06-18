@@ -1904,9 +1904,9 @@ int nccell_width(const struct ncplane* n, const nccell* c);
 #define NCSTYLE_DIM       0x0008ul
 #define NCSTYLE_BOLD      0x0004ul
 #define NCSTYLE_INVIS     0x0002ul
-#define NCSTYLE_PROTECT   0x0001ul
 #define NCSTYLE_ITALIC    0x0100ul
 #define NCSTYLE_STRUCK    0x0200ul
+#define NCSTYLE_UNDERCURL 0x0400ul
 
 // copy the UTF8-encoded EGC out of the cell, whether simple or complex. the
 // result is not tied to the ncplane, and persists across erases / destruction.
