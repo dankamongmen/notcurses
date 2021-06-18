@@ -611,7 +611,7 @@ void warn_terminfo(const notcurses* nc, const tinfo* ti);
 int resize_callbacks_children(ncplane* n);
 
 static inline ncpile*
-ncplane_pile(ncplane* n){
+ncplane_pile(const ncplane* n){
   return n->pile;
 }
 

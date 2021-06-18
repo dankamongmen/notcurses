@@ -2227,7 +2227,7 @@ void ncplane_translate(const ncplane* src, const ncplane* dst,
   }
 }
 
-notcurses* ncplane_notcurses(ncplane* n){
+notcurses* ncplane_notcurses(const ncplane* n){
   return ncplane_pile(n)->nc;
 }
 

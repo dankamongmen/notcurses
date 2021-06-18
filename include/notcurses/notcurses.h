@@ -1081,7 +1081,7 @@ API int notcurses_linesigs_enable(struct notcurses* n);
 API int notcurses_refresh(struct notcurses* n, int* RESTRICT y, int* RESTRICT x);
 
 // Extract the Notcurses context to which this plane is attached.
-API struct notcurses* ncplane_notcurses(struct ncplane* n);
+API struct notcurses* ncplane_notcurses(const struct ncplane* n);
 API const struct notcurses* ncplane_notcurses_const(const struct ncplane* n);
 
 // Return the dimensions of this ncplane.
