@@ -1393,3 +1393,13 @@ const char* ncdirect_detected_terminal(const ncdirect* nc){
 const nccapabilities* ncdirect_capabilities(const ncdirect* n){
   return &n->tcache.caps;
 }
+
+bool ncdirect_canget_cursor(const ncdirect* n){
+  if(get_escape(&n->tcache, ESCAPE_DSRCPR) == NULL){
+    return false;
+  }
+  if(n->ctermfd < 0){
+    return false;
+  }
+  return true;
+}

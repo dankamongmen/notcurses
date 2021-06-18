@@ -74,12 +74,6 @@ notcurses_direct - minimal notcurses instances for styling text
 
 **const char* ncdirect_detected_terminal(const struct ncdirect* ***n***);**
 
-**bool ncdirect_canopen_images(const struct ncdirect* ***n***);**
-
-**bool ncdirect_canutf8(const struct ncdirect* ***n***);**
-
-**int ncdirect_check_pixel_support(struct ncdirect* ***n***);**
-
 **int ncdirect_hline_interp(struct ncdirect* ***n***, const char* ***egc***, int ***len***, uint64_t ***h1***, uint64_t ***h2***);**
 
 **int ncdirect_vline_interp(struct ncdirect* ***n***, const char* ***egc***, int ***len***, uint64_t ***h1***, uint64_t ***h2***);**
@@ -93,6 +87,30 @@ notcurses_direct - minimal notcurses instances for styling text
 **ncdirectv* ncdirect_render_frame(struct ncdirect* ***n***, const char* ***filename***, ncblitter_e ***blitter***, ncscale_e ***scale***, int ***maxy***, int ***maxx***);**
 
 **char* ncdirect_readline(struct ncdirect* ***n***, const char* ***prompt***);**
+
+**bool ncdirect_cantruecolor(const struct ncdirect* ***nc***);**
+
+**bool ncdirect_canchangecolor(const struct ncdirect* ***nc***);**
+
+**bool ncdirect_canfade(const struct ncdirect* ***nc***);**
+
+**bool ncdirect_canopen_images(const struct ncdirect* ***nc***);**
+
+**bool ncdirect_canopen_videos(const struct ncdirect* ***nc***);**
+
+**bool ncdirect_canutf8(const struct ncdirect* ***nc***);**
+
+**int ncdirect_check_pixel_support(const struct ncdirect* ***nc***);**
+
+**bool ncdirect_canhalfblock(const struct ncdirect* ***nc***);**
+
+**bool ncdirect_canquadrant(const struct ncdirect* ***nc***);**
+
+**bool ncdirect_cansextant(const struct ncdirect* ***nc***);**
+
+**bool ncdirect_canbraille(const struct ncdirect* ***nc***);**
+
+**bool ncdirect_canget_cursor(const struct ncdirect* ***nc***);**
 
 ```c
 typedef struct ncvgeom {

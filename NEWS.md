@@ -20,6 +20,9 @@ rearrangements of Notcurses.
   * `ncplane_as_rgba()`/`ncvisual_from_plane()` now support `NCBLIT_BRAILLE`.
   * `CELL_ALPHA_*` macros are now `NCALPHA_*`. The former will remain
     `#define`d until ABI3.
+  * Filled out the complete set of `ncdirect_can*()` capability functions,
+    which now match the `notcurses_can*()` API. Added
+    `ncdirect_canget_cursor()` to check if the cursor can be located.
 
 * 2.3.4 (2021-06-12)
   * Added the flag `NCVISUAL_OPTION_NOINTERPOLATE` to use non-interpolative
