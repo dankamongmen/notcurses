@@ -127,7 +127,7 @@ TEST_CASE("Direct") {
   }
 
   SUBCASE("CursorPostGlyphRender") {
-    if(is_test_tty()){
+    if(ncdirect_canget_cursor(nc_)){
       auto dirf = ncdirectf_from_file(nc_, find_data("worldmap.png").get());
       REQUIRE(nullptr != dirf);
       struct ncvisual_options vopts{};
@@ -148,7 +148,7 @@ TEST_CASE("Direct") {
   }
 
   SUBCASE("CursorPostSprixel") {
-    if(is_test_tty()){
+    if(ncdirect_canget_cursor(nc_)){
       if(ncdirect_check_pixel_support(nc_) > 0){
         auto dirf = ncdirectf_from_file(nc_, find_data("worldmap.png").get());
         REQUIRE(nullptr != dirf);

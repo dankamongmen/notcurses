@@ -482,7 +482,8 @@ ncdirect_canbraille(const struct ncdirect* nc){
 
 // Is there support for acquiring the cursor's current position? Requires the
 // u7 terminfo capability, and that we are connected to an actual terminal.
-bool ncdirect_canget_cursor(const struct ncdirect* nc);
+API bool ncdirect_canget_cursor(const struct ncdirect* nc)
+  __attribute__ ((nonnull (1)));
 
 #undef ALLOC
 #undef API
