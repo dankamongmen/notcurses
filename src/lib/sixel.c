@@ -125,11 +125,6 @@ change_p2(char* sixel, sixel_p2_e value){
   sixel[4] = value + '0';
 }
 
-static inline sixel_p2_e
-get_p2(const char* sixel){
-  return sixel[4] - '0';
-}
-
 // take (8-bit rgb value & mask) to sixelspace [0..100]
 static inline char
 ss(unsigned rgb, unsigned char mask){
