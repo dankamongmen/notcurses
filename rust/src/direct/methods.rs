@@ -5,7 +5,7 @@ use core::ptr::{null, null_mut};
 use crate::ffi::sigset_t;
 use crate::{
     cstring, error, error_ref_mut, rstring, NcAlign, NcBlitter, NcCapabilities, NcChannels,
-    NcComponent, NcDim, NcDirect, NcDirectFlags, NcDirectV, NcEgc, NcError, NcInput,
+    NcComponent, NcDim, NcDirect, NcDirectFlags, NcDirectV, NcEgc, NcError, NcInput, NcOffset,
     NcPaletteIndex, NcResult, NcRgb, NcScale, NcStyle, NcTime, NCRESULT_ERR,
 };
 
@@ -61,31 +61,27 @@ impl NcDirect {
         error![unsafe { crate::ncdirect_flush(self) }, "NcDirect.clear()"]
     }
 
-    /// Takes the result of [render_frame()][NcDirect#method.render_frame]
+    /// Takes the result of [`render_frame`][NcDirect#method.render_frame]
     /// and writes it to the output.
     ///
-    /// The `align`, `blitter`, and `scale` arguments must be the same as those
-    /// passed to render_frame().
-    ///
     /// *C style function: [ncdirect_raster_frame()][crate::ncdirect_raster_frame].*
-    pub fn raster_frame(&mut self, faken: &mut NcDirectV, align: NcAlign) -> NcResult<()> {
+    pub fn raster_frame(&mut self, frame: &mut NcDirectV, align: NcAlign) -> NcResult<()> {
         error![
-            unsafe { crate::ncdirect_raster_frame(self, faken, align) },
+            unsafe { crate::ncdirect_raster_frame(self, frame, align) },
             "NcDirect.raster_frame()"
         ]
     }
 
     /// Renders an image using the specified blitter and scaling,
-    /// but do not write the result.
+    /// but doesn't write the result.
     ///
     /// The image may be arbitrarily many rows -- the output will scroll --
     /// but will only occupy the column of the cursor, and those to the right.
     ///
     /// To actually write (and free) this, invoke ncdirect_raster_frame().
-    /// and writes it to the output.
     ///
-    /// The `align`, `blitter`, and `scale` arguments must be the same as those
-    /// passed to render_frame().
+    /// `max_y' and 'max_x` (cell geometry, *not* pixel), if greater than 0,
+    /// are used for scaling; the terminal's geometry is otherwise used.
     ///
     /// *C style function: [ncdirect_render_frame()][crate::ncdirect_render_frame].*
     pub fn render_frame<'a>(
@@ -93,11 +89,11 @@ impl NcDirect {
         filename: &str,
         blitter: NcBlitter,
         scale: NcScale,
-        maxy: i32,
-        maxx: i32,
+        max_y: NcDim,
+        max_x: NcDim,
     ) -> NcResult<&'a mut NcDirectV> {
         let res = unsafe {
-            crate::ncdirect_render_frame(self, cstring![filename], blitter, scale, maxy, maxx)
+            crate::ncdirect_render_frame(self, cstring![filename], blitter, scale, max_y as i32, max_x as i32)
         };
         error_ref_mut![
             res,
@@ -337,6 +333,13 @@ impl NcDirect {
         crate::ncdirect_canquadrant(self)
     }
 
+    /// Can we reliably use Unicode sextants?
+    ///
+    /// *C style function: [ncdirect_cansextant()][crate::ncdirect_cansextant].*
+    pub fn cansextant(&self) -> bool {
+        crate::ncdirect_cansextant(self)
+    }
+
     /// Can we directly specify RGB values per cell, or only use palettes?
     ///
     /// *C style function: [ncdirect_cantruecolor()][crate::ncdirect_cantruecolor].*
@@ -399,68 +402,68 @@ impl NcDirect {
         ]
     }
 
-    /// Moves the cursor down, `num` rows.
+    /// Moves the cursor down any number of rows.
     ///
     /// *C style function: [ncdirect_cursor_down()][crate::ncdirect_cursor_down].*
-    pub fn cursor_down(&mut self, num: NcDim) -> NcResult<()> {
+    pub fn cursor_down(&mut self, rows: NcOffset) -> NcResult<()> {
         error![
-            unsafe { crate::ncdirect_cursor_down(self, num as i32) },
-            &format!("NcDirect.cursor_down({})", num)
+            unsafe { crate::ncdirect_cursor_down(self, rows as i32) },
+            &format!("NcDirect.cursor_down({})", rows)
         ]
     }
 
-    /// Moves the cursor left, `num` columns.
+    /// Moves the cursor left any number of columns.
     ///
     /// *C style function: [ncdirect_cursor_left()][crate::ncdirect_cursor_left].*
-    pub fn cursor_left(&mut self, num: NcDim) -> NcResult<()> {
+    pub fn cursor_left(&mut self, cols: NcOffset) -> NcResult<()> {
         error![
-            unsafe { crate::ncdirect_cursor_left(self, num as i32) },
-            &format!("NcDirect.cursor_left({})", num)
+            unsafe { crate::ncdirect_cursor_left(self, cols as i32) },
+            &format!("NcDirect.cursor_left({})", cols)
         ]
     }
 
-    /// Moves the cursor right, `num` columns.
+    /// Moves the cursor right any number of columns.
     ///
     /// *C style function: [ncdirect_cursor_right()][crate::ncdirect_cursor_right].*
-    pub fn cursor_right(&mut self, num: NcDim) -> NcResult<()> {
+    pub fn cursor_right(&mut self, cols: NcOffset) -> NcResult<()> {
         error![
-            unsafe { crate::ncdirect_cursor_right(self, num as i32) },
-            &format!("NcDirect.cursor_right({})", num)
+            unsafe { crate::ncdirect_cursor_right(self, cols as i32) },
+            &format!("NcDirect.cursor_right({})", cols)
         ]
     }
 
-    /// Moves the cursor up, `num` rows.
+    /// Moves the cursor up any number of rows.
     ///
     /// *C style function: [ncdirect_cursor_up()][crate::ncdirect_cursor_up].*
-    pub fn cursor_up(&mut self, num: NcDim) -> NcResult<()> {
+    pub fn cursor_up(&mut self, rows: NcOffset) -> NcResult<()> {
         error![
-            unsafe { crate::ncdirect_cursor_up(self, num as i32) },
-            &format!("NcDirect.cursor_up({})", num)
+            unsafe { crate::ncdirect_cursor_up(self, rows as i32) },
+            &format!("NcDirect.cursor_up({})", rows)
         ]
     }
 
-    /// Moves the cursor in direct mode to the specified row, column.
+    /// Sets the cursor to the specified row `y`, column `x`.
     ///
     /// *C style function: [ncdirect_cursor_move_yx()][crate::ncdirect_cursor_move_yx].*
-    pub fn cursor_move_yx(&mut self, y: NcDim, x: NcDim) -> NcResult<()> {
+    pub fn cursor_set_yx(&mut self, y: NcDim, x: NcDim) -> NcResult<()> {
         error![unsafe { crate::ncdirect_cursor_move_yx(self, y as i32, x as i32) }]
     }
 
-    /// Moves the cursor in direct mode to the specified row.
+    /// Sets the cursor to the specified row `y`.
     ///
     /// *(No equivalent C style function)*
-    pub fn cursor_move_y(&mut self, y: NcDim) -> NcResult<()> {
+    pub fn cursor_set_y(&mut self, y: NcDim) -> NcResult<()> {
         error![unsafe { crate::ncdirect_cursor_move_yx(self, y as i32, -1) }]
     }
 
-    /// Moves the cursor in direct mode to the specified column.
+    /// Sets the cursor to the specified column `x`.
     ///
     /// *(No equivalent C style function)*
-    pub fn cursor_move_x(&mut self, x: NcDim) -> NcResult<()> {
+    pub fn cursor_set_x(&mut self, x: NcDim) -> NcResult<()> {
         error![unsafe { crate::ncdirect_cursor_move_yx(self, -1, x as i32) }]
     }
 
-    /// Gets the cursor position, when supported.
+    /// Gets the cursor (y, x) position, when supported.
     ///
     /// This requires writing to the terminal, and then reading from it.
     /// If the terminal doesn't reply, or doesn't reply in a way we understand,

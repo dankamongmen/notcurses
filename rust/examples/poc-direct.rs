@@ -1,12 +1,13 @@
 //! based on the proof of concept at ../../src/poc/direct.c
 
 use libnotcurses_sys::*;
+use core::convert::TryInto;
 
 fn main() -> NcResult<()> {
     let dm = NcDirect::new()?;
 
-    let dimy = dm.dim_y();
-    let dimx = dm.dim_x();
+    let dimy = dm.dim_y() as i32;
+    let dimx = dm.dim_x() as i32;
     for _ in 0..dimy {
         for _ in 0..dimx {
             printf!("X");
@@ -37,7 +38,7 @@ fn main() -> NcResult<()> {
         y += 2;
         while y > 3 {
             let up = if y >= 3 { 3 } else { y };
-            dm.cursor_up(up)?;
+            dm.cursor_up(up.try_into().unwrap_or(0))?;
             dm.flush()?;
             y -= up;
 
@@ -59,5 +60,6 @@ fn main() -> NcResult<()> {
         return Err(NcError::with_msg(-10, "Couldn't read cursor position."));
     }
 
+    dm.stop()?;
     Ok(())
 }
