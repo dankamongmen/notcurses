@@ -30,6 +30,16 @@ notcurses_resize_internal(ncplane* pp, int* restrict rows, int* restrict cols){
   if(*rows <= 0){
     *rows = 1;
   }
+  if(n->tcache.sixel_maxy_pristine){
+    n->tcache.sixel_maxy = n->tcache.sixel_maxy_pristine;
+    int sixelrows = *rows - 1;
+    // if the bottom margin is at least one row, we can draw into the last
+    // row of our visible area. we must leave the true bottom row alone.
+    if(n->margin_b){
+      ++sixelrows;
+    }
+    n->tcache.sixel_maxy = sixelrows * n->tcache.cellpixy;
+  }
   *cols -= n->margin_l + n->margin_r;
   if(*cols <= 0){
     *cols = 1;

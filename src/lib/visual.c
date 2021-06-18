@@ -770,11 +770,9 @@ make_sprixel_plane(notcurses* nc, ncplane* parent, ncvisual* ncv,
                    uint64_t flags, int* outy, int* placey, int* placex){
   if(scaling != NCSCALE_NONE && scaling != NCSCALE_NONE_HIRES){
     ncplane_dim_yx(parent, disppixy, disppixx);
+    // FIXME why do we clamp only vertical, not horizontal, here?
     if(*placey + *disppixy >= ncplane_dim_y(notcurses_stdplane_const(nc))){
       *disppixy = ncplane_dim_y(notcurses_stdplane_const(nc)) - *placey;
-      if(!nc->tcache.bitmap_lowest_line){
-        --*disppixy;
-      }
     }
     if(!(flags & NCVISUAL_OPTION_VERALIGNED)){
       *disppixy -= *placey;
@@ -845,7 +843,6 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
   }
   int disppixy = 0, disppixx = 0, outy = 0;
   ncplane* createdn = NULL;
-//fprintf(stderr, "INPUT N: %p rows: %d cols: %d 0x%016lx\n", n ? n : NULL, disppixy, disppixx, flags);
   if(n == NULL || (flags & NCVISUAL_OPTION_CHILDPLANE)){ // create plane
     if(n == NULL){
       n = notcurses_stdplane(nc);

@@ -944,6 +944,7 @@ clamp_to_sixelmax(const tinfo* t, int* y, int* x, int* outy, ncscale_e scaling){
   *outy = *y;
   if(*outy % t->sprixel_scale_height){
     *outy += t->sprixel_scale_height - (*outy % t->sprixel_scale_height);
+    // FIXME use closed form
     while(t->sixel_maxy && *outy > t->sixel_maxy){
       *outy -= t->sprixel_scale_height;
     }

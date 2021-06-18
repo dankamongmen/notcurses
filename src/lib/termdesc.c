@@ -28,7 +28,6 @@ setup_kitty_bitmaps(tinfo* ti, int fd){
   ti->sprixel_scale_height = 1;
   ti->pixel_rebuild = kitty_rebuild;
   ti->pixel_clear_all = kitty_clear_all;
-  ti->bitmap_lowest_line = true;
   set_pixel_blitter(kitty_blit);
   sprite_init(ti, fd);
 }

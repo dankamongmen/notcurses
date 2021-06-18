@@ -117,7 +117,15 @@ typedef struct tinfo {
   // on TERM heuristics. otherwise, we attempt to detect sixel support, and
   // query the details of the implementation.
   int color_registers; // sixel color registers (post pixel_query_done)
-  int sixel_maxx, sixel_maxy; // sixel size maxima (post pixel_query_done)
+  int sixel_maxx;      // maximum theoretical sixel width
+  // in sixel, we can't render to the bottom row, lest we force a one-line
+  // scroll. we thus clamp sixel_maxy_pristine to the minimum of
+  // sixel_maxy_pristine (the reported sixel_maxy), and the number of rows
+  // less one times the cell height. sixel_maxy is thus recomputed whenever
+  // we get a resize event. it is only defined if we have sixel_maxy_pristine,
+  // so kitty graphics (which don't force a scroll) never deal with this.
+  int sixel_maxy;          // maximum working sixel height
+  int sixel_maxy_pristine; // maximum theoretical sixel height, as queried
   int (*pixel_destroy)(const struct notcurses* nc, const struct ncpile* p, FILE* out, struct sprixel* s);
   // wipe out a cell's worth of pixels from within a sprixel. for sixel, this
   // means leaving out the pixels (and likely resizes the string). for kitty,
@@ -135,7 +143,6 @@ typedef struct tinfo {
   struct termios tpreserved; // terminal state upon entry
   ncinputlayer input;       // input layer
   bool bitmap_supported;    // do we support bitmaps (post pixel_query_done)?
-  bool bitmap_lowest_line;  // can we render pixels to the bottom row?
   bool BCEflag;   // "BCE" flag for erases with background color
   bool AMflag;    // "AM" flag for automatic movement to next line
 

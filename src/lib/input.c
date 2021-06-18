@@ -1051,7 +1051,7 @@ pump_control_read(init_state* inits, unsigned char c){
       break;
     case STATE_SIXEL_HEIGHT:
       if(c == 'S'){
-        inits->tcache->sixel_maxy = inits->numeric;
+        inits->tcache->sixel_maxy_pristine = inits->numeric;
         inits->state = STATE_NULL;
       }else if(ruts_numeric(&inits->numeric, c)){
         return -1;
