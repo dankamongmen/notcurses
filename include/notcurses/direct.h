@@ -172,10 +172,8 @@ ncdirect_bg_default(struct ncdirect* nc){
 }
 
 // Get the current number of columns/rows.
-API int ncdirect_dim_x(const struct ncdirect* nc)
-  __attribute__ ((nonnull (1)));
-API int ncdirect_dim_y(const struct ncdirect* nc)
-  __attribute__ ((nonnull (1)));
+API int ncdirect_dim_x(struct ncdirect* nc) __attribute__ ((nonnull (1)));
+API int ncdirect_dim_y(struct ncdirect* nc) __attribute__ ((nonnull (1)));
 
 // Returns a 16-bit bitmask of supported curses-style attributes
 // (NCSTYLE_UNDERLINE, NCSTYLE_BOLD, etc.) The attribute is only

@@ -216,7 +216,8 @@ void ncplane_dim_yx(const ncplane* n, int* rows, int* cols){
 
 // anyone calling this needs ensure the ncplane's framebuffer is updated
 // to reflect changes in geometry. also called at startup for standard plane.
-int update_term_dimensions(int fd, int* rows, int* cols, tinfo* tcache){
+int update_term_dimensions(int fd, int* rows, int* cols, tinfo* tcache,
+                           int margin_b){
   // if we're not a real tty, we presumably haven't changed geometry, return
   if(fd < 0){
     if(rows){
@@ -242,15 +243,27 @@ int update_term_dimensions(int fd, int* rows, int* cols, tinfo* tcache){
             fd, ws.ws_row, ws.ws_col);
     return -1;
   }
-  if(rows){
-    *rows = ws.ws_row;
+  int rowsafe;
+  if(rows == NULL){
+    rows = &rowsafe;
   }
+  *rows = ws.ws_row;
   if(cols){
     *cols = ws.ws_col;
   }
   if(tcache){
     tcache->cellpixy = ws.ws_row ? ws.ws_ypixel / ws.ws_row : 0;
     tcache->cellpixx = ws.ws_col ? ws.ws_xpixel / ws.ws_col : 0;
+  }
+  if(tcache->sixel_maxy_pristine){
+    tcache->sixel_maxy = tcache->sixel_maxy_pristine;
+    int sixelrows = *rows - 1;
+    // if the bottom margin is at least one row, we can draw into the last
+    // row of our visible area. we must leave the true bottom row alone.
+    if(margin_b){
+      ++sixelrows;
+    }
+    tcache->sixel_maxy = sixelrows * tcache->cellpixy;
   }
   return 0;
 }
@@ -1075,7 +1088,8 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     goto err;
   }
   int dimy, dimx;
-  if(update_term_dimensions(ret->ttyfd, &dimy, &dimx, &ret->tcache)){
+  if(update_term_dimensions(ret->ttyfd, &dimy, &dimx, &ret->tcache,
+                            ret->margin_b)){
     goto err;
   }
   ret->suppress_banner = opts->flags & NCOPTION_SUPPRESS_BANNERS;

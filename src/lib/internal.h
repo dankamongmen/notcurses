@@ -1041,7 +1041,8 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx,
                             int keepleny, int keeplenx, int yoff, int xoff,
                             int ylen, int xlen);
 
-int update_term_dimensions(int fd, int* rows, int* cols, tinfo* tcache);
+int update_term_dimensions(int fd, int* rows, int* cols, tinfo* tcache,
+                           int margin_b);
 
 ALLOC static inline void*
 memdup(const void* src, size_t len){

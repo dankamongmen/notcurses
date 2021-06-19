@@ -23,6 +23,8 @@ rearrangements of Notcurses.
   * Filled out the complete set of `ncdirect_can*()` capability functions,
     which now match the `notcurses_can*()` API. Added
     `ncdirect_canget_cursor()` to check if the cursor can be located.
+  * `ncdirect_dim_y()` and `ncdirect_dim_x()` no longer accept a
+    `const ncdirect*`, since they update the term parameters. Sorry!
 
 * 2.3.4 (2021-06-12)
   * Added the flag `NCVISUAL_OPTION_NOINTERPOLATE` to use non-interpolative

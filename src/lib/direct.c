@@ -180,10 +180,10 @@ int ncdirect_clear(ncdirect* nc){
   return -1;
 }
 
-int ncdirect_dim_x(const ncdirect* nc){
+int ncdirect_dim_x(ncdirect* nc){
   int x;
   if(nc->ctermfd >= 0){
-    if(update_term_dimensions(nc->ctermfd, NULL, &x, NULL) == 0){
+    if(update_term_dimensions(nc->ctermfd, NULL, &x, &nc->tcache, 0) == 0){
       return x;
     }
   }else{
@@ -192,10 +192,10 @@ int ncdirect_dim_x(const ncdirect* nc){
   return -1;
 }
 
-int ncdirect_dim_y(const ncdirect* nc){
+int ncdirect_dim_y(ncdirect* nc){
   int y;
   if(nc->ctermfd >= 0){
-    if(update_term_dimensions(nc->ctermfd, &y, NULL, NULL) == 0){
+    if(update_term_dimensions(nc->ctermfd, &y, NULL, &nc->tcache, 0) == 0){
       return y;
     }
   }else{
@@ -447,7 +447,7 @@ int ncdirect_cursor_pop(ncdirect* n){
 }
 
 static inline int
-ncdirect_align(const struct ncdirect* n, ncalign_e align, int c){
+ncdirect_align(struct ncdirect* n, ncalign_e align, int c){
   if(align == NCALIGN_LEFT){
     return 0;
   }
@@ -821,7 +821,7 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
   if(ncvisual_init(NCLOGLEVEL_SILENT)){
     goto err;
   }
-  update_term_dimensions(ret->ctermfd, NULL, NULL, &ret->tcache);
+  update_term_dimensions(ret->ctermfd, NULL, NULL, &ret->tcache, 0);
   ncdirect_set_styles(ret, 0);
   return ret;
 
