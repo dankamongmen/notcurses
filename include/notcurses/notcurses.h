@@ -2531,14 +2531,14 @@ API ALLOC struct ncvisual* ncvisual_from_file(const char* file);
 API ALLOC struct ncvisual* ncvisual_from_rgba(const void* rgba, int rows,
                                               int rowstride, int cols);
 
-// ncvisual_from_rgba(), but the pixels are 4-byte RGBx. A is filled in
-// throughout using 'alpha'. rowstride must be a multiple of 4.
+// ncvisual_from_rgba(), but the pixels are 3-byte RGB. A is filled in
+// throughout using 'alpha'.
 API ALLOC struct ncvisual* ncvisual_from_rgb_packed(const void* rgba, int rows,
                                                     int rowstride, int cols,
                                                     int alpha);
 
-// ncvisual_from_rgba(), but the pixels are 3-byte RGB. A is filled in
-// throughout using 'alpha'.
+// ncvisual_from_rgba(), but the pixels are 4-byte RGBx. A is filled in
+// throughout using 'alpha'. rowstride must be a multiple of 4.
 API ALLOC struct ncvisual* ncvisual_from_rgb_loose(const void* rgba, int rows,
                                                    int rowstride, int cols,
                                                    int alpha);
