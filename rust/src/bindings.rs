@@ -5,8 +5,11 @@
 //! The current module publicly re-exports bindgen generated structs, functions,
 //! and constants, for their direct usage.
 
-// [clippy & bindgen](https://github.com/rust-lang/rust-bindgen/issues/1470)
+// BUG ISSUES:
+// https://github.com/rust-lang/rust-bindgen/issues/1470
 #[allow(clippy::all)]
+// https://github.com/rust-lang/rust-bindgen/issues/2066
+#[allow(unknown_lints, deref_nullptr)]
 pub mod ffi {
     //! Rust FFI bindings, automatically generated with bindgen.
     //!
