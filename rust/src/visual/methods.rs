@@ -4,9 +4,9 @@ use core::ptr::null_mut;
 use libc::c_void;
 
 use crate::{
-    cstring, error, error_ref_mut, rstring, Nc, NcBlitter, NcDim, NcDirect, NcDirectF, NcDirectV,
-    NcError, NcIntResult, NcPixel, NcPlane, NcResult, NcRgba, NcScale, NcTime, NcVGeom, NcVisual,
-    NcVisualOptions, NCBLIT_PIXEL, NCRESULT_ERR,
+    cstring, error, error_ref_mut, rstring, Nc, NcBlitter, NcComponent, NcDim, NcDirect, NcDirectF,
+    NcDirectV, NcError, NcIntResult, NcPixel, NcPlane, NcResult, NcRgba, NcScale, NcTime, NcVGeom,
+    NcVisual, NcVisualOptions, NCBLIT_PIXEL, NCRESULT_ERR,
 };
 
 /// # NcVisualOptions Constructors
@@ -172,6 +172,64 @@ impl NcVisual {
             &format!(
                 "NcVisual::from_file(plane, {}, {}, {}, {}, {})",
                 blitter, beg_y, beg_x, len_y, len_x
+            )
+        ]
+    }
+
+    /// Like [`from_rgba`][NcVisual#method.from_rgba], but the pixels are
+    /// 4-byte RGBX. Alpha is filled in throughout using 'alpha'.
+    ///
+    /// `rowstride` must be a multiple of 4.
+    ///
+    /// *C style function: [ncvisual_from_rgb_loose()][crate::ncvisual_from_rgb_loose].*
+    pub fn from_rgb_loose<'a>(
+        rgba: &[u8],
+        rows: NcDim,
+        rowstride: NcDim,
+        cols: NcDim,
+        alpha: NcComponent,
+    ) -> NcResult<&'a mut NcVisual> {
+        error_ref_mut![
+            unsafe {
+                crate::ncvisual_from_rgb_loose(
+                    rgba.as_ptr() as *const c_void,
+                    rows as i32,
+                    rowstride as i32,
+                    cols as i32,
+                    alpha as i32,
+                )
+            },
+            &format!(
+                "NcVisual::from_rgb_loose(rgba, {}, {}, {}, {})",
+                rows, rowstride, cols, alpha
+            )
+        ]
+    }
+
+    /// Like [`from_rgba`][NcVisual#method.from_rgba], but the pixels are
+    /// 3-byte RGB. Alpha is filled in throughout using 'alpha'.
+    ///
+    /// *C style function: [ncvisual_from_rgb_packed()][crate::ncvisual_from_rgb_packed].*
+    pub fn from_rgb_packed<'a>(
+        rgba: &[u8],
+        rows: NcDim,
+        rowstride: NcDim,
+        cols: NcDim,
+        alpha: NcComponent,
+    ) -> NcResult<&'a mut NcVisual> {
+        error_ref_mut![
+            unsafe {
+                crate::ncvisual_from_rgb_packed(
+                    rgba.as_ptr() as *const c_void,
+                    rows as i32,
+                    rowstride as i32,
+                    cols as i32,
+                    alpha as i32,
+                )
+            },
+            &format!(
+                "NcVisual::from_rgb_packed(rgba, {}, {}, {}, {})",
+                rows, rowstride, cols, alpha
             )
         ]
     }

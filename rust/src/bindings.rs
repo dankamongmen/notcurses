@@ -8,7 +8,7 @@
 // BUG ISSUES:
 // https://github.com/rust-lang/rust-bindgen/issues/1470
 #[allow(clippy::all)]
-// https://github.com/rust-lang/rust-bindgen/issues/2066
+// https://github.com/rust-lang/rust-bindgen/issues/1651
 #[allow(unknown_lints, deref_nullptr)]
 pub mod ffi {
     //! Rust FFI bindings, automatically generated with bindgen.
@@ -744,6 +744,8 @@ pub use ffi::{
     ncvisual_from_bgra,
     ncvisual_from_file,
     ncvisual_from_plane,
+    ncvisual_from_rgb_loose,
+    ncvisual_from_rgb_packed,
     ncvisual_from_rgba,
     ncvisual_media_defblitter,
     ncvisual_polyfill_yx,

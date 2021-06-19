@@ -30,6 +30,9 @@ impl NcDirect {
     /// `flags` is a bitmask over:
     /// - [NCDIRECT_OPTION_INHIBIT_CBREAK][crate::NCDIRECT_OPTION_INHIBIT_CBREAK]
     /// - [NCDIRECT_OPTION_INHIBIT_SETLOCALE][crate::NCDIRECT_OPTION_INHIBIT_SETLOCALE]
+    /// - [NCDIRECT_OPTION_NO_QUIT_SIGHANDLERS][crate::NCDIRECT_OPTION_NO_QUIT_SIGHANDLERS]
+    /// - [NCDIRECT_OPTION_VERBOSE][crate::NCDIRECT_OPTION_VERBOSE]
+    /// - [NCDIRECT_OPTION_VERY_VERBOSE][crate::NCDIRECT_OPTION_VERY_VERBOSE]
     ///
     /// *C style function: [ncdirect_init()][crate::ncdirect_init].*
     pub fn with_flags<'a>(flags: NcDirectFlags) -> NcResult<&'a mut NcDirect> {
