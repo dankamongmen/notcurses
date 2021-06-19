@@ -500,21 +500,21 @@ impl NcDirect {
     /// Gets the current number of rows.
     ///
     /// *C style function: [ncdirect_dim_y()][crate::ncdirect_dim_y].*
-    pub fn dim_y(mut &self) -> NcDim {
+    pub fn dim_y(&mut self) -> NcDim {
         unsafe { crate::ncdirect_dim_y(self) as NcDim }
     }
 
     /// Gets the current number of columns.
     ///
     /// *C style function: [ncdirect_dim_x()][crate::ncdirect_dim_x].*
-    pub fn dim_x(mut &self) -> NcDim {
+    pub fn dim_x(&mut self) -> NcDim {
         unsafe { crate::ncdirect_dim_x(self) as NcDim }
     }
 
     /// Gets the current number of rows and columns.
     ///
     /// *C style function: [ncdirect_dim_y()][crate::ncdirect_dim_y].*
-    pub fn dim_yx(mut &self) -> (NcDim, NcDim) {
+    pub fn dim_yx(&mut self) -> (NcDim, NcDim) {
         let y = unsafe { crate::ncdirect_dim_y(self) as NcDim };
         let x = unsafe { crate::ncdirect_dim_x(self) as NcDim };
         (y, x)
