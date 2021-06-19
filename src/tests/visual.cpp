@@ -12,7 +12,7 @@ TEST_CASE("Visual") {
 
   // check that we properly populate RGB + A -> RGBA
   SUBCASE("VisualFromRGBPacked") {
-    unsigned char rgb[13] = "\x88\x77\x66\x55\x44\x33\x22\x11\x00\x99\xaa\xbb";
+    unsigned char rgb[] = "\x88\x77\x66\x55\x44\x33\x22\x11\x00\x99\xaa\xbb";
     unsigned char alpha = 0xff;
     auto ncv = ncvisual_from_rgb_packed(rgb, 2, 6, 2, alpha);
     REQUIRE(nullptr != ncv);
@@ -20,10 +20,27 @@ TEST_CASE("Visual") {
       for(int x = 0 ; x < 2 ; ++x){
         uint32_t p;
         CHECK(0 == ncvisual_at_yx(ncv, y, x, &p));
-fprintf(stderr, "rgba: 0x%02x 0x%02x 0x%02x 0x%02x\n", ncpixel_r(p), ncpixel_g(p), ncpixel_b(p), ncpixel_a(p));
         CHECK(ncpixel_r(p) == rgb[y * 6 + x * 3]);
         CHECK(ncpixel_g(p) == rgb[y * 6 + x * 3 + 1]);
         CHECK(ncpixel_b(p) == rgb[y * 6 + x * 3 + 2]);
+        CHECK(ncpixel_a(p) == alpha);
+      }
+    }
+  }
+
+  // check that we properly populate RGBx + A -> RGBA
+  SUBCASE("VisualFromRGBxPacked") {
+    unsigned char rgb[] = "\x88\x77\x66\x12\x55\x44\x33\x10\x22\x11\x00\xdd\x99\xaa\xbb\xcc";
+    unsigned char alpha = 0xff;
+    auto ncv = ncvisual_from_rgb_loose(rgb, 2, 8, 2, alpha);
+    REQUIRE(nullptr != ncv);
+    for(int y = 0 ; y < 2 ; ++y){
+      for(int x = 0 ; x < 2 ; ++x){
+        uint32_t p;
+        CHECK(0 == ncvisual_at_yx(ncv, y, x, &p));
+        CHECK(ncpixel_r(p) == rgb[y * 8 + x * 4]);
+        CHECK(ncpixel_g(p) == rgb[y * 8 + x * 4 + 1]);
+        CHECK(ncpixel_b(p) == rgb[y * 8 + x * 4 + 2]);
         CHECK(ncpixel_a(p) == alpha);
       }
     }
