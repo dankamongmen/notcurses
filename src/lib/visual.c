@@ -17,9 +17,9 @@
 ncvisual_implementation visual_implementation = { };
 
 // to be called at startup -- performs any necessary engine initialization.
-int ncvisual_init(int loglevel){
+int ncvisual_init(int logl){
   if(visual_implementation.visual_init){
-    return visual_implementation.visual_init(loglevel);
+    return visual_implementation.visual_init(logl);
   }
   return 0;
 }
@@ -139,10 +139,10 @@ int ncvisual_blitset_geom(const notcurses* nc, const tinfo* tcache,
     lenx = &fakelenx;
   }
   if(vopts && vopts->flags >= (NCVISUAL_OPTION_NOINTERPOLATE << 1u)){
-    logwarn(nc, "Warning: unknown ncvisual options %016jx\n", (uintmax_t)vopts->flags);
+    logwarn("Warning: unknown ncvisual options %016jx\n", (uintmax_t)vopts->flags);
   }
   if(vopts && (vopts->flags & NCVISUAL_OPTION_CHILDPLANE) && !vopts->n){
-    logerror(nc, "Requested child plane with NULL n\n");
+    logerror("Requested child plane with NULL n\n");
     return -1;
   }
   int begy, begx;
@@ -151,18 +151,18 @@ int ncvisual_blitset_geom(const notcurses* nc, const tinfo* tcache,
   *leny = vopts ? vopts->leny : 0;
 //fprintf(stderr, "blit %dx%d+%dx%d %p\n", begy, begx, *leny, *lenx, ncv->data);
   if(begy < 0 || begx < 0 || *lenx <= -1 || *leny <= -1){
-    logerror(nc, "Invalid geometry for visual %d %d %d %d\n", begy, begx, *leny, *lenx);
+    logerror("Invalid geometry for visual %d %d %d %d\n", begy, begx, *leny, *lenx);
     return -1;
   }
   if(n){
 //fprintf(stderr, "OUR DATA: %p rows/cols: %d/%d\n", n->data, n->pixy, n->pixx);
     if(n->data == NULL){
-      logerror(nc, "No data in visual\n");
+      logerror("No data in visual\n");
       return -1;
     }
 //fprintf(stderr, "blit %d/%d to %dx%d+%dx%d scaling: %d\n", n->pixy, n->pixx, begy, begx, *leny, *lenx, vopts ? vopts->scaling : 0);
     if(begx >= n->pixx || begy >= n->pixy){
-      logerror(nc, "Visual too large %d > %d or %d > %d\n", begy, n->pixy, begx, n->pixx);
+      logerror("Visual too large %d > %d or %d > %d\n", begy, n->pixy, begx, n->pixx);
       return -1;
     }
     if(*lenx == 0){ // 0 means "to the end"; use all available source material
@@ -173,17 +173,17 @@ int ncvisual_blitset_geom(const notcurses* nc, const tinfo* tcache,
     }
 //fprintf(stderr, "blit %d/%d to %dx%d+%dx%d scaling: %d flags: 0x%016lx\n", n->pixy, n->pixx, begy, begx, *leny, *lenx, vopts ? vopts->scaling : 0, vopts ? vopts->flags : 0);
     if(*lenx <= 0 || *leny <= 0){ // no need to draw zero-size object, exit
-      logerror(nc, "Zero-size object %d %d\n", *leny, *lenx);
+      logerror("Zero-size object %d %d\n", *leny, *lenx);
       return -1;
     }
     if(begx + *lenx > n->pixx || begy + *leny > n->pixy){
-      logerror(nc, "Geometry too large %d > %d or %d > %d\n", begy + *leny, n->pixy, begx + *lenx, n->pixx);
+      logerror("Geometry too large %d > %d or %d > %d\n", begy + *leny, n->pixy, begx + *lenx, n->pixx);
       return -1;
     }
   }
   const struct blitset* bset = rgba_blitter(tcache, vopts);
   if(!bset){
-    logerror(nc, "Couldn't get a blitter for %d\n", vopts ? vopts->blitter : NCBLIT_DEFAULT);
+    logerror("Couldn't get a blitter for %d\n", vopts ? vopts->blitter : NCBLIT_DEFAULT);
     return -1;
   }
   if(blitter){
@@ -192,27 +192,27 @@ int ncvisual_blitset_geom(const notcurses* nc, const tinfo* tcache,
   if(bset->geom == NCBLIT_PIXEL && vopts){
     if(vopts->n){
       if(vopts->n == notcurses_stdplane_const(nc)){
-        logerror(nc, "Won't blit bitmaps to the standard plane\n");
+        logerror("Won't blit bitmaps to the standard plane\n");
         return -1;
       }
       if(vopts->y && !(vopts->flags & NCVISUAL_OPTION_VERALIGNED)){
-        logerror(nc, "Non-origin y placement %d for sprixel\n", vopts->y);
+        logerror("Non-origin y placement %d for sprixel\n", vopts->y);
         return -1;
       }
       if(vopts->x && !(vopts->flags & NCVISUAL_OPTION_HORALIGNED)){
-        logerror(nc, "Non-origin x placement %d for sprixel\n", vopts->x);
+        logerror("Non-origin x placement %d for sprixel\n", vopts->x);
         return -1;
       }
       // FIXME clamp to sprixel limits
       if(vopts->scaling == NCSCALE_NONE || vopts->scaling == NCSCALE_NONE_HIRES){
         int rows = (*leny + nc->tcache.cellpixy - 1) / nc->tcache.cellpixy;
         if(rows > ncplane_dim_y(vopts->n)){
-          logerror(nc, "Sprixel too tall %d for plane %d\n", *leny, ncplane_dim_y(vopts->n) * nc->tcache.cellpixy);
+          logerror("Sprixel too tall %d for plane %d\n", *leny, ncplane_dim_y(vopts->n) * nc->tcache.cellpixy);
           return -1;
         }
         int cols = (*lenx + nc->tcache.cellpixx - 1) / nc->tcache.cellpixx;
         if(cols > ncplane_dim_x(vopts->n)){
-          logerror(nc, "Sprixel too wide %d for plane %d\n", *lenx, ncplane_dim_x(vopts->n) * nc->tcache.cellpixx);
+          logerror("Sprixel too wide %d for plane %d\n", *lenx, ncplane_dim_x(vopts->n) * nc->tcache.cellpixx);
           return -1;
         }
       }
@@ -234,13 +234,13 @@ int ncvisual_blitset_geom(const notcurses* nc, const tinfo* tcache,
   }
   if(vopts && vopts->flags & NCVISUAL_OPTION_HORALIGNED){
     if(vopts->x < NCALIGN_UNALIGNED || vopts->x > NCALIGN_RIGHT){
-      logerror(nc, "Bad x %d for horizontal alignment\n", vopts->x);
+      logerror("Bad x %d for horizontal alignment\n", vopts->x);
       return -1;
     }
   }
   if(vopts && vopts->flags & NCVISUAL_OPTION_VERALIGNED){
     if(vopts->y < NCALIGN_UNALIGNED || vopts->y > NCALIGN_RIGHT){
-      logerror(nc, "Bad y %d for vertical alignment\n", vopts->y);
+      logerror("Bad y %d for vertical alignment\n", vopts->y);
       return -1;
     }
   }
@@ -838,7 +838,7 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
                                 uint64_t flags, uint32_t transcolor){
   ncplane* stdn = notcurses_stdplane(nc);
   if(n == stdn){
-    logerror(nc, "Won't blit bitmaps to the standard plane\n");
+    logerror("Won't blit bitmaps to the standard plane\n");
     return NULL;
   }
   int disppixy = 0, disppixx = 0, outy = 0;

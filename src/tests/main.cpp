@@ -13,13 +13,13 @@
 #include <langinfo.h>
 
 const char* datadir = NOTCURSES_SHARE;
-ncloglevel_e loglevel = NCLOGLEVEL_SILENT;
+ncloglevel_e cliloglevel = NCLOGLEVEL_SILENT;
 
 auto testing_notcurses() -> struct notcurses* {
   notcurses_options nopts{};
   // get loglevel from command line. enabling it by default leads to
   // more confusion than useful information, so leave it off by default.
-  nopts.loglevel = loglevel;
+  nopts.loglevel = cliloglevel;
   nopts.flags = NCOPTION_SUPPRESS_BANNERS | NCOPTION_NO_ALTERNATE_SCREEN;
   auto nc = notcurses_init(&nopts, nullptr);
   return nc;
@@ -53,7 +53,7 @@ handle_opts(const char** argv){
     }else if(strcmp(*argv, "-p") == 0){
       inarg = true;
     }else if(strncmp(*argv, "-l", 2) == 0){ // just require -l
-      loglevel = NCLOGLEVEL_TRACE;
+      cliloglevel = NCLOGLEVEL_TRACE;
     }
     ++argv;
   }

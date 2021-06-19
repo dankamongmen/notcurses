@@ -219,16 +219,15 @@ create_##T(nc##X##plot* ncpp, ncplane* n, const ncplot_options* opts, const T mi
     opts = &zeroed; \
   } \
   if(opts->flags >= (NCPLOT_OPTION_PRINTSAMPLE << 1u)){ \
-    logwarn(ncplane_notcurses(n), "Provided unsupported flags %016jx\n", (uintmax_t)opts->flags); \
+    logwarn("Provided unsupported flags %016jx\n", (uintmax_t)opts->flags); \
   } \
-  const notcurses* nc = ncplane_notcurses_const(n); \
   /* if miny == maxy (enabling domain detection), they both must be equal to 0 */ \
   if(miny == maxy && miny){ \
     ncplane_destroy(n); \
     return false; \
   } \
   if(opts->rangex < 0){ \
-    logerror(nc, "Supplied negative independent range %d\n", opts->rangex); \
+    logerror("Supplied negative independent range %d\n", opts->rangex); \
     ncplane_destroy(n); \
     return false; \
   } \
@@ -238,7 +237,7 @@ create_##T(nc##X##plot* ncpp, ncplane* n, const ncplot_options* opts, const T mi
   } \
   /* DETECTMAXONLY can't be used without domain detection */ \
   if(opts->flags & NCPLOT_OPTION_DETECTMAXONLY && (miny != maxy)){ \
-    logerror(nc, "Supplied DETECTMAXONLY without domain detection"); \
+    logerror("Supplied DETECTMAXONLY without domain detection"); \
     ncplane_destroy(n); \
     return false; \
   } \

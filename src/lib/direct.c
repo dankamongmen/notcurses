@@ -779,8 +779,8 @@ ncdirect_stop_minimal(void* vnc){
 }
 
 ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
-  if(flags > (NCDIRECT_OPTION_NO_QUIT_SIGHANDLERS << 1)){ // allow them through with warning
-    logwarn((struct notcurses*)NULL, "Passed unsupported flags 0x%016jx\n", (uintmax_t)flags);
+  if(flags > (NCDIRECT_OPTION_VERY_VERBOSE << 1)){ // allow them through with warning
+    logwarn("Passed unsupported flags 0x%016jx\n", (uintmax_t)flags);
   }
   if(outfp == NULL){
     outfp = stdout;
@@ -793,7 +793,7 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
   ret->flags = flags;
   ret->ttyfp = outfp;
   if(!(flags & NCDIRECT_OPTION_INHIBIT_SETLOCALE)){
-    init_lang(NULL);
+    init_lang();
   }
   const char* encoding = nl_langinfo(CODESET);
   bool utf8 = false;
@@ -805,8 +805,17 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
     free(ret);
     return NULL;
   }
+  // don't set the loglevel until we've locked in signal handling, lest we
+  // change the loglevel out from under a running instance.
+  if(flags & NCDIRECT_OPTION_VERY_VERBOSE){
+    loglevel = NCLOGLEVEL_TRACE;
+  }else if(flags & NCDIRECT_OPTION_VERBOSE){
+    loglevel = NCLOGLEVEL_WARNING;
+  }else{
+    loglevel = NCLOGLEVEL_SILENT;
+  }
   // we don't need a controlling tty for everything we do; allow a failure here
-  ret->ctermfd = get_tty_fd(NULL, ret->ttyfp);
+  ret->ctermfd = get_tty_fd(ret->ttyfp);
   const char* shortname_term;
   int termerr;
   if(setupterm(termtype, ret->ctermfd, &termerr) != OK){

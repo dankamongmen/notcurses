@@ -588,8 +588,8 @@ int ffmpeg_log_level(int level){
   return AV_LOG_TRACE;
 }
 
-int ffmpeg_init(int loglevel){
-  av_log_set_level(ffmpeg_log_level(loglevel));
+int ffmpeg_init(int logl){
+  av_log_set_level(ffmpeg_log_level(logl));
   // FIXME could also use av_log_set_callback() and capture the message...
   return 0;
 }

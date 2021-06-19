@@ -29,6 +29,13 @@ extern "C" {
 // registration of these signal handlers. Chosen to match fullscreen mode.
 #define NCDIRECT_OPTION_NO_QUIT_SIGHANDLERS 0x0008ull
 
+// Enable logging (to stderr) at the NCLOGLEVEL_WARNING level.
+#define NCDIRECT_OPTION_VERBOSE             0x0010ull
+
+// Enable logging (to stderr) at the NCLOGLEVEL_TRACE level. This will enable
+// all diagnostics, a superset of NCDIRECT_OPTION_VERBOSE (which this implies).
+#define NCDIRECT_OPTION_VERY_VERBOSE        0x0020ull
+
 // Initialize a direct-mode Notcurses context on the connected terminal at 'fp'.
 // 'fp' must be a tty. You'll usually want stdout. Direct mode supports a
 // limited subset of Notcurses routines which directly affect 'fp', and neither

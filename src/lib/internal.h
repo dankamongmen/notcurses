@@ -592,7 +592,7 @@ void update_write_stats(const struct timespec* time1, const struct timespec* tim
 
 void sigwinch_handler(int signo);
 
-void init_lang(notcurses* nc); // nc may be NULL, only used for logging
+void init_lang(void);
 
 // load |ti| from the terminfo database, which must already have been
 // initialized. set |utf8| if we've verified UTF8 output encoding.
@@ -1196,37 +1196,37 @@ void nclog(const char* fmt, ...);
 bool is_linux_console(const notcurses* nc, unsigned no_font_changes);
 
 // logging
-#define logerror(nc, fmt, ...) do{ \
-  if(nc){ if((nc)->loglevel >= NCLOGLEVEL_ERROR){ \
-    nclog("%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } \
-  }else{ fprintf(stderr, "%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } \
-}while(0);
+extern int loglevel;
 
-#define logwarn(nc, fmt, ...) do{ \
-  if(nc){ if((nc)->loglevel >= NCLOGLEVEL_WARNING){ \
+#define logerror(fmt, ...) do{ \
+  if(loglevel >= NCLOGLEVEL_ERROR){ \
     nclog("%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } \
-  }else{ fprintf(stderr, "%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } \
-}while(0);
+  } while(0);
 
-#define loginfo(nc, fmt, ...) do{ \
-  if(nc){ if((nc)->loglevel >= NCLOGLEVEL_INFO){ \
+#define logwarn(fmt, ...) do{ \
+  if(loglevel >= NCLOGLEVEL_WARNING){ \
     nclog("%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } \
-  } }while(0);
+  } while(0);
 
-#define logverbose(nc, fmt, ...) do{ \
-  if(nc){ if((nc)->loglevel >= NCLOGLEVEL_VERBOSE){ \
+#define loginfo(fmt, ...) do{ \
+  if(loglevel >= NCLOGLEVEL_INFO){ \
     nclog("%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } \
-  } }while(0);
+  } while(0);
 
-#define logdebug(nc, fmt, ...) do{ \
-  if(nc){ if((nc)->loglevel >= NCLOGLEVEL_DEBUG){ \
+#define logverbose(fmt, ...) do{ \
+  if(loglevel >= NCLOGLEVEL_VERBOSE){ \
     nclog("%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } \
-  } }while(0);
+  } while(0);
 
-#define logtrace(nc, fmt, ...) do{ \
-  if(nc){ if((nc)->loglevel >= NCLOGLEVEL_TRACE){ \
+#define logdebug(fmt, ...) do{ \
+  if(loglevel >= NCLOGLEVEL_DEBUG){ \
     nclog("%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } \
-  } }while(0);
+  } while(0);
+
+#define logtrace(fmt, ...) do{ \
+  if(loglevel >= NCLOGLEVEL_TRACE){ \
+    nclog("%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } \
+  } while(0);
 
 int term_setstyle(FILE* out, unsigned cur, unsigned targ, unsigned stylebit,
                   const char* ton, const char* toff);
@@ -1509,7 +1509,7 @@ int cbreak_mode(int ttyfd, const struct termios* tpreserved);
 
 int set_fd_nonblocking(int fd, unsigned state, unsigned* oldstate);
 
-int get_tty_fd(notcurses* nc, FILE* ttyfp);
+int get_tty_fd(FILE* ttyfp);
 
 // Given the four channels arguments, verify that:
 //

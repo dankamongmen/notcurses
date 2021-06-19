@@ -85,7 +85,7 @@ void cell_release(ncplane* n, nccell* c){
 // Duplicate one cell onto another when they share a plane. Convenience wrapper.
 int nccell_duplicate(ncplane* n, nccell* targ, const nccell* c){
   if(cell_duplicate_far(&n->pool, targ, n, c) < 0){
-    logerror(ncplane_notcurses(n), "Failed duplicating cell\n");
+    logerror("Failed duplicating cell\n");
     return -1;
   }
   return 0;
@@ -468,27 +468,27 @@ int ncplane_mergedown(ncplane* restrict src, ncplane* restrict dst,
                       int dsty, int dstx){
 //fprintf(stderr, "Merging down %d/%d @ %d/%d to %d/%d\n", leny, lenx, begsrcy, begsrcx, dsty, dstx);
   if(dsty >= dst->leny || dstx >= dst->lenx){
-    logerror(ncplane_notcurses_const(dst), "Dest origin %d/%d ≥ dest dimensions %d/%d\n",
+    logerror("Dest origin %d/%d ≥ dest dimensions %d/%d\n",
              dsty, dstx, dst->leny, dst->lenx);
     return -1;
   }
   if(dst->leny - leny < dsty || dst->lenx - lenx < dstx){
-    logerror(ncplane_notcurses_const(dst), "Dest len %d/%d ≥ dest dimensions %d/%d\n",
+    logerror("Dest len %d/%d ≥ dest dimensions %d/%d\n",
              leny, lenx, dst->leny, dst->lenx);
     return -1;
   }
   if(begsrcy >= src->leny || begsrcx >= src->lenx){
-    logerror(ncplane_notcurses_const(dst), "Source origin %d/%d ≥ source dimensions %d/%d\n",
+    logerror("Source origin %d/%d ≥ source dimensions %d/%d\n",
              begsrcy, begsrcx, src->leny, src->lenx);
     return -1;
   }
   if(src->leny - leny < begsrcy || src->lenx - lenx < begsrcx){
-    logerror(ncplane_notcurses_const(dst), "Source len %d/%d ≥ source dimensions %d/%d\n",
+    logerror("Source len %d/%d ≥ source dimensions %d/%d\n",
              leny, lenx, src->leny, src->lenx);
     return -1;
   }
   if(src->sprite || dst->sprite){
-    logerror(ncplane_notcurses_const(dst), "Can't merge sprixel planes\n");
+    logerror("Can't merge sprixel planes\n");
     return -1;
   }
   const int totalcells = dst->leny * dst->lenx;
@@ -496,7 +496,7 @@ int ncplane_mergedown(ncplane* restrict src, ncplane* restrict dst,
   const size_t crenderlen = sizeof(struct crender) * totalcells;
   struct crender* rvec = malloc(crenderlen);
   if(!rendfb || !rvec){
-    logerror(ncplane_notcurses_const(dst), "Error allocating render state for %dx%d\n", leny, lenx);
+    logerror("Error allocating render state for %dx%d\n", leny, lenx);
     free(rendfb);
     free(rvec);
     return -1;
@@ -1460,11 +1460,11 @@ int notcurses_cursor_yx(notcurses* nc, int* y, int* x){
 
 int notcurses_cursor_enable(notcurses* nc, int y, int x){
   if(y < 0 || x < 0){
-    logerror(nc, "Illegal cursor placement: %d, %d\n", y, x);
+    logerror("Illegal cursor placement: %d, %d\n", y, x);
     return -1;
   }
   if(y >= nc->margin_t || x >= nc->margin_l){
-    logerror(nc, "Illegal cursor placement: %d, %d\n", y, x);
+    logerror("Illegal cursor placement: %d, %d\n", y, x);
     return -1;
   }
   // if we're already at the demanded location, we must already be visible, and
@@ -1496,7 +1496,7 @@ int notcurses_cursor_enable(notcurses* nc, int y, int x){
 
 int notcurses_cursor_disable(notcurses* nc){
   if(nc->cursorx < 0 || nc->cursory < 0){
-    logerror(nc, "Cursor is not enabled\n");
+    logerror("Cursor is not enabled\n");
     return -1;
   }
   if(nc->ttyfd >= 0){

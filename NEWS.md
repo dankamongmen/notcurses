@@ -10,7 +10,6 @@ rearrangements of Notcurses.
     or fail. The new routines rely on the terminal answering the Send Device
     Attributes escape; if it does not, Notcurses may refuse to start, or even
     hang. Please report a bug if you run into this.
-
     It is still necessary to supply a correct `TERM` environment variable,
     because this is used to index into the `terminfo(5)` database, which
     seeds most common escapes. The extended capabilities of some modern
@@ -25,6 +24,8 @@ rearrangements of Notcurses.
     `ncdirect_canget_cursor()` to check if the cursor can be located.
   * `ncdirect_dim_y()` and `ncdirect_dim_x()` no longer accept a
     `const ncdirect*`, since they update the term parameters. Sorry!
+  * Added `NCDIRECT_OPTION_VERBOSE` and `NCDIRECT_OPTION_VERY_VERBOSE`.
+    They map to `NCLOGLEVEL_WARNING` and `NCLOGLEVEL_TRACE`, respectively.
 
 * 2.3.4 (2021-06-12)
   * Added the flag `NCVISUAL_OPTION_NOINTERPOLATE` to use non-interpolative

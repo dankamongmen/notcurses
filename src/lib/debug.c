@@ -1,5 +1,7 @@
 #include "internal.h"
 
+int loglevel = NCLOGLEVEL_SILENT;
+
 static inline char
 capyn(const char* cap){
   return cap ? 'y' : 'n';

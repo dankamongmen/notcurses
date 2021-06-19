@@ -65,7 +65,7 @@ puttext_line(ncplane* n, ncalign_e align, const char* text, size_t* bytes){
     wchar_t w;
     const size_t consumed = mbrtowc(&w, text + b, MB_CUR_MAX, &mbstate);
     if(consumed == (size_t)-2 || consumed == (size_t)-1){
-      logerror(ncplane_notcurses(n), "Invalid UTF-8 after %d bytes\n", b);
+      logerror("Invalid UTF-8 after %d bytes\n", b);
       return -1;
     }
 //fprintf(stderr, "converted [%s] -> %lc\n", text + b, w);

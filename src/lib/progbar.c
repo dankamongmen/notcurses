@@ -8,7 +8,7 @@ ncprogbar* ncprogbar_create(ncplane* n, const ncprogbar_options* opts){
     opts = &default_opts;
   }
   if(opts->flags > (NCPROGBAR_OPTION_RETROGRADE << 1u)){
-    logwarn(ncplane_notcurses(n), "Invalid flags %016jx\n", (uintmax_t)opts->flags);
+    logwarn("Invalid flags %016jx\n", (uintmax_t)opts->flags);
   }
   ncprogbar* ret = malloc(sizeof(*ret));
   if(ret){
@@ -169,7 +169,7 @@ progbar_redraw(ncprogbar* n){
 int ncprogbar_set_progress(ncprogbar* n, double p){
 //fprintf(stderr, "PROGRESS: %g\n", p);
   if(p < 0 || p > 1){
-    logerror(ncplane_notcurses(ncprogbar_plane(n)), "Invalid progress %g\n", p);
+    logerror("Invalid progress %g\n", p);
     return -1;
   }
   n->progress = p;

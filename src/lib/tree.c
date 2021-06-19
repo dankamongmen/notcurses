@@ -123,25 +123,24 @@ nctree_inner_create(ncplane* n, const struct nctree_options* opts){
 }
 
 nctree* nctree_create(ncplane* n, const struct nctree_options* opts){
-  notcurses* nc = ncplane_notcurses(n);
   if(opts->flags){
-    logwarn(nc, "Passed invalid flags 0x%016jx\n", (uint64_t)opts->flags);
+    logwarn("Passed invalid flags 0x%016jx\n", (uint64_t)opts->flags);
   }
   if(opts->count == 0 || opts->items == NULL){
-    logerror(nc, "Can't create empty tree\n");
+    logerror("Can't create empty tree\n");
     goto error;
   }
   if(opts->nctreecb == NULL){
-    logerror(nc, "Can't use NULL callback\n");
+    logerror("Can't use NULL callback\n");
     goto error;
   }
   if(opts->indentcols < 0){
-    logerror(nc, "Can't indent negative columns\n");
+    logerror("Can't indent negative columns\n");
     goto error;
   }
   nctree* ret = nctree_inner_create(n, opts);
   if(ret == NULL){
-    logerror(nc, "Couldn't prepare nctree\n");
+    logerror("Couldn't prepare nctree\n");
     goto error;
   }
   return ret;

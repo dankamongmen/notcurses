@@ -14,6 +14,8 @@ notcurses_direct - minimal notcurses instances for styling text
 #define NCDIRECT_OPTION_INHIBIT_SETLOCALE   0x0001ull
 #define NCDIRECT_OPTION_INHIBIT_CBREAK      0x0002ull
 #define NCDIRECT_OPTION_NO_QUIT_SIGHANDLERS 0x0008ull
+#define NCDIRECT_OPTION_VERBOSE             0x0010ull
+#define NCDIRECT_OPTION_VERY_VERBOSE        0x0020ull
 ```
 
 **struct ncdirect* ncdirect_init(const char* ***termtype***, FILE* ***fp***, uint64_t ***flags***);**
@@ -170,6 +172,12 @@ The following flags are defined:
     **SIGTERM**, and **SIGABRT**, cleaning up the terminal on such exceptions.
     With this flag, the handler will not be installed.
 
+* **NCDIRECT_OPTION_VERBOSE**: Enable diagnostics to **stderr** at the level of
+    **NCLOGLEVEL_WARNING**.
+
+* **NCDIRECT_OPTION_VERY_VERBOSE**: Enable all diagnostics (equivalent to
+    **NCLOGLEVEL_TRACE**). Implies **NCDIRECT_OPTION_VERBOSE**.
+
 An appropriate **terminfo(5)** entry must exist for the terminal. This entry is
 usually selected using the value of the **TERM** environment variable (see
 **getenv(3)**), but a non-**NULL** value for **termtype** will override this. An
@@ -224,6 +232,12 @@ support, and 1 if pixel support is successfully detected.
 **NCSTYLE_** constants.
 
 All other functions return 0 on success, and non-zero on error.
+
+# NOTES
+
+You are recommended to accept **-v** and **-vv** as command-line options,
+mapping them to **NCDIRECT_OPTION_VERBOSE** and
+**NCDIRECT_OPTION_VERY_VERBOSE** respectively.
 
 # SEE ALSO
 

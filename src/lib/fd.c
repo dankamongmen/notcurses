@@ -109,7 +109,7 @@ ncfdplane_create_internal(ncplane* n, const ncfdplane_options* opts, int fd,
                           ncfdplane_callback cbfxn, ncfdplane_done_cb donecbfxn,
                           bool thread){
   if(opts->flags > 0){
-    logwarn(ncplane_notcurses(n), "Provided unsupported flags %016jx\n", (uintmax_t)opts->flags);
+    logwarn("Provided unsupported flags %016jx\n", (uintmax_t)opts->flags);
   }
   ncfdplane* ret = malloc(sizeof(*ret));
   if(ret == NULL){
@@ -310,7 +310,7 @@ ncsubproc* ncsubproc_createv(ncplane* n, const ncsubproc_options* opts,
     return NULL;
   }
   if(opts->flags > 0){
-    logwarn(ncplane_notcurses(n), "Provided unsupported flags %016jx\n", (uintmax_t)opts->flags);
+    logwarn("Provided unsupported flags %016jx\n", (uintmax_t)opts->flags);
   }
   int fd = -1;
   ncsubproc* ret = malloc(sizeof(*ret));
@@ -345,7 +345,7 @@ ncsubproc* ncsubproc_createvp(ncplane* n, const ncsubproc_options* opts,
     return NULL;
   }
   if(opts->flags > 0){
-    logwarn(ncplane_notcurses(n), "Provided unsupported flags %016jx\n", (uintmax_t)opts->flags);
+    logwarn("Provided unsupported flags %016jx\n", (uintmax_t)opts->flags);
   }
   int fd = -1;
   ncsubproc* ret = malloc(sizeof(*ret));
@@ -380,7 +380,7 @@ ncsubproc* ncsubproc_createvpe(ncplane* n, const ncsubproc_options* opts,
     return NULL;
   }
   if(opts->flags > 0){
-    logwarn(ncplane_notcurses(n), "Provided unsupported flags %016jx\n", (uintmax_t)opts->flags);
+    logwarn("Provided unsupported flags %016jx\n", (uintmax_t)opts->flags);
   }
   int fd = -1;
   ncsubproc* ret = malloc(sizeof(*ret));
@@ -459,16 +459,16 @@ ncplane* ncsubproc_plane(ncsubproc* n){
 
 // if ttyfp is a tty, return a file descriptor extracted from it. otherwise,
 // try to get the controlling terminal. otherwise, return -1.
-int get_tty_fd(notcurses* nc, FILE* ttyfp){
+int get_tty_fd(FILE* ttyfp){
   int fd = -1;
   if(ttyfp){
     if((fd = fileno(ttyfp)) < 0){
-      logwarn(nc, "No file descriptor was available in outfp %p\n", ttyfp);
+      logwarn("No file descriptor was available in outfp %p\n", ttyfp);
     }else{
       if(isatty(fd)){
         fd = dup(fd);
       }else{
-        loginfo(nc, "File descriptor %d was not a TTY\n", fd);
+        loginfo("File descriptor %d was not a TTY\n", fd);
         fd = -1;
       }
     }
@@ -476,15 +476,15 @@ int get_tty_fd(notcurses* nc, FILE* ttyfp){
   if(fd < 0){
     fd = open("/dev/tty", O_RDWR | O_CLOEXEC);
     if(fd < 0){
-      loginfo(nc, "Error opening /dev/tty (%s)\n", strerror(errno));
+      loginfo("Error opening /dev/tty (%s)\n", strerror(errno));
     }else{
       if(!isatty(fd)){
-        loginfo(nc, "File descriptor for /dev/tty (%d) is not actually a TTY\n", fd);
+        loginfo("File descriptor for /dev/tty (%d) is not actually a TTY\n", fd);
         close(fd);
         fd = -1;
       }
     }
   }
-  loginfo(nc, "Returning TTY fd %d\n", fd);
+  loginfo("Returning TTY fd %d\n", fd);
   return fd;
 }

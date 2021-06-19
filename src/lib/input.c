@@ -48,12 +48,12 @@ int notcurses_linesigs_disable(notcurses* n){
   }
   struct termios tios;
   if(tcgetattr(n->ttyfd, &tios)){
-    logerror(n, "Couldn't preserve terminal state for %d (%s)\n", n->ttyfd, strerror(errno));
+    logerror("Couldn't preserve terminal state for %d (%s)\n", n->ttyfd, strerror(errno));
     return -1;
   }
   tios.c_lflag &= ~ISIG;
   if(tcsetattr(n->ttyfd, TCSANOW, &tios)){
-    logerror(n, "Error disabling signals on %d (%s)\n", n->ttyfd, strerror(errno));
+    logerror("Error disabling signals on %d (%s)\n", n->ttyfd, strerror(errno));
     return -1;
   }
   return 0;
@@ -67,12 +67,12 @@ int notcurses_linesigs_enable(notcurses* n){
   }
   struct termios tios;
   if(tcgetattr(n->ttyfd, &tios)){
-    logerror(n, "Couldn't preserve terminal state for %d (%s)\n", n->ttyfd, strerror(errno));
+    logerror("Couldn't preserve terminal state for %d (%s)\n", n->ttyfd, strerror(errno));
     return -1;
   }
   tios.c_lflag |= ~ISIG;
   if(tcsetattr(n->ttyfd, TCSANOW, &tios)){
-    logerror(n, "Error disabling signals on %d (%s)\n", n->ttyfd, strerror(errno));
+    logerror("Error disabling signals on %d (%s)\n", n->ttyfd, strerror(errno));
     return -1;
   }
   return 0;
@@ -1109,7 +1109,7 @@ int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected){
   setbuffer(infp, NULL, 0);
   nilayer->inputescapes = NULL;
   nilayer->infd = fileno(infp);
-  nilayer->ttyfd = isatty(nilayer->infd) ? -1 : get_tty_fd(NULL, infp);
+  nilayer->ttyfd = isatty(nilayer->infd) ? -1 : get_tty_fd(infp);
   if(prep_special_keys(nilayer)){
     return -1;
   }

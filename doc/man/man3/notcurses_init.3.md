@@ -212,6 +212,17 @@ A subprocess can be streamed to a plane with an **ncsubproc**, etc.
 
 **notcurses_cursor_disable** returns -1 if the cursor is already invisible.
 
+# NOTES
+
+Several command-line options and keybindings are recommended for Notcurses
+rendered-mode programs:
+
+* **-l[0-8]** ought be mapped to the various **NCLOGLEVEL** values.
+  Alternatively, map **-v** to **NCLOGLEVEL_WARNING**, and map
+  **-vv** to **NCLOGLEVEL_INFO**.
+* **-k** ought be mapped to **NCOPTION_NO_ALTERNATE_SCREEN**.
+* Ctrl+L ought be mapped to **notcurses_refresh(3)**.
+
 # SEE ALSO
 
 **getenv(3)**,
