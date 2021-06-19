@@ -10,6 +10,25 @@ TEST_CASE("Visual") {
   auto n_ = notcurses_stdplane(nc_);
   REQUIRE(n_);
 
+  // check that we properly populate RGB + A -> RGBA
+  SUBCASE("VisualFromRGBPacked") {
+    unsigned char rgb[13] = "\x88\x77\x66\x55\x44\x33\x22\x11\x00\x99\xaa\xbb";
+    unsigned char alpha = 0xff;
+    auto ncv = ncvisual_from_rgb_packed(rgb, 2, 6, 2, alpha);
+    REQUIRE(nullptr != ncv);
+    for(int y = 0 ; y < 2 ; ++y){
+      for(int x = 0 ; x < 2 ; ++x){
+        uint32_t p;
+        CHECK(0 == ncvisual_at_yx(ncv, y, x, &p));
+fprintf(stderr, "rgba: 0x%02x 0x%02x 0x%02x 0x%02x\n", ncpixel_r(p), ncpixel_g(p), ncpixel_b(p), ncpixel_a(p));
+        CHECK(ncpixel_r(p) == rgb[y * 6 + x * 3]);
+        CHECK(ncpixel_g(p) == rgb[y * 6 + x * 3 + 1]);
+        CHECK(ncpixel_b(p) == rgb[y * 6 + x * 3 + 2]);
+        CHECK(ncpixel_a(p) == alpha);
+      }
+    }
+  }
+
   // check that NCVISUAL_OPTION_HORALIGNED works in all three cases
   SUBCASE("VisualAligned") {
     const uint32_t pixels[4] = { htole(0xffff0000), htole(0xff00ff00), htole(0xff0000ff), htole(0xffffffff) };
