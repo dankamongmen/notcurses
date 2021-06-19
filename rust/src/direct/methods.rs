@@ -93,7 +93,14 @@ impl NcDirect {
         max_x: NcDim,
     ) -> NcResult<&'a mut NcDirectV> {
         let res = unsafe {
-            crate::ncdirect_render_frame(self, cstring![filename], blitter, scale, max_y as i32, max_x as i32)
+            crate::ncdirect_render_frame(
+                self,
+                cstring![filename],
+                blitter,
+                scale,
+                max_y as i32,
+                max_x as i32,
+            )
         };
         error_ref_mut![
             res,
@@ -276,6 +283,14 @@ impl NcDirect {
 
 /// ## NcDirect methods: capabilities, cursor, dimensions
 impl NcDirect {
+    /// Is there support for acquiring the cursor's current position?
+    ///
+    /// Requires the u7 terminfo capability, and that we are connected to an
+    /// actual terminal.
+    pub fn canget_cursor(&self) -> bool {
+        unsafe { crate::ncdirect_canget_cursor(self) }
+    }
+
     /// Can we reliably use Unicode braille?
     ///
     /// *C style function: [ncdirect_canbraille()][crate::ncdirect_canbraille].*

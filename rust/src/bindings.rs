@@ -162,6 +162,7 @@ pub use ffi::{
 pub use ffi::{
     // functions
     ncdirect_box,
+    ncdirect_canget_cursor,
     ncdirect_canopen_images,
     ncdirect_canutf8,
     ncdirect_check_pixel_support,

@@ -1171,7 +1171,7 @@ impl NcPlane {
     /// Gets a mutable reference to the [`Nc`] context of this NcPlane.
     ///
     /// *C style function: [ncplane_notcurses()][crate::ncplane_notcurses].*
-    pub fn notcurses<'a>(&mut self) -> NcResult<&'a mut Nc> {
+    pub fn notcurses<'a>(&self) -> NcResult<&'a mut Nc> {
         error_ref_mut![
             unsafe { crate::ncplane_notcurses(self) },
             "NcPlane.notcurses()"
