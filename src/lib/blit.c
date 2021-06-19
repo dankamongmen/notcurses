@@ -451,6 +451,7 @@ qtrans_check(nccell* c, unsigned blendcolors,
 static inline int
 quadrant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
               const blitterargs* bargs, int bpp){
+  const unsigned nointerpolate = bargs->flags & NCVISUAL_OPTION_NOINTERPOLATE;
   const bool blendcolors = bargs->flags & NCVISUAL_OPTION_BLEND;
   int dimy, dimx, x, y;
   int total = 0; // number of cells written
@@ -488,7 +489,6 @@ quadrant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
       nccell* c = ncplane_cell_ref_yx(nc, y, x);
       c->channels = 0;
       c->stylemask = 0;
-      const unsigned nointerpolate = bargs->flags & NCVISUAL_OPTION_NOINTERPOLATE;
       const char* egc = qtrans_check(c, blendcolors, rgbbase_tl, rgbbase_tr,
                                      rgbbase_bl, rgbbase_br, bargs->transcolor,
                                      nointerpolate);
@@ -611,7 +611,7 @@ sex_solver(const uint32_t rgbas[6], uint64_t* channels, unsigned blendcolors){
 
 static const char*
 sex_trans_check(cell* c, const uint32_t rgbas[6], unsigned blendcolors,
-                uint32_t transcolor){
+                uint32_t transcolor, unsigned nointerpolate){
   // bit is *set* where sextant *is not*
   // 32: bottom right 16: bottom left
   //  8: middle right  4: middle left
@@ -629,14 +629,22 @@ sex_trans_check(cell* c, const uint32_t rgbas[6], unsigned blendcolors,
   unsigned transstring = 0;
   unsigned r = 0, g = 0, b = 0;
   unsigned div = 0;
+  bool locked = false; // for nointerpolate case, we pick first non-trans
   for(unsigned mask = 0 ; mask < 6 ; ++mask){
     if(rgba_trans_p(rgbas[mask], transcolor)){
       transstring |= (1u << mask);
     }else{
-      r += ncpixel_r(rgbas[mask]);
-      g += ncpixel_g(rgbas[mask]);
-      b += ncpixel_b(rgbas[mask]);
-      ++div;
+      if(!nointerpolate){
+        r += ncpixel_r(rgbas[mask]);
+        g += ncpixel_g(rgbas[mask]);
+        b += ncpixel_b(rgbas[mask]);
+        ++div;
+      }else if(!locked){
+        r = ncpixel_r(rgbas[mask]);
+        g = ncpixel_g(rgbas[mask]);
+        b = ncpixel_b(rgbas[mask]);
+        div = 1;
+      }
     }
   }
   if(transstring == 0){ // there was no transparency
@@ -669,6 +677,7 @@ sex_trans_check(cell* c, const uint32_t rgbas[6], unsigned blendcolors,
 static inline int
 sextant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
              const blitterargs* bargs, int bpp){
+  const unsigned nointerpolate = bargs->flags & NCVISUAL_OPTION_NOINTERPOLATE;
   const bool blendcolors = bargs->flags & NCVISUAL_OPTION_BLEND;
   int dimy, dimx, x, y;
   int total = 0; // number of cells written
@@ -708,7 +717,7 @@ sextant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
       nccell* c = ncplane_cell_ref_yx(nc, y, x);
       c->channels = 0;
       c->stylemask = 0;
-      const char* egc = sex_trans_check(c, rgbas, blendcolors, bargs->transcolor);
+      const char* egc = sex_trans_check(c, rgbas, blendcolors, bargs->transcolor, nointerpolate);
       if(egc == NULL){ // no transparency; run a full solver
         egc = sex_solver(rgbas, &c->channels, blendcolors);
         cell_set_blitquadrants(c, 1, 1, 1, 1);

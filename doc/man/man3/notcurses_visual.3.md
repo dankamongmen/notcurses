@@ -329,6 +329,10 @@ obstruct a row of cells. This can lead to undesirable redraws and flicker if
 the cells underneath the sprixel change. A sprixel which is both a multiple of
 the cell height and a multiple of six is the most predictable possible sprixel.
 
+When using non-interpolative blitting together with scaling, unless your goal
+includes minimizing the total area required, lower-resolution blitters will
+generally look just as good as higher resolution blitters, and be faster.
+
 # BUGS
 
 Functions which describe rendered state such as **ncplane_at_yx** and
