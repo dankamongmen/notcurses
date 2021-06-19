@@ -1,13 +1,11 @@
 # Notcurses: blingful TUIs and character graphics
 
-* **What it is**: a library facilitating complex TUIs on modern terminal
-    emulators, supporting vivid colors, multimedia, threads, and Unicode to the
-    maximum degree possible. [Things](https://www.youtube.com/watch?v=dcjkezf1ARY) can be done with
-    Notcurses that simply can't be done with NCURSES. It is furthermore
-    fast as shit.
-
-* **What it is not**: a source-compatible X/Open Curses implementation, nor a
-    replacement for NCURSES on existing systems.
+**What it is**: a library facilitating complex TUIs on modern terminal
+emulators, supporting vivid colors, multimedia, threads, and Unicode to the
+maximum degree possible. [Things](https://www.youtube.com/watch?v=dcjkezf1ARY) can be done with
+Notcurses that simply can't be done with NCURSES. It is furthermore
+fast as shit. **What it is not**: a source-compatible X/Open Curses implementation, nor a
+replacement for NCURSES on existing systems.
 
 <p align="center">
 <a href="https://www.youtube.com/watch?v=dcjkezf1ARY"><img src="https://raw.githubusercontent.com/dankamongmen/notcurses/gh-pages/notcurses-logo.png" alt="setting the standard (hype video)"/></a>
