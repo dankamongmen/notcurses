@@ -622,10 +622,11 @@ ncvisual* ncvisual_from_rgb_packed(const void* rgba, int rows, int rowstride,
         memcpy(&r, src + rowstride * y + 3 * x, 1);
         memcpy(&g, src + rowstride * y + 3 * x + 1, 1);
         memcpy(&b, src + rowstride * y + 3 * x + 2, 1);
-        ncpixel_set_a(&data[y * cols + x], alpha);
-        ncpixel_set_r(&data[y * cols + x], r);
-        ncpixel_set_g(&data[y * cols + x], g);
-        ncpixel_set_b(&data[y * cols + x], b);
+        ncpixel_set_a(&data[y * ncv->rowstride / 4 + x], alpha);
+        ncpixel_set_r(&data[y * ncv->rowstride / 4 + x], r);
+        ncpixel_set_g(&data[y * ncv->rowstride / 4 + x], g);
+        ncpixel_set_b(&data[y * ncv->rowstride / 4 + x], b);
+//fprintf(stderr, "RGBA: 0x%02x 0x%02x 0x%02x 0x%02x\n", r, g, b, alpha);
       }
     }
     ncvisual_set_data(ncv, data, true);
