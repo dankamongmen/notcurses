@@ -655,7 +655,7 @@ ncvisual* ncvisual_from_rgb_loose(const void* rgba, int rows, int rowstride,
 //fprintf(stderr, "ROWS: %d STRIDE: %d (%d) COLS: %d %08x\n", ncv->pixy, ncv->rowstride, ncv->rowstride / 4, cols, data[ncv->rowstride * y / 4]);
       memcpy(data + (ncv->rowstride * y) / 4, (const char*)rgba + rowstride * y, rowstride);
       for(int x = 0 ; x < cols ; ++x){
-        ncpixel_set_a(&data[y * cols + x], alpha);
+        ncpixel_set_a(&data[y * ncv->rowstride / 4 + x], alpha);
       }
     }
     ncvisual_set_data(ncv, data, true);
