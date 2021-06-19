@@ -6,28 +6,36 @@ static const unsigned char zeroes[] = "\x00\x00\x00\x00";
 
 // linearly interpolate a 24-bit RGB value along each 8-bit channel
 static inline uint32_t
-lerp(uint32_t c0, uint32_t c1){
-  uint32_t ret = 0;
+lerp(uint32_t c0, uint32_t c1, unsigned nointerpolate){
   unsigned r0, g0, b0, r1, g1, b1;
+  uint32_t ret = 0;
   ncchannel_rgb8(c0, &r0, &g0, &b0);
-  ncchannel_rgb8(c1, &r1, &g1, &b1);
-  ncchannel_set_rgb8(&ret, (r0 + r1 + 1) / 2,
-                         (g0 + g1 + 1) / 2,
-                         (b0 + b1 + 1) / 2);
+  if(!nointerpolate){
+    ncchannel_rgb8(c1, &r1, &g1, &b1);
+    ncchannel_set_rgb8(&ret, (r0 + r1 + 1) / 2,
+                          (g0 + g1 + 1) / 2,
+                          (b0 + b1 + 1) / 2);
+  }else{
+    ncchannel_set_rgb8(&ret, r0, g0, b0);
+  }
   return ret;
 }
 
 // linearly interpolate a 24-bit RGB value along each 8-bit channel
 static inline uint32_t
-trilerp(uint32_t c0, uint32_t c1, uint32_t c2){
+trilerp(uint32_t c0, uint32_t c1, uint32_t c2, unsigned nointerpolate){
   uint32_t ret = 0;
   unsigned r0, g0, b0, r1, g1, b1, r2, g2, b2;
   ncchannel_rgb8(c0, &r0, &g0, &b0);
-  ncchannel_rgb8(c1, &r1, &g1, &b1);
-  ncchannel_rgb8(c2, &r2, &g2, &b2);
-  ncchannel_set_rgb8(&ret, (r0 + r1 + r2 + 2) / 3,
-                         (g0 + g1 + g2 + 2) / 3,
-                         (b0 + b1 + b2 + 2) / 3);
+  if(!nointerpolate){
+    ncchannel_rgb8(c1, &r1, &g1, &b1);
+    ncchannel_rgb8(c2, &r2, &g2, &b2);
+    ncchannel_set_rgb8(&ret, (r0 + r1 + r2 + 2) / 3,
+                          (g0 + g1 + g2 + 2) / 3,
+                          (b0 + b1 + b2 + 2) / 3);
+  }else{
+    ncchannel_set_rgb8(&ret, r0, g0, b0);
+  }
   return ret;
 }
 
@@ -233,7 +241,7 @@ rgb_4diff(uint32_t* diffs, uint32_t tl, uint32_t tr, uint32_t bl, uint32_t br){
 // left, top right, bot left, bot right
 static inline const char*
 quadrant_solver(uint32_t tl, uint32_t tr, uint32_t bl, uint32_t br,
-                uint32_t* fore, uint32_t* back){
+                uint32_t* fore, uint32_t* back, unsigned nointerpolate){
   const uint32_t colors[4] = { tl, tr, bl, br };
 //fprintf(stderr, "%08x/%08x/%08x/%08x\n", tl, tr, bl, br);
   uint32_t diffs[sizeof(quadrant_drivers) / sizeof(*quadrant_drivers)];
@@ -265,8 +273,8 @@ quadrant_solver(uint32_t tl, uint32_t tr, uint32_t bl, uint32_t br,
   // the diff of the excluded pair is conveniently located at the inverse
   // location within diffs[] viz mindiffidx.
   // const uint32_t otherdiff = diffs[5 - mindiffidx];
-  *fore = lerp(colors[qd->pair[0]], colors[qd->pair[1]]);
-  *back = lerp(colors[qd->others[0]], colors[qd->others[1]]);
+  *fore = lerp(colors[qd->pair[0]], colors[qd->pair[1]], nointerpolate);
+  *back = lerp(colors[qd->others[0]], colors[qd->others[1]], nointerpolate);
 //fprintf(stderr, "mindiff: %u[%zu] fore: %08x back: %08x %d+%d/%d+%d\n", mindiff, mindiffidx, *fore, *back, qd->pair[0], qd->pair[1], qd->others[0], qd->others[1]);
   const char* egc = qd->egc;
   // break down the excluded pair and lerp
@@ -292,7 +300,8 @@ quadrant_solver(uint32_t tl, uint32_t tr, uint32_t bl, uint32_t br,
   // propose a trilerps; we only need consider the member of the excluded pair
   // closer to the primary lerp. recalculate total diff; merge if lower.
   if(diffs[2] < diffs[3]){
-    unsigned tri = trilerp(colors[qd->pair[0]], colors[qd->pair[1]], colors[qd->others[0]]);
+    unsigned tri = trilerp(colors[qd->pair[0]], colors[qd->pair[1]], colors[qd->others[0]],
+                           nointerpolate);
     ncchannel_rgb8(colors[qd->others[0]], &r2, &g2, &b2);
     ncchannel_rgb8(tri, &roth, &goth, &both);
     if(rgb_diff(r0, g0, b0, roth, goth, both) +
@@ -304,7 +313,8 @@ quadrant_solver(uint32_t tl, uint32_t tr, uint32_t bl, uint32_t br,
     }
 //fprintf(stderr, "quadblitter swap type 1\n");
   }else{
-    unsigned tri = trilerp(colors[qd->pair[0]], colors[qd->pair[1]], colors[qd->others[1]]);
+    unsigned tri = trilerp(colors[qd->pair[0]], colors[qd->pair[1]], colors[qd->others[1]],
+                           nointerpolate);
     ncchannel_rgb8(colors[qd->others[1]], &r2, &g2, &b2);
     ncchannel_rgb8(tri, &roth, &goth, &both);
     if(rgb_diff(r0, g0, b0, roth, goth, both) +
@@ -331,7 +341,7 @@ static inline const char*
 qtrans_check(nccell* c, unsigned blendcolors,
              const unsigned char* rgbbase_tl, const unsigned char* rgbbase_tr,
              const unsigned char* rgbbase_bl, const unsigned char* rgbbase_br,
-             uint32_t transcolor){
+             uint32_t transcolor, unsigned nointerpolate){
   uint32_t tl = 0, tr = 0, bl = 0, br = 0;
   ncchannel_set_rgb8(&tl, rgbbase_tl[0], rgbbase_tl[1], rgbbase_tl[2]);
   ncchannel_set_rgb8(&tr, rgbbase_tr[0], rgbbase_tr[1], rgbbase_tr[2]);
@@ -360,7 +370,7 @@ qtrans_check(nccell* c, unsigned blendcolors,
           cell_set_blitquadrants(c, 0, 0, 1, 0);
           egc = "▖";
         }else{
-          cell_set_fchannel(c, lerp(bl, br));
+          cell_set_fchannel(c, lerp(bl, br, nointerpolate));
           cell_set_blitquadrants(c, 0, 0, 1, 1);
           egc = "▄";
         }
@@ -372,16 +382,16 @@ qtrans_check(nccell* c, unsigned blendcolors,
           cell_set_blitquadrants(c, 0, 1, 0, 0);
           egc = "▝";
         }else{
-          cell_set_fchannel(c, lerp(tr, br));
+          cell_set_fchannel(c, lerp(tr, br, nointerpolate));
           cell_set_blitquadrants(c, 0, 1, 0, 1);
           egc = "▐";
         }
       }else if(rgba_trans_q(rgbbase_br, transcolor)){ // only br is transparent
-        cell_set_fchannel(c, lerp(tr, bl));
+        cell_set_fchannel(c, lerp(tr, bl, nointerpolate));
         cell_set_blitquadrants(c, 0, 1, 1, 0);
         egc = "▞";
       }else{
-        cell_set_fchannel(c, trilerp(tr, bl, br));
+        cell_set_fchannel(c, trilerp(tr, bl, br, nointerpolate));
         cell_set_blitquadrants(c, 0, 1, 1, 1);
         egc = "▟";
       }
@@ -394,31 +404,31 @@ qtrans_check(nccell* c, unsigned blendcolors,
           cell_set_blitquadrants(c, 1, 0, 0, 0);
           egc = "▘";
         }else{
-          cell_set_fchannel(c, lerp(tl, br));
+          cell_set_fchannel(c, lerp(tl, br, nointerpolate));
           cell_set_blitquadrants(c, 1, 0, 0, 1);
           egc = "▚";
         }
       }else if(rgba_trans_q(rgbbase_br, transcolor)){
-        cell_set_fchannel(c, lerp(tl, bl));
+        cell_set_fchannel(c, lerp(tl, bl, nointerpolate));
         cell_set_blitquadrants(c, 1, 0, 1, 0);
         egc = "▌";
       }else{
-        cell_set_fchannel(c, trilerp(tl, bl, br));
+        cell_set_fchannel(c, trilerp(tl, bl, br, nointerpolate));
         cell_set_blitquadrants(c, 1, 0, 1, 1);
         egc = "▙";
       }
     }else if(rgba_trans_q(rgbbase_bl, transcolor)){
       if(rgba_trans_q(rgbbase_br, transcolor)){ // entire bottom is transparent
-        cell_set_fchannel(c, lerp(tl, tr));
+        cell_set_fchannel(c, lerp(tl, tr, nointerpolate));
         cell_set_blitquadrants(c, 1, 1, 0, 0);
         egc = "▀";
       }else{ // only bl is transparent
-        cell_set_fchannel(c, trilerp(tl, tr, br));
+        cell_set_fchannel(c, trilerp(tl, tr, br, nointerpolate));
         cell_set_blitquadrants(c, 1, 1, 0, 1);
         egc = "▜";
       }
     }else if(rgba_trans_q(rgbbase_br, transcolor)){ // only br is transparent
-      cell_set_fchannel(c, trilerp(tl, tr, bl));
+      cell_set_fchannel(c, trilerp(tl, tr, bl, nointerpolate));
       cell_set_blitquadrants(c, 1, 1, 1, 0);
       egc = "▛";
     }else{
@@ -478,7 +488,10 @@ quadrant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
       nccell* c = ncplane_cell_ref_yx(nc, y, x);
       c->channels = 0;
       c->stylemask = 0;
-      const char* egc = qtrans_check(c, blendcolors, rgbbase_tl, rgbbase_tr, rgbbase_bl, rgbbase_br, bargs->transcolor);
+      const unsigned nointerpolate = bargs->flags & NCVISUAL_OPTION_NOINTERPOLATE;
+      const char* egc = qtrans_check(c, blendcolors, rgbbase_tl, rgbbase_tr,
+                                     rgbbase_bl, rgbbase_br, bargs->transcolor,
+                                     nointerpolate);
       if(egc == NULL){
         uint32_t tl = 0, tr = 0, bl = 0, br = 0;
         ncchannel_set_rgb8(&tl, rgbbase_tl[0], rgbbase_tl[1], rgbbase_tl[2]);
@@ -487,7 +500,7 @@ quadrant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
         ncchannel_set_rgb8(&br, rgbbase_br[0], rgbbase_br[1], rgbbase_br[2]);
         uint32_t bg, fg;
 //fprintf(stderr, "qtrans check: %d/%d\n%08x %08x\n%08x %08x\n", y, x, *(const uint32_t*)rgbbase_tl, *(const uint32_t*)rgbbase_tr, *(const uint32_t*)rgbbase_bl, *(const uint32_t*)rgbbase_br);
-        egc = quadrant_solver(tl, tr, bl, br, &fg, &bg);
+        egc = quadrant_solver(tl, tr, bl, br, &fg, &bg, nointerpolate);
         assert(egc);
 //fprintf(stderr, "%d/%d %08x/%08x\n", y, x, fg, bg);
         cell_set_fchannel(c, fg);
