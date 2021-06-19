@@ -285,9 +285,6 @@ void* rgb_loose_to_rgba(const void* data, int rows, int* rowstride, int cols, in
 }
 
 void* rgb_packed_to_rgba(const void* data, int rows, int* rowstride, int cols, int alpha){
-  if(*rowstride % 3){ // must be a multiple of 3 bytes
-    return NULL;
-  }
   if(*rowstride < cols * 3){
     return NULL;
   }
@@ -581,6 +578,7 @@ pad_for_image(size_t stride){
 
 ncvisual* ncvisual_from_rgba(const void* rgba, int rows, int rowstride, int cols){
   if(rowstride % 4){
+    logerror("Rowstride %d not a multiple of 4\n", rowstride);
     return NULL;
   }
   ncvisual* ncv = ncvisual_create();
@@ -597,6 +595,67 @@ ncvisual* ncvisual_from_rgba(const void* rgba, int rows, int rowstride, int cols
     for(int y = 0 ; y < rows ; ++y){
       memcpy(data + (ncv->rowstride * y) / 4, (const char*)rgba + rowstride * y, rowstride);
 //fprintf(stderr, "ROWS: %d STRIDE: %d (%d) COLS: %d %08x\n", ncv->pixy, ncv->rowstride, ncv->rowstride / 4, cols, data[ncv->rowstride * y / 4]);
+    }
+    ncvisual_set_data(ncv, data, true);
+    ncvisual_details_seed(ncv);
+  }
+  return ncv;
+}
+
+ncvisual* ncvisual_from_rgb_packed(const void* rgba, int rows, int rowstride,
+                                   int cols, int alpha){
+  ncvisual* ncv = ncvisual_create();
+  if(ncv){
+    ncv->rowstride = pad_for_image(rowstride);
+    ncv->pixx = cols;
+    ncv->pixy = rows;
+    uint32_t* data = malloc(ncv->rowstride * ncv->pixy);
+    if(data == NULL){
+      ncvisual_destroy(ncv);
+      return NULL;
+    }
+    const unsigned char* src = rgba;
+    for(int y = 0 ; y < rows ; ++y){
+//fprintf(stderr, "ROWS: %d STRIDE: %d (%d) COLS: %d %08x\n", ncv->pixy, ncv->rowstride, ncv->rowstride / 4, cols, data[ncv->rowstride * y / 4]);
+      for(int x = 0 ; x < cols ; ++x){
+        unsigned char r, g, b;
+        memcpy(&r, src + rowstride * y + 3 * x, 1);
+        memcpy(&g, src + rowstride * y + 3 * x + 1, 1);
+        memcpy(&b, src + rowstride * y + 3 * x + 2, 1);
+        ncpixel_set_a(&data[y * cols + x], alpha);
+        ncpixel_set_r(&data[y * cols + x], r);
+        ncpixel_set_g(&data[y * cols + x], g);
+        ncpixel_set_b(&data[y * cols + x], b);
+      }
+    }
+    ncvisual_set_data(ncv, data, true);
+    ncvisual_details_seed(ncv);
+  }
+  return ncv;
+}
+
+ncvisual* ncvisual_from_rgb_loose(const void* rgba, int rows, int rowstride,
+                                  int cols, int alpha){
+  if(rowstride % 4){
+    logerror("Rowstride %d not a multiple of 4\n", rowstride);
+    return NULL;
+  }
+  ncvisual* ncv = ncvisual_create();
+  if(ncv){
+    ncv->rowstride = pad_for_image(rowstride);
+    ncv->pixx = cols;
+    ncv->pixy = rows;
+    uint32_t* data = malloc(ncv->rowstride * ncv->pixy);
+    if(data == NULL){
+      ncvisual_destroy(ncv);
+      return NULL;
+    }
+    for(int y = 0 ; y < rows ; ++y){
+//fprintf(stderr, "ROWS: %d STRIDE: %d (%d) COLS: %d %08x\n", ncv->pixy, ncv->rowstride, ncv->rowstride / 4, cols, data[ncv->rowstride * y / 4]);
+      memcpy(data + (ncv->rowstride * y) / 4, (const char*)rgba + rowstride * y, rowstride);
+      for(int x = 0 ; x < cols ; ++x){
+        ncpixel_set_a(&data[y * cols + x], alpha);
+      }
     }
     ncvisual_set_data(ncv, data, true);
     ncvisual_details_seed(ncv);

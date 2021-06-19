@@ -56,6 +56,10 @@ typedef int (*streamcb)(struct notcurses*, struct ncvisual*, void*);
 
 **struct ncvisual* ncvisual_from_rgba(const void* ***rgba***, int ***rows***, int ***rowstride***, int ***cols***);**
 
+**struct ncvisual* ncvisual_from_rgb_packed(const void* ***rgba***, int ***rows***, int ***rowstride***, int ***cols***, int ***alpha***);**
+
+**struct ncvisual* ncvisual_from_rgb_loose(const void* ***rgba***, int ***rows***, int ***rowstride***, int ***cols***, int ***alpha***);**
+
 **struct ncvisual* ncvisual_from_bgra(const void* ***bgra***, int ***rows***, int ***rowstride***, int ***cols***);**
 
 **struct ncvisual* ncvisual_from_plane(struct ncplane* ***n***, ncblitter_e ***blit***, int ***begy***, int ***begx***, int ***leny***, int ***lenx***);**
@@ -129,10 +133,14 @@ thus must be at least ***rowstride*** * ***rows*** bytes, of which a
 ***cols*** * ***rows*** * 4-byte subset is used. It is not possible to **mmap(2)** an image
 file and use it directly--decompressed, decoded data is necessary. The
 resulting plane will be ceil(**rows**/2) rows, and **cols** columns.
+
+**ncvisual_from_rgb_packed** performs the same using 3-byte RGB source data.
+**ncvisual_from_rgb_loose** uses 4-byte RGBx source data. Both will fill in
+the alpha component of every target pixel with the specified **alpha**.
+
 **ncvisual_from_plane** requires specification of a rectangle via ***begy***,
-***begx***, ***leny***, and ***lenx***. The only valid characters within this
-region are those used by the **NCBLIT_2x2** blitter, though this may change
-in the future.
+***begx***, ***leny***, and ***lenx***, and also a blitter. The only valid
+glyphs within this region are those used by the specified blitter.
 
 **ncvisual_rotate** executes a rotation of ***rads*** radians, in the clockwise
 (positive) or counterclockwise (negative) direction.

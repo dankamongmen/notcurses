@@ -2531,6 +2531,18 @@ API ALLOC struct ncvisual* ncvisual_from_file(const char* file);
 API ALLOC struct ncvisual* ncvisual_from_rgba(const void* rgba, int rows,
                                               int rowstride, int cols);
 
+// ncvisual_from_rgba(), but the pixels are 4-byte RGBx. A is filled in
+// throughout using 'alpha'. rowstride must be a multiple of 4.
+API ALLOC struct ncvisual* ncvisual_from_rgb_packed(const void* rgba, int rows,
+                                                    int rowstride, int cols,
+                                                    int alpha);
+
+// ncvisual_from_rgba(), but the pixels are 3-byte RGB. A is filled in
+// throughout using 'alpha'.
+API ALLOC struct ncvisual* ncvisual_from_rgb_loose(const void* rgba, int rows,
+                                                   int rowstride, int cols,
+                                                   int alpha);
+
 // ncvisual_from_rgba(), but 'bgra' is arranged as BGRA. note that this is a
 // byte-oriented layout, despite being bunched in 32-bit pixels; the lowest
 // memory address ought be B, and A is reached by adding 3 to that address.
@@ -2739,8 +2751,7 @@ API int ncblit_rgba(const void* data, int linesize,
 API int ncblit_bgrx(const void* data, int linesize,
                     const struct ncvisual_options* vopts);
 
-// Supply an alpha value [0..255] to be applied throughout. linesize must be
-// a multiple of 3 for this RGB data.
+// Supply an alpha value [0..255] to be applied throughout.
 API int ncblit_rgb_packed(const void* data, int linesize,
                           const struct ncvisual_options* vopts, int alpha);
 

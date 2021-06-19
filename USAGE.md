@@ -1600,7 +1600,7 @@ int ncblit_rgb_loose(const void* data, int linesize,
                      const struct ncvisual_options* vopts, int alpha);
 
 // Same as ncblit_rgba(), but for RGB, with 'alpha' supplied as an alpha value
-// throughout, 0 <= 'alpha' <= 255. linesize ought be a multiple of 3.
+// throughout, 0 <= 'alpha' <= 255.
 int ncblit_rgb_packed(const void* data, int linesize,
                       const struct ncvisual_options* vopts, int alpha);
 
@@ -3086,6 +3086,16 @@ constructed directly from RGBA or BGRA 8bpc memory:
 // which (rows * cols * 4) bytes are actual non-padding data.
 struct ncvisual* ncvisual_from_rgba(const void* rgba, int rows,
                                     int rowstride, int cols);
+
+// ncvisual_from_rgba(), but the pixels are 4-byte RGBx. A is filled in
+// throughout using 'alpha'. rowstride must be a multiple of 4.
+struct ncvisual* ncvisual_from_rgb_packed(const void* rgba, int rows,
+                                          int rowstride, int cols, int alpha);
+
+// ncvisual_from_rgba(), but the pixels are 3-byte RGB. A is filled in
+// throughout using 'alpha'.
+struct ncvisual* ncvisual_from_rgb_loose(const void* rgba, int rows,
+                                         int rowstride, int cols, int alpha);
 
 // ncvisual_from_rgba(), but for BGRA.
 struct ncvisual* ncvisual_from_bgra(struct notcurses* nc, const void* bgra,
