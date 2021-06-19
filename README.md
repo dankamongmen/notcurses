@@ -10,7 +10,7 @@
     replacement for NCURSES on existing systems.
 
 <p align="center">
-<a href="https://www.youtube.com/watch?v=dcjkezf1ARY"><img src="https://img.youtube.com/vi/dcjkezf1ARY/0.jpg" alt="setting the standard (hype video)"/></a>
+<a href="https://www.youtube.com/watch?v=dcjkezf1ARY"><img src="https://raw.githubusercontent.com/dankamongmen/notcurses/gh-pages/notcurses-logo.png" alt="setting the standard (hype video)"/></a>
 </p>
 
 birthed screaming into this world by [nick black](https://nick-black.com/dankwiki/index.php/Hack_on) (<nickblack@linux.com>)
