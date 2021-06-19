@@ -528,20 +528,17 @@ quadrant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
 // (all six pixels are different colors). We want to solve for the 2-partition
 // of pixels that minimizes total source distance from the resulting lerps.
 static const char*
-sex_solver(const uint32_t rgbas[6], uint64_t* channels, unsigned blendcolors){
+sex_solver(const uint32_t rgbas[6], uint64_t* channels, unsigned blendcolors,
+           unsigned nointerpolate){
   // each element within the set of 64 has an inverse element within the set,
   // for which we would calculate the same total differences, so just handle
   // the first 32. the partition[] bit masks represent combinations of
   // sextants, and their indices correspond to sex[].
   static const char* sex[32] = {
     " ", "🬀", "🬁", "🬃", "🬇", "🬏", "🬞", "🬂", // 0..7
-
     "🬄", "🬈", "🬐", "🬟", "🬅", "🬉", "🬑", "🬠", // 8..15
-
     "🬋", "🬓", "🬢", "🬖", "🬦", "🬭", "🬆", "🬊", // 16..23
-
     "🬒", "🬡", "🬌", "▌", "🬣", "🬗", "🬧", "🬍", // 24..31
-
   };
   static const unsigned partitions[32] = {
     0, // 1 way to arrange 0
@@ -561,20 +558,26 @@ sex_solver(const uint32_t rgbas[6], uint64_t* channels, unsigned blendcolors){
     unsigned gsum0 = 0, gsum1 = 0;
     unsigned bsum0 = 0, bsum1 = 0;
     int insum = 0;
+    int outsum = 0;
     for(unsigned mask = 0 ; mask < 6 ; ++mask){
       if(partitions[glyph] & (1u << mask)){
-        rsum0 += ncpixel_r(rgbas[mask]);
-        gsum0 += ncpixel_g(rgbas[mask]);
-        bsum0 += ncpixel_b(rgbas[mask]);
-        ++insum;
+        if(!nointerpolate || !insum){
+          rsum0 += ncpixel_r(rgbas[mask]);
+          gsum0 += ncpixel_g(rgbas[mask]);
+          bsum0 += ncpixel_b(rgbas[mask]);
+          ++insum;
+        }
       }else{
-        rsum1 += ncpixel_r(rgbas[mask]);
-        gsum1 += ncpixel_g(rgbas[mask]);
-        bsum1 += ncpixel_b(rgbas[mask]);
+        if(!nointerpolate || !outsum){
+          rsum1 += ncpixel_r(rgbas[mask]);
+          gsum1 += ncpixel_g(rgbas[mask]);
+          bsum1 += ncpixel_b(rgbas[mask]);
+          ++outsum;
+        }
       }
     }
     uint32_t l0 = generalerp(rsum0, gsum0, bsum0, insum);
-    uint32_t l1 = generalerp(rsum1, gsum1, bsum1, 6 - insum);
+    uint32_t l1 = generalerp(rsum1, gsum1, bsum1, outsum);
 //fprintf(stderr, "sum0: %06x sum1: %06x insum: %d\n", l0 & 0xffffffu, l1 & 0xffffffu, insum);
     uint32_t totaldiff = 0;
     for(unsigned mask = 0 ; mask < 6 ; ++mask){
@@ -629,22 +632,14 @@ sex_trans_check(cell* c, const uint32_t rgbas[6], unsigned blendcolors,
   unsigned transstring = 0;
   unsigned r = 0, g = 0, b = 0;
   unsigned div = 0;
-  bool locked = false; // for nointerpolate case, we pick first non-trans
   for(unsigned mask = 0 ; mask < 6 ; ++mask){
     if(rgba_trans_p(rgbas[mask], transcolor)){
       transstring |= (1u << mask);
-    }else{
-      if(!nointerpolate){
-        r += ncpixel_r(rgbas[mask]);
-        g += ncpixel_g(rgbas[mask]);
-        b += ncpixel_b(rgbas[mask]);
-        ++div;
-      }else if(!locked){
-        r = ncpixel_r(rgbas[mask]);
-        g = ncpixel_g(rgbas[mask]);
-        b = ncpixel_b(rgbas[mask]);
-        div = 1;
-      }
+    }else if(!nointerpolate || !div){
+      r += ncpixel_r(rgbas[mask]);
+      g += ncpixel_g(rgbas[mask]);
+      b += ncpixel_b(rgbas[mask]);
+      ++div;
     }
   }
   if(transstring == 0){ // there was no transparency
@@ -719,7 +714,7 @@ sextant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
       c->stylemask = 0;
       const char* egc = sex_trans_check(c, rgbas, blendcolors, bargs->transcolor, nointerpolate);
       if(egc == NULL){ // no transparency; run a full solver
-        egc = sex_solver(rgbas, &c->channels, blendcolors);
+        egc = sex_solver(rgbas, &c->channels, blendcolors, nointerpolate);
         cell_set_blitquadrants(c, 1, 1, 1, 1);
       }
 //fprintf(stderr, "sex EGC: %s channels: %016lx\n", egc, c->channels);
