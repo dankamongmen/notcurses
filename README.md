@@ -10,7 +10,7 @@
     replacement for NCURSES on existing systems.
 
 <p align="center">
-<a href="https://www.youtube.com/watch?v=cYhZ7myXyyg"><img src="https://img.youtube.com/vi/cYhZ7myXyyg/0.jpg" alt="setting the standard (hype video)"/></a>
+<a href="https://www.youtube.com/watch?v=dcjkezf1ARY"><img src="https://img.youtube.com/vi/dcjkezf1ARY/0.jpg" alt="setting the standard (hype video)"/></a>
 </p>
 
 birthed screaming into this world by [nick black](https://nick-black.com/dankwiki/index.php/Hack_on) (<nickblack@linux.com>)
@@ -41,6 +41,10 @@ sudo add-apt-repository ppa:dankamongmen/notcurses
 sudo apt-get update
 ```
 
+<a href="https://repology.org/project/notcurses/versions">
+<img src="https://repology.org/badge/vertical-allrepos/notcurses.svg" alt="Packaging status" align="right">
+</a>
+
 ![Linux](https://img.shields.io/badge/-Linux-grey?logo=linux)
 ![FreeBSD](https://img.shields.io/badge/-FreeBSD-grey?logo=freebsd)
 [![Matrix](https://img.shields.io/matrix/notcursesdev:matrix.org?label=matrixchat)](https://app.element.io/#/room/#notcursesdev:matrix.org)
@@ -51,10 +55,6 @@ sudo apt-get update
 
 [![pypi_version](https://img.shields.io/pypi/v/notcurses?label=pypi)](https://pypi.org/project/notcurses)
 [![crates.io](https://img.shields.io/crates/v/libnotcurses-sys.svg)](https://crates.io/crates/libnotcurses-sys)
-
-<a href="https://repology.org/project/notcurses/versions">
-<img src="https://repology.org/badge/vertical-allrepos/notcurses.svg" alt="Packaging status" align="right">
-</a>
 
 ## Introduction
 
