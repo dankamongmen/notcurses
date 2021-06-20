@@ -653,9 +653,10 @@ typedef struct query_state {
   // if the terminal unambiguously identifies itself in response to our
   // queries, use that identification for advanced feature support.
   queried_terminals_e qterm;
-  initstates_e state, stringstate;
+  char* version;        // terminal version, if detected. heap-allocated.
   // stringstate is the state at which this string was initialized, and can be
   // one of STATE_XTVERSION1, STATE_XTGETTCAP_TERMNAME1, STATE_TDA1, and STATE_BG1
+  initstates_e state, stringstate;
   int numeric;          // currently-lexed numeric
   char runstring[80];   // running string
   size_t stridx;        // position to write in string
@@ -727,6 +728,12 @@ stash_string(query_state* inits){
     case STATE_XTVERSION1:{
       int xversion;
       if(sscanf(inits->runstring, "XTerm(%d)", &xversion) == 1){
+        // enough space for everything besides "XTerm()"
+        size_t bytes = strlen(inits->runstring) - 7 + 1;
+        inits->version = malloc(bytes);
+        if(inits->version){
+          sprintf(inits->version, "%d", xversion);
+        }
         inits->qterm = TERMINAL_XTERM;
       }else if(strncmp(inits->runstring, "WezTerm ", strlen("WezTerm ")) == 0){
         inits->qterm = TERMINAL_WEZTERM;
@@ -1125,9 +1132,11 @@ int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected,
     };
     if(control_read(csifd, &inits)){
       input_free_esctrie(&nilayer->inputescapes);
+      free(inits.version);
       return -1;
     }
     tcache->bg_collides_default = inits.bg;
+    tcache->termversion = inits.version;
     *detected = inits.qterm;
     *appsync = inits.appsync;
   }
