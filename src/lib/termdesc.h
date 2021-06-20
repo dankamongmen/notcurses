@@ -1,5 +1,5 @@
-#ifndef NOTCURSES_TERM
-#define NOTCURSES_TERM
+#ifndef NOTCURSES_TERMDESC
+#define NOTCURSES_TERMDESC
 
 #ifdef __cplusplus
 extern "C" {
@@ -169,21 +169,6 @@ static inline int
 term_supported_styles(const tinfo* ti){
   return ti->supported_styles;
 }
-
-// if the terminal unambiguously identifies itself in response to our
-// queries, go ahead and trust that, overriding TERM.
-typedef enum {
-  TERMINAL_UNKNOWN,       // no useful information from queries; use termname
-  TERMINAL_LINUX,         // ioctl()s
-  TERMINAL_XTERM,         // XTVERSION == 'XTerm(ver)'
-  TERMINAL_VTE,           // TDA: "~VTE"
-  TERMINAL_KITTY,         // XTGETTCAP['TN'] == 'xterm-kitty'
-  TERMINAL_FOOT,          // TDA: "\EP!|464f4f54\E\\"
-  TERMINAL_MLTERM,        // XTGETTCAP['TN'] == 'mlterm'
-  TERMINAL_WEZTERM,       // XTVERSION == 'WezTerm *'
-  TERMINAL_ALACRITTY,     // can't be detected; match TERM
-  TERMINAL_CONTOUR,       // XTVERSION == 'console *'
-} queried_terminals_e;
 
 #ifdef __cplusplus
 }

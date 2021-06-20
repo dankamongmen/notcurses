@@ -1,3 +1,4 @@
+#include "input.h"
 #include "internal.h"
 #include "notcurses/direct.h"
 #include <poll.h>
@@ -648,8 +649,10 @@ typedef enum {
 } initstates_e;
 
 typedef struct query_state {
-  tinfo* tcache;
-  queried_terminals_e qterm;  // discovered terminal
+  struct tinfo* tcache;
+  // if the terminal unambiguously identifies itself in response to our
+  // queries, use that identification for advanced feature support.
+  queried_terminals_e qterm;
   initstates_e state, stringstate;
   // stringstate is the state at which this string was initialized, and can be
   // one of STATE_XTVERSION1, STATE_XTGETTCAP_TERMNAME1, STATE_TDA1, and STATE_BG1
@@ -658,6 +661,7 @@ typedef struct query_state {
   size_t stridx;        // position to write in string
   uint32_t bg;          // queried default background or 0
   bool xtgettcap_good;  // high when we've received DCS 1
+  bool appsync;         // application-synchronized updates advertised
 } query_state;
 
 static int
@@ -1096,7 +1100,8 @@ err:
   return -1;
 }
 
-int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected){
+int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected,
+                      unsigned* appsync){
   ncinputlayer* nilayer = &tcache->input;
   setbuffer(infp, NULL, 0);
   nilayer->inputescapes = NULL;
@@ -1122,6 +1127,7 @@ int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected){
     }
     tcache->bg_collides_default = inits.bg;
     *detected = inits.qterm;
+    *appsync = inits.appsync;
   }
   return 0;
 }

@@ -1,6 +1,7 @@
 #include <fcntl.h>
 #include <ncurses.h> // needed for some definitions, see terminfo(3ncurses)
 #include "internal.h"
+#include "input.h"
 
 // we found Sixel support -- set up the API
 static inline void
@@ -166,6 +167,15 @@ add_smulx_escapes(tinfo* ti, size_t* tablelen, size_t* tableused){
     return -1;
   }
   ti->supported_styles |= NCSTYLE_UNDERCURL;
+  return 0;
+}
+
+static int
+add_appsync_escapes(tinfo* ti, size_t* tablelen, size_t* tableused){
+  if(grow_esc_table(ti, "\x1bP=1s\x1b\\", ESCAPE_BSU, tablelen, tableused) ||
+     grow_esc_table(ti, "\x1bP=2s\x1b\\", ESCAPE_ESU, tablelen, tableused)){
+    return -1;
+  }
   return 0;
 }
 
@@ -463,8 +473,9 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
       goto err;
     }
   }
+  unsigned appsync_advertised;
   queried_terminals_e detected;
-  if(ncinputlayer_init(ti, stdin, &detected)){
+  if(ncinputlayer_init(ti, stdin, &detected, &appsync_advertised)){
     goto err;
   }
   if(nocbreak){
@@ -473,6 +484,11 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
         ncinputlayer_stop(&ti->input);
         goto err;
       }
+    }
+  }
+  if(appsync_advertised){
+    if(add_appsync_escapes(ti, &tablelen, &tableused)){
+      goto err;
     }
   }
   if(apply_term_heuristics(ti, termname, fd, detected, &tablelen, &tableused)){
