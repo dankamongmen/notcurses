@@ -61,6 +61,10 @@ typedef enum {
   ESCAPE_INITC,    // "initc" set up palette entry
   ESCAPE_GETM,     // "getm" get mouse events
   ESCAPE_DSRCPR,   // "u7" cursor position report
+  // Application synchronized updates, not present in terminfo
+  // (https://gitlab.com/gnachman/iterm2/-/wikis/synchronized-updates-spec)
+  ESCAPE_BSU,      // Begin Synchronized Update
+  ESCAPE_ESU,      // End Synchronized Update
   ESCAPE_MAX
 } escape_e;
 
