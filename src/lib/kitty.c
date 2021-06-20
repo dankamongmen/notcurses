@@ -610,10 +610,11 @@ int kitty_destroy(const notcurses* nc __attribute__ ((unused)),
   return 0;
 }
 
+// returns the number of bytes written
 int kitty_draw(const ncpile* p, sprixel* s, FILE* out){
 //fprintf(stderr, "DRAWING %d\n", s->id);
   (void)p;
-  int ret = 0;
+  int ret = s->glyphlen;
   if(fwrite(s->glyph, s->glyphlen, 1, out) != 1){
     ret = -1;
   }

@@ -898,23 +898,23 @@ emit_bg_palindex(notcurses* nc, FILE* out, const nccell* srccell){
 }
 
 // remove any sprixels which are no longer desired. for kitty, this will be
-// a pure erase; for sixel, we must overwrite.
-static int
+// a pure erase; for sixel, we must overwrite. returns -1 on failure, and
+// otherwise the number of bytes emitted redrawing sprixels.
+static int64_t
 clean_sprixels(notcurses* nc, ncpile* p, FILE* out){
   sprixel* s;
   sprixel** parent = &p->sprixelcache;
-  int ret = 0;
+  int64_t bytesemitted = 0;
   while( (s = *parent) ){
     if(s->invalidated == SPRIXEL_HIDE){
 //fprintf(stderr, "OUGHT HIDE %d [%dx%d] %p\n", s->id, s->dimy, s->dimx, s);
-      if(sprite_destroy(nc, p, out, s) == 0){
-        if( (*parent = s->next) ){
-          s->next->prev = s->prev;
-        }
-        sprixel_free(s);
-      }else{
-        ret = -1;
+      if(sprite_destroy(nc, p, out, s)){
+        return -1;
       }
+      if( (*parent = s->next) ){
+        s->next->prev = s->prev;
+      }
+      sprixel_free(s);
     }else if(s->invalidated == SPRIXEL_MOVED || s->invalidated == SPRIXEL_INVALIDATED){
       int y, x;
       ncplane_yx(s->n, &y, &x);
@@ -925,9 +925,11 @@ clean_sprixels(notcurses* nc, ncpile* p, FILE* out){
         sprite_destroy(nc, p, out, s);
       }
       if(goto_location(nc, out, y + nc->margin_t, x + nc->margin_l) == 0){
-        if(sprite_draw(nc, p, s, out)){
+        int r = sprite_draw(nc, p, s, out);
+        if(r < 0){
           return -1;
         }
+        bytesemitted += r;
         nc->rstate.hardcursorpos = true;
       }
       parent = &s->next;
@@ -937,31 +939,32 @@ clean_sprixels(notcurses* nc, ncpile* p, FILE* out){
       parent = &s->next;
     }
   }
-  return ret;
+  return bytesemitted;
 }
 
-// returns -1 on error, 0 on success. draw any sprixels. any material
-// underneath them has already been updated.
-static int
+// draw any invalidated sprixels. returns -1 on error, number of bytes written
+// on success. any material underneath them has already been updated.
+static int64_t
 rasterize_sprixels(notcurses* nc, ncpile* p, FILE* out){
-  int ret = 0;
+  int64_t bytesemitted = 0;
   for(sprixel* s = p->sprixelcache ; s ; s = s->next){
     if(s->invalidated == SPRIXEL_INVALIDATED){
       int y, x;
       ncplane_yx(s->n, &y, &x);
 //fprintf(stderr, "3 DRAWING BITMAP %d STATE %d AT %d/%d for %p\n", s->id, s->invalidated, y + nc->margin_t, x + nc->margin_l, s->n);
-      if(goto_location(nc, out, y + nc->margin_t, x + nc->margin_l) == 0){
-        if(sprite_draw(nc, p, s, out)){
-          return -1;
-        }
-        nc->rstate.hardcursorpos = true;
-      }else{
-        ret = -1;
+      if(goto_location(nc, out, y + nc->margin_t, x + nc->margin_l)){
+        return -1;
       }
+      int r = sprite_draw(nc, p, s, out);
+      if(r < 0){
+        return -1;
+      }
+      bytesemitted += r;
+      nc->rstate.hardcursorpos = true;
       ++nc->stats.sprixelemissions;
     }
   }
-  return ret;
+  return bytesemitted;
 }
 
 // Producing the frame requires three steps:
@@ -1103,7 +1106,8 @@ notcurses_rasterize_inner(notcurses* nc, ncpile* p, FILE* out){
   // we explicitly move the cursor at the beginning of each output line, so no
   // need to home it expliticly.
 //fprintf(stderr, "pile %p ymax: %d xmax: %d\n", p, p->dimy + nc->margin_t, p->dimx + nc->margin_l);
-  if(clean_sprixels(nc, p, out) < 0){
+  int64_t sprixelbytes = clean_sprixels(nc, p, out);
+  if(sprixelbytes < 0){
     return -1;
   }
   update_palette(nc, out);
@@ -1112,9 +1116,14 @@ notcurses_rasterize_inner(notcurses* nc, ncpile* p, FILE* out){
     return -1;
   }
 //fprintf(stderr, "RASTERIZE SPRIXELS\n");
-  if(rasterize_sprixels(nc, p, out) < 0){
+  int64_t rasprixelbytes = rasterize_sprixels(nc, p, out);
+  if(rasprixelbytes < 0){
     return -1;
   }
+  sprixelbytes += rasprixelbytes;
+  pthread_mutex_lock(&nc->statlock);
+  nc->stats.sprixelbytes += sprixelbytes;
+  pthread_mutex_unlock(&nc->statlock);
 //fprintf(stderr, "RASTERIZE CORE\n");
   if(rasterize_core(nc, p, out, 1)){
     return -1;
