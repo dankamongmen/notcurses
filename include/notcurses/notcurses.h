@@ -1443,6 +1443,9 @@ API int ncplane_resize(struct ncplane* n, int keepy, int keepx, int keepleny,
 // shrinking in some dimension). Keep the origin where it is.
 static inline int
 ncplane_resize_simple(struct ncplane* n, int ylen, int xlen){
+  if(ylen < 0 || xlen < 0){
+    return -1;
+  }
   int oldy, oldx;
   ncplane_dim_yx(n, &oldy, &oldx); // current dimensions of 'n'
   int keepleny = oldy > ylen ? ylen : oldy;
