@@ -41,8 +41,35 @@ interp(struct notcurses* nc, int cellpixy, int cellpixx){
   if(ncvisual_render(nc, ncv, &vopts) == NULL){
     return -1;
   }
-notcurses_debug(nc, stderr);
+  popts.x += ncplane_dim_x(scalepni) + 1;
+  struct ncplane* resizep = ncplane_create(stdn, &popts);
+  if(resizep == NULL){
+    return -1;
+  }
+  if(ncvisual_resize(ncv, popts.rows * cellpixy, popts.cols * cellpixx)){
+    return -1;
+  }
+  vopts.flags = 0;
+  vopts.n = resizep;
+  vopts.scaling = NCSCALE_NONE;
+  if(ncvisual_render(nc, ncv, &vopts) == NULL){
+    return -1;
+  }
   ncvisual_destroy(ncv);
+  ncv = ncvisual_from_rgb_packed(randrgb, cellpixy, cellpixx * 3, cellpixx, 0xff);
+  popts.x += ncplane_dim_x(scalepni) + 1;
+  struct ncplane* inflatep = ncplane_create(stdn, &popts);
+  if(inflatep == NULL){
+    return -1;
+  }
+  vopts.n = inflatep;
+  if(ncvisual_resize_noninterpolative(ncv, popts.rows * cellpixy, popts.cols * cellpixx)){
+    return -1;
+  }
+  if(ncvisual_render(nc, ncv, &vopts) == NULL){
+    return -1;
+  }
+notcurses_debug(nc, stderr);
   notcurses_render(nc);
   ncplane_destroy(ncvp);
   ncplane_destroy(scalep);
