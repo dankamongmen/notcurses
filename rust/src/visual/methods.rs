@@ -183,7 +183,7 @@ impl NcVisual {
     ///
     /// *C style function: [ncvisual_from_rgb_loose()][crate::ncvisual_from_rgb_loose].*
     pub fn from_rgb_loose<'a>(
-        rgba: &[u8],
+        rgb: &[u8],
         rows: NcDim,
         rowstride: NcDim,
         cols: NcDim,
@@ -192,7 +192,7 @@ impl NcVisual {
         error_ref_mut![
             unsafe {
                 crate::ncvisual_from_rgb_loose(
-                    rgba.as_ptr() as *const c_void,
+                    rgb.as_ptr() as *const c_void,
                     rows as i32,
                     rowstride as i32,
                     cols as i32,
@@ -211,7 +211,7 @@ impl NcVisual {
     ///
     /// *C style function: [ncvisual_from_rgb_packed()][crate::ncvisual_from_rgb_packed].*
     pub fn from_rgb_packed<'a>(
-        rgba: &[u8],
+        rgb: &[u8],
         rows: NcDim,
         rowstride: NcDim,
         cols: NcDim,
@@ -220,7 +220,7 @@ impl NcVisual {
         error_ref_mut![
             unsafe {
                 crate::ncvisual_from_rgb_packed(
-                    rgba.as_ptr() as *const c_void,
+                    rgb.as_ptr() as *const c_void,
                     rows as i32,
                     rowstride as i32,
                     cols as i32,

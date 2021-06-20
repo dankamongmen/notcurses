@@ -114,11 +114,11 @@ pub const NCDIRECT_OPTION_INHIBIT_SETLOCALE: NcDirectFlags =
 pub const NCDIRECT_OPTION_NO_QUIT_SIGHANDLERS: NcDirectFlags =
     crate::bindings::ffi::NCDIRECT_OPTION_NO_QUIT_SIGHANDLERS as NcDirectFlags;
 
-///
+/// Flag that enables showing detailed information.
 pub const NCDIRECT_OPTION_VERBOSE: NcDirectFlags =
     crate::bindings::ffi::NCDIRECT_OPTION_VERBOSE as NcDirectFlags;
 
-/// Enable all diagnostics (equivalent to
+/// Flag that enables showing all diagnostics (equivalent to
 /// [`NCLOGLEVEL_TRACE`][crate::NCLOGLEVEL_TRACE]).
 /// Implies [`NCDIRECT_OPTION_VERBOSE`].
 pub const NCDIRECT_OPTION_VERY_VERBOSE: NcDirectFlags =
