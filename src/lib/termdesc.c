@@ -64,12 +64,32 @@ terminfostr(char** gseq, const char* name){
   // specified using $<N> syntax. this is then honored by tputs(). but we don't
   // use tputs(), instead preferring the much faster stdio+tiparm() (at the
   // expense of terminals which do require these delays). to avoid dumping
-  // "$<N>" sequences all over stdio, we chop them out.
-  char* pause;
-  if( (pause = strchr(*gseq, '$')) ){
-    // FIXME can there ever be further content following a pause?
-    // tighten this up to match the precise spec in terminfo(5)!
-    *pause = '\0';
+  // "$<N>" sequences all over stdio, we chop them out. real text can follow
+  // them, so we continue on, copying back once out of the delay.
+  char* wnext = NULL; // NULL until we hit a delay, then place to write
+  bool indelay = false; // true iff we're in a delay section
+  // we consider it a delay as soon as we see '$', and the delay ends at '>'
+  for(char* cur = *gseq ; *cur ; ++cur){
+    if(!indelay){
+      // if we're not in a delay section, make sure we're not starting one,
+      // and otherwise copy the current character back (if necessary).
+      if(*cur == '$'){
+        wnext = cur;
+        indelay = true;
+      }else{
+        if(wnext){
+          *wnext++ = *cur;
+        }
+      }
+    }else{
+      // we are in a delay section. make sure we're not ending one.
+      if(*cur == '>'){
+        indelay = false;
+      }
+    }
+  }
+  if(wnext){
+    *wnext = '\0';
   }
   return 0;
 }
@@ -96,7 +116,9 @@ void free_terminfo_cache(tinfo* ti){
 static int
 grow_esc_table(tinfo* ti, const char* tstr, escape_e esc,
                size_t* tlen, size_t* tused){
-  if(*tused >= 65535){ // we only have 16 bits for the index
+  // the actual table can grow past 64KB, but we can't start there, as
+  // we only have 16-bit indices.
+  if(*tused >= 65535){
     fprintf(stderr, "Can't add escape %d to full table\n", esc);
     return -1;
   }
