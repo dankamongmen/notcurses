@@ -25,6 +25,7 @@ setup_kitty_bitmaps(tinfo* ti, int fd){
   ti->pixel_destroy = kitty_destroy;
   ti->pixel_remove = kitty_remove;
   ti->pixel_draw = kitty_draw;
+  ti->pixel_move = kitty_move;
   ti->pixel_shutdown = kitty_shutdown;
   ti->sprixel_scale_height = 1;
   ti->pixel_rebuild = kitty_rebuild;

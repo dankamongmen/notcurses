@@ -849,6 +849,7 @@ void sprixel_free(sprixel* s);
 void sprixel_hide(sprixel* s);
 
 int kitty_draw(const ncpile *p, sprixel* s, FILE* out);
+int kitty_move(const ncpile *p, sprixel* s, FILE* out);
 int sixel_draw(const ncpile *p, sprixel* s, FILE* out);
 // dimy and dimx are cell geometry, not pixel.
 sprixel* sprixel_alloc(ncplane* n, int dimy, int dimx);
@@ -893,6 +894,18 @@ static inline int
 sprite_draw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
 //sprixel_debug(stderr, s);
   return n->tcache.pixel_draw(p, s, out);
+}
+
+// precondition: s->invalidated is SPRIXEL_MOVED or SPRIXEL_INVALIDATED
+// returns -1 on error, or the number of bytes written.
+static inline int
+sprite_redraw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
+//sprixel_debug(stderr, s);
+  if(s->invalidated == SPRIXEL_MOVED && n->tcache.pixel_move){
+    return n->tcache.pixel_move(p, s, out);
+  }else{
+    return n->tcache.pixel_draw(p, s, out);
+  }
 }
 
 static inline int

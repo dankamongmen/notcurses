@@ -918,14 +918,13 @@ clean_sprixels(notcurses* nc, ncpile* p, FILE* out){
     }else if(s->invalidated == SPRIXEL_MOVED || s->invalidated == SPRIXEL_INVALIDATED){
       int y, x;
       ncplane_yx(s->n, &y, &x);
-      // FIXME clean this up, don't use sprite_draw, etc.
-      // without this, kitty flickers
 //fprintf(stderr, "1 MOVING BITMAP %d STATE %d AT %d/%d for %p\n", s->id, s->invalidated, y + nc->margin_t, x + nc->margin_l, s->n);
+      // without this, kitty flickers
       if(s->invalidated == SPRIXEL_MOVED){
         sprite_destroy(nc, p, out, s);
       }
       if(goto_location(nc, out, y + nc->margin_t, x + nc->margin_l) == 0){
-        int r = sprite_draw(nc, p, s, out);
+        int r = sprite_redraw(nc, p, s, out);
         if(r < 0){
           return -1;
         }
