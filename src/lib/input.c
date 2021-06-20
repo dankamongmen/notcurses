@@ -721,6 +721,18 @@ ruts_string(query_state* inits, initstates_e state){
   return 0;
 }
 
+// extract the terminal version from the running string, following 'prefix'
+static int
+extract_version(query_state* qstate, const char* prefix){
+  size_t bytes = strlen(qstate->runstring) - strlen(prefix) + 1;
+  qstate->version = malloc(bytes);
+  if(qstate->version == NULL){
+    return -1;
+  }
+  memcpy(qstate->version, qstate->runstring + strlen(prefix), bytes);
+  return 0;
+}
+
 static int
 stash_string(query_state* inits){
 //fprintf(stderr, "string terminator after %d [%s]\n", inits->stringstate, inits->runstring);
@@ -736,13 +748,10 @@ stash_string(query_state* inits){
         }
         inits->qterm = TERMINAL_XTERM;
       }else if(strncmp(inits->runstring, "WezTerm ", strlen("WezTerm ")) == 0){
+        extract_version(inits, "WezTerm ");
         inits->qterm = TERMINAL_WEZTERM;
       }else if(strncmp(inits->runstring, "contour ", strlen("contour ")) == 0){
-        size_t bytes = strlen(inits->runstring) - 8 + 1;
-        inits->version = malloc(bytes);
-        if(inits->version){
-          memcpy(inits->version, inits->runstring + 8, bytes);
-        }
+        extract_version(inits, "contour ");
         inits->qterm = TERMINAL_CONTOUR;
       }
       break;
