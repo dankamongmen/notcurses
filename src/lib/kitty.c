@@ -612,7 +612,7 @@ int kitty_destroy(const notcurses* nc __attribute__ ((unused)),
 
 // returns the number of bytes written
 int kitty_draw(const ncpile* p, sprixel* s, FILE* out){
-//fprintf(stderr, "DRAWING %d\n", s->id);
+fprintf(stderr, "DRAWING %d\n", s->id);
   (void)p;
   int ret = s->glyphlen;
   if(fwrite(s->glyph, s->glyphlen, 1, out) != 1){
@@ -620,6 +620,18 @@ int kitty_draw(const ncpile* p, sprixel* s, FILE* out){
   }
   s->invalidated = SPRIXEL_QUIESCENT;
   return ret;
+}
+
+int kitty_move(const ncpile* p, sprixel* s, FILE* out){
+fprintf(stderr, "MOVING %d\n", s->id);
+  (void)p;
+  int ret = 0;
+  if(fprintf(out, "\e_Ga=p,i=%d,p=1,q=2\e\\", s->id) < 0){
+    ret = -1;
+  }
+  s->invalidated = SPRIXEL_QUIESCENT;
+  return ret;
+  //return kitty_draw(p, s, out);
 }
 
 // clears all kitty bitmaps
