@@ -622,6 +622,7 @@ int kitty_draw(const ncpile* p, sprixel* s, FILE* out){
   return ret;
 }
 
+// returns -1 on failure, 0 on success (move bytes do not count for sprixel stats)
 int kitty_move(const ncpile* p, sprixel* s, FILE* out){
   (void)p;
   int ret = 0;
