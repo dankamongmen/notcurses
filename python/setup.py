@@ -60,4 +60,9 @@ setup(
         'Natural Language :: English',
         'Programming Language :: Python',
     ],
+    package_data={
+        'notcurses': [
+            'py.typed',
+        ],
+    }
 )
