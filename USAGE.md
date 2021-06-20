@@ -3399,6 +3399,7 @@ typedef struct ncstats {
   uint64_t refreshes;        // refresh requests (non-optimized redraw)
   uint64_t sprixelemissions; // sprixel draw count
   uint64_t sprixelelisions;  // sprixel elision count
+  uint64_t sprixelbytes;     // sprixel bytes emitted
 
   // current state -- these can decrease
   uint64_t fbbytes;          // total bytes devoted to all active framebuffers

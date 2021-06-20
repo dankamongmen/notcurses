@@ -27,6 +27,7 @@ rearrangements of Notcurses.
   * Added `NCDIRECT_OPTION_VERBOSE` and `NCDIRECT_OPTION_VERY_VERBOSE`.
     They map to `NCLOGLEVEL_WARNING` and `NCLOGLEVEL_TRACE`, respectively.
   * New functions `ncvisual_from_rgb_packed()` and `ncvisual_from_rgb_loose()`.
+  * New stat `sprixelbytes`.
 
 * 2.3.4 (2021-06-12)
   * Added the flag `NCVISUAL_OPTION_NOINTERPOLATE` to use non-interpolative
