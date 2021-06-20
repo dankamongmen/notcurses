@@ -26,6 +26,6 @@ demo code).
 
 ## C standard
 Notcurses targets the ISO C11 standard. This means you should avoid using
-GNU C extensions as they might not work outside GCC/Clang. To verify your code
-standard compliance on GCC and Clang you can complile with `-std=c11 -pedantic`
+GNU C extensions as they might not work outside GCC/Clang. To verify your
+standard compliance on GCC and Clang you can compile with `-std=c11 -pedantic`
 command line arguments.
