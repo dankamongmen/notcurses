@@ -943,6 +943,7 @@ TEST_CASE("Visual") {
     }
   }
 
+  // do a pixel video, reusing the same plane over and over
   SUBCASE("LoadVideoPixelScaleOnePlane") {
     if(notcurses_check_pixel_support(nc_) > 0){
       if(notcurses_canopen_videos(nc_)){
@@ -971,6 +972,7 @@ TEST_CASE("Visual") {
     }
   }
 
+  // do a pixel video with a different plane for each frame
   SUBCASE("LoadVideoPixelScaleDifferentPlanes") {
     if(notcurses_check_pixel_support(nc_) > 0){
       if(notcurses_canopen_videos(nc_)){

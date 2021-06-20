@@ -738,6 +738,11 @@ stash_string(query_state* inits){
       }else if(strncmp(inits->runstring, "WezTerm ", strlen("WezTerm ")) == 0){
         inits->qterm = TERMINAL_WEZTERM;
       }else if(strncmp(inits->runstring, "contour ", strlen("contour ")) == 0){
+        size_t bytes = strlen(inits->runstring) - 8 + 1;
+        inits->version = malloc(bytes);
+        if(inits->version){
+          memcpy(inits->version, inits->runstring + 8, bytes);
+        }
         inits->qterm = TERMINAL_CONTOUR;
       }
       break;
