@@ -114,18 +114,18 @@ use crate::{NcChannel, NcPlane};
 /// ```txt
 /// NcCell: 128 bits structure comprised of the following 5 elements:
 ///
-/// GCLUSTER GCLUSTER GCLUSTER GCLUSTER  1. NcEgc
-/// 00000000 ~~~~~~~~ 11111111 11111111  2. NcEgcBackstop + 3. width + 4. NcStyle
-/// ~~AA~~~~ RRRRRRRR GGGGGGGG BBBBBBBB  5. NcChannels
-/// ~~AA~~~~ RRRRRRRR GGGGGGGG BBBBBBBB  |
+/// GCLUSTER|GCLUSTER|GCLUSTER|GCLUSTER  1. NcEgc
+/// 00000000║WWWWWWWW║11111111|11111111  2. NcEgcBackstop + 3. width + 4. NcStyle
+/// ~~AA~~~~|RRRRRRRR|GGGGGGGG|BBBBBBBB  5. NcChannels
+/// ~~AA~~~~|RRRRRRRR|GGGGGGGG|BBBBBBBB     "
 ///
 /// 1. (32b) Extended Grapheme Cluster, presented either as:
 ///
 ///     1.1. An NcEgc of up to 4 bytes:
-///     UUUUUUUU UUUUUUUU UUUUUUUU UUUUUUUU
+///     UUUUUUUU|UUUUUUUU|UUUUUUUU|UUUUUUUU
 ///
 ///     1.2. A `0x01` in the first byte, plus 3 bytes with a 24b address to an egcpool:
-///     00000001 IIIIIIII IIIIIIII IIIIIIII
+///     00000001|IIIIIIII|IIIIIIII|IIIIIIII
 ///
 /// 2. (8b) Backstop (zero)
 /// 00000000
@@ -137,7 +137,7 @@ use crate::{NcChannel, NcPlane};
 /// 11111111 11111111
 ///
 /// 5. (64b) NcChannels
-/// ~~AA~~~~ RRRRRRRR GGGGGGGG BBBBBBBB|~~AA~~~~ RRRRRRRR GGGGGGGG BBBBBBBB
+/// ~~AA~~~~|RRRRRRRR|GGGGGGGG|BBBBBBBB║~~AA~~~~|RRRRRRRR|GGGGGGGG|BBBBBBBB
 /// ```
 ///
 /// `type in C: cell (struct)`

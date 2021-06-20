@@ -336,22 +336,22 @@ impl NcCell {
 
     /// Removes the specified [`NcStyle`] bits.
     ///
-    /// *C style function: [nccell_off()][crate::nccell_off_styles].*
-    pub fn off_styles(&mut self, stylebits: NcStyle) {
+    /// *C style function: [nccell_off_styles()][crate::nccell_off_styles].*
+    pub fn styles_off(&mut self, stylebits: NcStyle) {
         crate::nccell_off_styles(self, stylebits)
     }
 
     /// Adds the specified [`NcStyle`] bits.
     ///
-    /// *C style function: [nccell_on()][crate::nccell_on_styles].*
-    pub fn on_styles(&mut self, stylebits: NcStyle) {
+    /// *C style function: [nccell_on_styles()][crate::nccell_on_styles].*
+    pub fn styles_on(&mut self, stylebits: NcStyle) {
         crate::nccell_on_styles(self, stylebits)
     }
 
     /// Sets just the specified [`NcStyle`] bits.
     ///
     /// *C style function: [nccell_set_styles()][crate::nccell_set_styles].*
-    pub fn set_styles(&mut self, stylebits: NcStyle) {
+    pub fn styles_set(&mut self, stylebits: NcStyle) {
         crate::nccell_set_styles(self, stylebits)
     }
 }
