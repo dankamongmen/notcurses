@@ -1,14 +1,59 @@
-# Terminals and `TERM`
+# Terminals
 
-With the wrong environment settings, programs can't properly control
-your terminal. It is critical that the `TERM` environment variable be
-correct for your shell, and that the terminfo database entry keyed
-by this variable be up-to-date. Furthermore, for 24-bit TrueColor, it
-is necessary to either use a `-direct` variant of your terminfo
-entry, or to declare `COLORTERM=24bit`. The latter instructs Notcurses
-to use 24-bit escapes regardless of advertised support. If you define
-this variable, and your terminal doesn't actually support these sequences,
-you're going to have a bad time.
+Notcurses attempts to provide an abstraction layer over the highly varied
+world of terminals. First and foremost, Notcurses needs to know the terminal
+on which it is running, so that has an accurate understanding of its
+capabilities.
+
+It is of course possible that Notcurses is not connected to an actual
+terminal (e.g. when running daemonized). In such a case, many escapes
+will not be emitted, and no querying is performed.
+
+Notcurses determines terminal capabilities via a combination of (more-or-less)
+standardized queries sent to the terminal, the `TERM` environment variable
+used by `terminfo(5)`, and the `COLORTERM` environment variable.
+
+## Queries
+
+At startup, the Linux console is identified via `ioctl(2)`s specific it.
+Otherwise, if it is determined that the process is connected to a terminal
+(see `isatty(3)`), Notcurses writes a series of queries to it. Several are
+related to terminal identification:
+
+* Send Tertiary Device Attributes (`CSI = 0 c`)
+  * Identifies VTE and foot
+* `XTVERSION` (`CSI > 0 q`)
+  * Identifies XTerm, WezTerm, and Contour
+* `XTGETTCAP` for the `TN` key (`DCS + q 544e ST`)
+  * Identifies Kitty and MLterm
+* Send Primary Device Attributes (`CSI c`)
+
+Note that Secondary Device Attributes (`CSI > c`) is *not* queried, because
+no terminals requiring special handling identify themselves via this query.
+This also applies to Primary Device Attributes, but we send this because all
+known terminals respond to it with *something*, preventing us from hanging,
+waiting for input.
+
+Even if the terminal responds unambiguously to one of these queries, Notcurses
+must have code to recognize the response, and bind it to some terminal
+definition. Assuming the terminal to be thus identified, Notcurses enables or
+disables certain capabilities based on built-in knowledge.
+
+## The `COLORTERM` environment variable
+
+24-bit RGB for glyphs and cell backgrounds is fairly widely implemented. In
+the Terminfo database, this is indicated via the `rgb` capability. It is
+not uncommon for this capability to not be expressed, despite support being
+present. Defining the `COLORTERM` environment variable with the value `24bit`
+will instruct Notcurses to issue RGB sequences regardless.
+
+## Terminfo and `TERM`
+
+Even if the terminal is unambiguously determined via query, many capabilities
+are acquired from the `terminfo(5)` database, keyed by the `TERM` environment
+variable. It is critical that the `TERM` environment variable be correct for
+your shell, and that the terminfo database entry keyed by this variable be
+up-to-date.
 
 The following have been established on a Debian Unstable workstation.
 `ccc` is the Terminfo can-change-colors capability. "Blocks" refers to whether
@@ -50,7 +95,7 @@ Note that `xfce4-terminal`, `gnome-terminal`, etc. are essentially skinning
 atop the common GNOME [VTE ("Virtual
 TErminal")](https://gitlab.gnome.org/GNOME/vte) library.
 
-## Kitty
+### Kitty
 
 Kitty has some interesting, atypical behaviors. Foremost among these is that
 an RGB background color equivalent to the configured default background color
@@ -65,12 +110,12 @@ https://github.com/dankamongmen/notcurses/issues/1117.
 Kitty is furthermore the only terminal I know to lack the `bce` (Background
 Color Erase) capability, but Notcurses never relies on `bce` behavior.
 
-## Wezterm
+### Wezterm
 
 Wezterm [implements](https://wezfurlong.org/wezterm/escape-sequences.html) some
 interesting underline options, and the iTerm2 graphic protocol.
 
-## GNU screen
+### GNU screen
 
 GNU screen does have 24-bit color support, but only in the 5.X series. Note
 that many distributions ship screen 4.X as of 2020. When built with truecolor
@@ -79,7 +124,7 @@ Attempting to force RGB color in screen 4.X **will not work**.
 
 Add `defutf8 on` to your `screenrc`, or run screen with `-U`, to ensure UTF-8.
 
-## tmux
+### tmux
 
 `tmux` supports 24-bit color through its `Tc` (Truecolor) extension. You'll
 need an entry in `tmux.conf` of the form:
@@ -92,7 +137,7 @@ Where `EXTERNALTERM` is your `TERM` variable at the time of attachment, e.g.:
 
 You'll then need `COLORTERM=24bit` defined within your tmux environment.
 
-## The Linux console
+### The Linux console
 
 The Linux console supports concurrent virtual terminals, and is manipulated
 by userspace via `ioctl()`s. These `ioctl()`s generally fail when applied to
@@ -154,7 +199,7 @@ Note that Notcurses reprograms the console font table when running in the
 Linux console (unless `NCOPTION_NO_FONT_CHANGES` is used). This adds support
 for half blocks and quadrants.
 
-## DirectColor
+### DirectColor
 
 Many terminals support one or another form of non-indexed color encoding (also
 known as DirectColor, RGB color, 24-bit color, or the similar but distinct
@@ -173,7 +218,7 @@ using `xterm-direct`'s `setaf` and `rgb` definitions, in a bright ANSI color.
 
 DirectColor is always enabled for Kitty, Alacritty, Contour, and foot.
 
-## Problematic characters
+### Problematic characters
 
 Some characters seem to cause problems with one terminal or another. These
 are best avoided until the problems are better understood:
