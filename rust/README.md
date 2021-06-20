@@ -2,7 +2,7 @@
 [![API](https://docs.rs/libnotcurses-sys/badge.svg)](https://dankamongmen.github.io/notcurses/rustdoc/libnotcurses_sys/)
 [![MSRV: 1.48.0](https://flat.badgen.net/badge/MSRV/1.48.0/purple)](https://blog.rust-lang.org/2020/11/19/Rust-1.48.html)
 
-`libnotcurses-sys` is a Rust wrapper for the
+`libnotcurses-sys` is a low-level Rust wrapper for the
 [notcurses C library](https://www.github.com/dankamongmen/notcurses/)
 
 This library is built with several layers of zero-overhead abstractions
@@ -102,4 +102,5 @@ fn main() {
 - [USAGE.md](https://github.com/dankamongmen/notcurses/blob/master/USAGE.md)
 - [HACKING.md](https://github.com/dankamongmen/notcurses/blob/master/doc/HACKING.md)
 - [Doxygen Documentation](https://nick-black.com/notcurses/html/index.html)
+- [FOSDEM 2021 presentation](https://fosdem.org/2021/schedule/event/notcurses/)
 

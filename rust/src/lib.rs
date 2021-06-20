@@ -1,4 +1,4 @@
-//! `libnotcurses-sys` is a Rust wrapper for the [notcurses
+//! `libnotcurses-sys` is a low-level Rust wrapper for the [notcurses
 //! C library](https://www.github.com/dankamongmen/notcurses/)
 //!
 //! *This is a work in progress.*
@@ -104,6 +104,7 @@
 //! - [USAGE.md](https://github.com/dankamongmen/notcurses/blob/master/USAGE.md)
 //! - [HACKING.md](https://github.com/dankamongmen/notcurses/blob/master/doc/HACKING.md)
 //! - [Doxygen Documentation](https://nick-black.com/notcurses/html/index.html)
+//! - [FOSDEM 2021 presentation](https://fosdem.org/2021/schedule/event/notcurses/)
 //!
 #![allow(non_upper_case_globals, non_camel_case_types, non_snake_case)]
 #![allow(clippy::too_many_arguments, clippy::needless_doctest_main)]
