@@ -143,8 +143,6 @@ typedef struct tinfo {
   struct termios tpreserved; // terminal state upon entry
   ncinputlayer input;       // input layer
   bool bitmap_supported;    // do we support bitmaps (post pixel_query_done)?
-  bool BCEflag;   // "BCE" flag for erases with background color
-  bool AMflag;    // "AM" flag for automatic movement to next line
 
   // mlterm resets the cursor (i.e. makes it visible) any time you print
   // a sprixel. we work around this spiritedly unorthodox decision. it

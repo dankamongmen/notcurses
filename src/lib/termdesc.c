@@ -390,13 +390,11 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
     ti->escindices[ESCAPE_SMCUP] = 0;
     ti->escindices[ESCAPE_RMCUP] = 0;
   }
-  // check that the terminal provides automatic margins
-  ti->AMflag = tigetflag("am") == 1;
-  if(!ti->AMflag){
+  // ensure that the terminal provides automatic margins
+  if(tigetflag("am") != 1){
     fprintf(stderr, "Required terminfo capability 'am' not defined\n");
     goto err;
   }
-  ti->BCEflag = tigetflag("bce") == 1;
   if(get_escape(ti, ESCAPE_CIVIS) == NULL){
     char* chts;
     if(terminfostr(&chts, "chts") == 0){
