@@ -143,6 +143,7 @@ void notcurses_stats_reset(notcurses* nc, ncstats* stats){
   stash->refreshes += nc->stats.refreshes;
   stash->sprixelemissions += nc->stats.sprixelemissions;
   stash->sprixelelisions += nc->stats.sprixelelisions;
+  stash->sprixelbytes += nc->stats.sprixelbytes;
 
   stash->fbbytes = nc->stats.fbbytes;
   stash->planes = nc->stats.planes;
@@ -211,9 +212,12 @@ void summarize_stats(notcurses* nc){
             (stats->fgelisions * 100.0) / (stats->fgemissions + stats->fgelisions),
             (stats->bgemissions + stats->bgelisions) == 0 ? 0 :
             (stats->bgelisions * 100.0) / (stats->bgemissions + stats->bgelisions));
-    fprintf(stderr, "Sprixel emits:elides: %ju:%ju (%.2f%%)\n",
+    char totalbuf[BPREFIXSTRLEN + 1];
+    qprefix(stats->sprixelbytes, 1, totalbuf, 1);
+    fprintf(stderr, "Sprixel emits:elides: %ju:%ju (%.2f%%) %sB\n",
             stats->sprixelemissions, stats->sprixelelisions,
             (stats->sprixelemissions + stats->sprixelelisions) == 0 ? 0 :
-            (stats->sprixelelisions * 100.0) / (stats->sprixelemissions + stats->sprixelelisions));
+            (stats->sprixelelisions * 100.0) / (stats->sprixelemissions + stats->sprixelelisions),
+            totalbuf);
   }
 }

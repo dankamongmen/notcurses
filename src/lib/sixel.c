@@ -831,6 +831,7 @@ int sixel_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
   return 0;
 }
 
+// returns the number of bytes written
 int sixel_draw(const ncpile* p, sprixel* s, FILE* out){
   // if we've wiped or rebuilt any cells, effect those changes now, or else
   // we'll get flicker when we move to the new location.
@@ -856,7 +857,7 @@ int sixel_draw(const ncpile* p, sprixel* s, FILE* out){
     }
     s->invalidated = SPRIXEL_QUIESCENT;
   }
-  return 0;
+  return s->glyphlen;
 }
 
 int sixel_init(const tinfo* ti, int fd){

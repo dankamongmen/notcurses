@@ -888,6 +888,7 @@ sprite_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
 }
 
 // precondition: s->invalidated is SPRIXEL_INVALIDATED or SPRIXEL_MOVED.
+// returns -1 on error, or the number of bytes written.
 static inline int
 sprite_draw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
 //sprixel_debug(stderr, s);
