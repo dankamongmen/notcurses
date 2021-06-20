@@ -198,7 +198,7 @@ It is worth knowing that several terminals draw the block characters directly,
 rather than loading them from a font. This is generally desirable. To inspect
 your environment's rendering of drawing characters, run `notcurses-info`.
 
-### FAQs
+## FAQs
 
 If things break or seem otherwise lackluster, **please** consult the
 [Environment Notes](#environment_notes) section! You **need** to have a correct
