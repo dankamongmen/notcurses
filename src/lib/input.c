@@ -633,7 +633,7 @@ typedef enum {
   STATE_TDA2, // tertiary DA, got '|', first hex nibble
   STATE_TDA3, // tertiary DA, second hex nibble
   STATE_SDA,  // secondary DA (CSI > Pp ; Pv ; Pc c)
-  STATE_DA,   // primary DA   (CSI ? ... c) OR XTSMGRAPHICS
+  STATE_DA,   // primary DA   (CSI ? ... c) OR XTSMGRAPHICS OR DECRPM
   STATE_DA_1, // got '1', XTSMGRAPHICS color registers or primary DA
   STATE_DA_1_SEMI, // got '1;'
   STATE_DA_1_0, // got '1;0', XTSMGRAPHICS color registers or VT101
@@ -772,6 +772,7 @@ stash_string(query_state* inits){
 
 // FIXME ought implement the full Williams automaton
 // FIXME doesn't handle 8-bit controls (would need convert UTF-8)
+// FIXME sloppy af in general
 // returns 1 after handling the Device Attributes response, 0 if more input
 // ought be fed to the machine, and -1 on an invalid state transition.
 static int
@@ -831,7 +832,7 @@ pump_control_read(query_state* inits, unsigned char c){
       break;
     case STATE_CSI: // terminated by 0x40--0x7E ('@'--'~')
       if(c == '?'){
-        inits->state = STATE_DA;
+        inits->state = STATE_DA; // could also be DECRPM/XTSMGRAPHICS
       }else if(c == '>'){
         inits->state = STATE_SDA;
       }else if(c >= 0x40 && c <= 0x7E){
@@ -951,6 +952,7 @@ pump_control_read(query_state* inits, unsigned char c){
     // primary device attributes and XTSMGRAPHICS replies are generally
     // indistinguishable until well into the escape. one can get:
     // XTSMGRAPHICS: CSI ? Pi ; Ps ; Pv S {Pi: 123} {Ps: 0123}
+    // DECRPM: CSI ? Pd ; Ps $ y {Pd: many} {Ps: 01234}
     // DA: CSI ? 1 ; 2 c  ("VT100 with Advanced Video Option")
     //     CSI ? 1 ; 0 c  ("VT101 with No Options")
     //     CSI ? 4 ; 6 c  ("VT132 with Advanced Video and Graphics")
