@@ -40,6 +40,7 @@ typedef struct ncstats {
   uint64_t refreshes;        // refreshes (unoptimized redraws)
   uint64_t sprixelemissions; // sprixel draw count
   uint64_t sprixelelisions;  // sprixel elision count
+  uint64_t sprixelbytes;     // sprixel bytes emitted
 
   // current state -- these can decrease
   uint64_t fbbytes;          // bytes devoted to framebuffers
@@ -107,6 +108,8 @@ plane.
 **sprixelemissions** is the number of sprixel draws. **sprixelelisions** is
 the number of times a sprixel was elided--essentially, the number of times
 a sprixel appeared in a rendered frame without freshly drawing it.
+**sprixelbytes** is the number of bytes used for sprixel drawing. It does not
+include move/delete operations, nor glyphs used to erase sprixels.
 
 # NOTES
 
