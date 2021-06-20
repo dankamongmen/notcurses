@@ -15,7 +15,7 @@
 # limitations under the License.
 from __future__ import annotations
 
-from typing import Tuple
+from typing import Optional, Tuple
 
 # Stub file for typing and docs
 
@@ -631,360 +631,697 @@ class NcPlane:
         bound plane, or pile."""
         raise NotImplementedError('Stub')
 
-    def abs_yx(self) -> None:
-        """Get the origin of plane 'n' relative to its pile."""
+    def abs_yx(self) -> Tuple[int, int]:
+        """Get the origin of plane relative to its pile."""
         raise NotImplementedError('Stub')
 
-    def abs_y(self) -> None:
+    def abs_y(self) -> int:
+        """Get the Y origin of plane relative to its pile."""
         raise NotImplementedError('Stub')
 
-    def abs_x(self) -> None:
+    def abs_x(self) -> int:
+        """Get the X origin of plane relative to its pile."""
         raise NotImplementedError('Stub')
 
-    def parent(self) -> None:
+    def parent(self) -> Optional[NcPlane]:
+        """Get the plane to which the plane is bound or None
+        if plane does not have parent.
+        """
         raise NotImplementedError('Stub')
 
-    def descendant_p(self) -> None:
+    def descendant_p(self, ancestor: NcPlane, /) -> None:
+        """Return True if plane is a proper descendent of passed
+        'ancestor' plane.
+        """
         raise NotImplementedError('Stub')
 
     def move_top(self) -> None:
+        """Splice ncplane out of the z-buffer, and reinsert it at the top."""
         raise NotImplementedError('Stub')
 
     def move_bottom(self) -> None:
+        """Splice ncplane out of the z-buffer, and reinsert it at
+        the bottom.
+        """
         raise NotImplementedError('Stub')
 
-    def move_above(self) -> None:
+    def move_above(self, plane: NcPlane, /) -> None:
+        """Splice ncplane out of the z-buffer, and reinsert it above passed
+        plane."""
         raise NotImplementedError('Stub')
 
-    def move_below(self) -> None:
+    def move_below(self, plane: NcPlane, /) -> None:
+        """Splice ncplane out of the z-buffer, and reinsert it bellow
+        passed plane.
+        """
         raise NotImplementedError('Stub')
 
-    def below(self) -> None:
+    def below(self) -> Optional[NcPlane]:
+        """Return the plane below this one, or None if this is
+        at the bottom.
+        """
         raise NotImplementedError('Stub')
 
-    def above(self) -> None:
+    def above(self) -> Optional[NcPlane]:
+        """Return the plane above this one, or None if this is at the top."""
         raise NotImplementedError('Stub')
 
     def rotate_cw(self) -> None:
+        """Rotate the plane π/2 radians clockwise."""
         raise NotImplementedError('Stub')
 
     def rotate_ccw(self) -> None:
+        """Rotate the plane π/2 radians counterclockwise."""
         raise NotImplementedError('Stub')
 
-    def at_cursor(self) -> None:
+    def at_cursor(self) -> Tuple[str, int, int]:
+        """Retrieve the current contents of the cell under the cursor."""
         raise NotImplementedError('Stub')
 
     def at_cursor_cell(self) -> None:
+        """Retrieve the current contents of the cell under the cursor.
+
+        TODO
+        """
         raise NotImplementedError('Stub')
 
-    def at_yx(self) -> None:
+    def at_yx(self, y: int, x: int, /) -> Tuple[str, int, int]:
+        """Retrieve the current contents of the specified cell."""
         raise NotImplementedError('Stub')
 
     def at_yx_cell(self) -> None:
+        """"Retrieve the current contents of the specified cell"
+
+        TODO
+        """
         raise NotImplementedError('Stub')
 
-    def contents(self) -> None:
+    def contents(self, begy: int, begx: int,
+                 leny: int = -1, lenx: int = -1) -> str:
+        """Create a flat string from the EGCs of the selected region
+        of the ncplane.
+        """
         raise NotImplementedError('Stub')
 
-    def center_abs(self) -> None:
+    def center_abs(self) -> Tuple[int, int]:
+        """Return the plane center absolute coordiantes."""
         raise NotImplementedError('Stub')
 
-    def halign(self) -> None:
+    def halign(self, align: int, collumn: int, /) -> int:
+        """Return the column at which cols ought start in
+        order to be aligned.
+        """
         raise NotImplementedError('Stub')
 
-    def valign(self) -> None:
+    def valign(self, align: int, collumn: int, /) -> int:
+        """Return the row at which rows ought start in
+        order to be aligned.
+        """
         raise NotImplementedError('Stub')
 
-    def cursor_move_yx(self) -> None:
+    def cursor_move_yx(self, y: int, x: int, /) -> None:
+        """Move the cursor to the specified position
+        (the cursor needn't be visible).
+        """
         raise NotImplementedError('Stub')
 
     def home(self) -> None:
+        """Move the cursor to 0, 0."""
         raise NotImplementedError('Stub')
 
-    def cursor_yx(self) -> None:
+    def cursor_yx(self) -> Tuple[int, int]:
+        """Get the current position of the cursor within plane."""
         raise NotImplementedError('Stub')
 
-    def channels(self) -> None:
+    def channels(self) -> int:
+        """Get the current channels or attribute word."""
         raise NotImplementedError('Stub')
 
-    def styles(self) -> None:
+    def styles(self) -> int:
+        """Return the current styling for this ncplane."""
         raise NotImplementedError('Stub')
 
     def putc_yx(self) -> None:
+        """Replace the cell at the specified coordinates with
+        the provided cell.
+
+        TODO
+        """
         raise NotImplementedError('Stub')
 
     def putc(self) -> None:
+        """Replace cell at the current cursor location.
+
+        TODO
+        """
         raise NotImplementedError('Stub')
 
-    def putchar_yx(self) -> None:
+    def putchar_yx(self, y: int, x: int, char: str, /) -> None:
+        """Replace the cell at the specified coordinates
+        with the provided 7-bit char."""
         raise NotImplementedError('Stub')
 
-    def putchar(self) -> None:
+    def putchar(self, char: str) -> None:
+        """Replace the cell at the current cursor location."""
         raise NotImplementedError('Stub')
 
-    def putchar_stained(self) -> None:
+    def putchar_stained(self, char: str, /) -> None:
+        """Replace the EGC underneath us, but retain the styling."""
         raise NotImplementedError('Stub')
 
-    def putegc_yx(self) -> None:
+    def putegc_yx(self, y: int, x: int, egc: str, /) -> int:
+        """Replace the cell at the specified coordinates
+        with the provided EGC.
+
+        Returns number of collumns the cursor has advanced.
+        """
         raise NotImplementedError('Stub')
 
-    def putegc(self) -> None:
+    def putegc(self, egc: str, /) -> int:
+        """Replace the cell at the current cursor location
+        with the provided EGC
+
+        Returns number of collumns the cursor has advanced.
+        """
         raise NotImplementedError('Stub')
 
-    def putegc_stained(self) -> None:
+    def putegc_stained(self, egc: str, /) -> int:
+        """Replace the EGC underneath us, but retain the styling.
+
+        Returns number of collumns the cursor has advanced.
+        """
         raise NotImplementedError('Stub')
 
-    def putstr_yx(self) -> None:
+    def putstr_yx(self, y: int, x: int, egc: str, /) -> None:
+        """Write a series of EGCs to the location,
+        using the current style.
+        """
         raise NotImplementedError('Stub')
 
-    def putstr(self) -> None:
+    def putstr(self, egc: str, /) -> None:
+        """Write a series of EGCs to the current location,
+        using the current style.
+        """
         raise NotImplementedError('Stub')
 
-    def putstr_aligned(self) -> None:
+    def putstr_aligned(self, y: int, align: int, egc: str, /) -> None:
+        """Write a series of EGCs to the current location,
+        using the alignment.
+        """
         raise NotImplementedError('Stub')
 
-    def putstr_stained(self) -> None:
+    def putstr_stained(self, egc: str, /) -> None:
+        """Replace a string's worth of glyphs at the current
+        cursor location, but retain the styling."""
         raise NotImplementedError('Stub')
 
-    def putnstr_yx(self) -> None:
+    def putnstr_yx(self, y: int, x: int, size: int, egc: str, /) -> None:
+        """"Write a series of EGCs to the location, using the current
+        style.
+        """
         raise NotImplementedError('Stub')
 
-    def putnstr(self) -> None:
+    def putnstr(self, size: int, egc: str, /) -> None:
+        """Write a series of EGCs to the current location,
+        using the current style.
+        """
         raise NotImplementedError('Stub')
 
-    def putnstr_aligned(self) -> None:
+    def putnstr_aligned(self, y: int, align: int,
+                        size: int, egc: str, /) -> None:
+        """Write a series of EGCs to the current location,
+        using the alignment.
+        """
         raise NotImplementedError('Stub')
 
-    def puttext(self) -> None:
+    def puttext(self, y: int, align: int, /) -> int:
+        """Write the specified text to the plane, breaking lines sensibly,
+        beginning at the specified line.
+
+        Returns the number of columns written.
+        """
         raise NotImplementedError('Stub')
 
     def box(self) -> None:
+        """Draw a box with its upper-left corner
+        at the current cursor position.
+
+        TODO
+        """
         raise NotImplementedError('Stub')
 
     def box_sized(self) -> None:
+        """Draw a box with its upper-left corner at
+        the current cursor position, having dimensions.
+
+        TODO
+        """
         raise NotImplementedError('Stub')
 
     def perimeter(self) -> None:
+        """Draw a perimeter with its upper-left corner
+        at the current cursor position
+
+        TODO
+        """
         raise NotImplementedError('Stub')
 
     def polyfill_yx(self) -> None:
+        """Starting at the specified coordinate, if its glyph
+        is different from that of is copied into it, and the
+        original glyph is considered the fill target.
+
+        TODO
+        """
         raise NotImplementedError('Stub')
 
-    def gradient(self) -> None:
+    def gradient(self, egc: str, stylemask: int,
+                 ul: int, ur: int, ll: int, lr: int,
+                 ystop: int, xstop: int,) -> int:
+        """Draw a gradient with its upper-left corner
+        at the current cursor position.
+
+        Returns cells filled.
+        """
         raise NotImplementedError('Stub')
 
-    def highgradient(self) -> None:
+    def highgradient(self,
+                     ul: int, ur: int, ll: int, lr: int,
+                     ystop: int, xstop: int) -> int:
+        """Do a high-resolution gradient using upper blocks
+        and synced backgrounds.
+
+        Returns cells filled.
+        """
         raise NotImplementedError('Stub')
 
-    def gradient_sized(self) -> None:
+    def gradient_sized(self, egc: str, stylemask: int,
+                       ul: int, ur: int, ll: int, lr: int,
+                       ylen: int, xlen: int,) -> int:
+        """Draw a gradient with its upper-left corner
+        at the current cursor position.
+
+        Returns cells filled.
+        """
         raise NotImplementedError('Stub')
 
-    def highgradient_sized(self) -> None:
+    def highgradient_sized(self,
+                           ul: int, ur: int, ll: int, lr: int,
+                           ylen: int, xlen: int,) -> int:
+        """NcPlane.gradent_sized() meets NcPlane.highgradient().
+
+        Returns cells filled.
+        """
         raise NotImplementedError('Stub')
 
-    def format(self) -> None:
+    def format(self, ystop: int, xstop: int,
+               stylemark: int, /) -> int:
+        """Set the given style throughout the specified region,
+        keeping content and attributes unchanged.
+
+        Returns the number of cells set.
+        """
         raise NotImplementedError('Stub')
 
-    def stain(self) -> None:
+    def stain(self, ystop: int, xstop: int,
+              ul: int, ur: int, ll: int, lr: int) -> int:
+        """Set the given style throughout the specified region,
+        keeping content and attributes unchanged.
+
+        Returns the number of cells set.
+        """
         raise NotImplementedError('Stub')
 
-    def mergedown_simple(self) -> None:
+    def mergedown_simple(self, dst: NcPlane, /) -> None:
+        """Merge the ncplane down onto the passed ncplane."""
         raise NotImplementedError('Stub')
 
-    def mergedown(self) -> None:
+    def mergedown(self, dst: NcPlane,
+                  begsrcy: int = 0, begsrcx: int = 0,
+                  leny: int = 0, lenx: int = 0,
+                  dsty: int = 0, dstx: int = 0) -> None:
+        """Merge with parameters the ncplane down onto the passed ncplane."""
         raise NotImplementedError('Stub')
 
     def erase(self) -> None:
+        """Erase every cell in the ncplane."""
         raise NotImplementedError('Stub')
 
-    def bchannel(self) -> None:
+    def bchannel(self) -> int:
+        """Extract the 32-bit working background channel from an ncplane."""
         raise NotImplementedError('Stub')
 
-    def fchannel(self) -> None:
+    def fchannel(self) -> int:
+        """Extract the 32-bit working foreground channel from an ncplane."""
         raise NotImplementedError('Stub')
 
-    def set_channels(self) -> None:
+    def set_channels(self, channels: int, /) -> None:
+        """Set both foreground and background channels of the plane."""
         raise NotImplementedError('Stub')
 
-    def set_styles(self) -> None:
+    def set_styles(self, stylebits: int, /) -> None:
+        """Set the specified style bits for the plane,
+        whether they're actively supported or not.
+        """
         raise NotImplementedError('Stub')
 
-    def on_styles(self) -> None:
+    def on_styles(self, stylebits: int, /) -> None:
+        """Add the specified styles to the ncplane's existing spec."""
         raise NotImplementedError('Stub')
 
-    def off_styles(self) -> None:
+    def off_styles(self, stylebits: int, /) -> None:
+        """Remove the specified styles from the ncplane's existing spec."""
         raise NotImplementedError('Stub')
 
-    def fg_rgb(self) -> None:
+    def fg_rgb(self) -> int:
+        """Extract 24 bits of working foreground RGB from the plane,
+        shifted to LSBs.
+        """
         raise NotImplementedError('Stub')
 
-    def bg_rgb(self) -> None:
+    def bg_rgb(self) -> int:
+        """Extract 24 bits of working background RGB from the plane,
+        shifted to LSBs."""
         raise NotImplementedError('Stub')
 
-    def fg_alpha(self) -> None:
+    def fg_alpha(self) -> int:
+        """Extract 2 bits of foreground alpha from plane,
+        shifted to LSBs.
+        """
         raise NotImplementedError('Stub')
 
-    def fg_default_p(self) -> None:
+    def fg_default_p(self) -> bool:
+        """Is the plane's foreground using the \"default foreground color\"?"""
         raise NotImplementedError('Stub')
 
-    def bg_alpha(self) -> None:
+    def bg_alpha(self) -> int:
+        """Extract 2 bits of background alpha from the plane,
+        shifted to LSBs.
+        """
         raise NotImplementedError('Stub')
 
-    def bg_default_p(self) -> None:
+    def bg_default_p(self) -> bool:
+        """Is the plane's background using the \"default background color\"?"""
         raise NotImplementedError('Stub')
 
-    def fg_rgb8(self) -> None:
+    def fg_rgb8(self) -> Tuple[int, int, int]:
+        """Extract 24 bits of foreground RGB from the plane,
+        split into components.
+        """
         raise NotImplementedError('Stub')
 
-    def bg_rgb8(self) -> None:
+    def bg_rgb8(self) -> Tuple[int, int, int]:
+        """Is the plane's background using the \"default background color\"?"""
         raise NotImplementedError('Stub')
 
-    def set_fchannel(self) -> None:
+    def set_fchannel(self, channel: int, /) -> int:
+        """Set an entire foreground channel of the plane,
+        return new channels.
+        """
         raise NotImplementedError('Stub')
 
-    def set_bchannel(self) -> None:
+    def set_bchannel(self, channel: int, /) -> int:
+        """Set an entire background channel of the plane,
+        return new channels.
+        """
         raise NotImplementedError('Stub')
 
-    def set_fg_rgb8(self) -> None:
+    def set_fg_rgb8(self, red: int, green: int, blue: int, /) -> None:
+        """Set the current foreground color using RGB specifications."""
         raise NotImplementedError('Stub')
 
-    def set_bg_rgb8(self) -> None:
+    def set_bg_rgb8(self, red: int, green: int, blue: int, /) -> None:
+        """Set the current background color using RGB specifications."""
         raise NotImplementedError('Stub')
 
-    def set_bg_rgb8_clipped(self) -> None:
+    def set_bg_rgb8_clipped(self, red: int, green: int, blue: int, /) -> None:
+        """Set the current foreground color using RGB specifications
+        but clipped to [0..255]."""
         raise NotImplementedError('Stub')
 
-    def set_fg_rgb8_clipped(self) -> None:
+    def set_fg_rgb8_clipped(self, red: int, green: int, blue: int, /) -> None:
+        """Set the current background color using RGB specifications
+        but clipped to [0..255]."""
         raise NotImplementedError('Stub')
 
-    def set_fg_rgb(self) -> None:
+    def set_fg_rgb(self, channel: int, /) -> None:
+        """Set the current foreground color using channel."""
         raise NotImplementedError('Stub')
 
-    def set_bg_rgb(self) -> None:
+    def set_bg_rgb(self, channel: int, /) -> None:
+        """Set the current background color using channel."""
         raise NotImplementedError('Stub')
 
     def set_fg_default(self) -> None:
+        """Use the default color for the foreground."""
         raise NotImplementedError('Stub')
 
     def set_bg_default(self) -> None:
+        """Use the default color for the background."""
         raise NotImplementedError('Stub')
 
-    def set_fg_palindex(self) -> None:
+    def set_fg_palindex(self, idx: int, /) -> None:
+        """Set the ncplane's foreground palette index."""
         raise NotImplementedError('Stub')
 
-    def set_bg_palindex(self) -> None:
+    def set_bg_palindex(self, idx: int, /) -> None:
+        """Set the ncplane's background palette index."""
         raise NotImplementedError('Stub')
 
-    def set_fg_alpha(self) -> None:
+    def set_fg_alpha(self, aplha: int, /) -> None:
+        """Set the foreground alpha parameters for the plane."""
         raise NotImplementedError('Stub')
 
-    def set_bg_alpha(self) -> None:
+    def set_bg_alpha(self, aplha: int, /) -> None:
+        """Set the current background color using channel."""
         raise NotImplementedError('Stub')
 
     def fadeout(self) -> None:
+        """Fade the ncplane out over the provided time,
+        calling 'fader' at each iteration.
+
+        TODO
+        """
         raise NotImplementedError('Stub')
 
     def fadein(self) -> None:
+        """Fade the ncplane in over the specified time.
+
+        TODO
+        """
         raise NotImplementedError('Stub')
 
     def fade_setup(self) -> None:
+        """Create NcFadeCtx.
+
+        TODO
+        """
         raise NotImplementedError('Stub')
 
     def fadeout_iteration(self) -> None:
+        """TODO"""
         raise NotImplementedError('Stub')
 
     def fadein_iteration(self) -> None:
+        """TODO"""
         raise NotImplementedError('Stub')
 
     def pulse(self) -> None:
+        """Pulse the plane in and out until the callback returns non-zero.
+
+        TODO
+        """
         raise NotImplementedError('Stub')
 
     def cells_load_box(self) -> None:
+        """Load up six cells with the EGCs necessary to draw a box.
+
+        TODO
+        """
         raise NotImplementedError('Stub')
 
     def cells_rounded_box(self) -> None:
+        """Load up six cells with the EGCs necessary to draw a round box.
+
+        TODO
+        """
         raise NotImplementedError('Stub')
 
-    def perimeter_rounded(self) -> None:
+    def perimeter_rounded(
+            self,
+            stylemask: int, channels: int,
+            ctlword: int,) -> None:
+        """Draw a perimeter around plane."""
         raise NotImplementedError('Stub')
 
-    def rounded_box_sized(self) -> None:
+    def rounded_box_sized(self,
+                          styles: int, channels: int,
+                          ylen: int, xlen: int,
+                          ctlword: int) -> None:
+        """Draw a round box around plane."""
         raise NotImplementedError('Stub')
 
     def cells_double_box(self) -> None:
+        """Draw a double box with cells.
+
+        TODO
+        """
         raise NotImplementedError('Stub')
 
-    def double_box(self) -> None:
+    def double_box(self,
+                   styles: int, channels: int,
+                   ylen: int, xlen: int,
+                   ctlword: int) -> None:
+        """Draw a double box."""
         raise NotImplementedError('Stub')
 
-    def perimeter_double(self) -> None:
+    def perimeter_double(self,
+                         styles: int, channels: int,
+                         ctlword: int) -> None:
+        """Draw a double perimeter."""
         raise NotImplementedError('Stub')
 
-    def double_box_sized(self) -> None:
+    def double_box_sized(self,
+                         styles: int, channels: int,
+                         ylen: int, xlen: int,
+                         ctlword: int) -> None:
+        """Draw a double box sized."""
         raise NotImplementedError('Stub')
 
     def ncvisual_from_plane(self) -> None:
+        """Promote an plane to an NcVisual.
+
+        TODO
+        """
         raise NotImplementedError('Stub')
 
     def as_rgba(self) -> None:
+        """Create an RGBA flat array from the selected
+        region of the plane.
+
+        TODO
+        """
         raise NotImplementedError('Stub')
 
     def reel_create(self) -> None:
+        """Take over the plane and use it to draw a reel.
+
+        TODO
+        """
         raise NotImplementedError('Stub')
 
     def greyscale(self) -> None:
+        """Convert the plane's content to greyscale."""
         raise NotImplementedError('Stub')
 
     def selector_create(self) -> None:
+        """Create NcSelector.
+
+        TODO
+        """
         raise NotImplementedError('Stub')
 
     def multiselector_create(self) -> None:
+        """Create MultiSelector.
+
+        TODO
+        """
         raise NotImplementedError('Stub')
 
     def tree_create(self) -> None:
+        """Create NcTree.
+
+        TODO
+        """
         raise NotImplementedError('Stub')
 
     def menu_create(self) -> None:
+        """Create NcMenu.
+
+        TODO
+        """
         raise NotImplementedError('Stub')
 
     def progbar_create(self) -> None:
+        """Create NcProgbar.
+
+        TODO
+        """
         raise NotImplementedError('Stub')
 
     def tabbed_create(self) -> None:
+        """Create NcTabbed.
+
+        TODO
+        """
         raise NotImplementedError('Stub')
 
     def uplot_create(self) -> None:
+        """Create NcUplot.
+
+        TODO
+        """
         raise NotImplementedError('Stub')
 
     def dplot_create(self) -> None:
+        """Create NcDplot.
+
+        TODO
+        """
         raise NotImplementedError('Stub')
 
     def fdplane_create(self) -> None:
+        """Create NcFdPlane.
+
+        TODO
+        """
         raise NotImplementedError('Stub')
 
     def subproc_createv(self) -> None:
+        """Create subprocess plane.
+
+        TODO
+        """
         raise NotImplementedError('Stub')
 
     def subproc_createvp(self) -> None:
+        """Create subprocess plane.
+
+        TODO
+        """
         raise NotImplementedError('Stub')
 
     def subproc_createvpe(self) -> None:
+        """Create subprocess plane.
+
+        TODO
+        """
         raise NotImplementedError('Stub')
 
-    def qrcode(self) -> None:
+    def qrcode(self, data: bytes, /) -> Tuple[int, int]:
+        """Create QR code, return y and x size."""
         raise NotImplementedError('Stub')
 
     def reader_create(self) -> None:
+        """Create NcReader.
+
+        TODO
+        """
         raise NotImplementedError('Stub')
 
-    def pile_top(self) -> None:
+    def pile_top(self) -> NcPlane:
+        """Return the topmost plane of the pile."""
         raise NotImplementedError('Stub')
 
-    def pile_bottom(self) -> None:
+    def pile_bottom(self) -> NcPlane:
+        """Return the bottommost plane of the pile."""
         raise NotImplementedError('Stub')
 
     def pile_render(self) -> None:
+        """Renders the pile of which plane is a part."""
         raise NotImplementedError('Stub')
 
     def pile_rasterize(self) -> None:
+        """Make the physical screen match the last
+        rendered frame from the pile."""
         raise NotImplementedError('Stub')
