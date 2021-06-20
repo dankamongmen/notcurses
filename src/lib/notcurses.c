@@ -876,7 +876,8 @@ init_banner(const notcurses* nc){
     char prefixbuf[BPREFIXSTRLEN + 1];
     term_fg_palindex(nc, stdout, 50 % nc->tcache.caps.colors);
     printf("\n notcurses %s by nick black et al", notcurses_version());
-    printf(" on %s", nc->tcache.termname ? nc->tcache.termname : "?");
+    printf(" on %s %s", nc->tcache.termname ? nc->tcache.termname : "?",
+                        nc->tcache.termversion ? nc->tcache.termversion : "");
     term_fg_palindex(nc, stdout, 12 % nc->tcache.caps.colors);
     if(nc->tcache.cellpixy && nc->tcache.cellpixx){
       printf("\n  %d rows (%dpx) %d cols (%dpx) (%sB) %zuB crend %d colors",

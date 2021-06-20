@@ -594,16 +594,8 @@ void sigwinch_handler(int signo);
 
 void init_lang(void);
 
-// load |ti| from the terminfo database, which must already have been
-// initialized. set |utf8| if we've verified UTF8 output encoding.
-// set |noaltscreen| to inhibit alternate screen detection. |fd| ought
-// be connected to a terminal device, or -1 if no terminal is available.
-int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
-                         unsigned noaltscreen, unsigned nocbreak);
-int term_supported_styles(const tinfo* ti);
 int reset_term_attributes(const tinfo* ti, FILE* fp);
 
-void free_terminfo_cache(tinfo* ti);
 
 // if there were missing elements we wanted from terminfo, bitch about them here
 void warn_terminfo(const notcurses* nc, const tinfo* ti);

@@ -107,8 +107,9 @@ match_termname(const char* termname, queried_terminals_e* qterm){
 }
 
 void free_terminfo_cache(tinfo* ti){
-  free(ti->esctable);
   ncinputlayer_stop(&ti->input);
+  free(ti->termversion);
+  free(ti->esctable);
 }
 
 // tlen -- size of escape table. tused -- used bytes in same.
@@ -505,5 +506,6 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
 
 err:
   free(ti->esctable);
+  free(ti->termversion);
   return -1;
 }

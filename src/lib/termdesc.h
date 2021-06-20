@@ -144,6 +144,7 @@ typedef struct tinfo {
   int (*pixel_clear_all)(int fd); // called during startup, kitty only
   int sprixel_scale_height; // sprixel must be a multiple of this many rows
   const char* termname;     // terminal name from environment variables/init
+  char* termversion;        // terminal version (freeform) from query responses
   struct termios tpreserved; // terminal state upon entry
   ncinputlayer input;       // input layer
   bool bitmap_supported;    // do we support bitmaps (post pixel_query_done)?
@@ -169,6 +170,15 @@ static inline int
 term_supported_styles(const tinfo* ti){
   return ti->supported_styles;
 }
+
+// load |ti| from the terminfo database, which must already have been
+// initialized. set |utf8| if we've verified UTF8 output encoding.
+// set |noaltscreen| to inhibit alternate screen detection. |fd| ought
+// be connected to a terminal device, or -1 if no terminal is available.
+int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
+                         unsigned noaltscreen, unsigned nocbreak);
+
+void free_terminfo_cache(tinfo* ti);
 
 #ifdef __cplusplus
 }
