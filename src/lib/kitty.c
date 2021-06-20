@@ -314,6 +314,7 @@ int kitty_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
 //fprintf(stderr, "CLEARED ROW, TARGY: %d\n", targy - 1);
         if(--targy == 0){
           s->n->tam[s->dimx * ycell + xcell].state = state;
+          s->invalidated = SPRIXEL_INVALIDATED;
           return 0;
         }
         thisrow = targx;
@@ -393,9 +394,7 @@ int kitty_wipe(sprixel* s, int ycell, int xcell){
 //fprintf(stderr, "CLEARED ROW, TARGY: %d\n", targy - 1);
         if(--targy == 0){
           s->n->tam[s->dimx * ycell + xcell].auxvector = auxvec;
-          if(s->invalidated == SPRIXEL_QUIESCENT){
-            s->invalidated = SPRIXEL_INVALIDATED;
-          }
+          s->invalidated = SPRIXEL_INVALIDATED;
           return 1;
         }
         thisrow = targx;
