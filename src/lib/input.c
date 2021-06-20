@@ -724,7 +724,7 @@ ruts_string(query_state* inits, initstates_e state){
 // extract the terminal version from the running string, following 'prefix'
 static int
 extract_version(query_state* qstate, const char* prefix){
-  size_t bytes = strlen(qstate->runstring) - strlen(prefix) + 1;
+  size_t bytes = strlen(qstate->runstring + strlen(prefix)) + 1;
   qstate->version = malloc(bytes);
   if(qstate->version == NULL){
     return -1;
