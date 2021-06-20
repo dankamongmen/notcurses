@@ -195,7 +195,8 @@ Fonts end up being a whole thing, little of which is pleasant. I'll write this
 up someday **FIXME**.
 
 It is worth knowing that several terminals draw the block characters directly,
-rather than loading them from a font.
+rather than loading them from a font. This is generally desirable. To inspect
+your environment's rendering of drawing characters, run `notcurses-info`.
 
 ### FAQs
 
