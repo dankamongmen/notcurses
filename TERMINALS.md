@@ -199,7 +199,7 @@ Note that Notcurses reprograms the console font table when running in the
 Linux console (unless `NCOPTION_NO_FONT_CHANGES` is used). This adds support
 for half blocks and quadrants.
 
-### DirectColor
+### 24-bit RGB
 
 Many terminals support one or another form of non-indexed color encoding (also
 known as DirectColor, RGB color, 24-bit color, or the similar but distinct
@@ -216,7 +216,7 @@ implementing `rgb` use the 3x8bpc model; XTerm for instance:
 Thus emitting `setaf` with an RGB value close to black can result, when
 using `xterm-direct`'s `setaf` and `rgb` definitions, in a bright ANSI color.
 
-DirectColor is always enabled for Kitty, Alacritty, Contour, and foot.
+24-bit RGB is always enabled for Kitty, Alacritty, Contour, WezTerm, and foot.
 
 ### Problematic characters
 

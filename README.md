@@ -183,19 +183,11 @@ each release. Download it, and install the contents as you deem fit.
   set to **Wide**, not narrow (if that doesn't work, ensure it is set to
   **Narrow**, heh).
 
-### TrueColor detection
-
-Notcurses primarily loads control sequences from `terminfo(5)`, using the
-database entry specified by the `TERM` environment variable. 24-bit "TrueColor"
-color support (or at least the ability to specify 3 8-bit channels as arguments
-to `setaf` and `setbf`) is indicated by the `rgb` terminfo capability. Many
-terminals with RGB support do not advertise the `rgb` capability. If you
-believe your terminal to support 24-bit TrueColor, this can be indicated by
-exporting the `COLORTERM` environment variable as `truecolor` or `24bit`.
-Note that some terminals accept a 24-bit specification, but map it down to
-fewer colors.
-
-TrueColor is always enabled for Kitty, Alacritty, Contour, and foot.
+* If your terminal supports 3x8bit RGB color via `setaf` and `setbf` (most modern
+  terminals), but doesn't export the `rgb` terminfo capability, you can export
+  the `COLORTERM` environment variable as `truecolor` or `24bit`. Note that some
+  terminals accept a 24-bit specification, but map it down to fewer colors.
+  RGB is enabled whenever [Foot, Contour, WezTerm, or Kitty](TERMINALS.md) is identified.
 
 ### Fonts
 

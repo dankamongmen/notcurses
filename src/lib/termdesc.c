@@ -225,6 +225,7 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
     ti->sprixel_cursor_hack = true;
   }else if(qterm == TERMINAL_WEZTERM){
     termname = "WezTerm";
+    ti->caps.rgb = true;
     ti->caps.quadrants = true;
     // FIXME get version from query
     const char* termver = getenv("TERM_PROGRAM_VERSION");
