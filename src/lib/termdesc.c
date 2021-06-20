@@ -239,7 +239,6 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
 //   ⇒  CSI ? 6 2 ; Ps c  ("VT220")
 //   ⇒  CSI ? 6 3 ; Ps c  ("VT320")
 //   ⇒  CSI ? 6 4 ; Ps c  ("VT420")
-#define ESC_DA "\e[c"
 
 // query background, replies in X color https://www.x.org/releases/X11R7.7/doc/man/man7/X.7.xhtml#heading11
 #define CSI_BGQ "\e]11;?\e\\"
@@ -251,14 +250,13 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
 static int
 send_initial_queries(int fd){
   const char queries[] = CSI_BGQ
-                         "\x1b[=0c"
-                         "\x1b[>c"
-                         "\x1b[>q"
-                         "\x1bP+q544e\x1b\\"
-                         "\x1b[?1;3;256S"
-                         "\x1b[?2;1;0S"
-                         "\x1b[?1;1;0S"
-                         ESC_DA;
+                         "\x1b[=0c"          // Tertiary Device Attributes
+                         "\x1b[>0q"          // XTVERSION
+                         "\x1bP+q544e\x1b\\" // XTGETTCAP['TN']
+                         "\x1b[?1;3;256S"    // try to set 256 cregs
+                         "\x1b[?2;1;0S"      // XTSMGRAPHICS (cregs)
+                         "\x1b[?1;1;0S"      // XTSMGRAPHICS (geometry)
+                         "\x1b[c";           // Device Attributes
   if(blocking_write(fd, queries, strlen(queries))){
     return -1;
   }
