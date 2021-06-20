@@ -201,7 +201,7 @@ void summarize_stats(notcurses* nc){
             stats->fgelisions,
             stats->bgemissions,
             stats->bgelisions);
-    fprintf(stderr, "Cell emits:elides: %ju/%ju (%.2f%%) %.2f%% %.2f%% %.2f%%\n",
+    fprintf(stderr, "Cell emits:elides: %ju:%ju (%.2f%%) %.2f%% %.2f%% %.2f%%\n",
             stats->cellemissions, stats->cellelisions,
             (stats->cellemissions + stats->cellelisions) == 0 ? 0 :
             (stats->cellelisions * 100.0) / (stats->cellemissions + stats->cellelisions),
@@ -211,7 +211,7 @@ void summarize_stats(notcurses* nc){
             (stats->fgelisions * 100.0) / (stats->fgemissions + stats->fgelisions),
             (stats->bgemissions + stats->bgelisions) == 0 ? 0 :
             (stats->bgelisions * 100.0) / (stats->bgemissions + stats->bgelisions));
-    fprintf(stderr, "Sprixel emits:elides: %ju/%ju (%.2f%%)\n",
+    fprintf(stderr, "Sprixel emits:elides: %ju:%ju (%.2f%%)\n",
             stats->sprixelemissions, stats->sprixelelisions,
             (stats->sprixelemissions + stats->sprixelelisions) == 0 ? 0 :
             (stats->sprixelelisions * 100.0) / (stats->sprixelemissions + stats->sprixelelisions));
