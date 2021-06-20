@@ -647,7 +647,7 @@ typedef enum {
   STATE_XTSMGRAPHICS_DRAIN, // drain out XTSMGRAPHICS to 'S'
 } initstates_e;
 
-typedef struct init_state {
+typedef struct query_state {
   tinfo* tcache;
   queried_terminals_e qterm;  // discovered terminal
   initstates_e state, stringstate;
@@ -658,7 +658,7 @@ typedef struct init_state {
   size_t stridx;        // position to write in string
   uint32_t bg;          // queried default background or 0
   bool xtgettcap_good;  // high when we've received DCS 1
-} init_state;
+} query_state;
 
 static int
 ruts_numeric(int* numeric, unsigned char c){
@@ -699,7 +699,7 @@ ruts_hex(int* numeric, unsigned char c){
 
 // add a decoded hex byte to the string
 static int
-ruts_string(init_state* inits, initstates_e state){
+ruts_string(query_state* inits, initstates_e state){
   if(inits->stridx == sizeof(inits->runstring)){
     return -1; // overflow, too long
   }
@@ -717,7 +717,7 @@ ruts_string(init_state* inits, initstates_e state){
 }
 
 static int
-stash_string(init_state* inits){
+stash_string(query_state* inits){
 //fprintf(stderr, "string terminator after %d [%s]\n", inits->stringstate, inits->runstring);
   switch(inits->stringstate){
     case STATE_XTVERSION1:{
@@ -771,7 +771,7 @@ stash_string(init_state* inits){
 // returns 1 after handling the Device Attributes response, 0 if more input
 // ought be fed to the machine, and -1 on an invalid state transition.
 static int
-pump_control_read(init_state* inits, unsigned char c){
+pump_control_read(query_state* inits, unsigned char c){
 //fprintf(stderr, "state: %2d char: %1c %3d %02x\n", inits->state, isprint(c) ? c : ' ', c, c);
   if(c == NCKEY_ESC){
     inits->state = STATE_ESC;
@@ -1071,26 +1071,18 @@ pump_control_read(init_state* inits, unsigned char c){
 
 // complete the terminal detection process
 static int
-control_read(tinfo* tcache, int ttyfd, queried_terminals_e* detected, uint32_t* bg){
-  init_state inits = {
-    .tcache = tcache,
-    .state = STATE_NULL,
-    .qterm = TERMINAL_UNKNOWN,
-  };
+control_read(int ttyfd, query_state* qstate){
   unsigned char* buf;
   ssize_t s;
 
-  *detected = TERMINAL_UNKNOWN;
   if((buf = malloc(BUFSIZ)) == NULL){
     return -1;
   }
   while((s = read(ttyfd, buf, BUFSIZ)) != -1){
     for(ssize_t idx = 0; idx < s ; ++idx){
-      int r = pump_control_read(&inits, buf[idx]);
+      int r = pump_control_read(qstate, buf[idx]);
       if(r == 1){ // success!
         free(buf);
-        *detected = inits.qterm;
-        *bg = inits.bg;
 //fprintf(stderr, "at end, derived terminal %d\n", inits.qterm);
         return 0;
       }else if(r < 0){
@@ -1119,12 +1111,17 @@ int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected){
   nilayer->input_events = 0;
   int csifd = nilayer->ttyfd >= 0 ? nilayer->ttyfd : nilayer->infd;
   if(isatty(csifd)){
-    uint32_t bg;
-    if(control_read(tcache, csifd, detected, &bg)){
+    query_state inits = {
+      .tcache = tcache,
+      .state = STATE_NULL,
+      .qterm = TERMINAL_UNKNOWN,
+    };
+    if(control_read(csifd, &inits)){
       input_free_esctrie(&nilayer->inputescapes);
       return -1;
     }
-    tcache->bg_collides_default = bg;
+    tcache->bg_collides_default = inits.bg;
+    *detected = inits.qterm;
   }
   return 0;
 }
