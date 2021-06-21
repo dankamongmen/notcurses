@@ -78,11 +78,10 @@ Why use this non-standard library?
   consideration from the beginning.
 
 * A more orderly surface than that codified by X/Open: Exported identifiers are
-  prefixed to avoid common namespace collisions. The library object exports a
-  minimal set of symbols. Where reasonable, `static inline` header-only code is
-  used. This facilitates compiler optimizations, and reduces loader time.
-  Notcurses can be built without its multimedia functionality, requiring a
-  significantly lesser set of dependencies.
+  prefixed to avoid common namespace collisions. Where reasonable,
+  `static inline` header-only code is used. This facilitates compiler
+  optimizations, and reduces loader time. Notcurses can be built without its
+  multimedia functionality, requiring a significantly lesser set of dependencies.
 
 * All APIs natively support the Universal Character Set (Unicode). The `nccell`
   API is based around Unicode's [Extended Grapheme Cluster](https://unicode.org/reports/tr29/) concept.
