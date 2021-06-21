@@ -271,9 +271,6 @@ pub use reimplemented::*;
 ///
 pub type NcPlane = crate::bindings::ffi::ncplane;
 
-/// A type alias of [`NcPlane`] to be used in [`NcDirect`][crate::NcDirect] mode.
-pub type NcDirectV = NcPlane;
-
 /// Options struct for [`NcPlane`]
 pub type NcPlaneOptions = crate::bindings::ffi::ncplane_options;
 

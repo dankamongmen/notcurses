@@ -5,8 +5,8 @@ use core::ptr::{null, null_mut};
 use crate::ffi::sigset_t;
 use crate::{
     cstring, error, error_ref_mut, rstring, NcAlign, NcBlitter, NcCapabilities, NcChannels,
-    NcComponent, NcDim, NcDirect, NcDirectFlags, NcDirectV, NcEgc, NcError, NcInput, NcOffset,
-    NcPaletteIndex, NcResult, NcRgb, NcScale, NcStyle, NcTime, NCRESULT_ERR,
+    NcComponent, NcDim, NcDirect, NcDirectFlags, NcEgc, NcError, NcInput, NcOffset, NcPaletteIndex,
+    NcPlane, NcResult, NcRgb, NcScale, NcStyle, NcTime, NCRESULT_ERR,
 };
 
 /// # `NcDirect` constructors and destructors
@@ -68,7 +68,7 @@ impl NcDirect {
     /// and writes it to the output.
     ///
     /// *C style function: [ncdirect_raster_frame()][crate::ncdirect_raster_frame].*
-    pub fn raster_frame(&mut self, frame: &mut NcDirectV, align: NcAlign) -> NcResult<()> {
+    pub fn raster_frame(&mut self, frame: &mut NcPlane, align: NcAlign) -> NcResult<()> {
         error![
             unsafe { crate::ncdirect_raster_frame(self, frame, align) },
             "NcDirect.raster_frame()"
@@ -94,7 +94,7 @@ impl NcDirect {
         scale: NcScale,
         max_y: NcDim,
         max_x: NcDim,
-    ) -> NcResult<&'a mut NcDirectV> {
+    ) -> NcResult<&'a mut NcPlane> {
         let res = unsafe {
             crate::ncdirect_render_frame(
                 self,
@@ -664,7 +664,7 @@ impl NcDirect {
     /// Draws a box with its upper-left corner at the current cursor position,
     /// having dimensions `ylen` * `xlen`.
     ///
-    /// See NcPlane.[box()][crate::NcPlane#method.box] for more information.
+    /// See NcPlane.[box()][NcPlane#method.box] for more information.
     ///
     /// The minimum box size is 2x2, and it cannot be drawn off-screen.
     ///

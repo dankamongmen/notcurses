@@ -5,8 +5,8 @@ use libc::c_void;
 
 use crate::{
     cstring, error, error_ref_mut, rstring, Nc, NcBlitter, NcComponent, NcDim, NcDirect, NcDirectF,
-    NcDirectV, NcError, NcIntResult, NcPixel, NcPlane, NcResult, NcRgba, NcScale, NcTime, NcVGeom,
-    NcVisual, NcVisualOptions, NCBLIT_PIXEL, NCRESULT_ERR,
+    NcError, NcIntResult, NcPixel, NcPlane, NcResult, NcRgba, NcScale, NcTime, NcVGeom, NcVisual,
+    NcVisualOptions, NCBLIT_PIXEL, NCRESULT_ERR,
 };
 
 /// # NcVisualOptions Constructors
@@ -574,7 +574,7 @@ impl NcDirectF {
         &mut self,
         ncd: &mut NcDirect,
         options: &NcVisualOptions,
-    ) -> NcResult<&mut NcDirectV> {
+    ) -> NcResult<&mut NcPlane> {
         error_ref_mut![
             unsafe { crate::ncdirectf_render(ncd, self, options) },
             "NcVisual.render()"
