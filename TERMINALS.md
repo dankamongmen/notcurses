@@ -32,7 +32,8 @@ Note that Secondary Device Attributes (`CSI > c`) is *not* queried, because
 no terminals requiring special handling identify themselves via this query.
 This also applies to Primary Device Attributes, but we send this because all
 known terminals respond to it with *something*, preventing us from hanging,
-waiting for input.
+waiting for input (if a terminal does *not* reply in a recognizable way to
+Primary Device Attributes, `notcurses_init()` will **hang**).
 
 Even if the terminal responds unambiguously to one of these queries, Notcurses
 must have code to recognize the response, and bind it to some terminal
