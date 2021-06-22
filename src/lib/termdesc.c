@@ -6,7 +6,6 @@
 // we found Sixel support -- set up the API
 static inline void
 setup_sixel_bitmaps(tinfo* ti, int fd){
-  ti->bitmap_supported = true;
   ti->pixel_init = sixel_init;
   ti->pixel_draw = sixel_draw;
   ti->pixel_remove = NULL;
@@ -20,7 +19,6 @@ setup_sixel_bitmaps(tinfo* ti, int fd){
 
 static inline void
 setup_kitty_bitmaps(tinfo* ti, int fd){
-  ti->bitmap_supported = true;
   ti->pixel_wipe = kitty_wipe;
   ti->pixel_destroy = kitty_destroy;
   ti->pixel_remove = kitty_remove;

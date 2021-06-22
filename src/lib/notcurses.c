@@ -254,6 +254,9 @@ int update_term_dimensions(int fd, int* rows, int* cols, tinfo* tcache,
   if(tcache){
     tcache->cellpixy = ws.ws_row ? ws.ws_ypixel / ws.ws_row : 0;
     tcache->cellpixx = ws.ws_col ? ws.ws_xpixel / ws.ws_col : 0;
+    if(tcache->cellpixy == 0 || tcache->cellpixx == 0){
+      tcache->pixel_init = NULL; // disable support
+    }
   }
   if(tcache->sixel_maxy_pristine){
     tcache->sixel_maxy = tcache->sixel_maxy_pristine;
@@ -984,7 +987,7 @@ recursive_lock_init(pthread_mutex_t *lock){
 }
 
 int notcurses_check_pixel_support(const notcurses* nc){
-  if(nc->tcache.bitmap_supported){
+  if(nc->tcache.pixel_init){
     return 1;
   }
   return 0;

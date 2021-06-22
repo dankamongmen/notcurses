@@ -116,7 +116,22 @@ typedef struct tinfo {
   // bg_collides_default is either 0x0000000 or (if in use) 0x1RRGGBB.
   uint32_t bg_collides_default;
 
-  // sprixel support. there are several different sprixel protocols, of
+  // bitmap support. if we support bitmaps, pixel_draw will be non-NULL
+  // wipe out a cell's worth of pixels from within a sprixel. for sixel, this
+  // means leaving out the pixels (and likely resizes the string). for kitty,
+  // this means dialing down their alpha to 0 (in equivalent space).
+  int (*pixel_wipe)(struct sprixel* s, int y, int x);
+  // perform the inverse of pixel_wipe, restoring an annihilated sprixcell.
+  int (*pixel_rebuild)(struct sprixel* s, int y, int x, uint8_t* auxvec);
+  int (*pixel_remove)(int id, FILE* out); // kitty only, issue actual delete command
+  int (*pixel_init)(const struct tinfo*, int fd); // called when support is detected
+  int (*pixel_draw)(const struct ncpile* p, struct sprixel* s, FILE* out);
+  // execute move (erase old graphic, place at new location) if non-NULL
+  int (*pixel_move)(const struct ncpile* p, struct sprixel* s, FILE* out);
+  int (*pixel_destroy)(const struct notcurses* nc, const struct ncpile* p, FILE* out, struct sprixel* s);
+  int (*pixel_shutdown)(int fd);  // called during context shutdown
+  int (*pixel_clear_all)(int fd); // called during startup, kitty only
+  // sprixel parameters. there are several different sprixel protocols, of
   // which we support sixel and kitty. the kitty protocol is used based
   // on TERM heuristics. otherwise, we attempt to detect sixel support, and
   // query the details of the implementation.
@@ -130,26 +145,11 @@ typedef struct tinfo {
   // so kitty graphics (which don't force a scroll) never deal with this.
   int sixel_maxy;          // maximum working sixel height
   int sixel_maxy_pristine; // maximum theoretical sixel height, as queried
-  int (*pixel_destroy)(const struct notcurses* nc, const struct ncpile* p, FILE* out, struct sprixel* s);
-  // wipe out a cell's worth of pixels from within a sprixel. for sixel, this
-  // means leaving out the pixels (and likely resizes the string). for kitty,
-  // this means dialing down their alpha to 0 (in equivalent space).
-  int (*pixel_wipe)(struct sprixel* s, int y, int x);
-  // perform the inverse of pixel_wipe, restoring an annihilated sprixcell.
-  int (*pixel_rebuild)(struct sprixel* s, int y, int x, uint8_t* auxvec);
-  int (*pixel_remove)(int id, FILE* out); // kitty only, issue actual delete command
-  int (*pixel_init)(const struct tinfo*, int fd); // called when support is detected
-  int (*pixel_draw)(const struct ncpile* p, struct sprixel* s, FILE* out);
-  // execute move (erase old graphic, place at new location) if non-NULL
-  int (*pixel_move)(const struct ncpile* p, struct sprixel* s, FILE* out);
-  int (*pixel_shutdown)(int fd);  // called during context shutdown
-  int (*pixel_clear_all)(int fd); // called during startup, kitty only
   int sprixel_scale_height; // sprixel must be a multiple of this many rows
   const char* termname;     // terminal name from environment variables/init
   char* termversion;        // terminal version (freeform) from query responses
   struct termios tpreserved; // terminal state upon entry
   ncinputlayer input;       // input layer
-  bool bitmap_supported;    // do we support bitmaps (post pixel_query_done)?
 
   // mlterm resets the cursor (i.e. makes it visible) any time you print
   // a sprixel. we work around this spiritedly unorthodox decision. it
