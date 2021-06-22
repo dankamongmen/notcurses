@@ -12,6 +12,25 @@
 #include <linux/kd.h>
 #include <sys/ioctl.h>
 
+static inline size_t
+row_bytes(const struct console_font_op* cfo){
+  return (cfo->width + 7) / 8;
+}
+
+static inline size_t
+Bper(const struct console_font_op* cfo){
+  size_t minb = row_bytes(cfo) * cfo->height;
+  return (minb + 31) / 32 * 32;
+}
+
+static unsigned char*
+get_glyph(struct console_font_op* cfo, unsigned idx){
+  if(idx >= cfo->charcount){
+    return NULL;
+  }
+  return (unsigned char*)cfo->data + Bper(cfo) * idx;
+}
+
 static void
 usage(const char* argv){
   fprintf(stderr, "usage: %s [ ttydev ]\n", argv);
@@ -42,58 +61,97 @@ is_linux_console(int fd){
   return true;
 }
 
-// FIXME assumes a width of 8. it is apparently possible to have widths
-// other than 8, but they don't work properly with GIO_FONTX according to
-// the showconsolefont source code. use the KDFONTOP ioctl to learn true
-// font width.
+// each row is laid out as bytes, one bit per pixel, rounded up to the
+// lowest sufficient number of bytes. each character is thus
+//
+//  height * rowbytes, where rowbytes = width + 7 / 8
 static int
-explode_glyph_row(const unsigned char** row){
-  printf("%s%s%s%s%s%s%s%s ",
-          **row & 0x80 ? "*": " ",
-          **row & 0x40 ? "*": " ",
-          **row & 0x20 ? "*": " ",
-          **row & 0x10 ? "*": " ",
-          **row & 0x08 ? "*": " ",
-          **row & 0x04 ? "*": " ",
-          **row & 0x02 ? "*": " ",
-          **row & 0x01 ? "*": " ");
+explode_glyph_row(const unsigned char** row, unsigned width){
+  unsigned char mask = 0x80;
+  while(width--){
+    printf("%s", **row & mask ? "*" : " ");
+    if((mask >>= 1) == 0 && width){
+      mask = 0x80;
+      ++*row;
+    }
+  }
+  printf(" ");
   ++*row;
   return 0;
 }
 
+// idx is the glyph index within cfo->data. qbits are the occupied quadrants:
+//  0x8 = upper left
+//  0x4 = upper right
+//  0x2 = lower left
+//  0x1 = lower right
 static int
-shim_upper_half_block(struct consolefontdesc* cfd, unsigned idx){
-  if(idx >= cfd->charcount){
+shim_quad_block(struct console_font_op* cfo, unsigned idx, unsigned qbits){
+fprintf(stderr, "REWRITING %u with 0x%01x\n", idx, qbits);
+  unsigned char* glyph = get_glyph(cfo, idx);
+  if(glyph == NULL){
     return -1;
   }
-  unsigned char* glyph = (unsigned char*)cfd->chardata + 32 * idx;
   unsigned r;
-  for(r = 0 ; r < cfd->charheight / 2 ; ++r){
-    *glyph = 0xff;
-    ++glyph;
+  for(r = 0 ; r < cfo->height / 2 ; ++r){
+    unsigned char mask = 0x80;
+    unsigned char* row = glyph + row_bytes(cfo) * r;
+    unsigned x;
+    *row = 0;
+    for(x = 0 ; x < cfo->width / 2 ; ++x){
+      if(qbits & 0x8){
+        *row |= mask;
+fprintf(stderr, "*");
+      }
+else fprintf(stderr, " ");
+      if((mask >>= 1) == 0){
+        mask = 0x80;
+        *++row = 0;
+      }
+    }
+    while(x < cfo->width){
+      if(qbits & 0x4){
+        *row |= mask;
+fprintf(stderr, "*");
+      }
+else fprintf(stderr, " ");
+      if((mask >>= 1) == 0){
+        mask = 0x80;
+        *++row = 0;
+      }
+      ++x;
+    }
+fprintf(stderr, "\n");
   }
-  while(r < cfd->charheight){
-    *glyph = 0;
-    ++glyph;
-    ++r;
-  }
-  return 0;
-}
-
-static int
-shim_lower_half_block(struct consolefontdesc* cfd, unsigned idx){
-  if(idx >= cfd->charcount){
-    return -1;
-  }
-  unsigned char* glyph = (unsigned char*)cfd->chardata + 32 * idx;
-  unsigned r;
-  for(r = 0 ; r < cfd->charheight / 2 ; ++r){
-    *glyph = 0;
-    ++glyph;
-  }
-  while(r < cfd->charheight){
-    *glyph = 0xff;
-    ++glyph;
+  while(r < cfo->height){
+    unsigned char mask = 0x80;
+    unsigned char* row = glyph + row_bytes(cfo) * r;
+    unsigned x;
+    *row = 0;
+    for(x = 0 ; x < cfo->width / 2 ; ++x){
+      if(qbits & 0x2){
+        *row |= mask;
+fprintf(stderr, "*");
+      }
+else fprintf(stderr, " ");
+      if((mask >>= 1) == 0){
+        mask = 0x80;
+        *++row = 0;
+      }
+    }
+    while(x < cfo->width){
+      if(qbits & 0x1){
+        *row |= mask;
+fprintf(stderr, "*");
+      }
+else fprintf(stderr, " ");
+      if((mask >>= 1) == 0){
+        mask = 0x80;
+        *++row = 0;
+      }
+      ++x;
+    }
+fprintf(stderr, "\n");
     ++r;
   }
   return 0;
@@ -103,72 +161,60 @@ shim_lower_half_block(struct consolefontdesc* cfd, unsigned idx){
 // positions in |*upper| and |*lower|.
 static int
 jam_linux_consolefont(int fd, unsigned showglyphs, unsigned* upper, unsigned* lower){
-  struct consolefontdesc cfd = {};
-  cfd.charcount = 512;
-  cfd.chardata = malloc(32 * cfd.charcount);
-  if(cfd.chardata == NULL){
+  struct console_font_op cfo = {};
+  cfo.op = KD_FONT_OP_GET;
+  cfo.charcount = 512;
+  cfo.data = malloc(128 * cfo.charcount);
+  cfo.width = 32;
+  cfo.height = 32;
+  if(cfo.data == NULL){
     return -1;
   }
-  if(ioctl(fd, GIO_FONTX, &cfd)){
+  if(ioctl(fd, KDFONTOP, &cfo)){
     fprintf(stderr, "Error reading Linux kernelfont (%s)\n", strerror(errno));
-    free(cfd.chardata);
+    free(cfo.data);
     return -1;
   }
-  printf("Kernel font size (glyphcount): %hu\n", cfd.charcount);
-  printf("Kernel font character height: %hu\n", cfd.charheight);
-  if(cfd.charcount > 512){
+  printf("Kernel font size (glyphcount): %hu\n", cfo.charcount);
+  printf("Kernel font character geometry: %hux%hu\n", cfo.height, cfo.width);
+  if(cfo.charcount > 512){
     fprintf(stderr, "Warning: kernel returned excess charcount\n");
-    free(cfd.chardata);
+    free(cfo.data);
     return -1;
   }
-  *upper = cfd.charcount - 2;
-  *lower = cfd.charcount - 1;
+  *upper = cfo.charcount - 2;
+  *lower = cfo.charcount - 1;
   // FIXME find best place. could be whatever the fewest unicodes map to, or
   // something similar to our target, or who knows...
-  if(shim_upper_half_block(&cfd, *upper) || shim_lower_half_block(&cfd, *lower)){
+  if(shim_quad_block(&cfo, *upper, 0xc) || shim_quad_block(&cfo, *lower, 0x3)){
     fprintf(stderr, "Failed to shim font\n");
-    free(cfd.chardata);
+    free(cfo.data);
     return -1;
   }
-  if(ioctl(fd, PIO_FONTX, &cfd)){
+  cfo.op = KD_FONT_OP_SET;
+  if(ioctl(fd, KDFONTOP, &cfo)){
     fprintf(stderr, "Failed to set font (%s)\n", strerror(errno));
-    free(cfd.chardata);
+    free(cfo.data);
     return -1;
   }
   if(showglyphs){
-    for(unsigned i = 0 ; i < cfd.charcount ; i += 7){
-      const unsigned char* g1 = (unsigned char*)cfd.chardata + 32 * i;
-      const unsigned char* g2 = g1 + 32;
-      const unsigned char* g3 = g2 + 32;
-      const unsigned char* g4 = g3 + 32;
-      const unsigned char* g5 = g4 + 32;
-      const unsigned char* g6 = g5 + 32;
-      const unsigned char* g7 = g6 + 32;
-      for(unsigned row = 0 ; row < cfd.charheight ; ++row){
-        explode_glyph_row(&g1);
-        if(i < cfd.charcount - 1u){
-          explode_glyph_row(&g2);
-          if(i < cfd.charcount - 2u){
-            explode_glyph_row(&g3);
-            if(i < cfd.charcount - 3u){
-              explode_glyph_row(&g4);
-              if(i < cfd.charcount - 4u){
-              explode_glyph_row(&g5);
-                if(i < cfd.charcount - 5u){
-                  explode_glyph_row(&g6);
-                  if(i < cfd.charcount - 6u){
-                    explode_glyph_row(&g7);
-                  }
-                }
-              }
-            }
-          }
+    // FIXME get real screen width
+    const int atonce = 80 / (cfo.width + 1);
+    const unsigned char* g[atonce];
+    for(unsigned i = 0 ; i < cfo.charcount ; i += atonce){
+      for(int o = 0 ; o < atonce ; ++o){
+        g[o] = (unsigned char*)cfo.data + Bper(&cfo) * (i + o);
+fprintf(stderr, "Bper: %zu %d at %p\n", Bper(&cfo), i + o, g[o]);
+      }
+      for(unsigned row = 0 ; row < cfo.height ; ++row){
+        for(int o = 0 ; o < atonce ; ++o){
+          explode_glyph_row(&g[o], cfo.width);
         }
         printf("\n");
       }
     }
   }
-  free(cfd.chardata);
+  free(cfo.data);
   return 0;
 }
 

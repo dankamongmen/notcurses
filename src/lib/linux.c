@@ -7,13 +7,13 @@
 // each row is a contiguous set of bits, starting at the msb
 static inline size_t
 row_bytes(const struct console_font_op* cfo){
-  return cfo->width + 7 / 8;
+  return (cfo->width + 7) / 8;
 }
 
-// is this constant? lock it down. need 128B for 32*32 FIXME
 static inline size_t
 glyph_bytes(const struct console_font_op* cfo){
-  return row_bytes(cfo) * cfo->height;
+  size_t minb = row_bytes(cfo) * cfo->height;
+  return (minb + 31) / 32 * 32;
 }
 
 static unsigned char*
@@ -40,13 +40,14 @@ shim_quad_block(struct console_font_op* cfo, unsigned idx, unsigned qbits){
     unsigned char mask = 0x80;
     unsigned char* row = glyph + row_bytes(cfo) * r;
     unsigned x;
+    *row = 0;
     for(x = 0 ; x < cfo->width / 2 ; ++x){
       if(qbits & 0x8){
         *row |= mask;
       }
       if((mask >>= 1) == 0){
         mask = 0x80;
-        ++row;
+        *++row = 0;
       }
     }
     while(x < cfo->width){
@@ -55,7 +56,7 @@ shim_quad_block(struct console_font_op* cfo, unsigned idx, unsigned qbits){
       }
       if((mask >>= 1) == 0){
         mask = 0x80;
-        ++row;
+        *++row = 0;
       }
       ++x;
     }
@@ -64,13 +65,14 @@ shim_quad_block(struct console_font_op* cfo, unsigned idx, unsigned qbits){
     unsigned char mask = 0x80;
     unsigned char* row = glyph + row_bytes(cfo) * r;
     unsigned x;
+    *row = 0;
     for(x = 0 ; x < cfo->width / 2 ; ++x){
       if(qbits & 0x2){
         *row |= mask;
       }
       if((mask >>= 1) == 0){
         mask = 0x80;
-        ++row;
+        *++row = 0;
       }
     }
     while(x < cfo->width){
@@ -79,7 +81,7 @@ shim_quad_block(struct console_font_op* cfo, unsigned idx, unsigned qbits){
       }
       if((mask >>= 1) == 0){
         mask = 0x80;
-        ++row;
+        *++row = 0;
       }
       ++x;
     }
@@ -384,11 +386,11 @@ static int
 reprogram_console_font(const notcurses* nc){
   struct console_font_op cfo = {
     .op = KD_FONT_OP_GET,
-    .charcount = 256,
+    .charcount = 512,
     .height = 32,
     .width = 32,
   };
-  size_t totsize = 256 * cfo.charcount; // FIXME enough?
+  size_t totsize = 128 * cfo.charcount; // FIXME enough?
   cfo.data = malloc(totsize);
   if(cfo.data == NULL){
     logwarn("Error acquiring %zub for font descriptors (%s)\n", totsize, strerror(errno));
