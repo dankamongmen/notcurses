@@ -181,6 +181,7 @@ static void cleanup_char_buffer(char **buffer_ptr)
     }
 }
 
+/* FIXME deprecated and changed to ncpile_render_to_file() in 2.3.5
 static PyObject *
 Notcurses_render_to_buffer(NotcursesObject *self, PyObject *Py_UNUSED(args))
 {
@@ -217,6 +218,7 @@ Notcurses_render_to_file(NotcursesObject *self, PyObject *args)
 
     Py_RETURN_NONE;
 }
+*/
 
 static PyObject *
 Notcurses_top(NotcursesObject *self, PyObject *Py_UNUSED(args))
