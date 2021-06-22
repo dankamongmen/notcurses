@@ -738,13 +738,13 @@ stash_string(query_state* inits){
 //fprintf(stderr, "string terminator after %d [%s]\n", inits->stringstate, inits->runstring);
   switch(inits->stringstate){
     case STATE_XTVERSION1:{
-      int xversion;
-      if(sscanf(inits->runstring, "XTerm(%d)", &xversion) == 1){
+      int version;
+      if(sscanf(inits->runstring, "XTerm(%d)", &version) == 1){
         // enough space for everything besides "XTerm()"
         size_t bytes = strlen(inits->runstring) - 7 + 1;
         inits->version = malloc(bytes);
         if(inits->version){
-          sprintf(inits->version, "%d", xversion);
+          sprintf(inits->version, "%d", version); // FIXME replace with memcpy
         }
         inits->qterm = TERMINAL_XTERM;
       }else if(strncmp(inits->runstring, "WezTerm ", strlen("WezTerm ")) == 0){
@@ -753,6 +753,14 @@ stash_string(query_state* inits){
       }else if(strncmp(inits->runstring, "contour ", strlen("contour ")) == 0){
         extract_version(inits, "contour ");
         inits->qterm = TERMINAL_CONTOUR;
+#define KITTYVT "kitty("
+      }else if(strncmp(inits->runstring, KITTYVT, strlen(KITTYVT)) == 0){
+        if(inits->runstring[inits->stridx - 1] == ')'){
+          inits->runstring[inits->stridx - 1] = '\0';
+          extract_version(inits, "kitty(");
+          inits->qterm = TERMINAL_KITTY;
+        }
+#undef KITTYVT
       }
       break;
     }case STATE_XTGETTCAP_TERMNAME1:
