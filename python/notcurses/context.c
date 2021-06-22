@@ -173,6 +173,7 @@ Notcurses_render(NotcursesObject *self, PyObject *Py_UNUSED(args))
     Py_RETURN_NONE;
 }
 
+/* FIXME deprecated and changed to ncpile_render_to_file() in 2.3.5
 static void cleanup_char_buffer(char **buffer_ptr)
 {
     if (NULL != buffer_ptr)
@@ -181,7 +182,6 @@ static void cleanup_char_buffer(char **buffer_ptr)
     }
 }
 
-/* FIXME deprecated and changed to ncpile_render_to_file() in 2.3.5
 static PyObject *
 Notcurses_render_to_buffer(NotcursesObject *self, PyObject *Py_UNUSED(args))
 {
