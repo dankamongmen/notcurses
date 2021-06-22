@@ -64,6 +64,10 @@ get_linux_colormap(int fd){
   return 0;
 }
 
+// each row is laid out as bytes, one bit per pixel, rounded up to the
+// lowest sufficient number of bytes. each character is thus
+//
+//  height * rowbytes, where rowbytes = width + 7 / 8
 static int
 explode_glyph_row(const unsigned char** row, unsigned width){
   unsigned char mask = 0x80;
@@ -103,33 +107,17 @@ get_linux_consolefont(int fd, unsigned showglyphs){
     return -1;
   }
   if(showglyphs){
-    for(unsigned i = 0 ; i < cfo.charcount ; i += 7){
-      const unsigned char* g1 = (unsigned char*)cfo.data + 32 * i;
-      const unsigned char* g2 = g1 + 32;
-      const unsigned char* g3 = g2 + 32;
-      const unsigned char* g4 = g3 + 32;
-      const unsigned char* g5 = g4 + 32;
-      const unsigned char* g6 = g5 + 32;
-      const unsigned char* g7 = g6 + 32;
+    // FIXME get real screen width
+    const int atonce = 80 / (cfo.width + 1);
+    const int Bper = 64;
+    const unsigned char* g[atonce];
+    for(unsigned i = 0 ; i < cfo.charcount ; i += atonce){
+      for(int o = 0 ; o < atonce ; ++o){
+        g[o] = (unsigned char*)cfo.data + Bper * (i + o);
+      }
       for(unsigned row = 0 ; row < cfo.height ; ++row){
-        explode_glyph_row(&g1, cfo.width);
-        if(i < cfo.charcount - 1u){
-          explode_glyph_row(&g2, cfo.width);
-          if(i < cfo.charcount - 2u){
-            explode_glyph_row(&g3, cfo.width);
-            if(i < cfo.charcount - 3u){
-              explode_glyph_row(&g4, cfo.width);
-              if(i < cfo.charcount - 4u){
-              explode_glyph_row(&g5, cfo.width);
-                if(i < cfo.charcount - 5u){
-                  explode_glyph_row(&g6, cfo.width);
-                  if(i < cfo.charcount - 6u){
-                    explode_glyph_row(&g7, cfo.width);
-                  }
-                }
-              }
-            }
-          }
+        for(int o = 0 ; o < atonce ; ++o){
+          explode_glyph_row(&g[o], cfo.width);
         }
         printf("\n");
       }
