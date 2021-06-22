@@ -474,7 +474,7 @@ int get_tty_fd(FILE* ttyfp){
     }
   }
   if(fd < 0){
-    fd = open("/dev/tty", O_RDWR | O_CLOEXEC);
+    fd = open("/dev/tty", O_RDWR | O_CLOEXEC | O_NOCTTY);
     if(fd < 0){
       loginfo("Error opening /dev/tty (%s)\n", strerror(errno));
     }else{
