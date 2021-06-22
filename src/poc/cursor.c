@@ -1,5 +1,17 @@
 #include <notcurses/direct.h>
 
+
+static int
+rendered_cursor(void){
+  struct notcurses* nc = notcurses_init(NULL, NULL);
+  notcurses_cursor_enable(nc, 10, 10);
+  sleep(1);
+  notcurses_render(nc);
+  sleep(1);
+  notcurses_stop(nc);
+  return 0;
+}
+
 int main(void){
   struct ncdirect* n = ncdirect_core_init(NULL, stdout, 0);
   if(n == NULL){
@@ -13,6 +25,9 @@ int main(void){
   int dimy = ncdirect_dim_y(n);
   printf("Cursor: column %d/%d row %d/%d\n", x, dimx, y, dimy);
   ncdirect_stop(n);
+  if(rendered_cursor()){
+    return EXIT_FAILURE;
+  }
   return EXIT_SUCCESS;
 
 err:

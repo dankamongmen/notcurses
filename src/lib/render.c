@@ -1508,10 +1508,6 @@ int notcurses_cursor_enable(notcurses* nc, int y, int x){
     logerror("Illegal cursor placement: %d, %d\n", y, x);
     return -1;
   }
-  if(y >= nc->margin_t || x >= nc->margin_l){
-    logerror("Illegal cursor placement: %d, %d\n", y, x);
-    return -1;
-  }
   // if we're already at the demanded location, we must already be visible, and
   // we needn't move the cursor -- return success immediately.
   if(nc->cursory == y && nc->cursorx == x){
