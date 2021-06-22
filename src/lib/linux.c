@@ -24,215 +24,66 @@ get_glyph(struct console_font_op* cfo, unsigned idx){
   return (unsigned char*)cfo->data + glyph_bytes(cfo) * idx;
 }
 
-static int // insert U+2580 (upper half block)
-shim_upper_half_block(struct console_font_op* cfo, unsigned idx){
-  unsigned char* glyph = get_glyph(cfo, idx);
-  if(glyph == NULL){
-    return -1;
-  }
-  unsigned r = 0;
-  for(r = 0 ; r < cfo->height / 2 ; ++r){
-    for(size_t x = 0 ; x < row_bytes(cfo) ; ++x){
-      *glyph++ = 0xff;
-    }
-  }
-  while(r < cfo->height){
-    for(size_t x = 0 ; x < row_bytes(cfo) ; ++x){
-      *glyph++ = 0;
-    }
-    ++r;
-  }
-  return 0;
-}
-
-static int // insert U+2584 (lower half block)
-shim_lower_half_block(struct console_font_op* cfo, unsigned idx){
+// idx is the glyph index within cfo->data. qbits are the occupied quadrants:
+//  0x8 = upper left
+//  0x4 = upper right
+//  0x2 = lower left
+//  0x1 = lower right
+static int
+shim_quad_block(struct console_font_op* cfo, unsigned idx, unsigned qbits){
   unsigned char* glyph = get_glyph(cfo, idx);
   if(glyph == NULL){
     return -1;
   }
   unsigned r;
-  for(r = 0 ; r < cfo->height / 2 ; ++r, ++glyph){
-    *glyph = 0;
+  for(r = 0 ; r < cfo->height / 2 ; ++r){
+    unsigned char mask = 0x80;
+    unsigned char* row = glyph + row_bytes(cfo) * r;
+    unsigned x;
+    for(x = 0 ; x < cfo->width / 2 ; ++x){
+      if(qbits & 0x8){
+        *row |= mask;
+      }
+      if((mask >>= 1) == 0){
+        mask = 0x80;
+        ++row;
+      }
+    }
+    while(x < cfo->width){
+      if(qbits & 0x4){
+        *row |= mask;
+      }
+      if((mask >>= 1) == 0){
+        mask = 0x80;
+        ++row;
+      }
+      ++x;
+    }
   }
   while(r < cfo->height){
-    *glyph = 0xff;
-    ++glyph;
+    unsigned char mask = 0x80;
+    unsigned char* row = glyph + row_bytes(cfo) * r;
+    unsigned x;
+    for(x = 0 ; x < cfo->width / 2 ; ++x){
+      if(qbits & 0x2){
+        *row |= mask;
+      }
+      if((mask >>= 1) == 0){
+        mask = 0x80;
+        ++row;
+      }
+    }
+    while(x < cfo->width){
+      if(qbits & 0x1){
+        *row |= mask;
+      }
+      if((mask >>= 1) == 0){
+        mask = 0x80;
+        ++row;
+      }
+      ++x;
+    }
     ++r;
-  }
-  return 0;
-}
-
-static int // insert U+258c (left half block)
-shim_left_half_block(struct console_font_op* cfo, unsigned idx){
-  unsigned char* glyph = get_glyph(cfo, idx);
-  if(glyph == NULL){
-    return -1;
-  }
-  for(unsigned r = 0 ; r < cfo->height ; ++r, ++glyph){
-    *glyph = 0xf0;
-  }
-  return 0;
-}
-
-static int // insert U+2590 (right half block)
-shim_right_half_block(struct console_font_op* cfo, unsigned idx){
-  unsigned char* glyph = get_glyph(cfo, idx);
-  if(glyph == NULL){
-    return -1;
-  }
-  for(unsigned r = 0 ; r < cfo->height ; ++r, ++glyph){
-    *glyph = 0x0f;
-  }
-  return 0;
-}
-
-static int // insert U+2598 (quadrant upper left)
-shim_upper_left_quad(struct console_font_op* cfo, unsigned idx){
-  unsigned char* glyph = get_glyph(cfo, idx);
-  if(glyph == NULL){
-    return -1;
-  }
-  for(unsigned r = 0 ; r < cfo->height / 2 ; ++r, ++glyph){
-    *glyph = 0xf0;
-  }
-  for(unsigned r = cfo->height / 2 ; r < cfo->height ; ++r, ++glyph){
-    *glyph = 0;
-  }
-  return 0;
-}
-
-static int // insert U+259D (quadrant upper right)
-shim_upper_right_quad(struct console_font_op* cfo, unsigned idx){
-  unsigned char* glyph = get_glyph(cfo, idx);
-  if(glyph == NULL){
-    return -1;
-  }
-  for(unsigned r = 0 ; r < cfo->height / 2 ; ++r, ++glyph){
-    *glyph = 0x0f;
-  }
-  for(unsigned r = cfo->height / 2 ; r < cfo->height ; ++r, ++glyph){
-    *glyph = 0;
-  }
-  return 0;
-}
-
-static int // insert U+2598 (quadrant lower left)
-shim_lower_left_quad(struct console_font_op* cfo, unsigned idx){
-  unsigned char* glyph = get_glyph(cfo, idx);
-  if(glyph == NULL){
-    return -1;
-  }
-  for(unsigned r = 0 ; r < cfo->height / 2 ; ++r, ++glyph){
-    *glyph = 0;
-  }
-  for(unsigned r = cfo->height / 2 ; r < cfo->height ; ++r, ++glyph){
-    *glyph = 0xf0;
-  }
-  return 0;
-}
-
-static int // insert U+2597 (quadrant lower right)
-shim_lower_right_quad(struct console_font_op* cfo, unsigned idx){
-  unsigned char* glyph = get_glyph(cfo, idx);
-  if(glyph == NULL){
-    return -1;
-  }
-  for(unsigned r = 0 ; r < cfo->height / 2 ; ++r, ++glyph){
-    *glyph = 0;
-  }
-  for(unsigned r = cfo->height / 2 ; r < cfo->height ; ++r, ++glyph){
-    *glyph = 0x0f;
-  }
-  return 0;
-}
-
-static int
-shim_no_upper_left_quad(struct console_font_op* cfo, unsigned idx){
-  unsigned char* glyph = get_glyph(cfo, idx);
-  if(glyph == NULL){
-    return -1;
-  }
-  for(unsigned r = 0 ; r < cfo->height / 2 ; ++r, ++glyph){
-    *glyph = 0x0f;
-  }
-  for(unsigned r = cfo->height / 2 ; r < cfo->height ; ++r, ++glyph){
-    *glyph = 0xff;
-  }
-  return 0;
-}
-
-static int
-shim_no_upper_right_quad(struct console_font_op* cfo, unsigned idx){
-  unsigned char* glyph = get_glyph(cfo, idx);
-  if(glyph == NULL){
-    return -1;
-  }
-  for(unsigned r = 0 ; r < cfo->height / 2 ; ++r, ++glyph){
-    *glyph = 0xf0;
-  }
-  for(unsigned r = cfo->height / 2 ; r < cfo->height ; ++r, ++glyph){
-    *glyph = 0xff;
-  }
-  return 0;
-}
-
-static int
-shim_no_lower_left_quad(struct console_font_op* cfo, unsigned idx){
-  unsigned char* glyph = get_glyph(cfo, idx);
-  if(glyph == NULL){
-    return -1;
-  }
-  for(unsigned r = 0 ; r < cfo->height / 2 ; ++r, ++glyph){
-    *glyph = 0xff;
-  }
-  for(unsigned r = cfo->height / 2 ; r < cfo->height ; ++r, ++glyph){
-    *glyph = 0x0f;
-  }
-  return 0;
-}
-
-static int
-shim_no_lower_right_quad(struct console_font_op* cfo, unsigned idx){
-  unsigned char* glyph = get_glyph(cfo, idx);
-  if(glyph == NULL){
-    return -1;
-  }
-  for(unsigned r = 0 ; r < cfo->height / 2 ; ++r, ++glyph){
-    *glyph = 0xff;
-  }
-  for(unsigned r = cfo->height / 2 ; r < cfo->height ; ++r, ++glyph){
-    *glyph = 0xf0;
-  }
-  return 0;
-}
-
-static int
-shim_quad_ul_lr(struct console_font_op* cfo, unsigned idx){
-  unsigned char* glyph = get_glyph(cfo, idx);
-  if(glyph == NULL){
-    return -1;
-  }
-  for(unsigned r = 0 ; r < cfo->height / 2 ; ++r, ++glyph){
-    *glyph = 0xf0;
-  }
-  for(unsigned r = cfo->height / 2 ; r < cfo->height ; ++r, ++glyph){
-    *glyph = 0x0f;
-  }
-  return 0;
-}
-
-static int
-shim_quad_ll_ur(struct console_font_op* cfo, unsigned idx){
-  unsigned char* glyph = get_glyph(cfo, idx);
-  if(glyph == NULL){
-    return -1;
-  }
-  for(unsigned r = 0 ; r < cfo->height / 2 ; ++r, ++glyph){
-    *glyph = 0x0f;
-  }
-  for(unsigned r = cfo->height / 2 ; r < cfo->height ; ++r, ++glyph){
-    *glyph = 0xf0;
   }
   return 0;
 }
@@ -426,30 +277,31 @@ static int
 program_block_drawing_chars(const notcurses* nc, struct console_font_op* cfo,
                             struct unimapdesc* map){
   struct shimmer {
-    int (*glyphfxn)(struct console_font_op* cfo, unsigned idx);
+    unsigned qbits;
     wchar_t w;
     bool found;
   } shimmers[] = {
-    { .glyphfxn = shim_upper_half_block, .w = L'▀', .found = false, },
-    { .glyphfxn = shim_lower_half_block, .w = L'▄', .found = false, },
-    { .glyphfxn = shim_left_half_block, .w = L'▌', .found = false, },
-    { .glyphfxn = shim_right_half_block, .w = L'▐', .found = false, },
-    { .glyphfxn = shim_upper_left_quad, .w = L'▘', .found = false, },
-    { .glyphfxn = shim_upper_right_quad, .w = L'▝', .found = false, },
-    { .glyphfxn = shim_lower_left_quad, .w = L'▖', .found = false, },
-    { .glyphfxn = shim_lower_right_quad, .w = L'▗', .found = false, },
-    { .glyphfxn = shim_no_upper_left_quad, .w = L'▟', .found = false, },
-    { .glyphfxn = shim_no_upper_right_quad, .w = L'▙', .found = false, },
-    { .glyphfxn = shim_no_lower_left_quad, .w = L'▜', .found = false, },
-    { .glyphfxn = shim_no_lower_right_quad, .w = L'▛', .found = false, },
-    { .glyphfxn = shim_quad_ul_lr, .w = L'▚', .found = false, },
-    { .glyphfxn = shim_quad_ll_ur, .w = L'▞', .found = false, },
-    { .glyphfxn = shim_lower_seven_eighth, .w = L'▇', .found = false, },
-    { .glyphfxn = shim_lower_three_quarter, .w = L'▆', .found = false, },
-    { .glyphfxn = shim_lower_five_eighth, .w = L'▅', .found = false, },
-    { .glyphfxn = shim_lower_three_eighth, .w = L'▃', .found = false, },
-    { .glyphfxn = shim_lower_quarter, .w = L'▂', .found = false, },
-    { .glyphfxn = shim_lower_eighth, .w = L'▁', .found = false, },
+    { .qbits = 0xc, .w = L'▀', .found = false, },
+    { .qbits = 0x3, .w = L'▄', .found = false, },
+    { .qbits = 0xa, .w = L'▌', .found = false, },
+    { .qbits = 0x5, .w = L'▐', .found = false, },
+    { .qbits = 0x8, .w = L'▘', .found = false, },
+    { .qbits = 0x4, .w = L'▝', .found = false, },
+    { .qbits = 0x2, .w = L'▖', .found = false, },
+    { .qbits = 0x1, .w = L'▗', .found = false, },
+    { .qbits = 0x7, .w = L'▟', .found = false, },
+    { .qbits = 0xb, .w = L'▙', .found = false, },
+    { .qbits = 0xd, .w = L'▜', .found = false, },
+    { .qbits = 0xe, .w = L'▛', .found = false, },
+    { .qbits = 0x9, .w = L'▚', .found = false, },
+    { .qbits = 0x6, .w = L'▞', .found = false, },
+    // FIXME need handle these as well!
+    //{ .glyphfxn = shim_lower_seven_eighth, .w = L'▇', .found = false, },
+    //{ .glyphfxn = shim_lower_three_quarter, .w = L'▆', .found = false, },
+    //{ .glyphfxn = shim_lower_five_eighth, .w = L'▅', .found = false, },
+    //{ .glyphfxn = shim_lower_three_eighth, .w = L'▃', .found = false, },
+    //{ .glyphfxn = shim_lower_quarter, .w = L'▂', .found = false, },
+    //{ .glyphfxn = shim_lower_eighth, .w = L'▁', .found = false, },
   };
   // first, take a pass to see which glyphs we already have
   for(unsigned i = 0 ; i < cfo->charcount ; ++i){
@@ -476,7 +328,7 @@ program_block_drawing_chars(const notcurses* nc, struct console_font_op* cfo,
         logwarn("Ran out of replaceable glyphs for U+%04lx\n", (long)shimmers[s].w);
         return -1;
       }
-      if(shimmers[s].glyphfxn(cfo, candidate)){
+      if(shim_quad_block(cfo, candidate, shimmers[s].qbits)){
         logwarn("Error replacing glyph for U+%04lx at %u\n", (long)shimmers[s].w, candidate);
         return -1;
       }
