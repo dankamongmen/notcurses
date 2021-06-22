@@ -63,7 +63,7 @@ tinfo_debug_caps(const tinfo* ti, FILE* debugfp, int rows, int cols,
                   capyn(get_escape(ti, ESCAPE_BGOP)));
   fprintf(debugfp, "%srows: %u cols: %u rpx: %u cpx: %u (%dx%d)\n",
           indent, rows, cols, ti->cellpixy, ti->cellpixx, rows * ti->cellpixy, cols * ti->cellpixx);
-  if(!ti->pixel_init){
+  if(!ti->pixel_draw){
     fprintf(debugfp, "%sdidn't detect bitmap graphics support\n", indent);
   }else if(ti->sixel_maxy){
     fprintf(debugfp, "%smax sixel size: %dx%d colorregs: %u\n",
