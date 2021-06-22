@@ -646,6 +646,8 @@ typedef enum {
   STATE_SIXEL_HEIGHT,  // reading maximum sixel height until 'S'
   STATE_SIXEL_CREGS,   // reading max color registers until 'S'
   STATE_XTSMGRAPHICS_DRAIN, // drain out XTSMGRAPHICS to 'S'
+  STATE_APPSYNC_REPORT, // got DECRPT ?2026
+  STATE_APPSYNC_REPORT_DRAIN, // drain out decrpt to 'y'
 } initstates_e;
 
 typedef struct query_state {
@@ -817,7 +819,7 @@ stash_string(query_state* inits){
 // ought be fed to the machine, and -1 on an invalid state transition.
 static int
 pump_control_read(query_state* inits, unsigned char c){
-//fprintf(stderr, "state: %2d char: %1c %3d %02x\n", inits->state, isprint(c) ? c : ' ', c, c);
+fprintf(stderr, "state: %2d char: %1c %3d %02x\n", inits->state, isprint(c) ? c : ' ', c, c);
   if(c == NCKEY_ESC){
     inits->state = STATE_ESC;
     return 0;
@@ -1006,6 +1008,9 @@ pump_control_read(query_state* inits, unsigned char c){
       if(c == '1'){
         inits->state = STATE_DA_1;
       }else if(c == '2'){
+        if(ruts_numeric(&inits->numeric, c)){ // stash for DECRPT
+          return -1;
+        }
         inits->state = STATE_SIXEL;
       }else if(c == '4' || c == '7'){ // VT132, VT131
         inits->state = STATE_DA_DRAIN;
@@ -1065,7 +1070,13 @@ pump_control_read(query_state* inits, unsigned char c){
       break;
     case STATE_SIXEL:
       if(c == ';'){
-        inits->state = STATE_SIXEL_SEMI1;
+        if(inits->numeric == 2026){
+          inits->state = STATE_APPSYNC_REPORT;
+        }else{
+          inits->state = STATE_SIXEL_SEMI1;
+        }
+      }else if(ruts_numeric(&inits->numeric, c)){
+        return -1;
       }else{
         // FIXME error?
       }
@@ -1105,6 +1116,17 @@ pump_control_read(query_state* inits, unsigned char c){
       break;
     case STATE_XTSMGRAPHICS_DRAIN:
       if(c == 'S'){
+        inits->state = STATE_NULL;
+      }
+      break;
+    case STATE_APPSYNC_REPORT:
+      if(c == '2'){
+        inits->appsync = 1;
+        inits->state = STATE_APPSYNC_REPORT_DRAIN;
+      }
+      break;
+    case STATE_APPSYNC_REPORT_DRAIN:
+      if(c == 'y'){
         inits->state = STATE_NULL;
       }
       break;

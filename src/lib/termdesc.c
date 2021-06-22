@@ -288,7 +288,7 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
 static int
 send_initial_queries(int fd){
   const char queries[] = CSI_BGQ
-                         "\x1b[?2026$p"      // App-Sync Update support
+                         "\x1b[?2026$p"      // query for App-sync updates
                          "\x1b[=0c"          // Tertiary Device Attributes
                          "\x1b[>0q"          // XTVERSION
                          "\x1bP+q544e\x1b\\" // XTGETTCAP['TN']
