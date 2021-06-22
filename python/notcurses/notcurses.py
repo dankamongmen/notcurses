@@ -329,18 +329,6 @@ class Notcurses:
         """
         raise NotImplementedError('Stub')
 
-    def render_to_buffer(self) -> bytes:
-        """Perform the rendering and rasterization portion of render()
-        and write it to bytes object instead of terminal."""
-        raise NotImplementedError('Stub')
-
-    def render_to_file(self, fd: int, /) -> None:
-        """Write the last rendered frame, in its entirety, to file descriptor.
-
-        If render() has not yet been called, nothing will be written.
-        """
-        raise NotImplementedError('Stub')
-
     def top(self) -> NcPlane:
         """Return the topmost ncplane of the standard pile."""
         raise NotImplementedError('Stub')
@@ -1324,4 +1312,16 @@ class NcPlane:
     def pile_rasterize(self) -> None:
         """Make the physical screen match the last
         rendered frame from the pile."""
+        raise NotImplementedError('Stub')
+
+    def pile_render_to_buffer(self) -> bytes:
+        """Perform the rendering and rasterization portion of render()
+        and write it to bytes object instead of terminal."""
+        raise NotImplementedError('Stub')
+
+    def pile_render_to_file(self, fd: int, /) -> None:
+        """Write the last rendered frame, in its entirety, to file descriptor.
+
+        If render() has not yet been called, nothing will be written.
+        """
         raise NotImplementedError('Stub')

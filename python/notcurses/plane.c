@@ -1657,6 +1657,51 @@ NcPlane_pile_rasterize(NcPlaneObject *self, PyObject *Py_UNUSED(args))
     Py_RETURN_NONE;
 }
 
+static void cleanup_char_buffer(char **buffer_ptr)
+{
+    if (NULL != buffer_ptr)
+    {
+        free(*buffer_ptr);
+    }
+}
+
+static PyObject *
+NcPlane_pile_render_to_buffer(NcPlaneObject *self, PyObject *Py_UNUSED(args))
+{
+    char *buffer __attribute__((cleanup(cleanup_char_buffer))) = NULL;
+    size_t buffer_len = 0;
+
+    CHECK_NOTCURSES(ncpile_render_to_buffer(self->ncplane_ptr, &buffer, &buffer_len));
+
+    return PyBytes_FromStringAndSize(buffer, (Py_ssize_t)buffer_len);
+}
+
+static void cleanup_file(FILE **file_to_close)
+{
+    if (NULL != file_to_close)
+    {
+        fclose(*file_to_close);
+    }
+}
+
+static PyObject *
+NcPlane_pile_render_to_file(NcPlaneObject *self, PyObject *args)
+{
+    int fd = INT_MAX;
+    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "i", &fd));
+
+    FILE *new_render_file __attribute__((cleanup(cleanup_file))) = fdopen(fd, "w");
+
+    if (NULL == new_render_file)
+    {
+        return PyErr_SetFromErrno(PyExc_RuntimeError);
+    }
+
+    CHECK_NOTCURSES(ncpile_render_to_file(self->ncplane_ptr, new_render_file));
+
+    Py_RETURN_NONE;
+}
+
 /*
 static PyObject *
 NcPlane_(NcPlaneObject *self, PyObject *args)
@@ -1845,6 +1890,9 @@ static PyMethodDef NcPlane_methods[] = {
     {"pile_bottom", (PyCFunction)NcPlane_pile_bottom, METH_NOARGS, PyDoc_STR("Return the bottommost plane of the pile.")},
     {"pile_render", (PyCFunction)NcPlane_pile_render, METH_NOARGS, PyDoc_STR("Renders the pile of which plane is a part.")},
     {"pile_rasterize", (PyCFunction)NcPlane_pile_rasterize, METH_NOARGS, PyDoc_STR("Make the physical screen match the last rendered frame from the pile.")},
+
+    {"pile_render_to_buffer", (PyCFunction)NcPlane_pile_render_to_buffer, METH_NOARGS, "Perform the rendering and rasterization portion of notcurses_render() and write it to bytes object instead of terminal."},
+    {"render_to_file", (PyCFunction)NcPlane_pile_render_to_file, METH_VARARGS, "Write the last rendered frame, in its entirety, to file descriptor. If render() has not yet been called, nothing will be written."},
 
     //  {"", (PyCFunction) NULL, METH_VARARGS, PyDoc_STR("")},
     {NULL, NULL, 0, NULL},

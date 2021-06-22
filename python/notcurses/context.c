@@ -81,11 +81,11 @@ Notcurses_new(PyTypeObject *subtype, PyObject *args, PyObject *kwds)
                         "flags", NULL};
 
     GNU_PY_CHECK_BOOL(PyArg_ParseTupleAndKeywords(args, kwds, "|O!sO!isO!O!O!O!K", keywords,
-                                                 &PyLong_Type, &main_fd_object,
-                                                 &term_type, &PyLong_Type, &render_fd_object, &log_level,
-                                                 &margins_str,
-                                                 &PyLong_Type, &margin_top, &PyLong_Type, &margin_right, &PyLong_Type, &margin_bottom, &PyLong_Type, &margin_left,
-                                                 &flags));
+                                                  &PyLong_Type, &main_fd_object,
+                                                  &term_type, &PyLong_Type, &render_fd_object, &log_level,
+                                                  &margins_str,
+                                                  &PyLong_Type, &margin_top, &PyLong_Type, &margin_right, &PyLong_Type, &margin_bottom, &PyLong_Type, &margin_left,
+                                                  &flags));
 
     notcurses_options options = {0};
 
@@ -172,53 +172,6 @@ Notcurses_render(NotcursesObject *self, PyObject *Py_UNUSED(args))
     CHECK_NOTCURSES(notcurses_render(self->notcurses_ptr));
     Py_RETURN_NONE;
 }
-
-/* FIXME deprecated and changed to ncpile_render_to_file() in 2.3.5
-static void cleanup_char_buffer(char **buffer_ptr)
-{
-    if (NULL != buffer_ptr)
-    {
-        free(*buffer_ptr);
-    }
-}
-
-static PyObject *
-Notcurses_render_to_buffer(NotcursesObject *self, PyObject *Py_UNUSED(args))
-{
-    char *buffer __attribute__((cleanup(cleanup_char_buffer))) = NULL;
-    size_t buffer_len = 0;
-
-    CHECK_NOTCURSES(notcurses_render_to_buffer(self->notcurses_ptr, &buffer, &buffer_len));
-
-    return PyBytes_FromStringAndSize(buffer, (Py_ssize_t)buffer_len);
-}
-
-static void cleanup_file(FILE **file_to_close)
-{
-    if (NULL != file_to_close)
-    {
-        fclose(*file_to_close);
-    }
-}
-
-static PyObject *
-Notcurses_render_to_file(NotcursesObject *self, PyObject *args)
-{
-    int fd = INT_MAX;
-    GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "i", &fd));
-
-    FILE *new_render_file __attribute__((cleanup(cleanup_file))) = fdopen(fd, "w");
-
-    if (NULL == new_render_file)
-    {
-        return PyErr_SetFromErrno(PyExc_RuntimeError);
-    }
-
-    CHECK_NOTCURSES(notcurses_render_to_file(self->notcurses_ptr, new_render_file));
-
-    Py_RETURN_NONE;
-}
-*/
 
 static PyObject *
 Notcurses_top(NotcursesObject *self, PyObject *Py_UNUSED(args))
@@ -363,11 +316,11 @@ Notcurses_pile_create(NotcursesObject *self, PyObject *args, PyObject *kwds)
                         "margin_b", "margin_r", NULL};
 
     GNU_PY_CHECK_BOOL(PyArg_ParseTupleAndKeywords(args, kwds, "|iiiisKii", keywords,
-                                                 &y, &x,
-                                                 &rows, &cols,
-                                                 &name,
-                                                 &flags,
-                                                 &margin_b, &margin_r));
+                                                  &y, &x,
+                                                  &rows, &cols,
+                                                  &name,
+                                                  &flags,
+                                                  &margin_b, &margin_r));
 
     ncplane_options options = {
         .y = y,
@@ -497,8 +450,6 @@ static PyMethodDef Notcurses_methods[] = {
     {"drop_planes", (PyCFunction)Notcurses_drop_planes, METH_NOARGS, "Destroy all ncplanes other than the stdplane."},
 
     {"render", (PyCFunction)Notcurses_render, METH_NOARGS, "Renders and rasterizes the standard pile in one shot. Blocking call."},
-    //{"render_to_buffer", (PyCFunction)Notcurses_render_to_buffer, METH_NOARGS, "Perform the rendering and rasterization portion of notcurses_render() and write it to bytes object instead of terminal."},
-    //{"render_to_file", (PyCFunction)Notcurses_render_to_file, METH_VARARGS, "Write the last rendered frame, in its entirety, to file descriptor. If render() has not yet been called, nothing will be written."},
 
     {"top", (PyCFunction)Notcurses_top, METH_NOARGS, "Return the topmost ncplane of the standard pile."},
     {"bottom", (PyCFunction)Notcurses_bottom, METH_NOARGS, "Return the bottommost ncplane of the standard pile."},
