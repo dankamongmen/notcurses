@@ -723,83 +723,6 @@ rgb_greyscale(int r, int g, int b){
   return fg * 255;
 }
 
-// write(2) until we've written it all. uses poll(2) to avoid spinning on
-// EAGAIN, at the possible cost of some small latency.
-static inline int
-blocking_write(int fd, const char* buf, size_t buflen){
-//fprintf(stderr, "writing %zu to %d...\n", buflen, fd);
-  size_t written = 0;
-  while(written < buflen){
-    ssize_t w = write(fd, buf + written, buflen - written);
-    if(w < 0){
-      if(errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR){
-        return -1;
-      }
-    }else{
-      written += w;
-    }
-    if(written < buflen){
-      struct pollfd pfd = {
-        .fd = fd,
-        .events = POLLOUT,
-        .revents = 0,
-      };
-      poll(&pfd, 1, -1);
-    }
-  }
-  return 0;
-}
-
-static inline int
-tty_emit(const char* seq, int fd){
-  if(!seq){
-    return -1;
-  }
-  size_t slen = strlen(seq);
-  if(blocking_write(fd, seq, slen)){
-    return -1;
-  }
-  return 0;
-}
-
-static inline int
-term_emit(const char* seq, FILE* out, bool flush){
-  if(!seq){
-    return -1;
-  }
-  if(ncfputs(seq, out) == EOF){
-//fprintf(stderr, "Error emitting %zub escape (%s)\n", strlen(seq), strerror(errno));
-    return -1;
-  }
-  if(flush){
-    while(fflush(out) == EOF){
-      if(errno != EAGAIN && errno != EINTR && errno != EBUSY){
-        fprintf(stderr, "Error flushing after %zub sequence (%s)\n", strlen(seq), strerror(errno));
-        return -1;
-      }
-    }
-  }
-  return 0;
-}
-
-static inline int
-term_bg_palindex(const notcurses* nc, FILE* out, unsigned pal){
-  const char* setab = get_escape(&nc->tcache, ESCAPE_SETAB);
-  if(setab){
-    return term_emit(tiparm(setab, pal), out, false);
-  }
-  return 0;
-}
-
-static inline int
-term_fg_palindex(const notcurses* nc, FILE* out, unsigned pal){
-  const char* setaf = get_escape(&nc->tcache, ESCAPE_SETAF);
-  if(setaf){
-    return term_emit(tiparm(setaf, pal), out, false);
-  }
-  return 0;
-}
-
 static inline const char*
 pool_extended_gcluster(const egcpool* pool, const nccell* c){
   if(cell_simple_p(c)){
@@ -1233,6 +1156,84 @@ extern int loglevel;
   if(loglevel >= NCLOGLEVEL_TRACE){ \
     nclog("%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } \
   } while(0);
+
+// write(2) until we've written it all. uses poll(2) to avoid spinning on
+// EAGAIN, at the possible cost of some small latency.
+static inline int
+blocking_write(int fd, const char* buf, size_t buflen){
+//fprintf(stderr, "writing %zu to %d...\n", buflen, fd);
+  size_t written = 0;
+  while(written < buflen){
+    ssize_t w = write(fd, buf + written, buflen - written);
+    if(w < 0){
+      if(errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR){
+        logerror("Error writing out data on %d (%s)\n", fd, strerror(errno));
+        return -1;
+      }
+    }else{
+      written += w;
+    }
+    if(written < buflen){
+      struct pollfd pfd = {
+        .fd = fd,
+        .events = POLLOUT,
+        .revents = 0,
+      };
+      poll(&pfd, 1, -1);
+    }
+  }
+  return 0;
+}
+
+static inline int
+tty_emit(const char* seq, int fd){
+  if(!seq){
+    return -1;
+  }
+  size_t slen = strlen(seq);
+  if(blocking_write(fd, seq, slen)){
+    return -1;
+  }
+  return 0;
+}
+
+static inline int
+term_emit(const char* seq, FILE* out, bool flush){
+  if(!seq){
+    return -1;
+  }
+  if(ncfputs(seq, out) == EOF){
+//fprintf(stderr, "Error emitting %zub escape (%s)\n", strlen(seq), strerror(errno));
+    return -1;
+  }
+  if(flush){
+    while(fflush(out) == EOF){
+      if(errno != EAGAIN && errno != EINTR && errno != EBUSY){
+        fprintf(stderr, "Error flushing after %zub sequence (%s)\n", strlen(seq), strerror(errno));
+        return -1;
+      }
+    }
+  }
+  return 0;
+}
+
+static inline int
+term_bg_palindex(const notcurses* nc, FILE* out, unsigned pal){
+  const char* setab = get_escape(&nc->tcache, ESCAPE_SETAB);
+  if(setab){
+    return term_emit(tiparm(setab, pal), out, false);
+  }
+  return 0;
+}
+
+static inline int
+term_fg_palindex(const notcurses* nc, FILE* out, unsigned pal){
+  const char* setaf = get_escape(&nc->tcache, ESCAPE_SETAF);
+  if(setaf){
+    return term_emit(tiparm(setaf, pal), out, false);
+  }
+  return 0;
+}
 
 int term_setstyle(FILE* out, unsigned cur, unsigned targ, unsigned stylebit,
                   const char* ton, const char* toff);
