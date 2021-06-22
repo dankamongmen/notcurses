@@ -51,10 +51,11 @@ static void
 tinfo_debug_caps(const tinfo* ti, FILE* debugfp, int rows, int cols,
                  unsigned images, unsigned videos){
   const char indent[] = " ";
-  fprintf(debugfp, "%scolors: %u rgb: %c ccc: %c setaf: %c setab: %c\n",
+  fprintf(debugfp, "%scolors: %u rgb: %c ccc: %c setaf: %c setab: %c app-sync: %c\n",
           indent, ti->caps.colors, capbool(ti->caps.rgb), capbool(ti->caps.can_change_colors),
           capyn(get_escape(ti, ESCAPE_SETAF)),
-          capyn(get_escape(ti, ESCAPE_SETAB)));
+          capyn(get_escape(ti, ESCAPE_SETAB)),
+          capyn(get_escape(ti, ESCAPE_BSU)));
   fprintf(debugfp, "%ssgr: %c sgr0: %c op: %c fgop: %c bgop: %c\n",
           indent, capyn(get_escape(ti, ESCAPE_SGR)),
                   capyn(get_escape(ti, ESCAPE_SGR0)),
