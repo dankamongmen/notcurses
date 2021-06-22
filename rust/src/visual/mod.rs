@@ -243,8 +243,8 @@ pub const NCBLIT_PIXEL: NcBlitter = crate::bindings::ffi::ncblitter_e_NCBLIT_PIX
 #[derive(Clone, Debug)]
 pub struct NcPixelGeometry {
     /// Geometry of the display region
-    pub display_y: NcDim,
-    pub display_x: NcDim,
+    pub term_y: NcDim,
+    pub term_x: NcDim,
     pub cell_y: NcDim,
     pub cell_x: NcDim,
     pub max_bitmap_y: NcDim,

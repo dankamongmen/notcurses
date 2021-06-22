@@ -1538,8 +1538,8 @@ impl NcPlane {
             );
         }
         NcPixelGeometry {
-            display_y: pxy as NcDim,
-            display_x: pxx as NcDim,
+            term_y: pxy as NcDim,
+            term_x: pxx as NcDim,
             cell_y: celldimy as NcDim,
             cell_x: celldimx as NcDim,
             max_bitmap_y: maxbmapy as NcDim,
