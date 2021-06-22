@@ -513,6 +513,9 @@ int ffmpeg_resize(ncvisual* n, int rows, int cols){
   if(data == n->data){ // no change, return
     return 0;
   }
+  if(data == NULL){
+    return -1;
+  }
   AVFrame* sframe = av_frame_alloc();
   if(sframe == NULL){
 //fprintf(stderr, "Couldn't allocate output frame for scaled frame\n");
