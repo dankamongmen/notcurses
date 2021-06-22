@@ -819,7 +819,7 @@ stash_string(query_state* inits){
 // ought be fed to the machine, and -1 on an invalid state transition.
 static int
 pump_control_read(query_state* inits, unsigned char c){
-fprintf(stderr, "state: %2d char: %1c %3d %02x\n", inits->state, isprint(c) ? c : ' ', c, c);
+//fprintf(stderr, "state: %2d char: %1c %3d %02x\n", inits->state, isprint(c) ? c : ' ', c, c);
   if(c == NCKEY_ESC){
     inits->state = STATE_ESC;
     return 0;
