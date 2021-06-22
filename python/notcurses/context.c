@@ -497,8 +497,8 @@ static PyMethodDef Notcurses_methods[] = {
     {"drop_planes", (PyCFunction)Notcurses_drop_planes, METH_NOARGS, "Destroy all ncplanes other than the stdplane."},
 
     {"render", (PyCFunction)Notcurses_render, METH_NOARGS, "Renders and rasterizes the standard pile in one shot. Blocking call."},
-    {"render_to_buffer", (PyCFunction)Notcurses_render_to_buffer, METH_NOARGS, "Perform the rendering and rasterization portion of notcurses_render() and write it to bytes object instead of terminal."},
-    {"render_to_file", (PyCFunction)Notcurses_render_to_file, METH_VARARGS, "Write the last rendered frame, in its entirety, to file descriptor. If render() has not yet been called, nothing will be written."},
+    //{"render_to_buffer", (PyCFunction)Notcurses_render_to_buffer, METH_NOARGS, "Perform the rendering and rasterization portion of notcurses_render() and write it to bytes object instead of terminal."},
+    //{"render_to_file", (PyCFunction)Notcurses_render_to_file, METH_VARARGS, "Write the last rendered frame, in its entirety, to file descriptor. If render() has not yet been called, nothing will be written."},
 
     {"top", (PyCFunction)Notcurses_top, METH_NOARGS, "Return the topmost ncplane of the standard pile."},
     {"bottom", (PyCFunction)Notcurses_bottom, METH_NOARGS, "Return the bottommost ncplane of the standard pile."},
