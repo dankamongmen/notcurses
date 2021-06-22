@@ -1,5 +1,5 @@
+#include <unistd.h>
 #include <notcurses/direct.h>
-
 
 static int
 rendered_cursor(void){
