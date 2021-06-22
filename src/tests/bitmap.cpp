@@ -16,7 +16,7 @@ TEST_CASE("Bitmaps") {
   SUBCASE("SprixelTermValues") {
     CHECK(0 < nc_->tcache.cellpixy);
     CHECK(0 < nc_->tcache.cellpixx);
-    CHECK(nc_->tcache.pixel_init);
+    CHECK(nc_->tcache.pixel_draw);
   }
 
   SUBCASE("SprixelMinimize") {
