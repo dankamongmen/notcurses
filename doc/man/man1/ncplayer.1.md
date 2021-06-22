@@ -8,7 +8,7 @@ ncplayer - Render images and video to a terminal
 
 # SYNOPSIS
 
-**ncplayer** [**-h**] [**-V**] [**-q**] [**-d** ***delaymult***] [**-l** ***loglevel***] [**-b** ***blitter***] [**-s** ***scalemode***] [**-k**] [**-L**] [**-t** ***seconds***] [**-n**] [**-a**] files
+**ncplayer** [**-h**] [**-V**] [**-q**] [**-d** ***delaymult***] [**-l** ***loglevel***] [**-b** ***blitter***] [**-s** ***scalemode***] [**-k**] [**-L**] [**-t** ***seconds***] [**-n**] [**-a** ***color***] files
 
 # DESCRIPTION
 
@@ -41,7 +41,7 @@ be any non-negative number.
 
 **-q**: Print neither frame/timing information along the top of the screen, nor the output summary on exit.
 
-**-a**: Treat color 0x000000 as if it were transparent.
+**-a**: Treat ***color*** as if it were transparent.
 
 **-n**: Use non-interpolative scaling. The result is usually less pleasing to the eye, but it doesn't introduce new colors.
 

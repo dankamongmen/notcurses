@@ -19,7 +19,7 @@ static void usage(std::ostream& os, const char* name, int exitcode)
   __attribute__ ((noreturn));
 
 void usage(std::ostream& o, const char* name, int exitcode){
-  o << "usage: " << name << " [ -h ] [ -q ] [ -m margins ] [ -l loglevel ] [ -d mult ] [ -s scaletype ] [ -k ] [ -L ] [ -t seconds ] [ -n ] [ -a ] files" << '\n';
+  o << "usage: " << name << " [ -h ] [ -q ] [ -m margins ] [ -l loglevel ] [ -d mult ] [ -s scaletype ] [ -k ] [ -L ] [ -t seconds ] [ -n ] [ -a color ] files" << '\n';
   o << " -h: display help and exit with success\n";
   o << " -V: print program name and version\n";
   o << " -q: be quiet (no frame/timing information along top of screen)\n";
@@ -30,7 +30,7 @@ void usage(std::ostream& o, const char* name, int exitcode){
   o << " -s scaling: one of 'none', 'hires', 'scale', 'scalehi', or 'stretch'\n";
   o << " -b blitter: one of 'ascii', 'half', 'quad', 'sex', 'braille', or 'pixel'\n";
   o << " -m margins: margin, or 4 comma-separated margins\n";
-  o << " -a: replace color 0x000000 with a transparent channel\n";
+  o << " -a color: replace color with a transparent channel\n";
   o << " -n: force non-interpolative scaling\n";
   o << " -d mult: non-negative floating point scale for frame time" << std::endl;
   exit(exitcode);
@@ -192,7 +192,7 @@ auto handle_opts(int argc, char** argv, notcurses_options& opts, bool* quiet,
   *scalemode = NCSCALE_STRETCH;
   *displaytime = -1;
   int c;
-  while((c = getopt(argc, argv, "Vhql:d:s:b:t:m:kLan")) != -1){
+  while((c = getopt(argc, argv, "Vhql:d:s:b:t:m:kLa:n")) != -1){
     switch(c){
       case 'h':
         usage(std::cout, argv[0], EXIT_SUCCESS);
@@ -212,7 +212,15 @@ auto handle_opts(int argc, char** argv, notcurses_options& opts, bool* quiet,
           std::cerr <<  "Provided -a twice!" << std::endl;
           usage(std::cerr, argv[0], EXIT_FAILURE);
         }
-        *transcolor = 0x1000000ull;
+        if(sscanf(optarg, "%x", transcolor) != 1){
+          std::cerr <<  "Invalid RGB color:" << optarg << std::endl;
+          usage(std::cerr, argv[0], EXIT_FAILURE);
+        }
+        if(*transcolor > 0xfffffful){
+          std::cerr <<  "Invalid RGB color:" << optarg << std::endl;
+          usage(std::cerr, argv[0], EXIT_FAILURE);
+        }
+        *transcolor |= 0x1000000ull;
         break;
       case 'q':
         *quiet = true;
