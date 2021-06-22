@@ -734,19 +734,26 @@ extract_version(query_state* qstate, const char* prefix){
 }
 
 static int
+extract_paren_version(query_state* qstate, const char* prefix){
+  if(qstate->runstring[qstate->stridx - 1] != ')'){
+    return -1;
+  }
+  qstate->runstring[qstate->stridx - 1] = '\0';
+  extract_version(qstate, prefix);
+  return 0;
+}
+
+static int
 stash_string(query_state* inits){
 //fprintf(stderr, "string terminator after %d [%s]\n", inits->stringstate, inits->runstring);
   switch(inits->stringstate){
     case STATE_XTVERSION1:{
-      int version;
-      if(sscanf(inits->runstring, "XTerm(%d)", &version) == 1){
-        // enough space for everything besides "XTerm()"
-        size_t bytes = strlen(inits->runstring) - 7 + 1;
-        inits->version = malloc(bytes);
-        if(inits->version){
-          sprintf(inits->version, "%d", version); // FIXME replace with memcpy
+#define XTERMVT "XTerm("
+      if(strncmp(inits->runstring, XTERMVT, strlen(XTERMVT)) == 0){
+        if(extract_paren_version(inits, XTERMVT) == 0){
+          inits->qterm = TERMINAL_XTERM;
         }
-        inits->qterm = TERMINAL_XTERM;
+#undef XTERMVT
       }else if(strncmp(inits->runstring, "WezTerm ", strlen("WezTerm ")) == 0){
         extract_version(inits, "WezTerm ");
         inits->qterm = TERMINAL_WEZTERM;
@@ -755,12 +762,16 @@ stash_string(query_state* inits){
         inits->qterm = TERMINAL_CONTOUR;
 #define KITTYVT "kitty("
       }else if(strncmp(inits->runstring, KITTYVT, strlen(KITTYVT)) == 0){
-        if(inits->runstring[inits->stridx - 1] == ')'){
-          inits->runstring[inits->stridx - 1] = '\0';
-          extract_version(inits, "kitty(");
+        if(extract_paren_version(inits, KITTYVT) == 0){
           inits->qterm = TERMINAL_KITTY;
         }
 #undef KITTYVT
+#define FOOTVT "foot("
+      }else if(strncmp(inits->runstring, FOOTVT, strlen(FOOTVT)) == 0){
+        if(extract_paren_version(inits, FOOTVT) == 0){
+          inits->qterm = TERMINAL_FOOT;
+        }
+#undef FOOTVT
       }
       break;
     }case STATE_XTGETTCAP_TERMNAME1:
