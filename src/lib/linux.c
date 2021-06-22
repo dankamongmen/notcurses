@@ -90,92 +90,28 @@ shim_quad_block(struct console_font_op* cfo, unsigned idx, unsigned qbits){
   return 0;
 }
 
+// use for drawing 1, 2, 3, 5, 6, and 7/8ths
 static int
-shim_lower_seven_eighth(struct console_font_op* cfo, unsigned idx){
+shim_lower_eighths(struct console_font_op* cfo, unsigned idx, int eighths){
   unsigned char* glyph = get_glyph(cfo, idx);
   if(glyph == NULL){
     return -1;
   }
-  for(unsigned r = 0 ; r < cfo->height / 8 ; ++r, ++glyph){
-    *glyph = 0;
+  unsigned ten8ths = cfo->height * 10 / 8;
+  unsigned start = cfo->height - (eighths * ten8ths / 10);
+  unsigned r;
+  for(r = 0 ; r < start ; ++r){
+    unsigned char* row = glyph + row_bytes(cfo) * r;
+    for(unsigned x = 0 ; x < cfo->width ; x += 8){
+      row[x / 8] = 0;
+    }
   }
-  for(unsigned r = cfo->height / 8 ; r < cfo->height ; ++r, ++glyph){
-    *glyph = 0xff;
-  }
-  return 0;
-}
-
-static int
-shim_lower_three_quarter(struct console_font_op* cfo, unsigned idx){
-  unsigned char* glyph = get_glyph(cfo, idx);
-  if(glyph == NULL){
-    return -1;
-  }
-  for(unsigned r = 0 ; r < cfo->height / 4 ; ++r, ++glyph){
-    *glyph = 0;
-  }
-  for(unsigned r = cfo->height / 4 ; r < cfo->height ; ++r, ++glyph){
-    *glyph = 0xff;
-  }
-  return 0;
-}
-
-static int
-shim_lower_five_eighth(struct console_font_op* cfo, unsigned idx){
-  unsigned char* glyph = get_glyph(cfo, idx);
-  if(glyph == NULL){
-    return -1;
-  }
-  for(unsigned r = 0 ; r < cfo->height * 5 / 8 ; ++r, ++glyph){
-    *glyph = 0;
-  }
-  for(unsigned r = cfo->height * 5 / 8 ; r < cfo->height ; ++r, ++glyph){
-    *glyph = 0xff;
-  }
-  return 0;
-}
-
-static int
-shim_lower_three_eighth(struct console_font_op* cfo, unsigned idx){
-  unsigned char* glyph = get_glyph(cfo, idx);
-  if(glyph == NULL){
-    return -1;
-  }
-  for(unsigned r = 0 ; r < cfo->height * 3 / 8 ; ++r, ++glyph){
-    *glyph = 0;
-  }
-  for(unsigned r = cfo->height * 3 / 8 ; r < cfo->height ; ++r, ++glyph){
-    *glyph = 0xff;
-  }
-  return 0;
-}
-
-static int
-shim_lower_quarter(struct console_font_op* cfo, unsigned idx){
-  unsigned char* glyph = get_glyph(cfo, idx);
-  if(glyph == NULL){
-    return -1;
-  }
-  for(unsigned r = 0 ; r < cfo->height * 3 / 4 ; ++r, ++glyph){
-    *glyph = 0;
-  }
-  for(unsigned r = cfo->height * 3 / 4 ; r < cfo->height ; ++r, ++glyph){
-    *glyph = 0xff;
-  }
-  return 0;
-}
-
-static int
-shim_lower_eighth(struct console_font_op* cfo, unsigned idx){
-  unsigned char* glyph = get_glyph(cfo, idx);
-  if(glyph == NULL){
-    return -1;
-  }
-  for(unsigned r = 0 ; r < cfo->height * 7 / 8 ; ++r, ++glyph){
-    *glyph = 0;
-  }
-  for(unsigned r = cfo->height * 7 / 8 ; r < cfo->height ; ++r, ++glyph){
-    *glyph = 0xff;
+  while(r < cfo->height){
+    unsigned char* row = glyph + row_bytes(cfo) * r;
+    for(unsigned x = 0 ; x < cfo->width ; x += 8){
+      row[x / 8] = 0xff;
+    }
+    ++r;
   }
   return 0;
 }
@@ -297,13 +233,14 @@ program_block_drawing_chars(const notcurses* nc, struct console_font_op* cfo,
     { .qbits = 0xe, .w = L'▛', .found = false, },
     { .qbits = 0x9, .w = L'▚', .found = false, },
     { .qbits = 0x6, .w = L'▞', .found = false, },
-    // FIXME need handle these as well!
-    //{ .glyphfxn = shim_lower_seven_eighth, .w = L'▇', .found = false, },
-    //{ .glyphfxn = shim_lower_three_quarter, .w = L'▆', .found = false, },
-    //{ .glyphfxn = shim_lower_five_eighth, .w = L'▅', .found = false, },
-    //{ .glyphfxn = shim_lower_three_eighth, .w = L'▃', .found = false, },
-    //{ .glyphfxn = shim_lower_quarter, .w = L'▂', .found = false, },
-    //{ .glyphfxn = shim_lower_eighth, .w = L'▁', .found = false, },
+  };
+  struct shimmer eighths[] = {
+    { .qbits = 7, .w = L'▇', .found = false, },
+    { .qbits = 6, .w = L'▆', .found = false, },
+    { .qbits = 5, .w = L'▅', .found = false, },
+    { .qbits = 3, .w = L'▃', .found = false, },
+    { .qbits = 2, .w = L'▂', .found = false, },
+    { .qbits = 1, .w = L'▁', .found = false, },
   };
   // first, take a pass to see which glyphs we already have
   for(unsigned i = 0 ; i < cfo->charcount ; ++i){
@@ -312,6 +249,13 @@ program_block_drawing_chars(const notcurses* nc, struct console_font_op* cfo,
         if(map->entries[i].unicode == shimmers[s].w){
           logdebug("Found %lc at fontidx %u\n", shimmers[s].w, i);
           shimmers[s].found = true;
+          break;
+        }
+      }
+      for(size_t s = 0 ; s < sizeof(eighths) / sizeof(*eighths) ; ++s){
+        if(map->entries[i].unicode == eighths[s].w){
+          logdebug("Found %lc at fontidx %u\n", eighths[s].w, i);
+          eighths[s].found = true;
           break;
         }
       }
@@ -335,6 +279,27 @@ program_block_drawing_chars(const notcurses* nc, struct console_font_op* cfo,
         return -1;
       }
       if(add_to_map(map, shimmers[s].w, candidate)){
+        return -1;
+      }
+      ++added;
+    }
+  }
+  for(size_t s = 0 ; s < sizeof(eighths) / sizeof(*eighths) ; ++s){
+    if(!eighths[s].found){
+      while(--candidate){
+        if(map->entries[candidate].unicode < 0x2580 || map->entries[candidate].unicode > 0x259f){
+          break;
+        }
+      }
+      if(candidate == 0){
+        logwarn("Ran out of replaceable glyphs for U+%04lx\n", (long)eighths[s].w);
+        return -1;
+      }
+      if(shim_lower_eighths(cfo, candidate, eighths[s].qbits)){
+        logwarn("Error replacing glyph for U+%04lx at %u\n", (long)eighths[s].w, candidate);
+        return -1;
+      }
+      if(add_to_map(map, eighths[s].w, candidate)){
         return -1;
       }
       ++added;
