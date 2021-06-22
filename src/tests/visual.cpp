@@ -28,6 +28,24 @@ TEST_CASE("Visual") {
     }
   }
 
+  // check that we properly populate RGB + A -> RGBA from 35x4 (see #1806)
+  SUBCASE("VisualFromRGBPacked35x4") {
+    unsigned char rgb[4 * 35 * 3] = "";
+    unsigned char alpha = 0xff;
+    auto ncv = ncvisual_from_rgb_packed(rgb, 4, 35 * 3, 35, alpha);
+    REQUIRE(nullptr != ncv);
+    for(int y = 0 ; y < 4 ; ++y){
+      for(int x = 0 ; x < 35 ; ++x){
+        uint32_t p;
+        CHECK(0 == ncvisual_at_yx(ncv, y, x, &p));
+        CHECK(ncpixel_r(p) == rgb[y * 6 + x * 3]);
+        CHECK(ncpixel_g(p) == rgb[y * 6 + x * 3 + 1]);
+        CHECK(ncpixel_b(p) == rgb[y * 6 + x * 3 + 2]);
+        CHECK(ncpixel_a(p) == alpha);
+      }
+    }
+  }
+
   // check that we properly populate RGBx + A -> RGBA
   SUBCASE("VisualFromRGBxPacked") {
     unsigned char rgb[] = "\x88\x77\x66\x12\x55\x44\x33\x10\x22\x11\x00\xdd\x99\xaa\xbb\xcc";
