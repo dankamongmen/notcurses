@@ -13,7 +13,7 @@ steps:
     - cd build
     - cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_QRCODEGEN=on
     - make -j2
-    - notcurses-info
+    - ./notcurses-info
     - ctest --output-on-failure
     - make install
     - ldconfig
