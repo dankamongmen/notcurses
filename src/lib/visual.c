@@ -643,7 +643,7 @@ ncvisual* ncvisual_from_rgb_loose(const void* rgba, int rows, int rowstride,
   }
   ncvisual* ncv = ncvisual_create();
   if(ncv){
-    ncv->rowstride = pad_for_image(rowstride);
+    ncv->rowstride = pad_for_image(cols * 4);
     ncv->pixx = cols;
     ncv->pixy = rows;
     uint32_t* data = malloc(ncv->rowstride * ncv->pixy);
