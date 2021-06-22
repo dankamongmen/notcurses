@@ -941,15 +941,15 @@ API int ncpile_rasterize(struct ncplane* n);
 // Renders and rasterizes the standard pile in one shot. Blocking call.
 API int notcurses_render(struct notcurses* nc);
 
-// Perform the rendering and rasterization portion of notcurses_render(), but
-// do not write the resulting buffer out to the terminal. Using this function,
-// the user can control the writeout process, and render a second frame while
-// writing another. The returned buffer must be freed by the caller.
-API int notcurses_render_to_buffer(struct notcurses* nc, char** buf, size_t* buflen);
+// Perform the rendering and rasterization portion of ncpile_render() and
+// ncpile_rasterize(), but do not write the resulting buffer out to the
+// terminal. Using this function, the user can control the writeout process.
+// The returned buffer must be freed by the caller.
+API int ncpile_render_to_buffer(struct ncplane* p, char** buf, size_t* buflen);
 
 // Write the last rendered frame, in its entirety, to 'fp'. If
 // notcurses_render() has not yet been called, nothing will be written.
-API int notcurses_render_to_file(struct notcurses* nc, FILE* fp);
+API int ncpile_render_to_file(struct ncplane* p, FILE* fp);
 
 // Return the topmost ncplane of the standard pile.
 API struct ncplane* notcurses_top(struct notcurses* n);
@@ -4348,6 +4348,12 @@ channels_set_bg_default(uint64_t* channels){
 // Deprecated; use ncvisual_resize_noninterpolative(), which this now wraps.
 API __attribute__ ((deprecated)) int ncvisual_inflate(struct ncvisual* n, int scale)
   __attribute__ ((nonnull (1)));
+
+API int notcurses_render_to_buffer(struct notcurses* nc, char** buf, size_t* buflen)
+  __attribute__ ((deprecated));
+
+API int notcurses_render_to_file(struct notcurses* nc, FILE* fp)
+  __attribute__ ((deprecated));
 
 typedef nccell cell; // FIXME backwards-compat, remove in ABI3
 

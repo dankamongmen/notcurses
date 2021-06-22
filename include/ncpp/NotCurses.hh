@@ -200,16 +200,6 @@ namespace ncpp
 			return error_guard (notcurses_render (nc), -1);
 		}
 
-		bool render_to_buffer (char** buf, size_t* buflen) const NOEXCEPT_MAYBE
-		{
-			return error_guard (notcurses_render_to_buffer (nc, buf, buflen), -1);
-		}
-
-		bool render_to_file (FILE* fp) const NOEXCEPT_MAYBE
-		{
-			return error_guard (notcurses_render_to_file (nc, fp), -1);
-		}
-
 		void get_term_dim (int *rows, int *cols) const noexcept
 		{
 			notcurses_term_dim_yx (nc, rows, cols);

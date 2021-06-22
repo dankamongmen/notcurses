@@ -1231,7 +1231,9 @@ int notcurses_refresh(notcurses* nc, int* restrict dimy, int* restrict dimx){
   return 0;
 }
 
-int notcurses_render_to_file(notcurses* nc, FILE* fp){
+int ncpile_render_to_file(ncplane* n, FILE* fp){
+  notcurses* nc = ncplane_notcurses(n);
+  ncpile* p = ncplane_pile(n);
   if(nc->lfdimx == 0 || nc->lfdimy == 0){
     return 0;
   }
@@ -1241,23 +1243,20 @@ int notcurses_render_to_file(notcurses* nc, FILE* fp){
   if(out == NULL){
     return -1;
   }
-  ncpile p;
-  p.dimy = nc->margin_t;
-  p.dimx = nc->margin_l;
-  const int count = (nc->lfdimx > p.dimx ? nc->lfdimx : p.dimx) *
-                    (nc->lfdimy > p.dimy ? nc->lfdimy : p.dimy);
-  p.crender = malloc(count * sizeof(*p.crender));
-  if(p.crender == NULL){
+  const int count = (nc->lfdimx > p->dimx ? nc->lfdimx : p->dimx) *
+                    (nc->lfdimy > p->dimy ? nc->lfdimy : p->dimy);
+  p->crender = malloc(count * sizeof(*p->crender));
+  if(p->crender == NULL){
     fclose(out);
     free(rastered);
     return -1;
   }
-  init_rvec(p.crender, count);
+  init_rvec(p->crender, count);
   for(int i = 0 ; i < count ; ++i){
-    p.crender[i].s.damaged = 1;
+    p->crender[i].s.damaged = 1;
   }
-  int ret = raster_and_write(nc, &p, out);
-  free(p.crender);
+  int ret = raster_and_write(nc, p, out);
+  free(p->crender);
   if(ret > 0){
     if(fprintf(fp, "%s", rastered) == ret){
       ret = 0;
@@ -1270,6 +1269,9 @@ int notcurses_render_to_file(notcurses* nc, FILE* fp){
   return ret;
 }
 
+int notcurses_render_to_file(notcurses* nc, FILE* fp){
+  return ncpile_render_to_file(notcurses_stdplane(nc), fp);
+}
 
 // We execute the painter's algorithm, starting from our topmost plane. The
 // damagevector should be all zeros on input. On success, it will reflect
@@ -1377,12 +1379,12 @@ int notcurses_render(notcurses* nc){
 // for now, we just run the top half of notcurses_render(), and copy out the
 // memstream from within rstate. we want to allocate our own here, and return
 // it, to avoid the copy, but we need feed the params through to do so FIXME.
-int notcurses_render_to_buffer(notcurses* nc, char** buf, size_t* buflen){
-  ncplane* stdn = notcurses_stdplane(nc);
-  if(ncpile_render(stdn)){
+int ncpile_render_to_buffer(ncplane* p, char** buf, size_t* buflen){
+  if(ncpile_render(p)){
     return -1;
   }
-  int bytes = notcurses_rasterize_inner(nc, ncplane_pile(stdn), nc->rstate.mstreamfp);
+  notcurses* nc = ncplane_notcurses(p);
+  int bytes = notcurses_rasterize_inner(nc, ncplane_pile(p), nc->rstate.mstreamfp);
   pthread_mutex_lock(&nc->statlock);
   update_render_bytes(&nc->stats, bytes);
   pthread_mutex_unlock(&nc->statlock);
@@ -1395,6 +1397,10 @@ int notcurses_render_to_buffer(notcurses* nc, char** buf, size_t* buflen){
   }
   *buflen = nc->rstate.mstrsize;
   return 0;
+}
+
+int notcurses_render_to_buffer(notcurses* nc, char** buf, size_t* buflen){
+  return ncpile_render_to_buffer(notcurses_stdplane(nc), buf, buflen);
 }
 
 // copy the UTF8-encoded EGC out of the cell, whether simple or complex. the

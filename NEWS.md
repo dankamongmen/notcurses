@@ -28,6 +28,10 @@ rearrangements of Notcurses.
     They map to `NCLOGLEVEL_WARNING` and `NCLOGLEVEL_TRACE`, respectively.
   * New functions `ncvisual_from_rgb_packed()` and `ncvisual_from_rgb_loose()`.
   * New stat `sprixelbytes`.
+  * Added new functions `ncpile_render_to_buffer()` and
+    `ncpile_render_to_file()`. Rewrote `notcurses_render_to_buffer()` and
+    `notcurses_render_to_file()` as trivial wrappers around these functions,
+    and deprecated the latter. They will be removed in ABI3.
 
 * 2.3.4 (2021-06-12)
   * Added the flag `NCVISUAL_OPTION_NOINTERPOLATE` to use non-interpolative

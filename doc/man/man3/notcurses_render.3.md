@@ -18,9 +18,9 @@ notcurses_render - sync the physical display to a virtual pile
 
 **char* notcurses_at_yx(struct notcurses* ***nc***, int ***yoff***, int ***xoff***, uint16_t* ***styles***, uint64_t* ***channels***);**
 
-**int notcurses_render_to_file(struct notcurses* ***nc***, FILE* ***fp***);**
+**int ncpile_render_to_file(struct ncplane* ***p***, FILE* ***fp***);**
 
-**int notcurses_render_to_buffer(struct notcurses* ***nc***, char\*\* ***buf***, size_t* ***buflen***);**
+**int ncpile_render_to_buffer(struct ncplane* ***p***, char\*\* ***buf***, size_t* ***buflen***);**
 
 # DESCRIPTION
 
@@ -50,11 +50,11 @@ While **notcurses_render** is called, you **must not call any other functions
 modifying the same pile**. Other piles may be freely accessed and modified.
 The pile being rendered may be accessed, but not modified.
 
-**notcurses_render_to_buffer** performs the render and raster processes of
-**notcurses_render**, but does not write the resulting buffer to the
-terminal. The user is responsible for writing the buffer to the terminal in
-its entirety. If there is an error, subsequent frames will be out of sync,
-and **notcurses_refresh(3)** must be called.
+**ncpile_render_to_buffer** performs the render and raster processes of
+**ncpile_render** and **ncpile_rasterize**, but does not write the resulting
+buffer to the terminal. The user is responsible for writing the buffer to the
+terminal in its entirety. If there is an error, subsequent frames will be out
+of sync, and **notcurses_refresh(3)** must be called.
 
 A render operation consists of two logical phases: generation of the rendered
 scene, and blitting this scene to the terminal (these two phases might actually
