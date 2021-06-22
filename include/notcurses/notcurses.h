@@ -1251,7 +1251,7 @@ typedef struct ncpalette {
 API ALLOC ncpalette* ncpalette_new(struct notcurses* nc);
 
 // Attempt to configure the terminal with the provided palette 'p'. Does not
-// transfer ownership of 'p'; palette256_free() can (ought) still be called.
+// transfer ownership of 'p'; ncpalette_free() can (ought) still be called.
 API int ncpalette_use(struct notcurses* nc, const ncpalette* p);
 
 // Manipulate entries in the palette store 'p'. These are *not* locked.
@@ -4348,8 +4348,6 @@ channels_set_bg_default(uint64_t* channels){
 // Deprecated; use ncvisual_resize_noninterpolative(), which this now wraps.
 API __attribute__ ((deprecated)) int ncvisual_inflate(struct ncvisual* n, int scale)
   __attribute__ ((nonnull (1)));
-
-typedef ncpalette palette256;
 
 typedef nccell cell; // FIXME backwards-compat, remove in ABI3
 

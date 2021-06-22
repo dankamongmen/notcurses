@@ -400,7 +400,7 @@ typedef struct nctabbed {
 } nctabbed;
 
 typedef struct ncdirect {
-  palette256 palette;        // 256-indexed palette can be used instead of/with RGB
+  ncpalette palette;         // 256-indexed palette can be used instead of/with RGB
   FILE* ttyfp;               // FILE* for output tty
   int ctermfd;               // fd for controlling terminal
   tinfo tcache;              // terminfo cache
@@ -493,7 +493,7 @@ typedef struct notcurses {
   // desired margins (best-effort only), copied in from notcurses_options
   int margin_t, margin_b, margin_r, margin_l;
   int loglevel;
-  palette256 palette; // 256-indexed palette can be used instead of/with RGB
+  ncpalette palette; // 256-indexed palette can be used instead of/with RGB
   bool palette_damage[NCPALETTESIZE];
   unsigned stdio_blocking_save; // was stdio blocking at entry? restore on stop.
 } notcurses;

@@ -2174,7 +2174,7 @@ bool notcurses_canchangecolor(const notcurses* nc){
 }
 
 ncpalette* ncpalette_new(notcurses* nc){
-  palette256* p = malloc(sizeof(*p));
+  ncpalette* p = malloc(sizeof(*p));
   if(p){
     memcpy(p, &nc->palette, sizeof(*p));
   }
@@ -2200,7 +2200,7 @@ int ncpalette_use(notcurses* nc, const ncpalette* p){
   return ret;
 }
 
-int palette256_use(notcurses* nc, const palette256* p){
+int palette256_use(notcurses* nc, const ncpalette* p){
   return ncpalette_use(nc, p);
 }
 
