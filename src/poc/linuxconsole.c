@@ -64,68 +64,67 @@ get_linux_colormap(int fd){
   return 0;
 }
 
-// FIXME assumes a width of 8. it is apparently possible to have widths
-// other than 8, but they don't work properly with GIO_FONTX according to
-// the showconsolefont source code. use the KDFONTOP ioctl to learn true
-// font width.
 static int
-explode_glyph_row(const unsigned char** row){
-  printf("%s%s%s%s%s%s%s%s ",
-          **row & 0x80 ? "*": " ",
-          **row & 0x40 ? "*": " ",
-          **row & 0x20 ? "*": " ",
-          **row & 0x10 ? "*": " ",
-          **row & 0x08 ? "*": " ",
-          **row & 0x04 ? "*": " ",
-          **row & 0x02 ? "*": " ",
-          **row & 0x01 ? "*": " ");
+explode_glyph_row(const unsigned char** row, unsigned width){
+  unsigned char mask = 0x80;
+  while(width--){
+    printf("%s", **row & mask ? "*" : " ");
+    if((mask >>= 1) == 0 && width){
+      mask = 0x80;
+      ++*row;
+    }
+  }
+  printf(" ");
   ++*row;
   return 0;
 }
 
 static int
 get_linux_consolefont(int fd, unsigned showglyphs){
-  struct consolefontdesc cfd = {};
-  cfd.charcount = 512;
-  cfd.chardata = malloc(32 * cfd.charcount);
-  if(cfd.chardata == NULL){
+  struct console_font_op cfo = {};
+  cfo.op = KD_FONT_OP_GET;
+  cfo.charcount = 512;
+  cfo.width = 32;
+  cfo.height = 32;
+  cfo.data = malloc(128 * cfo.charcount);
+  if(cfo.data == NULL){
     return -1;
   }
-  if(ioctl(fd, GIO_FONTX, &cfd)){
+  if(ioctl(fd, KDFONTOP, &cfo)){
     fprintf(stderr, "Error reading Linux kernelfont (%s)\n", strerror(errno));
-    free(cfd.chardata);
+    free(cfo.data);
     return -1;
   }
-  printf("Kernel font size (glyphcount): %hu\n", cfd.charcount);
-  printf("Kernel font character height: %hu\n", cfd.charheight);
-  if(cfd.charcount > 512){
+  printf("Kernel font size (glyphcount): %hu\n", cfo.charcount);
+  printf("Kernel font geometry: %hux%hu\n", cfo.height, cfo.width);
+  if(cfo.charcount > 512){
     fprintf(stderr, "Warning: kernel returned excess charcount\n");
-    free(cfd.chardata);
+    free(cfo.data);
     return -1;
   }
   if(showglyphs){
-    for(unsigned i = 0 ; i < cfd.charcount ; i += 7){
-      const unsigned char* g1 = (unsigned char*)cfd.chardata + 32 * i;
+    for(unsigned i = 0 ; i < cfo.charcount ; i += 7){
+      const unsigned char* g1 = (unsigned char*)cfo.data + 32 * i;
       const unsigned char* g2 = g1 + 32;
       const unsigned char* g3 = g2 + 32;
       const unsigned char* g4 = g3 + 32;
       const unsigned char* g5 = g4 + 32;
       const unsigned char* g6 = g5 + 32;
       const unsigned char* g7 = g6 + 32;
-      for(unsigned row = 0 ; row < cfd.charheight ; ++row){
-        explode_glyph_row(&g1);
-        if(i < cfd.charcount - 1u){
-          explode_glyph_row(&g2);
-          if(i < cfd.charcount - 2u){
-            explode_glyph_row(&g3);
-            if(i < cfd.charcount - 3u){
-              explode_glyph_row(&g4);
-              if(i < cfd.charcount - 4u){
-              explode_glyph_row(&g5);
-                if(i < cfd.charcount - 5u){
-                  explode_glyph_row(&g6);
-                  if(i < cfd.charcount - 6u){
-                    explode_glyph_row(&g7);
+      for(unsigned row = 0 ; row < cfo.height ; ++row){
+        explode_glyph_row(&g1, cfo.width);
+        if(i < cfo.charcount - 1u){
+          explode_glyph_row(&g2, cfo.width);
+          if(i < cfo.charcount - 2u){
+            explode_glyph_row(&g3, cfo.width);
+            if(i < cfo.charcount - 3u){
+              explode_glyph_row(&g4, cfo.width);
+              if(i < cfo.charcount - 4u){
+              explode_glyph_row(&g5, cfo.width);
+                if(i < cfo.charcount - 5u){
+                  explode_glyph_row(&g6, cfo.width);
+                  if(i < cfo.charcount - 6u){
+                    explode_glyph_row(&g7, cfo.width);
                   }
                 }
               }
@@ -136,7 +135,7 @@ get_linux_consolefont(int fd, unsigned showglyphs){
       }
     }
   }
-  free(cfd.chardata);
+  free(cfo.data);
   return 0;
 }
 

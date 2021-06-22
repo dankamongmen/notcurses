@@ -5,24 +5,24 @@
 #include <sys/ioctl.h>
 
 static unsigned char*
-get_glyph(struct consolefontdesc* cfd, unsigned idx){
+get_glyph(struct console_font_op* cfd, unsigned idx){
   if(idx >= cfd->charcount){
     return NULL;
   }
-  return (unsigned char*)cfd->chardata + 32 * idx;
+  return (unsigned char*)cfd->data + 32 * idx;
 }
 
 static int // insert U+2580 (upper half block)
-shim_upper_half_block(struct consolefontdesc* cfd, unsigned idx){
+shim_upper_half_block(struct console_font_op* cfd, unsigned idx){
   unsigned char* glyph = get_glyph(cfd, idx);
   if(glyph == NULL){
     return -1;
   }
   unsigned r;
-  for(r = 0 ; r < cfd->charheight / 2 ; ++r, ++glyph){
+  for(r = 0 ; r < cfd->height / 2 ; ++r, ++glyph){
     *glyph = 0xff;
   }
-  while(r < cfd->charheight){
+  while(r < cfd->height){
     *glyph = 0;
     ++glyph;
     ++r;
@@ -31,16 +31,16 @@ shim_upper_half_block(struct consolefontdesc* cfd, unsigned idx){
 }
 
 static int // insert U+2584 (lower half block)
-shim_lower_half_block(struct consolefontdesc* cfd, unsigned idx){
+shim_lower_half_block(struct console_font_op* cfd, unsigned idx){
   unsigned char* glyph = get_glyph(cfd, idx);
   if(glyph == NULL){
     return -1;
   }
   unsigned r;
-  for(r = 0 ; r < cfd->charheight / 2 ; ++r, ++glyph){
+  for(r = 0 ; r < cfd->height / 2 ; ++r, ++glyph){
     *glyph = 0;
   }
-  while(r < cfd->charheight){
+  while(r < cfd->height){
     *glyph = 0xff;
     ++glyph;
     ++r;
@@ -49,264 +49,264 @@ shim_lower_half_block(struct consolefontdesc* cfd, unsigned idx){
 }
 
 static int // insert U+258c (left half block)
-shim_left_half_block(struct consolefontdesc* cfd, unsigned idx){
+shim_left_half_block(struct console_font_op* cfd, unsigned idx){
   unsigned char* glyph = get_glyph(cfd, idx);
   if(glyph == NULL){
     return -1;
   }
-  for(unsigned r = 0 ; r < cfd->charheight ; ++r, ++glyph){
+  for(unsigned r = 0 ; r < cfd->height ; ++r, ++glyph){
     *glyph = 0xf0;
   }
   return 0;
 }
 
 static int // insert U+2590 (right half block)
-shim_right_half_block(struct consolefontdesc* cfd, unsigned idx){
+shim_right_half_block(struct console_font_op* cfd, unsigned idx){
   unsigned char* glyph = get_glyph(cfd, idx);
   if(glyph == NULL){
     return -1;
   }
-  for(unsigned r = 0 ; r < cfd->charheight ; ++r, ++glyph){
+  for(unsigned r = 0 ; r < cfd->height ; ++r, ++glyph){
     *glyph = 0x0f;
   }
   return 0;
 }
 
 static int // insert U+2598 (quadrant upper left)
-shim_upper_left_quad(struct consolefontdesc* cfd, unsigned idx){
+shim_upper_left_quad(struct console_font_op* cfd, unsigned idx){
   unsigned char* glyph = get_glyph(cfd, idx);
   if(glyph == NULL){
     return -1;
   }
-  for(unsigned r = 0 ; r < cfd->charheight / 2 ; ++r, ++glyph){
+  for(unsigned r = 0 ; r < cfd->height / 2 ; ++r, ++glyph){
     *glyph = 0xf0;
   }
-  for(unsigned r = cfd->charheight / 2 ; r < cfd->charheight ; ++r, ++glyph){
+  for(unsigned r = cfd->height / 2 ; r < cfd->height ; ++r, ++glyph){
     *glyph = 0;
   }
   return 0;
 }
 
 static int // insert U+259D (quadrant upper right)
-shim_upper_right_quad(struct consolefontdesc* cfd, unsigned idx){
+shim_upper_right_quad(struct console_font_op* cfd, unsigned idx){
   unsigned char* glyph = get_glyph(cfd, idx);
   if(glyph == NULL){
     return -1;
   }
-  for(unsigned r = 0 ; r < cfd->charheight / 2 ; ++r, ++glyph){
+  for(unsigned r = 0 ; r < cfd->height / 2 ; ++r, ++glyph){
     *glyph = 0x0f;
   }
-  for(unsigned r = cfd->charheight / 2 ; r < cfd->charheight ; ++r, ++glyph){
+  for(unsigned r = cfd->height / 2 ; r < cfd->height ; ++r, ++glyph){
     *glyph = 0;
   }
   return 0;
 }
 
 static int // insert U+2598 (quadrant lower left)
-shim_lower_left_quad(struct consolefontdesc* cfd, unsigned idx){
+shim_lower_left_quad(struct console_font_op* cfd, unsigned idx){
   unsigned char* glyph = get_glyph(cfd, idx);
   if(glyph == NULL){
     return -1;
   }
-  for(unsigned r = 0 ; r < cfd->charheight / 2 ; ++r, ++glyph){
+  for(unsigned r = 0 ; r < cfd->height / 2 ; ++r, ++glyph){
     *glyph = 0;
   }
-  for(unsigned r = cfd->charheight / 2 ; r < cfd->charheight ; ++r, ++glyph){
+  for(unsigned r = cfd->height / 2 ; r < cfd->height ; ++r, ++glyph){
     *glyph = 0xf0;
   }
   return 0;
 }
 
 static int // insert U+2597 (quadrant lower right)
-shim_lower_right_quad(struct consolefontdesc* cfd, unsigned idx){
+shim_lower_right_quad(struct console_font_op* cfd, unsigned idx){
   unsigned char* glyph = get_glyph(cfd, idx);
   if(glyph == NULL){
     return -1;
   }
-  for(unsigned r = 0 ; r < cfd->charheight / 2 ; ++r, ++glyph){
+  for(unsigned r = 0 ; r < cfd->height / 2 ; ++r, ++glyph){
     *glyph = 0;
   }
-  for(unsigned r = cfd->charheight / 2 ; r < cfd->charheight ; ++r, ++glyph){
+  for(unsigned r = cfd->height / 2 ; r < cfd->height ; ++r, ++glyph){
     *glyph = 0x0f;
   }
   return 0;
 }
 
 static int
-shim_no_upper_left_quad(struct consolefontdesc* cfd, unsigned idx){
+shim_no_upper_left_quad(struct console_font_op* cfd, unsigned idx){
   unsigned char* glyph = get_glyph(cfd, idx);
   if(glyph == NULL){
     return -1;
   }
-  for(unsigned r = 0 ; r < cfd->charheight / 2 ; ++r, ++glyph){
+  for(unsigned r = 0 ; r < cfd->height / 2 ; ++r, ++glyph){
     *glyph = 0x0f;
   }
-  for(unsigned r = cfd->charheight / 2 ; r < cfd->charheight ; ++r, ++glyph){
+  for(unsigned r = cfd->height / 2 ; r < cfd->height ; ++r, ++glyph){
     *glyph = 0xff;
   }
   return 0;
 }
 
 static int
-shim_no_upper_right_quad(struct consolefontdesc* cfd, unsigned idx){
+shim_no_upper_right_quad(struct console_font_op* cfd, unsigned idx){
   unsigned char* glyph = get_glyph(cfd, idx);
   if(glyph == NULL){
     return -1;
   }
-  for(unsigned r = 0 ; r < cfd->charheight / 2 ; ++r, ++glyph){
+  for(unsigned r = 0 ; r < cfd->height / 2 ; ++r, ++glyph){
     *glyph = 0xf0;
   }
-  for(unsigned r = cfd->charheight / 2 ; r < cfd->charheight ; ++r, ++glyph){
+  for(unsigned r = cfd->height / 2 ; r < cfd->height ; ++r, ++glyph){
     *glyph = 0xff;
   }
   return 0;
 }
 
 static int
-shim_no_lower_left_quad(struct consolefontdesc* cfd, unsigned idx){
+shim_no_lower_left_quad(struct console_font_op* cfd, unsigned idx){
   unsigned char* glyph = get_glyph(cfd, idx);
   if(glyph == NULL){
     return -1;
   }
-  for(unsigned r = 0 ; r < cfd->charheight / 2 ; ++r, ++glyph){
+  for(unsigned r = 0 ; r < cfd->height / 2 ; ++r, ++glyph){
     *glyph = 0xff;
   }
-  for(unsigned r = cfd->charheight / 2 ; r < cfd->charheight ; ++r, ++glyph){
+  for(unsigned r = cfd->height / 2 ; r < cfd->height ; ++r, ++glyph){
     *glyph = 0x0f;
   }
   return 0;
 }
 
 static int
-shim_no_lower_right_quad(struct consolefontdesc* cfd, unsigned idx){
+shim_no_lower_right_quad(struct console_font_op* cfd, unsigned idx){
   unsigned char* glyph = get_glyph(cfd, idx);
   if(glyph == NULL){
     return -1;
   }
-  for(unsigned r = 0 ; r < cfd->charheight / 2 ; ++r, ++glyph){
+  for(unsigned r = 0 ; r < cfd->height / 2 ; ++r, ++glyph){
     *glyph = 0xff;
   }
-  for(unsigned r = cfd->charheight / 2 ; r < cfd->charheight ; ++r, ++glyph){
-    *glyph = 0xf0;
-  }
-  return 0;
-}
-
-static int
-shim_quad_ul_lr(struct consolefontdesc* cfd, unsigned idx){
-  unsigned char* glyph = get_glyph(cfd, idx);
-  if(glyph == NULL){
-    return -1;
-  }
-  for(unsigned r = 0 ; r < cfd->charheight / 2 ; ++r, ++glyph){
-    *glyph = 0xf0;
-  }
-  for(unsigned r = cfd->charheight / 2 ; r < cfd->charheight ; ++r, ++glyph){
-    *glyph = 0x0f;
-  }
-  return 0;
-}
-
-static int
-shim_quad_ll_ur(struct consolefontdesc* cfd, unsigned idx){
-  unsigned char* glyph = get_glyph(cfd, idx);
-  if(glyph == NULL){
-    return -1;
-  }
-  for(unsigned r = 0 ; r < cfd->charheight / 2 ; ++r, ++glyph){
-    *glyph = 0x0f;
-  }
-  for(unsigned r = cfd->charheight / 2 ; r < cfd->charheight ; ++r, ++glyph){
+  for(unsigned r = cfd->height / 2 ; r < cfd->height ; ++r, ++glyph){
     *glyph = 0xf0;
   }
   return 0;
 }
 
 static int
-shim_lower_seven_eighth(struct consolefontdesc* cfd, unsigned idx){
+shim_quad_ul_lr(struct console_font_op* cfd, unsigned idx){
   unsigned char* glyph = get_glyph(cfd, idx);
   if(glyph == NULL){
     return -1;
   }
-  for(unsigned r = 0 ; r < cfd->charheight / 8 ; ++r, ++glyph){
+  for(unsigned r = 0 ; r < cfd->height / 2 ; ++r, ++glyph){
+    *glyph = 0xf0;
+  }
+  for(unsigned r = cfd->height / 2 ; r < cfd->height ; ++r, ++glyph){
+    *glyph = 0x0f;
+  }
+  return 0;
+}
+
+static int
+shim_quad_ll_ur(struct console_font_op* cfd, unsigned idx){
+  unsigned char* glyph = get_glyph(cfd, idx);
+  if(glyph == NULL){
+    return -1;
+  }
+  for(unsigned r = 0 ; r < cfd->height / 2 ; ++r, ++glyph){
+    *glyph = 0x0f;
+  }
+  for(unsigned r = cfd->height / 2 ; r < cfd->height ; ++r, ++glyph){
+    *glyph = 0xf0;
+  }
+  return 0;
+}
+
+static int
+shim_lower_seven_eighth(struct console_font_op* cfd, unsigned idx){
+  unsigned char* glyph = get_glyph(cfd, idx);
+  if(glyph == NULL){
+    return -1;
+  }
+  for(unsigned r = 0 ; r < cfd->height / 8 ; ++r, ++glyph){
     *glyph = 0;
   }
-  for(unsigned r = cfd->charheight / 8 ; r < cfd->charheight ; ++r, ++glyph){
+  for(unsigned r = cfd->height / 8 ; r < cfd->height ; ++r, ++glyph){
     *glyph = 0xff;
   }
   return 0;
 }
 
 static int
-shim_lower_three_quarter(struct consolefontdesc* cfd, unsigned idx){
+shim_lower_three_quarter(struct console_font_op* cfd, unsigned idx){
   unsigned char* glyph = get_glyph(cfd, idx);
   if(glyph == NULL){
     return -1;
   }
-  for(unsigned r = 0 ; r < cfd->charheight / 4 ; ++r, ++glyph){
+  for(unsigned r = 0 ; r < cfd->height / 4 ; ++r, ++glyph){
     *glyph = 0;
   }
-  for(unsigned r = cfd->charheight / 4 ; r < cfd->charheight ; ++r, ++glyph){
+  for(unsigned r = cfd->height / 4 ; r < cfd->height ; ++r, ++glyph){
     *glyph = 0xff;
   }
   return 0;
 }
 
 static int
-shim_lower_five_eighth(struct consolefontdesc* cfd, unsigned idx){
+shim_lower_five_eighth(struct console_font_op* cfd, unsigned idx){
   unsigned char* glyph = get_glyph(cfd, idx);
   if(glyph == NULL){
     return -1;
   }
-  for(unsigned r = 0 ; r < cfd->charheight * 5 / 8 ; ++r, ++glyph){
+  for(unsigned r = 0 ; r < cfd->height * 5 / 8 ; ++r, ++glyph){
     *glyph = 0;
   }
-  for(unsigned r = cfd->charheight * 5 / 8 ; r < cfd->charheight ; ++r, ++glyph){
+  for(unsigned r = cfd->height * 5 / 8 ; r < cfd->height ; ++r, ++glyph){
     *glyph = 0xff;
   }
   return 0;
 }
 
 static int
-shim_lower_three_eighth(struct consolefontdesc* cfd, unsigned idx){
+shim_lower_three_eighth(struct console_font_op* cfd, unsigned idx){
   unsigned char* glyph = get_glyph(cfd, idx);
   if(glyph == NULL){
     return -1;
   }
-  for(unsigned r = 0 ; r < cfd->charheight * 3 / 8 ; ++r, ++glyph){
+  for(unsigned r = 0 ; r < cfd->height * 3 / 8 ; ++r, ++glyph){
     *glyph = 0;
   }
-  for(unsigned r = cfd->charheight * 3 / 8 ; r < cfd->charheight ; ++r, ++glyph){
+  for(unsigned r = cfd->height * 3 / 8 ; r < cfd->height ; ++r, ++glyph){
     *glyph = 0xff;
   }
   return 0;
 }
 
 static int
-shim_lower_quarter(struct consolefontdesc* cfd, unsigned idx){
+shim_lower_quarter(struct console_font_op* cfd, unsigned idx){
   unsigned char* glyph = get_glyph(cfd, idx);
   if(glyph == NULL){
     return -1;
   }
-  for(unsigned r = 0 ; r < cfd->charheight * 3 / 4 ; ++r, ++glyph){
+  for(unsigned r = 0 ; r < cfd->height * 3 / 4 ; ++r, ++glyph){
     *glyph = 0;
   }
-  for(unsigned r = cfd->charheight * 3 / 4 ; r < cfd->charheight ; ++r, ++glyph){
+  for(unsigned r = cfd->height * 3 / 4 ; r < cfd->height ; ++r, ++glyph){
     *glyph = 0xff;
   }
   return 0;
 }
 
 static int
-shim_lower_eighth(struct consolefontdesc* cfd, unsigned idx){
+shim_lower_eighth(struct console_font_op* cfd, unsigned idx){
   unsigned char* glyph = get_glyph(cfd, idx);
   if(glyph == NULL){
     return -1;
   }
-  for(unsigned r = 0 ; r < cfd->charheight * 7 / 8 ; ++r, ++glyph){
+  for(unsigned r = 0 ; r < cfd->height * 7 / 8 ; ++r, ++glyph){
     *glyph = 0;
   }
-  for(unsigned r = cfd->charheight * 7 / 8 ; r < cfd->charheight ; ++r, ++glyph){
+  for(unsigned r = cfd->height * 7 / 8 ; r < cfd->height ; ++r, ++glyph){
     *glyph = 0xff;
   }
   return 0;
@@ -408,10 +408,10 @@ program_line_drawing_chars(const notcurses* nc, struct unimapdesc* map){
 }
 
 static int
-program_block_drawing_chars(const notcurses* nc, struct consolefontdesc* cfd,
+program_block_drawing_chars(const notcurses* nc, struct console_font_op* cfo,
                             struct unimapdesc* map){
   struct shimmer {
-    int (*glyphfxn)(struct consolefontdesc* cfd, unsigned idx);
+    int (*glyphfxn)(struct console_font_op* cfo, unsigned idx);
     wchar_t w;
     bool found;
   } shimmers[] = {
@@ -437,7 +437,7 @@ program_block_drawing_chars(const notcurses* nc, struct consolefontdesc* cfd,
     { .glyphfxn = shim_lower_eighth, .w = L'▁', .found = false, },
   };
   // first, take a pass to see which glyphs we already have
-  for(unsigned i = 0 ; i < cfd->charcount ; ++i){
+  for(unsigned i = 0 ; i < cfo->charcount ; ++i){
     if(map->entries[i].unicode >= 0x2580 && map->entries[i].unicode <= 0x259f){
       for(size_t s = 0 ; s < sizeof(shimmers) / sizeof(*shimmers) ; ++s){
         if(map->entries[i].unicode == shimmers[s].w){
@@ -449,7 +449,7 @@ program_block_drawing_chars(const notcurses* nc, struct consolefontdesc* cfd,
     }
   }
   int added = 0;
-  unsigned candidate = cfd->charcount;
+  unsigned candidate = cfo->charcount;
   for(size_t s = 0 ; s < sizeof(shimmers) / sizeof(*shimmers) ; ++s){
     if(!shimmers[s].found){
       while(--candidate){
@@ -461,7 +461,7 @@ program_block_drawing_chars(const notcurses* nc, struct consolefontdesc* cfd,
         logwarn("Ran out of replaceable glyphs for U+%04lx\n", (long)shimmers[s].w);
         return -1;
       }
-      if(shimmers[s].glyphfxn(cfd, candidate)){
+      if(shimmers[s].glyphfxn(cfo, candidate)){
         logwarn("Error replacing glyph for U+%04lx at %u\n", (long)shimmers[s].w, candidate);
         return -1;
       }
@@ -471,7 +471,8 @@ program_block_drawing_chars(const notcurses* nc, struct consolefontdesc* cfd,
       ++added;
     }
   }
-  if(ioctl(nc->ttyfd, PIO_FONTX, cfd)){
+  cfo->op = KD_FONT_OP_SET;
+  if(ioctl(nc->ttyfd, KDFONTOP, cfo)){
     logwarn("Error programming kernel font (%s)\n", strerror(errno));
     return -1;
   }
@@ -484,15 +485,15 @@ program_block_drawing_chars(const notcurses* nc, struct consolefontdesc* cfd,
 }
 
 static int
-reprogram_linux_font(const notcurses* nc, struct consolefontdesc* cfd,
+reprogram_linux_font(const notcurses* nc, struct console_font_op* cfo,
                      struct unimapdesc* map){
-  if(ioctl(nc->ttyfd, GIO_FONTX, cfd)){
+  if(ioctl(nc->ttyfd, KDFONTOP, cfo)){
     logwarn("Error reading Linux kernelfont (%s)\n", strerror(errno));
     return -1;
   }
-  loginfo("Kernel font size (glyphcount): %hu\n", cfd->charcount);
-  loginfo("Kernel font character geometry: 8x%hu\n", cfd->charheight);
-  if(cfd->charcount > 512){
+  loginfo("Kernel font size (glyphcount): %hu\n", cfo->charcount);
+  loginfo("Kernel font character geometry: %hux%hu\n", cfo->width, cfo->height);
+  if(cfo->charcount > 512){
     logwarn("Warning: kernel returned excess charcount\n");
     return -1;
   }
@@ -506,7 +507,7 @@ reprogram_linux_font(const notcurses* nc, struct consolefontdesc* cfd,
   if(program_line_drawing_chars(nc, map)){
     return -1;
   }
-  if(program_block_drawing_chars(nc, cfd, map)){
+  if(program_block_drawing_chars(nc, cfo, map)){
     return -1;
   }
   return 0;
@@ -514,11 +515,15 @@ reprogram_linux_font(const notcurses* nc, struct consolefontdesc* cfd,
 
 static int
 reprogram_console_font(const notcurses* nc){
-  struct consolefontdesc cfd = {};
-  cfd.charcount = 512;
-  size_t totsize = 32 * cfd.charcount;
-  cfd.chardata = malloc(totsize);
-  if(cfd.chardata == NULL){
+  struct console_font_op cfo = {
+    .op = KD_FONT_OP_GET,
+    .charcount = 256,
+    .height = 32,
+    .width = 32,
+  };
+  size_t totsize = 256 * cfo.charcount; // FIXME enough?
+  cfo.data = malloc(totsize);
+  if(cfo.data == NULL){
     logwarn("Error acquiring %zub for font descriptors (%s)\n", totsize, strerror(errno));
     return -1;
   }
@@ -528,11 +533,11 @@ reprogram_console_font(const notcurses* nc){
   map.entries = malloc(totsize);
   if(map.entries == NULL){
     logwarn("Error acquiring %zub for Unicode font map (%s)\n", totsize, strerror(errno));
-    free(cfd.chardata);
+    free(cfo.data);
     return -1;
   }
-  int r = reprogram_linux_font(nc, &cfd, &map);
-  free(cfd.chardata);
+  int r = reprogram_linux_font(nc, &cfo, &map);
+  free(cfo.data);
   free(map.entries);
   return r;
 }
