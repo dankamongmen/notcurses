@@ -7,6 +7,7 @@ extern "C" {
 
 // internal header, not installed
 
+#include "input.h"
 #include <stdbool.h>
 
 struct ncpile;
@@ -177,8 +178,12 @@ term_supported_styles(const tinfo* ti){
 // initialized. set |utf8| if we've verified UTF8 output encoding.
 // set |noaltscreen| to inhibit alternate screen detection. |fd| ought
 // be connected to a terminal device, or -1 if no terminal is available.
+// if already *certain* of the terminal type (basically, if it's the Linux
+// console, identified via ioctl(2)s), pass it as qterm; otherwise use
+// TERMINAL_UNKNOWN.
 int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
-                         unsigned noaltscreen, unsigned nocbreak);
+                         unsigned noaltscreen, unsigned nocbreak,
+                         queried_terminals_e qterm);
 
 void free_terminfo_cache(tinfo* ti);
 

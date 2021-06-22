@@ -1156,22 +1156,24 @@ int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected,
   nilayer->inputbuf_valid_starts = 0;
   nilayer->inputbuf_write_at = 0;
   nilayer->input_events = 0;
-  int csifd = nilayer->ttyfd >= 0 ? nilayer->ttyfd : nilayer->infd;
-  if(isatty(csifd)){
-    query_state inits = {
-      .tcache = tcache,
-      .state = STATE_NULL,
-      .qterm = TERMINAL_UNKNOWN,
-    };
-    if(control_read(csifd, &inits)){
-      input_free_esctrie(&nilayer->inputescapes);
-      free(inits.version);
-      return -1;
+  if(*detected == TERMINAL_UNKNOWN){
+    int csifd = nilayer->ttyfd >= 0 ? nilayer->ttyfd : nilayer->infd;
+    if(isatty(csifd)){
+      query_state inits = {
+        .tcache = tcache,
+        .state = STATE_NULL,
+        .qterm = TERMINAL_UNKNOWN,
+      };
+      if(control_read(csifd, &inits)){
+        input_free_esctrie(&nilayer->inputescapes);
+        free(inits.version);
+        return -1;
+      }
+      tcache->bg_collides_default = inits.bg;
+      tcache->termversion = inits.version;
+      *detected = inits.qterm;
+      *appsync = inits.appsync;
     }
-    tcache->bg_collides_default = inits.bg;
-    tcache->termversion = inits.version;
-    *detected = inits.qterm;
-    *appsync = inits.appsync;
   }
   return 0;
 }

@@ -1,5 +1,6 @@
 #include <fcntl.h>
 #include <ncurses.h> // needed for some definitions, see terminfo(3ncurses)
+#include <sys/utsname.h>
 #include "internal.h"
 #include "input.h"
 
@@ -242,8 +243,13 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
     termname = "Contour";
     ti->caps.quadrants = true;
     ti->caps.rgb = true;
-  }else if(strcmp(termname, "linux") == 0){
+  }else if(qterm == TERMINAL_LINUX){
+    struct utsname un;
+    if(uname(&un) == 0){
+      ti->termversion = strdup(un.release);
+    }
     termname = "Linux console";
+    // FIXME get kernel version
     ti->caps.braille = false; // no caps.braille, no caps.sextants in linux console
     // FIXME if the NCOPTION_NO_FONT_CHANGES, this isn't true
     // FIXME we probably want to ID based off ioctl()s in linux.c
@@ -304,12 +310,15 @@ send_initial_queries(int fd){
 // aren't supported by the terminal. we fire it off early because we have a
 // full round trip before getting the reply, which is likely to pace init.
 int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
-                         unsigned noaltscreen, unsigned nocbreak){
+                         unsigned noaltscreen, unsigned nocbreak,
+                         queried_terminals_e qterm){
   memset(ti, 0, sizeof(*ti));
   if(fd >= 0){
-    if(send_initial_queries(fd)){
-      fprintf(stderr, "Error issuing terminal queries on %d\n", fd);
-      return -1;
+    if(qterm == TERMINAL_UNKNOWN){
+      if(send_initial_queries(fd)){
+        fprintf(stderr, "Error issuing terminal queries on %d\n", fd);
+        return -1;
+      }
     }
     if(tcgetattr(fd, &ti->tpreserved)){
       fprintf(stderr, "Couldn't preserve terminal state for %d (%s)\n", fd, strerror(errno));
@@ -474,8 +483,7 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
     }
   }
   unsigned appsync_advertised;
-  queried_terminals_e detected;
-  if(ncinputlayer_init(ti, stdin, &detected, &appsync_advertised)){
+  if(ncinputlayer_init(ti, stdin, &qterm, &appsync_advertised)){
     goto err;
   }
   if(nocbreak){
@@ -491,7 +499,7 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
       goto err;
     }
   }
-  if(apply_term_heuristics(ti, termname, fd, detected, &tablelen, &tableused)){
+  if(apply_term_heuristics(ti, termname, fd, qterm, &tablelen, &tableused)){
     ncinputlayer_stop(&ti->input);
     goto err;
   }
