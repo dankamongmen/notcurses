@@ -246,9 +246,8 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
     termname = "Linux console";
     ti->caps.braille = false; // no caps.braille, no caps.sextants in linux console
     // FIXME if the NCOPTION_NO_FONT_CHANGES, this isn't true
-    // FIXME we probably want to do this based off ioctl()s in linux.c
-    // FIXME until #1726 is fixed this definitely is not happening
-    ti->caps.quadrants = false; // we program caps.quadrants on the console
+    // FIXME we probably want to ID based off ioctl()s in linux.c
+    ti->caps.quadrants = true; // we program caps.quadrants on the console
   }
   // run a wcwidth(⣿) to guarantee libc Unicode 3 support, independent of term
   if(wcwidth(L'⣿') < 0){
