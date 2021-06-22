@@ -32,6 +32,7 @@ rearrangements of Notcurses.
     `ncpile_render_to_file()`. Rewrote `notcurses_render_to_buffer()` and
     `notcurses_render_to_file()` as trivial wrappers around these functions,
     and deprecated the latter. They will be removed in ABI3.
+  * Added support for application-synchronized updates, and a new stat.
 
 * 2.3.4 (2021-06-12)
   * Added the flag `NCVISUAL_OPTION_NOINTERPOLATE` to use non-interpolative

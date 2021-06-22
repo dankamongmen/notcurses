@@ -41,6 +41,7 @@ typedef struct ncstats {
   uint64_t sprixelemissions; // sprixel draw count
   uint64_t sprixelelisions;  // sprixel elision count
   uint64_t sprixelbytes;     // sprixel bytes emitted
+  uint64_t appsync_updates;  // application-synchronized updates
 
   // current state -- these can decrease
   uint64_t fbbytes;          // bytes devoted to framebuffers

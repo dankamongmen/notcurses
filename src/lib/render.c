@@ -1096,8 +1096,12 @@ rasterize_core(notcurses* nc, const ncpile* p, FILE* out, unsigned phase){
   return 0;
 }
 
+// 'asu' on input is non-0 if application-synchronized updates are permitted
+// (they are not, for instance, when rendering to a non-tty). on output,
+// assuming success, it is non-0 if application-synchronized updates are
+// desired; in this case, an ASU footer is present at the end of the buffer.
 static int
-notcurses_rasterize_inner(notcurses* nc, ncpile* p, FILE* out){
+notcurses_rasterize_inner(notcurses* nc, ncpile* p, FILE* out, unsigned* asu){
   fseeko(out, 0, SEEK_SET);
   // we only need to emit a coordinate if it was damaged. the damagemap is a
   // bit per coordinate, one per struct crender.
@@ -1130,19 +1134,44 @@ notcurses_rasterize_inner(notcurses* nc, ncpile* p, FILE* out){
   if(fflush(out)){
     return -1;
   }
+#define MIN_ASU_SIZE 4096 // FIXME
+  if(*asu){
+    if(nc->rstate.mstrsize >= MIN_ASU_SIZE){
+      const char* endasu = get_escape(&nc->tcache, ESCAPE_ESU);
+      if(endasu){
+        if(fprintf(out, endasu) < 0 || fflush(out)){
+          return -1;
+        }
+      }else{
+        *asu = 0;
+      }
+    }else{
+      *asu = 0;
+    }
+  }
+#undef MIN_ASU_SIZE
   return nc->rstate.mstrsize;
 }
 
 // rasterize the rendered frame, and blockingly write it out to the terminal.
 static int
 raster_and_write(notcurses* nc, ncpile* p, FILE* out){
-  if(notcurses_rasterize_inner(nc, p, out) < 0){
+  // will we be using application-synchronized updates? if this comes back as
+  // non-zero, we are, and must emit the header. no ASU without a tty.
+  unsigned useasu = nc->ttyfd >= 0 ? true : false;
+  if(notcurses_rasterize_inner(nc, p, out, &useasu) < 0){
     return -1;
   }
   int ret = 0;
-  //fflush(nc->ttyfp);
   sigset_t oldmask;
   block_signals(&oldmask);
+  if(useasu){
+    const char* basu = get_escape(&nc->tcache, ESCAPE_BSU);
+    if(tty_emit(basu, nc->ttyfd)){
+      ret = -1;
+    }
+    ++nc->stats.appsync_updates;
+  }
   if(blocking_write(fileno(nc->ttyfp), nc->rstate.mstream, nc->rstate.mstrsize)){
     ret = -1;
   }
@@ -1384,7 +1413,8 @@ int ncpile_render_to_buffer(ncplane* p, char** buf, size_t* buflen){
     return -1;
   }
   notcurses* nc = ncplane_notcurses(p);
-  int bytes = notcurses_rasterize_inner(nc, ncplane_pile(p), nc->rstate.mstreamfp);
+  unsigned useacu = false; // no ACU to file
+  int bytes = notcurses_rasterize_inner(nc, ncplane_pile(p), nc->rstate.mstreamfp, &useacu);
   pthread_mutex_lock(&nc->statlock);
   update_render_bytes(&nc->stats, bytes);
   pthread_mutex_unlock(&nc->statlock);

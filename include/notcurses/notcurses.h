@@ -1393,6 +1393,7 @@ typedef struct ncstats {
   uint64_t defaultelisions;  // default color was emitted
   uint64_t defaultemissions; // default color was elided
   uint64_t refreshes;        // refresh requests (non-optimized redraw)
+  uint64_t appsync_updates;  // how many application-synchronized updates?
 
   // current state -- these can decrease
   uint64_t fbbytes;          // total bytes devoted to all active framebuffers
