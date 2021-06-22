@@ -1157,8 +1157,10 @@ notcurses_rasterize_inner(notcurses* nc, ncpile* p, FILE* out, unsigned* asu){
 static int
 raster_and_write(notcurses* nc, ncpile* p, FILE* out){
   // will we be using application-synchronized updates? if this comes back as
-  // non-zero, we are, and must emit the header. no ASU without a tty.
-  unsigned useasu = nc->ttyfd >= 0 ? true : false;
+  // non-zero, we are, and must emit the header. no ASU without a tty, and we
+  // can't have the escape without being connected to one...
+  const char* basu = get_escape(&nc->tcache, ESCAPE_BSU);
+  unsigned useasu = basu ? true : false;
   if(notcurses_rasterize_inner(nc, p, out, &useasu) < 0){
     return -1;
   }
@@ -1166,7 +1168,6 @@ raster_and_write(notcurses* nc, ncpile* p, FILE* out){
   sigset_t oldmask;
   block_signals(&oldmask);
   if(useasu){
-    const char* basu = get_escape(&nc->tcache, ESCAPE_BSU);
     if(tty_emit(basu, nc->ttyfd)){
       ret = -1;
     }
