@@ -1538,8 +1538,8 @@ rgba_trans_p(uint32_t p, uint32_t transcolor){
     return true;
   }
   if(transcolor && 
-      (ncpixel_r(p) == (transcolor & 0xff0000ull)) &&
-      (ncpixel_g(p) == (transcolor & 0xff00ull)) &&
+      (ncpixel_r(p) == (transcolor & 0xff0000ull) >> 16) &&
+      (ncpixel_g(p) == (transcolor & 0xff00ull) >> 8) &&
       (ncpixel_b(p) == (transcolor & 0xffull))){
     return true;
   }
