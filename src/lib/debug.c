@@ -55,8 +55,8 @@ static void
 tinfo_debug_caps(const tinfo* ti, FILE* debugfp, int rows, int cols,
                  unsigned images, unsigned videos){
   const char indent[] = " ";
-  fprintf(debugfp, "%scolors: %u rgb%lc ccc%lc af%lc ab%lc appsync%lc u7%lc cup%lc vpa%lc hpa%lc\n",
-          indent, ti->caps.colors,
+  fprintf(debugfp, "%srgb%lc ccc%lc af%lc ab%lc appsync%lc u7%lc cup%lc vpa%lc hpa%lc sgr%lc sgr0%lc op%lc fgop%lc bgop%lc\n",
+          indent,
           capbool(ti, ti->caps.rgb),
           capbool(ti, ti->caps.can_change_colors),
           capyn(ti, get_escape(ti, ESCAPE_SETAF)),
@@ -65,13 +65,12 @@ tinfo_debug_caps(const tinfo* ti, FILE* debugfp, int rows, int cols,
           capyn(ti, get_escape(ti, ESCAPE_DSRCPR)),
           capyn(ti, get_escape(ti, ESCAPE_CUP)),
           capyn(ti, get_escape(ti, ESCAPE_VPA)),
-          capyn(ti, get_escape(ti, ESCAPE_HPA)));
-  fprintf(debugfp, "%ssgr%lc sgr0%lc op%lc fgop%lc bgop%lc\n",
-          indent, capyn(ti, get_escape(ti, ESCAPE_SGR)),
-                  capyn(ti, get_escape(ti, ESCAPE_SGR0)),
-                  capyn(ti, get_escape(ti, ESCAPE_OP)),
-                  capyn(ti, get_escape(ti, ESCAPE_FGOP)),
-                  capyn(ti, get_escape(ti, ESCAPE_BGOP)));
+          capyn(ti, get_escape(ti, ESCAPE_HPA)),
+          capyn(ti, get_escape(ti, ESCAPE_SGR)),
+          capyn(ti, get_escape(ti, ESCAPE_SGR0)),
+          capyn(ti, get_escape(ti, ESCAPE_OP)),
+          capyn(ti, get_escape(ti, ESCAPE_FGOP)),
+          capyn(ti, get_escape(ti, ESCAPE_BGOP)));
   fprintf(debugfp, "%srows: %u cols: %u rpx: %u cpx: %u (%dx%d)\n",
           indent, rows, cols, ti->cellpixy, ti->cellpixx, rows * ti->cellpixy, cols * ti->cellpixx);
   if(!ti->pixel_draw){
@@ -85,7 +84,7 @@ tinfo_debug_caps(const tinfo* ti, FILE* debugfp, int rows, int cols,
     fprintf(debugfp, "%srgba pixel graphics supported\n", indent);
   }
   tinfo_debug_styles(ti, debugfp, indent);
-  fprintf(debugfp, "%sutf8: %c quad: %c sex: %c braille: %c images: %c videos: %c\n",
+  fprintf(debugfp, "%sutf8%lc quad%lc sex%lc braille%lc images%lc videos%lc\n",
           indent,
           capbool(ti, ti->caps.utf8),
           capbool(ti, ti->caps.quadrants),

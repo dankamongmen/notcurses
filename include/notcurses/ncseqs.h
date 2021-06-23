@@ -19,7 +19,8 @@ extern "C" {
 #define NCBOXASCIIW  L"/\\\\/-|"
 
 // symbols for legacy computing
-#define NCEIGHTSUP   "█🮆🮅🮄▀🮃🮂▔ "
+#define NCEIGHTHSBOTTOM L" ▁▂▃▄▅▆▇█"
+#define NCEIGHTSTOP L"█🮆🮅🮄▀🮃🮂▔ "
 #define NCHALFBLOCKS L" ▀▄█"
 #define NCQUADBLOCKS L" ▘▝▀▖▌▞▛▗▚▐▜▄▙▟█"
 #define NCSEXBLOCKS  L" 🬀🬁🬂🬃🬄🬅🬆🬇🬈🬊🬋🬌🬍🬎🬏🬐🬑🬒🬓▌🬔🬕🬖🬗🬘🬙🬚🬛🬜🬝🬞🬟🬠🬡🬢🬣🬤🬥🬦🬧▐🬨🬩🬪🬫🬬🬭🬮🬯🬰🬱🬲🬳🬴🬵🬶🬷🬸🬹🬺🬻█"
@@ -40,7 +41,6 @@ extern "C" {
   "\u28c4\u28c5\u28cc\u28cd\u28c6\u28c7\u28ce\u28cf\u28d4\u28d5\u28dc\u28dd\u28d6\u28d7\u28de\u28df"\
   "\u28e0\u28e1\u28e8\u28e9\u28e2\u28e3\u28ea\u28eb\u28f0\u28f1\u28f8\u28f9\u28f2\u28f3\u28fa\u28fb"\
   "\u28e4\u28e5\u28ec\u28ed\u28e6\u28e7\u28ee\u28ef\u28f4\u28f5\u28fc\u28fd\u28f6\u28f7\u28fe\u28ff"
-#define NCEIGHTHSBOTTOM L" ▁▂▃▄▅▆▇█"
 
 #ifdef __cplusplus
 } // extern "C"
