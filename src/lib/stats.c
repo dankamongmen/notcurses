@@ -169,12 +169,15 @@ void summarize_stats(notcurses* nc){
     qprefix(stats->raster_ns, NANOSECS_IN_SEC, totalbuf, 0);
     qprefix(stats->raster_min_ns, NANOSECS_IN_SEC, minbuf, 0);
     qprefix(stats->raster_max_ns, NANOSECS_IN_SEC, maxbuf, 0);
-    qprefix(stats->writeouts ? stats->raster_ns / stats->writeouts : 0, NANOSECS_IN_SEC, avgbuf, 0);
+    qprefix((stats->writeouts || stats->failed_writeouts) ?
+            stats->raster_ns / (stats->writeouts + stats->failed_writeouts)
+            : 0, NANOSECS_IN_SEC, avgbuf, 0);
     fprintf(stderr, "%ju raster%s, %ss (%ss min, %ss avg, %ss max)\n",
             stats->writeouts, stats->writeouts == 1 ? "" : "s",
             totalbuf, minbuf, avgbuf, maxbuf);
     qprefix(stats->writeout_ns, NANOSECS_IN_SEC, totalbuf, 0);
-    qprefix(stats->writeout_min_ns, NANOSECS_IN_SEC, minbuf, 0);
+    qprefix(stats->writeout_ns ? stats->writeout_min_ns : 0,
+            NANOSECS_IN_SEC, minbuf, 0);
     qprefix(stats->writeout_max_ns, NANOSECS_IN_SEC, maxbuf, 0);
     qprefix(stats->writeouts ? stats->writeout_ns / stats->writeouts : 0,
             NANOSECS_IN_SEC, avgbuf, 0);
@@ -182,7 +185,8 @@ void summarize_stats(notcurses* nc){
             stats->writeouts, stats->writeouts == 1 ? "" : "s",
             totalbuf, minbuf, avgbuf, maxbuf);
     bprefix(stats->render_bytes, 1, totalbuf, 1),
-    bprefix(stats->render_min_bytes, 1, minbuf, 1),
+    bprefix(stats->render_bytes ? stats->render_min_bytes : 0,
+            1, minbuf, 1),
     bprefix(stats->renders ? stats->render_bytes / stats->renders : 0, 1, avgbuf, 1);
     bprefix(stats->render_max_bytes, 1, maxbuf, 1),
     fprintf(stderr, "%sB (%sB min, %sB avg, %sB max)\n",
