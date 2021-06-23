@@ -699,6 +699,106 @@
 <span id="696">696</span>
 <span id="697">697</span>
 <span id="698">698</span>
+<span id="699">699</span>
+<span id="700">700</span>
+<span id="701">701</span>
+<span id="702">702</span>
+<span id="703">703</span>
+<span id="704">704</span>
+<span id="705">705</span>
+<span id="706">706</span>
+<span id="707">707</span>
+<span id="708">708</span>
+<span id="709">709</span>
+<span id="710">710</span>
+<span id="711">711</span>
+<span id="712">712</span>
+<span id="713">713</span>
+<span id="714">714</span>
+<span id="715">715</span>
+<span id="716">716</span>
+<span id="717">717</span>
+<span id="718">718</span>
+<span id="719">719</span>
+<span id="720">720</span>
+<span id="721">721</span>
+<span id="722">722</span>
+<span id="723">723</span>
+<span id="724">724</span>
+<span id="725">725</span>
+<span id="726">726</span>
+<span id="727">727</span>
+<span id="728">728</span>
+<span id="729">729</span>
+<span id="730">730</span>
+<span id="731">731</span>
+<span id="732">732</span>
+<span id="733">733</span>
+<span id="734">734</span>
+<span id="735">735</span>
+<span id="736">736</span>
+<span id="737">737</span>
+<span id="738">738</span>
+<span id="739">739</span>
+<span id="740">740</span>
+<span id="741">741</span>
+<span id="742">742</span>
+<span id="743">743</span>
+<span id="744">744</span>
+<span id="745">745</span>
+<span id="746">746</span>
+<span id="747">747</span>
+<span id="748">748</span>
+<span id="749">749</span>
+<span id="750">750</span>
+<span id="751">751</span>
+<span id="752">752</span>
+<span id="753">753</span>
+<span id="754">754</span>
+<span id="755">755</span>
+<span id="756">756</span>
+<span id="757">757</span>
+<span id="758">758</span>
+<span id="759">759</span>
+<span id="760">760</span>
+<span id="761">761</span>
+<span id="762">762</span>
+<span id="763">763</span>
+<span id="764">764</span>
+<span id="765">765</span>
+<span id="766">766</span>
+<span id="767">767</span>
+<span id="768">768</span>
+<span id="769">769</span>
+<span id="770">770</span>
+<span id="771">771</span>
+<span id="772">772</span>
+<span id="773">773</span>
+<span id="774">774</span>
+<span id="775">775</span>
+<span id="776">776</span>
+<span id="777">777</span>
+<span id="778">778</span>
+<span id="779">779</span>
+<span id="780">780</span>
+<span id="781">781</span>
+<span id="782">782</span>
+<span id="783">783</span>
+<span id="784">784</span>
+<span id="785">785</span>
+<span id="786">786</span>
+<span id="787">787</span>
+<span id="788">788</span>
+<span id="789">789</span>
+<span id="790">790</span>
+<span id="791">791</span>
+<span id="792">792</span>
+<span id="793">793</span>
+<span id="794">794</span>
+<span id="795">795</span>
+<span id="796">796</span>
+<span id="797">797</span>
+<span id="798">798</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcDirect` methods and associated functions.</span>
 
@@ -706,9 +806,9 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ffi</span>::<span class="ident">sigset_t</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">cstring</span>, <span class="ident">error</span>, <span class="ident">error_ref_mut</span>, <span class="ident">rstring</span>, <span class="ident">NcAlign</span>, <span class="ident">NcBlitter</span>, <span class="ident">NcChannelPair</span>, <span class="ident">NcColor</span>, <span class="ident">NcDim</span>,
-    <span class="ident">NcDirect</span>, <span class="ident">NcDirectFlags</span>, <span class="ident">NcDirectV</span>, <span class="ident">NcEgc</span>, <span class="ident">NcError</span>, <span class="ident">NcInput</span>, <span class="ident">NcPaletteIndex</span>, <span class="ident">NcResult</span>, <span class="ident">NcRgb</span>,
-    <span class="ident">NcScale</span>, <span class="ident">NcStyleMask</span>, <span class="ident">NcTime</span>, <span class="ident">NCRESULT_ERR</span>,
+    <span class="ident">cstring</span>, <span class="ident">error</span>, <span class="ident">error_ref_mut</span>, <span class="ident">rstring</span>, <span class="ident">NcAlign</span>, <span class="ident">NcBlitter</span>, <span class="ident">NcCapabilities</span>, <span class="ident">NcChannels</span>,
+    <span class="ident">NcComponent</span>, <span class="ident">NcDim</span>, <span class="ident">NcDirect</span>, <span class="ident">NcDirectFlags</span>, <span class="ident">NcEgc</span>, <span class="ident">NcError</span>, <span class="ident">NcInput</span>, <span class="ident">NcOffset</span>, <span class="ident">NcPaletteIndex</span>,
+    <span class="ident">NcPlane</span>, <span class="ident">NcResult</span>, <span class="ident">NcRgb</span>, <span class="ident">NcScale</span>, <span class="ident">NcStyle</span>, <span class="ident">NcTime</span>, <span class="ident">NCRESULT_ERR</span>,
 };
 
 <span class="doccomment">/// # `NcDirect` constructors and destructors</span>
@@ -732,6 +832,9 @@
     <span class="doccomment">/// `flags` is a bitmask over:</span>
     <span class="doccomment">/// - [NCDIRECT_OPTION_INHIBIT_CBREAK][crate::NCDIRECT_OPTION_INHIBIT_CBREAK]</span>
     <span class="doccomment">/// - [NCDIRECT_OPTION_INHIBIT_SETLOCALE][crate::NCDIRECT_OPTION_INHIBIT_SETLOCALE]</span>
+    <span class="doccomment">/// - [NCDIRECT_OPTION_NO_QUIT_SIGHANDLERS][crate::NCDIRECT_OPTION_NO_QUIT_SIGHANDLERS]</span>
+    <span class="doccomment">/// - [NCDIRECT_OPTION_VERBOSE][crate::NCDIRECT_OPTION_VERBOSE]</span>
+    <span class="doccomment">/// - [NCDIRECT_OPTION_VERY_VERBOSE][crate::NCDIRECT_OPTION_VERY_VERBOSE]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncdirect_init()][crate::ncdirect_init].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_flags</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">flags</span>: <span class="ident">NcDirectFlags</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">NcDirect</span><span class="op">&gt;</span> {
@@ -763,31 +866,27 @@
         <span class="macro">error</span><span class="macro">!</span>[<span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirect_flush</span>(<span class="self">self</span>) }, <span class="string">&quot;NcDirect.clear()&quot;</span>]
     }
 
-    <span class="doccomment">/// Takes the result of [render_frame()][NcDirect#method.render_frame]</span>
+    <span class="doccomment">/// Takes the result of [`render_frame`][NcDirect#method.render_frame]</span>
     <span class="doccomment">/// and writes it to the output.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The `align`, `blitter`, and `scale` arguments must be the same as those</span>
-    <span class="doccomment">/// passed to render_frame().</span>
-    <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncdirect_raster_frame()][crate::ncdirect_raster_frame].*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">raster_frame</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">faken</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcDirectV</span>, <span class="ident">align</span>: <span class="ident">NcAlign</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">raster_frame</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">frame</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span>, <span class="ident">align</span>: <span class="ident">NcAlign</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">error</span><span class="macro">!</span>[
-            <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirect_raster_frame</span>(<span class="self">self</span>, <span class="ident">faken</span>, <span class="ident">align</span>) },
+            <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirect_raster_frame</span>(<span class="self">self</span>, <span class="ident">frame</span>, <span class="ident">align</span>) },
             <span class="string">&quot;NcDirect.raster_frame()&quot;</span>
         ]
     }
 
     <span class="doccomment">/// Renders an image using the specified blitter and scaling,</span>
-    <span class="doccomment">/// but do not write the result.</span>
+    <span class="doccomment">/// but doesn&#39;t write the result.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The image may be arbitrarily many rows -- the output will scroll --</span>
     <span class="doccomment">/// but will only occupy the column of the cursor, and those to the right.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// To actually write (and free) this, invoke ncdirect_raster_frame().</span>
-    <span class="doccomment">/// and writes it to the output.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The `align`, `blitter`, and `scale` arguments must be the same as those</span>
-    <span class="doccomment">/// passed to render_frame().</span>
+    <span class="doccomment">/// `max_y&#39; and &#39;max_x` (cell geometry, *not* pixel), if greater than 0,</span>
+    <span class="doccomment">/// are used for scaling; the terminal&#39;s geometry is otherwise used.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncdirect_render_frame()][crate::ncdirect_render_frame].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">render_frame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
@@ -795,11 +894,18 @@
         <span class="ident">filename</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
         <span class="ident">blitter</span>: <span class="ident">NcBlitter</span>,
         <span class="ident">scale</span>: <span class="ident">NcScale</span>,
-        <span class="ident">maxy</span>: <span class="ident">i32</span>,
-        <span class="ident">maxx</span>: <span class="ident">i32</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">NcDirectV</span><span class="op">&gt;</span> {
+        <span class="ident">max_y</span>: <span class="ident">NcDim</span>,
+        <span class="ident">max_x</span>: <span class="ident">NcDim</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">NcPlane</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="kw">crate</span>::<span class="ident">ncdirect_render_frame</span>(<span class="self">self</span>, <span class="macro">cstring</span><span class="macro">!</span>[<span class="ident">filename</span>], <span class="ident">blitter</span>, <span class="ident">scale</span>, <span class="ident">maxy</span>, <span class="ident">maxx</span>)
+            <span class="kw">crate</span>::<span class="ident">ncdirect_render_frame</span>(
+                <span class="self">self</span>,
+                <span class="macro">cstring</span><span class="macro">!</span>[<span class="ident">filename</span>],
+                <span class="ident">blitter</span>,
+                <span class="ident">scale</span>,
+                <span class="ident">max_y</span> <span class="kw">as</span> <span class="ident">i32</span>,
+                <span class="ident">max_x</span> <span class="kw">as</span> <span class="ident">i32</span>,
+            )
         };
         <span class="macro">error_ref_mut</span><span class="macro">!</span>[
             <span class="ident">res</span>,
@@ -839,7 +945,7 @@
     }
 }
 
-<span class="doccomment">/// ## NcDirect methods: `NcPaletteIndex`, `NcRgb`, `NcStyleMask` &amp; default color</span>
+<span class="doccomment">/// ## NcDirect methods: `NcPaletteIndex`, `NcRgb`, `NcStyle` &amp; default color</span>
 <span class="kw">impl</span> <span class="ident">NcDirect</span> {
     <span class="doccomment">/// Sets the foreground [NcPaletteIndex].</span>
     <span class="doccomment">///</span>
@@ -899,20 +1005,30 @@
         ]
     }
 
-    <span class="doccomment">/// Sets the foreground [NcColor] components.</span>
+    <span class="doccomment">/// Sets the foreground [NcComponent] components.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncdirect_set_fg_rgb8()][crate::ncdirect_set_fg_rgb8].*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_fg_rgb8</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">red</span>: <span class="ident">NcColor</span>, <span class="ident">green</span>: <span class="ident">NcColor</span>, <span class="ident">blue</span>: <span class="ident">NcColor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_fg_rgb8</span>(
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">red</span>: <span class="ident">NcComponent</span>,
+        <span class="ident">green</span>: <span class="ident">NcComponent</span>,
+        <span class="ident">blue</span>: <span class="ident">NcComponent</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">error</span><span class="macro">!</span>[
             <span class="kw">crate</span>::<span class="ident">ncdirect_set_fg_rgb8</span>(<span class="self">self</span>, <span class="ident">red</span>, <span class="ident">green</span>, <span class="ident">blue</span>),
             <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;NcDirect.set_fg_rgb8({}, {}, {})&quot;</span>, <span class="ident">red</span>, <span class="ident">green</span>, <span class="ident">blue</span>)
         ]
     }
 
-    <span class="doccomment">/// Sets the background [NcColor] components.</span>
+    <span class="doccomment">/// Sets the background [NcComponent] components.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncdirect_set_bg_rgb()][crate::ncdirect_set_bg_rgb].*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_bg_rgb8</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">red</span>: <span class="ident">NcColor</span>, <span class="ident">green</span>: <span class="ident">NcColor</span>, <span class="ident">blue</span>: <span class="ident">NcColor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_bg_rgb8</span>(
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">red</span>: <span class="ident">NcComponent</span>,
+        <span class="ident">green</span>: <span class="ident">NcComponent</span>,
+        <span class="ident">blue</span>: <span class="ident">NcComponent</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">error</span><span class="macro">!</span>[
             <span class="kw">crate</span>::<span class="ident">ncdirect_set_bg_rgb8</span>(<span class="self">self</span>, <span class="ident">red</span>, <span class="ident">green</span>, <span class="ident">blue</span>),
             <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;NcDirect.set_bg_rgb8({}, {}, {})&quot;</span>, <span class="ident">red</span>, <span class="ident">green</span>, <span class="ident">blue</span>)
@@ -922,7 +1038,7 @@
     <span class="doccomment">/// Removes the specified styles.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncdirect_off_styles()][crate::ncdirect_off_styles].*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">styles_off</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">stylebits</span>: <span class="ident">NcStyleMask</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">styles_off</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">stylebits</span>: <span class="ident">NcStyle</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">error</span><span class="macro">!</span>[
             <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirect_off_styles</span>(<span class="self">self</span>, <span class="ident">stylebits</span>.<span class="ident">into</span>()) },
             <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;NcDirect.styles_off({:0X})&quot;</span>, <span class="ident">stylebits</span>)
@@ -932,7 +1048,7 @@
     <span class="doccomment">/// Adds the specified styles.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncdirect_on_styles()][crate::ncdirect_on_styles].*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">styles_on</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">stylebits</span>: <span class="ident">NcStyleMask</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">styles_on</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">stylebits</span>: <span class="ident">NcStyle</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">error</span><span class="macro">!</span>[
             <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirect_on_styles</span>(<span class="self">self</span>, <span class="ident">stylebits</span>.<span class="ident">into</span>()) },
             <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;NcDirect.styles_on({:0X})&quot;</span>, <span class="ident">stylebits</span>)
@@ -942,7 +1058,7 @@
     <span class="doccomment">/// Sets just the specified styles.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncdirect_set_styles()][crate::ncdirect_set_styles].*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">styles_set</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">stylebits</span>: <span class="ident">NcStyleMask</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">styles_set</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">stylebits</span>: <span class="ident">NcStyle</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">error</span><span class="macro">!</span>[
             <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirect_set_styles</span>(<span class="self">self</span>, <span class="ident">stylebits</span>.<span class="ident">into</span>()) },
             <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;NcDirect.styles_set({:0X})&quot;</span>, <span class="ident">stylebits</span>)
@@ -972,6 +1088,46 @@
 
 <span class="doccomment">/// ## NcDirect methods: capabilities, cursor, dimensions</span>
 <span class="kw">impl</span> <span class="ident">NcDirect</span> {
+    <span class="doccomment">/// Is there support for acquiring the cursor&#39;s current position?</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Requires the u7 terminfo capability, and that we are connected to an</span>
+    <span class="doccomment">/// actual terminal.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">canget_cursor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirect_canget_cursor</span>(<span class="self">self</span>) }
+    }
+
+    <span class="doccomment">/// Can we reliably use Unicode braille?</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// *C style function: [ncdirect_canbraille()][crate::ncdirect_canbraille].*</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">canbraille</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">crate</span>::<span class="ident">ncdirect_canbraille</span>(<span class="self">self</span>)
+    }
+
+    <span class="doccomment">/// Can we set the &quot;hardware&quot; palette?</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Requires the &quot;ccc&quot; terminfo capability.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// *C style function: [ncdirect_canchangecolor()][crate::ncdirect_canchangecolor].*</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">canchangecolor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">crate</span>::<span class="ident">ncdirect_canchangecolor</span>(<span class="self">self</span>)
+    }
+
+    <span class="doccomment">/// Can we fade?</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Requires either the &quot;rgb&quot; or &quot;ccc&quot; terminfo capability.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// *C style function: [ncdirect_canfade()][crate::ncdirect_canfade].*</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">canfade</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">crate</span>::<span class="ident">ncdirect_canfade</span>(<span class="self">self</span>)
+    }
+
+    <span class="doccomment">/// Can we reliably use Unicode halfblocks?</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// *C style function: [ncdirect_canhalfblock()][crate::ncdirect_canhalfblock].*</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">canhalfblock</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">crate</span>::<span class="ident">ncdirect_canhalfblock</span>(<span class="self">self</span>)
+    }
+
     <span class="doccomment">/// Can we load images?</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Requires being built against FFmpeg/OIIO.</span>
@@ -981,6 +1137,36 @@
         <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirect_canopen_images</span>(<span class="self">self</span>) }
     }
 
+    <span class="doccomment">/// Can we load videos?</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Requires being built against FFmpeg/OIIO.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// *C style function: [ncdirect_canopen_videos()][crate::ncdirect_canopen_videos].*</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">canopen_videos</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">crate</span>::<span class="ident">ncdirect_canopen_videos</span>(<span class="self">self</span>)
+    }
+
+    <span class="doccomment">/// Can we reliably use Unicode quadrants?</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// *C style function: [ncdirect_canquadrant()][crate::ncdirect_canquadrant].*</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">canquadrant</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">crate</span>::<span class="ident">ncdirect_canquadrant</span>(<span class="self">self</span>)
+    }
+
+    <span class="doccomment">/// Can we reliably use Unicode sextants?</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// *C style function: [ncdirect_cansextant()][crate::ncdirect_cansextant].*</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cansextant</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">crate</span>::<span class="ident">ncdirect_cansextant</span>(<span class="self">self</span>)
+    }
+
+    <span class="doccomment">/// Can we directly specify RGB values per cell, or only use palettes?</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// *C style function: [ncdirect_cantruecolor()][crate::ncdirect_cantruecolor].*</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cantruecolor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">crate</span>::<span class="ident">ncdirect_cantruecolor</span>(<span class="self">self</span>)
+    }
+
     <span class="doccomment">/// Is our encoding UTF-8?</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Requires LANG being set to a UTF8 locale.</span>
@@ -988,6 +1174,13 @@
     <span class="doccomment">/// *C style function: [ncdirect_canutf8()][crate::ncdirect_canutf8].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">canutf8</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirect_canutf8</span>(<span class="self">self</span>) }
+    }
+
+    <span class="doccomment">/// Returns the [`NcCapabilities`].</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// *C style function: [ncdirect_capabilities()][crate::ncdirect_capabilities].*</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">capabilities</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcCapabilities</span> {
+        <span class="kw">crate</span>::<span class="ident">ncdirect_capabilities</span>(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Checks for pixel support.</span>
@@ -1000,7 +1193,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncdirect_check_pixel_support()][crate::ncdirect_check-pixel_support].*</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">wildcard_in_or_patterns</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">check_pixel_support</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">check_pixel_support</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirect_check_pixel_support</span>(<span class="self">self</span>) };
         <span class="kw">match</span> <span class="ident">res</span> {
             <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>),
@@ -1029,68 +1222,68 @@
         ]
     }
 
-    <span class="doccomment">/// Moves the cursor down, `num` rows.</span>
+    <span class="doccomment">/// Moves the cursor down any number of rows.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncdirect_cursor_down()][crate::ncdirect_cursor_down].*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cursor_down</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">num</span>: <span class="ident">NcDim</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cursor_down</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">rows</span>: <span class="ident">NcOffset</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">error</span><span class="macro">!</span>[
-            <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirect_cursor_down</span>(<span class="self">self</span>, <span class="ident">num</span> <span class="kw">as</span> <span class="ident">i32</span>) },
-            <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;NcDirect.cursor_down({})&quot;</span>, <span class="ident">num</span>)
+            <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirect_cursor_down</span>(<span class="self">self</span>, <span class="ident">rows</span> <span class="kw">as</span> <span class="ident">i32</span>) },
+            <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;NcDirect.cursor_down({})&quot;</span>, <span class="ident">rows</span>)
         ]
     }
 
-    <span class="doccomment">/// Moves the cursor left, `num` columns.</span>
+    <span class="doccomment">/// Moves the cursor left any number of columns.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncdirect_cursor_left()][crate::ncdirect_cursor_left].*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cursor_left</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">num</span>: <span class="ident">NcDim</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cursor_left</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cols</span>: <span class="ident">NcOffset</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">error</span><span class="macro">!</span>[
-            <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirect_cursor_left</span>(<span class="self">self</span>, <span class="ident">num</span> <span class="kw">as</span> <span class="ident">i32</span>) },
-            <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;NcDirect.cursor_left({})&quot;</span>, <span class="ident">num</span>)
+            <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirect_cursor_left</span>(<span class="self">self</span>, <span class="ident">cols</span> <span class="kw">as</span> <span class="ident">i32</span>) },
+            <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;NcDirect.cursor_left({})&quot;</span>, <span class="ident">cols</span>)
         ]
     }
 
-    <span class="doccomment">/// Moves the cursor right, `num` columns.</span>
+    <span class="doccomment">/// Moves the cursor right any number of columns.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncdirect_cursor_right()][crate::ncdirect_cursor_right].*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cursor_right</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">num</span>: <span class="ident">NcDim</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cursor_right</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cols</span>: <span class="ident">NcOffset</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">error</span><span class="macro">!</span>[
-            <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirect_cursor_right</span>(<span class="self">self</span>, <span class="ident">num</span> <span class="kw">as</span> <span class="ident">i32</span>) },
-            <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;NcDirect.cursor_right({})&quot;</span>, <span class="ident">num</span>)
+            <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirect_cursor_right</span>(<span class="self">self</span>, <span class="ident">cols</span> <span class="kw">as</span> <span class="ident">i32</span>) },
+            <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;NcDirect.cursor_right({})&quot;</span>, <span class="ident">cols</span>)
         ]
     }
 
-    <span class="doccomment">/// Moves the cursor up, `num` rows.</span>
+    <span class="doccomment">/// Moves the cursor up any number of rows.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncdirect_cursor_up()][crate::ncdirect_cursor_up].*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cursor_up</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">num</span>: <span class="ident">NcDim</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cursor_up</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">rows</span>: <span class="ident">NcOffset</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">error</span><span class="macro">!</span>[
-            <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirect_cursor_up</span>(<span class="self">self</span>, <span class="ident">num</span> <span class="kw">as</span> <span class="ident">i32</span>) },
-            <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;NcDirect.cursor_up({})&quot;</span>, <span class="ident">num</span>)
+            <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirect_cursor_up</span>(<span class="self">self</span>, <span class="ident">rows</span> <span class="kw">as</span> <span class="ident">i32</span>) },
+            <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;NcDirect.cursor_up({})&quot;</span>, <span class="ident">rows</span>)
         ]
     }
 
-    <span class="doccomment">/// Moves the cursor in direct mode to the specified row, column.</span>
+    <span class="doccomment">/// Sets the cursor to the specified row `y`, column `x`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncdirect_cursor_move_yx()][crate::ncdirect_cursor_move_yx].*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cursor_move_yx</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">y</span>: <span class="ident">NcDim</span>, <span class="ident">x</span>: <span class="ident">NcDim</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cursor_set_yx</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">y</span>: <span class="ident">NcDim</span>, <span class="ident">x</span>: <span class="ident">NcDim</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">error</span><span class="macro">!</span>[<span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirect_cursor_move_yx</span>(<span class="self">self</span>, <span class="ident">y</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">x</span> <span class="kw">as</span> <span class="ident">i32</span>) }]
     }
 
-    <span class="doccomment">/// Moves the cursor in direct mode to the specified row.</span>
+    <span class="doccomment">/// Sets the cursor to the specified row `y`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *(No equivalent C style function)*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cursor_move_y</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">y</span>: <span class="ident">NcDim</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cursor_set_y</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">y</span>: <span class="ident">NcDim</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">error</span><span class="macro">!</span>[<span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirect_cursor_move_yx</span>(<span class="self">self</span>, <span class="ident">y</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="op">-</span><span class="number">1</span>) }]
     }
 
-    <span class="doccomment">/// Moves the cursor in direct mode to the specified column.</span>
+    <span class="doccomment">/// Sets the cursor to the specified column `x`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *(No equivalent C style function)*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cursor_move_x</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">x</span>: <span class="ident">NcDim</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cursor_set_x</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">x</span>: <span class="ident">NcDim</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">error</span><span class="macro">!</span>[<span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirect_cursor_move_yx</span>(<span class="self">self</span>, <span class="op">-</span><span class="number">1</span>, <span class="ident">x</span> <span class="kw">as</span> <span class="ident">i32</span>) }]
     }
 
-    <span class="doccomment">/// Gets the cursor position, when supported.</span>
+    <span class="doccomment">/// Gets the cursor (y, x) position, when supported.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This requires writing to the terminal, and then reading from it.</span>
     <span class="doccomment">/// If the terminal doesn&#39;t reply, or doesn&#39;t reply in a way we understand,</span>
@@ -1127,24 +1320,31 @@
     <span class="doccomment">/// Gets the current number of rows.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncdirect_dim_y()][crate::ncdirect_dim_y].*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dim_y</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcDim</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dim_y</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcDim</span> {
         <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirect_dim_y</span>(<span class="self">self</span>) <span class="kw">as</span> <span class="ident">NcDim</span> }
     }
 
     <span class="doccomment">/// Gets the current number of columns.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncdirect_dim_x()][crate::ncdirect_dim_x].*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dim_x</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcDim</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dim_x</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcDim</span> {
         <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirect_dim_x</span>(<span class="self">self</span>) <span class="kw">as</span> <span class="ident">NcDim</span> }
     }
 
     <span class="doccomment">/// Gets the current number of rows and columns.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncdirect_dim_y()][crate::ncdirect_dim_y].*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dim_yx</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">NcDim</span>, <span class="ident">NcDim</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dim_yx</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">NcDim</span>, <span class="ident">NcDim</span>) {
         <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirect_dim_y</span>(<span class="self">self</span>) <span class="kw">as</span> <span class="ident">NcDim</span> };
         <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirect_dim_x</span>(<span class="self">self</span>) <span class="kw">as</span> <span class="ident">NcDim</span> };
         (<span class="ident">y</span>, <span class="ident">x</span>)
+    }
+
+    <span class="doccomment">/// Returns the name of the detected terminal.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// *C style function: [ncdirect_detected_terminal()][crate::ncdirect_detected_terminal].*</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">detected_terminal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+        <span class="macro">rstring</span><span class="macro">!</span>[<span class="kw">crate</span>::<span class="ident">ncdirect_detected_terminal</span>(<span class="self">self</span>)].<span class="ident">to_string</span>()
     }
 }
 
@@ -1235,7 +1435,7 @@
     <span class="doccomment">/// are both marked as using the default color.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncdirect_putstr()][crate::ncdirect_putstr].*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">putstr</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">channels</span>: <span class="ident">NcChannelPair</span>, <span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">putstr</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">channels</span>: <span class="ident">NcChannels</span>, <span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">error</span><span class="macro">!</span>[
             <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirect_putstr</span>(<span class="self">self</span>, <span class="ident">channels</span>, <span class="macro">cstring</span><span class="macro">!</span>[<span class="ident">string</span>]) },
             <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;NcDirect.putstr({:0X}, {:?})&quot;</span>, <span class="ident">channels</span>, <span class="ident">string</span>)
@@ -1266,7 +1466,7 @@
     <span class="doccomment">/// Draws a box with its upper-left corner at the current cursor position,</span>
     <span class="doccomment">/// having dimensions `ylen` * `xlen`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// See NcPlane.[box()][crate::NcPlane#method.box] for more information.</span>
+    <span class="doccomment">/// See NcPlane.[box()][NcPlane#method.box] for more information.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The minimum box size is 2x2, and it cannot be drawn off-screen.</span>
     <span class="doccomment">///</span>
@@ -1276,10 +1476,10 @@
     <span class="comment">// TODO: CHECK, specially wchars.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">r#box</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">ul</span>: <span class="ident">NcChannelPair</span>,
-        <span class="ident">ur</span>: <span class="ident">NcChannelPair</span>,
-        <span class="ident">ll</span>: <span class="ident">NcChannelPair</span>,
-        <span class="ident">lr</span>: <span class="ident">NcChannelPair</span>,
+        <span class="ident">ul</span>: <span class="ident">NcChannels</span>,
+        <span class="ident">ur</span>: <span class="ident">NcChannels</span>,
+        <span class="ident">ll</span>: <span class="ident">NcChannels</span>,
+        <span class="ident">lr</span>: <span class="ident">NcChannels</span>,
         <span class="ident">wchars</span>: <span class="kw-2">&amp;</span>[<span class="ident">char</span>; <span class="number">6</span>],
         <span class="ident">y_len</span>: <span class="ident">NcDim</span>,
         <span class="ident">x_len</span>: <span class="ident">NcDim</span>,
@@ -1312,10 +1512,10 @@
     <span class="doccomment">/// *C style function: [ncdirect_double_box()][crate::ncdirect_double_box].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">double_box</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">ul</span>: <span class="ident">NcChannelPair</span>,
-        <span class="ident">ur</span>: <span class="ident">NcChannelPair</span>,
-        <span class="ident">ll</span>: <span class="ident">NcChannelPair</span>,
-        <span class="ident">lr</span>: <span class="ident">NcChannelPair</span>,
+        <span class="ident">ul</span>: <span class="ident">NcChannels</span>,
+        <span class="ident">ur</span>: <span class="ident">NcChannels</span>,
+        <span class="ident">ll</span>: <span class="ident">NcChannels</span>,
+        <span class="ident">lr</span>: <span class="ident">NcChannels</span>,
         <span class="ident">y_len</span>: <span class="ident">NcDim</span>,
         <span class="ident">x_len</span>: <span class="ident">NcDim</span>,
         <span class="ident">ctlword</span>: <span class="ident">u32</span>,
@@ -1330,10 +1530,10 @@
     <span class="doccomment">/// *C style function: [ncdirect_rounded_box()][crate::ncdirect_rounded_box].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rounded_box</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">ul</span>: <span class="ident">NcChannelPair</span>,
-        <span class="ident">ur</span>: <span class="ident">NcChannelPair</span>,
-        <span class="ident">ll</span>: <span class="ident">NcChannelPair</span>,
-        <span class="ident">lr</span>: <span class="ident">NcChannelPair</span>,
+        <span class="ident">ul</span>: <span class="ident">NcChannels</span>,
+        <span class="ident">ur</span>: <span class="ident">NcChannels</span>,
+        <span class="ident">ll</span>: <span class="ident">NcChannels</span>,
+        <span class="ident">lr</span>: <span class="ident">NcChannels</span>,
         <span class="ident">y_len</span>: <span class="ident">NcDim</span>,
         <span class="ident">x_len</span>: <span class="ident">NcDim</span>,
         <span class="ident">ctlword</span>: <span class="ident">u32</span>,
@@ -1342,7 +1542,7 @@
             <span class="kw">crate</span>::<span class="ident">ncdirect_rounded_box</span>(<span class="self">self</span>, <span class="ident">ul</span>, <span class="ident">ur</span>, <span class="ident">ll</span>, <span class="ident">lr</span>, <span class="ident">y_len</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">x_len</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">ctlword</span>)
         }]
     }
-    <span class="doccomment">/// Draws horizontal lines using the specified [NcChannelPair]s, interpolating</span>
+    <span class="doccomment">/// Draws horizontal lines using the specified [NcChannels]s, interpolating</span>
     <span class="doccomment">/// between them as we go.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// All lines start at the current cursor position.</span>
@@ -1358,8 +1558,8 @@
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">egc</span>: <span class="kw-2">&amp;</span><span class="ident">NcEgc</span>,
         <span class="ident">len</span>: <span class="ident">NcDim</span>,
-        <span class="ident">h1</span>: <span class="ident">NcChannelPair</span>,
-        <span class="ident">h2</span>: <span class="ident">NcChannelPair</span>,
+        <span class="ident">h1</span>: <span class="ident">NcChannels</span>,
+        <span class="ident">h2</span>: <span class="ident">NcChannels</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="comment">// https://github.com/dankamongmen/notcurses/issues/1339</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;i686&quot;</span>))]</span>
@@ -1370,7 +1570,7 @@
         <span class="macro">error</span><span class="macro">!</span>[<span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirect_hline_interp</span>(<span class="self">self</span>, <span class="ident">egc_ptr</span>, <span class="ident">len</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">h1</span>, <span class="ident">h2</span>) }]
     }
 
-    <span class="doccomment">/// Draws horizontal lines using the specified [NcChannelPair]s, interpolating</span>
+    <span class="doccomment">/// Draws horizontal lines using the specified [NcChannels]s, interpolating</span>
     <span class="doccomment">/// between them as we go.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// All lines start at the current cursor position.</span>
@@ -1386,8 +1586,8 @@
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">egc</span>: <span class="kw-2">&amp;</span><span class="ident">NcEgc</span>,
         <span class="ident">len</span>: <span class="ident">NcDim</span>,
-        <span class="ident">h1</span>: <span class="ident">NcChannelPair</span>,
-        <span class="ident">h2</span>: <span class="ident">NcChannelPair</span>,
+        <span class="ident">h1</span>: <span class="ident">NcChannels</span>,
+        <span class="ident">h2</span>: <span class="ident">NcChannels</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="comment">// https://github.com/dankamongmen/notcurses/issues/1339</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;i686&quot;</span>))]</span>

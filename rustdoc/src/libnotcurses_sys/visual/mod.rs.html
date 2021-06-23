@@ -239,10 +239,24 @@
 <span id="236">236</span>
 <span id="237">237</span>
 <span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="comment">// functions already exported by bindgen : 24</span>
+<span class="comment">// functions already exported by bindgen : 26</span>
 <span class="comment">// -----------------------------------------</span>
-<span class="comment">// (W) wrap: 20</span>
+<span class="comment">// (W) wrap: 22</span>
 <span class="comment">// (#) test: 0</span>
 <span class="comment">// -----------------------------------------</span>
 <span class="comment">//W  ncdirectf_free</span>
@@ -258,6 +272,8 @@
 <span class="comment">//W  ncvisual_from_file</span>
 <span class="comment">//W  ncvisual_from_plane</span>
 <span class="comment">//W  ncvisual_from_rgba</span>
+<span class="comment">//W  ncvisual_from_rgb_packed</span>
+<span class="comment">//W  ncvisual_from_rgb_loose</span>
 <span class="comment">//W  ncvisual_inflate</span>
 <span class="comment">//W  ncvisual_blitter_geom</span>
 <span class="comment">//W  ncvisual_media_defblitter</span>
@@ -276,7 +292,7 @@
 
 <span class="kw">mod</span> <span class="ident">methods</span>;
 
-<span class="doccomment">/// How to scale an [`NcVisual`] during rendering.</span>
+<span class="doccomment">/// Indicates how to scale an [`NcVisual`] during rendering.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// - [`NCSCALE_NONE`] will apply no scaling.</span>
 <span class="doccomment">/// - [`NCSCALE_SCALE`] scales a visual to the plane&#39;s size,</span>
@@ -285,6 +301,18 @@
 <span class="doccomment">///   attempt to fill the entirety of the plane.</span>
 <span class="doccomment">/// - [`NCSCALE_NONE_HIRES`] like `NCSCALE_NONE` admitting high-res blitters.</span>
 <span class="doccomment">/// - [`NCSCALE_SCALE_HIRES`] like `NCSCALE_SCALE` admitting high-res blitters.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// The `NCSCALE_*` preferences are applied only for the context of</span>
+<span class="doccomment">/// [`NcVisual.render`][NcVisual#method.render]. You can think of it as a pipeline:</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ```txt</span>
+<span class="doccomment">/// NcVisual::fromfile() → frame → NcVisual.render() → scaling → output frame → blit</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// where you still have the original frame. Whereas</span>
+<span class="doccomment">/// [`NcVisual.resize`][NcVisual#method.resize] and</span>
+<span class="doccomment">/// [`NcVisual.resize_noninterpolative`][NcVisual#method.resize_noninterpolative]</span>
+<span class="doccomment">/// are changing that original frame.</span>
 <span class="doccomment">///</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcScale</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncscale_e</span>;
 
@@ -310,9 +338,9 @@
 <span class="doccomment">/// It can be constructed from a rgba or bgra buffer.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// The [NcVisualOptions] structure is used only by the following methods:</span>
-<span class="doccomment">/// - [.geom][NcVisual#method.render]</span>
+<span class="doccomment">/// - [.geom][NcVisual#method.geom]</span>
 <span class="doccomment">/// - [.render][NcVisual#method.render]</span>
-<span class="doccomment">/// - [.simple_streamer][NcVisual#method.render]</span>
+<span class="doccomment">/// - [.simple_streamer][NcVisual#method.simple_streamer]</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcVisual</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncvisual</span>;
 
 <span class="doccomment">/// A type alias of [`NcVisual`] (NcDirect ***F**rame*) intended to be used</span>
@@ -376,7 +404,7 @@
 <span class="doccomment">/// Treats as transparent the color specified in the `transcolor` field.</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCVISUAL_OPTION_ADDALPHA</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCVISUAL_OPTION_ADDALPHA</span>;
 
-<span class="doccomment">/// Uses [`NCCELL_ALPHA_BLEND`][crate::NCCELL_ALPHA_BLEND] with visual.</span>
+<span class="doccomment">/// Uses [`NCALPHA_BLEND`][crate::NCALPHA_BLEND] with visual.</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCVISUAL_OPTION_BLEND</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCVISUAL_OPTION_BLEND</span>;
 
 <span class="doccomment">/// allows you to indicate that the n field of ncvisual_options refers not to</span>
@@ -471,8 +499,8 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">NcPixelGeometry</span> {
     <span class="doccomment">/// Geometry of the display region</span>
-    <span class="kw">pub</span> <span class="ident">display_y</span>: <span class="ident">NcDim</span>,
-    <span class="kw">pub</span> <span class="ident">display_x</span>: <span class="ident">NcDim</span>,
+    <span class="kw">pub</span> <span class="ident">term_y</span>: <span class="ident">NcDim</span>,
+    <span class="kw">pub</span> <span class="ident">term_x</span>: <span class="ident">NcDim</span>,
     <span class="kw">pub</span> <span class="ident">cell_y</span>: <span class="ident">NcDim</span>,
     <span class="kw">pub</span> <span class="ident">cell_x</span>: <span class="ident">NcDim</span>,
     <span class="kw">pub</span> <span class="ident">max_bitmap_y</span>: <span class="ident">NcDim</span>,

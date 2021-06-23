@@ -158,8 +158,11 @@
 <span id="155">155</span>
 <span id="156">156</span>
 <span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="doccomment">//! `libnotcurses-sys` is a Rust wrapper for the [notcurses</span>
+<span class="doccomment">//! `libnotcurses-sys` is a low-level Rust wrapper for the [notcurses</span>
 <span class="doccomment">//! C library](https://www.github.com/dankamongmen/notcurses/)</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! *This is a work in progress.*</span>
@@ -183,7 +186,7 @@
 <span class="doccomment">//! use libnotcurses_sys::*;</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! fn main() -&gt; NcResult&lt;()&gt; {</span>
-<span class="doccomment">//!     let mut nc = Notcurses::with_flags(NCOPTION_NO_ALTERNATE_SCREEN)?;</span>
+<span class="doccomment">//!     let mut nc = Nc::with_flags(NCOPTION_NO_ALTERNATE_SCREEN)?;</span>
 <span class="doccomment">//!     let plane = nc.stdplane();</span>
 <span class="doccomment">//!     plane.putstr(&quot;hello world&quot;)?;</span>
 <span class="doccomment">//!     nc.render()?;</span>
@@ -192,17 +195,17 @@
 <span class="doccomment">//! }</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! Although you still have to manually call the `stop()` method for [`Notcurses`]</span>
-<span class="doccomment">//! and [`NcDirect`] objects, and the `destroy()` method for the rest of types that</span>
-<span class="doccomment">//! allocate, (like [`NcPlane`], [`NcMenu`]…) at the end of their scope, since the</span>
-<span class="doccomment">//! Drop trait is not implemented for any wrapping type in libnotcurses-sys.</span>
+<span class="doccomment">//! Although you still have to manually call the `stop()` method for [`Nc`] and</span>
+<span class="doccomment">//! [`NcDirect`] objects, and the `destroy()` method for the rest of types that</span>
+<span class="doccomment">//! allocate, (like [`NcPlane`], [`NcMenu`]…) at the end of their scope, since</span>
+<span class="doccomment">//! the Drop trait is not implemented for any wrapping type in libnotcurses-sys.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! But they do implement methods and use [`NcResult`] as the return type,</span>
 <span class="doccomment">//! for handling errors in the way we are used to in Rust.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! For the types that don&#39;t allocate, most are based on primitives like `i32`,</span>
 <span class="doccomment">//! `u32`, `u64`… without a name in the C library. In Rust they are type aliased</span>
-<span class="doccomment">//! (e.g.: [`NcChannel`], [`NcChannelPair`], [`NcRgb`], [`NcColor`]…), to</span>
+<span class="doccomment">//! (e.g.: [`NcChannel`], [`NcChannels`], [`NcRgb`], [`NcComponent`]…), to</span>
 <span class="doccomment">//! leverage type checking, and they implement methods through [traits](#traits)</span>
 <span class="doccomment">//! (e.g. [`NcChannelMethods`] must be in scope to use the `NcChannel` methods.</span>
 <span class="doccomment">//!</span>
@@ -265,6 +268,7 @@
 <span class="doccomment">//! - [USAGE.md](https://github.com/dankamongmen/notcurses/blob/master/USAGE.md)</span>
 <span class="doccomment">//! - [HACKING.md](https://github.com/dankamongmen/notcurses/blob/master/doc/HACKING.md)</span>
 <span class="doccomment">//! - [Doxygen Documentation](https://nick-black.com/notcurses/html/index.html)</span>
+<span class="doccomment">//! - [FOSDEM 2021 presentation](https://fosdem.org/2021/schedule/event/notcurses/)</span>
 <span class="doccomment">//!</span>
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">non_upper_case_globals</span>, <span class="ident">non_camel_case_types</span>, <span class="ident">non_snake_case</span>)]</span>
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">too_many_arguments</span>, <span class="ident">clippy</span>::<span class="ident">needless_doctest_main</span>)]</span>
@@ -274,6 +278,7 @@
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">bindings</span>::<span class="kw-2">*</span>;
 
 <span class="kw">mod</span> <span class="ident">r#box</span>;
+<span class="kw">mod</span> <span class="ident">capabilities</span>;
 <span class="kw">mod</span> <span class="ident">cells</span>;
 <span class="kw">mod</span> <span class="ident">channel</span>;
 <span class="kw">mod</span> <span class="ident">dimension</span>;
@@ -296,6 +301,7 @@
 <span class="kw">mod</span> <span class="ident">widgets</span>;
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">input</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">capabilities</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">cells</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">channel</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">dimension</span>::<span class="kw-2">*</span>;

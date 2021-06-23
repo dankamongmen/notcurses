@@ -206,19 +206,28 @@
 <span id="203">203</span>
 <span id="204">204</span>
 <span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="doccomment">//! `Notcurses`</span>
+<span class="doccomment">//! `Nc`</span>
 
-<span class="comment">// total: 52</span>
+<span class="comment">// total: 53</span>
 <span class="comment">// ---------------------------------------------------</span>
 <span class="comment">// (X)  1 : wont do</span>
+<span class="comment">// (…)  4 : TODO / WIP</span>
 <span class="comment">//</span>
 <span class="comment">// (f) 45 : unsafe ffi function exported by bindgen</span>
 <span class="comment">// (w)  0 : safely wrapped ffi function</span>
 <span class="comment">// (r)  6 : static function manually reimplemented</span>
 <span class="comment">//</span>
 <span class="comment">// (m) 38 : method implemented</span>
-<span class="comment">// (~)  3 : work in progress</span>
 <span class="comment">//</span>
 <span class="comment">// (t) 13 : unit test done for the function</span>
 <span class="comment">// (T)  0 : unit test done also for the method</span>
@@ -240,6 +249,7 @@
 <span class="comment">// f   notcurses_cursor_yx</span>
 <span class="comment">// fmt notcurses_debug</span>
 <span class="comment">// fm  notcurses_debug_caps</span>
+<span class="comment">//~f   notcurses_detected_terminal</span>
 <span class="comment">// fmt notcurses_drop_planes</span>
 <span class="comment">// fm  notcurses_getc</span>
 <span class="comment">// fmt notcurses_init</span>
@@ -287,12 +297,20 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">helpers</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">reimplemented</span>::<span class="kw-2">*</span>;
 
-<span class="doccomment">/// Notcurses builds atop the terminfo abstraction layer to</span>
-<span class="doccomment">/// provide reasonably portable vivid character displays.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Notcurses</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">notcurses</span>;
+<span class="doccomment">/// The full **notcurses** context.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// It&#39;s built atop the terminfo abstraction layer to provide reasonably</span>
+<span class="doccomment">/// portable vivid character displays.</span>
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Nc</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">notcurses</span>;
+
+<span class="attribute">#[<span class="ident">deprecated</span>]</span>
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Notcurses</span> <span class="op">=</span> <span class="ident">Nc</span>;
 
 <span class="doccomment">/// Options struct for [`Notcurses`]</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NotcursesOptions</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">notcurses_options</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcOptions</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">notcurses_options</span>;
+
+<span class="attribute">#[<span class="ident">deprecated</span>]</span>
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NotcursesOptions</span> <span class="op">=</span> <span class="ident">NcOptions</span>;
 
 <span class="doccomment">/// Do not call setlocale()</span>
 <span class="doccomment">///</span>
@@ -308,7 +326,7 @@
 
 <span class="doccomment">/// Do not enter alternate mode.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// If smcup/rmcup capabilities are indicated, Notcurses defaults to making use</span>
+<span class="doccomment">/// If smcup/rmcup capabilities are indicated, notcurses defaults to making use</span>
 <span class="doccomment">/// of the &quot;alternate screen&quot;. This flag inhibits use of smcup/rmcup.</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCOPTION_NO_ALTERNATE_SCREEN</span>: <span class="ident">u64</span> <span class="op">=</span>
     <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCOPTION_NO_ALTERNATE_SCREEN</span> <span class="kw">as</span> <span class="ident">u64</span>;
@@ -324,7 +342,7 @@
 <span class="doccomment">/// Notcurses might attempt to change the font slightly, to support certain</span>
 <span class="doccomment">/// glyphs (especially on the Linux console). If this is set, no such</span>
 <span class="doccomment">/// modifications will be made. Note that font changes will not affect anything</span>
-<span class="doccomment">/// but the virtual console/terminal in which Notcurses is running.</span>
+<span class="doccomment">/// but the virtual console/terminal in which notcurses is running.</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCOPTION_NO_FONT_CHANGES</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCOPTION_NO_FONT_CHANGES</span> <span class="kw">as</span> <span class="ident">u64</span>;
 
 <span class="doccomment">/// Do not handle SIG{ING, SEGV, ABRT, QUIT}</span>
@@ -351,11 +369,11 @@
 
 <span class="comment">// NcLogLevel ------------------------------------------------------------------</span>
 
-<span class="doccomment">/// Log level for [`NotcursesOptions`]</span>
+<span class="doccomment">/// Log level for [`NcOptions`]</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// These log levels consciously map cleanly to those of libav; Notcurses itself</span>
+<span class="doccomment">/// These log levels consciously map cleanly to those of libav; notcurses itself</span>
 <span class="doccomment">/// does not use this full granularity. The log level does not affect the opening</span>
-<span class="doccomment">/// and closing banners, which can be disabled via the `NotcursesOptions`</span>
+<span class="doccomment">/// and closing banners, which can be disabled via the `NcOptions`</span>
 <span class="doccomment">/// `NCOPTION_SUPPRESS_BANNERS`.</span>
 <span class="doccomment">/// Note that if stderr is connected to the same terminal on which we&#39;re</span>
 <span class="doccomment">/// rendering, any kind of logging will disrupt the output.</span>

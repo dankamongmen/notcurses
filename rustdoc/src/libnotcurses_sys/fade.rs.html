@@ -50,7 +50,6 @@
 <span id="47">47</span>
 <span id="48">48</span>
 <span id="49">49</span>
-<span id="50">50</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcFadeCb` &amp; `NcFadeCtx`</span>
 
@@ -65,7 +64,7 @@
 
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ffi</span>::<span class="ident">c_void</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">NcIntResult</span>, <span class="ident">NcPlane</span>, <span class="ident">NcTime</span>, <span class="ident">Notcurses</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Nc</span>, <span class="ident">NcIntResult</span>, <span class="ident">NcPlane</span>, <span class="ident">NcTime</span>};
 
 <span class="doccomment">/// Called for each fade iteration on the NcPlane.</span>
 <span class="doccomment">///</span>
@@ -73,9 +72,8 @@
 <span class="doccomment">/// and that value is propagated out.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// The recommended absolute display time target is passed in &#39;tspec&#39;.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcFadeCb</span> <span class="op">=</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>
-    <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Notcurses</span>, <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span>, <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">NcTime</span>, <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcIntResult</span>,
-<span class="op">&gt;</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcFadeCb</span> <span class="op">=</span>
+    <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Nc</span>, <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span>, <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">NcTime</span>, <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcIntResult</span><span class="op">&gt;</span>;
 
 <span class="doccomment">/// Context for a palette fade operation</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcFadeCtx</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncfadectx</span>;

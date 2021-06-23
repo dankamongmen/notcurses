@@ -132,7 +132,7 @@
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">ptr</span>::{<span class="ident">null</span>, <span class="ident">null_mut</span>};
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">NcAlign</span>, <span class="ident">NcDim</span>, <span class="ident">NcError</span>, <span class="ident">NcInput</span>, <span class="ident">NcOffset</span>, <span class="ident">NcPlane</span>, <span class="ident">NcResult</span>, <span class="ident">NcSignalSet</span>, <span class="ident">NcTime</span>, <span class="ident">Notcurses</span>,
+    <span class="ident">Nc</span>, <span class="ident">NcAlign</span>, <span class="ident">NcDim</span>, <span class="ident">NcError</span>, <span class="ident">NcInput</span>, <span class="ident">NcOffset</span>, <span class="ident">NcPlane</span>, <span class="ident">NcResult</span>, <span class="ident">NcSignalSet</span>, <span class="ident">NcTime</span>,
     <span class="ident">NCALIGN_CENTER</span>, <span class="ident">NCALIGN_LEFT</span>, <span class="ident">NCALIGN_RIGHT</span>, <span class="ident">NCRESULT_MAX</span>,
 };
 
@@ -142,7 +142,7 @@
 <span class="doccomment">/// Returns `-`[`NCRESULT_MAX`] if [NCALIGN_UNALIGNED][crate::NCALIGN_UNALIGNED]</span>
 <span class="doccomment">/// or invalid [NcAlign].</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// *Method: Notcurses.[align()][Notcurses#method.align].*</span>
+<span class="doccomment">/// *Method: Nc.[align()][Nc#method.align].*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">notcurses_align</span>(<span class="ident">availcols</span>: <span class="ident">NcDim</span>, <span class="ident">align</span>: <span class="ident">NcAlign</span>, <span class="ident">cols</span>: <span class="ident">NcDim</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcOffset</span> {
     <span class="kw">if</span> <span class="ident">align</span> <span class="op">=</span><span class="op">=</span> <span class="ident">NCALIGN_LEFT</span> {
@@ -163,11 +163,11 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// If no event is ready, returns 0.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// *Method: Notcurses.[getc_nblock()][Notcurses#method.getc_nblock].*</span>
+<span class="doccomment">/// *Method: Nc.[getc_nblock()][Nc#method.getc_nblock].*</span>
 <span class="comment">//</span>
 <span class="comment">// TODO: use from_u32 &amp; return Option.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">notcurses_getc_nblock</span>(<span class="ident">nc</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Notcurses</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcInput</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">char</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">notcurses_getc_nblock</span>(<span class="ident">nc</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Nc</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcInput</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">char</span> {
     <span class="kw">unsafe</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sigmask</span> <span class="op">=</span> <span class="ident">NcSignalSet</span>::<span class="ident">new</span>();
         <span class="ident">sigmask</span>.<span class="ident">fillset</span>();
@@ -185,9 +185,9 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// In case of an invalid read (including on EOF) *-1 as char* is returned.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// *Method: Notcurses.[getc_blocking()][Notcurses#method.getc_blocking].*</span>
+<span class="doccomment">/// *Method: Nc.[getc_blocking()][Nc#method.getc_blocking].*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">notcurses_getc_blocking</span>(<span class="ident">nc</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Notcurses</span>, <span class="ident">input</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcInput</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">char</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">notcurses_getc_blocking</span>(<span class="ident">nc</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Nc</span>, <span class="ident">input</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcInput</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">char</span> {
     <span class="kw">let</span> <span class="ident">input_ptr</span>;
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">i</span>) <span class="op">=</span> <span class="ident">input</span> {
         <span class="ident">input_ptr</span> <span class="op">=</span> <span class="ident">i</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span>;
@@ -204,10 +204,10 @@
 <span class="doccomment">/// [notcurses_stdplane()][crate::notcurses_stdplane], plus free bonus</span>
 <span class="doccomment">/// dimensions written to non-NULL y/x!</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// *Method: Notcurses.[getc_stddim_yx()][Notcurses#method.stddim_yx].*</span>
+<span class="doccomment">/// *Method: Nc.[getc_stddim_yx()][Nc#method.stddim_yx].*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">notcurses_stddim_yx</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
-    <span class="ident">nc</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Notcurses</span>,
+    <span class="ident">nc</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Nc</span>,
     <span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcDim</span>,
     <span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcDim</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">NcPlane</span><span class="op">&gt;</span> {
@@ -224,10 +224,10 @@
 <span class="doccomment">/// [notcurses_stdplane_const()][crate::notcurses_stdplane_const], plus free</span>
 <span class="doccomment">/// bonus dimensions written to non-NULL y/x!</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// *Method: Notcurses.[getc_stddim_yx_const()][Notcurses#method.stddim_yx_const].*</span>
+<span class="doccomment">/// *Method: Nc.[getc_stddim_yx_const()][Nc#method.stddim_yx_const].*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">notcurses_stddim_yx_const</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
-    <span class="ident">nc</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Notcurses</span>,
+    <span class="ident">nc</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Nc</span>,
     <span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcDim</span>,
     <span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcDim</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">NcPlane</span><span class="op">&gt;</span> {
@@ -243,9 +243,9 @@
 
 <span class="doccomment">/// Returns our current idea of the terminal dimensions in rows and cols.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// *Method: Notcurses.[getc_term_yx()][Notcurses#method.term_yx].*</span>
+<span class="doccomment">/// *Method: Nc.[getc_term_yx()][Nc#method.term_yx].*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">notcurses_term_dim_yx</span>(<span class="ident">nc</span>: <span class="kw-2">&amp;</span><span class="ident">Notcurses</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">NcDim</span>, <span class="ident">NcDim</span>) {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">notcurses_term_dim_yx</span>(<span class="ident">nc</span>: <span class="kw-2">&amp;</span><span class="ident">Nc</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">NcDim</span>, <span class="ident">NcDim</span>) {
     <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">y</span>, <span class="kw-2">mut</span> <span class="ident">x</span>) <span class="op">=</span> (<span class="number">0</span>, <span class="number">0</span>);
     <span class="kw">unsafe</span> {
         <span class="kw">crate</span>::<span class="ident">ncplane_dim_yx</span>(<span class="kw">crate</span>::<span class="ident">notcurses_stdplane_const</span>(<span class="ident">nc</span>), <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">y</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">x</span>);

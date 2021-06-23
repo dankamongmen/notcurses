@@ -72,7 +72,7 @@
 <span id="69">69</span>
 <span id="70">70</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">NcChannelPair</span>, <span class="ident">NcMenuOptions</span>, <span class="ident">NcMenuSection</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">NcChannels</span>, <span class="ident">NcMenuOptions</span>, <span class="ident">NcMenuSection</span>};
 
 <span class="doccomment">/// # `NcMenuOptions` constructors</span>
 <span class="kw">impl</span> <span class="ident">NcMenuOptions</span> {
@@ -88,8 +88,8 @@
     <span class="doccomment">/// `sections` must contain at least 1 [NcMenuSection].</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_all_args</span>(
         <span class="ident">sections</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">NcMenuSection</span>],
-        <span class="ident">style_header</span>: <span class="ident">NcChannelPair</span>,
-        <span class="ident">style_sections</span>: <span class="ident">NcChannelPair</span>,
+        <span class="ident">style_header</span>: <span class="ident">NcChannels</span>,
+        <span class="ident">style_sections</span>: <span class="ident">NcChannels</span>,
         <span class="ident">flags</span>: <span class="ident">u64</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="macro">assert</span><span class="macro">!</span>[<span class="op">!</span><span class="ident">sections</span>.<span class="ident">is_empty</span>()];
@@ -117,28 +117,28 @@
     <span class="doccomment">/// Returns the styling for the header.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *(No equivalent C style function)*</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">header_channels</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannelPair</span> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">header_channels</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannels</span> {
         <span class="self">self</span>.<span class="ident">headerchannels</span>
     }
 
     <span class="doccomment">/// Returns a mutable reference of the styling for the sections.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *(No equivalent C style function)*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">header_channels_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcChannelPair</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">header_channels_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcChannels</span> {
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">headerchannels</span>
     }
 
     <span class="doccomment">/// Returns the styling for the sections.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *(No equivalent C style function)*</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">section_channels</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannelPair</span> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">section_channels</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannels</span> {
         <span class="self">self</span>.<span class="ident">sectionchannels</span>
     }
 
     <span class="doccomment">/// Returns a mutable reference of the styling for the sections.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *(No equivalent C style function)*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">section_channels_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcChannelPair</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">section_channels_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcChannels</span> {
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">sectionchannels</span>
     }
 }

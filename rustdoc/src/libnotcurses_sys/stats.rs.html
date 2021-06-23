@@ -28,7 +28,7 @@
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcStats`</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">Notcurses</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">Nc</span>;
 
 <span class="doccomment">/// notcurses runtime statistics</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcStats</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncstats</span>;
@@ -36,17 +36,17 @@
 <span class="doccomment">/// # `NcStats` Methods.</span>
 <span class="kw">impl</span> <span class="ident">NcStats</span> {
     <span class="doccomment">/// Allocates an NcStats object.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">nc</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Notcurses</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">nc</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Nc</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw">crate</span>::<span class="ident">notcurses_stats_alloc</span>(<span class="ident">nc</span>) }
     }
 
-    <span class="doccomment">/// Acquires an atomic snapshot of the Notcurses object&#39;s stats.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stats</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">nc</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Notcurses</span>) {
+    <span class="doccomment">/// Acquires an atomic snapshot of the notcurses object&#39;s stats.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stats</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">nc</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Nc</span>) {
         <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">notcurses_stats</span>(<span class="ident">nc</span>, <span class="self">self</span>) }
     }
 
     <span class="doccomment">/// Resets all cumulative stats (immediate ones are not reset).</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reset</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">nc</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Notcurses</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reset</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">nc</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Nc</span>) {
         <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">notcurses_stats_reset</span>(<span class="ident">nc</span>, <span class="self">self</span>) }
     }
 }

@@ -844,6 +844,37 @@
 <span id="841">841</span>
 <span id="842">842</span>
 <span id="843">843</span>
+<span id="844">844</span>
+<span id="845">845</span>
+<span id="846">846</span>
+<span id="847">847</span>
+<span id="848">848</span>
+<span id="849">849</span>
+<span id="850">850</span>
+<span id="851">851</span>
+<span id="852">852</span>
+<span id="853">853</span>
+<span id="854">854</span>
+<span id="855">855</span>
+<span id="856">856</span>
+<span id="857">857</span>
+<span id="858">858</span>
+<span id="859">859</span>
+<span id="860">860</span>
+<span id="861">861</span>
+<span id="862">862</span>
+<span id="863">863</span>
+<span id="864">864</span>
+<span id="865">865</span>
+<span id="866">866</span>
+<span id="867">867</span>
+<span id="868">868</span>
+<span id="869">869</span>
+<span id="870">870</span>
+<span id="871">871</span>
+<span id="872">872</span>
+<span id="873">873</span>
+<span id="874">874</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! A selection of the [ffi] bindings intended to be used directly.</span>
 <span class="doccomment">//!</span>
@@ -852,8 +883,11 @@
 <span class="doccomment">//! The current module publicly re-exports bindgen generated structs, functions,</span>
 <span class="doccomment">//! and constants, for their direct usage.</span>
 
-<span class="comment">// [clippy &amp; bindgen](https://github.com/rust-lang/rust-bindgen/issues/1470)</span>
+<span class="comment">// BUG ISSUES:</span>
+<span class="comment">// https://github.com/rust-lang/rust-bindgen/issues/1470</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">all</span>)]</span>
+<span class="comment">// https://github.com/rust-lang/rust-bindgen/issues/1651</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unknown_lints</span>, <span class="ident">deref_nullptr</span>)]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">ffi</span> {
     <span class="doccomment">//! Rust FFI bindings, automatically generated with bindgen.</span>
     <span class="doccomment">//!</span>
@@ -887,10 +921,10 @@
 <span class="comment">// cell,</span>
 <span class="comment">//</span>
 <span class="comment">// // constants</span>
-<span class="comment">// CELL_ALPHA_BLEND,</span>
-<span class="comment">// CELL_ALPHA_HIGHCONTRAST,</span>
-<span class="comment">// CELL_ALPHA_OPAQUE,</span>
-<span class="comment">// CELL_ALPHA_TRANSPARENT,</span>
+<span class="comment">// NCALPHA_BLEND,</span>
+<span class="comment">// NCALPHA_HIGHCONTRAST,</span>
+<span class="comment">// NCALPHA_OPAQUE,</span>
+<span class="comment">// NCALPHA_TRANSPARENT,</span>
 <span class="comment">// CELL_BGDEFAULT_MASK,</span>
 <span class="comment">// CELL_BG_ALPHA_MASK,</span>
 <span class="comment">// CELL_BG_PALETTE,</span>
@@ -973,6 +1007,16 @@
 <span class="comment">// NCBOXMASK_RIGHT,</span>
 <span class="comment">// NCBOXMASK_TOP,</span>
 
+<span class="comment">// nccapabilit* ----------------------------------------------------------------</span>
+<span class="comment">//</span>
+<span class="comment">// already wrapped:</span>
+<span class="comment">//</span>
+<span class="comment">// // structs</span>
+<span class="comment">// nccapabilities,</span>
+<span class="comment">//</span>
+<span class="comment">// // functions</span>
+<span class="comment">// nccapability_canchangecolor,</span>
+
 <span class="comment">// ncdirect --------------------------------------------------------------------</span>
 <span class="comment">//</span>
 <span class="comment">// already wrapped:</span>
@@ -980,15 +1024,28 @@
 <span class="comment">// // structs</span>
 <span class="comment">// ncdirect,</span>
 <span class="comment">//</span>
+<span class="comment">// // functions</span>
+<span class="comment">// ncdirect_canbraille,</span>
+<span class="comment">// ncdirect_canopen_videos</span>
+<span class="comment">// ncdirect_canchangecolor,</span>
+<span class="comment">// ncdirect_canfade,</span>
+<span class="comment">// ncdirect_canhalfblock,</span>
+<span class="comment">// ncdirect_canquadrant,</span>
+<span class="comment">// ncdirect_cantruecolor,</span>
+<span class="comment">// ncdirect_capabilities,</span>
+<span class="comment">//</span>
 <span class="comment">// // constants</span>
 <span class="comment">// NCDIRECT_OPTION_INHIBIT_CBREAK,</span>
 <span class="comment">// NCDIRECT_OPTION_INHIBIT_SETLOCALE,</span>
 <span class="comment">// NCDIRECT_OPTION_NO_QUIT_SIGHANDLERS,</span>
+<span class="comment">// NCDIRECT_OPTION_VERBOSE</span>
+<span class="comment">// NCDIRECT_OPTION_VERY_VERBOSE</span>
 
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">ffi</span>::{
     <span class="comment">// functions</span>
     <span class="ident">ncdirect_box</span>,
+    <span class="ident">ncdirect_canget_cursor</span>,
     <span class="ident">ncdirect_canopen_images</span>,
     <span class="ident">ncdirect_canutf8</span>,
     <span class="ident">ncdirect_check_pixel_support</span>,
@@ -1004,6 +1061,7 @@
     <span class="ident">ncdirect_cursor_right</span>,
     <span class="ident">ncdirect_cursor_up</span>,
     <span class="ident">ncdirect_cursor_yx</span>,
+    <span class="ident">ncdirect_detected_terminal</span>,
     <span class="ident">ncdirect_dim_x</span>,
     <span class="ident">ncdirect_dim_y</span>,
     <span class="ident">ncdirect_double_box</span>,
@@ -1480,18 +1538,19 @@
 <span class="comment">// already wrapped:</span>
 <span class="comment">//</span>
 <span class="comment">// // constants</span>
-<span class="comment">// NCSTYLE_BLINK,</span>
-<span class="comment">// NCSTYLE_BOLD,</span>
-<span class="comment">// NCSTYLE_DIM,</span>
-<span class="comment">// NCSTYLE_INVIS,</span>
-<span class="comment">// NCSTYLE_ITALIC,</span>
 <span class="comment">// NCSTYLE_MASK,</span>
-<span class="comment">// NCSTYLE_NONE,</span>
-<span class="comment">// NCSTYLE_PROTECT,</span>
-<span class="comment">// NCSTYLE_REVERSE,</span>
-<span class="comment">// NCSTYLE_STANDOUT,</span>
+<span class="comment">// NCSTYLE_UNDERCURL,</span>
 <span class="comment">// NCSTYLE_STRUCK,</span>
+<span class="comment">// NCSTYLE_ITALIC,</span>
+<span class="comment">// NCSTYLE_STANDOUT,</span>
 <span class="comment">// NCSTYLE_UNDERLINE,</span>
+<span class="comment">// NCSTYLE_REVERSE,</span>
+<span class="comment">// NCSTYLE_BLINK,</span>
+<span class="comment">// NCSTYLE_DIM,</span>
+<span class="comment">// NCSTYLE_BOLD,</span>
+<span class="comment">// NCSTYLE_INVIS,</span>
+<span class="comment">// NCSTYLE_PROTECT,</span>
+<span class="comment">// NCSTYLE_NONE,</span>
 
 <span class="comment">// nctablet --------------------------------------------------------------------</span>
 <span class="comment">//</span>
@@ -1563,12 +1622,14 @@
     <span class="ident">ncvisual_from_bgra</span>,
     <span class="ident">ncvisual_from_file</span>,
     <span class="ident">ncvisual_from_plane</span>,
+    <span class="ident">ncvisual_from_rgb_loose</span>,
+    <span class="ident">ncvisual_from_rgb_packed</span>,
     <span class="ident">ncvisual_from_rgba</span>,
-    <span class="ident">ncvisual_inflate</span>,
     <span class="ident">ncvisual_media_defblitter</span>,
     <span class="ident">ncvisual_polyfill_yx</span>,
     <span class="ident">ncvisual_render</span>,
     <span class="ident">ncvisual_resize</span>,
+    <span class="ident">ncvisual_resize_noninterpolative</span>,
     <span class="ident">ncvisual_rotate</span>,
     <span class="ident">ncvisual_set_yx</span>,
     <span class="ident">ncvisual_simple_streamer</span>,
@@ -1615,6 +1676,7 @@
     <span class="ident">notcurses_cursor_yx</span>,
     <span class="ident">notcurses_debug</span>,
     <span class="ident">notcurses_debug_caps</span>,
+    <span class="ident">notcurses_detected_terminal</span>,
     <span class="ident">notcurses_drop_planes</span>,
     <span class="ident">notcurses_getc</span>,
     <span class="ident">notcurses_init</span>,

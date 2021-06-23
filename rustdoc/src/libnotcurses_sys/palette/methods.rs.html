@@ -58,17 +58,17 @@
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcPalette` methods and associated functions.</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">error</span>, <span class="ident">NcChannel</span>, <span class="ident">NcColor</span>, <span class="ident">NcPalette</span>, <span class="ident">NcPaletteIndex</span>, <span class="ident">NcResult</span>, <span class="ident">NcRgb</span>, <span class="ident">Notcurses</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">error</span>, <span class="ident">Nc</span>, <span class="ident">NcChannel</span>, <span class="ident">NcComponent</span>, <span class="ident">NcPalette</span>, <span class="ident">NcPaletteIndex</span>, <span class="ident">NcResult</span>, <span class="ident">NcRgb</span>};
 
 <span class="kw">impl</span> <span class="ident">NcPalette</span> {
-    <span class="doccomment">/// New NcPalette.</span>
+    <span class="doccomment">/// New `NcPalette`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncpalette_new()][crate::ncpalette_new].*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">nc</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Notcurses</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">nc</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Nc</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw">crate</span>::<span class="ident">ncpalette_new</span>(<span class="ident">nc</span>) }
     }
 
-    <span class="doccomment">/// Frees this NcPalette.</span>
+    <span class="doccomment">/// Frees this `NcPalette`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncpalette_free()][crate::ncpalette_free].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">free</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
@@ -80,29 +80,29 @@
     <span class="doccomment">/// Attempts to configure the terminal with this NcPalette.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncpalette_use()][crate::ncpalette_use].*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">r#use</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">nc</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Notcurses</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">r#use</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">nc</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Nc</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">error</span><span class="macro">!</span>[<span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncpalette_use</span>(<span class="ident">nc</span>, <span class="self">self</span>) }]
     }
 
-    <span class="doccomment">/// Returns the [NcColor] RGB components from the [NcChannel] in this NcPalette.</span>
+    <span class="doccomment">/// Returns the [`NcComponent`]s from the [`NcChannel`] in this `NcPalette`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [ncpalette_get_rgb()][crate::ncpalette_get_rgb].*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_rgb8</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">NcPaletteIndex</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">NcColor</span>, <span class="ident">NcColor</span>, <span class="ident">NcColor</span>) {
+    <span class="doccomment">/// *C style function: [ncpalette_get_rgb()][crate::ncpalette_get_rgb8].*</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_rgb8</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">NcPaletteIndex</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">NcComponent</span>, <span class="ident">NcComponent</span>, <span class="ident">NcComponent</span>) {
         <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">r</span>, <span class="kw-2">mut</span> <span class="ident">g</span>, <span class="kw-2">mut</span> <span class="ident">b</span>) <span class="op">=</span> (<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);
         <span class="kw">crate</span>::<span class="ident">ncchannel_rgb8</span>(<span class="self">self</span>.<span class="ident">chans</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">r</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">g</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">b</span>);
         (<span class="ident">r</span>, <span class="ident">g</span>, <span class="ident">b</span>)
     }
 
-    <span class="doccomment">/// Extracts the [NcColor] RGB components from an [NcChannel] entry inside</span>
+    <span class="doccomment">/// Extracts the [`NcComponent`]s from an [`NcChannel`] entry inside</span>
     <span class="doccomment">/// this NcPalette, and returns the NcChannel.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [ncpalette_get_rgb()][crate::ncpalette_get_rgb].*</span>
+    <span class="doccomment">/// *C style function: [ncpalette_get_rgb()][crate::ncpalette_get_rgb8].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_rgb</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">NcPaletteIndex</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannel</span> {
         <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">r</span>, <span class="kw-2">mut</span> <span class="ident">g</span>, <span class="kw-2">mut</span> <span class="ident">b</span>) <span class="op">=</span> (<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);
         <span class="kw">crate</span>::<span class="ident">ncchannel_rgb8</span>(<span class="self">self</span>.<span class="ident">chans</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">r</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">g</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">b</span>)
     }
 
-    <span class="doccomment">/// Sets the [NcRgb] value of the [NcChannel][crate::NcChannel] entry</span>
+    <span class="doccomment">/// Sets the [`NcRgb`] value of the [`NcChannel`][crate::NcChannel] entry</span>
     <span class="doccomment">/// inside this NcPalette.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncpalette_set()][crate::ncpalette_set].*</span>

@@ -232,6 +232,88 @@
 <span id="229">229</span>
 <span id="230">230</span>
 <span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcChannel*`</span>
 
@@ -301,14 +383,14 @@
 <span class="comment">//W  channels_set_not_default        // not in the original C API</span>
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_imports</span>)]</span> <span class="comment">// for the doc comments</span>
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">NcRgba</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">NcCell</span>, <span class="ident">NcRgba</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">test</span>;
 
 <span class="kw">mod</span> <span class="ident">methods</span>;
 <span class="kw">mod</span> <span class="ident">reimplemented</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">methods</span>::{<span class="ident">NcChannelMethods</span>, <span class="ident">NcChannelPairMethods</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">methods</span>::{<span class="ident">NcChannelMethods</span>, <span class="ident">NcChannelsMethods</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">reimplemented</span>::<span class="kw-2">*</span>;
 
 <span class="comment">// NcChannel</span>
@@ -322,7 +404,7 @@
 <span class="doccomment">///   - 2 bits of [`NcAlphaBits`]</span>
 <span class="doccomment">///   - 6 bits of context-dependent info</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// The context details are documented in [`NcChannelPair`]</span>
+<span class="doccomment">/// The context details are documented in [`NcChannels`]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ## Diagram</span>
 <span class="doccomment">///</span>
@@ -351,7 +433,86 @@
 <span class="doccomment">///</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcAlphaBits</span> <span class="op">=</span> <span class="ident">u32</span>;
 
-<span class="comment">// NcChannelPair</span>
+<span class="doccomment">/// [`NcAlphaBits`] bits indicating</span>
+<span class="doccomment">/// [`NcCell`]&#39;s foreground or background color will be a composite between</span>
+<span class="doccomment">/// its color and the `NcCell`s&#39; corresponding colors underneath it</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_BLEND</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCALPHA_BLEND</span>;
+
+<span class="doccomment">/// [`NcAlphaBits`] bits indicating</span>
+<span class="doccomment">/// [`NcCell`]&#39;s foreground color will be high-contrast (relative to the</span>
+<span class="doccomment">/// computed background). Background cannot be highcontrast</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_HIGHCONTRAST</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCALPHA_HIGHCONTRAST</span>;
+
+<span class="doccomment">/// [`NcAlphaBits`] bits indicating</span>
+<span class="doccomment">/// [`NcCell`]&#39;s foreground or background color is used unchanged</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_OPAQUE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCALPHA_OPAQUE</span>;
+
+<span class="doccomment">/// [`NcAlphaBits`] bits indicating</span>
+<span class="doccomment">/// [`NcCell`]&#39;s foreground or background color is derived entirely from the</span>
+<span class="doccomment">/// `NcCell`s underneath it</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_TRANSPARENT</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCALPHA_TRANSPARENT</span>;
+
+<span class="doccomment">/// If this bit is set, we are *not* using the default background color</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// See the detailed diagram at [`NcChannels`][crate::NcChannels]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Note: This can also be used against a single [`NcChannel`]</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_BGDEFAULT_MASK</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">CELL_BGDEFAULT_MASK</span>;
+
+<span class="doccomment">/// Extract these bits to get the background alpha mask</span>
+<span class="doccomment">/// ([`NcAlphaBits`])</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// See the detailed diagram at [`NcChannels`][crate::NcChannels]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Note: This can also be used against a single [`NcChannel`]</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_BG_ALPHA_MASK</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">CELL_BG_ALPHA_MASK</span>;
+
+<span class="doccomment">/// If this bit *and* [`NCALPHA_BGDEFAULT_MASK`] are set, we&#39;re using a</span>
+<span class="doccomment">/// palette-indexed background color</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// See the detailed diagram at [`NcChannels`][crate::NcChannels]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Note: This can also be used against a single [`NcChannel`]</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_BG_PALETTE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">CELL_BG_PALETTE</span>;
+
+<span class="doccomment">/// Extract these bits to get the background [`NcRgb`][crate::NcRgb] value</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// See the detailed diagram at [`NcChannels`][crate::NcChannels]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Note: This can also be used against a single [`NcChannel`]</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_BG_RGB_MASK</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">CELL_BG_RGB_MASK</span>;
+
+<span class="doccomment">/// If this bit is set, we are *not* using the default foreground color</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// See the detailed diagram at [`NcChannels`][crate::NcChannels]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Note: When working with a single [`NcChannel`] use [`NCALPHA_BGDEFAULT_MASK`];</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_FGDEFAULT_MASK</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">CELL_FGDEFAULT_MASK</span>;
+
+<span class="doccomment">/// Extract these bits to get the foreground alpha mask</span>
+<span class="doccomment">/// ([`NcAlphaBits`])</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// See the detailed diagram at [`NcChannels`][crate::NcChannels]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Note: When working with a single [`NcChannel`] use [`NCALPHA_BG_ALPHA_MASK`];</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_FG_ALPHA_MASK</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">CELL_FG_ALPHA_MASK</span>;
+
+<span class="doccomment">/// If this bit *and* [`NCALPHA_FGDEFAULT_MASK`] are set, we&#39;re using a</span>
+<span class="doccomment">/// palette-indexed background color</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// See the detailed diagram at [`NcChannels`][crate::NcChannels]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Note: When working with a single [`NcChannel`] use [`NCALPHA_BG_PALETTE`];</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_FG_PALETTE</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">CELL_FG_PALETTE</span>;
+
+<span class="doccomment">/// Extract these bits to get the foreground [`NcRgb`][crate::NcRgb] value</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// See the detailed diagram at [`NcChannels`][crate::NcChannels]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Note: When working with a single [`NcChannel`] use [`NCALPHA_BG_RGB_MASK`];</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_FG_RGB_MASK</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">CELL_FG_RGB_MASK</span>;
+
+<span class="comment">// NcChannels</span>
 <span class="comment">//</span>
 <span class="doccomment">/// 64 bits containing a foreground and background [`NcChannel`]</span>
 <span class="doccomment">///</span>
@@ -371,8 +532,8 @@
 <span class="doccomment">/// ## Diagram</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ```txt</span>
-<span class="doccomment">/// ~~AA~~~~|RRRRRRRR|GGGGGGGG|BBBBBBBB|~~AA~~~~|RRRRRRRR|GGGGGGGG|BBBBBBBB</span>
-<span class="doccomment">/// ↑↑↑↑↑↑↑↑↑↑↑↑ foreground ↑↑↑↑↑↑↑↑↑↑↑|↑↑↑↑↑↑↑↑↑↑↑↑ background ↑↑↑↑↑↑↑↑↑↑↑</span>
+<span class="doccomment">/// ~~AA~~~~|RRRRRRRR|GGGGGGGG|BBBBBBBB║~~AA~~~~|RRRRRRRR|GGGGGGGG|BBBBBBBB</span>
+<span class="doccomment">/// ↑↑↑↑↑↑↑↑↑↑↑↑ foreground ↑↑↑↑↑↑↑↑↑↑↑║↑↑↑↑↑↑↑↑↑↑↑↑ background ↑↑↑↑↑↑↑↑↑↑↑</span>
 <span class="doccomment">/// ```</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Detailed info (specially on the context-dependent bits on each</span>
@@ -380,62 +541,65 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// ```txt</span>
 <span class="doccomment">///                             ~foreground channel~</span>
-<span class="doccomment">/// NCCELL_WIDEASIAN_MASK: part of a wide glyph          ↓bits view↓               ↓hex mask↓</span>
-<span class="doccomment">/// 1······· ········ ········ ········ ········ ········ ········ ········  =  8······· ········</span>
+<span class="doccomment">/// NCALPHA_WIDEASIAN_MASK: part of a wide glyph          ↓bits view↓               ↓hex mask↓</span>
+<span class="doccomment">/// 1·······|········|········|········║········|········|········|········  =  8·······|········</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// NCCELL_FGDEFAULT_MASK: foreground is NOT &quot;default color&quot;</span>
-<span class="doccomment">/// ·1······ ········ ········ ········ ········ ········ ········ ········  =  4······· ········</span>
+<span class="doccomment">/// NCALPHA_FGDEFAULT_MASK: foreground is NOT &quot;default color&quot;</span>
+<span class="doccomment">/// ·1······|········|········|········║········|········|········|········  =  4·······|········</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// NCCELL_FG_ALPHA_MASK: foreground alpha (2bits)</span>
-<span class="doccomment">/// ··11···· ········ ········ ········ ········ ········ ········ ········  =  3······· ········</span>
+<span class="doccomment">/// NCALPHA_FG_ALPHA_MASK: foreground alpha (2bits)</span>
+<span class="doccomment">/// ··11····|········|········|········║········|········|········|········  =  3·······|········</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// NCCELL_FG_PALETTE: foreground uses palette index</span>
-<span class="doccomment">/// ····1··· ········ ········ ········ ········ ········ ········ ········  =  ·8······ ········</span>
+<span class="doccomment">/// NCALPHA_FG_PALETTE: foreground uses palette index</span>
+<span class="doccomment">/// ····1···|········|········|········║········|········|········|········  =  ·8······|········</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// NCCELL_NOBACKGROUND_MASK: glyph is entirely foreground</span>
-<span class="doccomment">/// ·····1·· ········ ········ ········ ········ ········ ········ ········  =  ·4······ ········</span>
+<span class="doccomment">/// NCALPHA_NOBACKGROUND_MASK: glyph is entirely foreground</span>
+<span class="doccomment">/// ·····1··|········|········|········║········|········|········|········  =  ·4······|········</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// reserved, must be 0</span>
-<span class="doccomment">/// ······00 ········ ········ ········ ········ ········ ········ ········  =  ·3······ ········</span>
+<span class="doccomment">/// ······00|········|········|········║········|········|········|········  =  ·3······|········</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// NCCELL_FG_RGB_MASK: foreground in 3x8 RGB (rrggbb)</span>
-<span class="doccomment">/// ········ 11111111 11111111 11111111 ········ ········ ········ ········  =  ··FFFFFF ········</span>
+<span class="doccomment">/// NCALPHA_FG_RGB_MASK: foreground in 3x8 RGB (rrggbb)</span>
+<span class="doccomment">/// ········|11111111|11111111|11111111║········|········|········|········  =  ··FFFFFF|········</span>
 <span class="doccomment">/// ```</span>
 
 <span class="doccomment">/// ```txt</span>
 <span class="doccomment">///                             ~background channel~</span>
 <span class="doccomment">/// reserved, must be 0                                  ↓bits view↓               ↓hex mask↓</span>
-<span class="doccomment">/// ········ ········ ········ ········ 0······· ········ ········ ········  =  ········ 8·······</span>
+<span class="doccomment">/// ········|········|········|········║0·······|········|········|········  =  ········|8·······</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// NCCELL_BGDEFAULT_MASK: background is NOT &quot;default color&quot;</span>
-<span class="doccomment">/// ········ ········ ········ ········ ·1······ ········ ········ ········  =  ········ 4·······</span>
+<span class="doccomment">/// NCALPHA_BGDEFAULT_MASK: background is NOT &quot;default color&quot;</span>
+<span class="doccomment">/// ········|········|········|········║·1······|········|········|········  =  ········|4·······</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// NCCELL_BG_ALPHA_MASK: background alpha (2 bits)</span>
-<span class="doccomment">/// ········ ········ ········ ········ ··11···· ········ ········ ········  =  ········ 3·······</span>
+<span class="doccomment">/// NCALPHA_BG_ALPHA_MASK: background alpha (2 bits)</span>
+<span class="doccomment">/// ········|········|········|········║··11····|········|········|········  =  ········|3·······</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// NCCELL_BG_PALETTE: background uses palette index</span>
-<span class="doccomment">/// ········ ········ ········ ········ ····1··· ········ ········ ········  =  ········ ·8······</span>
+<span class="doccomment">/// NCALPHA_BG_PALETTE: background uses palette index</span>
+<span class="doccomment">/// ········|········|········|········║····1···|········|········|········  =  ········|·8······</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// reserved, must be 0</span>
-<span class="doccomment">/// ········ ········ ········ ········ ·····000 ········ ········ ········  =  ········ ·7······</span>
+<span class="doccomment">/// ········|········|········|········║·····000|········|········|········  =  ········|·7······</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// NCCELL_BG_RGB_MASK: background in 3x8 RGB (rrggbb)</span>
-<span class="doccomment">/// 0········ ········ ········ ········ ········11111111 11111111 11111111  =  ········ ··FFFFFF</span>
+<span class="doccomment">/// NCALPHA_BG_RGB_MASK: background in 3x8 RGB (rrggbb)</span>
+<span class="doccomment">/// ········|········|········|········║········|11111111|11111111|11111111  =  ········|··FFFFFF</span>
 <span class="doccomment">/// ```</span>
 <span class="doccomment">/// `type in C: channels (uint64_t)`</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ## `NcCell` Mask Flags</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// - [`NCCELL_BGDEFAULT_MASK`][crate::NCCELL_BGDEFAULT_MASK]</span>
-<span class="doccomment">/// - [`NCCELL_BG_ALPHA_MASK`][crate::NCCELL_BG_ALPHA_MASK]</span>
-<span class="doccomment">/// - [`NCCELL_BG_PALETTE`][crate::NCCELL_BG_PALETTE]</span>
-<span class="doccomment">/// - [`NCCELL_BG_RGB_MASK`][crate::NCCELL_BG_RGB_MASK]</span>
-<span class="doccomment">/// - [`NCCELL_FGDEFAULT_MASK`][crate::NCCELL_FGDEFAULT_MASK]</span>
-<span class="doccomment">/// - [`NCCELL_FG_ALPHA_MASK`][crate::NCCELL_FG_ALPHA_MASK]</span>
-<span class="doccomment">/// - [`NCCELL_FG_PALETTE`][crate::NCCELL_FG_PALETTE]</span>
-<span class="doccomment">/// - [`NCCELL_FG_RGB_MASK`][crate::NCCELL_FG_RGB_MASK]</span>
+<span class="doccomment">/// - [`NCALPHA_BGDEFAULT_MASK`][crate::NCALPHA_BGDEFAULT_MASK]</span>
+<span class="doccomment">/// - [`NCALPHA_BG_ALPHA_MASK`][crate::NCALPHA_BG_ALPHA_MASK]</span>
+<span class="doccomment">/// - [`NCALPHA_BG_PALETTE`][crate::NCALPHA_BG_PALETTE]</span>
+<span class="doccomment">/// - [`NCALPHA_BG_RGB_MASK`][crate::NCALPHA_BG_RGB_MASK]</span>
+<span class="doccomment">/// - [`NCALPHA_FGDEFAULT_MASK`][crate::NCALPHA_FGDEFAULT_MASK]</span>
+<span class="doccomment">/// - [`NCALPHA_FG_ALPHA_MASK`][crate::NCALPHA_FG_ALPHA_MASK]</span>
+<span class="doccomment">/// - [`NCALPHA_FG_PALETTE`][crate::NCALPHA_FG_PALETTE]</span>
+<span class="doccomment">/// - [`NCALPHA_FG_RGB_MASK`][crate::NCALPHA_FG_RGB_MASK]</span>
 <span class="doccomment">///</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcChannelPair</span> <span class="op">=</span> <span class="ident">u64</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcChannels</span> <span class="op">=</span> <span class="ident">u64</span>;
+
+<span class="attribute">#[<span class="ident">deprecated</span>]</span>
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcChannelPair</span> <span class="op">=</span> <span class="ident">NcChannels</span>;
 
 <span class="comment">// NcRgb</span>
 <span class="comment">//</span>
@@ -453,9 +617,9 @@
 <span class="doccomment">/// See also: [NcRgba] and [NcChannel] types.</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcRgb</span> <span class="op">=</span> <span class="ident">u32</span>;
 
-<span class="comment">// NcColor</span>
+<span class="comment">// NcComponent</span>
 <span class="comment">//</span>
-<span class="doccomment">/// 8 bits representing a R/G/B color or alpha channel</span>
+<span class="doccomment">/// 8 bits representing an R/G/B color component or an alpha channel component.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ## Diagram</span>
 <span class="doccomment">///</span>
@@ -463,6 +627,6 @@
 <span class="doccomment">/// CCCCCCCC (1 Byte)</span>
 <span class="doccomment">/// ```</span>
 <span class="doccomment">/// `type in C: no data type`</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcColor</span> <span class="op">=</span> <span class="ident">u8</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcComponent</span> <span class="op">=</span> <span class="ident">u8</span>;
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "libnotcurses_sys";</script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>

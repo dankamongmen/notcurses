@@ -12,13 +12,13 @@
 <span id="9"> 9</span>
 <span id="10">10</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">notcurses_init</span>, <span class="ident">Notcurses</span>, <span class="ident">NotcursesOptions</span>, <span class="ident">NCOPTION_SUPPRESS_BANNERS</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">notcurses_init</span>, <span class="ident">Nc</span>, <span class="ident">NcOptions</span>, <span class="ident">NCOPTION_SUPPRESS_BANNERS</span>};
 
-<span class="doccomment">/// Helper function for initializing Notcurses on C style tests.</span>
+<span class="doccomment">/// Helper function for initializing Nc on C style tests.</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">notcurses_init_test</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Notcurses</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">notcurses_init_test</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Nc</span> {
     <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">notcurses_init</span>(
-        <span class="kw-2">&amp;</span><span class="ident">NotcursesOptions</span>::<span class="ident">with_flags</span>(<span class="ident">NCOPTION_SUPPRESS_BANNERS</span>),
+        <span class="kw-2">&amp;</span><span class="ident">NcOptions</span>::<span class="ident">with_flags</span>(<span class="ident">NCOPTION_SUPPRESS_BANNERS</span>),
         <span class="ident">core</span>::<span class="ident">ptr</span>::<span class="ident">null_mut</span>(),
     )
 }
