@@ -5,6 +5,7 @@
 #include <libavutil/pixdesc.h>
 #include <libavutil/version.h>
 #include <libavutil/imgutils.h>
+#include <libavcodec/avcodec.h>
 #include <libavutil/rational.h>
 #include <libswscale/swscale.h>
 #include <libswscale/version.h>

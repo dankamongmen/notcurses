@@ -68,7 +68,8 @@ endif()
 
 # global compiler flags
 add_compile_definitions(FORTIFY_SOURCE=2)
-add_compile_options(-Wall -Wextra -W -Wshadow -Wformat -Wno-nonnull-compare -fexceptions)
+add_compile_options(-Wall -Wextra -W -Wshadow -Wformat -Wno-nonnull-compare
+                    -Wformat-security -fexceptions)
 
 message(STATUS "Requested multimedia engine: ${USE_MULTIMEDIA}")
 message(STATUS "Requested build mode: ${CMAKE_BUILD_TYPE}")
