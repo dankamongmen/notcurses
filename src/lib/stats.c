@@ -219,10 +219,11 @@ void summarize_stats(notcurses* nc){
             (stats->bgelisions * 100.0) / (stats->bgemissions + stats->bgelisions));
     char totalbuf[BPREFIXSTRLEN + 1];
     qprefix(stats->sprixelbytes, 1, totalbuf, 1);
-    fprintf(stderr, "Sprixel emits:elides: %ju:%ju (%.2f%%) %sB ASUs: %ju\n",
+    fprintf(stderr, "Sprixel emits:elides: %ju:%ju (%.2f%%) %sB ASUs: %ju (%.2f%%)\n",
             stats->sprixelemissions, stats->sprixelelisions,
             (stats->sprixelemissions + stats->sprixelelisions) == 0 ? 0 :
             (stats->sprixelelisions * 100.0) / (stats->sprixelemissions + stats->sprixelelisions),
-            totalbuf, stats->appsync_updates);
+            totalbuf, stats->appsync_updates,
+            stats->writeouts ? stats->appsync_updates * 100.0 / stats->writeouts : 0);
   }
 }
