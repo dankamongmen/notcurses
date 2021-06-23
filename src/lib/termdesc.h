@@ -9,6 +9,7 @@ extern "C" {
 
 #include "input.h"
 #include <stdbool.h>
+#include <termios.h>
 
 struct ncpile;
 struct sprixel;

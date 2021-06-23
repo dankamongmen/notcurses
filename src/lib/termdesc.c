@@ -1,5 +1,7 @@
 #include <fcntl.h>
+#include <unistd.h>
 #include <ncurses.h> // needed for some definitions, see terminfo(3ncurses)
+#include <termios.h>
 #include <sys/utsname.h>
 #include "internal.h"
 #include "input.h"

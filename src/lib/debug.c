@@ -5,9 +5,9 @@ int loglevel = NCLOGLEVEL_SILENT;
 static inline wchar_t
 capbool(const tinfo* ti, bool cap){
   if(ti->caps.utf8){
-    return cap ? L'✅' : L'❌';
+    return cap ? L'✓' : L'✖';
   }else{
-    return cap ? 'Y' : 'N';
+    return cap ? '+' : '-';
   }
 }
 
@@ -93,33 +93,6 @@ tinfo_debug_caps(const tinfo* ti, FILE* debugfp, int rows, int cols,
           capbool(ti, ti->caps.braille),
           capbool(ti, images),
           capbool(ti, videos));
-  if(ti->caps.utf8){
-    fprintf(debugfp, "%s{%ls} {%ls} ⎧%.122ls⎫        ⎧█ ⎫ 🯰🯱\n", indent,
-            get_blitter_egcs(NCBLIT_2x1), get_blitter_egcs(NCBLIT_2x2),
-            get_blitter_egcs(NCBLIT_3x2));
-    fprintf(debugfp, "%s                          ⎩%ls⎭        ⎪🮋▏⎪ 🯲🯳\n", indent,
-            get_blitter_egcs(NCBLIT_3x2) + 32);
-    fprintf(debugfp, "%s⎧%.6ls%.3ls⎫ ⎧%.6ls%.3ls⎫ ⎧%.6ls%.3ls⎫ ⎧%.6ls%.3ls⎫                                            ⎪🮊▎⎪ 🯴🯵\n", indent,
-            NCBOXLIGHTW, NCBOXLIGHTW + 4,
-            NCBOXHEAVYW, NCBOXHEAVYW + 4,
-            NCBOXROUNDW, NCBOXROUNDW + 4,
-            NCBOXDOUBLEW, NCBOXDOUBLEW + 4);
-    fprintf(debugfp, "%s⎩%.6ls%.3ls⎭ ⎩%.6ls%.3ls⎭ ⎩%.6ls%.3ls⎭ ⎩%.6ls%.3ls⎭                                            ⎪🮉▍⎪ 🯶🯷\n", indent,
-            NCBOXLIGHTW + 2, NCBOXLIGHTW + 5,
-            NCBOXHEAVYW + 2, NCBOXHEAVYW + 5,
-            NCBOXROUNDW + 2, NCBOXROUNDW + 5,
-            NCBOXDOUBLEW + 2, NCBOXDOUBLEW + 5);
-    fprintf(debugfp, "%s⎡%.192ls⎤ ⎨▐▌⎬ 🯸🯹\n", indent,
-            get_blitter_egcs(NCBLIT_BRAILLE));
-    fprintf(debugfp, "%s⎢%.192ls⎥ ⎪🮈▋⎪\n", indent,
-            get_blitter_egcs(NCBLIT_BRAILLE) + 64);
-    fprintf(debugfp, "%s⎢%.192ls⎥ ⎪🮇▊⎪\n", indent,
-            get_blitter_egcs(NCBLIT_BRAILLE) + 128);
-    fprintf(debugfp, "%s⎣%.192ls⎦ ⎪▕▉⎪\n", indent,
-            get_blitter_egcs(NCBLIT_BRAILLE) + 192);
-    fprintf(debugfp, "%s ⎛%ls⎞ ▔🭶🭷🭸🭹🭺🭻▁ 🭁 🭂 🭃 🭄 🭅 🭆 🭑 🭐 🭏 🭎 🭍 🭌 🭆🭑 🭄🭏 🭅🭐 🭃🭎 🭂🭍 🭁🭌 🭨🭪 ⎩ █⎭\n", indent, get_blitter_egcs(NCBLIT_8x1));
-    fprintf(debugfp, "%s ⎝%s⎠ ▏🭰🭱🭲🭳🭴🭵▕ 🭒 🭓 🭔 🭕 🭖 🭧 🭜 🭟 🭠 🭡 🭞 🭝 🭧🭜 🭕🭠 🭖🭡 🭔🭟 🭓🭞 🭒🭝 🭪🭨       \n", indent, "█🮆🮅🮄▀🮃🮂▔ ");
-  }
   fprintf(debugfp, "%sbackground of 0x%06lx is %sconsidered transparent\n", indent, ti->bg_collides_default & 0xfffffful,
                    (ti->bg_collides_default & 0x01000000) ? "" : "not ");
 }

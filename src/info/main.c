@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <notcurses/notcurses.h>
+#include "internal.h" // internal headers
 
 // write(2) with retry on partial write or interrupted write
 static inline ssize_t
@@ -18,6 +19,35 @@ writen(int fd, const void* buf, size_t len){
     w += r;
   }
   return w;
+}
+
+static int
+unicodedumper(FILE* fp, tinfo* ti){
+  if(ti->caps.utf8){
+    fprintf(fp, " {%ls} {%ls} ⎧%.122ls⎫        ⎧█ ⎫ 🯰🯱\n",
+            NCHALFBLOCKS, NCQUADBLOCKS, NCSEXBLOCKS);
+    fprintf(fp, "                           ⎩%ls⎭        ⎪🮋▏⎪ 🯲🯳\n",
+            NCSEXBLOCKS + 32);
+    fprintf(fp, " ⎧%.6ls%.3ls⎫ ⎧%.6ls%.3ls⎫ ⎧%.6ls%.3ls⎫ ⎧%.6ls%.3ls⎫                                            ⎪🮊▎⎪ 🯴🯵\n",
+            NCBOXLIGHTW, NCBOXLIGHTW + 4,
+            NCBOXHEAVYW, NCBOXHEAVYW + 4,
+            NCBOXROUNDW, NCBOXROUNDW + 4,
+            NCBOXDOUBLEW, NCBOXDOUBLEW + 4);
+    fprintf(fp, " ⎩%.6ls%.3ls⎭ ⎩%.6ls%.3ls⎭ ⎩%.6ls%.3ls⎭ ⎩%.6ls%.3ls⎭                                            ⎪🮉▍⎪ 🯶🯷\n",
+            NCBOXLIGHTW + 2, NCBOXLIGHTW + 5,
+            NCBOXHEAVYW + 2, NCBOXHEAVYW + 5,
+            NCBOXROUNDW + 2, NCBOXROUNDW + 5,
+            NCBOXDOUBLEW + 2, NCBOXDOUBLEW + 5);
+    fprintf(fp, " ⎡%.192ls⎤ ⎨▐▌⎬ 🯸🯹\n", NCBRAILLEEGCS);
+    fprintf(fp, " ⎢%.192ls⎥ ⎪🮈▋⎪\n", NCBRAILLEEGCS + 64);
+    fprintf(fp, " ⎢%.192ls⎥ ⎪🮇▊⎪\n", NCBRAILLEEGCS + 128);
+    fprintf(fp, " ⎣%.192ls⎦ ⎪▕▉⎪\n", NCBRAILLEEGCS + 192);
+    fprintf(fp, "  ⎛%ls⎞ ▔🭶🭷🭸🭹🭺🭻▁ 🭁 🭂 🭃 🭄 🭅 🭆 🭑 🭐 🭏 🭎 🭍 🭌 🭆🭑 🭄🭏 🭅🭐 🭃🭎 🭂🭍 🭁🭌 🭨🭪 ⎩ █⎭\n",
+            NCEIGHTHSBOTTOM);
+    fprintf(fp, "  ⎝%s⎠ ▏🭰🭱🭲🭳🭴🭵▕ 🭒 🭓 🭔 🭕 🭖 🭧 🭜 🭟 🭠 🭡 🭞 🭝 🭧🭜 🭕🭠 🭖🭡 🭔🭟 🭓🭞 🭒🭝 🭪🭨       \n",
+            NCEIGHTSUP);
+  }
+  return 0;
 }
 
 int main(void){
@@ -38,6 +68,7 @@ int main(void){
     return EXIT_FAILURE;
   }
   notcurses_debug_caps(nc, mstream);
+  unicodedumper(mstream, &nc->tcache);
   if(fclose(mstream)){
     notcurses_stop(nc);
     fprintf(stderr, "Error closing memstream after %zuB\n", len);

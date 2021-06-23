@@ -557,9 +557,11 @@ target_link_libraries(notcurses-demo
 ############################################################################
 # notcurses-info
 file(GLOB INFOSRCS CONFIGURE_DEPENDS src/info/*.c)
-add_executable(notcurses-info ${INFOSRCS})
+add_executable(notcurses-info ${INFOSRCS} ${COMPATSRC})
 target_include_directories(notcurses-info
   PRIVATE
+    src
+    src/lib
     include
     "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
