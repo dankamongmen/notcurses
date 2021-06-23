@@ -2,14 +2,18 @@
 
 int loglevel = NCLOGLEVEL_SILENT;
 
-static inline char
-capyn(const char* cap){
-  return cap ? 'y' : 'n';
+static inline wchar_t
+capbool(const tinfo* ti, bool cap){
+  if(ti->caps.utf8){
+    return cap ? L'✅' : L'❌';
+  }else{
+    return cap ? 'Y' : 'N';
+  }
 }
 
-static inline char
-capbool(bool cap){
-  return cap ? 'y' : 'n';
+static inline wchar_t
+capyn(const tinfo* ti, const char* cap){
+  return capbool(ti, cap);
 }
 
 static void
@@ -51,17 +55,23 @@ static void
 tinfo_debug_caps(const tinfo* ti, FILE* debugfp, int rows, int cols,
                  unsigned images, unsigned videos){
   const char indent[] = " ";
-  fprintf(debugfp, "%scolors: %u rgb: %c ccc: %c setaf: %c setab: %c app-sync: %c\n",
-          indent, ti->caps.colors, capbool(ti->caps.rgb), capbool(ti->caps.can_change_colors),
-          capyn(get_escape(ti, ESCAPE_SETAF)),
-          capyn(get_escape(ti, ESCAPE_SETAB)),
-          capyn(get_escape(ti, ESCAPE_BSU)));
-  fprintf(debugfp, "%ssgr: %c sgr0: %c op: %c fgop: %c bgop: %c\n",
-          indent, capyn(get_escape(ti, ESCAPE_SGR)),
-                  capyn(get_escape(ti, ESCAPE_SGR0)),
-                  capyn(get_escape(ti, ESCAPE_OP)),
-                  capyn(get_escape(ti, ESCAPE_FGOP)),
-                  capyn(get_escape(ti, ESCAPE_BGOP)));
+  fprintf(debugfp, "%scolors: %u rgb%lc ccc%lc af%lc ab%lc appsync%lc u7%lc cup%lc vpa%lc hpa%lc\n",
+          indent, ti->caps.colors,
+          capbool(ti, ti->caps.rgb),
+          capbool(ti, ti->caps.can_change_colors),
+          capyn(ti, get_escape(ti, ESCAPE_SETAF)),
+          capyn(ti, get_escape(ti, ESCAPE_SETAB)),
+          capyn(ti, get_escape(ti, ESCAPE_BSU)),
+          capyn(ti, get_escape(ti, ESCAPE_DSRCPR)),
+          capyn(ti, get_escape(ti, ESCAPE_CUP)),
+          capyn(ti, get_escape(ti, ESCAPE_VPA)),
+          capyn(ti, get_escape(ti, ESCAPE_HPA)));
+  fprintf(debugfp, "%ssgr%lc sgr0%lc op%lc fgop%lc bgop%lc\n",
+          indent, capyn(ti, get_escape(ti, ESCAPE_SGR)),
+                  capyn(ti, get_escape(ti, ESCAPE_SGR0)),
+                  capyn(ti, get_escape(ti, ESCAPE_OP)),
+                  capyn(ti, get_escape(ti, ESCAPE_FGOP)),
+                  capyn(ti, get_escape(ti, ESCAPE_BGOP)));
   fprintf(debugfp, "%srows: %u cols: %u rpx: %u cpx: %u (%dx%d)\n",
           indent, rows, cols, ti->cellpixy, ti->cellpixx, rows * ti->cellpixy, cols * ti->cellpixx);
   if(!ti->pixel_draw){
@@ -76,9 +86,13 @@ tinfo_debug_caps(const tinfo* ti, FILE* debugfp, int rows, int cols,
   }
   tinfo_debug_styles(ti, debugfp, indent);
   fprintf(debugfp, "%sutf8: %c quad: %c sex: %c braille: %c images: %c videos: %c\n",
-          indent, capbool(ti->caps.utf8), capbool(ti->caps.quadrants),
-          capbool(ti->caps.sextants), capbool(ti->caps.braille),
-          capbool(images), capbool(videos));
+          indent,
+          capbool(ti, ti->caps.utf8),
+          capbool(ti, ti->caps.quadrants),
+          capbool(ti, ti->caps.sextants),
+          capbool(ti, ti->caps.braille),
+          capbool(ti, images),
+          capbool(ti, videos));
   if(ti->caps.utf8){
     fprintf(debugfp, "%s{%ls} {%ls} ⎧%.122ls⎫        ⎧█ ⎫ 🯰🯱\n", indent,
             get_blitter_egcs(NCBLIT_2x1), get_blitter_egcs(NCBLIT_2x2),
@@ -108,10 +122,6 @@ tinfo_debug_caps(const tinfo* ti, FILE* debugfp, int rows, int cols,
   }
   fprintf(debugfp, "%sbackground of 0x%06lx is %sconsidered transparent\n", indent, ti->bg_collides_default & 0xfffffful,
                    (ti->bg_collides_default & 0x01000000) ? "" : "not ");
-  fprintf(debugfp, "%scup: %c vpa: %c hpa: %c\n",
-          indent, capyn(get_escape(ti, ESCAPE_CUP)),
-                  capyn(get_escape(ti, ESCAPE_VPA)),
-                  capyn(get_escape(ti, ESCAPE_HPA)));
 }
 
 void notcurses_debug_caps(const notcurses* nc, FILE* debugfp){
