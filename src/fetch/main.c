@@ -156,12 +156,12 @@ pipe_getline(const char* cmdline){
   char* buf = malloc(BUFSIZ); // gatesv("BUFSIZ bytes is enough for anyone")
   if(fgets(buf, BUFSIZ, p) == NULL){
 //fprintf(stderr, "Error reading from %s (%s)\n", cmdline, strerror(errno));
-    fclose(p);
+    pclose(p);
     free(buf);
     return NULL;
   }
   // FIXME read any remaining junk so as to stave off SIGPIPEs?
-  if(fclose(p)){
+  if(pclose(p)){
     fprintf(stderr, "Error closing pipe (%s)\n", strerror(errno));
     free(buf);
     return NULL;
