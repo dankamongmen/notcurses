@@ -260,7 +260,6 @@ int update_term_dimensions(int fd, int* rows, int* cols, tinfo* tcache,
     }
   }
   if(tcache->sixel_maxy_pristine){
-    tcache->sixel_maxy = tcache->sixel_maxy_pristine;
     int sixelrows = *rows - 1;
     // if the bottom margin is at least one row, we can draw into the last
     // row of our visible area. we must leave the true bottom row alone.
@@ -268,6 +267,9 @@ int update_term_dimensions(int fd, int* rows, int* cols, tinfo* tcache,
       ++sixelrows;
     }
     tcache->sixel_maxy = sixelrows * tcache->cellpixy;
+    if(tcache->sixel_maxy > tcache->sixel_maxy_pristine){
+      tcache->sixel_maxy = tcache->sixel_maxy_pristine;
+    }
   }
   return 0;
 }

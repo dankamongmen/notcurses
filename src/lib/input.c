@@ -1092,6 +1092,7 @@ pump_control_read(query_state* inits, unsigned char c){
       break;
     case STATE_SIXEL_SUCCESS:
       if(c == ';'){
+        inits->numeric = 0;
         inits->state = STATE_SIXEL_WIDTH;
       }else{
         // FIXME error?
