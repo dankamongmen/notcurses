@@ -1139,7 +1139,7 @@ notcurses_rasterize_inner(notcurses* nc, ncpile* p, FILE* out, unsigned* asu){
     if(nc->rstate.mstrsize >= MIN_ASU_SIZE){
       const char* endasu = get_escape(&nc->tcache, ESCAPE_ESU);
       if(endasu){
-        if(fprintf(out, endasu) < 0 || fflush(out)){
+        if(fprintf(out, "%s", endasu) < 0 || fflush(out)){
           return -1;
         }
       }else{
