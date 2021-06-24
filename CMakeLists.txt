@@ -256,6 +256,16 @@ target_link_libraries(notcurses-static
   PUBLIC
     notcurses-core-static
 )
+if(${USE_READLINE})
+target_link_libraries(notcurses
+  PUBLIC
+    "${READLINE_LIBRARIES}"
+)
+target_link_libraries(notcurses-static
+  PUBLIC
+    "${READLINE_LIBRARIES}"
+)
+endif()
 if(${USE_FFMPEG})
 target_include_directories(notcurses
   PRIVATE

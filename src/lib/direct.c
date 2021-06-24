@@ -1,3 +1,5 @@
+#include "version.h"
+#include "builddef.h"
 #include <ncurses.h> // needed for some definitions, see terminfo(3ncurses)
 #include <fcntl.h>
 #include <errno.h>

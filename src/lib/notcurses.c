@@ -1259,7 +1259,7 @@ int notcurses_stop(notcurses* nc){
     // if we were not using the alternate screen, our cursor's wherever we last
     // wrote. move it to the bottom left of the screen, *unless*
     // NCOPTION_PRESERVE_CURSOR was used, in which case it's right where we
-    // want it (i think?).
+    // want it (i think? FIXME maybe next line's start?).
     if(!(nc->flags & NCOPTION_PRESERVE_CURSOR)){
       if(!get_escape(&nc->tcache, ESCAPE_SMCUP)){
         // if ldimy is 0, we've not yet written anything; leave it untouched
