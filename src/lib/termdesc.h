@@ -185,7 +185,8 @@ term_supported_styles(const tinfo* ti){
 // TERMINAL_UNKNOWN.
 int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
                          unsigned noaltscreen, unsigned nocbreak,
-                         queried_terminals_e qterm);
+                         queried_terminals_e qterm,
+                         int* cursor_y, int* cursor_x);
 
 void free_terminfo_cache(tinfo* ti);
 

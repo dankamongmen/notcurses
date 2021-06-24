@@ -884,6 +884,9 @@ pump_control_read(query_state* inits, unsigned char c){
         inits->state = STATE_SDA;
       }else if(isdigit(c)){
         inits->numeric = 0;
+        if(ruts_numeric(&inits->numeric, c)){
+          return -1;
+        }
         inits->state = STATE_CURSOR;
       }else if(c >= 0x40 && c <= 0x7E){
         inits->state = STATE_NULL;
@@ -891,7 +894,7 @@ pump_control_read(query_state* inits, unsigned char c){
       break;
     case STATE_CURSOR:
       if(isdigit(c)){
-        if(ruts_hex(&inits->numeric, c)){
+        if(ruts_numeric(&inits->numeric, c)){
           return -1;
         }
       }else if(c == ';'){
@@ -904,7 +907,7 @@ pump_control_read(query_state* inits, unsigned char c){
       break;
     case STATE_CURSOR_COL:
       if(isdigit(c)){
-        if(ruts_hex(&inits->numeric, c)){
+        if(ruts_numeric(&inits->numeric, c)){
           return -1;
         }
       }else if(c == 'R'){
@@ -1231,8 +1234,12 @@ int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected,
       tcache->termversion = inits.version;
       *detected = inits.qterm;
       *appsync = inits.appsync;
-      *cursor_x = inits.cursor_x;
-      *cursor_y = inits.cursor_y;
+      if(cursor_x){
+        *cursor_x = inits.cursor_x - 1;
+      }
+      if(cursor_y){
+        *cursor_y = inits.cursor_y - 1;
+      }
     }
   }
   return 0;

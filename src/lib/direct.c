@@ -825,7 +825,7 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
   shortname_term = termname();
   if(interrogate_terminfo(&ret->tcache, ret->ctermfd, shortname_term, utf8,
                           1, flags & NCDIRECT_OPTION_INHIBIT_CBREAK,
-                          TERMINAL_UNKNOWN)){
+                          TERMINAL_UNKNOWN, NULL, NULL)){
     goto err;
   }
   if(ncvisual_init(NCLOGLEVEL_SILENT)){
