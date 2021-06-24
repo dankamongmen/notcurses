@@ -667,13 +667,13 @@ API void nccell_release(struct ncplane* n, nccell* c);
 #define NCSTYLE_UNDERCURL 0x0400u
 #define NCSTYLE_STRUCK    0x0200u
 #define NCSTYLE_ITALIC    0x0100u
-#define NCSTYLE_STANDOUT  0x0080u
+// 0x0080 NCSTYLE_STANDOUT has been deprecated
 #define NCSTYLE_UNDERLINE 0x0040u
 #define NCSTYLE_REVERSE   0x0020u
-#define NCSTYLE_BLINK     0x0010u
+// 0x0010 NCSTYLE_BLINK has been deprecated
 #define NCSTYLE_DIM       0x0008u
 #define NCSTYLE_BOLD      0x0004u
-#define NCSTYLE_INVIS     0x0002u
+// 0x0002 NCSTYLE_INVIS has been deprecated
 // 0x0001 NCSTYLE_PROTECT has been deprecated
 #define NCSTYLE_NONE      0
 
@@ -1605,11 +1605,6 @@ notcurses_align(int availu, ncalign_e align, int u){
 static inline int
 ncplane_halign(const struct ncplane* n, ncalign_e align, int c){
   return notcurses_align(ncplane_dim_x(n), align, c);
-}
-
-__attribute__ ((deprecated)) static inline int
-ncplane_align(const struct ncplane* n, ncalign_e align, int c){
-  return ncplane_halign(n, align, c);
 }
 
 // Return the row at which 'r' rows ought start in order to be aligned
@@ -3831,6 +3826,11 @@ API void notcurses_debug_caps(const struct notcurses* nc, FILE* debugfp)
 
 // DEPRECATED MATERIAL, GOING AWAY IN ABI3
 
+__attribute__ ((deprecated)) static inline int
+ncplane_align(const struct ncplane* n, ncalign_e align, int c){
+  return ncplane_halign(n, align, c);
+}
+
 __attribute__ ((deprecated)) static inline void
 cell_init(nccell* c){
   nccell_init(c);
@@ -4363,6 +4363,10 @@ typedef nccell cell; // FIXME backwards-compat, remove in ABI3
 #define CELL_ALPHA_BLEND        NCALPHA_BLEND
 #define CELL_ALPHA_OPAQUE       NCALPHA_OPAQUE
 #define NCSTYLE_PROTECT   0x0001u
+#define NCSTYLE_STANDOUT  0x0080u
+#define NCSTYLE_BLINK     0x0010u
+#define NCSTYLE_INVIS     0x0002u
+
 
 #undef ALLOC
 #undef API

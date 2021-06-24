@@ -12,13 +12,10 @@ namespace ncpp
 	enum class CellStyle : uint32_t
 	{
 		None      = 0,
-		Standout  = NCSTYLE_STANDOUT,
 		Underline = NCSTYLE_UNDERLINE,
 		Reverse   = NCSTYLE_REVERSE,
-		Blink     = NCSTYLE_BLINK,
 		Dim       = NCSTYLE_DIM,
 		Bold      = NCSTYLE_BOLD,
-		Invis     = NCSTYLE_INVIS,
 		Protect   = NCSTYLE_PROTECT,
 		Italic    = NCSTYLE_ITALIC,
 		Struck    = NCSTYLE_STRUCK,

@@ -593,14 +593,15 @@ term_setstyles(FILE* out, notcurses* nc, const nccell* c){
       }
     }else if(sgr){
       if(term_emit(tiparm(sgr,
-                          cellattr & NCSTYLE_STANDOUT,
+                          0, // standout
                           cellattr & NCSTYLE_UNDERLINE,
                           cellattr & NCSTYLE_REVERSE,
-                          cellattr & NCSTYLE_BLINK,
+                          0, // blink
                           cellattr & NCSTYLE_DIM,
                           cellattr & NCSTYLE_BOLD,
-                          cellattr & NCSTYLE_INVIS,
-                          0 /* protect */, 0),
+                          0, // invisible
+                          0, // protect,
+                          0),
                           out, false) < 0){
         ret = -1;
       }else{

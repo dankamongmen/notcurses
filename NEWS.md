@@ -1,6 +1,9 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 2.3.6 (not yet released)
+  * Remove `NCSTYLE_{INVIS,BLINK,STANDOUT}` with extreme prejudice.
+
 * 2.3.5 (2021-06-23)
   * Happy day! The terminal interrogation routines in the initialization code 
     have been completely revamped. The first outcome of this is that Sixel

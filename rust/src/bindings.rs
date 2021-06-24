@@ -664,14 +664,10 @@ pub use ffi::{
 // NCSTYLE_UNDERCURL,
 // NCSTYLE_STRUCK,
 // NCSTYLE_ITALIC,
-// NCSTYLE_STANDOUT,
 // NCSTYLE_UNDERLINE,
 // NCSTYLE_REVERSE,
-// NCSTYLE_BLINK,
 // NCSTYLE_DIM,
 // NCSTYLE_BOLD,
-// NCSTYLE_INVIS,
-// NCSTYLE_PROTECT,
 // NCSTYLE_NONE,
 
 // nctablet --------------------------------------------------------------------

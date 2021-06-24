@@ -870,14 +870,16 @@ ncdirect_style_emit(ncdirect* n, unsigned* stylebits, FILE* out){
   if(*stylebits == 0 && (esc = get_escape(&n->tcache, ESCAPE_SGR0))){
     r = term_emit(esc, n->ttyfp, false);
   }else if( (esc = get_escape(&n->tcache, ESCAPE_SGR)) ){
-    r = term_emit(tiparm(esc, *stylebits & NCSTYLE_STANDOUT,
+    r = term_emit(tiparm(esc,
+                         0, // standout
                          *stylebits & NCSTYLE_UNDERLINE,
                          *stylebits & NCSTYLE_REVERSE,
-                         *stylebits & NCSTYLE_BLINK,
+                         0, // blink
                          *stylebits & NCSTYLE_DIM,
                          *stylebits & NCSTYLE_BOLD,
-                         *stylebits & NCSTYLE_INVIS,
-                         0 /* protect */, 0), out, false);
+                         0, // invisible
+                         0, // protect //
+                         0), out, false);
   }else{
     // no sgr, interesting. return failure if our stylebits were provided?
     // back off to individual enablers? FIXME
