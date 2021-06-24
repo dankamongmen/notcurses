@@ -271,6 +271,9 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
     termname = "VTE";
     ti->caps.quadrants = true;
     ti->caps.sextants = true; // VTE has long enjoyed good sextant support
+    if(add_smulx_escapes(ti, tablelen, tableused)){
+      return -1;
+    }
   }else if(qterm == TERMINAL_FOOT){
     termname = "foot";
     ti->caps.sextants = true;

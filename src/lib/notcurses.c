@@ -1113,7 +1113,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   }
   const char* shortname_term = termname();
 // const char* longname_term = longname();
-  int cursor_y, cursor_x;
+  int cursor_y = -1, cursor_x = -1;
   if(interrogate_terminfo(&ret->tcache, ret->ttyfd, shortname_term, utf8,
                           opts->flags & NCOPTION_NO_ALTERNATE_SCREEN, 0,
                           detected_term,
@@ -1508,7 +1508,7 @@ nccell_obliterate(ncplane* n, nccell* c){
 
 // increment y by 1 and rotate the framebuffer up one line. x moves to 0.
 void scroll_down(ncplane* n){
-//fprintf(stderr, "pre-scroll: %d/%d %d/%d log: %d\n", n->y, n->x, n->leny, n->lenx, n->logrow);
+//fprintf(stderr, "pre-scroll: %d/%d %d/%d log: %d scrolling: %u\n", n->y, n->x, n->leny, n->lenx, n->logrow, n->scrolling);
   n->x = 0;
   if(n->y == n->leny - 1){
     if(n == notcurses_stdplane(ncplane_notcurses(n))){
