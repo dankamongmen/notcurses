@@ -17,6 +17,7 @@ jobs:
     steps:
       - name: Install tools and libraries via APT
         run: |
+          sudo apt update
           sudo apt install -y \
             build-essential \
             cmake \
