@@ -213,6 +213,8 @@ uint8_t* sprixel_auxiliary_vector(const sprixel* s){
   // for now we just do two bytes per pixel. we ought squeeze the transparency
   // vector down to a bit per pixel, rather than a byte FIXME.
   uint8_t* ret = malloc(sizeof(*ret) * pixels * 2);
-  memset(ret, 0, sizeof(*ret) * pixels);
+  if(ret){
+    memset(ret, 0, sizeof(*ret) * pixels);
+  }
   return ret;
 }
