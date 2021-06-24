@@ -34,7 +34,8 @@ typedef enum {
 // advertised support for application-sychronized updates, |appsync| will be
 // non-zero.
 int ncinputlayer_init(struct tinfo* tcache, FILE* infp,
-                      queried_terminals_e* detected, unsigned* appsync);
+                      queried_terminals_e* detected, unsigned* appsync,
+                      int* cursor_y, int* cursor_x);
 
 void ncinputlayer_stop(struct ncinputlayer* nilayer);
 

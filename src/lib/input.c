@@ -650,6 +650,8 @@ typedef enum {
   STATE_XTSMGRAPHICS_DRAIN, // drain out XTSMGRAPHICS to 'S'
   STATE_APPSYNC_REPORT, // got DECRPT ?2026
   STATE_APPSYNC_REPORT_DRAIN, // drain out decrpt to 'y'
+  STATE_CURSOR, // reading row of cursor location to ';'
+  STATE_CURSOR_COL, // reading col of cursor location to 'R'
 } initstates_e;
 
 typedef struct query_state {
@@ -661,12 +663,13 @@ typedef struct query_state {
   // stringstate is the state at which this string was initialized, and can be
   // one of STATE_XTVERSION1, STATE_XTGETTCAP_TERMNAME1, STATE_TDA1, and STATE_BG1
   initstates_e state, stringstate;
-  int numeric;          // currently-lexed numeric
-  char runstring[80];   // running string
-  size_t stridx;        // position to write in string
-  uint32_t bg;          // queried default background or 0
-  bool xtgettcap_good;  // high when we've received DCS 1
-  bool appsync;         // application-synchronized updates advertised
+  int numeric;           // currently-lexed numeric
+  char runstring[80];    // running string
+  size_t stridx;         // position to write in string
+  uint32_t bg;           // queried default background or 0
+  int cursor_y, cursor_x;// cursor location
+  bool xtgettcap_good;   // high when we've received DCS 1
+  bool appsync;          // application-synchronized updates advertised
 } query_state;
 
 static int
@@ -879,7 +882,35 @@ pump_control_read(query_state* inits, unsigned char c){
         inits->state = STATE_DA; // could also be DECRPM/XTSMGRAPHICS
       }else if(c == '>'){
         inits->state = STATE_SDA;
+      }else if(isdigit(c)){
+        inits->numeric = 0;
+        inits->state = STATE_CURSOR;
       }else if(c >= 0x40 && c <= 0x7E){
+        inits->state = STATE_NULL;
+      }
+      break;
+    case STATE_CURSOR:
+      if(isdigit(c)){
+        if(ruts_hex(&inits->numeric, c)){
+          return -1;
+        }
+      }else if(c == ';'){
+        inits->cursor_y = inits->numeric;
+        inits->state = STATE_CURSOR_COL;
+        inits->numeric = 0;
+      }else{
+        inits->state = STATE_NULL;
+      }
+      break;
+    case STATE_CURSOR_COL:
+      if(isdigit(c)){
+        if(ruts_hex(&inits->numeric, c)){
+          return -1;
+        }
+      }else if(c == 'R'){
+        inits->cursor_x = inits->numeric;
+        inits->state = STATE_NULL;
+      }else{
         inits->state = STATE_NULL;
       }
       break;
@@ -1168,7 +1199,7 @@ err:
 }
 
 int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected,
-                      unsigned* appsync){
+                      unsigned* appsync, int* cursor_y, int* cursor_x){
   ncinputlayer* nilayer = &tcache->input;
   setbuffer(infp, NULL, 0);
   nilayer->inputescapes = NULL;
@@ -1188,6 +1219,8 @@ int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected,
         .tcache = tcache,
         .state = STATE_NULL,
         .qterm = TERMINAL_UNKNOWN,
+        .cursor_x = -1,
+        .cursor_y = -1,
       };
       if(control_read(csifd, &inits)){
         input_free_esctrie(&nilayer->inputescapes);
@@ -1198,6 +1231,8 @@ int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected,
       tcache->termversion = inits.version;
       *detected = inits.qterm;
       *appsync = inits.appsync;
+      *cursor_x = inits.cursor_x;
+      *cursor_y = inits.cursor_y;
     }
   }
   return 0;

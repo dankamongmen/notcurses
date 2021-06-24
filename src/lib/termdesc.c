@@ -150,6 +150,46 @@ grow_esc_table(tinfo* ti, const char* tstr, escape_e esc,
   return 0;
 }
 
+// Device Attributes; replies with (depending on decTerminalID resource):
+//   ⇒  CSI ? 1 ; 2 c  ("VT100 with Advanced Video Option")
+//   ⇒  CSI ? 1 ; 0 c  ("VT101 with No Options")
+//   ⇒  CSI ? 4 ; 6 c  ("VT132 with Advanced Video and Graphics")
+//   ⇒  CSI ? 6 c  ("VT102")
+//   ⇒  CSI ? 7 c  ("VT131")
+//   ⇒  CSI ? 1 2 ; Ps c  ("VT125")
+//   ⇒  CSI ? 6 2 ; Ps c  ("VT220")
+//   ⇒  CSI ? 6 3 ; Ps c  ("VT320")
+//   ⇒  CSI ? 6 4 ; Ps c  ("VT420")
+
+// query background, replies in X color https://www.x.org/releases/X11R7.7/doc/man/man7/X.7.xhtml#heading11
+#define CSI_BGQ "\e]11;?\e\\"
+
+// ought be using the u7 terminfo string here, if it exists. the great thing
+// is, if we get a response to this, we know we can use it for u7!
+#define DSRCPR "\e[6n"
+
+// we send an XTSMGRAPHICS to set up 256 color registers (the most we can
+// currently take advantage of; we need at least 64 to use sixel at all.
+// maybe that works, maybe it doesn't. then query both color registers
+// and geometry. send XTGETTCAP for terminal name.
+static int
+send_initial_queries(int fd){
+  const char queries[] = CSI_BGQ
+                         DSRCPR
+                         "\x1b[?2026$p"      // query for App-sync updates
+                         "\x1b[=0c"          // Tertiary Device Attributes
+                         "\x1b[>0q"          // XTVERSION
+                         "\x1bP+q544e\x1b\\" // XTGETTCAP['TN']
+                         "\x1b[?1;3;256S"    // try to set 256 cregs
+                         "\x1b[?2;1;0S"      // XTSMGRAPHICS (cregs)
+                         "\x1b[?1;1;0S"      // XTSMGRAPHICS (geometry)
+                         "\x1b[c";           // Device Attributes
+  if(blocking_write(fd, queries, strlen(queries))){
+    return -1;
+  }
+  return 0;
+}
+
 static int
 init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
                   size_t* tablelen, size_t* tableused){
@@ -164,14 +204,15 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
   return 0;
 }
 
-// older kitty terminfo doesn't include u7. remove this when we can FIXME.
+// if we get a response to the standard cursor locator escape, we know this
+// terminal supports it, hah.
 static int
 add_u7_escape(tinfo* ti, size_t* tablelen, size_t* tableused){
   const char* u7 = get_escape(ti, ESCAPE_DSRCPR);
   if(u7){
     return 0; // already present
   }
-  if(grow_esc_table(ti, "\e[6n", ESCAPE_DSRCPR, tablelen, tableused)){
+  if(grow_esc_table(ti, DSRCPR, ESCAPE_DSRCPR, tablelen, tableused)){
     return -1;
   }
   return 0;
@@ -219,9 +260,6 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
     ti->caps.rgb = true;
     setup_kitty_bitmaps(ti, fd);
     if(add_smulx_escapes(ti, tablelen, tableused)){
-      return -1;
-    }
-    if(add_u7_escape(ti, tablelen, tableused)){
       return -1;
     }
   }else if(qterm == TERMINAL_ALACRITTY){
@@ -283,41 +321,6 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
     ti->caps.sextants = false;
   }
   ti->termname = termname;
-  return 0;
-}
-
-// Device Attributes; replies with (depending on decTerminalID resource):
-//   ⇒  CSI ? 1 ; 2 c  ("VT100 with Advanced Video Option")
-//   ⇒  CSI ? 1 ; 0 c  ("VT101 with No Options")
-//   ⇒  CSI ? 4 ; 6 c  ("VT132 with Advanced Video and Graphics")
-//   ⇒  CSI ? 6 c  ("VT102")
-//   ⇒  CSI ? 7 c  ("VT131")
-//   ⇒  CSI ? 1 2 ; Ps c  ("VT125")
-//   ⇒  CSI ? 6 2 ; Ps c  ("VT220")
-//   ⇒  CSI ? 6 3 ; Ps c  ("VT320")
-//   ⇒  CSI ? 6 4 ; Ps c  ("VT420")
-
-// query background, replies in X color https://www.x.org/releases/X11R7.7/doc/man/man7/X.7.xhtml#heading11
-#define CSI_BGQ "\e]11;?\e\\"
-
-// we send an XTSMGRAPHICS to set up 256 color registers (the most we can
-// currently take advantage of; we need at least 64 to use sixel at all.
-// maybe that works, maybe it doesn't. then query both color registers
-// and geometry. send XTGETTCAP for terminal name.
-static int
-send_initial_queries(int fd){
-  const char queries[] = CSI_BGQ
-                         "\x1b[?2026$p"      // query for App-sync updates
-                         "\x1b[=0c"          // Tertiary Device Attributes
-                         "\x1b[>0q"          // XTVERSION
-                         "\x1bP+q544e\x1b\\" // XTGETTCAP['TN']
-                         "\x1b[?1;3;256S"    // try to set 256 cregs
-                         "\x1b[?2;1;0S"      // XTSMGRAPHICS (cregs)
-                         "\x1b[?1;1;0S"      // XTSMGRAPHICS (geometry)
-                         "\x1b[c";           // Device Attributes
-  if(blocking_write(fd, queries, strlen(queries))){
-    return -1;
-  }
   return 0;
 }
 
@@ -501,7 +504,9 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
     }
   }
   unsigned appsync_advertised;
-  if(ncinputlayer_init(ti, stdin, &qterm, &appsync_advertised)){
+  int cursor_x = -1;
+  int cursor_y = -1;
+  if(ncinputlayer_init(ti, stdin, &qterm, &appsync_advertised, &cursor_y, &cursor_x)){
     goto err;
   }
   if(nocbreak){
@@ -511,6 +516,12 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
         goto err;
       }
     }
+  }
+  if(cursor_x >= 0 && cursor_y >= 0){
+    if(add_u7_escape(ti, &tablelen, &tableused)){
+      return -1;
+    }
+    // FIXME set cursor up
   }
   if(appsync_advertised){
     if(add_appsync_escapes(ti, &tablelen, &tableused)){
