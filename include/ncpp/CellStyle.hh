@@ -16,7 +16,6 @@ namespace ncpp
 		Reverse   = NCSTYLE_REVERSE,
 		Dim       = NCSTYLE_DIM,
 		Bold      = NCSTYLE_BOLD,
-		Protect   = NCSTYLE_PROTECT,
 		Italic    = NCSTYLE_ITALIC,
 		Struck    = NCSTYLE_STRUCK,
 	};
