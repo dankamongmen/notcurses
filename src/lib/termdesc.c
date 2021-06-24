@@ -163,6 +163,19 @@ init_terminfo_esc(tinfo* ti, const char* name, escape_e idx,
   return 0;
 }
 
+// older kitty terminfo doesn't include u7. remove this when we can FIXME.
+static int
+add_u7_escape(tinfo* ti, size_t* tablelen, size_t* tableused){
+  const char* u7 = get_escape(ti, ESCAPE_DSRCPR);
+  if(u7){
+    return 0; // already present
+  }
+  if(grow_esc_table(ti, "\e[6n", ESCAPE_DSRCPR, tablelen, tableused)){
+    return -1;
+  }
+  return 0;
+}
+
 static int
 add_smulx_escapes(tinfo* ti, size_t* tablelen, size_t* tableused){
   if(grow_esc_table(ti, "\x1b[4:3m", ESCAPE_SMULX, tablelen, tableused) ||
@@ -205,6 +218,9 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
     ti->caps.rgb = true;
     setup_kitty_bitmaps(ti, fd);
     if(add_smulx_escapes(ti, tablelen, tableused)){
+      return -1;
+    }
+    if(add_u7_escape(ti, tablelen, tableused)){
       return -1;
     }
   }else if(qterm == TERMINAL_ALACRITTY){
