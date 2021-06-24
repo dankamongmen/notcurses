@@ -5,12 +5,17 @@
 #include "internal.h" // internal headers
 
 static inline wchar_t
-capbool(const tinfo* ti, bool cap){
-  if(ti->caps.utf8){
+capboolbool(unsigned utf8, bool cap){
+  if(utf8){
     return cap ? L'✓' : L'✖';
   }else{
     return cap ? '+' : '-';
   }
+}
+
+static inline wchar_t
+capbool(const tinfo* ti, bool cap){
+  return capboolbool(ti->caps.utf8, cap);
 }
 
 static int
@@ -68,6 +73,8 @@ static void
 tinfo_debug_style(struct ncplane* n, const char* name, int style){
   ncplane_set_styles(n, style);
   ncplane_putstr(n, name);
+  ncplane_putwc(n, capboolbool(notcurses_canutf8(ncplane_notcurses(n)),
+                               notcurses_supported_styles(ncplane_notcurses(n)) & style));
   ncplane_set_styles(n, NCSTYLE_NONE);
 }
 
