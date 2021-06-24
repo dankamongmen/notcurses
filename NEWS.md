@@ -3,6 +3,11 @@ rearrangements of Notcurses.
 
 * 2.3.7 (not yet released)
   * Deprecated `NCSTYLE_REVERSE` and `NCSTYLE_DIM`. The remainder are safe.
+  * Added `NCOPTION_PRESERVE_CURSOR`. If used, the standard plane's virtual
+    cursor will be initialized to match its position at startup, rather than
+    starting in the upper-left corner. Together with a scrolling standard
+    plane and inhibition of the alternate screen, this allows rendered mode
+    to easily be used for scrolling shell environment programs.
 
 * 2.3.6 (2021-06-23)
   * Fixed (harmless) warning with `-Wformat-security`.

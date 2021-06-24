@@ -15,6 +15,7 @@ notcurses_init - initialize a notcurses instance
 #define NCOPTION_NO_CLEAR_BITMAPS    0x0002ull
 #define NCOPTION_NO_WINCH_SIGHANDLER 0x0004ull
 #define NCOPTION_NO_QUIT_SIGHANDLERS 0x0008ull
+#define NCOPTION_PRESERVE_CURSOR     0x0010ull
 #define NCOPTION_SUPPRESS_BANNERS    0x0020ull
 #define NCOPTION_NO_ALTERNATE_SCREEN 0x0040ull
 #define NCOPTION_NO_FONT_CHANGES     0x0080ull
@@ -203,6 +204,12 @@ You generally shouldn't need to touch the terminal cursor. It's only really
 relevant with echoed user input, and you don't want echoed user input in
 rendered mode (instead, read the input, and write it to a plane yourself).
 A subprocess can be streamed to a plane with an **ncsubproc**, etc.
+
+If the **NCOPTION_PRESERVE_CURSOR** flag is provided, the cursor's location
+will be determined at startup, and the standard plane's virtual cursor will
+be placed to match it (instead of in the upper-left corner). Combined with
+**NCOPTION_NO_ALTERNATE_SCREEN** and a scrolling standard plane, this allows
+rendered mode to be used as a normal scrolling shell application.
 
 # RETURN VALUES
 
