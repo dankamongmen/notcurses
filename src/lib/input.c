@@ -159,7 +159,9 @@ ncinputlayer_add_input_escape(ncinputlayer* nc, const char* esc, char32_t specia
     if(validate){
       if((*cur)->trie == NULL){
         const size_t tsize = sizeof((*cur)->trie) * 0x80;
-        (*cur)->trie = malloc(tsize);
+        if(((*cur)->trie = malloc(tsize)) == NULL){
+          return -1;
+        }
         memset((*cur)->trie, 0, tsize);
       }
       cur = &(*cur)->trie[validate];
