@@ -817,7 +817,7 @@ sprite_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
 // returns -1 on error, or the number of bytes written.
 static inline int
 sprite_draw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
-sprixel_debug(stderr, s);
+//sprixel_debug(stderr, s);
   return n->tcache.pixel_draw(p, s, out);
 }
 
@@ -825,7 +825,7 @@ sprixel_debug(stderr, s);
 // returns -1 on error, or the number of bytes written.
 static inline int
 sprite_redraw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
-sprixel_debug(stderr, s);
+//sprixel_debug(stderr, s);
   if(s->invalidated == SPRIXEL_MOVED && n->tcache.pixel_move){
     return n->tcache.pixel_move(p, s, out);
   }else{
