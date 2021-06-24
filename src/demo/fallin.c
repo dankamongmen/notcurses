@@ -97,6 +97,9 @@ int fallin_demo(struct notcurses* nc){
   struct ncplane* stdn = notcurses_stddim_yx(nc, &dimy, &dimx);
   size_t usesize = sizeof(bool) * dimy * dimx;
   bool* usemap = malloc(usesize);
+  if(usemap == NULL){
+    return -1;
+  }
   memset(usemap, 0, usesize);
   // brick size is relative to the screen size
   const int maxx = dimx > 39 ? dimx / 10 : 2;
