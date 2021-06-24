@@ -1302,7 +1302,11 @@ int ncdirect_stream(ncdirect* n, const char* filename, ncstreamcb streamer,
   int thisid = -1;
   do{
     if(y > 0){
-      ncdirect_cursor_up(n, y);
+      if(x == ncdirect_dim_x(n)){
+        x = 0;
+        ++y;
+      }
+      ncdirect_cursor_up(n, y - 1);
     }
     if(x > 0){
       ncdirect_cursor_left(n, x);

@@ -80,9 +80,10 @@ int ncvisual_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
       return 0;
     }
   }
+  // generic implementation
   int stride = 4 * cols;
   uint32_t* data = resize_bitmap(ncv->data, ncv->pixy, ncv->pixx,
-                                  ncv->rowstride, rows, cols, stride);
+                                 ncv->rowstride, rows, cols, stride);
   if(data == NULL){
     return -1;
   }
