@@ -16,11 +16,8 @@ fn main() -> NcResult<()> {
     dm.flush()?;
 
     dm.set_fg_rgb(0xff8080)?;
-    dm.styles_on(NCSTYLE_STANDOUT)?;
     printf!(" erp erp \n");
     dm.set_fg_rgb(0x80ff80)?;
-    printf!(" erp erp \n");
-    dm.styles_off(NCSTYLE_STANDOUT)?;
     printf!(" erp erp \n");
     dm.set_fg_rgb(0xff8080)?;
     printf!(" erp erp \n");
