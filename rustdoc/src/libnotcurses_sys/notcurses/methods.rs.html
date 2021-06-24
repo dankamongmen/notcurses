@@ -702,17 +702,6 @@
 <span id="699">699</span>
 <span id="700">700</span>
 <span id="701">701</span>
-<span id="702">702</span>
-<span id="703">703</span>
-<span id="704">704</span>
-<span id="705">705</span>
-<span id="706">706</span>
-<span id="707">707</span>
-<span id="708">708</span>
-<span id="709">709</span>
-<span id="710">710</span>
-<span id="711">711</span>
-<span id="712">712</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `Nc*` methods and associated functions.</span>
 
@@ -1012,17 +1001,6 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">debug</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">debugfp</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcFile</span>) {
         <span class="kw">unsafe</span> {
             <span class="kw">crate</span>::<span class="ident">notcurses_debug</span>(<span class="self">self</span>, <span class="ident">debugfp</span>.<span class="ident">as_nc_ptr</span>());
-        }
-    }
-
-    <span class="doccomment">/// Dumps selected configuration capabilities to &#39;debugfp&#39;.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Output is freeform, and subject to change.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [notcurses_debug_caps()][crate::notcurses_debug_caps].*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">debug_caps</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">debugfp</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcFile</span>) {
-        <span class="kw">unsafe</span> {
-            <span class="kw">crate</span>::<span class="ident">notcurses_debug_caps</span>(<span class="self">self</span>, <span class="ident">debugfp</span>.<span class="ident">as_nc_ptr</span>());
         }
     }
 

@@ -332,22 +332,6 @@
 <span id="329">329</span>
 <span id="330">330</span>
 <span id="331">331</span>
-<span id="332">332</span>
-<span id="333">333</span>
-<span id="334">334</span>
-<span id="335">335</span>
-<span id="336">336</span>
-<span id="337">337</span>
-<span id="338">338</span>
-<span id="339">339</span>
-<span id="340">340</span>
-<span id="341">341</span>
-<span id="342">342</span>
-<span id="343">343</span>
-<span id="344">344</span>
-<span id="345">345</span>
-<span id="346">346</span>
-<span id="347">347</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcCell`</span>
 
@@ -638,14 +622,10 @@
 <span class="doccomment">/// - [`NCSTYLE_UNDERCURL`]</span>
 <span class="doccomment">/// - [`NCSTYLE_STRUCK`]</span>
 <span class="doccomment">/// - [`NCSTYLE_ITALIC`]</span>
-<span class="doccomment">/// - [`NCSTYLE_STANDOUT`]</span>
 <span class="doccomment">/// - [`NCSTYLE_UNDERLINE`]</span>
 <span class="doccomment">/// - [`NCSTYLE_REVERSE`]</span>
-<span class="doccomment">/// - [`NCSTYLE_BLINK`]</span>
 <span class="doccomment">/// - [`NCSTYLE_DIM`]</span>
 <span class="doccomment">/// - [`NCSTYLE_BOLD`]</span>
-<span class="doccomment">/// - [`NCSTYLE_INVIS`]</span>
-<span class="doccomment">/// - [`NCSTYLE_PROTECT`]</span>
 <span class="doccomment">/// - [`NCSTYLE_NONE`]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ## Diagram</span>
@@ -671,28 +651,16 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCSTYLE_ITALIC</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCSTYLE_ITALIC</span> <span class="kw">as</span> <span class="ident">u16</span>;
 
 <span class="doccomment">///</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCSTYLE_STANDOUT</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCSTYLE_STANDOUT</span> <span class="kw">as</span> <span class="ident">u16</span>;
-
-<span class="doccomment">///</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCSTYLE_UNDERLINE</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCSTYLE_UNDERLINE</span> <span class="kw">as</span> <span class="ident">u16</span>;
 
 <span class="doccomment">///</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCSTYLE_REVERSE</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCSTYLE_REVERSE</span> <span class="kw">as</span> <span class="ident">u16</span>;
 
 <span class="doccomment">///</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCSTYLE_BLINK</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCSTYLE_BLINK</span> <span class="kw">as</span> <span class="ident">u16</span>;
-
-<span class="doccomment">///</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCSTYLE_DIM</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCSTYLE_DIM</span> <span class="kw">as</span> <span class="ident">u16</span>;
 
 <span class="doccomment">///</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCSTYLE_BOLD</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCSTYLE_BOLD</span> <span class="kw">as</span> <span class="ident">u16</span>;
-
-<span class="doccomment">///</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCSTYLE_INVIS</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCSTYLE_INVIS</span> <span class="kw">as</span> <span class="ident">u16</span>;
-
-<span class="doccomment">///</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCSTYLE_PROTECT</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCSTYLE_PROTECT</span> <span class="kw">as</span> <span class="ident">u16</span>;
 
 <span class="doccomment">///</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCSTYLE_NONE</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCSTYLE_NONE</span> <span class="kw">as</span> <span class="ident">u16</span>;
