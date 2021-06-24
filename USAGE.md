@@ -106,6 +106,12 @@ typedef enum {
 // registration of these signal handlers.
 #define NCOPTION_NO_QUIT_SIGHANDLERS 0x0008
 
+// Initialize the standard plane's virtual cursor to match the physical cursor
+// at context creation time. Together with NCOPTION_NO_ALTERNATE_SCREEN and a
+// scrolling standard plane, this facilitates easy scrolling-style programs in
+// rendered mode.
+#define NCOPTION_PRESERVE_CURSOR     0x0010ull
+
 // Notcurses typically prints version info in notcurses_init() and performance
 // info in notcurses_stop(). This inhibits that output.
 #define NCOPTION_SUPPRESS_BANNERS    0x0020

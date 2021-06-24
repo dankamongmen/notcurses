@@ -117,7 +117,7 @@ tinfo_debug_styles(struct ncplane* n, const char* indent){
 // notcurses_render() without the alternate screen, no?
 int main(void){
   notcurses_options nopts = {
-    .flags = NCOPTION_NO_ALTERNATE_SCREEN,
+    .flags = NCOPTION_NO_ALTERNATE_SCREEN | NCOPTION_PRESERVE_CURSOR,
   };
   struct notcurses* nc = notcurses_init(&nopts, NULL);
   if(nc == NULL){
