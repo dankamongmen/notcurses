@@ -102,6 +102,7 @@ terminfostr(char** gseq, const char* name){
 // TERM setting is (and as up-to-date and complete as we are).
 static int
 match_termname(const char* termname, queried_terminals_e* qterm){
+  // https://github.com/alacritty/alacritty/pull/5274 le sigh
   if(strstr(termname, "alacritty")){
     *qterm = TERMINAL_ALACRITTY;
   }
