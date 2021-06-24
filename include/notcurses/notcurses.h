@@ -663,6 +663,7 @@ API int nccell_duplicate(struct ncplane* n, nccell* targ, const nccell* c);
 // Release resources held by the nccell 'c'.
 API void nccell_release(struct ncplane* n, nccell* c);
 
+// FIXME for abi3, flatten these back down and recover the contiguous bits
 #define NCSTYLE_MASK      0x07ffu
 #define NCSTYLE_UNDERCURL 0x0400u
 #define NCSTYLE_STRUCK    0x0200u
@@ -3819,11 +3820,6 @@ API void ncreader_destroy(struct ncreader* n, char** contents);
 API void notcurses_debug(const struct notcurses* nc, FILE* debugfp)
   __attribute__ ((nonnull (1, 2)));
 
-// Dump selected configuration capabilities to 'debugfp'. Output is freeform,
-// newline-delimited, and subject to change.
-API void notcurses_debug_caps(const struct notcurses* nc, FILE* debugfp)
-  __attribute__ ((nonnull (1, 2)));
-
 // DEPRECATED MATERIAL, GOING AWAY IN ABI3
 
 __attribute__ ((deprecated)) static inline int
@@ -4357,6 +4353,9 @@ API int notcurses_render_to_file(struct notcurses* nc, FILE* fp)
   __attribute__ ((deprecated));
 
 typedef nccell cell; // FIXME backwards-compat, remove in ABI3
+
+API void notcurses_debug_caps(const struct notcurses* nc, FILE* debugfp)
+  __attribute__ ((deprecated)) __attribute__ ((nonnull (1, 2)));
 
 #define CELL_ALPHA_HIGHCONTRAST NCALPHA_HIGHCONTRAST
 #define CELL_ALPHA_TRANSPARENT  NCALPHA_TRANSPARENT

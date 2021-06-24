@@ -2,71 +2,10 @@
 
 int loglevel = NCLOGLEVEL_SILENT;
 
-static inline wchar_t
-capbool(const tinfo* ti, bool cap){
-  if(ti->caps.utf8){
-    return cap ? L'✓' : L'✖';
-  }else{
-    return cap ? '+' : '-';
-  }
-}
-
-static inline wchar_t
-capyn(const tinfo* ti, const char* cap){
-  return capbool(ti, cap);
-}
-
-static void
-tinfo_debug_caps(const tinfo* ti, FILE* debugfp, int rows, int cols,
-                 unsigned images, unsigned videos){
-  const char indent[] = " ";
-  fprintf(debugfp, "%srgb%lc ccc%lc af%lc ab%lc appsync%lc u7%lc cup%lc vpa%lc hpa%lc sgr%lc sgr0%lc op%lc fgop%lc bgop%lc\n",
-          indent,
-          capbool(ti, ti->caps.rgb),
-          capbool(ti, ti->caps.can_change_colors),
-          capyn(ti, get_escape(ti, ESCAPE_SETAF)),
-          capyn(ti, get_escape(ti, ESCAPE_SETAB)),
-          capyn(ti, get_escape(ti, ESCAPE_BSU)),
-          capyn(ti, get_escape(ti, ESCAPE_DSRCPR)),
-          capyn(ti, get_escape(ti, ESCAPE_CUP)),
-          capyn(ti, get_escape(ti, ESCAPE_VPA)),
-          capyn(ti, get_escape(ti, ESCAPE_HPA)),
-          capyn(ti, get_escape(ti, ESCAPE_SGR)),
-          capyn(ti, get_escape(ti, ESCAPE_SGR0)),
-          capyn(ti, get_escape(ti, ESCAPE_OP)),
-          capyn(ti, get_escape(ti, ESCAPE_FGOP)),
-          capyn(ti, get_escape(ti, ESCAPE_BGOP)));
-  fprintf(debugfp, "%srows: %u cols: %u rpx: %u cpx: %u (%dx%d)\n",
-          indent, rows, cols, ti->cellpixy, ti->cellpixx, rows * ti->cellpixy, cols * ti->cellpixx);
-  if(!ti->pixel_draw){
-    fprintf(debugfp, "%sdidn't detect bitmap graphics support\n", indent);
-  }else if(ti->sixel_maxy){
-    fprintf(debugfp, "%smax sixel size: %dx%d colorregs: %u\n",
-            indent, ti->sixel_maxy, ti->sixel_maxx, ti->color_registers);
-  }else if(ti->color_registers){
-    fprintf(debugfp, "%ssixel colorregs: %u\n", indent, ti->color_registers);
-  }else{
-    fprintf(debugfp, "%srgba pixel graphics supported\n", indent);
-  }
-  fprintf(debugfp, "%sutf8%lc quad%lc sex%lc braille%lc images%lc videos%lc\n",
-          indent,
-          capbool(ti, ti->caps.utf8),
-          capbool(ti, ti->caps.quadrants),
-          capbool(ti, ti->caps.sextants),
-          capbool(ti, ti->caps.braille),
-          capbool(ti, images),
-          capbool(ti, videos));
-  fprintf(debugfp, "%sbackground of 0x%06lx is %sconsidered transparent\n", indent, ti->bg_collides_default & 0xfffffful,
-                   (ti->bg_collides_default & 0x01000000) ? "" : "not ");
-}
-
 void notcurses_debug_caps(const notcurses* nc, FILE* debugfp){
-  int rows, cols;
-  notcurses_stddim_yx_const(nc, &rows, &cols);
-  bool images, videos;
-  images = notcurses_canopen_images(nc);
-  videos = notcurses_canopen_videos(nc);
-  tinfo_debug_caps(&nc->tcache, debugfp, rows, cols, images, videos);
+  // FIXME deprecated, remove for ABI3
+  (void)nc;
+  (void)debugfp;
 }
 
 static void

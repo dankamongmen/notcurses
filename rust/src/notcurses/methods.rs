@@ -299,17 +299,6 @@ impl Nc {
         }
     }
 
-    /// Dumps selected configuration capabilities to 'debugfp'.
-    ///
-    /// Output is freeform, and subject to change.
-    ///
-    /// *C style function: [notcurses_debug_caps()][crate::notcurses_debug_caps].*
-    pub fn debug_caps(&self, debugfp: &mut NcFile) {
-        unsafe {
-            crate::notcurses_debug_caps(self, debugfp.as_nc_ptr());
-        }
-    }
-
     /// Returns the name of the detected terminal.
     ///
     /// *C style function: [notcurses_detected_terminal()][crate::notcurses_detected_terminal].*

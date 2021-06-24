@@ -2,7 +2,10 @@ This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
 * 2.3.6 (not yet released)
-  * Remove `NCSTYLE_{INVIS,BLINK,STANDOUT}` with extreme prejudice.
+  * Remove `NCSTYLE_{INVIS,BLINK,STANDOUT}` with extreme prejudice. They
+    remain defined for now, but will be removed for ABI3.
+  * Deprecated `notcurses_debug_caps()`, which no longer generates output.
+    Hey, I explicitly commented that its output was "subject to change".
 
 * 2.3.5 (2021-06-23)
   * Happy day! The terminal interrogation routines in the initialization code 

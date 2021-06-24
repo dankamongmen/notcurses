@@ -30,7 +30,6 @@
 // fm  notcurses_cursor_enable
 // f   notcurses_cursor_yx
 // fmt notcurses_debug
-// fm  notcurses_debug_caps
 //~f   notcurses_detected_terminal
 // fmt notcurses_drop_planes
 // fm  notcurses_getc

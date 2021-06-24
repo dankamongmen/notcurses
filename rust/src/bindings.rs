@@ -793,7 +793,6 @@ pub use ffi::{
     notcurses_cursor_enable,
     notcurses_cursor_yx,
     notcurses_debug,
-    notcurses_debug_caps,
     notcurses_detected_terminal,
     notcurses_drop_planes,
     notcurses_getc,

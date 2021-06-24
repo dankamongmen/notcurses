@@ -21,8 +21,25 @@ writen(int fd, const void* buf, size_t len){
   return w;
 }
 
+static inline wchar_t
+capbool(const tinfo* ti, bool cap){
+  if(ti->caps.utf8){
+    return cap ? L'✓' : L'✖';
+  }else{
+    return cap ? '+' : '-';
+  }
+}
+
 static int
-unicodedumper(FILE* fp, tinfo* ti){
+unicodedumper(const struct notcurses* nc, FILE* fp, tinfo* ti, const char* indent){
+  fprintf(fp, "%sutf8%lc quad%lc sex%lc braille%lc images%lc videos%lc\n",
+          indent,
+          capbool(ti, ti->caps.utf8),
+          capbool(ti, ti->caps.quadrants),
+          capbool(ti, ti->caps.sextants),
+          capbool(ti, ti->caps.braille),
+          capbool(ti, notcurses_canopen_images(nc)),
+          capbool(ti, notcurses_canopen_videos(nc)));
   if(ti->caps.utf8){
     fprintf(fp, " {%ls} {%ls} ⎧%.122ls⎫        ⎧█ ⎫ 🯰🯱\n",
             NCHALFBLOCKS, NCQUADBLOCKS, NCSEXBLOCKS);
@@ -51,6 +68,20 @@ unicodedumper(FILE* fp, tinfo* ti){
 }
 
 static void
+tinfo_debug_bitmaps(const tinfo* ti, FILE* fp, const char* indent){
+  if(!ti->pixel_draw){
+    fprintf(fp, "%sdidn't detect bitmap graphics support\n", indent);
+  }else if(ti->sixel_maxy){
+    fprintf(fp, "%smax sixel size: %dx%d colorregs: %u\n",
+            indent, ti->sixel_maxy, ti->sixel_maxx, ti->color_registers);
+  }else if(ti->color_registers){
+    fprintf(fp, "%ssixel colorregs: %u\n", indent, ti->color_registers);
+  }else{
+    fprintf(fp, "%srgba pixel graphics supported\n", indent);
+  }
+}
+
+static void
 tinfo_debug_style(const tinfo* ti, FILE* fp, const char* name, int esc, int deesc){
   const char* code = get_escape(ti, esc);
   if(code){
@@ -61,6 +92,33 @@ tinfo_debug_style(const tinfo* ti, FILE* fp, const char* name, int esc, int dees
     code = get_escape(ti, deesc);
     term_emit(code, fp, false);
   }
+}
+
+static inline wchar_t
+capyn(const tinfo* ti, const char* cap){
+  return capbool(ti, cap);
+}
+
+static void
+tinfo_debug_caps(const tinfo* ti, FILE* debugfp, const char* indent){
+  fprintf(debugfp, "%srgb%lc ccc%lc af%lc ab%lc appsync%lc u7%lc cup%lc vpa%lc hpa%lc sgr%lc sgr0%lc op%lc fgop%lc bgop%lc\n",
+          indent,
+          capbool(ti, ti->caps.rgb),
+          capbool(ti, ti->caps.can_change_colors),
+          capyn(ti, get_escape(ti, ESCAPE_SETAF)),
+          capyn(ti, get_escape(ti, ESCAPE_SETAB)),
+          capyn(ti, get_escape(ti, ESCAPE_BSU)),
+          capyn(ti, get_escape(ti, ESCAPE_DSRCPR)),
+          capyn(ti, get_escape(ti, ESCAPE_CUP)),
+          capyn(ti, get_escape(ti, ESCAPE_VPA)),
+          capyn(ti, get_escape(ti, ESCAPE_HPA)),
+          capyn(ti, get_escape(ti, ESCAPE_SGR)),
+          capyn(ti, get_escape(ti, ESCAPE_SGR0)),
+          capyn(ti, get_escape(ti, ESCAPE_OP)),
+          capyn(ti, get_escape(ti, ESCAPE_FGOP)),
+          capyn(ti, get_escape(ti, ESCAPE_BGOP)));
+  fprintf(debugfp, "%sbackground of 0x%06lx is %sconsidered transparent\n", indent, ti->bg_collides_default & 0xfffffful,
+                   (ti->bg_collides_default & 0x01000000) ? "" : "not ");
 }
 
 static void
@@ -95,9 +153,11 @@ int main(void){
   if(nc == NULL){
     return EXIT_FAILURE;
   }
-  notcurses_debug_caps(nc, mstream);
-  tinfo_debug_styles(&nc->tcache, mstream, " ");
-  unicodedumper(mstream, &nc->tcache);
+  const char indent[] = " ";
+  tinfo_debug_caps(&nc->tcache, mstream, indent);
+  tinfo_debug_styles(&nc->tcache, mstream, indent);
+  tinfo_debug_bitmaps(&nc->tcache, mstream, indent);
+  unicodedumper(nc, mstream, &nc->tcache, indent);
   if(fclose(mstream)){
     notcurses_stop(nc);
     fprintf(stderr, "Error closing memstream after %zuB\n", len);
