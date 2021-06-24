@@ -27,6 +27,7 @@ option(USE_DOXYGEN "Build HTML cross reference with doxygen" OFF)
 option(USE_PANDOC "Build man pages and HTML reference with pandoc" ON)
 option(USE_POC "Build small, uninstalled proof-of-concept binaries" ON)
 option(USE_QRCODEGEN "Enable libqrcodegen QR code support" OFF)
+option(USE_READLINE "Enable libreadline line-editing support" ON)
 option(USE_STATIC "Build static libraries (in addition to shared)" ON)
 set(USE_MULTIMEDIA "ffmpeg" CACHE STRING "Multimedia engine, one of 'ffmpeg', 'oiio', or 'none'")
 set_property(CACHE USE_MULTIMEDIA PROPERTY STRINGS ffmpeg oiio none)
@@ -85,9 +86,11 @@ pkg_search_module(TERMINFO REQUIRED tinfo>=6.1 ncursesw>=6.1)
 set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND terminfo)
 set_package_properties(terminfo PROPERTIES TYPE REQUIRED)
 set(PKGCONF_REQ_PRIV "${TERMINFO_LIBRARIES}")
+if(${USE_READLINE})
 pkg_search_module(READLINE REQUIRED readline>=8.0)
 set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND readline)
 set_package_properties(readline PROPERTIES TYPE REQUIRED)
+endif()
 if(${USE_FFMPEG})
 pkg_check_modules(AVCODEC REQUIRED libavcodec>=57.0)
 pkg_check_modules(AVFORMAT REQUIRED libavformat>=57.0)
@@ -157,7 +160,6 @@ target_include_directories(notcurses-core
     "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
     "${TERMINFO_INCLUDE_DIRS}"
-    "${READLINE_INCLUDE_DIRS}"
 )
 target_include_directories(notcurses-core-static
   PRIVATE
@@ -166,12 +168,10 @@ target_include_directories(notcurses-core-static
     "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
     "${TERMINFO_STATIC_INCLUDE_DIRS}"
-    "${READLINE_STATIC_INCLUDE_DIRS}"
 )
 target_link_libraries(notcurses-core
   PRIVATE
     "${TERMINFO_LIBRARIES}"
-    "${READLINE_LIBRARIES}"
     "${LIBM}"
     "${LIBRT}"
     "${unistring}"
@@ -181,7 +181,6 @@ target_link_libraries(notcurses-core
 target_link_libraries(notcurses-core-static
   PRIVATE
     "${TERMINFO_STATIC_LIBRARIES}"
-    "${READLINE_STATIC_LIBRARIES}"
     "${LIBM}"
     "${LIBRT}"
     "${unistring}"
@@ -191,12 +190,10 @@ target_link_libraries(notcurses-core-static
 target_link_directories(notcurses-core
   PRIVATE
     "${TERMINFO_LIBRARY_DIRS}"
-    "${READLINE_LIBRARY_DIRS}"
 )
 target_link_directories(notcurses-core-static
   PRIVATE
     "${TERMINFO_STATIC_LIBRARY_DIRS}"
-    "${READLINE_STATIC_LIBRARY_DIRS}"
 )
 # don't want these on freebsd/dragonfly/osx
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
