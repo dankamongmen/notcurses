@@ -599,7 +599,7 @@ int kitty_destroy(const notcurses* nc __attribute__ ((unused)),
             // ideally, we wouldn't damage our annihilated sprixcells, but if
             // we're being annihilated only during this cycle, we need to go
             // ahead and damage it.
-            r->s.damaged = 1;
+            // r->s.damaged = 1;
           }
         }else{
           // need this to damage cells underneath a sprixel we're removing

@@ -458,6 +458,7 @@ typedef struct ncpile {
   struct ncpile *prev, *next; // circular list
   size_t crenderlen;          // size of crender vector
   int dimy, dimx;             // rows and cols at time of render
+  int scrolls;                // how many real lines need be scrolled at raster
   sprixel* sprixelcache;      // list of sprixels
 } ncpile;
 
@@ -496,6 +497,7 @@ typedef struct notcurses {
   ncpalette palette; // 256-indexed palette can be used instead of/with RGB
   bool palette_damage[NCPALETTESIZE];
   unsigned stdio_blocking_save; // was stdio blocking at entry? restore on stop.
+  uint64_t flags;  // copied from notcurses_options
 } notcurses;
 
 // this flag is used internally, by direct mode (which might want
@@ -815,7 +817,7 @@ sprite_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
 // returns -1 on error, or the number of bytes written.
 static inline int
 sprite_draw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
-//sprixel_debug(stderr, s);
+sprixel_debug(stderr, s);
   return n->tcache.pixel_draw(p, s, out);
 }
 
@@ -823,7 +825,7 @@ sprite_draw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
 // returns -1 on error, or the number of bytes written.
 static inline int
 sprite_redraw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
-//sprixel_debug(stderr, s);
+sprixel_debug(stderr, s);
   if(s->invalidated == SPRIXEL_MOVED && n->tcache.pixel_move){
     return n->tcache.pixel_move(p, s, out);
   }else{
