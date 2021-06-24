@@ -586,7 +586,7 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv,
   if(vopts->scaling != NCSCALE_NONE && vopts->scaling != NCSCALE_NONE_HIRES){
     if(bset->geom != NCBLIT_PIXEL){
       dispcols = dimx * encoding_x_scale(&n->tcache, bset);
-      disprows = dimy * encoding_y_scale(&n->tcache, bset);
+      disprows = dimy * encoding_y_scale(&n->tcache, bset) - 1;
       outy = disprows;
     }else{
       dispcols = dimx * n->tcache.cellpixx;
