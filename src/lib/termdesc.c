@@ -334,7 +334,8 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
 // full round trip before getting the reply, which is likely to pace init.
 int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
                          unsigned noaltscreen, unsigned nocbreak,
-                         queried_terminals_e qterm){
+                         queried_terminals_e qterm,
+                         int* cursor_y, int* cursor_x){
   memset(ti, 0, sizeof(*ti));
   if(fd >= 0){
     if(qterm == TERMINAL_UNKNOWN){
@@ -504,9 +505,10 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
     }
   }
   unsigned appsync_advertised;
-  int cursor_x = -1;
-  int cursor_y = -1;
-  if(ncinputlayer_init(ti, stdin, &qterm, &appsync_advertised, &cursor_y, &cursor_x)){
+  if(cursor_x && cursor_y){
+    *cursor_x = *cursor_y = 0;
+  }
+  if(ncinputlayer_init(ti, stdin, &qterm, &appsync_advertised, cursor_y, cursor_x)){
     goto err;
   }
   if(nocbreak){
@@ -517,11 +519,12 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
       }
     }
   }
-  if(cursor_x >= 0 && cursor_y >= 0){
-    if(add_u7_escape(ti, &tablelen, &tableused)){
-      return -1;
+  if(cursor_x && cursor_y){
+    if(*cursor_x >= 0 && *cursor_y >= 0){
+      if(add_u7_escape(ti, &tablelen, &tableused)){
+        return -1;
+      }
     }
-    // FIXME set cursor up
   }
   if(appsync_advertised){
     if(add_appsync_escapes(ti, &tablelen, &tableused)){

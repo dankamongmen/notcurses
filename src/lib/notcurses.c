@@ -1097,9 +1097,12 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   }
   const char* shortname_term = termname();
 // const char* longname_term = longname();
+  int cursor_y, cursor_x;
   if(interrogate_terminfo(&ret->tcache, ret->ttyfd, shortname_term, utf8,
                           opts->flags & NCOPTION_NO_ALTERNATE_SCREEN, 0,
-                          detected_term)){
+                          detected_term,
+                          opts->flags & NCOPTION_PRESERVE_CURSOR ? &cursor_y : NULL,
+                          opts->flags & NCOPTION_PRESERVE_CURSOR ? &cursor_x : NULL)){
     goto err;
   }
   int dimy, dimx;
@@ -1118,6 +1121,9 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   if((ret->stdplane = create_initial_ncplane(ret, dimy, dimx)) == NULL){
     fprintf(stderr, "Couldn't create the initial plane (bad margins?)\n");
     goto err;
+  }
+  if(cursor_y >= 0 && cursor_x >= 0){
+    ncplane_cursor_move_yx(ret->stdplane, cursor_y, cursor_x);
   }
   if(ret->ttyfd >= 0){
     reset_term_attributes(&ret->tcache, ret->ttyfp);
