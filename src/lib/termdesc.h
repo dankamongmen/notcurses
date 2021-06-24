@@ -44,6 +44,7 @@ typedef enum {
   ESCAPE_CUU,      // "cuu" move n cells up
   ESCAPE_CUB,      // "cub" move n cells back (left)
   ESCAPE_CUF,      // "cuf" move n cells forward (right)
+  ESCAPE_BOLD,     // "bold" enter bold mode
   ESCAPE_CUD,      // "cud" move n cells down
   ESCAPE_CUF1,     // "cuf1" move 1 cell forward (right)
   ESCAPE_SMKX,     // "smkx" keypad_xmit (keypad transmit mode)

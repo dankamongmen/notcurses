@@ -607,8 +607,8 @@ term_setstyles(FILE* out, notcurses* nc, const nccell* c){
         normalized = true;
       }
     }
-    // sgr will blow away italics/struck if they were set beforehand
-    nc->rstate.curattr &= ~(NCSTYLE_ITALIC | NCSTYLE_STRUCK);
+    // sgr will blow away non-sgr properties if they were set beforehand
+    nc->rstate.curattr &= ~(NCSTYLE_ITALIC | NCSTYLE_STRUCK | NCSTYLE_UNDERCURL);
   }
   ret |= term_setstyle(out, nc->rstate.curattr, cellattr, NCSTYLE_ITALIC,
                        get_escape(&nc->tcache, ESCAPE_SITM),

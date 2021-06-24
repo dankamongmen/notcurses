@@ -50,6 +50,34 @@ unicodedumper(FILE* fp, tinfo* ti){
   return 0;
 }
 
+static void
+tinfo_debug_style(const tinfo* ti, FILE* fp, const char* name, int esc, int deesc){
+  const char* code = get_escape(ti, esc);
+  if(code){
+    term_emit(code, fp, false);
+  }
+  fprintf(fp, "%s", name);
+  if(code){
+    code = get_escape(ti, deesc);
+    term_emit(code, fp, false);
+  }
+}
+
+static void
+tinfo_debug_styles(const tinfo* ti, FILE* debugfp, const char* indent){
+  fprintf(debugfp, "%s", indent);
+  tinfo_debug_style(ti, debugfp, "bold", ESCAPE_BOLD, ESCAPE_SGR0);
+  fprintf(debugfp, " ");
+  tinfo_debug_style(ti, debugfp, "ital", ESCAPE_SITM, ESCAPE_RITM);
+  fprintf(debugfp, " ");
+  tinfo_debug_style(ti, debugfp, "struck", ESCAPE_SMXX, ESCAPE_RMXX);
+  fprintf(debugfp, " ");
+  tinfo_debug_style(ti, debugfp, "ucurl", ESCAPE_SMULX, ESCAPE_SMULNOX);
+  fprintf(debugfp, " ");
+  tinfo_debug_style(ti, debugfp, "uline", ESCAPE_SMUL, ESCAPE_RMUL);
+  fprintf(debugfp, "\n");
+}
+
 int main(void){
   char* mbuf = NULL;
   size_t len = 0;
@@ -68,6 +96,7 @@ int main(void){
     return EXIT_FAILURE;
   }
   notcurses_debug_caps(nc, mstream);
+  tinfo_debug_styles(&nc->tcache, mstream, " ");
   unicodedumper(mstream, &nc->tcache);
   if(fclose(mstream)){
     notcurses_stop(nc);
