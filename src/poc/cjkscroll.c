@@ -5,7 +5,9 @@
 int main(void){
   setlocale(LC_ALL, "");
   notcurses_options nopts = {
-    .flags = NCOPTION_INHIBIT_SETLOCALE,
+    .flags = NCOPTION_INHIBIT_SETLOCALE
+             | NCOPTION_NO_ALTERNATE_SCREEN
+             | NCOPTION_PRESERVE_CURSOR,
   };
   struct notcurses* nc = notcurses_core_init(&nopts, NULL);
   if(nc == NULL){
