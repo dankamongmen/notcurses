@@ -942,6 +942,18 @@ clean_sprixels(notcurses* nc, ncpile* p, FILE* out){
   return bytesemitted;
 }
 
+static int
+rasterize_scrolls(ncpile* p, FILE* out){
+//fprintf(stderr, "%d tardies to work off, by far the most in the class\n", p->scrolls);
+  while(p->scrolls){
+    if(fprintf(out, "\n") < 0){
+      return -1;
+    }
+    --p->scrolls;
+  }
+  return 0;
+}
+
 // draw any invalidated sprixels. returns -1 on error, number of bytes written
 // on success. any material underneath them has already been updated.
 static int64_t
@@ -1116,6 +1128,9 @@ notcurses_rasterize_inner(notcurses* nc, ncpile* p, FILE* out, unsigned* asu){
   }
   update_palette(nc, out);
 //fprintf(stderr, "RASTERIZE CORE\n");
+  if(rasterize_scrolls(p, out)){
+    return -1;
+  }
   if(rasterize_core(nc, p, out, 0)){
     return -1;
   }

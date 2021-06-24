@@ -357,6 +357,7 @@ make_ncpile(notcurses* nc, ncplane* n){
     ret->crender = NULL;
     ret->crenderlen = 0;
     ret->sprixelcache = NULL;
+    ret->scrolls = 0;
   }
   return ret;
 }
@@ -1034,6 +1035,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   if(outfp == NULL){
     outfp = stdout;
   }
+  ret->flags = opts->flags;
   ret->margin_t = opts->margin_t;
   ret->margin_b = opts->margin_b;
   ret->margin_l = opts->margin_l;
@@ -1237,13 +1239,17 @@ int notcurses_stop(notcurses* nc){
       fclose(nc->rstate.mstreamfp);
     }
     // if we were not using the alternate screen, our cursor's wherever we last
-    // wrote. move it to the bottom left of the screen.
-    if(!get_escape(&nc->tcache, ESCAPE_SMCUP)){
-      // if ldimy is 0, we've not yet written anything; leave it untouched
-      if(nc->lfdimy){
-        int targy = nc->lfdimy + nc->margin_t - 1;
-        // cup is required, no need to test for existence
-        tty_emit(tiparm(get_escape(&nc->tcache, ESCAPE_CUP), targy, 0), nc->ttyfd);
+    // wrote. move it to the bottom left of the screen, *unless*
+    // NCOPTION_PRESERVE_CURSOR was used, in which case it's right where we
+    // want it (i think?).
+    if(!(nc->flags & NCOPTION_PRESERVE_CURSOR)){
+      if(!get_escape(&nc->tcache, ESCAPE_SMCUP)){
+        // if ldimy is 0, we've not yet written anything; leave it untouched
+        if(nc->lfdimy){
+          int targy = nc->lfdimy + nc->margin_t - 1;
+          // cup is required, no need to test for existence
+          tty_emit(tiparm(get_escape(&nc->tcache, ESCAPE_CUP), targy, 0), nc->ttyfd);
+        }
       }
     }
     if(nc->ttyfd >= 0){
@@ -1484,8 +1490,12 @@ nccell_obliterate(ncplane* n, nccell* c){
 
 // increment y by 1 and rotate the framebuffer up one line. x moves to 0.
 void scroll_down(ncplane* n){
+//fprintf(stderr, "pre-scroll: %d/%d %d/%d log: %d\n", n->y, n->x, n->leny, n->lenx, n->logrow);
   n->x = 0;
   if(n->y == n->leny - 1){
+    if(n == notcurses_stdplane(ncplane_notcurses(n))){
+      ncplane_pile(n)->scrolls++;
+    }
     n->logrow = (n->logrow + 1) % n->leny;
     nccell* row = n->fb + nfbcellidx(n, n->y, 0);
     for(int clearx = 0 ; clearx < n->lenx ; ++clearx){
