@@ -288,8 +288,6 @@ pub type NcEgcBackstop = u8;
 /// - [`NCSTYLE_STRUCK`]
 /// - [`NCSTYLE_ITALIC`]
 /// - [`NCSTYLE_UNDERLINE`]
-/// - [`NCSTYLE_REVERSE`]
-/// - [`NCSTYLE_DIM`]
 /// - [`NCSTYLE_BOLD`]
 /// - [`NCSTYLE_NONE`]
 ///
@@ -317,12 +315,6 @@ pub const NCSTYLE_ITALIC: u16 = crate::bindings::ffi::NCSTYLE_ITALIC as u16;
 
 ///
 pub const NCSTYLE_UNDERLINE: u16 = crate::bindings::ffi::NCSTYLE_UNDERLINE as u16;
-
-///
-pub const NCSTYLE_REVERSE: u16 = crate::bindings::ffi::NCSTYLE_REVERSE as u16;
-
-///
-pub const NCSTYLE_DIM: u16 = crate::bindings::ffi::NCSTYLE_DIM as u16;
 
 ///
 pub const NCSTYLE_BOLD: u16 = crate::bindings::ffi::NCSTYLE_BOLD as u16;

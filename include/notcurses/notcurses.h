@@ -670,9 +670,9 @@ API void nccell_release(struct ncplane* n, nccell* c);
 #define NCSTYLE_ITALIC    0x0100u
 // 0x0080 NCSTYLE_STANDOUT has been deprecated
 #define NCSTYLE_UNDERLINE 0x0040u
-#define NCSTYLE_REVERSE   0x0020u
+// 0x0020 NCSTYLE_REVERSE has been deprecated
 // 0x0010 NCSTYLE_BLINK has been deprecated
-#define NCSTYLE_DIM       0x0008u
+// 0x0008 NCSTYLE_DIM has been deprecated
 #define NCSTYLE_BOLD      0x0004u
 // 0x0002 NCSTYLE_INVIS has been deprecated
 // 0x0001 NCSTYLE_PROTECT has been deprecated
@@ -4364,8 +4364,9 @@ API void notcurses_debug_caps(const struct notcurses* nc, FILE* debugfp)
 #define NCSTYLE_PROTECT   0x0001u
 #define NCSTYLE_STANDOUT  0x0080u
 #define NCSTYLE_BLINK     0x0010u
+#define NCSTYLE_REVERSE   0x0020u
 #define NCSTYLE_INVIS     0x0002u
-
+#define NCSTYLE_DIM       0x0008u
 
 #undef ALLOC
 #undef API

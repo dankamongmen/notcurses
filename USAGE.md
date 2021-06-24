@@ -1897,8 +1897,6 @@ int nccell_width(const struct ncplane* n, const nccell* c);
 
 #define NCSTYLE_MASK      0x03fful
 #define NCSTYLE_UNDERLINE 0x0040ul
-#define NCSTYLE_REVERSE   0x0020ul
-#define NCSTYLE_DIM       0x0008ul
 #define NCSTYLE_BOLD      0x0004ul
 #define NCSTYLE_ITALIC    0x0100ul
 #define NCSTYLE_STRUCK    0x0200ul

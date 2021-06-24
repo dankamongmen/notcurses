@@ -1,6 +1,9 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 2.3.7 (not yet released)
+  * Deprecated `NCSTYLE_REVERSE` and `NCSTYLE_DIM`. The remainder are safe.
+
 * 2.3.6 (2021-06-23)
   * Fixed (harmless) warning with `-Wformat-security`.
   * Remove `NCSTYLE_{INVIS,BLINK,STANDOUT}` with extreme prejudice. They

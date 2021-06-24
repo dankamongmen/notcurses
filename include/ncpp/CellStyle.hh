@@ -13,11 +13,10 @@ namespace ncpp
 	{
 		None      = 0,
 		Underline = NCSTYLE_UNDERLINE,
-		Reverse   = NCSTYLE_REVERSE,
-		Dim       = NCSTYLE_DIM,
 		Bold      = NCSTYLE_BOLD,
 		Italic    = NCSTYLE_ITALIC,
 		Struck    = NCSTYLE_STRUCK,
+		Undercurl = NCSTYLE_UNDERCURL,
 	};
 
 	DECLARE_ENUM_FLAG_OPERATORS (CellStyle)

@@ -136,6 +136,8 @@ tinfo_debug_styles(const tinfo* ti, FILE* debugfp, const char* indent){
   fprintf(debugfp, "\n");
 }
 
+// we should probably change this up to use regular good ol'
+// notcurses_render() without the alternate screen, no?
 int main(void){
   char* mbuf = NULL;
   size_t len = 0;

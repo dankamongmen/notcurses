@@ -595,9 +595,9 @@ term_setstyles(FILE* out, notcurses* nc, const nccell* c){
       if(term_emit(tiparm(sgr,
                           0, // standout
                           cellattr & NCSTYLE_UNDERLINE,
-                          cellattr & NCSTYLE_REVERSE,
+                          0, // reverse
                           0, // blink
-                          cellattr & NCSTYLE_DIM,
+                          0, // dim
                           cellattr & NCSTYLE_BOLD,
                           0, // invisible
                           0, // protect,

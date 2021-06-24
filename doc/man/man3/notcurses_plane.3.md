@@ -26,6 +26,13 @@ typedef struct ncplane_options {
   uint64_t flags;   // closure over NCPLANE_OPTION_*
   int margin_b, margin_r; // bottom and right margins
 } ncplane_options;
+
+#define NCSTYLE_UNDERCURL 0x0400u
+#define NCSTYLE_STRUCK    0x0200u
+#define NCSTYLE_ITALIC    0x0100u
+#define NCSTYLE_UNDERLINE 0x0040u
+#define NCSTYLE_BOLD      0x0004u
+#define NCSTYLE_NONE      0
 ```
 
 **struct ncplane* ncplane_create(struct ncplane* ***n***, const ncplane_options* ***nopts***);**
