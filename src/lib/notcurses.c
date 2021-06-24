@@ -845,26 +845,31 @@ int ncplane_genocide(ncplane *ncp){
 }
 
 // only invoked without suppress banners flag. prints various warnings based on
-// the environment / terminal definition.
-static void
+// the environment / terminal definition. returns the number of lines printed.
+static int
 init_banner_warnings(const notcurses* nc, FILE* out){
+  int liness = 0;
   // might be using stderr, so don't just reuse stdout decision
   const bool tty = isatty(fileno(out));
   if(tty){
     term_fg_palindex(nc, out, nc->tcache.caps.colors <= 88 ? 1 : 0xcb);
   }
   if(!nc->tcache.caps.rgb){
+    liness += 3;
     fprintf(out, "\n Warning! Colors subject to https://github.com/dankamongmen/notcurses/issues/4");
     fprintf(out, "\n  Specify a (correct) TrueColor TERM, or COLORTERM=24bit.\n");
   }else{
     if(!nc->tcache.caps.can_change_colors){
+      ++liness;
       fprintf(out, "\n Warning! Advertised TrueColor but no 'ccc' flag\n");
     }
   }
   if(!notcurses_canutf8(nc)){
+    liness += 2;
     fprintf(out, "\n Warning! Encoding is not UTF-8; output may be degraded.\n");
   }
   if(!get_escape(&nc->tcache, ESCAPE_HPA)){
+    liness += 2;
     fprintf(out, "\n Warning! No absolute horizontal placement.\n");
   }
   const char* sgr0;
@@ -873,20 +878,25 @@ init_banner_warnings(const notcurses* nc, FILE* out){
       term_emit(sgr0, out, true);
     }
   }
+  return liness;
 }
 
 // unless the suppress_banner flag was set, print some version information and
 // (if applicable) warnings to stdout. we are not yet on the alternate screen.
-static void
+// returns the number of lines printed.
+static int
 init_banner(const notcurses* nc){
+  int liness = 0;
   if(!nc->suppress_banner){
     char prefixbuf[BPREFIXSTRLEN + 1];
     term_fg_palindex(nc, stdout, 50 % nc->tcache.caps.colors);
+    ++liness;
     printf("\n notcurses %s by nick black et al", notcurses_version());
     printf(" on %s %s", nc->tcache.termname ? nc->tcache.termname : "?",
                         nc->tcache.termversion ? nc->tcache.termversion : "");
     term_fg_palindex(nc, stdout, 12 % nc->tcache.caps.colors);
     if(nc->tcache.cellpixy && nc->tcache.cellpixx){
+      ++liness;
       printf("\n  %d rows (%dpx) %d cols (%dpx) %dx%d %zuB crend %d colors",
              nc->stdplane->leny, nc->tcache.cellpixy,
              nc->stdplane->lenx, nc->tcache.cellpixx,
@@ -894,6 +904,7 @@ init_banner(const notcurses* nc){
              nc->stdplane->lenx * nc->tcache.cellpixx,
              sizeof(struct crender), nc->tcache.caps.colors);
     }else{
+      ++liness;
       printf("\n  %d rows %d cols (%sB) %zuB crend %d colors",
              nc->stdplane->leny, nc->stdplane->lenx,
              bprefix(nc->stats.fbbytes, 1, prefixbuf, 0),
@@ -911,6 +922,7 @@ init_banner(const notcurses* nc){
       term_fg_palindex(nc, stdout, nc->tcache.caps.colors <= 256 ?
                        12 % nc->tcache.caps.colors : 0x2080e0);
     }
+    liness += 3;
     printf("\n  compiled with gcc-%s, %zuB %s-endian cells\n"
            "  terminfo from %s\n",
            __VERSION__,
@@ -925,10 +937,12 @@ init_banner(const notcurses* nc){
 #error "No __BYTE_ORDER__ definition"
 #endif
            , curses_version());
+    ++liness;
     ncvisual_printbanner(nc);
     fflush(stdout);
-    init_banner_warnings(nc, stderr);
+    liness += init_banner_warnings(nc, stderr);
   }
+  return liness;
 }
 
 // it's critical that we're using UTF-8 encoding if at all possible. since the
@@ -1124,9 +1138,6 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     fprintf(stderr, "Couldn't create the initial plane (bad margins?)\n");
     goto err;
   }
-  if(cursor_y >= 0 && cursor_x >= 0){
-    ncplane_cursor_move_yx(ret->stdplane, cursor_y, cursor_x);
-  }
   if(ret->ttyfd >= 0){
     reset_term_attributes(&ret->tcache, ret->ttyfp);
     if(!(opts->flags & NCOPTION_NO_CLEAR_BITMAPS)){
@@ -1151,7 +1162,14 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     goto err;
   }
   ret->rstate.x = ret->rstate.y = -1;
-  init_banner(ret);
+  int bannerlines = init_banner(ret);
+  if(cursor_y >= 0 && cursor_x >= 0){
+    cursor_y += bannerlines;
+    if(cursor_y >= ncplane_dim_y(ret->stdplane)){
+      cursor_y = ncplane_dim_y(ret->stdplane) - 1;
+    }
+    ncplane_cursor_move_yx(ret->stdplane, cursor_y, cursor_x);
+  }
   // flush on the switch to alternate screen, lest initial output be swept away
   const char* clearscr = get_escape(&ret->tcache, ESCAPE_CLEAR);
   if(ret->ttyfd >= 0){
