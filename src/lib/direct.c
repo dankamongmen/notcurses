@@ -4,7 +4,9 @@
 #include <string.h>
 #include <unistd.h>
 #include <termios.h>
+#ifdef USE_READLINE
 #include <readline/readline.h>
+#endif
 #include "version.h"
 #include "visual-details.h"
 #include "notcurses/direct.h"
@@ -759,7 +761,9 @@ ncdirect_stop_minimal(void* vnc){
   ncdirect* nc = vnc;
   int ret = drop_signals(nc);
   if(nc->initialized_readline){
+#ifdef USE_READLINE
     rl_deprep_terminal();
+#endif
   }
   ret |= reset_term_attributes(&nc->tcache, nc->ttyfp);
   if(nc->ctermfd >= 0){
@@ -854,6 +858,7 @@ int ncdirect_stop(ncdirect* nc){
 }
 
 char* ncdirect_readline(ncdirect* n, const char* prompt){
+#ifdef USE_READLINE
   if(!n->initialized_readline){
     rl_outstream = n->ttyfp;
     rl_instream = stdin;
@@ -861,6 +866,11 @@ char* ncdirect_readline(ncdirect* n, const char* prompt){
     n->initialized_readline = true;
   }
   return readline(prompt);
+#else
+  (void)n;
+  (void)prompt;
+  return NULL;
+#endif
 }
 
 static inline int
