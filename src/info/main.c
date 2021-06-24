@@ -126,7 +126,7 @@ int main(void){
   const char indent[] = " ";
   struct ncplane* stdn = notcurses_stdplane(nc);
   // FIXME want cursor wherever it was
-  // FIXME want scrolling on standard plane
+  ncplane_set_scrolling(stdn, true);
   tinfo_debug_caps(stdn, &nc->tcache, indent);
   tinfo_debug_styles(stdn, indent);
   tinfo_debug_bitmaps(stdn, &nc->tcache, indent);
