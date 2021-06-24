@@ -1,7 +1,8 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 2.3.6 (not yet released)
+* 2.3.6 (2021-06-23)
+  * Fixed (harmless) warning with `-Wformat-security`.
   * Remove `NCSTYLE_{INVIS,BLINK,STANDOUT}` with extreme prejudice. They
     remain defined for now, but will be removed for ABI3.
   * Deprecated `notcurses_debug_caps()`, which no longer generates output.
