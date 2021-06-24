@@ -462,6 +462,7 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
     { NCSTYLE_UNDERLINE, "smul", A_UNDERLINE },
     { NCSTYLE_DIM, "dim", A_DIM },
     { NCSTYLE_ITALIC, "sitm", A_ITALIC },
+    { NCSTYLE_STRUCK, "smxx", 0 },
     { 0, NULL, 0 }
   };
   const char* sgr = get_escape(ti, ESCAPE_SGR);
