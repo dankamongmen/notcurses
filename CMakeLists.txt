@@ -616,6 +616,8 @@ add_test(
 )
 set_tests_properties(notcurses-tester PROPERTIES RUN_SERIAL TRUE)
 install(TARGETS notcurses-tester DESTINATION bin)
+else()
+  list(FILTER MANSOURCE1 EXCLUDE REGEX "notcurses-tester.1.md")
 endif()
 enable_testing()
 # the accursed Ubuntu buildd sets "TERM=unknown" for unfathomable reasons
@@ -648,6 +650,8 @@ set_tests_properties(ncpp_build ncpp_build_exceptions rgb rgbbg
   PROPERTIES RUN_SERIAL TRUE
 )
 endif()
+else()
+  list(FILTER MANSOURCE1 EXCLUDE REGEX "notcurses-tester.1.md")
 endif()
 
 # Pandoc documentation (man pages, HTML reference)
