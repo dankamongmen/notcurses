@@ -272,6 +272,7 @@ to breaking under incorrect `TERM` values. If you're not using `xterm`, your
 * [Unicode 13.1 Full Emoji List](https://unicode.org/emoji/charts/full-emoji-list.html)
 * [Unicode Standard Annex #29 Text Segmentation](http://www.unicode.org/reports/tr29)
 * [Unicode Standard Annex #15 Normalization Forms](https://unicode.org/reports/tr15/)
+* [mintty tips](https://github.com/mintty/mintty/wiki/Tips)
 * [The TTY demystified](http://www.linusakesson.net/programming/tty/)
 * [Dark Corners of Unicode](https://eev.ee/blog/2015/09/12/dark-corners-of-unicode/)
 * [UTF-8 Decoder Capability and Stress Test](https://www.cl.cam.ac.uk/~mgk25/ucs/examples/UTF-8-test.txt)
