@@ -87,6 +87,11 @@ unicodedumper(const struct notcurses* nc, struct ncplane* n, tinfo* ti, const ch
     ncplane_stain(n, y, 11, ul, lr, lr, ul);
     ncplane_cursor_move_yx(n, y - 10, 69);
     ncplane_stain(n, y - 2, 70, lr, ul, ul, lr);
+    ncplane_cursor_move_yx(n, y - 6, 2);
+    uint32_t ll = CHANNEL_RGB_INITIALIZER(0x40, 0x0, 0x0);
+    uint32_t ur = CHANNEL_RGB_INITIALIZER(0x1f, 0x25, 0x24);
+    lr = CHANNEL_RGB_INITIALIZER(0x0, 0x0, 0x40);
+    ncplane_stain(n, y - 3, 65, ur, ur, ll, lr);
   }
   return 0;
 }
