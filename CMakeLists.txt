@@ -462,83 +462,6 @@ foreach(f ${POCPPSRCS})
 endforeach()
 endif()
 
-# Pandoc documentation (man pages, HTML reference)
-if(USE_PANDOC)
-  file(GLOB MANSOURCE1 CONFIGURE_DEPENDS doc/man/man1/*.md)
-  file(GLOB MANSOURCE3 CONFIGURE_DEPENDS doc/man/man3/*.md)
-  find_program(PANDOC pandoc)
-  if(NOT PANDOC)
-    message(FATAL_ERROR "pandoc not found. USE_PANDOC=OFF to disable.")
-  else()
-    foreach(m ${MANSOURCE3} ${MANSOURCE1})
-      get_filename_component(me ${m} NAME_WLE)
-      add_custom_command(
-        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${me}
-        DEPENDS ${m}
-        COMMAND ${PANDOC}
-        ARGS --to man --standalone --from markdown-smart ${m} > ${CMAKE_CURRENT_BINARY_DIR}/${me}
-        COMMENT "Building man page ${me}"
-      )
-      add_custom_target(${me}.man
-        ALL
-        DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${me}
-      )
-      file(GLOB ANALHTML doc/analytics-header.html)
-      add_custom_command(
-        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${me}.html
-        DEPENDS ${m} ${ANALHTML}
-        COMMAND ${PANDOC}
-        ARGS -H ${ANALHTML} --to html --standalone --from markdown-smart ${m} > ${CMAKE_CURRENT_BINARY_DIR}/${me}.html
-        COMMENT "Building HTML5 ${me}.html"
-      )
-      add_custom_target(${me}.html5
-        ALL
-        DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${me}.html
-      )
-    endforeach()
-    foreach(m ${MANSOURCE3})
-      get_filename_component(me ${m} NAME_WLE)
-      LIST(APPEND MANPAGES3 ${CMAKE_CURRENT_BINARY_DIR}/${me})
-    endforeach()
-    foreach(m ${MANSOURCE1})
-      get_filename_component(me ${m} NAME_WLE)
-      LIST(APPEND MANPAGES1 ${CMAKE_CURRENT_BINARY_DIR}/${me})
-    endforeach()
-  endif()
-endif()
-
-# Doxygen / diagrams
-if(USE_DOXYGEN)
-  find_package(Doxygen REQUIRED dot dia)
-  if(NOT ${DOXYGEN_FOUND})
-    message(FATAL_ERROR "doxygen not found. USE_DOXYGEN=OFF to disable.")
-  else()
-    set(DOXYFILE ${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile)
-    # FIXME should dep on all source, i suppose, yuck
-    add_custom_command(
-      OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/html/index.html"
-      DEPENDS ${DOXYFILE}
-      COMMAND Doxygen::doxygen
-      ARGS ${DOXYFILE}
-      COMMENT "Running doxygen"
-    )
-    add_custom_target(doxygen
-      ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/html/index.html"
-    )
-    set(MODELDOT ${CMAKE_CURRENT_SOURCE_DIR}/doc/model.dot)
-    add_custom_command(
-      OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/model.png"
-      DEPENDS ${MODELDOT}
-      COMMAND Doxygen::dot
-      ARGS -Tpng ${MODELDOT} -o "${CMAKE_CURRENT_BINARY_DIR}/model.png"
-      COMMENT "Running dot"
-    )
-    add_custom_target(dot
-      ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/model.png"
-    )
-  endif()
-endif()
-
 ############################################################################
 # notcurses-demo
 file(GLOB DEMOSRCS CONFIGURE_DEPENDS src/demo/*.c)
@@ -623,8 +546,17 @@ target_link_libraries(ncneofetch
     notcurses
 )
 
+# documentation source, processed by pandoc into XHTML and man pages. declare
+# them here so that we can filter out man pages for binaries which aren't
+# going to be installed.
+file(GLOB MANSOURCE1 CONFIGURE_DEPENDS doc/man/man1/*.md)
+file(GLOB MANSOURCE3 CONFIGURE_DEPENDS doc/man/man3/*.md)
+
 # all further binaries require multimedia support
-if(NOT ${USE_MULTIMEDIA} STREQUAL "none")
+if(${USE_MULTIMEDIA} STREQUAL "none")
+  list(FILTER MANSOURCE1 EXCLUDE REGEX "ncls.1.md")
+  list(FILTER MANSOURCE1 EXCLUDE REGEX "ncplayer.1.md")
+else()
 ############################################################################
 # ncls
 file(GLOB LSSRC CONFIGURE_DEPENDS src/ls/*.cpp)
@@ -716,6 +648,81 @@ set_tests_properties(ncpp_build ncpp_build_exceptions rgb rgbbg
   PROPERTIES RUN_SERIAL TRUE
 )
 endif()
+endif()
+
+# Pandoc documentation (man pages, HTML reference)
+if(USE_PANDOC)
+  find_program(PANDOC pandoc)
+  if(NOT PANDOC)
+    message(FATAL_ERROR "pandoc not found. USE_PANDOC=OFF to disable.")
+  else()
+    foreach(m ${MANSOURCE3} ${MANSOURCE1})
+      get_filename_component(me ${m} NAME_WLE)
+      add_custom_command(
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${me}
+        DEPENDS ${m}
+        COMMAND ${PANDOC}
+        ARGS --to man --standalone --from markdown-smart ${m} > ${CMAKE_CURRENT_BINARY_DIR}/${me}
+        COMMENT "Building man page ${me}"
+      )
+      add_custom_target(${me}.man
+        ALL
+        DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${me}
+      )
+      file(GLOB ANALHTML doc/analytics-header.html)
+      add_custom_command(
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${me}.html
+        DEPENDS ${m} ${ANALHTML}
+        COMMAND ${PANDOC}
+        ARGS -H ${ANALHTML} --to html --standalone --from markdown-smart ${m} > ${CMAKE_CURRENT_BINARY_DIR}/${me}.html
+        COMMENT "Building HTML5 ${me}.html"
+      )
+      add_custom_target(${me}.html5
+        ALL
+        DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${me}.html
+      )
+    endforeach()
+    foreach(m ${MANSOURCE3})
+      get_filename_component(me ${m} NAME_WLE)
+      LIST(APPEND MANPAGES3 ${CMAKE_CURRENT_BINARY_DIR}/${me})
+    endforeach()
+    foreach(m ${MANSOURCE1})
+      get_filename_component(me ${m} NAME_WLE)
+      LIST(APPEND MANPAGES1 ${CMAKE_CURRENT_BINARY_DIR}/${me})
+    endforeach()
+  endif()
+endif()
+
+# Doxygen / diagrams
+if(USE_DOXYGEN)
+  find_package(Doxygen REQUIRED dot dia)
+  if(NOT ${DOXYGEN_FOUND})
+    message(FATAL_ERROR "doxygen not found. USE_DOXYGEN=OFF to disable.")
+  else()
+    set(DOXYFILE ${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile)
+    # FIXME should dep on all source, i suppose, yuck
+    add_custom_command(
+      OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/html/index.html"
+      DEPENDS ${DOXYFILE}
+      COMMAND Doxygen::doxygen
+      ARGS ${DOXYFILE}
+      COMMENT "Running doxygen"
+    )
+    add_custom_target(doxygen
+      ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/html/index.html"
+    )
+    set(MODELDOT ${CMAKE_CURRENT_SOURCE_DIR}/doc/model.dot)
+    add_custom_command(
+      OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/model.png"
+      DEPENDS ${MODELDOT}
+      COMMAND Doxygen::dot
+      ARGS -Tpng ${MODELDOT} -o "${CMAKE_CURRENT_BINARY_DIR}/model.png"
+      COMMENT "Running dot"
+    )
+    add_custom_target(dot
+      ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/model.png"
+    )
+  endif()
 endif()
 
 add_custom_target(demo
