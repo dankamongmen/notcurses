@@ -4,7 +4,7 @@
 #include <notcurses/direct.h>
 #include "internal.h"
 
-// Check whether the terminal geometry has changed, and if so, copies what can
+// Check whether the terminal geometry has changed, and if so, copy what can
 // be copied from the old lastframe. Assumes that the screen is always anchored
 // at the same origin. Initiates a resize cascade for the pile containing |pp|.
 // The current terminal geometry, changed or not, is written to |rows|/|cols|.
