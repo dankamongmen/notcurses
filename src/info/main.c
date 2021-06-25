@@ -19,6 +19,18 @@ capbool(const tinfo* ti, bool cap){
 }
 
 static int
+braille_viz(ncplane* n, const char* l, const wchar_t* egcs, const char* r, const char* indent){
+  ncplane_set_fg_rgb(n, 0xfaf0e6);
+  ncplane_printf(n, "%s%s", indent, l);
+  ncplane_set_fg_rgb(n, 0xc4aead);
+  ncplane_printf(n, "%.192ls", egcs);
+  ncplane_set_fg_rgb(n, 0xfaf0e6);
+  ncplane_printf(n, "%s ", r);
+  ncplane_set_fg_default(n);
+  return 0;
+}
+
+static int
 unicodedumper(const struct notcurses* nc, struct ncplane* n, tinfo* ti, const char* indent){
   ncplane_set_fg_rgb(n, 0x9172ec);
   ncplane_printf(n, "%sutf8%lc quad%lc sex%lc braille%lc images%lc videos%lc\n",
@@ -51,10 +63,14 @@ unicodedumper(const struct notcurses* nc, struct ncplane* n, tinfo* ti, const ch
                    NCBOXHEAVYW + 2, NCBOXHEAVYW + 5,
                    NCBOXROUNDW + 2, NCBOXROUNDW + 5,
                    NCBOXDOUBLEW + 2, NCBOXDOUBLEW + 5);
-    ncplane_printf(n, " ⎡%.192ls⎤ ⎨▐▌⎬ 🯸🯹\n", NCBRAILLEEGCS);
-    ncplane_printf(n, " ⎢%.192ls⎥ ⎪🮈▋⎪\n", NCBRAILLEEGCS + 64);
-    ncplane_printf(n, " ⎢%.192ls⎥ ⎪🮇▊⎪\n", NCBRAILLEEGCS + 128);
-    ncplane_printf(n, " ⎣%.192ls⎦ ⎪▕▉⎪\n", NCBRAILLEEGCS + 192);
+    braille_viz(n, "⎡", NCBRAILLEEGCS, "⎤", indent);
+    ncplane_printf(n, "⎨▐▌⎬ 🯸🯹\n");
+    braille_viz(n, "⎢", NCBRAILLEEGCS + 64, "⎥", indent);
+    ncplane_printf(n, "⎪🮈▋⎪\n");
+    braille_viz(n, "⎢",  NCBRAILLEEGCS + 128, "⎥", indent);
+    ncplane_printf(n, "⎪🮇▊⎪\n");
+    braille_viz(n, "⎣",NCBRAILLEEGCS + 192, "⎦", indent);
+    ncplane_printf(n, "⎪▕▉⎪\n");
     ncplane_printf(n, "  ⎛%ls⎞ ▔🭶🭷🭸🭹🭺🭻▁ 🭁 🭂 🭃 🭄 🭅 🭆 🭑 🭐 🭏 🭎 🭍 🭌 🭆🭑 🭄🭏 🭅🭐 🭃🭎 🭂🭍 🭁🭌 🭨🭪 ⎩ █⎭\n",
                    NCEIGHTHSBOTTOM);
     ncplane_printf(n, "  ⎝%ls⎠ ▏🭰🭱🭲🭳🭴🭵▕ 🭒 🭓 🭔 🭕 🭖 🭧 🭜 🭟 🭠 🭡 🭞 🭝 🭧🭜 🭕🭠 🭖🭡 🭔🭟 🭓🭞 🭒🭝 🭪🭨       \n",
