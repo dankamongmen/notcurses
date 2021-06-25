@@ -75,6 +75,12 @@ unicodedumper(const struct notcurses* nc, struct ncplane* n, tinfo* ti, const ch
                    NCEIGHTHSBOTTOM);
     ncplane_printf(n, "  ⎝%ls⎠ ▏🭰🭱🭲🭳🭴🭵▕ 🭒 🭓 🭔 🭕 🭖 🭧 🭜 🭟 🭠 🭡 🭞 🭝 🭧🭜 🭕🭠 🭖🭡 🭔🭟 🭓🭞 🭒🭝 🭪🭨       \n",
                    NCEIGHTSTOP);
+    int y, x;
+    ncplane_cursor_yx(n, &y, &x);
+    ncplane_cursor_move_yx(n, y - 2, x + 23);
+    uint32_t ul = CHANNEL_RGB_INITIALIZER(0x80, 0x80, 0x80);
+    uint32_t lr = CHANNEL_RGB_INITIALIZER(0x30, 0x30, 0x30);
+    ncplane_stain(n, y, 66, ul, lr, ul, lr);
   }
   return 0;
 }
