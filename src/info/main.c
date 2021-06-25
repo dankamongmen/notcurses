@@ -78,9 +78,15 @@ unicodedumper(const struct notcurses* nc, struct ncplane* n, tinfo* ti, const ch
     int y, x;
     ncplane_cursor_yx(n, &y, &x);
     ncplane_cursor_move_yx(n, y - 2, x + 23);
-    uint32_t ul = CHANNEL_RGB_INITIALIZER(0x80, 0x80, 0x80);
-    uint32_t lr = CHANNEL_RGB_INITIALIZER(0x30, 0x30, 0x30);
+    uint32_t ul = CHANNEL_RGB_INITIALIZER(0x30, 0x30, 0x30);
+    uint32_t lr = CHANNEL_RGB_INITIALIZER(0x80, 0x80, 0x80);
     ncplane_stain(n, y, 66, ul, lr, ul, lr);
+    ncplane_cursor_move_yx(n, y - 2, x + 3);
+    ul = CHANNEL_RGB_INITIALIZER(0x60, 0x7d, 0x3b);
+    lr = CHANNEL_RGB_INITIALIZER(0x02, 0x8a, 0x0f);
+    ncplane_stain(n, y, 11, ul, lr, lr, ul);
+    ncplane_cursor_move_yx(n, y - 10, 69);
+    ncplane_stain(n, y - 2, 70, lr, ul, ul, lr);
   }
   return 0;
 }
