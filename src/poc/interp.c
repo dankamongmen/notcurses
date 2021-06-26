@@ -69,7 +69,6 @@ interp(struct notcurses* nc, int cellpixy, int cellpixx){
   if(ncvisual_render(nc, ncv, &vopts) == NULL){
     return -1;
   }
-notcurses_debug(nc, stderr);
   notcurses_render(nc);
   ncplane_destroy(ncvp);
   ncplane_destroy(scalep);
@@ -79,7 +78,7 @@ notcurses_debug(nc, stderr);
 
 int main(void){
   struct notcurses_options nopts = {
-    .loglevel = NCLOGLEVEL_TRACE,
+//    .loglevel = NCLOGLEVEL_TRACE,
   };
   struct notcurses* nc = notcurses_init(&nopts, NULL);
   if(nc == NULL){
