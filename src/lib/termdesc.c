@@ -469,7 +469,7 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
     { NCSTYLE_STRUCK, "smxx", 0 },
     { 0, NULL, 0 }
   };
-  if(get_escape(ti, ESCAPE_BOLD) == NULL){
+  if(get_escape(ti, ESCAPE_BOLD)){
     if(grow_esc_table(ti, "\e[22m", ESCAPE_NOBOLD, &tablelen, &tableused)){
       goto err;
     }

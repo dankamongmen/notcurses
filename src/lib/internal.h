@@ -259,13 +259,13 @@ typedef struct rasterstate {
   // modified by: output, cursor moves, clearing the screen (during refresh).
   int y, x;
 
-  uint32_t curattr;// current attributes set (does not include colors)
-  unsigned lastr;  // foreground rgb, overloaded for palindexed fg
+  unsigned lastr;   // foreground rgb, overloaded for palindexed fg
   unsigned lastg;
   unsigned lastb;
-  unsigned lastbr; // background rgb, overloaded for palindexed bg
+  unsigned lastbr;  // background rgb, overloaded for palindexed bg
   unsigned lastbg;
   unsigned lastbb;
+  uint16_t curattr; // current attributes set (does not include colors)
   // we elide a color escape iff the color has not changed between two cells
   bool fgelidable;
   bool bgelidable;
@@ -1237,8 +1237,61 @@ term_fg_palindex(const notcurses* nc, FILE* out, unsigned pal){
   return 0;
 }
 
-int term_setstyle(FILE* out, unsigned cur, unsigned targ, unsigned stylebit,
-                  const char* ton, const char* toff);
+// check the current and target style bitmasks against the specified 'stylebit'.
+// if they are different, and we have the necessary capability, write the
+// applicable terminfo entry to 'out'. returns -1 only on a true error.
+static int
+term_setstyle(FILE* out, unsigned cur, unsigned targ, unsigned stylebit,
+              const char* ton, const char* toff){
+  int ret = 0;
+  unsigned curon = cur & stylebit;
+  unsigned targon = targ & stylebit;
+  if(curon != targon){
+    if(targon){
+      if(ton){
+        ret = term_emit(ton, out, false);
+      }
+    }else{
+      if(toff){ // how did this happen? we can turn it on, but not off?
+        ret = term_emit(toff, out, false);
+      }
+    }
+  }
+  if(ret < 0){
+    return -1;
+  }
+  return 0;
+}
+
+// emit escapes such that the current style is equal to newstyle. if this
+// required an sgr0 (which resets colors), normalized will be non-zero upon
+// a successful return.
+static inline int
+coerce_styles(FILE* out, const tinfo* ti, uint16_t* curstyle,
+              uint16_t newstyle, unsigned* normalized){
+  *normalized = 0; // we never currently use sgr0
+  int ret = 0;
+  ret |= term_setstyle(out, *curstyle, newstyle, NCSTYLE_BOLD,
+                       get_escape(ti, ESCAPE_BOLD), get_escape(ti, ESCAPE_NOBOLD));
+  ret |= term_setstyle(out, *curstyle, newstyle, NCSTYLE_ITALIC,
+                       get_escape(ti, ESCAPE_SITM), get_escape(ti, ESCAPE_RITM));
+  ret |= term_setstyle(out, *curstyle, newstyle, NCSTYLE_STRUCK,
+                       get_escape(ti, ESCAPE_SMXX), get_escape(ti, ESCAPE_RMXX));
+  // underline and undercurl are exclusive. if we set one, don't go unsetting
+  // the other.
+  if(newstyle & NCSTYLE_UNDERLINE){ // turn on underline, or do nothing
+    ret |= term_setstyle(out, *curstyle, newstyle, NCSTYLE_UNDERLINE,
+                         get_escape(ti, ESCAPE_SMUL), get_escape(ti, ESCAPE_RMUL));
+  }else if(newstyle & NCSTYLE_UNDERCURL){ // turn on undercurl, or do nothing
+    ret |= term_setstyle(out, *curstyle, newstyle, NCSTYLE_UNDERCURL,
+                         get_escape(ti, ESCAPE_SMULX), get_escape(ti, ESCAPE_SMULNOX));
+  }else{ // turn off any underlining
+    ret |= term_setstyle(out, *curstyle, newstyle, NCSTYLE_UNDERCURL | NCSTYLE_UNDERLINE,
+                         NULL, get_escape(ti, ESCAPE_RMUL));
+  }
+  *curstyle = newstyle;
+  return ret;
+}
 
 // how many edges need touch a corner for it to be printed?
 static inline unsigned

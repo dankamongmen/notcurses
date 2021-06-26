@@ -877,46 +877,10 @@ char* ncdirect_readline(ncdirect* n, const char* prompt){
 
 static inline int
 ncdirect_style_emit(ncdirect* n, unsigned stylebits, FILE* out){
-  int r = -1;
-  const char* esc;
-  if(stylebits == 0 && (esc = get_escape(&n->tcache, ESCAPE_SGR0))){
-    r = term_emit(esc, out, false);
-  }else if( (esc = get_escape(&n->tcache, ESCAPE_SGR)) ){
-    r = term_emit(tiparm(esc,
-                         0, // standout
-                         stylebits & NCSTYLE_UNDERLINE,
-                         0, // reverse
-                         0, // blink
-                         0, // dim
-                         stylebits & NCSTYLE_BOLD,
-                         0, // invisible
-                         0, // protect //
-                         0), out, false);
-  }else{
-    // no sgr, interesting. return failure if our stylebits were provided?
-    // back off to individual enablers? FIXME
-    return 0;
-  }
-  // sgr will blow away non-sgr properties if they were set beforehand
-  n->stylemask &= ~(NCSTYLE_ITALIC | NCSTYLE_STRUCK | NCSTYLE_UNDERCURL);
-  if(term_setstyle(n->ttyfp, n->stylemask, stylebits, NCSTYLE_ITALIC,
-                    get_escape(&n->tcache, ESCAPE_SITM),
-                    get_escape(&n->tcache, ESCAPE_RITM))){
-    return -1;
-  }
-  if(term_setstyle(n->ttyfp, n->stylemask, stylebits, NCSTYLE_STRUCK,
-                    get_escape(&n->tcache, ESCAPE_SMXX),
-                    get_escape(&n->tcache, ESCAPE_RMXX))){
-    return -1;
-  }
-  if(term_setstyle(n->ttyfp, n->stylemask, stylebits, NCSTYLE_UNDERCURL,
-                    get_escape(&n->tcache, ESCAPE_SMULX),
-                    get_escape(&n->tcache, ESCAPE_SMULNOX))){
-    return -1;
-  }
-  n->stylemask = stylebits;
-  // sgr resets colors, so set them back up if not defaults
-  if(r == 0){
+  unsigned normalized = 0;
+  int r = coerce_styles(out, &n->tcache, &n->stylemask, stylebits, &normalized);
+  // sgr0 resets colors, so set them back up if not defaults and it was used
+  if(normalized){
     // emitting an sgr resets colors. if we want to be default, that's no
     // problem, and our channels remain correct. otherwise, clear our
     // channel, and set them back up.
