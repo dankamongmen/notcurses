@@ -570,57 +570,42 @@ int term_setstyle(FILE* out, unsigned cur, unsigned targ, unsigned stylebit,
   return 0;
 }
 
+// emit escapes such that the current style is equal to newstyle. if this
+// required an sgr0 (which resets colors), normalized will be non-zero upon
+// a successful return.
+static inline int
+coerce_styles(FILE* out, const tinfo* ti, uint32_t* curstyle,
+              uint32_t newstyle, unsigned* normalized){
+  *normalized = 0; // we never currently use sgr0
+  int ret = 0;
+  ret |= term_setstyle(out, *curstyle, newstyle, NCSTYLE_BOLD,
+                       get_escape(ti, ESCAPE_BOLD), get_escape(ti, ESCAPE_NOBOLD));
+  ret |= term_setstyle(out, *curstyle, newstyle, NCSTYLE_ITALIC,
+                       get_escape(ti, ESCAPE_SITM), get_escape(ti, ESCAPE_RITM));
+  ret |= term_setstyle(out, *curstyle, newstyle, NCSTYLE_STRUCK,
+                       get_escape(ti, ESCAPE_SMXX), get_escape(ti, ESCAPE_RMXX));
+  // underline and undercurl are exclusive. if we set one, don't go unsetting
+  // the other.
+  if(newstyle & NCSTYLE_UNDERLINE){ // turn on underline, or do nothing
+    ret |= term_setstyle(out, *curstyle, newstyle, NCSTYLE_UNDERLINE,
+                         get_escape(ti, ESCAPE_SMUL), get_escape(ti, ESCAPE_RMUL));
+  }else if(newstyle & NCSTYLE_UNDERCURL){ // turn on undercurl, or do nothing
+    ret |= term_setstyle(out, *curstyle, newstyle, NCSTYLE_UNDERCURL,
+                         get_escape(ti, ESCAPE_SMULX), get_escape(ti, ESCAPE_SMULNOX));
+  }else{ // turn off any underlining
+    ret |= term_setstyle(out, *curstyle, newstyle, NCSTYLE_UNDERCURL | NCSTYLE_UNDERLINE,
+                         NULL, get_escape(ti, ESCAPE_RMUL));
+  }
+  *curstyle = newstyle;
+  return ret;
+}
+
 // write any escape sequences necessary to set the desired style
 static inline int
 term_setstyles(FILE* out, notcurses* nc, const nccell* c){
-  bool normalized = false;
-  uint32_t cellattr = nccell_styles(c);
-  if(cellattr == nc->rstate.curattr){
-    return 0; // happy agreement, change nothing
-  }
-  int ret = 0;
-  // if only italics changed, don't emit any sgr escapes. xor of current and
-  // target ought have all 0s in the lower 8 bits if only italics changed.
-  if((cellattr ^ nc->rstate.curattr) & 0xfful){
-    // if everything's 0, emit the shorter sgr0
-    const char* sgr0 = get_escape(&nc->tcache, ESCAPE_SGR0);
-    const char* sgr = get_escape(&nc->tcache, ESCAPE_SGR);
-    if(sgr0 && ((cellattr & NCSTYLE_MASK) == 0)){
-      if(term_emit(sgr0, out, false) < 0){
-        ret = -1;
-      }else{
-        normalized = true;
-      }
-    }else if(sgr){
-      if(term_emit(tiparm(sgr,
-                          0, // standout
-                          cellattr & NCSTYLE_UNDERLINE,
-                          0, // reverse
-                          0, // blink
-                          0, // dim
-                          cellattr & NCSTYLE_BOLD,
-                          0, // invisible
-                          0, // protect,
-                          0),
-                          out, false) < 0){
-        ret = -1;
-      }else{
-        normalized = true;
-      }
-    }
-    // sgr will blow away non-sgr properties if they were set beforehand
-    nc->rstate.curattr &= ~(NCSTYLE_ITALIC | NCSTYLE_STRUCK | NCSTYLE_UNDERCURL);
-  }
-  ret |= term_setstyle(out, nc->rstate.curattr, cellattr, NCSTYLE_ITALIC,
-                       get_escape(&nc->tcache, ESCAPE_SITM),
-                       get_escape(&nc->tcache, ESCAPE_RITM));
-  ret |= term_setstyle(out, nc->rstate.curattr, cellattr, NCSTYLE_STRUCK,
-                       get_escape(&nc->tcache, ESCAPE_SMXX),
-                       get_escape(&nc->tcache, ESCAPE_RMXX));
-  ret |= term_setstyle(out, nc->rstate.curattr, cellattr, NCSTYLE_UNDERCURL,
-                       get_escape(&nc->tcache, ESCAPE_SMULX),
-                       get_escape(&nc->tcache, ESCAPE_SMULNOX));
-  nc->rstate.curattr = cellattr;
+  unsigned normalized = false;
+  int ret = coerce_styles(out, &nc->tcache, &nc->rstate.curattr,
+                          nccell_styles(c), &normalized);
   if(normalized){
     nc->rstate.fgdefelidable = true;
     nc->rstate.bgdefelidable = true;
