@@ -336,10 +336,13 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
 // aren't supported by the terminal. we fire it off early because we have a
 // full round trip before getting the reply, which is likely to pace init.
 int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
-                         unsigned noaltscreen, unsigned nocbreak,
-                         queried_terminals_e qterm,
+                         unsigned noaltscreen, unsigned nocbreak, unsigned nonewfonts,
                          int* cursor_y, int* cursor_x){
+  queried_terminals_e qterm = TERMINAL_UNKNOWN;
   memset(ti, 0, sizeof(*ti));
+  if(is_linux_console(fd, nonewfonts)){
+    qterm = TERMINAL_LINUX;
+  }
   if(fd >= 0){
     if(qterm == TERMINAL_UNKNOWN){
       if(send_initial_queries(fd)){

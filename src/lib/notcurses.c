@@ -1074,10 +1074,6 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     return NULL;
   }
   ret->ttyfd = get_tty_fd(ret->ttyfp);
-  queried_terminals_e detected_term = TERMINAL_UNKNOWN;
-  if(is_linux_console(ret, !!(opts->flags & NCOPTION_NO_FONT_CHANGES))){
-    detected_term = TERMINAL_LINUX;
-  }
   if(ret->ttyfd < 0){
     fprintf(stderr, "Defaulting to %dx%d (output is not to a terminal)\n", DEFAULT_ROWS, DEFAULT_COLS);
   }
@@ -1116,7 +1112,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   int cursor_y = -1, cursor_x = -1;
   if(interrogate_terminfo(&ret->tcache, ret->ttyfd, shortname_term, utf8,
                           opts->flags & NCOPTION_NO_ALTERNATE_SCREEN, 0,
-                          detected_term,
+                          opts->flags & NCOPTION_NO_FONT_CHANGES,
                           opts->flags & NCOPTION_PRESERVE_CURSOR ? &cursor_y : NULL,
                           opts->flags & NCOPTION_PRESERVE_CURSOR ? &cursor_x : NULL)){
     goto err;

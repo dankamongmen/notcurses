@@ -1124,7 +1124,7 @@ int ncvisual_blit(struct ncvisual* ncv, int rows, int cols,
 
 void nclog(const char* fmt, ...);
 
-bool is_linux_console(const notcurses* nc, unsigned no_font_changes);
+bool is_linux_console(int fd, unsigned no_font_changes);
 
 // logging
 extern int loglevel;

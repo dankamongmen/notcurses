@@ -132,7 +132,7 @@ add_to_map(struct unimapdesc* map, wchar_t w, unsigned fidx){
 }
 
 static int
-program_line_drawing_chars(const notcurses* nc, struct unimapdesc* map){
+program_line_drawing_chars(int fd, struct unimapdesc* map){
   struct simset {
     wchar_t* ws;
   } sets[] = {
@@ -202,7 +202,7 @@ program_line_drawing_chars(const notcurses* nc, struct unimapdesc* map){
   if(toadd == 0){
     return 0;
   }
-  if(ioctl(nc->ttyfd, PIO_UNIMAP, map)){
+  if(ioctl(fd, PIO_UNIMAP, map)){
     logwarn("Error setting kernel unicode map (%s)\n", strerror(errno));
     return -1;
   }
@@ -212,7 +212,7 @@ program_line_drawing_chars(const notcurses* nc, struct unimapdesc* map){
 }
 
 static int
-program_block_drawing_chars(const notcurses* nc, struct console_font_op* cfo,
+program_block_drawing_chars(int fd, struct console_font_op* cfo,
                             struct unimapdesc* map){
   struct shimmer {
     unsigned qbits;
@@ -306,11 +306,11 @@ program_block_drawing_chars(const notcurses* nc, struct console_font_op* cfo,
     }
   }
   cfo->op = KD_FONT_OP_SET;
-  if(ioctl(nc->ttyfd, KDFONTOP, cfo)){
+  if(ioctl(fd, KDFONTOP, cfo)){
     logwarn("Error programming kernel font (%s)\n", strerror(errno));
     return -1;
   }
-  if(ioctl(nc->ttyfd, PIO_UNIMAP, map)){
+  if(ioctl(fd, PIO_UNIMAP, map)){
     logwarn("Error setting kernel unicode map (%s)\n", strerror(errno));
     return -1;
   }
@@ -319,9 +319,9 @@ program_block_drawing_chars(const notcurses* nc, struct console_font_op* cfo,
 }
 
 static int
-reprogram_linux_font(const notcurses* nc, struct console_font_op* cfo,
+reprogram_linux_font(int fd, struct console_font_op* cfo,
                      struct unimapdesc* map){
-  if(ioctl(nc->ttyfd, KDFONTOP, cfo)){
+  if(ioctl(fd, KDFONTOP, cfo)){
     logwarn("Error reading Linux kernelfont (%s)\n", strerror(errno));
     return -1;
   }
@@ -331,24 +331,24 @@ reprogram_linux_font(const notcurses* nc, struct console_font_op* cfo,
     logwarn("Warning: kernel returned excess charcount\n");
     return -1;
   }
-  if(ioctl(nc->ttyfd, GIO_UNIMAP, map)){
+  if(ioctl(fd, GIO_UNIMAP, map)){
     logwarn("Error reading Linux unimap (%s)\n", strerror(errno));
     return -1;
   }
   loginfo("Kernel Unimap size: %hu/%hu\n", map->entry_ct, USHRT_MAX);
   // for certain sets of characters, we're not going to draw them in, but we
   // do want to ensure they map to something plausible...
-  if(program_line_drawing_chars(nc, map)){
+  if(program_line_drawing_chars(fd, map)){
     return -1;
   }
-  if(program_block_drawing_chars(nc, cfo, map)){
+  if(program_block_drawing_chars(fd, cfo, map)){
     return -1;
   }
   return 0;
 }
 
 static int
-reprogram_console_font(const notcurses* nc){
+reprogram_console_font(int fd){
   struct console_font_op cfo = {
     .op = KD_FONT_OP_GET,
     .charcount = 512,
@@ -370,19 +370,19 @@ reprogram_console_font(const notcurses* nc){
     free(cfo.data);
     return -1;
   }
-  int r = reprogram_linux_font(nc, &cfo, &map);
+  int r = reprogram_linux_font(fd, &cfo, &map);
   free(cfo.data);
   free(map.entries);
   return r;
 }
 
 // is the provided fd a Linux console?
-bool is_linux_console(const notcurses* nc, unsigned no_font_changes){
-  if(nc->ttyfd < 0){
+bool is_linux_console(int fd, unsigned no_font_changes){
+  if(fd < 0){
     return false;
   }
   int mode;
-  if(ioctl(nc->ttyfd, KDGETMODE, &mode)){
+  if(ioctl(fd, KDGETMODE, &mode)){
     logdebug("Not a Linux console, KDGETMODE failed\n");
     return false;
   }
@@ -391,11 +391,11 @@ bool is_linux_console(const notcurses* nc, unsigned no_font_changes){
     logdebug("Not reprogramming the console font due to option\n");
     return true;
   }
-  reprogram_console_font(nc);
+  reprogram_console_font(fd);
   return true;
 }
 #else
-bool is_linux_console(const notcurses* nc, unsigned no_font_changes){
+bool is_linux_console(int fd, unsigned no_font_changes){
   (void)nc;
   (void)no_font_changes;
   return false;
