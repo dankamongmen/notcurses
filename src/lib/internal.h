@@ -1271,6 +1271,8 @@ coerce_styles(FILE* out, const tinfo* ti, uint16_t* curstyle,
               uint16_t newstyle, unsigned* normalized){
   *normalized = 0; // we never currently use sgr0
   int ret = 0;
+  ret |= term_setstyle(out, *curstyle, newstyle, NCSTYLE_BLINK,
+                       get_escape(ti, ESCAPE_BLINK), get_escape(ti, ESCAPE_NOBLINK));
   ret |= term_setstyle(out, *curstyle, newstyle, NCSTYLE_BOLD,
                        get_escape(ti, ESCAPE_BOLD), get_escape(ti, ESCAPE_NOBOLD));
   ret |= term_setstyle(out, *curstyle, newstyle, NCSTYLE_ITALIC,

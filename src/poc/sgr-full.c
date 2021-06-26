@@ -18,6 +18,8 @@ int main(void){
   // FIXME do full permutations?
   ncplane_set_styles(n, NCSTYLE_NONE);
   ncplane_putstr_yx(n, y++, 0, "a ═ none");
+  ncplane_set_styles(n, NCSTYLE_BLINK);
+  ncplane_putstr_yx(n, y++, 0, "a ═ blink");
   ncplane_set_styles(n, NCSTYLE_ITALIC);
   ncplane_putstr_yx(n, y++, 0, "a ═ italic");
   ncplane_set_styles(n, NCSTYLE_BOLD);
@@ -64,6 +66,10 @@ int main(void){
   ncplane_putstr_yx(n, y++, 0, "a ═ bold underline italic struck");
   ncplane_set_styles(n, NCSTYLE_BOLD | NCSTYLE_UNDERCURL | NCSTYLE_ITALIC | NCSTYLE_STRUCK);
   ncplane_putstr_yx(n, y++, 0, "a ═ bold undercurl italic struck");
+  ncplane_set_styles(n, NCSTYLE_BOLD | NCSTYLE_UNDERLINE | NCSTYLE_ITALIC | NCSTYLE_STRUCK | NCSTYLE_BLINK);
+  ncplane_putstr_yx(n, y++, 0, "a ═ bold underline italic struck blink");
+  ncplane_set_styles(n, NCSTYLE_BOLD | NCSTYLE_UNDERCURL | NCSTYLE_ITALIC | NCSTYLE_STRUCK | NCSTYLE_BLINK);
+  ncplane_putstr_yx(n, y++, 0, "a ═ bold undercurl italic struck blink");
 
   ncplane_set_styles(n, NCSTYLE_NONE);
   if(notcurses_render(nc)){

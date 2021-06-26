@@ -46,6 +46,8 @@ typedef enum {
   ESCAPE_CUF,      // "cuf" move n cells forward (right)
   ESCAPE_BOLD,     // "bold" enter bold mode
   ESCAPE_NOBOLD,   // disable bold (ANSI but not terminfo, SGR 22)
+  ESCAPE_BLINK,    // "blink" enter blink mode
+  ESCAPE_NOBLINK,  // disable blink (ANSI but not terminfo, SGR 25)
   ESCAPE_CUD,      // "cud" move n cells down
   ESCAPE_CUF1,     // "cuf1" move 1 cell forward (right)
   ESCAPE_SMKX,     // "smkx" keypad_xmit (keypad transmit mode)

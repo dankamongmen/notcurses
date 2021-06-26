@@ -169,6 +169,8 @@ static void
 tinfo_debug_styles(struct ncplane* n, const char* indent){
   ncplane_set_fg_rgb8(n, 0xc8, 0xa2, 0xc8);
   ncplane_putstr(n, indent);
+  tinfo_debug_style(n, "blink", NCSTYLE_BLINK);
+  ncplane_putchar(n, ' ');
   tinfo_debug_style(n, "bold", NCSTYLE_BOLD);
   ncplane_putchar(n, ' ');
   tinfo_debug_style(n, "ital", NCSTYLE_ITALIC);

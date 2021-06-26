@@ -2,7 +2,8 @@ This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
 * 2.3.7 (not yet released)
-  * Deprecated `NCSTYLE_REVERSE` and `NCSTYLE_DIM`. The remainder are safe.
+  * Deprecated `NCSTYLE_REVERSE` and `NCSTYLE_DIM`. The remainder are safe,
+    and I added back `NCSTYLE_BLINK` according to popular demand.
   * Added `NCOPTION_PRESERVE_CURSOR`. If used, the standard plane's virtual
     cursor will be initialized to match its position at startup, rather than
     starting in the upper-left corner. Together with a scrolling standard

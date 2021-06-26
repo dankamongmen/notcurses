@@ -390,6 +390,7 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
     { ESCAPE_SITM, "sitm", },
     { ESCAPE_RITM, "ritm", },
     { ESCAPE_BOLD, "bold", },
+    { ESCAPE_BLINK, "blink", },
     { ESCAPE_CUD, "cud", },
     { ESCAPE_CUU, "cuu", },
     { ESCAPE_CUF, "cuf", },
@@ -467,10 +468,16 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
     { NCSTYLE_UNDERLINE, "smul", A_UNDERLINE },
     { NCSTYLE_ITALIC, "sitm", A_ITALIC },
     { NCSTYLE_STRUCK, "smxx", 0 },
+    { NCSTYLE_BLINK, "blink", A_BLINK },
     { 0, NULL, 0 }
   };
   if(get_escape(ti, ESCAPE_BOLD)){
     if(grow_esc_table(ti, "\e[22m", ESCAPE_NOBOLD, &tablelen, &tableused)){
+      goto err;
+    }
+  }
+  if(get_escape(ti, ESCAPE_BLINK)){
+    if(grow_esc_table(ti, "\e[25m", ESCAPE_NOBLINK, &tablelen, &tableused)){
       goto err;
     }
   }

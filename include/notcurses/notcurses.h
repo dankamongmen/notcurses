@@ -663,19 +663,13 @@ API int nccell_duplicate(struct ncplane* n, nccell* targ, const nccell* c);
 // Release resources held by the nccell 'c'.
 API void nccell_release(struct ncplane* n, nccell* c);
 
-// FIXME for abi3, flatten these back down and recover the contiguous bits
-#define NCSTYLE_MASK      0x07ffu
-#define NCSTYLE_UNDERCURL 0x0400u
-#define NCSTYLE_STRUCK    0x0200u
-#define NCSTYLE_ITALIC    0x0100u
-// 0x0080 NCSTYLE_STANDOUT has been deprecated
-#define NCSTYLE_UNDERLINE 0x0040u
-// 0x0020 NCSTYLE_REVERSE has been deprecated
-// 0x0010 NCSTYLE_BLINK has been deprecated
-// 0x0008 NCSTYLE_DIM has been deprecated
+#define NCSTYLE_MASK      0xffffu
+#define NCSTYLE_ITALIC    0x0020u
+#define NCSTYLE_UNDERLINE 0x0010u
+#define NCSTYLE_UNDERCURL 0x0008u
 #define NCSTYLE_BOLD      0x0004u
-// 0x0002 NCSTYLE_INVIS has been deprecated
-// 0x0001 NCSTYLE_PROTECT has been deprecated
+#define NCSTYLE_STRUCK    0x0002u
+#define NCSTYLE_BLINK     0x0001u
 #define NCSTYLE_NONE      0
 
 // Set the specified style bits for the nccell 'c', whether they're actively
@@ -4367,7 +4361,6 @@ API void notcurses_debug_caps(const struct notcurses* nc, FILE* debugfp)
 #define CELL_ALPHA_OPAQUE       NCALPHA_OPAQUE
 #define NCSTYLE_PROTECT   0x0001u
 #define NCSTYLE_STANDOUT  0x0080u
-#define NCSTYLE_BLINK     0x0010u
 #define NCSTYLE_REVERSE   0x0020u
 #define NCSTYLE_INVIS     0x0002u
 #define NCSTYLE_DIM       0x0008u
