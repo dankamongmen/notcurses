@@ -148,6 +148,9 @@ offset(uint32_t* rgba, int y, int x, int dx){
 
 // make a pixel array out from the center, blitting it as we go
 int normal_demo(struct notcurses* nc){
+  if(!notcurses_canutf8(nc)){
+    return 0;
+  }
   int dy, dx;
   int r = -1;
   struct ncplane* nstd = notcurses_stddim_yx(nc, &dy, &dx);
