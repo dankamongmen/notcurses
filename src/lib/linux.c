@@ -213,7 +213,8 @@ program_line_drawing_chars(int fd, struct unimapdesc* map){
 
 static int
 program_block_drawing_chars(int fd, struct console_font_op* cfo,
-                            struct unimapdesc* map){
+                            struct unimapdesc* map, unsigned no_font_changes,
+                            bool* quadrants){
   struct shimmer {
     unsigned qbits;
     wchar_t w;
@@ -243,12 +244,14 @@ program_block_drawing_chars(int fd, struct console_font_op* cfo,
     { .qbits = 1, .w = L'▁', .found = false, },
   };
   // first, take a pass to see which glyphs we already have
+  size_t numfound = 0;
   for(unsigned i = 0 ; i < cfo->charcount ; ++i){
     if(map->entries[i].unicode >= 0x2580 && map->entries[i].unicode <= 0x259f){
       for(size_t s = 0 ; s < sizeof(shimmers) / sizeof(*shimmers) ; ++s){
         if(map->entries[i].unicode == shimmers[s].w){
           logdebug("Found %lc at fontidx %u\n", shimmers[s].w, i);
           shimmers[s].found = true;
+          ++numfound;
           break;
         }
       }
@@ -256,10 +259,20 @@ program_block_drawing_chars(int fd, struct console_font_op* cfo,
         if(map->entries[i].unicode == eighths[s].w){
           logdebug("Found %lc at fontidx %u\n", eighths[s].w, i);
           eighths[s].found = true;
+          ++numfound;
           break;
         }
       }
     }
+  }
+  if(numfound == (sizeof(shimmers) + sizeof(eighths)) / sizeof(*shimmers)){
+    logdebug("All %zu desired glyphs were already present\n", numfound);
+    *quadrants = true;
+    return 0;
+  }
+  if(no_font_changes){
+    logdebug("Not reprogramming kernel font, per orders\n");
+    return 0;
   }
   int added = 0;
   unsigned candidate = cfo->charcount;
@@ -314,13 +327,17 @@ program_block_drawing_chars(int fd, struct console_font_op* cfo,
     logwarn("Error setting kernel unicode map (%s)\n", strerror(errno));
     return -1;
   }
+  if(added + numfound == (sizeof(shimmers) + sizeof(eighths)) / sizeof(*shimmers)){
+    *quadrants = true;
+  }
   loginfo("Successfully added %d kernel font glyph%s\n", added, added == 1 ? "" : "s");
   return 0;
 }
 
 static int
 reprogram_linux_font(int fd, struct console_font_op* cfo,
-                     struct unimapdesc* map){
+                     struct unimapdesc* map, unsigned no_font_changes,
+                     bool* quadrants){
   if(ioctl(fd, KDFONTOP, cfo)){
     logwarn("Error reading Linux kernelfont (%s)\n", strerror(errno));
     return -1;
@@ -338,17 +355,19 @@ reprogram_linux_font(int fd, struct console_font_op* cfo,
   loginfo("Kernel Unimap size: %hu/%hu\n", map->entry_ct, USHRT_MAX);
   // for certain sets of characters, we're not going to draw them in, but we
   // do want to ensure they map to something plausible...
-  if(program_line_drawing_chars(fd, map)){
-    return -1;
+  if(!no_font_changes){
+    if(program_line_drawing_chars(fd, map)){
+      return -1;
+    }
   }
-  if(program_block_drawing_chars(fd, cfo, map)){
+  if(program_block_drawing_chars(fd, cfo, map, no_font_changes, quadrants)){
     return -1;
   }
   return 0;
 }
 
 static int
-reprogram_console_font(int fd){
+reprogram_console_font(int fd, unsigned no_font_changes, bool* quadrants){
   struct console_font_op cfo = {
     .op = KD_FONT_OP_GET,
     .charcount = 512,
@@ -370,14 +389,16 @@ reprogram_console_font(int fd){
     free(cfo.data);
     return -1;
   }
-  int r = reprogram_linux_font(fd, &cfo, &map);
+  int r = reprogram_linux_font(fd, &cfo, &map, no_font_changes, quadrants);
   free(cfo.data);
   free(map.entries);
   return r;
 }
 
-// is the provided fd a Linux console?
-bool is_linux_console(int fd, unsigned no_font_changes){
+// is the provided fd a Linux console? if so, returns true. if it is indeed
+// a Linux console, and the console font has the quadrant glyphs (either
+// because they were already present, or we added them), quadrants is set high.
+bool is_linux_console(int fd, unsigned no_font_changes, bool* quadrants){
   if(fd < 0){
     return false;
   }
@@ -387,11 +408,7 @@ bool is_linux_console(int fd, unsigned no_font_changes){
     return false;
   }
   loginfo("Verified Linux console, mode %d\n", mode);
-  if(no_font_changes){
-    logdebug("Not reprogramming the console font due to option\n");
-    return true;
-  }
-  reprogram_console_font(fd);
+  reprogram_console_font(fd, no_font_changes, quadrants);
   return true;
 }
 #else

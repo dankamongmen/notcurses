@@ -267,6 +267,9 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
     ti->caps.quadrants = true;
     // ti->caps.sextants = true; // alacritty https://github.com/alacritty/alacritty/issues/4409 */
     ti->caps.rgb = true;
+    if(add_smulx_escapes(ti, tablelen, tableused)){
+      return -1;
+    }
   }else if(qterm == TERMINAL_VTE){
     termname = "VTE";
     ti->caps.quadrants = true;
@@ -287,9 +290,7 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
     termname = "WezTerm";
     ti->caps.rgb = true;
     ti->caps.quadrants = true;
-    // FIXME get version from query
-    const char* termver = getenv("TERM_PROGRAM_VERSION");
-    if(termver && strcmp(termver, "20210610") >= 0){
+    if(ti->termversion && strcmp(ti->termversion, "20210610") >= 0){
       ti->caps.sextants = true; // good caps.sextants as of 2021-06-10
       if(add_smulx_escapes(ti, tablelen, tableused)){
         return -1;
@@ -309,11 +310,7 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
       ti->termversion = strdup(un.release);
     }
     termname = "Linux console";
-    // FIXME get kernel version
     ti->caps.braille = false; // no caps.braille, no caps.sextants in linux console
-    // FIXME if the NCOPTION_NO_FONT_CHANGES, this isn't true
-    // FIXME we probably want to ID based off ioctl()s in linux.c
-    ti->caps.quadrants = true; // we program caps.quadrants on the console
   }
   // run a wcwidth(⣿) to guarantee libc Unicode 3 support, independent of term
   if(wcwidth(L'⣿') < 0){
@@ -340,7 +337,8 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
                          int* cursor_y, int* cursor_x){
   queried_terminals_e qterm = TERMINAL_UNKNOWN;
   memset(ti, 0, sizeof(*ti));
-  if(is_linux_console(fd, nonewfonts)){
+  // we might or might not program quadrants into the console font
+  if(is_linux_console(fd, nonewfonts, &ti->caps.quadrants)){
     qterm = TERMINAL_LINUX;
   }
   if(fd >= 0){
@@ -476,6 +474,7 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
     { NCSTYLE_ITALIC, ESCAPE_SITM, "sitm", A_ITALIC },
     { NCSTYLE_STRUCK, ESCAPE_SMXX, "smxx", 0 },
     { NCSTYLE_BLINK, ESCAPE_BLINK, "blink", A_BLINK },
+    { NCSTYLE_UNDERCURL, ESCAPE_SMULX, "smulx", 0 },
     { 0, 0, NULL, 0 }
   };
   int nocolor_stylemask = tigetnum("ncv");

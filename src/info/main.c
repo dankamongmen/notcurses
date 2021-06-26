@@ -37,12 +37,6 @@ braille_viz(ncplane* n, const char* l, const wchar_t* egcs, const char* r, const
 static int
 unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
   if(ti->caps.utf8){
-    /*uint32_t l = CHANNEL_RGB_INITIALIZER(0x20, 0x20, 0x20);
-    uint32_t r = CHANNEL_RGB_INITIALIZER(0x80, 0x80, 0x80);
-    int y, x;
-    ncplane_cursor_yx(n, &y, &x);
-    ncplane_highgradient_sized(n, l, r, l, r, 10, ncplane_dim_x(n));
-    ncplane_cursor_move_yx(n, y, x);*/
     ncplane_printf(n, " {%ls} {%ls} ⎧%.122ls⎫        ⎧█ ⎫ 🯰🯱\n",
                    NCHALFBLOCKS, NCQUADBLOCKS, NCSEXBLOCKS);
     ncplane_printf(n, "                           ⎩%ls⎭        ⎪🮋▏⎪ 🯲🯳\n",
@@ -65,17 +59,17 @@ unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
     ncplane_printf(n, "⎪🮇▊⎪\n");
     braille_viz(n, "⎣",NCBRAILLEEGCS + 192, "⎦", indent);
     ncplane_printf(n, "⎪▕▉⎪\n");
-    ncplane_printf(n, "%s⎛%ls⎞  ▔🭶🭷🭸🭹🭺🭻▁ 🭁 🭂 🭃 🭄 🭅 🭆 🭑 🭐 🭏 🭎 🭍 🭌 🭆🭑 🭄🭏 🭅🭐 🭃🭎 🭂🭍 🭁🭌 🭨🭪 ⎩ █⎭\n",
+    ncplane_printf(n, "%s⎛%ls⎞ ▔🭶🭷🭸🭹🭺🭻▁ 🭁 🭂 🭃 🭄 🭅 🭆 🭑 🭐 🭏 🭎 🭍 🭌 🭆🭑 🭄🭏 🭅🭐 🭃🭎 🭂🭍 🭁🭌 🭨🭪  ⎩ █⎭\n",
                    indent, NCEIGHTHSBOTTOM);
-    ncplane_printf(n, "%s⎝%ls⎠  ▏🭰🭱🭲🭳🭴🭵▕ 🭒 🭓 🭔 🭕 🭖 🭧 🭜 🭟 🭠 🭡 🭞 🭝 🭧🭜 🭕🭠 🭖🭡 🭔🭟 🭓🭞 🭒🭝 🭪🭨       \n",
+    ncplane_printf(n, "%s⎝%ls⎠ ▏🭰🭱🭲🭳🭴🭵▕ 🭒 🭓 🭔 🭕 🭖 🭧 🭜 🭟 🭠 🭡 🭞 🭝 🭧🭜 🭕🭠 🭖🭡 🭔🭟 🭓🭞 🭒🭝 🭪🭨 \n",
                    indent, NCEIGHTSTOP);
     int y, x;
     ncplane_cursor_yx(n, &y, &x);
     // the symbols for legacy computing
-    ncplane_cursor_move_yx(n, y - 2, 23);
+    ncplane_cursor_move_yx(n, y - 2, 12);
     uint32_t ul = CHANNEL_RGB_INITIALIZER(0x30, 0x30, 0x30);
     uint32_t lr = CHANNEL_RGB_INITIALIZER(0x80, 0x80, 0x80);
-    ncplane_stain(n, y, 66, ul, lr, ul, lr);
+    ncplane_stain(n, y - 1, 65, ul, lr, ul, lr);
     // the vertical eighths
     ncplane_cursor_move_yx(n, y - 2, 2);
     ul = CHANNEL_RGB_INITIALIZER(0x60, 0x7d, 0x3b);
