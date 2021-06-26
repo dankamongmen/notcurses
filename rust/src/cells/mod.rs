@@ -285,11 +285,12 @@ pub type NcEgcBackstop = u8;
 /// ## Attributes
 ///
 /// - [`NCSTYLE_MASK`]
-/// - [`NCSTYLE_UNDERCURL`]
-/// - [`NCSTYLE_STRUCK`]
 /// - [`NCSTYLE_ITALIC`]
 /// - [`NCSTYLE_UNDERLINE`]
+/// - [`NCSTYLE_UNDERCURL`]
+/// - [`NCSTYLE_STRUCK`]
 /// - [`NCSTYLE_BOLD`]
+/// - [`NCSTYLE_BLINK`]
 /// - [`NCSTYLE_NONE`]
 ///
 /// ## Diagram
@@ -306,19 +307,22 @@ pub type NcStyle = u16;
 pub const NCSTYLE_MASK: u16 = crate::bindings::ffi::NCSTYLE_MASK as u16;
 
 ///
-pub const NCSTYLE_UNDERCURL: u16 = crate::bindings::ffi::NCSTYLE_UNDERCURL as u16;
-
-///
-pub const NCSTYLE_STRUCK: u16 = crate::bindings::ffi::NCSTYLE_STRUCK as u16;
-
-///
 pub const NCSTYLE_ITALIC: u16 = crate::bindings::ffi::NCSTYLE_ITALIC as u16;
 
 ///
 pub const NCSTYLE_UNDERLINE: u16 = crate::bindings::ffi::NCSTYLE_UNDERLINE as u16;
 
 ///
+pub const NCSTYLE_UNDERCURL: u16 = crate::bindings::ffi::NCSTYLE_UNDERCURL as u16;
+
+///
+pub const NCSTYLE_STRUCK: u16 = crate::bindings::ffi::NCSTYLE_STRUCK as u16;
+
+///
 pub const NCSTYLE_BOLD: u16 = crate::bindings::ffi::NCSTYLE_BOLD as u16;
+
+///
+pub const NCSTYLE_BLINK: u16 = crate::bindings::ffi::NCSTYLE_BLINK as u16;
 
 ///
 pub const NCSTYLE_NONE: u16 = crate::bindings::ffi::NCSTYLE_NONE as u16;

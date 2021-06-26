@@ -661,11 +661,12 @@ pub use ffi::{
 //
 // // constants
 // NCSTYLE_MASK,
-// NCSTYLE_UNDERCURL,
-// NCSTYLE_STRUCK,
 // NCSTYLE_ITALIC,
 // NCSTYLE_UNDERLINE,
+// NCSTYLE_UNDERCURL,
 // NCSTYLE_BOLD,
+// NCSTYLE_STRUCK,
+// NCSTYLE_BLINK,
 // NCSTYLE_NONE,
 
 // nctablet --------------------------------------------------------------------
