@@ -27,11 +27,12 @@ typedef struct ncplane_options {
   int margin_b, margin_r; // bottom and right margins
 } ncplane_options;
 
-#define NCSTYLE_UNDERCURL 0x0400u
-#define NCSTYLE_STRUCK    0x0200u
-#define NCSTYLE_ITALIC    0x0100u
-#define NCSTYLE_UNDERLINE 0x0040u
+#define NCSTYLE_ITALIC    0x0020u
+#define NCSTYLE_UNDERLINE 0x0010u
+#define NCSTYLE_UNDERCURL 0x0008u
 #define NCSTYLE_BOLD      0x0004u
+#define NCSTYLE_STRUCK    0x0002u
+#define NCSTYLE_BLINK     0x0001u
 #define NCSTYLE_NONE      0
 ```
 

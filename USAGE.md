@@ -1901,12 +1901,14 @@ void nccell_release(struct ncplane* n, nccell* c);
 // Get the number of columns occupied by 'c'.
 int nccell_width(const struct ncplane* n, const nccell* c);
 
-#define NCSTYLE_MASK      0x03fful
-#define NCSTYLE_UNDERLINE 0x0040ul
-#define NCSTYLE_BOLD      0x0004ul
-#define NCSTYLE_ITALIC    0x0100ul
-#define NCSTYLE_STRUCK    0x0200ul
-#define NCSTYLE_UNDERCURL 0x0400ul
+#define NCSTYLE_MASK      0xffffu
+#define NCSTYLE_ITALIC    0x0020u
+#define NCSTYLE_UNDERLINE 0x0010u
+#define NCSTYLE_UNDERCURL 0x0008u
+#define NCSTYLE_BOLD      0x0004u
+#define NCSTYLE_STRUCK    0x0002u
+#define NCSTYLE_BLINK     0x0001u
+#define NCSTYLE_NONE      0
 
 // copy the UTF8-encoded EGC out of the cell, whether simple or complex. the
 // result is not tied to the ncplane, and persists across erases / destruction.
