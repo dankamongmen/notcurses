@@ -34,7 +34,6 @@ typedef enum {
   ESCAPE_OP,       // "op" set foreground and background color to defaults
   ESCAPE_FGOP,     // set foreground only to default
   ESCAPE_BGOP,     // set background only to default
-  ESCAPE_SGR,      // "sgr" set graphics rendering (styles)
   ESCAPE_SGR0,     // "sgr0" turn off all styles
   ESCAPE_CIVIS,    // "civis" make the cursor invisiable
   ESCAPE_CNORM,    // "cnorm" restore the cursor to normal

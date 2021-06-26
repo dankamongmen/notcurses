@@ -385,7 +385,6 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
     { ESCAPE_OP, "op", },
     { ESCAPE_CNORM, "cnorm", },
     { ESCAPE_CIVIS, "civis", },
-    { ESCAPE_SGR, "sgr", },
     { ESCAPE_SGR0, "sgr0", },
     { ESCAPE_SITM, "sitm", },
     { ESCAPE_RITM, "ritm", },
@@ -454,23 +453,6 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
       }
     }
   }
-  // we don't actually use the bold capability -- we use sgr exclusively.
-  // but we use the presence of the bold capability to determine whether
-  // we think sgr supports bold, which...might be valid? i'm unsure.
-  // further, some terminals cannot combine certain styles with colors.
-  // don't advertise support for the style in that case.
-  const struct style {
-    unsigned s;        // NCSTYLE_* value
-    const char* tinfo; // terminfo capability for conditional permit
-    unsigned ncvbit;   // bit in "ncv" mask for unconditional deny
-  } styles[] = {
-    { NCSTYLE_BOLD, "bold", A_BOLD },
-    { NCSTYLE_UNDERLINE, "smul", A_UNDERLINE },
-    { NCSTYLE_ITALIC, "sitm", A_ITALIC },
-    { NCSTYLE_STRUCK, "smxx", 0 },
-    { NCSTYLE_BLINK, "blink", A_BLINK },
-    { 0, NULL, 0 }
-  };
   if(get_escape(ti, ESCAPE_BOLD)){
     if(grow_esc_table(ti, "\e[22m", ESCAPE_NOBOLD, &tablelen, &tableused)){
       goto err;
@@ -481,7 +463,21 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
       goto err;
     }
   }
-  const char* sgr = get_escape(ti, ESCAPE_SGR);
+  // some terminals cannot combine certain styles with colors.
+  // don't advertise support for the style in that case.
+  const struct style {
+    unsigned s;        // NCSTYLE_* value
+    int esc;           // ESCAPE_* value for enable
+    const char* tinfo; // terminfo capability for conditional permit
+    unsigned ncvbit;   // bit in "ncv" mask for unconditional deny
+  } styles[] = {
+    { NCSTYLE_BOLD, ESCAPE_BOLD, "bold", A_BOLD },
+    { NCSTYLE_UNDERLINE, ESCAPE_SMUL, "smul", A_UNDERLINE },
+    { NCSTYLE_ITALIC, ESCAPE_SITM, "sitm", A_ITALIC },
+    { NCSTYLE_STRUCK, ESCAPE_SMXX, "smxx", 0 },
+    { NCSTYLE_BLINK, ESCAPE_BLINK, "blink", A_BLINK },
+    { 0, 0, NULL, 0 }
+  };
   int nocolor_stylemask = tigetnum("ncv");
   for(typeof(*styles)* s = styles ; s->s ; ++s){
     if(nocolor_stylemask > 0){
@@ -490,11 +486,8 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
         continue;
       }
     }
-    if(sgr){
-      char* style;
-      if(terminfostr(&style, s->tinfo) == 0){
-        ti->supported_styles |= s->s;
-      }
+    if(get_escape(ti, s->esc)){
+      ti->supported_styles |= s->s;
     }
   }
   // italics are never handled by sgr, but *can* be locked out by ncv. if
