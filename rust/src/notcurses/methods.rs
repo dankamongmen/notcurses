@@ -4,7 +4,7 @@ use core::ptr::{null, null_mut};
 
 use crate::{
     cstring, error, error_ref_mut, notcurses_init, rstring, Nc, NcAlign, NcBlitter, NcChannels,
-    NcDim, NcEgc, NcError, NcFile, NcInput, NcLogLevel, NcOptions, NcPlane, NcResult, NcScale,
+    NcDim, NcError, NcFile, NcInput, NcLogLevel, NcOptions, NcPlane, NcResult, NcScale,
     NcSignalSet, NcStats, NcStyle, NcTime, NCOPTION_NO_ALTERNATE_SCREEN, NCOPTION_SUPPRESS_BANNERS,
     NCRESULT_ERR,
 };
@@ -130,10 +130,11 @@ impl Nc {
     }
 
     /// Retrieves the current contents of the specified [NcCell][crate::NcCell]
-    /// as last rendered, returning the [NcEgc] (or None on error) and writing
-    /// out the [NcStyle] and the [NcChannels].
+    /// as last rendered, returning the `EGC` (or None on error) and writing
+    /// out the [`NcStyle`] and the [`NcChannels`].
     ///
-    /// This NcEgc must be freed by the caller.
+    // possible BUG? CHECK:
+    /// This `EGC` must be freed by the caller.
     ///
     /// *C style function: [notcurses_at_yx()][crate::notcurses_at_yx].*
     pub fn at_yx(
@@ -142,16 +143,15 @@ impl Nc {
         x: NcDim,
         stylemask: &mut NcStyle,
         channels: &mut NcChannels,
-    ) -> Option<NcEgc> {
+    ) -> Option<String> {
         let egc = unsafe { crate::notcurses_at_yx(self, x as i32, y as i32, stylemask, channels) };
         if egc.is_null() {
             return None;
         }
-        let egc = core::char::from_u32(unsafe { *egc } as u32).expect("wrong char");
-        Some(egc)
+        Some(rstring![egc].into())
     }
 
-    /// Returns the bottommost [NcPlane] on the standard pile,
+    /// Returns the bottommost [`NcPlane`] on the standard pile,
     /// of which there is always at least one.
     ///
     /// *C style function: [notcurses_bottom()][crate::notcurses_bottom].*
@@ -306,7 +306,7 @@ impl Nc {
         rstring![crate::notcurses_detected_terminal(self)].to_string()
     }
 
-    /// Destroys all [NcPlane]s other than the stdplane.
+    /// Destroys all [`NcPlane`]s other than the stdplane.
     ///
     /// *C style function: [notcurses_drop_planes()][crate::notcurses_drop_planes].*
     pub fn drop_planes(&mut self) {
@@ -409,7 +409,7 @@ impl Nc {
         error![unsafe { crate::notcurses_inputready_fd(self) }]
     }
 
-    /// Returns an [NcBlitter] from a string representation.
+    /// Returns an [`NcBlitter`] from a string representation.
     ///
     /// *C style function: [notcurses_lex_blitter()][crate::notcurses_lex_blitter].*
     pub fn lex_blitter(op: &str) -> NcResult<NcBlitter> {
@@ -430,7 +430,7 @@ impl Nc {
         error![unsafe { crate::notcurses_lex_margins(cstring![op], options) }]
     }
 
-    /// Returns an [NcScale] from a string representation.
+    /// Returns an [`NcScale`] from a string representation.
     ///
     /// *C style function: [notcurses_lex_scalemode()][crate::notcurses_lex_scalemode].*
     pub fn lex_scalemode(op: &str) -> NcResult<NcScale> {
@@ -496,7 +496,7 @@ impl Nc {
 
     /// Refreshes the physical screen to match what was last rendered (i.e.,
     /// without reflecting any changes since the last call to
-    /// [render][crate::Nc#method.render]).
+    /// [`render`][crate::Nc#method.render]).
     ///
     /// Returns the current screen geometry (`y`, `x`).
     ///
@@ -523,12 +523,13 @@ impl Nc {
     }
 
     /// Performs the rendering and rasterization portion of
-    /// [render][Nc#method.render] but do not write the resulting buffer
+    /// [`render`][Nc#method.render] but do not write the resulting buffer
     /// out to the terminal.
     ///
     /// Using this function, the user can control the writeout process,
     /// and render a second frame while writing another.
     ///
+    // possible BUG? CHECK:
     /// The returned buffer must be freed by the caller.
     ///
     /// *C style function: [notcurses_render_to_buffer()][crate::notcurses_render_to_buffer].*
@@ -549,7 +550,7 @@ impl Nc {
 
     /// Writes the last rendered frame, in its entirety, to 'fp'.
     ///
-    /// If [render()][Nc#method.render] has not yet been called,
+    /// If [`render`][Nc#method.render] has not yet been called,
     /// nothing will be written.
     ///
     /// *C style function: [notcurses_render_to_file()][crate::notcurses_render_to_file].*
@@ -613,7 +614,7 @@ impl Nc {
     //     crate::notcurses_stddim_yx_const(self, y, x)
     // }
 
-    /// Returns a mutable reference to the standard [NcPlane] for this terminal.
+    /// Returns a mutable reference to the standard [`NcPlane`] for this terminal.
     ///
     /// The standard plane always exists, and its origin is always at the
     /// uppermost, leftmost cell.
@@ -623,7 +624,7 @@ impl Nc {
         unsafe { &mut *crate::notcurses_stdplane(self) }
     }
 
-    /// Returns a reference to the standard [NcPlane] for this terminal.
+    /// Returns a reference to the standard [`NcPlane`] for this terminal.
     ///
     /// The standard plane always exists, and its origin is always at the
     /// uppermost, leftmost cell.
@@ -640,21 +641,21 @@ impl Nc {
         error![unsafe { crate::notcurses_stop(self) }]
     }
 
-    /// Gets the name of an [NcBlitter] blitter.
+    /// Gets the name of an [`NcBlitter`] blitter.
     ///
     /// *C style function: [notcurses_str_blitter()][crate::notcurses_str_blitter].*
     pub fn str_blitter(blitter: NcBlitter) -> String {
         rstring![crate::notcurses_str_blitter(blitter)].to_string()
     }
 
-    /// Gets the name of an [NcScale] scaling mode.
+    /// Gets the name of an [`NcScale`] scaling mode.
     ///
     /// *C style function: [notcurses_str_scalemode()][crate::notcurses_str_scalemode].*
     pub fn str_scalemode(scalemode: NcScale) -> String {
         rstring![crate::notcurses_str_scalemode(scalemode)].to_string()
     }
 
-    /// Returns an [NcStyle] with the supported curses-style attributes.
+    /// Returns an [`NcStyle`] with the supported curses-style attributes.
     ///
     /// The attribute is only indicated as supported if the terminal can support
     /// it together with color.
@@ -673,7 +674,7 @@ impl Nc {
         crate::notcurses_term_dim_yx(self)
     }
 
-    /// Returns the topmost [NcPlane], of which there is always at least one.
+    /// Returns the topmost [`NcPlane`], of which there is always at least one.
     ///
     /// *C style function: [notcurses_top()][crate::notcurses_top].*
     pub fn top(&mut self) -> &mut NcPlane {

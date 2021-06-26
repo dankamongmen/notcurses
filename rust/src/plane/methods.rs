@@ -6,9 +6,9 @@ use core::{
 
 use crate::{
     cstring, error, error_ref, error_ref_mut, rstring, Nc, NcAlign, NcAlphaBits, NcBlitter,
-    NcBoxMask, NcCell, NcChannel, NcChannels, NcComponent, NcDim, NcEgc, NcError, NcFadeCb,
-    NcOffset, NcPaletteIndex, NcPixelGeometry, NcPlane, NcPlaneOptions, NcResizeCb, NcResult,
-    NcRgb, NcStyle, NcTime, NCRESULT_ERR,
+    NcBoxMask, NcCell, NcChannel, NcChannels, NcComponent, NcDim, NcError, NcFadeCb, NcOffset,
+    NcPaletteIndex, NcPixelGeometry, NcPlane, NcPlaneOptions, NcResizeCb, NcResult, NcRgb, NcStyle,
+    NcTime, NCRESULT_ERR,
 };
 
 /// # NcPlaneOptions Constructors
@@ -530,19 +530,19 @@ impl NcPlane {
 }
 
 // -----------------------------------------------------------------------------
-/// ## NcPlane methods: `NcCell` & `NcEgc`
+/// ## NcPlane methods: `NcCell` & strings
 impl NcPlane {
     /// Retrieves the current contents of the [`NcCell`] under the cursor,
-    /// returning the [`NcEgc`] and writing out the [`NcStyle`] and the [`NcChannels`].
+    /// returning the `EGC` and writing out the [`NcStyle`] and the [`NcChannels`].
     ///
-    /// This NcEgc must be freed by the caller.
+    /// This `EGC` must be freed by the caller.
     ///
     /// *C style function: [ncplane_at_cursor()][crate::ncplane_at_cursor].*
     pub fn at_cursor(
         &mut self,
         stylemask: &mut NcStyle,
         channels: &mut NcChannels,
-    ) -> NcResult<NcEgc> {
+    ) -> NcResult<String> {
         let egc = unsafe { crate::ncplane_at_cursor(self, stylemask, channels) };
         if egc.is_null() {
             return Err(NcError::with_msg(
@@ -550,12 +550,11 @@ impl NcPlane {
                 &format!("NcPlane.at_cursor({:0X}, {:0X})", stylemask, channels),
             ));
         }
-        let egc = core::char::from_u32(unsafe { *egc } as u32).expect("wrong char");
-        Ok(egc)
+        Ok(rstring![egc].into())
     }
 
     /// Retrieves the current contents of the [`NcCell`] under the cursor
-    /// into `cell`. Returns the number of bytes in the [`NcEgc`].
+    /// into `cell`. Returns the number of bytes in the `EGC`.
     ///
     /// This NcCell is invalidated if the associated NcPlane is destroyed.
     ///
@@ -571,9 +570,9 @@ impl NcPlane {
     }
 
     /// Retrieves the current contents of the specified [`NcCell`], returning the
-    /// [`NcEgc`] and writing out the [`NcStyle`] and the [`NcChannels`].
+    /// `EGC` and writing out the [`NcStyle`] and the [`NcChannels`].
     ///
-    /// This NcEgc must be freed by the caller.
+    /// This `EGC` must be freed by the caller.
     ///
     /// *C style function: [ncplane_at_yx()][crate::ncplane_at_yx].*
     pub fn at_yx(
@@ -582,7 +581,7 @@ impl NcPlane {
         x: NcDim,
         stylemask: &mut NcStyle,
         channels: &mut NcChannels,
-    ) -> NcResult<NcEgc> {
+    ) -> NcResult<String> {
         let egc = unsafe { crate::ncplane_at_yx(self, y as i32, x as i32, stylemask, channels) };
         if egc.is_null() {
             return Err(NcError::with_msg(
@@ -593,12 +592,11 @@ impl NcPlane {
                 ),
             ));
         }
-        let egc = core::char::from_u32(unsafe { *egc } as u32).expect("wrong char");
-        Ok(egc)
+        Ok(rstring![egc].into())
     }
 
     /// Retrieves the current contents of the specified [`NcCell`] into `cell`.
-    /// Returns the number of bytes in the [`NcEgc`].
+    /// Returns the number of bytes in the `EGC`.
     ///
     /// This NcCell is invalidated if the associated plane is destroyed.
     ///
@@ -674,7 +672,7 @@ impl NcPlane {
         ]
     }
 
-    /// Creates a flat string from the `NcEgc`'s of the selected region of the
+    /// Creates a flat string from the `EGC`'s of the selected region of the
     /// `NcPlane`.
     ///
     /// Starts at the plane's `beg_y` * `beg_x` coordinates (which must lie on
@@ -767,14 +765,15 @@ impl NcPlane {
     }
 
     // TODO: call put_egc
-    // /// Replaces the [`NcEgc`][crate::NcEgc] to the current location, but retain
+    // /// Replaces the `EGC` to the current location, but retain
     // /// the styling. The current styling of the plane will not be changed.
     // pub fn putchar_stained(&mut self, y: NcDim, x: NcDim, ch: char) ->
     // NcResult<NcDim> {
     //     error![crate::ncplane_putchar_stained(self, ch)]
     // }
 
-    /// Replaces the [`NcEgc`][crate::NcEgc], but retain the styling.
+    /// Replaces the [NcCell] at the `y`,`x` coordinates with the provided
+    /// 7-bit `char`, but retain the styling.
     /// The current styling of the plane will not be changed.
     ///
     /// On success, returns the number of columns the cursor was advanced.
@@ -789,8 +788,7 @@ impl NcPlane {
         ]
     }
 
-    /// Writes a series of [`NcEgc`][crate::NcEgc]s to the current location,
-    /// using the current style.
+    /// Writes a string to the current location, using the current style.
     ///
     /// Advances the cursor by some positive number of columns
     /// (though not beyond the end of the plane),
@@ -836,8 +834,7 @@ impl NcPlane {
         ]
     }
 
-    /// Writes a series of [`NcEgc`][crate::NcEgc]s to the current location, but
-    /// retains the styling.
+    /// Writes a string to the current location, but retains the styling.
     ///
     /// The current styling of the plane will not be changed.
     ///
@@ -857,8 +854,7 @@ impl NcPlane {
         ]
     }
 
-    /// Write a string, which is a series of [`NcEgc`][crate::NcEgc]s, to the
-    /// current location, using the current style.
+    /// Write a string to the provided location, using the current style.
     ///
     /// They will be interpreted as a series of columns.
     ///
@@ -919,7 +915,7 @@ impl NcPlane {
     ///
     /// *C style function: [ncplane_dup()][crate::ncplane_dup].*
     //
-    // TODO: deal with the opaque field.
+    // TODO: deal with the opaque field that is stored in NcPlaneOptions.userptr
     pub fn dup(&mut self) -> &mut NcPlane {
         unsafe { &mut *crate::ncplane_dup(self, null_mut()) }
     }
@@ -1931,7 +1927,7 @@ impl NcPlane {
     /// *C style function: [ncplane_gradient()][crate::ncplane_gradient].*
     pub fn gradient(
         &mut self,
-        egc: &NcEgc,
+        egc: &str,
         stylemask: NcStyle,
         ul: NcChannels,
         ur: NcChannels,
@@ -1940,16 +1936,10 @@ impl NcPlane {
         y_stop: NcDim,
         x_stop: NcDim,
     ) -> NcResult<NcDim> {
-        // https://github.com/dankamongmen/notcurses/issues/1339
-        #[cfg(any(target_arch = "x86_64", target_arch = "i686"))]
-        let egc_ptr = &(*egc as i8);
-        #[cfg(not(any(target_arch = "x86_64", target_arch = "i686")))]
-        let egc_ptr = &(*egc as u8);
-
         let res = unsafe {
             crate::ncplane_gradient(
                 self,
-                egc_ptr,
+                cstring![egc],
                 stylemask as u32,
                 ul,
                 ur,
@@ -1971,7 +1961,7 @@ impl NcPlane {
     #[inline]
     pub fn gradient_sized(
         &mut self,
-        egc: &NcEgc,
+        egc: &str,
         stylemask: NcStyle,
         ul: NcChannel,
         ur: NcChannel,

@@ -1,8 +1,8 @@
 //! `NcCell` methods and associated functions.
 
 use crate::{
-    cstring, error, nccell_load, NcAlphaBits, NcCell, NcChannels, NcComponent, NcEgc,
-    NcEgcBackstop, NcPaletteIndex, NcPlane, NcResult, NcRgb, NcStyle, NCRESULT_ERR,
+    cstring, error, nccell_load, NcAlphaBits, NcCell, NcChannels, NcComponent, NcEgcBackstop,
+    NcPaletteIndex, NcPlane, NcResult, NcRgb, NcStyle, NCRESULT_ERR,
 };
 
 #[allow(unused_imports)] // for the doc comments
@@ -293,19 +293,19 @@ impl NcCell {
 
 /// # `NcCell` methods: other components
 impl NcCell {
-    /// Returns true if the two cells have distinct [`NcEgc`]s, attributes,
+    /// Returns true if the two cells have distinct `EGC`s, attributes,
     /// or [`NcChannel`]s.
     ///
     /// The actual egcpool index needn't be the same--indeed, the planes
-    /// needn't even be the same. Only the expanded NcEgc must be bit-equal.
+    /// needn't even be the same. Only the expanded `EGC` must be bit-equal.
     ///
     /// *C style function: [nccellcmp()][crate::nccellcmp].*
     pub fn compare(plane1: &NcPlane, cell1: &NcCell, plane2: &NcPlane, cell2: &NcCell) -> bool {
         crate::nccellcmp(plane1, cell1, plane2, cell2)
     }
 
-    /// Saves the [`NcStyle`] and the [`NcChannels`], and returns the [`NcEgc`].
-    /// (These are the three elements of an NcCell).
+    /// Saves the [`NcStyle`] and the [`NcChannels`], and returns the `EGC`.
+    /// (These are the three elements of an `NcCell`).
     ///
     /// *C style function: [nccell_fg_alpha()][crate::nccell_fg_alpha].*
     pub fn extract(
@@ -313,16 +313,16 @@ impl NcCell {
         plane: &mut NcPlane,
         styles: &mut NcStyle,
         channels: &mut NcChannels,
-    ) -> NcEgc {
+    ) -> String {
         crate::nccell_extract(plane, self, styles, channels)
     }
 
-    /// Returns the [`NcEgc`] of the NcCell.
+    /// Returns the `EGC` of the `NcCell`.
     ///
     /// See also: [extended_gcluster][NcCell#method.extended_gcluster] method.
     ///
     /// *(No equivalent C style function)*
-    pub fn egc(&mut self, plane: &mut NcPlane) -> NcEgc {
+    pub fn egc(&mut self, plane: &mut NcPlane) -> String {
         let (mut _styles, mut _channels) = (0, 0);
         crate::nccell_extract(plane, self, &mut _styles, &mut _channels)
     }
@@ -358,7 +358,7 @@ impl NcCell {
 
 /// # `NcCell` methods: text
 impl NcCell {
-    // /// Returns a pointer to the [`NcEgc`] of this NcCell in the [NcPlane] `plane`.
+    // /// Returns a pointer to the `EGC` of this NcCell in the [NcPlane] `plane`.
     // ///
     // /// This pointer can be invalidated by any further operation on the referred
     // /// plane, so… watch out!
@@ -369,14 +369,14 @@ impl NcCell {
     //     egcpointer
     // }
 
-    /// Copies the UTF8-encoded [`NcEgc`] out of this NcCell,
+    /// Copies the UTF8-encoded `EGC` out of this NcCell,
     /// whether simple or complex.
     ///
     /// The result is not tied to the [NcPlane],
     /// and persists across erases and destruction.
     ///
     /// *C style function: [nccell_strdup()][crate::nccell_strdup].*
-    pub fn strdup(&self, plane: &NcPlane) -> NcEgc {
+    pub fn strdup(&self, plane: &NcPlane) -> String {
         crate::nccell_strdup(plane, self)
     }
 
@@ -404,11 +404,11 @@ impl NcCell {
 
 /// # `NcCell` methods: boxes
 impl NcCell {
-    /// Loads up six cells with the [`NcEgc`]s necessary to draw a box.
+    /// Loads up six cells with the `EGC`s necessary to draw a box.
     ///
     /// On error, any [`NcCell`]s this function might have loaded before the error
     /// are [release][NcCell#method.release]d.
-    /// There must be at least six [`NcEgc`]s in `gcluster`.
+    /// There must be at least six `EGC`s in `gcluster`.
     ///
     /// *C style function: [nccells_load_box()][crate::nccells_load_box].*
     pub fn load_box(

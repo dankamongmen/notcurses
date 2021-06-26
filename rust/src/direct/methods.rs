@@ -5,7 +5,7 @@ use core::ptr::{null, null_mut};
 use crate::ffi::sigset_t;
 use crate::{
     cstring, error, error_ref_mut, rstring, NcAlign, NcBlitter, NcCapabilities, NcChannels,
-    NcComponent, NcDim, NcDirect, NcDirectFlags, NcEgc, NcError, NcInput, NcOffset, NcPaletteIndex,
+    NcComponent, NcDim, NcDirect, NcDirectFlags, NcError, NcInput, NcOffset, NcPaletteIndex,
     NcPlane, NcResult, NcRgb, NcScale, NcStyle, NcTime, NCRESULT_ERR,
 };
 
@@ -745,7 +745,7 @@ impl NcDirect {
     ///
     /// All lines start at the current cursor position.
     ///
-    /// The [NcEgc] at `egc` may not use more than one column.
+    /// The string at `egc` may not use more than one column.
     ///
     /// For a horizontal line, `len` cannot exceed the screen width minus the
     /// cursor's offset.
@@ -754,18 +754,12 @@ impl NcDirect {
     #[inline]
     pub fn hline_interp(
         &mut self,
-        egc: &NcEgc,
+        egc: &str,
         len: NcDim,
         h1: NcChannels,
         h2: NcChannels,
     ) -> NcResult<()> {
-        // https://github.com/dankamongmen/notcurses/issues/1339
-        #[cfg(any(target_arch = "x86_64", target_arch = "i686"))]
-        let egc_ptr = &(*egc as i8);
-        #[cfg(not(any(target_arch = "x86_64", target_arch = "i686")))]
-        let egc_ptr = &(*egc as u8);
-
-        error![unsafe { crate::ncdirect_hline_interp(self, egc_ptr, len as i32, h1, h2) }]
+        error![unsafe { crate::ncdirect_hline_interp(self, cstring![egc], len as i32, h1, h2) }]
     }
 
     /// Draws horizontal lines using the specified [NcChannels]s, interpolating
@@ -773,7 +767,7 @@ impl NcDirect {
     ///
     /// All lines start at the current cursor position.
     ///
-    /// The [NcEgc] at `egc` may not use more than one column.
+    /// The string at `egc` may not use more than one column.
     ///
     /// For a vertical line, `len` may be as long as you'd like; the screen
     /// will scroll as necessary.
@@ -782,17 +776,11 @@ impl NcDirect {
     #[inline]
     pub fn vline_interp(
         &mut self,
-        egc: &NcEgc,
+        egc: &str,
         len: NcDim,
         h1: NcChannels,
         h2: NcChannels,
     ) -> NcResult<()> {
-        // https://github.com/dankamongmen/notcurses/issues/1339
-        #[cfg(any(target_arch = "x86_64", target_arch = "i686"))]
-        let egc_ptr = &(*egc as i8);
-        #[cfg(not(any(target_arch = "x86_64", target_arch = "i686")))]
-        let egc_ptr = &(*egc as u8);
-
-        error![unsafe { crate::ncdirect_vline_interp(self, egc_ptr, len as i32, h1, h2) }]
+        error![unsafe { crate::ncdirect_vline_interp(self, cstring![egc], len as i32, h1, h2) }]
     }
 }

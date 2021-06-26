@@ -90,7 +90,7 @@ use crate::{NcChannel, NcPlane};
 /// # Description
 ///
 /// An `NcCell` corresponds to a single character cell on some `NcPlane`,
-/// which can be occupied by a single [`NcEgc`] grapheme cluster (some root
+/// which can be occupied by a single `EGC` grapheme cluster (some root
 /// spacing glyph, along with possible combining characters, which might span
 /// multiple columns).
 ///
@@ -114,14 +114,14 @@ use crate::{NcChannel, NcPlane};
 /// ```txt
 /// NcCell: 128 bits structure comprised of the following 5 elements:
 ///
-/// GCLUSTER|GCLUSTER|GCLUSTER|GCLUSTER  1. NcEgc
+/// GCLUSTER|GCLUSTER|GCLUSTER|GCLUSTER  1. `EGC`
 /// 00000000║WWWWWWWW║11111111|11111111  2. NcEgcBackstop + 3. width + 4. NcStyle
 /// ~~AA~~~~|RRRRRRRR|GGGGGGGG|BBBBBBBB  5. NcChannels
 /// ~~AA~~~~|RRRRRRRR|GGGGGGGG|BBBBBBBB     "
 ///
 /// 1. (32b) Extended Grapheme Cluster, presented either as:
 ///
-///     1.1. An NcEgc of up to 4 bytes:
+///     1.1. An EGC of up to 4 bytes:
 ///     UUUUUUUU|UUUUUUUU|UUUUUUUU|UUUUUUUU
 ///
 ///     1.2. A `0x01` in the first byte, plus 3 bytes with a 24b address to an egcpool:
@@ -148,7 +148,7 @@ use crate::{NcChannel, NcPlane};
 ///
 /// Multi-column characters can only have a single style/color throughout.
 /// [`wcwidth()`](https://www.man7.org/linux/man-pages/man3/wcwidth.3.html)
-/// is not reliable. It's just quoting whether or not the [`NcEgc`]
+/// is not reliable. It's just quoting whether or not the `EGC`
 /// contains a "Wide Asian" double-width character.
 /// This is set for some things, like most emoji, and not set for
 /// other things, like cuneiform.
@@ -207,62 +207,63 @@ use crate::{NcChannel, NcPlane};
 ///
 pub type NcCell = crate::bindings::ffi::cell;
 
+// RETHINK:
+//
 // NcEgc
 //
-/// Extended Grapheme Cluster. A 32-bit [`char`]-like type
-///
-/// This 32 bit char, together with the associated plane's associated egcpool,
-/// completely define this cell's `NcEgc`. Unless the `NcEgc` requires more than
-/// four bytes to encode as UTF-8, it will be inlined here:
-///
-/// ## Diagram 1
-///
-/// ```txt
-/// UUUUUUUU UUUUUUUU UUUUUUUU UUUUUUUU
-/// extended grapheme cluster <= 4bytes
-/// ```
-///
-/// `type in C: uint32_t`
-///
-/// If more than four bytes are required, it will be spilled into the egcpool.
-/// In either case, there's a NUL-terminated string available without copying,
-/// because (1) the egcpool is all NUL-terminated sequences and (2) the fifth
-/// byte of this struct (the GClusterBackStop field, see below) is
-/// guaranteed to be zero, as are any unused bytes in gcluster.
-///
-/// A spilled `NcEgc` is indicated by the value `0x01iiiiii`. This cannot alias a
-/// true supra-ASCII NcEgc, because UTF-8 only encodes bytes <= 0x80 when they
-/// are single-byte ASCII-derived values. The `iiiiii` is interpreted as a 24-bit
-/// index into the egcpool (which may thus be up to 16MB):
-///
-/// ## Diagram 2
-///
-/// ```txt
-/// 00000001 iiiiiiii iiiiiiii iiiiiiii
-///   sign     24bit index to egcpool
-/// ```
-/// `type in C: uint32_t`
-///
-/// The cost of this scheme is that the character 0x01 (`SOH`) cannot be encoded
-/// in a cell, and therefore it must not be allowed through the API.
-///
-/// -----
-/// Note that even if the `NcEgc` is <= 4 bytes and inlined, is still interpreted as
-/// a NUL-terminated char * (technically, &cell->gcluster is treated as a char*).
-/// If it is more than 4 bytes, cell->gcluster has a first byte of 0x01,
-/// and the remaining 24 bits are an index into the plane's egcpool,
-/// which is carved into NUL-terminated chunks of arbitrary length.
-///
-/// ## Links
-///
-/// - [Grapheme Cluster
-/// Boundaries](https://unicode.org/reports/tr29/#Grapheme_Cluster_Boundaries)
-///
-///
-// TODO: there should be two types at least:
-// - an utf-8 string len 1 of type &str.
-// - a unicode codepoint of type char.
-pub type NcEgc = char;
+// /// Extended Grapheme Cluster. A unicode string of length 1.
+// ///
+// /// This 32 bit char, together with the associated plane's associated egcpool,
+// /// completely define this cell's `NcEgc`. Unless the `NcEgc` requires more than
+// /// four bytes to encode as UTF-8, it will be inlined here:
+// ///
+// /// ## Diagram 1
+// ///
+// /// ```txt
+// /// UUUUUUUU UUUUUUUU UUUUUUUU UUUUUUUU
+// /// extended grapheme cluster <= 4bytes
+// /// ```
+// ///
+// /// `type in C: uint32_t`
+// ///
+// /// If more than four bytes are required, it will be spilled into the egcpool.
+// /// In either case, there's a NUL-terminated string available without copying,
+// /// because (1) the egcpool is all NUL-terminated sequences and (2) the fifth
+// /// byte of this struct (the GClusterBackStop field, see below) is
+// /// guaranteed to be zero, as are any unused bytes in gcluster.
+// ///
+// /// A spilled `NcEgc` is indicated by the value `0x01iiiiii`. This cannot alias a
+// /// true supra-ASCII NcEgc, because UTF-8 only encodes bytes <= 0x80 when they
+// /// are single-byte ASCII-derived values. The `iiiiii` is interpreted as a 24-bit
+// /// index into the egcpool (which may thus be up to 16MB):
+// ///
+// /// ## Diagram 2
+// ///
+// /// ```txt
+// /// 00000001 iiiiiiii iiiiiiii iiiiiiii
+// ///   sign     24bit index to egcpool
+// /// ```
+// /// `type in C: uint32_t`
+// ///
+// /// The cost of this scheme is that the character 0x01 (`SOH`) cannot be encoded
+// /// in a cell, and therefore it must not be allowed through the API.
+// ///
+// /// -----
+// /// Note that even if the `NcEgc` is <= 4 bytes and inlined, is still interpreted as
+// /// a NUL-terminated char * (technically, &cell->gcluster is treated as a char*).
+// /// If it is more than 4 bytes, cell->gcluster has a first byte of 0x01,
+// /// and the remaining 24 bits are an index into the plane's egcpool,
+// /// which is carved into NUL-terminated chunks of arbitrary length.
+// ///
+// /// ## Links
+// ///
+// /// - [Grapheme Cluster
+// /// Boundaries](https://unicode.org/reports/tr29/#Grapheme_Cluster_Boundaries)
+// ///
+// ///
+// FIXME: should be an utf-8 string len 1 of type &str.
+// pub type NcEgc = String;
+// pub type NcEgc<'a> = &'a str;
 
 // NcEgcBackStop
 /// An `u8` always at zero, part of the [`NcCell`] struct

@@ -3,7 +3,7 @@
 use libc::strcmp;
 
 use crate::{
-    cstring, nccell_release, NcAlphaBits, NcCell, NcChannel, NcChannels, NcComponent, NcEgc,
+    cstring, nccell_release, rstring, NcAlphaBits, NcCell, NcChannel, NcChannels, NcComponent,
     NcIntResult, NcPaletteIndex, NcPlane, NcRgb, NcStyle, NCALPHA_BGDEFAULT_MASK,
     NCALPHA_BG_PALETTE, NCALPHA_FGDEFAULT_MASK, NCALPHA_FG_PALETTE, NCALPHA_OPAQUE, NCRESULT_ERR,
     NCRESULT_OK, NCSTYLE_MASK,
@@ -313,13 +313,13 @@ pub const fn nccell_wide_left_p(cell: &NcCell) -> bool {
     nccell_double_wide_p(cell) && cell.gcluster != 0
 }
 
-// /// Loads a 7-bit [`NcEgc`] character into the [`NcCell`].
+// /// Loads a 7-bit `EGC` character into the [`NcCell`].
 // ///
 // /// *Method: NcCell.[load_char()][NcCell#method.load_char].*
 // //
 // // TODO:CHECK is this necessary at all?
 // #[inline]
-// pub fn nccell_load_char(plane: &mut NcPlane, cell: &mut NcCell, ch: NcEgc) /* -> i32 */
+// pub fn nccell_load_char(plane: &mut NcPlane, cell: &mut NcCell, ch: char) /* -> i32 */
 // {
 //     let _ = unsafe { crate::nccell_load(plane, cell, ch) };
 // }
@@ -354,29 +354,21 @@ pub const fn nccell_wide_left_p(cell: &NcCell) -> bool {
 //   return nccell_load(n, c, gcluster);
 // }
 
-/// Copies the UTF8-encoded [`NcEgc`] out of the [`NcCell`], whether simple or complex.
+/// Copies the UTF8-encoded `EGC` out of the [`NcCell`], whether simple or complex.
 ///
 /// The result is not tied to the [NcPlane],
 /// and persists across erases and destruction.
 ///
 /// *Method: NcCell.[strdup()][NcCell#method.strdup].*
 #[inline]
-pub fn nccell_strdup(plane: &NcPlane, cell: &NcCell) -> NcEgc {
-    core::char::from_u32(
-        unsafe { libc::strdup(crate::nccell_extended_gcluster(plane, cell)) } as i32 as u32,
-    )
-    .expect("wrong char")
-
-    // Unsafer option B (maybe faster, TODO:BENCH):
-    // unsafe {
-    //     core::char::from_u32_unchecked(libc::strdup(nccell_extended_gcluster(plane, cell)) as i32 as u32)
-    // }
+pub fn nccell_strdup(plane: &NcPlane, cell: &NcCell) -> String {
+    rstring![libc::strdup(crate::nccell_extended_gcluster(plane, cell))].into()
 }
 
 // Misc. -----------------------------------------------------------------------
 
 /// Saves the [`NcStyle`] and the [`NcChannels`],
-/// and returns the [`NcEgc`], of an [`NcCell`].
+/// and returns the `EGC`, of an [`NcCell`].
 ///
 /// *Method: NcCell.[extract()][NcCell#method.extract].*
 #[inline]
@@ -385,7 +377,7 @@ pub fn nccell_extract(
     cell: &NcCell,
     stylemask: &mut NcStyle,
     channels: &mut NcChannels,
-) -> NcEgc {
+) -> String {
     if *stylemask != 0 {
         *stylemask = cell.stylemask;
     }
@@ -395,10 +387,10 @@ pub fn nccell_extract(
     nccell_strdup(plane, cell)
 }
 
-/// Returns true if the two cells are distinct [`NcEgc`]s, attributes, or channels.
+/// Returns true if the two cells are distinct `EGC`s, attributes, or channels.
 ///
 /// The actual egcpool index needn't be the same--indeed, the planes needn't even
-/// be the same. Only the expanded NcEgc must be equal. The NcEgc must be bit-equal;
+/// be the same. Only the expanded EGC must be equal. The EGC must be bit-equal;
 ///
 /// *Method: NcCell.[compare()][NcCell#method.compare].*
 //
@@ -448,12 +440,12 @@ pub fn nccell_prime(
     unsafe { crate::nccell_load(plane, cell, cstring![gcluster]) }
 }
 
-/// Loads up six cells with the [`NcEgc`]s necessary to draw a box.
+/// Loads up six cells with the `EGC`s necessary to draw a box.
 ///
 /// Returns [`NCRESULT_OK`] on success or [`NCRESULT_ERR`] on error.
 ///
 /// On error, any [`NcCell`]s this function might have loaded before the error
-/// are [nccell_release]d. There must be at least six [`NcEgc`]s in `gcluster`.
+/// are [nccell_release]d. There must be at least six `EGC`s in `gcluster`.
 ///
 /// *Method: NcCell.[load_box()][NcCell#method.load_box].*
 pub fn nccells_load_box(
@@ -468,6 +460,8 @@ pub fn nccells_load_box(
     vl: &mut NcCell,
     gcluster: &str,
 ) -> NcIntResult {
+    assert![gcluster.len() >= 6]; // DEBUG
+
     // TODO: CHECK: mutable copy for pointer arithmetics:
     let mut gclu = cstring![gcluster];
 

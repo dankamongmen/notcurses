@@ -235,9 +235,8 @@ pub use reimplemented::*;
 /// from the top to the bottom along a pile's z-axis. The result is a matrix of
 /// [`NcCell`][crate::NcCell]s. Rasterizing takes this matrix, together with the
 /// current state of the visual area, and produces a stream of optimized control
-/// sequences and [`NcEgc`][crate::NcEgc]s for the terminal. By writing this
-/// stream to the terminal, the physical display is synced to some pile's
-/// `NcPlane`s.
+/// sequences and `EGC`s for the terminal. By writing this stream to the
+/// terminal, the physical display is synced to some pile's `NcPlane`s.
 ///
 /// [`NcPlane.render`][crate::NcPlane#method.render] performs the first of these
 /// tasks for the pile of which the plane is a part. The output is maintained
@@ -262,7 +261,7 @@ pub use reimplemented::*;
 /// - [`NcChannel` & `NcChannels`](#ncplane-methods-ncchannel)
 /// - [`NcComponent`, `NcRgb` & default color](#ncplane-methods-nccomponent-ncrgb--default-color)
 /// - [`NcStyle` & `NcPaletteIndex`](#ncplane-methods-ncstylemask--paletteindex)
-/// - [`NcCell` & `NcEgc`](#ncplane-methods-nccell--ncegc)
+/// - [`NcCell` & strings](#ncplane-methods-nccell--strings)
 /// - [cursor](#ncplane-methods-cursor)
 /// - [`NcPlane` & `Notcurses`](#ncplane-methods-ncplane--notcurses)
 /// - [boxes & perimeters](#ncplane-methods-boxes--perimeters)

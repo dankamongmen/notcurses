@@ -4,7 +4,7 @@ use core::ptr::null_mut;
 
 use crate::{
     cstring, nccell_release, NcAlign, NcAlphaBits, NcBoxMask, NcCell, NcChannel, NcChannels,
-    NcComponent, NcDim, NcEgc, NcIntResult, NcPlane, NcRgb, NcStyle, NCRESULT_ERR, NCRESULT_OK,
+    NcComponent, NcDim, NcIntResult, NcPlane, NcRgb, NcStyle, NCRESULT_ERR, NCRESULT_OK,
 };
 
 // Alpha -----------------------------------------------------------------------
@@ -224,7 +224,7 @@ pub fn ncplane_putchar_yx(plane: &mut NcPlane, y: NcDim, x: NcDim, ch: char) -> 
     }
 }
 
-/// Writes a series of [NcEgc]s to the current location, using the current style.
+/// Writes a series of `EGC`s to the current location, using the current style.
 ///
 /// Advances the cursor by some positive number of columns
 /// (though not beyond the end of the plane),
@@ -749,7 +749,7 @@ pub fn ncplane_rounded_box_sized(
 #[inline]
 pub fn ncplane_gradient_sized(
     plane: &mut NcPlane,
-    egc: &NcEgc,
+    egc: &str,
     stylemask: NcStyle,
     ul: NcChannel,
     ur: NcChannel,
@@ -761,18 +761,12 @@ pub fn ncplane_gradient_sized(
     if y_len < 1 || x_len < 1 {
         return NCRESULT_ERR;
     }
-    // https://github.com/dankamongmen/notcurses/issues/1339
-    #[cfg(any(target_arch = "x86_64", target_arch = "i686"))]
-    let egc_ptr = &(*egc as i8);
-    #[cfg(not(any(target_arch = "x86_64", target_arch = "i686")))]
-    let egc_ptr = &(*egc as u8);
-
     let (mut y, mut x) = (0, 0);
     unsafe {
         crate::ncplane_cursor_yx(plane, &mut y, &mut x);
         crate::ncplane_gradient(
             plane,
-            egc_ptr,
+            cstring![egc],
             stylemask as u32,
             ul as u64,
             ur as u64,
