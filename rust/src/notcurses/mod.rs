@@ -126,7 +126,7 @@ pub const NCOPTION_NO_CLEAR_BITMAPS: u64 = crate::bindings::ffi::NCOPTION_NO_CLE
 /// but the virtual console/terminal in which notcurses is running.
 pub const NCOPTION_NO_FONT_CHANGES: u64 = crate::bindings::ffi::NCOPTION_NO_FONT_CHANGES as u64;
 
-/// Do not handle SIG{ING, SEGV, ABRT, QUIT}
+/// Do not handle SIG{ING, SEGV, ABRT, QUIT}.
 ///
 /// A signal handler will usually be installed for SIGINT, SIGQUIT, SIGSEGV,
 /// SIGTERM, and SIGABRT, cleaning up the terminal on such exceptions.
@@ -134,7 +134,7 @@ pub const NCOPTION_NO_FONT_CHANGES: u64 = crate::bindings::ffi::NCOPTION_NO_FONT
 pub const NCOPTION_NO_QUIT_SIGHANDLERS: u64 =
     crate::bindings::ffi::NCOPTION_NO_QUIT_SIGHANDLERS as u64;
 
-/// Do not handle SIGWINCH
+/// Do not handle SIGWINCH.
 ///
 /// A signal handler will usually be installed for SIGWINCH, resulting in
 /// NCKEY_RESIZE events being generated on input.
@@ -142,7 +142,14 @@ pub const NCOPTION_NO_QUIT_SIGHANDLERS: u64 =
 pub const NCOPTION_NO_WINCH_SIGHANDLER: u64 =
     crate::bindings::ffi::NCOPTION_NO_WINCH_SIGHANDLER as u64;
 
-/// Do not print banners
+/// Initialize the standard plane's virtual cursor to match the physical cursor
+/// at context creation time.
+///
+/// Together with [`NCOPTION_NO_ALTERNATE_SCREEN`] and a scrolling standard plane,
+/// this facilitates easy scrolling-style programs in rendered mode.
+pub const NCOPTION_PRESERVE_CURSOR: u64 = crate::bindings::ffi::NCOPTION_PRESERVE_CURSOR as u64;
+
+/// Do not print banners.
 ///
 /// Notcurses typically prints version info in notcurses_init() and performance
 /// info in notcurses_stop(). This inhibits that output.
