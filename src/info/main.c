@@ -13,35 +13,29 @@ capboolbool(unsigned utf8, bool cap){
   }
 }
 
-static inline wchar_t
-capbool(const tinfo* ti, bool cap){
-  return capboolbool(ti->caps.utf8, cap);
+static void
+tinfo_debug_cap(struct ncplane* n, const char* name, bool yn,
+                uint32_t colory, uint32_t colorn, char ch){
+  if(yn){
+    ncplane_set_fg_rgb(n, colory);
+  }else{
+    ncplane_set_fg_rgb(n, colorn);
+  }
+  ncplane_putstr(n, name);
+  ncplane_putwc(n, capboolbool(notcurses_canutf8(ncplane_notcurses(n)), yn));
+  ncplane_putchar(n, ch);
 }
 
 static int
 braille_viz(ncplane* n, const char* l, const wchar_t* egcs, const char* r, const char* indent){
-  ncplane_set_fg_rgb(n, 0xfaf0e6);
   ncplane_printf(n, "%s%s", indent, l);
-  ncplane_set_fg_rgb(n, 0xc4aead);
   ncplane_printf(n, "%.192ls", egcs);
-  ncplane_set_fg_rgb(n, 0xfaf0e6);
   ncplane_printf(n, "%s ", r);
-  ncplane_set_fg_default(n);
   return 0;
 }
 
 static int
-unicodedumper(const struct notcurses* nc, struct ncplane* n, tinfo* ti, const char* indent){
-  ncplane_set_fg_rgb(n, 0x9172ec);
-  ncplane_printf(n, "%sutf8%lc quad%lc sex%lc braille%lc images%lc videos%lc\n",
-                 indent,
-                 capbool(ti, ti->caps.utf8),
-                 capbool(ti, ti->caps.quadrants),
-                 capbool(ti, ti->caps.sextants),
-                 capbool(ti, ti->caps.braille),
-                 capbool(ti, notcurses_canopen_images(nc)),
-                 capbool(ti, notcurses_canopen_videos(nc)));
-  ncplane_set_fg_default(n);
+unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
   if(ti->caps.utf8){
     /*uint32_t l = CHANNEL_RGB_INITIALIZER(0x20, 0x20, 0x20);
     uint32_t r = CHANNEL_RGB_INITIALIZER(0x80, 0x80, 0x80);
@@ -71,10 +65,10 @@ unicodedumper(const struct notcurses* nc, struct ncplane* n, tinfo* ti, const ch
     ncplane_printf(n, "⎪🮇▊⎪\n");
     braille_viz(n, "⎣",NCBRAILLEEGCS + 192, "⎦", indent);
     ncplane_printf(n, "⎪▕▉⎪\n");
-    ncplane_printf(n, "  ⎛%ls⎞ ▔🭶🭷🭸🭹🭺🭻▁ 🭁 🭂 🭃 🭄 🭅 🭆 🭑 🭐 🭏 🭎 🭍 🭌 🭆🭑 🭄🭏 🭅🭐 🭃🭎 🭂🭍 🭁🭌 🭨🭪 ⎩ █⎭\n",
-                   NCEIGHTHSBOTTOM);
-    ncplane_printf(n, "  ⎝%ls⎠ ▏🭰🭱🭲🭳🭴🭵▕ 🭒 🭓 🭔 🭕 🭖 🭧 🭜 🭟 🭠 🭡 🭞 🭝 🭧🭜 🭕🭠 🭖🭡 🭔🭟 🭓🭞 🭒🭝 🭪🭨       \n",
-                   NCEIGHTSTOP);
+    ncplane_printf(n, "%s⎛%ls⎞  ▔🭶🭷🭸🭹🭺🭻▁ 🭁 🭂 🭃 🭄 🭅 🭆 🭑 🭐 🭏 🭎 🭍 🭌 🭆🭑 🭄🭏 🭅🭐 🭃🭎 🭂🭍 🭁🭌 🭨🭪 ⎩ █⎭\n",
+                   indent, NCEIGHTHSBOTTOM);
+    ncplane_printf(n, "%s⎝%ls⎠  ▏🭰🭱🭲🭳🭴🭵▕ 🭒 🭓 🭔 🭕 🭖 🭧 🭜 🭟 🭠 🭡 🭞 🭝 🭧🭜 🭕🭠 🭖🭡 🭔🭟 🭓🭞 🭒🭝 🭪🭨       \n",
+                   indent, NCEIGHTSTOP);
     int y, x;
     ncplane_cursor_yx(n, &y, &x);
     // the symbols for legacy computing
@@ -83,10 +77,10 @@ unicodedumper(const struct notcurses* nc, struct ncplane* n, tinfo* ti, const ch
     uint32_t lr = CHANNEL_RGB_INITIALIZER(0x80, 0x80, 0x80);
     ncplane_stain(n, y, 66, ul, lr, ul, lr);
     // the vertical eighths
-    ncplane_cursor_move_yx(n, y - 2, 3);
+    ncplane_cursor_move_yx(n, y - 2, 2);
     ul = CHANNEL_RGB_INITIALIZER(0x60, 0x7d, 0x3b);
     lr = CHANNEL_RGB_INITIALIZER(0x02, 0x8a, 0x0f);
-    ncplane_stain(n, y, 11, ul, lr, lr, ul);
+    ncplane_stain(n, y, 10, ul, lr, lr, ul);
     // the horizontal eighths
     ncplane_cursor_move_yx(n, y - 10, 69);
     ncplane_stain(n, y - 2, 70, lr, ul, ul, lr);
@@ -112,6 +106,10 @@ unicodedumper(const struct notcurses* nc, struct ncplane* n, tinfo* ti, const ch
 
 static void
 tinfo_debug_bitmaps(struct ncplane* n, const tinfo* ti, const char* indent){
+  ncplane_set_fg_rgb8(n, 0xc4, 0x5a, 0xec);
+  ncplane_printf(n, "%sbackground of 0x%06lx is %sconsidered transparent\n", indent, ti->bg_collides_default & 0xfffffful,
+                   (ti->bg_collides_default & 0x01000000) ? "" : "not ");
+  ncplane_set_fg_default(n);
   ncplane_set_fg_rgb(n, 0x5efa80);
   if(!ti->pixel_draw){
     ncplane_printf(n, "%sdidn't detect bitmap graphics support\n", indent);
@@ -123,64 +121,68 @@ tinfo_debug_bitmaps(struct ncplane* n, const tinfo* ti, const char* indent){
   }else{
     ncplane_printf(n, "%srgba pixel graphics supported\n", indent);
   }
-}
-
-static void
-tinfo_debug_style(struct ncplane* n, const char* name, int style){
-  ncplane_set_styles(n, style);
-  ncplane_putstr(n, name);
-  ncplane_putwc(n, capboolbool(notcurses_canutf8(ncplane_notcurses(n)),
-                               notcurses_supported_styles(ncplane_notcurses(n)) & style));
-  ncplane_set_styles(n, NCSTYLE_NONE);
-}
-
-static inline wchar_t
-capyn(const tinfo* ti, const char* cap){
-  return capbool(ti, cap);
-}
-
-static void
-tinfo_debug_caps(struct ncplane* n, const tinfo* ti, const char* indent){
-  ncplane_putchar(n, '\n');
-  ncplane_set_fg_rgb8(n, 0xcc, 0x99, 0xff);
-  ncplane_printf(n, "%srgb%lc ccc%lc af%lc ab%lc appsync%lc u7%lc cup%lc vpa%lc hpa%lc sgr%lc sgr0%lc op%lc fgop%lc bgop%lc\n",
-          indent,
-          capbool(ti, ti->caps.rgb),
-          capbool(ti, ti->caps.can_change_colors),
-          capyn(ti, get_escape(ti, ESCAPE_SETAF)),
-          capyn(ti, get_escape(ti, ESCAPE_SETAB)),
-          capyn(ti, get_escape(ti, ESCAPE_BSU)),
-          capyn(ti, get_escape(ti, ESCAPE_DSRCPR)),
-          capyn(ti, get_escape(ti, ESCAPE_CUP)),
-          capyn(ti, get_escape(ti, ESCAPE_VPA)),
-          capyn(ti, get_escape(ti, ESCAPE_HPA)),
-          capyn(ti, get_escape(ti, ESCAPE_SGR)),
-          capyn(ti, get_escape(ti, ESCAPE_SGR0)),
-          capyn(ti, get_escape(ti, ESCAPE_OP)),
-          capyn(ti, get_escape(ti, ESCAPE_FGOP)),
-          capyn(ti, get_escape(ti, ESCAPE_BGOP)));
-  ncplane_set_fg_rgb8(n, 0xc4, 0x5a, 0xec);
-  ncplane_printf(n, "%sbackground of 0x%06lx is %sconsidered transparent\n", indent, ti->bg_collides_default & 0xfffffful,
-                   (ti->bg_collides_default & 0x01000000) ? "" : "not ");
   ncplane_set_fg_default(n);
 }
 
 static void
-tinfo_debug_styles(struct ncplane* n, const char* indent){
-  ncplane_set_fg_rgb8(n, 0xc8, 0xa2, 0xc8);
+tinfo_debug_style(struct ncplane* n, const char* name, int style,
+                  uint32_t colory, uint32_t colorn, char ch){
+  unsigned support = notcurses_supported_styles(ncplane_notcurses(n)) & style;
+  if(support){
+    ncplane_set_fg_rgb(n, colory);
+  }else{
+    ncplane_set_fg_rgb(n, colorn);
+  }
+  ncplane_set_styles(n, style);
+  ncplane_putstr(n, name);
+  ncplane_putwc(n, capboolbool(notcurses_canutf8(ncplane_notcurses(n)), support));
+  ncplane_set_styles(n, NCSTYLE_NONE);
+  ncplane_putchar(n, ch);
+}
+
+static void
+tinfo_debug_caps(struct ncplane* n, const tinfo* ti, const char* indent){
+  uint32_t colory = 0xcc99ff;
+  uint32_t colorn = 0xff99ff;
+  ncplane_printf(n, "\n%s", indent);
+  tinfo_debug_cap(n, "rgb", ti->caps.rgb, colory, colorn, ' ');
+  tinfo_debug_cap(n, "ccc", ti->caps.can_change_colors, colory, colorn, ' ');
+  tinfo_debug_cap(n, "af", get_escape(ti, ESCAPE_SETAF), colory, colorn, ' ');
+  tinfo_debug_cap(n, "ab", get_escape(ti, ESCAPE_SETAB), colory, colorn, ' ');
+  tinfo_debug_cap(n, "appsync", get_escape(ti, ESCAPE_BSU), colory, colorn, ' ');
+  tinfo_debug_cap(n, "u7", get_escape(ti, ESCAPE_DSRCPR), colory, colorn, ' ');
+  tinfo_debug_cap(n, "cup", get_escape(ti, ESCAPE_CUP), colory, colorn, ' ');
+  tinfo_debug_cap(n, "vpa", get_escape(ti, ESCAPE_VPA), colory, colorn, ' ');
+  tinfo_debug_cap(n, "hpa", get_escape(ti, ESCAPE_HPA), colory, colorn, ' ');
+  tinfo_debug_cap(n, "sgr0", get_escape(ti, ESCAPE_SGR0), colory, colorn, ' ');
+  tinfo_debug_cap(n, "op", get_escape(ti, ESCAPE_OP), colory, colorn, ' ');
+  tinfo_debug_cap(n, "fgop", get_escape(ti, ESCAPE_FGOP), colory, colorn, ' ');
+  tinfo_debug_cap(n, "bgop", get_escape(ti, ESCAPE_BGOP), colory, colorn, '\n');
+}
+
+static void
+tinfo_debug_styles(const notcurses* nc, struct ncplane* n, const char* indent){
+  const tinfo* ti = &nc->tcache;
+  uint32_t colory = 0xc8a2c8;
+  uint32_t colorn = 0xffa2c8;
   ncplane_putstr(n, indent);
-  tinfo_debug_style(n, "blink", NCSTYLE_BLINK);
-  ncplane_putchar(n, ' ');
-  tinfo_debug_style(n, "bold", NCSTYLE_BOLD);
-  ncplane_putchar(n, ' ');
-  tinfo_debug_style(n, "ital", NCSTYLE_ITALIC);
-  ncplane_putchar(n, ' ');
-  tinfo_debug_style(n, "struck", NCSTYLE_STRUCK);
-  ncplane_putchar(n, ' ');
-  tinfo_debug_style(n, "ucurl", NCSTYLE_UNDERCURL);
-  ncplane_putchar(n, ' ');
-  tinfo_debug_style(n, "uline", NCSTYLE_UNDERLINE);
-  ncplane_putchar(n, '\n');
+  tinfo_debug_style(n, "blink", NCSTYLE_BLINK, colory, colorn, ' ');
+  tinfo_debug_style(n, "bold", NCSTYLE_BOLD, colory, colorn, ' ');
+  tinfo_debug_style(n, "ital", NCSTYLE_ITALIC, colory, colorn, ' ');
+  tinfo_debug_style(n, "struck", NCSTYLE_STRUCK, colory, colorn, ' ');
+  tinfo_debug_style(n, "ucurl", NCSTYLE_UNDERCURL, colory, colorn, ' ');
+  tinfo_debug_style(n, "uline", NCSTYLE_UNDERLINE, colory, colorn, '\n');
+  ncplane_set_fg_default(n);
+  colory = 0x9172ec;
+  colorn = 0xff72ec;
+  ncplane_putstr(n, indent);
+  tinfo_debug_cap(n, "utf8", ti->caps.utf8, colory, colorn, ' ');
+  tinfo_debug_cap(n, "quad", ti->caps.quadrants, colory, colorn, ' ');
+  tinfo_debug_cap(n, "sex", ti->caps.sextants, colory, colorn, ' ');
+  tinfo_debug_cap(n, "braille", ti->caps.braille, colory, colorn, ' ');
+  tinfo_debug_cap(n, "images", notcurses_canopen_images(nc), colory, colorn, ' ');
+  tinfo_debug_cap(n, "videos", notcurses_canopen_videos(nc), colory, colorn, '\n');
+  ncplane_set_fg_default(n);
 }
 
 // we should probably change this up to use regular good ol'
@@ -198,9 +200,9 @@ int main(void){
   // FIXME want cursor wherever it was
   ncplane_set_scrolling(stdn, true);
   tinfo_debug_caps(stdn, &nc->tcache, indent);
-  tinfo_debug_styles(stdn, indent);
+  tinfo_debug_styles(nc, stdn, indent);
   tinfo_debug_bitmaps(stdn, &nc->tcache, indent);
-  unicodedumper(nc, stdn, &nc->tcache, indent);
+  unicodedumper(stdn, &nc->tcache, indent);
   if(notcurses_render(nc)){
     notcurses_stop(nc);
     return EXIT_FAILURE;
