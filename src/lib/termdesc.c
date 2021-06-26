@@ -464,13 +464,16 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
     unsigned ncvbit;   // bit in "ncv" mask for unconditional deny
   } styles[] = {
     { NCSTYLE_BOLD, "bold", A_BOLD },
-    { NCSTYLE_REVERSE, "rev", A_REVERSE },
     { NCSTYLE_UNDERLINE, "smul", A_UNDERLINE },
-    { NCSTYLE_DIM, "dim", A_DIM },
     { NCSTYLE_ITALIC, "sitm", A_ITALIC },
     { NCSTYLE_STRUCK, "smxx", 0 },
     { 0, NULL, 0 }
   };
+  if(get_escape(ti, ESCAPE_BOLD) == NULL){
+    if(grow_esc_table(ti, "\e[22m", ESCAPE_NOBOLD, &tablelen, &tableused)){
+      goto err;
+    }
+  }
   const char* sgr = get_escape(ti, ESCAPE_SGR);
   int nocolor_stylemask = tigetnum("ncv");
   for(typeof(*styles)* s = styles ; s->s ; ++s){
