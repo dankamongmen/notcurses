@@ -3,7 +3,7 @@ exec_prefix=@CMAKE_INSTALL_PREFIX@
 libdir=${prefix}/@CMAKE_INSTALL_LIBDIR@
 includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
 
-Name: @PROJECT_NAME@
+Name: @PROJECT_NAME@-core
 Description: TUI library for modern terminal emulators (core library)
 Version: @PROJECT_VERSION@
 
