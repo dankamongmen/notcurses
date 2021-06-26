@@ -77,21 +77,35 @@ unicodedumper(const struct notcurses* nc, struct ncplane* n, tinfo* ti, const ch
                    NCEIGHTSTOP);
     int y, x;
     ncplane_cursor_yx(n, &y, &x);
-    ncplane_cursor_move_yx(n, y - 2, x + 23);
+    // the symbols for legacy computing
+    ncplane_cursor_move_yx(n, y - 2, 23);
     uint32_t ul = CHANNEL_RGB_INITIALIZER(0x30, 0x30, 0x30);
     uint32_t lr = CHANNEL_RGB_INITIALIZER(0x80, 0x80, 0x80);
     ncplane_stain(n, y, 66, ul, lr, ul, lr);
-    ncplane_cursor_move_yx(n, y - 2, x + 3);
+    // the vertical eighths
+    ncplane_cursor_move_yx(n, y - 2, 3);
     ul = CHANNEL_RGB_INITIALIZER(0x60, 0x7d, 0x3b);
     lr = CHANNEL_RGB_INITIALIZER(0x02, 0x8a, 0x0f);
     ncplane_stain(n, y, 11, ul, lr, lr, ul);
+    // the horizontal eighths
     ncplane_cursor_move_yx(n, y - 10, 69);
     ncplane_stain(n, y - 2, 70, lr, ul, ul, lr);
+    // the braille
     ncplane_cursor_move_yx(n, y - 6, 2);
     uint32_t ll = CHANNEL_RGB_INITIALIZER(0x40, 0x0, 0x0);
     uint32_t ur = CHANNEL_RGB_INITIALIZER(0x1f, 0x25, 0x24);
     lr = CHANNEL_RGB_INITIALIZER(0x0, 0x0, 0x40);
     ncplane_stain(n, y - 3, 65, ur, ur, ll, lr);
+    // the sextants
+    ncplane_cursor_move_yx(n, y - 10, 28);
+    ll = CHANNEL_RGB_INITIALIZER(0x7B, 0x68, 0xEE);
+    ul = CHANNEL_RGB_INITIALIZER(0x19, 0x19, 0x70);
+    ncplane_stain(n, y - 9, 58, ll, ul, ll, ul);
+    // the quadrants and halfblocks
+    ncplane_cursor_move_yx(n, y - 10, 9);
+    ncplane_stain(n, y - 10, 22, ll, ul, ll, ul);
+    ncplane_cursor_move_yx(n, y - 10, 2);
+    ncplane_stain(n, y - 10, 5, ll, ul, ll, ul);
   }
   return 0;
 }
