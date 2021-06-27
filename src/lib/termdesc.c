@@ -299,6 +299,9 @@ add_u7_escape(tinfo* ti, size_t* tablelen, size_t* tableused){
 
 static int
 add_smulx_escapes(tinfo* ti, size_t* tablelen, size_t* tableused){
+  if(get_escape(ti, ESCAPE_SMULX)){
+    return 0;
+  }
   if(grow_esc_table(ti, "\x1b[4:3m", ESCAPE_SMULX, tablelen, tableused) ||
      grow_esc_table(ti, "\x1b[4:0m", ESCAPE_SMULNOX, tablelen, tableused)){
     return -1;
@@ -308,6 +311,9 @@ add_smulx_escapes(tinfo* ti, size_t* tablelen, size_t* tableused){
 
 static int
 add_appsync_escapes(tinfo* ti, size_t* tablelen, size_t* tableused){
+  if(get_escape(ti, ESCAPE_BSU)){
+    return 0;
+  }
   if(grow_esc_table(ti, "\x1bP=1s\x1b\\", ESCAPE_BSU, tablelen, tableused) ||
      grow_esc_table(ti, "\x1bP=2s\x1b\\", ESCAPE_ESU, tablelen, tableused)){
     return -1;
