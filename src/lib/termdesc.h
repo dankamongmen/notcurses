@@ -156,12 +156,6 @@ typedef struct tinfo {
   struct termios tpreserved; // terminal state upon entry
   ncinputlayer input;       // input layer
 
-  // mlterm resets the cursor (i.e. makes it visible) any time you print
-  // a sprixel. we work around this spiritedly unorthodox decision. it
-  // furthermore interprets DECSDM in the reverse sense of most terminals
-  // (though possibly in conformance with the actual VT340).
-  bool sprixel_cursor_hack; // mlterm fixes
-
   int default_rows; // LINES environment var / lines terminfo / 24
   int default_cols; // COLUMNS environment var / cols terminfo / 80
 } tinfo;

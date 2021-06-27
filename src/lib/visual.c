@@ -963,12 +963,6 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
     n->sprite = sprixel_recycle(n);
   }
   bargs.u.pixel.spx = n->sprite;
-  bargs.u.pixel.cursor_hack = NULL;
-  if(nc->cursory < 0){
-    if(nc->tcache.sprixel_cursor_hack){
-      bargs.u.pixel.cursor_hack = get_escape(&nc->tcache, ESCAPE_CIVIS);
-    }
-  }
   // if we are kitty prior to 0.20.0, we set NCVISUAL_OPTION_SCROLL so that
   // C=1 won't be supplied. we use sixel_maxy_pristine as a side channel to
   // encode this version information.

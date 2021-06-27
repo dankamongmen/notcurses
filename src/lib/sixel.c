@@ -589,8 +589,7 @@ write_sixel_header(FILE* fp, int leny, int lenx, const sixeltable* stab, sixel_p
 }
 
 static int
-write_sixel_payload(FILE* fp, int lenx, const sixelmap* map,
-                    const char* cursor_hack){
+write_sixel_payload(FILE* fp, int lenx, const sixelmap* map){
   int p = 0;
   while(p < map->sixelcount){
     int needclosure = 0;
@@ -626,9 +625,6 @@ write_sixel_payload(FILE* fp, int lenx, const sixelmap* map,
     p += lenx;
   }
   fprintf(fp, "\e\\");
-  if(cursor_hack){
-    fprintf(fp, "%s", cursor_hack);
-  }
   return 0;
 }
 
@@ -638,12 +634,12 @@ write_sixel_payload(FILE* fp, int lenx, const sixelmap* map,
 // are output geometry.
 static int
 write_sixel(FILE* fp, int outy, int outx, const sixeltable* stab,
-            int* parse_start, const char* cursor_hack, sixel_p2_e p2){
+            int* parse_start, sixel_p2_e p2){
   *parse_start = write_sixel_header(fp, outy, outx, stab, p2);
   if(*parse_start < 0){
     return -1;
   }
-  if(write_sixel_payload(fp, outx, stab->map, cursor_hack) < 0){
+  if(write_sixel_payload(fp, outx, stab->map) < 0){
     return -1;
   }
   if(fclose(fp) == EOF){
@@ -673,8 +669,7 @@ sixel_reblit(sprixel* s){
     free(buf);
     return -1;
   }
-  // FIXME need to get cursor_hack in here for shitty mlterm!
-  if(write_sixel_payload(fp, s->pixx, s->smap, NULL) < 0){
+  if(write_sixel_payload(fp, s->pixx, s->smap) < 0){
     fclose(fp);
     free(buf);
     return -1;
@@ -712,8 +707,7 @@ sixel_blit_inner(int leny, int lenx, sixeltable* stab,
     stab->p2 = SIXEL_P2_TRANS;
   }
   // calls fclose() on success
-  if(write_sixel(fp, outy, lenx, stab, &parse_start,
-                 bargs->u.pixel.cursor_hack, stab->p2)){
+  if(write_sixel(fp, outy, lenx, stab, &parse_start, stab->p2)){
     fclose(fp);
     free(buf);
     return -1;
@@ -859,15 +853,18 @@ int sixel_draw(const ncpile* p, sprixel* s, FILE* out){
 }
 
 int sixel_init(const tinfo* ti, int fd){
+  (void)ti;
   // \e[?8452: DECSDM private "sixel scrolling" mode keeps the sixel from
   // scrolling, but puts it at the current cursor location (as opposed to
   // the upper left corner of the screen).
-  if(ti->sprixel_cursor_hack){
-    // except MLterm (and a few others, possibly including the physical VT340),
-    // which inverts the usual sense of DECSDM.
-    return tty_emit("\e[?80l\e[?8452h", fd);
-  }
   return tty_emit("\e[?80;8452h", fd);
+}
+
+int sixel_init_inverted(const tinfo* ti, int fd){
+  (void)ti;
+  // except MLterm (and a few others, possibly including the physical VT340),
+  // which inverts the usual sense of DECSDM.
+  return tty_emit("\e[?80l\e[?8452h", fd);
 }
 
 // only called for cells in SPRIXCELL_ANNIHILATED[_TRANS]. just post to

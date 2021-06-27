@@ -44,8 +44,12 @@ get_default_geometry(tinfo* ti){
 
 // we found Sixel support -- set up the API
 static inline void
-setup_sixel_bitmaps(tinfo* ti, int fd){
-  ti->pixel_init = sixel_init;
+setup_sixel_bitmaps(tinfo* ti, int fd, bool invert80){
+  if(invert80){
+    ti->pixel_init = sixel_init_inverted;
+  }else{
+    ti->pixel_init = sixel_init;
+  }
   ti->pixel_draw = sixel_draw;
   ti->pixel_remove = NULL;
   ti->pixel_destroy = sixel_destroy;
@@ -370,7 +374,6 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
   }else if(qterm == TERMINAL_MLTERM){
     termname = "MLterm";
     ti->caps.quadrants = true; // good caps.quadrants, no caps.sextants as of 3.9.0
-    ti->sprixel_cursor_hack = true;
   }else if(qterm == TERMINAL_WEZTERM){
     termname = "WezTerm";
     ti->caps.rgb = true;
@@ -599,7 +602,7 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
       goto err;
     }
   }
-  unsigned appsync_advertised;
+  unsigned appsync_advertised = 0;
   if(cursor_x && cursor_y){
     *cursor_x = *cursor_y = 0;
   }
@@ -633,9 +636,9 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
   build_supported_styles(ti);
   // our current sixel quantization algorithm requires at least 64 color
   // registers. we make use of no more than 256. this needs to happen
-  // after heuristics, since sixel_init() depends on sprixel_cursor_hack.
+  // after heuristics, since the choice of sixel_init() depends on it.
   if(ti->color_registers >= 64){
-    setup_sixel_bitmaps(ti, fd);
+    setup_sixel_bitmaps(ti, fd, qterm == TERMINAL_MLTERM);
   }
   return 0;
 

@@ -523,10 +523,6 @@ typedef struct blitterargs {
       int celldimy;    // vertical pixels per cell
       int colorregs;   // number of color registers
       sprixel* spx;    // sprixel object
-      // in at least mlterm, emitting a sixel makes the cursor visible.
-      // if the cursor is hidden, and sprixel_cursor_hack is set, this
-      // is set to the civis capability.
-      const char* cursor_hack;
     } pixel;           // for pixels
   } u;
 } blitterargs;
@@ -786,6 +782,7 @@ int kitty_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
 int kitty_remove(int id, FILE* out);
 int kitty_clear_all(int fd);
 int sixel_init(const tinfo* t, int fd);
+int sixel_init_inverted(const tinfo* t, int fd);
 int sprite_init(const tinfo* t, int fd);
 int sprite_clear_all(const tinfo* t, int fd);
 int kitty_shutdown(int fd);
