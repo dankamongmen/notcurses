@@ -3,8 +3,8 @@
 use core::ptr::{null, null_mut};
 
 use crate::{
-    Nc, NcAlign, NcDim, NcError, NcInput, NcOffset, NcPlane, NcResult, NcSignalSet, NcTime,
-    NCALIGN_CENTER, NCALIGN_LEFT, NCALIGN_RIGHT, NCRESULT_MAX,
+    Nc, NcAlign, NcDim, NcError, NcInput, NcOffset, NcPlane, NcResult, NcTime, NCALIGN_CENTER,
+    NCALIGN_LEFT, NCALIGN_RIGHT, NCRESULT_MAX,
 };
 
 /// Returns the offset into `availcols` at which `cols` ought be output given
@@ -40,13 +40,11 @@ pub fn notcurses_align(availcols: NcDim, align: NcAlign, cols: NcDim) -> NcOffse
 #[inline]
 pub fn notcurses_getc_nblock(nc: &mut Nc, input: &mut NcInput) -> char {
     unsafe {
-        let mut sigmask = NcSignalSet::new();
-        sigmask.fillset();
         let ts = NcTime {
             tv_sec: 0,
             tv_nsec: 0,
         };
-        core::char::from_u32_unchecked(crate::notcurses_getc(nc, &ts, &sigmask, input))
+        core::char::from_u32_unchecked(crate::notcurses_getc(nc, &ts, null_mut(), input))
     }
 }
 
@@ -66,9 +64,7 @@ pub fn notcurses_getc_blocking(nc: &mut Nc, input: Option<&mut NcInput>) -> char
         input_ptr = null_mut();
     }
     unsafe {
-        let mut sigmask = NcSignalSet::new();
-        sigmask.emptyset();
-        core::char::from_u32_unchecked(crate::notcurses_getc(nc, null(), &sigmask, input_ptr))
+        core::char::from_u32_unchecked(crate::notcurses_getc(nc, null(), null_mut(), input_ptr))
     }
 }
 

@@ -1,10 +1,10 @@
 //! `ncdirect_*` reimplemented functions.
 
-use core::ptr::null;
+use core::ptr::{null, null_mut};
 
 use crate::{
     cstring, NcCapabilities, NcChannels, NcComponent, NcDim, NcDirect, NcInput, NcIntResult, NcRgb,
-    NcSignalSet, NcTime,
+    NcTime,
 };
 
 /// Can we directly specify RGB values per cell, or only use palettes?
@@ -68,11 +68,7 @@ pub fn ncdirect_capabilities(ncd: &NcDirect) -> NcCapabilities {
 // TODO: use from_u32 & return Option.
 #[inline]
 pub fn ncdirect_getc_blocking(ncd: &mut NcDirect, input: &mut NcInput) -> char {
-    unsafe {
-        let mut sigmask = NcSignalSet::new();
-        sigmask.emptyset();
-        core::char::from_u32_unchecked(crate::ncdirect_getc(ncd, null(), &mut sigmask, input))
-    }
+    unsafe { core::char::from_u32_unchecked(crate::ncdirect_getc(ncd, null(), null_mut(), input)) }
 }
 
 ///
@@ -84,10 +80,8 @@ pub fn ncdirect_getc_blocking(ncd: &mut NcDirect, input: &mut NcInput) -> char {
 #[inline]
 pub fn ncdirect_getc_nblock(ncd: &mut NcDirect, input: &mut NcInput) -> char {
     unsafe {
-        let mut sigmask = NcSignalSet::new();
-        sigmask.fillset();
         let ts = NcTime::new();
-        core::char::from_u32_unchecked(crate::ncdirect_getc(ncd, &ts, &mut sigmask, input))
+        core::char::from_u32_unchecked(crate::ncdirect_getc(ncd, &ts, null_mut(), input))
     }
 }
 

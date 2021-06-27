@@ -844,24 +844,6 @@ pub use ffi::{
     NCPALETTESIZE,
 };
 
-// sig -------------------------------------------------------------------------
-//
-// already wrapped:
-//
-// // structs
-// sigset_t,
-// sigaction,
-//
-// // functions
-// sigaddset,
-// sigdelset,
-// sigemptyset,
-// sigfillset,
-// sigismember,
-// sigpending,
-// sigprocmask,
-// sigsuspend,
-
 // fade callback ---------------------------------------------------------------
 //
 // already wrapped:

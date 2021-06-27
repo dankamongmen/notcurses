@@ -2,7 +2,6 @@
 
 use core::ptr::{null, null_mut};
 
-use crate::ffi::sigset_t;
 use crate::{
     cstring, error, error_ref_mut, rstring, NcAlign, NcBlitter, NcCapabilities, NcChannels,
     NcComponent, NcDim, NcDirect, NcDirectFlags, NcError, NcInput, NcOffset, NcPaletteIndex,
@@ -556,32 +555,15 @@ impl NcDirect {
     /// Provide a None `time` to block at length, a `time` of 0 for non-blocking
     /// operation, and otherwise a timespec to bound blocking.
     ///
-    /// Signals in sigmask (less several we handle internally) will be atomically
-    /// masked and unmasked per [ppoll(2)](https://linux.die.net/man/2/ppoll).
-    ///
-    /// `*sigmask` should generally contain all signals.
-    ///
     /// *C style function: [ncdirect_getc()][crate::ncdirect_getc].*
     //
     // CHECK returns 0 on a timeout.
-    pub fn getc(
-        &mut self,
-        time: Option<NcTime>,
-        sigmask: Option<&mut sigset_t>,
-        input: Option<&mut NcInput>,
-    ) -> NcResult<char> {
+    pub fn getc(&mut self, time: Option<NcTime>, input: Option<&mut NcInput>) -> NcResult<char> {
         let ntime;
         if let Some(time) = time {
             ntime = &time as *const _;
         } else {
             ntime = null();
-        }
-
-        let nsigmask;
-        if let Some(sigmask) = sigmask {
-            nsigmask = sigmask as *mut _;
-        } else {
-            nsigmask = null_mut() as *mut _;
         }
         let ninput;
         if let Some(input) = input {
@@ -590,7 +572,7 @@ impl NcDirect {
             ninput = null_mut();
         }
         let c = unsafe {
-            core::char::from_u32_unchecked(crate::ncdirect_getc(self, ntime, nsigmask, ninput))
+            core::char::from_u32_unchecked(crate::ncdirect_getc(self, ntime, null_mut(), ninput))
         };
         if c as u32 as i32 == NCRESULT_ERR {
             return Err(NcError::new());
