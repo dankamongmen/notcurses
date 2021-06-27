@@ -1,4 +1,3 @@
-#include <sys/random.h>
 #include <notcurses/notcurses.h>
 
 static int
@@ -8,7 +7,9 @@ interp(struct notcurses* nc, int cellpixy, int cellpixx){
   ncplane_printf_yx(stdn, 10, 0, "press any key to continue");
   size_t rands = cellpixy * cellpixx * 3;
   unsigned char* randrgb = malloc(rands);
-  getrandom(randrgb, rands, GRND_NONBLOCK);
+  for(size_t r = 0 ; r < rands ; ++r){
+    randrgb[r] = random() % 256;
+  }
   struct ncvisual* ncv = ncvisual_from_rgb_packed(randrgb, cellpixy, cellpixx * 3, cellpixx, 0xff);
   if(ncv == NULL){
     return -1;

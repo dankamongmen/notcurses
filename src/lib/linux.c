@@ -413,7 +413,7 @@ bool is_linux_console(int fd, unsigned no_font_changes, bool* quadrants){
 }
 #else
 bool is_linux_console(int fd, unsigned no_font_changes, bool* quadrants){
-  (void)nc;
+  (void)fd;
   (void)no_font_changes;
   (void)quadrants;
   return false;
