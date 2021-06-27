@@ -201,7 +201,7 @@ force_rgba(ncvisual* n){
         av_freep(&n->details->frame);
       }
     }
-    ncvisual_set_data(n, sframe->data[0], false);
+    ncvisual_set_data(n, sframe->data[0], true);
   }
   n->details->frame = sframe;
   return 0;
@@ -494,7 +494,8 @@ ffmpeg_resize_internal(const ncvisual* ncv, int rows, int* stride, int cols,
     return NULL;
   }
 //fprintf(stderr, "INFRAME DAA: %p SDATA: %p FDATA: %p to %d/%d\n", inframe->data[0], sframe->data[0], ncv->details->frame->data[0], sframe->height, sframe->width);
-  int height = sws_scale(ncv->details->swsctx, (const uint8_t* const*)inframe->data,
+  const uint8_t* data[4] = { (uint8_t*)ncv->data, };
+  int height = sws_scale(ncv->details->swsctx, data,
                          inframe->linesize, 0, srcleny, dptrs, dlinesizes);
   if(height < 0){
 //fprintf(stderr, "Error applying scaling (%d X %d)\n", inframe->height, inframe->width);
@@ -517,29 +518,15 @@ int ffmpeg_resize(ncvisual* n, int rows, int cols){
   if(data == NULL){
     return -1;
   }
-  AVFrame* sframe = av_frame_alloc();
-  if(sframe == NULL){
-//fprintf(stderr, "Couldn't allocate output frame for scaled frame\n");
-    return -1;
-  }
-  const AVFrame* inf = n->details->frame;
-//fprintf(stderr, "WHN NCV: %d/%d\n", inf->width, inf->height);
-  memcpy(sframe, inf, sizeof(*inf));
-  sframe->format = AV_PIX_FMT_RGBA;
-  sframe->width = cols;
-  sframe->height = rows;
-  memset(sframe->data, 0, sizeof(sframe->data));
-  sframe->data[0] = data;
-  memset(sframe->linesize, 0, sizeof(sframe->linesize));
-  sframe->linesize[0] = stride;
-  n->rowstride = sframe->linesize[0];
+  AVFrame* inf = n->details->frame;
+//fprintf(stderr, "WHN NCV: %d/%d %p\n", inf->width, inf->height, n->data);
+  inf->width = cols;
+  inf->height = rows;
+  inf->linesize[0] = stride;
+  n->rowstride = stride;
   n->pixy = rows;
   n->pixx = cols;
-  if(n->owndata){
-    av_frame_unref(n->details->frame);
-  }
-  ncvisual_set_data(n, sframe->data[0], false);
-  n->details->frame = sframe;
+  ncvisual_set_data(n, data, true);
 //fprintf(stderr, "SIZE SCALED: %d %d (%u)\n", n->details->frame->height, n->details->frame->width, n->details->frame->linesize[0]);
   return 0;
 }
@@ -568,8 +555,12 @@ int ffmpeg_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
 void ffmpeg_details_seed(ncvisual* ncv){
   ncv->details->frame->data[0] = NULL;
   ncv->details->frame->data[1] = NULL;
+  ncv->details->frame->data[2] = NULL;
+  ncv->details->frame->data[3] = NULL;
   ncv->details->frame->linesize[0] = ncv->rowstride;
   ncv->details->frame->linesize[1] = 0;
+  ncv->details->frame->linesize[2] = 0;
+  ncv->details->frame->linesize[3] = 0;
   ncv->details->frame->width = ncv->pixx;
   ncv->details->frame->height = ncv->pixy;
   ncv->details->frame->format = AV_PIX_FMT_RGBA;
