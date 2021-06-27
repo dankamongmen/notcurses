@@ -625,8 +625,6 @@ write_sixel_payload(FILE* fp, int lenx, const sixelmap* map,
     }
     p += lenx;
   }
-  // \x9c: 8-bit "string terminator" (end sixel) doesn't work on at
-  // least xterm; we instead use '\e\\'
   fprintf(fp, "\e\\");
   if(cursor_hack){
     fprintf(fp, "%s", cursor_hack);

@@ -9,13 +9,13 @@ replacement for NCURSES on existing systems.
 
 <p align="center">
 <a href="https://www.youtube.com/watch?v=dcjkezf1ARY"><img src="https://raw.githubusercontent.com/dankamongmen/notcurses/gh-pages/notcurses-logo.png" alt="setting the standard (hype video)"/></a>
-</p>
-
 birthed screaming into this world by [nick black](https://nick-black.com/dankwiki/index.php/Hack_on) (<nickblack@linux.com>)
+
 * c++ wrappers by [marek habersack](http://twistedcode.net/blog/) (<grendel@twistedcode.net>)
 * rust wrappers by José Luis Cruz (<joseluis@andamira.net>)
 * python wrappers by igo95862 (<igo95862@yandex.ru>)
 * [zig wrappers](https://github.com/dundalek/notcurses-zig-example) by [Jakub Dundalek](https://dundalek.com/) (<dundalek@gmail.com>)
+</p>
 
 for more information, see [dankwiki](https://nick-black.com/dankwiki/index.php/Notcurses)
 and the [man pages](https://notcurses.com). in addition, there is
@@ -49,7 +49,7 @@ sudo apt-get update
 [![Sponsor](https://img.shields.io/badge/-Sponsor-red?logo=github)](https://github.com/sponsors/dankamongmen)
 
 [![Build](https://drone.dsscaw.com:4443/api/badges/dankamongmen/notcurses/status.svg)](https://drone.dsscaw.com:4443/dankamongmen/notcurses)
-[![🐧 Tests on Ubuntu](https://github.com/dankamongmen/notcurses/actions/workflows/ubuntu_test.yml/badge.svg)](https://github.com/dankamongmen/notcurses/actions/workflows/ubuntu_test.yml)
+[![🐧 UbuntuTests](https://github.com/dankamongmen/notcurses/actions/workflows/ubuntu_test.yml/badge.svg)](https://github.com/dankamongmen/notcurses/actions/workflows/ubuntu_test.yml)
 
 [![pypi_version](https://img.shields.io/pypi/v/notcurses?label=pypi)](https://pypi.org/project/notcurses)
 [![crates.io](https://img.shields.io/crates/v/libnotcurses-sys.svg)](https://crates.io/crates/libnotcurses-sys)
