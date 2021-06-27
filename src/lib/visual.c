@@ -964,11 +964,11 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
     n->sprite = sprixel_recycle(n);
   }
   bargs.u.pixel.spx = n->sprite;
-  // FIXME only set this if cursor is indeed hidden
-  if(nc->tcache.sprixel_cursor_hack){
-    bargs.u.pixel.cursor_hack = get_escape(&nc->tcache, ESCAPE_CIVIS);
-  }else{
-    bargs.u.pixel.cursor_hack = NULL;
+  bargs.u.pixel.cursor_hack = NULL;
+  if(nc->cursory < 0){
+    if(nc->tcache.sprixel_cursor_hack){
+      bargs.u.pixel.cursor_hack = get_escape(&nc->tcache, ESCAPE_CIVIS);
+    }
   }
   // FIXME need to pull off the ncpile's sprixellist if anything below fails!
   // at this point, disppixy/disppixx are the output geometry (might be larger
