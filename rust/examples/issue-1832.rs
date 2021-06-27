@@ -16,24 +16,22 @@ fn main() -> NcResult<()> {
     let vo = NcVisualOptions::with_plane(&mut bg_plane, NCSCALE_NONE, 0, 0, 0, 0, 0, 0, NCBLIT_PIXEL, 0, 0);
 
     // create a blue plane for the foreground
-    let mut fg_plane = NcPlane::new_bound(&mut bg_plane, 1, 1, 2, 16)?;
+    let fg_plane = NcPlane::new_bound(&mut bg_plane, 1, 1, 2, 16)?;
     fg_plane.set_base(" ", 0, NcChannels::from_rgb(0x88aa00, 0x222288))?;
 
     let mut counter = 0;
-    for _ in 0..4 {
+    for _ in 0..3 {
         fg_plane.putstr_yx(0,0, &format!["counter: {}", &counter]);
         counter += 1;
 
         v.render(nc, &vo)?;
         bg_plane.render()?;
         bg_plane.rasterize()?;
-        sleep![0, 500];
+        sleep![1];
     }
 
-
-    sleep![1];
     v.destroy();
-    bg_plane.destroy();
+    bg_plane.destroy()?;
     nc.stop()?;
     Ok(())
 }
