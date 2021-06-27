@@ -201,7 +201,7 @@ force_rgba(ncvisual* n){
         av_freep(&n->details->frame);
       }
     }
-    ncvisual_set_data(n, sframe->data[0], true);
+    ncvisual_set_data(n, sframe->data[0], false);
   }
   n->details->frame = sframe;
   return 0;
@@ -538,7 +538,7 @@ int ffmpeg_resize(ncvisual* n, int rows, int cols){
   if(n->owndata){
     av_frame_unref(n->details->frame);
   }
-  ncvisual_set_data(n, sframe->data[0], true);
+  ncvisual_set_data(n, sframe->data[0], false);
   n->details->frame = sframe;
 //fprintf(stderr, "SIZE SCALED: %d %d (%u)\n", n->details->frame->height, n->details->frame->width, n->details->frame->linesize[0]);
   return 0;
