@@ -296,13 +296,13 @@ TEST_CASE("TextLayout") {
     auto sp = ncplane_create(n_, &nopts);
     REQUIRE(sp);
     size_t bytes;
-    const char boundstr[] = "  \t\n my thermonuclear arms";
+    const char boundstr[] = "   \n my thermonuclear arms";
     CHECK(0 < ncplane_puttext(sp, 0, NCALIGN_CENTER, boundstr, &bytes));
     CHECK(0 == notcurses_render(nc_));
     CHECK(bytes == strlen(boundstr));
     char* line = ncplane_contents(sp, 0, 0, -1, -1);
     REQUIRE(line);
-    CHECK(0 == strcmp(line, "  	 my thermonuclear arms"));
+    CHECK(0 == strcmp(line, "    my thermonuclear arms"));
     free(line);
     ncplane_destroy(sp);
   }
