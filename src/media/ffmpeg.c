@@ -566,7 +566,7 @@ int ffmpeg_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
 }
 
 void ffmpeg_details_seed(ncvisual* ncv){
-  ncv->details->frame->data[0] = (uint8_t*)ncv->data;
+  ncv->details->frame->data[0] = NULL;
   ncv->details->frame->data[1] = NULL;
   ncv->details->frame->linesize[0] = ncv->rowstride;
   ncv->details->frame->linesize[1] = 0;
