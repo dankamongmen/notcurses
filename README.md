@@ -9,13 +9,13 @@ replacement for NCURSES on existing systems.
 
 <p align="center">
 <a href="https://www.youtube.com/watch?v=dcjkezf1ARY"><img src="https://raw.githubusercontent.com/dankamongmen/notcurses/gh-pages/notcurses-logo.png" alt="setting the standard (hype video)"/></a>
-birthed screaming into this world by [nick black](https://nick-black.com/dankwiki/index.php/Hack_on) (<nickblack@linux.com>)
+birthed screaming into this world by <a href="https://nick-black.com/dankwiki/index.php/Hack_on">nick black</a> (<a href="mailto:nickblack@linux.com">&lt;nickblack@linux.com&gt;</a>)
+</p>
 
 * c++ wrappers by [marek habersack](http://twistedcode.net/blog/) (<grendel@twistedcode.net>)
 * rust wrappers by José Luis Cruz (<joseluis@andamira.net>)
 * python wrappers by igo95862 (<igo95862@yandex.ru>)
 * [zig wrappers](https://github.com/dundalek/notcurses-zig-example) by [Jakub Dundalek](https://dundalek.com/) (<dundalek@gmail.com>)
-</p>
 
 for more information, see [dankwiki](https://nick-black.com/dankwiki/index.php/Notcurses)
 and the [man pages](https://notcurses.com). in addition, there is
