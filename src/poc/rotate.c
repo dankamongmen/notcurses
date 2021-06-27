@@ -10,7 +10,7 @@
 int main(int argc, char** argv){
   struct timespec ts = {
     .tv_sec = 0,
-    .tv_nsec = 250000000,
+    .tv_nsec = 100000000,
   };
   const char* file = "../data/changes.jpg";
   setlocale(LC_ALL, "");
