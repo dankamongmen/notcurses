@@ -340,7 +340,7 @@ block_on_input(int fd, const struct timespec* ts, const sigset_t* sigmask){
   if(sigmask){
     memcpy(&scratchmask, sigmask, sizeof(*sigmask));
   }else{
-    pthread_sigmask(0, NULL, &scratchmask);
+    sigfillset(&scratchmask);
   }
   sigdelset(&scratchmask, SIGCONT);
   sigdelset(&scratchmask, SIGWINCH);

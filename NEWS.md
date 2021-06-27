@@ -10,6 +10,7 @@ rearrangements of Notcurses.
     plane and inhibition of the alternate screen, this allows rendered mode
     to easily be used for scrolling shell environment programs.
   * `ncls` now defaults to `NCBLIT_PIXEL`.
+  * Added `ncplane_scrolling_p()` to retrieve a plane's scrolling status.
 
 * 2.3.6 (2021-06-23)
   * Fixed (harmless) warning with `-Wformat-security`.

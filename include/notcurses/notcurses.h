@@ -1209,14 +1209,16 @@ API struct ncplane* ncplane_reparent(struct ncplane* n, struct ncplane* newparen
 // The same as ncplane_reparent(), except any planes bound to 'n' come along
 // with it to its new destination. Their z-order is maintained. If 'newparent'
 // is an ancestor of 'n', NULL is returned, and no changes are made.
-API struct ncplane* ncplane_reparent_family(struct ncplane* n, struct ncplane* newparent);
+API struct ncplane* ncplane_reparent_family(struct ncplane* n, struct ncplane* newparent)
+  __attribute__ ((nonnull (1, 2)));
 
 // Duplicate an existing ncplane. The new plane will have the same geometry,
 // will duplicate all content, and will start with the same rendering state.
 // The new plane will be immediately above the old one on the z axis, and will
 // be bound to the same parent. Bound planes are *not* duplicated; the new
 // plane is bound to the parent of 'n', but has no bound planes.
-API ALLOC struct ncplane* ncplane_dup(const struct ncplane* n, void* opaque);
+API ALLOC struct ncplane* ncplane_dup(const struct ncplane* n, void* opaque)
+  __attribute__ ((nonnull (1)));
 
 // provided a coordinate relative to the origin of 'src', map it to the same
 // absolute coordinate relative to the origin of 'dst'. either or both of 'y'
@@ -1228,12 +1230,17 @@ API void ncplane_translate(const struct ncplane* src, const struct ncplane* dst,
 // within the ncplane 'n'. If not, return false. If so, return true. Either
 // way, translate the absolute coordinates relative to 'n'. If the point is not
 // within 'n', these coordinates will not be within the dimensions of the plane.
-API bool ncplane_translate_abs(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
+API bool ncplane_translate_abs(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x)
+  __attribute__ ((nonnull (1)));
 
 // All planes are created with scrolling disabled. Scrolling can be dynamically
 // controlled with ncplane_set_scrolling(). Returns true if scrolling was
 // previously enabled, or false if it was disabled.
-API bool ncplane_set_scrolling(struct ncplane* n, bool scrollp);
+API bool ncplane_set_scrolling(struct ncplane* n, bool scrollp)
+  __attribute__ ((nonnull (1)));
+
+API bool ncplane_scrolling_p(const struct ncplane* n)
+  __attribute__ ((nonnull (1)));
 
 // Palette API. Some terminals only support 256 colors, but allow the full
 // palette to be specified with arbitrary RGB colors. In all cases, it's more
