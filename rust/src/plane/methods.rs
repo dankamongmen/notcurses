@@ -1660,6 +1660,11 @@ impl NcPlane {
         unsafe { crate::ncplane_y(self) as NcOffset }
     }
 
+    /// Returns `true` if this `NcPlane` has scrolling enabled, or `false` otherwise.
+    pub fn scrolling_p(&self) -> bool {
+        unsafe { crate::ncplane_scrolling_p(self) }
+    }
+
     /// Sets the scrolling behaviour of the plane, and
     /// returns true if scrolling was previously enabled, of false, if disabled.
     ///

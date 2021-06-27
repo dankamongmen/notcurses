@@ -1,6 +1,6 @@
 //! `NcPlane`
 
-// functions already exported by bindgen : 116
+// functions already exported by bindgen : 117
 // -------------------------------------------
 // (X) wont: 10
 // (D) depr:  4
@@ -86,6 +86,7 @@
 //W  ncplane_rgba
 //W  ncplane_rotate_ccw
 //W  ncplane_rotate_cw
+//W  ncplane_scrolling_p
 //W  ncplane_set_base
 //W  ncplane_set_base_cell
 //W# ncplane_set_bchannel
