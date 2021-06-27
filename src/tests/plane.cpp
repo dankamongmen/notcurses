@@ -987,6 +987,20 @@ TEST_CASE("Plane") {
     ncplane_destroy(n1);
   }
 
+  // you ought not be able to output control characters
+  SUBCASE("DenyControlASCII") {
+    signed char c = 0;
+    c = -1;
+    do{
+      ++c;
+      if(!isprint(c)){
+        CHECK(0 > ncplane_putchar_yx(n_, 0, 0, c));
+      }else{
+        CHECK(1 == ncplane_putchar_yx(n_, 0, 0, c));
+      }
+    }while(c != 127);
+  }
+
   CHECK(0 == notcurses_stop(nc_));
 
 }

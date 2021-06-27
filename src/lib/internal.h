@@ -1474,6 +1474,25 @@ plane_blit_sixel(sprixel* spx, char* s, int bytes, int leny, int lenx,
   return 0;
 }
 
+// is it a control character? check C0 and C1, but don't count empty strings.
+static inline bool
+is_control_egc(const unsigned char* egc, int bytes){
+  if(bytes == 1){
+    if(iscntrl(*egc)){
+      return true;
+    }
+  }else if(bytes == 2){
+    // 0xc2 followed by 0x80--0x9f are controls. 0xc2 followed by <0x80 is
+    // simply invalid utf8.
+    if(egc[0] == 0xc2){
+      if(egc[1] < 0xa0){
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 // lowest level of cell+pool setup. if the EGC changes the output to RTL, it
 // must be suffixed with a LTR-forcing character by now. The four bits of
 // CELL_BLITTERSTACK_MASK ought already be initialized. If gcluster is four
@@ -1482,6 +1501,9 @@ static inline int
 pool_blit_direct(egcpool* pool, nccell* c, const char* gcluster, int bytes, int cols){
   pool_release(pool, c);
   if(bytes < 0 || cols < 0){
+    return -1;
+  }
+  if(is_control_egc((const unsigned char*)gcluster, bytes)){
     return -1;
   }
   c->width = cols;

@@ -328,7 +328,6 @@ TEST_CASE("Cell") {
     };
     auto np = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != np);
-    CHECK(1 == ncplane_putc(np, &c));
     nccell_load_char(n_, &c, '*');
     // bottom has white foreground + HIGHCONTRAST, should remain white
     CHECK(0 == nccell_set_fg_rgb8(&c, 0xff, 0x0, 0xff));
@@ -356,11 +355,13 @@ TEST_CASE("Cell") {
     CHECK(0 == strcmp(nccell_extended_gcluster(n_, &c), "*"));
   }
 
+  // only space is allowed
   SUBCASE("CellLoadCharWhitespace") {
     nccell c = CELL_TRIVIAL_INITIALIZER;
-    CHECK(1 == nccell_load_char(n_, &c, '\f'));
-    CHECK(1 == nccell_load_char(n_, &c, '\n'));
-    CHECK(1 == nccell_load_char(n_, &c, '\t'));
+    CHECK(-1 == nccell_load_char(n_, &c, '\n'));
+    CHECK(-1 == nccell_load_char(n_, &c, '\f'));
+    CHECK(-1 == nccell_load_char(n_, &c, '\v'));
+    CHECK(-1 == nccell_load_char(n_, &c, '\t'));
     CHECK(1 == nccell_load_char(n_, &c, ' '));
   }
 

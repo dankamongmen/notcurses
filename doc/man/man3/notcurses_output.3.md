@@ -100,6 +100,9 @@ breaks. For more information, consult [Unicode® Standard Annex #29](https://uni
 Functions accepting a set of EGCs must consist of a series of well-formed EGCs,
 broken by cluster breaks, terminated by the appropriate NUL terminator.
 
+Control characters are rejected, except for a newline when the output plane
+is in scrolling mode. A newline outside of scrolling mode will be rejected.
+
 These functions output to the `ncplane`'s current cursor location. Aside from
 **ncplane_puttext()**, they *do not* move to the next line upon reaching the
 right extreme of the containing plane. If the entirety of the content cannot be

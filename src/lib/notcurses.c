@@ -1546,13 +1546,23 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
     logerror("Can't write glyphs (%s) to sprixelated plane\n", egc);
     return -1;
   }
-  // FIXME reject any control or space characters here--should be iswgraph()
+  // reject any control character for output other than newline (and then only
+  // on a scrolling plane). this also rejects any 0-length EGC.
+  if(*egc == '\n'){
+    if(!n->scrolling){
+      logerror("Rejecting newline on non-scrolling plane\n");
+      return -1;
+    }
+  }else if(bytes == 0 || is_control_egc((const unsigned char*)egc, bytes)){
+    logerror("Rejecting %dB control character\n", bytes);
+    return -1;
+  }
   // check *before ncplane_cursor_move_yx()* whether we're past the end of the
   // line. if scrolling is enabled, move to the next line if so. if x or y are
   // specified, we must always try to print at exactly that location.
   if(x != -1){
     if(x + cols > n->lenx){
-      logerror("Target x %d + %d cols >= length %d\n", x, cols, n->lenx);
+      logerror("Target x %d + %d cols [%.*s] > length %d\n", x, cols, bytes, egc, n->lenx);
       ncplane_cursor_move_yx(n, y, x); // update cursor, though
       return -1;
     }
@@ -1566,9 +1576,6 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
   if(ncplane_cursor_move_yx(n, y, x)){
     return -1;
   }
-  // FIXME don't we need to check here for wide character on edge (though our
-  // docs currently claim that a wide char on edge is allowed...)?
-  // FIXME ought not be allowed when scrolling is disabled!
   if(*egc == '\n'){
     scroll_down(n);
     return 0;
