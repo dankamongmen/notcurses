@@ -9,6 +9,7 @@ rearrangements of Notcurses.
     starting in the upper-left corner. Together with a scrolling standard
     plane and inhibition of the alternate screen, this allows rendered mode
     to easily be used for scrolling shell environment programs.
+  * `ncls` now defaults to `NCBLIT_PIXEL`.
 
 * 2.3.6 (2021-06-23)
   * Fixed (harmless) warning with `-Wformat-security`.

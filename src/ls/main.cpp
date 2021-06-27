@@ -266,6 +266,7 @@ int main(int argc, char* const * argv){
     blitter,
     scale,
   };
+  ctx.nc.cursor_disable();
   keep_working = true;
   for(auto s = 0u ; s < procs ; ++s){
     threads.emplace_back(std::thread(ncls_thread, &ctx));
