@@ -1,8 +1,8 @@
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <clocale>
-#include <cassert>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <locale.h>
+#include <assert.h>
 #include <unistd.h>
 #include <notcurses/notcurses.h>
 #include "compat/compat.h"
@@ -20,28 +20,28 @@ int main(int argc, char** argv){
   }else if(argc == 2){
     file = argv[1];
   }
-  notcurses_options opts{};
+  notcurses_options opts = {};
   //opts.loglevel = NCLOGLEVEL_TRACE;
   opts.flags = NCOPTION_INHIBIT_SETLOCALE | NCOPTION_NO_ALTERNATE_SCREEN;
   struct notcurses* nc;
-  if((nc = notcurses_init(&opts, nullptr)) == nullptr){
+  if((nc = notcurses_init(&opts, NULL)) == NULL){
     return EXIT_FAILURE;
   }
   int dimy, dimx;
-  struct ncplane* n = ncplane_dup(notcurses_stddim_yx(nc, &dimy, &dimx), nullptr);
+  struct ncplane* n = ncplane_dup(notcurses_stddim_yx(nc, &dimy, &dimx), NULL);
   if(!n){
     notcurses_stop(nc);
     return EXIT_FAILURE;
   }
-  struct ncvisual_options vopts{};
+  struct ncvisual_options vopts = {};
   bool failed = false;
-  auto ncv = ncvisual_from_file(file);
+  struct ncvisual* ncv = ncvisual_from_file(file);
   if(!ncv){
     goto err;
   }
   int scaley, scalex;
   vopts.n = n;
-  if(ncvisual_render(nc, ncv, &vopts) == nullptr){
+  if(ncvisual_render(nc, ncv, &vopts) == NULL){
     goto err;
   }
   if(notcurses_render(nc)){
@@ -50,12 +50,12 @@ int main(int argc, char** argv){
   clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);
 
   ncplane_erase(n);
-  ncvisual_blitter_geom(nc, ncv, &vopts, nullptr, nullptr, &scaley, &scalex, nullptr);
+  ncvisual_blitter_geom(nc, ncv, &vopts, NULL, NULL, &scaley, &scalex, NULL);
   if(ncvisual_resize(ncv, dimy * scaley, dimx * scalex)){
     goto err;
   }
   vopts.n = n;
-  if(ncvisual_render(nc, ncv, &vopts) == nullptr){
+  if(ncvisual_render(nc, ncv, &vopts) == NULL){
     goto err;
   }
   if(notcurses_render(nc)){
@@ -75,7 +75,7 @@ int main(int argc, char** argv){
       break;
     }
     struct ncplane* newn;
-    if((newn = ncvisual_render(nc, ncv, &vopts)) == nullptr){
+    if((newn = ncvisual_render(nc, ncv, &vopts)) == NULL){
       failed = true;
       break;
     }
