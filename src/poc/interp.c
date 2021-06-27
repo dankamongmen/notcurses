@@ -36,12 +36,14 @@ interp(struct notcurses* nc, int cellpixy, int cellpixx){
   if(ncvisual_render(nc, ncv, &vopts) == NULL){
     return -1;
   }
+  ncplane_putstr_yx(stdn, 2, 4, "scale");
   struct ncplane* scalepni = ncplane_create(stdn, &popts);
   vopts.n = scalepni;
   vopts.flags = NCVISUAL_OPTION_NOINTERPOLATE;
   if(ncvisual_render(nc, ncv, &vopts) == NULL){
     return -1;
   }
+  ncplane_putstr_yx(stdn, 2, 15, "scale(no)");
   popts.x += ncplane_dim_x(scalepni) + 1;
   struct ncplane* resizep = ncplane_create(stdn, &popts);
   if(resizep == NULL){
@@ -56,6 +58,7 @@ interp(struct notcurses* nc, int cellpixy, int cellpixx){
   if(ncvisual_render(nc, ncv, &vopts) == NULL){
     return -1;
   }
+  ncplane_putstr_yx(stdn, 2, 30, "resize");
   ncvisual_destroy(ncv);
   ncv = ncvisual_from_rgb_packed(randrgb, cellpixy, cellpixx * 3, cellpixx, 0xff);
   popts.x += ncplane_dim_x(scalepni) + 1;
@@ -70,6 +73,7 @@ interp(struct notcurses* nc, int cellpixy, int cellpixx){
   if(ncvisual_render(nc, ncv, &vopts) == NULL){
     return -1;
   }
+  ncplane_putstr_yx(stdn, 2, 41, "resize(no)");
   notcurses_render(nc);
   ncplane_destroy(ncvp);
   ncplane_destroy(scalep);
