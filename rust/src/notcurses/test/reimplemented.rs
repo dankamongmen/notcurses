@@ -146,7 +146,12 @@ fn notcurses_at_yx() {
 fn notcurses_debug() {
     unsafe {
         let nc = notcurses_init_test();
+
+        #[cfg(any(target_arch = "s390x", target_arch = "ppc64le"))]
+        let mut _p: *mut u8 = &mut 0;
+        #[cfg(not(any(target_arch = "s390x", target_arch = "ppc64le")))]
         let mut _p: *mut i8 = &mut 0;
+
         let mut _size: *mut usize = &mut 0;
         let mut file = NcFile::from_libc(libc::open_memstream(&mut _p, _size));
         crate::notcurses_debug(nc, file.as_nc_ptr());

@@ -3,7 +3,8 @@
 use core::ptr::null;
 
 use crate::{
-    NcCapabilities, NcComponent, NcDirect, NcInput, NcIntResult, NcRgb, NcSignalSet, NcTime,
+    cstring, NcCapabilities, NcChannels, NcComponent, NcDim, NcDirect, NcInput, NcIntResult, NcRgb,
+    NcSignalSet, NcTime,
 };
 
 /// Can we directly specify RGB values per cell, or only use palettes?
@@ -116,4 +117,59 @@ pub fn ncdirect_set_bg_rgb8(
 ) -> NcIntResult {
     let rgb = (red as NcRgb) << 16 | (green as NcRgb) << 8 | blue as NcRgb;
     unsafe { crate::ncdirect_set_bg_rgb(ncd, rgb) }
+}
+
+/// Draws horizontal lines using the specified [NcChannels]s, interpolating
+/// between them as we go.
+///
+/// The string at `egc` may not use more than one column.
+///
+/// All lines start at the current cursor position.
+///
+/// For a horizontal line, `len` cannot exceed the screen width minus the
+/// cursor's offset.
+// TODO:MAYBE saturate the `len` value
+///
+/// *Method: NcDirect.[hline_interp()][NcDirect#method.hline_interp].*
+#[inline]
+pub fn ncdirect_hline_interp(
+    ncd: &mut NcDirect,
+    egc: &str,
+    len: NcDim,
+    h1: NcChannels,
+    h2: NcChannels,
+) -> NcIntResult {
+    #[cfg(any(target_arch = "armv7l", target_arch = "i686"))]
+    let egc_ptr = cstring![egc] as *const i8;
+    #[cfg(not(any(target_arch = "armv7l", target_arch = "i686")))]
+    let egc_ptr = cstring![egc];
+
+    unsafe { crate::bindings::ffi::ncdirect_hline_interp(ncd, egc_ptr, len as i32, h1, h2) }
+}
+
+/// Draws horizontal lines using the specified [NcChannels]s, interpolating
+/// between them as we go.
+///
+/// The string at `egc` may not use more than one column.
+///
+/// All lines start at the current cursor position.
+///
+/// For a vertical line, `len` may be as long as you'd like; the screen
+/// will scroll as necessary.
+///
+/// *Method: NcDirect.[vline_interp()][NcDirect#method.vline_interp].*
+#[inline]
+pub fn ncdirect_vline_interp(
+    ncd: &mut NcDirect,
+    egc: &str,
+    len: NcDim,
+    h1: NcChannels,
+    h2: NcChannels,
+) -> NcIntResult {
+    #[cfg(any(target_arch = "armv7l", target_arch = "i686"))]
+    let egc_ptr = cstring![egc] as *const i8;
+    #[cfg(not(any(target_arch = "armv7l", target_arch = "i686")))]
+    let egc_ptr = cstring![egc];
+
+    unsafe { crate::bindings::ffi::ncdirect_vline_interp(ncd, egc_ptr, len as i32, h1, h2) }
 }

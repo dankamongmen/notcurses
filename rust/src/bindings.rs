@@ -155,6 +155,8 @@ pub use ffi::{
 // ncdirect_canquadrant,
 // ncdirect_cantruecolor,
 // ncdirect_capabilities,
+// ncdirect_hline_interp,
+// ncdirect_vline_interp,
 //
 // // constants
 // NCDIRECT_OPTION_INHIBIT_CBREAK,
@@ -189,7 +191,6 @@ pub use ffi::{
     ncdirect_double_box,
     ncdirect_flush,
     ncdirect_getc,
-    ncdirect_hline_interp,
     ncdirect_init,
     ncdirect_inputready_fd,
     ncdirect_off_styles,
@@ -213,7 +214,6 @@ pub use ffi::{
     ncdirect_stream,
     ncdirect_styles,
     ncdirect_supported_styles,
-    ncdirect_vline_interp,
 };
 
 // ncdirectf --------------------------------------------------------------------
@@ -377,6 +377,7 @@ pub use ffi::{
 //
 // // functions
 // ncplane_channels,
+// ncplane_gradient,
 // ncplane_set_bchannel,
 // ncplane_set_fchannel,
 // ncplane_set_channels,
@@ -419,7 +420,6 @@ pub use ffi::{
     ncplane_fadeout,
     ncplane_fadeout_iteration,
     ncplane_format,
-    ncplane_gradient,
     ncplane_greyscale,
     ncplane_highgradient,
     ncplane_highgradient_sized,

@@ -740,6 +740,65 @@ pub fn ncplane_rounded_box_sized(
 
 // gradient --------------------------------------------------------------------
 
+/// Draws a gradient with its upper-left corner at the current cursor position,
+/// stopping at `ystop`×`xstop`.
+///
+/// The glyph composed of `egc` and `stylemask` is used for all cells. The
+/// `NcChannels` specified by `ul`, `ur`, `ll`, and `lr` are composed into
+/// foreground and background gradients.
+///
+/// - To do a vertical gradient, `ul` ought equal `ur` and `ll` ought equal `lr`.
+/// - To do a horizontal gradient, `ul` ought equal `ll` and `ur` ought equal `ul`.
+/// - To color everything the same, all four channels should be equivalent. The
+/// resulting alpha values are equal to incoming alpha values. Returns the number
+/// of cells filled on success, or -1 on failure.
+///
+/// Palette-indexed color is not supported.
+///
+/// Preconditions for gradient operations (error otherwise):
+/// - all: only RGB colors, unless all four channels match as default
+/// - all: all alpha values must be the same
+/// - 1x1: all four colors must be the same
+/// - 1xN: both top and both bottom colors must be the same (vertical gradient)
+/// - Nx1: both left and both right colors must be the same (horizontal gradient)
+///
+/// *Method: NcPlane.[gradient()][NcPlane#method.gradient].*
+#[inline]
+pub fn ncplane_gradient(
+    plane: &mut NcPlane,
+    egc: &str,
+    stylemask: NcStyle,
+    ul: NcChannels,
+    ur: NcChannels,
+    ll: NcChannels,
+    lr: NcChannels,
+    y_len: NcDim,
+    x_len: NcDim,
+) -> NcIntResult {
+    if y_len < 1 || x_len < 1 {
+        return NCRESULT_ERR;
+    }
+
+    #[cfg(any(target_arch = "armv7l", target_arch = "i686"))]
+    let egc_ptr = cstring![egc] as *const i8;
+    #[cfg(not(any(target_arch = "armv7l", target_arch = "i686")))]
+    let egc_ptr = cstring![egc];
+
+    unsafe {
+        crate::bindings::ffi::ncplane_gradient(
+            plane,
+            egc_ptr,
+            stylemask as u32,
+            ul,
+            ur,
+            ll,
+            lr,
+            y_len as i32,
+            x_len as i32,
+        )
+    }
+}
+
 /// Draw a gradient with its upper-left corner at the current cursor position,
 /// having dimensions `y_len` * `x_len`.
 ///
@@ -751,10 +810,10 @@ pub fn ncplane_gradient_sized(
     plane: &mut NcPlane,
     egc: &str,
     stylemask: NcStyle,
-    ul: NcChannel,
-    ur: NcChannel,
-    ll: NcChannel,
-    lr: NcChannel,
+    ul: NcChannels,
+    ur: NcChannels,
+    ll: NcChannels,
+    lr: NcChannels,
     y_len: NcDim,
     x_len: NcDim,
 ) -> NcIntResult {
@@ -764,16 +823,16 @@ pub fn ncplane_gradient_sized(
     let (mut y, mut x) = (0, 0);
     unsafe {
         crate::ncplane_cursor_yx(plane, &mut y, &mut x);
-        crate::ncplane_gradient(
+        ncplane_gradient(
             plane,
-            cstring![egc],
-            stylemask as u32,
-            ul as u64,
-            ur as u64,
-            ll as u64,
-            lr as u64,
-            y + y_len as i32 - 1,
-            x + x_len as i32 - 1,
+            egc,
+            stylemask,
+            ul,
+            ur,
+            ll,
+            lr,
+            y as u32 + y_len - 1,
+            x as u32 + x_len - 1,
         )
     }
 }

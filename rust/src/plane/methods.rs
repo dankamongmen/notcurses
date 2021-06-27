@@ -206,6 +206,13 @@ impl NcPlane {
         crate::ncplane_channels(self)
     }
 
+    /// Sets the current [`NcChannels`] for this `NcPlane`.
+    ///
+    /// *C style function: [ncplane_set_channels()][crate::ncplane_set_channels].*
+    pub fn set_channels(&mut self, channels: NcChannels) {
+        crate::ncplane_set_channels(self, channels);
+    }
+
     /// Gets the foreground [`NcChannel`] from an [NcPlane].
     ///
     /// *C style function: [ncplane_fchannel()][crate::ncplane_fchannel].*
@@ -220,13 +227,6 @@ impl NcPlane {
     #[inline]
     pub fn bchannel(&self) -> NcChannel {
         crate::ncchannels_bchannel(crate::ncplane_channels(self))
-    }
-
-    /// Sets the current [`NcChannels`] for this `NcPlane`.
-    ///
-    /// *C style function: [ncplane_set_channels()][crate::ncplane_set_channels].*
-    pub fn set_channels(&mut self, channels: NcChannels) {
-        crate::ncplane_set_channels(self, channels);
     }
 
     /// Sets the current foreground [`NcChannel`] for this `NcPlane`.
@@ -790,9 +790,8 @@ impl NcPlane {
 
     /// Writes a string to the current location, using the current style.
     ///
-    /// Advances the cursor by some positive number of columns
-    /// (though not beyond the end of the plane),
-    /// and this number is returned on success.
+    /// Advances the cursor by some positive number of columns (though not
+    /// beyond the end of the plane), and this number is returned on success.
     ///
     /// On error, a non-positive number is returned, indicating
     /// the number of columns which were written before the error.
@@ -854,7 +853,7 @@ impl NcPlane {
         ]
     }
 
-    /// Write a string to the provided location, using the current style.
+    /// Writes a string to the provided location, using the current style.
     ///
     /// They will be interpreted as a series of columns.
     ///
@@ -1936,19 +1935,7 @@ impl NcPlane {
         y_stop: NcDim,
         x_stop: NcDim,
     ) -> NcResult<NcDim> {
-        let res = unsafe {
-            crate::ncplane_gradient(
-                self,
-                cstring![egc],
-                stylemask as u32,
-                ul,
-                ur,
-                ll,
-                lr,
-                y_stop as i32,
-                x_stop as i32,
-            )
-        };
+        let res = crate::ncplane_gradient(self, egc, stylemask, ul, ur, ll, lr, y_stop, x_stop);
         error![res, "", res as NcDim]
     }
 
@@ -1963,10 +1950,10 @@ impl NcPlane {
         &mut self,
         egc: &str,
         stylemask: NcStyle,
-        ul: NcChannel,
-        ur: NcChannel,
-        ll: NcChannel,
-        lr: NcChannel,
+        ul: NcChannels,
+        ur: NcChannels,
+        ll: NcChannels,
+        lr: NcChannels,
         y_len: NcDim,
         x_len: NcDim,
     ) -> NcResult<NcDim> {

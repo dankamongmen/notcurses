@@ -740,6 +740,7 @@ impl NcDirect {
             crate::ncdirect_rounded_box(self, ul, ur, ll, lr, y_len as i32, x_len as i32, ctlword)
         }]
     }
+
     /// Draws horizontal lines using the specified [NcChannels]s, interpolating
     /// between them as we go.
     ///
@@ -759,7 +760,7 @@ impl NcDirect {
         h1: NcChannels,
         h2: NcChannels,
     ) -> NcResult<()> {
-        error![unsafe { crate::ncdirect_hline_interp(self, cstring![egc], len as i32, h1, h2) }]
+        error![crate::ncdirect_hline_interp(self, egc, len, h1, h2)]
     }
 
     /// Draws horizontal lines using the specified [NcChannels]s, interpolating
@@ -781,6 +782,6 @@ impl NcDirect {
         h1: NcChannels,
         h2: NcChannels,
     ) -> NcResult<()> {
-        error![unsafe { crate::ncdirect_vline_interp(self, cstring![egc], len as i32, h1, h2) }]
+        error![crate::ncdirect_vline_interp(self, egc, len, h1, h2)]
     }
 }
