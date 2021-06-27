@@ -505,11 +505,6 @@ rotate_bounding_box(double stheta, double ctheta, int* leny, int* lenx,
 }
 
 int ncvisual_rotate(ncvisual* ncv, double rads){
-  // done to force conversion into RGBA
-  int err = ncvisual_resize(ncv, ncv->pixy, ncv->pixx);
-  if(err){
-    return err;
-  }
   assert(ncv->rowstride / 4 >= ncv->pixx);
   rads = -rads; // we're a left-handed Cartesian
   if(ncv->data == NULL){
