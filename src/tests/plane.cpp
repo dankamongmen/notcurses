@@ -993,7 +993,7 @@ TEST_CASE("Plane") {
     c = -1;
     do{
       ++c;
-      if(!isprint(c)){
+      if(c && !isprint(c)){
         CHECK(0 > ncplane_putchar_yx(n_, 0, 0, c));
       }else{
         CHECK(1 == ncplane_putchar_yx(n_, 0, 0, c));
