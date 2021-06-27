@@ -151,6 +151,49 @@ void free_terminfo_cache(tinfo* ti){
   free(ti->esctable);
 }
 
+// compare one terminal version against another. numerics, separated by
+// periods, and comparison ends otherwise (so "20.0 alpha" doesn't compare
+// as greater than "20.0", mainly). returns -1 if v1 < v2 (or v1 is NULL),
+// 0 if v1 == v2, or 1 if v1 > v2.
+static int
+compare_versions(const char* restrict v1, const char* restrict v2){
+  if(v1 == NULL){
+    return -1;
+  }
+  while(*v1 && *v2){
+    if(isdigit(*v1) && isdigit(*v2)){
+      if(*v1 > *v2){
+        return 1;
+      }
+      if(*v2 > *v1){
+        return -1;
+      }
+    }else if(isdigit(*v1)){
+      return 1;
+    }else if(isdigit(*v2)){
+      return -1;
+    }else if(*v1 != '.' && *v2 != '.'){
+      break;
+    }else if(*v1 != '.' || *v2 != '.'){
+      if(*v1 == '.'){
+        return 1;
+      }else{
+        return -1;
+      }
+    }
+    ++v1;
+    ++v2;
+  }
+  // can only get out here if at least one was not a period
+  if(*v1 == '.'){
+    return 1;
+  }
+  if(*v2 == '.'){
+    return -1;
+  }
+  return 0;
+}
+
 // tlen -- size of escape table. tused -- used bytes in same.
 // returns -1 if the starting location is >= 65535. otherwise,
 // copies tstr into the table, and sets up 1-biased index.
@@ -296,6 +339,10 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
     setup_kitty_bitmaps(ti, fd);
     if(add_smulx_escapes(ti, tablelen, tableused)){
       return -1;
+    }
+    // kitty only introduced C=1 in 0.20.0
+    if(compare_versions(ti->termversion, "0.20.0") < 0){
+      ti->sixel_maxy_pristine = INT_MAX;
     }
   }else if(qterm == TERMINAL_ALACRITTY){
     termname = "Alacritty";
