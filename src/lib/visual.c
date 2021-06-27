@@ -507,9 +507,6 @@ rotate_bounding_box(double stheta, double ctheta, int* leny, int* lenx,
 int ncvisual_rotate(ncvisual* ncv, double rads){
   assert(ncv->rowstride / 4 >= ncv->pixx);
   rads = -rads; // we're a left-handed Cartesian
-  if(ncv->data == NULL){
-    return -1;
-  }
   int centy, centx;
   ncvisual_center(ncv, &centy, &centx); // pixel center (center of 'data')
   double stheta, ctheta; // sine, cosine
@@ -523,11 +520,13 @@ int ncvisual_rotate(ncvisual* ncv, double rads){
   int bboffy = 0;
   int bboffx = 0;
   if(ncvisual_bounding_box(ncv, &bby, &bbx, &bboffy, &bboffx) <= 0){
+    logerror("Couldn't find a bounding box\n");
     return -1;
   }
   int bbarea;
   bbarea = rotate_bounding_box(stheta, ctheta, &bby, &bbx, &bboffy, &bboffx);
   if(bbarea <= 0){
+    logerror("Couldn't rotate the visual (%d, %d, %d, %d)\n", bby, bbx, bboffy, bboffx);
     return -1;
   }
   int bbcentx = bbx, bbcenty = bby;
