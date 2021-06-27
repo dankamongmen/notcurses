@@ -22,12 +22,6 @@
 
 #define ESC "\x1b"
 
-// there does not exist any true standard terminal size. with that said, we
-// need assume *something* for the case where we're not actually attached to
-// a terminal (mainly unit tests, but also daemon environments).
-static const int DEFAULT_ROWS = 24;
-static const int DEFAULT_COLS = 80;
-
 void notcurses_version_components(int* major, int* minor, int* patch, int* tweak){
   *major = NOTCURSES_VERNUM_MAJOR;
   *minor = NOTCURSES_VERNUM_MINOR;
@@ -222,10 +216,10 @@ int update_term_dimensions(int fd, int* rows, int* cols, tinfo* tcache,
   // if we're not a real tty, we presumably haven't changed geometry, return
   if(fd < 0){
     if(rows){
-      *rows = DEFAULT_ROWS;
+      *rows = tcache->default_rows;
     }
     if(cols){
-      *cols = DEFAULT_COLS;
+      *cols = tcache->default_cols;
     }
     if(tcache){
       tcache->cellpixy = 0;
@@ -1074,9 +1068,6 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     return NULL;
   }
   ret->ttyfd = get_tty_fd(ret->ttyfp);
-  if(ret->ttyfd < 0){
-    fprintf(stderr, "Defaulting to %dx%d (output is not to a terminal)\n", DEFAULT_ROWS, DEFAULT_COLS);
-  }
   if(recursive_lock_init(&ret->pilelock)){
     fprintf(stderr, "Couldn't initialize pile mutex\n");
     free(ret);

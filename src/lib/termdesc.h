@@ -161,6 +161,9 @@ typedef struct tinfo {
   // furthermore interprets DECSDM in the reverse sense of most terminals
   // (though possibly in conformance with the actual VT340).
   bool sprixel_cursor_hack; // mlterm fixes
+
+  int default_rows; // LINES environment var / lines terminfo / 24
+  int default_cols; // COLUMNS environment var / cols terminfo / 80
 } tinfo;
 
 // retrieve the terminfo(5)-style escape 'e' from tdesc (NULL if undefined).

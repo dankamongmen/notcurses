@@ -6,6 +6,42 @@
 #include "internal.h"
 #include "input.h"
 
+// there does not exist any true standard terminal size. with that said, we
+// need assume *something* for the case where we're not actually attached to
+// a terminal (mainly unit tests, but also daemon environments). in preference
+// to this, we use the geometries defined by (in order of precedence):
+//
+//  * TIOGWINSZ ioctl(2)
+//  * LINES/COLUMNS environment variables
+//  * lines/cols terminfo variables
+//
+// this function sets up ti->default_rows and ti->default_cols
+static int
+get_default_dimension(const char* envvar, const char* tinfovar, int def){
+  const char* env = getenv(envvar);
+  int num;
+  if(env){
+    num = atoi(env);
+    if(num > 0){
+      return num;
+    }
+  }
+  num = tigetnum(tinfovar);
+  if(num > 0){
+    return num;
+  }
+  return def;
+}
+
+static void
+get_default_geometry(tinfo* ti){
+  ti->default_rows = get_default_dimension("LINES", "lines", 24);
+  ti->default_cols = get_default_dimension("COLUMNS", "cols", 80);
+  loginfo("Default geometry: %d row%s, %d column%s\n",
+          ti->default_rows, ti->default_rows != 1 ? "s" : "",
+          ti->default_cols, ti->default_cols != 1 ? "s" : "");
+}
+
 // we found Sixel support -- set up the API
 static inline void
 setup_sixel_bitmaps(tinfo* ti, int fd){
@@ -388,6 +424,7 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
       return -1;
     }
   }
+  get_default_geometry(ti);
   ti->caps.utf8 = utf8;
   // allow the "rgb" boolean terminfo capability, a COLORTERM environment
   // variable of either "truecolor" or "24bit", or unconditionally enable it
