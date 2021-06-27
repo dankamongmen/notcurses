@@ -224,7 +224,6 @@ add_smulx_escapes(tinfo* ti, size_t* tablelen, size_t* tableused){
      grow_esc_table(ti, "\x1b[4:0m", ESCAPE_SMULNOX, tablelen, tableused)){
     return -1;
   }
-  ti->supported_styles |= NCSTYLE_UNDERCURL;
   return 0;
 }
 
@@ -267,9 +266,6 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
     ti->caps.quadrants = true;
     // ti->caps.sextants = true; // alacritty https://github.com/alacritty/alacritty/issues/4409 */
     ti->caps.rgb = true;
-    if(add_smulx_escapes(ti, tablelen, tableused)){
-      return -1;
-    }
   }else if(qterm == TERMINAL_VTE){
     termname = "VTE";
     ti->caps.quadrants = true;
@@ -322,6 +318,40 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
   }
   ti->termname = termname;
   return 0;
+}
+
+// some terminals cannot combine certain styles with colors, as expressed in
+// the "ncv" terminfo capability (using ncurses-style constants). don't
+// advertise support for the style in that case. otherwise, if the style is
+// supported, OR it into supported_styles (using Notcurses-style constants).
+static void
+build_supported_styles(tinfo* ti){
+  const struct style {
+    unsigned s;        // NCSTYLE_* value
+    int esc;           // ESCAPE_* value for enable
+    const char* tinfo; // terminfo capability for conditional permit
+    unsigned ncvbit;   // bit in "ncv" mask for unconditional deny
+  } styles[] = {
+    { NCSTYLE_BOLD, ESCAPE_BOLD, "bold", A_BOLD },
+    { NCSTYLE_UNDERLINE, ESCAPE_SMUL, "smul", A_UNDERLINE },
+    { NCSTYLE_ITALIC, ESCAPE_SITM, "sitm", A_ITALIC },
+    { NCSTYLE_STRUCK, ESCAPE_SMXX, "smxx", 0 },
+    { NCSTYLE_BLINK, ESCAPE_BLINK, "blink", A_BLINK },
+    { NCSTYLE_UNDERCURL, ESCAPE_SMULX, "Smulx", 0 },
+    { 0, 0, NULL, 0 }
+  };
+  int nocolor_stylemask = tigetnum("ncv");
+  for(typeof(*styles)* s = styles ; s->s ; ++s){
+    if(get_escape(ti, s->esc)){
+      if(nocolor_stylemask > 0){
+        if(nocolor_stylemask & s->ncvbit){
+          ti->escindices[s->esc] = 0;
+          continue;
+        }
+      }
+      ti->supported_styles |= s->s;
+    }
+  }
 }
 
 // termname is just the TERM environment variable. some details are not
@@ -461,40 +491,6 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
       goto err;
     }
   }
-  // some terminals cannot combine certain styles with colors.
-  // don't advertise support for the style in that case.
-  const struct style {
-    unsigned s;        // NCSTYLE_* value
-    int esc;           // ESCAPE_* value for enable
-    const char* tinfo; // terminfo capability for conditional permit
-    unsigned ncvbit;   // bit in "ncv" mask for unconditional deny
-  } styles[] = {
-    { NCSTYLE_BOLD, ESCAPE_BOLD, "bold", A_BOLD },
-    { NCSTYLE_UNDERLINE, ESCAPE_SMUL, "smul", A_UNDERLINE },
-    { NCSTYLE_ITALIC, ESCAPE_SITM, "sitm", A_ITALIC },
-    { NCSTYLE_STRUCK, ESCAPE_SMXX, "smxx", 0 },
-    { NCSTYLE_BLINK, ESCAPE_BLINK, "blink", A_BLINK },
-    { NCSTYLE_UNDERCURL, ESCAPE_SMULX, "smulx", 0 },
-    { 0, 0, NULL, 0 }
-  };
-  int nocolor_stylemask = tigetnum("ncv");
-  for(typeof(*styles)* s = styles ; s->s ; ++s){
-    if(nocolor_stylemask > 0){
-      if(nocolor_stylemask & s->ncvbit){
-        ti->supported_styles &= ~s->ncvbit;
-        continue;
-      }
-    }
-    if(get_escape(ti, s->esc)){
-      ti->supported_styles |= s->s;
-    }
-  }
-  // italics are never handled by sgr, but *can* be locked out by ncv. if
-  // they are, we need clear the escapes we already loaded.
-  if(!(ti->supported_styles & NCSTYLE_ITALIC)){
-    ti->escindices[ESCAPE_SITM] = 0;
-    ti->escindices[ESCAPE_RITM] = 0;
-  }
   // if the keypad neen't be explicitly enabled, smkx is not present
   const char* smkx = get_escape(ti, ESCAPE_SMKX);
   if(smkx && fd >= 0){
@@ -544,6 +540,7 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
     ncinputlayer_stop(&ti->input);
     goto err;
   }
+  build_supported_styles(ti);
   // our current sixel quantization algorithm requires at least 64 color
   // registers. we make use of no more than 256. this needs to happen
   // after heuristics, since sixel_init() depends on sprixel_cursor_hack.
