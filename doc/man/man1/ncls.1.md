@@ -31,9 +31,13 @@ ncls - List paths with rendering of multimedia
 
 **-a**|**--align** ***type***: Align images on **left**, **center**, or **right**.
 
-**-b**|**--blitter** ***blitter***: Blitter, one of **ascii**, **half**, **quad**, **sex**, **braille**, or **pixel**.
+**-b**|**--blitter** ***blitter***: Blitter, one of **ascii**, **half**,
+**quad**, **sex**, **braille**, or **pixel**. The default is ***pixel***.
+If the chosen blitter is unavailable, **ncls** will degrade (see
+**notcurses_visual(3)**).
 
-**-s**|**--scale** ***scalemode***: Scaling mode, one of **none**, **hires**, **scale**, **scalehi**, or **stretch**.
+**-s**|**--scale** ***scalemode***: Scaling mode, one of **none**, **hires**,
+**scale**, **scalehi**, or **stretch**.
 
 paths: Run on the specified paths. If none are supplied, run on the current
 directory.

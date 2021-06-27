@@ -186,7 +186,7 @@ int main(int argc, char* const * argv){
   bool longlisting = false;
   bool dereflinks = false;
   ncpp::NCAlign alignment = ncpp::NCAlign::Right;
-  ncblitter_e blitter = NCBLIT_DEFAULT;
+  ncblitter_e blitter = NCBLIT_PIXEL;
   ncscale_e scale = NCSCALE_SCALE_HIRES;
   const struct option opts[] = {
     { "align", 1, nullptr, 'a' },
