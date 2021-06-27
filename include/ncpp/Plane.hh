@@ -1201,7 +1201,6 @@ namespace ncpp
 			return nccell_extract (plane, cell, stylemask, channels);
 		}
 
-		// FIXME these can except if fed a sprixel, right (returns NULL)?
 		const char* get_extended_gcluster (Cell &cell) const noexcept
 		{
 			return nccell_extended_gcluster (plane, cell);

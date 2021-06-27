@@ -1474,11 +1474,12 @@ plane_blit_sixel(sprixel* spx, char* s, int bytes, int leny, int lenx,
   return 0;
 }
 
-// is it a control character? check C0 and C1, but don't count empty strings.
+// is it a control character? check C0 and C1, but don't count empty strings,
+// nor single-byte strings containing only a NUL character.
 static inline bool
 is_control_egc(const unsigned char* egc, int bytes){
   if(bytes == 1){
-    if(iscntrl(*egc)){
+    if(*egc && iscntrl(*egc)){
       return true;
     }
   }else if(bytes == 2){

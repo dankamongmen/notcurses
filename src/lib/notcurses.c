@@ -1547,13 +1547,13 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
     return -1;
   }
   // reject any control character for output other than newline (and then only
-  // on a scrolling plane). this also rejects any 0-length EGC.
+  // on a scrolling plane).
   if(*egc == '\n'){
     if(!n->scrolling){
       logerror("Rejecting newline on non-scrolling plane\n");
       return -1;
     }
-  }else if(bytes == 0 || is_control_egc((const unsigned char*)egc, bytes)){
+  }else if(is_control_egc((const unsigned char*)egc, bytes)){
     logerror("Rejecting %dB control character\n", bytes);
     return -1;
   }
