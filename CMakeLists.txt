@@ -70,7 +70,8 @@ endif()
 # global compiler flags
 add_compile_definitions(FORTIFY_SOURCE=2)
 add_compile_options(-Wall -Wextra -W -Wshadow -Wformat -Wno-nonnull-compare
-                    -Wformat-security -fexceptions -fstrict-aliasing)
+                    -Wformat-security -fexceptions -fstrict-aliasing
+                    -Wno-string-plus-int)
 
 message(STATUS "Requested multimedia engine: ${USE_MULTIMEDIA}")
 message(STATUS "Requested build mode: ${CMAKE_BUILD_TYPE}")
@@ -257,13 +258,21 @@ target_link_libraries(notcurses-static
     notcurses-core-static
 )
 if(${USE_READLINE})
-target_link_libraries(notcurses
+target_link_libraries(notcurses-core
   PUBLIC
     "${READLINE_LIBRARIES}"
 )
-target_link_libraries(notcurses-static
+target_link_directories(notcurses-core
+  PUBLIC
+    "${READLINE_LIBRARY_DIRS}"
+)
+target_link_libraries(notcurses-core-static
   PUBLIC
     "${READLINE_LIBRARIES}"
+)
+target_link_directories(notcurses-core-static
+  PUBLIC
+    "${READLINE_LIBRARY_DIRS}"
 )
 endif()
 if(${USE_FFMPEG})
