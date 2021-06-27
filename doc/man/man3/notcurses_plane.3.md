@@ -204,6 +204,8 @@ typedef struct ncplane_options {
 
 **bool ncplane_set_scrolling(struct ncplane* ***n***, bool ***scrollp***);**
 
+**bool ncplane_scrolling_p(const struct ncplane* ***n***);**
+
 **int ncplane_rotate_cw(struct ncplane* ***n***);**
 
 **int ncplane_rotate_ccw(struct ncplane* ***n***);**

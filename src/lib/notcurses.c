@@ -2573,6 +2573,10 @@ bool ncplane_set_scrolling(ncplane* n, bool scrollp){
   return old;
 }
 
+bool ncplane_scrolling_p(const ncplane* n){
+  return n->scrolling;
+}
+
 // extract an integer, which must be non-negative, and followed by either a
 // comma or a NUL terminator.
 static int
