@@ -71,8 +71,6 @@ TEST_CASE("Visual") {
     memset(rgb, 0, sizeof(rgb));
     auto ncv = ncvisual_from_rgb_packed(rgb, 10, 10 * 3, 10, 0xff);
     REQUIRE(nullptr != ncv);
-    CHECK(0 == ncvisual_resize(ncv, 20, 20));
-    CHECK(0 == ncvisual_rotate(ncv, M_PI / 2));
     struct ncvisual_options vopts{};
     vopts.x = NCALIGN_CENTER;
     vopts.y = NCALIGN_CENTER;
@@ -80,7 +78,23 @@ TEST_CASE("Visual") {
     auto p = ncvisual_render(nc_, ncv, &vopts);
     REQUIRE(nullptr != p);
     CHECK(0 == notcurses_render(nc_));
-    ncplane_destroy(p);
+fprintf(stderr, "FIRST RECNDER %p\n", ncv->data);
+sleep(1);
+    CHECK(0 == ncplane_destroy(p));
+    CHECK(0 == ncvisual_resize(ncv, 20, 20));
+    p = ncvisual_render(nc_, ncv, &vopts);
+    REQUIRE(nullptr != p);
+    CHECK(0 == notcurses_render(nc_));
+fprintf(stderr, "2ND RECNDER %p\n", ncv->data);
+sleep(1);
+    CHECK(0 == ncplane_destroy(p));
+    CHECK(0 == ncvisual_rotate(ncv, M_PI / 2));
+    p = ncvisual_render(nc_, ncv, &vopts);
+    REQUIRE(nullptr != p);
+    CHECK(0 == notcurses_render(nc_));
+fprintf(stderr, "3RD RECNDER %p\n", ncv->data);
+sleep(1);
+    CHECK(0 == ncplane_destroy(p));
     ncvisual_destroy(ncv);
   }
 
