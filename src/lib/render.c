@@ -159,6 +159,7 @@ paint_sprixel(ncplane* p, struct crender* rvec, int starty, int startx,
         if(state == SPRIXCELL_ANNIHILATED || state == SPRIXCELL_ANNIHILATED_TRANS){
 //fprintf(stderr, "REBUILDING AT %d/%d\n", y, x);
           sprite_rebuild(nc, s, y, x);
+//fprintf(stderr, "damaging due to rebuild [%s] %d/%d\n", nccell_extended_gcluster(crender->p, &crender->c), absy, absx);
         }
       }
     }
@@ -326,7 +327,7 @@ paint(ncplane* p, struct crender* rvec, int dstleny, int dstlenx,
         // side of a wide glyph (nor the null codepoint).
         if( (targc->gcluster = vis->gcluster) ){ // index copy only
           if(crender->sprixel && crender->sprixel->invalidated == SPRIXEL_HIDE){
-//fprintf(stderr, "damaged due to hide\n");
+//fprintf(stderr, "damaged due to hide %d/%d\n", y, x);
             crender->s.damaged = 1;
           }
           crender->s.blittedquads = cell_blittedquadrants(vis);
@@ -413,12 +414,16 @@ postpaint_cell(nccell* lastframe, int dimx, struct crender* crender,
 //fprintf(stderr, "damaging due to cmp [%s] %d %d\n", nccell_extended_gcluster(crender->p, &crender->c), y, *x);
     if(crender->sprixel){
       sprixcell_e state = sprixel_state(crender->sprixel, y, *x);
-      if(!crender->s.p_beats_sprixel && state != SPRIXCELL_OPAQUE_KITTY && state != SPRIXCELL_OPAQUE_SIXEL){
-//fprintf(stderr, "damaged due to opaque\n");
+//fprintf(stderr, "state under candidate sprixel: %d %d/%d\n", state, y, *x);
+      // we don't need to change it when under an opaque Sixel cell, because
+      // that's always printed on top. we need to change it under kitty until
+      // we start using the animation protocol to do cuts without redraws FIXME.
+      if(!crender->s.p_beats_sprixel && state != SPRIXCELL_OPAQUE_SIXEL){
+//fprintf(stderr, "damaged due to opaque %d/%d\n", y, *x);
         crender->s.damaged = 1;
       }
     }else{
-//fprintf(stderr, "damaged due to opaque else %d %d\n", y, *x);
+//fprintf(stderr, "damaged due to opaque else %d/%d\n", y, *x);
       crender->s.damaged = 1;
     }
     assert(!nccell_wide_right_p(targc));
@@ -434,7 +439,7 @@ postpaint_cell(nccell* lastframe, int dimx, struct crender* crender,
       targc->channels = crender[-i].c.channels;
       targc->stylemask = crender[-i].c.stylemask;
       if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc) > 0){
-//fprintf(stderr, "damaging due to cmp2\n");
+//fprintf(stderr, "damaging due to cmp2 %d/%d\n", y, *x);
         crender->s.damaged = 1;
       }
     }
