@@ -18,6 +18,9 @@ across_row(struct notcurses* nc, int y, struct ncplane* n, struct ncplane* t,
   return 0;
 }
 
+// we should see the 1x1 white cell move across the face of the sprixel, hiding
+// that cell of the sprixel, but leaving all others as they were. there ought
+// be no flicker.
 static int
 handle(struct notcurses* nc, const char* fn){
   struct ncvisual* ncv = ncvisual_from_file(fn);
@@ -57,6 +60,7 @@ handle(struct notcurses* nc, const char* fn){
     if(across_row(nc, y, n, t, &ds)){
       ncplane_destroy(n);
       ncvisual_destroy(ncv);
+      return -1;
     }
   }
   // now make it big and throw it over the bottom
@@ -87,7 +91,9 @@ int main(int argc, char **argv){
     return EXIT_FAILURE;
   }
   char** a = argv + 1;
-  struct notcurses_options opts = { };
+  struct notcurses_options opts = {
+    .flags = NCOPTION_NO_ALTERNATE_SCREEN,
+  };
   struct notcurses* nc = notcurses_init(&opts, NULL);
   if(notcurses_check_pixel_support(nc) <= 0){
     notcurses_stop(nc);
