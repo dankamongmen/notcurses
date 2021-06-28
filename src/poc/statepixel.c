@@ -18,6 +18,16 @@ across_row(struct notcurses* nc, int y, struct ncplane* n, struct ncplane* t,
   return 0;
 }
 
+static int
+across_bmap(struct notcurses* nc, struct ncplane* n, struct ncplane* t, const struct timespec* ds){
+  for(int y = 0 ; y < ncplane_dim_y(n) - 1 ; ++y){
+    if(across_row(nc, y, n, t, ds)){
+      return -1;
+    }
+  }
+  return 0;
+}
+
 // we should see the 1x1 white cell move across the face of the sprixel, hiding
 // that cell of the sprixel, but leaving all others as they were. there ought
 // be no flicker.
@@ -55,21 +65,33 @@ handle(struct notcurses* nc, const char* fn){
   ncplane_set_base(t, " ", 0, channels);
   notcurses_render(nc);
   clock_nanosleep(CLOCK_MONOTONIC, 0, &ds, NULL);
-  // move said cell through the sprixel
-  for(int y = 0 ; y < ncplane_dim_y(n) - 1 ; ++y){
-    if(across_row(nc, y, n, t, &ds)){
-      ncplane_destroy(n);
-      ncvisual_destroy(ncv);
-      return -1;
-    }
+  // move said 1x1 cell through the sprixel
+  if(across_bmap(nc, n, t, &ds)){
+    ncplane_destroy(n);
+    ncvisual_destroy(ncv);
+    return -1;
   }
-  // now make it big and throw it over the bottom
-  if(ncplane_resize_simple(t, 6, ncplane_dim_x(n))){
+  // now do a 1x2 over the entirety
+  if(ncplane_resize_simple(t, 1, 2)){
+    ncplane_destroy(t);
+    ncplane_destroy(n);
+    ncvisual_destroy(ncv);
+    return -1;
+  }
+  if(across_bmap(nc, n, t, &ds)){
+    ncplane_destroy(n);
+    ncvisual_destroy(ncv);
+    return -1;
+  }
+  // now make it 6x1 and throw it over the bottom
+  if(ncplane_resize_simple(t, 6, 1)){
+    ncplane_destroy(t);
     ncplane_destroy(n);
     ncvisual_destroy(ncv);
     return -1;
   }
   if(ncplane_move_yx(t, ncplane_dim_y(n) - ncplane_dim_y(t), 0)){
+    ncplane_destroy(t);
     ncplane_destroy(n);
     ncvisual_destroy(ncv);
     return -1;
