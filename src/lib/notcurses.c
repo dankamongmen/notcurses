@@ -1,4 +1,5 @@
 #include "input.h"
+#include "linux.h"
 #include "version.h"
 #include "egcpool.h"
 #include "internal.h"
@@ -247,8 +248,15 @@ int update_term_dimensions(int fd, int* rows, int* cols, tinfo* tcache,
     *cols = ws.ws_col;
   }
   if(tcache){
-    tcache->cellpixy = ws.ws_row ? ws.ws_ypixel / ws.ws_row : 0;
-    tcache->cellpixx = ws.ws_col ? ws.ws_xpixel / ws.ws_col : 0;
+    unsigned y, x;
+    if(tcache->linux_fb_fd >= 0){
+      get_linux_fb_pixelgeom(tcache->linux_fb_fd, &y, &x);
+    }else{
+      y = ws.ws_ypixel;
+      x = ws.ws_xpixel;
+    }
+    tcache->cellpixy = ws.ws_row ? y / ws.ws_row : 0;
+    tcache->cellpixx = ws.ws_col ? x / ws.ws_col : 0;
     if(tcache->cellpixy == 0 || tcache->cellpixx == 0){
       tcache->pixel_draw = NULL; // disable support
     }

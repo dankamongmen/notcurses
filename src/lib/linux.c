@@ -417,22 +417,33 @@ bool is_linux_console(int fd, unsigned no_font_changes, bool* quadrants){
   return true;
 }
 
+int get_linux_fb_pixelgeom(int fd, unsigned* ypix, unsigned *xpix){
+  struct fb_var_screeninfo fbi = {};
+  if(ioctl(fd, FBIOGET_VSCREENINFO, &fbi)){
+    logwarn("Couldn't get framebuffer info from %d (%s?)\n", fd, strerror(errno));
+    return -1;
+  }
+  loginfo("Linux framebuffer geometry: %dx%d\n", fbi.yres, fbi.xres);
+  *ypix = fbi.yres;
+  *xpix = fbi.xres;
+  return 0;
+}
+
 bool is_linux_framebuffer(tinfo* ti){
   // FIXME there might be multiple framebuffers present; how do we determine
   // which one is ours?
   const char* dev = "/dev/fb0";
+  loginfo("Checking for Linux framebuffer at %s\n", dev);
   int fd = open(dev, O_RDWR | O_CLOEXEC);
   if(fd < 0){
     logdebug("Couldn't open framebuffer device %s\n", dev);
     return false;
   }
-  struct fb_var_screeninfo fbi = {};
-  if(ioctl(fd, FBIOGET_VSCREENINFO, &fbi)){
-    logdebug("Couldn't get framebuffer info from %s (%s?)\n", dev, strerror(errno));
+  unsigned y, x;
+  if(get_linux_fb_pixelgeom(fd, &y, &x)){
     close(fd);
     return false;
   }
-  loginfo("Linux framebuffer detected at %s: %dx%d\n", dev, fbi.yres, fbi.xres);
   ti->linux_fb_fd = fd;
   return true;
 }
@@ -447,5 +458,12 @@ bool is_linux_console(int fd, unsigned no_font_changes, bool* quadrants){
 bool is_linux_framebuffer(tinfo* ti){
   (void)ti;
   return false;
+}
+
+int get_linux_fb_pixelgeom(int fd, unsigned* ypix, unsigned *xpix){
+  (void)fd;
+  (void)ypix;
+  (void)xpix;
+  return -1;
 }
 #endif
