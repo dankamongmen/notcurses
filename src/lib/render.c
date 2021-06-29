@@ -1050,7 +1050,6 @@ rasterize_core(notcurses* nc, const ncpile* p, FILE* out, unsigned phase){
 // desired; in this case, an ASU footer is present at the end of the buffer.
 static int
 notcurses_rasterize_inner(notcurses* nc, ncpile* p, FILE* out, unsigned* asu){
-  fseeko(out, 0, SEEK_SET);
   // we only need to emit a coordinate if it was damaged. the damagemap is a
   // bit per coordinate, one per struct crender.
   // don't write a clearscreen. we only update things that have been changed.
@@ -1107,24 +1106,35 @@ notcurses_rasterize_inner(notcurses* nc, ncpile* p, FILE* out, unsigned* asu){
 // rasterize the rendered frame, and blockingly write it out to the terminal.
 static int
 raster_and_write(notcurses* nc, ncpile* p, FILE* out){
+  fseeko(out, 0, SEEK_SET);
   // will we be using application-synchronized updates? if this comes back as
   // non-zero, we are, and must emit the header. no ASU without a tty, and we
   // can't have the escape without being connected to one...
   const char* basu = get_escape(&nc->tcache, ESCAPE_BSU);
   unsigned useasu = basu ? 1 : 0;
+  // if we have ASU support, emit a BSU speculatively. if we do so, but don't
+  // actually use an ESU, this BASU must be skipped on write.
+  if(useasu){
+    if(ncfputs(basu, out) == EOF){
+      return -1;
+    }
+  }
   if(notcurses_rasterize_inner(nc, p, out, &useasu) < 0){
     return -1;
   }
   int ret = 0;
   sigset_t oldmask;
   block_signals(&oldmask);
+  // if we loaded a BSU into the front, but don't actually want to use it,
+  // we start printing after the BSU.
+  size_t moffset = 0;
   if(useasu){
-    if(tty_emit(basu, fileno(nc->ttyfp))){
-      ret = -1;
-    }
     ++nc->stats.appsync_updates;
+  }else{
+    moffset = strlen(basu);
   }
-  if(blocking_write(fileno(nc->ttyfp), nc->rstate.mstream, nc->rstate.mstrsize)){
+  if(blocking_write(fileno(nc->ttyfp), nc->rstate.mstream + moffset,
+                    nc->rstate.mstrsize - moffset)){
     ret = -1;
   }
   unblock_signals(&oldmask);
@@ -1366,6 +1376,7 @@ int ncpile_render_to_buffer(ncplane* p, char** buf, size_t* buflen){
   }
   notcurses* nc = ncplane_notcurses(p);
   unsigned useacu = false; // no ACU to file
+  fseeko(nc->rstate.mstreamfp, 0, SEEK_SET);
   int bytes = notcurses_rasterize_inner(nc, ncplane_pile(p), nc->rstate.mstreamfp, &useacu);
   pthread_mutex_lock(&nc->statlock);
   update_render_bytes(&nc->stats, bytes);
