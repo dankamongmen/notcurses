@@ -6,11 +6,16 @@
 
 static inline wchar_t
 capboolbool(unsigned utf8, bool cap){
-  if(utf8){
+  // FIXME these fancy glyphs aren't reliable enough yet (they're not
+  // usually present on the linux console, for instance) for such an
+  // essential, must-work-everywhere tool.
+  /*if(utf8){
     return cap ? L'✓' : L'✖';
   }else{
     return cap ? '+' : '-';
-  }
+  }*/
+  (void)utf8;
+  return cap ? '+' : '-';
 }
 
 static void
