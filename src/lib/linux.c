@@ -1,6 +1,11 @@
+#include "linux.h"
 #include "internal.h"
 
 #ifdef __linux__
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <linux/fb.h>
 #include <linux/kd.h>
 #include <sys/ioctl.h>
 
@@ -411,11 +416,36 @@ bool is_linux_console(int fd, unsigned no_font_changes, bool* quadrants){
   reprogram_console_font(fd, no_font_changes, quadrants);
   return true;
 }
+
+bool is_linux_framebuffer(tinfo* ti){
+  // FIXME there might be multiple framebuffers present; how do we determine
+  // which one is ours?
+  const char* dev = "/dev/fb0";
+  int fd = open(dev, O_RDWR | O_CLOEXEC);
+  if(fd < 0){
+    logdebug("Couldn't open framebuffer device %s\n", dev);
+    return false;
+  }
+  struct fb_var_screeninfo fbi = {};
+  if(ioctl(fd, FBIOGET_VSCREENINFO, &fbi)){
+    logdebug("Couldn't get framebuffer info from %s (%s?)\n", dev, strerror(errno));
+    close(fd);
+    return false;
+  }
+  loginfo("Linux framebuffer detected at %s: %dx%d\n", dev, fbi.yres, fbi.xres);
+  ti->linux_fb_fd = fd;
+  return true;
+}
 #else
 bool is_linux_console(int fd, unsigned no_font_changes, bool* quadrants){
   (void)fd;
   (void)no_font_changes;
   (void)quadrants;
+  return false;
+}
+
+bool is_linux_framebuffer(tinfo* ti){
+  (void)ti;
   return false;
 }
 #endif

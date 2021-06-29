@@ -159,6 +159,8 @@ typedef struct tinfo {
 
   int default_rows; // LINES environment var / lines terminfo / 24
   int default_cols; // COLUMNS environment var / cols terminfo / 80
+
+  int linux_fb_fd;  // linux framebuffer device fd
 } tinfo;
 
 // retrieve the terminfo(5)-style escape 'e' from tdesc (NULL if undefined).

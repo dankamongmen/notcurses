@@ -5,6 +5,7 @@
 #include <sys/utsname.h>
 #include "internal.h"
 #include "input.h"
+#include "linux.h"
 
 // there does not exist any true standard terminal size. with that said, we
 // need assume *something* for the case where we're not actually attached to
@@ -155,6 +156,9 @@ void free_terminfo_cache(tinfo* ti){
   ncinputlayer_stop(&ti->input);
   free(ti->termversion);
   free(ti->esctable);
+  if(ti->linux_fb_fd >= 0){
+    close(ti->linux_fb_fd);
+  }
 }
 
 // compare one terminal version against another. numerics, separated by
@@ -416,7 +420,11 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
     if(uname(&un) == 0){
       ti->termversion = strdup(un.release);
     }
-    termname = "Linux console";
+    if(ti->linux_fb_fd >= 0){
+      termname = "Linux framebuffer";
+    }else{
+      termname = "Linux console";
+    }
     ti->caps.braille = false; // no caps.braille, no caps.sextants in linux console
   }
   // run a wcwidth(⣿) to guarantee libc Unicode 3 support, independent of term
@@ -478,9 +486,13 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
                          int* cursor_y, int* cursor_x){
   queried_terminals_e qterm = TERMINAL_UNKNOWN;
   memset(ti, 0, sizeof(*ti));
+  ti->linux_fb_fd = -1;
   // we might or might not program quadrants into the console font
   if(is_linux_console(fd, nonewfonts, &ti->caps.quadrants)){
     qterm = TERMINAL_LINUX;
+    if(is_linux_framebuffer(ti)){
+      // FIXME set up pixel-drawing API for framebuffer #1369
+    }
   }
   if(fd >= 0){
     if(qterm == TERMINAL_UNKNOWN){
