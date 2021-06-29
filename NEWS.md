@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 2.3.7 (not yet released)
+* 2.3.7 (2021-06-29)
   * Deprecated `NCSTYLE_REVERSE` and `NCSTYLE_DIM`. The remainder are safe,
     and I added back `NCSTYLE_BLINK` according to popular demand.
   * Added `NCOPTION_PRESERVE_CURSOR`. If used, the standard plane's virtual
@@ -15,6 +15,7 @@ rearrangements of Notcurses.
     enabled anew sometime in the future.
   * `ncls` now defaults to `NCBLIT_PIXEL`.
   * Added `ncplane_scrolling_p()` to retrieve a plane's scrolling status.
+  * Greatly expanded `notcurses-info`.
 
 * 2.3.6 (2021-06-23)
   * Fixed (harmless) warning with `-Wformat-security`.
