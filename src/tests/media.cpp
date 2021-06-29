@@ -32,23 +32,19 @@ TEST_CASE("Media") {
     auto p = ncvisual_render(nc_, ncv, &vopts);
     REQUIRE(nullptr != p);
     CHECK(0 == notcurses_render(nc_));
-sleep(1);
     CHECK(0 == ncplane_destroy(p));
     CHECK(0 == ncvisual_resize(ncv, 20, 20));
     p = ncvisual_render(nc_, ncv, &vopts);
     CHECK(0 == notcurses_render(nc_));
-sleep(1);
     CHECK(0 == ncplane_destroy(p));
     p = ncvisual_render(nc_, ncv, &vopts);
     REQUIRE(nullptr != p);
     CHECK(0 == notcurses_render(nc_));
-sleep(1);
     CHECK(0 == ncplane_destroy(p));
     CHECK(0 == ncvisual_rotate(ncv, M_PI / 2));
     p = ncvisual_render(nc_, ncv, &vopts);
     REQUIRE(nullptr != p);
     CHECK(0 == notcurses_render(nc_));
-sleep(1);
     CHECK(0 == ncplane_destroy(p));
     ncvisual_destroy(ncv);
   }
