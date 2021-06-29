@@ -185,6 +185,7 @@ int main(int argc, char* const * argv){
   bool recursedirs = false;
   bool longlisting = false;
   bool dereflinks = false;
+  bool specified_scaling = false;
   ncpp::NCAlign alignment = ncpp::NCAlign::Right;
   ncblitter_e blitter = NCBLIT_PIXEL;
   ncscale_e scale = NCSCALE_SCALE_HIRES;
@@ -227,6 +228,7 @@ int main(int argc, char* const * argv){
                     << optarg << ")" << std::endl;
           usage(std::cerr, argv[0], EXIT_FAILURE);
         }
+        specified_scaling = true;
         break;
       case 'd':
         directories = true;
@@ -266,6 +268,11 @@ int main(int argc, char* const * argv){
     blitter,
     scale,
   };
+  if(blitter == NCBLIT_PIXEL && !specified_scaling){
+    if(ctx.nc.check_pixel_support() > 0){
+      ctx.scaling = NCSCALE_NONE_HIRES;
+    }
+  }
   ctx.nc.cursor_disable();
   keep_working = true;
   for(auto s = 0u ; s < procs ; ++s){

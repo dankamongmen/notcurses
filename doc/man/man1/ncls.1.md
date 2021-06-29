@@ -32,7 +32,7 @@ ncls - List paths with rendering of multimedia
 **-a**|**--align** ***type***: Align images on **left**, **center**, or **right**.
 
 **-b**|**--blitter** ***blitter***: Blitter, one of **ascii**, **half**,
-**quad**, **sex**, **braille**, or **pixel**. The default is ***pixel***.
+**quad**, **sex**, **braille**, or **pixel**. The default is **pixel**.
 If the chosen blitter is unavailable, **ncls** will degrade (see
 **notcurses_visual(3)**).
 
@@ -41,6 +41,9 @@ If the chosen blitter is unavailable, **ncls** will degrade (see
 
 paths: Run on the specified paths. If none are supplied, run on the current
 directory.
+
+If no scaling is specified, **hires** will be used with the **pixel** blitter,
+and **scalehi** will be used otherwise.
 
 # NOTES
 
