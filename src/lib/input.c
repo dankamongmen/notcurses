@@ -816,7 +816,6 @@ stash_string(query_state* inits){
 }
 
 // FIXME ought implement the full Williams automaton
-// FIXME doesn't handle 8-bit controls (would need convert UTF-8)
 // FIXME sloppy af in general
 // returns 1 after handling the Device Attributes response, 0 if more input
 // ought be fed to the machine, and -1 on an invalid state transition.
