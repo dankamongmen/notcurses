@@ -730,55 +730,51 @@ ruts_string(query_state* inits, initstates_e state){
 
 // extract the terminal version from the running string, following 'prefix'
 static int
-extract_version(query_state* qstate, const char* prefix){
-  size_t bytes = strlen(qstate->runstring + strlen(prefix)) + 1;
+extract_version(query_state* qstate, size_t slen){
+  size_t bytes = strlen(qstate->runstring + slen) + 1;
   qstate->version = malloc(bytes);
   if(qstate->version == NULL){
     return -1;
   }
-  memcpy(qstate->version, qstate->runstring + strlen(prefix), bytes);
+  memcpy(qstate->version, qstate->runstring + slen, bytes);
   return 0;
 }
 
 static int
-extract_paren_version(query_state* qstate, const char* prefix){
-  if(qstate->runstring[qstate->stridx - 1] != ')'){
+extract_xtversion(query_state* qstate, size_t slen, char suffix){
+  if(qstate->runstring[qstate->stridx - 1] != suffix){
     return -1;
   }
   qstate->runstring[qstate->stridx - 1] = '\0';
-  extract_version(qstate, prefix);
-  return 0;
+  return extract_version(qstate, slen);
 }
 
 static int
 stash_string(query_state* inits){
 //fprintf(stderr, "string terminator after %d [%s]\n", inits->stringstate, inits->runstring);
   switch(inits->stringstate){
+    // FIXME replace these with some structured loop
     case STATE_XTVERSION1:{
-#define XTERMVT "XTerm("
-      if(strncmp(inits->runstring, XTERMVT, strlen(XTERMVT)) == 0){
-        if(extract_paren_version(inits, XTERMVT) == 0){
-          inits->qterm = TERMINAL_XTERM;
+      static const struct {
+        const char* prefix;
+        char suffix;
+        queried_terminals_e term;
+      } xtvers[] = {
+        { .prefix = "XTerm(", .suffix = ')', .term = TERMINAL_XTERM, },
+        { .prefix = "WezTerm ", .suffix = 0, .term = TERMINAL_WEZTERM, },
+        { .prefix = "contour ", .suffix = 0, .term = TERMINAL_CONTOUR, },
+        { .prefix = "kitty(", .suffix = ')', .term = TERMINAL_KITTY, },
+        { .prefix = "foot(", .suffix = ')', .term = TERMINAL_FOOT, },
+        { .prefix = "iTerm2 [", .suffix = ']', .term = TERMINAL_ITERM, },
+        { .prefix = NULL, .suffix = 0, .term = TERMINAL_UNKNOWN, },
+      }, *xtv;
+      for(xtv = xtvers ; xtv->prefix ; ++xtv){
+        if(strncmp(inits->runstring, xtv->prefix, strlen(xtv->prefix)) == 0){
+          if(extract_xtversion(inits, strlen(xtv->prefix), xtv->suffix) == 0){
+            inits->qterm = xtv->term;
+          }
+          break;
         }
-#undef XTERMVT
-      }else if(strncmp(inits->runstring, "WezTerm ", strlen("WezTerm ")) == 0){
-        extract_version(inits, "WezTerm ");
-        inits->qterm = TERMINAL_WEZTERM;
-      }else if(strncmp(inits->runstring, "contour ", strlen("contour ")) == 0){
-        extract_version(inits, "contour ");
-        inits->qterm = TERMINAL_CONTOUR;
-#define KITTYVT "kitty("
-      }else if(strncmp(inits->runstring, KITTYVT, strlen(KITTYVT)) == 0){
-        if(extract_paren_version(inits, KITTYVT) == 0){
-          inits->qterm = TERMINAL_KITTY;
-        }
-#undef KITTYVT
-#define FOOTVT "foot("
-      }else if(strncmp(inits->runstring, FOOTVT, strlen(FOOTVT)) == 0){
-        if(extract_paren_version(inits, FOOTVT) == 0){
-          inits->qterm = TERMINAL_FOOT;
-        }
-#undef FOOTVT
       }
       break;
     }case STATE_XTGETTCAP_TERMNAME1:
