@@ -742,10 +742,12 @@ extract_version(query_state* qstate, size_t slen){
 
 static int
 extract_xtversion(query_state* qstate, size_t slen, char suffix){
-  if(qstate->runstring[qstate->stridx - 1] != suffix){
-    return -1;
+  if(suffix){
+    if(qstate->runstring[qstate->stridx - 1] != suffix){
+      return -1;
+    }
+    qstate->runstring[qstate->stridx - 1] = '\0';
   }
-  qstate->runstring[qstate->stridx - 1] = '\0';
   return extract_version(qstate, slen);
 }
 
