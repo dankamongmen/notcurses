@@ -80,11 +80,11 @@ unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
     ncplane_stain(n, y - 2, 70, lr, ul, ul, lr);
     // the braille
     ncplane_cursor_move_yx(n, y - 6, 2);
-    uint32_t ll = CHANNEL_RGB_INITIALIZER(0x40, 0x0, 0x0);
-    uint32_t ur = CHANNEL_RGB_INITIALIZER(0x1f, 0x25, 0x24);
-    lr = CHANNEL_RGB_INITIALIZER(0x0, 0x0, 0x40);
-    ncplane_stain(n, y - 3, 65, ur, ur, ll, lr);
+    ul = CHANNEL_RGB_INITIALIZER(0x7f, 0x25, 0x24);
+    lr = CHANNEL_RGB_INITIALIZER(0x24, 0x25, 0x7f);
+    ncplane_stain(n, y - 3, 65, ul, lr, ul, lr);
     // the sextants
+    uint32_t ll = CHANNEL_RGB_INITIALIZER(0x40, 0x0, 0x0);
     ncplane_cursor_move_yx(n, y - 10, 28);
     ll = CHANNEL_RGB_INITIALIZER(0x7B, 0x68, 0xEE);
     ul = CHANNEL_RGB_INITIALIZER(0x19, 0x19, 0x70);
