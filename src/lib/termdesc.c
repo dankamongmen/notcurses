@@ -250,29 +250,41 @@ grow_esc_table(tinfo* ti, const char* tstr, escape_e esc,
 //   ⇒  CSI ? 6 3 ; Ps c  ("VT320")
 //   ⇒  CSI ? 6 4 ; Ps c  ("VT420")
 
+// these three queries (terminated with a Primary Device Attributes, to which
+// all known terminals reply) hopefully can uniquely and unquestionably
+// identify the terminal to which we are talking.
+#define IDQUERIES "\x1b[=0c" /* Tertiary Device Attributes */ \
+                  "\x1b[>0q" /* XTVERSION */ \
+                  "\x1bP+q544e\x1b\\" /* XTGETTCAP['TN'] */
+
 // query background, replies in X color https://www.x.org/releases/X11R7.7/doc/man/man7/X.7.xhtml#heading11
 #define CSI_BGQ "\e]11;?\e\\"
 
-// ought be using the u7 terminfo string here, if it exists. the great thing
-// is, if we get a response to this, we know we can use it for u7!
+// FIXME ought be using the u7 terminfo string here, if it exists. the great
+// thing is, if we get a response to this, we know we can use it for u7!
 #define DSRCPR "\e[6n"
+
+#define DIRECTIVES CSI_BGQ \
+                   DSRCPR \
+                   "\x1b[?2026$p"   /* query for Synchronized Updates */ \
+                   "\x1b[?1;3;256S" /* try to set 256 cregs */ \
+                   "\x1b[?2;1;0S"   /* XTSMGRAPHICS (cregs) */ \
+                   "\x1b[?1;1;0S"   /* XTSMGRAPHICS (geometry) */ \
+                   "\x1b[c"         /* Device Attributes */
 
 // we send an XTSMGRAPHICS to set up 256 color registers (the most we can
 // currently take advantage of; we need at least 64 to use sixel at all.
 // maybe that works, maybe it doesn't. then query both color registers
-// and geometry. send XTGETTCAP for terminal name.
+// and geometry. send XTGETTCAP for terminal name. if 'minimal' is set, don't
+// send any identification queries.
 static int
-send_initial_queries(int fd){
-  const char queries[] = CSI_BGQ
-                         DSRCPR
-                         "\x1b[?2026$p"      // query for App-sync updates
-                         "\x1b[=0c"          // Tertiary Device Attributes
-                         "\x1b[>0q"          // XTVERSION
-                         "\x1bP+q544e\x1b\\" // XTGETTCAP['TN']
-                         "\x1b[?1;3;256S"    // try to set 256 cregs
-                         "\x1b[?2;1;0S"      // XTSMGRAPHICS (cregs)
-                         "\x1b[?1;1;0S"      // XTSMGRAPHICS (geometry)
-                         "\x1b[c";           // Device Attributes
+send_initial_queries(int fd, bool minimal){
+  const char *queries;
+  if(minimal){
+    queries = DIRECTIVES;
+  }else{
+    queries = IDQUERIES DIRECTIVES;
+  }
   if(blocking_write(fd, queries, strlen(queries))){
     return -1;
   }
@@ -504,11 +516,10 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
     }
   }
   if(fd >= 0){
-    if(qterm == TERMINAL_UNKNOWN){
-      if(send_initial_queries(fd)){
-        fprintf(stderr, "Error issuing terminal queries on %d\n", fd);
-        return -1;
-      }
+    bool minimal = (qterm != TERMINAL_UNKNOWN);
+    if(send_initial_queries(fd, minimal)){
+      fprintf(stderr, "Error issuing terminal queries on %d\n", fd);
+      return -1;
     }
     if(tcgetattr(fd, &ti->tpreserved)){
       fprintf(stderr, "Couldn't preserve terminal state for %d (%s)\n", fd, strerror(errno));
