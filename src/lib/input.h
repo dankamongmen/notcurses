@@ -23,7 +23,8 @@ typedef enum {
     TERMINAL_MLTERM,        // XTGETTCAP['TN'] == 'mlterm'
     TERMINAL_WEZTERM,       // XTVERSION == 'WezTerm *'
     TERMINAL_ALACRITTY,     // can't be detected; match TERM
-    TERMINAL_CONTOUR,       // XTVERSION == 'console *'
+    TERMINAL_CONTOUR,       // XTVERSION == 'contour ver'
+    TERMINAL_ITERM,         // XTVERSION == 'iTerm2 [ver]'
 } queried_terminals_e;
 
 // sets up the input layer, building a trie of escape sequences and their
