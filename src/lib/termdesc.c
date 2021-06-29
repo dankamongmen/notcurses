@@ -352,6 +352,10 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
     if(add_smulx_escapes(ti, tablelen, tableused)){
       return -1;
     }
+    // kitty implements DCS ASU, but no detection for it
+    if(add_appsync_escapes(ti, tablelen, tableused)){
+      return -1;
+    }
     // kitty only introduced C=1 in 0.20.0
     if(compare_versions(ti->termversion, "0.20.0") < 0){
       ti->sixel_maxy_pristine = INT_MAX;
@@ -361,11 +365,19 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
     ti->caps.quadrants = true;
     // ti->caps.sextants = true; // alacritty https://github.com/alacritty/alacritty/issues/4409 */
     ti->caps.rgb = true;
+    // Alacritty implements DCS ASU, but no detection for it
+    if(add_appsync_escapes(ti, tablelen, tableused)){
+      return -1;
+    }
   }else if(qterm == TERMINAL_VTE){
     termname = "VTE";
     ti->caps.quadrants = true;
     ti->caps.sextants = true; // VTE has long enjoyed good sextant support
     if(add_smulx_escapes(ti, tablelen, tableused)){
+      return -1;
+    }
+    // VTE implements DCS ASU, but no detection for it
+    if(add_appsync_escapes(ti, tablelen, tableused)){
       return -1;
     }
   }else if(qterm == TERMINAL_FOOT){
@@ -394,6 +406,11 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
     termname = "Contour";
     ti->caps.quadrants = true;
     ti->caps.rgb = true;
+  }else if(qterm == TERMINAL_ITERM){
+    // iTerm implements DCS ASU, but no detection for it
+    if(add_appsync_escapes(ti, tablelen, tableused)){
+      return -1;
+    }
   }else if(qterm == TERMINAL_LINUX){
     struct utsname un;
     if(uname(&un) == 0){
