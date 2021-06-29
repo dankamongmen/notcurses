@@ -1119,7 +1119,7 @@ raster_and_write(notcurses* nc, ncpile* p, FILE* out){
   sigset_t oldmask;
   block_signals(&oldmask);
   if(useasu){
-    if(term_emit(basu, nc->ttyfp, false)){
+    if(tty_emit(basu, fileno(nc->ttyfp))){
       ret = -1;
     }
     ++nc->stats.appsync_updates;
