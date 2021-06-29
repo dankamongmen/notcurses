@@ -517,19 +517,13 @@
 <span id="514">514</span>
 <span id="515">515</span>
 <span id="516">516</span>
-<span id="517">517</span>
-<span id="518">518</span>
-<span id="519">519</span>
-<span id="520">520</span>
-<span id="521">521</span>
-<span id="522">522</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `cell*_*` reimplemented functions.</span>
 
 <span class="kw">use</span> <span class="ident">libc</span>::<span class="ident">strcmp</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">cstring</span>, <span class="ident">nccell_release</span>, <span class="ident">NcAlphaBits</span>, <span class="ident">NcCell</span>, <span class="ident">NcChannel</span>, <span class="ident">NcChannels</span>, <span class="ident">NcComponent</span>, <span class="ident">NcEgc</span>,
+    <span class="ident">cstring</span>, <span class="ident">nccell_release</span>, <span class="ident">rstring</span>, <span class="ident">NcAlphaBits</span>, <span class="ident">NcCell</span>, <span class="ident">NcChannel</span>, <span class="ident">NcChannels</span>, <span class="ident">NcComponent</span>,
     <span class="ident">NcIntResult</span>, <span class="ident">NcPaletteIndex</span>, <span class="ident">NcPlane</span>, <span class="ident">NcRgb</span>, <span class="ident">NcStyle</span>, <span class="ident">NCALPHA_BGDEFAULT_MASK</span>,
     <span class="ident">NCALPHA_BG_PALETTE</span>, <span class="ident">NCALPHA_FGDEFAULT_MASK</span>, <span class="ident">NCALPHA_FG_PALETTE</span>, <span class="ident">NCALPHA_OPAQUE</span>, <span class="ident">NCRESULT_ERR</span>,
     <span class="ident">NCRESULT_OK</span>, <span class="ident">NCSTYLE_MASK</span>,
@@ -839,13 +833,13 @@
     <span class="ident">nccell_double_wide_p</span>(<span class="ident">cell</span>) <span class="op">&amp;&amp;</span> <span class="ident">cell</span>.<span class="ident">gcluster</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>
 }
 
-<span class="comment">// /// Loads a 7-bit [`NcEgc`] character into the [`NcCell`].</span>
+<span class="comment">// /// Loads a 7-bit `EGC` character into the [`NcCell`].</span>
 <span class="comment">// ///</span>
 <span class="comment">// /// *Method: NcCell.[load_char()][NcCell#method.load_char].*</span>
 <span class="comment">// //</span>
 <span class="comment">// // TODO:CHECK is this necessary at all?</span>
 <span class="comment">// #[inline]</span>
-<span class="comment">// pub fn nccell_load_char(plane: &amp;mut NcPlane, cell: &amp;mut NcCell, ch: NcEgc) /* -&gt; i32 */</span>
+<span class="comment">// pub fn nccell_load_char(plane: &amp;mut NcPlane, cell: &amp;mut NcCell, ch: char) /* -&gt; i32 */</span>
 <span class="comment">// {</span>
 <span class="comment">//     let _ = unsafe { crate::nccell_load(plane, cell, ch) };</span>
 <span class="comment">// }</span>
@@ -880,29 +874,21 @@
 <span class="comment">//   return nccell_load(n, c, gcluster);</span>
 <span class="comment">// }</span>
 
-<span class="doccomment">/// Copies the UTF8-encoded [`NcEgc`] out of the [`NcCell`], whether simple or complex.</span>
+<span class="doccomment">/// Copies the UTF8-encoded `EGC` out of the [`NcCell`], whether simple or complex.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// The result is not tied to the [NcPlane],</span>
 <span class="doccomment">/// and persists across erases and destruction.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// *Method: NcCell.[strdup()][NcCell#method.strdup].*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">nccell_strdup</span>(<span class="ident">plane</span>: <span class="kw-2">&amp;</span><span class="ident">NcPlane</span>, <span class="ident">cell</span>: <span class="kw-2">&amp;</span><span class="ident">NcCell</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcEgc</span> {
-    <span class="ident">core</span>::<span class="ident">char</span>::<span class="ident">from_u32</span>(
-        <span class="kw">unsafe</span> { <span class="ident">libc</span>::<span class="ident">strdup</span>(<span class="kw">crate</span>::<span class="ident">nccell_extended_gcluster</span>(<span class="ident">plane</span>, <span class="ident">cell</span>)) } <span class="kw">as</span> <span class="ident">i32</span> <span class="kw">as</span> <span class="ident">u32</span>,
-    )
-    .<span class="ident">expect</span>(<span class="string">&quot;wrong char&quot;</span>)
-
-    <span class="comment">// Unsafer option B (maybe faster, TODO:BENCH):</span>
-    <span class="comment">// unsafe {</span>
-    <span class="comment">//     core::char::from_u32_unchecked(libc::strdup(nccell_extended_gcluster(plane, cell)) as i32 as u32)</span>
-    <span class="comment">// }</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">nccell_strdup</span>(<span class="ident">plane</span>: <span class="kw-2">&amp;</span><span class="ident">NcPlane</span>, <span class="ident">cell</span>: <span class="kw-2">&amp;</span><span class="ident">NcCell</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+    <span class="macro">rstring</span><span class="macro">!</span>[<span class="ident">libc</span>::<span class="ident">strdup</span>(<span class="kw">crate</span>::<span class="ident">nccell_extended_gcluster</span>(<span class="ident">plane</span>, <span class="ident">cell</span>))].<span class="ident">into</span>()
 }
 
 <span class="comment">// Misc. -----------------------------------------------------------------------</span>
 
 <span class="doccomment">/// Saves the [`NcStyle`] and the [`NcChannels`],</span>
-<span class="doccomment">/// and returns the [`NcEgc`], of an [`NcCell`].</span>
+<span class="doccomment">/// and returns the `EGC`, of an [`NcCell`].</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// *Method: NcCell.[extract()][NcCell#method.extract].*</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -911,7 +897,7 @@
     <span class="ident">cell</span>: <span class="kw-2">&amp;</span><span class="ident">NcCell</span>,
     <span class="ident">stylemask</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcStyle</span>,
     <span class="ident">channels</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcChannels</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcEgc</span> {
+) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
     <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">stylemask</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
         <span class="kw-2">*</span><span class="ident">stylemask</span> <span class="op">=</span> <span class="ident">cell</span>.<span class="ident">stylemask</span>;
     }
@@ -921,10 +907,10 @@
     <span class="ident">nccell_strdup</span>(<span class="ident">plane</span>, <span class="ident">cell</span>)
 }
 
-<span class="doccomment">/// Returns true if the two cells are distinct [`NcEgc`]s, attributes, or channels.</span>
+<span class="doccomment">/// Returns true if the two cells are distinct `EGC`s, attributes, or channels.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// The actual egcpool index needn&#39;t be the same--indeed, the planes needn&#39;t even</span>
-<span class="doccomment">/// be the same. Only the expanded NcEgc must be equal. The NcEgc must be bit-equal;</span>
+<span class="doccomment">/// be the same. Only the expanded EGC must be equal. The EGC must be bit-equal;</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// *Method: NcCell.[compare()][NcCell#method.compare].*</span>
 <span class="comment">//</span>
@@ -974,12 +960,12 @@
     <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">nccell_load</span>(<span class="ident">plane</span>, <span class="ident">cell</span>, <span class="macro">cstring</span><span class="macro">!</span>[<span class="ident">gcluster</span>]) }
 }
 
-<span class="doccomment">/// Loads up six cells with the [`NcEgc`]s necessary to draw a box.</span>
+<span class="doccomment">/// Loads up six cells with the `EGC`s necessary to draw a box.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Returns [`NCRESULT_OK`] on success or [`NCRESULT_ERR`] on error.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// On error, any [`NcCell`]s this function might have loaded before the error</span>
-<span class="doccomment">/// are [nccell_release]d. There must be at least six [`NcEgc`]s in `gcluster`.</span>
+<span class="doccomment">/// are [nccell_release]d. There must be at least six `EGC`s in `gcluster`.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// *Method: NcCell.[load_box()][NcCell#method.load_box].*</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">nccells_load_box</span>(
@@ -994,6 +980,8 @@
     <span class="ident">vl</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcCell</span>,
     <span class="ident">gcluster</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcIntResult</span> {
+    <span class="macro">assert</span><span class="macro">!</span>[<span class="ident">gcluster</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">6</span>]; <span class="comment">// DEBUG</span>
+
     <span class="comment">// TODO: CHECK: mutable copy for pointer arithmetics:</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">gclu</span> <span class="op">=</span> <span class="macro">cstring</span><span class="macro">!</span>[<span class="ident">gcluster</span>];
 

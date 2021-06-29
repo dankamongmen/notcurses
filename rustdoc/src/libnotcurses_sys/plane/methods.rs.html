@@ -2021,24 +2021,6 @@
 <span id="2018">2018</span>
 <span id="2019">2019</span>
 <span id="2020">2020</span>
-<span id="2021">2021</span>
-<span id="2022">2022</span>
-<span id="2023">2023</span>
-<span id="2024">2024</span>
-<span id="2025">2025</span>
-<span id="2026">2026</span>
-<span id="2027">2027</span>
-<span id="2028">2028</span>
-<span id="2029">2029</span>
-<span id="2030">2030</span>
-<span id="2031">2031</span>
-<span id="2032">2032</span>
-<span id="2033">2033</span>
-<span id="2034">2034</span>
-<span id="2035">2035</span>
-<span id="2036">2036</span>
-<span id="2037">2037</span>
-<span id="2038">2038</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcPlane*` methods and associated functions.</span>
 <span class="kw">use</span> <span class="ident">core</span>::{
@@ -2048,9 +2030,9 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">cstring</span>, <span class="ident">error</span>, <span class="ident">error_ref</span>, <span class="ident">error_ref_mut</span>, <span class="ident">rstring</span>, <span class="ident">Nc</span>, <span class="ident">NcAlign</span>, <span class="ident">NcAlphaBits</span>, <span class="ident">NcBlitter</span>,
-    <span class="ident">NcBoxMask</span>, <span class="ident">NcCell</span>, <span class="ident">NcChannel</span>, <span class="ident">NcChannels</span>, <span class="ident">NcComponent</span>, <span class="ident">NcDim</span>, <span class="ident">NcEgc</span>, <span class="ident">NcError</span>, <span class="ident">NcFadeCb</span>,
-    <span class="ident">NcOffset</span>, <span class="ident">NcPaletteIndex</span>, <span class="ident">NcPixelGeometry</span>, <span class="ident">NcPlane</span>, <span class="ident">NcPlaneOptions</span>, <span class="ident">NcResizeCb</span>, <span class="ident">NcResult</span>,
-    <span class="ident">NcRgb</span>, <span class="ident">NcStyle</span>, <span class="ident">NcTime</span>, <span class="ident">NCRESULT_ERR</span>,
+    <span class="ident">NcBoxMask</span>, <span class="ident">NcCell</span>, <span class="ident">NcChannel</span>, <span class="ident">NcChannels</span>, <span class="ident">NcComponent</span>, <span class="ident">NcDim</span>, <span class="ident">NcError</span>, <span class="ident">NcFadeCb</span>, <span class="ident">NcOffset</span>,
+    <span class="ident">NcPaletteIndex</span>, <span class="ident">NcPixelGeometry</span>, <span class="ident">NcPlane</span>, <span class="ident">NcPlaneOptions</span>, <span class="ident">NcResizeCb</span>, <span class="ident">NcResult</span>, <span class="ident">NcRgb</span>, <span class="ident">NcStyle</span>,
+    <span class="ident">NcTime</span>, <span class="ident">NCRESULT_ERR</span>,
 };
 
 <span class="doccomment">/// # NcPlaneOptions Constructors</span>
@@ -2248,6 +2230,13 @@
         <span class="kw">crate</span>::<span class="ident">ncplane_channels</span>(<span class="self">self</span>)
     }
 
+    <span class="doccomment">/// Sets the current [`NcChannels`] for this `NcPlane`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// *C style function: [ncplane_set_channels()][crate::ncplane_set_channels].*</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_channels</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">channels</span>: <span class="ident">NcChannels</span>) {
+        <span class="kw">crate</span>::<span class="ident">ncplane_set_channels</span>(<span class="self">self</span>, <span class="ident">channels</span>);
+    }
+
     <span class="doccomment">/// Gets the foreground [`NcChannel`] from an [NcPlane].</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncplane_fchannel()][crate::ncplane_fchannel].*</span>
@@ -2262,13 +2251,6 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bchannel</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcChannel</span> {
         <span class="kw">crate</span>::<span class="ident">ncchannels_bchannel</span>(<span class="kw">crate</span>::<span class="ident">ncplane_channels</span>(<span class="self">self</span>))
-    }
-
-    <span class="doccomment">/// Sets the current [`NcChannels`] for this `NcPlane`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// *C style function: [ncplane_set_channels()][crate::ncplane_set_channels].*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_channels</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">channels</span>: <span class="ident">NcChannels</span>) {
-        <span class="kw">crate</span>::<span class="ident">ncplane_set_channels</span>(<span class="self">self</span>, <span class="ident">channels</span>);
     }
 
     <span class="doccomment">/// Sets the current foreground [`NcChannel`] for this `NcPlane`.</span>
@@ -2572,19 +2554,19 @@
 }
 
 <span class="comment">// -----------------------------------------------------------------------------</span>
-<span class="doccomment">/// ## NcPlane methods: `NcCell` &amp; `NcEgc`</span>
+<span class="doccomment">/// ## NcPlane methods: `NcCell` &amp; strings</span>
 <span class="kw">impl</span> <span class="ident">NcPlane</span> {
     <span class="doccomment">/// Retrieves the current contents of the [`NcCell`] under the cursor,</span>
-    <span class="doccomment">/// returning the [`NcEgc`] and writing out the [`NcStyle`] and the [`NcChannels`].</span>
+    <span class="doccomment">/// returning the `EGC` and writing out the [`NcStyle`] and the [`NcChannels`].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// This NcEgc must be freed by the caller.</span>
+    <span class="doccomment">/// This `EGC` must be freed by the caller.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncplane_at_cursor()][crate::ncplane_at_cursor].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">at_cursor</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">stylemask</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcStyle</span>,
         <span class="ident">channels</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcChannels</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">NcEgc</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">egc</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncplane_at_cursor</span>(<span class="self">self</span>, <span class="ident">stylemask</span>, <span class="ident">channels</span>) };
         <span class="kw">if</span> <span class="ident">egc</span>.<span class="ident">is_null</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">NcError</span>::<span class="ident">with_msg</span>(
@@ -2592,12 +2574,11 @@
                 <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;NcPlane.at_cursor({:0X}, {:0X})&quot;</span>, <span class="ident">stylemask</span>, <span class="ident">channels</span>),
             ));
         }
-        <span class="kw">let</span> <span class="ident">egc</span> <span class="op">=</span> <span class="ident">core</span>::<span class="ident">char</span>::<span class="ident">from_u32</span>(<span class="kw">unsafe</span> { <span class="kw-2">*</span><span class="ident">egc</span> } <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">expect</span>(<span class="string">&quot;wrong char&quot;</span>);
-        <span class="prelude-val">Ok</span>(<span class="ident">egc</span>)
+        <span class="prelude-val">Ok</span>(<span class="macro">rstring</span><span class="macro">!</span>[<span class="ident">egc</span>].<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// Retrieves the current contents of the [`NcCell`] under the cursor</span>
-    <span class="doccomment">/// into `cell`. Returns the number of bytes in the [`NcEgc`].</span>
+    <span class="doccomment">/// into `cell`. Returns the number of bytes in the `EGC`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This NcCell is invalidated if the associated NcPlane is destroyed.</span>
     <span class="doccomment">///</span>
@@ -2613,9 +2594,9 @@
     }
 
     <span class="doccomment">/// Retrieves the current contents of the specified [`NcCell`], returning the</span>
-    <span class="doccomment">/// [`NcEgc`] and writing out the [`NcStyle`] and the [`NcChannels`].</span>
+    <span class="doccomment">/// `EGC` and writing out the [`NcStyle`] and the [`NcChannels`].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// This NcEgc must be freed by the caller.</span>
+    <span class="doccomment">/// This `EGC` must be freed by the caller.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncplane_at_yx()][crate::ncplane_at_yx].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">at_yx</span>(
@@ -2624,7 +2605,7 @@
         <span class="ident">x</span>: <span class="ident">NcDim</span>,
         <span class="ident">stylemask</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcStyle</span>,
         <span class="ident">channels</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcChannels</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">NcEgc</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">egc</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncplane_at_yx</span>(<span class="self">self</span>, <span class="ident">y</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">x</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">stylemask</span>, <span class="ident">channels</span>) };
         <span class="kw">if</span> <span class="ident">egc</span>.<span class="ident">is_null</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">NcError</span>::<span class="ident">with_msg</span>(
@@ -2635,12 +2616,11 @@
                 ),
             ));
         }
-        <span class="kw">let</span> <span class="ident">egc</span> <span class="op">=</span> <span class="ident">core</span>::<span class="ident">char</span>::<span class="ident">from_u32</span>(<span class="kw">unsafe</span> { <span class="kw-2">*</span><span class="ident">egc</span> } <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">expect</span>(<span class="string">&quot;wrong char&quot;</span>);
-        <span class="prelude-val">Ok</span>(<span class="ident">egc</span>)
+        <span class="prelude-val">Ok</span>(<span class="macro">rstring</span><span class="macro">!</span>[<span class="ident">egc</span>].<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// Retrieves the current contents of the specified [`NcCell`] into `cell`.</span>
-    <span class="doccomment">/// Returns the number of bytes in the [`NcEgc`].</span>
+    <span class="doccomment">/// Returns the number of bytes in the `EGC`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This NcCell is invalidated if the associated plane is destroyed.</span>
     <span class="doccomment">///</span>
@@ -2716,7 +2696,7 @@
         ]
     }
 
-    <span class="doccomment">/// Creates a flat string from the `NcEgc`&#39;s of the selected region of the</span>
+    <span class="doccomment">/// Creates a flat string from the `EGC`&#39;s of the selected region of the</span>
     <span class="doccomment">/// `NcPlane`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Starts at the plane&#39;s `beg_y` * `beg_x` coordinates (which must lie on</span>
@@ -2809,14 +2789,15 @@
     }
 
     <span class="comment">// TODO: call put_egc</span>
-    <span class="comment">// /// Replaces the [`NcEgc`][crate::NcEgc] to the current location, but retain</span>
+    <span class="comment">// /// Replaces the `EGC` to the current location, but retain</span>
     <span class="comment">// /// the styling. The current styling of the plane will not be changed.</span>
     <span class="comment">// pub fn putchar_stained(&amp;mut self, y: NcDim, x: NcDim, ch: char) -&gt;</span>
     <span class="comment">// NcResult&lt;NcDim&gt; {</span>
     <span class="comment">//     error![crate::ncplane_putchar_stained(self, ch)]</span>
     <span class="comment">// }</span>
 
-    <span class="doccomment">/// Replaces the [`NcEgc`][crate::NcEgc], but retain the styling.</span>
+    <span class="doccomment">/// Replaces the [NcCell] at the `y`,`x` coordinates with the provided</span>
+    <span class="doccomment">/// 7-bit `char`, but retain the styling.</span>
     <span class="doccomment">/// The current styling of the plane will not be changed.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// On success, returns the number of columns the cursor was advanced.</span>
@@ -2831,12 +2812,10 @@
         ]
     }
 
-    <span class="doccomment">/// Writes a series of [`NcEgc`][crate::NcEgc]s to the current location,</span>
-    <span class="doccomment">/// using the current style.</span>
+    <span class="doccomment">/// Writes a string to the current location, using the current style.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Advances the cursor by some positive number of columns</span>
-    <span class="doccomment">/// (though not beyond the end of the plane),</span>
-    <span class="doccomment">/// and this number is returned on success.</span>
+    <span class="doccomment">/// Advances the cursor by some positive number of columns (though not</span>
+    <span class="doccomment">/// beyond the end of the plane), and this number is returned on success.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// On error, a non-positive number is returned, indicating</span>
     <span class="doccomment">/// the number of columns which were written before the error.</span>
@@ -2878,8 +2857,7 @@
         ]
     }
 
-    <span class="doccomment">/// Writes a series of [`NcEgc`][crate::NcEgc]s to the current location, but</span>
-    <span class="doccomment">/// retains the styling.</span>
+    <span class="doccomment">/// Writes a string to the current location, but retains the styling.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The current styling of the plane will not be changed.</span>
     <span class="doccomment">///</span>
@@ -2899,8 +2877,7 @@
         ]
     }
 
-    <span class="doccomment">/// Write a string, which is a series of [`NcEgc`][crate::NcEgc]s, to the</span>
-    <span class="doccomment">/// current location, using the current style.</span>
+    <span class="doccomment">/// Writes a string to the provided location, using the current style.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// They will be interpreted as a series of columns.</span>
     <span class="doccomment">///</span>
@@ -2961,7 +2938,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncplane_dup()][crate::ncplane_dup].*</span>
     <span class="comment">//</span>
-    <span class="comment">// TODO: deal with the opaque field.</span>
+    <span class="comment">// TODO: deal with the opaque field that is stored in NcPlaneOptions.userptr</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dup</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span> {
         <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw">crate</span>::<span class="ident">ncplane_dup</span>(<span class="self">self</span>, <span class="ident">null_mut</span>()) }
     }
@@ -3707,6 +3684,11 @@
         <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncplane_y</span>(<span class="self">self</span>) <span class="kw">as</span> <span class="ident">NcOffset</span> }
     }
 
+    <span class="doccomment">/// Returns `true` if this `NcPlane` has scrolling enabled, or `false` otherwise.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">scrolling_p</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncplane_scrolling_p</span>(<span class="self">self</span>) }
+    }
+
     <span class="doccomment">/// Sets the scrolling behaviour of the plane, and</span>
     <span class="doccomment">/// returns true if scrolling was previously enabled, of false, if disabled.</span>
     <span class="doccomment">///</span>
@@ -3973,7 +3955,7 @@
     <span class="doccomment">/// *C style function: [ncplane_gradient()][crate::ncplane_gradient].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gradient</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">egc</span>: <span class="kw-2">&amp;</span><span class="ident">NcEgc</span>,
+        <span class="ident">egc</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
         <span class="ident">stylemask</span>: <span class="ident">NcStyle</span>,
         <span class="ident">ul</span>: <span class="ident">NcChannels</span>,
         <span class="ident">ur</span>: <span class="ident">NcChannels</span>,
@@ -3982,25 +3964,7 @@
         <span class="ident">y_stop</span>: <span class="ident">NcDim</span>,
         <span class="ident">x_stop</span>: <span class="ident">NcDim</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">NcDim</span><span class="op">&gt;</span> {
-        <span class="comment">// https://github.com/dankamongmen/notcurses/issues/1339</span>
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;i686&quot;</span>))]</span>
-        <span class="kw">let</span> <span class="ident">egc_ptr</span> <span class="op">=</span> <span class="kw-2">&amp;</span>(<span class="kw-2">*</span><span class="ident">egc</span> <span class="kw">as</span> <span class="ident">i8</span>);
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;i686&quot;</span>)))]</span>
-        <span class="kw">let</span> <span class="ident">egc_ptr</span> <span class="op">=</span> <span class="kw-2">&amp;</span>(<span class="kw-2">*</span><span class="ident">egc</span> <span class="kw">as</span> <span class="ident">u8</span>);
-
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="kw">crate</span>::<span class="ident">ncplane_gradient</span>(
-                <span class="self">self</span>,
-                <span class="ident">egc_ptr</span>,
-                <span class="ident">stylemask</span> <span class="kw">as</span> <span class="ident">u32</span>,
-                <span class="ident">ul</span>,
-                <span class="ident">ur</span>,
-                <span class="ident">ll</span>,
-                <span class="ident">lr</span>,
-                <span class="ident">y_stop</span> <span class="kw">as</span> <span class="ident">i32</span>,
-                <span class="ident">x_stop</span> <span class="kw">as</span> <span class="ident">i32</span>,
-            )
-        };
+        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">ncplane_gradient</span>(<span class="self">self</span>, <span class="ident">egc</span>, <span class="ident">stylemask</span>, <span class="ident">ul</span>, <span class="ident">ur</span>, <span class="ident">ll</span>, <span class="ident">lr</span>, <span class="ident">y_stop</span>, <span class="ident">x_stop</span>);
         <span class="macro">error</span><span class="macro">!</span>[<span class="ident">res</span>, <span class="string">&quot;&quot;</span>, <span class="ident">res</span> <span class="kw">as</span> <span class="ident">NcDim</span>]
     }
 
@@ -4013,12 +3977,12 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gradient_sized</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">egc</span>: <span class="kw-2">&amp;</span><span class="ident">NcEgc</span>,
+        <span class="ident">egc</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
         <span class="ident">stylemask</span>: <span class="ident">NcStyle</span>,
-        <span class="ident">ul</span>: <span class="ident">NcChannel</span>,
-        <span class="ident">ur</span>: <span class="ident">NcChannel</span>,
-        <span class="ident">ll</span>: <span class="ident">NcChannel</span>,
-        <span class="ident">lr</span>: <span class="ident">NcChannel</span>,
+        <span class="ident">ul</span>: <span class="ident">NcChannels</span>,
+        <span class="ident">ur</span>: <span class="ident">NcChannels</span>,
+        <span class="ident">ll</span>: <span class="ident">NcChannels</span>,
+        <span class="ident">lr</span>: <span class="ident">NcChannels</span>,
         <span class="ident">y_len</span>: <span class="ident">NcDim</span>,
         <span class="ident">x_len</span>: <span class="ident">NcDim</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">NcDim</span><span class="op">&gt;</span> {

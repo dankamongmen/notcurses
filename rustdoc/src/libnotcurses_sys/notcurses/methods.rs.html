@@ -686,22 +686,6 @@
 <span id="683">683</span>
 <span id="684">684</span>
 <span id="685">685</span>
-<span id="686">686</span>
-<span id="687">687</span>
-<span id="688">688</span>
-<span id="689">689</span>
-<span id="690">690</span>
-<span id="691">691</span>
-<span id="692">692</span>
-<span id="693">693</span>
-<span id="694">694</span>
-<span id="695">695</span>
-<span id="696">696</span>
-<span id="697">697</span>
-<span id="698">698</span>
-<span id="699">699</span>
-<span id="700">700</span>
-<span id="701">701</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `Nc*` methods and associated functions.</span>
 
@@ -709,9 +693,8 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">cstring</span>, <span class="ident">error</span>, <span class="ident">error_ref_mut</span>, <span class="ident">notcurses_init</span>, <span class="ident">rstring</span>, <span class="ident">Nc</span>, <span class="ident">NcAlign</span>, <span class="ident">NcBlitter</span>, <span class="ident">NcChannels</span>,
-    <span class="ident">NcDim</span>, <span class="ident">NcEgc</span>, <span class="ident">NcError</span>, <span class="ident">NcFile</span>, <span class="ident">NcInput</span>, <span class="ident">NcLogLevel</span>, <span class="ident">NcOptions</span>, <span class="ident">NcPlane</span>, <span class="ident">NcResult</span>, <span class="ident">NcScale</span>,
-    <span class="ident">NcSignalSet</span>, <span class="ident">NcStats</span>, <span class="ident">NcStyle</span>, <span class="ident">NcTime</span>, <span class="ident">NCOPTION_NO_ALTERNATE_SCREEN</span>, <span class="ident">NCOPTION_SUPPRESS_BANNERS</span>,
-    <span class="ident">NCRESULT_ERR</span>,
+    <span class="ident">NcDim</span>, <span class="ident">NcError</span>, <span class="ident">NcFile</span>, <span class="ident">NcInput</span>, <span class="ident">NcLogLevel</span>, <span class="ident">NcOptions</span>, <span class="ident">NcPlane</span>, <span class="ident">NcResult</span>, <span class="ident">NcScale</span>, <span class="ident">NcStats</span>,
+    <span class="ident">NcStyle</span>, <span class="ident">NcTime</span>, <span class="ident">NCOPTION_NO_ALTERNATE_SCREEN</span>, <span class="ident">NCOPTION_SUPPRESS_BANNERS</span>, <span class="ident">NCRESULT_ERR</span>,
 };
 
 <span class="doccomment">/// # `NcOptions` Constructors</span>
@@ -835,10 +818,11 @@
     }
 
     <span class="doccomment">/// Retrieves the current contents of the specified [NcCell][crate::NcCell]</span>
-    <span class="doccomment">/// as last rendered, returning the [NcEgc] (or None on error) and writing</span>
-    <span class="doccomment">/// out the [NcStyle] and the [NcChannels].</span>
+    <span class="doccomment">/// as last rendered, returning the `EGC` (or None on error) and writing</span>
+    <span class="doccomment">/// out the [`NcStyle`] and the [`NcChannels`].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// This NcEgc must be freed by the caller.</span>
+    <span class="comment">// possible BUG? CHECK:</span>
+    <span class="doccomment">/// This `EGC` must be freed by the caller.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [notcurses_at_yx()][crate::notcurses_at_yx].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">at_yx</span>(
@@ -847,16 +831,15 @@
         <span class="ident">x</span>: <span class="ident">NcDim</span>,
         <span class="ident">stylemask</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcStyle</span>,
         <span class="ident">channels</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcChannels</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NcEgc</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">egc</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">notcurses_at_yx</span>(<span class="self">self</span>, <span class="ident">x</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">y</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">stylemask</span>, <span class="ident">channels</span>) };
         <span class="kw">if</span> <span class="ident">egc</span>.<span class="ident">is_null</span>() {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
-        <span class="kw">let</span> <span class="ident">egc</span> <span class="op">=</span> <span class="ident">core</span>::<span class="ident">char</span>::<span class="ident">from_u32</span>(<span class="kw">unsafe</span> { <span class="kw-2">*</span><span class="ident">egc</span> } <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">expect</span>(<span class="string">&quot;wrong char&quot;</span>);
-        <span class="prelude-val">Some</span>(<span class="ident">egc</span>)
+        <span class="prelude-val">Some</span>(<span class="macro">rstring</span><span class="macro">!</span>[<span class="ident">egc</span>].<span class="ident">into</span>())
     }
 
-    <span class="doccomment">/// Returns the bottommost [NcPlane] on the standard pile,</span>
+    <span class="doccomment">/// Returns the bottommost [`NcPlane`] on the standard pile,</span>
     <span class="doccomment">/// of which there is always at least one.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [notcurses_bottom()][crate::notcurses_bottom].*</span>
@@ -1011,7 +994,7 @@
         <span class="macro">rstring</span><span class="macro">!</span>[<span class="kw">crate</span>::<span class="ident">notcurses_detected_terminal</span>(<span class="self">self</span>)].<span class="ident">to_string</span>()
     }
 
-    <span class="doccomment">/// Destroys all [NcPlane]s other than the stdplane.</span>
+    <span class="doccomment">/// Destroys all [`NcPlane`]s other than the stdplane.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [notcurses_drop_planes()][crate::notcurses_drop_planes].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">drop_planes</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
@@ -1028,18 +1011,8 @@
     <span class="doccomment">/// Provide a None `time` to block at length, a `time` of 0 for non-blocking</span>
     <span class="doccomment">/// operation, and otherwise a timespec to bound blocking.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Signals in sigmask (less several we handle internally) will be atomically</span>
-    <span class="doccomment">/// masked and unmasked per [ppoll(2)](https://linux.die.net/man/2/ppoll).</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// `*sigmask` should generally contain all signals.</span>
-    <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [notcurses_getc()][crate::notcurses_getc].*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">getc</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">time</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NcTime</span><span class="op">&gt;</span>,
-        <span class="ident">sigmask</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcSignalSet</span><span class="op">&gt;</span>,
-        <span class="ident">input</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcInput</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">getc</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">time</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NcTime</span><span class="op">&gt;</span>, <span class="ident">input</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcInput</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">ntime</span>;
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">time</span>) <span class="op">=</span> <span class="ident">time</span> {
             <span class="ident">ntime</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">time</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>;
@@ -1047,12 +1020,6 @@
             <span class="ident">ntime</span> <span class="op">=</span> <span class="ident">null</span>();
         }
 
-        <span class="kw">let</span> <span class="ident">nsigmask</span>;
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">sigmask</span>) <span class="op">=</span> <span class="ident">sigmask</span> {
-            <span class="ident">nsigmask</span> <span class="op">=</span> <span class="ident">sigmask</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span>;
-        } <span class="kw">else</span> {
-            <span class="ident">nsigmask</span> <span class="op">=</span> <span class="ident">null_mut</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span>;
-        }
         <span class="kw">let</span> <span class="ident">ninput</span>;
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">input</span>) <span class="op">=</span> <span class="ident">input</span> {
             <span class="ident">ninput</span> <span class="op">=</span> <span class="ident">input</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span>;
@@ -1060,7 +1027,7 @@
             <span class="ident">ninput</span> <span class="op">=</span> <span class="ident">null_mut</span>();
         }
         <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">core</span>::<span class="ident">char</span>::<span class="ident">from_u32_unchecked</span>(<span class="kw">crate</span>::<span class="ident">notcurses_getc</span>(<span class="self">self</span>, <span class="ident">ntime</span>, <span class="ident">nsigmask</span>, <span class="ident">ninput</span>))
+            <span class="ident">core</span>::<span class="ident">char</span>::<span class="ident">from_u32_unchecked</span>(<span class="kw">crate</span>::<span class="ident">notcurses_getc</span>(<span class="self">self</span>, <span class="ident">ntime</span>, <span class="ident">null_mut</span>(), <span class="ident">ninput</span>))
         };
         <span class="kw">if</span> <span class="ident">c</span> <span class="kw">as</span> <span class="ident">u32</span> <span class="kw">as</span> <span class="ident">i32</span> <span class="op">=</span><span class="op">=</span> <span class="ident">NCRESULT_ERR</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">NcError</span>::<span class="ident">new</span>());
@@ -1114,7 +1081,7 @@
         <span class="macro">error</span><span class="macro">!</span>[<span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">notcurses_inputready_fd</span>(<span class="self">self</span>) }]
     }
 
-    <span class="doccomment">/// Returns an [NcBlitter] from a string representation.</span>
+    <span class="doccomment">/// Returns an [`NcBlitter`] from a string representation.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [notcurses_lex_blitter()][crate::notcurses_lex_blitter].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lex_blitter</span>(<span class="ident">op</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">NcBlitter</span><span class="op">&gt;</span> {
@@ -1135,7 +1102,7 @@
         <span class="macro">error</span><span class="macro">!</span>[<span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">notcurses_lex_margins</span>(<span class="macro">cstring</span><span class="macro">!</span>[<span class="ident">op</span>], <span class="ident">options</span>) }]
     }
 
-    <span class="doccomment">/// Returns an [NcScale] from a string representation.</span>
+    <span class="doccomment">/// Returns an [`NcScale`] from a string representation.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [notcurses_lex_scalemode()][crate::notcurses_lex_scalemode].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lex_scalemode</span>(<span class="ident">op</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">NcScale</span><span class="op">&gt;</span> {
@@ -1201,7 +1168,7 @@
 
     <span class="doccomment">/// Refreshes the physical screen to match what was last rendered (i.e.,</span>
     <span class="doccomment">/// without reflecting any changes since the last call to</span>
-    <span class="doccomment">/// [render][crate::Nc#method.render]).</span>
+    <span class="doccomment">/// [`render`][crate::Nc#method.render]).</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns the current screen geometry (`y`, `x`).</span>
     <span class="doccomment">///</span>
@@ -1228,12 +1195,13 @@
     }
 
     <span class="doccomment">/// Performs the rendering and rasterization portion of</span>
-    <span class="doccomment">/// [render][Nc#method.render] but do not write the resulting buffer</span>
+    <span class="doccomment">/// [`render`][Nc#method.render] but do not write the resulting buffer</span>
     <span class="doccomment">/// out to the terminal.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Using this function, the user can control the writeout process,</span>
     <span class="doccomment">/// and render a second frame while writing another.</span>
     <span class="doccomment">///</span>
+    <span class="comment">// possible BUG? CHECK:</span>
     <span class="doccomment">/// The returned buffer must be freed by the caller.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [notcurses_render_to_buffer()][crate::notcurses_render_to_buffer].*</span>
@@ -1254,7 +1222,7 @@
 
     <span class="doccomment">/// Writes the last rendered frame, in its entirety, to &#39;fp&#39;.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// If [render()][Nc#method.render] has not yet been called,</span>
+    <span class="doccomment">/// If [`render`][Nc#method.render] has not yet been called,</span>
     <span class="doccomment">/// nothing will be written.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [notcurses_render_to_file()][crate::notcurses_render_to_file].*</span>
@@ -1318,7 +1286,7 @@
     <span class="comment">//     crate::notcurses_stddim_yx_const(self, y, x)</span>
     <span class="comment">// }</span>
 
-    <span class="doccomment">/// Returns a mutable reference to the standard [NcPlane] for this terminal.</span>
+    <span class="doccomment">/// Returns a mutable reference to the standard [`NcPlane`] for this terminal.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The standard plane always exists, and its origin is always at the</span>
     <span class="doccomment">/// uppermost, leftmost cell.</span>
@@ -1328,7 +1296,7 @@
         <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw">crate</span>::<span class="ident">notcurses_stdplane</span>(<span class="self">self</span>) }
     }
 
-    <span class="doccomment">/// Returns a reference to the standard [NcPlane] for this terminal.</span>
+    <span class="doccomment">/// Returns a reference to the standard [`NcPlane`] for this terminal.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The standard plane always exists, and its origin is always at the</span>
     <span class="doccomment">/// uppermost, leftmost cell.</span>
@@ -1345,21 +1313,21 @@
         <span class="macro">error</span><span class="macro">!</span>[<span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">notcurses_stop</span>(<span class="self">self</span>) }]
     }
 
-    <span class="doccomment">/// Gets the name of an [NcBlitter] blitter.</span>
+    <span class="doccomment">/// Gets the name of an [`NcBlitter`] blitter.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [notcurses_str_blitter()][crate::notcurses_str_blitter].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">str_blitter</span>(<span class="ident">blitter</span>: <span class="ident">NcBlitter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
         <span class="macro">rstring</span><span class="macro">!</span>[<span class="kw">crate</span>::<span class="ident">notcurses_str_blitter</span>(<span class="ident">blitter</span>)].<span class="ident">to_string</span>()
     }
 
-    <span class="doccomment">/// Gets the name of an [NcScale] scaling mode.</span>
+    <span class="doccomment">/// Gets the name of an [`NcScale`] scaling mode.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [notcurses_str_scalemode()][crate::notcurses_str_scalemode].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">str_scalemode</span>(<span class="ident">scalemode</span>: <span class="ident">NcScale</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
         <span class="macro">rstring</span><span class="macro">!</span>[<span class="kw">crate</span>::<span class="ident">notcurses_str_scalemode</span>(<span class="ident">scalemode</span>)].<span class="ident">to_string</span>()
     }
 
-    <span class="doccomment">/// Returns an [NcStyle] with the supported curses-style attributes.</span>
+    <span class="doccomment">/// Returns an [`NcStyle`] with the supported curses-style attributes.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The attribute is only indicated as supported if the terminal can support</span>
     <span class="doccomment">/// it together with color.</span>
@@ -1378,7 +1346,7 @@
         <span class="kw">crate</span>::<span class="ident">notcurses_term_dim_yx</span>(<span class="self">self</span>)
     }
 
-    <span class="doccomment">/// Returns the topmost [NcPlane], of which there is always at least one.</span>
+    <span class="doccomment">/// Returns the topmost [`NcPlane`], of which there is always at least one.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [notcurses_top()][crate::notcurses_top].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">top</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span> {

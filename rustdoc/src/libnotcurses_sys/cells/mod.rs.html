@@ -329,9 +329,6 @@
 <span id="326">326</span>
 <span id="327">327</span>
 <span id="328">328</span>
-<span id="329">329</span>
-<span id="330">330</span>
-<span id="331">331</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcCell`</span>
 
@@ -425,7 +422,7 @@
 <span class="doccomment">/// # Description</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// An `NcCell` corresponds to a single character cell on some `NcPlane`,</span>
-<span class="doccomment">/// which can be occupied by a single [`NcEgc`] grapheme cluster (some root</span>
+<span class="doccomment">/// which can be occupied by a single `EGC` grapheme cluster (some root</span>
 <span class="doccomment">/// spacing glyph, along with possible combining characters, which might span</span>
 <span class="doccomment">/// multiple columns).</span>
 <span class="doccomment">///</span>
@@ -449,14 +446,14 @@
 <span class="doccomment">/// ```txt</span>
 <span class="doccomment">/// NcCell: 128 bits structure comprised of the following 5 elements:</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// GCLUSTER|GCLUSTER|GCLUSTER|GCLUSTER  1. NcEgc</span>
+<span class="doccomment">/// GCLUSTER|GCLUSTER|GCLUSTER|GCLUSTER  1. `EGC`</span>
 <span class="doccomment">/// 00000000║WWWWWWWW║11111111|11111111  2. NcEgcBackstop + 3. width + 4. NcStyle</span>
 <span class="doccomment">/// ~~AA~~~~|RRRRRRRR|GGGGGGGG|BBBBBBBB  5. NcChannels</span>
 <span class="doccomment">/// ~~AA~~~~|RRRRRRRR|GGGGGGGG|BBBBBBBB     &quot;</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// 1. (32b) Extended Grapheme Cluster, presented either as:</span>
 <span class="doccomment">///</span>
-<span class="doccomment">///     1.1. An NcEgc of up to 4 bytes:</span>
+<span class="doccomment">///     1.1. An EGC of up to 4 bytes:</span>
 <span class="doccomment">///     UUUUUUUU|UUUUUUUU|UUUUUUUU|UUUUUUUU</span>
 <span class="doccomment">///</span>
 <span class="doccomment">///     1.2. A `0x01` in the first byte, plus 3 bytes with a 24b address to an egcpool:</span>
@@ -483,7 +480,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Multi-column characters can only have a single style/color throughout.</span>
 <span class="doccomment">/// [`wcwidth()`](https://www.man7.org/linux/man-pages/man3/wcwidth.3.html)</span>
-<span class="doccomment">/// is not reliable. It&#39;s just quoting whether or not the [`NcEgc`]</span>
+<span class="doccomment">/// is not reliable. It&#39;s just quoting whether or not the `EGC`</span>
 <span class="doccomment">/// contains a &quot;Wide Asian&quot; double-width character.</span>
 <span class="doccomment">/// This is set for some things, like most emoji, and not set for</span>
 <span class="doccomment">/// other things, like cuneiform.</span>
@@ -542,62 +539,63 @@
 <span class="doccomment">///</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcCell</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">cell</span>;
 
+<span class="comment">// RETHINK:</span>
+<span class="comment">//</span>
 <span class="comment">// NcEgc</span>
 <span class="comment">//</span>
-<span class="doccomment">/// Extended Grapheme Cluster. A 32-bit [`char`]-like type</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This 32 bit char, together with the associated plane&#39;s associated egcpool,</span>
-<span class="doccomment">/// completely define this cell&#39;s `NcEgc`. Unless the `NcEgc` requires more than</span>
-<span class="doccomment">/// four bytes to encode as UTF-8, it will be inlined here:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ## Diagram 1</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```txt</span>
-<span class="doccomment">/// UUUUUUUU UUUUUUUU UUUUUUUU UUUUUUUU</span>
-<span class="doccomment">/// extended grapheme cluster &lt;= 4bytes</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `type in C: uint32_t`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// If more than four bytes are required, it will be spilled into the egcpool.</span>
-<span class="doccomment">/// In either case, there&#39;s a NUL-terminated string available without copying,</span>
-<span class="doccomment">/// because (1) the egcpool is all NUL-terminated sequences and (2) the fifth</span>
-<span class="doccomment">/// byte of this struct (the GClusterBackStop field, see below) is</span>
-<span class="doccomment">/// guaranteed to be zero, as are any unused bytes in gcluster.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A spilled `NcEgc` is indicated by the value `0x01iiiiii`. This cannot alias a</span>
-<span class="doccomment">/// true supra-ASCII NcEgc, because UTF-8 only encodes bytes &lt;= 0x80 when they</span>
-<span class="doccomment">/// are single-byte ASCII-derived values. The `iiiiii` is interpreted as a 24-bit</span>
-<span class="doccomment">/// index into the egcpool (which may thus be up to 16MB):</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ## Diagram 2</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```txt</span>
-<span class="doccomment">/// 00000001 iiiiiiii iiiiiiii iiiiiiii</span>
-<span class="doccomment">///   sign     24bit index to egcpool</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// `type in C: uint32_t`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The cost of this scheme is that the character 0x01 (`SOH`) cannot be encoded</span>
-<span class="doccomment">/// in a cell, and therefore it must not be allowed through the API.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// -----</span>
-<span class="doccomment">/// Note that even if the `NcEgc` is &lt;= 4 bytes and inlined, is still interpreted as</span>
-<span class="doccomment">/// a NUL-terminated char * (technically, &amp;cell-&gt;gcluster is treated as a char*).</span>
-<span class="doccomment">/// If it is more than 4 bytes, cell-&gt;gcluster has a first byte of 0x01,</span>
-<span class="doccomment">/// and the remaining 24 bits are an index into the plane&#39;s egcpool,</span>
-<span class="doccomment">/// which is carved into NUL-terminated chunks of arbitrary length.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ## Links</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// - [Grapheme Cluster</span>
-<span class="doccomment">/// Boundaries](https://unicode.org/reports/tr29/#Grapheme_Cluster_Boundaries)</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///</span>
-<span class="comment">// TODO: there should be two types at least:</span>
-<span class="comment">// - an utf-8 string len 1 of type &amp;str.</span>
-<span class="comment">// - a unicode codepoint of type char.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcEgc</span> <span class="op">=</span> <span class="ident">char</span>;
+<span class="comment">// /// Extended Grapheme Cluster. A unicode string of length 1.</span>
+<span class="comment">// ///</span>
+<span class="comment">// /// This 32 bit char, together with the associated plane&#39;s associated egcpool,</span>
+<span class="comment">// /// completely define this cell&#39;s `NcEgc`. Unless the `NcEgc` requires more than</span>
+<span class="comment">// /// four bytes to encode as UTF-8, it will be inlined here:</span>
+<span class="comment">// ///</span>
+<span class="comment">// /// ## Diagram 1</span>
+<span class="comment">// ///</span>
+<span class="comment">// /// ```txt</span>
+<span class="comment">// /// UUUUUUUU UUUUUUUU UUUUUUUU UUUUUUUU</span>
+<span class="comment">// /// extended grapheme cluster &lt;= 4bytes</span>
+<span class="comment">// /// ```</span>
+<span class="comment">// ///</span>
+<span class="comment">// /// `type in C: uint32_t`</span>
+<span class="comment">// ///</span>
+<span class="comment">// /// If more than four bytes are required, it will be spilled into the egcpool.</span>
+<span class="comment">// /// In either case, there&#39;s a NUL-terminated string available without copying,</span>
+<span class="comment">// /// because (1) the egcpool is all NUL-terminated sequences and (2) the fifth</span>
+<span class="comment">// /// byte of this struct (the GClusterBackStop field, see below) is</span>
+<span class="comment">// /// guaranteed to be zero, as are any unused bytes in gcluster.</span>
+<span class="comment">// ///</span>
+<span class="comment">// /// A spilled `NcEgc` is indicated by the value `0x01iiiiii`. This cannot alias a</span>
+<span class="comment">// /// true supra-ASCII NcEgc, because UTF-8 only encodes bytes &lt;= 0x80 when they</span>
+<span class="comment">// /// are single-byte ASCII-derived values. The `iiiiii` is interpreted as a 24-bit</span>
+<span class="comment">// /// index into the egcpool (which may thus be up to 16MB):</span>
+<span class="comment">// ///</span>
+<span class="comment">// /// ## Diagram 2</span>
+<span class="comment">// ///</span>
+<span class="comment">// /// ```txt</span>
+<span class="comment">// /// 00000001 iiiiiiii iiiiiiii iiiiiiii</span>
+<span class="comment">// ///   sign     24bit index to egcpool</span>
+<span class="comment">// /// ```</span>
+<span class="comment">// /// `type in C: uint32_t`</span>
+<span class="comment">// ///</span>
+<span class="comment">// /// The cost of this scheme is that the character 0x01 (`SOH`) cannot be encoded</span>
+<span class="comment">// /// in a cell, and therefore it must not be allowed through the API.</span>
+<span class="comment">// ///</span>
+<span class="comment">// /// -----</span>
+<span class="comment">// /// Note that even if the `NcEgc` is &lt;= 4 bytes and inlined, is still interpreted as</span>
+<span class="comment">// /// a NUL-terminated char * (technically, &amp;cell-&gt;gcluster is treated as a char*).</span>
+<span class="comment">// /// If it is more than 4 bytes, cell-&gt;gcluster has a first byte of 0x01,</span>
+<span class="comment">// /// and the remaining 24 bits are an index into the plane&#39;s egcpool,</span>
+<span class="comment">// /// which is carved into NUL-terminated chunks of arbitrary length.</span>
+<span class="comment">// ///</span>
+<span class="comment">// /// ## Links</span>
+<span class="comment">// ///</span>
+<span class="comment">// /// - [Grapheme Cluster</span>
+<span class="comment">// /// Boundaries](https://unicode.org/reports/tr29/#Grapheme_Cluster_Boundaries)</span>
+<span class="comment">// ///</span>
+<span class="comment">// ///</span>
+<span class="comment">// FIXME: should be an utf-8 string len 1 of type &amp;str.</span>
+<span class="comment">// pub type NcEgc = String;</span>
+<span class="comment">// pub type NcEgc&lt;&#39;a&gt; = &amp;&#39;a str;</span>
 
 <span class="comment">// NcEgcBackStop</span>
 <span class="doccomment">/// An `u8` always at zero, part of the [`NcCell`] struct</span>
@@ -619,13 +617,12 @@
 <span class="doccomment">/// ## Attributes</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// - [`NCSTYLE_MASK`]</span>
-<span class="doccomment">/// - [`NCSTYLE_UNDERCURL`]</span>
-<span class="doccomment">/// - [`NCSTYLE_STRUCK`]</span>
 <span class="doccomment">/// - [`NCSTYLE_ITALIC`]</span>
 <span class="doccomment">/// - [`NCSTYLE_UNDERLINE`]</span>
-<span class="doccomment">/// - [`NCSTYLE_REVERSE`]</span>
-<span class="doccomment">/// - [`NCSTYLE_DIM`]</span>
+<span class="doccomment">/// - [`NCSTYLE_UNDERCURL`]</span>
+<span class="doccomment">/// - [`NCSTYLE_STRUCK`]</span>
 <span class="doccomment">/// - [`NCSTYLE_BOLD`]</span>
+<span class="doccomment">/// - [`NCSTYLE_BLINK`]</span>
 <span class="doccomment">/// - [`NCSTYLE_NONE`]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ## Diagram</span>
@@ -642,25 +639,22 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCSTYLE_MASK</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCSTYLE_MASK</span> <span class="kw">as</span> <span class="ident">u16</span>;
 
 <span class="doccomment">///</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCSTYLE_UNDERCURL</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCSTYLE_UNDERCURL</span> <span class="kw">as</span> <span class="ident">u16</span>;
-
-<span class="doccomment">///</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCSTYLE_STRUCK</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCSTYLE_STRUCK</span> <span class="kw">as</span> <span class="ident">u16</span>;
-
-<span class="doccomment">///</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCSTYLE_ITALIC</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCSTYLE_ITALIC</span> <span class="kw">as</span> <span class="ident">u16</span>;
 
 <span class="doccomment">///</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCSTYLE_UNDERLINE</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCSTYLE_UNDERLINE</span> <span class="kw">as</span> <span class="ident">u16</span>;
 
 <span class="doccomment">///</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCSTYLE_REVERSE</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCSTYLE_REVERSE</span> <span class="kw">as</span> <span class="ident">u16</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCSTYLE_UNDERCURL</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCSTYLE_UNDERCURL</span> <span class="kw">as</span> <span class="ident">u16</span>;
 
 <span class="doccomment">///</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCSTYLE_DIM</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCSTYLE_DIM</span> <span class="kw">as</span> <span class="ident">u16</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCSTYLE_STRUCK</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCSTYLE_STRUCK</span> <span class="kw">as</span> <span class="ident">u16</span>;
 
 <span class="doccomment">///</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCSTYLE_BOLD</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCSTYLE_BOLD</span> <span class="kw">as</span> <span class="ident">u16</span>;
+
+<span class="doccomment">///</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCSTYLE_BLINK</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCSTYLE_BLINK</span> <span class="kw">as</span> <span class="ident">u16</span>;
 
 <span class="doccomment">///</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCSTYLE_NONE</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCSTYLE_NONE</span> <span class="kw">as</span> <span class="ident">u16</span>;

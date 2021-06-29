@@ -853,23 +853,6 @@
 <span id="850">850</span>
 <span id="851">851</span>
 <span id="852">852</span>
-<span id="853">853</span>
-<span id="854">854</span>
-<span id="855">855</span>
-<span id="856">856</span>
-<span id="857">857</span>
-<span id="858">858</span>
-<span id="859">859</span>
-<span id="860">860</span>
-<span id="861">861</span>
-<span id="862">862</span>
-<span id="863">863</span>
-<span id="864">864</span>
-<span id="865">865</span>
-<span id="866">866</span>
-<span id="867">867</span>
-<span id="868">868</span>
-<span id="869">869</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! A selection of the [ffi] bindings intended to be used directly.</span>
 <span class="doccomment">//!</span>
@@ -1028,6 +1011,8 @@
 <span class="comment">// ncdirect_canquadrant,</span>
 <span class="comment">// ncdirect_cantruecolor,</span>
 <span class="comment">// ncdirect_capabilities,</span>
+<span class="comment">// ncdirect_hline_interp,</span>
+<span class="comment">// ncdirect_vline_interp,</span>
 <span class="comment">//</span>
 <span class="comment">// // constants</span>
 <span class="comment">// NCDIRECT_OPTION_INHIBIT_CBREAK,</span>
@@ -1062,7 +1047,6 @@
     <span class="ident">ncdirect_double_box</span>,
     <span class="ident">ncdirect_flush</span>,
     <span class="ident">ncdirect_getc</span>,
-    <span class="ident">ncdirect_hline_interp</span>,
     <span class="ident">ncdirect_init</span>,
     <span class="ident">ncdirect_inputready_fd</span>,
     <span class="ident">ncdirect_off_styles</span>,
@@ -1086,7 +1070,6 @@
     <span class="ident">ncdirect_stream</span>,
     <span class="ident">ncdirect_styles</span>,
     <span class="ident">ncdirect_supported_styles</span>,
-    <span class="ident">ncdirect_vline_interp</span>,
 };
 
 <span class="comment">// ncdirectf --------------------------------------------------------------------</span>
@@ -1250,6 +1233,7 @@
 <span class="comment">//</span>
 <span class="comment">// // functions</span>
 <span class="comment">// ncplane_channels,</span>
+<span class="comment">// ncplane_gradient,</span>
 <span class="comment">// ncplane_set_bchannel,</span>
 <span class="comment">// ncplane_set_fchannel,</span>
 <span class="comment">// ncplane_set_channels,</span>
@@ -1292,7 +1276,6 @@
     <span class="ident">ncplane_fadeout</span>,
     <span class="ident">ncplane_fadeout_iteration</span>,
     <span class="ident">ncplane_format</span>,
-    <span class="ident">ncplane_gradient</span>,
     <span class="ident">ncplane_greyscale</span>,
     <span class="ident">ncplane_highgradient</span>,
     <span class="ident">ncplane_highgradient_sized</span>,
@@ -1336,6 +1319,7 @@
     <span class="ident">ncplane_resizecb</span>,
     <span class="ident">ncplane_rotate_ccw</span>,
     <span class="ident">ncplane_rotate_cw</span>,
+    <span class="ident">ncplane_scrolling_p</span>,
     <span class="ident">ncplane_set_base</span>,
     <span class="ident">ncplane_set_base_cell</span>,
     <span class="ident">ncplane_set_bg_alpha</span>,
@@ -1534,13 +1518,12 @@
 <span class="comment">//</span>
 <span class="comment">// // constants</span>
 <span class="comment">// NCSTYLE_MASK,</span>
-<span class="comment">// NCSTYLE_UNDERCURL,</span>
-<span class="comment">// NCSTYLE_STRUCK,</span>
 <span class="comment">// NCSTYLE_ITALIC,</span>
 <span class="comment">// NCSTYLE_UNDERLINE,</span>
-<span class="comment">// NCSTYLE_REVERSE,</span>
-<span class="comment">// NCSTYLE_DIM,</span>
+<span class="comment">// NCSTYLE_UNDERCURL,</span>
 <span class="comment">// NCSTYLE_BOLD,</span>
+<span class="comment">// NCSTYLE_STRUCK,</span>
+<span class="comment">// NCSTYLE_BLINK,</span>
 <span class="comment">// NCSTYLE_NONE,</span>
 
 <span class="comment">// nctablet --------------------------------------------------------------------</span>
@@ -1643,6 +1626,7 @@
 <span class="comment">// NCOPTION_NO_FONT_CHANGES,</span>
 <span class="comment">// NCOPTION_NO_QUIT_SIGHANDLERS,</span>
 <span class="comment">// NCOPTION_NO_WINCH_SIGHANDLER,</span>
+<span class="comment">// NCOPTION_PRESERVE_CURSOR,</span>
 <span class="comment">// NCOPTION_SUPPRESS_BANNERS,</span>
 
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
@@ -1715,24 +1699,6 @@
     <span class="comment">// constants</span>
     <span class="ident">NCPALETTESIZE</span>,
 };
-
-<span class="comment">// sig -------------------------------------------------------------------------</span>
-<span class="comment">//</span>
-<span class="comment">// already wrapped:</span>
-<span class="comment">//</span>
-<span class="comment">// // structs</span>
-<span class="comment">// sigset_t,</span>
-<span class="comment">// sigaction,</span>
-<span class="comment">//</span>
-<span class="comment">// // functions</span>
-<span class="comment">// sigaddset,</span>
-<span class="comment">// sigdelset,</span>
-<span class="comment">// sigemptyset,</span>
-<span class="comment">// sigfillset,</span>
-<span class="comment">// sigismember,</span>
-<span class="comment">// sigpending,</span>
-<span class="comment">// sigprocmask,</span>
-<span class="comment">// sigsuspend,</span>
 
 <span class="comment">// fade callback ---------------------------------------------------------------</span>
 <span class="comment">//</span>

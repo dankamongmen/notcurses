@@ -770,44 +770,14 @@
 <span id="767">767</span>
 <span id="768">768</span>
 <span id="769">769</span>
-<span id="770">770</span>
-<span id="771">771</span>
-<span id="772">772</span>
-<span id="773">773</span>
-<span id="774">774</span>
-<span id="775">775</span>
-<span id="776">776</span>
-<span id="777">777</span>
-<span id="778">778</span>
-<span id="779">779</span>
-<span id="780">780</span>
-<span id="781">781</span>
-<span id="782">782</span>
-<span id="783">783</span>
-<span id="784">784</span>
-<span id="785">785</span>
-<span id="786">786</span>
-<span id="787">787</span>
-<span id="788">788</span>
-<span id="789">789</span>
-<span id="790">790</span>
-<span id="791">791</span>
-<span id="792">792</span>
-<span id="793">793</span>
-<span id="794">794</span>
-<span id="795">795</span>
-<span id="796">796</span>
-<span id="797">797</span>
-<span id="798">798</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcDirect` methods and associated functions.</span>
 
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">ptr</span>::{<span class="ident">null</span>, <span class="ident">null_mut</span>};
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ffi</span>::<span class="ident">sigset_t</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">cstring</span>, <span class="ident">error</span>, <span class="ident">error_ref_mut</span>, <span class="ident">rstring</span>, <span class="ident">NcAlign</span>, <span class="ident">NcBlitter</span>, <span class="ident">NcCapabilities</span>, <span class="ident">NcChannels</span>,
-    <span class="ident">NcComponent</span>, <span class="ident">NcDim</span>, <span class="ident">NcDirect</span>, <span class="ident">NcDirectFlags</span>, <span class="ident">NcEgc</span>, <span class="ident">NcError</span>, <span class="ident">NcInput</span>, <span class="ident">NcOffset</span>, <span class="ident">NcPaletteIndex</span>,
+    <span class="ident">NcComponent</span>, <span class="ident">NcDim</span>, <span class="ident">NcDirect</span>, <span class="ident">NcDirectFlags</span>, <span class="ident">NcError</span>, <span class="ident">NcInput</span>, <span class="ident">NcOffset</span>, <span class="ident">NcPaletteIndex</span>,
     <span class="ident">NcPlane</span>, <span class="ident">NcResult</span>, <span class="ident">NcRgb</span>, <span class="ident">NcScale</span>, <span class="ident">NcStyle</span>, <span class="ident">NcTime</span>, <span class="ident">NCRESULT_ERR</span>,
 };
 
@@ -1358,32 +1328,15 @@
     <span class="doccomment">/// Provide a None `time` to block at length, a `time` of 0 for non-blocking</span>
     <span class="doccomment">/// operation, and otherwise a timespec to bound blocking.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Signals in sigmask (less several we handle internally) will be atomically</span>
-    <span class="doccomment">/// masked and unmasked per [ppoll(2)](https://linux.die.net/man/2/ppoll).</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// `*sigmask` should generally contain all signals.</span>
-    <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncdirect_getc()][crate::ncdirect_getc].*</span>
     <span class="comment">//</span>
     <span class="comment">// CHECK returns 0 on a timeout.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">getc</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">time</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NcTime</span><span class="op">&gt;</span>,
-        <span class="ident">sigmask</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sigset_t</span><span class="op">&gt;</span>,
-        <span class="ident">input</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcInput</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">getc</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">time</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NcTime</span><span class="op">&gt;</span>, <span class="ident">input</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcInput</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">ntime</span>;
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">time</span>) <span class="op">=</span> <span class="ident">time</span> {
             <span class="ident">ntime</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">time</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>;
         } <span class="kw">else</span> {
             <span class="ident">ntime</span> <span class="op">=</span> <span class="ident">null</span>();
-        }
-
-        <span class="kw">let</span> <span class="ident">nsigmask</span>;
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">sigmask</span>) <span class="op">=</span> <span class="ident">sigmask</span> {
-            <span class="ident">nsigmask</span> <span class="op">=</span> <span class="ident">sigmask</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span>;
-        } <span class="kw">else</span> {
-            <span class="ident">nsigmask</span> <span class="op">=</span> <span class="ident">null_mut</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span>;
         }
         <span class="kw">let</span> <span class="ident">ninput</span>;
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">input</span>) <span class="op">=</span> <span class="ident">input</span> {
@@ -1392,7 +1345,7 @@
             <span class="ident">ninput</span> <span class="op">=</span> <span class="ident">null_mut</span>();
         }
         <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">core</span>::<span class="ident">char</span>::<span class="ident">from_u32_unchecked</span>(<span class="kw">crate</span>::<span class="ident">ncdirect_getc</span>(<span class="self">self</span>, <span class="ident">ntime</span>, <span class="ident">nsigmask</span>, <span class="ident">ninput</span>))
+            <span class="ident">core</span>::<span class="ident">char</span>::<span class="ident">from_u32_unchecked</span>(<span class="kw">crate</span>::<span class="ident">ncdirect_getc</span>(<span class="self">self</span>, <span class="ident">ntime</span>, <span class="ident">null_mut</span>(), <span class="ident">ninput</span>))
         };
         <span class="kw">if</span> <span class="ident">c</span> <span class="kw">as</span> <span class="ident">u32</span> <span class="kw">as</span> <span class="ident">i32</span> <span class="op">=</span><span class="op">=</span> <span class="ident">NCRESULT_ERR</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">NcError</span>::<span class="ident">new</span>());
@@ -1542,12 +1495,13 @@
             <span class="kw">crate</span>::<span class="ident">ncdirect_rounded_box</span>(<span class="self">self</span>, <span class="ident">ul</span>, <span class="ident">ur</span>, <span class="ident">ll</span>, <span class="ident">lr</span>, <span class="ident">y_len</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">x_len</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">ctlword</span>)
         }]
     }
+
     <span class="doccomment">/// Draws horizontal lines using the specified [NcChannels]s, interpolating</span>
     <span class="doccomment">/// between them as we go.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// All lines start at the current cursor position.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The [NcEgc] at `egc` may not use more than one column.</span>
+    <span class="doccomment">/// The string at `egc` may not use more than one column.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// For a horizontal line, `len` cannot exceed the screen width minus the</span>
     <span class="doccomment">/// cursor&#39;s offset.</span>
@@ -1556,18 +1510,12 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hline_interp</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">egc</span>: <span class="kw-2">&amp;</span><span class="ident">NcEgc</span>,
+        <span class="ident">egc</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
         <span class="ident">len</span>: <span class="ident">NcDim</span>,
         <span class="ident">h1</span>: <span class="ident">NcChannels</span>,
         <span class="ident">h2</span>: <span class="ident">NcChannels</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="comment">// https://github.com/dankamongmen/notcurses/issues/1339</span>
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;i686&quot;</span>))]</span>
-        <span class="kw">let</span> <span class="ident">egc_ptr</span> <span class="op">=</span> <span class="kw-2">&amp;</span>(<span class="kw-2">*</span><span class="ident">egc</span> <span class="kw">as</span> <span class="ident">i8</span>);
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;i686&quot;</span>)))]</span>
-        <span class="kw">let</span> <span class="ident">egc_ptr</span> <span class="op">=</span> <span class="kw-2">&amp;</span>(<span class="kw-2">*</span><span class="ident">egc</span> <span class="kw">as</span> <span class="ident">u8</span>);
-
-        <span class="macro">error</span><span class="macro">!</span>[<span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirect_hline_interp</span>(<span class="self">self</span>, <span class="ident">egc_ptr</span>, <span class="ident">len</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">h1</span>, <span class="ident">h2</span>) }]
+        <span class="macro">error</span><span class="macro">!</span>[<span class="kw">crate</span>::<span class="ident">ncdirect_hline_interp</span>(<span class="self">self</span>, <span class="ident">egc</span>, <span class="ident">len</span>, <span class="ident">h1</span>, <span class="ident">h2</span>)]
     }
 
     <span class="doccomment">/// Draws horizontal lines using the specified [NcChannels]s, interpolating</span>
@@ -1575,7 +1523,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// All lines start at the current cursor position.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The [NcEgc] at `egc` may not use more than one column.</span>
+    <span class="doccomment">/// The string at `egc` may not use more than one column.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// For a vertical line, `len` may be as long as you&#39;d like; the screen</span>
     <span class="doccomment">/// will scroll as necessary.</span>
@@ -1584,18 +1532,12 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">vline_interp</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">egc</span>: <span class="kw-2">&amp;</span><span class="ident">NcEgc</span>,
+        <span class="ident">egc</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
         <span class="ident">len</span>: <span class="ident">NcDim</span>,
         <span class="ident">h1</span>: <span class="ident">NcChannels</span>,
         <span class="ident">h2</span>: <span class="ident">NcChannels</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="comment">// https://github.com/dankamongmen/notcurses/issues/1339</span>
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;i686&quot;</span>))]</span>
-        <span class="kw">let</span> <span class="ident">egc_ptr</span> <span class="op">=</span> <span class="kw-2">&amp;</span>(<span class="kw-2">*</span><span class="ident">egc</span> <span class="kw">as</span> <span class="ident">i8</span>);
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;i686&quot;</span>)))]</span>
-        <span class="kw">let</span> <span class="ident">egc_ptr</span> <span class="op">=</span> <span class="kw-2">&amp;</span>(<span class="kw-2">*</span><span class="ident">egc</span> <span class="kw">as</span> <span class="ident">u8</span>);
-
-        <span class="macro">error</span><span class="macro">!</span>[<span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirect_vline_interp</span>(<span class="self">self</span>, <span class="ident">egc_ptr</span>, <span class="ident">len</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">h1</span>, <span class="ident">h2</span>) }]
+        <span class="macro">error</span><span class="macro">!</span>[<span class="kw">crate</span>::<span class="ident">ncdirect_vline_interp</span>(<span class="self">self</span>, <span class="ident">egc</span>, <span class="ident">len</span>, <span class="ident">h1</span>, <span class="ident">h2</span>)]
     }
 }
 </pre></div>

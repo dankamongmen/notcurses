@@ -214,6 +214,13 @@
 <span id="211">211</span>
 <span id="212">212</span>
 <span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `Nc`</span>
 
@@ -343,7 +350,7 @@
 <span class="doccomment">/// but the virtual console/terminal in which notcurses is running.</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCOPTION_NO_FONT_CHANGES</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCOPTION_NO_FONT_CHANGES</span> <span class="kw">as</span> <span class="ident">u64</span>;
 
-<span class="doccomment">/// Do not handle SIG{ING, SEGV, ABRT, QUIT}</span>
+<span class="doccomment">/// Do not handle SIG{ING, SEGV, ABRT, QUIT}.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// A signal handler will usually be installed for SIGINT, SIGQUIT, SIGSEGV,</span>
 <span class="doccomment">/// SIGTERM, and SIGABRT, cleaning up the terminal on such exceptions.</span>
@@ -351,7 +358,7 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCOPTION_NO_QUIT_SIGHANDLERS</span>: <span class="ident">u64</span> <span class="op">=</span>
     <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCOPTION_NO_QUIT_SIGHANDLERS</span> <span class="kw">as</span> <span class="ident">u64</span>;
 
-<span class="doccomment">/// Do not handle SIGWINCH</span>
+<span class="doccomment">/// Do not handle SIGWINCH.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// A signal handler will usually be installed for SIGWINCH, resulting in</span>
 <span class="doccomment">/// NCKEY_RESIZE events being generated on input.</span>
@@ -359,7 +366,14 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCOPTION_NO_WINCH_SIGHANDLER</span>: <span class="ident">u64</span> <span class="op">=</span>
     <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCOPTION_NO_WINCH_SIGHANDLER</span> <span class="kw">as</span> <span class="ident">u64</span>;
 
-<span class="doccomment">/// Do not print banners</span>
+<span class="doccomment">/// Initialize the standard plane&#39;s virtual cursor to match the physical cursor</span>
+<span class="doccomment">/// at context creation time.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Together with [`NCOPTION_NO_ALTERNATE_SCREEN`] and a scrolling standard plane,</span>
+<span class="doccomment">/// this facilitates easy scrolling-style programs in rendered mode.</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCOPTION_PRESERVE_CURSOR</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCOPTION_PRESERVE_CURSOR</span> <span class="kw">as</span> <span class="ident">u64</span>;
+
+<span class="doccomment">/// Do not print banners.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Notcurses typically prints version info in notcurses_init() and performance</span>
 <span class="doccomment">/// info in notcurses_stop(). This inhibits that output.</span>

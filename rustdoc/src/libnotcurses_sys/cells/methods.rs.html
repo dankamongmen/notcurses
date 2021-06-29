@@ -473,8 +473,8 @@
 <span class="doccomment">//! `NcCell` methods and associated functions.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">cstring</span>, <span class="ident">error</span>, <span class="ident">nccell_load</span>, <span class="ident">NcAlphaBits</span>, <span class="ident">NcCell</span>, <span class="ident">NcChannels</span>, <span class="ident">NcComponent</span>, <span class="ident">NcEgc</span>,
-    <span class="ident">NcEgcBackstop</span>, <span class="ident">NcPaletteIndex</span>, <span class="ident">NcPlane</span>, <span class="ident">NcResult</span>, <span class="ident">NcRgb</span>, <span class="ident">NcStyle</span>, <span class="ident">NCRESULT_ERR</span>,
+    <span class="ident">cstring</span>, <span class="ident">error</span>, <span class="ident">nccell_load</span>, <span class="ident">NcAlphaBits</span>, <span class="ident">NcCell</span>, <span class="ident">NcChannels</span>, <span class="ident">NcComponent</span>, <span class="ident">NcEgcBackstop</span>,
+    <span class="ident">NcPaletteIndex</span>, <span class="ident">NcPlane</span>, <span class="ident">NcResult</span>, <span class="ident">NcRgb</span>, <span class="ident">NcStyle</span>, <span class="ident">NCRESULT_ERR</span>,
 };
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_imports</span>)]</span> <span class="comment">// for the doc comments</span>
@@ -765,19 +765,19 @@
 
 <span class="doccomment">/// # `NcCell` methods: other components</span>
 <span class="kw">impl</span> <span class="ident">NcCell</span> {
-    <span class="doccomment">/// Returns true if the two cells have distinct [`NcEgc`]s, attributes,</span>
+    <span class="doccomment">/// Returns true if the two cells have distinct `EGC`s, attributes,</span>
     <span class="doccomment">/// or [`NcChannel`]s.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The actual egcpool index needn&#39;t be the same--indeed, the planes</span>
-    <span class="doccomment">/// needn&#39;t even be the same. Only the expanded NcEgc must be bit-equal.</span>
+    <span class="doccomment">/// needn&#39;t even be the same. Only the expanded `EGC` must be bit-equal.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [nccellcmp()][crate::nccellcmp].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compare</span>(<span class="ident">plane1</span>: <span class="kw-2">&amp;</span><span class="ident">NcPlane</span>, <span class="ident">cell1</span>: <span class="kw-2">&amp;</span><span class="ident">NcCell</span>, <span class="ident">plane2</span>: <span class="kw-2">&amp;</span><span class="ident">NcPlane</span>, <span class="ident">cell2</span>: <span class="kw-2">&amp;</span><span class="ident">NcCell</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">crate</span>::<span class="ident">nccellcmp</span>(<span class="ident">plane1</span>, <span class="ident">cell1</span>, <span class="ident">plane2</span>, <span class="ident">cell2</span>)
     }
 
-    <span class="doccomment">/// Saves the [`NcStyle`] and the [`NcChannels`], and returns the [`NcEgc`].</span>
-    <span class="doccomment">/// (These are the three elements of an NcCell).</span>
+    <span class="doccomment">/// Saves the [`NcStyle`] and the [`NcChannels`], and returns the `EGC`.</span>
+    <span class="doccomment">/// (These are the three elements of an `NcCell`).</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [nccell_fg_alpha()][crate::nccell_fg_alpha].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">extract</span>(
@@ -785,16 +785,16 @@
         <span class="ident">plane</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span>,
         <span class="ident">styles</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcStyle</span>,
         <span class="ident">channels</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcChannels</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcEgc</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
         <span class="kw">crate</span>::<span class="ident">nccell_extract</span>(<span class="ident">plane</span>, <span class="self">self</span>, <span class="ident">styles</span>, <span class="ident">channels</span>)
     }
 
-    <span class="doccomment">/// Returns the [`NcEgc`] of the NcCell.</span>
+    <span class="doccomment">/// Returns the `EGC` of the `NcCell`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// See also: [extended_gcluster][NcCell#method.extended_gcluster] method.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *(No equivalent C style function)*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">egc</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">plane</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcEgc</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">egc</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">plane</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
         <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">_styles</span>, <span class="kw-2">mut</span> <span class="ident">_channels</span>) <span class="op">=</span> (<span class="number">0</span>, <span class="number">0</span>);
         <span class="kw">crate</span>::<span class="ident">nccell_extract</span>(<span class="ident">plane</span>, <span class="self">self</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">_styles</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">_channels</span>)
     }
@@ -830,7 +830,7 @@
 
 <span class="doccomment">/// # `NcCell` methods: text</span>
 <span class="kw">impl</span> <span class="ident">NcCell</span> {
-    <span class="comment">// /// Returns a pointer to the [`NcEgc`] of this NcCell in the [NcPlane] `plane`.</span>
+    <span class="comment">// /// Returns a pointer to the `EGC` of this NcCell in the [NcPlane] `plane`.</span>
     <span class="comment">// ///</span>
     <span class="comment">// /// This pointer can be invalidated by any further operation on the referred</span>
     <span class="comment">// /// plane, so… watch out!</span>
@@ -841,14 +841,14 @@
     <span class="comment">//     egcpointer</span>
     <span class="comment">// }</span>
 
-    <span class="doccomment">/// Copies the UTF8-encoded [`NcEgc`] out of this NcCell,</span>
+    <span class="doccomment">/// Copies the UTF8-encoded `EGC` out of this NcCell,</span>
     <span class="doccomment">/// whether simple or complex.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The result is not tied to the [NcPlane],</span>
     <span class="doccomment">/// and persists across erases and destruction.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [nccell_strdup()][crate::nccell_strdup].*</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">strdup</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">plane</span>: <span class="kw-2">&amp;</span><span class="ident">NcPlane</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcEgc</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">strdup</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">plane</span>: <span class="kw-2">&amp;</span><span class="ident">NcPlane</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
         <span class="kw">crate</span>::<span class="ident">nccell_strdup</span>(<span class="ident">plane</span>, <span class="self">self</span>)
     }
 
@@ -876,11 +876,11 @@
 
 <span class="doccomment">/// # `NcCell` methods: boxes</span>
 <span class="kw">impl</span> <span class="ident">NcCell</span> {
-    <span class="doccomment">/// Loads up six cells with the [`NcEgc`]s necessary to draw a box.</span>
+    <span class="doccomment">/// Loads up six cells with the `EGC`s necessary to draw a box.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// On error, any [`NcCell`]s this function might have loaded before the error</span>
     <span class="doccomment">/// are [release][NcCell#method.release]d.</span>
-    <span class="doccomment">/// There must be at least six [`NcEgc`]s in `gcluster`.</span>
+    <span class="doccomment">/// There must be at least six `EGC`s in `gcluster`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [nccells_load_box()][crate::nccells_load_box].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">load_box</span>(

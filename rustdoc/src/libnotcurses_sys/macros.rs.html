@@ -239,6 +239,13 @@
 <span id="236">236</span>
 <span id="237">237</span>
 <span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Macros</span>
 <span class="doccomment">//!</span>
@@ -274,8 +281,7 @@
     };
 }
 
-<span class="doccomment">/// [`Nc.render`][Nc#method.render]\(`$nc`\)? plus</span>
-<span class="doccomment">/// [`sleep!`]`[$sleep_args]`.</span>
+<span class="doccomment">/// [`Nc.render`][Nc#method.render]\(`$nc`\)? + [`sleep!`]`[$sleep_args]`.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Renders the `$nc` [`Nc`] object&#39;s standard plane pile and then,</span>
 <span class="doccomment">/// if there&#39;s no error, calls the sleep macro with the rest of the arguments.</span>
@@ -292,8 +298,8 @@
     };
 }
 
-<span class="doccomment">/// [`NcPlane.render`][NcPlane#method.render]\(`$p`\)? and</span>
-<span class="doccomment">/// [`NcPlane.rasterize`][NcPlane#method.rasterize]\(`$p`\)? plus</span>
+<span class="doccomment">/// [`NcPlane.render`][NcPlane#method.render]\(`$p`\)? +</span>
+<span class="doccomment">/// [`NcPlane.rasterize`][NcPlane#method.rasterize]\(`$p`\)? +</span>
 <span class="doccomment">/// [`sleep!`]`[$sleep_args]`.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Renders and rasterizes the `$p` [NcPlane] pile and then, if there are</span>
@@ -312,7 +318,7 @@
     };
 }
 
-<span class="doccomment">/// [`NcDirect.flush`][NcDirect#method.flush]\(`$ncd`\)? plus [`sleep!`]`[$sleep_args]`.</span>
+<span class="doccomment">/// [`NcDirect.flush`][NcDirect#method.flush]\(`$ncd`\)? + [`sleep!`]`[$sleep_args]`.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Flushes the `$ncd` [NcDirect] object and, if there&#39;s no error,</span>
 <span class="doccomment">/// calls the sleep macro with the rest of the arguments.</span>
@@ -334,6 +340,7 @@
 
 <span class="doccomment">/// Converts an `&amp;str` into `*const c_char`.</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
+<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">cstring</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="ident">std</span>::<span class="ident">ffi</span>::<span class="ident">CString</span>::<span class="ident">new</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>).<span class="ident">unwrap</span>().<span class="ident">as_ptr</span>();
@@ -342,6 +349,7 @@
 
 <span class="doccomment">/// Converts an `&amp;str` into `*mut c_char`.</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
+<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">cstring_mut</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="ident">std</span>::<span class="ident">ffi</span>::<span class="ident">CString</span>::<span class="ident">new</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>).<span class="ident">unwrap</span>().<span class="ident">into_raw</span>();
@@ -350,6 +358,7 @@
 
 <span class="doccomment">/// Converts a `*const c_char` into an `&amp;str`.</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
+<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">rstring</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> { <span class="ident">std</span>::<span class="ident">ffi</span>::<span class="ident">CStr</span>::<span class="ident">from_ptr</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>).<span class="ident">to_str</span>().<span class="ident">unwrap</span>() }
@@ -360,6 +369,7 @@
 
 <span class="doccomment">/// Wrapper around [libc::printf].</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
+<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">printf</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> { <span class="ident">libc</span>::<span class="ident">printf</span>(<span class="macro">cstring</span><span class="macro">!</span>[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>]) }
@@ -381,6 +391,7 @@
 <span class="doccomment">/// `$ok` &amp; `$msg` are optional. By default they will be the unit</span>
 <span class="doccomment">/// type `()`, and an empty `&amp;str` `&quot;&quot;`, respectively.</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
+<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">error</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">msg</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ok</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {{
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>;
@@ -407,6 +418,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// `$msg` is optional. By default it will be an empty `&amp;str` `&quot;&quot;`.</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
+<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">error_ref</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ptr</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">msg</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ok</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {{
         <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ptr</span>; <span class="comment">// avoid calling a function multiple times</span>
@@ -436,6 +448,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// `$msg` is optional. By default it will be an empty `&amp;str` `&quot;&quot;`.</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
+<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">error_ref_mut</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ptr</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">msg</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ok</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {{
         <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ptr</span>; <span class="comment">// avoid calling a function multiple times</span>
@@ -465,6 +478,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// `$msg` is optional. By default it will be an empty `&amp;str` `&quot;&quot;`.</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
+<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">error_str</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">str</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">msg</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="op">!</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">str</span>.<span class="ident">is_null</span>() {

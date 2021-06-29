@@ -786,6 +786,59 @@
 <span id="783">783</span>
 <span id="784">784</span>
 <span id="785">785</span>
+<span id="786">786</span>
+<span id="787">787</span>
+<span id="788">788</span>
+<span id="789">789</span>
+<span id="790">790</span>
+<span id="791">791</span>
+<span id="792">792</span>
+<span id="793">793</span>
+<span id="794">794</span>
+<span id="795">795</span>
+<span id="796">796</span>
+<span id="797">797</span>
+<span id="798">798</span>
+<span id="799">799</span>
+<span id="800">800</span>
+<span id="801">801</span>
+<span id="802">802</span>
+<span id="803">803</span>
+<span id="804">804</span>
+<span id="805">805</span>
+<span id="806">806</span>
+<span id="807">807</span>
+<span id="808">808</span>
+<span id="809">809</span>
+<span id="810">810</span>
+<span id="811">811</span>
+<span id="812">812</span>
+<span id="813">813</span>
+<span id="814">814</span>
+<span id="815">815</span>
+<span id="816">816</span>
+<span id="817">817</span>
+<span id="818">818</span>
+<span id="819">819</span>
+<span id="820">820</span>
+<span id="821">821</span>
+<span id="822">822</span>
+<span id="823">823</span>
+<span id="824">824</span>
+<span id="825">825</span>
+<span id="826">826</span>
+<span id="827">827</span>
+<span id="828">828</span>
+<span id="829">829</span>
+<span id="830">830</span>
+<span id="831">831</span>
+<span id="832">832</span>
+<span id="833">833</span>
+<span id="834">834</span>
+<span id="835">835</span>
+<span id="836">836</span>
+<span id="837">837</span>
+<span id="838">838</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `ncplane_*` reimplemented functions.</span>
 
@@ -793,7 +846,7 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">cstring</span>, <span class="ident">nccell_release</span>, <span class="ident">NcAlign</span>, <span class="ident">NcAlphaBits</span>, <span class="ident">NcBoxMask</span>, <span class="ident">NcCell</span>, <span class="ident">NcChannel</span>, <span class="ident">NcChannels</span>,
-    <span class="ident">NcComponent</span>, <span class="ident">NcDim</span>, <span class="ident">NcEgc</span>, <span class="ident">NcIntResult</span>, <span class="ident">NcPlane</span>, <span class="ident">NcRgb</span>, <span class="ident">NcStyle</span>, <span class="ident">NCRESULT_ERR</span>, <span class="ident">NCRESULT_OK</span>,
+    <span class="ident">NcComponent</span>, <span class="ident">NcDim</span>, <span class="ident">NcIntResult</span>, <span class="ident">NcPlane</span>, <span class="ident">NcRgb</span>, <span class="ident">NcStyle</span>, <span class="ident">NCRESULT_ERR</span>, <span class="ident">NCRESULT_OK</span>,
 };
 
 <span class="comment">// Alpha -----------------------------------------------------------------------</span>
@@ -1013,7 +1066,7 @@
     }
 }
 
-<span class="doccomment">/// Writes a series of [NcEgc]s to the current location, using the current style.</span>
+<span class="doccomment">/// Writes a series of `EGC`s to the current location, using the current style.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Advances the cursor by some positive number of columns</span>
 <span class="doccomment">/// (though not beyond the end of the plane),</span>
@@ -1529,6 +1582,65 @@
 
 <span class="comment">// gradient --------------------------------------------------------------------</span>
 
+<span class="doccomment">/// Draws a gradient with its upper-left corner at the current cursor position,</span>
+<span class="doccomment">/// stopping at `ystop`×`xstop`.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// The glyph composed of `egc` and `stylemask` is used for all cells. The</span>
+<span class="doccomment">/// `NcChannels` specified by `ul`, `ur`, `ll`, and `lr` are composed into</span>
+<span class="doccomment">/// foreground and background gradients.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// - To do a vertical gradient, `ul` ought equal `ur` and `ll` ought equal `lr`.</span>
+<span class="doccomment">/// - To do a horizontal gradient, `ul` ought equal `ll` and `ur` ought equal `ul`.</span>
+<span class="doccomment">/// - To color everything the same, all four channels should be equivalent. The</span>
+<span class="doccomment">/// resulting alpha values are equal to incoming alpha values. Returns the number</span>
+<span class="doccomment">/// of cells filled on success, or -1 on failure.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Palette-indexed color is not supported.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Preconditions for gradient operations (error otherwise):</span>
+<span class="doccomment">/// - all: only RGB colors, unless all four channels match as default</span>
+<span class="doccomment">/// - all: all alpha values must be the same</span>
+<span class="doccomment">/// - 1x1: all four colors must be the same</span>
+<span class="doccomment">/// - 1xN: both top and both bottom colors must be the same (vertical gradient)</span>
+<span class="doccomment">/// - Nx1: both left and both right colors must be the same (horizontal gradient)</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *Method: NcPlane.[gradient()][NcPlane#method.gradient].*</span>
+<span class="attribute">#[<span class="ident">inline</span>]</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncplane_gradient</span>(
+    <span class="ident">plane</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span>,
+    <span class="ident">egc</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+    <span class="ident">stylemask</span>: <span class="ident">NcStyle</span>,
+    <span class="ident">ul</span>: <span class="ident">NcChannels</span>,
+    <span class="ident">ur</span>: <span class="ident">NcChannels</span>,
+    <span class="ident">ll</span>: <span class="ident">NcChannels</span>,
+    <span class="ident">lr</span>: <span class="ident">NcChannels</span>,
+    <span class="ident">y_len</span>: <span class="ident">NcDim</span>,
+    <span class="ident">x_len</span>: <span class="ident">NcDim</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcIntResult</span> {
+    <span class="kw">if</span> <span class="ident">y_len</span> <span class="op">&lt;</span> <span class="number">1</span> <span class="op">|</span><span class="op">|</span> <span class="ident">x_len</span> <span class="op">&lt;</span> <span class="number">1</span> {
+        <span class="kw">return</span> <span class="ident">NCRESULT_ERR</span>;
+    }
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;armv7l&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;i686&quot;</span>))]</span>
+    <span class="kw">let</span> <span class="ident">egc_ptr</span> <span class="op">=</span> <span class="macro">cstring</span><span class="macro">!</span>[<span class="ident">egc</span>] <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">i8</span>;
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;armv7l&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;i686&quot;</span>)))]</span>
+    <span class="kw">let</span> <span class="ident">egc_ptr</span> <span class="op">=</span> <span class="macro">cstring</span><span class="macro">!</span>[<span class="ident">egc</span>];
+
+    <span class="kw">unsafe</span> {
+        <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncplane_gradient</span>(
+            <span class="ident">plane</span>,
+            <span class="ident">egc_ptr</span>,
+            <span class="ident">stylemask</span> <span class="kw">as</span> <span class="ident">u32</span>,
+            <span class="ident">ul</span>,
+            <span class="ident">ur</span>,
+            <span class="ident">ll</span>,
+            <span class="ident">lr</span>,
+            <span class="ident">y_len</span> <span class="kw">as</span> <span class="ident">i32</span>,
+            <span class="ident">x_len</span> <span class="kw">as</span> <span class="ident">i32</span>,
+        )
+    }
+}
+
 <span class="doccomment">/// Draw a gradient with its upper-left corner at the current cursor position,</span>
 <span class="doccomment">/// having dimensions `y_len` * `x_len`.</span>
 <span class="doccomment">///</span>
@@ -1538,37 +1650,31 @@
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncplane_gradient_sized</span>(
     <span class="ident">plane</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span>,
-    <span class="ident">egc</span>: <span class="kw-2">&amp;</span><span class="ident">NcEgc</span>,
+    <span class="ident">egc</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">stylemask</span>: <span class="ident">NcStyle</span>,
-    <span class="ident">ul</span>: <span class="ident">NcChannel</span>,
-    <span class="ident">ur</span>: <span class="ident">NcChannel</span>,
-    <span class="ident">ll</span>: <span class="ident">NcChannel</span>,
-    <span class="ident">lr</span>: <span class="ident">NcChannel</span>,
+    <span class="ident">ul</span>: <span class="ident">NcChannels</span>,
+    <span class="ident">ur</span>: <span class="ident">NcChannels</span>,
+    <span class="ident">ll</span>: <span class="ident">NcChannels</span>,
+    <span class="ident">lr</span>: <span class="ident">NcChannels</span>,
     <span class="ident">y_len</span>: <span class="ident">NcDim</span>,
     <span class="ident">x_len</span>: <span class="ident">NcDim</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcIntResult</span> {
     <span class="kw">if</span> <span class="ident">y_len</span> <span class="op">&lt;</span> <span class="number">1</span> <span class="op">|</span><span class="op">|</span> <span class="ident">x_len</span> <span class="op">&lt;</span> <span class="number">1</span> {
         <span class="kw">return</span> <span class="ident">NCRESULT_ERR</span>;
     }
-    <span class="comment">// https://github.com/dankamongmen/notcurses/issues/1339</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;i686&quot;</span>))]</span>
-    <span class="kw">let</span> <span class="ident">egc_ptr</span> <span class="op">=</span> <span class="kw-2">&amp;</span>(<span class="kw-2">*</span><span class="ident">egc</span> <span class="kw">as</span> <span class="ident">i8</span>);
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;i686&quot;</span>)))]</span>
-    <span class="kw">let</span> <span class="ident">egc_ptr</span> <span class="op">=</span> <span class="kw-2">&amp;</span>(<span class="kw-2">*</span><span class="ident">egc</span> <span class="kw">as</span> <span class="ident">u8</span>);
-
     <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">y</span>, <span class="kw-2">mut</span> <span class="ident">x</span>) <span class="op">=</span> (<span class="number">0</span>, <span class="number">0</span>);
     <span class="kw">unsafe</span> {
         <span class="kw">crate</span>::<span class="ident">ncplane_cursor_yx</span>(<span class="ident">plane</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">y</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">x</span>);
-        <span class="kw">crate</span>::<span class="ident">ncplane_gradient</span>(
+        <span class="ident">ncplane_gradient</span>(
             <span class="ident">plane</span>,
-            <span class="ident">egc_ptr</span>,
-            <span class="ident">stylemask</span> <span class="kw">as</span> <span class="ident">u32</span>,
-            <span class="ident">ul</span> <span class="kw">as</span> <span class="ident">u64</span>,
-            <span class="ident">ur</span> <span class="kw">as</span> <span class="ident">u64</span>,
-            <span class="ident">ll</span> <span class="kw">as</span> <span class="ident">u64</span>,
-            <span class="ident">lr</span> <span class="kw">as</span> <span class="ident">u64</span>,
-            <span class="ident">y</span> <span class="op">+</span> <span class="ident">y_len</span> <span class="kw">as</span> <span class="ident">i32</span> <span class="op">-</span> <span class="number">1</span>,
-            <span class="ident">x</span> <span class="op">+</span> <span class="ident">x_len</span> <span class="kw">as</span> <span class="ident">i32</span> <span class="op">-</span> <span class="number">1</span>,
+            <span class="ident">egc</span>,
+            <span class="ident">stylemask</span>,
+            <span class="ident">ul</span>,
+            <span class="ident">ur</span>,
+            <span class="ident">ll</span>,
+            <span class="ident">lr</span>,
+            <span class="ident">y</span> <span class="kw">as</span> <span class="ident">u32</span> <span class="op">+</span> <span class="ident">y_len</span> <span class="op">-</span> <span class="number">1</span>,
+            <span class="ident">x</span> <span class="kw">as</span> <span class="ident">u32</span> <span class="op">+</span> <span class="ident">x_len</span> <span class="op">-</span> <span class="number">1</span>,
         )
     }
 }

@@ -305,7 +305,7 @@
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcPlane`</span>
 
-<span class="comment">// functions already exported by bindgen : 116</span>
+<span class="comment">// functions already exported by bindgen : 117</span>
 <span class="comment">// -------------------------------------------</span>
 <span class="comment">// (X) wont: 10</span>
 <span class="comment">// (D) depr:  4</span>
@@ -391,6 +391,7 @@
 <span class="comment">//W  ncplane_rgba</span>
 <span class="comment">//W  ncplane_rotate_ccw</span>
 <span class="comment">//W  ncplane_rotate_cw</span>
+<span class="comment">//W  ncplane_scrolling_p</span>
 <span class="comment">//W  ncplane_set_base</span>
 <span class="comment">//W  ncplane_set_base_cell</span>
 <span class="comment">//W# ncplane_set_bchannel</span>
@@ -540,9 +541,8 @@
 <span class="doccomment">/// from the top to the bottom along a pile&#39;s z-axis. The result is a matrix of</span>
 <span class="doccomment">/// [`NcCell`][crate::NcCell]s. Rasterizing takes this matrix, together with the</span>
 <span class="doccomment">/// current state of the visual area, and produces a stream of optimized control</span>
-<span class="doccomment">/// sequences and [`NcEgc`][crate::NcEgc]s for the terminal. By writing this</span>
-<span class="doccomment">/// stream to the terminal, the physical display is synced to some pile&#39;s</span>
-<span class="doccomment">/// `NcPlane`s.</span>
+<span class="doccomment">/// sequences and `EGC`s for the terminal. By writing this stream to the</span>
+<span class="doccomment">/// terminal, the physical display is synced to some pile&#39;s `NcPlane`s.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`NcPlane.render`][crate::NcPlane#method.render] performs the first of these</span>
 <span class="doccomment">/// tasks for the pile of which the plane is a part. The output is maintained</span>
@@ -567,7 +567,7 @@
 <span class="doccomment">/// - [`NcChannel` &amp; `NcChannels`](#ncplane-methods-ncchannel)</span>
 <span class="doccomment">/// - [`NcComponent`, `NcRgb` &amp; default color](#ncplane-methods-nccomponent-ncrgb--default-color)</span>
 <span class="doccomment">/// - [`NcStyle` &amp; `NcPaletteIndex`](#ncplane-methods-ncstylemask--paletteindex)</span>
-<span class="doccomment">/// - [`NcCell` &amp; `NcEgc`](#ncplane-methods-nccell--ncegc)</span>
+<span class="doccomment">/// - [`NcCell` &amp; strings](#ncplane-methods-nccell--strings)</span>
 <span class="doccomment">/// - [cursor](#ncplane-methods-cursor)</span>
 <span class="doccomment">/// - [`NcPlane` &amp; `Notcurses`](#ncplane-methods-ncplane--notcurses)</span>
 <span class="doccomment">/// - [boxes &amp; perimeters](#ncplane-methods-boxes--perimeters)</span>
