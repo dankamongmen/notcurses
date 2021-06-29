@@ -787,6 +787,8 @@ int sprite_init(const tinfo* t, int fd);
 int sprite_clear_all(const tinfo* t, int fd);
 int kitty_shutdown(int fd);
 int sixel_shutdown(int fd);
+uint8_t* sixel_trans_auxvec(const struct tinfo* ti);
+uint8_t* kitty_trans_auxvec(const struct tinfo* ti);
 // these three all use absolute coordinates
 void sprixel_invalidate(sprixel* s, int y, int x);
 void sprixel_movefrom(sprixel* s, int y, int x);

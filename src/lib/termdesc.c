@@ -56,6 +56,7 @@ setup_sixel_bitmaps(tinfo* ti, int fd, bool invert80){
   ti->pixel_wipe = sixel_wipe;
   ti->pixel_shutdown = sixel_shutdown;
   ti->pixel_rebuild = sixel_rebuild;
+  ti->pixel_trans_auxvec = sixel_trans_auxvec;
   ti->sprixel_scale_height = 6;
   sprite_init(ti, fd);
 }
@@ -71,6 +72,7 @@ setup_kitty_bitmaps(tinfo* ti, int fd){
   ti->sprixel_scale_height = 1;
   ti->pixel_rebuild = kitty_rebuild;
   ti->pixel_clear_all = kitty_clear_all;
+  ti->pixel_trans_auxvec = kitty_trans_auxvec;
   set_pixel_blitter(kitty_blit);
   sprite_init(ti, fd);
 }

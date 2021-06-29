@@ -921,3 +921,12 @@ int sixel_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
 int sixel_shutdown(int fd){
   return tty_emit("\e[?8452l", fd);
 }
+
+uint8_t* sixel_trans_auxvec(const tinfo* ti){
+  const size_t slen = 2 * ti->cellpixy * ti->cellpixx;
+  uint8_t* a = malloc(slen);
+  if(a){
+    memset(a, 0, slen);
+  }
+  return a;
+}

@@ -136,6 +136,7 @@ typedef struct tinfo {
   int (*pixel_destroy)(const struct notcurses* nc, const struct ncpile* p, FILE* out, struct sprixel* s);
   int (*pixel_shutdown)(int fd);  // called during context shutdown
   int (*pixel_clear_all)(int fd); // called during startup, kitty only
+  uint8_t* (*pixel_trans_auxvec)(const struct tinfo* ti); // create tranparent auxvec
   // sprixel parameters. there are several different sprixel protocols, of
   // which we support sixel and kitty. the kitty protocol is used based
   // on TERM heuristics. otherwise, we attempt to detect sixel support, and

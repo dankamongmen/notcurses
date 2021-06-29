@@ -176,6 +176,12 @@ int sprixel_load(sprixel* spx, char* s, int bytes, int pixy, int pixx,
 int sprite_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
   int idx = s->dimx * ycell + xcell;
   if(s->n->tam[idx].state == SPRIXCELL_TRANSPARENT){
+    // need to make a transparent auxvec, because a reload will force us to
+    // update said auxvec.
+    s->n->tam[idx].auxvector = nc->tcache.pixel_trans_auxvec(&nc->tcache);
+    if(s->n->tam[idx].auxvector == NULL){
+      return -1;
+    }
     s->n->tam[idx].state = SPRIXCELL_ANNIHILATED_TRANS;
     return 1;
   }

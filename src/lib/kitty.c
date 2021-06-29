@@ -425,6 +425,7 @@ static int
 write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
                  const uint32_t* data, const blitterargs* bargs,
                  tament* tam, int* parse_start){
+//fprintf(stderr, "drawing kitty %p\n", tam);
   if(linesize % sizeof(*data)){
     fclose(fp);
     return -1;
@@ -475,7 +476,7 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
         int xcell = x / cdimx;
         int ycell = y / cdimy;
         int tyx = xcell + ycell * cols;
-//fprintf(stderr, "Tyx: %d y: %d (%d) * %d x: %d (%d) state %d\n", tyx, y, y / cdimy, cols, x, x / cdimx, tam[tyx].state);
+//fprintf(stderr, "Tyx: %d y: %d (%d) * %d x: %d (%d) state %d %p\n", tyx, y, y / cdimy, cols, x, x / cdimx, tam[tyx].state, tam[tyx].auxvector);
         if(tam[tyx].state == SPRIXCELL_ANNIHILATED || tam[tyx].state == SPRIXCELL_ANNIHILATED_TRANS){
           // this pixel is part of a cell which is currently wiped (alpha-nulled
           // out, to present a glyph "atop" it). we will continue to mark it
@@ -644,4 +645,13 @@ int kitty_shutdown(int fd){
   // lock up the terminal
   (void)fd;
   return 0;
+}
+
+uint8_t* kitty_trans_auxvec(const tinfo* ti){
+  const size_t slen = ti->cellpixy * ti->cellpixx;
+  uint8_t* a = malloc(slen);
+  if(a){
+    memset(a, 0, slen);
+  }
+  return a;
 }
