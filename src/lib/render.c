@@ -1128,10 +1128,12 @@ raster_and_write(notcurses* nc, ncpile* p, FILE* out){
   // if we loaded a BSU into the front, but don't actually want to use it,
   // we start printing after the BSU.
   size_t moffset = 0;
-  if(useasu){
-    ++nc->stats.appsync_updates;
-  }else{
-    moffset = strlen(basu);
+  if(basu){
+    if(useasu){
+      ++nc->stats.appsync_updates;
+    }else{
+      moffset = strlen(basu);
+    }
   }
   if(blocking_write(fileno(nc->ttyfp), nc->rstate.mstream + moffset,
                     nc->rstate.mstrsize - moffset)){
@@ -1375,9 +1377,9 @@ int ncpile_render_to_buffer(ncplane* p, char** buf, size_t* buflen){
     return -1;
   }
   notcurses* nc = ncplane_notcurses(p);
-  unsigned useacu = false; // no ACU to file
+  unsigned useasu = false; // no ASU to file
   fseeko(nc->rstate.mstreamfp, 0, SEEK_SET);
-  int bytes = notcurses_rasterize_inner(nc, ncplane_pile(p), nc->rstate.mstreamfp, &useacu);
+  int bytes = notcurses_rasterize_inner(nc, ncplane_pile(p), nc->rstate.mstreamfp, &useasu);
   pthread_mutex_lock(&nc->statlock);
   update_render_bytes(&nc->stats, bytes);
   pthread_mutex_unlock(&nc->statlock);
