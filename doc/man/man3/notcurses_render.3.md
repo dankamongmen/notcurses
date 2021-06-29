@@ -1,6 +1,6 @@
 % notcurses_render(3)
 % nick black <nickblack@linux.com>
-% v2.3.6
+% v2.3.7
 
 # NAME
 
