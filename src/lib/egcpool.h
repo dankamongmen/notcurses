@@ -253,7 +253,7 @@ cell_egc_idx(const nccell* c){
 // Is the cell a spilled (more than 4 byte) UTF8 EGC?
 static inline bool
 cell_extended_p(const nccell* c){
-  return (htole(c->gcluster) & htole(0xff000000ul)) == htole(0x01000000ul);
+  return (htole(c->gcluster) & 0xff000000ul) == 0x01000000ul;
 }
 
 // Is the cell simple (a UTF8-encoded EGC of four bytes or fewer)?
