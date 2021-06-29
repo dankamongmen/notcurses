@@ -320,7 +320,19 @@ add_smulx_escapes(tinfo* ti, size_t* tablelen, size_t* tableused){
 }
 
 static int
-add_appsync_escapes(tinfo* ti, size_t* tablelen, size_t* tableused){
+add_appsync_escapes_sm(tinfo* ti, size_t* tablelen, size_t* tableused){
+  if(get_escape(ti, ESCAPE_BSU)){
+    return 0;
+  }
+  if(grow_esc_table(ti, "\x1b[?2026h", ESCAPE_BSU, tablelen, tableused) ||
+     grow_esc_table(ti, "\x1b[?2026l", ESCAPE_ESU, tablelen, tableused)){
+    return -1;
+  }
+  return 0;
+}
+
+static int
+add_appsync_escapes_dcs(tinfo* ti, size_t* tablelen, size_t* tableused){
   if(get_escape(ti, ESCAPE_BSU)){
     return 0;
   }
@@ -357,7 +369,7 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
       return -1;
     }
     // kitty implements DCS ASU, but no detection for it
-    if(add_appsync_escapes(ti, tablelen, tableused)){
+    if(add_appsync_escapes_dcs(ti, tablelen, tableused)){
       return -1;
     }
     // kitty only introduced C=1 in 0.20.0
@@ -370,7 +382,7 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
     // ti->caps.sextants = true; // alacritty https://github.com/alacritty/alacritty/issues/4409 */
     ti->caps.rgb = true;
     // Alacritty implements DCS ASU, but no detection for it
-    if(add_appsync_escapes(ti, tablelen, tableused)){
+    if(add_appsync_escapes_dcs(ti, tablelen, tableused)){
       return -1;
     }
   }else if(qterm == TERMINAL_VTE){
@@ -380,10 +392,7 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
     if(add_smulx_escapes(ti, tablelen, tableused)){
       return -1;
     }
-    // VTE implements DCS ASU, but no detection for it
-    if(add_appsync_escapes(ti, tablelen, tableused)){
-      return -1;
-    }
+    // VTE understands DSC ACU, but doesn't do anything with it; don't use it
   }else if(qterm == TERMINAL_FOOT){
     termname = "foot";
     ti->caps.sextants = true;
@@ -412,7 +421,7 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
     ti->caps.rgb = true;
   }else if(qterm == TERMINAL_ITERM){
     // iTerm implements DCS ASU, but no detection for it
-    if(add_appsync_escapes(ti, tablelen, tableused)){
+    if(add_appsync_escapes_dcs(ti, tablelen, tableused)){
       return -1;
     }
   }else if(qterm == TERMINAL_LINUX){
@@ -656,7 +665,7 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
     }
   }
   if(appsync_advertised){
-    if(add_appsync_escapes(ti, &tablelen, &tableused)){
+    if(add_appsync_escapes_sm(ti, &tablelen, &tableused)){
       goto err;
     }
   }
