@@ -336,9 +336,19 @@ int kitty_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
   return -1;
 }
 
+int kitty_wipe_animation(sprixel* s, int ycell, int xcell){
+  (void)s;
+  (void)xcell;
+  (void)ycell;
+  return -1; // FIXME
+}
+
 int kitty_wipe(sprixel* s, int ycell, int xcell){
 //fprintf(stderr, "NEW WIPE %d %d/%d\n", s->id, ycell, xcell);
-  uint8_t* auxvec = sprixel_auxiliary_vector(s);
+  uint8_t* auxvec = kitty_trans_auxvec(s);
+  if(auxvec == NULL){
+    return -1;
+  }
   const int totalpixels = s->pixy * s->pixx;
   const int xpixels = s->cellpxx;
   const int ypixels = s->cellpxy;
@@ -650,8 +660,8 @@ int kitty_shutdown(FILE* fp){
   return 0;
 }
 
-uint8_t* kitty_trans_auxvec(const tinfo* ti){
-  const size_t slen = ti->cellpixy * ti->cellpixx;
+uint8_t* kitty_trans_auxvec(const sprixel* s){
+  const size_t slen = s->cellpxy * s->cellpxx;
   uint8_t* a = malloc(slen);
   if(a){
     memset(a, 0, slen);

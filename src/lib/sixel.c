@@ -209,7 +209,10 @@ wipe_color(sixelmap* smap, int color, int sband, int eband,
 // redrawn, it's redrawn using P2=1.
 int sixel_wipe(sprixel* s, int ycell, int xcell){
 //fprintf(stderr, "WIPING %d/%d\n", ycell, xcell);
-  uint8_t* auxvec = sprixel_auxiliary_vector(s);
+  uint8_t* auxvec = sixel_trans_auxvec(s);
+  if(auxvec == NULL){
+    return -1;
+  }
   memset(auxvec + s->cellpxx * s->cellpxy, 0xff, s->cellpxx * s->cellpxy);
   sixelmap* smap = s->smap;
   const int startx = xcell * s->cellpxx;
@@ -923,8 +926,8 @@ int sixel_shutdown(FILE* fp){
   return term_emit("\e[?8452l", fp, false);
 }
 
-uint8_t* sixel_trans_auxvec(const tinfo* ti){
-  const size_t slen = 2 * ti->cellpixy * ti->cellpixx;
+uint8_t* sixel_trans_auxvec(const sprixel* s){
+  const size_t slen = 2 * s->cellpxy * s->cellpxx;
   uint8_t* a = malloc(slen);
   if(a){
     memset(a, 0, slen);

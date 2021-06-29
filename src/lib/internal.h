@@ -783,23 +783,17 @@ int kitty_clear_all(FILE* fp);
 int sixel_init(const tinfo* t, int fd);
 int sixel_init_inverted(const tinfo* t, int fd);
 int sprite_init(const tinfo* t, int fd);
-int sprite_clear_all(const tinfo* t, FILE* fp);
-int kitty_shutdown(FILE* fp);
-int sixel_shutdown(FILE* fp);
 uint8_t* sixel_trans_auxvec(const struct tinfo* ti);
 uint8_t* kitty_trans_auxvec(const struct tinfo* ti);
+int sprite_clear_all(const tinfo* t, int fd);
+int kitty_shutdown(int fd);
+int sixel_shutdown(int fd);
 // these three all use absolute coordinates
 void sprixel_invalidate(sprixel* s, int y, int x);
 void sprixel_movefrom(sprixel* s, int y, int x);
 void sprixel_debug(const sprixel* s, FILE* out);
 void sixelmap_free(struct sixelmap *s);
 int kitty_commit(FILE* fp, sprixel* s, unsigned noscroll);
-
-// create an auxiliary vector suitable for a sprixcell, and zero it out. there
-// are two bytes per pixel in the cell. kitty uses only one (for an alpha
-// value). sixel uses both (for palette index, and transparency). FIXME fold
-// the transparency vector up into 1/8th as many bytes.
-uint8_t* sprixel_auxiliary_vector(const sprixel* s);
 
 int sixel_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
                const blitterargs* bargs, int bpp);
