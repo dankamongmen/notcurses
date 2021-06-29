@@ -9,6 +9,10 @@ rearrangements of Notcurses.
     starting in the upper-left corner. Together with a scrolling standard
     plane and inhibition of the alternate screen, this allows rendered mode
     to easily be used for scrolling shell environment programs.
+  * Control characters from C0 and C1 are now rejected when loading `nccell`s
+    or writing to a plane (except for newline, when using a scrolling plane).
+    This was always intended, but never enforced. Horizontal tabs might be
+    enabled anew sometime in the future.
   * `ncls` now defaults to `NCBLIT_PIXEL`.
   * Added `ncplane_scrolling_p()` to retrieve a plane's scrolling status.
 
