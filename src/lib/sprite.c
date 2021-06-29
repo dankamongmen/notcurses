@@ -7,8 +7,7 @@ static atomic_uint_fast32_t sprixelid_nonce;
 void sprixel_debug(const sprixel* s, FILE* out){
   fprintf(out, "Sprixel %d (%p) %zuB %dx%d (%dx%d) @%d/%d state: %d\n",
           s->id, s, s->glyphlen, s->dimy, s->dimx, s->pixy, s->pixx,
-          s->n ? s->n->absy : 0, s->n ? s->n->absx : 0,
-          s->invalidated);
+          s->n ? s->n->absy : 0, s->n ? s->n->absx : 0, s->invalidated);
   if(s->n){
     int idx = 0;
     for(int y = 0 ; y < s->dimy ; ++y){
@@ -52,15 +51,6 @@ void sprixel_free(sprixel* s){
     free(s->glyph);
     free(s);
   }
-}
-
-sprixel* kitty_recycle(ncplane* n){
-  assert(n->sprite);
-  sprixel* hides = n->sprite;
-  int dimy = hides->dimy;
-  int dimx = hides->dimx;
-  sprixel_hide(hides);
-  return sprixel_alloc(n, dimy, dimx);
 }
 
 sprixel* sprixel_trivial_receycle(ncplane* n){

@@ -671,8 +671,7 @@ sprite_commit(tinfo* ti, FILE* out, sprixel* s, unsigned forcescroll){
 
 static inline sprixel*
 sprite_recycle(ncplane* n){
-  const struct notcurses* nc = ncplane_notcurses(n);
-  return nc->tcache.pixel_recycle(n);
+  return n->sprite;
 }
 
 static inline int

@@ -54,6 +54,7 @@ setup_sixel_bitmaps(tinfo* ti, int fd, bool invert80){
   ti->pixel_draw = sixel_draw;
   ti->pixel_scrub = sixel_scrub;
   ti->pixel_wipe = sixel_wipe;
+  ti->pixel_recycle = sprite_recycle;
   ti->pixel_shutdown = sixel_shutdown;
   ti->pixel_rebuild = sixel_rebuild;
   ti->pixel_trans_auxvec = sixel_trans_auxvec;
@@ -70,10 +71,12 @@ setup_kitty_bitmaps(tinfo* ti, int fd, bool animation){
     ti->pixel_wipe = kitty_wipe_animation;
     ti->pixel_trans_auxvec = kitty_transanim_auxvec;
     ti->pixel_rebuild = kitty_rebuild_animation;
+    ti->pixel_recycle = sprite_recycle;
   }else{
     ti->pixel_wipe = kitty_wipe;
     ti->pixel_trans_auxvec = kitty_trans_auxvec;
     ti->pixel_rebuild = kitty_rebuild;
+    ti->pixel_recycle = kitty_recycle;
   }
   ti->pixel_destroy = kitty_destroy;
   ti->pixel_remove = kitty_remove;

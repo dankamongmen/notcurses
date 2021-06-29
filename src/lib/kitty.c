@@ -367,7 +367,7 @@ fprintf(stderr, "ANIMATING WIPE %p\n", s->mstreamfp);
     return -1;
   }
   FILE* fp = s->mstreamfp;
-  fprintf(fp, "\e_Ga=f,x=%d,y=%d,s=%d,v=%d,i=%d,X=1,r=1;",
+  fprintf(fp, "\e_Ga=f,x=%d,y=%d,s=%d,v=%d,i=%d,X=1,r=1,q=2;",
           xcell * s->cellpxx,
           ycell * s->cellpxy,
           s->cellpxx,
@@ -375,7 +375,7 @@ fprintf(stderr, "ANIMATING WIPE %p\n", s->mstreamfp);
           s->id);
   int totalp = s->cellpxy * s->cellpxx;
   // FIXME preserve so long as cellpixel geom stays constant?
-  for(int p = 0 ; p < totalp ; p += 3){
+  for(int p = 0 ; p + 3 <= totalp ; p += 3){
     fprintf(fp, "AAAAAAAAAAAAAAAA");
   }
   if(totalp % 3 == 1){
@@ -385,7 +385,18 @@ fprintf(stderr, "ANIMATING WIPE %p\n", s->mstreamfp);
   }
   // FIXME need chunking for cells of 768+ pixels
   fprintf(fp, "\e\\");
-  return 0;
+  s->n->tam[s->dimx * ycell + xcell].auxvector = auxvec;
+  s->invalidated = SPRIXEL_INVALIDATED;
+  return 1;
+}
+
+sprixel* kitty_recycle(ncplane* n){
+  assert(n->sprite);
+  sprixel* hides = n->sprite;
+  int dimy = hides->dimy;
+  int dimx = hides->dimx;
+  sprixel_hide(hides);
+  return sprixel_alloc(n, dimy, dimx);
 }
 
 // this just needs to delete the animation block that was lain atop the
@@ -557,7 +568,8 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
           // out, to present a glyph "atop" it). we will continue to mark it
           // transparent, but we need to update the auxiliary vector.
           const int vyx = (y % cdimy) * cdimx + (x % cdimx);
-          tam[tyx].auxvector[vyx] = ncpixel_a(source[e]);
+// FIXME NO DOES NOT WORK FOR ANIMATED AUXVEC
+//          tam[tyx].auxvector[vyx] = ncpixel_a(source[e]);
           wipe[e] = 1;
         }else{
           wipe[e] = 0;
@@ -697,10 +709,14 @@ int kitty_draw(const ncpile* p, sprixel* s, FILE* out){
 fprintf(stderr, "ANIMATION WRITE: %zuB\n", s->glyphlen);
   }
   int ret = s->glyphlen;
-  if(fwrite(s->glyph, s->glyphlen, 1, out) != 1){
-    ret = -1;
+  if(ret){
+    if(fwrite(s->glyph, s->glyphlen, 1, out) != 1){
+      ret = -1;
+    }
   }
   s->invalidated = SPRIXEL_LOADED;
+  // FIXME free this if we are *capable* of animation, not if we did animate,
+  // or we'll never free the first (biggest) glyph
   if(animated){
     free(s->glyph);
     s->glyph = NULL;
@@ -713,8 +729,13 @@ fprintf(stderr, "KITTY DREW %d\n", ret);
 
 // returns -1 on failure, 0 on success (move bytes do not count for sprixel stats)
 int kitty_move(const ncpile* p, sprixel* s, FILE* out){
-  (void)p;
   int ret = 0;
+  if(s->mstreamfp){
+    ret = kitty_draw(p, s, out);
+    if(ret < 0){
+      return -1;
+    }
+  }
   if(fprintf(out, "\e_Ga=p,i=%d,p=1,q=2\e\\", s->id) < 0){
     ret = -1;
   }

@@ -167,6 +167,7 @@ int kitty_rebuild_animation(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
 void sprixel_free(sprixel* s);
 void sprixel_hide(sprixel* s);
 
+struct sprixel* kitty_recycle(struct ncplane* n);
 int kitty_draw(const struct ncpile *p, sprixel* s, FILE* out);
 int kitty_move(const struct ncpile *p, sprixel* s, FILE* out);
 int sixel_draw(const struct ncpile *p, sprixel* s, FILE* out);
