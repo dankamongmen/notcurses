@@ -336,21 +336,37 @@ int kitty_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
   return -1;
 }
 
+// if there is no mstreamfp open, create one, using glyph and glyphlen as the
+// base. we're blowing away the glyph.
+static int
+init_sprixel_animation(sprixel* s){
+  if(s->mstreamfp){
+    return 0;
+  }
+  free(s->glyph);
+  s->glyph = NULL;
+  s->glyphlen = 0;
+  if((s->mstreamfp = open_memstream(&s->glyph, &s->glyphlen)) == NULL){
+    loginfo("Opened animation buffer for sprixel %u\n", s->id);
+    return -1;
+  }
+  return 0;
+}
+
 // we lay a cell-sixed animation block atop the graphic, giving it a
 // cell id with which we can delete it in O(1) for a rebuild. this
 // way, we needn't delete and redraw the entire sprixel.
 int kitty_wipe_animation(sprixel* s, int ycell, int xcell){
+fprintf(stderr, "ANIMATING WIPE %u\n", s->id);
+  if(init_sprixel_animation(s)){
+    return -1;
+  }
+fprintf(stderr, "ANIMATING WIPE %p\n", s->mstreamfp);
   uint8_t* auxvec = kitty_transanim_auxvec(s);
   if(auxvec == NULL){
     return -1;
   }
-  char* buf = NULL;
-  size_t size = 0;
-  FILE* fp = open_memstream(&buf, &size);
-  if(fp == NULL){
-    free(auxvec);
-    return -1;
-  }
+  FILE* fp = s->mstreamfp;
   fprintf(fp, "\e_Ga=f,x=%d,y=%d,s=%d,v=%d,i=%d,X=1,r=1;",
           xcell * s->cellpxx,
           ycell * s->cellpxy,
@@ -369,20 +385,19 @@ int kitty_wipe_animation(sprixel* s, int ycell, int xcell){
   }
   // FIXME need chunking for cells of 768+ pixels
   fprintf(fp, "\e\\");
-  if(fclose(fp) == EOF){
-    return -1;
-  }
-  // FIXME need some way to hang this off for rasterization..
   return 0;
 }
 
 // this just needs to delete the animation block that was lain atop the
 // original bitmap.
 int kitty_rebuild_animation(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
-  (void)s;
+  if(init_sprixel_animation(s)){
+    return -1;
+  }
+  uint32_t blockid;
+  memcpy(&blockid, auxvec, sizeof(blockid));
   (void)ycell;
   (void)xcell;
-  (void)auxvec;
   return -1; // FIXME
 }
 
@@ -671,11 +686,28 @@ int kitty_scrub(const ncpile* p, sprixel* s){
 // returns the number of bytes written
 int kitty_draw(const ncpile* p, sprixel* s, FILE* out){
   (void)p;
+  bool animated = false;
+  if(s->mstreamfp){ // active animation
+    int fret = fclose(s->mstreamfp);
+    s->mstreamfp = NULL;
+    if(fret == EOF){
+      return -1;
+    }
+    animated = true;
+fprintf(stderr, "ANIMATION WRITE: %zuB\n", s->glyphlen);
+  }
   int ret = s->glyphlen;
   if(fwrite(s->glyph, s->glyphlen, 1, out) != 1){
     ret = -1;
   }
   s->invalidated = SPRIXEL_LOADED;
+  if(animated){
+    free(s->glyph);
+    s->glyph = NULL;
+    s->glyphlen = 0;
+  }
+  s->invalidated = SPRIXEL_QUIESCENT;
+fprintf(stderr, "KITTY DREW %d\n", ret);
   return ret;
 }
 
