@@ -344,9 +344,36 @@ int kitty_wipe_animation(sprixel* s, int ycell, int xcell){
   if(auxvec == NULL){
     return -1;
   }
-  (void)xcell;
-  (void)ycell;
-  return -1; // FIXME
+  char* buf = NULL;
+  size_t size = 0;
+  FILE* fp = open_memstream(&buf, &size);
+  if(fp == NULL){
+    free(auxvec);
+    return -1;
+  }
+  fprintf(fp, "\e_Ga=f,x=%d,y=%d,s=%d,v=%d,i=%d,X=1,r=1;",
+          xcell * s->cellpxx,
+          ycell * s->cellpxy,
+          s->cellpxx,
+          s->cellpxy,
+          s->id);
+  int totalp = s->cellpxy * s->cellpxx;
+  // FIXME preserve so long as cellpixel geom stays constant?
+  for(int p = 0 ; p < totalp ; p += 3){
+    fprintf(fp, "AAAAAAAAAAAAAAAA");
+  }
+  if(totalp % 3 == 1){
+    fprintf(fp, "AAAAAA==");
+  }else if(totalp % 3 == 2){
+    fprintf(fp, "AAAAAAAAAAA=");
+  }
+  // FIXME need chunking for cells of 768+ pixels
+  fprintf(fp, "\e\\");
+  if(fclose(fp) == EOF){
+    return -1;
+  }
+  // FIXME need some way to hang this off for rasterization..
+  return 0;
 }
 
 // this just needs to delete the animation block that was lain atop the
@@ -669,10 +696,8 @@ int kitty_clear_all(FILE* fp){
   return term_emit("\e_Ga=d,q=2\e\\", fp, false);
 }
 
-int kitty_shutdown(FILE* fp){
-  // FIXME need to close off any open kitty bitmap emission, or we will
-  // lock up the terminal
-  (void)fp;
+int kitty_shutdown(int fd){
+  (void)fd;
   return 0;
 }
 
