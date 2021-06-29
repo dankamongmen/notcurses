@@ -62,21 +62,27 @@ setup_sixel_bitmaps(tinfo* ti, int fd, bool invert80){
   sprite_init(ti, fd);
 }
 
-// kitty 0.19.3 didn't have C=1, and thus needs sixel_maxy_pristine
+// if the version is >= 0.20.0, we can use the animation extensions to wipe
+// and rebuild graphics much more efficiently.
 static inline void
-setup_kitty_bitmaps(tinfo* ti, int fd, int sixel_maxy_pristine){
-  ti->pixel_wipe = kitty_wipe;
-  ti->pixel_scrub = kitty_scrub;
+setup_kitty_bitmaps(tinfo* ti, int fd, bool animation){
+  if(animation){
+    ti->pixel_wipe = kitty_wipe_animation;
+    ti->pixel_trans_auxvec = kitty_transanim_auxvec;
+    ti->pixel_rebuild = kitty_rebuild_animation;
+  }else{
+    ti->pixel_wipe = kitty_wipe;
+    ti->pixel_trans_auxvec = kitty_trans_auxvec;
+    ti->pixel_rebuild = kitty_rebuild;
+  }
+  ti->pixel_destroy = kitty_destroy;
   ti->pixel_remove = kitty_remove;
   ti->pixel_draw = kitty_draw;
   ti->pixel_commit = kitty_commit;
   ti->pixel_move = kitty_move;
   ti->pixel_shutdown = kitty_shutdown;
   ti->sprixel_scale_height = 1;
-  ti->pixel_rebuild = kitty_rebuild;
   ti->pixel_clear_all = kitty_clear_all;
-  ti->pixel_trans_auxvec = kitty_trans_auxvec;
-  ti->sixel_maxy_pristine = sixel_maxy_pristine;
   set_pixel_blitter(kitty_blit);
   sprite_init(ti, fd);
 }
@@ -396,9 +402,10 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
     }
     // kitty only introduced C=1 in 0.20.0
     if(compare_versions(ti->termversion, "0.20.0") < 0){
-      setup_kitty_bitmaps(ti, fd, INT_MAX);
+      ti->sixel_maxy_pristine = INT_MAX;
+      setup_kitty_bitmaps(ti, fd, false);
     }else{
-      setup_kitty_bitmaps(ti, fd, 0);
+      setup_kitty_bitmaps(ti, fd, true);
     }
   }else if(qterm == TERMINAL_ALACRITTY){
     termname = "Alacritty";

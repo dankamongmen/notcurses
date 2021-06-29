@@ -336,10 +336,26 @@ int kitty_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
   return -1;
 }
 
+// we lay a cell-sixed animation block atop the graphic, giving it a
+// cell id with which we can delete it in O(1) for a rebuild. this
+// way, we needn't delete and redraw the entire sprixel.
 int kitty_wipe_animation(sprixel* s, int ycell, int xcell){
-  (void)s;
+  uint8_t* auxvec = kitty_transanim_auxvec(s);
+  if(auxvec == NULL){
+    return -1;
+  }
   (void)xcell;
   (void)ycell;
+  return -1; // FIXME
+}
+
+// this just needs to delete the animation block that was lain atop the
+// original bitmap.
+int kitty_rebuild_animation(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
+  (void)s;
+  (void)ycell;
+  (void)xcell;
+  (void)auxvec;
   return -1; // FIXME
 }
 
@@ -662,6 +678,17 @@ int kitty_shutdown(FILE* fp){
 
 uint8_t* kitty_trans_auxvec(const sprixel* s){
   const size_t slen = s->cellpxy * s->cellpxx;
+  uint8_t* a = malloc(slen);
+  if(a){
+    memset(a, 0, slen);
+  }
+  return a;
+}
+
+// an animation auxvec is actually a scalar, heh -- it's just the id of the
+// animation cell used to draw the transparent block.
+uint8_t* kitty_transanim_auxvec(const sprixel* s __attribute__ ((unused))){
+  const size_t slen = sizeof(uint32_t);
   uint8_t* a = malloc(slen);
   if(a){
     memset(a, 0, slen);

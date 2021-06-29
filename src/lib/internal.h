@@ -762,8 +762,12 @@ int sixel_wipe(sprixel* s, int ycell, int xcell);
 // throughout to 0. the same trick doesn't work on sixel, but there we
 // can just print directly over the bitmap.
 int kitty_wipe(sprixel* s, int ycell, int xcell);
+// nulls out a cell from a kitty bitmap by overlaying an animation
+// block atop it composed of all 0s.
+int kitty_wipe_animation(sprixel* s, int ycell, int xcell);
 int sixel_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
 int kitty_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
+int kitty_rebuild_animation(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
 
 void sprixel_free(sprixel* s);
 void sprixel_hide(sprixel* s);
@@ -783,11 +787,12 @@ int kitty_clear_all(FILE* fp);
 int sixel_init(const tinfo* t, int fd);
 int sixel_init_inverted(const tinfo* t, int fd);
 int sprite_init(const tinfo* t, int fd);
-uint8_t* sixel_trans_auxvec(const struct tinfo* ti);
-uint8_t* kitty_trans_auxvec(const struct tinfo* ti);
 int sprite_clear_all(const tinfo* t, int fd);
 int kitty_shutdown(int fd);
 int sixel_shutdown(int fd);
+uint8_t* sixel_trans_auxvec(const sprixel* s);
+uint8_t* kitty_trans_auxvec(const sprixel* s);
+uint8_t* kitty_transanim_auxvec(const sprixel* s);
 // these three all use absolute coordinates
 void sprixel_invalidate(sprixel* s, int y, int x);
 void sprixel_movefrom(sprixel* s, int y, int x);
