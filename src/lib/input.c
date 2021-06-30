@@ -808,7 +808,8 @@ stash_string(query_state* inits){
       inits->bg = (r << 16u) | (g << 8u) | b;
       break;
     }default:
-      fprintf(stderr, "invalid string stashed %d\n", inits->stringstate);
+// don't generally enable this -- XTerm terminates TDA with ST
+//fprintf(stderr, "invalid string [%s] stashed %d\n", inits->runstring, inits->stringstate);
       break;
   }
   inits->runstring[0] = '\0';

@@ -77,10 +77,10 @@ unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
     uint32_t lr = CHANNEL_RGB_INITIALIZER(0x80, 0x80, 0x80);
     ncplane_stain(n, y - 1, 66, ul, lr, ul, lr);
     // the braille
-    ncplane_cursor_move_yx(n, y - 6, 2);
+    ncplane_cursor_move_yx(n, y - 6, 1);
     ul = CHANNEL_RGB_INITIALIZER(0x7f, 0x25, 0x24);
     lr = CHANNEL_RGB_INITIALIZER(0x24, 0x25, 0x7f);
-    ncplane_stain(n, y - 3, 65, ul, lr, ul, lr);
+    ncplane_stain(n, y - 3, 66, ul, lr, ul, lr);
     // the sextants
     ncplane_cursor_move_yx(n, y - 10, 28);
     lr = CHANNEL_RGB_INITIALIZER(0x7B, 0x68, 0xEE);
@@ -101,7 +101,7 @@ unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
   return 0;
 }
 
-static int
+int
 display_logo(const tinfo* ti, struct ncplane* n, const char* path){
   struct ncvisual* ncv = ncvisual_from_file(path);
   if(ncv == NULL){
@@ -150,7 +150,8 @@ tinfo_debug_bitmaps(struct ncplane* n, const tinfo* ti, const char* indent){
     }
     char* path = prefix_data("notcurses.png");
     if(path){
-      display_logo(ti, n, path);
+      // FIXME hold off until #1649 is resolved
+      //display_logo(ti, n, path);
       free(path);
     }
   }
