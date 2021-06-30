@@ -2189,31 +2189,31 @@ int notcurses_mouse_disable(notcurses* n){
   return 0;
 }
 
-bool notcurses_canutf8(const notcurses* nc){
+__attribute__ ((pure)) bool notcurses_canutf8(const notcurses* nc){
   return nc->tcache.caps.utf8;
 }
 
-bool notcurses_canhalfblock(const notcurses* nc){
+__attribute__ ((pure)) bool notcurses_canhalfblock(const notcurses* nc){
   return nc->tcache.caps.utf8;
 }
 
-bool notcurses_canquadrant(const notcurses* nc){
+__attribute__ ((pure)) bool notcurses_canquadrant(const notcurses* nc){
   return nc->tcache.caps.quadrants && nc->tcache.caps.utf8;
 }
 
-bool notcurses_cansextant(const notcurses* nc){
+__attribute__ ((pure)) bool notcurses_cansextant(const notcurses* nc){
   return nc->tcache.caps.sextants && nc->tcache.caps.utf8;
 }
 
-bool notcurses_canbraille(const notcurses* nc){
+__attribute__ ((pure)) bool notcurses_canbraille(const notcurses* nc){
   return nc->tcache.caps.braille && nc->tcache.caps.utf8;
 }
 
-bool notcurses_canfade(const notcurses* nc){
+__attribute__ ((pure)) bool notcurses_canfade(const notcurses* nc){
   return nc->tcache.caps.can_change_colors || nc->tcache.caps.rgb;
 }
 
-bool notcurses_canchangecolor(const notcurses* nc){
+__attribute__ ((pure)) bool notcurses_canchangecolor(const notcurses* nc){
   return nccapability_canchangecolor(&nc->tcache.caps);
 }
 

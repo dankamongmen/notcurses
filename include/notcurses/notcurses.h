@@ -1305,29 +1305,29 @@ typedef struct nccapabilities {
 // indicated as supported if the terminal can support it together with color.
 // For more information, see the "ncv" capability in terminfo(5).
 API unsigned notcurses_supported_styles(const struct notcurses* nc)
-  __attribute__ ((nonnull (1)));
+  __attribute__ ((nonnull (1))) __attribute__ ((pure));
 
 // Returns the number of simultaneous colors claimed to be supported, or 1 if
 // there is no color support. Note that several terminal emulators advertise
 // more colors than they actually support, downsampling internally.
 API unsigned notcurses_palette_size(const struct notcurses* nc)
-  __attribute__ ((nonnull (1)));
+  __attribute__ ((nonnull (1))) __attribute__ ((pure));
 
 API const char* notcurses_detected_terminal(const struct notcurses* nc)
-  __attribute__ ((nonnull (1)));
+  __attribute__ ((nonnull (1))) __attribute__ ((pure));
 
 // Can we directly specify RGB values per cell, or only use palettes?
 API bool notcurses_cantruecolor(const struct notcurses* nc)
-  __attribute__ ((nonnull (1)));
+  __attribute__ ((nonnull (1))) __attribute__ ((pure));
 
 // Can we fade? Fading requires either the "rgb" or "ccc" terminfo capability.
 API bool notcurses_canfade(const struct notcurses* nc)
-  __attribute__ ((nonnull (1)));
+  __attribute__ ((nonnull (1))) __attribute__ ((pure));
 
 // Can we set the "hardware" palette? Requires the "ccc" terminfo capability,
 // and that the number of colors supported is at least the size of our
 // ncpalette structure.
-static inline bool
+__attribute__ ((pure)) static inline bool
 nccapability_canchangecolor(const nccapabilities* caps){
   if(!caps->can_change_colors){
     return false;
@@ -1340,37 +1340,39 @@ nccapability_canchangecolor(const nccapabilities* caps){
 }
 
 API bool notcurses_canchangecolor(const struct notcurses* nc)
-  __attribute__ ((nonnull (1)));
+  __attribute__ ((nonnull (1))) __attribute__ ((pure));
 
 // Can we load images? This requires being built against FFmpeg/OIIO.
-API bool notcurses_canopen_images(const struct notcurses* nc);
+API bool notcurses_canopen_images(const struct notcurses* nc)
+  __attribute__ ((pure));
 
 // Can we load videos? This requires being built against FFmpeg.
-API bool notcurses_canopen_videos(const struct notcurses* nc);
+API bool notcurses_canopen_videos(const struct notcurses* nc)
+  __attribute__ ((pure));
 
 // Is our encoding UTF-8? Requires LANG being set to a UTF8 locale.
 API bool notcurses_canutf8(const struct notcurses* nc)
-  __attribute__ ((nonnull (1)));
+  __attribute__ ((nonnull (1))) __attribute__ ((pure));
 
 // Can we reliably use Unicode halfblocks?
 API bool notcurses_canhalfblock(const struct notcurses* nc)
-  __attribute__ ((nonnull (1)));
+  __attribute__ ((nonnull (1))) __attribute__ ((pure));
 
 // Can we reliably use Unicode quadrants?
 API bool notcurses_canquadrant(const struct notcurses* nc)
-  __attribute__ ((nonnull (1)));
+  __attribute__ ((nonnull (1))) __attribute__ ((pure));
 
 // Can we reliably use Unicode 13 sextants?
 API bool notcurses_cansextant(const struct notcurses* nc)
-  __attribute__ ((nonnull (1)));
+  __attribute__ ((nonnull (1))) __attribute__ ((pure));
 
 // Can we reliably use Unicode Braille?
 API bool notcurses_canbraille(const struct notcurses* nc)
-  __attribute__ ((nonnull (1)));
+  __attribute__ ((nonnull (1))) __attribute__ ((pure));
 
 // Can we blit pixel-accurate bitmaps?
 API int notcurses_check_pixel_support(const struct notcurses* nc)
-  __attribute__ ((nonnull (1)));
+  __attribute__ ((nonnull (1))) __attribute__ ((pure));
 
 // whenever a new field is added here, ensure we add the proper rule to
 // notcurses_stats_reset(), so that values are preserved in the stash stats.
