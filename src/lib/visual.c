@@ -198,11 +198,11 @@ int ncvisual_blitset_geom(const notcurses* nc, const tinfo* tcache,
           return -1;
         }
       }
-      if(vopts->y && !(vopts->flags & NCVISUAL_OPTION_VERALIGNED)){
+      if(vopts->y && !(vopts->flags & (NCVISUAL_OPTION_VERALIGNED | NCVISUAL_OPTION_CHILDPLANE))){
         logerror("Non-origin y placement %d for sprixel\n", vopts->y);
         return -1;
       }
-      if(vopts->x && !(vopts->flags & NCVISUAL_OPTION_HORALIGNED)){
+      if(vopts->x && !(vopts->flags & (NCVISUAL_OPTION_HORALIGNED | NCVISUAL_OPTION_CHILDPLANE))){
         logerror("Non-origin x placement %d for sprixel\n", vopts->x);
         return -1;
       }
