@@ -896,7 +896,8 @@ init_banner(const notcurses* nc){
     printf("notcurses %s on %s %s\n", notcurses_version(),
            nc->tcache.termname ? nc->tcache.termname : "?",
            nc->tcache.termversion ? nc->tcache.termversion : "");
-    term_fg_palindex(nc, stdout, 12 % nc->tcache.caps.colors);
+    term_fg_palindex(nc, stdout, nc->tcache.caps.colors <= 256 ?
+                     14 % nc->tcache.caps.colors : 0x2080e0);
     if(nc->tcache.cellpixy && nc->tcache.cellpixx){
       printf("%d rows (%dpx) %d cols (%dpx) %dx%d %zuB crend %d colors",
              nc->stdplane->leny, nc->tcache.cellpixy,
@@ -920,7 +921,7 @@ init_banner(const notcurses* nc){
       term_fg_rgb8(&nc->tcache, stdout, 0x20, 0x80, 0xff);
       putc('B', stdout);
       term_fg_palindex(nc, stdout, nc->tcache.caps.colors <= 256 ?
-                       12 % nc->tcache.caps.colors : 0x2080e0);
+                       14 % nc->tcache.caps.colors : 0x2080e0);
     }
     ++liness;
     printf("\ncompiled with gcc-%s, %zuB %s-endian cells\n"
@@ -2188,31 +2189,31 @@ int notcurses_mouse_disable(notcurses* n){
   return 0;
 }
 
-__attribute__ ((pure)) bool notcurses_canutf8(const notcurses* nc){
+bool notcurses_canutf8(const notcurses* nc){
   return nc->tcache.caps.utf8;
 }
 
-__attribute__ ((pure)) bool notcurses_canhalfblock(const notcurses* nc){
+bool notcurses_canhalfblock(const notcurses* nc){
   return nc->tcache.caps.utf8;
 }
 
-__attribute__ ((pure)) bool notcurses_canquadrant(const notcurses* nc){
+bool notcurses_canquadrant(const notcurses* nc){
   return nc->tcache.caps.quadrants && nc->tcache.caps.utf8;
 }
 
-__attribute__ ((pure)) bool notcurses_cansextant(const notcurses* nc){
+bool notcurses_cansextant(const notcurses* nc){
   return nc->tcache.caps.sextants && nc->tcache.caps.utf8;
 }
 
-__attribute__ ((pure)) bool notcurses_canbraille(const notcurses* nc){
+bool notcurses_canbraille(const notcurses* nc){
   return nc->tcache.caps.braille && nc->tcache.caps.utf8;
 }
 
-__attribute__ ((pure)) bool notcurses_canfade(const notcurses* nc){
+bool notcurses_canfade(const notcurses* nc){
   return nc->tcache.caps.can_change_colors || nc->tcache.caps.rgb;
 }
 
-__attribute__ ((pure)) bool notcurses_canchangecolor(const notcurses* nc){
+bool notcurses_canchangecolor(const notcurses* nc){
   return nccapability_canchangecolor(&nc->tcache.caps);
 }
 
