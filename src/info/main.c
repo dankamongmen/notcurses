@@ -108,7 +108,8 @@ display_logo(const tinfo* ti, struct ncplane* n, const char* path){
   if(ncv == NULL){
     return -1;
   }
-  if(ncvisual_resize(ncv, 3 * ti->cellpixy, 10 * ti->cellpixx)){
+  // FIXME ought be exactly 4:1
+  if(ncvisual_resize(ncv, 3 * ti->cellpixy, 24 * ti->cellpixx)){
     ncvisual_destroy(ncv);
     return -1;
   }
@@ -116,8 +117,8 @@ display_logo(const tinfo* ti, struct ncplane* n, const char* path){
   ncplane_yx(n, &y, NULL);
   struct ncvisual_options vopts = {
     .n = n,
-    .y = y,
-    .x = 20,
+    .y = y + 9, // FIXME broken until #1649 is resolved
+    .x = 47,
     .blitter = NCBLIT_PIXEL,
     .flags = NCVISUAL_OPTION_CHILDPLANE,
   };
@@ -133,7 +134,7 @@ display_logo(const tinfo* ti, struct ncplane* n, const char* path){
 static void
 tinfo_debug_bitmaps(struct ncplane* n, const tinfo* ti, const char* indent){
   ncplane_set_fg_rgb8(n, 0xc4, 0x5a, 0xec);
-  ncplane_printf(n, "%sbackground of 0x%06lx is %sconsidered transparent\n", indent, ti->bg_collides_default & 0xfffffful,
+  ncplane_printf(n, "%sbgcolor 0x%06lx %sconsidered transparent\n", indent, ti->bg_collides_default & 0xfffffful,
                    (ti->bg_collides_default & 0x01000000) ? "" : "not ");
   ncplane_set_fg_default(n);
   ncplane_set_fg_rgb(n, 0x5efa80);
@@ -231,7 +232,6 @@ int main(void){
   }
   const char indent[] = " ";
   struct ncplane* stdn = notcurses_stdplane(nc);
-  // FIXME want cursor wherever it was
   ncplane_set_scrolling(stdn, true);
   tinfo_debug_caps(stdn, &nc->tcache, indent);
   tinfo_debug_styles(nc, stdn, indent);
@@ -241,7 +241,5 @@ int main(void){
     notcurses_stop(nc);
     return EXIT_FAILURE;
   }
-notcurses_debug(nc, stderr);
-  // FIXME want cursor wherever it ought be
   return notcurses_stop(nc) ? EXIT_FAILURE : EXIT_SUCCESS;
 }
