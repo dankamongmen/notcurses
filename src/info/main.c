@@ -65,9 +65,9 @@ unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
     ncplane_printf(n, "⎪🮇▊⎪\n");
     braille_viz(n, "⎣",NCBRAILLEEGCS + 192, "⎦", indent);
     ncplane_printf(n, "⎪▕▉⎪\n");
-    ncplane_printf(n, "%s⎛%ls⎞ ▔🭶🭷🭸🭹🭺🭻▁ 🭁 🭂 🭃 🭄 🭅 🭆 🭑 🭐 🭏 🭎 🭍 🭌 🭆🭑 🭄🭏 🭅🭐 🭃🭎 🭂🭍 🭁🭌 🭨🭪  ⎩ █⎭\n",
+    ncplane_printf(n, "%s▔🭶🭷🭸🭹🭺🭻▁  🭁 🭂 🭃 🭄 🭅 🭆 🭑 🭐 🭏 🭎 🭍 🭌 🭆🭑 🭄🭏 🭅🭐 🭃🭎 🭂🭍 🭁🭌 🭨🭪 ⎛%ls⎞ ⎩ █⎭\n",
                    indent, NCEIGHTHSBOTTOM);
-    ncplane_printf(n, "%s⎝%ls⎠ ▏🭰🭱🭲🭳🭴🭵▕ 🭒 🭓 🭔 🭕 🭖 🭧 🭜 🭟 🭠 🭡 🭞 🭝 🭧🭜 🭕🭠 🭖🭡 🭔🭟 🭓🭞 🭒🭝 🭪🭨      \n",
+    ncplane_printf(n, "%s ▏🭰🭱🭲🭳🭴🭵▕ 🭒 🭓 🭔 🭕 🭖 🭧 🭜 🭟 🭠 🭡 🭞 🭝 🭧🭜 🭕🭠 🭖🭡 🭔🭟 🭓🭞 🭒🭝 🭪🭨 ⎝%ls⎠     \n",
                    indent, NCEIGHTSTOP);
     int y, x;
     ncplane_cursor_yx(n, &y, &x);
@@ -82,22 +82,21 @@ unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
     lr = CHANNEL_RGB_INITIALIZER(0x24, 0x25, 0x7f);
     ncplane_stain(n, y - 3, 65, ul, lr, ul, lr);
     // the sextants
-    uint32_t ll = CHANNEL_RGB_INITIALIZER(0x40, 0x0, 0x0);
     ncplane_cursor_move_yx(n, y - 10, 28);
-    ll = CHANNEL_RGB_INITIALIZER(0x7B, 0x68, 0xEE);
+    lr = CHANNEL_RGB_INITIALIZER(0x7B, 0x68, 0xEE);
     ul = CHANNEL_RGB_INITIALIZER(0x19, 0x19, 0x70);
-    ncplane_stain(n, y - 9, 58, ll, ul, ll, ul);
+    ncplane_stain(n, y - 9, 58, lr, ul, lr, ul);
     // the quadrants
     ncplane_cursor_move_yx(n, y - 10, 1);
-    ncplane_stain(n, y - 9, 66, ll, ul, ll, ul);
+    ncplane_stain(n, y - 9, 66, lr, ul, lr, ul);
     // the vertical eighths
-    ncplane_cursor_move_yx(n, y - 2, 2);
+    ncplane_cursor_move_yx(n, y - 2, 56);
     ul = CHANNEL_RGB_INITIALIZER(0x60, 0x7d, 0x3b);
     lr = CHANNEL_RGB_INITIALIZER(0x02, 0x8a, 0x0f);
-    ncplane_stain(n, y, 10, ul, lr, lr, ul);
+    ncplane_stain(n, y, 66, ul, lr, ul, lr);
     // the horizontal eighths
-    ncplane_cursor_move_yx(n, y - 10, 69);
-    ncplane_stain(n, y - 2, 70, lr, ul, ul, lr);
+    ncplane_cursor_move_yx(n, y - 10, 68);
+    ncplane_stain(n, y - 2, 71, lr, ul, lr, ul);
   }
   return 0;
 }
@@ -117,7 +116,7 @@ display_logo(const tinfo* ti, struct ncplane* n, const char* path){
   ncplane_yx(n, &y, NULL);
   struct ncvisual_options vopts = {
     .n = n,
-    .y = y + 9, // FIXME broken until #1649 is resolved
+    .y = y + 8, // FIXME broken until #1649 is resolved
     .x = 47,
     .blitter = NCBLIT_PIXEL,
     .flags = NCVISUAL_OPTION_CHILDPLANE,
@@ -139,15 +138,15 @@ tinfo_debug_bitmaps(struct ncplane* n, const tinfo* ti, const char* indent){
   ncplane_set_fg_default(n);
   ncplane_set_fg_rgb(n, 0x5efa80);
   if(!ti->pixel_draw){
-    ncplane_printf(n, "%sdidn't detect bitmap graphics support\n", indent);
+    ncplane_printf(n, "%sdidn't detect bitmap graphics support", indent);
   }else{ // we do have support; draw one
     if(ti->sixel_maxy){
-      ncplane_printf(n, "%smax sixel size: %dx%d colorregs: %u\n",
+      ncplane_printf(n, "%smax sixel size: %dx%d colorregs: %u",
                     indent, ti->sixel_maxy, ti->sixel_maxx, ti->color_registers);
     }else if(ti->color_registers){
-      ncplane_printf(n, "%ssixel colorregs: %u\n", indent, ti->color_registers);
+      ncplane_printf(n, "%ssixel colorregs: %u", indent, ti->color_registers);
     }else{
-      ncplane_printf(n, "%srgba pixel graphics supported\n", indent);
+      ncplane_printf(n, "%srgba pixel graphics supported", indent);
     }
     char* path = prefix_data("notcurses.png");
     if(path){
@@ -155,6 +154,8 @@ tinfo_debug_bitmaps(struct ncplane* n, const tinfo* ti, const char* indent){
       free(path);
     }
   }
+  ncplane_set_fg_rgb(n, 0x00c0c0);
+  ncplane_putstr_yx(n, -1, 48, "https://notcurses.com\n");
   ncplane_set_fg_default(n);
 }
 
@@ -183,7 +184,7 @@ tinfo_debug_caps(struct ncplane* n, const tinfo* ti, const char* indent){
   tinfo_debug_cap(n, "ccc", ti->caps.can_change_colors, colory, colorn, ' ');
   tinfo_debug_cap(n, "af", get_escape(ti, ESCAPE_SETAF), colory, colorn, ' ');
   tinfo_debug_cap(n, "ab", get_escape(ti, ESCAPE_SETAB), colory, colorn, ' ');
-  tinfo_debug_cap(n, "appsync", get_escape(ti, ESCAPE_BSU), colory, colorn, ' ');
+  tinfo_debug_cap(n, "asu", get_escape(ti, ESCAPE_BSU), colory, colorn, ' ');
   tinfo_debug_cap(n, "u7", get_escape(ti, ESCAPE_DSRCPR), colory, colorn, ' ');
   tinfo_debug_cap(n, "cup", get_escape(ti, ESCAPE_CUP), colory, colorn, ' ');
   tinfo_debug_cap(n, "vpa", get_escape(ti, ESCAPE_VPA), colory, colorn, ' ');
