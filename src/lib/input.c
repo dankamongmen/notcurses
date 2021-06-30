@@ -639,6 +639,7 @@ typedef enum {
   STATE_DA_1, // got '1', XTSMGRAPHICS color registers or primary DA
   STATE_DA_1_SEMI, // got '1;'
   STATE_DA_1_0, // got '1;0', XTSMGRAPHICS color registers or VT101
+  STATE_DA_1_SEMI_2, // got '1;2', XTSMGRAPHICS color reg fail or VT100
   STATE_DA_6, // got '6', could be VT102 or VT220/VT320/VT420
   STATE_DA_DRAIN, // drain out the primary DA to an alpha
   STATE_SIXEL,// XTSMGRAPHICS about Sixel geometry (got '2')
@@ -908,6 +909,7 @@ pump_control_read(query_state* inits, unsigned char c){
           return -1;
         }
       }else if(c == 'R'){
+//fprintf(stderr, "CURSOR X: %d\n", inits->numeric);
         inits->cursor_x = inits->numeric;
         inits->state = STATE_NULL;
       }else{
@@ -1038,6 +1040,7 @@ pump_control_read(query_state* inits, unsigned char c){
     //     CSI ? 6 3 ; Ps c  ("VT320")
     //     CSI ? 6 4 ; Ps c  ("VT420")
     case STATE_DA: // return success on end of DA
+//fprintf(stderr, "DA: %c\n", c);
       if(c == '1'){
         inits->state = STATE_DA_1;
       }else if(c == '2'){
@@ -1054,6 +1057,7 @@ pump_control_read(query_state* inits, unsigned char c){
       }
       break;
     case STATE_DA_1:
+//fprintf(stderr, "DA1: %c\n", c);
       if(c >= 0x40 && c <= 0x7E){
         inits->state = STATE_NULL;
         return 1;
@@ -1062,23 +1066,35 @@ pump_control_read(query_state* inits, unsigned char c){
       } // FIXME error?
       break;
     case STATE_DA_1_SEMI:
-      if(c == '2'){ // VT100 with Advanced Video Option
-        inits->state = STATE_DA_DRAIN;
+//fprintf(stderr, "DA1SEMI: %c\n", c);
+      if(c == '2'){ // VT100 with Advanced Video Option *or* setcregs failure
+        inits->state = STATE_DA_1_SEMI_2;
       }else if(c == '0'){
         inits->state = STATE_DA_1_0;
       }else if(c >= 0x40 && c <= 0x7E){
         inits->state = STATE_NULL;
       } // FIXME error?
       break;
+    case STATE_DA_1_SEMI_2:
+      if(c == 'S'){
+        inits->state = STATE_NULL;
+      }else if(c >= 0x40 && c <= 0x7E){
+        inits->state = STATE_NULL;
+        return 1;
+      }
+      break;
     case STATE_DA_1_0:
+//fprintf(stderr, "DA_!_0: %c\n", c);
       if(c >= 0x40 && c <= 0x7E){
         inits->state = STATE_NULL;
+        return 1;
       }else if(c == ';'){
         inits->state = STATE_SIXEL_CREGS;
       } // FIXME error?
       break;
     case STATE_SIXEL_CREGS:
       if(c == 'S'){
+//fprintf(stderr, "CREGS: %d\n", inits->numeric);
         inits->tcache->color_registers = inits->numeric;
         inits->state = STATE_NULL;
       }else if(ruts_numeric(&inits->numeric, c)){
@@ -1112,6 +1128,7 @@ pump_control_read(query_state* inits, unsigned char c){
       }
       break;
     case STATE_SIXEL_SEMI1:
+//fprintf(stderr, "SIXLE`l`: %c\n", c);
       if(c == '0'){
         inits->state = STATE_SIXEL_SUCCESS;
       }else if(c == '2'){
@@ -1130,6 +1147,7 @@ pump_control_read(query_state* inits, unsigned char c){
       break;
     case STATE_SIXEL_WIDTH:
       if(c == ';'){
+//fprintf(stderr, "HEIGHT: %d\n", inits->numeric);
         inits->tcache->sixel_maxx = inits->numeric;
         inits->state = STATE_SIXEL_HEIGHT;
         inits->numeric = 0;
@@ -1139,6 +1157,7 @@ pump_control_read(query_state* inits, unsigned char c){
       break;
     case STATE_SIXEL_HEIGHT:
       if(c == 'S'){
+//fprintf(stderr, "HEIGHT: %d\n", inits->numeric);
         inits->tcache->sixel_maxy_pristine = inits->numeric;
         inits->state = STATE_NULL;
       }else if(ruts_numeric(&inits->numeric, c)){
