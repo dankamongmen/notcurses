@@ -893,21 +893,19 @@ init_banner(const notcurses* nc){
     char prefixbuf[BPREFIXSTRLEN + 1];
     term_fg_palindex(nc, stdout, 50 % nc->tcache.caps.colors);
     ++liness;
-    printf("\n notcurses %s on %s %s", notcurses_version(),
+    printf("notcurses %s on %s %s\n", notcurses_version(),
            nc->tcache.termname ? nc->tcache.termname : "?",
            nc->tcache.termversion ? nc->tcache.termversion : "");
     term_fg_palindex(nc, stdout, 12 % nc->tcache.caps.colors);
     if(nc->tcache.cellpixy && nc->tcache.cellpixx){
-      ++liness;
-      printf("\n %d rows (%dpx) %d cols (%dpx) %dx%d %zuB crend %d colors",
+      printf("%d rows (%dpx) %d cols (%dpx) %dx%d %zuB crend %d colors",
              nc->stdplane->leny, nc->tcache.cellpixy,
              nc->stdplane->lenx, nc->tcache.cellpixx,
              nc->stdplane->leny * nc->tcache.cellpixy,
              nc->stdplane->lenx * nc->tcache.cellpixx,
              sizeof(struct crender), nc->tcache.caps.colors);
     }else{
-      ++liness;
-      printf("\n %d rows %d cols (%sB) %zuB crend %d colors",
+      printf("%d rows %d cols (%sB) %zuB crend %d colors",
              nc->stdplane->leny, nc->stdplane->lenx,
              bprefix(nc->stats.fbbytes, 1, prefixbuf, 0),
              sizeof(struct crender), nc->tcache.caps.colors);
@@ -924,9 +922,9 @@ init_banner(const notcurses* nc){
       term_fg_palindex(nc, stdout, nc->tcache.caps.colors <= 256 ?
                        12 % nc->tcache.caps.colors : 0x2080e0);
     }
-    liness += 3;
-    printf("\n compiled with gcc-%s, %zuB %s-endian cells\n"
-           " terminfo from %s\n",
+    ++liness;
+    printf("\ncompiled with gcc-%s, %zuB %s-endian cells\n"
+           "terminfo from %s\n",
            __VERSION__,
            sizeof(nccell),
 #ifdef __BYTE_ORDER__
@@ -939,8 +937,9 @@ init_banner(const notcurses* nc){
 #error "No __BYTE_ORDER__ definition"
 #endif
            , curses_version());
-    ++liness;
+    liness += 3;
     ncvisual_printbanner(nc);
+    ++liness;
     fflush(stdout);
     liness += init_banner_warnings(nc, stderr);
   }
