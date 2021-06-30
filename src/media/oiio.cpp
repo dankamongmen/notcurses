@@ -199,7 +199,7 @@ auto oiio_destroy(ncvisual* ncv) -> void {
 
 // FIXME would be nice to have OIIO::attributes("libraries") in here
 void oiio_printbanner(const struct notcurses* nc __attribute__ ((unused))){
-  printf("  openimageio %s\n", OIIO_VERSION_STRING);
+  printf(" openimageio %s\n", OIIO_VERSION_STRING);
 }
 
 #endif

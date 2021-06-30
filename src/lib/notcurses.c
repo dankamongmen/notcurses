@@ -893,13 +893,13 @@ init_banner(const notcurses* nc){
     char prefixbuf[BPREFIXSTRLEN + 1];
     term_fg_palindex(nc, stdout, 50 % nc->tcache.caps.colors);
     ++liness;
-    printf("\n notcurses %s by nick black et al", notcurses_version());
-    printf(" on %s %s", nc->tcache.termname ? nc->tcache.termname : "?",
-                        nc->tcache.termversion ? nc->tcache.termversion : "");
+    printf("\n notcurses %s on %s %s", notcurses_version(),
+           nc->tcache.termname ? nc->tcache.termname : "?",
+           nc->tcache.termversion ? nc->tcache.termversion : "");
     term_fg_palindex(nc, stdout, 12 % nc->tcache.caps.colors);
     if(nc->tcache.cellpixy && nc->tcache.cellpixx){
       ++liness;
-      printf("\n  %d rows (%dpx) %d cols (%dpx) %dx%d %zuB crend %d colors",
+      printf("\n %d rows (%dpx) %d cols (%dpx) %dx%d %zuB crend %d colors",
              nc->stdplane->leny, nc->tcache.cellpixy,
              nc->stdplane->lenx, nc->tcache.cellpixx,
              nc->stdplane->leny * nc->tcache.cellpixy,
@@ -907,7 +907,7 @@ init_banner(const notcurses* nc){
              sizeof(struct crender), nc->tcache.caps.colors);
     }else{
       ++liness;
-      printf("\n  %d rows %d cols (%sB) %zuB crend %d colors",
+      printf("\n %d rows %d cols (%sB) %zuB crend %d colors",
              nc->stdplane->leny, nc->stdplane->lenx,
              bprefix(nc->stats.fbbytes, 1, prefixbuf, 0),
              sizeof(struct crender), nc->tcache.caps.colors);
@@ -925,8 +925,8 @@ init_banner(const notcurses* nc){
                        12 % nc->tcache.caps.colors : 0x2080e0);
     }
     liness += 3;
-    printf("\n  compiled with gcc-%s, %zuB %s-endian cells\n"
-           "  terminfo from %s\n",
+    printf("\n compiled with gcc-%s, %zuB %s-endian cells\n"
+           " terminfo from %s\n",
            __VERSION__,
            sizeof(nccell),
 #ifdef __BYTE_ORDER__
