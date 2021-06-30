@@ -31,7 +31,6 @@ int main(int argc, char** argv){
     NCBLIT_PIXEL,   // pixel graphics
     -1,
   };
-  notcurses_check_pixel_support(nc);
   for(const int* blitter = blitters ; *blitter >= 0 ; ++blitter){
     for(int scaling = NCSCALE_NONE ; scaling <= NCSCALE_STRETCH ; ++scaling){
       for(int i = 1 ; i < argc ; ++i){

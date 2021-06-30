@@ -219,7 +219,6 @@ int main(int argc, char** argv){
   }
   struct ncvisual* ncv = NULL;
   if(media){
-    notcurses_check_pixel_support(nc);
     if((ncv = ncvisual_from_file(media)) == NULL){
       notcurses_stop(nc);
       return EXIT_FAILURE;
