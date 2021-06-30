@@ -261,6 +261,36 @@ kitty_restore(char* triplet, int skip, int max, int pleft,
   return max;
 }
 
+// if there is no mstreamfp open, create one, using glyph and glyphlen as the
+// base. we're blowing away the glyph.
+static int
+init_sprixel_animation(sprixel* s){
+  if(s->mstreamfp){
+    return 0;
+  }
+  free(s->glyph);
+  s->glyph = NULL;
+  s->glyphlen = 0;
+  if((s->mstreamfp = open_memstream(&s->glyph, &s->glyphlen)) == NULL){
+    loginfo("Opened animation buffer for sprixel %u\n", s->id);
+    return -1;
+  }
+  return 0;
+}
+
+// this just needs to delete the animation block that was lain atop the
+// original bitmap.
+int kitty_rebuild_animation(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
+  if(init_sprixel_animation(s)){
+    return -1;
+  }
+  uint32_t blockid;
+  memcpy(&blockid, auxvec, sizeof(blockid));
+  (void)ycell;
+  (void)xcell;
+  return -1; // FIXME
+}
+
 #define RGBA_MAXLEN 768 // 768 base64-encoded pixels in 4096 bytes
 // restore an annihilated sprixcell by copying the alpha values from the
 // auxiliary vector back into the actual data. we then free the auxvector.
@@ -336,23 +366,6 @@ int kitty_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
   return -1;
 }
 
-// if there is no mstreamfp open, create one, using glyph and glyphlen as the
-// base. we're blowing away the glyph.
-static int
-init_sprixel_animation(sprixel* s){
-  if(s->mstreamfp){
-    return 0;
-  }
-  free(s->glyph);
-  s->glyph = NULL;
-  s->glyphlen = 0;
-  if((s->mstreamfp = open_memstream(&s->glyph, &s->glyphlen)) == NULL){
-    loginfo("Opened animation buffer for sprixel %u\n", s->id);
-    return -1;
-  }
-  return 0;
-}
-
 // we lay a cell-sixed animation block atop the graphic, giving it a
 // cell id with which we can delete it in O(1) for a rebuild. this
 // way, we needn't delete and redraw the entire sprixel.
@@ -397,19 +410,6 @@ sprixel* kitty_recycle(ncplane* n){
   int dimx = hides->dimx;
   sprixel_hide(hides);
   return sprixel_alloc(n, dimy, dimx);
-}
-
-// this just needs to delete the animation block that was lain atop the
-// original bitmap.
-int kitty_rebuild_animation(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
-  if(init_sprixel_animation(s)){
-    return -1;
-  }
-  uint32_t blockid;
-  memcpy(&blockid, auxvec, sizeof(blockid));
-  (void)ycell;
-  (void)xcell;
-  return -1; // FIXME
 }
 
 int kitty_wipe(sprixel* s, int ycell, int xcell){
@@ -563,14 +563,16 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
         int ycell = y / cdimy;
         int tyx = xcell + ycell * cols;
 //fprintf(stderr, "Tyx: %d y: %d (%d) * %d x: %d (%d) state %d %p\n", tyx, y, y / cdimy, cols, x, x / cdimx, tam[tyx].state, tam[tyx].auxvector);
+        // this pixel is part of a cell which is currently wiped (alpha-nulled
+        // out, to present a glyph "atop" it). we will continue to mark it
+        // transparent, but we need to update the auxiliary vector.
+        const int vyx = (y % cdimy) * cdimx + (x % cdimx);
         if(tam[tyx].state == SPRIXCELL_ANNIHILATED || tam[tyx].state == SPRIXCELL_ANNIHILATED_TRANS){
-          // this pixel is part of a cell which is currently wiped (alpha-nulled
-          // out, to present a glyph "atop" it). we will continue to mark it
-          // transparent, but we need to update the auxiliary vector.
-          const int vyx = (y % cdimy) * cdimx + (x % cdimx);
-// FIXME NO DOES NOT WORK FOR ANIMATED AUXVEC
-//          tam[tyx].auxvector[vyx] = ncpixel_a(source[e]);
+          tam[tyx].auxvector[vyx] = ncpixel_a(source[e]);
           wipe[e] = 1;
+        }else if(tam[tyx].state == SPRIXCELL_ANIMATED || tam[tyx].state == SPRIXCELL_ANIMATED_TRANS){
+fprintf(stderr, "ANIMATED AUXVEC CONSULT %d/%d\n", y, x);
+// FIXME NO DOES NOT WORK FOR ANIMATED AUXVEC
         }else{
           wipe[e] = 0;
           if(rgba_trans_p(source[e], transcolor)){

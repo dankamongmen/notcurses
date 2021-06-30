@@ -116,6 +116,8 @@ typedef enum {
   SPRIXCELL_TRANSPARENT,       // all pixels are naturally transparent
   SPRIXCELL_ANNIHILATED,       // this cell has been wiped (all trans)
   SPRIXCELL_ANNIHILATED_TRANS, // this transparent cell is covered
+  SPRIXCELL_ANIMATED,          // this cell has been nuked via animation
+  SPRIXCELL_ANIMATED_TRANS,    // this transparent cell is animated out
 } sprixcell_e;
 
 // a sprixel represents a bitmap, using whatever local protocol is available.

@@ -156,7 +156,7 @@ paint_sprixel(ncplane* p, struct crender* rvec, int starty, int startx,
         if(crender->sprixel == NULL){
           crender->sprixel = s;
         }
-        if(state == SPRIXCELL_ANNIHILATED || state == SPRIXCELL_ANNIHILATED_TRANS){
+        if(state >= SPRIXCELL_ANNIHILATED){
 //fprintf(stderr, "REBUILDING AT %d/%d\n", y, x);
           sprite_rebuild(nc, s, y, x);
 //fprintf(stderr, "damaging due to rebuild [%s] %d/%d\n", nccell_extended_gcluster(crender->p, &crender->c), absy, absx);

@@ -20,7 +20,7 @@ void sprixel_debug(const sprixel* s, FILE* out){
     idx = 0;
     for(int y = 0 ; y < s->dimy ; ++y){
       for(int x = 0 ; x < s->dimx ; ++x){
-        if(s->n->tam[idx].state == SPRIXCELL_ANNIHILATED){
+        if(s->n->tam[idx].state >= SPRIXCELL_ANNIHILATED){
           if(s->n->tam[idx].auxvector){
             fprintf(out, "%03d] ", idx);
             for(int p = 0 ; p < s->cellpxx * s->cellpxy ; ++p){
@@ -101,8 +101,7 @@ void sprixel_invalidate(sprixel* s, int y, int x){
     int localx = x - s->n->absx;
 //fprintf(stderr, "INVALIDATING AT %d/%d (%d/%d) TAM: %d\n", y, x, localy, localx, s->n->tam[localy * s->dimx + localx].state);
     if(s->n->tam[localy * s->dimx + localx].state != SPRIXCELL_TRANSPARENT &&
-       s->n->tam[localy * s->dimx + localx].state != SPRIXCELL_ANNIHILATED &&
-       s->n->tam[localy * s->dimx + localx].state != SPRIXCELL_ANNIHILATED_TRANS){
+       s->n->tam[localy * s->dimx + localx].state < SPRIXCELL_ANNIHILATED){
       s->invalidated = SPRIXEL_INVALIDATED;
     }
   }
@@ -179,8 +178,7 @@ int sprite_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
     s->n->tam[idx].state = SPRIXCELL_ANNIHILATED_TRANS;
     return 1;
   }
-  if(s->n->tam[idx].state == SPRIXCELL_ANNIHILATED_TRANS ||
-      s->n->tam[idx].state == SPRIXCELL_ANNIHILATED){
+  if(s->n->tam[idx].state >= SPRIXCELL_ANNIHILATED){
 //fprintf(stderr, "CACHED WIPE %d %d/%d\n", s->id, ycell, xcell);
     return 0;
   }
@@ -189,7 +187,6 @@ int sprite_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
 //fprintf(stderr, "WIPED %d %d/%d ret=%d\n", s->id, ycell, xcell, r);
   // mark the cell as annihilated whether we actually scrubbed it or not,
   // so that we use this fact should we move to another frame
-  s->n->tam[idx].state = SPRIXCELL_ANNIHILATED;
   return r;
 }
 
