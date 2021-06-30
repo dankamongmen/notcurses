@@ -108,14 +108,16 @@ display_logo(const tinfo* ti, struct ncplane* n, const char* path){
   if(ncv == NULL){
     return -1;
   }
-  if(ncvisual_resize(ncv, 10 * ti->cellpixy, 10 * ti->cellpixx)){
+  if(ncvisual_resize(ncv, 3 * ti->cellpixy, 10 * ti->cellpixx)){
     ncvisual_destroy(ncv);
     return -1;
   }
-  int y, x;
-  ncplane_yx(n, &y, &x);
+  int y;
+  ncplane_yx(n, &y, NULL);
   struct ncvisual_options vopts = {
     .n = n,
+    .y = y,
+    .x = 20,
     .blitter = NCBLIT_PIXEL,
     .flags = NCVISUAL_OPTION_CHILDPLANE,
   };

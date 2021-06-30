@@ -1,6 +1,14 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 2.3.8 (not yet released)
+  * Marked all capability functions `__attribute__ ((pure))`. If you were
+    calling `notcurses_check_pixel_support()` before in order to enable pixel
+    blitting (unnecessary since 2.3.5), you might get compiler warnings about
+    statements without effects. Just remove the call if so.
+  * Fixed bugs in `ncvisual_blitset_geom()` and `ncvisual_render()` when using
+    `NCVISUAL_OPTION_CHILDPLANE` in certain configurations.
+
 * 2.3.7 (2021-06-29)
   * Deprecated `NCSTYLE_REVERSE` and `NCSTYLE_DIM`. The remainder are safe,
     and I added back `NCSTYLE_BLINK` according to popular demand.
