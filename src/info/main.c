@@ -43,16 +43,18 @@ static int
 unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
   if(ti->caps.utf8){
     // all NCHALFBLOCKS are contained within NCQUADBLOCKS
-    ncplane_printf(n, " %ls ⎧%.122ls⎫ 🯰🯱🯲🯳🯴🯵🯶🯷🯸🯹\u2157\u2158\u2159\u215a\u215b ⎧█ ⎫\n",
-                   NCQUADBLOCKS, NCSEXBLOCKS);
-    ncplane_printf(n, "                  ⎩%ls⎭ \u00bc\u00bd\u00be\u2150\u2151\u2152\u2153\u2154\u2155\u2156\u215c\u215d\u215e\u215f\u2189 ⎪🮋▏⎪\n",
-                   NCSEXBLOCKS + 32);
-    ncplane_printf(n, "  %.6ls%.3ls   %.6ls%.3ls   %.6ls%.3ls   %.6ls%.3ls                                             ⎪🮊▎⎪\n",
+    ncplane_printf(n, "%s%ls ⎧%.122ls⎫ 🯰🯱🯲🯳🯴🯵🯶🯷🯸🯹\u2157\u2158\u2159\u215a\u215b ⎧█ ⎫\n",
+                   indent, NCQUADBLOCKS, NCSEXBLOCKS);
+    ncplane_printf(n, "%s                 ⎩%ls⎭ \u00bc\u00bd\u00be\u2150\u2151\u2152\u2153\u2154\u2155\u2156\u215c\u215d\u215e\u215f\u2189 ⎪🮋▏⎪\n",
+                   indent, NCSEXBLOCKS + 32);
+    ncplane_printf(n, "%s %.6ls%.3ls   %.6ls%.3ls   %.6ls%.3ls   %.6ls%.3ls                                             ⎪🮊▎⎪\n",
+                   indent,
                    NCBOXLIGHTW, NCBOXLIGHTW + 4,
                    NCBOXHEAVYW, NCBOXHEAVYW + 4,
                    NCBOXROUNDW, NCBOXROUNDW + 4,
                    NCBOXDOUBLEW, NCBOXDOUBLEW + 4);
-    ncplane_printf(n, "  %.6ls%.3ls   %.6ls%.3ls   %.6ls%.3ls   %.6ls%.3ls                                             ⎪🮉▍⎪\n",
+    ncplane_printf(n, "%s %.6ls%.3ls   %.6ls%.3ls   %.6ls%.3ls   %.6ls%.3ls                                             ⎪🮉▍⎪\n",
+                   indent,
                    NCBOXLIGHTW + 2, NCBOXLIGHTW + 5,
                    NCBOXHEAVYW + 2, NCBOXHEAVYW + 5,
                    NCBOXROUNDW + 2, NCBOXROUNDW + 5,
@@ -72,31 +74,31 @@ unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
     int y, x;
     ncplane_cursor_yx(n, &y, &x);
     // the symbols for legacy computing
-    ncplane_cursor_move_yx(n, y - 2, 1);
+    ncplane_cursor_move_yx(n, y - 2, 0);
     uint32_t ul = CHANNEL_RGB_INITIALIZER(0x30, 0x30, 0x30);
     uint32_t lr = CHANNEL_RGB_INITIALIZER(0x80, 0x80, 0x80);
-    ncplane_stain(n, y - 1, 66, ul, lr, ul, lr);
+    ncplane_stain(n, y - 1, 65, ul, lr, ul, lr);
     // the braille
-    ncplane_cursor_move_yx(n, y - 6, 1);
+    ncplane_cursor_move_yx(n, y - 6, 0);
     ul = CHANNEL_RGB_INITIALIZER(0x7f, 0x25, 0x24);
     lr = CHANNEL_RGB_INITIALIZER(0x24, 0x25, 0x7f);
-    ncplane_stain(n, y - 3, 66, ul, lr, ul, lr);
+    ncplane_stain(n, y - 3, 65, ul, lr, ul, lr);
     // the sextants
-    ncplane_cursor_move_yx(n, y - 10, 28);
+    ncplane_cursor_move_yx(n, y - 10, 27);
     lr = CHANNEL_RGB_INITIALIZER(0x7B, 0x68, 0xEE);
     ul = CHANNEL_RGB_INITIALIZER(0x19, 0x19, 0x70);
-    ncplane_stain(n, y - 9, 58, lr, ul, lr, ul);
+    ncplane_stain(n, y - 9, 57, lr, ul, lr, ul);
     // the quadrants
-    ncplane_cursor_move_yx(n, y - 10, 1);
-    ncplane_stain(n, y - 9, 66, lr, ul, lr, ul);
+    ncplane_cursor_move_yx(n, y - 10, 0);
+    ncplane_stain(n, y - 9, 65, lr, ul, lr, ul);
     // the vertical eighths
-    ncplane_cursor_move_yx(n, y - 2, 56);
+    ncplane_cursor_move_yx(n, y - 2, 55);
     ul = CHANNEL_RGB_INITIALIZER(0x60, 0x7d, 0x3b);
     lr = CHANNEL_RGB_INITIALIZER(0x02, 0x8a, 0x0f);
-    ncplane_stain(n, y, 66, ul, lr, ul, lr);
+    ncplane_stain(n, y, 65, ul, lr, ul, lr);
     // the horizontal eighths
-    ncplane_cursor_move_yx(n, y - 10, 68);
-    ncplane_stain(n, y - 2, 71, lr, ul, lr, ul);
+    ncplane_cursor_move_yx(n, y - 10, 67);
+    ncplane_stain(n, y - 2, 70, lr, ul, lr, ul);
   }
   return 0;
 }
@@ -117,7 +119,7 @@ display_logo(const tinfo* ti, struct ncplane* n, const char* path){
   struct ncvisual_options vopts = {
     .n = n,
     .y = y + 8, // FIXME broken until #1649 is resolved
-    .x = 47,
+    .x = 46,
     .blitter = NCBLIT_PIXEL,
     .flags = NCVISUAL_OPTION_CHILDPLANE,
   };
@@ -180,7 +182,7 @@ static void
 tinfo_debug_caps(struct ncplane* n, const tinfo* ti, const char* indent){
   uint32_t colory = 0xcc99ff;
   uint32_t colorn = 0xff99ff;
-  ncplane_printf(n, "\n%s", indent);
+  ncplane_printf(n, "%s", indent);
   tinfo_debug_cap(n, "rgb", ti->caps.rgb, colory, colorn, ' ');
   tinfo_debug_cap(n, "ccc", ti->caps.can_change_colors, colory, colorn, ' ');
   tinfo_debug_cap(n, "af", get_escape(ti, ESCAPE_SETAF), colory, colorn, ' ');
@@ -232,7 +234,7 @@ int main(void){
   if(nc == NULL){
     return EXIT_FAILURE;
   }
-  const char indent[] = " ";
+  const char indent[] = "";
   struct ncplane* stdn = notcurses_stdplane(nc);
   ncplane_set_scrolling(stdn, true);
   tinfo_debug_caps(stdn, &nc->tcache, indent);
