@@ -1763,6 +1763,30 @@ typedef struct ncvisual_implementation {
 // populated by libnotcurses.so if linked with multimedia
 API extern ncvisual_implementation visual_implementation;
 
+static inline char
+path_seperator(void){
+#if defined _WIN32 || defined __CYGWIN__
+  return '\\';
+#else
+  return '/';
+#endif
+}
+
+// prepend base with the Notcurses data directory as configured.
+static inline char*
+prefix_data(const char* base){
+  // need a byte for each of directory separator and nul terminator
+  const size_t dlen = strlen(NOTCURSES_SHARE);
+  size_t len = dlen + strlen(base) + 2;
+  char* path = (char*)malloc(len); // cast for C++ includers
+  if(path){
+    memcpy(path, NOTCURSES_SHARE, dlen);
+    path[dlen] = path_seperator();
+    strcpy(path + dlen + 1, base);
+  }
+  return path;
+}
+
 #undef ALLOC
 #undef API
 
