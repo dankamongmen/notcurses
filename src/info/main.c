@@ -42,22 +42,23 @@ braille_viz(ncplane* n, const char* l, const wchar_t* egcs, const char* r, const
 static int
 unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
   if(ti->caps.utf8){
-    ncplane_printf(n, " {%ls} {%ls} ⎧%.122ls⎫        ⎧█ ⎫ 🯰🯱\n",
-                   NCHALFBLOCKS, NCQUADBLOCKS, NCSEXBLOCKS);
-    ncplane_printf(n, "                           ⎩%ls⎭        ⎪🮋▏⎪ 🯲🯳\n",
+    // all NCHALFBLOCKS are contained within NCQUADBLOCKS
+    ncplane_printf(n, " %ls ⎧%.122ls⎫ 🯰🯱🯲🯳🯴🯵🯶🯷🯸🯹\u2157\u2158\u2159\u215a\u215b ⎧█ ⎫\n",
+                   NCQUADBLOCKS, NCSEXBLOCKS);
+    ncplane_printf(n, "                  ⎩%ls⎭ \u00bc\u00bd\u00be\u2150\u2151\u2152\u2153\u2154\u2155\u2156\u215c\u215d\u215e\u215f\u2189 ⎪🮋▏⎪\n",
                    NCSEXBLOCKS + 32);
-    ncplane_printf(n, " ⎧%.6ls%.3ls⎫ ⎧%.6ls%.3ls⎫ ⎧%.6ls%.3ls⎫ ⎧%.6ls%.3ls⎫                                            ⎪🮊▎⎪ 🯴🯵\n",
+    ncplane_printf(n, "  %.6ls%.3ls   %.6ls%.3ls   %.6ls%.3ls   %.6ls%.3ls                                             ⎪🮊▎⎪\n",
                    NCBOXLIGHTW, NCBOXLIGHTW + 4,
                    NCBOXHEAVYW, NCBOXHEAVYW + 4,
                    NCBOXROUNDW, NCBOXROUNDW + 4,
                    NCBOXDOUBLEW, NCBOXDOUBLEW + 4);
-    ncplane_printf(n, " ⎩%.6ls%.3ls⎭ ⎩%.6ls%.3ls⎭ ⎩%.6ls%.3ls⎭ ⎩%.6ls%.3ls⎭                                            ⎪🮉▍⎪ 🯶🯷\n",
+    ncplane_printf(n, "  %.6ls%.3ls   %.6ls%.3ls   %.6ls%.3ls   %.6ls%.3ls                                             ⎪🮉▍⎪\n",
                    NCBOXLIGHTW + 2, NCBOXLIGHTW + 5,
                    NCBOXHEAVYW + 2, NCBOXHEAVYW + 5,
                    NCBOXROUNDW + 2, NCBOXROUNDW + 5,
                    NCBOXDOUBLEW + 2, NCBOXDOUBLEW + 5);
     braille_viz(n, "⎡", NCBRAILLEEGCS, "⎤", indent);
-    ncplane_printf(n, "⎨▐▌⎬ 🯸🯹\n");
+    ncplane_printf(n, "⎨▐▌⎬\n");
     braille_viz(n, "⎢", NCBRAILLEEGCS + 64, "⎥", indent);
     ncplane_printf(n, "⎪🮈▋⎪\n");
     braille_viz(n, "⎢",  NCBRAILLEEGCS + 128, "⎥", indent);
@@ -66,23 +67,15 @@ unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
     ncplane_printf(n, "⎪▕▉⎪\n");
     ncplane_printf(n, "%s⎛%ls⎞ ▔🭶🭷🭸🭹🭺🭻▁ 🭁 🭂 🭃 🭄 🭅 🭆 🭑 🭐 🭏 🭎 🭍 🭌 🭆🭑 🭄🭏 🭅🭐 🭃🭎 🭂🭍 🭁🭌 🭨🭪  ⎩ █⎭\n",
                    indent, NCEIGHTHSBOTTOM);
-    ncplane_printf(n, "%s⎝%ls⎠ ▏🭰🭱🭲🭳🭴🭵▕ 🭒 🭓 🭔 🭕 🭖 🭧 🭜 🭟 🭠 🭡 🭞 🭝 🭧🭜 🭕🭠 🭖🭡 🭔🭟 🭓🭞 🭒🭝 🭪🭨 \n",
+    ncplane_printf(n, "%s⎝%ls⎠ ▏🭰🭱🭲🭳🭴🭵▕ 🭒 🭓 🭔 🭕 🭖 🭧 🭜 🭟 🭠 🭡 🭞 🭝 🭧🭜 🭕🭠 🭖🭡 🭔🭟 🭓🭞 🭒🭝 🭪🭨      \n",
                    indent, NCEIGHTSTOP);
     int y, x;
     ncplane_cursor_yx(n, &y, &x);
     // the symbols for legacy computing
-    ncplane_cursor_move_yx(n, y - 2, 12);
+    ncplane_cursor_move_yx(n, y - 2, 1);
     uint32_t ul = CHANNEL_RGB_INITIALIZER(0x30, 0x30, 0x30);
     uint32_t lr = CHANNEL_RGB_INITIALIZER(0x80, 0x80, 0x80);
-    ncplane_stain(n, y - 1, 65, ul, lr, ul, lr);
-    // the vertical eighths
-    ncplane_cursor_move_yx(n, y - 2, 2);
-    ul = CHANNEL_RGB_INITIALIZER(0x60, 0x7d, 0x3b);
-    lr = CHANNEL_RGB_INITIALIZER(0x02, 0x8a, 0x0f);
-    ncplane_stain(n, y, 10, ul, lr, lr, ul);
-    // the horizontal eighths
-    ncplane_cursor_move_yx(n, y - 10, 69);
-    ncplane_stain(n, y - 2, 70, lr, ul, ul, lr);
+    ncplane_stain(n, y - 1, 66, ul, lr, ul, lr);
     // the braille
     ncplane_cursor_move_yx(n, y - 6, 2);
     ul = CHANNEL_RGB_INITIALIZER(0x7f, 0x25, 0x24);
@@ -94,12 +87,44 @@ unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
     ll = CHANNEL_RGB_INITIALIZER(0x7B, 0x68, 0xEE);
     ul = CHANNEL_RGB_INITIALIZER(0x19, 0x19, 0x70);
     ncplane_stain(n, y - 9, 58, ll, ul, ll, ul);
-    // the quadrants and halfblocks
-    ncplane_cursor_move_yx(n, y - 10, 9);
-    ncplane_stain(n, y - 10, 22, ll, ul, ll, ul);
-    ncplane_cursor_move_yx(n, y - 10, 2);
-    ncplane_stain(n, y - 10, 5, ll, ul, ll, ul);
+    // the quadrants
+    ncplane_cursor_move_yx(n, y - 10, 1);
+    ncplane_stain(n, y - 9, 66, ll, ul, ll, ul);
+    // the vertical eighths
+    ncplane_cursor_move_yx(n, y - 2, 2);
+    ul = CHANNEL_RGB_INITIALIZER(0x60, 0x7d, 0x3b);
+    lr = CHANNEL_RGB_INITIALIZER(0x02, 0x8a, 0x0f);
+    ncplane_stain(n, y, 10, ul, lr, lr, ul);
+    // the horizontal eighths
+    ncplane_cursor_move_yx(n, y - 10, 69);
+    ncplane_stain(n, y - 2, 70, lr, ul, ul, lr);
   }
+  return 0;
+}
+
+static int
+display_logo(const tinfo* ti, struct ncplane* n, const char* path){
+  struct ncvisual* ncv = ncvisual_from_file(path);
+  if(ncv == NULL){
+    return -1;
+  }
+  if(ncvisual_resize(ncv, 10 * ti->cellpixy, 10 * ti->cellpixx)){
+    ncvisual_destroy(ncv);
+    return -1;
+  }
+  int y, x;
+  ncplane_yx(n, &y, &x);
+  struct ncvisual_options vopts = {
+    .n = n,
+    .blitter = NCBLIT_PIXEL,
+    .flags = NCVISUAL_OPTION_CHILDPLANE,
+  };
+  struct ncplane* bitm = ncvisual_render(ncplane_notcurses(n), ncv, &vopts);
+  if(bitm == NULL){
+    ncvisual_destroy(ncv);
+    return -1;
+  }
+  ncvisual_destroy(ncv);
   return 0;
 }
 
@@ -112,13 +137,20 @@ tinfo_debug_bitmaps(struct ncplane* n, const tinfo* ti, const char* indent){
   ncplane_set_fg_rgb(n, 0x5efa80);
   if(!ti->pixel_draw){
     ncplane_printf(n, "%sdidn't detect bitmap graphics support\n", indent);
-  }else if(ti->sixel_maxy){
-    ncplane_printf(n, "%smax sixel size: %dx%d colorregs: %u\n",
-                   indent, ti->sixel_maxy, ti->sixel_maxx, ti->color_registers);
-  }else if(ti->color_registers){
-    ncplane_printf(n, "%ssixel colorregs: %u\n", indent, ti->color_registers);
-  }else{
-    ncplane_printf(n, "%srgba pixel graphics supported\n", indent);
+  }else{ // we do have support; draw one
+    if(ti->sixel_maxy){
+      ncplane_printf(n, "%smax sixel size: %dx%d colorregs: %u\n",
+                    indent, ti->sixel_maxy, ti->sixel_maxx, ti->color_registers);
+    }else if(ti->color_registers){
+      ncplane_printf(n, "%ssixel colorregs: %u\n", indent, ti->color_registers);
+    }else{
+      ncplane_printf(n, "%srgba pixel graphics supported\n", indent);
+    }
+    char* path = prefix_data("notcurses.png");
+    if(path){
+      display_logo(ti, n, path);
+      free(path);
+    }
   }
   ncplane_set_fg_default(n);
 }
@@ -189,6 +221,7 @@ tinfo_debug_styles(const notcurses* nc, struct ncplane* n, const char* indent){
 int main(void){
   notcurses_options nopts = {
     .flags = NCOPTION_NO_ALTERNATE_SCREEN | NCOPTION_PRESERVE_CURSOR,
+    .loglevel = NCLOGLEVEL_WARNING,
   };
   struct notcurses* nc = notcurses_init(&nopts, NULL);
   if(nc == NULL){
@@ -206,6 +239,7 @@ int main(void){
     notcurses_stop(nc);
     return EXIT_FAILURE;
   }
+notcurses_debug(nc, stderr);
   // FIXME want cursor wherever it ought be
   return notcurses_stop(nc) ? EXIT_FAILURE : EXIT_SUCCESS;
 }
