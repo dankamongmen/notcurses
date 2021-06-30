@@ -193,8 +193,10 @@ int ncvisual_blitset_geom(const notcurses* nc, const tinfo* tcache,
   if(bset->geom == NCBLIT_PIXEL && vopts){
     if(vopts->n){
       if(vopts->n == notcurses_stdplane_const(nc)){
-        logerror("Won't blit bitmaps to the standard plane\n");
-        return -1;
+        if(!(vopts->flags & NCVISUAL_OPTION_CHILDPLANE)){
+          logerror("Won't blit bitmaps to the standard plane\n");
+          return -1;
+        }
       }
       if(vopts->y && !(vopts->flags & NCVISUAL_OPTION_VERALIGNED)){
         logerror("Non-origin y placement %d for sprixel\n", vopts->y);
@@ -691,11 +693,11 @@ ncvisual* ncvisual_from_bgra(const void* bgra, int rows, int rowstride, int cols
   return ncv;
 }
 
-int ncvisual_resize(ncvisual* nc, int rows, int cols){
+int ncvisual_resize(ncvisual* n, int rows, int cols){
   if(!visual_implementation.visual_resize){
-    return ncvisual_resize_noninterpolative(nc, rows, cols);
+    return ncvisual_resize_noninterpolative(n, rows, cols);
   }
-  if(visual_implementation.visual_resize(nc, rows, cols)){
+  if(visual_implementation.visual_resize(n, rows, cols)){
     return -1;
   }
   return 0;
@@ -892,7 +894,7 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
                                 int leny, int lenx, ncplane* n, ncscale_e scaling,
                                 uint64_t flags, uint32_t transcolor){
   ncplane* stdn = notcurses_stdplane(nc);
-  if(n == stdn){
+  if(n == stdn && !(flags & NCVISUAL_OPTION_CHILDPLANE)){
     logerror("Won't blit bitmaps to the standard plane\n");
     return NULL;
   }
