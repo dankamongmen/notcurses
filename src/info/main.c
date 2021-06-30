@@ -47,18 +47,20 @@ unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
                    indent, NCQUADBLOCKS, NCSEXBLOCKS);
     ncplane_printf(n, "%s                 ⎩%ls⎭ \u00bc\u00bd\u00be\u2150\u2151\u2152\u2153\u2154\u2155\u2156\u215c\u215d\u215e\u215f\u2189 ⎪🮋▏⎪\n",
                    indent, NCSEXBLOCKS + 32);
-    ncplane_printf(n, "%s %.6ls%.3ls   %.6ls%.3ls   %.6ls%.3ls   %.6ls%.3ls                                             ⎪🮊▎⎪\n",
+    ncplane_printf(n, "%s %.6ls%.3ls   %.6ls%.3ls   %.6ls%.3ls   %.6ls%.3ls   %.8ls%.4ls                                       ⎪🮊▎⎪\n",
                    indent,
                    NCBOXLIGHTW, NCBOXLIGHTW + 4,
                    NCBOXHEAVYW, NCBOXHEAVYW + 4,
                    NCBOXROUNDW, NCBOXROUNDW + 4,
-                   NCBOXDOUBLEW, NCBOXDOUBLEW + 4);
-    ncplane_printf(n, "%s %.6ls%.3ls   %.6ls%.3ls   %.6ls%.3ls   %.6ls%.3ls                                             ⎪🮉▍⎪\n",
+                   NCBOXDOUBLEW, NCBOXDOUBLEW + 4,
+                   NCBOXOUTERW, NCBOXOUTERW + 4);
+    ncplane_printf(n, "%s %.6ls%.3ls   %.6ls%.3ls   %.6ls%.3ls   %.6ls%.3ls   %.8ls%.4ls                                       ⎪🮉▍⎪\n",
                    indent,
                    NCBOXLIGHTW + 2, NCBOXLIGHTW + 5,
                    NCBOXHEAVYW + 2, NCBOXHEAVYW + 5,
                    NCBOXROUNDW + 2, NCBOXROUNDW + 5,
-                   NCBOXDOUBLEW + 2, NCBOXDOUBLEW + 5);
+                   NCBOXDOUBLEW + 2, NCBOXDOUBLEW + 5,
+                   NCBOXOUTERW + 2, NCBOXOUTERW + 5);
     braille_viz(n, "⎡", NCBRAILLEEGCS, "⎤", indent);
     ncplane_printf(n, "⎨▐▌⎬\n");
     braille_viz(n, "⎢", NCBRAILLEEGCS + 64, "⎥", indent);

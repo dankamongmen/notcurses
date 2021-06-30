@@ -11,12 +11,14 @@ extern "C" {
 #define NCBOXROUND  "╭╮╰╯─│"
 #define NCBOXDOUBLE "╔╗╚╝═║"
 #define NCBOXASCII  "/\\\\/-|"
+#define NCBOXOUTER  "🭽🭾🭼🭿▁🭵🭶🭰"
 // argh
 #define NCBOXLIGHTW  L"┌┐└┘─│"
 #define NCBOXHEAVYW  L"┏┓┗┛━┃"
 #define NCBOXROUNDW  L"╭╮╰╯─│"
 #define NCBOXDOUBLEW L"╔╗╚╝═║"
 #define NCBOXASCIIW  L"/\\\\/-|"
+#define NCBOXOUTERW  L"🭽🭾🭼🭿▁🭵🭶🭰"
 
 // symbols for legacy computing
 #define NCEIGHTHSBOTTOM L" ▁▂▃▄▅▆▇█"
