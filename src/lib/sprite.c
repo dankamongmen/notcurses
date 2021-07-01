@@ -1,11 +1,15 @@
+#include "sprite.h"
 #include "internal.h"
 #include "visual-details.h"
 #include <stdatomic.h>
+#include <stdlib.h>
+#include <string.h>
+#include <assert.h>
 
 static atomic_uint_fast32_t sprixelid_nonce;
 
 void sprixel_debug(const sprixel* s, FILE* out){
-  fprintf(out, "Sprixel %d (%p) %dB %dx%d (%dx%d) @%d/%d state: %d\n",
+  fprintf(out, "Sprixel %d (%p) %zuB %dx%d (%dx%d) @%d/%d state: %d\n",
           s->id, s, s->glyphlen, s->dimy, s->dimx, s->pixy, s->pixx,
           s->n ? s->n->absy : 0, s->n ? s->n->absx : 0,
           s->invalidated);
@@ -50,7 +54,7 @@ void sprixel_free(sprixel* s){
   }
 }
 
-sprixel* sprixel_recycle(ncplane* n){
+sprixel* sprite_recycle(ncplane* n){
   assert(n->sprite);
   const notcurses* nc = ncplane_notcurses_const(n);
   if(nc->tcache.pixel_shutdown == kitty_shutdown){

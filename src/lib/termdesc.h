@@ -8,8 +8,10 @@ extern "C" {
 // internal header, not installed
 
 #include "input.h"
+#include <stdint.h>
 #include <stdbool.h>
 #include <termios.h>
+#include <notcurses/notcurses.h>
 
 struct ncpile;
 struct sprixel;

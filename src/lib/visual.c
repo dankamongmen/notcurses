@@ -962,7 +962,7 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
       return NULL;
     }
   }else{
-    n->sprite = sprixel_recycle(n);
+    n->sprite = sprite_recycle(n);
   }
   bargs.u.pixel.spx = n->sprite;
   // if we are kitty prior to 0.20.0, we set NCVISUAL_OPTION_SCROLL so that
