@@ -56,7 +56,9 @@ int dragon_demo(struct notcurses* nc){
   // system is X -> X+YF+, Y -> -FX-Y, where F is forward, - is turn left, and
   // + is turn right.
   const char LINDENSTART[] = "FX";
-  dimy *= 3;
+  const int vscale = 3;
+  dimy *= vscale;
+  dimy += (vscale - 1);
   dimx *= 2;
   int dxstart, dystart;
   if(dimy > dimx){
@@ -88,7 +90,7 @@ int dragon_demo(struct notcurses* nc){
     dx = dxstart;
     dy = dystart;
     x = dimx / 2;
-    y = dimy / 3;
+    y = dimy / vscale;
     r = dragonmayer(ncv, LINDENSTART, iters);
     if(r < 0){
       ncvisual_destroy(ncv);
