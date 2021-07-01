@@ -356,10 +356,14 @@ add_appsync_escapes_dcs(tinfo* ti, size_t* tablelen, size_t* tableused){
 }
 
 // Qui si convien lasciare ogne sospetto; ogne viltà convien che qui sia morta.
+// kitty's ASU implementation is broken through at least 0.21.2, see
+// https://github.com/kovidgoyal/kitty/issues/3779. until it's fixed, we don't
+// want to use kitty ASU, so we disable advertised_appsync for now FIXME.
 static int
 apply_term_heuristics(tinfo* ti, const char* termname, int fd,
                       queried_terminals_e qterm,
-                      size_t* tablelen, size_t* tableused){
+                      size_t* tablelen, size_t* tableused,
+                      unsigned* advertised_appsync){
   if(!termname){
     // setupterm interprets a missing/empty TERM variable as the special value “unknown”.
     termname = "unknown";
@@ -377,11 +381,8 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
     ti->caps.quadrants = true;
     ti->caps.rgb = true;
     setup_kitty_bitmaps(ti, fd);
+    *advertised_appsync = 0; // FIXME see above
     if(add_smulx_escapes(ti, tablelen, tableused)){
-      return -1;
-    }
-    // kitty implements DCS ASU, but no detection for it
-    if(add_appsync_escapes_dcs(ti, tablelen, tableused)){
       return -1;
     }
     // kitty only introduced C=1 in 0.20.0
@@ -675,14 +676,15 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
       }
     }
   }
+  if(apply_term_heuristics(ti, termname, fd, qterm, &tablelen, &tableused,
+                           &appsync_advertised)){
+    ncinputlayer_stop(&ti->input);
+    goto err;
+  }
   if(appsync_advertised){
     if(add_appsync_escapes_sm(ti, &tablelen, &tableused)){
       goto err;
     }
-  }
-  if(apply_term_heuristics(ti, termname, fd, qterm, &tablelen, &tableused)){
-    ncinputlayer_stop(&ti->input);
-    goto err;
   }
   build_supported_styles(ti);
   // our current sixel quantization algorithm requires at least 64 color
