@@ -962,7 +962,11 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
       return NULL;
     }
   }else{
+    bargs.u.pixel.replaced = n->sprite->id;
     n->sprite = sprite_recycle(n);
+    if(n->sprite->id == bargs.u.pixel.replaced){
+      bargs.u.pixel.replaced = 0;
+    }
   }
   bargs.u.pixel.spx = n->sprite;
   // if we are kitty prior to 0.20.0, we set NCVISUAL_OPTION_SCROLL so that

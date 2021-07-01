@@ -390,11 +390,12 @@ typedef struct blitterargs {
       int placex;
     } cell;            // for cells
     struct {
-      int celldimx;    // horizontal pixels per cell
-      int celldimy;    // vertical pixels per cell
-      int colorregs;   // number of color registers
-      sprixel* spx;    // sprixel object
-    } pixel;           // for pixels
+      sprixel* spx;     // sprixel object
+      int celldimx;     // horizontal pixels per cell
+      int celldimy;     // vertical pixels per cell
+      int colorregs;    // number of color registers
+      unsigned replaced;// id of replaced sprixel
+    } pixel;            // for pixels
   } u;
 } blitterargs;
 

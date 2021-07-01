@@ -28,6 +28,23 @@
 // works for PNG), transfer via shared memory (only works locally),
 // compression (only helps on easy graphics), or offsets within a cell.
 
+// convert the Notcurses loglevel to a kitty q=N level.
+// FIXME don't use these until we've rigourized the input layer (#1692)
+static int
+loglevel_to_kittyq(ncloglevel_e llevel){
+  /*
+  if(llevel < NCLOGLEVEL_ERROR){
+    return 2;
+  }else if(llevel < NCLOGLEVEL_INFO){
+    return 1;
+  }else{
+    return 0;
+  }
+  */
+  (void)llevel; // FIXME
+  return 2;
+}
+
 // lookup table for base64
 static unsigned const char b64subs[] =
  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -446,12 +463,17 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
 //fprintf(stderr, "total: %d chunks = %d, s=%d,v=%d\n", total, chunks, lenx, leny);
   while(chunks--){
     if(totalout == 0){
-      *parse_start = fprintf(fp, "\e_Gf=32,s=%d,v=%d,i=%d,p=1,a=t,%s%s;",
+      *parse_start = fprintf(fp, "\e_Gf=32,s=%d,v=%d,i=%d,p=1,a=t,%s%d%s;",
                              lenx, leny, sprixelid,
-                             chunks ? "m=1" : "q=2",
+                             chunks ? "m=" : "q=",
+                             chunks ? 1 : loglevel_to_kittyq(loglevel),
                              scroll ? "" : ",C=1");
     }else{
-      fprintf(fp, "\e_G%sm=%d;", chunks ? "" : "q=2,", chunks ? 1 : 0);
+      if(chunks){
+        fprintf(fp, "\e_Gm=1;");
+      }else{
+        fprintf(fp, "\e_Gq=%d,m=0;", loglevel_to_kittyq(loglevel));
+      }
     }
     if((targetout += RGBA_MAXLEN) > total){
       targetout = total;
@@ -510,7 +532,10 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
     }
     fprintf(fp, "\e\\");
   }
-  fprintf(fp, "\e_Ga=p,i=%d,p=1,q=2\e\\", sprixelid);
+  if(bargs->u.pixel.replaced){
+    kitty_remove(bargs->u.pixel.replaced, fp);
+  }
+  fprintf(fp, "\e_Ga=p,i=%d,p=1,q=%d\e\\", sprixelid, loglevel_to_kittyq(loglevel));
   if(fclose(fp) == EOF){
     return -1;
   }
@@ -631,7 +656,7 @@ int kitty_move(const ncpile* p, sprixel* s, FILE* out){
 //fprintf(stderr, "KITTY MOVE: %u\n", s->id);
   (void)p;
   int ret = 0;
-  if(fprintf(out, "\e_Ga=p,i=%d,p=1,q=2\e\\", s->id) < 0){
+  if(fprintf(out, "\e_Ga=p,i=%d,p=1,q=%d\e\\", s->id, loglevel_to_kittyq(loglevel)) < 0){
     ret = -1;
   }
   s->invalidated = SPRIXEL_QUIESCENT;
