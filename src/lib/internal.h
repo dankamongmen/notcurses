@@ -792,7 +792,7 @@ uint8_t* kitty_trans_auxvec(const struct tinfo* ti);
 // these three all use absolute coordinates
 void sprixel_invalidate(sprixel* s, int y, int x);
 void sprixel_movefrom(sprixel* s, int y, int x);
-void sprixel_debug(FILE* out, const sprixel* s);
+void sprixel_debug(const sprixel* s, FILE* out);
 void sixelmap_free(struct sixelmap *s);
 
 // create an auxiliary vector suitable for a sprixcell, and zero it out. there
@@ -809,6 +809,8 @@ int kitty_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
 
 static inline int
 sprite_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
+//fprintf(stderr, "Destroying sprite %u\n", s->id);
+//sprixel_debug(s, stderr);
   return nc->tcache.pixel_destroy(nc, p, out, s);
 }
 
@@ -816,7 +818,7 @@ sprite_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
 // returns -1 on error, or the number of bytes written.
 static inline int
 sprite_draw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
-//sprixel_debug(stderr, s);
+//sprixel_debug(s, stderr);
   return n->tcache.pixel_draw(p, s, out);
 }
 
@@ -824,7 +826,7 @@ sprite_draw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
 // returns -1 on error, or the number of bytes written.
 static inline int
 sprite_redraw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
-//sprixel_debug(stderr, s);
+//sprixel_debug(s, stderr);
   if(s->invalidated == SPRIXEL_MOVED && n->tcache.pixel_move){
     return n->tcache.pixel_move(p, s, out);
   }else{
