@@ -790,8 +790,12 @@ int sixel_blit(ncplane* n, int linesize, const void* data, int leny, int lenx,
   return r;
 }
 
+// to destroy a sixel, we damage all cells underneath it. we might not have
+// to, though, if we've got a new sixel ready to go where the old sixel was
+// (though we'll still need to if the new sprixcell not opaque, and the
+// old and new sprixcell are different in any transparent pixel).
 int sixel_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
-//fprintf(stderr, "%d] %d %p\n", s->id, s->invalidated, s->n);
+//fprintf(stderr, "DESTROYING %d %d %p at %d/%d (%d/%d)\n", s->id, s->invalidated, s->n, s->movedfromy, s->movedfromx, s->dimy, s->dimx);
   (void)nc;
   (void)out;
   int starty = s->movedfromy;
@@ -800,23 +804,24 @@ int sixel_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
     for(int xx = startx ; xx < startx + s->dimx && xx < p->dimx ; ++xx){
       int ridx = yy * p->dimx + xx;
       struct crender *r = &p->crender[ridx];
-      if(!r->sprixel){
-        if(s->n){
-//fprintf(stderr, "CHECKING %d/%d\n", yy - s->movedfromy, xx - s->movedfromx);
-          sprixcell_e state = sprixel_state(s, yy - s->movedfromy + s->n->absy,
-                                            xx - s->movedfromx + s->n->absx);
-          if(state == SPRIXCELL_OPAQUE_SIXEL || state == SPRIXCELL_MIXED_SIXEL){
-            r->s.damaged = 1;
-          }else if(s->invalidated == SPRIXEL_MOVED){
-            // ideally, we wouldn't damage our annihilated sprixcells, but if
-            // we're being annihilated only during this cycle, we need to go
-            // ahead and damage it.
-            r->s.damaged = 1;
-          }
-        }else{
-          // need this to damage cells underneath a sprixel we're removing
+      if(r->sprixel){
+        s = r->sprixel;
+      }
+      if(s->n){
+        sprixcell_e state = sprixel_state(s, yy - s->movedfromy,
+                                          xx - s->movedfromx);
+//fprintf(stderr, "CHECKING %d/%d state: %d %d/%d\n", yy - s->movedfromy - s->n->absy, xx - s->movedfromx - s->n->absx, state, yy, xx);
+        if(state == SPRIXCELL_TRANSPARENT || state == SPRIXCELL_MIXED_SIXEL){
+          r->s.damaged = 1;
+        }else if(s->invalidated == SPRIXEL_MOVED){
+          // ideally, we wouldn't damage our annihilated sprixcells, but if
+          // we're being annihilated only during this cycle, we need to go
+          // ahead and damage it.
           r->s.damaged = 1;
         }
+      }else{
+        // need this to damage cells underneath a sprixel we're removing
+        r->s.damaged = 1;
       }
     }
   }
