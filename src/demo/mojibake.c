@@ -25,7 +25,9 @@ const char face_smiling[] =
   "\U0001F643"
   "\U0001F609"
   "\U0001F60A"
-  "\U0001F607";
+  "\U0001F607"
+  "\U0001fae0"
+  ;
 const char face_affection[] =
   "\U0001F970"
   "\U0001F60D"
@@ -47,7 +49,11 @@ const char face_hand[] =
   "\U0001F917"
   "\U0001F92D"
   "\U0001F92B"
-  "\U0001F914";
+  "\U0001F914"
+  "\U0001fae2" // 14.0-base
+  "\U0001fae3" // 14.0-base
+  "\U0001fae1" // 14.0-base
+  ;
 const char face_neutral_skeptical[] =
   "\U0001F910"
   "\U0001F928"
@@ -60,7 +66,9 @@ const char face_neutral_skeptical[] =
   "\U0001F644"
   "\U0001F62C"
   "\U0001F62E\u200D\U0001F4A8"
-  "\U0001F925";
+  "\U0001F925"
+  "\U0001Fae5" // 14.0-beta
+  ;
 const char face_sleepy[] =
   "\U0001F60C"
   "\U0001F614"
@@ -112,7 +120,10 @@ const char face_concerned[] =
   "\U0001F613"
   "\U0001F629"
   "\U0001F62B"
-  "\U0001F971";
+  "\U0001F971"
+  "\U0001fae4" // 14.0-beta
+  "\U0001f979" // 14.0-beta
+  ;
 const char face_negative[] =
   "\U0001F624"
   "\U0001F621"
@@ -188,7 +199,12 @@ const char hand_fingers_open[] =
   "\U0001F91A"
   "\U0001F590"
   "\u270B"
-  "\U0001F596";
+  "\U0001F596"
+  "\U0001faf1" // 14.0-beta
+  "\U0001faf2" // 14.0-beta
+  "\U0001faf3" // 14.0-beta
+  "\U0001faf4" // 14.0-beta
+  ;
 const char hand_fingers_partial[] =
   "\U0001F44C"
   "\U0001F90F"
@@ -197,14 +213,18 @@ const char hand_fingers_partial[] =
   "\U0001F91F"
   "\U0001F918"
   "\U0001F919"
-  "\U0001F90C";
+  "\U0001F90C"
+  "\U0001faf0" // 14.0-beta
+  ;
 const char hand_single_finger[] =
   "\U0001F448"
   "\U0001F449"
   "\U0001F446"
   "\U0001F595"
   "\U0001F447"
-  "\u261D";
+  "\u261D"
+  "\U0001faf5" // 14.0-beta
+  ;
 const char hand_fingers_closed[] =
   "\U0001F44D"
   "\U0001F44E"
@@ -218,7 +238,11 @@ const char hands[] =
   "\U0001F450"
   "\U0001F932"
   "\U0001F91D"
-  "\U0001F64F";
+  "\U0001F64F"
+  "\U0001faf6" // 14.0-beta
+  "\U0001f91d" // 14.0-beta
+  "\U0001faf1\u200d\U0001faf2" // 14.0-beta
+  ;
 const char hand_prop[] =
   "\u270D"
   "\U0001F485"
@@ -240,7 +264,9 @@ const char body_parts[] =
   "\U0001F445"
   "\U0001F444"
   "\U0001FAC0"
-  "\U0001FAC1";
+  "\U0001FAC1"
+  "\U0001fae6"
+  ;
 const char person[] =
   "\U0001F476"
   "\U0001F9D2"
@@ -2204,6 +2230,11 @@ const char person_gesture[] =
   "\U0001F9B1"
   "\U0001F9B3"
   "\U0001F9B2";
+
+const char person_fantasy[] =
+ "\U0001f9cc" // 14.0-beta
+ ;
+
 const char animal_mammal[] =
   "\U0001F435"
   "\U0001F412"
@@ -2307,7 +2338,9 @@ const char animal_marine[] =
   "\U0001F421"
   "\U0001F988"
   "\U0001F419"
-  "\U0001F41A";
+  "\U0001F41A"
+  "\U0001fab8" // 14.0-beta
+  ;
 const char animal_bug[] =
   "\U0001F40C"
   "\U0001F98B"
@@ -2335,7 +2368,9 @@ const char plant_flower[] =
   "\U0001F33A"
   "\U0001F33B"
   "\U0001F33C"
-  "\U0001F337";
+  "\U0001F337"
+  "\U0001fab7" // 14.0-beta
+  ;
 const char plant_other[] =
   "\U0001F331"
   "\U0001FAB4"
@@ -2349,7 +2384,10 @@ const char plant_other[] =
   "\U0001F340"
   "\U0001F341"
   "\U0001F342"
-  "\U0001F343";
+  "\U0001F343"
+  "\U0001fab9" // 14.0-beta
+  "\U0001faba" // 14.0-beta
+  ;
 const char food_fruit[] =
   "\U0001F347"
   "\U0001F348"
@@ -2385,7 +2423,9 @@ const char food_vegetable[] =
   "\U0001F9C5"
   "\U0001F344"
   "\U0001F95C"
-  "\U0001F330";
+  "\U0001F330"
+  "\U0001fad8" // 14.0-beta
+  ;
 const char food_prepared[] =
   "\U0001F35E"
   "\U0001F950"
@@ -2479,14 +2519,18 @@ const char drink[] =
   "\U0001F9CB"
   "\U0001F9C3"
   "\U0001F9C9"
-  "\U0001F9CA";
+  "\U0001F9CA"
+  "\U0001fad7" // 14.0-beta
+  ;
 const char dishware[] =
   "\U0001F962"
   "\U0001F37D"
   "\U0001F374"
   "\U0001F944"
   "\U0001F52A"
-  "\U0001F3FA";
+  "\U0001F3FA"
+  "\U0001fad9" // 14.0-beta
+  ;
 const char place_map[] =
   "\U0001F30D"
   "\U0001F30E"
@@ -2556,7 +2600,9 @@ const char place_other[] =
   "\U0001F3A1"
   "\U0001F3A2"
   "\U0001F488"
-  "\U0001F3AA";
+  "\U0001F3AA"
+  "\U0001f6dd" // 14.0-beta
+  ;
 const char transport_ground[] =
   "\U0001F682"
   "\U0001F683"
@@ -2606,7 +2652,9 @@ const char transport_ground[] =
   "\U0001F6A5"
   "\U0001F6A6"
   "\U0001F6D1"
-  "\U0001F6A7";
+  "\U0001F6A7"
+  "\U0001f6de" // 14.0-beta
+  ;
 const char transport_water[] =
   "\u2693"
   "\u26F5"
@@ -2615,7 +2663,9 @@ const char transport_water[] =
   "\U0001F6F3"
   "\u26F4"
   "\U0001F6E5"
-  "\U0001F6A2";
+  "\U0001F6A2"
+  "\U0001f6df" // 14.0-beta
+  ;
 const char transport_air[] =
   "\u2708"
   "\U0001F6E9"
@@ -2793,7 +2843,10 @@ const char game[] =
   "\u2665"
   "\u2666"
   "\u2663"
-  "\u265F";
+  "\u265F"
+  "\U0001faac" // 14.0-beta
+  "\U0001faa9" // 14.0-beta
+  ;
 const char arts_crafts[] =
   "\U0001F3AD"
   "\U0001F5BC"
@@ -2898,7 +2951,9 @@ const char computer[] =
   "\U0001F4BE"
   "\U0001F4BF"
   "\U0001F4C0"
-  "\U0001F9EE";
+  "\U0001F9EE"
+  "\U0001faab" // 14.0-beta
+  ;
 const char light_video[] =
   "\U0001F3A5"
   "\U0001F39E"
@@ -3037,7 +3092,10 @@ const char medical[] =
   "\U0001FA78"
   "\U0001F48A"
   "\U0001FA79"
-  "\U0001FA7A";
+  "\U0001FA7A"
+  "\U0001fa7c" // 14.0-beta
+  "\U0001fa7b" // 14.0-beta
+  ;
 const char household[] =
   "\U0001F6AA"
   "\U0001F6CF"
@@ -3062,14 +3120,18 @@ const char household[] =
   "\U0001FAA0"
   "\U0001FAA3"
   "\U0001FAA4"
-  "\U0001FAA5";
+  "\U0001FAA5"
+  "\U0001Fae7" // 14.0-beta
+  ;
 const char other_object[] =
   "\U0001F6AC"
   "\u26B0"
   "\U0001FAA6"
   "\u26B1"
   "\U0001F5FF"
-  "\U0001FAA7";
+  "\U0001FAA7"
+  "\U0001faaa" // 14.0-beta
+  ;
 const char transport_sign[] =
   "\U0001F3E7"
   "\U0001F6AE"
@@ -3181,7 +3243,9 @@ const char math[] =
   "\u2795"
   "\u2796"
   "\u2797"
-  "\u267E";
+  "\u267E"
+  "\U0001f7f0" // 14.0-beta
+  ;
 const char punctuation[] =
   "\u203C"
   "\u2049"
@@ -3433,44 +3497,27 @@ mojiplane(struct ncplane* title, int y, int rows, const char* summary){
 static struct ncplane*
 unicode1emoji1(struct ncplane* title, int y){
   const char SUMMARY[] = "[Unicode 1.1 (1993) / Emoji 1.0 (2015), 16 codepoints]";
-  const int ROWS = 4;
+  const int ROWS = 3;
   struct ncplane* n = mojiplane(title, y, ROWS, SUMMARY);
   if(n == NULL){
     return NULL;
   }
-  ncplane_putstr_yx(n, 1, 1, "\u2764 \u2764\ufe0f \u2709 \u2709\ufe0f"
-                             "\u270f \u270f\ufe0f \u2712 \u2712\ufe0f"
-                             "\u2195 \u2195\ufe0f \u2194 \u2194\ufe0f"
-                             "\u2716 \u2716\ufe0f \u2733 \u2733\ufe0f"
-                             "\u2734 \u2734\ufe0f \u2747 \u2747\ufe0f");
-  ncplane_putstr_yx(n, 2, 1, "\u2660 \u2660\ufe0f \u2665 \u2665\ufe0f"
-                             "\u2666 \u2666\ufe0f \u2663 \u2663\ufe0f"
-                             "\u260e \u260e\ufe0f \u27a1 \u27a1\ufe0f");
+  ncplane_putstr_yx(n, 1, 1, "\u2764\u2709\u270f\u2712\u2195\u2194\u2716\u2733\u2734\u2747"
+                             "\u2660\u2665\u2666\u2663\u260e\u27a1");
   return n;
 }
 
 static struct ncplane*
 unicode52(struct ncplane* title, int y){
   const char SUMMARY[] = "[Unicode 5.2 (2009), Emoji 1.0 (2015), 24 codepoints]";
-  const int ROWS = 5;
+  const int ROWS = 4;
   struct ncplane* n = mojiplane(title, y, ROWS, SUMMARY);
   if(n == NULL){
     return NULL;
   }
-  ncplane_putstr_yx(n, 1, 1, "\u26ea \u26ea\ufe0f \u26f2 \u26f2\ufe0f"
-                             "\u26fa \u26fa\ufe0f \u2668 \u2668\ufe0f"
-                             "\u26fd \u26fd\ufe0f \u2693 \u2693\ufe0f"
-                             "\u26f5 \u26f5\ufe0f \u2600 \u2600\ufe0f");
-  ncplane_putstr_yx(n, 2, 1, "\u26c5 \u26c5\ufe0f \u2614 \u2614\ufe0f"
-                             "\u26a1 \u26a1\ufe0f \u26c4 \u26c4\ufe0f"
-                             "\u26be \u26b3\ufe0f \u26d4 \u26d4\ufe0f"
-                             "\u2b06 \u2b06\ufe0f \u2b07 \u2b07\ufe0f");
-  ncplane_putstr_yx(n, 3, 1, "\u2b05 \u2b05\ufe0f \u26ce \u26ce\ufe0f"
-                             "\u203c \u203c\ufe0f \u2049 \u2049\ufe0f"
-                             "\xf0\x9f\x85\xbf \xf0\x9f\x85\xbf\ufe0f"
-                             "\xf0\x9f\x88\xaf \xf0\x9f\x88\xaf\ufe0f"
-                             "\xf0\x9f\x88\x9a \xf0\x9f\x88\x9a\ufe0f"
-                             "\u3299 \u3299\ufe0f");
+  ncplane_putstr_yx(n, 1, 1, "\u26ea\u26f2\u26fa\u2668\u26fd\u2693\u26f5\u2600"
+                             "\u26c5\u2614\u26a1\u26c4\u26be\u26d4\u2b06\u2b07");
+  ncplane_putstr_yx(n, 2, 1, "\u2b05\u26ce\u203c\u2049\xf0\x9f\x85\xbf\xf0\x9f\x88\xaf\xf0\x9f\x88\x9a\u3299");
   return n;
 }
 
@@ -3502,8 +3549,8 @@ unicode60(struct ncplane* title, int y){
   ncplane_putstr_yx(n, 18, 1, "🔍🔎💡🔦🏮📔📕📖📗📘📙📚📓📒📃📜📄📰📑🔖💰💴💵💶💷💸💳💹📧📨📩");
   ncplane_putstr_yx(n, 19, 1, "📤📥📦📫📪📬📭📮📝💼📁📂📅📆📇📈📉📊📋📌📍📎📏📐🔒🔓🔏🔐🔑🔨🔫");
   ncplane_putstr_yx(n, 20, 1, "🔧🔩🔗🔬🔭📡💉💊🚪🚽🚿🛁🚬🗿🏧🚮🚰🚹🚺🚻🚼🚾🛂🛃🛄🛅🚸🚫🚳🚭🚯");
-  ncplane_putstr_yx(n, 21, 1, "🚱🚷📵🔞🔃🔄🔙🔚🔛🔜🔝🔯⛎🔀🔁🔂⏩🔼⏪⏭\ufe0f⏮\ufe0f⏫🔽⏬🎦🔅🔆📶📳📴➕➖");
-  ncplane_putstr_yx(n, 22, 1, "➗❓❔❕💱💲🔱📛🔰✅❌❎➰➿🔟🔠🔡🔢⏯\ufe0f🔣🔤🅰🆎🅱🆑🆒🆓🆔🆕🆖🅾🆗🆘");
+  ncplane_putstr_yx(n, 21, 1, "🚱🚷📵🔞🔃🔄🔙🔚🔛🔜🔝🔯⛎🔀🔁🔂⏩🔼⏪⏭⏮⏫🔽⏬🎦🔅🔆📶📳📴➕➖");
+  ncplane_putstr_yx(n, 22, 1, "➗❓❔❕💱💲🔱📛🔰✅❌❎➰➿🔟🔠🔡🔢⏯🔣🔤🅰🆎🅱🆑🆒🆓🆔🆕🆖🅾🆗🆘");
   ncplane_putstr_yx(n, 23, 1, "🆙🆚🈁🈂🈷🈶🉐🈹🈲🉑🈸🈴🈳🈺🈵🔴🔵🔶🔷🔸🔹🔺🔻💠🔘🔳🔲🏁🚩🎌");
   ncplane_putstr_yx(n, 24, 1, "⛧⛤⛢⛦⛥");
   return n;
@@ -3517,7 +3564,21 @@ unicode7emoji2(struct ncplane* title, int y){
   if(n == NULL){
     return NULL;
   }
-  ncplane_putstr_yx(n, 1, 1, "\xf0\x9f\x97\xa8 \xf0\x9f\x97\xa8\ufe0f");
+  ncplane_putstr_yx(n, 1, 1, "\xf0\x9f\x97\xa8");
+  return n;
+}
+
+static struct ncplane*
+unicode14(struct ncplane* title, int y){
+  const char SUMMARY[] = "[Unicode 14.0β (2021), 37 codepoints]";
+  const int ROWS = 5;
+  struct ncplane* n = mojiplane(title, y, ROWS, SUMMARY);
+  if(n == NULL){
+    return NULL;
+  }
+  ncplane_putstr_yx(n,  1, 1, "\U0001FAE0\U0001FAE2\U0001FAE3\U0001FAE1\U0001fAE5\U0001Fae4\U0001f979\U0001faf1\U0001faf2\U0001faf3\U0001faf4\U0001faf0\U0001faf5");
+  ncplane_putstr_yx(n,  2, 1, "\U0001faf6\U0001f91d\U0001faf1\u200d\U0001faf2\U0001fae6\U0001fac5\U0001fac3\U0001fac4\U0001f9cc\U0001fab8\U0001fab7\U0001fab9\U0001faba\U0001fad8\U0001fad7\U0001fad9\U0001f6dd");
+  ncplane_putstr_yx(n,  3, 1, "\U0001f6de\U0001f6df\U0001faac\U0001faa9\U0001faab\U0001fa7c\U0001fa7b\U0001fae7\U0001faaa\U0001f7f0");
   return n;
 }
 
@@ -3611,6 +3672,7 @@ int mojibake_demo(struct notcurses* nc){
     unicode52(title, dimy + 1),
     unicode60(title, dimy + 1),
     unicode7emoji2(title, dimy + 1),
+    unicode14(title, dimy + 1),
     makegroup(title, dimy + 1, face_smiling, "face-smiling"),
     makegroup(title, dimy + 1, face_affection, "face-affection"),
     makegroup(title, dimy + 1, face_tongue, "face-tongue"),
@@ -3635,6 +3697,7 @@ int mojibake_demo(struct notcurses* nc){
     makegroup(title, dimy + 1, body_parts, "body-parts"),
     //makegroup(title, dimy + 1, person, "person"),
     //makegroup(title, dimy + 1, person_gesture, "person-gesture"),
+    makegroup(title, dimy + 1, person_fantasy, "person-fantasy"),
     makegroup(title, dimy + 1, animal_mammal, "animal-mammal"),
     makegroup(title, dimy + 1, animal_bird, "animal-bird"),
     makegroup(title, dimy + 1, animal_amphibian, "animal-amphibian"),
