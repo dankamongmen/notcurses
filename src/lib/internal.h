@@ -627,6 +627,16 @@ plane_debug(const ncplane* n, bool details){
   }
 }
 
+static inline sprixel*
+sprite_recycle(struct ncplane* n){
+  assert(n->sprite);
+  const struct notcurses* nc = ncplane_notcurses_const(n);
+  if(nc->tcache.pixel_recycle){
+    return nc->tcache.pixel_recycle(n);
+  }
+  return n->sprite;
+}
+
 static inline int
 sprite_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
 //fprintf(stderr, "Destroying sprite %u\n", s->id);

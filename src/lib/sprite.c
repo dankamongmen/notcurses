@@ -54,19 +54,6 @@ void sprixel_free(sprixel* s){
   }
 }
 
-sprixel* sprite_recycle(ncplane* n){
-  assert(n->sprite);
-  const notcurses* nc = ncplane_notcurses_const(n);
-  if(nc->tcache.pixel_shutdown == kitty_shutdown){
-    sprixel* hides = n->sprite;
-    int dimy = hides->dimy;
-    int dimx = hides->dimx;
-    sprixel_hide(hides);
-    return sprixel_alloc(n, dimy, dimx);
-  }
-  return n->sprite;
-}
-
 // store the original (absolute) coordinates from which we moved, so that
 // we can invalidate them in sprite_draw().
 void sprixel_movefrom(sprixel* s, int y, int x){

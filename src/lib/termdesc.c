@@ -52,7 +52,6 @@ setup_sixel_bitmaps(tinfo* ti, int fd, bool invert80){
     ti->pixel_init = sixel_init;
   }
   ti->pixel_draw = sixel_draw;
-  ti->pixel_remove = NULL;
   ti->pixel_destroy = sixel_destroy;
   ti->pixel_wipe = sixel_wipe;
   ti->pixel_shutdown = sixel_shutdown;
@@ -65,7 +64,25 @@ setup_sixel_bitmaps(tinfo* ti, int fd, bool invert80){
 
 // kitty 0.19.3 didn't have C=1, and thus needs sixel_maxy_pristine
 static inline void
-setup_kitty_bitmaps(tinfo* ti, int fd, int sixel_maxy_pristine){
+setup_kitty_bitmaps(tinfo* ti, int fd){
+  ti->pixel_wipe = kitty_wipe;
+  ti->pixel_destroy = kitty_destroy;
+  ti->pixel_remove = kitty_remove;
+  ti->pixel_draw = kitty_draw;
+  ti->pixel_move = kitty_move;
+  ti->pixel_shutdown = kitty_shutdown;
+  ti->sprixel_scale_height = 1;
+  ti->pixel_recycle = kitty_recycle;
+  ti->pixel_rebuild = kitty_rebuild;
+  ti->pixel_clear_all = kitty_clear_all;
+  ti->pixel_trans_auxvec = kitty_trans_auxvec;
+  ti->sixel_maxy_pristine = INT_MAX;
+  set_pixel_blitter(kitty_blit);
+  sprite_init(ti, fd);
+}
+
+static inline void
+setup_kitty_animation(tinfo* ti, int fd){
   ti->pixel_wipe = kitty_wipe;
   ti->pixel_destroy = kitty_destroy;
   ti->pixel_remove = kitty_remove;
@@ -76,7 +93,6 @@ setup_kitty_bitmaps(tinfo* ti, int fd, int sixel_maxy_pristine){
   ti->pixel_rebuild = kitty_rebuild;
   ti->pixel_clear_all = kitty_clear_all;
   ti->pixel_trans_auxvec = kitty_trans_auxvec;
-  ti->sixel_maxy_pristine = sixel_maxy_pristine;
   set_pixel_blitter(kitty_blit);
   sprite_init(ti, fd);
 }
@@ -387,11 +403,15 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
     if(add_smulx_escapes(ti, tablelen, tableused)){
       return -1;
     }
-    // kitty only introduced C=1 in 0.20.0
-    if(compare_versions(ti->termversion, "0.20.0") < 0){
-      setup_kitty_bitmaps(ti, fd, INT_MAX);
-    }else{
-      setup_kitty_bitmaps(ti, fd, 0);
+    // kitty only introduced C=1 in 0.20.0, and many features we use were only
+    // introduced in 0.19.3 (q=2, p=, i=). we do not support kitty graphics on
+    // anything less than 0.19.3.
+    if(compare_versions(ti->termversion, "0.19.3") >= 0){
+      if(compare_versions(ti->termversion, "0.20.0") < 0){
+        setup_kitty_bitmaps(ti, fd);
+      }else{
+        setup_kitty_animation(ti, fd);
+      }
     }
   }else if(qterm == TERMINAL_ALACRITTY){
     termname = "Alacritty";

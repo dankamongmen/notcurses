@@ -446,8 +446,9 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
 //fprintf(stderr, "total: %d chunks = %d, s=%d,v=%d\n", total, chunks, lenx, leny);
   while(chunks--){
     if(totalout == 0){
-      *parse_start = fprintf(fp, "\e_Gf=32,s=%d,v=%d,i=%d,p=1,a=T,%c=1%s;",
-                             lenx, leny, sprixelid, chunks ? 'm' : 'q',
+      *parse_start = fprintf(fp, "\e_Gf=32,s=%d,v=%d,i=%d,p=1,a=t,%s%s;",
+                             lenx, leny, sprixelid,
+                             chunks ? "m=1" : "q=2",
                              scroll ? "" : ",C=1");
     }else{
       fprintf(fp, "\e_G%sm=%d;", chunks ? "" : "q=2,", chunks ? 1 : 0);
@@ -509,6 +510,7 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
     }
     fprintf(fp, "\e\\");
   }
+  fprintf(fp, "\e_Ga=p,i=%d,p=1,q=2\e\\", sprixelid);
   if(fclose(fp) == EOF){
     return -1;
   }
@@ -614,6 +616,7 @@ int kitty_destroy(const notcurses* nc __attribute__ ((unused)),
 
 // returns the number of bytes written
 int kitty_draw(const ncpile* p, sprixel* s, FILE* out){
+//fprintf(stderr, "KITTY DRAW: %u\n", s->id);
   (void)p;
   int ret = s->glyphlen;
   if(fwrite(s->glyph, s->glyphlen, 1, out) != 1){
@@ -625,6 +628,7 @@ int kitty_draw(const ncpile* p, sprixel* s, FILE* out){
 
 // returns -1 on failure, 0 on success (move bytes do not count for sprixel stats)
 int kitty_move(const ncpile* p, sprixel* s, FILE* out){
+//fprintf(stderr, "KITTY MOVE: %u\n", s->id);
   (void)p;
   int ret = 0;
   if(fprintf(out, "\e_Ga=p,i=%d,p=1,q=2\e\\", s->id) < 0){
@@ -654,4 +658,12 @@ uint8_t* kitty_trans_auxvec(const tinfo* ti){
     memset(a, 0, slen);
   }
   return a;
+}
+
+sprixel* kitty_recycle(ncplane* n){
+  sprixel* hides = n->sprite;
+  int dimy = hides->dimy;
+  int dimx = hides->dimx;
+  sprixel_hide(hides);
+  return sprixel_alloc(n, dimy, dimx);
 }

@@ -181,12 +181,16 @@ tinfo_debug_bitmaps(struct ncplane* n, const tinfo* ti, const char* indent){
         ncplane_printf(n, "%ssixel colorregs: %u", indent, ti->color_registers);
       }
     }else{
-      ncplane_printf(n, "%srgba pixel graphics supported", indent);
+      if(ti->sixel_maxy_pristine){
+        ncplane_printf(n, "%srgba pixel graphics supported", indent);
+      }else{
+        ncplane_printf(n, "%srgba animation supported", indent);
+      }
     }
     char* path = prefix_data("notcurses.png");
     if(path){
       // FIXME hold off until #1649 is resolved
-      //display_logo(ti, n, path);
+      display_logo(ti, n, path);
       free(path);
     }
   }
