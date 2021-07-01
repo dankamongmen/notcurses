@@ -69,7 +69,8 @@ unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
     ncplane_printf(n, "⎪🮇▊⎪\n");
     braille_viz(n, "⎣",NCBRAILLEEGCS + 192, "⎦", indent);
     ncplane_printf(n, "⎪▕▉⎪\n");
-    ncplane_printf(n, "%s▔🭶🭷🭸🭹🭺🭻▁  %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc 🭨🭪          ⎛%ls⎞ ⎩ █⎭\n",
+
+    ncplane_printf(n, "%s ▔🭶🭷🭸🭹🭺🭻▁ %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc 🭨🭪          ⎛%ls⎞ ⎩ █⎭\n",
                    indent,
                    NCANGLESBR[0], NCANGLESBL[0],
                    NCANGLESBR[1], NCANGLESBL[1],
