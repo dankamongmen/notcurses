@@ -69,10 +69,34 @@ unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
     ncplane_printf(n, "⎪🮇▊⎪\n");
     braille_viz(n, "⎣",NCBRAILLEEGCS + 192, "⎦", indent);
     ncplane_printf(n, "⎪▕▉⎪\n");
-    ncplane_printf(n, "%s▔🭶🭷🭸🭹🭺🭻▁  🭁 🭂 🭃 🭄 🭅 🭆 🭑 🭐 🭏 🭎 🭍 🭌 🭆🭑 🭄🭏 🭅🭐 🭃🭎 🭂🭍 🭁🭌 🭨🭪 ⎛%ls⎞ ⎩ █⎭\n",
-                   indent, NCEIGHTHSBOTTOM);
-    ncplane_printf(n, "%s ▏🭰🭱🭲🭳🭴🭵▕ 🭒 🭓 🭔 🭕 🭖 🭧 🭜 🭟 🭠 🭡 🭞 🭝 🭧🭜 🭕🭠 🭖🭡 🭔🭟 🭓🭞 🭒🭝 🭪🭨 ⎝%ls⎠     \n",
-                   indent, NCEIGHTSTOP);
+    ncplane_printf(n, "%s▔🭶🭷🭸🭹🭺🭻▁  %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc 🭨🭪          ⎛%ls⎞ ⎩ █⎭\n",
+                   indent,
+                   NCANGLESBR[0], NCANGLESBL[0],
+                   NCANGLESBR[1], NCANGLESBL[1],
+                   NCANGLESBR[2], NCANGLESBL[2],
+                   NCANGLESBR[3], NCANGLESBL[3],
+                   NCANGLESBR[4], NCANGLESBL[4],
+                   NCANGLESBR[5], NCANGLESBL[5],
+                   NCANGLESBR[6], NCANGLESBL[6],
+                   NCANGLESBR[7], NCANGLESBL[7],
+                   NCANGLESBR[8], NCANGLESBL[8],
+                   NCANGLESBR[9], NCANGLESBL[9],
+                   NCANGLESBR[10], NCANGLESBL[10],
+                   NCEIGHTHSBOTTOM);
+    ncplane_printf(n, "%s ▏🭰🭱🭲🭳🭴🭵▕ %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc 🭪🭨          ⎝%ls⎠     \n",
+                   indent,
+                   NCANGLESUR[0], NCANGLESUL[0],
+                   NCANGLESUR[1], NCANGLESUL[1],
+                   NCANGLESUR[2], NCANGLESUL[2],
+                   NCANGLESUR[3], NCANGLESUL[3],
+                   NCANGLESUR[4], NCANGLESUL[4],
+                   NCANGLESUR[5], NCANGLESUL[5],
+                   NCANGLESUR[6], NCANGLESUL[6],
+                   NCANGLESUR[7], NCANGLESUL[7],
+                   NCANGLESUR[8], NCANGLESUL[8],
+                   NCANGLESUR[9], NCANGLESUL[9],
+                   NCANGLESUR[10], NCANGLESUL[10],
+                   NCEIGHTSTOP);
     int y, x;
     ncplane_cursor_yx(n, &y, &x);
     // the symbols for legacy computing
@@ -82,8 +106,8 @@ unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
     ncplane_stain(n, y - 1, 65, ul, lr, ul, lr);
     // the braille
     ncplane_cursor_move_yx(n, y - 6, 0);
-    ul = CHANNEL_RGB_INITIALIZER(0x7f, 0x25, 0x24);
-    lr = CHANNEL_RGB_INITIALIZER(0x24, 0x25, 0x7f);
+    ul = CHANNEL_RGB_INITIALIZER(0x2f, 0x25, 0x24);
+    lr = CHANNEL_RGB_INITIALIZER(0x74, 0x25, 0x2f);
     ncplane_stain(n, y - 3, 65, ul, lr, ul, lr);
     // the sextants
     ncplane_cursor_move_yx(n, y - 10, 27);
