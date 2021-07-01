@@ -68,7 +68,7 @@ set(PKGCONFIG_DIR "${CMAKE_INSTALL_PREFIX}/libdata/pkgconfig")
 endif()
 
 # global compiler flags
-add_compile_definitions(FORTIFY_SOURCE=2)
+add_compile_definitions(_FORTIFY_SOURCE=2)
 add_compile_options(-Wall -Wextra -W -Wshadow -Wformat -Wno-nonnull-compare
                     -Wformat-security -fexceptions -fstrict-aliasing
                     -Wno-string-plus-int)
