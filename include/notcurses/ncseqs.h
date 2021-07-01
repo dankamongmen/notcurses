@@ -20,7 +20,14 @@ extern "C" {
 #define NCBOXASCIIW  L"/\\\\/-|"
 #define NCBOXOUTERW  L"🭽🭾🭼🭿▁🭵🭶🭰"
 
+#define NCWHITESQUARES "◲◱◳◰"
+#define NCWHITECIRCLES "◶◵◷◴"
+
 // symbols for legacy computing
+#define NCANGLESBR L"🭁🭂🭃🭄🭅🭆🭇🭈🭉🭊🭋◢"
+#define NCANGLESUR L"🭒🭓🭔🭕🭖🭧🭢🭣🭤🭥🭦◥"
+#define NCANGLESBL L"🭌🭍🭎🭏🭐🭑🬼🬽🬾🬿🭀◣"
+#define NCANGLESUL L"🭝🭞🭡🭠🭟🭜🭗🭘🭙🭚🭛◤"
 #define NCEIGHTHSBOTTOM L" ▁▂▃▄▅▆▇█"
 #define NCEIGHTSTOP L"█🮆🮅🮄▀🮃🮂▔ "
 #define NCHALFBLOCKS L" ▀▄█"
