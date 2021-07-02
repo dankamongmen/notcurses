@@ -574,9 +574,9 @@ ncfputs(const char* ext, FILE* out){
 static inline int
 ncfputc(char c, FILE* out){
 #ifdef __USE_GNU
-  return fputc_unlocked(c, out);
+  return putc_unlocked(c, out);
 #else
-  return fputc(c, out);
+  return putc(c, out);
 #endif
 }
 
