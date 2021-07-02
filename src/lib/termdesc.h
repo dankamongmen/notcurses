@@ -134,8 +134,8 @@ typedef struct tinfo {
   // execute move (erase old graphic, place at new location) if non-NULL
   int (*pixel_move)(const struct ncpile* p, struct sprixel* s, FILE* out);
   int (*pixel_destroy)(const struct notcurses* nc, const struct ncpile* p, FILE* out, struct sprixel* s);
-  int (*pixel_shutdown)(int fd);  // called during context shutdown
-  int (*pixel_clear_all)(int fd); // called during startup, kitty only
+  int (*pixel_shutdown)(int fd);    // called during context shutdown
+  int (*pixel_clear_all)(FILE* fp); // called during context startup
   uint8_t* (*pixel_trans_auxvec)(const struct tinfo* ti); // create tranparent auxvec
   // sprixel parameters. there are several different sprixel protocols, of
   // which we support sixel and kitty. the kitty protocol is used based

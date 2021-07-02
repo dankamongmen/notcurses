@@ -635,9 +635,9 @@ int kitty_move(const ncpile* p, sprixel* s, FILE* out){
 }
 
 // clears all kitty bitmaps
-int kitty_clear_all(int fd){
+int kitty_clear_all(FILE* fp){
 //fprintf(stderr, "KITTY UNIVERSAL ERASE\n");
-  return tty_emit("\e_Ga=d\e\\", fd);
+  return term_emit("\e_Ga=d\e\\", fp, false);
 }
 
 int kitty_shutdown(int fd){

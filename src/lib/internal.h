@@ -780,11 +780,11 @@ int sprixel_load(sprixel* spx, char* s, int bytes, int pixy, int pixx, int parse
 int sixel_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
 int kitty_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
 int kitty_remove(int id, FILE* out);
-int kitty_clear_all(int fd);
+int kitty_clear_all(FILE* fp);
 int sixel_init(const tinfo* t, int fd);
 int sixel_init_inverted(const tinfo* t, int fd);
 int sprite_init(const tinfo* t, int fd);
-int sprite_clear_all(const tinfo* t, int fd);
+int sprite_clear_all(const tinfo* t, FILE* fp);
 int kitty_shutdown(int fd);
 int sixel_shutdown(int fd);
 uint8_t* sixel_trans_auxvec(const struct tinfo* ti);
@@ -1198,24 +1198,28 @@ tty_emit(const char* seq, int fd){
   return 0;
 }
 
+// reliably flush a FILE*
+static inline int
+ncflush(FILE* out){
+  while(fflush(out) == EOF){
+    if(errno != EAGAIN && errno != EINTR && errno != EBUSY){
+      logerror("Unrecoverable error flushing io (%s)\n", strerror(errno));
+      return -1;
+    }
+  }
+  return 0;
+}
+
 static inline int
 term_emit(const char* seq, FILE* out, bool flush){
   if(!seq){
     return -1;
   }
   if(ncfputs(seq, out) == EOF){
-//fprintf(stderr, "Error emitting %zub escape (%s)\n", strlen(seq), strerror(errno));
+    logerror("Error emitting %zub escape (%s)\n", strlen(seq), strerror(errno));
     return -1;
   }
-  if(flush){
-    while(fflush(out) == EOF){
-      if(errno != EAGAIN && errno != EINTR && errno != EBUSY){
-        fprintf(stderr, "Error flushing after %zub sequence (%s)\n", strlen(seq), strerror(errno));
-        return -1;
-      }
-    }
-  }
-  return 0;
+  return flush ? ncflush(out) : 0;
 }
 
 static inline int
