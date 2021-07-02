@@ -901,6 +901,7 @@ init_banner(const notcurses* nc){
               sizeof(struct crender), nc->tcache.caps.colors);
     }
     const char* setaf;
+    liness += 3;
     if(nc->tcache.caps.rgb && (setaf = get_escape(&nc->tcache, ESCAPE_SETAF))){
       ncfputc('+', nc->ttyfp);
       term_fg_rgb8(&nc->tcache, stdout, 0xe0, 0x60, 0x60);
@@ -912,7 +913,6 @@ init_banner(const notcurses* nc){
       term_fg_palindex(nc, nc->ttyfp, nc->tcache.caps.colors <= 256 ?
                        14 % nc->tcache.caps.colors : 0x2080e0);
     }
-    ++liness;
     fprintf(nc->ttyfp, "\ncompiled with gcc-%s, %zuB %s-endian cells\n"
             "terminfo from %s\n",
             __VERSION__,
@@ -927,7 +927,6 @@ init_banner(const notcurses* nc){
 #error "No __BYTE_ORDER__ definition"
 #endif
             , curses_version());
-    liness += 3;
     ncvisual_printbanner(nc);
     ++liness;
     // don't go sending these to stderr; it would fuck up our line count, for
