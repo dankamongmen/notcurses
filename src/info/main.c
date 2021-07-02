@@ -43,34 +43,38 @@ static int
 unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
   if(ti->caps.utf8){
     // all NCHALFBLOCKS are contained within NCQUADBLOCKS
-    ncplane_printf(n, "%s%ls ⎧%.122ls⎫ 🯰🯱🯲🯳🯴🯵🯶🯷🯸🯹\u2157\u2158\u2159\u215a\u215b ⎧█ ⎫\n",
-                   indent, NCQUADBLOCKS, NCSEXBLOCKS);
-    ncplane_printf(n, "%s                 ⎩%ls⎭ \u00bc\u00bd\u00be\u2150\u2151\u2152\u2153\u2154\u2155\u2156\u215c\u215d\u215e\u215f\u2189 ⎪🮋▏⎪\n",
-                   indent, NCSEXBLOCKS + 32);
-    ncplane_printf(n, "%s %.6ls%.3ls   %.6ls%.3ls   %.6ls%.3ls   %.6ls%.3ls   %.8ls%.4ls                                       ⎪🮊▎⎪\n",
+    ncplane_printf(n, "%s%ls ⎧%.122ls⎫ 🯰🯱🯲🯳🯴🯵🯶🯷🯸🯹\u2157\u2158\u2159\u215a\u215b ⎧%lc%lc⎫\n",
+                   indent, NCQUADBLOCKS, NCSEXBLOCKS,
+                   NCEIGHTHSR[0], NCEIGHTHSL[0]);
+    ncplane_printf(n, "%s                 ⎩%ls⎭ \u00bc\u00bd\u00be\u2150\u2151\u2152\u2153\u2154\u2155\u2156\u215c\u215d\u215e\u215f\u2189 ⎪%lc%lc⎪\n",
+                   indent, NCSEXBLOCKS + 32,
+                   NCEIGHTHSR[1], NCEIGHTHSL[1]);
+    ncplane_printf(n, "%s %.6ls%.3ls   %.6ls%.3ls   %.6ls%.3ls   %.6ls%.3ls   %.8ls%.4ls                                       ⎪%lc%lc⎪\n",
                    indent,
                    NCBOXLIGHTW, NCBOXLIGHTW + 4,
                    NCBOXHEAVYW, NCBOXHEAVYW + 4,
                    NCBOXROUNDW, NCBOXROUNDW + 4,
                    NCBOXDOUBLEW, NCBOXDOUBLEW + 4,
-                   NCBOXOUTERW, NCBOXOUTERW + 4);
-    ncplane_printf(n, "%s %.6ls%.3ls   %.6ls%.3ls   %.6ls%.3ls   %.6ls%.3ls   %.8ls%.4ls                                       ⎪🮉▍⎪\n",
+                   NCBOXOUTERW, NCBOXOUTERW + 4,
+                   NCEIGHTHSR[2], NCEIGHTHSL[2]);
+    ncplane_printf(n, "%s %.6ls%.3ls   %.6ls%.3ls   %.6ls%.3ls   %.6ls%.3ls   %.8ls%.4ls                                       ⎪%lc%lc⎪\n",
                    indent,
                    NCBOXLIGHTW + 2, NCBOXLIGHTW + 5,
                    NCBOXHEAVYW + 2, NCBOXHEAVYW + 5,
                    NCBOXROUNDW + 2, NCBOXROUNDW + 5,
                    NCBOXDOUBLEW + 2, NCBOXDOUBLEW + 5,
-                   NCBOXOUTERW + 2, NCBOXOUTERW + 5);
+                   NCBOXOUTERW + 2, NCBOXOUTERW + 5,
+                   NCEIGHTHSR[3], NCEIGHTHSL[3]);
     braille_viz(n, "⎡", NCBRAILLEEGCS, "⎤", indent);
-    ncplane_printf(n, "⎨▐▌⎬\n");
+    ncplane_printf(n, "⎨%lc%lc⎬\n", NCEIGHTHSR[4], NCEIGHTHSL[4]);
     braille_viz(n, "⎢", NCBRAILLEEGCS + 64, "⎥", indent);
-    ncplane_printf(n, "⎪🮈▋⎪\n");
+    ncplane_printf(n, "⎪%lc%lc⎪\n", NCEIGHTHSR[5], NCEIGHTHSL[5]);
     braille_viz(n, "⎢",  NCBRAILLEEGCS + 128, "⎥", indent);
-    ncplane_printf(n, "⎪🮇▊⎪\n");
+    ncplane_printf(n, "⎪%lc%lc⎪\n", NCEIGHTHSR[6], NCEIGHTHSL[6]);
     braille_viz(n, "⎣",NCBRAILLEEGCS + 192, "⎦", indent);
-    ncplane_printf(n, "⎪▕▉⎪\n");
+    ncplane_printf(n, "⎩%lc%lc⎭\n", NCEIGHTHSR[7], NCEIGHTHSL[7]);
 
-    ncplane_printf(n, "%s ▔🭶🭷🭸🭹🭺🭻▁ %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc 🭨🭪          ⎛%ls⎞ ⎩ █⎭\n",
+    ncplane_printf(n, "%s ▔🭶🭷🭸🭹🭺🭻▁ %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc 🭨🭪          ⎛%ls⎞\n",
                    indent,
                    NCANGLESBR[0], NCANGLESBL[0],
                    NCANGLESBR[1], NCANGLESBL[1],
@@ -83,21 +87,21 @@ unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
                    NCANGLESBR[8], NCANGLESBL[8],
                    NCANGLESBR[9], NCANGLESBL[9],
                    NCANGLESBR[10], NCANGLESBL[10],
-                   NCEIGHTHSBOTTOM);
-    ncplane_printf(n, "%s ▏🭰🭱🭲🭳🭴🭵▕ %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc 🭪🭨          ⎝%ls⎠     \n",
+                   NCEIGHTHSB);
+    ncplane_printf(n, "%s ▏🭰🭱🭲🭳🭴🭵▕ %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc 🭪🭨          ⎝%ls⎠\n",
                    indent,
-                   NCANGLESUR[0], NCANGLESUL[0],
-                   NCANGLESUR[1], NCANGLESUL[1],
-                   NCANGLESUR[2], NCANGLESUL[2],
-                   NCANGLESUR[3], NCANGLESUL[3],
-                   NCANGLESUR[4], NCANGLESUL[4],
-                   NCANGLESUR[5], NCANGLESUL[5],
-                   NCANGLESUR[6], NCANGLESUL[6],
-                   NCANGLESUR[7], NCANGLESUL[7],
-                   NCANGLESUR[8], NCANGLESUL[8],
-                   NCANGLESUR[9], NCANGLESUL[9],
-                   NCANGLESUR[10], NCANGLESUL[10],
-                   NCEIGHTSTOP);
+                   NCANGLESTR[0], NCANGLESTL[0],
+                   NCANGLESTR[1], NCANGLESTL[1],
+                   NCANGLESTR[2], NCANGLESTL[2],
+                   NCANGLESTR[3], NCANGLESTL[3],
+                   NCANGLESTR[4], NCANGLESTL[4],
+                   NCANGLESTR[5], NCANGLESTL[5],
+                   NCANGLESTR[6], NCANGLESTL[6],
+                   NCANGLESTR[7], NCANGLESTL[7],
+                   NCANGLESTR[8], NCANGLESTL[8],
+                   NCANGLESTR[9], NCANGLESTL[9],
+                   NCANGLESTR[10], NCANGLESTL[10],
+                   NCEIGHTHST);
     int y, x;
     ncplane_cursor_yx(n, &y, &x);
     // the symbols for legacy computing
@@ -169,11 +173,13 @@ tinfo_debug_bitmaps(struct ncplane* n, const tinfo* ti, const char* indent){
   if(!ti->pixel_draw){
     ncplane_printf(n, "%sdidn't detect bitmap graphics support", indent);
   }else{ // we do have support; draw one
-    if(ti->sixel_maxy){
-      ncplane_printf(n, "%smax sixel size: %dx%d colorregs: %u",
-                    indent, ti->sixel_maxy, ti->sixel_maxx, ti->color_registers);
-    }else if(ti->color_registers){
-      ncplane_printf(n, "%ssixel colorregs: %u", indent, ti->color_registers);
+    if(ti->color_registers){
+      if(ti->sixel_maxy){
+        ncplane_printf(n, "%smax sixel size: %dx%d colorregs: %u",
+                      indent, ti->sixel_maxy, ti->sixel_maxx, ti->color_registers);
+      }else{
+        ncplane_printf(n, "%ssixel colorregs: %u", indent, ti->color_registers);
+      }
     }else{
       ncplane_printf(n, "%srgba pixel graphics supported", indent);
     }
