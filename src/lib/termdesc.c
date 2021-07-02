@@ -691,7 +691,15 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
   // registers. we make use of no more than 256. this needs to happen
   // after heuristics, since the choice of sixel_init() depends on it.
   if(ti->color_registers >= 64){
-    setup_sixel_bitmaps(ti, fd, qterm == TERMINAL_MLTERM);
+    bool invertsixel = false;
+    // MLterm 3.9.1 brings it into line with other terminals, and we should
+    // stop inverting the meaning / applying the cursor hack for 3.9.1+ FIXME
+    if(qterm == TERMINAL_MLTERM){
+      if(compare_versions(ti->termversion, "3.9.1") < 0){
+        invertsixel = true;
+      }
+    }
+    setup_sixel_bitmaps(ti, fd, invertsixel);
   }
   return 0;
 
