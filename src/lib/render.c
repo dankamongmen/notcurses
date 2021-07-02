@@ -1081,15 +1081,12 @@ notcurses_rasterize_inner(notcurses* nc, ncpile* p, FILE* out, unsigned* asu){
   if(rasterize_core(nc, p, out, 1)){
     return -1;
   }
-  if(fflush(out)){
-    return -1;
-  }
 #define MIN_ASU_SIZE 4096 // FIXME
   if(*asu){
     if(nc->rstate.mstrsize >= MIN_ASU_SIZE){
       const char* endasu = get_escape(&nc->tcache, ESCAPE_ESU);
       if(endasu){
-        if(fprintf(out, "%s", endasu) < 0 || fflush(out)){
+        if(fprintf(out, "%s", endasu) < 0){
           return -1;
         }
       }else{
@@ -1100,6 +1097,9 @@ notcurses_rasterize_inner(notcurses* nc, ncpile* p, FILE* out, unsigned* asu){
     }
   }
 #undef MIN_ASU_SIZE
+  if(ncflush(out)){
+    return -1;
+  }
   return nc->rstate.mstrsize;
 }
 
@@ -1491,7 +1491,7 @@ int notcurses_cursor_enable(notcurses* nc, int y, int x){
     nc->cursorx = x;
     return 0;
   }
-  if(tty_emit(cnorm, nc->ttyfd) || fflush(nc->ttyfp) == EOF){
+  if(tty_emit(cnorm, nc->ttyfd) || ncflush(nc->ttyfp)){
     return -1;
   }
   nc->cursory = y;
@@ -1507,7 +1507,7 @@ int notcurses_cursor_disable(notcurses* nc){
   if(nc->ttyfd >= 0){
     const char* cinvis = get_escape(&nc->tcache, ESCAPE_CIVIS);
     if(cinvis){
-      if(!tty_emit(cinvis, nc->ttyfd) && !fflush(nc->ttyfp)){
+      if(!tty_emit(cinvis, nc->ttyfd) && !ncflush(nc->ttyfp)){
         nc->cursory = -1;
         nc->cursorx = -1;
         return 0;
