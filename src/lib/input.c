@@ -35,7 +35,7 @@ int cbreak_mode(int ttyfd, const struct termios* tpreserved){
   modtermios.c_lflag &= (~ECHO & ~ICANON);
   modtermios.c_iflag &= ~ICRNL;
   if(tcsetattr(ttyfd, TCSANOW, &modtermios)){
-    fprintf(stderr, "Error disabling echo / canonical on %d (%s)\n", ttyfd, strerror(errno));
+    logerror("Error disabling echo / canonical on %d (%s)\n", ttyfd, strerror(errno));
     return -1;
   }
   return 0;
@@ -136,11 +136,11 @@ input_free_esctrie(esctrie** eptr){
 static int
 ncinputlayer_add_input_escape(ncinputlayer* nc, const char* esc, char32_t special){
   if(esc[0] != NCKEY_ESC || strlen(esc) < 2){ // assume ESC prefix + content
-    fprintf(stderr, "Not an escape: %s (0x%x)\n", esc, special);
+    logerror("Not an escape: %s (0x%x)\n", esc, special);
     return -1;
   }
   if(!nckey_supppuab_p(special) && special != NCKEY_CSI){
-    fprintf(stderr, "Not a supplementary-b PUA char: %u (0x%x)\n", special, special);
+    logerror("Not a supplementary-b PUA char: %u (0x%x)\n", special, special);
     return -1;
   }
   esctrie** cur = &nc->inputescapes;
@@ -170,7 +170,7 @@ ncinputlayer_add_input_escape(ncinputlayer* nc, const char* esc, char32_t specia
   // it appears that multiple keys can be mapped to the same escape string. as
   // an example, see "kend" and "kc1" in st ("simple term" from suckless) :/.
   if((*cur)->special != NCKEY_INVALID){ // already had one here!
-    fprintf(stderr, "Warning: already added escape (got 0x%x, wanted 0x%x)\n", (*cur)->special, special);
+    logwarn("Warning: already added escape (got 0x%x, wanted 0x%x)\n", (*cur)->special, special);
   }else{
     (*cur)->special = special;
   }
@@ -595,12 +595,10 @@ prep_special_keys(ncinputlayer* nc){
     }
 //fprintf(stderr, "support for terminfo's %s: %s\n", k->tinfo, seq);
     if(ncinputlayer_add_input_escape(nc, seq, k->key)){
-      fprintf(stderr, "Couldn't add support for %s\n", k->tinfo);
       return -1;
     }
   }
   if(ncinputlayer_add_input_escape(nc, CSIPREFIX, NCKEY_CSI)){
-    fprintf(stderr, "Couldn't add support for %s\n", k->tinfo);
     return -1;
   }
   return 0;
