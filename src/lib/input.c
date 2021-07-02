@@ -768,6 +768,7 @@ stash_string(query_state* inits){
         { .prefix = "contour ", .suffix = 0, .term = TERMINAL_CONTOUR, },
         { .prefix = "kitty(", .suffix = ')', .term = TERMINAL_KITTY, },
         { .prefix = "foot(", .suffix = ')', .term = TERMINAL_FOOT, },
+        { .prefix = "mlterm(", .suffix = ')', .term = TERMINAL_MLTERM, },
         { .prefix = "iTerm2 [", .suffix = ']', .term = TERMINAL_ITERM, },
         { .prefix = NULL, .suffix = 0, .term = TERMINAL_UNKNOWN, },
       }, *xtv;
@@ -784,6 +785,7 @@ stash_string(query_state* inits){
       if(strcmp(inits->runstring, "xterm-kitty") == 0){
         inits->qterm = TERMINAL_KITTY;
       }else if(strcmp(inits->runstring, "mlterm") == 0){
+        // MLterm prior to late 3.9.1 only reports via XTGETTCAP
         inits->qterm = TERMINAL_MLTERM;
       }
       break;
