@@ -323,7 +323,7 @@ void free_plane(ncplane* p){
       }
     }
     if(p->sprite){
-      sprixel_hide(p->sprite);
+      sprixel_hide(p->sprite, false);
     }
     if(p->tam){
       for(int y = 0 ; y < p->leny ; ++y){
@@ -689,7 +689,7 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
   }
   notcurses* nc = ncplane_notcurses(n);
   if(n->sprite){
-    sprixel_hide(n->sprite);
+    sprixel_hide(n->sprite, false);
   }
   // we're good to resize. we'll need alloc up a new framebuffer, and copy in
   // those elements we're retaining, zeroing out the rest. alternatively, if
@@ -2085,7 +2085,7 @@ void ncplane_yx(const ncplane* n, int* y, int* x){
 
 void ncplane_erase(ncplane* n){
   if(n->sprite){
-    sprixel_hide(n->sprite);
+    sprixel_hide(n->sprite, false);
   }
   // we must preserve the background, but a pure nccell_duplicate() would be
   // wiped out by the egcpool_dump(). do a duplication (to get the stylemask

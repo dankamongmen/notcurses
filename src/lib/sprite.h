@@ -22,6 +22,7 @@ typedef enum {
   SPRIXEL_INVALIDATED, // sprixel needs to be redrawn
   SPRIXEL_HIDE,        // sprixel queued for destruction
   SPRIXEL_MOVED,       // sprixel needs be moved
+  SPRIXEL_REPLACED,    // sprixel needs be killed between load and display
 } sprixel_e;
 
 // elements of the T-A matrix describe transparency and annihilation at a
@@ -166,7 +167,7 @@ int kitty_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
 int kitty_rebuild_animation(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
 
 void sprixel_free(sprixel* s);
-void sprixel_hide(sprixel* s);
+void sprixel_hide(sprixel* s, unsigned replaced);
 
 sprixel* kitty_recycle(struct ncplane* n);
 int kitty_draw(const struct ncpile *p, sprixel* s, FILE* out);

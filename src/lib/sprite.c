@@ -57,7 +57,7 @@ void sprixel_free(sprixel* s){
 // store the original (absolute) coordinates from which we moved, so that
 // we can invalidate them in sprite_draw().
 void sprixel_movefrom(sprixel* s, int y, int x){
-  if(s->invalidated != SPRIXEL_HIDE){
+  if(s->invalidated != SPRIXEL_HIDE && s->invalidated != SPRIXEL_REPLACED){
     if(s->invalidated != SPRIXEL_MOVED){
     // FIXME if we're Sixel, we need to effect any wipes that were run
     // (we normally don't because redisplaying sixel doesn't change
@@ -71,16 +71,16 @@ void sprixel_movefrom(sprixel* s, int y, int x){
   }
 }
 
-void sprixel_hide(sprixel* s){
+void sprixel_hide(sprixel* s, unsigned replace){
   if(ncplane_pile(s->n) == NULL){ // ncdirect case; destroy now
 //fprintf(stderr, "HIDING %d IMMEDIATELY\n", s->id);
     sprixel_free(s);
     return;
   }
   // otherwise, it'll be killed in the next rendering cycle.
-  if(s->invalidated != SPRIXEL_HIDE){
+  if(s->invalidated != SPRIXEL_HIDE && s->invalidated != SPRIXEL_REPLACED){
 //fprintf(stderr, "HIDING %d\n", s->id);
-    s->invalidated = SPRIXEL_HIDE;
+    s->invalidated = replace ? SPRIXEL_REPLACED : SPRIXEL_HIDE;
     s->movedfromy = ncplane_abs_y(s->n);
     s->movedfromx = ncplane_abs_x(s->n);
     // guard; might have already been replaced

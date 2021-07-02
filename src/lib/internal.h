@@ -640,8 +640,8 @@ sprite_recycle(struct ncplane* n){
 
 static inline int
 sprite_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
-//fprintf(stderr, "Destroying sprite %u\n", s->id);
-//sprixel_debug(s, stderr);
+fprintf(stderr, "Destroying sprite %u\n", s->id);
+sprixel_debug(s, stderr);
   return nc->tcache.pixel_destroy(nc, p, out, s);
 }
 
@@ -649,7 +649,8 @@ sprite_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
 // returns -1 on error, or the number of bytes written.
 static inline int
 sprite_draw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
-//sprixel_debug(s, stderr);
+fprintf(stderr, "Drawing sprite %u\n", s->id);
+sprixel_debug(s, stderr);
   return n->tcache.pixel_draw(p, s, out);
 }
 

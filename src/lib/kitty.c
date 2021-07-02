@@ -319,7 +319,7 @@ int kitty_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
 //fprintf(stderr, "pixoffset: %d next: %d tripbytes: %d tripskip: %d thisrow: %d\n", pixoffset, nextpixel, tripbytes, tripskip, thisrow);
       // the maximum number of pixels we can convert is the minimum of the
       // pixels remaining in the target row, and the pixels left in the chunk.
-//fprintf(stderr, "inchunk: %d total: %d triples: %d\n", inchunk, totalpixels, triples);
+fprintf(stderr, "restore %u inchunk: %d total: %d triples: %d\n", s->id, inchunk, totalpixels, triples);
       int chomped = kitty_restore(c + tripbytes, tripskip, thisrow,
                                   inchunk - triples * 3, auxvec + auxvecidx,
                                   &state);
@@ -354,7 +354,7 @@ int kitty_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
 }
 
 int kitty_wipe(sprixel* s, int ycell, int xcell){
-//fprintf(stderr, "NEW WIPE %d %d/%d\n", s->id, ycell, xcell);
+fprintf(stderr, "NEW WIPE %d %d/%d\n", s->id, ycell, xcell);
   uint8_t* auxvec = sprixel_auxiliary_vector(s);
   const int totalpixels = s->pixy * s->pixx;
   const int xpixels = s->cellpxx;
@@ -399,7 +399,7 @@ int kitty_wipe(sprixel* s, int ycell, int xcell){
 //fprintf(stderr, "pixoffset: %d next: %d tripbytes: %d tripskip: %d thisrow: %d\n", pixoffset, nextpixel, tripbytes, tripskip, thisrow);
       // the maximum number of pixels we can convert is the minimum of the
       // pixels remaining in the target row, and the pixels left in the chunk.
-//fprintf(stderr, "inchunk: %d total: %d triples: %d\n", inchunk, totalpixels, triples);
+fprintf(stderr, "wipe %u inchunk: %d total: %d triples: %d\n", s->id, inchunk, totalpixels, triples);
       int chomped = kitty_null(c + tripbytes, tripskip, thisrow,
                                inchunk - triples * 3, auxvec + auxvecidx);
       assert(chomped >= 0);
@@ -460,7 +460,7 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
   int y = 0; // position within source image (pixels)
   int x = 0;
   int targetout = 0; // number of pixels expected out after this chunk
-//fprintf(stderr, "total: %d chunks = %d, s=%d,v=%d\n", total, chunks, lenx, leny);
+fprintf(stderr, "write %u total: %d chunks = %d, s=%d,v=%d\n", sprixelid, total, chunks, lenx, leny);
   while(chunks--){
     if(totalout == 0){
       *parse_start = fprintf(fp, "\e_Gf=32,s=%d,v=%d,i=%d,p=1,a=t,%s%d%s;",
@@ -535,6 +535,7 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
   if(bargs->u.pixel.replaced){
     kitty_remove(bargs->u.pixel.replaced, fp);
   }
+fprintf(stderr, "SHOWING %u\n", sprixelid);
   fprintf(fp, "\e_Ga=p,i=%d,p=1,q=%d\e\\", sprixelid, loglevel_to_kittyq(loglevel));
   if(fclose(fp) == EOF){
     return -1;
@@ -597,7 +598,7 @@ int kitty_blit(ncplane* n, int linesize, const void* data, int leny, int lenx,
 }
 
 int kitty_remove(int id, FILE* out){
-//fprintf(stderr, "DESTROYING KITTY %d\n", id);
+fprintf(stderr, "DESTROYING KITTY %d\n", id);
   if(fprintf(out, "\e_Ga=d,d=i,i=%d\e\\", id) < 0){
     return -1;
   }
@@ -689,6 +690,6 @@ sprixel* kitty_recycle(ncplane* n){
   sprixel* hides = n->sprite;
   int dimy = hides->dimy;
   int dimx = hides->dimx;
-  sprixel_hide(hides);
+  sprixel_hide(hides, true);
   return sprixel_alloc(n, dimy, dimx);
 }

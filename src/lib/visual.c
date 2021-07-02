@@ -1014,7 +1014,7 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
 //fprintf(stderr, "ABOUT TO RESIZE: yoff/xoff: %d/%d\n",  placey, placex);
   // FIXME might need shrink down the TAM and kill unnecessary auxvecs
   if(ncplane_resize(n, 0, 0, s->dimy, s->dimx, placey, placex, s->dimy, s->dimx)){
-    sprixel_hide(bargs.u.pixel.spx);
+    sprixel_hide(bargs.u.pixel.spx, false);
     ncplane_destroy(createdn);
     return NULL;
   }
