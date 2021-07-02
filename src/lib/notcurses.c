@@ -852,22 +852,22 @@ init_banner_warnings(const notcurses* nc, FILE* out){
   int liness = 0;
   term_fg_palindex(nc, out, nc->tcache.caps.colors <= 88 ? 1 : 0xcb);
   if(!nc->tcache.caps.rgb){
-    liness += 3;
-    fprintf(out, "\n Warning! Colors subject to https://github.com/dankamongmen/notcurses/issues/4");
-    fprintf(out, "\n  Specify a (correct) TrueColor TERM, or COLORTERM=24bit.\n");
+    liness += 2;
+    fprintf(out, " Warning! Colors subject to https://github.com/dankamongmen/notcurses/issues/4\n");
+    fprintf(out, "  Specify a (correct) TrueColor TERM, or COLORTERM=24bit.\n");
   }else{
     if(!nc->tcache.caps.can_change_colors){
-      liness += 2;
-      fprintf(out, "\n Warning! Advertised TrueColor but no 'ccc' flag\n");
+      liness += 1;
+      fprintf(out, " Warning! Advertised TrueColor but no 'ccc' flag\n");
     }
   }
   if(!notcurses_canutf8(nc)){
-    liness += 2;
-    fprintf(out, "\n Warning! Encoding is not UTF-8; output may be degraded.\n");
+    liness += 1;
+    fprintf(out, " Warning! Encoding is not UTF-8; output may be degraded.\n");
   }
   if(!get_escape(&nc->tcache, ESCAPE_HPA)){
-    liness += 2;
-    fprintf(out, "\n Warning! No absolute horizontal placement.\n");
+    liness += 1;
+    fprintf(out, " Warning! No absolute horizontal placement.\n");
   }
   return liness;
 }
