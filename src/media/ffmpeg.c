@@ -589,11 +589,11 @@ int ffmpeg_init(int logl){
   return 0;
 }
 
-void ffmpeg_printbanner(const notcurses* nc __attribute__ ((unused))){
-  printf("avformat %u.%u.%u avutil %u.%u.%u swscale %u.%u.%u\n",
-         LIBAVFORMAT_VERSION_MAJOR, LIBAVFORMAT_VERSION_MINOR, LIBAVFORMAT_VERSION_MICRO,
-         LIBAVUTIL_VERSION_MAJOR, LIBAVUTIL_VERSION_MINOR, LIBAVUTIL_VERSION_MICRO,
-         LIBSWSCALE_VERSION_MAJOR, LIBSWSCALE_VERSION_MINOR, LIBSWSCALE_VERSION_MICRO);
+void ffmpeg_printbanner(const notcurses* nc){
+  fprintf(nc->ttyfp, "avformat %u.%u.%u avutil %u.%u.%u swscale %u.%u.%u\n",
+          LIBAVFORMAT_VERSION_MAJOR, LIBAVFORMAT_VERSION_MINOR, LIBAVFORMAT_VERSION_MICRO,
+          LIBAVUTIL_VERSION_MAJOR, LIBAVUTIL_VERSION_MINOR, LIBAVUTIL_VERSION_MICRO,
+          LIBSWSCALE_VERSION_MAJOR, LIBSWSCALE_VERSION_MINOR, LIBSWSCALE_VERSION_MICRO);
 }
 
 void ffmpeg_details_destroy(ncvisual_details* deets){
