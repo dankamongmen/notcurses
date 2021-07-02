@@ -902,7 +902,7 @@ static struct blitset notcurses_blitters[] = {
      .egcs = NULL, .plotegcs = L" ▂▄▆█",
      .blit = tria_blit,      .name = "fourstep",      .fill = false, },
    { .geom = NCBLIT_8x1,     .width = 1, .height = 8,
-     .egcs = NULL, .plotegcs = NCEIGHTHSBOTTOM,
+     .egcs = NULL, .plotegcs = NCEIGHTHSB,
      .blit = tria_blit,      .name = "eightstep",     .fill = false, },
    { .geom = 0,              .width = 0, .height = 0,
      .egcs = NULL, .plotegcs = NULL,

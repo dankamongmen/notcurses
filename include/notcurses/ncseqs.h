@@ -25,11 +25,13 @@ extern "C" {
 
 // symbols for legacy computing
 #define NCANGLESBR L"🭁🭂🭃🭄🭅🭆🭇🭈🭉🭊🭋"
-#define NCANGLESUR L"🭒🭓🭔🭕🭖🭧🭢🭣🭤🭥🭦"
+#define NCANGLESTR L"🭒🭓🭔🭕🭖🭧🭢🭣🭤🭥🭦"
 #define NCANGLESBL L"🭌🭍🭎🭏🭐🭑🬼🬽🬾🬿🭀"
-#define NCANGLESUL L"🭝🭞🭟🭠🭡🭜🭗🭘🭙🭚🭛"
-#define NCEIGHTHSBOTTOM L" ▁▂▃▄▅▆▇█"
-#define NCEIGHTSTOP L"█🮆🮅🮄▀🮃🮂▔ "
+#define NCANGLESTL L"🭝🭞🭟🭠🭡🭜🭗🭘🭙🭚🭛"
+#define NCEIGHTHSB L"▁▂▃▄▅▆▇█"
+#define NCEIGHTHST L"▔🮂🮃▀🮄🮅🮆█"
+#define NCEIGHTHSL L"▏▎▍▌▋▊▉█"
+#define NCEIGHTHSR L"▕🮇🮈▐🮉🮊🮋█"
 #define NCHALFBLOCKS L" ▀▄█"
 #define NCQUADBLOCKS L" ▘▝▀▖▌▞▛▗▚▐▜▄▙▟█"
 #define NCSEXBLOCKS  L" 🬀🬁🬂🬃🬄🬅🬆🬇🬈🬊🬋🬌🬍🬎🬏🬐🬑🬒🬓▌🬔🬕🬖🬗🬘🬙🬚🬛🬜🬝🬞🬟🬠🬡🬢🬣🬤🬥🬦🬧▐🬨🬩🬪🬫🬬🬭🬮🬯🬰🬱🬲🬳🬴🬵🬶🬷🬸🬹🬺🬻█"
