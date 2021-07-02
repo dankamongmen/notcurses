@@ -35,13 +35,13 @@ void notcurses_version_components(int* major, int* minor, int* patch, int* tweak
 int reset_term_attributes(const tinfo* ti, FILE* fp){
   int ret = 0;
   const char* esc;
-  if((esc = get_escape(ti, ESCAPE_OP)) && term_emit(esc, fp, true)){
+  if((esc = get_escape(ti, ESCAPE_OP)) && term_emit(esc, fp, false)){
     ret = -1;
   }
-  if((esc = get_escape(ti, ESCAPE_SGR0)) && term_emit(esc, fp, true)){
+  if((esc = get_escape(ti, ESCAPE_SGR0)) && term_emit(esc, fp, false)){
     ret = -1;
   }
-  if((esc = get_escape(ti, ESCAPE_OC)) && term_emit(esc, fp, true)){
+  if((esc = get_escape(ti, ESCAPE_OC)) && term_emit(esc, fp, false)){
     ret = -1;
   }
   return ret;
@@ -53,11 +53,7 @@ int reset_term_attributes(const tinfo* ti, FILE* fp){
 static int
 notcurses_stop_minimal(void* vnc){
   notcurses* nc = vnc;
-  int ret = 0;
-  // see notcurses_core_init()--don't treat failure here as an error. it
-  // screws up unit tests, and one day we'll need support multiple notcurses
-  // contexts. FIXME
-  drop_signals(nc);
+  int ret = drop_signals(nc);
   // be sure to write the restoration sequences *prior* to running rmcup, as
   // they apply to the screen (alternate or otherwise) we're actually using.
   if(nc->ttyfd >= 0){
@@ -67,8 +63,8 @@ notcurses_stop_minimal(void* vnc){
     if(nc->tcache.pixel_shutdown){
       ret |= nc->tcache.pixel_shutdown(nc->ttyfd);
     }
-    ret |= reset_term_attributes(&nc->tcache, nc->ttyfp);
     ret |= notcurses_mouse_disable(nc);
+    ret |= reset_term_attributes(&nc->tcache, nc->ttyfp);
     const char* esc;
     if((esc = get_escape(&nc->tcache, ESCAPE_RMCUP)) && tty_emit(esc, nc->ttyfd)){
       ret = -1;
@@ -76,11 +72,14 @@ notcurses_stop_minimal(void* vnc){
     if((esc = get_escape(&nc->tcache, ESCAPE_RMKX)) && tty_emit(esc, nc->ttyfd)){
       ret = -1;
     }
-    const char* cnorm = get_escape(&nc->tcache, ESCAPE_CNORM);
-    if(cnorm && tty_emit(cnorm, nc->ttyfd)){
-      ret = -1;
-    }
     ret |= tcsetattr(nc->ttyfd, TCSANOW, &nc->tcache.tpreserved);
+  }
+  const char* cnorm = get_escape(&nc->tcache, ESCAPE_CNORM);
+  if(cnorm && term_emit(cnorm, nc->ttyfp, false)){
+    ret = -1;
+  }
+  if(ncflush(nc->ttyfp)){
+    ret = -1;
   }
   return ret;
 }
@@ -851,18 +850,14 @@ int ncplane_genocide(ncplane *ncp){
 static int
 init_banner_warnings(const notcurses* nc, FILE* out){
   int liness = 0;
-  // might be using stderr, so don't just reuse stdout decision
-  const bool tty = isatty(fileno(out));
-  if(tty){
-    term_fg_palindex(nc, out, nc->tcache.caps.colors <= 88 ? 1 : 0xcb);
-  }
+  term_fg_palindex(nc, out, nc->tcache.caps.colors <= 88 ? 1 : 0xcb);
   if(!nc->tcache.caps.rgb){
     liness += 3;
     fprintf(out, "\n Warning! Colors subject to https://github.com/dankamongmen/notcurses/issues/4");
     fprintf(out, "\n  Specify a (correct) TrueColor TERM, or COLORTERM=24bit.\n");
   }else{
     if(!nc->tcache.caps.can_change_colors){
-      ++liness;
+      liness += 2;
       fprintf(out, "\n Warning! Advertised TrueColor but no 'ccc' flag\n");
     }
   }
@@ -874,17 +869,11 @@ init_banner_warnings(const notcurses* nc, FILE* out){
     liness += 2;
     fprintf(out, "\n Warning! No absolute horizontal placement.\n");
   }
-  const char* sgr0;
-  if( (sgr0 = get_escape(&nc->tcache, ESCAPE_SGR0)) ){
-    if(tty){
-      term_emit(sgr0, out, true);
-    }
-  }
   return liness;
 }
 
 // unless the suppress_banner flag was set, print some version information and
-// (if applicable) warnings to stdout. we are not yet on the alternate screen.
+// (if applicable) warnings to ttyfp. we are not yet on the alternate screen.
 // returns the number of lines printed.
 static int
 init_banner(const notcurses* nc){
@@ -893,56 +882,62 @@ init_banner(const notcurses* nc){
     char prefixbuf[BPREFIXSTRLEN + 1];
     term_fg_palindex(nc, stdout, 50 % nc->tcache.caps.colors);
     ++liness;
-    printf("notcurses %s on %s %s\n", notcurses_version(),
-           nc->tcache.termname ? nc->tcache.termname : "?",
-           nc->tcache.termversion ? nc->tcache.termversion : "");
+    fprintf(nc->ttyfp, "notcurses %s on %s %s\n", notcurses_version(),
+            nc->tcache.termname ? nc->tcache.termname : "?",
+            nc->tcache.termversion ? nc->tcache.termversion : "");
     term_fg_palindex(nc, stdout, nc->tcache.caps.colors <= 256 ?
                      14 % nc->tcache.caps.colors : 0x2080e0);
     if(nc->tcache.cellpixy && nc->tcache.cellpixx){
-      printf("%d rows (%dpx) %d cols (%dpx) %dx%d %zuB crend %d colors",
-             nc->stdplane->leny, nc->tcache.cellpixy,
-             nc->stdplane->lenx, nc->tcache.cellpixx,
-             nc->stdplane->leny * nc->tcache.cellpixy,
-             nc->stdplane->lenx * nc->tcache.cellpixx,
-             sizeof(struct crender), nc->tcache.caps.colors);
+      fprintf(nc->ttyfp, "%d rows (%dpx) %d cols (%dpx) %dx%d %zuB crend %d colors",
+              nc->stdplane->leny, nc->tcache.cellpixy,
+              nc->stdplane->lenx, nc->tcache.cellpixx,
+              nc->stdplane->leny * nc->tcache.cellpixy,
+              nc->stdplane->lenx * nc->tcache.cellpixx,
+              sizeof(struct crender), nc->tcache.caps.colors);
     }else{
-      printf("%d rows %d cols (%sB) %zuB crend %d colors",
-             nc->stdplane->leny, nc->stdplane->lenx,
-             bprefix(nc->stats.fbbytes, 1, prefixbuf, 0),
-             sizeof(struct crender), nc->tcache.caps.colors);
+      fprintf(nc->ttyfp, "%d rows %d cols (%sB) %zuB crend %d colors",
+              nc->stdplane->leny, nc->stdplane->lenx,
+              bprefix(nc->stats.fbbytes, 1, prefixbuf, 0),
+              sizeof(struct crender), nc->tcache.caps.colors);
     }
     const char* setaf;
     if(nc->tcache.caps.rgb && (setaf = get_escape(&nc->tcache, ESCAPE_SETAF))){
-      putc('+', stdout);
+      ncfputc('+', nc->ttyfp);
       term_fg_rgb8(&nc->tcache, stdout, 0xe0, 0x60, 0x60);
-      putc('R', stdout);
+      ncfputc('R', nc->ttyfp);
       term_fg_rgb8(&nc->tcache, stdout, 0x60, 0xe0, 0x60);
-      putc('G', stdout);
+      ncfputc('G', nc->ttyfp);
       term_fg_rgb8(&nc->tcache, stdout, 0x20, 0x80, 0xff);
-      putc('B', stdout);
-      term_fg_palindex(nc, stdout, nc->tcache.caps.colors <= 256 ?
+      ncfputc('B', nc->ttyfp);
+      term_fg_palindex(nc, nc->ttyfp, nc->tcache.caps.colors <= 256 ?
                        14 % nc->tcache.caps.colors : 0x2080e0);
     }
     ++liness;
-    printf("\ncompiled with gcc-%s, %zuB %s-endian cells\n"
-           "terminfo from %s\n",
-           __VERSION__,
-           sizeof(nccell),
+    fprintf(nc->ttyfp, "\ncompiled with gcc-%s, %zuB %s-endian cells\n"
+            "terminfo from %s\n",
+            __VERSION__,
+            sizeof(nccell),
 #ifdef __BYTE_ORDER__
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-           "little"
+            "little"
 #else
-           "big"
+            "big"
 #endif
 #else
 #error "No __BYTE_ORDER__ definition"
 #endif
-           , curses_version());
+            , curses_version());
     liness += 3;
     ncvisual_printbanner(nc);
     ++liness;
-    fflush(stdout);
-    liness += init_banner_warnings(nc, stderr);
+    // don't go sending these to stderr; it would fuck up our line count, for
+    // one, and we don't know if we can meaningfully send escapes there.
+    liness += init_banner_warnings(nc, nc->ttyfp);
+    const char* esc;
+    if( (esc = get_escape(&nc->tcache, ESCAPE_SGR0)) ||
+        (esc = get_escape(&nc->tcache, ESCAPE_OP))){
+      term_emit(esc, nc->ttyfp, false);
+    }
   }
   return liness;
 }
@@ -1016,6 +1011,9 @@ int notcurses_check_pixel_support(const notcurses* nc){
 
 // FIXME cut this up into a few distinct pieces, yearrrgh
 notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
+  if(outfp == NULL){
+    outfp = stdout;
+  }
   notcurses_options defaultopts = { };
   if(!opts){
     opts = &defaultopts;
@@ -1047,9 +1045,6 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     fprintf(stderr, "Encoding (\"%s\") was neither ANSI_X3.4-1968 nor UTF-8, refusing to start\n Did you call setlocale()?\n",
             encoding ? encoding : "none found");
     return NULL;
-  }
-  if(outfp == NULL){
-    outfp = stdout;
   }
   ret->flags = opts->flags;
   ret->margin_t = opts->margin_t;
@@ -1133,24 +1128,22 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     fprintf(stderr, "Couldn't create the initial plane (bad margins?)\n");
     goto err;
   }
-  if(ret->ttyfd >= 0){
-    reset_term_attributes(&ret->tcache, ret->ttyfp);
-    if(!(opts->flags & NCOPTION_NO_CLEAR_BITMAPS)){
-      if(sprite_clear_all(&ret->tcache, ret->ttyfd)){
-        free_plane(ret->stdplane);
-        goto err;
-      }
-    }
-    const char* smkx = get_escape(&ret->tcache, ESCAPE_SMKX);
-    if(smkx && tty_emit(smkx, ret->ttyfd)){
+  reset_term_attributes(&ret->tcache, ret->ttyfp);
+  if(!(opts->flags & NCOPTION_NO_CLEAR_BITMAPS)){
+    if(sprite_clear_all(&ret->tcache, ret->ttyfp)){
       free_plane(ret->stdplane);
       goto err;
     }
-    const char* cinvis = get_escape(&ret->tcache, ESCAPE_CIVIS);
-    if(cinvis && tty_emit(cinvis, ret->ttyfd)){
-      free_plane(ret->stdplane);
-      goto err;
-    }
+  }
+  const char* smkx = get_escape(&ret->tcache, ESCAPE_SMKX);
+  if(smkx && term_emit(smkx, ret->ttyfp, false)){
+    free_plane(ret->stdplane);
+    goto err;
+  }
+  const char* cinvis = get_escape(&ret->tcache, ESCAPE_CIVIS);
+  if(cinvis && term_emit(cinvis, ret->ttyfp, false)){
+    free_plane(ret->stdplane);
+    goto err;
   }
   if((ret->rstate.mstreamfp = open_memstream(&ret->rstate.mstream, &ret->rstate.mstrsize)) == NULL){
     free_plane(ret->stdplane);
@@ -1158,6 +1151,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   }
   ret->rstate.x = ret->rstate.y = -1;
   int bannerlines = init_banner(ret);
+  ncflush(ret->ttyfp);
   if(cursor_y >= 0 && cursor_x >= 0){
     cursor_y += bannerlines;
     if(cursor_y >= ncplane_dim_y(ret->stdplane)){
@@ -1167,22 +1161,22 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   }
   // flush on the switch to alternate screen, lest initial output be swept away
   const char* clearscr = get_escape(&ret->tcache, ESCAPE_CLEAR);
+  // if not connected to an actual terminal, we're not going to try entering
+  // the alternate screen; we're not even going to bother clearing the screen.
   if(ret->ttyfd >= 0){
-    const char* smcup = get_escape(&ret->tcache, ESCAPE_SMCUP);
-    if(smcup){
-      if(tty_emit(smcup, ret->ttyfd)){
-        free_plane(ret->stdplane);
-        goto err;
+    if(!(opts->flags & NCOPTION_NO_ALTERNATE_SCREEN)){
+      const char* smcup = get_escape(&ret->tcache, ESCAPE_SMCUP);
+      if(smcup){
+        if(term_emit(smcup, ret->ttyfp, true)){
+          free_plane(ret->stdplane);
+          goto err;
+        }
       }
-      // explicit clear even though smcup *might* clear
-      if(!clearscr || tty_emit(clearscr, ret->ttyfd)){
-        notcurses_refresh(ret, NULL, NULL);
-      }
-    }else if(!(opts->flags & NCOPTION_NO_ALTERNATE_SCREEN)){
-      // if they expected the alternate screen, but we didn't have one to
-      // offer, at least clear the screen. try using "clear"; if that doesn't
-      // fly, use notcurses_refresh() to force a clearing via iterated writes.
-      if(!clearscr || tty_emit(clearscr, ret->ttyfd)){
+      // perform an explicit clear if the alternate screen was requested
+      // (smcup *might* clear, but who knows, and might not have been
+      // available in any case).
+      if(!clearscr || term_emit(clearscr, ret->ttyfp, true)){
+        // if we don't have a clear escape, clear via iterated writes
         notcurses_refresh(ret, NULL, NULL);
       }
     }
@@ -1243,14 +1237,6 @@ int notcurses_stop(notcurses* nc){
   int ret = 0;
   if(nc){
     ret |= notcurses_stop_minimal(nc);
-    ret |= set_fd_nonblocking(nc->tcache.input.infd, nc->stdio_blocking_save, NULL);
-    if(nc->stdplane){
-      notcurses_drop_planes(nc);
-      free_plane(nc->stdplane);
-    }
-    if(nc->rstate.mstreamfp){
-      fclose(nc->rstate.mstreamfp);
-    }
     // if we were not using the alternate screen, our cursor's wherever we last
     // wrote. move it to the bottom left of the screen, *unless*
     // NCOPTION_PRESERVE_CURSOR was used, in which case it's right where we
@@ -1264,6 +1250,14 @@ int notcurses_stop(notcurses* nc){
           tty_emit(tiparm(get_escape(&nc->tcache, ESCAPE_CUP), targy, 0), nc->ttyfd);
         }
       }
+    }
+    ret |= set_fd_nonblocking(nc->tcache.input.infd, nc->stdio_blocking_save, NULL);
+    if(nc->stdplane){
+      notcurses_drop_planes(nc);
+      free_plane(nc->stdplane);
+    }
+    if(nc->rstate.mstreamfp){
+      fclose(nc->rstate.mstreamfp);
     }
     if(nc->ttyfd >= 0){
       ret |= close(nc->ttyfd);
