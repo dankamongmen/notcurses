@@ -69,7 +69,7 @@ TEST_CASE("Visual") {
   SUBCASE("ResizeThenRotateFromMemory") {
     unsigned char rgb[30];
     memset(rgb, 0, sizeof(rgb));
-    auto ncv = ncvisual_from_rgb_packed(rgb, 10, 10 * 3, 10, 0xff);
+    auto ncv = ncvisual_from_rgb_packed(rgb, 3, 10 * 3, 10, 0xff);
     REQUIRE(nullptr != ncv);
     struct ncvisual_options vopts{};
     vopts.x = NCALIGN_CENTER;
