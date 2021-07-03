@@ -56,6 +56,7 @@ notcurses_stop_minimal(void* vnc){
   int ret = drop_signals(nc);
   // be sure to write the restoration sequences *prior* to running rmcup, as
   // they apply to the screen (alternate or otherwise) we're actually using.
+  const char* esc;
   if(nc->ttyfd >= 0){
     // ECMA-48 suggests that we can interrupt an escape code with a NUL
     // byte. if we leave an active escape open, it can lock up the terminal.
@@ -65,14 +66,18 @@ notcurses_stop_minimal(void* vnc){
     }
     ret |= notcurses_mouse_disable(nc);
     ret |= reset_term_attributes(&nc->tcache, nc->ttyfp);
-    const char* esc;
-    if((esc = get_escape(&nc->tcache, ESCAPE_RMCUP)) && tty_emit(esc, nc->ttyfd)){
-      ret = -1;
-    }
-    if((esc = get_escape(&nc->tcache, ESCAPE_RMKX)) && tty_emit(esc, nc->ttyfd)){
-      ret = -1;
+    if((esc = get_escape(&nc->tcache, ESCAPE_RMCUP))){
+      if(sprite_clear_all(&nc->tcache, nc->ttyfp)){
+        ret = -1;
+      }
+      if(term_emit(esc, nc->ttyfp, false)){
+        ret = -1;
+      }
     }
     ret |= tcsetattr(nc->ttyfd, TCSANOW, &nc->tcache.tpreserved);
+  }
+  if((esc = get_escape(&nc->tcache, ESCAPE_RMKX)) && term_emit(esc, nc->ttyfp, false)){
+    ret = -1;
   }
   const char* cnorm = get_escape(&nc->tcache, ESCAPE_CNORM);
   if(cnorm && term_emit(cnorm, nc->ttyfp, false)){
@@ -1166,7 +1171,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     if(!(opts->flags & NCOPTION_NO_ALTERNATE_SCREEN)){
       const char* smcup = get_escape(&ret->tcache, ESCAPE_SMCUP);
       if(smcup){
-        if(term_emit(smcup, ret->ttyfp, true)){
+        if(term_emit(smcup, ret->ttyfp, false)){
           free_plane(ret->stdplane);
           goto err;
         }
@@ -2164,9 +2169,9 @@ ncplane* ncplane_above(ncplane* n){
 #define SET_SGR_MODE_MOUSE    "1006"
 int notcurses_mouse_enable(notcurses* n){
   if(n->ttyfd >= 0){
-    return tty_emit(ESC "[?" SET_BTN_EVENT_MOUSE ";"
-                    /*SET_FOCUS_EVENT_MOUSE ";" */SET_SGR_MODE_MOUSE "h",
-                    n->ttyfd);
+    return term_emit(ESC "[?" SET_BTN_EVENT_MOUSE ";"
+                     /*SET_FOCUS_EVENT_MOUSE ";" */SET_SGR_MODE_MOUSE "h",
+                     n->ttyfp, false);
   }
   return 0;
 }
@@ -2175,9 +2180,9 @@ int notcurses_mouse_enable(notcurses* n){
 // the sequences 1000 etc?
 int notcurses_mouse_disable(notcurses* n){
   if(n->ttyfd >= 0){
-    return tty_emit(ESC "[?" SET_BTN_EVENT_MOUSE ";"
-                    /*SET_FOCUS_EVENT_MOUSE ";" */SET_SGR_MODE_MOUSE "l",
-                    n->ttyfd);
+    return term_emit(ESC "[?" SET_BTN_EVENT_MOUSE ";"
+                     /*SET_FOCUS_EVENT_MOUSE ";" */SET_SGR_MODE_MOUSE "l",
+                     n->ttyfp, false);
   }
   return 0;
 }
