@@ -29,7 +29,7 @@ auto oiio_details_destroy(ncvisual_details* deets) -> void {
 auto oiio_details_seed(ncvisual* ncv) -> void {
   int pixels = ncv->pixy * ncv->pixx;
   ncv->details->frame = std::make_unique<uint32_t[]>(pixels);
-  OIIO::ImageSpec rgbaspec{ncv->pixx, ncv->pixy, 4, OIIO::TypeDesc(OIIO::TypeDesc::UINT8, 4)};
+  OIIO::ImageSpec rgbaspec{ncv->pixx, ncv->pixy, 4};
   ncv->details->ibuf = std::make_unique<OIIO::ImageBuf>(rgbaspec, ncv->data);
 //fprintf(stderr, "got pixel_stride: %ld %ld\n", ncv->details->ibuf->pixel_stride(), ncv->details->ibuf->scanline_stride());
 }
@@ -64,7 +64,7 @@ int oiio_decode(ncvisual* nc) {
     std::fill(nc->details->frame.get(), nc->details->frame.get() + pixels, 0xfffffffful);
   }
 //fprintf(stderr, "READING: %d %ju\n", nc->details->image->current_subimage(), nc->details->framenum);
-  if(!nc->details->image->read_image(nc->details->framenum++, 0, 0, spec.nchannels, OIIO::TypeDesc(OIIO::TypeDesc::UINT8, 4), nc->details->frame.get(), 4)){
+  if(!nc->details->image->read_image(nc->details->framenum++, 0, 0, spec.nchannels, OIIO::TypeDesc(OIIO::TypeDesc::UINT8), nc->details->frame.get(), 4)){
     return -1;
   }
 //fprintf(stderr, "READ: %d %ju\n", nc->details->image->current_subimage(), nc->details->framenum);
@@ -179,7 +179,7 @@ auto ncvisual_rotate(ncvisual* ncv, double rads) -> int {
   auto tmpibuf = std::move(*ncv->details->ibuf);
   ncv->details->ibuf = std::make_unique<OIIO::ImageBuf>();
   OIIO::ImageSpec sp{};
-  sp.set_format(OIIO::TypeDesc(OIIO::TypeDesc::UINT8, 4));
+  sp.set_format(OIIO::TypeDesc(OIIO::TypeDesc::UINT8));
   sp.nchannels = 4;
   ncv->details->ibuf->reset();
   if(!OIIO::ImageBufAlgo::rotate(*ncv->details->ibuf, tmpibuf, rads, "", 0, true, roi)){
