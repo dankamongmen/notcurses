@@ -640,10 +640,10 @@ int kitty_clear_all(FILE* fp){
   return term_emit("\e_Ga=d\e\\", fp, false);
 }
 
-int kitty_shutdown(int fd){
+int kitty_shutdown(FILE* fp){
   // FIXME need to close off any open kitty bitmap emission, or we will
   // lock up the terminal
-  (void)fd;
+  (void)fp;
   return 0;
 }
 

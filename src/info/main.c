@@ -220,7 +220,7 @@ tinfo_debug_caps(struct ncplane* n, const tinfo* ti, const char* indent){
   tinfo_debug_cap(n, "ccc", ti->caps.can_change_colors, colory, colorn, ' ');
   tinfo_debug_cap(n, "af", get_escape(ti, ESCAPE_SETAF), colory, colorn, ' ');
   tinfo_debug_cap(n, "ab", get_escape(ti, ESCAPE_SETAB), colory, colorn, ' ');
-  tinfo_debug_cap(n, "asu", get_escape(ti, ESCAPE_BSU), colory, colorn, ' ');
+  tinfo_debug_cap(n, "sum", get_escape(ti, ESCAPE_BSUM), colory, colorn, ' ');
   tinfo_debug_cap(n, "u7", get_escape(ti, ESCAPE_DSRCPR), colory, colorn, ' ');
   tinfo_debug_cap(n, "cup", get_escape(ti, ESCAPE_CUP), colory, colorn, ' ');
   tinfo_debug_cap(n, "vpa", get_escape(ti, ESCAPE_VPA), colory, colorn, ' ');

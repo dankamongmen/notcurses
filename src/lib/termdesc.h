@@ -68,8 +68,8 @@ typedef enum {
   ESCAPE_DSRCPR,   // "u7" cursor position report
   // Application synchronized updates, not present in terminfo
   // (https://gitlab.com/gnachman/iterm2/-/wikis/synchronized-updates-spec)
-  ESCAPE_BSU,      // Begin Synchronized Update
-  ESCAPE_ESU,      // End Synchronized Update
+  ESCAPE_BSUM,     // Begin Synchronized Update Mode
+  ESCAPE_ESUM,     // End Synchronized Update Mode
   ESCAPE_MAX
 } escape_e;
 
@@ -134,7 +134,7 @@ typedef struct tinfo {
   // execute move (erase old graphic, place at new location) if non-NULL
   int (*pixel_move)(const struct ncpile* p, struct sprixel* s, FILE* out);
   int (*pixel_destroy)(const struct notcurses* nc, const struct ncpile* p, FILE* out, struct sprixel* s);
-  int (*pixel_shutdown)(int fd);    // called during context shutdown
+  int (*pixel_shutdown)(FILE* fp);  // called during context shutdown
   int (*pixel_clear_all)(FILE* fp); // called during context startup
   uint8_t* (*pixel_trans_auxvec)(const struct tinfo* ti); // create tranparent auxvec
   // sprixel parameters. there are several different sprixel protocols, of

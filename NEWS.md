@@ -9,6 +9,7 @@ rearrangements of Notcurses.
   * Fixed bugs in `ncvisual_blitset_geom()` and `ncvisual_render()` when using
     `NCVISUAL_OPTION_CHILDPLANE` in certain configurations.
   * Fixed some serious bugs in the OpenImageIO backend.
+  * Disabled Synchronized Update Mode for Kitty in response to upstream bugs.
 
 * 2.3.7 (2021-06-29)
   * Deprecated `NCSTYLE_REVERSE` and `NCSTYLE_DIM`. The remainder are safe,

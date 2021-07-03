@@ -1084,7 +1084,7 @@ notcurses_rasterize_inner(notcurses* nc, ncpile* p, FILE* out, unsigned* asu){
 #define MIN_ASU_SIZE 4096 // FIXME
   if(*asu){
     if(nc->rstate.mstrsize >= MIN_ASU_SIZE){
-      const char* endasu = get_escape(&nc->tcache, ESCAPE_ESU);
+      const char* endasu = get_escape(&nc->tcache, ESCAPE_ESUM);
       if(endasu){
         if(fprintf(out, "%s", endasu) < 0){
           return -1;
@@ -1110,7 +1110,7 @@ raster_and_write(notcurses* nc, ncpile* p, FILE* out){
   // will we be using application-synchronized updates? if this comes back as
   // non-zero, we are, and must emit the header. no ASU without a tty, and we
   // can't have the escape without being connected to one...
-  const char* basu = get_escape(&nc->tcache, ESCAPE_BSU);
+  const char* basu = get_escape(&nc->tcache, ESCAPE_BSUM);
   unsigned useasu = basu ? 1 : 0;
   // if we have ASU support, emit a BSU speculatively. if we do so, but don't
   // actually use an ESU, this BASU must be skipped on write.

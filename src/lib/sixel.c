@@ -923,8 +923,8 @@ int sixel_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
 
 // 80 (sixel scrolling) is enabled by default. 8452 is not. XTSAVE/XTRESTORE
 // would be better, where they're supported.
-int sixel_shutdown(int fd){
-  return tty_emit("\e[?8452l", fd);
+int sixel_shutdown(FILE* fp){
+  return term_emit("\e[?8452l", fp, false);
 }
 
 uint8_t* sixel_trans_auxvec(const tinfo* ti){

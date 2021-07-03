@@ -336,11 +336,11 @@ add_smulx_escapes(tinfo* ti, size_t* tablelen, size_t* tableused){
 
 static int
 add_appsync_escapes_sm(tinfo* ti, size_t* tablelen, size_t* tableused){
-  if(get_escape(ti, ESCAPE_BSU)){
+  if(get_escape(ti, ESCAPE_BSUM)){
     return 0;
   }
-  if(grow_esc_table(ti, "\x1b[?2026h", ESCAPE_BSU, tablelen, tableused) ||
-     grow_esc_table(ti, "\x1b[?2026l", ESCAPE_ESU, tablelen, tableused)){
+  if(grow_esc_table(ti, "\x1b[?2026h", ESCAPE_BSUM, tablelen, tableused) ||
+     grow_esc_table(ti, "\x1b[?2026l", ESCAPE_ESUM, tablelen, tableused)){
     return -1;
   }
   return 0;
@@ -348,11 +348,11 @@ add_appsync_escapes_sm(tinfo* ti, size_t* tablelen, size_t* tableused){
 
 static int
 add_appsync_escapes_dcs(tinfo* ti, size_t* tablelen, size_t* tableused){
-  if(get_escape(ti, ESCAPE_BSU)){
+  if(get_escape(ti, ESCAPE_BSUM)){
     return 0;
   }
-  if(grow_esc_table(ti, "\x1bP=1s\x1b\\", ESCAPE_BSU, tablelen, tableused) ||
-     grow_esc_table(ti, "\x1bP=2s\x1b\\", ESCAPE_ESU, tablelen, tableused)){
+  if(grow_esc_table(ti, "\x1bP=1s\x1b\\", ESCAPE_BSUM, tablelen, tableused) ||
+     grow_esc_table(ti, "\x1bP=2s\x1b\\", ESCAPE_ESUM, tablelen, tableused)){
     return -1;
   }
   return 0;

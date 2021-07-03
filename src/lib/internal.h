@@ -785,8 +785,8 @@ int sixel_init(const tinfo* t, int fd);
 int sixel_init_inverted(const tinfo* t, int fd);
 int sprite_init(const tinfo* t, int fd);
 int sprite_clear_all(const tinfo* t, FILE* fp);
-int kitty_shutdown(int fd);
-int sixel_shutdown(int fd);
+int kitty_shutdown(FILE* fp);
+int sixel_shutdown(FILE* fp);
 uint8_t* sixel_trans_auxvec(const struct tinfo* ti);
 uint8_t* kitty_trans_auxvec(const struct tinfo* ti);
 // these three all use absolute coordinates

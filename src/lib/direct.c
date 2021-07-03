@@ -767,11 +767,11 @@ ncdirect_stop_minimal(void* vnc){
     rl_deprep_terminal();
 #endif
   }
+  if(nc->tcache.pixel_shutdown){
+    ret |= nc->tcache.pixel_shutdown(nc->ttyfp);
+  }
   ret |= reset_term_attributes(&nc->tcache, nc->ttyfp);
   if(nc->ctermfd >= 0){
-    if(nc->tcache.pixel_shutdown){
-      ret |= nc->tcache.pixel_shutdown(nc->ctermfd);
-    }
     const char* cnorm = get_escape(&nc->tcache, ESCAPE_CNORM);
     if(cnorm && tty_emit(cnorm, nc->ctermfd)){
       ret = -1;
