@@ -101,13 +101,8 @@ get_next_frame(struct ncvisual* ncv, struct ncvisual_options* vopts){
   ret = marsh.next_frame++;
   if(ncvisual_decode(ncv)){
     ret = -1;
-  }else{
-    struct ncplane* n = ncvisual_render(marsh.nc, ncv, vopts);
-    if(n == NULL){
-      ret = -1;
-    }else{
-      vopts->n = n;
-    }
+  }else if(ncvisual_render(marsh.nc, ncv, vopts) == NULL){
+    ret = -1;
   }
   pthread_mutex_unlock(&lock);
   return ret;
@@ -126,10 +121,10 @@ xray_thread(void *v){
               | NCVISUAL_OPTION_ADDALPHA,
   };
   int ret;
-  if(make_plane(marsh.nc, &vopts.n)){
-    return NULL;
-  }
   do{
+    if(make_plane(marsh.nc, &vopts.n)){
+      return NULL;
+    }
     if((frame = get_next_frame(marsh.ncv, &vopts)) < 0){
       return NULL;
     }
@@ -143,14 +138,15 @@ xray_thread(void *v){
     if(ncplane_move_yx(marsh.slider, 1, x - 1) == 0){
       ncplane_reparent(vopts.n, notcurses_stdplane(marsh.nc));
       ncplane_move_top(vopts.n);
+      ncplane_destroy(marsh.lplane);
       ret = demo_render(marsh.nc);
     }
     marsh.last_frame_rendered = frame;
+    marsh.lplane = vopts.n;
     pthread_mutex_unlock(&render_lock);
     pthread_cond_signal(&cond);
+    vopts.n = NULL;
   }while(ret == 0);
-  ncplane_destroy(vopts.n);
-  vopts.n = NULL;
   return NULL;
 }
 
