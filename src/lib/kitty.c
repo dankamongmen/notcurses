@@ -442,7 +442,7 @@ static int
 write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
                  const uint32_t* data, const blitterargs* bargs,
                  tament* tam, int* parse_start){
-//fprintf(stderr, "drawing kitty %p\n", tam);
+fprintf(stderr, "drawing kitty %p %d\n", tam, bargs->u.pixel.spx->id);
   if(linesize % sizeof(*data)){
     fclose(fp);
     return -1;
@@ -460,8 +460,7 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
   int y = 0; // position within source image (pixels)
   int x = 0;
   int targetout = 0; // number of pixels expected out after this chunk
-fprintf(stderr, "write %u total: %d chunks = %d, s=%d,v=%d\n", sprixelid, total, chunks, lenx, leny);
-  while(chunks--){
+fprintf(stderr, "write %u total: %d chunks = %d, s=%d,v=%d\n", sprixelid, total, chunks, lenx, leny); while(chunks--){
     if(totalout == 0){
       *parse_start = fprintf(fp, "\e_Gf=32,s=%d,v=%d,i=%d,p=1,a=t,%s%d%s;",
                              lenx, leny, sprixelid,
@@ -598,7 +597,7 @@ int kitty_blit(ncplane* n, int linesize, const void* data, int leny, int lenx,
 }
 
 int kitty_remove(int id, FILE* out){
-fprintf(stderr, "DESTROYING KITTY %d\n", id);
+fprintf(stderr, "REMOVING KITTY %d\n", id);
   if(fprintf(out, "\e_Ga=d,d=i,i=%d\e\\", id) < 0){
     return -1;
   }
@@ -609,6 +608,7 @@ fprintf(stderr, "DESTROYING KITTY %d\n", id);
 // cells which weren't SPRIXCEL_OPAQUE
 int kitty_destroy(const notcurses* nc __attribute__ ((unused)),
                   const ncpile* p, FILE* out, sprixel* s){
+fprintf(stderr, "DESTROYING KITTY %d\n", s->id);
   if(kitty_remove(s->id, out)){
     return -1;
   }

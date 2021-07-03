@@ -961,7 +961,9 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
       ncplane_destroy(createdn);
       return NULL;
     }
+    bargs.u.pixel.replaced = 0;
   }else{
+fprintf(stderr, "n->sprite: %p id: %u\n", n->sprite, n->sprite->id);
     bargs.u.pixel.replaced = n->sprite->id;
     n->sprite = sprite_recycle(n);
     if(n->sprite->id == bargs.u.pixel.replaced){
