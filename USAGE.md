@@ -1701,6 +1701,7 @@ int ncplane_set_bg_rgb(struct ncplane* n, uint32_t channel);
 void ncplane_set_fg_default(struct ncplane* n);
 void ncplane_set_bg_default(struct ncplane* n);
 
+// Provide a palette index on [0..255].
 int ncplane_set_fg_palindex(struct ncplane* n, int idx);
 int ncplane_set_bg_palindex(struct ncplane* n, int idx);
 ```
