@@ -283,9 +283,7 @@ TEST_CASE("Piles") {
     CHECK(30 == x);
     CHECK(10 == ncplane_y(gen3));
     CHECK(10 == ncplane_x(gen3));
-notcurses_debug(nc_, stderr);
     CHECK(nullptr != ncplane_reparent(gen1, gen2));
-notcurses_debug(nc_, stderr);
     ncplane_abs_yx(gen2, &y, &x); // gen2 is now the parent
     CHECK(20 == y);
     CHECK(20 == x);
