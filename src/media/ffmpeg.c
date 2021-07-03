@@ -633,6 +633,7 @@ const ncvisual_implementation local_visual_implementation = {
   .visual_subtitle = ffmpeg_subtitle,
   .visual_resize = ffmpeg_resize,
   .visual_destroy = ffmpeg_destroy,
+  .rowalign = 64, // ffmpeg wants multiples of IMGALIGN (64)
   .canopen_images = true,
   .canopen_videos = true,
 };

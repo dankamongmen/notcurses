@@ -562,16 +562,16 @@ int ncvisual_rotate(ncvisual* ncv, double rads){
   return 0;
 }
 
-// ffmpeg wants rows to be multiples of IMGALIGN (64)
-#define IMGALIGN 64
 static inline size_t
-pad_for_image(size_t stride){
-  if(stride % IMGALIGN == 0){
+pad_for_image(size_t stride, int cols){
+  if(visual_implementation.rowalign == 0){
+    return 4 * cols;
+  }else if(stride % visual_implementation.rowalign == 0){
     return stride;
   }
-  return (stride + IMGALIGN) / IMGALIGN * IMGALIGN;
+  return (stride + visual_implementation.rowalign) /
+          visual_implementation.rowalign * visual_implementation.rowalign;
 }
-#undef IMGALIGN
 
 ncvisual* ncvisual_from_rgba(const void* rgba, int rows, int rowstride, int cols){
   if(rowstride % 4){
@@ -581,7 +581,7 @@ ncvisual* ncvisual_from_rgba(const void* rgba, int rows, int rowstride, int cols
   ncvisual* ncv = ncvisual_create();
   if(ncv){
     // ffmpeg needs inputs with rows aligned on 192-byte boundaries
-    ncv->rowstride = pad_for_image(rowstride);
+    ncv->rowstride = pad_for_image(rowstride, cols);
     ncv->pixx = cols;
     ncv->pixy = rows;
     uint32_t* data = malloc(ncv->rowstride * ncv->pixy);
@@ -603,7 +603,7 @@ ncvisual* ncvisual_from_rgb_packed(const void* rgba, int rows, int rowstride,
                                    int cols, int alpha){
   ncvisual* ncv = ncvisual_create();
   if(ncv){
-    ncv->rowstride = pad_for_image(cols * 4);
+    ncv->rowstride = pad_for_image(cols * 4, cols);
     ncv->pixx = cols;
     ncv->pixy = rows;
     uint32_t* data = malloc(ncv->rowstride * ncv->pixy);
@@ -640,7 +640,7 @@ ncvisual* ncvisual_from_rgb_loose(const void* rgba, int rows, int rowstride,
   }
   ncvisual* ncv = ncvisual_create();
   if(ncv){
-    ncv->rowstride = pad_for_image(cols * 4);
+    ncv->rowstride = pad_for_image(cols * 4, cols);
     ncv->pixx = cols;
     ncv->pixy = rows;
     uint32_t* data = malloc(ncv->rowstride * ncv->pixy);
@@ -667,7 +667,7 @@ ncvisual* ncvisual_from_bgra(const void* bgra, int rows, int rowstride, int cols
   }
   ncvisual* ncv = ncvisual_create();
   if(ncv){
-    ncv->rowstride = pad_for_image(rowstride);
+    ncv->rowstride = pad_for_image(rowstride, cols);
     ncv->pixx = cols;
     ncv->pixy = rows;
     uint32_t* data = malloc(ncv->rowstride * ncv->pixy);
@@ -704,7 +704,7 @@ int ncvisual_resize(ncvisual* n, int rows, int cols){
 }
 
 int ncvisual_resize_noninterpolative(ncvisual* n, int rows, int cols){
-  size_t dstride = pad_for_image(cols * 4);
+  size_t dstride = pad_for_image(cols * 4, cols);
   uint32_t* r = resize_bitmap(n->data, n->pixy, n->pixx, n->rowstride,
                               rows, cols, dstride);
   if(r == NULL){
