@@ -320,9 +320,11 @@ int kitty_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
       // the maximum number of pixels we can convert is the minimum of the
       // pixels remaining in the target row, and the pixels left in the chunk.
 fprintf(stderr, "restore %u inchunk: %d total: %d triples: %d\n", s->id, inchunk, totalpixels, triples);
+fprintf(stderr, "BEFORE: [%.256s]\n", c + tripbytes);
       int chomped = kitty_restore(c + tripbytes, tripskip, thisrow,
                                   inchunk - triples * 3, auxvec + auxvecidx,
                                   &state);
+fprintf(stderr, "AFTER: [%.256s]\n", c + tripbytes);
       assert(chomped >= 0);
       auxvecidx += chomped;
       thisrow -= chomped;
@@ -400,8 +402,10 @@ fprintf(stderr, "NEW WIPE %d %d/%d\n", s->id, ycell, xcell);
       // the maximum number of pixels we can convert is the minimum of the
       // pixels remaining in the target row, and the pixels left in the chunk.
 fprintf(stderr, "wipe %u inchunk: %d total: %d triples: %d\n", s->id, inchunk, totalpixels, triples);
+fprintf(stderr, "BEFORE: [%.24s]\n", c + tripbytes);
       int chomped = kitty_null(c + tripbytes, tripskip, thisrow,
                                inchunk - triples * 3, auxvec + auxvecidx);
+fprintf(stderr, "AFTER: [%.24s]\n", c + tripbytes);
       assert(chomped >= 0);
       auxvecidx += chomped;
       assert(auxvecidx <= s->cellpxy * s->cellpxx);
@@ -412,6 +416,7 @@ fprintf(stderr, "wipe %u inchunk: %d total: %d triples: %d\n", s->id, inchunk, t
         if(--targy == 0){
           s->n->tam[s->dimx * ycell + xcell].auxvector = auxvec;
           s->invalidated = SPRIXEL_INVALIDATED;
+sprixel_debug(s, stderr);
           return 1;
         }
         thisrow = targx;
@@ -462,7 +467,7 @@ fprintf(stderr, "drawing kitty %p %d\n", tam, bargs->u.pixel.spx->id);
   int targetout = 0; // number of pixels expected out after this chunk
 fprintf(stderr, "write %u total: %d chunks = %d, s=%d,v=%d\n", sprixelid, total, chunks, lenx, leny); while(chunks--){
     if(totalout == 0){
-      *parse_start = fprintf(fp, "\e_Gf=32,s=%d,v=%d,i=%d,p=1,a=t,%s%d%s;",
+      *parse_start = fprintf(fp, "\e_Gf=32,s=%d,v=%d,i=%d,p=1,a=T,%s%d%s;",
                              lenx, leny, sprixelid,
                              chunks ? "m=" : "q=",
                              chunks ? 1 : loglevel_to_kittyq(loglevel),
@@ -534,7 +539,7 @@ fprintf(stderr, "write %u total: %d chunks = %d, s=%d,v=%d\n", sprixelid, total,
   if(bargs->u.pixel.replaced){
     kitty_remove(bargs->u.pixel.replaced, fp);
   }
-fprintf(stderr, "SHOWING %u\n", sprixelid);
+//fprintf(stderr, "SHOWING %u\n", sprixelid);
   fprintf(fp, "\e_Ga=p,i=%d,p=1,q=%d\e\\", sprixelid, loglevel_to_kittyq(loglevel));
   if(fclose(fp) == EOF){
     return -1;
@@ -642,7 +647,7 @@ fprintf(stderr, "DESTROYING KITTY %d\n", s->id);
 
 // returns the number of bytes written
 int kitty_draw(const ncpile* p, sprixel* s, FILE* out){
-//fprintf(stderr, "KITTY DRAW: %u\n", s->id);
+fprintf(stderr, "KITTY DRAW: %u [%s]\n", s->id, s->glyph);
   (void)p;
   int ret = s->glyphlen;
   if(fwrite(s->glyph, s->glyphlen, 1, out) != 1){
@@ -654,7 +659,7 @@ int kitty_draw(const ncpile* p, sprixel* s, FILE* out){
 
 // returns -1 on failure, 0 on success (move bytes do not count for sprixel stats)
 int kitty_move(const ncpile* p, sprixel* s, FILE* out){
-//fprintf(stderr, "KITTY MOVE: %u\n", s->id);
+fprintf(stderr, "KITTY MOVE: %u\n", s->id);
   (void)p;
   int ret = 0;
   if(fprintf(out, "\e_Ga=p,i=%d,p=1,q=%d\e\\", s->id, loglevel_to_kittyq(loglevel)) < 0){

@@ -895,6 +895,7 @@ static int64_t
 rasterize_sprixels(notcurses* nc, ncpile* p, FILE* out){
   int64_t bytesemitted = 0;
   for(sprixel* s = p->sprixelcache ; s ; s = s->next){
+sprixel_debug(s, stderr);
     if(s->invalidated == SPRIXEL_INVALIDATED){
       int y, x;
       ncplane_yx(s->n, &y, &x);

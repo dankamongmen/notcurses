@@ -50,6 +50,7 @@ int oiio_stream(struct notcurses* nc, ncvisual* ncv, float timescale,
     }
     if(r){
       if(activevopts.n != vopts->n){
+fprintf(stderr, "DESTROYING IT!\n");
         ncplane_destroy(activevopts.n);
       }
       return r;
