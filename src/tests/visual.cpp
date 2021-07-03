@@ -67,7 +67,7 @@ TEST_CASE("Visual") {
 
   // resize followed by rotate, see #1800
   SUBCASE("ResizeThenRotateFromMemory") {
-    unsigned char rgb[30];
+    unsigned char rgb[90];
     memset(rgb, 0, sizeof(rgb));
     auto ncv = ncvisual_from_rgb_packed(rgb, 3, 10 * 3, 10, 0xff);
     REQUIRE(nullptr != ncv);
