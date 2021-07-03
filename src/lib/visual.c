@@ -591,7 +591,7 @@ ncvisual* ncvisual_from_rgba(const void* rgba, int rows, int rowstride, int cols
     }
     for(int y = 0 ; y < rows ; ++y){
       memcpy(data + (ncv->rowstride * y) / 4, (const char*)rgba + rowstride * y, rowstride);
-//fprintf(stderr, "ROWS: %d STRIDE: %d (%d) COLS: %d %08x\n", ncv->pixy, ncv->rowstride, ncv->rowstride / 4, cols, data[ncv->rowstride * y / 4]);
+//fprintf(stderr, "ROWS: %d STRIDE: %d (%d) COLS: %d %08x\n", ncv->pixy, ncv->rowstride, rowstride, cols, data[ncv->rowstride * y / 4]);
     }
     ncvisual_set_data(ncv, data, true);
     ncvisual_details_seed(ncv);

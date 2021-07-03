@@ -159,6 +159,7 @@ TEST_CASE("Visual") {
       .flags = 0, .transcolor = 0,
     };
     auto n = ncvisual_render(nc_, ncv, &vopts);
+    CHECK(0 == notcurses_render(nc_));
     REQUIRE(nullptr != n);
     CHECK(dimy == ncplane_dim_y(n));
     CHECK(dimx == ncplane_dim_x(n));
