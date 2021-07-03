@@ -1100,7 +1100,6 @@ notcurses_rasterize_inner(notcurses* nc, ncpile* p, FILE* out, unsigned* asu){
   if(ncflush(out)){
     return -1;
   }
-  nc->last_pile = p;
   return nc->rstate.mstrsize;
 }
 
