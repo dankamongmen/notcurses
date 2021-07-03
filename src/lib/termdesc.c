@@ -59,11 +59,13 @@ setup_sixel_bitmaps(tinfo* ti, int fd, bool invert80){
   ti->pixel_rebuild = sixel_rebuild;
   ti->pixel_trans_auxvec = sixel_trans_auxvec;
   ti->sprixel_scale_height = 6;
+  set_pixel_blitter(sixel_blit);
   sprite_init(ti, fd);
 }
 
+// kitty 0.19.3 didn't have C=1, and thus needs sixel_maxy_pristine
 static inline void
-setup_kitty_bitmaps(tinfo* ti, int fd){
+setup_kitty_bitmaps(tinfo* ti, int fd, int sixel_maxy_pristine){
   ti->pixel_wipe = kitty_wipe;
   ti->pixel_destroy = kitty_destroy;
   ti->pixel_remove = kitty_remove;
@@ -74,6 +76,7 @@ setup_kitty_bitmaps(tinfo* ti, int fd){
   ti->pixel_rebuild = kitty_rebuild;
   ti->pixel_clear_all = kitty_clear_all;
   ti->pixel_trans_auxvec = kitty_trans_auxvec;
+  ti->sixel_maxy_pristine = sixel_maxy_pristine;
   set_pixel_blitter(kitty_blit);
   sprite_init(ti, fd);
 }
@@ -380,14 +383,15 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
     ti->caps.sextants = true; // work since bugfix in 0.19.3
     ti->caps.quadrants = true;
     ti->caps.rgb = true;
-    setup_kitty_bitmaps(ti, fd);
     *advertised_appsync = 0; // FIXME see above
     if(add_smulx_escapes(ti, tablelen, tableused)){
       return -1;
     }
     // kitty only introduced C=1 in 0.20.0
     if(compare_versions(ti->termversion, "0.20.0") < 0){
-      ti->sixel_maxy_pristine = INT_MAX;
+      setup_kitty_bitmaps(ti, fd, INT_MAX);
+    }else{
+      setup_kitty_bitmaps(ti, fd, 0);
     }
   }else if(qterm == TERMINAL_ALACRITTY){
     termname = "Alacritty";
