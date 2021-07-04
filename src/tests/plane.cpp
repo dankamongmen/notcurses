@@ -1005,7 +1005,7 @@ TEST_CASE("Plane") {
   SUBCASE("RelativePlaneMoves") {
     struct ncplane_options nopts{};
     nopts.x = 2;
-    nopts .y = 2;
+    nopts.y = 2;
     nopts.rows = 4;
     nopts.cols = 4;
     auto n = ncplane_create(n_, &nopts);
@@ -1037,6 +1037,31 @@ TEST_CASE("Plane") {
     CHECK(y == 3);
     CHECK(x == 3);
     CHECK(0 == notcurses_render(nc_));
+    CHECK(0 == ncplane_destroy(n));
+  }
+
+  SUBCASE("ScrollingVirtualCursor") {
+    struct ncplane_options nopts{};
+    nopts.x = 2;
+    nopts.y = 2;
+    nopts.rows = 4;
+    nopts.cols = 20;
+    auto n = ncplane_create(n_, &nopts);
+    REQUIRE(nullptr != n);
+    CHECK(false == ncplane_set_scrolling(n, true));
+    uint64_t channels = CHANNELS_RGB_INITIALIZER(0, 0xff, 0, 0xff, 0, 0xff);
+    int y, x;
+    CHECK(1 == ncplane_set_base(n, " ", 0, channels));
+    CHECK(0 == notcurses_render(nc_));
+    for(int i = 0 ; i < ncplane_dim_y(n) ; ++i){
+      ncplane_cursor_yx(n, &y, &x);
+      CHECK(i == y);
+      CHECK(0 == x);
+      CHECK(0 < ncplane_putstr(n, "here's a line\n"));
+    }
+    ncplane_cursor_yx(n, &y, &x);
+    CHECK(ncplane_dim_y(n) - 1 == y);
+    CHECK(0 == x);
     CHECK(0 == ncplane_destroy(n));
   }
 
