@@ -881,7 +881,7 @@ static int
 rasterize_scrolls(ncpile* p, FILE* out){
 //fprintf(stderr, "%d tardies to work off, by far the most in the class\n", p->scrolls);
   while(p->scrolls){
-    if(fprintf(out, "\n") < 0){
+    if(fprintf(out, "\v") < 0){
       return -1;
     }
     --p->scrolls;

@@ -49,70 +49,6 @@ int ncdirect_putstr(ncdirect* nc, uint64_t channels, const char* utf8){
   return fprintf(nc->ttyfp, "%s", utf8);
 }
 
-static int
-cursor_yx_get(int ttyfd, const char* u7, int* y, int* x){
-  if(tty_emit(u7, ttyfd)){
-    return -1;
-  }
-  bool done = false;
-  enum { // what we expect now
-    CURSOR_ESC, // 27 (0x1b)
-    CURSOR_LSQUARE,
-    CURSOR_ROW, // delimited by a semicolon
-    CURSOR_COLUMN,
-    CURSOR_R,
-  } state = CURSOR_ESC;
-  int row = 0, column = 0;
-  char in;
-  while(read(ttyfd, &in, 1) == 1){
-    bool valid = false;
-    switch(state){
-      case CURSOR_ESC: valid = (in == NCKEY_ESC); state = CURSOR_LSQUARE; break;
-      case CURSOR_LSQUARE: valid = (in == '['); state = CURSOR_ROW; break;
-      case CURSOR_ROW:
-        if(isdigit(in)){
-          row *= 10;
-          row += in - '0';
-          valid = true;
-        }else if(in == ';'){
-          state = CURSOR_COLUMN;
-          valid = true;
-        }
-        break;
-      case CURSOR_COLUMN:
-        if(isdigit(in)){
-          column *= 10;
-          column += in - '0';
-          valid = true;
-        }else if(in == 'R'){
-          state = CURSOR_R;
-          valid = true;
-        }
-        break;
-      case CURSOR_R: default: // logical error, whoops
-        break;
-    }
-    if(!valid){
-      fprintf(stderr, "Unexpected result from terminal: %d\n", in);
-      break;
-    }
-    if(state == CURSOR_R){
-      done = true;
-      break;
-    }
-  }
-  if(!done){
-    return -1;
-  }
-  if(y){
-    *y = row;
-  }
-  if(x){
-    *x = column;
-  }
-  return 0;
-}
-
 int ncdirect_cursor_up(ncdirect* nc, int num){
   if(num < 0){
     return -1;
@@ -343,22 +279,22 @@ detect_cursor_inversion(ncdirect* n, const char* u7, int rows, int cols, int* y,
     // we only changed one, supposedly the number of rows. if we were on the
     // top row before, the reply is inverted.
     if(*y == 0){
-      n->inverted_cursor = true;
+      n->tcache.inverted_cursor = true;
     }
   }else if(*y == newy){
     // we only changed one, supposedly the number of columns. if we were on the
     // rightmost column before, the reply is inverted.
     if(*x == cols){
-      n->inverted_cursor = true;
+      n->tcache.inverted_cursor = true;
     }
   }else{
     // the row ought have decreased, and the column ought have increased. if it
     // went the other way, the reply is inverted.
     if(newy > *y && newx < *x){
-      n->inverted_cursor = true;
+      n->tcache.inverted_cursor = true;
     }
   }
-  n->detected_cursor_inversion = true;
+  n->tcache.detected_cursor_inversion = true;
   return 0;
 }
 
@@ -412,13 +348,13 @@ int ncdirect_cursor_yx(ncdirect* n, int* y, int* x){
   if(!x){
     x = &xval;
   }
-  if(!n->detected_cursor_inversion){
+  if(!n->tcache.detected_cursor_inversion){
     ret = detect_cursor_inversion_wrapper(n, u7, y, x);
   }else{
     ret = cursor_yx_get(n->ctermfd, u7, y, x);
   }
   if(ret == 0){
-    if(n->inverted_cursor){
+    if(n->tcache.inverted_cursor){
       int tmp = *y;
       *y = *x;
       *x = tmp;
