@@ -5,6 +5,7 @@ rearrangements of Notcurses.
   * `notcurses_detected_terminal()` and `ncdirect_detected_terminal()` now
     both return a heap-allocated string, which will contain the terminal
     version if Notcurses was able to detect it. This result ought be free()d.
+  * Added `ncplane_moverel()`.
 
 * 2.3.8 (2021-07-04)
   * Marked all capability functions `__attribute__ ((pure))`. If you were

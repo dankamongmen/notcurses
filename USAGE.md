@@ -917,6 +917,15 @@ ncplane_resize_simple(struct ncplane* n, int ylen, int xlen){
 // standard plane. Specifying a coordinate as -1 will hold it constant.
 int ncplane_move_yx(struct ncplane* n, int y, int x);
 
+// Move this plane relative to its current location. Negative values move up
+// and left, respectively. Pass 0 to hold an axis constant.
+__attribute__ ((nonnull (1))) static inline int
+ncplane_moverel(struct ncplane* n, int y, int x){
+  int oy, ox;
+  ncplane_yx(n, &oy, &ox);
+  return ncplane_move_yx(n, oy + y, ox + x);
+}
+
 // Get the origin of plane 'n' relative to its bound plane, or its pile (if
 // 'n' is a root plane).
 void ncplane_yx(const struct ncplane* n, int* restrict y, int* restrict x);

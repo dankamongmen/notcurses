@@ -1490,17 +1490,26 @@ API int ncplane_set_base(struct ncplane* n, const char* egc,
 // 'ncp' is destroyed.
 API int ncplane_base(struct ncplane* n, nccell* c);
 
-// Move this plane relative to the standard plane, or the plane to which it is
-// bound (if it is bound to a plane). It is an error to attempt to move the
-// standard plane. Specifying a coordinate as -1 will hold it constant.
-API int ncplane_move_yx(struct ncplane* n, int y, int x);
-
 // Get the origin of plane 'n' relative to its bound plane, or pile (if 'n' is
 // a root plane). To get absolute coordinates, use ncplane_abs_yx().
 API void ncplane_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x)
   __attribute__ ((nonnull (1)));
 API int ncplane_y(const struct ncplane* n) __attribute__ ((pure));
 API int ncplane_x(const struct ncplane* n) __attribute__ ((pure));
+
+// Move this plane relative to the standard plane, or the plane to which it is
+// bound (if it is bound to a plane). It is an error to attempt to move the
+// standard plane. Specifying a coordinate as -1 will hold it constant.
+API int ncplane_move_yx(struct ncplane* n, int y, int x);
+
+// Move this plane relative to its current location. Negative values move up
+// and left, respectively. Pass 0 to hold an axis constant.
+__attribute__ ((nonnull (1))) static inline int
+ncplane_moverel(struct ncplane* n, int y, int x){
+  int oy, ox;
+  ncplane_yx(n, &oy, &ox);
+  return ncplane_move_yx(n, oy + y, ox + x);
+}
 
 // Get the origin of plane 'n' relative to its pile. Either or both of 'x' and
 // 'y' may be NULL.
