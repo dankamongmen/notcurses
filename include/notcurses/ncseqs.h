@@ -20,11 +20,23 @@ extern "C" {
 #define NCBOXASCIIW  L"/\\\\/-|"
 #define NCBOXOUTERW  L"🭽🭾🭼🭿▁🭵🭶🭰"
 
+// 4-cycles around an interior core
 #define NCWHITESQUARESW L"◲◱◳◰"
 #define NCWHITECIRCLESW L"◶◵◷◴"
 #define NCCIRCULARARCSW L"◜◝◟◞"
 #define NCWHITETRIANGLESW L"◿◺◹◸"
 #define NCBLACKTRIANGLESW L"◢◣◥◤"
+
+// 4-cycles around an exterior core
+#define NCBLACKARROWHEADSW L"⮝⮟⮜⮞"
+#define NCLIGHTEDARROWHEADSW L"⮙⮛⮘⮚"
+#define NCARROWDOUBLEW L"⮅⮇⮄⮆"
+#define NCARROWDASHEDW L"⭫⭭⭪⭬"
+#define NCARROWCIRCLEDW L"⮉⮋⮈⮊"
+#define NCARROWANTICLOCKW L"⮍⮏⮌⮎"
+
+// 8-cycles around an exterior core
+#define NCARROWW L"⭡⭣⭠⭢⭧⭩⭦⭨"
 
 // symbols for legacy computing
 #define NCANGLESBR L"🭁🭂🭃🭄🭅🭆🭇🭈🭉🭊🭋"
