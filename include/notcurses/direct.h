@@ -240,9 +240,6 @@ API int ncdirect_cursor_pop(struct ncdirect* n)
 API int ncdirect_clear(struct ncdirect* nc)
   __attribute__ ((nonnull (1)));
 
-API const char* ncdirect_detected_terminal(const struct ncdirect* n)
-  __attribute__ ((nonnull (1)));
-
 API const nccapabilities* ncdirect_capabilities(const struct ncdirect* n)
   __attribute__ ((nonnull (1)));
 
@@ -423,7 +420,7 @@ API int ncdirect_stream(struct ncdirect* n, const char* filename, ncstreamcb str
 
 // Capabilites
 
-API const char* ncdirect_detected_terminal(const struct ncdirect* nc)
+ALLOC API char* ncdirect_detected_terminal(const struct ncdirect* n)
   __attribute__ ((nonnull (1)));
 
 // Can we directly specify RGB values per cell, or only use palettes?

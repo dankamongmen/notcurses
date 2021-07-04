@@ -1354,8 +1354,8 @@ unsigned ncdirect_supported_styles(const ncdirect* nc){
   return term_supported_styles(&nc->tcache);
 }
 
-const char* ncdirect_detected_terminal(const ncdirect* nc){
-  return nc->tcache.termname;
+char* ncdirect_detected_terminal(const ncdirect* nc){
+  return termdesc_longterm(&nc->tcache);
 }
 
 const nccapabilities* ncdirect_capabilities(const ncdirect* n){

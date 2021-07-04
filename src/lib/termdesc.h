@@ -191,6 +191,9 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
 
 void free_terminfo_cache(tinfo* ti);
 
+// return a heap-allocated copy of termname + termversion
+char* termdesc_longterm(const tinfo* ti);
+
 #ifdef __cplusplus
 }
 #endif

@@ -467,6 +467,7 @@ infoplane_notcurses(struct notcurses* nc, const fetched_info* fi, int planeheigh
   }else{
     ncplane_printf_aligned(infop, 4, NCALIGN_LEFT, " TERM: %s", fi->term);
   }
+  free(fi->term);
   ncplane_printf_aligned(infop, 4, NCALIGN_RIGHT, "Screen0: %dx%d ", fi->dimx, fi->dimy);
   ncplane_printf_aligned(infop, 5, NCALIGN_LEFT, " LANG: %s", fi->lang);
   ncplane_printf_aligned(infop, 5, NCALIGN_RIGHT, "UID: %ju ", (uintmax_t)getuid());

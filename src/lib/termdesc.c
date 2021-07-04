@@ -709,3 +709,20 @@ err:
   free(ti->termversion);
   return -1;
 }
+
+char* termdesc_longterm(const tinfo* ti){
+  size_t tlen = strlen(ti->termname) + 1;
+  size_t slen = tlen;
+  if(ti->termversion){
+    slen += strlen(ti->termversion) + 1;
+  }
+  char* ret = malloc(slen);
+  if(ret){
+    memcpy(ret, ti->termname, tlen);
+    if(ti->termversion){
+      ret[tlen - 1] = ' ';
+      strcpy(ret + tlen, ti->termversion);
+    }
+  }
+  return ret;
+}
