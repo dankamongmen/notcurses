@@ -60,6 +60,21 @@ egcpool_grow(egcpool* pool, size_t len){
   return 0;
 }
 
+// get the expected length of the encoded codepoint from the first byte of a
+// utf-8 character.
+static inline size_t
+utf8_codepoint_length(unsigned char c){
+  if(c <= 0x7f){        // 0x000000...0x00007f
+    return 1;
+  }else if(c <= 0xc0){  // 0x000080...0x0007ff
+    return 2;
+  }else if(c <= 0xe0){  // 0x000800...0x00ffff
+    return 3;
+  }else{ // c <= 0xf0, 0x100000...0x10ffff
+    return 4;
+  }
+}
+
 // Eat an EGC from the UTF-8 string input, counting bytes and columns. We use
 // libunistring's uc_is_grapheme_break() to segment EGCs. Writes the number of
 // columns to '*colcount'. Returns the number of bytes consumed, not including
