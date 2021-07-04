@@ -1036,6 +1036,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   if(ret == NULL){
     return ret;
   }
+  ret->last_pile = NULL;
   ret->rstate.mstream = NULL;
   ret->rstate.mstreamfp = NULL;
   ret->loglevel = opts->loglevel;
