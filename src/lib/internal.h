@@ -1125,41 +1125,6 @@ int ncvisual_blit(struct ncvisual* ncv, int rows, int cols,
                   ncplane* n, const struct blitset* bset,
                   const blitterargs* bargs);
 
-void nclog(const char* fmt, ...);
-
-// logging
-extern int loglevel;
-
-#define logerror(fmt, ...) do{ \
-  if(loglevel >= NCLOGLEVEL_ERROR){ \
-    nclog("%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } \
-  } while(0);
-
-#define logwarn(fmt, ...) do{ \
-  if(loglevel >= NCLOGLEVEL_WARNING){ \
-    nclog("%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } \
-  } while(0);
-
-#define loginfo(fmt, ...) do{ \
-  if(loglevel >= NCLOGLEVEL_INFO){ \
-    nclog("%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } \
-  } while(0);
-
-#define logverbose(fmt, ...) do{ \
-  if(loglevel >= NCLOGLEVEL_VERBOSE){ \
-    nclog("%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } \
-  } while(0);
-
-#define logdebug(fmt, ...) do{ \
-  if(loglevel >= NCLOGLEVEL_DEBUG){ \
-    nclog("%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } \
-  } while(0);
-
-#define logtrace(fmt, ...) do{ \
-  if(loglevel >= NCLOGLEVEL_TRACE){ \
-    nclog("%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } \
-  } while(0);
-
 // write(2) until we've written it all. uses poll(2) to avoid spinning on
 // EAGAIN, at the possible cost of some small latency.
 static inline int

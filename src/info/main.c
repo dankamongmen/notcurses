@@ -19,15 +19,28 @@ capboolbool(unsigned utf8, bool cap){
 }
 
 static void
-tinfo_debug_cap(struct ncplane* n, const char* name, bool yn,
-                uint32_t colory, uint32_t colorn, char ch){
-  if(yn){
-    ncplane_set_fg_rgb(n, colory);
-  }else{
-    ncplane_set_fg_rgb(n, colorn);
+tinfo_debug_cap(struct ncplane* n, const char* name, bool yn, char ch){
+  if(!yn){
+    ncplane_set_styles(n, NCSTYLE_ITALIC);
   }
   ncplane_putstr(n, name);
+  ncplane_set_styles(n, NCSTYLE_BOLD);
   ncplane_putwc(n, capboolbool(notcurses_canutf8(ncplane_notcurses(n)), yn));
+  ncplane_set_styles(n, NCSTYLE_NONE);
+  ncplane_putchar(n, ch);
+}
+
+static void
+tinfo_debug_style(struct ncplane* n, const char* name, int style, char ch){
+  unsigned support = notcurses_supported_styles(ncplane_notcurses(n)) & style;
+  if(!support){
+    ncplane_set_styles(n, NCSTYLE_ITALIC);
+  }
+  ncplane_set_styles(n, style);
+  ncplane_putstr(n, name);
+  ncplane_set_styles(n, NCSTYLE_BOLD);
+  ncplane_putwc(n, capboolbool(notcurses_canutf8(ncplane_notcurses(n)), support));
+  ncplane_set_styles(n, NCSTYLE_NONE);
   ncplane_putchar(n, ch);
 }
 
@@ -43,13 +56,15 @@ static int
 unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
   if(ti->caps.utf8){
     // all NCHALFBLOCKS are contained within NCQUADBLOCKS
-    ncplane_printf(n, "%s%ls ⎧%.122ls⎫ 🯰🯱🯲🯳🯴🯵🯶🯷🯸🯹\u2157\u2158\u2159\u215a\u215b ⎧%lc%lc⎫\n",
+    ncplane_printf(n, "%s%ls ⎧%.122ls⎫ 🯰🯱🯲🯳🯴🯵🯶🯷🯸🯹\u2157\u2158\u2159\u215a\u215b ⎧%lc%lc⎫",
                    indent, NCQUADBLOCKS, NCSEXBLOCKS,
                    NCEIGHTHSR[0], NCEIGHTHSL[0]);
-    ncplane_printf(n, "%s                 ⎩%ls⎭ \u00bc\u00bd\u00be\u2150\u2151\u2152\u2153\u2154\u2155\u2156\u215c\u215d\u215e\u215f\u2189 ⎪%lc%lc⎪\n",
+    ncplane_putchar(n, '\n');
+    ncplane_printf(n, "%s                 ⎩%ls⎭ \u00bc\u00bd\u00be\u2150\u2151\u2152\u2153\u2154\u2155\u2156\u215c\u215d\u215e\u215f\u2189 ⎪%lc%lc⎪",
                    indent, NCSEXBLOCKS + 32,
                    NCEIGHTHSR[1], NCEIGHTHSL[1]);
-    ncplane_printf(n, "%s %.6ls%.3ls   %.6ls%.3ls   %.6ls%.3ls   %.6ls%.3ls   %.8ls%.4ls                                       ⎪%lc%lc⎪\n",
+    ncplane_putchar(n, '\n');
+    ncplane_printf(n, "%s %.6ls%.3ls   %.6ls%.3ls   %.6ls%.3ls   %.6ls%.3ls   %.8ls%.4ls                                       ⎪%lc%lc⎪",
                    indent,
                    NCBOXLIGHTW, NCBOXLIGHTW + 4,
                    NCBOXHEAVYW, NCBOXHEAVYW + 4,
@@ -57,7 +72,8 @@ unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
                    NCBOXDOUBLEW, NCBOXDOUBLEW + 4,
                    NCBOXOUTERW, NCBOXOUTERW + 4,
                    NCEIGHTHSR[2], NCEIGHTHSL[2]);
-    ncplane_printf(n, "%s %.6ls%.3ls   %.6ls%.3ls   %.6ls%.3ls   %.6ls%.3ls   %.8ls%.4ls                                       ⎪%lc%lc⎪\n",
+    ncplane_putchar(n, '\n');
+    ncplane_printf(n, "%s %.6ls%.3ls   %.6ls%.3ls   %.6ls%.3ls   %.6ls%.3ls   %.8ls%.4ls                                       ⎪%lc%lc⎪",
                    indent,
                    NCBOXLIGHTW + 2, NCBOXLIGHTW + 5,
                    NCBOXHEAVYW + 2, NCBOXHEAVYW + 5,
@@ -65,16 +81,21 @@ unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
                    NCBOXDOUBLEW + 2, NCBOXDOUBLEW + 5,
                    NCBOXOUTERW + 2, NCBOXOUTERW + 5,
                    NCEIGHTHSR[3], NCEIGHTHSL[3]);
+    ncplane_putchar(n, '\n');
     braille_viz(n, "⎡", NCBRAILLEEGCS, "⎤", indent);
-    ncplane_printf(n, "⎨%lc%lc⎬\n", NCEIGHTHSR[4], NCEIGHTHSL[4]);
+    ncplane_printf(n, "⎨%lc%lc⎬", NCEIGHTHSR[4], NCEIGHTHSL[4]);
+    ncplane_putchar(n, '\n');
     braille_viz(n, "⎢", NCBRAILLEEGCS + 64, "⎥", indent);
-    ncplane_printf(n, "⎪%lc%lc⎪\n", NCEIGHTHSR[5], NCEIGHTHSL[5]);
+    ncplane_printf(n, "⎪%lc%lc⎪", NCEIGHTHSR[5], NCEIGHTHSL[5]);
+    ncplane_putchar(n, '\n');
     braille_viz(n, "⎢",  NCBRAILLEEGCS + 128, "⎥", indent);
-    ncplane_printf(n, "⎪%lc%lc⎪\n", NCEIGHTHSR[6], NCEIGHTHSL[6]);
+    ncplane_printf(n, "⎪%lc%lc⎪", NCEIGHTHSR[6], NCEIGHTHSL[6]);
+    ncplane_putchar(n, '\n');
     braille_viz(n, "⎣",NCBRAILLEEGCS + 192, "⎦", indent);
-    ncplane_printf(n, "⎩%lc%lc⎭\n", NCEIGHTHSR[7], NCEIGHTHSL[7]);
+    ncplane_printf(n, "⎩%lc%lc⎭", NCEIGHTHSR[7], NCEIGHTHSL[7]);
+    ncplane_putchar(n, '\n');
 
-    ncplane_printf(n, "%s ▔🭶🭷🭸🭹🭺🭻▁ %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc 🭨🭪          ⎛%ls⎞\n",
+    ncplane_printf(n, "%s ▔🭶🭷🭸🭹🭺🭻▁ %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc 🭨🭪          ⎛%ls⎞",
                    indent,
                    NCANGLESBR[0], NCANGLESBL[0],
                    NCANGLESBR[1], NCANGLESBL[1],
@@ -88,7 +109,8 @@ unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
                    NCANGLESBR[9], NCANGLESBL[9],
                    NCANGLESBR[10], NCANGLESBL[10],
                    NCEIGHTHSB);
-    ncplane_printf(n, "%s ▏🭰🭱🭲🭳🭴🭵▕ %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc 🭪🭨          ⎝%ls⎠\n",
+    ncplane_putchar(n, '\n');
+    ncplane_printf(n, "%s ▏🭰🭱🭲🭳🭴🭵▕ %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc 🭪🭨          ⎝%ls⎠",
                    indent,
                    NCANGLESTR[0], NCANGLESTL[0],
                    NCANGLESTR[1], NCANGLESTL[1],
@@ -102,6 +124,7 @@ unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
                    NCANGLESTR[9], NCANGLESTL[9],
                    NCANGLESTR[10], NCANGLESTL[10],
                    NCEIGHTHST);
+    ncplane_putchar(n, '\n');
     int y, x;
     ncplane_cursor_yx(n, &y, &x);
     // the symbols for legacy computing
@@ -130,6 +153,11 @@ unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
     // the horizontal eighths
     ncplane_cursor_move_yx(n, y - 10, 67);
     ncplane_stain(n, y - 2, 70, lr, ul, lr, ul);
+    // the capabilities
+    ul = CHANNEL_RGB_INITIALIZER(0x1B, 0xb8, 0x8E);
+    lr = CHANNEL_RGB_INITIALIZER(0x19, 0x19, 0x70);
+    ncplane_cursor_move_yx(n, y - 15, 0);
+    ncplane_stain(n, y - 11, 70, lr, ul, lr, ul);
   }
   return 0;
 }
@@ -196,63 +224,41 @@ tinfo_debug_bitmaps(struct ncplane* n, const tinfo* ti, const char* indent){
 }
 
 static void
-tinfo_debug_style(struct ncplane* n, const char* name, int style,
-                  uint32_t colory, uint32_t colorn, char ch){
-  unsigned support = notcurses_supported_styles(ncplane_notcurses(n)) & style;
-  if(support){
-    ncplane_set_fg_rgb(n, colory);
-  }else{
-    ncplane_set_fg_rgb(n, colorn);
-  }
-  ncplane_set_styles(n, style);
-  ncplane_putstr(n, name);
-  ncplane_putwc(n, capboolbool(notcurses_canutf8(ncplane_notcurses(n)), support));
-  ncplane_set_styles(n, NCSTYLE_NONE);
-  ncplane_putchar(n, ch);
-}
-
-static void
 tinfo_debug_caps(struct ncplane* n, const tinfo* ti, const char* indent){
-  uint32_t colory = 0xcc99ff;
-  uint32_t colorn = 0xff99ff;
   ncplane_printf(n, "%s", indent);
-  tinfo_debug_cap(n, "rgb", ti->caps.rgb, colory, colorn, ' ');
-  tinfo_debug_cap(n, "ccc", ti->caps.can_change_colors, colory, colorn, ' ');
-  tinfo_debug_cap(n, "af", get_escape(ti, ESCAPE_SETAF), colory, colorn, ' ');
-  tinfo_debug_cap(n, "ab", get_escape(ti, ESCAPE_SETAB), colory, colorn, ' ');
-  tinfo_debug_cap(n, "sum", get_escape(ti, ESCAPE_BSUM), colory, colorn, ' ');
-  tinfo_debug_cap(n, "u7", get_escape(ti, ESCAPE_DSRCPR), colory, colorn, ' ');
-  tinfo_debug_cap(n, "cup", get_escape(ti, ESCAPE_CUP), colory, colorn, ' ');
-  tinfo_debug_cap(n, "vpa", get_escape(ti, ESCAPE_VPA), colory, colorn, ' ');
-  tinfo_debug_cap(n, "hpa", get_escape(ti, ESCAPE_HPA), colory, colorn, ' ');
-  tinfo_debug_cap(n, "sgr0", get_escape(ti, ESCAPE_SGR0), colory, colorn, ' ');
-  tinfo_debug_cap(n, "op", get_escape(ti, ESCAPE_OP), colory, colorn, ' ');
-  tinfo_debug_cap(n, "fgop", get_escape(ti, ESCAPE_FGOP), colory, colorn, ' ');
-  tinfo_debug_cap(n, "bgop", get_escape(ti, ESCAPE_BGOP), colory, colorn, '\n');
+  tinfo_debug_cap(n, "rgb", ti->caps.rgb, ' ');
+  tinfo_debug_cap(n, "ccc", ti->caps.can_change_colors, ' ');
+  tinfo_debug_cap(n, "af", get_escape(ti, ESCAPE_SETAF), ' ');
+  tinfo_debug_cap(n, "ab", get_escape(ti, ESCAPE_SETAB), ' ');
+  tinfo_debug_cap(n, "sum", get_escape(ti, ESCAPE_BSUM), ' ');
+  tinfo_debug_cap(n, "u7", get_escape(ti, ESCAPE_DSRCPR), ' ');
+  tinfo_debug_cap(n, "cup", get_escape(ti, ESCAPE_CUP), ' ');
+  tinfo_debug_cap(n, "vpa", get_escape(ti, ESCAPE_VPA), ' ');
+  tinfo_debug_cap(n, "hpa", get_escape(ti, ESCAPE_HPA), ' ');
+  tinfo_debug_cap(n, "sgr0", get_escape(ti, ESCAPE_SGR0), ' ');
+  tinfo_debug_cap(n, "op", get_escape(ti, ESCAPE_OP), ' ');
+  tinfo_debug_cap(n, "fgop", get_escape(ti, ESCAPE_FGOP), ' ');
+  tinfo_debug_cap(n, "bgop", get_escape(ti, ESCAPE_BGOP), '\n');
 }
 
 static void
 tinfo_debug_styles(const notcurses* nc, struct ncplane* n, const char* indent){
   const tinfo* ti = &nc->tcache;
-  uint32_t colory = 0xc8a2c8;
-  uint32_t colorn = 0xffa2c8;
   ncplane_putstr(n, indent);
-  tinfo_debug_style(n, "blink", NCSTYLE_BLINK, colory, colorn, ' ');
-  tinfo_debug_style(n, "bold", NCSTYLE_BOLD, colory, colorn, ' ');
-  tinfo_debug_style(n, "ital", NCSTYLE_ITALIC, colory, colorn, ' ');
-  tinfo_debug_style(n, "struck", NCSTYLE_STRUCK, colory, colorn, ' ');
-  tinfo_debug_style(n, "ucurl", NCSTYLE_UNDERCURL, colory, colorn, ' ');
-  tinfo_debug_style(n, "uline", NCSTYLE_UNDERLINE, colory, colorn, '\n');
+  tinfo_debug_style(n, "blink", NCSTYLE_BLINK, ' ');
+  tinfo_debug_style(n, "bold", NCSTYLE_BOLD, ' ');
+  tinfo_debug_style(n, "ital", NCSTYLE_ITALIC, ' ');
+  tinfo_debug_style(n, "struck", NCSTYLE_STRUCK, ' ');
+  tinfo_debug_style(n, "ucurl", NCSTYLE_UNDERCURL, ' ');
+  tinfo_debug_style(n, "uline", NCSTYLE_UNDERLINE, '\n');
   ncplane_set_fg_default(n);
-  colory = 0x9172ec;
-  colorn = 0xff72ec;
   ncplane_putstr(n, indent);
-  tinfo_debug_cap(n, "utf8", ti->caps.utf8, colory, colorn, ' ');
-  tinfo_debug_cap(n, "quad", ti->caps.quadrants, colory, colorn, ' ');
-  tinfo_debug_cap(n, "sex", ti->caps.sextants, colory, colorn, ' ');
-  tinfo_debug_cap(n, "braille", ti->caps.braille, colory, colorn, ' ');
-  tinfo_debug_cap(n, "images", notcurses_canopen_images(nc), colory, colorn, ' ');
-  tinfo_debug_cap(n, "videos", notcurses_canopen_videos(nc), colory, colorn, '\n');
+  tinfo_debug_cap(n, "utf8", ti->caps.utf8, ' ');
+  tinfo_debug_cap(n, "quad", ti->caps.quadrants, ' ');
+  tinfo_debug_cap(n, "sex", ti->caps.sextants, ' ');
+  tinfo_debug_cap(n, "braille", ti->caps.braille, ' ');
+  tinfo_debug_cap(n, "images", notcurses_canopen_images(nc), ' ');
+  tinfo_debug_cap(n, "videos", notcurses_canopen_videos(nc), '\n');
   ncplane_set_fg_default(n);
 }
 

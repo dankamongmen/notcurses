@@ -2904,7 +2904,6 @@ void nclog(const char* fmt, ...){
 
 int ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclusters){
   int ret = 0;
-  // FIXME speed up this blissfully naive solution
   while(*gclusters){
     int wcs;
     int cols = ncplane_putegc_yx(n, y, x, gclusters, &wcs);
@@ -2927,7 +2926,6 @@ int ncplane_putstr_yx(struct ncplane* n, int y, int x, const char* gclusters){
 
 int ncplane_putstr_stained(struct ncplane* n, const char* gclusters){
   int ret = 0;
-  // FIXME speed up this blissfully naive solution
   while(*gclusters){
     int wcs;
     int cols = ncplane_putegc_stained(n, gclusters, &wcs);
@@ -2971,7 +2969,6 @@ int ncplane_putnstr_yx(struct ncplane* n, int y, int x, size_t s, const char* gc
   int ret = 0;
   int offset = 0;
 //fprintf(stderr, "PUT %zu at %d/%d [%.*s]\n", s, y, x, (int)s, gclusters);
-  // FIXME speed up this blissfully naive solution
   while((size_t)offset < s && gclusters[offset]){
     int wcs;
     int cols = ncplane_putegc_yx(n, y, x, gclusters + offset, &wcs);
