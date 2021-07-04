@@ -187,7 +187,7 @@ display_logo(const tinfo* ti, struct ncplane* n, const char* path){
   ncplane_yx(n, &y, NULL);
   struct ncvisual_options vopts = {
     .n = n,
-    .y = y + 8, // FIXME broken until #1649 is resolved
+    .y = y + 8,
     .x = 46,
     .blitter = NCBLIT_PIXEL,
     .flags = NCVISUAL_OPTION_CHILDPLANE,

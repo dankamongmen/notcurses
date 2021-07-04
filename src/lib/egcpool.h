@@ -62,17 +62,22 @@ egcpool_grow(egcpool* pool, size_t len){
 }
 
 // get the expected length of the encoded codepoint from the first byte of a
-// utf-8 character.
+// utf-8 character. if the byte is illegal as a first byte, 1 is returned.
+// Table 3.1B, Legal UTF8 Byte Sequences, Corrigendum #1: UTF-8 Shortest Form
 static inline size_t
 utf8_codepoint_length(unsigned char c){
   if(c <= 0x7f){        // 0x000000...0x00007f
     return 1;
-  }else if(c <= 0xc0){  // 0x000080...0x0007ff
+  }else if(c <= 0xc1){  // illegal continuation byte
+    return 1;
+  }else if(c <= 0xdf){  // 0x000080...0x0007ff
     return 2;
-  }else if(c <= 0xe0){  // 0x000800...0x00ffff
+  }else if(c <= 0xef){  // 0x000800...0x00ffff
     return 3;
-  }else{ // c <= 0xf0, 0x100000...0x10ffff
+  }else if(c <= 0xf4){  // c <= 0xf4, 0x100000...0x10ffff
     return 4;
+  }else{                // illegal first byte
+    return 1;
   }
 }
 
