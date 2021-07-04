@@ -413,9 +413,6 @@ int rendered_mode_player_inner(NotCurses& nc, int argc, char** argv,
     vopts.n = n;
     vopts.scaling = scalemode;
     vopts.blitter = blitter;
-    if(vopts.blitter == NCBLIT_PIXEL){
-      notcurses_check_pixel_support(nc);
-    }
     ncplane_erase(n);
     do{
       struct marshal marsh = {
