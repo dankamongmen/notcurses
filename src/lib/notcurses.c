@@ -53,7 +53,7 @@ int reset_term_attributes(const tinfo* ti, FILE* fp){
 static int
 notcurses_stop_minimal(void* vnc){
   notcurses* nc = vnc;
-  int ret = drop_signals(nc);
+  int ret = 0;
   // be sure to write the restoration sequences *prior* to running rmcup, as
   // they apply to the screen (alternate or otherwise) we're actually using.
   const char* esc;
@@ -86,6 +86,9 @@ notcurses_stop_minimal(void* vnc){
   if(ncflush(nc->ttyfp)){
     ret = -1;
   }
+  // see #1872; without keeping this at the end, we run into mysterious,
+  // poorly-understood issues during shutdown =[. cowardly. FIXME
+  ret |= drop_signals(nc);
   return ret;
 }
 
