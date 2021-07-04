@@ -1145,6 +1145,10 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
       goto err;
     }
   }
+  if((ret->rstate.mstreamfp = open_memstream(&ret->rstate.mstream, &ret->rstate.mstrsize)) == NULL){
+    free_plane(ret->stdplane);
+    goto err;
+  }
   const char* smkx = get_escape(&ret->tcache, ESCAPE_SMKX);
   if(smkx && term_emit(smkx, ret->ttyfp, false)){
     free_plane(ret->stdplane);
@@ -1155,13 +1159,12 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     free_plane(ret->stdplane);
     goto err;
   }
-  if((ret->rstate.mstreamfp = open_memstream(&ret->rstate.mstream, &ret->rstate.mstrsize)) == NULL){
+  ret->rstate.x = ret->rstate.y = -1;
+  int bannerlines = init_banner(ret);
+  if(ncflush(ret->ttyfp)){
     free_plane(ret->stdplane);
     goto err;
   }
-  ret->rstate.x = ret->rstate.y = -1;
-  int bannerlines = init_banner(ret);
-  ncflush(ret->ttyfp);
   if(cursor_y >= 0 && cursor_x >= 0){
     cursor_y += bannerlines;
     if(cursor_y >= ncplane_dim_y(ret->stdplane)){

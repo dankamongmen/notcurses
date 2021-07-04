@@ -640,14 +640,6 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
       goto err;
     }
   }
-  // if the keypad neen't be explicitly enabled, smkx is not present
-  const char* smkx = get_escape(ti, ESCAPE_SMKX);
-  if(smkx && fd >= 0){
-    if(tty_emit(tiparm(smkx), fd) < 0){
-      fprintf(stderr, "Error entering keypad transmit mode\n");
-      goto err;
-    }
-  }
   // if op is defined as ansi 39 + ansi 49, make the split definitions
   // available. this ought be asserted by extension capability "ax", but
   // no terminal i've found seems to do so. =[

@@ -1121,7 +1121,7 @@ raster_and_write(notcurses* nc, ncpile* p, FILE* out){
   }
   // if the last pile was different from this one, we need clear all old
   // sprixels (and invalidate all those of the current pile -- FIXME).
-  if(nc->last_pile != p){
+  if(nc->last_pile != p && nc->last_pile){
     if(sprite_clear_all(&nc->tcache, out)){
       return -1;
     }
