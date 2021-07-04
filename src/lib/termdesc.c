@@ -794,18 +794,20 @@ int cursor_yx_get(int ttyfd, const char* u7, int* y, int* x){
 }
 
 int locate_cursor_early(struct notcurses* nc, int* cursor_y, int* cursor_x){
-  const char* u7 = get_escape(&nc->tcache, ESCAPE_DSRCPR);
-  // FIXME ought check for cursor inversion!
-  int ret = cursor_yx_get(nc->ttyfd, u7, cursor_y, cursor_x);
-  if(ret == 0){
-    if(nc->tcache.inverted_cursor){
-      int tmp = *cursor_y;
-      *cursor_y = *cursor_x;
-      *cursor_x = tmp;
+  if(nc->ttyfd >= 0){
+    const char* u7 = get_escape(&nc->tcache, ESCAPE_DSRCPR);
+    // FIXME ought check for cursor inversion!
+    int ret = cursor_yx_get(nc->ttyfd, u7, cursor_y, cursor_x);
+    if(ret == 0){
+      if(nc->tcache.inverted_cursor){
+        int tmp = *cursor_y;
+        *cursor_y = *cursor_x;
+        *cursor_x = tmp;
+      }
+      // we use 0-based coordinates, but known terminals use 1-based coordinates
+      --*cursor_y;
+      --*cursor_x;
     }
-    // we use 0-based coordinates, but known terminals use 1-based coordinates
-    --*cursor_y;
-    --*cursor_x;
   }
   return ret;
 }
