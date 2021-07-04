@@ -4,18 +4,24 @@ PENDING changes
 - all tabbed & tab widget functions
 
 ## from changes-20210406-20210410.txt
-bindgen add:
-- [x] ncdirect_stream
+missing methods:
+- [ ] ncdirect_stream
 
-## from changes-20120518-20210603.txt …
+## from changes-20120518-20210603.txt
 
-- [x] ncdirect_styles
-- [x] ncdirect_supported_styles
+missing methods:
+- [ ] nccell_width
+- [ ] ncdirect_styles (method)
+- [ ] ncdirect_supported_styles (method)
+- [ ] ncplane_erase_region
+- [ ] notcurses_cursor_yx
 
-- [x] ncplane_erase_region
+## from changes-20210603-20210704.txt …
 
-- [x] nccell_width
+missing imports & methods:
+- [ ] ncpile_render_to_buffer
+- [ ] ncpile_render_to_file
+- [ ] nccells_ascii_box
+- [ ] nccells_heavy_box
+- [ ] nccells_light_box
 
-- [x] notcurses_cursor_yx
-
-- [x] ncinput_nomod_p

@@ -2,12 +2,12 @@
 
 // functions manually reimplemented: 4
 // ------------------------------------------
-// (+) done: 3 / 0
-// (#) test: 0 / 3
+// (+) done: 4
+// (#) test: 0
 // ------------------------------------------
 // + ncinput_equal_p
+// + ncinput_nomod_p
 // + nckey_mouse_p
-// + nckey_nomod_p
 // + nckey_supppuab_p
 
 use crate::NcDim;
@@ -120,6 +120,11 @@ pub const fn ncinput_equal_p(n1: NcInput, n2: NcInput) -> bool {
     true
 }
 
+/// Are all the modifiers off (alt, control, shift)?
+pub const fn ncinput_nomod_p(input: &NcInput) -> bool {
+    !input.alt && !input.ctrl && !input.shift
+}
+
 /// Is this [char] a Supplementary Private Use Area-B codepoint?
 ///
 /// Links:
@@ -136,7 +141,3 @@ pub const fn nckey_mouse_p(r: char) -> bool {
     r >= NCKEY_BUTTON1 && r <= NCKEY_RELEASE
 }
 
-/// Are all the modifiers off (alt, control, shift)?
-pub const fn ncinput_nomod_p(input: &NcInput) -> bool {
-    !input.alt && !input.ctrl && !input.shift
-}
