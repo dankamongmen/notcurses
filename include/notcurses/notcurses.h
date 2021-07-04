@@ -1317,8 +1317,10 @@ API unsigned notcurses_supported_styles(const struct notcurses* nc)
 API unsigned notcurses_palette_size(const struct notcurses* nc)
   __attribute__ ((nonnull (1))) __attribute__ ((pure));
 
-API const char* notcurses_detected_terminal(const struct notcurses* nc)
-  __attribute__ ((nonnull (1))) __attribute__ ((pure));
+// Returns the name (and sometimes version) of the terminal, as Notcurses
+// has been best able to determine.
+ALLOC API char* notcurses_detected_terminal(const struct notcurses* nc)
+  __attribute__ ((nonnull (1)));
 
 // Can we directly specify RGB values per cell, or only use palettes?
 API bool notcurses_cantruecolor(const struct notcurses* nc)

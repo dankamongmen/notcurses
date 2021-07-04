@@ -33,7 +33,7 @@ typedef struct fetched_info {
   char* kernver;               // strdup(uname(2)->version);
   char* desktop;               // getenv("XDG_CURRENT_DESKTOP")
   const char* shell;           // getenv("SHELL")
-  const char* term;            // ncdirect_detected_terminal()
+  char* term;                  // ncdirect_detected_terminal(), heap-alloced
   char* lang;                  // getenv("LANG")
   int dimy, dimx;              // extracted from xrandr
   char* cpu_model;             // FIXME don't handle hetero setups yet

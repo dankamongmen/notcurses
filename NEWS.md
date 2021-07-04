@@ -1,6 +1,11 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 2.3.9 (not yet released)
+  * `notcurses_detected_terminal()` and `ncdirect_detected_terminal()` now
+    both return a heap-allocated string, which will contain the terminal
+    version if Notcurses was able to detect it. This result ought be free()d.
+
 * 2.3.8 (2021-07-04)
   * Marked all capability functions `__attribute__ ((pure))`. If you were
     calling `notcurses_check_pixel_support()` before in order to enable pixel

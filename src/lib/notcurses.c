@@ -1700,8 +1700,8 @@ unsigned notcurses_palette_size(const notcurses* nc){
   return nc->tcache.caps.colors;
 }
 
-const char* notcurses_detected_terminal(const notcurses* nc){
-  return nc->tcache.termname;
+char* notcurses_detected_terminal(const notcurses* nc){
+  return termdesc_longterm(&nc->tcache);
 }
 
 bool notcurses_cantruecolor(const notcurses* nc){
