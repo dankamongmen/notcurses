@@ -887,11 +887,9 @@ init_banner_warnings(const notcurses* nc, FILE* out){
 // returns the number of lines printed.
 static int
 init_banner(const notcurses* nc){
-  int liness = 0;
   if(!nc->suppress_banner){
     char prefixbuf[BPREFIXSTRLEN + 1];
     term_fg_palindex(nc, stdout, 50 % nc->tcache.caps.colors);
-    ++liness;
     fprintf(nc->ttyfp, "notcurses %s on %s %s\n", notcurses_version(),
             nc->tcache.termname ? nc->tcache.termname : "?",
             nc->tcache.termversion ? nc->tcache.termversion : "");
@@ -911,7 +909,6 @@ init_banner(const notcurses* nc){
               sizeof(struct crender), nc->tcache.caps.colors);
     }
     const char* setaf;
-    liness += 3;
     if(nc->tcache.caps.rgb && (setaf = get_escape(&nc->tcache, ESCAPE_SETAF))){
       ncfputc('+', nc->ttyfp);
       term_fg_rgb8(&nc->tcache, stdout, 0xe0, 0x60, 0x60);
@@ -938,17 +935,14 @@ init_banner(const notcurses* nc){
 #endif
             , curses_version());
     ncvisual_printbanner(nc);
-    ++liness;
-    // don't go sending these to stderr; it would fuck up our line count, for
-    // one, and we don't know if we can meaningfully send escapes there.
-    liness += init_banner_warnings(nc, nc->ttyfp);
+    init_banner_warnings(nc, nc->ttyfp);
     const char* esc;
     if( (esc = get_escape(&nc->tcache, ESCAPE_SGR0)) ||
         (esc = get_escape(&nc->tcache, ESCAPE_OP))){
       term_emit(esc, nc->ttyfp, false);
     }
   }
-  return liness;
+  return 0;
 }
 
 // it's critical that we're using UTF-8 encoding if at all possible. since the
@@ -1160,15 +1154,15 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     goto err;
   }
   ret->rstate.x = ret->rstate.y = -1;
-  int bannerlines = init_banner(ret);
+  init_banner(ret);
   if(ncflush(ret->ttyfp)){
     free_plane(ret->stdplane);
     goto err;
   }
   if(cursor_y >= 0 && cursor_x >= 0){
-    cursor_y += bannerlines;
-    if(cursor_y >= ncplane_dim_y(ret->stdplane)){
-      cursor_y = ncplane_dim_y(ret->stdplane) - 1;
+    if(!ret->suppress_banner && locate_cursor_early(ret, &cursor_y, &cursor_x)){
+      free_plane(ret->stdplane);
+      goto err;
     }
     ncplane_cursor_move_yx(ret->stdplane, cursor_y, cursor_x);
   }

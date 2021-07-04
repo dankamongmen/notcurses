@@ -406,10 +406,6 @@ typedef struct ncdirect {
   tinfo tcache;              // terminfo cache
   uint64_t channels;         // current channels
   uint16_t stylemask;        // current styles
-  // some terminals (e.g. kmscon) return cursor coordinates inverted from the
-  // typical order. we detect it the first time ncdirect_cursor_yx() is called.
-  bool detected_cursor_inversion; // have we performed inversion testing?
-  bool inverted_cursor;      // does the terminal return inverted coordinates?
   bool initialized_readline; // have we initialized Readline?
   uint64_t flags;            // copied in ncdirect_init() from param
 } ncdirect;

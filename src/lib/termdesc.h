@@ -161,6 +161,11 @@ typedef struct tinfo {
   int default_cols; // COLUMNS environment var / cols terminfo / 80
 
   int linux_fb_fd;  // linux framebuffer device fd
+
+  // some terminals (e.g. kmscon) return cursor coordinates inverted from the
+  // typical order. we detect it the first time ncdirect_cursor_yx() is called.
+  bool detected_cursor_inversion; // have we performed inversion testing?
+  bool inverted_cursor;      // does the terminal return inverted coordinates?
 } tinfo;
 
 // retrieve the terminfo(5)-style escape 'e' from tdesc (NULL if undefined).
@@ -193,6 +198,12 @@ void free_terminfo_cache(tinfo* ti);
 
 // return a heap-allocated copy of termname + termversion
 char* termdesc_longterm(const tinfo* ti);
+
+// get the cursor location early (after interrogate_terminfo(), but before
+// handing control back to the user). blocking call. FIXME this should go away
+// once we have proper input handling that separates out control sequences.
+int locate_cursor_early(struct notcurses* nc, int* cursor_y, int* cursor_x);
+int cursor_yx_get(int ttyfd, const char* u7, int* y, int* x);
 
 #ifdef __cplusplus
 }
