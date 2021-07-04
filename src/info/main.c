@@ -64,8 +64,13 @@ unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
                    indent, NCSEXBLOCKS + 32,
                    NCEIGHTHSR[1], NCEIGHTHSL[1]);
     ncplane_putchar(n, '\n');
-    ncplane_printf(n, "%s %.6ls%.3ls   %.6ls%.3ls   %.6ls%.3ls   %.6ls%.3ls   %.8ls%.4ls                                       ⎪%lc%lc⎪",
+    ncplane_printf(n, "%s %.6ls  %.6ls  %.6ls  %.6ls  %.6ls  %.6ls%.3ls  %.6ls%.3ls  %.6ls%.3ls  %.6ls%.3ls  %.8ls%.4ls      ▵△▹▷▿▽◃◁         ⎪%lc%lc⎪",
                    indent,
+                   NCWHITESQUARESW,
+                   NCWHITECIRCLESW,
+                   NCCIRCULARARCSW,
+                   NCWHITETRIANGLESW,
+                   NCBLACKTRIANGLESW,
                    NCBOXLIGHTW, NCBOXLIGHTW + 4,
                    NCBOXHEAVYW, NCBOXHEAVYW + 4,
                    NCBOXROUNDW, NCBOXROUNDW + 4,
@@ -73,8 +78,13 @@ unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
                    NCBOXOUTERW, NCBOXOUTERW + 4,
                    NCEIGHTHSR[2], NCEIGHTHSL[2]);
     ncplane_putchar(n, '\n');
-    ncplane_printf(n, "%s %.6ls%.3ls   %.6ls%.3ls   %.6ls%.3ls   %.6ls%.3ls   %.8ls%.4ls                                       ⎪%lc%lc⎪",
+    ncplane_printf(n, "%s %.6ls  %.6ls  %.6ls  %.6ls  %.6ls  %.6ls%.3ls  %.6ls%.3ls  %.6ls%.3ls  %.6ls%.3ls  %.8ls%.4ls      ▴⏶⯅▲▸⏵⯈▶▾⏷⯆▼◂⏴⯇◀ ⎪%lc%lc⎪",
                    indent,
+                   NCWHITESQUARESW + 2,
+                   NCWHITECIRCLESW + 2,
+                   NCCIRCULARARCSW + 2,
+                   NCWHITETRIANGLESW + 2,
+                   NCBLACKTRIANGLESW + 2,
                    NCBOXLIGHTW + 2, NCBOXLIGHTW + 5,
                    NCBOXHEAVYW + 2, NCBOXHEAVYW + 5,
                    NCBOXROUNDW + 2, NCBOXROUNDW + 5,
