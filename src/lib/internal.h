@@ -472,6 +472,12 @@ typedef struct notcurses {
   // we keep a copy of the last rendered frame. this facilitates O(1)
   // notcurses_at_yx() and O(1) damage detection (at the cost of some memory).
   nccell* lastframe;// last rasterized framebuffer, NULL until first raster
+  // the last pile we rasterized. NULL until we've rasterized once. might
+  // be invalid due to the pile being destroyed; you are only allowed to
+  // evaluate it for equality to the pile being currently rasterized. when
+  // we switch piles, we need to clear all displayed sprixels, and
+  // invalidate the new pile's, pursuant to their display.
+  ncpile* last_pile;
   egcpool pool;   // egcpool for lastframe
 
   int lfdimx;     // dimensions of lastframe, unchanged by screen resize

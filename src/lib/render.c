@@ -1119,12 +1119,16 @@ raster_and_write(notcurses* nc, ncpile* p, FILE* out){
       return -1;
     }
   }
+  // if the last pile was different from this one, we need clear all old
+  // sprixels (and invalidate all those of the current pile -- FIXME).
+  if(nc->last_pile != p){
+    if(sprite_clear_all(&nc->tcache, out)){
+      return -1;
+    }
+  }
   if(notcurses_rasterize_inner(nc, p, out, &useasu) < 0){
     return -1;
   }
-  int ret = 0;
-  sigset_t oldmask;
-  block_signals(&oldmask);
   // if we loaded a BSU into the front, but don't actually want to use it,
   // we start printing after the BSU.
   size_t moffset = 0;
@@ -1135,6 +1139,9 @@ raster_and_write(notcurses* nc, ncpile* p, FILE* out){
       moffset = strlen(basu);
     }
   }
+  int ret = 0;
+  sigset_t oldmask;
+  block_signals(&oldmask);
   if(blocking_write(fileno(nc->ttyfp), nc->rstate.mstream + moffset,
                     nc->rstate.mstrsize - moffset)){
     ret = -1;
@@ -1165,6 +1172,7 @@ notcurses_rasterize(notcurses* nc, ncpile* p, FILE* out){
   if(cursory >= 0){
     notcurses_cursor_enable(nc, cursory, cursorx);
   }
+  nc->last_pile = p;
   return ret;
 }
 
