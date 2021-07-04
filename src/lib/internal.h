@@ -1204,14 +1204,24 @@ tty_emit(const char* seq, int fd){
   return 0;
 }
 
-// reliably flush a FILE*
+int set_fd_nonblocking(int fd, unsigned state, unsigned* oldstate);
+
+// reliably flush a FILE*...except you can't, so far as i can tell. at least
+// on glibc, a single fflush() error latches the FILE* error, but ceases to
+// perform any work (even following a clearerr()), despite returning 0 from
+// that point on. thus, after a fflush() error, even on EAGAIN and friends,
+// you can't use the stream any further. doesn't this make fflush() pretty
+// much useless? it sure would seem to, which is why we use a memstream for
+// all our important I/O, which we then blit with blocking_write(). if you
+// care about your data, you'll do the same.
 static inline int
 ncflush(FILE* out){
-  while(fflush(out) == EOF){
-    if(errno != EAGAIN && errno != EINTR && errno != EBUSY){
-      logerror("Unrecoverable error flushing io (%s)\n", strerror(errno));
-      return -1;
-    }
+  if(ferror(out)){
+    logerror("Not attempting a flush following error\n");
+  }
+  if(fflush(out) == EOF){
+    logerror("Unrecoverable error flushing io (%s)\n", strerror(errno));
+    return -1;
   }
   return 0;
 }
@@ -1302,6 +1312,24 @@ coerce_styles(FILE* out, const tinfo* ti, uint16_t* curstyle,
   }
   *curstyle = newstyle;
   return ret;
+}
+
+#define SET_BTN_EVENT_MOUSE   "1002"
+#define SET_FOCUS_EVENT_MOUSE "1004"
+#define SET_SGR_MODE_MOUSE    "1006"
+
+static inline int
+mouse_enable(FILE* out){
+  return term_emit("\x1b[?" SET_BTN_EVENT_MOUSE ";"
+                   /*SET_FOCUS_EVENT_MOUSE ";" */SET_SGR_MODE_MOUSE "h",
+                   out, false);
+}
+
+static inline int
+mouse_disable(FILE* out){
+  return term_emit("\x1b[?" SET_BTN_EVENT_MOUSE ";"
+                   /*SET_FOCUS_EVENT_MOUSE ";" */SET_SGR_MODE_MOUSE "l",
+                   out, false);
 }
 
 // how many edges need touch a corner for it to be printed?
@@ -1590,8 +1618,6 @@ cellcmp_and_dupfar(egcpool* dampool, nccell* damcell,
   cell_duplicate_far(dampool, damcell, srcplane, srccell);
   return 1;
 }
-
-int set_fd_nonblocking(int fd, unsigned state, unsigned* oldstate);
 
 int get_tty_fd(FILE* ttyfp);
 

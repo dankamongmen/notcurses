@@ -1250,12 +1250,7 @@ bool ncdirect_canutf8(const ncdirect* n){
 }
 
 int ncdirect_flush(const ncdirect* nc){
-  while(fflush(nc->ttyfp) == EOF){
-    if(errno != EAGAIN){
-      return -1;
-    }
-  }
-  return 0;
+  return ncflush(nc->ttyfp);
 }
 
 int ncdirect_check_pixel_support(const ncdirect* n){

@@ -53,7 +53,12 @@ int reset_term_attributes(const tinfo* ti, FILE* fp){
 static int
 notcurses_stop_minimal(void* vnc){
   notcurses* nc = vnc;
+  // collect output into the memstream buffer, and then dump it directly using
+  // blocking_write(), to avoid problems with unreliable fflush().
+  FILE* out = nc->rstate.mstreamfp;
+  fseeko(out, 0, SEEK_SET);
   int ret = 0;
+  ret |= drop_signals(nc);
   // be sure to write the restoration sequences *prior* to running rmcup, as
   // they apply to the screen (alternate or otherwise) we're actually using.
   const char* esc;
@@ -61,35 +66,32 @@ notcurses_stop_minimal(void* vnc){
   // byte. if we leave an active escape open, it can lock up the terminal.
   // we only want to do it when in the middle of a rasterization, though. FIXME
   if(nc->tcache.pixel_shutdown){
-    ret |= nc->tcache.pixel_shutdown(nc->ttyfp);
+    ret |= nc->tcache.pixel_shutdown(out);
   }
-  ret |= notcurses_mouse_disable(nc);
-  ret |= reset_term_attributes(&nc->tcache, nc->ttyfp);
+  ret |= mouse_disable(out);
+  ret |= reset_term_attributes(&nc->tcache, out);
   if(nc->ttyfd >= 0){
     if((esc = get_escape(&nc->tcache, ESCAPE_RMCUP))){
-      if(sprite_clear_all(&nc->tcache, nc->ttyfp)){
+      if(sprite_clear_all(&nc->tcache, out)){
         ret = -1;
       }
-      if(term_emit(esc, nc->ttyfp, false)){
+      if(term_emit(esc, out, false)){
         ret = -1;
       }
     }
     ret |= tcsetattr(nc->ttyfd, TCSANOW, &nc->tcache.tpreserved);
   }
-  if((esc = get_escape(&nc->tcache, ESCAPE_RMKX)) && term_emit(esc, nc->ttyfp, false)){
+  if((esc = get_escape(&nc->tcache, ESCAPE_RMKX)) && term_emit(esc, out, false)){
     ret = -1;
   }
   const char* cnorm = get_escape(&nc->tcache, ESCAPE_CNORM);
-  if(cnorm && term_emit(cnorm, nc->ttyfp, false)){
+  if(cnorm && term_emit(cnorm, out, false)){
     ret = -1;
   }
-  if(ncflush(nc->ttyfp)){
-    ret = -1;
+  if(fflush(out)){
+    return -1;
   }
-  // see #1872; without keeping this at the end, we run into mysterious,
-  // poorly-understood issues during shutdown =[. cowardly. FIXME
-  ret |= drop_signals(nc);
-  return ret;
+  return blocking_write(fileno(nc->ttyfp), nc->rstate.mstream, nc->rstate.mstrsize);
 }
 
 // make a heap-allocated wchar_t expansion of the multibyte string at s
@@ -2159,14 +2161,8 @@ ncplane* ncplane_above(ncplane* n){
   return n->above;
 }
 
-#define SET_BTN_EVENT_MOUSE   "1002"
-#define SET_FOCUS_EVENT_MOUSE "1004"
-#define SET_SGR_MODE_MOUSE    "1006"
 int notcurses_mouse_enable(notcurses* n){
   if(n->ttyfd >= 0){
-    return term_emit(ESC "[?" SET_BTN_EVENT_MOUSE ";"
-                     /*SET_FOCUS_EVENT_MOUSE ";" */SET_SGR_MODE_MOUSE "h",
-                     n->ttyfp, false);
   }
   return 0;
 }
@@ -2175,9 +2171,6 @@ int notcurses_mouse_enable(notcurses* n){
 // the sequences 1000 etc?
 int notcurses_mouse_disable(notcurses* n){
   if(n->ttyfd >= 0){
-    return term_emit(ESC "[?" SET_BTN_EVENT_MOUSE ";"
-                     /*SET_FOCUS_EVENT_MOUSE ";" */SET_SGR_MODE_MOUSE "l",
-                     n->ttyfp, false);
   }
   return 0;
 }
