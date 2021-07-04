@@ -1518,16 +1518,8 @@ void scroll_down(ncplane* n){
   }
 }
 
-int nccell_width(const ncplane* n, const nccell* c){
-  const char* egc = nccell_extended_gcluster(n, c);
-  if(egc == NULL){
-    return -1;
-  }
-  int cols;
-  if(utf8_egc_len(egc, &cols) < 0){
-    return -1;
-  }
-  return cols;
+int nccell_width(const ncplane* n __attribute__ ((unused)), const nccell* c){
+  return c->width;
 }
 
 int nccell_load(ncplane* n, nccell* c, const char* gcluster){
@@ -1549,7 +1541,7 @@ static inline int
 ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
             uint16_t stylemask, uint64_t channels, int bytes){
   if(n->sprite){
-    logerror("Can't write glyphs (%s) to sprixelated plane\n", egc);
+    logerror("Can't write [%s] to sprixelated plane\n", egc);
     return -1;
   }
   // reject any control character for output other than newline (and then only
@@ -1592,13 +1584,12 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
   // wide chars, totalling four columns.
   nccell* targ = ncplane_cell_ref_yx(n, n->y, n->x);
   if(n->x > 0){
-    if(nccell_double_wide_p(targ)){ // replaced cell is half of a wide char
-      nccell* sacrifice = targ->gcluster == 0 ?
-        // right half will never be on the first column of a row
-        &n->fb[nfbcellidx(n, n->y, n->x - 1)] :
-        // left half will never be on the last column of a row
-        &n->fb[nfbcellidx(n, n->y, n->x + 1)];
-      nccell_obliterate(n, sacrifice);
+    if(nccell_wide_right_p(targ)){
+      // right half will never be on the first column of a row
+      nccell_obliterate(n, &n->fb[nfbcellidx(n, n->y, n->x - 1)]);
+    }else if(nccell_wide_left_p(targ)){
+      // left half will never be on the last column of a row
+      nccell_obliterate(n, &n->fb[nfbcellidx(n, n->y, n->x + 1)]);
     }
   }
   targ->stylemask = stylemask;
@@ -1624,7 +1615,7 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
 }
 
 int ncplane_putc_yx(ncplane* n, int y, int x, const nccell* c){
-  const int cols = nccell_double_wide_p(c) ? 2 : 1;
+  const int cols = c->width;
   const char* egc = nccell_extended_gcluster(n, c);
   return ncplane_put(n, y, x, egc, cols, c->stylemask, c->channels, strlen(egc));
 }

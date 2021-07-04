@@ -632,9 +632,12 @@ typedef struct nccell {
 #define CELL_TRIVIAL_INITIALIZER { .gcluster = 0, .gcluster_backstop = 0, .width = 0, .stylemask = 0, .channels = 0, }
 // do *not* load invalid EGCs using these macros! there is no way for us to
 // protect against such misuse here. problems *will* ensue. similarly, do not
-// set channel flags other than colors/alpha.
-#define CELL_CHAR_INITIALIZER(c) { .gcluster = (htole(c)), .gcluster_backstop = 0, .width = (uint8_t)wcwidth(c), .stylemask = 0, .channels = 0, }
-#define CELL_INITIALIZER(c, s, chan) { .gcluster = (htole(c)), .gcluster_backstop = 0, .width = (uint8_t)wcwidth(c), .stylemask = (s), .channels = (chan), }
+// set channel flags other than colors/alpha. we assign non-printing glyphs
+// a width of 1 to match utf8_egc_len()'s behavior for whitespace/NUL.
+#define CELL_CHAR_INITIALIZER(c) { .gcluster = (htole(c)), .gcluster_backstop = 0,\
+  .width = (uint8_t)((wcwidth(c) < 0 || !c) ? 1 : wcwidth(c)), .stylemask = 0, .channels = 0, }
+#define CELL_INITIALIZER(c, s, chan) { .gcluster = (htole(c)), .gcluster_backstop = 0,\
+  .width = (uint8_t)((wcwidth(c) < 0 || !c) ? 1 : wcwidth(c)), .stylemask = (s), .channels = (chan), }
 
 static inline void
 nccell_init(nccell* c){
@@ -742,8 +745,9 @@ nccell_wide_left_p(const nccell* c){
 // can be invalidated by any further operation on the plane 'n', so...watch out!
 API __attribute__ ((returns_nonnull)) const char* nccell_extended_gcluster(const struct ncplane* n, const nccell* c);
 
-// return the number of columns occupied by 'c'. returns -1 if passed a
-// sprixcell. see ncstrwidth() for an equivalent for multiple EGCs.
+// return the number of columns occupied by 'c'. see ncstrwidth() for an
+// equivalent for multiple EGCs.
+// FIXME promote to static inline for ABI3
 API int nccell_width(const struct ncplane* n, const nccell* c);
 
 // copy the UTF8-encoded EGC out of the nccell. the result is not tied to any
