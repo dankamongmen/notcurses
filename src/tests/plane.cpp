@@ -1058,11 +1058,17 @@ TEST_CASE("Plane") {
       CHECK(i == y);
       CHECK(0 == x);
       CHECK(0 < ncplane_putstr(n, "here's a line\n"));
+      CHECK(0 == notcurses_render(nc_));
     }
-    ncplane_cursor_yx(n, &y, &x);
-    CHECK(ncplane_dim_y(n) - 1 == y);
-    CHECK(0 == x);
+    for(int i = 0 ; i < ncplane_dim_y(n) ; ++i){
+      ncplane_cursor_yx(n, &y, &x);
+      CHECK(ncplane_dim_y(n) - 1 == y);
+      CHECK(0 == x);
+      CHECK(0 < ncplane_putstr(n, "here's a line\n"));
+      CHECK(0 == notcurses_render(nc_));
+    }
     CHECK(0 == ncplane_destroy(n));
+    CHECK(0 == notcurses_render(nc_));
   }
 
   CHECK(0 == notcurses_stop(nc_));
