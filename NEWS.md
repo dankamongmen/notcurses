@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 2.3.8 (not yet released)
+* 2.3.8 (2021-07-04)
   * Marked all capability functions `__attribute__ ((pure))`. If you were
     calling `notcurses_check_pixel_support()` before in order to enable pixel
     blitting (unnecessary since 2.3.5), you might get compiler warnings about
