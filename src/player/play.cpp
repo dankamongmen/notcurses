@@ -158,9 +158,6 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
     }else if(keyp >= '0' && keyp <= '6' && !ni.alt && !ni.ctrl){
       marsh->blitter = static_cast<ncblitter_e>(keyp - '0');
       vopts->blitter = marsh->blitter;
-      if(vopts->blitter == NCBLIT_PIXEL){
-        notcurses_check_pixel_support(nc);
-      }
       continue;
     }else if(keyp >= '7' && keyp <= '9' && !ni.alt && !ni.ctrl){
       continue; // don't error out
