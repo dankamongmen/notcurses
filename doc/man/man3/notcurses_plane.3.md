@@ -277,6 +277,12 @@ to multiple ncplanes. So long as all threads are readers, multiple threads may
 work with a single ncplane. A reading function is any which accepts a **const
 struct ncplane**.
 
+A plane has a virtual cursor; move it with **ncplane_cursor_move_yx**.
+Specifying -1 as one or both coordinates will hold that axis constant. Unless
+coordinates are specified for a call, action takes place at the plane's
+virtual cursor, which automatically moves along with output. The current
+virtual cursor location can be acquired with **ncplane_cursor_yx**.
+
 **ncplane_yx** returns the coordinates of the specified plane's origin, relative
 to the plane to which it is bound. Either or both of ***y*** and ***x*** may
 be **NULL**. **ncplane_y** and **ncplane_x** allow a single component of this
@@ -422,6 +428,9 @@ each representing a single RGBA pixel, or **NULL** on failure.
 
 **ncplane_erase_region** returns -1 if any of its parameters are negative, or
 if they specify any area beyond the plane.
+
+**ncplane_cursor_move_yx** returns -1 if the coordinates are beyond the
+dimensions of the specified plane (except for the special value -1).
 
 Functions returning **int** return 0 on success, and non-zero on error.
 

@@ -1492,7 +1492,7 @@ API int ncplane_base(struct ncplane* n, nccell* c);
 
 // Move this plane relative to the standard plane, or the plane to which it is
 // bound (if it is bound to a plane). It is an error to attempt to move the
-// standard plane.
+// standard plane. Specifying a coordinate as -1 will hold it constant.
 API int ncplane_move_yx(struct ncplane* n, int y, int x);
 
 // Get the origin of plane 'n' relative to its bound plane, or pile (if 'n' is
