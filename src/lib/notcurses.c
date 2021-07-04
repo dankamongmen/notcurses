@@ -593,6 +593,10 @@ inline int ncplane_cursor_move_yx(ncplane* n, int y, int x){
   return 0;
 }
 
+inline int ncplane_cursor_move_rel(ncplane* n, int y, int x){
+  return ncplane_cursor_move_yx(n, n->y + y, n->x + x);
+}
+
 ncplane* ncplane_dup(const ncplane* n, void* opaque){
   int dimy = n->leny;
   int dimx = n->lenx;
