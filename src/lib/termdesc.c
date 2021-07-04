@@ -651,9 +651,14 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
     }
   }
   unsigned appsync_advertised = 0;
-  if(cursor_x && cursor_y){
-    *cursor_x = *cursor_y = 0;
+  int foolcursor_x, foolcursor_y;
+  if(!cursor_x){
+    cursor_x = &foolcursor_x;
   }
+  if(!cursor_y){
+    cursor_y = &foolcursor_y;
+  }
+  *cursor_x = *cursor_y = 0;
   if(ncinputlayer_init(ti, stdin, &qterm, &appsync_advertised, cursor_y, cursor_x)){
     goto err;
   }
