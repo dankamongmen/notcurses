@@ -779,8 +779,8 @@ sprixel* sprixel_alloc(ncplane* n, int dimy, int dimx);
 sprixel* sprixel_recycle(ncplane* n);
 // takes ownership of s on success.
 int sprixel_load(sprixel* spx, char* s, int bytes, int pixy, int pixx, int parse_start);
-int sixel_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
-int kitty_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
+int sixel_scrub(const ncpile* p, sprixel* s);
+int kitty_scrub(const ncpile* p, sprixel* s);
 int kitty_remove(int id, FILE* out);
 int kitty_clear_all(FILE* fp);
 int sixel_init(const tinfo* t, int fd);
@@ -809,11 +809,13 @@ int sixel_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
 int kitty_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
                const blitterargs* bargs, int bpp);
 
+// update any necessary cells underneath the sprixel pursuant to its removal.
+// for sixel, this *achieves* the removal, and is performed on every cell.
 static inline int
-sprite_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
+sprite_scrub(const notcurses* n, const ncpile* p, sprixel* s){
 //fprintf(stderr, "Destroying sprite %u\n", s->id);
 //sprixel_debug(s, stderr);
-  return nc->tcache.pixel_destroy(nc, p, out, s);
+  return n->tcache.pixel_scrub(p, s);
 }
 
 // precondition: s->invalidated is SPRIXEL_INVALIDATED or SPRIXEL_MOVED.

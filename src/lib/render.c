@@ -844,7 +844,7 @@ clean_sprixels(notcurses* nc, ncpile* p, FILE* out){
   while( (s = *parent) ){
     if(s->invalidated == SPRIXEL_HIDE){
 //fprintf(stderr, "OUGHT HIDE %d [%dx%d] %p\n", s->id, s->dimy, s->dimx, s);
-      if(sprite_destroy(nc, p, out, s)){
+      if(sprite_scrub(nc, p, s)){
         return -1;
       }
       if( (*parent = s->next) ){
@@ -857,7 +857,7 @@ clean_sprixels(notcurses* nc, ncpile* p, FILE* out){
 //fprintf(stderr, "1 MOVING BITMAP %d STATE %d AT %d/%d for %p\n", s->id, s->invalidated, y + nc->margin_t, x + nc->margin_l, s->n);
       // without this, kitty flickers
       if(s->invalidated == SPRIXEL_MOVED){
-        sprite_destroy(nc, p, out, s);
+        sprite_scrub(nc, p, s);
       }
       if(goto_location(nc, out, y + nc->margin_t, x + nc->margin_l) == 0){
         int r = sprite_redraw(nc, p, s, out);
