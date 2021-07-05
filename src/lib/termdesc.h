@@ -133,7 +133,7 @@ typedef struct tinfo {
   int (*pixel_draw)(const struct ncpile* p, struct sprixel* s, FILE* out);
   // execute move (erase old graphic, place at new location) if non-NULL
   int (*pixel_move)(const struct ncpile* p, struct sprixel* s, FILE* out);
-  int (*pixel_destroy)(const struct notcurses* nc, const struct ncpile* p, FILE* out, struct sprixel* s);
+  int (*pixel_scrub)(const struct ncpile* p, struct sprixel* s);
   int (*pixel_shutdown)(FILE* fp);  // called during context shutdown
   int (*pixel_clear_all)(FILE* fp); // called during context startup
   uint8_t* (*pixel_trans_auxvec)(const struct tinfo* ti); // create tranparent auxvec

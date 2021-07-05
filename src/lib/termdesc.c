@@ -53,7 +53,7 @@ setup_sixel_bitmaps(tinfo* ti, int fd, bool invert80){
   }
   ti->pixel_draw = sixel_draw;
   ti->pixel_remove = NULL;
-  ti->pixel_destroy = sixel_destroy;
+  ti->pixel_scrub = sixel_scrub;
   ti->pixel_wipe = sixel_wipe;
   ti->pixel_shutdown = sixel_shutdown;
   ti->pixel_rebuild = sixel_rebuild;
@@ -67,7 +67,7 @@ setup_sixel_bitmaps(tinfo* ti, int fd, bool invert80){
 static inline void
 setup_kitty_bitmaps(tinfo* ti, int fd, int sixel_maxy_pristine){
   ti->pixel_wipe = kitty_wipe;
-  ti->pixel_destroy = kitty_destroy;
+  ti->pixel_scrub = kitty_scrub;
   ti->pixel_remove = kitty_remove;
   ti->pixel_draw = kitty_draw;
   ti->pixel_move = kitty_move;
