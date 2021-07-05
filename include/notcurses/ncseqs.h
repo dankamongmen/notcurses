@@ -26,6 +26,7 @@ extern "C" {
 #define NCCIRCULARARCSW L"◜◝◟◞"
 #define NCWHITETRIANGLESW L"◿◺◹◸"
 #define NCBLACKTRIANGLESW L"◢◣◥◤"
+#define NCSHADETRIANGLESW L"🮞🮟🮝🮜"
 
 // 4-cycles around an exterior core
 #define NCBLACKARROWHEADSW L"⮝⮟⮜⮞"
@@ -37,6 +38,7 @@ extern "C" {
 
 // 8-cycles around an exterior core
 #define NCARROWW L"⭡⭣⭠⭢⭧⭩⭦⭨"
+#define NCDIAGONALSW L"🮣🮠🮡🮢🮤🮥🮦🮧"
 
 // symbols for legacy computing
 #define NCANGLESBR L"🭁🭂🭃🭄🭅🭆🭇🭈🭉🭊🭋"

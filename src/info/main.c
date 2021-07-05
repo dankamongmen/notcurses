@@ -60,30 +60,37 @@ unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
                    indent, NCQUADBLOCKS, NCSEXBLOCKS,
                    NCEIGHTHSR[0], NCEIGHTHSL[0]);
     ncplane_putchar(n, '\n');
-    ncplane_printf(n, "%s                 ⎩%ls⎭ \u00bc\u00bd\u00be\u2150\u2151\u2152\u2153\u2154\u2155\u2156\u215c\u215d\u215e\u215f\u2189 ⎪%lc%lc⎪",
+    ncplane_printf(n, "%s╲╿╱ ◨◧ ◪◩ ◖◗     ⎩%ls⎭ \u00bc\u00bd\u00be\u2150\u2151\u2152\u2153\u2154\u2155\u2156\u215c\u215d\u215e\u215f\u2189 ⎪%lc%lc⎪",
                    indent, NCSEXBLOCKS + 32,
                    NCEIGHTHSR[1], NCEIGHTHSL[1]);
     ncplane_putchar(n, '\n');
-    ncplane_printf(n, "%s %.6ls  %.6ls  %.6ls  %.6ls  %.6ls  %.6ls%.3ls  %.6ls%.3ls  %.6ls%.3ls  %.6ls%.3ls  %.8ls%.4ls      ▵△▹▷▿▽◃◁         ⎪%lc%lc⎪",
+    ncplane_printf(n, "%s╾╳╼ %.6ls %.6ls %.8ls%.8ls %.6ls %.6ls %.8ls %.6ls %.6ls%.3ls  %.6ls%.3ls  %.6ls%.3ls  %.6ls%.3ls  %.8ls%.4ls ▵△▹▷▿▽◃◁%.32ls⎪%lc%lc⎪",
                    indent,
                    NCWHITESQUARESW,
                    NCWHITECIRCLESW,
+                   NCDIAGONALSW,
+                   NCDIAGONALSW + 4,
                    NCCIRCULARARCSW,
                    NCWHITETRIANGLESW,
+                   NCSHADETRIANGLESW,
                    NCBLACKTRIANGLESW,
                    NCBOXLIGHTW, NCBOXLIGHTW + 4,
                    NCBOXHEAVYW, NCBOXHEAVYW + 4,
                    NCBOXROUNDW, NCBOXROUNDW + 4,
                    NCBOXDOUBLEW, NCBOXDOUBLEW + 4,
                    NCBOXOUTERW, NCBOXOUTERW + 4,
+                   NCARROWW,
                    NCEIGHTHSR[2], NCEIGHTHSL[2]);
     ncplane_putchar(n, '\n');
-    ncplane_printf(n, "%s %.6ls  %.6ls  %.6ls  %.6ls  %.6ls  %.6ls%.3ls  %.6ls%.3ls  %.6ls%.3ls  %.6ls%.3ls  %.8ls%.4ls      ▴⏶⯅▲▸⏵⯈▶▾⏷⯆▼◂⏴⯇◀ ⎪%lc%lc⎪",
+    ncplane_printf(n, "%s╱╽╲ %.6ls %.6ls %.8ls%.8ls %.6ls %.6ls %.8ls %.6ls %.6ls%.3ls  %.6ls%.3ls  %.6ls%.3ls  %.6ls%.3ls  %.8ls%.4ls ▴⏶⯅▲▸⏵⯈▶▾⏷⯆▼◂⏴⯇◀⎪%lc%lc⎪",
                    indent,
                    NCWHITESQUARESW + 2,
                    NCWHITECIRCLESW + 2,
+                   NCDIAGONALSW + 2,
+                   NCDIAGONALSW + 6,
                    NCCIRCULARARCSW + 2,
                    NCWHITETRIANGLESW + 2,
+                   NCSHADETRIANGLESW + 2,
                    NCBLACKTRIANGLESW + 2,
                    NCBOXLIGHTW + 2, NCBOXLIGHTW + 5,
                    NCBOXHEAVYW + 2, NCBOXHEAVYW + 5,
@@ -105,7 +112,7 @@ unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
     ncplane_printf(n, "⎩%lc%lc⎭", NCEIGHTHSR[7], NCEIGHTHSL[7]);
     ncplane_putchar(n, '\n');
 
-    ncplane_printf(n, "%s ▔🭶🭷🭸🭹🭺🭻▁ %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc 🭨🭪          ⎛%ls⎞",
+    ncplane_printf(n, "%s ▔🭶🭷🭸🭹🭺🭻▁ %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc 🭨🭪                ⎛%ls⎞",
                    indent,
                    NCANGLESBR[0], NCANGLESBL[0],
                    NCANGLESBR[1], NCANGLESBL[1],
@@ -120,7 +127,7 @@ unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
                    NCANGLESBR[10], NCANGLESBL[10],
                    NCEIGHTHSB);
     ncplane_putchar(n, '\n');
-    ncplane_printf(n, "%s ▏🭰🭱🭲🭳🭴🭵▕ %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc 🭪🭨          ⎝%ls⎠",
+    ncplane_printf(n, "%s ▏🭰🭱🭲🭳🭴🭵▕ %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc 🭪🭨          🯁🯂🯃   ⎝%ls⎠",
                    indent,
                    NCANGLESTR[0], NCANGLESTL[0],
                    NCANGLESTR[1], NCANGLESTL[1],
