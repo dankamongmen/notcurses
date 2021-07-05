@@ -152,9 +152,9 @@ unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
     lr = CHANNEL_RGB_INITIALIZER(0x7B, 0x68, 0xEE);
     ul = CHANNEL_RGB_INITIALIZER(0x19, 0x19, 0x70);
     ncplane_stain(n, y - 9, 57, lr, ul, lr, ul);
-    // the quadrants
+    // the boxes + quadrants
     ncplane_cursor_move_yx(n, y - 10, 0);
-    ncplane_stain(n, y - 9, 65, lr, ul, lr, ul);
+    ncplane_stain(n, y - 7, 70, lr, ul, lr, ul);
     // the vertical eighths
     ncplane_cursor_move_yx(n, y - 2, 55);
     ul = CHANNEL_RGB_INITIALIZER(0x60, 0x7d, 0x3b);
