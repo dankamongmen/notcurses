@@ -166,7 +166,7 @@ unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
     ncplane_cursor_move_yx(n, y - 2, 55);
     ul = CHANNEL_RGB_INITIALIZER(0x60, 0x7d, 0x3b);
     lr = CHANNEL_RGB_INITIALIZER(0x02, 0x8a, 0x0f);
-    ncplane_stain(n, y, 65, ul, lr, ul, lr);
+    ncplane_stain(n, y, 70, ul, lr, ul, lr);
     // the horizontal eighths
     ncplane_cursor_move_yx(n, y - 10, 67);
     ncplane_stain(n, y - 2, 70, lr, ul, lr, ul);
@@ -179,7 +179,7 @@ unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
   return 0;
 }
 
-int
+static int
 display_logo(const tinfo* ti, struct ncplane* n, const char* path){
   struct ncvisual* ncv = ncvisual_from_file(path);
   if(ncv == NULL){
@@ -194,7 +194,7 @@ display_logo(const tinfo* ti, struct ncplane* n, const char* path){
   ncplane_yx(n, &y, NULL);
   struct ncvisual_options vopts = {
     .n = n,
-    .y = y + 8,
+    .y = y + 7,
     .x = 46,
     .blitter = NCBLIT_PIXEL,
     .flags = NCVISUAL_OPTION_CHILDPLANE,
@@ -230,8 +230,8 @@ tinfo_debug_bitmaps(struct ncplane* n, const tinfo* ti, const char* indent){
     }
     char* path = prefix_data("notcurses.png");
     if(path){
-      // FIXME hold off until #1649 is resolved
-      //display_logo(ti, n, path);
+      // FIXME hold off until #1883 is resolved
+      display_logo(ti, n, path);
       free(path);
     }
   }
