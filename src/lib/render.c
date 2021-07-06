@@ -948,6 +948,7 @@ rasterize_sprixels(notcurses* nc, ncpile* p, FILE* out){
         if(nc->tcache.pixel_commit(out, s) < 0){
           return -1;
         }
+        nc->rstate.hardcursorpos = true;
       }
     }else if(s->invalidated == SPRIXEL_HIDE){
       if(nc->tcache.pixel_remove){

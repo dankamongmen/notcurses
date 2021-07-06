@@ -371,14 +371,10 @@ add_appsync_escapes_dcs(tinfo* ti, size_t* tablelen, size_t* tableused){
 }
 
 // Qui si convien lasciare ogne sospetto; ogne viltà convien che qui sia morta.
-// kitty's ASU implementation is broken through at least 0.21.2, see
-// https://github.com/kovidgoyal/kitty/issues/3779. until it's fixed, we don't
-// want to use kitty ASU, so we disable advertised_appsync for now FIXME.
 static int
 apply_term_heuristics(tinfo* ti, const char* termname, int fd,
                       queried_terminals_e qterm,
-                      size_t* tablelen, size_t* tableused,
-                      unsigned* advertised_appsync){
+                      size_t* tablelen, size_t* tableused){
   if(!termname){
     // setupterm interprets a missing/empty TERM variable as the special value “unknown”.
     termname = "unknown";
@@ -395,7 +391,6 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
     ti->caps.sextants = true; // work since bugfix in 0.19.3
     ti->caps.quadrants = true;
     ti->caps.rgb = true;
-    *advertised_appsync = 0; // FIXME see above
     if(add_smulx_escapes(ti, tablelen, tableused)){
       return -1;
     }
@@ -689,8 +684,7 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
       }
     }
   }
-  if(apply_term_heuristics(ti, termname, fd, qterm, &tablelen, &tableused,
-                           &appsync_advertised)){
+  if(apply_term_heuristics(ti, termname, fd, qterm, &tablelen, &tableused)){
     ncinputlayer_stop(&ti->input);
     goto err;
   }
