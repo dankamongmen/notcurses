@@ -627,10 +627,10 @@ int kitty_draw(const ncpile* p, sprixel* s, FILE* out){
 }
 
 // returns -1 on failure, 0 on success (move bytes do not count for sprixel stats)
-int kitty_move(const ncpile* p, sprixel* s, FILE* out){
-  (void)p;
+int kitty_move(sprixel* s, FILE* out, unsigned noscroll){
   int ret = 0;
-  if(fprintf(out, "\e_Ga=p,i=%d,p=1,q=2\e\\", s->id) < 0){
+  if(fprintf(out, "\e_Ga=p,i=%d,p=1,q=2%s\e\\", s->id,
+             noscroll ? ",C=1" : "") < 0){
     ret = -1;
   }
   s->invalidated = SPRIXEL_QUIESCENT;

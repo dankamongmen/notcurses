@@ -193,7 +193,7 @@ unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
   return 0;
 }
 
-static int
+/*static int
 display_logo(const tinfo* ti, struct ncplane* n, const char* path){
   struct ncvisual* ncv = ncvisual_from_file(path);
   if(ncv == NULL){
@@ -220,7 +220,7 @@ display_logo(const tinfo* ti, struct ncplane* n, const char* path){
   }
   ncvisual_destroy(ncv);
   return 0;
-}
+}*/
 
 static void
 tinfo_debug_bitmaps(struct ncplane* n, const tinfo* ti, const char* indent){

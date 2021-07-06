@@ -769,7 +769,7 @@ void sprixel_free(sprixel* s);
 void sprixel_hide(sprixel* s);
 
 int kitty_draw(const ncpile *p, sprixel* s, FILE* out);
-int kitty_move(const ncpile *p, sprixel* s, FILE* out);
+int kitty_move(sprixel* s, FILE* out, unsigned noscroll);
 int sixel_draw(const ncpile *p, sprixel* s, FILE* out);
 // dimy and dimx are cell geometry, not pixel.
 sprixel* sprixel_alloc(ncplane* n, int dimy, int dimx);
@@ -832,7 +832,11 @@ static inline int
 sprite_redraw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
 //sprixel_debug(s, stderr);
   if(s->invalidated == SPRIXEL_MOVED && n->tcache.pixel_move){
-    return n->tcache.pixel_move(p, s, out);
+    // if we are kitty prior to 0.20.0, C=1 isn't available to us, and we must
+    // not emit it. we use sixel_maxy_pristine as a side channel to encode
+    // this version information.
+    bool noscroll = !n->tcache.sixel_maxy_pristine;
+    return n->tcache.pixel_move(s, out, noscroll);
   }else{
     return n->tcache.pixel_draw(p, s, out);
   }
