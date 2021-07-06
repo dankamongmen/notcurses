@@ -922,7 +922,9 @@ rasterize_scrolls(ncpile* p, FILE* out){
 static int64_t
 rasterize_sprixels(notcurses* nc, ncpile* p, FILE* out){
   int64_t bytesemitted = 0;
-  for(sprixel* s = p->sprixelcache ; s ; s = s->next){
+  sprixel* s;
+  sprixel** parent = &p->sprixelcache;
+  while( (s = *parent) ){
 //fprintf(stderr, "YARR HARR HARR SPIRXLE %u STATE %d\n", s->id, s->invalidated);
     if(s->invalidated == SPRIXEL_INVALIDATED){
 //fprintf(stderr, "3 DRAWING BITMAP %d STATE %d AT %d/%d for %p\n", s->id, s->invalidated, y + nc->margin_t, x + nc->margin_l, s->n);
@@ -955,8 +957,14 @@ rasterize_sprixels(notcurses* nc, ncpile* p, FILE* out){
         if(nc->tcache.pixel_remove(s->id, out) < 0){
           return -1;
         }
+        if( (*parent = s->next) ){
+          s->next->prev = s->prev;
+        }
+        sprixel_free(s);
+        continue;
       }
     }
+    parent = &s->next;
   }
   return bytesemitted;
 }
@@ -1094,7 +1102,7 @@ rasterize_core(notcurses* nc, const ncpile* p, FILE* out, unsigned phase){
 // 'asu' on input is non-0 if application-synchronized updates are permitted
 // (they are not, for instance, when rendering to a non-tty). on output,
 // assuming success, it is non-0 if application-synchronized updates are
-// desired; in this case, an ASU footer is present at the end of the buffer.
+// desired; in this case, a SUM footer is present at the end of the buffer.
 static int
 notcurses_rasterize_inner(notcurses* nc, ncpile* p, FILE* out, unsigned* asu){
 //fprintf(stderr, "pile %p ymax: %d xmax: %d\n", p, p->dimy + nc->margin_t, p->dimx + nc->margin_l);
@@ -1129,13 +1137,13 @@ notcurses_rasterize_inner(notcurses* nc, ncpile* p, FILE* out, unsigned* asu){
   if(rasterize_core(nc, p, out, 1)){
     return -1;
   }
-#define MIN_ASU_SIZE 4096 // FIXME
+#define MIN_SUMODE_SIZE 4096 // FIXME
   if(*asu){
-    if(nc->rstate.mstrsize >= MIN_ASU_SIZE){
+    if(nc->rstate.mstrsize >= MIN_SUMODE_SIZE){
       const char* endasu = get_escape(&nc->tcache, ESCAPE_ESUM);
       if(endasu){
         if(fprintf(out, "%s", endasu) < 0){
-          return -1;
+          *asu = 0;
         }
       }else{
         *asu = 0;
@@ -1144,7 +1152,7 @@ notcurses_rasterize_inner(notcurses* nc, ncpile* p, FILE* out, unsigned* asu){
       *asu = 0;
     }
   }
-#undef MIN_ASU_SIZE
+#undef MIN_SUMODE_SIZE
   if(ncflush(out)){
     return -1;
   }
@@ -1156,12 +1164,12 @@ static int
 raster_and_write(notcurses* nc, ncpile* p, FILE* out){
   fseeko(out, 0, SEEK_SET);
   // will we be using application-synchronized updates? if this comes back as
-  // non-zero, we are, and must emit the header. no ASU without a tty, and we
+  // non-zero, we are, and must emit the header. no SUM without a tty, and we
   // can't have the escape without being connected to one...
   const char* basu = get_escape(&nc->tcache, ESCAPE_BSUM);
   unsigned useasu = basu ? 1 : 0;
-  // if we have ASU support, emit a BSU speculatively. if we do so, but don't
-  // actually use an ESU, this BASU must be skipped on write.
+  // if we have SUM support, emit a BSU speculatively. if we do so, but don't
+  // actually use an ESU, this BSUM must be skipped on write.
   if(useasu){
     if(ncfputs(basu, out) == EOF){
       return -1;
@@ -1426,7 +1434,7 @@ int ncpile_render_to_buffer(ncplane* p, char** buf, size_t* buflen){
     return -1;
   }
   notcurses* nc = ncplane_notcurses(p);
-  unsigned useasu = false; // no ASU to file
+  unsigned useasu = false; // no SUM with file
   fseeko(nc->rstate.mstreamfp, 0, SEEK_SET);
   int bytes = notcurses_rasterize_inner(nc, ncplane_pile(p), nc->rstate.mstreamfp, &useasu);
   pthread_mutex_lock(&nc->statlock);
