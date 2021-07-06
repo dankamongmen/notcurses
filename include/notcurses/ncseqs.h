@@ -40,6 +40,10 @@ extern "C" {
 #define NCARROWW L"⭡⭣⭠⭢⭧⭩⭦⭨"
 #define NCDIAGONALSW L"🮣🮠🮡🮢🮤🮥🮦🮧"
 
+// superscript and subscript digits
+#define NCDIGITSSUPERW L"⁰¹²³⁴⁵⁶⁷⁸⁹"
+#define NCDIGITSSUBW   L"₀₁₂₃₄₅₆₇₈₉"
+
 // symbols for legacy computing
 #define NCANGLESBR L"🭁🭂🭃🭄🭅🭆🭇🭈🭉🭊🭋"
 #define NCANGLESTR L"🭒🭓🭔🭕🭖🭧🭢🭣🭤🭥🭦"
