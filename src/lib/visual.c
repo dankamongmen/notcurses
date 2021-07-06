@@ -965,12 +965,6 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
     n->sprite = sprixel_recycle(n);
   }
   bargs.u.pixel.spx = n->sprite;
-  // if we are kitty prior to 0.20.0, we set NCVISUAL_OPTION_SCROLL so that
-  // C=1 won't be supplied. we use sixel_maxy_pristine as a side channel to
-  // encode this version information.
-  if(nc->tcache.sixel_maxy_pristine){
-    bargs.flags |= NCVISUAL_OPTION_SCROLL;
-  }
   // FIXME need to pull off the ncpile's sprixellist if anything below fails!
   // at this point, disppixy/disppixx are the output geometry (might be larger
   // than scaledy/scaledx for sixel), while scaledy/scaledx are the scaled

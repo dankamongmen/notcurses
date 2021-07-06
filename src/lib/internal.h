@@ -503,10 +503,6 @@ typedef struct notcurses {
   uint64_t flags;  // copied from notcurses_options
 } notcurses;
 
-// this flag is used internally, by direct mode (which might want
-// to scroll with the output). rendered mode never sets it.
-#define NCVISUAL_OPTION_SCROLL 0x0080ull // ought we scroll with the output?
-
 typedef struct blitterargs {
   // FIXME begy/begx are really only of interest to scaling; they ought be
   // consumed there, and blitters ought always work with the scaled output.
@@ -797,7 +793,7 @@ void sprixel_invalidate(sprixel* s, int y, int x);
 void sprixel_movefrom(sprixel* s, int y, int x);
 void sprixel_debug(const sprixel* s, FILE* out);
 void sixelmap_free(struct sixelmap *s);
-int kitty_commit(FILE* fp, sprixel* s); // make loaded image visible
+int kitty_commit(FILE* fp, sprixel* s, unsigned noscroll);
 
 // create an auxiliary vector suitable for a sprixcell, and zero it out. there
 // are two bytes per pixel in the cell. kitty uses only one (for an alpha
@@ -840,6 +836,21 @@ sprite_redraw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
   }else{
     return n->tcache.pixel_draw(p, s, out);
   }
+}
+
+// present a loaded graphic. only defined for kitty.
+static inline int
+sprite_commit(tinfo* ti, FILE* out, sprixel* s, unsigned forcescroll){
+  if(ti->pixel_commit){
+    // if we are kitty prior to 0.20.0, C=1 isn't available to us, and we must
+    // not emit it. we use sixel_maxy_pristine as a side channel to encode
+    // this version information. direct mode, meanwhile, sets forcescroll.
+    bool noscroll = !ti->sixel_maxy_pristine && !forcescroll;
+    if(ti->pixel_commit(out, s, noscroll) < 0){
+      return -1;
+    }
+  }
+  return 0;
 }
 
 static inline int
