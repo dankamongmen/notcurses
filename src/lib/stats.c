@@ -219,11 +219,13 @@ void summarize_stats(notcurses* nc){
             (stats->bgelisions * 100.0) / (stats->bgemissions + stats->bgelisions));
     char totalbuf[BPREFIXSTRLEN + 1];
     bprefix(stats->sprixelbytes, 1, totalbuf, 1);
-    fprintf(stderr, "Sprixel emits:elides: %ju:%ju (%.2f%%) %sB SUM: %ju (%.2f%%)\n",
+    fprintf(stderr, "Bitmap emits:elides: %ju:%ju (%.2f%%) %sB (%.2f%%) SuM: %ju (%.2f%%)\n",
             stats->sprixelemissions, stats->sprixelelisions,
             (stats->sprixelemissions + stats->sprixelelisions) == 0 ? 0 :
             (stats->sprixelelisions * 100.0) / (stats->sprixelemissions + stats->sprixelelisions),
-            totalbuf, stats->appsync_updates,
+            totalbuf,
+            stats->render_bytes ? (stats->sprixelbytes * 100.0) / stats->render_bytes : 0,
+            stats->appsync_updates,
             stats->writeouts ? stats->appsync_updates * 100.0 / stats->writeouts : 0);
   }
 }
