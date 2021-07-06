@@ -1103,8 +1103,8 @@ memory.
 
 ```c
 // Move the cursor to the specified position (the cursor needn't be visible).
-// Returns -1 on error, including negative parameters, or ones exceeding the
-// plane's dimensions.
+// Pass -1 as either coordinate to hold that axis constant. Returns -1 if the
+// move would place the cursor outside the plane.
 int ncplane_cursor_move_yx(struct ncplane* n, int y, int x);
 
 // Get the current position of the cursor within n. y and/or x may be NULL.

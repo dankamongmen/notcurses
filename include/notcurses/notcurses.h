@@ -1639,8 +1639,8 @@ ncplane_valign(const struct ncplane* n, ncalign_e align, int r){
 }
 
 // Move the cursor to the specified position (the cursor needn't be visible).
-// Returns -1 on error, including negative parameters, or ones exceeding the
-// plane's dimensions.
+// Pass -1 as either coordinate to hold that axis constant. Returns -1 if the
+// move would place the cursor outside the plane.
 API int ncplane_cursor_move_yx(struct ncplane* n, int y, int x);
 
 // Move the cursor to 0, 0. Can't fail.

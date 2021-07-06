@@ -286,7 +286,7 @@ it will not be visible following rasterization; it can also be partially
 off-screen.
 
 A plane has a virtual cursor; move it with **ncplane_cursor_move_yx**.
-Specifying -1 as one or both coordinates will hold that axis constant. Unless
+Specifying -1 as either coordinate will hold that axis constant. Unless
 coordinates are specified for a call, action takes place at the plane's
 virtual cursor, which automatically moves along with output. The current
 virtual cursor location can be acquired with **ncplane_cursor_yx**.
