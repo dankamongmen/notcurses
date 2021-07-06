@@ -595,10 +595,10 @@ inline int ncplane_cursor_move_yx(ncplane* n, int y, int x){
 
 inline int ncplane_cursor_move_rel(ncplane* n, int y, int x){
   if (n->y + y == -1){
-    logerror("Invalid target y -1)\n");
+    logerror("Invalid target y -1\n");
     return -1;
   }else if (n->x + x == -1){
-    logerror("Invalid target x -1)\n");
+    logerror("Invalid target x -1\n");
     return -1;
   }else return ncplane_cursor_move_yx(n, n->y + y, n->x + x);
 }

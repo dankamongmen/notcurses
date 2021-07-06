@@ -1643,6 +1643,10 @@ ncplane_valign(const struct ncplane* n, ncalign_e align, int r){
 // plane's dimensions.
 API int ncplane_cursor_move_yx(struct ncplane* n, int y, int x);
 
+// Move the cursor relative to the current cursor position (the cursor needn't be visible).
+// Returns -1 on error, including target position exceeding the plane's dimensions.
+API int ncplane_cursor_move_rel(struct ncplane* n, int y, int x);
+
 // Move the cursor to 0, 0. Can't fail.
 API void ncplane_home(struct ncplane* n);
 
