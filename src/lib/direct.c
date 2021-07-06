@@ -403,8 +403,6 @@ ncdirect_align(struct ncdirect* n, ncalign_e align, int c){
   return INT_MAX;
 }
 
-// FIXME need to run this through a memstream, or else we run into blocking
-// issues with stdio (see ncflush())
 static int
 ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
   const int toty = ncdirect_dim_y(n);
