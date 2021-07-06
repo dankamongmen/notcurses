@@ -403,6 +403,8 @@ ncdirect_align(struct ncdirect* n, ncalign_e align, int c){
   return INT_MAX;
 }
 
+// FIXME need to run this through a memstream, or else we run into blocking
+// issues with stdio (see ncflush())
 static int
 ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
   const int toty = ncdirect_dim_y(n);
@@ -424,6 +426,11 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
     }
     if(blocking_write(fileno(n->ttyfp), np->sprite->glyph, np->sprite->glyphlen) < 0){
       return -1;
+    }
+    if(n->tcache.pixel_commit){
+      if(n->tcache.pixel_commit(n->ttyfp, np->sprite)){
+        return -1;
+      }
     }
     return 0;
   }
