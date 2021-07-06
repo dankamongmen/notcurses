@@ -27,7 +27,7 @@ extern "C" {
 #define NCARROWDOUBLEW     L"⮅⮇⮄⮆"
 #define NCARROWDASHEDW     L"⭫⭭⭪⭬"
 #define NCARROWCIRCLEDW    L"⮉⮋⮈⮊"
-#define NCARROWANTICLOCKW  L"⮍⮏⮌⮎"
+#define NCARROWANTICLOCKW  L"⮏⮍⮎⮌"
 #define NCBOXDRAWW         L"╵╷╴╶"
 #define NCBOXDRAWHEAVYW    L"╹╻╸╺"
 
@@ -38,6 +38,11 @@ extern "C" {
 // superscript and subscript digits
 #define NCDIGITSSUPERW L"⁰¹²³⁴⁵⁶⁷⁸⁹"
 #define NCDIGITSSUBW   L"₀₁₂₃₄₅₆₇₈₉"
+
+// unicode fucking loves asterisks
+#define NCASTERISKS5 L"🞯🞰🞱🞲🞳🞴"
+#define NCASTERISKS6 L"🞵🞶🞷🞸🞹🞺"
+#define NCASTERISKS8 L"🞻🞼✳🞽🞾🞿"
 
 // symbols for legacy computing
 #define NCANGLESBR L"🭁🭂🭃🭄🭅🭆🭇🭈🭉🭊🭋"
