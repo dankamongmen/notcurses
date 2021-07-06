@@ -49,10 +49,11 @@ struct ncvisual_details;
 // and we can't go throwing C++ syntax into this header. so it goes.
 
 typedef enum {
-  SPRIXEL_QUIESCENT,   // sprixel has been drawn
-  SPRIXEL_INVALIDATED, // sprixel needs to be redrawn
-  SPRIXEL_HIDE,        // sprixel queued for destruction
-  SPRIXEL_MOVED,       // sprixel needs be moved
+  SPRIXEL_QUIESCENT,   // up-to-date and visible at the proper place
+  SPRIXEL_LOADED,      // loaded, but not yet made visible (kitty-only)
+  SPRIXEL_INVALIDATED, // not up-to-date, need reload, trumps MOVED
+  SPRIXEL_HIDE,        // queued for destruction
+  SPRIXEL_MOVED,       // visible, up-to-date, but in the wrong place
 } sprixel_e;
 
 // elements of the T-A matrix describe transparency and annihilation at a
@@ -796,6 +797,7 @@ void sprixel_invalidate(sprixel* s, int y, int x);
 void sprixel_movefrom(sprixel* s, int y, int x);
 void sprixel_debug(const sprixel* s, FILE* out);
 void sixelmap_free(struct sixelmap *s);
+int kitty_commit(FILE* fp, sprixel* s); // make loaded image visible
 
 // create an auxiliary vector suitable for a sprixcell, and zero it out. there
 // are two bytes per pixel in the cell. kitty uses only one (for an alpha

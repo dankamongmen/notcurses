@@ -845,13 +845,12 @@ int sixel_draw(const ncpile* p, sprixel* s, FILE* out){
         }
       }
     }
-    s->invalidated = SPRIXEL_INVALIDATED;
-  }else{
-    if(fwrite(s->glyph, s->glyphlen, 1, out) != 1){
-      return -1;
-    }
-    s->invalidated = SPRIXEL_QUIESCENT;
   }
+  if(fwrite(s->glyph, s->glyphlen, 1, out) != 1){
+    return -1;
+  }
+  s->invalidated = SPRIXEL_QUIESCENT;
+fprintf(stderr, "POSTDRAW: %d %d/%d\n", s->invalidated, s->movedfromy, s->movedfromx);
   return s->glyphlen;
 }
 
