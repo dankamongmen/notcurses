@@ -279,6 +279,12 @@ to multiple ncplanes. So long as all threads are readers, multiple threads may
 work with a single ncplane. A reading function is any which accepts a **const
 struct ncplane**.
 
+A plane can be moved relative to its parent plane's origin with
+**ncplane_move_yx**. If the plane has no parent, the move is relative to
+the rendering area. A plane can be moved off-screen entirely, in which case
+it will not be visible following rasterization; it can also be partially
+off-screen.
+
 A plane has a virtual cursor; Set its new position with **ncplane_cursor_move_yx**.
 Specifying -1 as one or both coordinates will hold that axis constant. You may
 move a cursor relatively to its current position with **ncplane_cursor_move_rel**.

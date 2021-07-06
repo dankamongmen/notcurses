@@ -794,10 +794,8 @@ int sixel_blit(ncplane* n, int linesize, const void* data, int leny, int lenx,
 // to, though, if we've got a new sixel ready to go where the old sixel was
 // (though we'll still need to if the new sprixcell not opaque, and the
 // old and new sprixcell are different in any transparent pixel).
-int sixel_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
-//fprintf(stderr, "DESTROYING %d %d %p at %d/%d (%d/%d)\n", s->id, s->invalidated, s->n, s->movedfromy, s->movedfromx, s->dimy, s->dimx);
-  (void)nc;
-  (void)out;
+int sixel_scrub(const ncpile* p, sprixel* s){
+  loginfo("%d state %d at %d/%d (%d/%d)\n", s->id, s->invalidated, s->movedfromy, s->movedfromx, s->dimy, s->dimx);
   int starty = s->movedfromy;
   int startx = s->movedfromx;
   for(int yy = starty ; yy < starty + s->dimy && yy < p->dimy ; ++yy){
@@ -825,7 +823,7 @@ int sixel_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
       }
     }
   }
-  return 0;
+  return 1;
 }
 
 // returns the number of bytes written
@@ -847,13 +845,11 @@ int sixel_draw(const ncpile* p, sprixel* s, FILE* out){
         }
       }
     }
-    s->invalidated = SPRIXEL_INVALIDATED;
-  }else{
-    if(fwrite(s->glyph, s->glyphlen, 1, out) != 1){
-      return -1;
-    }
-    s->invalidated = SPRIXEL_QUIESCENT;
   }
+  if(fwrite(s->glyph, s->glyphlen, 1, out) != 1){
+    return -1;
+  }
+  s->invalidated = SPRIXEL_QUIESCENT;
   return s->glyphlen;
 }
 

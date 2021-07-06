@@ -49,7 +49,8 @@ int reset_term_attributes(const tinfo* ti, FILE* fp){
 
 // Do the minimum necessary stuff to restore the terminal, then return. This is
 // the end of the line for fatal signal handlers. notcurses_stop() will go on
-// to tear down and account for internal structures.
+// to tear down and account for internal structures. note that we do lots of
+// shit here that is unsafe within a signal handler =[ FIXME.
 static int
 notcurses_stop_minimal(void* vnc){
   notcurses* nc = vnc;
@@ -875,11 +876,6 @@ init_banner_warnings(const notcurses* nc, FILE* out){
     liness += 2;
     fprintf(out, " Warning! Colors subject to https://github.com/dankamongmen/notcurses/issues/4\n");
     fprintf(out, "  Specify a (correct) TrueColor TERM, or COLORTERM=24bit.\n");
-  }else{
-    if(!nc->tcache.caps.can_change_colors){
-      liness += 1;
-      fprintf(out, " Warning! Advertised TrueColor but no 'ccc' flag\n");
-    }
   }
   if(!notcurses_canutf8(nc)){
     liness += 1;
@@ -1095,9 +1091,18 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     free(ret);
     return NULL;
   }
+  // mstreamfp is needed by notcurses_stop_minimal, so this must be done
+  // before registering fatal signal handlers.
+  if((ret->rstate.mstreamfp = open_memstream(&ret->rstate.mstream, &ret->rstate.mstrsize)) == NULL){
+    pthread_mutex_destroy(&ret->pilelock);
+    pthread_mutex_destroy(&ret->statlock);
+    free(ret);
+    return NULL;
+  }
   if(setup_signals(ret, (opts->flags & NCOPTION_NO_QUIT_SIGHANDLERS),
                    (opts->flags & NCOPTION_NO_WINCH_SIGHANDLER),
                    notcurses_stop_minimal)){
+    fclose(ret->rstate.mstreamfp);
     pthread_mutex_destroy(&ret->pilelock);
     pthread_mutex_destroy(&ret->statlock);
     free(ret);
@@ -1110,6 +1115,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   if(setupterm(opts->termtype, ret->ttyfd, &termerr) != OK){
     fprintf(stderr, "Terminfo error %d (see terminfo(3ncurses))\n", termerr);
     drop_signals(ret);
+    fclose(ret->rstate.mstreamfp);
     pthread_mutex_destroy(&ret->statlock);
     pthread_mutex_destroy(&ret->pilelock);
     free(ret);
@@ -1148,10 +1154,6 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
       free_plane(ret->stdplane);
       goto err;
     }
-  }
-  if((ret->rstate.mstreamfp = open_memstream(&ret->rstate.mstream, &ret->rstate.mstrsize)) == NULL){
-    free_plane(ret->stdplane);
-    goto err;
   }
   const char* smkx = get_escape(&ret->tcache, ESCAPE_SMKX);
   if(smkx && term_emit(smkx, ret->ttyfp, false)){

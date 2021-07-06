@@ -41,6 +41,7 @@ void sprixel_debug(const sprixel* s, FILE* out){
 // doesn't splice us out of any lists, just frees
 void sprixel_free(sprixel* s){
   if(s){
+    loginfo("Destroying sprixel %u\n", s->id);
     if(s->n){
       s->n->sprite = NULL;
     }
@@ -82,13 +83,12 @@ void sprixel_movefrom(sprixel* s, int y, int x){
 
 void sprixel_hide(sprixel* s){
   if(ncplane_pile(s->n) == NULL){ // ncdirect case; destroy now
-//fprintf(stderr, "HIDING %d IMMEDIATELY\n", s->id);
     sprixel_free(s);
     return;
   }
   // otherwise, it'll be killed in the next rendering cycle.
   if(s->invalidated != SPRIXEL_HIDE){
-//fprintf(stderr, "HIDING %d\n", s->id);
+    loginfo("Marking sprixel %u hidden\n", s->id);
     s->invalidated = SPRIXEL_HIDE;
     s->movedfromy = ncplane_abs_y(s->n);
     s->movedfromx = ncplane_abs_x(s->n);

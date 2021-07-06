@@ -914,7 +914,7 @@ ncplane_resize_simple(struct ncplane* n, int ylen, int xlen){
 
 // Move this plane relative to the standard plane, or the plane to which it is
 // bound (if it is bound to a plane). It is an error to attempt to move the
-// standard plane. Specifying a coordinate as -1 will hold it constant.
+// standard plane.
 int ncplane_move_yx(struct ncplane* n, int y, int x);
 
 // Move this plane relative to its current location. Negative values move up
@@ -1103,8 +1103,8 @@ memory.
 
 ```c
 // Move the cursor to the specified position (the cursor needn't be visible).
-// Returns -1 on error, including negative parameters, or ones exceeding the
-// plane's dimensions.
+// Pass -1 as either coordinate to hold that axis constant. Returns -1 if the
+// move would place the cursor outside the plane.
 int ncplane_cursor_move_yx(struct ncplane* n, int y, int x);
 
 // Move cursor relatively to its current position.

@@ -49,10 +49,11 @@ struct ncvisual_details;
 // and we can't go throwing C++ syntax into this header. so it goes.
 
 typedef enum {
-  SPRIXEL_QUIESCENT,   // sprixel has been drawn
-  SPRIXEL_INVALIDATED, // sprixel needs to be redrawn
-  SPRIXEL_HIDE,        // sprixel queued for destruction
-  SPRIXEL_MOVED,       // sprixel needs be moved
+  SPRIXEL_QUIESCENT,   // up-to-date and visible at the proper place
+  SPRIXEL_LOADED,      // loaded, but not yet made visible (kitty-only)
+  SPRIXEL_INVALIDATED, // not up-to-date, need reload, trumps MOVED
+  SPRIXEL_HIDE,        // queued for destruction
+  SPRIXEL_MOVED,       // visible, up-to-date, but in the wrong place
 } sprixel_e;
 
 // elements of the T-A matrix describe transparency and annihilation at a
@@ -502,10 +503,6 @@ typedef struct notcurses {
   uint64_t flags;  // copied from notcurses_options
 } notcurses;
 
-// this flag is used internally, by direct mode (which might want
-// to scroll with the output). rendered mode never sets it.
-#define NCVISUAL_OPTION_SCROLL 0x0080ull // ought we scroll with the output?
-
 typedef struct blitterargs {
   // FIXME begy/begx are really only of interest to scaling; they ought be
   // consumed there, and blitters ought always work with the scaled output.
@@ -779,8 +776,8 @@ sprixel* sprixel_alloc(ncplane* n, int dimy, int dimx);
 sprixel* sprixel_recycle(ncplane* n);
 // takes ownership of s on success.
 int sprixel_load(sprixel* spx, char* s, int bytes, int pixy, int pixx, int parse_start);
-int sixel_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
-int kitty_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s);
+int sixel_scrub(const ncpile* p, sprixel* s);
+int kitty_scrub(const ncpile* p, sprixel* s);
 int kitty_remove(int id, FILE* out);
 int kitty_clear_all(FILE* fp);
 int sixel_init(const tinfo* t, int fd);
@@ -796,6 +793,7 @@ void sprixel_invalidate(sprixel* s, int y, int x);
 void sprixel_movefrom(sprixel* s, int y, int x);
 void sprixel_debug(const sprixel* s, FILE* out);
 void sixelmap_free(struct sixelmap *s);
+int kitty_commit(FILE* fp, sprixel* s, unsigned noscroll);
 
 // create an auxiliary vector suitable for a sprixcell, and zero it out. there
 // are two bytes per pixel in the cell. kitty uses only one (for an alpha
@@ -809,11 +807,15 @@ int sixel_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
 int kitty_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
                const blitterargs* bargs, int bpp);
 
+// update any necessary cells underneath the sprixel pursuant to its removal.
+// for sixel, this *achieves* the removal, and is performed on every cell.
+// returns 1 if the graphic can be immediately freed (which is equivalent to
+// asking whether it was sixel and there were no errors).
 static inline int
-sprite_destroy(const notcurses* nc, const ncpile* p, FILE* out, sprixel* s){
+sprite_scrub(const notcurses* n, const ncpile* p, sprixel* s){
 //fprintf(stderr, "Destroying sprite %u\n", s->id);
 //sprixel_debug(s, stderr);
-  return nc->tcache.pixel_destroy(nc, p, out, s);
+  return n->tcache.pixel_scrub(p, s);
 }
 
 // precondition: s->invalidated is SPRIXEL_INVALIDATED or SPRIXEL_MOVED.
@@ -834,6 +836,21 @@ sprite_redraw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
   }else{
     return n->tcache.pixel_draw(p, s, out);
   }
+}
+
+// present a loaded graphic. only defined for kitty.
+static inline int
+sprite_commit(tinfo* ti, FILE* out, sprixel* s, unsigned forcescroll){
+  if(ti->pixel_commit){
+    // if we are kitty prior to 0.20.0, C=1 isn't available to us, and we must
+    // not emit it. we use sixel_maxy_pristine as a side channel to encode
+    // this version information. direct mode, meanwhile, sets forcescroll.
+    bool noscroll = !ti->sixel_maxy_pristine && !forcescroll;
+    if(ti->pixel_commit(out, s, noscroll) < 0){
+      return -1;
+    }
+  }
+  return 0;
 }
 
 static inline int

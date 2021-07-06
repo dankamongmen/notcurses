@@ -833,31 +833,53 @@ emit_bg_palindex(notcurses* nc, FILE* out, const nccell* srccell){
   return 0;
 }
 
-// remove any sprixels which are no longer desired. for kitty, this will be
-// a pure erase; for sixel, we must overwrite. returns -1 on failure, and
-// otherwise the number of bytes emitted redrawing sprixels.
+// this first phase of sprixel rasterization is responsible for:
+//  1) invalidating all QUIESCENT sprixels if the pile has changed (because
+//      it would have been destroyed when switching away from our pile).
+//      for the same reason, invalidated all MOVE sprixels in this case.
+//  2) damaging all cells under a HIDE sixel, so text phase 1 consumes it
+//      (not necessary for kitty graphics)
+//  3) damaging uncovered cells under a MOVE (not necessary for kitty)
+//  4) drawing invalidated sixels and loading invalidated kitty graphics
+//      (new kitty graphics are *not* yet made visible)
+// by the end of this pass, all sixels are *complete*. all kitty graphics
+// are loaded, but old kitty graphics remain visible, and new/updated kitty
+// graphics are not yet visible, and they have not moved.
 static int64_t
 clean_sprixels(notcurses* nc, ncpile* p, FILE* out){
   sprixel* s;
   sprixel** parent = &p->sprixelcache;
   int64_t bytesemitted = 0;
   while( (s = *parent) ){
-    if(s->invalidated == SPRIXEL_HIDE){
+    loginfo("Phase 1 sprixel %u state %d\n", s->id, s->invalidated);
+    if(s->invalidated == SPRIXEL_QUIESCENT){
+      if(p != nc->last_pile){
+        s->invalidated = SPRIXEL_INVALIDATED;
+      }
+    }else if(s->invalidated == SPRIXEL_HIDE){
 //fprintf(stderr, "OUGHT HIDE %d [%dx%d] %p\n", s->id, s->dimy, s->dimx, s);
-      if(sprite_destroy(nc, p, out, s)){
+      int r = sprite_scrub(nc, p, s);
+      if(r < 0){
         return -1;
+      }else if(r > 0){
+        if( (*parent = s->next) ){
+          s->next->prev = s->prev;
+        }
+        sprixel_free(s);
+      }else{
+        parent = &s->next;
       }
-      if( (*parent = s->next) ){
-        s->next->prev = s->prev;
-      }
-      sprixel_free(s);
-    }else if(s->invalidated == SPRIXEL_MOVED || s->invalidated == SPRIXEL_INVALIDATED){
+      continue; // don't account as an elision
+    }
+    if(s->invalidated == SPRIXEL_MOVED || s->invalidated == SPRIXEL_INVALIDATED){
       int y, x;
       ncplane_yx(s->n, &y, &x);
 //fprintf(stderr, "1 MOVING BITMAP %d STATE %d AT %d/%d for %p\n", s->id, s->invalidated, y + nc->margin_t, x + nc->margin_l, s->n);
-      // without this, kitty flickers
       if(s->invalidated == SPRIXEL_MOVED){
-        sprite_destroy(nc, p, out, s);
+        if(p != nc->last_pile){
+          s->invalidated = SPRIXEL_INVALIDATED;
+        }
+        // otherwise it's a new pile, so we couldn't have been on-screen
       }
       if(goto_location(nc, out, y + nc->margin_t, x + nc->margin_l) == 0){
         int r = sprite_redraw(nc, p, s, out);
@@ -873,6 +895,7 @@ clean_sprixels(notcurses* nc, ncpile* p, FILE* out){
       ++nc->stats.sprixelelisions;
       parent = &s->next;
     }
+//fprintf(stderr, "SPRIXEL STATE: %d\n", s->invalidated);
   }
   return bytesemitted;
 }
@@ -881,7 +904,7 @@ static int
 rasterize_scrolls(ncpile* p, FILE* out){
 //fprintf(stderr, "%d tardies to work off, by far the most in the class\n", p->scrolls);
   while(p->scrolls){
-    if(fprintf(out, "\v") < 0){
+    if(ncfputc('\v', out) < 0){
       return -1;
     }
     --p->scrolls;
@@ -889,16 +912,24 @@ rasterize_scrolls(ncpile* p, FILE* out){
   return 0;
 }
 
-// draw any invalidated sprixels. returns -1 on error, number of bytes written
-// on success. any material underneath them has already been updated.
+// second sprixel pass in rasterization. by this time, all sixels are handled
+// (and in the QUIESCENT state); only persistent kitty graphics still require
+// operation. responsibilities of this second pass include:
+//
+// 1) if we're a different pile, issue the kitty universal clear
+// 2) first, hide all sprixels in the HIDE state
+// 3) then, make allo LOADED sprixels visible
 static int64_t
 rasterize_sprixels(notcurses* nc, ncpile* p, FILE* out){
   int64_t bytesemitted = 0;
-  for(sprixel* s = p->sprixelcache ; s ; s = s->next){
+  sprixel* s;
+  sprixel** parent = &p->sprixelcache;
+  while( (s = *parent) ){
+//fprintf(stderr, "YARR HARR HARR SPIRXLE %u STATE %d\n", s->id, s->invalidated);
     if(s->invalidated == SPRIXEL_INVALIDATED){
-      int y, x;
-      ncplane_yx(s->n, &y, &x);
 //fprintf(stderr, "3 DRAWING BITMAP %d STATE %d AT %d/%d for %p\n", s->id, s->invalidated, y + nc->margin_t, x + nc->margin_l, s->n);
+      int y,x;
+      ncplane_yx(s->n, &y, &x);
       if(goto_location(nc, out, y + nc->margin_t, x + nc->margin_l)){
         return -1;
       }
@@ -909,7 +940,31 @@ rasterize_sprixels(notcurses* nc, ncpile* p, FILE* out){
       bytesemitted += r;
       nc->rstate.hardcursorpos = true;
       ++nc->stats.sprixelemissions;
+    }else if(s->invalidated == SPRIXEL_LOADED){
+      if(nc->tcache.pixel_commit){
+        int y,x;
+        ncplane_yx(s->n, &y, &x);
+        if(goto_location(nc, out, y + nc->margin_t, x + nc->margin_l)){
+          return -1;
+        }
+        if(sprite_commit(&nc->tcache, out, s, false)){
+          return -1;
+        }
+        nc->rstate.hardcursorpos = true;
+      }
+    }else if(s->invalidated == SPRIXEL_HIDE){
+      if(nc->tcache.pixel_remove){
+        if(nc->tcache.pixel_remove(s->id, out) < 0){
+          return -1;
+        }
+        if( (*parent = s->next) ){
+          s->next->prev = s->prev;
+        }
+        sprixel_free(s);
+        continue;
+      }
     }
+    parent = &s->next;
   }
   return bytesemitted;
 }
@@ -1047,28 +1102,29 @@ rasterize_core(notcurses* nc, const ncpile* p, FILE* out, unsigned phase){
 // 'asu' on input is non-0 if application-synchronized updates are permitted
 // (they are not, for instance, when rendering to a non-tty). on output,
 // assuming success, it is non-0 if application-synchronized updates are
-// desired; in this case, an ASU footer is present at the end of the buffer.
+// desired; in this case, a SUM footer is present at the end of the buffer.
 static int
 notcurses_rasterize_inner(notcurses* nc, ncpile* p, FILE* out, unsigned* asu){
+//fprintf(stderr, "pile %p ymax: %d xmax: %d\n", p, p->dimy + nc->margin_t, p->dimx + nc->margin_l);
   // we only need to emit a coordinate if it was damaged. the damagemap is a
   // bit per coordinate, one per struct crender.
   // don't write a clearscreen. we only update things that have been changed.
   // we explicitly move the cursor at the beginning of each output line, so no
   // need to home it expliticly.
-//fprintf(stderr, "pile %p ymax: %d xmax: %d\n", p, p->dimy + nc->margin_t, p->dimx + nc->margin_l);
+//fprintf(stderr, "RASTERIZE SPRIXELS\n");
   int64_t sprixelbytes = clean_sprixels(nc, p, out);
   if(sprixelbytes < 0){
     return -1;
   }
   update_palette(nc, out);
-//fprintf(stderr, "RASTERIZE CORE\n");
   if(rasterize_scrolls(p, out)){
     return -1;
   }
+//fprintf(stderr, "RASTERIZE CORE PASS 1\n");
   if(rasterize_core(nc, p, out, 0)){
     return -1;
   }
-//fprintf(stderr, "RASTERIZE SPRIXELS\n");
+//fprintf(stderr, "FINALIZE SPRIXELS\n");
   int64_t rasprixelbytes = rasterize_sprixels(nc, p, out);
   if(rasprixelbytes < 0){
     return -1;
@@ -1077,17 +1133,17 @@ notcurses_rasterize_inner(notcurses* nc, ncpile* p, FILE* out, unsigned* asu){
   pthread_mutex_lock(&nc->statlock);
   nc->stats.sprixelbytes += sprixelbytes;
   pthread_mutex_unlock(&nc->statlock);
-//fprintf(stderr, "RASTERIZE CORE\n");
+//fprintf(stderr, "RASTERIZE CORE PASS 2\n");
   if(rasterize_core(nc, p, out, 1)){
     return -1;
   }
-#define MIN_ASU_SIZE 4096 // FIXME
+#define MIN_SUMODE_SIZE 4096 // FIXME
   if(*asu){
-    if(nc->rstate.mstrsize >= MIN_ASU_SIZE){
+    if(nc->rstate.mstrsize >= MIN_SUMODE_SIZE){
       const char* endasu = get_escape(&nc->tcache, ESCAPE_ESUM);
       if(endasu){
         if(fprintf(out, "%s", endasu) < 0){
-          return -1;
+          *asu = 0;
         }
       }else{
         *asu = 0;
@@ -1096,7 +1152,7 @@ notcurses_rasterize_inner(notcurses* nc, ncpile* p, FILE* out, unsigned* asu){
       *asu = 0;
     }
   }
-#undef MIN_ASU_SIZE
+#undef MIN_SUMODE_SIZE
   if(ncflush(out)){
     return -1;
   }
@@ -1108,21 +1164,14 @@ static int
 raster_and_write(notcurses* nc, ncpile* p, FILE* out){
   fseeko(out, 0, SEEK_SET);
   // will we be using application-synchronized updates? if this comes back as
-  // non-zero, we are, and must emit the header. no ASU without a tty, and we
+  // non-zero, we are, and must emit the header. no SUM without a tty, and we
   // can't have the escape without being connected to one...
   const char* basu = get_escape(&nc->tcache, ESCAPE_BSUM);
   unsigned useasu = basu ? 1 : 0;
-  // if we have ASU support, emit a BSU speculatively. if we do so, but don't
-  // actually use an ESU, this BASU must be skipped on write.
+  // if we have SUM support, emit a BSU speculatively. if we do so, but don't
+  // actually use an ESU, this BSUM must be skipped on write.
   if(useasu){
     if(ncfputs(basu, out) == EOF){
-      return -1;
-    }
-  }
-  // if the last pile was different from this one, we need clear all old
-  // sprixels (and invalidate all those of the current pile -- FIXME).
-  if(nc->last_pile != p && nc->last_pile){
-    if(sprite_clear_all(&nc->tcache, out)){
       return -1;
     }
   }
@@ -1385,7 +1434,7 @@ int ncpile_render_to_buffer(ncplane* p, char** buf, size_t* buflen){
     return -1;
   }
   notcurses* nc = ncplane_notcurses(p);
-  unsigned useasu = false; // no ASU to file
+  unsigned useasu = false; // no SUM with file
   fseeko(nc->rstate.mstreamfp, 0, SEEK_SET);
   int bytes = notcurses_rasterize_inner(nc, ncplane_pile(p), nc->rstate.mstreamfp, &useasu);
   pthread_mutex_lock(&nc->statlock);

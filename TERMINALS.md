@@ -63,29 +63,29 @@ relies on the font. Patches to correct/complete this table are very welcome!
 
 | Terminal        | Pixel `TIOCGWINSZ` | `ccc` | Blocks | Recommended environment           | Notes |
 | --------------- | ------------------ | ----- | ------ | -----------------------           | ----- |
-| [Alacritty](https://github.com/alacritty/alacritty)       | ✅                 |  ✅   |❌      |`TERM=alacritty` `COLORTERM=24bit` | [Sixel support WIP](https://github.com/ayosec/alacritty/tree/graphics) |
-| [Contour](https://github.com/christianparpart/contour)    | ❌                 |  ✅   |?       |`TERM=contour-latest` ?            | Claims Sixel support             |
+| [Alacritty](https://github.com/alacritty/alacritty)       | ✅         |  ✅   |❌      |`TERM=alacritty` `COLORTERM=24bit` | [Sixel support WIP](https://github.com/ayosec/alacritty/tree/graphics) |
+| [Contour](https://github.com/christianparpart/contour)    | ❌         |  ✅   |?       |`TERM=contour-latest` ?            | Claims Sixel support             |
 | [ETerm](https://github.com/mej/Eterm) | | | | `TERM=Eterm` | Doesn't reply to Send Device Attributes |
-| [FBterm](https://github.com/zhangyuanwei/fbterm)          | ❌                 |  ?    |?       |`TERM=fbterm`                      | 256 colors, no RGB color. |
+| [FBterm](https://github.com/zhangyuanwei/fbterm)  | ❌                 |  ?    |?       |`TERM=fbterm`                      | 256 colors, no RGB color. |
 | [foot](https://codeberg.org/dnkl/foot)            | ✅                 |  ✅   |✅      |`TERM=foot`                        | Sixel support. |
-| [Gnome Terminal](https://gitlab.gnome.org/GNOME/gnome-terminal)  |❌                    |  ❌   |✅      |`TERM=gnome` `COLORTERM=24bit`     | `ccc` support *is* available when run with `vte-256color`. |
+| [Gnome Terminal](https://gitlab.gnome.org/GNOME/gnome-terminal)  |❌   |  ❌   |✅      |`TERM=gnome` `COLORTERM=24bit`     | `ccc` support *is* available when run with `vte-256color`. |
 | [Guake](https://github.com/Guake/guake)           |                    |  ?    |?       |                                   | |
-| [ITerm2](https://github.com/gnachman/iTerm2)          |                    |  ?    |?       |                                   | |
-| [Kitty](https://github.com/kovidgoyal/kitty)           | ✅                 |  ✅   |✅      |`TERM=xterm-kitty`                 | See below. |
-| [kmscon](https://github.com/dvdhrm/kmscon)          |                    |  ?    |?       |`TERM=xterm-256color`              | No RGB color AFAICT, nor any distinct terminfo entry. |
-| [Konsole](https://invent.kde.org/utilities/konsole)         | ❌                 |  ❌   |?       |`TERM=konsole-direct`              | |
+| [ITerm2](https://github.com/gnachman/iTerm2)      |                    |  ?    |?       |                                   | |
+| [Kitty](https://github.com/kovidgoyal/kitty)      | ✅  |  ✅   |✅      |`TERM=xterm-kitty`                 | See below. |
+| [kmscon](https://github.com/dvdhrm/kmscon)        | |  ?    |?       |`TERM=xterm-256color`              | No RGB color AFAICT, nor any distinct terminfo entry. |
+| [Konsole](https://invent.kde.org/utilities/konsole) | ❌       |  ❌   |?       |`TERM=konsole-direct`              | |
 | Linux console   | ❌                 |  ✅   |see [below](#the-linux-console) |`TERM=linux` `COLORTERM=24bit`   | 8 (512 glyph fonts) or 16 (256 glyph fonts) colors max, but RGB values are downsampled to a 256-index palette. See below. |
 | mlterm          | ✅                 |  ❌   |?       |`TERM=mlterm-256color`           | Do not set `COLORTERM`. `mlterm-direct` gives strange results. |
 | PuTTY           |                    |  ❌   |❌      |`TERM=putty-256color` `COLORTERM=24bit` | |
-| rxvt            |                    |  ?    |?       |                                 | |
+| rxvt            | ✅                 |  ?    |?       |                                 | |
 | Sakura          | ✅                 |  ✅   |?       |`TERM=vte-256color` `COLORTERM=24bit` | VTE-derived, no terminfo entry. |
-| GNU Screen      |                    |  ❌   |n/a     |`TERM=screen.OLDTERM`            | Must be compiled with `--enable-256color`. `TERM` should typically be `screen.` suffixed by the appropriate `TERM` value for the true connected terminal, e.g. `screen.vte-256color`. See below. |
+| GNU Screen      | ✅                 |  ❌   |n/a     |`TERM=screen.OLDTERM`            | Must be compiled with `--enable-256color`. `TERM` should typically be `screen.` suffixed by the appropriate `TERM` value for the true connected terminal, e.g. `screen.vte-256color`. See below. |
 | st ("suckless") | ✅                 |  ✅   |?       |`TERM=st-256color` `COLORTERM=24bit` | |
 | Terminator      | ✅                 |  ?    |?       | ?                               | |
 | Terminology     | ❌                 |  ❌   |?       | `TERM=terminology`              | |
-| [Tilda](https://github.com/lanoxx/tilda)           |                    |  ?    |?       | ?                               | |
-| [tmux](https://github.com/tmux/tmux/wiki)            |                    |  ❌   |n/a     |`TERM=tmux-256color` `COLORTERM=24bit` | `tmux.conf` must apply `Tc`; see below. `bce` is available with the `tmux-256color-bce` definition. |
-| [wezterm](https://github.com/wez/wezterm)         | ✅                 |  ✅   |?       |`TERM=wezterm` `COLORTERM=24bit` | See below. |
+| [Tilda](https://github.com/lanoxx/tilda)  |       |  ?    |?       | ?                               | |
+| [tmux](https://github.com/tmux/tmux/wiki) | ✅    |  ❌   |n/a     |`TERM=tmux-256color` `COLORTERM=24bit`| `tmux.conf` must apply `Tc`; see below. `bce` is available with the `tmux-256color-bce` definition. |
+| [wezterm](https://github.com/wez/wezterm) | ✅    |  ✅   |?       |`TERM=wezterm` `COLORTERM=24bit` | See below. |
 | [Windows Terminal](https://github.com/microsoft/terminal)|                    |  ?    |?       | ?                               | |
 | [wterm](https://github.com/majestrate/wterm)           |                    |  ?    |?       | ?                               | |
 | [XFCE4 Terminal](https://gitlab.xfce.org/apps/xfce4-terminal)  | ❌                 |  ✅   |✅      |`TERM=xfce` `COLORTERM=24bit`    | No `xfce-direct` variant exists. |

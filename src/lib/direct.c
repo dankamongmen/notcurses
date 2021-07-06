@@ -417,7 +417,15 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
         return -1;
       }
     }
-    if(ncfputs(np->sprite->glyph, n->ttyfp) == EOF){
+    // flush our FILE*, as we're about to use UNIX I/O (since we can't rely on
+    // stdio to transfer large amounts at once).
+    if(ncdirect_flush(n)){
+      return -1;
+    }
+    if(blocking_write(fileno(n->ttyfp), np->sprite->glyph, np->sprite->glyphlen) < 0){
+      return -1;
+    }
+    if(sprite_commit(&n->tcache, n->ttyfp, np->sprite, true)){
       return -1;
     }
     return 0;
@@ -582,7 +590,7 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv,
     return NULL;
   }
   blitterargs bargs = {};
-  bargs.flags = vopts->flags | NCVISUAL_OPTION_SCROLL;
+  bargs.flags = vopts->flags;
   if(vopts->flags & NCVISUAL_OPTION_ADDALPHA){
     bargs.transcolor = vopts->transcolor | 0x1000000ull;
   }

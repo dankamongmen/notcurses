@@ -383,8 +383,10 @@ int kitty_wipe(sprixel* s, int ycell, int xcell){
       // the maximum number of pixels we can convert is the minimum of the
       // pixels remaining in the target row, and the pixels left in the chunk.
 //fprintf(stderr, "inchunk: %d total: %d triples: %d\n", inchunk, totalpixels, triples);
+//fprintf(stderr, "PRECHOMP:  [%.16s]\n", c + tripbytes);
       int chomped = kitty_null(c + tripbytes, tripskip, thisrow,
                                inchunk - triples * 3, auxvec + auxvecidx);
+//fprintf(stderr, "POSTCHOMP: [%.16s]\n", c + tripbytes);
       assert(chomped >= 0);
       auxvecidx += chomped;
       assert(auxvecidx <= s->cellpxy * s->cellpxx);
@@ -417,6 +419,13 @@ int kitty_wipe(sprixel* s, int ycell, int xcell){
   return -1;
 }
 
+int kitty_commit(FILE* fp, sprixel* s, unsigned noscroll){
+  loginfo("Committing Kitty graphic id %u\n", s->id);
+  fprintf(fp, "\e_Ga=p,i=%u,p=1,q=2%s\e\\", s->id, noscroll ? ",C=1" : "");
+  s->invalidated = SPRIXEL_QUIESCENT;
+  return 0;
+}
+
 // we can only write 4KiB at a time. we're writing base64-encoded RGBA. each
 // pixel is 4B raw (32 bits). each chunk of three pixels is then 12 bytes, or
 // 16 base64-encoded bytes. 4096 / 16 == 256 3-pixel groups, or 768 pixels.
@@ -430,7 +439,6 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
     fclose(fp);
     return -1;
   }
-  bool scroll = bargs->flags & NCVISUAL_OPTION_SCROLL;
   bool translucent = bargs->flags & NCVISUAL_OPTION_BLEND;
   int sprixelid = bargs->u.pixel.spx->id;
   int cdimy = bargs->u.pixel.celldimy;
@@ -446,9 +454,8 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
 //fprintf(stderr, "total: %d chunks = %d, s=%d,v=%d\n", total, chunks, lenx, leny);
   while(chunks--){
     if(totalout == 0){
-      *parse_start = fprintf(fp, "\e_Gf=32,s=%d,v=%d,i=%d,p=1,a=T,%c=1%s;",
-                             lenx, leny, sprixelid, chunks ? 'm' : 'q',
-                             scroll ? "" : ",C=1");
+      *parse_start = fprintf(fp, "\e_Gf=32,s=%d,v=%d,i=%d,p=1,a=t,%c=1;",
+                             lenx, leny, sprixelid, chunks ? 'm' : 'q');
     }else{
       fprintf(fp, "\e_G%sm=%d;", chunks ? "" : "q=2,", chunks ? 1 : 0);
     }
@@ -570,7 +577,7 @@ int kitty_blit(ncplane* n, int linesize, const void* data, int leny, int lenx,
 }
 
 int kitty_remove(int id, FILE* out){
-//fprintf(stderr, "DESTROYING KITTY %d\n", id);
+  loginfo("Removing graphic %u\n", id);
   if(fprintf(out, "\e_Ga=d,d=i,i=%d\e\\", id) < 0){
     return -1;
   }
@@ -579,11 +586,7 @@ int kitty_remove(int id, FILE* out){
 
 // removes the kitty bitmap graphic identified by s->id, and damages those
 // cells which weren't SPRIXCEL_OPAQUE
-int kitty_destroy(const notcurses* nc __attribute__ ((unused)),
-                  const ncpile* p, FILE* out, sprixel* s){
-  if(kitty_remove(s->id, out)){
-    return -1;
-  }
+int kitty_scrub(const ncpile* p, sprixel* s){
 //fprintf(stderr, "FROM: %d/%d state: %d s->n: %p\n", s->movedfromy, s->movedfromx, s->invalidated, s->n);
   for(int yy = s->movedfromy ; yy < s->movedfromy + s->dimy && yy < p->dimy ; ++yy){
     for(int xx = s->movedfromx ; xx < s->movedfromx + s->dimx && xx < p->dimx ; ++xx){
@@ -619,7 +622,7 @@ int kitty_draw(const ncpile* p, sprixel* s, FILE* out){
   if(fwrite(s->glyph, s->glyphlen, 1, out) != 1){
     ret = -1;
   }
-  s->invalidated = SPRIXEL_QUIESCENT;
+  s->invalidated = SPRIXEL_LOADED;
   return ret;
 }
 
@@ -637,7 +640,7 @@ int kitty_move(const ncpile* p, sprixel* s, FILE* out){
 // clears all kitty bitmaps
 int kitty_clear_all(FILE* fp){
 //fprintf(stderr, "KITTY UNIVERSAL ERASE\n");
-  return term_emit("\e_Ga=d\e\\", fp, false);
+  return term_emit("\e_Ga=d,q=2\e\\", fp, false);
 }
 
 int kitty_shutdown(FILE* fp){
