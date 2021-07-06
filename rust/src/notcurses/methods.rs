@@ -523,9 +523,9 @@ impl Nc {
         let mut len = buffer.len() as u32;
 
         // https://github.com/dankamongmen/notcurses/issues/1339
-        #[cfg(any(target_arch = "x86_64", target_arch = "i686"))]
+        #[cfg(any(target_arch = "x86_64", target_arch = "i686", target_arch = "x86"))]
         let mut buf = buffer.as_mut_ptr() as *mut i8;
-        #[cfg(not(any(target_arch = "x86_64", target_arch = "i686")))]
+        #[cfg(not(any(target_arch = "x86_64", target_arch = "i686", target_arch = "x86")))]
         let mut buf = buffer.as_mut_ptr() as *mut u8;
 
         error![unsafe { crate::notcurses_render_to_buffer(self, &mut buf, &mut len.into()) }]

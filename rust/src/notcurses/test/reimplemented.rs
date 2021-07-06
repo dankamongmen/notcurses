@@ -147,9 +147,19 @@ fn notcurses_debug() {
     unsafe {
         let nc = notcurses_init_test();
 
-        #[cfg(any(target_arch = "s390x", target_arch = "ppc64le"))]
+        #[cfg(any(
+            target_arch = "s390x",
+            target_arch = "powerpc64le",
+            target_arch = "armv7hl",
+            target_arch = "aarch64"
+        ))]
         let mut _p: *mut u8 = &mut 0;
-        #[cfg(not(any(target_arch = "s390x", target_arch = "ppc64le")))]
+        #[cfg(not(any(
+            target_arch = "s390x",
+            target_arch = "powerpc64le",
+            target_arch = "armv7hl",
+            target_arch = "aarch64"
+        )))]
         let mut _p: *mut i8 = &mut 0;
 
         let mut _size: *mut usize = &mut 0;

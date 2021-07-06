@@ -140,4 +140,3 @@ pub const fn nckey_supppuab_p(w: char) -> bool {
 pub const fn nckey_mouse_p(r: char) -> bool {
     r >= NCKEY_BUTTON1 && r <= NCKEY_RELEASE
 }
-

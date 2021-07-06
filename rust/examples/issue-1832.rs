@@ -8,12 +8,23 @@ const H: u32 = 32;
 fn main() -> NcResult<()> {
     let mut nc = Nc::new()?;
 
-
     // create a white rectangle visual for the background
     let buffer1 = vec![255; H as usize * W as usize * 3];
     let mut bg_plane = NcPlane::new(&mut nc, 0, 0, H, W)?;
     let v = NcVisual::from_rgb_packed(buffer1.as_slice(), H, W * 3, W, 255)?;
-    let vo = NcVisualOptions::with_plane(&mut bg_plane, NCSCALE_NONE, 0, 0, 0, 0, 0, 0, NCBLIT_PIXEL, 0, 0);
+    let vo = NcVisualOptions::with_plane(
+        &mut bg_plane,
+        NCSCALE_NONE,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        NCBLIT_PIXEL,
+        0,
+        0,
+    );
 
     // create a blue plane for the foreground
     let fg_plane = NcPlane::new_bound(&mut bg_plane, 1, 1, 2, 16)?;
@@ -21,7 +32,7 @@ fn main() -> NcResult<()> {
 
     let mut counter = 0;
     for _ in 0..3 {
-        fg_plane.putstr_yx(0,0, &format!["counter: {}", &counter]);
+        let _ = fg_plane.putstr_yx(0, 0, &format!["counter: {}", &counter]);
         counter += 1;
 
         v.render(nc, &vo)?;
