@@ -857,13 +857,17 @@ clean_sprixels(notcurses* nc, ncpile* p, FILE* out){
       }
     }else if(s->invalidated == SPRIXEL_HIDE){
 //fprintf(stderr, "OUGHT HIDE %d [%dx%d] %p\n", s->id, s->dimy, s->dimx, s);
-      if(sprite_scrub(nc, p, s)){
+      int r = sprite_scrub(nc, p, s);
+      if(r < 0){
         return -1;
+      }else if(r > 0){
+        if( (*parent = s->next) ){
+          s->next->prev = s->prev;
+        }
+        sprixel_free(s);
+      }else{
+        parent = &s->next;
       }
-      if( (*parent = s->next) ){
-        s->next->prev = s->prev;
-      }
-      sprixel_free(s);
       continue; // don't account as an elision
     }
     if(s->invalidated == SPRIXEL_MOVED || s->invalidated == SPRIXEL_INVALIDATED){
@@ -919,10 +923,11 @@ static int64_t
 rasterize_sprixels(notcurses* nc, ncpile* p, FILE* out){
   int64_t bytesemitted = 0;
   for(sprixel* s = p->sprixelcache ; s ; s = s->next){
+//fprintf(stderr, "YARR HARR HARR SPIRXLE %u STATE %d\n", s->id, s->invalidated);
     if(s->invalidated == SPRIXEL_INVALIDATED){
-      int y, x;
+//fprintf(stderr, "3 DRAWING BITMAP %d STATE %d AT %d/%d for %p\n", s->id, s->invalidated, y + nc->margin_t, x + nc->margin_l, s->n);
+      int y,x;
       ncplane_yx(s->n, &y, &x);
-fprintf(stderr, "3 DRAWING BITMAP %d STATE %d AT %d/%d for %p\n", s->id, s->invalidated, y + nc->margin_t, x + nc->margin_l, s->n);
       if(goto_location(nc, out, y + nc->margin_t, x + nc->margin_l)){
         return -1;
       }
@@ -936,12 +941,17 @@ fprintf(stderr, "3 DRAWING BITMAP %d STATE %d AT %d/%d for %p\n", s->id, s->inva
     }else if(s->invalidated == SPRIXEL_LOADED){
       if(nc->tcache.pixel_commit){
         int y,x;
-      ncplane_yx(s->n, &y, &x);
-//fprintf(stderr, "3 DRAWING BITMAP %d STATE %d AT %d/%d for %p\n", s->id, s->invalidated, y + nc->margin_t, x + nc->margin_l, s->n);
-      if(goto_location(nc, out, y + nc->margin_t, x + nc->margin_l)){
-        return -1;
-      }
+        ncplane_yx(s->n, &y, &x);
+        if(goto_location(nc, out, y + nc->margin_t, x + nc->margin_l)){
+          return -1;
+        }
         if(nc->tcache.pixel_commit(out, s) < 0){
+          return -1;
+        }
+      }
+    }else if(s->invalidated == SPRIXEL_HIDE){
+      if(nc->tcache.pixel_remove){
+        if(nc->tcache.pixel_remove(s->id, out) < 0){
           return -1;
         }
       }
