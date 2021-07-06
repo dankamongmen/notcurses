@@ -1499,7 +1499,7 @@ API int ncplane_x(const struct ncplane* n) __attribute__ ((pure));
 
 // Move this plane relative to the standard plane, or the plane to which it is
 // bound (if it is bound to a plane). It is an error to attempt to move the
-// standard plane. Specifying a coordinate as -1 will hold it constant.
+// standard plane.
 API int ncplane_move_yx(struct ncplane* n, int y, int x);
 
 // Move this plane relative to its current location. Negative values move up
