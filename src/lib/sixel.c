@@ -795,7 +795,7 @@ int sixel_blit(ncplane* n, int linesize, const void* data, int leny, int lenx,
 // (though we'll still need to if the new sprixcell not opaque, and the
 // old and new sprixcell are different in any transparent pixel).
 int sixel_scrub(const ncpile* p, sprixel* s){
-//fprintf(stderr, "DESTROYING %d %d %p at %d/%d (%d/%d)\n", s->id, s->invalidated, s->n, s->movedfromy, s->movedfromx, s->dimy, s->dimx);
+  loginfo("%d state %d at %d/%d (%d/%d)\n", s->id, s->invalidated, s->movedfromy, s->movedfromx, s->dimy, s->dimx);
   int starty = s->movedfromy;
   int startx = s->movedfromx;
   for(int yy = starty ; yy < starty + s->dimy && yy < p->dimy ; ++yy){

@@ -851,6 +851,7 @@ clean_sprixels(notcurses* nc, ncpile* p, FILE* out){
   sprixel** parent = &p->sprixelcache;
   int64_t bytesemitted = 0;
   while( (s = *parent) ){
+    loginfo("Phase 1 sprixel %u state %d\n", s->id, s->invalidated);
     if(s->invalidated == SPRIXEL_QUIESCENT){
       if(p != nc->last_pile){
         s->invalidated = SPRIXEL_INVALIDATED;
@@ -877,9 +878,8 @@ clean_sprixels(notcurses* nc, ncpile* p, FILE* out){
       if(s->invalidated == SPRIXEL_MOVED){
         if(p != nc->last_pile){
           s->invalidated = SPRIXEL_INVALIDATED;
-        }else{ // this is a new pile, so we couldn't have been on-screen
-          //sprite_scrub(nc, p, s);
         }
+        // otherwise it's a new pile, so we couldn't have been on-screen
       }
       if(goto_location(nc, out, y + nc->margin_t, x + nc->margin_l) == 0){
         int r = sprite_redraw(nc, p, s, out);
@@ -904,7 +904,7 @@ static int
 rasterize_scrolls(ncpile* p, FILE* out){
 //fprintf(stderr, "%d tardies to work off, by far the most in the class\n", p->scrolls);
   while(p->scrolls){
-    if(fprintf(out, "\v") < 0){
+    if(ncfputc('\v', out) < 0){
       return -1;
     }
     --p->scrolls;
