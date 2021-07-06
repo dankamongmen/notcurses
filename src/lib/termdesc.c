@@ -70,6 +70,7 @@ setup_kitty_bitmaps(tinfo* ti, int fd, int sixel_maxy_pristine){
   ti->pixel_scrub = kitty_scrub;
   ti->pixel_remove = kitty_remove;
   ti->pixel_draw = kitty_draw;
+  ti->pixel_commit = kitty_commit;
   ti->pixel_move = kitty_move;
   ti->pixel_shutdown = kitty_shutdown;
   ti->sprixel_scale_height = 1;
@@ -256,7 +257,9 @@ grow_esc_table(tinfo* ti, const char* tstr, escape_e esc,
 // these three queries (terminated with a Primary Device Attributes, to which
 // all known terminals reply) hopefully can uniquely and unquestionably
 // identify the terminal to which we are talking.
-#define IDQUERIES "\x1b[=0c" /* Tertiary Device Attributes */ \
+// FIXME Konsole doesn't currently handle TDA, so we have to consume the 0c
+// in our state machine =[
+#define IDQUERIES "\x1b[=c" /* Tertiary Device Attributes */ \
                   "\x1b[>0q" /* XTVERSION */ \
                   "\x1bP+q544e\x1b\\" /* XTGETTCAP['TN'] */
 
@@ -267,19 +270,29 @@ grow_esc_table(tinfo* ti, const char* tstr, escape_e esc,
 // thing is, if we get a response to this, we know we can use it for u7!
 #define DSRCPR "\e[6n"
 
+// check for Synchronized Update Mode support. the p is necessary, but Konsole
+// doesn't consume it, so we have to handle that in our state machine =[.
+#define SUMQUERY "\x1b[?2026$p"
+
+// XTSMGRAPHICS query for the number of color registers.
+#define CREGSXTSM "\x1b[?2;1;0S"
+
+// XTSMGRAPHICS query for the maximum supported geometry.
+#define GEOMXTSM "\x1b[?1;1;0S"
+
 #define DIRECTIVES CSI_BGQ \
                    DSRCPR \
-                   "\x1b[?2026$p"   /* query for Synchronized Updates */ \
+                   SUMQUERY \
                    "\x1b[?1;3;256S" /* try to set 256 cregs */ \
-                   "\x1b[?2;1;0S"   /* XTSMGRAPHICS (cregs) */ \
-                   "\x1b[?1;1;0S"   /* XTSMGRAPHICS (geometry) */ \
+                   CREGSXTSM \
+                   GEOMXTSM \
                    "\x1b[c"         /* Device Attributes */
 
 // we send an XTSMGRAPHICS to set up 256 color registers (the most we can
 // currently take advantage of; we need at least 64 to use sixel at all.
 // maybe that works, maybe it doesn't. then query both color registers
 // and geometry. send XTGETTCAP for terminal name. if 'minimal' is set, don't
-// send any identification queries.
+// send any identification queries (we've already identified the terminal).
 static int
 send_initial_queries(int fd, bool minimal){
   const char *queries;
