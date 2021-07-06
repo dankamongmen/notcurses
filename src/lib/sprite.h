@@ -178,22 +178,24 @@ sprixel* sprixel_alloc(struct ncplane* n, int dimy, int dimx);
 // takes ownership of s on success.
 int sprixel_load(sprixel* spx, char* s, int bytes, int pixy, int pixx, int parse_start);
 int sixel_destroy(const struct notcurses* nc, const struct ncpile* p, FILE* out, sprixel* s);
-int kitty_destroy(const struct notcurses* nc, const struct ncpile* p, FILE* out, sprixel* s);
+int kitty_scrub(const struct ncpile* p, sprixel* s);
+int kitty_commit(FILE* fp, sprixel* s, unsigned noscroll);
 int kitty_remove(int id, FILE* out);
-int kitty_clear_all(int fd);
+int kitty_clear_all(FILE* fp);
 int sixel_init(const tinfo* t, int fd);
 int sixel_init_inverted(const tinfo* t, int fd);
 int sprite_init(const tinfo* t, int fd);
-int sprite_clear_all(const tinfo* t, int fd);
-int kitty_shutdown(int fd);
-int sixel_shutdown(int fd);
+int sprite_clear_all(const tinfo* t, FILE* fp);
+int kitty_shutdown(FILE* fp);
+int sixel_shutdown(FILE* fp);
 uint8_t* sixel_trans_auxvec(const sprixel* s);
 uint8_t* kitty_trans_auxvec(const sprixel* s);
 uint8_t* kitty_transanim_auxvec(const sprixel* s);
 // these three all use absolute coordinates
 void sprixel_invalidate(sprixel* s, int y, int x);
 void sprixel_movefrom(sprixel* s, int y, int x);
-void sprixel_debug(FILE* out, const sprixel* s);
+int sixel_scrub(const struct ncpile* p, sprixel* s);
+void sprixel_debug(const sprixel* s, FILE* out);
 void sixelmap_free(struct sixelmap *s);
 
 int sixel_blit(struct ncplane* nc, int linesize, const void* data,

@@ -78,7 +78,7 @@ setup_kitty_bitmaps(tinfo* ti, int fd, bool animation){
     ti->pixel_rebuild = kitty_rebuild;
     ti->pixel_recycle = kitty_recycle;
   }
-  ti->pixel_destroy = kitty_destroy;
+  ti->pixel_scrub = kitty_scrub;
   ti->pixel_remove = kitty_remove;
   ti->pixel_draw = kitty_draw;
   ti->pixel_commit = kitty_commit;

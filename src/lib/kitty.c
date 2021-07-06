@@ -751,8 +751,8 @@ int kitty_clear_all(FILE* fp){
   return term_emit("\e_Ga=d,q=2\e\\", fp, false);
 }
 
-int kitty_shutdown(int fd){
-  (void)fd;
+int kitty_shutdown(FILE* fp){
+  (void)fp;
   return 0;
 }
 
