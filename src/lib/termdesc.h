@@ -137,7 +137,7 @@ typedef struct tinfo {
   int (*pixel_shutdown)(FILE* fp);  // called during context shutdown
   int (*pixel_clear_all)(FILE* fp); // called during context startup
   // make a loaded graphic visible. only used with kitty.
-  int (*pixel_commit)(FILE* fp, struct sprixel* s);
+  int (*pixel_commit)(FILE* fp, struct sprixel* s, unsigned noscroll);
   uint8_t* (*pixel_trans_auxvec)(const struct tinfo* ti); // create tranparent auxvec
   // sprixel parameters. there are several different sprixel protocols, of
   // which we support sixel and kitty. the kitty protocol is used based

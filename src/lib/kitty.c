@@ -419,9 +419,9 @@ int kitty_wipe(sprixel* s, int ycell, int xcell){
   return -1;
 }
 
-int kitty_commit(FILE* fp, sprixel* s){
+int kitty_commit(FILE* fp, sprixel* s, unsigned noscroll){
   loginfo("Committing Kitty graphic id %u\n", s->id);
-  fprintf(fp, "\e_Ga=p,i=%u,p=1,q=2\e\\", s->id);
+  fprintf(fp, "\e_Ga=p,i=%u,p=1,q=2%s\e\\", s->id, noscroll ? ",C=1" : "");
   s->invalidated = SPRIXEL_QUIESCENT;
   return 0;
 }
@@ -439,7 +439,6 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
     fclose(fp);
     return -1;
   }
-  bool scroll = bargs->flags & NCVISUAL_OPTION_SCROLL;
   bool translucent = bargs->flags & NCVISUAL_OPTION_BLEND;
   int sprixelid = bargs->u.pixel.spx->id;
   int cdimy = bargs->u.pixel.celldimy;
@@ -455,9 +454,8 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
 //fprintf(stderr, "total: %d chunks = %d, s=%d,v=%d\n", total, chunks, lenx, leny);
   while(chunks--){
     if(totalout == 0){
-      *parse_start = fprintf(fp, "\e_Gf=32,s=%d,v=%d,i=%d,p=1,a=t,%c=1%s;",
-                             lenx, leny, sprixelid, chunks ? 'm' : 'q',
-                             scroll ? "" : ",C=1");
+      *parse_start = fprintf(fp, "\e_Gf=32,s=%d,v=%d,i=%d,p=1,a=t,%c=1;",
+                             lenx, leny, sprixelid, chunks ? 'm' : 'q');
     }else{
       fprintf(fp, "\e_G%sm=%d;", chunks ? "" : "q=2,", chunks ? 1 : 0);
     }

@@ -425,10 +425,8 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
     if(blocking_write(fileno(n->ttyfp), np->sprite->glyph, np->sprite->glyphlen) < 0){
       return -1;
     }
-    if(n->tcache.pixel_commit){
-      if(n->tcache.pixel_commit(n->ttyfp, np->sprite)){
-        return -1;
-      }
+    if(sprite_commit(&n->tcache, n->ttyfp, np->sprite, true)){
+      return -1;
     }
     return 0;
   }
@@ -592,7 +590,7 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv,
     return NULL;
   }
   blitterargs bargs = {};
-  bargs.flags = vopts->flags | NCVISUAL_OPTION_SCROLL;
+  bargs.flags = vopts->flags;
   if(vopts->flags & NCVISUAL_OPTION_ADDALPHA){
     bargs.transcolor = vopts->transcolor | 0x1000000ull;
   }

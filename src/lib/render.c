@@ -947,7 +947,7 @@ rasterize_sprixels(notcurses* nc, ncpile* p, FILE* out){
         if(goto_location(nc, out, y + nc->margin_t, x + nc->margin_l)){
           return -1;
         }
-        if(nc->tcache.pixel_commit(out, s) < 0){
+        if(sprite_commit(&nc->tcache, out, s, false)){
           return -1;
         }
         nc->rstate.hardcursorpos = true;
