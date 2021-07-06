@@ -866,11 +866,6 @@ init_banner_warnings(const notcurses* nc, FILE* out){
     liness += 2;
     fprintf(out, " Warning! Colors subject to https://github.com/dankamongmen/notcurses/issues/4\n");
     fprintf(out, "  Specify a (correct) TrueColor TERM, or COLORTERM=24bit.\n");
-  }else{
-    if(!nc->tcache.caps.can_change_colors){
-      liness += 1;
-      fprintf(out, " Warning! Advertised TrueColor but no 'ccc' flag\n");
-    }
   }
   if(!notcurses_canutf8(nc)){
     liness += 1;
