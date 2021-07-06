@@ -383,8 +383,10 @@ int kitty_wipe(sprixel* s, int ycell, int xcell){
       // the maximum number of pixels we can convert is the minimum of the
       // pixels remaining in the target row, and the pixels left in the chunk.
 //fprintf(stderr, "inchunk: %d total: %d triples: %d\n", inchunk, totalpixels, triples);
+//fprintf(stderr, "PRECHOMP:  [%.16s]\n", c + tripbytes);
       int chomped = kitty_null(c + tripbytes, tripskip, thisrow,
                                inchunk - triples * 3, auxvec + auxvecidx);
+//fprintf(stderr, "POSTCHOMP: [%.16s]\n", c + tripbytes);
       assert(chomped >= 0);
       auxvecidx += chomped;
       assert(auxvecidx <= s->cellpxy * s->cellpxx);
@@ -419,7 +421,7 @@ int kitty_wipe(sprixel* s, int ycell, int xcell){
 
 int kitty_commit(FILE* fp, sprixel* s){
   loginfo("Committing Kitty graphic id %u\n", s->id);
-  fprintf(fp, "\e_Ga=p,i=%u,p=1\e\\", s->id);
+  fprintf(fp, "\e_Ga=p,i=%u,p=1,q=2\e\\", s->id);
   s->invalidated = SPRIXEL_QUIESCENT;
   return 0;
 }
@@ -640,7 +642,7 @@ int kitty_move(const ncpile* p, sprixel* s, FILE* out){
 // clears all kitty bitmaps
 int kitty_clear_all(FILE* fp){
 //fprintf(stderr, "KITTY UNIVERSAL ERASE\n");
-  return term_emit("\e_Ga=d\e\\", fp, false);
+  return term_emit("\e_Ga=d,q=2\e\\", fp, false);
 }
 
 int kitty_shutdown(FILE* fp){
