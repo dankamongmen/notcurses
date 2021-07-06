@@ -6,6 +6,9 @@ rearrangements of Notcurses.
     both return a heap-allocated string, which will contain the terminal
     version if Notcurses was able to detect it. This result ought be free()d.
   * Added `ncplane_moverel()`.
+  * Documented `ncplane_move_yx()` in `notcurses_plane.3`, and removed the
+    false comment that "passing -1 as a coordinate will hold that axis
+    constant" from `USGAE.md` and `notcurses.h`. This has never been true.
 
 * 2.3.8 (2021-07-04)
   * Marked all capability functions `__attribute__ ((pure))`. If you were
