@@ -823,7 +823,7 @@ int sixel_scrub(const ncpile* p, sprixel* s){
       }
     }
   }
-  return 0;
+  return 1;
 }
 
 // returns the number of bytes written
@@ -850,7 +850,6 @@ int sixel_draw(const ncpile* p, sprixel* s, FILE* out){
     return -1;
   }
   s->invalidated = SPRIXEL_QUIESCENT;
-fprintf(stderr, "POSTDRAW: %d %d/%d\n", s->invalidated, s->movedfromy, s->movedfromx);
   return s->glyphlen;
 }
 

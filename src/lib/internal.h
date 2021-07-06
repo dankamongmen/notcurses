@@ -813,6 +813,8 @@ int kitty_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
 
 // update any necessary cells underneath the sprixel pursuant to its removal.
 // for sixel, this *achieves* the removal, and is performed on every cell.
+// returns 1 if the graphic can be immediately freed (which is equivalent to
+// asking whether it was sixel and there were no errors).
 static inline int
 sprite_scrub(const notcurses* n, const ncpile* p, sprixel* s){
 //fprintf(stderr, "Destroying sprite %u\n", s->id);
