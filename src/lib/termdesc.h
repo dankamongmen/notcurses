@@ -137,6 +137,7 @@ typedef struct tinfo {
   // make a loaded graphic visible. only used with kitty.
   int (*pixel_commit)(FILE* fp, struct sprixel* s, unsigned noscroll);
   uint8_t* (*pixel_trans_auxvec)(const struct tinfo* ti); // create tranparent auxvec
+  struct sprixel* (*pixel_recycle)(struct ncplane* n);
   int (*pixel_shutdown)(int fd);  // called during context shutdown
   int (*pixel_clear_all)(int fd); // called during startup, kitty only
   // sprixel parameters. there are several different sprixel protocols, of

@@ -51,16 +51,16 @@ void sprixel_free(sprixel* s){
   }
 }
 
-sprixel* sprixel_recycle(ncplane* n){
+sprixel* kitty_recycle(ncplane* n){
   assert(n->sprite);
-  const notcurses* nc = ncplane_notcurses_const(n);
-  if(nc->tcache.pixel_shutdown == kitty_shutdown){
-    sprixel* hides = n->sprite;
-    int dimy = hides->dimy;
-    int dimx = hides->dimx;
-    sprixel_hide(hides);
-    return sprixel_alloc(n, dimy, dimx);
-  }
+  sprixel* hides = n->sprite;
+  int dimy = hides->dimy;
+  int dimx = hides->dimx;
+  sprixel_hide(hides);
+  return sprixel_alloc(n, dimy, dimx);
+}
+
+sprixel* sprixel_trivial_receycle(ncplane* n){
   return n->sprite;
 }
 

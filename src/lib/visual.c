@@ -962,7 +962,7 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
       return NULL;
     }
   }else{
-    n->sprite = sprixel_recycle(n);
+    n->sprite = sprite_recycle(n);
   }
   bargs.u.pixel.spx = n->sprite;
   // FIXME need to pull off the ncpile's sprixellist if anything below fails!
