@@ -409,10 +409,16 @@ ncdirect_dump_plane(ncdirect* n, const ncplane* np, int xoff){
   int dimy, dimx;
   ncplane_dim_yx(np, &dimy, &dimx);
   if(np->sprite){
+    if(np->sprite->mstreamfp){
+      FILE* fp = np->sprite->mstreamfp;
+      np->sprite->mstreamfp = NULL;
+      if(fclose(fp) == EOF){
+        return -1;
+      }
+    }
     if(xoff){
       // doing an x-move without specifying the y coordinate requires asking
-      // the terminal where the cursor currently is. this will obviously only
-      // work on a real terminal
+      // the terminal where the cursor currently is.
       if(ncdirect_cursor_move_yx(n, -1, xoff)){
         return -1;
       }
