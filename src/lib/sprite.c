@@ -161,8 +161,10 @@ int sprixel_load(sprixel* spx, char* s, int bytes, int pixy, int pixx,
       return -1;
     }
   }
-  free(spx->glyph);
-  spx->glyph = s;
+  if(spx->glyph != s){
+    free(spx->glyph);
+    spx->glyph = s;
+  }
   spx->glyphlen = bytes;
   spx->invalidated = SPRIXEL_INVALIDATED;
   spx->pixx = pixx;
