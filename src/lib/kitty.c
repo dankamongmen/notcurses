@@ -362,7 +362,6 @@ kitty_transanim_auxvec(int cellpxy, int cellpxx, const uint32_t* data, int rowst
   uint8_t* a = malloc(slen);
   if(a){
     for(int y = 0 ; y < cellpxy ; ++y){
-fprintf(stderr, "COPYING %d from %p to %p\n", cellpxx * 4, data + y * (rowstride / 4), a + y * (cellpxx * 4));
       memcpy(a + y * (cellpxx * 4), data + y * (rowstride / 4), cellpxx * 4);
     }
   }
@@ -499,6 +498,15 @@ int kitty_commit(FILE* fp, sprixel* s, unsigned noscroll){
   return 0;
 }
 
+static void
+cleanup_tam(tament* tam, int ydim, int xdim){
+  for(int y = 0 ; y < ydim ; ++y){
+    for(int x = 0 ; x < xdim ; ++x){
+      free(tam[y * xdim + x].auxvector);
+    }
+  }
+}
+
 // we can only write 4KiB at a time. we're writing base64-encoded RGBA. each
 // pixel is 4B raw (32 bits). each chunk of three pixels is then 12 bytes, or
 // 16 base64-encoded bytes. 4096 / 16 == 256 3-pixel groups, or 768 pixels.
@@ -559,7 +567,8 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
         int tyx = xcell + ycell * cols;
         if(tam[tyx].auxvector == NULL){
           if((tam[tyx].auxvector = kitty_transanim_auxvec(cdimy, cdimx, line + x, linesize)) == NULL){
-            return -1; // FIXME need clean up auxvecs, fp
+            fclose(fp);
+            goto err;
           }
         }
 //fprintf(stderr, "Tyx: %d y: %d (%d) * %d x: %d (%d) state %d %p\n", tyx, y, y / cdimy, cols, x, x / cdimx, tam[tyx].state, tam[tyx].auxvector);
@@ -596,10 +605,14 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
     fprintf(fp, "\e\\");
   }
   if(fclose(fp) == EOF){
-    return -1; // FIXME clean up auxvecs!
+    goto err;
   }
   scrub_tam_boundaries(tam, leny, lenx, cdimy, cdimx);
   return 0;
+
+err:
+  cleanup_tam(tam, (leny + cdimy - 1) / cdimy, (lenx + cdimx - 1) / cdimx);
+  return -1;
 }
 #undef RGBA_MAXLEN
 
