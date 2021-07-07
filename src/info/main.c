@@ -292,13 +292,28 @@ tinfo_debug_styles(const notcurses* nc, struct ncplane* n, const char* indent){
   ncplane_set_fg_default(n);
 }
 
+static int
+usage(const char* base, FILE* fp, int ret){
+  fprintf(fp, "usage: %s [ -v ]\n", base);
+  exit(ret);
+}
+
 // we should probably change this up to use regular good ol'
 // notcurses_render() without the alternate screen, no?
-int main(void){
+int main(int argc, const char** argv){
   notcurses_options nopts = {
     .flags = NCOPTION_NO_ALTERNATE_SCREEN | NCOPTION_PRESERVE_CURSOR,
     .loglevel = NCLOGLEVEL_WARNING,
   };
+  if(argc > 2){
+    usage(*argv, stderr, EXIT_FAILURE);
+  }
+  if(argc == 2){
+    if(strcmp(argv[1], "-v")){
+      usage(*argv, stderr, EXIT_FAILURE);
+    }
+    nopts.loglevel = NCLOGLEVEL_TRACE;
+  }
   struct notcurses* nc = notcurses_init(&nopts, NULL);
   if(nc == NULL){
     return EXIT_FAILURE;
