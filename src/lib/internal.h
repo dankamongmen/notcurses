@@ -705,8 +705,10 @@ sprite_rebuild(const notcurses* nc, sprixel* s, int ycell, int xcell){
     uint8_t* auxvec = s->n->tam[idx].auxvector;
     assert(auxvec);
     ret = nc->tcache.pixel_rebuild(s, ycell, xcell, auxvec);
-    free(auxvec);
-    s->n->tam[idx].auxvector = NULL;
+    if(ret > 0){
+      free(auxvec);
+      s->n->tam[idx].auxvector = NULL;
+    }
   }
   // don't upset SPRIXEL_MOVED
   if(s->invalidated == SPRIXEL_QUIESCENT){
