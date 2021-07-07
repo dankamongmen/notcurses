@@ -1524,7 +1524,7 @@ void scroll_down(ncplane* n){
 }
 
 int nccell_width(const ncplane* n __attribute__ ((unused)), const nccell* c){
-  return c->width;
+  return c->width ? c->width : 1;
 }
 
 int nccell_load(ncplane* n, nccell* c, const char* gcluster){
@@ -1620,7 +1620,7 @@ ncplane_put(ncplane* n, int y, int x, const char* egc, int cols,
 }
 
 int ncplane_putc_yx(ncplane* n, int y, int x, const nccell* c){
-  const int cols = c->width;
+  const int cols = nccell_width(n, c);
   const char* egc = nccell_extended_gcluster(n, c);
   return ncplane_put(n, y, x, egc, cols, c->stylemask, c->channels, strlen(egc));
 }
