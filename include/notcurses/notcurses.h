@@ -118,6 +118,10 @@ API int notcurses_ucs32_to_utf8(const char32_t* ucs32, unsigned ucs32count,
 #define NCALPHA_BLEND           0x10000000ull
 #define NCALPHA_OPAQUE          0x00000000ull
 
+// Does this glyph completely obscure the background? If so, there's no need
+// to emit a background when rasterizing, a small optimization. These are
+// also used to track regions into which we must not cellblit.
+#define CELL_NOBACKGROUND_MASK  0x8700000000000000ull
 // if this bit is set, we are *not* using the default background color
 #define CELL_BGDEFAULT_MASK     0x0000000040000000ull
 // if this bit is set, we are *not* using the default foreground color
@@ -295,6 +299,19 @@ ncchannels_bchannel(uint64_t channels){
 static inline uint32_t
 ncchannels_fchannel(uint64_t channels){
   return ncchannels_bchannel(channels >> 32u);
+}
+
+// Returns the channels with the color information swapped, but not
+// alpha, nor other housekeeping bits.
+static inline uint64_t
+ncchannels_reverse(uint64_t channels){
+  const uint64_t raw = ((uint64_t)ncchannels_bchannel(channels) << 32u) +
+                       ncchannels_fchannel(channels);
+  const uint64_t statemask = (CELL_NOBACKGROUND_MASK | CELL_FG_ALPHA_MASK |
+                              CELL_BG_ALPHA_MASK | (CELL_NOBACKGROUND_MASK >> 32u));
+  uint64_t ret = raw & ~statemask;
+  ret |= channels & statemask;
+  return ret;
 }
 
 // Set the 32-bit background channel of a channel pair.

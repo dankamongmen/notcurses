@@ -13,6 +13,8 @@ rearrangements of Notcurses.
     the number of columns consumed, and makes available the number of bytes
     used by the EGC.
   * `ncmenu`s can now be used with any plane, not just the standard plane.
+  * Added `ncchannels_reverse()`, which reverses the color aspects of the
+    two channels, while keeping other elements constant.
 
 * 2.3.8 (2021-07-04)
   * Marked all capability functions `__attribute__ ((pure))`. If you were

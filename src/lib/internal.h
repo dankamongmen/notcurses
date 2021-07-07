@@ -38,10 +38,6 @@ extern "C" {
 struct sixelmap;
 struct ncvisual_details;
 
-// Does this glyph completely obscure the background? If so, there's no need
-// to emit a background when rasterizing, a small optimization.
-#define CELL_NOBACKGROUND_MASK  0x8700000000000000ull
-
 // Was this glyph drawn as part of an ncvisual? If so, we need to honor
 // blitter stacking rather than the standard trichannel solver.
 #define CELL_BLITTERSTACK_MASK  CELL_NOBACKGROUND_MASK

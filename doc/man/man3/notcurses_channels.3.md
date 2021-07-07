@@ -83,6 +83,8 @@ notcurses_channels - operations on notcurses channels
 
 **uint64_t ncchannels_set_bg_default(uint64_t* ***channels***);**
 
+**uint64_t ncchannels_reverse(uint64_t ***channels***);**
+
 # DESCRIPTION
 
 
@@ -92,6 +94,10 @@ Functions returning `int` return -1 on failure, or 0 on success. Failure is
 always due to invalid inputs. Functions returning `bool` are predicates, and
 return the requested value. Functions returning `unsigned` forms return the
 input, modified as requested.
+
+**ncchannels_reverse** inverts the color components of the two channels,
+while holding all other elements constant. It's the Notcurses approximation
+to reverse video.
 
 # SEE ALSO
 

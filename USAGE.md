@@ -2940,6 +2940,19 @@ ncchannels_fchannel(uint64_t channels){
   return ncchannels_bchannel(channels >> 32u);
 }
 
+// Returns the channels with the color information swapped, but not
+// alpha, nor other housekeeping bits.
+static inline uint64_t
+ncchannels_reverse(uint64_t channels){
+  const uint64_t raw = ((uint64_t)ncchannels_bchannel(channels) << 32u) +
+                       ncchannels_fchannel(channels);
+  const uint64_t statemask = (CELL_NOBACKGROUND_MASK | CELL_FG_ALPHA_MASK |
+                              CELL_BG_ALPHA_MASK | (CELL_NOBACKGROUND_MASK >> 32u));
+  uint64_t ret = raw & ~statemask;
+  ret |= channels & statemask;
+  return ret;
+}
+
 // Extract 24 bits of foreground RGB from 'channels', shifted to LSBs.
 static inline unsigned
 ncchannels_fg_rgb(uint64_t channels){

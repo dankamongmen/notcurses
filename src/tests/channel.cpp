@@ -170,3 +170,28 @@ TEST_CASE("ChannelBlendDefaultRight") {
   CHECK(0x20 == b);
   CHECK(2 == blends);
 }
+
+// test that colors are inverted, but nothing else
+TEST_CASE("ChannelsReverse") {
+  uint64_t channels = 0;
+  uint64_t rev = ncchannels_reverse(channels);
+  CHECK(0 == rev);
+  ncchannels_set_fg_palindex(&channels, 8);
+  rev = ncchannels_reverse(channels);
+  CHECK(8 == ncchannels_bg_palindex(rev));
+  CHECK(0 == ncchannels_fg_palindex(rev));
+  ncchannels_set_fg_palindex(&rev, 63);
+  rev = ncchannels_reverse(rev);
+  CHECK(8 == ncchannels_fg_palindex(rev));
+  CHECK(63 == ncchannels_bg_palindex(rev));
+  ncchannels_set_fg_default(&rev);
+  ncchannels_set_bg_alpha(&rev, NCALPHA_TRANSPARENT);
+  rev = ncchannels_reverse(rev);
+  CHECK(63 == ncchannels_fg_palindex(rev));
+  CHECK(ncchannels_bg_default_p(rev));
+  CHECK(NCALPHA_TRANSPARENT == ncchannels_bg_alpha(rev));
+  ncchannels_set_fg_rgb(&rev, 0x2288cc);
+  rev = ncchannels_reverse(rev);
+  CHECK(0x2288cc == ncchannels_bg_rgb(rev));
+  CHECK(ncchannels_fg_default_p(rev));
+}

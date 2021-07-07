@@ -452,10 +452,9 @@ int ncmenu_unroll(ncmenu* n, int sectionidx){
         ncplane_set_channels(n->ncp, n->disablechannels);
       }
       if(i == sec->itemselected){
-        ncplane_set_styles(n->ncp, NCSTYLE_REVERSE);
-      }else{
-        ncplane_set_styles(n->ncp, 0);
+        ncplane_set_channels(n->ncp, ncchannels_reverse(ncplane_channels(n->ncp)));
       }
+      ncplane_set_styles(n->ncp, 0);
       int cols = ncplane_putstr_yx(n->ncp, ypos, xpos + 1, sec->items[i].desc);
       if(cols < 0){
         return -1;
