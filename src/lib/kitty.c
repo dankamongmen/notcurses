@@ -279,6 +279,10 @@ init_sprixel_animation(sprixel* s){
 }
 
 int kitty_rebuild_animation(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
+  (void)s;
+  (void)ycell;
+  (void)xcell;
+  (void)auxvec;
   // FIXME encode and copy in auxvec
   return 0;
 }
@@ -533,7 +537,7 @@ cleanup_tam(tament* tam, int ydim, int xdim){
 static int
 write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
                  const uint32_t* data, const blitterargs* bargs,
-                 tament* tam, int* parse_start){
+                 tament* tam, int* parse_start, unsigned animated){
 //fprintf(stderr, "drawing kitty %p\n", tam);
   if(linesize % sizeof(*data)){
     logerror("Stride (%d) badly aligned\n", linesize);
@@ -583,7 +587,7 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
         int xcell = x / cdimx;
         int ycell = y / cdimy;
         int tyx = xcell + ycell * cols;
-        if(tam[tyx].auxvector == NULL){
+        if(animated && tam[tyx].auxvector == NULL){
           if((tam[tyx].auxvector = kitty_transanim_auxvec(leny, lenx, y, x,
                                                           cdimy, cdimx,
                                                           data, linesize)) == NULL){
@@ -635,7 +639,7 @@ err:
 // Kitty graphics blitter. Kitty can take in up to 4KiB at a time of (optionally
 // deflate-compressed) 24bit RGB. Returns -1 on error, 1 on success.
 int kitty_blit_core(ncplane* n, int linesize, const void* data, int leny, int lenx,
-                    const blitterargs* bargs, int bpp __attribute__ ((unused))){
+                    const blitterargs* bargs, unsigned animated){
 //fprintf(stderr, "IMAGE: start %p end %p\n", data, (const char*)data + leny * linesize);
   int cols = bargs->u.pixel.spx->dimx;
   int rows = bargs->u.pixel.spx->dimy;
@@ -657,20 +661,20 @@ int kitty_blit_core(ncplane* n, int linesize, const void* data, int leny, int le
   if(!reuse){
     tam = malloc(sizeof(*tam) * rows * cols);
     if(tam == NULL){
-      fclose(s->mstreamfp);
-      free(s->glyph);
-      return -1;
+      goto error;
     }
     memset(tam, 0, sizeof(*tam) * rows * cols);
   }
-  // closes fp on all paths
   if(write_kitty_data(s->mstreamfp, linesize, leny, lenx, cols, data,
-                      bargs, tam, &parse_start)){
+                      bargs, tam, &parse_start, animated)){
     goto error;
   }
-  /*if(ncflush(s->mstreamfp)){
-    goto error;
-  }*/
+  if(!animated){
+    if(fclose(s->mstreamfp)){
+      goto error;
+    }
+    s->mstreamfp = NULL;
+  }
   // take ownership of |buf| and |tam| on success.
   if(plane_blit_sixel(s, s->glyph, s->glyphlen, leny, lenx, parse_start, tam) < 0){
     goto error;
@@ -678,7 +682,9 @@ int kitty_blit_core(ncplane* n, int linesize, const void* data, int leny, int le
   return 1;
 
 error:
-  fclose(s->mstreamfp);
+  if(s->mstreamfp){
+    fclose(s->mstreamfp);
+  }
   if(!reuse){
     free(tam);
   }
