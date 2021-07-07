@@ -12,6 +12,7 @@ rearrangements of Notcurses.
   * Added `ncdirect_putegc()` to perform Unicode segmentation. It returns
     the number of columns consumed, and makes available the number of bytes
     used by the EGC.
+  * `ncmenu`s can now be used with any plane, not just the standard plane.
 
 * 2.3.8 (2021-07-04)
   * Marked all capability functions `__attribute__ ((pure))`. If you were
