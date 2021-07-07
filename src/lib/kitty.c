@@ -355,14 +355,28 @@ int kitty_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
 
 // an animation auxvec requires storing all the pixel data for the cell,
 // instead of just the alpha channel. pass the start of the RGBA to be
-// copied, and the rowstride.
+// copied, and the rowstride. dimy and dimx are the source image's total
+// size in pixels. posy and posx are the origin of the cell to be copied,
+// again in pixels. data is the image source. around the edges, we might
+// get truncated regions.
 static inline uint8_t*
-kitty_transanim_auxvec(int cellpxy, int cellpxx, const uint32_t* data, int rowstride){
+kitty_transanim_auxvec(int dimy, int dimx, int posy, int posx,
+                       int cellpxy, int cellpxx,
+                       const uint32_t* data, int rowstride){
   const size_t slen = 4 * cellpxy * cellpxx;
   uint8_t* a = malloc(slen);
   if(a){
-    for(int y = 0 ; y < cellpxy ; ++y){
-      memcpy(a + y * (cellpxx * 4), data + y * (rowstride / 4), cellpxx * 4);
+    for(int y = posy ; y < posy + cellpxy && y < dimy ; ++y){
+      int pixels = cellpxx;
+      if(pixels + posx > dimx){
+        pixels = dimx - posx;
+      }
+      logtrace("Copying %d (%d) from %p to %p\n", pixels * 4, y,
+               data + posy * (rowstride / 4) + posx,
+               a + (y - posy) * (pixels * 4));
+      memcpy(a + (y - posy) * (pixels * 4),
+             data + posy * (rowstride / 4) + posx,
+             pixels * 4);
     }
   }
   return a;
@@ -518,7 +532,6 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
 //fprintf(stderr, "drawing kitty %p\n", tam);
   if(linesize % sizeof(*data)){
     logerror("Stride (%d) badly aligned\n", linesize);
-    fclose(fp);
     return -1;
   }
   bool translucent = bargs->flags & NCVISUAL_OPTION_BLEND;
@@ -566,8 +579,9 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
         int ycell = y / cdimy;
         int tyx = xcell + ycell * cols;
         if(tam[tyx].auxvector == NULL){
-          if((tam[tyx].auxvector = kitty_transanim_auxvec(cdimy, cdimx, line + x, linesize)) == NULL){
-            fclose(fp);
+          if((tam[tyx].auxvector = kitty_transanim_auxvec(leny, lenx, y, x,
+                                                          cdimy, cdimx,
+                                                          data, linesize)) == NULL){
             goto err;
           }
         }
@@ -604,9 +618,6 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
     }
     fprintf(fp, "\e\\");
   }
-  if(fclose(fp) == EOF){
-    goto err;
-  }
   scrub_tam_boundaries(tam, leny, lenx, cdimy, cdimx);
   return 0;
 
@@ -620,12 +631,11 @@ err:
 // deflate-compressed) 24bit RGB. Returns -1 on error, 1 on success.
 int kitty_blit_core(ncplane* n, int linesize, const void* data, int leny, int lenx,
                     const blitterargs* bargs, int bpp __attribute__ ((unused))){
+//fprintf(stderr, "IMAGE: start %p end %p\n", data, (const char*)data + leny * linesize);
   int cols = bargs->u.pixel.spx->dimx;
   int rows = bargs->u.pixel.spx->dimy;
-  char* buf = NULL;
-  size_t size = 0;
-  FILE* fp = open_memstream(&buf, &size);
-  if(fp == NULL){
+  sprixel* s = bargs->u.pixel.spx;
+  if(init_sprixel_animation(s)){
     return -1;
   }
   tament* tam = NULL;
@@ -642,30 +652,33 @@ int kitty_blit_core(ncplane* n, int linesize, const void* data, int leny, int le
   if(!reuse){
     tam = malloc(sizeof(*tam) * rows * cols);
     if(tam == NULL){
-      fclose(fp);
-      free(buf);
+      fclose(s->mstreamfp);
+      free(s->glyph);
       return -1;
     }
     memset(tam, 0, sizeof(*tam) * rows * cols);
   }
   // closes fp on all paths
-  if(write_kitty_data(fp, linesize, leny, lenx, cols, data, bargs, tam, &parse_start)){
-    if(!reuse){
-      free(tam);
-    }
-    free(buf);
-    return -1;
+  if(write_kitty_data(s->mstreamfp, linesize, leny, lenx, cols, data,
+                      bargs, tam, &parse_start)){
+    goto error;
   }
-  // take ownership of |buf| and |tam| on success
-  if(plane_blit_sixel(bargs->u.pixel.spx, buf, size,
-                      leny, lenx, parse_start, tam) < 0){
-    if(!reuse){
-      free(tam);
-    }
-    free(buf);
-    return -1;
+  /*if(ncflush(s->mstreamfp)){
+    goto error;
+  }*/
+  // take ownership of |buf| and |tam| on success.
+  if(plane_blit_sixel(s, s->glyph, s->glyphlen, leny, lenx, parse_start, tam) < 0){
+    goto error;
   }
   return 1;
+
+error:
+  fclose(s->mstreamfp);
+  if(!reuse){
+    free(tam);
+  }
+  free(s->glyph);
+  return -1;
 }
 
 int kitty_blit(ncplane* n, int linesize, const void* data, int leny, int lenx,
@@ -731,6 +744,7 @@ int kitty_draw(const ncpile* p, sprixel* s, FILE* out){
     animated = true;
   }
   int ret = s->glyphlen;
+  logdebug("Writing out %zub for %u\n", s->glyphlen, s->id);
   if(ret){
     if(fwrite(s->glyph, s->glyphlen, 1, out) != 1){
       ret = -1;
@@ -740,7 +754,8 @@ int kitty_draw(const ncpile* p, sprixel* s, FILE* out){
     free(s->glyph);
     s->glyph = NULL;
     s->glyphlen = 0;
-    s->invalidated = SPRIXEL_QUIESCENT;
+    //s->invalidated = SPRIXEL_QUIESCENT;
+    s->invalidated = SPRIXEL_LOADED;
   }else{
     s->invalidated = SPRIXEL_LOADED;
   }
