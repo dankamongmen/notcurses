@@ -261,6 +261,23 @@ kitty_restore(char* triplet, int skip, int max, int pleft,
   return max;
 }
 
+// if there is no mstreamfp open, create one, using glyph and glyphlen as the
+// base. we're blowing away the glyph.
+static int
+init_sprixel_animation(sprixel* s){
+  if(s->mstreamfp){
+    return 0;
+  }
+  free(s->glyph);
+  s->glyph = NULL;
+  s->glyphlen = 0;
+  if((s->mstreamfp = open_memstream(&s->glyph, &s->glyphlen)) == NULL){
+    loginfo("Opened animation buffer for sprixel %u\n", s->id);
+    return -1;
+  }
+  return 0;
+}
+
 #define RGBA_MAXLEN 768 // 768 base64-encoded pixels in 4096 bytes
 // restore an annihilated sprixcell by copying the alpha values from the
 // auxiliary vector back into the actual data. we then free the auxvector.
@@ -334,6 +351,64 @@ int kitty_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
     ++c;
   }
   return -1;
+}
+
+// an animation auxvec requires storing all the pixel data for the cell,
+// instead of just the alpha channel.
+static inline uint8_t*
+kitty_transanim_auxvec(const sprixel* s){
+  const size_t slen = 4 * s->cellpxy * s->cellpxx;
+  uint8_t* a = malloc(slen);
+  if(a){
+    memset(a, 0, slen);
+  }
+  // FIXME decode glyph into auxvec -- need to keep original glyph!
+  return a;
+}
+
+// we lay a cell-sixed animation block atop the graphic, giving it a
+// cell id with which we can delete it in O(1) for a rebuild. this
+// way, we needn't delete and redraw the entire sprixel.
+int kitty_wipe_animation(sprixel* s, int ycell, int xcell){
+  if(init_sprixel_animation(s)){
+    return -1;
+  }
+  logdebug("Wiping sprixel %u at %d/%d\n", s->id, ycell, xcell);
+  uint8_t* auxvec = kitty_transanim_auxvec(s);
+  if(auxvec == NULL){
+    return -1;
+  }
+  FILE* fp = s->mstreamfp;
+  fprintf(fp, "\e_Ga=f,x=%d,y=%d,s=%d,v=%d,i=%d,X=1,r=1,q=2;",
+          xcell * s->cellpxx,
+          ycell * s->cellpxy,
+          s->cellpxx,
+          s->cellpxy,
+          s->id);
+  int totalp = s->cellpxy * s->cellpxx;
+  // FIXME preserve so long as cellpixel geom stays constant?
+  for(int p = 0 ; p + 3 <= totalp ; p += 3){
+    fprintf(fp, "AAAAAAAAAAAAAAAA");
+  }
+  if(totalp % 3 == 1){
+    fprintf(fp, "AAAAAA==");
+  }else if(totalp % 3 == 2){
+    fprintf(fp, "AAAAAAAAAAA=");
+  }
+  // FIXME need chunking for cells of 768+ pixels
+  fprintf(fp, "\e\\");
+  s->n->tam[s->dimx * ycell + xcell].auxvector = auxvec;
+  s->invalidated = SPRIXEL_INVALIDATED;
+  return 1;
+}
+
+sprixel* kitty_recycle(ncplane* n){
+  assert(n->sprite);
+  sprixel* hides = n->sprite;
+  int dimy = hides->dimy;
+  int dimx = hides->dimx;
+  sprixel_hide(hides);
+  return sprixel_alloc(n, dimy, dimx);
 }
 
 int kitty_wipe(sprixel* s, int ycell, int xcell){

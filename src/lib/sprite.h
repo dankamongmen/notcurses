@@ -132,7 +132,7 @@ typedef struct tament {
 // sprixels per ncpile, to which the pile keeps a head link.
 typedef struct sprixel {
   char* glyph;          // glyph; can be quite large
-  int glyphlen;         // length of the glyph in bytes
+  size_t glyphlen;      // length of the glyph in bytes
   uint32_t id;          // embedded into gcluster field of nccell, 24 bits
   // both the plane and visual can die before the sprixel does. they are
   // responsible in such a case for NULLing out this link themselves.
@@ -151,6 +151,8 @@ typedef struct sprixel {
   int parse_start;      // where to start parsing for cell wipes
   // only used for sixel-based sprixels
   struct sixelmap* smap;  // copy of palette indices + transparency bits
+  FILE* mstreamfp;        // mstream for writing animation-type updates,
+                          // (only available for kitty animation sprixels)
   bool wipes_outstanding; // do we need rebuild the sixel next render?
 } sprixel;
 
