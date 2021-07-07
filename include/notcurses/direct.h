@@ -113,6 +113,14 @@ API unsigned ncdirect_palette_size(const struct ncdirect* nc)
 API int ncdirect_putstr(struct ncdirect* nc, uint64_t channels, const char* utf8)
   __attribute__ ((nonnull (1, 3)));
 
+// Output a single EGC (this might be several characters) from |utf8|,
+// according to the channels |channels|. On success, the number of columns
+// thought to have been used is returned, and if |sbytes| is not NULL,
+// the number of bytes consumed will be written there.
+API int ncdirect_putegc(struct ncdirect* nc, uint64_t channels,
+                        const char* utf8, int* sbytes)
+  __attribute__ ((nonnull (1, 3)));
+
 // Formatted printing (plus alignment relative to the terminal). Returns the
 // number of columns printed on success.
 API int ncdirect_printf_aligned(struct ncdirect* n, int y, ncalign_e align,

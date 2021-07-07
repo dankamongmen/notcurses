@@ -46,7 +46,26 @@ int ncdirect_putstr(ncdirect* nc, uint64_t channels, const char* utf8){
   if(activate_channels(nc, channels)){
     return -1;
   }
-  return fprintf(nc->ttyfp, "%s", utf8);
+  return ncfputs(utf8, nc->ttyfp);
+}
+
+int ncdirect_putegc(ncdirect* nc, uint64_t channels, const char* utf8,
+                    int* sbytes){
+  int cols;
+  int bytes = utf8_egc_len(utf8, &cols);
+  if(bytes < 0){
+    return -1;
+  }
+  if(sbytes){
+    *sbytes = bytes;
+  }
+  if(activate_channels(nc, channels)){
+    return -1;
+  }
+  if(fprintf(nc->ttyfp, "%.*s", bytes, utf8) < 0){
+    return -1;
+  }
+  return cols;
 }
 
 int ncdirect_cursor_up(ncdirect* nc, int num){

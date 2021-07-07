@@ -9,6 +9,9 @@ rearrangements of Notcurses.
   * Documented `ncplane_move_yx()` in `notcurses_plane.3`, and removed the
     false comment that "passing -1 as a coordinate will hold that axis
     constant" from `USGAE.md` and `notcurses.h`. This has never been true.
+  * Added `ncdirect_putegc()` to perform Unicode segmentation. It returns
+    the number of columns consumed, and makes available the number of bytes
+    used by the EGC.
 
 * 2.3.8 (2021-07-04)
   * Marked all capability functions `__attribute__ ((pure))`. If you were

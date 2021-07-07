@@ -440,8 +440,19 @@ int ncdirect_cursor_pop(struct ncdirect* n);
 
 // Formatted printing (plus alignment relative to the terminal).
 int ncdirect_printf_aligned(struct ncdirect* n, int y, ncalign_e align,
-                            const char* fmt, ...)
-  __attribute__ ((format (printf, 4, 5)));
+                            const char* fmt, ...);
+
+// Output the string |utf8| according to the channels |channels|. Note that
+// ncdirect_putstr() does not explicitly flush output buffers, so it will not
+// necessarily be immediately visible.
+int ncdirect_putstr(struct ncdirect* nc, uint64_t channels, const char* utf8);
+
+// Output a single EGC (this might be several characters) from |utf8|,
+// according to the channels |channels|. On success, the number of columns
+// thought to have been used is returned, and if |sbytes| is not NULL,
+// the number of bytes consumed will be written there.
+int ncdirect_putegc(struct ncdirect* nc, uint64_t channels,
+                    const char* utf8, int* sbytes);
 
 // Draw horizontal/vertical lines using the specified channels, interpolating
 // between them as we go. The EGC may not use more than one column. For a

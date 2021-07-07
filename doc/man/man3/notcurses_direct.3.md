@@ -72,6 +72,8 @@ notcurses_direct - minimal notcurses instances for styling text
 
 **int ncdirect_putstr(struct ncdirect* ***nc***, uint64_t ***channels***, const char* ***utf8***);**
 
+**int ncdirect_putegc(struct ncdirect* ***nc***, uint64_t ***channels***, const char* ***utf8***, int* ***sbytes***);**
+
 **int ncdirect_printf_aligned(struct ncdirect* ***n***, int ***y***, ncalign_e ***align***, const char* ***fmt***, ***...***);**
 
 **const char* ncdirect_detected_terminal(const struct ncdirect* ***n***);**
@@ -224,6 +226,10 @@ to **ncdirect_stop**.
 
 **ncdirect_putstr** and **ncdirect_printf_aligned** return the number of bytes
 written on success. On failure, they return some negative number.
+
+**ncdirect_putegc** returns the number of columns consumed on success, or -1
+on failure. If ***sbytes*** is not **NULL**, the number of bytes consumed
+will be written to it.
 
 **ncdirect_check_pixel_support** returns -1 on error, 0 if there is no pixel
 support, and 1 if pixel support is successfully detected.
