@@ -242,6 +242,14 @@ grow_esc_table(tinfo* ti, const char* tstr, escape_e esc,
   return 0;
 }
 
+// Tertiary Device Attributes, necessary to identify VTE.
+// https://vt100.net/docs/vt510-rm/DA3.html
+// Replies with DCS ! | ... ST
+#define TRIDEVATTR "\x1b[=c"
+
+// Primary Device Attributes, necessary to elicit a response from terminals
+// which don't respond to other queries. All known terminals respond to DA1.
+// https://vt100.net/docs/vt510-rm/DA1.html
 // Device Attributes; replies with (depending on decTerminalID resource):
 //   ⇒  CSI ? 1 ; 2 c  ("VT100 with Advanced Video Option")
 //   ⇒  CSI ? 1 ; 0 c  ("VT101 with No Options")
@@ -252,22 +260,38 @@ grow_esc_table(tinfo* ti, const char* tstr, escape_e esc,
 //   ⇒  CSI ? 6 2 ; Ps c  ("VT220")
 //   ⇒  CSI ? 6 3 ; Ps c  ("VT320")
 //   ⇒  CSI ? 6 4 ; Ps c  ("VT420")
+#define PRIDEVATTR "\x1b[c"
+
+// XTVERSION. Replies with DCS > | ... ST
+#define XTVERSION "\x1b[>0q"
+
+// XTGETTCAP['TN'] (Terminal Name)
+#define XTGETTCAPTN "\x1bP+q544e\x1b\\"
+
+// Secondary Device Attributes, necessary to get Alacritty's version. Since
+// this doesn't uniquely identify a terminal, we ask it last, so that if any
+// queries which *do* unambiguously identify a terminal have succeeded, this
+// needn't be paid attention to.
+// https://vt100.net/docs/vt510-rm/DA2.html
+// Replies with CSI > 6 1 ; Pv ; [01] c
+#define SECDEVATTR "\x1b[>c"
 
 // these three queries (terminated with a Primary Device Attributes, to which
 // all known terminals reply) hopefully can uniquely and unquestionably
 // identify the terminal to which we are talking.
 // FIXME Konsole doesn't currently handle TDA, so we have to consume the 0c
 // in our state machine =[
-#define IDQUERIES "\x1b[=c" /* Tertiary Device Attributes */ \
-                  "\x1b[>0q" /* XTVERSION */ \
-                  "\x1bP+q544e\x1b\\" /* XTGETTCAP['TN'] */
+#define IDQUERIES TRIDEVATTR \
+                  XTVERSION \
+                  XTGETTCAPTN \
+                  SECDEVATTR
 
 // query background, replies in X color https://www.x.org/releases/X11R7.7/doc/man/man7/X.7.xhtml#heading11
-#define CSI_BGQ "\e]11;?\e\\"
+#define CSI_BGQ "\x1b]11;?\e\\"
 
 // FIXME ought be using the u7 terminfo string here, if it exists. the great
 // thing is, if we get a response to this, we know we can use it for u7!
-#define DSRCPR "\e[6n"
+#define DSRCPR "\x1b[6n"
 
 // check for Synchronized Update Mode support. the p is necessary, but Konsole
 // doesn't consume it, so we have to handle that in our state machine =[.
@@ -285,7 +309,7 @@ grow_esc_table(tinfo* ti, const char* tstr, escape_e esc,
                    "\x1b[?1;3;256S" /* try to set 256 cregs */ \
                    CREGSXTSM \
                    GEOMXTSM \
-                   "\x1b[c"         /* Device Attributes */
+                   PRIDEVATTR
 
 // we send an XTSMGRAPHICS to set up 256 color registers (the most we can
 // currently take advantage of; we need at least 64 to use sixel at all.
@@ -381,6 +405,12 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
   }
   if(qterm == TERMINAL_UNKNOWN){
     match_termname(termname, &qterm);
+    // we pick up alacritty's version via a weird hack involving Secondary
+    // Device Attributes. if we're not alacritty, don't trust that version.
+    if(qterm != TERMINAL_ALACRITTY){
+      free(ti->termversion);
+      ti->termversion = NULL;
+    }
   }
   // st had neithercaps.sextants nor caps.quadrants last i checked (0.8.4)
   ti->caps.braille = true; // most everyone has working caps.braille, even from fonts

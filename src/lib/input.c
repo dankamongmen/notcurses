@@ -633,6 +633,8 @@ typedef enum {
   STATE_TDA2, // tertiary DA, got '|', first hex nibble
   STATE_TDA3, // tertiary DA, second hex nibble
   STATE_SDA,  // secondary DA (CSI > Pp ; Pv ; Pc c)
+  STATE_SDA_VER,  // secondary DA, got semi, reading to next semi
+  STATE_SDA_DRAIN, // drain secondary DA to 'c'
   STATE_DA,   // primary DA   (CSI ? ... c) OR XTSMGRAPHICS OR DECRPM
   STATE_DA_1, // got '1', XTSMGRAPHICS color registers or primary DA
   STATE_DA_1_SEMI, // got '1;'
@@ -817,6 +819,32 @@ stash_string(query_state* inits){
   return 0;
 }
 
+// use the version extracted from Secondary Device Attributes, assuming that
+// it is Alacritty (we ought check the specified terminfo database entry).
+// Alacritty writes its crate version with each more significant portion
+// multiplied by 100^{portion ID}, where major, minor, patch are 2, 1, 0.
+// what happens when a component exceeds 99? who cares. support XTVERSION.
+static char*
+set_sda_version(query_state* inits){
+  int maj, min, patch;
+  if(inits->numeric <= 0){
+    return NULL;
+  }
+  maj = inits->numeric / 10000;
+  min = (inits->numeric % 10000) / 100;
+  patch = inits->numeric % 100;
+  if(maj >= 100 || min >= 100 || patch >= 100){
+    return NULL;
+  }
+  // 3x components (two digits max each), 2x '.', NUL would suggest 9 bytes,
+  // but older gcc __builtin___sprintf_chk insists on 13. fuck it. FIXME.
+  char* buf = malloc(13);
+  if(buf){
+    sprintf(buf, "%d.%d.%d", maj, min, patch);
+  }
+  return buf;
+}
+
 // FIXME ought implement the full Williams automaton
 // FIXME sloppy af in general
 // returns 1 after handling the Device Attributes response, 0 if more input
@@ -880,7 +908,15 @@ pump_control_read(query_state* inits, unsigned char c){
       if(c == '?'){
         inits->state = STATE_DA; // could also be DECRPM/XTSMGRAPHICS
       }else if(c == '>'){
-        inits->state = STATE_SDA;
+        // SDA yields up Alacritty's crate version, but it doesn't unambiguously
+        // identify Alacritty. If we've got any other version information, skip
+        // directly to STATE_SDA_DRAIN, rather than doing STATE_SDA_VER.
+        if(inits->qterm || inits->version){
+          loginfo("Identified terminal already; ignoring DA2\n");
+          inits->state = STATE_SDA_DRAIN;
+        }else{
+          inits->state = STATE_SDA;
+        }
       }else if(isdigit(c)){
         inits->numeric = 0;
         if(ruts_numeric(&inits->numeric, c)){
@@ -1018,11 +1054,31 @@ pump_control_read(query_state* inits, unsigned char c){
       }
       inits->state = STATE_TDA2;
       if(ruts_string(inits, STATE_TDA1)){
-        inits->state = STATE_DCS_DRAIN;
+        inits->state = STATE_DCS_DRAIN; // FIXME return -1?
       }
       inits->numeric = 0;
       break;
     case STATE_SDA:
+      if(c == ';'){
+        inits->state = STATE_SDA_VER;
+        inits->numeric = 0;
+      }else if(c == 'c'){
+        inits->state = STATE_NULL;
+      }
+      break;
+    case STATE_SDA_VER:
+      if(c == ';'){
+        inits->state = STATE_SDA_DRAIN;
+        loginfo("Got DA2 Pv: %u\n", inits->numeric);
+        // if a version was set, we couldn't have arrived here
+        if((inits->version = set_sda_version(inits)) == NULL){
+          return -1;
+        }
+      }else if(ruts_numeric(&inits->numeric, c)){
+        return -1;
+      }
+      break;
+    case STATE_SDA_DRAIN:
       if(c == 'c'){
         inits->state = STATE_NULL;
       }
@@ -1234,7 +1290,7 @@ int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected,
     query_state inits = {
       .tcache = tcache,
       .state = STATE_NULL,
-      .qterm = TERMINAL_UNKNOWN,
+      .qterm = *detected,
       .cursor_x = -1,
       .cursor_y = -1,
     };
