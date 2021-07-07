@@ -156,6 +156,7 @@ int luigi_demo(struct notcurses* nc){
   struct ncvisual_options vopts = {
     .n = notcurses_stddim_yx(nc, &rows, &cols),
     .scaling = NCSCALE_STRETCH,
+    .flags = NCVISUAL_OPTION_NOINTERPOLATE,
   };
   if(ncvisual_render(nc, nv, &vopts) == NULL){
     return -1;

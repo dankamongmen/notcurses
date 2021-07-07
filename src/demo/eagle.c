@@ -43,6 +43,7 @@ zoom_map(struct notcurses* nc, const char* map, int* ret){
   struct ncvisual_options vopts = {
     .y = 1,
     .blitter = NCBLIT_2x2,
+    .flags = NCVISUAL_OPTION_NOINTERPOLATE,
   };
   if(ncvisual_blitter_geom(nc, ncv, &vopts, &vheight, &vwidth,
                            &yscale, &xscale, NULL)){
