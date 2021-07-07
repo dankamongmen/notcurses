@@ -73,15 +73,16 @@ setup_kitty_bitmaps(tinfo* ti, int fd, int sixel_maxy_pristine){
   ti->pixel_move = kitty_move;
   ti->pixel_shutdown = kitty_shutdown;
   ti->sprixel_scale_height = 1;
-  ti->pixel_rebuild = kitty_rebuild;
   ti->pixel_clear_all = kitty_clear_all;
   ti->sixel_maxy_pristine = sixel_maxy_pristine;
   if(sixel_maxy_pristine){
     ti->pixel_wipe = kitty_wipe;
     ti->pixel_trans_auxvec = kitty_trans_auxvec;
+    ti->pixel_rebuild = kitty_rebuild;
     set_pixel_blitter(kitty_blit);
   }else{
     ti->pixel_wipe = kitty_wipe_animation;
+    ti->pixel_rebuild = kitty_rebuild_animation;
     set_pixel_blitter(kitty_blit_animated);
   }
   sprite_init(ti, fd);

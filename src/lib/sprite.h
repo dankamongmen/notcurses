@@ -166,6 +166,7 @@ int kitty_wipe(sprixel* s, int ycell, int xcell);
 int kitty_wipe_animation(sprixel* s, int ycell, int xcell);
 int sixel_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
 int kitty_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
+int kitty_rebuild_animation(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
 int kitty_draw(const struct ncpile *p, sprixel* s, FILE* out);
 int kitty_move(sprixel* s, FILE* out, unsigned noscroll);
 int sixel_draw(const struct ncpile *p, sprixel* s, FILE* out);
