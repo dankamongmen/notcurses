@@ -27,7 +27,7 @@ The demonstrations include (see NOTES below):
 * (***c***)hunli—the strongest woman in the world
 * (***d***)ragon—the Harter-Heighway dragon curve
 * (***e***)agle—they took some time off my life, back in the day
-* (***f***)allin'—the screen falls apart under heavy blows
+* (***f***)ission—the screen falls apart under heavy blows
 * (***g***)rid—a gradient of color lain atop a great grid
 * (***h***)ighcon—high contrast text atop various colors
 * (***i***)ntro—a setting of tone

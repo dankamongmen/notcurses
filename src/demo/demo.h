@@ -34,7 +34,7 @@ int chunli_demo(struct notcurses* nc);
 int dragon_demo(struct notcurses* nc);
 int qrcode_demo(struct notcurses* nc);
 int grid_demo(struct notcurses* nc);
-int fallin_demo(struct notcurses* nc);
+int fission_demo(struct notcurses* nc);
 int highcontrast_demo(struct notcurses* nc);
 int jungle_demo(struct notcurses* nc);
 int yield_demo(struct notcurses* nc);

@@ -79,7 +79,7 @@ static struct {
   { "chunli", chunli_demo, true, },
   { "dragon", dragon_demo, false, },
   { "eagle", eagle_demo, true, },
-  { "fallin'", fallin_demo, false, },
+  { "fission", fission_demo, false, },
   { "grid", grid_demo, false, },
   { "highcon", highcontrast_demo, false, },
   { "intro", intro, false, },

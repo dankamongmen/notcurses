@@ -23,7 +23,9 @@ drop_bricks(struct notcurses* nc, struct ncplane** arr, int arrcount){
     // ahead and get it kicked off
     if(rangee - ranges + 1 < FALLINGMAX){
       if(rangee < arrcount){
-        speeds[rangee - ranges] = 1;
+        int y;
+        ncplane_yx(arr[ranges], &y, NULL);
+        speeds[rangee - ranges] = y < stdy / 2 ? 1 : -1;
         ++rangee;
       }
     }
@@ -38,7 +40,7 @@ drop_bricks(struct notcurses* nc, struct ncplane** arr, int arrcount){
         int x, y;
         ncplane_yx(ncp, &y, &x);
         if(felloff){
-          if(y + speeds[i] >= stdy){
+          if(y + speeds[i] >= stdy || y + speeds[i] + ncplane_dim_y(ncp) < 0){
             ncplane_destroy(ncp);
             arr[ranges + i] = NULL;
             if(ranges + i + 1 == rangee){
@@ -58,7 +60,11 @@ drop_bricks(struct notcurses* nc, struct ncplane** arr, int arrcount){
         }
         if(!felloff){
           ncplane_move_yx(ncp, y + speeds[i], x);
-          ++speeds[i];
+          if(speeds[i] < 0){
+            --speeds[i];
+          }else{
+            ++speeds[i];
+          }
         }else if(i){
           if(rangee - ranges - i){
             memmove(speeds, speeds + i, (rangee - ranges - i) * sizeof(*speeds));
@@ -91,8 +97,8 @@ shuffle_in(struct ncplane** arr, int count, struct ncplane* n){
   return arr;
 }
 
-// ya playin' yourself
-int fallin_demo(struct notcurses* nc){
+// you played yourself https://genius.com/De-la-soul-fallin-lyrics
+int fission_demo(struct notcurses* nc){
   int dimx, dimy;
   struct ncplane* stdn = notcurses_stddim_yx(nc, &dimy, &dimx);
   size_t usesize = sizeof(bool) * dimy * dimx;
