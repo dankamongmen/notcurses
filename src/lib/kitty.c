@@ -278,6 +278,11 @@ init_sprixel_animation(sprixel* s){
   return 0;
 }
 
+int kitty_rebuild_animation(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
+  // FIXME encode and copy in auxvec
+  return 0;
+}
+
 #define RGBA_MAXLEN 768 // 768 base64-encoded pixels in 4096 bytes
 // restore an annihilated sprixcell by copying the alpha values from the
 // auxiliary vector back into the actual data. we then free the auxvector.
