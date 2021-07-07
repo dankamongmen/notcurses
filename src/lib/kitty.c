@@ -411,15 +411,15 @@ int kitty_wipe_animation(sprixel* s, int ycell, int xcell){
   int totalp = s->cellpxy * s->cellpxx;
   // FIXME preserve so long as cellpixel geom stays constant?
   for(int p = 0 ; p + 3 <= totalp ; p += 3){
-    fprintf(fp, "AAAAAAAAAAAAAAAA");
+    ncfputs("AAAAAAAAAAAAAAAA", fp);
   }
   if(totalp % 3 == 1){
-    fprintf(fp, "AAAAAA==");
+    ncfputs("AAAAAA==", fp);
   }else if(totalp % 3 == 2){
-    fprintf(fp, "AAAAAAAAAAA=");
+    ncfputs("AAAAAAAAAAA=", fp);
   }
   // FIXME need chunking for cells of 768+ pixels
-  fprintf(fp, "\e\\");
+  ncfputs("\e\\", fp);
   s->invalidated = SPRIXEL_INVALIDATED;
   return 1;
 }
@@ -634,7 +634,7 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
       base64_rgba3(source, encodeable, out, wipe, transcolor);
       ncfputs(out, fp);
     }
-    fprintf(fp, "\e\\");
+    ncfputs("\e\\", fp);
   }
   scrub_tam_boundaries(tam, leny, lenx, cdimy, cdimx);
   return 0;
@@ -713,7 +713,7 @@ int kitty_rebuild_animation(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
       base64_rgba3(source, encodeable, out, wipe, 0);
       ncfputs(out, fp);
     }
-    fprintf(fp, "\e\\");
+    ncfputs("\e\\", fp);
   }
 //fprintf(stderr, "EMERGED WITH TAM STATE %d\n", s->n->tam[tyx].state);
   s->invalidated = SPRIXEL_INVALIDATED;
