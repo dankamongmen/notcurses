@@ -161,6 +161,9 @@ int sixel_wipe(sprixel* s, int ycell, int xcell);
 // throughout to 0. the same trick doesn't work on sixel, but there we
 // can just print directly over the bitmap.
 int kitty_wipe(sprixel* s, int ycell, int xcell);
+// wipes out a cell by animating an all-transparent cell, and integrating
+// it with the original image using the animation protocol of 0.20.0+.
+int kitty_wipe_animation(sprixel* s, int ycell, int xcell);
 int sixel_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
 int kitty_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
 int kitty_draw(const struct ncpile *p, sprixel* s, FILE* out);
@@ -181,6 +184,9 @@ int sixel_blit(struct ncplane* nc, int linesize, const void* data,
                int leny, int lenx, const struct blitterargs* bargs, int bpp);
 int kitty_blit(struct ncplane* nc, int linesize, const void* data,
                int leny, int lenx, const struct blitterargs* bargs, int bpp);
+int kitty_blit_animated(struct ncplane* n, int linesize, const void* data,
+                        int leny, int lenx, const struct blitterargs* bargs,
+                        int bpp);
 
 #ifdef __cplusplus
 }

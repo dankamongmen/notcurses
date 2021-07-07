@@ -881,14 +881,16 @@ clean_sprixels(notcurses* nc, ncpile* p, FILE* out){
         }
         // otherwise it's a new pile, so we couldn't have been on-screen
       }
-      if(goto_location(nc, out, y + nc->margin_t, x + nc->margin_l) == 0){
-        int r = sprite_redraw(nc, p, s, out);
-        if(r < 0){
-          return -1;
-        }
-        bytesemitted += r;
-        nc->rstate.hardcursorpos = true;
+      if(goto_location(nc, out, y + nc->margin_t, x + nc->margin_l)){
+        return -1;
       }
+      int r = sprite_redraw(nc, p, s, out);
+      if(r < 0){
+        return -1;
+      }
+      bytesemitted += r;
+      // FIXME might not need this if it was only an upload
+      nc->rstate.hardcursorpos = true;
       parent = &s->next;
       ++nc->stats.sprixelemissions;
     }else{
@@ -1111,7 +1113,7 @@ notcurses_rasterize_inner(notcurses* nc, ncpile* p, FILE* out, unsigned* asu){
   // don't write a clearscreen. we only update things that have been changed.
   // we explicitly move the cursor at the beginning of each output line, so no
   // need to home it expliticly.
-//fprintf(stderr, "RASTERIZE SPRIXELS\n");
+  logdebug("Starting sprixel phase 1\n");
   int64_t sprixelbytes = clean_sprixels(nc, p, out);
   if(sprixelbytes < 0){
     return -1;
@@ -1120,11 +1122,11 @@ notcurses_rasterize_inner(notcurses* nc, ncpile* p, FILE* out, unsigned* asu){
   if(rasterize_scrolls(p, out)){
     return -1;
   }
-//fprintf(stderr, "RASTERIZE CORE PASS 1\n");
+  logdebug("Starting glyph phase 1\n");
   if(rasterize_core(nc, p, out, 0)){
     return -1;
   }
-//fprintf(stderr, "FINALIZE SPRIXELS\n");
+  logdebug("Starting sprixel phase 2\n");
   int64_t rasprixelbytes = rasterize_sprixels(nc, p, out);
   if(rasprixelbytes < 0){
     return -1;
@@ -1133,7 +1135,7 @@ notcurses_rasterize_inner(notcurses* nc, ncpile* p, FILE* out, unsigned* asu){
   pthread_mutex_lock(&nc->statlock);
   nc->stats.sprixelbytes += sprixelbytes;
   pthread_mutex_unlock(&nc->statlock);
-//fprintf(stderr, "RASTERIZE CORE PASS 2\n");
+  logdebug("Starting glyph phase 2\n");
   if(rasterize_core(nc, p, out, 1)){
     return -1;
   }
