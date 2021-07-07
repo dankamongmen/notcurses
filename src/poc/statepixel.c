@@ -115,6 +115,7 @@ int main(int argc, char **argv){
   char** a = argv + 1;
   struct notcurses_options opts = {
     .flags = NCOPTION_NO_ALTERNATE_SCREEN,
+    .loglevel = NCLOGLEVEL_TRACE,
   };
   struct notcurses* nc = notcurses_init(&opts, NULL);
   if(notcurses_check_pixel_support(nc) <= 0){

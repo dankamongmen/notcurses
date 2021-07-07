@@ -371,11 +371,13 @@ kitty_transanim_auxvec(int dimy, int dimx, int posy, int posx,
       if(pixels + posx > dimx){
         pixels = dimx - posx;
       }
-      logtrace("Copying %d (%d) from %p to %p\n", pixels * 4, y,
-               data + posy * (rowstride / 4) + posx,
-               a + (y - posy) * (pixels * 4));
+      logtrace("Copying %d (%d) from %p to %p %d/%d\n",
+               pixels * 4, y,
+               data + y * (rowstride / 4) + posx,
+               a + (y - posy) * (pixels * 4),
+               posy / cellpxy, posx / cellpxx);
       memcpy(a + (y - posy) * (pixels * 4),
-             data + posy * (rowstride / 4) + posx,
+             data + y * (rowstride / 4) + posx,
              pixels * 4);
     }
   }
@@ -639,7 +641,6 @@ int kitty_rebuild_animation(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
     return -1;
   }
   FILE* fp = s->mstreamfp;
-fprintf(stderr, "AUXVEC AT %p\n", auxvec);
   logdebug("Rebuilding sprixel %u at %d/%d\n", s->id, ycell, xcell);
   const int ystart = ycell * s->cellpxy;
   const int xstart = xcell * s->cellpxx;
@@ -655,6 +656,7 @@ fprintf(stderr, "AUXVEC AT %p\n", auxvec);
   int targetout = 0; // number of pixels expected out after this chunk
 //fprintf(stderr, "total: %d chunks = %d, s=%d,v=%d\n", total, chunks, lenx, leny);
   // FIXME this ought be factored out and shared with write_kitty_data()
+  logdebug("Placing %d/%d at %d/%d\n", ylen, xlen, ycell * s->cellpxy, xcell * s->cellpxx);
   while(chunks--){
     if(totalout == 0){
       fprintf(fp, "\e_Ga=f,x=%d,y=%d,s=%d,v=%d,i=%d,X=1,r=1,%s;",
@@ -705,7 +707,7 @@ fprintf(stderr, "AUXVEC AT %p\n", auxvec);
     }
     fprintf(fp, "\e\\");
   }
-fprintf(stderr, "EMERGED WITH TAM STATE %d\n", s->n->tam[tyx].state);
+//fprintf(stderr, "EMERGED WITH TAM STATE %d\n", s->n->tam[tyx].state);
   s->invalidated = SPRIXEL_INVALIDATED;
   return 0;
 }
