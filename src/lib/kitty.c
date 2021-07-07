@@ -278,15 +278,6 @@ init_sprixel_animation(sprixel* s){
   return 0;
 }
 
-int kitty_rebuild_animation(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
-  (void)s;
-  (void)ycell;
-  (void)xcell;
-  (void)auxvec;
-  // FIXME encode and copy in auxvec
-  return 0;
-}
-
 #define RGBA_MAXLEN 768 // 768 base64-encoded pixels in 4096 bytes
 // restore an annihilated sprixcell by copying the alpha values from the
 // auxiliary vector back into the actual data. we then free the auxvector.
@@ -406,6 +397,7 @@ int kitty_wipe_animation(sprixel* s, int ycell, int xcell){
           s->cellpxx,
           s->cellpxy,
           s->id);
+  // FIXME ought be smaller around the fringes!
   int totalp = s->cellpxy * s->cellpxx;
   // FIXME preserve so long as cellpixel geom stays constant?
   for(int p = 0 ; p + 3 <= totalp ; p += 3){
@@ -558,8 +550,8 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
 //fprintf(stderr, "total: %d chunks = %d, s=%d,v=%d\n", total, chunks, lenx, leny);
   while(chunks--){
     if(totalout == 0){
-      *parse_start = fprintf(fp, "\e_Gf=32,s=%d,v=%d,i=%d,p=1,a=t,%c=1;",
-                             lenx, leny, sprixelid, chunks ? 'm' : 'q');
+      *parse_start = fprintf(fp, "\e_Gf=32,s=%d,v=%d,i=%d,p=1,a=t,%s;",
+                             lenx, leny, sprixelid, chunks ? "m=1" : "q=2");
     }else{
       fprintf(fp, "\e_G%sm=%d;", chunks ? "" : "q=2,", chunks ? 1 : 0);
     }
@@ -587,20 +579,27 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
         int xcell = x / cdimx;
         int ycell = y / cdimy;
         int tyx = xcell + ycell * cols;
-        if(animated && tam[tyx].auxvector == NULL){
-          if((tam[tyx].auxvector = kitty_transanim_auxvec(leny, lenx, y, x,
-                                                          cdimy, cdimx,
-                                                          data, linesize)) == NULL){
-            goto err;
+        // FIXME must replace this for check as to whether we're at the origin
+        // of the cell, as we're carrying in auxvector from previous frame
+        if(animated){
+          if(x % cdimx == 0 && y % cdimy == 0){
+            free(tam[tyx].auxvector);
+            if((tam[tyx].auxvector = kitty_transanim_auxvec(leny, lenx, y, x,
+                                                            cdimy, cdimx,
+                                                            data, linesize)) == NULL){
+              goto err;
+            }
           }
         }
 //fprintf(stderr, "Tyx: %d y: %d (%d) * %d x: %d (%d) state %d %p\n", tyx, y, y / cdimy, cols, x, x / cdimx, tam[tyx].state, tam[tyx].auxvector);
-        if(tam[tyx].state == SPRIXCELL_ANNIHILATED || tam[tyx].state == SPRIXCELL_ANNIHILATED_TRANS){
-          // this pixel is part of a cell which is currently wiped (alpha-nulled
-          // out, to present a glyph "atop" it). we will continue to mark it
-          // transparent, but we need to update the auxiliary vector.
-          const int vyx = (y % cdimy) * cdimx + (x % cdimx);
-          tam[tyx].auxvector[vyx] = ncpixel_a(source[e]);
+        if(tam[tyx].state >= SPRIXCELL_ANNIHILATED){
+          if(!animated){
+            // this pixel is part of a cell which is currently wiped (alpha-nulled
+            // out, to present a glyph "atop" it). we will continue to mark it
+            // transparent, but we need to update the auxiliary vector.
+            const int vyx = (y % cdimy) * cdimx + (x % cdimx);
+            tam[tyx].auxvector[vyx] = ncpixel_a(source[e]);
+          }
           wipe[e] = 1;
         }else{
           wipe[e] = 0;
@@ -633,6 +632,82 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
 err:
   cleanup_tam(tam, (leny + cdimy - 1) / cdimy, (lenx + cdimx - 1) / cdimx);
   return -1;
+}
+
+int kitty_rebuild_animation(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
+  if(init_sprixel_animation(s)){
+    return -1;
+  }
+  FILE* fp = s->mstreamfp;
+fprintf(stderr, "AUXVEC AT %p\n", auxvec);
+  logdebug("Rebuilding sprixel %u at %d/%d\n", s->id, ycell, xcell);
+  const int ystart = ycell * s->cellpxy;
+  const int xstart = xcell * s->cellpxx;
+  const int xlen = xstart + s->cellpxx > s->pixx ? s->pixx - xstart : s->cellpxx;
+  const int ylen = ystart + s->cellpxy > s->pixy ? s->pixy - ystart : s->cellpxy;
+  const int linesize = xlen * 4;
+  const int total = xlen * ylen;
+  const int tyx = xcell + ycell * s->dimx;
+  int chunks = (total + (RGBA_MAXLEN - 1)) / RGBA_MAXLEN;
+  int totalout = 0; // total pixels of payload out
+  int y = 0; // position within source image (pixels)
+  int x = 0;
+  int targetout = 0; // number of pixels expected out after this chunk
+//fprintf(stderr, "total: %d chunks = %d, s=%d,v=%d\n", total, chunks, lenx, leny);
+  // FIXME this ought be factored out and shared with write_kitty_data()
+  while(chunks--){
+    if(totalout == 0){
+      fprintf(fp, "\e_Ga=f,x=%d,y=%d,s=%d,v=%d,i=%d,X=1,r=1,%s;",
+              xcell * s->cellpxx, ycell * s->cellpxy, xlen, ylen,
+              s->id, chunks ? "m=1" : "q=2");
+    }else{
+      fprintf(fp, "\e_G%sm=%d;", chunks ? "" : "q=2,", chunks ? 1 : 0);
+    }
+    if((targetout += RGBA_MAXLEN) > total){
+      targetout = total;
+    }
+    while(totalout < targetout){
+      int encodeable = targetout - totalout;
+      if(encodeable > 3){
+        encodeable = 3;
+      }
+      uint32_t source[3]; // we encode up to 3 pixels at a time
+      bool wipe[3];
+      for(int e = 0 ; e < encodeable ; ++e){
+        if(x == xlen){
+          x = 0;
+          ++y;
+        }
+        const uint32_t* line = (const uint32_t*)(auxvec + linesize * y);
+        source[e] = line[x];
+//fprintf(stderr, "%u/%u/%u -> %c%c%c%c %u %u %u %u\n", r, g, b, b64[0], b64[1], b64[2], b64[3], b64[0], b64[1], b64[2], b64[3]);
+//fprintf(stderr, "Tyx: %d y: %d (%d) * %d x: %d (%d) state %d %p\n", tyx, y, y / cdimy, cols, x, x / cdimx, tam[tyx].state, tam[tyx].auxvector);
+        wipe[e] = 0;
+        if(rgba_trans_p(source[e], 0)){
+          if(x % s->cellpxx == 0 && y % s->cellpxy == 0){
+            s->n->tam[tyx].state = SPRIXCELL_TRANSPARENT;
+          }else if(s->n->tam[tyx].state == SPRIXCELL_OPAQUE_KITTY){
+            s->n->tam[tyx].state = SPRIXCELL_MIXED_KITTY;
+          }
+        }else{
+          if(x % s->cellpxx == 0 && y % s->cellpxy == 0){
+            s->n->tam[tyx].state = SPRIXCELL_OPAQUE_KITTY;
+          }else if(s->n->tam[tyx].state == SPRIXCELL_TRANSPARENT){
+            s->n->tam[tyx].state = SPRIXCELL_MIXED_KITTY;
+          }
+        }
+        ++x;
+      }
+      totalout += encodeable;
+      char out[17];
+      base64_rgba3(source, encodeable, out, wipe, 0);
+      ncfputs(out, fp);
+    }
+    fprintf(fp, "\e\\");
+  }
+fprintf(stderr, "EMERGED WITH TAM STATE %d\n", s->n->tam[tyx].state);
+  s->invalidated = SPRIXEL_INVALIDATED;
+  return 0;
 }
 #undef RGBA_MAXLEN
 
