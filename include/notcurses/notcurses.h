@@ -3281,7 +3281,7 @@ API void nctree_destroy(struct nctree* n);
 // Menus. Horizontal menu bars are supported, on the top and/or bottom rows.
 // If the menu bar is longer than the screen, it will be only partially
 // visible. Menus may be either visible or invisible by default. In the event of
-// a screen resize, menus will be automatically moved/resized. Elements can be
+// a plane resize, menus will be automatically moved/resized. Elements can be
 // dynamically enabled or disabled at all levels (menu, section, and item),
 struct ncmenu_item {
   char* desc;           // utf-8 menu item, NULL for horizontal separator
@@ -3306,9 +3306,7 @@ typedef struct ncmenu_options {
   uint64_t flags;                  // flag word of NCMENU_OPTION_*
 } ncmenu_options;
 
-// Create a menu with the specified options. Menus are currently bound to an
-// overall Notcurses object (as opposed to a particular plane), and are
-// implemented as ncplanes kept atop other ncplanes.
+// Create a menu with the specified options, bound to the specified plane.
 API ALLOC struct ncmenu* ncmenu_create(struct ncplane* n, const ncmenu_options* opts)
   __attribute__ ((nonnull (1)));
 

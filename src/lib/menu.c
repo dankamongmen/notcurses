@@ -356,7 +356,7 @@ ncmenu* ncmenu_create(ncplane* n, const ncmenu_options* opts){
   ret->sectioncount = opts->sectioncount;
   ret->sections = NULL;
   int dimy, dimx;
-  ncplane_dim_yx(notcurses_stdplane(ncplane_notcurses(n)), &dimy, &dimx);
+  ncplane_dim_yx(n, &dimy, &dimx);
   if(ret){
     ret->bottom = !!(opts->flags & NCMENU_OPTION_BOTTOM);
     if(dup_menu_sections(ret, opts, &totalwidth, &totalheight) == 0){

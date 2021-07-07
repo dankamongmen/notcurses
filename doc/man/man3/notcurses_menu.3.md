@@ -64,13 +64,12 @@ typedef struct ncmenu_options {
 
 # DESCRIPTION
 
-A notcurses instance supports menu bars on the top or bottom row of the true
-screen. A menu is composed of sections, which are in turn composed of items.
-Either no sections are visible, and the menu is *rolled up*, or exactly one
-section is *unrolled*. **ncmenu_rollup** places an ncmenu in the rolled up
-state. **ncmenu_unroll** rolls up any unrolled section, and unrolls the
-specified one. **ncmenu_destroy** removes a menu bar, and frees all associated
-resources.
+A notcurses instance supports menu bars on the top or bottom row of a plane.
+A menu is composed of sections, which are in turn composed of items. Either no
+sections are visible, and the menu is *rolled up*, or exactly one section is
+*unrolled*. **ncmenu_rollup** places an ncmenu in the rolled up state.
+**ncmenu_unroll** rolls up any unrolled section, and unrolls the specified one.
+**ncmenu_destroy** removes a menu bar, and frees all associated resources.
 
 **ncmenu_selected** return the selected item description, or NULL if no section
 is unrolled, or no valid item is selected. **ncmenu_mouse_selected** returns
