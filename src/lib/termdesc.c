@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <ncurses.h> // needed for some definitions, see terminfo(3ncurses)
 #include <termios.h>
+#include <sys/mman.h>
 #include <sys/utsname.h>
 #include "internal.h"
 #include "input.h"
@@ -168,6 +169,10 @@ void free_terminfo_cache(tinfo* ti){
   free(ti->esctable);
   if(ti->linux_fb_fd >= 0){
     close(ti->linux_fb_fd);
+  }
+  free(ti->linux_fb_dev);
+  if(ti->linux_fbuffer != MAP_FAILED){
+    munmap(ti->linux_fbuffer, ti->linux_fb_len);
   }
 }
 
@@ -557,6 +562,7 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
   queried_terminals_e qterm = TERMINAL_UNKNOWN;
   memset(ti, 0, sizeof(*ti));
   ti->linux_fb_fd = -1;
+  ti->linux_fbuffer = MAP_FAILED;
   // we might or might not program quadrants into the console font
   if(is_linux_console(fd, nonewfonts, &ti->caps.quadrants)){
     qterm = TERMINAL_LINUX;

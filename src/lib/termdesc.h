@@ -162,7 +162,10 @@ typedef struct tinfo {
   int default_rows; // LINES environment var / lines terminfo / 24
   int default_cols; // COLUMNS environment var / cols terminfo / 80
 
-  int linux_fb_fd;  // linux framebuffer device fd
+  int linux_fb_fd;        // linux framebuffer device fd
+  char* linux_fb_dev;     // device corresponding to linux_fb_dev
+  uint8_t* linux_fbuffer; // mmap()ed framebuffer
+  size_t linux_fb_len;    // size of map
 
   // some terminals (e.g. kmscon) return cursor coordinates inverted from the
   // typical order. we detect it the first time ncdirect_cursor_yx() is called.

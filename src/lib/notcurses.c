@@ -260,7 +260,7 @@ int update_term_dimensions(int fd, int* rows, int* cols, tinfo* tcache,
   if(tcache){
     unsigned y, x;
     if(tcache->linux_fb_fd >= 0){
-      get_linux_fb_pixelgeom(tcache->linux_fb_fd, &y, &x);
+      get_linux_fb_pixelgeom(tcache, &y, &x);
     }else{
       y = ws.ws_ypixel;
       x = ws.ws_xpixel;

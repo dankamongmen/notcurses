@@ -2,6 +2,7 @@
 #include "internal.h"
 
 #ifdef __linux__
+#include <sys/mman.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -417,15 +418,38 @@ bool is_linux_console(int fd, unsigned no_font_changes, bool* quadrants){
   return true;
 }
 
-int get_linux_fb_pixelgeom(int fd, unsigned* ypix, unsigned *xpix){
+int get_linux_fb_pixelgeom(tinfo* ti, unsigned* ypix, unsigned *xpix){
+  unsigned fakey, fakex;
+  if(ypix == NULL){
+    ypix = &fakey;
+  }
+  if(xpix == NULL){
+    xpix = &fakex;
+  }
   struct fb_var_screeninfo fbi = {};
-  if(ioctl(fd, FBIOGET_VSCREENINFO, &fbi)){
-    logwarn("Couldn't get framebuffer info from %d (%s?)\n", fd, strerror(errno));
+  if(ioctl(ti->linux_fb_fd, FBIOGET_VSCREENINFO, &fbi)){
+    logwarn("No framebuffer info from %s (%s?)\n", ti->linux_fb_dev, strerror(errno));
     return -1;
   }
-  loginfo("Linux framebuffer geometry: %dx%d\n", fbi.yres, fbi.xres);
+  loginfo("Linux %s geometry: %dx%d\n", ti->linux_fb_dev, fbi.yres, fbi.xres);
   *ypix = fbi.yres;
   *xpix = fbi.xres;
+  size_t len = *ypix * *xpix * fbi.bits_per_pixel / 8;
+  if(ti->linux_fb_len != len){
+    if(ti->linux_fbuffer != MAP_FAILED){
+      munmap(ti->linux_fbuffer, ti->linux_fb_len);
+      ti->linux_fbuffer = MAP_FAILED;
+      ti->linux_fb_len = 0;
+    }
+    ti->linux_fbuffer = mmap(NULL, len, PROT_READ|PROT_WRITE,
+                             MAP_SHARED, ti->linux_fb_fd, 0);
+    if(ti->linux_fbuffer == MAP_FAILED){
+      logerror("Couldn't map %zuB on %s (%s?)\n", len, ti->linux_fb_dev, strerror(errno));
+      return -1;
+    }
+    ti->linux_fb_len = len;
+    loginfo("Mapped %zuB on %s\n", len, ti->linux_fb_dev);
+  }
   return 0;
 }
 
@@ -439,12 +463,19 @@ bool is_linux_framebuffer(tinfo* ti){
     logdebug("Couldn't open framebuffer device %s\n", dev);
     return false;
   }
-  unsigned y, x;
-  if(get_linux_fb_pixelgeom(fd, &y, &x)){
-    close(fd);
+  ti->linux_fb_fd = fd;
+  if((ti->linux_fb_dev = strdup(dev)) == NULL){
+    close(ti->linux_fb_fd);
+    ti->linux_fb_fd = -1;
     return false;
   }
-  ti->linux_fb_fd = fd;
+  if(get_linux_fb_pixelgeom(ti, NULL, NULL)){
+    close(fd);
+    ti->linux_fb_fd = -1;
+    free(ti->linux_fb_dev);
+    ti->linux_fb_dev = NULL;
+    return false;
+  }
   return true;
 }
 #else
@@ -460,8 +491,8 @@ bool is_linux_framebuffer(tinfo* ti){
   return false;
 }
 
-int get_linux_fb_pixelgeom(int fd, unsigned* ypix, unsigned *xpix){
-  (void)fd;
+int get_linux_fb_pixelgeom(tinfo* ti, unsigned* ypix, unsigned *xpix){
+  (void)ti;
   (void)ypix;
   (void)xpix;
   return -1;

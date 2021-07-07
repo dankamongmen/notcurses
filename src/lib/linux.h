@@ -17,7 +17,7 @@ bool is_linux_framebuffer(struct tinfo* ti);
 
 // call only on an fd where is_linux_framebuffer() returned true. gets the
 // pixel geometry for the visual area.
-int get_linux_fb_pixelgeom(int fd, unsigned* ypix, unsigned *xpix);
+int get_linux_fb_pixelgeom(struct tinfo* ti, unsigned* ypix, unsigned *xpix);
 
 #ifdef __cplusplus
 }
