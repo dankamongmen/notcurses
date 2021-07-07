@@ -797,7 +797,7 @@ int kitty_remove(int id, FILE* out){
 }
 
 // removes the kitty bitmap graphic identified by s->id, and damages those
-// cells which weren't SPRIXCEL_OPAQUE
+// cells which weren't SPRIXCELL_OPAQUE
 int kitty_scrub(const ncpile* p, sprixel* s){
 //fprintf(stderr, "FROM: %d/%d state: %d s->n: %p\n", s->movedfromy, s->movedfromx, s->invalidated, s->n);
   for(int yy = s->movedfromy ; yy < s->movedfromy + s->dimy && yy < p->dimy ; ++yy){
