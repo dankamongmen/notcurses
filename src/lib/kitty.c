@@ -11,22 +11,30 @@
 // values to 0. We thus require RGBA, meaning 768 pixels per 4096B chunk
 // (768pix * 4Bpp * 4/3 base64 overhead == 4096B).
 //
-// How to reclaim a section once we no longer want to draw text above it is
-// an open question; we'd presumably need to store the original alphas in
-// the T-A matrix.
+// 0.20.0 introduced an animation protocol which drastically reduces the
+// bandwidth necessary for wipe-and-rebuild. we thus have two strategies:
+//
+// pre-0.20.0: keep an auxvec for each wiped cell, with a byte per pixel.
+//  on wipe, copy the alphas into the auxvec, and set them to 0 in the
+//  encoded graphic. on rebuild, rewrite the alphas from the auxvec. both
+//  operations require delicate edits directly to the encoded form. the
+//  graphic is updated by completely retransmitting it.
+//
+// 0.20.0+: we make a copy of the RGBA data, populating all auxvecs upon
+//  blit. to wipe, we generate a cell's woth of 0s, and merge them into
+//  the existing image. to rebuild, we merge the original data into the
+//  existing image. this cuts down on bandwidth--unchanged cells are not
+//  retransmitted. it does require a fairly expensive copy of the source,
+//  even though we might never use it.
+//
+// if a graphic needs be moved, we can move it with a control operation,
+// rather than erasing it and redrawing it manually.
 //
 // It has some interesting features of which we do not yet take advantage:
 //  * in-terminal scaling of image data (we prescale)
 //  * subregion display of a transmitted bitmap
-//  * an animation protocol we should probably use for video, and definitely
-//     ought use for cell wiping
-//  * movement (redisplay at another position) of loaded bitmaps
 //
 // https://sw.kovidgoyal.net/kitty/graphics-protocol.html
-//
-// We are unlikely to ever use several features: direct PNG support (only
-// works for PNG), transfer via shared memory (only works locally),
-// compression (only helps on easy graphics), or offsets within a cell.
 
 // lookup table for base64
 static unsigned const char b64subs[] =
