@@ -332,7 +332,7 @@ int kitty_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
         if(--targy == 0){
           s->n->tam[s->dimx * ycell + xcell].state = state;
           s->invalidated = SPRIXEL_INVALIDATED;
-          return 0;
+          return 1;
         }
         thisrow = targx;
 //fprintf(stderr, "BUMP IT: %d %d %d %d\n", nextpixel, s->pixx, targx, chomped);

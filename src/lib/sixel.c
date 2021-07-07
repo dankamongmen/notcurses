@@ -914,7 +914,7 @@ int sixel_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
     newstate = SPRIXCELL_OPAQUE_SIXEL;
   }
   s->n->tam[s->dimx * ycell + xcell].state = newstate;
-  return 0;
+  return 1;
 }
 
 // 80 (sixel scrolling) is enabled by default. 8452 is not. XTSAVE/XTRESTORE
