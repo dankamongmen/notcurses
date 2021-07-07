@@ -62,10 +62,10 @@ setup_sixel_bitmaps(tinfo* ti, int fd, bool invert80){
   sprite_init(ti, fd);
 }
 
-// kitty 0.19.3 didn't have C=1, and thus needs sixel_maxy_pristine
+// kitty 0.19.3 didn't have C=1, and thus needs sixel_maxy_pristine. it also
+// lacked animation, and thus requires the older interface.
 static inline void
 setup_kitty_bitmaps(tinfo* ti, int fd, int sixel_maxy_pristine){
-  ti->pixel_wipe = kitty_wipe;
   ti->pixel_scrub = kitty_scrub;
   ti->pixel_remove = kitty_remove;
   ti->pixel_draw = kitty_draw;
@@ -75,9 +75,15 @@ setup_kitty_bitmaps(tinfo* ti, int fd, int sixel_maxy_pristine){
   ti->sprixel_scale_height = 1;
   ti->pixel_rebuild = kitty_rebuild;
   ti->pixel_clear_all = kitty_clear_all;
-  ti->pixel_trans_auxvec = kitty_trans_auxvec;
   ti->sixel_maxy_pristine = sixel_maxy_pristine;
-  set_pixel_blitter(kitty_blit);
+  if(sixel_maxy_pristine){
+    ti->pixel_wipe = kitty_wipe;
+    ti->pixel_trans_auxvec = kitty_trans_auxvec;
+    set_pixel_blitter(kitty_blit);
+  }else{
+    ti->pixel_wipe = kitty_wipe_animation;
+    set_pixel_blitter(kitty_blit_animated);
+  }
   sprite_init(ti, fd);
 }
 

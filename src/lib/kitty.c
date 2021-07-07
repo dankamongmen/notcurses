@@ -354,15 +354,18 @@ int kitty_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
 }
 
 // an animation auxvec requires storing all the pixel data for the cell,
-// instead of just the alpha channel.
+// instead of just the alpha channel. pass the start of the RGBA to be
+// copied, and the rowstride.
 static inline uint8_t*
-kitty_transanim_auxvec(const sprixel* s){
-  const size_t slen = 4 * s->cellpxy * s->cellpxx;
+kitty_transanim_auxvec(int cellpxy, int cellpxx, const uint32_t* data, int rowstride){
+  const size_t slen = 4 * cellpxy * cellpxx;
   uint8_t* a = malloc(slen);
   if(a){
-    memset(a, 0, slen);
+    for(int y = 0 ; y < cellpxy ; ++y){
+fprintf(stderr, "COPYING %d from %p to %p\n", cellpxx * 4, data + y * (rowstride / 4), a + y * (cellpxx * 4));
+      memcpy(a + y * (cellpxx * 4), data + y * (rowstride / 4), cellpxx * 4);
+    }
   }
-  // FIXME decode glyph into auxvec -- need to keep original glyph!
   return a;
 }
 
@@ -374,10 +377,6 @@ int kitty_wipe_animation(sprixel* s, int ycell, int xcell){
     return -1;
   }
   logdebug("Wiping sprixel %u at %d/%d\n", s->id, ycell, xcell);
-  uint8_t* auxvec = kitty_transanim_auxvec(s);
-  if(auxvec == NULL){
-    return -1;
-  }
   FILE* fp = s->mstreamfp;
   fprintf(fp, "\e_Ga=f,x=%d,y=%d,s=%d,v=%d,i=%d,X=1,r=1,q=2;",
           xcell * s->cellpxx,
@@ -397,7 +396,6 @@ int kitty_wipe_animation(sprixel* s, int ycell, int xcell){
   }
   // FIXME need chunking for cells of 768+ pixels
   fprintf(fp, "\e\\");
-  s->n->tam[s->dimx * ycell + xcell].auxvector = auxvec;
   s->invalidated = SPRIXEL_INVALIDATED;
   return 1;
 }
@@ -511,6 +509,7 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
                  tament* tam, int* parse_start){
 //fprintf(stderr, "drawing kitty %p\n", tam);
   if(linesize % sizeof(*data)){
+    logerror("Stride (%d) badly aligned\n", linesize);
     fclose(fp);
     return -1;
   }
@@ -558,6 +557,11 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
         int xcell = x / cdimx;
         int ycell = y / cdimy;
         int tyx = xcell + ycell * cols;
+        if(tam[tyx].auxvector == NULL){
+          if((tam[tyx].auxvector = kitty_transanim_auxvec(cdimy, cdimx, line + x, linesize)) == NULL){
+            return -1; // FIXME need clean up auxvecs, fp
+          }
+        }
 //fprintf(stderr, "Tyx: %d y: %d (%d) * %d x: %d (%d) state %d %p\n", tyx, y, y / cdimy, cols, x, x / cdimx, tam[tyx].state, tam[tyx].auxvector);
         if(tam[tyx].state == SPRIXCELL_ANNIHILATED || tam[tyx].state == SPRIXCELL_ANNIHILATED_TRANS){
           // this pixel is part of a cell which is currently wiped (alpha-nulled
@@ -592,7 +596,7 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
     fprintf(fp, "\e\\");
   }
   if(fclose(fp) == EOF){
-    return -1;
+    return -1; // FIXME clean up auxvecs!
   }
   scrub_tam_boundaries(tam, leny, lenx, cdimy, cdimx);
   return 0;
@@ -601,8 +605,8 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
 
 // Kitty graphics blitter. Kitty can take in up to 4KiB at a time of (optionally
 // deflate-compressed) 24bit RGB. Returns -1 on error, 1 on success.
-int kitty_blit(ncplane* n, int linesize, const void* data, int leny, int lenx,
-               const blitterargs* bargs, int bpp __attribute__ ((unused))){
+int kitty_blit_core(ncplane* n, int linesize, const void* data, int leny, int lenx,
+                    const blitterargs* bargs, int bpp __attribute__ ((unused))){
   int cols = bargs->u.pixel.spx->dimx;
   int rows = bargs->u.pixel.spx->dimy;
   char* buf = NULL;
@@ -651,6 +655,17 @@ int kitty_blit(ncplane* n, int linesize, const void* data, int leny, int lenx,
   return 1;
 }
 
+int kitty_blit(ncplane* n, int linesize, const void* data, int leny, int lenx,
+               const blitterargs* bargs, int bpp __attribute__ ((unused))){
+  return kitty_blit_core(n, linesize, data, leny, lenx, bargs, false);
+}
+
+int kitty_blit_animated(ncplane* n, int linesize, const void* data,
+                        int leny, int lenx, const blitterargs* bargs,
+                        int bpp __attribute__ ((unused))){
+  return kitty_blit_core(n, linesize, data, leny, lenx, bargs, true);
+}
+
 int kitty_remove(int id, FILE* out){
   loginfo("Removing graphic %u\n", id);
   if(fprintf(out, "\e_Ga=d,d=i,i=%d\e\\", id) < 0){
@@ -693,11 +708,29 @@ int kitty_scrub(const ncpile* p, sprixel* s){
 // returns the number of bytes written
 int kitty_draw(const ncpile* p, sprixel* s, FILE* out){
   (void)p;
-  int ret = s->glyphlen;
-  if(fwrite(s->glyph, s->glyphlen, 1, out) != 1){
-    ret = -1;
+  bool animated = false;
+  if(s->mstreamfp){ // active animation
+    int fret = fclose(s->mstreamfp);
+    s->mstreamfp = NULL;
+    if(fret == EOF){
+      return -1;
+    }
+    animated = true;
   }
-  s->invalidated = SPRIXEL_LOADED;
+  int ret = s->glyphlen;
+  if(ret){
+    if(fwrite(s->glyph, s->glyphlen, 1, out) != 1){
+      ret = -1;
+    }
+  }
+  if(animated){
+    free(s->glyph);
+    s->glyph = NULL;
+    s->glyphlen = 0;
+    s->invalidated = SPRIXEL_QUIESCENT;
+  }else{
+    s->invalidated = SPRIXEL_LOADED;
+  }
   return ret;
 }
 
