@@ -258,6 +258,8 @@ to breaking under incorrect `TERM` values. If you're not using `xterm`, your
 
 * **Q:** My program locks up during initialization. **A**: Notcurses interrogates the terminal. If the terminal doesn't reply to standard interrogations, file a Notcurses bug, send upstream a patch, or use a different terminal. No known terminal emulators exhibit this behavior.
 
+* **Q:** Why no `NCSTYLE_REVERSE`? **A**: It would consume a precious bit. You can use `ncchannels_reverse()` to correctly invert fore- and background colors.
+
 * **Q:** How do I mix Rendered and Direct mode? **A:** You really don't want to. You can stream a subprocess to a plane with the `ncsubproc` widget.
 
 ## Useful links
