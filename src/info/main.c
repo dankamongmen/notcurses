@@ -334,6 +334,8 @@ tinfo_debug_bitmaps(struct ncplane* n, const tinfo* ti, const char* indent){
       }else{
         ncplane_printf(n, "%ssixel colorregs: %u\n", indent, ti->color_registers);
       }
+    }else if(ti->linux_fb_fd >= 0){
+      ncplane_printf(n, "%sframebuffer graphics supported\n", indent);
     }else if(ti->pixel_move == NULL){
       ncplane_printf(n, "%siTerm2 graphics support\n", indent);
     }else if(ti->sixel_maxy_pristine){

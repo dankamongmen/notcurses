@@ -16,7 +16,11 @@ struct ncsharedstats;
 
 typedef enum {
     TERMINAL_UNKNOWN,       // no useful information from queries; use termname
+    // the very limited linux VGA/serial console, or possibly the (deprecated,
+    // pixel-drawable, RGBA8888) linux framebuffer console. *not* fbterm.
     TERMINAL_LINUX,         // ioctl()s
+    // the linux KMS/DRM console, *not* kmscon, but DRM direct dumb buffers
+    TERMINAL_LINUXDRM,      // ioctl()s
     TERMINAL_XTERM,         // XTVERSION == 'XTerm(ver)'
     TERMINAL_VTE,           // TDA: "~VTE"
     TERMINAL_KITTY,         // XTGETTCAP['TN'] == 'xterm-kitty'
