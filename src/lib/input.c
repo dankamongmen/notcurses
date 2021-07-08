@@ -756,7 +756,6 @@ static int
 stash_string(query_state* inits){
 //fprintf(stderr, "string terminator after %d [%s]\n", inits->stringstate, inits->runstring);
   switch(inits->stringstate){
-    // FIXME replace these with some structured loop
     case STATE_XTVERSION1:{
       static const struct {
         const char* prefix;
@@ -769,6 +768,7 @@ stash_string(query_state* inits){
         { .prefix = "kitty(", .suffix = ')', .term = TERMINAL_KITTY, },
         { .prefix = "foot(", .suffix = ')', .term = TERMINAL_FOOT, },
         { .prefix = "mlterm(", .suffix = ')', .term = TERMINAL_MLTERM, },
+        { .prefix = "tmux ", .suffix = 0, .term = TERMINAL_TMUX, },
         { .prefix = "iTerm2 [", .suffix = ']', .term = TERMINAL_ITERM, },
         { .prefix = NULL, .suffix = 0, .term = TERMINAL_UNKNOWN, },
       }, *xtv;
@@ -779,6 +779,9 @@ stash_string(query_state* inits){
           }
           break;
         }
+      }
+      if(xtv->prefix == NULL){
+        logwarn("Unrecognizable XTVERSION [%s]\n", inits->runstring);
       }
       break;
     }case STATE_XTGETTCAP_TERMNAME1:

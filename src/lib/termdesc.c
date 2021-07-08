@@ -465,6 +465,9 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
     ti->caps.sextants = true;
     ti->caps.quadrants = true;
     ti->caps.rgb = true;
+  }else if(qterm == TERMINAL_TMUX){
+    termname = "tmux";
+    // FIXME what, oh what to do with tmux?
   }else if(qterm == TERMINAL_MLTERM){
     termname = "MLterm";
     ti->caps.quadrants = true; // good caps.quadrants, no caps.sextants as of 3.9.0
