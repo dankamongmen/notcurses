@@ -1127,9 +1127,6 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     goto err;
   }
   ret->suppress_banner = opts->flags & NCOPTION_SUPPRESS_BANNERS;
-  if(set_fd_nonblocking(ret->tcache.input.infd, 1, &ret->stdio_blocking_save)){
-    goto err;
-  }
   if(ncvisual_init(ret->loglevel)){
     goto err;
   }
@@ -1167,6 +1164,9 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
       goto err;
     }
     ncplane_cursor_move_yx(ret->stdplane, cursor_y, cursor_x);
+  }
+  if(set_fd_nonblocking(ret->tcache.input.infd, 1, &ret->stdio_blocking_save)){
+    goto err;
   }
   // flush on the switch to alternate screen, lest initial output be swept away
   const char* clearscr = get_escape(&ret->tcache, ESCAPE_CLEAR);

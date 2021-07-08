@@ -833,7 +833,8 @@ int cursor_yx_get(int ttyfd, const char* u7, int* y, int* x){
         break;
       }
     }
-  }while(!done && (r == 1 || (errno == EINTR || errno == EAGAIN || errno == EBUSY)));
+    // need to loop 0 to handle slow terminals, see for instance screen =[
+  }while(!done && (r >= 0 || (errno == EINTR || errno == EAGAIN || errno == EBUSY)));
   if(!done){
     logerror("Error reading cursor location\n");
     return -1;
