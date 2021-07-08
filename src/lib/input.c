@@ -1070,10 +1070,11 @@ pump_control_read(query_state* inits, unsigned char c){
       if(c == ';'){
         inits->state = STATE_SDA_DRAIN;
         loginfo("Got DA2 Pv: %u\n", inits->numeric);
-        // if a version was set, we couldn't have arrived here
-        if((inits->version = set_sda_version(inits)) == NULL){
-          return -1;
-        }
+        // if a version was set, we couldn't have arrived here. alacritty
+        // writes its crate version here, in an encoded form. nothing else
+        // necessarily does, though, so allow failure. this value will be
+        // interpreted as the version only if TERM indicates alacritty.
+        inits->version = set_sda_version(inits);
       }else if(ruts_numeric(&inits->numeric, c)){
         return -1;
       }

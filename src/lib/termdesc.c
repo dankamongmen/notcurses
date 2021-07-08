@@ -284,8 +284,9 @@ grow_esc_table(tinfo* ti, const char* tstr, escape_e esc,
 // this doesn't uniquely identify a terminal, we ask it last, so that if any
 // queries which *do* unambiguously identify a terminal have succeeded, this
 // needn't be paid attention to.
-// https://vt100.net/docs/vt510-rm/DA2.html
-// Replies with CSI > 6 1 ; Pv ; [01] c
+// https://vt100.net/docs/vtk510-rm/DA2.html
+// (note that tmux uses 84 rather than common 60/61)
+// Replies with CSI > \d \d ; Pv ; [01] c
 #define SECDEVATTR "\x1b[>c"
 
 // these three queries (terminated with a Primary Device Attributes, to which
