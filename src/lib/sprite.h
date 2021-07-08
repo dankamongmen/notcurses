@@ -188,6 +188,9 @@ int kitty_blit(struct ncplane* nc, int linesize, const void* data,
 int kitty_blit_animated(struct ncplane* n, int linesize, const void* data,
                         int leny, int lenx, const struct blitterargs* bargs,
                         int bpp);
+int fbcon_blit(struct ncplane* nc, int linesize, const void* data,
+               int leny, int lenx, const struct blitterargs* bargs, int bpp);
+int fbcon_draw(const struct ncpile *p, sprixel* s, FILE* out);
 
 #ifdef __cplusplus
 }
