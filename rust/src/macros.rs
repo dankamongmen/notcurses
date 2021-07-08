@@ -32,7 +32,7 @@ macro_rules! sleep {
     };
 }
 
-/// [`Nc.render`][Nc#method.render]\(`$nc`\)? + [`sleep!`]`[$sleep_args]`.
+/// [`Nc::render`][Nc#method.render]\(`$nc`\)? + [`sleep!`]`[$sleep_args]`.
 ///
 /// Renders the `$nc` [`Nc`] object's standard plane pile and then,
 /// if there's no error, calls the sleep macro with the rest of the arguments.
@@ -49,8 +49,8 @@ macro_rules! rsleep {
     };
 }
 
-/// [`NcPlane.render`][NcPlane#method.render]\(`$p`\)? +
-/// [`NcPlane.rasterize`][NcPlane#method.rasterize]\(`$p`\)? +
+/// [`NcPlane::render`][NcPlane#method.render]\(`$p`\)? +
+/// [`NcPlane::rasterize`][NcPlane#method.rasterize]\(`$p`\)? +
 /// [`sleep!`]`[$sleep_args]`.
 ///
 /// Renders and rasterizes the `$p` [NcPlane] pile and then, if there are
@@ -58,7 +58,7 @@ macro_rules! rsleep {
 ///
 /// Returns [NcResult].
 #[macro_export]
-macro_rules! prsleep {
+macro_rules! psleep {
     ($p:expr, $( $sleep_args:expr),+ ) => {
         crate::NcPlane::render($p)?;
         crate::NcPlane::rasterize($p)?;
@@ -69,7 +69,7 @@ macro_rules! prsleep {
     };
 }
 
-/// [`NcDirect.flush`][NcDirect#method.flush]\(`$ncd`\)? + [`sleep!`]`[$sleep_args]`.
+/// [`NcDirect::flush`][NcDirect#method.flush]\(`$ncd`\)? + [`sleep!`]`[$sleep_args]`.
 ///
 /// Flushes the `$ncd` [NcDirect] object and, if there's no error,
 /// calls the sleep macro with the rest of the arguments.
