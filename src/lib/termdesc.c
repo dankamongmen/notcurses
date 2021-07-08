@@ -825,7 +825,7 @@ int cursor_yx_get(int ttyfd, const char* u7, int* y, int* x){
           break;
       }
       if(!valid){
-        fprintf(stderr, "Unexpected result from terminal: %d\n", in);
+        logerror("Unexpected result (%c, %d) from terminal\n", in, in);
         break;
       }
       if(state == CURSOR_R){
@@ -835,6 +835,7 @@ int cursor_yx_get(int ttyfd, const char* u7, int* y, int* x){
     }
   }while(!done && (r == 1 || (errno == EINTR || errno == EAGAIN || errno == EBUSY)));
   if(!done){
+    logerror("Error reading cursor location\n");
     return -1;
   }
   if(y){
