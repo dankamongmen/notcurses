@@ -109,6 +109,15 @@ setup_kitty_bitmaps(tinfo* ti, int fd, int sixel_maxy_pristine){
   sprite_init(ti, fd);
 }
 
+// kitty 0.19.3 didn't have C=1, and thus needs sixel_maxy_pristine. it also
+// lacked animation, and thus requires the older interface.
+static inline void
+setup_fbcon_bitmaps(tinfo* ti){
+  // FIXME
+  ti->pixel_draw = fbcon_draw;
+  set_pixel_blitter(fbcon_blit);
+}
+
 static bool
 query_rgb(void){
   bool rgb = (tigetflag("RGB") > 1 || tigetflag("Tc") > 1);
@@ -543,6 +552,7 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
     }
     if(ti->linux_fb_fd >= 0){
       termname = "Linux framebuffer";
+      setup_fbcon_bitmaps(ti);
     }else{
       termname = "Linux console";
     }
