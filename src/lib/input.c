@@ -1253,6 +1253,7 @@ control_read(int ttyfd, query_state* qstate){
   if((buf = malloc(BUFSIZ)) == NULL){
     return -1;
   }
+  errno = 0;
   while((s = read(ttyfd, buf, BUFSIZ)) != -1){
     for(ssize_t idx = 0; idx < s ; ++idx){
       int r = pump_control_read(qstate, buf[idx]);
