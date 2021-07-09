@@ -10,6 +10,16 @@ void nclog(const char* fmt, ...);
 // logging
 extern int loglevel;
 
+#define logpanic(fmt, ...) do{ \
+  if(loglevel >= NCLOGLEVEL_PANIC){ \
+    nclog("%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } \
+  } while(0);
+
+#define logfatal(fmt, ...) do{ \
+  if(loglevel >= NCLOGLEVEL_FATAL){ \
+    nclog("%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } \
+  } while(0);
+
 #define logerror(fmt, ...) do{ \
   if(loglevel >= NCLOGLEVEL_ERROR){ \
     nclog("%s:%d:" fmt, __func__, __LINE__, ##__VA_ARGS__); } \

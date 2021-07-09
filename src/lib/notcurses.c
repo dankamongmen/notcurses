@@ -241,12 +241,12 @@ int update_term_dimensions(int fd, int* rows, int* cols, tinfo* tcache,
   struct winsize ws;
   int i = ioctl(fd, TIOCGWINSZ, &ws);
   if(i < 0){
-    fprintf(stderr, "TIOCGWINSZ failed on %d (%s)\n", fd, strerror(errno));
+    logerror("TIOCGWINSZ failed on %d (%s)\n", fd, strerror(errno));
     return -1;
   }
   if(ws.ws_row <= 0 || ws.ws_col <= 0){
-    fprintf(stderr, "Bogus return from TIOCGWINSZ on %d (%d/%d)\n",
-            fd, ws.ws_row, ws.ws_col);
+    logerror("Bogus return from TIOCGWINSZ on %d (%d/%d)\n",
+           fd, ws.ws_row, ws.ws_col);
     return -1;
   }
   int rowsafe;
@@ -1072,7 +1072,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   }
   ret->ttyfd = get_tty_fd(ret->ttyfp);
   if(recursive_lock_init(&ret->pilelock)){
-    fprintf(stderr, "Couldn't initialize pile mutex\n");
+    logfatal("Couldn't initialize pile mutex\n");
     free(ret);
     return NULL;
   }
@@ -1103,7 +1103,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   loglevel = opts->loglevel;
   int termerr;
   if(setupterm(opts->termtype, ret->ttyfd, &termerr) != OK){
-    fprintf(stderr, "Terminfo error %d (see terminfo(3ncurses))\n", termerr);
+    logpanic("Terminfo error %d (see terminfo(3ncurses))\n", termerr);
     drop_signals(ret);
     fclose(ret->rstate.mstreamfp);
     pthread_mutex_destroy(&ret->statlock);
@@ -1132,7 +1132,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   }
   ret->stdplane = NULL;
   if((ret->stdplane = create_initial_ncplane(ret, dimy, dimx)) == NULL){
-    fprintf(stderr, "Couldn't create the initial plane (bad margins?)\n");
+    logerror("Couldn't create the initial plane (bad margins?)\n");
     goto err;
   }
   reset_term_attributes(&ret->tcache, ret->ttyfp);
@@ -1192,7 +1192,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   return ret;
 
 err:
-  fprintf(stderr, "Alas, you will not be going to space today.\n");
+  logpanic("Alas, you will not be going to space today.\n");
   // FIXME looks like we have some memory leaks on this error path?
   if(ret->rstate.mstreamfp){
     fclose(ret->rstate.mstreamfp);
