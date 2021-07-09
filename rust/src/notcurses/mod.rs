@@ -85,12 +85,14 @@ pub use reimplemented::*;
 pub type Nc = crate::bindings::ffi::notcurses;
 
 #[deprecated]
+#[doc(hidden)]
 pub type Notcurses = Nc;
 
 /// Options struct for [`Notcurses`]
 pub type NcOptions = crate::bindings::ffi::notcurses_options;
 
 #[deprecated]
+#[doc(hidden)]
 pub type NotcursesOptions = NcOptions;
 
 /// Do not call setlocale()

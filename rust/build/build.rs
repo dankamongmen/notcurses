@@ -77,7 +77,8 @@ fn main() {
     }
 
     // Finish the builder and generate the builder.
-    let bindings = builder.generate()
+    let bindings = builder
+        .generate()
         // Unwrap the Result and panic on failure.
         .expect("Unable to generate bindings");
 
