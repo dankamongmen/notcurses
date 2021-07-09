@@ -193,7 +193,7 @@ launch_pipe_process(int* pipe, int* pidfd){
   }
   if(p == 0){ // child
     if(dup2(pipes[1], STDOUT_FILENO) < 0 || dup2(pipes[1], STDERR_FILENO) < 0){
-      fprintf(stderr, "Couldn't dup() %d (%s)\n", pipes[1], strerror(errno));
+      logerror("Couldn't dup() %d (%s)\n", pipes[1], strerror(errno));
       exit(EXIT_FAILURE);
     }
   }else if(p > 0){ // parent
@@ -395,9 +395,10 @@ ncsubproc* ncsubproc_createvpe(ncplane* n, const ncsubproc_options* opts,
 #else
     exect(bin, arg, env);
 #endif
-//fprintf(stderr, "Error execv()ing %s\n", bin);
+    logerror("Error execing %s (%s?)\n", bin, strerror(errno));
     exit(EXIT_FAILURE);
   }else if(ret->pid < 0){
+    logerror("Error launching process (%s?)\n", strerror(errno));
     free(ret);
     return NULL;
   }
@@ -417,6 +418,7 @@ int ncsubproc_destroy(ncsubproc* n){
 //fprintf(stderr, "pid: %u pidfd: %d waittid: %u\n", n->pid, n->pidfd, n->waittid);
 #ifdef USING_PIDFD
     if(n->pidfd >= 0){
+      loginfo("Sending SIGKILL to pidfd %d\n", n->pidfd);
       if(syscall(__NR_pidfd_send_signal, n->pidfd, SIGKILL, NULL, 0)){
         kill(n->pid, SIGKILL);
       }
@@ -424,6 +426,7 @@ int ncsubproc_destroy(ncsubproc* n){
 #else
     pthread_mutex_lock(&n->lock);
     if(!n->waited){
+      loginfo("Sending SIGKILL to PID %d\n", n->pid);
       kill(n->pid, SIGKILL);
     }
     pthread_mutex_unlock(&n->lock);
