@@ -497,16 +497,12 @@ nfbcellidx(const ncplane* n, int row, int col){
   return fbcellidx(logical_to_virtual(n, row), n->lenx, col);
 }
 
-// is the rgb value greyish (excluding white and black)?
+// is the rgb value greyish? note that pure white and pure black are both
+// considered greyish according to the definition of this function =].
 static inline bool
 rgb_greyish_p(unsigned r, unsigned g, unsigned b){
   const unsigned GREYMASK = 0xf8;
   if((r & GREYMASK) == (g & GREYMASK) && (g & GREYMASK) == (b & GREYMASK)){
-    if(r < 16){
-      return false; // black
-    }else if(r > 240){
-      return false; // white
-    }
     return true;
   }
   return false;
@@ -522,15 +518,14 @@ rgb_quantize_256(unsigned r, unsigned g, unsigned b){
   // if all 5 MSBs match, return grey from 24-member grey ramp or pure
   // black/white from original 16 (0 and 15, respectively)
   if(rgb_greyish_p(r, g, b)){
-    // 256 / 26 == 9.846
-    int gidx = r * 5 / 49 - 1;
-    if(gidx < 0){
+    // 8 and 238 come from https://terminalguide.namepad.de/attr/fgcol256/,
+    // which suggests 10-nit intervals otherwise.
+    if(r < 8){
       return 0;
-    }
-    if(gidx >= 24){
+    }else if(r > 238){
       return 15;
     }
-    return 232 + gidx;
+    return 232 + (r - 8) / 10;
   }
   r /= 43;
   g /= 43;
@@ -551,6 +546,9 @@ rgb_quantize_8(unsigned r, unsigned g, unsigned b){
   static const int CYAN = 6;
   static const int WHITE = 7;
   if(rgb_greyish_p(r, g, b)){
+    if(r < 64){
+      return BLACK;
+    }
     return WHITE;
   }
   if(r < 128){ // we have no red

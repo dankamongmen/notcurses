@@ -5,27 +5,17 @@
 
 TEST_CASE("Internals") {
 
-  SUBCASE("RGBtoANSIWhite") {
-    unsigned r, g, b;
-    for(r = 250 ; r < 256 ; ++r){
-      g = b = r;
-      CHECK(15 == rgb_quantize_256(r, g, b));
-    }
-  }
-
-  SUBCASE("RGBtoANSIBlack") {
-    unsigned r, g, b;
-    for(r = 0 ; r < 10 ; ++r){
-      g = b = r;
-      CHECK(0 == rgb_quantize_256(r, g, b));
-    }
-  }
-
-  SUBCASE("RGBtoANSIGrey") {
-    unsigned r, g, b;
-    for(r = 10 ; r < 244 ; ++r){
-      g = b = r;
-      CHECK(231 + (r * 5) / 49 == rgb_quantize_256(r, g, b));
+  SUBCASE("RGBtoANSIWhiteGreyBlack") {
+    unsigned r;
+    for(r = 0 ; r < 256 ; ++r){
+      int g = rgb_quantize_256(r, r, r);
+      if(r < 8){
+        CHECK(0 == g);
+      }else if(r > 238){
+        CHECK(15 == g);
+      }else{
+        CHECK(g == (r - 8) / 10 + 232);
+      }
     }
   }
 
