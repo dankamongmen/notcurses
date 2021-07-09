@@ -246,7 +246,6 @@ tinfo_debug_bitmaps(struct ncplane* n, const tinfo* ti, const char* indent){
     }
     char* path = prefix_data("notcurses.png");
     if(path){
-      // FIXME hold off until #1883 is resolved
       display_logo(ti, n, path);
       free(path);
     }

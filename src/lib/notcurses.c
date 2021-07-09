@@ -1158,7 +1158,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     free_plane(ret->stdplane);
     goto err;
   }
-  if(ret->rstate.logendy >= 0 && ret->rstate.logendx >= 0){
+  if(ret->rstate.logendy >= 0){ // if either is set, both are
     if(!ret->suppress_banner){
       if(locate_cursor_early(ret, &ret->rstate.logendy, &ret->rstate.logendx)){
         free_plane(ret->stdplane);
