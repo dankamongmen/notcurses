@@ -834,6 +834,8 @@ int kitty_scrub(const ncpile* p, sprixel* s){
 // returns the number of bytes written
 int kitty_draw(const ncpile* p, sprixel* s, FILE* out, int y, int x){
   (void)p;
+  (void)y;
+  (void)x;
   bool animated = false;
   if(s->mstreamfp){ // active animation
     int fret = fclose(s->mstreamfp);
