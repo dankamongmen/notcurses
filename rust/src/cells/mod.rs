@@ -347,9 +347,9 @@ impl NcStyleMethods for NcStyle {
             NCSTYLE_BLINK,
             NCSTYLE_NONE,
         ];
-        for s in styles {
-            if self.has(s) {
-                v.push(s)
+        for s in &styles {
+            if self.has(*s) {
+                v.push(*s)
             }
         }
         v
