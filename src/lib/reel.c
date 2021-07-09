@@ -307,7 +307,7 @@ ncreel_draw_tablet(const ncreel* nr, nctablet* t, int frontiertop,
       if(ll){ // must be smaller than the space we provided; add back bottom
         ncplane_resize_simple(t->cbp, ll, cblenx);
       }else{
-        ncplane_genocide(t->cbp);
+        ncplane_destroy_family(t->cbp);
         t->cbp = NULL;
       }
       // resize the borderplane iff we got smaller
@@ -419,7 +419,7 @@ trim_reel_overhang(ncreel* r, nctablet* top, nctablet* bottom){
 //fprintf(stderr, "top: %dx%d @ %d, miny: %d\n", ylen, xlen, y, miny);
   if(boty < miny){
 //fprintf(stderr, "NUKING top!\n");
-    ncplane_genocide(top->p);
+    ncplane_destroy_family(top->p);
     top->p = NULL;
     top->cbp = NULL;
     top = top->next;
@@ -427,7 +427,7 @@ trim_reel_overhang(ncreel* r, nctablet* top, nctablet* bottom){
   }else if(y < miny){
     int ynew = ylen - (miny - y);
     if(ynew <= 0){
-      ncplane_genocide(top->p);
+      ncplane_destroy_family(top->p);
       top->p = NULL;
       top->cbp = NULL;
     }else{
@@ -436,7 +436,7 @@ trim_reel_overhang(ncreel* r, nctablet* top, nctablet* bottom){
       }
       if(top->cbp){
         if(ynew == !(r->ropts.tabletmask & NCBOXMASK_TOP)){
-          ncplane_genocide(top->cbp);
+          ncplane_destroy_family(top->cbp);
           top->cbp = NULL;
         }else{
           ncplane_dim_yx(top->cbp, &ylen, &xlen);
@@ -458,7 +458,7 @@ trim_reel_overhang(ncreel* r, nctablet* top, nctablet* bottom){
 //fprintf(stderr, "bot: %dx%d @ %d, maxy: %d\n", ylen, xlen, y, maxy);
   if(maxy < y){
 //fprintf(stderr, "NUKING bottom!\n");
-    ncplane_genocide(bottom->p);
+    ncplane_destroy_family(bottom->p);
     bottom->p = NULL;
     bottom->cbp = NULL;
     bottom = bottom->prev;
@@ -466,7 +466,7 @@ trim_reel_overhang(ncreel* r, nctablet* top, nctablet* bottom){
   }if(maxy < boty){
     int ynew = ylen - (boty - maxy);
     if(ynew <= 0){
-      ncplane_genocide(bottom->p);
+      ncplane_destroy_family(bottom->p);
       bottom->p = NULL;
       bottom->cbp = NULL;
     }else{
@@ -476,7 +476,7 @@ trim_reel_overhang(ncreel* r, nctablet* top, nctablet* bottom){
 //fprintf(stderr, "TRIMMED bottom %p from %d to %d (%d)\n", bottom->p, ylen, ynew, maxy - boty);
       if(bottom->cbp){
         if(ynew == !(r->ropts.tabletmask & NCBOXMASK_BOTTOM)){
-          ncplane_genocide(bottom->cbp);
+          ncplane_destroy_family(bottom->cbp);
           bottom->cbp = NULL;
         }else{
           ncplane_dim_yx(bottom->cbp, &ylen, &xlen);
@@ -596,18 +596,18 @@ clean_reel(ncreel* r){
   if(vft){
     for(nctablet* n = vft->next ; n->p && n != vft ; n = n->next){
 //fprintf(stderr, "CLEANING NEXT: %p (%p)\n", n, n->p);
-      ncplane_genocide(n->p);
+      ncplane_destroy_family(n->p);
       n->p = NULL;
       n->cbp = NULL;
     }
     for(nctablet* n = vft->prev ; n->p && n != vft ; n = n->prev){
 //fprintf(stderr, "CLEANING PREV: %p (%p)\n", n, n->p);
-      ncplane_genocide(n->p);
+      ncplane_destroy_family(n->p);
       n->p = NULL;
       n->cbp = NULL;
     }
 //fprintf(stderr, "CLEANING VFT: %p (%p)\n", vft, vft->p);
-    ncplane_genocide(vft->p);
+    ncplane_destroy_family(vft->p);
     vft->p = NULL;
     vft->cbp = NULL;
     r->vft = NULL;
@@ -840,7 +840,7 @@ int ncreel_del(ncreel* nr, struct nctablet* t){
   }
   t->next->prev = t->prev;
   if(t->p){
-    ncplane_genocide(t->p);
+    ncplane_destroy_family(t->p);
   }
   free(t);
   --nr->tabletcount;

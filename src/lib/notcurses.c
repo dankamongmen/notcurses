@@ -850,7 +850,7 @@ int ncplane_destroy(ncplane* ncp){
   return ret;
 }
 
-int ncplane_genocide(ncplane *ncp){
+int ncplane_destroy_family(ncplane *ncp){
   if(ncp == NULL){
     return 0;
   }
@@ -860,7 +860,7 @@ int ncplane_genocide(ncplane *ncp){
   }
   int ret = 0;
   while(ncp->blist){
-    ret |= ncplane_genocide(ncp->blist);
+    ret |= ncplane_destroy_family(ncp->blist);
   }
   ret |= ncplane_destroy(ncp);
   return ret;
