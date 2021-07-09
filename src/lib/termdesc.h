@@ -130,7 +130,8 @@ typedef struct tinfo {
   int (*pixel_rebuild)(struct sprixel* s, int y, int x, uint8_t* auxvec);
   int (*pixel_remove)(int id, FILE* out); // kitty only, issue actual delete command
   int (*pixel_init)(const struct tinfo*, int fd); // called when support is detected
-  int (*pixel_draw)(const struct ncpile* p, struct sprixel* s, FILE* out);
+  int (*pixel_draw)(const struct ncpile* p, struct sprixel* s, FILE* out,
+                    int y, int x);
   // execute move (erase old graphic, place at new location) if non-NULL
   int (*pixel_move)(struct sprixel* s, FILE* out, unsigned noscroll);
   int (*pixel_scrub)(const struct ncpile* p, struct sprixel* s);
