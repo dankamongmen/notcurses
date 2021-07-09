@@ -2161,7 +2161,8 @@ ncplane* ncplane_above(ncplane* n){
 }
 
 int notcurses_mouse_enable(notcurses* n){
-  if(n->ttyfd >= 0){
+  if(mouse_enable(n->ttyfp)){
+    return -1;
   }
   return 0;
 }
@@ -2169,7 +2170,8 @@ int notcurses_mouse_enable(notcurses* n){
 // this seems to work (note difference in suffix, 'l' vs 'h'), but what about
 // the sequences 1000 etc?
 int notcurses_mouse_disable(notcurses* n){
-  if(n->ttyfd >= 0){
+  if(mouse_disable(n->ttyfp)){
+    return -1;
   }
   return 0;
 }

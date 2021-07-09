@@ -1152,14 +1152,14 @@ static inline int
 mouse_enable(FILE* out){
   return term_emit("\x1b[?" SET_BTN_EVENT_MOUSE ";"
                    /*SET_FOCUS_EVENT_MOUSE ";" */SET_SGR_MODE_MOUSE "h",
-                   out, false);
+                   out, true);
 }
 
 static inline int
 mouse_disable(FILE* out){
   return term_emit("\x1b[?" SET_BTN_EVENT_MOUSE ";"
                    /*SET_FOCUS_EVENT_MOUSE ";" */SET_SGR_MODE_MOUSE "l",
-                   out, false);
+                   out, true);
 }
 
 // how many edges need touch a corner for it to be printed?
