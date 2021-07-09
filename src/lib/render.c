@@ -748,6 +748,12 @@ goto_location(notcurses* nc, FILE* out, int y, int x){
   }
   nc->rstate.x = x;
   nc->rstate.y = y;
+  if(nc->rstate.logendy >= 0){
+    if(y > nc->rstate.logendy || (y == nc->rstate.logendy && x > nc->rstate.logendx)){
+      nc->rstate.logendy = y;
+      nc->rstate.logendx = x;
+    }
+  }
   return ret;
 }
 
@@ -905,6 +911,13 @@ clean_sprixels(notcurses* nc, ncpile* p, FILE* out){
 static int
 rasterize_scrolls(ncpile* p, FILE* out){
 //fprintf(stderr, "%d tardies to work off, by far the most in the class\n", p->scrolls);
+  if(p->nc->rstate.logendy >= 0){
+    p->nc->rstate.logendy -= p->scrolls;
+    if(p->nc->rstate.logendy < 0){
+      p->nc->rstate.logendy = 0;
+      p->nc->rstate.logendx = 0;
+    }
+  }
   while(p->scrolls){
     if(ncfputc('\v', out) < 0){
       return -1;
