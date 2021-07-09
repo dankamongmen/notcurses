@@ -369,9 +369,9 @@ block_on_input(int fd, const struct timespec* ts, const sigset_t* sigmask){
   return events;
 }
 
-static bool
-input_queue_full(const ncinputlayer* nc){
-  return nc->inputbuf_occupied == sizeof(nc->inputbuf) / sizeof(*nc->inputbuf);
+static inline size_t
+input_queue_space(const ncinputlayer* nc){
+  return sizeof(nc->inputbuf) / sizeof(*nc->inputbuf) - nc->inputbuf_occupied;
 }
 
 static char32_t
@@ -391,17 +391,25 @@ handle_queued_input(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin
 static char32_t
 handle_input(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin,
              const sigset_t* sigmask){
-  unsigned char c;
-  while(!input_queue_full(nc) && read(nc->infd, &c, 1) > 0){
-    nc->inputbuf[nc->inputbuf_write_at] = c;
-//fprintf(stderr, "OCCUPY: %u@%u read: %d\n", nc->inputbuf_occupied, nc->inputbuf_write_at, nc->inputbuf[nc->inputbuf_write_at]);
-    if(++nc->inputbuf_write_at == sizeof(nc->inputbuf) / sizeof(*nc->inputbuf)){
-      nc->inputbuf_write_at = 0;
+  ssize_t r = 0;
+  size_t rlen;
+//fprintf(stderr, "OCCUPY: %u@%u read: %d %zd\n", nc->inputbuf_occupied, nc->inputbuf_write_at, nc->inputbuf[nc->inputbuf_write_at], r);
+  if((rlen = input_queue_space(nc)) > 0){
+    // if we have at least as much available as we do room to the end, read
+    // all the way to the end. otherwise, read as much as we have available.
+    if(rlen >= sizeof(nc->inputbuf) / sizeof(*nc->inputbuf) - nc->inputbuf_write_at){
+      rlen = sizeof(nc->inputbuf) / sizeof(*nc->inputbuf) - nc->inputbuf_write_at;
     }
-    ++nc->inputbuf_occupied;
-    const struct timespec ts = {};
-    if(block_on_input(nc->infd, &ts, sigmask) < 1){
-      break;
+    while((r = read(nc->infd, nc->inputbuf + nc->inputbuf_write_at, rlen)) > 0){
+      nc->inputbuf_write_at += r;
+      if(nc->inputbuf_write_at == sizeof(nc->inputbuf) / sizeof(*nc->inputbuf)){
+        nc->inputbuf_write_at = 0;
+      }
+      nc->inputbuf_occupied += r;
+      const struct timespec ts = {};
+      if(block_on_input(nc->infd, &ts, sigmask) < 1){
+        break;
+      }
     }
   }
   // highest priority is resize notifications, since they don't queue
