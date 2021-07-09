@@ -497,6 +497,21 @@ nfbcellidx(const ncplane* n, int row, int col){
   return fbcellidx(logical_to_virtual(n, row), n->lenx, col);
 }
 
+// is the rgb value greyish (excluding white and black)?
+static inline bool
+rgb_greyish_p(unsigned r, unsigned g, unsigned b){
+  const unsigned GREYMASK = 0xf8;
+  if((r & GREYMASK) == (g & GREYMASK) && (g & GREYMASK) == (b & GREYMASK)){
+    if(r < 16){
+      return false; // black
+    }else if(r > 240){
+      return false; // white
+    }
+    return true;
+  }
+  return false;
+}
+
 // For our first attempt, O(1) uniform conversion from 8-bit r/g/b down to
 // ~2.4-bit 6x6x6 cube + greyscale (assumed on entry; I know no way to
 // even semi-portably recover the palette) proceeds via: map each 8-bit to
@@ -504,10 +519,9 @@ nfbcellidx(const ncplane* n, int row, int col){
 // otherwise, c / 42.7 to map to 6 values.
 static inline int
 rgb_quantize_256(unsigned r, unsigned g, unsigned b){
-  const unsigned GREYMASK = 0xf8;
   // if all 5 MSBs match, return grey from 24-member grey ramp or pure
   // black/white from original 16 (0 and 15, respectively)
-  if((r & GREYMASK) == (g & GREYMASK) && (g & GREYMASK) == (b & GREYMASK)){
+  if(rgb_greyish_p(r, g, b)){
     // 256 / 26 == 9.846
     int gidx = r * 5 / 49 - 1;
     if(gidx < 0){
@@ -536,6 +550,9 @@ rgb_quantize_8(unsigned r, unsigned g, unsigned b){
   static const int MAGENTA = 5;
   static const int CYAN = 6;
   static const int WHITE = 7;
+  if(rgb_greyish_p(r, g, b)){
+    return WHITE;
+  }
   if(r < 128){ // we have no red
     if(g < 128){ // we have no green
       if(b < 128){

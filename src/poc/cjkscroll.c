@@ -17,6 +17,9 @@ int main(void){
   struct ncplane* n = notcurses_stddim_yx(nc, &dimy, &dimx);
   wchar_t wc = 0x4e00;
   ncplane_set_scrolling(n, true);
+  ncplane_set_styles(n, NCSTYLE_BOLD);
+  ncplane_putstr(n, "This program is *not* indicative of real scrolling speed.\n");
+  ncplane_set_styles(n, NCSTYLE_NONE);
   while(true){
     struct timespec req = { .tv_sec = 0, .tv_nsec = 1000000, };
     nanosleep(&req, NULL);
