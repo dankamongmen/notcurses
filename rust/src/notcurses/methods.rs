@@ -449,6 +449,7 @@ impl Nc {
                 "struck" => style.add(NCSTYLE_STRUCK),
                 "bold" => style.add(NCSTYLE_BOLD),
                 "blink" => style.add(NCSTYLE_BLINK),
+                "none" => (),
                 _ => {
                     errstr.push_str(s);
                     errstr.push(' ');
