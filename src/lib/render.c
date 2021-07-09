@@ -415,12 +415,13 @@ postpaint_cell(nccell* lastframe, int dimx, struct crender* crender,
     if(crender->sprixel){
       sprixcell_e state = sprixel_state(crender->sprixel, y, *x);
 //fprintf(stderr, "state under candidate sprixel: %d %d/%d\n", state, y, *x);
-      // we don't need to change it when under an opaque Sixel cell, because
-      // that's always printed on top. we need to change it under kitty until
-      // we start using the animation protocol to do cuts without redraws FIXME.
-      if(!crender->s.p_beats_sprixel && state != SPRIXCELL_OPAQUE_SIXEL){
+      // we don't need to change it when under an opaque cell, because
+      // that's always printed on top.
+      if(!crender->s.p_beats_sprixel){
+        if(state != SPRIXCELL_OPAQUE_SIXEL && state != SPRIXCELL_OPAQUE_KITTY){
 //fprintf(stderr, "damaged due to opaque %d/%d\n", y, *x);
-        crender->s.damaged = 1;
+          crender->s.damaged = 1;
+        }
       }
     }else{
 //fprintf(stderr, "damaged due to opaque else %d/%d\n", y, *x);
