@@ -887,6 +887,8 @@ clean_sprixels(notcurses* nc, ncpile* p, FILE* out){
         }
         // otherwise it's a new pile, so we couldn't have been on-screen
       }
+      // FIXME kitty graphics don't need the goto_location before a load, but only
+      // before a presentation; we ought be able to eliminate this
       if(goto_location(nc, out, y + nc->margin_t, x + nc->margin_l)){
         return -1;
       }
@@ -908,9 +910,13 @@ clean_sprixels(notcurses* nc, ncpile* p, FILE* out){
   return bytesemitted;
 }
 
+// "%d tardies to work off, by far the most in the class!\n", p->scrolls
 static int
 rasterize_scrolls(ncpile* p, FILE* out){
-//fprintf(stderr, "%d tardies to work off, by far the most in the class\n", p->scrolls);
+  logdebug("Order-%d scroll\n", p->scrolls);
+  if(p->scrolls == 0){
+    return 0;
+  }
   if(p->nc->rstate.logendy >= 0){
     p->nc->rstate.logendy -= p->scrolls;
     if(p->nc->rstate.logendy < 0){
@@ -1126,7 +1132,7 @@ notcurses_rasterize_inner(notcurses* nc, ncpile* p, FILE* out, unsigned* asu){
   // don't write a clearscreen. we only update things that have been changed.
   // we explicitly move the cursor at the beginning of each output line, so no
   // need to home it expliticly.
-  logdebug("Starting sprixel phase 1\n");
+  logdebug("Sprixel phase 1\n");
   int64_t sprixelbytes = clean_sprixels(nc, p, out);
   if(sprixelbytes < 0){
     return -1;
@@ -1135,11 +1141,11 @@ notcurses_rasterize_inner(notcurses* nc, ncpile* p, FILE* out, unsigned* asu){
   if(rasterize_scrolls(p, out)){
     return -1;
   }
-  logdebug("Starting glyph phase 1\n");
+  logdebug("Glyph phase 1\n");
   if(rasterize_core(nc, p, out, 0)){
     return -1;
   }
-  logdebug("Starting sprixel phase 2\n");
+  logdebug("Sprixel phase 2\n");
   int64_t rasprixelbytes = rasterize_sprixels(nc, p, out);
   if(rasprixelbytes < 0){
     return -1;
@@ -1148,7 +1154,7 @@ notcurses_rasterize_inner(notcurses* nc, ncpile* p, FILE* out, unsigned* asu){
   pthread_mutex_lock(&nc->statlock);
   nc->stats.sprixelbytes += sprixelbytes;
   pthread_mutex_unlock(&nc->statlock);
-  logdebug("Starting glyph phase 2\n");
+  logdebug("Glyph phase 2\n");
   if(rasterize_core(nc, p, out, 1)){
     return -1;
   }
@@ -1237,6 +1243,7 @@ notcurses_rasterize(notcurses* nc, ncpile* p, FILE* out){
     notcurses_cursor_enable(nc, cursory, cursorx);
   }else if(nc->rstate.logendy >= 0){
     goto_location(nc, nc->ttyfp, nc->rstate.logendy, nc->rstate.logendx);
+    fflush(nc->ttyfp);
   }
   nc->last_pile = p;
   return ret;
