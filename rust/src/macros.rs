@@ -32,6 +32,7 @@ macro_rules! sleep {
     };
 }
 
+/// notcurses render sleep:
 /// [`Nc::render`][Nc#method.render]\(`$nc`\)? + [`sleep!`]`[$sleep_args]`.
 ///
 /// Renders the `$nc` [`Nc`] object's standard plane pile and then,
@@ -39,7 +40,7 @@ macro_rules! sleep {
 ///
 /// Returns [NcResult].
 #[macro_export]
-macro_rules! rsleep {
+macro_rules! nrs {
     ($nc:expr, $( $sleep_args:expr),+ ) => {
         crate::Nc::render($nc)?;
         sleep![$( $sleep_args ),+];
@@ -49,6 +50,7 @@ macro_rules! rsleep {
     };
 }
 
+/// plane render sleep:
 /// [`NcPlane::render`][NcPlane#method.render]\(`$p`\)? +
 /// [`NcPlane::rasterize`][NcPlane#method.rasterize]\(`$p`\)? +
 /// [`sleep!`]`[$sleep_args]`.
@@ -58,7 +60,7 @@ macro_rules! rsleep {
 ///
 /// Returns [NcResult].
 #[macro_export]
-macro_rules! psleep {
+macro_rules! prs {
     ($p:expr, $( $sleep_args:expr),+ ) => {
         crate::NcPlane::render($p)?;
         crate::NcPlane::rasterize($p)?;
@@ -76,6 +78,8 @@ macro_rules! psleep {
 ///
 /// Returns [NcResult].
 #[macro_export]
+#[deprecated]
+#[doc(hidden)]
 macro_rules! fsleep {
     ($ncd:expr, $( $sleep_args:expr),+ ) => {
         // Rust style, with methods & NcResult
@@ -84,6 +88,33 @@ macro_rules! fsleep {
     };
     ($ncd:expr, $( $sleep_args:expr),+ ,) => {
         rsleep![$ncd, $( $sleep_args ),* ]
+    };
+}
+
+#[deprecated]
+#[doc(hidden)]
+#[allow(unused_macros)]
+macro_rules! prsleep {
+    ($p:expr, $( $sleep_args:expr),+ ) => {
+        prs![$p, $( $sleep_args ),+];
+    };
+}
+
+#[deprecated]
+#[doc(hidden)]
+#[allow(unused_macros)]
+macro_rules! psleep {
+    ($p:expr, $( $sleep_args:expr),+ ) => {
+        prs![$p, $( $sleep_args ),+];
+    };
+}
+
+#[deprecated]
+#[doc(hidden)]
+#[allow(unused_macros)]
+macro_rules! rsleep {
+    ($nc:expr, $( $sleep_args:expr),+ ) => {
+        nrs![$nc, $( $sleep_args ),+];
     };
 }
 

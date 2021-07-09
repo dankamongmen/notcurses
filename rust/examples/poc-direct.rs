@@ -1,7 +1,7 @@
 //! based on the proof of concept at ../../src/poc/direct.c
 
-use libnotcurses_sys::*;
 use core::convert::TryInto;
+use libnotcurses_sys::*;
 
 fn main() -> NcResult<()> {
     let dm = NcDirect::new()?;

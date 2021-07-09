@@ -18,7 +18,7 @@ fn main() -> NcResult<()> {
         if wc == '\u{9fa5}' {
             wc = '\u{4e00}';
         }
-        rsleep![&mut nc, 0, 0, 30];
+        nrs![&mut nc, 0, 0, 30];
     }
 
     // nc.stop()?;
