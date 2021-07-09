@@ -1111,14 +1111,14 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     free(ret);
     return NULL;
   }
-  const char* shortname_term = termname();
-// const char* longname_term = longname();
-  int cursor_y = -1, cursor_x = -1;
+  const char* shortname_term = termname(); // longname() is also available
+  ret->rstate.logendy = -1;
+  ret->rstate.logendx = -1;
   if(interrogate_terminfo(&ret->tcache, ret->ttyfd, shortname_term, utf8,
                           opts->flags & NCOPTION_NO_ALTERNATE_SCREEN, 0,
                           opts->flags & NCOPTION_NO_FONT_CHANGES,
-                          opts->flags & NCOPTION_PRESERVE_CURSOR ? &cursor_y : NULL,
-                          opts->flags & NCOPTION_PRESERVE_CURSOR ? &cursor_x : NULL)){
+                          opts->flags & NCOPTION_PRESERVE_CURSOR ? &ret->rstate.logendy : NULL,
+                          opts->flags & NCOPTION_PRESERVE_CURSOR ? &ret->rstate.logendx : NULL)){
     goto err;
   }
   int dimy, dimx;
@@ -1158,12 +1158,14 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     free_plane(ret->stdplane);
     goto err;
   }
-  if(cursor_y >= 0 && cursor_x >= 0){
-    if(!ret->suppress_banner && locate_cursor_early(ret, &cursor_y, &cursor_x)){
-      free_plane(ret->stdplane);
-      goto err;
+  if(ret->rstate.logendy >= 0 && ret->rstate.logendx >= 0){
+    if(!ret->suppress_banner){
+      if(locate_cursor_early(ret, &ret->rstate.logendy, &ret->rstate.logendx)){
+        free_plane(ret->stdplane);
+        goto err;
+      }
     }
-    ncplane_cursor_move_yx(ret->stdplane, cursor_y, cursor_x);
+    ncplane_cursor_move_yx(ret->stdplane, ret->rstate.logendy, ret->rstate.logendx);
   }
   if(set_fd_nonblocking(ret->tcache.input.infd, 1, &ret->stdio_blocking_save)){
     goto err;
@@ -1247,9 +1249,8 @@ int notcurses_stop(notcurses* nc){
   if(nc){
     ret |= notcurses_stop_minimal(nc);
     // if we were not using the alternate screen, our cursor's wherever we last
-    // wrote. move it to the bottom left of the screen, *unless*
-    // NCOPTION_PRESERVE_CURSOR was used, in which case it's right where we
-    // want it (i think? FIXME maybe next line's start?).
+    // wrote. move it to the bottom left of the screen, *unless* PRESERVE_CURSOR
+    // was used, in which case it's right where we want it.
     if(!(nc->flags & NCOPTION_PRESERVE_CURSOR)){
       if(!get_escape(&nc->tcache, ESCAPE_SMCUP)){
         // if ldimy is 0, we've not yet written anything; leave it untouched
