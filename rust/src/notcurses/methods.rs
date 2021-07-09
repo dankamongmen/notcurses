@@ -5,7 +5,9 @@ use core::ptr::{null, null_mut};
 use crate::{
     cstring, error, error_ref_mut, notcurses_init, rstring, Nc, NcAlign, NcBlitter, NcChannels,
     NcDim, NcError, NcFile, NcInput, NcLogLevel, NcOptions, NcPlane, NcResult, NcScale, NcStats,
-    NcStyle, NcTime, NCOPTION_NO_ALTERNATE_SCREEN, NCOPTION_SUPPRESS_BANNERS, NCRESULT_ERR,
+    NcStyle, NcStyleMethods, NcTime, NCOPTION_NO_ALTERNATE_SCREEN, NCOPTION_SUPPRESS_BANNERS,
+    NCRESULT_ERR, NCSTYLE_BLINK, NCSTYLE_BOLD, NCSTYLE_ITALIC, NCSTYLE_NONE, NCSTYLE_STRUCK,
+    NCSTYLE_UNDERCURL, NCSTYLE_UNDERLINE,
 };
 
 /// # `NcOptions` Constructors
@@ -395,10 +397,10 @@ impl Nc {
     /// Returns an [`NcBlitter`] from a string representation.
     ///
     /// *C style function: [notcurses_lex_blitter()][crate::notcurses_lex_blitter].*
-    pub fn lex_blitter(op: &str) -> NcResult<NcBlitter> {
+    pub fn lex_blitter(blitter_str: &str) -> NcResult<NcBlitter> {
         let mut blitter = 0;
         error![
-            unsafe { crate::notcurses_lex_blitter(cstring![op], &mut blitter) },
+            unsafe { crate::notcurses_lex_blitter(cstring![blitter_str], &mut blitter) },
             "Invalid blitter name", blitter
         ]
     }
@@ -409,19 +411,59 @@ impl Nc {
     /// or there can be four numbers separated by commas.
     ///
     /// *C style function: [notcurses_lex_margins()][crate::notcurses_lex_margins].*
-    pub fn lex_margins(op: &str, options: &mut NcOptions) -> NcResult<()> {
-        error![unsafe { crate::notcurses_lex_margins(cstring![op], options) }]
+    pub fn lex_margins(margins_str: &str, options: &mut NcOptions) -> NcResult<()> {
+        error![unsafe { crate::notcurses_lex_margins(cstring![margins_str], options) }]
     }
 
     /// Returns an [`NcScale`] from a string representation.
     ///
     /// *C style function: [notcurses_lex_scalemode()][crate::notcurses_lex_scalemode].*
-    pub fn lex_scalemode(op: &str) -> NcResult<NcScale> {
+    pub fn lex_scalemode(scalemode_str: &str) -> NcResult<NcScale> {
         let mut scalemode = 0;
         error![
-            unsafe { crate::notcurses_lex_scalemode(cstring![op], &mut scalemode) },
+            unsafe { crate::notcurses_lex_scalemode(cstring![scalemode_str], &mut scalemode) },
             "", scalemode
         ]
+    }
+
+    /// Returns an [`NcStyle`] from a string representation.
+    ///
+    /// It is case-insensitive, and supports multiple styles separated by
+    /// spaces.
+    ///
+    /// The supported styles are: `italic`, `underline`, `undercurl`,
+    /// `struck`, `bold`, `blink` and `none`.
+    ///
+    /// If a style is are not recognized returns an error.
+    ///
+    /// *(No equivalent C style function)*
+    pub fn lex_styles(styles_str: &str) -> NcResult<NcStyle> {
+        let mut style = NCSTYLE_NONE;
+        let mut errstr = String::new();
+
+        for s in styles_str.split(' ') {
+            match s.to_lowercase().as_str() {
+                "italic" => style.add(NCSTYLE_ITALIC),
+                "underline" => style.add(NCSTYLE_UNDERLINE),
+                "undercurl" => style.add(NCSTYLE_UNDERCURL),
+                "struck" => style.add(NCSTYLE_STRUCK),
+                "bold" => style.add(NCSTYLE_BOLD),
+                "blink" => style.add(NCSTYLE_BLINK),
+                _ => {
+                    errstr.push_str(s);
+                    errstr.push(' ');
+                }
+            }
+        }
+        if errstr.is_empty() {
+            Ok(style)
+        } else {
+            let _ = errstr.pop();
+            Err(NcError::new_msg(&format![
+                "the following styles are not recognized: '{}'",
+                errstr
+            ]))
+        }
     }
 
     /// Disables signals originating from the terminal's line discipline, i.e.
@@ -636,6 +678,28 @@ impl Nc {
     /// *C style function: [notcurses_str_scalemode()][crate::notcurses_str_scalemode].*
     pub fn str_scalemode(scalemode: NcScale) -> String {
         rstring![crate::notcurses_str_scalemode(scalemode)].to_string()
+    }
+
+    /// Gets the lowercase name (or names) of the styles included in an [`NcStyle`].
+    ///
+    /// *(No equivalent C style function)*
+    pub fn str_styles(style: NcStyle) -> String {
+        let mut string = String::new();
+        for s in style.to_vec() {
+            string.push_str(match s {
+                NCSTYLE_ITALIC => "italic",
+                NCSTYLE_UNDERLINE => "underline",
+                NCSTYLE_UNDERCURL => "undercurl",
+                NCSTYLE_STRUCK => "struck",
+                NCSTYLE_BOLD => "bold",
+                NCSTYLE_BLINK => "blink",
+                NCSTYLE_NONE => "none",
+                _ => "",
+            });
+            string.push(' ');
+        }
+        let _ = string.pop();
+        string
     }
 
     /// Returns an [`NcStyle`] with the supported curses-style attributes.

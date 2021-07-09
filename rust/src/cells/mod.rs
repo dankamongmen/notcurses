@@ -326,3 +326,42 @@ pub const NCSTYLE_BLINK: u16 = crate::bindings::ffi::NCSTYLE_BLINK as u16;
 
 ///
 pub const NCSTYLE_NONE: u16 = crate::bindings::ffi::NCSTYLE_NONE as u16;
+
+/// Enables the [`NcStyle`] methods.
+pub trait NcStyleMethods {
+    fn add(&mut self, other_style: NcStyle);
+    fn has(&self, other: NcStyle) -> bool;
+    fn to_vec(&self) -> Vec<NcStyle>;
+}
+
+impl NcStyleMethods for NcStyle {
+    /// Returns a `Vec` with all the styles contained in the current style.
+    fn to_vec(&self) -> Vec<NcStyle> {
+        let mut v = vec![];
+        let styles = [
+            NCSTYLE_ITALIC,
+            NCSTYLE_UNDERLINE,
+            NCSTYLE_UNDERCURL,
+            NCSTYLE_STRUCK,
+            NCSTYLE_BOLD,
+            NCSTYLE_BLINK,
+            NCSTYLE_NONE,
+        ];
+        for s in styles {
+            if self.has(s) {
+                v.push(s)
+            }
+        }
+        v
+    }
+
+    /// Returns true if the current style has included the `other_style`.
+    fn has(&self, other_style: NcStyle) -> bool {
+        (self & other_style) == other_style
+    }
+
+    /// Adds the `other_style` to the current style.
+    fn add(&mut self, other_style: NcStyle) {
+        *self |= other_style
+    }
+}
