@@ -166,7 +166,7 @@ nctabbed* nctabbed_create(ncplane* n, const nctabbed_options* topts){
     nopts.rows = nrows - 1;
     if((nt->p = ncplane_create(n, &nopts)) == NULL){
       logerror("Couldn't create the tab content plane");
-      ncplane_genocide(n);
+      ncplane_destroy_family(n);
       free(nt);
       return NULL;
     }
@@ -174,7 +174,7 @@ nctabbed* nctabbed_create(ncplane* n, const nctabbed_options* topts){
     nopts.rows = 1;
     if((nt->hp = ncplane_create(n, &nopts)) == NULL){
       logerror("Couldn't create the tab headers plane");
-      ncplane_genocide(n);
+      ncplane_destroy_family(n);
       free(nt);
       return NULL;
     }
@@ -184,7 +184,7 @@ nctabbed* nctabbed_create(ncplane* n, const nctabbed_options* topts){
     nopts.rows = 1;
     if((nt->hp = ncplane_create(n, &nopts)) == NULL){
       logerror("Couldn't create the tab headers plane");
-      ncplane_genocide(n);
+      ncplane_destroy_family(n);
       free(nt);
       return NULL;
     }
@@ -192,7 +192,7 @@ nctabbed* nctabbed_create(ncplane* n, const nctabbed_options* topts){
     nopts.rows = nrows - 1;
     if((nt->p = ncplane_create(n, &nopts)) == NULL){
       logerror("Couldn't create the tab content plane");
-      ncplane_genocide(n);
+      ncplane_destroy_family(n);
       free(nt);
       return NULL;
     }
@@ -398,7 +398,7 @@ void nctabbed_destroy(nctabbed* nt){
     free(t);
     t = tmp;
   }
-  ncplane_genocide(nt->ncp);
+  ncplane_destroy_family(nt->ncp);
   free(nt->opts.separator);
   free(nt);
 }
