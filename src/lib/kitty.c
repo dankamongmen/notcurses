@@ -379,11 +379,11 @@ kitty_transanim_auxvec(int dimy, int dimx, int posy, int posx,
       if(pixels + posx > dimx){
         pixels = dimx - posx;
       }
-      logtrace("Copying %d (%d) from %p to %p %d/%d\n",
+      /*logtrace("Copying %d (%d) from %p to %p %d/%d\n",
                pixels * 4, y,
                data + y * (rowstride / 4) + posx,
                a + (y - posy) * (pixels * 4),
-               posy / cellpxy, posx / cellpxx);
+               posy / cellpxy, posx / cellpxx);*/
       memcpy(a + (y - posy) * (pixels * 4),
              data + y * (rowstride / 4) + posx,
              pixels * 4);
@@ -559,6 +559,8 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
   int targetout = 0; // number of pixels expected out after this chunk
 //fprintf(stderr, "total: %d chunks = %d, s=%d,v=%d\n", total, chunks, lenx, leny);
   while(chunks--){
+    // q=2 has been able to go on chunks other than the last chunk since
+    // 2021-03, but there's no harm in this small bit of backwards compat.
     if(totalout == 0){
       *parse_start = fprintf(fp, "\e_Gf=32,s=%d,v=%d,i=%d,p=1,a=t,%s;",
                              lenx, leny, sprixelid, chunks ? "m=1" : "q=2");
