@@ -717,47 +717,6 @@ update_palette(notcurses* nc, FILE* out){
   return 0;
 }
 
-// sync the drawing position to the specified location with as little overhead
-// as possible (with nothing, if already at the right location). we prefer
-// absolute horizontal moves (hpa) to relative ones, in the rare event that
-// our understanding of our horizontal location is faulty.
-// FIXME fall back to synthesized moves in the absence of capabilities (i.e.
-// textronix lacks cup; fake it with horiz+vert moves)
-// if hardcursorpos is non-zero, we always perform a cup
-static inline int
-goto_location(notcurses* nc, FILE* out, int y, int x){
-//fprintf(stderr, "going to %d/%d from %d/%d hard: %u\n", y, x, nc->rstate.y, nc->rstate.x, hardcursorpos);
-  int ret = 0;
-  // if we don't have hpa, force a cup even if we're only 1 char away. the only
-  // terminal i know supporting cup sans hpa is vt100, and vt100 can suck it.
-  // you can't use cuf for backwards moves anyway; again, vt100 can suck it.
-  const char* hpa = get_escape(&nc->tcache, ESCAPE_HPA);
-  if(nc->rstate.y == y && hpa && !nc->rstate.hardcursorpos){ // only need move x
-    if(nc->rstate.x == x){ // needn't move shit
-      return 0;
-    }
-    const char* cuf1 = get_escape(&nc->tcache, ESCAPE_CUF1);
-    if(x == nc->rstate.x + 1 && cuf1){
-      ret = term_emit(cuf1, out, false);
-    }else{
-      ret = term_emit(tiparm(hpa, x), out, false);
-    }
-  }else{
-    // cup is required, no need to verify existence
-    ret = term_emit(tiparm(get_escape(&nc->tcache, ESCAPE_CUP), y, x), out, false);
-    nc->rstate.hardcursorpos = 0;
-  }
-  nc->rstate.x = x;
-  nc->rstate.y = y;
-  if(nc->rstate.logendy >= 0){
-    if(y > nc->rstate.logendy || (y == nc->rstate.logendy && x > nc->rstate.logendx)){
-      nc->rstate.logendy = y;
-      nc->rstate.logendx = x;
-    }
-  }
-  return ret;
-}
-
 // at least one of the foreground and background are the default. emit the
 // necessary return to default (if one is necessary), and update rstate.
 static inline int
@@ -893,7 +852,7 @@ clean_sprixels(notcurses* nc, ncpile* p, FILE* out){
       if(goto_location(nc, out, y + nc->margin_t, x + nc->margin_l)){
         return -1;
       }
-      int r = sprite_redraw(nc, p, s, out);
+      int r = sprite_redraw(nc, p, s, out, y + nc->margin_t, x + nc->margin_l);
       if(r < 0){
         return -1;
       }
@@ -952,10 +911,7 @@ rasterize_sprixels(notcurses* nc, ncpile* p, FILE* out){
 //fprintf(stderr, "3 DRAWING BITMAP %d STATE %d AT %d/%d for %p\n", s->id, s->invalidated, y + nc->margin_t, x + nc->margin_l, s->n);
       int y,x;
       ncplane_yx(s->n, &y, &x);
-      if(goto_location(nc, out, y + nc->margin_t, x + nc->margin_l)){
-        return -1;
-      }
-      int r = sprite_draw(nc, p, s, out);
+      int r = sprite_draw(nc, p, s, out, y + nc->margin_t, x + nc->margin_l);
       if(r < 0){
         return -1;
       }

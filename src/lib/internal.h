@@ -674,16 +674,18 @@ sprite_scrub(const notcurses* n, const ncpile* p, sprixel* s){
 // precondition: s->invalidated is SPRIXEL_INVALIDATED or SPRIXEL_MOVED.
 // returns -1 on error, or the number of bytes written.
 static inline int
-sprite_draw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
+sprite_draw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out,
+            int y, int x){
 //sprixel_debug(s, stderr);
   logdebug("Sprixel %u state %d\n", s->id, s->invalidated);
-  return n->tcache.pixel_draw(p, s, out);
+  return n->tcache.pixel_draw(p, s, out, y, x);
 }
 
 // precondition: s->invalidated is SPRIXEL_MOVED or SPRIXEL_INVALIDATED
 // returns -1 on error, or the number of bytes written.
 static inline int
-sprite_redraw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
+sprite_redraw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out,
+              int y, int x){
 //sprixel_debug(s, stderr);
   logdebug("Sprixel %u state %d\n", s->id, s->invalidated);
   if(s->invalidated == SPRIXEL_MOVED && n->tcache.pixel_move){
@@ -693,7 +695,7 @@ sprite_redraw(const notcurses* n, const ncpile* p, sprixel* s, FILE* out){
     bool noscroll = !n->tcache.sixel_maxy_pristine;
     return n->tcache.pixel_move(s, out, noscroll);
   }else{
-    return n->tcache.pixel_draw(p, s, out);
+    return n->tcache.pixel_draw(p, s, out, y, x);
   }
 }
 
@@ -1169,6 +1171,47 @@ mouse_disable(FILE* out){
   return term_emit("\x1b[?" SET_BTN_EVENT_MOUSE ";"
                    /*SET_FOCUS_EVENT_MOUSE ";" */SET_SGR_MODE_MOUSE "l",
                    out, false);
+}
+
+// sync the drawing position to the specified location with as little overhead
+// as possible (with nothing, if already at the right location). we prefer
+// absolute horizontal moves (hpa) to relative ones, in the rare event that
+// our understanding of our horizontal location is faulty.
+// FIXME fall back to synthesized moves in the absence of capabilities (i.e.
+// textronix lacks cup; fake it with horiz+vert moves)
+// if hardcursorpos is non-zero, we always perform a cup
+static inline int
+goto_location(notcurses* nc, FILE* out, int y, int x){
+//fprintf(stderr, "going to %d/%d from %d/%d hard: %u\n", y, x, nc->rstate.y, nc->rstate.x, hardcursorpos);
+  int ret = 0;
+  // if we don't have hpa, force a cup even if we're only 1 char away. the only
+  // terminal i know supporting cup sans hpa is vt100, and vt100 can suck it.
+  // you can't use cuf for backwards moves anyway; again, vt100 can suck it.
+  const char* hpa = get_escape(&nc->tcache, ESCAPE_HPA);
+  if(nc->rstate.y == y && hpa && !nc->rstate.hardcursorpos){ // only need move x
+    if(nc->rstate.x == x){ // needn't move shit
+      return 0;
+    }
+    const char* cuf1 = get_escape(&nc->tcache, ESCAPE_CUF1);
+    if(x == nc->rstate.x + 1 && cuf1){
+      ret = term_emit(cuf1, out, false);
+    }else{
+      ret = term_emit(tiparm(hpa, x), out, false);
+    }
+  }else{
+    // cup is required, no need to verify existence
+    ret = term_emit(tiparm(get_escape(&nc->tcache, ESCAPE_CUP), y, x), out, false);
+    nc->rstate.hardcursorpos = 0;
+  }
+  nc->rstate.x = x;
+  nc->rstate.y = y;
+  if(nc->rstate.logendy >= 0){
+    if(y > nc->rstate.logendy || (y == nc->rstate.logendy && x > nc->rstate.logendx)){
+      nc->rstate.logendy = y;
+      nc->rstate.logendx = x;
+    }
+  }
+  return ret;
 }
 
 // how many edges need touch a corner for it to be printed?
