@@ -112,7 +112,7 @@ unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
     ncplane_printf(n, "⎩%lc%lc⎭", NCEIGHTHSR[7], NCEIGHTHSL[7]);
     ncplane_putchar(n, '\n');
 
-    ncplane_printf(n, "%s ▔🭶🭷🭸🭹🭺🭻▁ %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc 🭨🭪  %.30ls    ⎛%ls⎞",
+    ncplane_printf(n, "%s ▔🭶🭷🭸🭹🭺🭻▁ %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc 🭨🭪  %.30ls  ⎛%ls ⎞",
                    indent,
                    NCANGLESBR[0], NCANGLESBL[0],
                    NCANGLESBR[1], NCANGLESBL[1],
@@ -127,7 +127,7 @@ unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
                    NCANGLESBR[10], NCANGLESBL[10],
                    NCDIGITSSUBW, NCEIGHTHSB);
     ncplane_putchar(n, '\n');
-    ncplane_printf(n, "%s ▏🭰🭱🭲🭳🭴🭵▕ %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc 🭪🭨  %.30ls    ⎝%ls⎠",
+    ncplane_printf(n, "%s ▏🭰🭱🭲🭳🭴🭵▕ %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc 🭪🭨  %.30ls  ⎝%ls ⎠",
                    indent,
                    NCANGLESTR[0], NCANGLESTL[0],
                    NCANGLESTR[1], NCANGLESTL[1],

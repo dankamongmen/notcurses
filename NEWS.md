@@ -2,8 +2,8 @@ This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
 * 2.3.9 (not yet released)
-  * Fixed two major regressions in 2.3.8: menu highlighting is working once
-    more, as are pointer inputs (mice). Sorry about that!
+  * Fixed major regressions from 2.3.8: menu highlighting is working once
+    more, as are pointer inputs (mice) and the 8x1 plotter. Sorry about that!
   * `notcurses_detected_terminal()` and `ncdirect_detected_terminal()` now
     both return a heap-allocated string, which will contain the terminal
     version if Notcurses was able to detect it. This result ought be free()d.
