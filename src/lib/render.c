@@ -1222,6 +1222,8 @@ notcurses_rasterize(notcurses* nc, ncpile* p, FILE* out){
   int ret = raster_and_write(nc, p, out);
   if(cursory >= 0){
     notcurses_cursor_enable(nc, cursory, cursorx);
+  }else if(nc->rstate.logendy >= 0){
+    goto_location(nc, nc->ttyfp, nc->rstate.logendy, nc->rstate.logendx);
   }
   nc->last_pile = p;
   return ret;
@@ -1536,12 +1538,14 @@ int notcurses_cursor_enable(notcurses* nc, int y, int x){
   if(nc->cursory == y && nc->cursorx == x){
     return 0;
   }
-  const char* cnorm = get_escape(&nc->tcache, ESCAPE_CNORM);
-  if(nc->ttyfd < 0 || !cnorm){
+  if(nc->ttyfd < 0){
     return -1;
   }
   // updates nc->rstate.cursor{y,x}
   if(goto_location(nc, nc->ttyfp, y + nc->margin_t, x + nc->margin_l)){
+    return -1;
+  }
+  if(ncflush(nc->ttyfp)){
     return -1;
   }
   // if we were already positive, we're already visible, no need to write cnorm
@@ -1550,7 +1554,8 @@ int notcurses_cursor_enable(notcurses* nc, int y, int x){
     nc->cursorx = x;
     return 0;
   }
-  if(tty_emit(cnorm, nc->ttyfd) || ncflush(nc->ttyfp)){
+  const char* cnorm = get_escape(&nc->tcache, ESCAPE_CNORM);
+  if(!cnorm || tty_emit(cnorm, nc->ttyfd)){
     return -1;
   }
   nc->cursory = y;
