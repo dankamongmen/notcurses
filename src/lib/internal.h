@@ -123,6 +123,15 @@ typedef struct rasterstate {
   unsigned lastbr;  // background rgb, overloaded for palindexed bg
   unsigned lastbg;
   unsigned lastbb;
+
+  // used in CLI mode, these track the end of logical output, to place the
+  // cursor following each rasterization. they are tracked thusly:
+  //  * initialized to the initial physical cursor position
+  //  * when we write to a physical row greater than logendy, update both
+  //  * when we scroll, subtract one from logendy
+  //   * if logendy reaches -1, reset both to 0
+  int logendy, logendx;
+
   uint16_t curattr; // current attributes set (does not include colors)
   // we elide a color escape iff the color has not changed between two cells
   bool fgelidable;
