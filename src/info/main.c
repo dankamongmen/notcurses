@@ -205,10 +205,10 @@ display_logo(const tinfo* ti, struct ncplane* n, const char* path){
     return -1;
   }
   int y;
-  ncplane_yx(n, &y, NULL);
+  ncplane_cursor_yx(n, &y, NULL);
   struct ncvisual_options vopts = {
     .n = n,
-    .y = y + 7,
+    .y = y - 4,
     .x = 48,
     .blitter = NCBLIT_PIXEL,
     .flags = NCVISUAL_OPTION_CHILDPLANE,
@@ -301,7 +301,9 @@ usage(const char* base, FILE* fp, int ret){
 // notcurses_render() without the alternate screen, no?
 int main(int argc, const char** argv){
   notcurses_options nopts = {
-    .flags = NCOPTION_NO_ALTERNATE_SCREEN | NCOPTION_PRESERVE_CURSOR,
+    .flags = NCOPTION_NO_ALTERNATE_SCREEN
+             | NCOPTION_PRESERVE_CURSOR
+             | NCOPTION_NO_CLEAR_BITMAPS,
     .loglevel = NCLOGLEVEL_WARNING,
   };
   if(argc > 2){
