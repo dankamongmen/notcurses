@@ -261,7 +261,31 @@ handle_csi(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin){
 
 // add the keypress we just read to our input queue (assuming there is room).
 // if there is a full UTF8 codepoint or keystroke (composed or otherwise),
-// return it, and pop it from the queue.
+// return it, and pop it from the queue. if there is a full cursor location
+// report, push that to the location report queue.
+// we need to match escapes from terminfo, certainly, but what about
+// unexpected escapes? the williams automaton is our guide:
+// https://vt100.net/emu/dec_ansi_parser. here are the basics:
+//
+// six sets of input trump everything, setting a known state from all sources,
+// only two of which are directly available in 7-bit mode:
+//
+//  0x18/0x1a (cancel): ground state
+//  0x1b (escape): escape state
+//
+// the other four require two 7-bit characters:
+//
+//  0x90: DCS, also reached via 0x1b+0x50
+//  0x9b: CSI, also reached via 0x1b+0x5b
+//  0x9d: OSC, also reached via 0x1b+0x5d
+//  0x98/0x9e/0x9f: sos/pm/apc string, also reached via 0x1b+{0x58/0x5e/0x5f}
+//
+// if interrupted in the middle of an existing sequence, it must not be acted
+// upon, and should probably not be delivered as bulk input.
+//
+// CSI is most relevant to us here, since mouse and cursor reports arrive that
+// way. CSI is properly terminated by 0x40--0x7e. the parameter space covers
+// 0x30--0x39 and the delimiter 0x3b (';').
 static char32_t
 handle_getc(ncinputlayer* nc, int kpress, ncinput* ni, int leftmargin, int topmargin){
   if(kpress < 0){
