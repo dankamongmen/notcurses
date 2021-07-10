@@ -1131,8 +1131,6 @@ coerce_styles(FILE* out, const tinfo* ti, uint16_t* curstyle,
               uint16_t newstyle, unsigned* normalized){
   *normalized = 0; // we never currently use sgr0
   int ret = 0;
-  ret |= term_setstyle(out, *curstyle, newstyle, NCSTYLE_BLINK,
-                       get_escape(ti, ESCAPE_BLINK), get_escape(ti, ESCAPE_NOBLINK));
   ret |= term_setstyle(out, *curstyle, newstyle, NCSTYLE_BOLD,
                        get_escape(ti, ESCAPE_BOLD), get_escape(ti, ESCAPE_NOBOLD));
   ret |= term_setstyle(out, *curstyle, newstyle, NCSTYLE_ITALIC,
@@ -1179,38 +1177,39 @@ mouse_disable(FILE* out){
 // our understanding of our horizontal location is faulty.
 // FIXME fall back to synthesized moves in the absence of capabilities (i.e.
 // textronix lacks cup; fake it with horiz+vert moves)
-// if hardcursorpos is non-zero, we always perform a cup
+// if hardcursorpos is non-zero, we always perform a cup. this is done when we
+// don't know where the cursor currently is =].
 static inline int
 goto_location(notcurses* nc, FILE* out, int y, int x){
 //fprintf(stderr, "going to %d/%d from %d/%d hard: %u\n", y, x, nc->rstate.y, nc->rstate.x, hardcursorpos);
   int ret = 0;
   // if we don't have hpa, force a cup even if we're only 1 char away. the only
-  // terminal i know supporting cup sans hpa is vt100, and vt100 can suck it.
+  // TERM i know supporting cup sans hpa is vt100, and vt100 can suck it.
   // you can't use cuf for backwards moves anyway; again, vt100 can suck it.
   const char* hpa = get_escape(&nc->tcache, ESCAPE_HPA);
   if(nc->rstate.y == y && hpa && !nc->rstate.hardcursorpos){ // only need move x
     if(nc->rstate.x == x){ // needn't move shit
       return 0;
     }
-    const char* cuf1 = get_escape(&nc->tcache, ESCAPE_CUF1);
-    if(x == nc->rstate.x + 1 && cuf1){
-      ret = term_emit(cuf1, out, false);
-    }else{
-      ret = term_emit(tiparm(hpa, x), out, false);
+    if(term_emit(tiparm(hpa, x), out, false)){
+      return -1;
     }
   }else{
     // cup is required, no need to verify existence
-    ret = term_emit(tiparm(get_escape(&nc->tcache, ESCAPE_CUP), y, x), out, false);
-    nc->rstate.hardcursorpos = 0;
+    const char* cup = get_escape(&nc->tcache, ESCAPE_CUP);
+    if(term_emit(tiparm(cup, y, x), out, false)){
+      return -1;
+    }
   }
-  nc->rstate.x = x;
-  nc->rstate.y = y;
   if(nc->rstate.logendy >= 0){
     if(y > nc->rstate.logendy || (y == nc->rstate.logendy && x > nc->rstate.logendx)){
       nc->rstate.logendy = y;
       nc->rstate.logendx = x;
     }
   }
+  nc->rstate.x = x;
+  nc->rstate.y = y;
+  nc->rstate.hardcursorpos = 0;
   return ret;
 }
 

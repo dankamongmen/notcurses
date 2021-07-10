@@ -1181,14 +1181,12 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
           goto err;
         }
       }
-      const char* clearscr = get_escape(&ret->tcache, ESCAPE_CLEAR);
-      // perform an explicit clear if the alternate screen was requested
-      // (smcup *might* clear, but who knows, and might not have been
+      // perform an explicit clear since the alternate screen was requested
+      // (smcup *might* clear, but who knows? and it might not have been
       // available in any case).
-      if(!clearscr || term_emit(clearscr, ret->ttyfp, true)){
-        // if we don't have a clear escape, clear via iterated writes
-        notcurses_refresh(ret, NULL, NULL);
-      }
+      notcurses_refresh(ret, NULL, NULL);
+      // no need to reestablish a preserved cursor -- that only affects the
+      // standard plane, not the physical cursor that was just disrupted.
     }
   }
   return ret;

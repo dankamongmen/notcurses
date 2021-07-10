@@ -534,7 +534,6 @@ build_supported_styles(tinfo* ti){
     { NCSTYLE_UNDERLINE, ESCAPE_SMUL, "smul", A_UNDERLINE },
     { NCSTYLE_ITALIC, ESCAPE_SITM, "sitm", A_ITALIC },
     { NCSTYLE_STRUCK, ESCAPE_SMXX, "smxx", 0 },
-    { NCSTYLE_BLINK, ESCAPE_BLINK, "blink", A_BLINK },
     { NCSTYLE_UNDERCURL, ESCAPE_SMULX, "Smulx", 0 },
     { 0, 0, NULL, 0 }
   };
@@ -620,11 +619,9 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
     { ESCAPE_SITM, "sitm", },
     { ESCAPE_RITM, "ritm", },
     { ESCAPE_BOLD, "bold", },
-    { ESCAPE_BLINK, "blink", },
     { ESCAPE_CUD, "cud", },
     { ESCAPE_CUU, "cuu", },
     { ESCAPE_CUF, "cuf", },
-    { ESCAPE_CUF1, "cuf1", },
     { ESCAPE_CUB, "cub", },
     { ESCAPE_INITC, "initc", },
     { ESCAPE_GETM, "getm", },
@@ -636,7 +633,6 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
     { ESCAPE_SC, "sc", },
     { ESCAPE_RC, "rc", },
     { ESCAPE_CLEAR, "clear", },
-    { ESCAPE_HOME, "home", },
     { ESCAPE_OC, "oc", },
     { ESCAPE_RMKX, "rmkx", },
     { ESCAPE_DSRCPR, "u7", },
@@ -686,11 +682,6 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
   }
   if(get_escape(ti, ESCAPE_BOLD)){
     if(grow_esc_table(ti, "\e[22m", ESCAPE_NOBOLD, &tablelen, &tableused)){
-      goto err;
-    }
-  }
-  if(get_escape(ti, ESCAPE_BLINK)){
-    if(grow_esc_table(ti, "\e[25m", ESCAPE_NOBLINK, &tablelen, &tableused)){
       goto err;
     }
   }

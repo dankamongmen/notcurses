@@ -1206,28 +1206,41 @@ notcurses_rasterize(notcurses* nc, ncpile* p, FILE* out){
   return ret;
 }
 
-// get the cursor to the upper-left corner by one means or another. will clear
-// the screen if need be.
+// get the cursor to the upper-left corner by one means or another, clearing
+// the screen while doing so.
 static int
-home_cursor(notcurses* nc, bool flush){
-  int ret = -1;
-  const char* home = get_escape(&nc->tcache, ESCAPE_HOME);
-  if(home){
-    ret = term_emit(home, nc->ttyfp, flush);
-  }else{
-    const char* cup = get_escape(&nc->tcache, ESCAPE_CUP);
-    const char* clearscr = get_escape(&nc->tcache, ESCAPE_CLEAR);
-    if(cup){
-      ret = term_emit(tiparm(cup, 1, 1), nc->ttyfp, flush);
-    }else if(clearscr){
-      ret = term_emit(clearscr, nc->ttyfp, flush);
+clear_and_home(notcurses* nc, tinfo* ti, FILE* fp, unsigned flush){
+  // clear clears the screen and homes the cursor by itself
+  const char* clearscr = get_escape(ti, ESCAPE_CLEAR);
+  if(clearscr){
+    if(term_emit(clearscr, fp, flush) == 0){
+      goto success;
     }
   }
-  if(ret >= 0){
-    nc->rstate.x = 0;
-    nc->rstate.y = 0;
+  const ncplane* stdn = notcurses_stdplane_const(nc);
+  // clearscr didn't fly. try scrolling everything off. first, go to the
+  // bottom of the screen, then write N newlines.
+  if(goto_location(nc, fp, ncplane_dim_y(stdn) - 1, 0)){
+    return -1;
   }
-  return ret;
+  for(int y = 0 ; y < ncplane_dim_y(stdn) ; ++y){
+    if(ncfputc('\n', fp) == EOF){
+      return -1;
+    }
+  }
+  if(goto_location(nc, fp, 0, 0)){
+    return -1;
+  }
+  if(flush){
+    if(ncflush(fp)){
+      return -1;
+    }
+  }
+
+success:
+  nc->rstate.x = 0;
+  nc->rstate.y = 0;
+  return 0;
 }
 
 int notcurses_refresh(notcurses* nc, int* restrict dimy, int* restrict dimx){
@@ -1237,7 +1250,7 @@ int notcurses_refresh(notcurses* nc, int* restrict dimy, int* restrict dimx){
   if(nc->lfdimx == 0 || nc->lfdimy == 0){
     return 0;
   }
-  if(home_cursor(nc, true)){
+  if(clear_and_home(nc, &nc->tcache, nc->ttyfp, true)){
     return -1;
   }
   ncpile p = {};
