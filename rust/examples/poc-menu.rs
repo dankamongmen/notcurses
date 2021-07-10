@@ -4,6 +4,7 @@
 // probably related to the arrays or the strings...
 
 use libnotcurses_sys::*;
+use widgets::*;
 
 fn main() -> NcResult<()> {
     let mut nc = Nc::new()?;
