@@ -42,6 +42,7 @@ typedef struct ncstats {
   uint64_t sprixelelisions;  // sprixel elision count
   uint64_t sprixelbytes;     // sprixel bytes emitted
   uint64_t appsync_updates;  // application-synchronized updates
+  uint64_t input_errors;     // errors processing input
 
   // current state -- these can decrease
   uint64_t fbbytes;          // bytes devoted to framebuffers
@@ -112,6 +113,9 @@ a sprixel appeared in a rendered frame without freshly drawing it.
 **sprixelbytes** is the number of bytes used for sprixel drawing. It does not
 include move/delete operations, nor glyphs used to erase sprixels.
 
+**input_errors** is the number of errors while processing input, e.g.
+malformed control sequences or invalid UTF-8 (see **utf8(7)**).
+
 # NOTES
 
 Unsuccessful render operations do not contribute to the render timing stats.
@@ -124,4 +128,6 @@ object on success, or **NULL** on failure.
 
 # SEE ALSO
 
-**notcurses(3)**, **notcurses_render(3)**
+**notcurses(3)**,
+**notcurses_render(3)**,
+**utf8(7)**

@@ -36,7 +36,7 @@ python_ncchannel_rgb_initializer(PyObject *Py_UNUSED(self), PyObject *args)
 
     GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "kkk", &r, &g, &b));
 
-    unsigned long ncchannel = CHANNEL_INITIALIZER(r, g, b);
+    unsigned long ncchannel = NCCHANNEL_INITIALIZER(r, g, b);
 
     return Py_BuildValue("k", ncchannel);
 }
