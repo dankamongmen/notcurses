@@ -24,7 +24,7 @@ python_ncchannels_rgb_initializer(PyObject *Py_UNUSED(self), PyObject *args)
 
     GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "KKKKKK", &fr, &fg, &fb, &br, &bg, &bb));
 
-    unsigned long long ncchannels = CHANNELS_RGB_INITIALIZER(fr, fg, fb, br, bg, bb);
+    unsigned long long ncchannels = NCCHANNELS_INITIALIZER(fr, fg, fb, br, bg, bb);
 
     return Py_BuildValue("K", ncchannels);
 }
@@ -36,7 +36,7 @@ python_ncchannel_rgb_initializer(PyObject *Py_UNUSED(self), PyObject *args)
 
     GNU_PY_CHECK_BOOL(PyArg_ParseTuple(args, "kkk", &r, &g, &b));
 
-    unsigned long ncchannel = CHANNEL_RGB_INITIALIZER(r, g, b);
+    unsigned long ncchannel = CHANNEL_INITIALIZER(r, g, b);
 
     return Py_BuildValue("k", ncchannel);
 }

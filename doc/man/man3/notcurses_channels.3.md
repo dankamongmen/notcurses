@@ -11,11 +11,11 @@ notcurses_channels - operations on notcurses channels
 **#include <notcurses/notcurses.h>**
 
 ```c
-#define CHANNELS_RGB_INITIALIZER(fr, fg, fb, br, bg, bb) \
+#define NCCHANNELS_INITIALIZER(fr, fg, fb, br, bg, bb) \
   (((((uint64_t)(fr) << 16u) + ((uint64_t)(fg) << 8u) + (uint64_t)(fb)) << 32ull) + \
    (((br) << 16u) + ((bg) << 8u) + (bb)) + CELL_BGDEFAULT_MASK + CELL_FGDEFAULT_MASK)
 
-#define CHANNEL_RGB_INITIALIZER(r, g, b) \
+#define CHANNEL_INITIALIZER(r, g, b) \
   (((uint32_t)r << 16u) + ((uint32_t)g << 8u) + (b) + CELL_BGDEFAULT_MASK)
 ```
 
