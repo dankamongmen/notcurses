@@ -262,6 +262,8 @@ to breaking under incorrect `TERM` values. If you're not using `xterm`, your
 
 * **Q:** How do I mix Rendered and Direct mode? **A:** You really don't want to. You can stream a subprocess to a plane with the `ncsubproc` widget.
 
+* **Q:** How can I clear the screen on startup in Rendered mode when not using the alternate screen? **A:** Call `notcurses_refresh()` after `notcurses_init()` returns successfully.
+
 ## Useful links
 
 * [BiDi in Terminal Emulators](https://terminal-wg.pages.freedesktop.org/bidi/)
