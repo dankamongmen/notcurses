@@ -1,6 +1,7 @@
 //! `NcReader*` methods and associated functions.
 
-use crate::{error_ref_mut, ncreader_create, NcPlane, NcReader, NcReaderOptions, NcResult};
+use super::{NcReader, NcReaderOptions};
+use crate::{error_ref_mut, ncreader_create, NcPlane, NcResult};
 
 /// # `NcReaderOptions` Constructors
 impl NcReaderOptions {

@@ -1,13 +1,19 @@
-use crate::{NcDim, NcTreeItem, NcTreeItemCbUnsafe, NcTreeOptions};
+use crate::{
+    widgets::{NcTreeItem, NcTreeItemCbUnsafe, NcTreeOptions},
+    NcDim,
+};
+
+#[allow(unused_imports)]
+use crate::widgets::NcTree;
 
 /// # `NcTreeOptions` constructors
 impl NcTreeOptions {
-    /// New NcTreeOptions for [NcTree][crate::NcTree].
+    /// New NcTreeOptions for [`NcTree`].
     pub fn new(items: &[NcTreeItem], indentcols: NcDim) -> Self {
         Self::with_all_args(items, items.len(), None, indentcols, 0)
     }
 
-    /// New NcTreeOptions for [NcTree][crate::NcTree], with all args.
+    /// New NcTreeOptions for [`NcTree`], with all args.
     pub fn with_all_args(
         // top-level nctree_item array
         items: &[NcTreeItem],

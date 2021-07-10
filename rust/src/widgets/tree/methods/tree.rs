@@ -1,6 +1,7 @@
 use crate::{
-    error, error_ref_mut, nctree_create, NcError, NcInput, NcPlane, NcResult, NcTree, NcTreeItem,
-    NcTreeOptions, NCRESULT_ERR,
+    error, error_ref_mut, nctree_create,
+    widgets::{NcTree, NcTreeItem, NcTreeOptions},
+    NcError, NcInput, NcPlane, NcResult, NCRESULT_ERR,
 };
 
 /// # `NcTree` constructors & destructors

@@ -1,4 +1,4 @@
-//! Widgets
+//! All the notcurses widgets.
 
 mod menu;
 mod multiselector;

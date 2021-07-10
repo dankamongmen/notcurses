@@ -1,17 +1,23 @@
-use crate::{NcChannels, NcMenuOptions, NcMenuSection};
+use crate::{
+    widgets::{NcMenuOptions, NcMenuSection},
+    NcChannels,
+};
+
+#[allow(unused_imports)]
+use crate::widgets::NcMenu;
 
 /// # `NcMenuOptions` constructors
 impl NcMenuOptions {
-    /// New NcMenuOptions for [NcMenu][crate::NcMenu].
+    /// New NcMenuOptions for [`NcMenu`].
     ///
-    /// `sections` must contain at least 1 [NcMenuSection].
+    /// `sections` must contain at least 1 [`NcMenuSection`].
     pub fn new(sections: &mut [NcMenuSection]) -> Self {
         Self::with_all_args(sections, 0, 0, 0)
     }
 
-    /// New NcMenuOptions for [NcMenu][crate::NcMenu], with all args.
+    /// New NcMenuOptions for [`NcMenu`], with all args.
     ///
-    /// `sections` must contain at least 1 [NcMenuSection].
+    /// `sections` must contain at least 1 [`NcMenuSection`].
     pub fn with_all_args(
         sections: &mut [NcMenuSection],
         style_header: NcChannels,

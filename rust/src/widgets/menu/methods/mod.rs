@@ -1,8 +1,11 @@
 //! `NcMenu*` methods and associated functions.
 
+use super::{NcMenuItem, NcMenuSection};
+use crate::{cstring_mut, NcInput};
 use core::ptr::null_mut;
 
-use crate::{cstring_mut, NcInput, NcMenuItem, NcMenuSection};
+#[allow(unused_imports)]
+use crate::widgets::NcMenu;
 
 mod menu;
 mod options;
@@ -12,7 +15,7 @@ pub use options::*;
 
 /// # `NcMenuItem` Constructors
 impl NcMenuItem {
-    /// New NcMenuItem for [NcMenu][crate::NcMenu].
+    /// New NcMenuItem for [`NcMenu`].
     pub fn new(desc: &str, shortcut: NcInput) -> Self {
         Self {
             // utf-8 menu item, NULL for horizontal separator
@@ -23,7 +26,7 @@ impl NcMenuItem {
         }
     }
 
-    /// New empty NcMenuItem for [NcMenu][crate::NcMenu].
+    /// New empty NcMenuItem for [`NcMenu`].
     pub fn new_empty() -> Self {
         Self {
             desc: null_mut(),
@@ -36,7 +39,7 @@ impl NcMenuItem {
 ///
 // Must contain at least 1 NcMenuItem.
 impl NcMenuSection {
-    /// New NcMenuSection for [NcMenu][crate::NcMenu].
+    /// New NcMenuSection for [`NcMenu`].
     pub fn new(name: &str, items: &mut [NcMenuItem], shortcut: NcInput) -> Self {
         Self {
             // utf-8 name string
@@ -53,7 +56,7 @@ impl NcMenuSection {
         }
     }
 
-    /// New NcMenuSection separator for [NcMenu][crate::NcMenu].
+    /// New NcMenuSection separator for [`NcMenu`].
     ///
     pub fn new_separator() -> Self {
         Self {

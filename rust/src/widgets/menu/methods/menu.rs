@@ -1,24 +1,28 @@
 use core::ptr::null_mut;
 
 use crate::{
-    cstring, error, error_ref_mut, error_str, ncmenu_create, NcInput, NcMenu, NcMenuOptions,
-    NcPlane, NcResult,
+    cstring, error, error_ref_mut, error_str, ncmenu_create,
+    widgets::{NcMenu, NcMenuOptions},
+    NcInput, NcPlane, NcResult,
 };
+
+#[allow(unused_imports)]
+use crate::widgets::{NcMenuItem, NcMenuSection};
 
 /// # `NcMenu` constructors & destructors
 impl NcMenu {
-    /// Creates an [NcMenu] with the specified options.
+    /// Creates an [`NcMenu`] with the specified options.
     ///
-    /// Menus are currently bound to an overall [Notcurses][crate::Notcurses]
+    /// Menus are currently bound to an overall [`Notcurses`][crate::Notcurses]
     /// object (as opposed to a particular plane), and are implemented as
-    /// [NcPlane]s kept atop other NcPlanes.
+    /// [`NcPlane`]s kept atop other NcPlanes.
     ///
     /// *C style function: [ncmenu_create()][crate::ncmenu_create].*
     pub fn new<'a>(plane: &mut NcPlane, options: NcMenuOptions) -> NcResult<&'a mut Self> {
         error_ref_mut![unsafe { ncmenu_create(plane, &options) }, "Creating NcMenu"]
     }
 
-    /// Destroys an NcMenu created with [new()][NcMenu#method.new].
+    /// Destroys an `NcMenu` created with [`new`][NcMenu#method.new].
     ///
     /// *C style function: [ncmenu_destroy()][crate::ncmenu_destroy].*
     pub fn destroy(&mut self) -> NcResult<()> {
@@ -28,7 +32,7 @@ impl NcMenu {
 
 /// # `NcMenu` methods
 impl NcMenu {
-    /// Disables or enables an [NcMenuItem][crate::NcMenuItem].
+    /// Disables or enables an [`NcMenuItem`].
     ///
     /// *C style function: [ncmenu_item_set_status()][crate::ncmenu_item_set_status].*
     pub fn item_set_status(&mut self, section: &str, item: &str, enabled: bool) -> NcResult<()> {
@@ -43,7 +47,7 @@ impl NcMenu {
         ]
     }
 
-    /// Returns the [NcMenuItem][crate::NcMenuItem] description
+    /// Returns the [`NcMenuItem`] description
     /// corresponding to the mouse `click`.
     ///
     /// The NcMenuItem must be on an actively unrolled section, and the click
@@ -88,7 +92,7 @@ impl NcMenu {
         error![unsafe { crate::ncmenu_nextsection(self) }]
     }
 
-    /// Offers the `input` to this NcMenu.
+    /// Offers the `input` to this `NcMenu`.
     ///
     /// If it's relevant, this function returns true,
     /// and the input ought not be processed further.
@@ -107,7 +111,7 @@ impl NcMenu {
         unsafe { crate::ncmenu_offer_input(self, &input) }
     }
 
-    /// Returns the [NcPlane] backing this NcMenu.
+    /// Returns the [`NcPlane`] backing this `NcMenu`.
     ///
     /// *C style function: [ncmenu_plane()][crate::ncmenu_plane].*
     pub fn plane(&mut self) -> NcResult<&NcPlane> {
@@ -135,8 +139,8 @@ impl NcMenu {
         error![unsafe { crate::ncmenu_prevsection(self) }]
     }
 
-    /// Rolls up any unrolled [NcMenuSection][crate::NcMenuSection],
-    /// and hides this NcMenu if using hiding.
+    /// Rolls up any unrolled [`NcMenuSection`]
+    /// and hides this `NcMenu` if using hiding.
     ///
     /// *C style function: [ncmenu_rollup()][crate::ncmenu_rollup].*
     pub fn rollup(&mut self) -> NcResult<()> {
@@ -164,9 +168,9 @@ impl NcMenu {
         }
     }
 
-    /// Unrolls the specified [NcMenuSection][crate::NcMenuSection],
-    /// making the menu visible if it was invisible,
-    /// and rolling up any NcMenuSection that is already unrolled.
+    /// Unrolls the specified [`NcMenuSection`],
+    /// making the menu visible if it was invisible
+    /// and rolling up any `NcMenuSection` that is already unrolled.
     ///
     /// *C style function: [ncmenu_unroll()][crate::ncmenu_unroll].*
     pub fn unroll(&mut self, sectionindex: u32) -> NcResult<()> {

@@ -1,6 +1,7 @@
 //! `NcProgBar` & `NcProgBarOptions` methods and associated functions.
 
-use crate::{error, NcPlane, NcProgBar, NcProgBarOptions, NcResult};
+use super::{NcProgBar, NcProgBarOptions};
+use crate::{error, NcPlane, NcResult};
 
 /// # `NcProgBarOptions` Methods
 impl NcProgBarOptions {

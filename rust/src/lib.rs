@@ -33,7 +33,7 @@
 //!
 //! Although you still have to manually call the `stop()` method for [`Nc`] and
 //! [`NcDirect`] objects, and the `destroy()` method for the rest of types that
-//! allocate, (like [`NcPlane`], [`NcMenu`]…) at the end of their scope, since
+//! allocate, (like [`NcPlane`], [`NcVisual`]…) at the end of their scope, since
 //! the Drop trait is not implemented for any wrapping type in libnotcurses-sys.
 //!
 //! But they do implement methods and use [`NcResult`] as the return type,
@@ -133,7 +133,7 @@ mod resizecb;
 mod stats;
 mod time;
 mod visual;
-mod widgets;
+pub mod widgets;
 
 pub use crate::input::*;
 pub use capabilities::*;
@@ -155,4 +155,3 @@ pub use resizecb::*;
 pub use stats::*;
 pub use time::*;
 pub use visual::*;
-pub use widgets::*;

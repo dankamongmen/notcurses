@@ -9,7 +9,7 @@ pub use tree::*;
 use core::ptr::null_mut;
 use std::ffi::{c_void, CString};
 
-use crate::NcTreeItem;
+use super::NcTreeItem;
 
 /// # `NcTreeItem` constructor
 impl NcTreeItem {
