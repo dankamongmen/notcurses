@@ -1353,8 +1353,8 @@ int ncplane_set_fg_palindex(ncplane* n, int idx){
   if(idx < 0 || idx >= NCPALETTESIZE){
     return -1;
   }
-  n->channels |= CELL_FGDEFAULT_MASK;
-  n->channels |= CELL_FG_PALETTE;
+  n->channels |= NC_FGDEFAULT_MASK;
+  n->channels |= NC_FG_PALETTE;
   ncchannels_set_fg_alpha(&n->channels, NCALPHA_OPAQUE);
   n->stylemask &= 0xffff00ff;
   n->stylemask |= (idx << 8u);
@@ -1365,8 +1365,8 @@ int ncplane_set_bg_palindex(ncplane* n, int idx){
   if(idx < 0 || idx >= NCPALETTESIZE){
     return -1;
   }
-  n->channels |= CELL_BGDEFAULT_MASK;
-  n->channels |= CELL_BG_PALETTE;
+  n->channels |= NC_BGDEFAULT_MASK;
+  n->channels |= NC_BG_PALETTE;
   ncchannels_set_bg_alpha(&n->channels, NCALPHA_OPAQUE);
   n->stylemask &= 0xffffff00;
   n->stylemask |= idx;

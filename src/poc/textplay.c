@@ -183,7 +183,7 @@ textplane(struct notcurses* nc){
     .name = "text",
   };
   struct ncplane* n = ncplane_create(stdn, &nopts);
-  uint64_t channels = CHANNELS_RGB_INITIALIZER(0, 0, 0, 0x22, 0x22, 0x22);
+  uint64_t channels = NCCHANNELS_INITIALIZER(0, 0, 0, 0x22, 0x22, 0x22);
   /*ncchannels_set_fg_alpha(&channels, NCALPHA_TRANSPARENT);
   ncchannels_set_bg_alpha(&channels, NCALPHA_TRANSPARENT);*/
   if(n){

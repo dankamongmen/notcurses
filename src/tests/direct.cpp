@@ -64,7 +64,7 @@ TEST_CASE("Direct") {
   }
 
   SUBCASE("BoxDefault") {
-    uint64_t chans = CHANNELS_RGB_INITIALIZER(255, 0, 255, 0, 0, 0);
+    uint64_t chans = NCCHANNELS_INITIALIZER(255, 0, 255, 0, 0, 0);
     ncchannels_set_bg_default(&chans);
     ncdirect_set_bg_rgb8(nc_, 0x88, 0x88, 0x88);
     printf("test background\n");

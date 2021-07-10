@@ -68,13 +68,13 @@ multiselector_demo(struct ncplane* n, struct ncplane* under, int y){
     .maxdisplay = 8,
     .title = "multi-item selector",
     .items = mselect_items,
-    .boxchannels = CHANNELS_RGB_INITIALIZER(0x20, 0xe0, 0xe0, 0x20, 0, 0),
-    .opchannels = CHANNELS_RGB_INITIALIZER(0xe0, 0x80, 0x40, 0, 0, 0),
-    .descchannels = CHANNELS_RGB_INITIALIZER(0x80, 0xe0, 0x40, 0, 0, 0),
-    .footchannels = CHANNELS_RGB_INITIALIZER(0xe0, 0, 0x40, 0x20, 0x20, 0),
-    .titlechannels = CHANNELS_RGB_INITIALIZER(0x80, 0x80, 0xff, 0, 0, 0x20),
+    .boxchannels = NCCHANNELS_INITIALIZER(0x20, 0xe0, 0xe0, 0x20, 0, 0),
+    .opchannels = NCCHANNELS_INITIALIZER(0xe0, 0x80, 0x40, 0, 0, 0),
+    .descchannels = NCCHANNELS_INITIALIZER(0x80, 0xe0, 0x40, 0, 0, 0),
+    .footchannels = NCCHANNELS_INITIALIZER(0xe0, 0, 0x40, 0x20, 0x20, 0),
+    .titlechannels = NCCHANNELS_INITIALIZER(0x80, 0x80, 0xff, 0, 0, 0x20),
   };
-  uint64_t bgchannels = CHANNELS_RGB_INITIALIZER(0, 0x40, 0, 0, 0x40, 0);
+  uint64_t bgchannels = NCCHANNELS_INITIALIZER(0, 0x40, 0, 0, 0x40, 0);
   ncchannels_set_fg_alpha(&bgchannels, NCALPHA_BLEND);
   ncchannels_set_bg_alpha(&bgchannels, NCALPHA_BLEND);
   struct ncplane_options nopts = {
@@ -105,13 +105,13 @@ selector_demo(struct ncplane* n, struct ncplane* under, int dimx, int y){
     .items = select_items,
     .defidx = 4,
     .maxdisplay = 3,
-    .boxchannels = CHANNELS_RGB_INITIALIZER(0xe0, 0x20, 0x40, 0x20, 0x20, 0x20),
-    .opchannels = CHANNELS_RGB_INITIALIZER(0xe0, 0x80, 0x40, 0, 0, 0),
-    .descchannels = CHANNELS_RGB_INITIALIZER(0x80, 0xe0, 0x40, 0, 0, 0),
-    .footchannels = CHANNELS_RGB_INITIALIZER(0xe0, 0, 0x40, 0x20, 0, 0),
-    .titlechannels = CHANNELS_RGB_INITIALIZER(0xff, 0xff, 0x80, 0, 0, 0x20),
+    .boxchannels = NCCHANNELS_INITIALIZER(0xe0, 0x20, 0x40, 0x20, 0x20, 0x20),
+    .opchannels = NCCHANNELS_INITIALIZER(0xe0, 0x80, 0x40, 0, 0, 0),
+    .descchannels = NCCHANNELS_INITIALIZER(0x80, 0xe0, 0x40, 0, 0, 0),
+    .footchannels = NCCHANNELS_INITIALIZER(0xe0, 0, 0x40, 0x20, 0, 0),
+    .titlechannels = NCCHANNELS_INITIALIZER(0xff, 0xff, 0x80, 0, 0, 0x20),
   };
-  uint64_t bgchannels = CHANNELS_RGB_INITIALIZER(0, 0, 0x40, 0, 0, 0x40);
+  uint64_t bgchannels = NCCHANNELS_INITIALIZER(0, 0, 0x40, 0, 0, 0x40);
   ncchannels_set_fg_alpha(&bgchannels, NCALPHA_BLEND);
   ncchannels_set_bg_alpha(&bgchannels, NCALPHA_BLEND);
   struct ncplane_options nopts = {

@@ -343,12 +343,12 @@ hud_refresh(struct ncplane* n){
   if(nccells_rounded_box(n, NCSTYLE_NONE, 0, &ul, &ur, &ll, &lr, &hl, &vl)){
     return -1;
   }
-  ul.channels = CHANNELS_RGB_INITIALIZER(0xf0, 0xc0, 0xc0, 0, 0, 0);
-  ur.channels = CHANNELS_RGB_INITIALIZER(0xf0, 0xc0, 0xc0, 0, 0, 0);
-  ll.channels = CHANNELS_RGB_INITIALIZER(0xf0, 0xc0, 0xc0, 0, 0, 0);
-  lr.channels = CHANNELS_RGB_INITIALIZER(0xf0, 0xc0, 0xc0, 0, 0, 0);
-  hl.channels = CHANNELS_RGB_INITIALIZER(0xf0, 0xc0, 0xc0, 0, 0, 0);
-  vl.channels = CHANNELS_RGB_INITIALIZER(0xf0, 0xc0, 0xc0, 0, 0, 0);
+  ul.channels = NCCHANNELS_INITIALIZER(0xf0, 0xc0, 0xc0, 0, 0, 0);
+  ur.channels = NCCHANNELS_INITIALIZER(0xf0, 0xc0, 0xc0, 0, 0, 0);
+  ll.channels = NCCHANNELS_INITIALIZER(0xf0, 0xc0, 0xc0, 0, 0, 0);
+  lr.channels = NCCHANNELS_INITIALIZER(0xf0, 0xc0, 0xc0, 0, 0, 0);
+  hl.channels = NCCHANNELS_INITIALIZER(0xf0, 0xc0, 0xc0, 0, 0, 0);
+  vl.channels = NCCHANNELS_INITIALIZER(0xf0, 0xc0, 0xc0, 0, 0, 0);
   nccell_set_bg_alpha(&ul, NCALPHA_BLEND);
   nccell_set_bg_alpha(&ur, NCALPHA_BLEND);
   nccell_set_bg_alpha(&ll, NCALPHA_BLEND);

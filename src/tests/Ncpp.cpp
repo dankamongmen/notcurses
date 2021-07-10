@@ -89,7 +89,7 @@ TEST_CASE("Ncpp"
     NotCurses nc{ nopts };
     {
       auto n = nc.get_stdplane();
-      uint64_t chan = CHANNELS_RGB_INITIALIZER(0x22, 0xdd, 0x44, 0, 0, 0);
+      uint64_t chan = NCCHANNELS_INITIALIZER(0x22, 0xdd, 0x44, 0, 0, 0);
       n->set_base(" ", 0, chan);
       REQUIRE(n);
       // FIXME load it into visual, erase plane, render visual, check for equivalence...

@@ -32,9 +32,9 @@ TEST_CASE("Tabbed") {
 
   SUBCASE("Create") {
     struct nctabbed_options opts = {
-      .selchan = CHANNELS_RGB_INITIALIZER(0, 255, 0, 70, 70, 70),
-      .hdrchan = CHANNELS_RGB_INITIALIZER(255, 0, 0, 60, 60, 60),
-      .sepchan = CHANNELS_RGB_INITIALIZER(0, 0, 255, 60, 60, 60),
+      .selchan = NCCHANNELS_INITIALIZER(0, 255, 0, 70, 70, 70),
+      .hdrchan = NCCHANNELS_INITIALIZER(255, 0, 0, 60, 60, 60),
+      .sepchan = NCCHANNELS_INITIALIZER(0, 0, 255, 60, 60, 60),
       .separator = const_cast<char*>("-separator-"),
       .flags = NCTABBED_OPTION_BOTTOM
     };
@@ -379,9 +379,9 @@ TEST_CASE("Tabbed") {
     auto ncp = ncplane_create(n_, &nopts);
     auto nt = nctabbed_create(ncp, nullptr);
     REQUIRE(nullptr != nt);
-    uint64_t hdrchan = CHANNELS_RGB_INITIALIZER(255, 127, 63, 31, 15, 7);
-    uint64_t selchan = CHANNELS_RGB_INITIALIZER(127, 63, 31, 15, 7, 3);
-    uint64_t sepchan = CHANNELS_RGB_INITIALIZER(63, 31, 15, 7, 3, 1);
+    uint64_t hdrchan = NCCHANNELS_INITIALIZER(255, 127, 63, 31, 15, 7);
+    uint64_t selchan = NCCHANNELS_INITIALIZER(127, 63, 31, 15, 7, 3);
+    uint64_t sepchan = NCCHANNELS_INITIALIZER(63, 31, 15, 7, 3, 1);
     nctabbed_set_hdrchan(nt, hdrchan);
     nctabbed_set_selchan(nt, selchan);
     nctabbed_set_sepchan(nt, sepchan);

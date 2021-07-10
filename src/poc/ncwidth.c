@@ -84,7 +84,7 @@ int main(int argc, char **argv){
            totalcols, totalb, wcswidth(wbuf, used), realcols);
     ncdirect_cursor_yx(n, &y, &x);
     // throw up a background color for invisible glyphs
-    uint64_t chan = CHANNELS_RGB_INITIALIZER(0xff, 0xff, 0xff, 0, 0x80, 0);
+    uint64_t chan = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0, 0x80, 0);
     int expy, expx;
     int misses = 0;
     int scrolls = 0;

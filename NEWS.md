@@ -17,6 +17,9 @@ rearrangements of Notcurses.
   * `ncmenu`s can now be used with any plane, not just the standard plane.
   * Added `ncchannels_reverse()`, which reverses the color aspects of the
     two channels, while keeping other elements constant.
+  * `CHANNELS_RGB_INITIALIZER` and `CHANNEL_RGB_INITIALIZER` have been renamed
+    `NCCHANNELS_INITIALIZER` and `NCCHANNEL_INITIALIZER`. The former two are
+    now deprecated, and will be removed for ABI3.
 
 * 2.3.8 (2021-07-04)
   * Marked all capability functions `__attribute__ ((pure))`. If you were

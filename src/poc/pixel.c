@@ -12,7 +12,7 @@ handle(struct notcurses* nc, const char *fn){
   struct ncplane* stdn = notcurses_stddim_yx(nc, &dimy, &dimx);
   for(int y = 0 ; y < dimy ; y += 15){
     for(int x = 0 ; x < dimx ; x += 15){
-      uint64_t channels = CHANNELS_RGB_INITIALIZER(random() % 256, random() % 256, 100, random() % 256, 100, 140);
+      uint64_t channels = NCCHANNELS_INITIALIZER(random() % 256, random() % 256, 100, random() % 256, 100, 140);
       ncplane_set_base(stdn, "a", 0, channels);
       struct ncvisual_options vopts = {
         .y = y,
@@ -27,7 +27,7 @@ handle(struct notcurses* nc, const char *fn){
       }
       notcurses_render(nc);
       sleep(1);
-      channels = CHANNELS_RGB_INITIALIZER(random() % 256, random() % 256, 100, random() % 256, 100, 140);
+      channels = NCCHANNELS_INITIALIZER(random() % 256, random() % 256, 100, random() % 256, 100, 140);
       ncplane_set_base(stdn, "a", 0, channels);
       notcurses_render(nc);
       sleep(1);

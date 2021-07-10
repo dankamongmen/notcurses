@@ -40,7 +40,7 @@ struct ncvisual_details;
 
 // Was this glyph drawn as part of an ncvisual? If so, we need to honor
 // blitter stacking rather than the standard trichannel solver.
-#define CELL_BLITTERSTACK_MASK  CELL_NOBACKGROUND_MASK
+#define NC_BLITTERSTACK_MASK  NC_NOBACKGROUND_MASK
 
 // we can't define multipart ncvisual here, because OIIO requires C++ syntax,
 // and we can't go throwing C++ syntax into this header. so it goes.
@@ -1224,7 +1224,7 @@ box_corner_needs(unsigned ctlword){
 // solid or shaded block, or certain emoji).
 static inline bool
 cell_nobackground_p(const nccell* c){
-  return (c->channels & CELL_NOBACKGROUND_MASK) == CELL_NOBACKGROUND_MASK;
+  return (c->channels & NC_NOBACKGROUND_MASK) == NC_NOBACKGROUND_MASK;
 }
 
 // Returns a number 0 <= n <= 15 representing the four quadrants, and which (if
@@ -1249,7 +1249,7 @@ cell_set_blitquadrants(nccell* c, unsigned tl, unsigned tr, unsigned bl, unsigne
                     (tr ? 0x0400000000000000ull : 0) |
                     (bl ? 0x0200000000000000ull : 0) |
                     (br ? 0x0100000000000000ull : 0);
-  c->channels = ((c->channels & ~CELL_BLITTERSTACK_MASK) | newval);
+  c->channels = ((c->channels & ~NC_BLITTERSTACK_MASK) | newval);
 }
 
 // Destroy a plane and all its bound descendants.
@@ -1265,8 +1265,8 @@ cell_bchannel(const nccell* cl){
 // and background channel representations.
 static inline uint32_t
 channel_common(uint32_t channel){
-  return channel & (CELL_BGDEFAULT_MASK | CELL_BG_RGB_MASK |
-                    CELL_BG_PALETTE | CELL_BG_ALPHA_MASK);
+  return channel & (NC_BGDEFAULT_MASK | NC_BG_RGB_MASK |
+                    NC_BG_PALETTE | NC_BG_ALPHA_MASK);
 }
 
 // Extract those elements of the background channel which may be freely swapped
@@ -1319,7 +1319,7 @@ channels_blend(unsigned c1, unsigned c2, unsigned* blends){
     if(ncchannel_default_p(c2)){
       ncchannel_set_default(&c1);
     }else{
-      ncchannel_set(&c1, c2 & CELL_BG_RGB_MASK);
+      ncchannel_set(&c1, c2 & NC_BG_RGB_MASK);
     }
     ncchannel_set_alpha(&c1, ncchannel_alpha(c2));
   }else if(!c2default && !ncchannel_default_p(c1)){
@@ -1415,7 +1415,7 @@ is_control_egc(const unsigned char* egc, int bytes){
 
 // lowest level of cell+pool setup. if the EGC changes the output to RTL, it
 // must be suffixed with a LTR-forcing character by now. The four bits of
-// CELL_BLITTERSTACK_MASK ought already be initialized. If gcluster is four
+// NC_BLITTERSTACK_MASK ought already be initialized. If gcluster is four
 // bytes or fewer, this function cannot fail.
 static inline int
 pool_blit_direct(egcpool* pool, nccell* c, const char* gcluster, int bytes, int cols){
@@ -1445,7 +1445,7 @@ pool_blit_direct(egcpool* pool, nccell* c, const char* gcluster, int bytes, int 
 static inline int
 pool_load_direct(egcpool* pool, nccell* c, const char* gcluster, int bytes, int cols){
   char* rtl = NULL;
-  c->channels &= ~CELL_NOBACKGROUND_MASK;
+  c->channels &= ~NC_NOBACKGROUND_MASK;
   if(bytes >= 0){
     rtl = egc_rtl(gcluster, &bytes); // checks for RTL and adds U+200E if so
   }

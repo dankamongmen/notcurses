@@ -183,7 +183,7 @@ TEST_CASE("Rotate") {
     CHECK(pxdimx == width);
     CHECK(pxdimy == height);
     for(int i = 0 ; i < height * width / 2 ; ++i){
-      if(rgbaret[i] & CELL_BG_RGB_MASK){
+      if(rgbaret[i] & NC_BG_RGB_MASK){
         CHECK(htole(rgbaret[i]) == htole(rgba[i]));
       }
     }
@@ -195,10 +195,10 @@ TEST_CASE("Rotate") {
       char* c = notcurses_at_yx(nc_, 0, x, &stylemask, &channels);
       REQUIRE(c);
       CHECK(0 == strcmp(c, " "));
-      if(ncchannels_fg_rgb(channels) & CELL_BG_RGB_MASK){
+      if(ncchannels_fg_rgb(channels) & NC_BG_RGB_MASK){
         CHECK(0xffccbb == ncchannels_fg_rgb(channels));
       }
-      if(ncchannels_bg_rgb(channels) & CELL_BG_RGB_MASK){
+      if(ncchannels_bg_rgb(channels) & NC_BG_RGB_MASK){
         CHECK(0xffccbb == ncchannels_bg_rgb(channels));
       }
       free(c);
@@ -243,7 +243,7 @@ TEST_CASE("Rotate") {
     CHECK(pxdimy == height);
     CHECK(pxdimx == width);
     for(int i = 0 ; i < height * width / 2 ; ++i){
-      if(rgbaret[i] & CELL_BG_RGB_MASK){
+      if(rgbaret[i] & NC_BG_RGB_MASK){
         CHECK(htole(rgbaret[i]) == htole(rgba[i]));
       }
     }
@@ -255,10 +255,10 @@ TEST_CASE("Rotate") {
       char* c = notcurses_at_yx(nc_, 0, x, &stylemask, &channels);
       REQUIRE(c);
       CHECK(0 == strcmp(c, " "));
-      if(ncchannels_fg_rgb(channels) & CELL_BG_RGB_MASK){
+      if(ncchannels_fg_rgb(channels) & NC_BG_RGB_MASK){
         CHECK(0xffccbb == ncchannels_fg_rgb(channels));
       }
-      if(ncchannels_bg_rgb(channels) & CELL_BG_RGB_MASK){
+      if(ncchannels_bg_rgb(channels) & NC_BG_RGB_MASK){
         CHECK(0xffccbb == ncchannels_bg_rgb(channels));
       }
       free(c);

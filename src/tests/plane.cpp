@@ -1010,7 +1010,7 @@ TEST_CASE("Plane") {
     nopts.cols = 4;
     auto n = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != n);
-    uint64_t channels = CHANNELS_RGB_INITIALIZER(0, 0xff, 0, 0xff, 0, 0xff);
+    uint64_t channels = NCCHANNELS_INITIALIZER(0, 0xff, 0, 0xff, 0, 0xff);
     int y, x;
     ncplane_yx(n, &y, &x);
     CHECK(y == 2);
@@ -1049,7 +1049,7 @@ TEST_CASE("Plane") {
     auto n = ncplane_create(n_, &nopts);
     REQUIRE(nullptr != n);
     CHECK(false == ncplane_set_scrolling(n, true));
-    uint64_t channels = CHANNELS_RGB_INITIALIZER(0, 0xff, 0, 0xff, 0, 0xff);
+    uint64_t channels = NCCHANNELS_INITIALIZER(0, 0xff, 0, 0xff, 0, 0xff);
     int y, x;
     CHECK(1 == ncplane_set_base(n, " ", 0, channels));
     CHECK(0 == notcurses_render(nc_));

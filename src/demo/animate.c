@@ -266,7 +266,7 @@ make_pbars(struct ncplane* column, struct ncprogbar** left, struct ncprogbar** r
   if(leftp == NULL){
     return -1;
   }
-  ncplane_set_base(leftp, " ", 0, CHANNELS_RGB_INITIALIZER(0xdd, 0xdd, 0xdd, 0x1b, 0x1b, 0x1b));
+  ncplane_set_base(leftp, " ", 0, NCCHANNELS_INITIALIZER(0xdd, 0xdd, 0xdd, 0x1b, 0x1b, 0x1b));
   ncprogbar_options popts = { };
   ncchannel_set_rgb8(&popts.brchannel, 0, 0, 0);
   ncchannel_set_rgb8(&popts.blchannel, 0, 0xff, 0);
@@ -281,7 +281,7 @@ make_pbars(struct ncplane* column, struct ncprogbar** left, struct ncprogbar** r
   if(rightp == NULL){
     return -1;
   }
-  ncplane_set_base(rightp, " ", 0, CHANNELS_RGB_INITIALIZER(0xdd, 0xdd, 0xdd, 0x1b, 0x1b, 0x1b));
+  ncplane_set_base(rightp, " ", 0, NCCHANNELS_INITIALIZER(0xdd, 0xdd, 0xdd, 0x1b, 0x1b, 0x1b));
   popts.flags = NCPROGBAR_OPTION_RETROGRADE;
   *right = ncprogbar_create(rightp, &popts);
   if(*right == NULL){

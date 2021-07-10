@@ -153,11 +153,11 @@ TEST_CASE("Plot") {
     };
     auto ncp = ncplane_create(n_, &nopts);
     REQUIRE(ncp);
-    ncplane_set_base(ncp, " ", 0, CHANNELS_RGB_INITIALIZER(0x80, 0, 0, 0, 0, 0x80));
+    ncplane_set_base(ncp, " ", 0, NCCHANNELS_INITIALIZER(0x80, 0, 0, 0, 0, 0x80));
     ncplot_options popts;
     memset(&popts, 0, sizeof(popts));
-    popts.maxchannels = CHANNELS_RGB_INITIALIZER(0xff, 0xff, 0xff, 0, 0, 0);
-    popts.minchannels = CHANNELS_RGB_INITIALIZER(0, 0xff, 0, 0, 0, 0);
+    popts.maxchannels = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0, 0, 0);
+    popts.minchannels = NCCHANNELS_INITIALIZER(0, 0xff, 0, 0, 0, 0);
     ncchannels_set_bg_alpha(&popts.minchannels, NCALPHA_BLEND);
     ncchannels_set_fg_alpha(&popts.minchannels, NCALPHA_BLEND);
     popts.gridtype = NCBLIT_BRAILLE;
@@ -187,8 +187,8 @@ TEST_CASE("Plot") {
     REQUIRE(ncp);
     ncplot_options popts;
     memset(&popts, 0, sizeof(popts));
-    popts.maxchannels = CHANNELS_RGB_INITIALIZER(0xff, 0xff, 0xff, 0, 0, 0);
-    popts.minchannels = CHANNELS_RGB_INITIALIZER(0, 0xff, 0, 0, 0, 0);
+    popts.maxchannels = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0, 0, 0);
+    popts.minchannels = NCCHANNELS_INITIALIZER(0, 0xff, 0, 0, 0, 0);
     ncchannels_set_bg_alpha(&popts.minchannels, NCALPHA_BLEND);
     ncchannels_set_fg_alpha(&popts.minchannels, NCALPHA_BLEND);
     popts.gridtype = NCBLIT_2x2;
@@ -214,8 +214,8 @@ TEST_CASE("Plot") {
     REQUIRE(ncp);
     ncplot_options popts;
     memset(&popts, 0, sizeof(popts));
-    popts.maxchannels = CHANNELS_RGB_INITIALIZER(0xff, 0xff, 0xff, 0, 0, 0);
-    popts.minchannels = CHANNELS_RGB_INITIALIZER(0, 0xff, 0, 0, 0, 0);
+    popts.maxchannels = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0, 0, 0);
+    popts.minchannels = NCCHANNELS_INITIALIZER(0, 0xff, 0, 0, 0, 0);
     ncchannels_set_bg_alpha(&popts.minchannels, NCALPHA_BLEND);
     ncchannels_set_fg_alpha(&popts.minchannels, NCALPHA_BLEND);
     popts.gridtype = NCBLIT_8x1;
@@ -238,8 +238,8 @@ TEST_CASE("Plot") {
     REQUIRE(ncp);
     ncplot_options popts;
     memset(&popts, 0, sizeof(popts));
-    popts.maxchannels = CHANNELS_RGB_INITIALIZER(0xff, 0xff, 0xff, 0, 0, 0);
-    popts.minchannels = CHANNELS_RGB_INITIALIZER(0, 0xff, 0, 0, 0, 0);
+    popts.maxchannels = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0, 0, 0);
+    popts.minchannels = NCCHANNELS_INITIALIZER(0, 0xff, 0, 0, 0, 0);
     ncchannels_set_bg_alpha(&popts.minchannels, NCALPHA_BLEND);
     ncchannels_set_fg_alpha(&popts.minchannels, NCALPHA_BLEND);
     popts.gridtype = NCBLIT_3x2;
@@ -265,8 +265,8 @@ TEST_CASE("Plot") {
     REQUIRE(ncp);
     ncplot_options popts;
     memset(&popts, 0, sizeof(popts));
-    popts.maxchannels = CHANNELS_RGB_INITIALIZER(0xff, 0xff, 0xff, 0, 0, 0);
-    popts.minchannels = CHANNELS_RGB_INITIALIZER(0, 0xff, 0, 0, 0, 0);
+    popts.maxchannels = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0, 0, 0);
+    popts.minchannels = NCCHANNELS_INITIALIZER(0, 0xff, 0, 0, 0, 0);
     ncchannels_set_bg_alpha(&popts.minchannels, NCALPHA_BLEND);
     ncchannels_set_fg_alpha(&popts.minchannels, NCALPHA_BLEND);
     popts.gridtype = NCBLIT_BRAILLE;

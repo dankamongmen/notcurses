@@ -26,7 +26,7 @@ TEST_CASE("Readers") {
       .margin_b = 0, .margin_r = 0,
     };
     auto ncp = ncplane_create(notcurses_stdplane(nc_), &nopts);
-    uint64_t echannels = CHANNELS_RGB_INITIALIZER(0xff, 0x44, 0xff, 0, 0, 0);
+    uint64_t echannels = NCCHANNELS_INITIALIZER(0xff, 0x44, 0xff, 0, 0, 0);
     ncplane_set_base(ncp, notcurses_canutf8(nc_) ? strdup("▒") : strdup("x"),
                      0, echannels);
     auto nr = ncreader_create(ncp, &opts);

@@ -217,7 +217,7 @@ ext_demos(struct notcurses* nc, const char* spec){
     // set the standard plane's base character to an opaque black, but don't
     // erase the plane (we let one demo bleed through to the next, an effect
     // we exploit in a few transitions).
-    uint64_t stdc = CHANNELS_RGB_INITIALIZER(0, 0, 0, 0, 0, 0);
+    uint64_t stdc = NCCHANNELS_INITIALIZER(0, 0, 0, 0, 0, 0);
     ncplane_set_base(n, "", 0, stdc);
 
     hud_schedule(demos[idx].name);

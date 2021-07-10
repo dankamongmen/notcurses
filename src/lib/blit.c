@@ -48,9 +48,9 @@ generalerp(unsigned rsum, unsigned gsum, unsigned bsum, int count){
     assert(0 == bsum);
     return 0;
   }
-  return CHANNEL_RGB_INITIALIZER((rsum + (count - 1)) / count,
-                                 (gsum + (count - 1)) / count,
-                                 (bsum + (count - 1)) / count);
+  return NCCHANNEL_INITIALIZER((rsum + (count - 1)) / count,
+                               (gsum + (count - 1)) / count,
+                               (bsum + (count - 1)) / count);
 }
 
 static inline unsigned

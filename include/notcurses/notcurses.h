@@ -118,37 +118,39 @@ API int notcurses_ucs32_to_utf8(const char32_t* ucs32, unsigned ucs32count,
 #define NCALPHA_BLEND           0x10000000ull
 #define NCALPHA_OPAQUE          0x00000000ull
 
+// we support palette-indexed color up to 8 bits.
+#define NCPALETTESIZE 256
+
 // Does this glyph completely obscure the background? If so, there's no need
 // to emit a background when rasterizing, a small optimization. These are
 // also used to track regions into which we must not cellblit.
-#define CELL_NOBACKGROUND_MASK  0x8700000000000000ull
+#define NC_NOBACKGROUND_MASK  0x8700000000000000ull
 // if this bit is set, we are *not* using the default background color
-#define CELL_BGDEFAULT_MASK     0x0000000040000000ull
+#define NC_BGDEFAULT_MASK     0x0000000040000000ull
 // if this bit is set, we are *not* using the default foreground color
-#define CELL_FGDEFAULT_MASK     (CELL_BGDEFAULT_MASK << 32u)
+#define NC_FGDEFAULT_MASK     (NC_BGDEFAULT_MASK << 32u)
 // extract these bits to get the background RGB value
-#define CELL_BG_RGB_MASK        0x0000000000ffffffull
+#define NC_BG_RGB_MASK        0x0000000000ffffffull
 // extract these bits to get the foreground RGB value
-#define CELL_FG_RGB_MASK        (CELL_BG_RGB_MASK << 32u)
-// if this bit *and* CELL_BGDEFAULT_MASK are set, we're using a
+#define NC_FG_RGB_MASK        (NC_BG_RGB_MASK << 32u)
+// if this bit *and* NC_BGDEFAULT_MASK are set, we're using a
 // palette-indexed background color
-#define CELL_BG_PALETTE         0x0000000008000000ull
-#define NCPALETTESIZE 256
-// if this bit *and* CELL_FGDEFAULT_MASK are set, we're using a
+#define NC_BG_PALETTE         0x0000000008000000ull
+// if this bit *and* NC_FGDEFAULT_MASK are set, we're using a
 // palette-indexed foreground color
-#define CELL_FG_PALETTE         (CELL_BG_PALETTE << 32u)
+#define NC_FG_PALETTE         (NC_BG_PALETTE << 32u)
 // extract these bits to get the background alpha mask
-#define CELL_BG_ALPHA_MASK      0x30000000ull
+#define NC_BG_ALPHA_MASK      0x30000000ull
 // extract these bits to get the foreground alpha mask
-#define CELL_FG_ALPHA_MASK      (CELL_BG_ALPHA_MASK << 32u)
+#define NC_FG_ALPHA_MASK      (NC_BG_ALPHA_MASK << 32u)
 
 // initialize a 64-bit channel pair with specified RGB fg/bg
-#define CHANNELS_RGB_INITIALIZER(fr, fg, fb, br, bg, bb) \
+#define NCCHANNELS_INITIALIZER(fr, fg, fb, br, bg, bb) \
   (((((uint64_t)(fr) << 16u) + ((uint64_t)(fg) << 8u) + (uint64_t)(fb)) << 32ull) + \
-   (((br) << 16u) + ((bg) << 8u) + (bb)) + CELL_BGDEFAULT_MASK + CELL_FGDEFAULT_MASK)
+   (((br) << 16u) + ((bg) << 8u) + (bb)) + NC_BGDEFAULT_MASK + NC_FGDEFAULT_MASK)
 
-#define CHANNEL_RGB_INITIALIZER(r, g, b) \
-  (((uint32_t)r << 16u) + ((uint32_t)g << 8u) + (b) + CELL_BGDEFAULT_MASK)
+#define NCCHANNEL_INITIALIZER(r, g, b) \
+  (((uint32_t)r << 16u) + ((uint32_t)g << 8u) + (b) + NC_BGDEFAULT_MASK)
 
 // These lowest-level functions manipulate a 64-bit channel encoding directly.
 // Users will typically manipulate ncplane and nccell channels through those
@@ -175,7 +177,7 @@ ncchannel_b(uint32_t channel){
 // Extract the 2-bit alpha component from a 32-bit channel.
 static inline unsigned
 ncchannel_alpha(unsigned channel){
-  return channel & CELL_BG_ALPHA_MASK;
+  return channel & NC_BG_ALPHA_MASK;
 }
 
 // Extract the three 8-bit R/G/B components from a 32-bit channel.
@@ -199,7 +201,7 @@ ncchannel_set_rgb8(uint32_t* channel, int r, int g, int b){
     return -1;
   }
   unsigned c = (r << 16u) | (g << 8u) | b;
-  *channel = (*channel & ~CELL_BG_RGB_MASK) | CELL_BGDEFAULT_MASK | c;
+  *channel = (*channel & ~NC_BG_RGB_MASK) | NC_BGDEFAULT_MASK | c;
   return 0;
 }
 
@@ -227,7 +229,7 @@ ncchannel_set_rgb8_clipped(unsigned* channel, int r, int g, int b){
     b = 0;
   }
   unsigned c = (r << 16u) | (g << 8u) | b;
-  *channel = (*channel & ~CELL_BG_RGB_MASK) | CELL_BGDEFAULT_MASK | c;
+  *channel = (*channel & ~NC_BG_RGB_MASK) | NC_BGDEFAULT_MASK | c;
 }
 
 // Same, but provide an assembled, packed 24 bits of rgb.
@@ -236,7 +238,7 @@ ncchannel_set(unsigned* channel, unsigned rgb){
   if(rgb > 0xffffffu){
     return -1;
   }
-  *channel = (*channel & ~CELL_BG_RGB_MASK) | CELL_BGDEFAULT_MASK | rgb;
+  *channel = (*channel & ~NC_BG_RGB_MASK) | NC_BGDEFAULT_MASK | rgb;
   return 0;
 }
 
@@ -248,12 +250,12 @@ ncchannel_palindex(uint32_t channel){
 // Set the 2-bit alpha component of the 32-bit channel.
 static inline int
 ncchannel_set_alpha(unsigned* channel, unsigned alpha){
-  if(alpha & ~CELL_BG_ALPHA_MASK){
+  if(alpha & ~NC_BG_ALPHA_MASK){
     return -1;
   }
-  *channel = alpha | (*channel & ~CELL_BG_ALPHA_MASK);
+  *channel = alpha | (*channel & ~NC_BG_ALPHA_MASK);
   if(alpha != NCALPHA_OPAQUE){
-    *channel |= CELL_BGDEFAULT_MASK;
+    *channel |= NC_BGDEFAULT_MASK;
   }
   return 0;
 }
@@ -263,8 +265,8 @@ ncchannel_set_palindex(uint32_t* channel, int idx){
   if(idx < 0 || idx >= NCPALETTESIZE){
     return -1;
   }
-  *channel |= CELL_BGDEFAULT_MASK;
-  *channel |= CELL_BG_PALETTE;
+  *channel |= NC_BGDEFAULT_MASK;
+  *channel |= NC_BG_PALETTE;
   ncchannel_set_alpha(channel, NCALPHA_OPAQUE);
   *channel &= 0xff000000ull;
   *channel |= idx;
@@ -274,19 +276,19 @@ ncchannel_set_palindex(uint32_t* channel, int idx){
 // Is this ncchannel using the "default color" rather than RGB/palette-indexed?
 static inline bool
 ncchannel_default_p(unsigned channel){
-  return !(channel & CELL_BGDEFAULT_MASK);
+  return !(channel & NC_BGDEFAULT_MASK);
 }
 
 // Is this channel using palette-indexed color rather than RGB?
 static inline bool
 ncchannel_palindex_p(unsigned channel){
-  return !ncchannel_default_p(channel) && (channel & CELL_BG_PALETTE);
+  return !ncchannel_default_p(channel) && (channel & NC_BG_PALETTE);
 }
 
 // Mark the channel as using its default color, which also marks it opaque.
 static inline unsigned
 ncchannel_set_default(unsigned* channel){
-  return *channel &= ~(CELL_BGDEFAULT_MASK | NCALPHA_HIGHCONTRAST);
+  return *channel &= ~(NC_BGDEFAULT_MASK | NCALPHA_HIGHCONTRAST);
 }
 
 // Extract the 32-bit background channel from a channel pair.
@@ -307,8 +309,8 @@ static inline uint64_t
 ncchannels_reverse(uint64_t channels){
   const uint64_t raw = ((uint64_t)ncchannels_bchannel(channels) << 32u) +
                        ncchannels_fchannel(channels);
-  const uint64_t statemask = (CELL_NOBACKGROUND_MASK | CELL_FG_ALPHA_MASK |
-                              CELL_BG_ALPHA_MASK | (CELL_NOBACKGROUND_MASK >> 32u));
+  const uint64_t statemask = (NC_NOBACKGROUND_MASK | NC_FG_ALPHA_MASK |
+                              NC_BG_ALPHA_MASK | (NC_NOBACKGROUND_MASK >> 32u));
   uint64_t ret = raw & ~statemask;
   ret |= channels & statemask;
   return ret;
@@ -347,13 +349,13 @@ ncchannels_bg_palindex(uint64_t channels){
 // Extract 24 bits of foreground RGB from 'channels', shifted to LSBs.
 static inline unsigned
 ncchannels_fg_rgb(uint64_t channels){
-  return ncchannels_fchannel(channels) & CELL_BG_RGB_MASK;
+  return ncchannels_fchannel(channels) & NC_BG_RGB_MASK;
 }
 
 // Extract 24 bits of background RGB from 'channels', shifted to LSBs.
 static inline unsigned
 ncchannels_bg_rgb(uint64_t channels){
-  return ncchannels_bchannel(channels) & CELL_BG_RGB_MASK;
+  return ncchannels_bchannel(channels) & NC_BG_RGB_MASK;
 }
 
 // Extract 2 bits of foreground alpha from 'channels', shifted to LSBs.
@@ -646,15 +648,14 @@ typedef struct nccell {
   uint64_t channels;          // + 8B == 16B
 } nccell;
 
-#define CELL_TRIVIAL_INITIALIZER { .gcluster = 0, .gcluster_backstop = 0, .width = 0, .stylemask = 0, .channels = 0, }
 // do *not* load invalid EGCs using these macros! there is no way for us to
 // protect against such misuse here. problems *will* ensue. similarly, do not
 // set channel flags other than colors/alpha. we assign non-printing glyphs
 // a width of 1 to match utf8_egc_len()'s behavior for whitespace/NUL.
-#define CELL_CHAR_INITIALIZER(c) { .gcluster = (htole(c)), .gcluster_backstop = 0,\
-  .width = (uint8_t)((wcwidth(c) < 0 || !c) ? 1 : wcwidth(c)), .stylemask = 0, .channels = 0, }
 #define CELL_INITIALIZER(c, s, chan) { .gcluster = (htole(c)), .gcluster_backstop = 0,\
   .width = (uint8_t)((wcwidth(c) < 0 || !c) ? 1 : wcwidth(c)), .stylemask = (s), .channels = (chan), }
+#define CELL_CHAR_INITIALIZER(c) CELL_INITIALIZER(c, 0, 0)
+#define CELL_TRIVIAL_INITIALIZER CELL_CHAR_INITIALIZER(0)
 
 static inline void
 nccell_init(nccell* c){
@@ -683,13 +684,14 @@ API int nccell_duplicate(struct ncplane* n, nccell* targ, const nccell* c);
 // Release resources held by the nccell 'c'.
 API void nccell_release(struct ncplane* n, nccell* c);
 
+// if you want reverse video, try ncchannels_reverse(). if you want blink, try
+// ncplane_pulse(). if you want protection, put things on a different plane.
 #define NCSTYLE_MASK      0xffffu
-#define NCSTYLE_ITALIC    0x0020u
-#define NCSTYLE_UNDERLINE 0x0010u
-#define NCSTYLE_UNDERCURL 0x0008u
-#define NCSTYLE_BOLD      0x0004u
-#define NCSTYLE_STRUCK    0x0002u
-#define NCSTYLE_BLINK     0x0001u
+#define NCSTYLE_ITALIC    0x0010u
+#define NCSTYLE_UNDERLINE 0x0008u
+#define NCSTYLE_UNDERCURL 0x0004u
+#define NCSTYLE_BOLD      0x0002u
+#define NCSTYLE_STRUCK    0x0001u
 #define NCSTYLE_NONE      0
 
 // Set the specified style bits for the nccell 'c', whether they're actively
@@ -4398,11 +4400,14 @@ API void notcurses_debug_caps(const struct notcurses* nc, FILE* debugfp)
 #define CELL_ALPHA_TRANSPARENT  NCALPHA_TRANSPARENT
 #define CELL_ALPHA_BLEND        NCALPHA_BLEND
 #define CELL_ALPHA_OPAQUE       NCALPHA_OPAQUE
-#define NCSTYLE_PROTECT   0x0001u
-#define NCSTYLE_STANDOUT  0x0080u
-#define NCSTYLE_REVERSE   0x0020u
-#define NCSTYLE_INVIS     0x0002u
-#define NCSTYLE_DIM       0x0008u
+#define NCSTYLE_PROTECT  0
+#define NCSTYLE_STANDOUT 0
+#define NCSTYLE_REVERSE  0
+#define NCSTYLE_INVIS    0
+#define NCSTYLE_DIM      0
+#define NCSTYLE_BLINK    0
+#define CHANNELS_RGB_INITIALIZER NCCHANNELS_INITIALIZER
+#define CHANNEL_RGB_INITIALIZER NCCHANNEL_INITIALIZER
 
 #undef ALLOC
 #undef API

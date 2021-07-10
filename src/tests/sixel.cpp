@@ -201,7 +201,7 @@ TEST_CASE("Sixels") {
     };
     auto blockerplane = ncplane_create(newn, &nopts);
     REQUIRE(nullptr != blockerplane);
-    uint64_t chan = CHANNELS_RGB_INITIALIZER(0, 0, 0, 0, 0, 0);
+    uint64_t chan = NCCHANNELS_INITIALIZER(0, 0, 0, 0, 0, 0);
     CHECK(1 == ncplane_set_base(blockerplane, " ", 0, chan));
     CHECK(0 == notcurses_render(nc_));
     CHECK(1 == ncplane_set_base(n_, "%", 0, 0));

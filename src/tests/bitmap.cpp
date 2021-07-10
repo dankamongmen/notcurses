@@ -267,7 +267,7 @@ TEST_CASE("Bitmaps") {
     auto bigp = ncplane_create(n_, &nopts);
     REQUIRE(bigp);
     vopts.n = bigp;
-    uint64_t white = CHANNELS_RGB_INITIALIZER(0xff, 0xff, 0xff, 0xff, 0xff, 0xff);
+    uint64_t white = NCCHANNELS_INITIALIZER(0xff, 0xff, 0xff, 0xff, 0xff, 0xff);
     ncplane_set_base(bigp, "x", 0, white);
     CHECK(vopts.n == ncvisual_render(nc_, ncv, &vopts));
     CHECK(0 == notcurses_render(nc_));

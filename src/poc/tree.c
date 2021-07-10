@@ -409,10 +409,10 @@ tree_ui(struct notcurses* nc, struct nctree* tree){
 
 static int
 ncdup_paint(struct ncplane* n){
-  uint32_t tl = CHANNEL_RGB_INITIALIZER(0, 0, 0);
-  uint32_t tr = CHANNEL_RGB_INITIALIZER(0x88, 0x88, 0x88);
-  uint32_t bl = CHANNEL_RGB_INITIALIZER(0x88, 0x88, 0x88);
-  uint32_t br = CHANNEL_RGB_INITIALIZER(0xff, 0xff, 0xff);
+  uint32_t tl = NCCHANNEL_INITIALIZER(0, 0, 0);
+  uint32_t tr = NCCHANNEL_INITIALIZER(0x88, 0x88, 0x88);
+  uint32_t bl = NCCHANNEL_INITIALIZER(0x88, 0x88, 0x88);
+  uint32_t br = NCCHANNEL_INITIALIZER(0xff, 0xff, 0xff);
   return ncplane_highgradient_sized(n, tl, tr, bl, br,
                                     ncplane_dim_y(n), ncplane_dim_x(n));
 }

@@ -111,10 +111,11 @@ endif()
 
 # don't cache these, or installing them requires clearing the cache to be found.
 # this is going to be true for anything lacking pkg-config/CMake support.
+# unigbrk.h was introduced in libunistring 0.9.4, 2010-02-14.
 unset(HAVE_UNISTRING_H CACHE)
-check_include_file("uniwbrk.h" HAVE_UNISTRING_H)
+check_include_file("unigbrk.h" HAVE_UNISTRING_H)
 if(NOT "${HAVE_UNISTRING_H}")
-  message(FATAL_ERROR "Couldn't find uniwbrk.h from GNU libunistring")
+  message(FATAL_ERROR "Couldn't find unigbrk.h from GNU libunistring")
 endif()
 find_library(unistring unistring REQUIRED)
 set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND libunistring)
