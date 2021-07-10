@@ -15,16 +15,10 @@ namespace ncpp
 	class NCPP_API_EXPORT Cell : public Root
 	{
 	public:
-		static constexpr uint64_t FGDefaultMask = CELL_FGDEFAULT_MASK;
-		static constexpr uint64_t FGRGBMask     = CELL_FG_RGB_MASK;
-		static constexpr uint64_t BGDefaultMask = CELL_BGDEFAULT_MASK;
-		static constexpr uint64_t BGRGBMask     = CELL_BG_RGB_MASK;
-		static constexpr uint64_t BGAlphaMask   = CELL_BG_ALPHA_MASK;
-		static constexpr uint64_t FGAlphaMask   = CELL_FG_ALPHA_MASK;
-		static constexpr int AlphaHighContrast  = CELL_ALPHA_HIGHCONTRAST;
-		static constexpr int AlphaTransparent   = CELL_ALPHA_TRANSPARENT;
-		static constexpr int AlphaBlend         = CELL_ALPHA_BLEND;
-		static constexpr int AlphaOpaque        = CELL_ALPHA_OPAQUE;
+		static constexpr int AlphaHighContrast  = NCALPHA_HIGHCONTRAST;
+		static constexpr int AlphaTransparent   = NCALPHA_TRANSPARENT;
+		static constexpr int AlphaBlend         = NCALPHA_BLEND;
+		static constexpr int AlphaOpaque        = NCALPHA_OPAQUE;
 
 	public:
 		Cell (NotCurses *ncinst = nullptr) noexcept
