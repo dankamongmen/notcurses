@@ -20,7 +20,7 @@ def channel_rgb8(channel):
 def channel_set_rgb8(channel, r, g, b):
     checkRGB(r, g, b)
     c = (r << 16) | (g << 8) | b
-    return (channel & ~lib.CELL_BG_RGB_MASK) | lib.CELL_BGDEFAULT_MASK | c
+    return (channel & ~lib.NC_BG_RGB_MASK) | lib.NC_BGDEFAULT_MASK | c
 
 def channels_fchannel(channels):
     return channels & 0xffffffff00000000

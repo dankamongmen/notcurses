@@ -54,30 +54,30 @@ PyInit_notcurses(void)
     GNU_PY_MODULE_ADD_OBJECT(py_module, (PyObject *)&NcPlane_Type, "NcPlane");
 
     // background cannot be highcontrast, only foreground
-    GNU_PY_CHECK_INT(PyModule_AddIntMacro(py_module, CELL_ALPHA_HIGHCONTRAST));
-    GNU_PY_CHECK_INT(PyModule_AddIntMacro(py_module, CELL_ALPHA_TRANSPARENT));
-    GNU_PY_CHECK_INT(PyModule_AddIntMacro(py_module, CELL_ALPHA_BLEND));
-    GNU_PY_CHECK_INT(PyModule_AddIntMacro(py_module, CELL_ALPHA_OPAQUE));
+    GNU_PY_CHECK_INT(PyModule_AddIntMacro(py_module, NCALPHA_HIGHCONTRAST));
+    GNU_PY_CHECK_INT(PyModule_AddIntMacro(py_module, NCALPHA_TRANSPARENT));
+    GNU_PY_CHECK_INT(PyModule_AddIntMacro(py_module, NCALPHA_BLEND));
+    GNU_PY_CHECK_INT(PyModule_AddIntMacro(py_module, NCALPHA_OPAQUE));
 
     // if this bit is set, we are *not* using the default background color
-    GNU_PY_CHECK_INT(PyModule_AddIntMacro(py_module, CELL_BGDEFAULT_MASK));
+    GNU_PY_CHECK_INT(PyModule_AddIntMacro(py_module, NC_BGDEFAULT_MASK));
     // if this bit is set, we are *not* using the default foreground color
-    GNU_PY_CHECK_INT(PyModule_AddIntMacro(py_module, CELL_FGDEFAULT_MASK));
+    GNU_PY_CHECK_INT(PyModule_AddIntMacro(py_module, NC_FGDEFAULT_MASK));
     // extract these bits to get the background RGB value
-    GNU_PY_CHECK_INT(PyModule_AddIntMacro(py_module, CELL_BG_RGB_MASK));
+    GNU_PY_CHECK_INT(PyModule_AddIntMacro(py_module, NC_BG_RGB_MASK));
     // extract these bits to get the foreground RGB value
-    GNU_PY_CHECK_INT(PyModule_AddIntMacro(py_module, CELL_FG_RGB_MASK));
-    // if this bit *and* CELL_BGDEFAULT_MASK are set, we're using a
+    GNU_PY_CHECK_INT(PyModule_AddIntMacro(py_module, NC_FG_RGB_MASK));
+    // if this bit *and* NC_BGDEFAULT_MASK are set, we're using a
     // palette-indexed background color
-    GNU_PY_CHECK_INT(PyModule_AddIntMacro(py_module, CELL_BG_PALETTE));
+    GNU_PY_CHECK_INT(PyModule_AddIntMacro(py_module, NC_BG_PALETTE));
     GNU_PY_CHECK_INT(PyModule_AddIntMacro(py_module, NCPALETTESIZE));
     // if this bit *and* CELL_FGDEFAULT_MASK are set, we're using a
     // palette-indexed foreground color
-    GNU_PY_CHECK_INT(PyModule_AddIntMacro(py_module, CELL_FG_PALETTE));
+    GNU_PY_CHECK_INT(PyModule_AddIntMacro(py_module, NC_FG_PALETTE));
     // extract these bits to get the background alpha mask
-    GNU_PY_CHECK_INT(PyModule_AddIntMacro(py_module, CELL_BG_ALPHA_MASK));
+    GNU_PY_CHECK_INT(PyModule_AddIntMacro(py_module, NC_BG_ALPHA_MASK));
     // extract these bits to get the foreground alpha mask
-    GNU_PY_CHECK_INT(PyModule_AddIntMacro(py_module, CELL_FG_ALPHA_MASK));
+    GNU_PY_CHECK_INT(PyModule_AddIntMacro(py_module, NC_FG_ALPHA_MASK));
 
     PyObject *traceback_module CLEANUP_PY_OBJ = GNU_PY_CHECK(PyImport_ImportModule("traceback"));
     traceback_format_exception = GNU_PY_CHECK(PyObject_GetAttrString(traceback_module, "format_exception"));

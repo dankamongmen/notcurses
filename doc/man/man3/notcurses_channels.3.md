@@ -13,10 +13,10 @@ notcurses_channels - operations on notcurses channels
 ```c
 #define NCCHANNELS_INITIALIZER(fr, fg, fb, br, bg, bb) \
   (((((uint64_t)(fr) << 16u) + ((uint64_t)(fg) << 8u) + (uint64_t)(fb)) << 32ull) + \
-   (((br) << 16u) + ((bg) << 8u) + (bb)) + CELL_BGDEFAULT_MASK + CELL_FGDEFAULT_MASK)
+   (((br) << 16u) + ((bg) << 8u) + (bb)) + NC_BGDEFAULT_MASK + NC_FGDEFAULT_MASK)
 
 #define CHANNEL_INITIALIZER(r, g, b) \
-  (((uint32_t)r << 16u) + ((uint32_t)g << 8u) + (b) + CELL_BGDEFAULT_MASK)
+  (((uint32_t)r << 16u) + ((uint32_t)g << 8u) + (b) + NC_BGDEFAULT_MASK)
 ```
 
 **uint32_t ncchannel_r(uint32_t ***channel***);**

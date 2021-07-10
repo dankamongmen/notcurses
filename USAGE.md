@@ -1850,13 +1850,6 @@ typedef struct nccell {
   uint64_t channels;          // + 8B == 16B
 } nccell;
 
-#define CELL_BGDEFAULT_MASK     0x0000000040000000ull
-#define CELL_FGDEFAULT_MASK     (CELL_BGDEFAULT_MASK << 32u)
-#define CELL_BG_RGB_MASK        0x0000000000ffffffull
-#define CELL_FG_RGB_MASK        (CELL_BG_MASK << 32u)
-#define CELL_BG_PALETTE         0x0000000008000000ull
-#define CELL_FG_PALETTE         (CELL_BG_PALETTE << 32u)
-#define NCCHANNEL_ALPHA_MASK    0x30000000ull
 #define NCALPHA_HIGHCONTRAST 0x30000000ull
 #define NCALPHA_TRANSPARENT  0x20000000ull
 #define NCALPHA_BLEND        0x10000000ull
@@ -2881,8 +2874,8 @@ channel_set_rgb8(unsigned* channel, int r, int g, int b){
     return -1;
   }
   unsigned c = (r << 16u) | (g << 8u) | b;
-  c |= CELL_BGDEFAULT_MASK;
-  const uint64_t mask = CELL_BGDEFAULT_MASK | CELL_BG_MASK;
+  c |= NC_BGDEFAULT_MASK;
+  const uint64_t mask = NC_BGDEFAULT_MASK | NC_BG_MASK;
   *channel = (*channel & ~mask) | c;
   return 0;
 }
@@ -2893,25 +2886,25 @@ channel_set(unsigned* channel, unsigned rgb){
   if(rgb > 0xffffffu){
     return -1;
   }
-  *channel = (*channel & ~CELL_BG_MASK) | CELL_BGDEFAULT_MASK | rgb;
+  *channel = (*channel & ~NC_BG_MASK) | NC_BGDEFAULT_MASK | rgb;
   return 0;
 }
 
 // Extract the 2-bit alpha component from a 32-bit channel.
 static inline unsigned
 channel_alpha(unsigned channel){
-  return channel & CELL_BG_ALPHA_MASK;
+  return channel & NC_BG_ALPHA_MASK;
 }
 
 // Set the 2-bit alpha component of the 32-bit channel.
 static inline int
 channel_set_alpha(unsigned* channel, unsigned alpha){
-  if(alpha & ~CELL_BG_ALPHA_MASK){
+  if(alpha & ~NC_BG_ALPHA_MASK){
     return -1;
   }
   *channel = alpha | (*channel & ~CHANNEL_ALPHA_MASK);
   if(alpha != NCALPHA_OPAQUE){
-    *channel |= CELL_BGDEFAULT_MASK;
+    *channel |= NC_BGDEFAULT_MASK;
   }
   return 0;
 }
@@ -2919,13 +2912,13 @@ channel_set_alpha(unsigned* channel, unsigned alpha){
 // Is this channel using the "default color" rather than its RGB?
 static inline bool
 channel_default_p(unsigned channel){
-  return !(channel & CELL_BGDEFAULT_MASK);
+  return !(channel & NC_BGDEFAULT_MASK);
 }
 
 // Mark the channel as using its default color.
 static inline unsigned
 channel_set_default(unsigned* channel){
-  return *channel &= ~CELL_BGDEFAULT_MASK;
+  return *channel &= ~NC_BGDEFAULT_MASK;
 }
 
 // Extract the 32-bit background channel from a channel pair.
@@ -2946,8 +2939,8 @@ static inline uint64_t
 ncchannels_reverse(uint64_t channels){
   const uint64_t raw = ((uint64_t)ncchannels_bchannel(channels) << 32u) +
                        ncchannels_fchannel(channels);
-  const uint64_t statemask = (CELL_NOBACKGROUND_MASK | CELL_FG_ALPHA_MASK |
-                              CELL_BG_ALPHA_MASK | (CELL_NOBACKGROUND_MASK >> 32u));
+  const uint64_t statemask = (NC_NOBACKGROUND_MASK | NC_FG_ALPHA_MASK |
+                              NC_BG_ALPHA_MASK | (NC_NOBACKGROUND_MASK >> 32u));
   uint64_t ret = raw & ~statemask;
   ret |= channels & statemask;
   return ret;
@@ -2956,13 +2949,13 @@ ncchannels_reverse(uint64_t channels){
 // Extract 24 bits of foreground RGB from 'channels', shifted to LSBs.
 static inline unsigned
 ncchannels_fg_rgb(uint64_t channels){
-  return ncchannels_fchannel(channels) & CELL_BG_MASK;
+  return ncchannels_fchannel(channels) & NC_BG_MASK;
 }
 
 // Extract 24 bits of background RGB from 'channels', shifted to LSBs.
 static inline unsigned
 ncchannels_bg_rgb(uint64_t channels){
-  return ncchannels_bchannel(channels) & CELL_BG_MASK;
+  return ncchannels_bchannel(channels) & NC_BG_MASK;
 }
 
 // Extract 2 bits of foreground alpha from 'channels', shifted to LSBs.
