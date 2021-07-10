@@ -7,7 +7,7 @@ use crate::{NcAlphaBits, NcChannel, NcChannels, NcComponent, NcPaletteIndex, NcR
 pub trait NcChannelMethods {
     // constructors
     fn new() -> Self;
-    fn with_default() -> Self;
+    fn default() -> Self;
     fn from_rgb(rgb: NcRgb) -> Self;
     fn from_rgb_alpha(rgb: NcRgb, alpha: NcAlphaBits) -> Self;
     fn from_rgb8(r: NcComponent, g: NcComponent, b: NcComponent) -> Self;
@@ -141,7 +141,7 @@ impl NcChannelMethods for NcChannel {
     }
 
     /// New `NcChannel`, set to black and using the "default color".
-    fn with_default() -> Self {
+    fn default() -> Self {
         0 as NcChannel
     }
 
