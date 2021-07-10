@@ -4410,8 +4410,6 @@ API void notcurses_debug_caps(const struct notcurses* nc, FILE* debugfp)
 #define NCSTYLE_INVIS    0
 #define NCSTYLE_DIM      0
 #define NCSTYLE_BLINK    0
-#define CHANNELS_RGB_INITIALIZER NCCHANNELS_INITIALIZER
-#define CHANNEL_RGB_INITIALIZER NCCHANNEL_INITIALIZER
 
 #undef ALLOC
 #undef API
