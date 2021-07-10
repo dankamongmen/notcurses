@@ -1170,8 +1170,6 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   if(set_fd_nonblocking(ret->tcache.input.infd, 1, &ret->stdio_blocking_save)){
     goto err;
   }
-  // flush on the switch to alternate screen, lest initial output be swept away
-  const char* clearscr = get_escape(&ret->tcache, ESCAPE_CLEAR);
   // if not connected to an actual terminal, we're not going to try entering
   // the alternate screen; we're not even going to bother clearing the screen.
   if(ret->ttyfd >= 0){
@@ -1183,6 +1181,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
           goto err;
         }
       }
+      const char* clearscr = get_escape(&ret->tcache, ESCAPE_CLEAR);
       // perform an explicit clear if the alternate screen was requested
       // (smcup *might* clear, but who knows, and might not have been
       // available in any case).
