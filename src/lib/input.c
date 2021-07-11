@@ -10,8 +10,8 @@
 // CSI (Control Sequence Indicators) originate in the terminal itself, and are
 // not reported in their bare form to the user. For our purposes, these usually
 // indicate a mouse event.
-#define CSIPREFIX "\x1b[<"
-static const char32_t NCKEY_CSI = 1;
+#define CSIPREFIX "\x1b["
+static const char32_t NCKEY_CSI = 0x90; // guaranteed not to match anything else
 
 static sig_atomic_t resize_seen;
 
@@ -178,14 +178,15 @@ ncinputlayer_add_input_escape(ncinputlayer* nc, const char* esc, char32_t specia
 }
 
 // We received the CSI prefix. Extract the data payload. Right now, we handle
-// mouse and cursor location reports. The former is three parameters ending
-// with 'm' or 'M'; the latter is two ending with 'R'. Both use 1-biased
-// coordinates, so a 0 can be safely rejected.
+// mouse and cursor location reports. The former is three parameters starting
+// with '<' and ending with 'm' or 'M'; the latter is two ending with 'R'.
+// Both use 1-biased coordinates, so a 0 can be safely rejected.
 static char32_t
 handle_csi(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin){
   // stash the first parameter away. it's encoded if the CSI ends up being a
   // mouse event, and otherwise it's the cursor's column (x) coordinate.
   int param1 = -1;
+  bool mouse = false;
   enum {
     PARAM1,  // reading first param (button + modifiers) plus delimiter
     PARAM2,  // reading second param (x coordinate) plus delimiter
@@ -196,7 +197,14 @@ handle_csi(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin){
   while(nc->inputbuf_occupied){
     int candidate = pop_input_keypress(nc);
     if(state == PARAM1){
-      if(candidate == ';'){
+      // if !mouse and candidate is '>', set mouse. otherwise it ought be a
+      // digit or a semicolon.
+      if(candidate == '<'){
+        if(mouse){
+          break; // shouldn't see it twice
+        }
+        mouse = true;
+      }else if(candidate == ';'){
         param1 = param;
         state = PARAM2;
         // modifiers: 32 (motion) 16 (control) 8 (alt) 4 (shift)
@@ -227,6 +235,10 @@ handle_csi(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin){
       }
     }else if(state == PARAM2){
       if(candidate == 'R'){ // cursor location report
+        if(mouse){
+          logwarn("Invalid mouse param (%d/%d)\n", param1, param);
+          break;
+        }
         if(param <= 0 || param1 <= 0){
           logwarn("Invalid cursor location param (%d/%d)\n", param, param1);
           break;
