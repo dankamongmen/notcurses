@@ -771,74 +771,6 @@ char* termdesc_longterm(const tinfo* ti){
   return ret;
 }
 
-int cursor_yx_get(int ttyfd, const char* u7, int* y, int* x){
-  if(tty_emit(u7, ttyfd)){
-    return -1;
-  }
-  bool done = false;
-  enum { // what we expect now
-    CURSOR_ESC, // 27 (0x1b)
-    CURSOR_LSQUARE,
-    CURSOR_ROW, // delimited by a semicolon
-    CURSOR_COLUMN,
-    CURSOR_R,
-  } state = CURSOR_ESC;
-  int row = 0, column = 0;
-  int r;
-  char in;
-  do{
-    while((r = read(ttyfd, &in, 1)) == 1){
-      bool valid = false;
-      switch(state){
-        case CURSOR_ESC: valid = (in == NCKEY_ESC); state = CURSOR_LSQUARE; break;
-        case CURSOR_LSQUARE: valid = (in == '['); state = CURSOR_ROW; break;
-        case CURSOR_ROW:
-          if(isdigit(in)){
-            row *= 10;
-            row += in - '0';
-            valid = true;
-          }else if(in == ';'){
-            state = CURSOR_COLUMN;
-            valid = true;
-          }
-          break;
-        case CURSOR_COLUMN:
-          if(isdigit(in)){
-            column *= 10;
-            column += in - '0';
-            valid = true;
-          }else if(in == 'R'){
-            state = CURSOR_R;
-            valid = true;
-          }
-          break;
-        case CURSOR_R: default: // logical error, whoops
-          break;
-      }
-      if(!valid){
-        logerror("Unexpected result (%c, %d) from terminal\n", in, in);
-        break;
-      }
-      if(state == CURSOR_R){
-        done = true;
-        break;
-      }
-    }
-    // need to loop 0 to handle slow terminals, see for instance screen =[
-  }while(!done && (r >= 0 || (errno == EINTR || errno == EAGAIN || errno == EBUSY)));
-  if(!done){
-    logerror("Error reading cursor location\n");
-    return -1;
-  }
-  if(y){
-    *y = row;
-  }
-  if(x){
-    *x = column;
-  }
-  return 0;
-}
-
 // send a u7 request, and wait until we have a cursor report
 int locate_cursor(tinfo* ti, int fd, int* cursor_y, int* cursor_x){
   if(fd < 0){
@@ -873,24 +805,4 @@ int locate_cursor(tinfo* ti, int fd, int* cursor_y, int* cursor_x){
     *cursor_x = tmp;
   }
   return 0;
-}
-
-int locate_cursor_early(struct notcurses* nc, int* cursor_y, int* cursor_x){
-  int ret = 0;
-  if(nc->ttyfd >= 0){
-    const char* u7 = get_escape(&nc->tcache, ESCAPE_DSRCPR);
-    // FIXME ought check for cursor inversion!
-    ret = cursor_yx_get(nc->ttyfd, u7, cursor_y, cursor_x);
-    if(ret == 0){
-      if(nc->tcache.inverted_cursor){
-        int tmp = *cursor_y;
-        *cursor_y = *cursor_x;
-        *cursor_x = tmp;
-      }
-      // we use 0-based coordinates, but known terminals use 1-based coordinates
-      --*cursor_y;
-      --*cursor_x;
-    }
-  }
-  return ret;
 }

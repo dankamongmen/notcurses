@@ -179,6 +179,75 @@ int ncdirect_cursor_disable(ncdirect* nc){
   return -1;
 }
 
+static int
+cursor_yx_get(int ttyfd, const char* u7, int* y, int* x){
+  if(tty_emit(u7, ttyfd)){
+    return -1;
+  }
+  bool done = false;
+  enum { // what we expect now
+    CURSOR_ESC, // 27 (0x1b)
+    CURSOR_LSQUARE,
+    CURSOR_ROW, // delimited by a semicolon
+    CURSOR_COLUMN,
+    CURSOR_R,
+  } state = CURSOR_ESC;
+  int row = 0, column = 0;
+  int r;
+  char in;
+  do{
+    while((r = read(ttyfd, &in, 1)) == 1){
+      bool valid = false;
+      switch(state){
+        case CURSOR_ESC: valid = (in == NCKEY_ESC); state = CURSOR_LSQUARE; break;
+        case CURSOR_LSQUARE: valid = (in == '['); state = CURSOR_ROW; break;
+        case CURSOR_ROW:
+          if(isdigit(in)){
+            row *= 10;
+            row += in - '0';
+            valid = true;
+          }else if(in == ';'){
+            state = CURSOR_COLUMN;
+            valid = true;
+          }
+          break;
+        case CURSOR_COLUMN:
+          if(isdigit(in)){
+            column *= 10;
+            column += in - '0';
+            valid = true;
+          }else if(in == 'R'){
+            state = CURSOR_R;
+            valid = true;
+          }
+          break;
+        case CURSOR_R: default: // logical error, whoops
+          break;
+      }
+      if(!valid){
+        logerror("Unexpected result (%c, %d) from terminal\n", in, in);
+        break;
+      }
+      if(state == CURSOR_R){
+        done = true;
+        break;
+      }
+    }
+    // need to loop 0 to handle slow terminals, see for instance screen =[
+  }while(!done && (r >= 0 || (errno == EINTR || errno == EAGAIN || errno == EBUSY)));
+  if(!done){
+    logerror("Error reading cursor location\n");
+    return -1;
+  }
+  if(y){
+    *y = row;
+  }
+  if(x){
+    *x = column;
+  }
+  return 0;
+}
+
 // if we're lacking hpa/vpa, *and* -1 is passed for one of x/y, *and* we've
 // not got a real ctermfd, we're pretty fucked. we just punt and substitute
 // 0 for that case, which hopefully only happens when running headless unit
