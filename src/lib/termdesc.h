@@ -213,11 +213,7 @@ void free_terminfo_cache(tinfo* ti);
 // return a heap-allocated copy of termname + termversion
 char* termdesc_longterm(const tinfo* ti);
 
-// get the cursor location early (after interrogate_terminfo(), but before
-// handing control back to the user). blocking call. FIXME this should go away
-// once we have proper input handling that separates out control sequences.
-int locate_cursor_early(struct notcurses* nc, int* cursor_y, int* cursor_x);
-int cursor_yx_get(int ttyfd, const char* u7, int* y, int* x);
+int locate_cursor(tinfo* ti, int fd, int* cursor_y, int* cursor_x);
 
 #ifdef __cplusplus
 }
