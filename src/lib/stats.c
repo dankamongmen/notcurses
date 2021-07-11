@@ -164,7 +164,8 @@ void summarize_stats(notcurses* nc){
     qprefix(stats->render_min_ns, NANOSECS_IN_SEC, minbuf, 0);
     qprefix(stats->render_max_ns, NANOSECS_IN_SEC, maxbuf, 0);
     qprefix(stats->render_ns / stats->renders, NANOSECS_IN_SEC, avgbuf, 0);
-    fprintf(stderr, "\n%ju render%s, %ss (%ss min, %ss avg, %ss max)\n",
+    ncfputc('\n', stdout);
+    fprintf(stderr, "%ju render%s, %ss (%ss min, %ss avg, %ss max)\n",
             stats->renders, stats->renders == 1 ? "" : "s",
             totalbuf, minbuf, avgbuf, maxbuf);
     qprefix(stats->raster_ns, NANOSECS_IN_SEC, totalbuf, 0);
