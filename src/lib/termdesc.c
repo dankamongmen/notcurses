@@ -800,7 +800,7 @@ int locate_cursor(tinfo* ti, int fd, int* cursor_y, int* cursor_x){
     // this can block. we must enter holding the input lock, and it will
     // return to us holding the input lock.
     ncinput_extract_clrs(&ti->input);
-    if((clr = ti->input.creport_queue) == NULL){
+    if( (clr = ti->input.creport_queue) ){
       logdebug("Hustled up a CL report\n");
       break;
     }
