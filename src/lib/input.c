@@ -196,6 +196,7 @@ handle_csi(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin){
   char32_t id = (char32_t)-1;
   while(nc->inputbuf_occupied){
     int candidate = pop_input_keypress(nc);
+    logdebug("Candidate: %c (%d)\n", candidate, candidate);
     if(state == PARAM1){
       // if !mouse and candidate is '>', set mouse. otherwise it ought be a
       // digit or a semicolon.
@@ -240,11 +241,12 @@ handle_csi(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin){
           break;
         }
         if(param <= 0 || param1 <= 0){
-          logwarn("Invalid cursor location param (%d/%d)\n", param, param1);
+          logwarn("Invalid cursor location param (%d/%d)\n", param1, param);
           break;
         }
-        ni->x = param1 - 1;
-        ni->y = param - 1;
+        logdebug("Cursor location report %d/%d\n", param1, param);
+        ni->x = param - 1;
+        ni->y = param1 - 1;
         return NCKEY_CURSOR_LOCATION_REPORT;
       }else if(candidate == ';'){
         state = PARAM3;
@@ -282,7 +284,7 @@ handle_csi(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin){
   }
   // FIXME ungetc on failure! walk trie backwards or something
   // FIXME increment the input_error stat
-  logerror("Error processing CSI\n");
+  logerror("Error processing CSI (%d left)\n", nc->inputbuf_occupied);
   return (char32_t)-1;
 }
 
@@ -1435,6 +1437,33 @@ int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected,
   return 0;
 }
 
+// go through the accumulated input and find any cursor location reports.
+// enqueue them, and zero them out from the buffer (but do not decrement the
+// number of available characters).
+// FIXME optimize this via remembered offset + invalidation
+static void
+scan_for_clrs(ncinputlayer* ni){
+  unsigned pos = ni->inputbuf_valid_starts;
+  //unsigned count = ni->inputbuf_occupied;
+  // FIXME need handle_csi to work from an arbitrary place
+  if(ni->inputbuf[pos] == '\x1b'){
+    logdebug("Got the escape at %u\n", pos);
+    if(++pos == sizeof(ni->inputbuf) / sizeof(*ni->inputbuf)){
+      pos = 0;
+    }
+    logdebug("Got %c (%d) %u\n", ni->inputbuf[pos], ni->inputbuf[pos], pos);
+    if(ni->inputbuf[pos] == '['){
+      logdebug("Got the CSI at %u\n", pos);
+      pop_input_keypress(ni);
+      pop_input_keypress(ni);
+      ncinput nin;
+      if(handle_csi(ni, &nin, 0, 0) == NCKEY_CURSOR_LOCATION_REPORT){
+        enqueue_cursor_report(ni, &nin);
+      }
+    }
+  }
+}
+
 // assuming the user context is not active, go through current data looking
 // for a cursor location report. if we find none, block on input, and read if
 // appropriate. we can be interrupted by a new user context. we enter holding
@@ -1442,12 +1471,13 @@ int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected,
 // blocking for readable action.
 void ncinput_extract_clrs(ncinputlayer* ni){
   do{
-    // FIXME optimize this via remembered offset + invalidation
     if(ni->inputbuf_occupied){
-      // FIXME look through outstanding data
+      scan_for_clrs(ni);
       if(ni->creport_queue){
+        logdebug("Found a CLR, returning\n");
         return;
       }
+      logdebug("No CLR available, reading\n");
     }
     size_t rlen = input_queue_space(ni);
     if(rlen){
