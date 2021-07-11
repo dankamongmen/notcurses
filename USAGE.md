@@ -1118,6 +1118,9 @@ memory.
 // move would place the cursor outside the plane.
 int ncplane_cursor_move_yx(struct ncplane* n, int y, int x);
 
+// Move cursor relatively to its current position.
+int ncplane_cursor_move_rel(struct ncplane* n, int y, int x);
+
 // Get the current position of the cursor within n. y and/or x may be NULL.
 void ncplane_cursor_yx(const struct ncplane* n, int* restrict y, int* restrict x);
 
