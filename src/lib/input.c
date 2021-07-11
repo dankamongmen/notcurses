@@ -441,7 +441,8 @@ enqueue_cursor_report(ncinputlayer* nc, const ncinput* ni){
 }
 
 static char32_t
-handle_queued_input(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin){
+handle_queued_input(ncinputlayer* nc, ncinput* ni,
+                    int leftmargin, int topmargin){
   ncinput nireal;
   if(ni == NULL){
     ni = &nireal;
