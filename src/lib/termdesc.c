@@ -784,9 +784,12 @@ int locate_cursor(tinfo* ti, int fd, int* cursor_y, int* cursor_x){
   }
   bool emitted_u7 = false; // only want to send one max
   cursorreport* clr;
+  loginfo("Acquiring input lock\n");
   pthread_mutex_lock(&ti->input.lock);
   while((clr = ti->input.creport_queue) == NULL){
+    logdebug("No report yet\n");
     if(!emitted_u7){
+      logdebug("Emitting u7\n");
       // FIXME i'd rather not do this while holding the lock =[
       if(tty_emit(u7, fd)){
         pthread_mutex_unlock(&ti->input.lock);
@@ -794,9 +797,18 @@ int locate_cursor(tinfo* ti, int fd, int* cursor_y, int* cursor_x){
       }
       emitted_u7 = true;
     }
+    // this can block. we must enter holding the input lock, and it will
+    // return to us holding the input lock.
+    ncinput_extract_clrs(&ti->input);
+    if((clr = ti->input.creport_queue) == NULL){
+      logdebug("Hustled up a CL report\n");
+      break;
+    }
     pthread_cond_wait(&ti->input.creport_cond, &ti->input.lock);
   }
+  ti->input.creport_queue = clr->next;
   pthread_mutex_unlock(&ti->input.lock);
+  loginfo("Got a report %d/%d\n", clr->y, clr->x);
   *cursor_y = clr->y;
   *cursor_x = clr->x;
   if(ti->inverted_cursor){
@@ -804,5 +816,6 @@ int locate_cursor(tinfo* ti, int fd, int* cursor_y, int* cursor_x){
     *cursor_y = *cursor_x;
     *cursor_x = tmp;
   }
+  free(clr);
   return 0;
 }

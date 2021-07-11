@@ -470,7 +470,7 @@ handle_queued_input(ncinputlayer* nc, ncinput* ni,
 // is attempt to fill up the input ringbuffer, exiting either when that
 // condition is met, or when we get an EAGAIN. it does no processing.
 static int
-fill_buffer(ncinputlayer* nc, const sigset_t* sigmask){
+fill_buffer(ncinputlayer* nc){
   ssize_t r = 0;
   size_t rlen;
 //fprintf(stderr, "OCCUPY: %u@%u read: %d %zd\n", nc->inputbuf_occupied, nc->inputbuf_write_at, nc->inputbuf[nc->inputbuf_write_at], r);
@@ -480,23 +480,13 @@ fill_buffer(ncinputlayer* nc, const sigset_t* sigmask){
     if(rlen >= sizeof(nc->inputbuf) / sizeof(*nc->inputbuf) - nc->inputbuf_write_at){
       rlen = sizeof(nc->inputbuf) / sizeof(*nc->inputbuf) - nc->inputbuf_write_at;
     }
-    while((r = read(nc->infd, nc->inputbuf + nc->inputbuf_write_at, rlen)) > 0){
+    if((r = read(nc->infd, nc->inputbuf + nc->inputbuf_write_at, rlen)) > 0){
       nc->inputbuf_write_at += r;
       if(nc->inputbuf_write_at == sizeof(nc->inputbuf) / sizeof(*nc->inputbuf)){
         nc->inputbuf_write_at = 0;
       }
       nc->inputbuf_occupied += r;
-      // specify a 0 timeout, meaning we only check to see if there's more
-      // input available immediately. basically, if we only read through the
-      // end of the ringbuffer, this gets us the first part filled as well.
-      // this is less about performance, and more about avoiding partial
-      // reads of multibyte characters and control sequences.
-      const struct timespec ts = {};
-      if(block_on_input(nc->infd, &ts, sigmask) < 1){
-        break;
-      }
-    }
-    if(r < 0){
+    }else if(r < 0){
       if(errno != EAGAIN && errno != EBUSY && errno != EWOULDBLOCK){
         return -1;
       }
@@ -508,9 +498,8 @@ fill_buffer(ncinputlayer* nc, const sigset_t* sigmask){
 // user-mode call to actual input i/o, which will get the next character from
 // the input buffer.
 static char32_t
-handle_input(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin,
-             const sigset_t* sigmask){
-  fill_buffer(nc, sigmask);
+handle_input(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin){
+  fill_buffer(nc);
   // highest priority is resize notifications, since they don't queue
   if(resize_seen){
     resize_seen = 0;
@@ -520,12 +509,11 @@ handle_input(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin,
 }
 
 static char32_t
-handle_ncinput(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin,
-               const sigset_t* sigmask){
+handle_ncinput(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin){
   if(ni){
     memset(ni, 0, sizeof(*ni));
   }
-  char32_t r = handle_input(nc, ni, leftmargin, topmargin, sigmask);
+  char32_t r = handle_input(nc, ni, leftmargin, topmargin);
   // ctrl (*without* alt) + letter maps to [1..26], and is independent of shift
   // FIXME need to distinguish between:
   //  - Enter and ^J
@@ -563,7 +551,7 @@ ncinputlayer_prestamp(ncinputlayer* nc, const struct timespec *ts,
   errno = 0;
   if(block_on_input(nc->infd, ts, sigmask) > 0){
 //fprintf(stderr, "%d events from input!\n", events);
-    return handle_ncinput(nc, ni, leftmargin, topmargin, sigmask);
+    return handle_ncinput(nc, ni, leftmargin, topmargin);
   }
 //fprintf(stderr, "ERROR: %d events from input!\n", events);
   return -1;
@@ -1414,6 +1402,8 @@ int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected,
   nilayer->inputbuf_write_at = 0;
   nilayer->input_events = 0;
   nilayer->creport_queue = NULL;
+  nilayer->user_wants_data = false;
+  nilayer->inner_wants_data = false;
   pthread_cond_init(&nilayer->creport_cond, NULL);
   int csifd = nilayer->ttyfd >= 0 ? nilayer->ttyfd : nilayer->infd;
   if(isatty(csifd)){
@@ -1443,4 +1433,50 @@ int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected,
     }
   }
   return 0;
+}
+
+// assuming the user context is not active, go through current data looking
+// for a cursor location report. if we find none, block on input, and read if
+// appropriate. we can be interrupted by a new user context. we enter holding
+// the input lock, and leave holding the input lock, giving it up only while
+// blocking for readable action.
+void ncinput_extract_clrs(ncinputlayer* ni){
+  do{
+    // FIXME optimize this via remembered offset + invalidation
+    if(ni->inputbuf_occupied){
+      // FIXME look through outstanding data
+      if(ni->creport_queue){
+        return;
+      }
+    }
+    size_t rlen = input_queue_space(ni);
+    if(rlen){
+      if(rlen >= sizeof(ni->inputbuf) / sizeof(*ni->inputbuf) - ni->inputbuf_write_at){
+        rlen = sizeof(ni->inputbuf) / sizeof(*ni->inputbuf) - ni->inputbuf_write_at;
+      }
+      logdebug("Reading %zu from %d\n", rlen, ni->infd);
+      ssize_t r;
+      if((r = read(ni->infd, ni->inputbuf + ni->inputbuf_write_at, rlen)) > 0){
+        logdebug("Read %zu from %d\n", r, ni->infd);
+        ni->inputbuf_write_at += r;
+        if(ni->inputbuf_write_at == sizeof(ni->inputbuf) / sizeof(*ni->inputbuf)){
+          ni->inputbuf_write_at = 0;
+        }
+        ni->inputbuf_occupied += r;
+        continue;
+      }
+      ni->inner_wants_data = true;
+      pthread_mutex_unlock(&ni->lock);
+      // specify a NULL timeout, meaning we block as long as we need, until
+      // there's input available, or we are interrupted by a signal.
+      logdebug("Blocking on input");
+      if(block_on_input(ni->infd, NULL, NULL) < 1){
+        pthread_mutex_lock(&ni->lock); // interrupted?
+        break;
+      }
+      ni->inner_wants_data = false;
+      logdebug("Reacquiring input lock");
+      pthread_mutex_lock(&ni->lock);
+    }
+  }while(!ni->user_wants_data);
 }

@@ -107,6 +107,8 @@ typedef struct ncinputlayer {
   struct esctrie* inputescapes; // trie of input escapes -> ncspecial_keys
   cursorreport* creport_queue; // queue of cursor reports
   pthread_cond_t creport_cond;
+  bool user_wants_data;        // a user context is active
+  bool inner_wants_data;       // if we're blocking on input
 } ncinputlayer;
 
 // terminal interface description. most of these are acquired from terminfo(5)
