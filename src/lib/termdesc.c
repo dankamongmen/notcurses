@@ -91,19 +91,19 @@ setup_kitty_bitmaps(tinfo* ti, int fd, int sixel_maxy_pristine){
 
 static bool
 query_rgb(void){
-  bool rgb = tigetflag("RGB") == 1;
+  bool rgb = (tigetflag("RGB") > 1 || tigetflag("Tc") > 1);
   if(!rgb){
-    // RGB terminfo capability being a new thing (as of ncurses 6.1), it's not commonly found in
-    // terminal entries today. COLORTERM, however, is a de-facto (if imperfect/kludgy) standard way
-    // of indicating TrueColor support for a terminal. The variable takes one of two case-sensitive
+    // RGB terminfo capability being a new thing (as of ncurses 6.1), it's not
+    // commonly found in terminal entries today. COLORTERM, however, is a
+    // de-facto (if imperfect/kludgy) standard way of indicating TrueColor
+    // support for a terminal. The variable takes one of two case-sensitive
     // values:
     //
     //   truecolor
     //   24bit
     //
-    // https://gist.github.com/XVilka/8346728#true-color-detection gives some more information about
-    // the topic
-    //
+    // https://gist.github.com/XVilka/8346728#true-color-detection gives some
+    // more information about the topic.
     const char* cterm = getenv("COLORTERM");
     rgb = cterm && (strcmp(cterm, "truecolor") == 0 || strcmp(cterm, "24bit") == 0);
   }
@@ -601,7 +601,6 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
     ti->caps.colors = colors;
   }
   ti->caps.rgb = query_rgb(); // independent of colors
-  // verify that the terminal provides cursor addressing (absolute movement)
   const struct strtdesc {
     escape_e esc;
     const char* tinfo;
@@ -645,6 +644,7 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
       goto err;
     }
   }
+  // verify that the terminal provides cursor addressing (absolute movement)
   if(ti->escindices[ESCAPE_CUP] == 0){
     fprintf(stderr, "Required terminfo capability 'cup' not defined\n");
     goto err;

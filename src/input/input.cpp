@@ -197,7 +197,7 @@ void Tick(ncpp::NotCurses* nc, uint64_t sec) {
 
 void Ticker(ncpp::NotCurses* nc) {
   do{
-    std::this_thread::sleep_for(std::chrono::seconds{1});
+    std::this_thread::sleep_for(std::chrono::milliseconds{100});
     const uint64_t sec = (timenow_to_ns() - start) / NANOSECS_IN_SEC;
     Tick(nc, sec);
   }while(!done);
