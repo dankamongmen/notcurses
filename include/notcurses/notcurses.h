@@ -1665,29 +1665,37 @@ ncplane_valign(const struct ncplane* n, ncalign_e align, int r){
 // Move the cursor to the specified position (the cursor needn't be visible).
 // Pass -1 as either coordinate to hold that axis constant. Returns -1 if the
 // move would place the cursor outside the plane.
-API int ncplane_cursor_move_yx(struct ncplane* n, int y, int x);
+API int ncplane_cursor_move_yx(struct ncplane* n, int y, int x)
+  __attribute__ ((nonnull (1)));
 
-// Move the cursor relative to the current cursor position (the cursor needn't be visible).
-// Returns -1 on error, including target position exceeding the plane's dimensions.
-API int ncplane_cursor_move_rel(struct ncplane* n, int y, int x);
+// Move the cursor relative to the current cursor position (the cursor needn't
+// be visible). Returns -1 on error, including target position exceeding the
+// plane's dimensions.
+API int ncplane_cursor_move_rel(struct ncplane* n, int y, int x)
+  __attribute__ ((nonnull (1)));
 
 // Move the cursor to 0, 0. Can't fail.
-API void ncplane_home(struct ncplane* n);
+API void ncplane_home(struct ncplane* n)
+  __attribute__ ((nonnull (1)));
 
 // Get the current position of the cursor within n. y and/or x may be NULL.
-API void ncplane_cursor_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x);
+API void ncplane_cursor_yx(const struct ncplane* n, int* RESTRICT y, int* RESTRICT x)
+  __attribute__ ((nonnull (1)));
 
 // Get the current channels or attribute word for ncplane 'n'.
-API uint64_t ncplane_channels(const struct ncplane* n);
+API uint64_t ncplane_channels(const struct ncplane* n)
+  __attribute__ ((nonnull (1)));
 
 // Return the current styling for this ncplane.
-API uint16_t ncplane_styles(const struct ncplane* n);
+API uint16_t ncplane_styles(const struct ncplane* n)
+  __attribute__ ((nonnull (1)));
 
 // Replace the cell at the specified coordinates with the provided cell 'c',
 // and advance the cursor by the width of the cell (but not past the end of the
 // plane). On success, returns the number of columns the cursor was advanced.
 // 'c' must already be associated with 'n'. On failure, -1 is returned.
-API int ncplane_putc_yx(struct ncplane* n, int y, int x, const nccell* c);
+API int ncplane_putc_yx(struct ncplane* n, int y, int x, const nccell* c)
+  __attribute__ ((nonnull));
 
 // Call ncplane_putc_yx() for the current cursor location.
 static inline int
