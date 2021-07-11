@@ -1159,9 +1159,13 @@ coerce_styles(FILE* out, const tinfo* ti, uint16_t* curstyle,
 
 static inline int
 mouse_enable(FILE* out){
-  return term_emit("\x1b[?" SET_BTN_EVENT_MOUSE ";"
+// Sets the shift-escape option, allowing shift+mouse to override the standard
+// mouse protocol (mainly so copy-and-paste can still be performed).
+#define XTSHIFTESCAPE "\x1b>1s"
+  return term_emit(XTSHIFTESCAPE "\x1b[?" SET_BTN_EVENT_MOUSE ";"
                    /*SET_FOCUS_EVENT_MOUSE ";" */SET_SGR_MODE_MOUSE "h",
                    out, true);
+#undef XTSHIFTESCAPE
 }
 
 static inline int
