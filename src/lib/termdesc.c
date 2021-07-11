@@ -839,6 +839,42 @@ int cursor_yx_get(int ttyfd, const char* u7, int* y, int* x){
   return 0;
 }
 
+// send a u7 request, and wait until we have a cursor report
+int locate_cursor(tinfo* ti, int fd, int* cursor_y, int* cursor_x){
+  if(fd < 0){
+    logwarn("Can't request on fd %d\n", fd);
+    return -1;
+  }
+  const char* u7 = get_escape(ti, ESCAPE_DSRCPR);
+  if(u7 == NULL){
+    logwarn("No support in terminfo\n");
+    return -1;
+  }
+  bool emitted_u7 = false; // only want to send one max
+  cursorreport* clr;
+  pthread_mutex_lock(&ti->input.creport_lock);
+  while((clr = ti->input.creport_queue) == NULL){
+    if(!emitted_u7){
+      // FIXME i'd rather not do this while holding the lock =[
+      if(tty_emit(u7, fd)){
+        pthread_mutex_unlock(&ti->input.creport_lock);
+        return -1;
+      }
+      emitted_u7 = true;
+    }
+    pthread_cond_wait(&ti->input.creport_cond, &ti->input.creport_lock);
+  }
+  pthread_mutex_unlock(&ti->input.creport_lock);
+  *cursor_y = clr->y;
+  *cursor_x = clr->x;
+  if(ti->inverted_cursor){
+    int tmp = *cursor_y;
+    *cursor_y = *cursor_x;
+    *cursor_x = tmp;
+  }
+  return 0;
+}
+
 int locate_cursor_early(struct notcurses* nc, int* cursor_y, int* cursor_x){
   int ret = 0;
   if(nc->ttyfd >= 0){
