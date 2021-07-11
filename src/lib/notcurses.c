@@ -564,7 +564,7 @@ void ncplane_home(ncplane* n){
   n->y = 0;
 }
 
-inline int ncplane_cursor_move_yx(ncplane* n, int y, int x){
+int ncplane_cursor_move_yx(ncplane* n, int y, int x){
   if(x >= n->lenx){
     logerror("Target x %d >= length %d\n", x, n->lenx);
     return -1;
@@ -594,7 +594,7 @@ inline int ncplane_cursor_move_yx(ncplane* n, int y, int x){
   return 0;
 }
 
-inline int ncplane_cursor_move_rel(ncplane* n, int y, int x){
+int ncplane_cursor_move_rel(ncplane* n, int y, int x){
   if (n->y + y == -1){
     logerror("Invalid target y -1\n");
     return -1;
