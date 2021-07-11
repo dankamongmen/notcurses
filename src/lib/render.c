@@ -885,7 +885,7 @@ rasterize_scrolls(ncpile* p, FILE* out){
     }
   }
   while(p->scrolls){
-    if(ncfputc('\v', out) < 0){
+    if(ncfputc('\n', out) < 0){
       return -1;
     }
     --p->scrolls;
@@ -961,6 +961,8 @@ rasterize_sprixels(notcurses* nc, ncpile* p, FILE* out){
 static int
 rasterize_core(notcurses* nc, const ncpile* p, FILE* out, unsigned phase){
   struct crender* rvec = p->crender;
+  // we only need to emit a coordinate if it was damaged. the damagemap is a
+  // bit per coordinate, one per struct crender.
   for(int y = nc->margin_t; y < p->dimy + nc->margin_t ; ++y){
     const int innery = y - nc->margin_t;
     for(int x = nc->margin_l ; x < p->dimx + nc->margin_l ; ++x){
@@ -1084,18 +1086,16 @@ rasterize_core(notcurses* nc, const ncpile* p, FILE* out, unsigned phase){
 static int
 notcurses_rasterize_inner(notcurses* nc, ncpile* p, FILE* out, unsigned* asu){
 //fprintf(stderr, "pile %p ymax: %d xmax: %d\n", p, p->dimy + nc->margin_t, p->dimx + nc->margin_l);
-  // we only need to emit a coordinate if it was damaged. the damagemap is a
-  // bit per coordinate, one per struct crender.
   // don't write a clearscreen. we only update things that have been changed.
   // we explicitly move the cursor at the beginning of each output line, so no
   // need to home it expliticly.
+  update_palette(nc, out);
+  if(rasterize_scrolls(p, out)){
+    return -1;
+  }
   logdebug("Sprixel phase 1\n");
   int64_t sprixelbytes = clean_sprixels(nc, p, out);
   if(sprixelbytes < 0){
-    return -1;
-  }
-  update_palette(nc, out);
-  if(rasterize_scrolls(p, out)){
     return -1;
   }
   logdebug("Glyph phase 1\n");
