@@ -113,6 +113,9 @@ extern "C" {
 #define NCKEY_BUTTON10 suppuabize(210)
 #define NCKEY_BUTTON11 suppuabize(211)
 #define NCKEY_RELEASE  suppuabize(212)
+// never returned to the user -- when a cursor location report shows up on
+// the input, it's picked up by our internals, and used.
+#define NCKEY_CURSOR_LOCATION_REPORT suppuabize(213)
 
 // Synonyms (so far as we're concerned)
 #define NCKEY_SCROLL_UP   NCKEY_BUTTON4

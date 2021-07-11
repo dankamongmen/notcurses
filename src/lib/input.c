@@ -177,9 +177,15 @@ ncinputlayer_add_input_escape(ncinputlayer* nc, const char* esc, char32_t specia
   return 0;
 }
 
-// We received the CSI prefix. Extract the data payload.
+// We received the CSI prefix. Extract the data payload. Right now, we handle
+// mouse and cursor location reports. The former is three parameters ending
+// with 'm' or 'M'; the latter is two ending with 'R'. Both use 1-biased
+// coordinates, so a 0 can be safely rejected.
 static char32_t
 handle_csi(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin){
+  // stash the first parameter away. it's encoded if the CSI ends up being a
+  // mouse event, and otherwise it's the cursor's column (x) coordinate.
+  int param1 = -1;
   enum {
     PARAM1,  // reading first param (button + modifiers) plus delimiter
     PARAM2,  // reading second param (x coordinate) plus delimiter
@@ -191,6 +197,7 @@ handle_csi(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin){
     int candidate = pop_input_keypress(nc);
     if(state == PARAM1){
       if(candidate == ';'){
+        param1 = param;
         state = PARAM2;
         // modifiers: 32 (motion) 16 (control) 8 (alt) 4 (shift)
         // buttons 4, 5, 6, 7: adds 64
@@ -219,14 +226,21 @@ handle_csi(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin){
         break;
       }
     }else if(state == PARAM2){
-      if(candidate == ';'){
-        state = PARAM3;
-        if(param == 0){
+      if(candidate == 'R'){ // cursor location report
+        if(param <= 0 || param1 <= 0){
+          logwarn("Invalid cursor location param (%d/%d)\n", param, param1);
           break;
         }
-        if(ni){
-          ni->x = param - 1 - leftmargin;
+        ni->x = param1 - 1;
+        ni->y = param - 1;
+        return NCKEY_CURSOR_LOCATION_REPORT;
+      }else if(candidate == ';'){
+        state = PARAM3;
+        if(param == 0){
+          logwarn("Invalid mouse param (%d/%d)\n", param1, param);
+          break;
         }
+        ni->x = param - 1 - leftmargin;
         param = 0;
       }else if(isdigit(candidate)){
         param *= 10;
@@ -240,12 +254,11 @@ handle_csi(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin){
           id = NCKEY_RELEASE;
         }
         if(param == 0){
+          logwarn("Invalid mouse param (%d/%d)\n", param1, param);
           break;
         }
-        if(ni){
-          ni->y = param - 1 - topmargin;
-          ni->id = id;
-        }
+        ni->y = param - 1 - topmargin;
+        ni->id = id;
         return id;
       }else if(isdigit(candidate)){
         param *= 10;
@@ -256,6 +269,8 @@ handle_csi(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin){
     }
   }
   // FIXME ungetc on failure! walk trie backwards or something
+  // FIXME increment the input_error stat
+  logerror("Error processing CSI\n");
   return (char32_t)-1;
 }
 
@@ -313,9 +328,7 @@ handle_getc(ncinputlayer* nc, int kpress, ncinput* ni, int leftmargin, int topma
     // interpret it as alt + candidate FIXME broken for first char matching
     // trie, second char not -- will read as alt+second char...
     if(candidate > 0 && candidate < 0x80){
-      if(ni){
-        ni->alt = true;
-      }
+      ni->alt = true;
       return candidate;
     }
     // FIXME ungetc on failure! walk trie backwards or something
@@ -400,13 +413,17 @@ input_queue_space(const ncinputlayer* nc){
 
 static char32_t
 handle_queued_input(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin){
+  ncinput nireal;
+  if(ni == NULL){
+    ni = &nireal;
+  }
   // if there was some error in getc(), we still dole out the existing queue
   if(nc->inputbuf_occupied == 0){
     return -1;
   }
   int r = pop_input_keypress(nc);
   char32_t ret = handle_getc(nc, r, ni, leftmargin, topmargin);
-  if(ret != (char32_t)-1 && ni){
+  if(ret != (char32_t)-1){
     ni->id = ret;
   }
   return ret;
