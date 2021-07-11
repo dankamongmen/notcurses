@@ -562,9 +562,9 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
     // q=2 has been able to go on chunks other than the last chunk since
     // 2021-03, but there's no harm in this small bit of backwards compat.
     if(totalout == 0){
-      // FIXME this move to 1;1 is ridiculous, but see
-      // https://github.com/dankamongmen/notcurses/issues/1910 =[
-      *parse_start = fprintf(fp, "\e[1;1H\e_Gf=32,s=%d,v=%d,i=%d,p=1,a=t,%s;",
+      // older versions of kitty will delete uploaded images when scrolling,
+      // alas. see https://github.com/dankamongmen/notcurses/issues/1910 =[.
+      *parse_start = fprintf(fp, "\e_Gf=32,s=%d,v=%d,i=%d,p=1,a=t,%s;",
                              lenx, leny, sprixelid, chunks ? "m=1" : "q=2");
     }else{
       fprintf(fp, "\e_G%sm=%d;", chunks ? "" : "q=2,", chunks ? 1 : 0);
