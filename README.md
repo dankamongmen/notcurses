@@ -186,7 +186,8 @@ each release. Download it, and install the contents as you deem fit.
   terminals), but doesn't export the `rgb` terminfo capability, you can export
   the `COLORTERM` environment variable as `truecolor` or `24bit`. Note that some
   terminals accept a 24-bit specification, but map it down to fewer colors.
-  RGB is enabled whenever [Foot, Contour, WezTerm, or Kitty](TERMINALS.md) is identified.
+  RGB is enabled whenever [Foot, Contour, WezTerm, or Kitty](TERMINALS.md) is
+  identified.
 
 ### Fonts
 
@@ -203,66 +204,220 @@ If things break or seem otherwise lackluster, **please** consult the
 [Environment Notes](#environment_notes) section! You **need** to have a correct
 `TERM` and `LANG` definition, and probably want `COLORTERM`.
 
-* **Q:** The demo fails in the middle of `intro`. **A:** Check that your `TERM`
-value is correct for your terminal. `intro` does a palette fade, which is prone
-to breaking under incorrect `TERM` values. If you're not using `xterm`, your
-`TERM` should not be `xterm`!
+<details>
+  <summary>The demo fails in the middle of <code>intro</code>.</summary>
+  Check that your <code>TERM</code> value is correct for your terminal.
+  <code>intro</code> does a palette fade, which is prone to breaking under
+  incorrect <code>TERM</code> values.
+  If you're not using <code>xterm</code>, your <code>TERM</code> should not be
+  <code>xterm</code>!
+</details>
 
-* **Q:** Can I have Notcurses without this huge multimedia stack? **A:** Yes! Build with `-DUSE_MULTIMEDIA=none`.
+<details>
+  <summary>Can I have Notcurses without this huge multimedia stack?</summary>
+  Yes! Build with <code>-DUSE_MULTIMEDIA=none</code>.
+</details>
 
-* **Q:** Can I build this individual Notcurses program without aforementioned multimedia stack? **A:** Again yes! Use `notcurses_core_init()` or `ncdirect_core_init()` in place of `notcurses_init()`/`ncdirect_init()`, and link with `-lnotcurses-core`. Your application will likely start a few milliseconds faster; more importantly, it will link against minimal Notcurses installations.
+<details>
+  <summary>Can I build this individual Notcurses program without aforementioned
+  multimedia stack?</summary>
+  Again yes! Use <code>notcurses_core_init()</code> or
+  <code>ncdirect_core_init()</code> in place of <code>notcurses_init()</code>/
+  <code>ncdirect_init()</code>, and link with <code>-lnotcurses-core</code>.
+  Your application will likely start a few milliseconds faster;
+  more importantly, it will link against minimal Notcurses installations.
+</details>
 
-* **Q:** Notcurses looks like absolute crap in `screen`. **A:** `screen` doesn't support RGB colors (at least as of 4.08.00); if you have `COLORTERM` defined, you'll have a bad time. If you have a `screen` that was compiled with `--enable-colors256`, try exporting `TERM=screen-256color` as opposed to `TERM=screen`.
+<details>
+  <summary>Notcurses looks like absolute crap in <code>screen</code>.</summary>
+  <code>screen</code> doesn't support RGB colors (at least as of 4.08.00);
+  if you have <code>COLORTERM</code> defined, you'll have a bad time.
+    If you have a <code>screen</code> that was compiled with
+    <code>--enable-colors256</code>, try exporting
+    <code>TERM=screen-256color</code> as opposed to <code>TERM=screen</code>.
+</details>
 
-* **Q:** Notcurses looks like absolute crap in `mosh`. **A**: Yeah it sure does. I'm not yet sure what's up.
+<details>
+  <summary>Notcurses looks like absolute crap in <code>mosh</code>.</summary>
+  Yeah it sure does. I'm not yet sure what's up.
+</details>
 
-* **Q:** Why didn't you just render everything to Sixel? **A:** That's not a TUI; it's a slow and inflexible GUI. Many terminal emulators don't support Sixel. Sixel doesn't work well with mouse selection. Sixel has a limited color palette. With that said, both Sixel and the Kitty bitmap protocol are well-supported.
+<details>
+  <summary>Why didn't you just render everything to Sixel?</summary>
+  That's not a TUI; it's a slow and inflexible GUI. Many terminal emulators
+  don't support Sixel. Sixel doesn't work well with mouse selection.
+  Sixel has a limited color palette. With that said, both Sixel and the
+  Kitty bitmap protocol are well-supported.
+</details>
 
-* **Q:** I'm not seeing `NCKEY_RESIZE` until I press some other key. **A:** You've almost certainly failed to mask `SIGWINCH` in some thread, and that thread is receiving the signal instead of the thread which called `notcurses_getc_blocking()`. As a result, the `poll()` is not interrupted. Call `pthread_sigmask()` before spawning any threads.
+<details>
+  <summary>I'm not seeing <code>NCKEY_RESIZE</code> until I press
+  some other key.</summary>
+  You've almost certainly failed to mask <code>SIGWINCH</code> in some thread,
+  and that thread is receiving the signal instead of the thread which called
+  <code>notcurses_getc_blocking()</code>. As a result, the <code>poll()</code>
+  is not interrupted. Call <code>pthread_sigmask()</code> before spawning any
+  threads.
+</details>
 
-* **Q:** Using the C++ wrapper, how can I ensure that the `NotCurses` destructor is run when I return from `main()`? **A:** As noted in the [C++ FAQ](https://isocpp.org/wiki/faq/dtors#artificial-block-to-control-lifetimes), wrap it in an artificial scope (this assumes your `NotCurses` is scoped to `main()`).
+<details>
+  <summary>Using the C++ wrapper, how can I ensure that the <code>NotCurses</code>
+  destructor is run when I return from <code>main()</code>?</summary>
+  As noted in the
+  <a href="https://isocpp.org/wiki/faq/dtors#artificial-block-to-control-lifetimes">
+  C++ FAQ</a>, wrap it in an artificial scope (this assumes your
+  <code>NotCurses</code> is scoped to <code>main()</code>).
+</details>
 
-* **Q:** How do I hide a plane I want to make visible later? **A:** In order of least to most performant: move it offscreen using `ncplane_move_yx()`, move it underneath an opaque plane with `ncplane_move_below()`, or move it off-pile with `ncplane_reparent()`.
+<details>
+  <summary>How do I hide a plane I want to make visible later?</summary>
+  In order of least to most performant: move it offscreen using
+  <code>ncplane_move_yx()</code>, move it underneath an opaque plane with
+  <code>ncplane_move_below()</code>, or move it off-pile with
+  <code>ncplane_reparent()</code>.
+</details>
 
-* **Q:** Why isn't there an `ncplane_box_yx()`? Do you hate orthogonality, you dullard? **A:** `ncplane_box()` and friends already have far too many arguments, you monster.
+<details>
+  <summary>Why isn't there an <code>ncplane_box_yx()</code>? Do you hate
+  orthogonality, you dullard?</summary> <code>ncplane_box()</code> and friends
+  already have far too many arguments, you monster.
+</details>
 
-* **Q:** Why doesn't Notcurses support 10- or 16-bit color? **A:** Notcurses supports 24 bits of color, spread across three eight-bit channels. You presumably mean 10-bit-per-channel color. I needed those six bits for other things. When terminals support it, Notcurses might support it.
+<details>
+  <summary>Why doesn't Notcurses support 10- or 16-bit color?</summary>
+  Notcurses supports 24 bits of color, spread across three eight-bit channels.
+  You presumably mean 10-bit-per-channel color. I needed those six bits for
+  other things. When terminals support it, Notcurses might support it.
+</details>
 
-* **Q:** The name is dumb. **A:** That's not a question?
+<details>
+  <summary>The name is dumb.</summary>
+  That's not a question?
+</details>
 
-* **Q:** I'm not finding qrcodegen on BSD, despite having installed `graphics/qr-code-generator`. **A:** Try `cmake -DCMAKE_REQUIRED_INCLUDES=/usr/local/include`. This is passed by `bsd.port.mk`.
+<details>
+  <summary>I'm not finding qrcodegen on BSD, despite having installed
+  <code>graphics/qr-code-generator</code>.</summary>
+  Try <code>cmake -DCMAKE_REQUIRED_INCLUDES=/usr/local/include</code>.
+  This is passed by <code>bsd.port.mk</code>.
+</details>
 
-* **Q:** Do you support [musl](https://musl.libc.org/)? **A:** I try to! You'll need at least 1.20.
+<details>
+  <summary>Do you support <a href="https://musl.libc.org/">musl</a>?</summary>
+  I try to! You'll need at least 1.20.
+</details>
 
-* **Q:** I only seem to blit in ASCII, and/or can't emit Unicode beyond ASCII in general. **A:** Your `LANG` environment variable is underdefined or incorrectly defined, or the necessary locale is not present on your machine (it is also possible that you explicitly supplied `NCOPTION_INHIBIT_SETLOCALE`, but never called `setlocale(3)`, in which case don't do that).
+<details>
+  <summary>I only seem to blit in ASCII, and/or can't emit Unicode beyond ASCII
+  in general.</summary>
+  Your <code>LANG</code> environment variable is underdefined or incorrectly
+  defined, or the necessary locale is not present on your machine (it is also
+  possible that you explicitly supplied <code>NCOPTION_INHIBIT_SETLOCALE</code>,
+  but never called <code>setlocale(3)</code>, in which case don't do that).
+</details>
 
-* **Q:** I pretty much always need an `ncplane` when using a `nccell`. Why doesn't the latter hold a pointer to the former? **A:** Besides the massive redundancy this would entail, `nccell` needs to remain as small as possible, and you almost always have the `ncplane` handy if you've got a reference to a valid `nccell` anyway.
+<details>
+  <summary>I pretty much always need an <code>ncplane</code> when using a
+  <code>nccell</code>. Why doesn't the latter hold a pointer to the former?
+  </summary>
+  Besides the massive redundancy this would entail, <code>nccell</code> needs to
+  remain as small as possible, and you almost always have the <code>ncplane</code>
+  handy if you've got a reference to a valid <code>nccell</code> anyway.
+</details>
 
-* **Q:** I ran `notcurses-demo`, but my table numbers don't match the Notcurses banner numbers, you charlatan. **A:** `notcurses-demo` renders several frames beyond the actual demos.
+<details>
+  <summary>I ran <code>notcurses-demo</code>, but my table numbers don't match
+  the Notcurses banner numbers, you charlatan.</summary>
+  <code>notcurses-demo</code> renders several frames beyond the actual demos.
+</details>
 
-* **Q:** When my program exits, I don't have a cursor, or text is invisible, or colors are weird, <i>ad nauseam</i>. **A:** Ensure you're calling `notcurses_stop()`/`ncdirect_stop()` on all exit paths, including fatal signals (note that, by default, Notcurses installs handlers for most fatal signals to do exactly this).
+<details>
+  <summary>When my program exits, I don't have a cursor, or text is invisible,
+  or colors are weird, <i>ad nauseam</i>.</summary>
+  Ensure you're calling <code>notcurses_stop()</code>/<code>ncdirect_stop()</code>
+  on all exit paths, including fatal signals (note that, by default, Notcurses
+  installs handlers for most fatal signals to do exactly this).
+</details>
 
-* **Q:** How can I use Direct Mode in conjunction with libreadline? **A:** Pass `NCDIRECT_OPTION_CBREAK` to `ncdirect_init()`, and ensure you do not pass `NCDIRECT_OPTION_NO_READLINE`. If you'd like, set `rl_readline_name` and `rl_attempted_completion_function` prior to calling `ncdirect_init()`. With that said, consider using a Notcurses `ncreader`.
+<details>
+  <summary>How can I use Direct Mode in conjunction with libreadline?</summary>
+  Pass <code>NCDIRECT_OPTION_CBREAK</code> to <code>ncdirect_init()</code>, and
+  ensure you do not pass <code>NCDIRECT_OPTION_NO_READLINE</code>. If you'd like,
+  set <code>rl_readline_name</code> and <code>rl_attempted_completion_function</code>
+  prior to calling <code>ncdirect_init()</code>. With that said, consider using
+  a Notcurses <code>ncreader</code>.
+</details>
 
-* **Q:** Will there ever be Java wrappers? **A:** I should hope not. If you want a Java solution, try Autumn Lamonte's [Jexer](https://jexer.sourceforge.io/).
+<details>
+  <summary>Will there ever be Java wrappers?</summary>
+  I should hope not. If you want a Java solution, try Autumn Lamonte's
+  <a href="https://jexer.sourceforge.io/">Jexer</a>.
+</details>
 
-* **Q:** Given that the glyph channel is initialized as transparent for a plane, shouldn't the foreground and background be initialized as transparent, also? **A:** Probably (they are instead initialized to default opaque). This would change some of the most longstanding behavior of Notcurses, though, so it isn't happening.
+<details>
+  <summary>Given that the glyph channel is initialized as transparent for a
+  plane, shouldn't the foreground and background be initialized as transparent,
+  also?</summary>
+  Probably (they are instead initialized to default opaque). This would change
+  some of the most longstanding behavior of Notcurses, though,
+  so it isn't happening.
+</details>
 
-* **Q:** Why does my right-to-left text appear left-to-right? **A:** Notcurses doesn't honor the BiDi state machine, and in fact forces left-to-right with BiDi codes. Likewise, ultra-wide glyphs will have interesting effects. ﷽!
+<details>
+  <summary>Why does my right-to-left text appear left-to-right?</summary>
+  Notcurses doesn't honor the BiDi state machine, and in fact forces
+  left-to-right with BiDi codes. Likewise, ultra-wide glyphs will have
+  interesting effects. ﷽!
+</details>
 
-* **Q:** I get linker errors when statically linking. **A:** Are you linking all necessary libraries? Use `pkg-config --static --libs notcurses` (or `--libs notcurses-core`) to discover them.
+<details>
+  <summary>I get linker errors when statically linking.</summary>
+  Are you linking all necessary libraries? Use
+  <code>pkg-config --static --libs notcurses</code>
+  (or <code>--libs notcurses-core</code>) to discover them.
+</details>
 
-* **Q:** Can I avoid manually exporting `COLORTERM=24bit` everywhere? **A:** Sure. Add `SendEnv COLORTERM` to `.ssh/config`, and `AcceptEnv COLORTERM` to `sshd_config` on the remote server. Yes, this will probably require root on the remote server. Don't blame me, man; I didn't do it.
+<details>
+  <summary>Can I avoid manually exporting <code>COLORTERM=24bit</code>
+  everywhere?</summary>
+  Sure. Add <code>SendEnv COLORTERM</code> to <code>.ssh/config</code>, and
+  <code>AcceptEnv COLORTERM</code> to <code>sshd_config</code> on the remote
+  server. Yes, this will probably require root on the remote server.
+  Don't blame me, man; I didn't do it.
+</details>
 
-* **Q:** How about *arbitrary image manipulation here* functionality? **A:** I'm not going to beat ImageMagick et al. on image manipulation, but you can load an `ncvisual` from RGBA memory using `ncvisual_from_rgba()`.
+<details>
+  <summary>How about *arbitrary image manipulation here* functionality?</summary>
+  I'm not going to beat ImageMagick et al. on image manipulation, but you can
+  load an <code>ncvisual</code> from RGBA memory using
+  <code>ncvisual_from_rgba()</code>.
+</details>
 
-* **Q:** My program locks up during initialization. **A**: Notcurses interrogates the terminal. If the terminal doesn't reply to standard interrogations, file a Notcurses bug, send upstream a patch, or use a different terminal. No known terminal emulators exhibit this behavior.
+<details>
+  <summary>My program locks up during initialization. </summary>
+  Notcurses interrogates the terminal. If the terminal doesn't reply to standard
+  interrogations, file a Notcurses bug, send upstream a patch, or use a different
+  terminal. No known terminal emulators exhibit this behavior.
+</details>
 
-* **Q:** Why no `NCSTYLE_REVERSE`? **A**: It would consume a precious bit. You can use `ncchannels_reverse()` to correctly invert fore- and background colors.
+<details>
+  <summary>Why no <code>NCSTYLE_REVERSE</code>?</summary>
+  It would consume a precious bit. You can use <code>ncchannels_reverse()</code>
+  to correctly invert fore- and background colors.
+</details>
 
-* **Q:** How do I mix Rendered and Direct mode? **A:** You really don't want to. You can stream a subprocess to a plane with the `ncsubproc` widget.
+<details>
+  <summary>How do I mix Rendered and Direct mode?</summary>
+  You really don't want to. You can stream a subprocess to a plane with the
+  <code>ncsubproc</code> widget.
+</details>
 
-* **Q:** How can I clear the screen on startup in Rendered mode when not using the alternate screen? **A:** Call `notcurses_refresh()` after `notcurses_init()` returns successfully.
+<details>
+  <summary>How can I clear the screen on startup in Rendered mode when not using
+  the alternate screen?</summary>
+  Call <code>notcurses_refresh()</code> after <code>notcurses_init()</code>
+  returns successfully.
+</details>
 
 ## Useful links
 
