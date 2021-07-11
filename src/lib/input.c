@@ -423,6 +423,26 @@ input_queue_space(const ncinputlayer* nc){
   return sizeof(nc->inputbuf) / sizeof(*nc->inputbuf) - nc->inputbuf_occupied;
 }
 
+static int
+enqueue_cursor_report(ncinputlayer* nc, const ncinput* ni){
+  cursorreport* clr = malloc(sizeof(*clr));
+  if(clr == NULL){
+    return -1;
+  }
+  clr->y = ni->y;
+  clr->x = ni->x;
+  pthread_mutex_lock(&nc->creport_lock);
+  // i don't think we ever want to have more than one here. we don't actually
+  // have any control logic which leads to multiple outstanding requests, so
+  // any that arrive are presumably garbage from the bulk input (and probably
+  // ought be returned to the user).
+  free(nc->creport_queue);
+  nc->creport_queue = clr;
+  pthread_mutex_unlock(&nc->creport_lock);
+  pthread_cond_signal(&nc->creport_cond);
+  return 0;
+}
+
 static char32_t
 handle_queued_input(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin){
   ncinput nireal;
@@ -441,7 +461,7 @@ handle_queued_input(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin
       ni->id = ret;
     }
     if(ret == NCKEY_CURSOR_LOCATION_REPORT){
-      // process this internally
+      enqueue_cursor_report(nc, ni);
     }
   }while(ret == NCKEY_CURSOR_LOCATION_REPORT);
   return ret;
@@ -672,6 +692,17 @@ prep_special_keys(ncinputlayer* nc){
 }
 
 void ncinputlayer_stop(ncinputlayer* nilayer){
+  if(pthread_mutex_destroy(&nilayer->creport_lock)){
+    logerror("Error destroying cqueue mutex\n");
+  }
+  if(pthread_cond_destroy(&nilayer->creport_cond)){
+    logerror("Error destroying cqueue condvar\n");
+  }
+  cursorreport* clr;
+  while( (clr = nilayer->creport_queue) ){
+    nilayer->creport_queue = clr->next;
+    free(clr);
+  }
   if(nilayer->ttyfd >= 0){
     close(nilayer->ttyfd);
   }
@@ -1357,6 +1388,9 @@ int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected,
   nilayer->inputbuf_valid_starts = 0;
   nilayer->inputbuf_write_at = 0;
   nilayer->input_events = 0;
+  nilayer->creport_queue = NULL;
+  pthread_mutex_init(&nilayer->creport_lock, NULL);
+  pthread_cond_init(&nilayer->creport_cond, NULL);
   int csifd = nilayer->ttyfd >= 0 ? nilayer->ttyfd : nilayer->infd;
   if(isatty(csifd)){
     query_state inits = {

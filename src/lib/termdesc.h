@@ -103,6 +103,8 @@ typedef struct ncinputlayer {
   uint64_t input_events;
   struct esctrie* inputescapes; // trie of input escapes -> ncspecial_keys
   cursorreport* creport_queue; // queue of cursor reports
+  pthread_mutex_t creport_lock;
+  pthread_cond_t creport_cond;
 } ncinputlayer;
 
 // terminal interface description. most of these are acquired from terminfo(5)
