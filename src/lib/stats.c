@@ -145,6 +145,7 @@ void notcurses_stats_reset(notcurses* nc, ncstats* stats){
   stash->sprixelelisions += nc->stats.sprixelelisions;
   stash->sprixelbytes += nc->stats.sprixelbytes;
   stash->appsync_updates += nc->stats.appsync_updates;
+  stash->input_errors += nc->stats.input_errors;
 
   stash->fbbytes = nc->stats.fbbytes;
   stash->planes = nc->stats.planes;
@@ -193,13 +194,11 @@ void summarize_stats(notcurses* nc){
             totalbuf, minbuf, avgbuf, maxbuf);
   }
   if(stats->renders || stats->failed_renders){
-    fprintf(stderr, "%ju failed render%s, %ju failed raster%s, %ju refresh%s\n",
-            stats->failed_renders,
-            stats->failed_renders == 1 ? "" : "s",
-            stats->failed_writeouts,
-            stats->failed_writeouts == 1 ? "" : "s",
-            stats->refreshes,
-            stats->refreshes == 1 ? "" : "es");
+    fprintf(stderr, "%ju failed render%s, %ju failed raster%s, %ju refresh%s, %ju input error%s\n",
+            stats->failed_renders, stats->failed_renders == 1 ? "" : "s",
+            stats->failed_writeouts, stats->failed_writeouts == 1 ? "" : "s",
+            stats->refreshes, stats->refreshes == 1 ? "" : "es",
+            stats->input_errors, stats->input_errors == 1 ? "" : "s");
     fprintf(stderr, "RGB emits:elides: def %ju:%ju fg %ju:%ju bg %ju:%ju\n",
             stats->defaultemissions,
             stats->defaultelisions,
