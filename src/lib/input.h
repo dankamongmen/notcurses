@@ -44,6 +44,11 @@ void ncinputlayer_stop(struct ncinputlayer* nilayer);
 // FIXME absorb into ncinputlayer_init()
 int cbreak_mode(int ttyfd, const struct termios* tpreserved);
 
+// assuming the user context is not active, go through current data looking
+// for a cursor location report. if we find none, block on input, and read if
+// appropriate. we can be interrupted by a new user context.
+void ncinput_extract_clrs(struct ncinputlayer* nilayer);
+
 #ifdef __cplusplus
 }
 #endif
