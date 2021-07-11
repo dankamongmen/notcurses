@@ -13,10 +13,10 @@ chunli_draw(struct notcurses* nc, const char* ext, int count, const nccell* b){
   chunli chuns[CHUNS];
   char file[20];
   int dimx, dimy;
+  ncplane_dim_yx(notcurses_stdplane_const(nc), &dimy, &dimx);
   struct timespec iterdelay;
   timespec_div(&demodelay, 10, &iterdelay);
   for(int i = 0 ; i < count ; ++i){
-    notcurses_refresh(nc, &dimy, &dimx);
     snprintf(file, sizeof(file), "chunli%d.%s", i + 1, ext);
     chuns[i].path = find_data(file);
     chuns[i].ncv = ncvisual_from_file(chuns[i].path);
@@ -50,7 +50,7 @@ int chunli_demo(struct notcurses* nc){
   struct timespec iterdelay;
   timespec_div(&demodelay, 10, &iterdelay);
   int ret, dimx, dimy;
-  notcurses_refresh(nc, &dimy, &dimx);
+  ncplane_dim_yx(notcurses_stdplane_const(nc), &dimy, &dimx);
   nccell b = CELL_TRIVIAL_INITIALIZER;
   nccell_set_fg_alpha(&b, NCALPHA_TRANSPARENT);
   nccell_set_bg_alpha(&b, NCALPHA_TRANSPARENT);
