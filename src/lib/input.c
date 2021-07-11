@@ -429,15 +429,21 @@ handle_queued_input(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin
   if(ni == NULL){
     ni = &nireal;
   }
-  // if there was some error in getc(), we still dole out the existing queue
-  if(nc->inputbuf_occupied == 0){
-    return -1;
-  }
-  int r = pop_input_keypress(nc);
-  char32_t ret = handle_getc(nc, r, ni, leftmargin, topmargin);
-  if(ret != (char32_t)-1){
-    ni->id = ret;
-  }
+  char32_t ret;
+  do{
+    // if there was some error in getc(), we still dole out the existing queue
+    if(nc->inputbuf_occupied == 0){
+      return -1;
+    }
+    int r = pop_input_keypress(nc);
+    ret = handle_getc(nc, r, ni, leftmargin, topmargin);
+    if(ret != (char32_t)-1){
+      ni->id = ret;
+    }
+    if(ret == NCKEY_CURSOR_LOCATION_REPORT){
+      // process this internally
+    }
+  }while(ret == NCKEY_CURSOR_LOCATION_REPORT);
   return ret;
 }
 

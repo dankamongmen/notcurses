@@ -69,6 +69,15 @@ typedef enum {
   ESCAPE_MAX
 } escape_e;
 
+// when we read a cursor report, we put it on the queue for internal
+// processing. this is necessary since it can be arbitrarily interleaved with
+// other input when stdin is connected to our terminal. these are already
+// processed to be 0-based.
+typedef struct cursorreport {
+  int x, y;
+  struct cursorreport* next;
+} cursorreport;
+
 // we read input from one or two places. if stdin is connected to our
 // controlling tty, we read only from that file descriptor. if it is
 // connected to something else, and we have a controlling tty, we will
@@ -93,6 +102,7 @@ typedef struct ncinputlayer {
   // be reset (semantics are relied upon by widgets for mouse click detection).
   uint64_t input_events;
   struct esctrie* inputescapes; // trie of input escapes -> ncspecial_keys
+  cursorreport* creport_queue; // queue of cursor reports
 } ncinputlayer;
 
 // terminal interface description. most of these are acquired from terminfo(5)
@@ -148,12 +158,12 @@ typedef struct tinfo {
   // less one times the cell height. sixel_maxy is thus recomputed whenever
   // we get a resize event. it is only defined if we have sixel_maxy_pristine,
   // so kitty graphics (which don't force a scroll) never deal with this.
-  int sixel_maxy;          // maximum working sixel height
-  int sixel_maxy_pristine; // maximum theoretical sixel height, as queried
+  int sixel_maxy;           // maximum working sixel height
+  int sixel_maxy_pristine;  // maximum theoretical sixel height, as queried
   int sprixel_scale_height; // sprixel must be a multiple of this many rows
   const char* termname;     // terminal name from environment variables/init
   char* termversion;        // terminal version (freeform) from query responses
-  struct termios tpreserved; // terminal state upon entry
+  struct termios tpreserved;// terminal state upon entry
   ncinputlayer input;       // input layer
 
   int default_rows; // LINES environment var / lines terminfo / 24
