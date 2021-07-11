@@ -84,6 +84,9 @@ typedef struct cursorreport {
 // read data only from stdin and control only from the tty. if we have
 // no connected tty, only data is available.
 typedef struct ncinputlayer {
+  // only allow one reader at a time, whether it's the user trying to do so,
+  // or our desire for a cursor report competing with the user.
+  pthread_mutex_t lock;
   // ttyfd is only valid if we are connected to a tty, *and* stdin is not
   // connected to that tty. in that case, we read control sequences only
   // from ttyfd.
@@ -103,7 +106,6 @@ typedef struct ncinputlayer {
   uint64_t input_events;
   struct esctrie* inputescapes; // trie of input escapes -> ncspecial_keys
   cursorreport* creport_queue; // queue of cursor reports
-  pthread_mutex_t creport_lock;
   pthread_cond_t creport_cond;
 } ncinputlayer;
 

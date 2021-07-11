@@ -431,15 +431,12 @@ enqueue_cursor_report(ncinputlayer* nc, const ncinput* ni){
   }
   clr->y = ni->y;
   clr->x = ni->x;
-  pthread_mutex_lock(&nc->creport_lock);
   // i don't think we ever want to have more than one here. we don't actually
   // have any control logic which leads to multiple outstanding requests, so
   // any that arrive are presumably garbage from the bulk input (and probably
   // ought be returned to the user).
   free(nc->creport_queue);
   nc->creport_queue = clr;
-  pthread_mutex_unlock(&nc->creport_lock);
-  pthread_cond_signal(&nc->creport_cond);
   return 0;
 }
 
@@ -467,16 +464,18 @@ handle_queued_input(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin
   return ret;
 }
 
-// this is where the user input chain actually calls read(2).
-static char32_t
-handle_input(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin,
-             const sigset_t* sigmask){
+// this is the only function which actually reads, and it can be called from
+// either our context (looking for cursor reports) or the user's. all it does
+// is attempt to fill up the input ringbuffer, exiting either when that
+// condition is met, or when we get an EAGAIN. it does no processing.
+static int
+fill_buffer(ncinputlayer* nc, const sigset_t* sigmask){
   ssize_t r = 0;
   size_t rlen;
 //fprintf(stderr, "OCCUPY: %u@%u read: %d %zd\n", nc->inputbuf_occupied, nc->inputbuf_write_at, nc->inputbuf[nc->inputbuf_write_at], r);
   if((rlen = input_queue_space(nc)) > 0){
     // if we have at least as much available as we do room to the end, read
-    // all the way to the end. otherwise, read as much as we have available.
+    // only to the end. otherwise, read as much as we have available.
     if(rlen >= sizeof(nc->inputbuf) / sizeof(*nc->inputbuf) - nc->inputbuf_write_at){
       rlen = sizeof(nc->inputbuf) / sizeof(*nc->inputbuf) - nc->inputbuf_write_at;
     }
@@ -486,12 +485,31 @@ handle_input(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin,
         nc->inputbuf_write_at = 0;
       }
       nc->inputbuf_occupied += r;
+      // specify a 0 timeout, meaning we only check to see if there's more
+      // input available immediately. basically, if we only read through the
+      // end of the ringbuffer, this gets us the first part filled as well.
+      // this is less about performance, and more about avoiding partial
+      // reads of multibyte characters and control sequences.
       const struct timespec ts = {};
       if(block_on_input(nc->infd, &ts, sigmask) < 1){
         break;
       }
     }
+    if(r < 0){
+      if(errno != EAGAIN && errno != EBUSY && errno != EWOULDBLOCK){
+        return -1;
+      }
+    }
   }
+  return 0;
+}
+
+// user-mode call to actual input i/o, which will get the next character from
+// the input buffer.
+static char32_t
+handle_input(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin,
+             const sigset_t* sigmask){
+  fill_buffer(nc, sigmask);
   // highest priority is resize notifications, since they don't queue
   if(resize_seen){
     resize_seen = 0;
@@ -693,11 +711,11 @@ prep_special_keys(ncinputlayer* nc){
 }
 
 void ncinputlayer_stop(ncinputlayer* nilayer){
-  if(pthread_mutex_destroy(&nilayer->creport_lock)){
-    logerror("Error destroying cqueue mutex\n");
-  }
   if(pthread_cond_destroy(&nilayer->creport_cond)){
     logerror("Error destroying cqueue condvar\n");
+  }
+  if(pthread_mutex_destroy(&nilayer->lock)){
+    logerror("Error destroying mutex\n");
   }
   cursorreport* clr;
   while( (clr = nilayer->creport_queue) ){
@@ -1378,11 +1396,16 @@ err:
 int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected,
                       unsigned* appsync, int* cursor_y, int* cursor_x){
   ncinputlayer* nilayer = &tcache->input;
+  // FIXME unsafe to do after infp has been used; do we need this?
   setbuffer(infp, NULL, 0);
+  if(pthread_mutex_init(&nilayer->lock, NULL)){
+    return -1;
+  }
   nilayer->inputescapes = NULL;
   nilayer->infd = fileno(infp);
   nilayer->ttyfd = isatty(nilayer->infd) ? -1 : get_tty_fd(infp);
   if(prep_special_keys(nilayer)){
+    pthread_mutex_destroy(&nilayer->lock);
     return -1;
   }
   nilayer->inputbuf_occupied = 0;
@@ -1390,7 +1413,6 @@ int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected,
   nilayer->inputbuf_write_at = 0;
   nilayer->input_events = 0;
   nilayer->creport_queue = NULL;
-  pthread_mutex_init(&nilayer->creport_lock, NULL);
   pthread_cond_init(&nilayer->creport_cond, NULL);
   int csifd = nilayer->ttyfd >= 0 ? nilayer->ttyfd : nilayer->infd;
   if(isatty(csifd)){
@@ -1404,6 +1426,8 @@ int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected,
     if(control_read(csifd, &inits)){
       input_free_esctrie(&nilayer->inputescapes);
       free(inits.version);
+      pthread_cond_destroy(&nilayer->creport_cond);
+      pthread_mutex_destroy(&nilayer->lock);
       return -1;
     }
     tcache->bg_collides_default = inits.bg;

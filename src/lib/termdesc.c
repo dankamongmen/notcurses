@@ -784,19 +784,19 @@ int locate_cursor(tinfo* ti, int fd, int* cursor_y, int* cursor_x){
   }
   bool emitted_u7 = false; // only want to send one max
   cursorreport* clr;
-  pthread_mutex_lock(&ti->input.creport_lock);
+  pthread_mutex_lock(&ti->input.lock);
   while((clr = ti->input.creport_queue) == NULL){
     if(!emitted_u7){
       // FIXME i'd rather not do this while holding the lock =[
       if(tty_emit(u7, fd)){
-        pthread_mutex_unlock(&ti->input.creport_lock);
+        pthread_mutex_unlock(&ti->input.lock);
         return -1;
       }
       emitted_u7 = true;
     }
-    pthread_cond_wait(&ti->input.creport_cond, &ti->input.creport_lock);
+    pthread_cond_wait(&ti->input.creport_cond, &ti->input.lock);
   }
-  pthread_mutex_unlock(&ti->input.creport_lock);
+  pthread_mutex_unlock(&ti->input.lock);
   *cursor_y = clr->y;
   *cursor_x = clr->x;
   if(ti->inverted_cursor){
