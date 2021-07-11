@@ -183,7 +183,7 @@ each release. Download it, and install the contents as you deem fit.
   **Narrow**, heh).
 
 * If your terminal supports 3x8bit RGB color via `setaf` and `setbf` (most modern
-  terminals), but doesn't export the `rgb` terminfo capability, you can export
+  terminals), but exports neither the `RGB` nor `Tc` terminfo capability, you can export
   the `COLORTERM` environment variable as `truecolor` or `24bit`. Note that some
   terminals accept a 24-bit specification, but map it down to fewer colors.
   RGB is enabled whenever [Foot, Contour, WezTerm, or Kitty](TERMINALS.md) is identified.

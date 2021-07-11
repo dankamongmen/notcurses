@@ -467,6 +467,7 @@ handle_queued_input(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin
   return ret;
 }
 
+// this is where the user input chain actually calls read(2).
 static char32_t
 handle_input(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin,
              const sigset_t* sigmask){
