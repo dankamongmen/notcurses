@@ -89,7 +89,6 @@ if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   include_directories(/usr/local/include)
   link_directories(/usr/local/lib)
   set(CMAKE_REQUIRED_INCLUDES /usr/local/include)
-  message(FATAL ${CMAKE_REQUIRED_INCLUDES})
 endif()
 # some distros (<cough>motherfucking alpine</cough> subsume terminfo directly
 # into ncurses. accept either, and may god have mercy on our souls.
@@ -245,6 +244,7 @@ target_include_directories(notcurses
     src/lib
     "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
+    "${TERMINFO_INCLUDE_DIRS}"
 )
 target_include_directories(notcurses-static
   PRIVATE
@@ -253,6 +253,7 @@ target_include_directories(notcurses-static
     src/lib
     "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
+    "${TERMINFO_INCLUDE_DIRS}"
 )
 target_link_libraries(notcurses
   PUBLIC
