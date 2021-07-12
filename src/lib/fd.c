@@ -169,10 +169,14 @@ int ncfdplane_destroy(ncfdplane* n){
 // ncfdplane around the read end, involving creation of a new thread. the
 // parent then returns.
 static pid_t
-launch_pipe_process(int* pipe, int* pidfd){
+launch_pipe_process(int* pipefd, int* pidfd){
   *pidfd = -1;
   int pipes[2];
+#if (defined(__linux__))
   if(pipe2(pipes, O_CLOEXEC)){ // can't use O_NBLOCK here (affects client)
+#else
+  if(pipe(pipes)){ // FIXME manually set O_CLOEXEC
+#endif
     return -1;
   }
   pid_t p = -1;
@@ -197,8 +201,8 @@ launch_pipe_process(int* pipe, int* pidfd){
       exit(EXIT_FAILURE);
     }
   }else if(p > 0){ // parent
-    *pipe = pipes[0];
-    set_fd_nonblocking(*pipe, 1, NULL);
+    *pipefd = pipes[0];
+    set_fd_nonblocking(*pipefd, 1, NULL);
   }
   return p;
 }
@@ -392,6 +396,9 @@ ncsubproc* ncsubproc_createvpe(ncplane* n, const ncsubproc_options* opts,
   if(ret->pid == 0){
 #ifdef __linux__
     execvpe(bin, arg, env);
+#elif defined(__APPLE__)
+    (void)env;
+    execvp(bin, arg); // FIXME env?
 #else
     exect(bin, arg, env);
 #endif

@@ -406,7 +406,12 @@ block_on_input(int fd, const struct timespec* ts, const sigset_t* sigmask){
   pfd.events |= POLLRDHUP;
 #endif
   int events;
+#ifdef __APPLE__
+  int timeoutms = ts->tv_sec * 1000 + ts->tv_nsec / 1000000;
+  while((events = poll(&pfd, 1, timeoutms)) < 0){ // FIXME scratchmask?
+#else
   while((events = ppoll(&pfd, 1, ts, &scratchmask)) < 0){
+#endif
     if(events == 0){
       return 0;
     }
