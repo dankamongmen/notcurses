@@ -433,6 +433,7 @@ enqueue_cursor_report(ncinputlayer* nc, const ncinput* ni){
   }
   clr->y = ni->y;
   clr->x = ni->x;
+  clr->next = NULL;
   // i don't think we ever want to have more than one here. we don't actually
   // have any control logic which leads to multiple outstanding requests, so
   // any that arrive are presumably garbage from the bulk input (and probably
