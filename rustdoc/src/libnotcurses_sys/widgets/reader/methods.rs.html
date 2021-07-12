@@ -35,10 +35,12 @@
 <span id="32">32</span>
 <span id="33">33</span>
 <span id="34">34</span>
+<span id="35">35</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcReader*` methods and associated functions.</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">error_ref_mut</span>, <span class="ident">ncreader_create</span>, <span class="ident">NcPlane</span>, <span class="ident">NcReader</span>, <span class="ident">NcReaderOptions</span>, <span class="ident">NcResult</span>};
+<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">NcReader</span>, <span class="ident">NcReaderOptions</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">error_ref_mut</span>, <span class="ident">ncreader_create</span>, <span class="ident">NcPlane</span>, <span class="ident">NcResult</span>};
 
 <span class="doccomment">/// # `NcReaderOptions` Constructors</span>
 <span class="kw">impl</span> <span class="ident">NcReaderOptions</span> {

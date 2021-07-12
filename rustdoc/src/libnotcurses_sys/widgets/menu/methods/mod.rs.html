@@ -67,12 +67,18 @@
 <span id="64">64</span>
 <span id="65">65</span>
 <span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcMenu*` methods and associated functions.</span>
 
+<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">NcMenuItem</span>, <span class="ident">NcMenuSection</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">cstring_mut</span>, <span class="ident">NcInput</span>};
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">ptr</span>::<span class="ident">null_mut</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">cstring_mut</span>, <span class="ident">NcInput</span>, <span class="ident">NcMenuItem</span>, <span class="ident">NcMenuSection</span>};
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_imports</span>)]</span>
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">widgets</span>::<span class="ident">NcMenu</span>;
 
 <span class="kw">mod</span> <span class="ident">menu</span>;
 <span class="kw">mod</span> <span class="ident">options</span>;
@@ -82,7 +88,7 @@
 
 <span class="doccomment">/// # `NcMenuItem` Constructors</span>
 <span class="kw">impl</span> <span class="ident">NcMenuItem</span> {
-    <span class="doccomment">/// New NcMenuItem for [NcMenu][crate::NcMenu].</span>
+    <span class="doccomment">/// New NcMenuItem for [`NcMenu`].</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">desc</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">shortcut</span>: <span class="ident">NcInput</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="comment">// utf-8 menu item, NULL for horizontal separator</span>
@@ -93,7 +99,7 @@
         }
     }
 
-    <span class="doccomment">/// New empty NcMenuItem for [NcMenu][crate::NcMenu].</span>
+    <span class="doccomment">/// New empty NcMenuItem for [`NcMenu`].</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_empty</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">desc</span>: <span class="ident">null_mut</span>(),
@@ -106,7 +112,7 @@
 <span class="doccomment">///</span>
 <span class="comment">// Must contain at least 1 NcMenuItem.</span>
 <span class="kw">impl</span> <span class="ident">NcMenuSection</span> {
-    <span class="doccomment">/// New NcMenuSection for [NcMenu][crate::NcMenu].</span>
+    <span class="doccomment">/// New NcMenuSection for [`NcMenu`].</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">items</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">NcMenuItem</span>], <span class="ident">shortcut</span>: <span class="ident">NcInput</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="comment">// utf-8 name string</span>
@@ -123,7 +129,7 @@
         }
     }
 
-    <span class="doccomment">/// New NcMenuSection separator for [NcMenu][crate::NcMenu].</span>
+    <span class="doccomment">/// New NcMenuSection separator for [`NcMenu`].</span>
     <span class="doccomment">///</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_separator</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {

@@ -314,6 +314,7 @@
 <span id="311">311</span>
 <span id="312">312</span>
 <span id="313">313</span>
+<span id="314">314</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcChannel*`</span>
 
@@ -417,7 +418,7 @@
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcChannel</span> <span class="op">=</span> <span class="ident">u32</span>;
 
 <span class="doccomment">/// Extract these bits to get a channel&#39;s alpha value</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCCHANNEL_ALPHA_MASK</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">CELL_BG_ALPHA_MASK</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCCHANNEL_ALPHA_MASK</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NC_BG_ALPHA_MASK</span>;
 
 <span class="comment">// NcAlphaBits</span>
 <span class="comment">//</span>
@@ -457,7 +458,7 @@
 <span class="doccomment">/// See the detailed diagram at [`NcChannels`][crate::NcChannels]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Note: This can also be used against a single [`NcChannel`]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_BGDEFAULT_MASK</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">CELL_BGDEFAULT_MASK</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_BGDEFAULT_MASK</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NC_BGDEFAULT_MASK</span>;
 
 <span class="doccomment">/// Extract these bits to get the background alpha mask</span>
 <span class="doccomment">/// ([`NcAlphaBits`])</span>
@@ -465,7 +466,7 @@
 <span class="doccomment">/// See the detailed diagram at [`NcChannels`][crate::NcChannels]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Note: This can also be used against a single [`NcChannel`]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_BG_ALPHA_MASK</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">CELL_BG_ALPHA_MASK</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_BG_ALPHA_MASK</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NC_BG_ALPHA_MASK</span>;
 
 <span class="doccomment">/// If this bit *and* [`NCALPHA_BGDEFAULT_MASK`] are set, we&#39;re using a</span>
 <span class="doccomment">/// palette-indexed background color</span>
@@ -473,21 +474,21 @@
 <span class="doccomment">/// See the detailed diagram at [`NcChannels`][crate::NcChannels]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Note: This can also be used against a single [`NcChannel`]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_BG_PALETTE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">CELL_BG_PALETTE</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_BG_PALETTE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NC_BG_PALETTE</span>;
 
 <span class="doccomment">/// Extract these bits to get the background [`NcRgb`][crate::NcRgb] value</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// See the detailed diagram at [`NcChannels`][crate::NcChannels]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Note: This can also be used against a single [`NcChannel`]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_BG_RGB_MASK</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">CELL_BG_RGB_MASK</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_BG_RGB_MASK</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NC_BG_RGB_MASK</span>;
 
 <span class="doccomment">/// If this bit is set, we are *not* using the default foreground color</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// See the detailed diagram at [`NcChannels`][crate::NcChannels]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Note: When working with a single [`NcChannel`] use [`NCALPHA_BGDEFAULT_MASK`];</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_FGDEFAULT_MASK</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">CELL_FGDEFAULT_MASK</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_FGDEFAULT_MASK</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NC_FGDEFAULT_MASK</span>;
 
 <span class="doccomment">/// Extract these bits to get the foreground alpha mask</span>
 <span class="doccomment">/// ([`NcAlphaBits`])</span>
@@ -495,7 +496,7 @@
 <span class="doccomment">/// See the detailed diagram at [`NcChannels`][crate::NcChannels]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Note: When working with a single [`NcChannel`] use [`NCALPHA_BG_ALPHA_MASK`];</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_FG_ALPHA_MASK</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">CELL_FG_ALPHA_MASK</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_FG_ALPHA_MASK</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NC_FG_ALPHA_MASK</span>;
 
 <span class="doccomment">/// If this bit *and* [`NCALPHA_FGDEFAULT_MASK`] are set, we&#39;re using a</span>
 <span class="doccomment">/// palette-indexed background color</span>
@@ -503,14 +504,14 @@
 <span class="doccomment">/// See the detailed diagram at [`NcChannels`][crate::NcChannels]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Note: When working with a single [`NcChannel`] use [`NCALPHA_BG_PALETTE`];</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_FG_PALETTE</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">CELL_FG_PALETTE</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_FG_PALETTE</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NC_FG_PALETTE</span>;
 
 <span class="doccomment">/// Extract these bits to get the foreground [`NcRgb`][crate::NcRgb] value</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// See the detailed diagram at [`NcChannels`][crate::NcChannels]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Note: When working with a single [`NcChannel`] use [`NCALPHA_BG_RGB_MASK`];</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_FG_RGB_MASK</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">CELL_FG_RGB_MASK</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_FG_RGB_MASK</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NC_FG_RGB_MASK</span>;
 
 <span class="comment">// NcChannels</span>
 <span class="comment">//</span>
@@ -599,6 +600,7 @@
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcChannels</span> <span class="op">=</span> <span class="ident">u64</span>;
 
 <span class="attribute">#[<span class="ident">deprecated</span>]</span>
+<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcChannelPair</span> <span class="op">=</span> <span class="ident">NcChannels</span>;
 
 <span class="comment">// NcRgb</span>

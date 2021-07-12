@@ -246,6 +246,37 @@
 <span id="243">243</span>
 <span id="244">244</span>
 <span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Macros</span>
 <span class="doccomment">//!</span>
@@ -281,14 +312,15 @@
     };
 }
 
-<span class="doccomment">/// [`Nc.render`][Nc#method.render]\(`$nc`\)? + [`sleep!`]`[$sleep_args]`.</span>
+<span class="doccomment">/// notcurses render sleep:</span>
+<span class="doccomment">/// [`Nc::render`][Nc#method.render]\(`$nc`\)? + [`sleep!`]`[$sleep_args]`.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Renders the `$nc` [`Nc`] object&#39;s standard plane pile and then,</span>
 <span class="doccomment">/// if there&#39;s no error, calls the sleep macro with the rest of the arguments.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Returns [NcResult].</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">rsleep</span> {
+<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">nrs</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">nc</span>:<span class="ident">expr</span>, $( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sleep_args</span>:<span class="ident">expr</span>),<span class="op">+</span> ) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="kw">crate</span>::<span class="ident">Nc</span>::<span class="ident">render</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">nc</span>)<span class="question-mark">?</span>;
         <span class="macro">sleep</span><span class="macro">!</span>[$( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sleep_args</span> ),<span class="op">+</span>];
@@ -298,8 +330,9 @@
     };
 }
 
-<span class="doccomment">/// [`NcPlane.render`][NcPlane#method.render]\(`$p`\)? +</span>
-<span class="doccomment">/// [`NcPlane.rasterize`][NcPlane#method.rasterize]\(`$p`\)? +</span>
+<span class="doccomment">/// plane render sleep:</span>
+<span class="doccomment">/// [`NcPlane::render`][NcPlane#method.render]\(`$p`\)? +</span>
+<span class="doccomment">/// [`NcPlane::rasterize`][NcPlane#method.rasterize]\(`$p`\)? +</span>
 <span class="doccomment">/// [`sleep!`]`[$sleep_args]`.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Renders and rasterizes the `$p` [NcPlane] pile and then, if there are</span>
@@ -307,7 +340,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Returns [NcResult].</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">prsleep</span> {
+<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">prs</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">p</span>:<span class="ident">expr</span>, $( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sleep_args</span>:<span class="ident">expr</span>),<span class="op">+</span> ) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="kw">crate</span>::<span class="ident">NcPlane</span>::<span class="ident">render</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">p</span>)<span class="question-mark">?</span>;
         <span class="kw">crate</span>::<span class="ident">NcPlane</span>::<span class="ident">rasterize</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">p</span>)<span class="question-mark">?</span>;
@@ -318,13 +351,15 @@
     };
 }
 
-<span class="doccomment">/// [`NcDirect.flush`][NcDirect#method.flush]\(`$ncd`\)? + [`sleep!`]`[$sleep_args]`.</span>
+<span class="doccomment">/// [`NcDirect::flush`][NcDirect#method.flush]\(`$ncd`\)? + [`sleep!`]`[$sleep_args]`.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Flushes the `$ncd` [NcDirect] object and, if there&#39;s no error,</span>
 <span class="doccomment">/// calls the sleep macro with the rest of the arguments.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Returns [NcResult].</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
+<span class="attribute">#[<span class="ident">deprecated</span>]</span>
+<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">fsleep</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ncd</span>:<span class="ident">expr</span>, $( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sleep_args</span>:<span class="ident">expr</span>),<span class="op">+</span> ) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="comment">// Rust style, with methods &amp; NcResult</span>
@@ -333,6 +368,33 @@
     };
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ncd</span>:<span class="ident">expr</span>, $( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sleep_args</span>:<span class="ident">expr</span>),<span class="op">+</span> ,) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="macro">rsleep</span><span class="macro">!</span>[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ncd</span>, $( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sleep_args</span> ),<span class="op">*</span> ]
+    };
+}
+
+<span class="attribute">#[<span class="ident">deprecated</span>]</span>
+<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_macros</span>)]</span>
+<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">prsleep</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">p</span>:<span class="ident">expr</span>, $( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sleep_args</span>:<span class="ident">expr</span>),<span class="op">+</span> ) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="macro">prs</span><span class="macro">!</span>[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">p</span>, $( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sleep_args</span> ),<span class="op">+</span>];
+    };
+}
+
+<span class="attribute">#[<span class="ident">deprecated</span>]</span>
+<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_macros</span>)]</span>
+<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">psleep</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">p</span>:<span class="ident">expr</span>, $( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sleep_args</span>:<span class="ident">expr</span>),<span class="op">+</span> ) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="macro">prs</span><span class="macro">!</span>[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">p</span>, $( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sleep_args</span> ),<span class="op">+</span>];
+    };
+}
+
+<span class="attribute">#[<span class="ident">deprecated</span>]</span>
+<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_macros</span>)]</span>
+<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">rsleep</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">nc</span>:<span class="ident">expr</span>, $( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sleep_args</span>:<span class="ident">expr</span>),<span class="op">+</span> ) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="macro">nrs</span><span class="macro">!</span>[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">nc</span>, $( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sleep_args</span> ),<span class="op">+</span>];
     };
 }
 

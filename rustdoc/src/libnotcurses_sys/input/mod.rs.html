@@ -148,12 +148,12 @@
 
 <span class="comment">// functions manually reimplemented: 4</span>
 <span class="comment">// ------------------------------------------</span>
-<span class="comment">// (+) done: 3 / 0</span>
-<span class="comment">// (#) test: 0 / 3</span>
+<span class="comment">// (+) done: 4</span>
+<span class="comment">// (#) test: 0</span>
 <span class="comment">// ------------------------------------------</span>
 <span class="comment">// + ncinput_equal_p</span>
+<span class="comment">// + ncinput_nomod_p</span>
 <span class="comment">// + nckey_mouse_p</span>
-<span class="comment">// + nckey_nomod_p</span>
 <span class="comment">// + nckey_supppuab_p</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">NcDim</span>;
@@ -266,6 +266,11 @@
     <span class="bool-val">true</span>
 }
 
+<span class="doccomment">/// Are all the modifiers off (alt, control, shift)?</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">ncinput_nomod_p</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">NcInput</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="op">!</span><span class="ident">input</span>.<span class="ident">alt</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">input</span>.<span class="ident">ctrl</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">input</span>.<span class="ident">shift</span>
+}
+
 <span class="doccomment">/// Is this [char] a Supplementary Private Use Area-B codepoint?</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Links:</span>
@@ -280,11 +285,6 @@
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">nckey_mouse_p</span>(<span class="ident">r</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
     <span class="ident">r</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">NCKEY_BUTTON1</span> <span class="op">&amp;&amp;</span> <span class="ident">r</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">NCKEY_RELEASE</span>
-}
-
-<span class="doccomment">/// Are all the modifiers off (alt, control, shift)?</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">ncinput_nomod_p</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">NcInput</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-    <span class="op">!</span><span class="ident">input</span>.<span class="ident">alt</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">input</span>.<span class="ident">ctrl</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">input</span>.<span class="ident">shift</span>
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "libnotcurses_sys";</script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>
