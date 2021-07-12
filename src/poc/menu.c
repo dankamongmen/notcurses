@@ -25,10 +25,10 @@ run_menu(struct notcurses* nc, struct ncmenu* ncm){
   if(ncplane_set_base(selplane, " ", 0, channels) < 0){
     goto err;
   }
-  char32_t keypress;
+  uint32_t keypress;
   ncinput ni;
   notcurses_render(nc);
-  while((keypress = notcurses_getc_blocking(nc, &ni)) != (char32_t)-1){
+  while((keypress = notcurses_getc_blocking(nc, &ni)) != (uint32_t)-1){
     if(!ncmenu_offer_input(ncm, &ni)){
       if(keypress == 'q'){
         ncmenu_destroy(ncm);

@@ -2,7 +2,6 @@
 #define NOTCURSES_NOTCURSES
 
 #include <time.h>
-#include <uchar.h>
 #include <ctype.h>
 #include <wchar.h>
 #include <stdio.h>
@@ -104,12 +103,12 @@ typedef enum {
 // -1 if a non-printable/illegal character is encountered.
 API int ncstrwidth(const char* mbs);
 
-// input functions like notcurses_getc() return ucs32-encoded char32_t. convert
-// a series of char32_t to utf8. result must be at least 4 bytes per input
-// char32_t (6 bytes per char32_t will future-proof against Unicode expansion).
+// input functions like notcurses_getc() return ucs32-encoded uint32_t. convert
+// a series of uint32_t to utf8. result must be at least 4 bytes per input
+// uint32_t (6 bytes per uint32_t will future-proof against Unicode expansion).
 // the number of bytes used is returned, or -1 if passed illegal ucs32, or too
 // small of a buffer.
-API int notcurses_ucs32_to_utf8(const char32_t* ucs32, unsigned ucs32count,
+API int notcurses_ucs32_to_utf8(const uint32_t* ucs32, unsigned ucs32count,
                                 unsigned char* resultbuf, size_t buflen);
 
 // background cannot be highcontrast, only foreground
@@ -999,23 +998,23 @@ API void notcurses_drop_planes(struct notcurses* nc);
 //
 // In the case of a valid read, a 32-bit Unicode codepoint is returned. 0 is
 // returned to indicate that no input was available, but only by
-// notcurses_getc(). Otherwise (including on EOF) (char32_t)-1 is returned.
+// notcurses_getc(). Otherwise (including on EOF) (uint32_t)-1 is returned.
 
-// Is this char32_t a Supplementary Private Use Area-B codepoint?
+// Is this uint32_t a Supplementary Private Use Area-B codepoint?
 static inline bool
-nckey_supppuab_p(char32_t w){
+nckey_supppuab_p(uint32_t w){
   return w >= 0x100000 && w <= 0x10fffd;
 }
 
 // Is the event a synthesized mouse event?
 static inline bool
-nckey_mouse_p(char32_t r){
+nckey_mouse_p(uint32_t r){
   return r >= NCKEY_BUTTON1 && r <= NCKEY_RELEASE;
 }
 
 // An input event. Cell coordinates are currently defined only for mouse events.
 typedef struct ncinput {
-  char32_t id;     // identifier. Unicode codepoint or synthesized NCKEY event
+  uint32_t id;     // identifier. Unicode codepoint or synthesized NCKEY event
   int y;           // y cell coordinate of event, -1 for undefined
   int x;           // x cell coordinate of event, -1 for undefined
   bool alt;        // was alt held?
@@ -1045,10 +1044,10 @@ ncinput_equal_p(const ncinput* n1, const ncinput* n2){
 // of 0 for non-blocking operation, and otherwise a timespec to bound blocking.
 // Signals in sigmask (less several we handle internally) will be atomically
 // masked and unmasked per ppoll(2). It should generally contain all signals.
-// Returns a single Unicode code point, or (char32_t)-1 on error. 'sigmask' may
+// Returns a single Unicode code point, or (uint32_t)-1 on error. 'sigmask' may
 // be NULL. Returns 0 on a timeout. If an event is processed, the return value
 // is the 'id' field from that event. 'ni' may be NULL.
-API char32_t notcurses_getc(struct notcurses* n, const struct timespec* ts,
+API uint32_t notcurses_getc(struct notcurses* n, const struct timespec* ts,
                             const sigset_t* sigmask, ncinput* ni)
   __attribute__ ((nonnull (1)));
 
@@ -1061,7 +1060,7 @@ API int notcurses_inputready_fd(struct notcurses* n)
 
 // 'ni' may be NULL if the caller is uninterested in event details. If no event
 // is ready, returns 0.
-static inline char32_t
+static inline uint32_t
 notcurses_getc_nblock(struct notcurses* n, ncinput* ni){
   sigset_t sigmask;
   sigfillset(&sigmask);
@@ -1071,7 +1070,7 @@ notcurses_getc_nblock(struct notcurses* n, ncinput* ni){
 
 // 'ni' may be NULL if the caller is uninterested in event details. Blocks
 // until an event is processed or a signal is received.
-static inline char32_t
+static inline uint32_t
 notcurses_getc_blocking(struct notcurses* n, ncinput* ni){
   sigset_t sigmask;
   sigemptyset(&sigmask);

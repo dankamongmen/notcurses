@@ -1115,7 +1115,7 @@ notcurses_rasterize_inner(notcurses* nc, ncpile* p, FILE* out, unsigned* asu){
   if(rasterize_core(nc, p, out, 1)){
     return -1;
   }
-#define MIN_SUMODE_SIZE 4096 // FIXME
+#define MIN_SUMODE_SIZE BUFSIZ
   if(*asu){
     if(nc->rstate.mstrsize >= MIN_SUMODE_SIZE){
       const char* endasu = get_escape(&nc->tcache, ESCAPE_ESUM);

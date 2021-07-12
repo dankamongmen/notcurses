@@ -310,10 +310,10 @@ API int ncdirect_double_box(struct ncdirect* n, uint64_t ul, uint64_t ur,
 // of 0 for non-blocking operation, and otherwise a timespec to bound blocking.
 // Signals in sigmask (less several we handle internally) will be atomically
 // masked and unmasked per ppoll(2). '*sigmask' should generally contain all
-// signals. Returns a single Unicode code point, or (char32_t)-1 on error.
+// signals. Returns a single Unicode code point, or (uint32_t)-1 on error.
 // 'sigmask' may be NULL. Returns 0 on a timeout. If an event is processed, the
 // return value is the 'id' field from that event. 'ni' may be NULL.
-API char32_t ncdirect_getc(struct ncdirect* n, const struct timespec* ts,
+API uint32_t ncdirect_getc(struct ncdirect* n, const struct timespec* ts,
                            sigset_t* sigmask, ncinput* ni)
   __attribute__ ((nonnull (1)));
 
@@ -326,7 +326,7 @@ API int ncdirect_inputready_fd(struct ncdirect* n)
 
 // 'ni' may be NULL if the caller is uninterested in event details. If no event
 // is ready, returns 0.
-static inline char32_t
+static inline uint32_t
 ncdirect_getc_nblock(struct ncdirect* n, ncinput* ni){
   sigset_t sigmask;
   sigfillset(&sigmask);
@@ -336,7 +336,7 @@ ncdirect_getc_nblock(struct ncdirect* n, ncinput* ni){
 
 // 'ni' may be NULL if the caller is uninterested in event details. Blocks
 // until an event is processed or a signal is received.
-static inline char32_t
+static inline uint32_t
 ncdirect_getc_blocking(struct ncdirect* n, ncinput* ni){
   sigset_t sigmask;
   sigemptyset(&sigmask);

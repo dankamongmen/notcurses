@@ -616,7 +616,7 @@ int demo_render(struct notcurses* nc){
     ncplane_off_styles(hud, NCSTYLE_BOLD);
   }
   ncinput ni;
-  char32_t id;
+  uint32_t id;
   id = demo_getc_nblock(nc, &ni);
   int ret = notcurses_render(nc);
   if(ret){

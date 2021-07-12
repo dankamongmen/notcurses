@@ -45,7 +45,7 @@ handle_mouse(const ncinput* ni){
 
 // incoming timespec is relative (or even NULL, for blocking), but we need
 // absolute deadline, so convert it up.
-char32_t demo_getc(struct notcurses* nc, const struct timespec* ts, ncinput* ni){
+uint32_t demo_getc(struct notcurses* nc, const struct timespec* ts, ncinput* ni){
   struct timespec now;
   clock_gettime(CLOCK_REALTIME, &now);
   uint64_t ns;
@@ -64,7 +64,7 @@ char32_t demo_getc(struct notcurses* nc, const struct timespec* ts, ncinput* ni)
   struct timespec abstime;
   ns_to_timespec(ns + timespec_to_ns(&now), &abstime);
   bool handoff = false; // does the input go back to the user?
-  char32_t id;
+  uint32_t id;
   do{
     pthread_mutex_lock(&lock);
     while(!queue){
@@ -130,8 +130,8 @@ static void *
 ultramegaok_demo(void* vnc){
   ncinput ni;
   struct notcurses* nc = vnc;
-  char32_t id;
-  while((id = notcurses_getc_blocking(nc, &ni)) != (char32_t)-1){
+  uint32_t id;
+  while((id = notcurses_getc_blocking(nc, &ni)) != (uint32_t)-1){
     if(id == 0){
       continue;
     }

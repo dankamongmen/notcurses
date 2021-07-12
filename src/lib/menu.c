@@ -5,7 +5,7 @@
 // codepoint appears in 'col', and the byte offset as the return value. If not
 // found, -1 is returned, and 'col' is meaningless.
 static int
-mbstr_find_codepoint(const char* s, char32_t cp, int* col){
+mbstr_find_codepoint(const char* s, uint32_t cp, int* col){
   mbstate_t ps;
   memset(&ps, 0, sizeof(ps));
   size_t bytes = 0;

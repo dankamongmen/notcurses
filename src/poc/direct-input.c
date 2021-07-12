@@ -9,8 +9,8 @@ int main(void){
     return EXIT_FAILURE;
   }
   ncinput ni;
-  char32_t i;
-  while((i = ncdirect_getc_blocking(n, &ni)) != (char32_t)-1){
+  uint32_t i;
+  while((i = ncdirect_getc_blocking(n, &ni)) != (uint32_t)-1){
     unsigned char utf8[5] = {};
     notcurses_ucs32_to_utf8(&i, 1, utf8, sizeof(utf8));
     printf("Read input: [%c%c%c] %s\n", ni.ctrl ? 'C' : 'c',
@@ -19,7 +19,7 @@ int main(void){
       break;
     }
   }
-  if(ncdirect_stop(n) || i == (char32_t)-1){
+  if(ncdirect_stop(n) || i == (uint32_t)-1){
     fprintf(stderr, "Failure reading input (%s)\n", strerror(errno));
     return EXIT_FAILURE;
   }

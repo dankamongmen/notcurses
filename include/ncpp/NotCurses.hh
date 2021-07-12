@@ -240,12 +240,12 @@ namespace ncpp
 			return static_cast<CellStyle>(notcurses_supported_styles (nc));
 		}
 
-		char32_t getc (const timespec *ts, sigset_t *sigmask = nullptr, ncinput *ni = nullptr) const noexcept
+		uint32_t getc (const timespec *ts, sigset_t *sigmask = nullptr, ncinput *ni = nullptr) const noexcept
 		{
 			return notcurses_getc (nc, ts, sigmask, ni);
 		}
 
-		char32_t getc (bool blocking = false, ncinput *ni = nullptr) const noexcept
+		uint32_t getc (bool blocking = false, ncinput *ni = nullptr) const noexcept
 		{
 			if (blocking)
 				return notcurses_getc_blocking (nc, ni);
@@ -293,7 +293,7 @@ namespace ncpp
 			return notcurses_stats_alloc (nc);
 		}
 
-		static bool ucs32_to_utf8 (const char32_t *ucs32, unsigned ucs32count, unsigned char *resultbuf, size_t buflen) NOEXCEPT_MAYBE
+		static bool ucs32_to_utf8 (const uint32_t *ucs32, unsigned ucs32count, unsigned char *resultbuf, size_t buflen) NOEXCEPT_MAYBE
 		{
 			return error_guard (notcurses_ucs32_to_utf8 (ucs32, ucs32count, resultbuf, buflen), -1);
 		}

@@ -147,8 +147,8 @@ reader_post(struct notcurses* nc, struct ncselector* selector, struct ncmultisel
     struct timespec rel;
     ns_to_timespec(targ - cur, &rel);
     ncinput ni;
-    char32_t wc = demo_getc(nc, &rel, &ni);
-    if(wc == (char32_t)-1){
+    uint32_t wc = demo_getc(nc, &rel, &ni);
+    if(wc == (uint32_t)-1){
       return -1;
     }else if(wc){
       ncmultiselector_offer_input(mselector, &ni);
@@ -281,8 +281,8 @@ selector_run(struct notcurses* nc, struct ncplane* p, struct ncselector* selecto
       struct ncinput ni;
       struct timespec inputtime;
       ns_to_timespec(deadline_ns - timespec_to_ns(&now), &inputtime);
-      char32_t wc = demo_getc(nc, &inputtime, &ni);
-      if(wc == (char32_t)-1){
+      uint32_t wc = demo_getc(nc, &inputtime, &ni);
+      if(wc == (uint32_t)-1){
         return -1;
       }else if(wc){
         ncselector_offer_input(selector, &ni);
@@ -355,8 +355,8 @@ mselector_run(struct notcurses* nc, struct ncplane* p, struct ncmultiselector* m
       struct ncinput ni;
       struct timespec inputtime;
       ns_to_timespec(deadline_ns - timespec_to_ns(&now), &inputtime);
-      char32_t wc = demo_getc(nc, &inputtime, &ni);
-      if(wc == (char32_t)-1){
+      uint32_t wc = demo_getc(nc, &inputtime, &ni);
+      if(wc == (uint32_t)-1){
         return -1;
       }else if(wc){
         ncmultiselector_offer_input(mselector, &ni);

@@ -62,11 +62,11 @@ void interrupt_and_restart_demos(void);
 // demos should not call notcurses_getc() directly, as it's being monitored by
 // the toplevel event listener. instead, call this intermediate API. just
 // replace 'notcurses' with 'demo'.
-char32_t demo_getc(struct notcurses* nc, const struct timespec* ts, ncinput* ni);
+uint32_t demo_getc(struct notcurses* nc, const struct timespec* ts, ncinput* ni);
 
 // 'ni' may be NULL if the caller is uninterested in event details. If no event
 // is ready, returns 0.
-static inline char32_t
+static inline uint32_t
 demo_getc_nblock(struct notcurses* nc, ncinput* ni){
   struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
   return demo_getc(nc, &ts, ni);
@@ -78,7 +78,7 @@ int demo_input_fd(void);
 
 // 'ni' may be NULL if the caller is uninterested in event details. Blocks
 // until an event is processed or a signal is received.
-static inline char32_t
+static inline uint32_t
 demo_getc_blocking(struct notcurses* nc, ncinput* ni){
   return demo_getc(nc, NULL, ni);
 }

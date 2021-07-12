@@ -391,7 +391,7 @@ callback(struct ncplane* ncp, void* curry, int dizzy){
 static int
 tree_ui(struct notcurses* nc, struct nctree* tree){
   ncinput ni;
-  while(notcurses_getc_blocking(nc, &ni) != (char32_t)-1){
+  while(notcurses_getc_blocking(nc, &ni) != (uint32_t)-1){
     if(nctree_offer_input(tree, &ni)){
       if(nctree_redraw(tree)){
         return -1;

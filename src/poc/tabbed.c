@@ -96,7 +96,7 @@ int main(int argc, char** argv){
   REDRAW();
   t_ = nctabbed_add(nct, NULL, NULL, tabcbfn, "gamma", NULL);
   REDRAW();
-  char32_t c;
+  uint32_t c;
   while((c = notcurses_getc_blocking(nc, NULL)) != 'q'){
     switch(c){
       case NCKEY_RIGHT:

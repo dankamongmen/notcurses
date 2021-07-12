@@ -11,7 +11,7 @@
 // not reported in their bare form to the user. For our purposes, these usually
 // indicate a mouse event.
 #define CSIPREFIX "\x1b["
-static const char32_t NCKEY_CSI = 0x90; // guaranteed not to match anything else
+static const uint32_t NCKEY_CSI = 0x90; // guaranteed not to match anything else
 
 static sig_atomic_t resize_seen;
 
@@ -102,7 +102,7 @@ unpop_keypress(ncinputlayer* nc, int kpress){
 
 // we assumed escapes can only be composed of 7-bit chars
 typedef struct esctrie {
-  char32_t special;       // composed key terminating here
+  uint32_t special;       // composed key terminating here
   struct esctrie** trie;  // if non-NULL, next level of radix-128 trie
 } esctrie;
 
@@ -134,7 +134,7 @@ input_free_esctrie(esctrie** eptr){
 }
 
 static int
-ncinputlayer_add_input_escape(ncinputlayer* nc, const char* esc, char32_t special){
+ncinputlayer_add_input_escape(ncinputlayer* nc, const char* esc, uint32_t special){
   if(esc[0] != NCKEY_ESC || strlen(esc) < 2){ // assume ESC prefix + content
     logerror("Not an escape: %s (0x%x)\n", esc, special);
     return -1;
@@ -181,7 +181,7 @@ ncinputlayer_add_input_escape(ncinputlayer* nc, const char* esc, char32_t specia
 // mouse and cursor location reports. The former is three parameters starting
 // with '<' and ending with 'm' or 'M'; the latter is two ending with 'R'.
 // Both use 1-biased coordinates, so a 0 can be safely rejected.
-static char32_t
+static uint32_t
 handle_csi(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin){
   // stash the first parameter away. it's encoded if the CSI ends up being a
   // mouse event, and otherwise it's the cursor's column (x) coordinate.
@@ -193,7 +193,7 @@ handle_csi(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin){
     PARAM3,  // reading third param (y coordinate) plus terminator
   } state = PARAM1;
   int param = 0; // numeric translation of param thus far
-  char32_t id = (char32_t)-1;
+  uint32_t id = (uint32_t)-1;
   while(nc->inputbuf_occupied){
     int candidate = pop_input_keypress(nc);
     logdebug("Candidate: %c (%d)\n", candidate, candidate);
@@ -285,7 +285,7 @@ handle_csi(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin){
   // FIXME ungetc on failure! walk trie backwards or something
   // FIXME increment the input_error stat
   logerror("Error processing CSI (%d left)\n", nc->inputbuf_occupied);
-  return (char32_t)-1;
+  return (uint32_t)-1;
 }
 
 // add the keypress we just read to our input queue (assuming there is room).
@@ -315,7 +315,7 @@ handle_csi(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin){
 // CSI is most relevant to us here, since mouse and cursor reports arrive that
 // way. CSI is properly terminated by 0x40--0x7e. the parameter space covers
 // 0x30--0x39 and the delimiter 0x3b (';').
-static char32_t
+static uint32_t
 handle_getc(ncinputlayer* nc, int kpress, ncinput* ni, int leftmargin, int topmargin){
   if(kpress < 0){
     return -1;
@@ -443,14 +443,14 @@ enqueue_cursor_report(ncinputlayer* nc, const ncinput* ni){
   return 0;
 }
 
-static char32_t
+static uint32_t
 handle_queued_input(ncinputlayer* nc, ncinput* ni,
                     int leftmargin, int topmargin){
   ncinput nireal;
   if(ni == NULL){
     ni = &nireal;
   }
-  char32_t ret;
+  uint32_t ret;
   do{
     // if there was some error in getc(), we still dole out the existing queue
     if(nc->inputbuf_occupied == 0){
@@ -458,7 +458,7 @@ handle_queued_input(ncinputlayer* nc, ncinput* ni,
     }
     int r = pop_input_keypress(nc);
     ret = handle_getc(nc, r, ni, leftmargin, topmargin);
-    if(ret != (char32_t)-1){
+    if(ret != (uint32_t)-1){
       ni->id = ret;
     }
     if(ret == NCKEY_CURSOR_LOCATION_REPORT){
@@ -500,7 +500,7 @@ fill_buffer(ncinputlayer* nc){
 
 // user-mode call to actual input i/o, which will get the next character from
 // the input buffer.
-static char32_t
+static uint32_t
 handle_input(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin){
   fill_buffer(nc);
   // highest priority is resize notifications, since they don't queue
@@ -511,12 +511,12 @@ handle_input(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin){
   return handle_queued_input(nc, ni, leftmargin, topmargin);
 }
 
-static char32_t
+static uint32_t
 handle_ncinput(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin){
   if(ni){
     memset(ni, 0, sizeof(*ni));
   }
-  char32_t r = handle_input(nc, ni, leftmargin, topmargin);
+  uint32_t r = handle_input(nc, ni, leftmargin, topmargin);
   // ctrl (*without* alt) + letter maps to [1..26], and is independent of shift
   // FIXME need to distinguish between:
   //  - Enter and ^J
@@ -543,7 +543,7 @@ handle_ncinput(ncinputlayer* nc, ncinput* ni, int leftmargin, int topmargin){
 }
 
 // helper so we can do counter increment at a single location
-static inline char32_t
+static inline uint32_t
 ncinputlayer_prestamp(ncinputlayer* nc, const struct timespec *ts,
                       const sigset_t* sigmask, ncinput* ni, int leftmargin,
                       int topmargin){
@@ -561,11 +561,11 @@ ncinputlayer_prestamp(ncinputlayer* nc, const struct timespec *ts,
 }
 
 // infp has already been set non-blocking
-char32_t notcurses_getc(notcurses* nc, const struct timespec *ts,
+uint32_t notcurses_getc(notcurses* nc, const struct timespec *ts,
                         const sigset_t* sigmask, ncinput* ni){
-  char32_t r = ncinputlayer_prestamp(&nc->tcache.input, ts, sigmask, ni,
+  uint32_t r = ncinputlayer_prestamp(&nc->tcache.input, ts, sigmask, ni,
                                      nc->margin_l, nc->margin_t);
-  if(r != (char32_t)-1){
+  if(r != (uint32_t)-1){
     uint64_t stamp = nc->tcache.input.input_events++; // need increment even if !ni
     if(ni){
       ni->seqnum = stamp;
@@ -574,10 +574,10 @@ char32_t notcurses_getc(notcurses* nc, const struct timespec *ts,
   return r;
 }
 
-char32_t ncdirect_getc(ncdirect* nc, const struct timespec *ts,
+uint32_t ncdirect_getc(ncdirect* nc, const struct timespec *ts,
                        sigset_t* sigmask, ncinput* ni){
-  char32_t r = ncinputlayer_prestamp(&nc->tcache.input, ts, sigmask, ni, 0, 0);
-  if(r != (char32_t)-1){
+  uint32_t r = ncinputlayer_prestamp(&nc->tcache.input, ts, sigmask, ni, 0, 0);
+  if(r != (uint32_t)-1){
     uint64_t stamp = nc->tcache.input.input_events++; // need increment even if !ni
     if(ni){
       ni->seqnum = stamp;
@@ -591,7 +591,7 @@ static int
 prep_special_keys(ncinputlayer* nc){
   static const struct {
     const char* tinfo;
-    char32_t key;
+    uint32_t key;
   } keys[] = {
     { .tinfo = "kcub1", .key = NCKEY_LEFT, },
     { .tinfo = "kcuf1", .key = NCKEY_RIGHT, },
