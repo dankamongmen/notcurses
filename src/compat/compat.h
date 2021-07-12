@@ -9,7 +9,7 @@ extern "C" {
 
 #define NANOSECS_IN_SEC 1000000000ul
 
-#ifndef TIMER_ABSTIME
+#ifdef __APPLE__
 #define TIMER_ABSTIME 1
 #endif
 
