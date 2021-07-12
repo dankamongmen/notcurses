@@ -17,6 +17,9 @@
 #if defined(__linux__) || defined(__gnu_hurd__)
 #include <byteswap.h>
 #define htole(x) (__bswap_32(htonl(x)))
+#elif defined(__APPLE__)
+#include <libkern/OSByteOrder.h>
+#define htole(x) (OSSwapInt32(htonl(x)))
 #else
 #include <sys/endian.h>
 #define htole(x) (bswap32(htonl(x)))

@@ -9,6 +9,10 @@ extern "C" {
 
 #define NANOSECS_IN_SEC 1000000000ul
 
+#ifndef TIMER_ABSTIME
+#define TIMER_ABSTIME 1
+#endif
+
 static inline uint64_t
 timespec_to_ns(const struct timespec* ts){
   return ts->tv_sec * NANOSECS_IN_SEC + ts->tv_nsec;
