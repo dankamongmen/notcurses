@@ -1,6 +1,9 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 2.3.10 (not yet released)
+  * Notcurses now builds and works, so far as I can tell, on OS X 11.4+.
+
 * 2.3.9 (2021-07-12)
   * Fixed major regressions from 2.3.8: menu highlighting is working once
     more, as are pointer inputs (mice) and the 8x1 plotter. Sorry about that!
