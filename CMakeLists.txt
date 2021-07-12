@@ -80,6 +80,17 @@ find_package(PkgConfig REQUIRED)
 # feature_summary + set_package_properties to fail in one fell swoop.
 find_package(Threads)
 set_package_properties(Threads PROPERTIES TYPE REQUIRED)
+# platform-specific logics
+if(NOT MSYS AND NOT APPLE)
+  find_library(LIBM m REQUIRED)
+  find_library(LIBRT rt REQUIRED)
+endif()
+if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+  include_directories(/usr/local/include)
+  link_directories(/usr/local/lib)
+  set(CMAKE_REQUIRED_INCLUDES /usr/local/include)
+  message(FATAL ${CMAKE_REQUIRED_INCLUDES})
+endif()
 # some distros (<cough>motherfucking alpine</cough> subsume terminfo directly
 # into ncurses. accept either, and may god have mercy on our souls.
 pkg_search_module(TERMINFO REQUIRED tinfo>=6.1 ncursesw>=6.1)
@@ -101,9 +112,7 @@ elseif(${USE_OIIO})
 pkg_check_modules(OIIO REQUIRED OpenImageIO>=2.1)
 set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND OpenImageIO)
 endif()
-if (NOT MSYS)
-  find_library(MATH_LIBRARIES m)
-endif()
+
 if(${USE_DOCTEST})
 find_package(doctest 2.3.5)
 set_package_properties(doctest PROPERTIES TYPE REQUIRED)
@@ -128,10 +137,6 @@ if(NOT "${HAVE_QRCODEGEN_H}")
 endif()
 set_property(GLOBAL APPEND PROPERTY PACKAGES_FOUND qrcodegen)
 endif()
-if (NOT MSYS)
-  find_library(LIBM m)
-  find_library(LIBRT rt)
-endif()
 
 feature_summary(WHAT ALL FATAL_ON_MISSING_REQUIRED_PACKAGES)
 
@@ -145,6 +150,21 @@ if(${USE_STATIC})
 add_library(notcurses-core-static STATIC ${NCCORESRCS})
 else()
 add_library(notcurses-core-static STATIC EXCLUDE_FROM_ALL ${NCCORESRCS})
+endif()
+# don't want these on freebsd/dragonfly/osx
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+target_compile_definitions(notcurses-core
+  PUBLIC
+   _XOPEN_SOURCE=700 # wcwidth(3) requires _XOPEN_SOURCE, and is in our headers
+  PRIVATE
+   _GNU_SOURCE _DEFAULT_SOURCE
+)
+target_compile_definitions(notcurses-core-static
+  PUBLIC
+   _XOPEN_SOURCE=700 # wcwidth(3) requires _XOPEN_SOURCE, and is in our headers
+  PRIVATE
+   _GNU_SOURCE _DEFAULT_SOURCE
+)
 endif()
 set_target_properties(notcurses-core PROPERTIES
   VERSION ${PROJECT_VERSION}
@@ -173,8 +193,8 @@ target_include_directories(notcurses-core-static
 target_link_libraries(notcurses-core
   PRIVATE
     "${TERMINFO_LIBRARIES}"
-    "${LIBM}"
-    "${LIBRT}"
+    "${LIBM_LIBRARIES}"
+    "${LIBRT_LIBRARIES}"
     "${unistring}"
   PUBLIC
     Threads::Threads
@@ -182,8 +202,8 @@ target_link_libraries(notcurses-core
 target_link_libraries(notcurses-core-static
   PRIVATE
     "${TERMINFO_STATIC_LIBRARIES}"
-    "${LIBM}"
-    "${LIBRT}"
+    "${LIBM_LIBRARIES}"
+    "${LIBRT_LIBRARIES}"
     "${unistring}"
   PUBLIC
     Threads::Threads
@@ -196,21 +216,6 @@ target_link_directories(notcurses-core-static
   PRIVATE
     "${TERMINFO_STATIC_LIBRARY_DIRS}"
 )
-# don't want these on freebsd/dragonfly/osx
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-target_compile_definitions(notcurses-core
-  PUBLIC
-   _XOPEN_SOURCE=700 # wcwidth(3) requires _XOPEN_SOURCE, and is in our headers
-  PRIVATE
-   _GNU_SOURCE _DEFAULT_SOURCE
-)
-target_compile_definitions(notcurses-core-static
-  PUBLIC
-   _XOPEN_SOURCE=700 # wcwidth(3) requires _XOPEN_SOURCE, and is in our headers
-  PRIVATE
-   _GNU_SOURCE _DEFAULT_SOURCE
-)
-endif()
 if(${USE_QRCODEGEN})
 target_link_libraries(notcurses-core PRIVATE qrcodegen)
 target_link_libraries(notcurses-core-static PRIVATE qrcodegen)
@@ -489,7 +494,7 @@ target_include_directories(notcurses-demo
 target_link_libraries(notcurses-demo
   PRIVATE
     notcurses
-    ${MATH_LIBRARIES}
+    ${LIBM_LIBRARIES}
     Threads::Threads
 )
 
