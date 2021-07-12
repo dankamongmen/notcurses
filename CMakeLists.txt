@@ -192,7 +192,7 @@ target_include_directories(notcurses-core-static
 target_link_libraries(notcurses-core
   PRIVATE
     "${TERMINFO_LIBRARIES}"
-    "${LIBM_LIBRARIES}"
+    "${LIBM}"
     "${LIBRT_LIBRARIES}"
     "${unistring}"
   PUBLIC
@@ -201,7 +201,7 @@ target_link_libraries(notcurses-core
 target_link_libraries(notcurses-core-static
   PRIVATE
     "${TERMINFO_STATIC_LIBRARIES}"
-    "${LIBM_LIBRARIES}"
+    "${LIBM}"
     "${LIBRT_LIBRARIES}"
     "${unistring}"
   PUBLIC
@@ -454,7 +454,7 @@ foreach(f ${POCSRCS})
     "${PROJECT_BINARY_DIR}/include"
   )
   target_link_libraries(${fe}
-    PRIVATE notcurses "${TERMINFO_LIBRARIES}"
+    PRIVATE notcurses "${TERMINFO_LIBRARIES}" "${LIBM}"
   )
   target_link_directories(${fe}
     PRIVATE "${TERMINFO_LIBRARY_DIRS}"
@@ -469,7 +469,7 @@ foreach(f ${POCPPSRCS})
     "${PROJECT_BINARY_DIR}/include"
   )
   target_link_libraries(${fe}
-    PRIVATE notcurses++ "${TERMINFO_LIBRARIES}"
+    PRIVATE notcurses++ "${TERMINFO_LIBRARIES}" "${LIBM}"
   )
   target_link_directories(${fe}
     PRIVATE "${TERMINFO_LIBRARY_DIRS}"
@@ -495,7 +495,7 @@ target_include_directories(notcurses-demo
 target_link_libraries(notcurses-demo
   PRIVATE
     notcurses
-    ${LIBM_LIBRARIES}
+    ${LIBM}
     Threads::Threads
 )
 
