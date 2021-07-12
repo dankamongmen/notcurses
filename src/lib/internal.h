@@ -617,7 +617,8 @@ ncplane_cell_ref_yx(const ncplane* n, int y, int x){
 static inline void
 cell_debug(const egcpool* p, const nccell* c){
   fprintf(stderr, "gcluster: %08x %s style: 0x%04x chan: 0x%016jx\n",
-          c->gcluster, egcpool_extended_gcluster(p, c), c->stylemask, c->channels);
+          c->gcluster, egcpool_extended_gcluster(p, c), c->stylemask,
+          (uintmax_t)c->channels);
 }
 
 static inline void
