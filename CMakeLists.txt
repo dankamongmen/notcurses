@@ -510,6 +510,7 @@ target_include_directories(notcurses-info
     include
     "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
+    "${TERMINFO_INCLUDE_DIRS}"
 )
 target_link_libraries(notcurses-info
   PRIVATE
@@ -618,12 +619,17 @@ target_include_directories(notcurses-tester
     "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
     src/lib
+    "${TERMINFO_INCLUDE_DIRS}"
 )
 target_link_libraries(notcurses-tester
   PRIVATE
     notcurses++
     "${unistring}"
     "${TERMINFO_LIBRARIES}"
+)
+target_link_directories(notcurses-tester
+  PRIVATE
+    "${TERMINFO_LIBRARY_DIRS}"
 )
 add_test(
   NAME notcurses-tester
