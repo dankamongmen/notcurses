@@ -45,7 +45,7 @@ TEST_CASE("EGCpool") {
   }
 
   SUBCASE("AddAndRemove") {
-    const char* wstr = "\ufdfd"; // bismallih
+    const char* wstr = "\U0001242B"; // cuneiform numeric sign nine shar2
     nccell c = CELL_TRIVIAL_INITIALIZER;
     auto ulen = nccell_load(n_, &c, wstr);
     CHECK(1 == nccell_width(n_, &c)); // not considered wide, believe it or not
