@@ -66,6 +66,8 @@ typedef enum {
   // (https://gitlab.com/gnachman/iterm2/-/wikis/synchronized-updates-spec)
   ESCAPE_BSUM,     // Begin Synchronized Update Mode
   ESCAPE_ESUM,     // End Synchronized Update Mode
+  ESCAPE_SAVECOLORS,    // XTPUSHCOLORS (push palette/fg/bg)
+  ESCAPE_RESTORECOLORS, // XTPOPCOLORS  (pop palette/fg/bg)
   ESCAPE_MAX
 } escape_e;
 

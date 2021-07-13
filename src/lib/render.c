@@ -900,6 +900,8 @@ rasterize_scrolls(ncpile* p, FILE* out){
 // 1) if we're a different pile, issue the kitty universal clear
 // 2) first, hide all sprixels in the HIDE state
 // 3) then, make allo LOADED sprixels visible
+//
+// don't account for sprixelemissions here, as they were already counted.
 static int64_t
 rasterize_sprixels(notcurses* nc, ncpile* p, FILE* out){
   int64_t bytesemitted = 0;
@@ -917,7 +919,6 @@ rasterize_sprixels(notcurses* nc, ncpile* p, FILE* out){
       }
       bytesemitted += r;
       nc->rstate.hardcursorpos = true;
-      ++nc->stats.sprixelemissions;
     }else if(s->invalidated == SPRIXEL_LOADED){
       if(nc->tcache.pixel_commit){
         int y,x;

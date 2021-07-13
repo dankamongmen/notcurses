@@ -407,6 +407,18 @@ add_appsync_escapes_dcs(tinfo* ti, size_t* tablelen, size_t* tableused){
   return 0;
 }
 
+static int
+add_pushcolors_escapes(tinfo* ti, size_t* tablelen, size_t* tableused){
+  if(get_escape(ti, ESCAPE_SAVECOLORS)){
+    return 0;
+  }
+  if(grow_esc_table(ti, "\x1b[#P", ESCAPE_SAVECOLORS, tablelen, tableused) ||
+     grow_esc_table(ti, "\x1b[#Q", ESCAPE_RESTORECOLORS, tablelen, tableused)){
+    return -1;
+  }
+  return 0;
+}
+
 // Qui si convien lasciare ogne sospetto; ogne viltà convien che qui sia morta.
 static int
 apply_term_heuristics(tinfo* ti, const char* termname, int fd,
@@ -442,6 +454,9 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
       setup_kitty_bitmaps(ti, fd, INT_MAX);
     }else{
       setup_kitty_bitmaps(ti, fd, 0);
+    }
+    if(add_pushcolors_escapes(ti, tablelen, tableused)){
+      return -1;
     }
   }else if(qterm == TERMINAL_ALACRITTY){
     termname = "Alacritty";
@@ -485,6 +500,12 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
     }
   }else if(qterm == TERMINAL_XTERM){
     termname = "XTerm";
+    // xterm 357 added color palette escapes XT{PUSH,POP,REPORT}COLORS
+    if(compare_versions(ti->termversion, "357") >= 0){
+      if(add_pushcolors_escapes(ti, tablelen, tableused)){
+        return -1;
+      }
+    }
   }else if(qterm == TERMINAL_CONTOUR){
     termname = "Contour";
     ti->caps.quadrants = true;
