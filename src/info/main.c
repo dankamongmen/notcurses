@@ -68,16 +68,51 @@ braille_viz(ncplane* n, wchar_t l, const wchar_t* egcs, wchar_t r,
   return 0;
 }
 
+// symbols for legacy computing
+static int
+legacy_viz(struct ncplane* n, const char* indent, const wchar_t* eighths,
+           const wchar_t* anglesr, const wchar_t* anglesl){
+  ncplane_printf(n, "%s ", indent);
+  for(const wchar_t* e = eighths ; *e ; ++e){
+    if(ncplane_putwc(n, *e) <= 0){
+      ncplane_putchar(n, ' ');
+    }
+  }
+  ncplane_putchar(n, ' ');
+  for(const wchar_t* r = anglesr ; *r ; ++r){
+    if(ncplane_putwc(n, *r) <= 0){
+      ncplane_putchar(n, ' ');
+    }
+    if(ncplane_putwc(n, anglesl[r - anglesr]) <= 0){
+      ncplane_putchar(n, ' ');
+    }
+    ncplane_putchar(n, ' ');
+  }
+  return 0;
+}
+
+static int
+sex_viz(struct ncplane* n, const wchar_t* sex){
+  for(int i = 0 ; i < 16 ; ++i){
+    if(ncplane_putwc(n, sex[i]) <= 0){
+      ncplane_putchar(n, ' ');
+    }
+  }
+  return 0;
+}
+
 static int
 unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
   if(ti->caps.utf8){
     // all NCHALFBLOCKS are contained within NCQUADBLOCKS
-    ncplane_printf(n, "%s%ls ⎧%.122ls⎫ 🯰🯱🯲🯳🯴🯵🯶🯷🯸🯹\u2157\u2158\u2159\u215a\u215b ⎧%lc%lc⎫",
-                   indent, NCQUADBLOCKS, NCSEXBLOCKS,
+    ncplane_printf(n, "%s%ls ⎧", indent, NCQUADBLOCKS);
+    sex_viz(n, NCSEXBLOCKS);
+    ncplane_printf(n, "⎫ 🯰🯱🯲🯳🯴🯵🯶🯷🯸🯹\u2157\u2158\u2159\u215a\u215b ⎧%lc%lc⎫",
                    NCEIGHTHSR[0], NCEIGHTHSL[0]);
     ncplane_putchar(n, '\n');
-    ncplane_printf(n, "%s╲╿╱ ◨◧ ◪◩ ◖◗     ⎩%ls⎭ \u00bc\u00bd\u00be\u2150\u2151\u2152\u2153\u2154\u2155\u2156\u215c\u215d\u215e\u215f\u2189 ⎪%lc%lc⎪",
-                   indent, NCSEXBLOCKS + 32,
+    ncplane_printf(n, "%s╲╿╱ ◨◧ ◪◩ ◖◗     ⎩", indent);
+    sex_viz(n, NCSEXBLOCKS + 32);
+    ncplane_printf(n, "⎭ \u00bc\u00bd\u00be\u2150\u2151\u2152\u2153\u2154\u2155\u2156\u215c\u215d\u215e\u215f\u2189 ⎪%lc%lc⎪",
                    NCEIGHTHSR[1], NCEIGHTHSL[1]);
     ncplane_putchar(n, '\n');
     ncplane_printf(n, "%s╾╳╼ %.6ls %.6ls %.8ls%.8ls %.6ls %.6ls %.8ls %.6ls %.6ls%.3ls  %.6ls%.3ls  %.6ls%.3ls  %.6ls%.3ls  %.8ls%.4ls ▵△▹▷▿▽◃◁%.32ls⎪%lc%lc⎪",
@@ -119,50 +154,24 @@ unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
     braille_viz(n, L'⎢', NCBRAILLEEGCS + 64, L'⎥', indent, L"⎪⎪", NCEIGHTHSR[5], NCEIGHTHSL[5]);
     braille_viz(n, L'⎢',  NCBRAILLEEGCS + 128, L'⎥', indent, L"⎪⎪", NCEIGHTHSR[6], NCEIGHTHSL[6]);
     braille_viz(n, L'⎣',NCBRAILLEEGCS + 192, L'⎦', indent, L"⎩⎭", NCEIGHTHSR[7], NCEIGHTHSL[7]);
+    legacy_viz(n, indent, L"▔🭶🭷🭸🭹🭺🭻▁", NCANGLESBR, NCANGLESBL);
+    ncplane_printf(n, "🭨🭪  %.30ls  ⎛%ls ⎞", NCDIGITSSUBW, NCEIGHTHSB);
     ncplane_putchar(n, '\n');
-
-    ncplane_printf(n, "%s ▔🭶🭷🭸🭹🭺🭻▁ %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc 🭨🭪  %.30ls  ⎛%ls ⎞",
-                   indent,
-                   NCANGLESBR[0], NCANGLESBL[0],
-                   NCANGLESBR[1], NCANGLESBL[1],
-                   NCANGLESBR[2], NCANGLESBL[2],
-                   NCANGLESBR[3], NCANGLESBL[3],
-                   NCANGLESBR[4], NCANGLESBL[4],
-                   NCANGLESBR[5], NCANGLESBL[5],
-                   NCANGLESBR[6], NCANGLESBL[6],
-                   NCANGLESBR[7], NCANGLESBL[7],
-                   NCANGLESBR[8], NCANGLESBL[8],
-                   NCANGLESBR[9], NCANGLESBL[9],
-                   NCANGLESBR[10], NCANGLESBL[10],
-                   NCDIGITSSUBW, NCEIGHTHSB);
-    ncplane_putchar(n, '\n');
-    ncplane_printf(n, "%s ▏🭰🭱🭲🭳🭴🭵▕ %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc 🭪🭨  %.30ls  ⎝%ls ⎠",
-                   indent,
-                   NCANGLESTR[0], NCANGLESTL[0],
-                   NCANGLESTR[1], NCANGLESTL[1],
-                   NCANGLESTR[2], NCANGLESTL[2],
-                   NCANGLESTR[3], NCANGLESTL[3],
-                   NCANGLESTR[4], NCANGLESTL[4],
-                   NCANGLESTR[5], NCANGLESTL[5],
-                   NCANGLESTR[6], NCANGLESTL[6],
-                   NCANGLESTR[7], NCANGLESTL[7],
-                   NCANGLESTR[8], NCANGLESTL[8],
-                   NCANGLESTR[9], NCANGLESTL[9],
-                   NCANGLESTR[10], NCANGLESTL[10],
-                   NCDIGITSSUPERW, NCEIGHTHST);
+    legacy_viz(n, indent, L"▏🭰🭱🭲🭳🭴🭵▕", NCANGLESTR, NCANGLESTL);
+    ncplane_printf(n, "🭪🭨  %.30ls  ⎝%ls ⎠", NCDIGITSSUPERW, NCEIGHTHST);
     ncplane_putchar(n, '\n');
     int y, x;
     ncplane_cursor_yx(n, &y, &x);
     /*
-    ncplane_printf_aligned(n, y - 9, NCALIGN_RIGHT, "⎧⎡⎛⎞⎤⎫");
-    ncplane_printf_aligned(n, y - 8, NCALIGN_RIGHT, "⎪⎢⎜⎟⎥⎪");
-    ncplane_printf_aligned(n, y - 7, NCALIGN_RIGHT, "⎪⎢⎜⎟⎥⎪");
-    ncplane_printf_aligned(n, y - 6, NCALIGN_RIGHT, "⎪⎢⎜⎟⎥⎪");
-    ncplane_printf_aligned(n, y - 5, NCALIGN_RIGHT, "⎨⎢⎜⎟⎥⎬");
-    ncplane_printf_aligned(n, y - 4, NCALIGN_RIGHT, "⎪⎢⎜⎟⎥⎪");
-    ncplane_printf_aligned(n, y - 3, NCALIGN_RIGHT, "⎪⎢⎜⎟⎥⎪");
-    ncplane_printf_aligned(n, y - 2, NCALIGN_RIGHT, "⎪⎢⎜⎟⎥⎪");
-    ncplane_printf_aligned(n, y - 1, NCALIGN_RIGHT, "⎩⎣⎝⎠⎦⎭");
+    ncplane_printf_aligned(n, y - 9, NCALIGN_RIGHT, "⎡⎛⎞⎤");
+    ncplane_printf_aligned(n, y - 8, NCALIGN_RIGHT, "⎢⎜⎟⎥");
+    ncplane_printf_aligned(n, y - 7, NCALIGN_RIGHT, "⎢⎜⎟⎥");
+    ncplane_printf_aligned(n, y - 6, NCALIGN_RIGHT, "⎢⎜⎟⎥");
+    ncplane_printf_aligned(n, y - 5, NCALIGN_RIGHT, "⎢⎜⎟⎥");
+    ncplane_printf_aligned(n, y - 4, NCALIGN_RIGHT, "⎢⎜⎟⎥");
+    ncplane_printf_aligned(n, y - 3, NCALIGN_RIGHT, "⎢⎜⎟⎥");
+    ncplane_printf_aligned(n, y - 2, NCALIGN_RIGHT, "⎢⎜⎟⎥");
+    ncplane_printf_aligned(n, y - 1, NCALIGN_RIGHT, "⎣⎝⎠⎦");
     */
     // the symbols for legacy computing
     ncplane_cursor_move_yx(n, y - 2, 0);
