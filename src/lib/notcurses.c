@@ -35,6 +35,9 @@ void notcurses_version_components(int* major, int* minor, int* patch, int* tweak
 int reset_term_attributes(const tinfo* ti, FILE* fp){
   int ret = 0;
   const char* esc;
+  if((esc = get_escape(ti, ESCAPE_RESTORECOLORS)) && term_emit(esc, fp, false)){
+    ret = -1;
+  }
   if((esc = get_escape(ti, ESCAPE_OP)) && term_emit(esc, fp, false)){
     ret = -1;
   }
@@ -1159,6 +1162,11 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   }
   const char* cinvis = get_escape(&ret->tcache, ESCAPE_CIVIS);
   if(cinvis && term_emit(cinvis, ret->ttyfp, false)){
+    free_plane(ret->stdplane);
+    goto err;
+  }
+  const char* pushcolors = get_escape(&ret->tcache, ESCAPE_SAVECOLORS);
+  if(pushcolors && term_emit(pushcolors, ret->ttyfp, false)){
     free_plane(ret->stdplane);
     goto err;
   }
