@@ -740,7 +740,9 @@ TEST_CASE("Plane") {
     CHECK(0 == ncplane_cursor_move_yx(n_, 5, 10));
     CHECK(0 < ncplane_putstr(n_, "|🔥|I have not yet ־ begun to hack|🔥|"));
     CHECK(0 == ncplane_cursor_move_yx(n_, 7, 10));
+#ifndef __APPLE__ // FIXME
     CHECK(0 < ncplane_putstr(n_, "㉀㉁㉂㉃㉄㉅㉆㉇㉈㉉㉊㉋㉌㉍㉎㉏㉐㉑㉒㉓㉔㉕㉖㉗㉘㉙㉚㉛㉜㉝㉞㉟"));
+#endif
     CHECK(0 == notcurses_render(nc_));
   }
 
