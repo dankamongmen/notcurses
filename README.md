@@ -359,7 +359,7 @@ If things break or seem otherwise lackluster, **please** consult the
   <summary>Given that the glyph channel is initialized as transparent for a
   plane, shouldn't the foreground and background be initialized as transparent,
   also?</summary>
-  Probably (they are instead initialized to default opaque). This would change
+  Probably (they are instead by default initialized to opaque). This would change
   some of the most longstanding behavior of Notcurses, though,
   so it isn't happening.
 </details>

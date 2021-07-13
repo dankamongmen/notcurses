@@ -5,7 +5,7 @@
 
 static void
 printbanner(const notcurses* nc){
-  fprintf(nc->ttyfp, "built without multimedia support.\n");
+  fprintf(nc->ttyfp, "built without multimedia support\n");
 }
 
 const ncvisual_implementation local_visual_implementation = {
