@@ -303,6 +303,7 @@ typedef enum {
   NCNEO_LINUX,
   NCNEO_FREEBSD,
   NCNEO_DRAGONFLY,
+  NCNEO_XNU,
   NCNEO_UNKNOWN,
 } ncneo_kernel_e;
 
@@ -321,6 +322,8 @@ get_kernel(fetched_info* fi){
     return NCNEO_FREEBSD;
   }else if(strcmp(uts.sysname, "DragonFly") == 0){
     return NCNEO_DRAGONFLY;
+  }else if(strcmp(uts.sysname, "Darwin") == 0){
+    return NCNEO_XNU;
   }
   fprintf(stderr, "Unknown operating system via uname: %s\n", uts.sysname);
   return NCNEO_UNKNOWN;
@@ -345,6 +348,17 @@ dragonfly_ncneofetch(fetched_info* fi){
   };
   fi->neologo = get_neofetch_art("dragonfly");
   fi->distro_pretty = NULL;
+  return &fbsd;
+}
+
+static const distro_info*
+xnu_ncneofetch(fetched_info* fi){
+  static distro_info fbsd = {
+    .name = "OS X",
+    .logofile = "/System/Library/PrivateFrameworks/LoginUIKit.framework/Versions/A/Frameworks/LoginUICore.framework/Versions/A/Resources/apple@2x.png",
+  };
+  fi->neologo = get_neofetch_art("Darwin");
+  fi->distro_pretty = "OS X 11.4 (Big Sur)";
   return &fbsd;
 }
 
@@ -612,6 +626,9 @@ ncneofetch(struct ncdirect* nc){
       break;
     case NCNEO_DRAGONFLY:
       fi.distro = dragonfly_ncneofetch(&fi);
+      break;
+    case NCNEO_XNU:
+      fi.distro = xnu_ncneofetch(&fi);
       break;
     case NCNEO_UNKNOWN:
       break;
