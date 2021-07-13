@@ -16,6 +16,7 @@ static const char* cycles[] = {
   "🞯🞰🞱🞲🞳🞴",   // 6 five-point asterisks
   "🞵🞶🞷🞸🞹🞺",   // 6 six-point asterisks
   "🞻🞼🞽🞾🞿",    // 5 eight-point asterisks
+#ifndef __APPLE__ // FIXME
   "◧◩⬒⬔◨◪⬓⬕", // 8 half-black squares
   "◐◓◑◒",     // 4 half-black circles
   "◢◣◤◥",     // 4 black triangles
@@ -26,6 +27,7 @@ static const char* cycles[] = {
   "▤▥▦▧▨▩",   // 6 squares with fill
   "⯁⯂⯃⯄",     // 4 regular black polyhedra
   "⌌⌍⌎⌏",     // 4 crops
+#endif
   NULL,
 };
 
