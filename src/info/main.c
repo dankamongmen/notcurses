@@ -47,7 +47,11 @@ tinfo_debug_style(struct ncplane* n, const char* name, int style, char ch){
 static int
 braille_viz(ncplane* n, const char* l, const wchar_t* egcs, const char* r, const char* indent){
   ncplane_printf(n, "%s%s", indent, l);
-  ncplane_printf(n, "%.192ls", egcs);
+  for(int i = 0 ; i < 64 ; ++i){
+    if(ncplane_putwc(n, egcs[i]) < 0){
+      ncplane_putwc(n, L' ');
+    }
+  }
   ncplane_printf(n, "%s ", r);
   return 0;
 }
