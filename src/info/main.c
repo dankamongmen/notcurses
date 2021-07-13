@@ -92,12 +92,22 @@ legacy_viz(struct ncplane* n, const char* indent, const wchar_t* eighths,
 }
 
 static int
-sex_viz(struct ncplane* n, const wchar_t* sex){
-  for(int i = 0 ; i < 16 ; ++i){
+sex_viz(struct ncplane* n, const wchar_t* sex, wchar_t r, const wchar_t* post){
+  for(int i = 0 ; i < 32 ; ++i){
     if(ncplane_putwc(n, sex[i]) <= 0){
       ncplane_putchar(n, ' ');
     }
   }
+  if(ncplane_putwc(n, r) <= 0){
+    ncplane_putchar(n, ' ');
+  }
+  ncplane_putchar(n, ' ');
+  for(const wchar_t* p = post ; *p ; ++p){
+    if(ncplane_putwc(n, *p) <= 0){
+      ncplane_putchar(n, ' ');
+    }
+  }
+  ncplane_putchar(n, ' ');
   return 0;
 }
 
@@ -106,14 +116,12 @@ unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
   if(ti->caps.utf8){
     // all NCHALFBLOCKS are contained within NCQUADBLOCKS
     ncplane_printf(n, "%s%ls ⎧", indent, NCQUADBLOCKS);
-    sex_viz(n, NCSEXBLOCKS);
-    ncplane_printf(n, "⎫ 🯰🯱🯲🯳🯴🯵🯶🯷🯸🯹\u2157\u2158\u2159\u215a\u215b ⎧%lc%lc⎫",
-                   NCEIGHTHSR[0], NCEIGHTHSL[0]);
+    sex_viz(n, NCSEXBLOCKS, L'⎫', L"🯰🯱🯲🯳🯴🯵🯶🯷🯸🯹\u2157\u2158\u2159\u215a\u215b");
+    ncplane_printf(n, "⎧%lc%lc⎫", NCEIGHTHSR[0], NCEIGHTHSL[0]);
     ncplane_putchar(n, '\n');
     ncplane_printf(n, "%s╲╿╱ ◨◧ ◪◩ ◖◗     ⎩", indent);
-    sex_viz(n, &NCSEXBLOCKS[32]);
-    ncplane_printf(n, "⎭ \u00bc\u00bd\u00be\u2150\u2151\u2152\u2153\u2154\u2155\u2156\u215c\u215d\u215e\u215f\u2189 ⎪%lc%lc⎪",
-                   NCEIGHTHSR[1], NCEIGHTHSL[1]);
+    sex_viz(n, &NCSEXBLOCKS[32], L'⎭', L"\u00bc\u00bd\u00be\u2150\u2151\u2152\u2153\u2154\u2155\u2156\u215c\u215d\u215e\u215f\u2189");
+    ncplane_printf(n, "⎪%lc%lc⎪", NCEIGHTHSR[1], NCEIGHTHSL[1]);
     ncplane_putchar(n, '\n');
     ncplane_printf(n, "%s╾╳╼ %.6ls %.6ls %.8ls%.8ls %.6ls %.6ls %.8ls %.6ls %.6ls%.3ls  %.6ls%.3ls  %.6ls%.3ls  %.6ls%.3ls  %.8ls%.4ls ▵△▹▷▿▽◃◁%.32ls⎪%lc%lc⎪",
                    indent,
