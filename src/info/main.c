@@ -45,14 +45,26 @@ tinfo_debug_style(struct ncplane* n, const char* name, int style, char ch){
 }
 
 static int
-braille_viz(ncplane* n, const char* l, const wchar_t* egcs, const char* r, const char* indent){
-  ncplane_printf(n, "%s%s", indent, l);
+braille_viz(ncplane* n, wchar_t l, const wchar_t* egcs, wchar_t r,
+            const char* indent, const wchar_t* bounds, wchar_t r8, wchar_t l8){
+  ncplane_printf(n, "%s%lc", indent, l);
   for(int i = 0 ; i < 64 ; ++i){
-    if(ncplane_putwc(n, egcs[i]) < 0){
-      ncplane_putwc(n, L' ');
+    if(ncplane_putwc(n, egcs[i]) <= 0){
+      ncplane_putchar(n, ' ');
     }
   }
-  ncplane_printf(n, "%s ", r);
+  ncplane_putwc(n, r);
+  ncplane_putchar(n, ' ');
+  ncplane_putwc(n, bounds[0]);
+  if(ncplane_putwc(n, r8) <= 0){
+    ncplane_putchar(n, ' ');
+  }
+  if(ncplane_putwc(n, l8) <= 0){
+    ncplane_putchar(n, ' ');
+  }
+  ncplane_putwc(n, bounds[1]);
+  ncplane_putchar(n, ' ');
+  ncplane_putchar(n, '\n');
   return 0;
 }
 
@@ -103,17 +115,10 @@ unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
                    NCBOXOUTERW + 2, NCBOXOUTERW + 5,
                    NCEIGHTHSR[3], NCEIGHTHSL[3]);
     ncplane_putchar(n, '\n');
-    braille_viz(n, "⎡", NCBRAILLEEGCS, "⎤", indent);
-    ncplane_printf(n, "⎨%lc%lc⎬", NCEIGHTHSR[4], NCEIGHTHSL[4]);
-    ncplane_putchar(n, '\n');
-    braille_viz(n, "⎢", NCBRAILLEEGCS + 64, "⎥", indent);
-    ncplane_printf(n, "⎪%lc%lc⎪", NCEIGHTHSR[5], NCEIGHTHSL[5]);
-    ncplane_putchar(n, '\n');
-    braille_viz(n, "⎢",  NCBRAILLEEGCS + 128, "⎥", indent);
-    ncplane_printf(n, "⎪%lc%lc⎪", NCEIGHTHSR[6], NCEIGHTHSL[6]);
-    ncplane_putchar(n, '\n');
-    braille_viz(n, "⎣",NCBRAILLEEGCS + 192, "⎦", indent);
-    ncplane_printf(n, "⎩%lc%lc⎭", NCEIGHTHSR[7], NCEIGHTHSL[7]);
+    braille_viz(n, L'⎡', NCBRAILLEEGCS, L'⎤', indent, L"⎨⎬", NCEIGHTHSR[4], NCEIGHTHSL[4]);
+    braille_viz(n, L'⎢', NCBRAILLEEGCS + 64, L'⎥', indent, L"⎪⎪", NCEIGHTHSR[5], NCEIGHTHSL[5]);
+    braille_viz(n, L'⎢',  NCBRAILLEEGCS + 128, L'⎥', indent, L"⎪⎪", NCEIGHTHSR[6], NCEIGHTHSL[6]);
+    braille_viz(n, L'⎣',NCBRAILLEEGCS + 192, L'⎦', indent, L"⎩⎭", NCEIGHTHSR[7], NCEIGHTHSL[7]);
     ncplane_putchar(n, '\n');
 
     ncplane_printf(n, "%s ▔🭶🭷🭸🭹🭺🭻▁ %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc %lc%lc 🭨🭪  %.30ls  ⎛%ls ⎞",
