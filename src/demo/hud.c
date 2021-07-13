@@ -608,7 +608,7 @@ int demo_render(struct notcurses* nc){
     if(ncplane_printf_yx(hud, 1, 1, "%d", elems->frames) < 0){
       return -1;
     }
-    if(ncplane_printf_yx(hud, 1, 7, "%ju.%03jus", ns / NANOSECS_IN_SEC,
+    if(ncplane_printf_yx(hud, 1, 7, "%"PRIu64".%03"PRIu64"s", ns / NANOSECS_IN_SEC,
                          (ns % NANOSECS_IN_SEC) / 1000000) < 0){
       return -1;
     }
