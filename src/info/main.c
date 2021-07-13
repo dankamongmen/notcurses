@@ -221,14 +221,14 @@ unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
     braille_viz(n, L'⎢', &NCBRAILLEEGCS[128], L'⎥', indent, L"⎪⎪", NCEIGHTHSR[6], NCEIGHTHSL[6]);
     braille_viz(n, L'⎣', &NCBRAILLEEGCS[192], L'⎦', indent, L"⎩⎭", NCEIGHTHSR[7], NCEIGHTHSL[7]);
     legacy_viz(n, indent, L"▔🭶🭷🭸🭹🭺🭻▁", NCANGLESBR, NCANGLESBL);
-    ncplane_printf(n, "🭨🭪  ");
+    wviz(n, L"🭨🭪  ");
     wviz(n, NCDIGITSSUBW);
     ncplane_printf(n, "  ⎛");
     wviz(n, NCEIGHTHSB);
     ncplane_printf(n, " ⎞");
     ncplane_putchar(n, '\n');
     legacy_viz(n, indent, L"▏🭰🭱🭲🭳🭴🭵▕", NCANGLESTR, NCANGLESTL);
-    ncplane_printf(n, "🭪🭨  ");
+    wviz(n, L"🭪🭨  ");
     wviz(n, NCDIGITSSUPERW);
     ncplane_printf(n, "  ⎝");
     wviz(n, NCEIGHTHST);
@@ -278,7 +278,8 @@ unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
 
     ncplane_set_fg_rgb(n, 0x00c0c0);
     ncplane_set_styles(n, NCSTYLE_BOLD);
-    ncplane_putstr_yx(n, y - 11, 47, "🯁🯂🯃https://notcurses.com");
+    ncplane_cursor_move_yx(n, y - 11, 47);
+    wviz(n, L"🯁🯂🯃https://notcurses.com");
     ncplane_set_fg_default(n);
     ncplane_set_styles(n, NCSTYLE_NONE);
   }
