@@ -577,7 +577,7 @@ neologo_present(struct ncdirect* nc, const char* nlogo){
     free(lines[i]);
   }
   free(lines);
-  ncdirect_set_fg_rgb(nc, 0xba55d3);
+  ncdirect_set_fg_default(nc);
   ncdirect_on_styles(nc, NCSTYLE_BOLD | NCSTYLE_ITALIC);
   if(ncdirect_canopen_images(nc)){
     ncdirect_printf_aligned(nc, -1, NCALIGN_CENTER, "(no image file is known for your distro)");
