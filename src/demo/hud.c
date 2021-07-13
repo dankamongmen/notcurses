@@ -393,7 +393,7 @@ hud_print_finished(elem* list){
       if(ncplane_printf_yx(hud, line, 1, "%d", e->frames) < 0){
         return -1;
       }
-      if(ncplane_printf_yx(hud, line, 7, "%"PRIu64".%03"PRIu64"jus",
+      if(ncplane_printf_yx(hud, line, 7, "%"PRIu64".%03"PRIu64"s",
                            e->totalns / NANOSECS_IN_SEC,
                            (e->totalns % NANOSECS_IN_SEC) / 1000000) < 0){
         return -1;
