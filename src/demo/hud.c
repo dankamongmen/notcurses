@@ -1,5 +1,6 @@
 #include "demo.h"
 #include <pthread.h>
+#include <inttypes.h>
 
 // we provide a heads-up display throughout the demo, detailing the demos we're
 // about to run, running, and just runned. the user can move this HUD with
@@ -392,7 +393,8 @@ hud_print_finished(elem* list){
       if(ncplane_printf_yx(hud, line, 1, "%d", e->frames) < 0){
         return -1;
       }
-      if(ncplane_printf_yx(hud, line, 7, "%ju.%03jus", e->totalns / NANOSECS_IN_SEC,
+      if(ncplane_printf_yx(hud, line, 7, "%"PRIu64".%03"PRIu64"jus",
+                           e->totalns / NANOSECS_IN_SEC,
                            (e->totalns % NANOSECS_IN_SEC) / 1000000) < 0){
         return -1;
       }
