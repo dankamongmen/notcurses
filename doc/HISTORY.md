@@ -1,5 +1,6 @@
 # History
 
+* 2021-07-12: OS X support is added during the 2.3.10 development period, with lots of help from Michael Bradley Jr. (@michaelsbradleyjr).
 * 2021-05-09: Notcurses [2.3.0 "triumph"](https://github.com/dankamongmen/notcurses/releases/tag/v2.3.0).
 * 2021-02-08: Notcurses [2.2.0 "no one man should have all that power"](https://github.com/dankamongmen/notcurses/releases/tag/v2.2.0).
 * 2021-02-06: [Lightning talk](https://www.youtube.com/watch?v=fq963c6Fl5E) at [FOSDEM 2021](https://fosdem.org/2021/schedule/event/notcurses/).
@@ -58,6 +59,9 @@
     engineering history. He exemplifies documentation excellence and
     conservative, thoughtful stewardship. The free software community owes
     Mr. Dickey a great debt.
+* Michael Bradley Jr. one day showed up and *bought a Mac Mini*, and set it up
+    for my remote use, and didn't even accept my offer to pay, and how fucking
+    awesome is that? ❤
 * Robert Edmonds provided tremendous assistance Debianizing the package,
     and David Cantrell did likewise for Fedora. Both are hella engineers.
 * Justine Tunney, one of my first friends at Google NYC, was always present
@@ -76,4 +80,3 @@
     l33t scene of the 90s and early twenty-first century endlessly inspired a
     young hax0r. There is great joy in computing; no one will drive us from
     this paradise Turing has created!
-
