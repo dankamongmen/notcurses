@@ -93,7 +93,7 @@ legacy_viz(struct ncplane* n, const char* indent, const wchar_t* eighths,
 
 static int
 sex_viz(struct ncplane* n, const wchar_t* sex, wchar_t r, const wchar_t* post){
-  for(int i = 0 ; i < 32 ; ++i){
+  for(int i = 0 ; i < 31 ; ++i){
     if(ncplane_putwc(n, sex[i]) <= 0){
       ncplane_putchar(n, ' ');
     }
@@ -109,6 +109,15 @@ sex_viz(struct ncplane* n, const wchar_t* sex, wchar_t r, const wchar_t* post){
   }
   ncplane_putchar(n, ' ');
   return 0;
+}
+
+static void
+wviz(struct ncplane* n, const wchar_t* wp){
+  for(const wchar_t* w = wp ; *w ; ++w){
+    if(ncplane_putwc(n, *w) <= 0){
+      ncplane_putchar(n, ' ');
+    }
+  }
 }
 
 static int
@@ -163,10 +172,18 @@ unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
     braille_viz(n, L'⎢', &NCBRAILLEEGCS[128], L'⎥', indent, L"⎪⎪", NCEIGHTHSR[6], NCEIGHTHSL[6]);
     braille_viz(n, L'⎣', &NCBRAILLEEGCS[192], L'⎦', indent, L"⎩⎭", NCEIGHTHSR[7], NCEIGHTHSL[7]);
     legacy_viz(n, indent, L"▔🭶🭷🭸🭹🭺🭻▁", NCANGLESBR, NCANGLESBL);
-    ncplane_printf(n, "🭨🭪  %.30ls  ⎛%ls ⎞", NCDIGITSSUBW, NCEIGHTHSB);
+    ncplane_printf(n, "🭨🭪  ");
+    wviz(n, NCDIGITSSUBW);
+    ncplane_printf(n, "  ⎛");
+    wviz(n, NCEIGHTHSB);
+    ncplane_printf(n, " ⎞");
     ncplane_putchar(n, '\n');
     legacy_viz(n, indent, L"▏🭰🭱🭲🭳🭴🭵▕", NCANGLESTR, NCANGLESTL);
-    ncplane_printf(n, "🭪🭨  %.30ls  ⎝%ls ⎠", NCDIGITSSUPERW, NCEIGHTHST);
+    ncplane_printf(n, "🭪🭨  ");
+    wviz(n, NCDIGITSSUPERW);
+    ncplane_printf(n, "  ⎝");
+    wviz(n, NCEIGHTHST);
+    ncplane_printf(n, " ⎠");
     ncplane_putchar(n, '\n');
     int y, x;
     ncplane_cursor_yx(n, &y, &x);
