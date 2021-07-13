@@ -9,17 +9,17 @@
     notcurses_getc_blocking(nc, NULL); \
   }while(0)
 
+static const char *tabnames[] = {
+  "apple", "banana", "cheese", "dumplings", "eggs", "fried eggs", "gingerbread",
+  "hummus", "ice cream", "jelly", "kiwi", "lamb", "milk", "noodles", "orange",
+  "pierogi", "quiche", "ramen", "steak", "truffle", "urchins", "venison",
+  "waffles", "xouba", "yolk", "zucchini"
+};
+
 void tabcbfn(struct nctab* t, struct ncplane* ncp, void* curry){
   (void) t;
   (void) curry;
   ncplane_erase(ncp);
-  ncplane_puttext(ncp, -1, NCALIGN_LEFT,
-                  "Use left/right arrow keys for navigation, "
-                  "'[' and ']' to rotate tabs, "
-                  "'a' to add a tab, 'r' to remove a tab, "
-                  "',' and '.' to move the selected tab, "
-                  "and 'q' to quit",
-                  NULL);
 }
 
 void print_usage(char** argv){
@@ -83,19 +83,24 @@ int main(int argc, char** argv){
   struct nctab* t_; // stupid unused result warnings
   (void) t_;
   ncplane_set_base(nctabbed_content_plane(nct), " ", 0, NCCHANNELS_INITIALIZER(255, 255, 255, 15, 60, 15));
-  REDRAW();
   t_ = nctabbed_add(nct, NULL, NULL, tabcbfn, "Tab #1", NULL);
-  REDRAW();
-  t_ = nctabbed_add(nct, NULL, NULL, tabcbfn, "Tab #2", NULL);
-  REDRAW();
-  t_ = nctabbed_add(nct, NULL, NULL, tabcbfn, "Tab #3", NULL);
-  REDRAW();
-  t_ = nctabbed_add(nct, NULL, NULL, tabcbfn, "alpha", NULL);
-  REDRAW();
-  t_ = nctabbed_add(nct, NULL, NULL, tabcbfn, "beta", NULL);
-  REDRAW();
   t_ = nctabbed_add(nct, NULL, NULL, tabcbfn, "gamma", NULL);
-  REDRAW();
+  t_ = nctabbed_add(nct, NULL, NULL, tabcbfn, "beta", NULL);
+  t_ = nctabbed_add(nct, NULL, NULL, tabcbfn, "alpha", NULL);
+  t_ = nctabbed_add(nct, NULL, NULL, tabcbfn, "Tab #3", NULL);
+  t_ = nctabbed_add(nct, NULL, NULL, tabcbfn, "Tab #2", NULL);
+  ncplane_puttext(stdp, 1, NCALIGN_CENTER,
+                  "Use left/right arrow keys for navigation, "
+                  "'[' and ']' to rotate tabs, "
+                  "'a' to add a tab, 'r' to remove a tab, "
+                  "',' and '.' to move the selected tab, "
+                  "and 'q' to quit",
+                  NULL);
+  nctabbed_redraw(nct);
+  if(notcurses_render(nc) < 0){
+    goto ded;
+  }
+  int tabnameind = 0;
   uint32_t c;
   while((c = notcurses_getc_blocking(nc, NULL)) != 'q'){
     switch(c){
@@ -118,7 +123,8 @@ int main(int argc, char** argv){
         nctab_move_right(nct, nctabbed_selected(nct));
         break;
       case 'a':
-        t_ = nctabbed_add(nct, NULL, NULL, tabcbfn, "added tab", NULL);
+        t_ = nctabbed_add(nct, NULL, NULL, tabcbfn, tabnames[tabnameind++], NULL);
+        tabnameind %= sizeof(tabnames) / sizeof(tabnames[0]);
         break;
       case 'r':
         nctabbed_del(nct, nctabbed_selected(nct));
