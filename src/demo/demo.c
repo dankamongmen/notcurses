@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <getopt.h>
 #include <stdlib.h>
+#include <inttypes.h>
 #include <stdatomic.h>
 #include <notcurses/direct.h>
 #include "demo.h"
@@ -383,7 +384,7 @@ summary_json(FILE* f, const char* spec, int rows, int cols){
     if(results[i].result || !results[i].stats.renders){
       continue;
     }
-    ret |= (fprintf(f, "\"%s\":{\"bytes\":\"%ju\",\"frames\":\"%ju\",\"ns\":\"%ju\"}%s",
+    ret |= (fprintf(f, "\"%s\":{\"bytes\":\"%"PRIu64"\",\"frames\":\"%"PRIu64"\",\"ns\":\"%"PRIu64"\"}%s",
                     demos[results[i].selector - 'a'].name, results[i].stats.render_bytes,
                     results[i].stats.renders, results[i].timens, i < strlen(spec) - 1 ? "," : "") < 0);
   }
