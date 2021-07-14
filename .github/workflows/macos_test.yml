@@ -1,5 +1,5 @@
 ---
-name: 🍎 macOS tests
+name: macOS
 
 on:
   pull_request:
@@ -13,6 +13,7 @@ jobs:
       COLORTERM: truecolor
       NPROC: 2
       TERM: xterm
+    name: 🍎 build, test, & install
     runs-on: macos-latest
 
     steps:
