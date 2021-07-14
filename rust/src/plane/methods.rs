@@ -807,7 +807,8 @@ impl NcPlane {
     /// cursor to the beginning of the next row.
     ///
     /// Advances the cursor by some positive number of columns (though not
-    /// beyond the end of the plane); this number is returned on success.
+    /// beyond the end of the plane); this number will be returned on success,
+    /// after calling [`putln`][NcPlane#method.putln].
     ///
     /// On error, a non-positive number is returned, indicating the number of
     /// columns which were written before the error.
@@ -815,9 +816,17 @@ impl NcPlane {
     /// *(No equivalent C style function)*
     pub fn putstrln(&mut self, string: &str) -> NcResult<NcDim> {
         let cols = self.putstr(string)?;
+        self.putln()?;
+        Ok(cols)
+    }
+
+    /// Moves the cursor to the beginning of the next row.
+    ///
+    /// *(No equivalent C style function)*
+    pub fn putln(&mut self) -> NcResult<()> {
         let (y, _x) = self.cursor_yx();
         self.cursor_move_yx(y + 1, 0)?;
-        Ok(cols)
+        Ok(())
     }
 
     /// Same as [`putstr_yx()`][NcPlane#method.putstr_yx]
@@ -964,15 +973,17 @@ impl NcPlane {
         ]
     }
 
-    /// Moves this `NcPlane` relative to its current position.
+    /// Moves this `NcPlane` relative to its current location.
+    ///
+    /// Negative values move up and left, respectively.
+    /// Pass 0 to hold an axis constant.
     ///
     /// It is an error to attempt to move the standard plane.
     ///
-    /// *(No equivalent C style function)*
+    /// *C style function: [ncplane_moverel()][crate::ncplane_moverel].*
     pub fn move_rel(&mut self, rows: NcOffset, cols: NcOffset) -> NcResult<()> {
-        let (y, x) = self.yx();
         error![
-            unsafe { crate::ncplane_move_yx(self, y + rows, x + cols) },
+            crate::ncplane_moverel(self, rows, cols),
             &format!("NcPlane.move_rel({}, {})", rows, cols)
         ]
     }
@@ -1190,10 +1201,16 @@ impl NcPlane {
     /// Moves the cursor to 0, 0.
     ///
     /// *C style function: [ncplane_home()][crate::ncplane_home].*
-    pub fn home(&mut self) {
+    pub fn cursor_home(&mut self) {
         unsafe {
             crate::ncplane_home(self);
         }
+    }
+
+    #[doc(hidden)]
+    #[deprecated]
+    pub fn home(&mut self) {
+        self.cursor_home()
     }
 
     /// Returns the current position of the cursor within this `NcPlane`.
@@ -1277,6 +1294,18 @@ impl NcPlane {
     pub fn cursor_move_cols(&mut self, cols: NcOffset) -> NcResult<()> {
         let (y, x) = self.cursor_yx();
         self.cursor_move_yx(y, (x as NcOffset + cols) as NcDim)
+    }
+
+    /// Moves the cursor relatively, the number of rows and columns specified
+    /// (forward or backwards).
+    ///
+    /// It will error if the target row or column exceeds the plane dimensions.
+    ///
+    /// *(No equivalent C style function)*
+    pub fn cursor_move_rel(&mut self, rows: NcOffset, cols: NcOffset) -> NcResult<()> {
+        self.cursor_move_rows(rows)?;
+        self.cursor_move_cols(cols)?;
+        Ok(())
     }
 }
 

@@ -4,7 +4,7 @@ use core::ptr::null_mut;
 
 use crate::{
     cstring, nccell_release, NcAlign, NcAlphaBits, NcBoxMask, NcCell, NcChannel, NcChannels,
-    NcComponent, NcDim, NcIntResult, NcPlane, NcRgb, NcStyle, NCRESULT_ERR, NCRESULT_OK,
+    NcComponent, NcDim, NcIntResult, NcOffset, NcPlane, NcRgb, NcStyle, NCRESULT_ERR, NCRESULT_OK,
 };
 
 // Alpha -----------------------------------------------------------------------
@@ -247,7 +247,23 @@ pub fn ncplane_putnstr(plane: &mut NcPlane, size: u32, gclustarr: &[u8]) -> NcIn
     unsafe { crate::ncplane_putnstr_yx(plane, -1, -1, size.into(), cstring![gclustarr]) }
 }
 
-// size & alignment ------------------------------------------------------------
+// movement, size & alignment --------------------------------------------------
+
+/// Moves this `NcPlane` relative to its current location.
+///
+/// Negative values move up and left, respectively.
+/// Pass 0 to hold an axis constant.
+///
+/// It is an error to attempt to move the standard plane.
+///
+/// *C style function: [ncplane_moverel()][crate::ncplane_moverel].*
+pub fn ncplane_moverel(plane: &mut NcPlane, rows: NcOffset, cols: NcOffset) -> NcIntResult {
+    let (mut orig_y, mut orig_x) = (0, 0);
+    unsafe {
+        crate::ncplane_dim_yx(plane, &mut orig_y, &mut orig_x);
+        crate::ncplane_move_yx(plane, orig_y + rows, orig_x + cols)
+    }
+}
 
 /// Gets the columns of the [NcPlane].
 ///

@@ -150,6 +150,7 @@
 //W+ ncplane_gradient_sized
 //W+ ncplane_halign
 // + ncplane_hline
+//W  ncplane_moverel
 //W+ ncplane_perimeter
 //W+ ncplane_perimeter_double
 //W+ ncplane_perimeter_rounded
