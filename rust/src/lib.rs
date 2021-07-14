@@ -121,6 +121,7 @@ mod dimension;
 mod direct;
 mod error;
 mod fade;
+#[cfg(not(target_os = "macos"))]
 mod file;
 mod input;
 mod macros;
@@ -143,6 +144,7 @@ pub use dimension::*;
 pub use direct::*;
 pub use error::*;
 pub use fade::*;
+#[cfg(not(target_os = "macos"))]
 pub use file::*;
 pub use macros::*;
 pub use metric::*;
