@@ -584,6 +584,7 @@ impl Nc {
     /// nothing will be written.
     ///
     /// *C style function: [notcurses_render_to_file()][crate::notcurses_render_to_file].*
+    #[cfg(not(target_os = "macos"))]
     pub fn render_to_file(&mut self, fp: &mut NcFile) -> NcResult<()> {
         error![unsafe { crate::notcurses_render_to_file(self, fp.as_nc_ptr()) }]
     }
