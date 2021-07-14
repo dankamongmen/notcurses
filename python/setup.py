@@ -21,7 +21,6 @@ from setuptools import Extension, setup
 
 if environ.get('CFLAGS') is None:
     environ['CFLAGS'] = (
-        "-Werror "
         "-Wextra -Wconversion -Wall")
 
 if environ.get('LDFLAGS') is None:
