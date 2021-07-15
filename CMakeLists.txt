@@ -182,6 +182,7 @@ target_include_directories(notcurses-core
     "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
     "${TERMINFO_INCLUDE_DIRS}"
+    "${ZLIB_INCLUDE_DIRS}"
 )
 target_include_directories(notcurses-core-static
   PRIVATE
@@ -190,9 +191,11 @@ target_include_directories(notcurses-core-static
     "${CMAKE_REQUIRED_INCLUDES}"
     "${PROJECT_BINARY_DIR}/include"
     "${TERMINFO_STATIC_INCLUDE_DIRS}"
+    "${ZLIB_STATIC_INCLUDE_DIRS}"
 )
 target_link_libraries(notcurses-core
   PRIVATE
+    "${ZLIB_LIBRARIES}"
     "${TERMINFO_LIBRARIES}"
     "${LIBM}"
     "${LIBRT_LIBRARIES}"
@@ -202,6 +205,7 @@ target_link_libraries(notcurses-core
 )
 target_link_libraries(notcurses-core-static
   PRIVATE
+    "${ZLIB_STATIC_LIBRARIES}"
     "${TERMINFO_STATIC_LIBRARIES}"
     "${LIBM}"
     "${LIBRT_LIBRARIES}"
@@ -212,10 +216,12 @@ target_link_libraries(notcurses-core-static
 target_link_directories(notcurses-core
   PRIVATE
     "${TERMINFO_LIBRARY_DIRS}"
+    "${ZLIB_LIBRARY_DIRS}"
 )
 target_link_directories(notcurses-core-static
   PRIVATE
     "${TERMINFO_STATIC_LIBRARY_DIRS}"
+    "${ZLIB_STATIC_LIBRARY_DIRS}"
 )
 if(${USE_QRCODEGEN})
 target_link_libraries(notcurses-core PRIVATE qrcodegen)

@@ -231,7 +231,7 @@ grow_esc_table(tinfo* ti, const char* tstr, escape_e esc,
     fprintf(stderr, "Can't add escape %d to full table\n", esc);
     return -1;
   }
-  if(ti->escindices[esc] > 0){
+  if(get_escape(ti, esc)){
     fprintf(stderr, "Already defined escape %d (%s)\n",
             esc, get_escape(ti, esc));
     return -1;
