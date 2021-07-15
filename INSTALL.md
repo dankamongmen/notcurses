@@ -28,7 +28,7 @@ If you want to build the Rust wrappers, you'll also need:
 
 ### RPM
 
-''FIXME''
+`dnf install cmake doctest-devel zlib-devel ncurses-devel readline-devel libqrcodegen-devel libunistring-devel OpenImageIO-devel pandoc`
 
 ## Building
 
