@@ -1,4 +1,5 @@
 #include <zlib.h>
+#include <inttypes.h>
 #include <arpa/inet.h>
 #include "visual-details.h"
 #include "internal.h"
@@ -15,22 +16,126 @@
 #define CHUNK_MAX_DATA 0x80000000llu
 static const unsigned char PNGHEADER[] = "\x89PNG\x0d\x0a\x1a\x0a";
 
+   /* Table of CRCs of all 8-bit messages. */
+   unsigned long crc_table[256];
+
+   /* Flag: has the table been computed? Initially false. */
+   int crc_table_computed = 0;
+
+   /* Make the table for a fast CRC. */
+   void make_crc_table(void)
+   {
+     unsigned long c;
+     int n, k;
+
+     for (n = 0; n < 256; n++) {
+       c = (unsigned long) n;
+       for (k = 0; k < 8; k++) {
+         if (c & 1)
+           c = 0xedb88320L ^ (c >> 1);
+         else
+           c = c >> 1;
+       }
+       crc_table[n] = c;
+     }
+     crc_table_computed = 1;
+   }
+
+   /* Update a running CRC with the bytes buf[0..len-1]--the CRC
+      should be initialized to all 1's, and the transmitted value
+      is the 1's complement of the final running CRC (see the
+      crc() routine below)). */
+
+   unsigned long update_crc(unsigned long crc, const unsigned char *buf,
+                            int len)
+   {
+     unsigned long c = crc;
+     int n;
+
+     if (!crc_table_computed)
+       make_crc_table();
+     for (n = 0; n < len; n++) {
+       c = crc_table[(c ^ buf[n]) & 0xff] ^ (c >> 8);
+     }
+     return c;
+   }
+
+   /* Return the CRC of the bytes buf[0..len-1]. */
+   unsigned long crc(const unsigned char *buf, int len)
+   {
+     return update_crc(0xffffffffL, buf, len) ^ 0xffffffffL;
+   }
+
+// compress the ncvisual data suitably for PNG. this requires adding a byte
+// of filter type (currently always 0) before each scanline =[.
+static void*
+compress_image(const ncvisual* ncv, size_t* dlen){
+  z_stream zctx;
+  int zret;
+  if((zret = deflateInit(&zctx, Z_DEFAULT_COMPRESSION)) != Z_OK){
+    logerror("Couldn't get a deflate context (%d)\n", zret);
+    return NULL;
+  }
+  // one byte per scanline for adaptive filtering type (always 0 for now)
+  uint64_t databytes = ncv->pixx * ncv->pixy * 4 + ncv->pixy;
+  unsigned long bound = deflateBound(&zctx, databytes);
+  unsigned char* buf = malloc(bound);
+  if(buf == NULL){
+    logerror("Couldn't allocate %zuB\n", bound);
+    deflateEnd(&zctx);
+    return NULL;
+  }
+  zctx.next_out = buf;
+  zctx.avail_out = bound;
+  // enough space for a single scanline + filter byte
+  unsigned char* sbuf = malloc(1 + ncv->pixx * 4);
+  if(sbuf == NULL){
+    logerror("Couldn't allocate %zuB\n", 1 + ncv->pixx * 4);
+    deflateEnd(&zctx);
+    free(buf);
+    return NULL;
+  }
+  for(int i = 0 ; i < ncv->pixy ; ++i){
+    if(zctx.avail_out == 0){
+      free(buf);
+      free(sbuf);
+      return NULL;
+    }
+    zctx.avail_in = ncv->pixx * 4 + 1;
+    sbuf[0] = 0;
+    memcpy(sbuf + 1, ncv->data + ncv->rowstride * i, ncv->pixx * 4);
+    zctx.next_in = sbuf;
+    if((zret = deflate(&zctx, Z_NO_FLUSH)) != Z_OK){
+      logerror("Error deflating %dB to %dB (%d)\n", zctx.avail_in, zctx.avail_out, zret);
+      free(buf);
+      free(sbuf);
+      return NULL;
+    }
+  }
+  if((zret = deflate(&zctx, Z_FINISH)) != Z_STREAM_END){
+    logerror("Error finalizing %dB to %dB (%d)\n", zctx.avail_in, zctx.avail_out, zret);
+    free(buf);
+    free(sbuf);
+    return NULL;
+  }
+  free(sbuf);
+  *dlen = zctx.total_out;
+  if((zret = deflateEnd(&zctx)) != Z_OK){
+    logerror("Couldn't finalize the deflate context (%d)\n", zret);
+    free(buf);
+    return NULL;
+  }
+fprintf(stderr, "Deflated %"PRIu64" to %zu\n", databytes, *dlen);
+  return buf;
+}
+
 // number of bytes necessary to encode (uncompressed) the visual specified by
 // |ncv|. on error, *|deflated| will be NULL.
 size_t compute_png_size(const ncvisual* ncv, void** deflated, size_t* dlen){
-  uint64_t databytes = ncv->pixx * ncv->pixy * 4;
-  unsigned long bound = compressBound(databytes);
-  *deflated = malloc(bound);
-  if(*deflated == NULL){
+  if((*deflated = compress_image(ncv, dlen)) == NULL){
     return 0;
   }
-  int cret = compress(*deflated, &bound, (const unsigned char*)ncv->data, databytes);
-  if(cret != Z_OK){
-    free(*deflated);
-    logerror("Error compressing %zuB (%d)\n", databytes, cret);
-    return 0;
-  }
-  *dlen = bound;
+//fprintf(stderr, "ACTUAL: %zu (0x%02x) (0x%02x)\n", *dlen, (*(char **)deflated)[*dlen - 1], (*(char**)deflated)[20]);
   uint64_t fullchunks = *dlen / CHUNK_MAX_DATA; // full 2GB IDATs
   return (sizeof(PNGHEADER) - 1) +  // PNG header
          CHUNK_DESC_BYTES + IHDR_DATA_BYTES + // mandatory IHDR chunk
@@ -45,27 +150,26 @@ size_t compute_png_size(const ncvisual* ncv, void** deflated, size_t* dlen){
 // chunk header, so we add 8 bytes). returns 0 on error, but that's also a
 // valid value, so whacha gonna do?
 static uint32_t
-chunk_crc(const char* buf){
+chunk_crc(const unsigned char* buf){
   uint32_t length;
   memcpy(&length, buf, 4);
-  length = htonl(length);
+  length = ntohl(length);
   if(length > CHUNK_MAX_DATA){
     logerror("Chunk length too large (%lu)\n", length);
     return 0;
   }
-  length += 8;
-  uint32_t crc = 0;
-  // FIXME evaluate crc32 over |length| bytes
-  return crc;
+  length += 4; // don't use length or crc fields
+  uint32_t crc32 = htonl(crc(buf + 4, length));
+  return crc32;
 }
 
 // write the ihdr at |buf|, which is guaranteed to be large enough (25B).
 static size_t
-write_ihdr(const ncvisual* ncv, char* buf){
+write_ihdr(const ncvisual* ncv, unsigned char* buf){
   uint32_t length = htonl(IHDR_DATA_BYTES);
   memcpy(buf, &length, 4);
   static const char ctype[] = "IHDR";
-  memcpy(buf + 4, &ctype, 4);
+  memcpy(buf + 4, ctype, 4);
   uint32_t width = htonl(ncv->pixx);
   memcpy(buf + 8, &width, 4);
   uint32_t height = htonl(ncv->pixy);
@@ -87,15 +191,23 @@ write_ihdr(const ncvisual* ncv, char* buf){
 
 // write 1+ IDAT chunks at |buf| from the deflated |dlen| bytes at |data|.
 static size_t
-write_idats(char* buf, const char* data, size_t dlen){
+write_idats(unsigned char* buf, const unsigned char* data, size_t dlen){
+  static const char ctype[] = "IDAT";
   uint32_t written = 0;
+  uint32_t dwritten = 0;
   while(dlen){
-    size_t thischunk = dlen;
+    uint32_t thischunk = dlen;
     if(thischunk > CHUNK_MAX_DATA){
       thischunk = CHUNK_MAX_DATA;
     }
-    memcpy(buf + written, data + written, thischunk);
+    uint32_t nclen = htonl(thischunk);
+    memcpy(buf + written, &nclen, 4);
+    memcpy(buf + written + 4, ctype, 4);
+    memcpy(buf + written + 8, data + dwritten, thischunk);
+    uint32_t crc = chunk_crc(buf + written);
+    memcpy(buf + written + 8 + thischunk, &crc, 4);
     dlen -= thischunk;
+    dwritten += thischunk;
     written += CHUNK_DESC_BYTES + thischunk;
   }
   return written;
@@ -103,7 +215,7 @@ write_idats(char* buf, const char* data, size_t dlen){
 
 // write the constant 12B IEND chunk at |buf|. it contains no data.
 static size_t
-write_iend(char* buf){
+write_iend(unsigned char* buf){
   static const char iend[] = "\x00\x00\x00\x00IEND\xae\x42\x60\x82";
   memcpy(buf, iend, CHUNK_DESC_BYTES);
   return CHUNK_DESC_BYTES;
@@ -113,14 +225,15 @@ write_iend(char* buf){
 // deflated data |deflated| of |dlen| bytes. |buf| must be large enough to
 // write all necessary data; it ought have been sized with compute_png_size().
 static size_t
-create_png(const ncvisual* ncv, void* buf, const char* deflated, size_t dlen){
+create_png(const ncvisual* ncv, void* buf, const unsigned char* deflated,
+           size_t dlen){
   size_t written = sizeof(PNGHEADER) - 1;
   memcpy(buf, PNGHEADER, written);
-  size_t r = write_ihdr(ncv, (char*)buf + written);
+  size_t r = write_ihdr(ncv, (unsigned char*)buf + written);
   written += r;
-  r = write_idats((char*)buf + written, deflated, dlen);
+  r = write_idats((unsigned char*)buf + written, deflated, dlen);
   written += r;
-  r = write_iend((char*)buf + written);
+  r = write_iend((unsigned char*)buf + written);
   written += r;
   return written;
 }
@@ -150,8 +263,8 @@ void* create_png_mmap(const ncvisual* ncv, size_t* bsize, int fd){
   }
   if(fd >= 0){
     if(ftruncate(fd, mlen) < 0){
-      logerror("Couldn't set size of %d to %zuB (%s)\n",
-               fd, mlen, strerror(errno));
+      logerror("Couldn't set size of %d to %zuB (%s)\n", fd, mlen, strerror(errno));
+      free(deflated);
       return MAP_FAILED;
     }
     loginfo("Set size of %d to %zuB\n", fd, mlen);
@@ -162,9 +275,18 @@ void* create_png_mmap(const ncvisual* ncv, size_t* bsize, int fd){
                    (fd >= 0 ? 0 : MAP_ANONYMOUS), fd, 0);
   if(map == MAP_FAILED){
     logerror("Couldn't get %zuB map for %d\n", mlen, fd);
+    free(deflated);
     return MAP_FAILED;
   }
   size_t w = create_png(ncv, map, deflated, dlen);
+  free(deflated);
   loginfo("Wrote %zuB PNG to %d\n", w, fd);
+  if(fd >= 0){
+    if(ftruncate(fd, w) < 0){
+      logerror("Couldn't set size of %d to %zuB (%s)\n", fd, w, strerror(errno));
+      munmap(map, mlen);
+      return MAP_FAILED;
+    }
+  }
   return map;
 }
