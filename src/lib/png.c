@@ -13,7 +13,7 @@
 // PNG generally allows unsigned 32-bit values to only reach 2**31 "to assist
 // [loser] languages which have difficulty dealing with unsigned values."
 #define CHUNK_MAX_DATA 0x80000000llu
-static const unsigned char PNGHEADER[] = "\x89\x50\x4e\x47\x0d\x0a\x1a\x0a";
+static const unsigned char PNGHEADER[] = "\x89PNG\x0d\x0a\x1a\x0a";
 
 // number of bytes necessary to encode (uncompressed) the visual specified by
 // |ncv|. if alphap is non-zero, an alpha channel will be used, increasing the
@@ -49,7 +49,7 @@ chunk_crc(const char* buf){
 }
 
 // write the ihdr at |buf|, which is guaranteed to be large enough (25B).
-static int
+static size_t
 write_ihdr(const ncvisual* ncv, char* buf, unsigned alphap){
   uint32_t length = htonl(IHDR_DATA_BYTES);
   memcpy(buf, &length, 4);
@@ -74,6 +74,22 @@ write_ihdr(const ncvisual* ncv, char* buf, unsigned alphap){
   return CHUNK_DESC_BYTES + IHDR_DATA_BYTES; // 25
 }
 
+// write 1+ IDAT chunks at |buf|.
+static size_t
+write_idats(const ncvisual* ncv, char* buf, unsigned alphap){
+  uint32_t written = 0;
+  // FIXME
+  return written;
+}
+
+// write the constant 12B IEND chunk at |buf|. it contains no data.
+static size_t
+write_iend(char* buf){
+  static const char iend[] = "\x00\x00\x00\x00IEND\xae\x42\x60\x82";
+  memcpy(buf, iend, CHUNK_DESC_BYTES);
+  return CHUNK_DESC_BYTES;
+}
+
 // write a PNG at the provided buffer using the ncvisual
 int create_png(const ncvisual* ncv, void* buf, size_t* bsize, unsigned alphap){
   size_t totalsize = compute_png_size(ncv, alphap);
@@ -84,13 +100,15 @@ int create_png(const ncvisual* ncv, void* buf, size_t* bsize, unsigned alphap){
   *bsize = totalsize;
   size_t written = sizeof(PNGHEADER) - 1;
   memcpy(buf, PNGHEADER, written);
-  int r = write_ihdr(ncv, (char*)buf + written, alphap);
-  if(r < 0){
-    return -1;
-  }
+  size_t r = write_ihdr(ncv, (char*)buf + written, alphap);
   written += r;
-  // FIXME fill in data chunks
-  // FIXME fill in IEND
+  r = write_idats(ncv, (char*)buf + written, alphap);
+  written += r;
+  r = write_iend((char*)buf + written);
+  written += r;
+  if(written != *bsize){
+    logwarn("PNG was %zuB, not %zuB\n", written, *bsize);
+  }
   return 0;
 }
 
@@ -102,17 +120,19 @@ mmap_round_size(size_t s){
 
 // write a PNG, creating the buffer ourselves. it must be munmapped. the
 // resulting length is written to *bsize on success. returns MMAP_FAILED
-// on a failure.
-void* create_png_mmap(const ncvisual* ncv, size_t* bsize){
+// on a failure. if |fname| is NULL, an anonymous map will be made.
+void* create_png_mmap(const ncvisual* ncv, size_t* bsize, const char* fname){
   const unsigned alphap = 1; // FIXME 0 if no alpha used, for smaller output
   *bsize = compute_png_size(ncv, alphap);
   *bsize = mmap_round_size(*bsize);
   if(*bsize == 0){
     return MAP_FAILED;
   }
+  // FIXME open and ftruncate file if fname is set
   // FIXME hugetlb?
-  void* map = mmap(NULL, *bsize, PROT_WRITE|PROT_READ,
-                   MAP_SHARED_VALIDATE|MAP_ANONYMOUS, -1, 0);
+  void* map = mmap(NULL, *bsize, PROT_WRITE | PROT_READ,
+                   MAP_SHARED_VALIDATE |
+                   (fname ? 0 : MAP_ANONYMOUS), -1, 0);
   if(map == MAP_FAILED){
     logerror("Couldn't get %zuB map\n", *bsize);
     return MAP_FAILED;
