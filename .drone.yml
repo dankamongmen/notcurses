@@ -32,7 +32,7 @@ name: alpine-edge
 
 steps:
 - name: alpine-edge
-  image: dankamongmen/edge_builder:2021-04-29a
+  image: dankamongmen/edge_builder:2021-07-15a
   commands:
     - export LANG=en_US.UTF-8
     - export TERM=vt100
@@ -48,7 +48,7 @@ name: fedora-rawhide
 
 steps:
 - name: fedora-rawhide
-  image: dankamongmen/rawhide:2021-04-22a
+  image: dankamongmen/rawhide:2021-07-15a
   commands:
     - export LANG=en_US.UTF-8
     - export TERM=xterm
