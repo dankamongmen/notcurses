@@ -3,14 +3,34 @@
 #include "internal.h"
 #include "png.h"
 
+// 4-byte length, 4-byte type, 4-byte CRC, plus data
+#define CHUNK_DESC_BYTES 12
+#define IHDR_DATA_BYTES 13
+static const unsigned char PNGHEADER[] = "\x89\x50\x4e\x47\x0d\x0a\x1a\x0a";
+
 size_t compute_png_size(const ncvisual* ncv){
-  return 0;
+  uint64_t databytes = ncv->pixx * ncv->pixy * 4; // FIXME 3 for pure RGB
+  uint64_t fullchunks = databytes / 0x100000000llu; // full 4GB IDATs
+  return (sizeof(PNGHEADER) - 1) +  // PNG header
+         CHUNK_DESC_BYTES + IHDR_DATA_BYTES + // mandatory IHDR chunk
+         (CHUNK_DESC_BYTES + 0xffffffffllu) * fullchunks +
+         (CHUNK_DESC_BYTES + databytes % 0xffffffffllu) +
+         CHUNK_DESC_BYTES; // mandatory IEND chunk
 }
 
 // write a PNG at the provided buffer using the ncvisual
 int create_png(const ncvisual* ncv, void* buf, size_t* bsize){
-  // FIXME fill it in
-  return -1;
+  size_t totalsize = compute_png_size(ncv);
+  if(*bsize < totalsize){
+    logerror("%zuB buffer too small for %zuB PNG\n", *bsize, totalsize);
+    return -1;
+  }
+  *bsize = totalsize;
+  memcpy(buf, PNGHEADER, sizeof(PNGHEADER) - 1);
+  // FIXME fill in IHDR
+  // FIXME fill in data chunks
+  // FIXME fill in IEND
+  return 0;
 }
 
 static inline size_t
