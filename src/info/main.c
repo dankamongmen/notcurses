@@ -367,7 +367,6 @@ static void
 tinfo_debug_styles(const notcurses* nc, struct ncplane* n, const char* indent){
   const tinfo* ti = &nc->tcache;
   ncplane_putstr(n, indent);
-  tinfo_debug_style(n, "blink", NCSTYLE_BLINK, ' ');
   tinfo_debug_style(n, "bold", NCSTYLE_BOLD, ' ');
   tinfo_debug_style(n, "ital", NCSTYLE_ITALIC, ' ');
   tinfo_debug_style(n, "struck", NCSTYLE_STRUCK, ' ');
@@ -380,7 +379,7 @@ tinfo_debug_styles(const notcurses* nc, struct ncplane* n, const char* indent){
   tinfo_debug_cap(n, "sex", ti->caps.sextants, ' ');
   tinfo_debug_cap(n, "braille", ti->caps.braille, ' ');
   tinfo_debug_cap(n, "images", notcurses_canopen_images(nc), ' ');
-  tinfo_debug_cap(n, "videos", notcurses_canopen_videos(nc), '\n');
+  tinfo_debug_cap(n, "video", notcurses_canopen_videos(nc), '\n');
   ncplane_set_fg_default(n);
 }
 
