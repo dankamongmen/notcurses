@@ -120,21 +120,28 @@ mmap_round_size(size_t s){
 
 // write a PNG, creating the buffer ourselves. it must be munmapped. the
 // resulting length is written to *bsize on success. returns MMAP_FAILED
-// on a failure. if |fname| is NULL, an anonymous map will be made.
-void* create_png_mmap(const ncvisual* ncv, size_t* bsize, const char* fname){
+// on a failure. if |fd| is negative, an anonymous map will be made.
+void* create_png_mmap(const ncvisual* ncv, size_t* bsize, int fd){
   const unsigned alphap = 1; // FIXME 0 if no alpha used, for smaller output
   *bsize = compute_png_size(ncv, alphap);
   *bsize = mmap_round_size(*bsize);
   if(*bsize == 0){
     return MAP_FAILED;
   }
-  // FIXME open and ftruncate file if fname is set
+  if(fd >= 0){
+    if(ftruncate(fd, *bsize) < 0){
+      logerror("Couldn't set size of %d to %zuB (%s)\n",
+               fd, *bsize, strerror(errno));
+      return MAP_FAILED;
+    }
+    loginfo("Set size of %d to %zuB\n", fd, *bsize);
+  }
   // FIXME hugetlb?
   void* map = mmap(NULL, *bsize, PROT_WRITE | PROT_READ,
                    MAP_SHARED_VALIDATE |
-                   (fname ? 0 : MAP_ANONYMOUS), -1, 0);
+                   (fd >= 0 ? 0 : MAP_ANONYMOUS), fd, 0);
   if(map == MAP_FAILED){
-    logerror("Couldn't get %zuB map\n", *bsize);
+    logerror("Couldn't get %zuB map for %d\n", *bsize, fd);
     return MAP_FAILED;
   }
   if(create_png(ncv, map, bsize, alphap)){
