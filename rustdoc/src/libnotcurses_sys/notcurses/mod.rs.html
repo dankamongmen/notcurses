@@ -1,7 +1,7 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `src/notcurses/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/notcurses/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../libnotcurses_sys/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
-                <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../libnotcurses_sys/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+                <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -308,14 +308,14 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// It&#39;s built atop the terminfo abstraction layer to provide reasonably</span>
 <span class="doccomment">/// portable vivid character displays.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Nc</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">notcurses</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Nc</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::notcurses</span>;
 
 <span class="attribute">#[<span class="ident">deprecated</span>]</span>
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Notcurses</span> <span class="op">=</span> <span class="ident">Nc</span>;
 
 <span class="doccomment">/// Options struct for [`Notcurses`]</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcOptions</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">notcurses_options</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcOptions</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::notcurses_options</span>;
 
 <span class="attribute">#[<span class="ident">deprecated</span>]</span>
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
@@ -331,20 +331,20 @@
 <span class="doccomment">/// prior to notcurses_init(), you should not set this bit. Even if you are</span>
 <span class="doccomment">/// invoking setlocale(), this behavior shouldn&#39;t be an issue unless you&#39;re</span>
 <span class="doccomment">/// doing something weird (setting a locale not based on LANG).</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCOPTION_INHIBIT_SETLOCALE</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCOPTION_INHIBIT_SETLOCALE</span> <span class="kw">as</span> <span class="ident">u64</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCOPTION_INHIBIT_SETLOCALE</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::NCOPTION_INHIBIT_SETLOCALE</span> <span class="kw">as</span> <span class="ident">u64</span>;
 
 <span class="doccomment">/// Do not enter alternate mode.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// If smcup/rmcup capabilities are indicated, notcurses defaults to making use</span>
 <span class="doccomment">/// of the &quot;alternate screen&quot;. This flag inhibits use of smcup/rmcup.</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCOPTION_NO_ALTERNATE_SCREEN</span>: <span class="ident">u64</span> <span class="op">=</span>
-    <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCOPTION_NO_ALTERNATE_SCREEN</span> <span class="kw">as</span> <span class="ident">u64</span>;
+    <span class="kw">crate</span><span class="ident">::bindings::ffi::NCOPTION_NO_ALTERNATE_SCREEN</span> <span class="kw">as</span> <span class="ident">u64</span>;
 
 <span class="doccomment">/// Do not try to clear any preexisting bitmaps.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Note that they might still get cleared even if this is set, and they might</span>
 <span class="doccomment">/// not get cleared even if this is not set.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCOPTION_NO_CLEAR_BITMAPS</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCOPTION_NO_CLEAR_BITMAPS</span> <span class="kw">as</span> <span class="ident">u64</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCOPTION_NO_CLEAR_BITMAPS</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::NCOPTION_NO_CLEAR_BITMAPS</span> <span class="kw">as</span> <span class="ident">u64</span>;
 
 <span class="doccomment">/// Do not modify the font.</span>
 <span class="doccomment">///</span>
@@ -352,7 +352,7 @@
 <span class="doccomment">/// glyphs (especially on the Linux console). If this is set, no such</span>
 <span class="doccomment">/// modifications will be made. Note that font changes will not affect anything</span>
 <span class="doccomment">/// but the virtual console/terminal in which notcurses is running.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCOPTION_NO_FONT_CHANGES</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCOPTION_NO_FONT_CHANGES</span> <span class="kw">as</span> <span class="ident">u64</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCOPTION_NO_FONT_CHANGES</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::NCOPTION_NO_FONT_CHANGES</span> <span class="kw">as</span> <span class="ident">u64</span>;
 
 <span class="doccomment">/// Do not handle SIG{ING, SEGV, ABRT, QUIT}.</span>
 <span class="doccomment">///</span>
@@ -360,7 +360,7 @@
 <span class="doccomment">/// SIGTERM, and SIGABRT, cleaning up the terminal on such exceptions.</span>
 <span class="doccomment">/// With this flag, the handler will not be installed.</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCOPTION_NO_QUIT_SIGHANDLERS</span>: <span class="ident">u64</span> <span class="op">=</span>
-    <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCOPTION_NO_QUIT_SIGHANDLERS</span> <span class="kw">as</span> <span class="ident">u64</span>;
+    <span class="kw">crate</span><span class="ident">::bindings::ffi::NCOPTION_NO_QUIT_SIGHANDLERS</span> <span class="kw">as</span> <span class="ident">u64</span>;
 
 <span class="doccomment">/// Do not handle SIGWINCH.</span>
 <span class="doccomment">///</span>
@@ -368,20 +368,20 @@
 <span class="doccomment">/// NCKEY_RESIZE events being generated on input.</span>
 <span class="doccomment">/// With this flag, the handler will not be installed.</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCOPTION_NO_WINCH_SIGHANDLER</span>: <span class="ident">u64</span> <span class="op">=</span>
-    <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCOPTION_NO_WINCH_SIGHANDLER</span> <span class="kw">as</span> <span class="ident">u64</span>;
+    <span class="kw">crate</span><span class="ident">::bindings::ffi::NCOPTION_NO_WINCH_SIGHANDLER</span> <span class="kw">as</span> <span class="ident">u64</span>;
 
 <span class="doccomment">/// Initialize the standard plane&#39;s virtual cursor to match the physical cursor</span>
 <span class="doccomment">/// at context creation time.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Together with [`NCOPTION_NO_ALTERNATE_SCREEN`] and a scrolling standard plane,</span>
 <span class="doccomment">/// this facilitates easy scrolling-style programs in rendered mode.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCOPTION_PRESERVE_CURSOR</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCOPTION_PRESERVE_CURSOR</span> <span class="kw">as</span> <span class="ident">u64</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCOPTION_PRESERVE_CURSOR</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::NCOPTION_PRESERVE_CURSOR</span> <span class="kw">as</span> <span class="ident">u64</span>;
 
 <span class="doccomment">/// Do not print banners.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Notcurses typically prints version info in notcurses_init() and performance</span>
 <span class="doccomment">/// info in notcurses_stop(). This inhibits that output.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCOPTION_SUPPRESS_BANNERS</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCOPTION_SUPPRESS_BANNERS</span> <span class="kw">as</span> <span class="ident">u64</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCOPTION_SUPPRESS_BANNERS</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::NCOPTION_SUPPRESS_BANNERS</span> <span class="kw">as</span> <span class="ident">u64</span>;
 
 <span class="comment">// NcLogLevel ------------------------------------------------------------------</span>
 
@@ -393,34 +393,34 @@
 <span class="doccomment">/// `NCOPTION_SUPPRESS_BANNERS`.</span>
 <span class="doccomment">/// Note that if stderr is connected to the same terminal on which we&#39;re</span>
 <span class="doccomment">/// rendering, any kind of logging will disrupt the output.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcLogLevel</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncloglevel_e</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcLogLevel</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::ncloglevel_e</span>;
 
 <span class="doccomment">/// this is honestly a bit much</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCLOGLEVEL_DEBUG</span>: <span class="ident">NcLogLevel</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncloglevel_e_NCLOGLEVEL_DEBUG</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCLOGLEVEL_DEBUG</span>: <span class="ident">NcLogLevel</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::ncloglevel_e_NCLOGLEVEL_DEBUG</span>;
 
 <span class="doccomment">/// we can&#39;t keep doin&#39; this, but we can do other things</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCLOGLEVEL_ERROR</span>: <span class="ident">NcLogLevel</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncloglevel_e_NCLOGLEVEL_ERROR</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCLOGLEVEL_ERROR</span>: <span class="ident">NcLogLevel</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::ncloglevel_e_NCLOGLEVEL_ERROR</span>;
 
 <span class="doccomment">/// we&#39;re hanging around, but we&#39;ve had a horrible fault</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCLOGLEVEL_FATAL</span>: <span class="ident">NcLogLevel</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncloglevel_e_NCLOGLEVEL_FATAL</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCLOGLEVEL_FATAL</span>: <span class="ident">NcLogLevel</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::ncloglevel_e_NCLOGLEVEL_FATAL</span>;
 
 <span class="doccomment">/// &quot;detailed information</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCLOGLEVEL_INFO</span>: <span class="ident">NcLogLevel</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncloglevel_e_NCLOGLEVEL_INFO</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCLOGLEVEL_INFO</span>: <span class="ident">NcLogLevel</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::ncloglevel_e_NCLOGLEVEL_INFO</span>;
 
 <span class="doccomment">/// print diagnostics immediately related to crashing</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCLOGLEVEL_PANIC</span>: <span class="ident">NcLogLevel</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncloglevel_e_NCLOGLEVEL_PANIC</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCLOGLEVEL_PANIC</span>: <span class="ident">NcLogLevel</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::ncloglevel_e_NCLOGLEVEL_PANIC</span>;
 
 <span class="doccomment">/// default. print nothing once fullscreen service begins</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCLOGLEVEL_SILENT</span>: <span class="ident">NcLogLevel</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncloglevel_e_NCLOGLEVEL_SILENT</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCLOGLEVEL_SILENT</span>: <span class="ident">NcLogLevel</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::ncloglevel_e_NCLOGLEVEL_SILENT</span>;
 
 <span class="doccomment">/// there&#39;s probably a better way to do what you want</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCLOGLEVEL_TRACE</span>: <span class="ident">NcLogLevel</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncloglevel_e_NCLOGLEVEL_TRACE</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCLOGLEVEL_TRACE</span>: <span class="ident">NcLogLevel</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::ncloglevel_e_NCLOGLEVEL_TRACE</span>;
 
 <span class="doccomment">/// &quot;detailed information</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCLOGLEVEL_VERBOSE</span>: <span class="ident">NcLogLevel</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncloglevel_e_NCLOGLEVEL_VERBOSE</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCLOGLEVEL_VERBOSE</span>: <span class="ident">NcLogLevel</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::ncloglevel_e_NCLOGLEVEL_VERBOSE</span>;
 
 <span class="doccomment">/// you probably don&#39;t want what&#39;s happening to happen</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCLOGLEVEL_WARNING</span>: <span class="ident">NcLogLevel</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncloglevel_e_NCLOGLEVEL_WARNING</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCLOGLEVEL_WARNING</span>: <span class="ident">NcLogLevel</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::ncloglevel_e_NCLOGLEVEL_WARNING</span>;
 
 <span class="comment">// NcAlign -- ------------------------------------------------------------------</span>
 
@@ -433,18 +433,19 @@
 <span class="doccomment">/// - [NCALIGN_LEFT]</span>
 <span class="doccomment">/// - [NCALIGN_CENTER]</span>
 <span class="doccomment">/// - [NCALIGN_RIGHT]</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcAlign</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncalign_e</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcAlign</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::ncalign_e</span>;
 
 <span class="doccomment">/// Left alignment within an [`NcPlane`][crate::NcPlane] or terminal.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALIGN_LEFT</span>: <span class="ident">NcAlign</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncalign_e_NCALIGN_LEFT</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALIGN_LEFT</span>: <span class="ident">NcAlign</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::ncalign_e_NCALIGN_LEFT</span>;
 
 <span class="doccomment">/// Right alignment within an [`NcPlane`][crate::NcPlane] or terminal.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALIGN_RIGHT</span>: <span class="ident">NcAlign</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncalign_e_NCALIGN_RIGHT</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALIGN_RIGHT</span>: <span class="ident">NcAlign</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::ncalign_e_NCALIGN_RIGHT</span>;
 
 <span class="doccomment">/// Center alignment within an [`NcPlane`][crate::NcPlane] or terminal.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALIGN_CENTER</span>: <span class="ident">NcAlign</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncalign_e_NCALIGN_CENTER</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALIGN_CENTER</span>: <span class="ident">NcAlign</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::ncalign_e_NCALIGN_CENTER</span>;
 
 <span class="doccomment">/// Do not align an [`NcPlane`][crate::NcPlane] or terminal.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALIGN_UNALIGNED</span>: <span class="ident">NcAlign</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">ncalign_e_NCALIGN_UNALIGNED</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALIGN_UNALIGNED</span>: <span class="ident">NcAlign</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::ncalign_e_NCALIGN_UNALIGNED</span>;
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "libnotcurses_sys";</script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="libnotcurses_sys" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
+    <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script></body></html>

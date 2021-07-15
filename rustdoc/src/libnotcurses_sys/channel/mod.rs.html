@@ -1,7 +1,7 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `src/channel/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/channel/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../libnotcurses_sys/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
-                <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../libnotcurses_sys/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+                <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -418,7 +418,7 @@
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcChannel</span> <span class="op">=</span> <span class="ident">u32</span>;
 
 <span class="doccomment">/// Extract these bits to get a channel&#39;s alpha value</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCCHANNEL_ALPHA_MASK</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NC_BG_ALPHA_MASK</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCCHANNEL_ALPHA_MASK</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::NC_BG_ALPHA_MASK</span>;
 
 <span class="comment">// NcAlphaBits</span>
 <span class="comment">//</span>
@@ -437,28 +437,28 @@
 <span class="doccomment">/// [`NcAlphaBits`] bits indicating</span>
 <span class="doccomment">/// [`NcCell`]&#39;s foreground or background color will be a composite between</span>
 <span class="doccomment">/// its color and the `NcCell`s&#39; corresponding colors underneath it</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_BLEND</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCALPHA_BLEND</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_BLEND</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::NCALPHA_BLEND</span>;
 
 <span class="doccomment">/// [`NcAlphaBits`] bits indicating</span>
 <span class="doccomment">/// [`NcCell`]&#39;s foreground color will be high-contrast (relative to the</span>
 <span class="doccomment">/// computed background). Background cannot be highcontrast</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_HIGHCONTRAST</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCALPHA_HIGHCONTRAST</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_HIGHCONTRAST</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::NCALPHA_HIGHCONTRAST</span>;
 
 <span class="doccomment">/// [`NcAlphaBits`] bits indicating</span>
 <span class="doccomment">/// [`NcCell`]&#39;s foreground or background color is used unchanged</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_OPAQUE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCALPHA_OPAQUE</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_OPAQUE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::NCALPHA_OPAQUE</span>;
 
 <span class="doccomment">/// [`NcAlphaBits`] bits indicating</span>
 <span class="doccomment">/// [`NcCell`]&#39;s foreground or background color is derived entirely from the</span>
 <span class="doccomment">/// `NcCell`s underneath it</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_TRANSPARENT</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NCALPHA_TRANSPARENT</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_TRANSPARENT</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::NCALPHA_TRANSPARENT</span>;
 
 <span class="doccomment">/// If this bit is set, we are *not* using the default background color</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// See the detailed diagram at [`NcChannels`][crate::NcChannels]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Note: This can also be used against a single [`NcChannel`]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_BGDEFAULT_MASK</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NC_BGDEFAULT_MASK</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_BGDEFAULT_MASK</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::NC_BGDEFAULT_MASK</span>;
 
 <span class="doccomment">/// Extract these bits to get the background alpha mask</span>
 <span class="doccomment">/// ([`NcAlphaBits`])</span>
@@ -466,7 +466,7 @@
 <span class="doccomment">/// See the detailed diagram at [`NcChannels`][crate::NcChannels]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Note: This can also be used against a single [`NcChannel`]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_BG_ALPHA_MASK</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NC_BG_ALPHA_MASK</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_BG_ALPHA_MASK</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::NC_BG_ALPHA_MASK</span>;
 
 <span class="doccomment">/// If this bit *and* [`NCALPHA_BGDEFAULT_MASK`] are set, we&#39;re using a</span>
 <span class="doccomment">/// palette-indexed background color</span>
@@ -474,21 +474,21 @@
 <span class="doccomment">/// See the detailed diagram at [`NcChannels`][crate::NcChannels]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Note: This can also be used against a single [`NcChannel`]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_BG_PALETTE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NC_BG_PALETTE</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_BG_PALETTE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::NC_BG_PALETTE</span>;
 
 <span class="doccomment">/// Extract these bits to get the background [`NcRgb`][crate::NcRgb] value</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// See the detailed diagram at [`NcChannels`][crate::NcChannels]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Note: This can also be used against a single [`NcChannel`]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_BG_RGB_MASK</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NC_BG_RGB_MASK</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_BG_RGB_MASK</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::NC_BG_RGB_MASK</span>;
 
 <span class="doccomment">/// If this bit is set, we are *not* using the default foreground color</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// See the detailed diagram at [`NcChannels`][crate::NcChannels]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Note: When working with a single [`NcChannel`] use [`NCALPHA_BGDEFAULT_MASK`];</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_FGDEFAULT_MASK</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NC_FGDEFAULT_MASK</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_FGDEFAULT_MASK</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::NC_FGDEFAULT_MASK</span>;
 
 <span class="doccomment">/// Extract these bits to get the foreground alpha mask</span>
 <span class="doccomment">/// ([`NcAlphaBits`])</span>
@@ -496,7 +496,7 @@
 <span class="doccomment">/// See the detailed diagram at [`NcChannels`][crate::NcChannels]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Note: When working with a single [`NcChannel`] use [`NCALPHA_BG_ALPHA_MASK`];</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_FG_ALPHA_MASK</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NC_FG_ALPHA_MASK</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_FG_ALPHA_MASK</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::NC_FG_ALPHA_MASK</span>;
 
 <span class="doccomment">/// If this bit *and* [`NCALPHA_FGDEFAULT_MASK`] are set, we&#39;re using a</span>
 <span class="doccomment">/// palette-indexed background color</span>
@@ -504,14 +504,14 @@
 <span class="doccomment">/// See the detailed diagram at [`NcChannels`][crate::NcChannels]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Note: When working with a single [`NcChannel`] use [`NCALPHA_BG_PALETTE`];</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_FG_PALETTE</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NC_FG_PALETTE</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_FG_PALETTE</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::NC_FG_PALETTE</span>;
 
 <span class="doccomment">/// Extract these bits to get the foreground [`NcRgb`][crate::NcRgb] value</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// See the detailed diagram at [`NcChannels`][crate::NcChannels]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Note: When working with a single [`NcChannel`] use [`NCALPHA_BG_RGB_MASK`];</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_FG_RGB_MASK</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">bindings</span>::<span class="ident">ffi</span>::<span class="ident">NC_FG_RGB_MASK</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NCALPHA_FG_RGB_MASK</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::bindings::ffi::NC_FG_RGB_MASK</span>;
 
 <span class="comment">// NcChannels</span>
 <span class="comment">//</span>
@@ -631,4 +631,5 @@
 <span class="doccomment">/// `type in C: no data type`</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NcComponent</span> <span class="op">=</span> <span class="ident">u8</span>;
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "libnotcurses_sys";</script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="libnotcurses_sys" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
+    <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script></body></html>
