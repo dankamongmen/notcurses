@@ -46,7 +46,8 @@ tinfo_debug_style(struct ncplane* n, const char* name, int style, char ch){
 
 static int
 braille_viz(ncplane* n, wchar_t l, const wchar_t* egcs, wchar_t r,
-            const char* indent, const wchar_t* bounds, wchar_t r8, wchar_t l8){
+            const char* indent, wchar_t suit,
+            const wchar_t* bounds, wchar_t r8, wchar_t l8){
   ncplane_printf(n, "%s%lc", indent, l);
   for(int i = 0 ; i < 64 ; ++i){
     if(ncplane_putwc(n, egcs[i]) <= 0){
@@ -54,7 +55,8 @@ braille_viz(ncplane* n, wchar_t l, const wchar_t* egcs, wchar_t r,
     }
   }
   ncplane_putwc(n, r);
-  ncplane_putchar(n, ' ');
+  ncplane_set_bg_rgb(n, 0x0);
+  ncplane_putwc(n, suit);
   ncplane_putwc(n, bounds[0]);
   if(ncplane_putwc(n, r8) <= 0){
     ncplane_putchar(n, ' ');
@@ -63,7 +65,6 @@ braille_viz(ncplane* n, wchar_t l, const wchar_t* egcs, wchar_t r,
     ncplane_putchar(n, ' ');
   }
   ncplane_putwc(n, bounds[1]);
-  ncplane_putchar(n, ' ');
   ncplane_putchar(n, '\n');
   return 0;
 }
@@ -216,10 +217,10 @@ unicodedumper(struct ncplane* n, tinfo* ti, const char* indent){
            &NCBOXROUNDW[5], &NCBOXDOUBLEW[2], &NCBOXDOUBLEW[5], &NCBOXOUTERW[2], &NCBOXOUTERW[5],
            L"▴⏶⯅▲▸⏵⯈▶", L"▾⏷⯆▼◂⏴⯇◀");
     vertviz(n, L'⎪', NCEIGHTHSR[3], NCEIGHTHSL[3], L'⎪');
-    braille_viz(n, L'⎡', NCBRAILLEEGCS, L'⎤', indent, L"⎨⎬", NCEIGHTHSR[4], NCEIGHTHSL[4]);
-    braille_viz(n, L'⎢', &NCBRAILLEEGCS[64], L'⎥', indent, L"⎪⎪", NCEIGHTHSR[5], NCEIGHTHSL[5]);
-    braille_viz(n, L'⎢', &NCBRAILLEEGCS[128], L'⎥', indent, L"⎪⎪", NCEIGHTHSR[6], NCEIGHTHSL[6]);
-    braille_viz(n, L'⎣', &NCBRAILLEEGCS[192], L'⎦', indent, L"⎩⎭", NCEIGHTHSR[7], NCEIGHTHSL[7]);
+    braille_viz(n, L'⎡', NCBRAILLEEGCS, L'⎤', indent, L'♠', L"⎨⎬", NCEIGHTHSR[4], NCEIGHTHSL[4]);
+    braille_viz(n, L'⎢', &NCBRAILLEEGCS[64], L'⎥', indent, L'♥', L"⎪⎪", NCEIGHTHSR[5], NCEIGHTHSL[5]);
+    braille_viz(n, L'⎢', &NCBRAILLEEGCS[128], L'⎥', indent, L'♦', L"⎪⎪", NCEIGHTHSR[6], NCEIGHTHSL[6]);
+    braille_viz(n, L'⎣', &NCBRAILLEEGCS[192], L'⎦', indent, L'♣', L"⎩⎭", NCEIGHTHSR[7], NCEIGHTHSL[7]);
     legacy_viz(n, indent, L"▔🭶🭷🭸🭹🭺🭻▁", NCANGLESBR, NCANGLESBL);
     wviz(n, L"🭨🭪  ");
     wviz(n, NCDIGITSSUBW);
@@ -323,19 +324,19 @@ tinfo_debug_bitmaps(struct ncplane* n, const tinfo* ti, const char* indent){
   ncplane_set_fg_default(n);
   ncplane_set_fg_rgb(n, 0x5efa80);
   if(!ti->pixel_draw){
-    ncplane_printf(n, "%sdidn't detect bitmap graphics support\n", indent);
+    ncplane_printf(n, "%sno bitmap graphics detected", indent);
   }else{ // we do have support; draw one
     if(ti->color_registers){
       if(ti->sixel_maxy){
-        ncplane_printf(n, "%smax sixel size: %dx%d colorregs: %u\n",
+        ncplane_printf(n, "%smax sixel size: %dx%d colorregs: %u",
                       indent, ti->sixel_maxy, ti->sixel_maxx, ti->color_registers);
       }else{
-        ncplane_printf(n, "%ssixel colorregs: %u\n", indent, ti->color_registers);
+        ncplane_printf(n, "%ssixel colorregs: %u", indent, ti->color_registers);
       }
     }else if(ti->sixel_maxy_pristine){
-      ncplane_printf(n, "%srgba pixel graphics supported\n", indent);
+      ncplane_printf(n, "%srgba pixel graphics supported", indent);
     }else{
-      ncplane_printf(n, "%srgba pixel animation supported\n", indent);
+      ncplane_printf(n, "%srgba pixel animation supported", indent);
     }
     char* path = prefix_data("notcurses.png");
     if(path){
@@ -343,6 +344,15 @@ tinfo_debug_bitmaps(struct ncplane* n, const tinfo* ti, const char* indent){
       free(path);
     }
   }
+  /*
+  ncplane_putstr(n, "\U0001F918");
+  ncplane_putstr(n, "\U0001F918\u200d\U0001F3FB");
+  ncplane_putstr(n, "\U0001F918\u200d\U0001F3FC");
+  ncplane_putstr(n, "\U0001F918\u200d\U0001F3FD");
+  ncplane_putstr(n, "\U0001F918\u200d\U0001F3FE");
+  ncplane_putstr(n, "\U0001F918\u200d\U0001F3FF");
+  */
+  ncplane_putchar(n, '\n');
 }
 
 static void
