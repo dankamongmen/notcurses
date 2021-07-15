@@ -80,6 +80,8 @@ find_package(PkgConfig REQUIRED)
 # feature_summary + set_package_properties to fail in one fell swoop.
 find_package(Threads)
 set_package_properties(Threads PROPERTIES TYPE REQUIRED)
+find_package(ZLIB)
+set_package_properties(ZLIB PROPERTIES TYPE REQUIRED)
 # platform-specific logics
 if(NOT MSYS AND NOT APPLE)
   find_library(LIBM m REQUIRED)
