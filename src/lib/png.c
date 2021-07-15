@@ -1,4 +1,4 @@
-#include <sys/mman.h>
+#include <zlib.h>
 #include <arpa/inet.h>
 #include "visual-details.h"
 #include "internal.h"
@@ -16,19 +16,26 @@
 static const unsigned char PNGHEADER[] = "\x89PNG\x0d\x0a\x1a\x0a";
 
 // number of bytes necessary to encode (uncompressed) the visual specified by
-// |ncv|. if alphap is non-zero, an alpha channel will be used, increasing the
-// size of the data by 1/3.
-size_t compute_png_size(const ncvisual* ncv, unsigned alphap,
-                        char** deflated, size_t* dlen){
-  // FIXME need to do the deflation here
-  *deflated = NULL;
-  *dlen = 0;
-  uint64_t databytes = ncv->pixx * ncv->pixy * (3 + !!alphap);
-  uint64_t fullchunks = databytes / CHUNK_MAX_DATA; // full 2GB IDATs
+// |ncv|. on error, *|deflated| will be NULL.
+size_t compute_png_size(const ncvisual* ncv, void** deflated, size_t* dlen){
+  uint64_t databytes = ncv->pixx * ncv->pixy * 4;
+  unsigned long bound = compressBound(databytes);
+  *deflated = malloc(bound);
+  if(*deflated == NULL){
+    return 0;
+  }
+  int cret = compress(*deflated, &bound, (const unsigned char*)ncv->data, databytes);
+  if(cret != Z_OK){
+    free(*deflated);
+    logerror("Error compressing %zuB (%d)\n", databytes, cret);
+    return 0;
+  }
+  *dlen = bound;
+  uint64_t fullchunks = *dlen / CHUNK_MAX_DATA; // full 2GB IDATs
   return (sizeof(PNGHEADER) - 1) +  // PNG header
          CHUNK_DESC_BYTES + IHDR_DATA_BYTES + // mandatory IHDR chunk
          (CHUNK_DESC_BYTES + CHUNK_MAX_DATA) * fullchunks +
-         (CHUNK_DESC_BYTES + databytes % CHUNK_MAX_DATA) +
+         (CHUNK_DESC_BYTES + *dlen % CHUNK_MAX_DATA) +
          CHUNK_DESC_BYTES; // mandatory IEND chunk
 }
 
@@ -54,7 +61,7 @@ chunk_crc(const char* buf){
 
 // write the ihdr at |buf|, which is guaranteed to be large enough (25B).
 static size_t
-write_ihdr(const ncvisual* ncv, char* buf, unsigned alphap){
+write_ihdr(const ncvisual* ncv, char* buf){
   uint32_t length = htonl(IHDR_DATA_BYTES);
   memcpy(buf, &length, 4);
   static const char ctype[] = "IHDR";
@@ -65,7 +72,7 @@ write_ihdr(const ncvisual* ncv, char* buf, unsigned alphap){
   memcpy(buf + 12, &height, 4);
   uint8_t depth = 8;                  // 8 bits per channel
   memcpy(buf + 16, &depth, 1);
-  uint8_t color = 2 + alphap ? 4 : 0; // RGB with possible alpha
+  uint8_t color = 6;                  // RGBA
   memcpy(buf + 17, &color, 1);
   uint8_t compression = 0;            // deflate, max window 32768
   memcpy(buf + 18, &compression, 1);
@@ -106,11 +113,10 @@ write_iend(char* buf){
 // deflated data |deflated| of |dlen| bytes. |buf| must be large enough to
 // write all necessary data; it ought have been sized with compute_png_size().
 static size_t
-create_png(const ncvisual* ncv, void* buf, unsigned alphap,
-           const char* deflated, size_t dlen){
+create_png(const ncvisual* ncv, void* buf, const char* deflated, size_t dlen){
   size_t written = sizeof(PNGHEADER) - 1;
   memcpy(buf, PNGHEADER, written);
-  size_t r = write_ihdr(ncv, (char*)buf + written, alphap);
+  size_t r = write_ihdr(ncv, (char*)buf + written);
   written += r;
   r = write_idats((char*)buf + written, deflated, dlen);
   written += r;
@@ -130,11 +136,14 @@ mmap_round_size(size_t s){
 // larger than this, but the end is immaterial padding). returns MMAP_FAILED
 // on a failure. if |fd| is negative, an anonymous map will be made.
 void* create_png_mmap(const ncvisual* ncv, size_t* bsize, int fd){
-  const unsigned alphap = 1; // FIXME 0 if no alpha used, for smaller output
-  char* deflated;
+  void* deflated;
   size_t dlen;
   size_t mlen;
-  *bsize = compute_png_size(ncv, alphap, &deflated, &dlen);
+  *bsize = compute_png_size(ncv, &deflated, &dlen);
+  if(deflated == NULL){
+    logerror("Couldn't compress to %d\n", fd);
+    return MAP_FAILED;
+  }
   mlen = mmap_round_size(*bsize);
   if(mlen == 0){
     return MAP_FAILED;
@@ -155,7 +164,7 @@ void* create_png_mmap(const ncvisual* ncv, size_t* bsize, int fd){
     logerror("Couldn't get %zuB map for %d\n", mlen, fd);
     return MAP_FAILED;
   }
-  size_t w = create_png(ncv, map, alphap, deflated, dlen);
+  size_t w = create_png(ncv, map, deflated, dlen);
   loginfo("Wrote %zuB PNG to %d\n", w, fd);
   return map;
 }

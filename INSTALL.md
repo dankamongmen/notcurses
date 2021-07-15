@@ -12,11 +12,11 @@ prepackaged on many distributions. Otherwise, acquire the current source via
 
 On an APT-based distribution, run:
 
-`apt-get install build-essential cmake doctest-dev libavformat-dev libavutil-dev libncurses-dev libreadline-dev libqrcodegen-dev libswscale-dev libunistring-dev pandoc pkg-config`
+`apt-get install build-essential cmake doctest-dev zlib1g-dev libavformat-dev libavutil-dev libncurses-dev libreadline-dev libqrcodegen-dev libswscale-dev libunistring-dev pandoc pkg-config`
 
 If you only intend to build core Notcurses (without multimedia support), run:
 
-`apt-get install build-essential cmake doctest-dev libncurses-dev libreadline-dev libqrcodegen-dev libunistring-dev pandoc pkg-config`
+`apt-get install build-essential cmake doctest-dev zlib1g-dev libncurses-dev libreadline-dev libqrcodegen-dev libunistring-dev pandoc pkg-config`
 
 If you want to build the Python wrappers, you'll also need:
 
