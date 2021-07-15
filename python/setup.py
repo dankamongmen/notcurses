@@ -31,7 +31,9 @@ if environ.get('CFLAGS') is None:
             "-Wextra -Wconversion -Wall")
 
 if environ.get('LDFLAGS') is None:
-    if platform != "darwin":
+    if platform == "darwin":
+        environ['LDFLAGS'] = "-Wl,-all_load"
+    else:
         environ['LDFLAGS'] = "-Wl,--no-as-needed"
 
 setup(
