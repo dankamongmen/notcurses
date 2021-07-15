@@ -1,8 +1,11 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 2.3.10 (not yet released)
+* 2.3.10 (2021-07-14)
   * Notcurses now builds and works, so far as I can tell, on OS X 11.4+.
+  * Emit XTPUSHCOLORS and XTPOPCOLORS where supported (XTerm and Kitty).
+  * `notcurses-info` now works around Unicode unsupported by the local
+    platform, so that other output remains available.
 
 * 2.3.9 (2021-07-12)
   * Fixed major regressions from 2.3.8: menu highlighting is working once
