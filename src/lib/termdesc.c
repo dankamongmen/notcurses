@@ -792,15 +792,52 @@ char* termdesc_longterm(const tinfo* ti){
   return ret;
 }
 
-// send a u7 request, and wait until we have a cursor report
-int locate_cursor(tinfo* ti, int fd, int* cursor_y, int* cursor_x){
-  if(fd < 0){
-    logwarn("Can't request on fd %d\n", fd);
+// when we have input->ttyfd, everything's simple -- we're reading from a
+// different source than the user is, so we can just write the query, and block
+// on the response, easy peasy.
+// FIXME still, we ought reuse buffer, and pass on any excess reads...
+static int
+locate_cursor_simple(int fd, const char* u7, int* cursor_y, int* cursor_x){
+  char* buf = malloc(BUFSIZ);
+  if(buf == NULL){
     return -1;
   }
+  if(tty_emit(u7, fd)){
+    free(buf);
+    return -1;
+  }
+  ssize_t r;
+  // FIXME rigourize for multiple reads
+  if((r = read(fd, buf, BUFSIZ - 1)) > 0){
+    buf[r] = '\0';
+    if(sscanf(buf, "\e[%d;%dR", cursor_y, cursor_x) != 2){
+      loginfo("Not a cursor location report: %s\n", buf);
+      free(buf);
+      return -1;
+    }
+    --*cursor_y;
+    --*cursor_x;
+  }
+  free(buf);
+  loginfo("Located cursor with %d: %d/%d\n", fd, *cursor_y, *cursor_x);
+  return 0;
+}
+
+// send a u7 request, and wait until we have a cursor report. if input's ttyfd
+// is valid, we can just camp there. otherwise, we need dance with potential
+// user input looking at infd.
+int locate_cursor(tinfo* ti, int* cursor_y, int* cursor_x){
   const char* u7 = get_escape(ti, ESCAPE_DSRCPR);
   if(u7 == NULL){
     logwarn("No support in terminfo\n");
+    return -1;
+  }
+  if(ti->input.ttyfd >= 0){
+    return locate_cursor_simple(ti->input.ttyfd, u7, cursor_y, cursor_x);
+  }
+  int fd = ti->input.infd;
+  if(fd < 0){
+    logwarn("No valid path for cursor report\n");
     return -1;
   }
   bool emitted_u7 = false; // only want to send one max
@@ -822,14 +859,13 @@ int locate_cursor(tinfo* ti, int fd, int* cursor_y, int* cursor_x){
     // return to us holding the input lock.
     ncinput_extract_clrs(&ti->input);
     if( (clr = ti->input.creport_queue) ){
-      logdebug("Hustled up a CL report\n");
       break;
     }
     pthread_cond_wait(&ti->input.creport_cond, &ti->input.lock);
   }
   ti->input.creport_queue = clr->next;
   pthread_mutex_unlock(&ti->input.lock);
-  loginfo("Got a report %d/%d\n", clr->y, clr->x);
+  loginfo("Got a report from %d %d/%d\n", fd, clr->y, clr->x);
   *cursor_y = clr->y;
   *cursor_x = clr->x;
   if(ti->inverted_cursor){

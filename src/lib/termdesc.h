@@ -89,9 +89,12 @@ typedef struct ncinputlayer {
   // only allow one reader at a time, whether it's the user trying to do so,
   // or our desire for a cursor report competing with the user.
   pthread_mutex_t lock;
+  // must be held to operate on the cursor report queue shared between pure
+  // input and the control layer.
+  pthread_cond_t creport_cond;
   // ttyfd is only valid if we are connected to a tty, *and* stdin is not
-  // connected to that tty. in that case, we read control sequences only
-  // from ttyfd.
+  // connected to that tty (this usually means stdin was redirected). in that
+  // case, we read control sequences only from ttyfd.
   int ttyfd; // file descriptor for connected tty
   int infd;  // file descriptor for processing input, from stdin
   unsigned char inputbuf[BUFSIZ];
@@ -108,7 +111,6 @@ typedef struct ncinputlayer {
   uint64_t input_events;
   struct esctrie* inputescapes; // trie of input escapes -> ncspecial_keys
   cursorreport* creport_queue; // queue of cursor reports
-  pthread_cond_t creport_cond;
   bool user_wants_data;        // a user context is active
   bool inner_wants_data;       // if we're blocking on input
 } ncinputlayer;
@@ -219,7 +221,7 @@ void free_terminfo_cache(tinfo* ti);
 // return a heap-allocated copy of termname + termversion
 char* termdesc_longterm(const tinfo* ti);
 
-int locate_cursor(tinfo* ti, int fd, int* cursor_y, int* cursor_x);
+int locate_cursor(tinfo* ti, int* cursor_y, int* cursor_x);
 
 #ifdef __cplusplus
 }

@@ -722,6 +722,7 @@ void ncinputlayer_stop(ncinputlayer* nilayer){
   if(nilayer->ttyfd >= 0){
     close(nilayer->ttyfd);
   }
+  // do *not* close infd; it's just a fileno extracted from stdin
   input_free_esctrie(&nilayer->inputescapes);
 }
 
@@ -1372,18 +1373,20 @@ control_read(int ttyfd, query_state* qstate){
     return -1;
   }
   errno = 0;
-  while((s = read(ttyfd, buf, BUFSIZ)) != -1){
-    for(ssize_t idx = 0; idx < s ; ++idx){
-      int r = pump_control_read(qstate, buf[idx]);
-      if(r == 1){ // success!
-        free(buf);
-//fprintf(stderr, "at end, derived terminal %d\n", inits.qterm);
-        return 0;
-      }else if(r < 0){
-        goto err;
+  do{
+    while((s = read(ttyfd, buf, BUFSIZ)) != -1){
+      for(ssize_t idx = 0; idx < s ; ++idx){
+        int r = pump_control_read(qstate, buf[idx]);
+        if(r == 1){ // success!
+          free(buf);
+  //fprintf(stderr, "at end, derived terminal %d\n", inits.qterm);
+          return 0;
+        }else if(r < 0){
+          goto err;
+        }
       }
     }
-  }
+  }while(errno == EINTR || errno == EAGAIN);
 err:
   fprintf(stderr, "Reading control replies failed on %d (%s)\n", ttyfd, strerror(errno));
   free(buf);
