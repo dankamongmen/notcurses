@@ -1,5 +1,6 @@
 #include <zlib.h>
 #include <inttypes.h>
+#include <stdatomic.h>
 #include <arpa/inet.h>
 #include "visual-details.h"
 #include "internal.h"
@@ -16,55 +17,46 @@
 #define CHUNK_MAX_DATA 0x80000000llu
 static const unsigned char PNGHEADER[] = "\x89PNG\x0d\x0a\x1a\x0a";
 
-   /* Table of CRCs of all 8-bit messages. */
-   unsigned long crc_table[256];
+// FIXME replace with PCLMULQDQ method (and ARM CRC32 instruction)
+// this is taken from the PNG reference
+static unsigned long crc_table[256];
 
-   /* Flag: has the table been computed? Initially false. */
-   int crc_table_computed = 0;
+static atomic_bool crc_table_computed;
 
-   /* Make the table for a fast CRC. */
-   void make_crc_table(void)
-   {
-     unsigned long c;
-     int n, k;
+static void
+make_crc_table(void){
+  for(size_t n = 0 ; n < sizeof(crc_table) / sizeof(*crc_table) ; n++){
+    unsigned long c = n;
+    for(int k = 0 ; k < 8 ; k++){
+      if(c & 1){
+        c = 0xedb88320L ^ (c >> 1);
+      }else{
+        c = c >> 1;
+      }
+    }
+    crc_table[n] = c;
+  }
+  crc_table_computed = true;
+}
 
-     for (n = 0; n < 256; n++) {
-       c = (unsigned long) n;
-       for (k = 0; k < 8; k++) {
-         if (c & 1)
-           c = 0xedb88320L ^ (c >> 1);
-         else
-           c = c >> 1;
-       }
-       crc_table[n] = c;
-     }
-     crc_table_computed = 1;
-   }
+static inline unsigned long
+update_crc(unsigned long crc, const unsigned char *buf, int len){
+  unsigned long c = crc;
+  int n;
 
-   /* Update a running CRC with the bytes buf[0..len-1]--the CRC
-      should be initialized to all 1's, and the transmitted value
-      is the 1's complement of the final running CRC (see the
-      crc() routine below)). */
+  if(!crc_table_computed){
+    make_crc_table();
+  }
+  for(n = 0 ; n < len ; n++){
+    c = crc_table[(c ^ buf[n]) & 0xff] ^ (c >> 8);
+  }
+  return c;
+}
 
-   unsigned long update_crc(unsigned long crc, const unsigned char *buf,
-                            int len)
-   {
-     unsigned long c = crc;
-     int n;
-
-     if (!crc_table_computed)
-       make_crc_table();
-     for (n = 0; n < len; n++) {
-       c = crc_table[(c ^ buf[n]) & 0xff] ^ (c >> 8);
-     }
-     return c;
-   }
-
-   /* Return the CRC of the bytes buf[0..len-1]. */
-   unsigned long crc(const unsigned char *buf, int len)
-   {
-     return update_crc(0xffffffffL, buf, len) ^ 0xffffffffL;
-   }
+static inline unsigned long
+crc(const unsigned char *buf, int len){
+  return update_crc(0xffffffffL, buf, len) ^ 0xffffffffL;
+}
 
 // compress the ncvisual data suitably for PNG. this requires adding a byte
 // of filter type (currently always 0) before each scanline =[.
@@ -125,7 +117,7 @@ compress_image(const ncvisual* ncv, size_t* dlen){
     free(buf);
     return NULL;
   }
-fprintf(stderr, "Deflated %"PRIu64" to %zu\n", databytes, *dlen);
+  loginfo("Deflated %"PRIu64" to %zu\n", databytes, *dlen);
   return buf;
 }
 
