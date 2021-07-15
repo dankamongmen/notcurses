@@ -18,7 +18,11 @@ static const unsigned char PNGHEADER[] = "\x89PNG\x0d\x0a\x1a\x0a";
 // number of bytes necessary to encode (uncompressed) the visual specified by
 // |ncv|. if alphap is non-zero, an alpha channel will be used, increasing the
 // size of the data by 1/3.
-size_t compute_png_size(const ncvisual* ncv, unsigned alphap){
+size_t compute_png_size(const ncvisual* ncv, unsigned alphap,
+                        char** deflated, size_t* dlen){
+  // FIXME need to do the deflation here
+  *deflated = NULL;
+  *dlen = 0;
   uint64_t databytes = ncv->pixx * ncv->pixy * (3 + !!alphap);
   uint64_t fullchunks = databytes / CHUNK_MAX_DATA; // full 2GB IDATs
   return (sizeof(PNGHEADER) - 1) +  // PNG header
@@ -74,11 +78,19 @@ write_ihdr(const ncvisual* ncv, char* buf, unsigned alphap){
   return CHUNK_DESC_BYTES + IHDR_DATA_BYTES; // 25
 }
 
-// write 1+ IDAT chunks at |buf|.
+// write 1+ IDAT chunks at |buf| from the deflated |dlen| bytes at |data|.
 static size_t
-write_idats(const ncvisual* ncv, char* buf, unsigned alphap){
+write_idats(char* buf, const char* data, size_t dlen){
   uint32_t written = 0;
-  // FIXME
+  while(dlen){
+    size_t thischunk = dlen;
+    if(thischunk > CHUNK_MAX_DATA){
+      thischunk = CHUNK_MAX_DATA;
+    }
+    memcpy(buf + written, data + written, thischunk);
+    dlen -= thischunk;
+    written += CHUNK_DESC_BYTES + thischunk;
+  }
   return written;
 }
 
@@ -90,26 +102,21 @@ write_iend(char* buf){
   return CHUNK_DESC_BYTES;
 }
 
-// write a PNG at the provided buffer using the ncvisual
-int create_png(const ncvisual* ncv, void* buf, size_t* bsize, unsigned alphap){
-  size_t totalsize = compute_png_size(ncv, alphap);
-  if(*bsize < totalsize){
-    logerror("%zuB buffer too small for %zuB PNG\n", *bsize, totalsize);
-    return -1;
-  }
-  *bsize = totalsize;
+// write a PNG at the provided buffer |buf| using the ncvisual ncv, the
+// deflated data |deflated| of |dlen| bytes. |buf| must be large enough to
+// write all necessary data; it ought have been sized with compute_png_size().
+static size_t
+create_png(const ncvisual* ncv, void* buf, unsigned alphap,
+           const char* deflated, size_t dlen){
   size_t written = sizeof(PNGHEADER) - 1;
   memcpy(buf, PNGHEADER, written);
   size_t r = write_ihdr(ncv, (char*)buf + written, alphap);
   written += r;
-  r = write_idats(ncv, (char*)buf + written, alphap);
+  r = write_idats((char*)buf + written, deflated, dlen);
   written += r;
   r = write_iend((char*)buf + written);
   written += r;
-  if(written != *bsize){
-    logwarn("PNG was %zuB, not %zuB\n", written, *bsize);
-  }
-  return 0;
+  return written;
 }
 
 static inline size_t
@@ -119,34 +126,36 @@ mmap_round_size(size_t s){
 }
 
 // write a PNG, creating the buffer ourselves. it must be munmapped. the
-// resulting length is written to *bsize on success. returns MMAP_FAILED
+// resulting length is written to *bsize on success (the file/map might be
+// larger than this, but the end is immaterial padding). returns MMAP_FAILED
 // on a failure. if |fd| is negative, an anonymous map will be made.
 void* create_png_mmap(const ncvisual* ncv, size_t* bsize, int fd){
   const unsigned alphap = 1; // FIXME 0 if no alpha used, for smaller output
-  *bsize = compute_png_size(ncv, alphap);
-  *bsize = mmap_round_size(*bsize);
-  if(*bsize == 0){
+  char* deflated;
+  size_t dlen;
+  size_t mlen;
+  *bsize = compute_png_size(ncv, alphap, &deflated, &dlen);
+  mlen = mmap_round_size(*bsize);
+  if(mlen == 0){
     return MAP_FAILED;
   }
   if(fd >= 0){
-    if(ftruncate(fd, *bsize) < 0){
+    if(ftruncate(fd, mlen) < 0){
       logerror("Couldn't set size of %d to %zuB (%s)\n",
-               fd, *bsize, strerror(errno));
+               fd, mlen, strerror(errno));
       return MAP_FAILED;
     }
-    loginfo("Set size of %d to %zuB\n", fd, *bsize);
+    loginfo("Set size of %d to %zuB\n", fd, mlen);
   }
   // FIXME hugetlb?
-  void* map = mmap(NULL, *bsize, PROT_WRITE | PROT_READ,
+  void* map = mmap(NULL, mlen, PROT_WRITE | PROT_READ,
                    MAP_SHARED_VALIDATE |
                    (fd >= 0 ? 0 : MAP_ANONYMOUS), fd, 0);
   if(map == MAP_FAILED){
-    logerror("Couldn't get %zuB map for %d\n", *bsize, fd);
+    logerror("Couldn't get %zuB map for %d\n", mlen, fd);
     return MAP_FAILED;
   }
-  if(create_png(ncv, map, bsize, alphap)){
-    munmap(map, *bsize);
-    return MAP_FAILED;
-  }
+  size_t w = create_png(ncv, map, alphap, deflated, dlen);
+  loginfo("Wrote %zuB PNG to %d\n", w, fd);
   return map;
 }
