@@ -884,3 +884,9 @@ install(
     NAMELINK_COMPONENT Development
 )
 endif()
+
+option(DUMMY_PYTHON "Build dummy python module used for compile check and Clangd" OFF)
+if(${DUMMY_PYTHON})
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+add_subdirectory("./python")
+endif()
