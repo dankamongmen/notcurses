@@ -1,9 +1,11 @@
 #include <zlib.h>
+#include <sys/mman.h>
 #include <inttypes.h>
 #include <stdatomic.h>
 #include <arpa/inet.h>
 #include "visual-details.h"
 #include "internal.h"
+#include "base64.h"
 #include "png.h"
 
 // http://www.libpng.org/pub/png/spec/1.2/PNG-Contents.html
@@ -293,8 +295,38 @@ struct b64ctx {
 
 static int
 fwrite64(const void* src, size_t osize, FILE* fp, struct b64ctx* bctx){
-  // FIXME write it after encoding it
-  return 0;
+  size_t w = 0;
+  char b64[4];
+  if(bctx->srcidx){
+    size_t copy = sizeof(bctx->src) - bctx->srcidx;
+    // the unlikely event that we don't fill the bctx with our entire chunk...
+    if(copy > osize){
+      memcpy(bctx->src + bctx->srcidx, src, osize);
+      bctx->srcidx += osize;
+      return 0;
+    }
+    memcpy(bctx->src + bctx->srcidx, src, copy);
+    base64x3(bctx->src, b64);
+    bctx->srcidx = 0;
+    if(fwrite(b64, 4, 1, fp) != 1){
+      return -1;
+    }
+    w = copy;
+  }
+  // the bctx is now guaranteed to be empty
+  while(w + 3 <= osize){
+    base64x3((const unsigned char*)src + w, b64);
+    if(fwrite(b64, 4, 1, fp) != 1){
+      return -1;
+    }
+    w += 3;
+  }
+  // less than 3 remain; copy them into the bctx for further use
+  if(w < osize){
+    bctx->srcidx = osize - w;
+    memcpy(bctx->src, src + w, bctx->srcidx);
+  }
+  return 1;
 }
 
 static size_t
@@ -321,6 +353,7 @@ memcpy(crcbuf + 4, ctype, 4);
 memcpy(crcbuf + 8, data + dwritten, thischunk);
 // END horribleness
     uint32_t crc = chunk_crc(crcbuf);
+free(crcbuf); // FIXME well a bit more
     if(fwrite64(&crc, 4, fp, bctx) != 1){
       return 0;
     }
