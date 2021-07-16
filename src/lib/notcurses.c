@@ -1264,8 +1264,8 @@ int notcurses_stop(notcurses* nc){
   if(nc){
     ret |= notcurses_stop_minimal(nc);
     // if we were not using the alternate screen, our cursor's wherever we last
-    // wrote. move it to the bottom left of the screen, *unless* PRESERVE_CURSOR
-    // was used, in which case it's right where we want it.
+    // wrote. move it to the bottom left of the screen, *unless*
+    // PRESERVE_CURSOR was used, which is a bit more complex.
     if(!(nc->flags & NCOPTION_PRESERVE_CURSOR)){
       if(!get_escape(&nc->tcache, ESCAPE_SMCUP)){
         // if ldimy is 0, we've not yet written anything; leave it untouched
@@ -1275,6 +1275,13 @@ int notcurses_stop(notcurses* nc){
           tty_emit(tiparm(get_escape(&nc->tcache, ESCAPE_CUP), targy, 0), nc->ttyfd);
         }
       }
+    }else{
+      int targy = nc->rstate.logendy;
+      if(++targy >= nc->lfdimy){
+        --targy; // FIXME do we need to scroll here?
+      }
+      goto_location(nc, stdout, targy, 0);
+      fflush(stdout);
     }
     ret |= set_fd_nonblocking(nc->tcache.input.infd, nc->stdio_blocking_save, NULL);
     if(nc->stdplane){
