@@ -28,6 +28,51 @@ int iterm_scrub(const ncpile* p, sprixel* s){
   return 0;
 }
 
+static int
+write_iterm_graphic(sprixel* s, const void* data, int leny, int stride,
+                    int lenx, int* parse_start){
+  s->glyph = NULL;
+  FILE* fp = open_memstream(&s->glyph, &s->glyphlen);
+  if(fp == NULL){
+    return -1;
+  }
+  if(ncfputs("\e]1337;inline=1:", fp) == EOF){
+    goto err;
+  }
+  // FIXME won't we need to pass TAM into create_png_mmap()?
+  size_t bsize;
+  // FIXME we'll want a create_png_mmap() that takes a FILE*
+  void* png = create_png_mmap(data, leny, stride, lenx, &bsize, -1);
+  if(png == MAP_FAILED){
+    goto err;
+  }
+  size_t encoded = 0;
+  while(bsize){
+    size_t plen = bsize > 4096 ? 4096 : bsize;
+    // FIXME base64-encode
+    if(fwrite((const char*)png + encoded, plen, 1, fp) != 1){
+      munmap(png, bsize);
+      goto err;
+    }
+    bsize -= plen;
+    encoded += plen;
+  }
+  if(munmap(png, bsize)){
+    goto err;
+  }
+  if(fclose(fp) == EOF){
+    free(s->glyph);
+    return -1;
+  }
+  return 0;
+
+err:
+  fclose(fp);
+  free(s->glyph);
+  s->glyph = NULL;
+  return -1;
+}
+
 // create an iterm2 control sequence complete with base64-encoded PNG.
 int iterm_blit(ncplane* n, int linesize, const void* data,
                int leny, int lenx, const blitterargs* bargs){
@@ -53,10 +98,7 @@ int iterm_blit(ncplane* n, int linesize, const void* data,
     }
     memset(tam, 0, sizeof(*tam) * rows * cols);
   }
-  // FIXME will we need to pass TAM into create_png_mmap()?
-  size_t bsize;
-  png = create_png_mmap(data, leny, linesize, lenx, &bsize, -1);
-  if(png == NULL){
+  if(write_iterm_graphic(s, data, leny, linesize, lenx, &parse_start)){
     goto error;
   }
   // FIXME set up glyph/glyphlen
