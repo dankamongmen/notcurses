@@ -70,19 +70,21 @@ relies on the font. Patches to correct/complete this table are very welcome!
 | [foot](https://codeberg.org/dnkl/foot)            | ✅                 |  ✅   |✅      |`TERM=foot`                        | Sixel support. |
 | [Gnome Terminal](https://gitlab.gnome.org/GNOME/gnome-terminal)  |❌   |  ❌   |✅      |`TERM=gnome` `COLORTERM=24bit`     | `ccc` support *is* available when run with `vte-256color`. |
 | [Guake](https://github.com/Guake/guake)           |                    |  ?    |?       |                                   | |
-| [ITerm2](https://github.com/gnachman/iTerm2)      | ✅  |  ✅   |✅    |`TERM=xterm-256color`  |
+| [ITerm2](https://github.com/gnachman/iTerm2)      | ✅  |  ✅   |✅    |`TERM=xterm-256color`  ||
 | [Kitty](https://github.com/kovidgoyal/kitty)      | ✅  |  ✅   |✅    |`TERM=xterm-kitty`                 | See below. |
 | [kmscon](https://github.com/dvdhrm/kmscon)        | |  ?    |?       |`TERM=xterm-256color`              | No RGB color AFAICT, nor any distinct terminfo entry. |
 | [Konsole](https://invent.kde.org/utilities/konsole) | ❌       |  ❌   |?       |`TERM=konsole-direct`              | |
 | Linux console   | ❌                 |  ✅   |see [below](#the-linux-console) |`TERM=linux` `COLORTERM=24bit`   | 8 (512 glyph fonts) or 16 (256 glyph fonts) colors max, but RGB values are downsampled to a 256-index palette. See below. |
-| mlterm          | ✅                 |  ❌   |?       |`TERM=mlterm-256color`           | Do not set `COLORTERM`. `mlterm-direct` gives strange results. |
-| PuTTY           |                    |  ❌   |❌      |`TERM=putty-256color` `COLORTERM=24bit` | |
-| rxvt            | ✅                 |  ?    |?       |                                 | |
-| Sakura          | ✅                 |  ✅   |?       |`TERM=vte-256color` `COLORTERM=24bit` | VTE-derived, no terminfo entry. |
-| GNU Screen      | ✅                 |  ❌   |n/a     |`TERM=screen.OLDTERM`            | Must be compiled with `--enable-256color`. `TERM` should typically be `screen.` suffixed by the appropriate `TERM` value for the true connected terminal, e.g. `screen.vte-256color`. See below. |
-| st ("suckless") | ✅                 |  ✅   |?       |`TERM=st-256color` `COLORTERM=24bit` | |
-| Terminator      | ✅                 |  ?    |?       | ?                               | |
-| Terminology     | ❌                 |  ❌   |?       | `TERM=terminology`              | |
+| [mlterm](https://github.com/arakiken/mlterm)          | ✅                 |  ❌   |?       |`TERM=mlterm-256color`           | Do not set `COLORTERM`. `mlterm-direct` gives strange results. |
+| [PuTTY](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html)           |                    |  ❌   |❌      |`TERM=putty-256color` `COLORTERM=24bit` | |
+| rxvt            | ✅                 |  ?    |?       |                                 | Seems unmaintained; many forks exist. |
+| [Sakura](https://github.com/dabisu/sakura)          | ✅                 |  ✅   |?       |`TERM=vte-256color` `COLORTERM=24bit` | VTE-derived, no terminfo entry. |
+| [GNU Screen](https://www.gnu.org/software/screen/)      | ✅                 |  ❌   |n/a     |`TERM=screen.OLDTERM`            | Must be compiled with `--enable-256color`. `TERM` should typically be `screen.` suffixed by the appropriate `TERM` value for the true connected terminal, e.g. `screen.vte-256color`. See below. |
+| [st ("suckless")](https://st.suckless.org/) | ✅                 |  ✅   |?       |`TERM=st-256color` `COLORTERM=24bit` | Many features are maintained as external patches; users often roll their own instance, composing from these patches. |
+| [Tabby](https://github.com/Eugeny/tabby) | ? | ? | ? | ? | |
+| [Terminal.app](https://en.wikipedia.org/wiki/Terminal_(macOS)) | ? | ? | ? | `TERM=xterm-256color`| No RGB |
+| [Terminator](https://github.com/software-jessies-org/jessies/wiki/Terminatorhttps://github.com/software-jessies-org/jessies/wiki/Terminator)      | ✅                 |  ?    |?       | ?                               | |
+| [Terminology](https://github.com/borisfaure/terminology)     | ❌                 |  ❌   |?       | `TERM=terminology`              | |
 | [Tilda](https://github.com/lanoxx/tilda)  |       |  ?    |?       | ?                               | |
 | [tmux](https://github.com/tmux/tmux/wiki) | ✅    |  ❌   |n/a     |`TERM=tmux-256color` `COLORTERM=24bit`| `tmux.conf` must apply `Tc`; see below. `bce` is available with the `tmux-256color-bce` definition. |
 | [wezterm](https://github.com/wez/wezterm) | ✅    |  ✅   |?       |`TERM=wezterm` `COLORTERM=24bit` | See below. |
