@@ -100,7 +100,7 @@ ncstats* notcurses_stats_alloc(const notcurses* nc __attribute__ ((unused))){
 void notcurses_stats_reset(notcurses* nc, ncstats* stats){
   pthread_mutex_lock(&nc->stats.lock);
     if(stats){
-      memcpy(stats, &nc->stats, sizeof(*stats));
+      memcpy(stats, &nc->stats.s, sizeof(*stats));
     }
     // add the stats to the stashed stats, so that we can show true totals on
     // shutdown in the closing banner
