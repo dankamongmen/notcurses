@@ -61,15 +61,15 @@ crc(const unsigned char *buf, int len){
 // compress the ncvisual data suitably for PNG. this requires adding a byte
 // of filter type (currently always 0) before each scanline =[.
 static void*
-compress_image(const ncvisual* ncv, size_t* dlen){
-  z_stream zctx;
+compress_image(const void* data, int rows, int rowstride, int cols, size_t* dlen){
+  z_stream zctx = { };
   int zret;
   if((zret = deflateInit(&zctx, Z_DEFAULT_COMPRESSION)) != Z_OK){
     logerror("Couldn't get a deflate context (%d)\n", zret);
     return NULL;
   }
   // one byte per scanline for adaptive filtering type (always 0 for now)
-  uint64_t databytes = ncv->pixx * ncv->pixy * 4 + ncv->pixy;
+  uint64_t databytes = cols * rows * 4 + rows;
   unsigned long bound = deflateBound(&zctx, databytes);
   unsigned char* buf = malloc(bound);
   if(buf == NULL){
@@ -80,22 +80,23 @@ compress_image(const ncvisual* ncv, size_t* dlen){
   zctx.next_out = buf;
   zctx.avail_out = bound;
   // enough space for a single scanline + filter byte
-  unsigned char* sbuf = malloc(1 + ncv->pixx * 4);
+  unsigned char* sbuf = malloc(1 + cols * 4);
   if(sbuf == NULL){
-    logerror("Couldn't allocate %zuB\n", 1 + ncv->pixx * 4);
-    deflateEnd(&zctx);
+    logerror("Couldn't allocate %zuB\n", 1 + cols * 4);
     free(buf);
+    deflateEnd(&zctx);
     return NULL;
   }
-  for(int i = 0 ; i < ncv->pixy ; ++i){
+  for(int i = 0 ; i < rows ; ++i){
     if(zctx.avail_out == 0){
       free(buf);
       free(sbuf);
+      deflateEnd(&zctx);
       return NULL;
     }
-    zctx.avail_in = ncv->pixx * 4 + 1;
+    zctx.avail_in = cols * 4 + 1;
     sbuf[0] = 0;
-    memcpy(sbuf + 1, ncv->data + ncv->rowstride * i, ncv->pixx * 4);
+    memcpy(sbuf + 1, data + rowstride * i, cols * 4);
     zctx.next_in = sbuf;
     if((zret = deflate(&zctx, Z_NO_FLUSH)) != Z_OK){
       logerror("Error deflating %dB to %dB (%d)\n", zctx.avail_in, zctx.avail_out, zret);
@@ -123,8 +124,9 @@ compress_image(const ncvisual* ncv, size_t* dlen){
 
 // number of bytes necessary to encode (uncompressed) the visual specified by
 // |ncv|. on error, *|deflated| will be NULL.
-size_t compute_png_size(const ncvisual* ncv, void** deflated, size_t* dlen){
-  if((*deflated = compress_image(ncv, dlen)) == NULL){
+size_t compute_png_size(const void* data, int rows, int rowstride, int cols,
+                        void** deflated, size_t* dlen){
+  if((*deflated = compress_image(data, rows, rowstride, cols, dlen)) == NULL){
     return 0;
   }
 //fprintf(stderr, "ACTUAL: %zu (0x%02x) (0x%02x)\n", *dlen, (*(char **)deflated)[*dlen - 1], (*(char**)deflated)[20]);
@@ -157,14 +159,14 @@ chunk_crc(const unsigned char* buf){
 
 // write the ihdr at |buf|, which is guaranteed to be large enough (25B).
 static size_t
-write_ihdr(const ncvisual* ncv, unsigned char* buf){
+write_ihdr(int rows, int cols, unsigned char* buf){
   uint32_t length = htonl(IHDR_DATA_BYTES);
   memcpy(buf, &length, 4);
   static const char ctype[] = "IHDR";
   memcpy(buf + 4, ctype, 4);
-  uint32_t width = htonl(ncv->pixx);
+  uint32_t width = htonl(cols);
   memcpy(buf + 8, &width, 4);
-  uint32_t height = htonl(ncv->pixy);
+  uint32_t height = htonl(rows);
   memcpy(buf + 12, &height, 4);
   uint8_t depth = 8;                  // 8 bits per channel
   memcpy(buf + 16, &depth, 1);
@@ -217,11 +219,11 @@ write_iend(unsigned char* buf){
 // deflated data |deflated| of |dlen| bytes. |buf| must be large enough to
 // write all necessary data; it ought have been sized with compute_png_size().
 static size_t
-create_png(const ncvisual* ncv, void* buf, const unsigned char* deflated,
+create_png(int rows, int cols, void* buf, const unsigned char* deflated,
            size_t dlen){
   size_t written = sizeof(PNGHEADER) - 1;
   memcpy(buf, PNGHEADER, written);
-  size_t r = write_ihdr(ncv, (unsigned char*)buf + written);
+  size_t r = write_ihdr(rows, cols, (unsigned char*)buf + written);
   written += r;
   r = write_idats((unsigned char*)buf + written, deflated, dlen);
   written += r;
@@ -239,12 +241,14 @@ mmap_round_size(size_t s){
 // write a PNG, creating the buffer ourselves. it must be munmapped. the
 // resulting length is written to *bsize on success (the file/map might be
 // larger than this, but the end is immaterial padding). returns MMAP_FAILED
-// on a failure. if |fd| is negative, an anonymous map will be made.
-void* create_png_mmap(const ncvisual* ncv, size_t* bsize, int fd){
+// on a failure. if |fd| is negative, an anonymous map will be made. |rows|
+// and |cols| are in pixels; |rowstride| is in bytes.
+void* create_png_mmap(const void* data, int rows, int rowstride, int cols,
+                      size_t* bsize, int fd){
   void* deflated;
   size_t dlen;
   size_t mlen;
-  *bsize = compute_png_size(ncv, &deflated, &dlen);
+  *bsize = compute_png_size(data, rows, rowstride, cols, &deflated, &dlen);
   if(deflated == NULL){
     logerror("Couldn't compress to %d\n", fd);
     return MAP_FAILED;
@@ -262,19 +266,14 @@ void* create_png_mmap(const ncvisual* ncv, size_t* bsize, int fd){
     loginfo("Set size of %d to %zuB\n", fd, mlen);
   }
   // FIXME hugetlb?
-  void* map = mmap(NULL, mlen, PROT_WRITE | PROT_READ,
-#ifdef MAP_SHARED_VALIDATE
-                   MAP_SHARED_VALIDATE |
-#else
-                   MAP_SHARED |
-#endif
+  void* map = mmap(NULL, mlen, PROT_WRITE | PROT_READ, MAP_SHARED |
                    (fd >= 0 ? 0 : MAP_ANONYMOUS), fd, 0);
   if(map == MAP_FAILED){
-    logerror("Couldn't get %zuB map for %d\n", mlen, fd);
+    logerror("Couldn't get %zuB map for %d (%s)\n", mlen, fd, strerror(errno));
     free(deflated);
     return MAP_FAILED;
   }
-  size_t w = create_png(ncv, map, deflated, dlen);
+  size_t w = create_png(rows, cols, map, deflated, dlen);
   free(deflated);
   loginfo("Wrote %zuB PNG to %d\n", w, fd);
   if(fd >= 0){
