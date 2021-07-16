@@ -12,6 +12,7 @@ extern "C" {
 struct tinfo;
 struct termios;
 struct ncinputlayer;
+struct ncsharedstats;
 
 typedef enum {
     TERMINAL_UNKNOWN,       // no useful information from queries; use termname
@@ -37,7 +38,8 @@ typedef enum {
 // non-zero.
 int ncinputlayer_init(struct tinfo* tcache, FILE* infp,
                       queried_terminals_e* detected, unsigned* appsync,
-                      int* cursor_y, int* cursor_x);
+                      int* cursor_y, int* cursor_x,
+                      struct ncsharedstats* stats);
 
 void ncinputlayer_stop(struct ncinputlayer* nilayer);
 

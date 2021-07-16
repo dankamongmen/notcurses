@@ -582,7 +582,7 @@ build_supported_styles(tinfo* ti){
 // full round trip before getting the reply, which is likely to pace init.
 int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
                          unsigned noaltscreen, unsigned nocbreak, unsigned nonewfonts,
-                         int* cursor_y, int* cursor_x){
+                         int* cursor_y, int* cursor_x, ncsharedstats* stats){
   queried_terminals_e qterm = TERMINAL_UNKNOWN;
   memset(ti, 0, sizeof(*ti));
   ti->linux_fb_fd = -1;
@@ -725,7 +725,8 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
     cursor_y = &foolcursor_y;
   }
   *cursor_x = *cursor_y = 0;
-  if(ncinputlayer_init(ti, stdin, &qterm, &appsync_advertised, cursor_y, cursor_x)){
+  if(ncinputlayer_init(ti, stdin, &qterm, &appsync_advertised,
+                       cursor_y, cursor_x, stats)){
     goto err;
   }
   if(nocbreak){

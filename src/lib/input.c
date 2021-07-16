@@ -1394,7 +1394,8 @@ err:
 }
 
 int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected,
-                      unsigned* appsync, int* cursor_y, int* cursor_x){
+                      unsigned* appsync, int* cursor_y, int* cursor_x,
+                      ncsharedstats* stats){
   ncinputlayer* nilayer = &tcache->input;
   // FIXME unsafe to do after infp has been used; do we need this?
   setbuffer(infp, NULL, 0);

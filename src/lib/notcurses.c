@@ -5,6 +5,7 @@
 #include "internal.h"
 #include <ncurses.h> // needed for some definitions, see terminfo(3ncurses)
 #include <poll.h>
+#include <zlib.h>
 #include <time.h>
 #include <term.h>
 #include <fcntl.h>
@@ -930,7 +931,7 @@ init_banner(const notcurses* nc){
                        14 % nc->tcache.caps.colors : 0x2080e0);
     }
     fprintf(nc->ttyfp, "\ncompiled with gcc-%s, %zuB %s-endian cells\n"
-            "terminfo from %s\n",
+            "terminfo from %s zlib %s\n",
             __VERSION__,
             sizeof(nccell),
 #ifdef __BYTE_ORDER__
@@ -942,7 +943,7 @@ init_banner(const notcurses* nc){
 #else
 #error "No __BYTE_ORDER__ definition"
 #endif
-            , curses_version());
+            , curses_version(), zlibVersion());
     ncvisual_printbanner(nc);
     init_banner_warnings(nc, nc->ttyfp);
     const char* esc;
@@ -1089,6 +1090,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     free(ret);
     return NULL;
   }
+  memset(&ret->stats.s, 0, sizeof(ret->stats.s));
   if(pthread_mutex_init(&ret->stats.lock, NULL)){
     pthread_mutex_destroy(&ret->pilelock);
     free(ret);
@@ -1131,7 +1133,8 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
                           opts->flags & NCOPTION_NO_ALTERNATE_SCREEN, 0,
                           opts->flags & NCOPTION_NO_FONT_CHANGES,
                           opts->flags & NCOPTION_PRESERVE_CURSOR ? &ret->rstate.logendy : NULL,
-                          opts->flags & NCOPTION_PRESERVE_CURSOR ? &ret->rstate.logendx : NULL)){
+                          opts->flags & NCOPTION_PRESERVE_CURSOR ? &ret->rstate.logendx : NULL,
+                          &ret->stats)){
     goto err;
   }
   int dimy, dimx;

@@ -14,6 +14,7 @@ extern "C" {
 struct ncpile;
 struct sprixel;
 struct notcurses;
+struct ncsharedstats;
 
 // we store all our escape sequences in a single large block, and use
 // 16-bit one-biased byte-granularity indices to get the location in said
@@ -211,10 +212,12 @@ term_supported_styles(const tinfo* ti){
 // be connected to a terminal device, or -1 if no terminal is available.
 // if already *certain* of the terminal type (basically, if it's the Linux
 // console, identified via ioctl(2)s), pass it as qterm; otherwise use
-// TERMINAL_UNKNOWN.
+// TERMINAL_UNKNOWN. |stats| may be NULL; either way, it will be handed to the
+// input layer so that its stats can be recorded.
 int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
                          unsigned noaltscreen, unsigned nocbreak,
-                         unsigned nonewfonts, int* cursor_y, int* cursor_x);
+                         unsigned nonewfonts, int* cursor_y, int* cursor_x,
+                         struct ncsharedstats* stats);
 
 void free_terminfo_cache(tinfo* ti);
 
