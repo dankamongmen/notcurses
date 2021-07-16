@@ -114,6 +114,7 @@ typedef struct ncinputlayer {
   cursorreport* creport_queue; // queue of cursor reports
   bool user_wants_data;        // a user context is active
   bool inner_wants_data;       // if we're blocking on input
+  struct ncsharedstats* stats; // notcurses sharedstats object
 } ncinputlayer;
 
 // terminal interface description. most of these are acquired from terminfo(5)

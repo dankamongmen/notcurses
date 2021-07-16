@@ -374,6 +374,7 @@ handle_getc(ncinputlayer* nc, int kpress, ncinput* ni, int leftmargin, int topma
       return w;
     }
   }
+  ++nc->stats->s.input_errors;
   return -1;
 }
 
@@ -575,6 +576,9 @@ uint32_t notcurses_getc(notcurses* nc, const struct timespec *ts,
     if(ni){
       ni->seqnum = stamp;
     }
+    ++nc->stats.s.input_events;
+  }else{
+    ++nc->stats.s.input_errors; // increments on natural EOF, hrmm
   }
   return r;
 }
@@ -1397,11 +1401,10 @@ int ncinputlayer_init(tinfo* tcache, FILE* infp, queried_terminals_e* detected,
                       unsigned* appsync, int* cursor_y, int* cursor_x,
                       ncsharedstats* stats){
   ncinputlayer* nilayer = &tcache->input;
-  // FIXME unsafe to do after infp has been used; do we need this?
-  setbuffer(infp, NULL, 0);
   if(pthread_mutex_init(&nilayer->lock, NULL)){
     return -1;
   }
+  nilayer->stats = stats;
   nilayer->inputescapes = NULL;
   nilayer->infd = fileno(infp);
   nilayer->ttyfd = isatty(nilayer->infd) ? -1 : get_tty_fd(infp);
@@ -1504,6 +1507,8 @@ void ncinput_extract_clrs(ncinputlayer* ni){
         }
         ni->inputbuf_occupied += r;
         continue;
+      }else if(r < 0){
+        ++ni->stats->s.input_errors;
       }
       ni->inner_wants_data = true;
       pthread_mutex_unlock(&ni->lock);

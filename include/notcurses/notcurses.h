@@ -1446,6 +1446,7 @@ typedef struct ncstats {
   uint64_t sprixelelisions;  // sprixel elision count
   uint64_t sprixelbytes;     // sprixel bytes emitted
   uint64_t input_errors;     // errors processing control sequences/utf8
+  uint64_t input_events;     // characters returned to userspace
 } ncstats;
 
 // Allocate an ncstats object. Use this rather than allocating your own, since
