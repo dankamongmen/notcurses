@@ -168,7 +168,8 @@ void summarize_stats(notcurses* nc){
   qprefix(stats->render_ns, NANOSECS_IN_SEC, totalbuf, 0);
   qprefix(stats->render_min_ns, NANOSECS_IN_SEC, minbuf, 0);
   qprefix(stats->render_max_ns, NANOSECS_IN_SEC, maxbuf, 0);
-  qprefix(stats->render_ns / stats->renders, NANOSECS_IN_SEC, avgbuf, 0);
+  qprefix(stats->renders ? stats->render_ns / stats->renders : 0,
+          NANOSECS_IN_SEC, avgbuf, 0);
   fprintf(stderr, "%"PRIu64" render%s, %ss (%ss min, %ss avg, %ss max)\n",
           stats->renders, stats->renders == 1 ? "" : "s",
           totalbuf, minbuf, avgbuf, maxbuf);
