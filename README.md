@@ -169,6 +169,14 @@ each release. Download it, and install the contents as you deem fit.
   specified Terminfo entry, it will refuse to start, and you will
   [not be going to space today](https://xkcd.com/1133/).
 
+* Notcurses queries the terminal on startup, enabling some advanced features
+  based on the determined terminal (and even version). Basic capabilities,
+  however, are taken from Terminfo. So if you have, say, Kitty, but
+  `TERM=vt100`, you're going to be able to draw RGBA bitmap graphics, but be
+  able to use the alternate screen (despite the latter being supported by
+  every Kitty version). So `TERM` and an up-to-date Terminfo database remain
+  important.
+
 * Ensure your `LANG` environment variable is set to a UTF8-encoded locale, and
   that this locale has been generated. This usually means
   `"[language]_[Countrycode].UTF-8"`, i.e. `en_US.UTF-8`. The first part
@@ -192,12 +200,22 @@ each release. Download it, and install the contents as you deem fit.
 
 ### Fonts
 
-Fonts end up being a whole thing, little of which is pleasant. I'll write this
-up someday **FIXME**.
+Glyph width, and indeed whether a glyph can be displayed at all, is dependent
+in part on the font configuration. Ideally, your font configuration has a
+glyph for every Unicode EGC, and each glyph's width matches up with the C
+library's `wcswidth()` result for the EGC. If this is not the case, you'll
+likely get blanks or � (U+FFFD, REPLACEMENT CHARACTER) for missing characters,
+and subsequent characters on the line may be misplaced.
 
 It is worth knowing that several terminals draw the block characters directly,
-rather than loading them from a font. This is generally desirable. To inspect
-your environment's rendering of drawing characters, run `notcurses-info`.
+rather than loading them from a font. This is generally desirable. Quadrants
+and sextants are not the place to demonstrate your design virtuosity. To
+inspect your environment's rendering of drawing characters, run
+`notcurses-info`. The desired output ought look something like this:
+
+<p align="center">
+<img src="https://raw.githubusercontent.com/dankamongmen/notcurses/gh-pages/notcurses-info.png" alt="notcurses-info can be used to check Unicode drawing"/>
+</p>
 
 ## FAQs
 
