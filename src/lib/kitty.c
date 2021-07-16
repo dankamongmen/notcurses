@@ -782,13 +782,12 @@ error:
 }
 
 int kitty_blit(ncplane* n, int linesize, const void* data, int leny, int lenx,
-               const blitterargs* bargs, int bpp __attribute__ ((unused))){
+               const blitterargs* bargs){
   return kitty_blit_core(n, linesize, data, leny, lenx, bargs, false);
 }
 
 int kitty_blit_animated(ncplane* n, int linesize, const void* data,
-                        int leny, int lenx, const blitterargs* bargs,
-                        int bpp __attribute__ ((unused))){
+                        int leny, int lenx, const blitterargs* bargs){
   return kitty_blit_core(n, linesize, data, leny, lenx, bargs, true);
 }
 
@@ -800,8 +799,7 @@ int kitty_remove(int id, FILE* out){
   return 0;
 }
 
-// removes the kitty bitmap graphic identified by s->id, and damages those
-// cells which weren't SPRIXCELL_OPAQUE
+// damages cells underneath the graphic which weren't SPRIXCELL_OPAQUE
 int kitty_scrub(const ncpile* p, sprixel* s){
 //fprintf(stderr, "FROM: %d/%d state: %d s->n: %p\n", s->movedfromy, s->movedfromx, s->invalidated, s->n);
   for(int yy = s->movedfromy ; yy < s->movedfromy + s->dimy && yy < p->dimy ; ++yy){

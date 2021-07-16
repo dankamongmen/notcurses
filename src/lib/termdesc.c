@@ -63,6 +63,18 @@ setup_sixel_bitmaps(tinfo* ti, int fd, bool invert80){
   sprite_init(ti, fd);
 }
 
+// iterm2 has a container-based protocol
+static inline void
+setup_iterm_bitmaps(tinfo* ti, int fd){
+  ti->pixel_draw = iterm_draw;
+  ti->pixel_scrub = iterm_scrub;
+  ti->pixel_wipe = iterm_wipe;
+  ti->pixel_rebuild = iterm_rebuild;
+  ti->pixel_trans_auxvec = kitty_trans_auxvec;
+  set_pixel_blitter(iterm_blit);
+  sprite_init(ti, fd);
+}
+
 // kitty 0.19.3 didn't have C=1, and thus needs sixel_maxy_pristine. it also
 // lacked animation, and thus requires the older interface.
 static inline void
@@ -495,8 +507,6 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
       if(add_smulx_escapes(ti, tablelen, tableused)){
         return -1;
       }
-    }else{
-      termname = "XTerm";
     }
   }else if(qterm == TERMINAL_XTERM){
     termname = "XTerm";
@@ -511,10 +521,11 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
     ti->caps.quadrants = true;
     ti->caps.rgb = true;
   }else if(qterm == TERMINAL_ITERM){
-    // iTerm implements DCS ASU, but no detection for it
+    // iTerm implements DCS ASU, but has no detection for it
     if(add_appsync_escapes_dcs(ti, tablelen, tableused)){
       return -1;
     }
+    setup_iterm_bitmaps(ti, fd);
   }else if(qterm == TERMINAL_LINUX){
     struct utsname un;
     if(uname(&un) == 0){

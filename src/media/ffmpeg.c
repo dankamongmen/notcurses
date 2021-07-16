@@ -542,7 +542,7 @@ int ffmpeg_blit(ncvisual* ncv, int rows, int cols, ncplane* n,
   }
 //fprintf(stderr, "WHN NCV: %d/%d bargslen: %d/%d targ: %d/%d\n", inframe->width, inframe->height, bargs->leny, bargs->lenx, rows, cols);
   int ret = 0;
-  if(rgba_blit_dispatch(n, bset, stride, data, rows, cols, bargs, 32) < 0){
+  if(rgba_blit_dispatch(n, bset, stride, data, rows, cols, bargs) < 0){
 //fprintf(stderr, "rgba dispatch failed!\n");
     ret = -1;
   }

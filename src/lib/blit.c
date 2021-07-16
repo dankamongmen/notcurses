@@ -63,8 +63,7 @@ rgba_trans_q(const unsigned char* p, uint32_t transcolor){
 // Retarded RGBA blitter (ASCII only).
 static inline int
 tria_blit_ascii(ncplane* nc, int linesize, const void* data,
-                int leny, int lenx, const blitterargs* bargs,
-                int bpp){
+                int leny, int lenx, const blitterargs* bargs){
 //fprintf(stderr, "ASCII %d X %d @ %d X %d (%p) place: %d X %d\n", leny, lenx, bargs->begy, bargs->begx, data, bargs->u.cell.placey, bargs->u.cell.placex);
   const bool blendcolors = bargs->flags & NCVISUAL_OPTION_BLEND;
   int dimy, dimx, x, y;
@@ -85,8 +84,8 @@ tria_blit_ascii(ncplane* nc, int linesize, const void* data,
       if(x < 0){
         continue;
       }
-      const unsigned char* rgbbase_up = dat + (linesize * visy) + (visx * bpp / CHAR_BIT);
-//fprintf(stderr, "[%04d/%04d] bpp: %d lsize: %d %02x %02x %02x %02x\n", y, x, bpp, linesize, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2], rgbbase_up[3]);
+      const unsigned char* rgbbase_up = dat + (linesize * visy) + (visx * 4);
+//fprintf(stderr, "[%04d/%04d] lsize: %d %02x %02x %02x %02x\n", y, x, linesize, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2], rgbbase_up[3]);
       nccell* c = ncplane_cell_ref_yx(nc, y, x);
       // use the default for the background, as that's the only way it's
       // effective in that case anyway
@@ -118,7 +117,7 @@ tria_blit_ascii(ncplane* nc, int linesize, const void* data,
 // combined with 1:1 pixel aspect ratio.
 static inline int
 tria_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
-          const blitterargs* bargs, int bpp){
+          const blitterargs* bargs){
   const bool blendcolors = bargs->flags & NCVISUAL_OPTION_BLEND;
 //fprintf(stderr, "HALF %d X %d @ %d X %d (%p) place: %d X %d\n", leny, lenx, bargs->begy, bargs->begx, data, bargs->u.cell.placey, bargs->u.cell.placex);
   uint32_t transcolor = bargs->transcolor;
@@ -140,12 +139,12 @@ tria_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
       if(x < 0){
         continue;
       }
-      const unsigned char* rgbbase_up = dat + (linesize * visy) + (visx * bpp / CHAR_BIT);
+      const unsigned char* rgbbase_up = dat + (linesize * visy) + (visx * 4);
       const unsigned char* rgbbase_down = zeroes;
       if(visy < bargs->begy + leny - 1){
-        rgbbase_down = dat + (linesize * (visy + 1)) + (visx * bpp / CHAR_BIT);
+        rgbbase_down = dat + (linesize * (visy + 1)) + (visx * 4);
       }
-//fprintf(stderr, "[%04d/%04d] bpp: %d lsize: %d %02x %02x %02x %02x\n", y, x, bpp, linesize, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2], rgbbase_up[3]);
+//fprintf(stderr, "[%04d/%04d] lsize: %d %02x %02x %02x %02x\n", y, x, linesize, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2], rgbbase_up[3]);
       nccell* c = ncplane_cell_ref_yx(nc, y, x);
       // use the default for the background, as that's the only way it's
       // effective in that case anyway
@@ -450,7 +449,7 @@ qtrans_check(nccell* c, unsigned blendcolors,
 // our disposal (foreground and background), we lose some fidelity.
 static inline int
 quadrant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
-              const blitterargs* bargs, int bpp){
+              const blitterargs* bargs){
   const unsigned nointerpolate = bargs->flags & NCVISUAL_OPTION_NOINTERPOLATE;
   const bool blendcolors = bargs->flags & NCVISUAL_OPTION_BLEND;
   int dimy, dimx, x, y;
@@ -472,20 +471,20 @@ quadrant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
       if(x < 0){
         continue;
       }
-      const unsigned char* rgbbase_tl = dat + (linesize * visy) + (visx * bpp / CHAR_BIT);
+      const unsigned char* rgbbase_tl = dat + (linesize * visy) + (visx * 4);
       const unsigned char* rgbbase_tr = zeroes;
       const unsigned char* rgbbase_bl = zeroes;
       const unsigned char* rgbbase_br = zeroes;
       if(visx < bargs->begx + lenx - 1){
-        rgbbase_tr = dat + (linesize * visy) + ((visx + 1) * bpp / CHAR_BIT);
+        rgbbase_tr = dat + (linesize * visy) + ((visx + 1) * 4);
         if(visy < bargs->begy + leny - 1){
-          rgbbase_br = dat + (linesize * (visy + 1)) + ((visx + 1) * bpp / CHAR_BIT);
+          rgbbase_br = dat + (linesize * (visy + 1)) + ((visx + 1) * 4);
         }
       }
       if(visy < bargs->begy + leny - 1){
-        rgbbase_bl = dat + (linesize * (visy + 1)) + (visx * bpp / CHAR_BIT);
+        rgbbase_bl = dat + (linesize * (visy + 1)) + (visx * 4);
       }
-//fprintf(stderr, "[%04d/%04d] bpp: %d lsize: %d %02x %02x %02x %02x\n", y, x, bpp, linesize, rgbbase_tl[0], rgbbase_tr[1], rgbbase_bl[2], rgbbase_br[3]);
+//fprintf(stderr, "[%04d/%04d] lsize: %d %02x %02x %02x %02x\n", y, x, linesize, rgbbase_tl[0], rgbbase_tr[1], rgbbase_bl[2], rgbbase_br[3]);
       nccell* c = ncplane_cell_ref_yx(nc, y, x);
       c->channels = 0;
       c->stylemask = 0;
@@ -671,7 +670,7 @@ sex_trans_check(cell* c, const uint32_t rgbas[6], unsigned blendcolors,
 // our disposal (foreground and background), we lose some fidelity.
 static inline int
 sextant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
-             const blitterargs* bargs, int bpp){
+             const blitterargs* bargs){
   const unsigned nointerpolate = bargs->flags & NCVISUAL_OPTION_NOINTERPOLATE;
   const bool blendcolors = bargs->flags & NCVISUAL_OPTION_BLEND;
   int dimy, dimx, x, y;
@@ -693,20 +692,20 @@ sextant_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
         continue;
       }
       uint32_t rgbas[6] = { 0, 0, 0, 0, 0, 0 };
-      memcpy(&rgbas[0], (dat + (linesize * visy) + (visx * bpp / CHAR_BIT)), sizeof(*rgbas));
+      memcpy(&rgbas[0], (dat + (linesize * visy) + (visx * 4)), sizeof(*rgbas));
       if(visx < bargs->begx + lenx - 1){
-        memcpy(&rgbas[1], (dat + (linesize * visy) + ((visx + 1) * bpp / CHAR_BIT)), sizeof(*rgbas));
+        memcpy(&rgbas[1], (dat + (linesize * visy) + ((visx + 1) * 4)), sizeof(*rgbas));
         if(visy < bargs->begy + leny - 1){
-          memcpy(&rgbas[3], (dat + (linesize * (visy + 1)) + ((visx + 1) * bpp / CHAR_BIT)), sizeof(*rgbas));
+          memcpy(&rgbas[3], (dat + (linesize * (visy + 1)) + ((visx + 1) * 4)), sizeof(*rgbas));
           if(visy < bargs->begy + leny - 2){
-            memcpy(&rgbas[5], (dat + (linesize * (visy + 2)) + ((visx + 1) * bpp / CHAR_BIT)), sizeof(*rgbas));
+            memcpy(&rgbas[5], (dat + (linesize * (visy + 2)) + ((visx + 1) * 4)), sizeof(*rgbas));
           }
         }
       }
       if(visy < bargs->begy + leny - 1){
-        memcpy(&rgbas[2], (dat + (linesize * (visy + 1)) + (visx * bpp / CHAR_BIT)), sizeof(*rgbas));
+        memcpy(&rgbas[2], (dat + (linesize * (visy + 1)) + (visx * 4)), sizeof(*rgbas));
         if(visy < bargs->begy + leny - 2){
-          memcpy(&rgbas[4], (dat + (linesize * (visy + 2)) + (visx * bpp / CHAR_BIT)), sizeof(*rgbas));
+          memcpy(&rgbas[4], (dat + (linesize * (visy + 2)) + (visx * 4)), sizeof(*rgbas));
         }
       }
       nccell* c = ncplane_cell_ref_yx(nc, y, x);
@@ -746,7 +745,7 @@ fold_rgb8(unsigned* restrict r, unsigned* restrict g, unsigned* restrict b,
 // resolution. always transparent background.
 static inline int
 braille_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
-             const blitterargs* bargs, int bpp){
+             const blitterargs* bargs){
   const bool blendcolors = bargs->flags & NCVISUAL_OPTION_BLEND;
   int dimy, dimx, x, y;
   int total = 0; // number of cells written
@@ -766,7 +765,7 @@ braille_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
       if(x < 0){
         continue;
       }
-      const uint32_t* rgbbase_l0 = (const uint32_t*)(dat + (linesize * visy) + (visx * bpp / CHAR_BIT));
+      const uint32_t* rgbbase_l0 = (const uint32_t*)(dat + (linesize * visy) + (visx * 4));
       const uint32_t* rgbbase_r0 = &zeroes32;
       const uint32_t* rgbbase_l1 = &zeroes32;
       const uint32_t* rgbbase_r1 = &zeroes32;
@@ -778,23 +777,23 @@ braille_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
       unsigned blends = 0;
       unsigned egcidx = 0;
       if(visx < bargs->begx + lenx - 1){
-        rgbbase_r0 = (const uint32_t*)(dat + (linesize * visy) + ((visx + 1) * bpp / CHAR_BIT));
+        rgbbase_r0 = (const uint32_t*)(dat + (linesize * visy) + ((visx + 1) * 4));
         if(visy < bargs->begy + leny - 1){
-          rgbbase_r1 = (const uint32_t*)(dat + (linesize * (visy + 1)) + ((visx + 1) * bpp / CHAR_BIT));
+          rgbbase_r1 = (const uint32_t*)(dat + (linesize * (visy + 1)) + ((visx + 1) * 4));
           if(visy < bargs->begy + leny - 2){
-            rgbbase_r2 = (const uint32_t*)(dat + (linesize * (visy + 2)) + ((visx + 1) * bpp / CHAR_BIT));
+            rgbbase_r2 = (const uint32_t*)(dat + (linesize * (visy + 2)) + ((visx + 1) * 4));
             if(visy < bargs->begy + leny - 3){
-              rgbbase_r3 = (const uint32_t*)(dat + (linesize * (visy + 3)) + ((visx + 1) * bpp / CHAR_BIT));
+              rgbbase_r3 = (const uint32_t*)(dat + (linesize * (visy + 3)) + ((visx + 1) * 4));
             }
           }
         }
       }
       if(visy < bargs->begy + leny - 1){
-        rgbbase_l1 = (const uint32_t*)(dat + (linesize * (visy + 1)) + (visx * bpp / CHAR_BIT));
+        rgbbase_l1 = (const uint32_t*)(dat + (linesize * (visy + 1)) + (visx * 4));
         if(visy < bargs->begy + leny - 2){
-          rgbbase_l2 = (const uint32_t*)(dat + (linesize * (visy + 2)) + (visx * bpp / CHAR_BIT));
+          rgbbase_l2 = (const uint32_t*)(dat + (linesize * (visy + 2)) + (visx * 4));
           if(visy < bargs->begy + leny - 3){
-            rgbbase_l3 = (const uint32_t*)(dat + (linesize * (visy + 3)) + (visx * bpp / CHAR_BIT));
+            rgbbase_l3 = (const uint32_t*)(dat + (linesize * (visy + 3)) + (visx * 4));
           }
         }
       }
@@ -836,7 +835,7 @@ braille_blit(ncplane* nc, int linesize, const void* data, int leny, int lenx,
         egcidx |= 128u;
         fold_rgb8(&r, &g, &b, rgbbase_r3, &blends);
       }
-//fprintf(stderr, "[%04d/%04d] bpp: %d lsize: %d %02x %02x %02x %02x\n", y, x, bpp, linesize, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2], rgbbase_up[3]);
+//fprintf(stderr, "[%04d/%04d] lsize: %d %02x %02x %02x %02x\n", y, x, linesize, rgbbase_up[0], rgbbase_up[1], rgbbase_up[2], rgbbase_up[3]);
       nccell* c = ncplane_cell_ref_yx(nc, y, x);
       // use the default for the background, as that's the only way it's
       // effective in that case anyway
@@ -1076,7 +1075,7 @@ int ncblit_rgba(const void* data, int linesize, const struct ncvisual_options* v
       },
     },
   };
-  return bset->blit(nc, linesize, data, leny, lenx, &bargs, 32);
+  return bset->blit(nc, linesize, data, leny, lenx, &bargs);
 }
 
 ncblitter_e ncvisual_media_defblitter(const notcurses* nc, ncscale_e scale){

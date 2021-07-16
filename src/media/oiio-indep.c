@@ -6,9 +6,8 @@
 
 int oiio_blit_dispatch(struct ncplane* nc, const struct blitset* bset,
                        int linesize, const void* data,
-                       int leny, int lenx, const blitterargs* bargs,
-                       int bpp){
-  if(rgba_blit_dispatch(nc, bset, linesize, data, leny, lenx, bargs, bpp) < 0){
+                       int leny, int lenx, const blitterargs* bargs){
+  if(rgba_blit_dispatch(nc, bset, linesize, data, leny, lenx, bargs) < 0){
     return -1;
   }
   return 0;
