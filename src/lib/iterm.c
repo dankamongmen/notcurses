@@ -2,6 +2,7 @@
 // https://iterm2.com/documentation-images.html
 
 #include <stdio.h>
+#include "internal.h"
 #include "termdesc.h"
 #include "sprite.h"
 
@@ -17,17 +18,47 @@ int iterm_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
 }
 
 // spit out the control sequence and data.
-int iterm_draw(const struct ncpile *p, sprixel* s, FILE* out, int y, int x){
+int iterm_draw(const ncpile *p, sprixel* s, FILE* out, int y, int x){
   return 0;
 }
 
 // damage any cells underneath the graphic, destroying it.
-int iterm_scrub(const struct ncpile* p, sprixel* s){
+int iterm_scrub(const ncpile* p, sprixel* s){
   return 0;
 }
 
 // create an iterm2 control sequence complete with base64-encoded PNG.
-int iterm_blit(struct ncplane* nc, int linesize, const void* data,
-               int leny, int lenx, const struct blitterargs* bargs){
+int iterm_blit(ncplane* n, int linesize, const void* data,
+               int leny, int lenx, const blitterargs* bargs){
+  int cols = bargs->u.pixel.spx->dimx;
+  int rows = bargs->u.pixel.spx->dimy;
+  sprixel* s = bargs->u.pixel.spx;
+  tament* tam = NULL;
+  bool reuse = false;
+  // if we have a sprixel attached to this plane, see if we can reuse it
+  // (we need the same dimensions) and thus immediately apply its T-A table.
+  if(n->tam){
+    if(n->leny == rows && n->lenx == cols){
+      tam = n->tam;
+      reuse = true;
+    }
+  }
+  int parse_start = 0;
+  if(!reuse){
+    tam = malloc(sizeof(*tam) * rows * cols);
+    if(tam == NULL){
+      goto error;
+    }
+    memset(tam, 0, sizeof(*tam) * rows * cols);
+  }
+  if(plane_blit_sixel(s, s->glyph, s->glyphlen, leny, lenx, 0, tam) < 0){
+    goto error;
+  }
   return 0;
+
+error:
+  if(!reuse){
+    free(tam);
+  }
+  return -1;
 }
