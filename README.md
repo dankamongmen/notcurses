@@ -50,7 +50,8 @@ sudo apt-get update
 [![Sponsor](https://img.shields.io/badge/-Sponsor-red?logo=github)](https://github.com/sponsors/dankamongmen)
 
 [![Build](https://drone.dsscaw.com:4443/api/badges/dankamongmen/notcurses/status.svg)](https://drone.dsscaw.com:4443/dankamongmen/notcurses)
-[![🐧 UbuntuTests](https://github.com/dankamongmen/notcurses/actions/workflows/ubuntu_test.yml/badge.svg)](https://github.com/dankamongmen/notcurses/actions/workflows/ubuntu_test.yml)
+[![Ubuntu](https://github.com/dankamongmen/notcurses/actions/workflows/ubuntu_test.yml/badge.svg?branch=master)](https://github.com/dankamongmen/notcurses/actions/workflows/ubuntu_test.yml?query=branch%3Amaster)
+[![macOS](https://github.com/dankamongmen/notcurses/actions/workflows/macos_test.yml/badge.svg?branch=master)](https://github.com/dankamongmen/notcurses/actions/workflows/macos_test.yml?query=branch%3Amaster)
 
 [![pypi_version](https://img.shields.io/pypi/v/notcurses?label=pypi)](https://pypi.org/project/notcurses)
 [![crates.io](https://img.shields.io/crates/v/libnotcurses-sys.svg)](https://crates.io/crates/libnotcurses-sys)

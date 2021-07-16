@@ -19,13 +19,22 @@ from os import environ
 
 from setuptools import Extension, setup
 
+from sys import platform
+
 if environ.get('CFLAGS') is None:
-    environ['CFLAGS'] = (
-        "-Werror "
-        "-Wextra -Wconversion -Wall")
+    if platform == "darwin":
+        environ['CFLAGS'] = (
+            "-Wextra -Wconversion -Wall")
+    else:
+        environ['CFLAGS'] = (
+            "-Werror "
+            "-Wextra -Wconversion -Wall")
 
 if environ.get('LDFLAGS') is None:
-    environ['LDFLAGS'] = "-Wl,--no-as-needed"
+    if platform == "darwin":
+        environ['LDFLAGS'] = "-Wl,-all_load"
+    else:
+        environ['LDFLAGS'] = "-Wl,--no-as-needed"
 
 setup(
     name="notcurses",

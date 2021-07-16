@@ -1,8 +1,11 @@
 ---
-name: 🍎 MacOS Tests
+name: macOS
 
 on:
-  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - master
 
 jobs:
   tests:
@@ -10,6 +13,7 @@ jobs:
       COLORTERM: truecolor
       NPROC: 2
       TERM: xterm
+    name: 🍎 build, test, & install
     runs-on: macos-latest
 
     steps:
@@ -27,24 +31,27 @@ jobs:
 
       - uses: actions/checkout@v2
 
-      - name: cmake
+      - name: Build libqrcodegen
         run: |
-          pushd .
           mkdir "${HOME}/repos" && cd "${HOME}/repos"
           git clone https://github.com/nayuki/QR-Code-generator.git
           cd QR-Code-generator/c
           AR=/usr/local/opt/llvm/bin/llvm-ar
           make AR="${AR}"
-          PREFIX=/usr/local
-          cd ${PREFIX}/include && \
-            ln -s "${HOME}/repos/QR-Code-generator/c" qrcodegen
-          cd ${PREFIX}/lib && \
-            ln -s "${HOME}/repos/QR-Code-generator/c/libqrcodegen.a" .
-          popd
+          mkdir -p "${HOME}"/opt/qrcodegen/{include,lib}
+          cd "${HOME}/opt/qrcodegen/include" \
+            && ln -s "${HOME}/repos/QR-Code-generator/c" ./qrcodegen
+          cd "${HOME}/opt/qrcodegen/lib" \
+            && ln -s "${HOME}/repos/QR-Code-generator/c/libqrcodegen.a" ./libqrcodegen.a
+          cd /usr/local/opt && ln -s "${HOME}/opt/qrcodegen" ./qrcodegen
+
+      - name: cmake
+        run: |
+          export PKG_CONFIG_PATH="/usr/local/opt/ncurses/lib/pkgconfig:/usr/local/opt/readline/lib/pkgconfig"
           mkdir build && cd build
           cmake .. \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_C_FLAGS="-I/usr/local/include -L/usr/local/lib" \
+            -DCMAKE_C_FLAGS="-I/usr/local/opt/qrcodegen/include -L/usr/local/opt/qrcodegen/lib" \
             -DUSE_QRCODEGEN=on
 
       - name: make
@@ -61,20 +68,27 @@ jobs:
         run: |
           cd build
           sudo make install
-          sudo ldconfig
 
-      - name: python wrappers
+      - name: python wrappers (old)
         run: |
           python3 -m pip install --upgrade pip
-          pip install pypandoc
+          pip install cffi pypandoc
           cd cffi
           python3 setup.py sdist build
           sudo python3 setup.py install
           notcurses-pydemo > /dev/null
           ncdirect-pydemo > /dev/null
 
+      - name: python wrappers (new)
+        run: |
+         cd python
+         python3 setup.py build
+         sudo python3 setup.py install
+         python3 examples/000-print-version.py
+
       - name: rust wrappers
         run: |
+          export PKG_CONFIG_PATH="/usr/local/libdata/pkgconfig"
           cd rust
           rustc --version
           cargo build
