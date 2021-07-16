@@ -1,9 +1,11 @@
 #include <zlib.h>
+#include <sys/mman.h>
 #include <inttypes.h>
 #include <stdatomic.h>
 #include <arpa/inet.h>
 #include "visual-details.h"
 #include "internal.h"
+#include "base64.h"
 #include "png.h"
 
 // http://www.libpng.org/pub/png/spec/1.2/PNG-Contents.html
@@ -16,6 +18,7 @@
 // [loser] languages which have difficulty dealing with unsigned values."
 #define CHUNK_MAX_DATA 0x80000000llu
 static const unsigned char PNGHEADER[] = "\x89PNG\x0d\x0a\x1a\x0a";
+static const unsigned char IEND[] = "\x00\x00\x00\x00IEND\xae\x42\x60\x82";
 
 // FIXME replace with PCLMULQDQ method (and ARM CRC32 instruction)
 // this is taken from the PNG reference
@@ -61,15 +64,15 @@ crc(const unsigned char *buf, int len){
 // compress the ncvisual data suitably for PNG. this requires adding a byte
 // of filter type (currently always 0) before each scanline =[.
 static void*
-compress_image(const ncvisual* ncv, size_t* dlen){
-  z_stream zctx;
+compress_image(const void* data, int rows, int rowstride, int cols, size_t* dlen){
+  z_stream zctx = { };
   int zret;
   if((zret = deflateInit(&zctx, Z_DEFAULT_COMPRESSION)) != Z_OK){
     logerror("Couldn't get a deflate context (%d)\n", zret);
     return NULL;
   }
   // one byte per scanline for adaptive filtering type (always 0 for now)
-  uint64_t databytes = ncv->pixx * ncv->pixy * 4 + ncv->pixy;
+  uint64_t databytes = cols * rows * 4 + rows;
   unsigned long bound = deflateBound(&zctx, databytes);
   unsigned char* buf = malloc(bound);
   if(buf == NULL){
@@ -80,22 +83,23 @@ compress_image(const ncvisual* ncv, size_t* dlen){
   zctx.next_out = buf;
   zctx.avail_out = bound;
   // enough space for a single scanline + filter byte
-  unsigned char* sbuf = malloc(1 + ncv->pixx * 4);
+  unsigned char* sbuf = malloc(1 + cols * 4);
   if(sbuf == NULL){
-    logerror("Couldn't allocate %zuB\n", 1 + ncv->pixx * 4);
-    deflateEnd(&zctx);
+    logerror("Couldn't allocate %zuB\n", 1 + cols * 4);
     free(buf);
+    deflateEnd(&zctx);
     return NULL;
   }
-  for(int i = 0 ; i < ncv->pixy ; ++i){
+  for(int i = 0 ; i < rows ; ++i){
     if(zctx.avail_out == 0){
       free(buf);
       free(sbuf);
+      deflateEnd(&zctx);
       return NULL;
     }
-    zctx.avail_in = ncv->pixx * 4 + 1;
+    zctx.avail_in = cols * 4 + 1;
     sbuf[0] = 0;
-    memcpy(sbuf + 1, ncv->data + ncv->rowstride * i, ncv->pixx * 4);
+    memcpy(sbuf + 1, data + rowstride * i, cols * 4);
     zctx.next_in = sbuf;
     if((zret = deflate(&zctx, Z_NO_FLUSH)) != Z_OK){
       logerror("Error deflating %dB to %dB (%d)\n", zctx.avail_in, zctx.avail_out, zret);
@@ -123,8 +127,9 @@ compress_image(const ncvisual* ncv, size_t* dlen){
 
 // number of bytes necessary to encode (uncompressed) the visual specified by
 // |ncv|. on error, *|deflated| will be NULL.
-size_t compute_png_size(const ncvisual* ncv, void** deflated, size_t* dlen){
-  if((*deflated = compress_image(ncv, dlen)) == NULL){
+size_t compute_png_size(const void* data, int rows, int rowstride, int cols,
+                        void** deflated, size_t* dlen){
+  if((*deflated = compress_image(data, rows, rowstride, cols, dlen)) == NULL){
     return 0;
   }
 //fprintf(stderr, "ACTUAL: %zu (0x%02x) (0x%02x)\n", *dlen, (*(char **)deflated)[*dlen - 1], (*(char**)deflated)[20]);
@@ -150,21 +155,21 @@ chunk_crc(const unsigned char* buf){
     logerror("Chunk length too large (%lu)\n", length);
     return 0;
   }
-  length += 4; // don't use length or crc fields
+  length += 4; // don't use length or crc fields (but type *is* covered)
   uint32_t crc32 = htonl(crc(buf + 4, length));
   return crc32;
 }
 
 // write the ihdr at |buf|, which is guaranteed to be large enough (25B).
 static size_t
-write_ihdr(const ncvisual* ncv, unsigned char* buf){
+write_ihdr(int rows, int cols, unsigned char buf[static 25]){
   uint32_t length = htonl(IHDR_DATA_BYTES);
   memcpy(buf, &length, 4);
   static const char ctype[] = "IHDR";
   memcpy(buf + 4, ctype, 4);
-  uint32_t width = htonl(ncv->pixx);
+  uint32_t width = htonl(cols);
   memcpy(buf + 8, &width, 4);
-  uint32_t height = htonl(ncv->pixy);
+  uint32_t height = htonl(rows);
   memcpy(buf + 12, &height, 4);
   uint8_t depth = 8;                  // 8 bits per channel
   memcpy(buf + 16, &depth, 1);
@@ -208,8 +213,7 @@ write_idats(unsigned char* buf, const unsigned char* data, size_t dlen){
 // write the constant 12B IEND chunk at |buf|. it contains no data.
 static size_t
 write_iend(unsigned char* buf){
-  static const char iend[] = "\x00\x00\x00\x00IEND\xae\x42\x60\x82";
-  memcpy(buf, iend, CHUNK_DESC_BYTES);
+  memcpy(buf, IEND, CHUNK_DESC_BYTES);
   return CHUNK_DESC_BYTES;
 }
 
@@ -217,11 +221,11 @@ write_iend(unsigned char* buf){
 // deflated data |deflated| of |dlen| bytes. |buf| must be large enough to
 // write all necessary data; it ought have been sized with compute_png_size().
 static size_t
-create_png(const ncvisual* ncv, void* buf, const unsigned char* deflated,
+create_png(int rows, int cols, void* buf, const unsigned char* deflated,
            size_t dlen){
   size_t written = sizeof(PNGHEADER) - 1;
   memcpy(buf, PNGHEADER, written);
-  size_t r = write_ihdr(ncv, (unsigned char*)buf + written);
+  size_t r = write_ihdr(rows, cols, (unsigned char*)buf + written);
   written += r;
   r = write_idats((unsigned char*)buf + written, deflated, dlen);
   written += r;
@@ -239,12 +243,14 @@ mmap_round_size(size_t s){
 // write a PNG, creating the buffer ourselves. it must be munmapped. the
 // resulting length is written to *bsize on success (the file/map might be
 // larger than this, but the end is immaterial padding). returns MMAP_FAILED
-// on a failure. if |fd| is negative, an anonymous map will be made.
-void* create_png_mmap(const ncvisual* ncv, size_t* bsize, int fd){
+// on a failure. if |fd| is negative, an anonymous map will be made. |rows|
+// and |cols| are in pixels; |rowstride| is in bytes.
+void* create_png_mmap(const void* data, int rows, int rowstride, int cols,
+                      size_t* bsize, int fd){
   void* deflated;
   size_t dlen;
   size_t mlen;
-  *bsize = compute_png_size(ncv, &deflated, &dlen);
+  *bsize = compute_png_size(data, rows, rowstride, cols, &deflated, &dlen);
   if(deflated == NULL){
     logerror("Couldn't compress to %d\n", fd);
     return MAP_FAILED;
@@ -262,19 +268,14 @@ void* create_png_mmap(const ncvisual* ncv, size_t* bsize, int fd){
     loginfo("Set size of %d to %zuB\n", fd, mlen);
   }
   // FIXME hugetlb?
-  void* map = mmap(NULL, mlen, PROT_WRITE | PROT_READ,
-#ifdef MAP_SHARED_VALIDATE
-                   MAP_SHARED_VALIDATE |
-#else
-                   MAP_SHARED |
-#endif
+  void* map = mmap(NULL, mlen, PROT_WRITE | PROT_READ, MAP_SHARED |
                    (fd >= 0 ? 0 : MAP_ANONYMOUS), fd, 0);
   if(map == MAP_FAILED){
-    logerror("Couldn't get %zuB map for %d\n", mlen, fd);
+    logerror("Couldn't get %zuB map for %d (%s)\n", mlen, fd, strerror(errno));
     free(deflated);
     return MAP_FAILED;
   }
-  size_t w = create_png(ncv, map, deflated, dlen);
+  size_t w = create_png(rows, cols, map, deflated, dlen);
   free(deflated);
   loginfo("Wrote %zuB PNG to %d\n", w, fd);
   if(fd >= 0){
@@ -285,4 +286,116 @@ void* create_png_mmap(const ncvisual* ncv, size_t* bsize, int fd){
     }
   }
   return map;
+}
+
+struct b64ctx {
+  unsigned char src[3]; // try to convert three at a time
+  size_t srcidx;        // how many src bytes we have
+};
+
+static int
+fwrite64(const void* src, size_t osize, FILE* fp, struct b64ctx* bctx){
+  size_t w = 0;
+  char b64[4];
+  if(bctx->srcidx){
+    size_t copy = sizeof(bctx->src) - bctx->srcidx;
+    // the unlikely event that we don't fill the bctx with our entire chunk...
+    if(copy > osize){
+      memcpy(bctx->src + bctx->srcidx, src, osize);
+      bctx->srcidx += osize;
+      return 0;
+    }
+    memcpy(bctx->src + bctx->srcidx, src, copy);
+    base64x3(bctx->src, b64);
+    bctx->srcidx = 0;
+    if(fwrite(b64, 4, 1, fp) != 1){
+      return -1;
+    }
+    w = copy;
+  }
+  // the bctx is now guaranteed to be empty
+  while(w + 3 <= osize){
+    base64x3((const unsigned char*)src + w, b64);
+    if(fwrite(b64, 4, 1, fp) != 1){
+      return -1;
+    }
+    w += 3;
+  }
+  // less than 3 remain; copy them into the bctx for further use
+  if(w < osize){
+    bctx->srcidx = osize - w;
+    memcpy(bctx->src, src + w, bctx->srcidx);
+  }
+  return 1;
+}
+
+static size_t
+fwrite_idats(FILE* fp, const unsigned char* data, size_t dlen,
+             struct b64ctx* bctx){
+  static const char ctype[] = "IDAT";
+  uint32_t written = 0;
+  uint32_t dwritten = 0;
+  while(dlen){
+    uint32_t thischunk = dlen;
+    if(thischunk > CHUNK_MAX_DATA){
+      thischunk = CHUNK_MAX_DATA;
+    }
+    uint32_t nclen = htonl(thischunk);
+    if(fwrite64(&nclen, 4, fp, bctx) != 1 ||
+       fwrite64(ctype, 4, fp, bctx) != 1 ||
+       fwrite64(data + dwritten, thischunk, fp, bctx) != 1){
+      return 0;
+    }
+// FIXME horrible; PoC; do not retain!
+unsigned char* crcbuf = malloc(thischunk + 8);
+memcpy(crcbuf, &nclen, 4);
+memcpy(crcbuf + 4, ctype, 4);
+memcpy(crcbuf + 8, data + dwritten, thischunk);
+// END horribleness
+    uint32_t crc = chunk_crc(crcbuf);
+free(crcbuf); // FIXME well a bit more
+    if(fwrite64(&crc, 4, fp, bctx) != 1){
+      return 0;
+    }
+    dlen -= thischunk;
+    dwritten += thischunk;
+    written += CHUNK_DESC_BYTES + thischunk;
+  }
+  return written;
+}
+
+int write_png_b64(const void* data, int rows, int rowstride, int cols, FILE* fp){
+  void* deflated;
+  size_t dlen;
+  compute_png_size(data, rows, rowstride, cols, &deflated, &dlen);
+  if(deflated == NULL){
+    return -1;
+  }
+  struct b64ctx bctx = { };
+  if(fwrite64(PNGHEADER, sizeof(PNGHEADER) - 1, fp, &bctx) != 1){
+    free(deflated);
+    return -1;
+  }
+  unsigned char ihdr[25];
+  write_ihdr(rows, cols, ihdr);
+  if(fwrite64(ihdr, sizeof(ihdr), fp, &bctx) != 1){
+    free(deflated);
+    return -1;
+  }
+  if(fwrite_idats(fp, deflated, dlen, &bctx) == 0){
+    free(deflated);
+    return -1;
+  }
+  free(deflated);
+  if(fwrite64(IEND, sizeof(IEND) - 1, fp, &bctx) != 1){
+    return -1;
+  }
+  if(bctx.srcidx){
+    char b64[4];
+    base64final(bctx.src, b64, bctx.srcidx);
+    if(fwrite(b64, 4, 1, fp) != 1){
+      return -1;
+    }
+  }
+  return 0;
 }

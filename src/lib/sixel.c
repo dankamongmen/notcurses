@@ -728,7 +728,7 @@ sixel_blit_inner(int leny, int lenx, sixeltable* stab,
 // |leny| and |lenx| are the scaled output geometry. we take |leny| up to the
 // nearest multiple of six greater than or equal to |leny|.
 int sixel_blit(ncplane* n, int linesize, const void* data, int leny, int lenx,
-               const blitterargs* bargs, int bpp __attribute__ ((unused))){
+               const blitterargs* bargs){
   int colorregs = bargs->u.pixel.colorregs;
   if(colorregs > 256){
     colorregs = 256;

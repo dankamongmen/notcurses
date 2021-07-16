@@ -55,11 +55,33 @@ setup_sixel_bitmaps(tinfo* ti, int fd, bool invert80){
   ti->pixel_draw = sixel_draw;
   ti->pixel_scrub = sixel_scrub;
   ti->pixel_wipe = sixel_wipe;
+  ti->pixel_remove = NULL;
+  ti->pixel_move = NULL;
   ti->pixel_shutdown = sixel_shutdown;
   ti->pixel_rebuild = sixel_rebuild;
   ti->pixel_trans_auxvec = sixel_trans_auxvec;
   ti->sprixel_scale_height = 6;
   set_pixel_blitter(sixel_blit);
+  sprite_init(ti, fd);
+}
+
+// iterm2 has a container-based protocol
+static inline void
+setup_iterm_bitmaps(tinfo* ti, int fd){
+  ti->pixel_init = NULL;
+  ti->pixel_shutdown = NULL;
+  ti->sprixel_scale_height = 1;
+  ti->pixel_remove = NULL;
+  // be awarre: absence of pixel_move plus absence of sixel details is used by
+  // notcurses-info to determine iTerm2 support.
+  ti->pixel_move = NULL;
+  ti->color_registers = 0;
+  ti->pixel_draw = iterm_draw;
+  ti->pixel_scrub = iterm_scrub;
+  ti->pixel_wipe = iterm_wipe;
+  ti->pixel_rebuild = iterm_rebuild;
+  ti->pixel_trans_auxvec = kitty_trans_auxvec;
+  set_pixel_blitter(iterm_blit);
   sprite_init(ti, fd);
 }
 
@@ -495,9 +517,9 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
       if(add_smulx_escapes(ti, tablelen, tableused)){
         return -1;
       }
-    }else{
-      termname = "XTerm";
     }
+    // we don't yet want to use the iterm2 protocol in place of sixel
+    //setup_iterm_bitmaps(ti, fd);
   }else if(qterm == TERMINAL_XTERM){
     termname = "XTerm";
     // xterm 357 added color palette escapes XT{PUSH,POP,REPORT}COLORS
@@ -511,10 +533,11 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
     ti->caps.quadrants = true;
     ti->caps.rgb = true;
   }else if(qterm == TERMINAL_ITERM){
-    // iTerm implements DCS ASU, but no detection for it
+    // iTerm implements DCS ASU, but has no detection for it
     if(add_appsync_escapes_dcs(ti, tablelen, tableused)){
       return -1;
     }
+    setup_iterm_bitmaps(ti, fd);
   }else if(qterm == TERMINAL_LINUX){
     struct utsname un;
     if(uname(&un) == 0){

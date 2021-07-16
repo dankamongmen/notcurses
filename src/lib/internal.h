@@ -404,8 +404,7 @@ typedef struct blitterargs {
 // from scaling. we might actually need more pixels due to framing concerns,
 // in which case just assume transparent input pixels where needed.
 typedef int (*ncblitter)(struct ncplane* n, int linesize, const void* data,
-                         int scaledy, int scaledx, const blitterargs* bargs,
-                         int bpp);
+                         int scaledy, int scaledx, const blitterargs* bargs);
 
 // a system for rendering RGBA pixels as text glyphs or sixel/kitty bitmaps
 struct blitset {
@@ -1599,9 +1598,8 @@ const struct blitset* lookup_blitset(const tinfo* tcache, ncblitter_e setid, boo
 static inline int
 rgba_blit_dispatch(ncplane* nc, const struct blitset* bset,
                    int linesize, const void* data,
-                   int leny, int lenx, const blitterargs* bargs,
-                   int bpp){
-  return bset->blit(nc, linesize, data, leny, lenx, bargs, bpp);
+                   int leny, int lenx, const blitterargs* bargs){
+  return bset->blit(nc, linesize, data, leny, lenx, bargs);
 }
 
 static inline const struct blitset*

@@ -164,14 +164,19 @@ int kitty_wipe(sprixel* s, int ycell, int xcell);
 // wipes out a cell by animating an all-transparent cell, and integrating
 // it with the original image using the animation protocol of 0.20.0+.
 int kitty_wipe_animation(sprixel* s, int ycell, int xcell);
+// wipes out a cell by changing the alpha value throughout the PNG cell to 0.
+int iterm_wipe(sprixel* s, int ycell, int xcell);
 int sixel_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
 int kitty_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
+int iterm_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
 int kitty_rebuild_animation(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
-int kitty_draw(const struct ncpile *p, sprixel* s, FILE* out, int y, int x);
-int kitty_move(sprixel* s, FILE* out, unsigned noscroll);
 int sixel_draw(const struct ncpile *p, sprixel* s, FILE* out, int y, int x);
+int kitty_draw(const struct ncpile *p, sprixel* s, FILE* out, int y, int x);
+int iterm_draw(const struct ncpile *p, sprixel* s, FILE* out, int y, int x);
+int kitty_move(sprixel* s, FILE* out, unsigned noscroll);
 int sixel_scrub(const struct ncpile* p, sprixel* s);
 int kitty_scrub(const struct ncpile* p, sprixel* s);
+int iterm_scrub(const struct ncpile* p, sprixel* s);
 int kitty_remove(int id, FILE* out);
 int kitty_clear_all(FILE* fp);
 int sixel_init(const tinfo* t, int fd);
@@ -182,12 +187,13 @@ uint8_t* sixel_trans_auxvec(const struct tinfo* ti);
 uint8_t* kitty_trans_auxvec(const struct tinfo* ti);
 int kitty_commit(FILE* fp, sprixel* s, unsigned noscroll);
 int sixel_blit(struct ncplane* nc, int linesize, const void* data,
-               int leny, int lenx, const struct blitterargs* bargs, int bpp);
+               int leny, int lenx, const struct blitterargs* bargs);
 int kitty_blit(struct ncplane* nc, int linesize, const void* data,
-               int leny, int lenx, const struct blitterargs* bargs, int bpp);
+               int leny, int lenx, const struct blitterargs* bargs);
+int iterm_blit(struct ncplane* nc, int linesize, const void* data,
+               int leny, int lenx, const struct blitterargs* bargs);
 int kitty_blit_animated(struct ncplane* n, int linesize, const void* data,
-                        int leny, int lenx, const struct blitterargs* bargs,
-                        int bpp);
+                        int leny, int lenx, const struct blitterargs* bargs);
 
 #ifdef __cplusplus
 }
