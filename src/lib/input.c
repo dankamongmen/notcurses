@@ -888,7 +888,7 @@ stash_string(query_state* inits){
         { .prefix = "foot(", .suffix = ')', .term = TERMINAL_FOOT, },
         { .prefix = "mlterm(", .suffix = ')', .term = TERMINAL_MLTERM, },
         { .prefix = "tmux ", .suffix = 0, .term = TERMINAL_TMUX, },
-        { .prefix = "iTerm2 [", .suffix = ']', .term = TERMINAL_ITERM, },
+        { .prefix = "iTerm2 ", .suffix = 0, .term = TERMINAL_ITERM, },
         { .prefix = NULL, .suffix = 0, .term = TERMINAL_UNKNOWN, },
       }, *xtv;
       for(xtv = xtvers ; xtv->prefix ; ++xtv){
