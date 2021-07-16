@@ -9,7 +9,8 @@ extern "C" {
 
 struct ncvisual;
 
-void* create_png_mmap(const struct ncvisual* ncv, size_t* bsize, int fd);
+void* create_png_mmap(const void* data, int rows, int rowstride, int cols,
+                      size_t* bsize, int fd);
 
 #ifdef __cplusplus
 }

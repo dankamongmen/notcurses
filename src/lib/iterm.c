@@ -5,6 +5,7 @@
 #include "internal.h"
 #include "termdesc.h"
 #include "sprite.h"
+#include "png.h"
 
 // yank a cell out of the PNG by setting all of its alphas to 0. the alphas
 // will be preserved in the auxvec.
@@ -35,6 +36,7 @@ int iterm_blit(ncplane* n, int linesize, const void* data,
   sprixel* s = bargs->u.pixel.spx;
   tament* tam = NULL;
   bool reuse = false;
+  void* png = NULL;
   // if we have a sprixel attached to this plane, see if we can reuse it
   // (we need the same dimensions) and thus immediately apply its T-A table.
   if(n->tam){
@@ -51,7 +53,12 @@ int iterm_blit(ncplane* n, int linesize, const void* data,
     }
     memset(tam, 0, sizeof(*tam) * rows * cols);
   }
-  if(plane_blit_sixel(s, s->glyph, s->glyphlen, leny, lenx, 0, tam) < 0){
+  size_t bsize;
+  png = create_png_mmap(data, leny, linesize, lenx, &bsize, -1);
+  if(png == NULL){
+    goto error;
+  }
+  if(plane_blit_sixel(s, s->glyph, s->glyphlen, leny, lenx, parse_start, tam) < 0){
     goto error;
   }
   return 0;
@@ -60,5 +67,7 @@ error:
   if(!reuse){
     free(tam);
   }
+  free(png);
+  free(s->glyph);
   return -1;
 }
