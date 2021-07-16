@@ -518,7 +518,8 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
         return -1;
       }
     }
-    setup_iterm_bitmaps(ti, fd);
+    // we don't yet want to use the iterm2 protocol in place of sixel
+    //setup_iterm_bitmaps(ti, fd);
   }else if(qterm == TERMINAL_XTERM){
     termname = "XTerm";
     // xterm 357 added color palette escapes XT{PUSH,POP,REPORT}COLORS
