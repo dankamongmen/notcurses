@@ -325,6 +325,15 @@ typedef struct ncpile {
   sprixel* sprixelcache;      // list of sprixels
 } ncpile;
 
+// various moving parts within a notcurses context (and the user) might need to
+// access the stats object, so throw a lock on it. we don't want the lock in
+// the actual structure since (a) it's usually unnecessary and (b) it breaks
+// memset() and memcpy().
+typedef struct ncsharedstats {
+  pthread_mutex_t lock;
+  ncstats s;
+} ncsharedstats;
+
 // the standard pile can be reached through ->stdplane.
 typedef struct notcurses {
   ncplane* stdplane; // standard plane, covers screen
@@ -349,8 +358,8 @@ typedef struct notcurses {
   int cursory;    // desired cursor placement according to user.
   int cursorx;    // -1 is don't-care, otherwise moved here after each render.
 
-  ncstats stats;  // some statistics across the lifetime of the notcurses ctx
-  ncstats stashed_stats; // retain across a notcurses_stats_reset(), to print in closing banner
+  ncsharedstats stats;   // some statistics across the lifetime of the context
+  ncstats stashed_stats; // retain across a context reset, for closing banner
 
   FILE* ttyfp;    // FILE* for writing rasterized data
   int ttyfd;      // file descriptor for controlling tty

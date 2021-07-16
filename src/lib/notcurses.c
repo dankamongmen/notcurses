@@ -317,8 +317,8 @@ void free_plane(ncplane* p){
     if(ncplane_pile(p)){
       notcurses* nc = ncplane_notcurses(p);
       pthread_mutex_lock(&nc->stats.lock);
-        --ncplane_notcurses(p)->stats.planes;
-        ncplane_notcurses(p)->stats.fbbytes -= sizeof(*p->fb) * p->leny * p->lenx;
+        --ncplane_notcurses(p)->stats.s.planes;
+        ncplane_notcurses(p)->stats.s.fbbytes -= sizeof(*p->fb) * p->leny * p->lenx;
       pthread_mutex_unlock(&nc->stats.lock);
       if(p->above == NULL && p->below == NULL){
         pthread_mutex_lock(&nc->pilelock);
@@ -505,8 +505,8 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
         make_ncpile(nc, p);
       }
       pthread_mutex_lock(&nc->stats.lock);
-        nc->stats.fbbytes += fbsize;
-        ++nc->stats.planes;
+        nc->stats.s.fbbytes += fbsize;
+        ++nc->stats.s.planes;
       pthread_mutex_unlock(&nc->stats.lock);
     pthread_mutex_unlock(&nc->pilelock);
   }
@@ -739,8 +739,8 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
   }
   nccell* preserved = n->fb;
   pthread_mutex_lock(&nc->stats.lock);
-  ncplane_notcurses(n)->stats.fbbytes -= sizeof(*preserved) * (rows * cols);
-  ncplane_notcurses(n)->stats.fbbytes += fbsize;
+    ncplane_notcurses(n)->stats.s.fbbytes -= sizeof(*preserved) * (rows * cols);
+    ncplane_notcurses(n)->stats.s.fbbytes += fbsize;
   pthread_mutex_unlock(&nc->stats.lock);
   n->fb = fb;
   const int oldabsy = n->absy;
@@ -914,7 +914,7 @@ init_banner(const notcurses* nc){
     }else{
       fprintf(nc->ttyfp, "%d rows %d cols (%sB) %zuB crend %d colors",
               nc->stdplane->leny, nc->stdplane->lenx,
-              bprefix(nc->stats.fbbytes, 1, prefixbuf, 0),
+              bprefix(nc->stats.s.fbbytes, 1, prefixbuf, 0),
               sizeof(struct crender), nc->tcache.caps.colors);
     }
     const char* setaf;
@@ -1067,7 +1067,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   ret->cursory = ret->cursorx = -1;
   memset(&ret->stats, 0, sizeof(ret->stats));
   memset(&ret->stashed_stats, 0, sizeof(ret->stashed_stats));
-  reset_stats(&ret->stats);
+  reset_stats(&ret->stats.s);
   reset_stats(&ret->stashed_stats);
   ret->ttyfp = outfp;
   ret->renderfp = opts->renderfp;

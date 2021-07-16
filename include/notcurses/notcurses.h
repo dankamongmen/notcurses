@@ -1446,7 +1446,6 @@ typedef struct ncstats {
   uint64_t sprixelelisions;  // sprixel elision count
   uint64_t sprixelbytes;     // sprixel bytes emitted
   uint64_t input_errors;     // errors processing control sequences/utf8
-  pthread_mutex_t lock;      // FIXME ensure alignment on cacheline
 } ncstats;
 
 // Allocate an ncstats object. Use this rather than allocating your own, since
@@ -1454,9 +1453,6 @@ typedef struct ncstats {
 API ALLOC ncstats* notcurses_stats_alloc(const struct notcurses* nc
                                          __attribute__ ((unused)))
   __attribute__ ((nonnull (1)));
-
-// Destroy an ncstats object, and any associated resources.
-API void notcurses_stats_destroy(ncstats* stats);
 
 // Acquire an atomic snapshot of the Notcurses object's stats.
 API void notcurses_stats(struct notcurses* nc, ncstats* stats)

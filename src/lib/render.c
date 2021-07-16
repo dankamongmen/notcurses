@@ -730,7 +730,7 @@ raster_defaults(notcurses* nc, bool fgdef, bool bgdef, FILE* out){
   bool mustsetfg = fgdef && !nc->rstate.fgdefelidable;
   bool mustsetbg = bgdef && !nc->rstate.bgdefelidable;
   if(!mustsetfg && !mustsetbg){ // needn't emit anything
-    ++nc->stats.defaultelisions;
+    ++nc->stats.s.defaultelisions;
     return 0;
   }else if((mustsetfg && mustsetbg) || !fgop || !bgop){
     if(term_emit(op, out, false)){
@@ -757,7 +757,7 @@ raster_defaults(notcurses* nc, bool fgdef, bool bgdef, FILE* out){
     nc->rstate.bgelidable = false;
     nc->rstate.bgpalelidable = false;
   }
-  ++nc->stats.defaultemissions;
+  ++nc->stats.s.defaultemissions;
   return 0;
 }
 
@@ -767,12 +767,12 @@ emit_fg_palindex(notcurses* nc, FILE* out, const nccell* srccell){
   unsigned palfg = nccell_fg_palindex(srccell);
   // we overload lastr for the palette index; both are 8 bits
   if(nc->rstate.fgpalelidable && nc->rstate.lastr == palfg){
-    ++nc->stats.fgelisions;
+    ++nc->stats.s.fgelisions;
   }else{
     if(term_fg_palindex(nc, out, palfg)){
       return -1;
     }
-    ++nc->stats.fgemissions;
+    ++nc->stats.s.fgemissions;
     nc->rstate.fgpalelidable = true;
   }
   nc->rstate.lastr = palfg;
@@ -785,12 +785,12 @@ static int
 emit_bg_palindex(notcurses* nc, FILE* out, const nccell* srccell){
   unsigned palbg = nccell_bg_palindex(srccell);
   if(nc->rstate.bgpalelidable && nc->rstate.lastbr == palbg){
-    ++nc->stats.bgelisions;
+    ++nc->stats.s.bgelisions;
   }else{
     if(term_bg_palindex(nc, out, palbg)){
       return -1;
     }
-    ++nc->stats.bgemissions;
+    ++nc->stats.s.bgemissions;
     nc->rstate.bgpalelidable = true;
   }
   nc->rstate.lastr = palbg;
@@ -860,9 +860,9 @@ clean_sprixels(notcurses* nc, ncpile* p, FILE* out){
       // FIXME might not need this if it was only an upload
       nc->rstate.hardcursorpos = true;
       parent = &s->next;
-      ++nc->stats.sprixelemissions;
+      ++nc->stats.s.sprixelemissions;
     }else{
-      ++nc->stats.sprixelelisions;
+      ++nc->stats.s.sprixelelisions;
       parent = &s->next;
     }
 //fprintf(stderr, "SPRIXEL STATE: %d\n", s->invalidated);
@@ -974,7 +974,7 @@ rasterize_core(notcurses* nc, const ncpile* p, FILE* out, unsigned phase){
       if(!rvec[damageidx].s.damaged){
         // no need to emit a cell; what we rendered appears to already be
         // here. no updates are performed to elision state nor lastframe.
-        ++nc->stats.cellelisions;
+        ++nc->stats.s.cellelisions;
         if(nccell_wide_left_p(srccell)){
           ++x;
         }
@@ -983,7 +983,7 @@ rasterize_core(notcurses* nc, const ncpile* p, FILE* out, unsigned phase){
         // in the first text phase, we draw only those glyphs where the glyph
         // was not above a sprixel (and the cell is damaged). in the second
         // phase, we draw everything that remains damaged.
-        ++nc->stats.cellemissions;
+        ++nc->stats.s.cellemissions;
         if(goto_location(nc, out, y, x)){
           return -1;
         }
@@ -1015,12 +1015,12 @@ rasterize_core(notcurses* nc, const ncpile* p, FILE* out, unsigned phase){
         }else if(!nccell_fg_default_p(srccell)){ // rgb foreground
           nccell_fg_rgb8(srccell, &r, &g, &b);
           if(nc->rstate.fgelidable && nc->rstate.lastr == r && nc->rstate.lastg == g && nc->rstate.lastb == b){
-            ++nc->stats.fgelisions;
+            ++nc->stats.s.fgelisions;
           }else{
             if(term_fg_rgb8(&nc->tcache, out, r, g, b)){
               return -1;
             }
-            ++nc->stats.fgemissions;
+            ++nc->stats.s.fgemissions;
             nc->rstate.fgelidable = true;
           }
           nc->rstate.lastr = r; nc->rstate.lastg = g; nc->rstate.lastb = b;
@@ -1032,7 +1032,7 @@ rasterize_core(notcurses* nc, const ncpile* p, FILE* out, unsigned phase){
         //  * we do not use the background, because the cell is all-foreground,
         //  * the previous was non-default, and matches what we have now, or
         if(nobackground){
-          ++nc->stats.bgelisions;
+          ++nc->stats.s.bgelisions;
         }else if(nccell_bg_palindex_p(srccell)){ // palette-indexed background
           if(emit_bg_palindex(nc, out, srccell)){
             return -1;
@@ -1040,12 +1040,12 @@ rasterize_core(notcurses* nc, const ncpile* p, FILE* out, unsigned phase){
         }else if(!nccell_bg_default_p(srccell)){ // rgb background
           nccell_bg_rgb8(srccell, &br, &bg, &bb);
           if(nc->rstate.bgelidable && nc->rstate.lastbr == br && nc->rstate.lastbg == bg && nc->rstate.lastbb == bb){
-            ++nc->stats.bgelisions;
+            ++nc->stats.s.bgelisions;
           }else{
             if(term_bg_rgb8(&nc->tcache, out, br, bg, bb)){
               return -1;
             }
-            ++nc->stats.bgemissions;
+            ++nc->stats.s.bgemissions;
             nc->rstate.bgelidable = true;
           }
           nc->rstate.lastbr = br; nc->rstate.lastbg = bg; nc->rstate.lastbb = bb;
@@ -1110,7 +1110,7 @@ notcurses_rasterize_inner(notcurses* nc, ncpile* p, FILE* out, unsigned* asu){
   }
   sprixelbytes += rasprixelbytes;
   pthread_mutex_lock(&nc->stats.lock);
-    nc->stats.sprixelbytes += sprixelbytes;
+    nc->stats.s.sprixelbytes += sprixelbytes;
   pthread_mutex_unlock(&nc->stats.lock);
   logdebug("Glyph phase 2\n");
   if(rasterize_core(nc, p, out, 1)){
@@ -1162,7 +1162,7 @@ raster_and_write(notcurses* nc, ncpile* p, FILE* out){
   size_t moffset = 0;
   if(basu){
     if(useasu){
-      ++nc->stats.appsync_updates;
+      ++nc->stats.s.appsync_updates;
     }else{
       moffset = strlen(basu);
     }
@@ -1272,7 +1272,7 @@ int notcurses_refresh(notcurses* nc, int* restrict dimy, int* restrict dimx){
   if(ret < 0){
     return -1;
   }
-  ++nc->stats.refreshes;
+  ++nc->stats.s.refreshes;
   return 0;
 }
 
@@ -1360,9 +1360,9 @@ int ncpile_rasterize(ncplane* n){
   // accepts -1 as an indication of failure
   clock_gettime(CLOCK_MONOTONIC, &writedone);
   pthread_mutex_lock(&nc->stats.lock);
-    update_render_bytes(&nc->stats, bytes);
-    update_raster_stats(&rasterdone, &start, &nc->stats);
-    update_write_stats(&writedone, &rasterdone, &nc->stats, bytes);
+    update_render_bytes(&nc->stats.s, bytes);
+    update_raster_stats(&rasterdone, &start, &nc->stats.s);
+    update_write_stats(&writedone, &rasterdone, &nc->stats.s, bytes);
   pthread_mutex_unlock(&nc->stats.lock);
   if(bytes < 0){
     return -1;
@@ -1404,7 +1404,7 @@ int ncpile_render(ncplane* n){
   ncpile_render_internal(n, pile->crender, pile->dimy, pile->dimx);
   clock_gettime(CLOCK_MONOTONIC, &renderdone);
   pthread_mutex_lock(&nc->stats.lock);
-  update_render_stats(&renderdone, &start, &nc->stats);
+    update_render_stats(&renderdone, &start, &nc->stats.s);
   pthread_mutex_unlock(&nc->stats.lock);
   return 0;
 }
@@ -1433,7 +1433,7 @@ int ncpile_render_to_buffer(ncplane* p, char** buf, size_t* buflen){
   fseeko(nc->rstate.mstreamfp, 0, SEEK_SET);
   int bytes = notcurses_rasterize_inner(nc, ncplane_pile(p), nc->rstate.mstreamfp, &useasu);
   pthread_mutex_lock(&nc->stats.lock);
-    update_render_bytes(&nc->stats, bytes);
+    update_render_bytes(&nc->stats.s, bytes);
   pthread_mutex_unlock(&nc->stats.lock);
   if(bytes < 0){
     return -1;
