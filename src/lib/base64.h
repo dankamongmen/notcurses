@@ -75,7 +75,7 @@ static inline void
 base64x3(const unsigned char* src, char* b64){
   uint8_t a = src[0] >> 2u;
   uint8_t b = ((src[0] & 0x3u) << 4u) + ((src[1] & 0xf0u) >> 4u);
-  uint8_t c = ((src[1] & 0x0fu) << 2u) + ((src[2] & 0xb0u) >> 6u);
+  uint8_t c = ((src[1] & 0x0fu) << 2u) + ((src[2] & 0xc0u) >> 6u);
   uint8_t d = src[2] & 0x3f;
   b64[0] = b64subs[a];
   b64[1] = b64subs[b];
