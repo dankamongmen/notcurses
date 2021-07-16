@@ -208,39 +208,6 @@ write_idats(unsigned char* buf, const unsigned char* data, size_t dlen){
   return written;
 }
 
-static size_t
-fwrite_idats(FILE* fp, const unsigned char* data, size_t dlen){
-  static const char ctype[] = "IDAT";
-  uint32_t written = 0;
-  uint32_t dwritten = 0;
-  while(dlen){
-    uint32_t thischunk = dlen;
-    if(thischunk > CHUNK_MAX_DATA){
-      thischunk = CHUNK_MAX_DATA;
-    }
-    uint32_t nclen = htonl(thischunk);
-    if(fwrite(&nclen, 4, 1, fp) != 1 ||
-       fwrite(ctype, 4, 1, fp) != 1 ||
-       fwrite(data + dwritten, thischunk, 1, fp) != 1){
-      return 0;
-    }
-// FIXME horrible; PoC; do not retain!
-unsigned char* crcbuf = malloc(thischunk + 8);
-memcpy(crcbuf, &nclen, 4);
-memcpy(crcbuf + 4, ctype, 4);
-memcpy(crcbuf + 8, data + dwritten, thischunk);
-// END horribleness
-    uint32_t crc = chunk_crc(crcbuf);
-    if(fwrite(&crc, 4, 1, fp) != 1){
-      return 0;
-    }
-    dlen -= thischunk;
-    dwritten += thischunk;
-    written += CHUNK_DESC_BYTES + thischunk;
-  }
-  return written;
-}
-
 // write the constant 12B IEND chunk at |buf|. it contains no data.
 static size_t
 write_iend(unsigned char* buf){
@@ -319,6 +286,51 @@ void* create_png_mmap(const void* data, int rows, int rowstride, int cols,
   return map;
 }
 
+struct b64ctx {
+  unsigned char src[3]; // try to convert three at a time
+  size_t srcidx;        // how many src bytes we have
+};
+
+static int
+fwrite64(const void* src, size_t osize, FILE* fp, struct b64ctx* bctx){
+  // FIXME write it after encoding it
+  return 0;
+}
+
+static size_t
+fwrite_idats(FILE* fp, const unsigned char* data, size_t dlen,
+             struct b64ctx* bctx){
+  static const char ctype[] = "IDAT";
+  uint32_t written = 0;
+  uint32_t dwritten = 0;
+  while(dlen){
+    uint32_t thischunk = dlen;
+    if(thischunk > CHUNK_MAX_DATA){
+      thischunk = CHUNK_MAX_DATA;
+    }
+    uint32_t nclen = htonl(thischunk);
+    if(fwrite64(&nclen, 4, fp, bctx) != 1 ||
+       fwrite64(ctype, 4, fp, bctx) != 1 ||
+       fwrite64(data + dwritten, thischunk, fp, bctx) != 1){
+      return 0;
+    }
+// FIXME horrible; PoC; do not retain!
+unsigned char* crcbuf = malloc(thischunk + 8);
+memcpy(crcbuf, &nclen, 4);
+memcpy(crcbuf + 4, ctype, 4);
+memcpy(crcbuf + 8, data + dwritten, thischunk);
+// END horribleness
+    uint32_t crc = chunk_crc(crcbuf);
+    if(fwrite64(&crc, 4, fp, bctx) != 1){
+      return 0;
+    }
+    dlen -= thischunk;
+    dwritten += thischunk;
+    written += CHUNK_DESC_BYTES + thischunk;
+  }
+  return written;
+}
+
 int write_png_b64(const void* data, int rows, int rowstride, int cols, FILE* fp){
   void* deflated;
   size_t dlen;
@@ -326,24 +338,25 @@ int write_png_b64(const void* data, int rows, int rowstride, int cols, FILE* fp)
   if(deflated == NULL){
     return -1;
   }
-  // FIXME b64 encode!
-  if(fwrite(PNGHEADER, sizeof(PNGHEADER) - 1, 1, fp) != 1){
+  struct b64ctx bctx = { };
+  if(fwrite64(PNGHEADER, sizeof(PNGHEADER) - 1, fp, &bctx) != 1){
     free(deflated);
     return -1;
   }
   unsigned char ihdr[25];
   write_ihdr(rows, cols, ihdr);
-  if(fwrite(ihdr, sizeof(ihdr), 1, fp) != 1){
+  if(fwrite64(ihdr, sizeof(ihdr), fp, &bctx) != 1){
     free(deflated);
     return -1;
   }
-  if(fwrite_idats(fp, deflated, dlen) == 0){
+  if(fwrite_idats(fp, deflated, dlen, &bctx) == 0){
     free(deflated);
     return -1;
   }
   free(deflated);
-  if(fwrite(IEND, sizeof(IEND) - 1, 1, fp) != 1){
+  if(fwrite64(IEND, sizeof(IEND) - 1, fp, &bctx) != 1){
     return -1;
   }
+  // FIXME flush bctx
   return 0;
 }
