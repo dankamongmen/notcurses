@@ -53,11 +53,13 @@ int iterm_blit(ncplane* n, int linesize, const void* data,
     }
     memset(tam, 0, sizeof(*tam) * rows * cols);
   }
+  // FIXME will we need to pass TAM into create_png_mmap()?
   size_t bsize;
   png = create_png_mmap(data, leny, linesize, lenx, &bsize, -1);
   if(png == NULL){
     goto error;
   }
+  // FIXME set up glyph/glyphlen
   if(plane_blit_sixel(s, s->glyph, s->glyphlen, leny, lenx, parse_start, tam) < 0){
     goto error;
   }

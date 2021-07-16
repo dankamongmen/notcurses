@@ -334,11 +334,11 @@ tinfo_debug_bitmaps(struct ncplane* n, const tinfo* ti, const char* indent){
         ncplane_printf(n, "%ssixel colorregs: %u\n", indent, ti->color_registers);
       }
     }else if(ti->pixel_move == NULL){
-      ncplane_printf(n, "%siTerm2 graphics supported\n", indent);
+      ncplane_printf(n, "%siTerm2 graphics support\n", indent);
     }else if(ti->sixel_maxy_pristine){
-      ncplane_printf(n, "%srgba pixel graphics supported\n", indent);
+      ncplane_printf(n, "%srgba pixel graphics support\n", indent);
     }else{
-      ncplane_printf(n, "%srgba pixel animation supported\n", indent);
+      ncplane_printf(n, "%srgba pixel animation support\n", indent);
     }
     char* path = prefix_data("notcurses.png");
     if(path){
