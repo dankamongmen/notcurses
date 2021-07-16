@@ -38,7 +38,7 @@ write_iterm_graphic(sprixel* s, const void* data, int leny, int stride, int lenx
   if(fp == NULL){
     return -1;
   }
-  if(ncfputs("\e]1337;inline=1:", fp) == EOF){
+  if(ncfputs("\e]1337;File=inline=1:", fp) == EOF){
     goto err;
   }
   // FIXME won't we need to pass TAM into write_png_b64()?
