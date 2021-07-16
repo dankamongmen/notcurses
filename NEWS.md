@@ -1,6 +1,13 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
+* 2.3.11 (not yet released)
+  * Notcurses now requires libz to build. In exchange, it can now generate
+    PNGs on the fly, necessary for driving iTerm2's graphics protocol.
+  * Added `NCPLANE_OPTION_FIXED`, to prevent a plane bound to a scrolling
+    plane from scrolling along with it.
+  * Added `input_errors` and `input_events` stats.
+
 * 2.3.10 (2021-07-14)
   * Notcurses now builds and works, so far as I can tell, on OS X 11.4+.
   * Emit XTPUSHCOLORS and XTPOPCOLORS where supported (XTerm and Kitty).

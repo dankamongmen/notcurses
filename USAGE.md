@@ -774,6 +774,10 @@ When an `ncplane` is no longer needed, free it with
 // when this flag is used. 'rows' and 'cols' must be 0 when this flag is
 // used. This flag is exclusive with both of the alignment flags.
 #define NCPLANE_OPTION_MARGINALIZED 0x0004ull
+// If this plane is bound to a scrolling plane, it ought *not* scroll along
+// with the parent (it will still move with the parent, maintaining its
+// relative position, if the parent is moved to a new location).
+#define NCPLANE_OPTION_FIXED      0x0008ull
 
 typedef struct ncplane_options {
   int y;            // vertical placement relative to parent plane

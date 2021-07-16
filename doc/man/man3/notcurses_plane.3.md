@@ -14,6 +14,7 @@ notcurses_plane - operations on ncplanes
 #define NCPLANE_OPTION_HORALIGNED   0x0001ull
 #define NCPLANE_OPTION_VERALIGNED   0x0002ull
 #define NCPLANE_OPTION_MARGINALIZED 0x0004ull
+#define NCPLANE_OPTION_FIXED        0x0008ull
 
 typedef struct ncplane_options {
   int y;            // vertical placement relative to parent plane
@@ -374,13 +375,16 @@ at location 0x10; it must be moved before further printing can take place. If
 scrolling is enabled, the first row will be filled with 01234546789, the second
 row will have 0 written to its first column, and the cursor will end up at 1x1.
 Note that it is still an error to manually attempt to move the cursor
-off-plane, or to specify off-plane output. Boxes do not scroll; attempting to
-draw a 2x11 box on our 2x10 plane will result in an error and no output. When
-scrolling is enabled, and output takes place while the cursor is past the end
-of the last row, the first row is discarded, all other rows are moved up, the
-last row is cleared, and output begins at the beginning of the last row. This
-does not take place until output is generated (i.e. it is possible to fill a
-plane when scrolling is enabled).
+off-plane, or to specify off-plane output. Box-drawing does not result in
+scrolling; attempting to draw a 2x11 box on our 2x10 plane will result in an
+error and no output. When scrolling is enabled, and output takes place while
+the cursor is past the end of the last row, the first row is discarded, all
+other rows are moved up, the last row is cleared, and output begins at the
+beginning of the last row. This does not take place until output is generated
+(i.e. it is possible to fill a plane when scrolling is enabled).
+
+By default, planes bound to a scrolling plane will scroll along with it. This
+can be disabled with the **NCPLANE_OPTION_FIXED** flag.
 
 ## Bitmaps
 
