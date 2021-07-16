@@ -316,13 +316,13 @@ void free_plane(ncplane* p){
     // ncdirect fakes an ncplane with no ->pile
     if(ncplane_pile(p)){
       notcurses* nc = ncplane_notcurses(p);
-      pthread_mutex_lock(&nc->statlock);
-      --ncplane_notcurses(p)->stats.planes;
-      ncplane_notcurses(p)->stats.fbbytes -= sizeof(*p->fb) * p->leny * p->lenx;
-      pthread_mutex_unlock(&nc->statlock);
+      pthread_mutex_lock(&nc->stats.lock);
+        --ncplane_notcurses(p)->stats.planes;
+        ncplane_notcurses(p)->stats.fbbytes -= sizeof(*p->fb) * p->leny * p->lenx;
+      pthread_mutex_unlock(&nc->stats.lock);
       if(p->above == NULL && p->below == NULL){
         pthread_mutex_lock(&nc->pilelock);
-        ncpile_destroy(ncplane_pile(p));
+          ncpile_destroy(ncplane_pile(p));
         pthread_mutex_unlock(&nc->pilelock);
       }
     }
@@ -492,22 +492,22 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
     p->pile = NULL;
   }else{
     pthread_mutex_lock(&nc->pilelock);
-    ncpile* pile = n ? ncplane_pile(n) : NULL;
-    if( (p->pile = pile) ){ // existing pile
-      p->above = NULL;
-      if( (p->below = pile->top) ){ // always happens save initial plane
-        pile->top->above = p;
-      }else{
-        pile->bottom = p;
+      ncpile* pile = n ? ncplane_pile(n) : NULL;
+      if( (p->pile = pile) ){ // existing pile
+        p->above = NULL;
+        if( (p->below = pile->top) ){ // always happens save initial plane
+          pile->top->above = p;
+        }else{
+          pile->bottom = p;
+        }
+        pile->top = p;
+      }else{ // new pile
+        make_ncpile(nc, p);
       }
-      pile->top = p;
-    }else{ // new pile
-      make_ncpile(nc, p);
-    }
-    pthread_mutex_lock(&nc->statlock);
-    nc->stats.fbbytes += fbsize;
-    ++nc->stats.planes;
-    pthread_mutex_unlock(&nc->statlock);
+      pthread_mutex_lock(&nc->stats.lock);
+        nc->stats.fbbytes += fbsize;
+        ++nc->stats.planes;
+      pthread_mutex_unlock(&nc->stats.lock);
     pthread_mutex_unlock(&nc->pilelock);
   }
   loginfo("Created new %dx%d plane \"%s\" @ %dx%d\n",
@@ -738,10 +738,10 @@ int ncplane_resize_internal(ncplane* n, int keepy, int keepx, int keepleny,
     n->x = xlen - 1;
   }
   nccell* preserved = n->fb;
-  pthread_mutex_lock(&nc->statlock);
+  pthread_mutex_lock(&nc->stats.lock);
   ncplane_notcurses(n)->stats.fbbytes -= sizeof(*preserved) * (rows * cols);
   ncplane_notcurses(n)->stats.fbbytes += fbsize;
-  pthread_mutex_unlock(&nc->statlock);
+  pthread_mutex_unlock(&nc->stats.lock);
   n->fb = fb;
   const int oldabsy = n->absy;
   // go ahead and move. we can no longer fail at this point. but don't yet
@@ -1089,7 +1089,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     free(ret);
     return NULL;
   }
-  if(pthread_mutex_init(&ret->statlock, NULL)){
+  if(pthread_mutex_init(&ret->stats.lock, NULL)){
     pthread_mutex_destroy(&ret->pilelock);
     free(ret);
     return NULL;
@@ -1098,7 +1098,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   // before registering fatal signal handlers.
   if((ret->rstate.mstreamfp = open_memstream(&ret->rstate.mstream, &ret->rstate.mstrsize)) == NULL){
     pthread_mutex_destroy(&ret->pilelock);
-    pthread_mutex_destroy(&ret->statlock);
+    pthread_mutex_destroy(&ret->stats.lock);
     free(ret);
     return NULL;
   }
@@ -1107,7 +1107,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
                    notcurses_stop_minimal)){
     fclose(ret->rstate.mstreamfp);
     pthread_mutex_destroy(&ret->pilelock);
-    pthread_mutex_destroy(&ret->statlock);
+    pthread_mutex_destroy(&ret->stats.lock);
     free(ret);
     return NULL;
   }
@@ -1119,7 +1119,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     logpanic("Terminfo error %d (see terminfo(3ncurses))\n", termerr);
     drop_signals(ret);
     fclose(ret->rstate.mstreamfp);
-    pthread_mutex_destroy(&ret->statlock);
+    pthread_mutex_destroy(&ret->stats.lock);
     pthread_mutex_destroy(&ret->pilelock);
     free(ret);
     return NULL;
@@ -1218,7 +1218,7 @@ err:
   free(ret->rstate.mstream);
   tcsetattr(ret->ttyfd, TCSANOW, &ret->tcache.tpreserved);
   drop_signals(ret);
-  pthread_mutex_destroy(&ret->statlock);
+  pthread_mutex_destroy(&ret->stats.lock);
   pthread_mutex_destroy(&ret->pilelock);
   free(ret);
   return NULL;
@@ -1296,7 +1296,7 @@ int notcurses_stop(notcurses* nc){
       summarize_stats(nc);
     }
     del_curterm(cur_term);
-    ret |= pthread_mutex_destroy(&nc->statlock);
+    ret |= pthread_mutex_destroy(&nc->stats.lock);
     ret |= pthread_mutex_destroy(&nc->pilelock);
     free_terminfo_cache(&nc->tcache);
     free(nc);

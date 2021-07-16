@@ -1109,9 +1109,9 @@ notcurses_rasterize_inner(notcurses* nc, ncpile* p, FILE* out, unsigned* asu){
     return -1;
   }
   sprixelbytes += rasprixelbytes;
-  pthread_mutex_lock(&nc->statlock);
-  nc->stats.sprixelbytes += sprixelbytes;
-  pthread_mutex_unlock(&nc->statlock);
+  pthread_mutex_lock(&nc->stats.lock);
+    nc->stats.sprixelbytes += sprixelbytes;
+  pthread_mutex_unlock(&nc->stats.lock);
   logdebug("Glyph phase 2\n");
   if(rasterize_core(nc, p, out, 1)){
     return -1;
@@ -1359,11 +1359,11 @@ int ncpile_rasterize(ncplane* n){
   int bytes = notcurses_rasterize(nc, pile, nc->rstate.mstreamfp);
   // accepts -1 as an indication of failure
   clock_gettime(CLOCK_MONOTONIC, &writedone);
-  pthread_mutex_lock(&nc->statlock);
-  update_render_bytes(&nc->stats, bytes);
-  update_raster_stats(&rasterdone, &start, &nc->stats);
-  update_write_stats(&writedone, &rasterdone, &nc->stats, bytes);
-  pthread_mutex_unlock(&nc->statlock);
+  pthread_mutex_lock(&nc->stats.lock);
+    update_render_bytes(&nc->stats, bytes);
+    update_raster_stats(&rasterdone, &start, &nc->stats);
+    update_write_stats(&writedone, &rasterdone, &nc->stats, bytes);
+  pthread_mutex_unlock(&nc->stats.lock);
   if(bytes < 0){
     return -1;
   }
@@ -1403,9 +1403,9 @@ int ncpile_render(ncplane* n){
   }
   ncpile_render_internal(n, pile->crender, pile->dimy, pile->dimx);
   clock_gettime(CLOCK_MONOTONIC, &renderdone);
-  pthread_mutex_lock(&nc->statlock);
+  pthread_mutex_lock(&nc->stats.lock);
   update_render_stats(&renderdone, &start, &nc->stats);
-  pthread_mutex_unlock(&nc->statlock);
+  pthread_mutex_unlock(&nc->stats.lock);
   return 0;
 }
 
@@ -1432,9 +1432,9 @@ int ncpile_render_to_buffer(ncplane* p, char** buf, size_t* buflen){
   unsigned useasu = false; // no SUM with file
   fseeko(nc->rstate.mstreamfp, 0, SEEK_SET);
   int bytes = notcurses_rasterize_inner(nc, ncplane_pile(p), nc->rstate.mstreamfp, &useasu);
-  pthread_mutex_lock(&nc->statlock);
-  update_render_bytes(&nc->stats, bytes);
-  pthread_mutex_unlock(&nc->statlock);
+  pthread_mutex_lock(&nc->stats.lock);
+    update_render_bytes(&nc->stats, bytes);
+  pthread_mutex_unlock(&nc->stats.lock);
   if(bytes < 0){
     return -1;
   }

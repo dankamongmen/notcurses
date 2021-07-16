@@ -324,19 +324,19 @@ tinfo_debug_bitmaps(struct ncplane* n, const tinfo* ti, const char* indent){
   ncplane_set_fg_default(n);
   ncplane_set_fg_rgb(n, 0x5efa80);
   if(!ti->pixel_draw){
-    ncplane_printf(n, "%sno bitmap graphics detected", indent);
+    ncplane_printf(n, "%sno bitmap graphics detected\n", indent);
   }else{ // we do have support; draw one
     if(ti->color_registers){
       if(ti->sixel_maxy){
-        ncplane_printf(n, "%smax sixel size: %dx%d colorregs: %u",
+        ncplane_printf(n, "%smax sixel size: %dx%d colorregs: %u\n",
                       indent, ti->sixel_maxy, ti->sixel_maxx, ti->color_registers);
       }else{
-        ncplane_printf(n, "%ssixel colorregs: %u", indent, ti->color_registers);
+        ncplane_printf(n, "%ssixel colorregs: %u\n", indent, ti->color_registers);
       }
     }else if(ti->sixel_maxy_pristine){
-      ncplane_printf(n, "%srgba pixel graphics supported", indent);
+      ncplane_printf(n, "%srgba pixel graphics supported\n", indent);
     }else{
-      ncplane_printf(n, "%srgba pixel animation supported", indent);
+      ncplane_printf(n, "%srgba pixel animation supported\n", indent);
     }
     char* path = prefix_data("notcurses.png");
     if(path){
@@ -352,7 +352,6 @@ tinfo_debug_bitmaps(struct ncplane* n, const tinfo* ti, const char* indent){
   ncplane_putstr(n, "\U0001F918\u200d\U0001F3FE");
   ncplane_putstr(n, "\U0001F918\u200d\U0001F3FF");
   */
-  ncplane_putchar(n, '\n');
 }
 
 static void

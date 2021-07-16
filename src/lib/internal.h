@@ -349,7 +349,6 @@ typedef struct notcurses {
   int cursory;    // desired cursor placement according to user.
   int cursorx;    // -1 is don't-care, otherwise moved here after each render.
 
-  pthread_mutex_t statlock; // FIXME align on cacheline
   ncstats stats;  // some statistics across the lifetime of the notcurses ctx
   ncstats stashed_stats; // retain across a notcurses_stats_reset(), to print in closing banner
 

@@ -84,74 +84,89 @@ void reset_stats(ncstats* stats){
 }
 
 void notcurses_stats(notcurses* nc, ncstats* stats){
-  pthread_mutex_lock(&nc->statlock);
-  memcpy(stats, &nc->stats, sizeof(*stats));
-  pthread_mutex_unlock(&nc->statlock);
+  pthread_mutex_lock(&nc->stats.lock);
+    memcpy(stats, &nc->stats, sizeof(*stats));
+  pthread_mutex_unlock(&nc->stats.lock);
 }
 
 ncstats* notcurses_stats_alloc(const notcurses* nc __attribute__ ((unused))){
-  return malloc(sizeof(ncstats));
+  ncstats* ret = malloc(sizeof(ncstats));
+  if(ret == NULL){
+    return NULL;
+  }
+  if(pthread_mutex_init(&ret->lock, NULL)){
+    free(ret);
+    return NULL;
+  }
+  return ret;
+}
+
+void notcurses_stats_destroy(ncstats* stats){
+  if(stats){
+    pthread_mutex_destroy(&stats->lock);
+    free(stats);
+  }
 }
 
 void notcurses_stats_reset(notcurses* nc, ncstats* stats){
-  pthread_mutex_lock(&nc->statlock);
-  if(stats){
-    memcpy(stats, &nc->stats, sizeof(*stats));
-  }
-  // add the stats to the stashed stats, so that we can show true totals on
-  // shutdown in the closing banner
-  ncstats* stash = &nc->stashed_stats;
-  if(nc->stats.render_min_ns < stash->render_min_ns){
-    stash->render_min_ns = nc->stats.render_min_ns;
-  }
-  if(nc->stats.render_min_bytes < stash->render_min_bytes){
-    stash->render_min_bytes = nc->stats.render_min_bytes;
-  }
-  if(nc->stats.raster_min_ns < stash->raster_min_ns){
-    stash->raster_min_ns = nc->stats.raster_min_ns;
-  }
-  if(nc->stats.writeout_min_ns < stash->writeout_min_ns){
-    stash->writeout_min_ns = nc->stats.writeout_min_ns;
-  }
-  if(nc->stats.render_max_ns > stash->render_max_ns){
-    stash->render_max_ns = nc->stats.render_max_ns;
-  }
-  if(nc->stats.render_max_bytes > stash->render_max_bytes){
-    stash->render_max_bytes = nc->stats.render_max_bytes;
-  }
-  if(nc->stats.raster_max_ns > stash->raster_max_ns){
-    stash->raster_max_ns = nc->stats.raster_max_ns;
-  }
-  if(nc->stats.writeout_max_ns > stash->writeout_max_ns){
-    stash->writeout_max_ns = nc->stats.writeout_max_ns;
-  }
-  stash->writeout_ns += nc->stats.writeout_ns;
-  stash->raster_ns += nc->stats.raster_ns;
-  stash->render_ns += nc->stats.render_ns;
-  stash->render_bytes += nc->stats.render_bytes;
-  stash->failed_renders += nc->stats.failed_renders;
-  stash->failed_writeouts += nc->stats.failed_writeouts;
-  stash->renders += nc->stats.renders;
-  stash->writeouts += nc->stats.writeouts;
-  stash->cellelisions += nc->stats.cellelisions;
-  stash->cellemissions += nc->stats.cellemissions;
-  stash->fgelisions += nc->stats.fgelisions;
-  stash->fgemissions += nc->stats.fgemissions;
-  stash->bgelisions += nc->stats.bgelisions;
-  stash->bgemissions += nc->stats.bgemissions;
-  stash->defaultelisions += nc->stats.defaultelisions;
-  stash->defaultemissions += nc->stats.defaultemissions;
-  stash->refreshes += nc->stats.refreshes;
-  stash->sprixelemissions += nc->stats.sprixelemissions;
-  stash->sprixelelisions += nc->stats.sprixelelisions;
-  stash->sprixelbytes += nc->stats.sprixelbytes;
-  stash->appsync_updates += nc->stats.appsync_updates;
-  stash->input_errors += nc->stats.input_errors;
+  pthread_mutex_lock(&nc->stats.lock);
+    if(stats){
+      memcpy(stats, &nc->stats, sizeof(*stats));
+    }
+    // add the stats to the stashed stats, so that we can show true totals on
+    // shutdown in the closing banner
+    ncstats* stash = &nc->stashed_stats;
+    if(nc->stats.render_min_ns < stash->render_min_ns){
+      stash->render_min_ns = nc->stats.render_min_ns;
+    }
+    if(nc->stats.render_min_bytes < stash->render_min_bytes){
+      stash->render_min_bytes = nc->stats.render_min_bytes;
+    }
+    if(nc->stats.raster_min_ns < stash->raster_min_ns){
+      stash->raster_min_ns = nc->stats.raster_min_ns;
+    }
+    if(nc->stats.writeout_min_ns < stash->writeout_min_ns){
+      stash->writeout_min_ns = nc->stats.writeout_min_ns;
+    }
+    if(nc->stats.render_max_ns > stash->render_max_ns){
+      stash->render_max_ns = nc->stats.render_max_ns;
+    }
+    if(nc->stats.render_max_bytes > stash->render_max_bytes){
+      stash->render_max_bytes = nc->stats.render_max_bytes;
+    }
+    if(nc->stats.raster_max_ns > stash->raster_max_ns){
+      stash->raster_max_ns = nc->stats.raster_max_ns;
+    }
+    if(nc->stats.writeout_max_ns > stash->writeout_max_ns){
+      stash->writeout_max_ns = nc->stats.writeout_max_ns;
+    }
+    stash->writeout_ns += nc->stats.writeout_ns;
+    stash->raster_ns += nc->stats.raster_ns;
+    stash->render_ns += nc->stats.render_ns;
+    stash->render_bytes += nc->stats.render_bytes;
+    stash->failed_renders += nc->stats.failed_renders;
+    stash->failed_writeouts += nc->stats.failed_writeouts;
+    stash->renders += nc->stats.renders;
+    stash->writeouts += nc->stats.writeouts;
+    stash->cellelisions += nc->stats.cellelisions;
+    stash->cellemissions += nc->stats.cellemissions;
+    stash->fgelisions += nc->stats.fgelisions;
+    stash->fgemissions += nc->stats.fgemissions;
+    stash->bgelisions += nc->stats.bgelisions;
+    stash->bgemissions += nc->stats.bgemissions;
+    stash->defaultelisions += nc->stats.defaultelisions;
+    stash->defaultemissions += nc->stats.defaultemissions;
+    stash->refreshes += nc->stats.refreshes;
+    stash->sprixelemissions += nc->stats.sprixelemissions;
+    stash->sprixelelisions += nc->stats.sprixelelisions;
+    stash->sprixelbytes += nc->stats.sprixelbytes;
+    stash->appsync_updates += nc->stats.appsync_updates;
+    stash->input_errors += nc->stats.input_errors;
 
-  stash->fbbytes = nc->stats.fbbytes;
-  stash->planes = nc->stats.planes;
-  reset_stats(&nc->stats);
-  pthread_mutex_unlock(&nc->statlock);
+    stash->fbbytes = nc->stats.fbbytes;
+    stash->planes = nc->stats.planes;
+    reset_stats(&nc->stats);
+  pthread_mutex_unlock(&nc->stats.lock);
 }
 
 void summarize_stats(notcurses* nc){
