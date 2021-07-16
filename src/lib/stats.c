@@ -85,7 +85,7 @@ void reset_stats(ncstats* stats){
 
 void notcurses_stats(notcurses* nc, ncstats* stats){
   pthread_mutex_lock(&nc->stats.lock);
-    memcpy(stats, &nc->stats, sizeof(*stats));
+    memcpy(stats, &nc->stats.s, sizeof(*stats));
   pthread_mutex_unlock(&nc->stats.lock);
 }
 

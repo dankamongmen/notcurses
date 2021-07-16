@@ -1066,8 +1066,6 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
   ret->margin_l = opts->margin_l;
   ret->margin_r = opts->margin_r;
   ret->cursory = ret->cursorx = -1;
-  memset(&ret->stats, 0, sizeof(ret->stats));
-  memset(&ret->stashed_stats, 0, sizeof(ret->stashed_stats));
   reset_stats(&ret->stats.s);
   reset_stats(&ret->stashed_stats);
   ret->ttyfp = outfp;
@@ -1090,7 +1088,6 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     free(ret);
     return NULL;
   }
-  memset(&ret->stats.s, 0, sizeof(ret->stats.s));
   if(pthread_mutex_init(&ret->stats.lock, NULL)){
     pthread_mutex_destroy(&ret->pilelock);
     free(ret);
