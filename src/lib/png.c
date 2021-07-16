@@ -263,7 +263,11 @@ void* create_png_mmap(const ncvisual* ncv, size_t* bsize, int fd){
   }
   // FIXME hugetlb?
   void* map = mmap(NULL, mlen, PROT_WRITE | PROT_READ,
+#ifdef MAP_SHARED_VALIDATE
                    MAP_SHARED_VALIDATE |
+#else
+                   MAP_SHARED |
+#endif
                    (fd >= 0 ? 0 : MAP_ANONYMOUS), fd, 0);
   if(map == MAP_FAILED){
     logerror("Couldn't get %zuB map for %d\n", mlen, fd);
