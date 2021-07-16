@@ -20,7 +20,10 @@ int iterm_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
 
 // spit out the control sequence and data.
 int iterm_draw(const ncpile *p, sprixel* s, FILE* out, int y, int x){
-  return 0;
+  if(fwrite(s->glyph, s->glyphlen, 1, out) != 1){
+    return -1;
+  }
+  return s->glyphlen;
 }
 
 // damage any cells underneath the graphic, destroying it.
@@ -47,20 +50,25 @@ write_iterm_graphic(sprixel* s, const void* data, int leny, int stride,
     goto err;
   }
   size_t encoded = 0;
-  while(bsize){
-    size_t plen = bsize > 4096 ? 4096 : bsize;
+  while(encoded < bsize){
+    size_t plen = bsize - encoded;
+    if(plen > 4096){
+      plen = 4096;
+    }
     // FIXME base64-encode
     if(fwrite((const char*)png + encoded, plen, 1, fp) != 1){
+      logerror("Error writing %zuB/%zuB (%s)\n", plen, bsize, strerror(errno));
       munmap(png, bsize);
       goto err;
     }
-    bsize -= plen;
     encoded += plen;
   }
   if(munmap(png, bsize)){
+    logerror("Error unmapping %zuB (%s)\n", bsize, strerror(errno));
     goto err;
   }
   if(fclose(fp) == EOF){
+    logerror("Error flushing %zuB (%s)\n", bsize, strerror(errno));
     free(s->glyph);
     return -1;
   }
@@ -101,11 +109,10 @@ int iterm_blit(ncplane* n, int linesize, const void* data,
   if(write_iterm_graphic(s, data, leny, linesize, lenx, &parse_start)){
     goto error;
   }
-  // FIXME set up glyph/glyphlen
   if(plane_blit_sixel(s, s->glyph, s->glyphlen, leny, lenx, parse_start, tam) < 0){
     goto error;
   }
-  return 0;
+  return 1;
 
 error:
   if(!reuse){
