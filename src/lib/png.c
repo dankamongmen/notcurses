@@ -16,6 +16,7 @@
 // [loser] languages which have difficulty dealing with unsigned values."
 #define CHUNK_MAX_DATA 0x80000000llu
 static const unsigned char PNGHEADER[] = "\x89PNG\x0d\x0a\x1a\x0a";
+static const unsigned char IEND[] = "\x00\x00\x00\x00IEND\xae\x42\x60\x82";
 
 // FIXME replace with PCLMULQDQ method (and ARM CRC32 instruction)
 // this is taken from the PNG reference
@@ -152,14 +153,14 @@ chunk_crc(const unsigned char* buf){
     logerror("Chunk length too large (%lu)\n", length);
     return 0;
   }
-  length += 4; // don't use length or crc fields
+  length += 4; // don't use length or crc fields (but type *is* covered)
   uint32_t crc32 = htonl(crc(buf + 4, length));
   return crc32;
 }
 
 // write the ihdr at |buf|, which is guaranteed to be large enough (25B).
 static size_t
-write_ihdr(int rows, int cols, unsigned char* buf){
+write_ihdr(int rows, int cols, unsigned char buf[static 25]){
   uint32_t length = htonl(IHDR_DATA_BYTES);
   memcpy(buf, &length, 4);
   static const char ctype[] = "IHDR";
@@ -207,11 +208,43 @@ write_idats(unsigned char* buf, const unsigned char* data, size_t dlen){
   return written;
 }
 
+static size_t
+fwrite_idats(FILE* fp, const unsigned char* data, size_t dlen){
+  static const char ctype[] = "IDAT";
+  uint32_t written = 0;
+  uint32_t dwritten = 0;
+  while(dlen){
+    uint32_t thischunk = dlen;
+    if(thischunk > CHUNK_MAX_DATA){
+      thischunk = CHUNK_MAX_DATA;
+    }
+    uint32_t nclen = htonl(thischunk);
+    if(fwrite(&nclen, 4, 1, fp) != 1 ||
+       fwrite(ctype, 4, 1, fp) != 1 ||
+       fwrite(data + dwritten, thischunk, 1, fp) != 1){
+      return 0;
+    }
+// FIXME horrible; PoC; do not retain!
+unsigned char* crcbuf = malloc(thischunk + 8);
+memcpy(crcbuf, &nclen, 4);
+memcpy(crcbuf + 4, ctype, 4);
+memcpy(crcbuf + 8, data + dwritten, thischunk);
+// END horribleness
+    uint32_t crc = chunk_crc(crcbuf);
+    if(fwrite(&crc, 4, 1, fp) != 1){
+      return 0;
+    }
+    dlen -= thischunk;
+    dwritten += thischunk;
+    written += CHUNK_DESC_BYTES + thischunk;
+  }
+  return written;
+}
+
 // write the constant 12B IEND chunk at |buf|. it contains no data.
 static size_t
 write_iend(unsigned char* buf){
-  static const char iend[] = "\x00\x00\x00\x00IEND\xae\x42\x60\x82";
-  memcpy(buf, iend, CHUNK_DESC_BYTES);
+  memcpy(buf, IEND, CHUNK_DESC_BYTES);
   return CHUNK_DESC_BYTES;
 }
 
@@ -284,4 +317,33 @@ void* create_png_mmap(const void* data, int rows, int rowstride, int cols,
     }
   }
   return map;
+}
+
+int write_png_b64(const void* data, int rows, int rowstride, int cols, FILE* fp){
+  void* deflated;
+  size_t dlen;
+  compute_png_size(data, rows, rowstride, cols, &deflated, &dlen);
+  if(deflated == NULL){
+    return -1;
+  }
+  // FIXME b64 encode!
+  if(fwrite(PNGHEADER, sizeof(PNGHEADER) - 1, 1, fp) != 1){
+    free(deflated);
+    return -1;
+  }
+  unsigned char ihdr[25];
+  write_ihdr(rows, cols, ihdr);
+  if(fwrite(ihdr, sizeof(ihdr), 1, fp) != 1){
+    free(deflated);
+    return -1;
+  }
+  if(fwrite_idats(fp, deflated, dlen) == 0){
+    free(deflated);
+    return -1;
+  }
+  free(deflated);
+  if(fwrite(IEND, sizeof(IEND) - 1, 1, fp) != 1){
+    return -1;
+  }
+  return 0;
 }

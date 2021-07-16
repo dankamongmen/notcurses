@@ -32,8 +32,7 @@ int iterm_scrub(const ncpile* p, sprixel* s){
 }
 
 static int
-write_iterm_graphic(sprixel* s, const void* data, int leny, int stride,
-                    int lenx, int* parse_start){
+write_iterm_graphic(sprixel* s, const void* data, int leny, int stride, int lenx){
   s->glyph = NULL;
   FILE* fp = open_memstream(&s->glyph, &s->glyphlen);
   if(fp == NULL){
@@ -42,33 +41,12 @@ write_iterm_graphic(sprixel* s, const void* data, int leny, int stride,
   if(ncfputs("\e]1337;inline=1:", fp) == EOF){
     goto err;
   }
-  // FIXME won't we need to pass TAM into create_png_mmap()?
-  size_t bsize;
-  // FIXME we'll want a create_png_mmap() that takes a FILE*
-  void* png = create_png_mmap(data, leny, stride, lenx, &bsize, -1);
-  if(png == MAP_FAILED){
-    goto err;
-  }
-  size_t encoded = 0;
-  while(encoded < bsize){
-    size_t plen = bsize - encoded;
-    if(plen > 4096){
-      plen = 4096;
-    }
-    // FIXME base64-encode
-    if(fwrite((const char*)png + encoded, plen, 1, fp) != 1){
-      logerror("Error writing %zuB/%zuB (%s)\n", plen, bsize, strerror(errno));
-      munmap(png, bsize);
-      goto err;
-    }
-    encoded += plen;
-  }
-  if(munmap(png, bsize)){
-    logerror("Error unmapping %zuB (%s)\n", bsize, strerror(errno));
+  // FIXME won't we need to pass TAM into write_png_b64()?
+  if(write_png_b64(data, leny, stride, lenx, fp)){
     goto err;
   }
   if(fclose(fp) == EOF){
-    logerror("Error flushing %zuB (%s)\n", bsize, strerror(errno));
+    logerror("Error flushing %zuB (%s)\n", s->glyphlen, strerror(errno));
     free(s->glyph);
     return -1;
   }
@@ -106,7 +84,7 @@ int iterm_blit(ncplane* n, int linesize, const void* data,
     }
     memset(tam, 0, sizeof(*tam) * rows * cols);
   }
-  if(write_iterm_graphic(s, data, leny, linesize, lenx, &parse_start)){
+  if(write_iterm_graphic(s, data, leny, linesize, lenx)){
     goto error;
   }
   if(plane_blit_sixel(s, s->glyph, s->glyphlen, leny, lenx, parse_start, tam) < 0){
