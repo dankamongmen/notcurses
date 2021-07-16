@@ -83,6 +83,29 @@ base64x3(const unsigned char* src, char* b64){
   b64[3] = b64subs[d];
 }
 
+// finalize a base64 stream with 3 or fewer 8-bit bytes
+static inline void
+base64final(const unsigned char* src, char* b64, size_t b){
+  if(b == 3){
+    base64x3(src, b64);
+  }else if(b == 2){
+    uint8_t s0 = src[0] >> 2u;
+    uint8_t s1 = ((src[0] & 0x3u) << 4u) + ((src[1] & 0xf0u) >> 4u);
+    uint8_t s2 = ((src[1] & 0x0fu) << 2u);
+    b64[0] = b64subs[s0];
+    b64[1] = b64subs[s1];
+    b64[2] = b64subs[s2];
+    b64[3] = '=';
+  }else{ // b == 1
+    uint8_t s0 = src[0] >> 2u;
+    uint8_t s1 = (src[0] & 0x3u) << 4u;
+    b64[0] = b64subs[s0];
+    b64[1] = b64subs[s1];
+    b64[2] = '=';
+    b64[3] = '=';
+  }
+}
+
 #ifdef __cplusplus
 }
 #endif

@@ -390,6 +390,12 @@ int write_png_b64(const void* data, int rows, int rowstride, int cols, FILE* fp)
   if(fwrite64(IEND, sizeof(IEND) - 1, fp, &bctx) != 1){
     return -1;
   }
-  // FIXME flush bctx
+  if(bctx.srcidx){
+    char b64[4];
+    base64final(bctx.src, b64, bctx.srcidx);
+    if(fwrite(b64, 4, 1, fp) != 1){
+      return -1;
+    }
+  }
   return 0;
 }
