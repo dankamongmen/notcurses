@@ -70,8 +70,8 @@ relies on the font. Patches to correct/complete this table are very welcome!
 | [foot](https://codeberg.org/dnkl/foot)            | ✅                 |  ✅   |✅      |`TERM=foot`                        | Sixel support. |
 | [Gnome Terminal](https://gitlab.gnome.org/GNOME/gnome-terminal)  |❌   |  ❌   |✅      |`TERM=gnome` `COLORTERM=24bit`     | `ccc` support *is* available when run with `vte-256color`. |
 | [Guake](https://github.com/Guake/guake)           |                    |  ?    |?       |                                   | |
-| [ITerm2](https://github.com/gnachman/iTerm2)      |                    |  ?    |?       |                                   | |
-| [Kitty](https://github.com/kovidgoyal/kitty)      | ✅  |  ✅   |✅      |`TERM=xterm-kitty`                 | See below. |
+| [ITerm2](https://github.com/gnachman/iTerm2)      | ✅  |  ✅   |✅    |`TERM=xterm-256color`  |
+| [Kitty](https://github.com/kovidgoyal/kitty)      | ✅  |  ✅   |✅    |`TERM=xterm-kitty`                 | See below. |
 | [kmscon](https://github.com/dvdhrm/kmscon)        | |  ?    |?       |`TERM=xterm-256color`              | No RGB color AFAICT, nor any distinct terminfo entry. |
 | [Konsole](https://invent.kde.org/utilities/konsole) | ❌       |  ❌   |?       |`TERM=konsole-direct`              | |
 | Linux console   | ❌                 |  ✅   |see [below](#the-linux-console) |`TERM=linux` `COLORTERM=24bit`   | 8 (512 glyph fonts) or 16 (256 glyph fonts) colors max, but RGB values are downsampled to a 256-index palette. See below. |
