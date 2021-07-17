@@ -13,7 +13,7 @@ use libc::{
 
 /// See [NcFile]. Notcurses functions expects this type of `*FILE` (a struct)
 #[allow(clippy::upper_case_acronyms)]
-pub type FILE_NC = crate::ffi::_IO_FILE;
+pub type FILE_NC = crate::ffi::FILE;
 
 /// See [NcFile]. The [`libc`](https://docs.rs/libc/) crate expects this type
 /// of `*FILE` (an opaque enum)

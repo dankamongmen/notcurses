@@ -5,7 +5,6 @@ use std::io::Read;
 
 use crate::{notcurses_init_test, notcurses_stop, NCRESULT_MAX};
 
-#[cfg(not(target_os = "macos"))]
 use crate::NcFile;
 
 #[test]
@@ -146,7 +145,6 @@ fn notcurses_at_yx() {
 
 #[test]
 #[serial]
-#[cfg(not(target_os = "macos"))]
 fn notcurses_debug() {
     unsafe {
         let nc = notcurses_init_test();

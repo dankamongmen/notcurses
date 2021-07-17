@@ -4,14 +4,11 @@ use core::ptr::{null, null_mut};
 
 use crate::{
     cstring, error, error_ref_mut, notcurses_init, rstring, Nc, NcAlign, NcBlitter, NcChannels,
-    NcDim, NcError, NcInput, NcLogLevel, NcOptions, NcPlane, NcResult, NcScale, NcStats,
+    NcDim, NcError, NcFile, NcInput, NcLogLevel, NcOptions, NcPlane, NcResult, NcScale, NcStats,
     NcStyle, NcStyleMethods, NcTime, NCOPTION_NO_ALTERNATE_SCREEN, NCOPTION_SUPPRESS_BANNERS,
     NCRESULT_ERR, NCSTYLE_BLINK, NCSTYLE_BOLD, NCSTYLE_ITALIC, NCSTYLE_NONE, NCSTYLE_STRUCK,
     NCSTYLE_UNDERCURL, NCSTYLE_UNDERLINE,
 };
-
-#[cfg(not(target_os = "macos"))]
-use crate::NcFile;
 
 /// # `NcOptions` Constructors
 impl NcOptions {
@@ -297,7 +294,6 @@ impl Nc {
     /// planes, from all piles.
     ///
     /// *C style function: [notcurses_debug()][crate::notcurses_debug].*
-    #[cfg(not(target_os = "macos"))]
     pub fn debug(&mut self, debugfp: &mut NcFile) {
         unsafe {
             crate::notcurses_debug(self, debugfp.as_nc_ptr());
@@ -584,7 +580,6 @@ impl Nc {
     /// nothing will be written.
     ///
     /// *C style function: [notcurses_render_to_file()][crate::notcurses_render_to_file].*
-    #[cfg(not(target_os = "macos"))]
     pub fn render_to_file(&mut self, fp: &mut NcFile) -> NcResult<()> {
         error![unsafe { crate::notcurses_render_to_file(self, fp.as_nc_ptr()) }]
     }
