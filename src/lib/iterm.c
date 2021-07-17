@@ -10,25 +10,30 @@
 // yank a cell out of the PNG by setting all of its alphas to 0. the alphas
 // will be preserved in the auxvec.
 int iterm_wipe(sprixel* s, int ycell, int xcell){
-  return 0;
+  (void)s;     // FIXME
+  (void)ycell;
+  (void)xcell;
+  return -1;
 }
 
 // build a cell of the PNG back up by copying auxvec alphas to it.
 int iterm_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
-  return 0;
+  (void)s;      // FIXME
+  (void)ycell;
+  (void)xcell;
+  (void)auxvec;
+  return -1;
 }
 
 // spit out the control sequence and data.
 int iterm_draw(const ncpile *p, sprixel* s, FILE* out, int y, int x){
+  if(goto_location(p->nc, out, y, x)){
+    return -1;
+  }
   if(fwrite(s->glyph, s->glyphlen, 1, out) != 1){
     return -1;
   }
   return s->glyphlen;
-}
-
-// damage any cells underneath the graphic, destroying it.
-int iterm_scrub(const ncpile* p, sprixel* s){
-  return 0;
 }
 
 static int
