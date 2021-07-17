@@ -21,6 +21,7 @@
 //! ```rust
 //! use libnotcurses_sys::*;
 //!
+//! # #[cfg(not(miri))]
 //! fn main() -> NcResult<()> {
 //!     let mut nc = Nc::with_flags(NCOPTION_NO_ALTERNATE_SCREEN)?;
 //!     let plane = nc.stdplane();
@@ -29,6 +30,8 @@
 //!     nc.stop()?;
 //!     Ok(())
 //! }
+//! # #[cfg(miri)]
+//! # fn main() {}
 //! ```
 //!
 //! Although you still have to manually call the `stop()` method for [`Nc`] and
@@ -66,6 +69,7 @@
 //!
 //! use libnotcurses_sys::*;
 //!
+//! # #[cfg(not(miri))]
 //! fn main() {
 //!     let options = ffi::notcurses_options {
 //!         termtype: null(),
@@ -93,7 +97,8 @@
 //!         }
 //!     }
 //! }
-//!
+//! # #[cfg(miri)]
+//! # fn main() {}
 //! ```
 //!
 //! ### The `notcurses` C API docs

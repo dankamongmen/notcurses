@@ -17,6 +17,8 @@ fn main() {
     // The bindgen::Builder is the main entry point to bindgen, and lets you
     // build up options for the resulting bindings.
     //
+    // https://docs.rs/bindgen/*/bindgen/struct.Builder.html
+    //
     // allow .blacklist_function instead of .blocklist_function for now,
     // until we update bindgen to >= 0.58.
     #[allow(deprecated)]
@@ -48,6 +50,9 @@ fn main() {
         .blacklist_item("MSG_.*")
         .blacklist_item("N[^C].*")
         .blacklist_type("_bindgen.*")
+        // https://github.com/dankamongmen/notcurses/pull/1937
+        // https://github.com/rust-lang/rust-bindgen/issues/1651
+        .layout_tests(false)
         // Don't derive the Copy trait on types with destructors.
         .no_copy("ncdirect")
         .no_copy("ncdplot")
