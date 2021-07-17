@@ -220,7 +220,7 @@ inspect your environment's rendering of drawing characters, run
 ## FAQs
 
 If things break or seem otherwise lackluster, **please** consult the
-[Environment Notes](#environment_notes) section! You **need** to have a correct
+[Environment Notes](#environment-notes) section! You **need** to have a correct
 `TERM` and `LANG` definition, and probably want `COLORTERM`.
 
 <details>
