@@ -1202,7 +1202,9 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
       // perform an explicit clear since the alternate screen was requested
       // (smcup *might* clear, but who knows? and it might not have been
       // available in any case).
-      notcurses_refresh(ret, NULL, NULL);
+      if(clear_and_home(ret, &ret->tcache, ret->ttyfp, true)){
+        goto err;
+      }
       // no need to reestablish a preserved cursor -- that only affects the
       // standard plane, not the physical cursor that was just disrupted.
     }

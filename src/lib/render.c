@@ -1086,7 +1086,7 @@ rasterize_core(notcurses* nc, const ncpile* p, FILE* out, unsigned phase){
 // desired; in this case, a SUM footer is present at the end of the buffer.
 static int
 notcurses_rasterize_inner(notcurses* nc, ncpile* p, FILE* out, unsigned* asu){
-//fprintf(stderr, "pile %p ymax: %d xmax: %d\n", p, p->dimy + nc->margin_t, p->dimx + nc->margin_l);
+  logdebug("pile %p ymax: %d xmax: %d\n", p, p->dimy + nc->margin_t, p->dimx + nc->margin_l);
   // don't write a clearscreen. we only update things that have been changed.
   // we explicitly move the cursor at the beginning of each output line, so no
   // need to home it expliticly.
@@ -1209,8 +1209,7 @@ notcurses_rasterize(notcurses* nc, ncpile* p, FILE* out){
 
 // get the cursor to the upper-left corner by one means or another, clearing
 // the screen while doing so.
-static int
-clear_and_home(notcurses* nc, tinfo* ti, FILE* fp, unsigned flush){
+int clear_and_home(notcurses* nc, tinfo* ti, FILE* fp, unsigned flush){
   // clear clears the screen and homes the cursor by itself
   const char* clearscr = get_escape(ti, ESCAPE_CLEAR);
   if(clearscr){
@@ -1244,21 +1243,21 @@ success:
   return 0;
 }
 
+// FIXME need to work with the most recently-rendered pile, no?
 int notcurses_refresh(notcurses* nc, int* restrict dimy, int* restrict dimx){
   if(notcurses_resize(nc, dimy, dimx)){
+    return -1;
+  }
+  if(clear_and_home(nc, &nc->tcache, nc->ttyfp, true)){
     return -1;
   }
   if(nc->lfdimx == 0 || nc->lfdimy == 0){
     return 0;
   }
-  if(clear_and_home(nc, &nc->tcache, nc->ttyfp, true)){
-    return -1;
-  }
   ncpile p = {};
-  p.dimy = nc->margin_t;
-  p.dimx = nc->margin_l;
-  const int count = (nc->lfdimx > p.dimx ? nc->lfdimx : p.dimx) *
-                    (nc->lfdimy > p.dimy ? nc->lfdimy : p.dimy);
+  p.dimy = nc->lfdimy;
+  p.dimx = nc->lfdimx;
+  const int count = p.dimy * p.dimx;
   p.crender = malloc(count * sizeof(*p.crender));
   if(p.crender == NULL){
     return -1;
@@ -1380,6 +1379,7 @@ engorge_crender_vector(ncpile* n){
   const size_t crenderlen = n->dimy * n->dimx; // desired size
 //fprintf(stderr, "crlen: %d y: %d x:%d\n", crenderlen, dimy, dimx);
   if(crenderlen != n->crenderlen){
+    loginfo("Resizing rvec (%zu) for %p to %zu\n", n->crenderlen, n, crenderlen);
     struct crender* tmp = realloc(n->crender, sizeof(*tmp) * crenderlen);
     if(tmp == NULL){
       return -1;

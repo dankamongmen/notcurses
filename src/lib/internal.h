@@ -508,6 +508,8 @@ logical_to_virtual(const ncplane* n, int y){
   return (y + n->logrow) % n->leny;
 }
 
+int clear_and_home(notcurses* nc, tinfo* ti, FILE* fp, unsigned flush);
+
 static inline int
 nfbcellidx(const ncplane* n, int row, int col){
   return fbcellidx(logical_to_virtual(n, row), n->lenx, col);
