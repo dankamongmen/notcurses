@@ -76,8 +76,8 @@ setup_iterm_bitmaps(tinfo* ti, int fd){
   // notcurses-info to determine iTerm2 support.
   ti->pixel_move = NULL;
   ti->color_registers = 0;
+  ti->pixel_scrub = sixel_scrub;
   ti->pixel_draw = iterm_draw;
-  ti->pixel_scrub = iterm_scrub;
   ti->pixel_wipe = iterm_wipe;
   ti->pixel_rebuild = iterm_rebuild;
   ti->pixel_trans_auxvec = kitty_trans_auxvec;
