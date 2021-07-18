@@ -70,7 +70,6 @@ static inline void
 setup_iterm_bitmaps(tinfo* ti, int fd){
   ti->pixel_init = NULL;
   ti->pixel_shutdown = NULL;
-  ti->sprixel_scale_height = 1;
   ti->pixel_remove = NULL;
   // be awarre: absence of pixel_move plus absence of sixel details is used by
   // notcurses-info to determine iTerm2 support.
@@ -95,7 +94,6 @@ setup_kitty_bitmaps(tinfo* ti, int fd, int sixel_maxy_pristine){
   ti->pixel_commit = kitty_commit;
   ti->pixel_move = kitty_move;
   ti->pixel_shutdown = kitty_shutdown;
-  ti->sprixel_scale_height = 1;
   ti->pixel_clear_all = kitty_clear_all;
   ti->sixel_maxy_pristine = sixel_maxy_pristine;
   if(sixel_maxy_pristine){
@@ -633,6 +631,7 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
       return -1;
     }
   }
+  ti->sprixel_scale_height = 1;
   get_default_geometry(ti);
   ti->caps.utf8 = utf8;
   // allow the "rgb" boolean terminfo capability, a COLORTERM environment
