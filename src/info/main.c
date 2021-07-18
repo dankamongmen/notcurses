@@ -302,7 +302,7 @@ display_logo(const tinfo* ti, struct ncplane* n, const char* path){
   ncplane_cursor_yx(n, &y, NULL);
   struct ncvisual_options vopts = {
     .n = n,
-    .y = y - 4,
+    .y = y - 3,
     .x = 48,
     .blitter = NCBLIT_PIXEL,
     .flags = NCVISUAL_OPTION_CHILDPLANE,
@@ -339,11 +339,6 @@ tinfo_debug_bitmaps(struct ncplane* n, const tinfo* ti, const char* indent){
       ncplane_printf(n, "%srgba pixel graphics support\n", indent);
     }else{
       ncplane_printf(n, "%srgba pixel animation support\n", indent);
-    }
-    char* path = prefix_data("notcurses.png");
-    if(path){
-      display_logo(ti, n, path);
-      free(path);
     }
   }
   /*
@@ -429,6 +424,11 @@ int main(int argc, const char** argv){
   tinfo_debug_styles(nc, stdn, indent);
   tinfo_debug_bitmaps(stdn, &nc->tcache, indent);
   unicodedumper(stdn, &nc->tcache, indent);
+  char* path = prefix_data("notcurses.png");
+  if(path){
+    display_logo(&nc->tcache, stdn, path);
+    free(path);
+  }
   if(notcurses_render(nc)){
     notcurses_stop(nc);
     return EXIT_FAILURE;
