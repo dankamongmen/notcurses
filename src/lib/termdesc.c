@@ -115,6 +115,7 @@ static inline void
 setup_fbcon_bitmaps(tinfo* ti){
   // FIXME
   ti->pixel_draw = fbcon_draw;
+  ti->pixel_scrub = fbcon_scrub;
   set_pixel_blitter(fbcon_blit);
 }
 
