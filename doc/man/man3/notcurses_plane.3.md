@@ -383,8 +383,9 @@ other rows are moved up, the last row is cleared, and output begins at the
 beginning of the last row. This does not take place until output is generated
 (i.e. it is possible to fill a plane when scrolling is enabled).
 
-By default, planes bound to a scrolling plane will scroll along with it. This
-can be disabled with the **NCPLANE_OPTION_FIXED** flag.
+By default, planes bound to a scrolling plane will scroll along with it, if
+they intersect the plane. This can be disabled with the
+**NCPLANE_OPTION_FIXED** flag.
 
 ## Bitmaps
 

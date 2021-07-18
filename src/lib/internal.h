@@ -100,6 +100,7 @@ typedef struct ncplane {
   uint16_t stylemask;    // same deal as in a cell
   int margin_b, margin_r;// bottom and right margins, stored for resize
   bool scrolling;        // is scrolling enabled? always disabled by default
+  bool fixedbound;       // are we fixed relative to the parent's scrolling?
 } ncplane;
 
 // current presentation state of the terminal. it is carried across render

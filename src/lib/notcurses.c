@@ -417,6 +417,7 @@ ncplane* ncplane_new_internal(notcurses* nc, ncplane* n,
     return NULL;
   }
   p->scrolling = false;
+  p->fixedbound = nopts->flags & NCPLANE_OPTION_FIXED;
   if(nopts->flags & NCPLANE_OPTION_MARGINALIZED){
     p->margin_b = nopts->margin_b;
     p->margin_r = nopts->margin_r;
@@ -1529,7 +1530,8 @@ nccell_obliterate(ncplane* n, nccell* c){
   nccell_init(c);
 }
 
-// increment y by 1 and rotate the framebuffer up one line. x moves to 0.
+// increment y by 1 and rotate the framebuffer up one line. x moves to 0. any
+// non-fixed bound planes move up 1 line if they intersect the plane.
 void scroll_down(ncplane* n){
 //fprintf(stderr, "pre-scroll: %d/%d %d/%d log: %d scrolling: %u\n", n->y, n->x, n->leny, n->lenx, n->logrow, n->scrolling);
   n->x = 0;
@@ -1545,6 +1547,12 @@ void scroll_down(ncplane* n){
     memset(row, 0, sizeof(*row) * n->lenx);
   }else{
     ++n->y;
+  }
+  for(struct ncplane* c = n->blist ; c ; c = c->bnext){
+    if(!c->fixedbound){
+      // FIXME ought only be performed if we intersect the parent plane
+      ncplane_moverel(c, -1, 0);
+    }
   }
 }
 
