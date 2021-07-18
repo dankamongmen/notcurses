@@ -12,22 +12,23 @@
 
 
 int fbcon_blit(struct ncplane* nc, int linesize, const void* data,
-               int leny, int lenx, const struct blitterargs* bargs, int bpp){
+               int leny, int lenx, const struct blitterargs* bargs){
   (void)nc;
   (void)linesize;
   (void)data;
   (void)leny;
   (void)lenx;
   (void)bargs;
-  (void)bpp;
   logerror("Haven't implemented yet FIXME\n");
   return -1;
 }
 
-int fbcon_draw(const struct ncpile *p, sprixel* s, FILE* out){
+int fbcon_draw(const struct ncpile *p, sprixel* s, FILE* out, int y, int x){
   (void)p;
   (void)s;
   (void)out;
+  (void)y;
+  (void)x;
   logerror("Haven't implemented yet FIXME\n");
   return -1;
 }
