@@ -1550,8 +1550,9 @@ void scroll_down(ncplane* n){
   }
   for(struct ncplane* c = n->blist ; c ; c = c->bnext){
     if(!c->fixedbound){
-      // FIXME ought only be performed if we intersect the parent plane
-      ncplane_moverel(c, -1, 0);
+      if(ncplanes_intersect_p(n, c)){
+        ncplane_moverel(c, -1, 0);
+      }
     }
   }
 }

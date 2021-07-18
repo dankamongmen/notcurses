@@ -1569,6 +1569,32 @@ rgb_diff(unsigned r1, unsigned g1, unsigned b1, unsigned r2, unsigned g2, unsign
   return distance;
 }
 
+// returns non-zero iff the two planes intersect
+static inline unsigned
+ncplanes_intersect_p(const ncplane* p1, const ncplane* p2){
+  int y1, x1, y2, x2;
+  int b1, r1, b2, r2;
+  ncplane_abs_yx(p1, &y1, &x1);
+  b1 = y1 + ncplane_dim_y(p1) - 1;
+  r1 = x1 + ncplane_dim_x(p1) - 1;
+  ncplane_abs_yx(p2, &y2, &x2);
+  b2 = y2 + ncplane_dim_y(p2) - 1;
+  r2 = x2 + ncplane_dim_x(p2) - 1;
+  if(b1 < y2){ // p1 is above p2, no intersection
+    return 0;
+  }
+  if(b2 < y1){ // p2 is above p1, no intersection
+    return 0;
+  }
+  if(r1 < x2){ // p1 is to the left of p2, no intersection
+    return 0;
+  }
+  if(r2 < x1){ // p2 is to the left of p1, no intersection
+    return 0;
+  }
+  return 1;
+}
+
 static inline uint64_t
 ncdirect_channels(const ncdirect* nc){
   return nc->channels;
