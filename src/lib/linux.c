@@ -1,15 +1,6 @@
 #include "linux.h"
 #include "internal.h"
 
-#ifdef __linux__
-#include <sys/mman.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <linux/fb.h>
-#include <linux/kd.h>
-#include <sys/ioctl.h>
-
 int fbcon_wipe(sprixel* s, int ycell, int xcell){
   (void)s;
   (void)ycell;
@@ -100,6 +91,15 @@ int fbcon_draw(const struct ncpile *p, sprixel* s, FILE* out, int y, int x){
   }
   return 0;
 }
+
+#ifdef __linux__
+#include <sys/mman.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <linux/fb.h>
+#include <linux/kd.h>
+#include <sys/ioctl.h>
 
 // each row is a contiguous set of bits, starting at the msb
 static inline size_t
