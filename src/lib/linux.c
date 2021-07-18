@@ -10,16 +10,63 @@
 #include <linux/kd.h>
 #include <sys/ioctl.h>
 
+int fbcon_wipe(sprixel* s, int ycell, int xcell){
+  (void)s;
+  (void)ycell;
+  (void)xcell;
+  logerror("Not yet implemented\n");
+  return -1;
+}
 
-int fbcon_blit(struct ncplane* nc, int linesize, const void* data,
+int fbcon_blit(struct ncplane* n, int linesize, const void* data,
                int leny, int lenx, const struct blitterargs* bargs){
-  (void)nc;
-  (void)linesize;
-  (void)data;
-  (void)leny;
-  (void)lenx;
-  (void)bargs;
-  logerror("Haven't implemented yet FIXME\n");
+  int cols = bargs->u.pixel.spx->dimx;
+  int rows = bargs->u.pixel.spx->dimy;
+  sprixel* s = bargs->u.pixel.spx;
+  s->glyphlen = leny * lenx * 4;
+  s->glyph = malloc(s->glyphlen);
+  if(s->glyph == NULL){
+    return -1;
+  }
+  tament* tam = NULL;
+  bool reuse = false;
+  if(n->tam){
+    if(n->leny == rows && n->lenx == cols){
+      tam = n->tam;
+      reuse = true;
+    }
+  }
+  if(!reuse){
+    tam = malloc(sizeof(*tam) * rows * cols);
+    if(tam == NULL){
+      goto error;
+    }
+    memset(tam, 0, sizeof(*tam) * rows * cols);
+  }
+  for(int l = 0 ; l < leny ; ++l){
+    size_t soffset = l * linesize;
+    const uint8_t* src = (const unsigned char*)data + soffset;
+    size_t toffset = l * lenx * 4;
+    char* dst = s->glyph + toffset;
+    for(int c = 0 ; c < lenx ; ++c){
+      memcpy(dst, src + 2, 1);
+      memcpy(dst + 1, src + 1, 1);
+      memcpy(dst + 2, src, 1);
+      memcpy(dst + 3, src + 3, 1);
+      dst += 4;
+      src += 4;
+    }
+  }
+  if(plane_blit_sixel(s, s->glyph, s->glyphlen, leny, lenx, 0, tam) < 0){
+    goto error;
+  }
+  return 1;
+
+error:
+  if(!reuse){
+    free(tam);
+  }
+  free(s->glyph);
   return -1;
 }
 
@@ -30,13 +77,21 @@ int fbcon_scrub(const struct ncpile* p, sprixel* s){
 }
 
 int fbcon_draw(const struct ncpile *p, sprixel* s, FILE* out, int y, int x){
-  (void)p;
-  (void)s;
-  (void)out;
+  (void)out; // we don't write to the stream
   (void)y;
   (void)x;
+  const tinfo* ti = &p->nc->tcache;
+  for(int l = 0 ; l < s->pixy ; ++l){
+    // FIXME pixel size isn't necessarily 4B, line isn't necessarily psize*pixx
+    size_t offset = ((l + y) * ti->pixx + x) * 4;
+    size_t lsize = ti->pixx * 4;
+    uint8_t* tl = ti->linux_fbuffer + offset;
+    // FIXME draw line
+    const char* src = s->glyph + (l * s->pixx * 4);
+    memcpy(tl, src, lsize);
+  }
   logerror("Haven't implemented yet FIXME\n");
-  return -1;
+  return 0;
 }
 
 // each row is a contiguous set of bits, starting at the msb

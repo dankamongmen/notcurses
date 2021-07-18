@@ -129,6 +129,8 @@ typedef struct tinfo {
   uint16_t escindices[ESCAPE_MAX]; // table of 1-biased indices into esctable
   char* esctable;                  // packed table of escape sequences
   nccapabilities caps;             // exported to the user, when requested
+  unsigned pixy;                   // total pixel geometry, height
+  unsigned pixx;                   // total pixel geometry, width
   // we use the cell's size in pixels for pixel blitting. this information can
   // be acquired on all terminals with pixel support.
   int cellpixy;   // cell pixel height, might be 0

@@ -166,6 +166,7 @@ int kitty_wipe(sprixel* s, int ycell, int xcell);
 int kitty_wipe_animation(sprixel* s, int ycell, int xcell);
 // wipes out a cell by changing the alpha value throughout the PNG cell to 0.
 int iterm_wipe(sprixel* s, int ycell, int xcell);
+int fbcon_wipe(sprixel* s, int ycell, int xcell);
 int sixel_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
 int kitty_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
 int iterm_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec);

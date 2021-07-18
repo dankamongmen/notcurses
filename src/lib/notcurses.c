@@ -262,15 +262,14 @@ int update_term_dimensions(int fd, int* rows, int* cols, tinfo* tcache,
     *cols = ws.ws_col;
   }
   if(tcache){
-    unsigned y, x;
     if(tcache->linux_fb_fd >= 0){
-      get_linux_fb_pixelgeom(tcache, &y, &x);
+      get_linux_fb_pixelgeom(tcache, &tcache->pixy, &tcache->pixx);
     }else{
-      y = ws.ws_ypixel;
-      x = ws.ws_xpixel;
+      tcache->pixy = ws.ws_ypixel;
+      tcache->pixx = ws.ws_xpixel;
     }
-    tcache->cellpixy = ws.ws_row ? y / ws.ws_row : 0;
-    tcache->cellpixx = ws.ws_col ? x / ws.ws_col : 0;
+    tcache->cellpixy = ws.ws_row ? tcache->pixy / ws.ws_row : 0;
+    tcache->cellpixx = ws.ws_col ? tcache->pixx / ws.ws_col : 0;
     if(tcache->cellpixy == 0 || tcache->cellpixx == 0){
       tcache->pixel_draw = NULL; // disable support
     }
