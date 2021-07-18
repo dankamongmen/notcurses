@@ -7,6 +7,7 @@ rearrangements of Notcurses.
   * Added `NCPLANE_OPTION_FIXED`, to prevent a plane bound to a scrolling
     plane from scrolling along with it.
   * Added `input_errors` and `input_events` stats.
+  * `NCALPHA_HIGHCONTRAST` now works properly atop default backgrounds.
 
 * 2.3.10 (2021-07-14)
   * Notcurses now builds and works, so far as I can tell, on OS X 11.4+.
