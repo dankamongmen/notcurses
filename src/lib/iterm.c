@@ -50,6 +50,9 @@ write_iterm_graphic(sprixel* s, const void* data, int leny, int stride, int lenx
   if(write_png_b64(data, leny, stride, lenx, fp)){
     goto err;
   }
+  if(ncfputs("\e\\", fp) == EOF){
+    goto err;
+  }
   if(fclose(fp) == EOF){
     logerror("Error flushing %zuB (%s)\n", s->glyphlen, strerror(errno));
     free(s->glyph);
