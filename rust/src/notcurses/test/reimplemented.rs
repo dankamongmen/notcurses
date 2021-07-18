@@ -145,6 +145,7 @@ fn notcurses_at_yx() {
 
 #[test]
 #[serial]
+#[cfg_attr(target_os = "macos", ignore)] // FIXME
 fn notcurses_debug() {
     unsafe {
         let nc = notcurses_init_test();

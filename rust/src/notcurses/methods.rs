@@ -694,8 +694,9 @@ impl Nc {
                 NCSTYLE_STRUCK => "struck",
                 NCSTYLE_BOLD => "bold",
                 NCSTYLE_BLINK => "blink",
+                #[allow(unreachable_patterns)] // FIXME
                 NCSTYLE_NONE => "none",
-                _ => "",
+                _ => "none",
             });
             string.push(' ');
         }
