@@ -75,7 +75,6 @@ int highcontrast_demo(struct notcurses* nc){
   }
   const char motto[] = " high contrast text is evaluated relative to the solved background";
   nccell c = CELL_TRIVIAL_INITIALIZER;
-  nccell_set_fg_alpha(&c, NCALPHA_HIGHCONTRAST);
   unsigned total = 0, r = 0, g = 0, b = 0;
   for(int out = 0 ; out < totcells ; ++out){ // build up the initial screen
     scrcolors[out] = generate_next_color(&total, &r, &g, &b, STEP);
@@ -83,6 +82,7 @@ int highcontrast_demo(struct notcurses* nc){
       total = r = g = b = 0;
     }
     nccell_load_char(n, &c, motto[out % strlen(motto)]);
+    nccell_set_fg_alpha(&c, NCALPHA_HIGHCONTRAST);
     nccell_set_bg_rgb(&c, scrcolors[out % totcells]);
     if(ncplane_putc_yx(n, (out + dimx) / dimx, out % dimx, &c) < 0){
       free(scrcolors);

@@ -98,10 +98,18 @@ int cell_duplicate(struct ncplane* n, nccell* targ, const nccell* c){
 
 // Emit fchannel with RGB changed to contrast effectively against bchannel.
 static uint32_t
-highcontrast(uint32_t bchannel){
-  unsigned r = ncchannel_r(bchannel);
-  unsigned g = ncchannel_g(bchannel);
-  unsigned b = ncchannel_b(bchannel);
+highcontrast(const tinfo* ti, uint32_t bchannel){
+  unsigned r, g, b;
+  if(ncchannel_default_p(bchannel)){
+    r = ncchannel_r(ti->bg_collides_default);
+    g = ncchannel_g(ti->bg_collides_default);
+    b = ncchannel_b(ti->bg_collides_default);
+  }else{
+    // FIXME need to handle palette-indexed
+    r = ncchannel_r(bchannel);
+    g = ncchannel_g(bchannel);
+    b = ncchannel_b(bchannel);
+  }
   uint32_t conrgb = 0;
   if(r + g + b < 320){
     ncchannel_set(&conrgb, 0xffffff);
@@ -377,7 +385,7 @@ init_rvec(struct crender* rvec, int totalcells){
 // should be done at the end of rendering the cell, so that contrast is solved
 // against the real background.
 static inline void
-lock_in_highcontrast(nccell* targc, struct crender* crender){
+lock_in_highcontrast(const tinfo* ti, nccell* targc, struct crender* crender){
   if(nccell_fg_alpha(targc) == NCALPHA_TRANSPARENT){
     nccell_set_fg_default(targc);
   }
@@ -390,13 +398,13 @@ lock_in_highcontrast(nccell* targc, struct crender* crender){
       unsigned fgblends = 3;
       uint32_t fchan = cell_fchannel(targc);
       uint32_t bchan = cell_bchannel(targc);
-      uint32_t hchan = channels_blend(highcontrast(bchan), fchan, &fgblends);
+      uint32_t hchan = channels_blend(highcontrast(ti, bchan), fchan, &fgblends);
       cell_set_fchannel(targc, hchan);
       fgblends = crender->s.hcfgblends;
       hchan = channels_blend(hchan, crender->hcfg, &fgblends);
       cell_set_fchannel(targc, hchan);
     }else{
-      nccell_set_fg_rgb(targc, highcontrast(cell_bchannel(targc)));
+      nccell_set_fg_rgb(targc, highcontrast(ti, cell_bchannel(targc)));
     }
   }
 }
@@ -405,10 +413,10 @@ lock_in_highcontrast(nccell* targc, struct crender* crender){
 // checking for and locking in high-contrast, checking for damage, and updating
 // 'lastframe' for any cells which are damaged.
 static inline void
-postpaint_cell(nccell* lastframe, int dimx, struct crender* crender,
-               egcpool* pool, int y, int* x){
+postpaint_cell(const tinfo* ti, nccell* lastframe, int dimx,
+               struct crender* crender, egcpool* pool, int y, int* x){
   nccell* targc = &crender->c;
-  lock_in_highcontrast(targc, crender);
+  lock_in_highcontrast(ti, targc, crender);
   nccell* prevcell = &lastframe[fbcellidx(y, dimx, *x)];
   if(cellcmp_and_dupfar(pool, prevcell, crender->p, targc) > 0){
 //fprintf(stderr, "damaging due to cmp [%s] %d %d\n", nccell_extended_gcluster(crender->p, &crender->c), y, *x);
@@ -458,11 +466,12 @@ postpaint_cell(nccell* lastframe, int dimx, struct crender* crender,
 // FIXME can we not do the blend a single time here, if we track sums in
 //       paint()? tried this before and didn't get a win...
 static void
-postpaint(nccell* lastframe, int dimy, int dimx, struct crender* rvec, egcpool* pool){
+postpaint(const tinfo* ti, nccell* lastframe, int dimy, int dimx,
+          struct crender* rvec, egcpool* pool){
   for(int y = 0 ; y < dimy ; ++y){
     for(int x = 0 ; x < dimx ; ++x){
       struct crender* crender = &rvec[fbcellidx(y, dimx, x)];
-      postpaint_cell(lastframe, dimx, crender, pool, y, &x);
+      postpaint_cell(ti, lastframe, dimx, crender, pool, y, &x);
     }
   }
 }
@@ -511,7 +520,8 @@ int ncplane_mergedown(ncplane* restrict src, ncplane* restrict dst,
   paint(src, rvec, dst->leny, dst->lenx, dst->absy, dst->absx, NULL);
   paint(dst, rvec, dst->leny, dst->lenx, dst->absy, dst->absx, NULL);
 //fprintf(stderr, "Postpaint start (%dx%d)\n", dst->leny, dst->lenx);
-  postpaint(rendfb, dst->leny, dst->lenx, rvec, &dst->pool);
+  const struct tinfo* ti = &ncplane_notcurses_const(dst)->tcache;
+  postpaint(ti, rendfb, dst->leny, dst->lenx, rvec, &dst->pool);
 //fprintf(stderr, "Postpaint done (%dx%d)\n", dst->leny, dst->lenx);
   free(dst->fb);
   dst->fb = rendfb;
@@ -1353,7 +1363,8 @@ int ncpile_rasterize(ncplane* n){
   struct notcurses* nc = ncplane_notcurses(n);
   const int miny = pile->dimy < nc->lfdimy ? pile->dimy : nc->lfdimy;
   const int minx = pile->dimx < nc->lfdimx ? pile->dimx : nc->lfdimx;
-  postpaint(nc->lastframe, miny, minx, pile->crender, &nc->pool);
+  const struct tinfo* ti = &ncplane_notcurses_const(n)->tcache;
+  postpaint(ti, nc->lastframe, miny, minx, pile->crender, &nc->pool);
   clock_gettime(CLOCK_MONOTONIC, &rasterdone);
   int bytes = notcurses_rasterize(nc, pile, nc->rstate.mstreamfp);
   // accepts -1 as an indication of failure
