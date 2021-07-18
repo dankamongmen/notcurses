@@ -2,52 +2,55 @@
 name: Windows
 
 on:
-  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - master
 
 jobs:
   tests:
+    defaults:
+      run:
+        shell: msys2 {0}
     env:
       COLORTERM: truecolor
       NPROC: 2
       TERM: xterm
     name: 🏁 build, test, & install
     runs-on: windows-latest
+
     steps:
 
       - name: Install tools and libraries via MSYS2
         uses: msys2/setup-msys2@v2
         with:
-          msystem: MINGW64
+          msystem: UCRT64
           update: true
-          # installing mingw-w64-x86_64-libxml2 is a workaround for:
-          # https://github.com/msys2/MINGW-packages/issues/8658
           install: >
             base-devel
             git
-            mingw-w64-x86_64-cmake
-            mingw-w64-x86_64-ffmpeg
-            mingw-w64-x86_64-libunistring
-            mingw-w64-x86_64-libxml2
-            mingw-w64-x86_64-ncurses
-            mingw-w64-x86_64-rust
-            mingw-w64-x86_64-toolchain
+            mingw-w64-ucrt-x86_64-cmake
+            mingw-w64-ucrt-x86_64-ffmpeg
+            mingw-w64-ucrt-x86_64-libunistring
+            mingw-w64-ucrt-x86_64-ncurses
+            mingw-w64-ucrt-x86_64-rust
+            mingw-w64-ucrt-x86_64-toolchain
 
       - uses: actions/checkout@v2
 
-      - name: cmake
+      - name: Build libqrcodegen
         run: |
-          pushd .
           mkdir "${HOME}/repos" && cd "${HOME}/repos"
           git clone https://github.com/nayuki/QR-Code-generator.git
           cd QR-Code-generator/c
-          AR="$(which ar)"
-          make AR="${AR}"
-          PREFIX=/mingw64
-          cd ${PREFIX}/include && \
-            ln -s "${HOME}/repos/QR-Code-generator/c" qrcodegen
-          cd ${PREFIX}/lib && \
-            ln -s "${HOME}/repos/QR-Code-generator/c/libqrcodegen.a" .
-          popd
+          make
+          cd /ucrt64/include && \
+            ln -s "${HOME}/repos/QR-Code-generator/c" ./qrcodegen
+          cd /ucrt64/lib && \
+            ln -s "${HOME}/repos/QR-Code-generator/c/libqrcodegen.a" ./libqrcodegen.a
+
+      - name: cmake
+        run: |
           mkdir build && cd build
           cmake .. \
             -G "MSYS Makefiles" \
@@ -69,8 +72,7 @@ jobs:
       - name: make install
         run: |
           cd build
-          sudo make install
-          sudo ldconfig
+          make install
 
       - name: python wrappers
         run: |
@@ -78,7 +80,7 @@ jobs:
           pip install pypandoc
           cd cffi
           python3 setup.py sdist build
-          sudo python3 setup.py install
+          python3 setup.py install
           notcurses-pydemo > /dev/null
           ncdirect-pydemo > /dev/null
 
