@@ -170,6 +170,7 @@ int fbcon_wipe(sprixel* s, int ycell, int xcell);
 int sixel_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
 int kitty_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
 int iterm_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
+int fbcon_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
 int kitty_rebuild_animation(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
 int sixel_draw(const struct ncpile *p, sprixel* s, FILE* out, int y, int x);
 int kitty_draw(const struct ncpile *p, sprixel* s, FILE* out, int y, int x);
