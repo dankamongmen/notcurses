@@ -5,7 +5,8 @@ rearrangements of Notcurses.
   * Notcurses now requires libz to build. In exchange, it can now generate
     PNGs on the fly, necessary for driving iTerm2's graphics protocol.
   * Added `NCPLANE_OPTION_FIXED`, to prevent a plane bound to a scrolling
-    plane from scrolling along with it.
+    plane from scrolling along with it. Otherwise, bound planes will scroll
+    along with the parent plane so long as the planes intersect.
   * Added `input_errors` and `input_events` stats.
   * `NCALPHA_HIGHCONTRAST` now works properly atop default backgrounds.
   * `SIGFPE` is now included among the fatal signals for which handlers are
