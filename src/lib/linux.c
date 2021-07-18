@@ -98,7 +98,6 @@ int fbcon_draw(const struct ncpile *p, sprixel* s, FILE* out, int y, int x){
     const char* src = s->glyph + (l * s->pixx * 4);
     memcpy(tl, src, lsize);
   }
-  logerror("Haven't implemented yet FIXME\n");
   return 0;
 }
 
