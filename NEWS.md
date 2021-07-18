@@ -4,6 +4,9 @@ rearrangements of Notcurses.
 * 2.3.11 (not yet released)
   * Notcurses now requires libz to build. In exchange, it can now generate
     PNGs on the fly, necessary for driving iTerm2's graphics protocol.
+  * Experimental code has been added to draw graphics using both the iTerm2
+    protocol and directly to the Linux console framebuffer. This functionality
+    is still quite raw, but can be played with.
   * Added `NCPLANE_OPTION_FIXED`, to prevent a plane bound to a scrolling
     plane from scrolling along with it. Otherwise, bound planes will scroll
     along with the parent plane so long as the planes intersect.
