@@ -169,9 +169,9 @@ The following flags are defined:
     will place the terminal into cbreak mode (i.e. disabling echo and line
     buffering; see **tcgetattr(3)**).
 
-* **NCDIRECT_OPTION_NO_QUIT_SIGHANDLERS**: A signal handler will usually be
-    installed for **SIGINT**, **SIGILL**, **SIGQUIT**, **SIGSEGV**,
-    **SIGTERM**, and **SIGABRT**, cleaning up the terminal on such exceptions.
+* **NCDIRECT_OPTION_NO_QUIT_SIGHANDLERS**: A signal handler will usually be installed
+    for **SIGABRT**, **SIGFPE**, **SIGILL**, **SIGINT**, **SIGQUIT**,
+    **SIGSEGV**, and **SIGTERM**, cleaning up the terminal on such exceptions.
     With this flag, the handler will not be installed.
 
 * **NCDIRECT_OPTION_VERBOSE**: Enable diagnostics to **stderr** at the level of

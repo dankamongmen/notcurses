@@ -15,12 +15,12 @@ static bool handling_fatals;
 // saved signal actions, restored in drop_signals() FIXME make an array
 static struct sigaction old_winch;
 static struct sigaction old_cont;
-static struct sigaction old_term;
-static struct sigaction old_int;
+static struct sigaction old_abrt;
+static struct sigaction old_fpe;
 static struct sigaction old_ill;
+static struct sigaction old_int;
 static struct sigaction old_quit;
 static struct sigaction old_segv;
-static struct sigaction old_abrt;
 static struct sigaction old_term;
 
 // Signals we block when we start writing out a frame, so as not to be
@@ -55,12 +55,13 @@ int drop_signals(void* nc){
       handling_winch = false;
     }
     if(handling_fatals){
-      sigaction(SIGINT, &old_int, NULL);
-      sigaction(SIGILL, &old_ill, NULL);
-      sigaction(SIGTERM, &old_term, NULL);
-      sigaction(SIGSEGV, &old_segv, NULL);
       sigaction(SIGABRT, &old_abrt, NULL);
+      sigaction(SIGFPE, &old_fpe, NULL);
+      sigaction(SIGILL, &old_ill, NULL);
+      sigaction(SIGINT, &old_int, NULL);
       sigaction(SIGQUIT, &old_quit, NULL);
+      sigaction(SIGSEGV, &old_segv, NULL);
+      sigaction(SIGTERM, &old_term, NULL);
       handling_fatals = false;
     }
     ret = !atomic_compare_exchange_strong(&signal_nc, &expected, NULL);
@@ -92,10 +93,11 @@ fatal_handler(int signo, siginfo_t* siginfo, void* v){
     fatal_callback(nc);
     switch(signo){
       case SIGTERM: invoke_old(&old_term, signo, siginfo, v); break;
-      case SIGQUIT: invoke_old(&old_quit, signo, siginfo, v); break;
       case SIGSEGV: invoke_old(&old_segv, signo, siginfo, v); break;
+      case SIGQUIT: invoke_old(&old_quit, signo, siginfo, v); break;
       case SIGINT: invoke_old(&old_int, signo, siginfo, v); break;
       case SIGILL: invoke_old(&old_ill, signo, siginfo, v); break;
+      case SIGFPE: invoke_old(&old_fpe, signo, siginfo, v); break;
       case SIGABRT: invoke_old(&old_abrt, signo, siginfo, v); break;
     }
     raise(signo); // FIXME does this invoke twice? hrmmm
@@ -135,6 +137,7 @@ int setup_signals(void* vnc, bool no_quit_sigs, bool no_winch_sig,
     memset(&sa, 0, sizeof(sa));
     fatal_callback = handler;
     sa.sa_sigaction = fatal_handler;
+    sigaddset(&sa.sa_mask, SIGFPE);
     sigaddset(&sa.sa_mask, SIGILL);
     sigaddset(&sa.sa_mask, SIGINT);
     sigaddset(&sa.sa_mask, SIGQUIT);
@@ -143,6 +146,7 @@ int setup_signals(void* vnc, bool no_quit_sigs, bool no_winch_sig,
     sigaddset(&sa.sa_mask, SIGTERM);
     sa.sa_flags = SA_SIGINFO | SA_RESETHAND; // don't try fatal signals twice
     int ret = 0;
+    ret |= sigaction(SIGFPE, &sa, &old_fpe);
     ret |= sigaction(SIGILL, &sa, &old_ill);
     ret |= sigaction(SIGINT, &sa, &old_int);
     ret |= sigaction(SIGQUIT, &sa, &old_quit);

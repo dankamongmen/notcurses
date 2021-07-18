@@ -397,6 +397,7 @@ block_on_input(int fd, const struct timespec* ts, const sigset_t* sigmask){
   sigdelset(&scratchmask, SIGCONT);
   sigdelset(&scratchmask, SIGWINCH);
   sigdelset(&scratchmask, SIGILL);
+  sigdelset(&scratchmask, SIGFPE);
   sigdelset(&scratchmask, SIGSEGV);
   sigdelset(&scratchmask, SIGABRT);
   // now add those which we don't want while writing

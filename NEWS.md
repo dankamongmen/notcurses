@@ -8,6 +8,8 @@ rearrangements of Notcurses.
     plane from scrolling along with it.
   * Added `input_errors` and `input_events` stats.
   * `NCALPHA_HIGHCONTRAST` now works properly atop default backgrounds.
+  * `SIGFPE` is now included among the fatal signals for which handlers are
+    by default installed. Unsure how I overlooked it this long.
 
 * 2.3.10 (2021-07-14)
   * Notcurses now builds and works, so far as I can tell, on OS X 11.4+.
