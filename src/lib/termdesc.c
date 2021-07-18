@@ -112,12 +112,13 @@ setup_kitty_bitmaps(tinfo* ti, int fd, int sixel_maxy_pristine){
 // kitty 0.19.3 didn't have C=1, and thus needs sixel_maxy_pristine. it also
 // lacked animation, and thus requires the older interface.
 static inline void
-setup_fbcon_bitmaps(tinfo* ti){
-  // FIXME
+setup_fbcon_bitmaps(tinfo* ti, int fd){
+  ti->pixel_rebuild = fbcon_rebuild;
   ti->pixel_wipe = fbcon_wipe;
   ti->pixel_draw = fbcon_draw;
   ti->pixel_scrub = fbcon_scrub;
   set_pixel_blitter(fbcon_blit);
+  sprite_init(ti, fd);
 }
 
 static bool
@@ -554,7 +555,7 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
     }
     if(ti->linux_fb_fd >= 0){
       termname = "Linux framebuffer";
-      setup_fbcon_bitmaps(ti);
+      setup_fbcon_bitmaps(ti, ti->linux_fb_fd);
     }else{
       termname = "Linux console";
     }

@@ -18,6 +18,15 @@ int fbcon_wipe(sprixel* s, int ycell, int xcell){
   return -1;
 }
 
+int fbcon_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
+  (void)s;
+  (void)ycell;
+  (void)xcell;
+  (void)auxvec;
+  logerror("Not yet implemented\n");
+  return -1;
+}
+
 int fbcon_blit(struct ncplane* n, int linesize, const void* data,
                int leny, int lenx, const struct blitterargs* bargs){
   int cols = bargs->u.pixel.spx->dimx;
@@ -84,9 +93,8 @@ int fbcon_draw(const struct ncpile *p, sprixel* s, FILE* out, int y, int x){
   for(int l = 0 ; l < s->pixy ; ++l){
     // FIXME pixel size isn't necessarily 4B, line isn't necessarily psize*pixx
     size_t offset = ((l + y) * ti->pixx + x) * 4;
-    size_t lsize = ti->pixx * 4;
+    size_t lsize = s->pixx * 4;
     uint8_t* tl = ti->linux_fbuffer + offset;
-    // FIXME draw line
     const char* src = s->glyph + (l * s->pixx * 4);
     memcpy(tl, src, lsize);
   }
