@@ -1,5 +1,5 @@
 ---
-name: 🏁 Windows Tests
+name: Windows
 
 on:
   workflow_dispatch:
@@ -10,6 +10,7 @@ jobs:
       COLORTERM: truecolor
       NPROC: 2
       TERM: xterm
+    name: 🏁 build, test, & install
     runs-on: windows-latest
     steps:
 
