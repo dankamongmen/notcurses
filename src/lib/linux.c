@@ -92,10 +92,10 @@ int fbcon_draw(const struct ncpile *p, sprixel* s, FILE* out, int y, int x){
   const tinfo* ti = &p->nc->tcache;
   for(int l = 0 ; l < s->pixy ; ++l){
     // FIXME pixel size isn't necessarily 4B, line isn't necessarily psize*pixx
-    size_t offset = ((l + y) * ti->pixx + x) * 4;
-    size_t lsize = s->pixx * 4;
+    size_t offset = ((l + y * ti->cellpixy) * ti->pixx + x * ti->cellpixx) * 4;
     uint8_t* tl = ti->linux_fbuffer + offset;
     const char* src = s->glyph + (l * s->pixx * 4);
+    size_t lsize = s->pixx * 4;
     memcpy(tl, src, lsize);
   }
   return 0;
