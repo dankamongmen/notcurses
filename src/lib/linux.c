@@ -23,6 +23,12 @@ int fbcon_blit(struct ncplane* nc, int linesize, const void* data,
   return -1;
 }
 
+int fbcon_scrub(const struct ncpile* p, sprixel* s){
+  (void)p;
+  (void)s;
+  return -1;
+}
+
 int fbcon_draw(const struct ncpile *p, sprixel* s, FILE* out, int y, int x){
   (void)p;
   (void)s;

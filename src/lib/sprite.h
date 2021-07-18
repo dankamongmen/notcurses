@@ -176,6 +176,7 @@ int iterm_draw(const struct ncpile *p, sprixel* s, FILE* out, int y, int x);
 int kitty_move(sprixel* s, FILE* out, unsigned noscroll);
 int sixel_scrub(const struct ncpile* p, sprixel* s);
 int kitty_scrub(const struct ncpile* p, sprixel* s);
+int fbcon_scrub(const struct ncpile* p, sprixel* s);
 int kitty_remove(int id, FILE* out);
 int kitty_clear_all(FILE* fp);
 int sixel_init(const tinfo* t, int fd);
