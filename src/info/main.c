@@ -319,8 +319,9 @@ display_logo(const tinfo* ti, struct ncplane* n, const char* path){
 static void
 tinfo_debug_bitmaps(struct ncplane* n, const tinfo* ti, const char* indent){
   ncplane_set_fg_rgb8(n, 0xc4, 0x5a, 0xec);
-  ncplane_printf(n, "%sbgcolor 0x%06lx %sconsidered transparent\n", indent, ti->bg_collides_default & 0xfffffful,
-                   (ti->bg_collides_default & 0x01000000) ? "" : "not ");
+  ncplane_printf(n, "%sdefbg 0x%06lx %sconsidered transparent\n", indent,
+                 ti->bg_collides_default & 0xfffffful,
+                 (ti->bg_collides_default & 0x01000000) ? "" : "not ");
   ncplane_set_fg_default(n);
   ncplane_set_fg_rgb(n, 0x5efa80);
   if(!ti->pixel_draw){
