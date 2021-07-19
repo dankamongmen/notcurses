@@ -87,7 +87,7 @@ relies on the font. Patches to correct/complete this table are very welcome!
 | [Terminology](https://github.com/borisfaure/terminology)     | ❌                 |  ❌   |?       | `TERM=terminology`              | |
 | [Tilda](https://github.com/lanoxx/tilda)  |       |  ?    |?       | ?                               | |
 | [tmux](https://github.com/tmux/tmux/wiki) | ✅    |  ❌   |n/a     |`TERM=tmux-256color` `COLORTERM=24bit`| `tmux.conf` must apply `Tc`; see below. `bce` is available with the `tmux-256color-bce` definition. |
-| [wezterm](https://github.com/wez/wezterm) | ✅    |  ✅   |?       |`TERM=wezterm` `COLORTERM=24bit` | See below. |
+| [WezTerm](https://github.com/wez/wezterm) | ✅    |  ✅   |?       |`TERM=wezterm` `COLORTERM=24bit` | See below. |
 | [Windows Terminal](https://github.com/microsoft/terminal)|                    |  ?    |?       | ?                               | |
 | [wterm](https://github.com/majestrate/wterm)           |                    |  ?    |?       | ?                               | |
 | [XFCE4 Terminal](https://gitlab.xfce.org/apps/xfce4-terminal)  | ❌                 |  ✅   |✅      |`TERM=xfce` `COLORTERM=24bit`    | No `xfce-direct` variant exists. |
@@ -113,9 +113,9 @@ https://github.com/dankamongmen/notcurses/issues/1117.
 Kitty is furthermore the only terminal I know to lack the `bce` (Background
 Color Erase) capability, but Notcurses never relies on `bce` behavior.
 
-### Wezterm
+### WezTerm
 
-Wezterm [implements](https://wezfurlong.org/wezterm/escape-sequences.html) some
+WezTerm [implements](https://wezfurlong.org/wezterm/escape-sequences.html) some
 interesting underline options, and the iTerm2 graphic protocol.
 
 ### GNU screen
@@ -219,7 +219,8 @@ implementing `rgb` use the 3x8bpc model; XTerm for instance:
 Thus emitting `setaf` with an RGB value close to black can result, when
 using `xterm-direct`'s `setaf` and `rgb` definitions, in a bright ANSI color.
 
-24-bit RGB is always enabled for Kitty, Alacritty, Contour, WezTerm, and foot.
+24-bit RGB is always enabled for Kitty, Alacritty, Contour, WezTerm, iTerm2,
+and foot.
 
 ### Problematic characters
 

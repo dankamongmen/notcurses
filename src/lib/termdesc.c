@@ -547,6 +547,9 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
     if(add_appsync_escapes_dcs(ti, tablelen, tableused)){
       return -1;
     }
+    termname = "iTerm2";
+    ti->caps.quadrants = true;
+    ti->caps.rgb = true;
     setup_iterm_bitmaps(ti, fd);
   }else if(qterm == TERMINAL_LINUX){
     struct utsname un;
