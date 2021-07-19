@@ -2,14 +2,20 @@
 #include "internal.h"
 
 int fbcon_wipe(sprixel* s, int ycell, int xcell){
-  (void)s;
-  (void)ycell;
-  (void)xcell;
-  logerror("Not yet implemented\n");
-  return -1;
+  char* glyph = s->glyph;
+  for(int y = 0 ; y < s->cellpxy ; ++y){
+    size_t offset = (ycell * s->dimx + xcell) * 4;
+    // FIXME need preserve auxvec
+    for(int x = 0 ; x < s->cellpxx ; ++x){
+      glyph[offset + 3] = 0;
+      offset += 4;
+    }
+  }
+  return 0;
 }
 
 int fbcon_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
+  // FIXME build back from transparency values in auxvec
   (void)s;
   (void)ycell;
   (void)xcell;
@@ -22,6 +28,8 @@ int fbcon_blit(struct ncplane* n, int linesize, const void* data,
                int leny, int lenx, const struct blitterargs* bargs){
   int cols = bargs->u.pixel.spx->dimx;
   int rows = bargs->u.pixel.spx->dimy;
+  int cdimx = bargs->u.pixel.celldimx;
+  int cdimy = bargs->u.pixel.celldimy;
   sprixel* s = bargs->u.pixel.spx;
   s->glyphlen = leny * lenx * 4;
   s->glyph = malloc(s->glyphlen);
@@ -44,19 +52,27 @@ int fbcon_blit(struct ncplane* n, int linesize, const void* data,
     memset(tam, 0, sizeof(*tam) * rows * cols);
   }
   for(int l = 0 ; l < leny ; ++l){
+    int ycell = l / cdimy;
     size_t soffset = l * linesize;
     const uint8_t* src = (const unsigned char*)data + soffset;
     size_t toffset = l * lenx * 4;
     char* dst = s->glyph + toffset;
     for(int c = 0 ; c < lenx ; ++c){
+      int xcell = c / cdimx;
+      int tyx = xcell + ycell * bargs->u.pixel.spx->dimx;
+      if(tam[tyx].state >= SPRIXCELL_ANNIHILATED){
+        dst[3] = 0;
+        // FIXME stash src[3] into auxvec
+      }else{
+        if(rgba_trans_p(*(const uint32_t*)src, bargs->transcolor)){
+          dst[3] = 0;
+        }else{
+          memcpy(dst + 3, src + 3, 1);
+        }
+      }
       memcpy(dst, src + 2, 1);
       memcpy(dst + 1, src + 1, 1);
       memcpy(dst + 2, src, 1);
-      if(rgba_trans_p(*(const uint32_t*)src, bargs->transcolor)){
-        dst[3] = 0;
-      }else{
-        memcpy(dst + 3, src + 3, 1);
-      }
       dst += 4;
       src += 4;
     }
@@ -82,8 +98,6 @@ int fbcon_scrub(const struct ncpile* p, sprixel* s){
 
 int fbcon_draw(const struct ncpile *p, sprixel* s, FILE* out, int y, int x){
   (void)out; // we don't write to the stream
-  (void)y;
-  (void)x;
   const tinfo* ti = &p->nc->tcache;
   for(int l = 0 ; l < s->pixy ; ++l){
     // FIXME pixel size isn't necessarily 4B, line isn't necessarily psize*pixx
@@ -93,7 +107,6 @@ int fbcon_draw(const struct ncpile *p, sprixel* s, FILE* out, int y, int x){
     for(int c = 0 ; c < s->pixx ; ++c){
       uint32_t pixel;
       memcpy(&pixel, src, 4);
-      // FIXME need transcolor from bargs
       if(!rgba_trans_p(pixel, 0)){
         memcpy(tl, &pixel, 4);
       }
