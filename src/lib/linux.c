@@ -52,7 +52,11 @@ int fbcon_blit(struct ncplane* n, int linesize, const void* data,
       memcpy(dst, src + 2, 1);
       memcpy(dst + 1, src + 1, 1);
       memcpy(dst + 2, src, 1);
-      memcpy(dst + 3, src + 3, 1);
+      if(rgba_trans_p(*(const uint32_t*)src, bargs->transcolor)){
+        dst[3] = 0;
+      }else{
+        memcpy(dst + 3, src + 3, 1);
+      }
       dst += 4;
       src += 4;
     }
@@ -86,8 +90,16 @@ int fbcon_draw(const struct ncpile *p, sprixel* s, FILE* out, int y, int x){
     size_t offset = ((l + y * ti->cellpixy) * ti->pixx + x * ti->cellpixx) * 4;
     uint8_t* tl = ti->linux_fbuffer + offset;
     const char* src = s->glyph + (l * s->pixx * 4);
-    size_t lsize = s->pixx * 4;
-    memcpy(tl, src, lsize);
+    for(int c = 0 ; c < s->pixx ; ++c){
+      uint32_t pixel;
+      memcpy(&pixel, src, 4);
+      // FIXME need transcolor from bargs
+      if(!rgba_trans_p(pixel, 0)){
+        memcpy(tl, &pixel, 4);
+      }
+      src += 4;
+      tl += 4;
+    }
   }
   return 0;
 }
