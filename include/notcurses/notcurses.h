@@ -20,6 +20,9 @@
 #elif defined(__APPLE__)
 #include <libkern/OSByteOrder.h>
 #define htole(x) (OSSwapInt32(htonl(x)))
+#elif defined(__MINGW64__)
+#include <winsock.h>
+#define htole(x) (bswap32(htonl(x)))
 #else
 #include <sys/endian.h>
 #define htole(x) (bswap32(htonl(x)))
