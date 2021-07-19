@@ -405,7 +405,6 @@ int main(int argc, const char** argv){
     .flags = NCOPTION_NO_ALTERNATE_SCREEN
              | NCOPTION_PRESERVE_CURSOR
              | NCOPTION_NO_CLEAR_BITMAPS,
-    .loglevel = NCLOGLEVEL_WARNING,
   };
   if(argc > 2){
     usage(*argv, stderr, EXIT_FAILURE);
