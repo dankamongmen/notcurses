@@ -324,8 +324,6 @@ grow_esc_table(tinfo* ti, const char* tstr, escape_e esc,
 // these three queries (terminated with a Primary Device Attributes, to which
 // all known terminals reply) hopefully can uniquely and unquestionably
 // identify the terminal to which we are talking.
-// FIXME Konsole doesn't currently handle TDA, so we have to consume the 0c
-// in our state machine =[
 #define IDQUERIES TRIDEVATTR \
                   XTVERSION \
                   XTGETTCAPTN \
