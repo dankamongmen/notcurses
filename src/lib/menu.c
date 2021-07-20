@@ -372,6 +372,7 @@ ncmenu* ncmenu_create(ncplane* n, const ncmenu_options* opts){
         .userptr = ret,
         .name = "menu",
         .resizecb = resize_menu,
+        .flags = NCPLANE_OPTION_FIXED,
       };
       ret->ncp = ncplane_create(n, &nopts);
       if(ret->ncp){
