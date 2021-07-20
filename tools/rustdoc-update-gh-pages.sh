@@ -113,4 +113,6 @@ fi
 cd ..
 rm -rf $WORKING_DIR
 
+git pull
+
 echo "Done!"
