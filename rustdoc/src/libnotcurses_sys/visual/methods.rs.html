@@ -1,7 +1,7 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/visual/methods.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>methods.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `src/visual/methods.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>methods.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../libnotcurses_sys/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
-                <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../libnotcurses_sys/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -622,8 +622,8 @@
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `NcVisual*` methods and associated functions.</span>
 
-<span class="kw">use</span> <span class="ident">core::ptr::null_mut</span>;
-<span class="kw">use</span> <span class="ident">libc::c_void</span>;
+<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">ptr</span>::<span class="ident">null_mut</span>;
+<span class="kw">use</span> <span class="ident">libc</span>::<span class="ident">c_void</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">cstring</span>, <span class="ident">error</span>, <span class="ident">error_ref_mut</span>, <span class="ident">rstring</span>, <span class="ident">Nc</span>, <span class="ident">NcBlitter</span>, <span class="ident">NcComponent</span>, <span class="ident">NcDim</span>, <span class="ident">NcDirect</span>, <span class="ident">NcDirectF</span>,
@@ -700,7 +700,7 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">n</span>: <span class="ident">null_mut</span>(),
-            <span class="ident">scaling</span>: <span class="kw">crate</span><span class="ident">::NCSCALE_NONE</span>,
+            <span class="ident">scaling</span>: <span class="kw">crate</span>::<span class="ident">NCSCALE_NONE</span>,
             <span class="comment">// where the created ncplane will be placed relative to the standard plane&#39;s origin</span>
             <span class="ident">y</span>: <span class="ident">y</span> <span class="kw">as</span> <span class="ident">i32</span>,
             <span class="ident">x</span>: <span class="ident">x</span> <span class="kw">as</span> <span class="ident">i32</span>,
@@ -720,7 +720,7 @@
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fullsize_pixel_without_plane</span>(<span class="ident">y</span>: <span class="ident">NcDim</span>, <span class="ident">x</span>: <span class="ident">NcDim</span>, <span class="ident">leny</span>: <span class="ident">NcDim</span>, <span class="ident">lenx</span>: <span class="ident">NcDim</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span><span class="ident">::without_plane</span>(<span class="ident">y</span>, <span class="ident">x</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="ident">leny</span>, <span class="ident">lenx</span>, <span class="ident">NCBLIT_PIXEL</span>, <span class="number">0</span>, <span class="number">0</span>)
+        <span class="self">Self</span>::<span class="ident">without_plane</span>(<span class="ident">y</span>, <span class="ident">x</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="ident">leny</span>, <span class="ident">lenx</span>, <span class="ident">NCBLIT_PIXEL</span>, <span class="number">0</span>, <span class="number">0</span>)
     }
 }
 
@@ -735,16 +735,16 @@
         <span class="ident">rowstride</span>: <span class="ident">NcDim</span>,
         <span class="ident">cols</span>: <span class="ident">NcDim</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">NcVisual</span><span class="op">&gt;</span> {
-        <span class="macro">error_ref_mut!</span>[
+        <span class="macro">error_ref_mut</span><span class="macro">!</span>[
             <span class="kw">unsafe</span> {
-                <span class="kw">crate</span><span class="ident">::ncvisual_from_bgra</span>(
+                <span class="kw">crate</span>::<span class="ident">ncvisual_from_bgra</span>(
                     <span class="ident">bgra</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_void</span>,
                     <span class="ident">rows</span> <span class="kw">as</span> <span class="ident">i32</span>,
                     <span class="ident">rowstride</span> <span class="kw">as</span> <span class="ident">i32</span>,
                     <span class="ident">cols</span> <span class="kw">as</span> <span class="ident">i32</span>,
                 )
             },
-            <span class="kw-2">&amp;</span><span class="macro">format!</span>[
+            <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>[
                 <span class="string">&quot;NcVisual::from_bgra(bgra, {}, {}, {})&quot;</span>,
                 <span class="ident">rows</span>, <span class="ident">rowstride</span>, <span class="ident">cols</span>
             ]
@@ -756,9 +756,9 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncvisual_from_file()][crate::ncvisual_from_file].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_file</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">file</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">NcVisual</span><span class="op">&gt;</span> {
-        <span class="macro">error_ref_mut!</span>[
-            <span class="kw">unsafe</span> { <span class="kw">crate</span><span class="ident">::ncvisual_from_file</span>(<span class="macro">cstring!</span>[<span class="ident">file</span>]) },
-            <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;NcVisual::from_file({})&quot;</span>, <span class="ident">file</span>)
+        <span class="macro">error_ref_mut</span><span class="macro">!</span>[
+            <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncvisual_from_file</span>(<span class="macro">cstring</span><span class="macro">!</span>[<span class="ident">file</span>]) },
+            <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;NcVisual::from_file({})&quot;</span>, <span class="ident">file</span>)
         ]
     }
 
@@ -780,9 +780,9 @@
         <span class="ident">len_y</span>: <span class="ident">NcDim</span>,
         <span class="ident">len_x</span>: <span class="ident">NcDim</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">NcVisual</span><span class="op">&gt;</span> {
-        <span class="macro">error_ref_mut!</span>[
+        <span class="macro">error_ref_mut</span><span class="macro">!</span>[
             <span class="kw">unsafe</span> {
-                <span class="kw">crate</span><span class="ident">::ncvisual_from_plane</span>(
+                <span class="kw">crate</span>::<span class="ident">ncvisual_from_plane</span>(
                     <span class="ident">plane</span>,
                     <span class="ident">blitter</span>,
                     <span class="ident">beg_y</span> <span class="kw">as</span> <span class="ident">i32</span>,
@@ -791,7 +791,7 @@
                     <span class="ident">len_x</span> <span class="kw">as</span> <span class="ident">i32</span>,
                 )
             },
-            <span class="kw-2">&amp;</span><span class="macro">format!</span>(
+            <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(
                 <span class="string">&quot;NcVisual::from_file(plane, {}, {}, {}, {}, {})&quot;</span>,
                 <span class="ident">blitter</span>, <span class="ident">beg_y</span>, <span class="ident">beg_x</span>, <span class="ident">len_y</span>, <span class="ident">len_x</span>
             )
@@ -811,9 +811,9 @@
         <span class="ident">cols</span>: <span class="ident">NcDim</span>,
         <span class="ident">alpha</span>: <span class="ident">NcComponent</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">NcVisual</span><span class="op">&gt;</span> {
-        <span class="macro">error_ref_mut!</span>[
+        <span class="macro">error_ref_mut</span><span class="macro">!</span>[
             <span class="kw">unsafe</span> {
-                <span class="kw">crate</span><span class="ident">::ncvisual_from_rgb_loose</span>(
+                <span class="kw">crate</span>::<span class="ident">ncvisual_from_rgb_loose</span>(
                     <span class="ident">rgb</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_void</span>,
                     <span class="ident">rows</span> <span class="kw">as</span> <span class="ident">i32</span>,
                     <span class="ident">rowstride</span> <span class="kw">as</span> <span class="ident">i32</span>,
@@ -821,7 +821,7 @@
                     <span class="ident">alpha</span> <span class="kw">as</span> <span class="ident">i32</span>,
                 )
             },
-            <span class="kw-2">&amp;</span><span class="macro">format!</span>(
+            <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(
                 <span class="string">&quot;NcVisual::from_rgb_loose(rgba, {}, {}, {}, {})&quot;</span>,
                 <span class="ident">rows</span>, <span class="ident">rowstride</span>, <span class="ident">cols</span>, <span class="ident">alpha</span>
             )
@@ -839,9 +839,9 @@
         <span class="ident">cols</span>: <span class="ident">NcDim</span>,
         <span class="ident">alpha</span>: <span class="ident">NcComponent</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">NcVisual</span><span class="op">&gt;</span> {
-        <span class="macro">error_ref_mut!</span>[
+        <span class="macro">error_ref_mut</span><span class="macro">!</span>[
             <span class="kw">unsafe</span> {
-                <span class="kw">crate</span><span class="ident">::ncvisual_from_rgb_packed</span>(
+                <span class="kw">crate</span>::<span class="ident">ncvisual_from_rgb_packed</span>(
                     <span class="ident">rgb</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_void</span>,
                     <span class="ident">rows</span> <span class="kw">as</span> <span class="ident">i32</span>,
                     <span class="ident">rowstride</span> <span class="kw">as</span> <span class="ident">i32</span>,
@@ -849,7 +849,7 @@
                     <span class="ident">alpha</span> <span class="kw">as</span> <span class="ident">i32</span>,
                 )
             },
-            <span class="kw-2">&amp;</span><span class="macro">format!</span>(
+            <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(
                 <span class="string">&quot;NcVisual::from_rgb_packed(rgba, {}, {}, {}, {})&quot;</span>,
                 <span class="ident">rows</span>, <span class="ident">rowstride</span>, <span class="ident">cols</span>, <span class="ident">alpha</span>
             )
@@ -873,16 +873,16 @@
         <span class="ident">rowstride</span>: <span class="ident">NcDim</span>,
         <span class="ident">cols</span>: <span class="ident">NcDim</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">NcVisual</span><span class="op">&gt;</span> {
-        <span class="macro">error_ref_mut!</span>[
+        <span class="macro">error_ref_mut</span><span class="macro">!</span>[
             <span class="kw">unsafe</span> {
-                <span class="kw">crate</span><span class="ident">::ncvisual_from_rgba</span>(
+                <span class="kw">crate</span>::<span class="ident">ncvisual_from_rgba</span>(
                     <span class="ident">rgba</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_void</span>,
                     <span class="ident">rows</span> <span class="kw">as</span> <span class="ident">i32</span>,
                     <span class="ident">rowstride</span> <span class="kw">as</span> <span class="ident">i32</span>,
                     <span class="ident">cols</span> <span class="kw">as</span> <span class="ident">i32</span>,
                 )
             },
-            <span class="kw-2">&amp;</span><span class="macro">format!</span>(
+            <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(
                 <span class="string">&quot;NcVisual::from_rgba(rgba, {}, {}, {})&quot;</span>,
                 <span class="ident">rows</span>, <span class="ident">rowstride</span>, <span class="ident">cols</span>
             )
@@ -896,7 +896,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncvisual_destroy()][crate::ncvisual_destroy].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">destroy</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="kw">unsafe</span> { <span class="kw">crate</span><span class="ident">::ncvisual_destroy</span>(<span class="self">self</span>) }
+        <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncvisual_destroy</span>(<span class="self">self</span>) }
     }
 }
 
@@ -907,8 +907,8 @@
     <span class="doccomment">/// *C style function: [ncvisual_at_yx()][crate::ncvisual_at_yx].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">at_yx</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">y</span>: <span class="ident">NcDim</span>, <span class="ident">x</span>: <span class="ident">NcDim</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">NcPixel</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pixel</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw">crate</span><span class="ident">::ncvisual_at_yx</span>(<span class="self">self</span>, <span class="ident">y</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">x</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pixel</span>) };
-        <span class="macro">error!</span>[<span class="ident">res</span>, <span class="string">&quot;NcVisual.at_yx()&quot;</span>, <span class="ident">pixel</span>]
+        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncvisual_at_yx</span>(<span class="self">self</span>, <span class="ident">y</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">x</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pixel</span>) };
+        <span class="macro">error</span><span class="macro">!</span>[<span class="ident">res</span>, <span class="string">&quot;NcVisual.at_yx()&quot;</span>, <span class="ident">pixel</span>]
     }
 
     <span class="doccomment">/// Extracts the next frame from the NcVisual.</span>
@@ -917,9 +917,9 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncvisual_decode()][crate::ncvisual_decode].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decode</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">NcIntResult</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw">crate</span><span class="ident">::ncvisual_decode</span>(<span class="self">self</span>) };
+        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncvisual_decode</span>(<span class="self">self</span>) };
         <span class="kw">if</span> <span class="ident">res</span> <span class="op">=</span><span class="op">=</span> <span class="ident">NCRESULT_ERR</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">NcError::with_msg</span>(<span class="ident">res</span>, <span class="string">&quot;NcVisual.decode()&quot;</span>))
+            <span class="prelude-val">Err</span>(<span class="ident">NcError</span>::<span class="ident">with_msg</span>(<span class="ident">res</span>, <span class="string">&quot;NcVisual.decode()&quot;</span>))
         } <span class="kw">else</span> {
             <span class="prelude-val">Ok</span>(<span class="ident">res</span>)
         }
@@ -935,9 +935,9 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncvisual_decode_loop()][crate::ncvisual_decode_loop].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decode_loop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">NcIntResult</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw">crate</span><span class="ident">::ncvisual_decode_loop</span>(<span class="self">self</span>) };
+        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncvisual_decode_loop</span>(<span class="self">self</span>) };
         <span class="kw">if</span> <span class="ident">res</span> <span class="op">=</span><span class="op">=</span> <span class="ident">NCRESULT_ERR</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">NcError::with_msg</span>(<span class="ident">res</span>, <span class="string">&quot;NcVisual.decode_loop()&quot;</span>))
+            <span class="prelude-val">Err</span>(<span class="ident">NcError</span>::<span class="ident">with_msg</span>(<span class="ident">res</span>, <span class="string">&quot;NcVisual.decode_loop()&quot;</span>))
         } <span class="kw">else</span> {
             <span class="prelude-val">Ok</span>(<span class="ident">res</span>)
         }
@@ -965,7 +965,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">to_x</span> <span class="op">=</span> <span class="number">0</span>;
 
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="kw">crate</span><span class="ident">::ncvisual_blitter_geom</span>(
+            <span class="kw">crate</span>::<span class="ident">ncvisual_blitter_geom</span>(
                 <span class="ident">nc</span>,
                 <span class="self">self</span>,
                 <span class="ident">options</span>,
@@ -976,7 +976,7 @@
                 <span class="ident">null_mut</span>(),
             )
         };
-        <span class="macro">error!</span>[
+        <span class="macro">error</span><span class="macro">!</span>[
             <span class="ident">res</span>,
             <span class="string">&quot;NcVisual.geom()&quot;</span>,
             (<span class="ident">y</span> <span class="kw">as</span> <span class="ident">NcDim</span>, <span class="ident">x</span> <span class="kw">as</span> <span class="ident">NcDim</span>, <span class="ident">to_y</span> <span class="kw">as</span> <span class="ident">NcDim</span>, <span class="ident">to_x</span> <span class="kw">as</span> <span class="ident">NcDim</span>)
@@ -995,16 +995,16 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncvisual_media_defblitter()][crate::ncvisual_media_defblitter].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">media_defblitter</span>(<span class="ident">nc</span>: <span class="kw-2">&amp;</span><span class="ident">Nc</span>, <span class="ident">scale</span>: <span class="ident">NcScale</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcBlitter</span> {
-        <span class="kw">unsafe</span> { <span class="kw">crate</span><span class="ident">::ncvisual_media_defblitter</span>(<span class="ident">nc</span>, <span class="ident">scale</span>) }
+        <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncvisual_media_defblitter</span>(<span class="ident">nc</span>, <span class="ident">scale</span>) }
     }
 
     <span class="doccomment">/// Polyfills at the specified location using `rgba`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncvisual_polyfill_yx()][crate::ncvisual_polyfill_yx].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">polyfill_yx</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">y</span>: <span class="ident">NcDim</span>, <span class="ident">x</span>: <span class="ident">NcDim</span>, <span class="ident">rgba</span>: <span class="ident">NcRgba</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="macro">error!</span>[
-            <span class="kw">unsafe</span> { <span class="kw">crate</span><span class="ident">::ncvisual_polyfill_yx</span>(<span class="self">self</span>, <span class="ident">y</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">x</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">rgba</span>) },
-            <span class="kw-2">&amp;</span><span class="macro">format!</span>[<span class="string">&quot;NcVisual.polyfill_yx({}, {}, {})&quot;</span>, <span class="ident">y</span>, <span class="ident">x</span>, <span class="ident">rgba</span>]
+        <span class="macro">error</span><span class="macro">!</span>[
+            <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncvisual_polyfill_yx</span>(<span class="self">self</span>, <span class="ident">y</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">x</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">rgba</span>) },
+            <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>[<span class="string">&quot;NcVisual.polyfill_yx({}, {}, {})&quot;</span>, <span class="ident">y</span>, <span class="ident">x</span>, <span class="ident">rgba</span>]
         ]
     }
 
@@ -1014,8 +1014,8 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncvisual_render()][crate::ncvisual_render].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">render</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">nc</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Nc</span>, <span class="ident">options</span>: <span class="kw-2">&amp;</span><span class="ident">NcVisualOptions</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span><span class="op">&gt;</span> {
-        <span class="macro">error_ref_mut!</span>[
-            <span class="kw">unsafe</span> { <span class="kw">crate</span><span class="ident">::ncvisual_render</span>(<span class="ident">nc</span>, <span class="self">self</span>, <span class="ident">options</span>) },
+        <span class="macro">error_ref_mut</span><span class="macro">!</span>[
+            <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncvisual_render</span>(<span class="ident">nc</span>, <span class="self">self</span>, <span class="ident">options</span>) },
             <span class="string">&quot;NcVisual.render(Nc, &amp;NcVisualOptions)&quot;</span>
         ]
     }
@@ -1026,9 +1026,9 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncvisual_resize()][crate::ncvisual_resize].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">resize</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">rows</span>: <span class="ident">NcDim</span>, <span class="ident">cols</span>: <span class="ident">NcDim</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="macro">error!</span>[
-            <span class="kw">unsafe</span> { <span class="kw">crate</span><span class="ident">::ncvisual_resize</span>(<span class="self">self</span>, <span class="ident">rows</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">cols</span> <span class="kw">as</span> <span class="ident">i32</span>) },
-            <span class="kw-2">&amp;</span><span class="macro">format!</span>[<span class="string">&quot;NcVisual.resize({}, {})&quot;</span>, <span class="ident">rows</span>, <span class="ident">cols</span>]
+        <span class="macro">error</span><span class="macro">!</span>[
+            <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncvisual_resize</span>(<span class="self">self</span>, <span class="ident">rows</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">cols</span> <span class="kw">as</span> <span class="ident">i32</span>) },
+            <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>[<span class="string">&quot;NcVisual.resize({}, {})&quot;</span>, <span class="ident">rows</span>, <span class="ident">cols</span>]
         ]
     }
 
@@ -1040,9 +1040,9 @@
     <span class="doccomment">/// *C style function:</span>
     <span class="doccomment">/// [ncvisual_resize_noninterpolative()][crate::ncvisual_resize_noninterpolative].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">resize_noninterpolative</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">rows</span>: <span class="ident">NcDim</span>, <span class="ident">cols</span>: <span class="ident">NcDim</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="macro">error!</span>[
-            <span class="kw">unsafe</span> { <span class="kw">crate</span><span class="ident">::ncvisual_resize_noninterpolative</span>(<span class="self">self</span>, <span class="ident">rows</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">cols</span> <span class="kw">as</span> <span class="ident">i32</span>) },
-            <span class="kw-2">&amp;</span><span class="macro">format!</span>[<span class="string">&quot;NcVisual.resize_noninterpolative({}, {})&quot;</span>, <span class="ident">cols</span>, <span class="ident">rows</span>]
+        <span class="macro">error</span><span class="macro">!</span>[
+            <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncvisual_resize_noninterpolative</span>(<span class="self">self</span>, <span class="ident">rows</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">cols</span> <span class="kw">as</span> <span class="ident">i32</span>) },
+            <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>[<span class="string">&quot;NcVisual.resize_noninterpolative({}, {})&quot;</span>, <span class="ident">cols</span>, <span class="ident">rows</span>]
         ]
     }
 
@@ -1053,9 +1053,9 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncvisual_rotate()][crate::ncvisual_rotate].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rotate</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">rads</span>: <span class="ident">f64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="macro">error!</span>[
-            <span class="kw">unsafe</span> { <span class="kw">crate</span><span class="ident">::ncvisual_rotate</span>(<span class="self">self</span>, <span class="ident">rads</span>) },
-            <span class="kw-2">&amp;</span><span class="macro">format!</span>[<span class="string">&quot;NcVisual.rotate({})&quot;</span>, <span class="ident">rads</span>]
+        <span class="macro">error</span><span class="macro">!</span>[
+            <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncvisual_rotate</span>(<span class="self">self</span>, <span class="ident">rads</span>) },
+            <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>[<span class="string">&quot;NcVisual.rotate({})&quot;</span>, <span class="ident">rads</span>]
         ]
     }
 
@@ -1063,9 +1063,9 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncvisual_set_yx()][crate::ncvisual_set_yx].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_yx</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">y</span>: <span class="ident">NcDim</span>, <span class="ident">x</span>: <span class="ident">NcDim</span>, <span class="ident">pixel</span>: <span class="ident">NcPixel</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="macro">error!</span>[
-            <span class="kw">unsafe</span> { <span class="kw">crate</span><span class="ident">::ncvisual_set_yx</span>(<span class="self">self</span>, <span class="ident">y</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">x</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">pixel</span>) },
-            <span class="kw-2">&amp;</span><span class="macro">format!</span>[<span class="string">&quot;NcVisual.set_yx({}, {}, {})&quot;</span>, <span class="ident">y</span>, <span class="ident">x</span>, <span class="ident">pixel</span>]
+        <span class="macro">error</span><span class="macro">!</span>[
+            <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncvisual_set_yx</span>(<span class="self">self</span>, <span class="ident">y</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">x</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">pixel</span>) },
+            <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>[<span class="string">&quot;NcVisual.set_yx({}, {}, {})&quot;</span>, <span class="ident">y</span>, <span class="ident">x</span>, <span class="ident">pixel</span>]
         ]
     }
 
@@ -1084,24 +1084,24 @@
         <span class="ident">curry</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span><span class="op">&gt;</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">plane</span>) <span class="op">=</span> <span class="ident">curry</span> {
-            <span class="macro">error!</span>[
+            <span class="macro">error</span><span class="macro">!</span>[
                 <span class="kw">unsafe</span> {
-                    <span class="kw">crate</span><span class="ident">::ncvisual_simple_streamer</span>(
+                    <span class="kw">crate</span>::<span class="ident">ncvisual_simple_streamer</span>(
                         <span class="self">self</span>,
                         <span class="ident">options</span>,
                         <span class="ident">time</span>,
-                        <span class="ident">plane</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">libc::c_void</span>,
+                        <span class="ident">plane</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">libc</span>::<span class="ident">c_void</span>,
                     )
                 },
-                <span class="kw-2">&amp;</span><span class="macro">format!</span>[
+                <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>[
                     <span class="string">&quot;NcVisual.simple_streamer({:?}, {:?}, ncplane)&quot;</span>,
                     <span class="ident">options</span>, <span class="ident">time</span>
                 ]
             ]
         } <span class="kw">else</span> {
-            <span class="macro">error!</span>[
-                <span class="kw">unsafe</span> { <span class="kw">crate</span><span class="ident">::ncvisual_simple_streamer</span>(<span class="self">self</span>, <span class="ident">options</span>, <span class="ident">time</span>, <span class="ident">null_mut</span>()) },
-                <span class="kw-2">&amp;</span><span class="macro">format!</span>[<span class="string">&quot;NcVisual.simple_streamer({:?}, {:?}, null)&quot;</span>, <span class="ident">options</span>, <span class="ident">time</span>]
+            <span class="macro">error</span><span class="macro">!</span>[
+                <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncvisual_simple_streamer</span>(<span class="self">self</span>, <span class="ident">options</span>, <span class="ident">time</span>, <span class="ident">null_mut</span>()) },
+                <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>[<span class="string">&quot;NcVisual.simple_streamer({:?}, {:?}, null)&quot;</span>, <span class="ident">options</span>, <span class="ident">time</span>]
             ]
         }
     }
@@ -1143,11 +1143,11 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncvisual_subtitle()][crate::ncvisual_subtitle].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">subtitle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw">crate</span><span class="ident">::ncvisual_subtitle</span>(<span class="self">self</span>) };
+        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncvisual_subtitle</span>(<span class="self">self</span>) };
         <span class="kw">if</span> <span class="op">!</span><span class="ident">res</span>.<span class="ident">is_null</span>() {
-            <span class="prelude-val">Ok</span>(<span class="macro">rstring!</span>[<span class="ident">res</span>])
+            <span class="prelude-val">Ok</span>(<span class="macro">rstring</span><span class="macro">!</span>[<span class="ident">res</span>])
         } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">NcError::with_msg</span>(<span class="ident">NCRESULT_ERR</span>, <span class="string">&quot;NcVisual.subtitle()&quot;</span>))
+            <span class="prelude-val">Err</span>(<span class="ident">NcError</span>::<span class="ident">with_msg</span>(<span class="ident">NCRESULT_ERR</span>, <span class="string">&quot;NcVisual.subtitle()&quot;</span>))
         }
     }
 }
@@ -1166,9 +1166,9 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncdirectf_from_file()][crate::ncdirectf_from_file].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncdirectf_from_file</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">ncd</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcDirect</span>, <span class="ident">file</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">NcDirectF</span><span class="op">&gt;</span> {
-        <span class="macro">error_ref_mut!</span>[
-            <span class="kw">unsafe</span> { <span class="kw">crate</span><span class="ident">::ncdirectf_from_file</span>(<span class="ident">ncd</span>, <span class="macro">cstring!</span>[<span class="ident">file</span>]) },
-            <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;NcDirectF::ncdirectf_from_file(ncd, {})&quot;</span>, <span class="ident">file</span>)
+        <span class="macro">error_ref_mut</span><span class="macro">!</span>[
+            <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirectf_from_file</span>(<span class="ident">ncd</span>, <span class="macro">cstring</span><span class="macro">!</span>[<span class="ident">file</span>]) },
+            <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;NcDirectF::ncdirectf_from_file(ncd, {})&quot;</span>, <span class="ident">file</span>)
         ]
     }
 
@@ -1178,7 +1178,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *C style function: [ncdirectf_free()][crate::ncdirectf_free].*</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ncdirectf_free</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="kw">unsafe</span> { <span class="kw">crate</span><span class="ident">::ncdirectf_free</span>(<span class="self">self</span>) };
+        <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirectf_free</span>(<span class="self">self</span>) };
     }
 }
 
@@ -1197,8 +1197,8 @@
         <span class="ident">ncd</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcDirect</span>,
         <span class="ident">options</span>: <span class="kw-2">&amp;</span><span class="ident">NcVisualOptions</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcPlane</span><span class="op">&gt;</span> {
-        <span class="macro">error_ref_mut!</span>[
-            <span class="kw">unsafe</span> { <span class="kw">crate</span><span class="ident">::ncdirectf_render</span>(<span class="ident">ncd</span>, <span class="self">self</span>, <span class="ident">options</span>) },
+        <span class="macro">error_ref_mut</span><span class="macro">!</span>[
+            <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirectf_render</span>(<span class="ident">ncd</span>, <span class="self">self</span>, <span class="ident">options</span>) },
             <span class="string">&quot;NcVisual.render()&quot;</span>
         ]
     }
@@ -1210,10 +1210,10 @@
         <span class="ident">ncd</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NcDirect</span>,
         <span class="ident">options</span>: <span class="kw-2">&amp;</span><span class="ident">NcVisualOptions</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NcResult</span><span class="op">&lt;</span><span class="ident">NcVGeom</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">geom</span> <span class="op">=</span> <span class="ident">NcVGeom::new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">geom</span> <span class="op">=</span> <span class="ident">NcVGeom</span>::<span class="ident">new</span>();
 
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw">crate</span><span class="ident">::ncdirectf_geom</span>(<span class="ident">ncd</span>, <span class="self">self</span>, <span class="ident">options</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">geom</span>) };
-        <span class="macro">error!</span>[<span class="ident">res</span>, <span class="string">&quot;NcDirectF.ncdirectf_geom()&quot;</span>, <span class="ident">geom</span>];
+        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">ncdirectf_geom</span>(<span class="ident">ncd</span>, <span class="self">self</span>, <span class="ident">options</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">geom</span>) };
+        <span class="macro">error</span><span class="macro">!</span>[<span class="ident">res</span>, <span class="string">&quot;NcDirectF.ncdirectf_geom()&quot;</span>, <span class="ident">geom</span>];
     }
 }
 
@@ -1239,5 +1239,4 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="libnotcurses_sys" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
-    <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "libnotcurses_sys";</script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>
