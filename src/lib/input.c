@@ -915,6 +915,8 @@ stash_string(query_state* inits){
     case STATE_TDA1:
       if(strcmp(inits->runstring, "~VTE") == 0){
         inits->qterm = TERMINAL_VTE;
+      }else if(strcmp(inits->runstring, "~~TY") == 0){
+        inits->qterm = TERMINAL_TERMINOLOGY;
       }else if(strcmp(inits->runstring, "FOOT") == 0){
         inits->qterm = TERMINAL_FOOT;
       }

@@ -84,7 +84,7 @@ relies on the font. Patches to correct/complete this table are very welcome!
 | [Tabby](https://github.com/Eugeny/tabby) | ? | ? | ? | ? | |
 | [Terminal.app](https://en.wikipedia.org/wiki/Terminal_(macOS)) | ? | ? | ? | `TERM=xterm-256color`| No RGB |
 | [Terminator](https://github.com/software-jessies-org/jessies/wiki/Terminatorhttps://github.com/software-jessies-org/jessies/wiki/Terminator)      | ✅                 |  ?    |?       | ?                               | |
-| [Terminology](https://github.com/borisfaure/terminology)     | ❌                 |  ❌   |?       | `TERM=terminology`              | |
+| [Terminology](https://github.com/borisfaure/terminology)     | ❌                 |  ❌   |?       | `TERM=terminology`              | Identified via DA3. 256 colors, no RGB. |
 | [Tilda](https://github.com/lanoxx/tilda)  |       |  ?    |?       | ?                               | |
 | [tmux](https://github.com/tmux/tmux/wiki) | ✅    |  ❌   |n/a     |`TERM=tmux-256color` `COLORTERM=24bit`| `tmux.conf` must apply `Tc`; see below. `bce` is available with the `tmux-256color-bce` definition. |
 | [WezTerm](https://github.com/wez/wezterm) | ✅    |  ✅   |?       |`TERM=wezterm` `COLORTERM=24bit` | See below. |

@@ -488,10 +488,12 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
     if(add_pushcolors_escapes(ti, tablelen, tableused)){
       return -1;
     }
+    // FIXME remove synchronization mode; it's still broken in 0.21.2, and we
+    // don't need it anyway
   }else if(qterm == TERMINAL_ALACRITTY){
     termname = "Alacritty";
     ti->caps.quadrants = true;
-    // ti->caps.sextants = true; // alacritty https://github.com/alacritty/alacritty/issues/4409 */
+    // ti->caps.sextants = true; // alacritty https://github.com/alacritty/alacritty/issues/4409
     ti->caps.rgb = true;
     // Alacritty implements DCS ASU, but no detection for it
     if(add_appsync_escapes_dcs(ti, tablelen, tableused)){
@@ -561,6 +563,9 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
       termname = "Linux console";
     }
     ti->caps.braille = false; // no caps.braille, no caps.sextants in linux console
+  }else if(qterm == TERMINAL_TERMINOLOGY){
+    termname = "Terminology";
+    ti->caps.rgb = false; // as of at least 1.9.0
   }
   // run a wcwidth(⣿) to guarantee libc Unicode 3 support, independent of term
   if(wcwidth(L'⣿') < 0){

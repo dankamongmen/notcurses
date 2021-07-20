@@ -31,6 +31,7 @@ typedef enum {
     TERMINAL_ALACRITTY,     // can't be detected; match TERM+DA2
     TERMINAL_CONTOUR,       // XTVERSION == 'contour ver'
     TERMINAL_ITERM,         // XTVERSION == 'iTerm2 [ver]'
+    TERMINAL_TERMINOLOGY,   // TDA: "~~TY"
 } queried_terminals_e;
 
 // sets up the input layer, building a trie of escape sequences and their
