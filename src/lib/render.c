@@ -1126,12 +1126,16 @@ notcurses_rasterize_inner(notcurses* nc, ncpile* p, FILE* out, unsigned* asu){
   if(rasterize_core(nc, p, out, 1)){
     return -1;
   }
+  // need to flush before doing SUMode size check, to update mstrsize
+  if(ncflush(out)){
+    return -1;
+  }
 #define MIN_SUMODE_SIZE BUFSIZ
   if(*asu){
     if(nc->rstate.mstrsize >= MIN_SUMODE_SIZE){
       const char* endasu = get_escape(&nc->tcache, ESCAPE_ESUM);
       if(endasu){
-        if(fprintf(out, "%s", endasu) < 0){
+        if(fprintf(out, "%s", endasu) < 0 || ncflush(out)){
           *asu = 0;
         }
       }else{
@@ -1142,9 +1146,6 @@ notcurses_rasterize_inner(notcurses* nc, ncpile* p, FILE* out, unsigned* asu){
     }
   }
 #undef MIN_SUMODE_SIZE
-  if(ncflush(out)){
-    return -1;
-  }
   return nc->rstate.mstrsize;
 }
 

@@ -413,6 +413,17 @@ add_smulx_escapes(tinfo* ti, size_t* tablelen, size_t* tableused){
   return 0;
 }
 
+static inline void
+kill_escape(tinfo* ti, escape_e e){
+  ti->escindices[e] = 0;
+}
+
+static void
+kill_appsync_escapes(tinfo* ti){
+  kill_escape(ti, ESCAPE_BSUM);
+  kill_escape(ti, ESCAPE_ESUM);
+}
+
 static int
 add_appsync_escapes_sm(tinfo* ti, size_t* tablelen, size_t* tableused){
   if(get_escape(ti, ESCAPE_BSUM)){
@@ -496,8 +507,9 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
     if(add_pushcolors_escapes(ti, tablelen, tableused)){
       return -1;
     }
-    // FIXME remove synchronization mode; it's still broken in 0.21.2, and we
-    // don't need it anyway
+    // kitty SUM doesn't want long sequences, which is exactly where we use
+    // it. remove support (we pick it up from queries).
+    kill_appsync_escapes(ti);
   }else if(qterm == TERMINAL_ALACRITTY){
     termname = "Alacritty";
     ti->caps.quadrants = true;
@@ -801,16 +813,16 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
       }
     }
   }
+  if(appsync_advertised){
+    if(add_appsync_escapes_sm(ti, &tablelen, &tableused)){
+      goto err;
+    }
+  }
   bool invertsixel = false;
   if(apply_term_heuristics(ti, termname, fd, qterm, &tablelen, &tableused,
                            &invertsixel)){
     ncinputlayer_stop(&ti->input);
     goto err;
-  }
-  if(appsync_advertised){
-    if(add_appsync_escapes_sm(ti, &tablelen, &tableused)){
-      goto err;
-    }
   }
   build_supported_styles(ti);
   // our current sixel quantization algorithm requires at least 64 color
