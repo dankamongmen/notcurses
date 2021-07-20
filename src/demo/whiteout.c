@@ -455,6 +455,7 @@ int witherworm_demo(struct notcurses* nc){
   size_t i;
   const size_t screens = sizeof(steps) / sizeof(*steps);
   struct ncplane* n = notcurses_stdplane(nc);
+  bool initial_scroll = ncplane_scrolling_p(n);
   ncplane_set_scrolling(n, true);
   ncplane_erase(n);
   for(i = 0 ; i < screens ; ++i){
@@ -594,6 +595,6 @@ int witherworm_demo(struct notcurses* nc){
       }
     }while(key == NCKEY_RESIZE);
   }
-  ncplane_set_scrolling(n, false);
+  ncplane_set_scrolling(n, initial_scroll);
   return 0;
 }
