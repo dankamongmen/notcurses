@@ -449,11 +449,19 @@ add_pushcolors_escapes(tinfo* ti, size_t* tablelen, size_t* tableused){
   return 0;
 }
 
-// Qui si convien lasciare ogne sospetto; ogne viltà convien che qui sia morta.
+// qui si convien lasciare ogne sospetto; ogne viltà convien che qui sia morta.
+// in a more perfect world, this function would not exist, but this is a
+// regrettably imperfect world, and thus all manner of things are not maintained
+// in terminfo, and old terminfos abound, and users don't understand terminfo,
+// so we override and/or supply various properties based on terminal
+// identification performed earlier. we still get most things from terminfo,
+// though, so it's something of a worst-of-all-worlds deal where TERM still
+// needs be correct, even though we identify the terminal. le sigh.
 static int
 apply_term_heuristics(tinfo* ti, const char* termname, int fd,
                       queried_terminals_e qterm,
-                      size_t* tablelen, size_t* tableused){
+                      size_t* tablelen, size_t* tableused,
+                      bool* invertsixel){
   if(!termname){
     // setupterm interprets a missing/empty TERM variable as the special value “unknown”.
     termname = "unknown";
@@ -512,12 +520,20 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
     ti->caps.sextants = true;
     ti->caps.quadrants = true;
     ti->caps.rgb = true;
+    if(compare_versions(ti->termversion, "1.8.2") >= 0){
+      *invertsixel = true;
+    }
   }else if(qterm == TERMINAL_TMUX){
     termname = "tmux";
     // FIXME what, oh what to do with tmux?
   }else if(qterm == TERMINAL_MLTERM){
     termname = "MLterm";
     ti->caps.quadrants = true; // good caps.quadrants, no caps.sextants as of 3.9.0
+    // MLterm 3.9.1 brings it into line with other terminals, and we
+    // stop inverting the meaning / applying the cursor hack for 3.9.1+.
+    if(compare_versions(ti->termversion, "3.9.1") < 0){
+      *invertsixel = true;
+    }
   }else if(qterm == TERMINAL_WEZTERM){
     termname = "WezTerm";
     ti->caps.rgb = true;
@@ -785,7 +801,9 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
       }
     }
   }
-  if(apply_term_heuristics(ti, termname, fd, qterm, &tablelen, &tableused)){
+  bool invertsixel = false;
+  if(apply_term_heuristics(ti, termname, fd, qterm, &tablelen, &tableused,
+                           &invertsixel)){
     ncinputlayer_stop(&ti->input);
     goto err;
   }
@@ -799,19 +817,6 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
   // registers. we make use of no more than 256. this needs to happen
   // after heuristics, since the choice of sixel_init() depends on it.
   if(ti->color_registers >= 64){
-    bool invertsixel = false;
-    // MLterm 3.9.1 brings it into line with other terminals, and we should
-    // stop inverting the meaning / applying the cursor hack for 3.9.1+ FIXME
-    if(qterm == TERMINAL_MLTERM){
-      if(compare_versions(ti->termversion, "3.9.1") < 0){
-        invertsixel = true;
-      }
-    }
-    if(qterm == TERMINAL_FOOT){
-      if(compare_versions(ti->termversion, "1.8.2") >= 0){
-        invertsixel = true;
-      }
-    }
     setup_sixel_bitmaps(ti, fd, invertsixel);
   }
   return 0;
