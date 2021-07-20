@@ -1,7 +1,7 @@
 This document attempts to list user-visible changes and any major internal
 rearrangements of Notcurses.
 
-* 2.3.11 (not yet released)
+* 2.3.11 (2021-07-20)
   * Notcurses now requires libz to build. In exchange, it can now generate
     PNGs on the fly, necessary for driving iTerm2's graphics protocol.
   * Experimental code has been added to draw graphics using both the iTerm2
