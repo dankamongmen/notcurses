@@ -106,7 +106,7 @@ debug_toggle(struct notcurses* nc){
     // line of output doesn't cause trigger a newline. we'll make the last
     // column transparent.
     .cols = 81,
-    .flags = NCPLANE_OPTION_HORALIGNED,
+    .flags = NCPLANE_OPTION_HORALIGNED | NCPLANE_OPTION_FIXED,
     .name = "dbg",
   };
   struct ncplane* n = ncplane_create(notcurses_stdplane(nc), &nopts);
@@ -155,7 +155,7 @@ about_toggle(struct notcurses* nc){
     .x = NCALIGN_CENTER,
     .rows = ABOUT_ROWS,
     .cols = ABOUT_COLS,
-    .flags = NCPLANE_OPTION_HORALIGNED,
+    .flags = NCPLANE_OPTION_HORALIGNED | NCPLANE_OPTION_FIXED,
   };
   struct ncplane* n = ncplane_create(notcurses_stdplane(nc), &nopts);
   // let the glyphs below show through, but only dimly
@@ -422,7 +422,8 @@ struct ncplane* hud_create(struct notcurses* nc){
     .userptr = NULL,
     .name = "hud",
     .resizecb = NULL,
-    .flags = NCPLANE_OPTION_HORALIGNED,
+    .flags = NCPLANE_OPTION_HORALIGNED |
+             NCPLANE_OPTION_FIXED,
   };
   struct ncplane* n = ncplane_create(notcurses_stdplane(nc), &nopts);
   if(n == NULL){
@@ -642,7 +643,8 @@ int fpsgraph_init(struct notcurses* nc){
     .userptr = NULL,
     .name = "fps",
     .resizecb = ncplane_resize_realign,
-    .flags = NCPLANE_OPTION_HORALIGNED | NCPLANE_OPTION_VERALIGNED,
+    .flags = NCPLANE_OPTION_HORALIGNED | NCPLANE_OPTION_VERALIGNED
+             | NCPLANE_OPTION_FIXED,
   };
   struct ncplane* newp = ncplane_create(stdn, &nopts);
   if(newp == NULL){
