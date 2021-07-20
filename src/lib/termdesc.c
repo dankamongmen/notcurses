@@ -807,6 +807,11 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
         invertsixel = true;
       }
     }
+    if(qterm == TERMINAL_FOOT){
+      if(compare_versions(ti->termversion, "1.8.2") >= 0){
+        invertsixel = true;
+      }
+    }
     setup_sixel_bitmaps(ti, fd, invertsixel);
   }
   return 0;
