@@ -393,8 +393,6 @@ typedef struct blitterargs {
       int placex;
     } cell;            // for cells
     struct {
-      int celldimx;    // horizontal pixels per cell
-      int celldimy;    // vertical pixels per cell
       int colorregs;   // number of color registers
       sprixel* spx;    // sprixel object
     } pixel;           // for pixels
@@ -653,7 +651,7 @@ void sprixel_free(sprixel* s);
 void sprixel_hide(sprixel* s);
 
 // dimy and dimx are cell geometry, not pixel.
-sprixel* sprixel_alloc(ncplane* n, int dimy, int dimx);
+sprixel* sprixel_alloc(const tinfo* ti, ncplane* n, int dimy, int dimx);
 sprixel* sprixel_recycle(ncplane* n);
 // takes ownership of s on success.
 int sprixel_load(sprixel* spx, char* s, int bytes, int pixy, int pixx, int parse_start);

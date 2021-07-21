@@ -303,7 +303,7 @@ int kitty_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
 // size in pixels. posy and posx are the origin of the cell to be copied,
 // again in pixels. data is the image source. around the edges, we might
 // get truncated regions.
-static inline uint8_t*
+static inline void*
 kitty_anim_auxvec(int dimy, int dimx, int posy, int posx,
                   int cellpxy, int cellpxx, const uint32_t* data,
                   int rowstride, uint8_t* existing, uint32_t transcolor){
@@ -380,7 +380,7 @@ sprixel* kitty_recycle(ncplane* n){
   int dimy = hides->dimy;
   int dimx = hides->dimx;
   sprixel_hide(hides);
-  return sprixel_alloc(n, dimy, dimx);
+  return sprixel_alloc(&ncplane_notcurses_const(n)->tcache, n, dimy, dimx);
 }
 
 int kitty_wipe(sprixel* s, int ycell, int xcell){
@@ -501,9 +501,10 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
     return -1;
   }
   bool translucent = bargs->flags & NCVISUAL_OPTION_BLEND;
-  int sprixelid = bargs->u.pixel.spx->id;
-  int cdimy = bargs->u.pixel.celldimy;
-  int cdimx = bargs->u.pixel.celldimx;
+  sprixel* s = bargs->u.pixel.spx;
+  int sprixelid = s->id;
+  int cdimy = s->cellpxy;
+  int cdimx = s->cellpxx;
   uint32_t transcolor = bargs->transcolor;
   int total = leny * lenx; // total number of pixels (4 * total == bytecount)
   // number of 4KiB chunks we'll need

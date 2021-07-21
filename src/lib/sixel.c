@@ -359,8 +359,9 @@ extract_color_table(const uint32_t* data, int linesize, int cols,
                     tament* tam, const blitterargs* bargs){
   const int begx = bargs->begx;
   const int begy = bargs->begy;
-  const int cdimy = bargs->u.pixel.celldimy;
-  const int cdimx = bargs->u.pixel.celldimx;
+  sprixel* s = bargs->u.pixel.spx;
+  const int cdimy = s->cellpxy;
+  const int cdimx = s->cellpxx;
   unsigned char mask = 0xc0;
   int pos = 0; // pixel position
   for(int visy = begy ; visy < (begy + leny) ; visy += 6){ // pixel row
@@ -692,8 +693,7 @@ sixel_reblit(sprixel* s){
 // scaled geometry in pixels. We calculate output geometry herein, and supply
 // transparent filler input for any missing rows.
 static inline int
-sixel_blit_inner(int leny, int lenx, sixeltable* stab,
-                 const blitterargs* bargs, tament* tam){
+sixel_blit_inner(int leny, int lenx, sixeltable* stab, sprixel* s, tament* tam){
   char* buf = NULL;
   size_t size = 0;
   FILE* fp = open_memstream(&buf, &size);
@@ -712,16 +712,14 @@ sixel_blit_inner(int leny, int lenx, sixeltable* stab,
     free(buf);
     return -1;
   }
-  scrub_tam_boundaries(tam, outy, lenx, bargs->u.pixel.celldimy,
-                       bargs->u.pixel.celldimx);
+  scrub_tam_boundaries(tam, outy, lenx, s->cellpxy, s->cellpxx);
   // take ownership of buf on success
-  if(plane_blit_sixel(bargs->u.pixel.spx, buf, size,
-                      outy, lenx, parse_start, tam) < 0){
+  if(plane_blit_sixel(s, buf, size, outy, lenx, parse_start, tam) < 0){
     free(buf);
     return -1;
   }
   sixelmap_trim(stab->map);
-  bargs->u.pixel.spx->smap = stab->map;
+  s->smap = stab->map;
   return 1;
 }
 
@@ -781,7 +779,7 @@ int sixel_blit(ncplane* n, int linesize, const void* data, int leny, int lenx,
   }
   refine_color_table(data, linesize, bargs->begy, bargs->begx, leny, lenx, &stable);
   // takes ownership of sixelmap on success
-  int r = sixel_blit_inner(leny, lenx, &stable, bargs, tam);
+  int r = sixel_blit_inner(leny, lenx, &stable, bargs->u.pixel.spx, tam);
   if(r < 0){
     sixelmap_free(stable.map);
   }

@@ -59,7 +59,7 @@ sprixel* sprixel_recycle(ncplane* n){
     int dimy = hides->dimy;
     int dimx = hides->dimx;
     sprixel_hide(hides);
-    return sprixel_alloc(n, dimy, dimx);
+    return sprixel_alloc(&nc->tcache, n, dimy, dimx);
   }
   return n->sprite;
 }
@@ -115,7 +115,7 @@ void sprixel_invalidate(sprixel* s, int y, int x){
   }
 }
 
-sprixel* sprixel_alloc(ncplane* n, int dimy, int dimx){
+sprixel* sprixel_alloc(const tinfo* ti, ncplane* n, int dimy, int dimx){
   sprixel* ret = malloc(sizeof(sprixel));
   if(ret){
     memset(ret, 0, sizeof(*ret));
@@ -128,20 +128,18 @@ sprixel* sprixel_alloc(ncplane* n, int dimy, int dimx){
       sprixelid_nonce = 1;
     }
 //fprintf(stderr, "LOOKING AT %p (p->n = %p)\n", ret, ret->n);
-    if(ncplane_pile(ret->n)){
+    ret->cellpxy = ti->cellpixy;
+    ret->cellpxx = ti->cellpixx;
+    if(ncplane_pile(ret->n)){ // rendered mode
       ncpile* np = ncplane_pile(ret->n);
       if( (ret->next = np->sprixelcache) ){
         ret->next->prev = ret;
       }
       np->sprixelcache = ret;
       ret->prev = NULL;
-      const notcurses* nc = ncplane_notcurses_const(ret->n);
-      ret->cellpxy = nc->tcache.cellpixy;
-      ret->cellpxx = nc->tcache.cellpixx;
 //fprintf(stderr, "%p %p %p\n", nc->sprixelcache, ret, nc->sprixelcache->next);
     }else{ // ncdirect case
       ret->next = ret->prev = NULL;
-      ret->cellpxy = ret->cellpxx = -1;
     }
   }
   return ret;

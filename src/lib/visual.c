@@ -951,13 +951,11 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
   bargs.leny = leny;
   bargs.lenx = lenx;
   bargs.flags = flags;
-  bargs.u.pixel.celldimx = nc->tcache.cellpixx;
-  bargs.u.pixel.celldimy = nc->tcache.cellpixy;
   bargs.u.pixel.colorregs = nc->tcache.color_registers;
   if(n->sprite == NULL){
-    int cols = disppixx / bargs.u.pixel.celldimx + !!(disppixx % bargs.u.pixel.celldimx);
-    int rows = outy / bargs.u.pixel.celldimy + !!(outy % bargs.u.pixel.celldimy);
-    if((n->sprite = sprixel_alloc(n, rows, cols)) == NULL){
+    int cols = disppixx / nc->tcache.cellpixx + !!(disppixx % nc->tcache.cellpixx);
+    int rows = outy / nc->tcache.cellpixy + !!(outy % nc->tcache.cellpixy);
+    if((n->sprite = sprixel_alloc(&nc->tcache, n, rows, cols)) == NULL){
       ncplane_destroy(createdn);
       return NULL;
     }

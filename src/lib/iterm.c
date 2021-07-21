@@ -95,6 +95,7 @@ int iterm_blit(ncplane* n, int linesize, const void* data,
   if(write_iterm_graphic(s, data, leny, linesize, lenx)){
     goto error;
   }
+  scrub_tam_boundaries(tam, leny, lenx, s->cellpxy, s->cellpxx);
   if(plane_blit_sixel(s, s->glyph, s->glyphlen, leny, lenx, parse_start, tam) < 0){
     goto error;
   }
