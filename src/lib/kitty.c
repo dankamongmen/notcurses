@@ -580,7 +580,9 @@ prep_deflator(unsigned animated, z_stream* zctx, int pixy, int pixx){
   memset(zctx, 0, sizeof(*zctx));
   if(animated){
     int zret;
-    if((zret = deflateInit(zctx, Z_DEFAULT_COMPRESSION)) != Z_OK){
+    // 2 seems to work well for things that are going to compress up
+    // meaningfully at all, while not taking too much time.
+    if((zret = deflateInit(zctx, 2)) != Z_OK){
       logerror("Couldn't get a deflate context (%d)\n", zret);
       return -1;
     }
