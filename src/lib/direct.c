@@ -689,10 +689,8 @@ ncdirect_render_visual(ncdirect* n, ncvisual* ncv,
     bargs.transcolor = vopts->transcolor | 0x1000000ull;
   }
   if(bset->geom == NCBLIT_PIXEL){
-    bargs.u.pixel.celldimx = n->tcache.cellpixx;
-    bargs.u.pixel.celldimy = n->tcache.cellpixy;
     bargs.u.pixel.colorregs = n->tcache.color_registers;
-    if((bargs.u.pixel.spx = sprixel_alloc(ncdv, nopts.rows, nopts.cols)) == NULL){
+    if((bargs.u.pixel.spx = sprixel_alloc(&n->tcache, ncdv, nopts.rows, nopts.cols)) == NULL){
       free_plane(ncdv);
       return NULL;
     }

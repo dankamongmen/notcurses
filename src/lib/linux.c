@@ -28,9 +28,9 @@ int fbcon_blit(struct ncplane* n, int linesize, const void* data,
                int leny, int lenx, const struct blitterargs* bargs){
   int cols = bargs->u.pixel.spx->dimx;
   int rows = bargs->u.pixel.spx->dimy;
-  int cdimx = bargs->u.pixel.celldimx;
-  int cdimy = bargs->u.pixel.celldimy;
   sprixel* s = bargs->u.pixel.spx;
+  int cdimx = s->cellpxx;
+  int cdimy = s->cellpxy;
   s->glyphlen = leny * lenx * 4;
   s->glyph = malloc(s->glyphlen);
   if(s->glyph == NULL){
@@ -77,6 +77,7 @@ int fbcon_blit(struct ncplane* n, int linesize, const void* data,
       src += 4;
     }
   }
+  scrub_tam_boundaries(tam, leny, lenx, cdimy, cdimx);
   if(plane_blit_sixel(s, s->glyph, s->glyphlen, leny, lenx, 0, tam) < 0){
     goto error;
   }
