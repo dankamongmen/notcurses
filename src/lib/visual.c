@@ -971,7 +971,6 @@ ncplane* ncvisual_render_pixels(notcurses* nc, ncvisual* ncv, const struct blits
     ncplane_destroy(createdn);
     return NULL;
   }
-//fprintf(stderr, "FOLLOWING PLANE: %d %d %d %d\n", n->absy, n->absx, n->leny, n->lenx);
   // if we created the plane earlier, placex/placey were taken into account, and
   // zeroed out, thus neither of these will have any effect.
   if(flags & NCVISUAL_OPTION_HORALIGNED){
