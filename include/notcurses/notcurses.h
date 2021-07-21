@@ -24,7 +24,7 @@
 #define htole(x) (OSSwapInt32(htonl(x)))
 #elif defined(__MINGW64__)
 #include <winsock.h>
-#define htole(x) (bswap32(htonl(x)))
+#define htole(x) (_byteswap_ulong(htonl(x)))
 #else
 #include <netinet/in.h>
 #include <sys/endian.h>
