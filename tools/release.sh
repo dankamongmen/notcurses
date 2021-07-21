@@ -20,9 +20,14 @@ git clean -f -d -x
 # Doing general context-free regexery has led several times to heartache. We
 # thus do tightly-coupled, context-sensitive seds for each class of files.
 # Please don't add version numbers where they're not necessary.
+
+# quick sanity checks before and after version update
+grep $OLDVERSION CMakeLists.txt > /dev/null || { echo "Couldn't find OLDVERSION ($OLDVERSION) in CMakeLists.txt" >&2 ; exit 1 ; }
+sed -i -e "s/\(project(notcurses VERSION \)$OLDVERSION/\1$VERSION/" CMakeLists.txt
+grep $VERSION CMakeLists.txt > /dev/null || { echo "Couldn't find VERSION ($VERSION) in CMakeLists.txt" >&2 ; exit 1 ; }
+
 # FIXME we ought probably verify that there has been an actual change, as these
 #       will surely otherwise go out of date.
-sed -i -e "s/\(project(notcurses VERSION \)$OLDVERSION/\1$VERSION/" CMakeLists.txt
 sed -i -e "s/\(PROJECT_NUMBER *= \)$OLDVERSION/\1$VERSION/" doc/Doxyfile
 for i in doc/man/man*/*.md cffi/notcurses-*.md cffi/ncdirect-*.md; do
   sed -i -e "s/% v$OLDVERSION/% v$VERSION/" "$i"
