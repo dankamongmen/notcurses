@@ -1,4 +1,3 @@
-#include <poll.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <pthread.h>
