@@ -4,7 +4,6 @@
 #include "egcpool.h"
 #include "internal.h"
 #include <ncurses.h> // needed for some definitions, see terminfo(3ncurses)
-#include <poll.h>
 #include <zlib.h>
 #include <time.h>
 #include <term.h>

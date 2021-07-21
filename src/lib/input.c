@@ -1,7 +1,6 @@
 #include "input.h"
 #include "internal.h"
 #include "notcurses/direct.h"
-#include <poll.h>
 #include <ncurses.h> // needed for some definitions, see terminfo(3ncurses)
 #include <term.h>
 #include <ctype.h>
