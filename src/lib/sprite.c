@@ -191,7 +191,7 @@ int sprite_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
     return 1;
   }
   if(s->n->tam[idx].state == SPRIXCELL_ANNIHILATED_TRANS ||
-      s->n->tam[idx].state == SPRIXCELL_ANNIHILATED){
+     s->n->tam[idx].state == SPRIXCELL_ANNIHILATED){
 //fprintf(stderr, "CACHED WIPE %d %d/%d\n", s->id, ycell, xcell);
     return 0;
   }
