@@ -862,7 +862,7 @@ clean_sprixels(notcurses* nc, ncpile* p, FILE* out){
       if(goto_location(nc, out, y + nc->margin_t, x + nc->margin_l)){
         return -1;
       }
-      int r = sprite_redraw(nc, p, s, out, y + nc->margin_t, x + nc->margin_l);
+      int r = sprite_redraw(&nc->tcache, p, s, out, y + nc->margin_t, x + nc->margin_l);
       if(r < 0){
         return -1;
       }
@@ -923,7 +923,7 @@ rasterize_sprixels(notcurses* nc, ncpile* p, FILE* out){
 //fprintf(stderr, "3 DRAWING BITMAP %d STATE %d AT %d/%d for %p\n", s->id, s->invalidated, y + nc->margin_t, x + nc->margin_l, s->n);
       int y,x;
       ncplane_yx(s->n, &y, &x);
-      int r = sprite_draw(nc, p, s, out, y + nc->margin_t, x + nc->margin_l);
+      int r = sprite_draw(&nc->tcache, p, s, out, y + nc->margin_t, x + nc->margin_l);
       if(r < 0){
         return -1;
       }

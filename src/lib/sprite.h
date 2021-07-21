@@ -172,9 +172,12 @@ int kitty_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
 int iterm_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
 int fbcon_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
 int kitty_rebuild_animation(sprixel* s, int ycell, int xcell, uint8_t* auxvec);
-int sixel_draw(const struct ncpile *p, sprixel* s, FILE* out, int y, int x);
-int kitty_draw(const struct ncpile *p, sprixel* s, FILE* out, int y, int x);
-int iterm_draw(const struct ncpile *p, sprixel* s, FILE* out, int y, int x);
+int sixel_draw(const tinfo* ti, const struct ncpile *p, sprixel* s,
+               FILE* out, int y, int x);
+int kitty_draw(const tinfo* ti, const struct ncpile *p, sprixel* s,
+               FILE* out, int y, int x);
+int iterm_draw(const tinfo* ti, const struct ncpile *p, sprixel* s,
+               FILE* out, int y, int x);
 int kitty_move(sprixel* s, FILE* out, unsigned noscroll);
 int sixel_scrub(const struct ncpile* p, sprixel* s);
 int kitty_scrub(const struct ncpile* p, sprixel* s);
@@ -198,7 +201,8 @@ int kitty_blit_animated(struct ncplane* n, int linesize, const void* data,
                         int leny, int lenx, const struct blitterargs* bargs);
 int fbcon_blit(struct ncplane* nc, int linesize, const void* data,
                int leny, int lenx, const struct blitterargs* bargs);
-int fbcon_draw(const struct ncpile *p, sprixel* s, FILE* out, int y, int x);
+int fbcon_draw(const tinfo* ti, const struct ncpile *p, sprixel* s,
+               FILE* out, int y, int x);
 
 #ifdef __cplusplus
 }

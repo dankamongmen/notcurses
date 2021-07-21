@@ -828,7 +828,9 @@ int sixel_scrub(const ncpile* p, sprixel* s){
 }
 
 // returns the number of bytes written
-int sixel_draw(const ncpile* p, sprixel* s, FILE* out, int y, int x){
+int sixel_draw(const tinfo* ti, const ncpile* p, sprixel* s, FILE* out,
+               int y, int x){
+  (void)ti;
   // if we've wiped or rebuilt any cells, effect those changes now, or else
   // we'll get flicker when we move to the new location.
   if(s->wipes_outstanding){
@@ -837,15 +839,17 @@ int sixel_draw(const ncpile* p, sprixel* s, FILE* out, int y, int x){
     }
     s->wipes_outstanding = false;
   }
-  if(goto_location(p->nc, out, y, x)){
-    return -1;
-  }
-  if(s->invalidated == SPRIXEL_MOVED){
-    for(int yy = s->movedfromy ; yy < s->movedfromy + s->dimy && yy < p->dimy ; ++yy){
-      for(int xx = s->movedfromx ; xx < s->movedfromx + s->dimx && xx < p->dimx ; ++xx){
-        struct crender *r = &p->crender[yy * p->dimx + xx];
-        if(!r->sprixel || sprixel_state(r->sprixel, yy, xx) != SPRIXCELL_OPAQUE_SIXEL){
-          r->s.damaged = 1;
+  if(p){
+    if(goto_location(p->nc, out, y, x)){
+      return -1;
+    }
+    if(s->invalidated == SPRIXEL_MOVED){
+      for(int yy = s->movedfromy ; yy < s->movedfromy + s->dimy && yy < p->dimy ; ++yy){
+        for(int xx = s->movedfromx ; xx < s->movedfromx + s->dimx && xx < p->dimx ; ++xx){
+          struct crender *r = &p->crender[yy * p->dimx + xx];
+          if(!r->sprixel || sprixel_state(r->sprixel, yy, xx) != SPRIXCELL_OPAQUE_SIXEL){
+            r->s.damaged = 1;
+          }
         }
       }
     }
