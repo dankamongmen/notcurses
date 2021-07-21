@@ -306,9 +306,9 @@ int kitty_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
 static inline uint8_t*
 kitty_anim_auxvec(int dimy, int dimx, int posy, int posx,
                   int cellpxy, int cellpxx, const uint32_t* data,
-                  int rowstride, uint8_t* existing){
+                  int rowstride, uint8_t* existing, uint32_t transcolor){
   const size_t slen = 4 * cellpxy * cellpxx;
-  uint8_t* a = existing ? existing : malloc(slen);
+  uint32_t* a = existing ? existing : malloc(slen);
   if(a){
     for(int y = posy ; y < posy + cellpxy && y < dimy ; ++y){
       int pixels = cellpxx;
@@ -320,9 +320,14 @@ kitty_anim_auxvec(int dimy, int dimx, int posy, int posx,
                data + y * (rowstride / 4) + posx,
                a + (y - posy) * (pixels * 4),
                posy / cellpxy, posx / cellpxx);*/
-      memcpy(a + (y - posy) * (pixels * 4),
-             data + y * (rowstride / 4) + posx,
-             pixels * 4);
+      memcpy(a + (y - posy) * pixels, data + y * (rowstride / 4) + posx, pixels * 4);
+      for(int x = posx ; x < posx + cellpxx && x < dimx ; ++x){
+        uint32_t pixel = data[y * (rowstride / 4) + x];
+        if(rgba_trans_p(pixel, transcolor)){
+          uint32_t* ap = a + (y - posy) * pixels + (x - posx);
+          ncpixel_set_a(ap, 0);
+        }
+      }
     }
   }
   return a;
@@ -477,6 +482,11 @@ cleanup_tam(tament* tam, int ydim, int xdim){
   }
 }
 
+// copy |encodeable| pixels to the deflate state
+static void
+add_to_deflator(const uint32_t* src, int encodeable, bool wipe[static 3]){
+}
+
 // we can only write 4KiB at a time. we're writing base64-encoded RGBA. each
 // pixel is 4B raw (32 bits). each chunk of three pixels is then 12 bytes, or
 // 16 base64-encoded bytes. 4096 / 16 == 256 3-pixel groups, or 768 pixels.
@@ -503,6 +513,7 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
   int x = 0;
   int targetout = 0; // number of pixels expected out after this chunk
 //fprintf(stderr, "total: %d chunks = %d, s=%d,v=%d\n", total, chunks, lenx, leny);
+  char out[17]; // three pixels base64 to no more than 17 bytes
   while(chunks--){
     // q=2 has been able to go on chunks other than the last chunk since
     // 2021-03, but there's no harm in this small bit of backwards compat.
@@ -545,7 +556,8 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
         if(animated && x % cdimx == 0 && y % cdimy == 0){
           uint8_t* tmp;
           tmp = kitty_anim_auxvec(leny, lenx, y, x, cdimy, cdimx,
-                                  data, linesize, tam[tyx].auxvector);
+                                  data, linesize, tam[tyx].auxvector,
+                                  transcolor);
           if(tmp == NULL){
             cleanup_tam(tam, (leny + cdimy - 1) / cdimy,
                         (lenx + cdimx - 1) / cdimx);
@@ -590,9 +602,16 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
         ++x;
       }
       totalout += encodeable;
-      char out[17];
-      base64_rgba3(source, encodeable, out, wipe, transcolor);
-      ncfputs(out, fp);
+      if(animated){
+        add_to_deflator(source, encodeable, wipe);
+base64_rgba3(source, encodeable, out, wipe, 0);
+ncfputs(out, fp);
+      }else{
+        // we already took transcolor to alpha 0; there's no need to
+        // check it again, so pass 0.
+        base64_rgba3(source, encodeable, out, wipe, 0);
+        ncfputs(out, fp);
+      }
     }
     ncfputs("\e\\", fp);
   }

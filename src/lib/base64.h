@@ -13,6 +13,10 @@ static unsigned const char b64subs[] =
 // there are only 2 pixels available, those 64 bits become 12 bytes. if there
 // is only 1 pixel available, those 32 bits become 8 bytes. (pcount + 1) * 4
 // bytes are used, plus a null terminator. we thus must receive 17.
+// wipe is referring to the sprixcell state, i.e. whether it was annihilated.
+// it always makes a pixel transparent (by setting alpha to 0). otherwise, we
+// check the pixel against the transcolor. matches (and sufficiently low alpha)
+// are likewise flattened to alpha=0.
 static inline void
 base64_rgba3(const uint32_t* pixels, size_t pcount, char* b64, bool wipe[static 3],
              uint32_t transcolor){
