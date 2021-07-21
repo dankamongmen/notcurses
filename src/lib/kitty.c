@@ -304,11 +304,11 @@ int kitty_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
 // again in pixels. data is the image source. around the edges, we might
 // get truncated regions.
 static inline uint8_t*
-kitty_transanim_auxvec(int dimy, int dimx, int posy, int posx,
-                       int cellpxy, int cellpxx,
-                       const uint32_t* data, int rowstride){
+kitty_anim_auxvec(int dimy, int dimx, int posy, int posx,
+                  int cellpxy, int cellpxx, const uint32_t* data,
+                  int rowstride, uint8_t* existing){
   const size_t slen = 4 * cellpxy * cellpxx;
-  uint8_t* a = malloc(slen);
+  uint8_t* a = existing ? existing : malloc(slen);
   if(a){
     for(int y = posy ; y < posy + cellpxy && y < dimy ; ++y){
       int pixels = cellpxx;
@@ -324,6 +324,15 @@ kitty_transanim_auxvec(int dimy, int dimx, int posy, int posx,
              data + y * (rowstride / 4) + posx,
              pixels * 4);
     }
+  }
+  return a;
+}
+
+uint8_t* kitty_trans_auxvec(const tinfo* ti){
+  const size_t slen = ti->cellpixy * ti->cellpixx;
+  uint8_t* a = malloc(slen);
+  if(a){
+    memset(a, 0, slen);
   }
   return a;
 }
@@ -529,19 +538,21 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
         int xcell = x / cdimx;
         int ycell = y / cdimy;
         int tyx = xcell + ycell * cols;
-        // FIXME must replace this for check as to whether we're at the origin
-        // of the cell, as we're carrying in auxvector from previous frame
-        if(animated){
-          if(x % cdimx == 0 && y % cdimy == 0){
-            free(tam[tyx].auxvector);
-            if((tam[tyx].auxvector = kitty_transanim_auxvec(leny, lenx, y, x,
-                                                            cdimy, cdimx,
-                                                            data, linesize)) == NULL){
-              goto err;
-            }
-          }
-        }
 //fprintf(stderr, "Tyx: %d y: %d (%d) * %d x: %d (%d) state %d %p\n", tyx, y, y / cdimy, cols, x, x / cdimx, tam[tyx].state, tam[tyx].auxvector);
+        // animated auxvecs carry the entirety of the replacement data in
+        // them. on the first pixel of the cell, ditch the previous auxvec
+        // in its entirety, and copy over the entire cell.
+        if(animated && x % cdimx == 0 && y % cdimy == 0){
+          uint8_t* tmp;
+          tmp = kitty_anim_auxvec(leny, lenx, y, x, cdimy, cdimx,
+                                  data, linesize, tam[tyx].auxvector);
+          if(tmp == NULL){
+            cleanup_tam(tam, (leny + cdimy - 1) / cdimy,
+                        (lenx + cdimx - 1) / cdimx);
+            return -1;
+          }
+          tam[tyx].auxvector = tmp;
+        }
         if(tam[tyx].state >= SPRIXCELL_ANNIHILATED){
           if(!animated){
             // this pixel is part of a cell which is currently wiped (alpha-nulled
@@ -587,10 +598,6 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
   }
   scrub_tam_boundaries(tam, leny, lenx, cdimy, cdimx);
   return 0;
-
-err:
-  cleanup_tam(tam, (leny + cdimy - 1) / cdimy, (lenx + cdimx - 1) / cdimx);
-  return -1;
 }
 
 int kitty_rebuild_animation(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
@@ -828,13 +835,4 @@ int kitty_shutdown(FILE* fp){
   // lock up the terminal
   (void)fp;
   return 0;
-}
-
-uint8_t* kitty_trans_auxvec(const tinfo* ti){
-  const size_t slen = ti->cellpixy * ti->cellpixx;
-  uint8_t* a = malloc(slen);
-  if(a){
-    memset(a, 0, slen);
-  }
-  return a;
 }
