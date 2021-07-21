@@ -550,6 +550,13 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
             const int vyx = (y % cdimy) * cdimx + (x % cdimx);
             tam[tyx].auxvector[vyx] = ncpixel_a(source[e]);
           }
+          if(rgba_trans_p(source[e], transcolor)){
+            if(x % cdimx == 0 && y % cdimy == 0){
+              tam[tyx].state = SPRIXCELL_ANNIHILATED_TRANS;
+            }
+          }else{
+            tam[tyx].state = SPRIXCELL_ANNIHILATED;
+          }
           wipe[e] = 1;
         }else{
           wipe[e] = 0;
