@@ -179,7 +179,8 @@ int sprite_wipe(const notcurses* nc, sprixel* s, int ycell, int xcell){
   int idx = s->dimx * ycell + xcell;
   if(s->n->tam[idx].state == SPRIXCELL_TRANSPARENT){
     // need to make a transparent auxvec, because a reload will force us to
-    // update said auxvec.
+    // update said auxvec, but needn't actually change the glyph. auxvec will
+    // be entirely 0s coming from pixel_trans_auxvec().
     if(s->n->tam[idx].auxvector == NULL){
       s->n->tam[idx].auxvector = nc->tcache.pixel_trans_auxvec(&nc->tcache);
       if(s->n->tam[idx].auxvector == NULL){
