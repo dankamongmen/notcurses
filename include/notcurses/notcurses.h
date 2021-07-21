@@ -16,18 +16,20 @@
 // then reverse that, guaranteeing LE. htole(x) == ltohe(x).
 #if defined(__linux__) || defined(__gnu_hurd__)
 #include <byteswap.h>
+#include <netinet/in.h>
 #define htole(x) (__bswap_32(htonl(x)))
 #elif defined(__APPLE__)
+#include <netinet/in.h>
 #include <libkern/OSByteOrder.h>
 #define htole(x) (OSSwapInt32(htonl(x)))
 #elif defined(__MINGW64__)
 #include <winsock.h>
 #define htole(x) (bswap32(htonl(x)))
 #else
+#include <netinet/in.h>
 #include <sys/endian.h>
 #define htole(x) (bswap32(htonl(x)))
 #endif
-#include <netinet/in.h>
 #include <notcurses/nckeys.h>
 #include <notcurses/ncseqs.h>
 
