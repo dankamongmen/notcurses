@@ -387,6 +387,9 @@ sprixel* kitty_recycle(ncplane* n){
 int kitty_wipe(sprixel* s, int ycell, int xcell){
 //fprintf(stderr, "NEW WIPE %d %d/%d\n", s->id, ycell, xcell);
   uint8_t* auxvec = sprixel_auxiliary_vector(s);
+  if(auxvec == NULL){
+    return -1;
+  }
   const int totalpixels = s->pixy * s->pixx;
   const int xpixels = s->cellpxx;
   const int ypixels = s->cellpxy;

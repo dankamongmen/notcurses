@@ -210,6 +210,9 @@ wipe_color(sixelmap* smap, int color, int sband, int eband,
 int sixel_wipe(sprixel* s, int ycell, int xcell){
 //fprintf(stderr, "WIPING %d/%d\n", ycell, xcell);
   uint8_t* auxvec = sprixel_auxiliary_vector(s);
+  if(auxvec == NULL){
+    return -1;
+  }
   memset(auxvec + s->cellpxx * s->cellpxy, 0xff, s->cellpxx * s->cellpxy);
   sixelmap* smap = s->smap;
   const int startx = xcell * s->cellpxx;
