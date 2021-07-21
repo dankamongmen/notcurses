@@ -98,6 +98,7 @@ compress_image(const void* data, int rows, int rowstride, int cols, size_t* dlen
       return NULL;
     }
     zctx.avail_in = cols * 4 + 1;
+    // FIXME eliminate sbuf via 2x deflate(Z_NO_FLUSH)
     sbuf[0] = 0;
     memcpy(sbuf + 1, data + rowstride * i, cols * 4);
     zctx.next_in = sbuf;

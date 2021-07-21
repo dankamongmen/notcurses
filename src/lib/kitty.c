@@ -1,3 +1,4 @@
+#include <zlib.h>
 #include "internal.h"
 #include "base64.h"
 
@@ -482,9 +483,126 @@ cleanup_tam(tament* tam, int ydim, int xdim){
   }
 }
 
+static inline void*
+zctx_origbuf(z_stream* zctx, int pixy, int pixx){
+  size_t blen = pixx * pixy * 4;
+  unsigned long b = deflateBound(zctx, blen);
+  return (unsigned char *)zctx->next_out - (b - zctx->avail_out);
+}
+
+static int
+encode_and_chunkify(FILE* fp, z_stream* zctx, int pixy, int pixx){
+  unsigned long totw = zctx->total_out;
+  unsigned char* buf = zctx_origbuf(zctx, pixy, pixx);
+  // need to terminate the header, requiring semicolon
+  fprintf(fp, "%s;", totw > 4096 * 3 / 4 ? ",m=1" : "");
+  bool first = true;
+  unsigned long i = 0;
+  char b64d[4];
+  while(totw - i > 4096 * 3 / 4){
+    if(!first){
+      ncfputs("\e_Gm=1;", fp); // successor chunk
+    }
+    unsigned long max = i + 4096 * 3 / 4;
+    while(i < max){
+      base64x3(buf + i, b64d);
+      fwrite(b64d, 4, 1, fp);
+      i += 3;
+    }
+    first = false;
+    ncfputs("\e\\", fp);
+  }
+  if(!first){
+    ncfputs("\e_Gm=0;", fp);
+  }
+  while(i < totw){
+    if(totw - i < 3){
+      base64final(buf + i, b64d, totw - i);
+      fwrite(b64d, 4, 1, fp);
+      i += totw - i;
+    }else{
+      base64x3(buf + i, b64d);
+      fwrite(b64d, 4, 1, fp);
+      i += 3;
+    }
+  }
+  ncfputs("\e\\", fp);
+  return 0;
+}
+
+static int
+finalize_deflator(z_stream* zctx, FILE* fp, int dimy, int dimx){
+  assert(0 == zctx->avail_in);
+  int zret = deflate(zctx, Z_FINISH);
+  if(zret != Z_STREAM_END){
+    logerror("Error deflating (%d)\n", zret);
+    return -1;
+  }
+  if(encode_and_chunkify(fp, zctx, dimy, dimx)){
+    return -1;
+  }
+  return 0;
+}
+
 // copy |encodeable| pixels to the deflate state
+static int
+add_to_deflator(z_stream* zctx, const uint32_t* src, int encodeable, bool wipe[static 3]){
+  assert(0 == zctx->avail_in);
+  uint32_t dst[3];
+  zctx->next_in = (void*)dst;
+  dst[0] = *src++;
+  if(wipe[0] || rgba_trans_p(dst[0], 0)){
+    ncpixel_set_a(&dst[0], 0);
+  }
+  if(encodeable > 1){
+    dst[1] = *src++;
+    if(wipe[1] || rgba_trans_p(dst[1], 0)){
+      ncpixel_set_a(&dst[1], 0);
+    }
+    if(encodeable > 2){
+      dst[2] = *src++;
+      if(wipe[2] || rgba_trans_p(dst[2], 0)){
+        ncpixel_set_a(&dst[2], 0);
+      }
+    }
+  }
+  zctx->avail_in = encodeable * 4;
+  int zret = deflate(zctx, Z_NO_FLUSH);
+  if(zret != Z_OK){
+    logerror("Error deflating (%d)\n", zret);
+    return -1;
+  }
+  return 0;
+}
+
+static int
+prep_deflator(unsigned animated, z_stream* zctx, int pixy, int pixx){
+  memset(zctx, 0, sizeof(*zctx));
+  if(animated){
+    int zret;
+    if((zret = deflateInit(zctx, Z_DEFAULT_COMPRESSION)) != Z_OK){
+      logerror("Couldn't get a deflate context (%d)\n", zret);
+      return -1;
+    }
+    size_t blen = pixx * pixy * 4;
+    unsigned long b = deflateBound(zctx, blen);
+    unsigned char* buf = malloc(b);
+    if(buf == NULL){
+      deflateEnd(zctx);
+      return -1;
+    }
+    zctx->avail_out = b;
+    zctx->next_out = buf;
+  }
+  return 0;
+}
+
 static void
-add_to_deflator(const uint32_t* src, int encodeable, bool wipe[static 3]){
+destroy_deflator(unsigned animated, z_stream* zctx, int pixy, int pixx){
+  if(animated){
+    free(zctx_origbuf(zctx, pixy, pixx));
+    deflateEnd(zctx);
+  }
 }
 
 // we can only write 4KiB at a time. we're writing base64-encoded RGBA. each
@@ -498,6 +616,12 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
 //fprintf(stderr, "drawing kitty %p\n", tam);
   if(linesize % sizeof(*data)){
     logerror("Stride (%d) badly aligned\n", linesize);
+    return -1;
+  }
+  // we only deflate if we're using animation, since otherwise we need be able
+  // to edit the encoded bitmap in-place for wipes/restores.
+  z_stream zctx;
+  if(prep_deflator(animated, &zctx, leny, lenx)){
     return -1;
   }
   bool translucent = bargs->flags & NCVISUAL_OPTION_BLEND;
@@ -521,10 +645,19 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
     if(totalout == 0){
       // older versions of kitty will delete uploaded images when scrolling,
       // alas. see https://github.com/dankamongmen/notcurses/issues/1910 =[.
-      *parse_start = fprintf(fp, "\e_Gf=32,s=%d,v=%d,i=%d,p=1,a=t,%s;",
-                             lenx, leny, sprixelid, chunks ? "m=1" : "q=2");
+      // parse_start isn't used in animation mode, so no worries there.
+      *parse_start = fprintf(fp, "\e_Gf=32,s=%d,v=%d,i=%d,p=1,a=t,%s",
+                             lenx, leny, sprixelid,
+                             animated ? "o=z,q=2" : chunks ? "m=1;" : "q=2;");
+      // so if we're animated, we've printed q=2, but no semicolon to close
+      // the control block, since we're not yet sure what m= to write. we've
+      // otherwise written q=2; if we're the only chunk, and m=1; otherwise.
+      // if we're *not* animated, we'll get q=2,m=0; below. otherwise, it's
+      // handled following deflate.
     }else{
-      fprintf(fp, "\e_G%sm=%d;", chunks ? "" : "q=2,", chunks ? 1 : 0);
+      if(!animated){
+        fprintf(fp, "\e_G%sm=%d;", chunks ? "" : "q=2,", chunks ? 1 : 0);
+      }
     }
     if((targetout += RGBA_MAXLEN) > total){
       targetout = total;
@@ -560,9 +693,7 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
                                   data, linesize, tam[tyx].auxvector,
                                   transcolor);
           if(tmp == NULL){
-            cleanup_tam(tam, (leny + cdimy - 1) / cdimy,
-                        (lenx + cdimx - 1) / cdimx);
-            return -1;
+            goto err;
           }
           tam[tyx].auxvector = tmp;
         }
@@ -604,9 +735,9 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
       }
       totalout += encodeable;
       if(animated){
-        add_to_deflator(source, encodeable, wipe);
-base64_rgba3(source, encodeable, out, wipe, 0);
-ncfputs(out, fp);
+        if(add_to_deflator(&zctx, source, encodeable, wipe)){
+          goto err;
+        }
       }else{
         // we already took transcolor to alpha 0; there's no need to
         // check it again, so pass 0.
@@ -614,10 +745,23 @@ ncfputs(out, fp);
         ncfputs(out, fp);
       }
     }
-    ncfputs("\e\\", fp);
+    if(!animated){
+      ncfputs("\e\\", fp);
+    }
+  }
+  if(animated){
+    if(finalize_deflator(&zctx, fp, leny, lenx)){
+      goto err;
+    }
   }
   scrub_tam_boundaries(tam, leny, lenx, cdimy, cdimx);
+  destroy_deflator(animated, &zctx, leny, lenx);
   return 0;
+
+err:
+  cleanup_tam(tam, (leny + cdimy - 1) / cdimy, (lenx + cdimx - 1) / cdimx);
+  destroy_deflator(animated, &zctx, leny, lenx);
+  return -1;
 }
 
 int kitty_rebuild_animation(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
@@ -750,6 +894,7 @@ error:
     free(tam);
   }
   free(s->glyph);
+  s->glyph = NULL;
   return -1;
 }
 
