@@ -244,9 +244,14 @@ int intro(struct notcurses* nc){
     if(!on){
       if(notcurses_check_pixel_support(nc) && notcurses_canopen_images(nc)){
         on = orcashow(nc, rows, cols);
+        if(on == NULL){
+          return -1;
+        }
       }
     }else{
-      orcaride(nc, on, expected_iter);
+      if(orcaride(nc, on, expected_iter)){
+        return -1;
+      }
     }
     int err;
     if( (err = animate(nc, ncp, &flipmode)) ){
