@@ -106,6 +106,7 @@ int fbcon_scrub(const struct ncpile* p, sprixel* s){
 int fbcon_draw(const struct ncpile *p, sprixel* s, FILE* out, int y, int x){
   (void)out; // we don't write to the stream
   const tinfo* ti = &p->nc->tcache;
+  int wrote = 0;
   for(int l = 0 ; l < s->pixy ; ++l){
     // FIXME pixel size isn't necessarily 4B, line isn't necessarily psize*pixx
     size_t offset = ((l + y * ti->cellpixy) * ti->pixx + x * ti->cellpixx) * 4;
@@ -116,12 +117,13 @@ int fbcon_draw(const struct ncpile *p, sprixel* s, FILE* out, int y, int x){
       memcpy(&pixel, src, 4);
       if(!rgba_trans_p(pixel, 0)){
         memcpy(tl, &pixel, 4);
+        wrote += 4;
       }
       src += 4;
       tl += 4;
     }
   }
-  return 0;
+  return wrote;
 }
 
 #ifdef __linux__

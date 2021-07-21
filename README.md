@@ -440,6 +440,13 @@ If things break or seem otherwise lackluster, **please** consult the
   returns successfully.
 </details>
 
+<details>
+  <summary>Why do the stats show more Linux framebuffer bitmap bytes written
+  than total bytes written to the terminal?</summary>
+  Linux framebuffer graphics aren't implemented via terminal writes, but instead
+  writes directly into a memory map.
+</details>
+
 ## Useful links
 
 * [BiDi in Terminal Emulators](https://terminal-wg.pages.freedesktop.org/bidi/)

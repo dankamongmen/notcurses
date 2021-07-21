@@ -42,6 +42,7 @@ typedef struct ncstats {
   uint64_t sprixelelisions;  // sprixel elision count
   uint64_t sprixelbytes;     // sprixel bytes emitted
   uint64_t appsync_updates;  // application-synchronized updates
+  uint64_t input_events;     // EGC inputs received or synthesized
   uint64_t input_errors;     // errors processing input
 
   // current state -- these can decrease
@@ -120,6 +121,12 @@ malformed control sequences or invalid UTF-8 (see **utf8(7)**).
 
 Unsuccessful render operations do not contribute to the render timing stats.
 
+Linux framebuffer bitmaps are not written through the terminal device, but
+instead directly into the memory-mapped framebuffer (see **mmap(2)**). Bytes
+used for framebuffer graphics are thus independent of bytes written to the
+terminal. This explains why **sprixelbytes** may be surprising given the
+value of **render_bytes**.
+
 # RETURN VALUES
 
 Neither **notcurses_stats** nor **notcurses_stats_reset** can fail. Neither
@@ -128,6 +135,7 @@ object on success, or **NULL** on failure.
 
 # SEE ALSO
 
+**mmap(2)**,
 **notcurses(3)**,
 **notcurses_render(3)**,
 **utf8(7)**
