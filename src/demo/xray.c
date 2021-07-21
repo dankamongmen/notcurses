@@ -173,9 +173,6 @@ int xray_demo(struct notcurses* nc){
   ncchannels_set_bg_alpha(&stdc, NCALPHA_TRANSPARENT);
   ncplane_set_base(notcurses_stdplane(nc), "", 0, stdc);
   // returns non-zero if the selected blitter isn't available
-  if(notcurses_check_pixel_support(nc) < 1){
-    marsh.dm = 0.5 * delaymultiplier;
-  }
   pthread_t tid1, tid2;
   marsh.slider = slider;
   marsh.nc = nc;
@@ -183,6 +180,7 @@ int xray_demo(struct notcurses* nc){
   marsh.next_frame = 0;
   marsh.last_frame_rendered = -1;
   marsh.lplane = NULL;
+  marsh.dm = notcurses_check_pixel_support(nc) < 1 ? 0.5 * delaymultiplier : 0;
   int ret = -1;
   // FIXME need do something about SIGINT here, which can leave us locked up
   if(pthread_create(&tid1, NULL, xray_thread, NULL)){
