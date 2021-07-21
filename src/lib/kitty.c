@@ -551,6 +551,7 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
             tam[tyx].auxvector[vyx] = ncpixel_a(source[e]);
           }
           if(rgba_trans_p(source[e], transcolor)){
+            ncpixel_set_a(&source[e], 0); // in case it was transcolor
             if(x % cdimx == 0 && y % cdimy == 0){
               tam[tyx].state = SPRIXCELL_ANNIHILATED_TRANS;
             }
@@ -561,6 +562,7 @@ write_kitty_data(FILE* fp, int linesize, int leny, int lenx, int cols,
         }else{
           wipe[e] = 0;
           if(rgba_trans_p(source[e], transcolor)){
+            ncpixel_set_a(&source[e], 0); // in case it was transcolor
             if(x % cdimx == 0 && y % cdimy == 0){
               tam[tyx].state = SPRIXCELL_TRANSPARENT;
             }else if(tam[tyx].state == SPRIXCELL_OPAQUE_KITTY){
