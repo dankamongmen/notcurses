@@ -578,8 +578,6 @@ uint32_t notcurses_getc(notcurses* nc, const struct timespec *ts,
       ni->seqnum = stamp;
     }
     ++nc->stats.s.input_events;
-  }else{
-    ++nc->stats.s.input_errors; // increments on natural EOF, hrmm
   }
   return r;
 }
