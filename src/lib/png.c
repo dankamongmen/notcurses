@@ -1,5 +1,7 @@
 #include <zlib.h>
+#ifndef __MINGW64__
 #include <sys/mman.h>
+#endif
 #include <inttypes.h>
 #include <stdatomic.h>
 #include <arpa/inet.h>
@@ -187,6 +189,7 @@ write_ihdr(int rows, int cols, unsigned char buf[static 25]){
   return CHUNK_DESC_BYTES + IHDR_DATA_BYTES; // 25
 }
 
+#ifndef __MINGW64__
 // write 1+ IDAT chunks at |buf| from the deflated |dlen| bytes at |data|.
 static size_t
 write_idats(unsigned char* buf, const unsigned char* data, size_t dlen){
@@ -288,6 +291,7 @@ void* create_png_mmap(const void* data, int rows, int rowstride, int cols,
   }
   return map;
 }
+#endif
 
 struct b64ctx {
   unsigned char src[3]; // try to convert three at a time
