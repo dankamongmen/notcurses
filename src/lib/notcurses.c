@@ -17,6 +17,7 @@
 #include <unistr.h>
 #include <locale.h>
 #include <uniwbrk.h>
+#include <inttypes.h>
 #include <notcurses/direct.h>
 #include "compat/compat.h"
 
@@ -1037,7 +1038,7 @@ notcurses* notcurses_core_init(const notcurses_options* opts, FILE* outfp){
     return NULL;
   }
   if(opts->flags >= (NCOPTION_NO_FONT_CHANGES << 1u)){
-    fprintf(stderr, "Warning: unknown Notcurses options %016jx\n", (uintmax_t)opts->flags);
+    fprintf(stderr, "Warning: unknown Notcurses options %016" PRIu64 "\n", opts->flags);
   }
   notcurses* ret = malloc(sizeof(*ret));
   if(ret == NULL){

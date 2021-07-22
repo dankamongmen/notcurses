@@ -1,7 +1,6 @@
 #include <zlib.h>
 #include <inttypes.h>
 #include <stdatomic.h>
-#include <arpa/inet.h>
 #include "visual-details.h"
 #include "internal.h"
 #include "base64.h"
