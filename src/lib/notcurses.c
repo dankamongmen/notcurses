@@ -240,6 +240,8 @@ int update_term_dimensions(int fd, int* rows, int* cols, tinfo* tcache,
     }
     return 0;
   }
+// FIXME
+#ifndef __MINGW64__
   struct winsize ws;
   int i = ioctl(fd, TIOCGWINSZ, &ws);
   if(i < 0){
@@ -272,6 +274,7 @@ int update_term_dimensions(int fd, int* rows, int* cols, tinfo* tcache,
       tcache->pixel_draw = NULL; // disable support
     }
   }
+#endif
   if(tcache->sixel_maxy_pristine){
     int sixelrows = *rows - 1;
     // if the bottom margin is at least one row, we can draw into the last
@@ -904,7 +907,7 @@ init_banner(const notcurses* nc){
     term_fg_palindex(nc, stdout, nc->tcache.caps.colors <= 256 ?
                      14 % nc->tcache.caps.colors : 0x2080e0);
     if(nc->tcache.cellpixy && nc->tcache.cellpixx){
-      fprintf(nc->ttyfp, "%d rows (%dpx) %d cols (%dpx) %dx%d %zuB crend %d colors",
+      fprintf(nc->ttyfp, "%d rows (%dpx) %d cols (%dpx) %dx%d %zuB crend %u colors",
               nc->stdplane->leny, nc->tcache.cellpixy,
               nc->stdplane->lenx, nc->tcache.cellpixx,
               nc->stdplane->leny * nc->tcache.cellpixy,
