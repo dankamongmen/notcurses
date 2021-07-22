@@ -1,6 +1,8 @@
+#include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <pthread.h>
+#include "internal.h"
 #ifndef __MINGW64__
 #include <sys/wait.h>
 #include <sys/time.h>
@@ -18,7 +20,6 @@
 #else
 #define NCPOLLEVENTS (POLLIN)
 #endif
-#include "internal.h"
 
 // release the memory and fd, but don't join the thread (since we might be
 // getting called within the thread's context, on a callback).
