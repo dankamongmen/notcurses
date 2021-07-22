@@ -64,7 +64,11 @@ endif()
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 set(PKGCONFIG_DIR "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
 elseif(APPLE)
+# surely there's a better way to do this? alas, seems necessary to pull the
+# pkg-config files out of Homebrew.
+if(NOT DEFINED ENV{PKG_CONFIG_PATH})
 set(ENV{PKG_CONFIG_PATH} "/usr/local/opt/ncurses/lib/pkgconfig:/usr/local/opt/readline/lib/pkgconfig")
+endif()
 set(PKGCONFIG_DIR "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
 else()
 set(PKGCONFIG_DIR "${CMAKE_INSTALL_PREFIX}/libdata/pkgconfig")
