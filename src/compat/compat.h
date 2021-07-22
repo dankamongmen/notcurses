@@ -5,8 +5,6 @@
 extern "C" {
 #endif
 
-#include "lib/logging.h"
-
 #include <time.h>
 
 #define NANOSECS_IN_SEC 1000000000ul

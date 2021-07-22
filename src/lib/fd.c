@@ -1,7 +1,9 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <pthread.h>
+#ifndef __MINGW64__
 #include <sys/wait.h>
+#endif
 #include <sys/time.h>
 #ifdef USING_PIDFD
 #error "USING_PIDFD was already defined; it should not be."

@@ -20,6 +20,7 @@ extern "C" {
 #include <wctype.h>
 #include <pthread.h>
 #include <stdbool.h>
+#include <inttypes.h>
 #include <unictype.h>
 #ifndef __MINGW64__
 #include <langinfo.h>
@@ -622,9 +623,9 @@ ncplane_cell_ref_yx(const ncplane* n, int y, int x){
 
 static inline void
 cell_debug(const egcpool* p, const nccell* c){
-  fprintf(stderr, "gcluster: %08x %s style: 0x%04x chan: 0x%016jx\n",
+  fprintf(stderr, "gcluster: %08x %s style: 0x%04x chan: 0x%016" PRIx64 "\n",
           c->gcluster, egcpool_extended_gcluster(p, c), c->stylemask,
-          (uintmax_t)c->channels);
+          c->channels);
 }
 
 static inline void

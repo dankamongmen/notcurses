@@ -12,6 +12,7 @@
 #include <unigbrk.h>
 #include <stdbool.h>
 #include "notcurses/notcurses.h"
+#include "compat/compat.h"
 #include "logging.h"
 
 #ifdef __cplusplus
@@ -233,8 +234,7 @@ egcpool_check_validity(const egcpool* pool, int offset){
     wchar_t wcs;
     int r = mbrtowc(&wcs, egc, strlen(egc), &mbstate);
     if(r < 0){
-      fprintf(stderr, "Invalid UTF8 at offset 0x%06x, len %zu [%s]\n",
-              offset, strlen(egc), strerror(errno));
+      fprintf(stderr, "Invalid UTF8 at offset 0x%06x [%s]\n", offset, strerror(errno));
       return false;
     }
     egc += r;

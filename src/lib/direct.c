@@ -886,7 +886,7 @@ ncdirect* ncdirect_core_init(const char* termtype, FILE* outfp, uint64_t flags){
 
 err:
   if(ret->ctermfd >= 0){
-    tcsetattr(ret->ctermfd, TCSANOW, &ret->tcache.tpreserved);
+    (void)tcsetattr(ret->ctermfd, TCSANOW, &ret->tcache.tpreserved);
   }
   drop_signals(ret);
   free(ret);
