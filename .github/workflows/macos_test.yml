@@ -47,7 +47,6 @@ jobs:
 
       - name: cmake
         run: |
-          export PKG_CONFIG_PATH="/usr/local/opt/ncurses/lib/pkgconfig:/usr/local/opt/readline/lib/pkgconfig"
           mkdir build && cd build
           cmake .. \
             -DCMAKE_BUILD_TYPE=Release \
