@@ -45,6 +45,7 @@ sudo apt-get update
 
 ![Linux](https://img.shields.io/badge/-Linux-grey?logo=linux)
 ![FreeBSD](https://img.shields.io/badge/-FreeBSD-grey?logo=freebsd)
+![Windows](https://img.shields.io/badge/-Windows-grey?logo=windows)
 ![OSX](https://img.shields.io/badge/-OSX-grey?logo=osx)
 [![Matrix](https://img.shields.io/matrix/notcursesdev:matrix.org?label=matrixchat)](https://app.element.io/#/room/#notcursesdev:matrix.org)
 [![Sponsor](https://img.shields.io/badge/-Sponsor-red?logo=github)](https://github.com/sponsors/dankamongmen)
@@ -120,7 +121,7 @@ may well be possible to use still older versions. Let me know of any successes!
 * (OPTIONAL) (documentation) [pandoc](https://pandoc.org/index.html) 1.19.2+
 * (OPTIONAL) (python bindings): Python 3.7+, [CFFI](https://pypi.org/project/cffi/) 1.13.2+, [pypandoc](https://pypi.org/project/pypandoc/) 1.5+
 * (OPTIONAL) (rust bindings): rust 1.47.0+, [bindgen](https://crates.io/crates/bindgen) 0.55.1+, pkg-config 0.3.18+, cty 0.2.1+
-* (runtime) Linux 5.3+, FreeBSD 11+, DragonFly BSD 5.9+, or OSX 11.4+
+* (runtime) Linux 5.3+, FreeBSD 11+, DragonFly BSD 5.9+, Windows Vista+, or OSX 11.4+
 
 [Here's more information](INSTALL.md) on building and installation.
 

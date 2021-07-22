@@ -1028,6 +1028,8 @@ blocking_write(int fd, const char* buf, size_t buflen){
     }else{
       written += w;
     }
+    // FIXME ought use WSAPoll() on windows
+#ifndef __MINGW64__
     if(written < buflen){
       struct pollfd pfd = {
         .fd = fd,
@@ -1036,6 +1038,7 @@ blocking_write(int fd, const char* buf, size_t buflen){
       };
       poll(&pfd, 1, -1);
     }
+#endif
   }
   return 0;
 }

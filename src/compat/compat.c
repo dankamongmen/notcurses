@@ -1,5 +1,22 @@
 #ifndef __linux__
 #ifndef __FreeBSD__
+#ifdef  __MINGW64__
+#include <string.h>
+#include <stdlib.h>
+char* strndup(const char* str, size_t size){
+  size_t t = strlen(str);
+  if(t > size){
+    t = size;
+  }
+  ++t;
+  char* r = malloc(str);
+  if(r){
+    memcpy(r, str, t);
+    r[t] = '\0';
+  }
+  return r;
+}
+#else
 #include <time.h>
 #include <stdint.h>
 #include "compat/compat.h"
@@ -27,6 +44,7 @@ int clock_nanosleep(clockid_t clockid, int flags, const struct timespec *request
   return 0;
 
 }
+#endif
 #endif
 #endif
 #endif
