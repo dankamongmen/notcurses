@@ -28,6 +28,9 @@ extern "C" {
 #define nl_langinfo(x) NULL
 #define sigdelset(x, y)
 #define sigaddset(x, y)
+typedef struct siginfo_t {
+  int aieeee;
+} siginfo_t;
 typedef struct sigaction {
   void (*sa_handler)(int);
   void (*sa_sigaction)(int, siginfo_t *, void *);
