@@ -8,11 +8,6 @@ extern "C" {
 #include "version.h"
 #include "builddef.h"
 
-#if defined(__MINGW64__)
-#include <winsock2.h>
-#else
-#include <poll.h>
-#endif
 #include <term.h>
 #include <time.h>
 #include <stdio.h>
@@ -24,7 +19,6 @@ extern "C" {
 #include <signal.h>
 #include <wctype.h>
 #include <pthread.h>
-#include <termios.h>
 #include <stdbool.h>
 #include <unictype.h>
 #include <langinfo.h>

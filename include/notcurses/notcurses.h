@@ -12,24 +12,7 @@
 #include <signal.h>
 #include <limits.h>
 #include <stdbool.h>
-// take host byte order and turn it into network (reverse on LE, no-op on BE),
-// then reverse that, guaranteeing LE. htole(x) == ltohe(x).
-#if defined(__linux__) || defined(__gnu_hurd__)
-#include <byteswap.h>
-#include <netinet/in.h>
-#define htole(x) (__bswap_32(htonl(x)))
-#elif defined(__APPLE__)
-#include <netinet/in.h>
-#include <libkern/OSByteOrder.h>
-#define htole(x) (OSSwapInt32(htonl(x)))
-#elif defined(__MINGW64__)
-#include <winsock.h>
-#define htole(x) (_byteswap_ulong(htonl(x)))
-#else
-#include <netinet/in.h>
-#include <sys/endian.h>
-#define htole(x) (bswap32(htonl(x)))
-#endif
+#include <notcurses/ncport.h>
 #include <notcurses/nckeys.h>
 #include <notcurses/ncseqs.h>
 

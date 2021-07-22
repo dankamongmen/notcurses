@@ -7,7 +7,6 @@
 #include <cstdlib>
 #include <iostream>
 #include <climits>
-#include <termios.h>
 #include <sys/stat.h>
 #include <filesystem>
 #include <langinfo.h>

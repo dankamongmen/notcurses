@@ -11,7 +11,6 @@ extern "C" {
 #include <stdint.h>
 #include <pthread.h>
 #include <stdbool.h>
-#include <termios.h>
 #include <notcurses/notcurses.h>
 
 struct ncpile;

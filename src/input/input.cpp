@@ -8,7 +8,6 @@
 #include <cstdlib>
 #include <clocale>
 #include <iostream>
-#include <termios.h>
 #include <ncpp/Plane.hh>
 #include <ncpp/NotCurses.hh>
 
