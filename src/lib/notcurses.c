@@ -17,8 +17,8 @@
 #include <unistr.h>
 #include <locale.h>
 #include <uniwbrk.h>
-#include <sys/ioctl.h>
 #include <notcurses/direct.h>
+#include "compat/compat.h"
 
 #define ESC "\x1b"
 

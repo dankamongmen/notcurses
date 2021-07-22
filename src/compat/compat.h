@@ -25,7 +25,6 @@ extern "C" {
 #define TCSANOW   0
 #define O_CLOEXEC O_NOINHERIT
 #define O_NOCTTY  0
-#define nl_langinfo(x) NULL
 #define sigdelset(x, y)
 #define sigaddset(x, y)
 typedef struct siginfo_t {
@@ -41,6 +40,8 @@ typedef struct sigaction {
 #define nl_langinfo(x) "UTF-8"
 #define sigaction(x, y, z)
 #define ppoll(w, x, y, z) WSAPoll((w), (x), (y))
+#else
+#include <sys/ioctl.h>
 #endif
 
 static inline uint64_t
