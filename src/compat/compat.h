@@ -17,13 +17,26 @@ extern "C" {
 // FIXME placeholders
 #define tcgetattr(x, y) -1
 #define tcsetattr(x, y, z) -1
-#define ICANON    0
 #define ECHO      0
+#define ICANON    0
+#define ICRNL     0
+#define ISIG      0
 #define TCSAFLUSH 0
 #define TCSANOW   0
 #define O_CLOEXEC O_NOINHERIT
 #define O_NOCTTY  0
 #define nl_langinfo(x) NULL
+#define sigdelset(x, y)
+#define sigaddset(x, y)
+typedef struct sigaction {
+  void (*sa_handler)(int);
+  void (*sa_sigaction)(int, siginfo_t *, void *);
+  sigset_t sa_mask;
+  int sa_flags;
+  void (*sa_restorer)(void);
+}
+#define sigaction(x, y, z)
+#define ppoll(w, x, y, z) WSAPoll((w), (x), (y))
 #endif
 
 static inline uint64_t
