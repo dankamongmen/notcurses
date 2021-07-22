@@ -21,6 +21,8 @@ extern "C" {
 #define ECHO      0
 #define TCSAFLUSH 0
 #define TCSANOW   0
+#define O_CLOEXEC O_NOINHERIT
+#define O_NOCTTY  0
 #define nl_langinfo(x) NULL
 #endif
 
