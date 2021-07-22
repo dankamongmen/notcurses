@@ -43,6 +43,8 @@ int clock_nanosleep(clockid_t clockid, int flags,
                     const struct timespec *request,
                     struct timespec *remain);
 
+char* strndup(const char* str, size_t size);
+
 #ifdef __cplusplus
 }
 #endif

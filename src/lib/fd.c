@@ -3,7 +3,6 @@
 #include <pthread.h>
 #ifndef __MINGW64__
 #include <sys/wait.h>
-#endif
 #include <sys/time.h>
 #ifdef USING_PIDFD
 #error "USING_PIDFD was already defined; it should not be."
@@ -463,6 +462,12 @@ int ncsubproc_destroy(ncsubproc* n){
   }
   return ret;
 }
+#else
+int set_fd_nonblocking(int fd, unsigned state, unsigned* oldstate){ // FIXME
+  logerror("Not implemented for %d %u %p\n", fd, state, oldstate);
+  return -1;
+}
+#endif
 
 ncplane* ncsubproc_plane(ncsubproc* n){
   return n->nfp->ncp;
