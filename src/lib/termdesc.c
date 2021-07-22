@@ -198,6 +198,7 @@ void free_terminfo_cache(tinfo* ti){
   ncinputlayer_stop(&ti->input);
   free(ti->termversion);
   free(ti->esctable);
+#ifdef __linux__
   if(ti->linux_fb_fd >= 0){
     close(ti->linux_fb_fd);
   }
@@ -205,6 +206,7 @@ void free_terminfo_cache(tinfo* ti){
   if(ti->linux_fbuffer != MAP_FAILED){
     munmap(ti->linux_fbuffer, ti->linux_fb_len);
   }
+#endif
 }
 
 // compare one terminal version against another. numerics, separated by
@@ -652,6 +654,7 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
                          int* cursor_y, int* cursor_x, ncsharedstats* stats){
   queried_terminals_e qterm = TERMINAL_UNKNOWN;
   memset(ti, 0, sizeof(*ti));
+#ifdef __linux__
   ti->linux_fb_fd = -1;
   ti->linux_fbuffer = MAP_FAILED;
   // we might or might not program quadrants into the console font
@@ -661,6 +664,7 @@ int interrogate_terminfo(tinfo* ti, int fd, const char* termname, unsigned utf8,
       // FIXME set up pixel-drawing API for framebuffer #1369
     }
   }
+#endif
   if(fd >= 0){
     bool minimal = (qterm != TERMINAL_UNKNOWN);
     if(send_initial_queries(fd, minimal)){

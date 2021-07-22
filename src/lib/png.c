@@ -1,7 +1,4 @@
 #include <zlib.h>
-#ifndef __MINGW64__
-#include <sys/mman.h>
-#endif
 #include <inttypes.h>
 #include <stdatomic.h>
 #include <arpa/inet.h>
@@ -188,110 +185,6 @@ write_ihdr(int rows, int cols, unsigned char buf[static 25]){
   memcpy(buf + 21, &crc, 4);
   return CHUNK_DESC_BYTES + IHDR_DATA_BYTES; // 25
 }
-
-#ifndef __MINGW64__
-// write 1+ IDAT chunks at |buf| from the deflated |dlen| bytes at |data|.
-static size_t
-write_idats(unsigned char* buf, const unsigned char* data, size_t dlen){
-  static const char ctype[] = "IDAT";
-  uint32_t written = 0;
-  uint32_t dwritten = 0;
-  while(dlen){
-    uint32_t thischunk = dlen;
-    if(thischunk > CHUNK_MAX_DATA){
-      thischunk = CHUNK_MAX_DATA;
-    }
-    uint32_t nclen = htonl(thischunk);
-    memcpy(buf + written, &nclen, 4);
-    memcpy(buf + written + 4, ctype, 4);
-    memcpy(buf + written + 8, data + dwritten, thischunk);
-    uint32_t crc = chunk_crc(buf + written);
-    memcpy(buf + written + 8 + thischunk, &crc, 4);
-    dlen -= thischunk;
-    dwritten += thischunk;
-    written += CHUNK_DESC_BYTES + thischunk;
-  }
-  return written;
-}
-
-// write the constant 12B IEND chunk at |buf|. it contains no data.
-static size_t
-write_iend(unsigned char* buf){
-  memcpy(buf, IEND, CHUNK_DESC_BYTES);
-  return CHUNK_DESC_BYTES;
-}
-
-// write a PNG at the provided buffer |buf| using the ncvisual ncv, the
-// deflated data |deflated| of |dlen| bytes. |buf| must be large enough to
-// write all necessary data; it ought have been sized with compute_png_size().
-static size_t
-create_png(int rows, int cols, void* buf, const unsigned char* deflated,
-           size_t dlen){
-  size_t written = sizeof(PNGHEADER) - 1;
-  memcpy(buf, PNGHEADER, written);
-  size_t r = write_ihdr(rows, cols, (unsigned char*)buf + written);
-  written += r;
-  r = write_idats((unsigned char*)buf + written, deflated, dlen);
-  written += r;
-  r = write_iend((unsigned char*)buf + written);
-  written += r;
-  return written;
-}
-
-static inline size_t
-mmap_round_size(size_t s){
-  const size_t pgsize = 4096; // FIXME get page size, round up s
-  return (s + pgsize - 1) / pgsize * pgsize;
-}
-
-// write a PNG, creating the buffer ourselves. it must be munmapped. the
-// resulting length is written to *bsize on success (the file/map might be
-// larger than this, but the end is immaterial padding). returns MMAP_FAILED
-// on a failure. if |fd| is negative, an anonymous map will be made. |rows|
-// and |cols| are in pixels; |rowstride| is in bytes.
-void* create_png_mmap(const void* data, int rows, int rowstride, int cols,
-                      size_t* bsize, int fd){
-  void* deflated;
-  size_t dlen;
-  size_t mlen;
-  *bsize = compute_png_size(data, rows, rowstride, cols, &deflated, &dlen);
-  if(deflated == NULL){
-    logerror("Couldn't compress to %d\n", fd);
-    return MAP_FAILED;
-  }
-  mlen = mmap_round_size(*bsize);
-  if(mlen == 0){
-    return MAP_FAILED;
-  }
-  if(fd >= 0){
-    if(ftruncate(fd, mlen) < 0){
-      logerror("Couldn't set size of %d to %zuB (%s)\n", fd, mlen, strerror(errno));
-      free(deflated);
-      return MAP_FAILED;
-    }
-    loginfo("Set size of %d to %zuB\n", fd, mlen);
-  }
-  // FIXME hugetlb?
-  void* map = mmap(NULL, mlen, PROT_WRITE | PROT_READ, MAP_SHARED |
-                   (fd >= 0 ? 0 : MAP_ANONYMOUS), fd, 0);
-  if(map == MAP_FAILED){
-    logerror("Couldn't get %zuB map for %d (%s)\n", mlen, fd, strerror(errno));
-    free(deflated);
-    return MAP_FAILED;
-  }
-  size_t w = create_png(rows, cols, map, deflated, dlen);
-  free(deflated);
-  loginfo("Wrote %zuB PNG to %d\n", w, fd);
-  if(fd >= 0){
-    if(ftruncate(fd, w) < 0){
-      logerror("Couldn't set size of %d to %zuB (%s)\n", fd, w, strerror(errno));
-      munmap(map, mlen);
-      return MAP_FAILED;
-    }
-  }
-  return map;
-}
-#endif
 
 struct b64ctx {
   unsigned char src[3]; // try to convert three at a time
