@@ -37,7 +37,7 @@ typedef struct sigaction {
   sigset_t sa_mask;
   int sa_flags;
   void (*sa_restorer)(void);
-}
+} sigaction;
 #define sigaction(x, y, z)
 #define ppoll(w, x, y, z) WSAPoll((w), (x), (y))
 #endif
