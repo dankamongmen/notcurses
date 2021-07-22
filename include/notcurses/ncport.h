@@ -20,13 +20,15 @@ extern "C" {
 #include <libkern/OSByteOrder.h>
 #define htole(x) (OSSwapInt32(htonl(x)))
 #elif defined(__MINGW64__)
-#include <winsock.h>
 #include <winsock2.h>
+#include <winsock.h>
 #define htole(x) (_byteswap_ulong(htonl(x)))
-#include <wingdi.h>
+// FIXME placeholders, need real solutions here
 #define wcwidth(w) 1
 #define wcswidth(w, s) (s)
 #define sigset_t int
+#define sigfillset(x)
+#define sigemptyset(x)
 #else // bsd
 #include <poll.h>
 #include <netinet/in.h>

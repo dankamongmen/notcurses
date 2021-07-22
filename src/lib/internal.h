@@ -21,8 +21,9 @@ extern "C" {
 #include <pthread.h>
 #include <stdbool.h>
 #include <unictype.h>
+#ifndef __MINGW64__
 #include <langinfo.h>
-#include <netinet/in.h>
+#endif
 #include "notcurses/notcurses.h"
 #include "compat/compat.h"
 #include "termdesc.h"
