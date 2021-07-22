@@ -38,6 +38,7 @@ typedef struct sigaction {
   int sa_flags;
   void (*sa_restorer)(void);
 } sigaction;
+#define nl_langinfo(x) "UTF-8"
 #define sigaction(x, y, z)
 #define ppoll(w, x, y, z) WSAPoll((w), (x), (y))
 #endif

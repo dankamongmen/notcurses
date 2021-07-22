@@ -17,7 +17,6 @@
 #include <unistr.h>
 #include <locale.h>
 #include <uniwbrk.h>
-#include <langinfo.h>
 #include <sys/ioctl.h>
 #include <notcurses/direct.h>
 

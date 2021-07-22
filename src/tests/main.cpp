@@ -9,7 +9,6 @@
 #include <climits>
 #include <sys/stat.h>
 #include <filesystem>
-#include <langinfo.h>
 
 const char* datadir = NOTCURSES_SHARE;
 ncloglevel_e cliloglevel = NCLOGLEVEL_SILENT;

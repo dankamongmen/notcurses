@@ -2,8 +2,8 @@
 #include <string.h>
 #include <locale.h>
 #include <pthread.h>
-#include <langinfo.h>
 #include "notcurses/notcurses.h"
+#include "internal.h"
 
 static const wchar_t UTF8_SUBPREFIX[] = L"mµnpfazy"; // 10^24-1
 static const wchar_t ASCII_SUBPREFIX[] = L"munpfazy"; // 10^24-1
