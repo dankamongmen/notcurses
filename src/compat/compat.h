@@ -24,7 +24,6 @@ extern "C" {
 #define ISIG      0
 #define TCSAFLUSH 0
 #define TCSANOW   0
-#define O_CLOEXEC O_NOINHERIT
 #define O_NOCTTY  0
 #define SA_SIGINFO 0
 #define SA_RESETHAND 0

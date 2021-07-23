@@ -29,6 +29,9 @@ extern "C" {
 #define sigset_t int
 #define sigfillset(x)
 #define sigemptyset(x)
+#define O_CLOEXEC O_NOINHERIT
+#define O_DIRECTORY 0
+#define S_IFLNK 0
 #else // bsd
 #include <poll.h>
 #include <netinet/in.h>
