@@ -26,7 +26,7 @@ extern "C" {
 #define TCSANOW   0
 #define O_CLOEXEC O_NOINHERIT
 #define O_NOCTTY  0
-#define SA_SIGNINFO 0
+#define SA_SIGINFO 0
 #define SA_RESETHAND 0
 #define SIGQUIT 0
 #define sigdelset(x, y)
