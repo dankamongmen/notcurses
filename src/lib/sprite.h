@@ -152,6 +152,7 @@ typedef struct sprixel {
   // only used for sixel-based sprixels
   struct sixelmap* smap;  // copy of palette indices + transparency bits
   bool wipes_outstanding; // do we need rebuild the sixel next render?
+  bool animating;        // do we have an active animation?
 } sprixel;
 
 int sixel_wipe(sprixel* s, int ycell, int xcell);
