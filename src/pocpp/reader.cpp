@@ -69,8 +69,8 @@ auto main(int argc, const char** argv) -> int {
       int tgeomy, tgeomx, vgeomy, vgeomx;
       ncplane_dim_yx(tplane, &tgeomy, &tgeomx);
       ncplane_dim_yx(ncp, &vgeomy, &vgeomx);
-      (*n)->printf(0, 0, "Scroll: %lc Cursor: %03d/%03d Viewgeom: %03d/%03d Textgeom: %03d/%03d",
-                   horscroll ? L'✔' : L'🗴', ncpy, ncpx, vgeomy, vgeomx, tgeomy, tgeomx);
+      (*n)->printf(0, 0, "Scroll: %c Cursor: %03d/%03d Viewgeom: %03d/%03d Textgeom: %03d/%03d",
+                   horscroll ? '+' : '-', ncpy, ncpx, vgeomy, vgeomx, tgeomy, tgeomx);
       nc.render();
     }
   }
