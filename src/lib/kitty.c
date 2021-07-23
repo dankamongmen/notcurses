@@ -215,13 +215,11 @@ kitty_restore(char* triplet, int skip, int max, int pleft,
 // base. we're blowing away the glyph.
 static int
 init_sprixel_animation(sprixel* s){
-  if(s->glyph.buf){
+  if(s->animating){
     return 0;
   }
-  if(fbuf_init(&s->glyph)){
-    return -1;
-  }
-  loginfo("Opened animation buffer for sprixel %u\n", s->id);
+  fbuf_free(&s->glyph);
+  s->animating = true;
   return 0;
 }
 
@@ -240,7 +238,7 @@ int kitty_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
   if((ycell + 1) * ypixels > s->pixy){
     targy = s->pixy - ycell * ypixels;
   }
-  char* c = s->glyph.buf + s->parse_start;
+  char* c = (char*)s->glyph.buf + s->parse_start;
   int nextpixel = (s->pixx * ycell * ypixels) + (xpixels * xcell);
   int thisrow = targx;
   int chunkedhandled = 0;
@@ -352,7 +350,7 @@ int kitty_wipe_animation(sprixel* s, int ycell, int xcell){
   if(init_sprixel_animation(s)){
     return -1;
   }
-  logdebug("Wiping sprixel %u at %d/%d\n", s->id, ycell, xcell);
+  logdebug("wiping sprixel %u at %d/%d\n", s->id, ycell, xcell);
   fbuf* f = &s->glyph;
   if(fbuf_puts(f, "\x1b_Ga=f,x=") < 0){
     return -1;
@@ -391,21 +389,21 @@ int kitty_wipe_animation(sprixel* s, int ycell, int xcell){
   int totalp = s->cellpxy * s->cellpxx;
   // FIXME preserve so long as cellpixel geom stays constant?
   for(int p = 0 ; p + 3 <= totalp ; p += 3){
-    if(fbuf_puts(f, "AAAAAAAAAAAAAAAA") < 0){
+    if(fbuf_putn(f, "AAAAAAAAAAAAAAAA", strlen("AAAAAAAAAAAAAAAA")) < 0){
       return -1;
     }
   }
   if(totalp % 3 == 1){
-    if(fbuf_puts(f, "AAAAAA==") < 0){
+    if(fbuf_putn(f, "AAAAAA==", strlen("AAAAAA==")) < 0){
       return -1;
     }
   }else if(totalp % 3 == 2){
-    if(fbuf_puts(f, "AAAAAAAAAAA=") < 0){
+    if(fbuf_putn(f, "AAAAAAAAAAA=", strlen("AAAAAAAAAAA=")) < 0){
       return -1;
     }
   }
   // FIXME need chunking for cells of 768+ pixels
-  if(fbuf_putn(f, "\x1b\\", 2) != 2){
+  if(fbuf_putn(f, "\x1b\\", 2) < 0){
     return -1;
   }
   s->invalidated = SPRIXEL_INVALIDATED;
@@ -470,7 +468,7 @@ int kitty_wipe(sprixel* s, int ycell, int xcell){
   if((ycell + 1) * ypixels > s->pixy){
     targy = s->pixy - ycell * ypixels;
   }
-  char* c = s->glyph.buf + s->parse_start;
+  char* c = (char*)s->glyph.buf + s->parse_start;
 //fprintf(stderr, "TARGET AREA: %d x %d @ %dx%d of %d/%d (%d/%d) len %zu\n", targy, targx, ycell, xcell, s->dimy, s->dimx, s->pixy, s->pixx, strlen(c));
   // every pixel was 4 source bytes, 32 bits, 6.33 base64 bytes. every 3 input pixels is
   // 12 bytes (96 bits), an even 16 base64 bytes. there is chunking to worry about. there
@@ -527,7 +525,7 @@ int kitty_wipe(sprixel* s, int ycell, int xcell){
     c += RGBA_MAXLEN * 4 * 4 / 3; // 4bpp * 4/3 for base64, 4096b per chunk
     c += 8; // new chunk header
     ++chunkedhandled;
-fprintf(stderr, "LOOKING NOW AT %ld [%s]\n", c - s->glyph.buf, c);
+//fprintf(stderr, "LOOKING NOW AT %u [%s]\n", c - s->glyph, c);
     while(*c != ';'){
       ++c;
     }
@@ -574,45 +572,35 @@ encode_and_chunkify(fbuf* f, z_stream* zctx, int pixy, int pixx){
   while(totw - i > 4096 * 3 / 4){
     if(!first){
       if(fbuf_putn(f, "\x1b_Gm=1;", 7) < 0){
-        return -1; // successor chunk
+        return -1;
       }
     }
     unsigned long max = i + 4096 * 3 / 4;
     while(i < max){
       base64x3(buf + i, b64d);
-      if(fbuf_putn(f, b64d, 4) < 0){
-        return -1;
-      }
+      fbuf_putn(f, b64d, 4);
       i += 3;
     }
     first = false;
-    if(fbuf_putn(f, "\x1b\\", 2) < 0){
-      return -1;
-    }
+    fbuf_putn(f, "\x1b\\", 2);
   }
   if(!first){
     if(fbuf_putn(f, "\x1b_Gm=0;", 7) < 0){
-      return -1; // successor chunk
+      return -1;
     }
   }
   while(i < totw){
     if(totw - i < 3){
       base64final(buf + i, b64d, totw - i);
-      if(fbuf_putn(f, b64d, 4) < 0){
-        return -1;
-      }
+      fbuf_putn(f, b64d, 4);
       i += totw - i;
     }else{
       base64x3(buf + i, b64d);
-      if(fbuf_putn(f, b64d, 4) < 0){
-        return -1;
-      }
+      fbuf_putn(f, b64d, 4);
       i += 3;
     }
   }
-  if(fbuf_putn(f, "\x1b\\", 2) < 0){
-    return -1;
-  }
+  fbuf_putn(f, "\x1b\\", 2);
   return 0;
 }
 
@@ -743,6 +731,9 @@ write_kitty_data(fbuf* f, int linesize, int leny, int lenx, int cols,
       *parse_start = fbuf_printf(f, "\e_Gf=32,s=%d,v=%d,i=%d,p=1,a=t,%s",
                                  lenx, leny, sprixelid,
                                  animated ? "o=z,q=2" : chunks ? "m=1;" : "q=2;");
+      if(*parse_start < 0){
+        goto err;
+      }
       // so if we're animated, we've printed q=2, but no semicolon to close
       // the control block, since we're not yet sure what m= to write. we've
       // otherwise written q=2; if we're the only chunk, and m=1; otherwise.
@@ -751,7 +742,7 @@ write_kitty_data(fbuf* f, int linesize, int leny, int lenx, int cols,
     }else{
       if(!animated){
         if(fbuf_printf(f, "\e_G%sm=%d;", chunks ? "" : "q=2,", chunks ? 1 : 0) < 0){
-          return -1;
+          goto err;
         }
       }
     }
@@ -849,13 +840,13 @@ write_kitty_data(fbuf* f, int linesize, int leny, int lenx, int cols,
         // check it again, so pass 0.
         base64_rgba3(source, encodeable, out, wipe, 0);
         if(fbuf_puts(f, out) < 0){
-          return -1;
+          goto err;
         }
       }
     }
     if(!animated){
       if(fbuf_putn(f, "\x1b\\", 2) < 0){
-        return -1;
+        goto err;
       }
     }
   }
@@ -916,7 +907,7 @@ int kitty_rebuild_animation(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
   int targetout = 0; // number of pixels expected out after this chunk
 //fprintf(stderr, "total: %d chunks = %d, s=%d,v=%d\n", total, chunks, lenx, leny);
   // FIXME this ought be factored out and shared with write_kitty_data()
-  logdebug("Placing %d/%d at %d/%d\n", ylen, xlen, ycell * s->cellpxy, xcell * s->cellpxx);
+  logdebug("placing %d/%d at %d/%d\n", ylen, xlen, ycell * s->cellpxy, xcell * s->cellpxx);
   while(chunks--){
     if(totalout == 0){
       if(fbuf_printf(f, "\e_Ga=f,x=%d,y=%d,s=%d,v=%d,i=%d,X=1,r=1,%s;",
@@ -1030,10 +1021,7 @@ kitty_blit_core(ncplane* n, int linesize, const void* data, int leny, int lenx,
     goto error;
   }
   if(level == KITTY_ALWAYS_SCROLLS){
-    if(fclose(s->mstreamfp)){
-      goto error;
-    }
-    s->mstreamfp = NULL;
+    s->animating = false;
   }
   // take ownership of |buf| and |tam| on success.
   if(plane_blit_sixel(s, &s->glyph, leny, lenx, parse_start, tam) < 0){
@@ -1112,14 +1100,19 @@ int kitty_draw(const tinfo* ti, const ncpile* p, sprixel* s, FILE* out,
   (void)p;
   (void)y;
   (void)x;
-  int ret = s->glyph.used; // active animation if non-0
+  bool animated = false;
+  if(s->animating){ // active animation
+    s->animating = false;
+    animated = true;
+  }
+  int ret = s->glyph.used;
+  logdebug("Writing out %zub for %u\n", s->glyph.used, s->id);
   if(ret){
-    logdebug("Writing out %db for %u\n", ret, s->id);
     if(fwrite(s->glyph.buf, s->glyph.used, 1, out) != 1){
       ret = -1;
     }
   }
-  if(s->glyph.used){
+  if(animated){
     fbuf_free(&s->glyph);
     s->invalidated = SPRIXEL_LOADED;
   }else{
