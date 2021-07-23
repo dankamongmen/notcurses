@@ -32,6 +32,7 @@ int fbcon_rebuild(sprixel* s, int ycell, int xcell, uint8_t* auxvec){
 
 int fbcon_blit(struct ncplane* n, int linesize, const void* data,
                int leny, int lenx, const struct blitterargs* bargs){
+  uint32_t transcolor = bargs->transcolor;
   int cols = bargs->u.pixel.spx->dimx;
   int rows = bargs->u.pixel.spx->dimy;
   sprixel* s = bargs->u.pixel.spx;
@@ -67,12 +68,32 @@ int fbcon_blit(struct ncplane* n, int linesize, const void* data,
       int xcell = c / cdimx;
       int tyx = xcell + ycell * bargs->u.pixel.spx->dimx;
       if(tam[tyx].state >= SPRIXCELL_ANNIHILATED){
+        if(rgba_trans_p(*(uint32_t*)src, transcolor)){
+          ncpixel_set_a((uint32_t*)src, 0); // in case it was transcolor
+          if(c % cdimx == 0 && l % cdimy == 0){
+            tam[tyx].state = SPRIXCELL_ANNIHILATED_TRANS;
+          }
+        }else{
+          tam[tyx].state = SPRIXCELL_ANNIHILATED;
+        }
         dst[3] = 0;
-        // FIXME stash src[3] into auxvec
+        const int vyx = (l % cdimy) * cdimx + (c % cdimx);
+        tam[tyx].auxvector[vyx] = src[3];
       }else{
-        if(rgba_trans_p(*(const uint32_t*)src, bargs->transcolor)){
+        if(rgba_trans_p(*(uint32_t*)src, transcolor)){
+          ncpixel_set_a((uint32_t*)src, 0); // in case it was transcolor
+          if(c % cdimx == 0 && l % cdimy == 0){
+            tam[tyx].state = SPRIXCELL_TRANSPARENT;
+          }else if(tam[tyx].state == SPRIXCELL_OPAQUE_KITTY){
+            tam[tyx].state = SPRIXCELL_MIXED_KITTY;
+          }
           dst[3] = 0;
         }else{
+          if(c % cdimx == 0 && l % cdimy == 0){
+            tam[tyx].state = SPRIXCELL_OPAQUE_KITTY;
+          }else if(tam[tyx].state == SPRIXCELL_TRANSPARENT){
+            tam[tyx].state = SPRIXCELL_MIXED_KITTY;
+          }
           memcpy(dst + 3, src + 3, 1);
         }
       }
