@@ -8,6 +8,7 @@
 #include <libgen.h>
 #include <unistd.h>
 #include <iostream>
+#include <inttypes.h>
 #include <ncpp/Direct.hh>
 #include <ncpp/Visual.hh>
 #include <ncpp/NotCurses.hh>
@@ -116,7 +117,7 @@ auto perframe(struct ncvisual* ncv, struct ncvisual_options* vopts,
   const intmax_t s = ns / NANOSECS_IN_SEC;
   ns -= s * NANOSECS_IN_SEC;
   if(!marsh->quiet){
-    stdn->printf(0, NCAlign::Right, "%02jd:%02jd:%02jd.%04jd",
+    stdn->printf(0, NCAlign::Right, "%02" PRId64 ":%02" PRId64 ":%02" PRId64 ".%04" PRId64,
                  h, m, s, ns / 1000000);
   }
   if(!nc.render()){
