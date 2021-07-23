@@ -234,11 +234,6 @@ fbuf_emit(fbuf* f, const char* esc){
     return -1;
   }
   if(fbuf_puts(f, esc) < 0){
-<<<<<<< HEAD
-    //logerror("error emitting escape (%s)\n", strerror(errno));
-=======
-    logerror("error emitting escape (%s)\n", strerror(errno));
->>>>>>> 3ddb9554d (merrrge)
     return -1;
   }
   return 0;
