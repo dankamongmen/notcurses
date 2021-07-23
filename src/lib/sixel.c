@@ -580,10 +580,10 @@ write_sixel_header(FILE* fp, int leny, int lenx, const sixeltable* stab, sixel_p
     //fprintf(fp, "#%d;2;%u;%u;%u", i, rgb[0], rgb[1], rgb[2]);
     // we emit the average of the actual sums rather than the RGB clustering
     // point, as it can be (and usually is) much more accurate.
-    int f = fprintf(fp, "#%d;2;%jd;%jd;%jd", i,
-                    (intmax_t)(stab->deets[idx].sums[0] * 100 / count / 255),
-                    (intmax_t)(stab->deets[idx].sums[1] * 100 / count / 255),
-                    (intmax_t)(stab->deets[idx].sums[2] * 100 / count / 255));
+    int f = fprintf(fp, "#%d;2;%" PRId64 ";%" PRId64 ";%" PRId64, i,
+                    (stab->deets[idx].sums[0] * 100 / count / 255),
+                    (stab->deets[idx].sums[1] * 100 / count / 255),
+                    (stab->deets[idx].sums[2] * 100 / count / 255));
     if(f < 0){
       return -1;
     }
