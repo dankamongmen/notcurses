@@ -34,6 +34,7 @@ extern "C" {
 typedef struct siginfo_t {
   int aieeee;
 } siginfo_t;
+#define sigset_t int
 typedef struct sigaction {
   void (*sa_handler)(int);
   void (*sa_sigaction)(int, siginfo_t *, void *);
