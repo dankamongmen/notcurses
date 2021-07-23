@@ -83,7 +83,7 @@ set_package_properties(Threads PROPERTIES TYPE REQUIRED)
 find_package(ZLIB)
 set_package_properties(ZLIB PROPERTIES TYPE REQUIRED)
 # platform-specific logics
-if(NOT MSYS AND NOT APPLE)
+if(NOT MSYS AND NOT WIN32 AND NOT APPLE)
   find_library(LIBM m REQUIRED)
   find_library(LIBRT rt REQUIRED)
 endif()
