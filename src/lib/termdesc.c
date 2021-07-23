@@ -1,7 +1,9 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <ncurses.h> // needed for some definitions, see terminfo(3ncurses)
+#ifdef __linux__
 #include <sys/utsname.h>
+#endif
 #include "internal.h"
 #include "input.h"
 #include "linux.h"
@@ -579,6 +581,7 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
     ti->caps.quadrants = true;
     ti->caps.rgb = true;
     setup_iterm_bitmaps(ti, fd);
+#ifdef __linux__
   }else if(qterm == TERMINAL_LINUX){
     struct utsname un;
     if(uname(&un) == 0){
@@ -591,6 +594,7 @@ apply_term_heuristics(tinfo* ti, const char* termname, int fd,
       termname = "Linux console";
     }
     ti->caps.braille = false; // no caps.braille, no caps.sextants in linux console
+#endif
   }else if(qterm == TERMINAL_TERMINOLOGY){
     termname = "Terminology";
     ti->caps.rgb = false; // as of at least 1.9.0

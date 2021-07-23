@@ -210,7 +210,7 @@ int sprite_clear_all(const tinfo* t, FILE* fp){
 }
 
 int sprite_init(const tinfo* t, int fd){
-  sprixelid_nonce = random() % 0xffffffu;
+  sprixelid_nonce = rand() % 0xffffffu;
   if(t->pixel_init == NULL){
     return 0;
   }
