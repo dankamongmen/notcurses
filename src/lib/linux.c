@@ -8,7 +8,7 @@ int fbcon_wipe(sprixel* s, int ycell, int xcell){
   if(auxvec == NULL){
     return -1;
   }
-  char* glyph = s->glyph;
+  char* glyph = s->glyph.buf;
   for(int y = 0 ; y < s->cellpxy ; ++y){
     if(ycell * s->cellpxy + y >= s->pixy){
       break;
@@ -75,9 +75,9 @@ int fbcon_blit(struct ncplane* n, int linesize, const void* data,
   sprixel* s = bargs->u.pixel.spx;
   int cdimx = s->cellpxx;
   int cdimy = s->cellpxy;
-  s->glyphlen = leny * lenx * 4;
-  s->glyph = malloc(s->glyphlen);
-  if(s->glyph == NULL){
+  size_t flen = leny * lenx * 4;
+  s->glyph.buf = malloc(flen);
+  if(s->glyph.buf == NULL){
     return -1;
   }
   tament* tam = NULL;
@@ -100,7 +100,7 @@ int fbcon_blit(struct ncplane* n, int linesize, const void* data,
     size_t soffset = l * linesize;
     const uint8_t* src = (const unsigned char*)data + soffset;
     size_t toffset = l * lenx * 4;
-    char* dst = s->glyph + toffset;
+    char* dst = (char *)s->glyph.buf + toffset;
     for(int c = 0 ; c < lenx ; ++c){
       int xcell = c / cdimx;
       int tyx = xcell + ycell * bargs->u.pixel.spx->dimx;
@@ -142,7 +142,7 @@ int fbcon_blit(struct ncplane* n, int linesize, const void* data,
     }
   }
   scrub_tam_boundaries(tam, leny, lenx, cdimy, cdimx);
-  if(plane_blit_sixel(s, s->glyph, s->glyphlen, leny, lenx, 0, tam) < 0){
+  if(plane_blit_sixel(s, &s->glyph, leny, lenx, 0, tam) < 0){
     goto error;
   }
   return 1;
@@ -151,7 +151,8 @@ error:
   if(!reuse){
     free(tam);
   }
-  free(s->glyph);
+  free(s->glyph.buf);
+  s->glyph.size = 0;
   return -1;
 }
 
@@ -167,7 +168,7 @@ int fbcon_draw(const tinfo* ti, const struct ncpile *p, sprixel* s, FILE* out, i
     // FIXME pixel size isn't necessarily 4B, line isn't necessarily psize*pixx
     size_t offset = ((l + y * ti->cellpixy) * ti->pixx + x * ti->cellpixx) * 4;
     uint8_t* tl = ti->linux_fbuffer + offset;
-    const char* src = s->glyph + (l * s->pixx * 4);
+    const char* src = (char*)s->glyph.buf + (l * s->pixx * 4);
     for(unsigned c = 0 ; c < (unsigned)s->pixx && c < ti->pixx ; ++c){
       uint32_t pixel;
       memcpy(&pixel, src, 4);

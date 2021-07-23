@@ -1,4 +1,5 @@
 #include "internal.h"
+#include "fbuf.h"
 
 #define RGBSIZE 3
 #define CENTSIZE (RGBSIZE + 1) // size of a color table entry
@@ -237,7 +238,7 @@ int sixel_wipe(sprixel* s, int ycell, int xcell){
   if(w){
     s->wipes_outstanding = true;
   }
-  change_p2(s->glyph, SIXEL_P2_TRANS);
+  change_p2(s->glyph.buf, SIXEL_P2_TRANS);
   s->n->tam[s->dimx * ycell + xcell].auxvector = auxvec;
   return 0;
 }
@@ -535,40 +536,130 @@ refine_color_table(const uint32_t* data, int linesize, int begy, int begx,
 // Emit some number of equivalent, subsequent sixels, using sixel RLE. We've
 // seen the sixel |crle| for |seenrle| columns in a row. |seenrle| must > 0.
 static int
-write_rle(int* printed, int color, FILE* fp, int seenrle, unsigned char crle,
+write_rle(int* printed, int color, fbuf* f, int seenrle, unsigned char crle,
           int* needclosure){
   if(!*printed){
-    fprintf(fp, "%s#%d", *needclosure ? "$" : "", color);
+    if(*needclosure){
+      if(fbuf_putc(f, '$') != 1){
+        return -1;
+      }
+    }
+    if(fbuf_putc(f, '#') != 1){
+      return -1;
+    }
+    if(fbuf_putint(f, color) < 0){
+      return -1;
+    }
     *printed = 1;
     *needclosure = 0;
   }
   crle += 63;
-  if(seenrle == 1){
-    if(fputc(crle, fp) == EOF){
+  if(seenrle == 2){
+    if(fbuf_putc(f, crle) != 1){
       return -1;
     }
-  }else if(seenrle == 2){
-    if(fprintf(fp, "%c%c", crle, crle) <= 0){
+  }else if(seenrle != 1){
+    if(fbuf_putc(f, '!') != 1){
       return -1;
     }
-  }else{
-    if(fprintf(fp, "!%d%c", seenrle, crle) <= 0){
+    if(fbuf_putint(f, seenrle) < 0){
       return -1;
     }
   }
+  if(fbuf_putc(f, crle) != 1){
+    return -1;
+  }
   return 0;
+}
+
+static inline int
+write_sixel_intro(fbuf* f, sixel_p2_e p2, int leny, int lenx){
+  int r = fbuf_puts(f, "\x1bP0;");
+  if(r < 0){
+    return -1;
+  }
+  int rr = fbuf_putint(f, p2);
+  if(rr < 0){
+    return -1;
+  }
+  r += rr;
+  rr = fbuf_puts(f, ";0q\"1;1;");
+  if(rr < 0){
+    return -1;
+  }
+  r += rr;
+  rr = fbuf_putint(f, lenx);
+  if(rr < 0){
+    return -1;
+  }
+  r += rr;
+  if(fbuf_putc(f, ';') != 1){
+    return -1;
+  }
+  ++r;
+  rr = fbuf_putint(f, leny);
+  if(rr < 0){
+    return -1;
+  }
+  r += rr;
+  return r;
+}
+
+// write a single color register. rc/gc/bc are on [0..100].
+static inline int
+write_sixel_creg(fbuf* f, int idx, int rc, int gc, int bc){
+  int r = 0;
+  if(fbuf_putc(f, '#') != 1){
+    return -1;
+  }
+  ++r;
+  int rr = fbuf_putint(f, idx);
+  if(rr < 0){
+    return -1;
+  }
+  r += rr;
+  rr = fbuf_puts(f, ";2;");
+  if(rr < 0){
+    return -1;
+  }
+  r += rr;
+  rr = fbuf_putint(f, rc);
+  if(rr < 0){
+    return -1;
+  }
+  r += rr;
+  if(fbuf_putc(f, ';') != 1){
+    return -1;
+  }
+  ++r;
+  rr = fbuf_putint(f, gc);
+  if(rr < 0){
+    return -1;
+  }
+  r += rr;
+  if(fbuf_putc(f, ';') != 1){
+    return -1;
+  }
+  ++r;
+  rr = fbuf_putint(f, bc);
+  if(rr < 0){
+    return -1;
+  }
+  r += rr;
+  return r;
 }
 
 // write the escape which opens a Sixel, plus the palette table. returns the
 // number of bytes written, so that this header can be directly copied in
 // future reencodings. |leny| and |lenx| are output pixel geometry.
+// returns the number of bytes written, so it can be stored at *parse_start.
 static int
-write_sixel_header(FILE* fp, int leny, int lenx, const sixeltable* stab, sixel_p2_e p2){
+write_sixel_header(fbuf* f, int leny, int lenx, const sixeltable* stab, sixel_p2_e p2){
   if(leny % 6){
     return -1;
   }
   // Set Raster Attributes - pan/pad=1 (pixel aspect ratio), Ph=lenx, Pv=leny
-  int r = fprintf(fp, "\eP0;%d;0q\"1;1;%d;%d", p2, lenx, leny);
+  int r = write_sixel_intro(f, p2, leny, lenx);
   if(r < 0){
     return -1;
   }
@@ -580,20 +671,19 @@ write_sixel_header(FILE* fp, int leny, int lenx, const sixeltable* stab, sixel_p
     //fprintf(fp, "#%d;2;%u;%u;%u", i, rgb[0], rgb[1], rgb[2]);
     // we emit the average of the actual sums rather than the RGB clustering
     // point, as it can be (and usually is) much more accurate.
-    int f = fprintf(fp, "#%d;2;%" PRId64 ";%" PRId64 ";%" PRId64, i,
-                    (stab->deets[idx].sums[0] * 100 / count / 255),
-                    (stab->deets[idx].sums[1] * 100 / count / 255),
-                    (stab->deets[idx].sums[2] * 100 / count / 255));
-    if(f < 0){
+    int rr = write_sixel_creg(f, i, (stab->deets[idx].sums[0] * 100 / count / 255),
+                              (stab->deets[idx].sums[1] * 100 / count / 255),
+                              (stab->deets[idx].sums[2] * 100 / count / 255));
+    if(rr < 0){
       return -1;
     }
-    r += f;
+    r += rr;
   }
   return r;
 }
 
 static int
-write_sixel_payload(FILE* fp, int lenx, const sixelmap* map){
+write_sixel_payload(fbuf* f, int lenx, const sixelmap* map){
   int p = 0;
   while(p < map->sixelcount){
     int needclosure = 0;
@@ -609,7 +699,9 @@ write_sixel_payload(FILE* fp, int lenx, const sixelmap* map){
           if(map->data[idx * map->sixelcount + m] == crle){
             ++seenrle;
           }else{
-            write_rle(&printed, i, fp, seenrle, crle, &needclosure);
+            if(write_rle(&printed, i, f, seenrle, crle, &needclosure)){
+              return -1;
+            }
             seenrle = 1;
             crle = map->data[idx * map->sixelcount + m];
           }
@@ -619,16 +711,22 @@ write_sixel_payload(FILE* fp, int lenx, const sixelmap* map){
         }
       }
       if(crle){
-        write_rle(&printed, i, fp, seenrle, crle, &needclosure);
+        if(write_rle(&printed, i, f, seenrle, crle, &needclosure)){
+          return -1;
+        }
       }
       needclosure = needclosure | printed;
     }
     if(p + lenx < map->sixelcount){
-      fputc('-', fp);
+      if(fbuf_putc(f, '-') != 1){
+        return -1;
+      }
     }
     p += lenx;
   }
-  fprintf(fp, "\e\\");
+  if(fbuf_puts(f, "\e\\") < 0){
+    return -1;
+  }
   return 0;
 }
 
@@ -637,16 +735,13 @@ write_sixel_payload(FILE* fp, int lenx, const sixelmap* map){
 // constant, and is simply copied. fclose()s |fp| on success. |outx| and |outy|
 // are output geometry.
 static int
-write_sixel(FILE* fp, int outy, int outx, const sixeltable* stab,
+write_sixel(fbuf* f, int outy, int outx, const sixeltable* stab,
             int* parse_start, sixel_p2_e p2){
-  *parse_start = write_sixel_header(fp, outy, outx, stab, p2);
+  *parse_start = write_sixel_header(f, outy, outx, stab, p2);
   if(*parse_start < 0){
     return -1;
   }
-  if(write_sixel_payload(fp, outx, stab->map) < 0){
-    return -1;
-  }
-  if(fclose(fp) == EOF){
+  if(write_sixel_payload(f, outx, stab->map) < 0){
     return -1;
   }
   return 0;
@@ -662,30 +757,21 @@ write_sixel(FILE* fp, int outy, int outx, const sixeltable* stab,
 // is redrawn, and annihilated sprixcells still require a glyph to be emitted.
 static inline int
 sixel_reblit(sprixel* s){
-  char* buf = NULL;
-  size_t size = 0;
-  FILE* fp = open_memstream(&buf, &size);
-  if(fp == NULL){
+  fbuf f;
+  if(fbuf_init(&f)){
     return -1;
   }
-  if(fwrite(s->glyph, s->parse_start, 1, fp) != 1){
-    fclose(fp);
-    free(buf);
+  if(fbuf_putn(&f, s->glyph.buf, s->parse_start) != s->parse_start){
+    fbuf_free(&f);
     return -1;
   }
-  if(write_sixel_payload(fp, s->pixx, s->smap) < 0){
-    fclose(fp);
-    free(buf);
+  if(write_sixel_payload(&f, s->pixx, s->smap) < 0){
+    fbuf_free(&f);
     return -1;
   }
-  if(fclose(fp) == EOF){
-    free(buf);
-    return -1;
-  }
-  free(s->glyph);
+  fbuf_free(&s->glyph);
   // FIXME update P2 if necessary
-  s->glyph = buf;
-  s->glyphlen = size;
+  memcpy(&s->glyph, &f, sizeof(f));
   return 0;
 }
 
@@ -697,10 +783,8 @@ sixel_reblit(sprixel* s){
 // transparent filler input for any missing rows.
 static inline int
 sixel_blit_inner(int leny, int lenx, sixeltable* stab, sprixel* s, tament* tam){
-  char* buf = NULL;
-  size_t size = 0;
-  FILE* fp = open_memstream(&buf, &size);
-  if(fp == NULL){
+  fbuf f;
+  if(fbuf_init(&f)){
     return -1;
   }
   int parse_start = 0;
@@ -710,17 +794,17 @@ sixel_blit_inner(int leny, int lenx, sixeltable* stab, sprixel* s, tament* tam){
     stab->p2 = SIXEL_P2_TRANS;
   }
   // calls fclose() on success
-  if(write_sixel(fp, outy, lenx, stab, &parse_start, stab->p2)){
-    fclose(fp);
-    free(buf);
+  if(write_sixel(&f, outy, lenx, stab, &parse_start, stab->p2)){
+    fbuf_free(&f);
     return -1;
   }
   scrub_tam_boundaries(tam, outy, lenx, s->cellpxy, s->cellpxx);
   // take ownership of buf on success
-  if(plane_blit_sixel(s, buf, size, outy, lenx, parse_start, tam) < 0){
-    free(buf);
+  if(plane_blit_sixel(s, &f, outy, lenx, parse_start, tam) < 0){
+    fbuf_free(&f);
     return -1;
   }
+  // we're keeping the buf remnants
   sixelmap_trim(stab->map);
   s->smap = stab->map;
   return 1;
@@ -858,11 +942,11 @@ int sixel_draw(const tinfo* ti, const ncpile* p, sprixel* s, FILE* out,
       }
     }
   }
-  if(fwrite(s->glyph, s->glyphlen, 1, out) != 1){
+  if(fwrite(s->glyph.buf, s->glyph.used, 1, out) != 1){
     return -1;
   }
   s->invalidated = SPRIXEL_QUIESCENT;
-  return s->glyphlen;
+  return s->glyph.used;
 }
 
 int sixel_init(const tinfo* ti, int fd){

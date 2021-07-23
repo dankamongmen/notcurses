@@ -5,6 +5,7 @@
 #include "internal.h"
 #include "termdesc.h"
 #include "sprite.h"
+#include "fbuf.h"
 #include "png.h"
 
 // yank a cell out of the PNG by setting all of its alphas to 0. the alphas
@@ -33,40 +34,25 @@ int iterm_draw(const tinfo* ti, const ncpile *p, sprixel* s, FILE* out, int y, i
       return -1;
     }
   }
-  if(fwrite(s->glyph, s->glyphlen, 1, out) != 1){
+  if(fwrite(s->glyph.buf, s->glyph.used, 1, out) != 1){
     return -1;
   }
-  return s->glyphlen;
+  return s->glyph.used;
 }
 
 static int
-write_iterm_graphic(sprixel* s, const void* data, int leny, int stride, int lenx){
-  s->glyph = NULL;
-  FILE* fp = open_memstream(&s->glyph, &s->glyphlen);
-  if(fp == NULL){
+write_iterm_graphic(const void* data, int leny, int stride, int lenx, fbuf *f){
+  if(fbuf_puts(f, "\e]1337;File=inline=1:") < 0){
     return -1;
   }
-  if(ncfputs("\e]1337;File=inline=1:", fp) == EOF){
-    goto err;
-  }
   // FIXME won't we need to pass TAM into write_png_b64()?
-  if(write_png_b64(data, leny, stride, lenx, fp)){
-    goto err;
+  if(write_png_b64(data, leny, stride, lenx, f)){
+    return -1;
   }
-  if(ncfputs("\e\\", fp) == EOF){
-    goto err;
-  }
-  if(fclose(fp) == EOF){
-    logerror("Error flushing %zuB (%s)\n", s->glyphlen, strerror(errno));
-    free(s->glyph);
+  if(fbuf_puts(f, "\x1b\\") < 0){
     return -1;
   }
   return 0;
-
-err:
-  fclose(fp);
-  // s->glyph is freed by caller
-  return -1;
 }
 
 // create an iterm2 control sequence complete with base64-encoded PNG.
@@ -89,16 +75,28 @@ int iterm_blit(ncplane* n, int linesize, const void* data,
   if(!reuse){
     tam = malloc(sizeof(*tam) * rows * cols);
     if(tam == NULL){
-      goto error;
+      return -1;
     }
     memset(tam, 0, sizeof(*tam) * rows * cols);
   }
-  if(write_iterm_graphic(s, data, leny, linesize, lenx)){
-    goto error;
+  if(fbuf_init(&s->glyph)){
+    free(tam);
+    return -1;
+  }
+  if(write_iterm_graphic(data, leny, linesize, lenx, &s->glyph)){
+    if(!reuse){
+      free(tam);
+    }
+    fbuf_free(&s->glyph);
+    return -1;
   }
   scrub_tam_boundaries(tam, leny, lenx, s->cellpxy, s->cellpxx);
-  if(plane_blit_sixel(s, s->glyph, s->glyphlen, leny, lenx, parse_start, tam) < 0){
-    goto error;
+  if(plane_blit_sixel(s, &s->glyph, leny, lenx, parse_start, tam) < 0){
+    if(!reuse){
+      free(tam);
+    }
+    fbuf_free(&s->glyph);
+    return -1;
   }
   return 1;
 

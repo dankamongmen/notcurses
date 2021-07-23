@@ -7,6 +7,7 @@ extern "C" {
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "fbuf.h"
 
 struct tinfo;
 struct ncpile;
@@ -131,8 +132,7 @@ typedef struct tament {
 // protocol, we just have to rewrite them. there's a doubly-linked list of
 // sprixels per ncpile, to which the pile keeps a head link.
 typedef struct sprixel {
-  char* glyph;          // glyph; can be quite large
-  size_t glyphlen;      // length of the glyph in bytes
+  fbuf glyph;
   uint32_t id;          // embedded into gcluster field of nccell, 24 bits
   // both the plane and visual can die before the sprixel does. they are
   // responsible in such a case for NULLing out this link themselves.
@@ -151,8 +151,6 @@ typedef struct sprixel {
   int parse_start;      // where to start parsing for cell wipes
   // only used for sixel-based sprixels
   struct sixelmap* smap;  // copy of palette indices + transparency bits
-  FILE* mstreamfp;        // mstream for writing animation-type updates,
-                          // (only available for kitty animation sprixels)
   bool wipes_outstanding; // do we need rebuild the sixel next render?
 } sprixel;
 
