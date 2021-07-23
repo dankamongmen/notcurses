@@ -17,13 +17,15 @@ extern "C" {
 // come after. uses mmap (with huge pages, if possible) on unix and
 // virtualalloc on windows. it can grow arbitrarily large. it does
 // *not* maintain a NUL terminator, and can hold binary data.
-// on Windows, we're using VirtualAlloc(). on BSD, we're using realloc().
-// on Linux, we're using mmap()+mremap().
 
 typedef struct fbuf {
   uint64_t size;
   uint64_t used;
+#ifdef __MINGW64__
+  LPVOID buf;
+#else
   char* buf;
+#endif
 } fbuf;
 
 // header-only so that we can test it from notcurses-tester
@@ -137,7 +139,7 @@ fbuf_init_small(fbuf* f){
   return fbuf_initgrow(f, 1);
 }
 
-// prepare f with a large initial buffer.
+// prepare f with an initial buffer.
 static inline int
 fbuf_init(fbuf* f){
   f->used = 0;
