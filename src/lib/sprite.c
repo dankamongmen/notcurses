@@ -6,7 +6,7 @@ static atomic_uint_fast32_t sprixelid_nonce;
 
 void sprixel_debug(const sprixel* s, FILE* out){
   fprintf(out, "Sprixel %d (%p) %zuB %dx%d (%dx%d) @%d/%d state: %d\n",
-          s->id, s, s->glyphlen, s->dimy, s->dimx, s->pixy, s->pixx,
+          s->id, s, s->glyph.used, s->dimy, s->dimx, s->pixy, s->pixx,
           s->n ? s->n->absy : 0, s->n ? s->n->absx : 0,
           s->invalidated);
   if(s->n){
@@ -49,7 +49,7 @@ void sprixel_free(sprixel* s){
       s->n->sprite = NULL;
     }
     sixelmap_free(s->smap);
-    free(s->glyph);
+    fbuf_free(&s->glyph);
     free(s);
   }
 }
@@ -151,7 +151,7 @@ sprixel* sprixel_alloc(const tinfo* ti, ncplane* n, int dimy, int dimx){
 // |pixy| and |pixx| are the output pixel geometry (i.e. |pixy| must be a
 // multiple of 6 for sixel). output coverage ought already have been loaded.
 // takes ownership of 's' on success. frees any existing glyph.
-int sprixel_load(sprixel* spx, char* s, int bytes, int pixy, int pixx,
+int sprixel_load(sprixel* spx, fbuf* f, int pixy, int pixx,
                  int parse_start){
   assert(spx->n);
   if(spx->cellpxy > 0){ // don't explode on ncdirect case
@@ -162,11 +162,10 @@ int sprixel_load(sprixel* spx, char* s, int bytes, int pixy, int pixx,
       return -1;
     }
   }
-  if(spx->glyph != s){
-    free(spx->glyph);
-    spx->glyph = s;
+  if(&spx->glyph != f){
+    fbuf_free(&spx->glyph);
+    memcpy(&spx->glyph, f, sizeof(*f));
   }
-  spx->glyphlen = bytes;
   spx->invalidated = SPRIXEL_INVALIDATED;
   spx->pixx = pixx;
   spx->pixy = pixy;

@@ -5,7 +5,7 @@
 
 // convert the sprixel at s having pixel dimensions dimyXdimx to an rgb(a)
 // matrix for easier analysis. breaks on malformed sixels.
-std::vector<uint32_t> sixel_to_rgb(const char* s, int dimy, int dimx) {
+std::vector<uint32_t> sixel_to_rgb(const char* s, size_t len, int dimy, int dimx) {
   std::vector<uint32_t> bmap(dimy * dimx, 0x00000000ull);
   std::vector<uint32_t> colors;
   // first we skip the header
@@ -25,7 +25,8 @@ std::vector<uint32_t> sixel_to_rgb(const char* s, int dimy, int dimx) {
   unsigned x = 0;
   unsigned y = 0;
   unsigned rle = 1;
-  while(*s){
+  const char* begin = s;
+  while((size_t)(s - begin) < len){
     if(*s == '\e'){
       break;
     }
@@ -166,7 +167,8 @@ TEST_CASE("Sixels") {
     auto newn = ncvisual_render(nc_, ncv, &vopts);
     CHECK(newn);
     CHECK(0 == notcurses_render(nc_));
-    auto rgb = sixel_to_rgb(newn->sprite->glyph, newn->sprite->pixy, newn->sprite->pixx);
+    auto rgb = sixel_to_rgb(newn->sprite->glyph.buf, newn->sprite->glyph.used,
+                            newn->sprite->pixy, newn->sprite->pixx);
     for(int y = 0 ; y < newn->sprite->pixy ; ++y){
       for(int x = 0 ; x < newn->sprite->pixx ; ++x){
 //fprintf(stderr, "%03d/%03d NCV: %08x RGB: %08x\n", y, x, ncv->data[y * newn->sprite->pixx + x], rgb[y * newn->sprite->pixx + x]);
@@ -186,7 +188,8 @@ TEST_CASE("Sixels") {
     vopts.flags = NCVISUAL_OPTION_NODEGRADE;
     auto newn = ncvisual_render(nc_, ncv, &vopts);
     CHECK(newn);
-    auto rgbold = sixel_to_rgb(newn->sprite->glyph, newn->sprite->pixy, newn->sprite->pixx);
+    auto rgbold = sixel_to_rgb(newn->sprite->glyph.buf, newn->sprite->glyph.used,
+                               newn->sprite->pixy, newn->sprite->pixx);
 //print_bmap(rgbold, newn->sprite->pixy, newn->sprite->pixx);
     CHECK(0 == notcurses_render(nc_));
     struct ncplane_options nopts = {
@@ -208,7 +211,8 @@ TEST_CASE("Sixels") {
     CHECK(0 == notcurses_render(nc_));
     // FIXME at this point currently, we get a degraded back of the orca
     // test via conversion back to image? unsure
-    auto rgbnew = sixel_to_rgb(newn->sprite->glyph, newn->sprite->pixy, newn->sprite->pixx);
+    auto rgbnew = sixel_to_rgb(newn->sprite->glyph.buf, newn->sprite->glyph.used,
+                               newn->sprite->pixy, newn->sprite->pixx);
 //print_bmap(rgbnew, newn->sprite->pixy, newn->sprite->pixx);
     CHECK(0 == ncplane_destroy(newn));
     CHECK(0 == ncplane_destroy(blockerplane));

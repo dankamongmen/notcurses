@@ -7,6 +7,7 @@ extern "C" {
 
 #include "version.h"
 #include "builddef.h"
+#include "compat/compat.h"
 
 #include <term.h>
 #include <ncurses.h>
@@ -27,7 +28,6 @@ extern "C" {
 #include <langinfo.h>
 #endif
 #include "notcurses/notcurses.h"
-#include "compat/compat.h"
 #include "termdesc.h"
 #include "egcpool.h"
 #include "sprite.h"
@@ -702,7 +702,7 @@ void sprixel_hide(sprixel* s);
 sprixel* sprixel_alloc(const tinfo* ti, ncplane* n, int dimy, int dimx);
 sprixel* sprixel_recycle(ncplane* n);
 // takes ownership of s on success.
-int sprixel_load(sprixel* spx, char* s, int bytes, int pixy, int pixx, int parse_start);
+int sprixel_load(sprixel* spx, fbuf* f, int pixy, int pixx, int parse_start);
 int sprite_init(const tinfo* t, int fd);
 int sprite_clear_all(const tinfo* t, FILE* fp);
 // these three all use absolute coordinates
@@ -1438,9 +1438,9 @@ egc_rtl(const char* egc, int* bytes){
 // a sprixel occupies the entirety of its associated plane, usually an entirely
 // new, purpose-specific plane. |leny| and |lenx| are output geometry in pixels.
 static inline int
-plane_blit_sixel(sprixel* spx, char* s, int bytes, int leny, int lenx,
+plane_blit_sixel(sprixel* spx, fbuf* f, int leny, int lenx,
                  int parse_start, tament* tam){
-  if(sprixel_load(spx, s, bytes, leny, lenx, parse_start)){
+  if(sprixel_load(spx, f, leny, lenx, parse_start)){
     return -1;
   }
   ncplane* n = spx->n;

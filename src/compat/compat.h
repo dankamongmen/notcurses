@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 #include <time.h>
+#include <stdint.h>
 
 #define NANOSECS_IN_SEC 1000000000ul
 

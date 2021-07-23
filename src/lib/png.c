@@ -4,6 +4,7 @@
 #include "visual-details.h"
 #include "internal.h"
 #include "base64.h"
+#include "fbuf.h"
 #include "png.h"
 
 // http://www.libpng.org/pub/png/spec/1.2/PNG-Contents.html
@@ -191,7 +192,7 @@ struct b64ctx {
 };
 
 static int
-fwrite64(const void* src, size_t osize, FILE* fp, struct b64ctx* bctx){
+fbuf_putn64(fbuf* f, const void* src, size_t osize, struct b64ctx* bctx){
   size_t w = 0;
   char b64[4];
   if(bctx->srcidx){
@@ -205,7 +206,7 @@ fwrite64(const void* src, size_t osize, FILE* fp, struct b64ctx* bctx){
     memcpy(bctx->src + bctx->srcidx, src, copy);
     base64x3(bctx->src, b64);
     bctx->srcidx = 0;
-    if(fwrite(b64, 4, 1, fp) != 1){
+    if(fbuf_putn(f, b64, 4) != 4){
       return -1;
     }
     w = copy;
@@ -213,7 +214,7 @@ fwrite64(const void* src, size_t osize, FILE* fp, struct b64ctx* bctx){
   // the bctx is now guaranteed to be empty
   while(w + 3 <= osize){
     base64x3((const unsigned char*)src + w, b64);
-    if(fwrite(b64, 4, 1, fp) != 1){
+    if(fbuf_putn(f, b64, 4) != 4){
       return -1;
     }
     w += 3;
@@ -227,7 +228,7 @@ fwrite64(const void* src, size_t osize, FILE* fp, struct b64ctx* bctx){
 }
 
 static size_t
-fwrite_idats(FILE* fp, const unsigned char* data, size_t dlen,
+fwrite_idats(fbuf* f, const unsigned char* data, size_t dlen,
              struct b64ctx* bctx){
   static const char ctype[] = "IDAT";
   uint32_t written = 0;
@@ -238,9 +239,9 @@ fwrite_idats(FILE* fp, const unsigned char* data, size_t dlen,
       thischunk = CHUNK_MAX_DATA;
     }
     uint32_t nclen = htonl(thischunk);
-    if(fwrite64(&nclen, 4, fp, bctx) != 1 ||
-       fwrite64(ctype, 4, fp, bctx) != 1 ||
-       fwrite64(data + dwritten, thischunk, fp, bctx) != 1){
+    if(fbuf_putn64(f, &nclen, 4, bctx) != 1 ||
+       fbuf_putn64(f, ctype, 4, bctx) != 1 ||
+       fbuf_putn64(f, data + dwritten, thischunk, bctx) != 1){
       return 0;
     }
 // FIXME horrible; PoC; do not retain!
@@ -251,7 +252,7 @@ memcpy(crcbuf + 8, data + dwritten, thischunk);
 // END horribleness
     uint32_t crc = chunk_crc(crcbuf);
 free(crcbuf); // FIXME well a bit more
-    if(fwrite64(&crc, 4, fp, bctx) != 1){
+    if(fbuf_putn64(f, &crc, 4, bctx) != 1){
       return 0;
     }
     dlen -= thischunk;
@@ -261,7 +262,7 @@ free(crcbuf); // FIXME well a bit more
   return written;
 }
 
-int write_png_b64(const void* data, int rows, int rowstride, int cols, FILE* fp){
+int write_png_b64(const void* data, int rows, int rowstride, int cols, fbuf* f){
   void* deflated;
   size_t dlen;
   compute_png_size(data, rows, rowstride, cols, &deflated, &dlen);
@@ -269,28 +270,28 @@ int write_png_b64(const void* data, int rows, int rowstride, int cols, FILE* fp)
     return -1;
   }
   struct b64ctx bctx = { };
-  if(fwrite64(PNGHEADER, sizeof(PNGHEADER) - 1, fp, &bctx) != 1){
+  if(fbuf_putn64(f, PNGHEADER, sizeof(PNGHEADER) - 1, &bctx) < 0){
     free(deflated);
     return -1;
   }
   unsigned char ihdr[25];
   write_ihdr(rows, cols, ihdr);
-  if(fwrite64(ihdr, sizeof(ihdr), fp, &bctx) != 1){
+  if(fbuf_putn64(f, ihdr, sizeof(ihdr), &bctx) != 1){
     free(deflated);
     return -1;
   }
-  if(fwrite_idats(fp, deflated, dlen, &bctx) == 0){
+  if(fwrite_idats(f, deflated, dlen, &bctx) == 0){
     free(deflated);
     return -1;
   }
   free(deflated);
-  if(fwrite64(IEND, sizeof(IEND) - 1, fp, &bctx) != 1){
+  if(fbuf_putn64(f, IEND, sizeof(IEND) - 1, &bctx) != 1){
     return -1;
   }
   if(bctx.srcidx){
     char b64[4];
     base64final(bctx.src, b64, bctx.srcidx);
-    if(fwrite(b64, 4, 1, fp) != 1){
+    if(fbuf_putn(f, b64, 4) < 0){
       return -1;
     }
   }
