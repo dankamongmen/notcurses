@@ -44,6 +44,7 @@ typedef struct sigaction {
 #define nl_langinfo(x) "UTF-8"
 #define ppoll(w, x, y, z) WSAPoll((w), (x), (y))
 #else
+#include <sys/mman.h>
 #include <sys/ioctl.h>
 #endif
 

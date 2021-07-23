@@ -127,7 +127,6 @@ int fbcon_draw(const struct ncpile *p, sprixel* s, FILE* out, int y, int x){
 }
 
 #ifdef __linux__
-#include <sys/mman.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
